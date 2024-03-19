@@ -9,11 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from typing import Any
+from typing import Any, Optional
 
 import dns.rcode
 import dns.message
 
+import isctest.log
 
 # compatiblity with dnspython<2.0.0
 try:
@@ -38,8 +39,31 @@ def servfail(message: dns.message.Message) -> None:
     rcode(message, dns_rcode.SERVFAIL)
 
 
-def rrsets_equal(first_rrset: dns.rrset.RRset, second_rrset: dns.rrset.RRset) -> None:
+def rrsets_equal(
+    first_rrset: dns.rrset.RRset,
+    second_rrset: dns.rrset.RRset,
+    compare_ttl: Optional[bool] = False,
+) -> None:
+    """Compare two RRset (optionally including TTL)"""
+
+    def compare_rrs(rr1, rrset):
+        rr2 = next((other_rr for other_rr in rrset if rr1 == other_rr), None)
+        assert rr2 is not None, f"No corresponding RR found for: {rr1}"
+        if compare_ttl:
+            assert rr1.ttl == rr2.ttl
+
+    isctest.log.debug(
+        "%s() first RRset:\n%s",
+        rrsets_equal.__name__,
+        "\n".join([str(rr) for rr in first_rrset]),
+    )
+    isctest.log.debug(
+        "%s() second RRset:\n%s",
+        rrsets_equal.__name__,
+        "\n".join([str(rr) for rr in second_rrset]),
+    )
     for rr in first_rrset:
-        assert rr in second_rrset
+        compare_rrs(rr, second_rrset)
     for rr in second_rrset:
-        assert rr in first_rrset
+        compare_rrs(rr, first_rrset)
+
