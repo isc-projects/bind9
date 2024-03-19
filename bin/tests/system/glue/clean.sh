@@ -18,7 +18,6 @@
 rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
-rm -f dig.out
 rm -f ns*/K*
 rm -f ns*/dsset-*
 rm -f ns*/managed-keys.bind*
