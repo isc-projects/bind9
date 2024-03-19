@@ -20,7 +20,7 @@ import dns.message
 def test_dialup_zone_transfer(named_port, servers, ns):
     msg = dns.message.make_query("example.", "SOA")
     # Drop the RD flag from the query
-    msg.flags -= dns.flags.RD
+    msg.flags &= ~dns.flags.RD
     ns1response = isctest.query.tcp(msg, "10.53.0.1")
     with servers[f"ns{ns}"].watch_log_from_start() as watcher:
         watcher.wait_for_line(
