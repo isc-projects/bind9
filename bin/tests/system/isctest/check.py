@@ -13,6 +13,7 @@ from typing import Any, Optional
 
 import dns.rcode
 import dns.message
+import dns.zone
 
 import isctest.log
 
@@ -67,3 +68,30 @@ def rrsets_equal(
     for rr in second_rrset:
         compare_rrs(rr, first_rrset)
 
+
+def zones_equal(
+    first_zone: dns.zone.Zone,
+    second_zone: dns.zone.Zone,
+    compare_ttl: Optional[bool] = False,
+) -> None:
+    """Compare two zones (optionally including TTL)"""
+
+    isctest.log.debug(
+        "%s() first zone:\n%s",
+        zones_equal.__name__,
+        first_zone.to_text(relativize=False),
+    )
+    isctest.log.debug(
+        "%s() second zone:\n%s",
+        zones_equal.__name__,
+        second_zone.to_text(relativize=False),
+    )
+    assert first_zone == second_zone
+    if compare_ttl:
+        for name, node in first_zone.nodes.items():
+            for rdataset in node:
+                found_rdataset = second_zone.find_rdataset(
+                    name=name, rdtype=rdataset.rdtype
+                )
+                assert found_rdataset
+                assert found_rdataset.ttl == rdataset.ttl
