@@ -10,8 +10,8 @@
 # information regarding copyright ownership.
 
 import os
-import subprocess
 
+import isctest
 import pytest
 
 
@@ -110,47 +110,37 @@ import pytest
     ],
 )
 def test_rrchecker_list_standard_names(option, expected_result):
-    stdout = subprocess.run(
-        [
-            os.environ["RRCHECKER"],
-            option,
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True,
-    ).stdout.decode("utf-8")
+    stdout = isctest.run.cmd([os.environ["RRCHECKER"], option]).stdout.decode("utf-8")
     values = [line for line in stdout.split("\n") if line.strip()]
 
     assert sorted(values) == sorted(expected_result)
 
 
 def run_rrchecker(option, rr_class, rr_type, rr_rest):
-    with subprocess.Popen(
-        [os.environ["RRCHECKER"], option],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-    ) as process:
-        rrchecker_output, _ = process.communicate(
-            f"{rr_class} {rr_type} {rr_rest}".encode("utf-8")
+    rrchecker_output = (
+        isctest.run.cmd(
+            [os.environ["RRCHECKER"], option],
+            input_text=f"{rr_class} {rr_type} {rr_rest}".encode("utf-8"),
         )
-    return rrchecker_output.decode("utf-8").split()
+        .stdout.decode("utf-8")
+        .strip()
+    )
+    return rrchecker_output.split()
 
 
 @pytest.mark.parametrize("option", ["-p", "-u"])
 def test_rrchecker_conversions(option):
     tempzone_file = "tempzone"
     with open(tempzone_file, "w", encoding="utf-8") as file:
-        subprocess.run(
+        isctest.run.cmd(
             [
                 os.environ["SHELL"],
                 os.environ["TOP_SRCDIR"] + "/bin/tests/system/genzone.sh",
                 "0",
             ],
             stdout=file,
-            stderr=subprocess.PIPE,
-            check=True,
         )
-    checkzone_output = subprocess.run(
+    checkzone_output = isctest.run.cmd(
         [
             os.environ["CHECKZONE"],
             "-D",
@@ -158,9 +148,6 @@ def test_rrchecker_conversions(option):
             ".",
             tempzone_file,
         ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True,
     ).stdout.decode("utf-8")
     checkzone_output = [
         line for line in checkzone_output.splitlines() if not line.startswith(";")
