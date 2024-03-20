@@ -9,19 +9,6 @@
 
 6359.	[bug]		Fix bug in Depends (keymgr_dep) function. [GL #4552]
 
-6356.	[bug]		Attach the loop also in the dns_cache_flush(), so
-			the cache pruning still works after the flush.
-			[GL #4621]
-
-6353.	[bug]		Improve the TTL-based cleaning by removing the expired
-			headers from the heap, so they don't block the next
-			cleaning round and clean more than a single item for
-			each new addition to the RBTDB. [GL #4591]
-
-6352.	[bug]		Revert change 6319 and decrease lock contention during
-			RBTDB tree pruning by not cleaning up nodes recursively
-			within a single prune_tree() call. [GL #4596]
-
 6351.	[protocol]	Support for the RESINFO record type has been added.
 			[GL #4413]
 
@@ -68,6 +55,23 @@
 			the zone where not being updated to match the policy.
 			This lead to failures when DNSKEYs where updated as the
 			TTLs mismatched. [GL #4466]
+
+	--- 9.18.25 released ---
+
+6356.	[bug]		Create the pruning task in the dns_cache_flush(), so
+			the cache pruning still works after the flush.
+			[GL #4621]
+
+6353.	[bug]		Improve the TTL-based cleaning by removing the expired
+			headers from the heap, so they don't block the next
+			cleaning round and clean more than a single item for
+			each new addition to the RBTDB. [GL #4591]
+
+6352.	[bug]		Revert change 6319 and decrease lock contention during
+			RBTDB tree pruning by not cleaning up nodes recursively
+			within a single prune_tree() call. [GL #4596]
+
+6350.	[bug]		Address use after free in expire_lru_headers. [GL #4495]
 
 	--- 9.18.24 released ---
 
