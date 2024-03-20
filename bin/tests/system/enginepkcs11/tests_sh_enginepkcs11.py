@@ -9,6 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import isctest.mark
 
+
+@isctest.mark.flaky(max_runs=3)  # GL#4605
 def test_enginepkcs11(run_tests_sh):
     run_tests_sh()
