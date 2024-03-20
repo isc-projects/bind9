@@ -53,10 +53,6 @@ def avoid_duplicated_logs():
         logging.root.handlers.remove(handler)
 
 
-init_conftest_logger()
-avoid_duplicated_logs()
-
-
 def init_module_logger(system_test_name: str, testdir: Path):
     logger = logging.getLogger(system_test_name)
     logger.handlers.clear()
