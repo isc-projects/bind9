@@ -68,6 +68,8 @@ export KRB5_CONFIG=/dev/null
 # use local keytab instead of default /etc/krb5.keytab
 export KRB5_KTNAME=dns.keytab
 
+export ANS_LOG_LEVEL=debug
+
 #
 # Programs detected by configure
 # Variables will be empty if no program was found by configure
