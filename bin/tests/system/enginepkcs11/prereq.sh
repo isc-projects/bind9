@@ -13,7 +13,7 @@
 
 . ../conf.sh
 
-[ "prereq/var/tmp/etc/openssl-provider.cnf" -eq "prereq${OPENSSL_CONF}" ] || {
+[ "prereq/var/tmp/etc/openssl-provider.cnf" = "prereq${OPENSSL_CONF}" ] || {
   echo_i "skip: pkcs11-provider not enabled"
   exit 255
 }
