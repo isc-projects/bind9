@@ -311,7 +311,6 @@ stages:
   <<: *default_triggering_rules
   stage: build
   before_script:
-    - sysctl vm.mmap_rnd_bits=28 || true  # https://gitlab.isc.org/isc-projects/bind9/-/issues/4649
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OUT_OF_TREE_WORKSPACE}" && mkdir "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
   script:
@@ -370,7 +369,6 @@ stages:
   <<: *default_triggering_rules
   stage: system
   before_script:
-    - sysctl vm.mmap_rnd_bits=28 || true  # https://gitlab.isc.org/isc-projects/bind9/-/issues/4649
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cp -r bin/tests/system/* "${OUT_OF_TREE_WORKSPACE}/bin/tests/system/" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *setup_interfaces
   script:
@@ -432,7 +430,6 @@ stages:
   <<: *default_triggering_rules
   stage: unit
   before_script:
-    - sysctl vm.mmap_rnd_bits=28 || true  # https://gitlab.isc.org/isc-projects/bind9/-/issues/4649
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
   script:
     - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
@@ -481,7 +478,6 @@ stages:
 .respdiff: &respdiff_job
   stage: system
   before_script:
-    - sysctl vm.mmap_rnd_bits=28 || true  # https://gitlab.isc.org/isc-projects/bind9/-/issues/4649
     - autoreconf -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
