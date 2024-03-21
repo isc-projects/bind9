@@ -450,6 +450,25 @@ if switches_added:
         )
 
 ###############################################################################
+# PRE-RELEASE TESTING
+###############################################################################
+#
+# WARN if the merge request is marked with the "Security" label, but not with
+# the label used for marking merge requests for pre-release testing (if the
+# latter is defined by the relevant environment variable).
+
+pre_release_testing_label = os.getenv("PRE_RELEASE_TESTING_LABEL")
+if (
+    pre_release_testing_label
+    and "Security" in mr_labels
+    and pre_release_testing_label not in mr_labels
+):
+    warn(
+        "This merge request is marked with the *Security* label, but it is not "
+        f"marked for pre-release testing (*{pre_release_testing_label}*)."
+    )
+
+###############################################################################
 # USER-VISIBLE LOG LEVELS
 ###############################################################################
 #
