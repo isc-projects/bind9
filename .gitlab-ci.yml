@@ -273,6 +273,7 @@ stages:
   <<: *default_triggering_rules
   stage: build
   before_script:
+    - sysctl vm.mmap_rnd_bits=28 || true  # https://gitlab.isc.org/isc-projects/bind9/-/issues/4649
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
   script:
@@ -332,6 +333,7 @@ stages:
   <<: *default_triggering_rules
   stage: system
   before_script:
+    - sysctl vm.mmap_rnd_bits=28 || true  # https://gitlab.isc.org/isc-projects/bind9/-/issues/4649
     - *setup_interfaces
     - *setup_softhsm
   script:
@@ -387,6 +389,7 @@ stages:
   <<: *default_triggering_rules
   stage: unit
   before_script:
+    - sysctl vm.mmap_rnd_bits=28 || true  # https://gitlab.isc.org/isc-projects/bind9/-/issues/4649
     - *setup_softhsm
   script:
     - make unit
@@ -417,6 +420,7 @@ stages:
 .respdiff: &respdiff_job
   stage: system
   before_script:
+    - sysctl vm.mmap_rnd_bits=28 || true  # https://gitlab.isc.org/isc-projects/bind9/-/issues/4649
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
