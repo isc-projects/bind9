@@ -225,6 +225,7 @@ stages:
 .api-schedules-tags-triggers-web-triggering-rules: &api_schedules_tags_triggers_web_triggering_rules
   only:
     - api
+    - pipelines
     - schedules
     - tags
     - triggers
@@ -233,6 +234,7 @@ stages:
 .api-schedules-triggers-web-triggering-rules: &api_schedules_triggers_web_triggering_rules
   only:
     - api
+    - pipelines
     - schedules
     - triggers
     - web
@@ -241,6 +243,7 @@ stages:
   only:
     - api
     - merge_requests
+    - pipelines
     - schedules
     - tags
     - triggers
