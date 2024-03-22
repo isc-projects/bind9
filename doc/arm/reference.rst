@@ -6536,6 +6536,20 @@ The following options can be specified in a :any:`dnssec-policy` statement:
    ``insecure``. In this specific case you should move the existing key files
    to the zone's ``key-directory`` from the new configuration.
 
+.. namedconf:statement:: offline-ksk
+   :tags: dnssec
+   :short: Specifies whether the DNSKEY, CDS, and CDNSKEY RRsets are being signed offline.
+
+    If enabled, BIND 9 does not generate signatures for the DNSKEY, CDS, and
+    CDNSKEY RRsets. Instead, the signed DNSKEY, CDS and CDNSKEY RRsets are
+    looked up from Signed Key Response (SKR) files.
+
+    Any existing DNSKEY, CDS, and CDNSKEY RRsets in the unsigned version of the
+    zone are filtered and replaced with RRsets from the SKR file.
+
+    This feature is off by default. Configuring ``offline-ksk`` in conjunction
+    with a CSK is a configuration error.
+
 .. namedconf:statement:: purge-keys
    :tags: dnssec
    :short: Specifies the amount of time after which DNSSEC keys that have been deleted from the zone can be removed from disk.
