@@ -112,7 +112,8 @@ get_string(const cfg_obj_t **maps, const char *option) {
  */
 static isc_result_t
 cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
-		       bool check_algorithms, dns_keystorelist_t *keystorelist,
+		       bool check_algorithms, bool offline_ksk,
+		       dns_keystorelist_t *keystorelist,
 		       uint32_t ksk_min_lifetime, uint32_t zsk_min_lifetime) {
 	isc_result_t result;
 	dns_kasp_key_t *key = NULL;
@@ -125,6 +126,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 
 	if (config == NULL) {
 		/* We are creating a key reference for the default kasp. */
+		INSIST(!offline_ksk);
 		key->role |= DNS_KASP_KEY_ROLE_KSK | DNS_KASP_KEY_ROLE_ZSK;
 		key->lifetime = 0; /* unlimited */
 		key->algorithm = DNS_KEYALG_ECDSA256;
@@ -148,6 +150,14 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		} else if (strcmp(rolestr, "zsk") == 0) {
 			key->role |= DNS_KASP_KEY_ROLE_ZSK;
 		} else if (strcmp(rolestr, "csk") == 0) {
+			if (offline_ksk) {
+				cfg_obj_log(
+					config, ISC_LOG_ERROR,
+					"dnssec-policy: csk keys are not "
+					"allowed when offline-ksk is enabled");
+				result = ISC_R_FAILURE;
+				goto cleanup;
+			}
 			key->role |= DNS_KASP_KEY_ROLE_KSK;
 			key->role |= DNS_KASP_KEY_ROLE_ZSK;
 		}
@@ -416,6 +426,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	uint32_t zonepropdelay = 0, parentpropdelay = 0;
 	uint32_t ipub = 0, iret = 0;
 	uint32_t ksk_min_lifetime = 0, zsk_min_lifetime = 0;
+	bool offline_ksk = false;
 
 	REQUIRE(config != NULL);
 	REQUIRE(kaspp != NULL && *kaspp == NULL);
@@ -538,6 +549,13 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 
 	/* Configuration: Keys */
 	obj = NULL;
+	(void)confget(maps, "offline-ksk", &obj);
+	if (obj != NULL) {
+		offline_ksk = cfg_obj_asboolean(obj);
+	}
+	dns_kasp_setofflineksk(kasp, offline_ksk);
+
+	obj = NULL;
 	(void)confget(maps, "cdnskey", &obj);
 	if (obj != NULL) {
 		dns_kasp_setcdnskey(kasp, cfg_obj_asboolean(obj));
@@ -592,8 +610,9 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		{
 			cfg_obj_t *kobj = cfg_listelt_value(element);
 			result = cfg_kaspkey_fromconfig(
-				kobj, kasp, check_algorithms, keystorelist,
-				ksk_min_lifetime, zsk_min_lifetime);
+				kobj, kasp, check_algorithms, offline_ksk,
+				keystorelist, ksk_min_lifetime,
+				zsk_min_lifetime);
 			if (result != ISC_R_SUCCESS) {
 				cfg_obj_log(kobj, ISC_LOG_ERROR,
 					    "dnssec-policy: failed to "

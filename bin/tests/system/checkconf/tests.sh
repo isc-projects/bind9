@@ -677,6 +677,14 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking named-checkconf kasp offline-ksk with csk errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-offline-ksk.conf >checkconf.out$n 2>&1 && ret=1
+grep "dnssec-policy: csk keys are not allowed when offline-ksk is enabled" <checkconf.out$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking named-checkconf kasp signatures refresh errors ($n)"
 ret=0
 $CHECKCONF kasp-bad-signatures-refresh.conf >checkconf.out$n 2>&1 && ret=1
