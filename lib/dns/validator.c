@@ -1638,11 +1638,7 @@ validate_answer_finish(void *arg) {
 	dns_validator_t *val = arg;
 	isc_result_t result = ISC_R_UNSET;
 
-	if (val->result != ISC_R_SUCCESS) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "failed to verify rdataset: %s",
-			      isc_result_totext(val->result));
-	} else {
+	if (val->result == ISC_R_SUCCESS) {
 		dns_rdataset_trimttl(val->rdataset, val->sigrdataset,
 				     val->siginfo, val->start,
 				     val->view->acceptexpired);
@@ -1659,7 +1655,6 @@ validate_answer_finish(void *arg) {
 
 	switch (val->result) {
 	case ISC_R_CANCELED:
-		/* The validation was canceled */
 		validator_log(val, ISC_LOG_DEBUG(3), "validation was canceled");
 		validate_async_done(val, val->result);
 		return;
