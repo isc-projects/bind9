@@ -614,7 +614,8 @@ validator_callback_dnskey(void *arg) {
 
 cleanup:
 	dns_validator_detach(&subvalidator->parent);
-	dns_validator_destroy(&subvalidator);
+	dns_validator_shutdown(subvalidator);
+	dns_validator_detach(&subvalidator);
 	validate_async_done(val, result);
 }
 
@@ -672,7 +673,8 @@ validator_callback_ds(void *arg) {
 
 cleanup:
 	dns_validator_detach(&subvalidator->parent);
-	dns_validator_destroy(&subvalidator);
+	dns_validator_shutdown(subvalidator);
+	dns_validator_detach(&subvalidator);
 	validate_async_done(val, result);
 }
 
@@ -714,7 +716,8 @@ validator_callback_cname(void *arg) {
 
 cleanup:
 	dns_validator_detach(&subvalidator->parent);
-	dns_validator_destroy(&subvalidator);
+	dns_validator_shutdown(subvalidator);
+	dns_validator_detach(&subvalidator);
 	validate_async_done(val, result);
 }
 
@@ -813,7 +816,8 @@ validator_callback_nsec(void *arg) {
 
 cleanup:
 	dns_validator_detach(&subvalidator->parent);
-	dns_validator_destroy(&subvalidator);
+	dns_validator_shutdown(subvalidator);
+	dns_validator_detach(&subvalidator);
 	validate_async_done(val, result);
 }
 
@@ -3427,20 +3431,21 @@ destroy_validator(dns_validator_t *val) {
 }
 
 void
-dns_validator_destroy(dns_validator_t **validatorp) {
-	dns_validator_t *val = NULL;
-
-	REQUIRE(validatorp != NULL);
-
-	val = *validatorp;
-	*validatorp = NULL;
-
+dns_validator_shutdown(dns_validator_t *val) {
 	REQUIRE(VALID_VALIDATOR(val));
+	REQUIRE(COMPLETE(val));
 	REQUIRE(val->tid == isc_tid());
 
-	validator_log(val, ISC_LOG_DEBUG(4), "dns_validator_destroy");
+	validator_log(val, ISC_LOG_DEBUG(4), "dns_validator_shutdown");
 
-	dns_validator_detach(&val);
+	/*
+	 * The validation is now complete and the owner is no longer interested
+	 * in any further results. If there are still callback events queued up
+	 * which hold a validator reference, they should not be allowed to use
+	 * val->name during logging, because the owner may destroy it after this
+	 * function is called.
+	 */
+	val->name = NULL;
 }
 
 static void

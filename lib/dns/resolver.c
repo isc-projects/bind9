@@ -5557,10 +5557,11 @@ cleanup_fetchctx:
 
 	/*
 	 * val->name points to name on a message on one of the
-	 * queries on the fetch context so the validator has to
-	 * be destroyed first.
+	 * queries on the fetch context so the name has to be
+	 * released first with a dns_validator_shutdown() call.
 	 */
-	dns_validator_destroy(&val);
+	dns_validator_shutdown(val);
+	dns_validator_detach(&val);
 	fetchctx_detach(&fctx);
 	INSIST(node == NULL);
 }
