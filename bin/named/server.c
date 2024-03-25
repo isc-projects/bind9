@@ -8412,6 +8412,8 @@ load_configuration(const char *filename, named_server_t *server,
 	configure_server_quota(maps, "recursive-clients",
 			       &server->sctx->recursionquota);
 	configure_server_quota(maps, "update-quota", &server->sctx->updquota);
+	configure_server_quota(maps, "sig0checks-quota",
+			       &server->sctx->sig0checksquota);
 
 	max = isc_quota_getmax(&server->sctx->recursionquota);
 	if (max > 1000) {
@@ -8430,8 +8432,22 @@ load_configuration(const char *filename, named_server_t *server,
 	} else {
 		softquota = (max * 90) / 100;
 	}
-
 	isc_quota_soft(&server->sctx->recursionquota, softquota);
+
+	obj = NULL;
+	result = named_config_get(maps, "sig0checks-quota-exempt", &obj);
+	if (result == ISC_R_SUCCESS) {
+		result = cfg_acl_fromconfig(
+			obj, config, named_g_lctx, named_g_aclconfctx,
+			named_g_mctx, 0, &server->sctx->sig0checksquota_exempt);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	obj = NULL;
+	result = named_config_get(maps, "sig0checks-quota-maxwait-ms", &obj);
+	if (result == ISC_R_SUCCESS) {
+		server->sctx->sig0checksquota_maxwaitms = cfg_obj_asuint32(obj);
+	}
 
 	/*
 	 * Set "blackhole". Only legal at options level; there is
@@ -10048,11 +10064,12 @@ shutdown_server(void *arg) {
  */
 static isc_result_t
 get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-		  dns_message_t *message, dns_aclenv_t *env,
+		  dns_message_t *message, dns_aclenv_t *env, ns_server_t *sctx,
 		  isc_result_t *sigresult, dns_view_t **viewp) {
 	dns_view_t *view;
 
 	REQUIRE(message != NULL);
+	REQUIRE(sctx != NULL);
 	REQUIRE(sigresult != NULL);
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
@@ -10063,13 +10080,49 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 		    message->rdclass == dns_rdataclass_any)
 		{
 			const dns_name_t *tsig = NULL;
+			int exempt_match;
+			isc_result_t sig0_qresult = ISC_R_UNSET;
 
+			if (message->sig0 != NULL) {
+				/*
+				 * If the message has a SIG0 signature and the
+				 * client is not exempt from the quota, then
+				 * acquire a quota. If quota is reached, then
+				 * return early.
+				 */
+				if (sctx->sig0checksquota_exempt != NULL) {
+					isc_result_t result = dns_acl_match(
+						srcaddr, NULL,
+						sctx->sig0checksquota_exempt,
+						env, &exempt_match, NULL);
+					if (result == ISC_R_SUCCESS &&
+					    exempt_match > 0)
+					{
+						sig0_qresult = ISC_R_EXISTS;
+					}
+				}
+				if (sig0_qresult == ISC_R_UNSET) {
+					sig0_qresult = isc_quota_acquire(
+						&sctx->sig0checksquota);
+				}
+				if (sig0_qresult == ISC_R_SOFTQUOTA) {
+					isc_quota_release(
+						&sctx->sig0checksquota);
+				}
+				if (sig0_qresult != ISC_R_SUCCESS &&
+				    sig0_qresult != ISC_R_EXISTS)
+				{
+					return (ISC_R_QUOTA);
+				}
+			}
+
+			/* Check the signature, then release the quota  */
 			*sigresult = dns_message_rechecksig(message, view);
+			if (sig0_qresult == ISC_R_SUCCESS) {
+				isc_quota_release(&sctx->sig0checksquota);
+			}
 			if (*sigresult == ISC_R_SUCCESS) {
-				dns_tsigkey_t *tsigkey;
-
-				tsigkey = message->tsigkey;
-				tsig = dns_tsigkey_identity(tsigkey);
+				tsig = dns_tsigkey_identity(message->tsigkey);
 			}
 
 			if (dns_acl_allowed(srcaddr, tsig, view->matchclients,

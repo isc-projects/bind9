@@ -2117,12 +2117,13 @@ cleanup:
 
 static isc_result_t
 matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-	  dns_message_t *message, dns_aclenv_t *env, isc_result_t *sigresultp,
-	  dns_view_t **viewp) {
+	  dns_message_t *message, dns_aclenv_t *env, ns_server_t *lsctx,
+	  isc_result_t *sigresultp, dns_view_t **viewp) {
 	UNUSED(srcaddr);
 	UNUSED(destaddr);
 	UNUSED(message);
 	UNUSED(env);
+	UNUSED(lsctx);
 	UNUSED(sigresultp);
 
 	*viewp = view;

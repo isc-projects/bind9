@@ -118,10 +118,26 @@
 
 atomic_uint_fast64_t ns_client_requests = 0;
 
+static atomic_uint_fast32_t last_sigchecks_quota_log = 0;
+
+static bool
+can_log_sigchecks_quota(void) {
+	isc_stdtime_t last;
+	isc_stdtime_t now = isc_stdtime_now();
+	last = atomic_exchange_relaxed(&last_sigchecks_quota_log, now);
+	if (now != last) {
+		return (true);
+	}
+
+	return (false);
+}
+
 static void
 clientmgr_destroy_cb(void *arg);
 static void
 ns_client_dumpmessage(ns_client_t *client, const char *reason);
+static void
+ns_client_request_continue(void *arg);
 static void
 compute_cookie(ns_client_t *client, uint32_t when, const unsigned char *secret,
 	       isc_buffer_t *buf);
@@ -1739,6 +1755,53 @@ ns__client_put_cb(void *client0) {
 	ns_clientmgr_detach(&manager);
 }
 
+static isc_result_t
+ns_client_setup_view(ns_client_t *client, isc_netaddr_t *netaddr) {
+	isc_result_t result;
+
+	result = client->manager->sctx->matchingview(
+		netaddr, &client->destaddr, client->message,
+		client->manager->aclenv, client->manager->sctx,
+		&client->sigresult, &client->view);
+	if (result != ISC_R_SUCCESS) {
+		if (result == ISC_R_QUOTA) {
+			if (can_log_sigchecks_quota()) {
+				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+					      NS_LOGMODULE_CLIENT, ISC_LOG_INFO,
+					      "SIG(0) checks quota reached");
+				ns_client_dumpmessage(
+					client, "SIG(0) checks quota reached");
+			}
+		} else {
+			char classname[DNS_RDATACLASS_FORMATSIZE];
+			isc_buffer_t b;
+			isc_region_t *r;
+
+			/*
+			 * Do a dummy TSIG verification attempt so that the
+			 * response will have a TSIG if the query did, as
+			 * required by RFC2845.
+			 */
+			dns_message_resetsig(client->message);
+			r = dns_message_getrawmessage(client->message);
+			isc_buffer_init(&b, r->base, r->length);
+			isc_buffer_add(&b, r->length);
+			(void)dns_tsig_verify(&b, client->message, NULL, NULL);
+
+			dns_rdataclass_format(client->message->rdclass,
+					      classname, sizeof(classname));
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
+				      "no matching view in class '%s'",
+				      classname);
+			ns_client_dumpmessage(client,
+					      "no matching view in class");
+		}
+	}
+
+	return (result);
+}
+
 /*
  * Handle an incoming request event from the socket (UDP case)
  * or tcpmsg (TCP case).
@@ -1748,12 +1811,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		  isc_region_t *region, void *arg) {
 	ns_client_t *client = NULL;
 	isc_result_t result;
-	isc_result_t sigresult = ISC_R_SUCCESS;
-	isc_buffer_t *buffer = NULL;
-	isc_buffer_t tbuffer;
 	dns_rdataset_t *opt = NULL;
-	const dns_name_t *signame = NULL;
-	bool ra; /* Recursion available. */
 	isc_netaddr_t netaddr;
 	int match;
 	dns_messageid_t id;
@@ -1761,28 +1819,6 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	bool notimp;
 	size_t reqsize;
 	dns_aclenv_t *env = NULL;
-#ifdef HAVE_DNSTAP
-	dns_transport_type_t transport_type;
-	dns_dtmsgtype_t dtmsgtype;
-#endif /* ifdef HAVE_DNSTAP */
-	static const char *ra_reasons[] = {
-		"ACLs not processed yet",
-		"no resolver in view",
-		"recursion not enabled for view",
-		"allow-recursion did not match",
-		"allow-query-cache did not match",
-		"allow-recursion-on did not match",
-		"allow-query-cache-on did not match",
-	};
-	enum refusal_reasons {
-		INVALID,
-		NO_RESOLVER,
-		RECURSION_DISABLED,
-		ALLOW_RECURSION,
-		ALLOW_QUERY_CACHE,
-		ALLOW_RECURSION_ON,
-		ALLOW_QUERY_CACHE_ON
-	} ra_refusal_reason = INVALID;
 
 	if (eresult != ISC_R_SUCCESS) {
 		return;
@@ -1830,14 +1866,14 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	(void)atomic_fetch_add_relaxed(&ns_client_requests, 1);
 
-	isc_buffer_init(&tbuffer, region->base, region->length);
-	isc_buffer_add(&tbuffer, region->length);
-	buffer = &tbuffer;
+	isc_buffer_init(&client->tbuffer, region->base, region->length);
+	isc_buffer_add(&client->tbuffer, region->length);
+	client->buffer = &client->tbuffer;
 
 	client->peeraddr = isc_nmhandle_peeraddr(handle);
 	client->peeraddr_valid = true;
 
-	reqsize = isc_buffer_usedlength(buffer);
+	reqsize = isc_buffer_usedlength(client->buffer);
 
 	client->state = NS_CLIENTSTATE_WORKING;
 
@@ -1876,7 +1912,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		      ISC_LOG_DEBUG(3), "%s request",
 		      TCP_CLIENT(client) ? "TCP" : "UDP");
 
-	result = dns_message_peekheader(buffer, &id, &flags);
+	result = dns_message_peekheader(client->buffer, &id, &flags);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * There isn't enough header to determine whether
@@ -1951,7 +1987,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	/*
 	 * It's a request.  Parse it.
 	 */
-	result = dns_message_parse(client->message, buffer, 0);
+	result = dns_message_parse(client->message, client->buffer, 0);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * Parsing the request failed.  Send a response
@@ -2080,36 +2116,117 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	client->destsockaddr = isc_nmhandle_localaddr(handle);
 	isc_netaddr_fromsockaddr(&client->destaddr, &client->destsockaddr);
 
-	result = client->manager->sctx->matchingview(
-		&netaddr, &client->destaddr, client->message, env, &sigresult,
-		&client->view);
-	if (result != ISC_R_SUCCESS) {
-		char classname[DNS_RDATACLASS_FORMATSIZE];
-
-		/*
-		 * Do a dummy TSIG verification attempt so that the
-		 * response will have a TSIG if the query did, as
-		 * required by RFC2845.
-		 */
-		isc_buffer_t b;
-		isc_region_t *r;
-
-		dns_message_resetsig(client->message);
-
-		r = dns_message_getrawmessage(client->message);
-		isc_buffer_init(&b, r->base, r->length);
-		isc_buffer_add(&b, r->length);
-		(void)dns_tsig_verify(&b, client->message, NULL, NULL);
-
-		dns_rdataclass_format(client->message->rdclass, classname,
-				      sizeof(classname));
+	result = ns_client_setup_view(client, &netaddr);
+	if (result == ISC_R_QUOTA) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
-			      "no matching view in class '%s'", classname);
-		ns_client_dumpmessage(client, "no matching view in class");
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(5),
+			      "client is starting to wait for quota");
+		client->async = true;
+		isc_nmhandle_ref(client->handle);
+		isc_async_run(client->manager->loop, ns_client_request_continue,
+			      client);
+		return;
+	} else if (result != ISC_R_SUCCESS) {
 		ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
 		return;
+	}
+
+	ns_client_request_continue(client);
+}
+
+static void
+ns_client_request_continue(void *arg) {
+	ns_client_t *client = arg;
+	isc_netaddr_t netaddr;
+	const dns_name_t *signame = NULL;
+	bool ra; /* Recursion available. */
+	isc_result_t result;
+	static const char *ra_reasons[] = {
+		"ACLs not processed yet",
+		"no resolver in view",
+		"recursion not enabled for view",
+		"allow-recursion did not match",
+		"allow-query-cache did not match",
+		"allow-recursion-on did not match",
+		"allow-query-cache-on did not match",
+	};
+	enum refusal_reasons {
+		INVALID,
+		NO_RESOLVER,
+		RECURSION_DISABLED,
+		ALLOW_RECURSION,
+		ALLOW_QUERY_CACHE,
+		ALLOW_RECURSION_ON,
+		ALLOW_QUERY_CACHE_ON
+	} ra_refusal_reason = INVALID;
+#ifdef HAVE_DNSTAP
+	dns_transport_type_t transport_type;
+	dns_dtmsgtype_t dtmsgtype;
+#endif /* ifdef HAVE_DNSTAP */
+
+	/*
+	 * This function could be running asynchronously if a quota was reached
+	 * before, and named was waiting for available quota. In that case we
+	 * need to update the current 'now', and check that named doesn't wait
+	 * for too long.
+	 */
+	if (client->async) {
+		uint64_t wait_us;
+		uint64_t maxwait_us;
+
+		client->tnow = isc_time_now();
+		client->now = isc_time_seconds(&client->tnow);
+
+		wait_us = isc_time_microdiff(&client->tnow,
+					     &client->requesttime);
+		maxwait_us = US_PER_MS *
+			     client->manager->sctx->sig0checksquota_maxwaitms;
+		if (wait_us > maxwait_us) {
+			isc_buffer_t b;
+			isc_region_t *r;
+
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(5),
+				      "client reached max wait time for quota");
+
+			/*
+			 * Do a dummy TSIG verification attempt so that the
+			 * response will have a TSIG if the query did, as
+			 * required by RFC2845.
+			 */
+			dns_message_resetsig(client->message);
+			r = dns_message_getrawmessage(client->message);
+			isc_buffer_init(&b, r->base, r->length);
+			isc_buffer_add(&b, r->length);
+			(void)dns_tsig_verify(&b, client->message, NULL, NULL);
+
+			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
+						NULL);
+			ns_client_error(client, DNS_R_REFUSED);
+			goto cleanup;
+		}
+	}
+
+	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+	if (client->view == NULL) {
+		result = ns_client_setup_view(client, &netaddr);
+		if (result == ISC_R_QUOTA) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(5),
+				      "client continues waiting for quota");
+			client->async = true;
+			isc_nmhandle_ref(client->handle);
+			isc_async_run(client->manager->loop,
+				      ns_client_request_continue, client);
+			goto cleanup;
+		} else if (result != ISC_R_SUCCESS) {
+			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
+						NULL);
+			ns_client_error(client, DNS_R_REFUSED);
+			goto cleanup;
+		}
 	}
 
 	if (isc_nm_is_proxy_handle(client->handle)) {
@@ -2140,8 +2257,8 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 					"ACL",
 					fmtbuf);
 			}
-			isc_nm_bad_request(handle);
-			return;
+			isc_nm_bad_request(client->handle);
+			goto cleanup;
 		}
 
 		/* allow by default */
@@ -2161,8 +2278,8 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 					"'allow-proxy-on' ACL",
 					fmtbuf);
 			}
-			isc_nm_bad_request(handle);
-			return;
+			isc_nm_bad_request(client->handle);
+			goto cleanup;
 		}
 	}
 
@@ -2255,8 +2372,8 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		if (!(client->message->tsigstatus == dns_tsigerror_badkey &&
 		      client->message->opcode == dns_opcode_update))
 		{
-			ns_client_error(client, sigresult);
-			return;
+			ns_client_error(client, client->sigresult);
+			goto cleanup;
 		}
 	}
 
@@ -2340,25 +2457,25 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 		dns_dt_send(client->view, dtmsgtype, &client->peeraddr,
 			    &client->destsockaddr, transport_type, NULL,
-			    &client->requesttime, NULL, buffer);
+			    &client->requesttime, NULL, client->buffer);
 #endif /* HAVE_DNSTAP */
 
-		ns_query_start(client, handle);
+		ns_query_start(client, client->handle);
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
 #ifdef HAVE_DNSTAP
 		dns_dt_send(client->view, DNS_DTTYPE_UQ, &client->peeraddr,
 			    &client->destsockaddr, transport_type, NULL,
-			    &client->requesttime, NULL, buffer);
+			    &client->requesttime, NULL, client->buffer);
 #endif /* HAVE_DNSTAP */
 		ns_client_settimeout(client, 60);
-		ns_update_start(client, handle, sigresult);
+		ns_update_start(client, client->handle, client->sigresult);
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
 		ns_client_settimeout(client, 60);
-		ns_notify_start(client, handle);
+		ns_notify_start(client, client->handle);
 		break;
 	case dns_opcode_iquery:
 		CTRACE("iquery");
@@ -2367,6 +2484,15 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	default:
 		CTRACE("unknown opcode");
 		ns_client_error(client, DNS_R_NOTIMP);
+	}
+
+cleanup:
+	if (client->async) {
+		/*
+		 * Do not detach, only 'unref' the corresponding 'ref' when
+		 * async was used, because the client can still be reused.
+		 */
+		isc_nmhandle_unref(client->handle);
 	}
 }
 
