@@ -2126,6 +2126,7 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
 		dns_qpiter_init(qp, iter);
 		return (prevleaf(iter));
 	}
+
 	/*
 	 * As long as the branch offset point is after the point where the
 	 * search key differs, we need to branch up and find a better leaf
@@ -2139,7 +2140,17 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
 			 * go to the parent branch and iterate back to the
 			 * predecessor from that point.
 			 */
-			n = prevleaf(iter);
+			isc_result_t result = dns_qpiter_prev(iter, NULL, NULL,
+							      NULL);
+			if (result == ISC_R_NOMORE) {
+				/*
+				 * This was the first domain; move the iterator
+				 * one step back from the origin and return.
+				 */
+				return (prevleaf(iter));
+			}
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			n = iter->stack[iter->sp];
 			leaf = n;
 		} else {
 			if (is_branch(n)) {

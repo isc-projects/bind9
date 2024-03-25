@@ -777,6 +777,7 @@ ISC_RUN_TEST_IMPL(fixiterator) {
 				    "private-dnskey.dynamic.",
 				    "rrsig.dynamic.",
 				    "txt.dynamic.",
+				    "trailing.",
 				    "" };
 	int i = 0;
 
@@ -786,9 +787,11 @@ ISC_RUN_TEST_IMPL(fixiterator) {
 	}
 
 	static struct check_predecessors check1[] = {
-		{ "newtext.dynamic.", "mx.dynamic.", DNS_R_PARTIALMATCH, 6 },
-		{ "absent.", "txt.dynamic.", ISC_R_NOTFOUND, 0 },
-		{ "nonexistent.", "txt.dynamic.", ISC_R_NOTFOUND, 0 },
+		{ "newtext.dynamic.", "mx.dynamic.", DNS_R_PARTIALMATCH, 7 },
+		{ "d.", "trailing.", ISC_R_NOTFOUND, 0 },
+		{ "absent.", "trailing.", ISC_R_NOTFOUND, 0 },
+		{ "nonexistent.", "txt.dynamic.", ISC_R_NOTFOUND, 1 },
+		{ "wayback.", "trailing.", ISC_R_NOTFOUND, 0 },
 		{ NULL, NULL, 0, 0 }
 	};
 
