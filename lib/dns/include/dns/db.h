@@ -53,6 +53,7 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
+#include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/rwlock.h>
 #include <isc/stats.h>

@@ -69,7 +69,7 @@ struct dns_cache {
 	isc_mem_t *mctx;  /* Memory context for the dns_cache object */
 	isc_mem_t *hmctx; /* Heap memory */
 	isc_mem_t *tmctx; /* Tree memory */
-	isc_loop_t *loop;
+	isc_loopmgr_t *loopmgr;
 	char *name;
 	isc_refcount_t references;
 
@@ -125,9 +125,16 @@ cache_create_db(dns_cache_t *cache, dns_db_t **dbp, isc_mem_t **tmctxp,
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_db;
 	}
+
 	dns_db_setservestalettl(db, cache->serve_stale_ttl);
 	dns_db_setservestalerefresh(db, cache->serve_stale_refresh);
-	dns_db_setloop(db, cache->loop);
+
+	/*
+	 * XXX this is only used by the RBT cache, and can
+	 * be removed when it is.
+	 */
+	dns_db_setloop(db, isc_loop_main(cache->loopmgr));
+
 	*dbp = db;
 	*hmctxp = hmctx;
 	*tmctxp = tmctx;
@@ -148,7 +155,6 @@ cache_destroy(dns_cache_t *cache) {
 	isc_stats_detach(&cache->stats);
 	isc_mutex_destroy(&cache->lock);
 	isc_mem_free(cache->mctx, cache->name);
-	isc_loop_detach(&cache->loop);
 	if (cache->hmctx != NULL) {
 		isc_mem_detach(&cache->hmctx);
 	}
@@ -172,7 +178,7 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 	*cache = (dns_cache_t){
 		.rdclass = rdclass,
 		.name = isc_mem_strdup(mctx, cachename),
-		.loop = isc_loop_ref(isc_loop_main(loopmgr)),
+		.loopmgr = loopmgr,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.magic = CACHE_MAGIC,
 	};

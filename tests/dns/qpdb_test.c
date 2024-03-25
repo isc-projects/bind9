@@ -111,7 +111,7 @@ overmempurge_addrdataset(dns_db_t *db, isc_stdtime_t now, int idx,
 	dns_db_detachnode(db, &node);
 }
 
-ISC_RUN_TEST_IMPL(overmempurge_bigrdata) {
+ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	size_t maxcache = 2097152U; /* 2MB - same as DNS_CACHE_MINSIZE */
 	size_t hiwater = maxcache - (maxcache >> 3); /* borrowed from cache.c */
 	size_t lowater = maxcache - (maxcache >> 2); /* ditto */
@@ -158,9 +158,10 @@ ISC_RUN_TEST_IMPL(overmempurge_bigrdata) {
 
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx2);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
-ISC_RUN_TEST_IMPL(overmempurge_longname) {
+ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	size_t maxcache = 2097152U; /* 2MB - same as DNS_CACHE_MINSIZE */
 	size_t hiwater = maxcache - (maxcache >> 3); /* borrowed from cache.c */
 	size_t lowater = maxcache - (maxcache >> 2); /* ditto */
@@ -207,11 +208,12 @@ ISC_RUN_TEST_IMPL(overmempurge_longname) {
 
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx2);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY(overmempurge_bigrdata)
-ISC_TEST_ENTRY(overmempurge_longname)
+ISC_TEST_ENTRY_CUSTOM(overmempurge_bigrdata, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(overmempurge_longname, setup_managers, teardown_managers)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
