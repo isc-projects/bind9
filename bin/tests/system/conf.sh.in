@@ -160,7 +160,7 @@ PERL=@PERL@
 
 testsock6() {
 	if test -n "$PERL" \
-		&& $PERL -e "use IO::Socket::INET6;" 2> /dev/null \
+		&& $PERL -e "use IO::Socket::IP;" 2> /dev/null \
 		&& grep "^#define WANT_IPV6 1" "$TOP/config.h" > /dev/null 2>&1
 	then
 		$PERL "$TOP/bin/tests/system/testsock6.pl" "$@"
