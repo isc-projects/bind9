@@ -128,7 +128,7 @@ multiple servers to run locally and communicate with each other). These
 IP addresses can be configured by running the command
 `bin/tests/system/ifconfig.sh up` as root.
 
-Some tests require Perl and the `Net::DNS` and/or `IO::Socket::INET6` modules,
+Some tests require Perl and the `Net::DNS` and/or `IO::Socket::IP` modules,
 and are skipped if these are not available. Some tests require Python
 and the `dnspython` module and are skipped if these are not available.
 See bin/tests/system/README for further details.
