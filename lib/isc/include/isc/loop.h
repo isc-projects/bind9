@@ -27,6 +27,16 @@ typedef void (*isc_job_cb)(void *);
 
 ISC_LANG_BEGINDECLS
 
+/*%<
+ * Returns the current running loop.
+ */
+
+extern thread_local isc_loop_t *isc__loop_local;
+
+static inline isc_loop_t *
+isc_loop(void) {
+	return (isc__loop_local);
+}
 void
 isc_loopmgr_create(isc_mem_t *mctx, uint32_t nloops, isc_loopmgr_t **loopmgrp);
 /*%<

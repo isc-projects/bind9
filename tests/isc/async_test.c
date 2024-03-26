@@ -82,7 +82,7 @@ append(void *arg) {
 
 static void
 async_multiple(void *arg) {
-	isc_loop_t *loop = isc_loop_current(loopmgr);
+	isc_loop_t *loop = isc_loop();
 
 	UNUSED(arg);
 

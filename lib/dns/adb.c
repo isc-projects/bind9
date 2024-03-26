@@ -99,8 +99,6 @@ struct dns_adb {
 	dns_view_t *view;
 	dns_resolver_t *res;
 
-	isc_loopmgr_t *loopmgr;
-
 	isc_refcount_t references;
 
 	dns_adbnamelist_t names_lru;
@@ -1843,8 +1841,7 @@ ISC_REFCOUNT_IMPL(dns_adb, destroy);
  */
 
 void
-dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
-	       dns_adb_t **newadb) {
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb) {
 	dns_adb_t *adb = NULL;
 
 	REQUIRE(mem != NULL);
@@ -1853,7 +1850,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	adb = isc_mem_get(mem, sizeof(dns_adb_t));
 	*adb = (dns_adb_t){
-		.loopmgr = loopmgr,
 		.names_lru = ISC_LIST_INITIALIZER,
 		.entries_lru = ISC_LIST_INITIALIZER,
 	};
@@ -2994,8 +2990,8 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	 */
 	result = dns_resolver_createfetch(
 		adb->res, adbname->name, type, name, nameservers, NULL, NULL, 0,
-		options, depth, qc, isc_loop_current(adb->loopmgr),
-		fetch_callback, adbname, &fetch->rdataset, NULL, &fetch->fetch);
+		options, depth, qc, isc_loop(), fetch_callback, adbname,
+		&fetch->rdataset, NULL, &fetch->fetch);
 	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL, "fetch_name: createfetch failed with %s",
 		   isc_result_totext(result));

@@ -1616,9 +1616,8 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 				isc_interval_t i;
 
 				isc_timer_create(
-					isc_loop_current(fctx->res->loopmgr),
-					spillattimer_countdown, fctx->res,
-					&fctx->res->spillattimer);
+					isc_loop(), spillattimer_countdown,
+					fctx->res, &fctx->res->spillattimer);
 
 				isc_interval_set(&i, 20 * 60, 0);
 				isc_timer_start(fctx->res->spillattimer,
@@ -10016,9 +10015,8 @@ dns_resolver_prime(dns_resolver_t *res) {
 		LOCK(&res->primelock);
 		result = dns_resolver_createfetch(
 			res, dns_rootname, dns_rdatatype_ns, NULL, NULL, NULL,
-			NULL, 0, DNS_FETCHOPT_NOFORWARD, 0, NULL,
-			isc_loop_current(res->loopmgr), prime_done, res,
-			rdataset, NULL, &res->primefetch);
+			NULL, 0, DNS_FETCHOPT_NOFORWARD, 0, NULL, isc_loop(),
+			prime_done, res, rdataset, NULL, &res->primefetch);
 		UNLOCK(&res->primelock);
 
 		if (result != ISC_R_SUCCESS) {

@@ -207,7 +207,7 @@ struct thread_args {
 static void
 first_loop(void *varg) {
 	struct thread_args *args = varg;
-	isc_loop_t *loop = isc_loop_current(args->loopmgr);
+	isc_loop_t *loop = isc_loop();
 
 	isc_job_run(loop, &args->job, args->cb, args);
 
@@ -222,8 +222,7 @@ next_loop(struct thread_args *args, isc_nanosecs_t start) {
 	args->worked += stop - start;
 	args->stop = stop;
 	if (args->stop - args->start < RUNTIME) {
-		isc_job_run(isc_loop_current(args->loopmgr), &args->job,
-			    args->cb, args);
+		isc_job_run(isc_loop(), &args->job, args->cb, args);
 		return;
 	}
 	isc_async_run(isc_loop_main(args->loopmgr), collect, args);
@@ -809,7 +808,7 @@ collect(void *varg) {
 static void
 startup(void *arg) {
 	isc_loopmgr_t *loopmgr = arg;
-	isc_loop_t *loop = isc_loop_current(loopmgr);
+	isc_loop_t *loop = isc_loop();
 	isc_mem_t *mctx = isc_loop_getmctx(loop);
 	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
 	size_t bytes = sizeof(struct bench_state) +
@@ -841,7 +840,7 @@ tick(void *varg) {
 static void
 start_ticker(void *varg) {
 	struct ticker *ticker = varg;
-	isc_loop_t *loop = isc_loop_current(ticker->loopmgr);
+	isc_loop_t *loop = isc_loop();
 
 	isc_timer_create(loop, tick, NULL, &ticker->timer);
 	isc_timer_start(ticker->timer, isc_timertype_ticker,

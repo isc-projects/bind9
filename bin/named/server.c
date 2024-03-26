@@ -4701,9 +4701,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		goto cleanup;
 	}
 
-	CHECK(dns_view_createresolver(
-		view, named_g_loopmgr, named_g_netmgr, resopts,
-		named_g_server->tlsctx_client_cache, dispatch4, dispatch6));
+	CHECK(dns_view_createresolver(view, named_g_netmgr, resopts,
+				      named_g_server->tlsctx_client_cache,
+				      dispatch4, dispatch6));
 
 	if (resstats == NULL) {
 		isc_stats_create(mctx, &resstats, dns_resstatscounter_max);
@@ -8187,7 +8187,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Require the reconfiguration to happen always on the main loop
 	 */
-	REQUIRE(isc_loop_current(named_g_loopmgr) == named_g_mainloop);
+	REQUIRE(isc_loop() == named_g_mainloop);
 
 	ISC_LIST_INIT(kasplist);
 	ISC_LIST_INIT(keystorelist);
@@ -9838,8 +9838,7 @@ run_server(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
 	dns_geoip_databases_t *geoip = NULL;
 
-	dns_zonemgr_create(named_g_mctx, named_g_loopmgr, named_g_netmgr,
-			   &server->zonemgr);
+	dns_zonemgr_create(named_g_mctx, named_g_netmgr, &server->zonemgr);
 
 	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_loopmgr,
 					  named_g_netmgr, &named_g_dispatchmgr),

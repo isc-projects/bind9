@@ -282,7 +282,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 		.magic = NTA_MAGIC,
 	};
 	isc_mem_attach(ntatable->mctx, &nta->mctx);
-	isc_loop_attach(isc_loop_current(ntatable->loopmgr), &nta->loop);
+	isc_loop_attach(isc_loop(), &nta->loop);
 
 	dns_rdataset_init(&nta->rdataset);
 	dns_rdataset_init(&nta->sigrdataset);
