@@ -574,13 +574,6 @@ isc_loop_main(isc_loopmgr_t *loopmgr) {
 }
 
 isc_loop_t *
-isc_loop_current(isc_loopmgr_t *loopmgr) {
-	REQUIRE(VALID_LOOPMGR(loopmgr));
-
-	return (CURRENT_LOOP(loopmgr));
-}
-
-isc_loop_t *
 isc_loop_get(isc_loopmgr_t *loopmgr, uint32_t tid) {
 	REQUIRE(VALID_LOOPMGR(loopmgr));
 	REQUIRE(tid < loopmgr->nloops);

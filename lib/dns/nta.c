@@ -439,7 +439,7 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 		/* NTA is expired */
 		dns__nta_ref(nta);
 		dns_ntatable_ref(nta->ntatable);
-		isc_async_current(nta->ntatable->loopmgr, delete_expired, nta);
+		isc_async_current(delete_expired, nta);
 		goto done;
 	}
 

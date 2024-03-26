@@ -2186,7 +2186,7 @@ run_server(void *arg) {
 				     NULL, NULL, ISC_NM_PROXY_NONE,
 				     &ifp->tcplistensocket));
 	ifp->flags |= NS_INTERFACEFLAG_LISTENING;
-	isc_async_current(loopmgr, sendquery, ifp->tcplistensocket);
+	isc_async_current(sendquery, ifp->tcplistensocket);
 
 	return;
 

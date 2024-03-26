@@ -1674,7 +1674,7 @@ assignwork(void *arg) {
 	lock_and_dumpnode(dns_fixedname_name(&fname), node);
 	dns_db_detachnode(gdb, &node);
 
-	isc_async_current(loopmgr, assignwork, NULL);
+	isc_async_current(assignwork, NULL);
 }
 
 /*%

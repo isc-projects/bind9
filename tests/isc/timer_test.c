@@ -39,7 +39,7 @@
 #include <tests/isc.h>
 
 /* Set to true (or use -v option) for verbose output */
-static bool verbose = false;
+static bool verbose = true;
 
 #define FUDGE_SECONDS	  0	    /* in absence of clock_getres() */
 #define FUDGE_NANOSECONDS 500000000 /* in absence of clock_getres() */
@@ -345,6 +345,7 @@ tick_event(void *arg) {
 	 */
 	if (tick == 0) {
 		isc_timer_destroy(&tickertimer);
+		isc_loopmgr_shutdown(loopmgr);
 	}
 }
 
@@ -361,7 +362,6 @@ once_event(void *arg) {
 	 */
 	atomic_store(&startflag, true);
 
-	isc_loopmgr_shutdown(loopmgr);
 	isc_timer_destroy(&oncetimer);
 }
 

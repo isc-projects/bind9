@@ -2484,7 +2484,7 @@ static void
 done_update(void) {
 	ddebug("done_update()");
 
-	isc_async_current(loopmgr, getinput, NULL);
+	isc_async_current(getinput, NULL);
 }
 
 static void
