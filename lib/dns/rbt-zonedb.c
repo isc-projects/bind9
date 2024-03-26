@@ -1993,8 +1993,8 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 }
 
 static isc_result_t
-getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
-	       dns_name_t *foundname DNS__DB_FLARG) {
+getsigningtime(dns_db_t *db, isc_stdtime_t *resign, dns_name_t *foundname,
+	       dns_typepair_t *typepair) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_slabheader_t *header = NULL, *this = NULL;
 	unsigned int i;
@@ -2004,6 +2004,9 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(resign != NULL);
+	REQUIRE(foundname != NULL);
+	REQUIRE(typepair != NULL);
 
 	TREE_RDLOCK(&rbtdb->tree_lock, &tlocktype);
 
@@ -2055,14 +2058,11 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 		 * Found something; pass back the answer and unlock
 		 * the bucket.
 		 */
-		dns__rbtdb_bindrdataset(rbtdb, RBTDB_HEADERNODE(header), header,
-					0, isc_rwlocktype_read,
-					rdataset DNS__DB_FLARG_PASS);
-
-		if (foundname != NULL) {
-			dns_rbt_fullnamefromnode(RBTDB_HEADERNODE(header),
-						 foundname);
-		}
+		*resign = RESIGN(header)
+				  ? (header->resign << 1) | header->resign_lsb
+				  : 0;
+		dns_rbt_fullnamefromnode(RBTDB_HEADERNODE(header), foundname);
+		*typepair = header->type;
 
 		NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
 

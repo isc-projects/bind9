@@ -3816,12 +3816,12 @@ cleanup:
 
 static void
 set_resigntime(dns_zone_t *zone) {
-	dns_rdataset_t rdataset;
 	dns_fixedname_t fixed;
-	unsigned int resign;
+	isc_stdtime_t resign;
 	isc_result_t result;
 	uint32_t nanosecs;
 	dns_db_t *db = NULL;
+	dns_typepair_t typepair;
 
 	INSIST(LOCKED_ZONE(zone));
 
@@ -3834,7 +3834,6 @@ set_resigntime(dns_zone_t *zone) {
 		return;
 	}
 
-	dns_rdataset_init(&rdataset);
 	dns_fixedname_init(&fixed);
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
@@ -3847,15 +3846,14 @@ set_resigntime(dns_zone_t *zone) {
 		return;
 	}
 
-	result = dns_db_getsigningtime(db, &rdataset,
-				       dns_fixedname_name(&fixed));
+	result = dns_db_getsigningtime(db, &resign, dns_fixedname_name(&fixed),
+				       &typepair);
 	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&zone->resigntime);
 		goto cleanup;
 	}
 
-	resign = rdataset.resign - dns_zone_getsigresigninginterval(zone);
-	dns_rdataset_disassociate(&rdataset);
+	resign -= dns_zone_getsigresigninginterval(zone);
 	nanosecs = isc_random_uniform(1000000000);
 	isc_time_set(&zone->resigntime, resign, nanosecs);
 
@@ -5179,31 +5177,32 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (zone->type == dns_zone_primary && is_dynamic &&
 		    dns_db_issecure(db) && !inline_raw(zone))
 		{
+			isc_stdtime_t resign;
 			dns_name_t *name;
 			dns_fixedname_t fixed;
-			dns_rdataset_t next;
+			dns_typepair_t typepair;
 
-			dns_rdataset_init(&next);
 			name = dns_fixedname_initname(&fixed);
 
-			result = dns_db_getsigningtime(db, &next, name);
+			result = dns_db_getsigningtime(db, &resign, name,
+						       &typepair);
 			if (result == ISC_R_SUCCESS) {
 				isc_stdtime_t timenow = isc_stdtime_now();
 				char namebuf[DNS_NAME_FORMATSIZE];
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 				dns_name_format(name, namebuf, sizeof(namebuf));
-				dns_rdatatype_format(next.covers, typebuf,
-						     sizeof(typebuf));
+				dns_rdatatype_format(
+					DNS_TYPEPAIR_COVERS(typepair), typebuf,
+					sizeof(typebuf));
 				dnssec_log(
 					zone, ISC_LOG_DEBUG(3),
 					"next resign: %s/%s "
 					"in %d seconds",
 					namebuf, typebuf,
-					next.resign - timenow -
+					resign - timenow -
 						dns_zone_getsigresigninginterval(
 							zone));
-				dns_rdataset_disassociate(&next);
 			} else {
 				dnssec_log(zone, ISC_LOG_WARNING,
 					   "signed dynamic zone has no "
@@ -6966,18 +6965,16 @@ zone_resigninc(dns_zone_t *zone) {
 	dns__zonediff_t zonediff;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
-	dns_rdataset_t rdataset;
-	dns_rdatatype_t covers;
+	dns_typepair_t typepair;
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire, fullexpire, stop;
 	unsigned int i;
 	unsigned int nkeys = 0;
-	unsigned int resign;
+	isc_stdtime_t resign;
 
 	ENTER;
 
-	dns_rdataset_init(&rdataset);
 	dns_diff_init(zone->mctx, &_sig_diff);
 	zonediff_init(&zonediff, &_sig_diff);
 
@@ -7024,7 +7021,7 @@ zone_resigninc(dns_zone_t *zone) {
 	stop = now + 5;
 
 	name = dns_fixedname_initname(&fixed);
-	result = dns_db_getsigningtime(db, &rdataset, name);
+	result = dns_db_getsigningtime(db, &resign, name, &typepair);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_resigninc:dns_db_getsigningtime -> %s",
@@ -7033,10 +7030,9 @@ zone_resigninc(dns_zone_t *zone) {
 
 	i = 0;
 	while (result == ISC_R_SUCCESS) {
-		resign = rdataset.resign -
-			 dns_zone_getsigresigninginterval(zone);
-		covers = rdataset.covers;
-		dns_rdataset_disassociate(&rdataset);
+		dns_rdatatype_t covers = DNS_TYPEPAIR_COVERS(typepair);
+
+		resign -= dns_zone_getsigresigninginterval(zone);
 
 		/*
 		 * Stop if we hit the SOA as that means we have walked the
@@ -7076,7 +7072,7 @@ zone_resigninc(dns_zone_t *zone) {
 				     isc_result_totext(result));
 			break;
 		}
-		result = dns_db_getsigningtime(db, &rdataset, name);
+		result = dns_db_getsigningtime(db, &resign, name, &typepair);
 		if (nkeys == 0 && result == ISC_R_NOTFOUND) {
 			result = ISC_R_SUCCESS;
 			break;
