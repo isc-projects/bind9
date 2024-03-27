@@ -127,7 +127,7 @@ struct dns_cache {
 	/* Unlocked. */
 	unsigned int magic;
 	isc_mutex_t lock;
-	isc_mem_t *mctx;  /* Main cache memory */
+	isc_mem_t *mctx;  /* Memory context for the dns_cache object */
 	isc_mem_t *hmctx; /* Heap memory */
 	isc_mem_t *tmctx; /* Tree memory */
 	isc_taskmgr_t *taskmgr;
@@ -331,7 +331,7 @@ cache_free(dns_cache_t *cache) {
 }
 
 isc_result_t
-dns_cache_create(isc_mem_t *cmctx, isc_taskmgr_t *taskmgr,
+dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
 		 const char *cachename, const char *db_type,
 		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep) {
@@ -341,31 +341,31 @@ dns_cache_create(isc_mem_t *cmctx, isc_taskmgr_t *taskmgr,
 
 	REQUIRE(cachep != NULL);
 	REQUIRE(*cachep == NULL);
-	REQUIRE(cmctx != NULL);
+	REQUIRE(mctx != NULL);
 	REQUIRE(taskmgr != NULL || strcmp(db_type, "rbt") != 0);
 	REQUIRE(cachename != NULL);
 
-	cache = isc_mem_get(cmctx, sizeof(*cache));
+	cache = isc_mem_get(mctx, sizeof(*cache));
 	*cache = (dns_cache_t){
-		.db_type = isc_mem_strdup(cmctx, db_type),
+		.db_type = isc_mem_strdup(mctx, db_type),
 		.rdclass = rdclass,
 		.db_argc = db_argc,
 		.name = cachename == NULL ? NULL
-					  : isc_mem_strdup(cmctx, cachename),
+					  : isc_mem_strdup(mctx, cachename),
 		.magic = CACHE_MAGIC,
 	};
 
-	isc_mem_attach(cmctx, &cache->mctx);
+	isc_mutex_init(&cache->lock);
+	isc_mem_attach(mctx, &cache->mctx);
 
 	if (taskmgr != NULL) {
 		isc_taskmgr_attach(taskmgr, &cache->taskmgr);
 	}
 
-	isc_mutex_init(&cache->lock);
 	isc_refcount_init(&cache->references, 1);
 	isc_refcount_init(&cache->live_tasks, 1);
 
-	result = isc_stats_create(cmctx, &cache->stats,
+	result = isc_stats_create(mctx, &cache->stats,
 				  dns_cachestatscounter_max);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -382,7 +382,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_taskmgr_t *taskmgr,
 	}
 
 	if (cache->db_argc != 0) {
-		cache->db_argv = isc_mem_get(cmctx,
+		cache->db_argv = isc_mem_get(mctx,
 					     cache->db_argc * sizeof(char *));
 
 		for (i = 0; i < cache->db_argc; i++) {
@@ -390,7 +390,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_taskmgr_t *taskmgr,
 		}
 
 		for (i = extra; i < cache->db_argc; i++) {
-			cache->db_argv[i] = isc_mem_strdup(cmctx,
+			cache->db_argv[i] = isc_mem_strdup(mctx,
 							   db_argv[i - extra]);
 		}
 	}
