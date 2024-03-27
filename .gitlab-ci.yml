@@ -158,16 +158,16 @@ stages:
 
 # Fedora
 
-.tsan-fedora-39-amd64: &tsan_fedora_39_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tsan-fedora-39-amd64"
+.tsan-fedora-40-amd64: &tsan_fedora_40_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tsan-fedora-40-amd64"
   <<: *linux_amd64
 
-.fedora-39-amd64: &fedora_39_amd64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-39-amd64"
+.fedora-40-amd64: &fedora_40_amd64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-40-amd64"
   <<: *linux_amd64
 
-.fedora-39-arm64: &fedora_39_arm64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-39-arm64"
+.fedora-40-arm64: &fedora_40_arm64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-40-arm64"
   <<: *linux_arm64
 
 # Ubuntu
@@ -1049,7 +1049,7 @@ unit:gcc:jammy:amd64:
     - job: gcc:jammy:amd64
       artifacts: true
 
-# Jobs for ASAN builds on Fedora 39 (amd64)
+# Jobs for ASAN builds on Fedora 40 (amd64)
 
 gcc:asan:
   variables:
@@ -1057,18 +1057,18 @@ gcc:asan:
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *fedora_39_amd64_image
+  <<: *fedora_40_amd64_image
   <<: *build_job
 
 system:gcc:asan:
-  <<: *fedora_39_amd64_image
+  <<: *fedora_40_amd64_image
   <<: *system_test_job
   needs:
     - job: gcc:asan
       artifacts: true
 
 unit:gcc:asan:
-  <<: *fedora_39_amd64_image
+  <<: *fedora_40_amd64_image
   <<: *unit_test_job
   needs:
     - job: gcc:asan
@@ -1097,7 +1097,7 @@ unit:clang:asan:
     - job: clang:asan
       artifacts: true
 
-# Jobs for TSAN builds on Fedora 39 (amd64)
+# Jobs for TSAN builds on Fedora 40 (amd64)
 
 gcc:tsan:
   variables:
@@ -1105,13 +1105,13 @@ gcc:tsan:
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
-  <<: *tsan_fedora_39_amd64_image
+  <<: *tsan_fedora_40_amd64_image
   <<: *build_job
 
 system:gcc:tsan:
   variables:
     TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
-  <<: *tsan_fedora_39_amd64_image
+  <<: *tsan_fedora_40_amd64_image
   <<: *system_test_tsan_job
   needs:
     - job: gcc:tsan
@@ -1120,7 +1120,7 @@ system:gcc:tsan:
 unit:gcc:tsan:
   variables:
     TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
-  <<: *tsan_fedora_39_amd64_image
+  <<: *tsan_fedora_40_amd64_image
   <<: *unit_test_tsan_job
   needs:
     - job: gcc:tsan
@@ -1569,8 +1569,8 @@ respdiff-third-party:
   only:
     - merge_requests
 
-stress:short:authoritative:fedora:39:amd64:
-  <<: *fedora_39_amd64_image
+stress:short:authoritative:fedora:40:amd64:
+  <<: *fedora_40_amd64_image
   <<: *linux_amd64
   <<: *stress_test_short_job
   variables:
@@ -1581,8 +1581,8 @@ stress:short:authoritative:fedora:39:amd64:
     RATE: 10000
     RUN_TIME: 15
 
-stress:short:recursive:fedora:39:amd64:
-  <<: *fedora_39_amd64_image
+stress:short:recursive:fedora:40:amd64:
+  <<: *fedora_40_amd64_image
   <<: *linux_amd64
   <<: *stress_test_short_job
   variables:
@@ -1593,8 +1593,8 @@ stress:short:recursive:fedora:39:amd64:
     RATE: 10000
     RUN_TIME: 15
 
-stress:short:rpz:fedora:39:amd64:
-  <<: *fedora_39_amd64_image
+stress:short:rpz:fedora:40:amd64:
+  <<: *fedora_40_amd64_image
   <<: *linux_amd64
   <<: *stress_test_short_job
   variables:
@@ -1605,8 +1605,8 @@ stress:short:rpz:fedora:39:amd64:
     RATE: 1500
     RUN_TIME: 15
 
-stress:short:authoritative:fedora:39:arm64:
-  <<: *fedora_39_arm64_image
+stress:short:authoritative:fedora:40:arm64:
+  <<: *fedora_40_arm64_image
   <<: *linux_arm64
   <<: *stress_test_short_job
   variables:
@@ -1617,8 +1617,8 @@ stress:short:authoritative:fedora:39:arm64:
     RATE: 10000
     RUN_TIME: 15
 
-stress:short:recursive:fedora:39:arm64:
-  <<: *fedora_39_arm64_image
+stress:short:recursive:fedora:40:arm64:
+  <<: *fedora_40_arm64_image
   <<: *linux_arm64
   <<: *stress_test_short_job
   variables:
@@ -1629,8 +1629,8 @@ stress:short:recursive:fedora:39:arm64:
     RATE: 10000
     RUN_TIME: 15
 
-stress:short:rpz:fedora:39:arm64:
-  <<: *fedora_39_arm64_image
+stress:short:rpz:fedora:40:arm64:
+  <<: *fedora_40_arm64_image
   <<: *linux_arm64
   <<: *stress_test_short_job
   variables:
@@ -1682,8 +1682,8 @@ stress:short:rpz:freebsd13:amd64:
     when: always
   timeout: 2h
 
-stress:authoritative:fedora:39:amd64:
-  <<: *fedora_39_amd64_image
+stress:authoritative:fedora:40:amd64:
+  <<: *fedora_40_amd64_image
   <<: *linux_amd64
   <<: *stress_test_long_job
   variables:
@@ -1697,8 +1697,8 @@ stress:authoritative:fedora:39:amd64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
-stress:recursive:fedora:39:amd64:
-  <<: *fedora_39_amd64_image
+stress:recursive:fedora:40:amd64:
+  <<: *fedora_40_amd64_image
   <<: *linux_amd64
   <<: *stress_test_long_job
   variables:
@@ -1712,8 +1712,8 @@ stress:recursive:fedora:39:amd64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
-stress:rpz:fedora:39:amd64:
-  <<: *fedora_39_amd64_image
+stress:rpz:fedora:40:amd64:
+  <<: *fedora_40_amd64_image
   <<: *linux_amd64
   <<: *stress_test_long_job
   variables:
@@ -1727,8 +1727,8 @@ stress:rpz:fedora:39:amd64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
-stress:authoritative:fedora:39:arm64:
-  <<: *fedora_39_arm64_image
+stress:authoritative:fedora:40:arm64:
+  <<: *fedora_40_arm64_image
   <<: *linux_arm64
   <<: *stress_test_long_job
   variables:
@@ -1742,8 +1742,8 @@ stress:authoritative:fedora:39:arm64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
 
-stress:recursive:fedora:39:arm64:
-  <<: *fedora_39_arm64_image
+stress:recursive:fedora:40:arm64:
+  <<: *fedora_40_arm64_image
   <<: *linux_arm64
   <<: *stress_test_long_job
   variables:
@@ -1757,8 +1757,8 @@ stress:recursive:fedora:39:arm64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
 
-stress:rpz:fedora:39:arm64:
-  <<: *fedora_39_arm64_image
+stress:rpz:fedora:40:arm64:
+  <<: *fedora_40_arm64_image
   <<: *linux_arm64
   <<: *stress_test_long_job
   variables:
