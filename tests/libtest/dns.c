@@ -84,7 +84,7 @@ dns_test_makeview(const char *name, bool with_dispatchmgr, bool with_cache,
 	}
 
 	if (with_cache) {
-		result = dns_cache_create(loopmgr, dns_rdataclass_in, "",
+		result = dns_cache_create(loopmgr, dns_rdataclass_in, "", mctx,
 					  &cache);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);

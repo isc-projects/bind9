@@ -66,7 +66,7 @@ struct dns_cache {
 	/* Unlocked. */
 	unsigned int magic;
 	isc_mutex_t lock;
-	isc_mem_t *mctx;  /* Main cache memory */
+	isc_mem_t *mctx;  /* Memory context for the dns_cache object */
 	isc_mem_t *hmctx; /* Heap memory */
 	isc_mem_t *tmctx; /* Tree memory */
 	isc_loop_t *loop;
@@ -160,24 +160,16 @@ cache_destroy(dns_cache_t *cache) {
 
 isc_result_t
 dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
-		 const char *cachename, dns_cache_t **cachep) {
+		 const char *cachename, isc_mem_t *mctx, dns_cache_t **cachep) {
 	isc_result_t result;
 	dns_cache_t *cache = NULL;
-	isc_mem_t *mctx = NULL;
 
 	REQUIRE(loopmgr != NULL);
 	REQUIRE(cachename != NULL);
 	REQUIRE(cachep != NULL && *cachep == NULL);
 
-	/*
-	 * Self.
-	 */
-	isc_mem_create(&mctx);
-	isc_mem_setname(mctx, "cache-self");
-
 	cache = isc_mem_get(mctx, sizeof(*cache));
 	*cache = (dns_cache_t){
-		.mctx = mctx,
 		.rdclass = rdclass,
 		.name = isc_mem_strdup(mctx, cachename),
 		.loop = isc_loop_ref(isc_loop_main(loopmgr)),
@@ -186,6 +178,7 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 	};
 
 	isc_mutex_init(&cache->lock);
+	isc_mem_attach(mctx, &cache->mctx);
 
 	isc_stats_create(mctx, &cache->stats, dns_cachestatscounter_max);
 
