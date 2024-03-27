@@ -4000,6 +4000,50 @@ system.
    the server will accept for updating local authoritiative zones or
    forwarding to a primary server. The default is ``100``.
 
+.. namedconf:statement:: sig0checks-quota
+   :tags: server
+   :short: Specifies the maximum number of concurrent SIG(0) signature checks that can be processed by the server.
+
+   This is the maximum number of simultaneous SIG(0)-signed messages that
+   the server will accept. If the quota is reached, then :iscman:`named` waits
+   for the maximum of :any:`sig0checks-quota-maxwait-ms` time for a quota to
+   appear or to answer with a status code of REFUSED. The value of ``0``
+   disables the quota. The default is ``1``.
+
+   .. note::
+
+       :any:`sig0checks-quota` protection does not work when there is only one
+       worker thread available, or when the option is set to a value that is
+       greater or equal to the worker threads available. See the ``-n #cpus``
+       option of :iscman:`named` for more information about the worker threads.
+
+.. namedconf:statement:: sig0checks-quota-maxwait-ms
+   :tags: server
+   :short: Specifies the maximum number of milliseconds to wait for a SIG(0) signature checking quota to appear.
+
+   When :any:`sig0checks-quota` is effective and a client reaches the quota,
+   then :iscman:`named` waits for the maximum of
+   :any:`sig0checks-quota-maxwait-ms` time (in milliseconds) for a quota to
+   appear. If no quota becomes available, then an answer with a status code of
+   REFUSED is sent. The default is ``1500``.
+
+.. namedconf:statement:: sig0checks-quota-exempt
+   :tags: server
+   :short: Exempts specific clients or client groups from SIG(0) signature checking quota.
+
+   DNS clients can be exempted from SIG(0) signature checking quota with the
+   :any:`sig0checks-quota-exempt` clause using their IP and/or Network
+   addresses. The default value is an empty list.
+
+   Example:
+
+   ::
+
+       sig0checks-quota-exempt {
+           10.0.0.0/8;
+           2001:db8::100;
+       };
+
 .. _intervals:
 
 Periodic Task Intervals
