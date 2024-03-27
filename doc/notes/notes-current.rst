@@ -34,6 +34,10 @@ Security Fixes
   ISC would like to thank Toshifumi Sakaguchi who independently discovered
   and responsibly reported the issue to ISC. :gl:`#4548`
 
+- A malicious DNS client that sends many queries with a SIG(0)-signed message
+  can cause server to respond slowly or not respond at all for other clients.
+  :cve:`2024-1975` :gl:`#4480`
+
 New Features
 ~~~~~~~~~~~~
 
