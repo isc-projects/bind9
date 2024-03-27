@@ -657,6 +657,7 @@ gcc:alpine3.19:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--without-gssapi"
   <<: *alpine_3_19_amd64_image
   <<: *build_job
 
@@ -1243,7 +1244,9 @@ unit:gcc:softhsm2.6:
 clang:freebsd13:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-gssapi=/usr/bin/krb5-config"
+    # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
+    # incompatibility; see https://bugs.freebsd.org/275241.
+    EXTRA_CONFIGURE: "--with-gssapi=/usr/local/bin/krb5-config"
     USER: gitlab-runner
   <<: *freebsd_13_amd64_image
   <<: *build_job
@@ -1269,8 +1272,9 @@ unit:clang:freebsd13:amd64:
 clang:freebsd14:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    # Disable BIND 9 GSS-API support because of Heimdal incompatibility; see FreeBSD bug #275241.
-    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT} --without-gssapi"
+    # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
+    # incompatibility; see https://bugs.freebsd.org/275241.
+    EXTRA_CONFIGURE: "--with-gssapi=/usr/local/bin/krb5-config"
     USER: gitlab-runner
   <<: *freebsd_14_amd64_image
   <<: *build_job
