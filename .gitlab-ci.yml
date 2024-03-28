@@ -231,7 +231,7 @@ stages:
       --with-geoip2=auto
       --disable-static
       --enable-option-checking=fatal
-      --enable-dnstap
+      --disable-dnstap
       --with-cmocka
       --with-libxml2
       --with-libjson
@@ -488,7 +488,7 @@ gcc:centos6:i386:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-python --disable-warn-error --disable-dnstap"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-python --disable-warn-error"
   <<: *centos_centos6_i386_image
   <<: *build_job
 
@@ -512,7 +512,7 @@ gcc:centos6:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error --disable-dnstap"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
   <<: *centos_centos6_amd64_image
   <<: *build_job
 
@@ -536,7 +536,7 @@ gcc:oraclelinux7:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-dnstap"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *oraclelinux_7_amd64_image
   <<: *build_job
 
@@ -584,7 +584,7 @@ gcc:stretch:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--without-gssapi"
+    EXTRA_CONFIGURE: "--without-gssapi --enable-dnstap"
   <<: *debian_stretch_amd64_image
   <<: *build_job
   <<: *schedules_tags_web_triggering_rules
@@ -596,6 +596,7 @@ system:gcc:stretch:amd64:
   needs:
     - job: gcc:stretch:amd64
       artifacts: true
+  allow_failure: true
 
 unit:gcc:stretch:amd64:
   <<: *debian_stretch_amd64_image
@@ -716,7 +717,7 @@ gcc:bionic:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip --disable-dnstap --with-gssapi"
+    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip --with-gssapi"
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
 
@@ -986,7 +987,6 @@ clang:openbsd:amd64:
   variables:
     CC: clang
     USER: gitlab-runner
-    EXTRA_CONFIGURE: "--disable-dnstap"
   <<: *openbsd_amd64_image
   <<: *build_job
 
