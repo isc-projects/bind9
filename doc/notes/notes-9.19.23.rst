@@ -12,20 +12,10 @@
 Notes for BIND 9.19.23
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
 - Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -43,8 +33,6 @@ Feature Changes
 
 Bug Fixes
 ~~~~~~~~~
-
-- None.
 
 - Some ISO 8601 durations were accepted erroneously, leading to shorter
   durations than expected. This has been fixed. :gl:`#4624`
