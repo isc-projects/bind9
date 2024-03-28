@@ -2680,6 +2680,9 @@ $RNDCCMD 10.53.0.3 serve-stale on >rndc.out.test$n.2 2>&1 || ret=1
 $DIG -p ${PORT} @10.53.0.3 a-only-slow.example AAAA >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "2001:aaaa" dig.out.test$n >/dev/null || ret=1
+# revert configuration changes introduced by this check
+copy_setports ns3/named8.conf.in ns3/named.conf
+$RNDCCMD 10.53.0.3 reload >rndc.out.test$n.1 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
