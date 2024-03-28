@@ -2666,6 +2666,23 @@ grep "2001:aaaa" dig.out.2.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "check DNS64 processing of a stale negative answer (short serve-stale-client-timeout) ($n)"
+ret=0
+# configure ns3 with dns64
+copy_setports ns3/named9.conf.in ns3/named.conf
+$RNDCCMD 10.53.0.3 reload >rndc.out.test$n.1 2>&1 || ret=1
+# flush cache, enable ans2 responses, make sure serve-stale is on
+$RNDCCMD 10.53.0.3 flush >rndc.out.test$n.1 2>&1 || ret=1
+$DIG -p ${PORT} @10.53.0.2 txt enable >/dev/null
+$RNDCCMD 10.53.0.3 serve-stale on >rndc.out.test$n.2 2>&1 || ret=1
+#
+$DIG -p ${PORT} @10.53.0.3 a-only-slow.example AAAA >dig.out.test$n || ret=1
+grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
+grep "2001:aaaa" dig.out.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 ###########################################################
 # Test serve-stale's interaction with prefetch processing #
 ###########################################################
