@@ -42,6 +42,7 @@ def lines_containing(lines, string):
 changes_issue_or_mr_id_regex = re.compile(rb"\[(GL [#!]|RT #)[0-9]+\]")
 relnotes_issue_or_mr_id_regex = re.compile(rb":gl:`[#!][0-9]+`")
 release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
+rdata_regex = re.compile(r"lib/dns/rdata/")
 
 modified_files = danger.git.modified_files
 affected_files = (
@@ -333,6 +334,16 @@ if changes_added_lines:
 #       Notes" label set.  (This ensures that merge requests updating release
 #       notes can be easily found using the "Release Notes" label.)
 #
+#     * A file was added to or deleted from the lib/dns/rdata/ subdirectory but
+#       release notes were not modified. This is probably a mistake because new
+#       RR types are a user-visible change (and so is removing support for
+#       existing ones).
+#
+#     * "Release notes" and "No CHANGES" labels are both set at the same time.
+#       (If something is worth a release note, it should surely show up in
+#       CHANGES.) MRs with certain labels set ("Documentation", "Release") are
+#       exempt because these are typically used during release process.
+#
 # - WARN if any of the following is true:
 #
 #     * This merge request does not update release notes and has the "Customer"
@@ -357,10 +368,29 @@ if not release_notes_changed:
             "This merge request has the *Customer* label set. "
             "Update release notes unless the changes introduced are trivial."
         )
+    rdata_types_add_rm = list(
+        filter(rdata_regex.match, danger.git.created_files + danger.git.deleted_files)
+    )
+    if rdata_types_add_rm:
+        fail(
+            "This merge request adds new files to `lib/dns/rdata/` and/or "
+            "deletes existing files from that directory, which almost certainly "
+            "means that it adds support for a new RR type or removes support "
+            "for an existing one. Please add a relevant release note."
+        )
 if release_notes_changed and not release_notes_label_set:
     fail(
         "This merge request modifies release notes. "
         "Revert release note modifications or set the *Release Notes* label."
+    )
+if (
+    release_notes_label_set
+    and no_changes_label_set
+    and not ("Documentation" in mr_labels or "Release" in mr_labels)
+):
+    fail(
+        "This merge request is labeled with both *Release notes* and *No CHANGES*. "
+        "A user-visible change should also be mentioned in the `CHANGES` file."
     )
 
 if release_notes_changed:
@@ -418,6 +448,25 @@ if switches_added:
             "non-empty value (e.g. `1`). This will cause the `pairwise` "
             "job to exercise the new `./configure` switches."
         )
+
+###############################################################################
+# PRE-RELEASE TESTING
+###############################################################################
+#
+# WARN if the merge request is marked with the "Security" label, but not with
+# the label used for marking merge requests for pre-release testing (if the
+# latter is defined by the relevant environment variable).
+
+pre_release_testing_label = os.getenv("PRE_RELEASE_TESTING_LABEL")
+if (
+    pre_release_testing_label
+    and "Security" in mr_labels
+    and pre_release_testing_label not in mr_labels
+):
+    warn(
+        "This merge request is marked with the *Security* label, but it is not "
+        f"marked for pre-release testing (*{pre_release_testing_label}*)."
+    )
 
 ###############################################################################
 # USER-VISIBLE LOG LEVELS
