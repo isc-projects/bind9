@@ -531,6 +531,8 @@ misc:
 
 changes:
   <<: *precheck_job
+  except:
+    - pipelines
   script:
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
