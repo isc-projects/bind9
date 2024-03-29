@@ -219,7 +219,7 @@ stages:
 
 ### Job Templates
 
-.api-schedules-tags-triggers-web-triggering-rules: &api_schedules_tags_triggers_web_triggering_rules
+.api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
   only:
     - api
     - pipelines
@@ -228,7 +228,7 @@ stages:
     - triggers
     - web
 
-.api-schedules-triggers-web-triggering-rules: &api_schedules_triggers_web_triggering_rules
+.api-pipelines-schedules-triggers-web-triggering-rules: &api_pipelines_schedules_triggers_web_triggering_rules
   only:
     - api
     - pipelines
@@ -345,7 +345,7 @@ stages:
 
 .shotgun: &shotgun_job
   <<: *base_image
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   stage: performance
   script:
     - if [ -z "$CI_COMMIT_TAG" ]; then export SHOTGUN_ROUNDS=1; else export SHOTGUN_ROUNDS=3; fi
@@ -695,7 +695,7 @@ docs:tarball:
       artifacts: true
 
 docs:pdf:
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *base_image
   stage: docs
   before_script:
@@ -875,12 +875,12 @@ gcc:buster:amd64:
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_buster_amd64_image
   <<: *build_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 system:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
   <<: *system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:buster:amd64
       artifacts: true
@@ -888,7 +888,7 @@ system:gcc:buster:amd64:
 unit:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
   <<: *unit_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:buster:amd64
       artifacts: true
@@ -1012,7 +1012,7 @@ system:gcc:out-of-tree:
       artifacts: true
   <<: *base_image
   <<: *system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 unit:gcc:out-of-tree:
   variables:
@@ -1022,7 +1022,7 @@ unit:gcc:out-of-tree:
       artifacts: true
   <<: *base_image
   <<: *unit_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 # Jobs for tarball GCC builds on Debian 12 "bookworm" (amd64)
 
@@ -1042,7 +1042,7 @@ gcc:tarball:
 system:gcc:tarball:
   <<: *base_image
   <<: *system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   before_script:
     - cd bind-*
     - *setup_interfaces
@@ -1056,7 +1056,7 @@ system:gcc:tarball:
 unit:gcc:tarball:
   <<: *base_image
   <<: *unit_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   before_script:
     - cd bind-*
   needs:
@@ -1582,7 +1582,7 @@ respdiff-short:tsan:
 
 respdiff-long:
   <<: *respdiff_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *respdiff_debian_bookworm_amd64_image
   variables:
     CC: gcc
@@ -1593,7 +1593,7 @@ respdiff-long:
 
 respdiff-long:asan:
   <<: *respdiff_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
@@ -1606,7 +1606,7 @@ respdiff-long:asan:
 
 respdiff-long:tsan:
   <<: *respdiff_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *tsan_debian_bookworm_amd64_image
   variables:
     CC: gcc
@@ -1623,7 +1623,7 @@ respdiff-long:tsan:
 
 respdiff-long-third-party:
   <<: *respdiff_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
