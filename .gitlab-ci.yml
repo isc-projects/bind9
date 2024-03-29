@@ -222,7 +222,7 @@ stages:
 
 ### Job Templates
 
-.api-schedules-tags-triggers-web-triggering-rules: &api_schedules_tags_triggers_web_triggering_rules
+.api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
   only:
     - api
     - pipelines
@@ -231,7 +231,7 @@ stages:
     - triggers
     - web
 
-.api-schedules-triggers-web-triggering-rules: &api_schedules_triggers_web_triggering_rules
+.api-pipelines-schedules-triggers-web-triggering-rules: &api_pipelines_schedules_triggers_web_triggering_rules
   only:
     - api
     - pipelines
@@ -443,15 +443,6 @@ misc:
   script:
     - sh util/check-ans-prereq.sh
     - sh util/checklibs.sh > checklibs.out
-    - sh util/tabify-changes < CHANGES > CHANGES.tmp
-    - diff -urNap CHANGES CHANGES.tmp
-    - perl util/check-changes CHANGES
-    - sh util/check-line-length.sh CHANGES
-    - test ! -f CHANGES.SE || sh util/tabify-changes < CHANGES.SE > CHANGES.tmp
-    - test ! -f CHANGES.SE || diff -urNap CHANGES.SE CHANGES.tmp
-    - test ! -f CHANGES.SE || perl util/check-changes master=0 CHANGES.SE
-    - test ! -f CHANGES.SE || sh util/check-line-length.sh CHANGES.SE
-    - rm CHANGES.tmp
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
     - sh util/check-win32util-configure
     - sh util/check-categories.sh
@@ -460,6 +451,18 @@ misc:
     paths:
       - checklibs.out
     when: on_failure
+
+changes:
+  <<: *precheck_job
+  except:
+    - pipelines
+  script:
+    - sh util/tabify-changes < CHANGES > CHANGES.tmp
+    - diff -urNap CHANGES CHANGES.tmp
+    - perl util/check-changes CHANGES
+    - sh util/check-line-length.sh CHANGES
+    - rm CHANGES.tmp
+  needs: []
 
 black:
   <<: *precheck_job
@@ -593,7 +596,7 @@ docs:
   needs: []
 
 docs:pdf:
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *base_image
   stage: docs
   before_script:
@@ -774,12 +777,12 @@ gcc:buster:amd64:
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_buster_amd64_image
   <<: *build_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 system:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
   <<: *system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:buster:amd64
       artifacts: true
@@ -787,7 +790,7 @@ system:gcc:buster:amd64:
 unit:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
   <<: *unit_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:buster:amd64
       artifacts: true
@@ -969,7 +972,7 @@ gcc:tarball:
 system:gcc:tarball:
   <<: *base_image
   <<: *system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   before_script:
     - cd bind-*
     - *setup_interfaces
@@ -980,7 +983,7 @@ system:gcc:tarball:
 unit:gcc:tarball:
   <<: *base_image
   <<: *unit_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   before_script:
     - cd bind-*
   needs:
@@ -1351,14 +1354,14 @@ system:msvc:windows:amd64:
 msvc-debug:windows:amd64:
   <<: *windows_server_2016_amd64_image
   <<: *windows_build_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   variables:
     VSCONF: Debug
 
 system:msvc-debug:windows:amd64:
   <<: *windows_server_2016_amd64_image
   <<: *windows_system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   variables:
     VSCONF: Debug
   needs:
@@ -1550,7 +1553,7 @@ respdiff-short:tsan:
 
 respdiff-long:
   <<: *respdiff_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *respdiff_debian_bookworm_amd64_image
   variables:
     CC: gcc
@@ -1561,7 +1564,7 @@ respdiff-long:
 
 respdiff-long:asan:
   <<: *respdiff_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
@@ -1573,7 +1576,7 @@ respdiff-long:asan:
 
 respdiff-long:tsan:
   <<: *respdiff_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *tsan_debian_bookworm_amd64_image
   variables:
     CC: gcc
@@ -1590,7 +1593,7 @@ respdiff-long:tsan:
 
 respdiff-long-third-party:
   <<: *respdiff_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
