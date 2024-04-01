@@ -1,3 +1,6 @@
+6366.	[bug]		An assertion could be triggered in the QPDB cache when
+			encountering a delegation below a DNAME. [GL #4652]
+
 6365.	[placeholder]
 
 6364.	[protocol]	Add RESOLVER.ARPA to the built in empty zones.
