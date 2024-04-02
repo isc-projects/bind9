@@ -36,6 +36,9 @@ Bug Fixes
   ISC would like to thank Thomas Amgarten for bringing this issue to
   our attention. :gl:`#4518`, :gl:`#4528`
 
+- Some DNSSEC key rollovers were slowed down erroneously. This has been fixed.
+  :gl:`#4552`
+
 - Some ISO 8601 durations were accepted erroneously, leading to shorter
   durations than expected. This has been fixed. :gl:`#4624`
 
