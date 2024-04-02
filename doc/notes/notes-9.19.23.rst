@@ -20,7 +20,9 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Memory consumption of the new QP-trie database has been optimized and
+  large zones now require roughly 15 % more memory than the old red-black tree
+  data structure. :gl:`#4614`
 
 - The ``sortlist`` option has been deprecated and will be removed
   in a future BIND 9.21.x release. Please don't rely on a specific
