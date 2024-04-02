@@ -1,3 +1,10 @@
+6367.	[bug]		Since the dns_validator_destroy() function doesn't
+			guarantee that it destroys the validator, rename it to
+			dns_validator_shutdown() and require explicit
+			dns_validator_detach() to follow. Implement an expected
+			behavior of the function to release a name associated
+			with the validator. [GL #4654]
+
 6366.	[bug]		An assertion could be triggered in the QPDB cache when
 			encountering a delegation below a DNAME. [GL #4652]
 

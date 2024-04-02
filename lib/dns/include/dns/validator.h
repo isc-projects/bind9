@@ -235,17 +235,17 @@ dns_validator_cancel(dns_validator_t *validator);
  */
 
 void
-dns_validator_destroy(dns_validator_t **validatorp);
+dns_validator_shutdown(dns_validator_t *val);
 /*%<
- * Destroy a DNSSEC validator.
+ * Release the name associated with the DNSSEC validator.
  *
  * Requires:
- *\li	'*validatorp' points to a valid DNSSEC validator.
+ * \li	'val' points to a valid DNSSEC validator.
  * \li	The validator must have completed and sent its completion
  *	event.
  *
  * Ensures:
- *\li	All resources used by the validator are freed.
+ *\li	The name associated with the DNSSEC validator is released.
  */
 
 #if DNS_VALIDATOR_TRACE
