@@ -168,7 +168,12 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 			result = ISC_R_FAILURE;
 		}
 	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") == 0) {
-#if !DNS_RDATASET_FIXED
+#if DNS_RDATASET_FIXED
+		if ((ent->pctx->flags & CFG_PCTX_NODEPRECATED) == 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "rrset-order: order 'fixed' is deprecated");
+		}
+#else
 		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
 			    "rrset-order: order 'fixed' was disabled at "
 			    "compilation time");

@@ -165,6 +165,12 @@ warnings=$(grep "'notify' is disabled" <checkconf.out$n | wc -l)
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+if grep "^#define DNS_RDATASET_FIXED" "$TOP_BUILDDIR/config.h" >/dev/null 2>&1; then
+  test_fixed=true
+else
+  test_fixed=false
+fi
+
 n=$((n + 1))
 echo_i "checking named-checkconf deprecate warnings ($n)"
 ret=0
@@ -181,11 +187,16 @@ grep "option 'heartbeat-interval' is deprecated" <checkconf.out$n.1 >/dev/null |
 grep "option 'dnssec-must-be-secure' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'sortlist' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "token 'port' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
+if $test_fixed; then
+  grep "rrset-order: order 'fixed' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
+else
+  grep "rrset-order: order 'fixed' was disabled at compilation time" <checkconf.out$n.1 >/dev/null || ret=1
+fi
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 # set -i to ignore deprecate warnings
-$CHECKCONF -i deprecated.conf >checkconf.out$n.2 2>&1
-grep '.*' <checkconf.out$n.2 >/dev/null && ret=1
+$CHECKCONF -i deprecated.conf 2>&1 | grep_v "rrset-order: order 'fixed' was disabled at compilation time" >checkconf.out$n.2
+grep '^.+$' <checkconf.out$n.2 >/dev/null && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

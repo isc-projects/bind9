@@ -36,6 +36,11 @@ Feature Changes
   in a future BIND 9.21.x release. Please don't rely on a specific
   order of resource records in the DNS messages.  :gl:`#4593`
 
+- The ``fixed`` value for the ``rrset-order`` option and the corresponding
+  ``./configure`` script option has been deprecated and will be removed in a
+  future BIND 9.21.x release. Please don't rely on a specific order of resource
+  records in the DNS messages.  :gl:`#4446`
+
 Bug Fixes
 ~~~~~~~~~
 

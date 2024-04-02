@@ -650,3 +650,5 @@ parse_openssl_config() {
         esac
     done < "$OPENSSL_CONF"
 }
+
+grep_v() { grep -v "$@" || test $? = 1; }
