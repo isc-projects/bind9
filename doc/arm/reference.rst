@@ -4014,8 +4014,10 @@ client's address. This only requires configuring the name servers, not
 all the clients.
 
 .. namedconf:statement:: sortlist
-   :tags: query
+   :tags: query, deprecated
    :short: Controls the ordering of RRs returned to the client, based on the client's IP address.
+
+   This option is deprecated and will be removed in a future release.
 
    The :any:`sortlist` statement (see below) takes an :term:`address_match_list` and
    interprets it in a special way. Each top-level statement in the :any:`sortlist`

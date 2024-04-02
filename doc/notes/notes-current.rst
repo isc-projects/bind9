@@ -32,6 +32,10 @@ Feature Changes
 
 - None.
 
+- The ``sortlist`` option has been deprecated and will be removed
+  in a future BIND 9.21.x release. Please don't rely on a specific
+  order of resource records in the DNS messages.  :gl:`#4593`
+
 Bug Fixes
 ~~~~~~~~~
 
