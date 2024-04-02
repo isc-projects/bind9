@@ -1702,6 +1702,8 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				encloser, (void *)&search DNS__DB_FLARG_PASS);
 			if (zcresult != DNS_R_CONTINUE) {
 				result = DNS_R_PARTIALMATCH;
+				dns_qpchain_node(&search.chain, i, foundname,
+						 NULL, NULL);
 				search.chain.len = i - 1;
 				node = encloser;
 				break;
