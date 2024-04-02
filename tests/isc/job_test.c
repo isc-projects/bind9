@@ -62,10 +62,9 @@ job_cb(void *arg) {
 
 	if (n <= MAX_EXECUTED) {
 		atomic_fetch_add(&scheduled, 1);
-		isc_job_run(isc_loop_current(loopmgr), &ta->job, job_cb, ta);
+		isc_job_run(isc_loop(), &ta->job, job_cb, ta);
 	} else {
-		isc_job_run(isc_loop_current(loopmgr), &ta->job, shutdown_cb,
-			    ta);
+		isc_job_run(isc_loop(), &ta->job, shutdown_cb, ta);
 	}
 }
 
@@ -79,7 +78,7 @@ job_run_cb(void *arg) {
 		*ta = (struct test_arg){ .job = ISC_JOB_INITIALIZER };
 	}
 
-	isc_job_run(isc_loop_current(loopmgr), &ta->job, job_cb, ta);
+	isc_job_run(isc_loop(), &ta->job, job_cb, ta);
 }
 
 ISC_RUN_TEST_IMPL(isc_job_run) {

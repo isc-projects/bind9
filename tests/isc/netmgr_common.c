@@ -388,7 +388,7 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	if (have_expected_cconnects(atomic_fetch_add(&cconnects, 1) + 1)) {
 		do_cconnects_shutdown(loopmgr);
 	} else if (do_send) {
-		isc_async_current(loopmgr, stream_recv_send_connect,
+		isc_async_current(stream_recv_send_connect,
 				  (cbarg == NULL
 					   ? get_stream_connect_function()
 					   : (stream_connect_function)cbarg));
@@ -1477,7 +1477,7 @@ udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		{
 			do_cconnects_shutdown(loopmgr);
 		} else if (do_send) {
-			isc_async_current(loopmgr, udp_enqueue_connect, cbarg);
+			isc_async_current(udp_enqueue_connect, cbarg);
 		}
 
 		isc_refcount_increment0(&active_creads);
@@ -1819,8 +1819,7 @@ udp_shutdown_connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	 */
 	if (atomic_fetch_add(&cconnects, 1) == 0) {
 		assert_int_equal(eresult, ISC_R_SUCCESS);
-		isc_async_current(loopmgr, udp_shutdown_connect_async_cb,
-				  netmgr);
+		isc_async_current(udp_shutdown_connect_async_cb, netmgr);
 	} else {
 		assert_int_equal(eresult, ISC_R_SHUTTINGDOWN);
 	}
@@ -1853,7 +1852,7 @@ udp_shutdown_connect(void **arg ISC_ATTR_UNUSED) {
 	 * isc_nm_udpconnect() is synchronous, so we need to launch this on the
 	 * async loop.
 	 */
-	isc_async_current(loopmgr, udp_shutdown_connect_async_cb, netmgr);
+	isc_async_current(udp_shutdown_connect_async_cb, netmgr);
 }
 
 int

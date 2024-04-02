@@ -198,8 +198,8 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 }
 
 static isc_result_t
-createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_loopmgr_t *loopmgr,
-	   isc_nm_t *nm, isc_tlsctx_cache_t *tlsctx_client_cache,
+createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_nm_t *nm,
+	   isc_tlsctx_cache_t *tlsctx_client_cache,
 	   dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
 	   dns_dispatch_t *dispatchv6, dns_view_t **viewp) {
 	isc_result_t result;
@@ -214,7 +214,7 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_loopmgr_t *loopmgr,
 	/* Initialize view security roots */
 	dns_view_initsecroots(view);
 
-	CHECK(dns_view_createresolver(view, loopmgr, nm, 0, tlsctx_client_cache,
+	CHECK(dns_view_createresolver(view, nm, 0, tlsctx_client_cache,
 				      dispatchv4, dispatchv6));
 	CHECK(dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
 			    dns_dbtype_cache, rdclass, 0, NULL,
@@ -290,9 +290,8 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 	isc_refcount_init(&client->references, 1);
 
 	/* Create the default view for class IN */
-	result = createview(mctx, dns_rdataclass_in, loopmgr, nm,
-			    tlsctx_client_cache, client->dispatchmgr,
-			    dispatchv4, dispatchv6, &view);
+	result = createview(mctx, dns_rdataclass_in, nm, tlsctx_client_cache,
+			    client->dispatchmgr, dispatchv4, dispatchv6, &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;
 	}

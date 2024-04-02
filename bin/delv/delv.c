@@ -2103,9 +2103,8 @@ sendquery(void *arg) {
 
 	dns_view_attach(view, &(dns_view_t *){ NULL });
 	CHECK(dns_request_create(requestmgr, message, NULL, &peer, NULL, NULL,
-				 DNS_REQUESTOPT_TCP, NULL, 1, 0, 0,
-				 isc_loop_current(loopmgr), recvresponse,
-				 message, &request));
+				 DNS_REQUESTOPT_TCP, NULL, 1, 0, 0, isc_loop(),
+				 recvresponse, message, &request));
 	return;
 
 cleanup:
@@ -2167,8 +2166,8 @@ run_server(void *arg) {
 	dns_view_initsecroots(view);
 	CHECK(setup_dnsseckeys(NULL, view));
 
-	CHECK(dns_view_createresolver(view, loopmgr, netmgr, 0,
-				      tlsctx_client_cache, dispatch, NULL));
+	CHECK(dns_view_createresolver(view, netmgr, 0, tlsctx_client_cache,
+				      dispatch, NULL));
 
 	isc_stats_create(mctx, &resstats, dns_resstatscounter_max);
 	dns_resolver_setstats(view->resolver, resstats);
@@ -2187,7 +2186,7 @@ run_server(void *arg) {
 				     NULL, NULL, ISC_NM_PROXY_NONE,
 				     &ifp->tcplistensocket));
 	ifp->flags |= NS_INTERFACEFLAG_LISTENING;
-	isc_async_current(loopmgr, sendquery, ifp->tcplistensocket);
+	isc_async_current(sendquery, ifp->tcplistensocket);
 
 	return;
 

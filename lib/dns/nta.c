@@ -282,7 +282,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 		.magic = NTA_MAGIC,
 	};
 	isc_mem_attach(ntatable->mctx, &nta->mctx);
-	isc_loop_attach(isc_loop_current(ntatable->loopmgr), &nta->loop);
+	isc_loop_attach(isc_loop(), &nta->loop);
 
 	dns_rdataset_init(&nta->rdataset);
 	dns_rdataset_init(&nta->sigrdataset);
@@ -439,7 +439,7 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 		/* NTA is expired */
 		dns__nta_ref(nta);
 		dns_ntatable_ref(nta->ntatable);
-		isc_async_current(nta->ntatable->loopmgr, delete_expired, nta);
+		isc_async_current(delete_expired, nta);
 		goto done;
 	}
 

@@ -1704,7 +1704,7 @@ dns__rpz_timer_start(dns_rpz_zone_t *rpz) {
 		isc_interval_set(&interval, 0, 0);
 	}
 
-	rpz->loop = isc_loop_current(rpz->rpzs->loopmgr);
+	rpz->loop = isc_loop();
 
 	isc_timer_create(rpz->loop, dns__rpz_timer_cb, rpz, &rpz->updatetimer);
 	isc_timer_start(rpz->updatetimer, isc_timertype_once, &interval);

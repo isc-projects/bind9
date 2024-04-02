@@ -124,21 +124,21 @@ teardown_managers(void **state);
 	}                 \
 	;
 
-#define ISC_LOOP_TEST_CUSTOM_IMPL(name, setup, teardown)           \
-	void run_test_##name(void **state ISC_ATTR_UNUSED);        \
-	void loop_test_##name(void *arg ISC_ATTR_UNUSED);          \
-	void run_test_##name(void **state ISC_ATTR_UNUSED) {       \
-		isc_job_cb setup_loop = setup;                     \
-		isc_job_cb teardown_loop = teardown;               \
-		if (setup_loop != NULL) {                          \
-			setup_loop(state);                         \
-		}                                                  \
-		isc_loop_setup(mainloop, loop_test_##name, state); \
-		isc_loopmgr_run(loopmgr);                          \
-		if (teardown_loop != NULL) {                       \
-			teardown_loop(state);                      \
-		}                                                  \
-	}                                                          \
+#define ISC_LOOP_TEST_CUSTOM_IMPL(name, setup, teardown)                   \
+	void run_test_##name(void **state ISC_ATTR_UNUSED);                \
+	void loop_test_##name(void *arg ISC_ATTR_UNUSED);                  \
+	void run_test_##name(void **state ISC_ATTR_UNUSED) {               \
+		isc_job_cb setup_loop = setup;                             \
+		isc_job_cb teardown_loop = teardown;                       \
+		if (setup_loop != NULL) {                                  \
+			isc_loop_setup(mainloop, setup_loop, state);       \
+		}                                                          \
+		if (teardown_loop != NULL) {                               \
+			isc_loop_teardown(mainloop, teardown_loop, state); \
+		}                                                          \
+		isc_loop_setup(mainloop, loop_test_##name, state);         \
+		isc_loopmgr_run(loopmgr);                                  \
+	}                                                                  \
 	void loop_test_##name(void *arg ISC_ATTR_UNUSED)
 
 #define ISC_LOOP_TEST_IMPL(name) ISC_LOOP_TEST_CUSTOM_IMPL(name, NULL, NULL)

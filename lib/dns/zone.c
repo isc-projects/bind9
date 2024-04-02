@@ -18764,13 +18764,12 @@ zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_keyfileio_t **deleted) {
 }
 
 void
-dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *netmgr,
-		   dns_zonemgr_t **zmgrp) {
+dns_zonemgr_create(isc_mem_t *mctx, isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr = NULL;
-	isc_loop_t *loop = isc_loop_current(loopmgr);
+	isc_loop_t *loop = isc_loop();
+	isc_loopmgr_t *loopmgr = isc_loop_getloopmgr(loop);
 
 	REQUIRE(mctx != NULL);
-	REQUIRE(loopmgr != NULL);
 	REQUIRE(netmgr != NULL);
 	REQUIRE(zmgrp != NULL && *zmgrp == NULL);
 

@@ -39,7 +39,7 @@
 #include <tests/isc.h>
 
 /* Set to true (or use -v option) for verbose output */
-static bool verbose = false;
+static bool verbose = true;
 
 #define FUDGE_SECONDS	  0	    /* in absence of clock_getres() */
 #define FUDGE_NANOSECONDS 500000000 /* in absence of clock_getres() */
@@ -345,6 +345,7 @@ tick_event(void *arg) {
 	 */
 	if (tick == 0) {
 		isc_timer_destroy(&tickertimer);
+		isc_loopmgr_shutdown(loopmgr);
 	}
 }
 
@@ -361,7 +362,6 @@ once_event(void *arg) {
 	 */
 	atomic_store(&startflag, true);
 
-	isc_loopmgr_shutdown(loopmgr);
 	isc_timer_destroy(&oncetimer);
 }
 
@@ -424,14 +424,14 @@ timer_event(void *arg ISC_ATTR_UNUSED) {
 	if (--timer_ticks == 0) {
 		isc_timer_destroy(&timer);
 		isc_loopmgr_shutdown(loopmgr);
-		timer_stop = isc_loop_now(isc_loop_current(loopmgr));
+		timer_stop = isc_loop_now(isc_loop());
 	} else {
 		isc_timer_start(timer, timer_type, &timer_interval);
 	}
 }
 
 ISC_LOOP_SETUP_IMPL(reschedule_up) {
-	timer_start = isc_loop_now(isc_loop_current(loopmgr));
+	timer_start = isc_loop_now(isc_loop());
 	timer_expect = 1;
 	timer_ticks = 1;
 	timer_type = isc_timertype_once;
@@ -451,7 +451,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_up, setup_loop_reschedule_up,
 }
 
 ISC_LOOP_SETUP_IMPL(reschedule_down) {
-	timer_start = isc_loop_now(isc_loop_current(loopmgr));
+	timer_start = isc_loop_now(isc_loop());
 	timer_expect = 0;
 	timer_ticks = 1;
 	timer_type = isc_timertype_once;
@@ -471,7 +471,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_down, setup_loop_reschedule_down,
 }
 
 ISC_LOOP_SETUP_IMPL(reschedule_from_callback) {
-	timer_start = isc_loop_now(isc_loop_current(loopmgr));
+	timer_start = isc_loop_now(isc_loop());
 	timer_expect = 1;
 	timer_ticks = 2;
 	timer_type = isc_timertype_once;
@@ -487,7 +487,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_from_callback,
 }
 
 ISC_LOOP_SETUP_IMPL(zero) {
-	timer_start = isc_loop_now(isc_loop_current(loopmgr));
+	timer_start = isc_loop_now(isc_loop());
 	timer_expect = 0;
 	timer_ticks = 1;
 	timer_type = isc_timertype_once;
@@ -502,7 +502,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(zero, setup_loop_zero, teardown_loop_timer_expect) {
 }
 
 ISC_LOOP_SETUP_IMPL(reschedule_ticker) {
-	timer_start = isc_loop_now(isc_loop_current(loopmgr));
+	timer_start = isc_loop_now(isc_loop());
 	timer_expect = 1;
 	timer_ticks = 5;
 	timer_type = isc_timertype_ticker;

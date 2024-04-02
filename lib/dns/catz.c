@@ -861,7 +861,7 @@ dns__catz_timer_start(dns_catz_zone_t *catz) {
 		isc_interval_set(&interval, 0, 0);
 	}
 
-	catz->loop = isc_loop_current(catz->catzs->loopmgr);
+	catz->loop = isc_loop();
 
 	isc_timer_create(catz->loop, dns__catz_timer_cb, catz,
 			 &catz->updatetimer);

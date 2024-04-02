@@ -170,7 +170,7 @@ void
 dns_test_setupzonemgr(void) {
 	REQUIRE(zonemgr == NULL);
 
-	dns_zonemgr_create(mctx, loopmgr, netmgr, &zonemgr);
+	dns_zonemgr_create(mctx, netmgr, &zonemgr);
 }
 
 isc_result_t
