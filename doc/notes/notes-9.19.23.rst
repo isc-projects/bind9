@@ -39,6 +39,9 @@ Bug Fixes
 - Some DNSSEC key rollovers were slowed down erroneously. This has been fixed.
   :gl:`#4552`
 
+- Bugs which could cause resolvers configured with the new cache data structure
+  to crash or hang have been fixed. :gl:`#4622` :gl:`#4652`
+
 - Some ISO 8601 durations were accepted erroneously, leading to shorter
   durations than expected. This has been fixed. :gl:`#4624`
 
