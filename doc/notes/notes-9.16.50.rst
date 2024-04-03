@@ -12,6 +12,9 @@
 Notes for BIND 9.16.50
 ----------------------
 
+This is the last maintenance release of BIND 9.16. This version is now end of
+life. Please upgrade to BIND 9.18, the current stable version.
+
 New Features
 ~~~~~~~~~~~~
 
