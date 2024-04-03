@@ -12,11 +12,6 @@
 Notes for BIND 9.18.26
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -24,16 +19,6 @@ New Features
   of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
 
 - Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
 
 Bug Fixes
 ~~~~~~~~~
@@ -44,7 +29,10 @@ Bug Fixes
   has been fixed.
 
   ISC would like to thank Thomas Amgarten for bringing this issue to
-  our attention. :gl:`#4518`, :gl:`#4528`
+  our attention. :gl:`#4518` :gl:`#4528`
+
+- A bug in the keymgr code unintentionally slowed down some DNSSEC key
+  rollovers. This has been fixed. :gl:`#4552`
 
 - Some ISO 8601 durations were accepted erroneously, leading to shorter
   durations than expected. This has been fixed. :gl:`#4624`
