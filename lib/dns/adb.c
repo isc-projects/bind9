@@ -236,7 +236,7 @@ struct dns_adbentry {
 	unsigned char *cookie;
 	uint16_t cookielen;
 
-	_Atomic(isc_stdtime_t) expires;
+	isc_stdtime_t expires;
 	_Atomic(isc_stdtime_t) lastage;
 	/*%<
 	 * A nonzero 'expires' field indicates that the entry should
@@ -279,7 +279,7 @@ new_adbnamehook(dns_adb_t *adb);
 static void
 free_adbnamehook(dns_adb_t *adb, dns_adbnamehook_t **namehookp);
 static dns_adbentry_t *
-new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr);
+new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr, isc_stdtime_t now);
 static void
 destroy_adbentry(dns_adbentry_t *entry);
 static bool
@@ -574,14 +574,8 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 			UNREACHABLE();
 		}
 
-	again:
 		entry = get_attached_and_locked_entry(adb, now, &sockaddr);
-
-		if (ENTRY_DEAD(entry)) {
-			UNLOCK(&entry->lock);
-			dns_adbentry_detach(&entry);
-			goto again;
-		}
+		INSIST(!ENTRY_DEAD(entry));
 
 		dns_adbnamehook_t *anh = NULL;
 		for (anh = ISC_LIST_HEAD(*hookhead); anh != NULL;
@@ -604,18 +598,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		result = ISC_R_SUCCESS;
 	}
 	INSIST(result == ISC_R_SUCCESS);
-
-	switch (rdataset->trust) {
-	case dns_trust_glue:
-	case dns_trust_additional:
-		rdataset->ttl = ADB_CACHE_MINIMUM;
-		break;
-	case dns_trust_ultimate:
-		rdataset->ttl = 0;
-		break;
-	default:
-		rdataset->ttl = ttlclamp(rdataset->ttl);
-	}
 
 	switch (rdtype) {
 	case dns_rdatatype_a:
@@ -1055,7 +1037,7 @@ free_adbnamehook(dns_adb_t *adb, dns_adbnamehook_t **namehook) {
 }
 
 static dns_adbentry_t *
-new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr) {
+new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr, isc_stdtime_t now) {
 	dns_adbentry_t *entry = NULL;
 
 	entry = isc_mem_get(adb->mctx, sizeof(*entry));
@@ -1066,6 +1048,7 @@ new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr) {
 		.quota = adb->quota,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.adb = dns_adb_ref(adb),
+		.expires = now + ADB_ENTRY_WINDOW,
 		.magic = DNS_ADBENTRY_MAGIC,
 	};
 
@@ -1396,7 +1379,7 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 		INSIST(locktype == isc_rwlocktype_write);
 
 		/* Allocate a new entry and add it to the hash table. */
-		adbentry = new_adbentry(adb, addr);
+		adbentry = new_adbentry(adb, addr, now);
 
 		void *found = NULL;
 		result = isc_hashmap_add(adb->entries, hashval, match_adbentry,
@@ -1579,9 +1562,7 @@ entry_expired(dns_adbentry_t *adbentry, isc_stdtime_t now) {
 		return (false);
 	}
 
-	if (atomic_load(&adbentry->expires) == 0 ||
-	    atomic_load(&adbentry->expires) > now)
-	{
+	if (!EXPIRE_OK(adbentry->expires, now)) {
 		return (false);
 	}
 
@@ -2453,10 +2434,7 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 		}
 		fprintf(f, "]");
 	}
-	if (atomic_load(&entry->expires) != 0) {
-		fprintf(f, " [ttl %d]",
-			(int)(atomic_load(&entry->expires) - now));
-	}
+	fprintf(f, " [ttl %d]", entry->expires - now);
 
 	if (adb != NULL && adb->quota != 0 && adb->atr_freq != 0) {
 		uint_fast32_t quota = atomic_load_relaxed(&entry->quota);
@@ -3027,10 +3005,8 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int rtt,
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 	REQUIRE(factor <= 10);
 
-	dns_adbentry_t *entry = addr->entry;
-
 	isc_stdtime_t now = 0;
-	if (atomic_load(&entry->expires) == 0 || factor == DNS_ADB_RTTADJAGE) {
+	if (factor == DNS_ADB_RTTADJAGE) {
 		now = isc_stdtime_now();
 	}
 
@@ -3065,10 +3041,6 @@ adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 		atomic_store(&addr->entry->srtt, new_srtt);
 		addr->srtt = new_srtt;
 	}
-
-	(void)atomic_compare_exchange_strong(&addr->entry->expires,
-					     &(isc_stdtime_t){ 0 },
-					     now + ADB_ENTRY_WINDOW);
 }
 
 void
@@ -3077,7 +3049,6 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int bits,
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 
-	isc_stdtime_t now;
 	dns_adbentry_t *entry = addr->entry;
 
 	unsigned int flags = atomic_load(&entry->flags);
@@ -3085,11 +3056,6 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int bits,
 					       (flags & ~mask) | (bits & mask)))
 	{
 		/* repeat */
-	}
-
-	if (atomic_load(&entry->expires) == 0) {
-		now = isc_stdtime_now();
-		atomic_store(&entry->expires, now + ADB_ENTRY_WINDOW);
 	}
 
 	/*
@@ -3352,7 +3318,6 @@ dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
 	}
 
 	entry = get_attached_and_locked_entry(adb, now, sa);
-	INSIST(entry != NULL);
 
 	UNLOCK(&entry->lock);
 
@@ -3369,7 +3334,6 @@ void
 dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 	dns_adbaddrinfo_t *addr = NULL;
 	dns_adbentry_t *entry = NULL;
-	isc_stdtime_t now;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(addrp != NULL);
@@ -3382,10 +3346,6 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 	entry = addr->entry;
 
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
-
-	now = isc_stdtime_now();
-	(void)atomic_compare_exchange_strong(
-		&entry->expires, &(isc_stdtime_t){ 0 }, now + ADB_ENTRY_WINDOW);
 
 	free_adbaddrinfo(adb, &addr);
 }
