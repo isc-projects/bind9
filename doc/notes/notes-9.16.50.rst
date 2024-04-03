@@ -12,30 +12,13 @@
 Notes for BIND 9.16.50
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
+This is the last maintenance release of BIND 9.16. This version is now end of
+life. Please upgrade to BIND 9.18, the current stable version.
 
 New Features
 ~~~~~~~~~~~~
 
 - Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
 
 Known Issues
 ~~~~~~~~~~~~
