@@ -65,7 +65,7 @@
  */
 #define ADB_CACHE_MINIMUM 10	/*%< seconds */
 #define ADB_CACHE_MAXIMUM 86400 /*%< seconds (86400 = 24 hours) */
-#define ADB_ENTRY_WINDOW  1800	/*%< seconds */
+#define ADB_ENTRY_WINDOW  60	/*%< seconds */
 
 #ifndef ADB_HASH_BITS
 #define ADB_HASH_BITS 12
