@@ -7621,6 +7621,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t nameservers;
 	dns_fixedname_t fixed;
 	dns_name_t *domain;
+	unsigned int options;
 
 	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
 	fevent = (dns_fetchevent_t *)event;
@@ -7730,9 +7731,10 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		FCTXTRACE("continuing to look for parent's NS records");
 
+		options = fctx->options & ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 		result = dns_resolver_createfetch(
 			fctx->res, &fctx->nsname, dns_rdatatype_ns, domain,
-			nsrdataset, NULL, NULL, 0, fctx->options, 0, NULL, task,
+			nsrdataset, NULL, NULL, 0, options, 0, NULL, task,
 			resume_dslookup, fctx, &fctx->nsrrset, NULL,
 			&fctx->nsfetch);
 		/*
@@ -10059,7 +10061,7 @@ static void
 rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 	     dns_adbaddrinfo_t *addrinfo, isc_result_t result) {
 	fetchctx_t *fctx = rctx->fctx;
-	unsigned int n;
+	unsigned int n, options;
 
 	add_bad(fctx, message, addrinfo, result, rctx->broken_type);
 	fctx_cancelqueries(fctx, true, false);
@@ -10071,10 +10073,11 @@ rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 
 	FCTXTRACE("suspending DS lookup to find parent's NS records");
 
+	options = fctx->options & ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	result = dns_resolver_createfetch(
 		fctx->res, &fctx->nsname, dns_rdatatype_ns, NULL, NULL, NULL,
-		NULL, 0, fctx->options, 0, NULL, rctx->task, resume_dslookup,
-		fctx, &fctx->nsrrset, NULL, &fctx->nsfetch);
+		NULL, 0, options, 0, NULL, rctx->task, resume_dslookup, fctx,
+		&fctx->nsrrset, NULL, &fctx->nsfetch);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_DUPLICATE) {
 			result = DNS_R_SERVFAIL;
