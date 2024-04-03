@@ -12,11 +12,6 @@
 Notes for BIND 9.18.26
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -24,11 +19,6 @@ New Features
   of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
 
 - Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
