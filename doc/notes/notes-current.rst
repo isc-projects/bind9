@@ -15,7 +15,9 @@ Notes for BIND 9.18.28
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- Named could trigger an assertion failure when looking up the NS
+  records of parent zones as part of looking up DS records.  This
+  has been fixed. :gl:`#4661`
 
 New Features
 ~~~~~~~~~~~~
