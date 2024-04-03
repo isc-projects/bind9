@@ -442,6 +442,15 @@ enum {
 #define AUTH_NX(r) ((r) == DNS_R_NXDOMAIN || (r) == DNS_R_NXRRSET)
 
 /*
+ * Due to the ttlclamp(), the TTL is never 0 unless the trust is ultimate,
+ * in which case we need to set the expiration to have immediate effect.
+ */
+#define ADJUSTED_EXPIRE(expire, now, ttl)                                      \
+	((ttl != 0)                                                            \
+		 ? ISC_MIN(expire, ISC_MAX(now + ADB_ENTRY_WINDOW, now + ttl)) \
+		 : INT_MAX)
+
+/*
  * Error states.
  */
 enum {
@@ -613,22 +622,14 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 	switch (rdtype) {
 	case dns_rdatatype_a:
-		adbname->expire_v4 =
-			(rdataset->ttl != 0)
-				? ISC_MIN(adbname->expire_v4,
-					  ISC_MAX(now + ADB_ENTRY_WINDOW,
-						  now + rdataset->ttl))
-				: INT_MAX;
+		adbname->expire_v4 = ADJUSTED_EXPIRE(adbname->expire_v4, now,
+						     rdataset->ttl);
 		DP(NCACHE_LEVEL, "expire_v4 set to %u import_rdataset",
 		   adbname->expire_v4);
 		break;
 	case dns_rdatatype_aaaa:
-		adbname->expire_v6 =
-			(rdataset->ttl != 0)
-				? ISC_MIN(adbname->expire_v6,
-					  ISC_MAX(now + ADB_ENTRY_WINDOW,
-						  now + rdataset->ttl))
-				: INT_MAX;
+		adbname->expire_v6 = ADJUSTED_EXPIRE(adbname->expire_v6, now,
+						     rdataset->ttl);
 		DP(NCACHE_LEVEL, "expire_v6 set to %u import_rdataset",
 		   adbname->expire_v6);
 		break;
@@ -2738,7 +2739,8 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 			result = DNS_R_ALIAS;
 			DP(NCACHE_LEVEL, "adb name %p: caching alias target",
 			   adbname);
-			adbname->expire_target = rdataset.ttl + now;
+			adbname->expire_target = ADJUSTED_EXPIRE(
+				adbname->expire_target, now, rdataset.ttl);
 		}
 		if (rdtype == dns_rdatatype_a) {
 			adbname->fetch_err = FIND_ERR_SUCCESS;
@@ -2820,12 +2822,12 @@ fetch_callback(void *arg) {
 	if (NCACHE_RESULT(resp->result)) {
 		resp->rdataset->ttl = ttlclamp(resp->rdataset->ttl);
 		if (address_type == DNS_ADBFIND_INET) {
+			name->expire_v4 = ADJUSTED_EXPIRE(name->expire_v4, now,
+							  resp->rdataset->ttl);
 			DP(NCACHE_LEVEL,
 			   "adb fetch name %p: "
 			   "caching negative entry for A (ttl %u)",
-			   name, resp->rdataset->ttl);
-			name->expire_v4 = ISC_MIN(name->expire_v4,
-						  resp->rdataset->ttl + now);
+			   name, name->expire_v4);
 			if (resp->result == DNS_R_NCACHENXDOMAIN) {
 				name->fetch_err = FIND_ERR_NXDOMAIN;
 			} else {
@@ -2833,12 +2835,12 @@ fetch_callback(void *arg) {
 			}
 			inc_resstats(adb, dns_resstatscounter_gluefetchv4fail);
 		} else {
+			name->expire_v6 = ADJUSTED_EXPIRE(name->expire_v6, now,
+							  resp->rdataset->ttl);
 			DP(NCACHE_LEVEL,
 			   "adb fetch name %p: "
 			   "caching negative entry for AAAA (ttl %u)",
-			   name, resp->rdataset->ttl);
-			name->expire_v6 = ISC_MIN(name->expire_v6,
-						  resp->rdataset->ttl + now);
+			   name, name->expire_v6);
 			if (resp->result == DNS_R_NCACHENXDOMAIN) {
 				name->fetch6_err = FIND_ERR_NXDOMAIN;
 			} else {
@@ -2861,7 +2863,8 @@ fetch_callback(void *arg) {
 		if (result == ISC_R_SUCCESS) {
 			DP(NCACHE_LEVEL,
 			   "adb fetch name %p: caching alias target", name);
-			name->expire_target = resp->rdataset->ttl + now;
+			name->expire_target = ADJUSTED_EXPIRE(
+				name->expire_target, now, resp->rdataset->ttl);
 		}
 		goto check_result;
 	}
