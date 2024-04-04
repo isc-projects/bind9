@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.26
+Notes for BIND 9.18.27
 ----------------------
 
 Security Fixes
@@ -20,10 +20,7 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- The statistics channel now includes counters that indicate the number
-  of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
-
-- Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -38,16 +35,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Changes to ``listen-on`` statements were ignored on reconfiguration
-  unless the port or interface address was changed, making it
-  impossible to change a related listener transport type. That issue
-  has been fixed.
-
-  ISC would like to thank Thomas Amgarten for bringing this issue to
-  our attention. :gl:`#4518`, :gl:`#4528`
-
-- Some ISO 8601 durations were accepted erroneously, leading to shorter
-  durations than expected. This has been fixed. :gl:`#4624`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
