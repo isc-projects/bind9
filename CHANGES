@@ -1,3 +1,5 @@
+6390.	[bug]		Fix a data race in isc_task_purgeevent(). [GL !8937]
+
 6389.	[bug]		dnssec-verify and dnssec-signzone could fail if there
 			was an obscured DNSKEY RRset at a delegatation.
 			[GL #4517]
