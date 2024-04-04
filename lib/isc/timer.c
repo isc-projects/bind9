@@ -231,11 +231,23 @@ timer_purge(isc_timer_t *timer) {
 
 	while ((event = ISC_LIST_HEAD(timer->active)) != NULL) {
 		timerevent_unlink(timer, event);
+		bool purged = isc_task_purgeevent(timer->task,
+						  (isc_event_t *)event);
 		UNLOCK(&timer->lock);
 #if defined(UNIT_TESTING)
 		usleep(100);
 #endif
-		(void)isc_task_purgeevent(timer->task, (isc_event_t *)event);
+		if (purged) {
+			isc_event_free((isc_event_t **)&event);
+		} else {
+			/*
+			 * The event was processed while we were trying to
+			 * purge it. The event's action is responsible for
+			 * calling isc_event_free(), which in turn will call
+			 * event->ev_destroy() (timerevent_destroy() here),
+			 * which will unlink and destroy it.
+			 */
+		}
 		LOCK(&timer->lock);
 	}
 }

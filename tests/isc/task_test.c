@@ -1398,6 +1398,9 @@ try_purgeevent(bool purgeable) {
 
 	purged = isc_task_purgeevent(task, event2_clone);
 	assert_int_equal(purgeable, purged);
+	if (purged) {
+		isc_event_free(&event2_clone);
+	}
 
 	/*
 	 * Unblock the task, allowing event processing.
