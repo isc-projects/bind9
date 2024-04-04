@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.19.23
+Notes for BIND 9.19.24
 ----------------------
 
 Security Fixes
@@ -20,7 +20,7 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -32,22 +32,10 @@ Feature Changes
 
 - None.
 
-- The ``sortlist`` option has been deprecated and will be removed
-  in a future BIND 9.21.x release. Please don't rely on a specific
-  order of resource records in the DNS messages.  :gl:`#4593`
-
-- The ``fixed`` value for the ``rrset-order`` option and the corresponding
-  ``./configure`` script option has been deprecated and will be removed in a
-  future BIND 9.21.x release. Please don't rely on a specific order of resource
-  records in the DNS messages.  :gl:`#4446`
-
 Bug Fixes
 ~~~~~~~~~
 
 - None.
-
-- Some ISO 8601 durations were accepted erroneously, leading to shorter
-  durations than expected. This has been fixed. :gl:`#4624`
 
 Known Issues
 ~~~~~~~~~~~~
