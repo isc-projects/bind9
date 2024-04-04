@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.50
+Notes for BIND 9.16.51
 ----------------------
 
 Security Fixes
@@ -20,7 +20,7 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
