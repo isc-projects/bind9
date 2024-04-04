@@ -14,6 +14,7 @@
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
+	notify-source-v6 fd92:7065:b8e:ffff::2;
 	transfer-source 10.53.0.2;
 	port @PORT@;
 	pid-file "named.pid";
