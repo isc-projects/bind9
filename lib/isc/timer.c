@@ -232,6 +232,9 @@ timer_purge(isc_timer_t *timer) {
 	while ((event = ISC_LIST_HEAD(timer->active)) != NULL) {
 		timerevent_unlink(timer, event);
 		UNLOCK(&timer->lock);
+#if defined(UNIT_TESTING)
+		usleep(100);
+#endif
 		(void)isc_task_purgeevent(timer->task, (isc_event_t *)event);
 		LOCK(&timer->lock);
 	}
