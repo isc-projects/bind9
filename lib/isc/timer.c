@@ -470,6 +470,15 @@ isc_timer_touch(isc_timer_t *timer) {
 }
 
 void
+isc_timer_purge(isc_timer_t *timer) {
+	REQUIRE(VALID_TIMER(timer));
+
+	LOCK(&timer->lock);
+	timer_purge(timer);
+	UNLOCK(&timer->lock);
+}
+
+void
 isc_timer_destroy(isc_timer_t **timerp) {
 	isc_timer_t *timer = NULL;
 	isc_timermgr_t *manager = NULL;

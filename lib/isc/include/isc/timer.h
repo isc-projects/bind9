@@ -225,6 +225,21 @@ isc_timer_touch(isc_timer_t *timer);
  */
 
 void
+isc_timer_purge(isc_timer_t *timer);
+/*%<
+ * Purge timer.
+ *
+ * Requires:
+ *
+ *\li	'timer' points to a valid timer.
+ *
+ * Ensures:
+ *
+ *\li	Any events already posted by the timer are purged.
+ *
+ */
+
+void
 isc_timer_destroy(isc_timer_t **timerp);
 /*%<
  * Destroy *timerp.
