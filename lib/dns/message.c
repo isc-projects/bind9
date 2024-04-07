@@ -527,11 +527,10 @@ msgresetsigs(dns_message_t *msg, bool replying) {
 		INSIST(dns_rdataset_isassociated(msg->sig0));
 		dns_rdataset_disassociate(msg->sig0);
 		isc_mempool_put(msg->rdspool, msg->sig0);
-		if (msg->sig0name != NULL) {
-			dns_message_puttempname(msg, &msg->sig0name);
-		}
 		msg->sig0 = NULL;
-		msg->sig0name = NULL;
+	}
+	if (msg->sig0name != NULL) {
+		dns_message_puttempname(msg, &msg->sig0name);
 	}
 }
 
@@ -1492,7 +1491,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			covers = dns_rdata_covers(rdata);
 			if (covers == 0) {
 				if (sectionid != DNS_SECTION_ADDITIONAL ||
-				    count != msg->counts[sectionid] - 1)
+				    count != msg->counts[sectionid] - 1 ||
+				    !dns_name_equal(name, dns_rootname))
 				{
 					DO_ERROR(DNS_R_BADSIG0);
 				} else {
@@ -2516,6 +2516,9 @@ dns_message_renderreset(dns_message_t *msg) {
 	if (msg->tsig != NULL) {
 		dns_rdataset_disassociate(msg->tsig);
 		dns_message_puttemprdataset(msg, &msg->tsig);
+	}
+	if (msg->sig0name != NULL) {
+		dns_message_puttempname(msg, &msg->sig0name);
 	}
 	if (msg->sig0 != NULL) {
 		dns_rdataset_disassociate(msg->sig0);
