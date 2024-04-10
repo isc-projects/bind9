@@ -2152,15 +2152,42 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
 			n = iter->stack[iter->sp];
 			leaf = n;
 		} else {
+			if (to <= searchlen && to <= foundlen && iter->sp > 0) {
+				/*
+				 * If we're here, search[to] >= found[to],
+				 * meaning every leaf in this set of twigs
+				 * is less than the one we wanted. It's
+				 * possible we're already positioned at
+				 * the correct predecessor, but it's not
+				 * guaranteed, so we pop up to the parent
+				 * branch, and find the greatest leaf from
+				 * there.
+				 */
+				if (!is_branch(n)) {
+					iter->stack[iter->sp--] = NULL;
+					n = iter->stack[iter->sp];
+				}
+			}
+
 			if (is_branch(n)) {
-				iter->sp--;
+				iter->stack[iter->sp--] = NULL;
 				n = greatest_leaf(qp, n, iter);
 			}
 			return (n);
 		}
 
 		foundlen = leaf_qpkey(qp, leaf, found);
-		to = qpkey_compare(search, searchlen, found, foundlen);
+
+		size_t nto = qpkey_compare(search, searchlen, found, foundlen);
+		if (nto < to) {
+			/*
+			 * We've moved to a new leaf and it differs at an
+			 * even earlier point, so no further improvement is
+			 * possible.
+			 */
+			return (leaf);
+		}
+		to = nto;
 	}
 
 	if (is_branch(n)) {
@@ -2293,8 +2320,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			 */
 			n = fix_iterator(qp, iter, n, search, searchlen, bit,
 					 offset);
-			iter->stack[iter->sp] = NULL;
-			iter->sp--;
+			iter->stack[iter->sp--] = NULL;
 		} else {
 			/*
 			 * this branch is a dead end, and the predecessor
