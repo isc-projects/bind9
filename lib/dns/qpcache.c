@@ -1499,10 +1499,10 @@ find_coveringnsec(search_t *search, const dns_name_t *name,
 	 * Lookup the predecessor in the main tree.
 	 */
 	node = NULL;
-	result = dns_qp_lookup(search->qpdb->tree, predecessor, NULL, NULL,
-			       NULL, (void **)&node, NULL);
+	result = dns_qp_getname(search->qpdb->tree, predecessor, (void **)&node,
+				NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return (result);
 	}
 	dns_name_copy(&node->name, fname);
 
@@ -2793,21 +2793,16 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 
 	TREE_RDLOCK(&qpdb->tree_lock, &tlocktype);
-	result = dns_qp_lookup(qpdb->tree, name, NULL, NULL, NULL,
-			       (void **)&node, NULL);
+	result = dns_qp_getname(qpdb->tree, name, (void **)&node, NULL);
 	if (result != ISC_R_SUCCESS) {
 		if (!create) {
-			if (result == DNS_R_PARTIALMATCH) {
-				result = ISC_R_NOTFOUND;
-			}
 			goto unlock;
 		}
 		/*
 		 * Try to upgrade the lock and if that fails unlock then relock.
 		 */
 		TREE_FORCEUPGRADE(&qpdb->tree_lock, &tlocktype);
-		result = dns_qp_lookup(qpdb->tree, name, NULL, NULL, NULL,
-				       (void **)&node, NULL);
+		result = dns_qp_getname(qpdb->tree, name, (void **)&node, NULL);
 		if (result != ISC_R_SUCCESS) {
 			node = new_qpcnode(qpdb, name);
 			result = dns_qp_insert(qpdb->tree, node, 0);

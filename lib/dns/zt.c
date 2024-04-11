@@ -178,17 +178,22 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 
 	dns_qpmulti_query(zt->multi, &qpr);
 
-	result = dns_qp_lookup(&qpr, name, NULL, NULL, &chain, &pval, NULL);
-	if (exactopts == DNS_ZTFIND_EXACT && result == DNS_R_PARTIALMATCH) {
-		result = ISC_R_NOTFOUND;
-	} else if (exactopts == DNS_ZTFIND_NOEXACT && result == ISC_R_SUCCESS) {
-		/* get pval from the previous chain link */
-		int len = dns_qpchain_length(&chain);
-		if (len >= 2) {
-			dns_qpchain_node(&chain, len - 2, NULL, &pval, NULL);
-			result = DNS_R_PARTIALMATCH;
-		} else {
-			result = ISC_R_NOTFOUND;
+	if (exactopts == DNS_ZTFIND_EXACT) {
+		result = dns_qp_getname(&qpr, name, &pval, NULL);
+	} else {
+		result = dns_qp_lookup(&qpr, name, NULL, NULL, &chain, &pval,
+				       NULL);
+		if (exactopts == DNS_ZTFIND_NOEXACT && result == ISC_R_SUCCESS)
+		{
+			/* get pval from the previous chain link */
+			int len = dns_qpchain_length(&chain);
+			if (len >= 2) {
+				dns_qpchain_node(&chain, len - 2, NULL, &pval,
+						 NULL);
+				result = DNS_R_PARTIALMATCH;
+			} else {
+				result = ISC_R_NOTFOUND;
+			}
 		}
 	}
 	dns_qpread_destroy(zt->multi, &qpr);
