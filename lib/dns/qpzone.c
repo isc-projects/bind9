@@ -3382,8 +3382,11 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	/*
 	 * Search down from the root of the tree.
 	 */
-	result = dns_qp_lookup(&search.qpr, name, foundname, &search.iter,
+	result = dns_qp_lookup(&search.qpr, name, NULL, &search.iter,
 			       &search.chain, (void **)&node, NULL);
+	if (result != ISC_R_NOTFOUND) {
+		dns_name_copy(&node->name, foundname);
+	}
 
 	/*
 	 * Check the QP chain to see if there's a node above us with a
@@ -3404,10 +3407,11 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		tresult = check_zonecut(n, &search DNS__DB_FLARG_PASS);
 		if (tresult != DNS_R_CONTINUE) {
 			result = tresult;
-			dns_qpchain_node(&search.chain, i, foundname, NULL,
-					 NULL);
 			search.chain.len = i - 1;
 			node = n;
+			if (foundname != NULL) {
+				dns_name_copy(&node->name, foundname);
+			}
 		}
 	}
 

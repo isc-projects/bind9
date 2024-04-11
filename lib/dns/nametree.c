@@ -278,9 +278,12 @@ dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
 	REQUIRE(VALID_NAMETREE(nametree));
 
 	dns_qpmulti_query(nametree->table, &qpr);
-	result = dns_qp_lookup(&qpr, name, found, NULL, NULL, (void **)&node,
+	result = dns_qp_lookup(&qpr, name, NULL, NULL, NULL, (void **)&node,
 			       NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		if (found != NULL) {
+			dns_name_copy(&node->name, found);
+		}
 		switch (nametree->type) {
 		case DNS_NAMETREE_BOOL:
 			ret = node->set;
