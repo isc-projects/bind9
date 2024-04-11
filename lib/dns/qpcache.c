@@ -3856,7 +3856,6 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 		    unsigned int argc, char *argv[],
 		    void *driverarg ISC_ATTR_UNUSED, dns_db_t **dbp) {
 	dns_qpdb_t *qpdb = NULL;
-	isc_result_t result;
 	isc_mem_t *hmctx = mctx;
 	int i;
 
@@ -3951,11 +3950,7 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 	/*
 	 * Make a copy of the origin name.
 	 */
-	result = dns_name_dupwithoffsets(origin, mctx, &qpdb->common.origin);
-	if (result != ISC_R_SUCCESS) {
-		free_qpdb(qpdb, false);
-		return (result);
-	}
+	dns_name_dupwithoffsets(origin, mctx, &qpdb->common.origin);
 
 	/*
 	 * Make the qp tries.
