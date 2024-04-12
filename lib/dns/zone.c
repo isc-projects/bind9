@@ -12535,6 +12535,9 @@ notify_send(dns_notify_t *notify) {
 		zone_iattach(notify->zone, &newnotify->zone);
 		ISC_LIST_APPEND(newnotify->zone->notifies, newnotify, link);
 		newnotify->dst = dst;
+		if (isc_sockaddr_pf(&dst) == AF_INET6) {
+			isc_sockaddr_any6(&newnotify->src);
+		}
 		startup = ((notify->flags & DNS_NOTIFY_STARTUP) != 0);
 		result = notify_send_queue(newnotify, startup);
 		if (result != ISC_R_SUCCESS) {

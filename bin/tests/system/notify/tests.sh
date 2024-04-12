@@ -109,6 +109,7 @@ wait_for_log_re 45 "transfer of 'example/IN' from 10.53.0.2#.*success" ns3/named
 
 test_start "checking notify message was logged"
 grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 2$' ns3/named.run >/dev/null || ret=1
+grep 'refused notify from non-primary: fd92:7065:b8e:ffff::2#[0-9][0-9]*$' ns3/named.run >/dev/null || ret=1
 test_end
 
 test_start "checking example2 loaded"
