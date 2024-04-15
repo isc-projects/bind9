@@ -1242,30 +1242,44 @@ compute_keytag(dns_rdata_t *rdata) {
 
 static bool
 over_max_validations(dns_validator_t *val) {
-	if (val->nvalidations == NULL) {
-		return (false);
-	}
-	if (*val->nvalidations > 0) {
-		(*val->nvalidations)--;
+	if (val->nvalidations == NULL || (*val->nvalidations) > 0) {
 		return (false);
 	}
 
+	/* The attribute is set only on failure */
 	val->attributes |= VALATTR_MAXVALIDATIONS;
 	return (true);
 }
 
+static void
+consume_validation(dns_validator_t *val) {
+	if (val->nvalidations == NULL) {
+		return;
+	}
+	INSIST((*val->nvalidations) > 0);
+
+	(*val->nvalidations)--;
+}
+
 static bool
 over_max_fails(dns_validator_t *val) {
-	if (val->nfails == NULL) {
-		return (false);
-	}
-	if (*val->nfails > 0) {
-		(*val->nfails)--;
+	if (val->nfails == NULL || (*val->nfails) > 0) {
 		return (false);
 	}
 
+	/* The attribute is set only on failure */
 	val->attributes |= VALATTR_MAXVALIDATIONFAILS;
 	return (true);
+}
+
+static void
+consume_validation_fail(dns_validator_t *val) {
+	if (val->nfails == NULL) {
+		return;
+	}
+	INSIST((*val->nfails) > 0);
+
+	(*val->nfails)--;
 }
 
 /*%
@@ -1346,16 +1360,30 @@ selfsigned_dnskey(dns_validator_t *val) {
 					name, rdataset, dstkey, true,
 					val->view->maxbits, mctx, &sigrdata,
 					NULL);
-				if (result == ISC_R_SUCCESS) {
+				switch (result) {
+				case DNS_R_SIGFUTURE:
+				case DNS_R_SIGEXPIRED:
+					/*
+					 * Temporal errors don't count towards
+					 * max validations nor max fails.
+					 */
+					break;
+				case ISC_R_SUCCESS:
+					consume_validation(val);
 					/*
 					 * The key with the REVOKE flag has
 					 * self signed the RRset so it is no
 					 * good.
 					 */
 					dns_view_untrust(val->view, name, &key);
-				} else if (over_max_fails(val)) {
-					dst_key_free(&dstkey);
-					return (ISC_R_QUOTA);
+					break;
+				default:
+					consume_validation(val);
+					if (over_max_fails(val)) {
+						dst_key_free(&dstkey);
+						return (ISC_R_QUOTA);
+					}
+					consume_validation_fail(val);
 				}
 			} else if (rdataset->trust >= dns_trust_secure) {
 				/*
@@ -1391,10 +1419,10 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 
 	val->attributes |= VALATTR_TRIEDVERIFY;
 	wild = dns_fixedname_initname(&fixed);
-again:
 	if (over_max_validations(val)) {
 		return (ISC_R_QUOTA);
 	}
+again:
 	result = dns_dnssec_verify(val->name, val->rdataset, key, ignore,
 				   val->view->maxbits, val->view->mctx, rdata,
 				   wild);
@@ -1439,8 +1467,23 @@ again:
 		result = ISC_R_SUCCESS;
 	}
 
-	if (result != ISC_R_SUCCESS && over_max_fails(val)) {
-		result = ISC_R_QUOTA;
+	switch (result) {
+	case DNS_R_SIGFUTURE:
+	case DNS_R_SIGEXPIRED:
+		/*
+		 * Temporal errors don't count towards max validations nor max
+		 * fails.
+		 */
+		break;
+	case ISC_R_SUCCESS:
+		consume_validation(val);
+		break;
+	default:
+		consume_validation(val);
+		if (over_max_fails(val)) {
+			result = ISC_R_QUOTA;
+		}
+		consume_validation_fail(val);
 	}
 	return (result);
 }
