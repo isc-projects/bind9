@@ -36,6 +36,10 @@ Feature Changes
 - Querying the statistics channel no longer blocks the DNS communication
   on the networking event loop. :gl:`#4680`
 
+- DNSSEC signatures that are not valid because the current time falls outside
+  the signature inception and expiration dates no longer count towards maximum
+  validation and maximum validation failures limits. :gl:`#4586`
+
 Bug Fixes
 ~~~~~~~~~
 
