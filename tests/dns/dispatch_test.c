@@ -38,17 +38,20 @@
 #include <tests/dns.h>
 
 /* Timeouts in miliseconds */
-#define T_SERVER_INIT	    10000
-#define T_SERVER_IDLE	    10000
-#define T_SERVER_KEEPALIVE  10000
-#define T_SERVER_ADVERTISED 10000
+#define T_SERVER_INIT	    (120 * 1000)
+#define T_SERVER_IDLE	    (120 * 1000)
+#define T_SERVER_KEEPALIVE  (120 * 1000)
+#define T_SERVER_ADVERTISED (120 * 1000)
 
-#define T_CLIENT_INIT	    10000
-#define T_CLIENT_IDLE	    10000
-#define T_CLIENT_KEEPALIVE  10000
-#define T_CLIENT_ADVERTISED 10000
+#define T_CLIENT_INIT	    (120 * 1000)
+#define T_CLIENT_IDLE	    (120 * 1000)
+#define T_CLIENT_KEEPALIVE  (120 * 1000)
+#define T_CLIENT_ADVERTISED (120 * 1000)
 
-#define T_CLIENT_CONNECT 10000
+#define T_CLIENT_CONNECT (30 * 1000)
+
+/* For checks which are expected to timeout */
+#define T_CLIENT_CONNECT_SHORT (10 * 1000)
 
 /* dns_dispatchset_t *dset = NULL; */
 static isc_sockaddr_t udp_server_addr;
@@ -578,10 +581,10 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_connect) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_add(test->dispatch, isc_loop_main(loopmgr), 0,
-				  T_CLIENT_CONNECT, &tcp_server_addr, NULL,
-				  NULL, timeout_connected, client_senddone,
-				  response_timeout, test, &test->id,
-				  &test->dispentry);
+				  T_CLIENT_CONNECT_SHORT, &tcp_server_addr,
+				  NULL, NULL, timeout_connected,
+				  client_senddone, response_timeout, test,
+				  &test->id, &test->dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	testdata.message[0] = (test->id >> 8) & 0xff;
@@ -622,10 +625,11 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_response) {
 					&tcp_server_addr, 0, &test->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_dispatch_add(
-		test->dispatch, isc_loop_main(loopmgr), 0, T_CLIENT_CONNECT,
-		&tcp_server_addr, NULL, NULL, connected, client_senddone,
-		response_timeout, test, &test->id, &test->dispentry);
+	result = dns_dispatch_add(test->dispatch, isc_loop_main(loopmgr), 0,
+				  T_CLIENT_CONNECT_SHORT, &tcp_server_addr,
+				  NULL, NULL, connected, client_senddone,
+				  response_timeout, test, &test->id,
+				  &test->dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_dispatch_connect(test->dispentry);
@@ -729,10 +733,11 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_udp_response) {
 					&test->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_dispatch_add(
-		test->dispatch, isc_loop_main(loopmgr), 0, T_CLIENT_CONNECT,
-		&udp_server_addr, NULL, NULL, connected, client_senddone,
-		response_timeout, test, &test->id, &test->dispentry);
+	result = dns_dispatch_add(test->dispatch, isc_loop_main(loopmgr), 0,
+				  T_CLIENT_CONNECT_SHORT, &udp_server_addr,
+				  NULL, NULL, connected, client_senddone,
+				  response_timeout, test, &test->id,
+				  &test->dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_dispatch_connect(test->dispentry);
