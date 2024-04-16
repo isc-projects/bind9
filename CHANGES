@@ -1,3 +1,6 @@
+6373.	[func]		Offload the isc_http response processing to worker
+			thread. [GL #4680]
+
 6372.	[func]		Implement signature jitter for dnssec-policy. [GL #4554]
 
 6371.	[bug]		Access to the trust bytes in the ncache data needed to
