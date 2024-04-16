@@ -7199,6 +7199,11 @@ calculate_rrsig_validity(dns_zone_t *zone, isc_stdtime_t now,
 	if (zone->kasp != NULL) {
 		jitter = dns_kasp_sigjitter(zone->kasp);
 		sigvalidity = dns_kasp_sigvalidity(zone->kasp);
+		INSIST(jitter <= sigvalidity);
+	}
+
+	if (jitter > sigvalidity) {
+		jitter = sigvalidity;
 	}
 
 	*inception = now - 3600; /* Allow for clock skew. */

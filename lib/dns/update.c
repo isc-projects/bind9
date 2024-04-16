@@ -1501,6 +1501,11 @@ dns__jitter_expire(dns_zone_t *zone) {
 	if (kasp != NULL) {
 		jitter = dns_kasp_sigjitter(kasp);
 		sigvalidity = dns_kasp_sigvalidity(kasp);
+		INSIST(jitter <= sigvalidity);
+	}
+
+	if (jitter > sigvalidity) {
+		jitter = sigvalidity;
 	}
 
 	if (sigvalidity >= 3600U) {

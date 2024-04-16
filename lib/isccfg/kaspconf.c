@@ -380,6 +380,15 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	}
 	dns_kasp_setsigvalidity_dnskey(kasp, sigvalidity);
 
+	if (sigjitter > sigvalidity) {
+		cfg_obj_log(
+			config, logctx, ISC_LOG_ERROR,
+			"dnssec-policy: policy '%s' signatures-jitter cannot "
+			"be larger than signatures-validity-dnskey",
+			kaspname);
+		result = ISC_R_FAILURE;
+	}
+
 	sigvalidity = get_duration(maps, "signatures-validity",
 				   DNS_KASP_SIG_VALIDITY);
 	if (sigrefresh >= (sigvalidity * 0.9)) {
@@ -391,6 +400,15 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		result = ISC_R_FAILURE;
 	}
 	dns_kasp_setsigvalidity(kasp, sigvalidity);
+
+	if (sigjitter > sigvalidity) {
+		cfg_obj_log(
+			config, logctx, ISC_LOG_ERROR,
+			"dnssec-policy: policy '%s' signatures-jitter cannot "
+			"be larger than signatures-validity",
+			kaspname);
+		result = ISC_R_FAILURE;
+	}
 
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
