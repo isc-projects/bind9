@@ -1,0 +1,190 @@
+# Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# file, you can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# See the COPYRIGHT file distributed with this work for additional
+# information regarding copyright ownership.
+
+# Features
+option(
+    'doc',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable sphinx-based documentation generation',
+)
+
+option(
+    'cap',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable libcap-based capability support',
+)
+
+option(
+    'dnstap',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable dnstap packet logging, requires fstrm and protobuf-c',
+)
+
+option(
+    'doh',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable DNS over HTTPS, requires libnghttp2',
+)
+
+option(
+    'fips',
+    type: 'feature',
+    value: 'disabled',
+    description: 'Enable FIPS mode toggle',
+)
+
+option(
+    'geoip',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable GeoIP support, requires libmaxminddb',
+)
+
+option(
+    'gssapi',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable GSSAPI support, requires krb5 and gssapi',
+)
+
+option(
+    'idn',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable IDN support, requires libidn2',
+)
+
+option(
+    'line',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable line editing in nsupdate and nslookup, requires libedit',
+)
+
+option(
+    'lmdb',
+    type: 'feature',
+    value: 'auto',
+    description: 'LMDB database to store configuration for "addzone" zones',
+)
+
+option(
+    'stats-json',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable JSON statistics, requires json-c',
+)
+
+option(
+    'stats-xml',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable XML statistics, requires libxml2',
+)
+
+option(
+    'zlib',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable HTTP zlib compression, requires zlib',
+)
+
+# Internals
+option(
+    'cachedb',
+    type: 'combo',
+    choices: ['qpcache'],
+    description: 'Default cache database type',
+)
+
+option(
+    'zonedb',
+    type: 'combo',
+    choices: ['qpzone'],
+    description: 'Default zone database type',
+)
+
+option(
+    'locktype',
+    type: 'combo',
+    choices: ['adaptive', 'system'],
+    description: 'Mutex lock type',
+)
+
+option(
+    'jemalloc',
+    type: 'feature',
+    value: 'auto',
+    description: 'Use jemalloc for allocation',
+)
+
+option(
+    'rcu-flavor',
+    type: 'combo',
+    choices: ['membarrier', 'bp', 'mb', 'qsbr'],
+    description: 'Userspace RCU Flavor (non-membarrier RCU is only allowed in development builds)',
+)
+
+option(
+    'tracing',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable User Statically Defined Tracing support, requires dtrace or systemtap',
+)
+
+# Behavior
+option(
+    'auto-validation',
+    type: 'feature',
+    value: 'enabled',
+    description: 'Turn on DNSSEC validation by default, using the IANA root key',
+)
+
+# Development
+option(
+    'developer',
+    type: 'feature',
+    value: 'disabled',
+    description: 'Enable development mode',
+)
+
+option(
+    'cmocka',
+    type: 'feature',
+    value: 'auto',
+    description: 'Enable cmocka based tests',
+)
+
+option(
+    'fuzzing',
+    type: 'combo',
+    choices: ['none', 'afl', 'libfuzzer', 'oss-fuzz'],
+    description: 'Enable fuzzing',
+)
+
+option(
+    'trace-logging',
+    type: 'array',
+    value: [],
+    choices: ['query', 'single'],
+    description: 'Enable very verbose (single-)query trace logging',
+)
+
+option(
+    'leak-detection',
+    type: 'feature',
+    value: 'disabled',
+    description: 'enable the memory leak detection in external libraries (libxml2, libuv, OpenSSL)',
+)

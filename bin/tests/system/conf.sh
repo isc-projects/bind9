@@ -500,8 +500,9 @@ get_named_xfer_stats() {
 #
 copy_setports() {
   dir=$(echo "$TMPDIR" | sed 's/\//\\\//g')
-
+  # Use comma instead of slash for directory substitution
   sed -e "s/@TMPDIR@/${dir}/g" \
+    -e "s,@TOP_BUILDDIR@,${TOP_BUILDDIR},g" \
     -e "s/@PORT@/${PORT}/g" \
     -e "s/@TLSPORT@/${TLSPORT}/g" \
     -e "s/@HTTPPORT@/${HTTPPORT}/g" \

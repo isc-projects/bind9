@@ -15,7 +15,7 @@ builddir=@builddir@
 srcdir=@srcdir@
 
 # shellcheck source=conf.sh
-. "${builddir}/conf.sh"
+. "${srcdir}/conf.sh"
 
 export builddir srcdir
 

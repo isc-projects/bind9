@@ -3,11 +3,30 @@
 
 /fuzz/dns_rdata_fromwire_text.in/input-* -text
 
+.clang-format*			 export-ignore
+.dir-locals.el			 export-ignore
+.editorconfig			 export-ignore
+.git-blame-ignore-revs		 export-ignore
+.gitattributes			 export-ignore
 .gitignore			 export-ignore
+.gitlab-ci.yml			 export-ignore
+.pylintrc			 export-ignore
+.readthedocs.yaml		 export-ignore
+.tsan-suppress			 export-ignore
+.uncrustify.cfg		 export-ignore
+dangerfile.py			 export-ignore
+/.github/**			 export-ignore
+/.gitlab/**			 export-ignore
+/.mailmap			 export-ignore
+/.reuse/**			 export-ignore
+/ci				 export-ignore
 /conftools			 export-ignore
 /doc/design			 export-ignore
 /doc/dev			 export-ignore
 /util/**			 export-ignore
 /util/bindkeys.pl		-export-ignore
 /util/check-make-install.in	-export-ignore
-/util/dtrace.sh		-export-ignore
+/util/dtrace.sh			-export-ignore
+/util/meson.build		-export-ignore
+/util/meson-system-test-init.sh	-export-ignore
+/util/meson-dist-package.sh	-export-ignore

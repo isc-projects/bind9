@@ -279,7 +279,7 @@ ISC_RUN_TEST_IMPL(updatesigs_next) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_zone, "example",
-				 "testdata/master/master18.data");
+				 BUILDDIR "/testdata/master/master18.data");
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 
 	dns_zone_setkeydirectory(zone, TESTS_DIR "/testkeys");

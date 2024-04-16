@@ -515,7 +515,7 @@ printversion(bool verbose) {
 	const cfg_obj_t *defaults = NULL, *obj = NULL;
 #endif /* if defined(HAVE_GEOIP2) */
 
-	printf("%s%s <id:%s>\n", PACKAGE_STRING, PACKAGE_DESCRIPTION,
+	printf("%s (%s) <id:%s>\n", PACKAGE_STRING, PACKAGE_DESCRIPTION,
 	       PACKAGE_SRCID);
 
 	if (!verbose) {

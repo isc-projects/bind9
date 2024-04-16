@@ -12,16 +12,14 @@
 import os
 
 # pylint: disable=import-error
-from .autoconf import AC_VARS  # type: ignore
+from .build import BUILD_VARS, SYSTEM_TEST_DIR_GIT_PATH  # type: ignore
 
 # pylint: enable=import-error
 
 
-SYSTEM_TEST_DIR_GIT_PATH = "bin/tests/system"
-
 DIR_VARS = {
-    "builddir": f"{AC_VARS['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}",
-    "srcdir": f"{AC_VARS['TOP_SRCDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}",
+    "builddir": f"{BUILD_VARS['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}",
+    "srcdir": f"{BUILD_VARS['TOP_SRCDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}",
     "SYSTESTDIR": None,
 }
 

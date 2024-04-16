@@ -62,7 +62,7 @@ Files: **/*.after*
        bin/tests/system/forward/CA/index.txt
        bin/tests/system/forward/CA/index.txt.attr
        bin/tests/system/forward/CA/serial
-       bin/tests/system/isctest/vars/.ac_vars/*
+       bin/tests/system/isctest/vars/.build_vars/*
        bin/tests/system/journal/ns1/managed-keys.bind.in
        bin/tests/system/journal/ns1/managed-keys.bind.jnl.in
        bin/tests/system/journal/ns2/managed-keys.bind.in

@@ -31,33 +31,25 @@
 # and testsock.pl (which checks the interfaces are configured)
 #
 
-top_srcdir=@abs_top_srcdir@
-
-sys=$(@SHELL@ "$top_srcdir/config.guess")
+sys=@SYSTEM@
 
 use_ip=
-case "$sys" in
-  *-*-linux*)
-    if type ip >/dev/null; then
-      use_ip=yes
-    elif type ifconfig >/dev/null; then
-      :
-    else
-      echo "$0: can't find ip or ifconfig" >&2
-      exit 1
-    fi
-    ;;
-esac
+if [ "$sys" = "linux" ]; then
+  if type ip >/dev/null; then
+    use_ip=yes
+  elif type ifconfig >/dev/null; then
+    :
+  else
+    echo "$0: can't find ip or ifconfig" >&2
+    exit 1
+  fi
+fi
 
 up() {
+  # https://mesonbuild.com/Reference-tables.html#operating-system-names
   case "$sys" in
-    *-pc-solaris2.5.1)
-      [ "$a" ] && ifconfig lo0:$int $a netmask 0xffffffff up
-      ;;
-    *-sun-solaris2.[6-7])
-      [ "$a" ] && ifconfig lo0:$int $a netmask 0xffffffff up
-      ;;
-    *-*-solaris2.[8-9] | *-*-solaris2.10)
+    # "sunos" is for both illumos and Solaris
+    sunos)
       [ "$a" ] && {
         /sbin/ifconfig lo0:$int plumb
         /sbin/ifconfig lo0:$int $a up
@@ -68,19 +60,7 @@ up() {
         /sbin/ifconfig lo0:$int inet6 $aaaa up
       }
       ;;
-    *-*-solaris2.1[1-9])
-      [ "$a" ] && {
-        /sbin/ipadm create-addr -t -T static \
-          -a $a lo0/bind9v4$int \
-          || echo failed lo0/bind9v4$int
-      }
-      [ "$aaaa" ] && {
-        /sbin/ipadm create-addr -t -T static \
-          -a $aaaa lo0/bind9v6$int \
-          || echo failed lo0/bind9v6$int
-      }
-      ;;
-    *-*-linux*)
+    linux)
       if [ "$use_ip" ]; then
         [ "$a" ] && ip address add $a/24 dev lo:$int
         [ "$aaaa" ] && ip address add $aaaa/64 dev lo
@@ -90,27 +70,15 @@ up() {
         [ "$aaaa" ] && ifconfig lo inet6 add $aaaa/64
       fi
       ;;
-    *-unknown-freebsd*)
+    freebsd)
       [ "$a" ] && ifconfig lo0 $a alias netmask 0xffffffff mtu 1500
       [ "$aaaa" ] && ifconfig lo0 inet6 $aaaa alias
       ;;
-    *-unknown-dragonfly* | *-unknown-netbsd* | *-unknown-openbsd*)
+    dragonfly | netbsd | openbsd)
       [ "$a" ] && ifconfig lo0 $a alias netmask 255.255.255.0 mtu 1500
       [ "$aaaa" ] && ifconfig lo0 inet6 $aaaa alias
       ;;
-    *-*-bsdi[3-5].*)
-      [ "$a" ] && ifconfig lo0 add $a netmask 255.255.255.0
-      ;;
-    *-dec-osf[4-5].*)
-      [ "$a" ] && ifconfig lo0 alias $a
-      ;;
-    *-sgi-irix6.*)
-      [ "$a" ] && ifconfig lo0 alias $a
-      ;;
-    *-*-sysv5uw7* | *-*-sysv*UnixWare* | *-*-sysv*OpenUNIX*)
-      [ "$a" ] && ifconfig lo0 $a alias netmask 0xffffffff
-      ;;
-    *-ibm-aix4.* | *-ibm-aix5.*)
+    aix)
       [ "$a" ] && ifconfig lo0 alias $a
       [ "$aaaa" ] && ifconfig lo0 inet6 alias -dad $aaaa/64
       ;;
@@ -118,10 +86,7 @@ up() {
       [ "$a" ] && ifconfig lo0:$int $a netmask 255.255.255.0 up
       [ "$aaaa" ] && ifconfig lo0:$int inet6 $aaaa up
       ;;
-    *-sco3.2v*)
-      [ "$a" ] && ifconfig lo0 alias $a
-      ;;
-    *-darwin*)
+    darwin)
       [ "$a" ] && ifconfig lo0 alias $a
       [ "$aaaa" ] && ifconfig lo0 inet6 $aaaa alias
       ;;
@@ -133,14 +98,10 @@ up() {
 }
 
 down() {
+  # https://mesonbuild.com/Reference-tables.html#operating-system-names
   case "$sys" in
-    *-pc-solaris2.5.1)
-      [ "$a" ] && ifconfig lo0:$int 0.0.0.0 down
-      ;;
-    *-sun-solaris2.[6-7])
-      [ "$a" ] && ifconfig lo0:$int $a down
-      ;;
-    *-*-solaris2.[8-9] | *-*-solaris2.10)
+    # "sunos" is for both illumos and Solaris
+    sunos)
       [ "$a" ] && {
         ifconfig lo0:$int $a down
         ifconfig lo0:$int $a unplumb
@@ -150,18 +111,7 @@ down() {
         ifconfig lo0:$int inet6 unplumb
       }
       ;;
-    *-*-solaris2.1[1-9])
-      [ "$a" ] && {
-        ipadm delete-addr lo0/bind9v4$int \
-          || echo failed lo0/bind9v4$int
-      }
-      [ "$aaaa" ] && {
-        ipadm delete-addr lo0/bind9v6$int \
-          || echo failed lo0/bind9v6$int
-      }
-      ;;
-
-    *-*-linux*)
+    linux)
       if [ "$use_ip" ]; then
         [ "$a" ] && ip address del $a/24 dev lo:$int
         [ "$aaaa" ] && ip address del $aaaa/64 dev lo
@@ -170,31 +120,19 @@ down() {
         [ "$aaaa" ] && ifconfig lo inet6 del $aaaa/64
       fi
       ;;
-    *-unknown-freebsd*)
+    freebsd)
       [ "$a" ] && ifconfig lo0 $a delete
       [ "$aaaa" ] && ifconfig lo0 inet6 $aaaa delete
       ;;
-    *-unknown-netbsd*)
+    netbsd)
       [ "$a" ] && ifconfig lo0 $a delete
       [ "$aaaa" ] && ifconfig lo0 inet6 $aaaa delete
       ;;
-    *-unknown-openbsd*)
+    openbsd)
       [ "$a" ] && ifconfig lo0 $a delete
       [ "$aaaa" ] && ifconfig lo0 inet6 $aaaa delete
       ;;
-    *-*-bsdi[3-5].*)
-      [ "$a" ] && ifconfig lo0 remove $a
-      ;;
-    *-dec-osf[4-5].*)
-      [ "$a" ] && ifconfig lo0 -alias $a
-      ;;
-    *-sgi-irix6.*)
-      [ "$a" ] && ifconfig lo0 -alias $a
-      ;;
-    *-*-sysv5uw7* | *-*-sysv*UnixWare* | *-*-sysv*OpenUNIX*)
-      [ "$a" ] && ifconfig lo0 -alias $a
-      ;;
-    *-ibm-aix4.* | *-ibm-aix5.*)
+    aix)
       [ "$a" ] && ifconfig lo0 delete $a
       [ "$aaaa" ] && ifconfig lo0 delete inet6 $aaaa/64
       ;;
@@ -202,10 +140,7 @@ down() {
       [ "$a" ] && ifconfig lo0:$int 0.0.0.0
       [ "$aaaa" ] && ifconfig lo0:$int inet6 ::
       ;;
-    *-sco3.2v*)
-      [ "$a" ] && ifconfig lo0 -alias $a
-      ;;
-    *darwin*)
+    darwin)
       [ "$a" ] && ifconfig lo0 -alias $a
       [ "$aaaa" ] && ifconfig lo0 inet6 $aaaa delete
       ;;

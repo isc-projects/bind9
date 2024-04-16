@@ -11,6 +11,10 @@
 # information regarding copyright ownership.
 ############################################################################
 
+import sys
+
+from pathlib import Path
+
 #
 # Configuration file for the Sphinx documentation builder.
 #
@@ -23,10 +27,9 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+
+sys.path.append(str(Path(__file__).resolve().parent.parent / "ext"))
+sys.path.append(str(Path(__file__).resolve().parent.parent / "misc"))
 
 # -- Project information -----------------------------------------------------
 
@@ -41,14 +44,12 @@ author = "Internet Systems Consortium"
 
 # -- General configuration ---------------------------------------------------
 
-# Build man pages directly in _build/man/, not in _build/man/<section>/.
-# This is what the shell code in Makefile.am expects.
-man_make_section_directory = False
+man_make_section_directory = True
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = []
+extensions = ["configblock"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["../arm/_templates"]
@@ -200,16 +201,16 @@ man_pages = [
 ]
 
 #
-# The rst_epilog will be completely overwritten from the Makefile,
-# the definition here is provided purely for situations when
-# sphinx-build is run by hand.
+# The rst_epilog will be completely overwritten from meson
+# the definition here is provided for when manpages are generated
+# from built-in dist templates inside meson.
 #
 rst_epilog = """
-.. |rndc_conf| replace:: ``@sysconfdir@/rndc.conf``
-.. |rndc_key| replace:: ``@sysconfdir@/rndc.key``
-.. |named_conf| replace:: ``@sysconfdir@/named.conf``
-.. |named_pid| replace:: ``@runstatedir@/named.pid``
-.. |session_key| replace:: ``@runstatedir@/session.key``
+.. |rndc_conf| replace:: ``@SYSCONFDIR@/rndc.conf``
+.. |rndc_key| replace:: ``@SYSCONFDIR@/rndc.key``
+.. |named_conf| replace:: ``@SYSCONFDIR@/named.conf``
+.. |named_pid| replace:: ``@RUNSTATEDIR@/named.pid``
+.. |session_key| replace:: ``@RUNSTATEDIR@/session.key``
 """
 
 

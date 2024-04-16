@@ -40,19 +40,19 @@ C++ style: // to end of line
 
 Unix style: # to end of line
 
-.. literalinclude:: ../../doc/misc/options
+.. configblock:: options
 
 Any of these zone statements can also be set inside the view statement.
 
-.. literalinclude:: ../../doc/misc/primary.zoneopt
-.. literalinclude:: ../../doc/misc/secondary.zoneopt
-.. literalinclude:: ../../doc/misc/mirror.zoneopt
-.. literalinclude:: ../../doc/misc/forward.zoneopt
-.. literalinclude:: ../../doc/misc/hint.zoneopt
-.. literalinclude:: ../../doc/misc/redirect.zoneopt
-.. literalinclude:: ../../doc/misc/static-stub.zoneopt
-.. literalinclude:: ../../doc/misc/stub.zoneopt
-.. literalinclude:: ../../doc/misc/in-view.zoneopt
+.. configblock:: primary.zoneopt
+.. configblock:: secondary.zoneopt
+.. configblock:: mirror.zoneopt
+.. configblock:: forward.zoneopt
+.. configblock:: hint.zoneopt
+.. configblock:: redirect.zoneopt
+.. configblock:: static-stub.zoneopt
+.. configblock:: stub.zoneopt
+.. configblock:: in-view.zoneopt
 
 Files
 ~~~~~

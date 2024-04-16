@@ -11,10 +11,10 @@
 # information regarding copyright ownership.
 ############################################################################
 
-from pathlib import Path
-import re
+import os
 import sys
 
+from pathlib import Path
 from typing import List, Tuple
 
 from docutils import nodes
@@ -142,6 +142,7 @@ def setup(app):
 #
 sys.path.append(str(Path(__file__).resolve().parent / "_ext"))
 sys.path.append(str(Path(__file__).resolve().parent.parent / "misc"))
+sys.path.append(str(Path(__file__).resolve().parent.parent / "ext"))
 
 # -- Project information -----------------------------------------------------
 
@@ -150,29 +151,17 @@ project = "BIND 9"
 copyright = "2023, Internet Systems Consortium"
 author = "Internet Systems Consortium"
 
-m4_vars = {}
-with open("../../configure.ac", encoding="utf-8") as configure_ac:
-    for line in configure_ac:
-        match = re.match(
-            r"m4_define\(\[(?P<key>bind_VERSION_[A-Z]+)\], (?P<val>[^)]*)\)dnl", line
-        )
-        if match:
-            m4_vars[match.group("key")] = match.group("val")
+version = os.getenv("BIND_PROJECT_VERSION")
 
-version = "%s.%s.%s%s" % (
-    m4_vars["bind_VERSION_MAJOR"],
-    m4_vars["bind_VERSION_MINOR"],
-    m4_vars["bind_VERSION_PATCH"],
-    m4_vars["bind_VERSION_EXTRA"],
-)
 release = version
+
 
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["namedconf", "rndcconf"]
+extensions = ["namedconf", "rndcconf", "configblock"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
