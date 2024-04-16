@@ -259,12 +259,11 @@ dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name) {
 	REQUIRE(name->buffer != NULL);
 	REQUIRE(name->offsets != NULL);
 
+	dns_name_reset(name);
+
 	if (keylen == 0) {
-		dns_name_reset(name);
 		return;
 	}
-
-	isc_buffer_clear(name->buffer);
 
 	/* Scan the key looking for label boundaries */
 	for (offset = 0; offset <= keylen; offset++) {
