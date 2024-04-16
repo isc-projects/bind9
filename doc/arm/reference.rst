@@ -6487,7 +6487,9 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     vary the validity interval of individual signatures. The validity of a
     newly generated signatures is in range between :any:`signatures-validity`
     (maximum) and :any:`signatures-validity` minus :any:`signatures-jitter`
-    (minimum). The default jitter is 12 hours.
+    (minimum). The default jitter is 12 hours and the configured value must
+    be lower than :any:`signatures-validity` and
+    :any:`signatures-validity-dnskey`.
 
 .. namedconf:statement:: signatures-refresh
    :tags: dnssec
