@@ -716,7 +716,7 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 	unsigned char *offsets;
 	dns_offsets_t odata;
 	unsigned int len;
-	isc_region_t r2;
+	isc_region_t r2 = { .base = NULL, .length = 0 };
 
 	/*
 	 * Make 'name' refer to region 'r'.
@@ -728,6 +728,7 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 
 	INIT_OFFSETS(name, offsets, odata);
 
+	name->ndata = r->base;
 	if (name->buffer != NULL) {
 		isc_buffer_clear(name->buffer);
 		isc_buffer_availableregion(name->buffer, &r2);
@@ -735,13 +736,8 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 		if (len > DNS_NAME_MAXWIRE) {
 			len = DNS_NAME_MAXWIRE;
 		}
-		if (len != 0) {
-			memmove(r2.base, r->base, len);
-		}
-		name->ndata = r2.base;
 		name->length = len;
 	} else {
-		name->ndata = r->base;
 		name->length = (r->length <= DNS_NAME_MAXWIRE)
 				       ? r->length
 				       : DNS_NAME_MAXWIRE;
@@ -755,6 +751,15 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 	}
 
 	if (name->buffer != NULL) {
+		/*
+		 * name->length has been updated by set_offsets to the actual
+		 * length of the name data so we can now copy the actual name
+		 * data and not anything after it.
+		 */
+		if (name->length > 0) {
+			memmove(r2.base, r->base, name->length);
+		}
+		name->ndata = r2.base;
 		isc_buffer_add(name->buffer, name->length);
 	}
 }

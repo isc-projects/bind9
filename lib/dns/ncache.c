@@ -42,6 +42,14 @@
  *
  */
 
+static uint8_t
+atomic_getuint8(isc_buffer_t *b) {
+	atomic_uchar *cp = isc_buffer_current(b);
+	uint8_t ret = atomic_load_relaxed(cp);
+	isc_buffer_forward(b, 1);
+	return (ret);
+}
+
 static isc_result_t
 addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
@@ -493,10 +501,10 @@ rdataset_count(dns_rdataset_t *rdataset) {
 
 static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
-	unsigned char *raw;
+	atomic_uchar *raw;
 
-	raw = rdataset->ncache.raw;
-	raw[-1] = (unsigned char)trust;
+	raw = (atomic_uchar *)rdataset->ncache.raw;
+	atomic_store_relaxed(&raw[-1], (unsigned char)trust);
 	rdataset->trust = trust;
 }
 
@@ -548,7 +556,7 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		ttype = isc_buffer_getuint16(&source);
 
 		if (ttype == type && dns_name_equal(&tname, name)) {
-			trust = isc_buffer_getuint8(&source);
+			trust = atomic_getuint8(&source);
 			INSIST(trust <= dns_trust_ultimate);
 			isc_buffer_remainingregion(&source, &remaining);
 			break;
@@ -627,7 +635,7 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		}
 
 		INSIST(remaining.length >= 1);
-		trust = isc_buffer_getuint8(&source);
+		trust = atomic_getuint8(&source);
 		INSIST(trust <= dns_trust_ultimate);
 		isc_region_consume(&remaining, 1);
 
@@ -705,7 +713,7 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 
 	INSIST(remaining.length >= 5);
 	type = isc_buffer_getuint16(&source);
-	trust = isc_buffer_getuint8(&source);
+	trust = atomic_getuint8(&source);
 	INSIST(trust <= dns_trust_ultimate);
 	isc_buffer_remainingregion(&source, &remaining);
 
