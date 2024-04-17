@@ -424,6 +424,7 @@ keygen(ksr_ctx_t *ksr) {
 	while (!ISC_LIST_EMPTY(keys)) {
 		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys);
 		ISC_LIST_UNLINK(keys, key, link);
+		dst_key_free(&key->key);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
 	dns_kasp_detach(&kasp);
