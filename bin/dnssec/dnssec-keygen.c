@@ -96,9 +96,9 @@ struct keygen_ctx {
 	int options;
 	int dbits;
 	dns_ttl_t ttl;
-	uint16_t zskflag;
-	uint16_t kskflag;
-	uint16_t revflag;
+	bool wantzsk;
+	bool wantksk;
+	bool wantrev;
 	dns_secalg_t alg;
 	/* timing data */
 	int prepub;
@@ -263,7 +263,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	isc_result_t ret;
 	dst_key_t *key = NULL;
 	dst_key_t *prevkey = NULL;
-	uint16_t kskflag;
 
 	UNUSED(argc);
 
@@ -553,17 +552,15 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		ctx->directory = ".";
 	}
 
-	if (ctx->ksk) {
-		kskflag = DNS_KEYFLAG_KSK;
-	} else {
-		kskflag = ctx->kskflag;
-	}
-
 	if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
 		flags |= ctx->signatory;
 	} else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
-		flags |= kskflag;
-		flags |= ctx->revflag;
+		if (ctx->ksk || ctx->wantksk) {
+			flags |= DNS_KEYFLAG_KSK;
+		}
+		if (ctx->wantrev) {
+			flags |= DNS_KEYFLAG_REVOKE;
+		}
 	}
 
 	if (ctx->protocol == -1) {
@@ -686,7 +683,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			}
 
 			if (ctx->setrev) {
-				if (ctx->kskflag == 0) {
+				if (!ctx->wantksk) {
 					fprintf(stderr,
 						"%s: warning: Key is "
 						"not flagged as a KSK, but -R "
@@ -930,11 +927,11 @@ main(int argc, char **argv) {
 		case 'f':
 			c = (unsigned char)(isc_commandline_argument[0]);
 			if (toupper(c) == 'K') {
-				ctx.kskflag = DNS_KEYFLAG_KSK;
+				ctx.wantksk = true;
 			} else if (toupper(c) == 'Z') {
-				ctx.zskflag = 1;
+				ctx.wantzsk = true;
 			} else if (toupper(c) == 'R') {
-				ctx.revflag = DNS_KEYFLAG_REVOKE;
+				ctx.wantrev = true;
 			} else {
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
@@ -1208,7 +1205,7 @@ main(int argc, char **argv) {
 		if (ctx.size != -1) {
 			fatal("-k and -b cannot be used together");
 		}
-		if (ctx.revflag) {
+		if (ctx.wantrev) {
 			fatal("-k and -fR cannot be used together");
 		}
 		if (ctx.options & DST_TYPE_KEY) {
@@ -1226,7 +1223,6 @@ main(int argc, char **argv) {
 			ctx.size = 0;
 			ctx.ttl = 3600;
 			ctx.setttl = true;
-			ctx.kskflag = DNS_KEYFLAG_KSK;
 			ctx.ksk = true;
 			ctx.zsk = true;
 			ctx.lifetime = 0;
@@ -1278,13 +1274,8 @@ main(int argc, char **argv) {
 				if (ctx.keystore != NULL) {
 					check_keystore_options(&ctx);
 				}
-				if (ctx.ksk && ctx.kskflag == 0 &&
-				    ctx.zskflag != 0)
-				{
-					continue;
-				}
-				if (ctx.zsk && ctx.zskflag == 0 &&
-				    ctx.kskflag != 0)
+				if ((ctx.ksk && !ctx.wantksk && ctx.wantzsk) ||
+				    (ctx.zsk && !ctx.wantzsk && ctx.wantksk))
 				{
 					continue;
 				}
