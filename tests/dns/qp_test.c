@@ -820,6 +820,27 @@ ISC_RUN_TEST_IMPL(fixiterator) {
 
 	check_predecessors(qp, check2);
 	dns_qp_destroy(&qp);
+
+	const char insert3[][64] = { "example.",
+				     "key-is-13779.example.",
+				     "key-is-14779.example.",
+				     "key-not-13779.example.",
+				     "key-not-14779.example.",
+				     "" };
+	i = 0;
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+	while (insert3[i][0] != '\0') {
+		insert_str(qp, insert3[i++]);
+	}
+
+	static struct check_predecessors check3[] = { { "key-is-21556.example.",
+							"key-is-14779.example.",
+							DNS_R_PARTIALMATCH, 2 },
+						      { NULL, NULL, 0, 0 } };
+
+	check_predecessors(qp, check3);
+	dns_qp_destroy(&qp);
 }
 
 ISC_TEST_LIST_START
