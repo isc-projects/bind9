@@ -309,6 +309,7 @@ dnssec-policy \"default\" {\n\
 	publish-safety " DNS_KASP_PUBLISH_SAFETY "; \n\
 	retire-safety " DNS_KASP_RETIRE_SAFETY "; \n\
 	purge-keys " DNS_KASP_PURGE_KEYS "; \n\
+	signatures-jitter " DNS_KASP_SIG_JITTER "; \n\
 	signatures-refresh " DNS_KASP_SIG_REFRESH "; \n\
 	signatures-validity " DNS_KASP_SIG_VALIDITY "; \n\
 	signatures-validity-dnskey " DNS_KASP_SIG_VALIDITY_DNSKEY "; \n\

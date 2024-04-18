@@ -75,6 +75,7 @@ struct dns_kasp {
 	ISC_LINK(struct dns_kasp) link;
 
 	/* Configuration: signatures */
+	uint32_t signatures_jitter;
 	uint32_t signatures_refresh;
 	uint32_t signatures_validity;
 	uint32_t signatures_validity_dnskey;
@@ -105,6 +106,8 @@ struct dns_kasp {
 #define DNS_KASP_VALID(kasp) ISC_MAGIC_VALID(kasp, DNS_KASP_MAGIC)
 
 /* Defaults */
+#define DEFAULT_JITTER		     (12 * 3600)
+#define DNS_KASP_SIG_JITTER	     "PT12H"
 #define DNS_KASP_SIG_REFRESH	     "P5D"
 #define DNS_KASP_SIG_VALIDITY	     "P14D"
 #define DNS_KASP_SIG_VALIDITY_DNSKEY "P14D"
@@ -231,6 +234,30 @@ dns_kasp_signdelay(dns_kasp_t *kasp);
  * Returns:
  *
  *\li   signature refresh interval.
+ */
+
+uint32_t
+dns_kasp_sigjitter(dns_kasp_t *kasp);
+/*%<
+ * Get signature jitter value.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   signature jitter value.
+ */
+
+void
+dns_kasp_setsigjitter(dns_kasp_t *kasp, uint32_t value);
+/*%<
+ * Set signature jitter value.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
  */
 
 uint32_t

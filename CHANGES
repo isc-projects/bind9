@@ -1,3 +1,5 @@
+6372.	[func]		Implement signature jitter for dnssec-policy. [GL #4554]
+
 	--- 9.18.26 released ---
 
 6364.	[protocol]	Add RESOLVER.ARPA to the built in empty zones.
