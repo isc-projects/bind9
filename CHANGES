@@ -1,3 +1,6 @@
+6375.	[func]		Allow multiple RNDC message to be processed from
+			a single TCP read. [GL #4416]
+
 6374.	[func]		Don't count expired / future RRSIGs in verification
 			failure quota. [GL #4586]
 

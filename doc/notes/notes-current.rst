@@ -20,8 +20,6 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
-
 - A new option :any:`signatures-jitter` is added to :any:`dnssec-policy` to
   spread out signature expiration times over a period of time. :gl:`#4554`
 
@@ -39,6 +37,12 @@ Feature Changes
 - DNSSEC signatures that are not valid because the current time falls outside
   the signature inception and expiration dates no longer count towards maximum
   validation and maximum validation failures limits. :gl:`#4586`
+
+- Multiple RNDC messages will be processed when sent in a single TCP
+  message.
+
+  ISC would like to thank Dominik Thalhammer for reporting the issue
+  and preparing the initial patch. :gl:`#4416`
 
 Bug Fixes
 ~~~~~~~~~
