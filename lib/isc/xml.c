@@ -53,9 +53,8 @@ isc__xml_initialize(void) {
 	isc_mem_setname(isc__xml_mctx, "libxml2");
 	isc_mem_setdestroycheck(isc__xml_mctx, false);
 
-	RUNTIME_CHECK(xmlGcMemSetup(isc__xml_free, isc__xml_malloc,
-				    isc__xml_malloc, isc__xml_realloc,
-				    isc__xml_strdup) == 0);
+	RUNTIME_CHECK(xmlMemSetup(isc__xml_free, isc__xml_malloc,
+				  isc__xml_realloc, isc__xml_strdup) == 0);
 
 	xmlInitParser();
 #endif /* HAVE_LIBXML2 */

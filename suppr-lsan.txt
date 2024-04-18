@@ -24,3 +24,4 @@ leak:pkcs11_enumerate_slots
 leak:pkcs11_getattr_alloc
 leak:pkcs11_init_key
 leak:pkcs11_strdup
+leak:xmlGetGlobalState

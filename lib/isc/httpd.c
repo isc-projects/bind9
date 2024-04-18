@@ -598,6 +598,12 @@ isc__httpd_sendreq_new(isc_httpd_t *httpd) {
 
 	isc_buffer_initnull(&req->bodybuffer);
 
+	/*
+	 * We don't need to attach to httpd here because it gets only cleaned
+	 * when the last handle has been detached
+	 */
+	req->httpd = httpd;
+
 	return (req);
 }
 
@@ -749,10 +755,11 @@ httpd_compress(isc_httpd_sendreq_t *req) {
 #endif /* ifdef HAVE_ZLIB */
 
 static void
-prepare_response(isc_httpdmgr_t *mgr, isc_httpd_t *httpd,
-		 isc_httpd_sendreq_t **reqp) {
-	isc_httpd_sendreq_t *req = NULL;
-	isc_time_t now;
+prepare_response(void *arg) {
+	isc_httpd_sendreq_t *req = arg;
+	isc_httpd_t *httpd = req->httpd;
+	isc_httpdmgr_t *mgr = httpd->mgr;
+	isc_time_t now = isc_time_now();
 	char datebuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	const char *path = "/";
 	size_t path_len = 1;
@@ -761,9 +768,8 @@ prepare_response(isc_httpdmgr_t *mgr, isc_httpd_t *httpd,
 	isc_result_t result;
 
 	REQUIRE(VALID_HTTPD(httpd));
-	REQUIRE(reqp != NULL && *reqp == NULL);
+	REQUIRE(req != NULL);
 
-	now = isc_time_now();
 	isc_time_formathttptimestamp(&now, datebuf, sizeof(datebuf));
 
 	if (httpd->up.field_set & (1 << ISC_UF_PATH)) {
@@ -778,8 +784,6 @@ prepare_response(isc_httpdmgr_t *mgr, isc_httpd_t *httpd,
 		}
 	}
 	UNLOCK(&mgr->lock);
-
-	req = isc__httpd_sendreq_new(httpd);
 
 	if (url == NULL) {
 		result = mgr->render_404(httpd, NULL, NULL, &req->retcode,
@@ -874,14 +878,20 @@ prepare_response(isc_httpdmgr_t *mgr, isc_httpd_t *httpd,
 	}
 	httpd->recvlen -= httpd->consume;
 	httpd->consume = 0;
+}
+
+static void
+prepare_response_done(void *arg) {
+	isc_region_t r;
+	isc_httpd_sendreq_t *req = arg;
+	isc_httpd_t *httpd = req->httpd;
 
 	/*
-	 * We don't need to attach to httpd here because it gets only cleaned
-	 * when the last handle has been detached
+	 * Determine total response size.
 	 */
-	req->httpd = httpd;
+	isc_buffer_usedregion(req->sendbuffer, &r);
 
-	*reqp = req;
+	isc_nm_send(httpd->handle, &r, httpd_senddone, req);
 }
 
 static void
@@ -889,8 +899,6 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	      isc_region_t *region, void *arg) {
 	isc_httpd_t *httpd = arg;
 	isc_httpdmgr_t *mgr = httpd->mgr;
-	isc_httpd_sendreq_t *req = NULL;
-	isc_region_t r;
 	size_t last_len = 0;
 	isc_result_t result;
 
@@ -941,15 +949,10 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		goto close_readhandle;
 	}
 
-	prepare_response(mgr, httpd, &req);
-
-	/*
-	 * Determine total response size.
-	 */
-	isc_buffer_usedregion(req->sendbuffer, &r);
-
+	isc_httpd_sendreq_t *req = isc__httpd_sendreq_new(httpd);
 	isc_nmhandle_ref(handle);
-	isc_nm_send(handle, &r, httpd_senddone, req);
+	isc_work_enqueue(isc_loop(), prepare_response, prepare_response_done,
+			 req);
 	return;
 
 close_readhandle:

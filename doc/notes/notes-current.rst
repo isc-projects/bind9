@@ -33,7 +33,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Querying the statistics channel no longer blocks the DNS communication
+  on the networking event loop. :gl:`#4680`
 
 Bug Fixes
 ~~~~~~~~~
