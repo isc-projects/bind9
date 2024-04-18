@@ -2100,12 +2100,11 @@ anyleaf(dns_qpreader_t *qp, dns_qpnode_t *n) {
  *     the predecessor.
  */
 static dns_qpnode_t *
-fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
-	     dns_qpkey_t search, size_t searchlen, dns_qpshift_t bit,
-	     size_t offset) {
+fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
+	     size_t searchlen, dns_qpshift_t bit, size_t offset) {
 	dns_qpkey_t found;
 	size_t foundlen, to;
-	dns_qpnode_t *n = start;
+	dns_qpnode_t *n = iter->stack[iter->sp];
 	dns_qpnode_t *leaf = anyleaf(qp, n);
 
 	foundlen = leaf_qpkey(qp, leaf, found);
@@ -2318,7 +2317,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			 * for the predecessor of the searched-for-name;
 			 * that will break the loop.
 			 */
-			n = fix_iterator(qp, iter, n, search, searchlen, bit,
+			n = fix_iterator(qp, iter, search, searchlen, bit,
 					 offset);
 			iter->stack[iter->sp--] = NULL;
 		} else {
@@ -2346,7 +2345,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 		 * and if the caller passed us an iterator,
 		 * then we might need to reposition it.
 		 */
-		n = fix_iterator(qp, iter, n, search, searchlen, bit, offset);
+		n = fix_iterator(qp, iter, search, searchlen, bit, offset);
 	}
 
 	/* do the keys differ, and if so, where? */
