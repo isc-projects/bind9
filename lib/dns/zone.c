@@ -7200,6 +7200,13 @@ calculate_rrsig_validity(dns_zone_t *zone, isc_stdtime_t now,
 		jitter = dns_kasp_sigjitter(zone->kasp);
 		sigvalidity = dns_kasp_sigvalidity(zone->kasp);
 		INSIST(jitter <= sigvalidity);
+	} else {
+		jitter = dns_zone_getsigresigninginterval(zone);
+		if (jitter > sigvalidity) {
+			jitter = sigvalidity;
+		} else {
+			jitter = sigvalidity - jitter;
+		}
 	}
 
 	if (jitter > sigvalidity) {

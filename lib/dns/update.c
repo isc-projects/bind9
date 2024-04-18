@@ -1502,6 +1502,13 @@ dns__jitter_expire(dns_zone_t *zone) {
 		jitter = dns_kasp_sigjitter(kasp);
 		sigvalidity = dns_kasp_sigvalidity(kasp);
 		INSIST(jitter <= sigvalidity);
+	} else {
+		jitter = dns_zone_getsigresigninginterval(zone);
+		if (jitter > sigvalidity) {
+			jitter = sigvalidity;
+		} else {
+			jitter = sigvalidity - jitter;
+		}
 	}
 
 	if (jitter > sigvalidity) {
