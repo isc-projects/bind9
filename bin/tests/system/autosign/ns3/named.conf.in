@@ -87,6 +87,7 @@ dnssec-policy "jitter" {
 	signatures-validity P10D;
 	signatures-validity-dnskey P10D;
 	signatures-refresh P2D;
+	signatures-jitter P8D;
 };
 
 # Jitter, NSEC3

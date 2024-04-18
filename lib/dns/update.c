@@ -1477,23 +1477,30 @@ struct dns_update_state {
 };
 
 static uint32_t
-dns__jitter_expire(dns_zone_t *zone, uint32_t sigvalidityinterval) {
+dns__jitter_expire(dns_zone_t *zone) {
 	/* Spread out signatures over time */
-	if (sigvalidityinterval >= 3600U) {
-		uint32_t expiryinterval =
-			dns_zone_getsigresigninginterval(zone);
+	isc_stdtime_t jitter = DEFAULT_JITTER;
+	isc_stdtime_t sigvalidity = dns_zone_getsigvalidityinterval(zone);
+	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 
-		if (sigvalidityinterval < 7200U) {
-			expiryinterval = 1200;
-		} else if (expiryinterval > sigvalidityinterval) {
-			expiryinterval = sigvalidityinterval;
-		} else {
-			expiryinterval = sigvalidityinterval - expiryinterval;
-		}
-		uint32_t jitter = isc_random_uniform(expiryinterval);
-		sigvalidityinterval -= jitter;
+	if (kasp != NULL) {
+		jitter = dns_kasp_sigjitter(kasp);
+		sigvalidity = dns_kasp_sigvalidity(kasp);
+		INSIST(jitter <= sigvalidity);
 	}
-	return (sigvalidityinterval);
+
+	if (jitter > sigvalidity) {
+		jitter = sigvalidity;
+	}
+
+	if (sigvalidity >= 3600U) {
+		if (sigvalidity > 7200U) {
+			sigvalidity -= isc_random_uniform(jitter);
+		} else {
+			sigvalidity -= isc_random_uniform(1200);
+		}
+	}
+	return (sigvalidity);
 }
 
 isc_result_t
@@ -1549,8 +1556,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		state->now = isc_stdtime_now();
 		state->inception = state->now - 3600; /* Allow for some clock
 							 skew. */
-		state->expire = state->now +
-				dns__jitter_expire(zone, sigvalidityinterval);
+		state->expire = state->now + dns__jitter_expire(zone);
 		state->soaexpire = state->now + sigvalidityinterval;
 		state->keyexpire = dns_zone_getkeyvalidityinterval(zone);
 		if (state->keyexpire == 0) {
