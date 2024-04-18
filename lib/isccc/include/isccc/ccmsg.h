@@ -45,7 +45,6 @@ typedef struct isccc_ccmsg {
 	/* private (don't touch!) */
 	unsigned int	magic;
 	uint32_t	size;
-	bool		length_received;
 	isc_buffer_t   *buffer;
 	unsigned int	maxsize;
 	isc_mem_t      *mctx;
