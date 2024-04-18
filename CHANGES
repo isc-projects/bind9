@@ -1,3 +1,5 @@
+	--- 9.16.50 released ---
+
 6364.	[protocol]	Add RESOLVER.ARPA to the built in empty zones.
 			[GL #4580]
 
