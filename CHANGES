@@ -4,6 +4,8 @@
 6370.	[bug]		Wrong source address used for IPv6 notify messages.
 			[GL #4669]
 
+	--- 9.19.23 released ---
+
 6369.	[func]		The 'fixed' value for the 'rrset-order' option has
 			been marked and documented as deprecated. [GL #4446]
 
