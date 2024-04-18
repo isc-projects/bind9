@@ -94,6 +94,7 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 		dns_qpkey_t key;
 		dns_fixedname_t fn1, fn2;
 		dns_name_t *in = NULL, *out = NULL;
+		char namebuf[DNS_NAME_FORMATSIZE];
 
 		in = dns_fixedname_initname(&fn1);
 		if (testcases[i].len != 0) {
@@ -111,6 +112,9 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 		out = dns_fixedname_initname(&fn2);
 		dns_qpkey_toname(key, len, out);
 		assert_true(dns_name_equal(in, out));
+		/* check that 'out' is properly reset by dns_qpkey_toname */
+		dns_qpkey_toname(key, len, out);
+		dns_name_format(out, namebuf, sizeof(namebuf));
 	}
 }
 
