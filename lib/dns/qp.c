@@ -2028,17 +2028,16 @@ add_link(dns_qpchain_t *chain, dns_qpnode_t *node, size_t offset) {
 	INSIST(chain->len <= DNS_NAME_MAXLABELS);
 }
 
-static inline dns_qpnode_t *
+static inline void
 prevleaf(dns_qpiter_t *it) {
 	isc_result_t result = dns_qpiter_prev(it, NULL, NULL, NULL);
 	if (result == ISC_R_NOMORE) {
 		result = dns_qpiter_prev(it, NULL, NULL, NULL);
 	}
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	return (it->stack[it->sp]);
 }
 
-static inline dns_qpnode_t *
+static inline void
 greatest_leaf(dns_qpreadable_t qpr, dns_qpnode_t *n, dns_qpiter_t *iter) {
 	while (is_branch(n)) {
 		dns_qpref_t ref = branch_twigs_ref(n) + branch_twigs_size(n) -
@@ -2047,7 +2046,6 @@ greatest_leaf(dns_qpreadable_t qpr, dns_qpnode_t *n, dns_qpiter_t *iter) {
 		n = ref_ptr(qpr, ref);
 	}
 	iter->stack[++iter->sp] = n;
-	return (n);
 }
 
 static inline dns_qpnode_t *
@@ -2099,18 +2097,16 @@ anyleaf(dns_qpreader_t *qp, dns_qpnode_t *n) {
  *     the parent branch. We can use the qpiter stack to step back one leaf to
  *     the predecessor.
  */
-static dns_qpnode_t *
+static void
 fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 	     size_t searchlen, dns_qpshift_t bit, size_t offset) {
 	dns_qpkey_t found;
-	size_t foundlen, to;
 	dns_qpnode_t *n = iter->stack[iter->sp];
-	dns_qpnode_t *leaf = anyleaf(qp, n);
+	size_t foundlen = leaf_qpkey(qp, anyleaf(qp, n), found);
+	size_t to = qpkey_compare(search, searchlen, found, foundlen);
 
-	foundlen = leaf_qpkey(qp, leaf, found);
-	to = qpkey_compare(search, searchlen, found, foundlen);
 	if (to == QPKEY_EQUAL) {
-		return (leaf);
+		return;
 	}
 
 	/*
@@ -2122,7 +2118,8 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 	 */
 	if (to < branch_key_offset(iter->stack[0])) {
 		dns_qpiter_init(qp, iter);
-		return (prevleaf(iter));
+		prevleaf(iter);
+		return;
 	}
 
 	/*
@@ -2145,11 +2142,12 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 				 * This was the first domain; move the iterator
 				 * one step back from the origin and return.
 				 */
-				return (prevleaf(iter));
+				prevleaf(iter);
+				return;
 			}
+
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			n = iter->stack[iter->sp];
-			leaf = n;
 		} else {
 			if (to <= searchlen && to <= foundlen && iter->sp > 0) {
 				/*
@@ -2170,13 +2168,13 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 
 			if (is_branch(n)) {
 				iter->stack[iter->sp--] = NULL;
-				n = greatest_leaf(qp, n, iter);
+				greatest_leaf(qp, n, iter);
 			}
-			return (n);
+
+			return;
 		}
 
-		foundlen = leaf_qpkey(qp, leaf, found);
-
+		foundlen = leaf_qpkey(qp, n, found);
 		size_t nto = qpkey_compare(search, searchlen, found, foundlen);
 		if (nto < to) {
 			/*
@@ -2184,7 +2182,7 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 			 * even earlier point, so no further improvement is
 			 * possible.
 			 */
-			return (leaf);
+			return;
 		}
 		to = nto;
 	}
@@ -2203,32 +2201,29 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 			 * wanted; use the iterator to walk back to the
 			 * predecessor.
 			 */
-			n = prevleaf(iter);
+			prevleaf(iter);
 		} else {
 			/*
 			 * The name we want would've been after some twig in
-			 * this branch. point n to that twig, then walk down
-			 * to the highest leaf in that subtree to get
-			 * the predecessor.
+			 * this branch. walk down from that twig to the
+			 * highest leaf in that subtree to get the predecessor.
 			 */
-			n = greatest_leaf(qp, twigs + pos - 1, iter);
+			greatest_leaf(qp, twigs + pos - 1, iter);
 		}
-
 	} else {
 		/*
-		 * We're on the right leaf, either the iterator already points
-		 * to the rightful predecessor, or it points to an immediate
-		 * successor. If the latter, we can now use the qpiter stack
-		 * we've constructed to step back to the predecessor. Otherwise,
-		 * we don't have to do anything anymore.
+		 * We're on the right leaf, so either the iterator already
+		 * points to the rightful predecessor, or it points to an
+		 * immediate successor. If the latter, we can now use the
+		 * qpiter stack we've constructed to step back to the
+		 * predecessor. Otherwise, we don't have to do anything
+		 * anymore.
 		 */
 		if (to <= searchlen && to <= foundlen && search[to] < found[to])
 		{
-			n = prevleaf(iter);
+			prevleaf(iter);
 		}
 	}
-
-	return (n);
 }
 
 isc_result_t
@@ -2310,6 +2305,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			 * the loop.
 			 */
 			n = branch_twig_ptr(qp, n, bit);
+			iter->stack[++iter->sp] = n;
 		} else if (setiter) {
 			/*
 			 * this branch is a dead end. however, the caller
@@ -2317,9 +2313,8 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			 * for the predecessor of the searched-for-name;
 			 * that will break the loop.
 			 */
-			n = fix_iterator(qp, iter, search, searchlen, bit,
-					 offset);
-			iter->stack[iter->sp--] = NULL;
+			fix_iterator(qp, iter, search, searchlen, bit, offset);
+			n = iter->stack[iter->sp];
 		} else {
 			/*
 			 * this branch is a dead end, and the predecessor
@@ -2333,9 +2328,8 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 				/* walk down to find the leftmost leaf */
 				n = anyleaf(qp, twigs);
 			}
+			iter->stack[++iter->sp] = n;
 		}
-
-		iter->stack[++iter->sp] = n;
 	}
 
 	if (matched && setiter) {
@@ -2345,10 +2339,13 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 		 * and if the caller passed us an iterator,
 		 * then we might need to reposition it.
 		 */
-		n = fix_iterator(qp, iter, search, searchlen, bit, offset);
+		fix_iterator(qp, iter, search, searchlen, bit, offset);
+		n = iter->stack[iter->sp];
 	}
 
-	/* do the keys differ, and if so, where? */
+	/* at this point, n can only be a leaf node */
+	INSIST(!is_branch(n));
+
 	foundlen = leaf_qpkey(qp, n, found);
 	offset = qpkey_compare(search, searchlen, found, foundlen);
 
