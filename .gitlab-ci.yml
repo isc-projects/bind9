@@ -71,6 +71,7 @@ stages:
   - performance
   - docs
   - postcheck
+  - postmerge
   - release
 
 ### Runner Tag Templates
@@ -1877,3 +1878,24 @@ pairwise:
   only:
     variables:
       - $PAIRWISE_TESTING
+
+backports:
+  <<: *base_image
+  stage: postmerge
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
+  variables:
+    # automated commits will inherit identification from the user who pressed Merge button
+    GIT_COMMITTER_NAME: $GITLAB_USER_NAME
+    GIT_COMMITTER_EMAIL: $GITLAB_USER_EMAIL
+    # avoid leftover branches from previous jobs
+    GIT_STRATEGY: clone
+    # assumed max depth of a MR for backport
+    GIT_DEPTH: 200
+  script:
+    # CI job token is not sufficient for push operations
+    - git remote get-url origin | sed -e "s/gitlab-ci-token:$CI_JOB_TOKEN/oauth2:$BACKPORT_GITLAB_API_TOKEN/" | xargs git remote set-url --push origin
+    # force-pushing is disabled so we have to have merge request on top
+    - MERGE_REQUEST_ID="$(git log -1 --format='%b' | sed --silent -e 's/^See merge request [^!]\+!//p')"
+    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
+    - bind-qa/bind9/releng/backport_mr.py $CI_PROJECT_ID "$MERGE_REQUEST_ID"
