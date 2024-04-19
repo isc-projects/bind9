@@ -508,6 +508,35 @@ dns_kasp_key_zsk(dns_kasp_key_t *key) {
 	return (key->role & DNS_KASP_KEY_ROLE_ZSK);
 }
 
+bool
+dns_kasp_key_match(dns_kasp_key_t *key, dns_dnsseckey_t *dkey) {
+	isc_result_t ret;
+	bool role = false;
+
+	REQUIRE(key != NULL);
+	REQUIRE(dkey != NULL);
+
+	/* Matching algorithms? */
+	if (dst_key_alg(dkey->key) != dns_kasp_key_algorithm(key)) {
+		return (false);
+	}
+	/* Matching length? */
+	if (dst_key_size(dkey->key) != dns_kasp_key_size(key)) {
+		return (false);
+	}
+	/* Matching role? */
+	ret = dst_key_getbool(dkey->key, DST_BOOL_KSK, &role);
+	if (ret != ISC_R_SUCCESS || role != dns_kasp_key_ksk(key)) {
+		return (false);
+	}
+	ret = dst_key_getbool(dkey->key, DST_BOOL_ZSK, &role);
+	if (ret != ISC_R_SUCCESS || role != dns_kasp_key_zsk(key)) {
+		return (false);
+	}
+	/* Found a match. */
+	return (true);
+}
+
 uint8_t
 dns_kasp_nsec3iter(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);

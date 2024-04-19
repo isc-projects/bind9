@@ -54,6 +54,7 @@ static dns_name_t *name = NULL;
 static isc_mem_t *mctx = NULL;
 static uint32_t ttl;
 static bool emitttl = false;
+static unsigned int split_width = 0;
 
 static isc_result_t
 initname(char *setname) {
@@ -279,8 +280,8 @@ emit(dns_dsdigest_t dt, bool showall, bool cds, dns_rdata_t *rdata) {
 		fatal("can't print name");
 	}
 
-	result = dns_rdata_tofmttext(&ds, (dns_name_t *)NULL, 0, 0, 0, "",
-				     &textb);
+	result = dns_rdata_tofmttext(&ds, (dns_name_t *)NULL, 0, 0, split_width,
+				     "", &textb);
 
 	if (result != ISC_R_SUCCESS) {
 		fatal("can't print rdata");
@@ -347,6 +348,7 @@ usage(void) {
 			"    -f zonefile: read keys from a zone file\n"
 			"    -h: print help information\n"
 			"    -K directory: where to find key or keyset files\n"
+			"    -w split base64 rdata text into chunks\n"
 			"    -s: read keys from keyset-<dnsname> file\n"
 			"    -T: TTL of output records (omitted by default)\n"
 			"    -v level: verbosity\n"
@@ -380,7 +382,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = false;
 
-#define OPTIONS "12Aa:Cc:d:Ff:K:l:sT:v:hV"
+#define OPTIONS "12Aa:Cc:d:Ff:K:l:sT:v:whV"
 	while ((ch = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
 		switch (ch) {
 		case '1':
@@ -431,6 +433,9 @@ main(int argc, char **argv) {
 			if (*endp != '\0') {
 				fatal("-v must be followed by a number");
 			}
+			break;
+		case 'w':
+			split_width = UINT_MAX;
 			break;
 		case 'F':
 			/* Reserved for FIPS mode */

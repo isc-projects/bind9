@@ -20,9 +20,17 @@
 #include <isc/log.h>
 #include <isc/stdtime.h>
 
+#include <dns/kasp.h>
 #include <dns/rdatastruct.h>
 
 #include <dst/dst.h>
+
+#include <isccfg/cfg.h>
+#include <isccfg/kaspconf.h>
+#include <isccfg/namedconf.h>
+
+#define MAX_RSA 4096 /* should be long enough... */
+#define MAX_DH	4096 /* should be long enough... */
 
 /*! verbosity: set by -v and -q option in each program, defined in dnssectool.c
  */
@@ -108,3 +116,8 @@ isoptarg(const char *arg, char **argv, void (*usage)(void));
 
 void
 loadjournal(isc_mem_t *mctx, dns_db_t *db, const char *journal);
+
+void
+kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
+	       const char *name, const char *keydir, const char *engine,
+	       dns_kasp_t **kaspp);

@@ -1,3 +1,11 @@
+6377.	[func]		Introduce 'dnssec-ksr', a DNSSEC tool to create
+			Key Signing Requests (KSRs) and Signed Key Responses
+			(SKRs). [GL #1128]
+
+6376.	[func]		Allow 'dnssec-keygen' options '-f' and '-k' to be used
+			together to create a subset of keys from the DNSSEC
+			policy. [GL !8188]
+
 6375.	[func]		Allow multiple RNDC message to be processed from
 			a single TCP read. [GL #4416]
 

@@ -30,6 +30,7 @@
 #include <isc/mutex.h>
 #include <isc/refcount.h>
 
+#include <dns/dnssec.h>
 #include <dns/keystore.h>
 #include <dns/types.h>
 
@@ -717,6 +718,24 @@ dns_kasp_key_zsk(dns_kasp_key_t *key);
  *\li  True, if the key role has DNS_KASP_KEY_ROLE_ZSK set.
  *\li  False, otherwise.
  *
+ */
+
+bool
+dns_kasp_key_match(dns_kasp_key_t *key, dns_dnsseckey_t *dkey);
+/*%<
+ * Does the DNSSEC key 'dkey' match the policy parameters from the kasp key
+ * 'key'? A DNSSEC key matches if it has the same algorithm and size, and if
+ * it has the same role as the kasp key configuration.
+ *
+ * Requires:
+ *
+ *\li  key != NULL
+ *\li  dkey != NULL
+ *
+ * Returns:
+ *
+ *\li  True, if the DNSSEC key matches.
+ *\li  False, otherwise.
  */
 
 bool

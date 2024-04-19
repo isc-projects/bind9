@@ -128,6 +128,7 @@ TESTS =				\
 	kasp			\
 	keepalive		\
 	keyfromlabel		\
+	ksr			\
 	legacy			\
 	limits			\
 	logfileconfig		\

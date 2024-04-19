@@ -2,6 +2,7 @@ include $(top_srcdir)/Makefile.top
 
 AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
+	$(LIBISCCFG_CFLAGS)	\
 	$(LIBDNS_CFLAGS)
 
 AM_CPPFLAGS +=			\
@@ -12,6 +13,7 @@ noinst_LTLIBRARIES = libdnssectool.la
 LDADD +=			\
 	libdnssectool.la	\
 	$(LIBISC_LIBS)		\
+	$(LIBISCCFG_LIBS)	\
 	$(LIBDNS_LIBS)		\
 	$(OPENSSL_LIBS)
 
@@ -21,6 +23,7 @@ bin_PROGRAMS = \
 	dnssec-importkey	\
 	dnssec-keyfromlabel	\
 	dnssec-keygen		\
+	dnssec-ksr		\
 	dnssec-revoke		\
 	dnssec-settime		\
 	dnssec-signzone		\
@@ -32,20 +35,16 @@ libdnssectool_la_SOURCES =	\
 
 dnssec_keygen_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
-	$(LIBISCCFG_CFLAGS)	\
 	$(OPENSSL_CFLAGS)
 
 dnssec_keygen_LDADD =		\
 	$(LDADD)		\
-	$(LIBISCCFG_LIBS)	\
 	$(OPENSSL_LIBS)
 
 dnssec_signzone_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
-	$(LIBISCCFG_CFLAGS)	\
 	$(OPENSSL_CFLAGS)
 
 dnssec_signzone_LDADD =		\
 	$(LDADD)		\
-	$(LIBISCCFG_LIBS)	\
 	$(OPENSSL_LIBS)

@@ -101,6 +101,13 @@ man_pages = [
     ),
     ("dnssec-keygen", "dnssec-keygen", "DNSSEC key generation tool", author, 1),
     (
+        "dnssec-ksr",
+        "dnssec-ksr",
+        "create signed key response (SKR) files for offline KSK setups",
+        author,
+        1,
+    ),
+    (
         "dnssec-revoke",
         "dnssec-revoke",
         "set the REVOKED bit on a DNSSEC key",

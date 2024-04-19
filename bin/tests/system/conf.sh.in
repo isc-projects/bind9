@@ -42,6 +42,7 @@ export IMPORTKEY=$TOP_BUILDDIR/bin/dnssec/dnssec-importkey
 export JOURNALPRINT=$TOP_BUILDDIR/bin/tools/named-journalprint
 export KEYFRLAB=$TOP_BUILDDIR/bin/dnssec/dnssec-keyfromlabel
 export KEYGEN=$TOP_BUILDDIR/bin/dnssec/dnssec-keygen
+export KSR=$TOP_BUILDDIR/bin/dnssec/dnssec-ksr
 export MDIG=$TOP_BUILDDIR/bin/tools/mdig
 export NAMED=$TOP_BUILDDIR/bin/named/named
 export NSEC3HASH=$TOP_BUILDDIR/bin/tools/nsec3hash

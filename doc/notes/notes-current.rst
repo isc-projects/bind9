@@ -23,6 +23,9 @@ New Features
 - A new option :any:`signatures-jitter` is added to :any:`dnssec-policy` to
   spread out signature expiration times over a period of time. :gl:`#4554`
 
+- A new DNSSEC tool :iscman:`dnssec-ksr` is added to create Key Signing Request
+  (KSR) and Signed Key Response (SKR) files. :gl:`#1128`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
@@ -43,6 +46,10 @@ Feature Changes
 
   ISC would like to thank Dominik Thalhammer for reporting the issue
   and preparing the initial patch. :gl:`#4416`
+
+- :iscman:`dnssec-keygen` now allows the options ``-k`` and ``-f`` to be
+  used together. This allows creating keys for a given :any:`dnssec-policy`
+  that match only the KSK (``-fK``) or ZSK (``-fZ``) role.
 
 Bug Fixes
 ~~~~~~~~~

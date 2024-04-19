@@ -374,45 +374,6 @@ keymgr_key_retire(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 		      keymgr_keyrole(key->key));
 }
 
-/*
- * Check if a dnsseckey matches kasp key configuration.  A dnsseckey matches
- * if it has the same algorithm and size, and if it has the same role as the
- * kasp key configuration.
- *
- */
-static bool
-keymgr_dnsseckey_kaspkey_match(dns_dnsseckey_t *dkey, dns_kasp_key_t *kkey) {
-	dst_key_t *key;
-	isc_result_t ret;
-	bool role = false;
-
-	REQUIRE(dkey != NULL);
-	REQUIRE(kkey != NULL);
-
-	key = dkey->key;
-
-	/* Matching algorithms? */
-	if (dst_key_alg(key) != dns_kasp_key_algorithm(kkey)) {
-		return (false);
-	}
-	/* Matching length? */
-	if (dst_key_size(key) != dns_kasp_key_size(kkey)) {
-		return (false);
-	}
-	/* Matching role? */
-	ret = dst_key_getbool(key, DST_BOOL_KSK, &role);
-	if (ret != ISC_R_SUCCESS || role != dns_kasp_key_ksk(kkey)) {
-		return (false);
-	}
-	ret = dst_key_getbool(key, DST_BOOL_ZSK, &role);
-	if (ret != ISC_R_SUCCESS || role != dns_kasp_key_zsk(kkey)) {
-		return (false);
-	}
-
-	/* Found a match. */
-	return (true);
-}
-
 static bool
 keymgr_keyid_conflict(dst_key_t *newkey, dns_dnsseckeylist_t *keys) {
 	uint16_t id = dst_key_id(newkey);
@@ -1798,7 +1759,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 	for (candidate = ISC_LIST_HEAD(*keyring); candidate != NULL;
 	     candidate = ISC_LIST_NEXT(candidate, link))
 	{
-		if (keymgr_dnsseckey_kaspkey_match(candidate, kaspkey) &&
+		if (dns_kasp_key_match(kaspkey, candidate) &&
 		    dst_key_is_unused(candidate->key))
 		{
 			/* Found a candidate in keyring. */
@@ -2066,7 +2027,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
 		{
-			if (keymgr_dnsseckey_kaspkey_match(dkey, kkey)) {
+			if (dns_kasp_key_match(kkey, dkey)) {
 				found_match = true;
 				break;
 			}
@@ -2108,7 +2069,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring);
 		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
 		{
-			if (keymgr_dnsseckey_kaspkey_match(dkey, kkey)) {
+			if (dns_kasp_key_match(kkey, dkey)) {
 				/* Found a match. */
 				dst_key_format(dkey->key, keystr,
 					       sizeof(keystr));
@@ -2176,9 +2137,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			     dnskey != NULL;
 			     dnskey = ISC_LIST_NEXT(dnskey, link))
 			{
-				if (keymgr_dnsseckey_kaspkey_match(dnskey,
-								   kkey))
-				{
+				if (dns_kasp_key_match(kkey, dnskey)) {
 					/* Found a match. */
 					dst_key_format(dnskey->key, keystr,
 						       sizeof(keystr));
