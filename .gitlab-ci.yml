@@ -81,14 +81,6 @@ stages:
     - libvirt
     - amd64
 
-# Jobs with these tags do not run on AWS but on permanent OVH systems.
-
-.linux-respdiff-amd64: &linux_respdiff_amd64
-  tags:
-    - linux
-    - ovh
-    - amd64
-
 # Autoscaling GitLab Runner on AWS EC2 (amd64)
 
 .linux-amd64: &linux_amd64
@@ -147,10 +139,6 @@ stages:
 .debian-bullseye-amd64: &debian_bullseye_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
   <<: *linux_amd64
-
-.respdiff-debian-bookworm-amd64: &respdiff_debian_bookworm_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
-  <<: *linux_respdiff_amd64
 
 .debian-bookworm-amd64: &debian_bookworm_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
@@ -1540,7 +1528,7 @@ coverity:
 
 # Respdiff tests
 
-respdiff-short:
+respdiff:
   <<: *respdiff_job
   <<: *default_triggering_rules
   <<: *debian_bookworm_amd64_image
@@ -1549,9 +1537,9 @@ respdiff-short:
     CFLAGS: "${CFLAGS_COMMON} -Og"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
-    - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
 
-respdiff-short:asan:
+respdiff:asan:
   <<: *respdiff_job
   <<: *default_triggering_rules
   <<: *debian_bookworm_amd64_image
@@ -1562,52 +1550,11 @@ respdiff-short:asan:
     EXTRA_CONFIGURE: "--disable-dnsrps --without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
-    - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
 
-respdiff-short:tsan:
+respdiff:tsan:
   <<: *respdiff_job
   <<: *default_triggering_rules
-  <<: *tsan_debian_bookworm_amd64_image
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
-    LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--disable-dnsrps --enable-pthread-rwlock --without-jemalloc"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
-    TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
-  script:
-    - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-  after_script:
-    - *find_python
-    - *parse_tsan
-
-respdiff-long:
-  <<: *respdiff_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
-  <<: *respdiff_debian_bookworm_amd64_image
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
-  script:
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-
-respdiff-long:asan:
-  <<: *respdiff_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
-  <<: *debian_bookworm_amd64_image
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
-    LDFLAGS: "-fsanitize=address,undefined"
-    EXTRA_CONFIGURE: "--disable-dnsrps --without-jemalloc"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
-  script:
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-
-respdiff-long:tsan:
-  <<: *respdiff_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   <<: *tsan_debian_bookworm_amd64_image
   variables:
     CC: gcc
@@ -1622,9 +1569,9 @@ respdiff-long:tsan:
     - *find_python
     - *parse_tsan
 
-respdiff-long-third-party:
+respdiff-third-party:
   <<: *respdiff_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
+  <<: *default_triggering_rules
   <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
