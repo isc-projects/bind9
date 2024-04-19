@@ -58,6 +58,7 @@
 #define NAMED_COMMAND_MODZONE	   "modzone"
 #define NAMED_COMMAND_DELZONE	   "delzone"
 #define NAMED_COMMAND_SHOWZONE	   "showzone"
+#define NAMED_COMMAND_SKR	   "skr"
 #define NAMED_COMMAND_SYNC	   "sync"
 #define NAMED_COMMAND_SIGNING	   "signing"
 #define NAMED_COMMAND_DNSSEC	   "dnssec"

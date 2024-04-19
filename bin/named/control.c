@@ -224,6 +224,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		result = named_server_flushnode(named_g_server, lex, true);
 	} else if (command_compare(command, NAMED_COMMAND_FREEZE)) {
 		result = named_server_freeze(named_g_server, true, lex, text);
+	} else if (command_compare(command, NAMED_COMMAND_SKR)) {
+		result = named_server_skr(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_LOADKEYS) ||
 		   command_compare(command, NAMED_COMMAND_SIGN))
 	{

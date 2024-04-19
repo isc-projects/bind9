@@ -257,6 +257,11 @@ Currently supported commands are:
 
    See also :option:`rndc stop`.
 
+.. option:: skr -import file zone [class [view]]
+
+   This command allows you to import a SKR file for the specified zone, to
+   support offline KSK signing.
+
 .. option:: loadkeys [zone [class [view]]]
 
    This command fetches all DNSSEC keys for the given zone from the key directory. If

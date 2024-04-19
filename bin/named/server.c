@@ -16703,3 +16703,61 @@ cleanup:
 
 	return (result);
 }
+
+isc_result_t
+named_server_skr(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_zone_t *zone = NULL;
+	dns_kasp_t *kasp = NULL;
+	const char *ptr;
+	char skrfile[PATH_MAX];
+
+	/* Skip the command name. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL) {
+		return (ISC_R_UNEXPECTEDEND);
+	}
+
+	/* Find out what we are to do. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL) {
+		return (ISC_R_UNEXPECTEDEND);
+	}
+
+	if (strcasecmp(ptr, "-import") != 0) {
+		CHECK(DNS_R_SYNTAX);
+	}
+
+	ptr = next_token(lex, NULL);
+	if (ptr == NULL) {
+		return (ISC_R_UNEXPECTEDEND);
+	}
+	(void)snprintf(skrfile, sizeof(skrfile), "%s", ptr);
+
+	CHECK(zone_from_args(server, lex, NULL, &zone, NULL, text, false));
+	if (zone == NULL) {
+		CHECK(ISC_R_UNEXPECTEDEND);
+	}
+	kasp = dns_zone_getkasp(zone);
+	if (kasp == NULL) {
+		CHECK(putstr(text, "zone does not have a dnssec-policy"));
+		CHECK(putnull(text));
+		goto cleanup;
+	}
+
+	if (!dns_kasp_offlineksk(kasp)) {
+		CHECK(putstr(text, "zone does not have offline-ksk enabled"));
+		CHECK(putnull(text));
+		goto cleanup;
+	}
+
+	CHECK(putstr(text, "import command not implemented"));
+	CHECK(putnull(text));
+
+cleanup:
+	if (zone != NULL) {
+		dns_zone_detach(&zone);
+	}
+
+	return (result);
+}
