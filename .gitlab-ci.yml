@@ -1615,7 +1615,6 @@ respdiff-long:tsan:
   after_script:
     - *find_python
     - *parse_tsan
-  allow_failure: true  # affected by GL #4475
 
 respdiff-long-third-party:
   <<: *respdiff_job
