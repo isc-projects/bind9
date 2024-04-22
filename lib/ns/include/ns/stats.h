@@ -112,7 +112,9 @@ enum {
 
 	ns_statscounter_updatequota = 67,
 
-	ns_statscounter_max = 68,
+	ns_statscounter_recurshighwater = 68,
+
+	ns_statscounter_max = 69,
 };
 
 void

@@ -2483,6 +2483,7 @@ free_fresp(ns_client_t *client, dns_fetchresponse_t **frespp) {
 
 static isc_result_t
 recursionquotatype_attach(ns_client_t *client, bool soft_limit) {
+	isc_statscounter_t recurscount;
 	isc_result_t result;
 
 	result = isc_quota_acquire(&client->manager->sctx->recursionquota);
@@ -2505,8 +2506,12 @@ recursionquotatype_attach(ns_client_t *client, bool soft_limit) {
 		return (result);
 	}
 
-	ns_stats_increment(client->manager->sctx->nsstats,
-			   ns_statscounter_recursclients);
+	recurscount = ns_stats_increment(client->manager->sctx->nsstats,
+					 ns_statscounter_recursclients);
+
+	ns_stats_update_if_greater(client->manager->sctx->nsstats,
+				   ns_statscounter_recurshighwater,
+				   recurscount + 1);
 
 	return (result);
 }
