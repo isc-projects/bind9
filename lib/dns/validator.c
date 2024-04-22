@@ -1482,6 +1482,7 @@ again:
 		consume_validation(val);
 		if (over_max_fails(val)) {
 			result = ISC_R_QUOTA;
+			break;
 		}
 		consume_validation_fail(val);
 	}
