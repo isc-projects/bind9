@@ -9,16 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from . import check
-from . import instance
-from . import query
-from . import name
-from . import rndc
-from . import run
-from . import log
-from . import hypothesis
+import os
 
-# isctest.mark module is intentionally NOT imported, because it relies on
-# environment variables which might not be set at the time of import of the
-# `isctest` package. To use the marks, manual `import isctest.mark` is needed
-# instead.
+from hypothesis import settings
+
+# Timing of hypothesis tests is flaky in the CI, so we disable deadlines.
+settings.register_profile("ci", deadline=None)
+settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "default"))

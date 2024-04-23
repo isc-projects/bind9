@@ -29,8 +29,6 @@ import dns.message
 import dns.rdataclass
 import dns.rdatatype
 
-# LATER: Move this file so it can be easily reused.
-
 
 @composite
 def dns_names(
@@ -131,9 +129,14 @@ def dns_names(
 
 
 RDATACLASS_MAX = RDATATYPE_MAX = 65535
-dns_rdataclasses = builds(dns.rdataclass.RdataClass, integers(0, RDATACLASS_MAX))
+try:
+    dns_rdataclasses = builds(dns.rdataclass.RdataClass, integers(0, RDATACLASS_MAX))
+    dns_rdatatypes = builds(dns.rdatatype.RdataType, integers(0, RDATATYPE_MAX))
+except AttributeError:
+    # In old dnspython versions, RDataTypes and RDataClasses are int and not enums.
+    dns_rdataclasses = integers(0, RDATACLASS_MAX)  # type: ignore
+    dns_rdatatypes = integers(0, RDATATYPE_MAX)  # type: ignore
 dns_rdataclasses_without_meta = dns_rdataclasses.filter(dns.rdataclass.is_metaclass)
-dns_rdatatypes = builds(dns.rdatatype.RdataType, integers(0, RDATATYPE_MAX))
 
 # NOTE: This should really be `dns_rdatatypes_without_meta = dns_rdatatypes_without_meta.filter(dns.rdatatype.is_metatype()`,
 #       but hypothesis then complains about the filter being too strict, so it is done in a “constructive” way.

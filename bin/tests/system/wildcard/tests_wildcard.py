@@ -28,7 +28,6 @@ Limitations - untested properties:
     - special behavior of rdtypes like CNAME
 """
 
-import os
 import pytest
 
 pytest.importorskip("dns", minversion="2.0.0")
@@ -48,9 +47,9 @@ try:
     pytest.importorskip("hypothesis")
 except ValueError:
     pytest.importorskip("hypothesis", minversion="4.41.2")
-from hypothesis import assume, example, given, settings
+from hypothesis import assume, example, given
 
-from strategies import dns_names, dns_rdatatypes_without_meta
+from isctest.hypothesis.strategies import dns_names, dns_rdatatypes_without_meta
 import isctest.check
 import isctest.name
 import isctest.query
@@ -62,10 +61,6 @@ WILDCARD_RDTYPE = dns.rdatatype.A
 WILDCARD_RDATA = "192.0.2.1"
 IP_ADDR = "10.53.0.1"
 TIMEOUT = 5  # seconds, just a sanity check
-
-# Timing of hypothesis tests is flaky in the CI, so we disable deadlines.
-settings.register_profile("ci", deadline=None)
-settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "default"))
 
 
 @given(name=dns_names(suffix=SUFFIX), rdtype=dns_rdatatypes_without_meta)
