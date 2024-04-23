@@ -1008,7 +1008,7 @@ static const char *dbargv_default[] = { "rbt" };
 	do {                                                                 \
 		isc_interval_t _i;                                           \
 		uint32_t _j;                                                 \
-		_j = (b)-isc_random_uniform((b) / 4);                        \
+		_j = (b) - isc_random_uniform((b) / 4);                      \
 		isc_interval_set(&_i, _j, 0);                                \
 		if (isc_time_add((a), &_i, (c)) != ISC_R_SUCCESS) {          \
 			dns_zone_log(zone, ISC_LOG_WARNING,                  \

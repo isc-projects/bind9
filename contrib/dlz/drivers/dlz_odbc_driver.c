@@ -813,7 +813,7 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi) {
 								ttl, data);
 				}
 			} /* closes bid if () */
-		}	  /* closes switch(fields) */
+		} /* closes switch(fields) */
 
 		/* clean up mem */
 		if (ttl_s != NULL) {

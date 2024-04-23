@@ -726,7 +726,7 @@ ldap_get_results(const char *zone, const char *record, const char *client,
 			goto cleanup;
 			break;
 		} /* close switch(ldap_result) */
-	}	  /* end for (int i = 0 i < 3; i++) */
+	} /* end for (int i = 0 i < 3; i++) */
 
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
