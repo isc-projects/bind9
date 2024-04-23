@@ -295,6 +295,19 @@ ISC_RUN_TEST_IMPL(fromregion) {
 	assert_int_equal(9, name.length);
 	assert_ptr_equal(target, name.ndata);
 	assert_true(dns_name_isabsolute(&name));
+
+	/*
+	 * Extract the fully qualified name at the beginning of 'source'
+	 * into 'name' where 'name.ndata' points to the source.
+	 */
+	isc_buffer_init(&b, target, sizeof(target));
+	dns_name_init(&name, NULL);
+	r.base = source;
+	r.length = sizeof(source);
+	dns_name_fromregion(&name, &r);
+	assert_int_equal(9, name.length);
+	assert_ptr_equal(source, name.ndata);
+	assert_true(dns_name_isabsolute(&name));
 }
 
 /* is trust-anchor-telemetry test */
