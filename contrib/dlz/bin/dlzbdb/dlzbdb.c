@@ -874,7 +874,7 @@ bulk_write(char type, DB *database, DBC *dbcursor, DBT *bdbkey, DBT *bdbdata) {
 				printf("d %.*s\n", (int)retdlen, retdata);
 			}
 		} /* end of for (DB_MULTIPLE_INIT....) */
-	}	  /* end of for (;;) */
+	} /* end of for (;;) */
 
 	/* free the buffer we created earlier */
 	free(bdbdata->data);
