@@ -949,6 +949,7 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'U':
 			/* Obsolete.  No longer in use.  Ignore. */
+			named_main_earlywarning("option '-U' has been removed");
 			break;
 		case 'u':
 			named_g_username = isc_commandline_argument;

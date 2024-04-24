@@ -29,7 +29,8 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- The ``named`` command line option ``-U <n>``, which specified the number of UDP dispatches,
+  has been removed. Using it now prints a warning.  :gl:`#1879`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
