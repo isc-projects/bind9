@@ -21,7 +21,7 @@ named - Internet domain name server
 Synopsis
 ~~~~~~~~
 
-:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-C**] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-U** #listeners] [**-u** user] [**-v**] [**-V**] ]
+:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-C**] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-u** user] [**-v**] [**-V**] ]
 
 Description
 ~~~~~~~~~~~
@@ -163,14 +163,7 @@ Options
 
 .. option:: -U #listeners
 
-   This option tells :program:`named` the number of ``#listeners`` worker threads to listen on, for incoming UDP packets on
-   each address. If not specified, :program:`named` calculates a default
-   value based on the number of detected CPUs: 1 for 1 CPU, and the
-   number of detected CPUs minus one for machines with more than 1 CPU.
-   This cannot be increased to a value higher than the number of CPUs.
-   If :option:`-n` has been set to a higher value than the number of detected
-   CPUs, then :option:`-U` may be increased as high as that value, but no
-   higher.
+   This option has been removed. Attempts to use it now result in a warning.
 
 .. option:: -u user
 
