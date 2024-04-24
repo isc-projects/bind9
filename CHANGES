@@ -1,3 +1,8 @@
+6378.	[func]		The option to specify the number of UDP dispatches was
+			previously removed. An attempt to use the option now prints
+			a warning.
+			[GL #1879]
+
 6377.	[func]		Introduce 'dnssec-ksr', a DNSSEC tool to create
 			Key Signing Requests (KSRs) and Signed Key Responses
 			(SKRs). [GL #1128]
