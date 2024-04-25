@@ -113,11 +113,14 @@ Commands
 .. option:: request
 
   Create a Key Signing Request (KSR), given a DNSSEC policy and an interval.
+  This will generate a file with a number of key bundles, where each bundle
+  contains the currently published ZSKs (according to the timing metadata).
 
 .. option:: sign
 
   Sign a Key Signing Request (KSR), given a DNSSEC policy and an interval,
-  creating a Signed Key Response (SKR).
+  creating a Signed Key Response (SKR). This will add the corresponding DNSKEY,
+  CDS, and CDNSKEY records for the KSK that is being used for signing.
 
 Exit Status
 ~~~~~~~~~~~
