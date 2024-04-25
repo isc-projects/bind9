@@ -765,29 +765,29 @@ ISC_RUN_TEST_IMPL(predecessors) {
  */
 ISC_RUN_TEST_IMPL(fixiterator) {
 	dns_qp_t *qp = NULL;
-	const char insert[][32] = { "dynamic.",
-				    "a.dynamic.",
-				    "aaaa.dynamic.",
-				    "cdnskey.dynamic.",
-				    "cds.dynamic.",
-				    "cname.dynamic.",
-				    "dname.dynamic.",
-				    "dnskey.dynamic.",
-				    "ds.dynamic.",
-				    "mx.dynamic.",
-				    "ns.dynamic.",
-				    "nsec.dynamic.",
-				    "private-cdnskey.dynamic.",
-				    "private-dnskey.dynamic.",
-				    "rrsig.dynamic.",
-				    "txt.dynamic.",
-				    "trailing.",
-				    "" };
+	const char insert1[][32] = { "dynamic.",
+				     "a.dynamic.",
+				     "aaaa.dynamic.",
+				     "cdnskey.dynamic.",
+				     "cds.dynamic.",
+				     "cname.dynamic.",
+				     "dname.dynamic.",
+				     "dnskey.dynamic.",
+				     "ds.dynamic.",
+				     "mx.dynamic.",
+				     "ns.dynamic.",
+				     "nsec.dynamic.",
+				     "private-cdnskey.dynamic.",
+				     "private-dnskey.dynamic.",
+				     "rrsig.dynamic.",
+				     "txt.dynamic.",
+				     "trailing.",
+				     "" };
 	int i = 0;
 
 	dns_qp_create(mctx, &string_methods, NULL, &qp);
-	while (insert[i][0] != '\0') {
-		insert_str(qp, insert[i++]);
+	while (insert1[i][0] != '\0') {
+		insert_str(qp, insert1[i++]);
 	}
 
 	static struct check_predecessors check1[] = {
@@ -800,7 +800,46 @@ ISC_RUN_TEST_IMPL(fixiterator) {
 	};
 
 	check_predecessors(qp, check1);
+	dns_qp_destroy(&qp);
 
+	const char insert2[][64] = { ".", "abb.", "abc.", "" };
+	i = 0;
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+	while (insert2[i][0] != '\0') {
+		insert_str(qp, insert2[i++]);
+	}
+
+	static struct check_predecessors check2[] = {
+		{ "acb.", "abc.", DNS_R_PARTIALMATCH, 0 },
+		{ "acc.", "abc.", DNS_R_PARTIALMATCH, 0 },
+		{ "abbb.", "abb.", DNS_R_PARTIALMATCH, 1 },
+		{ "aab.", ".", DNS_R_PARTIALMATCH, 2 },
+		{ NULL, NULL, 0, 0 }
+	};
+
+	check_predecessors(qp, check2);
+	dns_qp_destroy(&qp);
+
+	const char insert3[][64] = { "example.",
+				     "key-is-13779.example.",
+				     "key-is-14779.example.",
+				     "key-not-13779.example.",
+				     "key-not-14779.example.",
+				     "" };
+	i = 0;
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+	while (insert3[i][0] != '\0') {
+		insert_str(qp, insert3[i++]);
+	}
+
+	static struct check_predecessors check3[] = { { "key-is-21556.example.",
+							"key-is-14779.example.",
+							DNS_R_PARTIALMATCH, 2 },
+						      { NULL, NULL, 0, 0 } };
+
+	check_predecessors(qp, check3);
 	dns_qp_destroy(&qp);
 }
 
