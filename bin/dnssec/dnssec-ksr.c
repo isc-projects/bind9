@@ -680,8 +680,12 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	freerrset(&rrsigset);
 }
 
+/*
+ * Create the DNSKEY, CDS, and CDNSKEY records beloing to the KSKs
+ * listed in 'keys'.
+ */
 static void
-create_cds(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
+create_ksk(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
 	   dns_rdataset_t *dnskeyset, dns_rdataset_t *cdnskeyset,
 	   dns_rdataset_t *cdsset) {
 	dns_rdatalist_t *dnskeylist = isc_mem_get(mctx, sizeof(*dnskeylist));
@@ -1037,7 +1041,7 @@ sign(ksr_ctx_t *ksr) {
 	}
 
 	/* KSK, CDS and CDNSKEY */
-	create_cds(ksr, kasp, &keys, &ksk, &cdnskey, &cds);
+	create_ksk(ksr, kasp, &keys, &ksk, &cdnskey, &cds);
 
 	for (ret = isc_lex_gettoken(lex, opt, &token); ret == ISC_R_SUCCESS;
 	     ret = isc_lex_gettoken(lex, opt, &token))
