@@ -190,19 +190,16 @@ ksr common -i $now -e +1y request common.test >ksr.request.out.$n 2>&1 || ret=1
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >ksr.request.expect.$n
-cat common.test.ksk1 >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Bundle 2: KSK + ZSK1 + ZSK2
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat common.test.ksk1 >>ksr.request.expect.$n
 print_dnskeys common.test 1 2 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 3: KSK + ZSK2
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat common.test.ksk1 >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 # Footer
 cp ksr.request.expect.$n ksr.request.expect.base
@@ -249,7 +246,7 @@ _update_expected_zsks() {
   fi
 }
 
-check_ksr() {
+check_skr() {
   _ret=0
   zone=$1
   file=$2
@@ -261,7 +258,7 @@ check_ksr() {
   cds4=$($DSFROMKEY -T 3600 -a SHA-384 -C -w $(cat "${zone}.ksk1.id"))
   cdnskey=$(awk '{sub(/DNSKEY/,"CDNSKEY")}1' <${zone}.ksk1)
 
-  echo_i "check ksr: zone $1 file $2 from $3 to $4 num-zsk $5"
+  echo_i "check skr: zone $1 file $2 from $3 to $4 num-zsk $5"
 
   # Initial state: not in a rollover, expect a SignedKeyResponse header
   # on the first line, start with the first ZSK (set zsk=0 so when we
@@ -273,7 +270,7 @@ check_ksr() {
   rollover_done=$start
   _update_expected_zsks
 
-  echo_i "check ksr: inception $inception rollover-start $rollover_start rollover-done $rollover_done"
+  echo_i "check skr: inception $inception rollover-start $rollover_start rollover-done $rollover_done"
 
   lineno=0
   complete=0
@@ -435,7 +432,7 @@ check_ksr() {
 zsk1=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 start=$(cat $zsk1.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 31536000) # one year
-check_ksr "common.test" "ksr.sign.out.$n" $start $end 2 || ret=1
+check_skr "common.test" "ksr.sign.out.$n" $start $end 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -500,25 +497,21 @@ cp ksr.request.expect.base ksr.request.expect.$n
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat common.test.ksk1 >>ksr.request.expect.$n
 print_dnskeys common.test 2 3 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 5: KSK + ZSK3
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat common.test.ksk1 >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3 >>ksr.request.expect.$n
 # Bundle 6: KSK + ZSK3 + ZSK4
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk4.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat common.test.ksk1 >>ksr.request.expect.$n
 print_dnskeys common.test 3 4 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 7: KSK + ZSK4
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat common.test.ksk1 >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk4 >>ksr.request.expect.$n
 # Footer
 cp ksr.request.expect.$n ksr.request.expect.base
@@ -545,7 +538,7 @@ ret=0
 ksr common -i $now -e +2y -K offline -f ksr.request.expect sign common.test >ksr.sign.out.$n 2>&1 || ret=1
 start=$(cat $zsk1.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 63072000) # two years
-check_ksr "common.test" "ksr.sign.out.$n" $start $end 4 || ret=1
+check_skr "common.test" "ksr.sign.out.$n" $start $end 4 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -593,7 +586,6 @@ ksr unlimited -i $created -e +4y request unlimited.test >ksr.request.out.$n 2>&1
 # Only one bundle: KSK + ZSK
 inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >ksr.request.expect.$n
-cat unlimited.test.ksk1 >>ksr.request.expect.$n
 cat unlimited.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Footer
 grep ";; KeySigningRequest 1.0 generated at" ksr.request.out.$n >footer.$n || ret=1
@@ -611,7 +603,7 @@ ret=0
 ksr unlimited -i $created -e +4y -K offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
 start=$(cat $key.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 126144000) # four years
-check_ksr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
+check_skr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -626,7 +618,7 @@ CDNSKEY="no"
 CDS_SHA1="yes"
 CDS_SHA256="yes"
 CDS_SHA384="yes"
-check_ksr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
+check_skr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -641,7 +633,7 @@ CDNSKEY="yes"
 CDS_SHA1="no"
 CDS_SHA256="no"
 CDS_SHA384="no"
-check_ksr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
+check_skr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -695,40 +687,30 @@ ksr two-tone -i $created -e +6mo request two-tone.test >ksr.request.out.$n 2>&1 
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >ksr.request.expect.$n
-cat two-tone.test.ksk1 >>ksr.request.expect.$n
-cat two-tone.test.ksk2 >>ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Bundle 2: KSK-A1, KSK-B1, ZSK-A1 + ZSK-A2, ZSK-B1
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat two-tone.test.ksk1 >>ksr.request.expect.$n
-cat two-tone.test.ksk2 >>ksr.request.expect.$n
 print_dnskeys two-tone.test 1 2 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect.$DEFAULT_ALGORITHM_NUMBER >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Bundle 3: KSK-A1, KSK-B1, ZSK-A2, ZSK-B1
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat two-tone.test.ksk1 >>ksr.request.expect.$n
-cat two-tone.test.ksk2 >>ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Bundle 4: KSK-A1, KSK-B1, ZSK-A2, ZSK-B1 + ZSK-B2
 key=$(cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk2.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat two-tone.test.ksk1 >>ksr.request.expect.$n
-cat two-tone.test.ksk2 >>ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 print_dnskeys two-tone.test 1 2 $ALTERNATIVE_ALGORITHM_NUMBER ksr.keygen.out.expect.$ALTERNATIVE_ALGORITHM_NUMBER >>ksr.request.expect.$n
 # Bundle 5: KSK-A1, KSK-B1, ZSK-A2, ZSK-B2
 key=$(cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
-cat two-tone.test.ksk1 >>ksr.request.expect.$n
-cat two-tone.test.ksk2 >>ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 # Footer

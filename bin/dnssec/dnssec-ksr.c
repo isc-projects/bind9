@@ -523,10 +523,7 @@ print_rdata(dns_rdataset_t *rrset) {
 static isc_stdtime_t
 print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	      isc_stdtime_t inception, isc_stdtime_t next_inception) {
-	bool ksk = dns_kasp_key_ksk(kaspkey);
-	bool zsk = dns_kasp_key_zsk(kaspkey);
 	char algstr[DNS_SECALG_FORMATSIZE];
-	char rolestr[4];
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
@@ -536,13 +533,6 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	isc_stdtime_tostring(inception, timestr, sizeof(timestr));
 	dns_secalg_format(dns_kasp_key_algorithm(kaspkey), algstr,
 			  sizeof(algstr));
-	if (ksk && zsk) {
-		snprintf(rolestr, sizeof(rolestr), "csk");
-	} else if (ksk) {
-		snprintf(rolestr, sizeof(rolestr), "ksk");
-	} else {
-		snprintf(rolestr, sizeof(rolestr), "zsk");
-	}
 
 	/* Fetch matching key pair. */
 	rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
@@ -598,8 +588,8 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	}
 	/* Error if no key pair found. */
 	if (ISC_LIST_EMPTY(rdatalist->rdata)) {
-		fatal("no %s/%s %s key pair found for bundle %s", namestr,
-		      algstr, rolestr, timestr);
+		fatal("no %s/%s zsk key pair found for bundle %s", namestr,
+		      algstr, timestr);
 	}
 
 	/* All good, print DNSKEY RRset. */
@@ -611,8 +601,8 @@ fail:
 	freerrset(&rdataset);
 
 	if (ret != ISC_R_SUCCESS) {
-		fatal("failed to print %s/%s %s key pair found for bundle %s",
-		      namestr, algstr, rolestr, timestr);
+		fatal("failed to print %s/%s zsk key pair found for bundle %s",
+		      namestr, algstr, timestr);
 	}
 
 	return (next_bundle);
@@ -956,6 +946,11 @@ request(ksr_ctx_t *ksr) {
 			 * or withdrawal of a key that is after the current
 			 * inception.
 			 */
+			if (dns_kasp_key_ksk(kk)) {
+				/* We only want ZSKs in the request. */
+				continue;
+			}
+
 			next = print_dnskeys(kk, ksr->ttl, &keys, inception,
 					     next);
 		}
