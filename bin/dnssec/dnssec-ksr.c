@@ -963,8 +963,8 @@ request(ksr_ctx_t *ksr) {
 	}
 
 	isc_stdtime_tostring(ksr->now, timestr, sizeof(timestr));
-	fprintf(stdout, ";; KeySigningRequest generated at %s by %s\n", timestr,
-		PACKAGE_VERSION);
+	fprintf(stdout, ";; KeySigningRequest 1.0 generated at %s by %s\n",
+		timestr, PACKAGE_VERSION);
 
 	/* Cleanup */
 	cleanup(&keys, kasp);
@@ -1041,20 +1041,22 @@ sign(ksr_ctx_t *ksr) {
 				      ksr->file, isc_lex_getsourceline(lex));
 			}
 
-			if (strcmp(STR(token), "generated") == 0) {
-				/* Final bundle */
-				goto readline;
-			} else if (strcmp(STR(token), "1.0") != 0) {
+			if (strcmp(STR(token), "1.0") != 0) {
 				fatal("bad KSR file %s(%lu): expected version",
 				      ksr->file, isc_lex_getsourceline(lex));
 			}
-			/* Date and time of bundle */
+
 			CHECK(isc_lex_gettoken(lex, opt, &token));
 			if (token.type != isc_tokentype_string) {
 				fatal("bad KSR file %s(%lu): expected datetime",
 				      ksr->file, isc_lex_getsourceline(lex));
 			}
+			if (strcmp(STR(token), "generated") == 0) {
+				/* Final bundle */
+				goto readline;
+			}
 
+			/* Date and time of bundle */
 			sscanf(STR(token), "%s", bundle);
 			next_inception = strtotime(bundle, ksr->now, ksr->now,
 						   NULL);
