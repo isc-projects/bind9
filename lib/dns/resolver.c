@@ -2319,6 +2319,7 @@ resquery_send(resquery_t *query) {
 #ifdef HAVE_DNSTAP
 	isc_sockaddr_t localaddr, *la = NULL;
 	unsigned char zone[DNS_NAME_MAXWIRE];
+	dns_transport_type_t transport_type;
 	dns_dtmsgtype_t dtmsgtype;
 	isc_region_t zr;
 	isc_buffer_t zb;
@@ -2717,8 +2718,17 @@ resquery_send(resquery_t *query) {
 		la = &localaddr;
 	}
 
+	if (query->addrinfo->transport != NULL) {
+		transport_type =
+			dns_transport_get_type(query->addrinfo->transport);
+	} else if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+		transport_type = DNS_TRANSPORT_TCP;
+	} else {
+		transport_type = DNS_TRANSPORT_UDP;
+	}
+
 	dns_dt_send(fctx->res->view, dtmsgtype, la, &query->addrinfo->sockaddr,
-		    tcp, &zr, &query->start, NULL, &buffer);
+		    transport_type, &zr, &query->start, NULL, &buffer);
 #endif /* HAVE_DNSTAP */
 
 	return (ISC_R_SUCCESS);
@@ -9556,6 +9566,7 @@ rctx_logpacket(respctx_t *rctx) {
 	isc_result_t result;
 	isc_sockaddr_t localaddr, *la = NULL;
 	unsigned char zone[DNS_NAME_MAXWIRE];
+	dns_transport_type_t transport_type;
 	dns_dtmsgtype_t dtmsgtype;
 	dns_compress_t cctx;
 	isc_region_t zr;
@@ -9594,9 +9605,17 @@ rctx_logpacket(respctx_t *rctx) {
 		la = &localaddr;
 	}
 
+	if (rctx->query->addrinfo->transport != NULL) {
+		transport_type = dns_transport_get_type(
+			rctx->query->addrinfo->transport);
+	} else if ((rctx->query->options & DNS_FETCHOPT_TCP) != 0) {
+		transport_type = DNS_TRANSPORT_TCP;
+	} else {
+		transport_type = DNS_TRANSPORT_UDP;
+	}
+
 	dns_dt_send(fctx->res->view, dtmsgtype, la,
-		    &rctx->query->addrinfo->sockaddr,
-		    ((rctx->query->options & DNS_FETCHOPT_TCP) != 0), &zr,
+		    &rctx->query->addrinfo->sockaddr, transport_type, &zr,
 		    &rctx->query->start, NULL, &rctx->buffer);
 #endif /* HAVE_DNSTAP */
 }
