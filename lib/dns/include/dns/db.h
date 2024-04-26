@@ -147,8 +147,9 @@ typedef struct dns_dbmethods {
 				      dns_dbnode_t **nodep DNS__DB_FLARG);
 	isc_result_t (*setsigningtime)(dns_db_t *db, dns_rdataset_t *rdataset,
 				       isc_stdtime_t resign);
-	isc_result_t (*getsigningtime)(dns_db_t *db, dns_rdataset_t *rdataset,
-				       dns_name_t *name DNS__DB_FLARG);
+	isc_result_t (*getsigningtime)(dns_db_t *db, isc_stdtime_t *resign,
+				       dns_name_t     *name,
+				       dns_typepair_t *typepair);
 	dns_stats_t *(*getrrsetstats)(dns_db_t *db);
 	isc_result_t (*findnodeext)(dns_db_t *db, const dns_name_t *name,
 				    bool		     create,
@@ -1585,19 +1586,19 @@ dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
  * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
  */
 
-#define dns_db_getsigningtime(db, rdataset, name) \
-	dns__db_getsigningtime(db, rdataset, name DNS__DB_FILELINE)
 isc_result_t
-dns__db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
-		       dns_name_t *name DNS__DB_FLARG);
+dns_db_getsigningtime(dns_db_t *db, isc_stdtime_t *resign,
+		      dns_name_t *foundname, dns_typepair_t *typepair);
 /*%<
- * Return the rdataset with the earliest signing time in the zone.
- * Note: the rdataset is version agnostic.
+ * Find the rdataset header with the earliest signing time in a zone
+ * database. Update 'foundname' and 'typepair' with its name and
+ * type, and update 'resign' with the time at which it is to be signed.
  *
  * Requires:
  * \li	'db' is a valid zone database.
- * \li	'rdataset' to be initialized but not associated.
- * \li	'name' to be NULL or have a buffer associated with it.
+ * \li	'resign' is not NULL.
+ * \li	'foundname' is not NULL.
+ * \li	'typepair' is not NULL.
  *
  * Returns:
  * \li	#ISC_R_SUCCESS

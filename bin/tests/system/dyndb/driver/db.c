@@ -363,14 +363,13 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 }
 
 static isc_result_t
-getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
-	       dns_name_t *name DNS__DB_FLARG) {
+getsigningtime(dns_db_t *db, isc_stdtime_t *resign, dns_name_t *name,
+	       dns_typepair_t *type) {
 	sampledb_t *sampledb = (sampledb_t *)db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	return (dns__db_getsigningtime(sampledb->rbtdb, rdataset,
-				       name DNS__DB_FLARG_PASS));
+	return (dns_db_getsigningtime(sampledb->rbtdb, resign, name, type));
 }
 
 static dns_stats_t *

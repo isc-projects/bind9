@@ -957,11 +957,11 @@ dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 }
 
 isc_result_t
-dns__db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
-		       dns_name_t *name DNS__DB_FLARG) {
+dns_db_getsigningtime(dns_db_t *db, isc_stdtime_t *resign, dns_name_t *name,
+		      dns_typepair_t *typepair) {
 	if (db->methods->getsigningtime != NULL) {
-		return ((db->methods->getsigningtime)(db, rdataset,
-						      name DNS__DB_FLARG_PASS));
+		return ((db->methods->getsigningtime)(db, resign, name,
+						      typepair));
 	}
 	return (ISC_R_NOTFOUND);
 }

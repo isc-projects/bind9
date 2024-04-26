@@ -15081,29 +15081,26 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	{
 		dns_name_t *name;
 		dns_fixedname_t fixed;
-		dns_rdataset_t next;
+		isc_stdtime_t resign;
+		dns_typepair_t typepair;
 
-		dns_rdataset_init(&next);
 		name = dns_fixedname_initname(&fixed);
 
-		result = dns_db_getsigningtime(db, &next, name);
+		result = dns_db_getsigningtime(db, &resign, name, &typepair);
 		if (result == ISC_R_SUCCESS) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
+			resign -= dns_zone_getsigresigninginterval(zone);
+
 			dns_name_format(name, namebuf, sizeof(namebuf));
-			dns_rdatatype_format(next.covers, typebuf,
-					     sizeof(typebuf));
+			dns_rdatatype_format(DNS_TYPEPAIR_COVERS(typepair),
+					     typebuf, sizeof(typebuf));
 			snprintf(resignbuf, sizeof(resignbuf), "%s/%s", namebuf,
 				 typebuf);
-			isc_time_set(
-				&resigntime,
-				next.resign -
-					dns_zone_getsigresigninginterval(zone),
-				0);
+			isc_time_set(&resigntime, resign, 0);
 			isc_time_formathttptimestamp(&resigntime, rtbuf,
 						     sizeof(rtbuf));
-			dns_rdataset_disassociate(&next);
 		}
 	}
 
