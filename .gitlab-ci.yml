@@ -1115,16 +1115,16 @@ respdiff:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
-    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
-    - cd bind-qa/bind9/respdiff
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - cd bind9-qa/respdiff
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   needs: []
   artifacts:
     paths:
       - refserver
-      - bind-qa/bind9/respdiff
+      - bind9-qa/respdiff
     exclude:
-      - bind-qa/bind9/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
+      - bind9-qa/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
     untracked: true
     expire_in: "1 day"
     when: always
@@ -1141,15 +1141,15 @@ respdiff-third-party:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
-    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
-    - cd bind-qa/bind9/respdiff
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - cd bind9-qa/respdiff
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
   needs: []
   artifacts:
     paths:
-      - bind-qa/bind9/respdiff
+      - bind9-qa/respdiff
     exclude:
-      - bind-qa/bind9/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
+      - bind9-qa/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
     untracked: true
     expire_in: "1 day"
     when: always
@@ -1164,8 +1164,8 @@ respdiff-third-party:
     - *setup_softhsm
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - make DESTDIR="${INSTALL_PATH}" install
-    - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
-    - cd bind-qa/bind9/stress
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - cd bind9-qa/stress
     - LD_LIBRARY_PATH="${INSTALL_PATH}/usr/local/lib" BIND_INSTALL_PATH="${INSTALL_PATH}/usr/local" WORKSPACE="${CI_PROJECT_DIR}" bash stress.sh
   needs:
     - job: autoreconf
