@@ -579,8 +579,6 @@ need_headerupdate(dns_slabheader_t *header, isc_stdtime_t now) {
  */
 static void
 update_header(dns_qpdb_t *qpdb, dns_slabheader_t *header, isc_stdtime_t now) {
-	INSIST(IS_CACHE(qpdb));
-
 	/* To be checked: can we really assume this? XXXMLG */
 	INSIST(ISC_LINK_LINKED(header, link));
 
@@ -1065,8 +1063,6 @@ expireheader(dns_slabheader_t *header, isc_rwlocktype_t *nlocktypep,
 
 static void
 update_cachestats(dns_qpdb_t *qpdb, isc_result_t result) {
-	INSIST(IS_CACHE(qpdb));
-
 	if (qpdb->cachestats == NULL) {
 		return;
 	}
@@ -2373,7 +2369,6 @@ setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
 
 	REQUIRE(VALID_QPDB(qpdb));
-	REQUIRE(IS_CACHE(qpdb)); /* current restriction */
 	REQUIRE(stats != NULL);
 
 	isc_stats_attach(stats, &qpdb->cachestats);
@@ -2385,7 +2380,6 @@ getrrsetstats(dns_db_t *db) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
 
 	REQUIRE(VALID_QPDB(qpdb));
-	REQUIRE(IS_CACHE(qpdb)); /* current restriction */
 
 	return (qpdb->rrsetstats);
 }
@@ -2395,7 +2389,6 @@ setservestalettl(dns_db_t *db, dns_ttl_t ttl) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
 
 	REQUIRE(VALID_QPDB(qpdb));
-	REQUIRE(IS_CACHE(qpdb));
 
 	/* currently no bounds checking.  0 means disable. */
 	qpdb->common.serve_stale_ttl = ttl;
@@ -2407,7 +2400,6 @@ getservestalettl(dns_db_t *db, dns_ttl_t *ttl) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
 
 	REQUIRE(VALID_QPDB(qpdb));
-	REQUIRE(IS_CACHE(qpdb));
 
 	*ttl = qpdb->common.serve_stale_ttl;
 	return (ISC_R_SUCCESS);
@@ -2418,7 +2410,6 @@ setservestalerefresh(dns_db_t *db, uint32_t interval) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
 
 	REQUIRE(VALID_QPDB(qpdb));
-	REQUIRE(IS_CACHE(qpdb));
 
 	/* currently no bounds checking.  0 means disable. */
 	qpdb->serve_stale_refresh = interval;
@@ -2430,7 +2421,6 @@ getservestalerefresh(dns_db_t *db, uint32_t *interval) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
 
 	REQUIRE(VALID_QPDB(qpdb));
-	REQUIRE(IS_CACHE(qpdb));
 
 	*interval = qpdb->serve_stale_refresh;
 	return (ISC_R_SUCCESS);
