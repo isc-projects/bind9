@@ -108,25 +108,25 @@
 typedef struct qpzonedb qpzonedb_t;
 typedef struct qpznode qpznode_t;
 
-typedef struct qpdb_changed {
+typedef struct qpz_changed {
 	qpznode_t *node;
 	bool dirty;
-	ISC_LINK(struct qpdb_changed) link;
-} qpdb_changed_t;
+	ISC_LINK(struct qpz_changed) link;
+} qpz_changed_t;
 
-typedef ISC_LIST(qpdb_changed_t) qpdb_changedlist_t;
+typedef ISC_LIST(qpz_changed_t) qpz_changedlist_t;
 
-typedef struct qpdb_version qpdb_version_t;
-struct qpdb_version {
+typedef struct qpz_version qpz_version_t;
+struct qpz_version {
 	/* Not locked */
 	uint32_t serial;
 	qpzonedb_t *qpdb;
 	isc_refcount_t references;
 	/* Locked by database lock. */
 	bool writer;
-	qpdb_changedlist_t changed_list;
+	qpz_changedlist_t changed_list;
 	dns_slabheaderlist_t resigned_list;
-	ISC_LINK(qpdb_version_t) link;
+	ISC_LINK(qpz_version_t) link;
 	bool secure;
 	bool havensec3;
 	/* NSEC3 parameters */
@@ -146,7 +146,7 @@ struct qpdb_version {
 	struct cds_wfs_stack glue_stack;
 };
 
-typedef ISC_LIST(qpdb_version_t) qpdb_versionlist_t;
+typedef ISC_LIST(qpz_version_t) qpz_versionlist_t;
 
 struct qpznode {
 	dns_name_t name;
@@ -180,9 +180,9 @@ struct qpzonedb {
 	uint32_t current_serial;
 	uint32_t least_serial;
 	uint32_t next_serial;
-	qpdb_version_t *current_version;
-	qpdb_version_t *future_version;
-	qpdb_versionlist_t open_versions;
+	qpz_version_t *current_version;
+	qpz_version_t *future_version;
+	qpz_versionlist_t open_versions;
 	isc_loop_t *loop;
 	struct rcu_head rcu_head;
 
@@ -198,7 +198,7 @@ struct qpzonedb {
  */
 typedef struct {
 	qpzonedb_t *qpdb;
-	qpdb_version_t *version;
+	qpz_version_t *version;
 	dns_qpread_t qpr;
 	uint32_t serial;
 	unsigned int options;
@@ -212,7 +212,7 @@ typedef struct {
 	dns_slabheader_t *zonecut_sigheader;
 	dns_fixedname_t zonecut_name;
 	isc_stdtime_t now;
-} qpdb_search_t;
+} qpz_search_t;
 
 /*%
  * Load Context
@@ -223,7 +223,7 @@ typedef struct {
 	dns_qp_t *tree;
 	dns_qp_t *nsec;
 	dns_qp_t *nsec3;
-} qpdb_load_t;
+} qpz_load_t;
 
 static dns_dbmethods_t qpdb_zonemethods;
 
@@ -600,11 +600,11 @@ new_qpznode(qpzonedb_t *qpdb, const dns_name_t *name) {
 	return (newdata);
 }
 
-static qpdb_version_t *
+static qpz_version_t *
 allocate_version(isc_mem_t *mctx, uint32_t serial, unsigned int references,
 		 bool writer) {
-	qpdb_version_t *version = isc_mem_get(mctx, sizeof(*version));
-	*version = (qpdb_version_t){
+	qpz_version_t *version = isc_mem_get(mctx, sizeof(*version));
+	*version = (qpz_version_t){
 		.serial = serial,
 		.writer = writer,
 		.changed_list = ISC_LIST_INITIALIZER,
@@ -1031,7 +1031,7 @@ bindrdataset(qpzonedb_t *qpdb, qpznode_t *node, dns_slabheader_t *header,
 }
 
 static void
-setnsec3parameters(dns_db_t *db, qpdb_version_t *version) {
+setnsec3parameters(dns_db_t *db, qpz_version_t *version) {
 	qpznode_t *node = NULL;
 	dns_rdata_nsec3param_t nsec3param;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -1116,8 +1116,8 @@ unlock:
 }
 
 static void
-cleanup_nondirty(qpdb_version_t *version, qpdb_changedlist_t *cleanup_list) {
-	qpdb_changed_t *changed = NULL, *next_changed = NULL;
+cleanup_nondirty(qpz_version_t *version, qpz_changedlist_t *cleanup_list) {
+	qpz_changed_t *changed = NULL, *next_changed = NULL;
 
 	/*
 	 * If the changed record is dirty, then an update created multiple
@@ -1142,7 +1142,7 @@ cleanup_nondirty(qpdb_version_t *version, qpdb_changedlist_t *cleanup_list) {
 }
 
 static void
-setsecure(dns_db_t *db, qpdb_version_t *version, dns_dbnode_t *origin) {
+setsecure(dns_db_t *db, qpz_version_t *version, dns_dbnode_t *origin) {
 	dns_rdataset_t keyset;
 	dns_rdataset_t nsecset, signsecset;
 	bool haszonekey = false;
@@ -1198,7 +1198,7 @@ setsecure(dns_db_t *db, qpdb_version_t *version, dns_dbnode_t *origin) {
 static void
 currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	qpdb_version_t *version = NULL;
+	qpz_version_t *version = NULL;
 
 	REQUIRE(VALID_QPZONE(qpdb));
 
@@ -1214,7 +1214,7 @@ static void
 attachversion(dns_db_t *db, dns_dbversion_t *source,
 	      dns_dbversion_t **targetp) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	qpdb_version_t *version = source;
+	qpz_version_t *version = source;
 
 	REQUIRE(VALID_QPZONE(qpdb));
 	INSIST(version != NULL && version->qpdb == qpdb);
@@ -1227,7 +1227,7 @@ attachversion(dns_db_t *db, dns_dbversion_t *source,
 static isc_result_t
 newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	qpdb_version_t *version = NULL;
+	qpz_version_t *version = NULL;
 
 	REQUIRE(VALID_QPZONE(qpdb));
 	REQUIRE(versionp != NULL && *versionp == NULL);
@@ -1274,7 +1274,7 @@ resigninsert(qpzonedb_t *qpdb, dns_slabheader_t *newheader) {
 }
 
 static void
-resigndelete(qpzonedb_t *qpdb, qpdb_version_t *version,
+resigndelete(qpzonedb_t *qpdb, qpz_version_t *version,
 	     dns_slabheader_t *header DNS__DB_FLARG) {
 	if (header == NULL || header->heap_index == 0) {
 		return;
@@ -1290,8 +1290,8 @@ resigndelete(qpzonedb_t *qpdb, qpdb_version_t *version,
 }
 
 static void
-make_least_version(qpzonedb_t *qpdb, qpdb_version_t *version,
-		   qpdb_changedlist_t *cleanup_list) {
+make_least_version(qpzonedb_t *qpdb, qpz_version_t *version,
+		   qpz_changedlist_t *cleanup_list) {
 	qpdb->least_serial = version->serial;
 	*cleanup_list = version->changed_list;
 	ISC_LIST_INIT(version->changed_list);
@@ -1332,18 +1332,18 @@ static void
 closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	     bool commit DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	qpdb_version_t *version = NULL, *cleanup_version = NULL;
-	qpdb_version_t *least_greater = NULL;
+	qpz_version_t *version = NULL, *cleanup_version = NULL;
+	qpz_version_t *least_greater = NULL;
 	qpznode_t *node = NULL;
 	bool rollback = false;
-	qpdb_changed_t *changed = NULL, *next_changed = NULL;
-	qpdb_changedlist_t cleanup_list;
+	qpz_changed_t *changed = NULL, *next_changed = NULL;
+	qpz_changedlist_t cleanup_list;
 	dns_slabheaderlist_t resigned_list;
 	dns_slabheader_t *header = NULL;
 	uint32_t serial, least_serial;
 
 	REQUIRE(VALID_QPZONE(qpdb));
-	version = (qpdb_version_t *)*versionp;
+	version = (qpz_version_t *)*versionp;
 	INSIST(version->qpdb == qpdb);
 
 	if (isc_refcount_decrement(&version->references) > 1) {
@@ -1367,7 +1367,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	if (version->writer) {
 		if (commit) {
 			unsigned int cur_ref;
-			qpdb_version_t *cur_version = NULL;
+			qpz_version_t *cur_version = NULL;
 
 			INSIST(version == qpdb->future_version);
 			/*
@@ -1567,7 +1567,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	dns_slabheader_t *header = NULL, *header_next = NULL;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
 	uint32_t serial;
-	qpdb_version_t *version = dbversion;
+	qpz_version_t *version = dbversion;
 	bool close_version = false;
 	dns_typepair_t matchtype, sigmatchtype;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -1651,7 +1651,7 @@ delegating_type(qpzonedb_t *qpdb, qpznode_t *node, dns_typepair_t type) {
 }
 
 static void
-loading_addnode(qpdb_load_t *loadctx, const dns_name_t *name,
+loading_addnode(qpz_load_t *loadctx, const dns_name_t *name,
 		dns_rdatatype_t type, dns_rdatatype_t covers,
 		qpznode_t **nodep) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)loadctx->db;
@@ -1775,9 +1775,9 @@ cname_and_other(qpznode_t *node, uint32_t serial) {
 	return (false);
 }
 
-static qpdb_changed_t *
-add_changed(dns_slabheader_t *header, qpdb_version_t *version DNS__DB_FLARG) {
-	qpdb_changed_t *changed = NULL;
+static qpz_changed_t *
+add_changed(dns_slabheader_t *header, qpz_version_t *version DNS__DB_FLARG) {
+	qpz_changed_t *changed = NULL;
 	qpzonedb_t *qpdb = (qpzonedb_t *)header->db;
 	qpznode_t *node = (qpznode_t *)header->node;
 
@@ -1786,7 +1786,7 @@ add_changed(dns_slabheader_t *header, qpdb_version_t *version DNS__DB_FLARG) {
 	RWLOCK(&qpdb->lock, isc_rwlocktype_write);
 	REQUIRE(version->writer);
 
-	*changed = (qpdb_changed_t){ .node = node };
+	*changed = (qpz_changed_t){ .node = node };
 	ISC_LIST_INITANDAPPEND(version->changed_list, changed, link);
 	newref(qpdb, node DNS__DB_FLARG_PASS);
 	RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
@@ -1803,7 +1803,7 @@ recordsize(dns_slabheader_t *header, unsigned int namelen) {
 }
 
 static void
-maybe_update_recordsandsize(bool add, qpdb_version_t *version,
+maybe_update_recordsandsize(bool add, qpz_version_t *version,
 			    dns_slabheader_t *header, unsigned int namelen) {
 	unsigned char *hdr = (unsigned char *)header;
 	size_t hdrsize = sizeof(*header);
@@ -1825,10 +1825,10 @@ maybe_update_recordsandsize(bool add, qpdb_version_t *version,
 
 static isc_result_t
 add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
-    qpdb_version_t *version, dns_slabheader_t *newheader, unsigned int options,
+    qpz_version_t *version, dns_slabheader_t *newheader, unsigned int options,
     bool loading, dns_rdataset_t *addedrdataset,
     isc_stdtime_t now DNS__DB_FLARG) {
-	qpdb_changed_t *changed = NULL;
+	qpz_changed_t *changed = NULL;
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *prioheader = NULL;
 	dns_slabheader_t *header = NULL;
@@ -2114,7 +2114,7 @@ addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
 static isc_result_t
 loading_addrdataset(void *arg, const dns_name_t *name,
 		    dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	qpdb_load_t *loadctx = arg;
+	qpz_load_t *loadctx = arg;
 	qpzonedb_t *qpdb = (qpzonedb_t *)loadctx->db;
 	qpznode_t *node = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -2203,7 +2203,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 
 static void
 loading_setup(void *arg) {
-	qpdb_load_t *loadctx = arg;
+	qpz_load_t *loadctx = arg;
 	qpzonedb_t *qpdb = (qpzonedb_t *)loadctx->db;
 
 	dns_qpmulti_write(qpdb->tree, &loadctx->tree);
@@ -2213,7 +2213,7 @@ loading_setup(void *arg) {
 
 static void
 loading_commit(void *arg) {
-	qpdb_load_t *loadctx = arg;
+	qpz_load_t *loadctx = arg;
 	qpzonedb_t *qpdb = (qpzonedb_t *)loadctx->db;
 
 	if (loadctx->tree != NULL) {
@@ -2232,7 +2232,7 @@ loading_commit(void *arg) {
 
 static isc_result_t
 beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	qpdb_load_t *loadctx = NULL;
+	qpz_load_t *loadctx = NULL;
 	qpzonedb_t *qpdb = NULL;
 	qpdb = (qpzonedb_t *)db;
 
@@ -2240,7 +2240,7 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	REQUIRE(VALID_QPZONE(qpdb));
 
 	loadctx = isc_mem_get(qpdb->common.mctx, sizeof(*loadctx));
-	*loadctx = (qpdb_load_t){ .db = db };
+	*loadctx = (qpz_load_t){ .db = db };
 
 	RWLOCK(&qpdb->lock, isc_rwlocktype_write);
 
@@ -2260,7 +2260,7 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 
 static isc_result_t
 endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	qpdb_load_t *loadctx = NULL;
+	qpz_load_t *loadctx = NULL;
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 
 	REQUIRE(VALID_QPZONE(qpdb));
@@ -2317,7 +2317,7 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *dbversion, dns_hash_t *hash,
 		   size_t *salt_length) {
 	qpzonedb_t *qpdb = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
-	qpdb_version_t *version = dbversion;
+	qpz_version_t *version = dbversion;
 
 	qpdb = (qpzonedb_t *)db;
 
@@ -2357,7 +2357,7 @@ static isc_result_t
 getsize(dns_db_t *db, dns_dbversion_t *dbversion, uint64_t *records,
 	uint64_t *xfrsize) {
 	qpzonedb_t *qpdb = NULL;
-	qpdb_version_t *version = dbversion;
+	qpz_version_t *version = dbversion;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	qpdb = (qpzonedb_t *)db;
@@ -2568,7 +2568,7 @@ findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
 }
 
 static bool
-matchparams(dns_slabheader_t *header, qpdb_search_t *search) {
+matchparams(dns_slabheader_t *header, qpz_search_t *search) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nsec3_t nsec3;
 	unsigned char *raw = NULL;
@@ -2606,7 +2606,7 @@ matchparams(dns_slabheader_t *header, qpdb_search_t *search) {
 }
 
 static isc_result_t
-setup_delegation(qpdb_search_t *search, dns_dbnode_t **nodep,
+setup_delegation(qpz_search_t *search, dns_dbnode_t **nodep,
 		 dns_name_t *foundname, dns_rdataset_t *rdataset,
 		 dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	dns_name_t *zcname = NULL;
@@ -2674,7 +2674,7 @@ typedef enum { FORWARD, BACK } direction_t;
  * Return true if we found a predecessor or successor.
  */
 static bool
-step(qpdb_search_t *search, dns_qpiter_t *it, direction_t direction,
+step(qpz_search_t *search, dns_qpiter_t *it, direction_t direction,
      dns_name_t *nextname) {
 	dns_fixedname_t fnodename;
 	dns_name_t *nodename = dns_fixedname_initname(&fnodename);
@@ -2723,8 +2723,7 @@ step(qpdb_search_t *search, dns_qpiter_t *it, direction_t direction,
 }
 
 static bool
-activeempty(qpdb_search_t *search, dns_qpiter_t *it,
-	    const dns_name_t *current) {
+activeempty(qpz_search_t *search, dns_qpiter_t *it, const dns_name_t *current) {
 	dns_fixedname_t fnext;
 	dns_name_t *next = dns_fixedname_initname(&fnext);
 
@@ -2746,7 +2745,7 @@ activeempty(qpdb_search_t *search, dns_qpiter_t *it,
 }
 
 static bool
-wildcard_blocked(qpdb_search_t *search, const dns_name_t *qname,
+wildcard_blocked(qpz_search_t *search, const dns_name_t *qname,
 		 dns_name_t *wname) {
 	isc_result_t result;
 	dns_fixedname_t fnext;
@@ -2818,7 +2817,7 @@ wildcard_blocked(qpdb_search_t *search, const dns_name_t *qname,
 }
 
 static isc_result_t
-find_wildcard(qpdb_search_t *search, qpznode_t **nodep,
+find_wildcard(qpz_search_t *search, qpznode_t **nodep,
 	      const dns_name_t *qname) {
 	dns_slabheader_t *header = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
@@ -2944,7 +2943,7 @@ find_wildcard(qpdb_search_t *search, qpznode_t **nodep,
  * Find node of the NSEC/NSEC3 record that is 'name'.
  */
 static isc_result_t
-previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
+previous_closest_nsec(dns_rdatatype_t type, qpz_search_t *search,
 		      dns_name_t *name, qpznode_t **nodep, dns_qpiter_t *nit,
 		      bool *firstp) {
 	isc_result_t result;
@@ -3033,7 +3032,7 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
  * current NSEC3PARAM record are considered.
  */
 static isc_result_t
-find_closest_nsec(qpdb_search_t *search, dns_dbnode_t **nodep,
+find_closest_nsec(qpz_search_t *search, dns_dbnode_t **nodep,
 		  dns_name_t *foundname, dns_rdataset_t *rdataset,
 		  dns_rdataset_t *sigrdataset, bool nsec3,
 		  bool secure DNS__DB_FLARG) {
@@ -3204,7 +3203,7 @@ again:
 
 static isc_result_t
 check_zonecut(qpznode_t *node, void *arg DNS__DB_FLARG) {
-	qpdb_search_t *search = arg;
+	qpz_search_t *search = arg;
 	dns_slabheader_t *header = NULL, *header_next = NULL;
 	dns_slabheader_t *dname_header = NULL, *sigdname_header = NULL;
 	dns_slabheader_t *ns_header = NULL;
@@ -3338,7 +3337,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	isc_result_t result;
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = NULL;
-	qpdb_search_t search;
+	qpz_search_t search;
 	bool cname_ok = true, close_version = false;
 	bool maybe_zonecut = false, at_zonecut = false;
 	bool wild = false, empty_node = false;
@@ -3353,7 +3352,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	REQUIRE(VALID_QPZONE((qpzonedb_t *)db));
 	INSIST(version == NULL ||
-	       ((qpdb_version_t *)version)->qpdb == (qpzonedb_t *)db);
+	       ((qpz_version_t *)version)->qpdb == (qpzonedb_t *)db);
 
 	/*
 	 * If the caller didn't supply a version, attach to the current
@@ -3364,10 +3363,10 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		close_version = true;
 	}
 
-	search = (qpdb_search_t){
+	search = (qpz_search_t){
 		.qpdb = (qpzonedb_t *)db,
 		.version = version,
-		.serial = ((qpdb_version_t *)version)->serial,
+		.serial = ((qpz_version_t *)version)->serial,
 		.options = options,
 	};
 	dns_fixedname_init(&search.zonecut_name);
@@ -3853,7 +3852,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = (qpznode_t *)dbnode;
-	qpdb_version_t *version = dbversion;
+	qpz_version_t *version = dbversion;
 	qpdb_rdatasetiter_t *iterator = NULL;
 
 	REQUIRE(VALID_QPZONE(qpdb));
@@ -4065,7 +4064,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	qpdb_rdatasetiter_t *qrditer = (qpdb_rdatasetiter_t *)iterator;
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
 	qpznode_t *node = qrditer->common.node;
-	qpdb_version_t *version = qrditer->common.version;
+	qpz_version_t *version = qrditer->common.version;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
@@ -4106,7 +4105,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	qpdb_rdatasetiter_t *qrditer = (qpdb_rdatasetiter_t *)iterator;
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
 	qpznode_t *node = qrditer->common.node;
-	qpdb_version_t *version = qrditer->common.version;
+	qpz_version_t *version = qrditer->common.version;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	dns_typepair_t type, negtype;
 	dns_rdatatype_t rdtype;
@@ -4635,7 +4634,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	isc_result_t result;
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = (qpznode_t *)dbnode;
-	qpdb_version_t *version = dbversion;
+	qpz_version_t *version = dbversion;
 	isc_region_t region;
 	dns_slabheader_t *newheader = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -4757,7 +4756,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		 dns_rdataset_t *newrdataset DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = (qpznode_t *)dbnode;
-	qpdb_version_t *version = dbversion;
+	qpz_version_t *version = dbversion;
 	dns_fixedname_t fname;
 	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
@@ -4765,7 +4764,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	unsigned char *subresult = NULL;
 	isc_region_t region;
 	isc_result_t result;
-	qpdb_changed_t *changed = NULL;
+	qpz_changed_t *changed = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
 	REQUIRE(VALID_QPZONE(qpdb));
@@ -4945,7 +4944,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	       dns_rdatatype_t type, dns_rdatatype_t covers DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = (qpznode_t *)dbnode;
-	qpdb_version_t *version = dbversion;
+	qpz_version_t *version = dbversion;
 	dns_fixedname_t fname;
 	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	isc_result_t result;
@@ -5212,7 +5211,7 @@ addglue_to_message(dns_glue_t *ge, dns_message_t *msg) {
 }
 
 static dns_glue_t *
-newglue(qpzonedb_t *qpdb, qpdb_version_t *version, qpznode_t *node,
+newglue(qpzonedb_t *qpdb, qpz_version_t *version, qpznode_t *node,
 	dns_rdataset_t *rdataset) {
 	dns_fixedname_t nodename;
 	dns_glue_additionaldata_ctx_t ctx = {
@@ -5239,7 +5238,7 @@ static isc_result_t
 addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
 	dns_message_t *msg) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	qpdb_version_t *version = dbversion;
+	qpz_version_t *version = dbversion;
 	qpznode_t *node = (qpznode_t *)rdataset->slab.node;
 	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
 
