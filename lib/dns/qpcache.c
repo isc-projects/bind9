@@ -136,7 +136,7 @@
 #define VALID_QPDB(qpdb) \
 	((qpdb) != NULL && (qpdb)->common.impmagic == QPDB_MAGIC)
 
-#define QPDB_HEADERNODE(h) ((qpcnode_t *)((h)->node))
+#define HEADERNODE(h) ((qpcnode_t *)((h)->node))
 
 /*
  * Allow clients with a virtual time of up to 5 minutes in the past to see
@@ -583,11 +583,9 @@ update_header(qpcache_t *qpdb, dns_slabheader_t *header, isc_stdtime_t now) {
 	/* To be checked: can we really assume this? XXXMLG */
 	INSIST(ISC_LINK_LINKED(header, link));
 
-	ISC_LIST_UNLINK(qpdb->lru[QPDB_HEADERNODE(header)->locknum], header,
-			link);
+	ISC_LIST_UNLINK(qpdb->lru[HEADERNODE(header)->locknum], header, link);
 	header->last_used = now;
-	ISC_LIST_PREPEND(qpdb->lru[QPDB_HEADERNODE(header)->locknum], header,
-			 link);
+	ISC_LIST_PREPEND(qpdb->lru[HEADERNODE(header)->locknum], header, link);
 }
 
 /*
@@ -1028,9 +1026,9 @@ expireheader(dns_slabheader_t *header, isc_rwlocktype_t *nlocktypep,
 	     isc_rwlocktype_t *tlocktypep, dns_expire_t reason DNS__DB_FLARG) {
 	setttl(header, 0);
 	mark(header, DNS_SLABHEADERATTR_ANCIENT);
-	QPDB_HEADERNODE(header)->dirty = 1;
+	HEADERNODE(header)->dirty = 1;
 
-	if (isc_refcount_current(&QPDB_HEADERNODE(header)->erefs) == 0) {
+	if (isc_refcount_current(&HEADERNODE(header)->erefs) == 0) {
 		qpcache_t *qpdb = (qpcache_t *)header->db;
 
 		/*
@@ -1038,9 +1036,9 @@ expireheader(dns_slabheader_t *header, isc_rwlocktype_t *nlocktypep,
 		 * We first need to gain a new reference to the node to meet a
 		 * requirement of decref().
 		 */
-		newref(qpdb, QPDB_HEADERNODE(header), *nlocktypep,
+		newref(qpdb, HEADERNODE(header), *nlocktypep,
 		       *tlocktypep DNS__DB_FLARG_PASS);
-		decref(qpdb, QPDB_HEADERNODE(header), 0, nlocktypep, tlocktypep,
+		decref(qpdb, HEADERNODE(header), 0, nlocktypep, tlocktypep,
 		       true, false DNS__DB_FLARG_PASS);
 
 		if (qpdb->cachestats == NULL) {
@@ -1351,7 +1349,7 @@ check_stale_header(qpcnode_t *node, dns_slabheader_t *header,
 				dns_slabheader_destroy(&header);
 			} else {
 				mark(header, DNS_SLABHEADERATTR_ANCIENT);
-				QPDB_HEADERNODE(header)->dirty = 1;
+				HEADERNODE(header)->dirty = 1;
 				*header_prev = header;
 			}
 		} else {
@@ -2319,7 +2317,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				 * argument to the function.
 				 */
 				mark(header, DNS_SLABHEADERATTR_ANCIENT);
-				QPDB_HEADERNODE(header)->dirty = 1;
+				HEADERNODE(header)->dirty = 1;
 			}
 		} else if (EXISTS(header) && !ANCIENT(header)) {
 			if (header->type == matchtype) {
@@ -2775,7 +2773,7 @@ static void
 mark_ancient(dns_slabheader_t *header) {
 	setttl(header, 0);
 	mark(header, DNS_SLABHEADERATTR_ANCIENT);
-	QPDB_HEADERNODE(header)->dirty = 1;
+	HEADERNODE(header)->dirty = 1;
 }
 
 /*%
@@ -3273,13 +3271,11 @@ find_header:
 			}
 			if (header->last_used != now) {
 				ISC_LIST_UNLINK(
-					qpdb->lru[QPDB_HEADERNODE(header)
-							  ->locknum],
+					qpdb->lru[HEADERNODE(header)->locknum],
 					header, link);
 				header->last_used = now;
 				ISC_LIST_PREPEND(
-					qpdb->lru[QPDB_HEADERNODE(header)
-							  ->locknum],
+					qpdb->lru[HEADERNODE(header)->locknum],
 					header, link);
 			}
 			if (header->noqname == NULL &&
@@ -3337,13 +3333,11 @@ find_header:
 			}
 			if (header->last_used != now) {
 				ISC_LIST_UNLINK(
-					qpdb->lru[QPDB_HEADERNODE(header)
-							  ->locknum],
+					qpdb->lru[HEADERNODE(header)->locknum],
 					header, link);
 				header->last_used = now;
 				ISC_LIST_PREPEND(
-					qpdb->lru[QPDB_HEADERNODE(header)
-							  ->locknum],
+					qpdb->lru[HEADERNODE(header)->locknum],
 					header, link);
 			}
 			if (header->noqname == NULL &&
@@ -3369,7 +3363,7 @@ find_header:
 
 		if (loading) {
 			newheader->down = NULL;
-			idx = QPDB_HEADERNODE(newheader)->locknum;
+			idx = HEADERNODE(newheader)->locknum;
 			if (ZEROTTL(newheader)) {
 				newheader->last_used = qpdb->last_used + 1;
 				ISC_LIST_APPEND(qpdb->lru[idx], newheader,
@@ -3396,7 +3390,7 @@ find_header:
 			newheader->next = topheader->next;
 			dns_slabheader_destroy(&header);
 		} else {
-			idx = QPDB_HEADERNODE(newheader)->locknum;
+			idx = HEADERNODE(newheader)->locknum;
 			INSIST(qpdb->heaps != NULL);
 			isc_heap_insert(qpdb->heaps[idx], newheader);
 			newheader->heap = qpdb->heaps[idx];
@@ -3436,7 +3430,7 @@ find_header:
 			return (DNS_R_UNCHANGED);
 		}
 
-		idx = QPDB_HEADERNODE(newheader)->locknum;
+		idx = HEADERNODE(newheader)->locknum;
 		isc_heap_insert(qpdb->heaps[idx], newheader);
 		newheader->heap = qpdb->heaps[idx];
 		if (ZEROTTL(newheader)) {
@@ -4724,7 +4718,7 @@ deletedata(dns_db_t *db ISC_ATTR_UNUSED, dns_dbnode_t *node ISC_ATTR_UNUSED,
 			  atomic_load_acquire(&header->attributes), false);
 
 	if (ISC_LINK_LINKED(header, link)) {
-		int idx = QPDB_HEADERNODE(header)->locknum;
+		int idx = HEADERNODE(header)->locknum;
 		ISC_LIST_UNLINK(qpdb->lru[idx], header, link);
 	}
 

@@ -93,8 +93,6 @@
 
 #define DEFAULT_NODE_LOCK_COUNT 7 /*%< Should be prime. */
 
-#define HEADERNODE(h) ((qpznode_t *)((h)->node))
-
 #define QPDBITER_NSEC3_ORIGIN_NODE(qpdb, iterator)        \
 	((iterator)->current == &(iterator)->nsec3iter && \
 	 (iterator)->node == (qpdb)->nsec3_origin)
