@@ -90,14 +90,16 @@ stages:
     - runner-manager
     - aarch64
 
-# Stress-testing runners
+# Autoscaling GitLab Runner on AWS EC2 (FreeBSD)
 
 .freebsd-stress-amd64: &freebsd_stress_amd64
   tags:
-    - amd64
+    - bsd-stress-test
     - aws
-    - bsd-stress
-    - stress
+    - autoscaler
+    - shell
+    - stress-test
+    - amd64
 
 .windows-amd64: &windows_amd64
   tags:
