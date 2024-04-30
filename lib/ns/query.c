@@ -7247,9 +7247,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		 * Add SOA record to additional section
 		 */
 		if (qctx->rpz_st->m.rpz->addsoa) {
-			bool override_ttl =
-				dns_rdataset_isassociated(qctx->rdataset);
-			rresult = query_addsoa(qctx, override_ttl,
+			rresult = query_addsoa(qctx, UINT32_MAX,
 					       DNS_SECTION_ADDITIONAL);
 			if (rresult != ISC_R_SUCCESS) {
 				QUERY_ERROR(qctx, result);
