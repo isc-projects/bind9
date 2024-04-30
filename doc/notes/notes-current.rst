@@ -35,7 +35,8 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- An RPZ response's SOA record TTL was set to 1 instead of the SOA TTL, if
+  ``add-soa`` was used. This has been fixed. :gl:`#3323`
 
 Known Issues
 ~~~~~~~~~~~~
