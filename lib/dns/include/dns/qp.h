@@ -536,9 +536,12 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
  *
  * If 'foundname' is not NULL, it will be updated to contain the name
  * that was found (if any). The return code, ISC_R_SUCCESS or
- * DNS_R_PARTIALMATCH, indicates whether the name found is name that
- * was requested, or an ancestor. If the result is ISC_R_NOTFOUND,
- * 'foundname' will not be updated.
+ * DNS_R_PARTIALMATCH, indicates whether the name found is the name
+ * that was requested, or an ancestor. If the result is ISC_R_NOTFOUND,
+ * 'foundname' will not be updated. (NOTE: the name will be constructed
+ * from the QP key of the found node, and this can be time-consuming.
+ * In performance-critical code, it is faster to store a copy of the
+ * name in the node data and use that instead of passing 'foundname'.)
  *
  * If 'chain' is not NULL, it is updated to contain a QP chain with
  * references to the populated nodes in the tree between the root and

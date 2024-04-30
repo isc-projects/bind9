@@ -107,7 +107,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 		.common.mctx = mctx,
 		.node_locks = node_locks,
 	};
-	qpdata_t node = { .locknum = 0 };
+	qpznode_t node = { .locknum = 0 };
 	dns_slabheader_t header = {
 		.node = &node,
 		.db = (dns_db_t *)&qpdb,
@@ -172,7 +172,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 		.common.mctx = mctx,
 		.node_locks = node_locks,
 	};
-	qpdata_t node = { .locknum = 0 };
+	qpznode_t node = { .locknum = 0 };
 	dns_slabheader_t header = {
 		.node = &node,
 		.db = (dns_db_t *)&qpdb,

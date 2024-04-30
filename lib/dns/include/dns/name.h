@@ -1339,4 +1339,14 @@ dns_name_isdnssvcb(const dns_name_t *name);
  * i.e. it starts with and optional _port label followed by a _dns label.
  */
 
+size_t
+dns_name_size(const dns_name_t *name);
+/*%<
+ * Return the amount of dynamically allocated memory associated with
+ * 'name' (which is 0 if 'name' is not dynamic).
+ *
+ * Requires:
+ * \li	'name' to be valid.
+ */
+
 ISC_LANG_ENDDECLS
