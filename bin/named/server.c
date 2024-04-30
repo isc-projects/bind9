@@ -2881,7 +2881,7 @@ cleanup:
 	}
 	dns_catz_entry_detach(ev->origin, &ev->entry);
 	dns_catz_detach_catz(&ev->origin);
-	dns_view_detach(&ev->view);
+	dns_view_weakdetach(&ev->view);
 	isc_event_free(ISC_EVENT_PTR(&ev));
 }
 
@@ -2956,7 +2956,7 @@ cleanup:
 	}
 	dns_catz_entry_detach(ev->origin, &ev->entry);
 	dns_catz_detach_catz(&ev->origin);
-	dns_view_detach(&ev->view);
+	dns_view_weakdetach(&ev->view);
 	isc_event_free(ISC_EVENT_PTR(&ev));
 }
 
@@ -2998,7 +2998,7 @@ catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
 
 	dns_catz_entry_attach(entry, &event->entry);
 	dns_catz_attach_catz(origin, &event->origin);
-	dns_view_attach(view, &event->view);
+	dns_view_weakattach(view, &event->view);
 
 	isc_task_send(task, ISC_EVENT_PTR(&event));
 	isc_task_detach(&task);
