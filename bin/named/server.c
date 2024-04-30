@@ -2852,7 +2852,7 @@ cleanup:
 	}
 	dns_catz_entry_detach(cz->origin, &cz->entry);
 	dns_catz_zone_detach(&cz->origin);
-	dns_view_detach(&cz->view);
+	dns_view_weakdetach(&cz->view);
 	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
 
@@ -2926,7 +2926,7 @@ cleanup:
 	}
 	dns_catz_entry_detach(cz->origin, &cz->entry);
 	dns_catz_zone_detach(&cz->origin);
-	dns_view_detach(&cz->view);
+	dns_view_weakdetach(&cz->view);
 	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
 
@@ -2958,7 +2958,7 @@ catz_run(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
 
 	dns_catz_entry_attach(entry, &cz->entry);
 	dns_catz_zone_attach(origin, &cz->origin);
-	dns_view_attach(view, &cz->view);
+	dns_view_weakattach(view, &cz->view);
 
 	isc_async_run(named_g_mainloop, action, cz);
 
