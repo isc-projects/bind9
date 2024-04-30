@@ -33,7 +33,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- DNSSEC signatures that are not valid because the current time falls outside
+  the signature inception and expiration dates no longer count are skipped
+  instead of causing instant validation failure. :gl:`#4586`
 
 Bug Fixes
 ~~~~~~~~~
