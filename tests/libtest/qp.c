@@ -23,6 +23,7 @@
 #include <isc/urcu.h>
 #include <isc/util.h>
 
+#include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/qp.h>
 #include <dns/types.h>
@@ -336,6 +337,17 @@ qp_test_dumpdot(dns_qp_t *qp) {
 	printf(":w;\n");
 	dumpdot_twig(qp, n);
 	printf("}\n");
+}
+
+void
+qp_test_printkey(const dns_qpkey_t key, size_t keylen) {
+	dns_fixedname_t fn;
+	dns_name_t *n = dns_fixedname_initname(&fn);
+	char txt[DNS_NAME_FORMATSIZE];
+
+	dns_qpkey_toname(key, keylen, n);
+	dns_name_format(n, txt, sizeof(txt));
+	printf("%s%s\n", txt, dns_name_isabsolute(n) ? "." : "");
 }
 
 /**********************************************************************/
