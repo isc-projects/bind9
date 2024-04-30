@@ -1,3 +1,8 @@
+6381.	[bug]		dns_qp_lookup() could position the iterator at the
+			wrong predecessor when searching for names with
+			uncommon characters, which are encoded as two-octet
+			sequences in QP trie keys. [GL #4702]
+
 6380.	[func]		Queries and responses now emit distinct dnstap entries
 			for DoT and DoH. [GL #4523]
 
