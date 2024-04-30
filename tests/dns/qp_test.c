@@ -38,6 +38,8 @@
 #include <tests/dns.h>
 #include <tests/qp.h>
 
+bool verbose = false;
+
 ISC_RUN_TEST_IMPL(qpkey_name) {
 	struct {
 		const char *namestr;
@@ -106,6 +108,9 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 			dns_test_namefromstring(testcases[i].namestr, &fn1);
 		}
 		len = dns_qpkey_fromname(key, in);
+		if (verbose) {
+			qp_test_printkey(key, len);
+		}
 
 		assert_int_equal(testcases[i].len, len);
 		assert_memory_equal(testcases[i].key, key, len);
@@ -607,8 +612,20 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 	for (int i = 0; check[i].query != NULL; i++) {
 		dns_qpiter_t it;
 
-		namestr = NULL;
 		dns_test_namefromstring(check[i].query, &fn1);
+
+		/*
+		 * normalize the expected predecessor name, in
+		 * case it has escaped characters, so we can compare
+		 * apples to apples.
+		 */
+		dns_fixedname_t fn3;
+		dns_name_t *expred = dns_fixedname_initname(&fn3);
+		char *predstr = NULL;
+		dns_test_namefromstring(check[i].predecessor, &fn3);
+		result = dns_name_tostring(expred, &predstr, mctx);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
 		result = dns_qp_lookup(qp, name, NULL, &it, NULL, NULL, NULL);
 #if 0
 		fprintf(stderr, "%s: expected %s got %s\n", check[i].query,
@@ -638,15 +655,16 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 		result = dns_name_tostring(pred, &namestr, mctx);
 #if 0
 		fprintf(stderr, "... expected predecessor %s got %s\n",
-			check[i].predecessor, namestr);
+			predstr, namestr);
 #endif
 		assert_int_equal(result, ISC_R_SUCCESS);
-		assert_string_equal(namestr, check[i].predecessor);
+		assert_string_equal(namestr, predstr);
 
 #if 0
 		fprintf(stderr, "%d: remaining names after %s:\n", i, namestr);
 #endif
 		isc_mem_free(mctx, namestr);
+		isc_mem_free(mctx, predstr);
 
 		int j = 0;
 		while (dns_qpiter_next(&it, name, NULL, NULL) == ISC_R_SUCCESS)
@@ -848,6 +866,27 @@ ISC_RUN_TEST_IMPL(fixiterator) {
 						      { NULL, NULL, 0, 0 } };
 
 	check_predecessors(qp, check3);
+	dns_qp_destroy(&qp);
+
+	const char insert4[][64] = { ".", "\\000.", "\\000.\\000.",
+				     "\\000\\009.", "" };
+	i = 0;
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+	while (insert4[i][0] != '\0') {
+		insert_str(qp, insert4[i++]);
+	}
+
+	static struct check_predecessors check4[] = {
+		{ "\\007.", "\\000\\009.", DNS_R_PARTIALMATCH, 0 },
+		{ "\\009.", "\\000\\009.", DNS_R_PARTIALMATCH, 0 },
+		{ "\\045.", "\\000\\009.", DNS_R_PARTIALMATCH, 0 },
+		{ "\\044.", "\\000\\009.", DNS_R_PARTIALMATCH, 0 },
+		{ "\\000.", ".", ISC_R_SUCCESS, 3 },
+		{ NULL, NULL, 0, 0 },
+	};
+
+	check_predecessors(qp, check4);
 	dns_qp_destroy(&qp);
 }
 
