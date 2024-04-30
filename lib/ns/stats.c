@@ -78,11 +78,11 @@ ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 /*%
  * Increment/Decrement methods
  */
-void
+isc_statscounter_t
 ns_stats_increment(ns_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(NS_STATS_VALID(stats));
 
-	isc_stats_increment(stats->counters, counter);
+	return (isc_stats_increment(stats->counters, counter));
 }
 
 void

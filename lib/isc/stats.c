@@ -97,12 +97,12 @@ isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 	*statsp = stats;
 }
 
-void
+isc_statscounter_t
 isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	atomic_fetch_add_relaxed(&stats->counters[counter], 1);
+	return (atomic_fetch_add_relaxed(&stats->counters[counter], 1));
 }
 
 void
