@@ -808,7 +808,12 @@ dns_catz_catzs_set_view(dns_catz_zones_t *catzs, dns_view_t *view) {
 	/* Either it's a new one or it's being reconfigured. */
 	REQUIRE(catzs->view == NULL || !strcmp(catzs->view->name, view->name));
 
-	catzs->view = view;
+	if (catzs->view == NULL) {
+		dns_view_weakattach(view, &catzs->view);
+	} else if (catzs->view != view) {
+		dns_view_weakdetach(&catzs->view);
+		dns_view_weakattach(view, &catzs->view);
+	}
 }
 
 dns_catz_zone_t *
@@ -1042,7 +1047,9 @@ dns__catz_zones_destroy(dns_catz_zones_t *catzs) {
 
 	catzs->magic = 0;
 	isc_mutex_destroy(&catzs->lock);
-
+	if (catzs->view != NULL) {
+		dns_view_weakdetach(&catzs->view);
+	}
 	isc_mem_putanddetach(&catzs->mctx, catzs, sizeof(*catzs));
 }
 
