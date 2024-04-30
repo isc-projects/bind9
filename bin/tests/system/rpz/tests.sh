@@ -838,13 +838,13 @@ grep NXDOMAIN dig.out.${t} >/dev/null || setret "failed"
 t=$((t + 1))
 echo_i "checking that "add-soa no" at rpz zone level works (${t})"
 $DIG z.x.servfail -p ${PORT} @$ns7 >dig.out.${t} || setret "failed"
-grep SOA dig.out.${t} >/dev/null && setret "failed"
+grep "SOA" dig.out.${t} >/dev/null && setret "failed"
 
 if [ native = "$MODE" ]; then
   t=$((t + 1))
   echo_i "checking that "add-soa yes" at response-policy level works (${t})"
   $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t} || setret "failed"
-  grep "^manual-update-rpz\..*SOA" dig.out.${t} >/dev/null || setret "failed"
+  grep "^manual-update-rpz\..*60.*SOA" dig.out.${t} >/dev/null || setret "failed"
 fi
 
 if [ native = "$MODE" ]; then
@@ -862,7 +862,7 @@ if [ native = "$MODE" ]; then
   t=$((t + 1))
   echo_i "checking that 'add-soa unset' works (${t})"
   $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 >dig.out.${t} || setret "failed"
-  grep "^manual-update-rpz\..*SOA" dig.out.${t} >/dev/null || setret "failed"
+  grep "^manual-update-rpz\..*60.*SOA" dig.out.${t} >/dev/null || setret "failed"
 fi
 
 # dnsrps does not allow NS RRs in policy zones, so this check
