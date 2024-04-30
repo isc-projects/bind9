@@ -1,3 +1,7 @@
+6386.	[bug]		When shutting down catzs->view could point to freed
+			memory. Obtain a reference to the view to prevent this.
+			[GL #4502]
+
 6385.	[func]		Relax SVCB alias mode checks to allow parameters.
 			[GL #4704]
 
