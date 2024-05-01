@@ -2563,8 +2563,8 @@ ISC_RUN_TEST_IMPL(https_svcb) {
 		TEXT_INVALID("0"),
 		/* minimal record */
 		TEXT_VALID_LOOP(0, "0 ."),
-		/* Alias form requires SvcFieldValue to be empty */
-		TEXT_INVALID("0 . alpn=\"h2\""),
+		/* Alias form possible future extension */
+		TEXT_VALID_LOOP(1, "0 . alpn=\"h2\""),
 		/* no "key" prefix */
 		TEXT_INVALID("2 svc.example.net. 0=\"2222\""),
 		/* no key value */
@@ -2684,7 +2684,7 @@ ISC_RUN_TEST_IMPL(https_svcb) {
 		 */
 		WIRE_VALID(0x00, 0x00, 0x00),
 		/*
-		 * Alias with non-empty SvcFieldValue (key7="").
+		 * Alias with invalid dohpath.
 		 */
 		WIRE_INVALID(0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00),
 		/*
