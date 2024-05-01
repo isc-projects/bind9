@@ -2167,7 +2167,21 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 			}
 
 			if (is_branch(n)) {
-				iter->stack[iter->sp--] = NULL;
+				/*
+				 * Pop up until we reach a branch that
+				 * differs earlier than the position we're
+				 * looking at. Note that because of escaped
+				 * characters, this might require popping
+				 * more than once.
+				 */
+				dns_qpnode_t *last = iter->stack[iter->sp];
+				while (iter->sp > 0 &&
+				       to < branch_key_offset(last))
+				{
+					n = last;
+					iter->stack[iter->sp--] = NULL;
+					last = iter->stack[iter->sp];
+				}
 				greatest_leaf(qp, n, iter);
 			}
 

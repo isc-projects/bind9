@@ -84,3 +84,9 @@ qp_test_dumptrie(dns_qpreadable_t qp);
  */
 void
 qp_test_dumpdot(dns_qp_t *qp);
+
+/*
+ * Print the name encoded in a QP key.
+ */
+void
+qp_test_printkey(const dns_qpkey_t key, size_t keylen);
