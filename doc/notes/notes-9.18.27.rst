@@ -12,23 +12,11 @@
 Notes for BIND 9.18.27
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
-- None.
-
 - A new option :any:`signatures-jitter` is added to :any:`dnssec-policy` to
   spread out signature expiration times over a period of time. :gl:`#4554`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -36,11 +24,6 @@ Feature Changes
 - DNSSEC signatures that are not valid because the current time falls outside
   the signature inception and expiration dates no longer count are skipped
   instead of causing instant validation failure. :gl:`#4586`
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
 
 Known Issues
 ~~~~~~~~~~~~
