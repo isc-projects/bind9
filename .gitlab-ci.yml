@@ -1536,6 +1536,116 @@ respdiff-third-party:
     - LD_LIBRARY_PATH="${INSTALL_PATH}/usr/local/lib" BIND_INSTALL_PATH="${INSTALL_PATH}/usr/local" WORKSPACE="${CI_PROJECT_DIR}" bash stress.sh
   needs: []
 
+.stress-test-short: &stress_test_short_job
+  <<: *stress_test
+  only:
+    - merge_requests
+
+stress:short:authoritative:fedora:39:amd64:
+  <<: *fedora_39_amd64_image
+  <<: *linux_amd64
+  <<: *stress_test_short_job
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/bin/flame
+    MODE: authoritative
+    RATE: 10000
+    RUN_TIME: 15
+
+stress:short:recursive:fedora:39:amd64:
+  <<: *fedora_39_amd64_image
+  <<: *linux_amd64
+  <<: *stress_test_short_job
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/bin/flame
+    MODE: recursive
+    RATE: 10000
+    RUN_TIME: 15
+
+stress:short:rpz:fedora:39:amd64:
+  <<: *fedora_39_amd64_image
+  <<: *linux_amd64
+  <<: *stress_test_short_job
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/bin/flame
+    MODE: rpz
+    RATE: 1500
+    RUN_TIME: 15
+
+stress:short:authoritative:fedora:39:arm64:
+  <<: *fedora_39_arm64_image
+  <<: *linux_arm64
+  <<: *stress_test_short_job
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/bin/flame
+    MODE: authoritative
+    RATE: 10000
+    RUN_TIME: 15
+
+stress:short:recursive:fedora:39:arm64:
+  <<: *fedora_39_arm64_image
+  <<: *linux_arm64
+  <<: *stress_test_short_job
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/bin/flame
+    MODE: recursive
+    RATE: 10000
+    RUN_TIME: 15
+
+stress:short:rpz:fedora:39:arm64:
+  <<: *fedora_39_arm64_image
+  <<: *linux_arm64
+  <<: *stress_test_short_job
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/bin/flame
+    MODE: rpz
+    RATE: 1500
+    RUN_TIME: 15
+
+stress:short:authoritative:freebsd13:amd64:
+  <<: *freebsd_stress_amd64
+  <<: *stress_test_short_job
+  variables:
+    CC: clang
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/local/bin/flame
+    MODE: authoritative
+    RATE: 10000
+    RUN_TIME: 15
+
+stress:short:recursive:freebsd13:amd64:
+  <<: *freebsd_stress_amd64
+  <<: *stress_test_short_job
+  variables:
+    CC: clang
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/local/bin/flame
+    MODE: recursive
+    RATE: 10000
+    RUN_TIME: 15
+
+stress:short:rpz:freebsd13:amd64:
+  <<: *freebsd_stress_amd64
+  <<: *stress_test_short_job
+  variables:
+    CC: clang
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    FLAME: /usr/local/bin/flame
+    MODE: rpz
+    RATE: 1500
+    RUN_TIME: 15
+
 .stress-test-long: &stress_test_long_job
   <<: *stress_test
   artifacts:
