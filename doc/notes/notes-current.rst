@@ -38,6 +38,10 @@ Security Fixes
   can cause server to respond slowly or not respond at all for other clients.
   :cve:`2024-1975` :gl:`#4480`
 
+- Due to a logic error, lookups that trigger serving stale data and require
+  lookups in local authoritative zone data may result in an assertion failure.
+  This has been fixed. :cve:`2024-4076` :gl:`#4507`
+
 New Features
 ~~~~~~~~~~~~
 
