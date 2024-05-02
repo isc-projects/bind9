@@ -1523,7 +1523,7 @@ respdiff-third-party:
 
 # "Stress" tests
 
-.stress: &stress_job
+.stress-test: &stress_test
   stage: performance
   script:
     - *configure
@@ -1534,24 +1534,27 @@ respdiff-third-party:
     - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
     - cd bind9-qa/stress
     - LD_LIBRARY_PATH="${INSTALL_PATH}/usr/local/lib" BIND_INSTALL_PATH="${INSTALL_PATH}/usr/local" WORKSPACE="${CI_PROJECT_DIR}" bash stress.sh
+  needs: []
+
+.stress-test-long: &stress_test_long_job
+  <<: *stress_test
   artifacts:
     untracked: true
     expire_in: "1 week"
     when: always
   timeout: 2h
-  needs: []
 
 stress:authoritative:fedora:39:amd64:
   <<: *fedora_39_amd64_image
   <<: *linux_amd64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: authoritative
     RATE: 10000
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
@@ -1559,14 +1562,14 @@ stress:authoritative:fedora:39:amd64:
 stress:recursive:fedora:39:amd64:
   <<: *fedora_39_amd64_image
   <<: *linux_amd64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: recursive
     RATE: 10000
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
@@ -1574,14 +1577,14 @@ stress:recursive:fedora:39:amd64:
 stress:rpz:fedora:39:amd64:
   <<: *fedora_39_amd64_image
   <<: *linux_amd64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: rpz
     RATE: 1500
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
@@ -1589,14 +1592,14 @@ stress:rpz:fedora:39:amd64:
 stress:authoritative:fedora:39:arm64:
   <<: *fedora_39_arm64_image
   <<: *linux_arm64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: authoritative
     RATE: 10000
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
@@ -1604,14 +1607,14 @@ stress:authoritative:fedora:39:arm64:
 stress:recursive:fedora:39:arm64:
   <<: *fedora_39_arm64_image
   <<: *linux_arm64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: recursive
     RATE: 10000
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
@@ -1619,56 +1622,56 @@ stress:recursive:fedora:39:arm64:
 stress:rpz:fedora:39:arm64:
   <<: *fedora_39_arm64_image
   <<: *linux_arm64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: rpz
     RATE: 1500
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
 
 stress:authoritative:freebsd13:amd64:
   <<: *freebsd_stress_amd64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: clang
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/local/bin/flame
     MODE: authoritative
     RATE: 10000
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
 stress:recursive:freebsd13:amd64:
   <<: *freebsd_stress_amd64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: clang
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/local/bin/flame
     MODE: recursive
     RATE: 10000
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
 stress:rpz:freebsd13:amd64:
   <<: *freebsd_stress_amd64
-  <<: *stress_job
+  <<: *stress_test_long_job
   variables:
     CC: clang
     CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/local/bin/flame
     MODE: rpz
     RATE: 1500
-    RUN_TIME: 1
+    RUN_TIME: 60
   only:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
