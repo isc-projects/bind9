@@ -12,11 +12,6 @@
 Notes for BIND 9.19.24
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -54,11 +49,6 @@ Feature Changes
 - :iscman:`dnssec-keygen` now allows the options ``-k`` and ``-f`` to be
   used together. This allows creating keys for a given :any:`dnssec-policy`
   that match only the KSK (``-fK``) or ZSK (``-fZ``) role.
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
 
 Known Issues
 ~~~~~~~~~~~~
