@@ -4415,7 +4415,7 @@ expire_ttl_headers(qpcache_t *qpdb, unsigned int locknum,
 			return;
 		}
 
-		expireheader(header, tlocktypep, nlocktypep,
+		expireheader(header, nlocktypep, tlocktypep,
 			     dns_expire_ttl DNS__DB_FLARG_PASS);
 	}
 }
