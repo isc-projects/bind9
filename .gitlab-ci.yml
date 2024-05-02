@@ -1578,16 +1578,12 @@ shotgun:dot:
   when: delayed
   start_in: 5 minutes
 
-# Parallel build in the "make" step is avoided since multiple jobs can be
-# executed concurrently on the same runner. This may present problems when one
-# job runs a performance-sensitive task of replying to queries while another
-# takes all cores to build BIND.
 .stress: &stress_job
   stage: performance
   script:
     - *configure
     - *setup_interfaces
-    - make -k all V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - make DESTDIR="${INSTALL_PATH}" install
     - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
     - cd bind9-qa/stress
