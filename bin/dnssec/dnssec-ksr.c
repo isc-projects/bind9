@@ -87,7 +87,6 @@ static int min_dh = 128;
 #define KSR_LINESIZE   1500 /* should be long enough for any DNSKEY record */
 #define DATETIME_INDEX 25
 
-#define TTL_MAX INT32_MAX
 #define MAXWIRE (64 * 1024)
 
 #define STR(t) ((t).value.as_textregion.base)
@@ -1102,7 +1101,7 @@ sign(ksr_ctx_t *ksr) {
 			dns_rdatalist_init(rdatalist);
 			rdatalist->rdclass = dns_rdataclass_in;
 			rdatalist->type = dns_rdatatype_dnskey;
-			rdatalist->ttl = TTL_MAX;
+			rdatalist->ttl = ksr->ttl;
 			for (isc_result_t r = dns_rdatalist_first(&ksk);
 			     r == ISC_R_SUCCESS; r = dns_rdatalist_next(&ksk))
 			{
@@ -1129,7 +1128,7 @@ sign(ksr_ctx_t *ksr) {
 			} while (token.type != isc_tokentype_eol);
 		} else {
 			/* Parse DNSKEY */
-			dns_ttl_t ttl = TTL_MAX;
+			dns_ttl_t ttl = ksr->ttl;
 			isc_buffer_t buf;
 			isc_buffer_t *newbuf = NULL;
 			dns_rdata_t *rdata = NULL;
