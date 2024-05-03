@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.19.24
+Notes for BIND 9.19.25
 ----------------------
 
 Security Fixes
@@ -20,40 +20,17 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- A new option :any:`signatures-jitter` is added to :any:`dnssec-policy` to
-  spread out signature expiration times over a period of time. :gl:`#4554`
-
-- A new DNSSEC tool :iscman:`dnssec-ksr` is added to create Key Signing Request
-  (KSR) and Signed Key Response (SKR) files. :gl:`#1128`
-
-- Queries and responses now emit distinct dnstap entries for DoT and DoH.
-  :any:`dnstap-read` understands DoH and DoT entries. :gl:`#4523`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The ``named`` command line option ``-U <n>``, which specified the number of UDP dispatches,
-  has been removed. Using it now prints a warning.  :gl:`#1879`
+- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Querying the statistics channel no longer blocks the DNS communication
-  on the networking event loop. :gl:`#4680`
-
-- DNSSEC signatures that are not valid because the current time falls outside
-  the signature inception and expiration dates no longer count towards maximum
-  validation and maximum validation failures limits. :gl:`#4586`
-
-- Multiple RNDC messages will be processed when sent in a single TCP
-  message.
-
-  ISC would like to thank Dominik Thalhammer for reporting the issue
-  and preparing the initial patch. :gl:`#4416`
-
-- :iscman:`dnssec-keygen` now allows the options ``-k`` and ``-f`` to be
-  used together. This allows creating keys for a given :any:`dnssec-policy`
-  that match only the KSK (``-fK``) or ZSK (``-fZ``) role.
+- None.
 
 Bug Fixes
 ~~~~~~~~~
