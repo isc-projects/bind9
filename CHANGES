@@ -1,3 +1,5 @@
+	--- 9.19.24 released ---
+
 6381.	[bug]		dns_qp_lookup() could position the iterator at the
 			wrong predecessor when searching for names with
 			uncommon characters, which are encoded as two-octet
