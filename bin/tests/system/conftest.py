@@ -33,6 +33,7 @@ from isctest.vars.dirs import SYSTEM_TEST_DIR_GIT_PATH
 
 isctest.log.init_conftest_logger()
 isctest.log.avoid_duplicated_logs()
+isctest.vars.init_vars()
 
 # ----------------- Older pytest / xdist compatibility -------------------
 # As of 2023-01-11, the minimal supported pytest / xdist versions are

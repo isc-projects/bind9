@@ -16,8 +16,9 @@ from .openssl import parse_openssl_config
 from .. import log
 
 
-# env variable initialization
-parse_openssl_config(ALL["OPENSSL_CONF"])
+def init_vars():
+    """Initializes the environment variables."""
+    parse_openssl_config(ALL["OPENSSL_CONF"])
 
-os.environ.update(ALL)
-log.debug("setting following env vars: %s", ", ".join([str(key) for key in ALL]))
+    os.environ.update(ALL)
+    log.debug("setting following env vars: %s", ", ".join([str(key) for key in ALL]))
