@@ -206,7 +206,7 @@ cat common.test.ksk1 >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 # Footer
 cp ksr.request.expect.$n ksr.request.expect.base
-grep ";; KeySigningRequest generated at" ksr.request.out.$n >footer.$n || ret=1
+grep ";; KeySigningRequest 1.0 generated at" ksr.request.out.$n >footer.$n || ret=1
 cat footer.$n >>ksr.request.expect.$n
 # Check if request output is the same as expected.
 diff -w ksr.request.out.$n ksr.request.expect.$n >/dev/null || ret=1
@@ -485,7 +485,7 @@ ret=0
 ksr common -i $now -e +1y request common.test >ksr.request.out.$n 2>&1 || ret=1
 # Same as earlier.
 cp ksr.request.expect.base ksr.request.expect.$n
-grep ";; KeySigningRequest generated at" ksr.request.out.$n >footer.$n || ret=1
+grep ";; KeySigningRequest 1.0 generated at" ksr.request.out.$n >footer.$n || ret=1
 cat footer.$n >>ksr.request.expect.$n
 diff -w ksr.request.out.$n ksr.request.expect.$n >/dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
@@ -522,7 +522,7 @@ cat common.test.ksk1 >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk4 >>ksr.request.expect.$n
 # Footer
 cp ksr.request.expect.$n ksr.request.expect.base
-grep ";; KeySigningRequest generated at" ksr.request.out.$n >footer.$n || ret=1
+grep ";; KeySigningRequest 1.0 generated at" ksr.request.out.$n >footer.$n || ret=1
 cat footer.$n >>ksr.request.expect.$n
 diff -w ksr.request.out.$n ksr.request.expect.$n >/dev/null || ret=1
 # Save request for ksr sign operation.
@@ -596,7 +596,7 @@ echo ";; KeySigningRequest 1.0 $inception" >ksr.request.expect.$n
 cat unlimited.test.ksk1 >>ksr.request.expect.$n
 cat unlimited.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Footer
-grep ";; KeySigningRequest generated at" ksr.request.out.$n >footer.$n || ret=1
+grep ";; KeySigningRequest 1.0 generated at" ksr.request.out.$n >footer.$n || ret=1
 cat footer.$n >>ksr.request.expect.$n
 diff -w ksr.request.out.$n ksr.request.expect.$n >/dev/null || ret=1
 # Save request for ksr sign operation.
@@ -732,7 +732,7 @@ cat two-tone.test.ksk2 >>ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 # Footer
-grep ";; KeySigningRequest generated at" ksr.request.out.$n >footer.$n || ret=1
+grep ";; KeySigningRequest 1.0 generated at" ksr.request.out.$n >footer.$n || ret=1
 cat footer.$n >>ksr.request.expect.$n
 # Check the KSR request against the expected request.
 diff -w ksr.request.out.$n ksr.request.expect.$n >/dev/null || ret=1
