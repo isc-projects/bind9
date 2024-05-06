@@ -3734,9 +3734,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "status: $status"
-exit $status
-
 echo_i "checking initialization with a revoked managed key ($n)"
 ret=0
 copy_setports ns5/named2.conf.in ns5/named.conf
@@ -4083,6 +4080,10 @@ ZSK_ID=$(cat ns2/${zone}.zsk.id)
 SECTIONS="+answer +noauthority +noadditional"
 echo_i "testing zone $zone KSK=$KSK_ID ZSK=$ZSK_ID"
 
+# Set key state for KSK. The ZSK rollovers below assume that there is a chain
+# of trust established, so we tell named that the DS is in omnipresent state.
+$SETTIME -s -d OMNIPRESENT now -K ns2 $KSK >/dev/null
+
 # Print IDs of keys used for generating RRSIG records for RRsets of type $1
 # found in dig output file $2.
 get_keys_which_signed() {
@@ -4118,7 +4119,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
 # Roll the ZSK.
-zsk2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
+zsk2=$("$KEYGEN" -q -P none -A none -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
 keyfile_to_key_id "$zsk2" >ns2/$zone.zsk.id2
 ZSK_ID2=$(cat ns2/$zone.zsk.id2)
 ret=0
@@ -4128,12 +4129,39 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+zsk_count_equals() {
+  expectedzsks=$1
+  dig_with_opts @10.53.0.2 DNSKEY $zone >dig.out.test$n
+  lines=$(cat dig.out.test$n | grep "DNSKEY.*256 3 13" | wc -l)
+  test "$lines" -eq $expectedzsks || return 1
+}
+echo_i "check DNSKEY RRset has successor ZSK $ZSK_ID2 ($n)"
+ret=0
+# The expected number of ZSKs is 2.
+retry_quiet 5 zsk_count_equals 2 || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 # Make new ZSK active.
 echo_i "make ZSK $ZSK_ID inactive and make new ZSK $ZSK_ID2 active for zone $zone ($n)"
 ret=0
-$SETTIME -I now -K ns2 $ZSK >/dev/null
+$SETTIME -s -I now -K ns2 $ZSK >/dev/null
 $SETTIME -s -k OMNIPRESENT now -A now -K ns2 $zsk2 >/dev/null
 dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Wait for newest ZSK to become active.
+echo_i "wait until new ZSK $ZSK_ID2 active and ZSK $ZSK_ID inactive"
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  ret=0
+  grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID2 (ZSK) is now active" ns2/named.run >/dev/null || ret=1
+  grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID (ZSK) is now inactive" ns2/named.run >/dev/null || ret=1
+  [ "$ret" -eq 0 ] && break
+  sleep 1
+done
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -4187,15 +4215,14 @@ mv ns2/$KSK.key.bak ns2/$KSK.key
 mv ns2/$KSK.private.bak ns2/$KSK.private
 
 # Roll the ZSK again.
-zsk3=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
+echo_i "delete old ZSK $ZSK_ID, schedule ZSK $ZSK_ID2 inactive, and new ZSK $ZSK_ID3 active for zone $zone ($n)"
+zsk3=$("$KEYGEN" -q -P none -A none -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
+ret=0
 keyfile_to_key_id "$zsk3" >ns2/$zone.zsk.id3
 ZSK_ID3=$(cat ns2/$zone.zsk.id3)
-
-# Schedule the new ZSK (ZSK3) to become active.
-echo_i "delete old ZSK $ZSK_ID schedule ZSK $ZSK_ID2 inactive and new ZSK $ZSK_ID3 active for zone $zone ($n)"
-$SETTIME -s -k UNRETENTIVE -z HIDDEN -D now -K ns2 $ZSK >/dev/null
-$SETTIME -I +3600 -K ns2 $zsk2 >/dev/null
-$SETTIME -A +3600 -K ns2 $zsk3 >/dev/null
+$SETTIME -s -k HIDDEN now -z HIDDEN now -D now -K ns2 $ZSK >/dev/null
+$SETTIME -s -k OMNIPRESENT now -z OMNIPRESENT now -K ns2 $zsk2 >/dev/null
+dnssec_loadkeys_on 2 $zone || ret=1
 rndccmd 10.53.0.2 dnssec -rollover -key $ZSK_ID2 $zone 2>&1 | sed 's/^/ns2 /' | cat_i
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4246,11 +4273,16 @@ for qtype in "SOA" "TXT"; do
   status=$((status + ret))
 done
 
+# Put back the KSK.
+echo_i "put back the KSK $KSK_ID for zone $zone from disk"
+mv ns2/$KSK.key.bak ns2/$KSK.key
+mv ns2/$KSK.private.bak ns2/$KSK.private
+
 # Make the new ZSK (ZSK3) active.
 echo_i "make new ZSK $ZSK_ID3 active for zone $zone ($n)"
-$SETTIME -I now -K ns2 $zsk2 >/dev/null
+ret=0
+$SETTIME -s -I now -K ns2 $zsk2 >/dev/null
 $SETTIME -s -k OMNIPRESENT now -A now -K ns2 $zsk3 >/dev/null
-
 dnssec_loadkeys_on 2 $zone || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4268,6 +4300,11 @@ done
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
+
+# Remove the KSK from disk.
+echo_i "remove the KSK $KSK_ID for zone $zone from disk"
+mv ns2/$KSK.key ns2/$KSK.key.bak
+mv ns2/$KSK.private ns2/$KSK.private.bak
 
 # Update the zone that requires a resign of the SOA RRset.
 echo_i "update the zone with $zone IN TXT nsupdate added me one more time"
@@ -4323,7 +4360,7 @@ status=$((status + ret))
 
 echo_i "checking signatures-validity second field hours vs days ($n)"
 ret=0
-# zone configured with 'signatures-validity 500 499;'
+# zone configured with 'signatures-validity 500d; signatures-refresh 1d'
 # 499 days in the future w/ a 20 minute runtime to now allowance
 min=$(TZ=UTC $PERL -e '@lt=localtime(time() + 499*3600*24 - 20*60); printf "%.4d%0.2d%0.2d%0.2d%0.2d%0.2d\n",$lt[5]+1900,$lt[4]+1,$lt[3],$lt[2],$lt[1],$lt[0];')
 dig_with_opts @10.53.0.2 hours-vs-days AXFR >dig.out.ns2.test$n
@@ -4359,7 +4396,7 @@ dig_with_opts @10.53.0.4 does-not-exist.too-many-iterations >dig.out.ns4.test$n 
 digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n >/dev/null || ret=1
-grep "ANSWER: 0, AUTHORITY: 6" dig.out.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 0, AUTHORITY: 8" dig.out.ns4.test$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
