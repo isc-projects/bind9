@@ -25,12 +25,13 @@ OPENSSL_VARS = {
 
 
 def parse_openssl_config(path: Optional[str]):
-    if path is None or not os.path.isfile(path):
+    if path is None or not os.path.exists(path):
         OPENSSL_VARS["ENGINE_ARG"] = None
         OPENSSL_VARS["SOFTHSM2_MODULE"] = None
         os.environ.pop("ENGINE_ARG", None)
         os.environ.pop("SOFTHSM2_MODULE", None)
         return
+    assert os.path.isfile(path), f"{path} exists, but it's not a file"
 
     regex = re.compile(r"([^=]+)=(.*)")
     log.debug(f"parsing openssl config: {path}")
