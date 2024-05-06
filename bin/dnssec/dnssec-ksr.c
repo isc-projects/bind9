@@ -87,7 +87,6 @@ static int min_dh = 128;
 #define KSR_LINESIZE   1500 /* should be long enough for any DNSKEY record */
 #define DATETIME_INDEX 25
 
-#define TTL_MAX INT32_MAX
 #define MAXWIRE (64 * 1024)
 
 #define STR(t) ((t).value.as_textregion.base)
@@ -523,10 +522,7 @@ print_rdata(dns_rdataset_t *rrset) {
 static isc_stdtime_t
 print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	      isc_stdtime_t inception, isc_stdtime_t next_inception) {
-	bool ksk = dns_kasp_key_ksk(kaspkey);
-	bool zsk = dns_kasp_key_zsk(kaspkey);
 	char algstr[DNS_SECALG_FORMATSIZE];
-	char rolestr[4];
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
@@ -536,13 +532,6 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	isc_stdtime_tostring(inception, timestr, sizeof(timestr));
 	dns_secalg_format(dns_kasp_key_algorithm(kaspkey), algstr,
 			  sizeof(algstr));
-	if (ksk && zsk) {
-		snprintf(rolestr, sizeof(rolestr), "csk");
-	} else if (ksk) {
-		snprintf(rolestr, sizeof(rolestr), "ksk");
-	} else {
-		snprintf(rolestr, sizeof(rolestr), "zsk");
-	}
 
 	/* Fetch matching key pair. */
 	rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
@@ -598,8 +587,8 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	}
 	/* Error if no key pair found. */
 	if (ISC_LIST_EMPTY(rdatalist->rdata)) {
-		fatal("no %s/%s %s key pair found for bundle %s", namestr,
-		      algstr, rolestr, timestr);
+		fatal("no %s/%s zsk key pair found for bundle %s", namestr,
+		      algstr, timestr);
 	}
 
 	/* All good, print DNSKEY RRset. */
@@ -611,8 +600,8 @@ fail:
 	freerrset(&rdataset);
 
 	if (ret != ISC_R_SUCCESS) {
-		fatal("failed to print %s/%s %s key pair found for bundle %s",
-		      namestr, algstr, rolestr, timestr);
+		fatal("failed to print %s/%s zsk key pair found for bundle %s",
+		      namestr, algstr, timestr);
 	}
 
 	return (next_bundle);
@@ -690,13 +679,24 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	freerrset(&rrsigset);
 }
 
+/*
+ * Create the DNSKEY, CDS, and CDNSKEY records beloing to the KSKs
+ * listed in 'keys'.
+ */
 static void
-create_cds(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
-	   dns_rdataset_t *cdnskeyset, dns_rdataset_t *cdsset) {
+create_ksk(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
+	   dns_rdataset_t *dnskeyset, dns_rdataset_t *cdnskeyset,
+	   dns_rdataset_t *cdsset) {
+	dns_rdatalist_t *dnskeylist = isc_mem_get(mctx, sizeof(*dnskeylist));
 	dns_rdatalist_t *cdnskeylist = isc_mem_get(mctx, sizeof(*cdnskeylist));
 	dns_rdatalist_t *cdslist = isc_mem_get(mctx, sizeof(*cdslist));
 	isc_result_t ret = ISC_R_SUCCESS;
 	dns_kasp_digestlist_t digests = dns_kasp_digests(kasp);
+
+	dns_rdatalist_init(dnskeylist);
+	dnskeylist->rdclass = dns_rdataclass_in;
+	dnskeylist->type = dns_rdatatype_dnskey;
+	dnskeylist->ttl = ksr->ttl;
 
 	dns_rdatalist_init(cdnskeylist);
 	cdnskeylist->rdclass = dns_rdataclass_in;
@@ -712,17 +712,37 @@ create_cds(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
 	     dk = ISC_LIST_NEXT(dk, link))
 	{
 		isc_buffer_t buf;
-		isc_buffer_t *newbuf = NULL;
-		dns_rdata_t *rdata = NULL;
+		isc_buffer_t *newbuf;
+		dns_rdata_t *rdata;
 		isc_region_t r;
 		isc_region_t rcds;
-		unsigned char rdatabuf[DST_KEY_MAXSIZE];
+		unsigned char kskbuf[DST_KEY_MAXSIZE];
+		unsigned char cdnskeybuf[DST_KEY_MAXSIZE];
 		unsigned char cdsbuf[DNS_DS_BUFFERSIZE];
 
+		/* KSK */
+		newbuf = NULL;
 		rdata = isc_mem_get(mctx, sizeof(*rdata));
 		dns_rdata_init(rdata);
 
-		isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
+		isc_buffer_init(&buf, kskbuf, sizeof(kskbuf));
+		CHECK(dst_key_todns(dk->key, &buf));
+		isc_buffer_usedregion(&buf, &r);
+		isc_buffer_allocate(mctx, &newbuf, r.length);
+		isc_buffer_putmem(newbuf, r.base, r.length);
+		isc_buffer_usedregion(newbuf, &r);
+		dns_rdata_fromregion(rdata, dns_rdataclass_in,
+				     dns_rdatatype_dnskey, &r);
+		ISC_LIST_APPEND(dnskeylist->rdata, rdata, link);
+		ISC_LIST_APPEND(cleanup_list, newbuf, link);
+		isc_buffer_clear(newbuf);
+
+		/* CDNSKEY */
+		newbuf = NULL;
+		rdata = isc_mem_get(mctx, sizeof(*rdata));
+		dns_rdata_init(rdata);
+
+		isc_buffer_init(&buf, cdnskeybuf, sizeof(cdnskeybuf));
 		CHECK(dst_key_todns(dk->key, &buf));
 		isc_buffer_usedregion(&buf, &r);
 		isc_buffer_allocate(mctx, &newbuf, r.length);
@@ -736,6 +756,7 @@ create_cds(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
 		ISC_LIST_APPEND(cleanup_list, newbuf, link);
 		isc_buffer_clear(newbuf);
 
+		/* CDS */
 		for (dns_kasp_digest_t *alg = ISC_LIST_HEAD(digests);
 		     alg != NULL; alg = ISC_LIST_NEXT(alg, link))
 		{
@@ -765,12 +786,13 @@ create_cds(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
 		}
 	}
 	/* All good */
+	dns_rdatalist_tordataset(dnskeylist, dnskeyset);
 	dns_rdatalist_tordataset(cdnskeylist, cdnskeyset);
 	dns_rdatalist_tordataset(cdslist, cdsset);
 	return;
 
 fail:
-	fatal("failed to create CDS/CDNSKEY");
+	fatal("failed to create KSK/CDS/CDNSKEY");
 }
 
 static void
@@ -956,6 +978,11 @@ request(ksr_ctx_t *ksr) {
 			 * or withdrawal of a key that is after the current
 			 * inception.
 			 */
+			if (dns_kasp_key_ksk(kk)) {
+				/* We only want ZSKs in the request. */
+				continue;
+			}
+
 			next = print_dnskeys(kk, ksr->ttl, &keys, inception,
 					     next);
 		}
@@ -977,6 +1004,7 @@ sign(ksr_ctx_t *ksr) {
 	dns_dnsseckeylist_t keys;
 	dns_kasp_t *kasp = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdataset_t ksk = DNS_RDATASET_INIT;
 	dns_rdataset_t cdnskey = DNS_RDATASET_INIT;
 	dns_rdataset_t cds = DNS_RDATASET_INIT;
 	isc_result_t ret;
@@ -1011,8 +1039,8 @@ sign(ksr_ctx_t *ksr) {
 		      isc_result_totext(ret));
 	}
 
-	/* CDS and CDNSKEY */
-	create_cds(ksr, kasp, &keys, &cdnskey, &cds);
+	/* KSK, CDS and CDNSKEY */
+	create_ksk(ksr, kasp, &keys, &ksk, &cdnskey, &cds);
 
 	for (ret = isc_lex_gettoken(lex, opt, &token); ret == ISC_R_SUCCESS;
 	     ret = isc_lex_gettoken(lex, opt, &token))
@@ -1073,7 +1101,16 @@ sign(ksr_ctx_t *ksr) {
 			dns_rdatalist_init(rdatalist);
 			rdatalist->rdclass = dns_rdataclass_in;
 			rdatalist->type = dns_rdatatype_dnskey;
-			rdatalist->ttl = TTL_MAX;
+			rdatalist->ttl = ksr->ttl;
+			for (isc_result_t r = dns_rdatalist_first(&ksk);
+			     r == ISC_R_SUCCESS; r = dns_rdatalist_next(&ksk))
+			{
+				dns_rdata_t *clone =
+					isc_mem_get(mctx, sizeof(*clone));
+				dns_rdata_init(clone);
+				dns_rdatalist_current(&ksk, clone);
+				ISC_LIST_APPEND(rdatalist->rdata, clone, link);
+			}
 			inception = next_inception;
 			have_bundle = true;
 
@@ -1091,7 +1128,7 @@ sign(ksr_ctx_t *ksr) {
 			} while (token.type != isc_tokentype_eol);
 		} else {
 			/* Parse DNSKEY */
-			dns_ttl_t ttl = TTL_MAX;
+			dns_ttl_t ttl = ksr->ttl;
 			isc_buffer_t buf;
 			isc_buffer_t *newbuf = NULL;
 			dns_rdata_t *rdata = NULL;
@@ -1146,8 +1183,9 @@ sign(ksr_ctx_t *ksr) {
 
 fail:
 	/* Clean up */
-	freerrset(&cds);
+	freerrset(&ksk);
 	freerrset(&cdnskey);
+	freerrset(&cds);
 
 	isc_lex_destroy(&lex);
 	cleanup(&keys, kasp);
