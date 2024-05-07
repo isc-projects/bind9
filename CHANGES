@@ -1,3 +1,6 @@
+6385.	[func]		Relax SVCB alias mode checks to allow parameters.
+			[GL #4704]
+
 6384.	[bug]		Remove infinite loop when including a directory in a
 			zone file. [GL #4357]
 
