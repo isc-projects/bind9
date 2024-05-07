@@ -215,4 +215,14 @@ isc_loop_now(isc_loop_t *loop);
  *
  * \li 'loop' is a valid loop.
  */
+
+bool
+isc_loop_shuttingdown(isc_loop_t *loop);
+/*%<
+ * Returns whether the loop is shutting down.
+ *
+ * Requires:
+ *
+ * \li 'loop' is a valid loop and the loop tid matches the current tid.
+ */
 ISC_LANG_ENDDECLS

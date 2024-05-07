@@ -616,3 +616,11 @@ isc_loop_now(isc_loop_t *loop) {
 
 	return (t);
 }
+
+bool
+isc_loop_shuttingdown(isc_loop_t *loop) {
+	REQUIRE(VALID_LOOP(loop));
+	REQUIRE(loop->tid == isc_tid());
+
+	return (loop->shuttingdown);
+}

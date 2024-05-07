@@ -2656,6 +2656,10 @@ catz_addmodzone_cb(void *arg) {
 	ns_cfgctx_t *cfg = NULL;
 	dns_zone_t *zone = NULL;
 
+	if (isc_loop_shuttingdown(isc_loop_get(named_g_loopmgr, isc_tid()))) {
+		goto cleanup;
+	}
+
 	cfg = (ns_cfgctx_t *)cz->view->new_zone_config;
 	if (cfg == NULL) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -2865,6 +2869,10 @@ catz_delzone_cb(void *arg) {
 	char cname[DNS_NAME_FORMATSIZE];
 	const char *file = NULL;
 
+	if (isc_loop_shuttingdown(isc_loop_get(named_g_loopmgr, isc_tid()))) {
+		goto cleanup;
+	}
+
 	isc_loopmgr_pause(named_g_loopmgr);
 
 	dns_name_format(dns_catz_entry_getname(cz->entry), cname,
@@ -2877,7 +2885,7 @@ catz_delzone_cb(void *arg) {
 			      "catz: catz_delzone_cb: "
 			      "zone '%s' not found",
 			      cname);
-		goto cleanup;
+		goto resume;
 	}
 
 	if (!dns_zone_getadded(zone)) {
@@ -2886,7 +2894,7 @@ catz_delzone_cb(void *arg) {
 			      "catz: catz_delzone_cb: "
 			      "zone '%s' is not a dynamically added zone",
 			      cname);
-		goto cleanup;
+		goto resume;
 	}
 
 	if (dns_zone_get_parentcatz(zone) != cz->origin) {
@@ -2895,7 +2903,7 @@ catz_delzone_cb(void *arg) {
 			      "catz: catz_delzone_cb: zone "
 			      "'%s' exists in multiple catalog zones",
 			      cname);
-		goto cleanup;
+		goto resume;
 	}
 
 	/* Stop answering for this zone */
@@ -2904,7 +2912,9 @@ catz_delzone_cb(void *arg) {
 		dns_zone_unload(zone);
 	}
 
-	CHECK(dns_view_delzone(cz->view, zone));
+	if (dns_view_delzone(cz->view, zone) != ISC_R_SUCCESS) {
+		goto resume;
+	}
 	file = dns_zone_getfile(zone);
 	if (file != NULL) {
 		isc_file_remove(file);
@@ -2919,8 +2929,9 @@ catz_delzone_cb(void *arg) {
 		      "catz: catz_delzone_cb: "
 		      "zone '%s' deleted",
 		      cname);
-cleanup:
+resume:
 	isc_loopmgr_resume(named_g_loopmgr);
+cleanup:
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
