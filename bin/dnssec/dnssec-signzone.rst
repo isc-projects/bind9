@@ -260,7 +260,7 @@ Options
    with cached copies of the old DNSKEY RRset. The :option:`-Q` option forces
    :program:`dnssec-signzone` to remove signatures from keys that are no longer
    active. This enables ZSK rollover using the procedure described in
-   :rfc:`4641#4.2.1.1` ("Pre-Publish Key Rollover").
+   :rfc:`6781#4.1.1.1` ("Pre-Publish Key Rollover").
 
 .. option:: -q
 
@@ -277,7 +277,7 @@ Options
    This option is similar to :option:`-Q`, except it forces
    :program:`dnssec-signzone` to remove signatures from keys that are no longer
    published. This enables ZSK rollover using the procedure described in
-   :rfc:`4641#4.2.1.2` ("Double Signature Zone Signing Key
+   :rfc:`6781#4.1.1.2` ("Double Signature Zone Signing Key
    Rollover").
 
 .. option:: -S
@@ -433,4 +433,4 @@ See Also
 ~~~~~~~~
 
 :iscman:`dnssec-keygen(8) <dnssec-keygen>`, BIND 9 Administrator Reference Manual, :rfc:`4033`,
-:rfc:`4641`.
+:rfc:`6781`.
