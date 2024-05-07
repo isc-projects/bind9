@@ -2101,7 +2101,7 @@ Boolean Options
    :short: Controls whether BIND 9 responds to root key sentinel probes.
 
    If ``yes``, respond to root key sentinel probes as described in
-   `draft-ietf-dnsop-kskroll-sentinel-08 <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-kskroll-sentinel-08>`_. The default is ``yes``.
+   :rfc:`8509`:. The default is ``yes``.
 
 .. namedconf:statement:: reuseport
    :tags: server
