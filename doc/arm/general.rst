@@ -332,6 +332,8 @@ Locally-Served DNS Zones Registry.* May 2016.
 :rfc:`8906` - M. Andrews and R. Bellis. *A Common Operational Problem in DNS
 Servers: Failure to Communicate.* September 2020.
 
+:rfc:`9276` - W. Hardaker and V. Dukhovni. *Guidance for NSEC3 Parameter Settings.* August 2022.
+
 For Your Information
 --------------------
 

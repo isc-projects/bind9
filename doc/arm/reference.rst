@@ -6586,7 +6586,7 @@ The following options can be specified in a :any:`dnssec-policy` statement:
        Do not use extra :term:`iterations <Iterations>`, :term:`salt <Salt>`, and
        :term:`opt-out <Opt-out>` unless their implications are fully understood.
        A higher number of iterations causes interoperability problems and opens
-       servers to CPU-exhausting DoS attacks.
+       servers to CPU-exhausting DoS attacks. See :rfc:`9276`.
 
 .. namedconf:statement:: zone-propagation-delay
    :tags: dnssec, zone
