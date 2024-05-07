@@ -18,6 +18,8 @@
 
 set -e
 
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
+
 CDS_SHA1="no"
 CDS_SHA256="yes"
 CDS_SHA384="no"
@@ -51,9 +53,11 @@ EOF
 # output file, ksr.keygen.out.$n.
 # $1: zone name
 # $2: key directory
-check_keys() (
+# $3: offset
+ksr_check_keys() (
   zone=$1
   dir=$2
+  offset=$3
   lifetime=$LIFETIME
   alg=$ALG
   size=$SIZE
@@ -64,7 +68,7 @@ check_keys() (
   for key in $(grep "K${zone}.+$pad+" ksr.keygen.out.$n); do
     grep "; Created:" "${dir}/${key}.key" >created.out || return 1
     created=$(awk '{print $3}' <created.out)
-    test "$num" -eq 0 && retired=$created
+    test "$num" -eq 0 && retired=$(addtime $created $offset)
     # active: retired previous key
     active=$retired
     # published: 2h5m (dnskey-ttl + publish-safety + propagation)
@@ -74,7 +78,7 @@ check_keys() (
     # removed: 10d1h5m (ttlsig + retire-safety + sign-delay + propagation)
     removed=$(addtime $retired 867900)
 
-    echo_i "check metadata on $key"
+    echo_i "check metadata on $key: $alg $size $lifetime $published $active $retired $removed"
     statefile="${dir}/${key}.state"
     grep "Algorithm: $alg" $statefile >/dev/null || return 1
     grep "Length: $size" $statefile >/dev/null || return 1
@@ -116,7 +120,7 @@ print_dnskeys() {
 # Call the dnssec-ksr command:
 # ksr <policy> [options] <command> <zone>
 ksr() {
-  $KSR -l named.conf -k "$@"
+  $KSR -l ns1/named.conf -k "$@"
 }
 
 # Unknown action.
@@ -146,29 +150,29 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr keygen' pregenerates right amount of keys in the common case ($n)"
 ret=0
-ksr common -i now -e +1y keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
+ksr common -K ns1 -i now -e +1y keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
 num=$(cat ksr.keygen.out.$n | wc -l)
 [ $num -eq 2 ] || ret=1
 set_zsk $DEFAULT_ALGORITHM_NUMBER $DEFAULT_BITS 16070400
-check_keys common.test "." || ret=1
+ksr_check_keys common.test ns1 0 || ret=1
 cp ksr.keygen.out.$n ksr.keygen.out.expect
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 # save now time
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
-grep "; Created:" "${key}.key" >now.out || ret=1
+grep "; Created:" "ns1/${key}.key" >now.out || ret=1
 now=$(awk '{print $3}' <now.out)
 
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr keygen' selects pregenerated keys for the same time bundle ($n)"
 ret=0
-ksr common -e +1y keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
+ksr common -K ns1 -e +1y keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
 diff -w ksr.keygen.out.expect ksr.keygen.out.$n >/dev/null || ret=1
 for key in $(cat ksr.keygen.out.$n); do
   # Ensure the files are not modified.
-  diff ${key}.key ${key}.key.expect >/dev/null || ret=1
-  diff ${key}.private ${key}.private.expect >/dev/null || ret=1
-  diff ${key}.state ${key}.state.expect >/dev/null || ret=1
+  diff ns1/${key}.key ${key}.key.expect >/dev/null || ret=1
+  diff ns1/${key}.private ${key}.private.expect >/dev/null || ret=1
+  diff ns1/${key}.state ${key}.state.expect >/dev/null || ret=1
 done
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -177,7 +181,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr request' errors on missing end date ($n)"
 ret=0
-ksr common request common.test >ksr.request.out.$n 2>&1 && ret=1
+ksr common -K ns1 request common.test >ksr.request.out.$n 2>&1 && ret=1
 grep "dnssec-ksr: fatal: request requires an end date" ksr.request.out.$n >/dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -185,20 +189,20 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr request' creates correct KSR in the common case ($n)"
 ret=0
-ksr common -i $now -e +1y request common.test >ksr.request.out.$n 2>&1 || ret=1
+ksr common -K ns1 -i $now -e +1y request common.test >ksr.request.out.$n 2>&1 || ret=1
 # Bundle 1: KSK + ZSK1
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
-inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Generated" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Bundle 2: KSK + ZSK1 + ZSK2
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
-inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 print_dnskeys common.test 1 2 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 3: KSK + ZSK2
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
-inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 # Footer
@@ -216,7 +220,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr sign' errors on missing KSR file ($n)"
 ret=0
-ksr common -i $now -e +1y sign common.test >ksr.sign.out.$n 2>&1 && ret=1
+ksr common -K ns1 -i $now -e +1y sign common.test >ksr.sign.out.$n 2>&1 && ret=1
 grep "dnssec-ksr: fatal: 'sign' requires a KSR file" ksr.sign.out.$n >/dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -224,7 +228,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr sign' creates correct SKR in the common case ($n)"
 ret=0
-ksr common -i $now -e +1y -K offline -f ksr.request.expect sign common.test >ksr.sign.out.$n 2>&1 || ret=1
+ksr common -K ns1 -i $now -e +1y -K ns1/offline -f ksr.request.expect sign common.test >ksr.sign.out.$n 2>&1 || ret=1
 
 _update_expected_zsks() {
   zsk=$((zsk + 1))
@@ -235,8 +239,8 @@ _update_expected_zsks() {
     key2="${zone}.${DEFAULT_ALGORITHM_NUMBER}.zsk${next}"
     zsk1=$(cat $key1.id)
     zsk2=$(cat $key2.id)
-    rollover_start=$(cat $zsk2.state | grep "Published" | awk '{print $2}')
-    rollover_done=$(cat $zsk1.state | grep "Removed" | awk '{print $2}')
+    rollover_start=$(cat ns1/$zsk2.state | grep "Published" | awk '{print $2}')
+    rollover_done=$(cat ns1/$zsk1.state | grep "Removed" | awk '{print $2}')
   else
     # No more expected rollovers.
     key1="${zone}.${DEFAULT_ALGORITHM_NUMBER}.zsk${zsk}"
@@ -249,13 +253,14 @@ _update_expected_zsks() {
 check_skr() {
   _ret=0
   zone=$1
-  file=$2
-  start=$3
-  end=$4
-  numzsks=$5
-  cds1=$($DSFROMKEY -T 3600 -a SHA-1 -C -w $(cat "${zone}.ksk1.id"))
-  cds2=$($DSFROMKEY -T 3600 -a SHA-256 -C -w $(cat "${zone}.ksk1.id"))
-  cds4=$($DSFROMKEY -T 3600 -a SHA-384 -C -w $(cat "${zone}.ksk1.id"))
+  dir=$2
+  file=$3
+  start=$4
+  end=$5
+  numzsks=$6
+  cds1=$($DSFROMKEY -T 3600 -a SHA-1 -C -w $dir/$(cat "${zone}.ksk1.id"))
+  cds2=$($DSFROMKEY -T 3600 -a SHA-256 -C -w $dir/$(cat "${zone}.ksk1.id"))
+  cds4=$($DSFROMKEY -T 3600 -a SHA-384 -C -w $dir/$(cat "${zone}.ksk1.id"))
   cdnskey=$(awk '{sub(/DNSKEY/,"CDNSKEY")}1' <${zone}.ksk1)
 
   echo_i "check skr: zone $1 file $2 from $3 to $4 num-zsk $5"
@@ -430,9 +435,9 @@ check_skr() {
 }
 
 zsk1=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
-start=$(cat $zsk1.state | grep "Generated" | awk '{print $2}')
+start=$(cat ns1/$zsk1.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 31536000) # one year
-check_skr "common.test" "ksr.sign.out.$n" $start $end 2 || ret=1
+check_skr "common.test" "ns1/offline" "ksr.sign.out.$n" $start $end 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -440,18 +445,18 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr keygen' pregenerates keys in the given key-directory ($n)"
 ret=0
-ksr common -e +1y -K keydir keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
+ksr common -K ns1/keydir -e +1y keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
 num=$(cat ksr.keygen.out.$n | wc -l)
 [ $num -eq 2 ] || ret=1
 set_zsk $DEFAULT_ALGORITHM_NUMBER $DEFAULT_BITS 16070400
-check_keys common.test keydir || ret=1
+ksr_check_keys common.test ns1/keydir 0 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr keygen' selects generates only necessary keys for overlapping time bundle ($n)"
 ret=0
-ksr common -e +2y -v 1 keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
+ksr common -K ns1 -e +2y -v 1 keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
 num=$(cat ksr.keygen.out.$n | wc -l)
 [ $num -eq 4 ] || ret=1
 # 2 selected, 2 generated
@@ -466,11 +471,11 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "run 'dnssec-ksr keygen' again with verbosity 0 ($n)"
 ret=0
-ksr common -i $now -e +2y keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
+ksr common -K ns1 -i $now -e +2y keygen common.test >ksr.keygen.out.$n 2>&1 || ret=1
 num=$(cat ksr.keygen.out.$n | wc -l)
 [ $num -eq 4 ] || ret=1
 set_zsk $DEFAULT_ALGORITHM_NUMBER $DEFAULT_BITS 16070400
-check_keys common.test "." || ret=1
+ksr_check_keys common.test ns1 0 || ret=1
 cp ksr.keygen.out.$n ksr.keygen.out.expect
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -479,7 +484,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr request' creates correct KSR if the interval is shorter ($n)"
 ret=0
-ksr common -i $now -e +1y request common.test >ksr.request.out.$n 2>&1 || ret=1
+ksr common -K ns1 -i $now -e +1y request common.test >ksr.request.out.$n 2>&1 || ret=1
 # Same as earlier.
 cp ksr.request.expect.base ksr.request.expect.$n
 grep ";; KeySigningRequest 1.0 generated at" ksr.request.out.$n >footer.$n || ret=1
@@ -491,26 +496,26 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr request' creates correct KSR with new interval ($n)"
 ret=0
-ksr common -i $now -e +2y request common.test >ksr.request.out.$n 2>&1 || ret=1
+ksr common -K ns1 -i $now -e +2y request common.test >ksr.request.out.$n 2>&1 || ret=1
 cp ksr.request.expect.base ksr.request.expect.$n
 # Bundle 4: KSK + ZSK2 + ZSK3
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3.id)
-inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 print_dnskeys common.test 2 3 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 5: KSK + ZSK3
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
-inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3 >>ksr.request.expect.$n
 # Bundle 6: KSK + ZSK3 + ZSK4
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk4.id)
-inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 print_dnskeys common.test 3 4 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 7: KSK + ZSK4
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3.id)
-inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk4 >>ksr.request.expect.$n
 # Footer
@@ -526,7 +531,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr request' errors if there are not enough keys ($n)"
 ret=0
-ksr common -i $now -e +3y request common.test >ksr.request.out.$n 2>ksr.request.err.$n && ret=1
+ksr common -K ns1 -i $now -e +3y request common.test >ksr.request.out.$n 2>ksr.request.err.$n && ret=1
 grep "dnssec-ksr: fatal: no common.test/ECDSAP256SHA256 zsk key pair found for bundle" ksr.request.err.$n >/dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -535,10 +540,10 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr sign' creates correct SKR with the new interval ($n)"
 ret=0
-ksr common -i $now -e +2y -K offline -f ksr.request.expect sign common.test >ksr.sign.out.$n 2>&1 || ret=1
-start=$(cat $zsk1.state | grep "Generated" | awk '{print $2}')
+ksr common -K ns1 -i $now -e +2y -K ns1/offline -f ksr.request.expect sign common.test >ksr.sign.out.$n 2>&1 || ret=1
+start=$(cat ns1/$zsk1.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 63072000) # two years
-check_skr "common.test" "ksr.sign.out.$n" $start $end 4 || ret=1
+check_skr "common.test" "ns1/offline" "ksr.sign.out.$n" $start $end 4 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -555,25 +560,25 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr keygen' creates only one key for zsk with unlimited lifetime ($n)"
 ret=0
-ksr unlimited -e +2y keygen unlimited.test >ksr.keygen.out.$n 2>&1 || ret=1
+ksr unlimited -K ns1 -e +2y keygen unlimited.test >ksr.keygen.out.$n 2>&1 || ret=1
 num=$(cat ksr.keygen.out.$n | wc -l)
 [ $num -eq 1 ] || ret=1
 key=$(cat ksr.keygen.out.$n)
-grep "; Created:" "${key}.key" >created.out || ret=1
+grep "; Created:" "ns1/${key}.key" >created.out || ret=1
 created=$(awk '{print $3}' <created.out)
 active=$created
 published=$(addtime $active -7500)
 echo_i "check metadata on $key"
-grep "Algorithm: $DEFAULT_ALGORITHM_NUMBER" ${key}.state >/dev/null || ret=1
-grep "Length: $DEFAULT_BITS" ${key}.state >/dev/null || ret=1
-grep "Lifetime: 0" ${key}.state >/dev/null || ret=1
-grep "KSK: no" ${key}.state >/dev/null || ret=1
-grep "ZSK: yes" ${key}.state >/dev/null || ret=1
-grep "Published: $published" ${key}.state >/dev/null || ret=1
-grep "Active: $active" ${key}.state >/dev/null || ret=1
-grep "Retired:" ${key}.state >/dev/null && ret=1
-grep "Removed:" ${key}.state >/dev/null && ret=1
-cat ${key}.key | grep -v ";.*" >unlimited.test.$DEFAULT_ALGORITHM_NUMBER.zsk1
+grep "Algorithm: $DEFAULT_ALGORITHM_NUMBER" ns1/${key}.state >/dev/null || ret=1
+grep "Length: $DEFAULT_BITS" ns1/${key}.state >/dev/null || ret=1
+grep "Lifetime: 0" ns1/${key}.state >/dev/null || ret=1
+grep "KSK: no" ns1/${key}.state >/dev/null || ret=1
+grep "ZSK: yes" ns1/${key}.state >/dev/null || ret=1
+grep "Published: $published" ns1/${key}.state >/dev/null || ret=1
+grep "Active: $active" ns1/${key}.state >/dev/null || ret=1
+grep "Retired:" ns1/${key}.state >/dev/null && ret=1
+grep "Removed:" ns1/${key}.state >/dev/null && ret=1
+cat ns1/${key}.key | grep -v ";.*" >unlimited.test.$DEFAULT_ALGORITHM_NUMBER.zsk1
 echo $key >"unlimited.test.${DEFAULT_ALGORITHM_NUMBER}.zsk1.id"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -582,9 +587,9 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr request' creates correct KSR with unlimited zsk ($n)"
 ret=0
-ksr unlimited -i $created -e +4y request unlimited.test >ksr.request.out.$n 2>&1 || ret=1
+ksr unlimited -K ns1 -i $created -e +4y request unlimited.test >ksr.request.out.$n 2>&1 || ret=1
 # Only one bundle: KSK + ZSK
-inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Generated" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >ksr.request.expect.$n
 cat unlimited.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Footer
@@ -600,10 +605,10 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr sign' creates correct SKR with unlimited zsk ($n)"
 ret=0
-ksr unlimited -i $created -e +4y -K offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
-start=$(cat $key.state | grep "Generated" | awk '{print $2}')
+ksr unlimited -K ns1 -i $created -e +4y -K ns1/offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
+start=$(cat ns1/$key.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 126144000) # four years
-check_skr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
+check_skr "unlimited.test" "ns1/offline" "ksr.sign.out.$n" $start $end 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -611,14 +616,14 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr sign' creates correct SKR with unlimited zsk, no cdnskey ($n)"
 ret=0
-ksr no-cdnskey -i $created -e +4y -K offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
-start=$(cat $key.state | grep "Generated" | awk '{print $2}')
+ksr no-cdnskey -K ns1 -i $created -e +4y -K ns1/offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
+start=$(cat ns1/$key.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 126144000) # four years
 CDNSKEY="no"
 CDS_SHA1="yes"
 CDS_SHA256="yes"
 CDS_SHA384="yes"
-check_skr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
+check_skr "unlimited.test" "ns1/offline" "ksr.sign.out.$n" $start $end 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -626,14 +631,14 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr sign' creates correct SKR with unlimited zsk, no cds ($n)"
 ret=0
-ksr no-cds -i $created -e +4y -K offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
-start=$(cat $key.state | grep "Generated" | awk '{print $2}')
+ksr no-cds -K ns1 -i $created -e +4y -K ns1/offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
+start=$(cat ns1/$key.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 126144000) # four years
 CDNSKEY="yes"
 CDS_SHA1="no"
 CDS_SHA256="no"
 CDS_SHA384="no"
-check_skr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
+check_skr "unlimited.test" "ns1/offline" "ksr.sign.out.$n" $start $end 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -647,13 +652,13 @@ CDS_SHA384="no"
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr keygen' creates keys for different algorithms ($n)"
 ret=0
-ksr two-tone -e +1y keygen two-tone.test >ksr.keygen.out.$n 2>&1 || ret=1
+ksr two-tone -K ns1 -e +1y keygen two-tone.test >ksr.keygen.out.$n 2>&1 || ret=1
 # First algorithm keys have a lifetime of 3 months, so there should be 4 created keys.
 alg=$(printf "%03d" "$DEFAULT_ALGORITHM_NUMBER")
 num=$(grep "Ktwo-tone.test.+$alg+" ksr.keygen.out.$n | wc -l)
 [ $num -eq 4 ] || ret=1
 set_zsk $DEFAULT_ALGORITHM_NUMBER $DEFAULT_BITS 8035200
-check_keys two-tone.test "." || ret=1
+ksr_check_keys two-tone.test ns1 0 || ret=1
 cp ksr.keygen.out.$n ksr.keygen.out.expect.$DEFAULT_ALGORITHM_NUMBER
 # Second algorithm keys have a lifetime of 5 months, so there should be 3 created keys.
 # While only two time bundles of 5 months fit into one year, we need to create an
@@ -662,7 +667,7 @@ alg=$(printf "%03d" "$ALTERNATIVE_ALGORITHM_NUMBER")
 num=$(grep "Ktwo-tone.test.+$alg+" ksr.keygen.out.$n | wc -l)
 [ $num -eq 3 ] || ret=1
 set_zsk $ALTERNATIVE_ALGORITHM_NUMBER $ALTERNATIVE_BITS 13392000
-check_keys two-tone.test "." $ALTERNATIVE_ALGORITHM_NUMBER 13392000 || ret=1
+ksr_check_keys two-tone.test ns1 0 || ret=1
 cp ksr.keygen.out.$n ksr.keygen.out.expect.$ALTERNATIVE_ALGORITHM_NUMBER
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -672,9 +677,9 @@ n=$((n + 1))
 echo_i "check that 'dnssec-ksr request' creates correct KSR with multiple algorithms ($n)"
 ret=0
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
-grep "; Created:" "${key}.key" >created.out || ret=1
+grep "; Created:" "ns1/${key}.key" >created.out || ret=1
 created=$(awk '{print $3}' <created.out)
-ksr two-tone -i $created -e +6mo request two-tone.test >ksr.request.out.$n 2>&1 || ret=1
+ksr two-tone -K ns1 -i $created -e +6mo request two-tone.test >ksr.request.out.$n 2>&1 || ret=1
 # The two-tone policy uses two sets of KSK/ZSK with different algorithms. One
 # set uses the default algorithm (denoted as A below), the other is using the
 # alternative algorithm (denoted as B). The A-ZSKs roll every three months,
@@ -685,31 +690,31 @@ ksr two-tone -i $created -e +6mo request two-tone.test >ksr.request.out.$n 2>&1 
 #
 # Bundle 1: KSK-A1, KSK-B1, ZSK-A1, ZSK-B1
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
-inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Generated" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Bundle 2: KSK-A1, KSK-B1, ZSK-A1 + ZSK-A2, ZSK-B1
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
-inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 print_dnskeys two-tone.test 1 2 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect.$DEFAULT_ALGORITHM_NUMBER >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Bundle 3: KSK-A1, KSK-B1, ZSK-A2, ZSK-B1
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
-inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >>ksr.request.expect.$n
 # Bundle 4: KSK-A1, KSK-B1, ZSK-A2, ZSK-B1 + ZSK-B2
 key=$(cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk2.id)
-inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Published" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 print_dnskeys two-tone.test 1 2 $ALTERNATIVE_ALGORITHM_NUMBER ksr.keygen.out.expect.$ALTERNATIVE_ALGORITHM_NUMBER >>ksr.request.expect.$n
 # Bundle 5: KSK-A1, KSK-B1, ZSK-A2, ZSK-B2
 key=$(cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1.id)
-inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
+inception=$(cat ns1/$key.state | grep "Removed" | cut -d' ' -f 2-)
 echo ";; KeySigningRequest 1.0 $inception" >>ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk2 >>ksr.request.expect.$n
@@ -744,7 +749,7 @@ num_occurrences() {
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr sign' creates correct SKR with multiple algorithms ($n)"
 ret=0
-ksr two-tone -i $created -e +6mo -K offline -f ksr.request.expect sign two-tone.test >ksr.sign.out.$n 2>&1 || ret=1
+ksr two-tone -i $created -e +6mo -K ns1/offline -f ksr.request.expect sign two-tone.test >ksr.sign.out.$n 2>&1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 # Weak testing:
 zone="two-tone.test"

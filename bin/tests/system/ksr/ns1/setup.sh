@@ -12,16 +12,14 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. ../conf.sh
+. ../../conf.sh
 
-set -e
-
-$SHELL clean.sh
-
+# Key directories
 mkdir keydir
 mkdir offline
 
-copy_setports named.conf.in named.conf
+# Zone files
+cp template.db.in common.test.db
 
 # Create KSK for the various policies.
 create_ksk() {
@@ -29,10 +27,11 @@ create_ksk() {
   num=0
   for ksk in $KSK; do
     num=$(($num + 1))
-    echo $ksk >"${1}.ksk${num}.id"
-    cat "${ksk}.key" | grep -v ";.*" >"$1.ksk$num"
-    cp "${ksk}.key" offline/
-    cp "${ksk}.private" offline/
+    echo $ksk >"../${1}.ksk${num}.id"
+    cat "${ksk}.key" | grep -v ";.*" >"../$1.ksk$num"
+    mv "${ksk}.key" offline/
+    mv "${ksk}.private" offline/
+    mv "${ksk}.state" offline/
   done
 }
 create_ksk common.test common
