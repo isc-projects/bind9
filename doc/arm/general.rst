@@ -285,6 +285,9 @@ Parent via CDS/CDNSKEY.* March 2017. [#rfc8078]_
 :rfc:`8484` - P. Hoffman and P. McManus. *DNS Queries over HTTPS (DoH).*
 October 2018. [#noencryptedfwd]_
 
+:rfc:`8509` - G. Huston, J. Damas, W. Kumari. *A Root Key Trust Anchor Sentinel
+for DNSSEC.* December 2018.
+
 :rfc:`8624` - P. Wouters and O. Sury. *Algorithm Implementation Requirements
 and Usage Guidance for DNSSEC.* June 2019.
 
