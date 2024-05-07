@@ -374,6 +374,7 @@ Options
 
    .. note::
       ``-3 -`` is the recommended configuration. Adding salt provides no practical benefits.
+      See :rfc:`9276`.
 
 .. option:: -H iterations
 
@@ -382,6 +383,7 @@ Options
 
    .. warning::
       Values greater than 0 cause interoperability issues and also increase the risk of CPU-exhausting DoS attacks.
+      See :rfc:`9276`.
 
 .. option:: -A
 
@@ -390,6 +392,7 @@ Options
 
    .. warning::
       Do not use this option unless all its implications are fully understood. This option is intended only for extremely large zones (comparable to ``com.``) with sparse secure delegations.
+      See :rfc:`9276`.
 
 .. option:: -AA
 
