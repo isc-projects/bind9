@@ -1948,6 +1948,7 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 				      ISC_LOGMODULE_NETMGR, ISC_LOG_DEBUG(1),
 				      "TCP Reset (RST) failed: %s",
 				      uv_strerror(r));
+			reset_shutdown(&sock->uv_handle.handle);
 		}
 	} else {
 		isc__nmsocket_shutdown(sock);
