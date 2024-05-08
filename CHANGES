@@ -1,3 +1,6 @@
+6393.	[func]		Deal with uv_tcp_close_reset() error return codes
+			more gracefully. [GL #4708]
+
 6391.	[bug]		TCP client statistics could sometimes fail to decrease
 			when accepting client connection fails. [GL #4742]
 
