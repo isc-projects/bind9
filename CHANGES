@@ -1,3 +1,8 @@
+6387.	[func]		Added a new statistics variable "recursive high-water"
+			that reports the maximum number of simultaneous
+			recursive clients BIND has handled while running.
+			[GL #4668]
+
 6386.	[bug]		When shutting down catzs->view could point to freed
 			memory. Obtain a reference to the view to prevent this.
 			[GL #4502]
