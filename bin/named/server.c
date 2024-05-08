@@ -279,6 +279,26 @@ struct zonelistentry {
 };
 
 /*%
+ * Message-to-view matching context to run message signature validation
+ * asynchronously.
+ */
+typedef struct matching_view_ctx {
+	isc_netaddr_t *srcaddr;
+	isc_netaddr_t *destaddr;
+	dns_message_t *message;
+	dns_aclenv_t *env;
+	ns_server_t *sctx;
+	isc_loop_t *loop;
+	isc_job_cb cb;
+	void *cbarg;
+	isc_result_t *sigresult;
+	isc_result_t *viewmatchresult;
+	isc_result_t quota_result;
+	dns_view_t **viewp;
+	dns_view_t *view;
+} matching_view_ctx_t;
+
+/*%
  * Configuration context to retain for each view that allows
  * new zones to be added at runtime.
  */
@@ -10059,19 +10079,19 @@ shutdown_server(void *arg) {
 	isc_loopmgr_resume(named_g_loopmgr);
 }
 
-/*%
- * Find a view that matches the source and destination addresses of a query.
- */
 static isc_result_t
-get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-		  dns_message_t *message, dns_aclenv_t *env, ns_server_t *sctx,
-		  isc_result_t *sigresult, dns_view_t **viewp) {
+get_matching_view_sync(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
+		       dns_message_t *message, dns_aclenv_t *env,
+		       isc_result_t *sigresult, dns_view_t **viewp) {
 	dns_view_t *view;
 
-	REQUIRE(message != NULL);
-	REQUIRE(sctx != NULL);
-	REQUIRE(sigresult != NULL);
-	REQUIRE(viewp != NULL && *viewp == NULL);
+	/*
+	 * We should not be running synchronous view matching if signature
+	 * checking involves SIG(0). TSIG has priority of SIG(0), so if TSIG
+	 * is set then we proceed anyway.
+	 */
+	INSIST(message->tsigkey != NULL || message->tsig != NULL ||
+	       message->sig0 == NULL);
 
 	for (view = ISC_LIST_HEAD(named_g_server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
@@ -10080,48 +10100,9 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 		    message->rdclass == dns_rdataclass_any)
 		{
 			const dns_name_t *tsig = NULL;
-			int exempt_match;
-			isc_result_t sig0_qresult = ISC_R_UNSET;
 
-			if (message->sig0 != NULL) {
-				/*
-				 * If the message has a SIG0 signature and the
-				 * client is not exempt from the quota, then
-				 * acquire a quota. If quota is reached, then
-				 * return early.
-				 */
-				if (sctx->sig0checksquota_exempt != NULL) {
-					isc_result_t result = dns_acl_match(
-						srcaddr, NULL,
-						sctx->sig0checksquota_exempt,
-						env, &exempt_match, NULL);
-					if (result == ISC_R_SUCCESS &&
-					    exempt_match > 0)
-					{
-						sig0_qresult = ISC_R_EXISTS;
-					}
-				}
-				if (sig0_qresult == ISC_R_UNSET) {
-					sig0_qresult = isc_quota_acquire(
-						&sctx->sig0checksquota);
-				}
-				if (sig0_qresult == ISC_R_SOFTQUOTA) {
-					isc_quota_release(
-						&sctx->sig0checksquota);
-				}
-				if (sig0_qresult != ISC_R_SUCCESS &&
-				    sig0_qresult != ISC_R_EXISTS)
-				{
-					return (ISC_R_QUOTA);
-				}
-			}
-
-			/* Check the signature, then release the quota  */
 			dns_message_resetsig(message);
 			*sigresult = dns_message_checksig(message, view);
-			if (sig0_qresult == ISC_R_SUCCESS) {
-				isc_quota_release(&sctx->sig0checksquota);
-			}
 			if (*sigresult == ISC_R_SUCCESS) {
 				tsig = dns_tsigkey_identity(message->tsigkey);
 			}
@@ -10140,6 +10121,191 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	}
 
 	return (ISC_R_NOTFOUND);
+}
+
+static void
+get_matching_view_done(void *cbarg) {
+	matching_view_ctx_t *mvctx = cbarg;
+	dns_message_t *message = mvctx->message;
+
+	if (*mvctx->viewmatchresult == ISC_R_SUCCESS) {
+		INSIST(mvctx->view != NULL);
+		dns_view_attach(mvctx->view, mvctx->viewp);
+	}
+
+	mvctx->cb(mvctx->cbarg);
+
+	if (mvctx->quota_result == ISC_R_SUCCESS) {
+		isc_quota_release(&mvctx->sctx->sig0checksquota);
+	}
+	if (mvctx->view != NULL) {
+		dns_view_detach(&mvctx->view);
+	}
+	isc_loop_detach(&mvctx->loop);
+	ns_server_detach(&mvctx->sctx);
+	isc_mem_put(message->mctx, mvctx, sizeof(*mvctx));
+	dns_message_detach(&message);
+}
+
+static dns_view_t *
+get_matching_view_next(dns_view_t *view, dns_rdataclass_t rdclass) {
+	if (view == NULL) {
+		view = ISC_LIST_HEAD(named_g_server->viewlist);
+	} else {
+		view = ISC_LIST_NEXT(view, link);
+	}
+	while (true) {
+		if (view == NULL || rdclass == view->rdclass ||
+		    rdclass == dns_rdataclass_any)
+		{
+			return (view);
+		}
+		view = ISC_LIST_NEXT(view, link);
+	};
+}
+
+static void
+get_matching_view_continue(void *cbarg, isc_result_t result) {
+	matching_view_ctx_t *mvctx = cbarg;
+	dns_view_t *view = NULL;
+	const dns_name_t *tsig = NULL;
+
+	*mvctx->sigresult = result;
+
+	if (result == ISC_R_SUCCESS) {
+		tsig = dns_tsigkey_identity(mvctx->message->tsigkey);
+	}
+
+	if (dns_acl_allowed(mvctx->srcaddr, tsig, mvctx->view->matchclients,
+			    mvctx->env) &&
+	    dns_acl_allowed(mvctx->destaddr, tsig,
+			    mvctx->view->matchdestinations, mvctx->env) &&
+	    !(mvctx->view->matchrecursiveonly &&
+	      (mvctx->message->flags & DNS_MESSAGEFLAG_RD) == 0))
+	{
+		/*
+		 * A matching view is found.
+		 */
+		*mvctx->viewmatchresult = ISC_R_SUCCESS;
+		get_matching_view_done(cbarg);
+		return;
+	}
+
+	dns_message_resetsig(mvctx->message);
+
+	view = get_matching_view_next(mvctx->view, mvctx->message->rdclass);
+	dns_view_detach(&mvctx->view);
+	if (view != NULL) {
+		/*
+		 * Try the next view.
+		 */
+		dns_view_attach(view, &mvctx->view);
+		result = dns_message_checksig_async(
+			mvctx->message, view, mvctx->loop,
+			get_matching_view_continue, mvctx);
+		INSIST(result == DNS_R_WAIT);
+		return;
+	}
+
+	/*
+	 * No matching view is found.
+	 */
+	*mvctx->viewmatchresult = ISC_R_NOTFOUND;
+	get_matching_view_done(cbarg);
+}
+
+/*%
+ * Find a view that matches the source and destination addresses of a query.
+ */
+static isc_result_t
+get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
+		  dns_message_t *message, dns_aclenv_t *env, ns_server_t *sctx,
+		  isc_loop_t *loop, isc_job_cb cb, void *cbarg,
+		  isc_result_t *sigresult, isc_result_t *viewmatchresult,
+		  dns_view_t **viewp) {
+	dns_view_t *view = NULL;
+	isc_result_t result;
+
+	REQUIRE(message != NULL);
+	REQUIRE(sctx != NULL);
+	REQUIRE(loop == NULL || cb != NULL);
+	REQUIRE(sigresult != NULL);
+	REQUIRE(viewmatchresult != NULL);
+	REQUIRE(viewp != NULL && *viewp == NULL);
+
+	/* No offloading is requested if the loop is unset. */
+	if (loop == NULL) {
+		*viewmatchresult = get_matching_view_sync(
+			srcaddr, destaddr, message, env, sigresult, viewp);
+		return (*viewmatchresult);
+	}
+
+	matching_view_ctx_t *mvctx = isc_mem_get(message->mctx, sizeof(*mvctx));
+	*mvctx = (matching_view_ctx_t){
+		.srcaddr = srcaddr,
+		.destaddr = destaddr,
+		.env = env,
+		.cb = cb,
+		.cbarg = cbarg,
+		.sigresult = sigresult,
+		.viewmatchresult = viewmatchresult,
+		.quota_result = ISC_R_UNSET,
+		.viewp = viewp,
+	};
+	ns_server_attach(sctx, &mvctx->sctx);
+	isc_loop_attach(loop, &mvctx->loop);
+	dns_message_attach(message, &mvctx->message);
+
+	dns_message_resetsig(message);
+
+	view = get_matching_view_next(NULL, message->rdclass);
+	if (view == NULL) {
+		*mvctx->viewmatchresult = ISC_R_NOTFOUND;
+		isc_async_run(loop, get_matching_view_done, mvctx);
+		return (DNS_R_WAIT);
+	}
+
+	/*
+	 * If the message has a SIG0 signature which we are going to
+	 * check, and the client is not exempt from the SIG(0) quota,
+	 * then acquire a quota. TSIG has priority over SIG(0), so if
+	 * TSIG is set then we don't care.
+	 */
+	if (message->tsigkey == NULL && message->tsig == NULL &&
+	    message->sig0 != NULL)
+	{
+		if (sctx->sig0checksquota_exempt != NULL) {
+			int exempt_match;
+
+			result = dns_acl_match(srcaddr, NULL,
+					       sctx->sig0checksquota_exempt,
+					       env, &exempt_match, NULL);
+			if (result == ISC_R_SUCCESS && exempt_match > 0) {
+				mvctx->quota_result = ISC_R_EXISTS;
+			}
+		}
+		if (mvctx->quota_result == ISC_R_UNSET) {
+			mvctx->quota_result =
+				isc_quota_acquire(&sctx->sig0checksquota);
+		}
+		if (mvctx->quota_result == ISC_R_SOFTQUOTA) {
+			isc_quota_release(&sctx->sig0checksquota);
+		}
+		if (mvctx->quota_result != ISC_R_SUCCESS &&
+		    mvctx->quota_result != ISC_R_EXISTS)
+		{
+			*mvctx->viewmatchresult = ISC_R_QUOTA;
+			isc_async_run(loop, get_matching_view_done, mvctx);
+			return (DNS_R_WAIT);
+		}
+	}
+
+	dns_view_attach(view, &mvctx->view);
+	result = dns_message_checksig_async(message, view, loop,
+					    get_matching_view_continue, mvctx);
+	INSIST(result == DNS_R_WAIT);
+
+	return (DNS_R_WAIT);
 }
 
 void

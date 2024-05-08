@@ -194,6 +194,7 @@ struct ns_client {
 	dns_name_t    signername; /*%< [T]SIG key name */
 	dns_name_t   *signer;	  /*%< NULL if not valid sig */
 	isc_result_t  sigresult;
+	isc_result_t  viewmatchresult;
 	isc_buffer_t *buffer;
 	isc_buffer_t  tbuffer;
 
@@ -201,6 +202,8 @@ struct ns_client {
 	bool	       peeraddr_valid;
 	isc_netaddr_t  destaddr;
 	isc_sockaddr_t destsockaddr;
+
+	isc_timer_t *quotatimer;
 
 	dns_ecs_t ecs; /*%< EDNS client subnet sent by client */
 

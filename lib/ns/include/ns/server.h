@@ -64,12 +64,11 @@ typedef void (*ns_fuzzcb_t)(void);
 /*%
  * Type for callback function to get the view that can answer a query.
  */
-typedef isc_result_t (*ns_matchview_t)(isc_netaddr_t *srcaddr,
-				       isc_netaddr_t *destaddr,
-				       dns_message_t *message,
-				       dns_aclenv_t *env, ns_server_t *sctx,
-				       isc_result_t *sigresultp,
-				       dns_view_t  **viewp);
+typedef isc_result_t (*ns_matchview_t)(
+	isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr, dns_message_t *message,
+	dns_aclenv_t *env, ns_server_t *sctx, isc_loop_t *loop, isc_job_cb cb,
+	void *cbarg, isc_result_t *sigresultp, isc_result_t *viewmatchresult,
+	dns_view_t **viewp);
 
 /*%
  * Server context.
