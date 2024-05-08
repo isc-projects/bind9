@@ -2147,7 +2147,7 @@ Boolean Options
    :short: Controls whether BIND 9 responds to root key sentinel probes.
 
    If ``yes``, respond to root key sentinel probes as described in
-   `draft-ietf-dnsop-kskroll-sentinel-08 <https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-kskroll-sentinel-08>`_. The default is ``yes``.
+   :rfc:`8509`:. The default is ``yes``.
 
 .. namedconf:statement:: reuseport
    :tags: server
@@ -6586,7 +6586,7 @@ The following options can be specified in a :any:`dnssec-policy` statement:
        Do not use extra :term:`iterations <Iterations>`, :term:`salt <Salt>`, and
        :term:`opt-out <Opt-out>` unless their implications are fully understood.
        A higher number of iterations causes interoperability problems and opens
-       servers to CPU-exhausting DoS attacks.
+       servers to CPU-exhausting DoS attacks. See :rfc:`9276`.
 
 .. namedconf:statement:: zone-propagation-delay
    :tags: dnssec, zone
