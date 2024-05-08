@@ -3014,7 +3014,12 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
 		int r = uv_tcp_close_reset(&sock->uv_handle.tcp,
 					   reset_shutdown);
-		UV_RUNTIME_CHECK(uv_tcp_close_reset, r);
+		if (r != 0) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_NETMGR, ISC_LOG_DEBUG(1),
+				      "TCP Reset (RST) failed: %s",
+				      uv_strerror(r));
+		}
 	} else {
 		isc__nmsocket_shutdown(sock);
 	}
