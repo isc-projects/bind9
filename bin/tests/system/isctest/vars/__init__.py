@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -11,18 +9,16 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. ../../conf.sh
+import os
 
-echo_i "sign edns512"
+from .all import ALL
+from .openssl import parse_openssl_config
+from .. import log
 
-zone=edns512
-infile=edns512.db.in
-zonefile=edns512.db
-outfile=edns512.db.signed
 
-keyname1=$($KEYGEN -a RSASHA512 -b 4096 -n zone $zone 2>/dev/null)
-keyname2=$($KEYGEN -f KSK -a RSASHA512 -b 4096 -n zone $zone 2>/dev/null)
+def init_vars():
+    """Initializes the environment variables."""
+    parse_openssl_config(ALL["OPENSSL_CONF"])
 
-cat $infile $keyname1.key $keyname2.key >$zonefile
-
-$SIGNER -g -o $zone -f $outfile -e +30y $zonefile >/dev/null 2>signer.err || cat signer.err
+    os.environ.update(ALL)
+    log.debug("setting following env vars: %s", ", ".join([str(key) for key in ALL]))

@@ -1656,7 +1656,16 @@ AC_CONFIG_FILES([tests/unit-test-driver.sh],
 
 AC_CONFIG_FILES([bin/tests/Makefile
 		 bin/tests/system/Makefile
-		 bin/tests/system/conf.sh
+		 bin/tests/system/isctest/vars/.ac_vars/TOP_BUILDDIR
+		 bin/tests/system/isctest/vars/.ac_vars/TOP_SRCDIR
+		 bin/tests/system/isctest/vars/.ac_vars/FSTRM_CAPTURE
+		 bin/tests/system/isctest/vars/.ac_vars/SHELL
+		 bin/tests/system/isctest/vars/.ac_vars/PYTHON
+		 bin/tests/system/isctest/vars/.ac_vars/PERL
+		 bin/tests/system/isctest/vars/.ac_vars/CURL
+		 bin/tests/system/isctest/vars/.ac_vars/NC
+		 bin/tests/system/isctest/vars/.ac_vars/XSLTPROC
+		 bin/tests/system/isctest/vars/.ac_vars/PYTEST
 		 bin/tests/system/dyndb/driver/Makefile
 		 bin/tests/system/dlzexternal/driver/Makefile
 		 bin/tests/system/hooks/driver/Makefile

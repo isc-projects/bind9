@@ -9,11 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import os
-
-import pytest
+from .vars import ALL
 
 
-@pytest.fixture(scope="module")
-def statsport():
-    return int(os.environ["EXTRAPORT1"])
+if __name__ == "__main__":
+    for name, value in ALL.items():
+        print(f"export {name}={value}")

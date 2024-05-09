@@ -271,11 +271,11 @@ stages:
 
 # change directory to the workspace before including this
 .find_python: &find_python
-  - PYTHON="$(source bin/tests/system/conf.sh; echo $PYTHON)"
+  - PYTHON="$(cat bin/tests/system/isctest/vars/.ac_vars/PYTHON)"
   - test -x "$PYTHON"
 
 .find_pytest: &find_pytest
-  - PYTEST="$(source bin/tests/system/conf.sh; echo $PYTEST)"
+  - PYTEST="$(cat bin/tests/system/isctest/vars/.ac_vars/PYTEST)"
   - test -x "$PYTEST"
 
 .parse_tsan: &parse_tsan
@@ -702,7 +702,8 @@ cross-version-config-tests:
     # Run the setup phase of all system tests in the most recently tagged BIND 9
     # release using the binaries built for the current BIND 9 version.  This
     # intends to detect obvious backward compatibility issues with the latter.
-    - sed -i -E "s|(export TOP_BUILDDIR)=.*|\1=${CI_PROJECT_DIR}|" conf.sh
+    - >
+      sed -i -E "s|(\s* \"TOP_BUILDDIR\"):.*|\1: \"${CI_PROJECT_DIR}\",|" isctest/vars/autoconf.py
     - >
       "$PYTEST" --setup-only --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "${TEST_PARALLEL_JOBS:-1}"
   needs:
@@ -719,6 +720,7 @@ cross-version-config-tests:
     untracked: true
     expire_in: "1 day"
     when: always
+  allow_failure: true  # pytest env variable refactoring
 
 # Jobs for regular GCC builds on Alpine Linux 3.19 (amd64)
 

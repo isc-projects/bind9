@@ -15,6 +15,7 @@ from . import query
 from . import rndc
 from . import run
 from . import log
+from . import vars  # pylint: disable=redefined-builtin
 
 # isctest.mark module is intentionally NOT imported, because it relies on
 # environment variables which might not be set at the time of import of the

@@ -3,7 +3,6 @@ nxtify
 sdig
 *_test
 gsstest
-conf.sh
 dlopen
 keycreate
 keydelete
