@@ -2704,7 +2704,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		goto cleanup;
 	}
 
-	result = dns_zt_find(ev->view->zonetable, name, 0, NULL, &zone);
+	result = dns_view_findzone(ev->view, name, &zone);
 
 	if (ev->mod) {
 		dns_catz_zone_t *parentcatz;
@@ -2899,8 +2899,8 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 
 	dns_name_format(dns_catz_entry_getname(ev->entry), cname,
 			DNS_NAME_FORMATSIZE);
-	result = dns_zt_find(ev->view->zonetable,
-			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
+	result = dns_view_findzone(ev->view, dns_catz_entry_getname(ev->entry),
+				   &zone);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
