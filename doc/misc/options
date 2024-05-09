@@ -279,7 +279,6 @@ options {
 	sig-validity-interval <integer> [ <integer> ]; // obsolete
 	sig0checks-quota <integer>;
 	sig0checks-quota-exempt { <address_match_element>; ... };
-	sig0checks-quota-maxwait-ms <integer>;
 	sortlist { <address_match_element>; ... }; // deprecated
 	stale-answer-client-timeout ( disabled | off | <integer> );
 	stale-answer-enable <boolean>;

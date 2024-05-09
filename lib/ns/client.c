@@ -1709,8 +1709,6 @@ ns__client_reset_cb(void *client0) {
 		client->keytag_len = 0;
 	}
 
-	isc_timer_stop(client->quotatimer);
-
 	if (client->async) {
 		client->async = false;
 		if (client->handle != NULL) {
@@ -1750,8 +1748,6 @@ ns__client_put_cb(void *client0) {
 		dns_rdataset_disassociate(client->opt);
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
-
-	isc_timer_async_destroy(&client->quotatimer);
 
 	if (client->async) {
 		client->async = false;
@@ -2139,7 +2135,6 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 static void
 ns_client_request_continue(void *arg) {
 	ns_client_t *client = arg;
-	isc_netaddr_t netaddr;
 	const dns_name_t *signame = NULL;
 	bool ra; /* Recursion available. */
 	isc_result_t result = ISC_R_UNSET;
@@ -2168,72 +2163,16 @@ ns_client_request_continue(void *arg) {
 
 	INSIST(client->viewmatchresult != ISC_R_UNSET);
 
-	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-
 	/*
-	 * This function could be running asynchronously when validating a
-	 * SIG(0) signature or waiting for a quota for it. In that case we
-	 * need to update the current 'now', and check that named doesn't wait
-	 * for too long.
+	 * This function could be running asynchronously, in which case update
+	 * the current 'now' for correct timekeeping.
 	 */
 	if (client->async) {
 		client->tnow = isc_time_now();
 		client->now = isc_time_seconds(&client->tnow);
 	}
-	if (client->async && client->viewmatchresult == ISC_R_QUOTA) {
-		uint64_t wait_us, maxwait_us;
-
-		/* Waiting for a quota. */
-		wait_us = isc_time_microdiff(&client->tnow,
-					     &client->requesttime);
-		maxwait_us = US_PER_MS *
-			     client->manager->sctx->sig0checksquota_maxwaitms;
-		if (wait_us > maxwait_us) {
-			isc_buffer_t b;
-			isc_region_t *r;
-
-			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(5),
-				      "client reached max wait time for quota");
-
-			/*
-			 * Do a dummy TSIG verification attempt so that the
-			 * response will have a TSIG if the query did, as
-			 * required by RFC2845.
-			 */
-			dns_message_resetsig(client->message);
-			r = dns_message_getrawmessage(client->message);
-			isc_buffer_init(&b, r->base, r->length);
-			isc_buffer_add(&b, r->length);
-			(void)dns_tsig_verify(&b, client->message, NULL, NULL);
-
-			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
-						NULL);
-			ns_client_error(client, DNS_R_REFUSED);
-			goto cleanup;
-		}
-
-		if (can_log_sigchecks_quota()) {
-			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_INFO,
-				      "SIG(0) checks quota reached");
-			ns_client_dumpmessage(client,
-					      "SIG(0) checks quota reached");
-		}
-
-		/* Retry after 10 milliseconds. */
-		isc_interval_t interval;
-		isc_interval_set(&interval, 0, 10 * NS_PER_MS);
-		isc_nmhandle_ref(client->handle);
-		isc_timer_start(client->quotatimer, isc_timertype_once,
-				&interval);
-
-		result = DNS_R_WAIT;
-		goto cleanup;
-	}
 
 	if (client->viewmatchresult != ISC_R_SUCCESS) {
-		char classname[DNS_RDATACLASS_FORMATSIZE];
 		isc_buffer_t b;
 		isc_region_t *r;
 
@@ -2248,12 +2187,31 @@ ns_client_request_continue(void *arg) {
 		isc_buffer_add(&b, r->length);
 		(void)dns_tsig_verify(&b, client->message, NULL, NULL);
 
-		dns_rdataclass_format(client->message->rdclass, classname,
-				      sizeof(classname));
-		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
-			      "no matching view in class '%s'", classname);
-		ns_client_dumpmessage(client, "no matching view in class");
+		if (client->viewmatchresult == ISC_R_QUOTA) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(5),
+				      "SIG(0) checks quota reached");
+
+			if (can_log_sigchecks_quota()) {
+				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+					      NS_LOGMODULE_CLIENT, ISC_LOG_INFO,
+					      "SIG(0) checks quota reached");
+				ns_client_dumpmessage(
+					client, "SIG(0) checks quota reached");
+			}
+		} else {
+			char classname[DNS_RDATACLASS_FORMATSIZE];
+
+			dns_rdataclass_format(client->message->rdclass,
+					      classname, sizeof(classname));
+
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
+				      "no matching view in class '%s'",
+				      classname);
+			ns_client_dumpmessage(client,
+					      "no matching view in class");
+		}
 
 		ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
 		ns_client_error(client, DNS_R_REFUSED);
@@ -2460,6 +2418,9 @@ ns_client_request_continue(void *arg) {
 	if (client->udpsize > 512) {
 		dns_peer_t *peer = NULL;
 		uint16_t udpsize = client->view->maxudp;
+		isc_netaddr_t netaddr;
+
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		(void)dns_peerlist_peerbyaddr(client->view->peers, &netaddr,
 					      &peer);
 		if (peer != NULL) {
@@ -2521,16 +2482,13 @@ ns_client_request_continue(void *arg) {
 cleanup:
 
 	/*
-	 * If we are running async then 'unref' the handle, and also if there
-	 * are no more async calls scheduled the reset the async flag, so that
-	 * the destructor doesn't try to 'unref' the handle too.
+	 * If we are running async then 'unref' the handle and reset the async
+	 * flag, so that the destructor doesn't try to 'unref' the handle too.
 	 */
 	if (client->async) {
+		client->async = false;
 		if (client->handle != NULL) {
 			isc_nmhandle_unref(client->handle);
-		}
-		if (result != DNS_R_WAIT) {
-			client->async = false;
 		}
 	}
 }
@@ -2569,18 +2527,6 @@ ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	return (ISC_R_SUCCESS);
 }
 
-static void
-client_quotatimer_event(void *arg) {
-	ns_client_t *client = arg;
-	isc_netaddr_t netaddr;
-	isc_result_t result;
-
-	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-	result = ns_client_setup_view(client, &netaddr);
-	INSIST(result == DNS_R_WAIT); /* We are in async mode. */
-	isc_nmhandle_unref(client->handle);
-}
-
 isc_result_t
 ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	isc_result_t result;
@@ -2604,9 +2550,6 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 				   client->manager->rdspool,
 				   DNS_MESSAGE_INTENTPARSE, &client->message);
 
-		isc_timer_create(client->manager->loop, client_quotatimer_event,
-				 client, &client->quotatimer);
-
 		/*
 		 * Set magic earlier than usual because ns_query_init()
 		 * and the functions it calls will require it.
@@ -2628,7 +2571,6 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 			.magic = 0,
 			.manager = client->manager,
 			.message = client->message,
-			.quotatimer = client->quotatimer,
 			.query = client->query,
 		};
 	}
@@ -2652,7 +2594,6 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	isc_timer_destroy(&client->quotatimer);
 	dns_message_detach(&client->message);
 	ns_clientmgr_detach(&client->manager);
 

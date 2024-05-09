@@ -8463,12 +8463,6 @@ load_configuration(const char *filename, named_server_t *server,
 		INSIST(result == ISC_R_SUCCESS);
 	}
 
-	obj = NULL;
-	result = named_config_get(maps, "sig0checks-quota-maxwait-ms", &obj);
-	if (result == ISC_R_SUCCESS) {
-		server->sctx->sig0checksquota_maxwaitms = cfg_obj_asuint32(obj);
-	}
-
 	/*
 	 * Set "blackhole". Only legal at options level; there is
 	 * no default.

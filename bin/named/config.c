@@ -110,7 +110,6 @@ options {\n\
 	session-keyname local-ddns;\n\
 	startup-notify-rate 20;\n\
 	sig0checks-quota 1;\n\
-	sig0checks-quota-maxwait-ms 1500;\n\
 	statistics-file \"named.stats\";\n\
 	tcp-advertised-timeout 300;\n\
 	tcp-clients 150;\n\

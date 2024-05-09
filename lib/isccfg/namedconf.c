@@ -1362,7 +1362,6 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "session-keyfile", &cfg_type_qstringornone, 0 },
 	{ "session-keyname", &cfg_type_astring, 0 },
 	{ "sig0checks-quota", &cfg_type_uint32, 0 },
-	{ "sig0checks-quota-maxwait-ms", &cfg_type_uint32, 0 },
 	{ "sig0checks-quota-exempt", &cfg_type_bracketed_aml, 0 },
 	{ "sit-secret", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "stacksize", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },

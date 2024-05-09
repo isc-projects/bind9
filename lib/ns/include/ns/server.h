@@ -91,7 +91,6 @@ struct ns_server {
 	isc_quota_t xfroutquota;
 	isc_quota_t updquota;
 	isc_quota_t sig0checksquota;
-	uint32_t    sig0checksquota_maxwaitms;
 	dns_acl_t  *sig0checksquota_exempt;
 	ISC_LIST(isc_quota_t) http_quotas;
 	isc_mutex_t http_quotas_lock;

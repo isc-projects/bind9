@@ -203,8 +203,6 @@ struct ns_client {
 	isc_netaddr_t  destaddr;
 	isc_sockaddr_t destsockaddr;
 
-	isc_timer_t *quotatimer;
-
 	dns_ecs_t ecs; /*%< EDNS client subnet sent by client */
 
 	/*%
