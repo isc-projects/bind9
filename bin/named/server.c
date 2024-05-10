@@ -12184,6 +12184,12 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		 isc_quota_getmax(&server->sctx->recursionquota));
 	CHECK(putstr(text, line));
 
+	snprintf(line, sizeof(line), "recursive high-water: %u\n",
+		 (unsigned int)ns_stats_get_counter(
+			 server->sctx->nsstats,
+			 ns_statscounter_recurshighwater));
+	CHECK(putstr(text, line));
+
 	snprintf(line, sizeof(line), "tcp clients: %u/%u\n",
 		 isc_quota_getused(&server->sctx->tcpquota),
 		 isc_quota_getmax(&server->sctx->tcpquota));

@@ -137,10 +137,10 @@ isc_stats_ncounters(isc_stats_t *stats);
  *
  */
 
-void
+isc_statscounter_t
 isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter);
 /*%<
- * Increment the counter-th counter of stats.
+ * Increment the counter-th counter of stats and return the old value.
  *
  * Requires:
  *\li	'stats' is a valid isc_stats_t.

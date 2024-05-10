@@ -20,7 +20,9 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Added a new statistics variable ``recursive high-water`` that reports
+  the maximum number of simultaneous recursive clients BIND has handled
+  while running. :gl:`#4668`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

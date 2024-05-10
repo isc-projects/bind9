@@ -327,6 +327,8 @@ init_desc(void) {
 	SET_NSSTATDESC(updatebadprereq,
 		       "updates rejected due to prerequisite failure",
 		       "UpdateBadPrereq");
+	SET_NSSTATDESC(recurshighwater, "Recursive clients high-water",
+		       "RecursHighwater");
 	SET_NSSTATDESC(recursclients, "recursing clients", "RecursClients");
 	SET_NSSTATDESC(dns64, "queries answered by DNS64", "DNS64");
 	SET_NSSTATDESC(ratedropped, "responses dropped for rate limits",
