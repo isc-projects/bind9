@@ -129,9 +129,11 @@ def is_crypto_supported(alg: Algorithm) -> bool:
             cwd=tmpdir,
             check=False,
             stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
         )
         if proc.returncode == 0:
             return True
+        log.debug(f"dnssec-keygen stderr: {proc.stderr.decode('utf-8')}")
         log.info("algorithm %s not supported", alg.name)
         return False
 
