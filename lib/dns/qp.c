@@ -2148,6 +2148,19 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			n = iter->stack[iter->sp];
+
+			foundlen = leaf_qpkey(qp, n, found);
+			size_t nto = qpkey_compare(search, searchlen, found,
+						   foundlen);
+			if (nto < to) {
+				/*
+				 * We've moved to a new leaf and it differs at
+				 * an even earlier point, so no further
+				 * improvement is possible.
+				 */
+				return;
+			}
+			to = nto;
 		} else {
 			if (to <= searchlen && to <= foundlen && iter->sp > 0) {
 				/*
@@ -2187,18 +2200,6 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 
 			return;
 		}
-
-		foundlen = leaf_qpkey(qp, n, found);
-		size_t nto = qpkey_compare(search, searchlen, found, foundlen);
-		if (nto < to) {
-			/*
-			 * We've moved to a new leaf and it differs at an
-			 * even earlier point, so no further improvement is
-			 * possible.
-			 */
-			return;
-		}
-		to = nto;
 	}
 
 	if (is_branch(n)) {
