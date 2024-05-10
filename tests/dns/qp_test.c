@@ -520,7 +520,8 @@ struct check_qpchain {
 };
 
 static void
-check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
+check_qpchainiter(dns_qp_t *qp, struct check_qpchain check[],
+		  dns_qpiter_t *iter) {
 	for (int i = 0; check[i].query != NULL; i++) {
 		isc_result_t result;
 		dns_fixedname_t fn1;
@@ -529,9 +530,8 @@ check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
 
 		dns_qpchain_init(qp, &chain);
 		dns_test_namefromstring(check[i].query, &fn1);
-		result = dns_qp_lookup(qp, name, NULL, NULL, &chain, NULL,
+		result = dns_qp_lookup(qp, name, NULL, iter, &chain, NULL,
 				       NULL);
-
 #if 0
 		fprintf(stderr, "%s %s (expected %s), "
 			"len %d (expected %d)\n", check[i].query,
@@ -539,13 +539,13 @@ check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
 			isc_result_totext(check[i].result),
 			dns_qpchain_length(&chain), check[i].length);
 #endif
+
 		assert_int_equal(result, check[i].result);
 		assert_int_equal(dns_qpchain_length(&chain), check[i].length);
 		for (unsigned int j = 0; j < check[i].length; j++) {
 			dns_fixedname_t fn2, fn3;
 			dns_name_t *expected = dns_fixedname_initname(&fn2);
 			dns_name_t *found = dns_fixedname_initname(&fn3);
-
 			dns_test_namefromstring(check[i].names[j], &fn2);
 			dns_qpchain_node(&chain, j, found, NULL, NULL);
 #if 0
@@ -557,6 +557,14 @@ check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
 			assert_true(dns_name_equal(found, expected));
 		}
 	}
+}
+
+static void
+check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
+	dns_qpiter_t iter;
+	dns_qpiter_init(qp, &iter);
+	check_qpchainiter(qp, check, NULL);
+	check_qpchainiter(qp, check, &iter);
 }
 
 ISC_RUN_TEST_IMPL(qpchain) {
@@ -591,6 +599,24 @@ ISC_RUN_TEST_IMPL(qpchain) {
 	};
 
 	check_qpchain(qp, check1);
+	dns_qp_destroy(&qp);
+
+	const char insert2[][16] = { "a.", "d.b.a.", "z.d.b.a.", "" };
+
+	i = 0;
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+
+	while (insert2[i][0] != '\0') {
+		insert_str(qp, insert2[i++]);
+	}
+
+	static struct check_qpchain check2[] = {
+		{ "f.c.b.a.", DNS_R_PARTIALMATCH, 1, { "a." } },
+		{ NULL, 0, 0, { NULL } },
+	};
+
+	check_qpchain(qp, check2);
 	dns_qp_destroy(&qp);
 }
 
