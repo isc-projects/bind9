@@ -2241,6 +2241,23 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpkey_t search,
 	}
 }
 
+/*
+ * When searching for a requested name in dns_qp_lookup(), we might add
+ * a leaf node to the chain, then subsequently determine that it was a
+ * dead end. When this happens, the chain can be left holding a node
+ * that is *not* an ancestor of the requested name. We correct for that
+ * here.
+ */
+static void
+fix_chain(dns_qpchain_t *chain, size_t offset) {
+	while (chain->len > 0 && chain->chain[chain->len - 1].offset >= offset)
+	{
+		chain->len--;
+		chain->chain[chain->len].node = NULL;
+		chain->chain[chain->len].offset = 0;
+	}
+}
+
 isc_result_t
 dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	      dns_name_t *foundname, dns_qpiter_t *iter, dns_qpchain_t *chain,
@@ -2364,16 +2381,20 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	foundlen = leaf_qpkey(qp, n, found);
 	offset = qpkey_compare(search, searchlen, found, foundlen);
 
+	/* the search ended with an exact or partial match */
 	if (offset == QPKEY_EQUAL || offset == foundlen) {
+		isc_result_t result = ISC_R_SUCCESS;
+
+		if (offset == foundlen) {
+			fix_chain(chain, offset);
+			result = DNS_R_PARTIALMATCH;
+		}
+		add_link(chain, n, offset);
+
 		SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 		SET_IF_NOT_NULL(ival_r, leaf_ival(n));
 		maybe_set_name(qp, n, foundname);
-		add_link(chain, n, offset);
-		if (offset == QPKEY_EQUAL) {
-			return (ISC_R_SUCCESS);
-		} else {
-			return (DNS_R_PARTIALMATCH);
-		}
+		return (result);
 	}
 
 	/*
