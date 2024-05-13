@@ -529,13 +529,17 @@ authors_lookup(bdbnode_t *node) {
 	isc_result_t result;
 	const char **p = NULL;
 	static const char *authors[] = {
-		"Mark Andrews",	  "Curtis Blackburn",	"James Brister",
-		"Ben Cottrell",	  "John H. DuBois III", "Francis Dupont",
-		"Michael Graff",  "Andreas Gustafsson", "Bob Halley",
-		"Evan Hunt",	  "JINMEI Tatuya",	"Witold Krecicki",
-		"David Lawrence", "Scott Mann",		"Danny Mayer",
-		"Damien Neil",	  "Matt Nelson",	"Jeremy C. Reed",
-		"Michael Sawyer", "Brian Wellington",	NULL
+		"Mark Andrews",	      "Curtis Blackburn",
+		"James Brister",      "Ben Cottrell",
+		"John H. DuBois III", "Francis Dupont",
+		"Michael Graff",      "Andreas Gustafsson",
+		"Bob Halley",	      "Evan Hunt",
+		"JINMEI Tatuya",      "Witold Krecicki",
+		"David Lawrence",     "Scott Mann",
+		"Danny Mayer",	      "Aydin Mercan",
+		"Damien Neil",	      "Matt Nelson",
+		"Jeremy C. Reed",     "Michael Sawyer",
+		"Brian Wellington",   NULL
 	};
 
 	/*
