@@ -14,10 +14,10 @@
 from typing import NamedTuple, Tuple
 
 import os
-import subprocess
 import sys
 import time
 
+import isctest
 import pytest
 
 pytest.importorskip("dns", minversion="2.0.0")
@@ -86,7 +86,7 @@ def verify_zone(zone, transfer):
     # dnssec-verify command with default arguments.
     verify_cmd = [verify, "-z", "-o", zone, filename]
 
-    verifier = subprocess.run(verify_cmd, capture_output=True, check=True)
+    verifier = isctest.run.cmd(verify_cmd)
 
     if verifier.returncode != 0:
         print(f"error: dnssec-verify {zone}. failed")

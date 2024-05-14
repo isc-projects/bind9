@@ -11,7 +11,6 @@
 
 import concurrent.futures
 import os
-import subprocess
 import time
 
 import dns.query
@@ -36,7 +35,7 @@ def rndc_loop(test_state, server):
     ]
 
     while not test_state["finished"]:
-        subprocess.run(cmdline, check=False)
+        isctest.run.cmd(cmdline, raise_on_exception=False)
         time.sleep(1)
 
 
