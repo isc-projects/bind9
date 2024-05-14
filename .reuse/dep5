@@ -26,6 +26,7 @@ Files: **/README
        **/testdata/*
        .github/*
        .gitlab/*
+       .mailmap
        AUTHORS
        CHANGES
        COPYRIGHT
