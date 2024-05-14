@@ -628,7 +628,8 @@ struct check_predecessors {
 };
 
 static void
-check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
+check_predecessors_withchain(dns_qp_t *qp, struct check_predecessors check[],
+			     dns_qpchain_t *chain) {
 	isc_result_t result;
 	dns_fixedname_t fn1, fn2;
 	dns_name_t *name = dns_fixedname_initname(&fn1);
@@ -652,7 +653,7 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 		result = dns_name_tostring(expred, &predstr, mctx);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		result = dns_qp_lookup(qp, name, NULL, &it, NULL, NULL, NULL);
+		result = dns_qp_lookup(qp, name, NULL, &it, chain, NULL, NULL);
 #if 0
 		fprintf(stderr, "%s: expected %s got %s\n", check[i].query,
 			isc_result_totext(check[i].result),
@@ -709,6 +710,14 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 #endif
 		assert_int_equal(j, check[i].remaining);
 	}
+}
+
+static void
+check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
+	dns_qpchain_t chain;
+	dns_qpchain_init(qp, &chain);
+	check_predecessors_withchain(qp, check, NULL);
+	check_predecessors_withchain(qp, check, &chain);
 }
 
 ISC_RUN_TEST_IMPL(predecessors) {
