@@ -29,6 +29,8 @@ import dns.message
 import dns.rdataclass
 import dns.rdatatype
 
+import isctest.name
+
 
 @composite
 def dns_names(
@@ -73,7 +75,7 @@ def dns_names(
 
     try:
         outer_name = prefix + suffix
-        remaining_bytes = 255 - len(outer_name.to_wire())
+        remaining_bytes = 255 - isctest.name.len_wire_uncompressed(outer_name)
         assert remaining_bytes >= 0
     except dns.name.NameTooLong:
         warn(
