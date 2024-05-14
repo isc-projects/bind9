@@ -14,3 +14,7 @@ import dns.name
 
 def prepend_label(label: str, name: dns.name.Name) -> dns.name.Name:
     return dns.name.Name((label,) + name.labels)
+
+
+def len_wire_uncompressed(name: dns.name.Name) -> int:
+    return len(name) + sum(map(len, name.labels))
