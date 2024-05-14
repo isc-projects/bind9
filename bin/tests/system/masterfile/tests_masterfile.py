@@ -10,7 +10,6 @@
 # information regarding copyright ownership.
 
 import os
-import subprocess
 
 import dns.message
 import dns.zone
@@ -97,17 +96,14 @@ def test_masterfile_missing_master_file_servfail():
 
 def test_masterfile_owner_inheritance():
     """Test owner inheritance after $INCLUDE"""
-    checker_output = subprocess.run(
+    checker_output = isctest.run.cmd(
         [
             os.environ["CHECKZONE"],
             "-D",
             "-q",
             "example",
             "zone/inheritownerafterinclude.db",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True,
+        ]
     ).stdout.decode("utf-8")
     owner_inheritance_zone = """
 example.	0	IN	SOA	. . 0 0 0 0 0
