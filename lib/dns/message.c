@@ -3286,6 +3286,12 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		dns_rdata_sig_t sig;
 		dns_rdataset_t keyset;
 		isc_result_t result;
+		/*
+		 * In order to protect from a possible DoS attack, we are
+		 * going to check at most two KEY RRs.
+		 */
+		const size_t max_keys = 2;
+		size_t n;
 
 		result = dns_rdataset_first(msg->sig0);
 		INSIST(result == ISC_R_SUCCESS);
@@ -3327,8 +3333,9 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		}
 		result = dns_rdataset_first(&keyset);
 		INSIST(result == ISC_R_SUCCESS);
-		for (; result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&keyset))
+
+		for (n = 0; result == ISC_R_SUCCESS && n < max_keys;
+		     n++, result = dns_rdataset_next(&keyset))
 		{
 			dst_key_t *key = NULL;
 
@@ -3356,7 +3363,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 				break;
 			}
 		}
-		if (result == ISC_R_NOMORE) {
+		if (result == ISC_R_NOMORE || n == max_keys) {
 			result = DNS_R_KEYUNAUTHORIZED;
 		}
 
