@@ -1,3 +1,5 @@
+6388.	[placeholder]
+
 6387.	[func]		Added a new statistics variable "recursive high-water"
 			that reports the maximum number of simultaneous
 			recursive clients BIND has handled while running.
