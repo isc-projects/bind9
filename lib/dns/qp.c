@@ -2337,38 +2337,22 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			 * the loop.
 			 */
 			n = branch_twig_ptr(qp, n, bit);
-			iter->stack[++iter->sp] = n;
-		} else if (setiter) {
-			/*
-			 * this branch is a dead end. however, the caller
-			 * passed us an iterator, so we'll need to look
-			 * for the predecessor of the searched-for-name;
-			 * that will break the loop.
-			 */
-			fix_iterator(qp, iter, search, searchlen, bit, offset);
-			n = iter->stack[iter->sp];
 		} else {
 			/*
 			 * this branch is a dead end, and the predecessor
 			 * doesn't matter. now we just need to find a leaf
 			 * to end on so that qpkey_leaf() will work below.
 			 */
-			if (chain->len > 0) {
-				/* we saved an ancestor leaf: use that */
-				n = chain->chain[chain->len - 1].node;
-			} else {
-				/* walk down to find the leftmost leaf */
-				n = anyleaf(qp, twigs);
-			}
-			iter->stack[++iter->sp] = n;
+			n = anyleaf(qp, twigs);
 		}
+
+		iter->stack[++iter->sp] = n;
 	}
 
-	if (matched && setiter) {
+	if (setiter) {
 		/*
-		 * we found a leaf on a matching twig, but it
-		 * might not be the leaf we wanted. if it isn't,
-		 * and if the caller passed us an iterator,
+		 * we found a leaf, but it might not be the leaf we wanted.
+		 * if it isn't, and if the caller passed us an iterator,
 		 * then we might need to reposition it.
 		 */
 		fix_iterator(qp, iter, search, searchlen, bit, offset);
