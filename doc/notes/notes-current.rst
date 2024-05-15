@@ -38,6 +38,11 @@ Bug Fixes
 - An RPZ response's SOA record TTL was set to 1 instead of the SOA TTL, if
   ``add-soa`` was used. This has been fixed. :gl:`#3323`
 
+- When a query related to zone maintenance (NOTIFY, SOA) timed out close
+  to a view shutdown (triggered e.g. by :option:`rndc reload`),
+  :iscman:`named` could crash with an assertion failure. This has been
+  fixed. :gl:`#4719`
+
 Known Issues
 ~~~~~~~~~~~~
 
