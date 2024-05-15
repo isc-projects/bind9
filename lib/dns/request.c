@@ -1061,7 +1061,7 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 
 	if (result == ISC_R_TIMEDOUT) {
 		LOCK(&request->requestmgr->locks[request->hash]);
-		if (request->udpcount > 1 &&
+		if (!DNS_REQUEST_CANCELED(request) && request->udpcount > 1 &&
 		    (request->flags & DNS_REQUEST_F_TCP) == 0)
 		{
 			request->udpcount -= 1;
