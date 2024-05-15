@@ -276,6 +276,7 @@ struct dns_zone {
 	isc_timer_t *timer;
 	isc_refcount_t irefs;
 	dns_name_t origin;
+	dns_name_t rad;
 	char *masterfile;
 	const FILE *stream;		     /* loading from a stream? */
 	ISC_LIST(dns_include_t) includes;    /* Include files */
@@ -1167,6 +1168,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	isc_refcount_init(&zone->references, 1);
 	isc_refcount_init(&zone->irefs, 0);
 	dns_name_init(&zone->origin, NULL);
+	dns_name_init(&zone->rad, NULL);
 	isc_sockaddr_any(&zone->notifysrc4);
 	isc_sockaddr_any6(&zone->notifysrc6);
 	isc_sockaddr_any(&zone->parentalsrc4);
@@ -1347,6 +1349,9 @@ zone_free(dns_zone_t *zone) {
 	}
 	if (dns_name_dynamic(&zone->origin)) {
 		dns_name_free(&zone->origin, zone->mctx);
+	}
+	if (dns_name_dynamic(&zone->rad)) {
+		dns_name_free(&zone->rad, zone->mctx);
 	}
 	if (zone->strnamerd != NULL) {
 		isc_mem_free(zone->mctx, zone->strnamerd);
@@ -24508,4 +24513,35 @@ failure:
 	dns_skr_detach(&skr);
 
 	return (result);
+}
+
+isc_result_t
+dns_zone_getrad(dns_zone_t *zone, dns_name_t *name) {
+	isc_result_t result = ISC_R_NOTFOUND;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(DNS_NAME_VALID(name));
+
+	LOCK_ZONE(zone);
+	if (dns_name_dynamic(&zone->rad)) {
+		dns_name_copy(&zone->rad, name);
+		result = ISC_R_SUCCESS;
+	}
+	UNLOCK_ZONE(zone);
+	return (result);
+}
+
+void
+dns_zone_setrad(dns_zone_t *zone, dns_name_t *name) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(name == NULL || DNS_NAME_VALID(name));
+
+	LOCK_ZONE(zone);
+	if (dns_name_dynamic(&zone->rad)) {
+		dns_name_free(&zone->rad, zone->mctx);
+	}
+	if (name != NULL) {
+		dns_name_dup(name, zone->mctx, &zone->rad);
+	}
+	UNLOCK_ZONE(zone);
 }

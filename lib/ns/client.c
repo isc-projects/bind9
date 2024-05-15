@@ -315,6 +315,9 @@ ns_client_endrequest(ns_client_t *client) {
 	client->extflags = 0;
 	client->ednsversion = -1;
 	client->additionaldepth = 0;
+	if (dns_name_dynamic(&client->rad)) {
+		dns_name_free(&client->rad, client->manager->mctx);
+	}
 	dns_ecs_init(&client->ecs);
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
@@ -1236,14 +1239,20 @@ no_nsid:
 		count++;
 	}
 
-	if (WANTRC(client) && view != NULL && view->rad != NULL &&
-	    !dns_name_equal(view->rad, dns_rootname))
-	{
-		INSIST(count < DNS_EDNSOPTIONS);
-		ednsopts[count].code = DNS_OPT_REPORT_CHANNEL;
-		ednsopts[count].length = view->rad->length;
-		ednsopts[count].value = view->rad->ndata;
-		count++;
+	if (WANTRC(client)) {
+		dns_name_t *rad = NULL;
+		if (dns_name_dynamic(&client->rad)) {
+			rad = &client->rad;
+		} else if (view != NULL && view->rad != NULL) {
+			rad = view->rad;
+		}
+		if (rad != NULL && !dns_name_equal(rad, dns_rootname)) {
+			INSIST(count < DNS_EDNSOPTIONS);
+			ednsopts[count].code = DNS_OPT_REPORT_CHANNEL;
+			ednsopts[count].length = rad->length;
+			ednsopts[count].value = rad->ndata;
+			count++;
+		}
 	}
 
 	/* Padding must be added last */
@@ -2568,6 +2577,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	client->udpsize = 512;
 	client->ednsversion = -1;
 	dns_name_init(&client->signername, NULL);
+	dns_name_init(&client->rad, NULL);
 	dns_ecs_init(&client->ecs);
 	isc_sockaddr_any(&client->formerrcache.addr);
 	client->formerrcache.time = 0;

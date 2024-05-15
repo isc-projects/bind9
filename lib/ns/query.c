@@ -5518,12 +5518,30 @@ ns__query_start(query_ctx_t *qctx) {
 	if (qctx->is_zone) {
 		qctx->authoritative = true;
 		if (qctx->zone != NULL) {
-			if (dns_zone_gettype(qctx->zone) == dns_zone_mirror) {
+			dns_fixedname_t fixed;
+			dns_name_t *rad;
+			switch (dns_zone_gettype(qctx->zone)) {
+			case dns_zone_mirror:
 				qctx->authoritative = false;
-			}
-			if (dns_zone_gettype(qctx->zone) == dns_zone_staticstub)
-			{
+				break;
+			case dns_zone_staticstub:
 				qctx->is_staticstub_zone = true;
+				break;
+			case dns_zone_primary:
+			case dns_zone_secondary:
+				rad = dns_fixedname_initname(&fixed);
+				if (!dns_name_dynamic(&qctx->client->rad) &&
+				    dns_zone_getrad(qctx->zone, rad) ==
+					    ISC_R_SUCCESS)
+				{
+					dns_name_dup(
+						rad,
+						qctx->client->manager->mctx,
+						&qctx->client->rad);
+				}
+				break;
+			default:
+				break;
 			}
 		}
 	}

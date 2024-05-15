@@ -36,6 +36,7 @@ view main in {
 	zone example.com {
 		type primary;
 		file "example.com.db";
+		send-report-channel "rad.example.com";
 	};
 };
 

@@ -2770,6 +2770,26 @@ dns_zone_import_skr(dns_zone_t *zone, const char *file);
  * \li  ISC_R_SUCCESS if there were no errors loading the SKR.
  */
 
+void
+dns_zone_setrad(dns_zone_t *zone, dns_name_t *name);
+/**<
+ * \brief Set the per zone RAD
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'name' is NULL or a valid name.
+ */
+
+isc_result_t
+dns_zone_getrad(dns_zone_t *zone, dns_name_t *name);
+/**<
+ * \brief get the per zone RAD
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'name' is a valid name with a buffer.
+ */
+
 #if DNS_ZONE_TRACE
 #define dns_zone_ref(ptr)   dns_zone__ref(ptr, __func__, __FILE__, __LINE__)
 #define dns_zone_unref(ptr) dns_zone__unref(ptr, __func__, __FILE__, __LINE__)

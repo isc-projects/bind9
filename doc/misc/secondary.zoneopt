@@ -51,6 +51,7 @@ zone <string> [ <class> ] {
 	request-expire <boolean>;
 	request-ixfr <boolean>;
 	request-ixfr-max-diffs <integer>;
+	send-report-channel <string>;
 	sig-signing-nodes <integer>;
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;

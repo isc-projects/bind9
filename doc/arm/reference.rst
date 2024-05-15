@@ -1691,11 +1691,14 @@ default is used.
    problems with resolution or validation elsewhere (for example,
    expired DNSSEC signatures).
 
-   When :any:`send-report-channel` is set in :namedconf:ref:`options`, or
-   :namedconf:ref:`view` :iscman:`named` adds a Report-Channel option to
-   authoritative responses, using the specified domain name as the
-   Agent-Domain.  :iscman:`named` also logs any TXT queries received for
-   names matching the prescribed error-reporting format
+   When :any:`send-report-channel` is set in :namedconf:ref:`options`,
+   :namedconf:ref:`view`, or :namedconf:ref:`zone`, :iscman:`named` adds a
+   Report-Channel option to authoritative responses, using the specified
+   domain name as the Agent-Domain.
+
+   When it is set in :namedconf:ref:`options` or :namedconf:ref:`view` (but
+   *not* :namedconf:ref:`zone`), :iscman:`named` also logs any TXT queries
+   received for names matching the prescribed error-reporting format
    (_er.<type>.<name>.<extended-rcode>._er.<agent-domain>) to the
    ``dns-reporting-agent`` logging category at level ``info``.
 

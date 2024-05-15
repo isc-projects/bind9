@@ -1481,6 +1481,18 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		dns_zone_setoption(zone, DNS_ZONEOPT_NSEC3TESTZONE,
 				   cfg_obj_asboolean(obj));
+
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "send-report-channel", &obj);
+		if (obj != NULL) {
+			dns_fixedname_t fixed;
+			dns_name_t *rad = dns_fixedname_initname(&fixed);
+			CHECK(dns_name_fromstring(rad, cfg_obj_asstring(obj),
+						  dns_rootname, 0, mctx));
+			dns_zone_setrad(zone, rad);
+		} else {
+			dns_zone_setrad(zone, NULL);
+		}
 	} else if (ztype == dns_zone_redirect) {
 		dns_zone_setnotifytype(zone, dns_notifytype_no);
 

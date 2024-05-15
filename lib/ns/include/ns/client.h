@@ -197,6 +197,8 @@ struct ns_client {
 	isc_buffer_t *buffer;
 	isc_buffer_t  tbuffer;
 
+	dns_name_t rad; /* Zone rad domain */
+
 	isc_sockaddr_t peeraddr;
 	bool	       peeraddr_valid;
 	isc_netaddr_t  destaddr;
