@@ -31,13 +31,17 @@ def test_xferquota(named_port, servers):
 
     def check_line_count():
         matching_line_count = 0
-        # Iterate through zone files and count matching lines
+        # Iterate through zone files and count matching lines (records)
         for file_path in glob.glob("ns2/zone000*.example.bk"):
-            with open(file_path, "r", encoding="utf-8") as zonefile:
-                # Count the number of lines containing the search string
-                for line in zonefile:
-                    if "xyzzy			A	10.0.0.2" in line:
-                        matching_line_count += 1
+            zone = dns.zone.from_file(
+                file_path, origin=file_path[4:-2], relativize=False
+            )
+            for name, _ttl, rdata in zone.iterate_rdatas(rdtype="A"):
+                if (
+                    re.fullmatch("xyzzy.zone[0-9]+.example.", name.to_text())
+                    and rdata.to_text() == "10.0.0.2"
+                ):
+                    matching_line_count += 1
         return matching_line_count == 300
 
     isctest.run.retry_with_timeout(check_line_count, timeout=360)
