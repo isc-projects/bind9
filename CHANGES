@@ -1,3 +1,7 @@
+6388.	[bug]		Prevent an assertion failure caused by passing NULL to
+			dns_dispatch_resume() when a dns_request times out close
+			to view shutdown. [GL #4719]
+
 6386.	[bug]		When shutting down catzs->view could point to freed
 			memory. Obtain a reference to the view to prevent this.
 			[GL #4502]
