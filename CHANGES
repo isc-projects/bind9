@@ -1,3 +1,7 @@
+6396.	[func]		Outgoing zone transfers are no longer enabled by
+			default. To enable them, an "allow-transfer" ACL
+			must be specified. [GL #4728]
+
 6395.	[bug]		Handle ISC_R_HOSTDOWN and ISC_R_NETDOWN in resolver.c.
 			[GL #4736]
 
