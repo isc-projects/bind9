@@ -720,7 +720,6 @@ cross-version-config-tests:
     untracked: true
     expire_in: "1 day"
     when: always
-  allow_failure: true  # pytest env variable refactoring
 
 # Jobs for regular GCC builds on Alpine Linux 3.20 (amd64)
 
