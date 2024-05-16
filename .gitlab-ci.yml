@@ -1674,6 +1674,9 @@ shotgun:dot:
 
 .stress-test-short: &stress_test_short_job
   <<: *stress_test
+  artifacts:
+    untracked: true
+    when: always
   only:
     - merge_requests
 
