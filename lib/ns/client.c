@@ -2041,6 +2041,13 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request is signed by a nonauthoritative key");
+	} else if (result == DNS_R_NOTVERIFIEDYET &&
+		   client->message->sig0 != NULL)
+	{
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			      "request has a SIG(0) signature but its support "
+			      "was removed (CVE-2024-1975)");
 	} else {
 		char tsigrcode[64];
 		isc_buffer_t b;
