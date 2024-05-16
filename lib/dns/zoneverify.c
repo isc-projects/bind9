@@ -940,7 +940,6 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 		 * other than NSEC and DS is not signed at a delegation.
 		 */
 		if (rdataset.type != dns_rdatatype_rrsig &&
-		    rdataset.type != dns_rdatatype_dnskey &&
 		    (!delegation || rdataset.type == dns_rdatatype_ds ||
 		     rdataset.type == dns_rdatatype_nsec))
 		{
@@ -955,11 +954,12 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 			if (rdataset.type > maxtype) {
 				maxtype = rdataset.type;
 			}
-		} else if (rdataset.type != dns_rdatatype_rrsig &&
-			   rdataset.type != dns_rdatatype_dnskey)
-		{
+		} else if (rdataset.type != dns_rdatatype_rrsig) {
 			if (rdataset.type == dns_rdatatype_ns) {
 				dns_nsec_setbit(types, rdataset.type, 1);
+				if (rdataset.type > maxtype) {
+					maxtype = rdataset.type;
+				}
 			}
 			result = check_no_rrsig(vctx, &rdataset, name, node);
 			if (result != ISC_R_SUCCESS) {
@@ -969,6 +969,9 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 			}
 		} else {
 			dns_nsec_setbit(types, rdataset.type, 1);
+			if (rdataset.type > maxtype) {
+				maxtype = rdataset.type;
+			}
 		}
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_rdatasetiter_next(rdsiter);

@@ -3905,9 +3905,9 @@ ret=0
 dig_with_opts any x.insecure.example. @10.53.0.3 >dig.out.ns3.1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.1.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.ns3.1.test$n >/dev/null || ret=1
-dig_with_opts any zz.secure.example. @10.53.0.3 >dig.out.ns3.2.test$n || ret=1
+dig_with_opts any z.secure.example. @10.53.0.3 >dig.out.ns3.2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.2.test$n >/dev/null || ret=1
-# DNSKEY+RRSIG, NSEC+RRSIG
+# A+RRSIG, NSEC+RRSIG
 grep "ANSWER: 4," dig.out.ns3.2.test$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
