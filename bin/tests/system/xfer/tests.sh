@@ -255,7 +255,7 @@ status=$((status + tmp))
 
 n=$((n + 1))
 echo_i "check that a multi-message uncompressable zone transfers ($n)"
-$DIG axfr . -p ${PORT} @10.53.0.4 | grep SOA >axfr.out
+$DIG axfr . -p ${PORT} @10.53.0.4 | grep SOA >axfr.out || tmp=1
 if test $(wc -l <axfr.out) != 2; then
   echo_i "failed"
   status=$((status + 1))

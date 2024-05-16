@@ -3054,8 +3054,7 @@ for details on how to specify IP address lists.
    This specifies which hosts are allowed to receive zone transfers from the
    server. :any:`allow-transfer` may also be specified in the :any:`zone`
    statement, in which case it overrides the :any:`allow-transfer`
-   statement set in :namedconf:ref:`options` or :any:`view`. If not specified, the
-   default is to allow transfers to all hosts.
+   statement set in :namedconf:ref:`options` or :any:`view`.
 
    The transport level limitations can also be specified. In particular,
    zone transfers can be restricted to a specific port and/or DNS
@@ -3067,6 +3066,9 @@ for details on how to specify IP address lists.
    For example: ``allow-transfer port 853 transport tls { any; };``
    allows outgoing zone transfers to any host using the TLS transport
    over port 853.
+
+   If :any:`allow-transfer` is not specified, then the default is
+   ``none``; outgoing zone transfers are disabled.
 
 .. warning::
 
