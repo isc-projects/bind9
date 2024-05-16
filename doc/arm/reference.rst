@@ -5900,7 +5900,7 @@ The ``update-policy`` clause allows more fine-grained control over which
 updates are allowed. It specifies a set of rules, in which each rule
 either grants or denies permission for one or more names in the zone to
 be updated by one or more identities. Identity is determined by the key
-that signed the update request, using either TSIG or SIG(0). In most
+that signed the update request, using either TSIG. In most
 cases, ``update-policy`` rules only apply to key-based identities. There
 is no way to specify update permissions based on the client source address.
 
@@ -5957,7 +5957,7 @@ field), and the type of the record to be updated matches the ``types``
 field. Details for each rule type are described below.
 
 The ``identity`` field must be set to a fully qualified domain name. In
-most cases, this represents the name of the TSIG or SIG(0) key that
+most cases, this represents the name of the TSIG key that
 must be used to sign the update request. If the specified name is a
 wildcard, it is subject to DNS wildcard expansion, and the rule may
 apply to multiple identities. When a TKEY exchange has been used to
