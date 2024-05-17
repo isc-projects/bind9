@@ -44,10 +44,7 @@ typedef struct {
 	const char  *rdata;
 } zonechange_t;
 
-#define ZONECHANGE_SENTINEL            \
-	{                              \
-		0, NULL, 0, NULL, NULL \
-	}
+#define ZONECHANGE_SENTINEL { 0, NULL, 0, NULL, NULL }
 
 isc_result_t
 dns_test_makeview(const char *name, bool with_dispatchmgr, bool with_cache,

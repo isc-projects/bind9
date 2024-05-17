@@ -78,42 +78,19 @@ typedef struct wire_ok {
 	unsigned int loop;
 } wire_ok_t;
 
-#define COMPARE(r1, r2, answer)          \
-	{                                \
-		r1, r2, answer, __LINE__ \
-	}
-#define COMPARE_SENTINEL()              \
-	{                               \
-		NULL, NULL, 0, __LINE__ \
-	}
+#define COMPARE(r1, r2, answer) { r1, r2, answer, __LINE__ }
+#define COMPARE_SENTINEL()	{ NULL, NULL, 0, __LINE__ }
 
-#define TEXT_VALID_CHANGED(data_in, data_out) \
-	{                                     \
-		data_in, data_out, 0          \
-	}
-#define TEXT_VALID(data)      \
-	{                     \
-		data, data, 0 \
-	}
-#define TEXT_VALID_LOOP(loop, data) \
-	{                           \
-		data, data, loop    \
-	}
-#define TEXT_VALID_LOOPCHG(loop, data_in, data_out) \
-	{                                           \
-		data_in, data_out, loop             \
-	}
-#define TEXT_INVALID(data)    \
-	{                     \
-		data, NULL, 0 \
-	}
-#define TEXT_SENTINEL() TEXT_INVALID(NULL)
+#define TEXT_VALID_CHANGED(data_in, data_out)	    { data_in, data_out, 0 }
+#define TEXT_VALID(data)			    { data, data, 0 }
+#define TEXT_VALID_LOOP(loop, data)		    { data, data, loop }
+#define TEXT_VALID_LOOPCHG(loop, data_in, data_out) { data_in, data_out, loop }
+#define TEXT_INVALID(data)			    { data, NULL, 0 }
+#define TEXT_SENTINEL()				    TEXT_INVALID(NULL)
 
 #define VARGC(...) (sizeof((unsigned char[]){ __VA_ARGS__ }))
-#define WIRE_TEST(ok, loop, ...)                              \
-	{                                                     \
-		{ __VA_ARGS__ }, VARGC(__VA_ARGS__), ok, loop \
-	}
+#define WIRE_TEST(ok, loop, ...) \
+	{ { __VA_ARGS__ }, VARGC(__VA_ARGS__), ok, loop }
 #define WIRE_VALID(...)		   WIRE_TEST(true, 0, __VA_ARGS__)
 #define WIRE_VALID_LOOP(loop, ...) WIRE_TEST(true, loop, __VA_ARGS__)
 /*
