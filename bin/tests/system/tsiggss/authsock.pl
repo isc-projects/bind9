@@ -57,6 +57,7 @@ if ($timeout != 0) {
 }
 
 while (my $client = $server->accept()) {
+	printf("accept()\n");
 	$client->recv(my $buf, 8, 0);
 	my ($version, $req_len) = unpack('N N', $buf);
 
