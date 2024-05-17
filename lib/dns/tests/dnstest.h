@@ -37,10 +37,7 @@ typedef struct {
 	const char *rdata;
 } zonechange_t;
 
-#define ZONECHANGE_SENTINEL            \
-	{                              \
-		0, NULL, 0, NULL, NULL \
-	}
+#define ZONECHANGE_SENTINEL { 0, NULL, 0, NULL, NULL }
 
 extern isc_mem_t *dt_mctx;
 extern isc_log_t *lctx;
