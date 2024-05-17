@@ -127,7 +127,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 	stat void      name##__attach(name##_t *ptr, name##_t **ptrp,      \
 				      const char *func, const char *file,  \
 				      unsigned int line);                  \
-	stat	       name##__detach(name##_t **ptrp, const char *func,   \
+	stat void      name##__detach(name##_t **ptrp, const char *func,   \
 				      const char *file, unsigned int line)
 
 #define ISC_REFCOUNT_BLANK
@@ -190,9 +190,9 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 	}
 
 #define ISC_REFCOUNT_TRACE_IMPL(name, destroy) \
-	ISC__REFCOUNT_TRACE_DECL(name, destroy, ISC_REFCOUNT_BLANK)
+	ISC__REFCOUNT_TRACE_IMPL(name, destroy, ISC_REFCOUNT_BLANK)
 #define ISC_REFCOUNT_STATIC_TRACE_IMPL(name, destroy) \
-	ISC__REFCOUNT_TRACE_DECL(name, destroy, static inline)
+	ISC__REFCOUNT_TRACE_IMPL(name, destroy, static inline)
 
 #define ISC__REFCOUNT_DECL(name, stat)                                      \
 	stat name##_t *name##_ref(name##_t *ptr) __attribute__((unused));   \
