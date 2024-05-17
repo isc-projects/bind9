@@ -41,10 +41,7 @@ typedef struct ns_test_id {
 	int	    lineno;
 } ns_test_id_t;
 
-#define NS_TEST_ID(desc)                                \
-	{                                               \
-		.description = desc, .lineno = __LINE__ \
-	}
+#define NS_TEST_ID(desc) { .description = desc, .lineno = __LINE__ }
 
 #define CHECK(r)                             \
 	do {                                 \

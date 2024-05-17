@@ -847,18 +847,13 @@ send_client_connection_header(isc_nm_http_session_t *session) {
 	return (true);
 }
 
-#define MAKE_NV(NAME, VALUE, VALUELEN)                                       \
-	{                                                                    \
-		(uint8_t *)(uintptr_t)(NAME), (uint8_t *)(uintptr_t)(VALUE), \
-			sizeof(NAME) - 1, VALUELEN, NGHTTP2_NV_FLAG_NONE     \
-	}
+#define MAKE_NV(NAME, VALUE, VALUELEN)                                 \
+	{ (uint8_t *)(uintptr_t)(NAME), (uint8_t *)(uintptr_t)(VALUE), \
+	  sizeof(NAME) - 1, VALUELEN, NGHTTP2_NV_FLAG_NONE }
 
-#define MAKE_NV2(NAME, VALUE)                                                \
-	{                                                                    \
-		(uint8_t *)(uintptr_t)(NAME), (uint8_t *)(uintptr_t)(VALUE), \
-			sizeof(NAME) - 1, sizeof(VALUE) - 1,                 \
-			NGHTTP2_NV_FLAG_NONE                                 \
-	}
+#define MAKE_NV2(NAME, VALUE)                                          \
+	{ (uint8_t *)(uintptr_t)(NAME), (uint8_t *)(uintptr_t)(VALUE), \
+	  sizeof(NAME) - 1, sizeof(VALUE) - 1, NGHTTP2_NV_FLAG_NONE }
 
 static ssize_t
 client_read_callback(nghttp2_session *ngsession, int32_t stream_id,
@@ -1951,10 +1946,8 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 	return (ISC_R_SUCCESS);
 }
 
-#define MAKE_ERROR_REPLY(tag, code, desc)             \
-	{                                             \
-		tag, MAKE_NV2(":status", #code), desc \
-	}
+#define MAKE_ERROR_REPLY(tag, code, desc) \
+	{ tag, MAKE_NV2(":status", #code), desc }
 
 /*
  * Here we use roughly the same error codes that Unbound uses.
