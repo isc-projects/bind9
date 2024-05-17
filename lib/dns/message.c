@@ -1125,6 +1125,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	}
 
 	if (seen_problem) {
+		/* XXX test coverage */
 		result = DNS_R_RECOVERABLE;
 	}
 
@@ -1453,6 +1454,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 				if (msg->rdclass != dns_rdataclass_any &&
 				    msg->rdclass != rdclass)
 				{
+					/* XXX test coverage */
 					DO_ERROR(DNS_R_FORMERR);
 				}
 			}
@@ -1676,6 +1678,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 
 		if (seen_problem) {
 			if (free_name) {
+				/* XXX test coverage */
 				dns_message_puttempname(msg, &name);
 			}
 			free_name = false;
@@ -1694,6 +1697,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	    ((msg->flags & DNS_MESSAGEFLAG_TC) == 0) && !preserve_order &&
 	    !auth_signed(section))
 	{
+		/* XXX test coverage */
 		DO_ERROR(DNS_R_FORMERR);
 	}
 
