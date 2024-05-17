@@ -59,10 +59,7 @@ typedef struct {
 	const char *type;
 } zonediff_t;
 
-#define ZONEDIFF_SENTINEL        \
-	{                        \
-		0, NULL, 0, NULL \
-	}
+#define ZONEDIFF_SENTINEL { 0, NULL, 0, NULL }
 
 /*%
  * Structure defining a dns__zone_updatesigs() test.

@@ -80,14 +80,10 @@
 
 #ifdef __OpenBSD__
 #define USE_SYSCTL_PORTRANGE
-#define SYSCTL_V4PORTRANGE_LOW                                         \
-	{                                                              \
-		CTL_NET, PF_INET, IPPROTO_IP, IPCTL_IPPORT_HIFIRSTAUTO \
-	}
-#define SYSCTL_V4PORTRANGE_HIGH                                       \
-	{                                                             \
-		CTL_NET, PF_INET, IPPROTO_IP, IPCTL_IPPORT_HILASTAUTO \
-	}
+#define SYSCTL_V4PORTRANGE_LOW \
+	{ CTL_NET, PF_INET, IPPROTO_IP, IPCTL_IPPORT_HIFIRSTAUTO }
+#define SYSCTL_V4PORTRANGE_HIGH \
+	{ CTL_NET, PF_INET, IPPROTO_IP, IPCTL_IPPORT_HILASTAUTO }
 /* Same for IPv6 */
 #define SYSCTL_V6PORTRANGE_LOW	SYSCTL_V4PORTRANGE_LOW
 #define SYSCTL_V6PORTRANGE_HIGH SYSCTL_V4PORTRANGE_HIGH
