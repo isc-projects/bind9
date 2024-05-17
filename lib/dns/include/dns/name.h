@@ -166,28 +166,34 @@ extern const dns_name_t *dns_wildcardname;
  *	unsigned char offsets[] = { 0, 6 };
  *	dns_name_t value = DNS_NAME_INITABSOLUTE(data, offsets);
  */
-#define DNS_NAME_INITNONABSOLUTE(A, B)                                      \
-	{                                                                   \
-		.magic = DNS_NAME_MAGIC, .ndata = A,                        \
-		.length = (sizeof(A) - 1), .labels = sizeof(B),             \
-		.attributes = { .readonly = true }, .offsets = B,           \
-		.link = ISC_LINK_INITIALIZER, .list = ISC_LIST_INITIALIZER, \
+#define DNS_NAME_INITNONABSOLUTE(A, B)              \
+	{                                           \
+		.magic = DNS_NAME_MAGIC,            \
+		.ndata = A,                         \
+		.length = (sizeof(A) - 1),          \
+		.labels = sizeof(B),                \
+		.attributes = { .readonly = true }, \
+		.offsets = B,                       \
+		.link = ISC_LINK_INITIALIZER,       \
+		.list = ISC_LIST_INITIALIZER,       \
 	}
 
-#define DNS_NAME_INITABSOLUTE(A, B)                                       \
-	{                                                                 \
-		.magic = DNS_NAME_MAGIC, .ndata = A, .length = sizeof(A), \
-		.labels = sizeof(B),                                      \
-		.attributes = { .readonly = true, .absolute = true },     \
-		.offsets = B, .link = ISC_LINK_INITIALIZER,               \
-		.list = ISC_LIST_INITIALIZER,                             \
+#define DNS_NAME_INITABSOLUTE(A, B)                                   \
+	{                                                             \
+		.magic = DNS_NAME_MAGIC,                              \
+		.ndata = A,                                           \
+		.length = sizeof(A),                                  \
+		.labels = sizeof(B),                                  \
+		.attributes = { .readonly = true, .absolute = true }, \
+		.offsets = B,                                         \
+		.link = ISC_LINK_INITIALIZER,                         \
+		.list = ISC_LIST_INITIALIZER,                         \
 	}
 
-#define DNS_NAME_INITEMPTY                                             \
-	{                                                              \
-		.magic = DNS_NAME_MAGIC, .link = ISC_LINK_INITIALIZER, \
-		.list = ISC_LIST_INITIALIZER                           \
-	}
+#define DNS_NAME_INITEMPTY              \
+	{ .magic = DNS_NAME_MAGIC,      \
+	  .link = ISC_LINK_INITIALIZER, \
+	  .list = ISC_LIST_INITIALIZER }
 
 /*%
  * Standard sizes of a wire format name
