@@ -38,6 +38,7 @@
 #include <isc/util.h>
 
 #include "netmgr/uv-compat.h"
+#include "timer.c"
 
 #include <tests/isc.h>
 
@@ -400,8 +401,18 @@ ISC_RUN_TEST_IMPL(privilege_drop) {
 }
 
 /*
- * Basic task functions:
+ * Basic task variables and functions:
  */
+
+static char one[] = "1";
+static char two[] = "2";
+static char three[] = "3";
+static char four[] = "4";
+static char tick[] = "tick";
+static char tock[] = "tock";
+static char quick[] = "quick";
+static isc_timer_t *ti3 = NULL;
+
 static void
 basic_cb(isc_task_t *task, isc_event_t *event) {
 	int i, j;
@@ -434,7 +445,27 @@ basic_shutdown(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-basic_tick(isc_task_t *task, isc_event_t *event) {
+basic_tick1(isc_task_t *task, isc_event_t *event) {
+	UNUSED(task);
+
+	if (verbose) {
+		print_message("# %s\n", (char *)event->ev_arg);
+	}
+
+	/* Test for a race condition with isc_event_free() in basic_quick(). */
+	if (!atomic_load(&done)) {
+		LOCK(&lock);
+		if (ti3 != NULL) {
+			isc_timer_purge(ti3);
+		}
+		UNLOCK(&lock);
+	}
+
+	isc_event_free(&event);
+}
+
+static void
+basic_tick2(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	if (verbose) {
@@ -444,12 +475,12 @@ basic_tick(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static char one[] = "1";
-static char two[] = "2";
-static char three[] = "3";
-static char four[] = "4";
-static char tick[] = "tick";
-static char tock[] = "tock";
+static void
+basic_quick(isc_task_t *task, isc_event_t *event) {
+	UNUSED(task);
+
+	isc_event_free(&event);
+}
 
 ISC_RUN_TEST_IMPL(basic) {
 	isc_result_t result;
@@ -466,15 +497,22 @@ ISC_RUN_TEST_IMPL(basic) {
 			      one, two, three, four, two, three, four, NULL };
 	int i;
 
+	atomic_init(&done, false);
+
 	UNUSED(state);
 
-	result = isc_task_create(taskmgr, 0, &task1);
+	/*
+	 * Note: running task1 and task4 on different threads, because they
+	 * test a race condition.
+	 */
+
+	result = isc_task_create_bound(taskmgr, 0, &task1, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_create(taskmgr, 0, &task2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_create(taskmgr, 0, &task3);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = isc_task_create(taskmgr, 0, &task4);
+	result = isc_task_create_bound(taskmgr, 0, &task4, 1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_onshutdown(task1, basic_shutdown, one);
@@ -489,14 +527,21 @@ ISC_RUN_TEST_IMPL(basic) {
 	isc_time_settoepoch(&absolute);
 	isc_interval_set(&interval, 1, 0);
 	result = isc_timer_create(timermgr, isc_timertype_ticker, &absolute,
-				  &interval, task1, basic_tick, tick, &ti1);
+				  &interval, task1, basic_tick1, tick, &ti1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	ti2 = NULL;
 	isc_time_settoepoch(&absolute);
 	isc_interval_set(&interval, 1, 0);
 	result = isc_timer_create(timermgr, isc_timertype_ticker, &absolute,
-				  &interval, task2, basic_tick, tock, &ti2);
+				  &interval, task2, basic_tick2, tock, &ti2);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	ti3 = NULL;
+	isc_time_settoepoch(&absolute);
+	isc_interval_set(&interval, 0, 1000);
+	result = isc_timer_create(timermgr, isc_timertype_ticker, &absolute,
+				  &interval, task4, basic_quick, quick, &ti3);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	sleep(2);
@@ -524,9 +569,14 @@ ISC_RUN_TEST_IMPL(basic) {
 	isc_task_detach(&task3);
 	isc_task_detach(&task4);
 
+	atomic_store(&done, true);
+
 	sleep(10);
 	isc_timer_destroy(&ti1);
 	isc_timer_destroy(&ti2);
+	LOCK(&lock);
+	isc_timer_destroy(&ti3);
+	UNLOCK(&lock);
 }
 
 /*
@@ -1348,6 +1398,9 @@ try_purgeevent(bool purgeable) {
 
 	purged = isc_task_purgeevent(task, event2_clone);
 	assert_int_equal(purgeable, purged);
+	if (purged) {
+		isc_event_free(&event2_clone);
+	}
 
 	/*
 	 * Unblock the task, allowing event processing.
