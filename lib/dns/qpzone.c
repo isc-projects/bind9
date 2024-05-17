@@ -155,12 +155,10 @@ struct qpznode {
 	isc_refcount_t erefs;
 	uint16_t locknum;
 	void *data;
-	unsigned int		: 0;
-	unsigned int nsec	: 2; /*%< range is 0..3 */
-	unsigned int wild	: 1;
-	unsigned int delegating : 1;
-	unsigned int dirty	: 1;
-	unsigned int		: 0;
+	atomic_uint_fast8_t nsec;
+	atomic_bool wild;
+	atomic_bool delegating;
+	atomic_bool dirty;
 };
 
 struct qpzonedb {
@@ -882,7 +880,7 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		top_prev = current;
 	}
 	if (!still_dirty) {
-		node->dirty = 0;
+		node->dirty = false;
 	}
 }
 
@@ -1324,7 +1322,7 @@ rollback_node(qpznode_t *node, uint32_t serial) {
 		}
 	}
 	if (make_dirty) {
-		node->dirty = 1;
+		node->dirty = true;
 	}
 }
 
@@ -1968,7 +1966,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			newheader->next = topheader->next;
 			newheader->down = topheader;
 			topheader->next = newheader;
-			node->dirty = 1;
+			node->dirty = true;
 			if (changed != NULL) {
 				changed->dirty = true;
 			}
@@ -2014,7 +2012,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			if (changed != NULL) {
 				changed->dirty = true;
 			}
-			node->dirty = 1;
+			node->dirty = true;
 		} else {
 			/*
 			 * No rdatasets of the given type exist at the node.
@@ -2055,14 +2053,12 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 }
 
 static void
-wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
-	      bool lock) {
+wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 	isc_result_t result;
 	dns_name_t foundname;
 	dns_offsets_t offsets;
 	unsigned int n;
 	qpznode_t *node = NULL;
-	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
 	dns_name_init(&foundname, offsets);
 	n = dns_name_countlabels(name);
@@ -2080,19 +2076,11 @@ wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
 		qpznode_unref(node);
 	}
 
-	/* set the bit, locking if necessary */
-	if (lock) {
-		NODE_WRLOCK(&qpdb->node_locks[node->locknum].lock, &nlocktype);
-	}
-	node->wild = 1;
-	if (lock) {
-		NODE_UNLOCK(&qpdb->node_locks[node->locknum].lock, &nlocktype);
-	}
+	node->wild = true;
 }
 
 static void
-addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
-	     bool lock) {
+addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 	dns_name_t foundname;
 	dns_offsets_t offsets;
 	unsigned int n, l, i;
@@ -2104,7 +2092,7 @@ addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
 	while (i < n) {
 		dns_name_getlabelsequence(name, n - i, i, &foundname);
 		if (dns_name_iswildcard(&foundname)) {
-			wildcardmagic(qpdb, qp, &foundname, lock);
+			wildcardmagic(qpdb, qp, &foundname);
 		}
 
 		i++;
@@ -2136,7 +2124,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	if (rdataset->type != dns_rdatatype_nsec3 &&
 	    rdataset->covers != dns_rdatatype_nsec3)
 	{
-		addwildcards(qpdb, loadctx->tree, name, false);
+		addwildcards(qpdb, loadctx->tree, name);
 	}
 
 	if (dns_name_iswildcard(name)) {
@@ -2154,7 +2142,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 			return (DNS_R_INVALIDNSEC3);
 		}
 
-		wildcardmagic(qpdb, loadctx->tree, name, false);
+		wildcardmagic(qpdb, loadctx->tree, name);
 	}
 
 	loading_addnode(loadctx, name, rdataset->type, rdataset->covers, &node);
@@ -2193,7 +2181,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	if (result == ISC_R_SUCCESS &&
 	    delegating_type(qpdb, node, rdataset->type))
 	{
-		node->delegating = 1;
+		node->delegating = true;
 	} else if (result == DNS_R_UNCHANGED) {
 		result = ISC_R_SUCCESS;
 	}
@@ -2521,9 +2509,9 @@ findnodeintree(qpzonedb_t *qpdb, const dns_name_t *name, bool create,
 			if (nsec3) {
 				node->nsec = DNS_DB_NSEC_NSEC3;
 			} else {
-				addwildcards(qpdb, qp, name, true);
+				addwildcards(qpdb, qp, name);
 				if (dns_name_iswildcard(name)) {
-					wildcardmagic(qpdb, qp, name, true);
+					wildcardmagic(qpdb, qp, name);
 				}
 			}
 		}
@@ -4738,7 +4726,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	if (result == ISC_R_SUCCESS &&
 	    delegating_type(qpdb, node, rdataset->type))
 	{
-		node->delegating = 1;
+		node->delegating = true;
 	}
 
 	NODE_UNLOCK(&qpdb->node_locks[node->locknum].lock, &nlocktype);
@@ -4906,7 +4894,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		newheader->next = topheader->next;
 		newheader->down = topheader;
 		topheader->next = newheader;
-		node->dirty = 1;
+		node->dirty = true;
 		changed->dirty = true;
 		resigndelete(qpdb, version, header DNS__DB_FLARG_PASS);
 	} else {
