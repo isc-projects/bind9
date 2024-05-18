@@ -17,9 +17,10 @@
 
 #define ISC_LINK_TOMBSTONE(type) ((type *)-1)
 
-#define ISC_LIST_INITIALIZER                \
-	{                                   \
-		.head = NULL, .tail = NULL, \
+#define ISC_LIST_INITIALIZER  \
+	{                     \
+		.head = NULL, \
+		.tail = NULL, \
 	}
 #define ISC_LINK_INITIALIZER_TYPE(type)           \
 	{                                         \
