@@ -151,7 +151,7 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 
 #if DNS_DB_TRACE
 		fprintf(stderr, "dns_db_create:%s:%s:%d:%p->references = 1\n",
-			__func__, __FILE__, __LINE__ 1, *dbp);
+			__func__, __FILE__, __LINE__ + 1, *dbp);
 #endif
 		return (result);
 	}
