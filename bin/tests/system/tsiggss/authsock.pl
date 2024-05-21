@@ -31,6 +31,10 @@ if (!defined($path)) {
 	exit(1);
 }
 
+# Enable output autoflush so that it's not lost when the parent sends TERM.
+select STDOUT;
+$| = 1;
+
 unlink($path);
 my $server = IO::Socket::UNIX->new(Local => $path, Type => SOCK_STREAM, Listen => 8) or
     die "unable to create socket $path";
