@@ -262,10 +262,12 @@ if $FEATURETEST --enable-dnstap; then
 fi
 
 if test -f keyname; then
-  echo_i "checking update forwarding to with sig0 ($n)"
+  echo_i "checking update forwarding to with sig0 (expected to fail) ($n)"
   ret=0
   keyname=$(cat keyname)
-  $NSUPDATE -k $keyname.private -- - <<EOF
+  # SIG(0) is removed, update is expected to fail.
+  {
+    $NSUPDATE -k $keyname.private -- - <<EOF
 	local 10.53.0.1
 	server 10.53.0.3 ${PORT}
 	zone example2
@@ -273,8 +275,9 @@ if test -f keyname; then
 	update add unsigned.example2. 600 TXT Foo
 	send
 EOF
+  } >nsupdate.out.$n 2>&1 && ret=1
   $DIG -p ${PORT} unsigned.example2 A @10.53.0.1 >dig.out.ns1.test$n || ret=1
-  grep "status: NOERROR" dig.out.ns1.test$n >/dev/null || ret=1
+  grep "status: NOERROR" dig.out.ns1.test$n >/dev/null && ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$(expr $status + $ret)
   n=$(expr $n + 1)
