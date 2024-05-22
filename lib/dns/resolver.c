@@ -7128,7 +7128,7 @@ resume_dslookup(void *arg) {
 		fetchctx_ref(fctx);
 		result = dns_resolver_createfetch(
 			res, fctx->nsname, dns_rdatatype_ns, domain, nsrdataset,
-			NULL, NULL, 0, fctx->options, 0, NULL, loop,
+			NULL, NULL, 0, fctx->options, 0, fctx->qc, loop,
 			resume_dslookup, fctx, &fctx->nsrrset, NULL,
 			&fctx->nsfetch);
 		if (result != ISC_R_SUCCESS) {
@@ -9556,8 +9556,8 @@ rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 	fetchctx_ref(fctx);
 	result = dns_resolver_createfetch(
 		fctx->res, fctx->nsname, dns_rdatatype_ns, NULL, NULL, NULL,
-		NULL, 0, fctx->options, 0, NULL, fctx->loop, resume_dslookup,
-		fctx, &fctx->nsrrset, NULL, &fctx->nsfetch);
+		NULL, 0, fctx->options, 0, fctx->qc, fctx->loop,
+		resume_dslookup, fctx, &fctx->nsrrset, NULL, &fctx->nsfetch);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_DUPLICATE) {
 			result = DNS_R_SERVFAIL;
