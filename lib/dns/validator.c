@@ -15,6 +15,7 @@
 #include <stdbool.h>
 
 #include <isc/base32.h>
+#include <isc/counter.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/sha2.h>
@@ -1193,7 +1194,7 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	result = dns_validator_create(val->view, name, type,
 				      rdataset, sigrdataset, NULL, vopts,
 				      val->task, action, val,
-				      &val->subvalidator);
+				      val->qc, &val->subvalidator);
 	if (result == ISC_R_SUCCESS) {
 		val->subvalidator->parent = val;
 		val->subvalidator->depth = val->depth + 1;
@@ -3757,7 +3758,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
-		     dns_validator_t **validatorp)
+		     isc_counter_t *qc, dns_validator_t **validatorp)
 {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val;
@@ -3809,6 +3810,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	result = dns_view_getsecroots(val->view, &val->keytable);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mutex;
+
 	val->keynode = NULL;
 	val->key = NULL;
 	val->siginfo = NULL;
@@ -3825,6 +3827,12 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->depth = 0;
 	val->authcount = 0;
 	val->authfail = 0;
+	val->qc = NULL;
+
+	if (qc != NULL) {
+		isc_counter_attach(qc, &val->qc);
+	}
+
 	val->mustbesecure = dns_resolver_getmustbesecure(view->resolver, name);
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);
@@ -3929,6 +3937,9 @@ destroy(dns_validator_t *val) {
 	mctx = val->view->mctx;
 	if (val->siginfo != NULL)
 		isc_mem_put(mctx, val->siginfo, sizeof(*val->siginfo));
+	if (val->qc != NULL) {
+		isc_counter_detach(&val->qc);
+	}
 	DESTROYLOCK(&val->lock);
 	dns_view_weakdetach(&val->view);
 	val->magic = 0;
