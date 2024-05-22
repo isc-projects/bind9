@@ -7567,8 +7567,9 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		options = fctx->options & ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 		result = dns_resolver_createfetch(
 			res, fctx->nsname, dns_rdatatype_ns, domain, nsrdataset,
-			NULL, NULL, 0, options, 0, NULL, task, resume_dslookup,
-			fctx, &fctx->nsrrset, NULL, &fctx->nsfetch);
+			NULL, NULL, 0, options, 0, fctx->qc, task,
+			resume_dslookup, fctx, &fctx->nsrrset, NULL,
+			&fctx->nsfetch);
 		if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_DUPLICATE) {
 				result = DNS_R_SERVFAIL;
@@ -9934,7 +9935,7 @@ rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 	options = fctx->options & ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	result = dns_resolver_createfetch(
 		fctx->res, fctx->nsname, dns_rdatatype_ns, NULL, NULL, NULL,
-		NULL, 0, options, 0, NULL, task, resume_dslookup, fctx,
+		NULL, 0, options, 0, fctx->qc, task, resume_dslookup, fctx,
 		&fctx->nsrrset, NULL, &fctx->nsfetch);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_DUPLICATE) {
