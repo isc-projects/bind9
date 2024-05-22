@@ -29,6 +29,7 @@ rm -f */ans.run
 rm -f Ksig0.example2.*
 rm -f keyname keyname.err
 rm -f ns1/example2.db
+rm -f ns1/example2-toomanykeys.db
 rm -f ns*/managed-keys.bind*
 rm -f nsupdate.out.*
 rm -f ns*/named.run.prev

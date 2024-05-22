@@ -44,6 +44,12 @@ zone "example2" {
 	allow-update { key sig0.example2.; };
 };
 
+zone "example2-toomanykeys" {
+	type primary;
+	file "example2-toomanykeys.db";
+	allow-update { key sig0.example2-toomanykeys.; };
+};
+
 zone "example3" {
 	type primary;
 	file "example3.db";
