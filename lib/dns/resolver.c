@@ -7728,10 +7728,10 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		FCTXTRACE("continuing to look for parent's NS records");
 
-		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
+		result = dns_resolver_createfetch3(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
-						  nsrdataset, NULL,
-						  fctx->options, task,
+						  nsrdataset, NULL, NULL, 0,
+						  fctx->options, 0, NULL, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -9026,10 +9026,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 		FCTXTRACE("suspending DS lookup to find parent's NS records");
 
-		result = dns_resolver_createfetch(res, &fctx->nsname,
+		result = dns_resolver_createfetch3(res, &fctx->nsname,
 						  dns_rdatatype_ns,
-						  NULL, NULL, NULL,
-						  fctx->options, task,
+						  NULL, NULL, NULL, NULL, 0,
+						  fctx->options, 0, NULL, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -9532,11 +9532,11 @@ dns_resolver_prime(dns_resolver_t *res) {
 		}
 		dns_rdataset_init(rdataset);
 		LOCK(&res->primelock);
-		result = dns_resolver_createfetch(res, dns_rootname,
+		result = dns_resolver_createfetch3(res, dns_rootname,
 						  dns_rdatatype_ns,
-						  NULL, NULL, NULL,
+						  NULL, NULL, NULL, NULL, 0,
 						  DNS_FETCHOPT_NOFORWARD,
-						  res->buckets[0].task,
+						  0, NULL, res->buckets[0].task,
 						  prime_done,
 						  res, rdataset, NULL,
 						  &res->primefetch);
