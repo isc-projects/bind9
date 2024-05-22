@@ -991,7 +991,7 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	result = dns_validator_create(
 		fctx->res->view, name, type, rdataset, sigrdataset, message,
 		valoptions, fctx->loop, validated, valarg, &fctx->nvalidations,
-		&fctx->nfails, &validator);
+		&fctx->nfails, fctx->qc, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	inc_stats(fctx->res, dns_resstatscounter_val);
 	if ((valoptions & DNS_VALIDATOR_DEFER) == 0) {

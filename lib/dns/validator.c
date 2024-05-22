@@ -16,6 +16,7 @@
 
 #include <isc/async.h>
 #include <isc/base32.h>
+#include <isc/counter.h>
 #include <isc/job.h>
 #include <isc/md.h>
 #include <isc/mem.h>
@@ -974,9 +975,10 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		  (DNS_VALIDATOR_NOCDFLAG | DNS_VALIDATOR_NONTA));
 
 	validator_logcreate(val, name, type, caller, "validator");
-	result = dns_validator_create(
-		val->view, name, type, rdataset, sig, NULL, vopts, val->loop,
-		cb, val, val->nvalidations, val->nfails, &val->subvalidator);
+	result = dns_validator_create(val->view, name, type, rdataset, sig,
+				      NULL, vopts, val->loop, cb, val,
+				      val->nvalidations, val->nfails, val->qc,
+				      &val->subvalidator);
 	if (result == ISC_R_SUCCESS) {
 		dns_validator_attach(val, &val->subvalidator->parent);
 		val->subvalidator->depth = val->depth + 1;
@@ -3355,7 +3357,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_message_t *message, unsigned int options,
 		     isc_loop_t *loop, isc_job_cb cb, void *arg,
 		     uint32_t *nvalidations, uint32_t *nfails,
-		     dns_validator_t **validatorp) {
+		     isc_counter_t *qc, dns_validator_t **validatorp) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val = NULL;
 	dns_keytable_t *kt = NULL;
@@ -3393,6 +3395,10 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_view_attach(view, &val->view);
 	if (message != NULL) {
 		dns_message_attach(message, &val->message);
+	}
+
+	if (qc != NULL) {
+		isc_counter_attach(qc, &val->qc);
 	}
 
 	val->mustbesecure = dns_resolver_getmustbesecure(view->resolver, name);
@@ -3469,6 +3475,9 @@ destroy_validator(dns_validator_t *val) {
 	}
 	if (val->message != NULL) {
 		dns_message_detach(&val->message);
+	}
+	if (val->qc != NULL) {
+		isc_counter_detach(&val->qc);
 	}
 	dns_view_detach(&val->view);
 	isc_mem_put(mctx, val, sizeof(*val));
