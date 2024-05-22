@@ -20,6 +20,10 @@ mkdir offline
 
 # Zone files
 cp template.db.in common.test.db
+cp template.db.in past.test.db
+cp template.db.in future.test.db
+cp template.db.in last-bundle.test.db
+cp template.db.in in-the-middle.test.db
 
 # Create KSK for the various policies.
 create_ksk() {
@@ -35,5 +39,9 @@ create_ksk() {
   done
 }
 create_ksk common.test common
+create_ksk past.test common
+create_ksk future.test common
+create_ksk last-bundle.test common
+create_ksk in-the-middle.test common
 create_ksk unlimited.test unlimited
 create_ksk two-tone.test two-tone

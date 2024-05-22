@@ -544,6 +544,420 @@ ksr common -K ns1 -i $now -e +2y -K ns1/offline -f ksr.request.expect sign commo
 start=$(cat ns1/$zsk1.state | grep "Generated" | awk '{print $2}')
 end=$(addtime $start 63072000) # two years
 check_skr "common.test" "ns1/offline" "ksr.sign.out.$n" $start $end 4 || ret=1
+# Save response for skr import operation.
+cp ksr.sign.out.$n ns1/common.test.skr
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Add zone: common
+n=$((n + 1))
+echo_i "add zone 'common.test' ($n)"
+ret=0
+$RNDCCMD 10.53.0.1 addzone 'common.test { type primary; file "common.test.db"; dnssec-policy common; };' 2>&1 | sed 's/^/I:ns1 /' || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Import skr: common
+n=$((n + 1))
+echo_i "import ksr to zone 'common.test' ($n)"
+ret=0
+sleep 2
+$RNDCCMD 10.53.0.1 skr -import common.test.skr common.test 2>&1 | sed 's/^/I:ns1 /' || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Test that common.test is signed and uses the right DNSKEY and RRSIG records.
+n=$((n + 1))
+echo_i "test zone 'common.test' is correctly signed ($n)"
+ret=0
+
+set_zone "common.test"
+set_policy "common" "4" "3600"
+set_server "ns1" "10.53.0.1"
+# Only ZSKs
+set_keyrole "KEY1" "zsk"
+set_keylifetime "KEY1" "16070400"
+set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY1" "no"
+set_zonesigning "KEY1" "yes"
+set_keystate "KEY1" "GOAL" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
+
+set_keyrole "KEY2" "zsk"
+set_keylifetime "KEY2" "16070400"
+set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY2" "no"
+set_zonesigning "KEY2" "no"
+set_keystate "KEY2" "GOAL" "hidden"
+set_keystate "KEY2" "STATE_DNSKEY" "hidden"
+set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
+
+set_keyrole "KEY3" "zsk"
+set_keylifetime "KEY3" "16070400"
+set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY3" "no"
+set_zonesigning "KEY3" "no"
+set_keystate "KEY3" "GOAL" "hidden"
+set_keystate "KEY3" "STATE_DNSKEY" "hidden"
+set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
+
+set_keyrole "KEY4" "zsk"
+set_keylifetime "KEY4" "16070400"
+set_keyalgorithm "KEY4" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY4" "no"
+set_zonesigning "KEY4" "no"
+set_keystate "KEY4" "GOAL" "hidden"
+set_keystate "KEY4" "STATE_DNSKEY" "hidden"
+set_keystate "KEY4" "STATE_ZRRSIG" "hidden"
+
+MAXDEPTH=1
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_subdomain
+dnssec_verify
+
+# For checking the apex, we need to store the expected KSK metadata.
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+set_policy "common" "1" "3600"
+set_server "ns1/offline" "10.53.0.1"
+set_keyrole "KEY2" "ksk"
+set_keylifetime "KEY2" "0"
+set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY2" "yes"
+set_zonesigning "KEY2" "no"
+check_keys "keep"
+
+DIR="ns1"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY2" "STATE_DS" "omnipresent"
+check_apex
+
+# Check that key id's match expected keys
+n=$((n + 1))
+zsk1=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
+key1=$(key_get "KEY1" BASEFILE)
+echo_i "check that published zsk $zsk1 matches first key $key1 in bundle ($n)"
+ret=0
+[ "ns1/$zsk1" = "$key1" ] || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+ksk=$(cat common.test.ksk1.id)
+key2=$(key_get "KEY2" BASEFILE)
+echo_i "check that published ksk $ksk matches ksk $key2 ($n)"
+ret=0
+[ "ns1/offline/$ksk" = "$key2" ] || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Key generation: last-bundle
+n=$((n + 1))
+echo_i "generate keys for testing an SKR that is in the last bundle ($n)"
+ret=0
+ksr common -K ns1 -i -1y -e +1d keygen last-bundle.test >ksr.keygen.out.$n 2>&1 || ret=1
+num=$(cat ksr.keygen.out.$n | wc -l)
+[ $num -eq 2 ] || ret=1
+set_zsk $DEFAULT_ALGORITHM_NUMBER $DEFAULT_BITS 16070400
+ksr_check_keys last-bundle.test ns1 -31536000 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+# Create request: last-bundle
+n=$((n + 1))
+echo_i "create ksr for last bundle test ($n)"
+ret=0
+ksr common -K ns1 -i -1y -e +1d request last-bundle.test >ksr.request.out.$n 2>&1 || ret=1
+cp ksr.request.out.$n last-bundle.test.ksr
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+# Sign request: last-bundle
+n=$((n + 1))
+echo_i "create skr for last bundle test ($n)"
+ret=0
+ksr common -i -1y -e +1d -K ns1/offline -f last-bundle.test.ksr sign last-bundle.test >ksr.sign.out.$n 2>&1 || ret=1
+cp ksr.sign.out.$n ns1/last-bundle.test.skr
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+# Add zone: last-bundle
+n=$((n + 1))
+echo_i "add zone 'last-bundle.test' ($n)"
+ret=0
+$RNDCCMD 10.53.0.1 addzone 'last-bundle.test { type primary; file "last-bundle.test.db"; dnssec-policy common; };' 2>&1 | sed 's/^/I:ns1 /' || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+# Import skr: last-bundle
+n=$((n + 1))
+echo_i "import ksr to zone 'last-bundle.test' ($n)"
+ret=0
+sleep 2
+$RNDCCMD 10.53.0.1 skr -import last-bundle.test.skr last-bundle.test 2>&1 | sed 's/^/I:ns1 /' || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Test that last-bundle.test is signed and uses the right DNSKEY and RRSIG records.
+n=$((n + 1))
+echo_i "test zone 'last-bundle.test' is correctly signed ($n)"
+ret=0
+
+set_zone "last-bundle.test"
+set_policy "common" "2" "3600"
+set_server "ns1" "10.53.0.1"
+# Only ZSKs
+key_clear "KEY1"
+set_keyrole "KEY1" "zsk"
+set_keylifetime "KEY1" "16070400"
+set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY1" "no"
+set_zonesigning "KEY1" "yes"
+set_keystate "KEY1" "GOAL" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+
+key_clear "KEY2"
+set_keyrole "KEY2" "zsk"
+set_keylifetime "KEY2" "16070400"
+set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY2" "no"
+set_zonesigning "KEY2" "no"
+set_keystate "KEY2" "GOAL" "hidden"
+set_keystate "KEY2" "STATE_DNSKEY" "hidden"
+set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
+
+MAXDEPTH=1
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_subdomain
+dnssec_verify
+
+# For checking the apex, we need to store the expected KSK metadata.
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+set_policy "common" "1" "3600"
+set_server "ns1/offline" "10.53.0.1"
+set_keyrole "KEY2" "ksk"
+set_keylifetime "KEY2" "0"
+set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY2" "yes"
+set_zonesigning "KEY2" "no"
+check_keys "keep"
+
+DIR="ns1"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY2" "STATE_DS" "omnipresent"
+check_apex
+
+# Check that key id's match expected keys
+n=$((n + 1))
+zsk2=$(cat last-bundle.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
+key1=$(key_get "KEY1" BASEFILE)
+echo_i "check that published zsk $zsk2 matches first key $key1 in bundle ($n)"
+ret=0
+[ "ns1/$zsk2" = "$key1" ] || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+ksk=$(cat last-bundle.test.ksk1.id)
+key2=$(key_get "KEY2" BASEFILE)
+echo_i "check that published ksk $ksk matches ksk $key2 ($n)"
+ret=0
+[ "ns1/offline/$ksk" = "$key2" ] || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "check that last bundle warning is logged ($n)"
+wait_for_log 3 "zone last-bundle.test/IN (signed): zone_rekey: last bundle in skr, please import new skr file" ns1/named.run || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Key generation: in-the-middle
+n=$((n + 1))
+echo_i "generate keys for testing an SKR that is in the middle ($n)"
+ret=0
+ksr common -K ns1 -i -1y -e +1y keygen in-the-middle.test >ksr.keygen.out.$n 2>&1 || ret=1
+num=$(cat ksr.keygen.out.$n | wc -l)
+[ $num -eq 4 ] || ret=1
+set_zsk $DEFAULT_ALGORITHM_NUMBER $DEFAULT_BITS 16070400
+ksr_check_keys in-the-middle.test ns1 -31536000 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+# Create request: in-the-middle
+n=$((n + 1))
+echo_i "create ksr for in the middle test ($n)"
+ret=0
+ksr common -K ns1 -i -1y -e +1y request in-the-middle.test >ksr.request.out.$n 2>&1 || ret=1
+cp ksr.request.out.$n in-the-middle.test.ksr
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+# Sign request: in-the-middle
+n=$((n + 1))
+echo_i "create skr for in the middle test ($n)"
+ret=0
+ksr common -i -1y -e +1y -K ns1/offline -f in-the-middle.test.ksr sign in-the-middle.test >ksr.sign.out.$n 2>&1 || ret=1
+cp ksr.sign.out.$n ns1/in-the-middle.test.skr
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+# Add zone: in-the-middle
+n=$((n + 1))
+echo_i "add zone 'in-the-middle.test' ($n)"
+ret=0
+$RNDCCMD 10.53.0.1 addzone 'in-the-middle.test { type primary; file "in-the-middle.test.db"; dnssec-policy common; };' 2>&1 | sed 's/^/I:ns1 /' || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+# Import skr: in-the-middle
+n=$((n + 1))
+echo_i "import ksr to zone 'in-the-middle.test' ($n)"
+ret=0
+sleep 2
+$RNDCCMD 10.53.0.1 skr -import in-the-middle.test.skr in-the-middle.test 2>&1 | sed 's/^/I:ns1 /' || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Test that in-the-middle.test is signed and uses the right DNSKEY and RRSIG records.
+n=$((n + 1))
+echo_i "test zone 'in-the-middle.test' is correctly signed ($n)"
+ret=0
+
+set_zone "in-the-middle.test"
+set_policy "common" "4" "3600"
+set_server "ns1" "10.53.0.1"
+# Only ZSKs
+key_clear "KEY1"
+set_keyrole "KEY1" "zsk"
+set_keylifetime "KEY1" "16070400"
+set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY1" "no"
+set_zonesigning "KEY1" "yes"
+set_keystate "KEY1" "GOAL" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
+
+key_clear "KEY2"
+set_keyrole "KEY2" "zsk"
+set_keylifetime "KEY2" "16070400"
+set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY2" "no"
+set_zonesigning "KEY2" "no"
+set_keystate "KEY2" "GOAL" "hidden"
+set_keystate "KEY2" "STATE_DNSKEY" "hidden"
+set_keystate "KEY2" "STATE_ZRRSIG" "hidden"
+
+key_clear "KEY3"
+set_keyrole "KEY3" "zsk"
+set_keylifetime "KEY3" "16070400"
+set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY3" "no"
+set_zonesigning "KEY3" "no"
+set_keystate "KEY3" "GOAL" "hidden"
+set_keystate "KEY3" "STATE_DNSKEY" "hidden"
+set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
+
+key_clear "KEY4"
+set_keyrole "KEY4" "zsk"
+set_keylifetime "KEY4" "16070400"
+set_keyalgorithm "KEY4" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY4" "no"
+set_zonesigning "KEY4" "no"
+set_keystate "KEY4" "GOAL" "hidden"
+set_keystate "KEY4" "STATE_DNSKEY" "hidden"
+set_keystate "KEY4" "STATE_ZRRSIG" "hidden"
+
+MAXDEPTH=1
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_subdomain
+dnssec_verify
+
+# For checking the apex, we need to store the expected KSK metadata.
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+set_policy "common" "1" "3600"
+set_server "ns1/offline" "10.53.0.1"
+set_keyrole "KEY2" "ksk"
+set_keylifetime "KEY2" "0"
+set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
+set_keysigning "KEY2" "yes"
+set_zonesigning "KEY2" "no"
+check_keys "keep"
+
+DIR="ns1"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY2" "STATE_DS" "omnipresent"
+check_apex
+
+# Check that key id's match expected keys
+n=$((n + 1))
+zsk2=$(cat in-the-middle.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
+key1=$(key_get "KEY1" BASEFILE)
+echo_i "check that published zsk $zsk2 matches first key $key1 in bundle ($n)"
+ret=0
+[ "ns1/$zsk2" = "$key1" ] || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+ksk=$(cat in-the-middle.test.ksk1.id)
+key2=$(key_get "KEY2" BASEFILE)
+echo_i "check that published ksk $ksk matches ksk $key2 ($n)"
+ret=0
+[ "ns1/offline/$ksk" = "$key2" ] || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "check that no last bundle warning is logged ($n)"
+grep "zone $zone/IN (signed): zone_rekey failure: no available SKR bundle" ns1/named.run && ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Test error conditions
+check_rekey_logs_error() {
+  zone=$1
+  inc=$2
+  exp=$3
+  offset=$4
+
+  # Key generation
+  ksr common -K ns1 -i $inc -e $exp keygen $zone >ksr.keygen.out.$n 2>&1 || return 1
+  num=$(cat ksr.keygen.out.$n | wc -l)
+  [ $num -eq 2 ] || return 1
+  set_zsk $DEFAULT_ALGORITHM_NUMBER $DEFAULT_BITS 16070400
+  ksr_check_keys $zone ns1 $offset || return 1
+  # Create request
+  ksr common -K ns1 -i $inc -e $exp request $zone >ksr.request.out.$n 2>&1 || return 1
+  cp ksr.request.out.$n $zone.ksr
+  # Sign request
+  ksr common -K ns1/offline -i $inc -e $exp -f $zone.ksr sign $zone >ksr.sign.out.$n 2>&1 || return 1
+  cp ksr.sign.out.$n ns1/$zone.skr
+  # Import skr
+  $RNDCCMD 10.53.0.1 skr -import $zone.skr $zone 2>&1 | sed 's/^/I:ns1 /' || return 1
+  # Test that rekey logs error
+  wait_for_log 3 "zone $zone/IN (signed): zone_rekey failure: no available SKR bundle" ns1/named.run || return 1
+}
+
+n=$((n + 1))
+echo_i "check that an SKR that is too old logs error ($n)"
+$RNDCCMD 10.53.0.1 addzone 'past.test { type primary; file "past.test.db"; dnssec-policy common; };' 2>&1 | sed 's/^/I:ns1 /' || ret=1
+check_rekey_logs_error "past.test" -2y -1y -63072000 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "check that an SKR that is too new logs error ($n)"
+$RNDCCMD 10.53.0.1 addzone 'future.test { type primary; file "future.test.db"; dnssec-policy common; };' 2>&1 | sed 's/^/I:ns1 /' || ret=1
+check_rekey_logs_error "future.test" +1mo +1y 2592000 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
