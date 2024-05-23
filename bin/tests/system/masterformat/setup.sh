@@ -24,8 +24,23 @@ cp ns1/example.db ns2/
 cp ns2/formerly-text.db.in ns2/formerly-text.db
 cp ns1/large.db.in ns1/large.db
 awk 'END {
-	 for (i = 0; i < 512; i++ ) { print "a TXT", i; }
-	 for (i = 0; i < 1024; i++ ) { print "b TXT", i; }
+	 for (i = 0; i < 500; i++ ) { print "a TXT", i; }
+	 for (i = 0; i < 1000; i++ ) { print "b TXT", i; }
 	 for (i = 0; i < 2000; i++ ) { print "c TXT", i; }
 }' </dev/null >>ns1/large.db
+cp ns1/huge.db.in ns1/huge.db
+awk 'END {
+	 for (i = 0; i < 500; i++ ) { print "a TXT", i; }
+	 for (i = 0; i < 1000; i++ ) { print "b TXT", i; }
+	 for (i = 0; i < 2000; i++ ) { print "c TXT", i; }
+	 for (i = 0; i < 2050; i++ ) { print "d TXT", i; }
+}' </dev/null >>ns1/huge.db
+cp ns1/uber.db.in ns1/uber.db
+awk 'END {
+	 for (i = 0; i < 500; i++ ) { print "a TXT", i; }
+	 for (i = 0; i < 1000; i++ ) { print "b TXT", i; }
+	 for (i = 0; i < 2000; i++ ) { print "c TXT", i; }
+	 for (i = 0; i < 2050; i++ ) { print "d TXT", i; }
+	 for (i = 0; i < 2100; i++ ) { print "e TXT", i; }
+}' </dev/null >>ns1/uber.db
 cd ns1 && $SHELL compile.sh
