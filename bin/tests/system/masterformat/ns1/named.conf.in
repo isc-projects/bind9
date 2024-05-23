@@ -22,6 +22,7 @@ options {
 	notify no;
 	session-keyfile "session.key";
 	servfail-ttl 0;
+	max-records-per-type 2050;
 };
 
 key rndc_key {
@@ -73,6 +74,20 @@ zone "transfer4" {
 zone "large" {
 	type primary;
 	file "large.db.raw";
+	masterfile-format raw;
+	allow-transfer { any; };
+};
+
+zone "huge" {
+	type primary;
+	file "huge.db.raw";
+	masterfile-format raw;
+	allow-transfer { any; };
+};
+
+zone "uber" {
+	type primary;
+	file "uber.db.raw";
 	masterfile-format raw;
 	allow-transfer { any; };
 };
