@@ -50,7 +50,7 @@ following systems:
 -  Fedora 40
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8, 9
 -  FreeBSD 13.3, 14.0
--  Alpine Linux 3.19
+-  Alpine Linux 3.20
 
 The amd64 CPU architecture is fully supported and regularly tested.
 
