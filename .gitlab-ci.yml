@@ -2010,7 +2010,7 @@ backports:
     GIT_DEPTH: 200
   script:
     # CI job token is not sufficient for push operations
-    - git remote get-url origin | sed -e "s/gitlab-ci-token:$CI_JOB_TOKEN/oauth2:$BACKPORT_GITLAB_API_TOKEN/" | xargs git remote set-url --push origin
+    - git remote get-url origin | sed -e "s/gitlab-ci-token:$CI_JOB_TOKEN/oauth2:$BIND_TEAM_WRITE_TOKEN/" | xargs git remote set-url --push origin
     # force-pushing is disabled so we have to have merge request on top
     - MERGE_REQUEST_ID="$(git log -1 --format='%b' | sed --silent -e 's/^See merge request [^!]\+!//p')"
     - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
