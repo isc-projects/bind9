@@ -42,7 +42,7 @@ is_full_backport = is_backport and "Backport::Partial" not in mr_labels
 
 gl = gitlab.Gitlab(
     url=f"https://{os.environ['CI_SERVER_HOST']}",
-    private_token=os.environ["DANGER_GITLAB_API_TOKEN"],
+    private_token=os.environ["BIND_TEAM_API_TOKEN"],
 )
 proj = gl.projects.get(os.environ["CI_PROJECT_ID"])
 mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
