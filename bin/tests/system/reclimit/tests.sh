@@ -221,6 +221,16 @@ eval count=$(cat dig.out.3.test$n)
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
 
-#grep "duplicate query" ns3/named.run
+n=$((n + 1))
+echo_i "checking RRset that exceeds max-records-per-type ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 biganswer.big >dig.out.1.test$n || ret=1
+grep 'status: SERVFAIL' dig.out.1.test$n >/dev/null || ret=1
+ns3_reset ns3/named5.conf.in
+$DIG $DIGOPTS @10.53.0.3 biganswer.big >dig.out.2.test$n || ret=1
+grep 'status: NOERROR' dig.out.2.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
