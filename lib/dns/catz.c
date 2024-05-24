@@ -801,6 +801,13 @@ dns_catz_zones_new(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	return (catzs);
 }
 
+void *
+dns_catz_zones_get_udata(dns_catz_zones_t *catzs) {
+	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
+
+	return (catzs->zmm->udata);
+}
+
 void
 dns_catz_catzs_set_view(dns_catz_zones_t *catzs, dns_view_t *view) {
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
