@@ -307,6 +307,15 @@ dns_catz_new_zones(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  *
  */
 
+void *
+dns_catz_zones_get_udata(dns_catz_zones_t *catzs);
+/*%<
+ * Get the 'udata' member of the zone methods which was set when creating catzs.
+ *
+ * Requires:
+ * \li	'catzs' is a valid dns_catz_zones_t.
+ */
+
 isc_result_t
 dns_catz_add_zone(dns_catz_zones_t *catzs, const dns_name_t *name,
 		  dns_catz_zone_t **catzp);
