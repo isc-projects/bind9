@@ -196,7 +196,11 @@ cache_cleanup(dns_cache_t *cache) {
 	cache_destroy(cache);
 }
 
+#if DNS_CACHE_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_cache, cache_cleanup);
+#else
 ISC_REFCOUNT_IMPL(dns_cache, cache_cleanup);
+#endif
 
 void
 dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
