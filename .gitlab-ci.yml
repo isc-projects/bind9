@@ -619,8 +619,6 @@ danger:
   only:
     refs:
       - merge_requests
-    variables:
-      - $DANGER_GITLAB_API_TOKEN
 
 checkbashisms:
   <<: *precheck_job
