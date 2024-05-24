@@ -688,6 +688,7 @@ cross-version-config-tests:
     # Disable option checking to prevent problems with new default options in
     # the &configure anchor.
     EXTRA_CONFIGURE: "--disable-option-checking"
+    PYTEST: "/usr/bin/pytest-3"
   script:
     - *configure
     - *setup_interfaces
@@ -697,13 +698,16 @@ cross-version-config-tests:
     - autoreconf -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1}
-    - *find_pytest
     - cd bin/tests/system
     # Run the setup phase of all system tests in the most recently tagged BIND 9
     # release using the binaries built for the current BIND 9 version.  This
     # intends to detect obvious backward compatibility issues with the latter.
     - >
-      sed -i -E "s|(\s* \"TOP_BUILDDIR\"):.*|\1: \"${CI_PROJECT_DIR}\",|" isctest/vars/autoconf.py
+      if [ -f isctest/vars/autoconf.py ]; then
+        echo "${CI_PROJECT_DIR}" > isctest/vars/.ac_vars/TOP_BUILDDIR
+      else
+        sed -i -E "s|(export TOP_BUILDDIR)=.*|\1=${CI_PROJECT_DIR}|" conf.sh;
+      fi
     - >
       "$PYTEST" --setup-only --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "${TEST_PARALLEL_JOBS:-1}"
   needs:
@@ -720,7 +724,6 @@ cross-version-config-tests:
     untracked: true
     expire_in: "1 day"
     when: always
-  allow_failure: true  # pytest env variable refactoring
 
 # Jobs for regular GCC builds on Alpine Linux 3.20 (amd64)
 
