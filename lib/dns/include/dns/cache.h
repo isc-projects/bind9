@@ -42,9 +42,12 @@
  ***	Imports
  ***/
 
+/* Add -DDNS_CACHE_TRACE=1 to CFLAGS for detailed reference tracing */
+
 #include <stdbool.h>
 
 #include <isc/lang.h>
+#include <isc/refcount.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
 
@@ -55,6 +58,19 @@ ISC_LANG_BEGINDECLS
 /***
  ***	Functions
  ***/
+
+#if DNS_CACHE_TRACE
+#define dns_cache_ref(ptr)   dns_cache__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_cache_unref(ptr) dns_cache__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_cache_attach(ptr, ptrp) \
+	dns_cache__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_cache_detach(ptrp) \
+	dns_cache__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_cache);
+#else
+ISC_REFCOUNT_DECL(dns_cache);
+#endif
+
 isc_result_t
 dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 		 const char *cachename, dns_cache_t **cachep);
@@ -79,39 +95,6 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
  *
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOMEMORY
- */
-
-void
-dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp);
-/*%<
- * Attach *targetp to cache.
- *
- * Requires:
- *
- *\li	'cache' is a valid cache.
- *
- *\li	'targetp' points to a NULL dns_cache_t *.
- *
- * Ensures:
- *
- *\li	*targetp is attached to cache.
- */
-
-void
-dns_cache_detach(dns_cache_t **cachep);
-/*%<
- * Detach *cachep from its cache.
- *
- * Requires:
- *
- *\li	'cachep' points to a valid cache.
- *
- * Ensures:
- *
- *\li	*cachep is NULL.
- *
- *\li	If '*cachep' is the last reference to the cache,
- *		all resources used by the cache will be freed
  */
 
 void
