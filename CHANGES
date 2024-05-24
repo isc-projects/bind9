@@ -1,3 +1,19 @@
+6401.	[security]	An excessively large number of rrtypes per owner can
+			slow down database query processing, so a limit has been
+			placed on the number of rrtypes that can be stored per
+			owner (node) in a cache or zone database. This is
+			configured with the new "max-rrtypes-per-name" option,
+			and defaults to 100. (CVE-2024-1737)
+			[GL #3403] [GL #4548]
+
+6400.	[security]	Excessively large rdatasets can slow down database
+			query processing, so a limit has been placed on the
+			number of records that can be stored per rdataset
+			in a cache or zone database. This is configured
+			with the new "max-records-per-type" option, and
+			defaults to 100. (CVE-2024-1737)
+			[GL #497] [GL #3405]
+
 6399.	[security]	Malicious DNS client that sends many queries over
 			TCP but never reads responses can cause server to
 			respond slowly or not respond at all for other
