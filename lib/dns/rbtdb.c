@@ -463,6 +463,7 @@ struct dns_rbtdb {
 	rbtdb_serial_t least_serial;
 	rbtdb_serial_t next_serial;
 	uint32_t maxrrperset;
+	uint32_t maxtypepername;
 	rbtdb_version_t *current_version;
 	rbtdb_version_t *future_version;
 	rbtdb_versionlist_t open_versions;
@@ -6260,6 +6261,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 	rbtdb_rdatatype_t negtype, sigtype;
 	dns_trust_t trust;
 	int idx;
+	uint32_t ntypes = 0;
 
 	/*
 	 * Add an rdatasetheader_t to a node.
@@ -6324,6 +6326,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 					set_ttl(rbtdb, topheader, 0);
 					mark_header_ancient(rbtdb, topheader);
 				}
+				ntypes = 0; /* Always add the negative entry */
 				goto find_header;
 			}
 			/*
@@ -6347,9 +6350,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
+			ntypes = 0;
 			for (topheader = rbtnode->data; topheader != NULL;
 			     topheader = topheader->next)
 			{
+				++ntypes;
 				if ((topheader->type ==
 				     RBTDB_RDATATYPE_NCACHEANY) ||
 				    (newheader->type == sigtype &&
@@ -6394,9 +6399,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 		}
 	}
 
+	ntypes = 0;
 	for (topheader = rbtnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
+		++ntypes;
 		if (prio_type(topheader->type)) {
 			prioheader = topheader;
 		}
@@ -6766,6 +6773,14 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
+			if (rbtdb->maxtypepername > 0 &&
+			    ntypes >= rbtdb->maxtypepername)
+			{
+				free_rdataset(rbtdb, rbtdb->common.mctx,
+					      newheader);
+				return (DNS_R_TOOMANYRECORDS);
+			}
+
 			newheader->down = NULL;
 
 			if (prio_type(newheader->type)) {
@@ -8127,6 +8142,15 @@ setmaxrrperset(dns_db_t *db, uint32_t maxrrperset) {
 	rbtdb->maxrrperset = maxrrperset;
 }
 
+static void
+setmaxtypepername(dns_db_t *db, uint32_t maxtypepername) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxtypepername = maxtypepername;
+}
+
 static dns_stats_t *
 getrrsetstats(dns_db_t *db) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -8249,7 +8273,8 @@ static dns_dbmethods_t zone_methods = { attach,
 					NULL, /* setservestalerefresh */
 					NULL, /* getservestalerefresh */
 					setgluecachestats,
-					setmaxrrperset };
+					setmaxrrperset,
+					setmaxtypepername };
 
 static dns_dbmethods_t cache_methods = { attach,
 					 detach,
@@ -8300,7 +8325,8 @@ static dns_dbmethods_t cache_methods = { attach,
 					 setservestalerefresh,
 					 getservestalerefresh,
 					 NULL,
-					 setmaxrrperset };
+					 setmaxrrperset,
+					 setmaxtypepername };
 
 isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,

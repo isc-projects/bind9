@@ -17,6 +17,7 @@ zone <string> [ <class> ] {
 	max-retry-time <integer>;
 	max-transfer-idle-in <integer>;
 	max-transfer-time-in <integer>;
+	max-types-per-name <integer>;
 	min-refresh-time <integer>;
 	min-retry-time <integer>;
 	multi-master <boolean>;

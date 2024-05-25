@@ -192,6 +192,7 @@ struct dns_view {
 	uint32_t	  fail_ttl;
 	dns_badcache_t	 *failcache;
 	uint32_t	  maxrrperset;
+	uint32_t	  maxtypepername;
 
 	/*
 	 * Configurable data for server use only,
@@ -1418,6 +1419,12 @@ void
 dns_view_setmaxrrperset(dns_view_t *view, uint32_t value);
 /*%<
  * Set the maximum resource records per RRSet that can be cached.
+ */
+
+void
+dns_view_setmaxtypepername(dns_view_t *view, uint32_t value);
+/*%<
+ * Set the maximum resource record types per owner name that can be cached.
  */
 
 ISC_LANG_ENDDECLS
