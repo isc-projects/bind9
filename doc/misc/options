@@ -194,6 +194,7 @@ options {
 	max-transfer-idle-out <integer>;
 	max-transfer-time-in <integer>;
 	max-transfer-time-out <integer>;
+	max-types-per-name <integer>;
 	max-udp-size <integer>;
 	max-validation-failures-per-fetch <integer>; // experimental
 	max-validations-per-fetch <integer>; // experimental
@@ -479,6 +480,7 @@ view <string> [ <class> ] {
 	max-transfer-idle-out <integer>;
 	max-transfer-time-in <integer>;
 	max-transfer-time-out <integer>;
+	max-types-per-name <integer>;
 	max-udp-size <integer>;
 	max-validation-failures-per-fetch <integer>; // experimental
 	max-validations-per-fetch <integer>; // experimental

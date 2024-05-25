@@ -1583,6 +1583,7 @@ dns_dbmethods_t dns__rbtdb_cachemethods = {
 	.expiredata = expiredata,
 	.deletedata = dns__rbtdb_deletedata,
 	.setmaxrrperset = dns__rbtdb_setmaxrrperset,
+	.setmaxtypepername = dns__rbtdb_setmaxtypepername,
 };
 
 /*

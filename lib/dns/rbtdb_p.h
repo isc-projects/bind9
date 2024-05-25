@@ -115,6 +115,7 @@ struct dns_rbtdb {
 	uint32_t least_serial;
 	uint32_t next_serial;
 	uint32_t maxrrperset;
+	uint32_t maxtypepername;
 	dns_rbtdb_version_t *current_version;
 	dns_rbtdb_version_t *future_version;
 	rbtdb_versionlist_t open_versions;
@@ -429,7 +430,13 @@ dns__rbtdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl);
  */
 
 void
-dns__rbtdb_setmaxrrperset(dns_db_t *db, uint32_t value);
+dns__rbtdb_setmaxrrperset(dns_db_t *db, uint32_t maxrrperset);
+/*%<
+ * Set the max RRs per RRset limit.
+ */
+
+void
+dns__rbtdb_setmaxtypepername(dns_db_t *db, uint32_t maxtypepername);
 /*%<
  * Set the max RRs per RRset limit.
  */

@@ -81,6 +81,7 @@ struct dns_cache {
 	dns_ttl_t serve_stale_refresh;
 	isc_stats_t *stats;
 	uint32_t maxrrperset;
+	uint32_t maxtypepername;
 };
 
 /***
@@ -130,6 +131,7 @@ cache_create_db(dns_cache_t *cache, dns_db_t **dbp, isc_mem_t **tmctxp,
 	dns_db_setservestalettl(db, cache->serve_stale_ttl);
 	dns_db_setservestalerefresh(db, cache->serve_stale_refresh);
 	dns_db_setmaxrrperset(db, cache->maxrrperset);
+	dns_db_setmaxtypepername(db, cache->maxtypepername);
 
 	/*
 	 * XXX this is only used by the RBT cache, and can
@@ -555,6 +557,16 @@ dns_cache_setmaxrrperset(dns_cache_t *cache, uint32_t value) {
 	cache->maxrrperset = value;
 	if (cache->db != NULL) {
 		dns_db_setmaxrrperset(cache->db, value);
+	}
+}
+
+void
+dns_cache_setmaxtypepername(dns_cache_t *cache, uint32_t value) {
+	REQUIRE(VALID_CACHE(cache));
+
+	cache->maxtypepername = value;
+	if (cache->db != NULL) {
+		dns_db_setmaxtypepername(cache->db, value);
 	}
 }
 

@@ -217,7 +217,8 @@ struct qpcache {
 	/* Locked by lock. */
 	unsigned int active;
 
-	uint32_t maxrrperset; /* Maximum RRs per RRset */
+	uint32_t maxrrperset;	 /* Maximum RRs per RRset */
+	uint32_t maxtypepername; /* Maximum number of RR types per owner */
 
 	/*
 	 * The time after a failed lookup, where stale answers from cache
@@ -2885,6 +2886,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 	dns_typepair_t negtype = 0, sigtype;
 	dns_trust_t trust;
 	int idx;
+	uint32_t ntypes;
 
 	if ((options & DNS_DBADD_FORCE) != 0) {
 		trust = dns_trust_ultimate;
@@ -2917,6 +2919,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 				{
 					mark_ancient(topheader);
 				}
+				ntypes = 0; /* Always add the negative entry */
 				goto find_header;
 			}
 			/*
@@ -2940,9 +2943,11 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
+			ntypes = 0;
 			for (topheader = qpnode->data; topheader != NULL;
 			     topheader = topheader->next)
 			{
+				++ntypes;
 				if ((topheader->type == RDATATYPE_NCACHEANY) ||
 				    (newheader->type == sigtype &&
 				     topheader->type ==
@@ -2985,9 +2990,12 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 		}
 	}
 
+	ntypes = 0;
 	for (topheader = qpnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
+		++ntypes;
+
 		if (prio_type(topheader->type)) {
 			prioheader = topheader;
 		}
@@ -3255,6 +3263,14 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
+			if (trust != dns_trust_ultimate &&
+			    qpdb->maxtypepername > 0 &&
+			    ntypes >= qpdb->maxtypepername)
+			{
+				dns_slabheader_destroy(&newheader);
+				return (DNS_R_TOOMANYRECORDS);
+			}
+
 			INSIST(newheader->down == NULL);
 
 			if (prio_type(newheader->type)) {
@@ -4344,6 +4360,15 @@ setmaxrrperset(dns_db_t *db, uint32_t value) {
 	qpdb->maxrrperset = value;
 }
 
+static void
+setmaxtypepername(dns_db_t *db, uint32_t value) {
+	qpcache_t *qpdb = (qpcache_t *)db;
+
+	REQUIRE(VALID_QPDB(qpdb));
+
+	qpdb->maxtypepername = value;
+}
+
 static dns_dbmethods_t qpdb_cachemethods = {
 	.destroy = qpdb_destroy,
 	.findnode = findnode,
@@ -4369,6 +4394,7 @@ static dns_dbmethods_t qpdb_cachemethods = {
 	.expiredata = expiredata,
 	.deletedata = deletedata,
 	.setmaxrrperset = setmaxrrperset,
+	.setmaxtypepername = setmaxtypepername,
 };
 
 static void

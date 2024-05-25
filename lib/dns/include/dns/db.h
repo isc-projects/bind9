@@ -184,6 +184,7 @@ typedef struct dns_dbmethods {
 	isc_result_t (*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
 				     dns_name_t *name);
 	void (*setmaxrrperset)(dns_db_t *db, uint32_t value);
+	void (*setmaxtypepername)(dns_db_t *db, uint32_t value);
 } dns_dbmethods_t;
 
 typedef isc_result_t (*dns_dbcreatefunc_t)(isc_mem_t	    *mctx,
@@ -1805,8 +1806,19 @@ dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
 void
 dns_db_setmaxrrperset(dns_db_t *db, uint32_t value);
 /*%<
- * Set the maximum permissible number of RRs per RRset. If 'value'
- * is nonzero, then any subsequent attempt to add an rdataset with
- * more than 'value' RRs will return ISC_R_TOOMANYRECORDS.
+ * Set the maximum permissible number of RRs per RRset.
+ *
+ * If 'value' is nonzero, then any subsequent attempt to add an rdataset
+ * with more than 'value' RRs will return ISC_R_TOOMANYRECORDS.
+ */
+
+void
+dns_db_setmaxtypepername(dns_db_t *db, uint32_t value);
+/*%<
+ * Set the maximum permissible number of RR types per owner name.
+ *
+ * If 'value' is nonzero, and if there are already 'value' RR types
+ * stored at a given node, then any subsequent attempt to add an rdataset
+ * with a new RR type will return ISC_R_TOOMANYRECORDS.
  */
 ISC_LANG_ENDDECLS

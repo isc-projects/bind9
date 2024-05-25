@@ -2420,6 +2420,7 @@ dns_dbmethods_t dns__rbtdb_zonemethods = {
 	.deletedata = dns__rbtdb_deletedata,
 	.nodefullname = dns__rbtdb_nodefullname,
 	.setmaxrrperset = dns__rbtdb_setmaxrrperset,
+	.setmaxtypepername = dns__rbtdb_setmaxtypepername,
 };
 
 void

@@ -380,6 +380,19 @@ dns_zone_setmaxrrperset(dns_zone_t *zone, uint32_t maxrrperset);
  */
 
 void
+dns_zone_setmaxtypepername(dns_zone_t *zone, uint32_t maxtypepername);
+/*%<
+ * 	Sets the maximum number of resource record types per owner name
+ *	permitted in a zone.  0 implies unlimited.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	void
+ */
+
+void
 dns_zone_setmaxttl(dns_zone_t *zone, uint32_t maxttl);
 /*%<
  * 	Sets the max ttl of the zone.

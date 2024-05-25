@@ -2566,6 +2566,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	dns_typepair_t negtype = 0, sigtype;
 	dns_trust_t trust;
 	int idx;
+	uint32_t ntypes = 0;
 
 	if ((options & DNS_DBADD_MERGE) != 0) {
 		REQUIRE(rbtversion != NULL);
@@ -2618,6 +2619,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 				{
 					mark_ancient(topheader);
 				}
+				ntypes = 0; /* Always add the negative entry */
 				goto find_header;
 			}
 			/*
@@ -2641,9 +2643,11 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
+			ntypes = 0;
 			for (topheader = rbtnode->data; topheader != NULL;
 			     topheader = topheader->next)
 			{
+				++ntypes;
 				if ((topheader->type == RDATATYPE_NCACHEANY) ||
 				    (newheader->type == sigtype &&
 				     topheader->type ==
@@ -2686,9 +2690,11 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 		}
 	}
 
+	ntypes = 0;
 	for (topheader = rbtnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
+		++ntypes;
 		if (prio_type(topheader->type)) {
 			prioheader = topheader;
 		}
@@ -3082,6 +3088,14 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
+
+			if (rbtdb->maxtypepername > 0 &&
+			    ntypes >= rbtdb->maxtypepername)
+			{
+				dns_slabheader_destroy(&newheader);
+				return (DNS_R_TOOMANYRECORDS);
+			}
+
 			INSIST(newheader->down == NULL);
 
 			if (prio_type(newheader->type)) {
@@ -4967,4 +4981,13 @@ dns__rbtdb_setmaxrrperset(dns_db_t *db, uint32_t value) {
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	rbtdb->maxrrperset = value;
+}
+
+void
+dns__rbtdb_setmaxtypepername(dns_db_t *db, uint32_t maxtypepername) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxtypepername = maxtypepername;
 }

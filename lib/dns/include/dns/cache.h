@@ -252,6 +252,12 @@ dns_cache_setmaxrrperset(dns_cache_t *cache, uint32_t value);
  * Set the maximum resource records per RRSet that can be cached.
  */
 
+void
+dns_cache_setmaxtypepername(dns_cache_t *cache, uint32_t value);
+/*%<
+ * Set the maximum resource record types per owner name that can be cached.
+ */
+
 #ifdef HAVE_LIBXML2
 int
 dns_cache_renderxml(dns_cache_t *cache, void *writer0);
