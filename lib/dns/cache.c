@@ -98,13 +98,31 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	argv[0] = (char *)cache->hmctx;
 	result = dns_db_create(cache->mctx, CACHEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_cache, cache->rdclass, 1, argv, db);
-	if (result == ISC_R_SUCCESS) {
-		dns_db_setservestalettl(*db, cache->serve_stale_ttl);
-		dns_db_setservestalerefresh(*db, cache->serve_stale_refresh);
-		dns_db_setloop(*db, cache->loop);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
-	return (result);
+	dns_db_setservestalettl(*db, cache->serve_stale_ttl);
+	dns_db_setservestalerefresh(*db, cache->serve_stale_refresh);
+	dns_db_setloop(*db, cache->loop);
+
+	result = dns_db_setcachestats(*db, cache->stats);
+	if (result != ISC_R_SUCCESS) {
+		dns_db_detach(db);
+		return (result);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static void
+cache_destroy(dns_cache_t *cache) {
+	isc_stats_detach(&cache->stats);
+	isc_mutex_destroy(&cache->lock);
+	isc_mem_free(cache->mctx, cache->name);
+	isc_loop_detach(&cache->loop);
+	isc_mem_detach(&cache->hmctx);
+	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
 }
 
 isc_result_t
@@ -141,11 +159,11 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 		.rdclass = rdclass,
 		.name = isc_mem_strdup(mctx, cachename),
 		.loop = isc_loop_ref(isc_loop_main(loopmgr)),
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.magic = CACHE_MAGIC,
 	};
 
 	isc_mutex_init(&cache->lock);
-
-	isc_refcount_init(&cache->references, 1);
 
 	isc_stats_create(mctx, &cache->stats, dns_cachestatscounter_max);
 
@@ -154,79 +172,35 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 	 */
 	result = cache_create_db(cache, &cache->db);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_stats;
-	}
-
-	dns_db_setloop(cache->db, isc_loop_main(loopmgr));
-	cache->magic = CACHE_MAGIC;
-
-	/*
-	 * RBT-type cache DB has its own mechanism of cache cleaning and
-	 * doesn't need the control of the generic cleaner.
-	 */
-	result = dns_db_setcachestats(cache->db, cache->stats);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_db;
+		goto cleanup;
 	}
 
 	*cachep = cache;
 	return (ISC_R_SUCCESS);
 
-cleanup_db:
-	dns_db_detach(&cache->db);
-cleanup_stats:
-	isc_stats_detach(&cache->stats);
-	isc_mutex_destroy(&cache->lock);
-	isc_mem_free(mctx, cache->name);
-	isc_loop_detach(&cache->loop);
-	isc_mem_detach(&cache->hmctx);
-	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
+cleanup:
+	cache_destroy(cache);
 	return (result);
 }
 
 static void
-cache_free(dns_cache_t *cache) {
+cache_cleanup(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
 
 	isc_refcount_destroy(&cache->references);
+	cache->magic = 0;
 
 	isc_mem_clearwater(cache->mctx);
 	dns_db_detach(&cache->db);
-	isc_mem_free(cache->mctx, cache->name);
-	isc_stats_detach(&cache->stats);
 
-	isc_mutex_destroy(&cache->lock);
-
-	isc_loop_detach(&cache->loop);
-
-	cache->magic = 0;
-	isc_mem_detach(&cache->hmctx);
-	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
+	cache_destroy(cache);
 }
 
-void
-dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp) {
-	REQUIRE(VALID_CACHE(cache));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	isc_refcount_increment(&cache->references);
-
-	*targetp = cache;
-}
-
-void
-dns_cache_detach(dns_cache_t **cachep) {
-	dns_cache_t *cache;
-
-	REQUIRE(cachep != NULL);
-	cache = *cachep;
-	*cachep = NULL;
-	REQUIRE(VALID_CACHE(cache));
-
-	if (isc_refcount_decrement(&cache->references) == 1) {
-		cache_free(cache);
-	}
-}
+#if DNS_CACHE_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_cache, cache_cleanup);
+#else
+ISC_REFCOUNT_IMPL(dns_cache, cache_cleanup);
+#endif
 
 void
 dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
@@ -345,7 +319,6 @@ dns_cache_flush(dns_cache_t *cache) {
 	LOCK(&cache->lock);
 	olddb = cache->db;
 	cache->db = db;
-	dns_db_setcachestats(cache->db, cache->stats);
 	UNLOCK(&cache->lock);
 
 	dns_db_detach(&olddb);
