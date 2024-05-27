@@ -355,7 +355,7 @@ def system_test_dir(request, system_test_name):
     isctest.vars.dirs.set_system_test_name(testdir.name)
 
     # Create a convenience symlink with a stable and predictable name
-    module_name = SYMLINK_REPLACEMENT_RE.sub(r"\1", request.node.name)
+    module_name = SYMLINK_REPLACEMENT_RE.sub(r"\1", str(_get_node_path(request.node)))
     symlink_dst = system_test_root / module_name
     unlink(symlink_dst)
     symlink_dst.symlink_to(os.path.relpath(testdir, start=system_test_root))
@@ -444,6 +444,15 @@ def _run_script(
         if returncode:
             raise subprocess.CalledProcessError(returncode, cmd)
         isctest.log.debug("  exited with %d", returncode)
+
+
+def _get_node_path(node) -> Path:
+    if isinstance(node.parent, pytest.Session):
+        if _pytest_major_ver >= 8:
+            return Path()
+        return Path(node.name)
+    assert node.parent is not None
+    return _get_node_path(node.parent) / node.name
 
 
 @pytest.fixture(scope="module")
@@ -543,7 +552,7 @@ def system_test(
             isctest.log.error("Found core dumps or sanitizer reports")
             pytest.fail(f"get_core_dumps.sh exited with {exc.returncode}")
 
-    isctest.log.info(f"test started: {request.node.name}")
+    isctest.log.info(f"test started: {_get_node_path(request.node)}")
     port = int(os.environ["PORT"])
     isctest.log.info(
         "using port range: <%d, %d>", port, port + isctest.vars.ports.PORTS_PER_TEST - 1
