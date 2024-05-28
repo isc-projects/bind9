@@ -26,6 +26,7 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	max-records-per-type 0;
+	max-types-per-name 10;
 };
 
 trust-anchors { };
