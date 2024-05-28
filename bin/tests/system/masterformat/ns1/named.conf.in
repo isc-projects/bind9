@@ -24,6 +24,7 @@ options {
 	servfail-ttl 0;
 	dnssec-validation no;
 	max-records-per-type 2050;
+	max-types-per-name 500;
 };
 
 key rndc_key {
@@ -93,9 +94,17 @@ zone "huge" {
 	allow-transfer { any; };
 };
 
+
 zone "uber" {
 	type primary;
 	file "uber.db.raw";
+	masterfile-format raw;
+	allow-transfer { any; };
+};
+
+zone "many" {
+	type primary;
+	file "many.db.raw";
 	masterfile-format raw;
 	allow-transfer { any; };
 };
