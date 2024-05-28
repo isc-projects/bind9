@@ -232,5 +232,39 @@ grep 'status: NOERROR' dig.out.2.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+check_manytypes() (
+  i=$1
+  type=$2
+  expected=$3
+
+  $DIG $DIGOPTS @10.53.0.3 IN $type manytypes.big >dig.out.$i.$type.test$n || exit 1
+  grep 'status: '"${expected}"'' dig.out.$i.$type.test$n >/dev/null || exit 1
+
+  exit 0
+)
+
+n=$((n + 1))
+echo_i "checking name that exceeds max-types-per-name ($n)"
+ret=0
+
+# Limited to 10 types - these should be fine
+for ntype in $(seq 65280 65289); do
+  check_manytypes 1 "TYPE${ntype}" NOERROR || ret=1
+done
+# Everything on top of that should SERVFAIL
+for ntype in $(seq 65290 65534); do
+  check_manytypes 1 "TYPE${ntype}" SERVFAIL || ret=1
+done
+
+# Lift the limit
+ns3_reset ns3/named6.conf.in
+
+for ntype in $(seq 65280 65534); do
+  check_manytypes 2 "TYPE${ntype}" NOERROR || ret=1
+done
+
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
