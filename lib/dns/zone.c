@@ -2286,30 +2286,12 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 	dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_DEBUG(1),
 		      "starting load");
 
-	result = dns_db_create(zone->mctx, zone->db_argv[0], &zone->origin,
-			       (zone->type == dns_zone_stub) ? dns_dbtype_stub
-							     : dns_dbtype_zone,
-			       zone->rdclass, zone->db_argc - 1,
-			       zone->db_argv + 1, &db);
-
+	result = dns_zone_makedb(zone, &db);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
 			      "loading zone: creating database: %s",
 			      isc_result_totext(result));
 		goto cleanup;
-	}
-	dns_db_setloop(db, zone->loop);
-
-	if (zone->type == dns_zone_primary ||
-	    zone->type == dns_zone_secondary || zone->type == dns_zone_mirror)
-	{
-		result = dns_db_setgluecachestats(db, zone->gluecachestats);
-		if (result == ISC_R_NOTIMPLEMENTED) {
-			result = ISC_R_SUCCESS;
-		}
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
 	}
 
 	if (!dns_db_ispersistent(db)) {
@@ -24072,4 +24054,44 @@ dns_zone_gettid(dns_zone_t *zone) {
 isc_loop_t *
 dns_zone_getloop(dns_zone_t *zone) {
 	return (zone->loop);
+}
+
+isc_result_t
+dns_zone_makedb(dns_zone_t *zone, dns_db_t **dbp) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(dbp != NULL && *dbp == NULL);
+
+	dns_db_t *db = NULL;
+
+	isc_result_t result = dns_db_create(
+		zone->mctx, zone->db_argv[0], &zone->origin,
+		(zone->type == dns_zone_stub) ? dns_dbtype_stub
+					      : dns_dbtype_zone,
+		zone->rdclass, zone->db_argc - 1, zone->db_argv + 1, &db);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	switch (zone->type) {
+	case dns_zone_primary:
+	case dns_zone_secondary:
+	case dns_zone_mirror:
+		result = dns_db_setgluecachestats(db, zone->gluecachestats);
+		if (result == ISC_R_NOTIMPLEMENTED) {
+			result = ISC_R_SUCCESS;
+		}
+		if (result != ISC_R_SUCCESS) {
+			dns_db_detach(&db);
+			return (result);
+		}
+		break;
+	default:
+		break;
+	}
+
+	dns_db_setloop(db, zone->loop);
+
+	*dbp = db;
+
+	return (ISC_R_SUCCESS);
 }
