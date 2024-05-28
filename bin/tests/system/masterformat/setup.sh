@@ -43,4 +43,9 @@ awk 'END {
 	 for (i = 0; i < 2050; i++ ) { print "d TXT", i; }
 	 for (i = 0; i < 2100; i++ ) { print "e TXT", i; }
 }' </dev/null >>ns1/uber.db
+cp ns1/many.db.in ns1/many.db
+for ntype in $(seq 65280 65534); do
+  echo "m TYPE${ntype} \# 0"
+done >>ns1/many.db
+echo "m TXT bunny" >>ns1/many.db
 cd ns1 && $SHELL compile.sh
