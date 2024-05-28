@@ -31,6 +31,7 @@ $CHECKZONE -D -F map -o example.db.map example-map \
   example.db >/dev/null 2>&1
 $CHECKZONE -D -F raw -o huge.db.raw huge huge.db >/dev/null 2>&1
 $CHECKZONE -D -F raw -o uber.db.raw uber uber.db >/dev/null 2>&1
+$CHECKZONE -D -F raw -o many.db.raw many many.db >/dev/null 2>&1
 
 $KEYGEN -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK signed >/dev/null 2>&1
 $KEYGEN -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" signed >/dev/null 2>&1

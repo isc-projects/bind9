@@ -254,6 +254,29 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking that many types are loaded ($n)"
+for i in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  $DIG +tcp TXT "m.many" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.test$n"
+  grep "status: NOERROR" "dig.out.ns1.test$n" >/dev/null || ret=1
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that many types are not transfered ($n)"
+for i in 0 1 2 3 4 5 6 7 8 9; do
+  $DIG +tcp TXT "m.many" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.test$n"
+  grep "status: SERVFAIL" "dig.out.ns2.test$n" >/dev/null || ret=1
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking format transitions: text->raw->map->text ($n)"
 ret=0
 $CHECKZONE -D -f text -F text -o baseline.txt example.nil ns1/example.db >/dev/null
