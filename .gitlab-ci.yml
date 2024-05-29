@@ -101,11 +101,6 @@ stages:
     - stress-test
     - amd64
 
-.windows-amd64: &windows_amd64
-  tags:
-    - windows
-    - amd64
-
 ### Docker Image Templates
 
 # Alpine Linux
@@ -183,12 +178,6 @@ stages:
 .ubuntu-noble-amd64: &ubuntu_noble_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-noble-amd64"
   <<: *linux_amd64
-
-# Windows
-
-.windows-server-2016-amd64: &windows_server_2016_amd64_image
-  image: "$CI_REGISTRY_IMAGE:windows-server-2016-amd64"
-  <<: *windows_amd64
 
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
@@ -286,30 +275,6 @@ stages:
     when: always
   needs: []
 
-.windows_build: &windows_build_job
-  stage: build
-  script:
-    - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
-    - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
-    - 'Pop-Location'
-    - 'Set-Location win32utils'
-    - '& "C:/Strawberry/perl/bin/perl.exe" Configure
-         "with-tools-version=15.0"
-         "with-platform-toolset=v141"
-         "with-platform-version=10.0.17763.0"
-         "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
-         "with-openssl=C:/OpenSSL"
-         "with-libxml2=C:/libxml2"
-         "with-libuv=C:/libuv"
-         "without-python"
-         "with-system-tests"
-         x64'
-    - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
-    - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
-  needs: []
-  artifacts:
-    untracked: true
-
 .setup_interfaces: &setup_interfaces
     - if [ "$(id -u)" -eq "0" ]; then
         sh -x bin/tests/system/ifconfig.sh up;
@@ -359,22 +324,6 @@ stages:
          --results-file "$KYUA_RESULT"
          --results-filter ""
          --output kyua_html > /dev/null
-
-.windows_system_test: &windows_system_test_job
-  stage: system
-  script:
-    - 'Push-Location bin/tests/system'
-    - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/^exit.*/netsh interface ipv4 set dnsservers $ifIndex dhcp/; s/\(name\|interface\)=Loopback/$ifIndex/;" ifconfig.bat'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/kill -f/kill -W/;" conf.sh stop.pl'
-    - '& cmd.exe /C ifconfig.bat up; ""'
-    - 'Start-Sleep 2'
-    - '$Env:Path = "C:/tools/cygwin/bin;$Env:Path"'
-    - '& sh.exe runall.sh $TEST_PARALLEL_JOBS'
-    - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
-  artifacts:
-    untracked: true
-    when: on_failure
 
 .unit_test_common: &unit_test_common
   <<: *default_triggering_rules
@@ -1317,42 +1266,6 @@ unit:nolibtool:sid:amd64:
     - job: nolibtool:sid:amd64
       artifacts: true
 
-# Jobs for Visual Studio 2017 builds on Windows (amd64)
-
-msvc:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_build_job
-  <<: *default_triggering_rules
-  variables:
-    VSCONF: Release
-
-system:msvc:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_system_test_job
-  <<: *default_triggering_rules
-  variables:
-    VSCONF: Release
-  needs:
-    - job: msvc:windows:amd64
-      artifacts: true
-
-msvc-debug:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_build_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
-  variables:
-    VSCONF: Debug
-
-system:msvc-debug:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_system_test_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
-  variables:
-    VSCONF: Debug
-  needs:
-    - job: msvc-debug:windows:amd64
-      artifacts: true
-
 # Job producing a release directory
 
 release:
@@ -1362,20 +1275,10 @@ release:
     # Determine BIND version
     - source version
     - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
-    # Remove redundant files and system test utilities from Windows build artifacts
-    - find Build/Release/ -name "*.pdb" -print -delete
-    - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
-    - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
-    # Create Windows zips
-    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.xz" | tee Build/Release/SHA256 Build/Debug/SHA256
-    - cp "doc/arm/_build/latex/Bv9ARM.pdf" Build/Release/
-    - cp "doc/arm/_build/latex/Bv9ARM.pdf" Build/Debug/
-    - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
-    - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
     # Prepare release tarball contents (tarballs + zips + documentation)
     - mkdir -p "${BIND_DIRECTORY}-release/doc/arm"
     - pushd "${BIND_DIRECTORY}-release"
-    - mv "../${BIND_DIRECTORY}.tar.xz" ../BIND*.zip .
+    - mv "../${BIND_DIRECTORY}.tar.xz" .
     - tar --extract --file="${BIND_DIRECTORY}.tar.xz"
     - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
     - rm -rf "${BIND_DIRECTORY}"
@@ -1385,10 +1288,6 @@ release:
     - popd
   needs:
     - job: tarball-create
-      artifacts: true
-    - job: msvc:windows:amd64
-      artifacts: true
-    - job: msvc-debug:windows:amd64
       artifacts: true
     - job: docs
       artifacts: true
@@ -1415,7 +1314,7 @@ sign:
       cat > /tmp/sign-bind9.sh <<EOF
       #!/bin/sh
       {
-          for FILE in \$(find "${PWD}" -name "*.tar.xz" -o -name "*.zip" | sort); do
+          for FILE in \$(find "${PWD}" -name "*.tar.xz" | sort); do
               echo ">>> Signing \${FILE}..."
               gpg2 --local-user "\${SIGNING_KEY_FINGERPRINT}" --armor --digest-algo SHA512 --detach-sign --output "\${FILE}.asc" "\${FILE}"
           done
@@ -1427,7 +1326,7 @@ sign:
       echo -e "\e[31m*** ${SIGNING_HELP_URL}\e[0m"
       echo -e "\e[31m*** \e[0m"
       echo -e "\e[31m*** Sleeping until files in ${PWD} are signed... ⌛\e[0m"
-      while [ "$(find . -name "*.asc" -size +0 | sed "s|\.asc$||" | sort)" != "$(find . -name "*.tar.xz" -o -name "*.zip" | sort)" ]; do sleep 10; done
+      while [ "$(find . -name "*.asc" -size +0 | sed "s|\.asc$||" | sort)" != "$(find . -name "*.tar.xz" | sort)" ]; do sleep 10; done
     - popd
     - tar --create --file="${RELEASE_DIRECTORY}.tar.gz" --gzip "${RELEASE_DIRECTORY}"
   artifacts:
