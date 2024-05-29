@@ -165,6 +165,19 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
  *\li	#ISC_R_UNEXPECTED
  */
 
+isc_result_t
+dns_zone_makedb(dns_zone_t *zone, dns_db_t **dbp);
+/*%<
+ *	Creates a new empty database for the 'zone'.
+ *
+ * Requires:
+ *\li	'zone' to be a valid zone.
+ *\li	'dbp' to point to NULL pointer.
+ *
+ * Returns:
+ *\li	dns_db_create() error codes.
+ */
+
 void
 dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
 /*%<

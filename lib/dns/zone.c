@@ -2327,30 +2327,12 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 	dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_DEBUG(1),
 		      "starting load");
 
-	result = dns_db_create(zone->mctx, zone->db_argv[0], &zone->origin,
-			       (zone->type == dns_zone_stub) ? dns_dbtype_stub
-							     : dns_dbtype_zone,
-			       zone->rdclass, zone->db_argc - 1,
-			       zone->db_argv + 1, &db);
-
+	result = dns_zone_makedb(zone, &db);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
 			      "loading zone: creating database: %s",
 			      isc_result_totext(result));
 		goto cleanup;
-	}
-	dns_db_settask(db, zone->task, zone->task);
-
-	if (zone->type == dns_zone_primary ||
-	    zone->type == dns_zone_secondary || zone->type == dns_zone_mirror)
-	{
-		result = dns_db_setgluecachestats(db, zone->gluecachestats);
-		if (result == ISC_R_NOTIMPLEMENTED) {
-			result = ISC_R_SUCCESS;
-		}
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
 	}
 
 	if (!dns_db_ispersistent(db)) {
@@ -24223,4 +24205,44 @@ zmgr_tlsctx_attach(dns_zonemgr_t *zmgr, isc_tlsctx_cache_t **ptlsctx_cache) {
 	isc_tlsctx_cache_attach(zmgr->tlsctx_cache, ptlsctx_cache);
 
 	RWUNLOCK(&zmgr->tlsctx_cache_rwlock, isc_rwlocktype_read);
+}
+
+isc_result_t
+dns_zone_makedb(dns_zone_t *zone, dns_db_t **dbp) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(dbp != NULL && *dbp == NULL);
+
+	dns_db_t *db = NULL;
+
+	isc_result_t result = dns_db_create(
+		zone->mctx, zone->db_argv[0], &zone->origin,
+		(zone->type == dns_zone_stub) ? dns_dbtype_stub
+					      : dns_dbtype_zone,
+		zone->rdclass, zone->db_argc - 1, zone->db_argv + 1, &db);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	switch (zone->type) {
+	case dns_zone_primary:
+	case dns_zone_secondary:
+	case dns_zone_mirror:
+		result = dns_db_setgluecachestats(db, zone->gluecachestats);
+		if (result == ISC_R_NOTIMPLEMENTED) {
+			result = ISC_R_SUCCESS;
+		}
+		if (result != ISC_R_SUCCESS) {
+			dns_db_detach(&db);
+			return (result);
+		}
+		break;
+	default:
+		break;
+	}
+
+	dns_db_settask(db, zone->task, zone->task);
+
+	*dbp = db;
+
+	return (ISC_R_SUCCESS);
 }
