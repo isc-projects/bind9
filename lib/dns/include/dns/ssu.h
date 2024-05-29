@@ -111,7 +111,7 @@ void
 dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
-		     dns_ssuruletype_t *types);
+		     dns_ssuruletype_t *types, const char *debug);
 /*%<
  *	Adds a new rule to a simple-secure-update rule table.  The rule
  *	either grants or denies update privileges of an identity (or set of
@@ -134,6 +134,7 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
  *\li		'matchtype' must be one of the defined constants.
  *\li		'name' is a valid absolute name
  *\li		If 'ntypes' > 0, 'types' must not be NULL
+ *\li		'debug' must not be NULL
  *
  *	Returns:
  *\li		ISC_R_SUCCESS
