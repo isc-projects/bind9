@@ -73,31 +73,31 @@ zone "transfer4" {
 };
 
 
-zone "large" {
+zone "under-limit" {
 	type primary;
-	file "large.db.raw";
+	file "under-limit.db.raw";
 	masterfile-format raw;
 	allow-transfer { any; };
 };
 
-zone "huge" {
+zone "on-limit" {
 	type primary;
-	file "huge.db.raw";
+	file "on-limit.db.raw";
 	masterfile-format raw;
 	allow-transfer { any; };
 };
 
 
-zone "uber" {
+zone "over-limit" {
 	type primary;
-	file "uber.db.raw";
+	file "over-limit.db.raw";
 	masterfile-format raw;
 	allow-transfer { any; };
 };
 
-zone "many" {
+zone "255types" {
 	type primary;
-	file "many.db.raw";
+	file "255types.db.raw";
 	masterfile-format raw;
 	allow-transfer { any; };
 };
