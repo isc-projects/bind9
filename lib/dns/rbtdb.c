@@ -6200,6 +6200,10 @@ update_recordsandbytes(bool add, rbtdb_version_t *rbtversion,
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 }
 
+#ifndef DNS_RBTDB_MAX_RTYPES
+#define DNS_RBTDB_MAX_RTYPES 100
+#endif /* DNS_RBTDB_MAX_RTYPES */
+
 /*
  * write lock on rbtnode must be held.
  */
@@ -6220,6 +6224,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	rbtdb_rdatatype_t negtype, sigtype;
 	dns_trust_t trust;
 	int idx;
+	uint32_t ntypes;
 
 	/*
 	 * Add an rdatasetheader_t to a node.
@@ -6282,6 +6287,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					set_ttl(rbtdb, topheader, 0);
 					mark_stale_header(rbtdb, topheader);
 				}
+				ntypes = 0;
 				goto find_header;
 			}
 			/*
@@ -6303,9 +6309,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			 * check for an extant non-stale NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
+			ntypes = 0;
 			for (topheader = rbtnode->data;
 			     topheader != NULL;
 			     topheader = topheader->next) {
+				ntypes++;
 				if ((topheader->type ==
 					RBTDB_RDATATYPE_NCACHEANY) ||
 					(newheader->type == sigtype &&
@@ -6349,9 +6357,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		}
 	}
 
+	ntypes = 0;
 	for (topheader = rbtnode->data;
 	     topheader != NULL;
 	     topheader = topheader->next) {
+		ntypes++;
 		if (prio_type(topheader->type)) {
 			prioheader = topheader;
 		}
@@ -6710,6 +6720,13 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
+
+			if (ntypes > DNS_RBTDB_MAX_RTYPES) {
+				free_rdataset(rbtdb, rbtdb->common.mctx,
+					      newheader);
+				return (ISC_R_QUOTA);
+			}
+
 			newheader->down = NULL;
 
 			if (prio_type(newheader->type)) {
