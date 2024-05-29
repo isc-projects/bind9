@@ -173,11 +173,11 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that large rdatasets loaded ($n)"
+echo_i "checking that under-limit rdatasets loaded ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
   for rrcount in 500-txt 1000-txt 2000-txt; do
-    $DIG +tcp txt "${rrcount}.large" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    $DIG +tcp txt "${rrcount}.under-limit" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
     grep "status: NOERROR" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
@@ -187,11 +187,11 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that large rdatasets transfered ($n)"
+echo_i "checking that under-limit rdatasets transfered ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
   for rrcount in 500-txt 1000-txt 2000-txt; do
-    $DIG +tcp txt "${rrcount}.large" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
+    $DIG +tcp txt "${rrcount}.under-limit" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
     grep "status: NOERROR" "dig.out.ns2.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
@@ -201,11 +201,11 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that huge rdatasets loaded ($n)"
+echo_i "checking that on-limit rdatasets loaded ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
   for rrcount in 500-txt 1000-txt 2000-txt 2050-txt; do
-    $DIG +tcp txt "${rrcount}.huge" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    $DIG +tcp txt "${rrcount}.on-limit" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
     grep "status: NOERROR" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
@@ -215,11 +215,11 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that huge rdatasets not transfered ($n)"
+echo_i "checking that on-limit rdatasets not transfered ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
   for rrcount in 500-txt 1000-txt 2000-txt 2050-txt; do
-    $DIG +tcp txt "${rrcount}.huge" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
+    $DIG +tcp txt "${rrcount}.on-limit" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
     grep "status: SERVFAIL" "dig.out.ns2.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
@@ -229,11 +229,11 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that uber rdatasets not loaded ($n)"
+echo_i "checking that over-limit rdatasets not loaded ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
   for rrcount in 500-txt 1000-txt 2000-txt 2050-txt 2100-txt; do
-    $DIG +tcp txt "${rrcount}.uber" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    $DIG +tcp txt "${rrcount}.over-limit" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
     grep "status: SERVFAIL" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
@@ -243,10 +243,10 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that many types are loaded ($n)"
+echo_i "checking that 255 types are loaded ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  $DIG +tcp TXT "m.many" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.test$n"
+  $DIG +tcp TXT "m.255types" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.test$n"
   grep "status: NOERROR" "dig.out.ns1.test$n" >/dev/null || ret=1
   [ $ret -eq 0 ] && break
   sleep 1
@@ -255,9 +255,9 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that many types are not transfered ($n)"
+echo_i "checking that 255 types types are not transfered ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
-  $DIG +tcp TXT "m.many" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.test$n"
+  $DIG +tcp TXT "m.255types" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.test$n"
   grep "status: SERVFAIL" "dig.out.ns2.test$n" >/dev/null || ret=1
   [ $ret -eq 0 ] && break
   sleep 1

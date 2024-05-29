@@ -58,23 +58,23 @@ zone "transfer4" {
 	file "transfer.db.full";
 };
 
-zone "large" {
+zone "under-limit" {
 	type secondary;
 	primaries { 10.53.0.1; };
 	masterfile-format raw;
-	file "large.bk";
+	file "under-limit.bk";
 };
 
-zone "huge" {
+zone "on-limit" {
 	type secondary;
 	primaries { 10.53.0.1; };
 	masterfile-format raw;
-	file "huge.bk";
+	file "on-limit.bk";
 };
 
-zone "many" {
+zone "255types" {
 	type secondary;
 	primaries { 10.53.0.1; };
 	masterfile-format raw;
-	file "many.bk";
+	file "255types.bk";
 };
