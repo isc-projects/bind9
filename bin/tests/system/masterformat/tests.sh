@@ -176,9 +176,9 @@ status=$((status + ret))
 echo_i "checking that large rdatasets loaded ($n)"
 for i in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c; do
-    $DIG +tcp txt "${a}.large" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$a.test$n"
-    grep "status: NOERROR" "dig.out.ns1.$a.test$n" >/dev/null || ret=1
+  for rrcount in a b c; do
+    $DIG +tcp txt "${rrcount}.large" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
@@ -190,9 +190,9 @@ status=$((status + ret))
 echo_i "checking that large rdatasets transfered ($n)"
 for i in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c; do
-    $DIG +tcp txt "${a}.large" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$a.test$n"
-    grep "status: NOERROR" "dig.out.ns2.$a.test$n" >/dev/null || ret=1
+  for rrcount in a b c; do
+    $DIG +tcp txt "${rrcount}.large" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns2.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
@@ -204,9 +204,9 @@ status=$((status + ret))
 echo_i "checking that huge rdatasets loaded ($n)"
 for i in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c d; do
-    $DIG +tcp txt "${a}.huge" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$a.test$n"
-    grep "status: NOERROR" "dig.out.ns1.$a.test$n" >/dev/null || ret=1
+  for rrcount in a b c d; do
+    $DIG +tcp txt "${rrcount}.huge" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
@@ -218,9 +218,9 @@ status=$((status + ret))
 echo_i "checking that huge rdatasets not transfered ($n)"
 for i in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c d; do
-    $DIG +tcp txt "${a}.huge" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$a.test$n"
-    grep "status: SERVFAIL" "dig.out.ns2.$a.test$n" >/dev/null || ret=1
+  for rrcount in a b c d; do
+    $DIG +tcp txt "${rrcount}.huge" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
+    grep "status: SERVFAIL" "dig.out.ns2.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
@@ -232,9 +232,9 @@ status=$((status + ret))
 echo_i "checking that uber rdatasets not loaded ($n)"
 for i in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c d e; do
-    $DIG +tcp txt "${a}.uber" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$a.test$n"
-    grep "status: SERVFAIL" "dig.out.ns1.$a.test$n" >/dev/null || ret=1
+  for rrcount in a b c d e; do
+    $DIG +tcp txt "${rrcount}.uber" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    grep "status: SERVFAIL" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
