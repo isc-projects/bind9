@@ -18,6 +18,11 @@ rm -f ./ns1/large.db ./ns1/large.db.raw
 rm -f ./ns1/example.db.map ./ns1/signed.db.map
 rm -f ./ns1/huge.db ./ns1/huge.db.raw
 rm -f ./ns1/uber.db ./ns1/uber.db.raw
+rm -f ./ns1/255types.db ./ns1/255types.db.raw
+rm -f ./ns1/on-limit.db ./ns1/on-limit.db.raw
+rm -f ./ns1/over-limit.db ./ns1/over-limit.db.raw
+rm -f ./ns1/under-limit.db ./ns1/under-limit.db.raw
+rm -f ./ns2/under-limit.bk
 rm -f ./ns1/session.key
 rm -f ./dig.out.*
 rm -f ./dig.out
