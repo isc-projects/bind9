@@ -32,6 +32,8 @@ awk 'END {
 	 for (i = 0; i < 1000; i++ ) { print "1000-txt TXT", i; }
 	 for (i = 0; i < 2000; i++ ) { print "2000-txt TXT", i; }
 }' </dev/null >>ns1/under-limit.db
+cp ns1/under-limit.db ns1/under-limit-kasp.db
+
 cp ns1/empty.db.in ns1/on-limit.db
 awk 'END {
 	 for (i = 0; i < 500; i++ ) { print "500-txt TXT", i; }
@@ -39,6 +41,8 @@ awk 'END {
 	 for (i = 0; i < 2000; i++ ) { print "2000-txt TXT", i; }
 	 for (i = 0; i < 2050; i++ ) { print "2050-txt TXT", i; }
 }' </dev/null >>ns1/on-limit.db
+cp ns1/on-limit.db ns1/on-limit-kasp.db
+
 cp ns1/empty.db.in ns1/over-limit.db
 awk 'END {
 	 for (i = 0; i < 500; i++ ) { print "500-txt TXT", i; }
@@ -47,6 +51,7 @@ awk 'END {
 	 for (i = 0; i < 2050; i++ ) { print "2050-txt TXT", i; }
 	 for (i = 0; i < 2100; i++ ) { print "2100-txt TXT", i; }
 }' </dev/null >>ns1/over-limit.db
+
 cp ns1/empty.db.in ns1/255types.db
 for ntype in $(seq 65280 65534); do
   echo "m TYPE${ntype} \# 0"

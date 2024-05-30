@@ -87,6 +87,14 @@ zone "under-limit" {
 	allow-transfer { any; };
 };
 
+zone "under-limit-kasp" {
+	type primary;
+	file "under-limit-kasp.db.raw";
+	masterfile-format raw;
+	dnssec-policy masterformat;
+	allow-transfer { any; };
+};
+
 zone "on-limit" {
 	type primary;
 	file "on-limit.db.raw";
@@ -94,6 +102,13 @@ zone "on-limit" {
 	allow-transfer { any; };
 };
 
+zone "on-limit-kasp" {
+	type primary;
+	file "on-limit-kasp.db.raw";
+	masterfile-format raw;
+	dnssec-policy masterformat;
+	allow-transfer { any; };
+};
 
 zone "over-limit" {
 	type primary;
