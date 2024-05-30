@@ -100,6 +100,8 @@ zone "on-limit-kasp" {
 	file "on-limit-kasp.db.raw";
 	masterfile-format raw;
 	dnssec-policy masterformat;
+	inline-signing no;
+	allow-update { any; };
 	allow-transfer { any; };
 };
 
