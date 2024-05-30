@@ -8244,3 +8244,6 @@ exceptions are noted in the descriptions.
 
 ``<TYPE>RecvErr``
     This indicates the number of errors in socket receive operations, including errors of send operations on a connected UDP socket, notified by an ICMP error message.
+
+``TCP4Clients``/``TCP6Clients``
+    This indicates the number of IPv4/IPv6 clients currently connected over TCP.

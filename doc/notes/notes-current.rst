@@ -43,6 +43,10 @@ Bug Fixes
   :iscman:`named` could crash with an assertion failure. This has been
   fixed. :gl:`#4719`
 
+- The statistics channel counters that indicated the number of currently
+  connected TCP IPv4/IPv6 clients were not properly adjusted in certain
+  failure scenarios. This has been fixed. :gl:`#4742`
+
 Known Issues
 ~~~~~~~~~~~~
 

@@ -1629,8 +1629,6 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->read_timer, csock);
 
-	isc__nm_incstats(csock, STATID_CLIENTS);
-
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
 	if (r != 0) {
 		result = isc__nm_uverr2result(r);
@@ -1726,6 +1724,8 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
+
+	isc__nm_incstats(csock, STATID_CLIENTS);
 
 	/*
 	 * sock is now attached to the handle.
