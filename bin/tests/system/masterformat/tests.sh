@@ -201,6 +201,49 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking that under-limit-kasp dnskeys loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+
+  $DIG +tcp +dnssec dnskey "under-limit-kasp" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.dnskey.test$n"
+  grep "status: NOERROR" "dig.out.ns1.dnskey.test$n" >/dev/null || ret=1
+  grep "RRSIG" "dig.out.ns1.dnskey.test$n" >/dev/null || ret=1
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that under-limit-kasp rdatasets loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrcount in 500-txt 1000-txt 2000-txt; do
+    $DIG +tcp +dnssec txt "${rrcount}.under-limit-kasp" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
+    grep "RRSIG" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that under-limit-kasp rdatasets transfered ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrcount in 500-txt 1000-txt 2000-txt; do
+    $DIG +tcp +dnssec txt "${rrcount}.under-limit-kasp" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns2.$rrcount.test$n" >/dev/null || ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking that on-limit rdatasets loaded ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
@@ -228,6 +271,36 @@ done
 n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
+
+echo_i "checking that on-limit-kasp rdatasets loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrcount in 500-txt 1000-txt 2000-txt 2050-txt; do
+    $DIG +tcp +dnssec txt "${rrcount}.on-limit-kasp" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
+    grep "RRSIG" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that on-limit-kasp rdatasets not transfered ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrcount in 500-txt 1000-txt 2000-txt 2050-txt; do
+    $DIG +tcp +dnssec txt "${rrcount}.on-limit-kasp" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
+    grep "status: SERVFAIL" "dig.out.ns2.$rrcount.test$n" >/dev/null || ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
 
 echo_i "checking that over-limit rdatasets not loaded ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
