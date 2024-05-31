@@ -19,6 +19,7 @@ $SHELL clean.sh
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
 copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named1.conf.in ns4/named.conf
 
 cp ns1/example.db ns2/
 cp ns2/formerly-text.db.in ns2/formerly-text.db
@@ -57,4 +58,5 @@ for ntype in $(seq 65280 65534); do
   echo "m TYPE${ntype} \# 0"
 done >>ns1/255types.db
 echo "m TXT bunny" >>ns1/255types.db
-cd ns1 && $SHELL compile.sh
+(cd ns1 && $SHELL compile.sh)
+(cd ns4 && $SHELL compile.sh)

@@ -301,13 +301,108 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-
 echo_i "checking that over-limit rdatasets not loaded ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
   for rrcount in 500-txt 1000-txt 2000-txt 2050-txt 2100-txt; do
     $DIG +tcp txt "${rrcount}.over-limit" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
     grep "status: SERVFAIL" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that kasp-max-records-per-type rdatasets loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrtype in soa dnskey ns; do
+    $DIG +tcp +dnssec $rrtype "kasp-max-records-per-type" @10.53.0.4 -p "${PORT}" >"dig.out.ns4.$rrtype.test$n"
+    grep "status: NOERROR" "dig.out.ns4.$rrtype.test$n" >/dev/null || ret=1
+    grep "RRSIG" "dig.out.ns4.$rrtype.test$n" >/dev/null || ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that kasp-max-records-per-type-dnskey rdatasets not signed ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrtype in soa dnskey ns; do
+    $DIG +tcp +dnssec $rrtype "kasp-max-records-per-type-dnskey" @10.53.0.4 -p "${PORT}" >"dig.out.ns4.$rrtype.test$n"
+    grep "status: NOERROR" "dig.out.ns4.$rrtype.test$n" >/dev/null || ret=1
+    grep "RRSIG" "dig.out.ns4.$rrtype.test$n" >/dev/null && ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that kasp-max-types-per-name rdatasets loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrtype in soa dnskey ns; do
+    $DIG +tcp +dnssec $rrtype "kasp-max-types-per-name" @10.53.0.4 -p "${PORT}" >"dig.out.ns4.$rrtype.test$n"
+    grep "status: NOERROR" "dig.out.ns4.$rrtype.test$n" >/dev/null || ret=1
+    grep "RRSIG" "dig.out.ns4.$rrtype.test$n" >/dev/null || ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+# Update zone with nsupdate.
+n=$((n + 1))
+echo_i "add new type to zone and check that it fails ($n)"
+ret=0
+(
+  echo zone kasp-max-types-per-name.
+  echo server 10.53.0.4 "$PORT"
+  echo update add kasp-max-types-per-name. 300 TXT KAPUTT
+  echo send
+) | $NSUPDATE && ret=1
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that kasp-max-types-per-name rdatasets loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrtype in soa dnskey ns txt; do
+    $DIG +tcp +dnssec $rrtype "kasp-max-types-per-name" @10.53.0.4 -p "${PORT}" >"dig.out.ns4.$rrtype.test$n"
+    grep "status: NOERROR" "dig.out.ns4.$rrtype.test$n" >/dev/null || ret=1
+    grep "KAPUTT" "dig.out.ns4.$rrtype.test$n" >/dev/null && ret=1
+  done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+# Reconfigure ns4
+echo_i "reconfigure ns4"
+stop_server ns4
+copy_setports ns4/named2.conf.in ns4/named.conf
+# Recompile zone
+$CHECKZONE -D -F raw -o ns4/kasp.db.raw kasp-max-types-per-name ns4/template.db >/dev/null 2>&1
+start_server --noclean --restart --port "${PORT}" ns4
+
+echo_i "checking that kasp-max-types-per-name rdatasets not loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  for rrtype in soa dnskey ns; do
+    $DIG +tcp +dnssec $rrtype "kasp-max-types-per-name" @10.53.0.4 -p "${PORT}" >"dig.out.ns4.$rrtype.test$n"
+    grep "status: SERVFAIL" "dig.out.ns4.$rrtype.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
