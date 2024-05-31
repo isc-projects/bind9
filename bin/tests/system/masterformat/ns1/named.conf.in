@@ -36,6 +36,13 @@ controls {
 	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+dnssec-policy "masterformat" {
+	keys {
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+	};
+};
+
 zone "example" {
 	type primary;
 	masterfile-format raw;
@@ -85,6 +92,7 @@ zone "under-limit-kasp" {
 	file "under-limit-kasp.db.raw";
 	masterfile-format raw;
 	dnssec-policy masterformat;
+	inline-signing yes;
 	allow-transfer { any; };
 };
 
