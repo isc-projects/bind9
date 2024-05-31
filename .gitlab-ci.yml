@@ -32,10 +32,6 @@ variables:
 
   INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
 
-  # Default platforms to run "stress" tests on
-  BIND_STRESS_TEST_OS: linux
-  BIND_STRESS_TEST_ARCH: amd64
-
 # Allow all running CI jobs to be automatically canceled when a new
 # version of a branch is pushed.
 #
@@ -72,27 +68,6 @@ stages:
   tags:
     - linux
     - i386
-
-.linux-stress-amd64: &linux_stress_amd64
-  tags:
-    - amd64
-    - aws
-    - linux-stress
-    - stress
-
-.linux-stress-arm64: &linux_stress_arm64
-  tags:
-    - aarch64
-    - aws
-    - linux-stress
-    - stress
-
-.freebsd-stress-amd64: &freebsd_stress_amd64
-  tags:
-    - amd64
-    - aws
-    - bsd-stress
-    - stress
 
 ### Docker Image Templates
 
@@ -137,16 +112,6 @@ stages:
 .debian-bookworm-amd64: &debian_bookworm_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_amd64
-
-# Fedora
-
-.fedora-35-amd64: &fedora_35_amd64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-35-amd64"
-  <<: *linux_amd64
-
-.fedora-35-arm64: &fedora_35_arm64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-35-arm64"
-  <<: *linux_stress_arm64
 
 # Ubuntu
 
@@ -1152,116 +1117,6 @@ respdiff-third-party:
     expire_in: "1 day"
     when: always
 
-# "Stress" tests
-
-.stress: &stress_job
-  stage: performance
-  script:
-    - *configure
-    - *setup_interfaces
-    - *setup_softhsm
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
-    - make DESTDIR="${INSTALL_PATH}" install
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
-    - cd bind9-qa/stress
-    - LD_LIBRARY_PATH="${INSTALL_PATH}/usr/local/lib" BIND_INSTALL_PATH="${INSTALL_PATH}/usr/local" WORKSPACE="${CI_PROJECT_DIR}" bash stress.sh
-  needs:
-    - job: autoreconf
-      artifacts: true
-  artifacts:
-    untracked: true
-    expire_in: "1 day"
-    when: always
-  timeout: 2h
-
-stress:authoritative:fedora:35:amd64:
-  <<: *fedora_35_amd64_image
-  <<: *linux_stress_amd64
-  <<: *stress_job
-  variables:
-    CC: gcc
-    FLAME: /usr/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 1
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-
-stress:recursive:fedora:35:amd64:
-  <<: *fedora_35_amd64_image
-  <<: *linux_stress_amd64
-  <<: *stress_job
-  variables:
-    CC: gcc
-    FLAME: /usr/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 1
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-
-stress:authoritative:fedora:35:arm64:
-  <<: *fedora_35_arm64_image
-  <<: *linux_stress_arm64
-  <<: *stress_job
-  variables:
-    CC: gcc
-    FLAME: /usr/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 1
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
-
-stress:recursive:fedora:35:arm64:
-  <<: *fedora_35_arm64_image
-  <<: *linux_stress_arm64
-  <<: *stress_job
-  variables:
-    CC: gcc
-    FLAME: /usr/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 1
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
-
-stress:authoritative:freebsd12:amd64:
-  <<: *freebsd_12_amd64_image
-  <<: *freebsd_stress_amd64
-  <<: *stress_job
-  variables:
-    CC: clang
-    FLAME: /usr/local/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 1
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-  # See: https://gitlab.isc.org/isc-projects/bind9/-/issues/1941
-  allow_failure: true
-
-stress:recursive:freebsd12:amd64:
-  <<: *freebsd_12_amd64_image
-  <<: *freebsd_stress_amd64
-  <<: *stress_job
-  variables:
-    CC: clang
-    FLAME: /usr/local/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 1
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-  # See: https://gitlab.isc.org/isc-projects/bind9/-/issues/1941
-  allow_failure: true
-
 # ABI check
 
 abi-check:
@@ -1293,23 +1148,3 @@ abi-check:
   only:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
-
-# Pairwise testing of ./configure options
-
-pairwise:
-  <<: *base_image
-  stage: build
-  needs:
-    - job: autoreconf
-      artifacts: true
-  script:
-      - util/pairwise-testing.sh
-  artifacts:
-    paths:
-      - pairwise-commands.txt
-      - pairwise-model.txt
-      - pairwise-output.*.txt
-    when: on_failure
-  only:
-    variables:
-      - $PAIRWISE_TESTING
