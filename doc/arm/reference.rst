@@ -8384,6 +8384,9 @@ exceptions are noted in the descriptions.
 ``<TYPE>BindFail``
     This indicates the number of failures to bind sockets.
 
+``<TYPE>Clients``
+    This indicates the number of currently conencted clients. This counter does not apply to the ``UDP`` type.
+
 ``<TYPE>Close``
     This indicates the number of closed sockets.
 
@@ -8404,6 +8407,3 @@ exceptions are noted in the descriptions.
 
 ``<TYPE>SendErr``
     This indicates the number of errors in socket send operations.
-
-``TCP4Clients``/``TCP6Clients``
-    This indicates the number of IPv4/IPv6 clients currently connected over TCP.
