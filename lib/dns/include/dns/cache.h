@@ -73,7 +73,7 @@ ISC_REFCOUNT_DECL(dns_cache);
 
 isc_result_t
 dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
-		 const char *cachename, dns_cache_t **cachep);
+		 const char *cachename, isc_mem_t *mctx, dns_cache_t **cachep);
 /*%<
  * Create a new DNS cache.
  *
@@ -84,6 +84,8 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
  *\li	'loopmgr' is a valid loop manager.
  *
  *\li	'cachename' is a valid string.  This must not be NULL.
+
+ *\li	'mctx' is a valid memory context.
  *
  *\li	'cachep' is a valid pointer, and *cachep == NULL
  *

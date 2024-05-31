@@ -1,3 +1,6 @@
+6391.	[bug]		Use a completely new memory context when flushing the
+			cache. [GL #2744]
+
 6390.	[placeholder]
 
 6389.	[bug]		dnssec-verify and dnssec-signzone could fail if there

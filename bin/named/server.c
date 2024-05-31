@@ -4671,7 +4671,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 * is simply a named cache that is not shared.
 			 */
 			CHECK(dns_cache_create(named_g_loopmgr, view->rdclass,
-					       cachename, &cache));
+					       cachename, mctx, &cache));
 		}
 		nsc = isc_mem_get(mctx, sizeof(*nsc));
 		nsc->cache = NULL;
