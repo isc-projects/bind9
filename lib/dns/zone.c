@@ -9743,6 +9743,7 @@ cleanup:
 	}
 
 	dns_diff_clear(&_sig_diff);
+	dns_diff_clear(&post_diff);
 
 	for (i = 0; i < nkeys; i++) {
 		dst_key_free(&zone_keys[i]);
