@@ -167,6 +167,8 @@ if not danger.gitlab.mr.milestone:
 #
 # FAIL if any of the following is true for the merge request:
 #
+# * The MR is marked as a Backport and has any "Affects v9.x" label(s) set.
+#
 # * The MR is marked as Backport and the number of version labels set is
 #   different than 1.  (For backports, the version label is used for indicating
 #   its target branch.  This is a rather ugly attempt to address a UI
@@ -190,6 +192,8 @@ VERSION_LABEL_RE = re.compile(r"v9.([0-9]+)(-S)?")
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
 affects_labels = [l for l in mr_labels if l.startswith("Affects v9.")]
 if is_backport:
+    if affects_labels:
+        fail("Backports must not have any *Affects v9.x* labels set.")
     if len(version_labels) != 1:
         fail(
             "This MR was marked as *Backport*. "
