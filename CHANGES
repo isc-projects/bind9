@@ -1,3 +1,8 @@
+6394.	[bug]		Named's -4 and -6 options now apply to zone primaries,
+			also-notify and parental-agents.  Report when a zone
+			has these options configured but does not have an IPv4
+			or IPv6 address listed respectively. [GL #3472]
+
 6393.	[func]		Deal with uv_tcp_close_reset() error return codes
 			more gracefully. [GL #4708]
 

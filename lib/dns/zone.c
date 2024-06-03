@@ -5910,6 +5910,32 @@ unlock:
 	UNLOCK_ZONE(zone);
 }
 
+static bool
+has_pf(isc_sockaddr_t *addresses, size_t count, int pf) {
+	for (size_t i = 0; i < count; i++) {
+		if (isc_sockaddr_pf(&addresses[i]) == pf) {
+			return (true);
+		}
+	}
+	return (false);
+}
+
+static void
+report_no_active_addresses(dns_zone_t *zone, isc_sockaddr_t *addresses,
+			   size_t count, const char *what) {
+	if (isc_net_probeipv4() == ISC_R_DISABLED) {
+		if (!has_pf(addresses, count, AF_INET6)) {
+			dns_zone_log(zone, ISC_LOG_NOTICE,
+				     "IPv4 disabled and no IPv6 %s", what);
+		}
+	} else if (isc_net_probeipv6() == ISC_R_DISABLED) {
+		if (!has_pf(addresses, count, AF_INET)) {
+			dns_zone_log(zone, ISC_LOG_NOTICE,
+				     "IPv6 disabled and no IPv4 %s", what);
+		}
+	}
+}
+
 void
 dns_zone_setprimaries(dns_zone_t *zone, isc_sockaddr_t *addresses,
 		      isc_sockaddr_t *sources, dns_name_t **keynames,
@@ -5949,6 +5975,8 @@ dns_zone_setprimaries(dns_zone_t *zone, isc_sockaddr_t *addresses,
 	if (count == 0) {
 		goto unlock;
 	}
+
+	report_no_active_addresses(zone, addresses, count, "primaries");
 
 	/*
 	 * Now set up the primaries and primary key lists.
@@ -5991,6 +6019,8 @@ dns_zone_setparentals(dns_zone_t *zone, isc_sockaddr_t *addresses,
 	if (count == 0) {
 		goto unlock;
 	}
+
+	report_no_active_addresses(zone, addresses, count, "parental-agents");
 
 	/*
 	 * Now set up the parentals and parental key lists.
@@ -12231,7 +12261,14 @@ notify_find_address(dns_notify_t *notify) {
 	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_NOTIFY_VALID(notify));
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
+
+	options = DNS_ADBFIND_WANTEVENT;
+	if (isc_net_probeipv4() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET;
+	}
+	if (isc_net_probeipv6() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET6;
+	}
 
 	dns_view_getadb(notify->zone->view, &adb);
 	if (adb == NULL) {
@@ -12651,6 +12688,10 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		dst = dns_remote_curraddr(&zone->notify);
 		src = dns_remote_sourceaddr(&zone->notify);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
+
+		if (isc_sockaddr_disabled(&dst)) {
+			goto next;
+		}
 
 		if (notify_isqueued(zone, flags, NULL, &dst, key, transport)) {
 			if (key != NULL) {
@@ -14149,6 +14190,10 @@ again:
 	sourceaddr = dns_remote_sourceaddr(&zone->primaries);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_netaddr_fromsockaddr(&primaryip, &curraddr);
+
+	if (isc_sockaddr_disabled(&curraddr)) {
+		goto skip_primary;
+	}
 
 	/*
 	 * First, look for a tsig key in the primaries statement, then
@@ -18316,12 +18361,19 @@ sendtoprimary(dns_forward_t *forward) {
 		return (ISC_R_CANCELED);
 	}
 
+next:
 	if (forward->which >= dns_remote_count(&forward->zone->primaries)) {
 		UNLOCK_ZONE(zone);
 		return (ISC_R_NOMORE);
 	}
 
 	forward->addr = dns_remote_addr(&zone->primaries, forward->which);
+
+	if (isc_sockaddr_disabled(&forward->addr)) {
+		forward->which++;
+		goto next;
+	}
+
 	/*
 	 * Always use TCP regardless of whether the original update
 	 * used TCP.
@@ -20965,7 +21017,14 @@ checkds_find_address(dns_checkds_t *checkds) {
 	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_CHECKDS_VALID(checkds));
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
+
+	options = DNS_ADBFIND_WANTEVENT;
+	if (isc_net_probeipv4() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET;
+	}
+	if (isc_net_probeipv6() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET6;
+	}
 
 	dns_view_getadb(checkds->zone->view, &adb);
 	if (adb == NULL) {
@@ -21264,6 +21323,10 @@ checkds_send(dns_zone_t *zone) {
 		dst = dns_remote_curraddr(&zone->parentals);
 		src = dns_remote_sourceaddr(&zone->parentals);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
+
+		if (isc_sockaddr_disabled(&dst)) {
+			goto next;
+		}
 
 		/* TODO: glue the transport to the checkds request */
 
