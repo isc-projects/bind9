@@ -48,7 +48,9 @@ modified_files = danger.git.modified_files
 affected_files = (
     danger.git.modified_files + danger.git.created_files + danger.git.deleted_files
 )
+mr_title = danger.gitlab.mr.title
 mr_labels = danger.gitlab.mr.labels
+source_branch = danger.gitlab.mr.source_branch
 target_branch = danger.gitlab.mr.target_branch
 is_backport = "Backport" in mr_labels or "Backport::Partial" in mr_labels
 is_full_backport = is_backport and "Backport::Partial" not in mr_labels
@@ -59,6 +61,36 @@ gl = gitlab.Gitlab(
 )
 proj = gl.projects.get(os.environ["CI_PROJECT_ID"])
 mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
+
+###############################################################################
+# MERGE REQUEST INFORMATION
+###############################################################################
+#
+# - WARN if the merge request's title looks like an auto-generated one.
+
+if mr_title.replace("Draft: ", "").startswith('Resolve "'):
+    warn(
+        f"This merge request's title (`{mr_title}`) looks like an "
+        "auto-generated one. Please change it so that it accurately "
+        "describes the changes contained in this merge request."
+    )
+
+###############################################################################
+# BRANCH NAME
+###############################################################################
+#
+# - FAIL if the source branch of the merge request includes an old-style
+#   "-v9_x" or "-v9.x" suffix.
+
+branch_name_regex = r"^(?P<base>.*?)(?P<suffix>-v9[_.](?P<version>[0-9]+))$"
+match = re.match(branch_name_regex, source_branch)
+if match:
+    fail(
+        f"Source branch name `{source_branch}` includes an old-style version "
+        f"suffix (`{match.group('suffix')}`). Using such suffixes is now "
+        "deprecated. Please resubmit the merge request with the branch name "
+        f"set to `{match.group('base')}-bind-9.{match.group('version')}`."
+    )
 
 ###############################################################################
 # COMMIT MESSAGES
@@ -164,6 +196,9 @@ if not danger.gitlab.mr.milestone:
 #
 # FAIL if any of the following is true for the merge request:
 #
+# * The MR has any "Affects v9.x" label(s) set.  These should only be used for
+#   issues.
+#
 # * The MR is marked as Backport and the number of version labels set is
 #   different than 1.  (For backports, the version label is used for indicating
 #   its target branch.  This is a rather ugly attempt to address a UI
@@ -186,6 +221,11 @@ BACKPORT_OF_RE = re.compile(
 VERSION_LABEL_RE = re.compile(r"v9.([0-9]+)(-S)?")
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
 affects_labels = [l for l in mr_labels if l.startswith("Affects v9.")]
+if affects_labels:
+    fail(
+        "This MR is marked with at least one *Affects v9.x* label. "
+        "Please remove them as they should only be used for issues."
+    )
 if is_backport:
     if len(version_labels) != 1:
         fail(
@@ -196,7 +236,7 @@ if is_backport:
         minor_ver, edition = VERSION_LABEL_RE.search(version_labels[0]).groups()
         edition = "" if edition is None else edition
         title_re = f"^\\[9.{minor_ver}{edition}\\]"
-        match = re.search(title_re, danger.gitlab.mr.title)
+        match = re.search(title_re, mr_title)
         if match is None:
             fail(
                 "Backport MRs must have their target version in the title. "
@@ -244,11 +284,6 @@ else:
             "If this merge request is a backport, set the *Backport* label and "
             "a single version label (*v9.x*) indicating the target branch. "
             "If not, set version labels for all targeted backport branches."
-        )
-    if not affects_labels:
-        warn(
-            "Set `Affects v9.` label(s) for all versions that are affected by "
-            "the issue which this MR addresses."
         )
 
 ###############################################################################
