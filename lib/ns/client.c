@@ -1683,6 +1683,16 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	return (result);
 }
 
+static void
+ns_client_async_reset(ns_client_t *client) {
+	if (client->async) {
+		client->async = false;
+		if (client->handle != NULL) {
+			isc_nmhandle_unref(client->handle);
+		}
+	}
+}
+
 void
 ns__client_reset_cb(void *client0) {
 	ns_client_t *client = client0;
@@ -1709,12 +1719,7 @@ ns__client_reset_cb(void *client0) {
 		client->keytag_len = 0;
 	}
 
-	if (client->async) {
-		client->async = false;
-		if (client->handle != NULL) {
-			isc_nmhandle_unref(client->handle);
-		}
-	}
+	ns_client_async_reset(client);
 
 	client->state = NS_CLIENTSTATE_READY;
 
@@ -1749,12 +1754,7 @@ ns__client_put_cb(void *client0) {
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
 
-	if (client->async) {
-		client->async = false;
-		if (client->handle != NULL) {
-			isc_nmhandle_unref(client->handle);
-		}
-	}
+	ns_client_async_reset(client);
 
 	dns_message_detach(&client->message);
 
@@ -1786,18 +1786,21 @@ ns_client_setup_view(ns_client_t *client, isc_netaddr_t *netaddr) {
 		ns_client_request_continue, client, &client->sigresult,
 		&client->viewmatchresult, &client->view);
 
+	/* Async mode. */
 	if (result == DNS_R_WAIT) {
 		INSIST(client->async == true);
 		return (DNS_R_WAIT);
 	}
 
 	/*
-	 * matchingview() is allowed to return anything other than DNS_R_WAIT
-	 * only in non-async mode, in which case 'result' must be equal to
+	 * matchingview() returning anything other than DNS_R_WAIT means it's
+	 * not running in async mode, in which case 'result' must be equal to
 	 * 'client->viewmatchresult'.
 	 */
-	INSIST(client->async == false);
 	INSIST(result == client->viewmatchresult);
+
+	/* Non-async mode. */
+	ns_client_async_reset(client);
 
 	return (result);
 }
@@ -2480,17 +2483,7 @@ ns_client_request_continue(void *arg) {
 	}
 
 cleanup:
-
-	/*
-	 * If we are running async then 'unref' the handle and reset the async
-	 * flag, so that the destructor doesn't try to 'unref' the handle too.
-	 */
-	if (client->async) {
-		client->async = false;
-		if (client->handle != NULL) {
-			isc_nmhandle_unref(client->handle);
-		}
-	}
+	ns_client_async_reset(client);
 }
 
 isc_result_t

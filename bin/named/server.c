@@ -10234,6 +10234,15 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 		return (*viewmatchresult);
 	}
 
+	/* Also no offloading when there is no view at all to match against. */
+	view = get_matching_view_next(NULL, message->rdclass);
+	if (view == NULL) {
+		*viewmatchresult = ISC_R_NOTFOUND;
+		return (*viewmatchresult);
+	}
+
+	dns_message_resetsig(message);
+
 	matching_view_ctx_t *mvctx = isc_mem_get(message->mctx, sizeof(*mvctx));
 	*mvctx = (matching_view_ctx_t){
 		.srcaddr = srcaddr,
@@ -10249,15 +10258,6 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	ns_server_attach(sctx, &mvctx->sctx);
 	isc_loop_attach(loop, &mvctx->loop);
 	dns_message_attach(message, &mvctx->message);
-
-	dns_message_resetsig(message);
-
-	view = get_matching_view_next(NULL, message->rdclass);
-	if (view == NULL) {
-		*mvctx->viewmatchresult = ISC_R_NOTFOUND;
-		isc_async_run(loop, get_matching_view_done, mvctx);
-		return (DNS_R_WAIT);
-	}
 
 	/*
 	 * If the message has a SIG0 signature which we are going to
