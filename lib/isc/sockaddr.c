@@ -497,3 +497,15 @@ isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa) {
 
 	return (ISC_R_SUCCESS);
 }
+
+bool
+isc_sockaddr_disabled(const isc_sockaddr_t *sockaddr) {
+	if ((sockaddr->type.sa.sa_family == AF_INET &&
+	     isc_net_probeipv4() == ISC_R_DISABLED) ||
+	    (sockaddr->type.sa.sa_family == AF_INET6 &&
+	     isc_net_probeipv6() == ISC_R_DISABLED))
+	{
+		return (true);
+	}
+	return (false);
+}

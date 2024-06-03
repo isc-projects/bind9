@@ -6253,6 +6253,32 @@ unlock:
 	UNLOCK_ZONE(zone);
 }
 
+static bool
+has_pf(const isc_sockaddr_t *addresses, size_t count, int pf) {
+	for (size_t i = 0; i < count; i++) {
+		if (isc_sockaddr_pf(&addresses[i]) == pf) {
+			return (true);
+		}
+	}
+	return (false);
+}
+
+static void
+report_no_active_addresses(dns_zone_t *zone, const isc_sockaddr_t *addresses,
+			   size_t count, const char *what) {
+	if (isc_net_probeipv4() == ISC_R_DISABLED) {
+		if (!has_pf(addresses, count, AF_INET6)) {
+			dns_zone_log(zone, ISC_LOG_NOTICE,
+				     "IPv4 disabled and no IPv6 %s", what);
+		}
+	} else if (isc_net_probeipv6() == ISC_R_DISABLED) {
+		if (!has_pf(addresses, count, AF_INET)) {
+			dns_zone_log(zone, ISC_LOG_NOTICE,
+				     "IPv6 disabled and no IPv4 %s", what);
+		}
+	}
+}
+
 void
 dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
@@ -6307,6 +6333,8 @@ dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 	if (count == 0) {
 		goto unlock;
 	}
+
+	report_no_active_addresses(zone, primaries, count, "primaries");
 
 	/*
 	 * primariesok must contain count elements
@@ -6363,6 +6391,8 @@ dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 	if (count == 0) {
 		goto unlock;
 	}
+
+	report_no_active_addresses(zone, parentals, count, "parental-agents");
 
 	/*
 	 * Now set up the parentals and parental key lists
@@ -12468,8 +12498,14 @@ notify_find_address(dns_notify_t *notify) {
 	unsigned int options;
 
 	REQUIRE(DNS_NOTIFY_VALID(notify));
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6 |
-		  DNS_ADBFIND_RETURNLAME;
+
+	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_RETURNLAME;
+	if (isc_net_probeipv4() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET;
+	}
+	if (isc_net_probeipv6() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET6;
+	}
 
 	if (notify->zone->view->adb == NULL) {
 		goto destroy;
@@ -12874,6 +12910,17 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		/* TODO: glue the transport to the notify */
 
 		dst = zone->notify[i];
+
+		if (isc_sockaddr_disabled(&dst)) {
+			if (key != NULL) {
+				dns_tsigkey_detach(&key);
+			}
+			if (transport != NULL) {
+				dns_transport_detach(&transport);
+			}
+			continue;
+		}
+
 		if (notify_isqueued(zone, flags, NULL, &dst, key, transport)) {
 			if (key != NULL) {
 				dns_tsigkey_detach(&key);
@@ -14464,8 +14511,12 @@ again:
 	INSIST(zone->curprimary < zone->primariescnt);
 
 	zone->primaryaddr = zone->primaries[zone->curprimary];
-
 	isc_netaddr_fromsockaddr(&primaryip, &zone->primaryaddr);
+
+	if (isc_sockaddr_disabled(&zone->primaryaddr)) {
+		goto skip_primary;
+	}
+
 	/*
 	 * First, look for a tsig key in the primaries statement, then
 	 * try for a server key.
@@ -18582,12 +18633,19 @@ sendtoprimary(dns_forward_t *forward) {
 		return (ISC_R_CANCELED);
 	}
 
+next:
 	if (forward->which >= forward->zone->primariescnt) {
 		UNLOCK_ZONE(forward->zone);
 		return (ISC_R_NOMORE);
 	}
 
 	forward->addr = forward->zone->primaries[forward->which];
+
+	if (isc_sockaddr_disabled(&forward->addr)) {
+		forward->which++;
+		goto next;
+	}
+
 	/*
 	 * Always use TCP regardless of whether the original update
 	 * used TCP.
@@ -21744,6 +21802,16 @@ checkds_send(dns_zone_t *zone) {
 
 		dst = zone->parentals[i];
 
+		if (isc_sockaddr_disabled(&dst)) {
+			if (key != NULL) {
+				dns_tsigkey_detach(&key);
+			}
+			if (transport != NULL) {
+				dns_transport_detach(&transport);
+			}
+			continue;
+		}
+
 		/* TODO: glue the transport to the checkds request */
 
 		if (checkds_isqueued(zone, &dst, key, transport)) {
@@ -21771,6 +21839,12 @@ checkds_send(dns_zone_t *zone) {
 				     "checkds: create DS query for "
 				     "parent %d failed",
 				     i);
+			if (key != NULL) {
+				dns_tsigkey_detach(&key);
+			}
+			if (transport != NULL) {
+				dns_transport_detach(&transport);
+			}
 			continue;
 		}
 		zone_iattach(zone, &checkds->zone);
