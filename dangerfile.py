@@ -49,6 +49,7 @@ affected_files = (
     danger.git.modified_files + danger.git.created_files + danger.git.deleted_files
 )
 mr_labels = danger.gitlab.mr.labels
+source_branch = danger.gitlab.mr.source_branch
 target_branch = danger.gitlab.mr.target_branch
 is_backport = "Backport" in mr_labels or "Backport::Partial" in mr_labels
 is_full_backport = is_backport and "Backport::Partial" not in mr_labels
@@ -59,6 +60,23 @@ gl = gitlab.Gitlab(
 )
 proj = gl.projects.get(os.environ["CI_PROJECT_ID"])
 mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
+
+###############################################################################
+# BRANCH NAME
+###############################################################################
+#
+# - FAIL if the source branch of the merge request includes an old-style
+#   "-v9_x" or "-v9.x" suffix.
+
+branch_name_regex = r"^(?P<base>.*?)(?P<suffix>-v9[_.](?P<version>[0-9]+))$"
+match = re.match(branch_name_regex, source_branch)
+if match:
+    fail(
+        f"Source branch name `{source_branch}` includes an old-style version "
+        f"suffix (`{match.group('suffix')}`). Using such suffixes is now "
+        "deprecated. Please resubmit the merge request with the branch name "
+        f"set to `{match.group('base')}-bind-9.{match.group('version')}`."
+    )
 
 ###############################################################################
 # COMMIT MESSAGES
