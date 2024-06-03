@@ -1,5 +1,7 @@
-6391.	[bug]		Use a completely new memory context when flushing the
+6392.	[bug]		Use a completely new memory context when flushing the
 			cache. [GL #2744]
+
+6391.	[placeholder]
 
 6390.	[placeholder]
 
