@@ -51,6 +51,7 @@ modified_files = danger.git.modified_files
 affected_files = (
     danger.git.modified_files + danger.git.created_files + danger.git.deleted_files
 )
+mr_title = danger.gitlab.mr.title
 mr_labels = danger.gitlab.mr.labels
 source_branch = danger.gitlab.mr.source_branch
 target_branch = danger.gitlab.mr.target_branch
@@ -63,6 +64,19 @@ gl = gitlab.Gitlab(
 )
 proj = gl.projects.get(os.environ["CI_PROJECT_ID"])
 mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
+
+###############################################################################
+# MERGE REQUEST INFORMATION
+###############################################################################
+#
+# - WARN if the merge request's title looks like an auto-generated one.
+
+if mr_title.replace("Draft: ", "").startswith('Resolve "'):
+    warn(
+        f"This merge request's title (`{mr_title}`) looks like an "
+        "auto-generated one. Please change it so that it accurately "
+        "describes the changes contained in this merge request."
+    )
 
 ###############################################################################
 # BRANCH NAME
@@ -221,7 +235,7 @@ if is_backport:
         minor_ver, edition = VERSION_LABEL_RE.search(version_labels[0]).groups()
         edition = "" if edition is None else edition
         title_re = f"^\\[9.{minor_ver}{edition}\\]"
-        match = re.search(title_re, danger.gitlab.mr.title)
+        match = re.search(title_re, mr_title)
         if match is None:
             fail(
                 "Backport MRs must have their target version in the title. "
