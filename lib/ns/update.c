@@ -3136,9 +3136,18 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						dns_diff_clear(&ctx.add_diff);
 						goto failure;
 					}
-					CHECK(update_one_rr(db, ver, &diff,
-							    DNS_DIFFOP_ADD,
-							    name, ttl, &rdata));
+					result = update_one_rr(
+						db, ver, &diff, DNS_DIFFOP_ADD,
+						name, ttl, &rdata);
+					if (result != ISC_R_SUCCESS) {
+						update_log(client, zone,
+							   LOGLEVEL_PROTOCOL,
+							   "adding an RR "
+							   "failed: %s",
+							   isc_result_totext(
+								   result));
+						goto failure;
+					}
 				}
 			}
 		} else if (update_class == dns_rdataclass_any) {
