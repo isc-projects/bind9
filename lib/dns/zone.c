@@ -22498,7 +22498,11 @@ failure:
 		 * Something went wrong; try again in ten minutes or
 		 * after a key refresh interval, whichever is shorter.
 		 */
-		dnssec_log(zone, ISC_LOG_DEBUG(3),
+		int loglevel = ISC_LOG_DEBUG(3);
+		if (result != DNS_R_NOTLOADED) {
+			loglevel = ISC_LOG_ERROR;
+		}
+		dnssec_log(zone, loglevel,
 			   "zone_rekey failure: %s (retry in %u seconds)",
 			   isc_result_totext(result),
 			   ISC_MIN(zone->refreshkeyinterval, 600));
