@@ -86,6 +86,11 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 	      "receive buffer size");
 
 /*%
+ * Maximum outstanding DNS message that we process in a single TCP read.
+ */
+#define ISC_NETMGR_MAX_STREAM_CLIENTS_PER_CONN 23
+
+/*%
  * Regular TCP buffer size.
  */
 #define NM_REG_BUF 4096
@@ -660,6 +665,9 @@ struct isc_nmsocket {
 	 */
 	ISC_LIST(isc_nmhandle_t) active_handles;
 	ISC_LIST(isc__nm_uvreq_t) active_uvreqs;
+
+	size_t active_handles_cur;
+	size_t active_handles_max;
 
 	/*%
 	 * Used to pass a result back from listen or connect events.
