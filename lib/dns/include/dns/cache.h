@@ -56,7 +56,7 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 isc_result_t
-dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
+dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
 		 const char *cachename, const char *db_type,
 		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep);
@@ -68,7 +68,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
  *
  * Requires:
  *
- *\li	'cmctx' and 'hmctx' are valid memory contexts.
+ *\li	'mctx' is a valid memory context.
  *
  *\li	'taskmgr' is a valid task manager (if 'db_type' is "rbt").
  *
@@ -77,6 +77,8 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
  * 	periodic cleaning of the cache will take place.
  *
  *\li	'cachename' is a valid string.  This must not be NULL.
+
+ *\li	'mctx' is a valid memory context.
  *
  *\li	'cachep' is a valid pointer, and *cachep == NULL
  *
