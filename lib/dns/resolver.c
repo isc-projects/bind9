@@ -1752,11 +1752,15 @@ resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 	case ISC_R_SHUTTINGDOWN:
 		break;
 
+	case ISC_R_HOSTDOWN:
 	case ISC_R_HOSTUNREACH:
+	case ISC_R_NETDOWN:
 	case ISC_R_NETUNREACH:
 	case ISC_R_NOPERM:
 	case ISC_R_ADDRNOTAVAIL:
 	case ISC_R_CONNREFUSED:
+	case ISC_R_CONNECTIONRESET:
+	case ISC_R_TIMEDOUT:
 		/* No route to remote. */
 		FCTXTRACE3("query canceled in resquery_senddone(): "
 			   "no route to host; no response",
@@ -2829,8 +2833,10 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 		fctx_done_detach(&fctx, eresult);
 		break;
 
-	case ISC_R_NETUNREACH:
+	case ISC_R_HOSTDOWN:
 	case ISC_R_HOSTUNREACH:
+	case ISC_R_NETDOWN:
+	case ISC_R_NETUNREACH:
 	case ISC_R_CONNREFUSED:
 	case ISC_R_NOPERM:
 	case ISC_R_ADDRNOTAVAIL:
@@ -7756,7 +7762,9 @@ rctx_dispfail(respctx_t *rctx) {
 	 */
 	switch (rctx->result) {
 	case ISC_R_EOF:
+	case ISC_R_HOSTDOWN:
 	case ISC_R_HOSTUNREACH:
+	case ISC_R_NETDOWN:
 	case ISC_R_NETUNREACH:
 	case ISC_R_CONNREFUSED:
 	case ISC_R_CONNECTIONRESET:

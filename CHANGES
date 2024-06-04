@@ -1,3 +1,6 @@
+6395.	[bug]		Handle ISC_R_HOSTDOWN and ISC_R_NETDOWN in resolver.c.
+			[GL #4736]
+
 6394.	[bug]		Named's -4 and -6 options now apply to zone primaries,
 			also-notify and parental-agents.  Report when a zone
 			has these options configured but does not have an IPv4
