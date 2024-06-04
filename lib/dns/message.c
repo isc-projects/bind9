@@ -3323,11 +3323,9 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 					     0, false, &keyset, NULL);
 
 		if (result != ISC_R_SUCCESS) {
-			/* XXXBEW Should possibly create a fetch here */
 			result = DNS_R_KEYUNAUTHORIZED;
 			goto freesig;
-		} else if (keyset.trust < dns_trust_secure) {
-			/* XXXBEW Should call a validator here */
+		} else if (keyset.trust < dns_trust_ultimate) {
 			result = DNS_R_KEYUNAUTHORIZED;
 			goto freesig;
 		}
