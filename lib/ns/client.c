@@ -387,7 +387,7 @@ client_put_tcp_buffer(ns_client_t *client) {
 	}
 
 	if (client->tcpbuf != client->manager->tcp_buffer) {
-		isc_mem_put(client->manager->send_mctx, client->tcpbuf,
+		isc_mem_put(client->manager->mctx, client->tcpbuf,
 			    client->tcpbuf_size);
 	}
 
@@ -452,7 +452,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 			 * correct size and freeing the big buffer.
 			 */
 			unsigned char *new_tcpbuf =
-				isc_mem_get(client->manager->send_mctx, used);
+				isc_mem_get(client->manager->mctx, used);
 			memmove(new_tcpbuf, buffer->base, used);
 
 			/*
@@ -2498,8 +2498,6 @@ clientmgr_destroy_cb(void *arg) {
 
 	dns_message_destroypools(&manager->rdspool, &manager->namepool);
 
-	isc_mem_detach(&manager->send_mctx);
-
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 }
 
@@ -2533,61 +2531,6 @@ ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
 	ns_server_attach(sctx, &manager->sctx);
 
 	dns_message_createpools(mctx, &manager->namepool, &manager->rdspool);
-
-	/*
-	 * We create specialised per-worker memory context specifically
-	 * dedicated and tuned for allocating send buffers as it is a very
-	 * common operation. Not doing so may result in excessive memory
-	 * use in certain workloads.
-	 *
-	 * Please see this thread for more details:
-	 *
-	 * https://github.com/jemalloc/jemalloc/issues/2483
-	 *
-	 * In particular, this information from the jemalloc developers is
-	 * of the most interest:
-	 *
-	 * https://github.com/jemalloc/jemalloc/issues/2483#issuecomment-1639019699
-	 * https://github.com/jemalloc/jemalloc/issues/2483#issuecomment-1698173849
-	 *
-	 * In essence, we use the following memory management strategy:
-	 *
-	 * 1. We use a per-worker memory arena for send buffers memory
-	 * allocation to reduce lock contention (In reality, we create a
-	 * per-client manager arena, but we have one client manager per
-	 * worker).
-	 *
-	 * 2. The automatically created arenas settings remain unchanged
-	 * and may be controlled by users (e.g. by setting the
-	 * "MALLOC_CONF" variable).
-	 *
-	 * 3. We attune the arenas to not use dirty pages cache as the
-	 * cache would have a poor reuse rate, and that is known to
-	 * significantly contribute to excessive memory use.
-	 *
-	 * 4. There is no strict need for the dirty cache, as there is a
-	 * per arena bin for each allocation size, so because we initially
-	 * allocate strictly 64K per send buffer (enough for a DNS
-	 * message), allocations would get directed to one bin (an "object
-	 * pool" or a "slab") maintained within an arena. That is, there
-	 * is an object pool already, specifically to optimise for the
-	 * case of frequent allocations of objects of the given size. The
-	 * object pool should suffice our needs, as we will end up
-	 * recycling the objects from there without the need to back it by
-	 * an additional layer of dirty pages cache. The dirty pages cache
-	 * would have worked better in the case when there are more
-	 * allocation bins involved due to a higher reuse rate (the case
-	 * of a more "generic" memory management).
-	 */
-	isc_mem_create_arena(&manager->send_mctx);
-	isc_mem_setname(manager->send_mctx, "sendbufs");
-	(void)isc_mem_arena_set_dirty_decay_ms(manager->send_mctx, 0);
-	/*
-	 * Disable muzzy pages cache too, as versions < 5.2.0 have it
-	 * enabled by default. The muzzy pages cache goes right below the
-	 * dirty pages cache and backs it.
-	 */
-	(void)isc_mem_arena_set_muzzy_decay_ms(manager->send_mctx, 0);
 
 	manager->magic = MANAGER_MAGIC;
 

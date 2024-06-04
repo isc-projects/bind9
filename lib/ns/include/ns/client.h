@@ -144,7 +144,6 @@ struct ns_clientmgr {
 	unsigned int magic;
 
 	isc_mem_t     *mctx;
-	isc_mem_t     *send_mctx;
 	isc_mempool_t *namepool;
 	isc_mempool_t *rdspool;
 
