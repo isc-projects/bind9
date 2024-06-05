@@ -39,3 +39,9 @@ zone "in-addr.arpa" {
 	file "in-addr.db";
 	update-policy {	grant * tcp-self . PTR(1) ANY(2) A; };
 };
+
+zone "2.0.0.2.ip6.arpa" {
+	type primary;
+	file "2.0.0.2.ip6.addr.db";
+	update-policy {	grant * 6to4-self . NS(10) DS(4); };
+};
