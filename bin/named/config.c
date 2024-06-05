@@ -207,7 +207,7 @@ options {\n\
 	/* zone */\n\
 	allow-query {any;};\n\
 	allow-query-on {any;};\n\
-	allow-transfer {any;};\n\
+	allow-transfer {none;};\n\
 #	also-notify <none>\n\
 	check-integrity yes;\n\
 	check-mx-cname warn;\n\

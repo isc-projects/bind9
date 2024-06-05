@@ -32,7 +32,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Outgoing zone transfers are no longer enabled by default. An explicit
+  :any:`allow-transfer` ACL must now be set at the :any:`zone`, :any:`view` or
+  :namedconf:ref:`options` level to enable outgoing transfers. :gl:`#4728`
 
 Bug Fixes
 ~~~~~~~~~
