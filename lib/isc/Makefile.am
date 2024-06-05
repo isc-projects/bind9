@@ -64,6 +64,7 @@ libisc_la_HEADERS =			\
 	include/isc/pause.h		\
 	include/isc/portset.h		\
 	include/isc/proxy2.h		\
+	include/isc/queue.h		\
 	include/isc/quota.h		\
 	include/isc/radix.h		\
 	include/isc/random.h		\

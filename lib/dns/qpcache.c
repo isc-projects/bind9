@@ -30,6 +30,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/queue.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
@@ -112,8 +113,6 @@
 #define ACTIVE(header, now) \
 	(((header)->ttl > (now)) || ((header)->ttl == (now) && ZEROTTL(header)))
 
-#define DEFAULT_NODE_LOCK_COUNT 7 /*%< Should be prime. */
-
 #define EXPIREDOK(rbtiterator) \
 	(((rbtiterator)->common.options & DNS_DB_EXPIREDOK) != 0)
 
@@ -152,26 +151,6 @@
 /*% Time after which we update LRU for all other records, 10 minutes */
 #define DNS_QPDB_LRUUPDATE_REGULAR 600
 
-/*%
- * Number of buckets for cache DB entries (locks, LRU lists, TTL heaps).
- * There is a tradeoff issue about configuring this value: if this is too
- * small, it may cause heavier contention between threads; if this is too large,
- * LRU purge algorithm won't work well (entries tend to be purged prematurely).
- * The default value should work well for most environments, but this can
- * also be configurable at compilation time via the
- * DNS_QPDB_CACHE_NODE_LOCK_COUNT variable.  This value must be larger than
- * 1 due to the assumption of overmem().
- */
-#ifdef DNS_QPDB_CACHE_NODE_LOCK_COUNT
-#if DNS_QPDB_CACHE_NODE_LOCK_COUNT <= 1
-#error "DNS_QPDB_CACHE_NODE_LOCK_COUNT must be larger than 1"
-#else /* if DNS_QPDB_CACHE_NODE_LOCK_COUNT <= 1 */
-#define DEFAULT_CACHE_NODE_LOCK_COUNT DNS_QPDB_CACHE_NODE_LOCK_COUNT
-#endif /* if DNS_QPDB_CACHE_NODE_LOCK_COUNT <= 1 */
-#else  /* ifdef DNS_QPDB_CACHE_NODE_LOCK_COUNT */
-#define DEFAULT_CACHE_NODE_LOCK_COUNT 17
-#endif /* DNS_QPDB_CACHE_NODE_LOCK_COUNT */
-
 /*
  * This defines the number of headers that we try to expire each time the
  * expire_ttl_headers() is run.  The number should be small enough, so the
@@ -185,7 +164,6 @@
  * For now it is a copy of the dns_rbtnode structure.
  */
 typedef struct qpcnode qpcnode_t;
-typedef ISC_LIST(qpcnode_t) qpcnodelist_t;
 struct qpcnode {
 	dns_name_t name;
 	isc_mem_t *mctx;
@@ -211,17 +189,20 @@ struct qpcnode {
 	uint8_t	      : 0;
 
 	/*%
-	 * Used for LRU cache.  This linked list is used to mark nodes which
-	 * have no data any longer, but we cannot unlink at that exact moment
-	 * because we did not or could not obtain a write lock on the tree.
+	 * Used for dead nodes cleaning.  This linked list is used to mark nodes
+	 * which have no data any longer, but we cannot unlink at that exact
+	 * moment because we did not or could not obtain a write lock on the
+	 * tree.
 	 */
-	ISC_LINK(qpcnode_t) deadlink;
+	isc_queue_node_t deadlink;
 };
 
 typedef struct qpcache qpcache_t;
 struct qpcache {
 	/* Unlocked. */
 	dns_db_t common;
+	/* Loopmgr */
+	isc_loopmgr_t *loopmgr;
 	/* Locks the data in this struct */
 	isc_rwlock_t lock;
 	/* Locks the tree structure (prevents nodes appearing/disappearing) */
@@ -235,7 +216,6 @@ struct qpcache {
 	isc_stats_t *gluecachestats; /* zone DB only */
 	/* Locked by lock. */
 	unsigned int active;
-	isc_loop_t *loop;
 
 	/*
 	 * The time after a failed lookup, where stale answers from cache
@@ -266,7 +246,7 @@ struct qpcache {
 	 * Temporary storage for stale cache nodes and dynamically deleted
 	 * nodes that await being cleaned up.
 	 */
-	qpcnodelist_t *deadnodes;
+	isc_queue_t *deadnodes;
 
 	/*
 	 * Heaps.  These are used for TTL based expiry in a cache,
@@ -589,8 +569,6 @@ static void
 delete_node(qpcache_t *qpdb, qpcnode_t *node) {
 	isc_result_t result = ISC_R_UNEXPECTED;
 
-	INSIST(!ISC_LINK_LINKED(node, deadlink));
-
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 		char printname[DNS_NAME_FORMATSIZE];
 		dns_name_format(&node->name, printname, sizeof(printname));
@@ -642,12 +620,6 @@ newref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t nlocktype,
        isc_rwlocktype_t tlocktype DNS__DB_FLARG) {
 	uint_fast32_t refs;
 
-	if (nlocktype == isc_rwlocktype_write &&
-	    ISC_LINK_LINKED(node, deadlink))
-	{
-		ISC_LIST_UNLINK(qpdb->deadnodes[node->locknum], node, deadlink);
-	}
-
 	qpcnode_ref(node);
 	refs = isc_refcount_increment0(&node->erefs);
 
@@ -681,6 +653,9 @@ newref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t nlocktype,
 #endif
 	}
 }
+
+static void
+cleanup_deadnodes(void *arg);
 
 /*
  * Caller must be holding the node lock; either the read or write lock.
@@ -819,10 +794,16 @@ decref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
 		 */
 		delete_node(qpdb, node);
 	} else {
-		INSIST(node->data == NULL);
-		if (!ISC_LINK_LINKED(node, deadlink)) {
-			ISC_LIST_APPEND(qpdb->deadnodes[bucket], node,
-					deadlink);
+		newref(qpdb, node, *nlocktypep, *tlocktypep DNS__DB_FLARG_PASS);
+
+		isc_queue_node_init(&node->deadlink);
+		if (!isc_queue_enqueue_entry(&qpdb->deadnodes[bucket], node,
+					     deadlink))
+		{
+			/* Queue was empty, trigger new cleaning */
+			isc_loop_t *loop = isc_loop_get(qpdb->loopmgr, bucket);
+
+			isc_async_run(loop, cleanup_deadnodes, qpdb);
 		}
 	}
 
@@ -2506,20 +2487,6 @@ free_qpdb(qpcache_t *qpdb, bool log) {
 	char buf[DNS_NAME_FORMATSIZE];
 	dns_qp_t **treep = NULL;
 
-	/*
-	 * We assume the number of remaining dead nodes is reasonably small;
-	 * the overhead of unlinking all nodes here should be negligible.
-	 */
-	for (i = 0; i < qpdb->node_lock_count; i++) {
-		qpcnode_t *node = NULL;
-
-		node = ISC_LIST_HEAD(qpdb->deadnodes[i]);
-		while (node != NULL) {
-			ISC_LIST_UNLINK(qpdb->deadnodes[i], node, deadlink);
-			node = ISC_LIST_HEAD(qpdb->deadnodes[i]);
-		}
-	}
-
 	for (;;) {
 		/*
 		 * pick the next tree to (start to) destroy
@@ -2568,13 +2535,13 @@ free_qpdb(qpcache_t *qpdb, bool log) {
 	/*
 	 * Clean up dead node buckets.
 	 */
-	if (qpdb->deadnodes != NULL) {
-		for (i = 0; i < qpdb->node_lock_count; i++) {
-			INSIST(ISC_LIST_EMPTY(qpdb->deadnodes[i]));
-		}
-		isc_mem_cput(qpdb->common.mctx, qpdb->deadnodes,
-			     qpdb->node_lock_count, sizeof(qpcnodelist_t));
+	for (i = 0; i < qpdb->node_lock_count; i++) {
+		INSIST(isc_queue_empty(&qpdb->deadnodes[i]));
+		isc_queue_destroy(&qpdb->deadnodes[i]);
 	}
+	isc_mem_cput(qpdb->common.mctx, qpdb->deadnodes, qpdb->node_lock_count,
+		     sizeof(qpdb->deadnodes[0]));
+
 	/*
 	 * Clean up heap objects.
 	 */
@@ -2600,9 +2567,6 @@ free_qpdb(qpcache_t *qpdb, bool log) {
 		     sizeof(db_nodelock_t));
 	TREE_DESTROYLOCK(&qpdb->tree_lock);
 	isc_refcount_destroy(&qpdb->common.references);
-	if (qpdb->loop != NULL) {
-		isc_loop_detach(&qpdb->loop);
-	}
 
 	isc_rwlock_destroy(&qpdb->lock);
 	qpdb->common.magic = 0;
@@ -2673,87 +2637,49 @@ mark_ancient(dns_slabheader_t *header) {
  * have no data.  They are dead but we could not or chose not to delete
  * them when we deleted all the data at that node because we did not want
  * to wait for the tree write lock.
- *
- * The caller must hold a tree write lock and bucketnum'th node (write) lock.
  */
 static void
-cleanup_dead_nodes(qpcache_t *qpdb, int bucketnum DNS__DB_FLARG) {
-	qpcnode_t *node = NULL;
-	int count = 10; /* XXXJT: should be adjustable */
+cleanup_deadnodes(void *arg) {
+	qpcache_t *qpdb = arg;
+	uint16_t locknum = isc_tid();
+	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
+	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
+	qpcnode_t *qpnode = NULL, *qpnext = NULL;
+	isc_queue_t deadnodes;
 
-	node = ISC_LIST_HEAD(qpdb->deadnodes[bucketnum]);
-	while (node != NULL && count > 0) {
-		ISC_LIST_UNLINK(qpdb->deadnodes[bucketnum], node, deadlink);
+	INSIST(locknum < qpdb->node_lock_count);
 
-		/*
-		 * We might have reactivated this node without a tree write
-		 * lock, so we couldn't remove this node from deadnodes then
-		 * and we have to do it now.
-		 */
-		if (isc_refcount_current(&node->references) != 0 ||
-		    node->data != NULL)
-		{
-			node = ISC_LIST_HEAD(qpdb->deadnodes[bucketnum]);
-			count--;
-			continue;
-		}
+	isc_queue_init(&deadnodes);
 
-		delete_node(qpdb, node);
+	TREE_WRLOCK(&qpdb->tree_lock, &tlocktype);
+	NODE_WRLOCK(&qpdb->node_locks[locknum].lock, &nlocktype);
 
-		node = ISC_LIST_HEAD(qpdb->deadnodes[bucketnum]);
-		count--;
+	RUNTIME_CHECK(isc_queue_splice(&deadnodes, &qpdb->deadnodes[locknum]));
+	isc_queue_for_each_entry_safe(&deadnodes, qpnode, qpnext, deadlink) {
+		decref(qpdb, qpnode, &nlocktype, &tlocktype, false);
 	}
+
+	NODE_UNLOCK(&qpdb->node_locks[locknum].lock, &nlocktype);
+	TREE_UNLOCK(&qpdb->tree_lock, &tlocktype);
 }
 
 /*
  * This function is assumed to be called when a node is newly referenced
- * and can be in the deadnode list.  In that case the node must be retrieved
- * from the list because it is going to be used.  In addition, if the caller
- * happens to hold a write lock on the tree, it's a good chance to purge dead
- * nodes.
+ * and can be in the deadnode list.  In that case the node will be references
+ * and cleanup_deadnodes() will remove it from the list when the cleaning
+ * happens.
  * Note: while a new reference is gained in multiple places, there are only very
  * few cases where the node can be in the deadnode list (only empty nodes can
  * have been added to the list).
  */
 static void
 reactivate_node(qpcache_t *qpdb, qpcnode_t *node,
-		isc_rwlocktype_t tlocktype DNS__DB_FLARG) {
+		isc_rwlocktype_t tlocktype ISC_ATTR_UNUSED DNS__DB_FLARG) {
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	isc_rwlock_t *nodelock = &qpdb->node_locks[node->locknum].lock;
-	bool maybe_cleanup = false;
-
-	POST(nlocktype);
 
 	NODE_RDLOCK(nodelock, &nlocktype);
-
-	/*
-	 * Check if we can possibly cleanup the dead node.  If so, upgrade
-	 * the node lock below to perform the cleanup.
-	 */
-	if (!ISC_LIST_EMPTY(qpdb->deadnodes[node->locknum]) &&
-	    tlocktype == isc_rwlocktype_write)
-	{
-		maybe_cleanup = true;
-	}
-
-	if (ISC_LINK_LINKED(node, deadlink) || maybe_cleanup) {
-		/*
-		 * Upgrade the lock and test if we still need to unlink.
-		 */
-		NODE_FORCEUPGRADE(nodelock, &nlocktype);
-		POST(nlocktype);
-		if (ISC_LINK_LINKED(node, deadlink)) {
-			ISC_LIST_UNLINK(qpdb->deadnodes[node->locknum], node,
-					deadlink);
-		}
-		if (maybe_cleanup) {
-			cleanup_dead_nodes(qpdb,
-					   node->locknum DNS__DB_FILELINE);
-		}
-	}
-
 	newref(qpdb, node, nlocktype, tlocktype DNS__DB_FLARG_PASS);
-
 	NODE_UNLOCK(nodelock, &nlocktype);
 }
 
@@ -2763,12 +2689,13 @@ new_qpcnode(qpcache_t *qpdb, const dns_name_t *name) {
 	*newdata = (qpcnode_t){
 		.name = DNS_NAME_INITEMPTY,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.locknum = isc_random_uniform(qpdb->node_lock_count),
 	};
-	newdata->locknum = dns_name_hash(name) % qpdb->node_lock_count;
+
+	INSIST(newdata->locknum < qpdb->node_lock_count);
+
 	isc_mem_attach(qpdb->common.mctx, &newdata->mctx);
 	dns_name_dupwithoffsets(name, newdata->mctx, &newdata->name);
-
-	ISC_LINK_INIT(newdata, deadlink);
 
 #ifdef DNS_DB_NODETRACE
 	fprintf(stderr, "new_qpcnode:%s:%s:%d:%p->references = 1\n", __func__,
@@ -3559,10 +3486,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				  true);
 	}
 
-	if (tlocktype == isc_rwlocktype_write) {
-		cleanup_dead_nodes(qpdb, qpnode->locknum DNS__DB_FLARG_PASS);
-	}
-
 	expire_ttl_headers(qpdb, qpnode->locknum, &nlocktype, &tlocktype, now,
 			   cache_is_overmem DNS__DB_FLARG_PASS);
 
@@ -3670,22 +3593,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	return (mu.leaves);
 }
 
-static void
-setloop(dns_db_t *db, isc_loop_t *loop) {
-	qpcache_t *qpdb = (qpcache_t *)db;
-
-	REQUIRE(VALID_QPDB(qpdb));
-
-	RWLOCK(&qpdb->lock, isc_rwlocktype_write);
-	if (qpdb->loop != NULL) {
-		isc_loop_detach(&qpdb->loop);
-	}
-	if (loop != NULL) {
-		isc_loop_attach(loop, &qpdb->loop);
-	}
-	RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
-}
-
 static isc_result_t
 getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
@@ -3731,10 +3638,12 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 		    void *driverarg ISC_ATTR_UNUSED, dns_db_t **dbp) {
 	qpcache_t *qpdb = NULL;
 	isc_mem_t *hmctx = mctx;
+	isc_loop_t *loop = isc_loop();
 	int i;
 
 	/* This database implementation only supports cache semantics */
 	REQUIRE(type == dns_dbtype_cache);
+	REQUIRE(loop != NULL);
 
 	qpdb = isc_mem_get(mctx, sizeof(*qpdb));
 	*qpdb = (qpcache_t){
@@ -3742,7 +3651,7 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 		.common.origin = DNS_NAME_INITEMPTY,
 		.common.rdclass = rdclass,
 		.common.attributes = DNS_DBATTR_CACHE,
-		.node_lock_count = DEFAULT_CACHE_NODE_LOCK_COUNT,
+		.loopmgr = isc_loop_getloopmgr(loop),
 	};
 
 	isc_refcount_init(&qpdb->common.references, 1);
@@ -3757,6 +3666,7 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 	isc_rwlock_init(&qpdb->lock);
 	TREE_INITLOCK(&qpdb->tree_lock);
 
+	qpdb->node_lock_count = isc_loopmgr_nloops(qpdb->loopmgr);
 	qpdb->node_locks = isc_mem_cget(mctx, qpdb->node_lock_count,
 					sizeof(db_nodelock_t));
 
@@ -3781,9 +3691,9 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 	 * Create deadnode lists.
 	 */
 	qpdb->deadnodes = isc_mem_cget(mctx, qpdb->node_lock_count,
-				       sizeof(qpcnodelist_t));
-	for (i = 0; i < (int)qpdb->node_lock_count; i++) {
-		ISC_LIST_INIT(qpdb->deadnodes[i]);
+				       sizeof(qpdb->deadnodes[0]));
+	for (i = 0; i < (int)(qpdb->node_lock_count); i++) {
+		isc_queue_init(&qpdb->deadnodes[i]);
 	}
 
 	qpdb->active = qpdb->node_lock_count;
@@ -4433,7 +4343,6 @@ static dns_dbmethods_t qpdb_cachemethods = {
 	.addrdataset = addrdataset,
 	.deleterdataset = deleterdataset,
 	.nodecount = nodecount,
-	.setloop = setloop,
 	.getoriginnode = getoriginnode,
 	.getrrsetstats = getrrsetstats,
 	.setcachestats = setcachestats,
