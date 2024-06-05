@@ -2343,8 +2343,10 @@ processbuffer(isc_nmsocket_t *sock) {
  * timers. If we do have a full message, reset the timer.
  *
  * Stop reading if this is a client socket, or if the server socket
- * has been set to sequential mode. In this case we'll be called again
- * later by isc__nm_resume_processing().
+ * has been set to sequential mode, or the number of queries we are
+ * processing simultaneously has reached the clients-per-connection
+ * limit. In this case we'll be called again later by
+ * isc__nm_resume_processing().
  */
 isc_result_t
 isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
@@ -2384,7 +2386,8 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 			isc__nmsocket_timer_stop(sock);
 
 			if (atomic_load(&sock->client) ||
-			    atomic_load(&sock->sequential))
+			    atomic_load(&sock->sequential) ||
+			    atomic_load(&sock->ah) >= STREAM_CLIENTS_PER_CONN)
 			{
 				isc__nm_stop_reading(sock);
 				goto done;

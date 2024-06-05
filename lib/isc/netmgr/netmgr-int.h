@@ -2262,6 +2262,14 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer);
 void
 isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult);
 
+/*%<
+ *
+ * Maximum number of simultaneous handles in flight supported for a single
+ * connected TCPDNS socket. This value was chosen arbitrarily, and may be
+ * changed in the future.
+ */
+#define STREAM_CLIENTS_PER_CONN 23
+
 #define UV_RUNTIME_CHECK(func, ret)                                      \
 	if (ret != 0) {                                                  \
 		FATAL_ERROR("%s failed: %s\n", #func, uv_strerror(ret)); \
