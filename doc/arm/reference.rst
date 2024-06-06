@@ -3130,8 +3130,8 @@ for details on how to specify IP address lists.
 
    This is the amount of time in milliseconds that the resolver spends
    attempting to resolve a recursive query before failing. The default
-   and minimum is ``10000`` and the maximum is ``30000``. Setting it to
-   ``0`` results in the default being used.
+   is ``10000``, the minimum is ``301`` and the maximum is ``30000``.
+   Setting it to ``0`` results in the default being used.
 
    This value was originally specified in seconds. Values less than or
    equal to 300 are treated as seconds and converted to
