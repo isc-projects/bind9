@@ -2595,6 +2595,17 @@ Boolean Options
    query logging can be activated at runtime using the command ``rndc querylog
    on``, or deactivated with :option:`rndc querylog off <rndc querylog>`.
 
+.. namedconf:statement:: responselog
+   :tags: logging, server
+   :short: Specifies whether response logging should be active when :iscman:`named` first starts.
+
+   Response logging complements :any:`querylog` by logging the rcode of
+   previous queries along with the queries' name, type and class.
+
+   Response logging can also be activated at runtime using the
+   command ``rndc responselog on``, or deactivated with :option:`rndc
+   responselog off <rndc responselog>`.
+
 .. namedconf:statement:: check-names
    :tags: query, server
    :short: Restricts the character set and syntax of certain domain names in primary files and/or DNS responses received from the network.
