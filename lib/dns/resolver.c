@@ -174,11 +174,6 @@
 #define MAX_SINGLE_QUERY_TIMEOUT_US (MAX_SINGLE_QUERY_TIMEOUT * US_PER_MS)
 
 /*
- * We need to allow a individual query time to complete / timeout.
- */
-#define MINIMUM_QUERY_TIMEOUT (MAX_SINGLE_QUERY_TIMEOUT + 1000U)
-
-/*
  * The default maximum number of validations and validation failures per-fetch
  */
 #ifndef DEFAULT_MAX_VALIDATIONS
@@ -188,9 +183,24 @@
 #define DEFAULT_MAX_VALIDATION_FAILURES 1
 #endif
 
-/* The default time in seconds for the whole query to live. */
+/*
+ * A minumum sane timeout value for the whole query to live when e.g. talking to
+ * a backend server and a quick timeout is preferred by the user.
+ *
+ * IMPORTANT: if changing this value, note there is a documented behavior when
+ * values of 'resolver-query-timeout' less than or equal to 300 are treated as
+ * seconds and converted to milliseconds before applying the limits, that's
+ * why the value of 301 was chosen as the absolute minimum in order to not break
+ * backward compatibility.
+ */
+#define MINIMUM_QUERY_TIMEOUT 301U
+
+/*
+ * The default time in seconds for the whole query to live.
+ * We want to allow an individual query time to complete / timeout.
+ */
 #ifndef DEFAULT_QUERY_TIMEOUT
-#define DEFAULT_QUERY_TIMEOUT MINIMUM_QUERY_TIMEOUT
+#define DEFAULT_QUERY_TIMEOUT (MAX_SINGLE_QUERY_TIMEOUT + 1000U)
 #endif /* ifndef DEFAULT_QUERY_TIMEOUT */
 
 /* The maximum time in seconds for the whole query to live. */
@@ -1201,6 +1211,9 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 			if (rtt > MAX_SINGLE_QUERY_TIMEOUT_US) {
 				rtt = MAX_SINGLE_QUERY_TIMEOUT_US;
 			}
+			if (rtt > fctx->res->query_timeout * US_PER_MS) {
+				rtt = fctx->res->query_timeout * US_PER_MS;
+			}
 
 			/*
 			 * Replace the current RTT with our value.
@@ -1860,6 +1873,9 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	}
 	if (us > MAX_SINGLE_QUERY_TIMEOUT_US) {
 		us = MAX_SINGLE_QUERY_TIMEOUT_US;
+	}
+	if (us > fctx->res->query_timeout * US_PER_MS) {
+		us = fctx->res->query_timeout * US_PER_MS;
 	}
 
 	seconds = us / US_PER_SEC;
@@ -10861,7 +10877,7 @@ void
 dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int timeout) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (timeout <= 300) {
+	if (timeout < MINIMUM_QUERY_TIMEOUT) {
 		timeout *= 1000;
 	}
 
