@@ -1,3 +1,6 @@
+6402.	[security]	Remove SIG(0) support from named as a countermeasure
+			for CVE-2024-1975. [GL #4480]
+
 6401.	[security]	An excessively large number of rrtypes per owner can
 			slow down database query processing, so a limit has been
 			placed on the number of rrtypes that can be stored per
