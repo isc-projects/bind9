@@ -2,6 +2,9 @@
 			parent NS records needed to get the DS result.
 			[GL #4661]
 
+6396.	[security]	Remove SIG(0) support from named as a countermeasure
+			for CVE-2024-1975. [GL #4480]
+
 	--- 9.16.50 released ---
 
 6364.	[protocol]	Add RESOLVER.ARPA to the built in empty zones.
