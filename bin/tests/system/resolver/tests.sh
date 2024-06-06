@@ -43,6 +43,28 @@ grep "status: NOERROR" dig.out.ns1.test${n} >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+# 'resolver-query-timeout' is set to 5 seconds in ns1, so dig with a lower
+# timeout value should give up earlier than that.
+n=$((n + 1))
+echo_i "checking no response handling with a shorter than resolver-query-timeout timeout ($n)"
+ret=0
+dig_with_opts +tcp +tries=1 +timeout=3 noresponse.example.net @10.53.0.1 a >dig.out.ns1.test${n} && ret=1
+grep -F "no servers could be reached" dig.out.ns1.test${n} >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+# 'resolver-query-timeout' is set to 5 seconds in ns1, which is lower than the
+# current single query timeout value MAX_SINGLE_QUERY_TIMEOUT of 9 seconds, so
+# the "hung fetch" timer should kick in, interrupt the non-responsive query and
+# send a SERVFAIL answer.
+n=$((n + 1))
+echo_i "checking no response handling with a longer than resolver-query-timeout timeout ($n)"
+ret=0
+dig_with_opts +tcp +tries=1 +timeout=7 noresponse.example.net @10.53.0.1 a >dig.out.ns1.test${n} || ret=1
+grep -F "status: SERVFAIL" dig.out.ns1.test${n} >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 n=$((n + 1))
 echo_i "checking handling of bogus referrals ($n)"
 # If the server has the "INSIST(!external)" bug, this query will kill it.
