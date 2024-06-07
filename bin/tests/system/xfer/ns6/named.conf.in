@@ -90,3 +90,10 @@ zone "ixfr-too-big" {
 	primaries { 10.53.0.1; };
 	file "ixfr-too-big.bk";
 };
+
+zone "ixfr-too-many-diffs" {
+	type secondary;
+	request-ixfr-max-diffs 3;
+	primaries { 10.53.0.1; };
+	file "ixfr-too-many-diffs.bk";
+};

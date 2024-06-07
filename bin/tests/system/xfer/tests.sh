@@ -592,6 +592,27 @@ if test $tmp != 0; then echo_i "failed"; fi
 status=$((status + tmp))
 
 n=$((n + 1))
+echo_i "test that a zone with too many diffs (IXFR) is retried with AXFR ($n)"
+tmp=0
+nextpart ns6/named.run >/dev/null
+$NSUPDATE <<EOF
+zone ixfr-too-many-diffs
+server 10.53.0.1 ${PORT}
+update add the-31st-record.ixfr-too-many-diffs 0 TXT too
+update add the-32nd-record.ixfr-too-many-diffs 0 TXT many
+update add the-33rd-record.ixfr-too-many-diffs 0 TXT diffs
+update add the-34th-record.ixfr-too-many-diffs 0 TXT for
+update add the-35th-record.ixfr-too-many-diffs 0 TXT ixfr
+send
+EOF
+msg="'ixfr-too-many-diffs/IN' from 10.53.0.1#${PORT}: Transfer status: success"
+wait_for_log 10 "$msg" ns6/named.run || tmp=1
+msg="'ixfr-too-many-diffs/IN' from 10.53.0.1#${PORT}: too many diffs, retrying with AXFR"
+grep -F "$msg" ns6/named.run >/dev/null || tmp=1
+if test $tmp != 0; then echo_i "failed"; fi
+status=$((status + tmp))
+
+n=$((n + 1))
 echo_i "checking whether dig calculates AXFR statistics correctly ($n)"
 tmp=0
 # Loop until the secondary server manages to transfer the "xfer-stats" zone so
