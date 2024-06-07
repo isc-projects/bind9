@@ -178,6 +178,8 @@ struct dns_xfrin {
 	dns_rdatacallbacks_t axfr;
 
 	struct {
+		uint32_t diffs;
+		uint32_t maxdiffs;
 		uint32_t request_serial;
 		uint32_t current_serial;
 		dns_journal_t *journal;
@@ -212,7 +214,8 @@ typedef struct xfrin_work {
 static void
 xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_loop_t *loop,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
-	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
+	     dns_rdatatype_t reqtype, uint32_t ixfr_maxdiffs,
+	     const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
 	     dns_transport_type_t soa_transport_type,
 	     dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
@@ -459,6 +462,7 @@ ixfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata, &tuple);
 	dns_diff_append(&xfr->diff, &tuple);
 
+	xfr->ixfr.diffs++;
 failure:
 	return (result);
 }
@@ -863,7 +867,7 @@ failure:
 
 isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		 const isc_sockaddr_t *primaryaddr,
+		 uint32_t ixfr_maxdiffs, const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
 		 dns_transport_type_t soa_transport_type,
 		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
@@ -889,7 +893,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	}
 
 	xfrin_create(mctx, zone, db, loop, zonename, dns_zone_getclass(zone),
-		     xfrtype, primaryaddr, sourceaddr, tsigkey,
+		     xfrtype, ixfr_maxdiffs, primaryaddr, sourceaddr, tsigkey,
 		     soa_transport_type, transport, tlsctx_cache, &xfr);
 
 	if (db != NULL) {
@@ -1096,6 +1100,8 @@ xfrin_reset(dns_xfrin_t *xfr) {
 
 	dns_diff_clear(&xfr->diff);
 
+	xfr->ixfr.diffs = 0;
+
 	if (xfr->ixfr.journal != NULL) {
 		dns_journal_destroy(&xfr->ixfr.journal);
 	}
@@ -1145,7 +1151,8 @@ xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
 static void
 xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_loop_t *loop,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
-	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
+	     dns_rdatatype_t reqtype, uint32_t ixfr_maxdiffs,
+	     const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
 	     dns_transport_type_t soa_transport_type,
 	     dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
@@ -1157,6 +1164,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_loop_t *loop,
 		.shutdown_result = ISC_R_UNSET,
 		.rdclass = rdclass,
 		.reqtype = reqtype,
+		.ixfr.maxdiffs = ixfr_maxdiffs,
 		.maxrecords = dns_zone_getmaxrecords(zone),
 		.primaryaddr = *primaryaddr,
 		.sourceaddr = *sourceaddr,
@@ -1902,6 +1910,19 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rds, &rdata);
 				CHECK(xfr_rr(xfr, name, rds->ttl, &rdata));
+
+				/*
+				 * Did we hit the maximum ixfr diffs limit?
+				 */
+				if (xfr->reqtype == dns_rdatatype_ixfr &&
+				    xfr->ixfr.maxdiffs != 0 &&
+				    xfr->ixfr.diffs >= xfr->ixfr.maxdiffs)
+				{
+					xfrin_log(xfr, ISC_LOG_DEBUG(3),
+						  "too many diffs, "
+						  "retrying with AXFR");
+					goto try_axfr;
+				}
 			}
 		}
 	}

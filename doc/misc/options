@@ -257,6 +257,7 @@ options {
 	recursive-clients <integer>;
 	request-expire <boolean>;
 	request-ixfr <boolean>;
+	request-ixfr-max-diffs <integer>;
 	request-nsid <boolean>;
 	require-server-cookie <boolean>;
 	resolver-query-timeout <integer>;
@@ -346,6 +347,7 @@ server <netprefix> {
 	query-source-v6 [ address ] ( <ipv6_address> | * );
 	request-expire <boolean>;
 	request-ixfr <boolean>;
+	request-ixfr-max-diffs <integer>;
 	request-nsid <boolean>;
 	require-cookie <boolean>;
 	send-cookie <boolean>;
@@ -539,6 +541,7 @@ view <string> [ <class> ] {
 	recursion <boolean>;
 	request-expire <boolean>;
 	request-ixfr <boolean>;
+	request-ixfr-max-diffs <integer>;
 	request-nsid <boolean>;
 	require-server-cookie <boolean>;
 	resolver-query-timeout <integer>;
@@ -564,6 +567,7 @@ view <string> [ <class> ] {
 		query-source-v6 [ address ] ( <ipv6_address> | * );
 		request-expire <boolean>;
 		request-ixfr <boolean>;
+		request-ixfr-max-diffs <integer>;
 		request-nsid <boolean>;
 		require-cookie <boolean>;
 		send-cookie <boolean>;

@@ -2442,6 +2442,25 @@ dns_zone_setrequestixfr(dns_zone_t *zone, bool flag);
  * \li	'zone' to be valid.
  */
 
+bool
+dns_zone_getrequestixfrmaxdiffs(dns_zone_t *zone);
+/*%
+ * Returns the value of the request-ixfr-max-diffs option in the zone.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
+void
+dns_zone_setrequestixfrmaxdiffs(dns_zone_t *zone, uint32_t maxmsgs);
+/*%
+ * Sets the request-ixfr-max-diffs option for the zone. 0 means unlimited. The
+ * default value is determined by the setting of this option in the view.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
+
 uint32_t
 dns_zone_getixfrratio(dns_zone_t *zone);
 /*%

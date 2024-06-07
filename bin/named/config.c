@@ -190,6 +190,7 @@ options {\n\
 	recursion true;\n\
 	request-expire true;\n\
 	request-ixfr true;\n\
+	request-ixfr-max-diffs 0;\n\
 	require-server-cookie no;\n\
 	root-key-sentinel yes;\n\
 	servfail-ttl 1;\n\
