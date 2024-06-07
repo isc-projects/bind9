@@ -3258,6 +3258,13 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	}
 
 	/*
+	 * Exempt prefetches from ADB quota.
+	 */
+	if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0) {
+		options |= DNS_ADBFIND_QUOTAEXEMPT;
+	}
+
+	/*
 	 * See what we know about this address.
 	 */
 	INSIST(!SHUTTINGDOWN(fctx));
