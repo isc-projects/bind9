@@ -192,14 +192,6 @@ client_trace(ns_client_t *client, int level, const char *message) {
 #define CCTRACE(l, m) ((void)m)
 #endif /* WANT_QUERYTRACE */
 
-enum {
-	DNS_GETDB_NOEXACT = 1 << 0,
-	DNS_GETDB_NOLOG = 1 << 1,
-	DNS_GETDB_PARTIAL = 1 << 2,
-	DNS_GETDB_IGNOREACL = 1 << 3,
-	DNS_GETDB_STALEFIRST = 1 << 4,
-};
-
 #define PENDINGOK(x) (((x) & DNS_DBFIND_PENDINGOK) != 0)
 
 #define SFCACHE_CDFLAG 0x1
@@ -829,7 +821,7 @@ ns_query_init(ns_client_t *client) {
 
 /*%
  * Check if 'client' is allowed to query the cache of its associated view.
- * Unless 'options' has DNS_GETDB_NOLOG set, log the result of cache ACL
+ * Unless 'options' has the 'nolog' flag set, log the result of cache ACL
  * evaluation using the appropriate level, along with 'name' and 'qtype'.
  *
  * The cache ACL is only evaluated once for each client and then the result is
@@ -845,7 +837,7 @@ ns_query_init(ns_client_t *client) {
  */
 static isc_result_t
 query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
-		       dns_rdatatype_t qtype, unsigned int options) {
+		       dns_rdatatype_t qtype, dns_getdb_options_t options) {
 	isc_result_t result;
 
 	if ((client->query.attributes & NS_QUERYATTR_CACHEACLOKVALID) == 0) {
@@ -863,7 +855,6 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 		 * Do it now. Both allow-query-cache and
 		 * allow-query-cache-on must be satisfied.
 		 */
-		bool log = ((options & DNS_GETDB_NOLOG) == 0);
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
 
 		enum refusal_reasons refusal_reason = ALLOW_QUERY_CACHE;
@@ -880,7 +871,8 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 			 * We were allowed by the "allow-query-cache" ACL.
 			 */
 			client->query.attributes |= NS_QUERYATTR_CACHEACLOK;
-			if (log && isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(3)))
+			if (!options.nolog &&
+			    isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(3)))
 			{
 				ns_client_aclmsg("query (cache)", name, qtype,
 						 client->view->rdclass, msg,
@@ -900,7 +892,7 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
 						NULL);
 
-			if (log) {
+			if (!options.nolog) {
 				ns_client_aclmsg("query (cache)", name, qtype,
 						 client->view->rdclass, msg,
 						 sizeof(msg));
@@ -925,7 +917,7 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 
 static isc_result_t
 query_validatezonedb(ns_client_t *client, const dns_name_t *name,
-		     dns_rdatatype_t qtype, unsigned int options,
+		     dns_rdatatype_t qtype, dns_getdb_options_t options,
 		     dns_zone_t *zone, dns_db_t *db,
 		     dns_dbversion_t **versionp) {
 	isc_result_t result;
@@ -984,7 +976,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 		return (DNS_R_SERVFAIL);
 	}
 
-	if ((options & DNS_GETDB_IGNOREACL) != 0) {
+	if (options.ignoreacl) {
 		goto approved;
 	}
 	if (dbversion->acl_checked) {
@@ -1018,7 +1010,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	}
 
 	result = ns_client_checkaclsilent(client, NULL, queryacl, true);
-	if ((options & DNS_GETDB_NOLOG) == 0) {
+	if (!options.nolog) {
 		char msg[NS_CLIENT_ACLMSGSIZE("query")];
 		if (result == ISC_R_SUCCESS) {
 			if (isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(3))) {
@@ -1071,8 +1063,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
 						NULL);
 		}
-		if ((options & DNS_GETDB_NOLOG) == 0 && result != ISC_R_SUCCESS)
-		{
+		if (!options.nolog && result != ISC_R_SUCCESS) {
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 				      "query-on denied");
@@ -1094,8 +1085,9 @@ approved:
 
 static isc_result_t
 query_getzonedb(ns_client_t *client, const dns_name_t *name,
-		dns_rdatatype_t qtype, unsigned int options, dns_zone_t **zonep,
-		dns_db_t **dbp, dns_dbversion_t **versionp) {
+		dns_rdatatype_t qtype, dns_getdb_options_t options,
+		dns_zone_t **zonep, dns_db_t **dbp,
+		dns_dbversion_t **versionp) {
 	isc_result_t result;
 	unsigned int ztoptions;
 	dns_zone_t *zone = NULL;
@@ -1109,7 +1101,7 @@ query_getzonedb(ns_client_t *client, const dns_name_t *name,
 	 * Find a zone database to answer the query.
 	 */
 	ztoptions = DNS_ZTFIND_MIRROR;
-	if ((options & DNS_GETDB_NOEXACT) != 0) {
+	if (options.noexact) {
 		ztoptions |= DNS_ZTFIND_NOEXACT;
 	}
 
@@ -1137,7 +1129,7 @@ query_getzonedb(ns_client_t *client, const dns_name_t *name,
 	*zonep = zone;
 	*dbp = db;
 
-	if (partial && (options & DNS_GETDB_PARTIAL) != 0) {
+	if (partial && options.partial) {
 		return (DNS_R_PARTIALMATCH);
 	}
 	return (ISC_R_SUCCESS);
@@ -1291,8 +1283,9 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
 
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_getdb");
 
-	result = query_getzonedb(client, p_name, dns_rdatatype_any,
-				 DNS_GETDB_IGNOREACL, zonep, dbp, &rpz_version);
+	dns_getdb_options_t options = { .ignoreacl = true };
+	result = query_getzonedb(client, p_name, dns_rdatatype_any, options,
+				 zonep, dbp, &rpz_version);
 	if (result == ISC_R_SUCCESS) {
 		dns_rpz_st_t *st = client->query.rpz_st;
 
@@ -1326,7 +1319,8 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
  */
 static isc_result_t
 query_getcachedb(ns_client_t *client, const dns_name_t *name,
-		 dns_rdatatype_t qtype, dns_db_t **dbp, unsigned int options) {
+		 dns_rdatatype_t qtype, dns_db_t **dbp,
+		 dns_getdb_options_t options) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 
@@ -1354,7 +1348,7 @@ query_getcachedb(ns_client_t *client, const dns_name_t *name,
 
 static isc_result_t
 query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
-	    unsigned int options, dns_zone_t **zonep, dns_db_t **dbp,
+	    dns_getdb_options_t options, dns_zone_t **zonep, dns_db_t **dbp,
 	    dns_dbversion_t **versionp, bool *is_zonep) {
 	isc_result_t result;
 	isc_result_t tresult;
@@ -1635,8 +1629,9 @@ query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
 		 */
 		version = NULL;
 		dns_db_detach(&db);
-		result = query_getzonedb(client, name, type, DNS_GETDB_NOLOG,
-					 &zone, &db, &version);
+		dns_getdb_options_t options = { .nolog = true };
+		result = query_getzonedb(client, name, type, options, &zone,
+					 &db, &version);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -1745,7 +1740,8 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	}
 
 	additionaltype = dns_rdatasetadditional_fromcache;
-	result = query_getcachedb(client, name, qtype, &db, DNS_GETDB_NOLOG);
+	dns_getdb_options_t options = { .nolog = true };
+	result = query_getcachedb(client, name, qtype, &db, options);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * Most likely the client isn't allowed to query the cache.
@@ -2989,7 +2985,8 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 
 		version = NULL;
 		zone = NULL;
-		result = query_getdb(client, name, type, 0, &zone, dbp,
+		result = query_getdb(client, name, type,
+				     (dns_getdb_options_t){ 0 }, &zone, dbp,
 				     &version, &is_zone);
 		if (result != ISC_R_SUCCESS) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, name,
@@ -5142,7 +5139,6 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_zone_t *zone = NULL;
 	bool is_zone;
 	unsigned int labels;
-	unsigned int options;
 
 	CTRACE(ISC_LOG_DEBUG(3), "redirect2");
 
@@ -5212,9 +5208,9 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_name_copy(redirectname, client->view->redirectzone);
 	}
 
-	options = 0;
-	result = query_getdb(client, redirectname, qtype, options, &zone, &db,
-			     &version, &is_zone);
+	result = query_getdb(client, redirectname, qtype,
+			     (dns_getdb_options_t){ 0 }, &zone, &db, &version,
+			     &is_zone);
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
 	}
@@ -5667,9 +5663,10 @@ ns__query_start(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * First we must find the right database.
+	 * First we must find the right database. Reset the options but preserve
+	 * the 'nolog' flag.
 	 */
-	qctx->options &= DNS_GETDB_NOLOG; /* Preserve DNS_GETDB_NOLOG. */
+	qctx->options = (dns_getdb_options_t){ .nolog = qctx->options.nolog };
 	if (dns_rdatatype_atparent(qctx->qtype) &&
 	    !dns_name_equal(qctx->client->query.qname, dns_rootname))
 	{
@@ -5679,7 +5676,7 @@ ns__query_start(query_ctx_t *qctx) {
 		 * but rather for its containing zone (unless the QNAME is
 		 * root).
 		 */
-		qctx->options |= DNS_GETDB_NOEXACT;
+		qctx->options.noexact = true;
 	}
 
 	result = query_getdb(qctx->client, qctx->client->query.qname,
@@ -5687,7 +5684,7 @@ ns__query_start(query_ctx_t *qctx) {
 			     &qctx->version, &qctx->is_zone);
 	if ((result != ISC_R_SUCCESS || !qctx->is_zone) &&
 	    qctx->qtype == dns_rdatatype_ds && !RECURSIONOK(qctx->client) &&
-	    (qctx->options & DNS_GETDB_NOEXACT) != 0)
+	    qctx->options.noexact)
 	{
 		/*
 		 * This is a non-recursive QTYPE=DS query with QNAME whose
@@ -5700,15 +5697,16 @@ ns__query_start(query_ctx_t *qctx) {
 		dns_dbversion_t *tversion = NULL;
 		isc_result_t tresult;
 
+		dns_getdb_options_t options = { .partial = true };
 		tresult = query_getzonedb(
 			qctx->client, qctx->client->query.qname, qctx->qtype,
-			DNS_GETDB_PARTIAL, &tzone, &tdb, &tversion);
+			options, &tzone, &tdb, &tversion);
 		if (tresult == ISC_R_SUCCESS) {
 			/*
 			 * We are authoritative for QNAME.  Attach the relevant
 			 * zone to query context, set result to ISC_R_SUCCESS.
 			 */
-			qctx->options &= ~DNS_GETDB_NOEXACT;
+			qctx->options.noexact = false;
 			ns_client_putrdataset(qctx->client, &qctx->rdataset);
 			if (qctx->db != NULL) {
 				dns_db_detach(&qctx->db);
@@ -5813,7 +5811,7 @@ ns__query_start(query_ctx_t *qctx) {
 		 * stale-answer-client-timeout is zero, then we can promptly
 		 * answer with a stale RRset if one is available in cache.
 		 */
-		qctx->options |= DNS_GETDB_STALEFIRST;
+		qctx->options.stalefirst = true;
 	}
 
 	result = query_lookup(qctx);
@@ -5823,7 +5821,7 @@ ns__query_start(query_ctx_t *qctx) {
 	 * If a fetch is created to resolve this query, then,
 	 * when it completes, this option is not expected to be set.
 	 */
-	qctx->options &= ~DNS_GETDB_STALEFIRST;
+	qctx->options.stalefirst = false;
 
 cleanup:
 	return (result);
@@ -5943,9 +5941,9 @@ query_lookup(query_ctx_t *qctx) {
 		rpzqname = qctx->client->query.qname;
 	}
 
-	if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
+	if (qctx->options.stalefirst) {
 		/*
-		 * If DNS_GETDB_STALEFIRST is set, it means that a stale
+		 * If the 'stalefirst' flag is set, it means that a stale
 		 * RRset may be returned as part of this lookup. An attempt
 		 * to refresh the RRset will still take place if an
 		 * active RRset is not available.
@@ -6091,7 +6089,7 @@ query_lookup(query_ctx_t *qctx) {
 			return (ns_query_done(qctx));
 		}
 	} else if (stale_timeout) {
-		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
+		if (qctx->options.stalefirst) {
 			if (!stale_found && !answer_found) {
 				/*
 				 * We have nothing useful in cache to return
@@ -6103,7 +6101,7 @@ query_lookup(query_ctx_t *qctx) {
 					      &qctx->db);
 				qctx->client->query.dboptions &=
 					~DNS_DBFIND_STALETIMEOUT;
-				qctx->options &= ~DNS_GETDB_STALEFIRST;
+				qctx->options.stalefirst = false;
 				if (FETCH_RECTYPE_NORMAL(qctx->client) != NULL)
 				{
 					dns_resolver_destroyfetch(
@@ -8743,15 +8741,15 @@ query_zone_delegation(query_ctx_t *qctx) {
 	 * authoritative for the child zone
 	 */
 	if (!RECURSIONOK(qctx->client) &&
-	    (qctx->options & DNS_GETDB_NOEXACT) != 0 &&
-	    qctx->qtype == dns_rdatatype_ds)
+	    (qctx->options.noexact && qctx->qtype == dns_rdatatype_ds))
 	{
 		dns_db_t *tdb = NULL;
 		dns_zone_t *tzone = NULL;
 		dns_dbversion_t *tversion = NULL;
-		result = query_getzonedb(
-			qctx->client, qctx->client->query.qname, qctx->qtype,
-			DNS_GETDB_PARTIAL, &tzone, &tdb, &tversion);
+		dns_getdb_options_t options = { .partial = true };
+		result = query_getzonedb(qctx->client,
+					 qctx->client->query.qname, qctx->qtype,
+					 options, &tzone, &tdb, &tversion);
 		if (result != ISC_R_SUCCESS) {
 			if (tdb != NULL) {
 				dns_db_detach(&tdb);
@@ -8760,7 +8758,7 @@ query_zone_delegation(query_ctx_t *qctx) {
 				dns_zone_detach(&tzone);
 			}
 		} else {
-			qctx->options &= ~DNS_GETDB_NOEXACT;
+			qctx->options.noexact = false;
 			ns_client_putrdataset(qctx->client, &qctx->rdataset);
 			if (qctx->sigrdataset != NULL) {
 				ns_client_putrdataset(qctx->client,
@@ -9808,7 +9806,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	ns_client_qnamereplace(qctx->client, tname);
 	qctx->want_restart = true;
 	if (!WANTRECURSION(qctx->client)) {
-		qctx->options |= DNS_GETDB_NOLOG;
+		qctx->options.nolog = true;
 	}
 
 	return (result);
@@ -10425,7 +10423,7 @@ query_cname(query_ctx_t *qctx) {
 	ns_client_qnamereplace(qctx->client, tname);
 	qctx->want_restart = true;
 	if (!WANTRECURSION(qctx->client)) {
-		qctx->options |= DNS_GETDB_NOLOG;
+		qctx->options.nolog = true;
 	}
 
 	query_addauth(qctx);
@@ -10577,7 +10575,7 @@ query_dname(query_ctx_t *qctx) {
 		qctx->fname = NULL;
 		qctx->want_restart = true;
 		if (!WANTRECURSION(qctx->client)) {
-			qctx->options |= DNS_GETDB_NOLOG;
+			qctx->options.nolog = true;
 		}
 	}
 
@@ -10922,8 +10920,9 @@ query_addbestns(query_ctx_t *qctx) {
 	 * Find the right database.
 	 */
 	do {
-		result = query_getdb(client, &qname, dns_rdatatype_ns, 0, &zone,
-				     &db, &version, &is_zone);
+		result = query_getdb(client, &qname, dns_rdatatype_ns,
+				     (dns_getdb_options_t){ 0 }, &zone, &db,
+				     &version, &is_zone);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -11650,7 +11649,7 @@ ns_query_done(query_ctx_t *qctx) {
 	 */
 	if (RECURSING(qctx->client) &&
 	    (!QUERY_STALETIMEOUT(&qctx->client->query) ||
-	     ((qctx->options & DNS_GETDB_STALEFIRST) != 0)))
+	     qctx->options.stalefirst))
 	{
 		return (qctx->result);
 	}

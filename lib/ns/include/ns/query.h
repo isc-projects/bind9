@@ -37,6 +37,15 @@ typedef struct ns_dbversion {
 	ISC_LINK(struct ns_dbversion) link;
 } ns_dbversion_t;
 
+/* DB lookup options */
+typedef struct dns_getdb_options {
+	bool noexact	: 1;
+	bool nolog	: 1;
+	bool partial	: 1;
+	bool ignoreacl	: 1;
+	bool stalefirst : 1;
+} dns_getdb_options_t;
+
 /*%
  * recursion type; various features can initiate recursion and this enum value
  * allows common code paths to differentiate between them
@@ -182,7 +191,7 @@ struct query_ctx {
 	dns_rdatatype_t qtype;
 	dns_rdatatype_t type;
 
-	unsigned int options; /* DB lookup options */
+	dns_getdb_options_t options; /* DB lookup options */
 
 	bool redirected; /* nxdomain redirected? */
 	bool is_zone;	 /* is DB a zone DB? */
