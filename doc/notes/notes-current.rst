@@ -15,6 +15,10 @@ Notes for BIND 9.18.28
 Security Fixes
 ~~~~~~~~~~~~~~
 
+- Malicious DNS client that sends many queries over TCP but never reads
+  responses can cause server to respond slowly or not respond at all for other
+  clients. :cve:`2024-0760` :gl:`#4481`
+
 - Named could trigger an assertion failure when looking up the NS
   records of parent zones as part of looking up DS records.  This
   has been fixed. :gl:`#4661`

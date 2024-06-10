@@ -1,3 +1,8 @@
+6399.	[security]	Malicious DNS client that sends many queries over
+			TCP but never reads responses can cause server to
+			respond slowly or not respond at all for other
+			clients. (CVE-2024-0760) [GL #4481]
+
 6398.	[bug]		Fix potential data races in our DoH implementation
 			related to HTTP/2 session object management and
 			endpoints set object management after reconfiguration.

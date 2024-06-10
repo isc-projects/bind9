@@ -62,9 +62,10 @@
 #endif
 
 /*
- * The TCP receive buffer can fit one maximum sized DNS message plus its size,
- * the receive buffer here affects TCP, DoT and DoH.
+ * The TCP send and receive buffers can fit one maximum sized DNS message plus
+ * its size, the receive buffer here affects TCP, DoT and DoH.
  */
+#define ISC_NETMGR_TCP_SENDBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 #define ISC_NETMGR_TCP_RECVBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 
 /* Pick the larger buffer */
@@ -2260,6 +2261,14 @@ void
 isc__nmsocket_readtimeout_cb(uv_timer_t *timer);
 void
 isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult);
+
+/*%<
+ *
+ * Maximum number of simultaneous handles in flight supported for a single
+ * connected TCPDNS socket. This value was chosen arbitrarily, and may be
+ * changed in the future.
+ */
+#define STREAM_CLIENTS_PER_CONN 23
 
 #define UV_RUNTIME_CHECK(func, ret)                                      \
 	if (ret != 0) {                                                  \
