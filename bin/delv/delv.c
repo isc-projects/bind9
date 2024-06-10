@@ -2117,15 +2117,22 @@ cleanup:
 
 static isc_result_t
 matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-	  dns_message_t *message, dns_aclenv_t *env, isc_result_t *sigresultp,
+	  dns_message_t *message, dns_aclenv_t *env, ns_server_t *lsctx,
+	  isc_loop_t *loop, isc_job_cb cb, void *cbarg,
+	  isc_result_t *sigresultp, isc_result_t *viewpatchresultp,
 	  dns_view_t **viewp) {
 	UNUSED(srcaddr);
 	UNUSED(destaddr);
 	UNUSED(message);
 	UNUSED(env);
+	UNUSED(lsctx);
+	UNUSED(loop);
+	UNUSED(cb);
+	UNUSED(cbarg);
 	UNUSED(sigresultp);
 
 	*viewp = view;
+	*viewpatchresultp = ISC_R_SUCCESS;
 	return (ISC_R_SUCCESS);
 }
 

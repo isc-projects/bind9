@@ -167,6 +167,7 @@ struct ns_client {
 	ns_clientmgr_t	*manager;
 	ns_clientstate_t state;
 	bool		 nodetach;
+	bool		 async;
 	unsigned int	 attributes;
 	dns_view_t	*view;
 	dns_dispatch_t	*dispatch;
@@ -192,6 +193,10 @@ struct ns_client {
 	isc_time_t    tnow;
 	dns_name_t    signername; /*%< [T]SIG key name */
 	dns_name_t   *signer;	  /*%< NULL if not valid sig */
+	isc_result_t  sigresult;
+	isc_result_t  viewmatchresult;
+	isc_buffer_t *buffer;
+	isc_buffer_t  tbuffer;
 
 	isc_sockaddr_t peeraddr;
 	bool	       peeraddr_valid;

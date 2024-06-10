@@ -56,6 +56,13 @@ zone "example2" {
 	primaries { 10.53.0.1; };
 };
 
+zone "example2-toomanykeys" {
+	type secondary;
+	file "example2-toomanykeys.bk";
+	allow-update-forwarding { 10.53.0.1; };
+	primaries { 10.53.0.1; };
+};
+
 zone "example3" {
 	type secondary;
 	file "example3.bk";

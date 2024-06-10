@@ -1,3 +1,13 @@
+6402.	[security]	A malicious DNS client that sends many queries with a
+			SIG(0)-signed message can cause the server to respond
+			slowly or not respond at all to other clients. Use the
+			offload threadpool for SIG(0) signature verifications,
+			add the 'sig0checks-quota' configuration option to
+			introduce a quota for SIG(0)-signed queries running in
+			parallel and add the 'sig0checks-quota-exempt' option to
+			exempt certain clients by their IP/network addresses.
+			(CVE-2024-1975) [GL #4480]
+
 6401.	[security]	An excessively large number of rrtypes per owner can
 			slow down database query processing, so a limit has been
 			placed on the number of rrtypes that can be stored per
