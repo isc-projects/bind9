@@ -34,6 +34,11 @@ Security Fixes
   ISC would like to thank Toshifumi Sakaguchi who independently discovered
   and responsibly reported the issue to ISC. :gl:`#4548`
 
+- Validating DNS messages signed using the SIG(0) protocol (:rfc:`2931`) could
+  cause excessive CPU load, leading to a denial-of-service condition.
+  Support for SIG(0) message validation was removed from this version of
+  :iscman:`named`. :cve:`2024-1975` :gl:`#4480`
+
 - Named could trigger an assertion failure when looking up the NS
   records of parent zones as part of looking up DS records.  This
   has been fixed. :gl:`#4661`
