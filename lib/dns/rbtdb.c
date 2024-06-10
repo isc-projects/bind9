@@ -462,6 +462,8 @@ struct dns_rbtdb {
 	rbtdb_serial_t current_serial;
 	rbtdb_serial_t least_serial;
 	rbtdb_serial_t next_serial;
+	uint32_t maxrrperset;
+	uint32_t maxtypepername;
 	rbtdb_version_t *current_version;
 	rbtdb_version_t *future_version;
 	rbtdb_versionlist_t open_versions;
@@ -6259,6 +6261,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 	rbtdb_rdatatype_t negtype, sigtype;
 	dns_trust_t trust;
 	int idx;
+	uint32_t ntypes = 0;
 
 	/*
 	 * Add an rdatasetheader_t to a node.
@@ -6323,6 +6326,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 					set_ttl(rbtdb, topheader, 0);
 					mark_header_ancient(rbtdb, topheader);
 				}
+				ntypes = 0; /* Always add the negative entry */
 				goto find_header;
 			}
 			/*
@@ -6346,9 +6350,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
+			ntypes = 0;
 			for (topheader = rbtnode->data; topheader != NULL;
 			     topheader = topheader->next)
 			{
+				++ntypes;
 				if ((topheader->type ==
 				     RBTDB_RDATATYPE_NCACHEANY) ||
 				    (newheader->type == sigtype &&
@@ -6393,9 +6399,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 		}
 	}
 
+	ntypes = 0;
 	for (topheader = rbtnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
+		++ntypes;
 		if (prio_type(topheader->type)) {
 			prioheader = topheader;
 		}
@@ -6486,7 +6494,7 @@ find_header:
 					rbtdb->common.mctx,
 					rbtdb->common.rdclass,
 					(dns_rdatatype_t)header->type, flags,
-					&merged);
+					rbtdb->maxrrperset, &merged);
 			}
 			if (result == ISC_R_SUCCESS) {
 				/*
@@ -6765,6 +6773,14 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
+			if (rbtdb->maxtypepername > 0 &&
+			    ntypes >= rbtdb->maxtypepername)
+			{
+				free_rdataset(rbtdb, rbtdb->common.mctx,
+					      newheader);
+				return (DNS_R_TOOMANYRECORDS);
+			}
+
 			newheader->down = NULL;
 
 			if (prio_type(newheader->type)) {
@@ -6825,7 +6841,7 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 static isc_result_t
 addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
-	   dns_rdataset_t *rdataset) {
+	   uint32_t maxrrperset, dns_rdataset_t *rdataset) {
 	struct noqname *noqname;
 	isc_mem_t *mctx = rbtdb->common.mctx;
 	dns_name_t name;
@@ -6846,12 +6862,12 @@ addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	noqname->negsig = NULL;
 	noqname->type = neg.type;
 	dns_name_dup(&name, mctx, &noqname->name);
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 	noqname->neg = r.base;
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -6870,7 +6886,7 @@ cleanup:
 
 static isc_result_t
 addclosest(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
-	   dns_rdataset_t *rdataset) {
+	   uint32_t maxrrperset, dns_rdataset_t *rdataset) {
 	struct noqname *closest;
 	isc_mem_t *mctx = rbtdb->common.mctx;
 	dns_name_t name;
@@ -6891,12 +6907,12 @@ addclosest(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	closest->negsig = NULL;
 	closest->type = neg.type;
 	dns_name_dup(&name, mctx, &closest->name);
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 	closest->neg = r.base;
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -6977,7 +6993,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region, sizeof(rdatasetheader_t));
+					    &region, sizeof(rdatasetheader_t),
+					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -7035,7 +7052,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			RDATASET_ATTR_SET(newheader, RDATASET_ATTR_OPTOUT);
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
-			result = addnoqname(rbtdb, newheader, rdataset);
+			result = addnoqname(rbtdb, newheader,
+					    rbtdb->maxrrperset, rdataset);
 			if (result != ISC_R_SUCCESS) {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
@@ -7043,7 +7061,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			}
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0) {
-			result = addclosest(rbtdb, newheader, rdataset);
+			result = addclosest(rbtdb, newheader,
+					    rbtdb->maxrrperset, rdataset);
 			if (result != ISC_R_SUCCESS) {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
@@ -7188,7 +7207,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	nodefullname(db, node, nodename);
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region, sizeof(rdatasetheader_t));
+					    &region, sizeof(rdatasetheader_t),
+					    0);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -7570,7 +7590,8 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region, sizeof(rdatasetheader_t));
+					    &region, sizeof(rdatasetheader_t),
+					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -8112,6 +8133,24 @@ setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 	return (ISC_R_SUCCESS);
 }
 
+static void
+setmaxrrperset(dns_db_t *db, uint32_t maxrrperset) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxrrperset = maxrrperset;
+}
+
+static void
+setmaxtypepername(dns_db_t *db, uint32_t maxtypepername) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxtypepername = maxtypepername;
+}
+
 static dns_stats_t *
 getrrsetstats(dns_db_t *db) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -8233,7 +8272,9 @@ static dns_dbmethods_t zone_methods = { attach,
 					NULL, /* getservestalettl */
 					NULL, /* setservestalerefresh */
 					NULL, /* getservestalerefresh */
-					setgluecachestats };
+					setgluecachestats,
+					setmaxrrperset,
+					setmaxtypepername };
 
 static dns_dbmethods_t cache_methods = { attach,
 					 detach,
@@ -8283,7 +8324,9 @@ static dns_dbmethods_t cache_methods = { attach,
 					 getservestalettl,
 					 setservestalerefresh,
 					 getservestalerefresh,
-					 NULL };
+					 NULL,
+					 setmaxrrperset,
+					 setmaxtypepername };
 
 isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,

@@ -309,6 +309,8 @@ struct dns_zone {
 	uint32_t minretry;
 
 	uint32_t maxrecords;
+	uint32_t maxrrperset;
+	uint32_t maxtypepername;
 
 	isc_sockaddr_t *primaries;
 	dns_name_t **primarykeynames;
@@ -10029,6 +10031,7 @@ cleanup:
 	}
 
 	dns_diff_clear(&_sig_diff);
+	dns_diff_clear(&post_diff);
 
 	for (i = 0; i < nkeys; i++) {
 		dst_key_free(&zone_keys[i]);
@@ -12296,6 +12299,26 @@ dns_zone_setmaxrecords(dns_zone_t *zone, uint32_t val) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	zone->maxrecords = val;
+}
+
+void
+dns_zone_setmaxrrperset(dns_zone_t *zone, uint32_t val) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->maxrrperset = val;
+	if (zone->db != NULL) {
+		dns_db_setmaxrrperset(zone->db, val);
+	}
+}
+
+void
+dns_zone_setmaxtypepername(dns_zone_t *zone, uint32_t val) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->maxtypepername = val;
+	if (zone->db != NULL) {
+		dns_db_setmaxtypepername(zone->db, val);
+	}
 }
 
 static bool
@@ -14786,6 +14809,9 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 				goto cleanup;
 			}
 			dns_db_settask(stub->db, zone->task, zone->task);
+			dns_db_setmaxrrperset(stub->db, zone->maxrrperset);
+			dns_db_setmaxtypepername(stub->db,
+						 zone->maxtypepername);
 		}
 
 		result = dns_db_newversion(stub->db, &stub->version);
@@ -17890,6 +17916,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 	}
 	zone_attachdb(zone, db);
 	dns_db_settask(zone->db, zone->task, zone->task);
+	dns_db_setmaxrrperset(zone->db, zone->maxrrperset);
+	dns_db_setmaxtypepername(zone->db, zone->maxtypepername);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED | DNS_ZONEFLG_NEEDNOTIFY);
 	return (ISC_R_SUCCESS);
 
@@ -22619,7 +22647,11 @@ failure:
 		 * Something went wrong; try again in ten minutes or
 		 * after a key refresh interval, whichever is shorter.
 		 */
-		dnssec_log(zone, ISC_LOG_DEBUG(3),
+		int loglevel = ISC_LOG_DEBUG(3);
+		if (result != DNS_R_NOTLOADED) {
+			loglevel = ISC_LOG_ERROR;
+		}
+		dnssec_log(zone, loglevel,
 			   "zone_rekey failure: %s (retry in %u seconds)",
 			   isc_result_totext(result),
 			   ISC_MIN(zone->refreshkeyinterval, 600));
@@ -24315,6 +24347,8 @@ dns_zone_makedb(dns_zone_t *zone, dns_db_t **dbp) {
 	}
 
 	dns_db_settask(db, zone->task, zone->task);
+	dns_db_setmaxrrperset(db, zone->maxrrperset);
+	dns_db_setmaxtypepername(db, zone->maxtypepername);
 
 	*dbp = db;
 

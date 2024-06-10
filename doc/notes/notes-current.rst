@@ -19,6 +19,21 @@ Security Fixes
   responses can cause server to respond slowly or not respond at all for other
   clients. :cve:`2024-0760` :gl:`#4481`
 
+- Excessively large resource record sets can be crafted to slow down
+  database processing. This has been addressed by adding a configurable
+  limit to the number of records that can be stored per name and type in
+  a cache or zone database. The default is 100, but it can be tuned with
+  the new ``max-records-per-type`` option. :gl:`#497` :gl:`#3405`
+
+  An excessively large number of resource record types for a single owner name can
+  be crafted to slow down database processing. This has been addressed by adding
+  a configurable limit to the number of records that can be stored per name and
+  type in a cache or zone database.  The default is 100, and can be tuned with
+  the new ``max-rrtypes-per-name`` option. :cve:`2024-1737` :gl:`#3403`
+
+  ISC would like to thank Toshifumi Sakaguchi who independently discovered
+  and responsibly reported the issue to ISC. :gl:`#4548`
+
 - Named could trigger an assertion failure when looking up the NS
   records of parent zones as part of looking up DS records.  This
   has been fixed. :gl:`#4661`
