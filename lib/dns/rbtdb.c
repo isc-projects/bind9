@@ -2566,6 +2566,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	dns_typepair_t negtype = 0, sigtype;
 	dns_trust_t trust;
 	int idx;
+	uint32_t ntypes = 0;
 
 	if ((options & DNS_DBADD_MERGE) != 0) {
 		REQUIRE(rbtversion != NULL);
@@ -2618,6 +2619,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 				{
 					mark_ancient(topheader);
 				}
+				ntypes = 0; /* Always add the negative entry */
 				goto find_header;
 			}
 			/*
@@ -2641,9 +2643,11 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
+			ntypes = 0;
 			for (topheader = rbtnode->data; topheader != NULL;
 			     topheader = topheader->next)
 			{
+				++ntypes;
 				if ((topheader->type == RDATATYPE_NCACHEANY) ||
 				    (newheader->type == sigtype &&
 				     topheader->type ==
@@ -2686,9 +2690,11 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 		}
 	}
 
+	ntypes = 0;
 	for (topheader = rbtnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
+		++ntypes;
 		if (prio_type(topheader->type)) {
 			prioheader = topheader;
 		}
@@ -2780,7 +2786,7 @@ find_header:
 					rbtdb->common.mctx,
 					rbtdb->common.rdclass,
 					(dns_rdatatype_t)header->type, flags,
-					&merged);
+					rbtdb->maxrrperset, &merged);
 			}
 			if (result == ISC_R_SUCCESS) {
 				/*
@@ -3082,6 +3088,14 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
+
+			if (rbtdb->maxtypepername > 0 &&
+			    ntypes >= rbtdb->maxtypepername)
+			{
+				dns_slabheader_destroy(&newheader);
+				return (DNS_R_TOOMANYRECORDS);
+			}
+
 			INSIST(newheader->down == NULL);
 
 			if (prio_type(newheader->type)) {
@@ -3141,7 +3155,7 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, dns_typepair_t type) {
 }
 
 static isc_result_t
-addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader,
+addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	   dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_slabheader_proof_t *noqname = NULL;
@@ -3152,12 +3166,12 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader,
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3180,7 +3194,7 @@ cleanup:
 }
 
 static isc_result_t
-addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader,
+addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	   dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_slabheader_proof_t *closest = NULL;
@@ -3191,12 +3205,12 @@ addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader,
 	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3272,7 +3286,8 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -3329,7 +3344,7 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
 			result = addnoqname(rbtdb->common.mctx, newheader,
-					    rdataset);
+					    rbtdb->maxrrperset, rdataset);
 			if (result != ISC_R_SUCCESS) {
 				dns_slabheader_destroy(&newheader);
 				return (result);
@@ -3337,7 +3352,7 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0) {
 			result = addclosest(rbtdb->common.mctx, newheader,
-					    rdataset);
+					    rbtdb->maxrrperset, rdataset);
 			if (result != ISC_R_SUCCESS) {
 				dns_slabheader_destroy(&newheader);
 				return (result);
@@ -3487,7 +3502,8 @@ dns__rbtdb_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 	dns__rbtdb_nodefullname(db, node, nodename);
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    0);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -4956,4 +4972,22 @@ expire_ttl_headers(dns_rbtdb_t *rbtdb, unsigned int locknum,
 		dns__cacherbt_expireheader(header, tlocktypep,
 					   dns_expire_ttl DNS__DB_FLARG_PASS);
 	}
+}
+
+void
+dns__rbtdb_setmaxrrperset(dns_db_t *db, uint32_t value) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxrrperset = value;
+}
+
+void
+dns__rbtdb_setmaxtypepername(dns_db_t *db, uint32_t maxtypepername) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxtypepername = maxtypepername;
 }

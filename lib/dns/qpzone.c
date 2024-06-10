@@ -178,6 +178,8 @@ struct qpzonedb {
 	uint32_t current_serial;
 	uint32_t least_serial;
 	uint32_t next_serial;
+	uint32_t maxrrperset;	 /* Maximum RRs per RRset */
+	uint32_t maxtypepername; /* Maximum number of RR types per owner */
 	qpz_version_t *current_version;
 	qpz_version_t *future_version;
 	qpz_versionlist_t open_versions;
@@ -1833,6 +1835,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 	unsigned char *merged = NULL;
 	isc_result_t result;
 	bool merge = false;
+	uint32_t ntypes;
 
 	if ((options & DNS_DBADD_MERGE) != 0) {
 		REQUIRE(version != NULL);
@@ -1848,9 +1851,11 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 		changed = add_changed(newheader, version DNS__DB_FLARG_PASS);
 	}
 
+	ntypes = 0;
 	for (topheader = node->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
+		++ntypes;
 		if (prio_type(topheader->type)) {
 			prioheader = topheader;
 		}
@@ -1898,7 +1903,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 					(unsigned int)(sizeof(*newheader)),
 					qpdb->common.mctx, qpdb->common.rdclass,
 					(dns_rdatatype_t)header->type, flags,
-					&merged);
+					qpdb->maxrrperset, &merged);
 			}
 			if (result == ISC_R_SUCCESS) {
 				/*
@@ -2017,6 +2022,14 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
+
+			if (qpdb->maxtypepername > 0 &&
+			    ntypes >= qpdb->maxtypepername)
+			{
+				dns_slabheader_destroy(&newheader);
+				return (DNS_R_TOOMANYRECORDS);
+			}
+
 			INSIST(newheader->down == NULL);
 
 			if (prio_type(newheader->type)) {
@@ -2147,7 +2160,8 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 
 	loading_addnode(loadctx, name, rdataset->type, rdataset->covers, &node);
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -4648,7 +4662,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		  rdataset->covers != dns_rdatatype_nsec3)));
 
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -4767,7 +4782,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 
 	dns_name_copy(&node->name, nodename);
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    0);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -5277,6 +5293,24 @@ addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
 	return (ISC_R_SUCCESS);
 }
 
+static void
+setmaxrrperset(dns_db_t *db, uint32_t value) {
+	qpzonedb_t *qpdb = (qpzonedb_t *)db;
+
+	REQUIRE(VALID_QPZONE(qpdb));
+
+	qpdb->maxrrperset = value;
+}
+
+static void
+setmaxtypepername(dns_db_t *db, uint32_t value) {
+	qpzonedb_t *qpdb = (qpzonedb_t *)db;
+
+	REQUIRE(VALID_QPZONE(qpdb));
+
+	qpdb->maxtypepername = value;
+}
+
 static dns_dbmethods_t qpdb_zonemethods = {
 	.destroy = qpdb_destroy,
 	.beginload = beginload,
@@ -5310,6 +5344,8 @@ static dns_dbmethods_t qpdb_zonemethods = {
 	.addglue = addglue,
 	.deletedata = deletedata,
 	.nodefullname = nodefullname,
+	.setmaxrrperset = setmaxrrperset,
+	.setmaxtypepername = setmaxtypepername,
 };
 
 static void

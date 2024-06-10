@@ -5454,6 +5454,24 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_resolver_setclientsperquery(view->resolver, cfg_obj_asuint32(obj),
 					max_clients_per_query);
 
+	/*
+	 * This is used for the cache and also as a default value
+	 * for zone databases.
+	 */
+	obj = NULL;
+	result = named_config_get(maps, "max-records-per-type", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_view_setmaxrrperset(view, cfg_obj_asuint32(obj));
+
+	/*
+	 * This is used for the cache and also as a default value
+	 * for zone databases.
+	 */
+	obj = NULL;
+	result = named_config_get(maps, "max-types-per-name", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_view_setmaxtypepername(view, cfg_obj_asuint32(obj));
+
 	obj = NULL;
 	result = named_config_get(maps, "max-recursion-depth", &obj);
 	INSIST(result == ISC_R_SUCCESS);

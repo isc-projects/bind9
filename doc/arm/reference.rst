@@ -3681,6 +3681,36 @@ system.
    This sets the maximum number of records permitted in a zone. The default is
    zero, which means the maximum is unlimited.
 
+.. namedconf:statement:: max-records-per-type
+   :tags: server
+   :short: Sets the maximum number of records that can be stored in an RRset
+
+   This sets the maximum number of resource records that can be stored
+   in an RRset in a database. When configured in :namedconf:ref:`options`
+   or :namedconf:ref:`view`, it controls the cache database; it also sets
+   the default value for zone databases, which can be overridden by setting
+   it at the :namedconf:ref:`zone` level.
+
+   If set to a positive value, any attempt to cache or to add to a zone
+   an RRset with more than the specified number of records will result in
+   a failure.  If set to 0, there is no cap on RRset size.  The default is
+   100.
+
+.. namedconf:statement:: max-types-per-name
+   :tags: server
+   :short: Sets the maximum number of RR types that can be stored for an owner name
+
+   This sets the maximum number of resource record types that can be stored
+   for a single owner name in a database. When configured in :namedconf:ref:`options`
+   or :namedconf:ref:`view`, it controls the cache database, and also sets
+   the default value for zone databases, which can be overridden by setting
+   it at the :namedconf:ref:`zone` level
+
+   If set to a positive value, any attempt to cache or to add to a zone an owner
+   name with more than the specified number of resource record types will result
+   in a failure.  If set to 0, there is no cap on RR types number.  The default is
+   100.
+
 .. namedconf:statement:: recursive-clients
    :tags: query
    :short: Specifies the maximum number of concurrent recursive queries the server can perform.

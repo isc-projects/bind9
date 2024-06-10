@@ -12,26 +12,32 @@
  */
 
 options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
+	directory ".";
+	query-source address 10.53.0.3;
+	notify-source 10.53.0.3;
+	transfer-source 10.53.0.3;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
+	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
-	recursion no;
-	notify yes;
-	minimal-responses no;
-	dnssec-validation no;
+	servfail-ttl 0;
+	qname-minimization disabled;
+	max-recursion-depth 12;
+	recursion yes;
+	dnssec-validation yes;
 	max-records-per-type 0;
+	max-types-per-name 10;
 };
 
-zone "." {
-	type primary;
-	file "root.db";
+trust-anchors { };
+
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm @DEFAULT_HMAC@;
 };
 
-zone "example" {
-	type primary;
-	file "example.db";
+controls {
+	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
+
+zone "." { type hint; file "hints.db"; };

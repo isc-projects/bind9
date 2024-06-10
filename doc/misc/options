@@ -183,6 +183,7 @@ options {
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-ncache-ttl <duration>;
 	max-records <integer>;
+	max-records-per-type <integer>;
 	max-recursion-depth <integer>;
 	max-recursion-queries <integer>;
 	max-refresh-time <integer>;
@@ -193,6 +194,7 @@ options {
 	max-transfer-idle-out <integer>;
 	max-transfer-time-in <integer>;
 	max-transfer-time-out <integer>;
+	max-types-per-name <integer>;
 	max-udp-size <integer>;
 	max-validation-failures-per-fetch <integer>; // experimental
 	max-validations-per-fetch <integer>; // experimental
@@ -468,6 +470,7 @@ view <string> [ <class> ] {
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-ncache-ttl <duration>;
 	max-records <integer>;
+	max-records-per-type <integer>;
 	max-recursion-depth <integer>;
 	max-recursion-queries <integer>;
 	max-refresh-time <integer>;
@@ -477,6 +480,7 @@ view <string> [ <class> ] {
 	max-transfer-idle-out <integer>;
 	max-transfer-time-in <integer>;
 	max-transfer-time-out <integer>;
+	max-types-per-name <integer>;
 	max-udp-size <integer>;
 	max-validation-failures-per-fetch <integer>; // experimental
 	max-validations-per-fetch <integer>; // experimental
