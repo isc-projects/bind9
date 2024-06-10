@@ -361,6 +361,8 @@ struct dns_zone {
 	dns_request_t *request;
 	dns_loadctx_t *loadctx;
 	dns_dumpctx_t *dumpctx;
+	uint32_t minxfrratebytesin;
+	uint32_t minxfrratesecondsin;
 	uint32_t maxxfrin;
 	uint32_t maxxfrout;
 	uint32_t idlein;
@@ -16152,6 +16154,28 @@ message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type) {
 	}
 
 	return count;
+}
+
+void
+dns_zone_setminxfrratein(dns_zone_t *zone, uint32_t bytes, uint32_t seconds) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->minxfrratebytesin = bytes;
+	zone->minxfrratesecondsin = seconds;
+}
+
+uint32_t
+dns_zone_getminxfrratebytesin(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return zone->minxfrratebytesin;
+}
+
+uint32_t
+dns_zone_getminxfrratesecondsin(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return zone->minxfrratesecondsin;
 }
 
 void

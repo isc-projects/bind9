@@ -1875,6 +1875,33 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_MULTIMASTER, multi);
 
 		obj = NULL;
+		result = named_config_get(maps, "min-transfer-rate-in", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		uint32_t traffic_bytes =
+			cfg_obj_asuint32(cfg_tuple_get(obj, "traffic_bytes"));
+		uint32_t time_minutes =
+			cfg_obj_asuint32(cfg_tuple_get(obj, "time_minutes"));
+		if (traffic_bytes == 0) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "zone '%s': 'min-transfer-rate-in' bytes"
+				    "value can not be '0'",
+				    zname);
+			CHECK(ISC_R_FAILURE);
+		}
+		/* Max. 28 days (in minutes). */
+		const unsigned int time_minutes_max = 28 * 24 * 60;
+		if (time_minutes < 1 || time_minutes > time_minutes_max) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "zone '%s': 'min-transfer-rate-in' minutes"
+				    "value is out of range (1..%u)",
+				    zname, time_minutes_max);
+			CHECK(ISC_R_FAILURE);
+		}
+		dns_zone_setminxfrratein(mayberaw, traffic_bytes,
+					 transferinsecs ? time_minutes
+							: time_minutes * 60);
+
+		obj = NULL;
 		result = named_config_get(maps, "max-transfer-time-in", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		dns_zone_setmaxxfrin(

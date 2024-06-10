@@ -159,6 +159,7 @@ struct dns_xfrin {
 
 	unsigned int maxrecords; /*%< The maximum number of
 				  *   records set for the zone */
+	uint64_t nbytes_saved;	 /*%< For enforcing the minimum transfer rate */
 
 	dns_tsigkey_t *tsigkey; /*%< Key used to create TSIG */
 	isc_buffer_t *lasttsig; /*%< The last TSIG */
@@ -192,6 +193,7 @@ struct dns_xfrin {
 
 	isc_loop_t *loop;
 
+	isc_timer_t *min_rate_timer;
 	isc_timer_t *max_time_timer;
 	isc_timer_t *max_idle_timer;
 
@@ -268,6 +270,8 @@ static void
 xfrin_timedout(void *);
 static void
 xfrin_idledout(void *);
+static void
+xfrin_minratecheck(void *);
 static void
 xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg);
 static isc_result_t
@@ -963,6 +967,24 @@ xfrin_idledout(void *xfr) {
 	xfrin_fail(xfr, ISC_R_TIMEDOUT, "maximum idle time exceeded");
 }
 
+static void
+xfrin_minratecheck(void *arg) {
+	dns_xfrin_t *xfr = arg;
+
+	REQUIRE(VALID_XFRIN(xfr));
+
+	const uint64_t nbytes = atomic_load_relaxed(&xfr->nbytes);
+	const uint64_t min = dns_zone_getminxfrratebytesin(xfr->zone);
+
+	if (nbytes - xfr->nbytes_saved < min) {
+		isc_timer_stop(xfr->min_rate_timer);
+		xfrin_fail(xfr, ISC_R_TIMEDOUT,
+			   "minimum transfer rate reached");
+	} else {
+		xfr->nbytes_saved = nbytes;
+	}
+}
+
 isc_time_t
 dns_xfrin_getstarttime(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
@@ -1326,6 +1348,15 @@ xfrin_start(dns_xfrin_t *xfr) {
 	isc_interval_set(&interval, dns_zone_getidlein(xfr->zone), 0);
 	isc_timer_start(xfr->max_idle_timer, isc_timertype_once, &interval);
 
+	/* Set the minimum transfer rate checking timer */
+	if (xfr->min_rate_timer == NULL) {
+		isc_timer_create(dns_zone_getloop(xfr->zone),
+				 xfrin_minratecheck, xfr, &xfr->min_rate_timer);
+	}
+	isc_interval_set(&interval, dns_zone_getminxfrratesecondsin(xfr->zone),
+			 0);
+	isc_timer_start(xfr->min_rate_timer, isc_timertype_ticker, &interval);
+
 	/*
 	 * The connect has to be the last thing that is called before returning,
 	 * as it can end synchronously and destroy the xfr object.
@@ -1606,6 +1637,8 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	atomic_store_relaxed(&xfr->nbytes, 0);
 	atomic_store_relaxed(&xfr->start, isc_time_now());
 
+	xfr->nbytes_saved = 0;
+
 	msg->id = xfr->id;
 	if (xfr->tsigctx != NULL) {
 		dst_context_destroy(&xfr->tsigctx);
@@ -1723,6 +1756,10 @@ xfrin_end(dns_xfrin_t *xfr, isc_result_t result) {
 	if (xfr->max_idle_timer != NULL) {
 		isc_timer_stop(xfr->max_idle_timer);
 		isc_timer_destroy(&xfr->max_idle_timer);
+	}
+	if (xfr->min_rate_timer != NULL) {
+		isc_timer_stop(xfr->min_rate_timer);
+		isc_timer_destroy(&xfr->min_rate_timer);
 	}
 
 	if (xfr->shutdown_result == ISC_R_UNSET) {
@@ -2017,6 +2054,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	case XFRST_AXFR_END:
 	case XFRST_IXFR_END:
 		/* We are at the end, cancel the timers and IO */
+		isc_timer_stop(xfr->min_rate_timer);
 		isc_timer_stop(xfr->max_idle_timer);
 		isc_timer_stop(xfr->max_time_timer);
 		xfrin_cancelio(xfr);
@@ -2182,6 +2220,7 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 
 	INSIST(xfr->max_time_timer == NULL);
 	INSIST(xfr->max_idle_timer == NULL);
+	INSIST(xfr->min_rate_timer == NULL);
 
 	isc_loop_detach(&xfr->loop);
 
