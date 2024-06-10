@@ -688,6 +688,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.inactive_handles = ISC_LIST_INITIALIZER,
 		.result = ISC_R_UNSET,
 		.active_handles = ISC_LIST_INITIALIZER,
+		.active_handles_max = ISC_NETMGR_MAX_STREAM_CLIENTS_PER_CONN,
 		.active_link = ISC_LINK_INITIALIZER,
 		.active = true,
 	};
@@ -853,6 +854,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 	}
 
 	ISC_LIST_APPEND(sock->active_handles, handle, active_link);
+	sock->active_handles_cur++;
 
 	switch (sock->type) {
 	case isc_nm_udpsocket:
@@ -967,6 +969,8 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 	}
 
 	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
+	INSIST(sock->active_handles_cur > 0);
+	sock->active_handles_cur--;
 
 	if (sock->closehandle_cb == NULL) {
 		nmhandle__destroy(handle);
@@ -1128,6 +1132,7 @@ isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult) {
 
 	sock = req->sock;
 
+	isc__nm_start_reading(sock);
 	isc__nmsocket_reset(sock);
 }
 

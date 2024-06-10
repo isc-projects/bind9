@@ -61,9 +61,10 @@
 #endif
 
 /*
- * The TCP receive buffer can fit one maximum sized DNS message plus its size,
- * the receive buffer here affects TCP, DoT and DoH.
+ * The TCP send and receive buffers can fit one maximum sized DNS message plus
+ * its size, the receive buffer here affects TCP, DoT and DoH.
  */
+#define ISC_NETMGR_TCP_SENDBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 #define ISC_NETMGR_TCP_RECVBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 
 /* Pick the larger buffer */
@@ -83,6 +84,11 @@ STATIC_ASSERT(ISC_NETMGR_UDP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 	      "TCP receive buffer size must be smaller or equal than worker "
 	      "receive buffer size");
+
+/*%
+ * Maximum outstanding DNS message that we process in a single TCP read.
+ */
+#define ISC_NETMGR_MAX_STREAM_CLIENTS_PER_CONN 23
 
 /*%
  * Regular TCP buffer size.
@@ -659,6 +665,9 @@ struct isc_nmsocket {
 	 */
 	ISC_LIST(isc_nmhandle_t) active_handles;
 	ISC_LIST(isc__nm_uvreq_t) active_uvreqs;
+
+	size_t active_handles_cur;
+	size_t active_handles_max;
 
 	/*%
 	 * Used to pass a result back from listen or connect events.

@@ -92,6 +92,9 @@ static bool
 streamdns_closing(isc_nmsocket_t *sock);
 
 static void
+streamdns_resume_processing(void *arg);
+
+static void
 streamdns_resumeread(isc_nmsocket_t *sock, isc_nmhandle_t *transphandle) {
 	if (!sock->streamdns.reading) {
 		sock->streamdns.reading = true;
@@ -169,18 +172,32 @@ streamdns_on_complete_dnsmessage(isc_dnsstream_assembler_t *dnsasm,
 		stop = true;
 	}
 
+	if (sock->active_handles_max != 0 &&
+	    (sock->active_handles_cur >= sock->active_handles_max))
+	{
+		stop = true;
+	}
+	INSIST(sock->active_handles_cur <= sock->active_handles_max);
+
 	isc__nmsocket_timer_stop(sock);
-	if (!stop && last_datum) {
+	if (stop) {
+		streamdns_pauseread(sock, transphandle);
+	} else if (last_datum) {
 		/*
 		 * We have processed all data, need to read more.
 		 * The call also restarts the timer.
 		 */
 		streamdns_readmore(sock, transphandle);
-	} else if (stop) {
+	} else {
+		/*
+		 * Process more DNS messages in the next loop tick.
+		 */
 		streamdns_pauseread(sock, transphandle);
+		isc_async_run(sock->worker->loop, streamdns_resume_processing,
+			      sock);
 	}
 
-	return (!stop);
+	return (false);
 }
 
 /*
@@ -667,6 +684,12 @@ streamdns_resume_processing(void *arg) {
 	REQUIRE(!sock->client);
 
 	if (streamdns_closing(sock)) {
+		return;
+	}
+
+	if (sock->active_handles_max != 0 &&
+	    (sock->active_handles_cur >= sock->active_handles_max))
+	{
 		return;
 	}
 

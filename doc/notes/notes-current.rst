@@ -15,7 +15,9 @@ Notes for BIND 9.19.25
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- Malicious DNS client that sends many queries over TCP but never reads
+  responses can cause server to respond slowly or not respond at all for other
+  clients. :cve:`2024-0760` :gl:`#4481`
 
 New Features
 ~~~~~~~~~~~~
