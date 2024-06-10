@@ -1,3 +1,7 @@
+6403.	[security]	qctx-zversion was not being cleared when it should have
+			been leading to an assertion failure if it needed to be
+			reused. (CVE-2024-4076) [GL #4507]
+
 6402.	[security]	A malicious DNS client that sends many queries with a
 			SIG(0)-signed message can cause the server to respond
 			slowly or not respond at all to other clients. Use the
