@@ -3452,6 +3452,16 @@ options apply to zone transfers.
    global :any:`also-notify` list are not sent NOTIFY messages for that
    zone. The default is the empty list (no global notification list).
 
+.. namedconf:statement:: min-transfer-rate-in
+   :tags: transfer
+   :short: Specifies the minimum traffic rate below which inbound zone transfers are terminated.
+
+   Inbound zone transfers running slower than the given amount of bytes in the
+   given amount of minutes are terminated. This option takes two non-zero integer values.
+   A check is performed periodically every time the configured time interval
+   passes. The default value is ``10240 5``, i.e. 10240 bytes in 5 minutes.
+   The maximum time value is 28 days (40320 minutes).
+
 .. namedconf:statement:: max-transfer-time-in
    :tags: transfer
    :short: Specifies the number of minutes after which inbound zone transfers are terminated.
@@ -7374,6 +7384,9 @@ Zone Options
 
 :any:`max-records`
    See the description of :any:`max-records` in :ref:`server_resource_limits`.
+
+:any:`min-transfer-rate-in`
+   See the description of :any:`min-transfer-rate-in` in :ref:`zone_transfers`.
 
 :any:`max-transfer-time-in`
    See the description of :any:`max-transfer-time-in` in :ref:`zone_transfers`.
