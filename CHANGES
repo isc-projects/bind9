@@ -1,3 +1,7 @@
+6397.	[bug]		Clear DNS_FETCHOPT_TRYSTALE_ONTIMEOUT when looking for
+			parent NS records needed to get the DS result.
+			[GL #4661]
+
 6395.	[bug]		Handle ISC_R_HOSTDOWN and ISC_R_NETDOWN in resolver.c.
 			[GL #4736]
 
