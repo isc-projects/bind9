@@ -39,6 +39,10 @@ Security Fixes
   Support for SIG(0) message validation was removed from this version of
   :iscman:`named`. :cve:`2024-1975` :gl:`#4480`
 
+- Due to a logic error, lookups that trigger serving stale data and require
+  lookups in local authoritative zone data may result in an assertion failure.
+  This has been fixed. :cve:`2024-4076` :gl:`#4507`
+
 - Named could trigger an assertion failure when looking up the NS
   records of parent zones as part of looking up DS records.  This
   has been fixed. :gl:`#4661`
