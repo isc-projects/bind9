@@ -17796,8 +17796,18 @@ again:
 		break;
 
 	case ISC_R_CANCELED:
+		/*
+		 * A new "retransfer" command with a "-force" argument could
+		 * have canceled the current transfer in which case we should
+		 * make sure to try again from the beginning.
+		 */
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
+			again = true;
+		}
+		FALLTHROUGH;
 	case ISC_R_SHUTTINGDOWN:
-		dns_remote_reset(&zone->primaries, false);
+		dns_remote_reset(&zone->primaries, true);
 		break;
 
 	default:
@@ -19460,6 +19470,28 @@ dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 	}
 
 	RWUNLOCK(&zmgr->urlock, isc_rwlocktype_write);
+}
+
+void
+dns_zone_stopxfr(dns_zone_t *zone) {
+	dns_xfrin_t *xfr = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	LOCK_ZONE(zone);
+	if (zone->statelist == &zone->zmgr->xfrin_in_progress &&
+	    zone->xfr != NULL)
+	{
+		dns_xfrin_attach(zone->xfr, &xfr);
+	}
+	UNLOCK_ZONE(zone);
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+
+	if (xfr != NULL) {
+		dns_xfrin_shutdown(xfr);
+		dns_xfrin_detach(&xfr);
+	}
 }
 
 void
