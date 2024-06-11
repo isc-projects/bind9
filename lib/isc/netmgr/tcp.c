@@ -697,9 +697,11 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 		goto failure;
 	}
 
-	result = isc__nm_start_reading(sock);
-	if (result != ISC_R_SUCCESS) {
-		goto failure;
+	if (!sock->reading_throttled) {
+		result = isc__nm_start_reading(sock);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
 	}
 
 	sock->reading = true;
@@ -791,6 +793,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 				"throttling TCP connection, the other side is "
 				"not reading the data (%zu)",
 				write_queue_size);
+			sock->reading_throttled = true;
 			isc__nm_stop_reading(sock);
 		}
 	} else if (uv_is_active(&sock->uv_handle.handle) &&
@@ -1042,6 +1045,7 @@ tcp_maybe_restart_reading(isc_nmsocket_t *sock) {
 				"is reading the data again (%zu)",
 				write_queue_size);
 			isc__nm_start_reading(sock);
+			sock->reading_throttled = false;
 		}
 	}
 }
@@ -1064,6 +1068,11 @@ tcp_send_cb(uv_write_t *req, int status) {
 		isc__nm_failed_send_cb(sock, uvreq, isc_uverr2result(status),
 				       false);
 		if (!sock->client && sock->reading) {
+			/*
+			 * As we are resuming reading, it is not throttled
+			 * anymore (technically).
+			 */
+			sock->reading_throttled = false;
 			isc__nm_start_reading(sock);
 			isc__nmsocket_reset(sock);
 		}
