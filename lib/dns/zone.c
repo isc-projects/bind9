@@ -17795,6 +17795,11 @@ again:
 		inc_stats(zone, dns_zonestatscounter_xfrfail);
 		break;
 
+	case ISC_R_CANCELED:
+	case ISC_R_SHUTTINGDOWN:
+		dns_remote_reset(&zone->primaries, false);
+		break;
+
 	default:
 	next_primary:
 		/*
