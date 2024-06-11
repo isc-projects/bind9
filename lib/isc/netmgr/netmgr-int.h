@@ -1060,6 +1060,12 @@ struct isc_nmsocket {
 	 */
 	uint64_t write_timeout;
 
+	/*
+	 * Reading was throttled over TCP as the peer does not read the
+	 * data we are sending back.
+	 */
+	bool reading_throttled;
+
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
 	isc_nmsocket_t *outer;
 

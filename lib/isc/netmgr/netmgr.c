@@ -2096,7 +2096,6 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(atomic_load(&sock->reading));
 
 	if (atomic_load(&sock->client)) {
 		uv_timer_stop(timer);

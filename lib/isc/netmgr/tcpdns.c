@@ -734,7 +734,7 @@ isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcpdnsread_t *ievent =
 		(isc__netievent_tcpdnsread_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	UNUSED(worker);
 
@@ -743,7 +743,7 @@ isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	if (isc__nmsocket_closing(sock)) {
 		result = ISC_R_CANCELED;
-	} else {
+	} else if (!sock->reading_throttled) {
 		result = isc__nm_process_sock_buffer(sock);
 	}
 
@@ -932,6 +932,7 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 				      "the other side is "
 				      "not reading the data (%zu)",
 				      write_queue_size);
+			sock->reading_throttled = true;
 			isc__nm_stop_reading(sock);
 		}
 	}
@@ -1158,7 +1159,7 @@ isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 
 static void
 tcpdns_maybe_restart_reading(isc_nmsocket_t *sock) {
-	if (!sock->client && sock->reading &&
+	if (!sock->client && sock->reading_throttled &&
 	    !uv_is_active(&sock->uv_handle.handle))
 	{
 		/*
@@ -1178,6 +1179,7 @@ tcpdns_maybe_restart_reading(isc_nmsocket_t *sock) {
 				"resuming TCP connection, the other side  "
 				"is reading the data again (%zu)",
 				write_queue_size);
+			sock->reading_throttled = false;
 			isc__nm_start_reading(sock);
 		}
 	}
@@ -1201,7 +1203,14 @@ tcpdns_send_cb(uv_write_t *req, int status) {
 		isc__nm_failed_send_cb(sock, uvreq,
 				       isc__nm_uverr2result(status));
 
-		if (!sock->client && sock->reading) {
+		if (!sock->client &&
+		    (atomic_load(&sock->reading) || sock->reading_throttled))
+		{
+			/*
+			 * As we are resuming reading, it is not throttled
+			 * anymore (technically).
+			 */
+			sock->reading_throttled = false;
 			isc__nm_start_reading(sock);
 			isc__nmsocket_reset(sock);
 		}
