@@ -4215,15 +4215,27 @@ mv ns2/$KSK.key.bak ns2/$KSK.key
 mv ns2/$KSK.private.bak ns2/$KSK.private
 
 # Roll the ZSK again.
-echo_i "delete old ZSK $ZSK_ID, schedule ZSK $ZSK_ID2 inactive, and new ZSK $ZSK_ID3 active for zone $zone ($n)"
 zsk3=$("$KEYGEN" -q -P none -A none -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
 ret=0
 keyfile_to_key_id "$zsk3" >ns2/$zone.zsk.id3
 ZSK_ID3=$(cat ns2/$zone.zsk.id3)
+echo_i "delete old ZSK $ZSK_ID, schedule ZSK $ZSK_ID2 inactive, and pre-publish ZSK $ZSK_ID3 for zone $zone ($n)"
 $SETTIME -s -k HIDDEN now -z HIDDEN now -D now -K ns2 $ZSK >/dev/null
 $SETTIME -s -k OMNIPRESENT now -z OMNIPRESENT now -K ns2 $zsk2 >/dev/null
 dnssec_loadkeys_on 2 $zone || ret=1
 rndccmd 10.53.0.2 dnssec -rollover -key $ZSK_ID2 $zone 2>&1 | sed 's/^/ns2 /' | cat_i
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Wait for newest ZSK to become published.
+echo_i "wait until new ZSK $ZSK_ID3 published"
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  ret=0
+  grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID3 (ZSK) is now published" ns2/named.run >/dev/null || ret=1
+  [ "$ret" -eq 0 ] && break
+  sleep 1
+done
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
