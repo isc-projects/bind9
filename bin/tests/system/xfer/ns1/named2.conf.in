@@ -40,3 +40,8 @@ zone "axfr-max-transfer-time" {
 	type primary;
 	file "axfr-max-transfer-time.db";
 };
+
+zone "axfr-rndc-retransfer-force" {
+	type primary;
+	file "axfr-rndc-retransfer-force.db";
+};

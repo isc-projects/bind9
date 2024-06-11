@@ -47,6 +47,7 @@ zone "edns-expire" {
 	file "edns-expire.db";
 };
 
+
 zone "axfr-max-transfer-time" {
 	type primary;
 	file "axfr-max-transfer-time.db";
@@ -55,6 +56,11 @@ zone "axfr-max-transfer-time" {
 zone "axfr-max-idle-time" {
 	type primary;
 	file "axfr-max-idle-time.db";
+};
+
+zone "axfr-rndc-retransfer-force" {
+	type primary;
+	file "axfr-rndc-retransfer-force.db";
 };
 
 zone "axfr-too-big" {
