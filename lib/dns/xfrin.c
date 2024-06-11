@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/mem.h>
 #include <isc/random.h>
@@ -1048,11 +1049,26 @@ dns_xfrin_gettsigkeyname(const dns_xfrin_t *xfr) {
 	return (dst_key_name(xfr->tsigkey->key));
 }
 
+static void
+xfrin_shutdown(void *arg) {
+	dns_xfrin_t *xfr = arg;
+
+	REQUIRE(VALID_XFRIN(xfr));
+
+	xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
+	dns_xfrin_detach(&xfr);
+}
+
 void
 dns_xfrin_shutdown(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
-	xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
+	if (xfr->loop != isc_loop()) {
+		dns_xfrin_ref(xfr);
+		isc_async_run(xfr->loop, xfrin_shutdown, xfr);
+	} else {
+		xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
+	}
 }
 
 #if DNS_XFRIN_TRACE
