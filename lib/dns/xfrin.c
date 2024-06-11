@@ -1110,7 +1110,10 @@ xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
 		{
 			xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s", msg,
 				  isc_result_totext(result));
-			if (atomic_load(&xfr->is_ixfr)) {
+			if (atomic_load(&xfr->is_ixfr) &&
+			    result != ISC_R_CANCELED &&
+			    result != ISC_R_SHUTTINGDOWN)
+			{
 				/*
 				 * Pass special result code to force AXFR retry
 				 */
