@@ -47,21 +47,6 @@ Security Fixes
   records of parent zones as part of looking up DS records.  This
   has been fixed. :gl:`#4661`
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
 Bug Fixes
 ~~~~~~~~~
 
