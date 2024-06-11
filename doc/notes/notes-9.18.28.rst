@@ -74,6 +74,10 @@ Bug Fixes
   connected TCP IPv4/IPv6 clients were not properly adjusted in certain
   failure scenarios. This has been fixed. :gl:`#4742`
 
+- Some servers which couldn't be reached due EHOSTDOWN or ENETDOWN
+  conditions were incorrectly prioritized during server selection.
+  These are now properly handled as unreachable. :gl:`#4736`
+
 Known Issues
 ~~~~~~~~~~~~
 
