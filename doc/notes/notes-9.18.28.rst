@@ -78,6 +78,12 @@ Bug Fixes
   conditions were incorrectly prioritized during server selection.
   These are now properly handled as unreachable. :gl:`#4736`
 
+- When sending a TCP reset for a connection, on some systems
+  the libuv call may return an error code, which triggered an
+  assertion failure in `named`. This error condition is now
+  being dealt with in a more graceful manner, by logging the
+  incident and shutting down the connection. :gl:`#4708`
+
 Known Issues
 ~~~~~~~~~~~~
 
