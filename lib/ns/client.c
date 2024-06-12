@@ -102,6 +102,8 @@
 #define WANTNSID(x)	(((x)->attributes & NS_CLIENTATTR_WANTNSID) != 0)
 #define WANTPAD(x)	(((x)->attributes & NS_CLIENTATTR_WANTPAD) != 0)
 #define WANTRC(x)	(((x)->attributes & NS_CLIENTATTR_WANTRC) != 0)
+#define WANTZONEVERSION(x) \
+	(((x)->attributes & NS_CLIENTATTR_WANTZONEVERSION) != 0)
 
 #define MANAGER_MAGIC	 ISC_MAGIC('N', 'S', 'C', 'm')
 #define VALID_MANAGER(m) ISC_MAGIC_VALID(m, MANAGER_MAGIC)
@@ -219,6 +221,17 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
 }
 
 static void
+client_zoneversion_reset(ns_client_t *client) {
+	if (client->zoneversion == NULL) {
+		return;
+	}
+	isc_mem_put(client->manager->mctx, client->zoneversion,
+		    client->zoneversionlength);
+	client->zoneversion = NULL;
+	client->zoneversionlength = 0;
+}
+
+static void
 ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->state == NS_CLIENTSTATE_WORKING ||
 	       client->state == NS_CLIENTSTATE_RECURSING);
@@ -258,6 +271,7 @@ ns_client_endrequest(ns_client_t *client) {
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
 
+	client_zoneversion_reset(client);
 	client->signer = NULL;
 	client->udpsize = 512;
 	client->extflags = 0;
@@ -1192,6 +1206,13 @@ no_nsid:
 		ednsopts[count].value = ede->value;
 		count++;
 	}
+	if ((client->attributes & NS_CLIENTATTR_HAVEZONEVERSION) != 0) {
+		INSIST(count < DNS_EDNSOPTIONS);
+		ednsopts[count].code = DNS_OPT_ZONEVERSION;
+		ednsopts[count].length = client->zoneversionlength;
+		ednsopts[count].value = client->zoneversion;
+		count++;
+	}
 
 	if (WANTRC(client)) {
 		dns_name_t *rad = NULL;
@@ -1609,8 +1630,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 			case DNS_OPT_CLIENT_SUBNET:
 				result = process_ecs(client, &optbuf, optlen);
 				if (result != ISC_R_SUCCESS) {
-					ns_client_error(client, result);
-					return result;
+					goto formerr;
 				}
 				ns_stats_increment(
 					client->manager->sctx->nsstats,
@@ -1638,12 +1658,23 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				result = process_keytag(client, &optbuf,
 							optlen);
 				if (result != ISC_R_SUCCESS) {
-					ns_client_error(client, result);
-					return result;
+					goto formerr;
 				}
 				ns_stats_increment(
 					client->manager->sctx->nsstats,
 					ns_statscounter_keytagopt);
+				break;
+			case DNS_OPT_ZONEVERSION:
+				if (optlen != 0 || WANTZONEVERSION(client)) {
+					result = DNS_R_FORMERR;
+					goto formerr;
+				}
+				ns_stats_increment(
+					client->manager->sctx->nsstats,
+					ns_statscounter_zoneversionopt);
+				client->attributes |=
+					NS_CLIENTATTR_WANTZONEVERSION;
+				isc_buffer_forward(&optbuf, optlen);
 				break;
 			default:
 				ns_stats_increment(
@@ -1659,6 +1690,17 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 			   ns_statscounter_edns0in);
 	client->attributes |= NS_CLIENTATTR_WANTOPT;
 
+	return result;
+
+formerr:
+	if (result == DNS_R_FORMERR || result == DNS_R_OPTERR) {
+		result = ns_client_addopt(client, client->message,
+					  &client->opt);
+		if (result == ISC_R_SUCCESS) {
+			result = DNS_R_FORMERR;
+		}
+	}
+	ns_client_error(client, result);
 	return result;
 }
 
@@ -1724,6 +1766,7 @@ ns__client_put_cb(void *client0) {
 	 */
 	ns_query_free(client);
 	dns_ede_invalidate(&client->edectx);
+	client_zoneversion_reset(client);
 
 	client->magic = 0;
 

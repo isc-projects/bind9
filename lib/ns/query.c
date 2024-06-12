@@ -7938,6 +7938,55 @@ query_getexpire(query_ctx_t *qctx) {
 	}
 }
 
+/*
+ * Set the zone version, if requested, when answering from a secondary,
+ * mirror, or primary zone.
+ */
+static void
+query_getzoneversion(query_ctx_t *qctx) {
+	CCTRACE(ISC_LOG_DEBUG(3), __func__);
+
+	if (qctx->zone == NULL || !qctx->is_zone ||
+	    qctx->client->query.restarts != 0 ||
+	    (qctx->client->attributes & NS_CLIENTATTR_WANTZONEVERSION) == 0 ||
+	    (qctx->client->attributes & NS_CLIENTATTR_HAVEZONEVERSION) != 0)
+	{
+		return;
+	}
+
+	switch (dns_zone_gettype(qctx->zone)) {
+	case dns_zone_mirror:
+	case dns_zone_primary:
+	case dns_zone_secondary: {
+		isc_buffer_t b;
+		unsigned char buf[128];
+		isc_buffer_init(&b, buf, sizeof(buf));
+		isc_result_t result = dns_zone_getzoneversion(qctx->zone, &b);
+		if (result == ISC_R_SUCCESS) {
+			size_t len = isc_buffer_usedlength(&b);
+			/*
+			 * Sanity check zone version from database
+			 * implementations.  Minimum length and type 0
+			 * contraints.
+			 */
+			if (len < 2 || (buf[1] == 0 && len != 6)) {
+				return;
+			}
+			qctx->client->attributes |=
+				NS_CLIENTATTR_HAVEZONEVERSION;
+			INSIST(qctx->client->zoneversion == NULL);
+			qctx->client->zoneversion =
+				isc_mem_get(qctx->client->manager->mctx, len);
+			qctx->client->zoneversionlength = len;
+			memmove(qctx->client->zoneversion, buf, len);
+		}
+		break;
+	}
+	default:
+		break;
+	}
+}
+
 /*%
  * Fill the ANSWER section of a positive response.
  */
@@ -8100,6 +8149,11 @@ query_respond(query_ctx_t *qctx) {
 	 * Set expire time
 	 */
 	query_getexpire(qctx);
+
+	/*
+	 * Set the zone version
+	 */
+	query_getzoneversion(qctx);
 
 	result = query_addanswer(qctx);
 	if (result != ISC_R_COMPLETE) {
