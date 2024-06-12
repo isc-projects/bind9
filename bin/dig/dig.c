@@ -328,6 +328,7 @@ help(void) {
 	       "                 +[no]yaml           (Present the results as "
 	       "YAML)\n"
 	       "                 +[no]zflag          (Set Z flag in query)\n"
+	       "                 +[no]zoneversion    (Request zone version)\n"
 	       "        global d-opts and servers (before host name) affect "
 	       "all "
 	       "queries.\n"
@@ -2574,9 +2575,22 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			lookup->rrcomments = -1;
 		}
 		break;
-	case 'z': /* zflag */
-		FULLCHECK("zflag");
-		lookup->zflag = state;
+	case 'z':
+		switch (cmd[1]) {
+		case 'f': /* zflag */
+			FULLCHECK("zflag");
+			lookup->zflag = state;
+			break;
+		case 'o': /* zoneversion */
+			FULLCHECK("zoneversion");
+			if (state && lookup->edns == -1) {
+				lookup->edns = DEFAULT_EDNS_VERSION;
+			}
+			lookup->zoneversion = state;
+			break;
+		default:
+			goto invalid_option;
+		}
 		break;
 	default:
 	invalid_option:

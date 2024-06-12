@@ -757,6 +757,10 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
    This option sets [or does not set] the last unassigned DNS header flag in a DNS query.
    This flag is off by default.
 
+.. option:: +zoneversion, +nozoneversion
+
+   When enabled, this option includes an EDNS Zone Version request when sending a query.
+
 Multiple Queries
 ~~~~~~~~~~~~~~~~
 
