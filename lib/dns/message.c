@@ -3513,6 +3513,116 @@ static const char *option_names[] = {
 };
 
 static isc_result_t
+render_zoneversion(dns_message_t *msg, isc_buffer_t *optbuf,
+		   const dns_master_style_t *style, isc_buffer_t *target) {
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int labels = isc_buffer_getuint8(optbuf);
+	unsigned int type = isc_buffer_getuint8(optbuf);
+	char buf[sizeof("4000000000")];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_name_t *name = ISC_LIST_HEAD(msg->sections[DNS_SECTION_QUESTION]);
+	dns_name_t suffix = DNS_NAME_INITEMPTY;
+	bool yaml = false, rawmode = false;
+	const char *sep1 = " ", *sep2 = ", ";
+
+	if ((dns_master_styleflags(style) & DNS_STYLEFLAG_YAML) != 0) {
+		msg->indent.count++;
+		sep1 = sep2 = "\n";
+		yaml = true;
+	}
+
+	ADD_STRING(target, sep1);
+
+	if (msg->counts[DNS_SECTION_QUESTION] != 1 || name == NULL ||
+	    dns_name_countlabels(name) < labels + 1)
+	{
+		rawmode = true;
+		INDENT(style);
+		ADD_STRING(target, "LABELS: ");
+		snprintf(buf, sizeof(buf), "%u", labels);
+		ADD_STRING(target, buf);
+	} else {
+		dns_name_split(name, labels + 1, NULL, &suffix);
+		dns_name_format(&suffix, namebuf, sizeof(namebuf));
+
+		INDENT(style);
+		ADD_STRING(target, "ZONE: ");
+		if (yaml) {
+			char *s = namebuf;
+			ADD_STRING(target, "\"");
+			while (*s != 0) {
+				if (*s == '\\' || *s == '"') {
+					ADD_STRING(target, "\\");
+				}
+				if (isc_buffer_availablelength(target) < 1) {
+					result = ISC_R_NOSPACE;
+					goto cleanup;
+				}
+				isc_buffer_putmem(target, (unsigned char *)s,
+						  1);
+				s++;
+			}
+			ADD_STRING(target, "\"");
+		} else {
+			ADD_STRING(target, namebuf);
+		}
+	}
+	ADD_STRING(target, sep2);
+
+	if (!rawmode && type == 0 && isc_buffer_remaininglength(optbuf) == 4) {
+		uint32_t serial = isc_buffer_getuint32(optbuf);
+		INDENT(style);
+		ADD_STRING(target, "SOA-SERIAL: ");
+		snprintf(buf, sizeof(buf), "%u", serial);
+		ADD_STRING(target, buf);
+	} else {
+		size_t len = isc_buffer_remaininglength(optbuf);
+		unsigned char *data = isc_buffer_current(optbuf);
+		INDENT(style);
+		ADD_STRING(target, "TYPE: ");
+		snprintf(buf, sizeof(buf), "%u", type);
+		ADD_STRING(target, buf);
+		ADD_STRING(target, sep2);
+		INDENT(style);
+		ADD_STRING(target, "VALUE: ");
+		for (size_t i = 0; i < len; i++) {
+			snprintf(buf, sizeof(buf), "%02x", data[i]);
+			ADD_STRING(target, buf);
+		}
+		if (yaml) {
+			ADD_STRING(target, sep2);
+			INDENT(style);
+			ADD_STRING(target, "PVALUE: \"");
+		} else {
+			ADD_STRING(target, " (\"");
+		}
+		for (size_t i = 0; i < len; i++) {
+			if (isprint(data[i])) {
+				if (yaml && (data[i] == '\\' || data[i] == '"'))
+				{
+					ADD_STRING(target, "\\");
+				}
+				if (isc_buffer_availablelength(target) < 1) {
+					result = ISC_R_NOSPACE;
+					goto cleanup;
+				}
+				isc_buffer_putmem(target, &data[i], 1);
+			} else {
+				ADD_STRING(target, ".");
+			}
+		}
+		if (yaml) {
+			ADD_STRING(target, "\"");
+		} else {
+			ADD_STRING(target, "\")");
+		}
+		isc_buffer_forward(optbuf, len);
+	}
+cleanup:
+	return result;
+}
+
+static isc_result_t
 dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 				const dns_master_style_t *style,
 				dns_messagetextflag_t flags,
@@ -3787,6 +3897,20 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 						continue;
 					}
 					optbuf = sb;
+				}
+				break;
+			case DNS_OPT_ZONEVERSION:
+				if (optlen >= 2U) {
+					isc_buffer_t zonebuf = optbuf;
+					isc_buffer_setactive(&zonebuf, optlen);
+					result = render_zoneversion(
+						msg, &zonebuf, style, target);
+					if (result != ISC_R_SUCCESS) {
+						goto cleanup;
+					}
+					isc_buffer_forward(&optbuf, optlen);
+					ADD_STRING(target, "\n");
+					continue;
 				}
 				break;
 			default:
@@ -4206,6 +4330,20 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 						continue;
 					}
 					optbuf = sb;
+				}
+				break;
+			case DNS_OPT_ZONEVERSION:
+				if (optlen >= 2U) {
+					isc_buffer_t zonebuf = optbuf;
+					isc_buffer_setactive(&zonebuf, optlen);
+					result = render_zoneversion(
+						msg, &zonebuf, style, target);
+					if (result != ISC_R_SUCCESS) {
+						goto cleanup;
+					}
+					ADD_STRING(target, "\n");
+					isc_buffer_forward(&optbuf, optlen);
+					continue;
 				}
 				break;
 			default:
