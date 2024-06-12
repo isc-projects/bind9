@@ -15,32 +15,34 @@ Notes for BIND 9.19.25
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- Malicious DNS client that sends many queries over TCP but never reads
-  responses can cause server to respond slowly or not respond at all for other
-  clients. :cve:`2024-0760` :gl:`#4481`
+- A malicious DNS client that sent many queries over TCP but never read
+  the responses could cause a server to respond slowly or not at all for
+  other clients. This has been fixed. :cve:`2024-0760` :gl:`#4481`
 
 - Excessively large resource record sets can be crafted to slow down
   database processing. This has been addressed by adding a configurable
   limit to the number of records that can be stored per name and type in
   a cache or zone database. The default is 100, but it can be tuned with
-  the new ``max-records-per-type`` option. :gl:`#497` :gl:`#3405`
+  the new :any:`max-records-per-type` option. :gl:`#497` :gl:`#3405`
 
-  An excessively large number of resource record types for a single owner name can
-  be crafted to slow down database processing. This has been addressed by adding
-  a configurable limit to the number of records that can be stored per name and
-  type in a cache or zone database.  The default is 100, and can be tuned with
-  the new ``max-rrtypes-per-name`` option. :cve:`2024-1737` :gl:`#3403`
+  An excessively large number of resource record types for a single owner
+  name can be crafted to slow down database processing. This has been
+  addressed by adding a configurable limit to the number of records that
+  can be stored per name and type in a cache or zone database.  The
+  default is 100, and can be tuned with the new :any:`max-types-per-name`
+  option. :cve:`2024-1737` :gl:`#3403`
 
-  ISC would like to thank Toshifumi Sakaguchi who independently discovered
-  and responsibly reported the issue to ISC. :gl:`#4548`
+  ISC would like to thank Toshifumi Sakaguchi who independently
+  discovered and responsibly reported the issue to ISC. :gl:`#4548`
 
-- A malicious DNS client that sends many queries with a SIG(0)-signed message
-  can cause server to respond slowly or not respond at all for other clients.
-  :cve:`2024-1975` :gl:`#4480`
+- A malicious DNS client that sends many queries with a SIG(0)-signed
+  message can cause server to respond slowly or not respond at all for
+  other clients. This has been fixed. :cve:`2024-1975` :gl:`#4480`
 
-- Due to a logic error, lookups that trigger serving stale data and require
-  lookups in local authoritative zone data may result in an assertion failure.
-  This has been fixed. :cve:`2024-4076` :gl:`#4507`
+- Due to a logic error, lookups that triggered serving stale data and
+  required lookups in local authoritative zone data could have resulted
+  in an assertion failure. This has been fixed. :cve:`2024-4076`
+  :gl:`#4507`
 
 New Features
 ~~~~~~~~~~~~
@@ -53,36 +55,36 @@ Feature Changes
 ~~~~~~~~~~~~~~~
 
 - Outgoing zone transfers are no longer enabled by default. An explicit
-  :any:`allow-transfer` ACL must now be set at the :any:`zone`, :any:`view` or
-  :namedconf:ref:`options` level to enable outgoing transfers. :gl:`#4728`
+  :any:`allow-transfer` ACL must now be set at the :any:`zone`,
+  :any:`view`, or :namedconf:ref:`options` level to enable outgoing
+  transfers. :gl:`#4728`
 
 Bug Fixes
 ~~~~~~~~~
 
 - Command-line options for IPv4-only (:option:`named -4`) and IPv6-only
-  (:option:`named -6`) modes are now respected for zone primaries,
-  :any:`also-notify` and :any:`parental-agents`. :gl:`#3472`
+  (:option:`named -6`) modes are now respected for zone :any:`primaries`,
+  :any:`also-notify`, and :any:`parental-agents`. :gl:`#3472`
 
-- An RPZ response's SOA record TTL was set to 1 instead of the SOA TTL, if
-  ``add-soa`` was used. This has been fixed. :gl:`#3323`
+- An RPZ response's SOA record TTL was set to 1 instead of the SOA TTL,
+  if ``add-soa`` was used. This has been fixed. :gl:`#3323`
 
-- Potential data races were found in our DoH implementation related
-  to HTTP/2 session object management and endpoints set object
-  management after reconfiguration. These issues have been
-  fixed. :gl:`#4473`
+- Potential data races were found in our DoH implementation, related to
+  HTTP/2 session object management and endpoints set object management
+  after reconfiguration. These issues have been fixed. :gl:`#4473`
 
-  ISC would like to thank Dzintars and Ivo from nic.lv for bringing
-  this to our attention.
+  ISC would like to thank Dzintars and Ivo from nic.lv for bringing this
+  to our attention.
 
-- Some servers which couldn't be reached due EHOSTDOWN or ENETDOWN
-  conditions were incorrectly prioritized during server selection.
-  These are now properly handled as unreachable. :gl:`#4736`
+- Some servers which could not be reached due to EHOSTDOWN or ENETDOWN
+  conditions were incorrectly prioritized during server selection. These
+  are now properly handled as unreachable. :gl:`#4736`
 
-- When sending a TCP reset for a connection, on some systems
-  the libuv call may return an error code, which triggered an
-  assertion failure in `named`. This error condition is now
-  being dealt with in a more graceful manner, by logging the
-  incident and shutting down the connection. :gl:`#4708`
+- On some systems the libuv call may return an error code when sending a
+  TCP reset for a connection, which triggers an assertion failure in
+  :iscman:`named`. This error condition is now dealt with in a more
+  graceful manner, by logging the incident and shutting down the
+  connection. :gl:`#4708`
 
 Known Issues
 ~~~~~~~~~~~~
