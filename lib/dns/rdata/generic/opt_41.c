@@ -266,6 +266,21 @@ fromwire_opt(ARGS_FROMWIRE) {
 			}
 			isc_region_consume(&sregion, length);
 			break;
+		case DNS_OPT_ZONEVERSION:
+			if (length == 0) {
+				/* Request */
+				break;
+			}
+			/* Labels and Type */
+			if (length < 2) {
+				return DNS_R_OPTERR;
+			}
+			/* Type 0 (serial), length is 6. */
+			if (sregion.base[1] == 0 && length != 6) {
+				return DNS_R_OPTERR;
+			}
+			isc_region_consume(&sregion, length);
+			break;
 		default:
 			isc_region_consume(&sregion, length);
 			break;

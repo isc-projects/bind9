@@ -102,7 +102,6 @@
 #define DNS_MESSAGEEXTFLAG_DO 0x8000U
 
 /*%< EDNS0 extended OPT codes */
-
 #define DNS_OPT_LLQ	       1  /*%< LLQ opt code */
 #define DNS_OPT_UL	       2  /*%< UL opt code */
 #define DNS_OPT_NSID	       3  /*%< NSID opt code */
@@ -129,7 +128,7 @@
  * options we know about. Extended DNS Errors may occur multiple times, see
  * DNS_EDE_MAX_ERRORS.
  */
-#define DNS_EDNSOPTIONS 8 + DNS_EDE_MAX_ERRORS
+#define DNS_EDNSOPTIONS 9 + DNS_EDE_MAX_ERRORS
 
 #define DNS_MESSAGE_REPLYPRESERVE	 (DNS_MESSAGEFLAG_RD | DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
