@@ -59,6 +59,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Command-line options for IPv4-only (:option:`named -4`) and IPv6-only
+  (:option:`named -6`) modes are now respected for zone primaries,
+  :any:`also-notify` and :any:`parental-agents`. :gl:`#3472`
+
 - An RPZ response's SOA record TTL was set to 1 instead of the SOA TTL, if
   ``add-soa`` was used. This has been fixed. :gl:`#3323`
 
