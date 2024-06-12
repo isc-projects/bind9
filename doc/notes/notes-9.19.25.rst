@@ -74,6 +74,10 @@ Bug Fixes
   ISC would like to thank Dzintars and Ivo from nic.lv for bringing
   this to our attention.
 
+- Some servers which couldn't be reached due EHOSTDOWN or ENETDOWN
+  conditions were incorrectly prioritized during server selection.
+  These are now properly handled as unreachable. :gl:`#4736`
+
 Known Issues
 ~~~~~~~~~~~~
 
