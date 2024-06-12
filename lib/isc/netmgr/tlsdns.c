@@ -88,6 +88,9 @@ tlsdns_set_tls_shutdown(isc_tls_t *tls) {
 	(void)SSL_set_shutdown(tls, SSL_SENT_SHUTDOWN);
 }
 
+static void
+tlsdns_maybe_restart_reading(isc_nmsocket_t *sock);
+
 static bool
 peer_verification_has_failed(isc_nmsocket_t *sock) {
 	if (sock->tls.tls != NULL && sock->tls.state == TLS_STATE_HANDSHAKE &&
@@ -1084,6 +1087,19 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 		size_t len;
 
 		for (;;) {
+			/*
+			 * There is a similar branch in
+			 * isc__nm_process_sock_buffer() which is sufficient to
+			 * stop excessive processing in TCP. However, as we wrap
+			 * this call in a loop, we need to have it here in order
+			 * to limit the number of loop iterations (and,
+			 * consequently, the number of messages processed).
+			 */
+			if (atomic_load(&sock->ah) >= STREAM_CLIENTS_PER_CONN) {
+				isc__nm_stop_reading(sock);
+				break;
+			}
+
 			(void)SSL_peek(sock->tls.tls, &(char){ '\0' }, 0);
 
 			int pending = SSL_pending(sock->tls.tls);
@@ -1289,6 +1305,16 @@ tls_write_cb(uv_write_t *req, int status) {
 	isc__nm_uvreq_put(&uvreq, sock);
 
 	if (status != 0) {
+		if (!sock->client &&
+		    (atomic_load(&sock->reading) || sock->reading_throttled))
+		{
+			/*
+			 * As we are resuming reading, it is not throttled
+			 * anymore (technically).
+			 */
+			sock->reading_throttled = false;
+			isc__nm_start_reading(sock);
+		}
 		tls_error(sock, result);
 		return;
 	}
@@ -1298,6 +1324,8 @@ tls_write_cb(uv_write_t *req, int status) {
 		tls_error(sock, result);
 		return;
 	}
+
+	tlsdns_maybe_restart_reading(sock);
 }
 
 static isc_result_t
@@ -1533,6 +1561,28 @@ isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread,
 	result = tls_cycle(sock);
 	if (result != ISC_R_SUCCESS) {
 		isc__nm_failed_read_cb(sock, result, true);
+	} else if (!sock->client) {
+		/*
+		 * Stop reading if we have accumulated enough bytes in
+		 * the send queue; this means that the TCP client is not
+		 * reading back the data we sending to it, and there's
+		 * no reason to continue processing more incoming DNS
+		 * messages, if the client is not reading back the
+		 * responses.
+		 */
+		size_t write_queue_size =
+			uv_stream_get_write_queue_size(&sock->uv_handle.stream);
+
+		if (write_queue_size >= ISC_NETMGR_TCP_SENDBUF_SIZE) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_NETMGR, ISC_LOG_DEBUG(3),
+				      "throttling TCP connection, "
+				      "the other side is "
+				      "not reading the data (%zu)",
+				      write_queue_size);
+			sock->reading_throttled = true;
+			isc__nm_stop_reading(sock);
+		}
 	}
 free:
 	async_tlsdns_cycle(sock);
@@ -1774,6 +1824,34 @@ isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
 			       (isc__netievent_t *)ievent);
 	return;
+}
+
+static void
+tlsdns_maybe_restart_reading(isc_nmsocket_t *sock) {
+	if (!sock->client && sock->reading_throttled &&
+	    !uv_is_active(&sock->uv_handle.handle))
+	{
+		/*
+		 * Restart reading if we have less data in the send queue than
+		 * the send buffer size, this means that the TCP client has
+		 * started reading some data again.  Starting reading when we go
+		 * under the limit instead of waiting for all data has been
+		 * flushed allows faster recovery (in case there was a
+		 * congestion and now there isn't).
+		 */
+		size_t write_queue_size =
+			uv_stream_get_write_queue_size(&sock->uv_handle.stream);
+		if (write_queue_size < ISC_NETMGR_TCP_SENDBUF_SIZE) {
+			isc_log_write(
+				isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				ISC_LOGMODULE_NETMGR, ISC_LOG_DEBUG(3),
+				"resuming TCP connection, the other side  "
+				"is reading the data again (%zu)",
+				write_queue_size);
+			sock->reading_throttled = false;
+			isc__nm_start_reading(sock);
+		}
+	}
 }
 
 /*
