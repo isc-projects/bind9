@@ -1277,17 +1277,17 @@ call_pending_send_callbacks(isc_nmsocket_t *sock, const isc_result_t result) {
 }
 
 static void
-free_senddata(isc_nmsocket_t *sock, const isc_result_t result) {
+free_senddata(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
+	      const isc_result_t result) {
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tls.senddata.base != NULL);
-	REQUIRE(sock->tls.senddata.length > 0);
+	REQUIRE(req != NULL && req->userbuf.base != NULL &&
+		req->userbuf.length > 0);
 
-	isc_mem_put(sock->mgr->mctx, sock->tls.senddata.base,
-		    sock->tls.senddata.length);
-	sock->tls.senddata.base = NULL;
-	sock->tls.senddata.length = 0;
+	isc_mem_put(sock->mgr->mctx, req->userbuf.base, req->userbuf.length);
 
 	call_pending_send_callbacks(sock, result);
+
+	isc__nm_uvreq_put(&req, sock);
 }
 
 static void
@@ -1300,9 +1300,7 @@ tls_write_cb(uv_write_t *req, int status) {
 	isc_nm_timer_stop(uvreq->timer);
 	isc_nm_timer_detach(&uvreq->timer);
 
-	free_senddata(sock, result);
-
-	isc__nm_uvreq_put(&uvreq, sock);
+	free_senddata(sock, uvreq, result);
 
 	if (status != 0) {
 		if (!sock->client &&
@@ -1339,23 +1337,18 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 		int rv;
 		int r;
 
-		if (sock->tls.senddata.base != NULL ||
-		    sock->tls.senddata.length > 0)
-		{
-			break;
-		}
-
 		if (pending > (int)ISC_NETMGR_TCP_RECVBUF_SIZE) {
 			pending = (int)ISC_NETMGR_TCP_RECVBUF_SIZE;
 		}
 
-		sock->tls.senddata.base = isc_mem_get(sock->mgr->mctx, pending);
-		sock->tls.senddata.length = pending;
-
 		/* It's a bit misnomer here, but it does the right thing */
 		req = isc__nm_get_read_req(sock, NULL);
-		req->uvbuf.base = (char *)sock->tls.senddata.base;
-		req->uvbuf.len = sock->tls.senddata.length;
+
+		req->userbuf.base = isc_mem_get(sock->mgr->mctx, pending);
+		req->userbuf.length = (size_t)pending;
+
+		req->uvbuf.base = (char *)req->userbuf.base;
+		req->uvbuf.len = (size_t)req->userbuf.length;
 
 		rv = BIO_read_ex(sock->tls.app_rbio, req->uvbuf.base,
 				 req->uvbuf.len, &bytes);
@@ -1367,23 +1360,20 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 
 		if (r == pending) {
 			/* Wrote everything, restart */
-			isc__nm_uvreq_put(&req, sock);
-			free_senddata(sock, ISC_R_SUCCESS);
+			free_senddata(sock, req, ISC_R_SUCCESS);
 			continue;
 		}
 
 		if (r > 0) {
 			/* Partial write, send rest asynchronously */
-			memmove(req->uvbuf.base, req->uvbuf.base + r,
-				req->uvbuf.len - r);
-			req->uvbuf.len = req->uvbuf.len - r;
+			req->uvbuf.base += r;
+			req->uvbuf.len -= r;
 		} else if (r == UV_ENOSYS || r == UV_EAGAIN) {
 			/* uv_try_write is not supported, send
 			 * asynchronously */
 		} else {
 			result = isc__nm_uverr2result(r);
-			isc__nm_uvreq_put(&req, sock);
-			free_senddata(sock, result);
+			free_senddata(sock, req, result);
 			break;
 		}
 
@@ -1391,8 +1381,7 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 			     &req->uvbuf, 1, tls_write_cb);
 		if (r < 0) {
 			result = isc__nm_uverr2result(r);
-			isc__nm_uvreq_put(&req, sock);
-			free_senddata(sock, result);
+			free_senddata(sock, req, result);
 			break;
 		}
 

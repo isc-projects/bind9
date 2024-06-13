@@ -378,9 +378,10 @@ struct isc__nm_uvreq {
 	int magic;
 	isc_nmsocket_t *sock;
 	isc_nmhandle_t *handle;
-	char tcplen[2];	       /* The TCP DNS message length */
-	uv_buf_t uvbuf;	       /* translated isc_region_t, to be
-				* sent or received */
+	char tcplen[2]; /* The TCP DNS message length */
+	uv_buf_t uvbuf; /* translated isc_region_t, to be
+			 * sent or received */
+	isc_region_t userbuf;
 	isc_sockaddr_t local;  /* local address */
 	isc_sockaddr_t peer;   /* peer address */
 	isc__nm_cb_t cb;       /* callback */
@@ -995,7 +996,6 @@ struct isc_nmsocket {
 			TLS_STATE_ERROR,
 			TLS_STATE_CLOSING
 		} state;
-		isc_region_t senddata;
 		ISC_LIST(isc__nm_uvreq_t) sendreqs;
 		bool cycle;
 		isc_result_t pending_error;
