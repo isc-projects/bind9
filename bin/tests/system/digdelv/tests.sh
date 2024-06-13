@@ -802,6 +802,64 @@ if [ -x "$DIG" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
+  echo_i "checking dig +zoneversion to a authoritative server ($n)"
+  ret=0
+  dig_with_opts @10.53.0.2 +zoneversion a.example >dig.out.test$n 2>&1 || ret=1
+  pat="; ZONEVERSION: ZONE: example, SOA-SERIAL: 2000042407"
+  grep "$pat" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "checking dig +yaml +zoneversion to a authoritative server ($n)"
+    ret=0
+    dig_with_opts @10.53.0.2 +yaml +zoneversion a.example >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data OPT_PSEUDOSECTION EDNS ZONEVERSION >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    expected="{'ZONE': 'example', 'SOA-SERIAL': 2000042407}"
+    [ "$value" = "$expected" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
+
+  n=$((n + 1))
+  echo_i "checking dig +ednsopt=ZONEVERSION:<answer> to a authoritative server ($n)"
+  ret=0
+  dig_with_opts @10.53.0.2 +ednsopt=ZONEVERSION:0100000007DA a.example >dig.out.test$n 2>&1 || ret=1
+  grep "status: FORMERR" dig.out.test$n >/dev/null || ret=1
+  grep "; ZONEVERSION:" dig.out.test$n >/dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  n=$((n + 1))
+  echo_i "checking dig +zoneversion to a recursive server ($n)"
+  ret=0
+  dig_with_opts @10.53.0.3 +zoneversion a.example >dig.out.test$n 2>&1 || ret=1
+  grep '; ZONEVERSION:' dig.out.test$n >/dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  n=$((n + 1))
+  echo_i "checking display of non serial type zoneversion ($n)"
+  ret=0
+  dig_with_opts @10.53.0.2 +qr +ednsopt=ZONEVERSION:0100000007DA a.example >dig.out.test$n 2>&1 || ret=1
+  grep '; ZONEVERSION: LABELS: 1, TYPE: 0, VALUE: 000007da ("....")' dig.out.test$n >/dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "checking display of non serial type zoneversion +yaml ($n)"
+    ret=0
+    dig_with_opts @10.53.0.2 +qr +ednsopt=ZONEVERSION:0100000007DA a.example +yaml >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS ZONEVERSION >yamlget.out.test$n 2>&1 || ret=1
+    expected="{'ZONE': 'example', 'TYPE': 1, 'VALUE': 000007da, PVALUE: '....'}"
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
+
+  n=$((n + 1))
   echo_i "check that dig gracefully handles bad escape in domain name ($n)"
   ret=0
   digstatus=0
