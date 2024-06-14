@@ -2007,9 +2007,9 @@ dns_zone_stopxfr(dns_zone_t *zone);
  */
 
 void
-dns_zone_forcereload(dns_zone_t *zone);
+dns_zone_forcexfr(dns_zone_t *zone);
 /*%<
- *      Force a reload of specified zone.
+ *      Force a zone transfer of the specified zone.
  *
  * Requires:
  *\li      'zone' to be a valid zone.

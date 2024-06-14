@@ -19495,7 +19495,7 @@ dns_zone_stopxfr(dns_zone_t *zone) {
 }
 
 void
-dns_zone_forcereload(dns_zone_t *zone) {
+dns_zone_forcexfr(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	if (zone->type == dns_zone_primary ||

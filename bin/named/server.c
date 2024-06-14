@@ -10834,7 +10834,7 @@ named_server_retransfercommand(named_server_t *server, isc_lex_t *lex,
 		if (force) {
 			dns_zone_stopxfr(zone);
 		}
-		dns_zone_forcereload(zone);
+		dns_zone_forcexfr(zone);
 	} else {
 		(void)putstr(text, "retransfer: inappropriate zone type: ");
 		(void)putstr(text, dns_zonetype_name(type));
