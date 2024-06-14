@@ -127,3 +127,7 @@
 
 ``zoneload``
     Loading of zones and creation of automatic empty zones.
+
+``zoneversion``
+    ZONEVERSION options received from upstream servers.
+

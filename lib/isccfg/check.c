@@ -4242,6 +4242,7 @@ static struct {
 	{ "request-expire", dns_peer_setrequestexpire },
 	{ "request-ixfr", dns_peer_setrequestixfr },
 	{ "request-nsid", dns_peer_setrequestnsid },
+	{ "request-zoneversion", dns_peer_setrequestzoneversion },
 	{ "send-cookie", dns_peer_setsendcookie },
 	{ "tcp-keepalive", dns_peer_settcpkeepalive },
 	{ "tcp-only", dns_peer_setforcetcp },

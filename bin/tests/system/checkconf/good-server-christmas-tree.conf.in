@@ -31,6 +31,7 @@ server 0.0.0.0 {
 	request-ixfr no;
 	request-ixfr-max-diffs 0;
 	request-nsid no;
+	request-zoneversion no;
 	require-cookie no;
 	send-cookie no;
 	tcp-keepalive no;
@@ -55,6 +56,7 @@ server :: {
 	request-ixfr no;
 	request-ixfr-max-diffs 0;
 	request-nsid no;
+	request-zoneversion no;
 	require-cookie no;
 	send-cookie no;
 	tcp-keepalive no;

@@ -145,6 +145,7 @@ struct dns_view {
 	dns_rrl_t	     *rrl;
 	bool		      provideixfr;
 	bool		      requestnsid;
+	bool		      requestzoneversion;
 	bool		      sendcookie;
 	dns_ttl_t	      maxcachettl;
 	dns_ttl_t	      maxncachettl;

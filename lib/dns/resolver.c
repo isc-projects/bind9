@@ -24,6 +24,7 @@
 #include <isc/counter.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
+#include <isc/hex.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mutex.h>
@@ -2504,6 +2505,7 @@ resquery_send(resquery_t *query) {
 			unsigned int flags = query->addrinfo->flags;
 			bool reqnsid = res->view->requestnsid;
 			bool sendcookie = res->view->sendcookie;
+			bool reqzoneversion = res->view->requestzoneversion;
 			bool tcpkeepalive = false;
 			unsigned char cookie[COOKIE_BUFFER_SIZE];
 			uint16_t padding = 0;
@@ -2546,8 +2548,6 @@ resquery_send(resquery_t *query) {
 			 */
 			if (peer != NULL) {
 				uint8_t ednsversion;
-				(void)dns_peer_getrequestnsid(peer, &reqnsid);
-				(void)dns_peer_getsendcookie(peer, &sendcookie);
 				result = dns_peer_getednsversion(peer,
 								 &ednsversion);
 				if (result == ISC_R_SUCCESS &&
@@ -2555,6 +2555,10 @@ resquery_send(resquery_t *query) {
 				{
 					version = ednsversion;
 				}
+				(void)dns_peer_getrequestnsid(peer, &reqnsid);
+				(void)dns_peer_getrequestzoneversion(
+					peer, &reqzoneversion);
+				(void)dns_peer_getsendcookie(peer, &sendcookie);
 			}
 			if (NOCOOKIE(query->addrinfo)) {
 				sendcookie = false;
@@ -2562,6 +2566,13 @@ resquery_send(resquery_t *query) {
 			if (reqnsid) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_NSID;
+				ednsopts[ednsopt].length = 0;
+				ednsopts[ednsopt].value = NULL;
+				ednsopt++;
+			}
+			if (reqzoneversion) {
+				INSIST(ednsopt < DNS_EDNSOPTIONS);
+				ednsopts[ednsopt].code = DNS_OPT_ZONEVERSION;
 				ednsopts[ednsopt].length = 0;
 				ednsopts[ednsopt].value = NULL;
 				ednsopt++;
@@ -2620,8 +2631,14 @@ resquery_send(resquery_t *query) {
 			query->ednsversion = version;
 			result = fctx_addopt(fctx->qmessage, version, udpsize,
 					     ednsopts, ednsopt);
-			if (reqnsid && result == ISC_R_SUCCESS) {
-				query->options |= DNS_FETCHOPT_WANTNSID;
+			if (result == ISC_R_SUCCESS) {
+				if (reqnsid) {
+					query->options |= DNS_FETCHOPT_WANTNSID;
+				}
+				if (reqzoneversion) {
+					query->options |=
+						DNS_FETCHOPT_WANTZONEVERSION;
+				}
 			} else if (result != ISC_R_SUCCESS) {
 				/*
 				 * We couldn't add the OPT, but we'll
@@ -7387,17 +7404,38 @@ checknames(dns_message_t *message) {
 	checknamessection(message, DNS_SECTION_ADDITIONAL);
 }
 
+static void
+make_hex(unsigned char *src, size_t srclen, char *buf, size_t buflen) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	r.base = src;
+	r.length = srclen;
+	isc_buffer_init(&b, buf, buflen);
+	result = isc_hex_totext(&r, 0, "", &b);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_buffer_putuint8(&b, '\0');
+}
+
+static void
+make_printable(unsigned char *src, size_t srclen, char *buf, size_t buflen) {
+	INSIST(buflen > srclen);
+	while (srclen-- > 0) {
+		unsigned char c = *src++;
+		*buf++ = isprint(c) ? c : '.';
+	}
+	*buf = '\0';
+}
+
 /*
  * Log server NSID at log level 'level'
  */
 static void
 log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query, int level,
 	 isc_mem_t *mctx) {
-	static const char hex[17] = "0123456789abcdef";
-	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE], *buf = NULL, *pbuf = NULL;
 	size_t buflen;
-	unsigned char *p, *nsid;
-	unsigned char *buf = NULL, *pbuf = NULL;
 
 	REQUIRE(nsid_len <= UINT16_MAX);
 
@@ -7407,20 +7445,10 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query, int level,
 	pbuf = isc_mem_get(mctx, nsid_len + 1);
 
 	/* Convert to hex */
-	p = buf;
-	nsid = isc_buffer_current(opt);
-	for (size_t i = 0; i < nsid_len; i++) {
-		*p++ = hex[(nsid[i] >> 4) & 0xf];
-		*p++ = hex[nsid[i] & 0xf];
-	}
-	*p = '\0';
+	make_hex(isc_buffer_current(opt), nsid_len, buf, buflen);
 
 	/* Make printable version */
-	p = pbuf;
-	for (size_t i = 0; i < nsid_len; i++) {
-		*p++ = isprint(nsid[i]) ? nsid[i] : '.';
-	}
-	*p = '\0';
+	make_printable(isc_buffer_current(opt), nsid_len, pbuf, nsid_len + 1);
 
 	isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
 			    sizeof(addrbuf));
@@ -7429,6 +7457,108 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query, int level,
 
 	isc_mem_put(mctx, pbuf, nsid_len + 1);
 	isc_mem_put(mctx, buf, buflen);
+}
+
+static void
+log_zoneversion(unsigned char *version, size_t version_len, unsigned char *nsid,
+		size_t nsid_len, resquery_t *query, int level,
+		isc_mem_t *mctx) {
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	size_t nsid_buflen = 0;
+	char *nsid_buf = NULL;
+	char *nsid_pbuf = NULL;
+	const char *nsid_hex = "";
+	const char *nsid_print = "";
+	const char *sep_1 = "";
+	const char *sep_2 = "";
+	const char *sep_3 = "";
+	dns_name_t suffix = DNS_NAME_INITEMPTY;
+	unsigned int labels;
+
+	REQUIRE(version_len <= UINT16_MAX);
+
+	/*
+	 * Don't log reflected ZONEVERSION option.
+	 */
+	if (version_len == 0) {
+		return;
+	}
+
+	/* Enforced by dns_rdata_fromwire. */
+	INSIST(version_len >= 2);
+
+	/*
+	 * Sanity check on label count.
+	 */
+	labels = version[0] + 1;
+	if (dns_name_countlabels(query->fctx->name) < labels) {
+		return;
+	}
+
+	/*
+	 * Get zone name.
+	 */
+	dns_name_split(query->fctx->name, labels, NULL, &suffix);
+	dns_name_format(&suffix, namebuf, sizeof(namebuf));
+
+	if (nsid != NULL) {
+		nsid_buflen = nsid_len * 2 + 1;
+		nsid_hex = nsid_buf = isc_mem_get(mctx, nsid_buflen);
+		nsid_print = nsid_pbuf = isc_mem_get(mctx, nsid_len + 1);
+
+		/* Convert to hex */
+		make_hex(nsid, nsid_len, nsid_buf, nsid_buflen);
+
+		/* Convert to printable */
+		make_printable(nsid, nsid_len, nsid_pbuf, nsid_len + 1);
+
+		sep_1 = " (NSID ";
+		sep_2 = " (";
+		sep_3 = "))";
+	}
+
+	isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
+			    sizeof(addrbuf));
+	if (version[1] == 0 && version_len == 6) {
+		uint32_t serial = version[2] << 24 | version[3] << 2 |
+				  version[4] << 8 | version[5];
+		isc_log_write(DNS_LOGCATEGORY_ZONEVERSION,
+			      DNS_LOGMODULE_RESOLVER, level,
+			      "received ZONEVERSION serial %u from %s for %s "
+			      "zone %s%s%s%s%s%s",
+			      serial, addrbuf, query->fctx->info, namebuf,
+			      sep_1, nsid_hex, sep_2, nsid_print, sep_3);
+	} else {
+		size_t version_buflen = version_len * 2 + 1;
+		char *version_hex = isc_mem_get(mctx, version_buflen);
+		char *version_pbuf = isc_mem_get(mctx, version_len - 1);
+
+		/* Convert to hex */
+		make_hex(version + 2, version_len - 2, version_hex,
+			 version_buflen);
+
+		/* Convert to printable */
+		make_printable(version + 2, version_len - 2, version_pbuf,
+			       version_len - 1);
+
+		isc_log_write(DNS_LOGCATEGORY_ZONEVERSION,
+			      DNS_LOGMODULE_RESOLVER, level,
+			      "received ZONEVERSION type %u value %s (%s) from "
+			      "%s for %s zone %s%s%s%s%s%s",
+			      version[1], version_hex, version_pbuf, addrbuf,
+			      query->fctx->info, namebuf, sep_1, nsid_hex,
+			      sep_2, nsid_print, sep_3);
+		isc_mem_put(mctx, version_hex, version_buflen);
+		isc_mem_put(mctx, version_pbuf, version_len - 1);
+	}
+
+	if (nsid_pbuf != NULL) {
+		isc_mem_put(mctx, nsid_pbuf, nsid_len + 1);
+	}
+	if (nsid_buf != NULL) {
+		isc_mem_put(mctx, nsid_buf, nsid_buflen);
+	}
 }
 
 static bool
@@ -8191,6 +8321,11 @@ rctx_opt(respctx_t *rctx) {
 	isc_result_t result;
 	bool seen_cookie = false;
 	bool seen_nsid = false;
+	bool seen_zoneversion = false;
+	unsigned char *nsid = NULL;
+	uint16_t nsidlen = 0;
+	unsigned char *zoneversion = NULL;
+	uint16_t zoneversionlen = 0;
 
 	result = dns_rdataset_first(rctx->opt);
 	if (result != ISC_R_SUCCESS) {
@@ -8216,7 +8351,8 @@ rctx_opt(respctx_t *rctx) {
 				break;
 			}
 			seen_nsid = true;
-
+			nsid = isc_buffer_current(&optbuf);
+			nsidlen = optlen;
 			if ((query->options & DNS_FETCHOPT_WANTNSID) != 0) {
 				log_nsid(&optbuf, optlen, query, ISC_LOG_INFO,
 					 fctx->mctx);
@@ -8254,12 +8390,27 @@ rctx_opt(respctx_t *rctx) {
 						  optvalue, optlen);
 			}
 			break;
+		case DNS_OPT_ZONEVERSION:
+			if (seen_zoneversion) {
+				break;
+			}
+			seen_zoneversion = true;
+			zoneversion = isc_buffer_current(&optbuf);
+			zoneversionlen = optlen;
+			break;
 		default:
 			break;
 		}
 		isc_buffer_forward(&optbuf, optlen);
 	}
 	INSIST(isc_buffer_remaininglength(&optbuf) == 0U);
+
+	if ((query->options & DNS_FETCHOPT_WANTZONEVERSION) != 0 &&
+	    zoneversion != NULL)
+	{
+		log_zoneversion(zoneversion, zoneversionlen, nsid, nsidlen,
+				query, ISC_LOG_INFO, fctx->mctx);
+	}
 }
 
 /*
