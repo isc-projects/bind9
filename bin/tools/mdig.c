@@ -297,8 +297,7 @@ recvresponse(void *arg) {
 		char *hash;
 		int pf;
 
-		printf("-\n");
-		printf("  type: MESSAGE\n");
+		printf("- type: MESSAGE\n");
 		printf("  message:\n");
 
 		if (((response->flags & DNS_MESSAGEFLAG_RD) != 0) &&
