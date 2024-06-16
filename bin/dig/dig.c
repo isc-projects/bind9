@@ -2981,10 +2981,7 @@ dig_error(const char *format, ...) {
 	va_start(args, format);
 	vprintf(format, args);
 	va_end(args);
-
-	if (!yaml) {
-		printf("\n");
-	}
+	printf("\n"); /* We get the error without a newline */
 }
 
 static void
