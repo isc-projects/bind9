@@ -717,8 +717,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		char *hash;
 		int pf;
 
-		printf("-\n");
-		printf("  type: MESSAGE\n");
+		printf("- type: MESSAGE\n");
 		printf("  message:\n");
 
 		if (isquery) {
@@ -2965,8 +2964,7 @@ dig_error(const char *format, ...) {
 	va_list args;
 
 	if (yaml) {
-		printf("-\n");
-		printf("  type: DIG_ERROR\n");
+		printf("- type: DIG_ERROR\n");
 
 		/*
 		 * Print an indent before a literal block quote.
