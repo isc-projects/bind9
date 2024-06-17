@@ -6260,19 +6260,13 @@ update_recordsandxfrsize(bool add, rbtdb_version_t *rbtversion,
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 }
 
-#ifndef DNS_RBTDB_MAX_RTYPES
-#define DNS_RBTDB_MAX_RTYPES 100
-#endif /* DNS_RBTDB_MAX_RTYPES */
-
 static bool
 overmaxtype(dns_rbtdb_t *rbtdb, uint32_t ntypes) {
-	UNUSED(rbtdb);
-
-	if (DNS_RBTDB_MAX_RTYPES == 0) {
+	if (rbtdb->maxtypepername == 0) {
 		return (false);
 	}
 
-	return (ntypes >= DNS_RBTDB_MAX_RTYPES);
+	return (ntypes >= rbtdb->maxtypepername);
 }
 
 static bool
@@ -6370,7 +6364,6 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 					set_ttl(rbtdb, topheader, 0);
 					mark_header_ancient(rbtdb, topheader);
 				}
-				ntypes = 0; /* Always add the negative entry */
 				goto find_header;
 			}
 			/*
@@ -6395,11 +6388,9 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
-			ntypes = 0;
 			for (topheader = rbtnode->data; topheader != NULL;
 			     topheader = topheader->next)
 			{
-				++ntypes;
 				if ((topheader->type ==
 				     RBTDB_RDATATYPE_NCACHEANY) ||
 				    (newheader->type == sigtype &&
@@ -6444,12 +6435,16 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 		}
 	}
 
-	ntypes = 0;
 	for (topheader = rbtnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
-		++ntypes;
-		if (prio_type(topheader->type)) {
+		if (IS_CACHE(rbtdb) && ACTIVE(topheader, now)) {
+			++ntypes;
+			expireheader = topheader;
+		} else if (!IS_CACHE(rbtdb)) {
+			++ntypes;
+		}
+		if (prio_header(topheader)) {
 			prioheader = topheader;
 		}
 		if (topheader->type == newheader->type ||
@@ -6806,9 +6801,7 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
-			if (rbtdb->maxtypepername > 0 &&
-			    ntypes >= rbtdb->maxtypepername)
-			{
+			if (!IS_CACHE(rbtdb) && overmaxtype(rbtdb, ntypes)) {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
 				return (DNS_R_TOOMANYRECORDS);
