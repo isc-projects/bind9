@@ -1639,21 +1639,26 @@ commatxt_fromtext(isc_textregion_t *source, bool comma, isc_buffer_t *target) {
 
 	if (comma) {
 		/*
-		 * Disallow empty ALPN at start (",h1") or in the
-		 * middle ("h1,,h2").
+		 * Disallow empty ALPN at start (",h1" or "\,h1") or
+		 * in the middle ("h1,,h2" or "h1\,\,h2").
 		 */
-		if (s == source->base || (seen_comma && s == source->base + 1))
-		{
+		if ((t - tregion.base - 1) == 0) {
 			return (DNS_R_SYNTAX);
 		}
-		isc_textregion_consume(source, s - source->base);
+
 		/*
-		 * Disallow empty ALPN at end ("h1,").
+		 * Consume this ALPN and possible ending comma.
+		 */
+		isc_textregion_consume(source, s - source->base);
+
+		/*
+		 * Disallow empty ALPN at end ("h1," or "h1\,").
 		 */
 		if (seen_comma && source->length == 0) {
 			return (DNS_R_SYNTAX);
 		}
 	}
+
 	*tregion.base = (unsigned char)(t - tregion.base - 1);
 	isc_buffer_add(target, *tregion.base + 1);
 	return (ISC_R_SUCCESS);
