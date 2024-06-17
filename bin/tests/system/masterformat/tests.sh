@@ -361,7 +361,6 @@ n=$((n + 1))
 status=$((status + ret))
 
 # Update zone with nsupdate.
-n=$((n + 1))
 echo_i "add new type to zone and check that it fails ($n)"
 ret=0
 (
