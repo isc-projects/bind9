@@ -596,18 +596,18 @@ n=$((n + 1))
 echo_i "check prefetch qtype * (${n})"
 ret=0
 dig_with_opts @10.53.0.5 fetchall.tld any >dig.out.1.${n} || ret=1
-ttl1=$(awk '/"A" "short" "ttl"/ { print $2 - 3 }' dig.out.1.${n})
+ttl1=$(awk '/^fetchall.tld/ { print $2 - 3; exit }' dig.out.1.${n})
 # sleep so we are in prefetch range
 sleep "${ttl1:-0}"
 # trigger prefetch
 dig_with_opts @10.53.0.5 fetchall.tld any >dig.out.2.${n} || ret=1
-ttl2=$(awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n})
+ttl2=$(awk '/^fetchall.tld/ { print $2; exit }' dig.out.2.${n})
 sleep 1
 # check that prefetch occurred;
-# note that only one record is prefetched, which is the AAAA record in this case,
+# note that only the first record is prefetched,
 # because of the order of the records in the cache
 dig_with_opts @10.53.0.5 fetchall.tld any >dig.out.3.${n} || ret=1
-ttl3=$(awk '/::1/ { print $2 }' dig.out.3.${n})
+ttl3=$(awk '/^fetchall.tld/ { print $2; exit }' dig.out.3.${n})
 test "${ttl3:-0}" -gt "${ttl2:-1}" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
