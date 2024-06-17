@@ -62,6 +62,13 @@ default:
   # See: https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-redundant-pipelines
   interruptible: true
 
+  # AWS can interrupt the spot instance anytime, so let's retry the job when
+  # the interruption event happens to avoid a pipeline failure.
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+
 stages:
   - autoconf
   - precheck
