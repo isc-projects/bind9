@@ -6258,6 +6258,24 @@ update_recordsandxfrsize(bool add, rbtdb_version_t *rbtversion,
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 }
 
+static bool
+overmaxtype(dns_rbtdb_t *rbtdb, uint32_t ntypes) {
+	if (rbtdb->maxtypepername == 0) {
+		return (false);
+	}
+
+	return (ntypes >= rbtdb->maxtypepername);
+}
+
+static bool
+prio_header(rdatasetheader_t *header) {
+	if (NEGATIVE(header) && prio_type(RBTDB_RDATATYPE_EXT(header->type))) {
+		return (true);
+	}
+
+	return (prio_type(header->type));
+}
+
 /*
  * write lock on rbtnode must be held.
  */
@@ -6269,7 +6287,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 	rbtdb_changed_t *changed = NULL;
 	rdatasetheader_t *topheader = NULL, *topheader_prev = NULL;
 	rdatasetheader_t *header = NULL, *sigheader = NULL;
-	rdatasetheader_t *prioheader = NULL;
+	rdatasetheader_t *prioheader = NULL, *expireheader = NULL;
 	unsigned char *merged = NULL;
 	isc_result_t result;
 	bool header_nx;
@@ -6344,7 +6362,6 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 					set_ttl(rbtdb, topheader, 0);
 					mark_header_ancient(rbtdb, topheader);
 				}
-				ntypes = 0; /* Always add the negative entry */
 				goto find_header;
 			}
 			/*
@@ -6356,6 +6373,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 			{
 				if (topheader->type == sigtype) {
 					sigheader = topheader;
+					break;
 				}
 			}
 			negtype = RBTDB_RDATATYPE_VALUE(covers, 0);
@@ -6368,11 +6386,9 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
-			ntypes = 0;
 			for (topheader = rbtnode->data; topheader != NULL;
 			     topheader = topheader->next)
 			{
-				++ntypes;
 				if ((topheader->type ==
 				     RBTDB_RDATATYPE_NCACHEANY) ||
 				    (newheader->type == sigtype &&
@@ -6417,12 +6433,16 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, const dns_name_t *nodename,
 		}
 	}
 
-	ntypes = 0;
 	for (topheader = rbtnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
-		++ntypes;
-		if (prio_type(topheader->type)) {
+		if (IS_CACHE(rbtdb) && ACTIVE(topheader, now)) {
+			++ntypes;
+			expireheader = topheader;
+		} else if (!IS_CACHE(rbtdb)) {
+			++ntypes;
+		}
+		if (prio_header(topheader)) {
 			prioheader = topheader;
 		}
 		if (topheader->type == newheader->type ||
@@ -6791,9 +6811,7 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
-			if (rbtdb->maxtypepername > 0 &&
-			    ntypes >= rbtdb->maxtypepername)
-			{
+			if (!IS_CACHE(rbtdb) && overmaxtype(rbtdb, ntypes)) {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
 				return (DNS_R_TOOMANYRECORDS);
@@ -6801,7 +6819,7 @@ find_header:
 
 			newheader->down = NULL;
 
-			if (prio_type(newheader->type)) {
+			if (prio_header(newheader)) {
 				/* This is a priority type, prepend it */
 				newheader->next = rbtnode->data;
 				rbtnode->data = newheader;
@@ -6813,6 +6831,31 @@ find_header:
 				/* There were no priority headers */
 				newheader->next = rbtnode->data;
 				rbtnode->data = newheader;
+			}
+
+			if (IS_CACHE(rbtdb) && overmaxtype(rbtdb, ntypes)) {
+				if (expireheader == NULL) {
+					expireheader = newheader;
+				}
+				if (NEGATIVE(newheader) &&
+				    !prio_header(newheader))
+				{
+					/*
+					 * Add the new non-priority negative
+					 * header to the database only
+					 * temporarily.
+					 */
+					expireheader = newheader;
+				}
+
+				set_ttl(rbtdb, expireheader, 0);
+				mark_header_ancient(rbtdb, expireheader);
+				/*
+				 * FIXME: In theory, we should mark the RRSIG
+				 * and the header at the same time, but there is
+				 * no direct link between those two header, so
+				 * we would have to check the whole list again.
+				 */
 			}
 		}
 	}
