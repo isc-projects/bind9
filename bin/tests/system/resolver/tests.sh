@@ -902,6 +902,23 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "check that received ZONEVERSION is logged ($n)"
+ret=0
+pat="received ZONEVERSION serial 2010 from 10.53.0.4#[0-9]* for mixedttl.tld/TXT zone tld"
+grep "$pat" ns5/named.run >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "check that received ZONEVERSION is logged non serial ($n)"
+ret=0
+dig_with_opts +tcp @10.53.0.1 zoneversion >dig.out.${n} || ret=1
+pat='received ZONEVERSION type 1 value 01022304 (\.\.#\.) from 10.53.0.2#[0-9]* for zoneversion/A zone \.'
+grep "$pat" ns1/named.run >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "check resolver behavior when FORMERR for EDNS options happens (${n})"
 ret=0
 msg="resolving options-formerr/A .* server sent FORMERR with echoed DNS COOKIE"

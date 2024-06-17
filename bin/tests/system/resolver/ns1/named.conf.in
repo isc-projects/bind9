@@ -31,6 +31,7 @@ options {
 	resolver-query-timeout 5000; # 5 seconds
 	attach-cache "globalcache";
 	max-recursion-queries 100;
+	request-zoneversion yes;
 };
 
 trust-anchors { };
