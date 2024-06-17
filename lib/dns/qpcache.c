@@ -2847,6 +2847,24 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (ISC_R_SUCCESS);
 }
 
+static bool
+overmaxtype(qpcache_t *qpdb, uint32_t ntypes) {
+	if (qpdb->maxtypepername == 0) {
+		return (false);
+	}
+
+	return (ntypes >= qpdb->maxtypepername);
+}
+
+static bool
+prio_header(dns_slabheader_t *header) {
+	if (NEGATIVE(header) && prio_type(DNS_TYPEPAIR_COVERS(header->type))) {
+		return (true);
+	}
+
+	return (prio_type(header->type));
+}
+
 static isc_result_t
 add(qpcache_t *qpdb, qpcnode_t *qpnode,
     const dns_name_t *nodename ISC_ATTR_UNUSED, dns_slabheader_t *newheader,
@@ -2855,14 +2873,13 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
     isc_rwlocktype_t tlocktype DNS__DB_FLARG) {
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *header = NULL, *sigheader = NULL;
-	dns_slabheader_t *prioheader = NULL;
+	dns_slabheader_t *prioheader = NULL, *expireheader = NULL;
 	bool header_nx;
 	bool newheader_nx;
-	dns_rdatatype_t rdtype, covers;
-	dns_typepair_t negtype = 0, sigtype;
+	dns_typepair_t negtype = 0;
 	dns_trust_t trust;
 	int idx;
-	uint32_t ntypes;
+	uint32_t ntypes = 0;
 
 	if ((options & DNS_DBADD_FORCE) != 0) {
 		trust = dns_trust_ultimate;
@@ -2871,10 +2888,11 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 	}
 
 	newheader_nx = NONEXISTENT(newheader) ? true : false;
+
 	if (!newheader_nx) {
-		rdtype = DNS_TYPEPAIR_TYPE(newheader->type);
-		covers = DNS_TYPEPAIR_COVERS(newheader->type);
-		sigtype = DNS_SIGTYPE(covers);
+		dns_rdatatype_t rdtype = DNS_TYPEPAIR_TYPE(newheader->type);
+		dns_rdatatype_t covers = DNS_TYPEPAIR_COVERS(newheader->type);
+		dns_typepair_t sigtype = DNS_SIGTYPE(covers);
 		if (NEGATIVE(newheader)) {
 			/*
 			 * We're adding a negative cache entry.
@@ -2895,7 +2913,6 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 				{
 					mark_ancient(topheader);
 				}
-				ntypes = 0; /* Always add the negative entry */
 				goto find_header;
 			}
 			/*
@@ -2907,6 +2924,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 			{
 				if (topheader->type == sigtype) {
 					sigheader = topheader;
+					break;
 				}
 			}
 			negtype = DNS_TYPEPAIR_VALUE(covers, 0);
@@ -2919,11 +2937,9 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
-			ntypes = 0;
 			for (topheader = qpnode->data; topheader != NULL;
 			     topheader = topheader->next)
 			{
-				++ntypes;
 				if ((topheader->type == RDATATYPE_NCACHEANY) ||
 				    (newheader->type == sigtype &&
 				     topheader->type ==
@@ -2966,15 +2982,17 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 		}
 	}
 
-	ntypes = 0;
 	for (topheader = qpnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
-		++ntypes;
-
-		if (prio_type(topheader->type)) {
+		if (ACTIVE(topheader, now)) {
+			++ntypes;
+			expireheader = topheader;
+		}
+		if (prio_header(topheader)) {
 			prioheader = topheader;
 		}
+
 		if (topheader->type == newheader->type ||
 		    topheader->type == negtype)
 		{
@@ -3239,17 +3257,9 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
-			if (trust != dns_trust_ultimate &&
-			    qpdb->maxtypepername > 0 &&
-			    ntypes >= qpdb->maxtypepername)
-			{
-				dns_slabheader_destroy(&newheader);
-				return (DNS_R_TOOMANYRECORDS);
-			}
-
 			INSIST(newheader->down == NULL);
 
-			if (prio_type(newheader->type)) {
+			if (prio_header(newheader)) {
 				/* This is a priority type, prepend it */
 				newheader->next = qpnode->data;
 				qpnode->data = newheader;
@@ -3261,6 +3271,30 @@ find_header:
 				/* There were no priority headers */
 				newheader->next = qpnode->data;
 				qpnode->data = newheader;
+			}
+
+			if (overmaxtype(qpdb, ntypes)) {
+				if (expireheader == NULL) {
+					expireheader = newheader;
+				}
+				if (NEGATIVE(newheader) &&
+				    !prio_header(newheader))
+				{
+					/*
+					 * Add the new non-priority negative
+					 * header to the database only
+					 * temporarily.
+					 */
+					expireheader = newheader;
+				}
+
+				mark_ancient(expireheader);
+				/*
+				 * FIXME: In theory, we should mark the RRSIG
+				 * and the header at the same time, but there is
+				 * no direct link between those two header, so
+				 * we would have to check the whole list again.
+				 */
 			}
 		}
 	}
