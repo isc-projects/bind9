@@ -553,6 +553,14 @@ LIBS="$PTHREAD_LIBS $LIBS"
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CC="$PTHREAD_CC"
 
+AC_MSG_CHECKING([for PTHREAD_MUTEX_ADAPTIVE_NP])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[#include <pthread.h>]],
+		   [[(void)pthread_mutexattr_settype(&(pthread_mutexattr_t){ NULL }, PTHREAD_MUTEX_ADAPTIVE_NP);]])],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([HAVE_PTHREAD_MUTEX_ADAPTIVE_NP], [1], [Define to 1 if PTHREAD_MUTEX_ADAPTIVE_NP is available])],
+  [AC_MSG_RESULT([no])])
+
 AC_CHECK_FUNCS([pthread_attr_getstacksize pthread_attr_setstacksize pthread_barrier_init pthread_spin_init])
 
 AC_CHECK_HEADERS([sched.h])
