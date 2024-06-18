@@ -59,6 +59,6 @@ BASIC_VARS = {
         if not os.getenv("TSAN_OPTIONS", "")
         else ":"  # workaround for GL#4119
     ),
-    "LANG": "C",
+    "LC_ALL": "C",
     "ANS_LOG_LEVEL": "debug",
 }
