@@ -20,7 +20,7 @@ testsock6() {
 	fi
 }
 
-export LANG=C
+export LC_ALL=C
 
 
 #
