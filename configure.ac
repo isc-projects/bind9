@@ -555,13 +555,6 @@ CC="$PTHREAD_CC"
 
 AC_CHECK_FUNCS([pthread_attr_getstacksize pthread_attr_setstacksize pthread_barrier_init pthread_spin_init])
 
-# [pairwise: --with-locktype=adaptive, --with-locktype=standard]
-AC_ARG_WITH([locktype],
-	    AS_HELP_STRING([--with-locktype=ARG],
-			   [Specify mutex lock type
-			    (adaptive or standard)]),
-	    [], [with_locktype="adaptive"])
-
 AC_CHECK_HEADERS([sched.h])
 
 AC_SEARCH_LIBS([sched_yield],[rt])
@@ -1711,9 +1704,6 @@ report() {
     fi
     if test "yes" = "$enable_full_report" -o "rbt" = "$zonedb"; then
             echo "    Default cache database type: $cachedb"
-    fi
-    if test "yes" = "$enable_full_report" -o "standard" = "$with_locktype"; then
-	echo "    Mutex lock type: $with_locktype"
     fi
     test "no" = "$enable_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
