@@ -937,8 +937,6 @@ clean_finds_at_name(dns_adbname_t *name, dns_adbstatus_t astat,
 
 			INSIST(!FIND_EVENTSENT(find));
 
-			find->result_v4 = find_err_map[name->fetch_err];
-			find->result_v6 = find_err_map[name->fetch6_err];
 			find->status = astat;
 
 			DP(DEF_LEVEL, "cfan: sending find %p to caller", find);
@@ -2278,8 +2276,6 @@ static void
 find_sendevent(dns_adbfind_t *find) {
 	if (!FIND_EVENTSENT(find)) {
 		find->status = DNS_ADB_CANCELED;
-		find->result_v4 = ISC_R_CANCELED;
-		find->result_v6 = ISC_R_CANCELED;
 
 		DP(DEF_LEVEL, "sending find %p to caller", find);
 
