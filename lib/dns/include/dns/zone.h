@@ -762,6 +762,15 @@ dns_zone_setdefaultkasp(dns_zone_t *zone, dns_kasp_t *kasp);
  *\li	'zone' to be a valid zone.
  */
 
+dns_skrbundle_t *
+dns_zone_getskrbundle(dns_zone_t *zone);
+/*%<
+ *	Returns the current SKR bundle.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
 void
 dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option, bool value);
 /*%<
@@ -2744,7 +2753,7 @@ dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
  *
  * Requires:
  * \li	'zone' to be a valid zone.
- * \li	'db'is not NULL.
+ * \li	'db' is not NULL.
  *
  * Returns:
  * \li	'true' if the check passes, that is the zone remains consistent,

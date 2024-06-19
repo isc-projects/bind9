@@ -5758,6 +5758,23 @@ dns_zone_setskr(dns_zone_t *zone, dns_skr_t *skr) {
 	UNLOCK_ZONE(zone);
 }
 
+dns_skrbundle_t *
+dns_zone_getskrbundle(dns_zone_t *zone) {
+	dns_skrbundle_t *bundle;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (inline_raw(zone) && zone->secure != NULL) {
+		bundle = zone->secure->skrbundle;
+	} else {
+		bundle = zone->skrbundle;
+	}
+	UNLOCK_ZONE(zone);
+
+	return (bundle);
+}
+
 void
 dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option, bool value) {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -6780,9 +6797,11 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	isc_buffer_t buffer;
 	unsigned int i;
 	bool use_kasp = false;
+	bool offlineksk = false;
 
 	if (zone->kasp != NULL) {
 		use_kasp = true;
+		offlineksk = dns_kasp_offlineksk(zone->kasp);
 	}
 
 	dns_rdataset_init(&rdataset);
@@ -6912,8 +6931,20 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		isc_buffer_clear(&buffer);
-		CHECK(dns_dnssec_sign(name, &rdataset, keys[i], &inception,
-				      &expire, mctx, &buffer, &sig_rdata));
+
+		if (offlineksk && dns_rdatatype_iskeymaterial(type)) {
+			/* Look up the signature in the SKR bundle */
+			dns_skrbundle_t *bundle = dns_zone_getskrbundle(zone);
+			if (bundle == NULL) {
+				CHECK(DNS_R_NOSKRBUNDLE);
+			}
+			CHECK(dns_skrbundle_getsig(bundle, keys[i], type,
+						   &sig_rdata));
+		} else {
+			CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
+					      &inception, &expire, mctx,
+					      &buffer, &sig_rdata));
+		}
 
 		/* Update the database and journal with the RRSIG. */
 		/* XXX inefficient - will cause dataset merging */
@@ -7407,10 +7438,14 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_stats_t *dnssecsignstats;
-
+	bool offlineksk = false;
 	isc_buffer_t buffer;
 	unsigned char data[1024];
 	bool seen_soa, seen_ns, seen_rr, seen_nsec, seen_nsec3, seen_ds;
+
+	if (zone->kasp != NULL) {
+		offlineksk = dns_kasp_offlineksk(zone->kasp);
+	}
 
 	result = dns_db_allrdatasets(db, node, version, 0, 0, &iterator);
 	if (result != ISC_R_SUCCESS) {
@@ -7515,8 +7550,19 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		isc_buffer_clear(&buffer);
-		CHECK(dns_dnssec_sign(name, &rdataset, key, &inception, &expire,
-				      mctx, &buffer, &rdata));
+		if (offlineksk && dns_rdatatype_iskeymaterial(rdataset.type)) {
+			/* Look up the signature in the SKR bundle */
+			dns_skrbundle_t *bundle = dns_zone_getskrbundle(zone);
+			if (bundle == NULL) {
+				CHECK(DNS_R_NOSKRBUNDLE);
+			}
+			CHECK(dns_skrbundle_getsig(bundle, key, rdataset.type,
+						   &rdata));
+		} else {
+			CHECK(dns_dnssec_sign(name, &rdataset, key, &inception,
+					      &expire, mctx, &buffer, &rdata));
+		}
+
 		/* Update the database and journal with the RRSIG. */
 		/* XXX inefficient - will cause dataset merging */
 		CHECK(update_one_rr(db, version, diff, DNS_DIFFOP_ADDRESIGN,
