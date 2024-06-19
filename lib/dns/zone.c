@@ -6602,11 +6602,16 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
-	bool kasp = zone->kasp;
+	dns_kasp_t *kasp = zone->kasp;
 	bool found;
+	bool offlineksk = false;
 	int64_t timewarn = 0, timemaybe = 0;
 
 	dns_rdataset_init(&rdataset);
+
+	if (kasp != NULL) {
+		offlineksk = dns_kasp_offlineksk(kasp);
+	}
 
 	if (type == dns_rdatatype_nsec3) {
 		result = dns_db_findnsec3node(db, name, false, &node);
@@ -6643,7 +6648,9 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 		if (!dns_rdatatype_iskeymaterial(type)) {
 			bool warn = false, deleted = false;
-			if (delsig_ok(&rrsig, keys, nkeys, kasp, &warn)) {
+			if (delsig_ok(&rrsig, keys, nkeys, (kasp != NULL),
+				      &warn))
+			{
 				result = update_one_rr(db, ver, zonediff->diff,
 						       DNS_DIFFOP_DELRESIGN,
 						       name, rdataset.ttl,
@@ -6713,7 +6720,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				 * iff there is a new offline signature.
 				 */
 				if (!dst_key_inactive(keys[i]) &&
-				    !dst_key_isprivate(keys[i]))
+				    !dst_key_isprivate(keys[i]) && !offlineksk)
 				{
 					int64_t timeexpire = dns_time64_from32(
 						rrsig.timeexpire);
@@ -6835,10 +6842,10 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 
 	for (i = 0; i < nkeys; i++) {
 		/* Don't add signatures for offline or inactive keys */
-		if (!dst_key_isprivate(keys[i])) {
+		if (!dst_key_isprivate(keys[i]) && !offlineksk) {
 			continue;
 		}
-		if (dst_key_inactive(keys[i])) {
+		if (dst_key_inactive(keys[i]) && !offlineksk) {
 			continue;
 		}
 
@@ -6869,9 +6876,20 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 			/*
 			 * Don't consider inactive keys or offline keys.
 			 */
-			(void)dst_key_have_ksk_and_zsk(keys, nkeys, i, true,
-						       ksk, zsk, NULL,
-						       &have_zsk);
+			if (!dst_key_isprivate(keys[i]) && offlineksk && zsk) {
+				continue;
+			}
+			if (dst_key_inactive(keys[i]) && offlineksk && zsk) {
+				continue;
+			}
+
+			if (offlineksk) {
+				have_zsk = true;
+			} else {
+				(void)dst_key_have_ksk_and_zsk(keys, nkeys, i,
+							       true, ksk, zsk,
+							       NULL, &have_zsk);
+			}
 
 			if (dns_rdatatype_iskeymaterial(type)) {
 				/*
@@ -22089,7 +22107,7 @@ zone_rekey(dns_zone_t *zone) {
 		 */
 		if (kasp == NULL) {
 			ttl = keyset.ttl;
-		} else if (ttl != keyset.ttl) {
+		} else if (ttl != keyset.ttl && !offlineksk) {
 			result = update_ttl(&keyset, &zone->origin, ttl, &diff);
 			if (result != ISC_R_SUCCESS) {
 				dnssec_log(zone, ISC_LOG_ERROR,
@@ -22125,7 +22143,8 @@ zone_rekey(dns_zone_t *zone) {
 				     dns_rdatatype_none, 0, &cdsset, NULL);
 	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdsset)) {
 		dns_rdataset_disassociate(&cdsset);
-	} else if (result == ISC_R_SUCCESS && kasp != NULL && ttl != cdsset.ttl)
+	} else if (result == ISC_R_SUCCESS && kasp != NULL &&
+		   ttl != cdsset.ttl && !offlineksk)
 	{
 		result = update_ttl(&cdsset, &zone->origin, ttl, &diff);
 		if (result != ISC_R_SUCCESS) {
@@ -22145,7 +22164,7 @@ zone_rekey(dns_zone_t *zone) {
 	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdnskeyset)) {
 		dns_rdataset_disassociate(&cdnskeyset);
 	} else if (result == ISC_R_SUCCESS && kasp != NULL &&
-		   ttl != cdnskeyset.ttl)
+		   ttl != cdnskeyset.ttl && !offlineksk)
 	{
 		result = update_ttl(&cdnskeyset, &zone->origin, ttl, &diff);
 		if (result != ISC_R_SUCCESS) {
