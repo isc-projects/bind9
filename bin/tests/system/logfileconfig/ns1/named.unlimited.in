@@ -37,7 +37,7 @@ logging {
 	channel query_log {
 	  file "query_log";
 	  print-time yes;
-	  buffered yes;
+	  buffered no;
 	};
 	category queries { query_log; };
 };
