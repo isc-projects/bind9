@@ -754,10 +754,12 @@ _check_keys() {
   _ret=0
 
   # Clear key ids.
-  key_set KEY1 ID "no"
-  key_set KEY2 ID "no"
-  key_set KEY3 ID "no"
-  key_set KEY4 ID "no"
+  if [ "$1" != "keep" ]; then
+    key_set KEY1 ID "no"
+    key_set KEY2 ID "no"
+    key_set KEY3 ID "no"
+    key_set KEY4 ID "no"
+  fi
 
   # Check key files.
   _ids=$(get_keyids "$DIR" "$ZONE")
@@ -808,6 +810,9 @@ _check_keys() {
 # Found key identifiers are stored in the right key array.
 # Keys are found if they are stored inside $DIR or in a subdirectory up to
 # three levels deeper.
+#
+# If $1 is set, we keep keys that are already found and don't look for them
+# again.
 check_keys() {
   n=$((n + 1))
   echo_i "check keys are created for zone ${ZONE} ($n)"
@@ -824,7 +829,7 @@ check_keys() {
   # Temporarily don't log errors because we are searching multiple files.
   disable_logerror
 
-  retry_quiet 3 _check_keys || ret=1
+  retry_quiet 3 _check_keys $1 || ret=1
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status + ret))
 
