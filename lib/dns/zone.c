@@ -21892,6 +21892,71 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 }
 
 static void
+remove_rdataset(dns_zone_t *zone, dns_diff_t *diff, dns_rdataset_t *rdataset) {
+	if (!dns_rdataset_isassociated(rdataset)) {
+		return;
+	}
+
+	for (isc_result_t result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS; result = dns_rdataset_next(rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_difftuple_t *tuple = NULL;
+
+		dns_rdataset_current(rdataset, &rdata);
+		dns_difftuple_create(zone->mctx, DNS_DIFFOP_DEL, &zone->origin,
+				     rdataset->ttl, &rdata, &tuple);
+		dns_diff_append(diff, &tuple);
+	}
+	return;
+}
+
+static void
+add_tuple(dns_diff_t *diff, dns_difftuple_t *tuple) {
+	dns_difftuple_t *copy = NULL;
+
+	dns_difftuple_copy(tuple, &copy);
+	dns_diff_appendminimal(diff, &copy);
+}
+
+static void
+zone_apply_skrbundle(dns_zone_t *zone, dns_skrbundle_t *bundle,
+		     dns_rdataset_t *dnskeyset, dns_rdataset_t *cdsset,
+		     dns_rdataset_t *cdnskeyset, dns_diff_t *diff) {
+	dns_kasp_t *kasp = zone->kasp;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(DNS_SKRBUNDLE_VALID(bundle));
+
+	/* Remove existing DNSKEY, CDS, and CDNSKEY records. */
+	remove_rdataset(zone, diff, dnskeyset);
+	remove_rdataset(zone, diff, cdsset);
+	remove_rdataset(zone, diff, cdnskeyset);
+
+	/* Add the records from the bundle. */
+	dns_difftuple_t *tuple = ISC_LIST_HEAD(bundle->diff.tuples);
+	while (tuple != NULL) {
+		switch (tuple->rdata.type) {
+		case dns_rdatatype_dnskey:
+			add_tuple(diff, tuple);
+			break;
+		case dns_rdatatype_cdnskey:
+		case dns_rdatatype_cds:
+			add_tuple(diff, tuple);
+			break;
+		case dns_rdatatype_rrsig:
+			/* Not interested in right now */
+			break;
+		default:
+			INSIST(0);
+		}
+
+		tuple = ISC_LIST_NEXT(tuple, link);
+	}
+}
+
+static void
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -21902,10 +21967,13 @@ zone_rekey(dns_zone_t *zone) {
 	dns_dnsseckey_t *key = NULL;
 	dns_diff_t diff, _sig_diff;
 	dns_kasp_t *kasp;
+	dns_skrbundle_t *bundle = NULL;
 	dns__zonediff_t zonediff;
 	bool commit = false, newactive = false;
 	bool newalg = false;
 	bool fullsign;
+	bool offlineksk = false;
+	uint32_t sigval = 0;
 	dns_ttl_t ttl = 3600;
 	const char *dir = NULL;
 	isc_mem_t *mctx = NULL;
@@ -21948,14 +22016,13 @@ zone_rekey(dns_zone_t *zone) {
 	ttl = soaset.ttl;
 	dns_rdataset_disassociate(&soaset);
 
-	/*
-	 * Only update DNSKEY TTL if we have a policy.
-	 */
 	if (kasp != NULL) {
 		ttl = dns_kasp_dnskeyttl(kasp);
+		offlineksk = dns_kasp_offlineksk(kasp);
+		sigval = dns_kasp_sigvalidity_dnskey(kasp);
 	}
 
-	/* Get the DNSKEY rdataset */
+	/* Get the current DNSKEY rdataset */
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey,
 				     dns_rdatatype_none, 0, &keyset, &keysigs);
 	if (result == ISC_R_SUCCESS) {
@@ -21997,7 +22064,7 @@ zone_rekey(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	/* Get the CDS rdataset */
+	/* Get the current CDS rdataset */
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_cds,
 				     dns_rdatatype_none, 0, &cdsset, NULL);
 	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdsset)) {
@@ -22016,7 +22083,7 @@ zone_rekey(dns_zone_t *zone) {
 		cdsset.ttl = ttl;
 	}
 
-	/* Get the CDNSKEY rdataset */
+	/* Get the current CDNSKEY rdataset */
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_cdnskey,
 				     dns_rdatatype_none, 0, &cdnskeyset, NULL);
 	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdnskeyset)) {
@@ -22043,6 +22110,59 @@ zone_rekey(dns_zone_t *zone) {
 	 * fully signed now.
 	 */
 	fullsign = DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_FULLSIGN);
+
+	if (offlineksk) {
+		/* Lookup the correct bundle in the SKR. */
+		LOCK_ZONE(zone);
+		if (zone->skr == NULL) {
+			UNLOCK_ZONE(zone);
+			dnssec_log(zone, ISC_LOG_DEBUG(1),
+				   "zone_rekey:dns_skr_lookup failed: "
+				   "no SKR available");
+			result = DNS_R_NOSKRFILE;
+			goto failure;
+		}
+		bundle = dns_skr_lookup(zone->skr, now, sigval);
+		zone->skrbundle = bundle;
+		UNLOCK_ZONE(zone);
+
+		if (bundle == NULL) {
+			char nowstr[26]; /* Minimal buf per ctime_r() spec. */
+			char utc[sizeof("YYYYMMDDHHSSMM")];
+			isc_buffer_t b;
+			isc_region_t r;
+			isc_buffer_init(&b, utc, sizeof(utc));
+
+			isc_stdtime_tostring(now, nowstr, sizeof(nowstr));
+			(void)dns_time32_totext(now, &b);
+			isc_buffer_usedregion(&b, &r);
+			dnssec_log(zone, ISC_LOG_DEBUG(1),
+				   "zone_rekey:dns_skr_lookup failed: "
+				   "no available SKR bundle for time "
+				   "%.*s (%s)",
+				   (int)r.length, r.base, nowstr);
+			result = DNS_R_NOSKRBUNDLE;
+			goto failure;
+		}
+
+		zone_apply_skrbundle(zone, bundle, &keyset, &cdsset,
+				     &cdnskeyset, &diff);
+
+		dns_skrbundle_t *next = ISC_LIST_NEXT(bundle, link);
+		if (next != NULL) {
+			if (nexttime == 0) {
+				nexttime = next->inception;
+			}
+		} else {
+			dnssec_log(zone, ISC_LOG_WARNING,
+				   "zone_rekey: last bundle in skr, please "
+				   "import new skr file");
+		}
+	}
+
+	/*
+	 * DNSSEC Key and Signing Policy
+	 */
 
 	KASP_LOCK(kasp);
 
