@@ -225,6 +225,8 @@ static const char *description[ISC_R_NRESULTS] = {
 	[DNS_R_HAVEPARMKEYS] = "unexpected service parameter keys",
 	[DNS_R_NOALPN] = "no ALPN",
 	[DNS_R_NODOHPATH] = "no DOHPATH",
+	[DNS_R_NOSKRFILE] = "no SKR file",
+	[DNS_R_NOSKRBUNDLE] = "no available SKR bundle",
 
 	[DST_R_UNSUPPORTEDALG] = "algorithm is unsupported",
 	[DST_R_CRYPTOFAILURE] = "crypto failure",
@@ -477,6 +479,8 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	[DNS_R_HAVEPARMKEYS] = "DNS_R_HAVEPARMKEYS",
 	[DNS_R_NOALPN] = "DNS_R_NOALPN",
 	[DNS_R_NODOHPATH] = "DNS_R_NODOHPATH",
+	[DNS_R_NOSKRFILE] = "DNS_R_NOSKRFILE",
+	[DNS_R_NOSKRBUNDLE] = "DNS_R_NOSKRBUNDLE",
 
 	[DST_R_UNSUPPORTEDALG] = "DST_R_UNSUPPORTEDALG",
 	[DST_R_CRYPTOFAILURE] = "DST_R_CRYPTOFAILURE",
