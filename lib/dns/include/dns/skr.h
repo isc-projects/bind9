@@ -54,26 +54,6 @@ struct dns_skrbundle {
 	ISC_LINK(dns_skrbundle_t) link;
 };
 
-void
-dns_skrbundle_create(isc_mem_t *mctx, dns_name_t *name,
-		     dns_rdataclass_t rdclass, isc_stdtime_t inception,
-		     dns_skrbundle_t **bp);
-/*%<
- * Create a single bundle.
- *
- * Requires:
- * \li   *bp != NULL && *bp == NULL
- */
-
-void
-dns_skrbundle_addtuple(dns_skrbundle_t *bundle, dns_difftuple_t **tuple);
-/*%<
- * Add a single tuple to a key bundle.
- *
- * \li   'bundle' is a valid bundle
- * \li   '*tuple' is a valid tuple
- */
-
 isc_result_t
 dns_skrbundle_getsig(dns_skrbundle_t *bundle, dst_key_t *key,
 		     dns_rdatatype_t covering_type, dns_rdata_t *sigrdata);
@@ -101,14 +81,15 @@ dns_skr_create(isc_mem_t *mctx, const char *filename, dns_name_t *origin,
  * \li   *skrp != NULL && *skrp == NULL
  */
 
-void
-dns_skr_addbundle(dns_skr_t *skr, dns_skrbundle_t **bundlep);
+isc_result_t
+dns_skr_read(isc_mem_t *mctx, const char *filename, dns_name_t *origin,
+	     dns_rdataclass_t rdclass, dns_ttl_t dnskeyttl, dns_skr_t **skrp);
 /*%<
- * Add a single bundle to a SKR.
+ * Read a SKR from 'filename'.
  *
  * Requires:
- * \li   'skr' is a valid SKR
- * \li   'bundle' is a valid bundle
+ * \li   mctx != NULL
+ * \li   *skrp != NULL && *skrp == NULL
  */
 
 dns_skrbundle_t *

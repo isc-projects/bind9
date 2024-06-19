@@ -34,6 +34,7 @@
 #include <dns/masterdump.h>
 #include <dns/rdatastruct.h>
 #include <dns/rpz.h>
+#include <dns/skr.h>
 #include <dns/types.h>
 #include <dns/xfrin.h>
 #include <dns/zt.h>
@@ -2748,6 +2749,19 @@ dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
  * Returns:
  * \li	'true' if the check passes, that is the zone remains consistent,
  *	'false' if the zone would have NSEC only DNSKEYs and an NSEC3 chain.
+ */
+
+isc_result_t
+dns_zone_import_skr(dns_zone_t *zone, const char *file);
+/**<
+ * Import a Signed Key Response (SKR) from file.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'file' is not NULL.
+ *
+ * Returns:
+ * \li  ISC_R_SUCCESS if there were no errors loading the SKR.
  */
 
 #if DNS_ZONE_TRACE
