@@ -29,6 +29,7 @@
 #define NAMED_CONTROL_PORT 953
 
 #define NAMED_COMMAND_ADDZONE	   "addzone"
+#define NAMED_COMMAND_CLOSELOGS	   "closelogs"
 #define NAMED_COMMAND_DELZONE	   "delzone"
 #define NAMED_COMMAND_DNSSEC	   "dnssec"
 #define NAMED_COMMAND_DNSTAP	   "dnstap"

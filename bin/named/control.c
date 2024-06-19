@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/lex.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -201,6 +202,9 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		   command_compare(command, NAMED_COMMAND_MODZONE))
 	{
 		result = named_server_changezone(named_g_server, cmdline, text);
+	} else if (command_compare(command, NAMED_COMMAND_CLOSELOGS)) {
+		isc_log_closefilelogs(named_g_lctx);
+		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NAMED_COMMAND_DELZONE)) {
 		result = named_server_delzone(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_DNSSEC)) {
