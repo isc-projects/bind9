@@ -1601,6 +1601,13 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 		}
 		RETERR(result);
 
+		if (kasp != NULL && dns_kasp_offlineksk(kasp) &&
+		    (dst_key_flags(dnskey) & DNS_KEYFLAG_KSK) != 0)
+		{
+			result = ISC_R_NOPERM;
+			goto addkey;
+		}
+
 		/* Now read the private key. */
 		result = keyfromfile(
 			kasp, directory, dnskey,
@@ -1666,6 +1673,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 				      filename, isc_result_totext(result));
 		}
 
+	addkey:
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
 			if (pubkey != NULL) {
 				addkey(keylist, &pubkey, savekeys, mctx);
