@@ -79,11 +79,13 @@
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/rriterator.h>
+#include <dns/skr.h>
 #include <dns/soa.h>
 #include <dns/ssu.h>
 #include <dns/stats.h>
 #include <dns/time.h>
 #include <dns/tsig.h>
+#include <dns/ttl.h>
 #include <dns/update.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
@@ -499,6 +501,12 @@ struct dns_zone {
 	dns_update_state_t *rss_state;
 
 	isc_stats_t *gluecachestats;
+
+	/*%
+	 * Offline KSK signed key responses.
+	 */
+	dns_skr_t *skr;
+	dns_skrbundle_t *skrbundle;
 };
 
 #define zonediff_init(z, d)                \
@@ -1272,6 +1280,10 @@ zone_free(dns_zone_t *zone) {
 	}
 	if (!ISC_LIST_EMPTY(zone->checkds_ok)) {
 		clear_keylist(&zone->checkds_ok, zone->mctx);
+	}
+	if (zone->skr != NULL) {
+		zone->skrbundle = NULL;
+		dns_skr_detach(&zone->skr);
 	}
 
 	zone->journalsize = -1;
@@ -5729,6 +5741,21 @@ dns_zone_getkasp(dns_zone_t *zone) {
 	UNLOCK_ZONE(zone);
 
 	return (kasp);
+}
+
+static void
+dns_zone_setskr(dns_zone_t *zone, dns_skr_t *skr) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->skrbundle = NULL;
+	if (zone->skr != NULL) {
+		dns_skr_detach(&zone->skr);
+	}
+	if (skr != NULL) {
+		dns_skr_attach(skr, &zone->skr);
+	}
+	UNLOCK_ZONE(zone);
 }
 
 void
@@ -24218,4 +24245,27 @@ dns_zone_makedb(dns_zone_t *zone, dns_db_t **dbp) {
 	*dbp = db;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_import_skr(dns_zone_t *zone, const char *file) {
+	dns_skr_t *skr = NULL;
+	isc_result_t result;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(zone->kasp != NULL);
+	REQUIRE(file != NULL);
+
+	dns_skr_create(zone->mctx, file, &zone->origin, zone->rdclass, &skr);
+
+	CHECK(dns_skr_read(zone->mctx, file, &zone->origin, zone->rdclass,
+			   dns_kasp_dnskeyttl(zone->kasp), &skr));
+
+	dns_zone_setskr(zone, skr);
+	dnssec_log(zone, ISC_LOG_DEBUG(1), "imported skr file %s", file);
+
+failure:
+	dns_skr_detach(&skr);
+
+	return (result);
 }

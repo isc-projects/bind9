@@ -16715,8 +16715,15 @@ named_server_skr(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		goto cleanup;
 	}
 
-	CHECK(putstr(text, "import command not implemented"));
-	CHECK(putnull(text));
+	result = dns_zone_import_skr(zone, skrfile);
+	if (result != ISC_R_SUCCESS) {
+		CHECK(putstr(text, "import failed: "));
+		CHECK(putstr(text, isc_result_totext(result)));
+		CHECK(putnull(text));
+	} else {
+		/* Schedule a rekey */
+		dns_zone_rekey(zone, false);
+	}
 
 cleanup:
 	if (zone != NULL) {
