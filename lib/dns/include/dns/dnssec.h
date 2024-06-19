@@ -325,6 +325,9 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
  * 'keysigs' and 'soasigs', if not NULL and associated, contain the
  * RRSIGS for the DNSKEY and SOA records respectively and are used to mark
  * whether a key is already active in the zone.
+ *
+ * Private key files for keys with the KSK role are skipped if kasp is in
+ * offline-ksk mode.
  */
 
 isc_result_t
