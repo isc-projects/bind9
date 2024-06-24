@@ -24,6 +24,12 @@ dnssec-policy "nsec3" {
 	nsec3param iterations 0 optout no salt-length 0;
 };
 
+dnssec-policy "modified" {
+	keys {
+		csk lifetime unlimited algorithm rsasha256 2048;
+	};
+};
+
 dnssec-policy "rsasha256" {
 	signatures-refresh P5D;
 	signatures-validity 30d;
