@@ -2153,9 +2153,6 @@ active=$(key_get KEY1 ACTIVE)
 set_addkeytime "KEY1" "RETIRED" "${active}" 15552000
 retired=$(key_get KEY1 RETIRED)
 rndc_rollover "$SERVER" "$DIR" $(key_get KEY1 ID) "${retired}" "$ZONE"
-# Rollover starts in six months, but lifetime is set to six months plus
-# prepublication duration = 15552000 + 7500 = 15559500 seconds.
-set_keylifetime "KEY1" "15559500"
 set_addkeytime "KEY1" "RETIRED" "${active}" 15559500
 retired=$(key_get KEY1 RETIRED)
 # Retire interval of this policy is 26h (93600 seconds).
@@ -2171,9 +2168,6 @@ dnssec_verify
 # Schedule KSK rollover now.
 set_policy "manual-rollover" "3" "3600"
 set_keystate "KEY1" "GOAL" "hidden"
-# This key was activated one day ago, so lifetime is set to 1d plus
-# prepublication duration (7500 seconds) = 93900 seconds.
-set_keylifetime "KEY1" "93900"
 created=$(key_get KEY1 CREATED)
 set_keytime "KEY1" "RETIRED" "${created}"
 rndc_rollover "$SERVER" "$DIR" $(key_get KEY1 ID) "${created}" "$ZONE"
@@ -2198,9 +2192,6 @@ dnssec_verify
 # Schedule ZSK rollover now.
 set_policy "manual-rollover" "4" "3600"
 set_keystate "KEY2" "GOAL" "hidden"
-# This key was activated one day ago, so lifetime is set to 1d plus
-# prepublication duration (7500 seconds) = 93900 seconds.
-set_keylifetime "KEY2" "93900"
 created=$(key_get KEY2 CREATED)
 set_keytime "KEY2" "RETIRED" "${created}"
 rndc_rollover "$SERVER" "$DIR" $(key_get KEY2 ID) "${created}" "$ZONE"
@@ -3655,9 +3646,6 @@ check_apex
 check_subdomain
 dnssec_verify
 # Roll over KEY2.
-# Set expected key lifetime, which is DNSKEY TTL plus the zone propagation delay,
-# plus the publish-safety: 7200s + 1h + 1d = 97200 seconds.
-set_keylifetime "KEY2" "97200"
 created=$(key_get KEY2 CREATED)
 rndc_rollover "$SERVER" "$DIR" $(key_get KEY2 ID) "${created}" "$ZONE"
 # Update expected number of keys and key states.

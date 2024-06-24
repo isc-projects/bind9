@@ -2477,8 +2477,6 @@ rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 		}
 	} else {
 		isc_stdtime_t retire_time = 0;
-		uint32_t lifetime = 0;
-		(void)dst_key_getnum(key, DST_NUM_LIFETIME, &lifetime);
 		ret = dst_key_gettime(key, retire, &retire_time);
 		if (ret == ISC_R_SUCCESS) {
 			if (now < retire_time) {
@@ -2487,7 +2485,9 @@ rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 							  "  Next rollover "
 							  "scheduled on ");
 					retire_time = keymgr_prepublication_time(
-						dkey, kasp, lifetime, now);
+						dkey, kasp,
+						(retire_time - active_time),
+						now);
 				} else {
 					isc_buffer_printf(
 						buf, "  Key will retire on ");
@@ -2665,7 +2665,6 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	retire = when + prepub;
 
 	dst_key_settime(key->key, DST_TIME_INACTIVE, retire);
-	dst_key_setnum(key->key, DST_NUM_LIFETIME, (retire - active));
 
 	/* Store key state and update hints. */
 	isc_dir_init(&dir);
