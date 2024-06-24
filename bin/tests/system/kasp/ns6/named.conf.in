@@ -99,3 +99,27 @@ zone example {
 	file "example.db";
 	dnssec-policy modified;
 };
+
+zone longer-lifetime {
+	type primary;
+	file "longer-lifetime.db";
+	dnssec-policy short-lifetime;
+};
+
+zone shorter-lifetime {
+	type primary;
+	file "shorter-lifetime.db";
+	dnssec-policy long-lifetime;
+};
+
+zone limit-lifetime {
+	type primary;
+	file "limit-lifetime.db";
+	dnssec-policy unlimited-lifetime;
+};
+
+zone unlimit-lifetime {
+	type primary;
+	file "unlimit-lifetime.db";
+	dnssec-policy short-lifetime;
+};
