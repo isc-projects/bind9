@@ -3793,6 +3793,65 @@ check_apex
 check_subdomain
 dnssec_verify
 
+# Test key lifetime changes
+set_keytimes_lifetime_update() {
+  if [ $1 -eq 0 ]; then
+    set_keytime "KEY1" "RETIRED" "none"
+    set_keytime "KEY1" "REMOVED" "none"
+  else
+    active=$(key_get KEY1 ACTIVE)
+    set_addkeytime "KEY1" "RETIRED" "${active}" $1
+    # The key is removed after the retire time plus max-zone-ttl (1d),
+    # sign delay (9d), zone propagation delay (5m), retire safety (1h) =
+    # 777600 + 86400 + 300 + 3600 = 867900
+    retired=$(key_get KEY1 RETIRED)
+    set_addkeytime "KEY1" "REMOVED" "${retired}" 867900
+  fi
+}
+
+check_key_lifetime() {
+  zone=$1
+  policy=$2
+  lifetime=$3
+
+  set_zone "$zone"
+  set_policy "$policy" "1" "3600"
+  set_server "ns6" "10.53.0.6"
+  # Key properties.
+  key_clear "KEY1"
+  set_keyrole "KEY1" "csk"
+  set_keylifetime "KEY1" "$lifetime"
+  set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
+  set_keysigning "KEY1" "yes"
+  set_zonesigning "KEY1" "yes"
+  key_clear "KEY2"
+  key_clear "KEY3"
+  key_clear "KEY4"
+
+  # The CSK is rumoured.
+  set_keystate "KEY1" "GOAL" "omnipresent"
+  set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+  set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+  set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
+  set_keystate "KEY1" "STATE_DS" "hidden"
+  check_keys
+
+  # Key timings.
+  set_keytimes_csk_policy
+  set_keytimes_lifetime_update $lifetime
+
+  # Variuous checks.
+  check_keytimes
+  check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+  check_apex
+  check_subdomain
+  dnssec_verify
+}
+check_key_lifetime "shorter-lifetime" "long-lifetime" "31536000"
+check_key_lifetime "longer-lifetime" "short-lifetime" "16070400"
+check_key_lifetime "limit-lifetime" "unlimited-lifetime" "0"
+check_key_lifetime "unlimit-lifetime" "short-lifetime" "16070400"
+
 #
 # Testing algorithm rollover.
 #
@@ -4125,6 +4184,12 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 check_apex
 check_subdomain
 dnssec_verify
+
+# Test key lifetime updates.
+check_key_lifetime "shorter-lifetime" "short-lifetime" "16070400"
+check_key_lifetime "longer-lifetime" "long-lifetime" "31536000"
+check_key_lifetime "limit-lifetime" "short-lifetime" "16070400"
+check_key_lifetime "unlimit-lifetime" "unlimited-lifetime" "0"
 
 #
 # Testing going insecure.
