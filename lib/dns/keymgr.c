@@ -374,6 +374,41 @@ keymgr_key_retire(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 		      keymgr_keyrole(key->key));
 }
 
+/* Update lifetime and retire and remove time accordingly. */
+static void
+keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
+			   isc_stdtime_t now, uint32_t lifetime) {
+	uint32_t l;
+	dst_key_state_t g = HIDDEN;
+	isc_result_t r;
+
+	(void)dst_key_getstate(key->key, DST_KEY_GOAL, &g);
+	r = dst_key_getnum(key->key, DST_NUM_LIFETIME, &l);
+	/* Initialize lifetime. */
+	if (r != ISC_R_SUCCESS) {
+		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
+		return;
+	}
+	/* Skip keys that are still hidden or already retiring. */
+	if (g != OMNIPRESENT) {
+		return;
+	}
+	/* Update lifetime and timing metadata. */
+	if (l != lifetime) {
+		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
+		if (lifetime > 0) {
+			uint32_t a = now;
+			(void)dst_key_gettime(key->key, DST_TIME_ACTIVATE, &a);
+			dst_key_settime(key->key, DST_TIME_INACTIVE,
+					(a + lifetime));
+			keymgr_settime_remove(key, kasp);
+		} else {
+			dst_key_unsettime(key->key, DST_TIME_INACTIVE);
+			dst_key_unsettime(key->key, DST_TIME_DELETE);
+		}
+	}
+}
+
 static bool
 keymgr_keyid_conflict(dst_key_t *newkey, dns_dnsseckeylist_t *keys) {
 	uint16_t id = dst_key_id(newkey);
@@ -2081,15 +2116,9 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					      keystr, keymgr_keyrole(dkey->key),
 					      dns_kasp_getname(kasp));
 
-				/* Initialize lifetime if not set. */
-				uint32_t l;
-				if (dst_key_getnum(dkey->key, DST_NUM_LIFETIME,
-						   &l) != ISC_R_SUCCESS)
-				{
-					dst_key_setnum(dkey->key,
-						       DST_NUM_LIFETIME,
-						       lifetime);
-				}
+				/* Update lifetime if changed. */
+				keymgr_key_update_lifetime(dkey, kasp, now,
+							   lifetime);
 
 				if (active_key) {
 					/* We already have an active key that
