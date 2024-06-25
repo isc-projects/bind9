@@ -90,7 +90,7 @@
  * Maximum number of chained queries before we give up
  * to prevent CNAME loops.
  */
-#define MAX_RESTARTS 16
+#define MAX_RESTARTS 11
 
 #define QUERY_ERROR(qctx, r)                  \
 	do {                                  \
