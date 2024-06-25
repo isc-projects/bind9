@@ -1674,9 +1674,8 @@ fctx__done(fetchctx_t *fctx, isc_result_t result, const char *func,
 		if (fctx->qmin_warning != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-				      "success resolving '%s' "
-				      "after disabling qname minimization due "
-				      "to '%s'",
+				      "success resolving '%s' after disabling "
+				      "qname minimization due to '%s'",
 				      fctx->info,
 				      isc_result_totext(fctx->qmin_warning));
 		}
