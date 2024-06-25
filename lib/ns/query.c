@@ -82,12 +82,6 @@
 #define dns64_bis_return_excluded_addresses 1
 #endif /* if 0 */
 
-/*%
- * Maximum number of chained queries before we give up
- * to prevent CNAME loops.
- */
-#define MAX_RESTARTS 11
-
 #define QUERY_ERROR(qctx, r)                  \
 	do {                                  \
 		(qctx)->result = r;           \
@@ -2041,11 +2035,6 @@ addname:
 	}
 	fname = NULL;
 
-	/*
-	 * In some cases, a record that has been added as additional
-	 * data may *also* trigger the addition of additional data.
-	 * This cannot go more than MAX_RESTARTS levels deep.
-	 */
 	if (trdataset != NULL && dns_rdatatype_followadditional(type)) {
 		eresult = dns_rdataset_additionaldata(
 			trdataset, query_additional_cb, qctx);
@@ -11509,7 +11498,9 @@ ns_query_done(query_ctx_t *qctx) {
 	/*
 	 * Do we need to restart the query (e.g. for CNAME chaining)?
 	 */
-	if (qctx->want_restart && qctx->client->query.restarts < MAX_RESTARTS) {
+	if (qctx->want_restart && qctx->client->query.restarts <
+	    qctx->client->view->max_restarts)
+	{
 		qctx->client->query.restarts++;
 		return (ns__query_start(qctx));
 	}
