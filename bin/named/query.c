@@ -5999,7 +5999,7 @@ rpz_add_cname(ns_client_t *client, dns_rpz_st_t *st,
 	return (ISC_R_SUCCESS);
 }
 
-#define MAX_RESTARTS 16
+#define MAX_RESTARTS 11
 
 #define QUERY_ERROR(r) \
 do { \
