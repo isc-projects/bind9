@@ -454,7 +454,7 @@ ret=0
 $DIG $DIGOPTS @10.53.0.2 loop.example >dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
 grep "max. restarts reached" dig.out.test$n >/dev/null || ret=1
-grep "ANSWER: 17" dig.out.test$n >/dev/null || ret=1
+grep "ANSWER: 12" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

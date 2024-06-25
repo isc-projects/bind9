@@ -60,7 +60,7 @@
 #define UCTX_MAGIC    ISC_MAGIC('U', 'c', 't', 'x')
 #define UCTX_VALID(c) ISC_MAGIC_VALID(c, UCTX_MAGIC)
 
-#define MAX_RESTARTS 16
+#define MAX_RESTARTS 11
 
 #ifdef TUNE_LARGE
 #define RESOLVER_NTASKS 523
