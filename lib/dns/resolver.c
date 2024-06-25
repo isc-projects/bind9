@@ -5151,17 +5151,6 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	mctx = res->buckets[bucketnum].mctx;
 	fctx = isc_mem_get(mctx, sizeof(*fctx));
 
-	fctx->qc = NULL;
-	if (qc != NULL) {
-		isc_counter_attach(qc, &fctx->qc);
-	} else {
-		result = isc_counter_create(res->mctx, res->maxqueries,
-					    &fctx->qc);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_fetch;
-		}
-	}
-
 	/*
 	 * Make fctx->info point to a copy of a formatted string
 	 * "name/type".
@@ -5205,6 +5194,26 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	dns_rdataset_init(&fctx->qminrrset);
 	dns_name_init(&fctx->qmindcname, NULL);
 	isc_stdtime_get(&fctx->now);
+	fctx->qc = NULL;
+
+	if (qc != NULL) {
+		isc_counter_attach(qc, &fctx->qc);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): attached to counter %p (%d)", fctx,
+			      fctx->info, fctx->qc, isc_counter_used(fctx->qc));
+	} else {
+		result = isc_counter_create(res->mctx, res->maxqueries,
+					    &fctx->qc);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_nameservers;
+		}
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): created counter %p", fctx,
+			      fctx->info, fctx->qc);
+	}
+
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->altfinds);
@@ -5310,7 +5319,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 						      findoptions, true, true,
 						      &fctx->nameservers, NULL);
 			if (result != ISC_R_SUCCESS) {
-				goto cleanup_nameservers;
+				goto cleanup_counter;
 			}
 
 			dns_name_dup(fname, mctx, &fctx->domain);
@@ -5500,6 +5509,9 @@ cleanup_domain:
 		dns_name_free(&fctx->qmindcname, mctx);
 	}
 
+cleanup_counter:
+	isc_counter_detach(&fctx->qc);
+
 cleanup_nameservers:
 	if (dns_rdataset_isassociated(&fctx->nameservers)) {
 		dns_rdataset_disassociate(&fctx->nameservers);
@@ -5507,9 +5519,6 @@ cleanup_nameservers:
 	dns_name_free(&fctx->name, mctx);
 	dns_name_free(&fctx->qminname, mctx);
 	isc_mem_free(mctx, fctx->info);
-	isc_counter_detach(&fctx->qc);
-
-cleanup_fetch:
 	isc_mem_put(mctx, fctx, sizeof(*fctx));
 
 	return (result);
