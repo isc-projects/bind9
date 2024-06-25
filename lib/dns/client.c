@@ -57,8 +57,6 @@
 #define UCTX_MAGIC    ISC_MAGIC('U', 'c', 't', 'x')
 #define UCTX_VALID(c) ISC_MAGIC_VALID(c, UCTX_MAGIC)
 
-#define MAX_RESTARTS 11
-
 #define CHECK(r)                             \
 	do {                                 \
 		result = (r);                \
@@ -81,6 +79,7 @@ struct dns_client {
 
 	unsigned int find_timeout;
 	unsigned int find_udpretries;
+	uint8_t max_restarts;
 
 	isc_refcount_t references;
 
@@ -90,6 +89,7 @@ struct dns_client {
 
 #define DEF_FIND_TIMEOUT    5
 #define DEF_FIND_UDPRETRIES 3
+#define DEF_MAX_RESTARTS    11
 
 /*%
  * Internal state for a single name resolution procedure
@@ -250,6 +250,7 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 	*client = (dns_client_t){
 		.loop = isc_loop_get(loopmgr, 0),
 		.nm = nm,
+		.max_restarts = DEF_MAX_RESTARTS,
 	};
 
 	result = dns_dispatchmgr_create(mctx, loopmgr, nm,
@@ -382,6 +383,14 @@ dns_client_setservers(dns_client_t *client, dns_rdataclass_t rdclass,
 				  dns_fwdpolicy_only);
 
 	return (result);
+}
+
+void
+dns_client_setmaxrestarts(dns_client_t *client, uint8_t max_restarts) {
+	REQUIRE(DNS_CLIENT_VALID(client));
+	REQUIRE(max_restarts > 0);
+
+	client->max_restarts = max_restarts;
 }
 
 static isc_result_t
@@ -778,7 +787,9 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 		/*
 		 * Limit the number of restarts.
 		 */
-		if (want_restart && rctx->restarts == MAX_RESTARTS) {
+		if (want_restart &&
+		    rctx->restarts == rctx->client->max_restarts)
+		{
 			want_restart = false;
 			result = ISC_R_QUOTA;
 			send_event = true;
