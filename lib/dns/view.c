@@ -88,6 +88,12 @@ adb_shutdown(isc_task_t *task, isc_event_t *event);
 static void
 req_shutdown(isc_task_t *task, isc_event_t *event);
 
+/*%
+ * Default maximum number of chained queries before we give up
+ * to prevent CNAME loops.
+ */
+#define DEFAULT_MAX_RESTARTS 11
+
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		dns_view_t **viewp) {
@@ -265,6 +271,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	view->plugins_free = NULL;
 	view->hooktable = NULL;
 	view->hooktable_free = NULL;
+
+	view->max_restarts = DEFAULT_MAX_RESTARTS;
 
 	isc_mutex_init(&view->new_zone_lock);
 
@@ -2779,4 +2787,12 @@ dns_view_setmaxtypepername(dns_view_t *view, uint32_t value) {
 	if (view->cache != NULL) {
 		dns_cache_setmaxtypepername(view->cache, value);
 	}
+}
+
+void
+dns_view_setmaxrestarts(dns_view_t *view, uint8_t max_restarts) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(max_restarts > 0);
+
+	view->max_restarts = max_restarts;
 }

@@ -76,6 +76,12 @@
 
 #define MAXNAME (DNS_NAME_MAXTEXT + 1)
 
+/*
+ * Default maximum number of chained queries before we give up
+ * to prevent CNAME loops.
+ */
+#define MAX_RESTARTS 11
+
 /* Variables used internally by delv. */
 char *progname;
 static isc_mem_t *mctx = NULL;
@@ -1775,6 +1781,8 @@ main(int argc, char *argv[]) {
 			 isc_result_totext(result));
 		goto cleanup;
 	}
+
+	dns_client_setmaxrestarts(client, MAX_RESTARTS);
 
 	/* Set the nameserver */
 	if (server != NULL) {
