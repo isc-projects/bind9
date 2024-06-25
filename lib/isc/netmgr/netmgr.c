@@ -49,8 +49,15 @@
  * How many isc_nmhandles and isc_nm_uvreqs will we be
  * caching for reuse in a socket.
  */
-#define ISC_NM_HANDLES_STACK_SIZE 600
-#define ISC_NM_REQS_STACK_SIZE	  600
+#define ISC_NM_HANDLES_STACK_SIZE 16
+#define ISC_NM_REQS_STACK_SIZE	  16
+
+/*%
+ * Same, but for UDP sockets which tend to need larger values as they
+ * process many requests per socket.
+ */
+#define ISC_NM_HANDLES_STACK_SIZE_UDP 64
+#define ISC_NM_REQS_STACK_SIZE_UDP    64
 
 /*%
  * Shortcut index arrays to get access to statistics counters.
@@ -1508,16 +1515,25 @@ void
 isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 		    isc_sockaddr_t *iface FLARG) {
 	uint16_t family;
+	size_t inactive_handles_stack_size = ISC_NM_HANDLES_STACK_SIZE;
+	size_t inactive_reqs_stack_size = ISC_NM_REQS_STACK_SIZE;
 
 	REQUIRE(sock != NULL);
 	REQUIRE(mgr != NULL);
 
-	*sock = (isc_nmsocket_t){ .type = type,
-				  .fd = -1,
-				  .inactivehandles = isc_astack_new(
-					  mgr->mctx, ISC_NM_HANDLES_STACK_SIZE),
-				  .inactivereqs = isc_astack_new(
-					  mgr->mctx, ISC_NM_REQS_STACK_SIZE) };
+	if (type == isc_nm_udpsocket) {
+		inactive_handles_stack_size = ISC_NM_HANDLES_STACK_SIZE_UDP;
+		inactive_reqs_stack_size = ISC_NM_REQS_STACK_SIZE_UDP;
+	}
+
+	*sock = (isc_nmsocket_t){
+		.type = type,
+		.fd = -1,
+		.inactivehandles = isc_astack_new(mgr->mctx,
+						  inactive_handles_stack_size),
+		.inactivereqs = isc_astack_new(mgr->mctx,
+					       inactive_reqs_stack_size)
+	};
 
 	ISC_LIST_INIT(sock->tls.sendreqs);
 
@@ -2096,7 +2112,6 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(atomic_load(&sock->reading));
 
 	if (atomic_load(&sock->client)) {
 		uv_timer_stop(timer);
