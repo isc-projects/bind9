@@ -3693,9 +3693,12 @@ Tuning
    The default is 7.
 
 ``max-recursion-queries``
-   This sets the maximum number of iterative queries that may be sent while
-   servicing a recursive query. If more queries are sent, the recursive
-   query is terminated and returns SERVFAIL. The default is 100.
+   This sets the maximum number of iterative queries that may be sent
+   by a resolver while looking up a single name. If more queries than this
+   need to be sent before an answer is reached, then recursion is terminated
+   and a SERVFAIL response is returned to the client. (Note: if the answer
+   is a CNAME, then the subsequent lookup for the target of the CNAME is
+   counted separately.) The default is 32.
 
 ``notify-delay``
    This sets the delay, in seconds, between sending sets of NOTIFY messages
