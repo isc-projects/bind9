@@ -533,5 +533,16 @@ for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "test that \"success resolving\" is not logged for NXDOMAIN final answer when qname-minimization is in relaxed mode ($n)"
+ret=0
+nextpart ns7/named.run >/dev/null
+$DIG $DIGOPTS 1.0.53.10.in-addr.arpa ptr @10.53.0.7 >dig.out.test$n || ret=1
+nextpart ns7/named.run >named.run.test$n
+grep "status: NXDOMAIN" dig.out.test$n >/dev/null || ret=1
+grep "success resolving" named.run.test$n >/dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
