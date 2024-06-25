@@ -215,7 +215,7 @@
 
 /* The default maximum number of iterative queries to allow before giving up. */
 #ifndef DEFAULT_MAX_QUERIES
-#define DEFAULT_MAX_QUERIES 100
+#define DEFAULT_MAX_QUERIES 50
 #endif /* ifndef DEFAULT_MAX_QUERIES */
 
 /*
