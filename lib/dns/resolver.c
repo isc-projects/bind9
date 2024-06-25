@@ -4520,16 +4520,6 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 
 	isc_mutex_init(&fctx->lock);
 
-	if (qc != NULL) {
-		isc_counter_attach(qc, &fctx->qc);
-	} else {
-		result = isc_counter_create(fctx->mctx, res->maxqueries,
-					    &fctx->qc);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_fetch;
-		}
-	}
-
 	/*
 	 * Make fctx->info point to a copy of a formatted string
 	 * "name/type". FCTXTRACE won't work until this is done.
@@ -4541,6 +4531,24 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	fctx->info = isc_mem_strdup(fctx->mctx, buf);
 
 	FCTXTRACE("create");
+
+	if (qc != NULL) {
+		isc_counter_attach(qc, &fctx->qc);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): attached to counter %p (%d)", fctx,
+			      fctx->info, fctx->qc, isc_counter_used(fctx->qc));
+	} else {
+		result = isc_counter_create(fctx->mctx, res->maxqueries,
+					    &fctx->qc);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_fetch;
+		}
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): created counter %p", fctx,
+			      fctx->info, fctx->qc);
+	}
 
 #if DNS_RESOLVER_TRACE
 	fprintf(stderr, "fetchctx__init:%s:%s:%d:%p:%p->references = 1\n",
