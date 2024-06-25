@@ -182,6 +182,7 @@ struct dns_view {
 	dns_dlzdblist_t 		dlz_unsearched;
 	uint32_t			fail_ttl;
 	dns_badcache_t			*failcache;
+	uint8_t				max_restarts;
 
 	/*
 	 * Configurable data for server use only,
@@ -1344,6 +1345,18 @@ dns_view_setviewrevert(dns_view_t *view);
  *\li	'view' to be valid.
  */
 
+
+void
+dns_view_setmaxrestarts(dns_view_t *view, uint8_t max_restarts);
+/*%<
+ * Set the number of permissible chained queries before we give up,
+ * to prevent CNAME loops. This defaults to 11.
+ *
+ * Requires:
+ *
+ *\li	'view' is valid;
+ *\li	'max_restarts' is greater than 0.
+ */
 
 ISC_LANG_ENDDECLS
 
