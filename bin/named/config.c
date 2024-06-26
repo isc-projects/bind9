@@ -186,6 +186,7 @@ options {\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-recursion-depth 7;\n\
 	max-recursion-queries 32;\n\
+	max-query-restarts 11;\n\
 	message-compression yes;\n\
 #	min-roots <obsolete>;\n\
 	minimal-any false;\n\

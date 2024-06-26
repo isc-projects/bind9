@@ -4555,8 +4555,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	dns_resolver_setmaxqueries(view->resolver, cfg_obj_asuint32(obj));
 
 	obj = NULL;
-	result = ns_config_get(maps, "fetches-per-zone", &obj);
+	result = ns_config_get(maps, "max-query-restarts", &obj);
 	INSIST(result == ISC_R_SUCCESS);
+	dns_view_setmaxrestarts(view, cfg_obj_asuint32(obj));
+
+	obj = NULL;
+	result = ns_config_get(maps, "fetches-per-zone", &obj);
 	obj2 = cfg_tuple_get(obj, "fetches");
 	dns_resolver_setfetchesperzone(view->resolver, cfg_obj_asuint32(obj2));
 	obj2 = cfg_tuple_get(obj, "response");

@@ -9308,6 +9308,18 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
+	    <varlistentry xml:id="max-query-restarts">
+	      <term><command>max-query-restarts</command></term>
+	      <listitem>
+		<para>
+                  This sets the maximum number of successive CNAME targets to
+                  follow when resolving a client query, before
+                  terminating the query to avoid a CNAME loop.
+                  Valid values are 1 to 255. The default is 11.
+                </para>
+	      </listitem>
+	    </varlistentry>
+
 	    <varlistentry>
 	      <term><command>notify-delay</command></term>
 	      <listitem>
