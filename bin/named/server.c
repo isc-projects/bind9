@@ -5506,6 +5506,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_resolver_setmaxqueries(view->resolver, cfg_obj_asuint32(obj));
 
 	obj = NULL;
+	result = named_config_get(maps, "max-query-restarts", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_view_setmaxrestarts(view, cfg_obj_asuint32(obj));
+
+	obj = NULL;
 	result = named_config_get(maps, "max-validations-per-fetch", &obj);
 	if (result == ISC_R_SUCCESS) {
 		dns_resolver_setmaxvalidations(view->resolver,
