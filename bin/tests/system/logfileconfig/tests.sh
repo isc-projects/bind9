@@ -284,8 +284,21 @@ n=$((n + 1))
 echo_i "testing 'rndc closelogs' ($n)"
 ret=0
 test -f ns1/query_log || ret=1
-mv ns1/query_log ns1/query_log.1 || ret=1
+mv ns1/query_log ns1/query_log.$n || ret=1
 rndccmd 10.53.0.1 closelogs >rndc.out.test$n || ret=1
+$DIG version.bind txt ch @10.53.0.1 -p ${PORT} >dig.out.test$n || ret=1
+test -f ns1/query_log || ret=1
+lines=$(wc -l <"ns1/query_log")
+test ${lines:-0} -eq 1 || ret=1
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "testing 'kill -USR1' ($n)"
+ret=0
+test -f ns1/query_log || ret=1
+mv ns1/query_log ns1/query_log.$n || ret=1
+kill -USR1 $(cat ns1/named.pid) || ret=1
 $DIG version.bind txt ch @10.53.0.1 -p ${PORT} >dig.out.test$n || ret=1
 test -f ns1/query_log || ret=1
 lines=$(wc -l <"ns1/query_log")
