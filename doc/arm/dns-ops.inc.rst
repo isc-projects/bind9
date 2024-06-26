@@ -236,6 +236,8 @@ described in the following table. These signals can be sent using the
 | ``SIGHUP``   | Causes the server to read :iscman:`named.conf` and reload   |
 |              | the database.                                               |
 +--------------+-------------------------------------------------------------+
+| ``SIGUSR1``  | Causes the server close the currently open log files        |
++--------------+-------------------------------------------------------------+
 | ``SIGTERM``  | Causes the server to clean up and exit.                     |
 +--------------+-------------------------------------------------------------+
 | ``SIGINT``   | Causes the server to clean up and exit.                     |
