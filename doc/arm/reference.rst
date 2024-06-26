@@ -3700,6 +3700,11 @@ Tuning
    is a CNAME, then the subsequent lookup for the target of the CNAME is
    counted separately.) The default is 32.
 
+``max-query-restarts``
+   This sets the maximum number of successive CNAME targets to follow
+   when resolving a client query, before terminating the query to avoid a
+   CNAME loop. Valid values are 1 to 255. The default is 11.
+
 ``notify-delay``
    This sets the delay, in seconds, between sending sets of NOTIFY messages
    for a zone. Whenever a NOTIFY message is sent for a zone, a timer will
