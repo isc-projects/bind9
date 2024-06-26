@@ -180,6 +180,7 @@ options {
 	max-ixfr-ratio ( unlimited | <percentage> );
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-ncache-ttl <duration>;
+	max-query-restarts <integer>;
 	max-records <integer>;
 	max-records-per-type <integer>;
 	max-recursion-depth <integer>;
@@ -472,6 +473,7 @@ view <string> [ <class> ] {
 	max-ixfr-ratio ( unlimited | <percentage> );
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-ncache-ttl <duration>;
+	max-query-restarts <integer>;
 	max-records <integer>;
 	max-records-per-type <integer>;
 	max-recursion-depth <integer>;

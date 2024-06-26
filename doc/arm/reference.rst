@@ -4697,6 +4697,14 @@ Tuning
    is a CNAME, then the subsequent lookup for the target of the CNAME is
    counted separately.) The default is 32.
 
+.. namedconf:statement:: max-query-restarts
+   :tags: server, query
+   :short: Sets the maximum number of chained CNAMEs to follow
+
+   This sets the maximum number of successive CNAME targets to follow
+   when resolving a client query, before terminating the query to avoid a
+   CNAME loop. Valid values are 1 to 255. The default is 11.
+
 .. namedconf:statement:: notify-delay
    :tags: transfer, zone
    :short: Sets the delay (in seconds) between sending sets of NOTIFY messages for a zone.
