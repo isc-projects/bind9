@@ -298,7 +298,9 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			return (0);
 		}
 
-		retire = active + klifetime;
+		if (ISC_OVERFLOW_ADD(active, klifetime, &retire)) {
+			retire = UINT32_MAX;
+		}
 		dst_key_settime(key->key, DST_TIME_INACTIVE, retire);
 	}
 
@@ -398,9 +400,12 @@ keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
 		if (lifetime > 0) {
 			uint32_t a = now;
+			uint32_t inactive;
 			(void)dst_key_gettime(key->key, DST_TIME_ACTIVATE, &a);
-			dst_key_settime(key->key, DST_TIME_INACTIVE,
-					(a + lifetime));
+			if (ISC_OVERFLOW_ADD(a, lifetime, &inactive)) {
+				inactive = UINT32_MAX;
+			}
+			dst_key_settime(key->key, DST_TIME_INACTIVE, inactive);
 			keymgr_settime_remove(key, kasp);
 		} else {
 			dst_key_unsettime(key->key, DST_TIME_INACTIVE);
@@ -1875,8 +1880,12 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 
 	/* Do we need to set retire time? */
 	if (lifetime > 0) {
-		dst_key_settime(new_key->key, DST_TIME_INACTIVE,
-				(active + lifetime));
+		uint32_t inactive;
+
+		if (ISC_OVERFLOW_ADD(active, lifetime, &inactive)) {
+			inactive = UINT32_MAX;
+		}
+		dst_key_settime(new_key->key, DST_TIME_INACTIVE, inactive);
 		keymgr_settime_remove(new_key, kasp);
 	}
 
