@@ -46,19 +46,19 @@ Security Fixes
   in an assertion failure. This has been fixed. :cve:`2024-4076`
   :gl:`#4507`
 
-- When looking up the NS records of parent zones as part of looking up DS
-  records, it was possible for :iscman:`named` to trigger an assertion
-  failure if serve-stale was enabled. This has been fixed. :gl:`#4661`
-
-Bug Fixes
-~~~~~~~~~
-
 - Potential data races were found in our DoH implementation, related to
   HTTP/2 session object management and endpoints set object management
   after reconfiguration. These issues have been fixed. :gl:`#4473`
 
   ISC would like to thank Dzintars and Ivo from nic.lv for bringing this
   to our attention.
+
+- When looking up the NS records of parent zones as part of looking up DS
+  records, it was possible for :iscman:`named` to trigger an assertion
+  failure if serve-stale was enabled. This has been fixed. :gl:`#4661`
+
+Bug Fixes
+~~~~~~~~~
 
 - Command-line options for IPv4-only (:option:`named -4`) and IPv6-only
   (:option:`named -6`) modes are now respected for zone :any:`primaries`,
