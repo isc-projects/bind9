@@ -10063,8 +10063,10 @@ prime_done(void *arg) {
 
 	REQUIRE(VALID_RESOLVER(res));
 
+	int level = (resp->result == ISC_R_SUCCESS) ? ISC_LOG_DEBUG(1)
+						    : ISC_LOG_NOTICE;
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
+		      DNS_LOGMODULE_RESOLVER, level,
 		      "resolver priming query complete: %s",
 		      isc_result_totext(resp->result));
 
