@@ -13,8 +13,6 @@
 
 /*! \file */
 
-#if HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448
-
 #include <stdbool.h>
 
 #include <openssl/err.h>
@@ -41,11 +39,9 @@
 		goto err; \
 	}
 
-#if HAVE_OPENSSL_ED25519
 #ifndef NID_ED25519
 #error "Ed25519 group is not known (NID_ED25519)"
 #endif /* ifndef NID_ED25519 */
-#endif /* HAVE_OPENSSL_ED25519 */
 
 #if HAVE_OPENSSL_ED448
 #ifndef NID_ED448
@@ -60,7 +56,6 @@ typedef struct eddsa_alginfo {
 
 static const eddsa_alginfo_t *
 openssleddsa_alg_info(unsigned int key_alg) {
-#if HAVE_OPENSSL_ED25519
 	if (key_alg == DST_ALG_ED25519) {
 		static const eddsa_alginfo_t ed25519_alginfo = {
 			.pkey_type = EVP_PKEY_ED25519,
@@ -70,7 +65,6 @@ openssleddsa_alg_info(unsigned int key_alg) {
 		};
 		return &ed25519_alginfo;
 	}
-#endif /* HAVE_OPENSSL_ED25519 */
 #if HAVE_OPENSSL_ED448
 	if (key_alg == DST_ALG_ED448) {
 		static const eddsa_alginfo_t ed448_alginfo = {
@@ -586,7 +580,6 @@ static unsigned char ed448_sig[] =
 	"\xb4\xee\x3f\x0e\x2b\x35\xdd\x5a\x35\xfe\x35\x00";
 #endif
 
-#if HAVE_OPENSSL_ED25519
 static unsigned char ed25519_pub[] =
 	"\x66\x5c\x21\x59\xe3\xa0\x6e\xa3\x7d\x82\x7c\xf1\xe7\xa3\xdd\xaf\xd1"
 	"\x6d\x92\x81\xfb\x09\x0c\x7c\xfe\x6d\xf8\x87\x24\x7e\x6e\x25";
@@ -595,7 +588,6 @@ static unsigned char ed25519_sig[] =
 	"\x38\xa3\x9c\xa3\x42\x4d\xc8\x89\xff\x84\xea\x2c\xa8\x8b\xfa\x2f\xab"
 	"\x75\x7c\x68\x95\xfd\xdf\x62\x60\x4e\x4d\x10\xf8\x3c\xae\xcf\x18\x93"
 	"\x90\x05\xa4\x54\x38\x45\x2f\x81\x71\x1e\x0f\x46\x04";
-#endif
 
 static isc_result_t
 check_algorithm(unsigned char algorithm) {
@@ -621,8 +613,7 @@ check_algorithm(unsigned char algorithm) {
 		key_len = sizeof(ed448_pub) - 1;
 		alginfo = openssleddsa_alg_info(algorithm);
 		break;
-#endif
-#if HAVE_OPENSSL_ED25519
+#endif /* HAVE_OPENSSL_ED448 */
 	case DST_ALG_ED25519:
 		sig = ed25519_sig;
 		sig_len = sizeof(ed25519_sig) - 1;
@@ -630,7 +621,6 @@ check_algorithm(unsigned char algorithm) {
 		key_len = sizeof(ed25519_pub) - 1;
 		alginfo = openssleddsa_alg_info(algorithm);
 		break;
-#endif
 	default:
 		DST_RET(ISC_R_NOTIMPLEMENTED);
 	}
@@ -673,5 +663,3 @@ dst__openssleddsa_init(dst_func_t **funcp, unsigned char algorithm) {
 	}
 	return (ISC_R_SUCCESS);
 }
-
-#endif /* HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448 */

@@ -664,53 +664,6 @@ LIBS="$OPENSSL_LIBS $LIBS"
 #
 # Check for functions added in OpenSSL or LibreSSL
 #
-
-AC_CHECK_FUNCS([BIO_read_ex BIO_write_ex])
-AC_CHECK_FUNCS([BN_GENCB_new])
-AC_CHECK_FUNCS([CRYPTO_zalloc])
-AC_CHECK_FUNCS([ERR_get_error_all])
-AC_CHECK_FUNCS([EVP_CIPHER_CTX_new EVP_CIPHER_CTX_free])
-AC_CHECK_FUNCS([EVP_MD_CTX_new EVP_MD_CTX_free EVP_MD_CTX_reset EVP_MD_CTX_get0_md])
-AC_CHECK_FUNCS([EVP_PKEY_new_raw_private_key EVP_PKEY_eq])
-AC_CHECK_FUNCS([OPENSSL_init_ssl OPENSSL_init_crypto OPENSSL_cleanup])
-AC_CHECK_FUNCS([SSL_CTX_set_keylog_callback])
-AC_CHECK_FUNCS([SSL_CTX_set_min_proto_version])
-AC_CHECK_FUNCS([SSL_CTX_up_ref])
-AC_CHECK_FUNCS([SSL_read_ex SSL_peek_ex SSL_write_ex])
-AC_CHECK_FUNCS([SSL_CTX_set1_cert_store X509_STORE_up_ref])
-AC_CHECK_FUNCS([SSL_CTX_up_ref])
-AC_CHECK_FUNCS([SSL_SESSION_is_resumable])
-AC_CHECK_FUNCS([SSL_CTX_set_ciphersuites])
-
-#
-# Check for algorithm support in OpenSSL
-#
-
-AC_CHECK_FUNCS([EVP_DigestSignInit EVP_DigestVerifyInit], [:],
-	       [AC_MSG_FAILURE([EVP_DigestSignInit/EVP_DigestVerifyInit support in OpenSSL is mandatory.])])
-
-AC_MSG_CHECKING([for ECDSA P-256 support])
-AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/evp.h>]],
-		     [[EVP_PKEY_CTX *kctx = EVP_PKEY_CTX_new_id(NID_X9_62_prime256v1, NULL);]])],
-    [AC_MSG_RESULT([yes])],
-    [AC_MSG_FAILURE([not found.  ECDSA P-256 support in OpenSSL is mandatory.])])
-
-AC_MSG_CHECKING([for ECDSA P-384 support])
-AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/evp.h>]],
-		     [[EVP_PKEY_CTX *kctx = EVP_PKEY_CTX_new_id(NID_secp384r1, NULL);]])],
-    [AC_MSG_RESULT([yes])],
-    [AC_MSG_FAILURE([not found.  ECDSA P-384 support in OpenSSL is mandatory.])])
-
-AC_MSG_CHECKING([for Ed25519 support])
-AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[#include <openssl/evp.h>]],
-		     [[EVP_PKEY_CTX *kctx = EVP_PKEY_CTX_new_id(NID_ED25519, NULL);]])],
-    [AC_DEFINE([HAVE_OPENSSL_ED25519], [1], [define if OpenSSL supports Ed25519])
-     AC_MSG_RESULT([yes])],
-    [AC_MSG_RESULT([no])])
-
 AC_MSG_CHECKING([for Ed448 support])
 AC_COMPILE_IFELSE(
     [AC_LANG_PROGRAM([[#include <openssl/evp.h>]],
@@ -719,25 +672,11 @@ AC_COMPILE_IFELSE(
      AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])])
 
-#
-# Check for OpenSSL SHA-1 support
-#
-AC_CHECK_FUNCS([EVP_sha1], [:],
-	       [AC_MSG_FAILURE([SHA-1 support in OpenSSL is mandatory.])])
-
-#
-# Check for OpenSSL SHA-2 support
-#
-AC_CHECK_FUNCS([EVP_sha224 EVP_sha256 EVP_sha384 EVP_sha512], [:],
-	       [AC_MSG_FAILURE([SHA-2 support in OpenSSL is mandatory.])])
-
-#
-# Check for OpenSSL 1.1.x/LibreSSL functions
-#
-AC_CHECK_FUNCS([ECDSA_SIG_get0 EVP_PKEY_get0_EC_KEY])
-AC_CHECK_FUNCS([RSA_set0_key EVP_PKEY_get0_RSA])
-
-AC_CHECK_FUNCS([TLS_server_method TLS_client_method])
+AC_CHECK_FUNCS([ERR_get_error_all])
+AC_CHECK_FUNCS([BIO_read_ex BIO_write_ex])
+AC_CHECK_FUNCS([EVP_MD_CTX_get0_md])
+AC_CHECK_FUNCS([EVP_PKEY_eq])
+AC_CHECK_FUNCS([SSL_CTX_set1_cert_store])
 
 #
 # Check whether FIPS mode is available and whether we should enable it

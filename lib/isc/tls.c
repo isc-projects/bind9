@@ -56,27 +56,6 @@
 
 static isc_mem_t *isc__tls_mctx = NULL;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-static isc_mutex_t *locks = NULL;
-static int nlocks;
-
-static void
-isc__tls_lock_callback(int mode, int type, const char *file, int line) {
-	UNUSED(file);
-	UNUSED(line);
-	if ((mode & CRYPTO_LOCK) != 0) {
-		LOCK(&locks[type]);
-	} else {
-		UNLOCK(&locks[type]);
-	}
-}
-
-static void
-isc__tls_set_thread_id(CRYPTO_THREADID *id) {
-	CRYPTO_THREADID_set_numeric(id, (unsigned long)isc_thread_self());
-}
-#endif
-
 #if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x30000000L
 /*
  * This was crippled with LibreSSL, so just skip it:
@@ -163,7 +142,6 @@ isc__tls_initialize(void) {
 #endif /* !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
 	  0x30000000L  */
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	uint64_t opts = OPENSSL_INIT_ENGINE_ALL_BUILTIN |
 			OPENSSL_INIT_LOAD_CONFIG;
 #if defined(OPENSSL_INIT_NO_ATEXIT)
@@ -175,28 +153,6 @@ isc__tls_initialize(void) {
 #endif
 
 	RUNTIME_CHECK(OPENSSL_init_ssl(opts, NULL) == 1);
-#else
-	nlocks = CRYPTO_num_locks();
-	locks = isc_mem_cget(isc__tls_mctx, nlocks, sizeof(locks[0]));
-	isc_mutexblock_init(locks, nlocks);
-	CRYPTO_set_locking_callback(isc__tls_lock_callback);
-	CRYPTO_THREADID_set_callback(isc__tls_set_thread_id);
-
-	CRYPTO_malloc_init();
-	ERR_load_crypto_strings();
-	SSL_load_error_strings();
-	SSL_library_init();
-
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-	ENGINE_load_builtin_engines();
-#endif
-	OpenSSL_add_all_algorithms();
-	OPENSSL_load_builtin_modules();
-
-	CONF_modules_load_file(NULL, NULL,
-			       CONF_MFLAGS_DEFAULT_SECTION |
-				       CONF_MFLAGS_IGNORE_MISSING_FILE);
-#endif
 
 	/* Protect ourselves against unseeded PRNG */
 	if (RAND_status() != 1) {
@@ -208,28 +164,7 @@ isc__tls_initialize(void) {
 
 void
 isc__tls_shutdown(void) {
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	OPENSSL_cleanup();
-#else
-	CONF_modules_unload(1);
-	OBJ_cleanup();
-	EVP_cleanup();
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-	ENGINE_cleanup();
-#endif
-	CRYPTO_cleanup_all_ex_data();
-	ERR_remove_thread_state(NULL);
-	RAND_cleanup();
-	ERR_free_strings();
-
-	CRYPTO_set_locking_callback(NULL);
-
-	if (locks != NULL) {
-		isc_mutexblock_destroy(locks, nlocks);
-		isc_mem_cput(isc__tls_mctx, locks, nlocks, sizeof(locks[0]));
-		locks = NULL;
-	}
-#endif
 
 	isc_mem_destroy(&isc__tls_mctx);
 }
@@ -260,15 +195,12 @@ isc_tlsctx_attach(isc_tlsctx_t *src, isc_tlsctx_t **ptarget) {
 	*ptarget = src;
 }
 
-#if HAVE_SSL_CTX_SET_KEYLOG_CALLBACK
 /*
  * Callback invoked by the SSL library whenever a new TLS pre-master secret
  * needs to be logged.
  */
 static void
-sslkeylogfile_append(const SSL *ssl, const char *line) {
-	UNUSED(ssl);
-
+sslkeylogfile_append(const SSL *ssl ISC_ATTR_UNUSED, const char *line) {
 	isc_log_write(isc_lctx, ISC_LOGCATEGORY_SSLKEYLOG, ISC_LOGMODULE_NETMGR,
 		      ISC_LOG_INFO, "%s", line);
 }
@@ -284,9 +216,6 @@ sslkeylogfile_init(isc_tlsctx_t *ctx) {
 		SSL_CTX_set_keylog_callback(ctx, sslkeylogfile_append);
 	}
 }
-#else /* HAVE_SSL_CTX_SET_KEYLOG_CALLBACK */
-#define sslkeylogfile_init(ctx)
-#endif /* HAVE_SSL_CTX_SET_KEYLOG_CALLBACK */
 
 isc_result_t
 isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
@@ -308,12 +237,7 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 
 	SSL_CTX_set_options(ctx, COMMON_SSL_OPTIONS);
 
-#if HAVE_SSL_CTX_SET_MIN_PROTO_VERSION
 	SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
-#else
-	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
-					 SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
-#endif
 
 	sslkeylogfile_init(ctx);
 
@@ -384,12 +308,7 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 
 	SSL_CTX_set_options(ctx, COMMON_SSL_OPTIONS);
 
-#if HAVE_SSL_CTX_SET_MIN_PROTO_VERSION
 	SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION);
-#else
-	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
-					 SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
-#endif
 
 	if (ephemeral) {
 		const int group_nid = NID_X9_62_prime256v1;
@@ -415,27 +334,10 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		}
 
 		/* Use a named curve and uncompressed point conversion form. */
-#if HAVE_EVP_PKEY_GET0_EC_KEY
 		EC_KEY_set_asn1_flag(EVP_PKEY_get0_EC_KEY(pkey),
 				     OPENSSL_EC_NAMED_CURVE);
 		EC_KEY_set_conv_form(EVP_PKEY_get0_EC_KEY(pkey),
 				     POINT_CONVERSION_UNCOMPRESSED);
-#else
-		EC_KEY_set_asn1_flag(pkey->pkey.ec, OPENSSL_EC_NAMED_CURVE);
-		EC_KEY_set_conv_form(pkey->pkey.ec,
-				     POINT_CONVERSION_UNCOMPRESSED);
-#endif /* HAVE_EVP_PKEY_GET0_EC_KEY */
-
-#if defined(SSL_CTX_set_ecdh_auto)
-		/*
-		 * Using this macro is required for older versions of OpenSSL to
-		 * automatically enable ECDH support.
-		 *
-		 * On later versions this function is no longer needed and is
-		 * deprecated.
-		 */
-		(void)SSL_CTX_set_ecdh_auto(ctx, 1);
-#endif /* defined(SSL_CTX_set_ecdh_auto) */
 
 		/* Cleanup */
 		EC_KEY_free(eckey);
@@ -494,20 +396,12 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		 * Set the "not before" property 5 minutes into the past to
 		 * accommodate with some possible clock skew across systems.
 		 */
-#if OPENSSL_VERSION_NUMBER < 0x10101000L
-		X509_gmtime_adj(X509_get_notBefore(cert), -300);
-#else
 		X509_gmtime_adj(X509_getm_notBefore(cert), -300);
-#endif
 
 		/*
 		 * We set the vailidy for 10 years.
 		 */
-#if OPENSSL_VERSION_NUMBER < 0x10101000L
-		X509_gmtime_adj(X509_get_notAfter(cert), 3650 * 24 * 3600);
-#else
 		X509_gmtime_adj(X509_getm_notAfter(cert), 3650 * 24 * 3600);
-#endif
 
 		X509_set_pubkey(cert, pkey);
 
@@ -784,7 +678,6 @@ isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist) {
 
 bool
 isc_tls_cipher_suites_valid(const char *cipher_suites) {
-#ifdef HAVE_SSL_CTX_SET_CIPHERSUITES
 	isc_tlsctx_t *tmp_ctx = NULL;
 	const SSL_METHOD *method = NULL;
 	bool result;
@@ -808,27 +701,15 @@ isc_tls_cipher_suites_valid(const char *cipher_suites) {
 	isc_tlsctx_free(&tmp_ctx);
 
 	return (result);
-#else
-	UNUSED(cipher_suites);
-
-	UNREACHABLE();
-#endif
 }
 
 void
 isc_tlsctx_set_cipher_suites(isc_tlsctx_t *ctx, const char *cipher_suites) {
-#ifdef HAVE_SSL_CTX_SET_CIPHERSUITES
 	REQUIRE(ctx != NULL);
 	REQUIRE(cipher_suites != NULL);
 	REQUIRE(*cipher_suites != '\0');
 
 	RUNTIME_CHECK(SSL_CTX_set_ciphersuites(ctx, cipher_suites) == 1);
-#else
-	UNUSED(ctx);
-	UNUSED(cipher_suites);
-
-	UNREACHABLE();
-#endif
 }
 
 void
@@ -916,10 +797,8 @@ isc_tlsctx_enable_http2client_alpn(isc_tlsctx_t *ctx) {
 	SSL_CTX_set_next_proto_select_cb(ctx, select_next_proto_cb, NULL);
 #endif /* !OPENSSL_NO_NEXTPROTONEG */
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
 	SSL_CTX_set_alpn_protos(ctx, (const unsigned char *)NGHTTP2_PROTO_ALPN,
 				NGHTTP2_PROTO_ALPN_LEN);
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 }
 
 #ifndef OPENSSL_NO_NEXTPROTONEG
@@ -935,7 +814,6 @@ next_proto_cb(isc_tls_t *ssl, const unsigned char **data, unsigned int *len,
 }
 #endif /* !OPENSSL_NO_NEXTPROTONEG */
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
 static int
 alpn_select_proto_cb(SSL *ssl, const unsigned char **out, unsigned char *outlen,
 		     const unsigned char *in, unsigned int inlen, void *arg) {
@@ -953,7 +831,6 @@ alpn_select_proto_cb(SSL *ssl, const unsigned char **out, unsigned char *outlen,
 
 	return (SSL_TLSEXT_ERR_OK);
 }
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
 void
 isc_tlsctx_enable_http2server_alpn(isc_tlsctx_t *tls) {
@@ -962,9 +839,7 @@ isc_tlsctx_enable_http2server_alpn(isc_tlsctx_t *tls) {
 #ifndef OPENSSL_NO_NEXTPROTONEG
 	SSL_CTX_set_next_protos_advertised_cb(tls, next_proto_cb, NULL);
 #endif // OPENSSL_NO_NEXTPROTONEG
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
 	SSL_CTX_set_alpn_select_cb(tls, alpn_select_proto_cb, NULL);
-#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
 }
 #endif /* HAVE_LIBNGHTTP2 */
 
@@ -978,11 +853,9 @@ isc_tls_get_selected_alpn(isc_tls_t *tls, const unsigned char **alpn,
 #ifndef OPENSSL_NO_NEXTPROTONEG
 	SSL_get0_next_proto_negotiated(tls, alpn, alpnlen);
 #endif
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
 	if (*alpn == NULL) {
 		SSL_get0_alpn_selected(tls, alpn, alpnlen);
 	}
-#endif
 }
 
 static bool
@@ -1015,13 +888,10 @@ void
 isc_tlsctx_enable_dot_client_alpn(isc_tlsctx_t *ctx) {
 	REQUIRE(ctx != NULL);
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
 	SSL_CTX_set_alpn_protos(ctx, (const uint8_t *)DOT_PROTO_ALPN,
 				DOT_PROTO_ALPN_LEN);
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
 static int
 dot_alpn_select_proto_cb(SSL *ssl, const unsigned char **out,
 			 unsigned char *outlen, const unsigned char *in,
@@ -1039,15 +909,12 @@ dot_alpn_select_proto_cb(SSL *ssl, const unsigned char **out,
 
 	return (SSL_TLSEXT_ERR_OK);
 }
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
 void
 isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *tls) {
 	REQUIRE(tls != NULL);
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
 	SSL_CTX_set_alpn_select_cb(tls, dot_alpn_select_proto_cb, NULL);
-#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L
 }
 
 isc_result_t
@@ -1608,33 +1475,6 @@ isc_tlsctx_client_session_cache_detach(
 	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
 }
 
-static bool
-ssl_session_seems_resumable(const SSL_SESSION *sess) {
-#ifdef HAVE_SSL_SESSION_IS_RESUMABLE
-	/*
-	 * If SSL_SESSION_is_resumable() is available, let's use that. It
-	 * is expected to be available on OpenSSL >= 1.1.1 and its modern
-	 * siblings.
-	 */
-	return (SSL_SESSION_is_resumable(sess) != 0);
-#elif (OPENSSL_VERSION_NUMBER >= 0x10100000L)
-	/*
-	 * Taking into consideration that OpenSSL 1.1.0 uses opaque
-	 * pointers for SSL_SESSION, we cannot implement a replacement for
-	 * SSL_SESSION_is_resumable() manually. Let's use a sensible
-	 * approximation for that, then: if there is an associated session
-	 * ticket or session ID, then, most likely, the session is
-	 * resumable.
-	 */
-	unsigned int session_id_len = 0;
-	(void)SSL_SESSION_get_id(sess, &session_id_len);
-	return (SSL_SESSION_has_ticket(sess) || session_id_len > 0);
-#else
-	return (!sess->not_resumable &&
-		(sess->session_id_length > 0 || sess->tlsext_ticklen > 0));
-#endif
-}
-
 void
 isc_tlsctx_client_session_cache_keep(isc_tlsctx_client_session_cache_t *cache,
 				     char *remote_peer_name, isc_tls_t *tls) {
@@ -1652,7 +1492,7 @@ isc_tlsctx_client_session_cache_keep(isc_tlsctx_client_session_cache_t *cache,
 	if (sess == NULL) {
 		ERR_clear_error();
 		return;
-	} else if (!ssl_session_seems_resumable(sess)) {
+	} else if (SSL_SESSION_is_resumable(sess) == 0) {
 		SSL_SESSION_free(sess);
 		return;
 	}
