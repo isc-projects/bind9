@@ -210,16 +210,18 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		return;
 	}
 
-	if (eresult != ISC_R_SUCCESS) {
-		if (eresult != ISC_R_CANCELED && eresult != ISC_R_SHUTTINGDOWN)
-		{
-			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-				      "automatic interface scanning "
-				      "terminated: %s",
-				      isc_result_totext(eresult));
-		}
-		isc_nmhandle_detach(&mgr->route);
-		ns_interfacemgr_detach(&mgr);
+	switch (eresult) {
+	case ISC_R_SUCCESS:
+		break;
+	default:
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "automatic interface scanning terminated: %s",
+			      isc_result_totext(eresult));
+		FALLTHROUGH;
+	case ISC_R_CANCELED:
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_EOF:
+		ns_interfacemgr_routedisconnect(mgr);
 		return;
 	}
 
@@ -271,8 +273,7 @@ isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		       dns_dispatchmgr_t *dispatchmgr,
-		       dns_geoip_databases_t *geoip, bool scan,
-		       ns_interfacemgr_t **mgrp) {
+		       dns_geoip_databases_t *geoip, ns_interfacemgr_t **mgrp) {
 	isc_result_t result;
 	ns_interfacemgr_t *mgr = NULL;
 
@@ -328,20 +329,6 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
-	if (scan) {
-		ns_interfacemgr_t *imgr = NULL;
-
-		ns_interfacemgr_attach(mgr, &imgr);
-
-		result = isc_nm_routeconnect(nm, route_connected, imgr);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-				      "unable to open route socket: %s",
-				      isc_result_totext(result));
-			ns_interfacemgr_detach(&imgr);
-		}
-	}
-
 	return (ISC_R_SUCCESS);
 
 cleanup_lock:
@@ -351,8 +338,43 @@ cleanup_lock:
 	return (result);
 }
 
+void
+ns_interfacemgr_routeconnect(ns_interfacemgr_t *mgr) {
+	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+	REQUIRE(isc_tid() == 0);
+
+	if (mgr->route != NULL) {
+		return;
+	}
+
+	ns_interfacemgr_ref(mgr);
+
+	isc_result_t result = isc_nm_routeconnect(mgr->nm, route_connected,
+						  mgr);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+			      "unable to open route socket: %s",
+			      isc_result_totext(result));
+		ns_interfacemgr_unref(mgr);
+	}
+}
+
+void
+ns_interfacemgr_routedisconnect(ns_interfacemgr_t *mgr) {
+	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+	REQUIRE(isc_tid() == 0);
+
+	if (mgr->route == NULL) {
+		return;
+	}
+
+	isc_nmhandle_close(mgr->route);
+	isc_nmhandle_detach(&mgr->route);
+	ns_interfacemgr_detach(&mgr);
+}
+
 static void
-ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
+ns_interfacemgr__destroy(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	isc_refcount_destroy(&mgr->references);
@@ -396,23 +418,7 @@ ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr) {
 	return (aclenv);
 }
 
-void
-ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target) {
-	REQUIRE(NS_INTERFACEMGR_VALID(source));
-	isc_refcount_increment(&source->references);
-	*target = source;
-}
-
-void
-ns_interfacemgr_detach(ns_interfacemgr_t **targetp) {
-	ns_interfacemgr_t *target = *targetp;
-	*targetp = NULL;
-	REQUIRE(target != NULL);
-	REQUIRE(NS_INTERFACEMGR_VALID(target));
-	if (isc_refcount_decrement(&target->references) == 1) {
-		ns_interfacemgr_destroy(target);
-	}
-}
+ISC_REFCOUNT_IMPL(ns_interfacemgr, ns_interfacemgr__destroy);
 
 void
 ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
