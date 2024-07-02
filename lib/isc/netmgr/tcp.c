@@ -549,6 +549,7 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 					      &csock->quotacb, quota_accept_cb,
 					      csock);
 		if (result == ISC_R_QUOTA) {
+			csock->quota_accept_ts = isc_time_monotonic();
 			isc__nm_incstats(ssock, STATID_ACCEPTFAIL);
 			goto done;
 		}
@@ -899,6 +900,28 @@ accept_connection(isc_nmsocket_t *csock) {
 	if (r != 0) {
 		result = isc_uverr2result(r);
 		goto failure;
+	}
+
+	/* Check if the connection is not expired */
+	if (csock->quota_accept_ts != 0) {
+		/* The timestamp is given in nanoseconds */
+		const uint64_t time_elapsed_ms =
+			(isc_time_monotonic() - csock->quota_accept_ts) /
+			NS_PER_MS;
+
+		if (time_elapsed_ms >= csock->read_timeout) {
+			/*
+			 * At this point we have received a connection from a
+			 * queue of accepted connections (via uv_accept()), but
+			 * it has expired. We cannot do anything better than
+			 * drop it on the floor at this point.
+			 */
+			result = ISC_R_TIMEDOUT;
+			goto failure;
+		} else {
+			/* Adjust the initial read timeout accordingly */
+			csock->read_timeout -= time_elapsed_ms;
+		}
 	}
 
 	r = uv_tcp_getpeername(&csock->uv_handle.tcp, (struct sockaddr *)&ss,
