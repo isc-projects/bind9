@@ -32,3 +32,8 @@ zone "big." {
 	type primary;
 	file "big.db";
 };
+
+zone "signed." {
+	type primary;
+	file "signed.db.signed";
+};

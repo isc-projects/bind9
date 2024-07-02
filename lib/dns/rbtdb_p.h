@@ -21,6 +21,8 @@
 #include <dns/rbt.h>
 #include <dns/types.h>
 
+#include "db_p.h" /* for db_nodelock_t */
+
 /*%
  * Note that "impmagic" is not the first four bytes of the struct, so
  * ISC_MAGIC_VALID cannot be used.
