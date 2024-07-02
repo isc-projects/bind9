@@ -1284,6 +1284,13 @@ isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 		goto fail;
 	}
 
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+		      ISC_LOG_DEBUG(3),
+		      "throttling TCP connection, the other side is not "
+		      "reading the data, switching to uv_write()");
+	sock->reading_throttled = true;
+	isc__nm_stop_reading(sock);
+
 	r = uv_write(&uvreq->uv_req.write, &sock->uv_handle.stream, bufs, nbufs,
 		     tcpdns_send_cb);
 	if (r < 0) {
