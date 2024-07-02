@@ -216,9 +216,8 @@ ns_test_cleanup_zone(void) {
 	dns_zone_detach(&served_zone);
 }
 
-isc_result_t
+void
 ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp) {
-	isc_result_t result;
 	ns_client_t *client;
 	ns_clientmgr_t *clientmgr;
 	int i;
@@ -229,7 +228,7 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp) {
 	clientmgr = ns_interfacemgr_getclientmgr(interfacemgr);
 
 	client = isc_mem_get(clientmgr->mctx, sizeof(*client));
-	result = ns__client_setup(client, clientmgr, true);
+	ns__client_setup(client, clientmgr, true);
 
 	for (i = 0; i < 32; i++) {
 		if (atomic_load(&client_addrs[i]) == (uintptr_t)NULL ||
@@ -244,8 +243,6 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp) {
 	atomic_store(&client_addrs[i], (uintptr_t)client);
 	client->handle = (isc_nmhandle_t *)client; /* Hack */
 	*clientp = client;
-
-	return (result);
 }
 
 /*%
@@ -438,10 +435,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	/*
 	 * Allocate and initialize a client structure.
 	 */
-	result = ns_test_getclient(NULL, false, &client);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	ns_test_getclient(NULL, false, &client);
 	client->tnow = isc_time_now();
 
 	/*
