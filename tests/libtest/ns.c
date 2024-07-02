@@ -98,8 +98,7 @@ setup_server(void **state) {
 	}
 
 	result = ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr,
-					dispatchmgr, NULL, false,
-					&interfacemgr);
+					dispatchmgr, NULL, &interfacemgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
