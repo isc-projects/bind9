@@ -287,7 +287,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
  * other aspects of hook-triggered asynchronous event handling.
  */
 
-isc_result_t
+void
 ns_query_init(ns_client_t *client);
 
 void

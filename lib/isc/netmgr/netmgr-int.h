@@ -36,6 +36,7 @@
 #include <isc/stats.h>
 #include <isc/thread.h>
 #include <isc/tid.h>
+#include <isc/time.h>
 #include <isc/tls.h>
 #include <isc/util.h>
 #include <isc/uv.h>
@@ -640,6 +641,12 @@ struct isc_nmsocket {
 	bool accepting;
 	bool reading;
 	bool timedout;
+
+	/*%
+	 * A timestamp of when the connection acceptance was delayed due
+	 * to quota.
+	 */
+	isc_nanosecs_t quota_accept_ts;
 
 	/*%
 	 * Established an outgoing connection, as client not server.

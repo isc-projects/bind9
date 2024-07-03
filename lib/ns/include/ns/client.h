@@ -543,7 +543,7 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db);
 
 ISC_REFCOUNT_DECL(ns_clientmgr);
 
-isc_result_t
+void
 ns__client_setup(ns_client_t *client, ns_clientmgr_t *manager, bool new);
 /*%<
  * Perform initial setup of an allocated client.

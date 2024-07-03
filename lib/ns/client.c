@@ -382,6 +382,7 @@ client_senddone(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 				      "send failed: %s",
 				      isc_result_totext(result));
+			isc_nm_bad_request(handle);
 		}
 	}
 
@@ -1838,19 +1839,13 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 		client = isc_mem_get(clientmgr->mctx, sizeof(*client));
 
-		result = ns__client_setup(client, clientmgr, true);
-		if (result != ISC_R_SUCCESS) {
-			return;
-		}
+		ns__client_setup(client, clientmgr, true);
 
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "allocate new client");
 	} else {
-		result = ns__client_setup(client, NULL, false);
-		if (result != ISC_R_SUCCESS) {
-			return;
-		}
+		ns__client_setup(client, NULL, false);
 	}
 
 	client->state = NS_CLIENTSTATE_READY;
@@ -2520,10 +2515,8 @@ ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
-	isc_result_t result;
-
 	/*
 	 * Note: creating a client does not add the client to the
 	 * manager's client list, the caller is responsible for that.
@@ -2548,10 +2541,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		 * and the functions it calls will require it.
 		 */
 		client->magic = NS_CLIENT_MAGIC;
-		result = ns_query_init(client);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		ns_query_init(client);
 	} else {
 		REQUIRE(NS_CLIENT_VALID(client));
 		REQUIRE(client->manager->tid == isc_tid());
@@ -2583,14 +2573,6 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	client->magic = NS_CLIENT_MAGIC;
 
 	CTRACE("client_setup");
-
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	dns_message_detach(&client->message);
-	ns_clientmgr_detach(&client->manager);
-
-	return (result);
 }
 
 /***
