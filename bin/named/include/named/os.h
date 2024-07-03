@@ -39,10 +39,13 @@ void
 named_os_inituserinfo(const char *username);
 
 void
-named_os_changeuser(void);
+named_os_changeuser(bool permanent);
+
+void
+named_os_restoreuser(void);
 
 uid_t
-ns_os_uid(void);
+named_os_uid(void);
 
 void
 named_os_adjustnofile(void);
