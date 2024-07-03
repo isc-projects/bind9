@@ -333,6 +333,7 @@ client_senddone(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 				      "send failed: %s",
 				      isc_result_totext(result));
+			isc_nm_bad_request(handle);
 		}
 	}
 
