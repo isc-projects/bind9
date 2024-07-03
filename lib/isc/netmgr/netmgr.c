@@ -2369,14 +2369,41 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 		int_fast32_t ah = atomic_load(&sock->ah);
 		isc_result_t result = processbuffer(sock);
 		switch (result) {
-		case ISC_R_NOMORE:
+		case ISC_R_NOMORE: {
 			/*
 			 * Don't reset the timer until we have a
 			 * full DNS message.
 			 */
-			result = isc__nm_start_reading(sock);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
+
+			/*
+			 * Restart reading if we have less data in the send
+			 * queue than the send buffer size, this means that the
+			 * TCP client has started reading some data again.
+			 * Starting reading when we go under the limit instead
+			 * of waiting for all data has been flushed allows
+			 * faster recovery (in case there was a congestion and
+			 * now there isn't).
+			 */
+			size_t write_queue_size =
+				uv_stream_get_write_queue_size(
+					&sock->uv_handle.stream);
+			if (write_queue_size < ISC_NETMGR_TCP_SENDBUF_SIZE) {
+				if (sock->reading_throttled) {
+					isc_log_write(isc_lctx,
+						      ISC_LOGCATEGORY_GENERAL,
+						      ISC_LOGMODULE_NETMGR,
+						      ISC_LOG_DEBUG(3),
+						      "resuming TCP "
+						      "connection, the other "
+						      "side is reading the "
+						      "data again (%zu)",
+						      write_queue_size);
+					sock->reading_throttled = false;
+				}
+				result = isc__nm_start_reading(sock);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
 			}
 			/*
 			 * Start the timer only if there are no externally used
@@ -2388,6 +2415,7 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 				isc__nmsocket_timer_start(sock);
 			}
 			goto done;
+		}
 		case ISC_R_CANCELED:
 			isc__nmsocket_timer_stop(sock);
 			isc__nm_stop_reading(sock);

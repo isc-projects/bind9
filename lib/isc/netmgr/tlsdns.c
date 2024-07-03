@@ -1828,25 +1828,10 @@ tlsdns_maybe_restart_reading(isc_nmsocket_t *sock) {
 	if (!sock->client && sock->reading_throttled &&
 	    !uv_is_active(&sock->uv_handle.handle))
 	{
-		/*
-		 * Restart reading if we have less data in the send queue than
-		 * the send buffer size, this means that the TCP client has
-		 * started reading some data again.  Starting reading when we go
-		 * under the limit instead of waiting for all data has been
-		 * flushed allows faster recovery (in case there was a
-		 * congestion and now there isn't).
-		 */
-		size_t write_queue_size =
-			uv_stream_get_write_queue_size(&sock->uv_handle.stream);
-		if (write_queue_size < ISC_NETMGR_TCP_SENDBUF_SIZE) {
-			isc_log_write(
-				isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				ISC_LOGMODULE_NETMGR, ISC_LOG_DEBUG(3),
-				"resuming TCP connection, the other side  "
-				"is reading the data again (%zu)",
-				write_queue_size);
-			sock->reading_throttled = false;
-			isc__nm_start_reading(sock);
+		isc_result_t result = isc__nm_process_sock_buffer(sock);
+		if (result != ISC_R_SUCCESS) {
+			atomic_store(&sock->reading, true);
+			isc__nm_failed_read_cb(sock, result, false);
 		}
 	}
 }
