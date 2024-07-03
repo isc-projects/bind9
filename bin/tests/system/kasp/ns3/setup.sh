@@ -274,6 +274,22 @@ echo "ZSK: yes" >>"${ZSK}".state
 echo "Lifetime: 31536000" >>"${ZSK}".state # PT1Y
 rm -f "${ZSK}".private
 
+# These signatures are still good, but the key files will be removed
+# before a second run of reconfiguring keys.
+setup keyfiles-missing.autosign
+T="now-6mo"
+ksktimes="-P $T -A $T -P sync $T"
+zsktimes="-P $T -A $T"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
+$SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
+cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >>"$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >>"$infile"
+cp $infile $zonefile
+$SIGNER -S -x -s now-1w -e now+1w -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
+
 # These signatures are already expired, and the private ZSK is retired.
 setup zsk-retired.autosign
 T="now-6mo"

@@ -379,7 +379,7 @@ echo_i "test that if private key files are inaccessible this doesn't trigger a r
 basefile=$(key_get KEY1 BASEFILE)
 mv "${basefile}.private" "${basefile}.offline"
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "offline, policy default" $DIR/named.run || ret=1
+wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:verify keys failed: some key files are missing" $DIR/named.run || ret=1
 mv "${basefile}.offline" "${basefile}.private"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -1686,6 +1686,68 @@ set_addkeytime "KEY2" "REMOVED" "${retired}" 867900
 check_keytimes
 check_apex
 check_subdomain
+dnssec_verify
+
+#
+# Zone: keyfiles-missing.autosign.
+#
+set_zone "keyfiles-missing.autosign"
+set_policy "autosign" "2" "300"
+set_server "ns3" "10.53.0.3"
+# Key properties.
+key_clear "KEY1"
+set_keyrole "KEY1" "ksk"
+set_keylifetime "KEY1" "63072000"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY1" "yes"
+set_zonesigning "KEY1" "no"
+
+key_clear "KEY2"
+set_keyrole "KEY2" "zsk"
+set_keylifetime "KEY2" "31536000"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY2" "no"
+set_zonesigning "KEY2" "yes"
+
+# Both KSK and ZSK stay OMNIPRESENT.
+set_keystate "KEY1" "GOAL" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS" "omnipresent"
+
+set_keystate "KEY2" "GOAL" "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+set_keytimes_autosign_policy
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+# All good, now remove key files and reload keys.
+rm_keyfiles() {
+  _basefile=$(key_get "$1" BASEFILE)
+  echo_i "remove key files $_basefile"
+  _keyfile="${_basefile}.key"
+  _privatefile="${_basefile}.private"
+  _statefile="${_basefile}.state"
+  rm -f $_keyfile
+  rm -f $_privatefile
+  rm -f $_statefile
+}
+rm_keyfiles "KEY1"
+rm_keyfiles "KEY2"
+
+rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
+wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:verify keys failed: some key files are missing" $DIR/named.run || ret=1
+# Check keys again, make sure no new keys are created.
+set_policy "autosign" "0" "300"
+key_clear "KEY1"
+key_clear "KEY2"
+check_keys
+# Zone is still signed correctly.
 dnssec_verify
 
 #
