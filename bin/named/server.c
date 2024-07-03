@@ -9370,10 +9370,12 @@ load_configuration(const char *filename, named_server_t *server,
 #endif /* HAVE_LMDB */
 
 	/*
-	 * Relinquish root privileges.
+	 * Switch to the effective UID for setting up files.
+	 * Later, after configuring all the listening ports,
+	 * we'll relinquish root privileges permanently.
 	 */
 	if (first_time) {
-		named_os_changeuser();
+		named_os_changeuser(false);
 	}
 
 	/*
@@ -9719,6 +9721,11 @@ load_configuration(const char *filename, named_server_t *server,
 	isc_loopmgr_resume(named_g_loopmgr);
 	exclusive = false;
 
+	/* Take back root privileges temporarily */
+	if (first_time) {
+		named_os_restoreuser();
+	}
+
 	/* Configure the statistics channel(s) */
 	result = named_statschannels_configure(named_g_server, config,
 					       named_g_aclconfctx);
@@ -9743,6 +9750,13 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 
 	(void)ns_interfacemgr_scan(server->interfacemgr, true, true);
+
+	/*
+	 * Permanently drop root privileges now.
+	 */
+	if (first_time) {
+		named_os_changeuser(true);
+	}
 
 	/*
 	 * These cleans up either the old production view list
@@ -13258,7 +13272,7 @@ nzd_env_close(dns_view_t *view) {
 	/*
 	 * Database files must be owned by the eventual user, not by root.
 	 */
-	ret = chown(dbpath_copy, ns_os_uid(), -1);
+	ret = chown(dbpath_copy, named_os_uid(), -1);
 	UNUSED(ret);
 
 	/*
