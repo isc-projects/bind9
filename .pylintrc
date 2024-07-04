@@ -1,4 +1,10 @@
-[MASTER]
+[IMPORTS]
+
+deprecated-modules=
+    dns.resolver,
+
+[MESSAGES CONTROL]
+
 disable=
     C0103, # invalid-name
     C0114, # missing-module-docstring
