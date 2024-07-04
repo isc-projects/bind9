@@ -142,7 +142,7 @@ struct qpz_version {
 	uint64_t records;
 	uint64_t xfrsize;
 
-	struct cds_wfs_stack glue_stack;
+	struct cds_lfht *glue_table;
 };
 
 typedef ISC_LIST(qpz_version_t) qpz_versionlist_t;
@@ -212,6 +212,17 @@ typedef struct {
 	dns_fixedname_t zonecut_name;
 	isc_stdtime_t now;
 } qpz_search_t;
+
+typedef struct dns_gluenode_t {
+	isc_mem_t *mctx;
+
+	struct dns_glue *glue;
+
+	qpznode_t *node;
+
+	struct cds_lfht_node ht_node;
+	struct rcu_head rcu_head;
+} dns_gluenode_t;
 
 /*%
  * Load Context
@@ -369,61 +380,21 @@ set_index(void *what, unsigned int idx) {
 }
 
 static void
-freeglue(dns_glue_t *glue_list) {
-	if (glue_list == (void *)-1) {
-		return;
-	}
-
-	dns_glue_t *glue = glue_list;
-	while (glue != NULL) {
-		dns_glue_t *next = glue->next;
-
-		if (dns_rdataset_isassociated(&glue->rdataset_a)) {
-			dns_rdataset_disassociate(&glue->rdataset_a);
-		}
-		if (dns_rdataset_isassociated(&glue->sigrdataset_a)) {
-			dns_rdataset_disassociate(&glue->sigrdataset_a);
-		}
-
-		if (dns_rdataset_isassociated(&glue->rdataset_aaaa)) {
-			dns_rdataset_disassociate(&glue->rdataset_aaaa);
-		}
-		if (dns_rdataset_isassociated(&glue->sigrdataset_aaaa)) {
-			dns_rdataset_disassociate(&glue->sigrdataset_aaaa);
-		}
-
-		dns_rdataset_invalidate(&glue->rdataset_a);
-		dns_rdataset_invalidate(&glue->sigrdataset_a);
-		dns_rdataset_invalidate(&glue->rdataset_aaaa);
-		dns_rdataset_invalidate(&glue->sigrdataset_aaaa);
-
-		isc_mem_putanddetach(&glue->mctx, glue, sizeof(*glue));
-
-		glue = next;
-	}
-}
+free_gluenode(dns_gluenode_t *gluenode);
 
 static void
-free_gluelist_rcu(struct rcu_head *rcu_head) {
-	dns_glue_t *glue = caa_container_of(rcu_head, dns_glue_t, rcu_head);
-
-	freeglue(glue);
-}
-
-static void
-free_gluetable(struct cds_wfs_stack *glue_stack) {
-	struct cds_wfs_head *head = __cds_wfs_pop_all(glue_stack);
-	struct cds_wfs_node *node = NULL, *next = NULL;
+free_gluetable(struct cds_lfht *glue_table) {
+	struct cds_lfht_iter iter;
+	dns_gluenode_t *gluenode = NULL;
 
 	rcu_read_lock();
-	cds_wfs_for_each_blocking_safe(head, node, next) {
-		dns_slabheader_t *header =
-			caa_container_of(node, dns_slabheader_t, wfs_node);
-		dns_glue_t *glue = rcu_xchg_pointer(&header->glue_list, NULL);
-
-		call_rcu(&glue->rcu_head, free_gluelist_rcu);
+	cds_lfht_for_each_entry(glue_table, &iter, gluenode, ht_node) {
+		INSIST(!cds_lfht_del(glue_table, &gluenode->ht_node));
+		free_gluenode(gluenode);
 	}
 	rcu_read_unlock();
+
+	cds_lfht_destroy(glue_table, NULL);
 }
 
 static void
@@ -470,7 +441,6 @@ free_qpdb(qpzonedb_t *qpdb, bool log) {
 
 	isc_refcount_destroy(&qpdb->current_version->references);
 	UNLINK(qpdb->open_versions, qpdb->current_version, link);
-	cds_wfs_destroy(&qpdb->current_version->glue_stack);
 	isc_rwlock_destroy(&qpdb->current_version->rwlock);
 	isc_mem_put(qpdb->common.mctx, qpdb->current_version,
 		    sizeof(*qpdb->current_version));
@@ -512,7 +482,7 @@ qpdb_destroy(dns_db_t *arg) {
 	 * node count below.
 	 */
 	if (qpdb->current_version != NULL) {
-		free_gluetable(&qpdb->current_version->glue_stack);
+		free_gluetable(qpdb->current_version->glue_table);
 	}
 
 	/*
@@ -584,9 +554,11 @@ allocate_version(isc_mem_t *mctx, uint32_t serial, unsigned int references,
 		.changed_list = ISC_LIST_INITIALIZER,
 		.resigned_list = ISC_LIST_INITIALIZER,
 		.link = ISC_LINK_INITIALIZER,
+		.glue_table = cds_lfht_new(GLUETABLE_INIT_SIZE,
+					   GLUETABLE_MIN_SIZE, 0,
+					   CDS_LFHT_AUTO_RESIZE, NULL),
 	};
 
-	cds_wfs_init(&version->glue_stack);
 	isc_rwlock_init(&version->rwlock);
 	isc_refcount_init(&version->references, references);
 
@@ -1474,8 +1446,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	if (cleanup_version != NULL) {
 		isc_refcount_destroy(&cleanup_version->references);
 		INSIST(EMPTY(cleanup_version->changed_list));
-		free_gluetable(&cleanup_version->glue_stack);
-		cds_wfs_destroy(&cleanup_version->glue_stack);
+		free_gluetable(cleanup_version->glue_table);
 		isc_rwlock_destroy(&cleanup_version->rwlock);
 		isc_mem_put(qpdb->common.mctx, cleanup_version,
 			    sizeof(*cleanup_version));
@@ -4008,10 +3979,6 @@ deletedata(dns_db_t *db ISC_ATTR_UNUSED, dns_dbnode_t *node ISC_ATTR_UNUSED,
 		RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
 	}
 	header->heap_index = 0;
-
-	if (header->glue_list) {
-		freeglue(header->glue_list);
-	}
 }
 
 /*
@@ -4976,7 +4943,6 @@ new_gluelist(isc_mem_t *mctx, dns_name_t *name) {
 	*glue = (dns_glue_t){ 0 };
 	dns_name_t *gluename = dns_fixedname_initname(&glue->fixedname);
 
-	isc_mem_attach(mctx, &glue->mctx);
 	dns_name_copy(name, gluename);
 
 	return (glue);
@@ -5189,11 +5155,11 @@ addglue_to_message(dns_glue_t *ge, dns_message_t *msg) {
 }
 
 static dns_glue_t *
-newglue(qpzonedb_t *qpdb, qpz_version_t *version, qpznode_t *node,
+newglue(dns_db_t *db, qpz_version_t *version, qpznode_t *node,
 	dns_rdataset_t *rdataset) {
 	dns_fixedname_t nodename;
 	dns_glue_additionaldata_ctx_t ctx = {
-		.db = (dns_db_t *)qpdb,
+		.db = db,
 		.version = (dns_dbversion_t *)version,
 		.nodename = dns_fixedname_initname(&nodename),
 	};
@@ -5212,59 +5178,160 @@ newglue(qpzonedb_t *qpdb, qpz_version_t *version, qpznode_t *node,
 	return (ctx.glue_list);
 }
 
-static isc_result_t
+static dns_gluenode_t *
+new_gluenode(dns_db_t *db, qpz_version_t *version, qpznode_t *node,
+	     dns_rdataset_t *rdataset) {
+	dns_gluenode_t *gluenode = isc_mem_get(db->mctx, sizeof(*gluenode));
+	*gluenode = (dns_gluenode_t){
+		.glue = newglue(db, version, node, rdataset),
+	};
+
+	isc_mem_attach(db->mctx, &gluenode->mctx);
+	qpznode_attach(node, &gluenode->node);
+
+	return (gluenode);
+}
+
+static void
+freeglue(isc_mem_t *mctx, dns_glue_t *glue) {
+	while (glue != NULL) {
+		dns_glue_t *next = glue->next;
+
+		if (dns_rdataset_isassociated(&glue->rdataset_a)) {
+			dns_rdataset_disassociate(&glue->rdataset_a);
+		}
+		if (dns_rdataset_isassociated(&glue->sigrdataset_a)) {
+			dns_rdataset_disassociate(&glue->sigrdataset_a);
+		}
+
+		if (dns_rdataset_isassociated(&glue->rdataset_aaaa)) {
+			dns_rdataset_disassociate(&glue->rdataset_aaaa);
+		}
+		if (dns_rdataset_isassociated(&glue->sigrdataset_aaaa)) {
+			dns_rdataset_disassociate(&glue->sigrdataset_aaaa);
+		}
+
+		dns_rdataset_invalidate(&glue->rdataset_a);
+		dns_rdataset_invalidate(&glue->sigrdataset_a);
+		dns_rdataset_invalidate(&glue->rdataset_aaaa);
+		dns_rdataset_invalidate(&glue->sigrdataset_aaaa);
+
+		isc_mem_put(mctx, glue, sizeof(*glue));
+
+		glue = next;
+	}
+}
+
+static void
+free_gluenode_rcu(struct rcu_head *rcu_head) {
+	dns_gluenode_t *gluenode = caa_container_of(rcu_head, dns_gluenode_t,
+						    rcu_head);
+
+	freeglue(gluenode->mctx, gluenode->glue);
+
+	qpznode_detach(&gluenode->node);
+
+	isc_mem_putanddetach(&gluenode->mctx, gluenode, sizeof(*gluenode));
+}
+
+static void
+free_gluenode(dns_gluenode_t *gluenode) {
+	call_rcu(&gluenode->rcu_head, free_gluenode_rcu);
+}
+
+static uint32_t
+qpznode_hash(const qpznode_t *node) {
+	return (isc_hash32(&node, sizeof(node), true));
+}
+
+static int
+qpznode_match(struct cds_lfht_node *ht_node, const void *key) {
+	const dns_gluenode_t *gluenode =
+		caa_container_of(ht_node, dns_gluenode_t, ht_node);
+	const qpznode_t *node = key;
+
+	return (gluenode->node == node);
+}
+
+static uint32_t
+gluenode_hash(const dns_gluenode_t *gluenode) {
+	return (qpznode_hash(gluenode->node));
+}
+
+static int
+gluenode_match(struct cds_lfht_node *ht_node, const void *key) {
+	const dns_gluenode_t *gluenode = key;
+
+	return (qpznode_match(ht_node, gluenode->node));
+}
+
+static void
 addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
 	dns_message_t *msg) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpz_version_t *version = dbversion;
 	qpznode_t *node = (qpznode_t *)rdataset->slab.node;
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_gluenode_t *gluenode = NULL;
 
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 	REQUIRE(qpdb == (qpzonedb_t *)rdataset->slab.db);
 	REQUIRE(qpdb == version->qpdb);
 	REQUIRE(!IS_STUB(qpdb));
 
+	/*
+	 * The glue table cache that forms a part of the DB version
+	 * structure is not explicitly bounded and there's no cache
+	 * cleaning. The zone data size itself is an implicit bound.
+	 *
+	 * The key into the glue hashtable is the node pointer. This is
+	 * because the glue hashtable is a property of the DB version,
+	 * and the glue is keyed for the ownername/NS tuple. We don't
+	 * bother with using an expensive dns_name_t comparison here as
+	 * the node pointer is a fixed value that won't change for a DB
+	 * version and can be compared directly.
+	 */
+
 	rcu_read_lock();
 
-	dns_glue_t *glue = rcu_dereference(header->glue_list);
-	if (glue == NULL) {
-		/* No cached glue was found in the table. Get new glue. */
-		glue = newglue(qpdb, version, node, rdataset);
+	struct cds_lfht_iter iter;
+	cds_lfht_lookup(version->glue_table, qpznode_hash(node), qpznode_match,
+			node, &iter);
 
-		/* Cache the glue or (void *)-1 if no glue was found. */
-		dns_glue_t *old_glue = rcu_cmpxchg_pointer(
-			&header->glue_list, NULL, (glue) ? glue : (void *)-1);
-		if (old_glue != NULL) {
-			/* Somebody else was faster */
-			freeglue(glue);
-			glue = old_glue;
-		} else if (glue != NULL) {
-			cds_wfs_push(&version->glue_stack, &header->wfs_node);
+	gluenode = cds_lfht_entry(cds_lfht_iter_get_node(&iter), dns_gluenode_t,
+				  ht_node);
+	if (gluenode == NULL) {
+		/* No cached glue was found in the table. Get new glue. */
+		gluenode = new_gluenode(db, version, node, rdataset);
+
+		struct cds_lfht_node *ht_node = cds_lfht_add_unique(
+			version->glue_table, gluenode_hash(gluenode),
+			gluenode_match, gluenode, &gluenode->ht_node);
+
+		if (ht_node != &gluenode->ht_node) {
+			free_gluenode_rcu(&gluenode->rcu_head);
+
+			gluenode = cds_lfht_entry(ht_node, dns_gluenode_t,
+						  ht_node);
 		}
 	}
 
-	/* We have a cached result. Add it to the message and return. */
+	INSIST(gluenode != NULL);
 
-	if (qpdb->gluecachestats != NULL) {
-		isc_stats_increment(
-			qpdb->gluecachestats,
-			(glue == (void *)-1)
-				? dns_gluecachestatscounter_hits_absent
-				: dns_gluecachestatscounter_hits_present);
-	}
+	dns_glue_t *glue = gluenode->glue;
+	isc_statscounter_t counter = dns_gluecachestatscounter_hits_present;
 
-	/*
-	 * (void *)-1 is a special value that means no glue is present in the
-	 * zone.
-	 */
-	if (glue != (void *)-1) {
+	if (glue != NULL) {
+		/* We have a cached result. Add it to the message and return. */
 		addglue_to_message(glue, msg);
+	} else {
+		counter = dns_gluecachestatscounter_hits_absent;
 	}
 
 	rcu_read_unlock();
 
-	return (ISC_R_SUCCESS);
+	if (qpdb->gluecachestats != NULL) {
+		isc_stats_increment(qpdb->gluecachestats, counter);
+	}
 }
 
 static void

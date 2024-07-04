@@ -132,9 +132,7 @@ struct dns_slabheader {
 	 */
 	unsigned char upper[32];
 
-	isc_heap_t	   *heap;
-	dns_glue_t	   *glue_list;
-	struct cds_wfs_node wfs_node;
+	isc_heap_t *heap;
 };
 
 enum {
