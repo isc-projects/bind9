@@ -983,6 +983,7 @@ typedef struct isc_nmsocket_h2 {
 
 	isc_nm_http_endpoints_t *peer_endpoints;
 
+	bool request_received;
 	bool response_submitted;
 	struct {
 		char *uri;
