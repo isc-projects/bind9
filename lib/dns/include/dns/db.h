@@ -177,8 +177,8 @@ typedef struct dns_dbmethods {
 	void (*locknode)(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t t);
 	void (*unlocknode)(dns_db_t *db, dns_dbnode_t *node,
 			   isc_rwlocktype_t t);
-	isc_result_t (*addglue)(dns_db_t *db, dns_dbversion_t *version,
-				dns_rdataset_t *rdataset, dns_message_t *msg);
+	void (*addglue)(dns_db_t *db, dns_dbversion_t *version,
+			dns_rdataset_t *rdataset, dns_message_t *msg);
 	void (*expiredata)(dns_db_t *db, dns_dbnode_t *node, void *data);
 	void (*deletedata)(dns_db_t *db, dns_dbnode_t *node, void *data);
 	isc_result_t (*nodefullname)(dns_db_t *db, dns_dbnode_t *node,

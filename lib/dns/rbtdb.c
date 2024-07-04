@@ -167,7 +167,7 @@ delete_callback(void *data, void *arg);
 static void
 prune_tree(void *arg);
 static void
-free_gluetable(dns_rbtdb_version_t *version);
+free_gluetable(struct cds_lfht *glue_table);
 
 static void
 rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp DNS__DB_FLARG);
@@ -466,7 +466,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 
 		isc_refcount_destroy(&rbtdb->current_version->references);
 		UNLINK(rbtdb->open_versions, rbtdb->current_version, link);
-		cds_wfs_destroy(&rbtdb->current_version->glue_stack);
 		isc_rwlock_destroy(&rbtdb->current_version->rwlock);
 		isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
 			    sizeof(*rbtdb->current_version));
@@ -623,7 +622,7 @@ dns__rbtdb_destroy(dns_db_t *arg) {
 	 * node count below.
 	 */
 	if (rbtdb->current_version != NULL) {
-		free_gluetable(rbtdb->current_version);
+		free_gluetable(rbtdb->current_version->glue_table);
 	}
 
 	/*
@@ -689,10 +688,12 @@ allocate_version(isc_mem_t *mctx, uint32_t serial, unsigned int references,
 		.changed_list = ISC_LIST_INITIALIZER,
 		.resigned_list = ISC_LIST_INITIALIZER,
 		.link = ISC_LINK_INITIALIZER,
+		.glue_table = cds_lfht_new(GLUETABLE_INIT_SIZE,
+					   GLUETABLE_MIN_SIZE, 0,
+					   CDS_LFHT_AUTO_RESIZE, NULL),
 	};
 
-	cds_wfs_init(&version->glue_stack);
-
+	isc_rwlock_init(&version->rwlock);
 	isc_refcount_init(&version->references, references);
 
 	return (version);
@@ -729,7 +730,6 @@ dns__rbtdb_newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 		version->salt_length = 0;
 		memset(version->salt, 0, sizeof(version->salt));
 	}
-	isc_rwlock_init(&version->rwlock);
 	RWLOCK(&rbtdb->current_version->rwlock, isc_rwlocktype_read);
 	version->records = rbtdb->current_version->records;
 	version->xfrsize = rbtdb->current_version->xfrsize;
@@ -1947,8 +1947,7 @@ dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	if (cleanup_version != NULL) {
 		isc_refcount_destroy(&cleanup_version->references);
 		INSIST(EMPTY(cleanup_version->changed_list));
-		free_gluetable(cleanup_version);
-		cds_wfs_destroy(&cleanup_version->glue_stack);
+		free_gluetable(cleanup_version->glue_table);
 		isc_rwlock_destroy(&cleanup_version->rwlock);
 		isc_mem_put(rbtdb->common.mctx, cleanup_version,
 			    sizeof(*cleanup_version));
@@ -4072,7 +4071,6 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 */
 	rbtdb->current_version = allocate_version(mctx, 1, 1, false);
 	rbtdb->current_version->rbtdb = rbtdb;
-	isc_rwlock_init(&rbtdb->current_version->rwlock);
 
 	/*
 	 * Keep the current version in the open list so that list operation
@@ -4860,13 +4858,8 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	return (ISC_R_SUCCESS);
 }
 
-void
-dns__rbtdb_freeglue(dns_glue_t *glue_list) {
-	if (glue_list == (void *)-1) {
-		return;
-	}
-
-	dns_glue_t *glue = glue_list;
+static void
+freeglue(isc_mem_t *mctx, dns_glue_t *glue) {
 	while (glue != NULL) {
 		dns_glue_t *next = glue->next;
 
@@ -4889,33 +4882,42 @@ dns__rbtdb_freeglue(dns_glue_t *glue_list) {
 		dns_rdataset_invalidate(&glue->rdataset_aaaa);
 		dns_rdataset_invalidate(&glue->sigrdataset_aaaa);
 
-		isc_mem_putanddetach(&glue->mctx, glue, sizeof(*glue));
+		isc_mem_put(mctx, glue, sizeof(*glue));
 
 		glue = next;
 	}
 }
 
-static void
-free_gluelist_rcu(struct rcu_head *rcu_head) {
-	dns_glue_t *glue = caa_container_of(rcu_head, dns_glue_t, rcu_head);
+void
+dns__rbtdb_free_gluenode_rcu(struct rcu_head *rcu_head) {
+	dns_gluenode_t *gluenode = caa_container_of(rcu_head, dns_gluenode_t,
+						    rcu_head);
 
-	dns__rbtdb_freeglue(glue);
+	freeglue(gluenode->mctx, gluenode->glue);
+
+	dns_db_detachnode(gluenode->db, (dns_dbnode_t **)&gluenode->node);
+
+	isc_mem_putanddetach(&gluenode->mctx, gluenode, sizeof(*gluenode));
+}
+
+void
+dns__rbtdb_free_gluenode(dns_gluenode_t *gluenode) {
+	call_rcu(&gluenode->rcu_head, dns__rbtdb_free_gluenode_rcu);
 }
 
 static void
-free_gluetable(dns_rbtdb_version_t *rbtversion) {
-	struct cds_wfs_head *head = __cds_wfs_pop_all(&rbtversion->glue_stack);
-	struct cds_wfs_node *node = NULL, *next = NULL;
+free_gluetable(struct cds_lfht *glue_table) {
+	struct cds_lfht_iter iter;
+	dns_gluenode_t *gluenode = NULL;
 
 	rcu_read_lock();
-	cds_wfs_for_each_blocking_safe(head, node, next) {
-		dns_slabheader_t *header =
-			caa_container_of(node, dns_slabheader_t, wfs_node);
-		dns_glue_t *glue = rcu_xchg_pointer(&header->glue_list, NULL);
-
-		call_rcu(&glue->rcu_head, free_gluelist_rcu);
+	cds_lfht_for_each_entry(glue_table, &iter, gluenode, ht_node) {
+		INSIST(!cds_lfht_del(glue_table, &gluenode->ht_node));
+		dns__rbtdb_free_gluenode(gluenode);
 	}
 	rcu_read_unlock();
+
+	cds_lfht_destroy(glue_table, NULL);
 }
 
 void
@@ -4944,10 +4946,6 @@ dns__rbtdb_deletedata(dns_db_t *db ISC_ATTR_UNUSED,
 		}
 		if (header->closest != NULL) {
 			dns_slabheader_freeproof(db->mctx, &header->closest);
-		}
-	} else {
-		if (header->glue_list) {
-			dns__rbtdb_freeglue(header->glue_list);
 		}
 	}
 }
