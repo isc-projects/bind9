@@ -270,9 +270,7 @@ You'll need to provide the OpenSSL engine name (``pkcs11``) if using the engine 
 the algorithm (``RSASHA256``). The key is referenced with the PKCS#11 URI scheme and it
 can contain the PKCS#11 token label (we asume that it has been initialized as bind9),
 and the PKCS#11 object label (called label when generating the keys using ``pkcs11-tool``)
-and the HSM PIN. Refer to `RFC7512`_ for the full PKCS#11 URI specification.
-
-.. _`RFC7512`: https://www.rfc-editor.org/rfc/rfc7512.html
+and the HSM PIN. Refer to :rfc:`7512` for the full PKCS#11 URI specification.
 
 Convert the KSK:
 

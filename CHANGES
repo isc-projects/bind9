@@ -1,3 +1,5 @@
+6404.	[placeholder]
+
 6403.	[security]	qctx-zversion was not being cleared when it should have
 			been leading to an assertion failure if it needed to be
 			reused. (CVE-2024-4076) [GL #4507]

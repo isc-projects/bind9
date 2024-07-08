@@ -17,12 +17,9 @@ Release Notes
 Introduction
 ------------
 
-BIND 9.19 is an unstable development release of BIND. This document
-summarizes new features and functional changes that have been introduced
-on this branch. With each development release leading up to the stable
-BIND 9.20 release, this document will be updated with additional
-features added and bugs fixed. Please see the CHANGES file for a more
-detailed list of changes and bug fixes.
+BIND 9.20 is a stable branch, suitable for production use. This
+document summarizes significant changes since the last production
+release on the 9.18 branch.
 
 Supported Platforms
 -------------------
@@ -38,32 +35,7 @@ information about each release, and source code.
 
 .. include:: ../notes/notes-known-issues.rst
 
-.. include:: ../notes/notes-current.rst
-.. include:: ../notes/notes-9.19.24.rst
-.. include:: ../notes/notes-9.19.23.rst
-.. include:: ../notes/notes-9.19.22.rst
-.. include:: ../notes/notes-9.19.21.rst
-.. include:: ../notes/notes-9.19.20.rst
-.. include:: ../notes/notes-9.19.19.rst
-.. include:: ../notes/notes-9.19.18.rst
-.. include:: ../notes/notes-9.19.17.rst
-.. include:: ../notes/notes-9.19.16.rst
-.. include:: ../notes/notes-9.19.15.rst
-.. include:: ../notes/notes-9.19.14.rst
-.. include:: ../notes/notes-9.19.13.rst
-.. include:: ../notes/notes-9.19.12.rst
-.. include:: ../notes/notes-9.19.11.rst
-.. include:: ../notes/notes-9.19.10.rst
-.. include:: ../notes/notes-9.19.9.rst
-.. include:: ../notes/notes-9.19.8.rst
-.. include:: ../notes/notes-9.19.7.rst
-.. include:: ../notes/notes-9.19.6.rst
-.. include:: ../notes/notes-9.19.5.rst
-.. include:: ../notes/notes-9.19.4.rst
-.. include:: ../notes/notes-9.19.3.rst
-.. include:: ../notes/notes-9.19.2.rst
-.. include:: ../notes/notes-9.19.1.rst
-.. include:: ../notes/notes-9.19.0.rst
+.. include:: ../notes/notes-9.20.0.rst
 
 .. _relnotes_license:
 
@@ -79,13 +51,12 @@ https://www.isc.org/contact/.
 End of Life
 -----------
 
-BIND 9.19 is an unstable development branch. When its development is
-complete, it will be renamed to BIND 9.20, which will be a stable
-branch. The end-of-life date for BIND 9.20 has not yet been determined.
-For those needing long-term stability, the current Extended Support
-Version (ESV) is BIND 9.18, which will be supported until at least
-December 2025. See https://kb.isc.org/docs/aa-00896 for details of
-ISC's software support policy.
+BIND 9.20 is a stable branch, suitable for production use. After it has
+been in production use for a while it will be designated as an Extended
+Support Version (ESV). Until then, the current ESV is BIND 9.18, which
+will be supported until at least December 2025.  See
+https://kb.isc.org/docs/aa-00896 for details of ISC's software support
+policy.
 
 Thank You
 ---------

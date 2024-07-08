@@ -55,13 +55,14 @@ Required Libraries
 
 To build BIND 9, the following packages must be installed:
 
+- a C11-compliant compiler
 - ``libcrypto``, ``libssl``
 - ``liburcu``
 - ``libuv``
 - ``perl``
 - ``pkg-config`` / ``pkgconfig`` / ``pkgconf``
 
-BIND 9.19 requires ``libuv`` 1.34.0 or higher, using ``libuv`` >= 1.40.0
+BIND 9.20 requires ``libuv`` 1.34.0 or higher, using ``libuv`` >= 1.40.0
 is recommended. Compiling or running with ``libuv`` 1.35.0 or 1.36.0 is
 not supported, as this could lead to an assertion failure in the UDP
 receive code. On older systems, an updated ``libuv`` package needs to be
@@ -96,7 +97,8 @@ Optional Features
 To see a full list of configuration options, run ``configure --help``.
 
 To improve performance, use of the ``jemalloc`` library
-(http://jemalloc.net/) is strongly recommended.
+(https://jemalloc.net/) is strongly recommended. Version 4.0.0 or newer is
+required when in use.
 
 To support :rfc:`DNS over HTTPS (DoH) <8484>`, the server must be linked
 with ``libnghttp2`` (https://nghttp2.org/). If the library is

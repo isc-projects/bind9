@@ -202,7 +202,7 @@ the packed vector is the popcount of the bits preceding `b`.
     }
 
 See "Hacker's Delight" by Hank Warren, section 5-1 "Counting 1
-bits", subsection "applications". http://www.hackersdelight.org
+bits", subsection "applications". https://www.hackersdelight.org
 
 See under _"bitmap popcount shenanigans"_ in `lib/dns/qp.c` for how
 this is implemented in BIND.
@@ -214,8 +214,8 @@ popcount for trie nodes
 Phil Bagwell's hashed array-mapped tries (HAMT) use popcount for
 compact trie nodes. In a HAMT, string keys are hashed, and the hash is
 used as the index to the trie, with radix 2^32 or 2^64.
-http://infoscience.epfl.ch/record/64394/files/triesearches.pdf
-http://infoscience.epfl.ch/record/64398/files/idealhashtrees.pdf
+https://infoscience.epfl.ch/record/64394/files/triesearches.pdf
+https://infoscience.epfl.ch/record/64398/files/idealhashtrees.pdf
 
 As discussed above, increasing the radix makes the tree shallower, so
 it should be faster. The downside is usually much greater memory

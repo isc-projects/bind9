@@ -1231,7 +1231,7 @@ implement a method.
 
 Type values range from 0 to 65536.   These have been further divided into
 reserved values,  values that have global definition and values that have
-local definition as defined in [RFC 6895](http://tools.ietf.org/html/rfc6895).
+local definition as defined in [RFC 6895](https://tools.ietf.org/html/rfc6895).
 Please use an appropriate value.  You can use a private value
 (65280 - 65534) while waiting for a type assignment to be made, then
 rename the file and update the type values when the assignment has been
