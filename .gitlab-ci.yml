@@ -688,6 +688,7 @@ docs:pdf:
   <<: *base_image
   stage: docs
   before_script:
+    - apt-get update
     - apt-get -y install qpdf texlive-full texlive-xetex xindy
   script:
     - *configure
