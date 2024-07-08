@@ -100,6 +100,22 @@
  */
 #define INCOMING_DATA_MAX_CHUNKS_AT_ONCE (4)
 
+/*
+ * These constants define the grace period to help detect flooding clients.
+ *
+ * The first one defines how much data can be processed before opening
+ * a first stream and received at least some useful (=DNS) data.
+ *
+ * The second one defines how much data from a client we read before
+ * trying to drop a clients who sends not enough useful data.
+ *
+ * The third constant defines how many streams we agree to process
+ * before checking if there was at least one DNS request received.
+ */
+#define INCOMING_DATA_INITIAL_STREAM_SIZE (1536)
+#define INCOMING_DATA_GRACE_SIZE	  (MAX_ALLOWED_DATA_IN_HEADERS)
+#define MAX_STREAMS_BEFORE_FIRST_REQUEST  (50)
+
 typedef struct isc_nm_http_response_status {
 	size_t code;
 	size_t content_length;
@@ -158,6 +174,7 @@ struct isc_nm_http_session {
 	ISC_LIST(http_cstream_t) cstreams;
 	ISC_LIST(isc_nmsocket_h2_t) sstreams;
 	size_t nsstreams;
+	uint64_t total_opened_sstreams;
 
 	isc_nmhandle_t *handle;
 	isc_nmhandle_t *client_httphandle;
@@ -179,6 +196,9 @@ struct isc_nm_http_session {
 	uint64_t received;  /* How many requests have been received. */
 	uint64_t submitted; /* How many responses were submitted to send */
 	uint64_t processed; /* How many responses were processed. */
+
+	uint64_t processed_incoming_data;
+	uint64_t processed_useful_data; /* DNS data */
 };
 
 typedef enum isc_http_error_responses {
@@ -213,6 +233,12 @@ typedef struct isc_http_send_req {
 static bool
 http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		   isc_nm_cb_t cb, void *cbarg);
+
+static void
+http_log_flooding_peer(isc_nm_http_session_t *session);
+
+static bool
+http_is_flooding_peer(isc_nm_http_session_t *session);
 
 static ssize_t
 http_process_input_data(isc_nm_http_session_t *session,
@@ -619,6 +645,7 @@ on_server_data_chunk_recv_callback(int32_t stream_id, const uint8_t *data,
 			if (new_bufsize <= MAX_DNS_MESSAGE_SIZE &&
 			    new_bufsize <= h2->content_length)
 			{
+				session->processed_useful_data += len;
 				isc_buffer_putmem(&h2->rbuf, data, len);
 				break;
 			}
@@ -1053,6 +1080,7 @@ http_process_input_data(isc_nm_http_session_t *session,
 
 		if (readlen >= 0) {
 			isc_buffer_forward(input_data, readlen);
+			session->processed_incoming_data += readlen;
 		}
 
 		return readlen;
@@ -1109,6 +1137,7 @@ http_process_input_data(isc_nm_http_session_t *session,
 
 		if (readlen >= 0) {
 			isc_buffer_forward(input_data, readlen);
+			session->processed_incoming_data += readlen;
 			processed += readlen;
 		} else {
 			isc_buffer_clear(input_data);
@@ -1117,6 +1146,82 @@ http_process_input_data(isc_nm_http_session_t *session,
 	}
 
 	return processed;
+}
+
+static void
+http_log_flooding_peer(isc_nm_http_session_t *session) {
+	const int log_level = ISC_LOG_DEBUG(1);
+	if (session->handle != NULL && isc_log_wouldlog(log_level)) {
+		char client_sabuf[ISC_SOCKADDR_FORMATSIZE];
+		char local_sabuf[ISC_SOCKADDR_FORMATSIZE];
+
+		isc_sockaddr_format(&session->handle->sock->peer, client_sabuf,
+				    sizeof(client_sabuf));
+		isc_sockaddr_format(&session->handle->sock->iface, local_sabuf,
+				    sizeof(local_sabuf));
+		isc__nmsocket_log(session->handle->sock, log_level,
+				  "Dropping a flooding HTTP/2 peer "
+				  "%s (on %s) - processed: %" PRIu64
+				  " bytes, of them useful: %" PRIu64 "",
+				  client_sabuf, local_sabuf,
+				  session->processed_incoming_data,
+				  session->processed_useful_data);
+	}
+}
+
+static bool
+http_is_flooding_peer(isc_nm_http_session_t *session) {
+	if (session->client) {
+		return false;
+	}
+
+	/*
+	 * A flooding client can try to open a lot of streams before
+	 * submitting a request. Let's drop such clients.
+	 */
+	if (session->received == 0 &&
+	    session->total_opened_sstreams > MAX_STREAMS_BEFORE_FIRST_REQUEST)
+	{
+		return true;
+	}
+
+	/*
+	 * We have processed enough data to open at least one stream and
+	 * get some useful data.
+	 */
+	if (session->processed_incoming_data >
+		    INCOMING_DATA_INITIAL_STREAM_SIZE &&
+	    (session->total_opened_sstreams == 0 ||
+	     session->processed_useful_data == 0))
+	{
+		return true;
+	}
+
+	if (session->processed_incoming_data < INCOMING_DATA_GRACE_SIZE) {
+		return false;
+	}
+
+	/*
+	 * The overhead of DoH per DNS message can be minimum 160-180
+	 * bytes. We should allow more for extra information that can be
+	 * included in headers, so let's use 256 bytes. Minimum DNS
+	 * message size is 12 bytes. So, (256+12)/12=22. Even that can be
+	 * too restricting for some edge cases, but should be good enough
+	 * for any practical purposes. Not to mention that HTTP/2 may
+	 * include legitimate data that is completely useless for DNS
+	 * purposes...
+	 *
+	 * Anyway, at that point we should have processed enough requests
+	 * for such clients (if any).
+	 */
+	if (session->processed_useful_data == 0 ||
+	    (session->processed_incoming_data /
+	     session->processed_useful_data) > 22)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 /*
@@ -1152,6 +1257,10 @@ http_readcb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	readlen = http_process_input_data(session, &input);
 	if (readlen < 0) {
 		failed_read_cb(ISC_R_UNEXPECTED, session);
+		goto done;
+	} else if (http_is_flooding_peer(session)) {
+		http_log_flooding_peer(session);
+		failed_read_cb(ISC_R_RANGE, session);
 		goto done;
 	}
 
@@ -1485,6 +1594,9 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 
 			if (readlen < 0) {
 				failed_read_cb(ISC_R_UNEXPECTED, session);
+			} else if (http_is_flooding_peer(session)) {
+				http_log_flooding_peer(session);
+				failed_read_cb(ISC_R_RANGE, session);
 			} else if ((size_t)readlen == remaining) {
 				isc_buffer_free(&session->buf);
 				http_do_bio(session, NULL, NULL, NULL);
@@ -1972,6 +2084,7 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	session->nsstreams++;
 	isc__nm_httpsession_attach(session, &socket->h2->session);
 	ISC_LIST_APPEND(session->sstreams, socket->h2, link);
+	session->total_opened_sstreams++;
 
 	nghttp2_session_set_stream_user_data(ngsession, frame->hd.stream_id,
 					     socket);
@@ -2031,6 +2144,8 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 						socket->worker->mctx, dns_value,
 						dns_value_len,
 						&socket->h2->query_data_len);
+				socket->h2->session->processed_useful_data +=
+					dns_value_len;
 			} else {
 				socket->h2->query_too_large = true;
 				return ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE;
