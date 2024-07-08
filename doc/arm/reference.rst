@@ -3786,15 +3786,33 @@ system.
    :short: Sets the maximum number of RR types that can be stored for an owner name
 
    This sets the maximum number of resource record types that can be stored
-   for a single owner name in a database. When configured in :namedconf:ref:`options`
-   or :namedconf:ref:`view`, it controls the cache database, and also sets
-   the default value for zone databases, which can be overridden by setting
-   it at the :namedconf:ref:`zone` level
+   for a single owner name in a database. When configured in
+   :namedconf:ref:`options` or :namedconf:ref:`view`, it controls the cache
+   database and sets the default value for zone databases, which can be
+   overridden by setting it at the :namedconf:ref:`zone` level.
 
-   If set to a positive value, any attempt to cache or to add to a zone an owner
-   name with more than the specified number of resource record types will result
-   in a failure.  If set to 0, there is no cap on RR types number.  The default is
-   100.
+   An RR type and its corresponding signature are counted as two types. So,
+   for example, a signed node containing A and AAAA records has four types:
+   A, RRSIG(A), AAAA, and RRSIG(AAAA).
+
+   The behavior is slightly different for zone and cache databases:
+
+   In a zone, if :any:`max-types-per-name` is set to a positive number, any
+   attempt to add a new resource record set to a name that already has the
+   specified number of types will fail.
+
+   In a cache, if :any:`max-types-per-name` is set to a positive number, an
+   attempt to add a new resource record set to a name that already has the
+   specified number of types will temporarily succeed so that the query can
+   be answered. However, the newly added RRset will immediately be purged.
+
+   Certain high-priority types, including SOA, CNAME, DNSKEY, and their
+   corresponding signatures, are always cached. If :any:`max-types-per-name`
+   is set to a very low value, then it may be ignored to allow high-priority
+   types to be cached.
+
+   When :any:`max-types-per-name` is set to 0, there is no cap on the number
+   of RR types.  The default is 100.
 
 .. namedconf:statement:: recursive-clients
    :tags: query
