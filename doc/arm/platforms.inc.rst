@@ -102,7 +102,7 @@ These are platforms on which current versions of BIND 9 are known *not* to build
 -  Platforms without at least OpenSSL 1.0.2
 -  Windows
 -  Solaris 10 and older
--  Platforms that do not support IPv6 Advanced Socket API (RFC 3542)
+-  Platforms that do not support IPv6 Advanced Socket API (:rfc:`3542`)
 -  Platforms that do not support atomic operations (via compiler or
    library)
 -  Linux without NPTL (Native POSIX Thread Library)

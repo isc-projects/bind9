@@ -444,7 +444,7 @@ Notes
 
 .. [#rfc4294] Section 5.1 - DNAME records are fully supported.
 
-.. [#rfc7050] RFC 7050 is updated by RFC 8880.
+.. [#rfc7050] :rfc:`7050` is updated by :rfc:`8880`.
 
 .. [#noencryptedfwd] Forwarding DNS queries over encrypted transports is not
    supported yet.

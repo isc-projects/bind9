@@ -1242,7 +1242,7 @@ default is used.
    Logged :any:`dnstap` messages can be parsed using the :iscman:`dnstap-read`
    utility (see :ref:`man_dnstap-read` for details).
 
-   For more information on :any:`dnstap`, see http://dnstap.info.
+   For more information on :any:`dnstap`, see https://dnstap.info.
 
    The fstrm library has a number of tunables that are exposed in
    :iscman:`named.conf`, and can be modified if necessary to improve
@@ -5998,7 +5998,7 @@ The following options can be specified in a :any:`tls` statement:
    :short: Enables or disables session resumption through TLS session tickets.
 
     Enables or disables session resumption through TLS session tickets,
-    as defined in RFC5077. Disabling the stateless session tickets
+    as defined in :rfc:`5077`. Disabling the stateless session tickets
     might be required in the cases when forward secrecy is needed,
     or the TLS certificate and key pair is planned to be used across
     multiple BIND instances.
@@ -6068,7 +6068,7 @@ good example of when reconfiguration is necessary is when TLS keys and
 certificates are updated on the disk.
 
 BIND supports the following TLS authentication mechanisms described in
-the RFC 9103, Section 9.3: Opportunistic TLS, Strict TLS, and Mutual
+the :rfc:`9103`, Section 9.3: Opportunistic TLS, Strict TLS, and Mutual
 TLS.
 
 .. _opportunistic-tls:
@@ -6076,7 +6076,7 @@ TLS.
 Opportunistic TLS provides encryption for data but does not provide
 any authentication for the channel. This mode is the default one and
 it is used whenever :any:`remote-hostname` and :any:`ca-file` options are not set
-in :any:`tls` statements in use. RFC 9103 allows optional fallback to
+in :any:`tls` statements in use. :rfc:`9103` allows optional fallback to
 clear-text DNS in the cases when TLS is not available. Still, BIND
 intentionally does not support that in order to protect from
 unexpected data leaks due to misconfiguration. Both BIND and its
