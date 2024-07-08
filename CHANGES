@@ -1,3 +1,5 @@
+	--- 9.18.28 released ---
+
 6404.	[security]	Remove SIG(0) support from named as a countermeasure
 			for CVE-2024-1975. [GL #4480]
 
