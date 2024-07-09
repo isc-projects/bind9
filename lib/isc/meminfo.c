@@ -40,11 +40,11 @@ isc_meminfo_totalphys(void) {
 	long pages = sysconf(_SC_PHYS_PAGES);
 	long pagesize = sysconf(_SC_PAGESIZE);
 
-	if (pages == -1 || pagesize == -1) {
+	if (pages < 0 || pagesize < 0) {
 		return (0);
 	}
 
-	return ((size_t)pages * pagesize);
+	return ((uint64_t)pages * pagesize);
 #endif /* if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE) */
 	return (0);
 }
