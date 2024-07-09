@@ -2689,13 +2689,13 @@ catz_addmodzone_cb(void *arg) {
 		goto cleanup;
 	}
 
+	/*
+	 * A non-empty 'catalog-zones' statement implies that 'allow-new-zones'
+	 * is true, so this is expected to be non-NULL.
+	 */
 	cfg = (ns_cfgctx_t *)cz->view->new_zone_config;
 	if (cfg == NULL) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "catz: allow-new-zones statement missing from "
-			      "config; cannot add zone from the catalog");
-		goto cleanup;
+		CHECK(ISC_R_FAILURE);
 	}
 
 	name = dns_catz_entry_getname(cz->entry);
@@ -3067,14 +3067,13 @@ catz_reconfigure(dns_catz_entry_t *entry, void *arg1, void *arg2) {
 		return;
 	}
 
+	/*
+	 * A non-empty 'catalog-zones' statement implies that 'allow-new-zones'
+	 * is true, so this is expected to be non-NULL.
+	 */
 	cfg = (ns_cfgctx_t *)view->new_zone_config;
 	if (cfg == NULL) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "catz_reconfigure: allow-new-zones statement "
-			      "missing from config; cannot reconfigure a "
-			      "member zone");
-		goto cleanup;
+		CHECK(ISC_R_FAILURE);
 	}
 
 	result = dns_catz_generate_zonecfg(data->catz, entry, &confbuf);
