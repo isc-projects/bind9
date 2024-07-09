@@ -640,10 +640,8 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
  * Generate a DST key (or keypair) with the supplied parameters.  The
  * interpretation of the "param" field depends on the algorithm:
  * \code
- * 	RSA:	exponent
- * 		0	use exponent 3
- * 		!0	use Fermat4 (2^16 + 1)
- * 	DSA:	unused
+ * 	RSA:	unused
+ * 	ECDSA:	unused
  * 	HMACMD5: entropy
  *		0	default - require good entropy
  *		!0	lack of good entropy is ok

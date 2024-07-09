@@ -253,7 +253,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	char filename[255];
 	char algstr[DNS_SECALG_FORMATSIZE];
 	uint16_t flags = 0;
-	int param = 0;
 	bool null_key = false;
 	bool conflict = false;
 	bool show_progress = false;
@@ -614,12 +613,12 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 				ctx->keystore, name, ctx->policy, ctx->rdclass,
 				mctx, ctx->alg, ctx->size, flags, &key);
 		} else if (!ctx->quiet && show_progress) {
-			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
+			ret = dst_key_generate(name, ctx->alg, ctx->size, 0,
 					       flags, ctx->protocol,
 					       ctx->rdclass, NULL, mctx, &key,
 					       &progress);
 		} else {
-			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
+			ret = dst_key_generate(name, ctx->alg, ctx->size, 0,
 					       flags, ctx->protocol,
 					       ctx->rdclass, NULL, mctx, &key,
 					       NULL);
