@@ -189,6 +189,7 @@ printrdata(dns_rdata_t *rdata) {
 			check_result(result, "dns_rdata_totext");
 		}
 		isc_buffer_free(&b);
+		INSIST(size <= (UINT_MAX / 2));
 		size *= 2;
 	}
 }
