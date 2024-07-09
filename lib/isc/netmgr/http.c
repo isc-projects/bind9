@@ -560,6 +560,8 @@ finish_http_session(isc_nm_http_session_t *session) {
 		if (!session->closed) {
 			session->closed = true;
 			session->reading = false;
+			isc_nm_read_stop(session->handle);
+			isc__nmsocket_timer_stop(session->handle->sock);
 			isc_nmhandle_close(session->handle);
 		}
 
@@ -694,6 +696,9 @@ call_unlink_cstream_readcb(http_cstream_t *cstream,
 	isc_buffer_usedregion(cstream->rbuf, &read_data);
 	cstream->read_cb(session->client_httphandle, result, &read_data,
 			 cstream->read_cbarg);
+	if (result == ISC_R_SUCCESS) {
+		isc__nmsocket_timer_restart(session->handle->sock);
+	}
 	put_http_cstream(session->mctx, cstream);
 }
 
@@ -1570,6 +1575,7 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 	if (nghttp2_session_want_read(session->ngsession) != 0) {
 		if (!session->reading) {
 			/* We have not yet started reading from this handle */
+			isc__nmsocket_timer_start(session->handle->sock);
 			isc_nm_read(session->handle, http_readcb, session);
 			session->reading = true;
 		} else if (session->buf != NULL) {
@@ -1627,6 +1633,7 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 			/*
 			 * Resume reading, it's idempotent, wait for more
 			 */
+			isc__nmsocket_timer_start(session->handle->sock);
 			isc_nm_read(session->handle, http_readcb, session);
 		}
 	} else {
@@ -1803,6 +1810,7 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	}
 
 	http_transpost_tcp_nodelay(handle);
+	isc__nmhandle_set_manual_timer(session->handle, true);
 
 	http_call_connect_cb(http_sock, session, result);
 
@@ -2454,6 +2462,8 @@ server_call_cb(isc_nmsocket_t *socket, const isc_result_t result,
 	handle = isc__nmhandle_get(socket, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
 		data = NULL;
+	} else if (socket->h2->session->handle != NULL) {
+		isc__nmsocket_timer_restart(socket->h2->session->handle->sock);
 	}
 	if (result == ISC_R_SUCCESS) {
 		socket->h2->request_received = true;
@@ -2859,6 +2869,8 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmhandle_attach(handle, &session->handle);
 	isc__nmsocket_attach(httpserver, &session->serversocket);
 	server_send_connection_header(session);
+
+	isc__nmhandle_set_manual_timer(session->handle, true);
 
 	/* TODO H2 */
 	http_do_bio(session, NULL, NULL, NULL);
