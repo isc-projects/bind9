@@ -19,7 +19,6 @@
 #include <stdbool.h>
 
 #include <isc/assertions.h>
-#include <isc/crc64.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>

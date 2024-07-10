@@ -20,7 +20,6 @@
 #include <isc/ascii.h>
 #include <isc/async.h>
 #include <isc/atomic.h>
-#include <isc/crc64.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
