@@ -2633,8 +2633,10 @@ Boolean Options
 
    The :any:`querylog` option specifies whether query logging should be active when
    :iscman:`named` first starts. If :any:`querylog` is not specified, then query logging
-   is determined by the presence of the logging category ``queries``.  Query
-   logging can also be activated at runtime using the command ``rndc querylog
+   is determined by the presence of the logging category ``queries``.  Please
+   note that :option:`rndc reconfig` and :option:`rndc reload` have no effect on
+   this option, so it cannot be changed once the server is running. However,
+   query logging can be activated at runtime using the command ``rndc querylog
    on``, or deactivated with :option:`rndc querylog off <rndc querylog>`.
 
 .. namedconf:statement:: check-names
