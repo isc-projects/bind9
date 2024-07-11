@@ -388,10 +388,6 @@ AC_COMPILE_IFELSE(
   ],
   [AC_MSG_FAILURE([stdatomic.h header found, but compilation failed, please fix your toolchain.])])
 
-AC_CHECK_HEADERS([stdnoreturn.h],
-		 [],
-		 [AC_MSG_ERROR([C11 standard headers not found, update your toolchain.])])
-
 AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
@@ -457,11 +453,6 @@ AC_COMPILE_IFELSE(
   [AC_MSG_RESULT(no)
    AC_MSG_WARN([uname is not correctly supported])
   ])
-
-#
-# check for GCC noreturn attribute
-#
-AX_GCC_FUNC_ATTRIBUTE([noreturn])
 
 #
 # check for GCC malloc attribute

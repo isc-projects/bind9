@@ -836,7 +836,7 @@ fgets_next_command(void *arg) {
 	cmdline = fgets(cmdlinebuf, COMMSIZE, stdin);
 }
 
-noreturn static void
+ISC_NORETURN static void
 usage(void);
 
 static void

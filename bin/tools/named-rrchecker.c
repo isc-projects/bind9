@@ -35,7 +35,7 @@ static isc_lex_t *lex;
 
 static isc_lexspecials_t specials;
 
-noreturn static void
+ISC_NORETURN static void
 usage(void);
 
 static void
@@ -63,7 +63,7 @@ cleanup(void) {
 	}
 }
 
-noreturn static void
+ISC_NORETURN static void
 fatal(const char *format, ...);
 
 static void

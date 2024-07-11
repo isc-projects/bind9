@@ -1028,7 +1028,7 @@ nsdiff(uint32_t ttl, dns_rdataset_t *oldset, dns_rdataset_t *newset) {
 	}
 }
 
-noreturn static void
+ISC_NORETURN static void
 usage(void);
 
 static void

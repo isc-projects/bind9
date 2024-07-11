@@ -62,7 +62,7 @@ static enum { progmode_check, progmode_compile } progmode;
 		}                                                             \
 	} while (0)
 
-noreturn static void
+ISC_NORETURN static void
 usage(void);
 
 static void
