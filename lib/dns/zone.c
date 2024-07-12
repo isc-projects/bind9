@@ -4281,11 +4281,8 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	      dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	      dns_rdata_t *rdata) {
 	dns_difftuple_t *tuple = NULL;
-	isc_result_t result;
-	result = dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+
+	dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
 	return (do_one_tuple(&tuple, db, ver, diff));
 }
 
@@ -4302,7 +4299,7 @@ update_soa_serial(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	INSIST(method != dns_updatemethod_none);
 
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_DEL, &deltuple));
-	CHECK(dns_difftuple_copy(deltuple, &addtuple));
+	dns_difftuple_copy(deltuple, &addtuple);
 	addtuple->op = DNS_DIFFOP_ADD;
 
 	serial = dns_soa_getserial(&addtuple->rdata);
@@ -16241,9 +16238,9 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 				if (*soatuplep != NULL) {
 					dns_difftuple_free(soatuplep);
 				}
-				CHECK(dns_difftuple_create(
-					diff->mctx, DNS_DIFFOP_ADD, name, ttl,
-					rdata, soatuplep));
+				dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
+						     name, ttl, rdata,
+						     soatuplep);
 			}
 			if (n_soa == 3) {
 				n_soa = 1;
@@ -16290,8 +16287,7 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 
 		op = (n_soa == 1) ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD;
 
-		CHECK(dns_difftuple_create(diff->mctx, op, name, ttl, rdata,
-					   &tuple));
+		dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
 		dns_diff_appendminimal(diff, &tuple);
 	}
 	if (result == ISC_R_NOMORE) {
@@ -20343,8 +20339,8 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 				continue;
 			}
 
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
-						   name, 0, &rdata, &newtuple));
+			dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
+					     0, &rdata, &newtuple);
 			CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			INSIST(newtuple == NULL);
 		}
@@ -20356,8 +20352,8 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		buf[4] = 1;
 		CHECK(rr_exists(db, ver, name, &rdata, &flag));
 		if (flag) {
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL,
-						   name, 0, &rdata, &newtuple));
+			dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
+					     0, &rdata, &newtuple);
 			CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			INSIST(newtuple == NULL);
 		}
@@ -21840,11 +21836,8 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
-					      rdataset->ttl, &rdata, &tuple);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
+				     rdataset->ttl, &rdata, &tuple);
 		dns_diff_appendminimal(diff, &tuple);
 	}
 	if (result != ISC_R_NOMORE) {
@@ -21861,11 +21854,8 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
-					      ttl, &rdata, &tuple);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, ttl,
+				     &rdata, &tuple);
 		dns_diff_appendminimal(diff, &tuple);
 	}
 	if (result != ISC_R_NOMORE) {
@@ -23979,7 +23969,7 @@ setserial(void *arg) {
 
 	CHECK(dns_db_createsoatuple(db, oldver, diff.mctx, DNS_DIFFOP_DEL,
 				    &oldtuple));
-	CHECK(dns_difftuple_copy(oldtuple, &newtuple));
+	dns_difftuple_copy(oldtuple, &newtuple);
 	newtuple->op = DNS_DIFFOP_ADD;
 
 	oldserial = dns_soa_getserial(&oldtuple->rdata);

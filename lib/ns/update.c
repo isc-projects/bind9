@@ -501,11 +501,8 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	      dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	      dns_rdata_t *rdata) {
 	dns_difftuple_t *tuple = NULL;
-	isc_result_t result;
-	result = dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+
+	dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
 	return (do_one_tuple(&tuple, db, ver, diff));
 }
 
@@ -1053,17 +1050,14 @@ ssu_checkrr(void *data, rr_t *rr) {
  * Append a tuple asserting the existence of the RR with
  * 'name' and 'rdata' to 'diff'.
  */
-static isc_result_t
+static void
 temp_append(dns_diff_t *diff, dns_name_t *name, dns_rdata_t *rdata) {
-	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 
 	REQUIRE(DNS_DIFF_VALID(diff));
-	CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_EXISTS, name, 0,
-				   rdata, &tuple));
+	dns_difftuple_create(diff->mctx, DNS_DIFFOP_EXISTS, name, 0, rdata,
+			     &tuple);
 	ISC_LIST_APPEND(diff->tuples, tuple, link);
-failure:
-	return (result);
 }
 
 /*%
@@ -1207,10 +1201,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			{
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(&rdataset, &rdata);
-				result = temp_append(&d_rrs, name, &rdata);
-				if (result != ISC_R_SUCCESS) {
-					goto failure;
-				}
+				temp_append(&d_rrs, name, &rdata);
 			}
 			if (result != ISC_R_NOMORE) {
 				goto failure;
@@ -1463,7 +1454,6 @@ delete_if(rr_predicate *predicate, dns_db_t *db, dns_dbversion_t *ver,
 
 static isc_result_t
 add_rr_prepare_action(void *data, rr_t *rr) {
-	isc_result_t result = ISC_R_SUCCESS;
 	add_rr_prepare_ctx_t *ctx = data;
 	dns_difftuple_t *tuple = NULL;
 	bool equal, case_equal, ttl_equal;
@@ -1493,9 +1483,8 @@ add_rr_prepare_action(void *data, rr_t *rr) {
 	 * be deleted before the update RR is added.
 	 */
 	if (replaces_p(ctx->update_rr, &rr->rdata)) {
-		CHECK(dns_difftuple_create(ctx->del_diff.mctx, DNS_DIFFOP_DEL,
-					   ctx->oldname, rr->ttl, &rr->rdata,
-					   &tuple));
+		dns_difftuple_create(ctx->del_diff.mctx, DNS_DIFFOP_DEL,
+				     ctx->oldname, rr->ttl, &rr->rdata, &tuple);
 		dns_diff_append(&ctx->del_diff, &tuple);
 		return (ISC_R_SUCCESS);
 	}
@@ -1505,19 +1494,18 @@ add_rr_prepare_action(void *data, rr_t *rr) {
 	 * its TTL and case must be adjusted.
 	 */
 	if (!ttl_equal || !case_equal) {
-		CHECK(dns_difftuple_create(ctx->del_diff.mctx, DNS_DIFFOP_DEL,
-					   ctx->oldname, rr->ttl, &rr->rdata,
-					   &tuple));
+		dns_difftuple_create(ctx->del_diff.mctx, DNS_DIFFOP_DEL,
+				     ctx->oldname, rr->ttl, &rr->rdata, &tuple);
 		dns_diff_append(&ctx->del_diff, &tuple);
 		if (!equal) {
-			CHECK(dns_difftuple_create(
-				ctx->add_diff.mctx, DNS_DIFFOP_ADD, ctx->name,
-				ctx->update_rr_ttl, &rr->rdata, &tuple));
+			dns_difftuple_create(ctx->add_diff.mctx, DNS_DIFFOP_ADD,
+					     ctx->name, ctx->update_rr_ttl,
+					     &rr->rdata, &tuple);
 			dns_diff_append(&ctx->add_diff, &tuple);
 		}
 	}
-failure:
-	return (result);
+
+	return (ISC_R_SUCCESS);
 }
 
 /**************************************************************************/
@@ -1574,7 +1562,7 @@ update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	isc_result_t result;
 
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_DEL, &deltuple));
-	CHECK(dns_difftuple_copy(deltuple, &addtuple));
+	dns_difftuple_copy(deltuple, &addtuple);
 	addtuple->op = DNS_DIFFOP_ADD;
 
 	serial = dns_soa_getserial(&addtuple->rdata);
@@ -2506,8 +2494,8 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			}
 			op = (tuple->op == DNS_DIFFOP_DEL) ? DNS_DIFFOP_ADD
 							   : DNS_DIFFOP_DEL;
-			CHECK(dns_difftuple_create(diff->mctx, op, name, ttl,
-						   &tuple->rdata, &newtuple));
+			dns_difftuple_create(diff->mctx, op, name, ttl,
+					     &tuple->rdata, &newtuple);
 			CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
 			dns_diff_appendminimal(diff, &tuple);
@@ -2587,9 +2575,9 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			CHECK(rr_exists(db, ver, name, &rdata, &flag));
 
 			if (!flag) {
-				CHECK(dns_difftuple_create(
-					diff->mctx, DNS_DIFFOP_ADD, name, 0,
-					&rdata, &newtuple));
+				dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
+						     name, 0, &rdata,
+						     &newtuple);
 				CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			}
 
@@ -2602,9 +2590,9 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			CHECK(rr_exists(db, ver, name, &rdata, &flag));
 
 			if (flag) {
-				CHECK(dns_difftuple_create(
-					diff->mctx, DNS_DIFFOP_DEL, name, 0,
-					&rdata, &newtuple));
+				dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL,
+						     name, 0, &rdata,
+						     &newtuple);
 				CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			}
 
@@ -2613,9 +2601,8 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			 * temporary add record.
 			 */
 			next = ISC_LIST_NEXT(tuple, link);
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL,
-						   name, ttl, &tuple->rdata,
-						   &newtuple));
+			dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
+					     ttl, &tuple->rdata, &newtuple);
 			CHECK(do_one_tuple(&newtuple, db, ver, diff));
 			ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
 			dns_diff_appendminimal(diff, &tuple);
@@ -2646,12 +2633,12 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		}
 
 		if (!flag) {
-			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
-						   name, 0, &rdata, &newtuple));
+			dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
+					     0, &rdata, &newtuple);
 			CHECK(do_one_tuple(&newtuple, db, ver, diff));
 		}
-		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
-					   ttl, &tuple->rdata, &newtuple));
+		dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, ttl,
+				     &tuple->rdata, &newtuple);
 		CHECK(do_one_tuple(&newtuple, db, ver, diff));
 		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
 		dns_diff_appendminimal(diff, &tuple);
@@ -2712,8 +2699,8 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 	while ((tuple = ISC_LIST_HEAD(temp_diff.tuples)) != NULL) {
 		op = (tuple->op == DNS_DIFFOP_DEL) ? DNS_DIFFOP_ADD
 						   : DNS_DIFFOP_DEL;
-		CHECK(dns_difftuple_create(mctx, op, name, tuple->ttl,
-					   &tuple->rdata, &newtuple));
+		dns_difftuple_create(mctx, op, name, tuple->ttl, &tuple->rdata,
+				     &newtuple);
 		CHECK(do_one_tuple(&newtuple, db, ver, &temp_diff));
 	}
 	result = ISC_R_SUCCESS;
@@ -2871,13 +2858,7 @@ update_action(void *arg) {
 			}
 		} else if (update_class == zoneclass) {
 			/* "temp<rr.name, rr.type> += rr;" */
-			result = temp_append(&temp, name, &rdata);
-			if (result != ISC_R_SUCCESS) {
-				UNEXPECTED_ERROR(
-					"temp entry creation failed: %s",
-					isc_result_totext(result));
-				FAIL(ISC_R_UNEXPECTED);
-			}
+			temp_append(&temp, name, &rdata);
 		} else {
 			PREREQFAILC(DNS_R_FORMERR, "malformed prerequisite");
 		}

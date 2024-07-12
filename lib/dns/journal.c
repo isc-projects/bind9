@@ -158,8 +158,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	dns_rdataset_current(&rdataset, &rdata);
 	dns_rdataset_getownercase(&rdataset, zonename);
 
-	result = dns_difftuple_create(mctx, op, zonename, rdataset.ttl, &rdata,
-				      tp);
+	dns_difftuple_create(mctx, op, zonename, rdataset.ttl, &rdata, tp);
 
 	dns_rdataset_disassociate(&rdataset);
 	dns_db_detachnode(db, &node);
@@ -1575,8 +1574,7 @@ dns_journal_rollforward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 			op = (n_soa == 1) ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD;
 		}
 
-		CHECK(dns_difftuple_create(diff.mctx, op, name, ttl, rdata,
-					   &tuple));
+		dns_difftuple_create(diff.mctx, op, name, ttl, rdata, &tuple);
 		dns_diff_append(&diff, &tuple);
 
 		if (++n_put > 100) {
@@ -1728,9 +1726,9 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 				i++;
 			}
 		}
-		CHECK(dns_difftuple_create(
+		dns_difftuple_create(
 			diff.mctx, n_soa == 1 ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD,
-			name, ttl, rdata, &tuple));
+			name, ttl, rdata, &tuple);
 		dns_diff_append(&diff, &tuple);
 
 		if (++n_put > 100 || printxhdr) {
@@ -2147,13 +2145,8 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 		{
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
-			result = dns_difftuple_create(diff->mctx, op, name,
-						      rdataset.ttl, &rdata,
-						      &tuple);
-			if (result != ISC_R_SUCCESS) {
-				dns_rdataset_disassociate(&rdataset);
-				goto cleanup_iterator;
-			}
+			dns_difftuple_create(diff->mctx, op, name, rdataset.ttl,
+					     &rdata, &tuple);
 			dns_diff_append(diff, &tuple);
 		}
 		dns_rdataset_disassociate(&rdataset);

@@ -320,9 +320,8 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	}
 
 	tuple = NULL;
-	result = dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name, ttl,
-				      &trdata, &tuple);
-	check_result(result, "dns_difftuple_create");
+	dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name, ttl, &trdata,
+			     &tuple);
 	dns_diff_append(add, &tuple);
 }
 
@@ -634,24 +633,20 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			if (sigset.ttl != ttl) {
 				vbprintf(2, "\tfixing ttl %s\n", sigstr);
 				tuple = NULL;
-				result = dns_difftuple_create(
-					mctx, DNS_DIFFOP_DELRESIGN, name,
-					sigset.ttl, &sigrdata, &tuple);
-				check_result(result, "dns_difftuple_create");
+				dns_difftuple_create(mctx, DNS_DIFFOP_DELRESIGN,
+						     name, sigset.ttl,
+						     &sigrdata, &tuple);
 				dns_diff_append(del, &tuple);
-				result = dns_difftuple_create(
-					mctx, DNS_DIFFOP_ADDRESIGN, name, ttl,
-					&sigrdata, &tuple);
-				check_result(result, "dns_difftuple_create");
+				dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN,
+						     name, ttl, &sigrdata,
+						     &tuple);
 				dns_diff_append(add, &tuple);
 			}
 		} else {
 			tuple = NULL;
 			vbprintf(2, "\tremoving signature by %s\n", sigstr);
-			result = dns_difftuple_create(
-				mctx, DNS_DIFFOP_DELRESIGN, name, sigset.ttl,
-				&sigrdata, &tuple);
-			check_result(result, "dns_difftuple_create");
+			dns_difftuple_create(mctx, DNS_DIFFOP_DELRESIGN, name,
+					     sigset.ttl, &sigrdata, &tuple);
 			dns_diff_append(del, &tuple);
 			INCSTAT(ndropped);
 		}
@@ -1080,9 +1075,8 @@ loadds(dns_name_t *name, uint32_t ttl, dns_rdataset_t *dsset) {
 					   dsbuf, &ds);
 		check_result(result, "dns_ds_buildrdata");
 
-		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name,
-					      ttl, &ds, &tuple);
-		check_result(result, "dns_difftuple_create");
+		dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name, ttl, &ds,
+				     &tuple);
 		dns_diff_append(&diff, &tuple);
 	}
 
@@ -2201,10 +2195,9 @@ rrset_cleanup(dns_name_t *name, dns_rdataset_t *rdataset, dns_diff_t *add,
 			{
 				vbprintf(2, "removing duplicate at %s/%s\n",
 					 namestr, typestr);
-				result = dns_difftuple_create(
-					mctx, DNS_DIFFOP_DELRESIGN, name,
-					rdataset->ttl, &rdata2, &tuple);
-				check_result(result, "dns_difftuple_create");
+				dns_difftuple_create(mctx, DNS_DIFFOP_DELRESIGN,
+						     name, rdataset->ttl,
+						     &rdata2, &tuple);
 				dns_diff_append(del, &tuple);
 			} else if (set_maxttl && rdataset->ttl > maxttl) {
 				vbprintf(2,
@@ -2212,16 +2205,14 @@ rrset_cleanup(dns_name_t *name, dns_rdataset_t *rdataset, dns_diff_t *add,
 					 "from %d to %d\n",
 					 namestr, typestr, rdataset->ttl,
 					 maxttl);
-				result = dns_difftuple_create(
-					mctx, DNS_DIFFOP_DELRESIGN, name,
-					rdataset->ttl, &rdata2, &tuple);
-				check_result(result, "dns_difftuple_create");
+				dns_difftuple_create(mctx, DNS_DIFFOP_DELRESIGN,
+						     name, rdataset->ttl,
+						     &rdata2, &tuple);
 				dns_diff_append(del, &tuple);
 				tuple = NULL;
-				result = dns_difftuple_create(
-					mctx, DNS_DIFFOP_ADDRESIGN, name,
-					maxttl, &rdata2, &tuple);
-				check_result(result, "dns_difftuple_create");
+				dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN,
+						     name, maxttl, &rdata2,
+						     &tuple);
 				dns_diff_append(add, &tuple);
 			}
 		}
@@ -3154,15 +3145,13 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 						   DNS_DSDIGEST_SHA256, dsbuf,
 						   &ds);
 			check_result(result, "dns_ds_buildrdata");
-			result = dns_difftuple_create(mctx,
-						      DNS_DIFFOP_ADDRESIGN,
-						      name, 0, &ds, &tuple);
+			dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name,
+					     0, &ds, &tuple);
 		} else {
-			result = dns_difftuple_create(
-				mctx, DNS_DIFFOP_ADDRESIGN, gorigin,
-				zone_soa_min_ttl, &rdata, &tuple);
+			dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN,
+					     gorigin, zone_soa_min_ttl, &rdata,
+					     &tuple);
 		}
-		check_result(result, "dns_difftuple_create");
 		dns_diff_append(&diff, &tuple);
 	}
 
