@@ -132,18 +132,6 @@ def do_work(named_proc, resolver_ip, instance, kill_method, n_workers, n_queries
             assert ret_code == 0
 
 
-def wait_for_named_loaded(resolver_ip, retries=10):
-    msg = dns.message.make_query("version.bind", "TXT", "CH")
-    for _ in range(retries):
-        try:
-            res = isctest.query.udp(msg, resolver_ip)
-            if res.rcode() == dns.rcode.NOERROR:
-                return True
-        except dns.exception.Timeout:
-            time.sleep(1)
-    return False
-
-
 def wait_for_proc_termination(proc, max_timeout=10):
     for _ in range(max_timeout):
         if proc.poll() is not None:
@@ -194,7 +182,9 @@ def test_named_shutdown(kill_method):
         ) as named_proc:
             try:
                 assert named_proc.poll() is None, "named isn't running"
-                assert wait_for_named_loaded(resolver_ip)
+                msg = dns.message.make_query("version.bind", "TXT", "CH")
+                res = isctest.query.tcp(msg, resolver_ip)
+                isctest.check.noerror(res)
                 do_work(
                     named_proc,
                     resolver_ip,
