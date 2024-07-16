@@ -935,7 +935,7 @@ clean_finds_at_name(dns_adbname_t *name, dns_adbstatus_t astat,
 
 			INSIST(!FIND_EVENTSENT(find));
 
-			find->status = astat;
+			atomic_store(&find->status, astat);
 
 			DP(DEF_LEVEL, "cfan: sending find %p to caller", find);
 
@@ -2222,7 +2222,7 @@ post_copy:
 	if (want_event) {
 		INSIST((find->flags & DNS_ADBFIND_ADDRESSMASK) != 0);
 		find->loop = loop;
-		find->status = DNS_ADB_UNSET;
+		atomic_store(&find->status, DNS_ADB_UNSET);
 		find->cb = cb;
 		find->cbarg = cbarg;
 	}
@@ -2276,7 +2276,7 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 static void
 find_sendevent(dns_adbfind_t *find) {
 	if (!FIND_EVENTSENT(find)) {
-		find->status = DNS_ADB_CANCELED;
+		atomic_store(&find->status, DNS_ADB_CANCELED);
 
 		DP(DEF_LEVEL, "sending find %p to caller", find);
 
@@ -2323,14 +2323,9 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 
 unsigned int
 dns_adb_findstatus(dns_adbfind_t *find) {
-	unsigned int status;
 	REQUIRE(DNS_ADBFIND_VALID(find));
 
-	UNLOCK(&find->lock);
-	status = find->status;
-	UNLOCK(&find->lock);
-
-	return (status);
+	return (atomic_load(&find->status));
 }
 
 void
