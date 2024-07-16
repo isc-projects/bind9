@@ -20,20 +20,15 @@ import isctest
 import dns.message
 
 
-def wait_for_transfer(ip, port, client_ip, name, rrtype):
-    msg = dns.message.make_query(name, rrtype)
-    for _ in range(10):
-        try:
-            res = isctest.query.udp(msg, ip, source=client_ip)
-            if res.rcode() == dns.rcode.NOERROR:
-                break
-        except dns.exception.Timeout:
-            pass
-    else:
-        raise RuntimeError(
-            "zone transfer failed: "
-            f"client: {client_ip}, name: {name}, rrtype: {rrtype} from @{ip}:{port}"
-        )
+# compatiblity with dnspython<2.0.0
+try:
+    # In dnspython>=2.0.0, dns.rcode.Rcode class is available
+    # pylint: disable=invalid-name
+    dns_rcode = dns.rcode.Rcode  # type: Any
+except AttributeError:
+    # In dnspython<2.0.0, selected rcodes are available as integers directly
+    # from dns.rcode
+    dns_rcode = dns.rcode
 
 
 @pytest.mark.parametrize(
@@ -76,13 +71,24 @@ def wait_for_transfer(ip, port, client_ip, name, rrtype):
         ("allowed.", "10.53.0.5", dns.rcode.NXDOMAIN),
     ],
 )
-def test_rpz_multiple_views(qname, source, rcode, named_port):
-    wait_for_transfer("10.53.0.3", named_port, "10.53.0.2", "rpz-external.local", "SOA")
-    wait_for_transfer("10.53.0.3", named_port, "10.53.0.5", "rpz-external.local", "SOA")
+def test_rpz_multiple_views(qname, source, rcode):
+    # Wait for the rpz-external.local zone transfer
+    msg = dns.message.make_query("rpz-external.local", "SOA")
+    isctest.query.tcp(
+        msg,
+        ip="10.53.0.3",
+        source="10.53.0.2",
+        expected_rcode=dns_rcode.NOERROR,
+    )
+    isctest.query.tcp(
+        msg,
+        ip="10.53.0.3",
+        source="10.53.0.5",
+        expected_rcode=dns_rcode.NOERROR,
+    )
 
     msg = dns.message.make_query(qname, "A")
-    res = isctest.query.udp(msg, "10.53.0.3", source=source)
-    assert res.rcode() == rcode
+    res = isctest.query.udp(msg, "10.53.0.3", source=source, expected_rcode=rcode)
     if rcode == dns.rcode.NOERROR:
         assert res.answer == [dns.rrset.from_text(qname, 300, "IN", "A", "10.53.0.2")]
 
@@ -92,7 +98,9 @@ def test_rpz_passthru_logging():
 
     # Should generate a log entry into rpz_passthru.txt
     msg_allowed = dns.message.make_query("allowed.", "A")
-    res_allowed = isctest.query.udp(msg_allowed, resolver_ip, source="10.53.0.1")
+    res_allowed = isctest.query.udp(
+        msg_allowed, resolver_ip, source="10.53.0.1", expected_rcode=dns.rcode.NOERROR
+    )
     assert res_allowed.answer == [
         dns.rrset.from_text("allowed.", 300, "IN", "A", "10.53.0.2")
     ]
@@ -101,7 +109,10 @@ def test_rpz_passthru_logging():
     # Should generate a log entry into rpz.txt
     msg_not_allowed = dns.message.make_query("baddomain.", "A")
     res_not_allowed = isctest.query.udp(
-        msg_not_allowed, resolver_ip, source="10.53.0.1"
+        msg_not_allowed,
+        resolver_ip,
+        source="10.53.0.1",
+        expected_rcode=dns.rcode.NXDOMAIN,
     )
     isctest.check.nxdomain(res_not_allowed)
 

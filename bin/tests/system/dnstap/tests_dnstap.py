@@ -39,7 +39,7 @@ def run_rndc(server, rndc_command):
 def test_dnstap_dispatch_socket_addresses():
     # Send some query to ns3 so that it records something in its dnstap file.
     msg = dns.message.make_query("mail.example.", "A")
-    res = isctest.query.tcp(msg, "10.53.0.2")
+    res = isctest.query.tcp(msg, "10.53.0.2", expected_rcode=dns.rcode.NOERROR)
     assert res.answer == [
         dns.rrset.from_text("mail.example.", 300, "IN", "A", "10.0.0.2")
     ]
