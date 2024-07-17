@@ -545,7 +545,7 @@ def indent(text, chars="  ", first=None):
     return "\n".join([(chars + line).rstrip() for line in text.split("\n")])
 
 
-def paragraph_wrap(text, regexp="\n\n"):
+def paragraph_wrap(text, regexp="\n\n", separator="\n"):
     r"""Wrap text by making sure that paragraph are separated correctly
 
         >>> string = 'This is first paragraph which is quite long don\'t you \
@@ -560,7 +560,7 @@ def paragraph_wrap(text, regexp="\n\n"):
 
     """
     regexp = re.compile(regexp, re.MULTILINE)
-    return "\n".join(
+    return separator.join(
         "\n".join(textwrap.wrap(paragraph.strip())) for paragraph in regexp.split(text)
     ).strip()
 
@@ -1483,7 +1483,7 @@ def rest_py(data, opts={}):
     """Returns ReStructured Text changelog content from data"""
 
     def rest_title(label, char="="):
-        return (label.strip() + "\n") + (char * len(label) + "\n")
+        return (label.strip() + "\n") + (char * len(label) + "\n\n")
 
     def render_version(version):
         title = (
@@ -1500,7 +1500,7 @@ def rest_py(data, opts={}):
             section_label = section["label"] if section.get("label", None) else "Other"
 
             if not (section_label == "Other" and nb_sections == 1):
-                s += "\n" + rest_title(section_label, "~")
+                s += rest_title(section_label, "~")
 
             for commit in section["commits"]:
                 s += render_commit(commit, opts)
@@ -1518,14 +1518,16 @@ def rest_py(data, opts={}):
             entry += "\n" + indent(commit["body"])
             entry += "\n"
 
+        entry += "\n"
+
         return entry
 
     if data["title"]:
-        yield rest_title(data["title"], char="=") + "\n\n"
+        yield rest_title(data["title"], char="=") + "\n"
 
     for version in data["versions"]:
         if len(version["sections"]) > 0:
-            yield render_version(version) + "\n\n"
+            yield render_version(version) + "\n"
 
 
 ## formatter engines
