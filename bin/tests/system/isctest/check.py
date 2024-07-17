@@ -32,6 +32,10 @@ def notimp(message: dns.message.Message) -> None:
     rcode(message, dns_rcode.NOTIMP)
 
 
+def refused(message: dns.message.Message) -> None:
+    rcode(message, dns_rcode.REFUSED)
+
+
 def servfail(message: dns.message.Message) -> None:
     rcode(message, dns_rcode.SERVFAIL)
 
