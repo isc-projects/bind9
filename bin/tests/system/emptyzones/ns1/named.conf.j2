@@ -36,6 +36,7 @@ options {
 		except-from { "goodcname.example.net";
 			      "gooddname.example.net"; };
 	allow-query {!10.53.0.8; any; };
+	allow-transfer { none; };
 };
 
 zone "." {
@@ -43,4 +44,11 @@ zone "." {
 	file "root.hint";
 };
 
+{% set automatic_empty_zones = automatic_empty_zones | default(False) %}
+{% if automatic_empty_zones %}
+zone "1.10.in-addr.arpa" {
+	type primary; file "empty.db";
+};
+{% else %}
 include "rfc1918.zones";
+{% endif %}
