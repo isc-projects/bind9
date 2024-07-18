@@ -212,6 +212,19 @@ def create_response(msg):
                     "stale.", 2, IN, SOA, "ns2.stale. hostmaster.arpa. 1 2 3 4 5"
                 )
             )
+            r.flags |= dns.flags.AA
+        elif lqname == "ns2.stale.":
+            if rrtype == A:
+                r.additional.append(
+                    dns.rrset.from_text("ns.b.stale.", 2, IN, A, "10.53.0.2")
+                )
+            else:
+                r.authority.append(
+                    dns.rrset.from_text(
+                        "stale.", 2, IN, SOA, "ns2.stale. hostmaster.arpa. 1 2 3 4 5"
+                    )
+                )
+            r.flags |= dns.flags.AA
         else:
             # NXDOMAIN
             r.authority.append(
@@ -257,30 +270,72 @@ def create_response(msg):
     elif lqname == "" and rrtype == NS:
         r.answer.append(dns.rrset.from_text(suffix, 30, IN, NS, "ns2." + suffix))
         r.flags |= dns.flags.AA
-    elif lqname == "ns2." and rrtype == A:
-        r.answer.append(dns.rrset.from_text("ns2." + suffix, 30, IN, A, "10.53.0.2"))
+    elif lqname == "ns2.":
         r.flags |= dns.flags.AA
-    elif lqname == "ns2." and rrtype == AAAA:
-        r.answer.append(
-            dns.rrset.from_text("ns2." + suffix, 30, IN, AAAA, "fd92:7065:b8e:ffff::2")
-        )
+        if rrtype == A:
+            r.answer.append(
+                dns.rrset.from_text("ns2." + suffix, 30, IN, A, "10.53.0.2")
+            )
+        elif rrtype == AAAA:
+            r.answer.append(
+                dns.rrset.from_text(
+                    "ns2." + suffix, 30, IN, AAAA, "fd92:7065:b8e:ffff::2"
+                )
+            )
+        else:
+            r.authority.append(
+                dns.rrset.from_text(
+                    suffix,
+                    30,
+                    IN,
+                    SOA,
+                    "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1",
+                )
+            )
+    elif lqname == "ns3.":
         r.flags |= dns.flags.AA
-    elif lqname == "ns3." and rrtype == A:
-        r.answer.append(dns.rrset.from_text("ns3." + suffix, 30, IN, A, "10.53.0.3"))
+        if rrtype == A:
+            r.answer.append(
+                dns.rrset.from_text("ns3." + suffix, 30, IN, A, "10.53.0.3")
+            )
+        elif lqname == "ns3." and rrtype == AAAA:
+            r.answer.append(
+                dns.rrset.from_text(
+                    "ns3." + suffix, 30, IN, AAAA, "fd92:7065:b8e:ffff::3"
+                )
+            )
+        else:
+            r.authority.append(
+                dns.rrset.from_text(
+                    suffix,
+                    30,
+                    IN,
+                    SOA,
+                    "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1",
+                )
+            )
+    elif lqname == "ns4.":
         r.flags |= dns.flags.AA
-    elif lqname == "ns3." and rrtype == AAAA:
-        r.answer.append(
-            dns.rrset.from_text("ns3." + suffix, 30, IN, AAAA, "fd92:7065:b8e:ffff::3")
-        )
-        r.flags |= dns.flags.AA
-    elif lqname == "ns4." and rrtype == A:
-        r.answer.append(dns.rrset.from_text("ns4." + suffix, 30, IN, A, "10.53.0.4"))
-        r.flags |= dns.flags.AA
-    elif lqname == "ns4." and rrtype == AAAA:
-        r.answer.append(
-            dns.rrset.from_text("ns4." + suffix, 30, IN, AAAA, "fd92:7065:b8e:ffff::4")
-        )
-        r.flags |= dns.flags.AA
+        if rrtype == A:
+            r.answer.append(
+                dns.rrset.from_text("ns4." + suffix, 30, IN, A, "10.53.0.4")
+            )
+        elif rrtype == AAAA:
+            r.answer.append(
+                dns.rrset.from_text(
+                    "ns4." + suffix, 30, IN, AAAA, "fd92:7065:b8e:ffff::4"
+                )
+            )
+        else:
+            r.authority.append(
+                dns.rrset.from_text(
+                    suffix,
+                    30,
+                    IN,
+                    SOA,
+                    "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1",
+                )
+            )
     elif lqname == "a.bit.longer.ns.name." and rrtype == A:
         r.answer.append(
             dns.rrset.from_text("a.bit.longer.ns.name." + suffix, 1, IN, A, "10.53.0.4")
