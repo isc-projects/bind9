@@ -552,16 +552,21 @@ sys.exit(1)'; then
   $DIG $DIGOPTS @10.53.0.1 tsig. >dig.out.test$n.1 || ret=1
   grep "status: NOERROR" dig.out.test$n.1 >/dev/null || ret=1
   rndc_dumpdb ns1
+  # prime cache with NS response for QNAME minimisation
   grep "$pat" ns1/named_dump.db.test$n >/dev/null || ret=1
+  $DIG $DIGOPTS @10.53.0.1 NS nocookie.tsig >dig.out.test$n.2 || ret=1
+  grep "status: NOERROR" dig.out.test$n.2 >/dev/null || ret=1
   # check the disabled server response
   nextpart ns1/named.run >/dev/null
-  $DIG $DIGOPTS @10.53.0.1 nocookie.tsig >dig.out.test$n.2 || ret=1
-  grep "status: NOERROR" dig.out.test$n.2 >/dev/null || ret=1
-  grep 'A.10\.53\.0\.9' dig.out.test$n.2 >/dev/null || ret=1
-  grep 'A.10\.53\.0\.10' dig.out.test$n.2 >/dev/null || ret=1
+  $DIG $DIGOPTS @10.53.0.1 nocookie.tsig >dig.out.test$n.3 || ret=1
+  grep "status: NOERROR" dig.out.test$n.3 >/dev/null || ret=1
+  grep 'A.10\.53\.0\.9' dig.out.test$n.3 >/dev/null || ret=1
+  grep 'A.10\.53\.0\.10' dig.out.test$n.3 >/dev/null || ret=1
   nextpart ns1/named.run >named.run.test$n
   count=$(grep -c ') [0-9][0-9]* NOERROR 0' named.run.test$n)
   test $count -eq 2 || ret=1
+  count=$(grep -c '^; COOKIE: ................................' named.run.test$n)
+  test $count -eq 1 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 fi

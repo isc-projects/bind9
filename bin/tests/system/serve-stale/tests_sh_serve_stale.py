@@ -14,6 +14,8 @@ import pytest
 pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
+        "expired.test*",
+        "named_dump.db.test*",
         "rndc.out.*",
         "ans*/ans.run",
         "ns*/named.stats*",

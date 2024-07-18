@@ -385,7 +385,7 @@ $DIG $DIGOPTS @10.53.0.3 foo.initially-unavailable. A >dig.out.ns3.test$n.1 2>&1
 grep "NOERROR" dig.out.ns3.test$n.1 >/dev/null || ret=1
 grep "flags:.* ad" dig.out.ns3.test$n.1 >/dev/null || ret=1
 # Sanity check: the authoritative server should have been queried.
-nextpart ns2/named.run | grep "query 'foo.initially-unavailable/A/IN'" >/dev/null || ret=1
+nextpart ns2/named.run | grep "query 'foo.initially-unavailable/NS/IN'" >/dev/null || ret=1
 # Reconfigure ns2 so that the zone can be mirrored on ns3.
 sed '/^zone "initially-unavailable" {$/,/^};$/ {
 	s/10.53.0.254/10.53.0.3/
@@ -403,7 +403,7 @@ $DIG $DIGOPTS @10.53.0.3 foo.initially-unavailable. A >dig.out.ns3.test$n.2 2>&1
 grep "NOERROR" dig.out.ns3.test$n.2 >/dev/null || ret=1
 grep "flags:.* ad" dig.out.ns3.test$n.2 >/dev/null || ret=1
 # Ensure the authoritative server was not queried.
-nextpart ns2/named.run | grep "query 'foo.initially-unavailable/A/IN'" >/dev/null && ret=1
+nextpart ns2/named.run | grep "query 'foo.initially-unavailable/NS/IN'" >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -434,7 +434,7 @@ $DIG $DIGOPTS @10.53.0.3 foo.initially-unavailable. A >dig.out.ns3.test$n 2>&1 |
 grep "NOERROR" dig.out.ns3.test$n >/dev/null || ret=1
 grep "flags:.* ad" dig.out.ns3.test$n >/dev/null || ret=1
 # Sanity check: the authoritative server should have been queried.
-nextpart ns2/named.run | grep "query 'foo.initially-unavailable/A/IN'" >/dev/null || ret=1
+nextpart ns2/named.run | grep "query 'foo.initially-unavailable/NS/IN'" >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

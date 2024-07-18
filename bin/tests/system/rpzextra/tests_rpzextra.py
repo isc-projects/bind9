@@ -111,8 +111,8 @@ def test_rpz_passthru_logging():
         expected_rcode=dns.rcode.NOERROR,
     )
     assert res_allowed_any.answer == [
-        dns.rrset.from_text("allowed.", 300, "IN", "NS", "ns1.allowed."),
         dns.rrset.from_text("allowed.", 300, "IN", "A", "10.53.0.2"),
+        dns.rrset.from_text("allowed.", 300, "IN", "NS", "ns1.allowed."),
     ]
     # The comparison above doesn't compare the TTL values, and we want to
     # make sure that the "passthru" rpz doesn't cap the TTL with max-policy-ttl.

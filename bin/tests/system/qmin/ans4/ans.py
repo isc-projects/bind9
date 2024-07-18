@@ -104,9 +104,10 @@ def create_response(msg):
                 r.answer.append(dns.rrset.from_text(lqname, 1, IN, TXT, "hooray"))
             elif rrtype == NS:
                 # NS a.b.
+                # This is only returned if a query for b.stale/NS has been made
                 r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.a.b.stale."))
                 r.additional.append(
-                    dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3")
+                    dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.4")
                 )
             elif rrtype == SOA:
                 # SOA a.b.
@@ -126,7 +127,7 @@ def create_response(msg):
             r.flags |= dns.flags.AA
             if rrtype == A:
                 r.answer.append(
-                    dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3")
+                    dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.4")
                 )
             else:
                 # NODATA.

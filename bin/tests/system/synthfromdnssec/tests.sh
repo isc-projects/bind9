@@ -414,10 +414,10 @@ for ns in 2 4 5 6; do
   check_status NOERROR dig.out.ns${ns}.test$n || ret=1
   if [ ${synth} = yes ]; then
     check_synth_cname b.wild-cname.example. dig.out.ns${ns}.test$n || ret=1
-    nextpart ns1/named.run | grep b.wild-cname.example/A >/dev/null && ret=1
+    nextpart ns1/named.run | grep b.wild-cname.example/NS >/dev/null && ret=1
   else
     check_nosynth_cname b.wild-cname.example. dig.out.ns${ns}.test$n || ret=1
-    nextpart ns1/named.run | grep b.wild-cname.example/A >/dev/null || ret=1
+    nextpart ns1/named.run | grep b.wild-cname.example/NS >/dev/null || ret=1
   fi
   grep "ns1.example.*.IN.A" dig.out.ns${ns}.test$n >/dev/null || ret=1
   digcomp wildcname.out dig.out.ns${ns}.test$n || ret=1
@@ -470,6 +470,7 @@ for ns in 2 4 5 6; do
   check_nosynth_aaaa b.wild-2-nsec-afterdata.example. dig.out.a.ns${ns}.test$n || ret=1
   #
   nextpart ns1/named.run >/dev/null
+  sleep 1
   dig_with_opts b.wild-2-nsec-afterdata.example. @10.53.0.${ns} TLSA >dig.out.ns${ns}.test$n || ret=1
   check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
   check_status NOERROR dig.out.ns${ns}.test$n || ret=1
@@ -531,7 +532,7 @@ for ns in 2 4 5 6; do
   check_ad_flag no dig.out.ns${ns}.test$n || ret=1
   check_status NOERROR dig.out.ns${ns}.test$n || ret=1
   check_nosynth_cname b.wild-cname.insecure.example dig.out.ns${ns}.test$n || ret=1
-  nextpart ns1/named.run | grep b.wild-cname.insecure.example/A >/dev/null || ret=1
+  nextpart ns1/named.run | grep b.wild-cname.insecure.example/NS >/dev/null || ret=1
   grep "ns1.insecure.example.*.IN.A" dig.out.ns${ns}.test$n >/dev/null || ret=1
   digcomp insecure.wildcname.out dig.out.ns${ns}.test$n || ret=1
   n=$((n + 1))

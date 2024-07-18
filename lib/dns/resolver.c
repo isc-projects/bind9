@@ -401,6 +401,7 @@ struct fetchctx {
 	dns_rdatatype_t qmintype;
 	dns_fetch_t *qminfetch;
 	dns_rdataset_t qminrrset;
+	dns_rdataset_t qminsigrrset;
 	dns_fixedname_t qmindcfname;
 	dns_name_t *qmindcname;
 	dns_fixedname_t fwdfname;
@@ -696,6 +697,9 @@ fctx__done(fetchctx_t *fctx, isc_result_t result, const char *func,
 
 static void
 resume_qmin(void *arg);
+
+static void
+clone_results(fetchctx_t *fctx);
 
 static isc_result_t
 get_attached_fctx(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
@@ -4139,7 +4143,8 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 			&fctx->nameservers, NULL, NULL, 0,
 			options | DNS_FETCHOPT_QMINFETCH, 0, fctx->qc,
 			fctx->gqc, fctx->loop, resume_qmin, fctx, &fctx->edectx,
-			&fctx->qminrrset, NULL, &fctx->qminfetch);
+			&fctx->qminrrset, &fctx->qminsigrrset,
+			&fctx->qminfetch);
 		if (result != ISC_R_SUCCESS) {
 			fetchctx_unref(fctx);
 			goto done;
@@ -4192,6 +4197,11 @@ resume_qmin(void *arg) {
 	unsigned int findoptions = 0;
 	dns_name_t *fname = NULL, *dcname = NULL;
 	dns_fixedname_t ffixed, dcfixed;
+	dns_rdataset_t rdataset;
+	dns_rdataset_t sigrdataset;
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
+	bool fixup_result = false;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -4204,16 +4214,27 @@ resume_qmin(void *arg) {
 	fname = dns_fixedname_initname(&ffixed);
 	dcname = dns_fixedname_initname(&dcfixed);
 
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_init(&sigrdataset);
+
 	if (resp->node != NULL) {
+		dns_db_attachnode(resp->db, resp->node, &node);
 		dns_db_detachnode(resp->db, &resp->node);
 	}
 	if (resp->db != NULL) {
+		dns_db_attach(resp->db, &db);
 		dns_db_detach(&resp->db);
 	}
 
 	if (dns_rdataset_isassociated(resp->rdataset)) {
+		dns_rdataset_clone(resp->rdataset, &rdataset);
 		dns_rdataset_disassociate(resp->rdataset);
 	}
+	if (dns_rdataset_isassociated(resp->sigrdataset)) {
+		dns_rdataset_clone(resp->sigrdataset, &sigrdataset);
+		dns_rdataset_disassociate(resp->sigrdataset);
+	}
+	dns_name_copy(resp->foundname, fname);
 
 	result = resp->result;
 
@@ -4247,6 +4268,37 @@ resume_qmin(void *arg) {
 			goto cleanup;
 		}
 
+		if (result == DNS_R_NXDOMAIN &&
+		    fctx->qmin_labels == dns_name_countlabels(fctx->name))
+		{
+			LOCK(&fctx->lock);
+			resp = ISC_LIST_HEAD(fctx->resps);
+			if (resp != NULL) {
+				if (dns_rdataset_isassociated(&rdataset)) {
+					dns_rdataset_clone(&rdataset,
+							   resp->rdataset);
+				}
+				if (dns_rdataset_isassociated(&sigrdataset) &&
+				    resp->sigrdataset != NULL)
+				{
+					dns_rdataset_clone(&sigrdataset,
+							   resp->sigrdataset);
+				}
+				if (db != NULL) {
+					dns_db_attach(db, &resp->db);
+				}
+				if (node != NULL) {
+					dns_db_attachnode(db, node,
+							  &resp->node);
+				}
+				dns_name_copy(fname, resp->foundname);
+				clone_results(fctx);
+				UNLOCK(&fctx->lock);
+				goto cleanup;
+			}
+			UNLOCK(&fctx->lock);
+		}
+
 		/* ...or disable minimization in relaxed mode */
 		fctx->qmin_labels = DNS_NAME_MAXLABELS;
 
@@ -4274,6 +4326,53 @@ resume_qmin(void *arg) {
 		{
 			fctx->force_qmin_warning = true;
 		}
+
+		/*
+		 * We have got a CNAME or DNAME respone to the NS query
+		 * so we are done in almost all cases.
+		 */
+		if ((result == DNS_R_CNAME || result == DNS_R_DNAME) &&
+		    fctx->qmin_labels == dns_name_countlabels(fctx->name) &&
+		    fctx->type != dns_rdatatype_key &&
+		    fctx->type != dns_rdatatype_nsec &&
+		    fctx->type != dns_rdatatype_any &&
+		    fctx->type != dns_rdatatype_sig &&
+		    fctx->type != dns_rdatatype_rrsig)
+		{
+			LOCK(&fctx->lock);
+			resp = ISC_LIST_HEAD(fctx->resps);
+			if (resp != NULL) {
+				if (dns_rdataset_isassociated(&rdataset)) {
+					dns_rdataset_clone(&rdataset,
+							   resp->rdataset);
+				}
+				if (dns_rdataset_isassociated(&sigrdataset) &&
+				    resp->sigrdataset != NULL)
+				{
+					dns_rdataset_clone(&sigrdataset,
+							   resp->sigrdataset);
+				}
+				if (db != NULL) {
+					dns_db_attach(db, &resp->db);
+				}
+				if (node != NULL) {
+					dns_db_attachnode(db, node,
+							  &resp->node);
+				}
+				dns_name_copy(fname, resp->foundname);
+				if (result == DNS_R_CNAME &&
+				    dns_rdataset_isassociated(&rdataset) &&
+				    fctx->type == dns_rdatatype_cname)
+				{
+					fixup_result = true;
+				}
+				clone_results(fctx);
+				UNLOCK(&fctx->lock);
+				goto cleanup;
+			}
+			UNLOCK(&fctx->lock);
+		}
+
 		/*
 		 * Any other result will *not* cause a failure in strict
 		 * mode, or cause minimization to be disabled in relaxed
@@ -4345,9 +4444,21 @@ resume_qmin(void *arg) {
 	fctx_try(fctx, true);
 
 cleanup:
+	if (node != NULL) {
+		dns_db_detachnode(db, &node);
+	}
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
+	if (dns_rdataset_isassociated(&rdataset)) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+	if (dns_rdataset_isassociated(&sigrdataset)) {
+		dns_rdataset_disassociate(&sigrdataset);
+	}
 	if (result != ISC_R_SUCCESS) {
 		/* An error occurred, tear down whole fctx */
-		fctx_done_unref(fctx, result);
+		fctx_done_unref(fctx, fixup_result ? ISC_R_SUCCESS : result);
 	}
 	fetchctx_detach(&fctx);
 }
@@ -4659,6 +4770,7 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 
 	dns_rdataset_init(&fctx->nameservers);
 	dns_rdataset_init(&fctx->qminrrset);
+	dns_rdataset_init(&fctx->qminsigrrset);
 	dns_rdataset_init(&fctx->nsrrset);
 
 	fctx->start = isc_time_now();
@@ -10337,13 +10449,13 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		} else if (fctx->qmin_labels < 35) {
 			fctx->qmin_labels = 35;
 		} else {
-			fctx->qmin_labels = nlabels;
+			fctx->qmin_labels = nlabels + 1;
 		}
 	} else if (fctx->qmin_labels > DNS_QMIN_MAXLABELS) {
 		fctx->qmin_labels = DNS_NAME_MAXLABELS;
 	}
 
-	if (fctx->qmin_labels < nlabels) {
+	if (fctx->qmin_labels <= nlabels) {
 		dns_rdataset_t rdataset;
 		dns_fixedname_t fixed;
 		dns_name_t *fname = dns_fixedname_initname(&fixed);
@@ -10377,10 +10489,18 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 				break;
 			}
 			break;
-		} while (fctx->qmin_labels < nlabels);
+		} while (fctx->qmin_labels <= nlabels);
 	}
 
-	if (fctx->qmin_labels < nlabels) {
+	/*
+	 * DS lookups come from the parent zone so we don't need to do a
+	 * NS lookup at the QNAME.  If the QTYPE is NS we are not leaking
+	 * the type if we just do the final NS lookup.
+	 */
+	if (fctx->qmin_labels < nlabels ||
+	    (fctx->type != dns_rdatatype_ns && fctx->type != dns_rdatatype_ds &&
+	     fctx->qmin_labels == nlabels))
+	{
 		dns_name_copy(&name, fctx->qminname);
 		fctx->qmintype = dns_rdatatype_ns;
 		fctx->minimized = true;
