@@ -2434,6 +2434,12 @@ isc__nm_http_bad_request(isc_nmhandle_t *handle) {
 	REQUIRE(!atomic_load(&sock->client));
 	REQUIRE(VALID_HTTP2_SESSION(sock->h2.session));
 
+	if (sock->h2.response_submitted ||
+	    !http_session_active(sock->h2.session))
+	{
+		return;
+	}
+
 	(void)server_send_error_response(ISC_HTTP_ERROR_BAD_REQUEST,
 					 sock->h2.session->ngsession, sock);
 }
