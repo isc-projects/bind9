@@ -69,6 +69,7 @@
 		return (hmac_sign(dctx, sig));                                 \
 	}                                                                      \
 	static isc_result_t hmac##alg##_verify(dst_context_t *dctx,            \
+					       int maxbits ISC_ATTR_UNUSED,    \
 					       const isc_region_t *sig) {      \
 		return (hmac_verify(dctx, sig));                               \
 	}                                                                      \
@@ -113,27 +114,19 @@
 		return (result);                                               \
 	}                                                                      \
 	static dst_func_t hmac##alg##_functions = {                            \
-		hmac##alg##_createctx,                                         \
-		NULL, /*%< createctx2 */                                       \
-		hmac##alg##_destroyctx,                                        \
-		hmac##alg##_adddata,                                           \
-		hmac##alg##_sign,                                              \
-		hmac##alg##_verify,                                            \
-		NULL, /*%< verify2 */                                          \
-		NULL, /*%< computesecret */                                    \
-		hmac##alg##_compare,                                           \
-		NULL, /*%< paramcompare */                                     \
-		hmac##alg##_generate,                                          \
-		hmac##alg##_isprivate,                                         \
-		hmac##alg##_destroy,                                           \
-		hmac##alg##_todns,                                             \
-		hmac##alg##_fromdns,                                           \
-		hmac##alg##_tofile,                                            \
-		hmac##alg##_parse,                                             \
-		NULL, /*%< cleanup */                                          \
-		NULL, /*%< fromlabel */                                        \
-		NULL, /*%< dump */                                             \
-		NULL, /*%< restore */                                          \
+		.createctx = hmac##alg##_createctx,                            \
+		.destroyctx = hmac##alg##_destroyctx,                          \
+		.adddata = hmac##alg##_adddata,                                \
+		.sign = hmac##alg##_sign,                                      \
+		.verify = hmac##alg##_verify,                                  \
+		.compare = hmac##alg##_compare,                                \
+		.generate = hmac##alg##_generate,                              \
+		.isprivate = hmac##alg##_isprivate,                            \
+		.destroy = hmac##alg##_destroy,                                \
+		.todns = hmac##alg##_todns,                                    \
+		.fromdns = hmac##alg##_fromdns,                                \
+		.tofile = hmac##alg##_tofile,                                  \
+		.parse = hmac##alg##_parse,                                    \
 	};                                                                     \
 	void dst__hmac##alg##_init(dst_func_t **funcp) {                       \
 		REQUIRE(funcp != NULL);                                        \

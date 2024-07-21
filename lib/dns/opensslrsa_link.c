@@ -310,7 +310,7 @@ opensslrsa_check_exponent_bits(EVP_PKEY *pkey, int maxbits) {
 }
 
 static isc_result_t
-opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
+opensslrsa_verify(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	dst_key_t *key = NULL;
 	int status = 0;
 	EVP_MD_CTX *evp_md_ctx = NULL;
@@ -337,11 +337,6 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 		return dst__openssl_toresult3(dctx->category, "EVP_VerifyFinal",
 					      DST_R_VERIFYFAILURE);
 	}
-}
-
-static isc_result_t
-opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
-	return opensslrsa_verify2(dctx, 0, sig);
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
@@ -1123,27 +1118,20 @@ err:
 }
 
 static dst_func_t opensslrsa_functions = {
-	opensslrsa_createctx,
-	NULL, /*%< createctx2 */
-	opensslrsa_destroyctx,
-	opensslrsa_adddata,
-	opensslrsa_sign,
-	opensslrsa_verify,
-	opensslrsa_verify2,
-	NULL, /*%< computesecret */
-	dst__openssl_keypair_compare,
-	NULL, /*%< paramcompare */
-	opensslrsa_generate,
-	dst__openssl_keypair_isprivate,
-	dst__openssl_keypair_destroy,
-	opensslrsa_todns,
-	opensslrsa_fromdns,
-	opensslrsa_tofile,
-	opensslrsa_parse,
-	NULL, /*%< cleanup */
-	opensslrsa_fromlabel,
-	NULL, /*%< dump */
-	NULL, /*%< restore */
+	.createctx = opensslrsa_createctx,
+	.destroyctx = opensslrsa_destroyctx,
+	.adddata = opensslrsa_adddata,
+	.sign = opensslrsa_sign,
+	.verify = opensslrsa_verify,
+	.compare = dst__openssl_keypair_compare,
+	.generate = opensslrsa_generate,
+	.isprivate = dst__openssl_keypair_isprivate,
+	.destroy = dst__openssl_keypair_destroy,
+	.todns = opensslrsa_todns,
+	.fromdns = opensslrsa_fromdns,
+	.tofile = opensslrsa_tofile,
+	.parse = opensslrsa_parse,
+	.fromlabel = opensslrsa_fromlabel,
 };
 
 /*

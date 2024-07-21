@@ -89,12 +89,6 @@ dst_key_size(const dst_key_t *key) {
 }
 
 unsigned int
-dst_key_proto(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-	return key->key_proto;
-}
-
-unsigned int
 dst_key_alg(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return key->key_alg;
@@ -134,24 +128,6 @@ bool
 dst_key_iszonekey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 
-	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
-		return false;
-	}
-	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
-	    key->key_proto != DNS_KEYPROTO_ANY)
-	{
-		return false;
-	}
-	return true;
-}
-
-bool
-dst_key_isnullkey(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-
-	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY) {
-		return false;
-	}
 	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
 		return false;
 	}

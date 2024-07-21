@@ -150,8 +150,6 @@ struct dst_func {
 	 * Context functions
 	 */
 	isc_result_t (*createctx)(dst_key_t *key, dst_context_t *dctx);
-	isc_result_t (*createctx2)(dst_key_t *key, int maxbits,
-				   dst_context_t *dctx);
 	void (*destroyctx)(dst_context_t *dctx);
 	isc_result_t (*adddata)(dst_context_t *dctx, const isc_region_t *data);
 
@@ -159,14 +157,9 @@ struct dst_func {
 	 * Key operations
 	 */
 	isc_result_t (*sign)(dst_context_t *dctx, isc_buffer_t *sig);
-	isc_result_t (*verify)(dst_context_t *dctx, const isc_region_t *sig);
-	isc_result_t (*verify2)(dst_context_t *dctx, int maxbits,
-				const isc_region_t *sig);
-	isc_result_t (*computesecret)(const dst_key_t *pub,
-				      const dst_key_t *priv,
-				      isc_buffer_t *secret);
+	isc_result_t (*verify)(dst_context_t *dctx, int maxbits,
+			       const isc_region_t *sig);
 	bool (*compare)(const dst_key_t *key1, const dst_key_t *key2);
-	bool (*paramcompare)(const dst_key_t *key1, const dst_key_t *key2);
 	isc_result_t (*generate)(dst_key_t *key, int parms,
 				 void (*callback)(int));
 	bool (*isprivate)(const dst_key_t *key);
@@ -177,9 +170,6 @@ struct dst_func {
 	isc_result_t (*fromdns)(dst_key_t *key, isc_buffer_t *data);
 	isc_result_t (*tofile)(const dst_key_t *key, const char *directory);
 	isc_result_t (*parse)(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub);
-
-	/* cleanup */
-	void (*cleanup)(void);
 
 	isc_result_t (*fromlabel)(dst_key_t *key, const char *label,
 				  const char *pin);

@@ -219,12 +219,6 @@ dst__lib_initialize(void) {
 
 void
 dst__lib_shutdown(void) {
-	for (size_t i = 0; i < DST_MAX_ALGS; i++) {
-		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL) {
-			dst_t_func[i]->cleanup();
-		}
-	}
-
 	isc_mem_detach(&dst__mctx);
 }
 
@@ -245,7 +239,7 @@ dst_ds_digest_supported(unsigned int digest_type) {
 
 isc_result_t
 dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t category,
-		   bool useforsigning, int maxbits, dst_context_t **dctxp) {
+		   bool useforsigning, dst_context_t **dctxp) {
 	dst_context_t *dctx;
 	isc_result_t result;
 
@@ -253,7 +247,7 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t category,
 	REQUIRE(mctx != NULL);
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 
-	if (key->func->createctx == NULL && key->func->createctx2 == NULL) {
+	if (key->func->createctx == NULL) {
 		return DST_R_UNSUPPORTEDALG;
 	}
 	if (key->keydata.generic == NULL) {
@@ -268,11 +262,7 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t category,
 
 	dst_key_attach(key, &dctx->key);
 	isc_mem_attach(mctx, &dctx->mctx);
-	if (key->func->createctx2 != NULL) {
-		result = key->func->createctx2(key, maxbits, dctx);
-	} else {
-		result = key->func->createctx(key, dctx);
-	}
+	result = key->func->createctx(key, dctx);
 	if (result != ISC_R_SUCCESS) {
 		if (dctx->key != NULL) {
 			dst_key_free(&dctx->key);
@@ -335,7 +325,7 @@ dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 }
 
 isc_result_t
-dst_context_verify(dst_context_t *dctx, isc_region_t *sig) {
+dst_context_verify(dst_context_t *dctx, int maxbits, isc_region_t *sig) {
 	REQUIRE(VALID_CTX(dctx));
 	REQUIRE(sig != NULL);
 
@@ -343,57 +333,12 @@ dst_context_verify(dst_context_t *dctx, isc_region_t *sig) {
 	if (dctx->key->keydata.generic == NULL) {
 		return DST_R_NULLKEY;
 	}
+
 	if (dctx->key->func->verify == NULL) {
 		return DST_R_NOTPUBLICKEY;
 	}
 
-	return dctx->key->func->verify(dctx, sig);
-}
-
-isc_result_t
-dst_context_verify2(dst_context_t *dctx, unsigned int maxbits,
-		    isc_region_t *sig) {
-	REQUIRE(VALID_CTX(dctx));
-	REQUIRE(sig != NULL);
-
-	CHECKALG(dctx->key->key_alg);
-	if (dctx->key->keydata.generic == NULL) {
-		return DST_R_NULLKEY;
-	}
-	if (dctx->key->func->verify == NULL && dctx->key->func->verify2 == NULL)
-	{
-		return DST_R_NOTPUBLICKEY;
-	}
-
-	return dctx->key->func->verify2 != NULL
-		       ? dctx->key->func->verify2(dctx, maxbits, sig)
-		       : dctx->key->func->verify(dctx, sig);
-}
-
-isc_result_t
-dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
-		      isc_buffer_t *secret) {
-	REQUIRE(VALID_KEY(pub) && VALID_KEY(priv));
-	REQUIRE(secret != NULL);
-
-	CHECKALG(pub->key_alg);
-	CHECKALG(priv->key_alg);
-
-	if (pub->keydata.generic == NULL || priv->keydata.generic == NULL) {
-		return DST_R_NULLKEY;
-	}
-
-	if (pub->key_alg != priv->key_alg || pub->func->computesecret == NULL ||
-	    priv->func->computesecret == NULL)
-	{
-		return DST_R_KEYCANNOTCOMPUTESECRET;
-	}
-
-	if (!dst_key_isprivate(priv)) {
-		return DST_R_NOTPRIVATEKEY;
-	}
-
-	return pub->func->computesecret(pub, priv, secret);
+	return dctx->key->func->verify(dctx, maxbits, sig);
 }
 
 isc_result_t
@@ -794,29 +739,6 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 	}
 
 	return key->func->todns(key, target);
-}
-
-isc_result_t
-dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer) {
-	isc_lex_t *lex = NULL;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(VALID_KEY(key));
-	REQUIRE(!dst_key_isprivate(key));
-	REQUIRE(buffer != NULL);
-
-	if (key->func->parse == NULL) {
-		RETERR(DST_R_UNSUPPORTEDALG);
-	}
-
-	isc_lex_create(key->mctx, 1500, &lex);
-	RETERR(isc_lex_openbuffer(lex, buffer));
-	RETERR(key->func->parse(key, lex, NULL));
-out:
-	if (lex != NULL) {
-		isc_lex_destroy(&lex);
-	}
-	return result;
 }
 
 dns_gss_ctx_id_t
@@ -1310,24 +1232,6 @@ bool
 dst_key_pubcompare(const dst_key_t *key1, const dst_key_t *key2,
 		   bool match_revoked_key) {
 	return comparekeys(key1, key2, match_revoked_key, pub_compare);
-}
-
-bool
-dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
-	REQUIRE(VALID_KEY(key1));
-	REQUIRE(VALID_KEY(key2));
-
-	if (key1 == key2) {
-		return true;
-	}
-	if (key1->key_alg == key2->key_alg &&
-	    key1->func->paramcompare != NULL &&
-	    key1->func->paramcompare(key1, key2))
-	{
-		return true;
-	} else {
-		return false;
-	}
 }
 
 void

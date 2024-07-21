@@ -324,7 +324,7 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	dns_message_detach(&msg);
 
 	result = dst_context_create(key->key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				    false, 0, &outctx);
+				    false, &outctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(outctx);
 

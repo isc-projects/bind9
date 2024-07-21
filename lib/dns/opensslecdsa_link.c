@@ -838,7 +838,8 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
+opensslecdsa_verify(dst_context_t *dctx, int maxbits ISC_ATTR_UNUSED,
+		    const isc_region_t *sig) {
 	isc_result_t ret;
 	dst_key_t *key = dctx->key;
 	int status;
@@ -1172,27 +1173,20 @@ err:
 }
 
 static dst_func_t opensslecdsa_functions = {
-	opensslecdsa_createctx,
-	NULL, /*%< createctx2 */
-	opensslecdsa_destroyctx,
-	opensslecdsa_adddata,
-	opensslecdsa_sign,
-	opensslecdsa_verify,
-	NULL, /*%< verify2 */
-	NULL, /*%< computesecret */
-	dst__openssl_keypair_compare,
-	NULL, /*%< paramcompare */
-	opensslecdsa_generate,
-	dst__openssl_keypair_isprivate,
-	dst__openssl_keypair_destroy,
-	opensslecdsa_todns,
-	opensslecdsa_fromdns,
-	opensslecdsa_tofile,
-	opensslecdsa_parse,
-	NULL,			/*%< cleanup */
-	opensslecdsa_fromlabel, /*%< fromlabel */
-	NULL,			/*%< dump */
-	NULL,			/*%< restore */
+	.createctx = opensslecdsa_createctx,
+	.destroyctx = opensslecdsa_destroyctx,
+	.adddata = opensslecdsa_adddata,
+	.sign = opensslecdsa_sign,
+	.verify = opensslecdsa_verify,
+	.compare = dst__openssl_keypair_compare,
+	.generate = opensslecdsa_generate,
+	.isprivate = dst__openssl_keypair_isprivate,
+	.destroy = dst__openssl_keypair_destroy,
+	.todns = opensslecdsa_todns,
+	.fromdns = opensslecdsa_fromdns,
+	.tofile = opensslecdsa_tofile,
+	.parse = opensslecdsa_parse,
+	.fromlabel = opensslecdsa_fromlabel,
 };
 
 void

@@ -218,7 +218,7 @@ dst_ds_digest_supported(unsigned int digest_type);
 
 isc_result_t
 dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t category,
-		   bool useforsigning, int maxbits, dst_context_t **dctxp);
+		   bool useforsigning, dst_context_t **dctxp);
 /*%<
  * Creates a context to be used for a sign or verify operation.
  *
@@ -284,11 +284,7 @@ dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig);
  */
 
 isc_result_t
-dst_context_verify(dst_context_t *dctx, isc_region_t *sig);
-
-isc_result_t
-dst_context_verify2(dst_context_t *dctx, unsigned int maxbits,
-		    isc_region_t *sig);
+dst_context_verify(dst_context_t *dctx, int maxbits, isc_region_t *sig);
 /*%<
  * Verifies the signature using the data and key stored in the context.
  *
@@ -305,25 +301,6 @@ dst_context_verify2(dst_context_t *dctx, unsigned int maxbits,
  *
  * Ensures:
  * \li	"sig" will contain the signature
- */
-
-isc_result_t
-dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
-		      isc_buffer_t *secret);
-/*%<
- * Computes a shared secret from two (Diffie-Hellman) keys.
- *
- * Requires:
- * \li	"pub" is a valid key that can be used to derive a shared secret
- * \li	"priv" is a valid private key that can be used to derive a shared secret
- * \li	"secret" is a valid buffer
- *
- * Returns:
- * \li	ISC_R_SUCCESS
- * \li	any other result indicates failure
- *
- * Ensures:
- * \li	If successful, secret will contain the derived shared secret.
  */
 
 isc_result_t
@@ -537,25 +514,6 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target);
  *\li	If successful, the used pointer in 'target' is advanced.
  */
 
-isc_result_t
-dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer);
-/*%<
- * Converts a public key into a private key, reading the private key
- * information from the buffer.  The buffer should contain the same data
- * as the .private key file would.
- *
- * Requires:
- *\li	"key" is a valid public key.
- *\li	"buffer" is not NULL.
- *
- * Returns:
- *\li 	ISC_R_SUCCESS
- * \li	any other result indicates failure
- *
- * Ensures:
- *\li	If successful, key will contain a valid private key.
- */
-
 dns_gss_ctx_id_t
 dst_key_getgssctx(const dst_key_t *key);
 /*%<
@@ -671,21 +629,6 @@ dst_key_pubcompare(const dst_key_t *key1, const dst_key_t *key2,
  * \li	false
  */
 
-bool
-dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
-/*%<
- * Compares the parameters of two DST keys.  This is used to determine if
- * two (Diffie-Hellman) keys can be used to derive a shared secret.
- *
- * Requires:
- *\li	"key1" is a valid key.
- *\li	"key2" is a valid key.
- *
- * Returns:
- *\li 	true
- * \li	false
- */
-
 void
 dst_key_attach(dst_key_t *source, dst_key_t **target);
 /*
@@ -724,9 +667,6 @@ unsigned int
 dst_key_size(const dst_key_t *key);
 
 unsigned int
-dst_key_proto(const dst_key_t *key);
-
-unsigned int
 dst_key_alg(const dst_key_t *key);
 
 uint32_t
@@ -749,9 +689,6 @@ dst_key_isprivate(const dst_key_t *key);
 
 bool
 dst_key_iszonekey(const dst_key_t *key);
-
-bool
-dst_key_isnullkey(const dst_key_t *key);
 
 bool
 dst_key_have_ksk_and_zsk(dst_key_t **keys, unsigned int nkeys, unsigned int i,
