@@ -1503,11 +1503,14 @@ def rest_py(data, opts={}):
                 s += "\n" + rest_title(section_label, "~")
 
             for commit in section["commits"]:
-                s += render_commit(commit)
+                s += render_commit(commit, opts)
         return s
 
     def render_commit(commit, opts=opts):
         subject = commit["subject"]
+
+        if opts["include_commit_sha"]:
+            subject += " ``%s``" % commit["commit"].sha1_short
 
         entry = indent("\n".join(textwrap.wrap(subject)), first="- ").strip() + "\n"
 
@@ -1821,6 +1824,7 @@ def versions_data_iter(
 def changelog(
     output_engine=rest_py,
     unreleased_version_label="unreleased",
+    include_commit_sha=False,
     warn=warn,  ## Mostly used for test
     **kwargs
 ):
@@ -1835,6 +1839,7 @@ def changelog(
     ``versions_data_iter(..)``.
 
     :param unreleased_version_label: version label for untagged commits
+    :param include_commit_sha: whether message should contain commit sha
     :param output_engine: callable to render the changelog data
     :param warn: callable to output warnings, mocked by tests
 
@@ -1844,6 +1849,7 @@ def changelog(
 
     opts = {
         "unreleased_version_label": unreleased_version_label,
+        "include_commit_sha": include_commit_sha,
     }
 
     ## Setting main container of changelog elements
@@ -2205,6 +2211,7 @@ def main():
             ignore_regexps=config["ignore_regexps"],
             section_regexps=config["section_regexps"],
             unreleased_version_label=config["unreleased_version_label"],
+            include_commit_sha=config["include_commit_sha"],
             tag_filter_regexp=config["tag_filter_regexp"],
             output_engine=config.get("output_engine", rest_py),
             include_merge=config.get("include_merge", True),
