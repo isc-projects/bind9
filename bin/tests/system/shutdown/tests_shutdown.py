@@ -156,35 +156,19 @@ def wait_for_proc_termination(proc, max_timeout=10):
     ["rndc", "sigterm"],
 )
 def test_named_shutdown(kill_method):
-    # pylint: disable-msg=too-many-locals
-    cfg_dir = os.path.join(os.getcwd(), "resolver")
-    assert os.path.isdir(cfg_dir)
-
-    cfg_file = os.path.join(cfg_dir, "named.conf")
-    assert os.path.isfile(cfg_file)
-
-    named = os.getenv("NAMED")
-    assert named is not None
-
-    # This test launches and monitors a named instance itself rather than using
-    # bin/tests/system/start.pl, so manually defining a NamedInstance here is
-    # necessary for sending RNDC commands to that instance.  This "custom"
-    # instance listens on 10.53.0.3, so use "ns3" as the identifier passed to
-    # the NamedInstance constructor.
-    named_ports = isctest.instance.NamedPorts.from_env()
-    instance = isctest.instance.NamedInstance("ns3", named_ports)
-
     resolver_ip = "10.53.0.3"
-    named_cmdline = [named, "-c", cfg_file, "-d", "99", "-g"]
+
+    cfg_dir = "resolver"
+
+    named_cmdline = isctest.run.get_named_cmdline(cfg_dir)
+    instance = isctest.run.get_custom_named_instance("ns3")
+
     with open(os.path.join(cfg_dir, "named.run"), "ab") as named_log:
         with subprocess.Popen(
             named_cmdline, cwd=cfg_dir, stderr=named_log
         ) as named_proc:
             try:
-                assert named_proc.poll() is None, "named isn't running"
-                msg = dns.message.make_query("version.bind", "TXT", "CH")
-                res = isctest.query.tcp(msg, resolver_ip)
-                isctest.check.noerror(res)
+                isctest.run.assert_custom_named_is_alive(named_proc, resolver_ip)
                 do_work(
                     named_proc,
                     resolver_ip,
