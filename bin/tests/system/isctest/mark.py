@@ -63,6 +63,10 @@ with_libxml2 = pytest.mark.skipif(
     not feature_test("--have-libxml2"), reason="libxml2 support disabled in the build"
 )
 
+with_lmdb = pytest.mark.skipif(
+    not feature_test("--with-lmdb"), reason="LMDB support disabled in the build"
+)
+
 with_json_c = pytest.mark.skipif(
     not feature_test("--have-json-c"), reason="json-c support disabled in the build"
 )
