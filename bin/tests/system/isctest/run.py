@@ -16,9 +16,6 @@ import time
 from typing import List, Optional
 
 import isctest.log
-from isctest.compat import dns_rcode
-
-import dns.message
 
 
 def cmd(
