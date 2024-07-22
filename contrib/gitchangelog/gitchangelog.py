@@ -1104,7 +1104,9 @@ class GitCommit(SubGitObjectMixin):
 
     @property
     def tagger_date(self):
-        d = datetime.datetime.utcfromtimestamp(float(self.tagger_date_timestamp))
+        d = datetime.datetime.fromtimestamp(
+            float(self.tagger_date_timestamp), datetime.UTC
+        )
         return d.strftime("%Y-%m-%d")
 
     def __le__(self, value):
