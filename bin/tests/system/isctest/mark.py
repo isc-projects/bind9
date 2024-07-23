@@ -13,6 +13,7 @@
 
 import os
 from pathlib import Path
+import shutil
 import subprocess
 
 import pytest
@@ -75,6 +76,16 @@ dnsrps_enabled = pytest.mark.skipif(
     not is_dnsrps_available(), reason="dnsrps disabled in the build"
 )
 
+
+softhsm2_environment = pytest.mark.skipif(
+    not (
+        os.getenv("SOFTHSM2_CONF")
+        and os.getenv("SOFTHSM2_MODULE")
+        and shutil.which("pkcs11-tool")
+        and shutil.which("softhsm2-util")
+    ),
+    reason="SOFTHSM2_CONF and SOFTHSM2_MODULE environmental variables must be set and pkcs11-tool and softhsm2-util tools present",
+)
 
 try:
     import flaky as flaky_pkg  # type: ignore
