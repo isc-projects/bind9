@@ -1,3 +1,43 @@
+	--- 9.18.28 released ---
+
+6404.	[security]	Remove SIG(0) support from named as a countermeasure
+			for CVE-2024-1975. [GL #4480]
+
+6403.	[security]	qctx-zversion was not being cleared when it should have
+			been leading to an assertion failure if it needed to be
+			reused. (CVE-2024-4076) [GL #4507]
+
+6401.	[security]	An excessively large number of rrtypes per owner can
+			slow down database query processing, so a limit has been
+			placed on the number of rrtypes that can be stored per
+			owner (node) in a cache or zone database. This is
+			configured with the new "max-rrtypes-per-name" option,
+			and defaults to 100. (CVE-2024-1737)
+			[GL #3403] [GL #4548]
+
+6400.	[security]	Excessively large rdatasets can slow down database
+			query processing, so a limit has been placed on the
+			number of records that can be stored per rdataset
+			in a cache or zone database. This is configured
+			with the new "max-records-per-type" option, and
+			defaults to 100. (CVE-2024-1737)
+			[GL #497] [GL #3405]
+
+6399.	[security]	Malicious DNS client that sends many queries over
+			TCP but never reads responses can cause server to
+			respond slowly or not respond at all for other
+			clients. (CVE-2024-0760) [GL #4481]
+
+6398.	[bug]		Fix potential data races in our DoH implementation
+			related to HTTP/2 session object management and
+			endpoints set object management after reconfiguration.
+			We would like to thank Dzintars and Ivo from nic.lv
+			for bringing this to our attention. [GL #4473]
+
+6397.	[bug]		Clear DNS_FETCHOPT_TRYSTALE_ONTIMEOUT when looking for
+			parent NS records needed to get the DS result.
+			[GL #4661]
+
 6395.	[bug]		Handle ISC_R_HOSTDOWN and ISC_R_NETDOWN in resolver.c.
 			[GL #4736]
 

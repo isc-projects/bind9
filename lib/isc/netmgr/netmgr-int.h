@@ -62,9 +62,10 @@
 #endif
 
 /*
- * The TCP receive buffer can fit one maximum sized DNS message plus its size,
- * the receive buffer here affects TCP, DoT and DoH.
+ * The TCP send and receive buffers can fit one maximum sized DNS message plus
+ * its size, the receive buffer here affects TCP, DoT and DoH.
  */
+#define ISC_NETMGR_TCP_SENDBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 #define ISC_NETMGR_TCP_RECVBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 
 /* Pick the larger buffer */
@@ -377,9 +378,10 @@ struct isc__nm_uvreq {
 	int magic;
 	isc_nmsocket_t *sock;
 	isc_nmhandle_t *handle;
-	char tcplen[2];	       /* The TCP DNS message length */
-	uv_buf_t uvbuf;	       /* translated isc_region_t, to be
-				* sent or received */
+	char tcplen[2]; /* The TCP DNS message length */
+	uv_buf_t uvbuf; /* translated isc_region_t, to be
+			 * sent or received */
+	isc_region_t userbuf;
 	isc_sockaddr_t local;  /* local address */
 	isc_sockaddr_t peer;   /* peer address */
 	isc__nm_cb_t cb;       /* callback */
@@ -883,13 +885,8 @@ typedef enum isc_http_scheme_type {
 	ISC_HTTP_SCHEME_UNSUPPORTED
 } isc_http_scheme_type_t;
 
-typedef struct isc_nm_httpcbarg {
-	isc_nm_recv_cb_t cb;
-	void *cbarg;
-	LINK(struct isc_nm_httpcbarg) link;
-} isc_nm_httpcbarg_t;
-
 typedef struct isc_nm_httphandler {
+	int magic;
 	char *path;
 	isc_nm_recv_cb_t cb;
 	void *cbarg;
@@ -902,7 +899,6 @@ struct isc_nm_http_endpoints {
 	isc_mem_t *mctx;
 
 	ISC_LIST(isc_nm_httphandler_t) handlers;
-	ISC_LIST(isc_nm_httpcbarg_t) handler_cbargs;
 
 	isc_refcount_t references;
 	atomic_bool in_use;
@@ -914,7 +910,6 @@ typedef struct isc_nmsocket_h2 {
 	char *query_data;
 	size_t query_data_len;
 	bool query_too_large;
-	isc_nm_httphandler_t *handler;
 
 	isc_buffer_t rbuf;
 	isc_buffer_t wbuf;
@@ -946,6 +941,8 @@ typedef struct isc_nmsocket_h2 {
 
 	isc_nm_http_endpoints_t **listener_endpoints;
 	size_t n_listener_endpoints;
+
+	isc_nm_http_endpoints_t *peer_endpoints;
 
 	bool response_submitted;
 	struct {
@@ -999,7 +996,6 @@ struct isc_nmsocket {
 			TLS_STATE_ERROR,
 			TLS_STATE_CLOSING
 		} state;
-		isc_region_t senddata;
 		ISC_LIST(isc__nm_uvreq_t) sendreqs;
 		bool cycle;
 		isc_result_t pending_error;
@@ -1063,6 +1059,12 @@ struct isc_nmsocket {
 	 * TCP write timeout timer.
 	 */
 	uint64_t write_timeout;
+
+	/*
+	 * Reading was throttled over TCP as the peer does not read the
+	 * data we are sending back.
+	 */
+	bool reading_throttled;
 
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
 	isc_nmsocket_t *outer;
@@ -2265,6 +2267,14 @@ void
 isc__nmsocket_readtimeout_cb(uv_timer_t *timer);
 void
 isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult);
+
+/*%<
+ *
+ * Maximum number of simultaneous handles in flight supported for a single
+ * connected TCPDNS socket. This value was chosen arbitrarily, and may be
+ * changed in the future.
+ */
+#define STREAM_CLIENTS_PER_CONN 23
 
 #define UV_RUNTIME_CHECK(func, ret)                                      \
 	if (ret != 0) {                                                  \
