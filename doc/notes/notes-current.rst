@@ -9,8 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.19.25
-----------------------
+Notes for BIND 9.21.0
+---------------------
 
 Security Fixes
 ~~~~~~~~~~~~~~
@@ -20,9 +20,7 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- Added a new statistics variable ``recursive high-water`` that reports
-  the maximum number of simultaneous recursive clients BIND has handled
-  while running. :gl:`#4668`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -32,15 +30,12 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Outgoing zone transfers are no longer enabled by default. An explicit
-  :any:`allow-transfer` ACL must now be set at the :any:`zone`, :any:`view` or
-  :namedconf:ref:`options` level to enable outgoing transfers. :gl:`#4728`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
 
-- An RPZ response's SOA record TTL was set to 1 instead of the SOA TTL, if
-  ``add-soa`` was used. This has been fixed. :gl:`#3323`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~

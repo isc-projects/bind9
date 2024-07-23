@@ -15,8 +15,8 @@
 # a shell variable in AC_INIT
 #
 m4_define([bind_VERSION_MAJOR], 9)dnl
-m4_define([bind_VERSION_MINOR], 19)dnl
-m4_define([bind_VERSION_PATCH], 25)dnl
+m4_define([bind_VERSION_MINOR], 21)dnl
+m4_define([bind_VERSION_PATCH], 0)dnl
 m4_define([bind_VERSION_EXTRA], -dev)dnl
 m4_define([bind_DESCRIPTION], [(Development Release)])dnl
 m4_define([bind_SRCID], [m4_esyscmd_s([git rev-parse --short HEAD | cut -b1-7])])dnl
