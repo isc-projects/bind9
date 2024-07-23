@@ -13,6 +13,7 @@
 
 import os
 from pathlib import Path
+import shutil
 import ssl
 import subprocess
 
@@ -70,6 +71,16 @@ supported_openssl_version = pytest.mark.skipif(
     reason="unsupported OpenSSL [GL #4814]",
 )
 
+
+softhsm2_environment = pytest.mark.skipif(
+    not (
+        os.getenv("SOFTHSM2_CONF")
+        and os.getenv("SOFTHSM2_MODULE")
+        and shutil.which("pkcs11-tool")
+        and shutil.which("softhsm2-util")
+    ),
+    reason="SOFTHSM2_CONF and SOFTHSM2_MODULE environmental variables must be set and pkcs11-tool and softhsm2-util tools present",
+)
 
 try:
     import flaky as flaky_pkg  # type: ignore
