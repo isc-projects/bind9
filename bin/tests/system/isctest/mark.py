@@ -12,6 +12,7 @@
 # information regarding copyright ownership.
 
 import os
+import shutil
 import subprocess
 
 import pytest
@@ -57,6 +58,16 @@ with_json_c = pytest.mark.skipif(
     not feature_test("--have-json-c"), reason="json-c support disabled in the build"
 )
 
+
+softhsm2_environment = pytest.mark.skipif(
+    not (
+        os.getenv("SOFTHSM2_CONF")
+        and os.getenv("SOFTHSM2_MODULE")
+        and shutil.which("pkcs11-tool")
+        and shutil.which("softhsm2-util")
+    ),
+    reason="SOFTHSM2_CONF and SOFTHSM2_MODULE environmental variables must be set and pkcs11-tool and softhsm2-util tools present",
+)
 
 try:
     import flaky as flaky_pkg  # type: ignore
