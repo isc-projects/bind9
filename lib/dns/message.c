@@ -29,6 +29,7 @@
 #include <isc/string.h>
 #include <isc/utf8.h>
 #include <isc/util.h>
+#include <isc/work.h>
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
@@ -179,6 +180,18 @@ msgblock_allocate(isc_mem_t *, unsigned int, unsigned int);
 
 #define msgblock_get(block, type) \
 	((type *)msgblock_internalget(block, sizeof(type)))
+
+/*
+ * A context type to pass information when checking a message signature
+ * asynchronously.
+ */
+typedef struct checksig_ctx {
+	dns_message_t *msg;
+	dns_view_t *view;
+	dns_message_cb_t cb;
+	void *cbarg;
+	isc_result_t result;
+} checksig_ctx_t;
 
 /*
  * This function differs from public dns_message_puttemprdataset() that it
@@ -3177,12 +3190,6 @@ dns_message_resetsig(dns_message_t *msg) {
 	}
 }
 
-isc_result_t
-dns_message_rechecksig(dns_message_t *msg, dns_view_t *view) {
-	dns_message_resetsig(msg);
-	return (dns_message_checksig(msg, view));
-}
-
 #ifdef SKAN_MSG_DEBUG
 void
 dns_message_dumpsig(dns_message_t *msg, char *txt1) {
@@ -3211,6 +3218,47 @@ dns_message_dumpsig(dns_message_t *msg, char *txt1) {
 }
 #endif /* ifdef SKAN_MSG_DEBUG */
 
+static void
+checksig_run(void *arg) {
+	checksig_ctx_t *chsigctx = arg;
+
+	chsigctx->result = dns_message_checksig(chsigctx->msg, chsigctx->view);
+}
+
+static void
+checksig_cb(void *arg) {
+	checksig_ctx_t *chsigctx = arg;
+	dns_message_t *msg = chsigctx->msg;
+
+	chsigctx->cb(chsigctx->cbarg, chsigctx->result);
+
+	dns_view_detach(&chsigctx->view);
+	isc_mem_put(msg->mctx, chsigctx, sizeof(*chsigctx));
+	dns_message_detach(&msg);
+}
+
+isc_result_t
+dns_message_checksig_async(dns_message_t *msg, dns_view_t *view,
+			   isc_loop_t *loop, dns_message_cb_t cb, void *cbarg) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(view != NULL);
+	REQUIRE(loop != NULL);
+	REQUIRE(cb != NULL);
+
+	checksig_ctx_t *chsigctx = isc_mem_get(msg->mctx, sizeof(*chsigctx));
+	*chsigctx = (checksig_ctx_t){
+		.cb = cb,
+		.cbarg = cbarg,
+		.result = ISC_R_UNSET,
+	};
+	dns_message_attach(msg, &chsigctx->msg);
+	dns_view_attach(view, &chsigctx->view);
+
+	isc_work_enqueue(loop, checksig_run, checksig_cb, chsigctx);
+
+	return (DNS_R_WAIT);
+}
+
 isc_result_t
 dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	isc_buffer_t b, msgb;
@@ -3238,6 +3286,12 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		dns_rdata_sig_t sig;
 		dns_rdataset_t keyset;
 		isc_result_t result;
+		/*
+		 * In order to protect from a possible DoS attack, we are
+		 * going to check at most two KEY RRs.
+		 */
+		const size_t max_keys = 2;
+		size_t n;
 
 		result = dns_rdataset_first(msg->sig0);
 		INSIST(result == ISC_R_SUCCESS);
@@ -3269,18 +3323,17 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 					     0, false, &keyset, NULL);
 
 		if (result != ISC_R_SUCCESS) {
-			/* XXXBEW Should possibly create a fetch here */
 			result = DNS_R_KEYUNAUTHORIZED;
 			goto freesig;
-		} else if (keyset.trust < dns_trust_secure) {
-			/* XXXBEW Should call a validator here */
+		} else if (keyset.trust < dns_trust_ultimate) {
 			result = DNS_R_KEYUNAUTHORIZED;
 			goto freesig;
 		}
 		result = dns_rdataset_first(&keyset);
 		INSIST(result == ISC_R_SUCCESS);
-		for (; result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&keyset))
+
+		for (n = 0; result == ISC_R_SUCCESS && n < max_keys;
+		     n++, result = dns_rdataset_next(&keyset))
 		{
 			dst_key_t *key = NULL;
 
@@ -3308,7 +3361,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 				break;
 			}
 		}
-		if (result == ISC_R_NOMORE) {
+		if (result == ISC_R_NOMORE || n == max_keys) {
 			result = DNS_R_KEYUNAUTHORIZED;
 		}
 

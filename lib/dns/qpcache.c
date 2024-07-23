@@ -217,6 +217,9 @@ struct qpcache {
 	/* Locked by lock. */
 	unsigned int active;
 
+	uint32_t maxrrperset;	 /* Maximum RRs per RRset */
+	uint32_t maxtypepername; /* Maximum number of RR types per owner */
+
 	/*
 	 * The time after a failed lookup, where stale answers from cache
 	 * may be used directly in a DNS response without attempting a
@@ -2435,30 +2438,6 @@ again:
 	}
 }
 
-static bool
-prio_type(dns_typepair_t type) {
-	switch (type) {
-	case dns_rdatatype_soa:
-	case DNS_SIGTYPE(dns_rdatatype_soa):
-	case dns_rdatatype_a:
-	case DNS_SIGTYPE(dns_rdatatype_a):
-	case dns_rdatatype_aaaa:
-	case DNS_SIGTYPE(dns_rdatatype_aaaa):
-	case dns_rdatatype_nsec:
-	case DNS_SIGTYPE(dns_rdatatype_nsec):
-	case dns_rdatatype_nsec3:
-	case DNS_SIGTYPE(dns_rdatatype_nsec3):
-	case dns_rdatatype_ns:
-	case DNS_SIGTYPE(dns_rdatatype_ns):
-	case dns_rdatatype_ds:
-	case DNS_SIGTYPE(dns_rdatatype_ds):
-	case dns_rdatatype_cname:
-	case DNS_SIGTYPE(dns_rdatatype_cname):
-		return (true);
-	}
-	return (false);
-}
-
 /*%
  * These functions allow the heap code to rank the priority of each
  * element.  It returns true if v1 happens "sooner" than v2.
@@ -2868,6 +2847,24 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (ISC_R_SUCCESS);
 }
 
+static bool
+overmaxtype(qpcache_t *qpdb, uint32_t ntypes) {
+	if (qpdb->maxtypepername == 0) {
+		return (false);
+	}
+
+	return (ntypes >= qpdb->maxtypepername);
+}
+
+static bool
+prio_header(dns_slabheader_t *header) {
+	if (NEGATIVE(header) && prio_type(DNS_TYPEPAIR_COVERS(header->type))) {
+		return (true);
+	}
+
+	return (prio_type(header->type));
+}
+
 static isc_result_t
 add(qpcache_t *qpdb, qpcnode_t *qpnode,
     const dns_name_t *nodename ISC_ATTR_UNUSED, dns_slabheader_t *newheader,
@@ -2876,13 +2873,13 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
     isc_rwlocktype_t tlocktype DNS__DB_FLARG) {
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *header = NULL, *sigheader = NULL;
-	dns_slabheader_t *prioheader = NULL;
+	dns_slabheader_t *prioheader = NULL, *expireheader = NULL;
 	bool header_nx;
 	bool newheader_nx;
-	dns_rdatatype_t rdtype, covers;
-	dns_typepair_t negtype = 0, sigtype;
+	dns_typepair_t negtype = 0;
 	dns_trust_t trust;
 	int idx;
+	uint32_t ntypes = 0;
 
 	if ((options & DNS_DBADD_FORCE) != 0) {
 		trust = dns_trust_ultimate;
@@ -2891,10 +2888,11 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 	}
 
 	newheader_nx = NONEXISTENT(newheader) ? true : false;
+
 	if (!newheader_nx) {
-		rdtype = DNS_TYPEPAIR_TYPE(newheader->type);
-		covers = DNS_TYPEPAIR_COVERS(newheader->type);
-		sigtype = DNS_SIGTYPE(covers);
+		dns_rdatatype_t rdtype = DNS_TYPEPAIR_TYPE(newheader->type);
+		dns_rdatatype_t covers = DNS_TYPEPAIR_COVERS(newheader->type);
+		dns_typepair_t sigtype = DNS_SIGTYPE(covers);
 		if (NEGATIVE(newheader)) {
 			/*
 			 * We're adding a negative cache entry.
@@ -2926,6 +2924,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 			{
 				if (topheader->type == sigtype) {
 					sigheader = topheader;
+					break;
 				}
 			}
 			negtype = DNS_TYPEPAIR_VALUE(covers, 0);
@@ -2986,9 +2985,14 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 	for (topheader = qpnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
-		if (prio_type(topheader->type)) {
+		if (ACTIVE(topheader, now)) {
+			++ntypes;
+			expireheader = topheader;
+		}
+		if (prio_header(topheader)) {
 			prioheader = topheader;
 		}
+
 		if (topheader->type == newheader->type ||
 		    topheader->type == negtype)
 		{
@@ -3255,7 +3259,7 @@ find_header:
 			 */
 			INSIST(newheader->down == NULL);
 
-			if (prio_type(newheader->type)) {
+			if (prio_header(newheader)) {
 				/* This is a priority type, prepend it */
 				newheader->next = qpnode->data;
 				qpnode->data = newheader;
@@ -3267,6 +3271,30 @@ find_header:
 				/* There were no priority headers */
 				newheader->next = qpnode->data;
 				qpnode->data = newheader;
+			}
+
+			if (overmaxtype(qpdb, ntypes)) {
+				if (expireheader == NULL) {
+					expireheader = newheader;
+				}
+				if (NEGATIVE(newheader) &&
+				    !prio_header(newheader))
+				{
+					/*
+					 * Add the new non-priority negative
+					 * header to the database only
+					 * temporarily.
+					 */
+					expireheader = newheader;
+				}
+
+				mark_ancient(expireheader);
+				/*
+				 * FIXME: In theory, we should mark the RRSIG
+				 * and the header at the same time, but there is
+				 * no direct link between those two header, so
+				 * we would have to check the whole list again.
+				 */
 			}
 		}
 	}
@@ -3280,7 +3308,7 @@ find_header:
 }
 
 static isc_result_t
-addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader,
+addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	   dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_slabheader_proof_t *noqname = NULL;
@@ -3291,12 +3319,12 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader,
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3319,7 +3347,7 @@ cleanup:
 }
 
 static isc_result_t
-addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader,
+addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	   dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_slabheader_proof_t *closest = NULL;
@@ -3330,12 +3358,12 @@ addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader,
 	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3386,7 +3414,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -3423,14 +3452,16 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_OPTOUT);
 	}
 	if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
-		result = addnoqname(qpdb->common.mctx, newheader, rdataset);
+		result = addnoqname(qpdb->common.mctx, newheader,
+				    qpdb->maxrrperset, rdataset);
 		if (result != ISC_R_SUCCESS) {
 			dns_slabheader_destroy(&newheader);
 			return (result);
 		}
 	}
 	if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0) {
-		result = addclosest(qpdb->common.mctx, newheader, rdataset);
+		result = addclosest(qpdb->common.mctx, newheader,
+				    qpdb->maxrrperset, rdataset);
 		if (result != ISC_R_SUCCESS) {
 			dns_slabheader_destroy(&newheader);
 			return (result);
@@ -4330,6 +4361,24 @@ expire_ttl_headers(qpcache_t *qpdb, unsigned int locknum,
 	}
 }
 
+static void
+setmaxrrperset(dns_db_t *db, uint32_t value) {
+	qpcache_t *qpdb = (qpcache_t *)db;
+
+	REQUIRE(VALID_QPDB(qpdb));
+
+	qpdb->maxrrperset = value;
+}
+
+static void
+setmaxtypepername(dns_db_t *db, uint32_t value) {
+	qpcache_t *qpdb = (qpcache_t *)db;
+
+	REQUIRE(VALID_QPDB(qpdb));
+
+	qpdb->maxtypepername = value;
+}
+
 static dns_dbmethods_t qpdb_cachemethods = {
 	.destroy = qpdb_destroy,
 	.findnode = findnode,
@@ -4354,6 +4403,8 @@ static dns_dbmethods_t qpdb_cachemethods = {
 	.unlocknode = unlocknode,
 	.expiredata = expiredata,
 	.deletedata = deletedata,
+	.setmaxrrperset = setmaxrrperset,
+	.setmaxtypepername = setmaxtypepername,
 };
 
 static void

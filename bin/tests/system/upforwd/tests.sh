@@ -389,7 +389,7 @@ if test -f keyname; then
   nextpart_thrice
   ret=0
   keyname=$(cat keyname)
-  $NSUPDATE -k $keyname.private -- - <<EOF || ret=1
+  $NSUPDATE -k $keyname.private -- - <<EOF >nsupdate.out.test$n 2>&1 || ret=1
 	local 10.53.0.1
 	server 10.53.0.3 ${PORT}
 	zone example2
@@ -424,7 +424,7 @@ EOF
   nextpart_thrice
   ret=0
   keyname=$(cat keyname)
-  $NSUPDATE -k $keyname.private -S -O -- - <<EOF || ret=1
+  $NSUPDATE -k $keyname.private -S -O -- - <<EOF >nsupdate.out.test$n 2>&1 || ret=1
         local 10.53.0.1
 	server 10.53.0.3 ${TLSPORT}
 	zone example2
@@ -454,6 +454,28 @@ EOF
     status=$((status + ret))
     n=$((n + 1))
   fi
+
+  echo_i "checking update forwarding with sig0 with too many keys ($n)"
+  nextpart_thrice
+  ret=0
+  good=0
+  bad=0
+  for i in 1 2 3; do
+    keyname=$(cat keyname$i)
+    $NSUPDATE -d -D -k $keyname.private -- - <<EOF >nsupdate.out.test$n.$i 2>&1 && good=$((good + 1)) || bad=$((bad + 1))
+	local 10.53.0.1
+	server 10.53.0.3 ${PORT}
+	zone example2-toomanykeys
+	update add toomanykeys$i.example2-toomanykeys. 600 A 10.10.10.1
+	send
+EOF
+  done
+  # There are three keys in the zone but named checks the signature using
+  # maximum two keys, so one of these updates should have been failed.
+  [ $good = 2 ] && [ $bad = 1 ] || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+  n=$((n + 1))
 fi
 
 echo_i "attempting an update that should be rejected by ACL ($n)"

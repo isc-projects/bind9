@@ -351,30 +351,6 @@ dns__rbtdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl) {
 	}
 }
 
-static bool
-prio_type(dns_typepair_t type) {
-	switch (type) {
-	case dns_rdatatype_soa:
-	case DNS_SIGTYPE(dns_rdatatype_soa):
-	case dns_rdatatype_a:
-	case DNS_SIGTYPE(dns_rdatatype_a):
-	case dns_rdatatype_aaaa:
-	case DNS_SIGTYPE(dns_rdatatype_aaaa):
-	case dns_rdatatype_nsec:
-	case DNS_SIGTYPE(dns_rdatatype_nsec):
-	case dns_rdatatype_nsec3:
-	case DNS_SIGTYPE(dns_rdatatype_nsec3):
-	case dns_rdatatype_ns:
-	case DNS_SIGTYPE(dns_rdatatype_ns):
-	case dns_rdatatype_ds:
-	case DNS_SIGTYPE(dns_rdatatype_ds):
-	case dns_rdatatype_cname:
-	case DNS_SIGTYPE(dns_rdatatype_cname):
-		return (true);
-	}
-	return (false);
-}
-
 /*%
  * These functions allow the heap code to rank the priority of each
  * element.  It returns true if v1 happens "sooner" than v2.
@@ -2548,6 +2524,24 @@ update_recordsandxfrsize(bool add, dns_rbtdb_version_t *rbtversion,
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 }
 
+static bool
+overmaxtype(dns_rbtdb_t *rbtdb, uint32_t ntypes) {
+	if (rbtdb->maxtypepername == 0) {
+		return (false);
+	}
+
+	return (ntypes >= rbtdb->maxtypepername);
+}
+
+static bool
+prio_header(dns_slabheader_t *header) {
+	if (NEGATIVE(header) && prio_type(DNS_TYPEPAIR_COVERS(header->type))) {
+		return (true);
+	}
+
+	return (prio_type(header->type));
+}
+
 isc_result_t
 dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	       const dns_name_t *nodename, dns_rbtdb_version_t *rbtversion,
@@ -2556,7 +2550,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	rbtdb_changed_t *changed = NULL;
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *header = NULL, *sigheader = NULL;
-	dns_slabheader_t *prioheader = NULL;
+	dns_slabheader_t *prioheader = NULL, *expireheader = NULL;
 	unsigned char *merged = NULL;
 	isc_result_t result;
 	bool header_nx;
@@ -2566,6 +2560,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	dns_typepair_t negtype = 0, sigtype;
 	dns_trust_t trust;
 	int idx;
+	uint32_t ntypes = 0;
 
 	if ((options & DNS_DBADD_MERGE) != 0) {
 		REQUIRE(rbtversion != NULL);
@@ -2629,6 +2624,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 			{
 				if (topheader->type == sigtype) {
 					sigheader = topheader;
+					break;
 				}
 			}
 			negtype = DNS_TYPEPAIR_VALUE(covers, 0);
@@ -2689,7 +2685,13 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	for (topheader = rbtnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
-		if (prio_type(topheader->type)) {
+		if (IS_CACHE(rbtdb) && ACTIVE(topheader, now)) {
+			++ntypes;
+			expireheader = topheader;
+		} else if (!IS_CACHE(rbtdb)) {
+			++ntypes;
+		}
+		if (prio_header(topheader)) {
 			prioheader = topheader;
 		}
 		if (topheader->type == newheader->type ||
@@ -2780,7 +2782,7 @@ find_header:
 					rbtdb->common.mctx,
 					rbtdb->common.rdclass,
 					(dns_rdatatype_t)header->type, flags,
-					&merged);
+					rbtdb->maxrrperset, &merged);
 			}
 			if (result == ISC_R_SUCCESS) {
 				/*
@@ -3084,7 +3086,12 @@ find_header:
 			 */
 			INSIST(newheader->down == NULL);
 
-			if (prio_type(newheader->type)) {
+			if (!IS_CACHE(rbtdb) && overmaxtype(rbtdb, ntypes)) {
+				dns_slabheader_destroy(&newheader);
+				return (DNS_R_TOOMANYRECORDS);
+			}
+
+			if (prio_header(newheader)) {
 				/* This is a priority type, prepend it */
 				newheader->next = rbtnode->data;
 				rbtnode->data = newheader;
@@ -3096,6 +3103,30 @@ find_header:
 				/* There were no priority headers */
 				newheader->next = rbtnode->data;
 				rbtnode->data = newheader;
+			}
+
+			if (IS_CACHE(rbtdb) && overmaxtype(rbtdb, ntypes)) {
+				if (expireheader == NULL) {
+					expireheader = newheader;
+				}
+				if (NEGATIVE(newheader) &&
+				    !prio_header(newheader))
+				{
+					/*
+					 * Add the new non-priority negative
+					 * header to the database only
+					 * temporarily.
+					 */
+					expireheader = newheader;
+				}
+
+				mark_ancient(expireheader);
+				/*
+				 * FIXME: In theory, we should mark the RRSIG
+				 * and the header at the same time, but there is
+				 * no direct link between those two header, so
+				 * we would have to check the whole list again.
+				 */
 			}
 		}
 	}
@@ -3141,7 +3172,7 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, dns_typepair_t type) {
 }
 
 static isc_result_t
-addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader,
+addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	   dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_slabheader_proof_t *noqname = NULL;
@@ -3152,12 +3183,12 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader,
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3180,7 +3211,7 @@ cleanup:
 }
 
 static isc_result_t
-addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader,
+addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	   dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_slabheader_proof_t *closest = NULL;
@@ -3191,12 +3222,12 @@ addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader,
 	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3272,7 +3303,8 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -3329,7 +3361,7 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
 			result = addnoqname(rbtdb->common.mctx, newheader,
-					    rdataset);
+					    rbtdb->maxrrperset, rdataset);
 			if (result != ISC_R_SUCCESS) {
 				dns_slabheader_destroy(&newheader);
 				return (result);
@@ -3337,7 +3369,7 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0) {
 			result = addclosest(rbtdb->common.mctx, newheader,
-					    rdataset);
+					    rbtdb->maxrrperset, rdataset);
 			if (result != ISC_R_SUCCESS) {
 				dns_slabheader_destroy(&newheader);
 				return (result);
@@ -3487,7 +3519,8 @@ dns__rbtdb_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 	dns__rbtdb_nodefullname(db, node, nodename);
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    0);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -4956,4 +4989,22 @@ expire_ttl_headers(dns_rbtdb_t *rbtdb, unsigned int locknum,
 		dns__cacherbt_expireheader(header, tlocktypep,
 					   dns_expire_ttl DNS__DB_FLARG_PASS);
 	}
+}
+
+void
+dns__rbtdb_setmaxrrperset(dns_db_t *db, uint32_t value) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxrrperset = value;
+}
+
+void
+dns__rbtdb_setmaxtypepername(dns_db_t *db, uint32_t maxtypepername) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxtypepername = maxtypepername;
 }

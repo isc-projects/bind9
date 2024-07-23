@@ -18,7 +18,7 @@ This document describes various notes related to the using of the libuv library.
 ### Queueing Events onto the ``uv_loop_t``
 
 The upstream documentation on [the I/O
-loop](http://docs.libuv.org/en/v1.x/design.html#the-i-o-loop) describes the
+loop](https://docs.libuv.org/en/v1.x/design.html#the-i-o-loop) describes the
 order in which are the various handles processed.  However, it does not describe
 the order in which the loop processes the events in the same buckets, and
 because it is counterintuitive, it is described here.

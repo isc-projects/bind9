@@ -36,6 +36,7 @@
 #include <isc/stats.h>
 #include <isc/thread.h>
 #include <isc/tid.h>
+#include <isc/time.h>
 #include <isc/tls.h>
 #include <isc/util.h>
 #include <isc/uv.h>
@@ -61,9 +62,10 @@
 #endif
 
 /*
- * The TCP receive buffer can fit one maximum sized DNS message plus its size,
- * the receive buffer here affects TCP, DoT and DoH.
+ * The TCP send and receive buffers can fit one maximum sized DNS message plus
+ * its size, the receive buffer here affects TCP, DoT and DoH.
  */
+#define ISC_NETMGR_TCP_SENDBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 #define ISC_NETMGR_TCP_RECVBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 
 /* Pick the larger buffer */
@@ -83,6 +85,11 @@ STATIC_ASSERT(ISC_NETMGR_UDP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 	      "TCP receive buffer size must be smaller or equal than worker "
 	      "receive buffer size");
+
+/*%
+ * Maximum outstanding DNS message that we process in a single TCP read.
+ */
+#define ISC_NETMGR_MAX_STREAM_CLIENTS_PER_CONN 23
 
 /*%
  * Regular TCP buffer size.
@@ -410,13 +417,8 @@ typedef enum isc_http_scheme_type {
 	ISC_HTTP_SCHEME_UNSUPPORTED
 } isc_http_scheme_type_t;
 
-typedef struct isc_nm_httpcbarg {
-	isc_nm_recv_cb_t cb;
-	void *cbarg;
-	LINK(struct isc_nm_httpcbarg) link;
-} isc_nm_httpcbarg_t;
-
 typedef struct isc_nm_httphandler {
+	int magic;
 	char *path;
 	isc_nm_recv_cb_t cb;
 	void *cbarg;
@@ -428,7 +430,6 @@ struct isc_nm_http_endpoints {
 	isc_mem_t *mctx;
 
 	ISC_LIST(isc_nm_httphandler_t) handlers;
-	ISC_LIST(isc_nm_httpcbarg_t) handler_cbargs;
 
 	isc_refcount_t references;
 	atomic_bool in_use;
@@ -440,7 +441,6 @@ typedef struct isc_nmsocket_h2 {
 	char *query_data;
 	size_t query_data_len;
 	bool query_too_large;
-	isc_nm_httphandler_t *handler;
 
 	isc_buffer_t rbuf;
 	isc_buffer_t wbuf;
@@ -470,6 +470,8 @@ typedef struct isc_nmsocket_h2 {
 
 	isc_nm_http_endpoints_t **listener_endpoints;
 	size_t n_listener_endpoints;
+
+	isc_nm_http_endpoints_t *peer_endpoints;
 
 	bool response_submitted;
 	struct {
@@ -584,6 +586,12 @@ struct isc_nmsocket {
 	 */
 	uint64_t write_timeout;
 
+	/*
+	 * Reading was throttled over TCP as the peer does not read the
+	 * data we are sending back.
+	 */
+	bool reading_throttled;
+
 	/*% outer socket is for 'wrapped' sockets - e.g. tcpdns in tcp */
 	isc_nmsocket_t *outer;
 
@@ -635,6 +643,12 @@ struct isc_nmsocket {
 	bool timedout;
 
 	/*%
+	 * A timestamp of when the connection acceptance was delayed due
+	 * to quota.
+	 */
+	isc_nanosecs_t quota_accept_ts;
+
+	/*%
 	 * Established an outgoing connection, as client not server.
 	 */
 	bool client;
@@ -664,6 +678,9 @@ struct isc_nmsocket {
 	 */
 	ISC_LIST(isc_nmhandle_t) active_handles;
 	ISC_LIST(isc__nm_uvreq_t) active_uvreqs;
+
+	size_t active_handles_cur;
+	size_t active_handles_max;
 
 	/*%
 	 * Used to pass a result back from listen or connect events.

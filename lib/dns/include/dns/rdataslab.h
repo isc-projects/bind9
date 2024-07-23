@@ -169,7 +169,8 @@ extern dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods;
 
 isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			   isc_region_t *region, unsigned int reservelen);
+			   isc_region_t *region, unsigned int reservelen,
+			   uint32_t limit);
 /*%<
  * Slabify a rdataset.  The slab area will be allocated and returned
  * in 'region'.
@@ -225,7 +226,8 @@ isc_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
 		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    unsigned int flags, unsigned char **tslabp);
+		    unsigned int flags, uint32_t maxrrperset,
+		    unsigned char **tslabp);
 /*%<
  * Merge 'oslab' and 'nslab'.
  */

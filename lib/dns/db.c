@@ -1170,3 +1170,21 @@ dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
 	}
 	return (ISC_R_NOTIMPLEMENTED);
 }
+
+void
+dns_db_setmaxrrperset(dns_db_t *db, uint32_t value) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	if (db->methods->setmaxrrperset != NULL) {
+		(db->methods->setmaxrrperset)(db, value);
+	}
+}
+
+void
+dns_db_setmaxtypepername(dns_db_t *db, uint32_t value) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	if (db->methods->setmaxtypepername != NULL) {
+		(db->methods->setmaxtypepername)(db, value);
+	}
+}

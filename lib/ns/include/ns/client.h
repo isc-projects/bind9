@@ -144,7 +144,6 @@ struct ns_clientmgr {
 	unsigned int magic;
 
 	isc_mem_t     *mctx;
-	isc_mem_t     *send_mctx;
 	isc_mempool_t *namepool;
 	isc_mempool_t *rdspool;
 
@@ -158,6 +157,8 @@ struct ns_clientmgr {
 	/* Lock covers the recursing list */
 	isc_mutex_t   reclock;
 	client_list_t recursing; /*%< Recursing clients */
+
+	uint8_t tcp_buffer[NS_CLIENT_TCP_BUFFER_SIZE];
 };
 
 /*% nameserver client structure */
@@ -166,6 +167,7 @@ struct ns_client {
 	ns_clientmgr_t	*manager;
 	ns_clientstate_t state;
 	bool		 nodetach;
+	bool		 async;
 	unsigned int	 attributes;
 	dns_view_t	*view;
 	dns_dispatch_t	*dispatch;
@@ -178,7 +180,6 @@ struct ns_client {
 	unsigned char  *tcpbuf;
 	size_t		tcpbuf_size;
 	dns_message_t  *message;
-	unsigned char  *sendbuf;
 	dns_rdataset_t *opt;
 	dns_ednsopt_t  *ede;
 	uint16_t	udpsize;
@@ -192,6 +193,10 @@ struct ns_client {
 	isc_time_t    tnow;
 	dns_name_t    signername; /*%< [T]SIG key name */
 	dns_name_t   *signer;	  /*%< NULL if not valid sig */
+	isc_result_t  sigresult;
+	isc_result_t  viewmatchresult;
+	isc_buffer_t *buffer;
+	isc_buffer_t  tbuffer;
 
 	isc_sockaddr_t peeraddr;
 	bool	       peeraddr_valid;
@@ -228,6 +233,8 @@ struct ns_client {
 	 * bits will be used as the rcode in the response message.
 	 */
 	int32_t rcode_override;
+
+	uint8_t sendbuf[NS_CLIENT_SEND_BUFFER_SIZE];
 };
 
 #define NS_CLIENT_MAGIC	   ISC_MAGIC('N', 'S', 'C', 'c')
@@ -536,7 +543,7 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db);
 
 ISC_REFCOUNT_DECL(ns_clientmgr);
 
-isc_result_t
+void
 ns__client_setup(ns_client_t *client, ns_clientmgr_t *manager, bool new);
 /*%<
  * Perform initial setup of an allocated client.

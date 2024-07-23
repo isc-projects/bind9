@@ -549,6 +549,7 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 					      &csock->quotacb, quota_accept_cb,
 					      csock);
 		if (result == ISC_R_QUOTA) {
+			csock->quota_accept_ts = isc_time_monotonic();
 			isc__nm_incstats(ssock, STATID_ACCEPTFAIL);
 			goto done;
 		}
@@ -655,6 +656,7 @@ isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
+	sock->reading = false;
 
 	if (sock->recv_cb != NULL) {
 		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
@@ -696,10 +698,14 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 		goto failure;
 	}
 
-	result = isc__nm_start_reading(sock);
-	if (result != ISC_R_SUCCESS) {
-		goto failure;
+	if (!sock->reading_throttled) {
+		result = isc__nm_start_reading(sock);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
 	}
+
+	sock->reading = true;
 
 	if (!sock->manual_read_timer) {
 		isc__nmsocket_timer_start(sock);
@@ -707,7 +713,6 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 
 	return;
 failure:
-	sock->reading = true;
 	isc__nm_tcp_failed_read_cb(sock, result, true);
 }
 
@@ -720,6 +725,7 @@ isc__nm_tcp_read_stop(isc_nmhandle_t *handle) {
 
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
+	sock->reading = false;
 
 	return;
 }
@@ -771,8 +777,30 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
 	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
 
-	/* The readcb could have paused the reading */
-	if (sock->reading && !sock->manual_read_timer) {
+	if (!sock->client && sock->reading) {
+		/*
+		 * Stop reading if we have accumulated enough bytes in the send
+		 * queue; this means that the TCP client is not reading back the
+		 * data we sending to it, and there's no reason to continue
+		 * processing more incoming DNS messages, if the client is not
+		 * reading back the responses.
+		 */
+		size_t write_queue_size =
+			uv_stream_get_write_queue_size(&sock->uv_handle.stream);
+
+		if (write_queue_size >= ISC_NETMGR_TCP_SENDBUF_SIZE) {
+			isc__nmsocket_log(
+				sock, ISC_LOG_DEBUG(3),
+				"throttling TCP connection, the other side is "
+				"not reading the data (%zu)",
+				write_queue_size);
+			sock->reading_throttled = true;
+			isc__nm_stop_reading(sock);
+		}
+	} else if (uv_is_active(&sock->uv_handle.handle) &&
+		   !sock->manual_read_timer)
+	{
+		/* The readcb could have paused the reading */
 		/* The timer will be updated */
 		isc__nmsocket_timer_restart(sock);
 	}
@@ -872,6 +900,28 @@ accept_connection(isc_nmsocket_t *csock) {
 	if (r != 0) {
 		result = isc_uverr2result(r);
 		goto failure;
+	}
+
+	/* Check if the connection is not expired */
+	if (csock->quota_accept_ts != 0) {
+		/* The timestamp is given in nanoseconds */
+		const uint64_t time_elapsed_ms =
+			(isc_time_monotonic() - csock->quota_accept_ts) /
+			NS_PER_MS;
+
+		if (time_elapsed_ms >= csock->read_timeout) {
+			/*
+			 * At this point we have received a connection from a
+			 * queue of accepted connections (via uv_accept()), but
+			 * it has expired. We cannot do anything better than
+			 * drop it on the floor at this point.
+			 */
+			result = ISC_R_TIMEDOUT;
+			goto failure;
+		} else {
+			/* Adjust the initial read timeout accordingly */
+			csock->read_timeout -= time_elapsed_ms;
+		}
 	}
 
 	r = uv_tcp_getpeername(&csock->uv_handle.tcp, (struct sockaddr *)&ss,
@@ -997,6 +1047,33 @@ isc__nm_tcp_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
 }
 
 static void
+tcp_maybe_restart_reading(isc_nmsocket_t *sock) {
+	if (!sock->client && sock->reading &&
+	    !uv_is_active(&sock->uv_handle.handle))
+	{
+		/*
+		 * Restart reading if we have less data in the send queue than
+		 * the send buffer size, this means that the TCP client has
+		 * started reading some data again.  Starting reading when we go
+		 * under the limit instead of waiting for all data has been
+		 * flushed allows faster recovery (in case there was a
+		 * congestion and now there isn't).
+		 */
+		size_t write_queue_size =
+			uv_stream_get_write_queue_size(&sock->uv_handle.stream);
+		if (write_queue_size < ISC_NETMGR_TCP_SENDBUF_SIZE) {
+			isc__nmsocket_log(
+				sock, ISC_LOG_DEBUG(3),
+				"resuming TCP connection, the other side  "
+				"is reading the data again (%zu)",
+				write_queue_size);
+			isc__nm_start_reading(sock);
+			sock->reading_throttled = false;
+		}
+	}
+}
+
+static void
 tcp_send_cb(uv_write_t *req, int status) {
 	isc__nm_uvreq_t *uvreq = (isc__nm_uvreq_t *)req->data;
 	isc_nmsocket_t *sock = NULL;
@@ -1013,10 +1090,20 @@ tcp_send_cb(uv_write_t *req, int status) {
 		isc__nm_incstats(sock, STATID_SENDFAIL);
 		isc__nm_failed_send_cb(sock, uvreq, isc_uverr2result(status),
 				       false);
+		if (!sock->client && sock->reading) {
+			/*
+			 * As we are resuming reading, it is not throttled
+			 * anymore (technically).
+			 */
+			sock->reading_throttled = false;
+			isc__nm_start_reading(sock);
+			isc__nmsocket_reset(sock);
+		}
 		return;
 	}
 
 	isc__nm_sendcb(sock, uvreq, ISC_R_SUCCESS, false);
+	tcp_maybe_restart_reading(sock);
 }
 
 static isc_result_t
@@ -1045,6 +1132,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		if (r == (int)(bufs[0].len)) {
 			/* Wrote everything */
 			isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
+			tcp_maybe_restart_reading(sock);
 			return (ISC_R_SUCCESS);
 		} else if (r > 0) {
 			bufs[0].base += (size_t)r;
@@ -1064,6 +1152,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		if (r == (int)(bufs[0].len + bufs[1].len)) {
 			/* Wrote everything */
 			isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
+			tcp_maybe_restart_reading(sock);
 			return (ISC_R_SUCCESS);
 		} else if (r == 1) {
 			/* Partial write of DNSMSG length */
@@ -1078,6 +1167,13 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			return (isc_uverr2result(r));
 		}
 	}
+
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+		      ISC_LOG_DEBUG(3),
+		      "throttling TCP connection, the other side is not "
+		      "reading the data, switching to uv_write()");
+	sock->reading_throttled = true;
+	isc__nm_stop_reading(sock);
 
 	r = uv_write(&req->uv_req.write, &sock->uv_handle.stream, bufs, nbufs,
 		     tcp_send_cb);
@@ -1148,6 +1244,7 @@ isc__nm_tcp_close(isc_nmsocket_t *sock) {
 		/* 2. close the socket + destroy the socket in callback */
 		isc__nmsocket_clearcb(sock);
 		isc__nm_stop_reading(sock);
+		sock->reading = false;
 		uv_close(&sock->uv_handle.handle, tcp_close_cb);
 
 		/* 1. close the timer */
@@ -1226,7 +1323,7 @@ isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(!sock->reading);
+	REQUIRE(!uv_is_active(&sock->uv_handle.handle));
 
 	sock->manual_read_timer = manual;
 }

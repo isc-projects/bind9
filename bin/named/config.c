@@ -109,6 +109,7 @@ options {\n\
 #	session-keyfile \"" NAMED_LOCALSTATEDIR "/run/named/session.key\";\n\
 	session-keyname local-ddns;\n\
 	startup-notify-rate 20;\n\
+	sig0checks-quota 1;\n\
 	statistics-file \"named.stats\";\n\
 	tcp-advertised-timeout 300;\n\
 	tcp-clients 150;\n\
@@ -222,8 +223,10 @@ options {\n\
 	ixfr-from-differences false;\n\
 	max-journal-size default;\n\
 	max-records 0;\n\
+	max-records-per-type 100;\n\
 	max-refresh-time 2419200; /* 4 weeks */\n\
 	max-retry-time 1209600; /* 2 weeks */\n\
+	max-types-per-name 100;\n\
 	max-transfer-idle-in 60;\n\
 	max-transfer-idle-out 60;\n\
 	max-transfer-time-in 120;\n\

@@ -2074,6 +2074,21 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	cfg_aclconfctx_create(mctx, &actx);
 
 	obj = NULL;
+	(void)cfg_map_get(options, "sig0checks-quota-exempt", &obj);
+	if (obj != NULL) {
+		dns_acl_t *acl = NULL;
+
+		tresult = cfg_acl_fromconfig(obj, config, logctx, actx, mctx, 0,
+					     &acl);
+		if (acl != NULL) {
+			dns_acl_detach(&acl);
+		}
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(options, "listen-on", &obj);
 	if (obj != NULL) {
 		INSIST(config != NULL);

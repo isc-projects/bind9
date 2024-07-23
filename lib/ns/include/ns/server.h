@@ -66,7 +66,9 @@ typedef void (*ns_fuzzcb_t)(void);
  */
 typedef isc_result_t (*ns_matchview_t)(
 	isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr, dns_message_t *message,
-	dns_aclenv_t *env, isc_result_t *sigresultp, dns_view_t **viewp);
+	dns_aclenv_t *env, ns_server_t *sctx, isc_loop_t *loop, isc_job_cb cb,
+	void *cbarg, isc_result_t *sigresultp, isc_result_t *viewmatchresult,
+	dns_view_t **viewp);
 
 /*%
  * Server context.
@@ -88,6 +90,8 @@ struct ns_server {
 	isc_quota_t tcpquota;
 	isc_quota_t xfroutquota;
 	isc_quota_t updquota;
+	isc_quota_t sig0checksquota;
+	dns_acl_t  *sig0checksquota_exempt;
 	ISC_LIST(isc_quota_t) http_quotas;
 	isc_mutex_t http_quotas_lock;
 

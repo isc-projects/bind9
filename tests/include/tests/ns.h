@@ -88,7 +88,7 @@ isc_result_t
 ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
 		size_t *sizep);
 
-isc_result_t
+void
 ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp);
 
 /*%

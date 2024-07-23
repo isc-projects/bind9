@@ -806,10 +806,8 @@ ns_query_free(ns_client_t *client) {
 	query_reset(client, true);
 }
 
-isc_result_t
+void
 ns_query_init(ns_client_t *client) {
-	isc_result_t result = ISC_R_SUCCESS;
-
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	client->query = (ns_query_t){ 0 };
@@ -827,8 +825,6 @@ ns_query_init(ns_client_t *client) {
 	query_reset(client, false);
 	ns_client_newdbversion(client, 3);
 	ns_client_newnamebuf(client);
-
-	return (result);
 }
 
 /*%
@@ -5411,6 +5407,7 @@ qctx_freedata(query_ctx_t *qctx) {
 		ns_client_releasename(qctx->client, &qctx->zfname);
 		dns_db_detachnode(qctx->zdb, &qctx->znode);
 		dns_db_detach(&qctx->zdb);
+		qctx->zversion = NULL;
 	}
 
 	if (qctx->fresp != NULL && !qctx->client->nodetach) {
