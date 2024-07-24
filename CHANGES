@@ -1,3 +1,6 @@
+6396.	[security]	Remove SIG(0) support from named as a countermeasure
+			for CVE-2024-1975. [GL #4480]
+
 6350.	[bug]		Address use after free in expire_lru_headers. [GL #4495]
 
 6338.	[func]		Optimize slabheader placement, so the infrastructure
