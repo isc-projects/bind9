@@ -537,7 +537,7 @@ zone).
 The TKEY process is initiated by a client or server by sending a query
 of type TKEY to a TKEY-aware server. The query must include an
 appropriate KEY record in the additional section, and must be signed
-using either TSIG or SIG(0) with a previously established key. The
+using either TSIG with a previously established key. The
 server's response, if successful, contains a TKEY record in its
 answer section. After this transaction, both participants have
 enough information to calculate a shared secret using Diffie-Hellman key
@@ -555,20 +555,8 @@ deletion" mode.
 SIG(0)
 ------
 
-BIND partially supports DNSSEC SIG(0) transaction signatures as
-specified in :rfc:`2535` and :rfc:`2931`. SIG(0) uses public/private keys to
-authenticate messages. Access control is performed in the same manner as with
-TSIG keys; privileges can be granted or denied in ACL directives based
-on the key name.
-
-When a SIG(0) signed message is received, it is only verified if
-the key is known and trusted by the server. The server does not attempt
-to recursively fetch or validate the key.
-
-SIG(0) signing of multiple-message TCP streams is not supported.
-
-The only tool shipped with BIND 9 that generates SIG(0) signed messages
-is ``nsupdate``.
+Support for DNSSEC SIG(0) transaction signatures was removed.
+This is a countermeasure for CVE-2024-1975.
 
 .. include:: managed-keys.rst
 .. include:: pkcs11.rst

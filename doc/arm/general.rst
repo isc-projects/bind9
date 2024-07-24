@@ -367,10 +367,8 @@ Notes
 .. [#rfc1035_2] CLASS ANY queries are not supported. This is considered a
    feature.
 
-.. [#rfc2931] When receiving a query signed with a SIG(0), the server is
-   only able to verify the signature if it has the key in its local
-   authoritative data; it cannot do recursion or validation to
-   retrieve unknown keys.
+.. [#rfc2931] Support for SIG(0) message verification was removed
+   as a countermeasure for CVE-2024-1975.
 
 .. [#rfc2874] Compliance is with loading and serving of A6 records only.
    A6 records were moved to the experimental category by :rfc:`3363`.
