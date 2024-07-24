@@ -115,6 +115,10 @@ fillin_offsets(unsigned char *offsetbase, unsigned int *offsettable,
 }
 #endif
 
+#ifndef DNS_RDATASET_MAX_RECORDS
+#define DNS_RDATASET_MAX_RECORDS 100
+#endif /* DNS_RDATASET_MAX_RECORDS */
+
 isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			   isc_region_t *region, unsigned int reservelen)
@@ -159,6 +163,10 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		*rawbuf++ = 0;
 		*rawbuf = 0;
 		return (ISC_R_SUCCESS);
+	}
+
+	if (nitems > DNS_RDATASET_MAX_RECORDS) {
+		return (DNS_R_TOOMANYRECORDS);
 	}
 
 	if (nitems > 0xffff)
@@ -653,6 +661,10 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	ncurrent += (4 * ncount);
 #endif
 	INSIST(ocount > 0 && ncount > 0);
+
+	if (ocount + ncount > DNS_RDATASET_MAX_RECORDS) {
+		return (DNS_R_TOOMANYRECORDS);
+	}
 
 #if DNS_RDATASET_FIXED
 	oncount = ncount;
