@@ -46,7 +46,6 @@ confidential!
   - [ ] [:link:][step_backports]         **(SwEng)** Prepare backports of the merge request addressing the problem for all affected (and still maintained) branches of a given product
   - [ ] [:link:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory
   - [ ] [:link:][step_meta_issue]        **(QA)** Create (or update) the private issue containing links to fixes & reproducers for all CVEs fixed in a given release cycle
-  - [ ] [:link:][step_changes]           **(QA)** (BIND 9 only) Reserve a block of `CHANGES` placeholders once the complete set of vulnerabilities fixed in a given release cycle is determined
   - [ ] [:link:][step_merge_fixes]       **(QA)** Merge the CVE fixes in CVE identifier order
   - [ ] [:link:][step_patches]           **(QA)** Prepare a standalone patch for the last stable release of each affected (and still maintained) product branch
   - [ ] [:link:][step_asn_releases]      **(QA)** Prepare ASN releases (as outlined in the Release Checklist)
