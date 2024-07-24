@@ -15,7 +15,9 @@ Notes for BIND 9.16.51
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- Due to a logic error, lookups that trigger serving stale data and require
+  lookups in local authoritative zone data may result in an assertion failure.
+  This has been fixed. :cve:`2024-4076` :gl:`#4507`
 
 New Features
 ~~~~~~~~~~~~

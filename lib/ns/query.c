@@ -5260,6 +5260,7 @@ qctx_freedata(query_ctx_t *qctx) {
 		ns_client_releasename(qctx->client, &qctx->zfname);
 		dns_db_detachnode(qctx->zdb, &qctx->znode);
 		dns_db_detach(&qctx->zdb);
+		qctx->zversion = NULL;
 	}
 
 	if (qctx->event != NULL && !qctx->client->nodetach) {
