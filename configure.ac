@@ -96,7 +96,7 @@ AC_ARG_ENABLE([developer],
 
 XTARGETS=
 AS_IF([test "$enable_developer" = "yes"],
-      [STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
+      [STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1 -DDNS_RDATASET_MAX_RECORDS=5000 -DDNS_RBTDB_MAX_RTYPES=5000"
        test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
