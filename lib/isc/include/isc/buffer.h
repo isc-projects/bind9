@@ -857,22 +857,21 @@ isc_buffer_getuint8(isc_buffer_t *restrict b) {
 	return (val);
 }
 
-#define ISC_BUFFER_PUT_RESERVE(b, v)                                           \
-	{                                                                      \
-		REQUIRE(ISC_BUFFER_VALID(b));                                  \
-                                                                               \
-		if (b->mctx) {                                                 \
-			isc_result_t result = isc_buffer_reserve(b,            \
-								 sizeof(val)); \
-			ENSURE(result == ISC_R_SUCCESS);                       \
-		}                                                              \
-                                                                               \
-		REQUIRE(isc_buffer_availablelength(b) >= sizeof(val));         \
+#define ISC_BUFFER_PUT_RESERVE(b, v, s)                                 \
+	{                                                               \
+		REQUIRE(ISC_BUFFER_VALID(b));                           \
+                                                                        \
+		if (b->mctx) {                                          \
+			isc_result_t result = isc_buffer_reserve(b, s); \
+			ENSURE(result == ISC_R_SUCCESS);                \
+		}                                                       \
+                                                                        \
+		REQUIRE(isc_buffer_availablelength(b) >= s);            \
 	}
 
 static inline void
 isc_buffer_putuint8(isc_buffer_t *restrict b, const uint8_t val) {
-	ISC_BUFFER_PUT_RESERVE(b, val);
+	ISC_BUFFER_PUT_RESERVE(b, val, sizeof(val));
 
 	uint8_t *cp = isc_buffer_used(b);
 	b->used += sizeof(val);
@@ -900,7 +899,7 @@ isc_buffer_getuint16(isc_buffer_t *restrict b) {
 
 static inline void
 isc_buffer_putuint16(isc_buffer_t *restrict b, const uint16_t val) {
-	ISC_BUFFER_PUT_RESERVE(b, val);
+	ISC_BUFFER_PUT_RESERVE(b, val, sizeof(val));
 
 	uint8_t *cp = isc_buffer_used(b);
 	b->used += sizeof(val);
@@ -928,7 +927,7 @@ isc_buffer_getuint32(isc_buffer_t *restrict b) {
 
 static inline void
 isc_buffer_putuint32(isc_buffer_t *restrict b, const uint32_t val) {
-	ISC_BUFFER_PUT_RESERVE(b, val);
+	ISC_BUFFER_PUT_RESERVE(b, val, sizeof(val));
 
 	uint8_t *cp = isc_buffer_used(b);
 	b->used += sizeof(val);
@@ -957,7 +956,7 @@ isc_buffer_getuint48(isc_buffer_t *restrict b) {
 
 static inline void
 isc_buffer_putuint48(isc_buffer_t *restrict b, const uint64_t val) {
-	ISC_BUFFER_PUT_RESERVE(b, val);
+	ISC_BUFFER_PUT_RESERVE(b, val, 6); /* 48-bits */
 
 	uint8_t *cp = isc_buffer_used(b);
 	b->used += 6;
