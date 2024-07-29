@@ -520,18 +520,6 @@ misc:
       - checklibs.out
     when: on_failure
 
-changes:
-  <<: *precheck_job
-  except:
-    - pipelines
-  script:
-    - sh util/tabify-changes < CHANGES > CHANGES.tmp
-    - diff -urNap CHANGES CHANGES.tmp
-    - perl util/check-changes CHANGES
-    - sh util/check-line-length.sh CHANGES
-    - rm CHANGES.tmp
-  needs: []
-
 black:
   <<: *precheck_job
   needs: []
@@ -588,7 +576,7 @@ pylint:
   variables:
     PYTHONPATH: "${CI_PROJECT_DIR}/bin/tests/system"
   script:
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/)')
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
       # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
 

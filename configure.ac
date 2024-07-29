@@ -1199,10 +1199,10 @@ AM_CONDITIONAL([HAVE_XELATEX], [test -n "$XELATEX" && test -n "$LATEXMK"])
 AM_CONDITIONAL([BUILD_MANPAGES], [test -e doc/man/named.conf.5in || test -n "$SPHINX_BUILD"])
 
 #
-# Pull release date from CHANGES file last modification date
+# Pull release date from changelog.rst file last modification date
 # for reproducible builds
 #
-release_date=`date -u -r CHANGES +%Y-%m-%d`
+release_date=`date -u -r doc/arm/changelog.rst +%Y-%m-%d`
 AC_SUBST([RELEASE_DATE], $release_date)
 
 #
