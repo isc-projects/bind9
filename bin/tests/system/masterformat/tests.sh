@@ -145,7 +145,7 @@ n=$((n + 1))
 status=$((status + ret))
 
 echo_i "waiting for transfers to complete"
-for i in 0 1 2 3 4 5 6 7 8 9; do
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   test -f ns2/transfer.db.raw -a -f ns2/transfer.db.txt && break
   sleep 1
 done
@@ -173,7 +173,7 @@ n=$((n + 1))
 status=$((status + ret))
 
 echo_i "checking that secondary formerly in text format is now raw ($n)"
-for i in 0 1 2 3 4 5 6 7 8 9; do
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
   israw ns2/formerly-text.db >/dev/null 2>&1 || ret=1
   [ "$(rawversion ns2/formerly-text.db)" -eq 1 ] || ret=1
@@ -184,12 +184,12 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that large rdatasets loaded ($n)"
-for i in 0 1 2 3 4 5 6 7 8 9; do
+echo_i "checking that under-limit rdatasets loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c; do
-    $DIG +tcp txt "${a}.large" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$a.test$n"
-    grep "status: NOERROR" "dig.out.ns1.$a.test$n" >/dev/null || ret=1
+  for rrcount in 500-txt 1000-txt 2000-txt; do
+    $DIG +tcp txt "${rrcount}.under-limit" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
@@ -198,12 +198,12 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that large rdatasets transfered ($n)"
-for i in 0 1 2 3 4 5 6 7 8 9; do
+echo_i "checking that under-limit rdatasets transfered ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c; do
-    $DIG +tcp txt "${a}.large" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$a.test$n"
-    grep "status: NOERROR" "dig.out.ns2.$a.test$n" >/dev/null || ret=1
+  for rrcount in 500-txt 1000-txt 2000-txt; do
+    $DIG +tcp txt "${rrcount}.under-limit" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns2.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
@@ -212,12 +212,12 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that huge rdatasets loaded ($n)"
-for i in 0 1 2 3 4 5 6 7 8 9; do
+echo_i "checking that on-limit rdatasets loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c d; do
-    $DIG +tcp txt "${a}.huge" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$a.test$n"
-    grep "status: NOERROR" "dig.out.ns1.$a.test$n" >/dev/null || ret=1
+  for rrcount in 500-txt 1000-txt 2000-txt 2050-txt; do
+    $DIG +tcp txt "${rrcount}.on-limit" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    grep "status: NOERROR" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
@@ -226,12 +226,12 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that huge rdatasets not transfered ($n)"
-for i in 0 1 2 3 4 5 6 7 8 9; do
+echo_i "checking that on-limit rdatasets not transfered ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c d; do
-    $DIG +tcp txt "${a}.huge" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$a.test$n"
-    grep "status: SERVFAIL" "dig.out.ns2.$a.test$n" >/dev/null || ret=1
+  for rrcount in 500-txt 1000-txt 2000-txt 2050-txt; do
+    $DIG +tcp txt "${rrcount}.on-limit" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.$rrcount.test$n"
+    grep "status: SERVFAIL" "dig.out.ns2.$rrcount.test$n" >/dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
   sleep 1
@@ -240,13 +240,36 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that uber rdatasets not loaded ($n)"
-for i in 0 1 2 3 4 5 6 7 8 9; do
+echo_i "checking that over-limit rdatasets not loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0
-  for a in a b c d e; do
-    $DIG +tcp txt "${a}.uber" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$a.test$n"
-    grep "status: SERVFAIL" "dig.out.ns1.$a.test$n" >/dev/null || ret=1
+  for rrcount in 500-txt 1000-txt 2000-txt 2050-txt 2100-txt; do
+    $DIG +tcp txt "${rrcount}.over-limit" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.$rrcount.test$n"
+    grep "status: SERVFAIL" "dig.out.ns1.$rrcount.test$n" >/dev/null || ret=1
   done
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that 255 types are loaded ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  ret=0
+  $DIG +tcp TXT "m.255types" @10.53.0.1 -p "${PORT}" >"dig.out.ns1.test$n"
+  grep "status: NOERROR" "dig.out.ns1.test$n" >/dev/null || ret=1
+  [ $ret -eq 0 ] && break
+  sleep 1
+done
+n=$((n + 1))
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that 255 types types are not transfered ($n)"
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
+  $DIG +tcp TXT "m.255types" @10.53.0.2 -p "${PORT}" >"dig.out.ns2.test$n"
+  grep "status: SERVFAIL" "dig.out.ns2.test$n" >/dev/null || ret=1
   [ $ret -eq 0 ] && break
   sleep 1
 done
@@ -318,7 +341,7 @@ stop_server --use-rndc --port ${CONTROLPORT} ns3
 rm ns3/*.jnl
 restart
 #shellcheck disable=SC2034
-for i in 0 1 2 3 4 5 6 7 8 9; do
+for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   lret=0
   dig_with_opts +comm @10.53.0.3 moretext.dynamic txt >"dig.out.dynamic2.ns3.test$n"
   grep "more text" "dig.out.dynamic2.ns3.test$n" >/dev/null 2>&1 || lret=1

@@ -11,12 +11,16 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f dig.out*
-rm -f ans?/ans.run
-rm -f ans2/ans.limit
-rm -f ans4/ans.limit
-rm -f ns?/named.memstats
-rm -f ns?/named.run
-rm -f ns*/named.conf
-rm -f ns*/named.lock
-rm -f ns*/managed-keys.bind*
+rm -f ./dig.out*
+rm -f ./dsset-signed.
+rm -f ./ans?/ans.run
+rm -f ./ans2/ans.limit
+rm -f ./ans4/ans.limit
+rm -f ./ns?/named.memstats
+rm -f ./ns?/named.run
+rm -f ./ns*/named.conf
+rm -f ./ns*/named.lock
+rm -f ./ns*/managed-keys.bind*
+rm -f ./ns*/signed.db*
+rm -f ./ns*/*.db.signed
+rm -f ./ns*/Ksigned.*.key ./ns*/Ksigned.*.private

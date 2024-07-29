@@ -2957,6 +2957,18 @@ system.
    a failure.  If set to 0, there is no cap on RRset size.  The default is
    100.
 
+``max-types-per-name``
+   This sets the maximum number of resource record types that can be stored
+   for a single owner name in a database. When configured in ``options``
+   or ``view``, it controls the cache database, and also sets
+   the default value for zone databases, which can be overridden by setting
+   it at the ``zone`` level
+
+   If set to a positive value, any attempt to cache or to add to a zone an owner
+   name with more than the specified number of resource record types will result
+   in a failure.  If set to 0, there is no cap on RR types number.  The default is
+   100.
+   
 ``recursive-clients``
    This sets the maximum number (a "hard quota") of simultaneous recursive lookups
    the server performs on behalf of clients. The default is

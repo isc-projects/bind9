@@ -564,7 +564,8 @@ static dns_dbmethods_t ecdb_methods = {
 	NULL, /* getservestalerefresh */
 	NULL, /* setgluecachestats */
 	NULL, /* adjusthashsize */
-	NULL  /* setmaxrrperset */
+	NULL, /* setmaxrrperset */
+	NULL  /* setmaxtypepername */
 };
 
 static isc_result_t

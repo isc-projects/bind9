@@ -497,6 +497,7 @@ struct dns_rbtdb {
 	rbtdb_serial_t least_serial;
 	rbtdb_serial_t next_serial;
 	uint32_t maxrrperset;
+	uint32_t maxtypepername;
 	rbtdb_version_t *current_version;
 	rbtdb_version_t *future_version;
 	rbtdb_versionlist_t open_versions;
@@ -6259,19 +6260,13 @@ update_recordsandxfrsize(bool add, rbtdb_version_t *rbtversion,
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 }
 
-#ifndef DNS_RBTDB_MAX_RTYPES
-#define DNS_RBTDB_MAX_RTYPES 100
-#endif /* DNS_RBTDB_MAX_RTYPES */
-
 static bool
 overmaxtype(dns_rbtdb_t *rbtdb, uint32_t ntypes) {
-	UNUSED(rbtdb);
-
-	if (DNS_RBTDB_MAX_RTYPES == 0) {
+	if (rbtdb->maxtypepername == 0) {
 		return (false);
 	}
 
-	return (ntypes >= DNS_RBTDB_MAX_RTYPES);
+	return (ntypes >= rbtdb->maxtypepername);
 }
 
 static bool
@@ -6809,7 +6804,7 @@ find_header:
 			if (!IS_CACHE(rbtdb) && overmaxtype(rbtdb, ntypes)) {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
-				return (ISC_R_QUOTA);
+				return (DNS_R_TOOMANYRECORDS);
 			}
 
 			newheader->down = NULL;
@@ -8627,6 +8622,15 @@ setmaxrrperset(dns_db_t *db, uint32_t maxrrperset) {
 	rbtdb->maxrrperset = maxrrperset;
 }
 
+static void
+setmaxtypepername(dns_db_t *db, uint32_t maxtypepername) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	rbtdb->maxtypepername = maxtypepername;
+}
+
 static dns_stats_t *
 getrrsetstats(dns_db_t *db) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -8751,7 +8755,8 @@ static dns_dbmethods_t zone_methods = { attach,
 					NULL, /* getservestalerefresh */
 					setgluecachestats,
 					adjusthashsize,
-					setmaxrrperset };
+					setmaxrrperset,
+					setmaxtypepername };
 
 static dns_dbmethods_t cache_methods = { attach,
 					 detach,
@@ -8804,7 +8809,8 @@ static dns_dbmethods_t cache_methods = { attach,
 					 getservestalerefresh,
 					 NULL,
 					 adjusthashsize,
-					 setmaxrrperset };
+					 setmaxrrperset,
+					 setmaxtypepername };
 
 isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
