@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+.. _relnotes:
+
 Release Notes
 =============
 
@@ -21,8 +23,8 @@ BIND 9.21 is an unstable development release of BIND. This document
 summarizes new features and functional changes that have been introduced
 on this branch. With each development release leading up to the stable
 BIND 9.22 release, this document will be updated with additional
-features added and bugs fixed. Please see the CHANGES file for a more
-detailed list of changes and bug fixes.
+features added and bugs fixed. Please see the :ref:`changelog` file for
+a more detailed list of changes and bug fixes.
 
 Supported Platforms
 -------------------
