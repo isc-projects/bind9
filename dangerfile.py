@@ -43,15 +43,14 @@ def lines_containing(lines, string):
 
 
 changes_issue_or_mr_id_regex = re.compile(rb"\[(GL [#!]|RT #)[0-9]+\]")
-relnotes_issue_or_mr_id_regex = re.compile(rb":gl:`[#!][0-9]+`")
-release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
 rdata_regex = re.compile(r"lib/dns/rdata/")
+mr_issue_link_regex = re.compile(r"^(Closes|Fixes):?\s*[^\n]*#[0-9]+", re.MULTILINE)
 
 modified_files = danger.git.modified_files
 affected_files = (
     danger.git.modified_files + danger.git.created_files + danger.git.deleted_files
 )
-mr_title = danger.gitlab.mr.title
+mr_title = re.sub(r"^Draft:\s*", r"", danger.gitlab.mr.title)
 mr_labels = danger.gitlab.mr.labels
 source_branch = danger.gitlab.mr.source_branch
 target_branch = danger.gitlab.mr.target_branch
@@ -69,14 +68,25 @@ mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 # MERGE REQUEST INFORMATION
 ###############################################################################
 #
-# - WARN if the merge request's title looks like an auto-generated one.
+# - FAIL if the MR title doesn't have the expected format
+#
+# - FAIL if the MR title doesn't contain changelog action
 
-if mr_title.replace("Draft: ", "").startswith('Resolve "'):
-    warn(
-        f"This merge request's title (`{mr_title}`) looks like an "
-        "auto-generated one. Please change it so that it accurately "
-        "describes the changes contained in this merge request."
-    )
+MR_TITLE_RE = re.compile(
+    r"^(\[9\.[0-9]{2}(-S)?\])?\s*(\[[^]]*\]\s*)?((chg|fix|new|rem|sec):)?\s*((dev|usr|pkg|doc|test)\s*:)?\s*([^\n]*)$",
+)
+mr_title_match = MR_TITLE_RE.match(mr_title)
+mr_title_cve = mr_title_match.group(3) if mr_title_match else None
+mr_title_action = mr_title_match.group(5) if mr_title_match else None
+mr_title_audience = mr_title_match.group(7) if mr_title_match else None
+
+if not mr_title_match:
+    fail("Merge request's title is invalid. Fix it or contact QA for assistance.")
+else:
+    if mr_title_action is None:
+        fail(
+            "Add one of `chg:`|`fix:`|`new:`|`rem:`|`sec:` to the MR title to categorize this change."
+        )
 
 ###############################################################################
 # BRANCH NAME
@@ -105,6 +115,8 @@ if match:
 #
 #     * The subject line starts with a prohibited word indicating a work in
 #       progress commit (e.g. "WIP").
+#
+#     * The subject line contains a changelog action.
 #
 #     * The subject line contains a trailing dot.
 #
@@ -138,7 +150,7 @@ fixup_error_logged = False
 for commit in danger.git.commits:
     message_lines = commit.message.splitlines()
     subject = message_lines[0]
-    is_merge = subject.startswith("Merge branch ")
+    is_merge = len(commit.parents) >= 2
     is_fixup = (
         subject.startswith("fixup!")
         or subject.startswith("amend!")
@@ -155,6 +167,12 @@ for commit in danger.git.commits:
         fail(
             f"Prohibited keyword `{match.groups()[0]}` detected "
             f"at the start of a subject line in commit {commit.sha}."
+        )
+    match = MR_TITLE_RE.match(subject)
+    if match and match.group(5) is not None and not is_merge:
+        fail(
+            f"Changelog action `{match.group(5)}` detected in non-merge"
+            f"commit {commit.sha}. Use MR title instead."
         )
     if len(subject) > 72 and not is_merge and not is_fixup:
         warn(
@@ -314,50 +332,29 @@ elif not approved:
     )
 
 ###############################################################################
-# 'CHANGES' FILE
+# Changelog entries
 ###############################################################################
 #
 # FAIL if any of the following is true:
 #
-# * The merge request does not update the CHANGES file, but it does not have
-#   the "No CHANGES" label set.  (This attempts to ensure that the author of
-#   the MR did not forget about adding a CHANGES entry.)
+# * The merge request title doesn't produce a changelog entry, but it does not have
+#   the "No CHANGES" label set.
 #
-# * The merge request updates the CHANGES file, but it has the "No CHANGES"
-#   label set.  (This attempts to ensure that the "No CHANGES" label is used in
-#   a sane way.)
-#
-# * The merge request adds any placeholder entries to the CHANGES file, but it
-#   does not target the "main" branch.
-#
-# * The merge request adds a new CHANGES entry that is not a placeholder and
-#   does not contain any GitLab/RT issue/MR identifiers.
+# * The merge request title produces a changelog entry, but it has the "No CHANGES"
+#   label set.
 
-changes_modified = "CHANGES" in modified_files or "CHANGES.SE" in modified_files
+changes_modified = mr_title_audience in ["usr", "pkg", "dev"]
 no_changes_label_set = "No CHANGES" in mr_labels
 if not changes_modified and not no_changes_label_set:
     fail(
-        "This merge request does not modify `CHANGES`. "
-        "Add a `CHANGES` entry or set the *No CHANGES* label."
+        "MR title doesn't produce a new changelog entry. "
+        "Add a `dev:`|`usr:`|`pkg:` audience to MR title or set the *No CHANGES* label."
     )
 if changes_modified and no_changes_label_set:
     fail(
-        "This merge request modifies `CHANGES`. "
-        "Revert `CHANGES` modifications or unset the *No Changes* label."
+        "MR title produces a new changelog entry. Unset the *No Changes* label "
+        "or remove the `dev:`|`usr:`|`pkg:` audience from the MR title."
     )
-
-changes_added_lines = added_lines(target_branch, ["CHANGES", "CHANGES.SE"])
-placeholders_added = lines_containing(changes_added_lines, "[placeholder]")
-identifiers_found = filter(changes_issue_or_mr_id_regex.search, changes_added_lines)
-if changes_added_lines:
-    if placeholders_added:
-        if target_branch != "main":
-            fail(
-                "This MR adds at least one placeholder entry to `CHANGES`. "
-                "It should be targeting the `main` branch."
-            )
-    elif not any(identifiers_found):
-        fail("No valid issue/MR identifiers found in added `CHANGES` entries.")
 
 ###############################################################################
 # RELEASE NOTES
@@ -388,23 +385,23 @@ if changes_added_lines:
 #       label set.  (Except for trivial changes, all merge requests which may
 #       be of interest to customers should include a release note.)
 #
-#     * This merge request updates release notes, but no GitLab/RT issue/MR
-#       identifiers are found in the lines added to the release notes by this
-#       MR.
+#     * This merge request updates release notes, but no GitLab issue was
+#       linked with the `Closes` or `Fixes` keyword in the MR description.
 
-release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
-release_notes_changed = list(filter(release_notes_regex.match, affected_files))
+release_notes_changed = mr_title_audience in ["usr", "pkg"]
 release_notes_label_set = "Release Notes" in mr_labels
 if not release_notes_changed:
     if release_notes_label_set:
         fail(
             "This merge request has the *Release Notes* label set. "
-            "Update release notes or unset the *Release Notes* label."
+            "Update the MR title to include `usr:`|`pkg:` audience or "
+            "unset the *Release Notes* label."
         )
     elif "Customer" in mr_labels:
         warn(
             "This merge request has the *Customer* label set. "
-            "Update release notes unless the changes introduced are trivial."
+            "Update the MR title to include `usr:`|`pkg:` audience "
+            "unless the changes introduced are trivial."
         )
     rdata_types_add_rm = list(
         filter(rdata_regex.match, danger.git.created_files + danger.git.deleted_files)
@@ -414,12 +411,12 @@ if not release_notes_changed:
             "This merge request adds new files to `lib/dns/rdata/` and/or "
             "deletes existing files from that directory, which almost certainly "
             "means that it adds support for a new RR type or removes support "
-            "for an existing one. Please add a relevant release note."
+            "for an existing one. Update the MR title to include `usr:` audience."
         )
 if release_notes_changed and not release_notes_label_set:
     fail(
-        "This merge request modifies release notes. "
-        "Revert release note modifications or set the *Release Notes* label."
+        "The MR title produces a release note. Set the *Release Notes* label "
+        "or remove the `usr:`|`pkg:` audience from the MR title."
     )
 if (
     release_notes_label_set
@@ -428,38 +425,26 @@ if (
 ):
     fail(
         "This merge request is labeled with both *Release notes* and *No CHANGES*. "
-        "A user-visible change should also be mentioned in the `CHANGES` file."
+        "A user-visible change should also be mentioned in the changelog."
     )
 
-if release_notes_changed:
-    modified_or_new_files = danger.git.modified_files + danger.git.created_files
-    release_notes_added = list(filter(release_notes_regex.match, modified_or_new_files))
-    notes_added_lines = added_lines(target_branch, release_notes_added)
-    identifiers_found = filter(relnotes_issue_or_mr_id_regex.search, notes_added_lines)
-    if notes_added_lines and not any(identifiers_found):
-        warn("No valid issue/MR identifiers found in added release notes.")
-else:
-    notes_added_lines = []
+if release_notes_changed and not mr_issue_link_regex.search(
+    danger.gitlab.mr.description
+):
+    warn("No issue was linked via `Closes`|`Fixes` in the MR description.")
 
 ###############################################################################
 # CVE IDENTIFIERS
 ###############################################################################
 #
-# FAIL if the merge request adds a CHANGES entry of type [security] and a CVE
-# identifier is missing from either the added CHANGES entry or the added
-# release note.
+# WARN if the merge request title indicates a security issue, but there is no
+# CVE identifier in the MR title.
 
-if lines_containing(changes_added_lines, "[security]"):
-    if not lines_containing(changes_added_lines, "(CVE-20"):
-        fail(
-            "This merge request fixes a security issue. "
-            "Please add a CHANGES entry which includes a CVE identifier."
-        )
-    if not lines_containing(notes_added_lines, ":cve:`20"):
-        fail(
-            "This merge request fixes a security issue. "
-            "Please add a release note which includes a CVE identifier."
-        )
+if mr_title_action == "sec" and (mr_title_cve is None or "CVE-20" not in mr_title_cve):
+    warn(
+        "This merge request fixes a security issue. "
+        "Please add `[CVE-XXXX-YYYY]` to the MR title if a CVE was issued."
+    )
 
 ###############################################################################
 # PAIRWISE TESTING

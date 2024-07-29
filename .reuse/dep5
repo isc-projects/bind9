@@ -191,6 +191,8 @@ Files: **/.clang-format
        .readthedocs.yaml
        .tsan-suppress
        .uncrustify.cfg
+       contrib/gitchangelog/changelog.rc.py
+       contrib/gitchangelog/relnotes.rc.py
        doc/misc/*.zoneopt
        doc/misc/options
        doc/misc/rndc.grammar

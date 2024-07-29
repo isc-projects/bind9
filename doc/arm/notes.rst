@@ -9,6 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+.. _relnotes:
+
 Release Notes
 =============
 
@@ -19,7 +21,8 @@ Introduction
 
 BIND 9.20 is a stable branch, suitable for production use. This
 document summarizes significant changes since the last production
-release on the 9.18 branch.
+release on the 9.18 branch. Please see the :ref:`changelog` file for
+a more detailed list of changes and bug fixes.
 
 Supported Platforms
 -------------------
