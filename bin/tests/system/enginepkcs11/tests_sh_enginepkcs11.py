@@ -9,6 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
 
+
+@pytest.mark.xfail(reason="openssl bug causes failure on bookworm [GL #4814]")
 def test_enginepkcs11(run_tests_sh):
     run_tests_sh()
