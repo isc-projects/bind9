@@ -164,6 +164,19 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
  *\li	#ISC_R_UNEXPECTED
  */
 
+isc_result_t
+dns_zone_makedb(dns_zone_t *zone, dns_db_t **dbp);
+/*%<
+ *        Creates a new empty database for the 'zone'.
+ *
+ * Requires:
+ *\li        'zone' to be a valid zone.
+ *\li        'dbp' to point to NULL pointer.
+ *
+ * Returns:
+ *\li        dns_db_create() error codes.
+ */
+
 void
 dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
 /*%<
@@ -330,6 +343,19 @@ dns_zone_getmaxrecords(dns_zone_t *zone);
  *
  * Returns:
  *\li	uint32_t maxrecords.
+ */
+
+void
+dns_zone_setmaxrrperset(dns_zone_t *zone, uint32_t maxrrperset);
+/*%<
+ * 	Sets the maximum number of records per rrset permitted in a zone.
+ *	0 implies unlimited.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	void
  */
 
 void

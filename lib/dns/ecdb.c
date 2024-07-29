@@ -428,7 +428,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, mctx, &r,
-					    sizeof(rdatasetheader_t));
+					    sizeof(rdatasetheader_t), 0);
 	if (result != ISC_R_SUCCESS) {
 		goto unlock;
 	}
@@ -560,7 +560,11 @@ static dns_dbmethods_t ecdb_methods = {
 	NULL, /* getsize */
 	NULL, /* setservestalettl */
 	NULL, /* getservestalettl */
-	NULL  /* setgluecachestats */
+	NULL, /* setservestalerefresh */
+	NULL, /* getservestalerefresh */
+	NULL, /* setgluecachestats */
+	NULL, /* adjusthashsize */
+	NULL  /* setmaxrrperset */
 };
 
 static isc_result_t

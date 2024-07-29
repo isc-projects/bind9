@@ -13,10 +13,12 @@ zone <string> [ <class> ] {
 	masterfile-style ( full | relative );
 	masters [ port <integer> ] [ dscp <integer> ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
 	max-records <integer>;
+	max-records-per-type <integer>;
 	max-refresh-time <integer>;
 	max-retry-time <integer>;
 	max-transfer-idle-in <integer>;
 	max-transfer-time-in <integer>;
+	max-types-per-name <integer>;
 	min-refresh-time <integer>;
 	min-retry-time <integer>;
 	multi-master <boolean>;

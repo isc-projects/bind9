@@ -156,13 +156,16 @@ options {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder | resolver | update ) [
-            ( query | response ) ]; ... };
-        dnstap-identity ( <quoted_string> | none | hostname );
-        dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited |
-            <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix (
-            increment | timestamp ) ];
-        dnstap-version ( <quoted_string> | none );
+        dnstap { ( all | auth | client | forwarder |
+            resolver | update ) [ ( query | response ) ];
+            ... }; // not configured
+        dnstap-identity ( <quoted_string> | none |
+            hostname ); // not configured
+        dnstap-output ( file | unix ) <quoted_string> [
+            size ( unlimited | <size> ) ] [ versions (
+            unlimited | <integer> ) ] [ suffix ( increment
+            | timestamp ) ]; // not configured
+        dnstap-version ( <quoted_string> | none ); // not configured
         dscp <integer>; // deprecated
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
@@ -181,13 +184,13 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
-        fstrm-set-buffer-hint <integer>;
-        fstrm-set-flush-timeout <integer>;
-        fstrm-set-input-queue-size <integer>;
-        fstrm-set-output-notify-threshold <integer>;
-        fstrm-set-output-queue-model ( mpsc | spsc );
-        fstrm-set-output-queue-size <integer>;
-        fstrm-set-reopen-interval <duration>;
+        fstrm-set-buffer-hint <integer>; // not configured
+        fstrm-set-flush-timeout <integer>; // not configured
+        fstrm-set-input-queue-size <integer>; // not configured
+        fstrm-set-output-notify-threshold <integer>; // not configured
+        fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
+        fstrm-set-output-queue-size <integer>; // not configured
+        fstrm-set-reopen-interval <duration>; // not configured
         geoip-directory ( <quoted_string> | none );
         glue-cache <boolean>;
         heartbeat-interval <integer>;
@@ -217,6 +220,7 @@ options {
         max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <duration>;
         max-records <integer>;
+        max-records-per-type <integer>;
         max-recursion-depth <integer>;
         max-recursion-queries <integer>;
         max-refresh-time <integer>;
@@ -227,6 +231,7 @@ options {
         max-transfer-idle-out <integer>;
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
+        max-types-per-name <integer>;
         max-udp-size <integer>;
         max-zone-ttl ( unlimited | <duration> );
         memstatistics <boolean>;
@@ -514,8 +519,9 @@ view <string> [ <class> ] {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder | resolver | update ) [
-            ( query | response ) ]; ... };
+        dnstap { ( all | auth | client | forwarder |
+            resolver | update ) [ ( query | response ) ];
+            ... }; // not configured
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
             <integer> ] [ dscp <integer> ] | <ipv6_address> [ port
@@ -560,6 +566,7 @@ view <string> [ <class> ] {
         max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <duration>;
         max-records <integer>;
+        max-records-per-type <integer>;
         max-recursion-depth <integer>;
         max-recursion-queries <integer>;
         max-refresh-time <integer>;
@@ -569,6 +576,7 @@ view <string> [ <class> ] {
         max-transfer-idle-out <integer>;
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
+        max-types-per-name <integer>;
         max-udp-size <integer>;
         max-zone-ttl ( unlimited | <duration> );
         message-compression <boolean>;
@@ -775,12 +783,14 @@ view <string> [ <class> ] {
                 max-ixfr-ratio ( unlimited | <percentage> );
                 max-journal-size ( default | unlimited | <sizeval> );
                 max-records <integer>;
+                max-records-per-type <integer>;
                 max-refresh-time <integer>;
                 max-retry-time <integer>;
                 max-transfer-idle-in <integer>;
                 max-transfer-idle-out <integer>;
                 max-transfer-time-in <integer>;
                 max-transfer-time-out <integer>;
+                max-types-per-name <integer>;
                 max-zone-ttl ( unlimited | <duration> );
                 min-refresh-time <integer>;
                 min-retry-time <integer>;
@@ -885,12 +895,14 @@ zone <string> [ <class> ] {
         max-ixfr-ratio ( unlimited | <percentage> );
         max-journal-size ( default | unlimited | <sizeval> );
         max-records <integer>;
+        max-records-per-type <integer>;
         max-refresh-time <integer>;
         max-retry-time <integer>;
         max-transfer-idle-in <integer>;
         max-transfer-idle-out <integer>;
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
+        max-types-per-name <integer>;
         max-zone-ttl ( unlimited | <duration> );
         min-refresh-time <integer>;
         min-retry-time <integer>;

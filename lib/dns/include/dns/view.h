@@ -188,6 +188,7 @@ struct dns_view {
 	dns_dlzdblist_t	  dlz_unsearched;
 	uint32_t	  fail_ttl;
 	dns_badcache_t	 *failcache;
+	uint32_t	  maxrrperset;
 
 	/*
 	 * Configurable data for server use only,
@@ -1352,6 +1353,12 @@ dns_view_staleanswerenabled(dns_view_t *view);
  *
  * Requires:
  *\li	'view' to be valid.
+ */
+
+void
+dns_view_setmaxrrperset(dns_view_t *view, uint32_t value);
+/*%<
+ * Set the maximum resource records per RRSet that can be cached.
  */
 
 ISC_LANG_ENDDECLS
