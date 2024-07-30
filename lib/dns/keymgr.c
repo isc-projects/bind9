@@ -86,6 +86,16 @@ static const char *keystatetags[NUM_KEYSTATES] = { "DNSKEY", "ZRRSIG", "KRRSIG",
 static const char *keystatestrings[4] = { "HIDDEN", "RUMOURED", "OMNIPRESENT",
 					  "UNRETENTIVE" };
 
+static void
+log_key_overflow(dst_key_t *key, const char *what) {
+	char keystr[DST_KEY_FORMATSIZE];
+	dst_key_format(key, keystr, sizeof(keystr));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+		      ISC_LOG_WARNING,
+		      "keymgr: DNSKEY %s (%s) calculation overflowed", keystr,
+		      what);
+}
+
 /*
  * Print key role.
  *
@@ -298,7 +308,10 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			return (0);
 		}
 
-		retire = active + klifetime;
+		if (ISC_OVERFLOW_ADD(active, klifetime, &retire)) {
+			log_key_overflow(key->key, "retire");
+			retire = UINT32_MAX;
+		}
 		dst_key_settime(key->key, DST_TIME_INACTIVE, retire);
 	}
 
@@ -372,6 +385,45 @@ keymgr_key_retire(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
 		      ISC_LOG_INFO, "keymgr: retire DNSKEY %s (%s)", keystr,
 		      keymgr_keyrole(key->key));
+}
+
+/* Update lifetime and retire and remove time accordingly. */
+static void
+keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
+			   isc_stdtime_t now, uint32_t lifetime) {
+	uint32_t l;
+	dst_key_state_t g = HIDDEN;
+	isc_result_t r;
+
+	(void)dst_key_getstate(key->key, DST_KEY_GOAL, &g);
+	r = dst_key_getnum(key->key, DST_NUM_LIFETIME, &l);
+	/* Initialize lifetime. */
+	if (r != ISC_R_SUCCESS) {
+		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
+		return;
+	}
+	/* Skip keys that are still hidden or already retiring. */
+	if (g != OMNIPRESENT) {
+		return;
+	}
+	/* Update lifetime and timing metadata. */
+	if (l != lifetime) {
+		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
+		if (lifetime > 0) {
+			uint32_t a = now;
+			uint32_t inactive;
+			(void)dst_key_gettime(key->key, DST_TIME_ACTIVATE, &a);
+			if (ISC_OVERFLOW_ADD(a, lifetime, &inactive)) {
+				log_key_overflow(key->key, "inactive");
+				inactive = UINT32_MAX;
+			}
+			dst_key_settime(key->key, DST_TIME_INACTIVE, inactive);
+			keymgr_settime_remove(key, kasp);
+		} else {
+			dst_key_unsettime(key->key, DST_TIME_INACTIVE);
+			dst_key_unsettime(key->key, DST_TIME_DELETE);
+		}
+	}
 }
 
 static bool
@@ -1840,8 +1892,13 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 
 	/* Do we need to set retire time? */
 	if (lifetime > 0) {
-		dst_key_settime(new_key->key, DST_TIME_INACTIVE,
-				(active + lifetime));
+		uint32_t inactive;
+
+		if (ISC_OVERFLOW_ADD(active, lifetime, &inactive)) {
+			log_key_overflow(new_key->key, "inactive");
+			inactive = UINT32_MAX;
+		}
+		dst_key_settime(new_key->key, DST_TIME_INACTIVE, inactive);
 		keymgr_settime_remove(new_key, kasp);
 	}
 
@@ -2081,15 +2138,9 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					      keystr, keymgr_keyrole(dkey->key),
 					      dns_kasp_getname(kasp));
 
-				/* Initialize lifetime if not set. */
-				uint32_t l;
-				if (dst_key_getnum(dkey->key, DST_NUM_LIFETIME,
-						   &l) != ISC_R_SUCCESS)
-				{
-					dst_key_setnum(dkey->key,
-						       DST_NUM_LIFETIME,
-						       lifetime);
-				}
+				/* Update lifetime if changed. */
+				keymgr_key_update_lifetime(dkey, kasp, now,
+							   lifetime);
 
 				if (active_key) {
 					/* We already have an active key that
@@ -2411,8 +2462,6 @@ rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 		}
 	} else {
 		isc_stdtime_t retire_time = 0;
-		uint32_t lifetime = 0;
-		(void)dst_key_getnum(key, DST_NUM_LIFETIME, &lifetime);
 		ret = dst_key_gettime(key, retire, &retire_time);
 		if (ret == ISC_R_SUCCESS) {
 			if (now < retire_time) {
@@ -2421,7 +2470,9 @@ rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 							  "  Next rollover "
 							  "scheduled on ");
 					retire_time = keymgr_prepublication_time(
-						dkey, kasp, lifetime, now);
+						dkey, kasp,
+						(retire_time - active_time),
+						now);
 				} else {
 					isc_buffer_printf(
 						buf, "  Key will retire on ");
@@ -2598,7 +2649,6 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	retire = when + prepub;
 
 	dst_key_settime(key->key, DST_TIME_INACTIVE, retire);
-	dst_key_setnum(key->key, DST_NUM_LIFETIME, (retire - active));
 
 	/* Store key state and update hints. */
 	directory = dst_key_directory(key->key);
