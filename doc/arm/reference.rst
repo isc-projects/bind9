@@ -407,7 +407,7 @@ The following blocks are supported:
     :namedconf:ref:`key`
         Specifies key information for use in authentication and authorization using TSIG.
 
-    :any:``key-store``
+    :any:`key-store`
         Describes a DNSSEC key store. See :ref:`key-store Grammar <key_store_grammar>` for details.
 
     :any:`logging`
