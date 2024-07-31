@@ -11546,7 +11546,7 @@ isc_result_t
 ns_query_done(query_ctx_t *qctx) {
 	isc_result_t result = ISC_R_UNSET;
 	const dns_namelist_t *secs = qctx->client->message->sections;
-	bool nodetach;
+	bool nodetach, partial_result_with_servfail = false;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "ns_query_done");
 
@@ -11580,21 +11580,44 @@ ns_query_done(query_ctx_t *qctx) {
 	/*
 	 * Do we need to restart the query (e.g. for CNAME chaining)?
 	 */
-	if (qctx->want_restart && qctx->client->query.restarts < MAX_RESTARTS) {
-		query_ctx_t *saved_qctx = NULL;
-		qctx->client->query.restarts++;
-		saved_qctx = isc_mem_get(qctx->client->manager->mctx,
-					 sizeof(*saved_qctx));
-		qctx_save(qctx, saved_qctx);
-		isc_nmhandle_attach(qctx->client->handle,
-				    &qctx->client->restarthandle);
-		isc_async_run(qctx->client->manager->loop, async_restart,
-			      saved_qctx);
-		return (DNS_R_CONTINUE);
+	if (qctx->want_restart) {
+		if (qctx->client->query.restarts < MAX_RESTARTS) {
+			query_ctx_t *saved_qctx = NULL;
+			qctx->client->query.restarts++;
+			saved_qctx = isc_mem_get(qctx->client->manager->mctx,
+						 sizeof(*saved_qctx));
+			qctx_save(qctx, saved_qctx);
+			isc_nmhandle_attach(qctx->client->handle,
+					    &qctx->client->restarthandle);
+			isc_async_run(qctx->client->manager->loop,
+				      async_restart, saved_qctx);
+			return (DNS_R_CONTINUE);
+		} else {
+			/*
+			 * This is e.g. a long CNAME chain which we cut short.
+			 */
+			qctx->client->query.attributes |=
+				NS_QUERYATTR_PARTIALANSWER;
+			qctx->client->message->rcode = dns_rcode_servfail;
+			qctx->result = DNS_R_SERVFAIL;
+
+			/*
+			 * Send the answer back with a SERVFAIL result even
+			 * if recursion was requested.
+			 */
+			partial_result_with_servfail = true;
+
+			ns_client_extendederror(qctx->client, 0,
+						"max. restarts reached");
+			ns_client_log(qctx->client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+				      "query iterations limit reached");
+		}
 	}
 
 	if (qctx->result != ISC_R_SUCCESS &&
-	    (!PARTIALANSWER(qctx->client) || WANTRECURSION(qctx->client) ||
+	    (!PARTIALANSWER(qctx->client) ||
+	     (WANTRECURSION(qctx->client) && !partial_result_with_servfail) ||
 	     qctx->result == DNS_R_DROP))
 	{
 		if (qctx->result == DNS_R_DUPLICATE ||
