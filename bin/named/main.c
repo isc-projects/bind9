@@ -1567,6 +1567,7 @@ main(int argc, char *argv[]) {
 	 * Start things running
 	 */
 	isc_signal_start(named_g_server->sighup);
+	isc_signal_start(named_g_server->sigusr1);
 
 	/*
 	 * Pause the loop manager in fatal.

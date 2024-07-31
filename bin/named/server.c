@@ -432,6 +432,9 @@ fatal(const char *msg, isc_result_t result);
 static void
 named_server_reload(void *arg);
 
+static void
+named_server_closelogswanted(void *arg, int signum);
+
 #ifdef HAVE_LIBNGHTTP2
 static isc_result_t
 listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
@@ -9983,6 +9986,9 @@ shutdown_server(void *arg) {
 	isc_signal_stop(server->sighup);
 	isc_signal_destroy(&server->sighup);
 
+	isc_signal_stop(server->sigusr1);
+	isc_signal_destroy(&server->sigusr1);
+
 	/*
 	 * We need to shutdown the interface before going
 	 * exclusive (which would pause the netmgr).
@@ -10355,6 +10361,10 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->sighup = isc_signal_new(
 		named_g_loopmgr, named_server_reloadwanted, server, SIGHUP);
 
+	/* Add SIGUSR2 closelogs handler */
+	server->sigusr1 = isc_signal_new(
+		named_g_loopmgr, named_server_closelogswanted, server, SIGUSR1);
+
 	isc_stats_create(server->mctx, &server->sockstats,
 			 isc_sockstatscounter_max);
 	isc_nm_setstats(named_g_netmgr, server->sockstats);
@@ -10538,6 +10548,28 @@ named_server_reloadwanted(void *arg, int signum) {
 	REQUIRE(signum == SIGHUP);
 
 	isc_async_run(named_g_mainloop, named_server_reload, server);
+}
+
+/*
+ * Handle a reload event (from SIGUSR1).
+ */
+static void
+named_server_closelogs(void *arg) {
+	UNUSED(arg);
+
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "received SIGUSR1 signal to close log files");
+	isc_log_closefilelogs(named_g_lctx);
+}
+
+static void
+named_server_closelogswanted(void *arg, int signum) {
+	named_server_t *server = (named_server_t *)arg;
+
+	REQUIRE(signum == SIGUSR1);
+
+	isc_async_run(named_g_mainloop, named_server_closelogs, server);
 }
 
 void

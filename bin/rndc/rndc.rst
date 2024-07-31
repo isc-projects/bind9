@@ -152,6 +152,15 @@ Currently supported commands are:
 
    See also :option:`rndc delzone` and :option:`rndc modzone`.
 
+.. option:: closelogs
+
+   This command closes currently open log files.  It is intended to be used
+   by external log rotation tools following this proceedure.
+
+   1) rename the log files
+   2) run ``rndc closelogs``
+   3) optionally compress the log files
+
 .. option:: delzone [-clean] zone [class [view]]
 
    This command deletes a zone while the server is running.

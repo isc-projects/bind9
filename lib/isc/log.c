@@ -1762,8 +1762,11 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				     errno == ENOENT) ||
 				    statbuf.st_size < FILE_MAXSIZE(channel))
 				{
-					(void)fclose(FILE_STREAM(channel));
-					FILE_STREAM(channel) = NULL;
+					if (FILE_STREAM(channel) != NULL) {
+						(void)fclose(
+							FILE_STREAM(channel));
+						FILE_STREAM(channel) = NULL;
+					}
 					FILE_MAXREACHED(channel) = false;
 				} else {
 					/*
