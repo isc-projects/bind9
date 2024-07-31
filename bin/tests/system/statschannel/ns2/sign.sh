@@ -36,7 +36,8 @@ zsk13=$("$KEYGEN" -q -a ECDSAP256SHA256 -L 3600 -b 256 "$zone")
 ksk14=$("$KEYGEN" -q -a ECDSAP384SHA384 -L 3600 -b 384 -f KSK "$zone")
 zsk14=$("$KEYGEN" -q -a ECDSAP384SHA384 -L 3600 -b 384 "$zone")
 # Sign deliberately with a very short expiration date.
-"$SIGNER" -S -x -O full -e "now"+1s -o "$zone" -f "$zonefile" "$infile" >"signzone.out.$zone" 2>&1
+# Disable zone verification (-P) as records may expire before signing is complete
+"$SIGNER" -P -S -x -O full -e "now"+1s -o "$zone" -f "$zonefile" "$infile" >"signzone.out.$zone" 2>&1
 keyfile_to_key_id "$ksk8" >manykeys.ksk8.id
 keyfile_to_key_id "$zsk8" >manykeys.zsk8.id
 keyfile_to_key_id "$ksk13" >manykeys.ksk13.id
