@@ -719,6 +719,7 @@ cross-version-config-tests:
     untracked: true
     expire_in: "1 day"
     when: always
+  allow_failure: true  # GL !9201 removed a test script that v9.20.0 attempts to call in conf.sh
 
 # Jobs for regular GCC builds on Alpine Linux 3.20 (amd64)
 
