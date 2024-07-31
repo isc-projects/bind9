@@ -1563,8 +1563,6 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			ev = &find->event;
 			task = ev->ev_sender;
 			ev->ev_sender = find;
-			find->result_v4 = find_err_map[name->fetch_err];
-			find->result_v6 = find_err_map[name->fetch6_err];
 			ev->ev_type = evtype;
 			ev->ev_destroy = event_free;
 			ev->ev_destroy_arg = find;
@@ -3369,8 +3367,6 @@ cleanup:
 		ev->ev_type = DNS_EVENT_ADBCANCELED;
 		ev->ev_destroy = event_free;
 		ev->ev_destroy_arg = find;
-		find->result_v4 = ISC_R_CANCELED;
-		find->result_v6 = ISC_R_CANCELED;
 
 		DP(DEF_LEVEL, "sending event %p to task %p for find %p", ev,
 		   task, find);
