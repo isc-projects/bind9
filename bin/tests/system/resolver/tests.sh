@@ -223,6 +223,17 @@ if [ -x "${RESOLVE}" ]; then
 fi
 
 n=$((n + 1))
+echo_i "checking long CNAME chain target filtering (deny) ($n)"
+ret=0
+dig_with_opts +tcp longcname1.example.net @10.53.0.1 a >dig.out.ns1.test${n} || ret=1
+grep -F "status: SERVFAIL" dig.out.ns1.test${n} >/dev/null || ret=1
+grep -F "max. restarts reached" dig.out.ns1.test${n} >/dev/null || ret=1
+lines=$(grep -F "CNAME" dig.out.ns1.test${n} | wc -l)
+test ${lines:-1} -eq 17 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking DNAME target filtering (deny) ($n)"
 ret=0
 dig_with_opts +tcp foo.baddname.example.net @10.53.0.1 a >dig.out.ns1.test${n} || ret=1
