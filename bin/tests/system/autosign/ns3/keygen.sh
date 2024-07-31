@@ -157,10 +157,7 @@ $DSFROMKEY $ksk.key >dsset-${zone}.
 # None of these algorithms are supported for signing in FIPS mode
 # as they are MD5 and SHA1 based.
 #
-if (
-  cd ..
-  $SHELL ../testcrypto.sh -q RSASHA1
-); then
+if [ $RSASHA1_SUPPORTED = 1 ]; then
   setup nsec-only.example
   cp $infile $zonefile
   ksk=$($KEYGEN -q -a RSASHA1 -fk $zone 2>kg.out) || dumpit kg.out

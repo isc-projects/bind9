@@ -24,4 +24,3 @@ rm -f ns*/named.run
 rm -f ns*/root.db
 rm -f ns*/signer.err
 rm -f ns*/trusted.conf
-rm -f *-supported.file

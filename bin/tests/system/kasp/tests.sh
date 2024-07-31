@@ -826,7 +826,7 @@ set_keytimes_algorithm_policy() {
 #
 # Zone: rsasha1.kasp.
 #
-if $SHELL ../testcrypto.sh -q RSASHA1; then
+if [ $RSASHA1_SUPPORTED = 1 ]; then
   set_zone "rsasha1.kasp"
   set_policy "rsasha1" "3" "1234"
   set_server "ns3" "10.53.0.3"
@@ -1173,7 +1173,7 @@ status=$((status + ret))
 #
 # Zone: rsasha1-nsec3.kasp.
 #
-if $SHELL ../testcrypto.sh -q RSASHA1; then
+if [ $RSASHA1_SUPPORTED = 1 ]; then
   set_zone "rsasha1-nsec3.kasp"
   set_policy "rsasha1-nsec3" "3" "1234"
   set_server "ns3" "10.53.0.3"
@@ -1275,7 +1275,7 @@ dnssec_verify
 #
 # Zone: ed25519.kasp.
 #
-if [ -f ed25519-supported.file ]; then
+if [ $ED25519_SUPPORTED = 1 ]; then
   set_zone "ed25519.kasp"
   set_policy "ed25519" "3" "1234"
   set_server "ns3" "10.53.0.3"
@@ -1297,7 +1297,7 @@ fi
 #
 # Zone: ed448.kasp.
 #
-if [ -f ed448-supported.file ]; then
+if [ $ED448_SUPPORTED = 1 ]; then
   set_zone "ed448.kasp"
   set_policy "ed448" "3" "1234"
   set_server "ns3" "10.53.0.3"
