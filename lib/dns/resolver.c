@@ -383,6 +383,7 @@ struct fetchctx {
 	bool minimized;
 	unsigned int qmin_labels;
 	isc_result_t qmin_warning;
+	bool force_qmin_warning;
 	bool ip6arpaskip;
 	bool forwarding;
 	dns_fixedname_t qminfname;
@@ -1859,9 +1860,8 @@ fctx__done_detach(fetchctx_t **fctxp, isc_result_t result, const char *file,
 		if (fctx->qmin_warning != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-				      "success resolving '%s' "
-				      "after disabling qname minimization due "
-				      "to '%s'",
+				      "success resolving '%s' after disabling "
+				      "qname minimization due to '%s'",
 				      fctx->info,
 				      isc_result_totext(fctx->qmin_warning));
 		}
@@ -4345,6 +4345,24 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 			goto cleanup;
 		}
 		break;
+
+	case ISC_R_SUCCESS:
+	case DNS_R_DELEGATION:
+	case DNS_R_NXRRSET:
+	case DNS_R_NCACHENXRRSET:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+		/*
+		 * We have previously detected a possible error of an
+		 * incorrect NXDOMAIN and now have a response that
+		 * indicates that it was an actual error.
+		 */
+		if (fctx->qmin_warning == DNS_R_NCACHENXDOMAIN ||
+		    fctx->qmin_warning == DNS_R_NXDOMAIN)
+		{
+			fctx->force_qmin_warning = true;
+		}
+		FALLTHROUGH;
 	default:
 		/*
 		 * When DNS_FETCHOPT_NOFOLLOW is set and a delegation
@@ -5688,6 +5706,19 @@ validated(isc_task_t *task, isc_event_t *event) {
 			covers = fctx->type;
 		}
 
+		/*
+		 * Don't report qname minimisation NXDOMAIN errors
+		 * when the result is NXDOMAIN except we have already
+		 * confirmed a higher error.
+		 */
+		if (!fctx->force_qmin_warning &&
+		    message->rcode == dns_rcode_nxdomain &&
+		    (fctx->qmin_warning == DNS_R_NXDOMAIN ||
+		     fctx->qmin_warning == DNS_R_NCACHENXDOMAIN))
+		{
+			fctx->qmin_warning = ISC_R_SUCCESS;
+		}
+
 		result = dns_db_findnode(fctx->cache, vevent->name, true,
 					 &node);
 		if (result != ISC_R_SUCCESS) {
@@ -6829,6 +6860,18 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 	result = dns_db_findnode(fctx->cache, name, true, &node);
 	if (result != ISC_R_SUCCESS) {
 		goto unlock;
+	}
+
+	/*
+	 * Don't report qname minimisation NXDOMAIN errors
+	 * when the result is NXDOMAIN except we have already
+	 * confirmed a higher error.
+	 */
+	if (!fctx->force_qmin_warning && message->rcode == dns_rcode_nxdomain &&
+	    (fctx->qmin_warning == DNS_R_NXDOMAIN ||
+	     fctx->qmin_warning == DNS_R_NCACHENXDOMAIN))
+	{
+		fctx->qmin_warning = ISC_R_SUCCESS;
 	}
 
 	/*
