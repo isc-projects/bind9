@@ -3458,9 +3458,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 			}
 			if (section == DNS_SECTION_QUESTION) {
 				INDENT(style);
-				if ((sflags & DNS_STYLEFLAG_YAML) != 0) {
-					ADD_STRING(target, "- ");
-				} else {
+				if ((sflags & DNS_STYLEFLAG_YAML) == 0) {
 					ADD_STRING(target, ";");
 				}
 				result = dns_master_questiontotext(
