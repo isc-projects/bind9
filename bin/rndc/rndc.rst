@@ -453,14 +453,16 @@ Currently supported commands are:
 
 .. program:: rndc
 
-.. option:: retransfer zone [class [view]]
+.. option:: retransfer [-force] zone [class [view]]
 
    This command retransfers the given secondary zone from the primary server.
 
    If the zone is configured to use ``inline-signing``, the signed
    version of the zone is discarded; after the retransfer of the
    unsigned version is complete, the signed version is regenerated
-   with new signatures.
+   with new signatures. With the optional ``-force`` argument provided
+   if there is an ongoing zone transfer it will be aborted before a new zone
+   transfer is scheduled.
 
 .. option:: scan
 

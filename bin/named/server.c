@@ -10795,13 +10795,24 @@ isc_result_t
 named_server_retransfercommand(named_server_t *server, isc_lex_t *lex,
 			       isc_buffer_t **text) {
 	isc_result_t result;
+	const char *arg = NULL;
 	dns_zone_t *zone = NULL;
 	dns_zone_t *raw = NULL;
 	dns_zonetype_t type;
+	bool force = false;
 
 	REQUIRE(text != NULL);
 
-	result = zone_from_args(server, lex, NULL, &zone, NULL, text, true);
+	/* Skip the command name. */
+	(void)next_token(lex, text);
+
+	arg = next_token(lex, text);
+	if (arg != NULL && (strcmp(arg, "-force") == 0)) {
+		force = true;
+		arg = next_token(lex, text);
+	}
+
+	result = zone_from_args(server, lex, arg, &zone, NULL, text, false);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -10820,7 +10831,10 @@ named_server_retransfercommand(named_server_t *server, isc_lex_t *lex,
 	    (type == dns_zone_redirect &&
 	     dns_zone_getredirecttype(zone) == dns_zone_secondary))
 	{
-		dns_zone_forcereload(zone);
+		if (force) {
+			dns_zone_stopxfr(zone);
+		}
+		dns_zone_forcexfr(zone);
 	} else {
 		(void)putstr(text, "retransfer: inappropriate zone type: ");
 		(void)putstr(text, dns_zonetype_name(type));

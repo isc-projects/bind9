@@ -71,6 +71,12 @@ zone "axfr-max-idle-time" {
 	file "axfr-max-idle-time.bk";
 };
 
+zone "axfr-rndc-retransfer-force" {
+	type secondary;
+	primaries { 10.53.0.1; };
+	file "axfr-rndc-retransfer-force.bk";
+};
+
 zone "axfr-too-big" {
 	type secondary;
 	max-records 30;
