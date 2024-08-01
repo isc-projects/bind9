@@ -2599,6 +2599,10 @@ ISC_RUN_TEST_IMPL(https_svcb) {
 		TEXT_INVALID("2 svc.example.net. alpn=,h1"),
 		TEXT_INVALID("2 svc.example.net. alpn=h1,"),
 		TEXT_INVALID("2 svc.example.net. alpn=h1,,h2"),
+		/* empty alpn-id sub fields - RFC 1035 escaped commas */
+		TEXT_INVALID("2 svc.example.net. alpn=\\,abc"),
+		TEXT_INVALID("2 svc.example.net. alpn=abc\\,"),
+		TEXT_INVALID("2 svc.example.net. alpn=a\\,\\,abc"),
 		/* mandatory */
 		TEXT_VALID_LOOP(2, "2 svc.example.net. mandatory=alpn "
 				   "alpn=\"h2\""),
