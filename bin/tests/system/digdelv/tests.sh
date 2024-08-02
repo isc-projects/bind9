@@ -662,6 +662,7 @@ if [ -x "$DIG" ]; then
 
   n=$((n + 1))
   echo_i "check that Extended DNS Error 0 is printed correctly ($n)"
+  ret=0
   # First defined EDE code, additional text "foo".
   dig_with_opts @10.53.0.3 +ednsopt=ede:0000666f6f a.example +qr >dig.out.test$n 2>&1 || ret=1
   pat='^; EDE: 0 (Other): (foo)$'
@@ -671,6 +672,7 @@ if [ -x "$DIG" ]; then
 
   n=$((n + 1))
   echo_i "check that Extended DNS Error 24 is printed correctly ($n)"
+  ret=0
   # Last defined EDE code, no additional text.
   dig_with_opts @10.53.0.3 +ednsopt=ede:0018 a.example +qr >dig.out.test$n 2>&1 || ret=1
   pat='^; EDE: 24 (Invalid Data)$'
@@ -680,6 +682,7 @@ if [ -x "$DIG" ]; then
 
   n=$((n + 1))
   echo_i "check that Extended DNS Error 25 is printed correctly ($n)"
+  ret=0
   # First undefined EDE code, additional text "foo".
   dig_with_opts @10.53.0.3 +ednsopt=ede:0019666f6f a.example +qr >dig.out.test$n 2>&1 || ret=1
   pat='^; EDE: 25: (foo)$'
@@ -689,6 +692,7 @@ if [ -x "$DIG" ]; then
 
   n=$((n + 1))
   echo_i "check that invalid Extended DNS Error (length 0) is printed ($n)"
+  ret=0
   # EDE payload is too short
   dig_with_opts @10.53.0.3 +ednsopt=ede a.example +qr >dig.out.test$n 2>&1 || ret=1
   pat='^; EDE:$'
@@ -698,6 +702,7 @@ if [ -x "$DIG" ]; then
 
   n=$((n + 1))
   echo_i "check that invalid Extended DNS Error (length 1) is printed ($n)"
+  ret=0
   # EDE payload is too short
   dig_with_opts @10.53.0.3 +ednsopt=ede:00 a.example +qr >dig.out.test$n 2>&1 || ret=1
   pat='^; EDE: 00 (".")$'
@@ -708,6 +713,7 @@ if [ -x "$DIG" ]; then
   if [ $HAS_PYYAML -ne 0 ]; then
     n=$((n + 1))
     echo_i "check that +yaml Extended DNS Error 0 is printed correctly ($n)"
+    ret=0
     # First defined EDE code, additional text "foo".
     dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:0000666f6f a.example +qr >dig.out.test$n 2>&1 || ret=1
     $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE INFO-CODE >yamlget.out.test$n 2>&1 || ret=1
@@ -721,6 +727,7 @@ if [ -x "$DIG" ]; then
 
     n=$((n + 1))
     echo_i "check that +yaml Extended DNS Error 24 is printed correctly ($n)"
+    ret=0
     # Last defined EDE code, no additional text.
     dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:0018 a.example +qr >dig.out.test$n 2>&1 || ret=1
     $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE INFO-CODE >yamlget.out.test$n 2>&1 || ret=1
@@ -732,6 +739,7 @@ if [ -x "$DIG" ]; then
 
     n=$((n + 1))
     echo_i "check that +yaml Extended DNS Error 25 is printed correctly ($n)"
+    ret=0
     # First undefined EDE code, additional text "foo".
     dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:0019666f6f a.example +qr >dig.out.test$n 2>&1 || ret=1
     $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE INFO-CODE >yamlget.out.test$n 2>&1 || ret=1
@@ -745,6 +753,7 @@ if [ -x "$DIG" ]; then
 
     n=$((n + 1))
     echo_i "check that invalid Extended DNS Error (length 0) is printed ($n)"
+    ret=0
     # EDE payload is too short
     dig_with_opts @10.53.0.3 +yaml +ednsopt=ede a.example +qr >dig.out.test$n 2>&1 || ret=1
     $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE >yamlget.out.test$n 2>&1 || ret=1
@@ -755,6 +764,7 @@ if [ -x "$DIG" ]; then
 
     n=$((n + 1))
     echo_i "check that invalid +yaml Extended DNS Error (length 1) is printed ($n)"
+    ret=0
     # EDE payload is too short
     dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:00 a.example +qr >dig.out.test$n 2>&1 || ret=1
     $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE >yamlget.out.test$n 2>&1 || ret=1
