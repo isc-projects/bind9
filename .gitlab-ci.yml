@@ -55,6 +55,8 @@ variables:
   BIND_STRESS_TEST_OS: linux
   BIND_STRESS_TEST_ARCH: amd64
 
+  HYPOTHESIS_PROFILE: "ci"
+
 default:
   # Allow all running CI jobs to be automatically canceled when a new
   # version of a branch is pushed.

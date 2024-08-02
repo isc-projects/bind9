@@ -24,10 +24,11 @@ def udp(
     ip: str,
     port: Optional[int] = None,
     source: Optional[str] = None,
+    timeout: int = QUERY_TIMEOUT,
 ) -> dns.message.Message:
     if port is None:
         port = int(os.environ["PORT"])
-    return dns.query.udp(message, ip, QUERY_TIMEOUT, port=port, source=source)
+    return dns.query.udp(message, ip, timeout, port=port, source=source)
 
 
 def tcp(
@@ -35,7 +36,8 @@ def tcp(
     ip: str,
     port: Optional[int] = None,
     source: Optional[str] = None,
+    timeout: int = QUERY_TIMEOUT,
 ) -> dns.message.Message:
     if port is None:
         port = int(os.environ["PORT"])
-    return dns.query.tcp(message, ip, QUERY_TIMEOUT, port=port, source=source)
+    return dns.query.tcp(message, ip, timeout, port=port, source=source)

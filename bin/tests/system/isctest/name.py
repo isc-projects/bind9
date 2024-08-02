@@ -9,16 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from . import check
-from . import instance
-from . import query
-from . import name
-from . import rndc
-from . import run
-from . import log
-from . import hypothesis
+import dns.name
 
-# isctest.mark module is intentionally NOT imported, because it relies on
-# environment variables which might not be set at the time of import of the
-# `isctest` package. To use the marks, manual `import isctest.mark` is needed
-# instead.
+
+def prepend_label(label: str, name: dns.name.Name) -> dns.name.Name:
+    return dns.name.Name((label,) + name.labels)
+
+
+def len_wire_uncompressed(name: dns.name.Name) -> int:
+    return len(name) + sum(map(len, name.labels))
