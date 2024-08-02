@@ -6388,10 +6388,9 @@ propagating DS updates.
 
 .. _dnssec_policy_default:
 
-Policy ``default`` causes the zone to be signed with a single combined-signing
-key (CSK) using algorithm ECDSAP256SHA256; this key has an unlimited
-lifetime.  (A verbose copy of this policy may be found in the source
-tree, in the file ``doc/misc/dnssec-policy.default.conf``.)
+The policy ``default`` causes the zone to be signed with a single combined-signing
+key (CSK) using the algorithm ECDSAP256SHA256; this key has an unlimited
+lifetime. This policy can be displayed using the command :option:`named -C`.
 
 .. note:: The default signing policy may change in future releases.
    This could require changes to a signing policy when upgrading to a
