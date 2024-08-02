@@ -824,6 +824,90 @@ fi
 
 n=$((n + 1))
 ret=0
+echo_i "check that 'update-policy 6to4-self' refuses update of records via UDP over IPv4 ($n)"
+REVERSE_NAME=6.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa
+$NSUPDATE >nsupdate.out.$n 2>&1 <<END && ret=1
+server 10.53.0.6 ${PORT}
+local 10.53.0.6
+zone 2.0.0.2.ip6.arpa
+update add ${REVERSE_NAME} 600 NS localhost.
+send
+END
+grep REFUSED nsupdate.out.$n >/dev/null 2>&1 || ret=1
+$DIG $DIGOPTS @10.53.0.6 \
+  +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+  $REVERSE_NAME NS >dig.out.ns6.$n
+grep localhost. dig.out.ns6.$n >/dev/null 2>&1 && ret=1
+if test $ret -ne 0; then
+  echo_i "failed"
+  status=1
+fi
+
+n=$((n + 1))
+echo_i "check that 'update-policy 6to4-self' permits update of records for the client's own address via TCP over IPv4 ($n)"
+ret=0
+REVERSE_NAME=6.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa
+$NSUPDATE -v >nsupdate.out.$n 2>&1 <<END || ret=1
+server 10.53.0.6 ${PORT}
+local 10.53.0.6
+zone 2.0.0.2.ip6.arpa
+update add ${REVERSE_NAME} 600 NS localhost.
+send
+END
+grep REFUSED nsupdate.out.$n >/dev/null 2>&1 && ret=1
+$DIG $DIGOPTS @10.53.0.6 \
+  +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+  $REVERSE_NAME NS >dig.out.ns6.$n || ret=1
+grep localhost. dig.out.ns6.$n >/dev/null 2>&1 || ret=1
+if test $ret -ne 0; then
+  echo_i "failed"
+  status=1
+fi
+
+n=$((n + 1))
+ret=0
+echo_i "check that 'update-policy 6to4-self' refuses update of records via UDP over IPv6 ($n)"
+REVERSE_NAME=7.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa
+$NSUPDATE >nsupdate.out.$n 2>&1 <<END && ret=1
+server fd92:7065:b8e:ffff::6 ${PORT}
+local 2002:a35:7::1
+zone 2.0.0.2.ip6.arpa
+update add ${REVERSE_NAME} 600 NS localhost.
+send
+END
+grep REFUSED nsupdate.out.$n >/dev/null 2>&1 || ret=1
+$DIG $DIGOPTS @fd92:7065:b8e:ffff::6 \
+  +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+  $REVERSE_NAME NS >dig.out.ns6.$n
+grep localhost. dig.out.ns6.$n >/dev/null 2>&1 && ret=1
+if test $ret -ne 0; then
+  echo_i "failed"
+  status=1
+fi
+
+n=$((n + 1))
+echo_i "check that 'update-policy 6to4-self' permits update of records for the client's own address via TCP over IPv6 ($n)"
+ret=0
+REVERSE_NAME=7.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa
+$NSUPDATE -v >nsupdate.out.$n 2>&1 <<END || ret=1
+server fd92:7065:b8e:ffff::6 ${PORT}
+local 2002:a35:7::1
+zone 2.0.0.2.ip6.arpa
+update add ${REVERSE_NAME} 600 NS localhost.
+send
+END
+grep REFUSED nsupdate.out.$n >/dev/null 2>&1 && ret=1
+$DIG $DIGOPTS @fd92:7065:b8e:ffff::6 \
+  +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+  $REVERSE_NAME NS >dig.out.ns6.$n || ret=1
+grep localhost. dig.out.ns6.$n >/dev/null 2>&1 || ret=1
+if test $ret -ne 0; then
+  echo_i "failed"
+  status=1
+fi
+
+n=$((n + 1))
+ret=0
 echo_i "check that 'update-policy subdomain' is properly enforced ($n)"
 # "restricted.example.nil" matches "grant ... subdomain restricted.example.nil"
 # and thus this UPDATE should succeed.
