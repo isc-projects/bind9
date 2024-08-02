@@ -11,10 +11,13 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#include <isc/dir.h>
 #include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -28,6 +31,15 @@ ISC_LANG_BEGINDECLS
 extern bool debug;
 
 int
+LLVMFuzzerInitialize(int *argc __attribute__((unused)),
+		     char ***argv __attribute__((unused)));
+
+int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
+
+#define CHECK(x)                    \
+	if ((x) != ISC_R_SUCCESS) { \
+		return 0;           \
+	}
 
 ISC_LANG_ENDDECLS
