@@ -13,7 +13,6 @@
 
 /*! \file */
 
-#include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -190,9 +189,6 @@ struct isc_mempool {
 static void
 print_active(isc_mem_t *ctx, FILE *out);
 #endif /* ISC_MEM_TRACKLINES */
-
-static void
-isc__mem_rcu_barrier(isc_mem_t *ctx);
 
 #if ISC_MEM_TRACKLINES
 /*!
@@ -587,7 +583,6 @@ isc__mem_detach(isc_mem_t **ctxp FLARG) {
 				ctx, file, line);
 		}
 #endif
-		isc__mem_rcu_barrier(ctx);
 		destroy(ctx);
 	}
 }
@@ -616,39 +611,6 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
 	isc__mem_detach(&ctx FLARG_PASS);
 }
 
-static void
-isc__mem_rcu_barrier(isc_mem_t *ctx) {
-	/*
-	 * wait for asynchronous memory reclamation to complete
-	 * before checking for memory leaks.
-	 *
-	 * Because rcu_barrier() needs to be called as many times
-	 * as the number of nested call_rcu() calls (call_rcu()
-	 * calls made from call_rcu thread), and currently there's
-	 * no mechanism to detect whether there are more call_rcu
-	 * callbacks scheduled, we simply call the rcu_barrier()
-	 * until there's no progression in the memory freed.
-	 *
-	 * The overhead is negligible and it prevents rare assertion failures
-	 * caused by the check for memory leaks below.
-	 */
-	size_t inuse;
-	uint_fast32_t references;
-	for (inuse = atomic_load(&ctx->inuse),
-	    references = isc_refcount_current(&ctx->references);
-	     inuse > 0 || references > 1; inuse = atomic_load(&ctx->inuse),
-	    references = isc_refcount_current(&ctx->references))
-	{
-		rcu_barrier();
-
-		if (inuse == atomic_load(&ctx->inuse) &&
-		    references == isc_refcount_current(&ctx->references))
-		{
-			break;
-		}
-	}
-}
-
 void
 isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 	isc_mem_t *ctx = NULL;
@@ -663,7 +625,7 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 	ctx = *ctxp;
 	*ctxp = NULL;
 
-	isc__mem_rcu_barrier(ctx);
+	rcu_barrier();
 
 #if ISC_MEM_TRACKLINES
 	if ((ctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
