@@ -3249,7 +3249,7 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			start_udp(next);
 			check_if_done();
 		} else {
-			dighost_error("no servers could be reached\n");
+			dighost_error("no servers could be reached");
 			clear_current_lookup();
 		}
 
@@ -3432,10 +3432,10 @@ force_next(dig_query_t *query) {
 		isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
 		isc_netaddr_format(&netaddr, buf, sizeof(buf));
 
-		dighost_error("no response from %s\n", buf);
+		dighost_error("no response from %s", buf);
 	} else {
 		printf("%s", l->cmdline);
-		dighost_error("no servers could be reached\n");
+		dighost_error("no servers could be reached");
 	}
 
 	if (exitcode < 9) {
@@ -3655,7 +3655,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			start_tcp(next);
 			check_if_done();
 		} else {
-			dighost_error("no servers could be reached\n");
+			dighost_error("no servers could be reached");
 			clear_current_lookup();
 		}
 
@@ -4109,7 +4109,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			 * and cancel the lookup.
 			 */
 			printf("%s", l->cmdline);
-			dighost_error("no servers could be reached\n");
+			dighost_error("no servers could be reached");
 
 			if (exitcode < 9) {
 				exitcode = 9;
