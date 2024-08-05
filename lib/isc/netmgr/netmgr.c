@@ -754,8 +754,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 
 	isc_refcount_init(&sock->references, 1);
 
-	memset(&sock->tlsstream, 0, sizeof(sock->tlsstream));
-
 	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %" PRIuFAST32
 			 "\n",
 			 sock, isc_refcount_current(&sock->references));
