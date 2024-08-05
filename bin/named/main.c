@@ -674,8 +674,8 @@ printversion(bool verbose) {
 	}
 	cfg_obj_destroy(parser, &config);
 	cfg_parser_destroy(&parser);
-	isc_mem_detach(&mctx);
 #endif /* HAVE_GEOIP2 */
+	isc_mem_detach(&mctx);
 }
 
 static void
