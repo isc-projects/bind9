@@ -2154,7 +2154,7 @@ run_server(void *arg) {
 	isc_sockaddr_any(&any);
 	CHECK(dns_dispatch_createudp(dispatchmgr, &any, &dispatch));
 	CHECK(ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr, dispatchmgr,
-				     NULL, false, &interfacemgr));
+				     NULL, &interfacemgr));
 
 	CHECK(dns_view_create(mctx, dispatchmgr, dns_rdataclass_in, "_default",
 			      &view));
