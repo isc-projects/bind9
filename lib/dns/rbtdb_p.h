@@ -15,6 +15,7 @@
 
 #include <isc/heap.h>
 #include <isc/lang.h>
+#include <isc/rwlock.h>
 #include <isc/urcu.h>
 
 #include <dns/nsec3.h>
@@ -90,7 +91,7 @@ struct dns_rbtdb_version {
 	uint64_t records;
 	uint64_t xfrsize;
 
-	struct cds_wfs_stack glue_stack;
+	struct cds_lfht *glue_table;
 };
 
 typedef ISC_LIST(dns_rbtdb_version_t) rbtdb_versionlist_t;
@@ -212,6 +213,18 @@ typedef struct {
 
 extern dns_dbmethods_t dns__rbtdb_zonemethods;
 extern dns_dbmethods_t dns__rbtdb_cachemethods;
+
+typedef struct dns_gluenode_t {
+	isc_mem_t *mctx;
+
+	struct dns_glue *glue;
+
+	dns_db_t *db;
+	dns_rbtnode_t *node;
+
+	struct cds_lfht_node ht_node;
+	struct rcu_head rcu_head;
+} dns_gluenode_t;
 
 /*
  * Common DB implementation methods shared by both cache and zone RBT
@@ -370,7 +383,9 @@ isc_result_t
 dns__rbtdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
 
 void
-dns__rbtdb_freeglue(dns_glue_t *glue_list);
+dns__rbtdb_free_gluenode_rcu(struct rcu_head *rcu_head);
+void
+dns__rbtdb_free_gluenode(dns_gluenode_t *gluenode);
 
 void
 dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,

@@ -1125,7 +1125,9 @@ dns_db_addglue(dns_db_t *db, dns_dbversion_t *version, dns_rdataset_t *rdataset,
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 
 	if (db->methods->addglue != NULL) {
-		return ((db->methods->addglue)(db, version, rdataset, msg));
+		(db->methods->addglue)(db, version, rdataset, msg);
+
+		return (ISC_R_SUCCESS);
 	}
 
 	return (ISC_R_NOTIMPLEMENTED);
