@@ -553,14 +553,15 @@ LIBS="$PTHREAD_LIBS $LIBS"
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CC="$PTHREAD_CC"
 
-AC_CHECK_FUNCS([pthread_attr_getstacksize pthread_attr_setstacksize pthread_barrier_init pthread_spin_init])
+AC_MSG_CHECKING([for PTHREAD_MUTEX_ADAPTIVE_NP])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[#include <pthread.h>]],
+		   [[(void)pthread_mutexattr_settype(&(pthread_mutexattr_t){ NULL }, PTHREAD_MUTEX_ADAPTIVE_NP);]])],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([HAVE_PTHREAD_MUTEX_ADAPTIVE_NP], [1], [Define to 1 if PTHREAD_MUTEX_ADAPTIVE_NP is available])],
+  [AC_MSG_RESULT([no])])
 
-# [pairwise: --with-locktype=adaptive, --with-locktype=standard]
-AC_ARG_WITH([locktype],
-	    AS_HELP_STRING([--with-locktype=ARG],
-			   [Specify mutex lock type
-			    (adaptive or standard)]),
-	    [], [with_locktype="adaptive"])
+AC_CHECK_FUNCS([pthread_attr_getstacksize pthread_attr_setstacksize pthread_barrier_init pthread_spin_init])
 
 AC_CHECK_HEADERS([sched.h])
 
@@ -1711,9 +1712,6 @@ report() {
     fi
     if test "yes" = "$enable_full_report" -o "rbt" = "$zonedb"; then
             echo "    Default cache database type: $cachedb"
-    fi
-    if test "yes" = "$enable_full_report" -o "standard" = "$with_locktype"; then
-	echo "    Mutex lock type: $with_locktype"
     fi
     test "no" = "$enable_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"

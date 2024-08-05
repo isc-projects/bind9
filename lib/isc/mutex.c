@@ -33,15 +33,14 @@ static isc_once_t init_once = ISC_ONCE_INIT;
 static void
 mutex_initialize(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&isc__mutex_init_attr) == 0);
-#if ISC_MUTEX_ERROR_CHECK && defined(PTHREAD_MUTEX_ERRORCHECK_NP)
+#if ISC_MUTEX_ERROR_CHECK
 	RUNTIME_CHECK(pthread_mutexattr_settype(&isc__mutex_init_attr,
-						PTHREAD_MUTEX_ERRORCHECK_NP) ==
-		      0);
-#elif defined(PTHREAD_MUTEX_ADAPTIVE_NP)
+						PTHREAD_MUTEX_ERRORCHECK) == 0);
+#elif HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 	RUNTIME_CHECK(pthread_mutexattr_settype(&isc__mutex_init_attr,
 						PTHREAD_MUTEX_ADAPTIVE_NP) ==
 		      0);
-#endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
+#endif
 }
 
 void
