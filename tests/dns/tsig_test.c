@@ -24,6 +24,8 @@
 #include <cmocka.h>
 
 #include <isc/mem.h>
+#include <isc/random.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/rdatalist.h>
@@ -94,7 +96,8 @@ cleanup:
 }
 
 static isc_result_t
-add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
+add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target,
+	 isc_stdtime_t now, bool mangle_sig) {
 	dns_compress_t cctx;
 	dns_rdata_any_tsig_t tsig;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -119,7 +122,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	dns_name_init(&tsig.algorithm, NULL);
 	dns_name_clone(key->algorithm, &tsig.algorithm);
 
-	tsig.timesigned = isc_stdtime_now();
+	tsig.timesigned = now;
 	tsig.fudge = DNS_TSIG_FUDGE;
 	tsig.originalid = 50;
 	tsig.error = dns_rcode_noerror;
@@ -138,6 +141,9 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	CHECK(dst_context_sign(tsigctx, &sigbuf));
 	tsig.siglen = isc_buffer_usedlength(&sigbuf);
 	assert_int_equal(sigsize, tsig.siglen);
+	if (mangle_sig) {
+		isc_random_buf(tsig.signature, tsig.siglen);
+	}
 
 	isc_buffer_allocate(mctx, &dynbuf, 512);
 	CHECK(dns_rdata_fromstruct(&rdata, dns_rdataclass_any,
@@ -260,13 +266,8 @@ render(isc_buffer_t *buf, unsigned int flags, dns_tsigkey_t *key,
 	dns_message_detach(&msg);
 }
 
-/*
- * Test tsig tcp-continuation validation:
- * Check that a simulated three message TCP sequence where the first
- * and last messages contain TSIGs but the intermediate message doesn't
- * correctly verifies.
- */
-ISC_RUN_TEST_IMPL(tsig_tcp) {
+static void
+tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	const dns_name_t *tsigowner = NULL;
 	dns_fixedname_t fkeyname;
 	dns_message_t *msg = NULL;
@@ -281,8 +282,6 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	unsigned char secret[16] = { 0 };
 	dst_context_t *tsigctx = NULL;
 	dst_context_t *outctx = NULL;
-
-	UNUSED(state);
 
 	/* isc_log_setdebuglevel(lctx, 99); */
 
@@ -409,7 +408,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	isc_buffer_allocate(mctx, &buf, 65535);
 	render(buf, DNS_MESSAGEFLAG_QR, key, &tsigout, &tsigout, outctx);
 
-	result = add_tsig(outctx, key, buf);
+	result = add_tsig(outctx, key, buf, now, mangle_sig);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -438,9 +437,20 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	dns_message_setquerytsig(msg, tsigin);
 
 	result = dns_tsig_verify(buf, msg, NULL, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_int_equal(msg->verified_sig, 1);
-	assert_int_equal(msg->tsigstatus, dns_rcode_noerror);
+	switch (expected_result) {
+	case ISC_R_SUCCESS:
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_int_equal(msg->verified_sig, 1);
+		assert_int_equal(msg->tsigstatus, dns_rcode_noerror);
+		break;
+	case DNS_R_CLOCKSKEW:
+		assert_int_equal(result, DNS_R_CLOCKSKEW);
+		assert_int_equal(msg->verified_sig, 1);
+		assert_int_equal(msg->tsigstatus, dns_tsigerror_badtime);
+		break;
+	default:
+		UNREACHABLE();
+	}
 
 	if (tsigin != NULL) {
 		isc_buffer_free(&tsigin);
@@ -470,6 +480,29 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	}
 }
 
+/*
+ * Test tsig tcp-continuation validation:
+ * Check that a simulated three message TCP sequence where the first
+ * and last messages contain TSIGs but the intermediate message doesn't
+ * correctly verifies.
+ */
+ISC_RUN_TEST_IMPL(tsig_tcp) {
+	/* Run with correct current time */
+	tsig_tcp(isc_stdtime_now(), ISC_R_SUCCESS, false);
+}
+
+ISC_RUN_TEST_IMPL(tsig_badtime) {
+	/* Run with time outside of the fudge */
+	tsig_tcp(isc_stdtime_now() - 2 * DNS_TSIG_FUDGE, DNS_R_CLOCKSKEW,
+		 false);
+	tsig_tcp(isc_stdtime_now() + 2 * DNS_TSIG_FUDGE, DNS_R_CLOCKSKEW,
+		 false);
+}
+
+ISC_RUN_TEST_IMPL(tsig_badsig) {
+	tsig_tcp(isc_stdtime_now(), DNS_R_TSIGERRORSET, true);
+}
+
 /* Tests the dns__tsig_algvalid function */
 ISC_RUN_TEST_IMPL(algvalid) {
 	UNUSED(state);
@@ -487,6 +520,7 @@ ISC_RUN_TEST_IMPL(algvalid) {
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(tsig_tcp, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tsig_badtime, setup_test, teardown_test)
 ISC_TEST_ENTRY(algvalid)
 ISC_TEST_LIST_END
 
