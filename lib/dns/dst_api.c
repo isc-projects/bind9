@@ -217,14 +217,12 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 				    DST_ALG_RSASHA512));
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
-#ifdef HAVE_OPENSSL_ED25519
 	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED25519],
 				      DST_ALG_ED25519));
-#endif /* ifdef HAVE_OPENSSL_ED25519 */
 #ifdef HAVE_OPENSSL_ED448
 	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448],
 				      DST_ALG_ED448));
-#endif /* ifdef HAVE_OPENSSL_ED448 */
+#endif /* HAVE_OPENSSL_ED448 */
 
 #if HAVE_GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));

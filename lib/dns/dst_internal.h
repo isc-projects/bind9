@@ -214,10 +214,8 @@ isc_result_t
 dst__opensslrsa_init(struct dst_func **funcp, unsigned char algorithm);
 isc_result_t
 dst__opensslecdsa_init(struct dst_func **funcp);
-#if HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448
 isc_result_t
 dst__openssleddsa_init(struct dst_func **funcp, unsigned char algorithm);
-#endif /* HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448 */
 #if HAVE_GSSAPI
 isc_result_t
 dst__gssapi_init(struct dst_func **funcp);

@@ -99,7 +99,7 @@ Unsupported Platforms
 
 These are platforms on which current versions of BIND 9 are known *not* to build or run:
 
--  Platforms without at least OpenSSL 1.0.2
+-  Platforms without at least OpenSSL 1.1.1
 -  Windows
 -  Solaris 10 and older
 -  Platforms that do not support IPv6 Advanced Socket API (:rfc:`3542`)
