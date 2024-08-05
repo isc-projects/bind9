@@ -185,6 +185,7 @@ retry:
 	result = dns_rdata_totext(rdata, NULL, b);
 	if (result == ISC_R_NOSPACE) {
 		isc_buffer_free(&b);
+		INSIST(bufsize <= (UINT_MAX / 2));
 		bufsize *= 2;
 		goto retry;
 	}
