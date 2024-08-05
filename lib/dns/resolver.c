@@ -10563,8 +10563,10 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 	res = event->ev_arg;
 	REQUIRE(VALID_RESOLVER(res));
 
+	int level = (fevent->result == ISC_R_SUCCESS) ? ISC_LOG_DEBUG(1)
+						      : ISC_LOG_NOTICE;
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		      DNS_LOGMODULE_RESOLVER, level,
 		      "resolver priming query complete: %s",
 		      isc_result_totext(fevent->result));
 
