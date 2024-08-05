@@ -1439,8 +1439,9 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	REQUIRE(res != NULL);
 	INSIST(fctx->counter == NULL);
 
+	/* Skip any counting if fetches-per-zone is disabled */
 	spill = atomic_load_acquire(&res->zspill);
-	if (force || spill == 0) {
+	if (spill == 0) {
 		return (ISC_R_SUCCESS);
 	}
 
@@ -1486,7 +1487,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 
 	INSIST(spill > 0);
 	LOCK(&counter->lock);
-	if (++counter->count > spill) {
+	if (!force && ++counter->count > spill) {
 		counter->count--;
 		INSIST(counter->count > 0);
 		counter->dropped++;
