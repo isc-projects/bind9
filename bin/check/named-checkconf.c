@@ -593,7 +593,7 @@ main(int argc, char **argv) {
 	const char *conffile = NULL;
 	isc_mem_t *mctx = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
-	bool cleanup_dst = true;
+	bool cleanup_dst = false;
 	bool load_zones = false;
 	bool list_zones = false;
 	bool print = false;
