@@ -408,12 +408,6 @@ main(int argc, char **argv) {
 		fatal("extraneous arguments");
 	}
 
-	result = dst_lib_init(mctx);
-	if (result != ISC_R_SUCCESS) {
-		fatal("could not initialize dst: %s",
-		      isc_result_totext(result));
-	}
-
 	setup_logging(mctx, &log);
 
 	dns_rdataset_init(&rdataset);
@@ -459,7 +453,6 @@ main(int argc, char **argv) {
 		dns_rdataset_disassociate(&rdataset);
 	}
 	cleanup_logging(&log);
-	dst_lib_destroy();
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

@@ -138,9 +138,7 @@ static const char *keystates[KEYSTATES_NVALUES] = {
 #define MAX_NTAGS \
 	(DST_MAX_NUMERIC + DST_MAX_BOOLEAN + DST_MAX_TIMES + DST_MAX_KEYSTATES)
 
-static dst_func_t *dst_t_func[DST_MAX_ALGS];
-
-static bool dst_initialized = false;
+static dst_func_t *dst_t_func[DST_MAX_ALGS] = { 0 };
 
 void
 gss_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
@@ -189,71 +187,55 @@ addsuffix(char *filename, int len, const char *dirname, const char *ofilename,
 			return ((_r));      \
 	} while (0);
 
-isc_result_t
-dst_lib_init(isc_mem_t *mctx) {
-	isc_result_t result;
+static isc_mem_t *dst__mctx = NULL;
 
-	REQUIRE(mctx != NULL);
-	REQUIRE(!dst_initialized);
+void ISC_CONSTRUCTOR
+dst__lib_init(void);
+void ISC_DESTRUCTOR
+dst__lib_destroy(void);
 
-	memset(dst_t_func, 0, sizeof(dst_t_func));
-	dst__openssl_init(); /* Sets FIPS mode. */
-	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
-	RETERR(dst__hmacsha1_init(&dst_t_func[DST_ALG_HMACSHA1]));
-	RETERR(dst__hmacsha224_init(&dst_t_func[DST_ALG_HMACSHA224]));
-	RETERR(dst__hmacsha256_init(&dst_t_func[DST_ALG_HMACSHA256]));
-	RETERR(dst__hmacsha384_init(&dst_t_func[DST_ALG_HMACSHA384]));
-	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
+void
+dst__lib_init(void) {
+	isc_mem_create(&dst__mctx);
+
+	dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]);
+	dst__hmacsha1_init(&dst_t_func[DST_ALG_HMACSHA1]);
+	dst__hmacsha224_init(&dst_t_func[DST_ALG_HMACSHA224]);
+	dst__hmacsha256_init(&dst_t_func[DST_ALG_HMACSHA256]);
+	dst__hmacsha384_init(&dst_t_func[DST_ALG_HMACSHA384]);
+	dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]);
+
 	/* RSASHA1 (NSEC3RSASHA1) is verify only in FIPS mode. */
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1],
-				    DST_ALG_RSASHA1));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
-				    DST_ALG_NSEC3RSASHA1));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA256],
-				    DST_ALG_RSASHA256));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512],
-				    DST_ALG_RSASHA512));
-	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
-	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
-	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED25519],
-				      DST_ALG_ED25519));
+	dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1], DST_ALG_RSASHA1);
+	dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
+			     DST_ALG_NSEC3RSASHA1);
+	dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA256], DST_ALG_RSASHA256);
+	dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512], DST_ALG_RSASHA512);
+	dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA256]);
+	dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA384]);
+	dst__openssleddsa_init(&dst_t_func[DST_ALG_ED25519], DST_ALG_ED25519);
 #ifdef HAVE_OPENSSL_ED448
-	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448],
-				      DST_ALG_ED448));
-#endif /* HAVE_OPENSSL_ED448 */
+	dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448], DST_ALG_ED448);
+#endif /* ifdef HAVE_OPENSSL_ED448 */
 
 #if HAVE_GSSAPI
-	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
+	dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]);
 #endif /* HAVE_GSSAPI */
-
-	dst_initialized = true;
-	return (ISC_R_SUCCESS);
-
-out:
-	/* avoid immediate crash! */
-	dst_initialized = true;
-	dst_lib_destroy();
-	return (result);
 }
 
 void
-dst_lib_destroy(void) {
-	int i;
-	RUNTIME_CHECK(dst_initialized);
-	dst_initialized = false;
-
-	for (i = 0; i < DST_MAX_ALGS; i++) {
+dst__lib_destroy(void) {
+	for (size_t i = 0; i < DST_MAX_ALGS; i++) {
 		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL) {
 			dst_t_func[i]->cleanup();
 		}
 	}
-	dst__openssl_destroy();
+
+	isc_mem_destroy(&dst__mctx);
 }
 
 bool
 dst_algorithm_supported(unsigned int alg) {
-	REQUIRE(dst_initialized);
-
 	if (alg >= DST_MAX_ALGS || dst_t_func[alg] == NULL) {
 		return (false);
 	}
@@ -273,7 +255,6 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t *category,
 	dst_context_t *dctx;
 	isc_result_t result;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(mctx != NULL);
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
@@ -398,7 +379,6 @@ dst_context_verify2(dst_context_t *dctx, unsigned int maxbits,
 isc_result_t
 dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 		      isc_buffer_t *secret) {
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(pub) && VALID_KEY(priv));
 	REQUIRE(secret != NULL);
 
@@ -426,7 +406,6 @@ isc_result_t
 dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 	isc_result_t ret = ISC_R_SUCCESS;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE((type &
 		 (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE)) != 0);
@@ -501,7 +480,6 @@ dst_key_getfilename(dns_name_t *name, dns_keytag_t id, unsigned int alg,
 		    isc_buffer_t *buf) {
 	isc_result_t result;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE((type &
 		 (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE)) != 0);
@@ -530,7 +508,6 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id, unsigned int alg, int type,
 	isc_buffer_t buf;
 	dst_key_t *key;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) != 0);
 	REQUIRE(mctx != NULL);
@@ -583,7 +560,6 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 	int newfilenamelen = 0, statefilenamelen = 0;
 	isc_lex_t *lex = NULL;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(filename != NULL);
 	REQUIRE((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) != 0);
 	REQUIRE(mctx != NULL);
@@ -716,7 +692,6 @@ out:
 
 isc_result_t
 dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(target != NULL);
 
@@ -765,8 +740,6 @@ dst_key_fromdns_ex(const dns_name_t *name, dns_rdataclass_t rdclass,
 	isc_region_t r;
 	isc_result_t result;
 
-	REQUIRE(dst_initialized);
-
 	isc_buffer_remainingregion(source, &r);
 
 	if (isc_buffer_remaininglength(source) < 4) {
@@ -806,8 +779,6 @@ dst_key_frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	dst_key_t *key = NULL;
 	isc_result_t result;
 
-	REQUIRE(dst_initialized);
-
 	result = frombuffer(name, alg, flags, protocol, rdclass, source, mctx,
 			    false, &key);
 	if (result != ISC_R_SUCCESS) {
@@ -826,7 +797,6 @@ dst_key_frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 
 isc_result_t
 dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(target != NULL);
 
@@ -844,7 +814,6 @@ dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer) {
 	isc_lex_t *lex = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(!dst_key_isprivate(key));
 	REQUIRE(buffer != NULL);
@@ -970,7 +939,6 @@ dst_key_buildinternal(const dns_name_t *name, unsigned int alg,
 	dst_key_t *key;
 	isc_result_t result;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
@@ -1001,7 +969,6 @@ dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 	dst_key_t *key;
 	isc_result_t result;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
@@ -1040,7 +1007,6 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 	dst_key_t *key;
 	isc_result_t ret;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
@@ -1265,7 +1231,6 @@ static bool
 comparekeys(const dst_key_t *key1, const dst_key_t *key2,
 	    bool match_revoked_key,
 	    bool (*compare)(const dst_key_t *key1, const dst_key_t *key2)) {
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key1));
 	REQUIRE(VALID_KEY(key2));
 
@@ -1362,7 +1327,6 @@ dst_key_pubcompare(const dst_key_t *key1, const dst_key_t *key2,
 
 bool
 dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key1));
 	REQUIRE(VALID_KEY(key2));
 
@@ -1381,7 +1345,6 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 
 void
 dst_key_attach(dst_key_t *source, dst_key_t **target) {
-	REQUIRE(dst_initialized);
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE(VALID_KEY(source));
 
@@ -1391,7 +1354,6 @@ dst_key_attach(dst_key_t *source, dst_key_t **target) {
 
 void
 dst_key_free(dst_key_t **keyp) {
-	REQUIRE(dst_initialized);
 	REQUIRE(keyp != NULL && VALID_KEY(*keyp));
 	dst_key_t *key = *keyp;
 	*keyp = NULL;
@@ -1441,7 +1403,6 @@ dst_key_buildfilename(const dst_key_t *key, int type, const char *directory,
 
 isc_result_t
 dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(n != NULL);
 
@@ -1531,7 +1492,6 @@ dst_key_restore(dns_name_t *name, unsigned int alg, unsigned int flags,
 	isc_result_t result;
 	dst_key_t *key;
 
-	REQUIRE(dst_initialized);
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	if (alg >= DST_MAX_ALGS || dst_t_func[alg] == NULL) {
@@ -1940,7 +1900,6 @@ cleanup:
 
 static bool
 issymmetric(const dst_key_t *key) {
-	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key));
 
 	switch (key->key_alg) {
@@ -2352,8 +2311,6 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 
 static isc_result_t
 algorithm_status(unsigned int alg) {
-	REQUIRE(dst_initialized);
-
 	if (dst_algorithm_supported(alg)) {
 		return (ISC_R_SUCCESS);
 	}

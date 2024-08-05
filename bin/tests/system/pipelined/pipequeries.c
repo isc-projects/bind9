@@ -275,8 +275,6 @@ main(int argc, char *argv[]) {
 
 	isc_log_create(mctx, &lctx, &lcfg);
 
-	RUNCHECK(dst_lib_init(mctx));
-
 	RUNCHECK(dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr));
 
 	RUNCHECK(dns_dispatch_createudp(
@@ -293,8 +291,6 @@ main(int argc, char *argv[]) {
 	isc_loopmgr_teardown(loopmgr, teardown_dispatchmgr, dispatchmgr);
 
 	isc_loopmgr_run(loopmgr);
-
-	dst_lib_destroy();
 
 	isc_log_destroy(&lctx);
 

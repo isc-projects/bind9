@@ -198,15 +198,10 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--md5") == 0) {
-		isc_mem_t *mctx = NULL;
-		int answer;
-
-		isc_mem_create(&mctx);
-		dst_lib_init(mctx);
-		answer = dst_algorithm_supported(DST_ALG_HMACMD5) ? 0 : 1;
-		dst_lib_destroy();
-		isc_mem_detach(&mctx);
-		return (answer);
+		if (!dst_algorithm_supported(DST_ALG_HMACMD5)) {
+			return (1);
+		}
+		return (0);
 	}
 
 	if (strcmp(argv[1], "--ipv6only=no") == 0) {
@@ -229,14 +224,11 @@ main(int argc, char **argv) {
 	}
 
 	if (strcasecmp(argv[1], "--rsasha1") == 0) {
-		int answer;
-		isc_mem_t *mctx = NULL;
-		isc_mem_create(&mctx);
-		dst_lib_init(mctx);
-		answer = dst_algorithm_supported(DST_ALG_RSASHA1) ? 0 : 1;
-		dst_lib_destroy();
-		isc_mem_detach(&mctx);
-		return (answer);
+		if (!dst_algorithm_supported(DST_ALG_RSASHA1)) {
+			return (1);
+		}
+
+		return (0);
 	}
 
 	if (strcmp(argv[1], "--with-dlz-filesystem") == 0) {

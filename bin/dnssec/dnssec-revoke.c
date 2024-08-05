@@ -157,12 +157,6 @@ main(int argc, char **argv) {
 		}
 	}
 
-	result = dst_lib_init(mctx);
-	if (result != ISC_R_SUCCESS) {
-		fatal("Could not initialize dst: %s",
-		      isc_result_totext(result));
-	}
-
 	result = dst_key_fromnamedfile(
 		filename, dir, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, mctx, &key);
 	if (result != ISC_R_SUCCESS) {
@@ -246,7 +240,6 @@ main(int argc, char **argv) {
 
 cleanup:
 	dst_key_free(&key);
-	dst_lib_destroy();
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

@@ -556,8 +556,6 @@ format_supported_algorithms(void (*emit)(isc_buffer_t *b)) {
 static void
 printversion(bool verbose) {
 	char rndcconf[PATH_MAX], *dot = NULL;
-	isc_mem_t *mctx = NULL;
-	isc_result_t result;
 	isc_buffer_t b;
 	char buf[512];
 #if defined(HAVE_GEOIP2)
@@ -631,17 +629,9 @@ printversion(bool verbose) {
 #endif /* if defined(HAVE_DNSTAP) */
 	printf("threads support is enabled\n");
 
-	isc_mem_create(&mctx);
-	result = dst_lib_init(mctx);
-	if (result == ISC_R_SUCCESS) {
-		isc_buffer_init(&b, buf, sizeof(buf));
-		format_supported_algorithms(printit);
-		printf("\n");
-		dst_lib_destroy();
-	} else {
-		printf("DST initialization failure: %s\n",
-		       isc_result_totext(result));
-	}
+	isc_buffer_init(&b, buf, sizeof(buf));
+	format_supported_algorithms(printit);
+	printf("\n");
 
 	/*
 	 * The default rndc.conf and rndc.key paths are in the same
@@ -665,6 +655,8 @@ printversion(bool verbose) {
 	printf("  named PID file:       %s\n", named_g_defaultpidfile);
 #if defined(HAVE_GEOIP2)
 #define RTC(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
+	isc_mem_t *mctx = NULL;
+	isc_mem_create(&mctx);
 	RTC(cfg_parser_create(mctx, named_g_lctx, &parser));
 	RTC(named_config_parsedefaults(parser, &config));
 	RTC(cfg_map_get(config, "options", &defaults));
@@ -674,8 +666,8 @@ printversion(bool verbose) {
 	}
 	cfg_obj_destroy(parser, &config);
 	cfg_parser_destroy(&parser);
-#endif /* HAVE_GEOIP2 */
 	isc_mem_detach(&mctx);
+#endif /* HAVE_GEOIP2 */
 }
 
 static void
@@ -1300,10 +1292,6 @@ setup(void) {
 	ENSURE(named_g_server != NULL);
 	sctx = named_g_server->sctx;
 
-	/*
-	 * Report supported algorithms now that dst_lib_init() has
-	 * been called via named_server_create().
-	 */
 	format_supported_algorithms(logit);
 
 	/*

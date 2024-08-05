@@ -135,7 +135,7 @@
 		NULL, /*%< dump */                                             \
 		NULL, /*%< restore */                                          \
 	};                                                                     \
-	isc_result_t dst__hmac##alg##_init(dst_func_t **funcp) {               \
+	void dst__hmac##alg##_init(dst_func_t **funcp) {                       \
 		REQUIRE(funcp != NULL);                                        \
 		if (*funcp == NULL) {                                          \
 			isc_hmac_t *ctx = isc_hmac_new();                      \
@@ -146,7 +146,6 @@
 			}                                                      \
 			isc_hmac_free(ctx);                                    \
 		}                                                              \
-		return (ISC_R_SUCCESS);                                        \
 	}
 
 static isc_result_t

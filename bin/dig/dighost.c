@@ -93,8 +93,7 @@ static bool cancel_now = false;
 
 bool check_ra = false, have_ipv4 = false, have_ipv6 = false,
      specified_source = false, free_now = false, usesearch = false,
-     showsearch = false, is_dst_up = false, keep_open = false, verbose = false,
-     yaml = false;
+     showsearch = false, keep_open = false, verbose = false, yaml = false;
 in_port_t port = 53;
 bool port_set = false;
 unsigned int timeout = 0;
@@ -1374,10 +1373,6 @@ setup_libs(void) {
 
 	isc_mem_setname(mctx, "dig");
 	mainloop = isc_loop_main(loopmgr);
-
-	result = dst_lib_init(mctx);
-	check_result(result, "dst_lib_init");
-	is_dst_up = true;
 }
 
 typedef struct dig_ednsoptname {
@@ -4721,12 +4716,6 @@ cleanup_openssl_refs(void) {
 	if (sig0key != NULL) {
 		debug("freeing SIG(0) key %p", sig0key);
 		dst_key_free(&sig0key);
-	}
-
-	if (is_dst_up) {
-		debug("destroy DST lib");
-		dst_lib_destroy();
-		is_dst_up = false;
 	}
 }
 

@@ -27,7 +27,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <isc/fips.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
@@ -54,33 +53,6 @@
 		ret = a;  \
 		goto err; \
 	}
-
-static void
-enable_fips_mode(void) {
-#if defined(ENABLE_FIPS_MODE)
-	if (isc_fips_mode()) {
-		/*
-		 * FIPS mode is already enabled.
-		 */
-		return;
-	}
-
-	if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
-		dst__openssl_toresult2("FIPS_mode_set", DST_R_OPENSSLFAILURE);
-		exit(EXIT_FAILURE);
-	}
-#endif
-}
-
-void
-dst__openssl_init(void) {
-	enable_fips_mode();
-}
-
-void
-dst__openssl_destroy(void) {
-	/* No-op */
-}
 
 static isc_result_t
 toresult(isc_result_t fallback) {

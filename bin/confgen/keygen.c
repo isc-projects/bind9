@@ -120,8 +120,6 @@ generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
 		fatal("unsupported algorithm %d\n", alg);
 	}
 
-	DO("initialize dst library", dst_lib_init(mctx));
-
 	DO("generate key",
 	   dst_key_generate(dns_rootname, alg, keysize, 0, 0, DNS_KEYPROTO_ANY,
 			    dns_rdataclass_in, NULL, mctx, &key, NULL));
@@ -132,14 +130,12 @@ generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
 
 	isc_buffer_usedregion(&key_rawbuffer, &key_rawregion);
 
-	DO("bsse64 encode secret",
+	DO("base64 encode secret",
 	   isc_base64_totext(&key_rawregion, -1, "", key_txtbuffer));
 
 	if (key != NULL) {
 		dst_key_free(&key);
 	}
-
-	dst_lib_destroy();
 }
 
 /*%

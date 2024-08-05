@@ -195,46 +195,27 @@ struct dst_func {
  * Initializers
  */
 void
-dst__openssl_init(void);
-
-isc_result_t
 dst__hmacmd5_init(struct dst_func **funcp);
-isc_result_t
+void
 dst__hmacsha1_init(struct dst_func **funcp);
-isc_result_t
+void
 dst__hmacsha224_init(struct dst_func **funcp);
-isc_result_t
+void
 dst__hmacsha256_init(struct dst_func **funcp);
-isc_result_t
+void
 dst__hmacsha384_init(struct dst_func **funcp);
-isc_result_t
+void
 dst__hmacsha512_init(struct dst_func **funcp);
-isc_result_t
+void
 dst__opensslrsa_init(struct dst_func **funcp, unsigned char algorithm);
-isc_result_t
+void
 dst__opensslecdsa_init(struct dst_func **funcp);
-isc_result_t
+void
 dst__openssleddsa_init(struct dst_func **funcp, unsigned char algorithm);
 #if HAVE_GSSAPI
-isc_result_t
+void
 dst__gssapi_init(struct dst_func **funcp);
 #endif /* HAVE_GSSAPI*/
-
-/*%
- * Destructors
- */
-void
-dst__openssl_destroy(void);
-
-/*%
- * Memory allocators using the DST memory pool.
- */
-void *
-dst__mem_alloc(size_t size);
-void
-dst__mem_free(void *ptr);
-void *
-dst__mem_realloc(void *ptr, size_t size);
 
 /*%
  * Secure private file handling

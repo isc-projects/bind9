@@ -117,7 +117,6 @@ static bool debugging = false, ddebugging = false;
 static bool memdebugging = false;
 static bool have_ipv4 = false;
 static bool have_ipv6 = false;
-static bool is_dst_up = false;
 static bool use_tls = false;
 static bool usevc = false;
 static bool usegsstsig = false;
@@ -925,10 +924,6 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 
 	result = dns_dispatchmgr_create(gmctx, loopmgr, netmgr, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
-
-	result = dst_lib_init(gmctx);
-	check_result(result, "dst_lib_init");
-	is_dst_up = true;
 
 	set_source_ports(dispatchmgr);
 
@@ -3502,12 +3497,6 @@ cleanup(void) {
 	}
 
 	isc_mutex_destroy(&answer_lock);
-
-	if (is_dst_up) {
-		ddebug("Destroy DST lib");
-		dst_lib_destroy();
-		is_dst_up = false;
-	}
 
 	ddebug("Shutting down managers");
 	isc_managers_destroy(&gmctx, &loopmgr, &netmgr);

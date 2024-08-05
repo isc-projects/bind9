@@ -272,12 +272,6 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	result = dst_lib_init(mctx);
-	if (result != ISC_R_SUCCESS) {
-		fatal("could not initialize dst: %s",
-		      isc_result_totext(result));
-	}
-
 	now = isc_stdtime_now();
 
 	rdclass = strtoclass(classname);
@@ -333,7 +327,6 @@ main(int argc, char *argv[]) {
 	dns_db_detach(&gdb);
 
 	cleanup_logging(&log);
-	dst_lib_destroy();
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

@@ -43,24 +43,6 @@
 
 #include <tests/dns.h>
 
-static int
-setup_test(void **state) {
-	UNUSED(state);
-
-	dst_lib_init(mctx);
-
-	return (0);
-}
-
-static int
-teardown_test(void **state) {
-	UNUSED(state);
-
-	dst_lib_destroy();
-
-	return (0);
-}
-
 /* Read sig in file at path to buf. Check signature ineffability */
 static isc_result_t
 sig_fromfile(const char *path, isc_buffer_t *buf) {
@@ -440,8 +422,8 @@ ISC_RUN_TEST_IMPL(cmp_test) {
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY_CUSTOM(sig_test, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(cmp_test, setup_test, teardown_test)
+ISC_TEST_ENTRY(sig_test)
+ISC_TEST_ENTRY(cmp_test)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

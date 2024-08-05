@@ -9,6 +9,7 @@ named.lock
 named.pid
 named.run
 /feature-test
+/legacy.run.sh
 /makejournal
 /random.data
 /*.log

@@ -593,7 +593,6 @@ main(int argc, char **argv) {
 	const char *conffile = NULL;
 	isc_mem_t *mctx = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
-	bool cleanup_dst = false;
 	bool load_zones = false;
 	bool list_zones = false;
 	bool print = false;
@@ -728,9 +727,6 @@ main(int argc, char **argv) {
 
 	CHECK(setup_logging(mctx, stdout, &logc));
 
-	CHECK(dst_lib_init(mctx));
-	cleanup_dst = true;
-
 	CHECK(cfg_parser_create(mctx, logc, &parser));
 
 	if (nodeprecate) {
@@ -755,10 +751,6 @@ cleanup:
 
 	if (parser != NULL) {
 		cfg_parser_destroy(&parser);
-	}
-
-	if (cleanup_dst) {
-		dst_lib_destroy();
 	}
 
 	if (logc != NULL) {

@@ -37,30 +37,6 @@
 
 static dns_rdatatype_t privatetype = 65534;
 
-static int
-setup_test(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dst_lib_init(mctx);
-
-	if (result != ISC_R_SUCCESS) {
-		return (1);
-	}
-
-	return (0);
-}
-
-static int
-teardown_test(void **state) {
-	UNUSED(state);
-
-	dst_lib_destroy();
-
-	return (0);
-}
-
 typedef struct {
 	unsigned char alg;
 	dns_keytag_t keyid;
@@ -211,8 +187,8 @@ ISC_RUN_TEST_IMPL(private_nsec3_totext) {
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY_CUSTOM(private_signing_totext, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(private_nsec3_totext, setup_test, teardown_test)
+ISC_TEST_ENTRY(private_signing_totext)
+ISC_TEST_ENTRY(private_nsec3_totext)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
