@@ -5220,7 +5220,7 @@ validated(void *arg) {
 			result = ISC_R_NOTFOUND;
 			if (val->rdataset != NULL) {
 				result = dns_db_findnode(fctx->cache, val->name,
-							 true, &node);
+							 false, &node);
 			}
 			if (result == ISC_R_SUCCESS) {
 				(void)dns_db_deleterdataset(fctx->cache, node,
@@ -5858,7 +5858,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	/*
 	 * Find or create the cache node.
 	 */
-	node = NULL;
 	result = dns_db_findnode(fctx->cache, name, true, &node);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
