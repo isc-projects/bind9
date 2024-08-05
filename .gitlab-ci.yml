@@ -1866,6 +1866,8 @@ pairwise:
       - $PAIRWISE_TESTING
 
 backports:
+  # finish backport attempt even if another MR was merged while the job was running (or queued)
+  interruptible: false
   <<: *base_image
   stage: postmerge
   rules:
