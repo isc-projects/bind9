@@ -124,3 +124,7 @@ isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
 int
 isc_uv_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
 		    unsigned int flags);
+
+#if UV_VERSION_HEX < UV_VERSION(1, 19, 0)
+#define uv_stream_get_write_queue_size(stream) ((stream)->write_queue_size)
+#endif /* UV_VERSION_HEX < UV_VERSION(1, 19, 0) */
