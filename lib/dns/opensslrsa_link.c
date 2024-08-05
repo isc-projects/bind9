@@ -678,10 +678,12 @@ err:
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 static isc_result_t
-opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
+opensslrsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	isc_result_t ret;
 	BIGNUM *e = BN_new();
 	EVP_PKEY *pkey = NULL;
+
+	UNUSED(unused);
 
 	if (e == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -714,15 +716,9 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		UNREACHABLE();
 	}
 
-	if (exp == 0) {
-		/* RSA_F4 0x10001 */
-		BN_set_bit(e, 0);
-		BN_set_bit(e, 16);
-	} else {
-		/* (phased-out) F5 0x100000001 */
-		BN_set_bit(e, 0);
-		BN_set_bit(e, 32);
-	}
+	/* e = 65537 (0x10001, F4) */
+	BN_set_bit(e, 0);
+	BN_set_bit(e, 16);
 
 	ret = opensslrsa_generate_pkey(key->key_size, key->label, e, callback,
 				       &pkey);
