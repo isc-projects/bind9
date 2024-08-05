@@ -16,7 +16,6 @@ check_PROGRAMS =	\
 	async_test	\
 	buffer_test	\
 	counter_test	\
-	crc64_test	\
 	dnsstream_utils_test \
 	errno_test	\
 	file_test	\

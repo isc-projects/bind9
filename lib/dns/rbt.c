@@ -17,7 +17,6 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 
-#include <isc/crc64.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>

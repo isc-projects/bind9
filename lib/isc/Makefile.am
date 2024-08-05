@@ -17,7 +17,6 @@ libisc_la_HEADERS =			\
 	include/isc/commandline.h	\
 	include/isc/condition.h		\
 	include/isc/counter.h		\
-	include/isc/crc64.h		\
 	include/isc/dir.h		\
 	include/isc/dnsstream.h		\
 	include/isc/endian.h		\
@@ -124,7 +123,6 @@ libisc_la_SOURCES =		\
 	commandline.c		\
 	condition.c		\
 	counter.c		\
-	crc64.c			\
 	dir.c			\
 	entropy.c		\
 	errno.c			\
