@@ -1956,25 +1956,46 @@ pairwise:
     variables:
       - $PAIRWISE_TESTING
 
-backports:
-  # finish backport attempt even if another MR was merged while the job was running (or queued)
-  interruptible: false
+.post_merge_template: &post_merge
   <<: *base_image
   stage: postmerge
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
+  needs: []
+  # post-merge processes should run even if another MR was merged while the job was running (or queued)
+  interruptible: false
   variables:
     # automated commits will inherit identification from the user who pressed Merge button
     GIT_COMMITTER_NAME: $GITLAB_USER_NAME
     GIT_COMMITTER_EMAIL: $GITLAB_USER_EMAIL
     # avoid leftover branches from previous jobs
     GIT_STRATEGY: clone
-    # assumed max depth of a MR for backport
-    GIT_DEPTH: 200
+    # assumed max depth of a MR for backport or a rebased force-push
+    GIT_DEPTH: 1000
+  before_script:
+    # force-pushes should not trigger process automation (happens only in -sub branches)
+    - >
+      echo "previous branch tip: $CI_COMMIT_BEFORE_SHA"
+    - set +o pipefail; git log --format='%H' | grep --silent "$CI_COMMIT_BEFORE_SHA" && PREVIOUS_TIP_REACHABLE=1
+    - test "$PREVIOUS_TIP_REACHABLE" != "1" && echo "force-push detected, stop" && exit 1
+    # non-fast-forward merges are disabled so we have to have merge commit on top
+    - MERGE_REQUEST_ID="$(git log -1 --format='%b' | sed --silent -e 's/^See merge request [^!]\+!//p')"
+    - >
+      : stop if this is not a merge request
+    - test "$MERGE_REQUEST_ID" -ge 0
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+
+backports:
+  <<: *post_merge
+  rules:
+    # -sub branches are handled manually
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
     # CI job token is not sufficient for push operations
     - git remote get-url origin | sed -e "s/gitlab-ci-token:$CI_JOB_TOKEN/oauth2:$BIND_TEAM_WRITE_TOKEN/" | xargs git remote set-url --push origin
-    # force-pushing is disabled so we have to have merge request on top
-    - MERGE_REQUEST_ID="$(git log -1 --format='%b' | sed --silent -e 's/^See merge request [^!]\+!//p')"
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
     - bind9-qa/releng/backport_mr.py $CI_PROJECT_ID "$MERGE_REQUEST_ID"
+
+merged-metadata:
+  <<: *post_merge
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+(-sub)?$/ || $CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+.[0-9]+-release$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
+  script:
+    - bind9-qa/releng/after_merge.py "$CI_PROJECT_ID" "$MERGE_REQUEST_ID"
