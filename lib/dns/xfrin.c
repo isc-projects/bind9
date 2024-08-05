@@ -308,8 +308,7 @@ axfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	}
 
 	CHECK(dns_zone_checknames(xfr->zone, name, rdata));
-	CHECK(dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata,
-				   &tuple));
+	dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata, &tuple);
 	dns_diff_append(&xfr->diff, &tuple);
 	result = ISC_R_SUCCESS;
 failure:
@@ -445,7 +444,7 @@ failure:
 static isc_result_t
 ixfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	     dns_rdata_t *rdata) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_difftuple_t *tuple = NULL;
 
 	if (rdata->rdclass != xfr->rdclass) {
@@ -455,10 +454,10 @@ ixfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	if (op == DNS_DIFFOP_ADD) {
 		CHECK(dns_zone_checknames(xfr->zone, name, rdata));
 	}
-	CHECK(dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata,
-				   &tuple));
+
+	dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata, &tuple);
 	dns_diff_append(&xfr->diff, &tuple);
-	result = ISC_R_SUCCESS;
+
 failure:
 	return (result);
 }

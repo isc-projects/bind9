@@ -51,7 +51,7 @@ rdata_covers(dns_rdata_t *rdata) {
 						   : 0);
 }
 
-isc_result_t
+void
 dns_difftuple_create(isc_mem_t *mctx, dns_diffop_t op, const dns_name_t *name,
 		     dns_ttl_t ttl, dns_rdata_t *rdata, dns_difftuple_t **tp) {
 	dns_difftuple_t *t;
@@ -99,7 +99,6 @@ dns_difftuple_create(isc_mem_t *mctx, dns_diffop_t op, const dns_name_t *name,
 	INSIST(datap == (unsigned char *)t + size);
 
 	*tp = t;
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -117,10 +116,10 @@ dns_difftuple_free(dns_difftuple_t **tp) {
 	isc_mem_detach(&mctx);
 }
 
-isc_result_t
+void
 dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp) {
-	return (dns_difftuple_create(orig->mctx, orig->op, &orig->name,
-				     orig->ttl, &orig->rdata, copyp));
+	dns_difftuple_create(orig->mctx, orig->op, &orig->name, orig->ttl,
+			     &orig->rdata, copyp);
 }
 
 void

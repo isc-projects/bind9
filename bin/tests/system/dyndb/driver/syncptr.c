@@ -259,14 +259,8 @@ syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
 	}
 
 	/* Create diff */
-	result = dns_difftuple_create(mctx, op, dns_fixedname_name(&ptr_name),
-				      ttl, &ptr_rdata, &tp);
-	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR,
-			  "syncptr: dns_difftuple_create -> %s\n",
-			  isc_result_totext(result));
-		goto cleanup;
-	}
+	dns_difftuple_create(mctx, op, dns_fixedname_name(&ptr_name), ttl,
+			     &ptr_rdata, &tp);
 	dns_diff_append(&syncptr->diff, &tp);
 
 	/*

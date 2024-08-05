@@ -487,11 +487,8 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
 		 * Create a diff tuple for the parsed change and append it to
 		 * the diff.
 		 */
-		result = dns_difftuple_create(mctx, changes[i].op, name,
-					      changes[i].ttl, &rdata, &tuple);
-		if (result != ISC_R_SUCCESS) {
-			break;
-		}
+		dns_difftuple_create(mctx, changes[i].op, name, changes[i].ttl,
+				     &rdata, &tuple);
 		dns_diff_append(diff, &tuple);
 	}
 

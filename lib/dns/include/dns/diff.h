@@ -114,7 +114,7 @@ ISC_LANG_BEGINDECLS
  * Manipulation of diffs and tuples.
  */
 
-isc_result_t
+void
 dns_difftuple_create(isc_mem_t *mctx, dns_diffop_t op, const dns_name_t *name,
 		     dns_ttl_t ttl, dns_rdata_t *rdata, dns_difftuple_t **tp);
 /*%<
@@ -123,10 +123,6 @@ dns_difftuple_create(isc_mem_t *mctx, dns_diffop_t op, const dns_name_t *name,
  *
  * Requires:
  *\li	*tp != NULL && *tp == NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS
- *  \li    ISC_R_NOMEMORY
  */
 
 void
@@ -142,14 +138,14 @@ dns_difftuple_free(dns_difftuple_t **tp);
  *      \li All memory used by the tuple is freed.
  */
 
-isc_result_t
+void
 dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp);
 /*%<
  * Copy a tuple.
  *
  * Requires:
  * \li	'orig' points to a valid tuple
- *\li	copyp != NULL && *copyp == NULL
+ * \li	copyp != NULL && *copyp == NULL
  */
 
 void

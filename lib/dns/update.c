@@ -265,11 +265,7 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	      dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	      dns_rdata_t *rdata) {
 	dns_difftuple_t *tuple = NULL;
-	isc_result_t result;
-	result = dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
 	return (do_one_tuple(&tuple, db, ver, diff));
 }
 
@@ -724,17 +720,14 @@ delete_if(rr_predicate *predicate, dns_db_t *db, dns_dbversion_t *ver,
  * We abuse the dns_diff_t type to represent a set of domain names
  * affected by the update.
  */
-static isc_result_t
+static void
 namelist_append_name(dns_diff_t *list, dns_name_t *name) {
-	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 	static dns_rdata_t dummy_rdata = DNS_RDATA_INIT;
 
-	CHECK(dns_difftuple_create(list->mctx, DNS_DIFFOP_EXISTS, name, 0,
-				   &dummy_rdata, &tuple));
+	dns_difftuple_create(list->mctx, DNS_DIFFOP_EXISTS, name, 0,
+			     &dummy_rdata, &tuple);
 	dns_diff_append(list, &tuple);
-failure:
-	return (result);
 }
 
 static isc_result_t
@@ -758,7 +751,7 @@ namelist_append_subdomain(dns_db_t *db, dns_name_t *name,
 		if (!dns_name_issubdomain(child, name)) {
 			break;
 		}
-		CHECK(namelist_append_name(affected, child));
+		namelist_append_name(affected, child);
 	}
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
@@ -1014,8 +1007,8 @@ add_nsec(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	/*
 	 * Add the new NSEC and record the change.
 	 */
-	CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, nsecttl,
-				   &rdata, &tuple));
+	dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, nsecttl, &rdata,
+			     &tuple);
 	CHECK(do_one_tuple(&tuple, db, ver, diff));
 	INSIST(tuple == NULL);
 
@@ -1041,8 +1034,8 @@ add_placeholder_nsec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	r.base = data;
 	r.length = sizeof(data);
 	dns_rdata_fromregion(&rdata, dns_db_class(db), dns_rdatatype_nsec, &r);
-	CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, 0, &rdata,
-				   &tuple));
+	dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, 0, &rdata,
+			     &tuple);
 	CHECK(do_one_tuple(&tuple, db, ver, diff));
 failure:
 	return (result);
@@ -1608,7 +1601,7 @@ next_state:
 			 * update.
 			 */
 
-			CHECK(namelist_append_name(&state->diffnames, name));
+			namelist_append_name(&state->diffnames, name);
 
 			while (t != NULL && dns_name_equal(&t->name, name)) {
 				dns_rdatatype_t type;
@@ -1761,7 +1754,7 @@ next_state:
 			 */
 			CHECK(next_active(log, zone, db, newver, &t->name,
 					  prevname, false));
-			CHECK(namelist_append_name(&state->affected, prevname));
+			namelist_append_name(&state->affected, prevname);
 		}
 
 		/*
@@ -2011,7 +2004,7 @@ next_state:
 				continue;
 			}
 
-			CHECK(namelist_append_name(&state->affected, name));
+			namelist_append_name(&state->affected, name);
 
 			if (oldver != NULL) {
 				CHECK(rrset_exists(db, oldver, name,
