@@ -101,8 +101,7 @@ isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		       dns_dispatchmgr_t     *dispatchmgr,
-		       dns_geoip_databases_t *geoip, bool scan,
-		       ns_interfacemgr_t **mgrp);
+		       dns_geoip_databases_t *geoip, ns_interfacemgr_t **mgrp);
 /*%<
  * Create a new interface manager.
  *
@@ -111,14 +110,28 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
  * to set nonempty listen-on lists.
  */
 
-void
-ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target);
-
-void
-ns_interfacemgr_detach(ns_interfacemgr_t **targetp);
+ISC_REFCOUNT_DECL(ns_interfacemgr);
 
 void
 ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr);
+
+void
+ns_interfacemgr_routeconnect(ns_interfacemgr_t *mgr);
+/*%
+ * Connect to the route socket.
+ *
+ * NOTE: This function is idempotent.  Calling it on an ns_interfacemgr_t object
+ * with route socket already connected will do nothing.
+ */
+
+void
+ns_interfacemgr_routedisconnect(ns_interfacemgr_t *mgr);
+/*%
+ * Disconnect the route socket.
+ *
+ * NOTE: This function is idempotent.  Calling it on an ns_interfacemgr_t object
+ * that has no routing socket will do nothing.
+ */
 
 void
 ns_interfacemgr_setbacklog(ns_interfacemgr_t *mgr, int backlog);
