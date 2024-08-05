@@ -100,42 +100,6 @@ send() {
 }
 
 #
-# Useful variables in test scripts
-#
-
-# The following script sets the following algorithm-related variables. These
-# are selected randomly at runtime from a list of supported algorithms. The
-# randomization is deterministic and remains stable for a period of time for a
-# given platform.
-#
-# Default algorithm for testing.
-# DEFAULT_ALGORITHM
-# DEFAULT_ALGORITHM_NUMBER
-# DEFAULT_BITS
-#
-# This is an alternative algorithm for test cases that require more than one
-# algorithm (for example algorithm rollover). Must be different from
-# DEFAULT_ALGORITHM.
-# ALTERNATIVE_ALGORITHM
-# ALTERNATIVE_ALGORITHM_NUMBER
-# ALTERNATIVE_BITS
-#
-# This is an algorithm that is used for tests against the "disable-algorithms"
-# configuration option. Must be different from above algorithms.
-# DISABLED_ALGORITHM
-# DISABLED_ALGORITHM_NUMBER
-# DISABLED_BITS
-#
-# There are multiple algoritms sets to choose from (see get_algorithms.py). To
-# override the default choice, set the ALGORITHM_SET env var (see mkeys system
-# test for example).
-eval "$($PYTHON "$TOP_SRCDIR/bin/tests/system/get_algorithms.py")"
-
-# Default HMAC algorithm.
-# also update _common/rndc.conf and _common/rndc.key when updating DEFAULT_HMAC
-export DEFAULT_HMAC=hmac-sha256
-
-#
 # Useful functions in test scripts
 #
 

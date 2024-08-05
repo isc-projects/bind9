@@ -277,6 +277,17 @@ def wait_for_zones_loaded(request, servers):
             watcher.wait_for_line("all zones loaded")
 
 
+@pytest.fixture(scope="module", autouse=True)
+def configure_algorithm_set(request):
+    """Configure the algorithm set to use in tests."""
+    mark = _get_marker(request.node, "algorithm_set")
+    if not mark:
+        name = None
+    else:
+        name = mark.args[0]
+    isctest.vars.set_algorithm_set(name)
+
+
 @pytest.fixture(autouse=True)
 def logger(request, system_test_name):
     """Sets up logging facility specific to a particular test."""

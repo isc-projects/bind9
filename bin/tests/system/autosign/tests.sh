@@ -892,7 +892,7 @@ checkprivate nsec3.nsec3.example 10.53.0.3 || ret=1
 checkprivate nsec3.optout.example 10.53.0.3 || ret=1
 checkprivate nsec3-to-nsec.example 10.53.0.3 2 || ret=1  # automatically removed
 checkprivate nsec3-to-nsec3.example 10.53.0.3 2 || ret=1 # automatically removed
-if $SHELL ../testcrypto.sh -q RSASHA1; then
+if [ $RSASHA1_SUPPORTED = 1 ]; then
   checkprivate nsec-only.example 10.53.0.3 || ret=1
 fi
 checkprivate oldsigs.example 10.53.0.3 2 || ret=1 # pre-signed
@@ -1252,7 +1252,7 @@ del=$(grep "DNSKEY .* is now deleted" ns2/named.run | wc -l)
 [ "$del" -eq 0 ] || ret=1
 pub=$(grep "DNSKEY .* is now published" ns3/named.run | grep -v "CDNSKEY" | wc -l)
 act=$(grep "DNSKEY .* is now active" ns3/named.run | wc -l)
-if $SHELL ../testcrypto.sh -q RSASHA1; then
+if [ $RSASHA1_SUPPORTED = 1 ]; then
   # Include two log lines for nsec-only zone.
   [ "$pub" -eq 53 ] || ret=1
   [ "$act" -eq 53 ] || ret=1

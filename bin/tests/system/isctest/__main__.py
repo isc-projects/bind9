@@ -9,9 +9,16 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from .vars import ALL
+import logging
+
+from . import log
+from .vars import ALL, init_vars
 
 
 if __name__ == "__main__":
+    # use root logger as fallback - we're not interested in proper logs here
+    log.basic.LOGGERS["conftest"] = logging.getLogger()
+
+    init_vars()
     for name, value in ALL.items():
         print(f"export {name}={value}")

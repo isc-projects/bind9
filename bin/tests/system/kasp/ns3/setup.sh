@@ -66,10 +66,7 @@ cp template.db.in "i-am.special.kasp.db"
 # Set up RSASHA1 based zones
 #
 for zn in rsasha1 rsasha1-nsec3; do
-  if (
-    cd ..
-    $SHELL ../testcrypto.sh -q RSASHA1
-  ); then
+  if [ $RSASHA1_SUPPORTED = 1 ]; then
     setup "${zn}.kasp"
     cp template.db.in "$zonefile"
   else
@@ -79,13 +76,13 @@ for zn in rsasha1 rsasha1-nsec3; do
   fi
 done
 
-if [ -f ../ed25519-supported.file ]; then
+if [ $ED25519_SUPPORTED = 1 ]; then
   setup "ed25519.kasp"
   cp template.db.in "$zonefile"
   cat ed25519.conf >>named.conf
 fi
 
-if [ -f ../ed448-supported.file ]; then
+if [ $ED448_SUPPORTED = 1 ]; then
   setup "ed448.kasp"
   cp template.db.in "$zonefile"
   cat ed448.conf >>named.conf

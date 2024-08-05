@@ -24,7 +24,7 @@ copy_setports ns2/named.conf.in ns2/named.conf
   $SHELL setup.sh
 )
 
-if ! ($SHELL ../testcrypto.sh -q RSASHA1); then
+if [ $RSASHA1_SUPPORTED = 0 ]; then
   copy_setports ns3/named-fips.conf.in ns3/named.conf
 else
   copy_setports ns3/named-fips.conf.in ns3/named-fips.conf

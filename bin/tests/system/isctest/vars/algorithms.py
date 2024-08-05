@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -11,22 +9,43 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# This script is a 'port' broker.  It keeps track of ports given to the
-# individual system subtests, so every test is given a unique port range.
-
-import logging
 import os
-from pathlib import Path
 import platform
 import random
 import subprocess
+import tempfile
 import time
-from typing import Dict, List, NamedTuple, Union
+from typing import Dict, List, NamedTuple, Optional, Union
 
-# Uncomment to enable DEBUG logging
-# logging.basicConfig(
-#     format="get_algorithms.py %(levelname)s %(message)s", level=logging.DEBUG
-# )
+from .basic import BASIC_VARS
+from .. import log
+
+# Algorithms are selected randomly at runtime from a list of supported
+# algorithms. The randomization is deterministic and remains stable for a
+# period of time for a given platform.
+ALG_VARS = {
+    # There are multiple algoritms sets to choose from (see ALGORITHM_SETS). To
+    # override the default choice, set the ALGORITHM_SET env var prior to
+    # loading this module or call set_algorithm_set().
+    "ALGORITHM_SET": "none",
+    "DEFAULT_ALGORITHM": "",
+    "DEFAULT_ALGORITHM_NUMBER": "",
+    "DEFAULT_BITS": "",
+    # Alternative algorithm for test cases that require more than one algorithm
+    # (for example algorithm rollover). Must be different from
+    # DEFAULT_ALGORITHM.
+    "ALTERNATIVE_ALGORITHM": "",
+    "ALTERNATIVE_ALGORITHM_NUMBER": "",
+    "ALTERNATIVE_BITS": "",
+    # Algorithm that is used for tests against the "disable-algorithms"
+    # configuration option. Must be different from above algorithms.
+    "DISABLED_ALGORITHM": "",
+    "DISABLED_ALGORITHM_NUMBER": "",
+    "DISABLED_BITS": "",
+    # Default HMAC algorithm. Must match the rndc configuration in
+    # bin/tests/system/_common (rndc.conf, rndc.key)
+    "DEFAULT_HMAC": "hmac-sha256",
+}
 
 STABLE_PERIOD = 3600 * 3
 """number of secs during which algorithm selection remains stable"""
@@ -93,57 +112,77 @@ ALGORITHM_SETS = {
     # ),
 }
 
-TESTCRYPTO = Path(__file__).resolve().parent / "testcrypto.sh"
 
-KEYGEN = os.getenv("KEYGEN", "")
-if not KEYGEN:
-    raise RuntimeError("KEYGEN environment variable has to be set")
-
-ALGORITHM_SET = os.getenv("ALGORITHM_SET", "stable")
-assert ALGORITHM_SET in ALGORITHM_SETS, f'ALGORITHM_SET "{ALGORITHM_SET}" unknown'
-logging.debug('choosing from ALGORITHM_SET "%s"', ALGORITHM_SET)
-
-
-def is_supported(alg: Algorithm) -> bool:
+def is_crypto_supported(alg: Algorithm) -> bool:
     """Test whether a given algorithm is supported on the current platform."""
-    try:
-        subprocess.run(
-            f"{TESTCRYPTO} -q {alg.name}",
-            shell=True,
-            check=True,
-            env={
-                "KEYGEN": KEYGEN,
-                "TMPDIR": os.getenv("TMPDIR", "/tmp"),
-            },
+    assert alg in ALL_ALGORITHMS, f"unknown algorithm: {alg}"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        proc = subprocess.run(
+            [
+                BASIC_VARS["KEYGEN"],
+                "-a",
+                alg.name,
+                "-b",
+                str(alg.bits),
+                "foo",
+            ],
+            cwd=tmpdir,
+            check=False,
             stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
         )
-    except subprocess.CalledProcessError as exc:
-        logging.debug(exc)
-        logging.info("algorithm %s not supported", alg.name)
+        if proc.returncode == 0:
+            return True
+        log.debug(f"dnssec-keygen stderr: {proc.stderr.decode('utf-8')}")
+        log.info("algorithm %s not supported", alg.name)
         return False
-    return True
 
 
-def filter_supported(algs: AlgorithmSet) -> AlgorithmSet:
+# Indicate algorithm support on the current platform.
+CRYPTO_SUPPORTED_VARS = {
+    "RSASHA1_SUPPORTED": "0",
+    "RSASHA256_SUPPORTED": "0",
+    "RSASHA512_SUPPORTED": "0",
+    "ECDSAP256SHA256_SUPPORTED": "0",
+    "ECDSAP384SHA384_SUPPORTED": "0",
+    "ED25519_SUPPORTED": "0",
+    "ED448_SUPPORTED": "0",
+}
+
+SUPPORTED_ALGORITHMS: List[Algorithm] = []
+
+
+def init_crypto_supported():
+    """Initialize the environment variables indicating cryptography support."""
+    for alg in ALL_ALGORITHMS:
+        supported = is_crypto_supported(alg)
+        if supported:
+            SUPPORTED_ALGORITHMS.append(alg)
+        envvar = f"{alg.name}_SUPPORTED"
+        val = "1" if supported else "0"
+        CRYPTO_SUPPORTED_VARS[envvar] = val
+        os.environ[envvar] = val
+
+
+def _filter_supported(algs: AlgorithmSet) -> AlgorithmSet:
     """Select supported algorithms from the set."""
     filtered = {}
     for alg_type in algs._fields:
         candidates = getattr(algs, alg_type)
         if isinstance(candidates, Algorithm):
             candidates = [candidates]
-        supported = list(filter(is_supported, candidates))
+        supported = [alg for alg in candidates if alg in SUPPORTED_ALGORITHMS]
         if len(supported) == 1:
             supported = supported.pop()
         elif not supported:
             raise RuntimeError(
-                f'no {alg_type.upper()} algorithm from "{ALGORITHM_SET}" set '
-                "supported on this platform"
+                f"no {alg_type.upper()} algorithm " "supported on this platform"
             )
         filtered[alg_type] = supported
     return AlgorithmSet(**filtered)
 
 
-def select_random(algs: AlgorithmSet, stable_period=STABLE_PERIOD) -> AlgorithmSet:
+def _select_random(algs: AlgorithmSet, stable_period=STABLE_PERIOD) -> AlgorithmSet:
     """Select random DEFAULT, ALTERNATIVE and DISABLED algorithms from the set.
 
     The algorithm selection is deterministic for a given time period and
@@ -200,9 +239,11 @@ def select_random(algs: AlgorithmSet, stable_period=STABLE_PERIOD) -> AlgorithmS
     return AlgorithmSet(default, alternative, disabled)
 
 
-def algorithms_env(algs: AlgorithmSet) -> Dict[str, str]:
+def _algorithms_env(algs: AlgorithmSet, name: str) -> Dict[str, str]:
     """Return environment variables with selected algorithms as a dict."""
-    algs_env: Dict[str, str] = {}
+    algs_env = {
+        "ALGORITHM_SET": name,
+    }
 
     def set_alg_env(alg: Algorithm, prefix):
         algs_env[f"{prefix}_ALGORITHM"] = alg.name
@@ -217,25 +258,23 @@ def algorithms_env(algs: AlgorithmSet) -> Dict[str, str]:
     set_alg_env(algs.alternative, "ALTERNATIVE")
     set_alg_env(algs.disabled, "DISABLED")
 
-    logging.info("selected algorithms: %s", algs_env)
+    log.info("selected algorithms: %s", algs_env)
     return algs_env
 
 
-def main():
-    try:
-        algs = ALGORITHM_SETS[ALGORITHM_SET]
-        algs = filter_supported(algs)
-        algs = select_random(algs)
-        algs_env = algorithms_env(algs)
-    except Exception:
-        # if anything goes wrong, the conf.sh ignores error codes, so make sure
-        # we set an environment variable to an error value that can be checked
-        # later by the test runner and/or tests themselves
-        print("export ALGORITHM_SET=error")
-        raise
-    for name, value in algs_env.items():
-        print(f"export {name}={value}")
+def set_algorithm_set(name: Optional[str]):
+    if name is None:
+        name = "stable"
+    assert name in ALGORITHM_SETS, f'ALGORITHM_SET "{name}" unknown'
+    if name == ALG_VARS["ALGORITHM_SET"]:
+        log.debug('algorithm set already configured: "%s"', name)
+        return
+    log.debug('choosing from ALGORITHM_SET "%s"', name)
 
+    algs = ALGORITHM_SETS[name]
+    algs = _filter_supported(algs)
+    algs = _select_random(algs)
+    algs_env = _algorithms_env(algs, name)
 
-if __name__ == "__main__":
-    main()
+    ALG_VARS.update(algs_env)
+    os.environ.update(algs_env)
