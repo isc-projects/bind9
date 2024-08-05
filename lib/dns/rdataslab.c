@@ -1082,14 +1082,11 @@ dns_slabheader_reset(dns_slabheader_t *h, dns_db_t *db, dns_dbnode_t *node) {
 	ISC_LINK_INIT(h, link);
 	h->heap_index = 0;
 	h->heap = NULL;
-	h->glue_list = NULL;
 	h->db = db;
 	h->node = node;
 
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
-
-	cds_wfs_node_init(&h->wfs_node);
 
 	STATIC_ASSERT((sizeof(h->attributes) == 2),
 		      "The .attributes field of dns_slabheader_t needs to be "
