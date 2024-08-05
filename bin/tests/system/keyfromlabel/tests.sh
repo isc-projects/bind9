@@ -35,7 +35,7 @@ keyfromlabel() {
   id="$3"
   shift 3
 
-  $KEYFRLAB $ENGINE_ARG -a $alg -l "pkcs11:token=softhsm2-keyfromlabel;object=${id}-${zone};pin-source=$PWD/pin" "$@" $zone >>keyfromlabel.out.$zone.$id || return 1
+  $KEYFRLAB -a $alg -l "pkcs11:token=softhsm2-keyfromlabel;object=${id}-${zone};pin-source=$PWD/pin" "$@" $zone >>keyfromlabel.out.$zone.$id || return 1
   cat keyfromlabel.out.$zone.$id
 }
 
@@ -84,7 +84,7 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
     echo_i "Sign zone with $ksk $zsk"
     ret=0
     cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
-    $SIGNER $ENGINE_ARG -S -a -g -o "$zone" "$zonefile" >signer.out.$zone || ret=1
+    $SIGNER -S -a -g -o "$zone" "$zonefile" >signer.out.$zone || ret=1
     test "$ret" -eq 0 || echo_i "failed"
     status=$((status + ret))
   fi

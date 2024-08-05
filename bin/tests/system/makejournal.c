@@ -101,7 +101,7 @@ main(int argc, char **argv) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	CHECK(dst_lib_init(mctx, NULL));
+	CHECK(dst_lib_init(mctx));
 	dst_active = true;
 
 	isc_log_create(mctx, &lctx, &logconfig);

@@ -51,7 +51,6 @@ usage(void) {
 	fprintf(stderr, "    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "General options:\n");
-	fprintf(stderr, "    -E engine:          specify OpenSSL engine\n");
 	fprintf(stderr, "    -f:                 force update of old-style "
 			"keys\n");
 	fprintf(stderr, "    -K directory:       set key file location\n");
@@ -186,7 +185,6 @@ writekey(dst_key_t *key, const char *directory, bool write_state) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
-	const char *engine = NULL;
 	const char *filename = NULL;
 	char *directory = NULL;
 	char keystr[DST_KEY_FORMATSIZE];
@@ -314,7 +312,7 @@ main(int argc, char **argv) {
 					   &setdstime);
 			break;
 		case 'E':
-			engine = isc_commandline_argument;
+			fatal("%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 		case 'f':
 			force = true;
@@ -555,7 +553,7 @@ main(int argc, char **argv) {
 		fatal("Options -g, -d, -k, -r and -z require -s to be set");
 	}
 
-	result = dst_lib_init(mctx, engine);
+	result = dst_lib_init(mctx);
 	if (result != ISC_R_SUCCESS) {
 		fatal("Could not initialize dst: %s",
 		      isc_result_totext(result));

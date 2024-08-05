@@ -984,13 +984,6 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[i].data = buf;
 		i++;
 	}
-	if (key->engine != NULL) {
-		priv.elements[i].tag = TAG_ECDSA_ENGINE;
-		priv.elements[i].length = (unsigned short)strlen(key->engine) +
-					  1;
-		priv.elements[i].data = (unsigned char *)key->engine;
-		i++;
-	}
 
 	if (key->label != NULL) {
 		priv.elements[i].tag = TAG_ECDSA_LABEL;
@@ -1009,15 +1002,13 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		       const char *pin);
+opensslecdsa_fromlabel(dst_key_t *key, const char *label, const char *pin);
 
 static isc_result_t
 opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	EVP_PKEY *pkey = NULL;
-	const char *engine = NULL;
 	const char *label = NULL;
 	int i, privkey_index = -1;
 
@@ -1044,7 +1035,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {
 		case TAG_ECDSA_ENGINE:
-			engine = (char *)priv.elements[i].data;
+			/* The Engine: tag is explicitly ignored */
 			break;
 		case TAG_ECDSA_LABEL:
 			label = (char *)priv.elements[i].data;
@@ -1058,7 +1049,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	}
 
 	if (label != NULL) {
-		ret = opensslecdsa_fromlabel(key, engine, label, NULL);
+		ret = opensslecdsa_fromlabel(key, label, NULL);
 		if (ret != ISC_R_SUCCESS) {
 			goto err;
 		}
@@ -1104,15 +1095,14 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		       const char *pin) {
+opensslecdsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 	EVP_PKEY *privpkey = NULL, *pubpkey = NULL;
 	isc_result_t ret;
 
 	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 	UNUSED(pin);
 
-	ret = dst__openssl_fromlabel(EVP_PKEY_EC, engine, label, pin, &pubpkey,
+	ret = dst__openssl_fromlabel(EVP_PKEY_EC, label, pin, &pubpkey,
 				     &privpkey);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
@@ -1127,9 +1117,6 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		goto err;
 	}
 
-	if (engine != NULL) {
-		key->engine = isc_mem_strdup(key->mctx, engine);
-	}
 	key->label = isc_mem_strdup(key->mctx, label);
 	key->key_size = EVP_PKEY_bits(privpkey);
 	key->keydata.pkeypair.priv = privpkey;

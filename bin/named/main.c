@@ -307,7 +307,7 @@ library_unexpected_error(const char *file, int line, const char *func,
 static void
 usage(void) {
 	fprintf(stderr, "usage: named [-4|-6] [-c conffile] [-d debuglevel] "
-			"[-D comment] [-E engine]\n"
+			"[-D comment]\n"
 			"             [-f|-g] [-L logfile] [-n number_of_cpus] "
 			"[-p port] [-s]\n"
 			"             [-S sockets] [-t chrootdir] [-u "
@@ -632,7 +632,7 @@ printversion(bool verbose) {
 	printf("threads support is enabled\n");
 
 	isc_mem_create(&mctx);
-	result = dst_lib_init(mctx, named_g_engine);
+	result = dst_lib_init(mctx);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_init(&b, buf, sizeof(buf));
 		format_supported_algorithms(printit);
@@ -894,7 +894,8 @@ parse_command_line(int argc, char *argv[]) {
 			/* Descriptive comment for 'ps'. */
 			break;
 		case 'E':
-			named_g_engine = isc_commandline_argument;
+			named_main_earlyfatal(
+				"%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 		case 'f':
 			named_g_foreground = true;

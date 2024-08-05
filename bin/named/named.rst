@@ -21,7 +21,7 @@ named - Internet domain name server
 Synopsis
 ~~~~~~~~
 
-:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-C**] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-u** user] [**-v**] [**-V**] ]
+:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-C**] [**-d** debug-level] [**-D** string] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-u** user] [**-v**] [**-V**] ]
 
 Description
 ~~~~~~~~~~~
@@ -72,15 +72,6 @@ Options
 
    This option specifies a string that is used to identify a instance of :program:`named`
    in a process listing. The contents of ``string`` are not examined.
-
-.. option:: -E engine-name
-
-   When applicable, this option specifies the hardware to use for cryptographic
-   operations, such as a secure key store used for signing.
-
-   When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
-   engine identifier that drives the cryptographic accelerator or
-   hardware service module (usually ``pkcs11``).
 
 .. option:: -f
 

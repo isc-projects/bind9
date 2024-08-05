@@ -931,14 +931,6 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 		i++;
 	}
 
-	if (key->engine != NULL) {
-		priv.elements[i].tag = TAG_RSA_ENGINE;
-		priv.elements[i].length = (unsigned short)strlen(key->engine) +
-					  1;
-		priv.elements[i].data = (unsigned char *)key->engine;
-		i++;
-	}
-
 	if (key->label != NULL) {
 		priv.elements[i].tag = TAG_RSA_LABEL;
 		priv.elements[i].length = (unsigned short)strlen(key->label) +
@@ -963,8 +955,7 @@ err:
 }
 
 static isc_result_t
-opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		     const char *pin);
+opensslrsa_fromlabel(dst_key_t *key, const char *label, const char *pin);
 
 static isc_result_t
 opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
@@ -972,7 +963,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	isc_result_t ret;
 	int i;
 	isc_mem_t *mctx = NULL;
-	const char *engine = NULL, *label = NULL;
+	const char *label = NULL;
 	EVP_PKEY *pkey = NULL;
 	rsa_components_t c = { .bnfree = true };
 
@@ -1002,7 +993,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {
 		case TAG_RSA_ENGINE:
-			engine = (char *)priv.elements[i].data;
+			/* The Engine: tag is explicitly ignored */
 			break;
 		case TAG_RSA_LABEL:
 			label = (char *)priv.elements[i].data;
@@ -1017,7 +1008,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	 * See if we can fetch it.
 	 */
 	if (label != NULL) {
-		ret = opensslrsa_fromlabel(key, engine, label, NULL);
+		ret = opensslrsa_fromlabel(key, label, NULL);
 		if (ret != ISC_R_SUCCESS) {
 			DST_RET(ret);
 		}
@@ -1111,12 +1102,11 @@ err:
 }
 
 static isc_result_t
-opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		     const char *pin) {
+opensslrsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 	EVP_PKEY *privpkey = NULL, *pubpkey = NULL;
 	isc_result_t ret;
 
-	ret = dst__openssl_fromlabel(EVP_PKEY_RSA, engine, label, pin, &pubpkey,
+	ret = dst__openssl_fromlabel(EVP_PKEY_RSA, label, pin, &pubpkey,
 				     &privpkey);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
@@ -1126,9 +1116,6 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(ISC_R_RANGE);
 	}
 
-	if (engine != NULL) {
-		key->engine = isc_mem_strdup(key->mctx, engine);
-	}
 	key->label = isc_mem_strdup(key->mctx, label);
 	key->key_size = EVP_PKEY_bits(privpkey);
 	key->keydata.pkeypair.priv = privpkey;

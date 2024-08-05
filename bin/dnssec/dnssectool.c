@@ -605,8 +605,7 @@ cleanup:
 
 void
 kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
-	       const char *name, const char *keydir, const char *engine,
-	       dns_kasp_t **kaspp) {
+	       const char *name, const char *keydir, dns_kasp_t **kaspp) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *kasps = NULL;
@@ -625,8 +624,8 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		ks = NULL;
-		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, engine,
-						 &kslist, NULL);
+		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, &kslist,
+						 NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure key-store '%s': %s",
 			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
@@ -635,7 +634,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
 	}
 	/* Default key-directory key store. */
 	ks = NULL;
-	(void)cfg_keystore_fromconfig(NULL, mctx, lctx, engine, &kslist, &ks);
+	(void)cfg_keystore_fromconfig(NULL, mctx, lctx, &kslist, &ks);
 	INSIST(ks != NULL);
 	if (keydir != NULL) {
 		/* '-K keydir' takes priority */

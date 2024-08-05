@@ -2220,7 +2220,7 @@ main(int argc, char *argv[]) {
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 	loop = isc_loop_main(loopmgr);
 
-	result = dst_lib_init(mctx, NULL);
+	result = dst_lib_init(mctx);
 	if (result != ISC_R_SUCCESS) {
 		fatal("dst_lib_init failed: %d", result);
 	}

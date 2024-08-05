@@ -157,8 +157,6 @@ usage(void) {
 	fprintf(stderr, "\t-I format:\n");
 	fprintf(stderr, "\t\tfile format of input zonefile (text)\n");
 	fprintf(stderr, "\t-c class (IN)\n");
-	fprintf(stderr, "\t-E engine:\n");
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
 	fprintf(stderr, "\t-x:\tDNSKEY record signed with KSKs only, "
 			"not ZSKs\n");
 	fprintf(stderr, "\t-z:\tAll records signed with KSKs\n");
@@ -171,7 +169,6 @@ main(int argc, char *argv[]) {
 	char *inputformatstr = NULL;
 	isc_result_t result;
 	isc_log_t *log = NULL;
-	const char *engine = NULL;
 	char *classname = NULL;
 	dns_rdataclass_t rdclass;
 	char *endp;
@@ -215,7 +212,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'E':
-			engine = isc_commandline_argument;
+			fatal("%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 
 		case 'I':
@@ -275,7 +272,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	result = dst_lib_init(mctx, engine);
+	result = dst_lib_init(mctx);
 	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));

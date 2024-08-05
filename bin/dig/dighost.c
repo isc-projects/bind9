@@ -1375,7 +1375,7 @@ setup_libs(void) {
 	isc_mem_setname(mctx, "dig");
 	mainloop = isc_loop_main(loopmgr);
 
-	result = dst_lib_init(mctx, NULL);
+	result = dst_lib_init(mctx);
 	check_result(result, "dst_lib_init");
 	is_dst_up = true;
 }

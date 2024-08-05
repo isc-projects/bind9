@@ -21,7 +21,7 @@ dnssec-keygen: DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-E** engine] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-t** type] [**-V**] [**-v** level] {name}
+:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-t** type] [**-V**] [**-v** level] {name}
 
 Description
 ~~~~~~~~~~~
@@ -93,14 +93,6 @@ Options
    RSASHA512 the key size must be between 1024 and 4096 bits; DH size is between 128
    and 4096 bits. This option is ignored for algorithms ECDSAP256SHA256,
    ECDSAP384SHA384, ED25519, and ED448.
-
-.. option:: -E engine
-
-   This option specifies the cryptographic hardware to use, when applicable.
-
-   When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
-   engine identifier that drives the cryptographic accelerator or
-   hardware service module (usually ``pkcs11``).
 
 .. option:: -f flag
 

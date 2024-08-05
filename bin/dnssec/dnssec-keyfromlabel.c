@@ -63,8 +63,6 @@ usage(void) {
 			"        ED25519 | ED448\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
-	fprintf(stderr, "    -E <engine>:\n");
-	fprintf(stderr, "        name of an OpenSSL engine to use\n");
 	fprintf(stderr, "    -f keyflag: KSK | REVOKE\n");
 	fprintf(stderr, "    -K directory: directory in which to place "
 			"key files\n");
@@ -112,7 +110,6 @@ main(int argc, char **argv) {
 	const char *directory = NULL;
 	const char *predecessor = NULL;
 	dst_key_t *prevkey = NULL;
-	const char *engine = NULL;
 	char *classname = NULL;
 	char *endp;
 	dst_key_t *key = NULL;
@@ -176,7 +173,7 @@ main(int argc, char **argv) {
 			classname = isc_commandline_argument;
 			break;
 		case 'E':
-			engine = isc_commandline_argument;
+			fatal("%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 		case 'f':
 			c = (unsigned char)(isc_commandline_argument[0]);
@@ -335,7 +332,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	ret = dst_lib_init(mctx, engine);
+	ret = dst_lib_init(mctx);
 	if (ret != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s", isc_result_totext(ret));
 	}
@@ -595,8 +592,8 @@ main(int argc, char **argv) {
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
 	/* associate the key */
-	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass, engine,
-				label, NULL, mctx, &key);
+	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass, label,
+				NULL, mctx, &key);
 
 	if (ret != ISC_R_SUCCESS) {
 		char namestr[DNS_NAME_FORMATSIZE];

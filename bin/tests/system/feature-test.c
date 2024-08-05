@@ -202,7 +202,7 @@ main(int argc, char **argv) {
 		int answer;
 
 		isc_mem_create(&mctx);
-		dst_lib_init(mctx, NULL);
+		dst_lib_init(mctx);
 		answer = dst_algorithm_supported(DST_ALG_HMACMD5) ? 0 : 1;
 		dst_lib_destroy();
 		isc_mem_detach(&mctx);
@@ -232,7 +232,7 @@ main(int argc, char **argv) {
 		int answer;
 		isc_mem_t *mctx = NULL;
 		isc_mem_create(&mctx);
-		dst_lib_init(mctx, NULL);
+		dst_lib_init(mctx);
 		answer = dst_algorithm_supported(DST_ALG_RSASHA1) ? 0 : 1;
 		dst_lib_destroy();
 		isc_mem_detach(&mctx);

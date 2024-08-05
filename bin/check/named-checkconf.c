@@ -728,7 +728,7 @@ main(int argc, char **argv) {
 
 	CHECK(setup_logging(mctx, stdout, &logc));
 
-	CHECK(dst_lib_init(mctx, NULL));
+	CHECK(dst_lib_init(mctx));
 	cleanup_dst = true;
 
 	CHECK(cfg_parser_create(mctx, logc, &parser));

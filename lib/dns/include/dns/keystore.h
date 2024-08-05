@@ -42,7 +42,6 @@ struct dns_keystore {
 	unsigned int magic;
 	isc_mem_t   *mctx;
 	const char  *name;
-	const char  *engine;
 
 	/* Internals. */
 	isc_mutex_t lock;
@@ -64,8 +63,7 @@ struct dns_keystore {
 #define DNS_KEYSTORE_KEYDIRECTORY "key-directory"
 
 isc_result_t
-dns_keystore_create(isc_mem_t *mctx, const char *name, const char *engine,
-		    dns_keystore_t **kspp);
+dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp);
 /*%<
  * Create a key store.
  *
@@ -74,8 +72,6 @@ dns_keystore_create(isc_mem_t *mctx, const char *name, const char *engine,
  *\li  'mctx' is a valid memory context.
  *
  *\li  'name' is a valid C string.
- *
- *\li  'engine' is the name of the OpenSSL engine to use, may be NULL.
  *
  *\li  kspp != NULL && *kspp == NULL
  *
@@ -99,20 +95,6 @@ dns_keystore_name(dns_keystore_t *keystore);
  * Returns:
  *
  *\li   name of 'keystore'.
- */
-
-const char *
-dns_keystore_engine(dns_keystore_t *keystore);
-/*%<
- * Get keystore engine.
- *
- * Requires:
- *
- *\li   'keystore' is a valid keystore.
- *
- * Returns:
- *
- *\li   engine of 'keystore'. May be NULL.
  */
 
 const char *

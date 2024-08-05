@@ -25,7 +25,7 @@ rm -f ns*/*.kskid1 ns*/*.kskid2 ns*/*.zskid1 ns/*.zskid2
 rm -f ns*/dig.out.*
 rm -f ns*/K*
 rm -f ns*/keygen.out.*
-rm -f ns*/named.conf ns1/named.args ns1/named.run ns1/named.memstats
+rm -f ns*/named.conf ns1/named.run ns1/named.memstats
 rm -f ns*/pin
 rm -f ns*/update.cmd.*
 rm -f ns*/update.log.*

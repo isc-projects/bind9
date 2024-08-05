@@ -105,8 +105,7 @@ raw_key_to_ossl(const eddsa_alginfo_t *alginfo, int private,
 }
 
 static isc_result_t
-openssleddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		       const char *pin);
+openssleddsa_fromlabel(dst_key_t *key, const char *label, const char *pin);
 
 static isc_result_t
 openssleddsa_createctx(dst_key_t *key, dst_context_t *dctx) {
@@ -389,13 +388,6 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[i].data = buf;
 		i++;
 	}
-	if (key->engine != NULL) {
-		priv.elements[i].tag = TAG_EDDSA_ENGINE;
-		priv.elements[i].length = (unsigned short)strlen(key->engine) +
-					  1;
-		priv.elements[i].data = (unsigned char *)key->engine;
-		i++;
-	}
 	if (key->label != NULL) {
 		priv.elements[i].tag = TAG_EDDSA_LABEL;
 		priv.elements[i].length = (unsigned short)strlen(key->label) +
@@ -420,7 +412,7 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i, privkey_index = -1;
-	const char *engine = NULL, *label = NULL;
+	const char *label = NULL;
 	EVP_PKEY *pkey = NULL;
 	size_t len;
 	isc_mem_t *mctx = key->mctx;
@@ -450,7 +442,7 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {
 		case TAG_EDDSA_ENGINE:
-			engine = (char *)priv.elements[i].data;
+			/* The Engine: tag is explicitly ignored */
 			break;
 		case TAG_EDDSA_LABEL:
 			label = (char *)priv.elements[i].data;
@@ -464,7 +456,7 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	}
 
 	if (label != NULL) {
-		ret = openssleddsa_fromlabel(key, engine, label, NULL);
+		ret = openssleddsa_fromlabel(key, label, NULL);
 		if (ret != ISC_R_SUCCESS) {
 			goto err;
 		}
@@ -506,8 +498,7 @@ err:
 }
 
 static isc_result_t
-openssleddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		       const char *pin) {
+openssleddsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 	const eddsa_alginfo_t *alginfo = openssleddsa_alg_info(key->key_alg);
 	EVP_PKEY *privpkey = NULL, *pubpkey = NULL;
 	isc_result_t ret;
@@ -515,15 +506,12 @@ openssleddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	REQUIRE(alginfo != NULL);
 	UNUSED(pin);
 
-	ret = dst__openssl_fromlabel(alginfo->pkey_type, engine, label, pin,
-				     &pubpkey, &privpkey);
+	ret = dst__openssl_fromlabel(alginfo->pkey_type, label, pin, &pubpkey,
+				     &privpkey);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
 
-	if (engine != NULL) {
-		key->engine = isc_mem_strdup(key->mctx, engine);
-	}
 	key->label = isc_mem_strdup(key->mctx, label);
 	key->key_size = EVP_PKEY_bits(privpkey);
 	key->keydata.pkeypair.priv = privpkey;

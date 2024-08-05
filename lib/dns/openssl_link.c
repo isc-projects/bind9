@@ -42,9 +42,6 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-#include <openssl/engine.h>
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/core_names.h>
 #include <openssl/store.h>
@@ -57,10 +54,6 @@
 		ret = a;  \
 		goto err; \
 	}
-
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-static ENGINE *global_engine = NULL;
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 static void
 enable_fips_mode(void) {
@@ -79,52 +72,14 @@ enable_fips_mode(void) {
 #endif
 }
 
-isc_result_t
-dst__openssl_init(const char *engine) {
+void
+dst__openssl_init(void) {
 	enable_fips_mode();
-
-	if (engine != NULL && *engine == '\0') {
-		engine = NULL;
-	}
-
-	if (engine == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-	global_engine = ENGINE_by_id(engine);
-	if (global_engine == NULL) {
-		goto cleanup_rm;
-	}
-	if (!ENGINE_init(global_engine)) {
-		goto cleanup_rm;
-	}
-	/* This will init the engine. */
-	if (!ENGINE_set_default(global_engine, ENGINE_METHOD_ALL)) {
-		goto cleanup_init;
-	}
-	return (ISC_R_SUCCESS);
-cleanup_init:
-	ENGINE_finish(global_engine);
-cleanup_rm:
-	if (global_engine != NULL) {
-		ENGINE_free(global_engine);
-	}
-	ERR_clear_error();
-	global_engine = NULL;
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-	return (DST_R_NOENGINE);
 }
 
 void
 dst__openssl_destroy(void) {
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-	if (global_engine != NULL) {
-		ENGINE_finish(global_engine);
-		ENGINE_free(global_engine);
-	}
-	global_engine = NULL;
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
+	/* No-op */
 }
 
 static isc_result_t
@@ -211,67 +166,6 @@ done:
 	return (result);
 }
 
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-ENGINE *
-dst__openssl_getengine(const char *engine) {
-	if (engine == NULL) {
-		return (NULL);
-	}
-	if (global_engine == NULL) {
-		return (NULL);
-	}
-	if (strcmp(engine, ENGINE_get_id(global_engine)) == 0) {
-		return (global_engine);
-	}
-	return (NULL);
-}
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-
-static isc_result_t
-dst__openssl_fromlabel_engine(int key_base_id, const char *engine,
-			      const char *label, const char *pin,
-			      EVP_PKEY **ppub, EVP_PKEY **ppriv) {
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-	isc_result_t ret = ISC_R_SUCCESS;
-	ENGINE *e = NULL;
-
-	UNUSED(pin);
-
-	e = dst__openssl_getengine(engine);
-	if (e == NULL) {
-		DST_RET(dst__openssl_toresult(DST_R_NOENGINE));
-	}
-
-	*ppub = ENGINE_load_public_key(e, label, NULL, NULL);
-	if (*ppub == NULL) {
-		DST_RET(dst__openssl_toresult2("ENGINE_load_public_key",
-					       DST_R_OPENSSLFAILURE));
-	}
-	if (EVP_PKEY_base_id(*ppub) != key_base_id) {
-		DST_RET(DST_R_BADKEYTYPE);
-	}
-
-	*ppriv = ENGINE_load_private_key(e, label, NULL, NULL);
-	if (*ppriv == NULL) {
-		DST_RET(dst__openssl_toresult2("ENGINE_load_private_key",
-					       DST_R_OPENSSLFAILURE));
-	}
-	if (EVP_PKEY_base_id(*ppriv) != key_base_id) {
-		DST_RET(DST_R_BADKEYTYPE);
-	}
-err:
-	return (ret);
-#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-	UNUSED(key_base_id);
-	UNUSED(engine);
-	UNUSED(label);
-	UNUSED(pin);
-	UNUSED(ppub);
-	UNUSED(ppriv);
-	return (DST_R_NOENGINE);
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-}
-
 static isc_result_t
 dst__openssl_fromlabel_provider(int key_base_id, const char *label,
 				const char *pin, EVP_PKEY **ppub,
@@ -335,25 +229,10 @@ err:
 }
 
 isc_result_t
-dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
-		       const char *pin, EVP_PKEY **ppub, EVP_PKEY **ppriv) {
-	if (engine == NULL) {
-		return (dst__openssl_fromlabel_provider(key_base_id, label, pin,
-							ppub, ppriv));
-	}
-
-	if (*ppub != NULL) {
-		EVP_PKEY_free(*ppub);
-		*ppub = NULL;
-	}
-
-	if (*ppriv != NULL) {
-		EVP_PKEY_free(*ppriv);
-		*ppriv = NULL;
-	}
-
-	return (dst__openssl_fromlabel_engine(key_base_id, engine, label, pin,
-					      ppub, ppriv));
+dst__openssl_fromlabel(int key_base_id, const char *label, const char *pin,
+		       EVP_PKEY **ppub, EVP_PKEY **ppriv) {
+	return (dst__openssl_fromlabel_provider(key_base_id, label, pin, ppub,
+						ppriv));
 }
 
 bool

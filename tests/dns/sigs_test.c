@@ -77,7 +77,7 @@ setup_test(void **state) {
 
 	UNUSED(state);
 
-	result = dst_lib_init(mctx, NULL);
+	result = dst_lib_init(mctx);
 
 	if (result != ISC_R_SUCCESS) {
 		return (1);

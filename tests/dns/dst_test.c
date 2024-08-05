@@ -47,7 +47,7 @@ static int
 setup_test(void **state) {
 	UNUSED(state);
 
-	dst_lib_init(mctx, NULL);
+	dst_lib_init(mctx);
 
 	return (0);
 }

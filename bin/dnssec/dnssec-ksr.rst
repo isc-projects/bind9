@@ -21,7 +21,7 @@ dnssec-ksr - Create signed key response (SKR) files for offline KSK setups
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-ksr` [**-E** engine] [**-e** date/offset] [**-F**] [**-h**] [**-i** date/offset] [**-K** directory] [**-k** policy] [**-l** file] [**-V**] [**-v** level] {command} {zone}
+:program:`dnssec-ksr` [**-e** date/offset] [**-F**] [**-h**] [**-i** date/offset] [**-K** directory] [**-k** policy] [**-l** file] [**-V**] [**-v** level] {command} {zone}
 
 Description
 ~~~~~~~~~~~
@@ -39,14 +39,6 @@ server.
 
 Options
 ~~~~~~~
-
-.. option:: -E engine
-
-   This option specifies the cryptographic hardware to use, when applicable.
-
-   When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
-   engine identifier that drives the cryptographic accelerator or
-   hardware service module (usually ``pkcs11``).
 
 .. option:: -e date/offset
 

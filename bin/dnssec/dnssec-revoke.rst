@@ -21,7 +21,7 @@ dnssec-revoke - set the REVOKED bit on a DNSSEC key
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-revoke` [**-hr**] [**-v** level] [**-V**] [**-K** directory] [**-E** engine] [**-f**] [**-R**] {keyfile}
+:program:`dnssec-revoke` [**-hr**] [**-v** level] [**-V**] [**-K** directory] [**-f**] [**-R**] {keyfile}
 
 Description
 ~~~~~~~~~~~
@@ -52,14 +52,6 @@ Options
 .. option:: -V
 
    This option prints version information.
-
-.. option:: -E engine
-
-   This option specifies the cryptographic hardware to use, when applicable.
-
-   When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
-   engine identifier that drives the cryptographic accelerator or
-   hardware service module (usually ``pkcs11``).
 
 .. option:: -f
 

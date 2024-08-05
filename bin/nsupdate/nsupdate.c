@@ -926,7 +926,7 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 	result = dns_dispatchmgr_create(gmctx, loopmgr, netmgr, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
-	result = dst_lib_init(gmctx, NULL);
+	result = dst_lib_init(gmctx);
 	check_result(result, "dst_lib_init");
 	is_dst_up = true;
 

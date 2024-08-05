@@ -198,7 +198,7 @@ typedef enum dst_algorithm {
  *** Functions
  ***/
 isc_result_t
-dst_lib_init(isc_mem_t *mctx, const char *engine);
+dst_lib_init(isc_mem_t *mctx);
 /*%<
  * Initializes the DST subsystem.
  *
@@ -208,7 +208,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine);
  * Returns:
  * \li	ISC_R_SUCCESS
  * \li	ISC_R_NOMEMORY
- * \li	DST_R_NOENGINE
  *
  * Ensures:
  * \li	DST is properly initialized.
@@ -627,8 +626,8 @@ dst_key_buildinternal(const dns_name_t *name, unsigned int alg,
 isc_result_t
 dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 		  unsigned int protocol, dns_rdataclass_t rdclass,
-		  const char *engine, const char *label, const char *pin,
-		  isc_mem_t *mctx, dst_key_t **keyp);
+		  const char *label, const char *pin, isc_mem_t *mctx,
+		  dst_key_t **keyp);
 
 isc_result_t
 dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,

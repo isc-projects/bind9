@@ -41,14 +41,9 @@ isc_result_t
 dst___openssl_toresult3(isc_logcategory_t *category, const char *funcname,
 			isc_result_t fallback, const char *file, int line);
 
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-ENGINE *
-dst__openssl_getengine(const char *engine);
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-
 isc_result_t
-dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
-		       const char *pin, EVP_PKEY **ppub, EVP_PKEY **ppriv);
+dst__openssl_fromlabel(int key_base_id, const char *label, const char *pin,
+		       EVP_PKEY **ppub, EVP_PKEY **ppriv);
 
 bool
 dst__openssl_keypair_compare(const dst_key_t *key1, const dst_key_t *key2);

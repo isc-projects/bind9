@@ -21,7 +21,7 @@ dnssec-signzone - DNSSEC zone signing tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-signzone` [**-a**] [**-c** class] [**-d** directory] [**-D**] [**-E** engine] [**-e** end-time] [**-f** output-file] [**-F**] [**-g**] [**-G sync-records**] [**-h**] [**-i** interval] [**-I** input-format] [**-j** jitter] [**-J** filename] [**-K** directory] [**-k** key] [**-L** serial] [**-M** maxttl] [**-N** soa-serial-format] [**-o** origin] [**-O** output-format] [**-P**] [**-Q**] [**-q**] [**-R**] [**-S**] [**-s** start-time] [**-T** ttl] [**-t**] [**-u**] [**-v** level] [**-V**] [**-X** extended end-time] [**-x**] [**-z**] [**-3** salt] [**-H** iterations] [**-A**] {zonefile} [key...]
+:program:`dnssec-signzone` [**-a**] [**-c** class] [**-d** directory] [**-D**] [**-e** end-time] [**-f** output-file] [**-F**] [**-g**] [**-G sync-records**] [**-h**] [**-i** interval] [**-I** input-format] [**-j** jitter] [**-J** filename] [**-K** directory] [**-k** key] [**-L** serial] [**-M** maxttl] [**-N** soa-serial-format] [**-o** origin] [**-O** output-format] [**-P**] [**-Q**] [**-q**] [**-R**] [**-S**] [**-s** start-time] [**-T** ttl] [**-t**] [**-u**] [**-v** level] [**-V**] [**-X** extended end-time] [**-x**] [**-z**] [**-3** salt] [**-H** iterations] [**-A**] {zonefile} [key...]
 
 Description
 ~~~~~~~~~~~
@@ -61,15 +61,6 @@ Options
    The resulting file can be included in the original zone file with
    ``$INCLUDE``. This option cannot be combined with :option:`-O raw <-O>`
    or serial-number updating.
-
-.. option:: -E engine
-
-   This option specifies the hardware to use for cryptographic
-   operations, such as a secure key store used for signing, when applicable.
-
-   When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
-   engine identifier that drives the cryptographic accelerator or
-   hardware service module (usually ``pkcs11``).
 
 .. option:: -F
 

@@ -92,8 +92,7 @@ struct dst_key {
 	dns_ttl_t key_ttl;	    /*%< default/initial dnskey ttl */
 	isc_mem_t *mctx;	    /*%< memory context */
 	char *directory;	    /*%< key directory */
-	char *engine;		    /*%< engine name (HSM) */
-	char *label;		    /*%< engine label (HSM) */
+	char *label;		    /*%< HSM label */
 	union {
 		void *generic;
 		dns_gss_ctx_id_t gssctx;
@@ -185,8 +184,8 @@ struct dst_func {
 	/* cleanup */
 	void (*cleanup)(void);
 
-	isc_result_t (*fromlabel)(dst_key_t *key, const char *engine,
-				  const char *label, const char *pin);
+	isc_result_t (*fromlabel)(dst_key_t *key, const char *label,
+				  const char *pin);
 	isc_result_t (*dump)(dst_key_t *key, isc_mem_t *mctx, char **buffer,
 			     int *length);
 	isc_result_t (*restore)(dst_key_t *key, const char *keystr);
@@ -195,8 +194,8 @@ struct dst_func {
 /*%
  * Initializers
  */
-isc_result_t
-dst__openssl_init(const char *engine);
+void
+dst__openssl_init(void);
 
 isc_result_t
 dst__hmacmd5_init(struct dst_func **funcp);

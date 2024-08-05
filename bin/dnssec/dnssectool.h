@@ -119,5 +119,4 @@ loadjournal(isc_mem_t *mctx, dns_db_t *db, const char *journal);
 
 void
 kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
-	       const char *name, const char *keydir, const char *engine,
-	       dns_kasp_t **kaspp);
+	       const char *name, const char *keydir, dns_kasp_t **kaspp);
