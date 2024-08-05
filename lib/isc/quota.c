@@ -70,6 +70,10 @@ isc_quota_release(isc_quota_t *quota) {
 	 * We are using the cds_wfcq_dequeue_blocking() variant here that
 	 * has an internal mutex because we need synchronization on
 	 * multiple dequeues running from different threads.
+	 *
+	 * NOTE: cds_wfcq_dequeue_blocking() checks whether the queue is free
+	 * with cds_wfcq_empty() before acquiring the internal lock, so if
+	 * there's nothing queued, the call should be very lightweight.
 	 */
 	struct cds_wfcq_node *node =
 		cds_wfcq_dequeue_blocking(&quota->jobs.head, &quota->jobs.tail);
