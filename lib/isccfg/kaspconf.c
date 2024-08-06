@@ -117,6 +117,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		       uint32_t ksk_min_lifetime, uint32_t zsk_min_lifetime) {
 	isc_result_t result;
 	dns_kasp_key_t *key = NULL;
+	const cfg_obj_t *tagrange = NULL;
 
 	/* Create a new key reference. */
 	result = dns_kasp_key_create(kasp, &key);
@@ -290,6 +291,38 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			}
 
 			key->length = size;
+		}
+
+		tagrange = cfg_tuple_get(config, "tag-range");
+		if (cfg_obj_istuple(tagrange)) {
+			uint32_t tag_min = 0, tag_max = 0xffff;
+			obj = cfg_tuple_get(tagrange, "tag-min");
+			tag_min = cfg_obj_asuint32(obj);
+			if (tag_min > 0xffff) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "dnssec-policy: tag-min "
+					    "too big");
+				result = ISC_R_RANGE;
+				goto cleanup;
+			}
+			obj = cfg_tuple_get(tagrange, "tag-max");
+			tag_max = cfg_obj_asuint32(obj);
+			if (tag_max > 0xffff) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "dnssec-policy: tag-max "
+					    "too big");
+				result = ISC_R_RANGE;
+				goto cleanup;
+			}
+			if (tag_min >= tag_max) {
+				cfg_obj_log(
+					obj, logctx, ISC_LOG_ERROR,
+					"dnssec-policy: tag-min >= tag_max");
+				result = ISC_R_RANGE;
+				goto cleanup;
+			}
+			key->tag_min = tag_min;
+			key->tag_max = tag_max;
 		}
 	}
 

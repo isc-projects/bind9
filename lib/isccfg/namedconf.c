@@ -649,12 +649,73 @@ static keyword_type_t lifetime_kw = { "lifetime",
 static cfg_type_t cfg_type_lifetime = { "lifetime",	   parse_keyvalue,
 					print_keyvalue,	   doc_keyvalue,
 					&cfg_rep_duration, &lifetime_kw };
+/*
+ *
+ */
+static void
+print_tagrange(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	REQUIRE(pctx != NULL);
+	REQUIRE(obj != NULL);
+	REQUIRE(obj->type->rep == &cfg_rep_tuple);
+
+	if (cfg_obj_istuple(obj)) {
+		cfg_print_cstr(pctx, "tag-range ");
+		cfg_print_tuple(pctx, obj);
+	}
+}
+
+static cfg_tuplefielddef_t tagrange_fields[] = {
+	{ "tag-min", &cfg_type_uint32, 0 },
+	{ "tag-max", &cfg_type_uint32, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_tagrange = { "tagrange",	cfg_parse_tuple,
+					print_tagrange, cfg_doc_tuple,
+					&cfg_rep_tuple, tagrange_fields };
+
+static keyword_type_t tagrange_kw = { "tag-range", &cfg_type_tagrange };
+static void
+doc_optionaltagrange(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+
+	cfg_print_cstr(pctx, "[ tag-range <integer> <integer> ]");
+}
+
+static isc_result_t
+parse_optionaltagrange(cfg_parser_t *pctx, const cfg_type_t *type,
+		       cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, 0));
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(TOKEN_STRING(pctx), "tag-range") == 0)
+	{
+		CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING));
+		CHECK(cfg_parse_obj(pctx, &cfg_type_tagrange, &obj));
+	} else {
+		CHECK(cfg_parse_void(pctx, NULL, &obj));
+	}
+
+	*ret = obj;
+cleanup:
+	return (result);
+}
+
+static cfg_type_t cfg_type_optional_tagrange = {
+	"optionaltagrange",   parse_optionaltagrange, NULL,
+	doc_optionaltagrange, &cfg_rep_tuple,	      &tagrange_kw
+};
 
 static cfg_tuplefielddef_t kaspkey_fields[] = {
 	{ "role", &cfg_type_dnsseckeyrole, 0 },
 	{ "keystorage", &cfg_type_optional_keystore, 0 },
 	{ "lifetime", &cfg_type_lifetime, 0 },
 	{ "algorithm", &cfg_type_algorithm, 0 },
+	{ "tag-range", &cfg_type_optional_tagrange, 0 },
 	{ "length", &cfg_type_optional_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
