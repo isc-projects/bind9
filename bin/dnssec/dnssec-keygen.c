@@ -91,6 +91,8 @@ struct keygen_ctx {
 	char *type;
 	int protocol;
 	int size;
+	uint16_t tag_min;
+	uint16_t tag_max;
 	int signatory;
 	dns_rdataclass_t rdclass;
 	int options;
@@ -181,6 +183,7 @@ usage(void) {
 	fprintf(stderr, "    -f <keyflag>: ZSK | KSK | REVOKE\n");
 	fprintf(stderr, "    -F: FIPS mode\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
+	fprintf(stderr, "    -M <min>:<max>: allowed Key ID range\n");
 	fprintf(stderr, "    -p <protocol>: (default: 3 [dnssec])\n");
 	fprintf(stderr, "    -s <strength>: strength value this key signs DNS "
 			"records with (default: 0)\n");
@@ -758,7 +761,9 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		 * if there is a risk of ID collision due to this key
 		 * or another key being revoked.
 		 */
-		if (key_collision(key, name, ctx->directory, mctx, NULL)) {
+		if (key_collision(key, name, ctx->directory, mctx, ctx->tag_min,
+				  ctx->tag_max, NULL))
+		{
 			conflict = true;
 			if (null_key) {
 				dst_key_free(&key);
@@ -868,8 +873,8 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS                                        \
-	"3A:a:b:Cc:D:d:E:Ff:GhI:i:K:k:L:l:m:n:P:p:qR:r:S:s:" \
+#define CMDLINE_FLAGS                                          \
+	"3A:a:b:Cc:D:d:E:Ff:GhI:i:K:k:L:l:M:m:n:P:p:qR:r:S:s:" \
 	"T:t:v:V"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -958,6 +963,21 @@ main(int argc, char **argv) {
 		case 'n':
 			ctx.nametype = isc_commandline_argument;
 			break;
+		case 'M': {
+			unsigned long ul;
+			ctx.tag_min = ul = strtoul(isc_commandline_argument,
+						   &endp, 10);
+			if (*endp != ':' || ul > 0xffff) {
+				fatal("-M range invalid");
+			}
+			ctx.tag_max = ul = strtoul(endp + 1, &endp, 10);
+			if (*endp != '\0' || ul > 0xffff ||
+			    ctx.tag_max <= ctx.tag_min)
+			{
+				fatal("-M range invalid");
+			}
+			break;
+		}
 		case 'm':
 			break;
 		case 'p':

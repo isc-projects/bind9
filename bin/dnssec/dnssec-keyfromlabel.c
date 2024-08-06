@@ -43,6 +43,8 @@
 
 const char *program = "dnssec-keyfromlabel";
 
+static uint16_t tag_min = 0, tag_max = 0xffff;
+
 noreturn static void
 usage(void);
 
@@ -70,6 +72,7 @@ usage(void) {
 			"key files\n");
 	fprintf(stderr, "    -k: generate a TYPE=KEY key\n");
 	fprintf(stderr, "    -L ttl: default key TTL\n");
+	fprintf(stderr, "    -M <min>:<max>: allowed Key ID range\n");
 	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | "
 			"OTHER\n");
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
@@ -160,7 +163,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = false;
 
-#define CMDLINE_FLAGS "3A:a:Cc:D:E:Ff:GhI:i:kK:L:l:n:P:p:R:S:t:v:Vy"
+#define CMDLINE_FLAGS "3A:a:Cc:D:E:Ff:GhI:i:kK:L:l:M:n:P:p:R:S:t:v:Vy"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case '3':
@@ -207,6 +210,20 @@ main(int argc, char **argv) {
 		case 'l':
 			label = isc_mem_strdup(mctx, isc_commandline_argument);
 			break;
+		case 'M': {
+			unsigned long ul;
+			tag_min = ul = strtoul(isc_commandline_argument, &endp,
+					       10);
+			if (*endp != ':' || ul > 0xffff) {
+				fatal("-M range invalid");
+			}
+			tag_max = ul = strtoul(endp + 1, &endp, 10);
+			if (*endp != '\0' || ul > 0xffff || tag_max <= tag_min)
+			{
+				fatal("-M range invalid");
+			}
+			break;
+		}
 		case 'n':
 			nametype = isc_commandline_argument;
 			break;
@@ -686,7 +703,8 @@ main(int argc, char **argv) {
 	 * is a risk of ID collision due to this key or another key
 	 * being revoked.
 	 */
-	if (key_collision(key, name, directory, mctx, &exact)) {
+	if (key_collision(key, name, directory, mctx, tag_min, tag_max, &exact))
+	{
 		isc_buffer_clear(&buf);
 		ret = dst_key_buildfilename(key, 0, directory, &buf);
 		if (ret != ISC_R_SUCCESS) {
