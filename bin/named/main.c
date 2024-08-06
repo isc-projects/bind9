@@ -88,7 +88,7 @@
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/err.h>
 #include <openssl/provider.h>
 #endif
@@ -152,7 +152,7 @@ static bool transferstuck = false;
 static bool disable6 = false;
 static bool disable4 = false;
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 static OSSL_PROVIDER *fips = NULL, *base = NULL;
 #endif
 
@@ -961,7 +961,7 @@ parse_command_line(int argc, char *argv[]) {
 			named_main_earlyfatal("option '-X' has been removed");
 			break;
 		case 'F':
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 			fips = OSSL_PROVIDER_load(NULL, "fips");
 			if (fips == NULL) {
 				ERR_clear_error();
@@ -1616,7 +1616,7 @@ main(int argc, char *argv[]) {
 
 	named_os_shutdown();
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (base != NULL) {
 		OSSL_PROVIDER_unload(base);
 	}

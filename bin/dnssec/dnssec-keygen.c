@@ -56,7 +56,7 @@
 
 #include <dst/dst.h>
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/err.h>
 #include <openssl/provider.h>
 #endif
@@ -843,7 +843,7 @@ main(int argc, char **argv) {
 	unsigned char c;
 	int ch;
 	bool set_fips_mode = false;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	OSSL_PROVIDER *fips = NULL, *base = NULL;
 #endif
 
@@ -1117,7 +1117,7 @@ main(int argc, char **argv) {
 	}
 
 	if (set_fips_mode) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 		fips = OSSL_PROVIDER_load(NULL, "fips");
 		if (fips == NULL) {
 			ERR_clear_error();
@@ -1293,7 +1293,7 @@ main(int argc, char **argv) {
 	}
 	isc_mem_destroy(&mctx);
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (base != NULL) {
 		OSSL_PROVIDER_unload(base);
 	}

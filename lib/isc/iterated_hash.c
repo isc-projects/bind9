@@ -21,7 +21,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 
 #include <openssl/sha.h>
 

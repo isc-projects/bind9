@@ -273,7 +273,7 @@ opensslecdsa_extract_public_key_params(const dst_key_t *key, unsigned char *dst,
 
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 
 static isc_result_t
 opensslecdsa_create_pkey_legacy(unsigned int key_alg, bool private,
@@ -376,8 +376,7 @@ opensslecdsa_extract_public_key(const dst_key_t *key, unsigned char *dst,
 	if (opensslecdsa_extract_public_key_params(key, dst, dstlen)) {
 		return (true);
 	}
-#endif
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+#else
 	if (opensslecdsa_extract_public_key_legacy(key, dst, dstlen)) {
 		return (true);
 	}
@@ -396,8 +395,7 @@ opensslecdsa_create_pkey(unsigned int key_alg, bool private,
 	if (ret != ISC_R_FAILURE) {
 		return (ret);
 	}
-#endif
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+#else
 	ret = opensslecdsa_create_pkey_legacy(key_alg, private, key, key_len,
 					      retkey);
 	if (ret == ISC_R_SUCCESS) {

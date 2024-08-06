@@ -1195,7 +1195,7 @@ main(int argc, char *argv[]) {
 	int ch;
 	char *endp;
 	bool set_fips_mode = false;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	OSSL_PROVIDER *fips = NULL, *base = NULL;
 #endif
 	ksr_ctx_t ksr = {
@@ -1280,7 +1280,7 @@ main(int argc, char *argv[]) {
 	setup_logging(mctx, &lctx);
 
 	if (set_fips_mode) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 		fips = OSSL_PROVIDER_load(NULL, "fips");
 		if (fips == NULL) {
 			fatal("Failed to load FIPS provider");
