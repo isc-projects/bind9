@@ -9,5 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from . import settings
-from . import strategies
+try:
+    import hypothesis as _
+except ImportError:
+    pass
+else:
+    from . import settings
+    from . import strategies
