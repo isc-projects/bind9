@@ -450,7 +450,7 @@ set_keyversion(dst_key_t *key) {
 
 bool
 key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
-	      isc_mem_t *mctx, bool *exact) {
+	      isc_mem_t *mctx, uint16_t min, uint16_t max, bool *exact) {
 	isc_result_t result;
 	bool conflict = false;
 	dns_dnsseckeylist_t matchkeys;
@@ -467,6 +467,21 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	id = dst_key_id(dstkey);
 	rid = dst_key_rid(dstkey);
 	alg = dst_key_alg(dstkey);
+
+	if (min != max) {
+		if (id < min || id > max) {
+			fprintf(stderr, "Key ID %d outside of [%u..%u]\n", id,
+				min, max);
+			return (true);
+		}
+		if (rid < min || rid > max) {
+			fprintf(stderr,
+				"Revoked Key ID %d (for tag %d) outside of "
+				"[%u..%u]\n",
+				rid, id, min, max);
+			return (true);
+		}
+	}
 
 	ISC_LIST_INIT(matchkeys);
 	result = dns_dnssec_findmatchingkeys(name, NULL, dir, NULL, now, mctx,
