@@ -436,8 +436,9 @@ create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 		}
 
 		/* Do not overwrite an existing key. */
-		if (key_collision(key, name, ksr->keydir, mctx, 0, 0xffff,
-				  NULL))
+		if (key_collision(key, name, ksr->keydir, mctx,
+				  dns_kasp_key_tagmin(kaspkey),
+				  dns_kasp_key_tagmax(kaspkey), NULL))
 		{
 			conflict = true;
 			if (verbose > 0) {

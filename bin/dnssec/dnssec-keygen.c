@@ -1235,6 +1235,8 @@ main(int argc, char **argv) {
 			ctx.ksk = true;
 			ctx.zsk = true;
 			ctx.lifetime = 0;
+			ctx.tag_min = 0;
+			ctx.tag_max = 0xffff;
 
 			keygen(&ctx, mctx, argc, argv);
 		} else {
@@ -1283,6 +1285,8 @@ main(int argc, char **argv) {
 				if (ctx.keystore != NULL) {
 					check_keystore_options(&ctx);
 				}
+				ctx.tag_min = dns_kasp_key_tagmin(kaspkey);
+				ctx.tag_max = dns_kasp_key_tagmax(kaspkey);
 				if ((ctx.ksk && !ctx.wantksk && ctx.wantzsk) ||
 				    (ctx.zsk && !ctx.wantzsk && ctx.wantksk))
 				{
