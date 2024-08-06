@@ -58,6 +58,8 @@ struct dns_kasp_key {
 	uint8_t		algorithm;
 	int		length;
 	uint8_t		role;
+	uint16_t	tag_min;
+	uint16_t	tag_max;
 };
 
 struct dns_kasp_nsec3param {
@@ -719,6 +721,26 @@ dns_kasp_key_zsk(dns_kasp_key_t *key);
  *\li  True, if the key role has DNS_KASP_KEY_ROLE_ZSK set.
  *\li  False, otherwise.
  *
+ */
+
+uint16_t
+dns_kasp_key_tagmin(dns_kasp_key_t *key);
+/*%<
+ * Returns the minimum permitted key tag value.
+ *
+ * Requires:
+ *
+ *\li  key != NULL
+ */
+
+uint16_t
+dns_kasp_key_tagmax(dns_kasp_key_t *key);
+/*%<
+ * Returns the maximum permitted key tag value.
+ *
+ * Requires:
+ *
+ *\li  key != NULL
  */
 
 bool

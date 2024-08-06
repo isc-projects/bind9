@@ -402,7 +402,7 @@ dns_kasp_addkey(dns_kasp_t *kasp, dns_kasp_key_t *key) {
 isc_result_t
 dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp) {
 	dns_kasp_key_t *key = NULL;
-	dns_kasp_key_t k = { .length = -1 };
+	dns_kasp_key_t k = { .tag_max = 0xffff, .length = -1 };
 
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(keyp != NULL && *keyp == NULL);
@@ -506,6 +506,18 @@ dns_kasp_key_zsk(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
 	return (key->role & DNS_KASP_KEY_ROLE_ZSK);
+}
+
+uint16_t
+dns_kasp_key_tagmin(dns_kasp_key_t *key) {
+	REQUIRE(key != NULL);
+	return (key->tag_min);
+}
+
+uint16_t
+dns_kasp_key_tagmax(dns_kasp_key_t *key) {
+	REQUIRE(key != NULL);
+	return (key->tag_min);
 }
 
 bool
