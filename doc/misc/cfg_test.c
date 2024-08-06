@@ -39,7 +39,7 @@ check_result(isc_result_t result, const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, ": %s\n", isc_result_totext(result));
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 static void
@@ -53,7 +53,7 @@ usage(void) {
 	fprintf(stderr, "usage: cfg_test --rndc|--named "
 			"[--grammar] [--zonegrammar] [--active] "
 			"[--memstats] conffile\n");
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 int
@@ -169,7 +169,7 @@ main(int argc, char **argv) {
 		fprintf(stderr, "read config: %s\n", isc_result_totext(result));
 
 		if (result != ISC_R_SUCCESS) {
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		cfg_print(cfg, output, NULL);
@@ -189,7 +189,7 @@ main(int argc, char **argv) {
 	if (ferror(stdout)) {
 		fprintf(stderr, "write error\n");
 		return (1);
-	} else {
-		return (0);
 	}
+
+	return (0);
 }

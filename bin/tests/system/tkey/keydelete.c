@@ -44,7 +44,7 @@
 		if ((x) != ISC_R_SUCCESS) {                  \
 			fprintf(stderr, "I:%s: %s\n", (str), \
 				isc_result_totext(x));       \
-			exit(-1);                            \
+			exit(EXIT_FAILURE);                  \
 		}                                            \
 	}
 
@@ -72,7 +72,7 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	if (reqev->result != ISC_R_SUCCESS) {
 		fprintf(stderr, "I:request event result: %s\n",
 			isc_result_totext(reqev->result));
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	query = reqev->ev_arg;
@@ -87,7 +87,7 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 		result = dns_result_fromrcode(response->rcode);
 		fprintf(stderr, "I:response rcode: %s\n",
 			isc_result_totext(result));
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	result = dns_tkey_processdeleteresponse(query, response, ring);
@@ -149,11 +149,11 @@ main(int argc, char **argv) {
 
 	if (argc < 4) {
 		fprintf(stderr, "I:no key to delete\n");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	if (strcmp(argv[1], "-r") == 0) {
 		fprintf(stderr, "I:The -r options has been deprecated\n");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	ip_address = argv[1];
 	port = atoi(argv[2]);

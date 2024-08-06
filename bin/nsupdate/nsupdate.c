@@ -266,7 +266,7 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 static void
@@ -499,7 +499,7 @@ setup_keystr(void) {
 		name = secretstr;
 		secretstr = n + 1;
 		if (!parse_hmac(&hmacname, keystr, s - keystr, &digestbits)) {
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	} else {
 		hmacname = DNS_TSIG_HMACMD5_NAME;
@@ -1027,7 +1027,7 @@ pre_parse_args(int argc, char **argv) {
 					"| -k keyfile] [-p port] "
 					"[-v] [-V] [-P] [-T] [-4 | -6] "
 					"[filename]\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 
 		case 'P':
 			for (t = 0xff00; t <= 0xfffe; t++) {
@@ -1065,7 +1065,7 @@ pre_parse_args(int argc, char **argv) {
 		}
 	}
 	if (doexit) {
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	isc_commandline_reset = true;
 	isc_commandline_index = 1;
@@ -1124,7 +1124,7 @@ parse_args(int argc, char **argv) {
 					"bad library debug value "
 					"'%s'\n",
 					isc_commandline_argument);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			logdebuglevel = i;
 			break;
@@ -1153,7 +1153,7 @@ parse_args(int argc, char **argv) {
 					"bad port number "
 					"'%s'\n",
 					isc_commandline_argument);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 		case 't':
@@ -1162,7 +1162,7 @@ parse_args(int argc, char **argv) {
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "bad timeout '%s'\n",
 					isc_commandline_argument);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			if (timeout == 0) {
 				timeout = UINT_MAX;
@@ -1174,7 +1174,7 @@ parse_args(int argc, char **argv) {
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "bad udp timeout '%s'\n",
 					isc_commandline_argument);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 		case 'r':
@@ -1183,7 +1183,7 @@ parse_args(int argc, char **argv) {
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "bad udp retries '%s'\n",
 					isc_commandline_argument);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 
@@ -1194,19 +1194,19 @@ parse_args(int argc, char **argv) {
 		default:
 			fprintf(stderr, "%s: unhandled option: %c\n", argv[0],
 				isc_commandline_option);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 	if (keyfile != NULL && keystr != NULL) {
 		fprintf(stderr, "%s: cannot specify both -k and -y\n", argv[0]);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 #if HAVE_GSSAPI
 	if (usegsstsig && (keyfile != NULL || keystr != NULL)) {
 		fprintf(stderr, "%s: cannot specify -g with -k or -y\n",
 			argv[0]);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #else  /* HAVE_GSSAPI */
 	if (usegsstsig) {
@@ -1214,7 +1214,7 @@ parse_args(int argc, char **argv) {
 			"%s: cannot specify -g	or -o, "
 			"program not linked with GSS API Library\n",
 			argv[0]);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #endif /* HAVE_GSSAPI */
 
@@ -1228,7 +1228,7 @@ parse_args(int argc, char **argv) {
 				fprintf(stderr, "could not open '%s': %s\n",
 					argv[isc_commandline_index],
 					isc_result_totext(result));
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 		}
 		if (!force_interactive) {
@@ -2072,7 +2072,7 @@ show_message(FILE *stream, dns_message_t *msg, const char *description) {
 		if (bufsz > MAXTEXT) {
 			fprintf(stderr, "could not allocate large enough "
 					"buffer to display message\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		if (buf != NULL) {
 			isc_buffer_free(&buf);
@@ -3457,7 +3457,7 @@ main(int argc, char **argv) {
 
 	if (seenerror) {
 		return (2);
-	} else {
-		return (0);
 	}
+
+	return (0);
 }

@@ -221,8 +221,9 @@
 #define CHECKFATAL(op, msg)                         \
 	do {                                        \
 		result = (op);                      \
-		if (result != ISC_R_SUCCESS)        \
+		if (result != ISC_R_SUCCESS) {      \
 			fatal(server, msg, result); \
+		}                                   \
 	} while (0)
 
 /*%
@@ -10426,7 +10427,7 @@ fatal(named_server_t *server, const char *msg, isc_result_t result) {
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_CRITICAL,
 		      "exiting (due to fatal error)");
 	named_os_shutdown();
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 static void

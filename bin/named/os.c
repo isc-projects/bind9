@@ -300,10 +300,10 @@ named_os_daemonize(void) {
 			char buf;
 			n = read(dfd[0], &buf, 1);
 			if (n == 1) {
-				_exit(0);
+				_exit(EXIT_SUCCESS);
 			}
 		} while (n == -1 && errno == EINTR);
-		_exit(1);
+		_exit(EXIT_FAILURE);
 	}
 	(void)close(dfd[0]);
 

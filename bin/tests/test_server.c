@@ -322,5 +322,5 @@ main(int argc, char **argv) {
 
 	teardown();
 
-	exit(EXIT_SUCCESS);
+	return (EXIT_SUCCESS);
 }

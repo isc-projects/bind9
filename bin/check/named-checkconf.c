@@ -67,7 +67,7 @@ usage(void) {
 		"usage: %s [-chijlvz] [-p [-x]] [-t directory] "
 		"[named.conf]\n",
 		program);
-	exit(1);
+	exit(EXIT_SUCCESS);
 }
 
 /*% directory callback */
@@ -573,7 +573,7 @@ output(void *closure, const char *text, int textlen) {
 	UNUSED(closure);
 	if (fwrite(text, 1, textlen, stdout) != (size_t)textlen) {
 		perror("fwrite");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -653,7 +653,7 @@ main(int argc, char **argv) {
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "isc_dir_chroot: %s\n",
 					isc_result_totext(result));
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 
@@ -663,7 +663,7 @@ main(int argc, char **argv) {
 
 		case 'v':
 			printf("%s\n", PACKAGE_VERSION);
-			exit(0);
+			exit(EXIT_SUCCESS);
 
 		case 'x':
 			flags |= CFG_PRINTER_XKEY;
@@ -688,17 +688,17 @@ main(int argc, char **argv) {
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n", program,
 				isc_commandline_option);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
 	if (((flags & CFG_PRINTER_XKEY) != 0) && !print) {
 		fprintf(stderr, "%s: -x cannot be used without -p\n", program);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	if (print && list_zones) {
 		fprintf(stderr, "%s: -l cannot be used with -p\n", program);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (isc_commandline_index + 1 < argc) {
@@ -723,7 +723,7 @@ main(int argc, char **argv) {
 	if (cfg_parse_file(parser, conffile, &cfg_type_namedconf, &config) !=
 	    ISC_R_SUCCESS)
 	{
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	result = bind9_check_namedconf(config, loadplugins, nodeprecate, logc,

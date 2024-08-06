@@ -1059,7 +1059,7 @@ usage(void) {
 			"    -T <ttl>           TTL of DS records\n"
 			"    -V                 print version\n"
 			"    -v <verbosity>\n");
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 static void
@@ -1357,5 +1357,6 @@ main(int argc, char *argv[]) {
 cleanup:
 	print_mem_stats = true;
 	cleanup();
-	exit(0);
+
+	return (0);
 }

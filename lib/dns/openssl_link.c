@@ -63,7 +63,7 @@ enable_fips_mode(void) {
 
 	if (FIPS_mode_set(1) == 0) {
 		dst__openssl_toresult2("FIPS_mode_set", DST_R_OPENSSLFAILURE);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #endif /* HAVE_FIPS_MODE */
 }

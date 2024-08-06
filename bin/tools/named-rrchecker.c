@@ -13,6 +13,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/attributes.h>
 #include <isc/buffer.h>
@@ -49,7 +50,7 @@ usage(void) {
 	fprintf(stderr, "\t-P: list the supported private type names\n");
 	fprintf(stderr, "\t-T: list the supported standard type names\n");
 	fprintf(stderr, "\t-u: print the record in unknown record format\n");
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 static void
@@ -76,7 +77,7 @@ fatal(const char *format, ...) {
 	va_end(args);
 	fputc('\n', stderr);
 	cleanup();
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 int
@@ -125,7 +126,7 @@ main(int argc, char *argv[]) {
 					fprintf(stdout, "%s\n", text);
 				}
 			}
-			exit(0);
+			exit(EXIT_SUCCESS);
 
 		case 'P':
 			for (t = 0xff00; t <= 0xfffeu; t++) {
@@ -161,11 +162,11 @@ main(int argc, char *argv[]) {
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n", argv[0],
 				isc_commandline_option);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 	if (doexit) {
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	isc_mem_create(&mctx);
