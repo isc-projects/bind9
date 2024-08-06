@@ -1327,10 +1327,6 @@ gcc:bullseye:amd64:
   <<: *build_job
 
 system:gcc:bullseye:amd64:
-  # Set up environment variables that allow the "keyfromlabel" system test to be run
-  variables:
-    OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
-    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
   <<: *debian_bullseye_amd64_image
   <<: *system_test_job
   needs:
@@ -1358,10 +1354,6 @@ clang:bookworm:amd64:
   <<: *build_job
 
 system:clang:bookworm:amd64:
-  # Set up environment variables that allow the "keyfromlabel" system test to be run
-  variables:
-    OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
-    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
   <<: *debian_bookworm_amd64_image
   <<: *system_test_job
   needs:

@@ -8988,7 +8988,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Create the built-in key store ("key-directory").
 	 */
 	result = cfg_keystore_fromconfig(NULL, named_g_mctx, named_g_lctx,
-					 named_g_engine, &keystorelist, NULL);
+					 &keystorelist, NULL);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_keystorelist;
 	}
@@ -9004,8 +9004,8 @@ load_configuration(const char *filename, named_server_t *server,
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		keystore = NULL;
 		result = cfg_keystore_fromconfig(kconfig, named_g_mctx,
-						 named_g_lctx, named_g_engine,
-						 &keystorelist, NULL);
+						 named_g_lctx, &keystorelist,
+						 NULL);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_keystorelist;
 		}
@@ -10331,8 +10331,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	ISC_LIST_INIT(server->viewlist);
 
 	/* Must be first. */
-	CHECKFATAL(dst_lib_init(named_g_mctx, named_g_engine),
-		   "initializing DST");
+	CHECKFATAL(dst_lib_init(named_g_mctx), "initializing DST");
 
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
 				     &server->in_roothints),

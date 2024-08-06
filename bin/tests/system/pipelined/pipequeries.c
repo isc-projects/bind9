@@ -275,7 +275,7 @@ main(int argc, char *argv[]) {
 
 	isc_log_create(mctx, &lctx, &lcfg);
 
-	RUNCHECK(dst_lib_init(mctx, NULL));
+	RUNCHECK(dst_lib_init(mctx));
 
 	RUNCHECK(dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr));
 

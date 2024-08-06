@@ -1470,9 +1470,8 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 					}
 				}
 
-				ret = cfg_keystore_fromconfig(kconfig, mctx,
-							      logctx, NULL,
-							      &kslist, NULL);
+				ret = cfg_keystore_fromconfig(
+					kconfig, mctx, logctx, &kslist, NULL);
 				if (ret != ISC_R_SUCCESS) {
 					if (result == ISC_R_SUCCESS) {
 						result = ret;
@@ -1485,8 +1484,7 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	/*
 	 * Add default key-store "key-directory".
 	 */
-	tresult = cfg_keystore_fromconfig(NULL, mctx, logctx, NULL, &kslist,
-					  NULL);
+	tresult = cfg_keystore_fromconfig(NULL, mctx, logctx, &kslist, NULL);
 	if (tresult != ISC_R_SUCCESS) {
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
@@ -3025,10 +3023,10 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *kcfg = cfg_listelt_value(element);
-		(void)cfg_keystore_fromconfig(kcfg, mctx, logctx, NULL, &kslist,
+		(void)cfg_keystore_fromconfig(kcfg, mctx, logctx, &kslist,
 					      NULL);
 	}
-	(void)cfg_keystore_fromconfig(NULL, mctx, logctx, NULL, &kslist, NULL);
+	(void)cfg_keystore_fromconfig(NULL, mctx, logctx, &kslist, NULL);
 
 	/*
 	 * Look for the dnssec-policy by name, which is the dnssec-policy

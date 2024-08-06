@@ -62,18 +62,17 @@ To build BIND 9, the following packages must be installed:
 - ``perl``
 - ``pkg-config`` / ``pkgconfig`` / ``pkgconf``
 
-BIND 9.20 requires ``libuv`` 1.34.0 or higher, using ``libuv`` >= 1.40.0
-is recommended. Compiling or running with ``libuv`` 1.35.0 or 1.36.0 is
-not supported, as this could lead to an assertion failure in the UDP
-receive code. On older systems, an updated ``libuv`` package needs to be
-installed from sources such as EPEL, PPA, or other native sources. The
-other option is to build and install ``libuv`` from source.
+BIND 9.20 requires ``libuv`` 1.37.0 or higher, using ``libuv`` >= 1.40.0 is
+recommended. On older systems, an updated ``libuv`` package needs to be
+installed from sources such as EPEL, PPA, or other native sources. The other
+option is to build and install ``libuv`` from source.
 
-OpenSSL 1.0.2e or newer is required. If the OpenSSL library is installed
-in a nonstandard location, specify the prefix using
-``--with-openssl=<PREFIX>`` on the ``configure`` command line. To use a
-PKCS#11 hardware service module for cryptographic operations,
-``engine_pkcs11`` from the OpenSC project must be compiled and used.
+OpenSSL 1.1.1 or newer is required. If the OpenSSL library is installed
+in a nonstandard location, specify the prefix using ``PKG_CONFIG_PATH``.
+
+To use a PKCS#11 hardware service module for cryptographic operations,
+PKCS#11 Provider (https://github.com/latchset/pkcs11-provider/tree/main)
+must be compiled, configured and used directly in the OpenSSL 3.x.
 
 The Userspace RCU library ``liburcu`` (https://liburcu.org/) is used
 for lock-free data structures and concurrent safe memory reclamation.

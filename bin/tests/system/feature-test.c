@@ -19,7 +19,7 @@
 
 #include <openssl/crypto.h>
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/provider.h>
 #endif
 
@@ -101,7 +101,7 @@ main(int argc, char **argv) {
 	}
 
 	if (strcasecmp(argv[1], "--fips-provider") == 0) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 		OSSL_PROVIDER *fips = OSSL_PROVIDER_load(NULL, "fips");
 		if (fips != NULL) {
 			OSSL_PROVIDER_unload(fips);
@@ -135,14 +135,14 @@ main(int argc, char **argv) {
 
 	if (strcmp(argv[1], "--have-fips-dh") == 0) {
 #if defined(ENABLE_FIPS_MODE)
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 		return (0);
 #else
 		return (1);
 #endif
 #else
 		if (isc_fips_mode()) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 			return (0);
 #else
 			return (1);
@@ -202,7 +202,7 @@ main(int argc, char **argv) {
 		int answer;
 
 		isc_mem_create(&mctx);
-		dst_lib_init(mctx, NULL);
+		dst_lib_init(mctx);
 		answer = dst_algorithm_supported(DST_ALG_HMACMD5) ? 0 : 1;
 		dst_lib_destroy();
 		isc_mem_detach(&mctx);
@@ -232,7 +232,7 @@ main(int argc, char **argv) {
 		int answer;
 		isc_mem_t *mctx = NULL;
 		isc_mem_create(&mctx);
-		dst_lib_init(mctx, NULL);
+		dst_lib_init(mctx);
 		answer = dst_algorithm_supported(DST_ALG_RSASHA1) ? 0 : 1;
 		dst_lib_destroy();
 		isc_mem_detach(&mctx);

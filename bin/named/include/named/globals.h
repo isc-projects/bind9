@@ -129,8 +129,6 @@ EXTERN const char *named_g_defaultpidfile INIT(NAMED_LOCALSTATEDIR "/run/"
 
 EXTERN const char *named_g_username INIT(NULL);
 
-EXTERN const char *named_g_engine INIT(NULL);
-
 EXTERN isc_time_t		  named_g_boottime;
 EXTERN isc_time_t		  named_g_configtime;
 EXTERN bool named_g_memstatistics INIT(false);

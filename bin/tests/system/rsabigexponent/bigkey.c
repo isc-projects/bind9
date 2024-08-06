@@ -105,7 +105,7 @@ main(int argc, char **argv) {
 	}
 
 	isc_mem_create(&mctx);
-	CHECK(dst_lib_init(mctx, NULL), "dst_lib_init()");
+	CHECK(dst_lib_init(mctx), "dst_lib_init()");
 	isc_log_create(mctx, &log_, &logconfig);
 	isc_log_setcontext(log_);
 	dns_log_init(log_);

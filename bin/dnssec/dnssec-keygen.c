@@ -56,7 +56,7 @@
 
 #include <dst/dst.h>
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/err.h>
 #include <openssl/provider.h>
 #endif
@@ -176,8 +176,6 @@ usage(void) {
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE)\n");
 	fprintf(stderr, "    -c <class>: (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
-	fprintf(stderr, "    -E <engine>:\n");
-	fprintf(stderr, "        name of an OpenSSL engine to use\n");
 	fprintf(stderr, "    -f <keyflag>: ZSK | KSK | REVOKE\n");
 	fprintf(stderr, "    -F: FIPS mode\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
@@ -842,11 +840,10 @@ main(int argc, char **argv) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t ret;
 	isc_textregion_t r;
-	const char *engine = NULL;
 	unsigned char c;
 	int ch;
 	bool set_fips_mode = false;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	OSSL_PROVIDER *fips = NULL, *base = NULL;
 #endif
 
@@ -921,7 +918,7 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 'E':
-			engine = isc_commandline_argument;
+			fatal("%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 		case 'f':
 			c = (unsigned char)(isc_commandline_argument[0]);
@@ -1120,7 +1117,7 @@ main(int argc, char **argv) {
 	}
 
 	if (set_fips_mode) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 		fips = OSSL_PROVIDER_load(NULL, "fips");
 		if (fips == NULL) {
 			ERR_clear_error();
@@ -1140,7 +1137,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	ret = dst_lib_init(mctx, engine);
+	ret = dst_lib_init(mctx);
 	if (ret != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s", isc_result_totext(ret));
 	}
@@ -1245,7 +1242,7 @@ main(int argc, char **argv) {
 			}
 
 			kasp_from_conf(config, mctx, lctx, ctx.policy,
-				       ctx.directory, engine, &kasp);
+				       ctx.directory, &kasp);
 			if (kasp == NULL) {
 				fatal("failed to load dnssec-policy '%s'",
 				      ctx.policy);
@@ -1296,7 +1293,7 @@ main(int argc, char **argv) {
 	}
 	isc_mem_destroy(&mctx);
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (base != NULL) {
 		OSSL_PROVIDER_unload(base);
 	}

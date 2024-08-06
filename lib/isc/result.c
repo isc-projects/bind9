@@ -242,7 +242,8 @@ static const char *description[ISC_R_NRESULTS] = {
 	[DST_R_COMPUTESECRETFAILURE] = "failure computing a shared secret",
 	[DST_R_NORANDOMNESS] = "no randomness available",
 	[DST_R_BADKEYTYPE] = "bad key type",
-	[DST_R_NOENGINE] = "no engine",
+	[DST_R_NOENGINE] = "OpenSSL Engine support has been removed; "
+			   "use OpenSSL Providers for PKCS#11",
 	[DST_R_EXTERNALKEY] = "illegal operation for an external key",
 
 	[DNS_R_NOERROR] = "NOERROR",

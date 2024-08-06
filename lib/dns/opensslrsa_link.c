@@ -73,37 +73,35 @@ opensslrsa_components_get(const dst_key_t *key, rsa_components_t *c,
 	 */
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_E,
-				  (BIGNUM **)&c->e) == 1)
+				  (BIGNUM **)&c->e) != 1)
 	{
-		c->bnfree = true;
-		if (EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_N,
-					  (BIGNUM **)&c->n) != 1)
-		{
-			return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
-		if (!private) {
-			return (ISC_R_SUCCESS);
-		}
-		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_D,
-					    (BIGNUM **)&c->d);
-		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_FACTOR1,
-					    (BIGNUM **)&c->p);
-		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_FACTOR2,
-					    (BIGNUM **)&c->q);
-		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_EXPONENT1,
-					    (BIGNUM **)&c->dmp1);
-		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_EXPONENT2,
-					    (BIGNUM **)&c->dmq1);
-		(void)EVP_PKEY_get_bn_param(priv,
-					    OSSL_PKEY_PARAM_RSA_COEFFICIENT1,
-					    (BIGNUM **)&c->iqmp);
-		ERR_clear_error();
-		return (ISC_R_SUCCESS);
-	} else {
-		ERR_clear_error();
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
-#endif
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+
+	c->bnfree = true;
+	if (EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_N,
+				  (BIGNUM **)&c->n) != 1)
+	{
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	}
+	if (!private) {
+		return (ISC_R_SUCCESS);
+	}
+	(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_D,
+				    (BIGNUM **)&c->d);
+	(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_FACTOR1,
+				    (BIGNUM **)&c->p);
+	(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_FACTOR2,
+				    (BIGNUM **)&c->q);
+	(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_EXPONENT1,
+				    (BIGNUM **)&c->dmp1);
+	(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_EXPONENT2,
+				    (BIGNUM **)&c->dmq1);
+	(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_COEFFICIENT1,
+				    (BIGNUM **)&c->iqmp);
+	ERR_clear_error();
+	return (ISC_R_SUCCESS);
+#else
 	const RSA *rsa = EVP_PKEY_get0_RSA(pub);
 	if (rsa == NULL) {
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -122,8 +120,6 @@ opensslrsa_components_get(const dst_key_t *key, rsa_components_t *c,
 	RSA_get0_factors(rsa, &c->p, &c->q);
 	RSA_get0_crt_params(rsa, &c->dmp1, &c->dmq1, &c->iqmp);
 	return (ISC_R_SUCCESS);
-#else
-	return (DST_R_OPENSSLFAILURE);
 #endif
 }
 
@@ -300,9 +296,7 @@ opensslrsa_check_exponent_bits(EVP_PKEY *pkey, int maxbits) {
 		BN_free(e);
 		return (bits < maxbits);
 	}
-#endif
-	/* Use old API for the OpenSSL ENGINE support, even with OpenSSL 3.x */
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+#else
 	const RSA *rsa = EVP_PKEY_get0_RSA(pkey);
 	if (rsa != NULL) {
 		const BIGNUM *ce = NULL;
@@ -351,7 +345,7 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	return (opensslrsa_verify2(dctx, 0, sig));
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 static int
 progress_cb(int p, int n, BN_GENCB *cb) {
 	void (*fptr)(int);
@@ -675,7 +669,7 @@ err:
 	OSSL_PARAM_BLD_free(bld);
 	return (ret);
 }
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 static isc_result_t
 opensslrsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
@@ -931,14 +925,6 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 		i++;
 	}
 
-	if (key->engine != NULL) {
-		priv.elements[i].tag = TAG_RSA_ENGINE;
-		priv.elements[i].length = (unsigned short)strlen(key->engine) +
-					  1;
-		priv.elements[i].data = (unsigned char *)key->engine;
-		i++;
-	}
-
 	if (key->label != NULL) {
 		priv.elements[i].tag = TAG_RSA_LABEL;
 		priv.elements[i].length = (unsigned short)strlen(key->label) +
@@ -963,8 +949,7 @@ err:
 }
 
 static isc_result_t
-opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		     const char *pin);
+opensslrsa_fromlabel(dst_key_t *key, const char *label, const char *pin);
 
 static isc_result_t
 opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
@@ -972,7 +957,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	isc_result_t ret;
 	int i;
 	isc_mem_t *mctx = NULL;
-	const char *engine = NULL, *label = NULL;
+	const char *label = NULL;
 	EVP_PKEY *pkey = NULL;
 	rsa_components_t c = { .bnfree = true };
 
@@ -1002,7 +987,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {
 		case TAG_RSA_ENGINE:
-			engine = (char *)priv.elements[i].data;
+			/* The Engine: tag is explicitly ignored */
 			break;
 		case TAG_RSA_LABEL:
 			label = (char *)priv.elements[i].data;
@@ -1017,7 +1002,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	 * See if we can fetch it.
 	 */
 	if (label != NULL) {
-		ret = opensslrsa_fromlabel(key, engine, label, NULL);
+		ret = opensslrsa_fromlabel(key, label, NULL);
 		if (ret != ISC_R_SUCCESS) {
 			DST_RET(ret);
 		}
@@ -1111,12 +1096,11 @@ err:
 }
 
 static isc_result_t
-opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
-		     const char *pin) {
+opensslrsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 	EVP_PKEY *privpkey = NULL, *pubpkey = NULL;
 	isc_result_t ret;
 
-	ret = dst__openssl_fromlabel(EVP_PKEY_RSA, engine, label, pin, &pubpkey,
+	ret = dst__openssl_fromlabel(EVP_PKEY_RSA, label, pin, &pubpkey,
 				     &privpkey);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
@@ -1126,9 +1110,6 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(ISC_R_RANGE);
 	}
 
-	if (engine != NULL) {
-		key->engine = isc_mem_strdup(key->mctx, engine);
-	}
 	key->label = isc_mem_strdup(key->mctx, label);
 	key->key_size = EVP_PKEY_bits(privpkey);
 	key->keydata.pkeypair.priv = privpkey;

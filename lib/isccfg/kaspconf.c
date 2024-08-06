@@ -748,8 +748,7 @@ cleanup:
 
 isc_result_t
 cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
-			isc_log_t *logctx, const char *engine,
-			dns_keystorelist_t *keystorelist,
+			isc_log_t *logctx, dns_keystorelist_t *keystorelist,
 			dns_keystore_t **kspp) {
 	isc_result_t result;
 	const cfg_obj_t *maps[2];
@@ -785,7 +784,7 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 	 * No key-store with configured name was found in list, create new one.
 	 */
 	INSIST(keystore == NULL);
-	result = dns_keystore_create(mctx, name, engine, &keystore);
+	result = dns_keystore_create(mctx, name, &keystore);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

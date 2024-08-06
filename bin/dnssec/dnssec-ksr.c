@@ -41,7 +41,6 @@ const char *program = "dnssec-ksr";
  */
 static isc_log_t *lctx = NULL;
 static isc_mem_t *mctx = NULL;
-const char *engine = NULL;
 /*
  * The domain we are working on
  */
@@ -122,7 +121,6 @@ usage(int ret) {
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "    -E <engine>: name of an OpenSSL engine to use\n");
 	fprintf(stderr, "    -e <date/offset>: end date\n");
 	fprintf(stderr, "    -F: FIPS mode\n");
 	fprintf(stderr, "    -f: KSR file to sign\n");
@@ -173,8 +171,7 @@ getkasp(ksr_ctx_t *ksr, dns_kasp_t **kasp) {
 		fatal("unable to load dnssec-policy '%s' from '%s'",
 		      ksr->policy, ksr->configfile);
 	}
-	kasp_from_conf(config, mctx, lctx, ksr->policy, ksr->keydir, engine,
-		       kasp);
+	kasp_from_conf(config, mctx, lctx, ksr->policy, ksr->keydir, kasp);
 	if (*kasp == NULL) {
 		fatal("failed to load dnssec-policy '%s'", ksr->policy);
 	}
@@ -1198,7 +1195,7 @@ main(int argc, char *argv[]) {
 	int ch;
 	char *endp;
 	bool set_fips_mode = false;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	OSSL_PROVIDER *fips = NULL, *base = NULL;
 #endif
 	ksr_ctx_t ksr = {
@@ -1213,7 +1210,7 @@ main(int argc, char *argv[]) {
 	while ((ch = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
 		switch (ch) {
 		case 'E':
-			engine = isc_commandline_argument;
+			fatal("%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 		case 'e':
 			ksr.end = strtotime(isc_commandline_argument, ksr.now,
@@ -1267,7 +1264,7 @@ main(int argc, char *argv[]) {
 		fatal("must provide a command and zone name");
 	}
 
-	ret = dst_lib_init(mctx, engine);
+	ret = dst_lib_init(mctx);
 	if (ret != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s", isc_result_totext(ret));
 	}
@@ -1283,7 +1280,7 @@ main(int argc, char *argv[]) {
 	setup_logging(mctx, &lctx);
 
 	if (set_fips_mode) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 		fips = OSSL_PROVIDER_load(NULL, "fips");
 		if (fips == NULL) {
 			fatal("Failed to load FIPS provider");

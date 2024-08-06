@@ -142,8 +142,8 @@ isc__tls_initialize(void) {
 #endif /* !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
 	  0x30000000L  */
 
-	uint64_t opts = OPENSSL_INIT_ENGINE_ALL_BUILTIN |
-			OPENSSL_INIT_LOAD_CONFIG;
+	uint64_t opts = OPENSSL_INIT_LOAD_CONFIG;
+
 #if defined(OPENSSL_INIT_NO_ATEXIT)
 	/*
 	 * We call OPENSSL_cleanup() manually, in a correct order, thus disable

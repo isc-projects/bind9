@@ -489,7 +489,7 @@ main(int argc, char **argv) {
 		fatal("extraneous arguments");
 	}
 
-	result = dst_lib_init(mctx, NULL);
+	result = dst_lib_init(mctx);
 	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));

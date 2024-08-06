@@ -21,7 +21,7 @@ dnssec-keyfromlabel - DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keyfromlabel` {**-l** label} [**-3**] [**-a** algorithm] [**-A** date/offset] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-E** engine] [**-f** flag] [**-G**] [**-I** date/offset] [**-i** interval] [**-k**] [**-K** directory] [**-L** ttl] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-R** date/offset] [**-S** key] [**-t** type] [**-v** level] [**-V**] [**-y**] {name}
+:program:`dnssec-keyfromlabel` {**-l** label} [**-3**] [**-a** algorithm] [**-A** date/offset] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-f** flag] [**-G**] [**-I** date/offset] [**-i** interval] [**-k**] [**-K** directory] [**-L** ttl] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-R** date/offset] [**-S** key] [**-t** type] [**-v** level] [**-V**] [**-y**] {name}
 
 Description
 ~~~~~~~~~~~
@@ -63,22 +63,12 @@ Options
    versions, then the NSEC3 version is used; for example,
    ``dnssec-keygen -3a RSASHA1`` specifies the NSEC3RSASHA1 algorithm.
 
-.. option:: -E engine
-
-   This option specifies the cryptographic hardware to use.
-
-   When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
-   engine identifier that drives the cryptographic accelerator or
-   hardware service module (usually ``pkcs11``).
-
 .. option:: -l label
 
    This option specifies the label for a key pair in the crypto hardware.
 
    When BIND 9 is built with OpenSSL-based PKCS#11 support, the label is
-   an arbitrary string that identifies a particular key. It may be
-   preceded by an optional OpenSSL engine name, followed by a colon, as
-   in ``pkcs11:keylabel``.
+   an arbitrary string that identifies a particular key.
 
 .. option:: -n nametype
 

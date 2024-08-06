@@ -120,7 +120,7 @@ generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
 		fatal("unsupported algorithm %d\n", alg);
 	}
 
-	DO("initialize dst library", dst_lib_init(mctx, NULL));
+	DO("initialize dst library", dst_lib_init(mctx));
 
 	DO("generate key",
 	   dst_key_generate(dns_rootname, alg, keysize, 0, 0, DNS_KEYPROTO_ANY,

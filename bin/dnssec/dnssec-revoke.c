@@ -46,7 +46,6 @@ usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
-	fprintf(stderr, "    -E engine:    specify OpenSSL engine\n");
 	fprintf(stderr, "    -f:           force overwrite\n");
 	fprintf(stderr, "    -h:           help\n");
 	fprintf(stderr, "    -K directory: use directory for key files\n");
@@ -64,7 +63,6 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
-	const char *engine = NULL;
 	char const *filename = NULL;
 	char *dir = NULL;
 	char newname[1024], oldname[1024];
@@ -89,7 +87,7 @@ main(int argc, char **argv) {
 	while ((ch = isc_commandline_parse(argc, argv, "E:fK:rRhv:V")) != -1) {
 		switch (ch) {
 		case 'E':
-			engine = isc_commandline_argument;
+			fatal("%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 		case 'f':
 			force = true;
@@ -159,7 +157,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	result = dst_lib_init(mctx, engine);
+	result = dst_lib_init(mctx);
 	if (result != ISC_R_SUCCESS) {
 		fatal("Could not initialize dst: %s",
 		      isc_result_totext(result));

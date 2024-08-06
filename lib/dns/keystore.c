@@ -26,15 +26,13 @@
 #include <dns/keyvalues.h>
 
 isc_result_t
-dns_keystore_create(isc_mem_t *mctx, const char *name, const char *engine,
-		    dns_keystore_t **kspp) {
+dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp) {
 	dns_keystore_t *keystore;
 
 	REQUIRE(name != NULL);
 	REQUIRE(kspp != NULL && *kspp == NULL);
 
 	keystore = isc_mem_get(mctx, sizeof(*keystore));
-	keystore->engine = engine;
 	keystore->mctx = NULL;
 	isc_mem_attach(mctx, &keystore->mctx);
 
@@ -83,13 +81,6 @@ dns_keystore_name(dns_keystore_t *keystore) {
 	REQUIRE(DNS_KEYSTORE_VALID(keystore));
 
 	return (keystore->name);
-}
-
-const char *
-dns_keystore_engine(dns_keystore_t *keystore) {
-	REQUIRE(DNS_KEYSTORE_VALID(keystore));
-
-	return (keystore->engine);
 }
 
 const char *

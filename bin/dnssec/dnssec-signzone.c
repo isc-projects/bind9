@@ -88,7 +88,7 @@
 #include <dns/zoneverify.h>
 
 #include <dst/dst.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/err.h>
 #include <openssl/provider.h>
 #endif
@@ -3263,8 +3263,6 @@ usage(void) {
 	fprintf(stderr, "\t-a:\t");
 	fprintf(stderr, "verify generated signatures\n");
 	fprintf(stderr, "\t-c class (IN)\n");
-	fprintf(stderr, "\t-E engine:\n");
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
 	fprintf(stderr, "\t-P:\t");
 	fprintf(stderr, "disable post-sign verification\n");
 	fprintf(stderr, "\t-Q:\t");
@@ -3353,7 +3351,6 @@ main(int argc, char *argv[]) {
 	dns_dnsseckey_t *key;
 	isc_result_t result, vresult;
 	isc_log_t *log = NULL;
-	const char *engine = NULL;
 	bool free_output = false;
 	int tempfilelen = 0;
 	dns_rdataclass_t rdclass;
@@ -3364,7 +3361,7 @@ main(int argc, char *argv[]) {
 	bool set_iter = false;
 	bool nonsecify = false;
 	bool set_fips_mode = false;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	OSSL_PROVIDER *fips = NULL, *base = NULL;
 #endif
 
@@ -3461,7 +3458,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'E':
-			engine = isc_commandline_argument;
+			fatal("%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 
 		case 'e':
@@ -3728,7 +3725,7 @@ main(int argc, char *argv[]) {
 	isc_managers_create(&mctx, nloops, &loopmgr, &netmgr);
 
 	if (set_fips_mode) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 		fips = OSSL_PROVIDER_load(NULL, "fips");
 		if (fips == NULL) {
 			ERR_clear_error();
@@ -3748,7 +3745,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	result = dst_lib_init(mctx, engine);
+	result = dst_lib_init(mctx);
 	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
@@ -4131,7 +4128,7 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	}
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (base != NULL) {
 		OSSL_PROVIDER_unload(base);
 	}

@@ -88,7 +88,7 @@
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/err.h>
 #include <openssl/provider.h>
 #endif
@@ -152,7 +152,7 @@ static bool transferstuck = false;
 static bool disable6 = false;
 static bool disable4 = false;
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 static OSSL_PROVIDER *fips = NULL, *base = NULL;
 #endif
 
@@ -307,7 +307,7 @@ library_unexpected_error(const char *file, int line, const char *func,
 static void
 usage(void) {
 	fprintf(stderr, "usage: named [-4|-6] [-c conffile] [-d debuglevel] "
-			"[-D comment] [-E engine]\n"
+			"[-D comment]\n"
 			"             [-f|-g] [-L logfile] [-n number_of_cpus] "
 			"[-p port] [-s]\n"
 			"             [-S sockets] [-t chrootdir] [-u "
@@ -632,7 +632,7 @@ printversion(bool verbose) {
 	printf("threads support is enabled\n");
 
 	isc_mem_create(&mctx);
-	result = dst_lib_init(mctx, named_g_engine);
+	result = dst_lib_init(mctx);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_init(&b, buf, sizeof(buf));
 		format_supported_algorithms(printit);
@@ -894,7 +894,8 @@ parse_command_line(int argc, char *argv[]) {
 			/* Descriptive comment for 'ps'. */
 			break;
 		case 'E':
-			named_g_engine = isc_commandline_argument;
+			named_main_earlyfatal(
+				"%s", isc_result_totext(DST_R_NOENGINE));
 			break;
 		case 'f':
 			named_g_foreground = true;
@@ -960,7 +961,7 @@ parse_command_line(int argc, char *argv[]) {
 			named_main_earlyfatal("option '-X' has been removed");
 			break;
 		case 'F':
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 			fips = OSSL_PROVIDER_load(NULL, "fips");
 			if (fips == NULL) {
 				ERR_clear_error();
@@ -1151,19 +1152,10 @@ setup(void) {
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "compiled with OpenSSL version: %s",
 		      OPENSSL_VERSION_TEXT);
-#if !defined(LIBRESSL_VERSION_NUMBER) && \
-	OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "linked to OpenSSL version: %s",
 		      OpenSSL_version(OPENSSL_VERSION));
-#else  /* if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
-	* 0x10100000L */
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to OpenSSL version: %s",
-		      SSLeay_version(SSLEAY_VERSION));
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "compiled with libuv version: %d.%d.%d", UV_VERSION_MAJOR,
@@ -1615,7 +1607,7 @@ main(int argc, char *argv[]) {
 
 	named_os_shutdown();
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (base != NULL) {
 		OSSL_PROVIDER_unload(base);
 	}

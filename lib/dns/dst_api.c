@@ -190,16 +190,14 @@ addsuffix(char *filename, int len, const char *dirname, const char *ofilename,
 	} while (0);
 
 isc_result_t
-dst_lib_init(isc_mem_t *mctx, const char *engine) {
+dst_lib_init(isc_mem_t *mctx) {
 	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(!dst_initialized);
 
-	UNUSED(engine);
-
 	memset(dst_t_func, 0, sizeof(dst_t_func));
-	RETERR(dst__openssl_init(engine)); /* Sets FIPS mode. */
+	dst__openssl_init(); /* Sets FIPS mode. */
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
 	RETERR(dst__hmacsha1_init(&dst_t_func[DST_ALG_HMACSHA1]));
 	RETERR(dst__hmacsha224_init(&dst_t_func[DST_ALG_HMACSHA224]));
@@ -998,8 +996,8 @@ dst_key_buildinternal(const dns_name_t *name, unsigned int alg,
 isc_result_t
 dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 		  unsigned int protocol, dns_rdataclass_t rdclass,
-		  const char *engine, const char *label, const char *pin,
-		  isc_mem_t *mctx, dst_key_t **keyp) {
+		  const char *label, const char *pin, isc_mem_t *mctx,
+		  dst_key_t **keyp) {
 	dst_key_t *key;
 	isc_result_t result;
 
@@ -1018,7 +1016,7 @@ dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 		return (DST_R_UNSUPPORTEDALG);
 	}
 
-	result = key->func->fromlabel(key, engine, label, pin);
+	result = key->func->fromlabel(key, label, pin);
 	if (result != ISC_R_SUCCESS) {
 		dst_key_free(&key);
 		return (result);
@@ -1407,9 +1405,6 @@ dst_key_free(dst_key_t **keyp) {
 		}
 		if (key->directory != NULL) {
 			isc_mem_free(mctx, key->directory);
-		}
-		if (key->engine != NULL) {
-			isc_mem_free(mctx, key->engine);
 		}
 		if (key->label != NULL) {
 			isc_mem_free(mctx, key->label);

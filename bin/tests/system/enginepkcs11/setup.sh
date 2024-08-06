@@ -41,13 +41,12 @@ keyfromlabel() {
   dir="$4"
   shift 4
 
-  $KEYFRLAB $ENGINE_ARG -K $dir -a $alg -l "pkcs11:token=softhsm2-enginepkcs11;object=${id}-${zone};pin-source=$PWD/ns1/pin" "$@" $zone >>keyfromlabel.out.$zone.$id 2>keyfromlabel.err.$zone.$id || return 1
+  $KEYFRLAB -K $dir -a $alg -l "pkcs11:token=softhsm2-enginepkcs11;object=${id}-${zone};pin-source=$PWD/ns1/pin" "$@" $zone >>keyfromlabel.out.$zone.$id 2>keyfromlabel.err.$zone.$id || return 1
   cat keyfromlabel.out.$zone.$id
 }
 
 # Setup ns1.
 copy_setports ns1/named.conf.in ns1/named.conf
-sed -e "s/@ENGINE_ARGS@/${ENGINE_ARG}/g" <ns1/named.args.in >ns1/named.args
 
 mkdir ns1/keys
 
@@ -91,7 +90,7 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
 
     echo_i "Sign zone with $ksk1 $zsk1"
     cat "$infile" "${dir}/${ksk1}.key" "${dir}/${zsk1}.key" >"${dir}/${zonefile}"
-    $SIGNER $ENGINE_ARG -K $dir -S -a -g -O full -o "$zone" "${dir}/${zonefile}" >signer.out.$zone || ret=1
+    $SIGNER -K $dir -S -a -g -O full -o "$zone" "${dir}/${zonefile}" >signer.out.$zone || ret=1
     test "$ret" -eq 0 || exit 1
 
     echo_i "Generate successor keys $alg $type:$bits for zone $zone"
@@ -183,7 +182,6 @@ done
 
 # Setup ns2 (with views).
 copy_setports ns2/named.conf.in ns2/named.conf
-sed -e "s/@ENGINE_ARGS@/${ENGINE_ARG}/g" <ns2/named.args.in >ns2/named.args
 
 mkdir ns2/keys
 
@@ -226,11 +224,11 @@ if [ "${supported}" = 1 ]; then
 
   echo_i "Sign zone with $ksk1 $zsk1"
   cat "$infile" "${dir}/${ksk1}.key" "${dir}/${zsk1}.key" >"${dir}/${zonefile1}"
-  $SIGNER $ENGINE_ARG -K $dir -S -a -g -O full -o "$zone" "${dir}/${zonefile1}" >signer.out.view1.$zone || ret=1
+  $SIGNER -K $dir -S -a -g -O full -o "$zone" "${dir}/${zonefile1}" >signer.out.view1.$zone || ret=1
   test "$ret" -eq 0 || exit 1
 
   cat "$infile" "${dir}/${ksk1}.key" "${dir}/${zsk1}.key" >"${dir}/${zonefile2}"
-  $SIGNER $ENGINE_ARG -K $dir -S -a -g -O full -o "$zone" "${dir}/${zonefile2}" >signer.out.view2.$zone || ret=1
+  $SIGNER -K $dir -S -a -g -O full -o "$zone" "${dir}/${zonefile2}" >signer.out.view2.$zone || ret=1
   test "$ret" -eq 0 || exit 1
 
   echo_i "Generate successor keys $alg $type:$bits for zone $zone"

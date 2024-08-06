@@ -173,7 +173,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 
 	isc_mem_create(&mctx);
 
-	result = dst_lib_init(mctx, NULL);
+	result = dst_lib_init(mctx);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dst_lib_init failed: %s\n",
 			isc_result_totext(result));
