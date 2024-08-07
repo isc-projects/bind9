@@ -916,6 +916,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	tlssock = isc_mempool_get(handle->sock->worker->nmsocket_pool);
 	isc__nmsocket_init(tlssock, handle->sock->worker, isc_nm_tlssocket,
 			   &local, NULL);
+	isc__nmsocket_attach(tlslistensock, &tlssock->server);
 
 	/* We need to initialize SSL now to reference SSL_CTX properly */
 	tlsctx = tls_get_listener_tlsctx(tlslistensock, isc_tid());
@@ -1172,6 +1173,10 @@ isc__nm_tls_close(isc_nmsocket_t *sock) {
 
 	if (sock->listener != NULL) {
 		isc__nmsocket_detach(&sock->listener);
+	}
+
+	if (sock->server != NULL) {
+		isc__nmsocket_detach(&sock->server);
 	}
 
 	/* Further cleanup performed in isc__nm_tls_cleanup_data() */
