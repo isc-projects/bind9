@@ -189,6 +189,19 @@ dns_client_clearservers(dns_client_t *client, dns_rdataclass_t rdclass,
  *\li	Anything else				Failure.
  */
 
+void
+dns_client_setmaxrestarts(dns_client_t *client, uint8_t max_restarts);
+/*%<
+ * Set the number of permissible chained queries before we give up,
+ * to prevent CNAME loops. This defaults to 11.
+ *
+ * Requires:
+ *
+ *\li	'client' is a valid client.
+
+ *\li	'max_restarts' is greater than 0.
+ */
+
 isc_result_t
 dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		   dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -1943,6 +1943,20 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 		}
 	}
 
+	obj = NULL;
+	(void)cfg_map_get(options, "max-query-restarts", &obj);
+	if (obj != NULL) {
+		uint32_t restarts = cfg_obj_asuint32(obj);
+		if (restarts == 0 || restarts > 255) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'max-query-restarts' is out of "
+				    "range 1..255)");
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_RANGE;
+			}
+		}
+	}
+
 	if (actx != NULL) {
 		cfg_aclconfctx_detach(&actx);
 	}

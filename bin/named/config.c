@@ -174,7 +174,8 @@ options {\n\
 	max-clients-per-query 100;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-recursion-depth 7;\n\
-	max-recursion-queries 100;\n\
+	max-recursion-queries 32;\n\
+	max-query-restarts 11;\n\
 	max-stale-ttl 86400; /* 1 day */\n\
 	message-compression yes;\n\
 	min-ncache-ttl 0; /* 0 hours */\n\

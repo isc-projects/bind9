@@ -199,7 +199,7 @@
 
 /* The default maximum number of iterative queries to allow before giving up. */
 #ifndef DEFAULT_MAX_QUERIES
-#define DEFAULT_MAX_QUERIES 100
+#define DEFAULT_MAX_QUERIES 50
 #endif /* ifndef DEFAULT_MAX_QUERIES */
 
 /*
@@ -974,7 +974,7 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 
 	result = dns_validator_create(fctx->res->view, name, type, rdataset,
 				      sigrdataset, message, valoptions, task,
-				      validated, valarg, &validator);
+				      validated, valarg, fctx->qc, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	if (result == ISC_R_SUCCESS) {
 		inc_stats(fctx->res, dns_resstatscounter_val);
@@ -4809,16 +4809,6 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 
 	dns_resolver_attach(res, &fctx->res);
 
-	if (qc != NULL) {
-		isc_counter_attach(qc, &fctx->qc);
-	} else {
-		result = isc_counter_create(res->mctx, res->maxqueries,
-					    &fctx->qc);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_fetch;
-		}
-	}
-
 	/*
 	 * Make fctx->info point to a copy of a formatted string
 	 * "name/type". FCTXTRACE won't work until this is done.
@@ -4830,6 +4820,24 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	fctx->info = isc_mem_strdup(res->mctx, buf);
 
 	FCTXTRACE("create");
+
+	if (qc != NULL) {
+		isc_counter_attach(qc, &fctx->qc);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): attached to counter %p (%d)", fctx,
+			      fctx->info, fctx->qc, isc_counter_used(fctx->qc));
+	} else {
+		result = isc_counter_create(res->mctx, res->maxqueries,
+					    &fctx->qc);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_fetch;
+		}
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): created counter %p", fctx,
+			      fctx->info, fctx->qc);
+	}
 
 	isc_refcount_init(&fctx->references, 1);
 
@@ -7567,8 +7575,9 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		options = fctx->options & ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 		result = dns_resolver_createfetch(
 			res, fctx->nsname, dns_rdatatype_ns, domain, nsrdataset,
-			NULL, NULL, 0, options, 0, NULL, task, resume_dslookup,
-			fctx, &fctx->nsrrset, NULL, &fctx->nsfetch);
+			NULL, NULL, 0, options, 0, fctx->qc, task,
+			resume_dslookup, fctx, &fctx->nsrrset, NULL,
+			&fctx->nsfetch);
 		if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_DUPLICATE) {
 				result = DNS_R_SERVFAIL;
@@ -9934,7 +9943,7 @@ rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 	options = fctx->options & ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	result = dns_resolver_createfetch(
 		fctx->res, fctx->nsname, dns_rdatatype_ns, NULL, NULL, NULL,
-		NULL, 0, options, 0, NULL, task, resume_dslookup, fctx,
+		NULL, 0, options, 0, fctx->qc, task, resume_dslookup, fctx,
 		&fctx->nsrrset, NULL, &fctx->nsfetch);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_DUPLICATE) {
