@@ -21,7 +21,7 @@ dnssec-keygen: DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-E** engine] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-t** type] [**-V**] [**-v** level] {name}
+:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-E** engine] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-n** nametype] [**-M** tag_min:tag_max] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-t** type] [**-V**] [**-v** level] {name}
 
 Description
 ~~~~~~~~~~~
@@ -157,6 +157,19 @@ Options
 
    This option provides a configuration file that contains a ``dnssec-policy`` statement
    (matching the policy set with :option:`-k`).
+
+.. option:: -M tag_min:tag_max
+
+   This option sets the range of acceptable key tag values that ``dnssec-keygen``
+   will produce. If the key tag of the new key or the key tag of
+   the revoked version of the new key is outside this range,
+   the new key will be rejected and another new key will be generated.
+   This is designed to be used when generating keys in a multi-signer
+   scenario, where each operator is given a range of key tags to
+   prevent collisions among different operators.  The valid values
+   for ``tag_min`` and ``tag_max`` are [0..65535].  The default allows all
+   key tag values to be produced.  This option is ignored when ``-k policy``
+   is specified.
 
 .. option:: -n nametype
 
