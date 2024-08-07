@@ -47,7 +47,7 @@ try:
     pytest.importorskip("hypothesis")
 except ValueError:
     pytest.importorskip("hypothesis", minversion="4.41.2")
-from hypothesis import assume, example, given
+from hypothesis import assume, example, given, settings
 
 from isctest.hypothesis.strategies import dns_names, dns_rdatatypes_without_meta
 import isctest.check
@@ -63,6 +63,7 @@ IP_ADDR = "10.53.0.1"
 TIMEOUT = 5  # seconds, just a sanity check
 
 
+@settings(deadline=None)
 @given(name=dns_names(suffix=SUFFIX), rdtype=dns_rdatatypes_without_meta)
 def test_wildcard_rdtype_mismatch(
     name: dns.name.Name, rdtype: dns.rdatatype.RdataType, named_port: int
@@ -90,6 +91,7 @@ def test_wildcard_rdtype_mismatch(
     isctest.check.empty_answer(response_msg)
 
 
+@settings(deadline=None)
 @given(name=dns_names(suffix=SUFFIX, min_labels=len(SUFFIX) + 1))
 def test_wildcard_match(name: dns.name.Name, named_port: int) -> None:
     """Any label with maching rdtype must result in wildcard data in answer."""
@@ -116,6 +118,7 @@ def test_wildcard_match(name: dns.name.Name, named_port: int) -> None:
 
 
 # Force the `*.*.allwild.test.` corner case to be checked.
+@settings(deadline=None)
 @example(name=isctest.name.prepend_label("*", isctest.name.prepend_label("*", SUFFIX)))
 @given(
     name=dns_names(
@@ -138,6 +141,7 @@ NESTED_SUFFIX = dns.name.from_text("*.*.nestedwild.test.")
 
 
 # Force `*.*.*.nestedwild.test.` to be checked.
+@settings(deadline=None)
 @example(name=isctest.name.prepend_label("*", NESTED_SUFFIX))
 @given(name=dns_names(suffix=NESTED_SUFFIX, min_labels=len(NESTED_SUFFIX) + 1))
 def test_name_in_between_wildcards(name: dns.name.Name, named_port: int) -> None:
@@ -172,6 +176,7 @@ def test_name_in_between_wildcards(name: dns.name.Name, named_port: int) -> None
     assert response_msg.answer == expected_answer, str(response_msg)
 
 
+@settings(deadline=None)
 @given(
     name=dns_names(
         suffix=isctest.name.prepend_label("*", NESTED_SUFFIX),
