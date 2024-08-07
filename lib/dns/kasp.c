@@ -544,6 +544,16 @@ dns_kasp_key_match(dns_kasp_key_t *key, dns_dnsseckey_t *dkey) {
 	if (ret != ISC_R_SUCCESS || role != dns_kasp_key_zsk(key)) {
 		return (false);
 	}
+	/* Valid key tag range? */
+	uint16_t id = dst_key_id(dkey->key);
+	uint16_t rid = dst_key_rid(dkey->key);
+	if (id < key->tag_min || id > key->tag_max) {
+		return (false);
+	}
+	if (rid < key->tag_min || rid > key->tag_max) {
+		return (false);
+	}
+
 	/* Found a match. */
 	return (true);
 }
