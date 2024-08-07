@@ -38,7 +38,7 @@
 void
 ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 		 ns_server_t **sctxp) {
-	ns_server_t *sctx;
+	ns_server_t *sctx = NULL;
 
 	REQUIRE(sctxp != NULL && *sctxp == NULL);
 

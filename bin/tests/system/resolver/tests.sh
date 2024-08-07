@@ -149,7 +149,7 @@ dig_with_opts +tcp longcname1.example.net @10.53.0.1 a >dig.out.ns1.test${n} || 
 grep -F "status: SERVFAIL" dig.out.ns1.test${n} >/dev/null || ret=1
 grep -F "max. restarts reached" dig.out.ns1.test${n} >/dev/null || ret=1
 lines=$(grep -F "CNAME" dig.out.ns1.test${n} | wc -l)
-test ${lines:-1} -eq 17 || ret=1
+test ${lines:-1} -eq 12 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

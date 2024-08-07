@@ -337,6 +337,18 @@ assign values to options like the timeout interval. They have the form
    they are replaced by the string ``[omitted]`` or, in the DNSKEY case, the
    key ID is displayed as the replacement, e.g. ``[ key id = value ]``.
 
+.. option:: +restarts
+
+   When name server mode (``delv +ns``) is in use, this option sets the
+   maximum number of CNAME queries to follow before terminating resolution.
+   This prevents ``delv`` from hanging in the event of a CNAME loop.
+   The default is 11.
+
+.. option:: +maxqueries
+
+   This option specifies the maximum number of queries to send to resolve
+   a name before giving up. The default is 32.
+
 .. option:: +trust, +notrust
 
    This option controls whether to display the trust level when printing a record.

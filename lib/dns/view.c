@@ -75,6 +75,12 @@
 #define DNS_VIEW_DELONLYHASH 111
 
 /*%
+ * Default maximum number of chained queries before we give up
+ * to prevent CNAME loops.
+ */
+#define DEFAULT_MAX_RESTARTS 11
+
+/*%
  * Default EDNS0 buffer size
  */
 #define DEFAULT_EDNS_BUFSIZE 1232
@@ -116,6 +122,7 @@ dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 		.trust_anchor_telemetry = true,
 		.root_key_sentinel = true,
 		.udpsize = DEFAULT_EDNS_BUFSIZE,
+		.max_restarts = DEFAULT_MAX_RESTARTS,
 	};
 
 	isc_refcount_init(&view->references, 1);
@@ -2454,4 +2461,12 @@ dns_view_getadb(dns_view_t *view, dns_adb_t **adbp) {
 		dns_adb_attach(adb, adbp);
 	}
 	rcu_read_unlock();
+}
+
+void
+dns_view_setmaxrestarts(dns_view_t *view, uint8_t max_restarts) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(max_restarts > 0);
+
+	view->max_restarts = max_restarts;
 }

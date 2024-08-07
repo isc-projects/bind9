@@ -146,12 +146,13 @@ struct dns_validator {
 	unsigned int  authfail;
 	isc_stdtime_t start;
 
-	bool	    digest_sha1;
-	bool	    supported_algorithm;
-	dns_rdata_t rdata;
-	bool	    resume;
-	uint32_t   *nvalidations;
-	uint32_t   *nfails;
+	bool	       digest_sha1;
+	bool	       supported_algorithm;
+	dns_rdata_t    rdata;
+	bool	       resume;
+	uint32_t      *nvalidations;
+	uint32_t      *nfails;
+	isc_counter_t *qc;
 };
 
 /*%
@@ -170,7 +171,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_message_t *message, unsigned int options,
 		     isc_loop_t *loop, isc_job_cb cb, void *arg,
 		     uint32_t *nvalidations, uint32_t *nfails,
-		     dns_validator_t **validatorp);
+		     isc_counter_t *qc, dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.
  *
