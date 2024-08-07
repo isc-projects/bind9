@@ -72,7 +72,7 @@ const char *program = "dnstap-read";
 		}                                                     \
 	} while (0)
 
-noreturn static void
+ISC_NORETURN static void
 fatal(const char *format, ...);
 
 static void

@@ -43,7 +43,7 @@
 
 const char *program = "dnssec-keyfromlabel";
 
-noreturn static void
+ISC_NORETURN static void
 usage(void);
 
 static void

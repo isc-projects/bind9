@@ -38,7 +38,7 @@ const char *program = "dnssec-revoke";
 
 static isc_mem_t *mctx = NULL;
 
-noreturn static void
+ISC_NORETURN static void
 usage(void);
 
 static void

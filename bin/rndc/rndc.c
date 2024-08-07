@@ -87,7 +87,7 @@ static int32_t timeout = RNDC_TIMEOUT;
 static void
 rndc_startconnect(isc_sockaddr_t *addr);
 
-noreturn static void
+ISC_NORETURN static void
 usage(int status);
 
 static void

@@ -324,7 +324,7 @@ emits(bool showall, bool cds, dns_rdata_t *rdata) {
 	}
 }
 
-noreturn static void
+ISC_NORETURN static void
 usage(void);
 
 static void

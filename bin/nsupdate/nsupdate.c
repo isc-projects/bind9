@@ -198,7 +198,7 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *primary);
 static void
 getinput(void *arg);
 
-noreturn static void
+ISC_NORETURN static void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void

@@ -54,7 +54,7 @@ extern uint8_t dtype[8];
 
 typedef void(fatalcallback_t)(void);
 
-noreturn void
+ISC_NORETURN void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
@@ -66,7 +66,7 @@ check_result(isc_result_t result, const char *message);
 void
 vbprintf(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
-noreturn void
+ISC_NORETURN void
 version(const char *program);
 
 void

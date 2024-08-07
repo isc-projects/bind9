@@ -21,12 +21,10 @@
 #define __has_c_attribute(x) 0
 #endif /* if !defined(__has_c_attribute) */
 
-#ifdef HAVE_STDNORETURN_H
-#include <stdnoreturn.h>
-#elif HAVE_FUNC_ATTRIBUTE_NORETURN
-#define noreturn __attribute__((noreturn))
+#if __has_c_attribute(noreturn) && __STDC_VERSION__ >= 202311L
+#define ISC_NORETURN [[noreturn]]
 #else
-#define noreturn
+#define ISC_NORETURN _Noreturn
 #endif
 
 #if HAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL

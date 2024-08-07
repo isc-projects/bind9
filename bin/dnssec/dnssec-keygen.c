@@ -74,7 +74,7 @@ static int min_dh = 128;
 
 isc_log_t *lctx = NULL;
 
-noreturn static void
+ISC_NORETURN static void
 usage(void);
 
 static void

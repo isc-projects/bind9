@@ -38,7 +38,7 @@ isc_error_unexpected(const char *, int, const char *, const char *, ...)
 	ISC_FORMAT_PRINTF(4, 5);
 
 /*% fatal error */
-noreturn void
+ISC_NORETURN void
 isc_error_fatal(const char *, int, const char *, const char *, ...)
 	ISC_FORMAT_PRINTF(4, 5);
 
