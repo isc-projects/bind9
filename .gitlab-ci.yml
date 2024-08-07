@@ -1053,9 +1053,9 @@ unit:clang:asan:
 gcc:tsan:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON} -Wno-stringop-overread -ggdb -O2 -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0 -Wl,-rpath=/usr/local/lib -Wl,--enable-new-dtags"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock PKG_CONFIG_PATH=/usr/local/lib/pkgconfig"
   <<: *tsan_fedora_40_amd64_image
   <<: *build_job
 
