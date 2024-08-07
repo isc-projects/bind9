@@ -1497,6 +1497,8 @@ isc_tlsctx_client_session_cache_keep(isc_tlsctx_client_session_cache_t *cache,
 		return;
 	}
 
+	SSL_set_session(tls, NULL);
+
 	isc_mutex_lock(&cache->lock);
 
 	name_len = strlen(remote_peer_name);
