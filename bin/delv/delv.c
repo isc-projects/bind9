@@ -88,6 +88,9 @@
 
 #define MAXNAME (DNS_NAME_MAXTEXT + 1)
 
+#define MAX_QUERIES  32
+#define MAX_RESTARTS 11
+
 /* Variables used internally by delv. */
 char *progname = NULL;
 static isc_mem_t *mctx = NULL;
@@ -129,6 +132,9 @@ static bool showcomments = true, showdnssec = true, showtrust = true,
 	    rrcomments = true, noclass = false, nocrypto = false, nottl = false,
 	    multiline = false, short_form = false, print_unknown_format = false,
 	    yaml = false, fulltrace = false;
+
+static uint32_t maxqueries = MAX_QUERIES;
+static uint32_t restarts = MAX_RESTARTS;
 
 static bool resolve_trace = false, validator_trace = false,
 	    message_trace = false, send_trace = false;
@@ -1191,6 +1197,23 @@ plus_option(char *option) {
 		break;
 	case 'm':
 		switch (cmd[1]) {
+		case 'a': /* maxqueries */
+			FULLCHECK("maxqueries");
+			if (value == NULL) {
+				goto need_value;
+			}
+			if (!state) {
+				goto invalid_option;
+			}
+			result = parse_uint(&maxqueries, value, UINT_MAX,
+					    "maxqueries");
+			if (result != ISC_R_SUCCESS) {
+				fatal("Couldn't parse maxqueries");
+			}
+			if (maxqueries == 0) {
+				fatal("maxqueries must be nonzero");
+			}
+			break;
 		case 't': /* mtrace */
 			FULLCHECK("mtrace");
 			message_trace = state;
@@ -1243,6 +1266,22 @@ plus_option(char *option) {
 		break;
 	case 'r':
 		switch (cmd[1]) {
+		case 'e': /* restarts */
+			FULLCHECK("restarts");
+			if (value == NULL) {
+				goto need_value;
+			}
+			if (!state) {
+				goto invalid_option;
+			}
+			result = parse_uint(&restarts, value, 255, "restarts");
+			if (result != ISC_R_SUCCESS) {
+				fatal("Couldn't parse restarts");
+			}
+			if (restarts == 0) {
+				fatal("restarts must be between 1..255");
+			}
+			break;
 		case 'o': /* root */
 			FULLCHECK("root");
 			if (state && no_sigs) {
@@ -1370,10 +1409,7 @@ plus_option(char *option) {
 		break;
 	default:
 	invalid_option:
-		/*
-		 * We can also add a "need_value:" case here if we ever
-		 * add a plus-option that requires a specified value
-		 */
+	need_value:
 		fprintf(stderr, "Invalid option: +%s\n", option);
 		usage();
 	}
@@ -1898,6 +1934,7 @@ run_resolve(void *arg) {
 	/* Create client */
 	CHECK(dns_client_create(mctx, loopmgr, netmgr, 0, tlsctx_client_cache,
 				&client, srcaddr4, srcaddr6));
+	dns_client_setmaxrestarts(client, restarts);
 
 	/* Set the nameserver */
 	if (server != NULL) {
@@ -2162,6 +2199,7 @@ run_server(void *arg) {
 	dns_view_setcache(view, cache, false);
 	dns_cache_detach(&cache);
 	dns_view_setdstport(view, destport);
+	dns_view_setmaxrestarts(view, restarts);
 
 	CHECK(dns_rootns_create(mctx, dns_rdataclass_in, hintfile, &roothints));
 	dns_view_sethints(view, roothints);
@@ -2175,6 +2213,7 @@ run_server(void *arg) {
 
 	CHECK(dns_view_createresolver(view, netmgr, 0, tlsctx_client_cache,
 				      dispatch, NULL));
+	dns_resolver_setmaxqueries(view->resolver, maxqueries);
 
 	isc_stats_create(mctx, &resstats, dns_resstatscounter_max);
 	dns_resolver_setstats(view->resolver, resstats);
