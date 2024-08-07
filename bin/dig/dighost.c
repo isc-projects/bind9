@@ -4237,7 +4237,15 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		goto keep_query;
 	}
 
-	if (msg->counts[DNS_SECTION_QUESTION] != 0) {
+	if (msg->counts[DNS_SECTION_QUESTION] == 0) {
+		if (l->doing_xfr) {
+			if (query->msg_count == 0) {
+				dighost_warning("missing question section");
+			}
+		} else if (!l->header_only && msg->opcode == dns_opcode_query) {
+			dighost_warning("missing question section");
+		}
+	} else {
 		match = true;
 		for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
 		     result == ISC_R_SUCCESS && match;
