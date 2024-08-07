@@ -48,30 +48,6 @@
 
 static int debug = 0;
 
-static int
-setup_test(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dst_lib_init(mctx);
-
-	if (result != ISC_R_SUCCESS) {
-		return (1);
-	}
-
-	return (0);
-}
-
-static int
-teardown_test(void **state) {
-	UNUSED(state);
-
-	dst_lib_destroy();
-
-	return (0);
-}
-
 static isc_result_t
 add_mac(dst_context_t *tsigctx, isc_buffer_t *buf) {
 	dns_rdata_any_tsig_t tsig;
@@ -519,8 +495,8 @@ ISC_RUN_TEST_IMPL(algvalid) {
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY_CUSTOM(tsig_tcp, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(tsig_badtime, setup_test, teardown_test)
+ISC_TEST_ENTRY(tsig_tcp)
+ISC_TEST_ENTRY(tsig_badtime)
 ISC_TEST_ENTRY(algvalid)
 ISC_TEST_LIST_END
 

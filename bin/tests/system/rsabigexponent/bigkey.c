@@ -105,7 +105,6 @@ main(int argc, char **argv) {
 	}
 
 	isc_mem_create(&mctx);
-	CHECK(dst_lib_init(mctx), "dst_lib_init()");
 	isc_log_create(mctx, &log_, &logconfig);
 	isc_log_setcontext(log_);
 	dns_log_init(log_);
@@ -148,7 +147,6 @@ main(int argc, char **argv) {
 	isc_log_destroy(&log_);
 	isc_log_setcontext(NULL);
 	dns_log_setcontext(NULL);
-	dst_lib_destroy();
 	isc_mem_destroy(&mctx);
 	return (0);
 }

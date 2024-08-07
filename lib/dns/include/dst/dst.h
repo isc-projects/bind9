@@ -197,27 +197,6 @@ typedef enum dst_algorithm {
 /***
  *** Functions
  ***/
-isc_result_t
-dst_lib_init(isc_mem_t *mctx);
-/*%<
- * Initializes the DST subsystem.
- *
- * Requires:
- * \li 	"mctx" is a valid memory context
- *
- * Returns:
- * \li	ISC_R_SUCCESS
- * \li	ISC_R_NOMEMORY
- *
- * Ensures:
- * \li	DST is properly initialized.
- */
-
-void
-dst_lib_destroy(void);
-/*%<
- * Releases all resources allocated by DST.
- */
 
 bool
 dst_algorithm_supported(unsigned int alg);

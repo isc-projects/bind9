@@ -1152,11 +1152,11 @@ static dst_func_t opensslecdsa_functions = {
 	NULL,			/*%< restore */
 };
 
-isc_result_t
+void
 dst__opensslecdsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL);
+
 	if (*funcp == NULL) {
 		*funcp = &opensslecdsa_functions;
 	}
-	return (ISC_R_SUCCESS);
 }

@@ -1233,10 +1233,6 @@ check_algorithm(unsigned char algorithm) {
 	isc_result_t ret = ISC_R_SUCCESS;
 	size_t len;
 
-	if (evp_md_ctx == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
-	}
-
 	switch (algorithm) {
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
@@ -1258,23 +1254,14 @@ check_algorithm(unsigned char algorithm) {
 		DST_RET(ISC_R_NOTIMPLEMENTED);
 	}
 
-	if (type == NULL) {
-		DST_RET(ISC_R_NOTIMPLEMENTED);
-	}
-
 	/*
 	 * Construct pkey.
 	 */
 	c.e = BN_bin2bn(e_bytes, sizeof(e_bytes) - 1, NULL);
 	c.n = BN_bin2bn(n_bytes, sizeof(n_bytes) - 1, NULL);
-	if (c.e == NULL || c.n == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
-	}
 
 	ret = opensslrsa_build_pkey(false, &c, &pkey);
-	if (ret != ISC_R_SUCCESS) {
-		goto err;
-	}
+	INSIST(ret == ISC_R_SUCCESS);
 
 	/*
 	 * Check that we can verify the signature.
@@ -1294,21 +1281,13 @@ err:
 	return (ret);
 }
 
-isc_result_t
+void
 dst__opensslrsa_init(dst_func_t **funcp, unsigned char algorithm) {
-	isc_result_t result;
-
 	REQUIRE(funcp != NULL);
 
-	result = check_algorithm(algorithm);
-
-	if (result == ISC_R_SUCCESS) {
-		if (*funcp == NULL) {
+	if (*funcp == NULL) {
+		if (check_algorithm(algorithm) == ISC_R_SUCCESS) {
 			*funcp = &opensslrsa_functions;
 		}
-	} else if (result == ISC_R_NOTIMPLEMENTED) {
-		result = ISC_R_SUCCESS;
 	}
-
-	return (result);
 }

@@ -640,7 +640,7 @@ err:
 	return (ret);
 }
 
-isc_result_t
+void
 dst__openssleddsa_init(dst_func_t **funcp, unsigned char algorithm) {
 	REQUIRE(funcp != NULL);
 
@@ -649,5 +649,4 @@ dst__openssleddsa_init(dst_func_t **funcp, unsigned char algorithm) {
 			*funcp = &openssleddsa_functions;
 		}
 	}
-	return (ISC_R_SUCCESS);
 }

@@ -144,7 +144,6 @@ static dns_dbnode_t *parent_node = NULL;
 static dns_db_t *update_db = NULL;
 static dns_dbnode_t *update_node = NULL;
 static dns_dbversion_t *update_version = NULL;
-static bool cleanup_dst = false;
 static bool print_mem_stats = false;
 
 static void
@@ -1074,9 +1073,6 @@ cleanup(void) {
 	if (lctx != NULL) {
 		cleanup_logging(&lctx);
 	}
-	if (cleanup_dst) {
-		dst_lib_destroy();
-	}
 	if (mctx != NULL) {
 		if (print_mem_stats && verbose > 10) {
 			isc_mem_stats(mctx, stdout);
@@ -1090,7 +1086,6 @@ main(int argc, char *argv[]) {
 	const char *child_path = NULL;
 	const char *ds_path = NULL;
 	const char *inplace = NULL;
-	isc_result_t result;
 	bool prefer_cdnskey = false;
 	bool nsupdate = false;
 	uint32_t ttl = 0;
@@ -1179,13 +1174,6 @@ main(int argc, char *argv[]) {
 	}
 
 	setup_logging(mctx, &lctx);
-
-	result = dst_lib_init(mctx);
-	if (result != ISC_R_SUCCESS) {
-		fatal("could not initialize dst: %s",
-		      isc_result_totext(result));
-	}
-	cleanup_dst = true;
 
 	if (ds_path == NULL) {
 		fatal("missing -d DS pathname");

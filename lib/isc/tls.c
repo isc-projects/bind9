@@ -34,6 +34,7 @@
 #include <openssl/x509v3.h>
 
 #include <isc/atomic.h>
+#include <isc/fips.h>
 #include <isc/ht.h>
 #include <isc/log.h>
 #include <isc/magic.h>
@@ -125,6 +126,23 @@ isc__tls_free_ex(void *ptr, const char *file, int line) {
 
 #endif /* !defined(LIBRESSL_VERSION_NUMBER) */
 
+static void
+enable_fips_mode(void) {
+#if defined(ENABLE_FIPS_MODE)
+	if (isc_fips_mode()) {
+		/*
+		 * FIPS mode is already enabled.
+		 */
+		return;
+	}
+
+	if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+		dst__openssl_toresult2("FIPS_mode_set", DST_R_OPENSSLFAILURE);
+		exit(EXIT_FAILURE);
+	}
+#endif
+}
+
 void
 isc__tls_initialize(void) {
 	isc_mem_create(&isc__tls_mctx);
@@ -160,6 +178,8 @@ isc__tls_initialize(void) {
 			    "cannot be initialized (see the `PRNG not "
 			    "seeded' message in the OpenSSL FAQ)");
 	}
+
+	enable_fips_mode();
 }
 
 void

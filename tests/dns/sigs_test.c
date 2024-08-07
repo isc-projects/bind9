@@ -71,30 +71,6 @@ typedef struct {
 				      * */
 } updatesigs_test_params_t;
 
-static int
-setup_test(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dst_lib_init(mctx);
-
-	if (result != ISC_R_SUCCESS) {
-		return (1);
-	}
-
-	return (0);
-}
-
-static int
-teardown_test(void **state) {
-	UNUSED(state);
-
-	dst_lib_destroy();
-
-	return (0);
-}
-
 /*%
  * Check whether the 'found' tuple matches the 'expected' tuple.  'found' is
  * the 'index'th tuple output by dns__zone_updatesigs() in test 'test'.
@@ -437,7 +413,7 @@ ISC_RUN_TEST_IMPL(updatesigs_next) {
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY_CUSTOM(updatesigs_next, setup_test, teardown_test)
+ISC_TEST_ENTRY(updatesigs_next)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

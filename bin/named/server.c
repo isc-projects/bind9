@@ -10330,9 +10330,6 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	ISC_LIST_INIT(server->keystorelist);
 	ISC_LIST_INIT(server->viewlist);
 
-	/* Must be first. */
-	CHECKFATAL(dst_lib_init(named_g_mctx), "initializing DST");
-
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
 				     &server->in_roothints),
 		   "setting up root hints");
@@ -10435,8 +10432,6 @@ named_server_destroy(named_server_t **serverp) {
 	if (server->zonemgr != NULL) {
 		dns_zonemgr_detach(&server->zonemgr);
 	}
-
-	dst_lib_destroy();
 
 	INSIST(ISC_LIST_EMPTY(server->kasplist));
 	INSIST(ISC_LIST_EMPTY(server->keystorelist));

@@ -1137,14 +1137,9 @@ main(int argc, char **argv) {
 		}
 	}
 
-	ret = dst_lib_init(mctx);
-	if (ret != ISC_R_SUCCESS) {
-		fatal("could not initialize dst: %s", isc_result_totext(ret));
-	}
-
 	/*
-	 * After dst_lib_init which will set FIPS mode if requested
-	 * at build time.  The minumums are both raised to 2048.
+	 * The DST subsystem will set FIPS mode if requested at build time.
+	 * The minimum sizes are both raised to 2048.
 	 */
 	if (isc_fips_mode()) {
 		min_rsa = min_dh = 2048;
@@ -1287,7 +1282,6 @@ main(int argc, char **argv) {
 	}
 
 	cleanup_logging(&lctx);
-	dst_lib_destroy();
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

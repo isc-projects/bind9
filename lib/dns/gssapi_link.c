@@ -353,11 +353,11 @@ static dst_func_t gssapi_functions = {
 	gssapi_restore,
 };
 
-isc_result_t
+void
 dst__gssapi_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL);
+
 	if (*funcp == NULL) {
 		*funcp = &gssapi_functions;
 	}
-	return (ISC_R_SUCCESS);
 }

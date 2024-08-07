@@ -2131,7 +2131,6 @@ main(int argc, char *argv[]) {
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 	isc_log_create(mctx, &lctx, &lcfg);
 
-	RUNCHECK(dst_lib_init(mctx));
 	isc_nonce_buf(cookie_secret, sizeof(cookie_secret));
 
 	ISC_LIST_INIT(queries);
@@ -2190,8 +2189,6 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_loopmgr_run(loopmgr);
-
-	dst_lib_destroy();
 
 	isc_log_destroy(&lctx);
 

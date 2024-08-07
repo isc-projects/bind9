@@ -39,8 +39,6 @@
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 
-static bool dst_active = false;
-
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
  */
@@ -101,9 +99,6 @@ main(int argc, char **argv) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	CHECK(dst_lib_init(mctx));
-	dst_active = true;
-
 	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_registercategories(lctx, categories);
 	isc_log_setcontext(lctx);
@@ -147,10 +142,6 @@ cleanup:
 
 	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
-	}
-	if (dst_active) {
-		dst_lib_destroy();
-		dst_active = false;
 	}
 	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);

@@ -553,12 +553,6 @@ main(int argc, char **argv) {
 		fatal("Options -g, -d, -k, -r and -z require -s to be set");
 	}
 
-	result = dst_lib_init(mctx);
-	if (result != ISC_R_SUCCESS) {
-		fatal("Could not initialize dst: %s",
-		      isc_result_totext(result));
-	}
-
 	if (predecessor != NULL) {
 		int major, minor;
 
@@ -950,7 +944,6 @@ main(int argc, char **argv) {
 		dst_key_free(&prevkey);
 	}
 	dst_key_free(&key);
-	dst_lib_destroy();
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

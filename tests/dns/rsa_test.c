@@ -37,30 +37,6 @@
 
 #include <tests/dns.h>
 
-static int
-setup_test(void **state) {
-	isc_result_t result;
-
-	UNUSED(state);
-
-	result = dst_lib_init(mctx);
-
-	if (result != ISC_R_SUCCESS) {
-		return (1);
-	}
-
-	return (0);
-}
-
-static int
-teardown_test(void **state) {
-	UNUSED(state);
-
-	dst_lib_destroy();
-
-	return (0);
-}
-
 static unsigned char d[10] = { 0xa,  0x10, 0xbb, 0,    0xfe,
 			       0x15, 0x1,  0x88, 0xcc, 0x7d };
 
@@ -226,7 +202,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY_CUSTOM(isc_rsa_verify, setup_test, teardown_test)
+ISC_TEST_ENTRY(isc_rsa_verify)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
