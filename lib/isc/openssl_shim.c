@@ -16,10 +16,13 @@
 #include <string.h>
 
 #include <openssl/crypto.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/opensslv.h>
 #include <openssl/ssl.h>
+
+#include <isc/util.h>
 
 #include "openssl_shim.h"
 
@@ -57,3 +60,14 @@ SSL_CTX_set1_cert_store(SSL_CTX *ctx, X509_STORE *store) {
 	SSL_CTX_set_cert_store(ctx, store);
 }
 #endif /* !HAVE_SSL_CTX_SET1_CERT_STORE */
+
+#if !HAVE_ERR_GET_ERROR_ALL
+static const char err_empty_string = '\0';
+
+unsigned long
+ERR_get_error_all(const char **file, int *line, const char **func,
+		  const char **data, int *flags) {
+	SET_IF_NOT_NULL(func, &err_empty_string);
+	return (ERR_get_error_line_data(file, line, data, flags));
+}
+#endif /* if !HAVE_ERR_GET_ERROR_ALL */

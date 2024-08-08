@@ -24,7 +24,6 @@
 #define UNIT_TESTING
 
 #include <cmocka.h>
-#include <openssl_shim.h>
 
 #include <openssl/err.h>
 
@@ -36,6 +35,10 @@
 #include <isc/util.h>
 
 #include <dns/rdata.h>
+
+#include "../isc/openssl_shim.c"
+#include "../isc/openssl_shim.h"
+#include "openssl_shim.h"
 
 #include <tests/dns.h>
 

@@ -23,23 +23,18 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 #include <isc/result.h>
+#include <isc/tls.h>
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-dst__openssl_toresult(isc_result_t fallback);
-
-#define dst__openssl_toresult2(A, B) \
-	dst___openssl_toresult2(A, B, __FILE__, __LINE__)
-isc_result_t
-dst___openssl_toresult2(const char *funcname, isc_result_t fallback,
-			const char *file, int line);
-
-#define dst__openssl_toresult3(A, B, C) \
-	dst___openssl_toresult3(A, B, C, __FILE__, __LINE__)
-isc_result_t
-dst___openssl_toresult3(isc_logcategory_t *category, const char *funcname,
-			isc_result_t fallback, const char *file, int line);
+#define dst__openssl_toresult(fallback) \
+	isc__tlserr2result(NULL, NULL, NULL, fallback, __FILE__, __LINE__)
+#define dst__openssl_toresult2(funcname, fallback)                        \
+	isc__tlserr2result(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_CRYPTO, \
+			   funcname, fallback, __FILE__, __LINE__)
+#define dst__openssl_toresult3(category, funcname, fallback)                   \
+	isc__tlserr2result(category, DNS_LOGMODULE_CRYPTO, funcname, fallback, \
+			   __FILE__, __LINE__)
 
 isc_result_t
 dst__openssl_fromlabel(int key_base_id, const char *label, const char *pin,

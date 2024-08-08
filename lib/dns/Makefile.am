@@ -205,7 +205,6 @@ libdns_la_SOURCES =			\
 	nsec3.c				\
 	nta.c				\
 	openssl_link.c			\
-	openssl_shim.c			\
 	openssl_shim.h			\
 	opensslecdsa_link.c		\
 	openssleddsa_link.c		\
