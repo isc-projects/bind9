@@ -6474,7 +6474,7 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
         keys {
             ksk key-directory lifetime unlimited algorithm rsasha256 2048;
-            zsk lifetime 30d algorithm 8;
+            zsk lifetime 30d algorithm 8 tag-range 0 32767;
             csk key-store "hsm" lifetime P6MT12H3M15S algorithm ecdsa256;
         };
 
@@ -6497,6 +6497,11 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
     When using ``key-directory``, the key is stored in the zone's
     configured :any:`key-directory`. This is also the default.
+
+    When using ``tag-range``, valid key tags for managed keys are
+    restricted to this range [``tag-min`` ``tag-max``].  The optional
+    ``tag-range`` is intended to be used in multi-signer scenarios.
+    The default is unlimited ([0..65535]).
 
     The ``lifetime`` parameter specifies how long a key may be used
     before rolling over. For convenience, TTL-style time-unit suffixes
