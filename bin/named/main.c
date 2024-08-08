@@ -27,6 +27,7 @@
 #include <isc/attributes.h>
 #include <isc/backtrace.h>
 #include <isc/commandline.h>
+#include <isc/crypto.h>
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/fips.h>
@@ -1565,7 +1566,7 @@ main(int argc, char *argv[]) {
 	isc_managers_destroy(&named_g_mctx, &named_g_loopmgr, &named_g_netmgr);
 
 #if ENABLE_LEAK_DETECTION
-	isc__tls_setdestroycheck(true);
+	isc__crypto_setdestroycheck(true);
 	isc__uv_setdestroycheck(true);
 	isc__xml_setdestroycheck(true);
 #endif

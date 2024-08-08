@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <isc/crypto.h>
 #include <isc/lang.h>
 #include <isc/result.h>
 #include <isc/types.h>
@@ -37,19 +38,12 @@ typedef void isc_md_t;
  */
 typedef void isc_md_type_t;
 
-extern const isc_md_type_t *isc__md_md5;
-extern const isc_md_type_t *isc__md_sha1;
-extern const isc_md_type_t *isc__md_sha224;
-extern const isc_md_type_t *isc__md_sha256;
-extern const isc_md_type_t *isc__md_sha384;
-extern const isc_md_type_t *isc__md_sha512;
-
-#define ISC_MD_MD5    isc__md_md5
-#define ISC_MD_SHA1   isc__md_sha1
-#define ISC_MD_SHA224 isc__md_sha224
-#define ISC_MD_SHA256 isc__md_sha256
-#define ISC_MD_SHA384 isc__md_sha384
-#define ISC_MD_SHA512 isc__md_sha512
+#define ISC_MD_MD5    isc__crypto_md5
+#define ISC_MD_SHA1   isc__crypto_sha1
+#define ISC_MD_SHA224 isc__crypto_sha224
+#define ISC_MD_SHA256 isc__crypto_sha256
+#define ISC_MD_SHA384 isc__crypto_sha384
+#define ISC_MD_SHA512 isc__crypto_sha512
 
 #define ISC_MD5_DIGESTLENGTH	isc_md_type_get_size(ISC_MD_MD5)
 #define ISC_MD5_BLOCK_LENGTH	isc_md_type_get_block_size(ISC_MD_MD5)
@@ -196,13 +190,3 @@ isc_md_type_get_size(const isc_md_type_t *md_type);
  */
 size_t
 isc_md_type_get_block_size(const isc_md_type_t *md_type);
-
-/**
- * Private
- */
-
-void
-isc__md_initialize(void);
-
-void
-isc__md_shutdown(void);

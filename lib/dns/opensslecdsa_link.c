@@ -690,9 +690,9 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (dctx->key->key_alg == DST_ALG_ECDSA256) {
-		type = EVP_sha256();
+		type = isc__crypto_sha256;
 	} else {
-		type = EVP_sha384();
+		type = isc__crypto_sha384;
 	}
 
 	if (dctx->use == DO_SIGN) {
