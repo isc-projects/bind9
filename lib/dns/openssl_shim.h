@@ -28,12 +28,6 @@
 #define RSA_MAX_PUBEXP_BITS 35
 #endif /* ifndef RSA_MAX_PUBEXP_BITS */
 
-#if !HAVE_ERR_GET_ERROR_ALL
-unsigned long
-ERR_get_error_all(const char **file, int *line, const char **func,
-		  const char **data, int *flags);
-#endif /* if !HAVE_ERR_GET_ERROR_ALL */
-
 #if !HAVE_EVP_PKEY_EQ
 #define EVP_PKEY_eq EVP_PKEY_cmp
 #endif

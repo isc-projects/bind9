@@ -137,7 +137,8 @@ enable_fips_mode(void) {
 	}
 
 	if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
-		dst__openssl_toresult2("FIPS_mode_set", DST_R_OPENSSLFAILURE);
+		isc_tlserr2result(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_OTHER,
+				  "FIPS_mode_set", ISC_R_CRYPTOFAILURE);
 		exit(EXIT_FAILURE);
 	}
 #endif
@@ -1651,4 +1652,76 @@ isc_tlsctx_set_random_session_id_context(isc_tlsctx_t *ctx) {
 
 	RUNTIME_CHECK(
 		SSL_CTX_set_session_id_context(ctx, session_id_ctx, len) == 1);
+}
+
+static isc_result_t
+isc__tls_toresult(isc_result_t fallback) {
+	isc_result_t result = fallback;
+	unsigned long err = ERR_peek_error();
+#if defined(ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED)
+	int lib = ERR_GET_LIB(err);
+#endif /* if defined(ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED) */
+	int reason = ERR_GET_REASON(err);
+
+	switch (reason) {
+	/*
+	 * ERR_* errors are globally unique; others
+	 * are unique per sublibrary
+	 */
+	case ERR_R_MALLOC_FAILURE:
+		result = ISC_R_NOMEMORY;
+		break;
+	default:
+#if defined(ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED)
+		if (lib == ERR_R_ECDSA_LIB &&
+		    reason == ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED)
+		{
+			result = ISC_R_NOENTROPY;
+			break;
+		}
+#endif /* if defined(ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED) */
+		break;
+	}
+
+	return (result);
+}
+
+isc_result_t
+isc__tlserr2result(isc_logcategory_t *category, isc_logmodule_t *module,
+		   const char *funcname, isc_result_t fallback,
+		   const char *file, int line) {
+	isc_result_t result = isc__tls_toresult(fallback);
+
+	if (category == NULL) {
+		goto done;
+	}
+
+	isc_log_write(isc_lctx, category, module, ISC_LOG_WARNING,
+		      "%s (%s:%d) failed (%s)", funcname, file, line,
+		      isc_result_totext(result));
+
+	if (result == ISC_R_NOMEMORY) {
+		goto done;
+	}
+
+	for (;;) {
+		const char *func, *data;
+		int flags;
+		unsigned long err = ERR_get_error_all(&file, &line, &func,
+						      &data, &flags);
+		if (err == 0U) {
+			break;
+		}
+
+		char buf[256];
+		ERR_error_string_n(err, buf, sizeof(buf));
+
+		isc_log_write(isc_lctx, category, module, ISC_LOG_INFO,
+			      "%s:%s:%d:%s", buf, file, line,
+			      ((flags & ERR_TXT_STRING) != 0) ? data : "");
+	}
+
+done:
+	ERR_clear_error();
+	return (result);
 }
