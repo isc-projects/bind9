@@ -21,7 +21,7 @@ Changelog
 Changes prior to 9.18.28
 ------------------------
 
-::
+.. code-block:: none
 
 		--- 9.18.28 released ---
 
@@ -106,12 +106,16 @@ Changes prior to 9.18.28
 	6382.	[bug]		Fix RPZ response's SOA record TTL, which was incorrectly
 				set to 1 if 'add-soa' is used. [GL #3323]
 
+.. code-block:: none
+
 		--- 9.18.27 released ---
 
 	6374.	[bug]		Skip to next RRSIG if signature has expired or is in
 				the future rather than failing immediately. [GL #4586]
 
 	6372.	[func]		Implement signature jitter for dnssec-policy. [GL #4554]
+
+.. code-block:: none
 
 		--- 9.18.26 released ---
 
@@ -176,6 +180,8 @@ Changes prior to 9.18.28
 				This lead to failures when DNSKEYs where updated as the
 				TTLs mismatched. [GL #4466]
 
+.. code-block:: none
+
 		--- 9.18.25 released ---
 
 	6356.	[bug]		Create the pruning task in the dns_cache_flush(), so
@@ -193,10 +199,14 @@ Changes prior to 9.18.28
 
 	6350.	[bug]		Address use after free in expire_lru_headers. [GL #4495]
 
+.. code-block:: none
+
 		--- 9.18.24 released ---
 
 	6343.	[bug]		Fix case insensitive setting for isc_ht hashtable.
 				[GL #4568]
+
+.. code-block:: none
 
 		--- 9.18.23 released ---
 
@@ -214,6 +224,8 @@ Changes prior to 9.18.28
 	6320.	[bug]		Under some circumstances, the DoT code in client
 				mode could process more than one message at a time when
 				that was not expected. That has been fixed. [GL #4487]
+
+.. code-block:: none
 
 		--- 9.18.22 released ---
 
@@ -263,6 +275,8 @@ Changes prior to 9.18.28
 	6299.	[port]		NetBSD has added 'hmac' to libc which collides with our
 				use of 'hmac'. [GL #4478]
 
+.. code-block:: none
+
 		--- 9.18.21 released ---
 
 	6297.	[bug]		Improve LRU cleaning behaviour. [GL #4448]
@@ -289,6 +303,8 @@ Changes prior to 9.18.28
 				[GL #4396]
 
 	6282.	[func]		Deprecate AES-based DNS cookies. [GL #4421]
+
+.. code-block:: none
 
 		--- 9.18.20 released ---
 
@@ -334,6 +350,8 @@ Changes prior to 9.18.28
 				rdataset structure. This resulted in TYPE0 being
 				reported as the covered value of the RRSIG when dumping
 				the cache contents. [GL #4314]
+
+.. code-block:: none
 
 		--- 9.18.19 released ---
 
@@ -383,6 +401,8 @@ Changes prior to 9.18.28
 	6224.	[bug]		Check the If-Modified-Since value length to prevent
 				out-of-bounds write. [GL #4124]
 
+.. code-block:: none
+
 		--- 9.18.18 released ---
 
 	6220.	[func]		Deprecate the 'dialup' and 'heartbeat-interval'
@@ -399,6 +419,8 @@ Changes prior to 9.18.28
 
 	6212.	[bug]		Don't process detach and close netmgr events when
 				the netmgr has been paused. [GL #4200]
+
+.. code-block:: none
 
 		--- 9.18.17 released ---
 
@@ -441,6 +463,8 @@ Changes prior to 9.18.28
 	6166.	[func]		Retry without DNS COOKIE on FORMERR if it appears that
 				the FORMERR was due to the presence of a DNS COOKIE
 				option. [GL #4049]
+
+.. code-block:: none
 
 		--- 9.18.16 released ---
 
@@ -506,6 +530,8 @@ Changes prior to 9.18.28
 				dighost_shutdown() callback twice and cause problems
 				if the callback function was not idempotent. [GL #4039]
 
+.. code-block:: none
+
 		--- 9.18.15 released ---
 
 	6164.	[bug]		Set the rndc idle read timeout back to 60 seconds,
@@ -537,6 +563,8 @@ Changes prior to 9.18.28
 				including cmocka.h in the unit tests, because OpenSSL
 				3.1.0 uses __attribute__(malloc), conflicting with a
 				redefined malloc in cmocka.h. [GL #4000]
+
+.. code-block:: none
 
 		--- 9.18.14 released ---
 
@@ -587,6 +615,8 @@ Changes prior to 9.18.28
 	6121.	[bug]		Fix BIND and dig zone transfer hanging when
 				downloading large zones over TLS from a primary server,
 				especially over unstable connections. [GL #3867]
+
+.. code-block:: none
 
 		--- 9.18.13 released ---
 
@@ -641,6 +671,8 @@ Changes prior to 9.18.28
 				feature is deprecated, but it is not yet removed,
 				so the bug still needed fixing.) [GL #3790]
 
+.. code-block:: none
+
 		--- 9.18.12 released ---
 
 	6083.	[bug]		Fix DNSRPS-enabled builds as they were inadvertently
@@ -693,6 +725,8 @@ Changes prior to 9.18.28
 
 	5850.	[func]		Run the RPZ update process on the offload threads.
 				[GL #3190]
+
+.. code-block:: none
 
 		--- 9.18.11 released ---
 
@@ -780,6 +814,8 @@ Changes prior to 9.18.28
 				implementation has been optimized to work with hundreds
 				of thousands of member zones. [GL #3212] [GL #3744]
 
+.. code-block:: none
+
 		--- 9.18.10 released ---
 
 	6043.	[bug]		The key file IO locks objects would never get
@@ -846,6 +882,8 @@ Changes prior to 9.18.28
 				the cache after expiry, even when serve-stale is
 				in use. [GL #3386]
 
+.. code-block:: none
+
 		--- 9.18.9 released ---
 
 	6013.	[bug]		Fix a crash that could happen when you change
@@ -892,6 +930,8 @@ Changes prior to 9.18.28
 
 	5994.	[func]		Refactor the isc_httpd implementation used in the
 				statistics channel. [GL !6879]
+
+.. code-block:: none
 
 		--- 9.18.8 released ---
 
@@ -940,6 +980,8 @@ Changes prior to 9.18.28
 
 	5963.	[bug]		Ensure struct named_server is properly initialized.
 				[GL #6531]
+
+.. code-block:: none
 
 		--- 9.18.7 released ---
 
@@ -1024,6 +1066,8 @@ Changes prior to 9.18.28
 	5935.	[bug]		Fix DiG lookup reference counting bug, which could
 				be observed in NSSEARCH mode. [GL #3478]
 
+.. code-block:: none
+
 		--- 9.18.6 released ---
 
 	5934.	[func]		Improve fetches-per-zone fetch limit logging to log
@@ -1090,6 +1134,8 @@ Changes prior to 9.18.28
 				where the test is not DNSKEY algorithm specific.
 				[GL #3440]
 
+.. code-block:: none
+
 		--- 9.18.5 released ---
 
 	5917.	[bug]		Update ifconfig.sh script as is miscomputed interface
@@ -1139,6 +1185,8 @@ Changes prior to 9.18.28
 				that there is no configured pre-existing forward-only
 				forward zone with that name. [GL #2506]
 
+.. code-block:: none
+
 		--- 9.18.4 released ---
 
 	5899.	[func]		Don't try to process DNSSEC-related and ZONEMD records
@@ -1169,6 +1217,8 @@ Changes prior to 9.18.28
 	5837.	[func]		Key timing options for `dnssec-keygen` and
 				`dnssec-settime` now accept times as printed by
 				`dnssec-settime -p`. [GL !2947]
+
+.. code-block:: none
 
 		--- 9.18.3 released ---
 
@@ -1251,6 +1301,8 @@ Changes prior to 9.18.28
 				verification, both to BIND and dig, making it possible
 				to implement Strict and Mutual TLS authentication,
 				as described in RFC 9103, Section 9.3. [GL #3163]
+
+.. code-block:: none
 
 		--- 9.18.2 released ---
 
@@ -1335,6 +1387,8 @@ Changes prior to 9.18.28
 	5821.	[bug]		Fix query context management issues in the TCP part
 				of dig. [GL #3184]
 
+.. code-block:: none
+
 		--- 9.18.1 released ---
 
 	5820.	[security]	An assertion could occur in resume_dslookup() if the
@@ -1417,6 +1471,8 @@ Changes prior to 9.18.28
 				in BIND internal structures, causing a crash or other
 				unexpected errors. [GL #3060]
 
+.. code-block:: none
+
 		--- 9.18.0 released ---
 
 	5796.	[bug]		Ignore the invalid (<= 0) values returned
@@ -1447,6 +1503,8 @@ Changes prior to 9.18.28
 				is now ISC_R_SHUTTINGDOWN.  Change the control
 				channel code to use ISC_R_SHUTTINGDOWN result
 				code to detect named being shut down. [GL #3079]
+
+.. code-block:: none
 
 		--- 9.17.22 released ---
 
@@ -1509,6 +1567,8 @@ Changes prior to 9.18.28
 	5776.	[bug]		Add a missing isc_condition_destroy() for nmsocket
 				condition variable and add missing isc_mutex_destroy()
 				for nmworker lock. [GL #3051]
+
+.. code-block:: none
 
 		--- 9.17.21 released ---
 
@@ -1592,6 +1652,8 @@ Changes prior to 9.18.28
 				via DNS-over-HTTPS, according to the recommendations
 				given in RFC 8484. [GL #2854]
 
+.. code-block:: none
+
 		--- 9.17.20 released ---
 
 	5755.	[bug]		The statistics channel wasn't correctly handling
@@ -1673,6 +1735,8 @@ Changes prior to 9.18.28
 
 	5737.	[bug]		Address Coverity warning in lib/dns/dnssec.c.
 				[GL #2935]
+
+.. code-block:: none
 
 		--- 9.17.19 released ---
 
@@ -1783,6 +1847,8 @@ Changes prior to 9.18.28
 	5712.	[func]		Remove native PKCS#11 support in favor of engine_pkcs11
 				from the OpenSC project. [GL #2691]
 
+.. code-block:: none
+
 		--- 9.17.18 released ---
 
 	5711.	[bug]		"map" files exceeding 2GB in size failed to load due to
@@ -1890,6 +1956,8 @@ Changes prior to 9.18.28
 				successor key. This enables dnssec-signzone to gradually
 				replace RRSIGs during a ZSK rollover. [GL #1551]
 
+.. code-block:: none
+
 		--- 9.17.17 released ---
 
 	5689.	[security]	An assertion failure occurred when named attempted to
@@ -1982,6 +2050,8 @@ Changes prior to 9.18.28
 				algorithms for the same listener. This has been fixed.
 				[GL #2756]
 
+.. code-block:: none
+
 		--- 9.17.16 released ---
 
 	5671.	[bug]		A race condition could occur where two threads were
@@ -2069,6 +2139,8 @@ Changes prior to 9.18.28
 	5653.	[bug]		A bug that caused the NSEC3 salt to be changed on every
 				restart for zones using KASP has been fixed. [GL #2725]
 
+.. code-block:: none
+
 		--- 9.17.14 released ---
 
 	5652.	[bug]		A copy-and-paste error in change 5584 caused the
@@ -2125,6 +2197,8 @@ Changes prior to 9.18.28
 
 	5639.	[bug]		Check that the first and last SOA record of an AXFR are
 				consistent. [GL #2528]
+
+.. code-block:: none
 
 		--- 9.17.13 released ---
 
@@ -2228,6 +2302,8 @@ Changes prior to 9.18.28
 				inconsistencies have been eliminated. [GL #389]
 				[GL #2289]
 
+.. code-block:: none
+
 		--- 9.17.12 released ---
 
 	5617.	[placeholder]
@@ -2319,6 +2395,8 @@ Changes prior to 9.18.28
 				some platforms due to calling character classification
 				functions declared in the <ctype.h> header with
 				arguments of type char. [GL #2567]
+
+.. code-block:: none
 
 		--- 9.17.11 released ---
 
@@ -2424,6 +2502,8 @@ Changes prior to 9.18.28
 				put on the wrong free list. This prevented named from
 				starting up. [GL #2460]
 
+.. code-block:: none
+
 		--- 9.17.10 released ---
 
 	5578.	[protocol]	Make "check-names" accept A records below "_spf",
@@ -2509,6 +2589,8 @@ Changes prior to 9.18.28
 				"stale-answer-ttl" has been changed from 1 second to 30
 				seconds, following RFC 8767 recommendations. [GL #2248]
 
+.. code-block:: none
+
 		--- 9.17.9 released ---
 
 	5559.	[bug]		The --with-maxminddb=PATH form of the build-time option
@@ -2551,6 +2633,8 @@ Changes prior to 9.18.28
 	5548.	[placeholder]
 
 	5547.	[placeholder]
+
+.. code-block:: none
 
 		--- 9.17.8 released ---
 
@@ -2599,6 +2683,8 @@ Changes prior to 9.18.28
 
 	5534.	[bug]		The CNAME synthesized from a DNAME was incorrectly
 				followed when the QTYPE was CNAME or ANY. [GL #2280]
+
+.. code-block:: none
 
 		--- 9.17.7 released ---
 
@@ -2661,6 +2747,8 @@ Changes prior to 9.18.28
 	5517.	[bug]		Do not treat UV_EOF as a TCP4RecvErr or a TCP6RecvErr.
 				[GL #2208]
 
+.. code-block:: none
+
 		--- 9.17.6 released ---
 
 	5516.	[func]		The default EDNS buffer size has been changed from 4096
@@ -2712,6 +2800,8 @@ Changes prior to 9.18.28
 	5503.	[bug]		Cleaned up reference counting of network manager
 				handles, now using isc_nmhandle_attach() and _detach()
 				instead of _ref() and _unref(). [GL #2122]
+
+.. code-block:: none
 
 		--- 9.17.5 released ---
 
@@ -2770,6 +2860,8 @@ Changes prior to 9.18.28
 	5486.	[func]		Add 'rndc dnssec -checkds' command, which signals to
 				named that the DS record for a given zone or key has
 				been updated in the parent zone. [GL #1613]
+
+.. code-block:: none
 
 		--- 9.17.4 released ---
 
@@ -2892,6 +2984,8 @@ Changes prior to 9.18.28
 	5459.	[bug]		Fixed bad isc_mem_put() size when an invalid type was
 				specified in an "update-policy" rule. [GL #1990]
 
+.. code-block:: none
+
 		--- 9.17.3 released ---
 
 	5458.	[bug]		Prevent a theoretically possible NULL dereference caused
@@ -2956,6 +3050,8 @@ Changes prior to 9.18.28
 
 	5439.	[bug]		The DS RRset returned by dns_keynode_dsset() was used in
 				a non-thread-safe manner. [GL #1926]
+
+.. code-block:: none
 
 		--- 9.17.2 released ---
 
@@ -3157,6 +3253,8 @@ Changes prior to 9.18.28
 				implicitly set to "yes". Now "inline-signing" is only
 				set to "yes" if the zone is not dynamic. [GL #1709]
 
+.. code-block:: none
+
 		--- 9.17.1 released ---
 
 	5383.	[func]		Add a quota attach function with a callback and clean up
@@ -3221,6 +3319,8 @@ Changes prior to 9.18.28
 				contained special characters (e.g. '/'). [GL #1655]
 
 	5367.	[placeholder]
+
+.. code-block:: none
 
 		--- 9.17.0 released ---
 
@@ -3315,6 +3415,8 @@ Changes prior to 9.18.28
 	5348.	[bug]		dnssec-settime -Psync was not being honoured.
 				Thanks to Tony Finch. [GL !2893]
 
+.. code-block:: none
+
 		--- 9.15.8 released ---
 
 	5347.	[bug]		Fixed a bug that could cause an intermittent crash
@@ -3353,6 +3455,8 @@ Changes prior to 9.18.28
 
 	5337.	[func]		'named -V' now reports maxminddb and protobuf-c
 				versions. [GL !2686]
+
+.. code-block:: none
 
 		--- 9.15.7 released ---
 
@@ -3408,6 +3512,8 @@ Changes prior to 9.18.28
 				and version->bytes. [GL #1341]
 
 	5320.	[cleanup]	Silence TSAN on header->count. [GL #1344]
+
+.. code-block:: none
 
 		--- 9.15.6 released ---
 
@@ -3499,6 +3605,8 @@ Changes prior to 9.18.28
 				readability and allow correct parsing of YAML
 				output. [GL #1226]
 
+.. code-block:: none
+
 		--- 9.15.5 released ---
 
 	5299.	[security]	A flaw in DNSSEC verification when transferring
@@ -3528,6 +3636,8 @@ Changes prior to 9.18.28
 
 	5292.	[bug]		Queue 'rndc nsec3param' requests while signing inline
 				zone changes. [GL #1205]
+
+.. code-block:: none
 
 		--- 9.15.4 released ---
 
@@ -3573,6 +3683,8 @@ Changes prior to 9.18.28
 
 	5278.	[func]		Add YAML output formats for dig, mdig and delv;
 				use the "+yaml" option to enable. [GL #1145]
+
+.. code-block:: none
 
 		--- 9.15.3 released ---
 
@@ -3628,6 +3740,8 @@ Changes prior to 9.18.28
 	5264.	[func]		New DNS Cookie algorithm - siphash24 - has been added
 				to BIND 9, and the old HMAC-SHA DNS Cookie algorithms
 				have been removed. [GL #605]
+
+.. code-block:: none
 
 		--- 9.15.2 released ---
 
@@ -3685,6 +3799,8 @@ Changes prior to 9.18.28
 	5249.	[bug]		Fix a possible underflow in recursion clients
 				statistics when hitting recursive clients
 				soft quota. [GL #1067]
+
+.. code-block:: none
 
 		--- 9.15.1 released ---
 
@@ -3751,6 +3867,8 @@ Changes prior to 9.18.28
 
 	5234.	[port]		arm: just use the compiler's default support for
 				yield. [GL #981]
+
+.. code-block:: none
 
 		--- 9.15.0 released ---
 
@@ -4152,6 +4270,8 @@ Changes prior to 9.18.28
 
 	5109.	[cleanup]	Remove support for RSAMD5 algorithm. [GL #628]
 
+.. code-block:: none
+
 		--- 9.13.5 released ---
 
 	5108.	[bug]		Named could fail to determine bottom of zone when
@@ -4199,6 +4319,8 @@ Changes prior to 9.18.28
 
 	5099.	[func]		Failed mutex and conditional creations are always
 				fatal. [GL #674]
+
+.. code-block:: none
 
 		--- 9.13.4 released ---
 
@@ -4438,6 +4560,8 @@ Changes prior to 9.18.28
 	5030.	[bug]		Align CMSG buffers to a 64-bit boundary, fixes crash
 				on architectures with strict alignment. [GL #521]
 
+.. code-block:: none
+
 		--- 9.13.3 released ---
 
 	5029.	[func]		Workarounds for servers that misbehave when queried
@@ -4578,6 +4702,8 @@ Changes prior to 9.18.28
 	4988.	[bug]		Don't synthesize NXDOMAIN from NSEC for records under
 				a DNAME.
 
+.. code-block:: none
+
 		--- 9.13.2 released ---
 
 	4987.	[cleanup]	dns_rdataslab_tordataset() and its related
@@ -4645,6 +4771,8 @@ Changes prior to 9.18.28
 	4970.	[func]		Add QNAME minimization option to resolver. [GL #16]
 
 	4969.	[cleanup]	Refactor zone logging functions. [GL #269]
+
+.. code-block:: none
 
 		--- 9.13.1 released ---
 
@@ -4722,6 +4850,8 @@ Changes prior to 9.18.28
 
 	4951.	[protocol]	Add "HOME.ARPA" to list of built in empty zones as
 				per RFC 8375. [GL #273]
+
+.. code-block:: none
 
 		--- 9.13.0 released ---
 
@@ -5098,6 +5228,8 @@ Changes prior to 9.18.28
 	4842.	[bug]		Conditionally compile opensslecdsa_link.c to avoid
 				warnings about unused function. [RT #46790]
 
+.. code-block:: none
+
 		--- 9.12.0rc1 released ---
 
 	4841.	[bug]		Address -fsanitize=undefined warnings. [RT #46786]
@@ -5206,6 +5338,8 @@ Changes prior to 9.18.28
 
 	4810.	[test]		The chain system test failed if the IPv6 interfaces
 				were not configured. [RT #46508]
+
+.. code-block:: none
 
 		--- 9.12.0b2 released ---
 
@@ -5333,6 +5467,8 @@ Changes prior to 9.18.28
 	4773.	[doc]		Fixed generating Doxygen documentation for functions
 				annotated using certain macros.  Miscellaneous
 				Doxygen-related cleanups. [RT #46276]
+
+.. code-block:: none
 
 		--- 9.12.0b1 released ---
 
@@ -5568,6 +5704,8 @@ Changes prior to 9.18.28
 				[RT #45836]
 
 	4716.	[placeholder]
+
+.. code-block:: none
 
 		--- 9.12.0a1 released ---
 
@@ -6396,7 +6534,11 @@ Changes prior to 9.18.28
 				looking for the NSEC3 records proving nonexistence
 				of the answer. [RT #43247]
 
+.. code-block:: none
+
 		--- 9.11.0 released ---
+
+.. code-block:: none
 
 		--- 9.11.0rc3 released ---
 
@@ -6409,6 +6551,8 @@ Changes prior to 9.18.28
 				calling dns_dispatch_getnext. [RT #43229]
 
 	4469.	[placeholder]
+
+.. code-block:: none
 
 		--- 9.11.0rc2 released ---
 
@@ -6433,6 +6577,8 @@ Changes prior to 9.18.28
 
 	4461.	[bug]		win32: not all external data was properly marked
 				as external data for windows dll. [RT #43161]
+
+.. code-block:: none
 
 		--- 9.11.0rc1 released ---
 
@@ -6549,6 +6695,8 @@ Changes prior to 9.18.28
 	4427.	[bug]		The "query" and "response" parameters to the
 				"dnstap" option had their functions reversed.
 
+.. code-block:: none
+
 		--- 9.11.0b3 released ---
 
 	4426.	[bug]		Addressed Coverity warnings. [RT #42908]
@@ -6606,6 +6754,8 @@ Changes prior to 9.18.28
 	4413.	[bug]		GSSAPI negotiation could fail if GSS_S_CONTINUE_NEEDED
 				was returned. [RT #42733]
 
+.. code-block:: none
+
 		--- 9.11.0b2 released ---
 
 	4412.	[cleanup]	Make fixes for GCC 6. ISC_OFFSET_MAXIMUM macro was
@@ -6646,6 +6796,8 @@ Changes prior to 9.18.28
 				clone and gai_error.
 
 	4402.	[bug]		protoc-c is now a hard requirement for --enable-dnstap.
+
+.. code-block:: none
 
 		--- 9.11.0b1 released ---
 
@@ -6709,6 +6861,8 @@ Changes prior to 9.18.28
 	4381.	[bug]		Missing "zone-directory" option in catalog zone
 				definition caused BIND to crash. [RT #42579]
 
+.. code-block:: none
+
 		--- 9.11.0a3 released ---
 
 	4380.	[experimental]	Added a "zone-directory" option to "catalog-zones"
@@ -6751,6 +6905,8 @@ Changes prior to 9.18.28
 
 	4370.	[bug]		Address python3 compatibility issues with RNDC module.
 				[RT #42499] [RT #42506]
+
+.. code-block:: none
 
 		--- 9.11.0a2 released ---
 
@@ -6850,6 +7006,8 @@ Changes prior to 9.18.28
 
 	4342.	[bug]		'rndc flushtree' could fail to clean the tree if there
 				wasn't a node at the specified name. [RT #41846]
+
+.. code-block:: none
 
 		--- 9.11.0a1 released ---
 
@@ -8034,6 +8192,8 @@ Changes prior to 9.18.28
 	4000.	[bug]		NXDOMAIN redirection incorrectly handled NXRRSET
 				from the redirect zone. [RT #37722]
 
+.. code-block:: none
+
 	3999.	[func]		"mkeys" and "nzf" files are now named after
 				their corresponding views, unless the view name
 				contains characters that would be incompatible
@@ -8706,6 +8866,8 @@ Changes prior to 9.18.28
 	3805.	[contrib]	Added contrib/perftcpdns, a performance testing tool
 				for DNS over TCP. [RT #35710]
 
+.. code-block:: none
+
 		--- 9.10.0rc1 released ---
 
 	3804.	[bug]		Corrected a race condition in dispatch.c in which
@@ -8756,6 +8918,8 @@ Changes prior to 9.18.28
 
 	3788.	[bug]		dns_peer_getrequestsit was returning request_nsid by
 				mistake.
+
+.. code-block:: none
 
 		--- 9.10.0b2 released ---
 
@@ -8870,6 +9034,8 @@ Changes prior to 9.18.28
 	3756.	[bug]		GSSAPI Kerberos realm checking was broken in
 				check_config leading to spurious messages being
 				logged.  [RT #35443]
+
+.. code-block:: none
 
 		--- 9.10.0b1 released ---
 
@@ -9017,6 +9183,8 @@ Changes prior to 9.18.28
 	3725.	[contrib]	Updated zkt and nslint to newest versions,
 				cleaned up and rearranged the contrib
 				directory, and added a README.
+
+.. code-block:: none
 
 		--- 9.10.0a2 released ---
 
@@ -9220,6 +9388,8 @@ Changes prior to 9.18.28
 	3675.	[misc]		Provide a place for third parties to add version
 				information for their extensions in the version
 				file by setting the EXTENSIONS variable.
+
+.. code-block:: none
 
 		--- 9.10.0a1 released ---
 
@@ -9772,6 +9942,8 @@ Changes prior to 9.18.28
 				all platforms without using libregex, which
 				can be vulnerable to memory exhaustion attack
 				(CVE-2013-2266). [RT #32688]
+
+.. code-block:: none
 
 	3499.	[doc]		Corrected ARM documentation of built-in zones.
 				[RT #32694]
@@ -10505,6 +10677,8 @@ Changes prior to 9.18.28
 				times before giving up.  mksymtbl was using non
 				portable perl to covert 64 bit hex strings. [RT #27653]
 
+.. code-block:: none
+
 		--- 9.9.0rc2 released ---
 
 	3270.	[bug]		"rndc reload" didn't reuse existing zones correctly
@@ -10540,6 +10714,8 @@ Changes prior to 9.18.28
 
 	3260.	[bug]		"rrset-order cyclic" could appear not to rotate
 				for some query patterns.  [RT #27170/27185]
+
+.. code-block:: none
 
 		--- 9.9.0rc1 released ---
 
@@ -10677,6 +10853,8 @@ Changes prior to 9.18.28
 				referencing fetch context after it's been freed.
 				[RT #26720]
 
+.. code-block:: none
+
 		--- 9.9.0b2 released ---
 
 	3220.	[bug]		Change #3186 was incomplete; dns_db_rpz_findips()
@@ -10778,6 +10956,8 @@ Changes prior to 9.18.28
 
 	3187.	[port]		win32: support for Visual Studio 2008.  [RT #26356]
 
+.. code-block:: none
+
 		--- 9.9.0b1 released ---
 
 	3186.	[bug]		Version/db mismatch in rpz code. [RT #26180]
@@ -10837,6 +11017,8 @@ Changes prior to 9.18.28
 
 	3171.	[bug]		Exclusively lock the task when adding a zone using
 				'rndc addzone'.  [RT #25600]
+
+.. code-block:: none
 
 		--- 9.9.0a3 released ---
 
@@ -10900,6 +11082,8 @@ Changes prior to 9.18.28
 
 	3156.	[placeholder]
 
+.. code-block:: none
+
 		--- 9.9.0a2 released ---
 
 	3155.	[bug]		Fixed a build failure when using contrib DLZ
@@ -10926,6 +11110,8 @@ Changes prior to 9.18.28
 				forwarding a UPDATE message. [RT #24711]
 
 	3147.	[func]		Initial inline signing support.  [RT #23657]
+
+.. code-block:: none
 
 		--- 9.9.0a1 released ---
 
@@ -11400,6 +11586,8 @@ Changes prior to 9.18.28
 	3009.	[bug]		clients-per-query code didn't work as expected with
 				particular query patterns. [RT #22972]
 
+.. code-block:: none
+
 		--- 9.8.0b1 released ---
 
 	3008.	[func]		Response policy zones (RPZ) support. [RT #21726]
@@ -11502,6 +11690,8 @@ Changes prior to 9.18.28
 				is ".".  [RT #22645]
 
 	2983.	[bug]		Include "loadkeys" in rndc help output. [RT #22493]
+
+.. code-block:: none
 
 		--- 9.8.0a1 released ---
 
@@ -12108,6 +12298,8 @@ Changes prior to 9.18.28
 	2807.	[bug]		Fixed a possible ASSERT when reconfiguring zone
 				keys. [RT #20720]
 
+.. code-block:: none
+
 		--- 9.7.0rc1 released ---
 
 	2806.	[bug]		"rdnc sign" could delay re-signing the DNSKEY
@@ -12180,6 +12372,8 @@ Changes prior to 9.18.28
 				dynamically reconfigured. [RT #20659]
 
 	2786.	[bug]		Additional could be promoted to answer. [RT #20663]
+
+.. code-block:: none
 
 		--- 9.7.0b3 released ---
 
@@ -12302,6 +12496,8 @@ Changes prior to 9.18.28
 	2743.	[bug]		RRSIG could be incorrectly set in the NSEC3 record
 				for a insecure delegation.
 
+.. code-block:: none
+
 		--- 9.7.0b2 released ---
 
 	2742.	[cleanup]	Clarify some DNSSEC-related log messages in
@@ -12400,6 +12596,8 @@ Changes prior to 9.18.28
 				[RT #20399]
 
 	2716.	[bug]		nslookup debug mode didn't return the ttl. [RT #20414]
+
+.. code-block:: none
 
 		--- 9.7.0b1 released ---
 
@@ -12562,6 +12760,8 @@ Changes prior to 9.18.28
 	2675.	[bug]		dnssec-signzone could crash if the key directory
 				did not exist. [RT #20232]
 
+.. code-block:: none
+
 		--- 9.7.0a3 released ---
 
 	2674.	[bug]		"dnssec-lookaside auto;" crashed if named was built
@@ -12664,6 +12864,8 @@ Changes prior to 9.18.28
 
 	2645.	[port]		"gcc -m32" didn't work on amd64 and x86_64 platforms
 				which default to 64 bits. [RT #19927]
+
+.. code-block:: none
 
 		--- 9.7.0a2 released ---
 
@@ -12774,6 +12976,8 @@ Changes prior to 9.18.28
 				in the foreground. [RT #19844]
 
 	2613.	[placeholder]
+
+.. code-block:: none
 
 		--- 9.7.0a1 released ---
 
@@ -13159,6 +13363,8 @@ Changes prior to 9.18.28
 	2499.	[port]		solaris: lib/lwres/getaddrinfo.c namespace clash.
 				[RT #18837]
 
+.. code-block:: none
+
 		--- 9.6.0rc1 released ---
 
 	2498.	[bug]		Removed a bogus function argument used with
@@ -13221,6 +13427,8 @@ Changes prior to 9.18.28
 
 	2482.	[port]		libxml2: support versions 2.7.* in addition
 				to 2.6.*. [RT #18806]
+
+.. code-block:: none
 
 		--- 9.6.0b1 released ---
 
@@ -13291,6 +13499,8 @@ Changes prior to 9.18.28
 				option for dig. [RT #18757]
 
 	2461.	[port]		sunos: Change #2363 was not complete. [RT #17513]
+
+.. code-block:: none
 
 		--- 9.6.0a1 released ---
 
@@ -13885,6 +14095,8 @@ Changes prior to 9.18.28
 	2268.	[bug]		0.IN-ADDR.ARPA was missing from the empty zones
 				list.
 
+.. code-block:: none
+
 		--- 9.5.0b1 released ---
 
 	2267.	[bug]		Radix tree node_num value could be set incorrectly,
@@ -13911,6 +14123,8 @@ Changes prior to 9.18.28
 				value. [RT #17236]
 
 	2259.	[placeholder]
+
+.. code-block:: none
 
 		--- 9.5.0a7 released ---
 
@@ -14068,6 +14282,8 @@ Changes prior to 9.18.28
 	2207.	[port]		Some implementations of getaddrinfo() fail to set
 				ai_canonname correctly. [RT #17061]
 
+.. code-block:: none
+
 		--- 9.5.0a6 released ---
 
 	2206.	[security]	"allow-query-cache" and "allow-recursion" now
@@ -14119,6 +14335,8 @@ Changes prior to 9.18.28
 				when generating DNSKEYs. [RT #16954]
 
 	2194.	[bug]		Close journal before calling 'done' in xfrin.c.
+
+.. code-block:: none
 
 		--- 9.5.0a5 released ---
 
@@ -14191,6 +14409,8 @@ Changes prior to 9.18.28
 	2173.	[port]		win32: When compiling with MSVS 2005 SP1 we also
 				need to ship Microsoft.VC80.MFCLOC.
 
+.. code-block:: none
+
 		--- 9.5.0a4 released ---
 
 	2172.	[bug]		query_addsoa() was being called with a non zone db.
@@ -14211,6 +14431,8 @@ Changes prior to 9.18.28
 
 	2167.	[bug]		When re-using a automatic zone named failed to
 				attach it to the new view. [RT #16786]
+
+.. code-block:: none
 
 		--- 9.5.0a3 released ---
 
@@ -14239,6 +14461,8 @@ Changes prior to 9.18.28
 
 	2160.	[bug]		libisc wasn't handling NULL ifa_addr pointers returned
 				from getifaddrs(). [RT #16708]
+
+.. code-block:: none
 
 		--- 9.5.0a2 released ---
 
@@ -14344,6 +14568,8 @@ Changes prior to 9.18.28
 
 	2124.	[security]	It was possible to dereference a freed fetch
 				context. [RT #16584]
+
+.. code-block:: none
 
 		--- 9.5.0a1 released ---
 
@@ -15486,6 +15712,8 @@ Changes prior to 9.18.28
 	1750.	[port]		lib/bind/make/rules.in:subdirs was not bash friendly.
 				[RT #12864]
 
+.. code-block:: none
+
 	1749.	[bug]		'check-names response ignore;' failed to ignore.
 				[RT #12866]
 
@@ -16224,6 +16452,8 @@ Changes prior to 9.18.28
 	1500.	[bug]		host failed to lookup MX records.  Also look up
 				AAAA records.
 
+.. code-block:: none
+
 	1499.	[bug]		isc_random need to be seeded better if arc4random()
 				is not used.
 
@@ -16938,6 +17168,8 @@ Changes prior to 9.18.28
 
 	1250.	[func]		Nsupdate will report the address the update was
 				sent to.
+
+.. code-block:: none
 
 	1249.	[bug]		Missing masters clause was not handled gracefully.
 				[RT #2703]
@@ -17861,6 +18093,8 @@ Changes prior to 9.18.28
 				change #953. win32 .make file for rndc-confgen
 				updated to add include path for os.h header.
 
+.. code-block:: none
+
 		--- 9.2.0rc1 released ---
 
 	 955.	[bug]		When using views, the zone's class was not being
@@ -17893,6 +18127,8 @@ Changes prior to 9.18.28
 
 	 949.	[bug]		host was unable to print records larger than 512
 				bytes. [RT #1557]
+
+.. code-block:: none
 
 		--- 9.2.0b2 released ---
 
@@ -17927,6 +18163,8 @@ Changes prior to 9.18.28
 
 	 940.	[bug]		Double zone locking failure on error path. [RT #1510]
 
+.. code-block:: none
+
 		--- 9.2.0b1 released ---
 
 	 939.	[port]		Add the --disable-linux-caps option to configure for
@@ -17948,6 +18186,8 @@ Changes prior to 9.18.28
 
 	 933.	[bug]		configure failed doing libbind on platforms not
 				supported by BIND 8. [RT #1496]
+
+.. code-block:: none
 
 		--- 9.2.0a3 released ---
 
@@ -18060,6 +18300,8 @@ Changes prior to 9.18.28
 				string of FreeBSD systems; configure and
 				bin/tests/system/ifconfig.sh now recognize the new
 				string.
+
+.. code-block:: none
 
 		--- 9.2.0a2 released ---
 
@@ -18211,6 +18453,8 @@ Changes prior to 9.18.28
 
 	 851.	[cleanup]	The obsolete support-ixfr option was not properly
 				ignored.
+
+.. code-block:: none
 
 		--- 9.2.0a1 released ---
 
@@ -18883,6 +19127,8 @@ Changes prior to 9.18.28
 	 642.	[bug]		Break the exit_check() race in the zone module.
 				[RT #598]
 
+.. code-block:: none
+
 		--- 9.1.0b2 released ---
 
 	 641.	[bug]		$GENERATE caused a uninitialized link to be used.
@@ -19053,6 +19299,8 @@ Changes prior to 9.18.28
 	 592.	[bug]		The sig-validity-interval option now specifies a
 				number of days, not seconds.  This matches the
 				documentation. [RT #529]
+
+.. code-block:: none
 
 		--- 9.1.0b1 released ---
 
@@ -19678,6 +19926,8 @@ Changes prior to 9.18.28
 	 400.	[bug]		SIG(0) signing and verifying was done incorrectly.
 				[RT #249]
 
+.. code-block:: none
+
 	 399.	[bug]		When reloading the server with a config file
 				containing a syntax error, it could catch an
 				assertion failure trying to perform zone
@@ -20222,6 +20472,8 @@ Changes prior to 9.18.28
 	 254.	[bug]		Suppress "query denied" messages on additional data
 				lookups.
 
+.. code-block:: none
+
 		--- 9.0.0b4 released ---
 
 	 253.	[func]		resolv.conf parser now recognizes ';' and '#' as
@@ -20408,6 +20660,8 @@ Changes prior to 9.18.28
 
 	 201.	[cleanup]	Removed the test/sdig program, it has been
 				replaced by bin/dig/dig.
+
+.. code-block:: none
 
 		--- 9.0.0b3 released ---
 
@@ -21133,4 +21387,7 @@ Changes prior to 9.18.28
 				prevented the isc directory from being created if it
 				didn't exist.
 
+.. code-block:: none
+
 		--- 9.0.0b2 released ---
+
