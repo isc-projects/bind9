@@ -18,8 +18,8 @@ Changelog
    development. Regular users should refer to :ref:`Release Notes <relnotes>`
    for changes relevant to them.
 
-(-dev)
-------
+BIND 9.21.0
+-----------
 
 New Features
 ~~~~~~~~~~~~
