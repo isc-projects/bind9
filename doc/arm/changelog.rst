@@ -144,9 +144,9 @@ Feature Changes
   converted to seconds before applying the limit. :gl:`#4320`
   :gl:`!9091`
 
-- Replace #define DNS_GETDB_ with struct of bools. ``020fda92b4b``
+- Replace `#define DNS_GETDB_` with struct of bools. ``020fda92b4b``
 
-  Replace #define DNS_GETDB_ with struct of bools to make it easier to
+  Replace `#define DNS_GETDB_` with struct of bools to make it easier to
   pretty-print the attributes in a debugger. :gl:`#4559` :gl:`!9093`
 
 - Fix data race in clean_finds_at_name. ``0dcc93d87a8``
@@ -294,23 +294,7 @@ Bug Fixes
   Decrementing optlen immediately before calling continue is unneccesary
   and inconsistent with the rest of dns_message_pseudosectiontoyaml and
   dns_message_pseudosectiontotext.  Coverity was also reporting an
-  impossible false positive overflow of optlen (CID 499061).
-
-  4176                        } else if (optcode == DNS_OPT_CLIENT_TAG)
-  {     4177                                uint16_t id;     4178
-  ADD_STRING(target, "; CLIENT-TAG:");     4179
-  if (optlen == 2U) {     4180                                        id
-  = isc_buffer_getuint16(&optbuf);     4181
-  snprintf(buf, sizeof(buf), " %u\n", id);     4182
-  ADD_STRING(target, buf);
-
-  CID 499061: (#1 of 1): Overflowed constant (INTEGER_OVERFLOW)
-  overflow_const: Expression optlen, which is equal to 65534, underflows
-  the type that receives it, an unsigned integer 16 bits wide.     4183
-  optlen -= 2;     4184
-  POST(optlen);     4185
-  continue;     4186                                }     4187
-  } else if (optcode == DNS_OPT_SERVER_TAG) { :gl:`!9130`
+  impossible false positive overflow of optlen (CID 499061). :gl:`!9130`
 
 - Fix generation of 6to4-self name expansion from IPv4 address.
   ``ea2a5909a56``
