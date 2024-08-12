@@ -130,8 +130,8 @@ $KEYGEN -G -k rsasha256 -l policies/kasp.conf $zone >keygen.out.$zone.2 2>&1
 zone="multisigner-model2.kasp"
 echo_i "setting up zone: $zone"
 # Import the ZSK sets of the other providers into their DNSKEY RRset.
-ZSK1=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 $zone 2>keygen.out.$zone.1)
-ZSK2=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 $zone 2>keygen.out.$zone.2)
+ZSK1=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 -M 0:32767 $zone 2>keygen.out.$zone.1)
+ZSK2=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 -M 0:32767 $zone 2>keygen.out.$zone.2)
 # ZSK1 will be added to the unsigned zonefile.
 cat "../${ZSK1}.key" | grep -v ";.*" >>"${zone}.db"
 cat "../${ZSK1}.key" | grep -v ";.*" >"${zone}.zsk1"
