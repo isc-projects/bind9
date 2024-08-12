@@ -646,7 +646,7 @@ isc__hashmap_iter_next(isc_hashmap_iter_t *iter) {
 
 	if (try_nexttable(hashmap, iter->hindex)) {
 		iter->hindex = hashmap_nexttable(iter->hindex);
-		iter->i = 0;
+		iter->i = hashmap->hiter;
 		iter->size = hashmap->tables[iter->hindex].size;
 		return (isc__hashmap_iter_next(iter));
 	}
