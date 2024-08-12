@@ -15,28 +15,12 @@ Notes for BIND 9.21.0
 New Features
 ~~~~~~~~~~~~
 
-- Tighten :any:`max-recursion-queries` and add :any:`max-query-restarts`
-  configuration statement.
-
-  There were cases when the :any:`max-recursion-queries`
-  quota was ineffective. It was possible to craft zones that would cause
-  a resolver to waste resources by sending excessive queries while
-  attempting to resolve a name. This has been addressed by correcting
-  errors in the implementation of :any:`max-recursion-queries`, and by
-  reducing the default value from 100 to 32.
-
-  In addition, a new :any:`max-query-restarts` option has been added
-  which limits the number of times a recursive server will follow CNAME
-  or DNAME records before terminating resolution. This was previously a
-  hard-coded limit of 16, and now defaults to 11. :gl:`#4741`
-  :gl:`!9281`
-
 - Implement ``rndc retransfer -force``.
 
   A new optional argument ``-force`` has been added to the command
-  channel command :option:`rndc retransfer`. When it is specified,
-  :iscman:`named` aborts the ongoing zone transfer (if there is one) and
-  starts a new transfer.  :gl:`#2299` :gl:`!9102`
+  :option:`rndc retransfer`. When it is specified, :iscman:`named` aborts the
+  ongoing zone transfer (if there is one) and starts a new transfer.
+  :gl:`#2299` :gl:`!9102`
 
 - Add support for external log rotation tools.
 
@@ -44,9 +28,9 @@ New Features
   closelogs`. The second is ``kill -USR1 <pid>``. They are intended to
   be used with external log rotation tools. :gl:`#4780` :gl:`!9113`
 
-- :iscman:`dig` now reports missing QUESTION section for opcode QUERY.
+- :iscman:`dig` now reports a missing QUESTION section for messages with opcode QUERY.
 
-  Query responses should contain the QUESTION section with some
+  Query responses should contain the QUESTION section, with some
   exceptions. :iscman:`dig` was not reporting this. :gl:`#4808`
   :gl:`!9233`
 
@@ -68,19 +52,38 @@ Feature Changes
   OpenSSL 1.1.1 or newer (or an equivalent LibreSSL version) is now
   required to compile BIND 9. :gl:`#2806` :gl:`!9110`
 
+- Tighten :any:`max-recursion-queries` and add :any:`max-query-restarts`
+  configuration statement.
+
+  There were cases when the :any:`max-recursion-queries`
+  quota was ineffective. It was possible to craft zones that would cause
+  a resolver to waste resources by sending excessive queries while
+  attempting to resolve a name. This has been addressed by correcting
+  errors in the implementation of :any:`max-recursion-queries` and by
+  reducing the default value from 100 to 32.
+
+  In addition, a new :any:`max-query-restarts` configuration statement has been
+  added, which limits the number of times a recursive server will follow CNAME
+  or DNAME records before terminating resolution. This was previously a
+  hard-coded limit of 16 but is now configurable with a default value of 11.
+
+  ISC would like to thank Huayi Duan, Marco Bearzi, Jodok Vieli, and Cagin
+  Tanir from NetSec group, ETH Zurich for discovering and notifying us about
+  the issue. :gl:`#4741` :gl:`!9281`
+
 - Allow shorter :any:`resolver-query-timeout` configuration.
 
   The minimum allowed value of :any:`resolver-query-timeout` was lowered
-  to 301 milliseconds instead of the earlier 10000 milliseconds (which
-  is the default). As earlier, values less than or equal to 300 are
-  converted to seconds before applying the limit. :gl:`#4320`
-  :gl:`!9091`
+  from its previous value of 10 000 milliseconds (which is still the default)
+  to 301 milliseconds. Note however that values of 1 to 300 inclusive are
+  interpreted as seconds before applying the limit. A value of zero is
+  interpreted as the default. :gl:`#4320` :gl:`!9091`
 
 - Raise the log level of priming failures.
 
   When a priming query is complete, it was previously logged at level
-  ``ISC_LOG_DEBUG(1)``, regardless of success or failure. It is now
-  logged to ``ISC_LOG_NOTICE`` in the case of failure. :gl:`#3516`
+  ``DEBUG(1)``, regardless of success or failure. It is now
+  logged to ``NOTICE`` in the case of failure. :gl:`#3516`
   :gl:`!9121`
 
 Bug Fixes
@@ -88,38 +91,36 @@ Bug Fixes
 
 - Fix a crash caused by valid TSIG signatures with invalid time.
 
-  An assertion failure was triggered when the TSIG had valid
-  cryptographic signature, but the time was invalid. This could happen
+  An assertion failure was triggered when the TSIG had a valid
+  cryptographic signature but the time was invalid. This could happen
   when the times between the primary and secondary servers were not
   synchronised. The crash has now been fixed. :gl:`#4811` :gl:`!9234`
 
 - Return SERVFAIL for a too long CNAME chain.
 
-  When cutting a long CNAME chain, :iscman:`named` was returning NOERROR
-  instead of SERVFAIL (alongside with a partial answer). This has been
-  fixed. :gl:`#4449` :gl:`!9090`
+  When following long CNAME chains, :iscman:`named` was returning NOERROR
+  (along with a partial answer) instead of SERVFAIL, if the chain exceeded the
+  maximum length. This has been fixed. :gl:`#4449` :gl:`!9090`
 
 - Reconfigure catz member zones during :iscman:`named` reconfiguration.
 
   During a reconfiguration, :iscman:`named` wasn't reconfiguring catalog
   zones' member zones. This has been fixed. :gl:`#4733`
 
-- Update key lifetime and metadata after :any:`dnssec-policy` reconfig.
+- Update key lifetime and metadata after :any:`dnssec-policy` reconfiguration.
 
   Adjust key state and timing metadata if :any:`dnssec-policy` key
   lifetime configuration is updated, so that it also affects existing
   keys. :gl:`#4677` :gl:`!9118`
 
-- Fix assertion failure in glue cache code.
+- Fix a crash during zone modification.
 
-  Fix an assertion failure that could happen as a result of data race
-  between ``free_gluetable()`` and ``addglue()`` on the same headers.
+  Fix an assertion failure that could happen when an authoritative zone was
+  modified while the server was generating an answer from that zone.
   :gl:`#4691` :gl:`!9126`
 
-- Fix assertion failure when checking :iscman:`named-checkconf` version.
-
-  Checking the version of `named-checkconf` would end with assertion
-  failure. This has been fixed. :gl:`#4827` :gl:`!9243`
+- Fix assertion failure when executing :option:`named-checkconf -v`
+  to print its version. :gl:`#4827` :gl:`!9243`
 
 - Fix generation of 6to4-self name expansion from IPv4 address.
 
@@ -127,12 +128,10 @@ Bug Fixes
   address and the 2.0.0.2.IP6.ARPA suffix was missing, resulting in the
   wrong name being checked. This has been fixed. :gl:`#4766` :gl:`!9099`
 
-- :option:`dig +yaml` was producing unexpected and/or invalid YAML
+- :option:`dig +yaml` was producing unexpected and/or invalid YAML.
   output. :gl:`#4796` :gl:`!9127`
 
-- SVBC ALPN text parsing failed to reject zero-length ALPN.
-
-  :gl:`#4775` :gl:`!9106`
+- SVBC ALPN text parsing failed to reject zero-length ALPN. :gl:`#4775` :gl:`!9106`
 
 - Fix false QNAME minimisation error being reported.
 
@@ -142,8 +141,8 @@ Bug Fixes
 
 - Fix ``--enable-tracing`` build on systems without dtrace.
 
-  Missing ``util/dtrace.sh`` file prevented builds on systems without
-  the ``dtrace`` utility. This has been corrected.
+  A missing ``util/dtrace.sh`` file prevented builds on systems without
+  the ``dtrace`` utility. This has been corrected. :gl:`#4835` :gl:`!9262`
 
 Known Issues
 ~~~~~~~~~~~~
