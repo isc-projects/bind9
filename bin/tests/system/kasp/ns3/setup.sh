@@ -184,6 +184,17 @@ cat template.db.in "${CSK}.key" >"$infile"
 cp $infile $zonefile
 $SIGNER -PS -z -x -s now-2w -e now-1mi -o $zone -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
 
+# We are changing an existing single-signed zone to multi-signed
+# zone where the key tags do not match the dnssec-policy key tag range
+setup single-to-multisigner.kasp
+T="now-1d"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -M 0:32767 -L 3600 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -M 0:32767 -L 3600 $zsktimes $zone 2>keygen.out.$zone.2)
+$SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
+cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
+$SIGNER -PS -z -x -s now-2w -e now-1mi -o $zone -f "${zonefile}" $infile >signer.out.$zone.1 2>&1
+
 # These signatures are set to expire long in the past, update immediately.
 setup expired-sigs.autosign
 T="now-6mo"

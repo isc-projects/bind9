@@ -92,6 +92,7 @@ key_stat() {
 key_save() {
   # Save key id.
   key_set "$1" ID "$KEY_ID"
+  key_set "$1" RID "$KEY_RID"
   # Save base filename.
   key_set "$1" BASEFILE "$BASE_FILE"
   # Save creation date.
@@ -107,6 +108,7 @@ key_save() {
 # This will update either the KEY1, KEY2, or KEY3 array.
 key_clear() {
   key_set "$1" "ID" 'no'
+  key_set "$1" "RID" 'no'
   key_set "$1" "IDPAD" 'no'
   key_set "$1" "EXPECT" 'no'
   key_set "$1" "ROLE" 'none'
@@ -406,6 +408,9 @@ check_key() {
   fi
   [ "$ret" -eq 0 ] || _log_error "${BASE_FILE} files missing"
   [ "$ret" -eq 0 ] || return 0
+
+  # Retrieve revoked key id
+  KEY_RID=$($REVOKE -R ${BASE_FILE})
 
   # Retrieve creation date.
   grep "; Created:" "$KEY_FILE" >"${ZONE}.${KEY_ID}.${_alg_num}.created" || _log_error "mismatch created comment in $KEY_FILE"

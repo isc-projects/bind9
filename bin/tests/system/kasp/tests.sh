@@ -2155,6 +2155,86 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
 #
+# A zone transitioning from single-signed to multi-signed.
+# We should have the old omnipresent keys outside of the
+# desired key range and the new keys in the desired key range
+# KEY1 and KEY2 are the new keys. KEY3 and KEY4 are the old keys.
+#
+set_zone "single-to-multisigner.kasp"
+set_policy "multisigner-model2" "4" "3600"
+set_server "ns3" "10.53.0.3"
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
+# Key properties.
+set_keyrole "KEY1" "ksk"
+set_keylifetime "KEY1" "0"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY1" "yes"
+set_zonesigning "KEY1" "no"
+
+set_keyrole "KEY2" "zsk"
+set_keylifetime "KEY2" "0"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY2" "no"
+set_zonesigning "KEY2" "no" # waiting for DNSKEY to be omnipresent
+
+set_keyrole "KEY3" "ksk"
+set_keyalgorithm "KEY3" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY3" "yes"
+set_zonesigning "KEY3" "no"
+
+set_keyrole "KEY4" "zsk"
+set_keyalgorithm "KEY4" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY4" "no"
+set_zonesigning "KEY4" "yes"
+
+set_keystate "KEY1" "GOAL" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
+set_keystate "KEY1" "STATE_DS" "hidden"
+
+set_keystate "KEY2" "GOAL" "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY2" "STATE_ZRRSIG" "hidden" # waiting for DNSKEY to be omnipresent
+
+set_keystate "KEY3" "GOAL" "hidden"
+set_keystate "KEY3" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY3" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY3" "STATE_DS" "omnipresent"
+
+set_keystate "KEY4" "GOAL" "hidden"
+set_keystate "KEY4" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY4" "STATE_ZRRSIG" "omnipresent"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+check_apex
+check_subdomain
+dnssec_verify
+
+# KEY1 tag range 32768 65535
+# KEY2 tag range 32768 65535
+# KEY3 tag range 0 32767
+# KEY4 tag range 0 32767
+n=$((n + 1))
+echo_i "check that the key IDs are in the expected ranges ($n)"
+ret=0
+test $(key_get KEY1 ID) -ge 32768 -a $(key_get KEY1 ID) -le 65535 || ret=1
+test $(key_get KEY2 ID) -ge 32768 -a $(key_get KEY2 ID) -le 65535 || ret=1
+test $(key_get KEY3 ID) -ge 0 -a $(key_get KEY3 ID) -le 32767 || ret=1
+test $(key_get KEY4 ID) -ge 0 -a $(key_get KEY4 ID) -le 32767 || ret=1
+
+test $(key_get KEY1 RID) -ge 32768 -a $(key_get KEY1 RID) -le 65535 || ret=1
+test $(key_get KEY2 RID) -ge 32768 -a $(key_get KEY2 RID) -le 65535 || ret=1
+test $(key_get KEY3 RID) -ge 0 -a $(key_get KEY3 RID) -le 32767 || ret=1
+test $(key_get KEY4 RID) -ge 0 -a $(key_get KEY4 RID) -le 32767 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+#
 # Testing manual rollover.
 #
 set_zone "manual-rollover.kasp"
