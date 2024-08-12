@@ -216,8 +216,10 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 	isc_mem_cput(mctx, upper_nodes, count, sizeof(nodes[0]));
 }
 
+#include "hashmap_nodes.h"
+
 static void
-test_hashmap_iterator(void) {
+test_hashmap_iterator(bool random_data) {
 	isc_hashmap_t *hashmap = NULL;
 	isc_result_t result;
 	isc_hashmap_iter_t *iter = NULL;
@@ -231,11 +233,17 @@ test_hashmap_iterator(void) {
 	isc_hashmap_create(mctx, HASHMAP_MIN_BITS, &hashmap);
 	assert_non_null(hashmap);
 
-	for (size_t i = 0; i < count; i++) {
-		/* short keys */
-		snprintf((char *)nodes[i].key, 16, "%u", (unsigned int)i);
-		strlcat((char *)nodes[i].key, " key of a raw hashmap!!", 16);
-		nodes[i].hashval = isc_hash32(nodes[i].key, 16, true);
+	if (random_data) {
+		for (size_t i = 0; i < count; i++) {
+			/* short keys */
+			snprintf((char *)nodes[i].key, 16, "%u",
+				 (unsigned int)i);
+			strlcat((char *)nodes[i].key, " key of a raw hashmap!!",
+				16);
+			nodes[i].hashval = isc_hash32(nodes[i].key, 16, true);
+		}
+	} else {
+		memmove(nodes, test_nodes, sizeof(test_nodes));
 	}
 
 	for (size_t i = 0; i < count; i++) {
@@ -387,7 +395,12 @@ ISC_RUN_TEST_IMPL(isc_hashmap_8_20000) {
 /* test hashmap iterator */
 
 ISC_RUN_TEST_IMPL(isc_hashmap_iterator) {
-	test_hashmap_iterator();
+	test_hashmap_iterator(true);
+	return;
+}
+
+ISC_RUN_TEST_IMPL(isc_hashmap_iterator_static) {
+	test_hashmap_iterator(false);
 	return;
 }
 
@@ -500,6 +513,7 @@ ISC_TEST_ENTRY(isc_hashmap_24_200000)
 ISC_TEST_ENTRY(isc_hashmap_1_48000)
 ISC_TEST_ENTRY(isc_hashmap_8_20000)
 ISC_TEST_ENTRY(isc_hashmap_iterator)
+ISC_TEST_ENTRY(isc_hashmap_iterator_static)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
