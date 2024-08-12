@@ -220,6 +220,17 @@ zone "multisigner-model2.kasp" {
 };
 
 /*
+ * A zone that starts with keys that have tags that are
+ * outside of the desired multi-signer key tag range.
+ */
+zone "single-to-multisigner.kasp" {
+	type primary;
+	file "single-to-multisigner.kasp.db";
+	dnssec-policy "multisigner-model2";
+	allow-update { any; };
+};
+
+/*
  * Different algorithms.
  */
 zone "rsasha256.kasp" {
