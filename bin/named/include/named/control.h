@@ -42,6 +42,7 @@
 #define NAMED_COMMAND_FREEZE	   "freeze"
 #define NAMED_COMMAND_HALT	   "halt"
 #define NAMED_COMMAND_LOADKEYS	   "loadkeys"
+#define NAMED_COMMAND_MEMPROF	   "memprof"
 #define NAMED_COMMAND_MKEYS	   "managed-keys"
 #define NAMED_COMMAND_MODZONE	   "modzone"
 #define NAMED_COMMAND_NOTIFY	   "notify"
