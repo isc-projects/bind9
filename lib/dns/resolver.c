@@ -1487,7 +1487,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 
 	INSIST(spill > 0);
 	LOCK(&counter->lock);
-	if (!force && ++counter->count > spill) {
+	if (++counter->count > spill && !force) {
 		counter->count--;
 		INSIST(counter->count > 0);
 		counter->dropped++;
