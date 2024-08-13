@@ -38,7 +38,7 @@ information about each release, and source code.
 
 .. include:: ../notes/notes-known-issues.rst
 
-.. include:: ../notes/notes-current.rst
+.. include:: ../notes/notes-9.20.1.rst
 .. include:: ../notes/notes-9.20.0.rst
 
 .. _relnotes_license:
