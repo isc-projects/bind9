@@ -1802,6 +1802,13 @@ def versions_data_iter(
             ):
                 continue
 
+            body = body_process(commit.body)
+
+            ## Extract gitlab issue number
+            issue = None
+            if match := re.search(r".*:gl:`#([0-9]+)`", body):
+                issue = int(match.group(1))
+
             matched_section = first_matching(section_regexps, commit.subject)
 
             ## Finally storing the commit in the matching section
@@ -1811,9 +1818,19 @@ def versions_data_iter(
                     "author": commit.author_name,
                     "authors": commit.author_names,
                     "subject": subject_process(commit.subject),
-                    "body": body_process(commit.body),
+                    "body": body,
                     "commit": commit,
+                    "issue": issue,
                 }
+            )
+
+        ## Sort sections by issue number or title
+        for section_key in sections.keys():
+            sections[section_key].sort(
+                key=lambda c: (
+                    c["issue"] if c["issue"] is not None else sys.maxsize,
+                    c["subject"],
+                )
             )
 
         ## Flush current version
@@ -1830,7 +1847,7 @@ def changelog(
     unreleased_version_label="unreleased",
     include_commit_sha=False,
     warn=warn,  ## Mostly used for test
-    **kwargs
+    **kwargs,
 ):
     """Returns a string containing the changelog of given repository
 
