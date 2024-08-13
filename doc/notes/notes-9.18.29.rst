@@ -43,10 +43,10 @@ Feature Changes
 
 - Add a compatibility shim for older libuv versions (< 1.19.0)
 
-  The uv_stream_get_write_queue_size() is supported only in relatively
-  newer versions of libuv (1.19.0 or higher). Provide a compatibility
-  shim for this function, so BIND 9 can be built in environments with
-  older libuv version.
+  The function uv_stream_get_write_queue_size() is supported only in relatively
+  new versions of libuv (1.19.0 or higher). Provide a compatibility
+  shim for this function so BIND 9 can be built in environments with
+  older libuv versions.
 
 Bug Fixes
 ~~~~~~~~~
