@@ -186,7 +186,17 @@ Bug Fixes
   fetches-per-zone if the force argument was set to true. We want to
   skip the accounting only when the fetches-per-zone is completely
   disabled, but for individual names we need to do the accounting even
-  if we are forcing the result to be success. :gl:`!9241`
+  if we are forcing the result to be success. :gl:`#4786` :gl:`!9241`
+
+- Don't skip the counting if fcount_incr() is called with force==true
+  (v2) ``1db5c6a0d3``
+
+  The fcount_incr() was not increasing counter->count when force was set
+  to true, but fcount_decr() would try to decrease the counter leading
+  to underflow and assertion failure.  Swap the order of the arguments
+  in the condition, so the !force is evaluated after incrementing the
+  .count. :gl:`#4846` :gl:`!9299`
+
 
 - Fix PTHREAD_MUTEX_ADAPTIVE_NP and PTHREAD_MUTEX_ERRORCHECK_NP usage.
   ``46caf5f4a4``
