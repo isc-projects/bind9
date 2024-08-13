@@ -225,9 +225,9 @@ shutdown_listener(controllistener_t *listener) {
 
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_format(&listener->address, socktext, sizeof(socktext));
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
-		      "stopping command channel on %s", socktext);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_CONTROL,
+		      ISC_LOG_NOTICE, "stopping command channel on %s",
+		      socktext);
 
 	isc_nm_stoplistening(listener->sock);
 	isc_nmsocket_close(&listener->sock);
@@ -272,7 +272,7 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(handle);
 
 		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "error sending command response to %s: %s",
 			      socktext, isc_result_totext(result));
@@ -291,9 +291,8 @@ log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result) {
 	isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(ccmsg->handle);
 
 	isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_CONTROL, ISC_LOG_ERROR,
-		      "invalid command from %s: %s", socktext,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_CONTROL,
+		      ISC_LOG_ERROR, "invalid command from %s: %s", socktext,
 		      isc_result_totext(result));
 }
 
@@ -588,9 +587,8 @@ conn_free(controlconnection_t *conn) {
 	}
 #endif /* ifdef ENABLE_AFL */
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
-		      "freeing control connection");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_CONTROL,
+		      ISC_LOG_DEBUG(3), "freeing control connection");
 
 	isc_mem_put(listener->mctx, conn, sizeof(*conn));
 
@@ -601,7 +599,7 @@ static void
 newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 	/* Don't create new connection if we are shutting down */
 	if (listener->shuttingdown) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
 			      "rejected new control connection: %s",
 			      isc_result_totext(ISC_R_SHUTTINGDOWN));
@@ -609,9 +607,8 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 	}
 
 	controlconnection_t *conn = isc_mem_get(listener->mctx, sizeof(*conn));
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
-		      "allocate new control connection");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_CONTROL,
+		      ISC_LOG_DEBUG(3), "allocate new control connection");
 
 	*conn = (controlconnection_t){
 		.alg = DST_ALG_UNKNOWN,
@@ -648,7 +645,7 @@ control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	if (!address_ok(&peeraddr, listener)) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "rejected command channel message from %s",
 			      socktext);
@@ -760,7 +757,7 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 
 		result = cfgkeylist_find(keylist, keyid->keyname, &keydef);
 		if (result != ISC_R_SUCCESS) {
-			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(control, ISC_LOG_WARNING,
 				    "couldn't find key '%s' for use with "
 				    "command channel %s",
 				    keyid->keyname, socktext);
@@ -783,8 +780,7 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			result = named_config_getkeyalgorithm(algstr, &algtype,
 							      NULL);
 			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(control, named_g_lctx,
-					    ISC_LOG_WARNING,
+				cfg_obj_log(control, ISC_LOG_WARNING,
 					    "unsupported algorithm '%s' in "
 					    "key '%s' for use with command "
 					    "channel %s",
@@ -799,8 +795,7 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			result = isc_base64_decodestring(secretstr, &b);
 
 			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(keydef, named_g_lctx,
-					    ISC_LOG_WARNING,
+				cfg_obj_log(keydef, ISC_LOG_WARNING,
 					    "secret for key '%s' on "
 					    "command channel %s: %s",
 					    keyid->keyname, socktext,
@@ -834,14 +829,14 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	unsigned int algtype;
 	isc_buffer_t b;
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_CONTROL, ISC_LOG_INFO,
-		      "configuring command channel from '%s'", named_g_keyfile);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_CONTROL,
+		      ISC_LOG_INFO, "configuring command channel from '%s'",
+		      named_g_keyfile);
 	if (!isc_file_exists(named_g_keyfile)) {
 		return (ISC_R_FILENOTFOUND);
 	}
 
-	CHECK(cfg_parser_create(mctx, named_g_lctx, &pctx));
+	CHECK(cfg_parser_create(mctx, &pctx));
 	CHECK(cfg_parse_file(pctx, named_g_keyfile, &cfg_type_rndckey,
 			     &config));
 	CHECK(cfg_map_get(config, "key", &key));
@@ -857,7 +852,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 		CHECK(ISC_R_NOMEMORY);
 	}
 
-	CHECK(isccfg_check_key(key, named_g_lctx));
+	CHECK(isccfg_check_key(key));
 
 	(void)cfg_map_get(key, "algorithm", &algobj);
 	(void)cfg_map_get(key, "secret", &secretobj);
@@ -868,7 +863,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 
 	result = named_config_getkeyalgorithm(algstr, &algtype, NULL);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(key, ISC_LOG_WARNING,
 			    "unsupported algorithm '%s' in "
 			    "key '%s' for use with command "
 			    "channel",
@@ -881,7 +876,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	result = isc_base64_decodestring(secretstr, &b);
 
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(key, ISC_LOG_WARNING,
 			    "secret for key '%s' on command channel: %s",
 			    keyid->keyname, isc_result_totext(result));
 		goto cleanup;
@@ -1009,12 +1004,12 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 		 * sake of avoiding this message would be too much trouble.
 		 */
 		if (control != NULL) {
-			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(control, ISC_LOG_WARNING,
 				    "couldn't install new keys for "
 				    "command channel %s: %s",
 				    socktext, isc_result_totext(result));
 		} else {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 				      "couldn't install new keys for "
 				      "command channel %s: %s",
@@ -1027,9 +1022,8 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 	 */
 	if (control != NULL && type == isc_socktype_tcp) {
 		allow = cfg_tuple_get(control, "allow");
-		result = cfg_acl_fromconfig(allow, config, named_g_lctx,
-					    aclconfctx, listener->mctx, 0,
-					    &new_acl);
+		result = cfg_acl_fromconfig(allow, config, aclconfctx,
+					    listener->mctx, 0, &new_acl);
 	} else {
 		result = dns_acl_any(listener->mctx, &new_acl);
 	}
@@ -1049,12 +1043,12 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 		dns_acl_detach(&new_acl);
 		/* XXXDCL say the old acl is still used? */
 	} else if (control != NULL) {
-		cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(control, ISC_LOG_WARNING,
 			    "couldn't install new acl for "
 			    "command channel %s: %s",
 			    socktext, isc_result_totext(result));
 	} else {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "couldn't install new acl for "
 			      "command channel %s: %s",
@@ -1101,8 +1095,8 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 		const cfg_obj_t *readonly = NULL;
 
 		allow = cfg_tuple_get(control, "allow");
-		CHECK(cfg_acl_fromconfig(allow, config, named_g_lctx,
-					 aclconfctx, mctx, 0, &new_acl));
+		CHECK(cfg_acl_fromconfig(allow, config, aclconfctx, mctx, 0,
+					 &new_acl));
 
 		readonly = cfg_tuple_get(control, "read-only");
 		if (!cfg_obj_isvoid(readonly)) {
@@ -1128,7 +1122,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	} else {
 		result = get_rndckey(mctx, &listener->keys);
 		if (result != ISC_R_SUCCESS && control != NULL) {
-			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(control, ISC_LOG_WARNING,
 				    "couldn't install keys for "
 				    "command channel %s: %s",
 				    socktext, isc_result_totext(result));
@@ -1146,9 +1140,9 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 			       &listener->address, control_newconn, listener, 5,
 			       NULL, &listener->sock));
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
-		      "command channel listening on %s", socktext);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_CONTROL,
+		      ISC_LOG_NOTICE, "command channel listening on %s",
+		      socktext);
 	*listenerp = listener;
 	return;
 
@@ -1159,11 +1153,11 @@ cleanup:
 
 shuttingdown:
 	if (control != NULL) {
-		cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(control, ISC_LOG_WARNING,
 			    "couldn't add command channel %s: %s", socktext,
 			    isc_result_totext(result));
 	} else {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
 			      "couldn't add command channel %s: %s", socktext,
 			      isc_result_totext(result));
@@ -1208,8 +1202,7 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 
 			(void)cfg_map_get(controls, "unix", &unixcontrols);
 			if (unixcontrols != NULL) {
-				cfg_obj_log(controls, named_g_lctx,
-					    ISC_LOG_ERROR,
+				cfg_obj_log(controls, ISC_LOG_ERROR,
 					    "UNIX domain sockets are not "
 					    "supported");
 				return (ISC_R_FAILURE);
@@ -1245,8 +1238,7 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 				isc_sockaddr_format(&addr, socktext,
 						    sizeof(socktext));
 
-				isc_log_write(named_g_lctx,
-					      NAMED_LOGCATEGORY_GENERAL,
+				isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 					      NAMED_LOGMODULE_CONTROL,
 					      ISC_LOG_DEBUG(9),
 					      "processing control channel %s",

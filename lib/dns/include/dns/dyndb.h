@@ -36,7 +36,6 @@ struct dns_dyndbctx {
 	unsigned int   magic;
 	const void    *hashinit;
 	isc_mem_t     *mctx;
-	isc_log_t     *lctx;
 	dns_view_t    *view;
 	dns_zonemgr_t *zmgr;
 	isc_loopmgr_t *loopmgr;
@@ -131,9 +130,9 @@ dns_dyndb_cleanup(bool exiting);
  */
 
 isc_result_t
-dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
-		    dns_view_t *view, dns_zonemgr_t *zmgr,
-		    isc_loopmgr_t *loopmgr, dns_dyndbctx_t **dctxp);
+dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, dns_view_t *view,
+		    dns_zonemgr_t *zmgr, isc_loopmgr_t *loopmgr,
+		    dns_dyndbctx_t **dctxp);
 /*%
  * Create a dyndb initialization context structure, with
  * pointers to structures in the server that the dyndb module will

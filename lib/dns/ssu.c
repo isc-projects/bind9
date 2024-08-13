@@ -373,8 +373,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			rcu_read_unlock();
 			if (match == 0) {
 				if (signer != NULL) {
-					isc_log_write(dns_lctx,
-						      DNS_LOGCATEGORY_GENERAL,
+					isc_log_write(DNS_LOGCATEGORY_GENERAL,
 						      DNS_LOGMODULE_SSU,
 						      ISC_LOG_WARNING,
 						      "update-policy local: "

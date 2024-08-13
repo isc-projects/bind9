@@ -365,9 +365,8 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp);
  */
 
 void
-dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
-		      isc_logcategory_t *category, isc_logmodule_t *module,
-		      int level, bool duplicateok);
+dns_resolver_logfetch(dns_fetch_t *fetch, isc_logcategory_t *category,
+		      isc_logmodule_t *module, int level, bool duplicateok);
 /*%<
  * Dump a log message on internal state at the completion of given 'fetch'.
  * 'lctx', 'category', 'module', and 'level' are used to write the log message.

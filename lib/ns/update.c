@@ -146,7 +146,7 @@
 		default:                                                   \
 			break;                                             \
 		}                                                          \
-		if (isc_log_wouldlog(ns_lctx, LOGLEVEL_PROTOCOL)) {        \
+		if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {                 \
 			char _nbuf[DNS_NAME_FORMATSIZE];                   \
 			dns_name_format(name, _nbuf, sizeof(_nbuf));       \
 			update_log(client, zone, LOGLEVEL_PROTOCOL,        \
@@ -175,7 +175,7 @@
 		default:                                                      \
 			break;                                                \
 		}                                                             \
-		if (isc_log_wouldlog(ns_lctx, LOGLEVEL_PROTOCOL)) {           \
+		if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {                    \
 			char _nbuf[DNS_NAME_FORMATSIZE];                      \
 			char _tbuf[DNS_RDATATYPE_FORMATSIZE];                 \
 			dns_name_format(name, _nbuf, sizeof(_nbuf));          \
@@ -292,7 +292,7 @@ update_log(ns_client_t *client, dns_zone_t *zone, int level, const char *fmt,
 		return;
 	}
 
-	if (!isc_log_wouldlog(ns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -1915,8 +1915,8 @@ respond(ns_client_t *client, isc_result_t result) {
 
 	msg_result = dns_message_reply(client->message, true);
 	if (msg_result != ISC_R_SUCCESS) {
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_UPDATE,
-			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
+		isc_log_write(NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
+			      ISC_LOG_ERROR,
 			      "could not create update response message: %s",
 			      isc_result_totext(msg_result));
 		ns_client_drop(client, msg_result);
@@ -3077,7 +3077,7 @@ update_action(void *arg) {
 				}
 			}
 
-			if (isc_log_wouldlog(ns_lctx, LOGLEVEL_PROTOCOL)) {
+			if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {
 				char namestr[DNS_NAME_FORMATSIZE];
 				char typestr[DNS_RDATATYPE_FORMATSIZE];
 				char rdstr[2048];
@@ -3157,9 +3157,7 @@ update_action(void *arg) {
 			}
 		} else if (update_class == dns_rdataclass_any) {
 			if (rdata.type == dns_rdatatype_any) {
-				if (isc_log_wouldlog(ns_lctx,
-						     LOGLEVEL_PROTOCOL))
-				{
+				if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {
 					char namestr[DNS_NAME_FORMATSIZE];
 					dns_name_format(name, namestr,
 							sizeof(namestr));
@@ -3189,9 +3187,7 @@ update_action(void *arg) {
 					   "or NS records ignored");
 				continue;
 			} else {
-				if (isc_log_wouldlog(ns_lctx,
-						     LOGLEVEL_PROTOCOL))
-				{
+				if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {
 					char namestr[DNS_NAME_FORMATSIZE];
 					char typestr[DNS_RDATATYPE_FORMATSIZE];
 					dns_name_format(name, namestr,

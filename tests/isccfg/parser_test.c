@@ -53,9 +53,9 @@ ISC_SETUP_TEST_IMPL(group) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
-	isc_log_registercategories(lctx, categories);
+	isc_log_registercategories(categories);
 
-	logconfig = isc_logconfig_get(lctx);
+	logconfig = isc_logconfig_get();
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -95,7 +95,7 @@ ISC_RUN_TEST_IMPL(addzoneconf) {
 	char buf[1024];
 
 	/* Parse with default line numbering */
-	result = cfg_parser_create(mctx, lctx, &p);
+	result = cfg_parser_create(mctx, &p);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
@@ -143,7 +143,7 @@ ISC_RUN_TEST_IMPL(parse_buffer) {
 	isc_buffer_add(&buf1, sizeof(text) - 1);
 
 	/* Parse with default line numbering */
-	result = cfg_parser_create(mctx, lctx, &p1);
+	result = cfg_parser_create(mctx, &p1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = cfg_parse_buffer(p1, &buf1, "text1", 0, &cfg_type_namedconf, 0,
@@ -155,7 +155,7 @@ ISC_RUN_TEST_IMPL(parse_buffer) {
 	isc_buffer_add(&buf2, sizeof(text) - 1);
 
 	/* Parse with changed line number */
-	result = cfg_parser_create(mctx, lctx, &p2);
+	result = cfg_parser_create(mctx, &p2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = cfg_parse_buffer(p2, &buf2, "text2", 100, &cfg_type_namedconf,

@@ -94,7 +94,6 @@
 /* Variables used internally by delv. */
 char *progname = NULL;
 static isc_mem_t *mctx = NULL;
-static isc_log_t *lctx = NULL;
 static dns_view_t *view = NULL;
 static ns_server_t *sctx = NULL;
 static ns_interface_t *ifp = NULL;
@@ -301,14 +300,14 @@ delv_log(int level, const char *fmt, ...) {
 	va_list ap;
 	char msgbuf[2048];
 
-	if (!isc_log_wouldlog(lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
 	va_start(ap, fmt);
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
-	isc_log_write(lctx, LOGCATEGORY_DEFAULT, LOGMODULE_DEFAULT, level, "%s",
+	isc_log_write(LOGCATEGORY_DEFAULT, LOGMODULE_DEFAULT, level, "%s",
 		      msgbuf);
 	va_end(ap);
 }
@@ -322,12 +321,12 @@ setup_logging(FILE *errout) {
 	isc_logconfig_t *logconfig = NULL;
 	int packetlevel = 10;
 
-	isc_log_registercategories(lctx, categories);
-	isc_log_registermodules(lctx, modules);
-	dns_log_init(lctx);
-	cfg_log_init(lctx);
+	isc_log_registercategories(categories);
+	isc_log_registermodules(modules);
+	dns_log_init();
+	cfg_log_init();
 
-	logconfig = isc_logconfig_get(lctx);
+	logconfig = isc_logconfig_get();
 	destination.file.stream = errout;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -336,7 +335,7 @@ setup_logging(FILE *errout) {
 			      ISC_LOG_DYNAMIC, &destination,
 			      ISC_LOG_PRINTPREFIX);
 
-	isc_log_setdebuglevel(lctx, loglevel);
+	isc_log_setdebuglevel(loglevel);
 	isc_log_settag(logconfig, ";; ");
 
 	result = isc_log_usechannel(logconfig, "stderr",
@@ -814,14 +813,14 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 
 cleanup:
 	if (result == DST_R_NOCRYPTO) {
-		cfg_obj_log(key, lctx, ISC_LOG_ERROR, "no crypto support");
+		cfg_obj_log(key, ISC_LOG_ERROR, "no crypto support");
 	} else if (result == DST_R_UNSUPPORTEDALG) {
-		cfg_obj_log(key, lctx, ISC_LOG_WARNING,
+		cfg_obj_log(key, ISC_LOG_WARNING,
 			    "skipping trusted key '%s': %s", keynamestr,
 			    isc_result_totext(result));
 		result = ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(key, lctx, ISC_LOG_ERROR,
+		cfg_obj_log(key, ISC_LOG_ERROR,
 			    "failed to add trusted key '%s': %s", keynamestr,
 			    isc_result_totext(result));
 		result = ISC_R_FAILURE;
@@ -876,7 +875,7 @@ setup_dnsseckeys(dns_client_t *client, dns_view_t *toview) {
 		CHECK(convert_name(&afn, &anchor_name, trust_anchor));
 	}
 
-	CHECK(cfg_parser_create(mctx, dns_lctx, &parser));
+	CHECK(cfg_parser_create(mctx, &parser));
 
 	if (anchorfile != NULL) {
 		if (access(anchorfile, R_OK) != 0) {

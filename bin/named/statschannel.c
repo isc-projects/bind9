@@ -936,9 +936,8 @@ dump_counters(isc_statsformat_t type, void *arg, const char *category,
 	return (ISC_R_SUCCESS);
 #ifdef HAVE_LIBXML2
 cleanup:
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "failed at dump_counters()");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "failed at dump_counters()");
 	return (ISC_R_FAILURE);
 #endif /* ifdef HAVE_LIBXML2 */
 }
@@ -999,9 +998,8 @@ rdtypestat_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 	return;
 #ifdef HAVE_LIBXML2
 cleanup:
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "failed at rdtypestat_dump()");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "failed at rdtypestat_dump()");
 	dumparg->result = ISC_R_FAILURE;
 	return;
 #endif /* ifdef HAVE_LIBXML2 */
@@ -1088,9 +1086,8 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 	return;
 #ifdef HAVE_LIBXML2
 cleanup:
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "failed at rdatasetstats_dump()");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "failed at rdatasetstats_dump()");
 	dumparg->result = ISC_R_FAILURE;
 #endif /* ifdef HAVE_LIBXML2 */
 }
@@ -1143,9 +1140,8 @@ opcodestat_dump(dns_opcode_t code, uint64_t val, void *arg) {
 
 #ifdef HAVE_LIBXML2
 cleanup:
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "failed at opcodestat_dump()");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "failed at opcodestat_dump()");
 	dumparg->result = ISC_R_FAILURE;
 	return;
 #endif /* ifdef HAVE_LIBXML2 */
@@ -1199,9 +1195,8 @@ rcodestat_dump(dns_rcode_t code, uint64_t val, void *arg) {
 
 #ifdef HAVE_LIBXML2
 cleanup:
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "failed at rcodestat_dump()");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "failed at rcodestat_dump()");
 	dumparg->result = ISC_R_FAILURE;
 	return;
 #endif /* ifdef HAVE_LIBXML2 */
@@ -1256,9 +1251,8 @@ dnssecsignstat_dump(uint32_t kval, uint64_t val, void *arg) {
 	return;
 #ifdef HAVE_LIBXML2
 cleanup:
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "failed at dnssecsignstat_dump()");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "failed at dnssecsignstat_dump()");
 	dumparg->result = ISC_R_FAILURE;
 	return;
 #endif /* ifdef HAVE_LIBXML2 */
@@ -1452,9 +1446,8 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 	return (ISC_R_SUCCESS);
 cleanup:
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "Failed at zone_xmlrender()");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "Failed at zone_xmlrender()");
 	return (ISC_R_FAILURE);
 }
 
@@ -1725,9 +1718,8 @@ cleanup:
 		dns_xfrin_detach(&xfr);
 	}
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "Failed at xfrin_xmlrender()");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "Failed at xfrin_xmlrender()");
 
 	return (ISC_R_FAILURE);
 }
@@ -2134,9 +2126,8 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "failed generating XML response");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "failed generating XML response");
 	if (writer != NULL) {
 		xmlFreeTextWriter(writer);
 	}
@@ -2173,9 +2164,8 @@ render_xml(uint32_t flags, void *arg, unsigned int *retcode,
 		*freecb = wrap_xmlfree;
 		*freecb_args = NULL;
 	} else {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "failed at rendering XML()");
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR, "failed at rendering XML()");
 	}
 
 	return (result);
@@ -3376,9 +3366,8 @@ render_json(uint32_t flags, void *arg, unsigned int *retcode,
 		*freecb = wrap_jsonfree;
 		*freecb_args = bindstats;
 	} else {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "failed at rendering JSON()");
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR, "failed at rendering JSON()");
 	}
 
 	return (result);
@@ -3534,9 +3523,9 @@ static void
 shutdown_listener(named_statschannel_t *listener) {
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_format(&listener->address, socktext, sizeof(socktext));
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
-		      "stopping statistics channel on %s", socktext);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_NOTICE, "stopping statistics channel on %s",
+		      socktext);
 
 	isc_httpdmgr_shutdown(&listener->httpdmgr);
 }
@@ -3565,9 +3554,9 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 	UNLOCK(&listener->lock);
 
 	isc_sockaddr_format(fromaddr, socktext, sizeof(socktext));
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-		      "rejected statistics connection from %s", socktext);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_WARNING, "rejected statistics connection from %s",
+		      socktext);
 
 	return (false);
 }
@@ -3605,9 +3594,8 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 
 	allow = cfg_tuple_get(listen_params, "allow");
 	if (allow != NULL && cfg_obj_islist(allow)) {
-		result = cfg_acl_fromconfig(allow, config, named_g_lctx,
-					    aclconfctx, listener->mctx, 0,
-					    &new_acl);
+		result = cfg_acl_fromconfig(allow, config, aclconfctx,
+					    listener->mctx, 0, &new_acl);
 	} else {
 		result = dns_acl_any(listener->mctx, &new_acl);
 	}
@@ -3689,9 +3677,9 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 			    server);
 
 	*listenerp = listener;
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
-		      "statistics channel listening on %s", socktext);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_NOTICE, "statistics channel listening on %s",
+		      socktext);
 
 	return (ISC_R_SUCCESS);
 
@@ -3733,9 +3721,8 @@ update_listener(named_server_t *server, named_statschannel_t **listenerp,
 	 */
 	allow = cfg_tuple_get(listen_params, "allow");
 	if (allow != NULL && cfg_obj_islist(allow)) {
-		result = cfg_acl_fromconfig(allow, config, named_g_lctx,
-					    aclconfctx, listener->mctx, 0,
-					    &new_acl);
+		result = cfg_acl_fromconfig(allow, config, aclconfctx,
+					    listener->mctx, 0, &new_acl);
 	} else {
 		result = dns_acl_any(listener->mctx, &new_acl);
 	}
@@ -3749,7 +3736,7 @@ update_listener(named_server_t *server, named_statschannel_t **listenerp,
 
 		UNLOCK(&listener->lock);
 	} else {
-		cfg_obj_log(listen_params, named_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(listen_params, ISC_LOG_WARNING,
 			    "couldn't install new acl for "
 			    "statistics channel %s: %s",
 			    socktext, isc_result_totext(result));
@@ -3786,20 +3773,20 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 	 */
 	if (statschannellist != NULL) {
 #ifndef EXTENDED_STATS
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING,
 			      "statistics-channels specified but not effective "
 			      "due to missing XML and/or JSON library");
 #else /* EXTENDED_STATS */
 #ifndef HAVE_LIBXML2
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING,
 			      "statistics-channels: XML library missing, "
 			      "only JSON stats will be available");
 #endif /* !HAVE_LIBXML2 */
 #ifndef HAVE_JSON_C
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING,
 			      "statistics-channels: JSON library missing, "
 			      "only XML stats will be available");
 #endif /* !HAVE_JSON_C */
@@ -3838,8 +3825,7 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 				isc_sockaddr_format(&addr, socktext,
 						    sizeof(socktext));
 
-				isc_log_write(named_g_lctx,
-					      NAMED_LOGCATEGORY_GENERAL,
+				isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 					      NAMED_LOGMODULE_SERVER,
 					      ISC_LOG_DEBUG(9),
 					      "processing statistics "
@@ -3870,7 +3856,6 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 					if (r != ISC_R_SUCCESS) {
 						cfg_obj_log(
 							listen_params,
-							named_g_lctx,
 							ISC_LOG_WARNING,
 							"couldn't allocate "
 							"statistics channel"

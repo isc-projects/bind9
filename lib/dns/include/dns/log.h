@@ -19,7 +19,6 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 
-extern isc_log_t	*dns_lctx;
 extern isc_logcategory_t dns_categories[];
 extern isc_logmodule_t	 dns_modules[];
 
@@ -85,7 +84,7 @@ extern isc_logmodule_t	 dns_modules[];
 ISC_LANG_BEGINDECLS
 
 void
-dns_log_init(isc_log_t *lctx);
+dns_log_init(void);
 /*%
  * Make the libdns categories and modules available for use with the
  * ISC logging library.

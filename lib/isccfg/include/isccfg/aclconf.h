@@ -58,7 +58,7 @@ cfg_aclconfctx_attach(cfg_aclconfctx_t *src, cfg_aclconfctx_t **dest);
 
 isc_result_t
 cfg_acl_fromconfig(const cfg_obj_t *caml, const cfg_obj_t *cctx,
-		   isc_log_t *lctx, cfg_aclconfctx_t *ctx, isc_mem_t *mctx,
+		   cfg_aclconfctx_t *ctx, isc_mem_t *mctx,
 		   unsigned int nest_level, dns_acl_t **target);
 /*
  * Construct a new dns_acl_t from configuration data in 'caml' and

@@ -30,7 +30,6 @@
 #include <isc/uv.h>
 
 extern isc_mem_t     *mctx;
-extern isc_log_t     *lctx;
 extern isc_loop_t    *mainloop;
 extern isc_loopmgr_t *loopmgr;
 extern isc_nm_t	     *netmgr;

@@ -33,7 +33,6 @@
 #include <tests/isc.h>
 
 isc_mem_t *mctx = NULL;
-isc_log_t *lctx = NULL;
 isc_loop_t *mainloop = NULL;
 isc_loopmgr_t *loopmgr = NULL;
 isc_nm_t *netmgr = NULL;

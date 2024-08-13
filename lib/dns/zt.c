@@ -466,8 +466,8 @@ freezezones(dns_zone_t *zone, void *uap) {
 			      sizeof(classstr));
 	dns_name_format(dns_zone_getorigin(zone), zonename, sizeof(zonename));
 	level = (result != ISC_R_SUCCESS) ? ISC_LOG_ERROR : ISC_LOG_DEBUG(1);
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "%s zone '%s/%s'%s%s: %s",
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE, level,
+		      "%s zone '%s/%s'%s%s: %s",
 		      params->freeze ? "freezing" : "thawing", zonename,
 		      classstr, sep, vname, isc_result_totext(result));
 	if (raw != NULL) {

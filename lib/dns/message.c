@@ -1843,8 +1843,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 
 	isc_buffer_remainingregion(source, &r);
 	if (r.length != 0) {
-		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MESSAGE, ISC_LOG_DEBUG(3),
+		isc_log_write(ISC_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MESSAGE,
+			      ISC_LOG_DEBUG(3),
 			      "message has %u byte(s) of trailing garbage",
 			      r.length);
 	}
@@ -4695,7 +4695,7 @@ logfmtpacket(dns_message_t *message, const char *description,
 	int len = 1024;
 	isc_result_t result;
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -4718,9 +4718,8 @@ logfmtpacket(dns_message_t *message, const char *description,
 			isc_mem_put(mctx, buf, len);
 			len += 1024;
 		} else if (result == ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, category, module, level,
-				      "%s%s%s%s%.*s", description, space,
-				      addrbuf, newline,
+			isc_log_write(category, module, level, "%s%s%s%s%.*s",
+				      description, space, addrbuf, newline,
 				      (int)isc_buffer_usedlength(&buffer), buf);
 		}
 	} while (result == ISC_R_NOSPACE);

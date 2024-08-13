@@ -1047,20 +1047,15 @@ for the category at all.
 
 ##### Externally visible structure
 
-The types used by programs for configuring log message destinations are
-`isc_log_t` and `isc_logconfig_t`.  The `isc_log_t` type is normally
-created only once by a program, to hold static information about what
-categories and modules exist in the program and some other housekeeping
-information.  `isc_logconfig_t` is used to store the configurable
-specification of message destinations, which can be changed during the
-course of the program.
+The type used by programs for configuring log message destinations is
+`isc_logconfig_t`.  It is used to store the configurable specification of
+message destinations, which can be changed during the course of the program.
 
-A starting configuration (`isc_logconfig_t`) is created implicitly when
-the context (`isc_log_t`) is created.  The pointer to this configuration
-is returned via a parameter to `isc_log_create()` so that it can then be
-configured.  A new log configuration can be established by creating
-it with `isc_logconfig_create()`, configuring it, then installing it as
-the active configuration with `isc_logconfig_set()`.
+A starting configuration (`isc_logconfig_t`) is created implicitly.  The pointer
+to this configuration is returned via `isc_logconfig_get()` so that it can then
+be configured.  A new log configuration can be established by creating it with
+`isc_logconfig_create()`, configuring it, then installing it as the active
+configuration with `isc_logconfig_set()`.
 
 ##### Logging in multithreaded programs
 
@@ -1088,18 +1083,16 @@ the following steps need to be taken to initialize it.
    rudimentary initialization of both.
 
         isc_mem_t *mctx;
-        isc_log_t *lctx;
         isc_logconfig_t *lcfg;
 
-        isc_mem_create(&mctx);
-        isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS);
+        lcfg = isc_logconfig_get();
 
 1. Initialize any additional libraries.  The convention for the name of
    the initialization function is `{library}_log_init()`, with a pointer to
    the logging context as an argument.  The function can only be called
    once in a program or it will generate an assertion.
 
-        `dns_log_init(lctx);`
+        `dns_log_init();`
 
    If you do not want a library to write any log messages, simply do not
    call its the initialization function.
@@ -1164,14 +1157,14 @@ There are three additional functions you might find useful in your program
 to control logging behavior, two to work with the debugging level and one
 to control the closing of log files.
 
-        void isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level);
-        unsigned int isc_log_getdebuglevel(isc_log_t *lctx);
+        void isc_log_setdebuglevel(unsigned int level);
+        unsigned int isc_log_getdebuglevel();
 
 These set and retrieve the current debugging level of the program.
 `isc_log_getdebuglevel()` can be used so that you need not keep track of
 the level yourself in another variable.
 
-        void isc_log_closefilelogs(isc_log_t *lcxt);
+        void isc_log_closefilelogs();
 
 This function closes any open log files.  This is useful for programs that
 do not want to do file rotation as with the internal rolling mechanism.

@@ -3540,11 +3540,11 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 
 		dns_name_format(val->name, namebuf, sizeof(namebuf));
 		dns_rdatatype_format(val->type, typebuf, sizeof(typebuf));
-		isc_log_write(dns_lctx, category, module, level,
+		isc_log_write(category, module, level,
 			      "%s%s%s%.*svalidating %s/%s: %s", sep1, viewname,
 			      sep2, depth, spaces, namebuf, typebuf, msgbuf);
 	} else {
-		isc_log_write(dns_lctx, category, module, level,
+		isc_log_write(category, module, level,
 			      "%s%s%s%.*svalidator @%p: %s", sep1, viewname,
 			      sep2, depth, spaces, val, msgbuf);
 	}
@@ -3554,7 +3554,7 @@ static void
 validator_log(void *val, int level, const char *fmt, ...) {
 	va_list ap;
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 

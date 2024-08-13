@@ -1448,12 +1448,12 @@ flushandsync(FILE *f, isc_result_t result, const char *temp) {
 	}
 	if (result != ISC_R_SUCCESS && logit) {
 		if (temp != NULL) {
-			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			isc_log_write(ISC_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
 				      "dumping to master file: %s: flush: %s",
 				      temp, isc_result_totext(result));
 		} else {
-			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			isc_log_write(ISC_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
 				      "dumping to stream: flush: %s",
 				      isc_result_totext(result));
@@ -1466,12 +1466,12 @@ flushandsync(FILE *f, isc_result_t result, const char *temp) {
 	}
 	if (result != ISC_R_SUCCESS && logit) {
 		if (temp != NULL) {
-			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			isc_log_write(ISC_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
 				      "dumping to master file: %s: fsync: %s",
 				      temp, isc_result_totext(result));
 		} else {
-			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			isc_log_write(ISC_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
 				      "dumping to stream: fsync: %s",
 				      isc_result_totext(result));
@@ -1496,8 +1496,8 @@ closeandrename(FILE *f, isc_result_t result, const char *temp,
 		result = tresult;
 	}
 	if (result != ISC_R_SUCCESS && logit) {
-		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+		isc_log_write(ISC_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTERDUMP,
+			      ISC_LOG_ERROR,
 			      "dumping master file: %s: fclose: %s", temp,
 			      isc_result_totext(result));
 		logit = false;
@@ -1508,8 +1508,8 @@ closeandrename(FILE *f, isc_result_t result, const char *temp,
 		(void)isc_file_remove(temp);
 	}
 	if (result != ISC_R_SUCCESS && logit) {
-		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+		isc_log_write(ISC_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTERDUMP,
+			      ISC_LOG_ERROR,
 			      "dumping master file: rename: %s: %s", file,
 			      isc_result_totext(result));
 	}
@@ -1852,8 +1852,8 @@ opentmp(isc_mem_t *mctx, const char *file, char **tempp, FILE **fp) {
 
 	result = isc_file_openunique(tempname, &f);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+		isc_log_write(ISC_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTERDUMP,
+			      ISC_LOG_ERROR,
 			      "dumping master file: %s: open: %s", tempname,
 			      isc_result_totext(result));
 		goto cleanup;

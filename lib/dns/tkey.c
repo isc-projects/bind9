@@ -70,7 +70,7 @@ tkey_log(const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_REQUEST,
+	isc_log_vwrite(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_REQUEST,
 		       ISC_LOG_DEBUG(4), fmt, ap);
 	va_end(ap);
 }

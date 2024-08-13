@@ -69,8 +69,8 @@ static atomic_uint_fast64_t rollback_time;
 #define PRItime " %" PRIu64 " ns "
 
 #if DNS_QP_LOG_STATS
-#define LOG_STATS(...)                                                      \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
+#define LOG_STATS(...)                                            \
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
 		      ISC_LOG_DEBUG(1), __VA_ARGS__)
 #else
 #define LOG_STATS(...)
@@ -83,8 +83,8 @@ static atomic_uint_fast64_t rollback_time;
  */
 #define TRACE(fmt, ...)                                                        \
 	do {                                                                   \
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(7))) {            \
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,      \
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(7))) {                      \
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,                \
 				      DNS_LOGMODULE_QP, ISC_LOG_DEBUG(7),      \
 				      "%s:%d:%s(qp %p uctx \"%s\"):t%u: " fmt, \
 				      __FILE__, __LINE__, __func__, qp,        \
@@ -998,7 +998,7 @@ squash_twigs(dns_qp_t *qp, dns_qpref_t twigs, dns_qpweight_t size) {
 		 * letting compact+recycle fail repeatedly.
 		 */
 		if (QP_AUTOGC(qp)) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_QP, ISC_LOG_NOTICE,
 				      "qp %p uctx \"%s\" compact/recycle "
 				      "failed to recover any space, "

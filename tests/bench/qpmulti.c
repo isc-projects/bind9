@@ -54,9 +54,9 @@
 #define ZIPF	0
 
 #if VERBOSE
-#define TRACE(fmt, ...)                                                     \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
-		      ISC_LOG_DEBUG(7), "%s:%d:%s():t%d: " fmt, __FILE__,   \
+#define TRACE(fmt, ...)                                                   \
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP,         \
+		      ISC_LOG_DEBUG(7), "%s:%d:%s():t%d: " fmt, __FILE__, \
 		      __LINE__, __func__, isc_tid(), ##__VA_ARGS__)
 #else
 #define TRACE(...)
@@ -157,11 +157,10 @@ init_logging(void) {
 	isc_result_t result;
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
-	isc_log_t *lctx = NULL;
 
-	dns_log_init(lctx);
+	dns_log_init();
 
-	logconfig = isc_logconfig_get(lctx);
+	logconfig = isc_logconfig_get();
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -171,7 +170,7 @@ init_logging(void) {
 			      ISC_LOG_PRINTPREFIX | ISC_LOG_PRINTTIME |
 				      ISC_LOG_ISO8601);
 #if VERBOSE
-	isc_log_setdebuglevel(lctx, 7);
+	isc_log_setdebuglevel(7);
 #endif
 
 	result = isc_log_usechannel(logconfig, "stderr",

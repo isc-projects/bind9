@@ -199,7 +199,6 @@ struct cfg_listelt {
 /*% The parser object. */
 struct cfg_parser {
 	isc_mem_t   *mctx;
-	isc_log_t   *lctx;
 	isc_lex_t   *lexer;
 	unsigned int errors;
 	unsigned int warnings;

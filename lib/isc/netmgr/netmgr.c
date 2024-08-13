@@ -1947,7 +1947,7 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 		int r = uv_tcp_close_reset(&sock->uv_handle.tcp,
 					   reset_shutdown);
 		if (r != 0) {
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			isc_log_write(ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_NETMGR, ISC_LOG_DEBUG(1),
 				      "TCP Reset (RST) failed: %s",
 				      uv_strerror(r));
@@ -2550,7 +2550,7 @@ isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls) {
 
 	REQUIRE(tls != NULL);
 
-	if (!isc_log_wouldlog(isc_lctx, log_level)) {
+	if (!isc_log_wouldlog(log_level)) {
 		return;
 	};
 
@@ -2588,7 +2588,7 @@ isc__netmgr_log(const isc_nm_t *netmgr, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
-	if (!isc_log_wouldlog(isc_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -2596,8 +2596,8 @@ isc__netmgr_log(const isc_nm_t *netmgr, int level, const char *fmt, ...) {
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
 
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_NETMGR,
-		      level, "netmgr %p: %s", netmgr, msgbuf);
+	isc_log_write(ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_NETMGR, level,
+		      "netmgr %p: %s", netmgr, msgbuf);
 }
 
 void
@@ -2605,7 +2605,7 @@ isc__nmsocket_log(const isc_nmsocket_t *sock, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
-	if (!isc_log_wouldlog(isc_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -2613,8 +2613,8 @@ isc__nmsocket_log(const isc_nmsocket_t *sock, int level, const char *fmt, ...) {
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
 
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_NETMGR,
-		      level, "socket %p: %s", sock, msgbuf);
+	isc_log_write(ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_NETMGR, level,
+		      "socket %p: %s", sock, msgbuf);
 }
 
 void
@@ -2623,7 +2623,7 @@ isc__nmhandle_log(const isc_nmhandle_t *handle, int level, const char *fmt,
 	char msgbuf[2048];
 	va_list ap;
 
-	if (!isc_log_wouldlog(isc_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -2650,7 +2650,7 @@ isc__nm_received_proxy_header_log(isc_nmhandle_t *handle,
 	const char *real_addresses_msg =
 		"real source and destination addresses are used";
 
-	if (!isc_log_wouldlog(isc_lctx, log_level)) {
+	if (!isc_log_wouldlog(log_level)) {
 		return;
 	}
 
@@ -2673,9 +2673,8 @@ isc__nm_received_proxy_header_log(isc_nmhandle_t *handle,
 		       real_peer_fmt, real_local_fmt, proto);
 
 	if (cmd == ISC_PROXY2_CMD_LOCAL) {
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_DEFAULT,
-			      ISC_LOGMODULE_NETMGR, log_level,
-			      "%s: command: LOCAL (%s)", common_msg,
+		isc_log_write(ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_NETMGR,
+			      log_level, "%s: command: LOCAL (%s)", common_msg,
 			      real_addresses_msg);
 		return;
 	} else if (cmd == ISC_PROXY2_CMD_PROXY) {
@@ -2687,7 +2686,7 @@ isc__nm_received_proxy_header_log(isc_nmhandle_t *handle,
 
 		switch (socktype) {
 		case 0:
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_DEFAULT,
+			isc_log_write(ISC_LOGCATEGORY_DEFAULT,
 				      ISC_LOGMODULE_NETMGR, log_level,
 				      "%s: command: PROXY (unspecified address "
 				      "and socket type, %s)",
@@ -2715,8 +2714,8 @@ isc__nm_received_proxy_header_log(isc_nmhandle_t *handle,
 			dst_addr_msg = dst_addr_fmt;
 		}
 
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_DEFAULT,
-			      ISC_LOGMODULE_NETMGR, log_level,
+		isc_log_write(ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_NETMGR,
+			      log_level,
 			      "%s: command: PROXY, socket type: %s, source: "
 			      "%s, destination: %s, TLVs: %s",
 			      common_msg, socktype_name, src_addr_msg,

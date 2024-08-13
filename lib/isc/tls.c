@@ -222,7 +222,7 @@ isc_tlsctx_attach(isc_tlsctx_t *src, isc_tlsctx_t **ptarget) {
  */
 static void
 sslkeylogfile_append(const SSL *ssl ISC_ATTR_UNUSED, const char *line) {
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_SSLKEYLOG, ISC_LOGMODULE_NETMGR,
+	isc_log_write(ISC_LOGCATEGORY_SSLKEYLOG, ISC_LOGMODULE_NETMGR,
 		      ISC_LOG_INFO, "%s", line);
 }
 
@@ -269,7 +269,7 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 ssl_error:
 	err = ERR_get_error();
 	ERR_error_string_n(err, errbuf, sizeof(errbuf));
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+	isc_log_write(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
 		      ISC_LOG_ERROR, "Error initializing TLS context: %s",
 		      errbuf);
 
@@ -469,7 +469,7 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 ssl_error:
 	err = ERR_get_error();
 	ERR_error_string_n(err, errbuf, sizeof(errbuf));
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+	isc_log_write(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
 		      ISC_LOG_ERROR, "Error initializing TLS context: %s",
 		      errbuf);
 
@@ -1696,7 +1696,7 @@ isc__tlserr2result(isc_logcategory_t *category, isc_logmodule_t *module,
 		goto done;
 	}
 
-	isc_log_write(isc_lctx, category, module, ISC_LOG_WARNING,
+	isc_log_write(category, module, ISC_LOG_WARNING,
 		      "%s (%s:%d) failed (%s)", funcname, file, line,
 		      isc_result_totext(result));
 
@@ -1716,8 +1716,8 @@ isc__tlserr2result(isc_logcategory_t *category, isc_logmodule_t *module,
 		char buf[256];
 		ERR_error_string_n(err, buf, sizeof(buf));
 
-		isc_log_write(isc_lctx, category, module, ISC_LOG_INFO,
-			      "%s:%s:%d:%s", buf, file, line,
+		isc_log_write(category, module, ISC_LOG_INFO, "%s:%s:%d:%s",
+			      buf, file, line,
 			      ((flags & ERR_TXT_STRING) != 0) ? data : "");
 	}
 

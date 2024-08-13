@@ -2121,7 +2121,7 @@ xfrin_log(dns_xfrin_t *xfr, int level, const char *fmt, ...) {
 	char primarytext[ISC_SOCKADDR_FORMATSIZE];
 	char msgtext[2048];
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -2131,7 +2131,7 @@ xfrin_log(dns_xfrin_t *xfr, int level, const char *fmt, ...) {
 	vsnprintf(msgtext, sizeof(msgtext), fmt, ap);
 	va_end(ap);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN, DNS_LOGMODULE_XFER_IN,
-		      level, "%p: transfer of '%s' from %s: %s", xfr, xfr->info,
+	isc_log_write(DNS_LOGCATEGORY_XFER_IN, DNS_LOGMODULE_XFER_IN, level,
+		      "%p: transfer of '%s' from %s: %s", xfr, xfr->info,
 		      primarytext, msgtext);
 }

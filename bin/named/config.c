@@ -451,8 +451,8 @@ named_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 	r.length = strlen(r.base);
 	result = dns_rdataclass_fromtext(classp, &r);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(classobj, named_g_lctx, ISC_LOG_ERROR,
-			    "unknown class '%s'", r.base);
+		cfg_obj_log(classobj, ISC_LOG_ERROR, "unknown class '%s'",
+			    r.base);
 	}
 	return (result);
 }
@@ -471,8 +471,8 @@ named_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 	r.length = strlen(r.base);
 	result = dns_rdatatype_fromtext(typep, &r);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(typeobj, named_g_lctx, ISC_LOG_ERROR,
-			    "unknown type '%s'", r.base);
+		cfg_obj_log(typeobj, ISC_LOG_ERROR, "unknown type '%s'",
+			    r.base);
 	}
 	return (result);
 }
@@ -663,7 +663,7 @@ newlist:
 	if (cfg_obj_isuint32(portobj)) {
 		uint32_t val = cfg_obj_asuint32(portobj);
 		if (val > UINT16_MAX) {
-			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(portobj, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
 			result = ISC_R_RANGE;
 			goto cleanup;
@@ -718,7 +718,7 @@ resume:
 			tresult = named_config_getremotesdef(config, listtype,
 							     listname, &list);
 			if (tresult == ISC_R_NOTFOUND) {
-				cfg_obj_log(addr, named_g_lctx, ISC_LOG_ERROR,
+				cfg_obj_log(addr, ISC_LOG_ERROR,
 					    "%s \"%s\" not found", listtype,
 					    listname);
 
@@ -890,8 +890,7 @@ named_config_getport(const cfg_obj_t *config, const char *type,
 	result = named_config_get(maps, type, &portobj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (cfg_obj_asuint32(portobj) >= UINT16_MAX) {
-		cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
-			    "port '%u' out of range",
+		cfg_obj_log(portobj, ISC_LOG_ERROR, "port '%u' out of range",
 			    cfg_obj_asuint32(portobj));
 		return (ISC_R_RANGE);
 	}

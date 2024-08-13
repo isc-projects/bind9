@@ -46,7 +46,6 @@ dns_fixedname_t fname;
 dns_name_t *name;
 unsigned int bits = 2048U;
 isc_mem_t *mctx;
-isc_log_t *log_;
 isc_logconfig_t *logconfig;
 int level = ISC_LOG_WARNING;
 isc_logdestination_t destination;
@@ -106,9 +105,9 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-	dns_log_init(log_);
+	dns_log_init();
 
-	logconfig = isc_logconfig_get(log_);
+	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, "bigkey");
 
 	destination.file.stream = stderr;

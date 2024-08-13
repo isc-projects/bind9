@@ -18,7 +18,6 @@
 #include <isc/log.h>
 #include <isc/types.h>
 
-extern isc_log_t	*ns_lctx;
 extern isc_logcategory_t ns_categories[];
 extern isc_logmodule_t	 ns_modules[];
 
@@ -46,7 +45,7 @@ extern isc_logmodule_t	 ns_modules[];
 #define NS_LOGMODULE_HOOKS	  (&ns_modules[7])
 
 void
-ns_log_init(isc_log_t *lctx);
+ns_log_init(void);
 /*%<
  * Make the libns categories and modules available for use with the
  * ISC logging library.

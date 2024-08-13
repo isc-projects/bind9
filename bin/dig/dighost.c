@@ -99,7 +99,6 @@ bool port_set = false;
 unsigned int timeout = 0;
 unsigned int extrabytes;
 isc_mem_t *mctx = NULL;
-isc_log_t *lctx = NULL;
 isc_nm_t *netmgr = NULL;
 isc_loopmgr_t *loopmgr = NULL;
 isc_loop_t *mainloop = NULL;
@@ -1096,7 +1095,7 @@ read_confkey(void) {
 		return (ISC_R_FILENOTFOUND);
 	}
 
-	result = cfg_parser_create(mctx, NULL, &pctx);
+	result = cfg_parser_create(mctx, &pctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1361,14 +1360,14 @@ setup_libs(void) {
 
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
-	dns_log_init(lctx);
+	dns_log_init();
 
-	logconfig = isc_logconfig_get(lctx);
+	logconfig = isc_logconfig_get();
 	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
 
 	check_result(result, "isc_log_usechannel");
 
-	isc_log_setdebuglevel(lctx, 0);
+	isc_log_setdebuglevel(0);
 
 	isc_mem_setname(mctx, "dig");
 	mainloop = isc_loop_main(loopmgr);

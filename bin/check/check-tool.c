@@ -549,17 +549,16 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 }
 
 isc_result_t
-setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, FILE *errout, isc_log_t **logp) {
+setup_logging(FILE *errout) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
-	isc_log_t *log = NULL;
 
-	isc_log_registercategories(log, categories);
-	dns_log_init(log);
-	cfg_log_init(log);
-	ns_log_init(log);
+	isc_log_registercategories(categories);
+	dns_log_init();
+	cfg_log_init();
+	ns_log_init();
 
-	logconfig = isc_logconfig_get(log);
+	logconfig = isc_logconfig_get();
 	destination.file.stream = errout;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -570,7 +569,6 @@ setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, FILE *errout, isc_log_t **logp) {
 	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
 		      ISC_R_SUCCESS);
 
-	*logp = log;
 	return (ISC_R_SUCCESS);
 }
 

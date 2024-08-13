@@ -160,7 +160,6 @@ typedef union isc_logdestination {
  * the order of the names.
  */
 extern isc_logcategory_t isc_categories[];
-extern isc_log_t	*isc_lctx __attribute__((__deprecated__));
 extern isc_logmodule_t	 isc_modules[];
 /*@}*/
 
@@ -185,7 +184,7 @@ extern isc_logmodule_t	 isc_modules[];
 ISC_LANG_BEGINDECLS
 
 void
-isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
+isc_logconfig_create(isc_logconfig_t **lcfgp);
 /*%<
  * Create the data structure that holds all of the configurable information
  * about where messages are actually supposed to be sent -- the information
@@ -227,9 +226,9 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
  */
 
 isc_logconfig_t *
-isc_logconfig_get(isc_log_t *lctx);
+isc_logconfig_get(void);
 void
-isc_logconfig_set(isc_log_t *lctx, isc_logconfig_t *lcfg);
+isc_logconfig_set(isc_logconfig_t *lcfg);
 /*%<
  * Getter/setter for a configuration with a logging context.
  *
@@ -264,7 +263,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp);
  */
 
 void
-isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
+isc_log_registercategories(isc_logcategory_t categories[]);
 /*%<
  * Identify logging categories a library will use.
  *
@@ -302,7 +301,7 @@ isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
  */
 
 void
-isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
+isc_log_registermodules(isc_logmodule_t modules[]);
 /*%<
  * Identify logging categories a library will use.
  *
@@ -500,10 +499,10 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *	meaningful error.
  */
 void
-isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
-	      isc_logmodule_t *module, int level, const char *format, ...)
+isc_log_write(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	      const char *format, ...)
 
-	ISC_FORMAT_PRINTF(5, 6);
+	ISC_FORMAT_PRINTF(4, 5);
 
 /*%
  * Write a message to the log channels.
@@ -538,14 +537,13 @@ isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
  *	meaningful error.
  */
 void
-isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *format,
-	       va_list args)
+isc_log_vwrite(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	       const char *format, va_list args)
 
-	ISC_FORMAT_PRINTF(5, 0);
+	ISC_FORMAT_PRINTF(4, 0);
 
 void
-isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level);
+isc_log_setdebuglevel(unsigned int level);
 /*%<
  * Set the debugging level used for logging.
  *
@@ -560,7 +558,7 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level);
  */
 
 unsigned int
-isc_log_getdebuglevel(isc_log_t *lctx);
+isc_log_getdebuglevel(void);
 /*%<
  * Get the current debugging level.
  *
@@ -579,7 +577,7 @@ isc_log_getdebuglevel(isc_log_t *lctx);
  */
 
 bool
-isc_log_wouldlog(isc_log_t *lctx, int level);
+isc_log_wouldlog(int level);
 /*%<
  * Determine whether logging something to 'lctx' at 'level' would
  * actually cause something to be logged somewhere.
@@ -674,7 +672,7 @@ isc_log_opensyslog(const char *tag, int options, int facility);
  */
 
 void
-isc_log_closefilelogs(isc_log_t *lctx);
+isc_log_closefilelogs(void);
 /*%<
  * Close all open files used by #ISC_LOG_TOFILE channels.
  *
@@ -696,7 +694,7 @@ isc_log_closefilelogs(isc_log_t *lctx);
  */
 
 isc_logcategory_t *
-isc_log_categorybyname(isc_log_t *lctx, const char *name);
+isc_log_categorybyname(const char *name);
 /*%<
  * Find a category by its name.
  *
@@ -714,7 +712,7 @@ isc_log_categorybyname(isc_log_t *lctx, const char *name);
  */
 
 isc_logmodule_t *
-isc_log_modulebyname(isc_log_t *lctx, const char *name);
+isc_log_modulebyname(const char *name);
 /*%<
  * Find a module by its name.
  *

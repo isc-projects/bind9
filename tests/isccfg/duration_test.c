@@ -52,9 +52,9 @@ ISC_SETUP_TEST_IMPL(group) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
-	isc_log_registercategories(lctx, categories);
+	isc_log_registercategories(categories);
 
-	logconfig = isc_logconfig_get(lctx);
+	logconfig = isc_logconfig_get();
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -167,7 +167,7 @@ ISC_RUN_TEST_IMPL(duration) {
 		isc_buffer_add(&buf1, strlen(conf) - 1);
 
 		/* Parse with default line numbering */
-		result = cfg_parser_create(mctx, lctx, &p1);
+		result = cfg_parser_create(mctx, &p1);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		result = cfg_parse_buffer(p1, &buf1, "text1", 0,

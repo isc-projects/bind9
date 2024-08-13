@@ -29,7 +29,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp);
+setup_logging(FILE *errout);
 
 isc_result_t
 load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,

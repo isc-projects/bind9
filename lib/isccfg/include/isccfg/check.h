@@ -46,7 +46,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
-		       isc_log_t *logctx, isc_mem_t *mctx);
+		       isc_mem_t *mctx);
 /*%<
  * Check the syntactic validity of a configuration parse tree generated from
  * a named.conf file.
@@ -65,7 +65,7 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
  */
 
 isc_result_t
-isccfg_check_key(const cfg_obj_t *config, isc_log_t *logctx);
+isccfg_check_key(const cfg_obj_t *config);
 /*%<
  * Same as isccfg_check_namedconf(), but for a single 'key' statement.
  */

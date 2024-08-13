@@ -56,17 +56,13 @@ named_log_init(bool safe) {
 	named_g_modules = modules;
 
 	/*
-	 * Setup a logging context.
-	 */
-
-	/*
 	 * named-checktool.c:setup_logging() needs to be kept in sync.
 	 */
-	isc_log_registercategories(named_g_lctx, named_g_categories);
-	isc_log_registermodules(named_g_lctx, named_g_modules);
-	dns_log_init(named_g_lctx);
-	cfg_log_init(named_g_lctx);
-	ns_log_init(named_g_lctx);
+	isc_log_registercategories(named_g_categories);
+	isc_log_registermodules(named_g_modules);
+	dns_log_init();
+	cfg_log_init();
+	ns_log_init();
 
 	/*
 	 * This is not technically needed, as we are calling named_log_init()
@@ -75,7 +71,7 @@ named_log_init(bool safe) {
 	 * hygiene.
 	 */
 	rcu_read_lock();
-	lcfg = isc_logconfig_get(named_g_lctx);
+	lcfg = isc_logconfig_get();
 	if (safe) {
 		named_log_setsafechannels(lcfg);
 	} else {
@@ -138,7 +134,7 @@ named_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 	/*
 	 * Set the initial debug level.
 	 */
-	isc_log_setdebuglevel(named_g_lctx, named_g_debuglevel);
+	isc_log_setdebuglevel(named_g_debuglevel);
 }
 
 void
@@ -153,9 +149,9 @@ named_log_setsafechannels(isc_logconfig_t *lcfg) {
 		 * Setting the debug level to zero should get the output
 		 * discarded a bit faster.
 		 */
-		isc_log_setdebuglevel(named_g_lctx, 0);
+		isc_log_setdebuglevel(0);
 	} else {
-		isc_log_setdebuglevel(named_g_lctx, named_g_debuglevel);
+		isc_log_setdebuglevel(named_g_debuglevel);
 	}
 
 	if (named_g_logfile != NULL) {
@@ -246,9 +242,4 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
 	result = isc_log_usechannel(lcfg, "null", NAMED_LOGCATEGORY_UNMATCHED,
 				    NULL);
 	return (result);
-}
-
-void
-named_log_shutdown(void) {
-	/* no-op */
 }

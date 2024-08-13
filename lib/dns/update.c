@@ -131,7 +131,7 @@
 		case DNS_R_NXRRSET:                                        \
 			_what = "unsuccessful";                            \
 		}                                                          \
-		if (isc_log_wouldlog(dns_lctx, LOGLEVEL_PROTOCOL)) {       \
+		if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {                 \
 			char _nbuf[DNS_NAME_FORMATSIZE];                   \
 			dns_name_format(name, _nbuf, sizeof(_nbuf));       \
 			update_log(log, zone, LOGLEVEL_PROTOCOL,           \
@@ -153,7 +153,7 @@
 		case DNS_R_NXRRSET:                                           \
 			_what = "unsuccessful";                               \
 		}                                                             \
-		if (isc_log_wouldlog(dns_lctx, LOGLEVEL_PROTOCOL)) {          \
+		if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {                    \
 			char _nbuf[DNS_NAME_FORMATSIZE];                      \
 			char _tbuf[DNS_RDATATYPE_FORMATSIZE];                 \
 			dns_name_format(name, _nbuf, sizeof(_nbuf));          \
@@ -208,7 +208,7 @@ update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
 		return;
 	}
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 

@@ -456,9 +456,8 @@ free_qpdb(qpzonedb_t *qpdb, bool log) {
 		} else {
 			strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DB, ISC_LOG_DEBUG(1),
-			      "called free_qpdb(%s)", buf);
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DB,
+			      ISC_LOG_DEBUG(1), "called free_qpdb(%s)", buf);
 	}
 
 	call_rcu(&qpdb->rcu_head, free_db_rcu);
@@ -518,7 +517,7 @@ qpdb_destroy(dns_db_t *arg) {
 			} else {
 				strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 			}
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DB, ISC_LOG_DEBUG(1),
 				      "calling free_qpdb(%s)", buf);
 			free_qpdb(qpdb, true);
@@ -2960,7 +2959,7 @@ previous_closest_nsec(dns_rdatatype_t type, qpz_search_t *search,
 		 * nodes in the auxiliary tree that are awaiting deletion.
 		 */
 		if (result != DNS_R_PARTIALMATCH && result != ISC_R_NOTFOUND) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DB, ISC_LOG_ERROR,
 				      "previous_closest_nsec(): %s",
 				      isc_result_totext(result));
@@ -3882,7 +3881,7 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 			} else {
 				strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 			}
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DB, ISC_LOG_DEBUG(1),
 				      "calling free_qpdb(%s)", buf);
 			free_qpdb(qpdb, true);

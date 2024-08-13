@@ -50,6 +50,11 @@ static thread_local bool forcelog = false;
  */
 #define LOG_BUFFER_SIZE (8 * 1024)
 
+/*
+ * Private isc_log_t data type.
+ */
+typedef struct isc_log isc_log_t;
+
 /*!
  * This is the structure that holds each named channel.  A simple linked
  * list chains all of the channels together, so an individual channel is
@@ -189,7 +194,6 @@ static isc_logchannellist_t default_channel;
 /*!
  * libisc logs to this context.
  */
-isc_log_t *isc_lctx __attribute__((__deprecated__)) = NULL;
 static isc_log_t *isc__lctx = NULL;
 
 /*!
@@ -203,15 +207,14 @@ static void
 sync_channellist(isc_logconfig_t *lcfg);
 
 static void
-sync_highest_level(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logconfig_t *lcfg);
+sync_highest_level(isc_logconfig_t *lcfg);
 
 static isc_result_t
 greatest_version(isc_logfile_t *file, int versions, int *greatest);
 
 static void
-isc_log_doit(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logcategory_t *category,
-	     isc_logmodule_t *module, int level, const char *format,
-	     va_list args) ISC_FORMAT_PRINTF(5, 0);
+isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	     const char *format, va_list args) ISC_FORMAT_PRINTF(4, 0);
 
 /*@{*/
 /*!
@@ -232,8 +235,7 @@ isc_log_doit(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logcategory_t *category,
 ****/
 
 void
-isc_logconfig_create(isc_log_t *__lctx ISC_ATTR_UNUSED,
-		     isc_logconfig_t **lcfgp) {
+isc_logconfig_create(isc_logconfig_t **lcfgp) {
 	REQUIRE(lcfgp != NULL && *lcfgp == NULL);
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 
@@ -287,14 +289,14 @@ isc_logconfig_create(isc_log_t *__lctx ISC_ATTR_UNUSED,
 }
 
 isc_logconfig_t *
-isc_logconfig_get(isc_log_t *__lctx ISC_ATTR_UNUSED) {
+isc_logconfig_get(void) {
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 
 	return (rcu_dereference(isc__lctx->logconfig));
 }
 
 void
-isc_logconfig_set(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logconfig_t *lcfg) {
+isc_logconfig_set(isc_logconfig_t *lcfg) {
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(lcfg->lctx == isc__lctx);
@@ -308,7 +310,7 @@ isc_logconfig_set(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logconfig_t *lcfg) {
 
 	isc_logconfig_t *old_cfg = rcu_xchg_pointer(&isc__lctx->logconfig,
 						    lcfg);
-	sync_highest_level(isc__lctx, lcfg);
+	sync_highest_level(lcfg);
 	synchronize_rcu();
 
 	if (old_cfg != NULL) {
@@ -388,8 +390,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 }
 
 void
-isc_log_registercategories(isc_log_t *__lctx ISC_ATTR_UNUSED,
-			   isc_logcategory_t categories[]) {
+isc_log_registercategories(isc_logcategory_t categories[]) {
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 	REQUIRE(categories != NULL && categories[0].name != NULL);
 
@@ -434,7 +435,7 @@ isc_log_registercategories(isc_log_t *__lctx ISC_ATTR_UNUSED,
 }
 
 isc_logcategory_t *
-isc_log_categorybyname(isc_log_t *__lctx ISC_ATTR_UNUSED, const char *name) {
+isc_log_categorybyname(const char *name) {
 	isc_logcategory_t *catp;
 
 	REQUIRE(VALID_CONTEXT(isc__lctx));
@@ -459,8 +460,7 @@ isc_log_categorybyname(isc_log_t *__lctx ISC_ATTR_UNUSED, const char *name) {
 }
 
 void
-isc_log_registermodules(isc_log_t *__lctx ISC_ATTR_UNUSED,
-			isc_logmodule_t modules[]) {
+isc_log_registermodules(isc_logmodule_t modules[]) {
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 	REQUIRE(modules != NULL && modules[0].name != NULL);
 
@@ -505,7 +505,7 @@ isc_log_registermodules(isc_log_t *__lctx ISC_ATTR_UNUSED,
 }
 
 isc_logmodule_t *
-isc_log_modulebyname(isc_log_t *__lctx ISC_ATTR_UNUSED, const char *name) {
+isc_log_modulebyname(const char *name) {
 	isc_logmodule_t *modp;
 
 	REQUIRE(VALID_CONTEXT(isc__lctx));
@@ -650,7 +650,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 	 */
 	rcu_read_lock();
 	if (rcu_dereference(lcfg->lctx->logconfig) == lcfg) {
-		sync_highest_level(lctx, lcfg);
+		sync_highest_level(lcfg);
 	}
 	rcu_read_unlock();
 
@@ -658,8 +658,8 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 }
 
 void
-isc_log_write(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logcategory_t *category,
-	      isc_logmodule_t *module, int level, const char *format, ...) {
+isc_log_write(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	      const char *format, ...) {
 	va_list args;
 
 	/*
@@ -667,22 +667,21 @@ isc_log_write(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logcategory_t *category,
 	 */
 
 	va_start(args, format);
-	isc_log_doit(NULL, category, module, level, format, args);
+	isc_log_doit(category, module, level, format, args);
 	va_end(args);
 }
 
 void
-isc_log_vwrite(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *format,
-	       va_list args) {
+isc_log_vwrite(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	       const char *format, va_list args) {
 	/*
 	 * Contract checking is done in isc_log_doit().
 	 */
-	isc_log_doit(NULL, category, module, level, format, args);
+	isc_log_doit(category, module, level, format, args);
 }
 
 void
-isc_log_setdebuglevel(isc_log_t *__lctx ISC_ATTR_UNUSED, unsigned int level) {
+isc_log_setdebuglevel(unsigned int level) {
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 
 	atomic_store_release(&isc__lctx->debug_level, level);
@@ -714,7 +713,7 @@ isc_log_setdebuglevel(isc_log_t *__lctx ISC_ATTR_UNUSED, unsigned int level) {
 }
 
 unsigned int
-isc_log_getdebuglevel(isc_log_t *__lctx ISC_ATTR_UNUSED) {
+isc_log_getdebuglevel(void) {
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 
 	return (atomic_load_acquire(&isc__lctx->debug_level));
@@ -751,7 +750,7 @@ isc_log_opensyslog(const char *tag, int options, int facility) {
 }
 
 void
-isc_log_closefilelogs(isc_log_t *__lctx ISC_ATTR_UNUSED) {
+isc_log_closefilelogs(void) {
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 
 	rcu_read_lock();
@@ -840,7 +839,7 @@ sync_channellist(isc_logconfig_t *lcfg) {
 }
 
 static void
-sync_highest_level(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logconfig_t *lcfg) {
+sync_highest_level(isc_logconfig_t *lcfg) {
 	atomic_store(&isc__lctx->highest_level, lcfg->highest_level);
 	atomic_store(&isc__lctx->dynamic, lcfg->dynamic);
 }
@@ -1297,7 +1296,7 @@ isc_log_open(isc_logchannel_t *channel) {
 }
 
 ISC_NO_SANITIZE_THREAD bool
-isc_log_wouldlog(isc_log_t *__lctx ISC_ATTR_UNUSED, int level) {
+isc_log_wouldlog(int level) {
 	/*
 	 * Try to avoid locking the mutex for messages which can't
 	 * possibly be logged to any channels -- primarily debugging
@@ -1330,9 +1329,8 @@ isc_log_wouldlog(isc_log_t *__lctx ISC_ATTR_UNUSED, int level) {
 }
 
 static void
-isc_log_doit(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logcategory_t *category,
-	     isc_logmodule_t *module, int level, const char *format,
-	     va_list args) {
+isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	     const char *format, va_list args) {
 	int syslog_level;
 	const char *time_string;
 	char local_time[64];
@@ -1366,7 +1364,7 @@ isc_log_doit(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logcategory_t *category,
 	REQUIRE(category->id < isc__lctx->category_count);
 	REQUIRE(module->id < isc__lctx->module_count);
 
-	if (!isc_log_wouldlog(isc__lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -1662,12 +1660,12 @@ isc__log_initialize(void) {
 
 	isc_mutex_init(&isc__lctx->lock);
 
-	isc_log_registercategories(isc__lctx, isc_categories);
-	isc_log_registermodules(isc__lctx, isc_modules);
+	isc_log_registercategories(isc_categories);
+	isc_log_registermodules(isc_modules);
 
 	/* Create default logging configuration */
 	isc_logconfig_t *lcfg = NULL;
-	isc_logconfig_create(isc__lctx, &lcfg);
+	isc_logconfig_create(&lcfg);
 	sync_channellist(lcfg);
 
 	atomic_init(&isc__lctx->highest_level, lcfg->highest_level);

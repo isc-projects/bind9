@@ -63,7 +63,6 @@ const char *program = "dnssec-cds";
 /*
  * Infrastructure
  */
-static isc_log_t *lctx = NULL;
 static isc_mem_t *mctx = NULL;
 
 /*
@@ -1070,9 +1069,6 @@ cleanup(void) {
 		free_keytable(&new_key_tbl);
 	}
 	free_all_sets();
-	if (lctx != NULL) {
-		cleanup_logging(&lctx);
-	}
 	if (mctx != NULL) {
 		if (print_mem_stats && verbose > 10) {
 			isc_mem_stats(mctx, stdout);
@@ -1173,7 +1169,7 @@ main(int argc, char *argv[]) {
 		dtype[0] = DNS_DSDIGEST_SHA256;
 	}
 
-	setup_logging(mctx, &lctx);
+	setup_logging();
 
 	if (ds_path == NULL) {
 		fatal("missing -d DS pathname");

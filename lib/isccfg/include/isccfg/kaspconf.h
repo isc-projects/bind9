@@ -25,7 +25,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
-		    bool check_algorithms, isc_mem_t *mctx, isc_log_t *logctx,
+		    bool check_algorithms, isc_mem_t *mctx,
 		    dns_keystorelist_t *keystorelist, dns_kasplist_t *kasplist,
 		    dns_kasp_t **kaspp);
 /*%<
@@ -62,8 +62,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 
 isc_result_t
 cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
-			isc_log_t *logctx, dns_keystorelist_t *keystorelist,
-			dns_keystore_t **kspp);
+			dns_keystorelist_t *keystorelist,
+			dns_keystore_t	  **kspp);
 /*%<
  * Create and configure a key store. If a 'keystorelist' is provided, a lookup
  * happens and if a keystore already exists with the same name, no new one is

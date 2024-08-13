@@ -30,7 +30,6 @@
 #include <dns/types.h>
 
 isc_mem_t *mctx = NULL;
-isc_log_t *lctx = NULL;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
@@ -92,10 +91,10 @@ main(int argc, char **argv) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	isc_log_registercategories(lctx, categories);
-	dns_log_init(lctx);
+	isc_log_registercategories(categories);
+	dns_log_init();
 
-	logconfig = isc_logconfig_get(lctx);
+	logconfig = isc_logconfig_get();
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;

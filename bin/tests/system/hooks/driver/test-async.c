@@ -54,7 +54,6 @@ typedef struct async_instance {
 	isc_mem_t *mctx;
 	isc_ht_t *ht;
 	isc_mutex_t hlock;
-	isc_log_t *lctx;
 } async_instance_t;
 
 typedef struct state {
@@ -106,8 +105,8 @@ logmsg(const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
-		      ISC_LOG_INFO, fmt, ap);
+	isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+		      fmt, ap);
 	va_end(ap);
 }
 
@@ -126,16 +125,15 @@ logmsg(const char *fmt, ...) {
  */
 isc_result_t
 plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
-		unsigned long cfg_line, isc_mem_t *mctx, isc_log_t *lctx,
-		void *actx, ns_hooktable_t *hooktable, void **instp) {
+		unsigned long cfg_line, isc_mem_t *mctx, void *actx,
+		ns_hooktable_t *hooktable, void **instp) {
 	async_instance_t *inst = NULL;
 
 	UNUSED(parameters);
 	UNUSED(cfg);
 	UNUSED(actx);
 
-	isc_log_write(lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
-		      ISC_LOG_INFO,
+	isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 		      "registering 'test-async' module from %s:%lu", cfg_file,
 		      cfg_line);
 
@@ -158,14 +156,12 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 
 isc_result_t
 plugin_check(const char *parameters, const void *cfg, const char *cfg_file,
-	     unsigned long cfg_line, isc_mem_t *mctx, isc_log_t *lctx,
-	     void *actx) {
+	     unsigned long cfg_line, isc_mem_t *mctx, void *actx) {
 	UNUSED(parameters);
 	UNUSED(cfg);
 	UNUSED(cfg_file);
 	UNUSED(cfg_line);
 	UNUSED(mctx);
-	UNUSED(lctx);
 	UNUSED(actx);
 
 	return (ISC_R_SUCCESS);

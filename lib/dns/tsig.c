@@ -124,7 +124,7 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char creatorstr[DNS_NAME_FORMATSIZE];
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 	if (key != NULL) {
@@ -143,14 +143,12 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	if (key != NULL && key->generated) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_TSIG, level,
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_TSIG, level,
 			      "tsig key '%s' (%s): %s", namestr, creatorstr,
 			      message);
 	} else {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_TSIG, level, "tsig key '%s': %s",
-			      namestr, message);
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_TSIG, level,
+			      "tsig key '%s': %s", namestr, message);
 	}
 }
 
@@ -286,8 +284,8 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 	{
 		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namestr, sizeof(namestr));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_TSIG, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_TSIG,
+			      ISC_LOG_INFO,
 			      "the key '%s' is too short to be secure",
 			      namestr);
 	}

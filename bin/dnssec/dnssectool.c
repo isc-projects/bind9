@@ -128,10 +128,9 @@ sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 }
 
 void
-setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, isc_log_t **logp) {
+setup_logging(void) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
-	isc_log_t *log = NULL;
 	int level;
 
 	if (verbose < 0) {
@@ -153,9 +152,9 @@ setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, isc_log_t **logp) {
 		break;
 	}
 
-	dns_log_init(log);
+	dns_log_init();
 
-	logconfig = isc_logconfig_get(log);
+	logconfig = isc_logconfig_get();
 
 	isc_log_settag(logconfig, program);
 
@@ -175,20 +174,6 @@ setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, isc_log_t **logp) {
 
 	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
 		      ISC_R_SUCCESS);
-
-	*logp = log;
-}
-
-void
-cleanup_logging(isc_log_t **logp) {
-	REQUIRE(logp != NULL);
-
-	isc_log_t *log = *logp;
-	*logp = NULL;
-
-	if (log == NULL) {
-		return;
-	}
 }
 
 static isc_stdtime_t
@@ -598,8 +583,8 @@ cleanup:
 }
 
 void
-kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
-	       const char *name, const char *keydir, dns_kasp_t **kaspp) {
+kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
+	       const char *keydir, dns_kasp_t **kaspp) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *kasps = NULL;
@@ -618,8 +603,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		ks = NULL;
-		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, &kslist,
-						 NULL);
+		result = cfg_keystore_fromconfig(kconfig, mctx, &kslist, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure key-store '%s': %s",
 			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
@@ -628,7 +612,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
 	}
 	/* Default key-directory key store. */
 	ks = NULL;
-	(void)cfg_keystore_fromconfig(NULL, mctx, lctx, &kslist, &ks);
+	(void)cfg_keystore_fromconfig(NULL, mctx, &kslist, &ks);
 	INSIST(ks != NULL);
 	if (keydir != NULL) {
 		/* '-K keydir' takes priority */
@@ -648,8 +632,8 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
 			continue;
 		}
 
-		result = cfg_kasp_fromconfig(kconfig, NULL, true, mctx, lctx,
-					     &kslist, &kasplist, &kasp);
+		result = cfg_kasp_fromconfig(kconfig, NULL, true, mctx, &kslist,
+					     &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure dnssec-policy '%s': %s",
 			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),

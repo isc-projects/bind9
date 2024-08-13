@@ -39,8 +39,8 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 
 	n = snprintf(pathbuf, sizeof(pathbuf), "%s/%s", dir, dbfile);
 	if (n >= sizeof(pathbuf)) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR,
 			      "GeoIP2 database '%s/%s': path too long", dir,
 			      dbfile);
 		return (NULL);
@@ -48,14 +48,14 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 
 	ret = MMDB_open(pathbuf, MMDB_MODE_MMAP, mmdb);
 	if (ret == MMDB_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "opened GeoIP2 database '%s'", pathbuf);
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_INFO, "opened GeoIP2 database '%s'",
+			      pathbuf);
 		return (mmdb);
 	}
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_DEBUG(1),
 		      "unable to open GeoIP2 database '%s' (status %d)",
 		      pathbuf, ret);
 
@@ -79,9 +79,9 @@ named_geoip_load(char *dir) {
 #if defined(HAVE_GEOIP2)
 	REQUIRE(dir != NULL);
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "looking for GeoIP2 databases in '%s'", dir);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "looking for GeoIP2 databases in '%s'",
+		      dir);
 
 	named_g_geoip->country = open_geoip2(dir, "GeoIP2-Country.mmdb",
 					     &geoip_country);

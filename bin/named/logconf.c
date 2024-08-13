@@ -50,9 +50,9 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 	const cfg_listelt_t *element = NULL;
 
 	catname = cfg_obj_asstring(cfg_tuple_get(ccat, "name"));
-	category = isc_log_categorybyname(named_g_lctx, catname);
+	category = isc_log_categorybyname(catname);
 	if (category == NULL) {
-		cfg_obj_log(ccat, named_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(ccat, ISC_LOG_ERROR,
 			    "unknown logging category '%s' ignored", catname);
 		/*
 		 * Allow further processing by returning success.
@@ -76,7 +76,7 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 		result = isc_log_usechannel(logconfig, channelname, category,
 					    module);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(named_g_lctx, CFG_LOGCATEGORY_CONFIG,
+			isc_log_write(CFG_LOGCATEGORY_CONFIG,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s': %s", channelname,
 				      isc_result_totext(result));
@@ -127,7 +127,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 	}
 
 	if (i != 1) {
-		cfg_obj_log(channel, named_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(channel, ISC_LOG_ERROR,
 			    "channel '%s': exactly one of file, syslog, "
 			    "null, and stderr must be present",
 			    channelname);

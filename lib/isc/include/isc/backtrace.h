@@ -105,8 +105,8 @@ isc_backtrace_symbols_fd(void *const *buffer, int size, int fd);
  */
 
 void
-isc_backtrace_log(isc_log_t *lctx, isc_logcategory_t *category,
-		  isc_logmodule_t *module, int level);
+isc_backtrace_log(isc_logcategory_t *category, isc_logmodule_t *module,
+		  int level);
 /*
  * Write a backtrace to the log.
  */

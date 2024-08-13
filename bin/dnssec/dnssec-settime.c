@@ -226,7 +226,6 @@ main(int argc, char **argv) {
 	bool epoch = false;
 	bool changed = false;
 	bool write_state = false;
-	isc_log_t *log = NULL;
 	isc_stdtime_t syncadd = 0, syncdel = 0;
 	bool unsetsyncadd = false, setsyncadd = false;
 	bool unsetsyncdel = false, setsyncdel = false;
@@ -245,7 +244,7 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-	setup_logging(mctx, &log);
+	setup_logging();
 
 	isc_commandline_errprint = false;
 
@@ -947,7 +946,6 @@ main(int argc, char **argv) {
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}
-	cleanup_logging(&log);
 	isc_mem_free(mctx, directory);
 	isc_mem_destroy(&mctx);
 

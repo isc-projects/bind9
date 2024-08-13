@@ -95,7 +95,6 @@ main(int argc, char **argv) {
 	int c;
 	char *origin = NULL;
 	const char *filename = NULL;
-	isc_log_t *lctx = NULL;
 	isc_result_t result;
 	char classname_in[] = "IN";
 	char *classname = classname_in;
@@ -525,8 +524,7 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 	if (!quiet) {
-		RUNTIME_CHECK(setup_logging(mctx, errout, &lctx) ==
-			      ISC_R_SUCCESS);
+		RUNTIME_CHECK(setup_logging(errout) == ISC_R_SUCCESS);
 	}
 
 	origin = argv[isc_commandline_index++];

@@ -370,7 +370,7 @@ isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 	if (f == NULL) {
 		result = isc__errno2result(errno);
 		if (remove(templet) < 0) {
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			isc_log_write(ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_FILE, ISC_LOG_ERROR,
 				      "remove '%s': failed", templet);
 		}

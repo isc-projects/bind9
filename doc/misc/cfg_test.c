@@ -59,7 +59,6 @@ int
 main(int argc, char **argv) {
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
-	isc_log_t *lctx = NULL;
 	isc_logconfig_t *lcfg = NULL;
 	isc_logdestination_t destination;
 	cfg_parser_t *pctx = NULL;
@@ -76,7 +75,7 @@ main(int argc, char **argv) {
 	/*
 	 * Create and install the default channel.
 	 */
-	lcfg = isc_logconfig_get(lctx);
+	lcfg = isc_logconfig_get();
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -90,7 +89,7 @@ main(int argc, char **argv) {
 	/*
 	 * Set the initial debug level.
 	 */
-	isc_log_setdebuglevel(lctx, 2);
+	isc_log_setdebuglevel(2);
 
 	if (argc < 3) {
 		usage();
@@ -156,8 +155,7 @@ main(int argc, char **argv) {
 		if (type == NULL || filename == NULL) {
 			usage();
 		}
-		RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &pctx) ==
-			      ISC_R_SUCCESS);
+		RUNTIME_CHECK(cfg_parser_create(mctx, &pctx) == ISC_R_SUCCESS);
 
 		result = cfg_parse_file(pctx, filename, type, &cfg);
 

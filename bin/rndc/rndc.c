@@ -526,8 +526,8 @@ rndc_start(void *arg) {
 }
 
 static void
-parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
-	     cfg_parser_t **pctxp, cfg_obj_t **configp) {
+parse_config(isc_mem_t *mctx, const char *keyname, cfg_parser_t **pctxp,
+	     cfg_obj_t **configp) {
 	isc_result_t result;
 	const char *conffile = admin_conffile;
 	const cfg_obj_t *addresses = NULL;
@@ -570,7 +570,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 			admin_keyfile, admin_conffile);
 	}
 
-	DO("create parser", cfg_parser_create(mctx, log, pctxp));
+	DO("create parser", cfg_parser_create(mctx, pctxp));
 
 	/*
 	 * The parser will output its own errors, so DO() is not used.
@@ -806,7 +806,6 @@ int
 main(int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
 	bool show_final_mem = false;
-	isc_log_t *log = NULL;
 	isc_logconfig_t *logconfig = NULL;
 	isc_logdestination_t logdest;
 	cfg_parser_t *pctx = NULL;
@@ -954,7 +953,7 @@ main(int argc, char **argv) {
 
 	isc_nm_settimeouts(netmgr, timeout, timeout, timeout, 0);
 
-	logconfig = isc_logconfig_get(log);
+	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, progname);
 	logdest.file.stream = stderr;
 	logdest.file.name = NULL;
@@ -966,7 +965,7 @@ main(int argc, char **argv) {
 	DO("enabling log channel",
 	   isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 
-	parse_config(rndc_mctx, log, keyname, &pctx, &config);
+	parse_config(rndc_mctx, keyname, &pctx, &config);
 
 	isc_buffer_allocate(rndc_mctx, &databuf, 2048);
 

@@ -36,15 +36,14 @@ usage(void) {
 /*
  * Setup logging to use stderr.
  */
-static isc_result_t
-setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, FILE *errout, isc_log_t **logp) {
+static void
+setup_logging(FILE *errout) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
-	isc_log_t *log = NULL;
 
-	dns_log_init(log);
+	dns_log_init();
 
-	logconfig = isc_logconfig_get(log);
+	logconfig = isc_logconfig_get();
 	destination.file.stream = errout;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -54,9 +53,6 @@ setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, FILE *errout, isc_log_t **logp) {
 
 	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
 		      ISC_R_SUCCESS);
-
-	*logp = log;
-	return (ISC_R_SUCCESS);
 }
 
 int
@@ -64,7 +60,6 @@ main(int argc, char **argv) {
 	char *file;
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
-	isc_log_t *lctx = NULL;
 	uint32_t flags = 0U;
 	int ch;
 	bool compact = false;
@@ -108,7 +103,7 @@ main(int argc, char **argv) {
 	file = argv[0];
 
 	isc_mem_create(&mctx);
-	RUNTIME_CHECK(setup_logging(mctx, stderr, &lctx) == ISC_R_SUCCESS);
+	setup_logging(stderr);
 
 	if (upgrade) {
 		flags = DNS_JOURNAL_COMPACTALL;

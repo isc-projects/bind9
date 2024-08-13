@@ -135,7 +135,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	    !command_compare(command, NAMED_COMMAND_TESTGEN) &&
 	    !command_compare(command, NAMED_COMMAND_ZONESTATUS))
 	{
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, log_level,
 			      "rejecting restricted control channel "
 			      "command '%s'",
@@ -144,9 +144,9 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		goto cleanup;
 	}
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_CONTROL, log_level,
-		      "received control channel command '%s'", cmdline);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_CONTROL,
+		      log_level, "received control channel command '%s'",
+		      cmdline);
 
 	/*
 	 * After the lengthy "halt" and "stop", the commands are
@@ -203,7 +203,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	{
 		result = named_server_changezone(named_g_server, cmdline, text);
 	} else if (command_compare(command, NAMED_COMMAND_CLOSELOGS)) {
-		isc_log_closefilelogs(named_g_lctx);
+		isc_log_closefilelogs();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NAMED_COMMAND_DELZONE)) {
 		result = named_server_delzone(named_g_server, lex, text);
@@ -238,7 +238,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		result = named_server_notifycommand(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_NOTRACE)) {
 		named_g_debuglevel = 0;
-		isc_log_setdebuglevel(named_g_lctx, named_g_debuglevel);
+		isc_log_setdebuglevel(named_g_debuglevel);
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NAMED_COMMAND_NTA)) {
 		result = named_server_nta(named_g_server, lex, readonly, text);
@@ -287,7 +287,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	} else if (command_compare(command, NAMED_COMMAND_ZONESTATUS)) {
 		result = named_server_zonestatus(named_g_server, lex, text);
 	} else {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "unknown control channel command '%s'", command);
 		result = DNS_R_UNKNOWNCOMMAND;

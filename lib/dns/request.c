@@ -1055,7 +1055,7 @@ req_log(int level, const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_REQUEST,
-		       level, fmt, ap);
+	isc_log_vwrite(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_REQUEST, level,
+		       fmt, ap);
 	va_end(ap);
 }

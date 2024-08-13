@@ -168,7 +168,6 @@ main(int argc, char *argv[]) {
 	char *origin = NULL, *file = NULL;
 	char *inputformatstr = NULL;
 	isc_result_t result;
-	isc_log_t *log = NULL;
 	char *classname = NULL;
 	dns_rdataclass_t rdclass;
 	char *endp;
@@ -276,7 +275,7 @@ main(int argc, char *argv[]) {
 
 	rdclass = strtoclass(classname);
 
-	setup_logging(mctx, &log);
+	setup_logging();
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
@@ -326,7 +325,6 @@ main(int argc, char *argv[]) {
 	dns_db_closeversion(gdb, &gversion, false);
 	dns_db_detach(&gdb);
 
-	cleanup_logging(&log);
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

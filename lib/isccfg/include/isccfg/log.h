@@ -28,14 +28,12 @@ extern isc_logmodule_t	 cfg_modules[];
 ISC_LANG_BEGINDECLS
 
 void
-cfg_log_init(isc_log_t *lctx);
+cfg_log_init(void);
 /*%<
  * Make the libisccfg categories and modules available for use with the
  * ISC logging library.
  *
  * Requires:
- *\li	lctx is a valid logging context.
- *
  *\li	cfg_log_init() is called only once.
  *
  * Ensures:

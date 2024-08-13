@@ -46,10 +46,8 @@ isc_logmodule_t ns_modules[] = {
 	{ "ns/notify", 0 }, { "ns/hooks", 0 },	 { NULL, 0 }
 };
 
-isc_log_t *ns_lctx = NULL;
-
 void
-ns_log_init(isc_log_t *lctx) {
-	isc_log_registercategories(lctx, ns_categories);
-	isc_log_registermodules(lctx, ns_modules);
+ns_log_init(void) {
+	isc_log_registercategories(ns_categories);
+	isc_log_registermodules(ns_modules);
 }

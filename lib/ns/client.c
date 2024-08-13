@@ -960,7 +960,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		} else {
 			loglevel = ISC_LOG_DEBUG(1);
 		}
-		wouldlog = isc_log_wouldlog(ns_lctx, loglevel);
+		wouldlog = isc_log_wouldlog(loglevel);
 		rrl_result = dns_rrl(client->view, NULL, &client->peeraddr,
 				     TCP_CLIENT(client), dns_rdataclass_in,
 				     dns_rdatatype_none, NULL, result,
@@ -2233,7 +2233,7 @@ ns_client_request_continue(void *arg) {
 					     client->view->proxyacl,
 					     false) != ISC_R_SUCCESS)
 		{
-			if (isc_log_wouldlog(ns_lctx, log_level)) {
+			if (isc_log_wouldlog(log_level)) {
 				isc_sockaddr_format(&real_peer, fmtbuf,
 						    sizeof(fmtbuf));
 				ns_client_log(
@@ -2254,7 +2254,7 @@ ns_client_request_continue(void *arg) {
 					     client->view->proxyonacl,
 					     true) != ISC_R_SUCCESS)
 		{
-			if (isc_log_wouldlog(ns_lctx, log_level)) {
+			if (isc_log_wouldlog(log_level)) {
 				isc_sockaddr_format(&real_local, fmtbuf,
 						    sizeof(fmtbuf));
 				ns_client_log(
@@ -2793,7 +2793,7 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 		snprintf(peerbuf, sizeof(peerbuf), "(no-peer)");
 	}
 
-	isc_log_write(ns_lctx, category, module, level,
+	isc_log_write(category, module, level,
 		      "client @%p %s%s%s%s%s%s%s%s: %s", client, peerbuf, sep1,
 		      signer, sep2, qname, sep3, sep4, viewname, msgbuf);
 }
@@ -2803,7 +2803,7 @@ ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level, const char *fmt, ...) {
 	va_list ap;
 
-	if (!isc_log_wouldlog(ns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -2833,7 +2833,7 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 	int len = 1024;
 	isc_result_t result;
 
-	if (!isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(1))) {
+	if (!isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 		return;
 	}
 

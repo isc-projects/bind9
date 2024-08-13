@@ -49,7 +49,6 @@ typedef void(isc_httpdondestroy_t)(void *); /*%< Callback on destroying httpd */
 typedef struct isc_interface	 isc_interface_t;     /*%< Interface */
 typedef struct isc_interfaceiter isc_interfaceiter_t; /*%< Interface Iterator */
 typedef struct isc_lex		 isc_lex_t;	      /*%< Lex */
-typedef struct isc_log		 isc_log_t;	      /*%< Log */
 typedef struct isc_logcategory	 isc_logcategory_t;   /*%< Log Category */
 typedef struct isc_logconfig	 isc_logconfig_t;     /*%< Log Configuration */
 typedef struct isc_logmodule	 isc_logmodule_t;     /*%< Log Module */

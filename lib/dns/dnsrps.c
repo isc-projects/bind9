@@ -120,8 +120,8 @@ dnsrps_log_fnc(librpz_log_level_t level, void *ctxt, const char *buf) {
 		isc_level = DNS_RPZ_ERROR_LEVEL;
 		break;
 	}
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
-		      isc_level, "dnsrps: %s", buf);
+	isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB, isc_level,
+		      "dnsrps: %s", buf);
 }
 
 /*
@@ -150,12 +150,10 @@ dns_dnsrps_server_create(const char *librpz_path) {
 	librpz->set_log(dnsrps_log_fnc, NULL);
 
 	clist = librpz->clist_create(&emsg, dnsrps_lock, dnsrps_unlock,
-				     dnsrps_mutex_destroy, &dnsrps_mutex,
-				     dns_lctx);
+				     dnsrps_mutex_destroy, &dnsrps_mutex, NULL);
 	if (clist == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-			      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
-			      "dnsrps: %s", emsg.c);
+		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+			      DNS_RPZ_ERROR_LEVEL, "dnsrps: %s", emsg.c);
 		return (ISC_R_NOMEMORY);
 	}
 	return (ISC_R_SUCCESS);
@@ -175,8 +173,8 @@ dns_dnsrps_server_destroy(void) {
 	if (librpz != NULL) {
 		INSIST(librpz_handle != NULL);
 		if (dlclose(librpz_handle) != 0) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-				      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
+			isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+				      DNS_RPZ_ERROR_LEVEL,
 				      "dnsrps: dlclose(): %s", dlerror());
 		}
 		librpz_handle = NULL;
@@ -192,14 +190,14 @@ isc_result_t
 dns_dnsrps_view_init(dns_rpz_zones_t *new, char *rps_cstr) {
 	librpz_emsg_t emsg;
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+	isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
 		      DNS_RPZ_DEBUG_LEVEL3, "dnsrps configuration \"%s\"",
 		      rps_cstr);
 
 	new->rps_client = librpz->client_create(&emsg, clist, rps_cstr, false);
 	if (new->rps_client == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-			      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
+		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+			      DNS_RPZ_ERROR_LEVEL,
 			      "librpz->client_create(): %s", emsg.c);
 		new->p.dnsrps_enabled = false;
 		return (ISC_R_FAILURE);
@@ -224,20 +222,20 @@ dns_dnsrps_connect(dns_rpz_zones_t *rpzs) {
 	 * Fail only if we failed to link to librpz.
 	 */
 	if (librpz == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-			      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
-			      "librpz->connect(): %s", librpz_lib_open_emsg.c);
+		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+			      DNS_RPZ_ERROR_LEVEL, "librpz->connect(): %s",
+			      librpz_lib_open_emsg.c);
 		return (ISC_R_FAILURE);
 	}
 
 	if (!librpz->connect(&emsg, rpzs->rps_client, true)) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-			      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
-			      "librpz->connect(): %s", emsg.c);
+		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+			      DNS_RPZ_ERROR_LEVEL, "librpz->connect(): %s",
+			      emsg.c);
 		return (ISC_R_SUCCESS);
 	}
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+	isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
 		      DNS_RPZ_INFO_LEVEL, "dnsrps: librpz version %s",
 		      librpz->version);
 

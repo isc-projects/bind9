@@ -565,8 +565,8 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 
 		dns_name_format(&nentry->name, zname, DNS_NAME_FORMATSIZE);
 
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_DEBUG(3),
 			      "catz: iterating over '%s' from catalog '%s'",
 			      zname, czname);
 		dns_catz_options_setdefault(catz->catzs->mctx,
@@ -598,7 +598,7 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 			{
 				dns_name_format(&parentcatz->name, pczname,
 						DNS_NAME_FORMATSIZE);
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				isc_log_write(DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
 					      ISC_LOG_DEBUG(3),
 					      "catz: zone '%s' "
@@ -608,7 +608,7 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 				result = delzone(nentry, parentcatz,
 						 parentcatz->catzs->view,
 						 parentcatz->catzs->zmm->udata);
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				isc_log_write(DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
 					      ISC_LOG_INFO,
 					      "catz: deleting zone '%s' "
@@ -641,7 +641,7 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 				 * perform deletions earlier than additions and
 				 * modifications.
 				 */
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				isc_log_write(DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
 					      ISC_LOG_INFO,
 					      "catz: zone '%s' unique label "
@@ -655,7 +655,7 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 		}
 
 		if (find_result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
 				      "catz: zone '%s' was expected to exist "
 				      "but can not be found, will be restored",
@@ -695,8 +695,8 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 		dns_name_format(&entry->name, zname, DNS_NAME_FORMATSIZE);
 		result = delzone(entry, catz, catz->catzs->view,
 				 catz->catzs->zmm->udata);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_INFO,
 			      "catz: deleting zone '%s' from catalog '%s' - %s",
 			      zname, czname, isc_result_totext(result));
 		dns_catz_entry_detach(catz, &entry);
@@ -716,8 +716,8 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 		dns_name_format(&entry->name, zname, DNS_NAME_FORMATSIZE);
 		result = addzone(entry, catz, catz->catzs->view,
 				 catz->catzs->zmm->udata);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_INFO,
 			      "catz: adding zone '%s' from catalog "
 			      "'%s' - %s",
 			      zname, czname, isc_result_totext(result));
@@ -732,8 +732,8 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 		dns_name_format(&entry->name, zname, DNS_NAME_FORMATSIZE);
 		result = modzone(entry, catz, catz->catzs->view,
 				 catz->catzs->zmm->udata);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_INFO,
 			      "catz: modifying zone '%s' from catalog "
 			      "'%s' - %s",
 			      zname, czname, isc_result_totext(result));
@@ -855,8 +855,8 @@ dns__catz_timer_start(dns_catz_zone_t *catz) {
 		char dname[DNS_NAME_FORMATSIZE];
 
 		dns_name_format(&catz->name, dname, DNS_NAME_FORMATSIZE);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_INFO,
 			      "catz: %s: new zone version came "
 			      "too soon, deferring update for "
 			      "%" PRIu64 " seconds",
@@ -897,7 +897,7 @@ dns_catz_zone_add(dns_catz_zones_t *catzs, const dns_name_t *name,
 	char zname[DNS_NAME_FORMATSIZE];
 
 	dns_name_format(name, zname, DNS_NAME_FORMATSIZE);
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_DEBUG(3), "catz: dns_catz_zone_add %s", zname);
 
 	LOCK(&catzs->lock);
@@ -1187,8 +1187,8 @@ catz_process_coo(dns_catz_zone_t *catz, dns_label_t *mhash,
 	}
 
 	if (dns_rdataset_count(value) != 1) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_WARNING,
 			      "catz: 'coo' property PTR RRset contains "
 			      "more than one record, which is invalid");
 		catz->broken = true;
@@ -1246,8 +1246,8 @@ catz_process_zones_entry(dns_catz_zone_t *catz, dns_rdataset_t *value,
 	}
 
 	if (dns_rdataset_count(value) != 1) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_WARNING,
 			      "catz: member zone PTR RRset contains "
 			      "more than one record, which is invalid");
 		catz->broken = true;
@@ -1307,8 +1307,8 @@ catz_process_version(dns_catz_zone_t *catz, dns_rdataset_t *value) {
 	}
 
 	if (dns_rdataset_count(value) != 1) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_WARNING,
 			      "catz: 'version' property TXT RRset contains "
 			      "more than one record, which is invalid");
 		catz->broken = true;
@@ -1359,8 +1359,8 @@ catz_process_version(dns_catz_zone_t *catz, dns_rdataset_t *value) {
 cleanup:
 	dns_rdata_freestruct(&rdatatxt);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_WARNING,
 			      "catz: invalid record for the catalog "
 			      "zone version property");
 		catz->broken = true;
@@ -1572,8 +1572,8 @@ catz_process_apl(dns_catz_zone_t *catz, isc_buffer_t **aclbp,
 	}
 
 	if (dns_rdataset_count(value) > 1) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_WARNING,
 			      "catz: more than one APL entry for member zone, "
 			      "result is undefined");
 	}
@@ -1713,8 +1713,8 @@ catz_entry_add_or_mod(dns_catz_zone_t *catz, isc_ht_t *ht, unsigned char *key,
 	isc_result_t result = isc_ht_add(ht, key, (uint32_t)keysize, nentry);
 
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR,
 			      "catz: error %s zone '%s' from catalog '%s' - %s",
 			      msg, zname, czname, isc_result_totext(result));
 	}
@@ -1811,8 +1811,8 @@ dns__catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
 	REQUIRE(ISC_MAGIC_VALID(src_name, DNS_NAME_MAGIC));
 
 	if (rdataset->rdclass != dns_rdataclass_in) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR,
 			      "catz: RR found which has a non-IN class");
 		catz->broken = true;
 		return (ISC_R_FAILURE);
@@ -1998,7 +1998,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 		default:
 			dns_name_format(&entry->name, zname,
 					DNS_NAME_FORMATSIZE);
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 				      "catz: zone '%s' uses an invalid primary "
 				      "(no IP address assigned)",
@@ -2093,8 +2093,8 @@ dns__catz_timer_cb(void *arg) {
 	dns_name_format(&catz->name, domain, DNS_NAME_FORMATSIZE);
 
 	if (!catz->active) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_INFO,
 			      "catz: %s: no longer active, reload is canceled",
 			      domain);
 		catz->updaterunning = false;
@@ -2106,7 +2106,7 @@ dns__catz_timer_cb(void *arg) {
 	catz->updbversion = catz->dbversion;
 	catz->dbversion = NULL;
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "catz: %s: reload start", domain);
 
 	dns_catz_zone_ref(catz);
@@ -2175,8 +2175,8 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 
 		catz->updatepending = true;
 		dns_name_format(&catz->name, dname, DNS_NAME_FORMATSIZE);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_DEBUG(3),
 			      "catz: %s: update already queued or running",
 			      dname);
 		if (catz->dbversion != NULL) {
@@ -2269,16 +2269,16 @@ dns__catz_update_cb(void *data) {
 	UNLOCK(&catzs->lock);
 	if (result != ISC_R_SUCCESS) {
 		/* This can happen if we remove the zone in the meantime. */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
-			      "catz: zone '%s' not in config", bname);
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR, "catz: zone '%s' not in config",
+			      bname);
 		goto exit;
 	}
 
 	if (!is_active) {
 		/* This can happen during a reconfiguration. */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_INFO,
 			      "catz: zone '%s' is no longer active", bname);
 		result = ISC_R_CANCELED;
 		goto exit;
@@ -2287,22 +2287,22 @@ dns__catz_update_cb(void *data) {
 	result = dns_db_getsoaserial(updb, oldcatz->updbversion, &vers);
 	if (result != ISC_R_SUCCESS) {
 		/* A zone without SOA record?!? */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR,
 			      "catz: zone '%s' has no SOA record (%s)", bname,
 			      isc_result_totext(result));
 		goto exit;
 	}
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO,
 		      "catz: updating catalog zone '%s' with serial %" PRIu32,
 		      bname, vers);
 
 	result = dns_db_createiterator(updb, DNS_DB_NONSEC3, &updbit);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR,
 			      "catz: failed to create DB iterator - %s",
 			      isc_result_totext(result));
 		goto exit;
@@ -2318,8 +2318,8 @@ dns__catz_update_cb(void *data) {
 	result = dns_name_fromstring(name, "version", &updb->origin, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		dns_dbiterator_destroy(&updbit);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR,
 			      "catz: failed to create name from string - %s",
 			      isc_result_totext(result));
 		goto exit;
@@ -2328,8 +2328,8 @@ dns__catz_update_cb(void *data) {
 	result = dns_dbiterator_seek(updbit, name);
 	if (result != ISC_R_SUCCESS) {
 		dns_dbiterator_destroy(&updbit);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR,
 			      "catz: zone '%s' has no 'version' record (%s) "
 			      "and will not be processed",
 			      bname, isc_result_totext(result));
@@ -2350,7 +2350,7 @@ dns__catz_update_cb(void *data) {
 
 		result = dns_dbiterator_current(updbit, &node, name);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 				      "catz: failed to get db iterator - %s",
 				      isc_result_totext(result));
@@ -2373,7 +2373,7 @@ dns__catz_update_cb(void *data) {
 		result = dns_db_allrdatasets(updb, node, oldcatz->updbversion,
 					     0, 0, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 				      "catz: failed to fetch rrdatasets - %s",
 				      isc_result_totext(result));
@@ -2417,7 +2417,7 @@ dns__catz_update_cb(void *data) {
 						      sizeof(classbuf));
 				dns_rdatatype_format(rdataset.type, typebuf,
 						     sizeof(typebuf));
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				isc_log_write(DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
 					      ISC_LOG_WARNING,
 					      "catz: invalid record in catalog "
@@ -2443,7 +2443,7 @@ dns__catz_update_cb(void *data) {
 	}
 
 	dns_dbiterator_destroy(&updbit);
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_DEBUG(3),
 		      "catz: update_from_db: iteration finished: %s",
 		      isc_result_totext(result));
@@ -2455,13 +2455,13 @@ dns__catz_update_cb(void *data) {
 			    ? oldcatz->version
 			    : newcatz->version;
 	if (catz_vers == DNS_CATZ_VERSION_UNDEFINED) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_WARNING,
 			      "catz: zone '%s' version is not set", bname);
 		newcatz->broken = true;
 	} else if (catz_vers != 1 && catz_vers != 2) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_WARNING,
 			      "catz: zone '%s' unsupported version "
 			      "'%" PRIu32 "'",
 			      bname, catz_vers);
@@ -2472,8 +2472,8 @@ dns__catz_update_cb(void *data) {
 
 	if (newcatz->broken) {
 		dns_name_format(name, cname, DNS_NAME_FORMATSIZE);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR,
 			      "catz: new catalog zone '%s' is broken and "
 			      "will not be processed",
 			      bname);
@@ -2488,15 +2488,14 @@ dns__catz_update_cb(void *data) {
 	result = dns__catz_zones_merge(oldcatz, newcatz);
 	dns_catz_zone_detach(&newcatz);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
-			      "catz: failed merging zones: %s",
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+			      ISC_LOG_ERROR, "catz: failed merging zones: %s",
 			      isc_result_totext(result));
 
 		goto exit;
 	}
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_DEBUG(3),
 		      "catz: update_from_db: new zone merged");
 
@@ -2526,7 +2525,7 @@ dns__catz_done_cb(void *data) {
 
 	UNLOCK(&catz->catzs->lock);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "catz: %s: reload done: %s", dname,
 		      isc_result_totext(catz->updateresult));
 
@@ -2572,7 +2571,7 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs) {
 			char cname[DNS_NAME_FORMATSIZE];
 			dns_name_format(&catz->name, cname,
 					DNS_NAME_FORMATSIZE);
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
 				      "catz: removing catalog zone %s", cname);
 

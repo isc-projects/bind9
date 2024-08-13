@@ -153,7 +153,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	REQUIRE(envp != NULL && *envp == NULL);
 	REQUIRE(foptp != NULL && *foptp != NULL);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
+	isc_log_write(DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
 		      ISC_LOG_INFO, "opening dnstap destination '%s'", path);
 
 	atomic_fetch_add_release(&global_generation, 1);
@@ -204,8 +204,8 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	env->iothr = fstrm_iothr_init(*foptp, &fw);
 	if (env->iothr == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
-			      DNS_LOGMODULE_DNSTAP, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
+			      ISC_LOG_WARNING,
 			      "unable to initialize dnstap I/O thread");
 		fstrm_writer_destroy(&fw);
 		CHECK(ISC_R_FAILURE);
@@ -324,7 +324,7 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 	/*
 	 * We are committed here.
 	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
+	isc_log_write(DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
 		      ISC_LOG_INFO, "%s dnstap destination '%s'",
 		      (roll < 0) ? "reopening" : "rolling", env->path);
 
@@ -357,8 +357,8 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 
 	env->iothr = fstrm_iothr_init(env->fopt, &fw);
 	if (env->iothr == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
-			      DNS_LOGMODULE_DNSTAP, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
+			      ISC_LOG_WARNING,
 			      "unable to initialize dnstap I/O thread");
 		CHECK(ISC_R_FAILURE);
 	}
@@ -474,7 +474,7 @@ dns_dt_getstats(dns_dtenv_t *env, isc_stats_t **statsp) {
 
 static void
 destroy(dns_dtenv_t *env) {
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
+	isc_log_write(DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
 		      ISC_LOG_INFO, "closing dnstap");
 	env->magic = 0;
 
@@ -815,9 +815,9 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 		dm.m.has_query_time_nsec = 1;
 		break;
 	default:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
-			      DNS_LOGMODULE_DNSTAP, ISC_LOG_ERROR,
-			      "invalid dnstap message type %d", msgtype);
+		isc_log_write(DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
+			      ISC_LOG_ERROR, "invalid dnstap message type %d",
+			      msgtype);
 		return;
 	}
 

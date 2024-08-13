@@ -118,8 +118,7 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, dns_acl_t *acl,
 				if (!isc_tlsctx_load_dhparams(
 					    sslctx, tls_params->dhparam_file))
 				{
-					isc_log_write(ns_lctx,
-						      NS_LOGCATEGORY_GENERAL,
+					isc_log_write(NS_LOGCATEGORY_GENERAL,
 						      NS_LOGMODULE_INTERFACEMGR,
 						      ISC_LOG_ERROR,
 						      "loading of dhparam-file "

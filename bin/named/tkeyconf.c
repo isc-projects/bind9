@@ -38,9 +38,9 @@
 	} while (0)
 
 #include <named/log.h>
-#define LOG(msg)                                               \
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL, \
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR, "%s", msg)
+#define LOG(msg)                                                         \
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER, \
+		      ISC_LOG_ERROR, "%s", msg)
 
 isc_result_t
 named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,

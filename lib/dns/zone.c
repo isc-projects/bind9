@@ -4873,7 +4873,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			if (remove(zone->journal) < 0 && errno != ENOENT) {
 				char strbuf[ISC_STRERRORSIZE];
 				strerror_r(errno, strbuf, sizeof(strbuf));
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				isc_log_write(DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_ZONE,
 					      ISC_LOG_WARNING,
 					      "unable to remove journal "
@@ -6203,7 +6203,7 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 					 algbuf, dst_key_id(pubkey));
 			}
 
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "dns_zone_findkeys: error reading %s: %s",
 				      filename, isc_result_totext(result));
@@ -10918,7 +10918,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 			dns_rdataset_clone(kdset, &kfetch->keydataset);
 			dns_db_attach(db, &kfetch->db);
 
-			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 				char namebuf[DNS_NAME_FORMATSIZE];
 				dns_name_format(kname, namebuf,
 						sizeof(namebuf));
@@ -15740,7 +15740,7 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -15757,8 +15757,8 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
 		zstr = "zone ";
 	}
 
-	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE, level,
-		      "%s%s%s%s: %s", (prefix != NULL ? prefix : ""),
+	isc_log_write(category, DNS_LOGMODULE_ZONE, level, "%s%s%s%s: %s",
+		      (prefix != NULL ? prefix : ""),
 		      (prefix != NULL ? ": " : ""), zstr, zone->strnamerd,
 		      message);
 }
@@ -16950,8 +16950,8 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 		dns_rdata_t private = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
+			      ISC_LOG_DEBUG(3),
 			      "looping through nsec3param data");
 		nsec3param = isc_mem_get(zone->mctx, sizeof(nsec3param_t));
 		ISC_LINK_INIT(nsec3param, link);
@@ -16986,8 +16986,8 @@ getprivate:
 		dns_rdata_t private = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&prdataset, &private);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
+			      ISC_LOG_DEBUG(3),
 			      "looping through nsec3param private data");
 
 		/*
@@ -17482,7 +17482,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 			{
 				char strbuf[ISC_STRERRORSIZE];
 				strerror_r(errno, strbuf, sizeof(strbuf));
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				isc_log_write(DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_ZONE,
 					      ISC_LOG_WARNING,
 					      "unable to remove masterfile "
@@ -17507,13 +17507,13 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 			 * up-to-date, it is useless and should be
 			 * removed.
 			 */
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "removing journal file");
 			if (remove(zone->journal) < 0 && errno != ENOENT) {
 				char strbuf[ISC_STRERRORSIZE];
 				strerror_r(errno, strbuf, sizeof(strbuf));
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				isc_log_write(DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_ZONE,
 					      ISC_LOG_WARNING,
 					      "unable to remove journal "
@@ -20568,8 +20568,8 @@ static void
 dnssec_report(const char *format, ...) {
 	va_list args;
 	va_start(args, format);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_ZONE,
-		       ISC_LOG_INFO, format, args);
+	isc_log_vwrite(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_ZONE, ISC_LOG_INFO,
+		       format, args);
 	va_end(args);
 }
 
@@ -21579,7 +21579,7 @@ nsfetch_done(void *arg) {
 			break;
 		}
 
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			char nsnamebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(&ns.name, nsnamebuf, sizeof(nsnamebuf));
 			dns_zone_log(zone, ISC_LOG_DEBUG(3),
@@ -21656,7 +21656,7 @@ do_nsfetch(void *arg) {
 		goto cleanup;
 	}
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(&nsfetch->pname, namebuf, sizeof(namebuf));
 		dnssec_log(zone, ISC_LOG_WARNING,
@@ -21727,7 +21727,7 @@ nsfetch_levelup(dns_nsfetch_t *nsfetch) {
 
 		dns_rdataset_init(&nsfetch->nsrrset);
 		dns_rdataset_init(&nsfetch->nssigset);
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			dnssec_log(zone, ISC_LOG_DEBUG(3),
 				   "Creating parent NS fetch in "
 				   "nsfetch_levelup()");
@@ -21809,7 +21809,7 @@ zone_checkds(dns_zone_t *zone) {
 		dns_name_dup(&zone->origin, zone->mctx, name);
 		dns_rdataset_init(&nsfetch->nsrrset);
 		dns_rdataset_init(&nsfetch->nssigset);
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			dnssec_log(
 				zone, ISC_LOG_DEBUG(3),
 				"Creating parent NS fetch in zone_checkds()");
@@ -22502,7 +22502,7 @@ zone_rekey(dns_zone_t *zone) {
 	}
 	UNLOCK_ZONE(zone);
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 		for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
 		     key = ISC_LIST_NEXT(key, link))
 		{
@@ -23798,7 +23798,7 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 
 		np->rdata = param;
 
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			unsigned char salttext[255 * 2 + 1];
 			if (param.salt != NULL) {
 				salt2text(param.salt, param.salt_length,

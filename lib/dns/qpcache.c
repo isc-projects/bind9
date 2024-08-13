@@ -571,11 +571,11 @@ static void
 delete_node(qpcache_t *qpdb, qpcnode_t *node) {
 	isc_result_t result = ISC_R_UNEXPECTED;
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 		char printname[DNS_NAME_FORMATSIZE];
 		dns_name_format(&node->name, printname, sizeof(printname));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+			      ISC_LOG_DEBUG(1),
 			      "delete_node(): %p %s (bucket %d)", node,
 			      printname, node->locknum);
 	}
@@ -588,7 +588,7 @@ delete_node(qpcache_t *qpdb, qpcnode_t *node) {
 		 */
 		result = dns_qp_deletename(qpdb->nsec, &node->name, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
 				      "delete_node(): "
 				      "dns_qp_deletename: %s",
@@ -603,8 +603,8 @@ delete_node(qpcache_t *qpdb, qpcnode_t *node) {
 		break;
 	}
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+			      ISC_LOG_WARNING,
 			      "delete_node(): "
 			      "dns_qp_deletename: %s",
 			      isc_result_totext(result));
@@ -2487,9 +2487,8 @@ free_qpdb(qpcache_t *qpdb, bool log) {
 		} else {
 			strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-			      "done free_qpdb(%s)", buf);
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+			      ISC_LOG_DEBUG(1), "done free_qpdb(%s)", buf);
 	}
 	if (dns_name_dynamic(&qpdb->common.origin)) {
 		dns_name_free(&qpdb->common.origin, qpdb->common.mctx);
@@ -2595,7 +2594,7 @@ qpdb_destroy(dns_db_t *arg) {
 			} else {
 				strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 			}
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 				      "calling free_qpdb(%s)", buf);
 			free_qpdb(qpdb, true);
@@ -2780,7 +2779,7 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 			} else {
 				strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 			}
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 				      "calling free_qpdb(%s)", buf);
 			free_qpdb(qpdb, true);

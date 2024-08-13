@@ -87,10 +87,10 @@ cfg_parser_attach(cfg_parser_t *src, cfg_parser_t **dest);
  */
 
 isc_result_t
-cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret);
+cfg_parser_create(isc_mem_t *mctx, cfg_parser_t **ret);
 /*%<
  * Create a configuration file parser.  Any warning and error
- * messages will be logged to 'lctx'.
+ * messages will be logged.
  *
  * The parser object returned can be used for a single call
  * to cfg_parse_file() or cfg_parse_buffer().  It must not
@@ -557,8 +557,8 @@ cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
  */
 
 void
-cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt,
-	    ...) ISC_FORMAT_PRINTF(4, 5);
+cfg_obj_log(const cfg_obj_t *obj, int level, const char *fmt, ...)
+	ISC_FORMAT_PRINTF(3, 4);
 /*%<
  * Log a message concerning configuration object 'obj' to the logging
  * channel of 'pctx', at log level 'level'.  The message will be prefixed
@@ -604,15 +604,13 @@ typedef isc_result_t(pluginlist_cb_t)(const cfg_obj_t *config,
 
 isc_result_t
 cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
-		       isc_log_t *lctx, pluginlist_cb_t *callback,
-		       void *callback_data);
+		       pluginlist_cb_t *callback, void *callback_data);
 /*%<
  * For every "plugin" stanza present in 'list' (which in turn is a part of
  * 'config'), invoke the given 'callback', passing 'callback_data' to it along
  * with a fixed set of arguments (see the definition of the #pluginlist_cb_t
- * type).  Use logging context 'lctx' for logging error messages.  Interrupt
- * processing if 'callback' returns something else than #ISC_R_SUCCESS for any
- * element of 'list'.
+ * type).  Interrupt processing if 'callback' returns something else than
+ * #ISC_R_SUCCESS for any element of 'list'.
  *
  * Requires:
  *

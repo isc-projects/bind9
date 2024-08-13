@@ -53,10 +53,10 @@
 			dst_key_setstate((key), (state), (target));            \
 			dst_key_settime((key), (timing), time);                \
                                                                                \
-			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {    \
+			if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {              \
 				dst_key_format((key), keystr, sizeof(keystr)); \
 				isc_log_write(                                 \
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,      \
+					DNS_LOGCATEGORY_DNSSEC,                \
 					DNS_LOGMODULE_DNSSEC,                  \
 					ISC_LOG_DEBUG(3),                      \
 					"keymgr: DNSKEY %s (%s) initialize "   \
@@ -90,10 +90,9 @@ static void
 log_key_overflow(dst_key_t *key, const char *what) {
 	char keystr[DST_KEY_FORMATSIZE];
 	dst_key_format(key, keystr, sizeof(keystr));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
-		      ISC_LOG_WARNING,
-		      "keymgr: DNSKEY %s (%s) calculation overflowed", keystr,
-		      what);
+	isc_log_write(
+		DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+		"keymgr: DNSKEY %s (%s) calculation overflowed", keystr, what);
 }
 
 /*
@@ -382,7 +381,7 @@ keymgr_key_retire(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now) {
 	}
 
 	dst_key_format(key->key, keystr, sizeof(keystr));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+	isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
 		      ISC_LOG_INFO, "keymgr: retire DNSKEY %s (%s)", keystr,
 		      keymgr_keyrole(key->key));
 }
@@ -491,7 +490,7 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 		}
 		if (conflict) {
 			/* Try again. */
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "keymgr: key collision id %d",
 				      dst_key_id(newkey));
@@ -1216,7 +1215,7 @@ keymgr_transition_allowed(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			  int type, dst_key_state_t next_state,
 			  bool secure_to_insecure) {
 	/* Debug logging. */
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 		bool rule1a, rule1b, rule2a, rule2b, rule3a, rule3b;
 		char keystr[DST_KEY_FORMATSIZE];
 		dst_key_format(key->key, keystr, sizeof(keystr));
@@ -1229,7 +1228,7 @@ keymgr_transition_allowed(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		rule3a = keymgr_have_rrsig(keyring, key, type, NA);
 		rule3b = keymgr_have_rrsig(keyring, key, type, next_state);
 		isc_log_write(
-			dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+			DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
 			ISC_LOG_DEBUG(1),
 			"keymgr: dnssec evaluation of %s %s record %s: "
 			"rule1=(~%s or %s) rule2=(~%s or %s) "
@@ -1470,7 +1469,7 @@ transition:
 				continue;
 			}
 
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 				      "keymgr: examine %s %s type %s "
 				      "in state %s",
@@ -1485,7 +1484,7 @@ transition:
 				 * No change needed, continue with the next
 				 * record type.
 				 */
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 					      DNS_LOGMODULE_DNSSEC,
 					      ISC_LOG_DEBUG(1),
 					      "keymgr: %s %s type %s in "
@@ -1496,7 +1495,7 @@ transition:
 				continue;
 			}
 
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 				      "keymgr: can we transition %s %s type %s "
 				      "state %s to state %s?",
@@ -1510,7 +1509,7 @@ transition:
 			{
 				/* No, please respect rollover methods. */
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 					"keymgr: policy says no to %s %s type "
 					"%s "
@@ -1529,7 +1528,7 @@ transition:
 			{
 				/* No, this would make the zone bogus. */
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 					"keymgr: dnssec says no to %s %s type "
 					"%s "
@@ -1547,7 +1546,7 @@ transition:
 			if (when > now) {
 				/* Not yet. */
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 					"keymgr: time says no to %s %s type %s "
 					"state %s to state %s (wait %u "
@@ -1562,7 +1561,7 @@ transition:
 				continue;
 			}
 
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 				      "keymgr: transition %s %s type %s "
 				      "state %s to state %s!",
@@ -1716,11 +1715,11 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 
 	/* Do we need to create a successor for the active key? */
 	if (active_key != NULL) {
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 			dst_key_format(active_key->key, keystr, sizeof(keystr));
 			isc_log_write(
-				dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-				DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
+				DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+				ISC_LOG_DEBUG(1),
 				"keymgr: DNSKEY %s (%s) is active in policy %s",
 				keystr, keymgr_keyrole(active_key->key),
 				dns_kasp_getname(kasp));
@@ -1733,11 +1732,11 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		prepub = keymgr_prepublication_time(active_key, kasp, lifetime,
 						    now);
 		if (prepub > now) {
-			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+			if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 				dst_key_format(active_key->key, keystr,
 					       sizeof(keystr));
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 					"keymgr: new successor needed for "
 					"DNSKEY %s (%s) (policy %s) in %u "
@@ -1756,11 +1755,11 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 
 		if (keymgr_key_has_successor(active_key, keyring)) {
 			/* Key already has successor. */
-			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+			if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 				dst_key_format(active_key->key, keystr,
 					       sizeof(keystr));
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 					"keymgr: key DNSKEY %s (%s) (policy "
 					"%s) already has successor",
@@ -1770,9 +1769,9 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 			return (ISC_R_SUCCESS);
 		}
 
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 			dst_key_format(active_key->key, keystr, sizeof(keystr));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 				      "keymgr: need successor for DNSKEY %s "
 				      "(%s) (policy %s)",
@@ -1785,7 +1784,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		 */
 		if (!rollover) {
 			dst_key_format(active_key->key, keystr, sizeof(keystr));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "keymgr: DNSKEY %s (%s) is offline in "
 				      "policy %s, cannot start rollover",
@@ -1793,11 +1792,11 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 				      dns_kasp_getname(kasp));
 			return (ISC_R_SUCCESS);
 		}
-	} else if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+	} else if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(origin, namestr, sizeof(namestr));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_DEBUG(1),
 			      "keymgr: no active key found for %s (policy %s)",
 			      namestr, dns_kasp_getname(kasp));
 	}
@@ -1912,7 +1911,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 
 	/* Logging. */
 	dst_key_format(new_key->key, keystr, sizeof(keystr));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+	isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
 		      ISC_LOG_INFO, "keymgr: DNSKEY %s (%s) %s for policy %s",
 		      keystr, keymgr_keyrole(new_key->key),
 		      (candidate != NULL) ? "selected" : "created",
@@ -1988,8 +1987,8 @@ keymgr_purge_keyfile(dst_key_t *key, int type) {
 	if (ret != ISC_R_SUCCESS) {
 		char keystr[DST_KEY_FORMATSIZE];
 		dst_key_format(key, keystr, sizeof(keystr));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_WARNING,
 			      "keymgr: failed to purge DNSKEY %s (%s): cannot "
 			      "build filename (%s)",
 			      keystr, keymgr_keyrole(key),
@@ -2000,8 +1999,8 @@ keymgr_purge_keyfile(dst_key_t *key, int type) {
 	if (unlink(filename) < 0) {
 		char keystr[DST_KEY_FORMATSIZE];
 		dst_key_format(key, keystr, sizeof(keystr));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_WARNING,
 			      "keymgr: failed to purge DNSKEY %s (%s): unlink "
 			      "'%s' failed",
 			      keystr, keymgr_keyrole(key), filename);
@@ -2036,11 +2035,11 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	*nexttime = 0;
 
 	/* Debug logging: what keys are available in the keyring? */
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 		if (ISC_LIST_EMPTY(*keyring)) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(origin, namebuf, sizeof(namebuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 				      "keymgr: keyring empty (zone %s policy "
 				      "%s)",
@@ -2051,7 +2050,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
 		{
 			dst_key_format(dkey->key, keystr, sizeof(keystr));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 				      "keymgr: keyring: %s (policy %s)", keystr,
 				      dns_kasp_getname(kasp));
@@ -2060,7 +2059,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
 		{
 			dst_key_format(dkey->key, keystr, sizeof(keystr));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 				      "keymgr: dnskeys: %s (policy %s)", keystr,
 				      dns_kasp_getname(kasp));
@@ -2100,7 +2099,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					     dns_kasp_purgekeys(kasp), now))
 		{
 			dst_key_format(dkey->key, keystr, sizeof(keystr));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 				      "keymgr: purge DNSKEY %s (%s) according "
 				      "to policy %s",
@@ -2130,7 +2129,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 				/* Found a match. */
 				dst_key_format(dkey->key, keystr,
 					       sizeof(keystr));
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 					      DNS_LOGMODULE_DNSSEC,
 					      ISC_LOG_DEBUG(1),
 					      "keymgr: DNSKEY %s (%s) matches "
@@ -2193,7 +2192,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					dst_key_format(dnskey->key, keystr,
 						       sizeof(keystr));
 					isc_log_write(
-						dns_lctx,
 						DNS_LOGCATEGORY_DNSSEC,
 						DNS_LOGMODULE_DNSSEC,
 						ISC_LOG_DEBUG(1),
@@ -2249,11 +2247,11 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			RETERR(dst_key_tofile(dkey->key, options, directory));
 			dst_key_setmodified(dkey->key, false);
 
-			if (!isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			if (!isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 				continue;
 			}
 			dst_key_format(dkey->key, keystr, sizeof(keystr));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(3),
 				      "keymgr: DNSKEY %s (%s) "
 				      "saved to directory %s, policy %s",
@@ -2275,12 +2273,11 @@ failure:
 		}
 	}
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(origin, namebuf, sizeof(namebuf));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(3),
-			      "keymgr: %s done", namebuf);
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_DEBUG(3), "keymgr: %s done", namebuf);
 	}
 	return (result);
 }
@@ -2343,14 +2340,14 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		}
 	}
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_NOTICE)) {
+	if (isc_log_wouldlog(ISC_LOG_NOTICE)) {
 		char keystr[DST_KEY_FORMATSIZE];
 		char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 
 		dst_key_format(ksk_key->key, keystr, sizeof(keystr));
 		isc_stdtime_tostring(when, timestr, sizeof(timestr));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_NOTICE,
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_NOTICE,
 			      "keymgr: checkds DS for key %s seen %s at %s",
 			      keystr, dspublish ? "published" : "withdrawn",
 			      timestr);

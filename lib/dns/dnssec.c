@@ -562,8 +562,8 @@ again:
 	if (ret == ISC_R_SUCCESS && downcase) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(&sig.signer, namebuf, sizeof(namebuf));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_DEBUG(1),
 			      "successfully validated after lower casing "
 			      "signer '%s'",
 			      namebuf);
@@ -1307,7 +1307,7 @@ findmatchingkeys(const char *directory, char *namebuf, unsigned int len,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "dns_dnssec_findmatchingkeys: "
 				      "error reading key file %s: %s",
@@ -1659,7 +1659,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 					 algbuf, dst_key_id(dnskey));
 			}
 
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
 				      "dns_dnssec_keylistfromrdataset: error "
 				      "reading %s: %s",
@@ -1861,8 +1861,8 @@ add_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 		char algbuf[DNS_DSDIGEST_FORMATSIZE];
 		dns_dsdigest_format(digesttype, algbuf,
 				    DNS_DSDIGEST_FORMATSIZE);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_ERROR,
 			      "build rdata CDS (%s) for key %s failed", algbuf,
 			      keystr);
 		return (r);
@@ -1873,8 +1873,8 @@ add_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 		char algbuf[DNS_DSDIGEST_FORMATSIZE];
 		dns_dsdigest_format(digesttype, algbuf,
 				    DNS_DSDIGEST_FORMATSIZE);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_INFO,
 			      "CDS (%s) for key %s is now published", algbuf,
 			      keystr);
 		addrdata(&cdsrdata, diff, origin, ttl, mctx);
@@ -1901,8 +1901,8 @@ delete_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 		char algbuf[DNS_DSDIGEST_FORMATSIZE];
 		dns_dsdigest_format(digesttype, algbuf,
 				    DNS_DSDIGEST_FORMATSIZE);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_INFO,
 			      "CDS (%s) for key %s is now deleted", algbuf,
 			      keystr);
 		delrdata(&cdsrdata, diff, origin, cds->ttl, mctx);
@@ -1962,7 +1962,7 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 			     !exists(cdnskey, &cdnskeyrdata)))
 			{
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					DNS_LOGCATEGORY_GENERAL,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"CDNSKEY for key %s is now published",
 					keystr);
@@ -1990,8 +1990,7 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 
 			if (dns_rdataset_isassociated(cdnskey)) {
 				if (exists(cdnskey, &cdnskeyrdata)) {
-					isc_log_write(dns_lctx,
-						      DNS_LOGCATEGORY_GENERAL,
+					isc_log_write(DNS_LOGCATEGORY_GENERAL,
 						      DNS_LOGMODULE_DNSSEC,
 						      ISC_LOG_INFO,
 						      "CDNSKEY for key %s is "
@@ -2037,7 +2036,7 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		if (dns_rdataset_isassociated(cdnskey)) {
 			if (exists(cdnskey, &cdnskeyrdata)) {
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					DNS_LOGCATEGORY_GENERAL,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"CDNSKEY for key %s is now deleted",
 					keystr);
@@ -2080,7 +2079,7 @@ dns_dnssec_syncdelete(dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		if (!dns_rdataset_isassociated(cds) ||
 		    !exists(cds, &cds_delete))
 		{
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 				      "CDS (DELETE) for zone %s is now "
 				      "published",
@@ -2090,7 +2089,7 @@ dns_dnssec_syncdelete(dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 	} else {
 		if (dns_rdataset_isassociated(cds) && exists(cds, &cds_delete))
 		{
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 				      "CDS (DELETE) for zone %s is now "
 				      "deleted",
@@ -2103,7 +2102,7 @@ dns_dnssec_syncdelete(dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		if (!dns_rdataset_isassociated(cdnskey) ||
 		    !exists(cdnskey, &cdnskey_delete))
 		{
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 				      "CDNSKEY (DELETE) for zone %s is now "
 				      "published",
@@ -2114,7 +2113,7 @@ dns_dnssec_syncdelete(dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		if (dns_rdataset_isassociated(cdnskey) &&
 		    exists(cdnskey, &cdnskey_delete))
 		{
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 				      "CDNSKEY (DELETE) for zone %s is now "
 				      "deleted",
@@ -2236,7 +2235,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 				RETERR(publish_key(diff, key1, origin, ttl,
 						   mctx, report));
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"DNSKEY %s (%s) is now published",
 					keystr1,
@@ -2245,7 +2244,6 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 				if (key1->hint_sign || key1->force_sign) {
 					key1->first_sign = true;
 					isc_log_write(
-						dns_lctx,
 						DNS_LOGCATEGORY_DNSSEC,
 						DNS_LOGMODULE_DNSSEC,
 						ISC_LOG_INFO,
@@ -2276,7 +2274,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			if (removed != NULL) {
 				ISC_LIST_APPEND(*removed, key2, link);
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"DNSKEY %s (%s) is now deleted",
 					keystr2,
@@ -2299,7 +2297,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			if (removed != NULL) {
 				ISC_LIST_APPEND(*removed, key2, link);
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"DNSKEY %s (%s) is now revoked; "
 					"new ID is %05d",
@@ -2332,7 +2330,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			{
 				key2->first_sign = true;
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"DNSKEY %s (%s) is now active", keystr1,
 					key1->ksk ? (key1->zsk ? "CSK" : "KSK")
@@ -2341,7 +2339,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 				   !key1->force_sign)
 			{
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"DNSKEY %s (%s) is now inactive",
 					keystr1,

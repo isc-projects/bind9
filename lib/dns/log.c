@@ -53,10 +53,8 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/qp", 0 },	 { NULL, 0 },
 };
 
-isc_log_t *dns_lctx = NULL;
-
 void
-dns_log_init(isc_log_t *lctx) {
-	isc_log_registercategories(lctx, dns_categories);
-	isc_log_registermodules(lctx, dns_modules);
+dns_log_init(void) {
+	isc_log_registercategories(dns_categories);
+	isc_log_registermodules(dns_modules);
 }

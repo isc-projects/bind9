@@ -620,8 +620,8 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		int level;
 
 		level = ISC_LOG_WARNING;
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_DNSSEC, level,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DNSSEC,
+			      level,
 			      "Permissions on the file %s "
 			      "have changed from 0%o to 0600 as "
 			      "a result of this operation.",

@@ -498,7 +498,7 @@ static cfg_type_t cfg_type_filelist = { "filelist",    NULL,
 					&cfg_rep_list, &cfg_type_qstring };
 
 isc_result_t
-cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
+cfg_parser_create(isc_mem_t *mctx, cfg_parser_t **ret) {
 	isc_result_t result;
 	cfg_parser_t *pctx;
 	isc_lexspecials_t specials;
@@ -513,7 +513,6 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 
 	isc_refcount_init(&pctx->references, 1);
 
-	pctx->lctx = lctx;
 	pctx->lexer = NULL;
 	pctx->seen_eof = false;
 	pctx->ungotten = false;
@@ -3694,20 +3693,19 @@ parser_complain(cfg_parser_t *pctx, bool is_warning, unsigned int flags,
 	} else {
 		tokenbuf[0] = '\0';
 	}
-	isc_log_write(pctx->lctx, CAT, MOD, level, "%s%s%s%s", where, message,
-		      prep, tokenbuf);
+	isc_log_write(CAT, MOD, level, "%s%s%s%s", where, message, prep,
+		      tokenbuf);
 }
 
 void
-cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt,
-	    ...) {
+cfg_obj_log(const cfg_obj_t *obj, int level, const char *fmt, ...) {
 	va_list ap;
 	char msgbuf[2048];
 
 	REQUIRE(obj != NULL);
 	REQUIRE(fmt != NULL);
 
-	if (!isc_log_wouldlog(lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -3716,10 +3714,10 @@ cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt,
 	va_end(ap);
 
 	if (obj->file != NULL) {
-		isc_log_write(lctx, CAT, MOD, level, "%s:%u: %s", obj->file,
+		isc_log_write(CAT, MOD, level, "%s:%u: %s", obj->file,
 			      obj->line, msgbuf);
 	} else {
-		isc_log_write(lctx, CAT, MOD, level, "%s", msgbuf);
+		isc_log_write(CAT, MOD, level, "%s", msgbuf);
 	}
 }
 
@@ -3944,8 +3942,7 @@ cleanup:
 
 isc_result_t
 cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
-		       isc_log_t *lctx, pluginlist_cb_t *callback,
-		       void *callback_data) {
+		       pluginlist_cb_t *callback, void *callback_data) {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_listelt_t *element;
 
@@ -3966,7 +3963,7 @@ cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
 
 		/* Only query plugins are supported currently. */
 		if (strcasecmp(type, "query") != 0) {
-			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
+			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "unsupported plugin type");
 			return (ISC_R_FAILURE);
 		}

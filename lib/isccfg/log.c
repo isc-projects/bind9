@@ -30,7 +30,7 @@ isc_logcategory_t cfg_categories[] = { { "config", 0 }, { NULL, 0 } };
 isc_logmodule_t cfg_modules[] = { { "isccfg/parser", 0 }, { NULL, 0 } };
 
 void
-cfg_log_init(isc_log_t *lctx) {
-	isc_log_registercategories(lctx, cfg_categories);
-	isc_log_registermodules(lctx, cfg_modules);
+cfg_log_init(void) {
+	isc_log_registercategories(cfg_categories);
+	isc_log_registermodules(cfg_modules);
 }

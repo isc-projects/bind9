@@ -75,47 +75,40 @@
 #include <dns/zone.h>
 
 #ifdef WANT_QUERYTRACE
-#define RTRACE(m)                                                             \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                     \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), "res %p: %s", \
-		      res, (m))
-#define RRTRACE(r, m)                                                         \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                     \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), "res %p: %s", \
-		      (r), (m))
-#define FCTXTRACE(m)                                            \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,       \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), \
-		      "fctx %p(%s): %s", fctx, fctx->info, (m))
-#define FCTXTRACE2(m1, m2)                                      \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,       \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), \
-		      "fctx %p(%s): %s %s", fctx, fctx->info, (m1), (m2))
-#define FCTXTRACE3(m, res)                                              \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,               \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),         \
-		      "fctx %p(%s): [result: %s] %s", fctx, fctx->info, \
-		      isc_result_totext(res), (m))
+#define RTRACE(m)                                                       \
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, \
+		      ISC_LOG_DEBUG(3), "res %p: %s", res, (m))
+#define RRTRACE(r, m)                                                   \
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, \
+		      ISC_LOG_DEBUG(3), "res %p: %s", (r), (m))
+#define FCTXTRACE(m)                                                         \
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,      \
+		      ISC_LOG_DEBUG(3), "fctx %p(%s): %s", fctx, fctx->info, \
+		      (m))
+#define FCTXTRACE2(m1, m2)                                              \
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, \
+		      ISC_LOG_DEBUG(3), "fctx %p(%s): %s %s", fctx,     \
+		      fctx->info, (m1), (m2))
+#define FCTXTRACE3(m, res)                                                    \
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,       \
+		      ISC_LOG_DEBUG(3), "fctx %p(%s): [result: %s] %s", fctx, \
+		      fctx->info, isc_result_totext(res), (m))
 #define FCTXTRACE4(m1, m2, res)                                            \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                  \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),            \
-		      "fctx %p(%s): [result: %s] %s %s", fctx, fctx->info, \
-		      isc_result_totext(res), (m1), (m2))
-#define FCTXTRACE5(m1, m2, v)                                               \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                   \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),             \
-		      "fctx %p(%s): %s %s%u", fctx, fctx->info, (m1), (m2), \
-		      (v))
-#define FTRACE(m)                                                          \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                  \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),            \
-		      "fetch %p (fctx %p(%s)): %s", fetch, fetch->private, \
-		      fetch->private->info, (m))
-#define QTRACE(m)                                                          \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                  \
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),            \
-		      "resquery %p (fctx %p(%s)): %s", query, query->fctx, \
-		      query->fctx->info, (m))
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,    \
+		      ISC_LOG_DEBUG(3), "fctx %p(%s): [result: %s] %s %s", \
+		      fctx, fctx->info, isc_result_totext(res), (m1), (m2))
+#define FCTXTRACE5(m1, m2, v)                                           \
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, \
+		      ISC_LOG_DEBUG(3), "fctx %p(%s): %s %s%u", fctx,   \
+		      fctx->info, (m1), (m2), (v))
+#define FTRACE(m)                                                            \
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,      \
+		      ISC_LOG_DEBUG(3), "fetch %p (fctx %p(%s)): %s", fetch, \
+		      fetch->private, fetch->private->info, (m))
+#define QTRACE(m)                                                        \
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,  \
+		      ISC_LOG_DEBUG(3), "resquery %p (fctx %p(%s)): %s", \
+		      query, query->fctx, query->fctx->info, (m))
 #else /* ifdef WANT_QUERYTRACE */
 #define RTRACE(m)          \
 	do {               \
@@ -1378,7 +1371,7 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 	char dbuf[DNS_NAME_FORMATSIZE];
 	isc_stdtime_t now;
 
-	if (!isc_log_wouldlog(dns_lctx, ISC_LOG_INFO)) {
+	if (!isc_log_wouldlog(ISC_LOG_INFO)) {
 		return;
 	}
 
@@ -1396,8 +1389,8 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 	dns_name_format(fctx->domain, dbuf, sizeof(dbuf));
 
 	if (!final) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SPILL,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_SPILL, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_INFO,
 			      "too many simultaneous fetches for %s "
 			      "(allowed %" PRIuFAST32 " spilled %" PRIuFAST32
 			      "; %s)",
@@ -1406,8 +1399,8 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 						    : "cumulative since "
 						      "initial trigger event");
 	} else {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SPILL,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_SPILL, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_INFO,
 			      "fetch counters for %s now being discarded "
 			      "(allowed %" PRIuFAST32 " spilled %" PRIuFAST32
 			      "; cumulative since initial trigger event)",
@@ -1644,7 +1637,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		}
 		UNLOCK(&fctx->res->lock);
 		if (logit) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
 				      "clients-per-query increased to %u",
 				      new_spillat);
@@ -1686,7 +1679,7 @@ fctx__done(fetchctx_t *fctx, isc_result_t result, const char *func,
 
 	if (result == ISC_R_SUCCESS) {
 		if (fctx->qmin_warning != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
+			isc_log_write(DNS_LOGCATEGORY_LAME_SERVERS,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 				      "success resolving '%s' after disabling "
 				      "qname minimization due to '%s'",
@@ -1997,7 +1990,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			/* format new address */
 			isc_sockaddr_format(&sockaddr, sockaddrbuf2,
 					    sizeof(sockaddrbuf2));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
 				      "Using DNS64 address %s to talk to %s\n",
 				      sockaddrbuf2, sockaddrbuf1);
@@ -2133,14 +2126,14 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	if (result != ISC_R_SUCCESS && (query->options & DNS_FETCHOPT_TCP) != 0)
 	{
 		int log_level = ISC_LOG_NOTICE;
-		if (isc_log_wouldlog(dns_lctx, log_level)) {
+		if (isc_log_wouldlog(log_level)) {
 			char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 
 			isc_sockaddr_format(&sockaddr, peerbuf,
 					    ISC_SOCKADDR_FORMATSIZE);
 
 			isc_log_write(
-				dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				DNS_LOGCATEGORY_RESOLVER,
 				DNS_LOGMODULE_RESOLVER, log_level,
 				"Unable to establish a connection to %s: %s\n",
 				peerbuf, isc_result_totext(result));
@@ -3118,10 +3111,10 @@ add_bad(fetchctx_t *fctx, dns_message_t *rmessage, dns_adbaddrinfo_t *addrinfo,
 	dns_rdatatype_format(fctx->type, typebuf, sizeof(typebuf));
 	dns_rdataclass_format(fctx->res->rdclass, classbuf, sizeof(classbuf));
 	isc_sockaddr_format(address, addrbuf, sizeof(addrbuf));
-	isc_log_write(
-		dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS, DNS_LOGMODULE_RESOLVER,
-		ISC_LOG_INFO, "%s%s%s resolving '%s/%s/%s': %s", code, spc,
-		isc_result_totext(reason), namebuf, typebuf, classbuf, addrbuf);
+	isc_log_write(DNS_LOGCATEGORY_LAME_SERVERS, DNS_LOGMODULE_RESOLVER,
+		      ISC_LOG_INFO, "%s%s%s resolving '%s/%s/%s': %s", code,
+		      spc, isc_result_totext(reason), namebuf, typebuf,
+		      classbuf, addrbuf);
 }
 
 /*
@@ -3273,10 +3266,10 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 				    NULL, res->view->dstport, fctx->depth + 1,
 				    fctx->qc, &find);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-		      "fctx %p(%s): createfind for %s - %s", fctx, fctx->info,
-		      fctx->clientstr, isc_result_totext(result));
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+		      ISC_LOG_DEBUG(3), "fctx %p(%s): createfind for %s - %s",
+		      fctx, fctx->info, fctx->clientstr,
+		      isc_result_totext(result));
 
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
@@ -3288,7 +3281,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 			dns_adb_destroyfind(&find);
 			fctx->adberr++;
 			dns_name_format(name, namebuf, sizeof(namebuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CNAME,
+			isc_log_write(DNS_LOGCATEGORY_CNAME,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 				      "skipping nameserver '%s' because it "
 				      "is a CNAME, while resolving '%s'",
@@ -3333,9 +3326,9 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	 */
 	if (waiting_for(find, fctx->type) && dns_name_equal(name, fctx->name)) {
 		fctx->adberr++;
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-			      "loop detected resolving '%s'", fctx->info);
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_INFO, "loop detected resolving '%s'",
+			      fctx->info);
 
 		if ((find->options & DNS_ADBFIND_WANTEVENT) != 0) {
 			atomic_fetch_add_relaxed(&fctx->pending, 1);
@@ -3437,8 +3430,8 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 	res = fctx->res;
 
 	if (fctx->depth > res->maxdepth) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(3),
 			      "too much NS indirection resolving '%s' "
 			      "(depth=%u, maxdepth=%u)",
 			      fctx->info, fctx->depth, res->maxdepth);
@@ -3794,7 +3787,7 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 		return;
 	}
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 		char buf[ISC_NETADDR_FORMATSIZE];
 		isc_netaddr_fromsockaddr(&na, sa);
 		isc_netaddr_format(&na, buf, sizeof(buf));
@@ -3983,8 +3976,8 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 
 	/* We've already exceeded maximum query count */
 	if (isc_counter_used(fctx->qc) > res->maxqueries) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(3),
 			      "exceeded max queries resolving '%s' "
 			      "(querycount=%u, maxqueries=%u)",
 			      fctx->info, isc_counter_used(fctx->qc),
@@ -4057,7 +4050,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 			dns_rdatatype_format(fctx->qmintype, typebuf,
 					     sizeof(typebuf));
 
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
 				      "fctx %p(%s): attempting QNAME "
 				      "minimization fetch for %s/%s but "
@@ -4097,8 +4090,8 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 
 	result = isc_counter_increment(fctx->qc);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(3),
 			      "exceeded max queries resolving '%s'",
 			      fctx->info);
 		goto done;
@@ -4219,8 +4212,8 @@ resume_qmin(void *arg) {
 		break;
 
 	default:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(5),
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(5),
 			      "QNAME minimization: unexpected result %s",
 			      isc_result_totext(result));
 		break;
@@ -4356,8 +4349,8 @@ fctx_expired(void *arg) {
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(fctx->tid == isc_tid());
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+		      ISC_LOG_INFO,
 		      "shut down hung fetch while resolving %p(%s)", fctx,
 		      fctx->info);
 	fctx_done_detach(&fctx, DNS_R_SERVFAIL);
@@ -4472,8 +4465,8 @@ log_ns_ttl(fetchctx_t *fctx, const char *where) {
 
 	dns_name_format(fctx->name, namebuf, sizeof(namebuf));
 	dns_name_format(fctx->domain, domainbuf, sizeof(domainbuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(10),
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+		      ISC_LOG_DEBUG(10),
 		      "log_ns_ttl: fctx %p: %s: %s (in '%s'?): %u %u", fctx,
 		      where, namebuf, domainbuf, fctx->ns_ttl_ok, fctx->ns_ttl);
 }
@@ -4534,8 +4527,8 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 
 	if (qc != NULL) {
 		isc_counter_attach(qc, &fctx->qc);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(9),
 			      "fctx %p(%s): attached to counter %p (%d)", fctx,
 			      fctx->info, fctx->qc, isc_counter_used(fctx->qc));
 	} else {
@@ -4544,8 +4537,8 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_fetch;
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(9),
 			      "fctx %p(%s): created counter %p", fctx,
 			      fctx->info, fctx->qc);
 	}
@@ -4826,10 +4819,9 @@ log_lame(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 	dns_name_format(fctx->name, namebuf, sizeof(namebuf));
 	dns_name_format(fctx->domain, domainbuf, sizeof(domainbuf));
 	isc_sockaddr_format(&addrinfo->sockaddr, addrbuf, sizeof(addrbuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "lame server resolving '%s' (in '%s'?): %s", namebuf,
-		      domainbuf, addrbuf);
+	isc_log_write(DNS_LOGCATEGORY_LAME_SERVERS, DNS_LOGMODULE_RESOLVER,
+		      ISC_LOG_INFO, "lame server resolving '%s' (in '%s'?): %s",
+		      namebuf, domainbuf, addrbuf);
 }
 
 static void
@@ -4844,8 +4836,8 @@ log_formerr(fetchctx_t *fctx, const char *format, ...) {
 
 	isc_sockaddr_format(&fctx->addrinfo->sockaddr, nsbuf, sizeof(nsbuf));
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+		      ISC_LOG_NOTICE,
 		      "DNS format error from %s resolving %s for %s: %s", nsbuf,
 		      fctx->info, fctx->clientstr, msgbuf);
 }
@@ -5643,9 +5635,8 @@ fctx_log(void *arg, int level, const char *fmt, ...) {
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
 	va_end(args);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, level, "fctx %p(%s): %s", fctx,
-		      fctx->info, msgbuf);
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, level,
+		      "fctx %p(%s): %s", fctx, fctx->info, msgbuf);
 }
 
 static isc_result_t
@@ -5891,7 +5882,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 					     sizeof(typebuf));
 			dns_rdataclass_format(rdataset->rdclass, classbuf,
 					      sizeof(classbuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
 				      "check-names %s %s/%s/%s",
 				      fail ? "failure" : "warning", namebuf,
@@ -6802,7 +6793,7 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 					     sizeof(typebuf));
 			dns_rdataclass_format(rdataset->rdclass, classbuf,
 					      sizeof(classbuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
 				      "answer address %s denied for %s/%s/%s",
 				      addrbuf, namebuf, typebuf, classbuf);
@@ -6912,10 +6903,9 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		dns_rdataclass_format(view->rdclass, classbuf,
 				      sizeof(classbuf));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-			      "%s target %s denied for %s/%s", typebuf,
-			      tnamebuf, qnamebuf, classbuf);
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_NOTICE, "%s target %s denied for %s/%s",
+			      typebuf, tnamebuf, qnamebuf, classbuf);
 		return (false);
 	}
 
@@ -6933,8 +6923,8 @@ trim_ns_ttl(fetchctx_t *fctx, dns_name_t *name, dns_rdataset_t *rdataset) {
 		dns_name_format(fctx->name, namebuf, sizeof(namebuf));
 		dns_rdatatype_format(fctx->type, tbuf, sizeof(tbuf));
 
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(10),
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(10),
 			      "fctx %p: trimming ttl of %s/NS for %s/%s: "
 			      "%u -> %u",
 			      fctx, ns_namebuf, namebuf, tbuf, rdataset->ttl,
@@ -7240,9 +7230,8 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query, int level,
 
 	isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
 			    sizeof(addrbuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_NSID, DNS_LOGMODULE_RESOLVER,
-		      level, "received NSID %s (\"%s\") from %s", buf, pbuf,
-		      addrbuf);
+	isc_log_write(DNS_LOGCATEGORY_NSID, DNS_LOGMODULE_RESOLVER, level,
+		      "received NSID %s (\"%s\") from %s", buf, pbuf, addrbuf);
 
 	isc_mem_put(mctx, pbuf, nsid_len + 1);
 	isc_mem_put(mctx, buf, buflen);
@@ -7406,11 +7395,11 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 		 * keep listening for a good answer.
 		 */
 		rctx->nextitem = true;
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_INFO)) {
+		if (isc_log_wouldlog(ISC_LOG_INFO)) {
 			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 			isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
 					    sizeof(addrbuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 				      "bad cookie from %s", addrbuf);
 		}
@@ -7513,16 +7502,16 @@ resquery_response_continue(void *arg, isc_result_t result) {
 		if (dns_adb_getcookie(query->addrinfo, NULL, 0) >
 		    CLIENT_COOKIE_SIZE)
 		{
-			if (isc_log_wouldlog(dns_lctx, ISC_LOG_INFO)) {
+			if (isc_log_wouldlog(ISC_LOG_INFO)) {
 				char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 				isc_sockaddr_format(&query->addrinfo->sockaddr,
 						    addrbuf, sizeof(addrbuf));
-				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-					DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-					"missing expected cookie "
-					"from %s",
-					addrbuf);
+				isc_log_write(DNS_LOGCATEGORY_RESOLVER,
+					      DNS_LOGMODULE_RESOLVER,
+					      ISC_LOG_INFO,
+					      "missing expected cookie "
+					      "from %s",
+					      addrbuf);
 			}
 			rctx->retryopts |= DNS_FETCHOPT_TCP;
 			rctx->resend = true;
@@ -7540,9 +7529,7 @@ resquery_response_continue(void *arg, isc_result_t result) {
 				result = dns_peer_getrequirecookie(peer,
 								   &required);
 				if (result == ISC_R_SUCCESS && required) {
-					if (isc_log_wouldlog(dns_lctx,
-							     ISC_LOG_INFO))
-					{
+					if (isc_log_wouldlog(ISC_LOG_INFO)) {
 						char addrbuf
 							[ISC_SOCKADDR_FORMATSIZE];
 						isc_sockaddr_format(
@@ -7551,7 +7538,6 @@ resquery_response_continue(void *arg, isc_result_t result) {
 							addrbuf,
 							sizeof(addrbuf));
 						isc_log_write(
-							dns_lctx,
 							DNS_LOGCATEGORY_RESOLVER,
 							DNS_LOGMODULE_RESOLVER,
 							ISC_LOG_INFO,
@@ -9957,8 +9943,8 @@ spillattimer_countdown(void *arg) {
 	}
 	UNLOCK(&res->lock);
 	if (spillat > 0) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_NOTICE,
 			      "clients-per-query decreased to %u", spillat);
 	}
 }
@@ -10072,8 +10058,7 @@ prime_done(void *arg) {
 
 	int level = (resp->result == ISC_R_SUCCESS) ? ISC_LOG_DEBUG(1)
 						    : ISC_LOG_NOTICE;
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, level,
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, level,
 		      "resolver priming query complete: %s",
 		      isc_result_totext(resp->result));
 
@@ -10221,16 +10206,15 @@ log_fetch(const dns_name_t *name, dns_rdatatype_t type) {
 	 * If there's no chance of logging it, don't render (format) the
 	 * name and RDATA type (further below), and return early.
 	 */
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
 	dns_name_format(name, namebuf, sizeof(namebuf));
 	dns_rdatatype_format(type, typebuf, sizeof(typebuf));
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, level, "fetch: %s/%s", namebuf,
-		      typebuf);
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, level,
+		      "fetch: %s/%s", namebuf, typebuf);
 }
 
 static void
@@ -10330,8 +10314,8 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 
 	char domainbuf[DNS_NAME_FORMATSIZE];
 	dns_name_format(fctx->qminname, domainbuf, sizeof(domainbuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(5),
+	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+		      ISC_LOG_DEBUG(5),
 		      "QNAME minimization - %s minimized, qmintype %d "
 		      "qminname %s",
 		      fctx->minimized ? "" : "not", fctx->qmintype, domainbuf);
@@ -10627,9 +10611,8 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 }
 
 void
-dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
-		      isc_logcategory_t *category, isc_logmodule_t *module,
-		      int level, bool duplicateok) {
+dns_resolver_logfetch(dns_fetch_t *fetch, isc_logcategory_t *category,
+		      isc_logmodule_t *module, int level, bool duplicateok) {
 	fetchctx_t *fctx = NULL;
 
 	REQUIRE(DNS_FETCH_VALID(fetch));
@@ -10641,7 +10624,7 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
 	if (!fctx->logged || duplicateok) {
 		char domainbuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(fctx->domain, domainbuf, sizeof(domainbuf));
-		isc_log_write(lctx, category, module, level,
+		isc_log_write(category, module, level,
 			      "fetch completed for %s in "
 			      "%" PRIu64 "."
 			      "%06" PRIu64 ": %s/%s "

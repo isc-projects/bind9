@@ -56,14 +56,14 @@
  *  - IXFR over UDP
  */
 
-#define XFROUT_COMMON_LOGARGS \
-	ns_lctx, DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT
+#define XFROUT_PROTOCOL_LOGARGS \
+	DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO
 
-#define XFROUT_PROTOCOL_LOGARGS XFROUT_COMMON_LOGARGS, ISC_LOG_INFO
+#define XFROUT_DEBUG_LOGARGS(n) \
+	DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT, ISC_LOG_DEBUG(n)
 
-#define XFROUT_DEBUG_LOGARGS(n) XFROUT_COMMON_LOGARGS, ISC_LOG_DEBUG(n)
-
-#define XFROUT_RR_LOGARGS XFROUT_COMMON_LOGARGS, XFROUT_RR_LOGLEVEL
+#define XFROUT_RR_LOGARGS \
+	DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT, XFROUT_RR_LOGLEVEL
 
 #define XFROUT_RR_LOGLEVEL ISC_LOG_DEBUG(8)
 
@@ -772,9 +772,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 */
 	result = isc_quota_acquire(&client->manager->sctx->xfroutquota);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
-			      "%s request denied: %s", mnemonic,
-			      isc_result_totext(result));
+		isc_log_write(DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT,
+			      ISC_LOG_WARNING, "%s request denied: %s",
+			      mnemonic, isc_result_totext(result));
 		goto max_quota;
 	}
 
@@ -1528,7 +1528,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			break;
 		}
 
-		if (isc_log_wouldlog(ns_lctx, XFROUT_RR_LOGLEVEL)) {
+		if (isc_log_wouldlog(XFROUT_RR_LOGLEVEL)) {
 			log_rr(name, rdata, ttl); /* XXX */
 		}
 
