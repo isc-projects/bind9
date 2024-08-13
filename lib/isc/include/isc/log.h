@@ -160,7 +160,7 @@ typedef union isc_logdestination {
  * the order of the names.
  */
 extern isc_logcategory_t isc_categories[];
-extern isc_log_t	*isc_lctx;
+extern isc_log_t	*isc_lctx __attribute__((__deprecated__));
 extern isc_logmodule_t	 isc_modules[];
 /*@}*/
 
@@ -187,23 +187,10 @@ ISC_LANG_BEGINDECLS
 void
 isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
 /*%<
- * Establish a new logging context, with default channels.
+ * A dummy function that mimicks:
  *
- * Notes:
- *\li	isc_log_create() calls isc_logconfig_create(), so see its comment
- *	below for more information.
- *
- * Requires:
- *\li	mctx is a valid memory context.
- *\li	lctxp is not null and *lctxp is null.
- *\li	lcfgp is null or lcfgp is not null and *lcfgp is null.
- *
- * Ensures:
- *\li	*lctxp will point to a valid logging context if all of the necessary
- *	memory was allocated, or NULL otherwise.
- *\li	*lcfgp will point to a valid logging configuration if all of the
- *	necessary memory was allocated, or NULL otherwise.
- *\li	On failure, no additional memory is allocated.
+ * isc_logconfig_create(NULL, lcfgp);
+ * isc_logconfig_use(NULL, *lcfgp);
  */
 
 void
@@ -272,18 +259,7 @@ isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
 void
 isc_log_destroy(isc_log_t **lctxp);
 /*%<
- * Deallocate the memory associated with a logging context.
- *
- * Requires:
- *\li	*lctx is a valid logging context.
- *
- * Ensures:
- *\li	All of the memory associated with the logging context is returned
- *	to the free memory pool.
- *
- *\li	Any open files are closed.
- *
- *\li	The logging context is marked as invalid.
+ * Dummy function that does nothing.
  */
 
 void
@@ -830,7 +806,7 @@ isc_log_setcontext(isc_log_t *lctx);
  * Sets the context used by the libisc for logging.
  *
  * Requires:
- *\li	lctx be a valid context.
+ *\li        lctx be a valid context.
  */
 
 isc_result_t
@@ -848,6 +824,14 @@ isc_log_setforcelog(bool v);
  * Turn forced logging on/off for the current thread. This can be used to
  * temporarily increase the debug level to maximum for the duration of
  * a single task event.
+ */
+
+void
+isc__log_initialize(void);
+void
+isc__log_shutdown(void);
+/*%<
+ * Library constructor/destructor
  */
 
 ISC_LANG_ENDDECLS
