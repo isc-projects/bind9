@@ -46,7 +46,7 @@ body_process = (
         r" :gl:`\3`",
     )
     | ReSub(r"\n*Merge branch '[^']+' into [^\n]+", r"")
-    | ReSub(r"\n*See merge request isc-projects/bind9(!\d+)", r" :gl:`\1`")
+    | ReSub(r"\n*See merge request isc-projects/bind9(!\d+)", r"")
     | Wrap(regexp="\n\n", separator="\n\n")
     | strip
 )
