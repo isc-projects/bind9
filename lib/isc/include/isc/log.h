@@ -544,29 +544,6 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 
 	ISC_FORMAT_PRINTF(5, 0);
 
-/*%
- * Write a message to the log channels, pruning duplicates that occur within
- * a configurable amount of seconds (see isc_log_[sg]etduplicateinterval).
- * This function is otherwise identical to isc_log_write().
- */
-void
-isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *format, ...)
-
-	ISC_FORMAT_PRINTF(5, 6);
-
-/*%
- * Write a message to the log channels, pruning duplicates that occur within
- * a configurable amount of seconds (see isc_log_[sg]etduplicateinterval).
- * This function is otherwise identical to isc_log_vwrite().
- */
-void
-isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
-		isc_logmodule_t *module, int level, const char *format,
-		va_list args)
-
-	ISC_FORMAT_PRINTF(5, 0);
-
 void
 isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level);
 /*%<
@@ -610,38 +587,6 @@ isc_log_wouldlog(isc_log_t *lctx, int level);
  * If #false is returned, it is guaranteed that nothing would
  * be logged, allowing the caller to omit unnecessary
  * isc_log_write() calls and possible message preformatting.
- */
-
-void
-isc_log_setduplicateinterval(isc_logconfig_t *lcfg, unsigned int interval);
-/*%<
- * Set the interval over which duplicate log messages will be ignored
- * by isc_log_[v]write1(), in seconds.
- *
- * Notes:
- *\li	Increasing the duplicate interval from X to Y will not necessarily
- *	filter out duplicates of messages logged in Y - X seconds since the
- *	increase.  (Example: Message1 is logged at midnight.  Message2
- *	is logged at 00:01:00, when the interval is only 30 seconds, causing
- *	Message1 to be expired from the log message history.  Then the interval
- *	is increased to 3000 (five minutes) and at 00:04:00 Message1 is logged
- *	again.  It will appear the second time even though less than five
- *	passed since the first occurrence.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- */
-
-unsigned int
-isc_log_getduplicateinterval(isc_logconfig_t *lcfg);
-/*%<
- * Get the current duplicate filtering interval.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- *
- * Returns:
- *\li	The current duplicate filtering interval.
  */
 
 void
