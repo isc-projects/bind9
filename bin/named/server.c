@@ -9407,7 +9407,7 @@ load_configuration(const char *filename, named_server_t *server,
 			}
 		}
 
-		isc_logconfig_use(named_g_lctx, logc);
+		isc_logconfig_set(named_g_lctx, logc);
 		logc = NULL;
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,

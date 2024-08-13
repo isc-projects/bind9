@@ -566,9 +566,6 @@ main(int argc, char **argv) {
 		fprintf(errout, "OK\n");
 	}
 	destroy();
-	if (lctx != NULL) {
-		isc_log_destroy(&lctx);
-	}
 	isc_mem_destroy(&mctx);
 
 	return ((result == ISC_R_SUCCESS) ? 0 : 1);

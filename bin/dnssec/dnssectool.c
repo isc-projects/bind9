@@ -128,7 +128,7 @@ sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 }
 
 void
-setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
+setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, isc_log_t **logp) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 	isc_log_t *log = NULL;
@@ -153,10 +153,10 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 		break;
 	}
 
-	isc_log_create(mctx, &log, &logconfig);
-	isc_log_setcontext(log);
 	dns_log_init(log);
-	dns_log_setcontext(log);
+
+	logconfig = isc_logconfig_get(log);
+
 	isc_log_settag(logconfig, program);
 
 	/*
@@ -181,20 +181,14 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 
 void
 cleanup_logging(isc_log_t **logp) {
-	isc_log_t *log;
-
 	REQUIRE(logp != NULL);
 
-	log = *logp;
+	isc_log_t *log = *logp;
 	*logp = NULL;
 
 	if (log == NULL) {
 		return;
 	}
-
-	isc_log_destroy(&log);
-	isc_log_setcontext(NULL);
-	dns_log_setcontext(NULL);
 }
 
 static isc_stdtime_t

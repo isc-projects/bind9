@@ -153,17 +153,15 @@ init_items(isc_mem_t *mctx) {
 }
 
 static void
-init_logging(isc_mem_t *mctx) {
+init_logging(void) {
 	isc_result_t result;
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 	isc_log_t *lctx = NULL;
 
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
 
+	logconfig = isc_logconfig_get(lctx);
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -893,7 +891,7 @@ main(void) {
 
 	isc_mem_create(&mctx);
 	isc_mem_setdestroycheck(mctx, true);
-	init_logging(mctx);
+	init_logging();
 	init_items(mctx);
 
 	isc_loopmgr_create(mctx, nloops, &loopmgr);
@@ -902,7 +900,6 @@ main(void) {
 	isc_loopmgr_run(loopmgr);
 	isc_loopmgr_destroy(&loopmgr);
 
-	isc_log_destroy(&dns_lctx);
 	isc_mem_free(mctx, item);
 	isc_mem_checkdestroyed(stdout);
 	isc_mem_destroy(&mctx);

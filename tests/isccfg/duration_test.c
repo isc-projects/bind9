@@ -52,10 +52,9 @@ ISC_SETUP_TEST_IMPL(group) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
-	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_registercategories(lctx, categories);
-	isc_log_setcontext(lctx);
 
+	logconfig = isc_logconfig_get(lctx);
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -67,17 +66,6 @@ ISC_SETUP_TEST_IMPL(group) {
 	if (result != ISC_R_SUCCESS) {
 		return (-1);
 	}
-
-	return (0);
-}
-
-ISC_TEARDOWN_TEST_IMPL(group) {
-	if (lctx == NULL) {
-		return (-1);
-	}
-
-	isc_log_setcontext(NULL);
-	isc_log_destroy(&lctx);
 
 	return (0);
 }
@@ -240,4 +228,4 @@ ISC_TEST_ENTRY(duration)
 
 ISC_TEST_LIST_END
 
-ISC_TEST_MAIN_CUSTOM(setup_test_group, teardown_test_group)
+ISC_TEST_MAIN_CUSTOM(setup_test_group, NULL)

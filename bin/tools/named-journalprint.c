@@ -37,16 +37,14 @@ usage(void) {
  * Setup logging to use stderr.
  */
 static isc_result_t
-setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
+setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, FILE *errout, isc_log_t **logp) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 	isc_log_t *log = NULL;
 
-	isc_log_create(mctx, &log, &logconfig);
-	isc_log_setcontext(log);
 	dns_log_init(log);
-	dns_log_setcontext(log);
 
+	logconfig = isc_logconfig_get(log);
 	destination.file.stream = errout;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -127,7 +125,6 @@ main(int argc, char **argv) {
 			fprintf(stderr, "%s\n", isc_result_totext(result));
 		}
 	}
-	isc_log_destroy(&lctx);
 	isc_mem_detach(&mctx);
 	return (result != ISC_R_SUCCESS ? 1 : 0);
 }

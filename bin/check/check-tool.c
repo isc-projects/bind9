@@ -549,19 +549,17 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 }
 
 isc_result_t
-setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
+setup_logging(isc_mem_t *mctx ISC_ATTR_UNUSED, FILE *errout, isc_log_t **logp) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 	isc_log_t *log = NULL;
 
-	isc_log_create(mctx, &log, &logconfig);
 	isc_log_registercategories(log, categories);
-	isc_log_setcontext(log);
 	dns_log_init(log);
-	dns_log_setcontext(log);
 	cfg_log_init(log);
 	ns_log_init(log);
 
+	logconfig = isc_logconfig_get(log);
 	destination.file.stream = errout;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;

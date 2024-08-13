@@ -105,10 +105,10 @@ main(int argc, char **argv) {
 	}
 
 	isc_mem_create(&mctx);
-	isc_log_create(mctx, &log_, &logconfig);
-	isc_log_setcontext(log_);
+
 	dns_log_init(log_);
-	dns_log_setcontext(log_);
+
+	logconfig = isc_logconfig_get(log_);
 	isc_log_settag(logconfig, "bigkey");
 
 	destination.file.stream = stderr;
@@ -144,9 +144,6 @@ main(int argc, char **argv) {
 	printf("%s\n", filename);
 	dst_key_free(&key);
 
-	isc_log_destroy(&log_);
-	isc_log_setcontext(NULL);
-	dns_log_setcontext(NULL);
 	isc_mem_destroy(&mctx);
 	return (0);
 }

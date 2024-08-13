@@ -57,13 +57,6 @@ isc_log_t *dns_lctx = NULL;
 
 void
 dns_log_init(isc_log_t *lctx) {
-	REQUIRE(lctx != NULL);
-
 	isc_log_registercategories(lctx, dns_categories);
 	isc_log_registermodules(lctx, dns_modules);
-}
-
-void
-dns_log_setcontext(isc_log_t *lctx) {
-	dns_lctx = lctx;
 }

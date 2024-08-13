@@ -81,4 +81,4 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg);
  */
 
 void
-named_log_shutdown(void);
+named_log_shutdown(void) __attribute__((__deprecated__));

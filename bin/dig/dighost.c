@@ -1361,12 +1361,11 @@ setup_libs(void) {
 
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
 
+	logconfig = isc_logconfig_get(lctx);
 	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
+
 	check_result(result, "isc_log_usechannel");
 
 	isc_log_setdebuglevel(lctx, 0);
@@ -4746,9 +4745,6 @@ destroy_libs(void) {
 		debug("freeing key %p", tsigkey);
 		isc_buffer_free(&namebuf);
 	}
-
-	debug("Removing log context");
-	isc_log_destroy(&lctx);
 
 	debug("Destroy memory");
 	if (memdebugging != 0) {

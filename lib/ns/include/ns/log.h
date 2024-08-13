@@ -60,13 +60,3 @@ ns_log_init(isc_log_t *lctx);
  *\li	The categories and modules defined above are available for
  * 	use by isc_log_usechannnel() and isc_log_write().
  */
-
-void
-ns_log_setcontext(isc_log_t *lctx);
-/*%<
- * Make the libns library use the provided context for logging internal
- * messages.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- */

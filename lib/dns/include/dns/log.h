@@ -100,14 +100,4 @@ dns_log_init(isc_log_t *lctx);
  * 	use by isc_log_usechannnel() and isc_log_write().
  */
 
-void
-dns_log_setcontext(isc_log_t *lctx);
-/*%
- * Make the libdns library use the provided context for logging internal
- * messages.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- */
-
 ISC_LANG_ENDDECLS

@@ -288,8 +288,15 @@ isc_logconfig_create(isc_log_t *__lctx ISC_ATTR_UNUSED,
 	*lcfgp = lcfg;
 }
 
+isc_logconfig_t *
+isc_logconfig_get(isc_log_t *__lctx ISC_ATTR_UNUSED) {
+	REQUIRE(VALID_CONTEXT(isc__lctx));
+
+	return (rcu_dereference(isc__lctx->logconfig));
+}
+
 void
-isc_logconfig_use(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logconfig_t *lcfg) {
+isc_logconfig_set(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logconfig_t *lcfg) {
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(lcfg->lctx == isc__lctx);
@@ -699,11 +706,6 @@ isc_log_vwrite1(isc_log_t *__lctx ISC_ATTR_UNUSED, isc_logcategory_t *category,
 	 * Contract checking is done in isc_log_doit().
 	 */
 	isc_log_doit(NULL, category, module, level, true, format, args);
-}
-
-void
-isc_log_setcontext(isc_log_t *lctx) {
-	isc_lctx = lctx;
 }
 
 void
@@ -1852,27 +1854,4 @@ isc__log_shutdown(void) {
 	isc_mutex_destroy(&isc__lctx->lock);
 
 	isc_mem_putanddetach(&mctx, isc__lctx, sizeof(*isc__lctx));
-}
-
-void
-isc_log_create(isc_mem_t *mctx ISC_ATTR_UNUSED, isc_log_t **lctxp,
-	       isc_logconfig_t **lcfgp) {
-	REQUIRE(lctxp != NULL && *lctxp == NULL);
-	REQUIRE(lcfgp == NULL || *lcfgp == NULL);
-	REQUIRE(VALID_CONTEXT(isc__lctx));
-
-	isc_logconfig_create(isc__lctx, lcfgp);
-	isc_logconfig_use(isc__lctx, *lcfgp);
-
-	*lctxp = isc__lctx;
-
-	rcu_read_lock();
-	SET_IF_NOT_NULL(lcfgp, rcu_dereference(isc__lctx->logconfig));
-	rcu_read_unlock();
-}
-
-void
-isc_log_destroy(isc_log_t **lctxp ISC_ATTR_UNUSED) {
-	REQUIRE(lctxp != NULL && VALID_CONTEXT(*lctxp));
-	REQUIRE(*lctxp == isc__lctx);
 }

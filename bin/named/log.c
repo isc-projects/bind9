@@ -51,7 +51,6 @@ isc_result_t
 named_log_init(bool safe) {
 	isc_result_t result;
 	isc_logconfig_t *lcfg = NULL;
-	isc_mem_t *log_mctx = NULL;
 
 	named_g_categories = categories;
 	named_g_modules = modules;
@@ -59,23 +58,24 @@ named_log_init(bool safe) {
 	/*
 	 * Setup a logging context.
 	 */
-	isc_mem_create(&log_mctx);
-	isc_mem_setname(log_mctx, "named_log");
-	isc_log_create(log_mctx, &named_g_lctx, &lcfg);
-	isc_mem_detach(&log_mctx);
 
 	/*
 	 * named-checktool.c:setup_logging() needs to be kept in sync.
 	 */
 	isc_log_registercategories(named_g_lctx, named_g_categories);
 	isc_log_registermodules(named_g_lctx, named_g_modules);
-	isc_log_setcontext(named_g_lctx);
 	dns_log_init(named_g_lctx);
-	dns_log_setcontext(named_g_lctx);
 	cfg_log_init(named_g_lctx);
 	ns_log_init(named_g_lctx);
-	ns_log_setcontext(named_g_lctx);
 
+	/*
+	 * This is not technically needed, as we are calling named_log_init()
+	 * only at the start of named process.  But since the named binary is
+	 * the only place that also calls isc_logconfig_set(), this is a good
+	 * hygiene.
+	 */
+	rcu_read_lock();
+	lcfg = isc_logconfig_get(named_g_lctx);
 	if (safe) {
 		named_log_setsafechannels(lcfg);
 	} else {
@@ -88,13 +88,12 @@ named_log_init(bool safe) {
 	}
 
 	named_log_setdefaultsslkeylogfile(lcfg);
+	rcu_read_unlock();
 
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	isc_log_destroy(&named_g_lctx);
-	isc_log_setcontext(NULL);
-	dns_log_setcontext(NULL);
+	rcu_read_unlock();
 
 	return (result);
 }
@@ -251,7 +250,5 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
 
 void
 named_log_shutdown(void) {
-	isc_log_destroy(&named_g_lctx);
-	isc_log_setcontext(NULL);
-	dns_log_setcontext(NULL);
+	/* no-op */
 }

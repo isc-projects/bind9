@@ -31,8 +31,6 @@ isc_logmodule_t cfg_modules[] = { { "isccfg/parser", 0 }, { NULL, 0 } };
 
 void
 cfg_log_init(isc_log_t *lctx) {
-	REQUIRE(lctx != NULL);
-
 	isc_log_registercategories(lctx, cfg_categories);
 	isc_log_registermodules(lctx, cfg_modules);
 }

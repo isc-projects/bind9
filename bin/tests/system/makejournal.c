@@ -29,13 +29,6 @@
 #include <dns/name.h>
 #include <dns/types.h>
 
-#define CHECK(r)                             \
-	do {                                 \
-		result = (r);                \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup;        \
-	} while (0)
-
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 
@@ -99,12 +92,10 @@ main(int argc, char **argv) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_registercategories(lctx, categories);
-	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
 
+	logconfig = isc_logconfig_get(lctx);
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -112,7 +103,10 @@ main(int argc, char **argv) {
 	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination, 0);
 
-	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
+	result = isc_log_usechannel(logconfig, "stderr", NULL, NULL);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	result = loadzone(&olddb, origin, file1);
 	if (result != ISC_R_SUCCESS) {
@@ -140,9 +134,6 @@ cleanup:
 		dns_db_detach(&olddb);
 	}
 
-	if (lctx != NULL) {
-		isc_log_destroy(&lctx);
-	}
 	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);
 	}

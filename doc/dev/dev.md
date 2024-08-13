@@ -1060,7 +1060,7 @@ the context (`isc_log_t`) is created.  The pointer to this configuration
 is returned via a parameter to `isc_log_create()` so that it can then be
 configured.  A new log configuration can be established by creating
 it with `isc_logconfig_create()`, configuring it, then installing it as
-the active configuration with `isc_logconfig_use()`.
+the active configuration with `isc_logconfig_set()`.
 
 ##### Logging in multithreaded programs
 

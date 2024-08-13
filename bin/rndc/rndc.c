@@ -954,8 +954,7 @@ main(int argc, char **argv) {
 
 	isc_nm_settimeouts(netmgr, timeout, timeout, timeout, 0);
 
-	isc_log_create(rndc_mctx, &log, &logconfig);
-	isc_log_setcontext(log);
+	logconfig = isc_logconfig_get(log);
 	isc_log_settag(logconfig, progname);
 	logdest.file.stream = stderr;
 	logdest.file.name = NULL;
@@ -1002,9 +1001,6 @@ main(int argc, char **argv) {
 	isc_loopmgr_run(loopmgr);
 
 	isccc_ccmsg_invalidate(&rndc_ccmsg);
-
-	isc_log_destroy(&log);
-	isc_log_setcontext(NULL);
 
 	cfg_obj_destroy(pctx, &config);
 	cfg_parser_destroy(&pctx);

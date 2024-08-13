@@ -73,12 +73,10 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-	isc_log_create(mctx, &lctx, &lcfg);
-	isc_log_setcontext(lctx);
-
 	/*
 	 * Create and install the default channel.
 	 */
+	lcfg = isc_logconfig_get(lctx);
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -176,7 +174,6 @@ main(int argc, char **argv) {
 		cfg_parser_destroy(&pctx);
 	}
 
-	isc_log_destroy(&lctx);
 	if (memstats) {
 		isc_mem_stats(mctx, stderr);
 	}

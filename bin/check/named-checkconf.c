@@ -753,10 +753,6 @@ cleanup:
 		cfg_parser_destroy(&parser);
 	}
 
-	if (logc != NULL) {
-		isc_log_destroy(&logc);
-	}
-
 	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);
 	}

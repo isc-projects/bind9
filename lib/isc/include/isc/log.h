@@ -185,15 +185,6 @@ extern isc_logmodule_t	 isc_modules[];
 ISC_LANG_BEGINDECLS
 
 void
-isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
-/*%<
- * A dummy function that mimicks:
- *
- * isc_logconfig_create(NULL, lcfgp);
- * isc_logconfig_use(NULL, *lcfgp);
- */
-
-void
 isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
 /*%<
  * Create the data structure that holds all of the configurable information
@@ -235,16 +226,16 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
  *\li	On failure, no additional memory is allocated.
  */
 
+isc_logconfig_t *
+isc_logconfig_get(isc_log_t *lctx);
 void
-isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
+isc_logconfig_set(isc_log_t *lctx, isc_logconfig_t *lcfg);
 /*%<
- * Associate a new configuration with a logging context.
+ * Getter/setter for a configuration with a logging context.
  *
  * Notes:
- *\li	This is thread safe.  The logging context will lock a mutex
- *	before attempting to swap in the new configuration, and isc_log_doit
- *	(the internal function used by all of isc_log_[v]write[1]) locks
- *	the same lock for the duration of its use of the configuration.
+ *\li	The setter is thread safe.  The getter is only thread-safe
+ *	if the isc_logconfig_get() call is protected by RCU read-lock.
  *
  * Requires:
  *\li	lctx is a valid logging context.
@@ -254,12 +245,7 @@ isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
  *
  * Ensures:
  *\li	Future calls to isc_log_write will use the new configuration.
- */
-
-void
-isc_log_destroy(isc_log_t **lctxp);
-/*%<
- * Dummy function that does nothing.
+ *\li	The previous configuration object will be destroyed.
  */
 
 void
@@ -798,15 +784,6 @@ isc_log_modulebyname(isc_log_t *lctx, const char *name);
  *\li	A pointer to the _first_ isc_logmodule_t structure used by "name".
  *
  *\li	NULL if no module exists by that name.
- */
-
-void
-isc_log_setcontext(isc_log_t *lctx);
-/*%<
- * Sets the context used by the libisc for logging.
- *
- * Requires:
- *\li        lctx be a valid context.
  */
 
 isc_result_t

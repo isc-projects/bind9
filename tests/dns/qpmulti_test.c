@@ -72,11 +72,9 @@ setup_logging(void) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
 
+	logconfig = isc_logconfig_get(lctx);
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -391,7 +389,6 @@ ISC_RUN_TEST_IMPL(qpmulti) {
 	isc_loopmgr_run(loopmgr);
 	rcu_barrier();
 	isc_loopmgr_destroy(&loopmgr);
-	isc_log_destroy(&dns_lctx);
 }
 
 ISC_TEST_LIST_START

@@ -50,13 +50,6 @@ isc_log_t *ns_lctx = NULL;
 
 void
 ns_log_init(isc_log_t *lctx) {
-	REQUIRE(lctx != NULL);
-
 	isc_log_registercategories(lctx, ns_categories);
 	isc_log_registermodules(lctx, ns_modules);
-}
-
-void
-ns_log_setcontext(isc_log_t *lctx) {
-	ns_lctx = lctx;
 }

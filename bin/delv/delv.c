@@ -322,14 +322,12 @@ setup_logging(FILE *errout) {
 	isc_logconfig_t *logconfig = NULL;
 	int packetlevel = 10;
 
-	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_registercategories(lctx, categories);
 	isc_log_registermodules(lctx, modules);
-	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
 	cfg_log_init(lctx);
 
+	logconfig = isc_logconfig_get(lctx);
 	destination.file.stream = errout;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -2299,8 +2297,6 @@ cleanup:
 	if (style != NULL) {
 		dns_master_styledestroy(&style, mctx);
 	}
-
-	isc_log_destroy(&lctx);
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 

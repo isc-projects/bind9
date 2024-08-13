@@ -812,11 +812,9 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 
 	ddebug("setup_system()");
 
-	isc_log_create(gmctx, &glctx, &logconfig);
-	isc_log_setcontext(glctx);
 	dns_log_init(glctx);
-	dns_log_setcontext(glctx);
 
+	logconfig = isc_logconfig_get(glctx);
 	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
 	check_result(result, "isc_log_usechannel");
 
@@ -3487,9 +3485,6 @@ cleanup(void) {
 		dns_name_free(&restart_primary, gmctx);
 	}
 #endif /* ifdef HAVE_GSSAPI */
-
-	ddebug("Removing log context");
-	isc_log_destroy(&glctx);
 
 	ddebug("Destroying memory context");
 	if (memdebugging) {
