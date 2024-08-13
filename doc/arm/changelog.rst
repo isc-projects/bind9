@@ -18,8 +18,8 @@ Changelog
    development. Regular users should refer to :ref:`Release Notes <relnotes>`
    for changes relevant to them.
 
-(-dev)
-------
+BIND 9.18.29
+------------
 
 New Features
 ~~~~~~~~~~~~
@@ -145,23 +145,7 @@ Bug Fixes
   Decrementing optlen immediately before calling continue is unneccesary
   and inconsistent with the rest of dns_message_pseudosectiontoyaml and
   dns_message_pseudosectiontotext.  Coverity was also reporting an
-  impossible false positive overflow of optlen (CID 499061).
-
-  4176                        } else if (optcode == DNS_OPT_CLIENT_TAG)
-  {     4177                                uint16_t id;     4178
-  ADD_STRING(target, "; CLIENT-TAG:");     4179
-  if (optlen == 2U) {     4180                                        id
-  = isc_buffer_getuint16(&optbuf);     4181
-  snprintf(buf, sizeof(buf), " %u ", id);     4182
-  ADD_STRING(target, buf);
-
-  CID 499061: (#1 of 1): Overflowed constant (INTEGER_OVERFLOW)
-  overflow_const: Expression optlen, which is equal to 65534, underflows
-  the type that receives it, an unsigned integer 16 bits wide.     4183
-  optlen -= 2;     4184
-  POST(optlen);     4185
-  continue;     4186                                }     4187
-  } else if (optcode == DNS_OPT_SERVER_TAG) { :gl:`!9224`
+  impossible false positive overflow of optlen (CID 499061). :gl:`!9224`
 
 - Fix generation of 6to4-self name expansion from IPv4 address.
   ``df55c15ebb``
