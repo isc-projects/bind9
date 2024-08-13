@@ -44,6 +44,7 @@ check_PROGRAMS =		\
 	resolver_test		\
 	rsa_test		\
 	sigs_test		\
+	skr_test		\
 	time_test		\
 	tsig_test		\
 	update_test		\
