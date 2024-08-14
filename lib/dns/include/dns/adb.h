@@ -192,6 +192,10 @@ struct dns_adbfind {
  *	Don't perform a fetch even if there are no address records available.
  */
 #define DNS_ADBFIND_NOFETCH 0x00000800
+/*%
+ *	Only look for glue record for static stub.
+ */
+#define DNS_ADBFIND_STATICSTUB 0x00001000
 
 /*%
  * The answers to queries come back as a list of these.

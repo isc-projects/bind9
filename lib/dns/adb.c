@@ -265,7 +265,7 @@ ISC_REFCOUNT_DECL(dns_adbentry);
  * Internal functions (and prototypes).
  */
 static dns_adbname_t *
-new_adbname(dns_adb_t *adb, const dns_name_t *, bool start_at_zone);
+new_adbname(dns_adb_t *adb, const dns_name_t *, unsigned int flags);
 static void
 destroy_adbname(dns_adbname_t *);
 static bool
@@ -296,7 +296,7 @@ static void
 purge_stale_names(dns_adb_t *adb, isc_stdtime_t now);
 static dns_adbname_t *
 get_attached_and_locked_name(dns_adb_t *, const dns_name_t *,
-			     bool start_at_zone, isc_stdtime_t now);
+			     unsigned int flags, isc_stdtime_t now);
 static void
 purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now);
 static dns_adbentry_t *
@@ -409,8 +409,11 @@ enum {
 #define FIND_WANTEMPTYEVENT(fn) (((fn)->options & DNS_ADBFIND_EMPTYEVENT) != 0)
 #define FIND_AVOIDFETCHES(fn)	(((fn)->options & DNS_ADBFIND_AVOIDFETCHES) != 0)
 #define FIND_STARTATZONE(fn)	(((fn)->options & DNS_ADBFIND_STARTATZONE) != 0)
+#define FIND_STATICSTUB(fn)	(((fn)->options & DNS_ADBFIND_STATICSTUB) != 0)
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
 #define FIND_NOFETCH(fn)	(((fn)->options & DNS_ADBFIND_NOFETCH) != 0)
+
+#define ADBNAME_FLAGS_MASK (DNS_ADBFIND_STARTATZONE | DNS_ADBFIND_STATICSTUB)
 
 /*
  * These are currently used on simple unsigned ints, so they are
@@ -951,7 +954,7 @@ clean_finds_at_name(dns_adbname_t *name, dns_adbstatus_t astat,
 }
 
 static dns_adbname_t *
-new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, bool start_at_zone) {
+new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, unsigned int flags) {
 	dns_adbname_t *name = NULL;
 
 	name = isc_mem_get(adb->mctx, sizeof(*name));
@@ -966,6 +969,7 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, bool start_at_zone) {
 		.v6 = ISC_LIST_INITIALIZER,
 		.finds = ISC_LIST_INITIALIZER,
 		.link = ISC_LINK_INITIALIZER,
+		.flags = flags & ADBNAME_FLAGS_MASK,
 		.magic = DNS_ADBNAME_MAGIC,
 	};
 
@@ -980,10 +984,6 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, bool start_at_zone) {
 	name->name = dns_fixedname_initname(&name->fname);
 	dns_name_copy(dnsname, name->name);
 	dns_name_init(&name->target, NULL);
-
-	if (start_at_zone) {
-		name->flags |= DNS_ADBFIND_STARTATZONE;
-	}
 
 	inc_adbstats(adb, dns_adbstats_namescnt);
 	return (name);
@@ -1235,8 +1235,8 @@ match_adbname(void *node, const void *key) {
 	const dns_adbname_t *adbname0 = node;
 	const dns_adbname_t *adbname1 = key;
 
-	if ((adbname0->flags & DNS_ADBFIND_STARTATZONE) !=
-	    (adbname1->flags & DNS_ADBFIND_STARTATZONE))
+	if ((adbname0->flags & ADBNAME_FLAGS_MASK) !=
+	    (adbname1->flags & ADBNAME_FLAGS_MASK))
 	{
 		return (false);
 	}
@@ -1247,12 +1247,12 @@ match_adbname(void *node, const void *key) {
 static uint32_t
 hash_adbname(const dns_adbname_t *adbname) {
 	isc_hash32_t hash;
-	bool start_at_zone = adbname->flags & DNS_ADBFIND_STARTATZONE;
+	unsigned int flags = adbname->flags & ADBNAME_FLAGS_MASK;
 
 	isc_hash32_init(&hash);
 	isc_hash32_hash(&hash, adbname->name->ndata, adbname->name->length,
 			false);
-	isc_hash32_hash(&hash, &start_at_zone, sizeof(start_at_zone), true);
+	isc_hash32_hash(&hash, &flags, sizeof(flags), true);
 	return (isc_hash32_finalize(&hash));
 }
 
@@ -1261,14 +1261,14 @@ hash_adbname(const dns_adbname_t *adbname) {
  */
 static dns_adbname_t *
 get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
-			     bool start_at_zone, isc_stdtime_t now) {
+			     unsigned int flags, isc_stdtime_t now) {
 	isc_result_t result;
 	dns_adbname_t *adbname = NULL;
 	isc_time_t timenow;
 	isc_stdtime_t last_update;
 	dns_adbname_t key = {
 		.name = UNCONST(name),
-		.flags = (start_at_zone) ? DNS_ADBFIND_STARTATZONE : 0,
+		.flags = flags & ADBNAME_FLAGS_MASK,
 	};
 	uint32_t hashval = hash_adbname(&key);
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
@@ -1294,7 +1294,7 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 		UPGRADELOCK(&adb->names_lock, locktype);
 
 		/* Allocate a new name and add it to the hash table. */
-		adbname = new_adbname(adb, name, start_at_zone);
+		adbname = new_adbname(adb, name, key.flags);
 
 		void *found = NULL;
 		result = isc_hashmap_add(adb->names, hashval, match_adbname,
@@ -1960,6 +1960,13 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 	}
 
 	/*
+	 * If STATICSTUB is set we always want to have STARTATZONE set.
+	 */
+	if (options & DNS_ADBFIND_STATICSTUB) {
+		options |= DNS_ADBFIND_STARTATZONE;
+	}
+
+	/*
 	 * Remember what types of addresses we are interested in.
 	 */
 	find = new_adbfind(adb, port);
@@ -1975,8 +1982,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 
 again:
 	/* Try to see if we know anything about this name at all. */
-	adbname = get_attached_and_locked_name(adb, name,
-					       FIND_STARTATZONE(find), now);
+	adbname = get_attached_and_locked_name(adb, name, find->options, now);
 
 	if (NAME_DEAD(adbname)) {
 		UNLOCK(&adbname->lock);
@@ -2050,7 +2056,7 @@ again:
 			 * Any other result, start a fetch for A, then fall
 			 * through to AAAA.
 			 */
-			if (!NAME_FETCH_A(adbname)) {
+			if (!NAME_FETCH_A(adbname) && !FIND_STATICSTUB(find)) {
 				wanted_fetches |= DNS_ADBFIND_INET;
 			}
 			break;
@@ -2093,7 +2099,8 @@ again:
 			/*
 			 * Any other result, start a fetch for AAAA.
 			 */
-			if (!NAME_FETCH_AAAA(adbname)) {
+			if (!NAME_FETCH_AAAA(adbname) && !FIND_STATICSTUB(find))
+			{
 				wanted_fetches |= DNS_ADBFIND_INET6;
 			}
 			break;
@@ -3391,6 +3398,7 @@ dns_adb_flushname(dns_adb_t *adb, const dns_name_t *name) {
 	dns_adbname_t *adbname = NULL;
 	isc_result_t result;
 	bool start_at_zone = false;
+	bool static_stub = false;
 	dns_adbname_t key = { .name = UNCONST(name) };
 
 	REQUIRE(DNS_ADB_VALID(adb));
@@ -3403,9 +3411,11 @@ dns_adb_flushname(dns_adb_t *adb, const dns_name_t *name) {
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
 again:
 	/*
-	 * Delete both entries - without and with DNS_ADBFIND_STARTATZONE set.
+	 * Delete all entries - with and without DNS_ADBFIND_STARTATZONE set
+	 * and with and without DNS_ADBFIND_STATICSTUB set.
 	 */
-	key.flags = (start_at_zone) ? DNS_ADBFIND_STARTATZONE : 0;
+	key.flags = ((static_stub) ? DNS_ADBFIND_STATICSTUB : 0) |
+		    ((start_at_zone) ? DNS_ADBFIND_STARTATZONE : 0);
 
 	result = isc_hashmap_find(adb->names, hash_adbname(&key), match_adbname,
 				  (void *)&key, (void **)&adbname);
@@ -3420,6 +3430,10 @@ again:
 	}
 	if (!start_at_zone) {
 		start_at_zone = true;
+		goto again;
+	}
+	if (!static_stub) {
+		static_stub = true;
 		goto again;
 	}
 	RWUNLOCK(&adb->names_lock, isc_rwlocktype_write);
