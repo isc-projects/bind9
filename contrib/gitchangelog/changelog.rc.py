@@ -158,14 +158,13 @@ body_process = (
     ReSub(r"\n*See merge request isc-private/bind9!\d+", r"")
     | ReSub(r"https://gitlab.isc.org/isc-projects/bind9/-/issues/", r"#")
     | ReSub(r"https://gitlab.isc.org/isc-projects/bind9/-/merge_requests/", r"!")
+    | ReSub(r"\n*Backport of [^\n]+", r"")
+    | ReSub(r"\n*(Replaces|Supersedes)[^\n]+", r"")
     | ReSub(
         r"\n*(Closes|Fixes|Related|See):?\s*(isc-projects/bind9)?((#|!)\d+)",
         r" :gl:`\3`",
     )
-    | ReSub(r"\n*Backport of [^\n]+", r"")
-    | ReSub(r"\n*(Replaces|Supersedes)[^\n]+", r"")
     | ReSub(r"\n*Merge branch '[^']+' into [^\n]+", r"")
-    | ReSub(r"\n*isc-private/bind9", r"")
     | ReSub(r"\n*See merge request isc-projects/bind9(!\d+)", r" :gl:`\1`")
     | Wrap(regexp="\n\n", separator="\n\n")
     | strip
