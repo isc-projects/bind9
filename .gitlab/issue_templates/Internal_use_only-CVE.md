@@ -57,7 +57,7 @@ confidential!
   - [ ] [:link:][step_preannouncement]   **(Marketing)** (BIND 9 only) Send a pre-announcement email to the *bind-announce* mailing list to alert users that the upcoming release will include security fixes
 
 ### At T-3
-  - [ ] [:link:][step_asn_send]          **(Support)** Notify eligible customers with the text of the advisory (T-3)
+  - [ ] [:link:][step_asn_send]          **(Support)** Notify eligible customers by adding a ticket to the 3 Day queue in RT with the text of the advisory (T-3)
 
 ### At T-1
 
