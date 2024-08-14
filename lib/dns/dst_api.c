@@ -189,10 +189,10 @@ addsuffix(char *filename, int len, const char *dirname, const char *ofilename,
 
 static isc_mem_t *dst__mctx = NULL;
 
-void ISC_CONSTRUCTOR
-dst__lib_init(void);
-void ISC_DESTRUCTOR
-dst__lib_destroy(void);
+void
+dst__lib_init(void) ISC_CONSTRUCTOR;
+void
+dst__lib_destroy(void) ISC_DESTRUCTOR;
 
 void
 dst__lib_init(void) {
