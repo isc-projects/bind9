@@ -15,19 +15,21 @@
 
 /*! \file */
 
+#include <inttypes.h>
 #include <time.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>
 
-enum {
-	MS_PER_SEC = 1000,		 /*%< Milliseonds per second. */
-	US_PER_MS = 1000,		 /*%< Microseconds per millisecond. */
-	US_PER_SEC = 1000 * 1000,	 /*%< Microseconds per second. */
-	NS_PER_US = 1000,		 /*%< Nanoseconds per microsecond. */
-	NS_PER_MS = 1000 * 1000,	 /*%< Nanoseconds per millisecond. */
-	NS_PER_SEC = 1000 * 1000 * 1000, /*%< Nanoseconds per second. */
-};
+/*
+ * Define various time conversion constants.
+ */
+static const unsigned int MS_PER_SEC = 1000;
+static const unsigned int US_PER_MS = 1000;
+static const unsigned int NS_PER_US = 1000;
+static const unsigned int US_PER_SEC = 1000 * 1000;
+static const unsigned int NS_PER_MS = 1000 * 1000;
+static const unsigned int NS_PER_SEC = 1000 * 1000 * 1000;
 
 /*
  * ISC_FORMATHTTPTIMESTAMP_SIZE needs to be 30 in C locale and potentially

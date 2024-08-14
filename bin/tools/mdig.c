@@ -2176,9 +2176,9 @@ main(int argc, char *argv[]) {
 			now = isc_time_now();
 			if (isc_time_seconds(&start) == isc_time_seconds(&now))
 			{
-				int us = US_PER_SEC -
-					 (isc_time_nanoseconds(&now) /
-					  NS_PER_US);
+				unsigned int us = US_PER_SEC -
+						  (isc_time_nanoseconds(&now) /
+						   NS_PER_US);
 				if (us > US_PER_MS) {
 					usleep(us - US_PER_MS);
 				}
