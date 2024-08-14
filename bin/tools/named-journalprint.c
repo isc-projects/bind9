@@ -22,7 +22,6 @@
 #include <isc/util.h>
 
 #include <dns/journal.h>
-#include <dns/log.h>
 #include <dns/types.h>
 
 const char *progname = NULL;
@@ -41,8 +40,6 @@ setup_logging(FILE *errout) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
-	dns_log_init();
-
 	logconfig = isc_logconfig_get();
 	destination.file.stream = errout;
 	destination.file.name = NULL;
@@ -51,8 +48,9 @@ setup_logging(FILE *errout) {
 	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination, 0);
 
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
+					 ISC_LOGCATEGORY_ALL,
+					 ISC_LOGMODULE_ALL) == ISC_R_SUCCESS);
 }
 
 int

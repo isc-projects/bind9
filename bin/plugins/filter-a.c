@@ -32,7 +32,6 @@
 #include <dns/acl.h>
 #include <dns/db.h>
 #include <dns/enumtype.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rdataset.h>
 #include <dns/types.h>
@@ -44,7 +43,6 @@
 
 #include <ns/client.h>
 #include <ns/hooks.h>
-#include <ns/log.h>
 #include <ns/query.h>
 #include <ns/types.h>
 

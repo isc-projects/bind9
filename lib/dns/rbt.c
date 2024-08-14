@@ -16,28 +16,22 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
-/*%
- * This define is so dns/name.h (included by dns/fixedname.h) uses more
- * efficient macro calls instead of functions for a few operations.
- */
-#include <unistd.h>
-
-#include <isc/result.h>
-
 #include <dns/db.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/rbt.h>
 
 #define CHECK(x)                             \

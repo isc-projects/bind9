@@ -15,6 +15,7 @@
 
 #include <stdbool.h>
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/util.h>
@@ -22,7 +23,6 @@
 #include <dns/acl.h>
 
 #include <ns/listenlist.h>
-#include <ns/log.h>
 
 static void
 destroy(ns_listenlist_t *list);

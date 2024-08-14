@@ -58,7 +58,6 @@
 
 #include <ns/client.h>
 #include <ns/interfacemgr.h>
-#include <ns/log.h>
 #include <ns/notify.h>
 #include <ns/server.h>
 #include <ns/stats.h>
@@ -2749,9 +2748,8 @@ ns_client_name(ns_client_t *client, char *peerbuf, size_t len) {
 }
 
 void
-ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *fmt,
-	       va_list ap) {
+ns_client_logv(ns_client_t *client, isc_logcategory_t category,
+	       isc_logmodule_t module, int level, const char *fmt, va_list ap) {
 	char msgbuf[4096];
 	char signerbuf[DNS_NAME_FORMATSIZE], qnamebuf[DNS_NAME_FORMATSIZE];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -2799,8 +2797,8 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 }
 
 void
-ns_client_log(ns_client_t *client, isc_logcategory_t *category,
-	      isc_logmodule_t *module, int level, const char *fmt, ...) {
+ns_client_log(ns_client_t *client, isc_logcategory_t category,
+	      isc_logmodule_t module, int level, const char *fmt, ...) {
 	va_list ap;
 
 	if (!isc_log_wouldlog(level)) {

@@ -963,7 +963,8 @@ main(int argc, char **argv) {
 			      ISC_LOG_INFO, &logdest,
 			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
 	DO("enabling log channel",
-	   isc_log_usechannel(logconfig, "stderr", NULL, NULL));
+	   isc_log_usechannel(logconfig, "stderr", ISC_LOGCATEGORY_ALL,
+			      ISC_LOGMODULE_ALL));
 
 	parse_config(rndc_mctx, keyname, &pctx, &config);
 

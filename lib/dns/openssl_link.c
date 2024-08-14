@@ -27,6 +27,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
@@ -35,8 +36,6 @@
 #include <isc/thread.h>
 #include <isc/tls.h>
 #include <isc/util.h>
-
-#include <dns/log.h>
 
 #include "dst_internal.h"
 #include "dst_openssl.h"

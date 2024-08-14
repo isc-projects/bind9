@@ -22,6 +22,7 @@
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/result.h>
@@ -34,10 +35,7 @@
 #include <dns/callbacks.h>
 #include <dns/clientinfo.h>
 #include <dns/db.h>
-#include <dns/dbiterator.h>
-#include <dns/log.h>
 #include <dns/master.h>
-#include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 

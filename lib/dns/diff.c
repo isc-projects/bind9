@@ -19,6 +19,7 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -27,7 +28,6 @@
 #include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/diff.h>
-#include <dns/log.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>

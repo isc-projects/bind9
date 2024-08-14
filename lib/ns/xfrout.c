@@ -15,6 +15,7 @@
 #include <stdbool.h>
 
 #include <isc/formatcheck.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/result.h>
@@ -41,7 +42,6 @@
 #include <dns/zt.h>
 
 #include <ns/client.h>
-#include <ns/log.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 #include <ns/xfrout.h>

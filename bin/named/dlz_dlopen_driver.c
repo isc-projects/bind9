@@ -17,13 +17,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 
 #include <dns/dlz_dlopen.h>
-#include <dns/log.h>
 
 #include <dlz/dlz_dlopen_driver.h>
 #include <named/globals.h>

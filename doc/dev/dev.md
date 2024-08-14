@@ -1076,7 +1076,7 @@ the following steps need to be taken to initialize it.
    the DNS library, include the following:
 
         #include <isc/log.h>
-        #include <dns/log.h>
+        log.h>/log.h>
 
 1. Initialize a logging context.  A logging context needs a valid
    memory context in order to work, so the following code snippet shows a

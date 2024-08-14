@@ -405,13 +405,13 @@ ns_client_checkacl(ns_client_t *client, isc_sockaddr_t *sockaddr,
  */
 
 void
-ns_client_log(ns_client_t *client, isc_logcategory_t *category,
-	      isc_logmodule_t *module, int level, const char *fmt, ...)
+ns_client_log(ns_client_t *client, isc_logcategory_t category,
+	      isc_logmodule_t module, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(5, 6);
 
 void
-ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *fmt, va_list ap)
+ns_client_logv(ns_client_t *client, isc_logcategory_t category,
+	       isc_logmodule_t module, int level, const char *fmt, va_list ap)
 	ISC_FORMAT_PRINTF(5, 0);
 
 void

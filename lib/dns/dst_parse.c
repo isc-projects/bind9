@@ -36,12 +36,12 @@
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/lex.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/log.h>
 #include <dns/time.h>
 
 #include "dst_internal.h"

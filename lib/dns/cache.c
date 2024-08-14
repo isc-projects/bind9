@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>
@@ -29,7 +30,6 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>

@@ -22,6 +22,7 @@
 #include <isc/async.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -39,7 +40,6 @@
 
 #include <dns/acl.h>
 #include <dns/dispatch.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/stats.h>
 #include <dns/transport.h>

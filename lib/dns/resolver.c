@@ -50,7 +50,6 @@
 #include <dns/edns.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/nametree.h>
@@ -226,8 +225,10 @@
 #define NS_PROCESSING_LIMIT 20
 
 STATIC_ASSERT(NS_PROCESSING_LIMIT > NS_RR_LIMIT,
-	      "The maximum number of NS RRs processed for each delegation "
-	      "(NS_PROCESSING_LIMIT) must be larger than the large delegation "
+	      "The maximum number of NS RRs processed for each "
+	      "delegation "
+	      "(NS_PROCESSING_LIMIT) must be larger than the large "
+	      "delegation "
 	      "threshold (NS_RR_LIMIT).");
 
 /* Hash table for zone counters */
@@ -10611,8 +10612,8 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 }
 
 void
-dns_resolver_logfetch(dns_fetch_t *fetch, isc_logcategory_t *category,
-		      isc_logmodule_t *module, int level, bool duplicateok) {
+dns_resolver_logfetch(dns_fetch_t *fetch, isc_logcategory_t category,
+		      isc_logmodule_t module, int level, bool duplicateok) {
 	fetchctx_t *fctx = NULL;
 
 	REQUIRE(DNS_FETCH_VALID(fetch));

@@ -20,6 +20,7 @@
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -30,7 +31,6 @@
 #include <dns/kasp.h>
 #include <dns/keymgr.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 
 #include <dst/dst.h>
 

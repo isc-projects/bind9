@@ -86,7 +86,7 @@ struct isc_logchannel {
 typedef struct isc_logchannellist isc_logchannellist_t;
 
 struct isc_logchannellist {
-	const isc_logmodule_t *module;
+	isc_logmodule_t module;
 	isc_logchannel_t *channel;
 	ISC_LINK(isc_logchannellist_t) link;
 };
@@ -114,8 +114,7 @@ struct isc_logconfig {
 	unsigned int magic;
 	isc_log_t *lctx;
 	ISC_LIST(isc_logchannel_t) channels;
-	ISC_LIST(isc_logchannellist_t) * channellists;
-	unsigned int channellist_count;
+	ISC_LIST(isc_logchannellist_t) channellists[ISC_LOGCATEGORY_MAX];
 	int_fast32_t highest_level;
 	char *tag;
 	bool dynamic;
@@ -134,10 +133,6 @@ struct isc_log {
 	/* Not locked. */
 	unsigned int magic;
 	isc_mem_t *mctx;
-	isc_logcategory_t *categories;
-	unsigned int category_count;
-	isc_logmodule_t *modules;
-	unsigned int module_count;
 	atomic_int_fast32_t debug_level;
 	/* RCU-protected pointer */
 	isc_logconfig_t *logconfig;
@@ -169,20 +164,113 @@ static const int syslog_map[] = { LOG_DEBUG,   LOG_INFO, LOG_NOTICE,
  * be overridden.  Since the default is always looked up as the first
  * channellist in the log context, it must come first in isc_categories[].
  */
-isc_logcategory_t isc_categories[] = { { "default", 0 }, /* "default
-							    must come
-							    first. */
-				       { "general", 0 },
-				       { "sslkeylog", 0 },
-				       { NULL, 0 } };
+static const char *categories_description[] = {
+	/* libisc categories */
+	[ISC_LOGCATEGORY_DEFAULT] = "default",
+	[ISC_LOGCATEGORY_GENERAL] = "general",
+	[ISC_LOGCATEGORY_SSLKEYLOG] = "sslkeylog",
+	/* dns categories */
+	[DNS_LOGCATEGORY_NOTIFY] = "notify",
+	[DNS_LOGCATEGORY_DATABASE] = "database",
+	[DNS_LOGCATEGORY_SECURITY] = "security",
+	[DNS_LOGCATEGORY_DNSSEC] = "dnssec",
+	[DNS_LOGCATEGORY_RESOLVER] = "resolver",
+	[DNS_LOGCATEGORY_XFER_IN] = "xfer-in",
+	[DNS_LOGCATEGORY_XFER_OUT] = "xfer-out",
+	[DNS_LOGCATEGORY_DISPATCH] = "dispatch",
+	[DNS_LOGCATEGORY_LAME_SERVERS] = "lame-servers",
+	[DNS_LOGCATEGORY_EDNS_DISABLED] = "edns-disabled",
+	[DNS_LOGCATEGORY_RPZ] = "rpz",
+	[DNS_LOGCATEGORY_RRL] = "rate-limit",
+	[DNS_LOGCATEGORY_CNAME] = "cname",
+	[DNS_LOGCATEGORY_SPILL] = "spill",
+	[DNS_LOGCATEGORY_DNSTAP] = "dnstap",
+	[DNS_LOGCATEGORY_ZONELOAD] = "zoneload",
+	[DNS_LOGCATEGORY_NSID] = "nsid",
+	[DNS_LOGCATEGORY_RPZ_PASSTHRU] = "rpz-passthru",
+	/* ns categories */
+	[NS_LOGCATEGORY_CLIENT] = "client",
+	[NS_LOGCATEGORY_NETWORK] = "network",
+	[NS_LOGCATEGORY_UPDATE] = "update",
+	[NS_LOGCATEGORY_QUERIES] = "queries",
+	[NS_LOGCATEGORY_UPDATE_SECURITY] = "update-security",
+	[NS_LOGCATEGORY_QUERY_ERRORS] = "query-errors",
+	[NS_LOGCATEGORY_TAT] = "trust-anchor-telemetry",
+	[NS_LOGCATEGORY_SERVE_STALE] = "serve-stale",
+	/* cfg categories */
+	[CFG_LOGCATEGORY_CONFIG] = "config",
+	/* named categories */
+	[NAMED_LOGCATEGORY_UNMATCHED] = "unmatched",
+	/* delv categories */
+	[DELV_LOGCATEGORY_DEFAULT] = "delv",
+};
 
 /*!
  * See above comment for categories, and apply it to modules.
  */
-isc_logmodule_t isc_modules[] = { { "socket", 0 },    { "time", 0 },
-				  { "interface", 0 }, { "timer", 0 },
-				  { "file", 0 },      { "netmgr", 0 },
-				  { "other", 0 },     { NULL, 0 } };
+static const char *modules_description[] = {
+	/* isc modules */
+	[ISC_LOGMODULE_NONE] = "no_module",
+	[ISC_LOGMODULE_SOCKET] = "socket",
+	[ISC_LOGMODULE_TIME] = "time",
+	[ISC_LOGMODULE_INTERFACE] = "interface",
+	[ISC_LOGMODULE_TIMER] = "timer",
+	[ISC_LOGMODULE_FILE] = "file",
+	[ISC_LOGMODULE_NETMGR] = "netmgr",
+	[ISC_LOGMODULE_OTHER] = "other",
+	/* dns modules */
+	[DNS_LOGMODULE_DB] = "dns/db",
+	[DNS_LOGMODULE_RBTDB] = "dns/rbtdb",
+	[DNS_LOGMODULE_RBT] = "dns/rbt",
+	[DNS_LOGMODULE_RDATA] = "dns/rdata",
+	[DNS_LOGMODULE_MASTER] = "dns/master",
+	[DNS_LOGMODULE_MESSAGE] = "dns/message",
+	[DNS_LOGMODULE_CACHE] = "dns/cache",
+	[DNS_LOGMODULE_CONFIG] = "dns/config",
+	[DNS_LOGMODULE_RESOLVER] = "dns/resolver",
+	[DNS_LOGMODULE_ZONE] = "dns/zone",
+	[DNS_LOGMODULE_JOURNAL] = "dns/journal",
+	[DNS_LOGMODULE_ADB] = "dns/adb",
+	[DNS_LOGMODULE_XFER_IN] = "dns/xfrin",
+	[DNS_LOGMODULE_XFER_OUT] = "dns/xfrout",
+	[DNS_LOGMODULE_ACL] = "dns/acl",
+	[DNS_LOGMODULE_VALIDATOR] = "dns/validator",
+	[DNS_LOGMODULE_DISPATCH] = "dns/dispatch",
+	[DNS_LOGMODULE_REQUEST] = "dns/request",
+	[DNS_LOGMODULE_MASTERDUMP] = "dns/masterdump",
+	[DNS_LOGMODULE_TSIG] = "dns/tsig",
+	[DNS_LOGMODULE_TKEY] = "dns/tkey",
+	[DNS_LOGMODULE_SDB] = "dns/sdb",
+	[DNS_LOGMODULE_DIFF] = "dns/diff",
+	[DNS_LOGMODULE_HINTS] = "dns/hints",
+	[DNS_LOGMODULE_UNUSED1] = "dns/unused1",
+	[DNS_LOGMODULE_DLZ] = "dns/dlz",
+	[DNS_LOGMODULE_DNSSEC] = "dns/dnssec",
+	[DNS_LOGMODULE_CRYPTO] = "dns/crypto",
+	[DNS_LOGMODULE_PACKETS] = "dns/packets",
+	[DNS_LOGMODULE_NTA] = "dns/nta",
+	[DNS_LOGMODULE_DYNDB] = "dns/dyndb",
+	[DNS_LOGMODULE_DNSTAP] = "dns/dnstap",
+	[DNS_LOGMODULE_SSU] = "dns/ssu",
+	[DNS_LOGMODULE_QP] = "dns/qp",
+	/* ns modules */
+	[NS_LOGMODULE_CLIENT] = "ns/client",
+	[NS_LOGMODULE_QUERY] = "ns/query",
+	[NS_LOGMODULE_INTERFACEMGR] = "ns/interfacemgr",
+	[NS_LOGMODULE_UPDATE] = "ns/update",
+	[NS_LOGMODULE_XFER_IN] = "ns/xfer-in",
+	[NS_LOGMODULE_XFER_OUT] = "ns/xfer-out",
+	[NS_LOGMODULE_NOTIFY] = "ns/notify",
+	[NS_LOGMODULE_HOOKS] = "ns/hooks",
+	/* cfg modules */
+	[CFG_LOGMODULE_PARSER] = "isccfg/parser",
+	/* named modules */
+	[NAMED_LOGMODULE_MAIN] = "main",
+	[NAMED_LOGMODULE_SERVER] = "server",
+	[NAMED_LOGMODULE_CONTROL] = "control",
+	/* delv modules */
+	[DELV_LOGMODULE_DEFAULT] = "delv",
+};
 
 /*!
  * This essentially constant structure must be filled in at run time,
@@ -200,11 +288,8 @@ static isc_log_t *isc__lctx = NULL;
  * Forward declarations.
  */
 static void
-assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
-	      const isc_logmodule_t *module, isc_logchannel_t *channel);
-
-static void
-sync_channellist(isc_logconfig_t *lcfg);
+assignchannel(isc_logconfig_t *lcfg, const isc_logcategory_t category,
+	      const isc_logmodule_t module, isc_logchannel_t *channel);
 
 static void
 sync_highest_level(isc_logconfig_t *lcfg);
@@ -213,7 +298,7 @@ static isc_result_t
 greatest_version(isc_logfile_t *file, int versions, int *greatest);
 
 static void
-isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 	     const char *format, va_list args) ISC_FORMAT_PRINTF(4, 0);
 
 /*@{*/
@@ -239,7 +324,6 @@ isc_logconfig_create(isc_logconfig_t **lcfgp) {
 	REQUIRE(lcfgp != NULL && *lcfgp == NULL);
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 
-	isc_logdestination_t destination;
 	int level = ISC_LOG_INFO;
 
 	isc_logconfig_t *lcfg = isc_mem_get(isc__lctx->mctx, sizeof(*lcfg));
@@ -255,17 +339,11 @@ isc_logconfig_create(isc_logconfig_t **lcfgp) {
 	 * Create the default channels:
 	 *      default_syslog, default_stderr, default_debug and null.
 	 */
-	destination.facility = LOG_DAEMON;
 	isc_log_createchannel(lcfg, "default_syslog", ISC_LOG_TOSYSLOG, level,
-			      &destination, 0);
+			      ISC_LOGDESTINATION_SYSLOG(LOG_DAEMON), 0);
 
-	destination.file = (isc_logfile_t){
-		.stream = stderr,
-		.versions = ISC_LOG_ROLLNEVER,
-		.suffix = isc_log_rollsuffix_increment,
-	};
 	isc_log_createchannel(lcfg, "default_stderr", ISC_LOG_TOFILEDESC, level,
-			      &destination, ISC_LOG_PRINTTIME);
+			      ISC_LOGDESTINATION_STDERR, ISC_LOG_PRINTTIME);
 
 	/*
 	 * Set the default category's channel to default_stderr,
@@ -274,13 +352,9 @@ isc_logconfig_create(isc_logconfig_t **lcfgp) {
 	 */
 	default_channel.channel = ISC_LIST_HEAD(lcfg->channels);
 
-	destination.file = (isc_logfile_t){
-		.stream = stderr,
-		.versions = ISC_LOG_ROLLNEVER,
-		.suffix = isc_log_rollsuffix_increment,
-	};
 	isc_log_createchannel(lcfg, "default_debug", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, ISC_LOG_PRINTTIME);
+			      ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR,
+			      ISC_LOG_PRINTTIME);
 
 	isc_log_createchannel(lcfg, "null", ISC_LOG_TONULL, ISC_LOG_DYNAMIC,
 			      NULL, 0);
@@ -301,13 +375,6 @@ isc_logconfig_set(isc_logconfig_t *lcfg) {
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(lcfg->lctx == isc__lctx);
 
-	/*
-	 * Ensure that lcfg->channellist_count == lctx->category_count.
-	 * They won't be equal if isc_log_usechannel has not been called
-	 * since any call to isc_log_registercategories.
-	 */
-	sync_channellist(lcfg);
-
 	isc_logconfig_t *old_cfg = rcu_xchg_pointer(&isc__lctx->logconfig,
 						    lcfg);
 	sync_highest_level(lcfg);
@@ -324,7 +391,6 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	isc_mem_t *mctx;
 	isc_logchannel_t *channel;
 	char *filename;
-	unsigned int i;
 
 	REQUIRE(lcfgp != NULL && VALID_CONFIG(*lcfgp));
 
@@ -365,17 +431,13 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 		isc_mem_put(mctx, channel, sizeof(*channel));
 	}
 
-	for (i = 0; i < lcfg->channellist_count; i++) {
-		isc_logchannellist_t *item;
-		while ((item = ISC_LIST_HEAD(lcfg->channellists[i])) != NULL) {
+	for (size_t i = 0; i < ARRAY_SIZE(lcfg->channellists); i++) {
+		isc_logchannellist_t *item = NULL, *next = NULL;
+		ISC_LIST_FOREACH_SAFE (lcfg->channellists[i], item, link, next)
+		{
 			ISC_LIST_UNLINK(lcfg->channellists[i], item, link);
 			isc_mem_put(mctx, item, sizeof(*item));
 		}
-	}
-
-	if (lcfg->channellist_count > 0) {
-		isc_mem_cput(mctx, lcfg->channellists, lcfg->channellist_count,
-			     sizeof(ISC_LIST(isc_logchannellist_t)));
 	}
 
 	lcfg->dynamic = false;
@@ -389,144 +451,20 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	isc_mem_put(mctx, lcfg, sizeof(*lcfg));
 }
 
-void
-isc_log_registercategories(isc_logcategory_t categories[]) {
-	REQUIRE(VALID_CONTEXT(isc__lctx));
-	REQUIRE(categories != NULL && categories[0].name != NULL);
-
-	/*
-	 * XXXDCL This somewhat sleazy situation of using the last pointer
-	 * in one category array to point to the next array exists because
-	 * this registration function returns void and I didn't want to have
-	 * change everything that used it by making it return an isc_result_t.
-	 * It would need to do that if it had to allocate memory to store
-	 * pointers to each array passed in.
-	 */
-	if (isc__lctx->categories == NULL) {
-		isc__lctx->categories = categories;
-	} else {
-		/*
-		 * Adjust the last (NULL) pointer of the already registered
-		 * categories to point to the incoming array.
-		 */
-		isc_logcategory_t *catp = NULL;
-		for (catp = isc__lctx->categories; catp->name != NULL;) {
-			if (catp->id == UINT_MAX) {
-				/*
-				 * The name pointer points to the next array.
-				 * Ick.
-				 */
-				catp = UNCONST(catp->name);
-			} else {
-				catp++;
-			}
-		}
-
-		catp->name = (void *)categories;
-		catp->id = UINT_MAX;
-	}
-
-	/*
-	 * Update the id number of the category with its new global id.
-	 */
-	for (isc_logcategory_t *catp = categories; catp->name != NULL; catp++) {
-		catp->id = isc__lctx->category_count++;
-	}
-}
-
-isc_logcategory_t *
+isc_logcategory_t
 isc_log_categorybyname(const char *name) {
-	isc_logcategory_t *catp;
-
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 	REQUIRE(name != NULL);
 
-	for (catp = isc__lctx->categories; catp->name != NULL;) {
-		if (catp->id == UINT_MAX) {
-			/*
-			 * catp is neither modified nor returned to the
-			 * caller, so removing its const qualifier is ok.
-			 */
-			catp = UNCONST(catp->name);
-		} else {
-			if (strcmp(catp->name, name) == 0) {
-				return (catp);
-			}
-			catp++;
+	for (isc_logcategory_t category = 0; category < ISC_LOGCATEGORY_MAX;
+	     category++)
+	{
+		if (strcmp(categories_description[category], name) == 0) {
+			return (category);
 		}
 	}
 
-	return (NULL);
-}
-
-void
-isc_log_registermodules(isc_logmodule_t modules[]) {
-	REQUIRE(VALID_CONTEXT(isc__lctx));
-	REQUIRE(modules != NULL && modules[0].name != NULL);
-
-	/*
-	 * XXXDCL This somewhat sleazy situation of using the last pointer
-	 * in one category array to point to the next array exists because
-	 * this registration function returns void and I didn't want to have
-	 * change everything that used it by making it return an isc_result_t.
-	 * It would need to do that if it had to allocate memory to store
-	 * pointers to each array passed in.
-	 */
-	if (isc__lctx->modules == NULL) {
-		isc__lctx->modules = modules;
-	} else {
-		/*
-		 * Adjust the last (NULL) pointer of the already registered
-		 * modules to point to the incoming array.
-		 */
-		isc_logmodule_t *modp = NULL;
-		for (modp = isc__lctx->modules; modp->name != NULL;) {
-			if (modp->id == UINT_MAX) {
-				/*
-				 * The name pointer points to the next array.
-				 * Ick.
-				 */
-				modp = UNCONST(modp->name);
-			} else {
-				modp++;
-			}
-		}
-
-		modp->name = (void *)modules;
-		modp->id = UINT_MAX;
-	}
-
-	/*
-	 * Update the id number of the module with its new global id.
-	 */
-	for (isc_logmodule_t *modp = modules; modp->name != NULL; modp++) {
-		modp->id = isc__lctx->module_count++;
-	}
-}
-
-isc_logmodule_t *
-isc_log_modulebyname(const char *name) {
-	isc_logmodule_t *modp;
-
-	REQUIRE(VALID_CONTEXT(isc__lctx));
-	REQUIRE(name != NULL);
-
-	for (modp = isc__lctx->modules; modp->name != NULL;) {
-		if (modp->id == UINT_MAX) {
-			/*
-			 * modp is neither modified nor returned to the
-			 * caller, so removing its const qualifier is ok.
-			 */
-			modp = UNCONST(modp->name);
-		} else {
-			if (strcmp(modp->name, name) == 0) {
-				return (modp);
-			}
-			modp++;
-		}
-	}
-
-	return (NULL);
+	return (ISC_LOGCATEGORY_INVALID);
 }
 
 void
@@ -610,15 +548,14 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 
 isc_result_t
 isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
-		   const isc_logcategory_t *category,
-		   const isc_logmodule_t *module) {
+		   const isc_logcategory_t category,
+		   const isc_logmodule_t module) {
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(name != NULL);
-
-	isc_log_t *lctx = lcfg->lctx;
-
-	REQUIRE(category == NULL || category->id < lctx->category_count);
-	REQUIRE(module == NULL || module->id < lctx->module_count);
+	REQUIRE(category == ISC_LOGCATEGORY_ALL ||
+		(category >= 0 && category < ISC_LOGCATEGORY_MAX));
+	REQUIRE(module == ISC_LOGMODULE_ALL ||
+		(module >= 0 && module < ISC_LOGMODULE_MAX));
 
 	isc_logchannel_t *channel;
 	for (channel = ISC_LIST_HEAD(lcfg->channels); channel != NULL;
@@ -633,14 +570,14 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		return (ISC_R_NOTFOUND);
 	}
 
-	if (category != NULL) {
-		assignchannel(lcfg, category->id, module, channel);
+	if (category != ISC_LOGCATEGORY_ALL) {
+		assignchannel(lcfg, category, module, channel);
 	} else {
 		/*
 		 * Assign to all categories.  Note that this includes
 		 * the default channel.
 		 */
-		for (size_t i = 0; i < lctx->category_count; i++) {
+		for (size_t i = 0; i < ISC_LOGCATEGORY_MAX; i++) {
 			assignchannel(lcfg, i, module, channel);
 		}
 	}
@@ -658,7 +595,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 }
 
 void
-isc_log_write(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+isc_log_write(isc_logcategory_t category, isc_logmodule_t module, int level,
 	      const char *format, ...) {
 	va_list args;
 
@@ -672,7 +609,7 @@ isc_log_write(isc_logcategory_t *category, isc_logmodule_t *module, int level,
 }
 
 void
-isc_log_vwrite(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+isc_log_vwrite(isc_logcategory_t category, isc_logmodule_t module, int level,
 	       const char *format, va_list args) {
 	/*
 	 * Contract checking is done in isc_log_doit().
@@ -777,28 +714,24 @@ isc_log_closefilelogs(void) {
 ****/
 
 static void
-assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
-	      const isc_logmodule_t *module, isc_logchannel_t *channel) {
+assignchannel(isc_logconfig_t *lcfg, const isc_logcategory_t category,
+	      const isc_logmodule_t module, isc_logchannel_t *channel) {
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(channel != NULL);
 
 	isc_log_t *lctx = lcfg->lctx;
 
-	REQUIRE(category_id < lctx->category_count);
-	REQUIRE(module == NULL || module->id < lctx->module_count);
-
-	/*
-	 * Ensure lcfg->channellist_count == lctx->category_count.
-	 */
-	sync_channellist(lcfg);
+	REQUIRE(category > ISC_LOGCATEGORY_INVALID &&
+		category < ISC_LOGCATEGORY_MAX);
+	REQUIRE(module == ISC_LOGMODULE_ALL ||
+		(module > ISC_LOGMODULE_INVALID && module < ISC_LOGMODULE_MAX));
 
 	isc_logchannellist_t *new_item = isc_mem_get(lctx->mctx,
 						     sizeof(*new_item));
 
 	new_item->channel = channel;
 	new_item->module = module;
-	ISC_LIST_INITANDPREPEND(lcfg->channellists[category_id], new_item,
-				link);
+	ISC_LIST_INITANDPREPEND(lcfg->channellists[category], new_item, link);
 
 	/*
 	 * Remember the highest logging level set by any channel in the
@@ -813,29 +746,6 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 			lcfg->dynamic = true;
 		}
 	}
-}
-
-/*
- * This would ideally be part of isc_log_registercategories(), except then
- * that function would have to return isc_result_t instead of void.
- */
-static void
-sync_channellist(isc_logconfig_t *lcfg) {
-	REQUIRE(VALID_CONFIG(lcfg));
-
-	isc_log_t *lctx = lcfg->lctx;
-
-	REQUIRE(lctx->category_count != 0);
-
-	if (lctx->category_count == lcfg->channellist_count) {
-		return;
-	}
-
-	lcfg->channellists = isc_mem_creget(
-		lctx->mctx, lcfg->channellists, lcfg->channellist_count,
-		lctx->category_count, sizeof(ISC_LIST(isc_logchannellist_t)));
-
-	lcfg->channellist_count = lctx->category_count;
 }
 
 static void
@@ -1329,7 +1239,7 @@ isc_log_wouldlog(int level) {
 }
 
 static void
-isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 	     const char *format, va_list args) {
 	int syslog_level;
 	const char *time_string;
@@ -1347,22 +1257,10 @@ isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
 	isc_result_t result;
 
 	REQUIRE(isc__lctx == NULL || VALID_CONTEXT(isc__lctx));
-	REQUIRE(category != NULL);
-	REQUIRE(module != NULL);
+	REQUIRE(category >= 0 && category < ISC_LOGCATEGORY_MAX);
+	REQUIRE(module >= 0 && module < ISC_LOGMODULE_MAX);
 	REQUIRE(level != ISC_LOG_DYNAMIC);
 	REQUIRE(format != NULL);
-
-	/*
-	 * Programs can use libraries that use this logging code without
-	 * wanting to do any logging, thus the log context is allowed to
-	 * be non-existent.
-	 */
-	if (isc__lctx == NULL) {
-		return;
-	}
-
-	REQUIRE(category->id < isc__lctx->category_count);
-	REQUIRE(module->id < isc__lctx->module_count);
 
 	if (!isc_log_wouldlog(level)) {
 		return;
@@ -1382,12 +1280,8 @@ isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
 		goto unlock;
 	}
 
-	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
+	category_channels = ISC_LIST_HEAD(lcfg->channellists[category]);
 
-	/*
-	 * XXXDCL add duplicate filtering? (To not write multiple times
-	 * to the same source via various channels).
-	 */
 	do {
 		/*
 		 * If the channel list end was reached and a match was
@@ -1417,7 +1311,7 @@ isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
 			category_channels = &default_channel;
 		}
 
-		if (category_channels->module != NULL &&
+		if (category_channels->module != ISC_LOGMODULE_ALL &&
 		    category_channels->module != module)
 		{
 			category_channels = ISC_LIST_NEXT(category_channels,
@@ -1572,11 +1466,10 @@ isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
 				printtime ? time_string : "",
 				printtime ? " " : "", printtag ? lcfg->tag : "",
 				printcolon ? ": " : "",
-				printcategory ? category->name : "",
+				printcategory ? categories_description[category]
+					      : "",
 				printcategory ? ": " : "",
-				printmodule ? (module != NULL ? module->name
-							      : "no_module")
-					    : "",
+				printmodule ? modules_description[module] : "",
 				printmodule ? ": " : "",
 				printlevel ? level_string : "",
 				isc__lctx->buffer);
@@ -1620,11 +1513,10 @@ isc_log_doit(isc_logcategory_t *category, isc_logmodule_t *module, int level,
 				printtime ? time_string : "",
 				printtime ? " " : "", printtag ? lcfg->tag : "",
 				printcolon ? ": " : "",
-				printcategory ? category->name : "",
+				printcategory ? categories_description[category]
+					      : "",
 				printcategory ? ": " : "",
-				printmodule ? (module != NULL ? module->name
-							      : "no_module")
-					    : "",
+				printmodule ? modules_description[module] : "",
 				printmodule ? ": " : "",
 				printlevel ? level_string : "",
 				isc__lctx->buffer);
@@ -1660,13 +1552,9 @@ isc__log_initialize(void) {
 
 	isc_mutex_init(&isc__lctx->lock);
 
-	isc_log_registercategories(isc_categories);
-	isc_log_registermodules(isc_modules);
-
 	/* Create default logging configuration */
 	isc_logconfig_t *lcfg = NULL;
 	isc_logconfig_create(&lcfg);
-	sync_channellist(lcfg);
 
 	atomic_init(&isc__lctx->highest_level, lcfg->highest_level);
 	atomic_init(&isc__lctx->dynamic, lcfg->dynamic);

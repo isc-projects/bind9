@@ -24,6 +24,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
@@ -33,7 +34,6 @@
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdatatype.h>
 #include <dns/ssu.h>

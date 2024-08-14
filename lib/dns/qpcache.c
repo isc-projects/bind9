@@ -25,6 +25,7 @@
 #include <isc/hashmap.h>
 #include <isc/heap.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -44,7 +45,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/nsec.h>
 #include <dns/qp.h>
@@ -159,8 +159,8 @@
 #define DNS_QPDB_EXPIRE_TTL_COUNT 10
 
 /*%
- * This is the structure that is used for each node in the qp trie of trees.
- * For now it is a copy of the dns_rbtnode structure.
+ * This is the structure that is used for each node in the qp trie of
+ * trees. For now it is a copy of the dns_rbtnode structure.
  */
 typedef struct qpcnode qpcnode_t;
 struct qpcnode {

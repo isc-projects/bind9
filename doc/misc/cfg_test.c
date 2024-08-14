@@ -17,11 +17,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <dns/log.h>
 
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
@@ -83,7 +82,8 @@ main(int argc, char **argv) {
 	isc_log_createchannel(lcfg, "_default", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination, ISC_LOG_PRINTTIME);
 
-	result = isc_log_usechannel(lcfg, "_default", NULL, NULL);
+	result = isc_log_usechannel(lcfg, "_default", ISC_LOGCATEGORY_ALL,
+				    ISC_LOGMODULE_ALL);
 	check_result(result, "isc_log_usechannel()");
 
 	/*

@@ -250,7 +250,7 @@ dst_ds_digest_supported(unsigned int digest_type) {
 }
 
 isc_result_t
-dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t *category,
+dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t category,
 		   bool useforsigning, int maxbits, dst_context_t **dctxp) {
 	dst_context_t *dctx;
 	isc_result_t result;

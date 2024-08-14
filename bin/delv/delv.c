@@ -52,7 +52,6 @@
 #include <dns/fixedname.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
@@ -70,7 +69,6 @@
 
 #include <dst/dst.h>
 
-#include <isccfg/log.h>
 #include <isccfg/namedconf.h>
 
 #include <ns/client.h>
@@ -286,12 +284,6 @@ warn(const char *format, ...) {
 	fprintf(stderr, "\n");
 }
 
-static isc_logcategory_t categories[] = { { "delv", 0 }, { NULL, 0 } };
-#define LOGCATEGORY_DEFAULT (&categories[0])
-#define LOGMODULE_DEFAULT   (&modules[0])
-
-static isc_logmodule_t modules[] = { { "delv", 0 }, { NULL, 0 } };
-
 static void
 delv_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
@@ -307,8 +299,8 @@ delv_log(int level, const char *fmt, ...) {
 	va_start(ap, fmt);
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
-	isc_log_write(LOGCATEGORY_DEFAULT, LOGMODULE_DEFAULT, level, "%s",
-		      msgbuf);
+	isc_log_write(DELV_LOGCATEGORY_DEFAULT, DELV_LOGMODULE_DEFAULT, level,
+		      "%s", msgbuf);
 	va_end(ap);
 }
 
@@ -317,20 +309,13 @@ static int loglevel = 0;
 static void
 setup_logging(FILE *errout) {
 	isc_result_t result;
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
 	int packetlevel = 10;
 
-	isc_log_registercategories(categories);
-	isc_log_registermodules(modules);
-	dns_log_init();
-	cfg_log_init();
-
-	logconfig = isc_logconfig_get();
-	destination.file.stream = errout;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_logdestination_t destination = {
+		.file.stream = errout,
+		.file.versions = ISC_LOG_ROLLNEVER,
+	};
 	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination,
 			      ISC_LOG_PRINTPREFIX);
@@ -339,7 +324,7 @@ setup_logging(FILE *errout) {
 	isc_log_settag(logconfig, ";; ");
 
 	result = isc_log_usechannel(logconfig, "stderr",
-				    ISC_LOGCATEGORY_DEFAULT, NULL);
+				    ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_ALL);
 	if (result != ISC_R_SUCCESS) {
 		fatal("Couldn't attach to log channel 'stderr'");
 	}

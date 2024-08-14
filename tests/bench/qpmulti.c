@@ -37,7 +37,6 @@
 #include <isc/util.h>
 #include <isc/uv.h>
 
-#include <dns/log.h>
 #include <dns/qp.h>
 #include <dns/types.h>
 
@@ -158,8 +157,6 @@ init_logging(void) {
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
-	dns_log_init();
-
 	logconfig = isc_logconfig_get();
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
@@ -174,7 +171,7 @@ init_logging(void) {
 #endif
 
 	result = isc_log_usechannel(logconfig, "stderr",
-				    ISC_LOGCATEGORY_DEFAULT, NULL);
+				    ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_ALL);
 	INSIST(result == ISC_R_SUCCESS);
 }
 

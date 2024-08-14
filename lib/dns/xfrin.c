@@ -18,6 +18,7 @@
 
 #include <isc/async.h>
 #include <isc/atomic.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/random.h>
 #include <isc/result.h>
@@ -31,7 +32,6 @@
 #include <dns/diff.h>
 #include <dns/dispatch.h>
 #include <dns/journal.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/peer.h>
 #include <dns/rdataclass.h>
@@ -64,9 +64,10 @@
 
 /*%
  * The states of the *XFR state machine.  We handle both IXFR and AXFR
- * with a single integrated state machine because they cannot be distinguished
- * immediately - an AXFR response to an IXFR request can only be detected
- * when the first two (2) response RRs have already been received.
+ * with a single integrated state machine because they cannot be
+ * distinguished immediately - an AXFR response to an IXFR request can
+ * only be detected when the first two (2) response RRs have already
+ * been received.
  */
 typedef enum {
 	XFRST_SOAQUERY,

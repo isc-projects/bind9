@@ -15,6 +15,7 @@
 #include <stdbool.h>
 
 #include <isc/async.h>
+#include <isc/log.h>
 #include <isc/netaddr.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
@@ -48,7 +49,6 @@
 
 #include <ns/client.h>
 #include <ns/interfacemgr.h>
-#include <ns/log.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 #include <ns/update.h>

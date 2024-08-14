@@ -36,7 +36,6 @@
 #include <dns/journal.h>
 #include <dns/kasp.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>

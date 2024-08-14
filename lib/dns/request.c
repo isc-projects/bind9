@@ -17,6 +17,7 @@
 #include <stdbool.h>
 
 #include <isc/async.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -29,7 +30,6 @@
 #include <dns/acl.h>
 #include <dns/compress.h>
 #include <dns/dispatch.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>

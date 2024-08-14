@@ -22,7 +22,6 @@
 #include <dns/zone.h>
 #include <dns/zt.h>
 
-#include <ns/log.h>
 #include <ns/notify.h>
 #include <ns/types.h>
 

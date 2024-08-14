@@ -22,6 +22,7 @@
 #include <isc/hash.h>
 #include <isc/hashmap.h>
 #include <isc/list.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mutex.h>
 #include <isc/netaddr.h>
@@ -35,12 +36,9 @@
 
 #include <dns/adb.h>
 #include <dns/db.h>
-#include <dns/log.h>
 #include <dns/rdata.h>
-#include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/resolver.h>
 #include <dns/stats.h>
 #include <dns/transport.h>
 

@@ -29,9 +29,8 @@
 
 #include "log.h"
 
+#include <isc/log.h>
 #include <isc/util.h>
-
-#include <dns/log.h>
 
 void
 log_write(int level, const char *format, ...) {

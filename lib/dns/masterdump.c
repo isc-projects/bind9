@@ -21,6 +21,7 @@
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -36,13 +37,11 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/ncache.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
-#include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatatype.h>
 #include <dns/time.h>

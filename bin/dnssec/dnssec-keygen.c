@@ -39,6 +39,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/fips.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
@@ -49,7 +50,6 @@
 #include <dns/fixedname.h>
 #include <dns/kasp.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/secalg.h>

@@ -5888,7 +5888,8 @@ check_logging(const cfg_obj_t *config, isc_mem_t *mctx) {
 	{
 		category = cfg_listelt_value(element);
 		catname = cfg_obj_asstring(cfg_tuple_get(category, "name"));
-		if (isc_log_categorybyname(catname) == NULL) {
+		if (isc_log_categorybyname(catname) == ISC_LOGCATEGORY_INVALID)
+		{
 			cfg_obj_log(category, ISC_LOG_ERROR,
 				    "undefined category: '%s'", catname);
 			result = ISC_R_FAILURE;

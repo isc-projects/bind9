@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
+#include <isc/log.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -24,7 +25,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>

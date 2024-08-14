@@ -70,7 +70,6 @@
 #include <dns/dbiterator.h>
 #include <dns/dlz.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>

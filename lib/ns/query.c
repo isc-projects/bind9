@@ -21,6 +21,7 @@
 
 #include <isc/async.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/random.h>
@@ -67,7 +68,6 @@
 #include <ns/client.h>
 #include <ns/hooks.h>
 #include <ns/interfacemgr.h>
-#include <ns/log.h>
 #include <ns/server.h>
 #include <ns/sortlist.h>
 #include <ns/stats.h>
@@ -1195,9 +1195,9 @@ rpz_log_rewrite(ns_client_t *client, bool disabled, dns_rpz_policy_t policy,
 	dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 
 	/* It's possible to have a separate log channel for rpz passthru. */
-	isc_logcategory_t *log_cat = (policy == DNS_RPZ_POLICY_PASSTHRU)
-					     ? DNS_LOGCATEGORY_RPZ_PASSTHRU
-					     : DNS_LOGCATEGORY_RPZ;
+	isc_logcategory_t log_cat = (policy == DNS_RPZ_POLICY_PASSTHRU)
+					    ? DNS_LOGCATEGORY_RPZ_PASSTHRU
+					    : DNS_LOGCATEGORY_RPZ;
 
 	ns_client_log(client, log_cat, NS_LOGMODULE_QUERY, DNS_RPZ_INFO_LEVEL,
 		      "%srpz %s %s rewrite %s/%s/%s via %s%s%s%s",
@@ -6211,7 +6211,7 @@ fetch_callback(void *arg) {
 	ns_client_t *client = resp->arg;
 	dns_fetch_t *fetch = NULL;
 	bool fetch_canceled = false;
-	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
+	isc_logcategory_t logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
 	isc_result_t result;
 	int errorloglevel;
 	query_ctx_t qctx;

@@ -24,6 +24,7 @@
 
 #include <isc/buffer.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/nonce.h>
@@ -35,7 +36,6 @@
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>

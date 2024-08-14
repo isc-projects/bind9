@@ -18,6 +18,7 @@
 
 #include <isc/atomic.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -25,7 +26,6 @@
 #include <isc/tid.h>
 #include <isc/util.h>
 
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/qp.h>
 #include <dns/rdataclass.h>

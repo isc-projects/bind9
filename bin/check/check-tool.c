@@ -33,7 +33,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -42,10 +41,6 @@
 #include <dns/rdatatype.h>
 #include <dns/types.h>
 #include <dns/zone.h>
-
-#include <isccfg/log.h>
-
-#include <ns/log.h>
 
 #include "check-tool.h"
 
@@ -96,13 +91,6 @@ dns_zoneopt_t zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_CHECKMX |
 #endif /* if CHECK_SIBLING */
 			     DNS_ZONEOPT_CHECKSVCB | DNS_ZONEOPT_CHECKWILDCARD |
 			     DNS_ZONEOPT_WARNMXCNAME | DNS_ZONEOPT_WARNSRVCNAME;
-
-/*
- * This needs to match the list in bin/named/log.c.
- */
-static isc_logcategory_t categories[] = { { "", 0 },
-					  { "unmatched", 0 },
-					  { NULL, 0 } };
 
 static isc_symtab_t *symtab = NULL;
 static isc_mem_t *sym_mctx;
@@ -550,24 +538,17 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 
 isc_result_t
 setup_logging(FILE *errout) {
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
-
-	isc_log_registercategories(categories);
-	dns_log_init();
-	cfg_log_init();
-	ns_log_init();
-
-	logconfig = isc_logconfig_get();
-	destination.file.stream = errout;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_logdestination_t destination = {
+		.file.stream = errout,
+		.file.versions = ISC_LOG_ROLLNEVER,
+	};
 	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination, 0);
 
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
+					 ISC_LOGCATEGORY_ALL,
+					 ISC_LOGMODULE_ALL) == ISC_R_SUCCESS);
 
 	return (ISC_R_SUCCESS);
 }

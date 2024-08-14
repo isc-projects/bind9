@@ -161,7 +161,7 @@ named_main_earlywarning(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	if (named_g_categories != NULL) {
+	if (named_g_logging) {
 		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
 			       ISC_LOG_WARNING, format, args);
 	} else {
@@ -178,7 +178,7 @@ named_main_earlyfatal(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	if (named_g_categories != NULL) {
+	if (named_g_logging) {
 		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
 			       ISC_LOG_CRITICAL, format, args);
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
@@ -206,7 +206,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	 * Handle assertion failures.
 	 */
 
-	if (named_g_categories != NULL) {
+	if (named_g_logging) {
 		/*
 		 * Reset the assertion callback in case it is the log
 		 * routines causing the assertion.
@@ -244,7 +244,7 @@ library_fatal_error(const char *file, int line, const char *func,
 	 * Handle isc_error_fatal() calls from our libraries.
 	 */
 
-	if (named_g_categories != NULL) {
+	if (named_g_logging) {
 		/*
 		 * Reset the error callback in case it is the log
 		 * routines causing the assertion.
@@ -284,7 +284,7 @@ library_unexpected_error(const char *file, int line, const char *func,
 	 * Handle isc_error_unexpected() calls from our libraries.
 	 */
 
-	if (named_g_categories != NULL) {
+	if (named_g_logging) {
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
 			      ISC_LOG_ERROR,
 			      "%s:%d:%s(): unexpected error: ", file, line,

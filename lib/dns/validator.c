@@ -18,6 +18,7 @@
 #include <isc/base32.h>
 #include <isc/counter.h>
 #include <isc/job.h>
+#include <isc/log.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>
@@ -33,7 +34,6 @@
 #include <dns/ds.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
 #include <dns/nsec.h>
@@ -75,7 +75,8 @@ enum valattr {
 	VALATTR_COMPLETE = 1 << 3,	     /*%< Completion event sent. */
 	VALATTR_INSECURITY = 1 << 4,	     /*%< Attempting proveunsecure. */
 	VALATTR_MAXVALIDATIONS = 1 << 5,     /*%< Max validations quota */
-	VALATTR_MAXVALIDATIONFAILS = 1 << 6, /*%< Max validation fails quota */
+	VALATTR_MAXVALIDATIONFAILS = 1 << 6, /*%< Max validation fails
+						quota */
 
 	/*!
 	 * NSEC proofs to be looked for.
@@ -139,8 +140,8 @@ static isc_result_t
 proveunsecure(dns_validator_t *val, bool have_ds, bool resume);
 
 static void
-validator_logv(dns_validator_t *val, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *fmt, va_list ap)
+validator_logv(dns_validator_t *val, isc_logcategory_t category,
+	       isc_logmodule_t module, int level, const char *fmt, va_list ap)
 	ISC_FORMAT_PRINTF(5, 0);
 
 static void
@@ -3502,9 +3503,8 @@ dns_validator_shutdown(dns_validator_t *val) {
 }
 
 static void
-validator_logv(dns_validator_t *val, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *fmt,
-	       va_list ap) {
+validator_logv(dns_validator_t *val, isc_logcategory_t category,
+	       isc_logmodule_t module, int level, const char *fmt, va_list ap) {
 	char msgbuf[2048];
 	static const char spaces[] = "        *";
 	int depth = val->depth * 2;

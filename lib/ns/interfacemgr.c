@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/interfaceiter.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
@@ -29,7 +30,6 @@
 
 #include <ns/client.h>
 #include <ns/interfacemgr.h>
-#include <ns/log.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 

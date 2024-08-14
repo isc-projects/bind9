@@ -52,7 +52,6 @@
 #include <dns/dispatch.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
@@ -811,10 +810,9 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 
 	ddebug("setup_system()");
 
-	dns_log_init();
-
 	logconfig = isc_logconfig_get();
-	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
+	result = isc_log_usechannel(logconfig, "default_debug",
+				    ISC_LOGCATEGORY_ALL, ISC_LOGMODULE_ALL);
 	check_result(result, "isc_log_usechannel");
 
 	isc_log_setdebuglevel(logdebuglevel);

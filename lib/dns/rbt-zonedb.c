@@ -25,6 +25,7 @@
 #include <isc/hashmap.h>
 #include <isc/heap.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -44,7 +45,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>

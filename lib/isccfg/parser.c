@@ -67,7 +67,6 @@
 
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
-#include <isccfg/log.h>
 
 /* Shorthand */
 #define CAT CFG_LOGCATEGORY_CONFIG

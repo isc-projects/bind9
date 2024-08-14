@@ -24,7 +24,6 @@
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
-#include <isccfg/log.h>
 
 #include <named/log.h>
 #include <named/logconf.h>
@@ -44,14 +43,14 @@ static isc_result_t
 category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 	isc_result_t result;
 	const char *catname;
-	isc_logcategory_t *category;
-	isc_logmodule_t *module;
+	isc_logcategory_t category;
+	isc_logmodule_t module;
 	const cfg_obj_t *destinations = NULL;
 	const cfg_listelt_t *element = NULL;
 
 	catname = cfg_obj_asstring(cfg_tuple_get(ccat, "name"));
 	category = isc_log_categorybyname(catname);
-	if (category == NULL) {
+	if (category == ISC_LOGCATEGORY_INVALID) {
 		cfg_obj_log(ccat, ISC_LOG_ERROR,
 			    "unknown logging category '%s' ignored", catname);
 		/*
@@ -64,7 +63,7 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 		return (ISC_R_SUCCESS);
 	}
 
-	module = NULL;
+	module = ISC_LOGMODULE_ALL;
 
 	destinations = cfg_tuple_get(ccat, "destinations");
 	for (element = cfg_list_first(destinations); element != NULL;

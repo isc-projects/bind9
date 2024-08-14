@@ -30,7 +30,6 @@
 
 #include <dns/db.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/nta.h>
 #include <dns/qp.h>

@@ -15,14 +15,9 @@
 
 #include <stdlib.h>
 
+#include <isc/log.h>
 #include <isc/result.h>
 #include <isc/util.h>
-
-#include <dns/log.h>
-
-#include <isccfg/log.h>
-
-#include <ns/log.h>
 
 #include <named/log.h>
 
@@ -30,39 +25,10 @@
 #define ISC_FACILITY LOG_DAEMON
 #endif /* ifndef ISC_FACILITY */
 
-/*%
- * When adding a new category, be sure to add the appropriate
- * \#define to <named/log.h> and to update the list in
- * bin/check/check-tool.c.
- */
-static isc_logcategory_t categories[] = { { "", 0 },
-					  { "unmatched", 0 },
-					  { NULL, 0 } };
-
-/*%
- * When adding a new module, be sure to add the appropriate
- * \#define to <dns/log.h>.
- */
-static isc_logmodule_t modules[] = {
-	{ "main", 0 }, { "server", 0 }, { "control", 0 }, { NULL, 0 }
-};
-
 isc_result_t
 named_log_init(bool safe) {
 	isc_result_t result;
 	isc_logconfig_t *lcfg = NULL;
-
-	named_g_categories = categories;
-	named_g_modules = modules;
-
-	/*
-	 * named-checktool.c:setup_logging() needs to be kept in sync.
-	 */
-	isc_log_registercategories(named_g_categories);
-	isc_log_registermodules(named_g_modules);
-	dns_log_init();
-	cfg_log_init();
-	ns_log_init();
 
 	/*
 	 * This is not technically needed, as we are calling named_log_init()
@@ -85,6 +51,8 @@ named_log_init(bool safe) {
 
 	named_log_setdefaultsslkeylogfile(lcfg);
 	rcu_read_unlock();
+
+	named_g_logging = true;
 
 	return (ISC_R_SUCCESS);
 
@@ -205,7 +173,8 @@ named_log_setdefaultsslkeylogfile(isc_logconfig_t *lcfg) {
 	isc_log_createchannel(lcfg, "default_sslkeylogfile", ISC_LOG_TOFILE,
 			      ISC_LOG_INFO, &destination, 0);
 	result = isc_log_usechannel(lcfg, "default_sslkeylogfile",
-				    ISC_LOGCATEGORY_SSLKEYLOG, NULL);
+				    ISC_LOGCATEGORY_SSLKEYLOG,
+				    ISC_LOGMODULE_ALL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
 
@@ -214,7 +183,7 @@ named_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	result = isc_log_usechannel(lcfg, "default_debug",
-				    ISC_LOGCATEGORY_DEFAULT, NULL);
+				    ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_ALL);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -223,11 +192,11 @@ named_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 		if (named_g_logfile != NULL) {
 			result = isc_log_usechannel(lcfg, "default_logfile",
 						    ISC_LOGCATEGORY_DEFAULT,
-						    NULL);
+						    ISC_LOGMODULE_ALL);
 		} else if (!named_g_nosyslog) {
 			result = isc_log_usechannel(lcfg, "default_syslog",
 						    ISC_LOGCATEGORY_DEFAULT,
-						    NULL);
+						    ISC_LOGMODULE_ALL);
 		}
 	}
 
@@ -240,6 +209,6 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 
 	result = isc_log_usechannel(lcfg, "null", NAMED_LOGCATEGORY_UNMATCHED,
-				    NULL);
+				    ISC_LOGMODULE_ALL);
 	return (result);
 }

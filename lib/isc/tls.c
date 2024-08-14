@@ -1687,12 +1687,17 @@ isc__tls_toresult(isc_result_t fallback) {
 }
 
 isc_result_t
-isc__tlserr2result(isc_logcategory_t *category, isc_logmodule_t *module,
+isc__tlserr2result(isc_logcategory_t category, isc_logmodule_t module,
 		   const char *funcname, isc_result_t fallback,
 		   const char *file, int line) {
 	isc_result_t result = isc__tls_toresult(fallback);
 
-	if (category == NULL) {
+	/*
+	 * This is an exception - normally, we don't allow this, but the
+	 * compatibility shims in dst_openssl.h needs a call that just
+	 * translates the error code and don't do any logging.
+	 */
+	if (category == ISC_LOGCATEGORY_INVALID) {
 		goto done;
 	}
 

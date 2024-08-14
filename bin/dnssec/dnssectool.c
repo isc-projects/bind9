@@ -29,6 +29,7 @@
 #include <isc/file.h>
 #include <isc/heap.h>
 #include <isc/list.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -43,7 +44,6 @@
 #include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
@@ -152,8 +152,6 @@ setup_logging(void) {
 		break;
 	}
 
-	dns_log_init();
-
 	logconfig = isc_logconfig_get();
 
 	isc_log_settag(logconfig, program);
@@ -172,8 +170,9 @@ setup_logging(void) {
 			      &destination,
 			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
 
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
+					 ISC_LOGCATEGORY_ALL,
+					 ISC_LOGMODULE_ALL) == ISC_R_SUCCESS);
 }
 
 static isc_stdtime_t

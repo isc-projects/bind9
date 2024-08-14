@@ -19,6 +19,7 @@
 
 #include <isc/buffer.h>
 #include <isc/hashmap.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
@@ -29,7 +30,6 @@
 
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>

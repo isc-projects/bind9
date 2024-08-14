@@ -139,7 +139,7 @@ struct dst_context {
 	dst_use_t use;
 	dst_key_t *key;
 	isc_mem_t *mctx;
-	isc_logcategory_t *category;
+	isc_logcategory_t category;
 	union {
 		void *generic;
 		dst_gssapi_signverifyctx_t *gssctx;

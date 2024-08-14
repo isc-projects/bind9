@@ -19,11 +19,11 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
+#include <isc/log.h>
 #include <isc/stdtime.h>
 
 #include <dns/ds.h>
 #include <dns/dsdigest.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/secalg.h>
 #include <dns/types.h>
@@ -37,9 +37,10 @@ ISC_LANG_BEGINDECLS
  ***/
 
 /*%
- * The dst_key structure is opaque.  Applications should use the accessor
- * functions provided to retrieve key attributes.  If an application needs
- * to set attributes, new accessor functions will be written.
+ * The dst_key structure is opaque.  Applications should use the
+ * accessor functions provided to retrieve key attributes.  If an
+ * application needs to set attributes, new accessor functions will be
+ * written.
  */
 
 typedef struct dst_key	   dst_key_t;
@@ -219,7 +220,7 @@ dst_ds_digest_supported(unsigned int digest_type);
  */
 
 isc_result_t
-dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t *category,
+dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t category,
 		   bool useforsigning, int maxbits, dst_context_t **dctxp);
 /*%<
  * Creates a context to be used for a sign or verify operation.

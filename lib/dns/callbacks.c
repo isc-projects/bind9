@@ -13,10 +13,10 @@
 
 /*! \file */
 
+#include <isc/log.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
-#include <dns/log.h>
 
 static void
 stdio_error_warn_callback(dns_rdatacallbacks_t *, const char *, ...)

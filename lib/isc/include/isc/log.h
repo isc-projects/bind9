@@ -15,6 +15,7 @@
 
 /*! \file isc/log.h */
 
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -23,6 +24,8 @@
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/types.h>
+
+typedef struct isc_logconfig isc_logconfig_t; /*%< Log Configuration */
 
 /*@{*/
 /*!
@@ -100,17 +103,131 @@ typedef enum {
  * structures names each category, and the id value is initialized by calling
  * isc_log_registercategories.
  */
-struct isc_logcategory {
-	const char  *name;
-	unsigned int id;
+typedef enum isc_logcategory isc_logcategory_t; /*%< Log Category */
+enum isc_logcategory {
+	/*%
+	 * Do not log directly to DEFAULT.  Use another category.
+	 * When in doubt, use GENERAL.
+	 */
+	ISC_LOGCATEGORY_ALL = -2,
+	ISC_LOGCATEGORY_INVALID = -1,
+	/* isc categories */
+	ISC_LOGCATEGORY_DEFAULT = 0,
+	ISC_LOGCATEGORY_GENERAL,
+	DNS_LOGCATEGORY_GENERAL = ISC_LOGCATEGORY_GENERAL,
+	NS_LOGCATEGORY_GENERAL = ISC_LOGCATEGORY_GENERAL,
+	NAMED_LOGCATEGORY_GENERAL = ISC_LOGCATEGORY_GENERAL,
+	ISC_LOGCATEGORY_SSLKEYLOG,
+	/* dns categories */
+	DNS_LOGCATEGORY_NOTIFY,
+	DNS_LOGCATEGORY_DATABASE,
+	DNS_LOGCATEGORY_SECURITY,
+	DNS_LOGCATEGORY_DNSSEC,
+	DNS_LOGCATEGORY_RESOLVER,
+	DNS_LOGCATEGORY_XFER_IN,
+	DNS_LOGCATEGORY_XFER_OUT,
+	DNS_LOGCATEGORY_DISPATCH,
+	DNS_LOGCATEGORY_LAME_SERVERS,
+	DNS_LOGCATEGORY_EDNS_DISABLED,
+	DNS_LOGCATEGORY_RPZ,
+	DNS_LOGCATEGORY_RRL,
+	DNS_LOGCATEGORY_CNAME,
+	DNS_LOGCATEGORY_SPILL,
+	DNS_LOGCATEGORY_DNSTAP,
+	DNS_LOGCATEGORY_ZONELOAD,
+	DNS_LOGCATEGORY_NSID,
+	DNS_LOGCATEGORY_RPZ_PASSTHRU,
+	/* ns categories */
+	NS_LOGCATEGORY_CLIENT,
+	NS_LOGCATEGORY_NETWORK,
+	NS_LOGCATEGORY_UPDATE,
+	NS_LOGCATEGORY_QUERIES,
+	NS_LOGCATEGORY_UPDATE_SECURITY,
+	NS_LOGCATEGORY_QUERY_ERRORS,
+	NS_LOGCATEGORY_TAT,
+	NS_LOGCATEGORY_SERVE_STALE,
+	/* cfg categories */
+	CFG_LOGCATEGORY_CONFIG,
+	/* named categories */
+	NAMED_LOGCATEGORY_UNMATCHED,
+	/* delv categories */
+	DELV_LOGCATEGORY_DEFAULT,
+
+	ISC_LOGCATEGORY_MAX, /*% The number of categories */
+	ISC_LOGCATEGORY_MAKE_ENUM_32BIT = INT32_MAX,
 };
 
 /*%
  * Similar to isc_logcategory, but for all the modules a library defines.
  */
-struct isc_logmodule {
-	const char  *name;
-	unsigned int id;
+typedef enum isc_logmodule isc_logmodule_t; /*%< Log Module */
+enum isc_logmodule {
+	ISC_LOGMODULE_ALL = -2,
+	ISC_LOGMODULE_INVALID = -1,
+	/* isc modules */
+	ISC_LOGMODULE_NONE = 0,
+	ISC_LOGMODULE_SOCKET,
+	ISC_LOGMODULE_TIME,
+	ISC_LOGMODULE_INTERFACE,
+	ISC_LOGMODULE_TIMER,
+	ISC_LOGMODULE_FILE,
+	ISC_LOGMODULE_NETMGR,
+	ISC_LOGMODULE_OTHER,
+	/* dns modules */
+	DNS_LOGMODULE_DB,
+	DNS_LOGMODULE_RBTDB,
+	DNS_LOGMODULE_RBT,
+	DNS_LOGMODULE_RDATA,
+	DNS_LOGMODULE_MASTER,
+	DNS_LOGMODULE_MESSAGE,
+	DNS_LOGMODULE_CACHE,
+	DNS_LOGMODULE_CONFIG,
+	DNS_LOGMODULE_RESOLVER,
+	DNS_LOGMODULE_ZONE,
+	DNS_LOGMODULE_JOURNAL,
+	DNS_LOGMODULE_ADB,
+	DNS_LOGMODULE_XFER_IN,
+	DNS_LOGMODULE_XFER_OUT,
+	DNS_LOGMODULE_ACL,
+	DNS_LOGMODULE_VALIDATOR,
+	DNS_LOGMODULE_DISPATCH,
+	DNS_LOGMODULE_REQUEST,
+	DNS_LOGMODULE_MASTERDUMP,
+	DNS_LOGMODULE_TSIG,
+	DNS_LOGMODULE_TKEY,
+	DNS_LOGMODULE_SDB,
+	DNS_LOGMODULE_DIFF,
+	DNS_LOGMODULE_HINTS,
+	DNS_LOGMODULE_UNUSED1,
+	DNS_LOGMODULE_DLZ,
+	DNS_LOGMODULE_DNSSEC,
+	DNS_LOGMODULE_CRYPTO,
+	DNS_LOGMODULE_PACKETS,
+	DNS_LOGMODULE_NTA,
+	DNS_LOGMODULE_DYNDB,
+	DNS_LOGMODULE_DNSTAP,
+	DNS_LOGMODULE_SSU,
+	DNS_LOGMODULE_QP,
+	/* ns modules */
+	NS_LOGMODULE_CLIENT,
+	NS_LOGMODULE_QUERY,
+	NS_LOGMODULE_INTERFACEMGR,
+	NS_LOGMODULE_UPDATE,
+	NS_LOGMODULE_XFER_IN,
+	NS_LOGMODULE_XFER_OUT,
+	NS_LOGMODULE_NOTIFY,
+	NS_LOGMODULE_HOOKS,
+	/* cfg modules */
+	CFG_LOGMODULE_PARSER,
+	/* named modules */
+	NAMED_LOGMODULE_MAIN,
+	NAMED_LOGMODULE_SERVER,
+	NAMED_LOGMODULE_CONTROL,
+	/* delv modules */
+	DELV_LOGMODULE_DEFAULT,
+
+	ISC_LOGMODULE_MAX, /*% The number of modules */
+	ISC_LOGMODULE_MAKE_ENUM_32BIT = INT32_MAX,
 };
 
 /*%
@@ -148,8 +265,19 @@ typedef struct isc_logfile {
  */
 typedef union isc_logdestination {
 	isc_logfile_t file;
-	int	      facility; /* XXXDCL NT */
+	int	      facility;
 } isc_logdestination_t;
+
+#define ISC_LOGDESTINATION_STDERR                               \
+	(&(isc_logdestination_t){                               \
+		.file = {                                       \
+			.stream = stderr,                       \
+			.versions = ISC_LOG_ROLLNEVER,          \
+			.suffix = isc_log_rollsuffix_increment, \
+		} })
+
+#define ISC_LOGDESTINATION_SYSLOG(f) \
+	(&(isc_logdestination_t){ .facility = (f) })
 
 /*@{*/
 /*%
@@ -162,24 +290,6 @@ typedef union isc_logdestination {
 extern isc_logcategory_t isc_categories[];
 extern isc_logmodule_t	 isc_modules[];
 /*@}*/
-
-/*@{*/
-/*%
- * Do not log directly to DEFAULT.  Use another category.  When in doubt,
- * use GENERAL.
- */
-#define ISC_LOGCATEGORY_DEFAULT	  (&isc_categories[0])
-#define ISC_LOGCATEGORY_GENERAL	  (&isc_categories[1])
-#define ISC_LOGCATEGORY_SSLKEYLOG (&isc_categories[2])
-/*@}*/
-
-#define ISC_LOGMODULE_SOCKET	(&isc_modules[0])
-#define ISC_LOGMODULE_TIME	(&isc_modules[1])
-#define ISC_LOGMODULE_INTERFACE (&isc_modules[2])
-#define ISC_LOGMODULE_TIMER	(&isc_modules[3])
-#define ISC_LOGMODULE_FILE	(&isc_modules[4])
-#define ISC_LOGMODULE_NETMGR	(&isc_modules[5])
-#define ISC_LOGMODULE_OTHER	(&isc_modules[6])
 
 ISC_LANG_BEGINDECLS
 
@@ -263,82 +373,6 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp);
  */
 
 void
-isc_log_registercategories(isc_logcategory_t categories[]);
-/*%<
- * Identify logging categories a library will use.
- *
- * Notes:
- *\li	A category should only be registered once, but no mechanism enforces
- *	this rule.
- *
- *\li	The end of the categories array is identified by a NULL name.
- *
- *\li	Because the name is used by #ISC_LOG_PRINTCATEGORY, it should not
- *	be altered or destroyed after isc_log_registercategories().
- *
- *\li	Because each element of the categories array is used by
- *	isc_log_categorybyname, it should not be altered or destroyed
- *	after registration.
- *
- *\li	The value of the id integer in each structure is overwritten
- *	by this function, and so id need not be initialized to any particular
- *	value prior to the function call.
- *
- *\li	A subsequent call to isc_log_registercategories with the same
- *	logging context (but new categories) will cause the last
- *	element of the categories array from the prior call to have
- *	its "name" member changed from NULL to point to the new
- *	categories array, and its "id" member set to UINT_MAX.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- *\li	categories != NULL.
- *\li	categories[0].name != NULL.
- *
- * Ensures:
- * \li	There are references to each category in the logging context,
- * 	so they can be used with isc_log_usechannel() and isc_log_write().
- */
-
-void
-isc_log_registermodules(isc_logmodule_t modules[]);
-/*%<
- * Identify logging categories a library will use.
- *
- * Notes:
- *\li	A module should only be registered once, but no mechanism enforces
- *	this rule.
- *
- *\li	The end of the modules array is identified by a NULL name.
- *
- *\li	Because the name is used by #ISC_LOG_PRINTMODULE, it should not
- *	be altered or destroyed after isc_log_registermodules().
- *
- *\li	Because each element of the modules array is used by
- *	isc_log_modulebyname, it should not be altered or destroyed
- *	after registration.
- *
- *\li	The value of the id integer in each structure is overwritten
- *	by this function, and so id need not be initialized to any particular
- *	value prior to the function call.
- *
- *\li	A subsequent call to isc_log_registermodules with the same
- *	logging context (but new modules) will cause the last
- *	element of the modules array from the prior call to have
- *	its "name" member changed from NULL to point to the new
- *	modules array, and its "id" member set to UINT_MAX.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- *\li	modules != NULL.
- *\li	modules[0].name != NULL;
- *
- * Ensures:
- *\li	Each module has a reference in the logging context, so they can be
- *	used with isc_log_usechannel() and isc_log_write().
- */
-
-void
 isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		      unsigned int type, int level,
 		      const isc_logdestination_t *destination,
@@ -403,8 +437,8 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 
 isc_result_t
 isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
-		   const isc_logcategory_t *category,
-		   const isc_logmodule_t   *module);
+		   const isc_logcategory_t category,
+		   const isc_logmodule_t   module);
 /*%<
  * Associate a named logging channel with a category and module that
  * will use it.
@@ -499,7 +533,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *	meaningful error.
  */
 void
-isc_log_write(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+isc_log_write(isc_logcategory_t category, isc_logmodule_t module, int level,
 	      const char *format, ...)
 
 	ISC_FORMAT_PRINTF(4, 5);
@@ -537,7 +571,7 @@ isc_log_write(isc_logcategory_t *category, isc_logmodule_t *module, int level,
  *	meaningful error.
  */
 void
-isc_log_vwrite(isc_logcategory_t *category, isc_logmodule_t *module, int level,
+isc_log_vwrite(isc_logcategory_t category, isc_logmodule_t module, int level,
 	       const char *format, va_list args)
 
 	ISC_FORMAT_PRINTF(4, 0);
@@ -693,7 +727,7 @@ isc_log_closefilelogs(void);
  *	next needed.
  */
 
-isc_logcategory_t *
+isc_logcategory_t
 isc_log_categorybyname(const char *name);
 /*%<
  * Find a category by its name.
@@ -709,24 +743,6 @@ isc_log_categorybyname(const char *name);
  *\li	A pointer to the _first_ isc_logcategory_t structure used by "name".
  *
  *\li	NULL if no category exists by that name.
- */
-
-isc_logmodule_t *
-isc_log_modulebyname(const char *name);
-/*%<
- * Find a module by its name.
- *
- * Notes:
- *\li	The string name of a module is not required to be unique.
- *
- * Requires:
- *\li	lctx is a valid context.
- *\li	name is not NULL.
- *
- * Returns:
- *\li	A pointer to the _first_ isc_logmodule_t structure used by "name".
- *
- *\li	NULL if no module exists by that name.
  */
 
 isc_result_t

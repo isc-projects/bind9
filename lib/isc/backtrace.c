@@ -62,7 +62,7 @@ isc_backtrace_symbols_fd(void *const *buffer, int size, int fd) {
 }
 
 void
-isc_backtrace_log(isc_logcategory_t *category, isc_logmodule_t *module,
+isc_backtrace_log(isc_logcategory_t category, isc_logmodule_t module,
 		  int level) {
 	void *tracebuf[ISC_BACKTRACE_MAXFRAME];
 	int nframes;
@@ -107,7 +107,7 @@ isc_backtrace_symbols_fd(void *const *buffer, int size, int fd) {
 }
 
 void
-isc_backtrace_log(isc_logcategory_t *category, isc_logmodule_t *module,
+isc_backtrace_log(isc_logcategory_t category, isc_logmodule_t module,
 		  int level) {
 	UNUSED(category);
 	UNUSED(module);

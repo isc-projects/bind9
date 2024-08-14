@@ -25,24 +25,10 @@
 #include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/journal.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/types.h>
 
 isc_mem_t *mctx = NULL;
-
-/*
- * Logging categories: this needs to match the list in bin/named/log.c.
- */
-static isc_logcategory_t categories[] = { { "", 0 },
-					  { "client", 0 },
-					  { "network", 0 },
-					  { "update", 0 },
-					  { "queries", 0 },
-					  { "unmatched", 0 },
-					  { "update-security", 0 },
-					  { "query-errors", 0 },
-					  { NULL, 0 } };
 
 static isc_result_t
 loadzone(dns_db_t **db, const char *origin, const char *filename) {
@@ -91,9 +77,6 @@ main(int argc, char **argv) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	isc_log_registercategories(categories);
-	dns_log_init();
-
 	logconfig = isc_logconfig_get();
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
@@ -102,7 +85,8 @@ main(int argc, char **argv) {
 	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination, 0);
 
-	result = isc_log_usechannel(logconfig, "stderr", NULL, NULL);
+	result = isc_log_usechannel(logconfig, "stderr", ISC_LOGCATEGORY_ALL,
+				    ISC_LOGMODULE_ALL);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

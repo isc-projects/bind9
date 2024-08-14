@@ -61,7 +61,6 @@
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/opcode.h>
@@ -1360,10 +1359,9 @@ setup_libs(void) {
 
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
-	dns_log_init();
-
 	logconfig = isc_logconfig_get();
-	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
+	result = isc_log_usechannel(logconfig, "default_debug",
+				    ISC_LOGCATEGORY_ALL, ISC_LOGMODULE_ALL);
 
 	check_result(result, "isc_log_usechannel");
 

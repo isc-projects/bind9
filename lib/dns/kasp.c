@@ -25,7 +25,6 @@
 
 #include <dns/kasp.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 
 #include <dst/dst.h>
 

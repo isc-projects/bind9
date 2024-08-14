@@ -30,6 +30,7 @@
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/random.h>
@@ -43,7 +44,6 @@
 
 #include <dns/compress.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rbt.h>
 

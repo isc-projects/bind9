@@ -22,6 +22,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
@@ -29,7 +30,6 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rcode.h>
 #include <dns/rdataclass.h>

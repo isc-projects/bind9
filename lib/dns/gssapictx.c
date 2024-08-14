@@ -40,6 +40,7 @@
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/lex.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/random.h>
@@ -50,8 +51,6 @@
 
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
-#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/types.h>

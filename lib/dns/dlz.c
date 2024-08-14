@@ -56,6 +56,7 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -68,7 +69,6 @@
 #include <dns/db.h>
 #include <dns/dlz.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/ssu.h>
 #include <dns/zone.h>

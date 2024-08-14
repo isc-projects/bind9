@@ -28,6 +28,7 @@
 
 #include <isc/atomic.h>
 #include <isc/buffer.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -41,7 +42,6 @@
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/qp.h>
 #include <dns/types.h>

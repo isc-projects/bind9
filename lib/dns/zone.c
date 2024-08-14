@@ -23,6 +23,7 @@
 #include <isc/hash.h>
 #include <isc/hashmap.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/md.h>
 #include <isc/mutex.h>
@@ -57,7 +58,6 @@
 #include <dns/keymgr.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
@@ -15733,7 +15733,7 @@ dns_zone_nameonly(dns_zone_t *zone, char *buf, size_t length) {
 }
 
 void
-dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
+dns_zone_logv(dns_zone_t *zone, isc_logcategory_t category, int level,
 	      const char *prefix, const char *fmt, va_list ap) {
 	char message[4096];
 	const char *zstr;
@@ -15773,7 +15773,7 @@ notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 }
 
 void
-dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category, int level,
+dns_zone_logc(dns_zone_t *zone, isc_logcategory_t category, int level,
 	      const char *fmt, ...) {
 	va_list ap;
 

@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -22,7 +23,6 @@
 #include <dns/acl.h>
 #include <dns/fixedname.h>
 #include <dns/iptable.h>
-#include <dns/log.h>
 
 #include <isccfg/aclconf.h>
 #include <isccfg/namedconf.h>

@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
@@ -620,6 +621,6 @@ isc__tls_setdestroycheck(bool check);
 	isc__tlserr2result(category, module, funcname, fallback, __FILE__, \
 			   __LINE__)
 isc_result_t
-isc__tlserr2result(isc_logcategory_t *category, isc_logmodule_t *module,
+isc__tlserr2result(isc_logcategory_t category, isc_logmodule_t module,
 		   const char *funcname, isc_result_t fallback,
 		   const char *file, int line);

@@ -37,32 +37,19 @@
 
 #include <tests/isc.h>
 
-static isc_logcategory_t categories[] = { { "", 0 },
-					  { "client", 0 },
-					  { "network", 0 },
-					  { "update", 0 },
-					  { "queries", 0 },
-					  { "unmatched", 0 },
-					  { "update-security", 0 },
-					  { "query-errors", 0 },
-					  { NULL, 0 } };
-
 ISC_SETUP_TEST_IMPL(group) {
 	isc_result_t result;
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
 
-	isc_log_registercategories(categories);
-
-	logconfig = isc_logconfig_get();
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_logdestination_t destination = {
+		.file.stream = stderr,
+		.file.versions = ISC_LOG_ROLLNEVER,
+	};
 	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
 			      ISC_LOG_DYNAMIC, &destination, 0);
-	result = isc_log_usechannel(logconfig, "stderr", NULL, NULL);
 
+	result = isc_log_usechannel(logconfig, "stderr", ISC_LOGCATEGORY_ALL,
+				    ISC_LOGMODULE_ALL);
 	if (result != ISC_R_SUCCESS) {
 		return (-1);
 	}

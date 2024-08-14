@@ -25,6 +25,7 @@
 #include <isc/hashmap.h>
 #include <isc/heap.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -44,7 +45,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
@@ -123,16 +123,17 @@
 
 /*%
  * See if a given cache entry that is being reused needs to be updated
- * in the LRU-list.  From the LRU management point of view, this function is
- * expected to return true for almost all cases.  When used with threads,
- * however, this may cause a non-negligible performance penalty because a
- * writer lock will have to be acquired before updating the list.
- * If DNS_RBTDB_LIMITLRUUPDATE is defined to be non 0 at compilation time, this
- * function returns true if the entry has not been updated for some period of
- * time.  We differentiate the NS or glue address case and the others since
- * experiments have shown that the former tends to be accessed relatively
- * infrequently and the cost of cache miss is higher (e.g., a missing NS records
- * may cause external queries at a higher level zone, involving more
+ * in the LRU-list.  From the LRU management point of view, this
+ * function is expected to return true for almost all cases.  When used
+ * with threads, however, this may cause a non-negligible performance
+ * penalty because a writer lock will have to be acquired before
+ * updating the list. If DNS_RBTDB_LIMITLRUUPDATE is defined to be non 0
+ * at compilation time, this function returns true if the entry has not
+ * been updated for some period of time.  We differentiate the NS or
+ * glue address case and the others since experiments have shown that
+ * the former tends to be accessed relatively infrequently and the cost
+ * of cache miss is higher (e.g., a missing NS records may cause
+ * external queries at a higher level zone, involving more
  * transactions).
  *
  * Caller must hold the node (read or write) lock.

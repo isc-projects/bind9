@@ -10,7 +10,6 @@ libisccfg_la_HEADERS =			\
 	include/isccfg/duration.h	\
 	include/isccfg/grammar.h	\
 	include/isccfg/kaspconf.h	\
-	include/isccfg/log.h		\
 	include/isccfg/namedconf.h
 
 libisccfg_la_SOURCES =			\
@@ -20,7 +19,6 @@ libisccfg_la_SOURCES =			\
 	dnsconf.c			\
 	duration.c			\
 	kaspconf.c			\
-	log.c				\
 	namedconf.c			\
 	parser.c
 

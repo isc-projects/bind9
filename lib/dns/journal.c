@@ -19,6 +19,7 @@
 
 #include <isc/dir.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/overflow.h>
 #include <isc/result.h>
@@ -30,10 +31,8 @@
 #include <dns/compress.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/diff.h>
 #include <dns/fixedname.h>
 #include <dns/journal.h>
-#include <dns/log.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/soa.h>

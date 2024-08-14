@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include <isc/buffer.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
@@ -24,7 +25,6 @@
 #include <isc/uv.h>
 
 #include <dns/dyndb.h>
-#include <dns/log.h>
 #include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>

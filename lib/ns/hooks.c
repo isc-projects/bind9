@@ -30,7 +30,6 @@
 #include <dns/view.h>
 
 #include <ns/hooks.h>
-#include <ns/log.h>
 #include <ns/query.h>
 
 #define CHECK(op)                              \

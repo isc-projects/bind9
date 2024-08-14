@@ -16,6 +16,7 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/stats.h>
@@ -28,7 +29,6 @@
 #include <dns/ipkeylist.h>
 #include <dns/journal.h>
 #include <dns/kasp.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/name.h>
 #include <dns/nsec3.h>

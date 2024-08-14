@@ -32,7 +32,6 @@
 
 #include <ns/client.h>
 #include <ns/hooks.h>
-#include <ns/log.h>
 #include <ns/query.h>
 #include <ns/types.h>
 
