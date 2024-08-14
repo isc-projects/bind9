@@ -73,8 +73,8 @@ confidential!
   - [ ] [:link:][step_mitre]             **(First IM)** Advise MITRE about the disclosed CVEs
   - [ ] [:link:][step_merge_advisory]    **(First IM)** Merge the Security Advisory merge request
   - [ ] [:link:][step_embargo_end]       **(IM)** Inform original reporter (if external) that the security disclosure process is complete
-  - [ ] [:link:][step_asn_clear]         **(Support)** Update the support portal to clear the ASN
-  - [ ] [:link:][step_customers]         **(Marketing)** Email support customers that the release is published
+  - [ ] [:link:][step_asn_clear]         **(Support)** Update the tickets in the ASN queues in RT that the embargo is lifted
+  - [ ] [:link:][step_customers]         **(Marketing)** Open a ticket in the <software name> Announce queue that the release is published
 
 ### After Public Disclosure
 
