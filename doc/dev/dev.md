@@ -1132,17 +1132,17 @@ the following steps need to be taken to initialize it.
    null, and all other messages to syslog.
 
         result = isc_log_usechannel(lcfg, "default_stderr",
-                                    DNS_LOGCATEGORY_SECURITY, NULL);
+                                    DNS_LOGCATEGORY_SECURITY, ISC_LOGMODULE_DEFAULT);
         if (result != ISC_R_SUCCESS)
                 oops_it_didnt_work();
 
         result = isc_log_usechannel(lcfg, "null",
-                                    DNS_LOGCATEGORY_DATABASE, NULL);
+                                    DNS_LOGCATEGORY_DATABASE, ISC_LOGMODULE_DEFAULT);
         if (result != ISC_R_SUCCESS)
                 oops_it_didnt_work();
 
         result = isc_log_usechannel(lcfg, "default_syslog",
-                                    ISC_LOGCATEGORY_DEFAULT, NULL);
+                                    ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
         if (result != ISC_R_SUCCESS)
                 oops_it_didnt_work();
 

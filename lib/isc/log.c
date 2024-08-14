@@ -210,7 +210,7 @@ static const char *categories_description[] = {
  */
 static const char *modules_description[] = {
 	/* isc modules */
-	[ISC_LOGMODULE_NONE] = "no_module",
+	[ISC_LOGMODULE_DEFAULT] = "no_module",
 	[ISC_LOGMODULE_SOCKET] = "socket",
 	[ISC_LOGMODULE_TIME] = "time",
 	[ISC_LOGMODULE_INTERFACE] = "interface",
@@ -486,7 +486,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 	REQUIRE(level >= ISC_LOG_CRITICAL);
 	REQUIRE((flags & ~permitted) == 0);
 
-	/* XXXDCL find duplicate names? */
+	/* FIXME: find duplicate names? */
 
 	mctx = lcfg->lctx->mctx;
 
@@ -552,10 +552,9 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		   const isc_logmodule_t module) {
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(name != NULL);
-	REQUIRE(category == ISC_LOGCATEGORY_ALL ||
-		(category >= 0 && category < ISC_LOGCATEGORY_MAX));
-	REQUIRE(module == ISC_LOGMODULE_ALL ||
-		(module >= 0 && module < ISC_LOGMODULE_MAX));
+	REQUIRE(category >= ISC_LOGCATEGORY_DEFAULT &&
+		category < ISC_LOGCATEGORY_MAX);
+	REQUIRE(module >= ISC_LOGMODULE_DEFAULT && module < ISC_LOGMODULE_MAX);
 
 	isc_logchannel_t *channel;
 	for (channel = ISC_LIST_HEAD(lcfg->channels); channel != NULL;
@@ -570,14 +569,16 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		return (ISC_R_NOTFOUND);
 	}
 
-	if (category != ISC_LOGCATEGORY_ALL) {
+	if (category != ISC_LOGCATEGORY_DEFAULT) {
 		assignchannel(lcfg, category, module, channel);
 	} else {
 		/*
 		 * Assign to all categories.  Note that this includes
 		 * the default channel.
 		 */
-		for (size_t i = 0; i < ISC_LOGCATEGORY_MAX; i++) {
+		for (size_t i = ISC_LOGCATEGORY_DEFAULT;
+		     i < ISC_LOGCATEGORY_MAX; i++)
+		{
 			assignchannel(lcfg, i, module, channel);
 		}
 	}
@@ -592,6 +593,18 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 	rcu_read_unlock();
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+isc_log_createandusechannel(isc_logconfig_t *lcfg, const char *name,
+			    unsigned int type, int level,
+			    const isc_logdestination_t *destination,
+			    unsigned int flags,
+			    const isc_logcategory_t category,
+			    const isc_logmodule_t module) {
+	isc_log_createchannel(lcfg, name, type, level, destination, flags);
+	RUNTIME_CHECK(isc_log_usechannel(lcfg, name, category, module) ==
+		      ISC_R_SUCCESS);
 }
 
 void
@@ -721,10 +734,9 @@ assignchannel(isc_logconfig_t *lcfg, const isc_logcategory_t category,
 
 	isc_log_t *lctx = lcfg->lctx;
 
-	REQUIRE(category > ISC_LOGCATEGORY_INVALID &&
+	REQUIRE(category >= ISC_LOGCATEGORY_DEFAULT &&
 		category < ISC_LOGCATEGORY_MAX);
-	REQUIRE(module == ISC_LOGMODULE_ALL ||
-		(module > ISC_LOGMODULE_INVALID && module < ISC_LOGMODULE_MAX));
+	REQUIRE(module >= ISC_LOGMODULE_DEFAULT && module < ISC_LOGMODULE_MAX);
 
 	isc_logchannellist_t *new_item = isc_mem_get(lctx->mctx,
 						     sizeof(*new_item));
@@ -1257,8 +1269,9 @@ isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 	isc_result_t result;
 
 	REQUIRE(isc__lctx == NULL || VALID_CONTEXT(isc__lctx));
-	REQUIRE(category >= 0 && category < ISC_LOGCATEGORY_MAX);
-	REQUIRE(module >= 0 && module < ISC_LOGMODULE_MAX);
+	REQUIRE(category > ISC_LOGCATEGORY_DEFAULT &&
+		category < ISC_LOGCATEGORY_MAX);
+	REQUIRE(module > ISC_LOGMODULE_DEFAULT && module < ISC_LOGMODULE_MAX);
 	REQUIRE(level != ISC_LOG_DYNAMIC);
 	REQUIRE(format != NULL);
 
@@ -1311,7 +1324,7 @@ isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 			category_channels = &default_channel;
 		}
 
-		if (category_channels->module != ISC_LOGMODULE_ALL &&
+		if (category_channels->module != ISC_LOGMODULE_DEFAULT &&
 		    category_channels->module != module)
 		{
 			category_channels = ISC_LIST_NEXT(category_channels,

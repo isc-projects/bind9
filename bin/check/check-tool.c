@@ -539,16 +539,10 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 isc_result_t
 setup_logging(FILE *errout) {
 	isc_logconfig_t *logconfig = isc_logconfig_get();
-	isc_logdestination_t destination = {
-		.file.stream = errout,
-		.file.versions = ISC_LOG_ROLLNEVER,
-	};
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, 0);
-
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
-					 ISC_LOGCATEGORY_ALL,
-					 ISC_LOGMODULE_ALL) == ISC_R_SUCCESS);
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_FILE(errout), 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 
 	return (ISC_R_SUCCESS);
 }

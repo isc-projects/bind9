@@ -48,7 +48,6 @@ unsigned int bits = 2048U;
 isc_mem_t *mctx;
 isc_logconfig_t *logconfig;
 int level = ISC_LOG_WARNING;
-isc_logdestination_t destination;
 char filename[255];
 isc_result_t result;
 isc_buffer_t buf;
@@ -110,17 +109,12 @@ main(int argc, char **argv) {
 	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, "bigkey");
 
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC, level,
-			      &destination,
-			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC, level,
+		ISC_LOGDESTINATION_STDERR,
+		ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL, ISC_LOGCATEGORY_DEFAULT,
+		ISC_LOGMODULE_DEFAULT);
 
-	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL), "isc_log_"
-								   "usechannel("
-								   ")");
 	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&buf, "example.", strlen("example."));
 	isc_buffer_add(&buf, strlen("example."));

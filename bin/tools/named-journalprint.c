@@ -37,20 +37,11 @@ usage(void) {
  */
 static void
 setup_logging(FILE *errout) {
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
-
-	logconfig = isc_logconfig_get();
-	destination.file.stream = errout;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, 0);
-
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
-					 ISC_LOGCATEGORY_ALL,
-					 ISC_LOGMODULE_ALL) == ISC_R_SUCCESS);
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_FILE(errout), 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 }
 
 int

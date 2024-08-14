@@ -38,21 +38,11 @@
 #include <tests/isc.h>
 
 ISC_SETUP_TEST_IMPL(group) {
-	isc_result_t result;
-
 	isc_logconfig_t *logconfig = isc_logconfig_get();
-	isc_logdestination_t destination = {
-		.file.stream = stderr,
-		.file.versions = ISC_LOG_ROLLNEVER,
-	};
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, 0);
-
-	result = isc_log_usechannel(logconfig, "stderr", ISC_LOGCATEGORY_ALL,
-				    ISC_LOGMODULE_ALL);
-	if (result != ISC_R_SUCCESS) {
-		return (-1);
-	}
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 
 	return (0);
 }

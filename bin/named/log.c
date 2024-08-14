@@ -162,7 +162,6 @@ named_log_setdefaultsslkeylogfile(isc_logconfig_t *lcfg) {
 			.maximum_size = 100 * 1024 * 1024,
 		},
 	};
-	isc_result_t result;
 
 	if (sslkeylogfile_path == NULL ||
 	    strcmp(sslkeylogfile_path, "config") == 0)
@@ -170,12 +169,10 @@ named_log_setdefaultsslkeylogfile(isc_logconfig_t *lcfg) {
 		return;
 	}
 
-	isc_log_createchannel(lcfg, "default_sslkeylogfile", ISC_LOG_TOFILE,
-			      ISC_LOG_INFO, &destination, 0);
-	result = isc_log_usechannel(lcfg, "default_sslkeylogfile",
-				    ISC_LOGCATEGORY_SSLKEYLOG,
-				    ISC_LOGMODULE_ALL);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_log_createandusechannel(lcfg, "default_sslkeylogfile",
+				    ISC_LOG_TOFILE, ISC_LOG_INFO, &destination,
+				    0, ISC_LOGCATEGORY_SSLKEYLOG,
+				    ISC_LOGMODULE_DEFAULT);
 }
 
 isc_result_t
@@ -183,7 +180,8 @@ named_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	result = isc_log_usechannel(lcfg, "default_debug",
-				    ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_ALL);
+				    ISC_LOGCATEGORY_DEFAULT,
+				    ISC_LOGMODULE_DEFAULT);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -192,11 +190,11 @@ named_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 		if (named_g_logfile != NULL) {
 			result = isc_log_usechannel(lcfg, "default_logfile",
 						    ISC_LOGCATEGORY_DEFAULT,
-						    ISC_LOGMODULE_ALL);
+						    ISC_LOGMODULE_DEFAULT);
 		} else if (!named_g_nosyslog) {
 			result = isc_log_usechannel(lcfg, "default_syslog",
 						    ISC_LOGCATEGORY_DEFAULT,
-						    ISC_LOGMODULE_ALL);
+						    ISC_LOGMODULE_DEFAULT);
 		}
 	}
 
@@ -209,6 +207,6 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 
 	result = isc_log_usechannel(lcfg, "null", NAMED_LOGCATEGORY_UNMATCHED,
-				    ISC_LOGMODULE_ALL);
+				    ISC_LOGMODULE_DEFAULT);
 	return (result);
 }

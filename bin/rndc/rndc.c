@@ -807,7 +807,6 @@ main(int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
 	bool show_final_mem = false;
 	isc_logconfig_t *logconfig = NULL;
-	isc_logdestination_t logdest;
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *config = NULL;
 	const char *keyname = NULL;
@@ -955,16 +954,11 @@ main(int argc, char **argv) {
 
 	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, progname);
-	logdest.file.stream = stderr;
-	logdest.file.name = NULL;
-	logdest.file.versions = ISC_LOG_ROLLNEVER;
-	logdest.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_INFO, &logdest,
-			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
-	DO("enabling log channel",
-	   isc_log_usechannel(logconfig, "stderr", ISC_LOGCATEGORY_ALL,
-			      ISC_LOGMODULE_ALL));
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC, ISC_LOG_INFO,
+		ISC_LOGDESTINATION_STDERR,
+		ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL, ISC_LOGCATEGORY_DEFAULT,
+		ISC_LOGMODULE_DEFAULT);
 
 	parse_config(rndc_mctx, keyname, &pctx, &config);
 

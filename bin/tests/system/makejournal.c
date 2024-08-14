@@ -61,7 +61,6 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	char *origin, *file1, *file2, *journal;
 	dns_db_t *olddb = NULL, *newdb = NULL;
-	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
 	if (argc != 5) {
@@ -78,18 +77,10 @@ main(int argc, char **argv) {
 	isc_mem_create(&mctx);
 
 	logconfig = isc_logconfig_get();
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, 0);
-
-	result = isc_log_usechannel(logconfig, "stderr", ISC_LOGCATEGORY_ALL,
-				    ISC_LOGMODULE_ALL);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 
 	result = loadzone(&olddb, origin, file1);
 	if (result != ISC_R_SUCCESS) {

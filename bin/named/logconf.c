@@ -44,7 +44,6 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 	isc_result_t result;
 	const char *catname;
 	isc_logcategory_t category;
-	isc_logmodule_t module;
 	const cfg_obj_t *destinations = NULL;
 	const cfg_listelt_t *element = NULL;
 
@@ -63,8 +62,6 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 		return (ISC_R_SUCCESS);
 	}
 
-	module = ISC_LOGMODULE_ALL;
-
 	destinations = cfg_tuple_get(ccat, "destinations");
 	for (element = cfg_list_first(destinations); element != NULL;
 	     element = cfg_list_next(element))
@@ -73,7 +70,7 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 		const char *channelname = cfg_obj_asstring(channel);
 
 		result = isc_log_usechannel(logconfig, channelname, category,
-					    module);
+					    ISC_LOGMODULE_DEFAULT);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(CFG_LOGCATEGORY_CONFIG,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,

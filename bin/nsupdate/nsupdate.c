@@ -811,10 +811,10 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 	ddebug("setup_system()");
 
 	logconfig = isc_logconfig_get();
-	result = isc_log_usechannel(logconfig, "default_debug",
-				    ISC_LOGCATEGORY_ALL, ISC_LOGMODULE_ALL);
-	check_result(result, "isc_log_usechannel");
-
+	isc_log_createandusechannel(logconfig, "debug", ISC_LOG_TOFILEDESC,
+				    ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR,
+				    ISC_LOG_PRINTTIME, ISC_LOGCATEGORY_DEFAULT,
+				    ISC_LOGMODULE_DEFAULT);
 	isc_log_setdebuglevel(logdebuglevel);
 
 	result = irs_resconf_load(gmctx, resolvconf, &resconf);

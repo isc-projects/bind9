@@ -1360,11 +1360,10 @@ setup_libs(void) {
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
 	logconfig = isc_logconfig_get();
-	result = isc_log_usechannel(logconfig, "default_debug",
-				    ISC_LOGCATEGORY_ALL, ISC_LOGMODULE_ALL);
-
-	check_result(result, "isc_log_usechannel");
-
+	isc_log_createandusechannel(logconfig, "debug", ISC_LOG_TOFILEDESC,
+				    ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR,
+				    ISC_LOG_PRINTTIME, ISC_LOGCATEGORY_DEFAULT,
+				    ISC_LOGMODULE_DEFAULT);
 	isc_log_setdebuglevel(0);
 
 	isc_mem_setname(mctx, "dig");

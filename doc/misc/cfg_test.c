@@ -26,23 +26,7 @@
 #include <isccfg/namedconf.h>
 
 static void
-check_result(isc_result_t result, const char *format, ...) {
-	va_list args;
-
-	if (result == ISC_R_SUCCESS) {
-		return;
-	}
-
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, ": %s\n", isc_result_totext(result));
-	exit(EXIT_FAILURE);
-}
-
-static void
-output(void *closure, const char *text, int textlen) {
-	UNUSED(closure);
+output(void *closure ISC_ATTR_UNUSED, const char *text, int textlen) {
 	(void)fwrite(text, 1, textlen, stdout);
 }
 
@@ -54,12 +38,19 @@ usage(void) {
 	exit(EXIT_FAILURE);
 }
 
+static void
+setup_logging(void) {
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, ISC_LOG_PRINTTIME,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
+}
+
 int
 main(int argc, char **argv) {
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
-	isc_logconfig_t *lcfg = NULL;
-	isc_logdestination_t destination;
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *cfg = NULL;
 	cfg_type_t *type = NULL;
@@ -71,20 +62,7 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-	/*
-	 * Create and install the default channel.
-	 */
-	lcfg = isc_logconfig_get();
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(lcfg, "_default", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, ISC_LOG_PRINTTIME);
-
-	result = isc_log_usechannel(lcfg, "_default", ISC_LOGCATEGORY_ALL,
-				    ISC_LOGMODULE_ALL);
-	check_result(result, "isc_log_usechannel()");
+	setup_logging();
 
 	/*
 	 * Set the initial debug level.

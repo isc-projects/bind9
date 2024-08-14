@@ -308,67 +308,45 @@ static int loglevel = 0;
 
 static void
 setup_logging(FILE *errout) {
-	isc_result_t result;
 	int packetlevel = 10;
 
-	isc_logconfig_t *logconfig = isc_logconfig_get();
-	isc_logdestination_t destination = {
-		.file.stream = errout,
-		.file.versions = ISC_LOG_ROLLNEVER,
-	};
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination,
-			      ISC_LOG_PRINTPREFIX);
-
 	isc_log_setdebuglevel(loglevel);
+
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+
 	isc_log_settag(logconfig, ";; ");
 
-	result = isc_log_usechannel(logconfig, "stderr",
-				    ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_ALL);
-	if (result != ISC_R_SUCCESS) {
-		fatal("Couldn't attach to log channel 'stderr'");
-	}
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_FILE(errout),
+		ISC_LOG_PRINTPREFIX, ISC_LOGCATEGORY_DEFAULT,
+		ISC_LOGMODULE_DEFAULT);
 
 	if (resolve_trace && loglevel < 1) {
-		isc_log_createchannel(logconfig, "resolver", ISC_LOG_TOFILEDESC,
-				      ISC_LOG_DEBUG(1), &destination,
-				      ISC_LOG_PRINTPREFIX);
-
-		result = isc_log_usechannel(logconfig, "resolver",
-					    DNS_LOGCATEGORY_RESOLVER,
-					    DNS_LOGMODULE_RESOLVER);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't attach to log channel 'resolver'");
-		}
+		isc_log_createandusechannel(
+			logconfig, "resolver", ISC_LOG_TOFILEDESC,
+			ISC_LOG_DEBUG(1), ISC_LOGDESTINATION_FILE(errout),
+			ISC_LOG_PRINTPREFIX, DNS_LOGCATEGORY_RESOLVER,
+			DNS_LOGMODULE_RESOLVER);
 	}
 
 	if (validator_trace && loglevel < 3) {
-		isc_log_createchannel(logconfig, "validator",
-				      ISC_LOG_TOFILEDESC, ISC_LOG_DEBUG(3),
-				      &destination, ISC_LOG_PRINTPREFIX);
-
-		result = isc_log_usechannel(logconfig, "validator",
-					    DNS_LOGCATEGORY_DNSSEC,
-					    DNS_LOGMODULE_VALIDATOR);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't attach to log channel 'validator'");
-		}
+		isc_log_createandusechannel(
+			logconfig, "validator", ISC_LOG_TOFILEDESC,
+			ISC_LOG_DEBUG(3), ISC_LOGDESTINATION_FILE(errout),
+			ISC_LOG_PRINTPREFIX, DNS_LOGCATEGORY_DNSSEC,
+			DNS_LOGMODULE_VALIDATOR);
 	}
 
 	if (send_trace) {
 		packetlevel = 11;
 	}
 	if ((message_trace || send_trace) && loglevel < packetlevel) {
-		isc_log_createchannel(logconfig, "messages", ISC_LOG_TOFILEDESC,
-				      ISC_LOG_DEBUG(packetlevel), &destination,
-				      ISC_LOG_PRINTPREFIX);
-
-		result = isc_log_usechannel(logconfig, "messages",
-					    DNS_LOGCATEGORY_RESOLVER,
-					    DNS_LOGMODULE_PACKETS);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't attach to log channel 'messagse'");
-		}
+		isc_log_createandusechannel(
+			logconfig, "messages", ISC_LOG_TOFILEDESC,
+			ISC_LOG_DEBUG(packetlevel),
+			ISC_LOGDESTINATION_FILE(errout), ISC_LOG_PRINTPREFIX,
+			DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_PACKETS);
 	}
 }
 

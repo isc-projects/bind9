@@ -24,6 +24,7 @@
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 typedef struct isc_logconfig isc_logconfig_t; /*%< Log Configuration */
 
@@ -106,10 +107,9 @@ typedef enum {
 typedef enum isc_logcategory isc_logcategory_t; /*%< Log Category */
 enum isc_logcategory {
 	/*%
-	 * Do not log directly to DEFAULT.  Use another category.
-	 * When in doubt, use GENERAL.
+	 * Logging to DEFAULT will end with assertion failure.  Use another
+	 * category.  When in doubt, use GENERAL.
 	 */
-	ISC_LOGCATEGORY_ALL = -2,
 	ISC_LOGCATEGORY_INVALID = -1,
 	/* isc categories */
 	ISC_LOGCATEGORY_DEFAULT = 0,
@@ -162,10 +162,9 @@ enum isc_logcategory {
  */
 typedef enum isc_logmodule isc_logmodule_t; /*%< Log Module */
 enum isc_logmodule {
-	ISC_LOGMODULE_ALL = -2,
 	ISC_LOGMODULE_INVALID = -1,
 	/* isc modules */
-	ISC_LOGMODULE_NONE = 0,
+	ISC_LOGMODULE_DEFAULT = 0,
 	ISC_LOGMODULE_SOCKET,
 	ISC_LOGMODULE_TIME,
 	ISC_LOGMODULE_INTERFACE,
@@ -234,10 +233,10 @@ enum isc_logmodule {
  * The isc_logfile structure is initialized as part of an isc_logdestination
  * before calling isc_log_createchannel().
  *
- * When defining an #ISC_LOG_TOFILE
- * channel the name, versions and maximum_size should be set before calling
- * isc_log_createchannel().  To define an #ISC_LOG_TOFILEDESC channel set only
- * the stream before the call.
+ * When defining an #ISC_LOG_TOFILE channel, the name, versions and
+ * maximum_size should be set before calling isc_log_createchannel().  To
+ * define an #ISC_LOG_TOFILEDESC channel set only the stream before the
+ * call.
  *
  * Setting maximum_size to zero implies no maximum.
  */
@@ -268,13 +267,15 @@ typedef union isc_logdestination {
 	int	      facility;
 } isc_logdestination_t;
 
-#define ISC_LOGDESTINATION_STDERR                               \
+#define ISC_LOGDESTINATION_FILE(errout)                         \
 	(&(isc_logdestination_t){                               \
 		.file = {                                       \
-			.stream = stderr,                       \
+			.stream = errout,                       \
 			.versions = ISC_LOG_ROLLNEVER,          \
 			.suffix = isc_log_rollsuffix_increment, \
 		} })
+
+#define ISC_LOGDESTINATION_STDERR ISC_LOGDESTINATION_FILE(stderr)
 
 #define ISC_LOGDESTINATION_SYSLOG(f) \
 	(&(isc_logdestination_t){ .facility = (f) })
@@ -473,50 +474,52 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  * Requires:
  *\li	lcfg is a valid logging configuration.
  *
- *\li	category is NULL or has an id that is in the range of known ids.
+ *\li	category is ISC_LOGCATEGORY_DEFAULT or has an id that is in the range of
+ *	known ids.
  *
- *	module is NULL or has an id that is in the range of known ids.
+ *	module is ISC_LOGMODULE_DEFAULT or has an id that is in the range of
+ *	known ids.
  *
  * Ensures:
- *\li	#ISC_R_SUCCESS
- *		The channel will be used by the indicated category/module
- *		arguments.
- *
- *\li	#ISC_R_NOMEMORY
- *		If assignment for a specific category has been requested,
- *		the channel has not been associated with the indicated
- *		category/module arguments and no additional memory is
- *		used by the logging context.
- *		If assignment for all categories has been requested
- *		then _some_ may have succeeded (starting with category
- *		"default" and progressing through the order of categories
- *		passed to isc_log_registercategories()) and additional memory
- *		is being used by whatever assignments succeeded.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS	Success
- *\li	#ISC_R_NOMEMORY	Resource limit: Out of memory
+ *	The channel will be used by the indicated category/module
+ *	arguments.
  */
 
-/* Attention: next four comments PRECEDE code */
-/*!
+void
+isc_log_createandusechannel(isc_logconfig_t *lcfg, const char *name,
+			    unsigned int type, int level,
+			    const isc_logdestination_t *destination,
+			    unsigned int		flags,
+			    const isc_logcategory_t	category,
+			    const isc_logmodule_t	module);
+
+/*%<
+ * The isc_log_createchannel() and isc_log_usechannel() functions, combined
+ * into one.  (This is for use by utilities that have simpler logging
+ * requirements than named, and don't have to define and assign channels
+ * dynamically.)
+ */
+
+void
+isc_log_write(isc_logcategory_t category, isc_logmodule_t module, int level,
+	      const char *format, ...) ISC_FORMAT_PRINTF(4, 5);
+/*%<
  *   \brief
  * Write a message to the log channels.
  *
  * Notes:
- *\li	lctx can be NULL; this is allowed so that programs which use
- *	libraries that use the ISC logging system are not required to
- *	also use it.
- *
  *\li	The format argument is a printf(3) string, with additional arguments
  *	as necessary.
  *
  * Requires:
- *\li	lctx is a valid logging context.
- *
  *\li	The category and module arguments must have ids that are in the
- *	range of known ids, as established by isc_log_registercategories()
- *	and isc_log_registermodules().
+ *	range of known ids.
+ *
+ *\li	category != ISC_LOGCATEGORY_DEFAULT.  ISC_LOGCATEGORY_DEFAULT is used
+ *	only to define channels.
+ *
+ *\li	module != ISC_LOGMODULE_DEFAULT.  ISC_LOGMODULE_DEFAULT is used
+ *	only to define channels.
  *
  *\li	level != #ISC_LOG_DYNAMIC.  ISC_LOG_DYNAMIC is used only to define
  *	channels, and explicit debugging level must be identified for
@@ -532,49 +535,40 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *\li	Nothing.  Failure to log a message is not construed as a
  *	meaningful error.
  */
-void
-isc_log_write(isc_logcategory_t category, isc_logmodule_t module, int level,
-	      const char *format, ...)
 
-	ISC_FORMAT_PRINTF(4, 5);
-
-/*%
- * Write a message to the log channels.
- *
- * Notes:
- *\li	lctx can be NULL; this is allowed so that programs which use
- *	libraries that use the ISC logging system are not required to
- *	also use it.
- *
- *\li	The format argument is a printf(3) string, with additional arguments
- *	as necessary.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- *
- *\li	The category and module arguments must have ids that are in the
- *	range of known ids, as established by isc_log_registercategories()
- *	and isc_log_registermodules().
- *
- *\li	level != #ISC_LOG_DYNAMIC.  ISC_LOG_DYNAMIC is used only to define
- *	channels, and explicit debugging level must be identified for
- *	isc_log_write() via ISC_LOG_DEBUG(level).
- *
- *\li	format != NULL.
- *
- * Ensures:
- *\li	The log message is written to every channel associated with the
- *	indicated category/module pair.
- *
- * Returns:
- *\li	Nothing.  Failure to log a message is not construed as a
- *	meaningful error.
- */
 void
 isc_log_vwrite(isc_logcategory_t category, isc_logmodule_t module, int level,
-	       const char *format, va_list args)
-
-	ISC_FORMAT_PRINTF(4, 0);
+	       const char *format, va_list args) ISC_FORMAT_PRINTF(4, 0);
+/*%<
+ * Write a message to the log channels.
+ *
+ *\li	The format argument is a printf(3) string, with additional arguments
+ *	as necessary.
+ *
+ * Requires:
+ *\li	The category and module arguments must have ids that are in the
+ *	range of known ids.
+ *
+ *\li	category != ISC_LOGCATEGORY_DEFAULT.  ISC_LOGCATEGORY_DEFAULT is used
+ *	only to define channels.
+ *
+ *\li	module != ISC_LOGMODULE_DEFAULT.  ISC_LOGMODULE_DEFAULT is used
+ *	only to define channels.
+ *
+ *\li	level != #ISC_LOG_DYNAMIC.  ISC_LOG_DYNAMIC is used only to define
+ *	channels, and explicit debugging level must be identified for
+ *	isc_log_write() via ISC_LOG_DEBUG(level).
+ *
+ *\li	format != NULL.
+ *
+ * Ensures:
+ *\li	The log message is written to every channel associated with the
+ *	indicated category/module pair.
+ *
+ * Returns:
+ *\li	Nothing.  Failure to log a message is not construed as a
+ *	meaningful error.
+ */
 
 void
 isc_log_setdebuglevel(unsigned int level);

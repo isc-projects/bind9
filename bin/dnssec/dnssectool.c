@@ -129,7 +129,6 @@ sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 
 void
 setup_logging(void) {
-	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 	int level;
 
@@ -162,17 +161,11 @@ setup_logging(void) {
 	 *  - the program name and logging level are printed
 	 *  - no time stamp is printed
 	 */
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC, level,
-			      &destination,
-			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
-
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
-					 ISC_LOGCATEGORY_ALL,
-					 ISC_LOGMODULE_ALL) == ISC_R_SUCCESS);
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC, level,
+		ISC_LOGDESTINATION_STDERR,
+		ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL, ISC_LOGCATEGORY_DEFAULT,
+		ISC_LOGMODULE_DEFAULT);
 }
 
 static isc_stdtime_t
