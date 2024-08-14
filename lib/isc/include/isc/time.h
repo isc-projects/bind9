@@ -18,18 +18,19 @@
 #include <inttypes.h>
 #include <time.h>
 
+#include <isc/attributes.h>
 #include <isc/lang.h>
 #include <isc/types.h>
 
 /*
  * Define various time conversion constants.
  */
-static const unsigned int MS_PER_SEC = 1000;
-static const unsigned int US_PER_MS = 1000;
-static const unsigned int NS_PER_US = 1000;
-static const unsigned int US_PER_SEC = 1000 * 1000;
-static const unsigned int NS_PER_MS = 1000 * 1000;
-static const unsigned int NS_PER_SEC = 1000 * 1000 * 1000;
+ISC_CONSTEXPR unsigned int MS_PER_SEC = 1000;
+ISC_CONSTEXPR unsigned int US_PER_MS = 1000;
+ISC_CONSTEXPR unsigned int NS_PER_US = 1000;
+ISC_CONSTEXPR unsigned int US_PER_SEC = 1000 * 1000;
+ISC_CONSTEXPR unsigned int NS_PER_MS = 1000 * 1000;
+ISC_CONSTEXPR unsigned int NS_PER_SEC = 1000 * 1000 * 1000;
 
 /*
  * ISC_FORMATHTTPTIMESTAMP_SIZE needs to be 30 in C locale and potentially
