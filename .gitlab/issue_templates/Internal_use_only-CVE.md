@@ -35,7 +35,7 @@ confidential!
   - [ ] [:link:][step_workarounds]       **(SwEng)** Determine whether workarounds for the problem exist
   - [ ] [:link:][step_coordinate]        **(SwEng)** If necessary, coordinate with other parties
   - [ ] [:link:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
-  - [ ] [:link:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal and notify earliest customers
+  - [ ] [:link:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
   - [ ] [:link:][step_advisory_mr]       **(Support)** Create a merge request for the Security Advisory and include all readily available information in it
   - [ ] [:link:][step_reproducer_mr]     **(SwEng)** Prepare a private merge request containing a system test reproducing the problem
   - [ ] [:link:][step_notify_support]    **(SwEng)** Notify Support when a reproducer is ready
