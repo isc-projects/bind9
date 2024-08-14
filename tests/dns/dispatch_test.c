@@ -467,7 +467,14 @@ connected(isc_result_t eresult, isc_region_t *region ISC_ATTR_UNUSED,
 	  void *arg) {
 	test_dispatch_t *test = arg;
 
-	REQUIRE(eresult == ISC_R_SUCCESS);
+	switch (eresult) {
+	case ISC_R_CONNECTIONRESET:
+		/* Don't send any data if the connection failed */
+		test_dispatch_shutdown(test);
+		return;
+	default:
+		assert_int_equal(eresult, ISC_R_SUCCESS);
+	}
 
 	dns_dispatch_send(test->dispentry, &testdata.region);
 }
@@ -477,7 +484,13 @@ connected_shutdown(isc_result_t eresult, isc_region_t *region ISC_ATTR_UNUSED,
 		   void *arg) {
 	test_dispatch_t *test = arg;
 
-	REQUIRE(eresult == ISC_R_SUCCESS);
+	switch (eresult) {
+	case ISC_R_CONNECTIONRESET:
+		/* Skip */
+		break;
+	default:
+		assert_int_equal(eresult, ISC_R_SUCCESS);
+	}
 
 	test_dispatch_shutdown(test);
 }
@@ -551,9 +564,12 @@ timeout_connected(isc_result_t eresult, isc_region_t *region ISC_ATTR_UNUSED,
 		  void *arg) {
 	test_dispatch_t *test = arg;
 
-	if (eresult == ISC_R_ADDRNOTAVAIL || eresult == ISC_R_CONNREFUSED) {
-		/* FIXME: Skip */
-	} else {
+	switch (eresult) {
+	case ISC_R_ADDRNOTAVAIL:
+	case ISC_R_CONNREFUSED:
+		/* Skip */
+		break;
+	default:
 		assert_int_equal(eresult, ISC_R_TIMEDOUT);
 	}
 
