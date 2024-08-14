@@ -102,3 +102,9 @@
 #else
 #define ISC_ATTR_UNUSED __attribute__((__unused__))
 #endif
+
+#if __STDC_VERSION__ >= 202311L
+#define ISC_CONSTEXPR constexpr
+#else
+#define ISC_CONSTEXPR static const
+#endif
