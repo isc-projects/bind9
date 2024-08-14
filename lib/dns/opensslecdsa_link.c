@@ -56,6 +56,37 @@
 		goto err; \
 	}
 
+#if OPENSSL_VERSION_NUMBER >= 0x30200000L
+static isc_result_t
+opensslecdsa_set_deterministic(EVP_PKEY_CTX *pctx, unsigned int key_alg) {
+	unsigned int rfc6979 = 1;
+	const char *md = NULL;
+	OSSL_PARAM params[3];
+
+	switch (key_alg) {
+	case DST_ALG_ECDSA256:
+		md = "SHA256";
+		break;
+	case DST_ALG_ECDSA384:
+		md = "SHA384";
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	params[0] = OSSL_PARAM_construct_utf8_string("digest", UNCONST(md), 0);
+	params[1] = OSSL_PARAM_construct_uint("nonce-type", &rfc6979);
+	params[2] = OSSL_PARAM_construct_end();
+
+	if (EVP_PKEY_CTX_set_params(pctx, params) != 1) {
+		return dst__openssl_toresult2("EVP_PKEY_CTX_set_params",
+					      DST_R_OPENSSLFAILURE);
+	}
+
+	return ISC_R_SUCCESS;
+}
+#endif /* OPENSSL_VERSION_NUMBER >= 0x30200000L */
+
 static bool
 opensslecdsa_valid_key_alg(unsigned int key_alg) {
 	switch (key_alg) {
@@ -510,12 +541,12 @@ opensslecdsa_generate_pkey(unsigned int key_alg, const char *label,
 		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_new",
 					       DST_R_OPENSSLFAILURE));
 	}
+
 	status = EVP_PKEY_keygen_init(ctx);
 	if (status != 1) {
 		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen_init",
 					       DST_R_OPENSSLFAILURE));
 	}
-
 	status = EVP_PKEY_keygen(ctx, retkey);
 	if (status != 1) {
 		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen",
@@ -647,6 +678,7 @@ static isc_result_t
 opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	isc_result_t ret = ISC_R_SUCCESS;
 	EVP_MD_CTX *evp_md_ctx;
+	EVP_PKEY_CTX *pctx = NULL;
 	const EVP_MD *type = NULL;
 
 	UNUSED(key);
@@ -664,7 +696,7 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	}
 
 	if (dctx->use == DO_SIGN) {
-		if (EVP_DigestSignInit(evp_md_ctx, NULL, type, NULL,
+		if (EVP_DigestSignInit(evp_md_ctx, &pctx, type, NULL,
 				       dctx->key->keydata.pkeypair.priv) != 1)
 		{
 			EVP_MD_CTX_destroy(evp_md_ctx);
@@ -672,6 +704,14 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 						       "EVP_DigestSignInit",
 						       ISC_R_FAILURE));
 		}
+
+#if OPENSSL_VERSION_NUMBER >= 0x30200000L
+		ret = opensslecdsa_set_deterministic(pctx, dctx->key->key_alg);
+		if (ret != ISC_R_SUCCESS) {
+			goto err;
+		}
+#endif /* OPENSSL_VERSION_NUMBER >= 0x30200000L */
+
 	} else {
 		if (EVP_DigestVerifyInit(evp_md_ctx, NULL, type, NULL,
 					 dctx->key->keydata.pkeypair.pub) != 1)

@@ -421,9 +421,67 @@ ISC_RUN_TEST_IMPL(cmp_test) {
 	}
 }
 
+ISC_RUN_TEST_IMPL(ecdsa_determinism_test) {
+	isc_result_t result;
+	isc_buffer_t *sigbuf1 = NULL, *sigbuf2 = NULL;
+	isc_buffer_t databuf, keybuf;
+	isc_region_t datareg;
+	dns_fixedname_t fname;
+	dns_name_t *name = NULL;
+	dst_key_t *key = NULL;
+	dst_context_t *ctx = NULL;
+	unsigned int siglen;
+
+	const char *data = "these are some bytes to sign";
+
+	isc_buffer_constinit(&databuf, data, strlen(data));
+	isc_buffer_add(&databuf, strlen(data));
+	isc_buffer_region(&databuf, &datareg);
+
+	name = dns_fixedname_initname(&fname);
+	isc_buffer_constinit(&keybuf, "example.", strlen("example."));
+	isc_buffer_add(&keybuf, strlen("example."));
+	result = dns_name_fromtext(name, &keybuf, dns_rootname, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dst_key_fromfile(name, 19786, DST_ALG_ECDSA256,
+				  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
+				  TESTS_DIR "/comparekeys", mctx, &key);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dst_key_sigsize(key, &siglen);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_buffer_allocate(mctx, &sigbuf1, siglen);
+	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL, true, 0,
+				    &ctx);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dst_context_sign(ctx, sigbuf1);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dst_context_destroy(&ctx);
+
+	isc_buffer_allocate(mctx, &sigbuf2, siglen);
+	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL, true, 0,
+				    &ctx);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dst_context_sign(ctx, sigbuf2);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dst_context_destroy(&ctx);
+
+#if OPENSSL_VERSION_NUMBER >= 0x30200000L
+	assert_memory_equal(sigbuf1->base, sigbuf2->base, siglen);
+#else
+	assert_memory_not_equal(sigbuf1->base, sigbuf2->base, siglen);
+#endif
+
+	isc_buffer_free(&sigbuf1);
+	isc_buffer_free(&sigbuf2);
+
+	dst_key_free(&key);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(sig_test)
 ISC_TEST_ENTRY(cmp_test)
+ISC_TEST_ENTRY(ecdsa_determinism_test)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
