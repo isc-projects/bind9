@@ -21,14 +21,15 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-enum {
-	MS_PER_SEC = 1000,		 /*%< Milliseonds per second. */
-	US_PER_MS = 1000,		 /*%< Microseconds per millisecond. */
-	US_PER_SEC = 1000 * 1000,	 /*%< Microseconds per second. */
-	NS_PER_US = 1000,		 /*%< Nanoseconds per millisecond. */
-	NS_PER_MS = 1000 * 1000,	 /*%< Nanoseconds per microsecond. */
-	NS_PER_SEC = 1000 * 1000 * 1000, /*%< Nanoseconds per second. */
-};
+/*
+ * Define various time conversion constants.
+ */
+#define MS_PER_SEC 1000U
+#define US_PER_MS  1000U
+#define NS_PER_US  1000U
+#define US_PER_SEC (1000U * 1000U)
+#define NS_PER_MS  (1000U * 1000U)
+#define NS_PER_SEC (1000U * 1000U * 1000U)
 
 /***
  *** Intervals
