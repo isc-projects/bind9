@@ -40,7 +40,8 @@ isc_stdtime_now(void) {
 	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
 		FATAL_SYSERROR(errno, "clock_gettime()");
 	}
-	INSIST(ts.tv_sec > 0 && ts.tv_nsec >= 0 && ts.tv_nsec < NS_PER_SEC);
+	INSIST(ts.tv_sec > 0 && ts.tv_nsec >= 0 &&
+	       ts.tv_nsec < (long)NS_PER_SEC);
 
 	return ((isc_stdtime_t)ts.tv_sec);
 }
