@@ -651,6 +651,28 @@ tarball-create:
 
 # Jobs for doc builds on Debian 12 "bookworm" (amd64)
 
+changelog:
+  <<: *base_image
+  <<: *docs_job
+  rules:
+    - if: '$CI_MERGE_REQUEST_TITLE =~ /\s(dev|usr|pkg):/'
+  variables:
+    GIT_AUTHOR_NAME: $GITLAB_USER_NAME
+    GIT_AUTHOR_EMAIL: $GITLAB_USER_EMAIL
+    GIT_COMMITTER_NAME: $GITLAB_USER_NAME
+    GIT_COMMITTER_EMAIL: $GITLAB_USER_EMAIL
+  before_script:
+    - echo -e "$CI_MERGE_REQUEST_TITLE\n" > commitmsg
+    - sed -i 's/^Draft:\s*//' commitmsg
+    - echo -e "$CI_MERGE_REQUEST_DESCRIPTION" >> commitmsg
+    - git commit --allow-empty -F commitmsg
+    - ./contrib/gitchangelog/gitchangelog.py HEAD^..HEAD
+  needs:
+    - job: autoreconf
+      artifacts: true
+  artifacts:
+    untracked: true
+
 docs:
   <<: *default_triggering_rules
   <<: *base_image
