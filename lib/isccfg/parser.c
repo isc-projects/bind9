@@ -689,7 +689,8 @@ cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer, const char *file,
 	REQUIRE(type != NULL);
 	REQUIRE(buffer != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
-	REQUIRE((flags & ~(CFG_PCTX_NODEPRECATED)) == 0);
+	REQUIRE((flags & ~(CFG_PCTX_NODEPRECATED | CFG_PCTX_NOOBSOLETE |
+			   CFG_PCTX_NOEXPERIMENTAL)) == 0);
 
 	CHECK(isc_lex_openbuffer(pctx->lexer, buffer));
 
@@ -2357,13 +2358,17 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			cfg_parser_warning(pctx, 0, "option '%s' is deprecated",
 					   clause->name);
 		}
-		if ((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) {
+		if ((pctx->flags & CFG_PCTX_NOOBSOLETE) == 0 &&
+		    (clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0)
+		{
 			cfg_parser_warning(pctx, 0,
 					   "option '%s' is obsolete and "
 					   "should be removed ",
 					   clause->name);
 		}
-		if ((clause->flags & CFG_CLAUSEFLAG_EXPERIMENTAL) != 0) {
+		if ((pctx->flags & CFG_PCTX_NOEXPERIMENTAL) == 0 &&
+		    (clause->flags & CFG_CLAUSEFLAG_EXPERIMENTAL) != 0)
+		{
 			cfg_parser_warning(pctx, 0,
 					   "option '%s' is experimental and "
 					   "subject to change in the future",
