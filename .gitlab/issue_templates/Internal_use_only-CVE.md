@@ -53,7 +53,7 @@ confidential!
 ### At T-5
 
   - [ ] [:link:][step_asn_links]         **(Marketing)** (BIND 9 only) Update the BIND -S information document in the support portal with download links to the new versions
-  - [ ] [:link:][step_asn_send]          **(Support)** Notify eligible customers with the text of the advisory (earliest, and T-5)
+  - [ ] [:link:][step_asn_send]          **(Support)** Notify eligible customers by adding a ticket to the 5 Day queue in RT with the text of the advisory (earliest, and T-5)
   - [ ] [:link:][step_preannouncement]   **(Marketing)** (BIND 9 only) Send a pre-announcement email to the *bind-announce* mailing list to alert users that the upcoming release will include security fixes
 
 ### At T-3
