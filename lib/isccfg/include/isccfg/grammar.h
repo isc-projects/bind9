@@ -258,8 +258,10 @@ struct cfg_parser {
 };
 
 /* Parser context flags */
-#define CFG_PCTX_SKIP	      0x1
-#define CFG_PCTX_NODEPRECATED 0x2
+#define CFG_PCTX_SKIP		(1 << 0)
+#define CFG_PCTX_NODEPRECATED	(1 << 1)
+#define CFG_PCTX_NOOBSOLETE	(1 << 2)
+#define CFG_PCTX_NOEXPERIMENTAL (1 << 3)
 
 /*@{*/
 /*%
