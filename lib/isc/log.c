@@ -1511,6 +1511,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	lctx->buffer[0] = '\0';
 
 	isc_logconfig_t *lcfg = rcu_dereference(lctx->logconfig);
+	if (lcfg == NULL) {
+		goto unlock;
+	}
 
 	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
 
