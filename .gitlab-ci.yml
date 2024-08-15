@@ -1265,9 +1265,9 @@ unit:clang:asan:
 gcc:tsan:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Wno-stringop-overread -ggdb -O2 -fsanitize=thread -Wl,-rpath=/usr/local/lib -Wl,--enable-new-dtags"
+    CFLAGS: "${CFLAGS_COMMON} -Wno-stringop-overread -ggdb -O2 -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/usr/local/lib/pkgconfig"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
   <<: *tsan_fedora_40_amd64_image
   <<: *build_job
 
@@ -1294,9 +1294,9 @@ clang:tsan:
   <<: *build_job
   variables:
     CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread"
+    CFLAGS: "${CFLAGS_COMMON} -ggdb -O2 -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --without-jemalloc"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
 
 system:clang:tsan:
   variables:
@@ -1623,7 +1623,7 @@ respdiff:tsan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--disable-dnsrps --enable-pthread-rwlock --without-jemalloc"
+    EXTRA_CONFIGURE: "--disable-dnsrps --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:
