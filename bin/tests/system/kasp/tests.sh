@@ -379,7 +379,7 @@ echo_i "test that if private key files are inaccessible this doesn't trigger a r
 basefile=$(key_get KEY1 BASEFILE)
 mv "${basefile}.private" "${basefile}.offline"
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:verify keys failed: some key files are missing" $DIR/named.run || ret=1
+wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run || ret=1
 mv "${basefile}.offline" "${basefile}.private"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -1592,6 +1592,15 @@ check_subdomain
 dnssec_verify
 check_rrsig_refresh
 
+# Load again, make sure the purged key is not an issue when verifying keys.
+echo_i "load keys for $ZONE, making sure a recently purged key is not an issue when verifying keys ($n)"
+ret=0
+rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
+grep "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run && ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 #
 # Zone: legacy-keys.kasp.
 #
@@ -1741,7 +1750,7 @@ rm_keyfiles "KEY1"
 rm_keyfiles "KEY2"
 
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:verify keys failed: some key files are missing" $DIR/named.run || ret=1
+wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run || ret=1
 # Check keys again, make sure no new keys are created.
 set_policy "autosign" "0" "300"
 key_clear "KEY1"
