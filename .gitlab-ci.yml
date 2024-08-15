@@ -112,10 +112,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_amd64
 
-.debian-bullseye-amd64: &debian_bullseye_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
-  <<: *linux_amd64
-
 .debian-bookworm-amd64: &debian_bookworm_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_amd64
@@ -134,7 +130,7 @@ stages:
 # This is a meta image that is used as a base for non-specific jobs
 
 .base: &base_image
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
 
 ### QCOW2 Image Templates
 
@@ -404,7 +400,7 @@ tarball-create:
     paths:
       - bind-*.tar.${TARBALL_EXTENSION}
 
-# Jobs for doc builds on Debian 11 "bullseye" (amd64)
+# Jobs for doc builds on Debian 11 "bookworm" (amd64)
 
 docs:
   <<: *release_branch_triggering_rules
@@ -609,47 +605,7 @@ unit:gcc:buster:amd64:
     - job: gcc:buster:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Debian 11 "bullseye" (amd64)
-
-gcc:bullseye:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
-    EXTRA_CONFIGURE: "--with-libidn2"
-    LDFLAGS: "--coverage"
-  <<: *debian_bullseye_amd64_image
-  <<: *build_job
-
-system:gcc:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
-  <<: *system_test_gcov_job
-  needs:
-    - job: unit:gcc:bullseye:amd64
-      artifacts: true
-
-unit:gcc:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
-  <<: *unit_test_gcov_job
-  needs:
-    - job: gcc:bullseye:amd64
-      artifacts: true
-
-# Job for out-of-tree GCC build on Debian 11 "bullseye" (amd64)
-# Also tests configration option: --with-lmdb.
-
-gcc:out-of-tree:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    CONFIGURE: ../configure
-    EXTRA_CONFIGURE: "--with-libidn2 --with-lmdb"
-    SKIP_MAKE_DEPEND: 1
-    RUN_MAKE_INSTALL: 1
-    OOT_BUILD_WORKSPACE: workspace
-  <<: *base_image
-  <<: *build_job
-
-# Jobs for tarball GCC builds on Debian 11 "bullseye" (amd64)
+# Jobs for tarball GCC builds on Debian 11 "bookworm" (amd64)
 
 gcc:tarball:
   variables:
@@ -849,58 +805,6 @@ unit:clang:tsan:
   <<: *unit_test_tsan_job
   needs:
     - job: clang:tsan
-      artifacts: true
-
-# Jobs for Clang builds on Debian 11 "bullseye" (amd64)
-
-clang:bullseye:amd64:
-  variables:
-    CC: ${CLANG}
-    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
-    EXTRA_CONFIGURE: "--with-python=python3 --disable-warn-error"
-  <<: *debian_bullseye_amd64_image
-  <<: *build_job
-
-system:clang:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: clang:bullseye:amd64
-      artifacts: true
-
-unit:clang:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: clang:bullseye:amd64
-      artifacts: true
-
-# Jobs for PKCS#11-enabled GCC builds on Debian "bullseye" (amd64)
-
-# "--disable-warn-error" ./configure option disables compiler warnings. This
-# ensures that the job will not fail because of warnings (e.g., array
-# inconsistencies in lib/isc/sha2.c) we don't want to fix on BIND 9.11 because
-# the version is in security-fixes-only mode.
-gcc:pkcs11:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so --disable-warn-error"
-  <<: *debian_bullseye_amd64_image
-  <<: *build_job
-
-system:gcc:pkcs11:
-  <<: *debian_bullseye_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:pkcs11
-      artifacts: true
-
-unit:gcc:pkcs11:
-  <<: *debian_bullseye_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:pkcs11
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 12 (amd64)
