@@ -233,17 +233,15 @@ test_hashmap_iterator(bool random_data) {
 	isc_hashmap_create(mctx, HASHMAP_MIN_BITS, &hashmap);
 	assert_non_null(hashmap);
 
-	if (random_data) {
-		for (size_t i = 0; i < count; i++) {
-			/* short keys */
-			snprintf((char *)nodes[i].key, 16, "%u",
-				 (unsigned int)i);
-			strlcat((char *)nodes[i].key, " key of a raw hashmap!!",
-				16);
+	for (size_t i = 0; i < count; i++) {
+		/* short keys */
+		snprintf((char *)nodes[i].key, 16, "%u", (unsigned int)i);
+		strlcat((char *)nodes[i].key, " key of a raw hashmap!!", 16);
+		if (random_data) {
 			nodes[i].hashval = isc_hash32(nodes[i].key, 16, true);
+		} else {
+			nodes[i].hashval = test_hashvals[i];
 		}
-	} else {
-		memmove(nodes, test_nodes, sizeof(test_nodes));
 	}
 
 	for (size_t i = 0; i < count; i++) {
