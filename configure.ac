@@ -133,6 +133,9 @@ AC_COMPILE_IFELSE(
   [],
   [STD_CFLAGS="$STD_CFLAGS -Wno-stringop-overread"])
 
+# Silence GCC 11.1+ note about the changed alignment, see GL #4841
+AS_CASE([$target_cpu],[i?86],[STD_CFLAGS="$STD_CFLAGS -Wno-psabi"])
+
 STD_LDFLAGS=""
 
 # ... except in test code
