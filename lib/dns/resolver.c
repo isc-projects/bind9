@@ -4241,6 +4241,7 @@ resume_qmin(void *arg) {
 	case DNS_R_FORMERR:
 	case DNS_R_REMOTEFORMERR:
 	case ISC_R_FAILURE:
+	case ISC_R_TIMEDOUT:
 		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) != 0) {
 			/* These results cause a hard fail in strict mode */
 			goto cleanup;
