@@ -366,6 +366,7 @@ static void
 linux_if_inet6_first(isc_interfaceiter_t *iter) {
 	if (iter->proc != NULL) {
 		rewind(iter->proc);
+		errno = 0; /* Ignore the errno */
 		(void)linux_if_inet6_next(iter);
 	} else {
 		iter->valid = ISC_R_NOMORE;
