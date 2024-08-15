@@ -371,6 +371,7 @@ struct dns_zone {
 	dns_view_t *prev_view;
 	dns_kasp_t *kasp;
 	dns_kasp_t *defaultkasp;
+	dns_dnsseckeylist_t keyring;
 	dns_checkmxfunc_t checkmx;
 	dns_checksrvfunc_t checksrv;
 	dns_checknsfunc_t checkns;
@@ -1179,6 +1180,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	zone->parentals = r;
 	zone->notify = r;
 	zone->defaultkasp = NULL;
+	ISC_LIST_INIT(zone->keyring);
 
 	isc_stats_create(mctx, &zone->gluecachestats,
 			 dns_gluecachestatscounter_max);
@@ -1280,6 +1282,9 @@ zone_free(dns_zone_t *zone) {
 	}
 	if (zone->defaultkasp != NULL) {
 		dns_kasp_detach(&zone->defaultkasp);
+	}
+	if (!ISC_LIST_EMPTY(zone->keyring)) {
+		clear_keylist(&zone->keyring, zone->mctx);
 	}
 	if (!ISC_LIST_EMPTY(zone->checkds_ok)) {
 		clear_keylist(&zone->checkds_ok, zone->mctx);
@@ -22006,6 +22011,47 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+zone_verifykeys(dns_zone_t *zone, dns_dnsseckeylist_t *newkeys) {
+	dns_dnsseckey_t *key1, *key2, *next;
+
+	/*
+	 * Make sure that the existing keys are also present in the new keylist.
+	 */
+	for (key1 = ISC_LIST_HEAD(zone->keyring); key1 != NULL; key1 = next) {
+		bool found = false;
+		next = ISC_LIST_NEXT(key1, link);
+
+		if (dst_key_is_unused(key1->key)) {
+			continue;
+		}
+		if (key1->purge) {
+			continue;
+		}
+
+		for (key2 = ISC_LIST_HEAD(*newkeys); key2 != NULL;
+		     key2 = ISC_LIST_NEXT(key2, link))
+		{
+			if (dst_key_compare(key1->key, key2->key)) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			char keystr[DST_KEY_FORMATSIZE];
+			dst_key_format(key1->key, keystr, sizeof(keystr));
+			dnssec_log(zone, ISC_LOG_DEBUG(1),
+				   "verifykeys: key %s - not available",
+				   keystr);
+			return (ISC_R_NOTFOUND);
+		}
+	}
+
+	/* All good. */
+	return (ISC_R_SUCCESS);
+}
+
 static void
 remove_rdataset(dns_zone_t *zone, dns_diff_t *diff, dns_rdataset_t *rdataset) {
 	if (!dns_rdataset_isassociated(rdataset)) {
@@ -22294,6 +22340,16 @@ zone_rekey(dns_zone_t *zone) {
 	}
 
 	if (kasp != NULL && !offlineksk) {
+		/* Verify new keys. */
+		isc_result_t ret = zone_verifykeys(zone, &keys);
+		if (ret != ISC_R_SUCCESS) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_rekey:zone_verifykeys failed: "
+				   "some key files are missing");
+			KASP_UNLOCK(kasp);
+			goto failure;
+		}
+
 		/*
 		 * Check DS at parental agents. Clear ongoing checks.
 		 */
@@ -22303,8 +22359,8 @@ zone_rekey(dns_zone_t *zone) {
 		ISC_LIST_INIT(zone->checkds_ok);
 		UNLOCK_ZONE(zone);
 
-		isc_result_t ret = dns_zone_getdnsseckeys(zone, db, ver, now,
-							  &zone->checkds_ok);
+		ret = dns_zone_getdnsseckeys(zone, db, ver, now,
+					     &zone->checkds_ok);
 		if (ret == ISC_R_SUCCESS) {
 			zone_checkds(zone);
 		} else {
@@ -22316,7 +22372,7 @@ zone_rekey(dns_zone_t *zone) {
 				   isc_result_totext(ret));
 		}
 
-		/* Run keymgr */
+		/* Run keymgr. */
 		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
 			dns_zone_lock_keyfiles(zone);
 			result = dns_keymgr_run(&zone->origin, zone->rdclass,
@@ -22787,10 +22843,14 @@ zone_rekey(dns_zone_t *zone) {
 	}
 	UNLOCK_ZONE(zone);
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
-		for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
-		     key = ISC_LIST_NEXT(key, link))
-		{
+	/*
+	 * Remember which keys have been used.
+	 */
+	if (!ISC_LIST_EMPTY(zone->keyring)) {
+		clear_keylist(&zone->keyring, zone->mctx);
+	}
+	while ((key = ISC_LIST_HEAD(dnskeys)) != NULL) {
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
 			/* This debug log is used in the kasp system test */
 			char algbuf[DNS_SECALG_FORMATSIZE];
 			dns_secalg_format(dst_key_alg(key->key), algbuf,
@@ -22799,6 +22859,8 @@ zone_rekey(dns_zone_t *zone) {
 				   "zone_rekey done: key %d/%s",
 				   dst_key_id(key->key), algbuf);
 		}
+		ISC_LIST_UNLINK(dnskeys, key, link);
+		ISC_LIST_APPEND(zone->keyring, key, link);
 	}
 
 	result = ISC_R_SUCCESS;
