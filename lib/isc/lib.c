@@ -24,7 +24,6 @@
 #include <isc/uv.h>
 #include <isc/xml.h>
 
-#include "config.h"
 #include "mem_p.h"
 #include "mutex_p.h"
 #include "os_p.h"
