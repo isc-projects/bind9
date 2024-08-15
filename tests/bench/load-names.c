@@ -566,7 +566,7 @@ main(int argc, char *argv[]) {
 			void *map = NULL;
 
 			isc_mem_create(&mem);
-			map = fun->new (mem);
+			map = fun->new(mem);
 
 			size_t nitems = lines / (nthreads + 1);
 
