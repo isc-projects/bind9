@@ -802,9 +802,9 @@ gcc:tsan:
   <<: *build_job
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON} -Wno-stringop-overread -ggdb -O2 -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 PKG_CONFIG_PATH=/usr/local/lib/pkgconfig"
 
 system:gcc:tsan:
   variables:
@@ -829,9 +829,9 @@ clang:tsan:
   <<: *build_job
   variables:
     CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    CFLAGS: "${CFLAGS_COMMON} -ggdb -O2 -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
 
 system:clang:tsan:
   variables:
