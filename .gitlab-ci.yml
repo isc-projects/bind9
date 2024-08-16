@@ -31,11 +31,6 @@ variables:
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
 
-  TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 atexit_sleep_ms=1000 history_size=7 log_exe_name=true log_path=tsan"
-  TSAN_SUPPRESSIONS: "suppressions=${CI_PROJECT_DIR}/.tsan-suppress"
-  TSAN_OPTIONS_DEBIAN: "${TSAN_OPTIONS_COMMON} ${TSAN_SUPPRESSIONS} external_symbolizer_path=${LLVM_SYMBOLIZER}"
-  TSAN_OPTIONS_FEDORA: "${TSAN_OPTIONS_COMMON} ${TSAN_SUPPRESSIONS} external_symbolizer_path=/usr/bin/llvm-symbolizer"
-
   UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:disable_coredump=0"
 
   INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
@@ -136,10 +131,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_amd64
 
-.tsan-debian-bookworm-amd64: &tsan_debian_bookworm_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tsan-debian-bookworm-amd64"
-  <<: *linux_amd64
-
 .debian-bookworm-amd64cross32: &debian_bookworm_amd64cross32_image
   image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64cross32"
   <<: *linux_amd64
@@ -155,10 +146,6 @@ stages:
   <<: *linux_amd64
 
 # Fedora
-
-.tsan-fedora-40-amd64: &tsan_fedora_40_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tsan-fedora-40-amd64"
-  <<: *linux_amd64
 
 .fedora-40-amd64: &fedora_40_amd64_image
   image: "$CI_REGISTRY_IMAGE:fedora-40-amd64"
@@ -251,9 +238,6 @@ stages:
       $EXTRA_CONFIGURE
       || (test -s config.log && cat config.log; exit 1)
 
-.parse_tsan: &parse_tsan
-    - find -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -313,14 +297,6 @@ stages:
     untracked: true
     when: always
 
-.system_test_tsan: &system_test_tsan_job
-  <<: *system_test_common
-  after_script:
-    - *parse_tsan
-  artifacts:
-    untracked: true
-    when: on_failure
-
 .kyua_report: &kyua_report_html
   - kyua --logfile /dev/null report-html
          --force
@@ -349,15 +325,6 @@ stages:
   artifacts:
     untracked: true
     when: always
-
-.unit_test_tsan: &unit_test_tsan_job
-  <<: *unit_test_common
-  after_script:
-    - *kyua_report_html
-    - *parse_tsan
-  artifacts:
-    untracked: true
-    when: on_failure
 
 .respdiff: &respdiff_job
   stage: system
@@ -999,62 +966,6 @@ unit:clang:asan:
     - job: clang:asan
       artifacts: true
 
-# Jobs for TSAN builds on Fedora 40 (amd64)
-
-gcc:tsan:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Wno-stringop-overread -ggdb -O2 -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
-  <<: *tsan_fedora_40_amd64_image
-  <<: *build_job
-
-system:gcc:tsan:
-  variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
-  <<: *tsan_fedora_40_amd64_image
-  <<: *system_test_tsan_job
-  needs:
-    - job: gcc:tsan
-      artifacts: true
-
-unit:gcc:tsan:
-  variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
-  <<: *tsan_fedora_40_amd64_image
-  <<: *unit_test_tsan_job
-  needs:
-    - job: gcc:tsan
-      artifacts: true
-
-clang:tsan:
-  <<: *tsan_debian_bookworm_amd64_image
-  <<: *build_job
-  variables:
-    CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON} -ggdb -O2 -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
-
-system:clang:tsan:
-  variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
-  <<: *tsan_debian_bookworm_amd64_image
-  <<: *system_test_tsan_job
-  needs:
-    - job: clang:tsan
-      artifacts: true
-
-unit:clang:tsan:
-  variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
-  <<: *tsan_debian_bookworm_amd64_image
-  <<: *unit_test_tsan_job
-  needs:
-    - job: clang:tsan
-      artifacts: true
-
 # Jobs for Clang builds on Debian 12 "bookworm" (amd64)
 
 clang:bookworm:amd64:
@@ -1348,23 +1259,6 @@ respdiff:asan:
     MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-
-respdiff:tsan:
-  <<: *respdiff_job
-  <<: *default_triggering_rules
-  <<: *tsan_debian_bookworm_amd64_image
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--enable-pthread-rwlock PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
-    TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
-    RESPDIFF_JOBS: 32
-  script:
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-  after_script:
-    - *parse_tsan
 
 respdiff-third-party:
   <<: *respdiff_job
