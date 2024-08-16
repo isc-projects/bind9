@@ -859,8 +859,7 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 		(void)isc_timer_reset(xfr->max_idle_timer,
 				      isc_timertype_inactive, NULL, NULL, true);
 
-		if (result != DNS_R_UPTODATE && result != DNS_R_TOOMANYRECORDS)
-		{
+		if (result != DNS_R_UPTODATE) {
 			xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s", msg,
 				  isc_result_totext(result));
 			if (xfr->is_ixfr) {
