@@ -1230,6 +1230,35 @@ unit:clang:tsan:
     - job: clang:tsan
       artifacts: true
 
+generate-tsan-stress-test-configs:
+  <<: *base_image
+  <<: *default_triggering_rules
+  stage: system
+  script:
+    - util/generate-tsan-stress-jobs.py > tsan-stress-test-configs.yml
+  artifacts:
+    paths:
+      - tsan-stress-test-configs.yml
+  needs: []
+  when: manual
+
+tsan:stress:
+  <<: *default_triggering_rules
+  stage: postcheck
+  variables:
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+  trigger:
+    include:
+      - artifact: tsan-stress-test-configs.yml
+        job: generate-tsan-stress-test-configs
+  needs:
+    - job: generate-tsan-stress-test-configs
+      artifacts: true
+    - job: gcc:tsan
+      artifacts: true
+    - job: clang:tsan
+      artifacts: true
+
 # Jobs for Clang builds on Debian 12 "bookworm" (amd64)
 
 clang:bookworm:amd64:
