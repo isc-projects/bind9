@@ -21,11 +21,10 @@ variables:
   CLANG: clang-17
   ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-17/bin/llvm-symbolizer
 
-  CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
+  CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra
 
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS_COMMON: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
-  TSAN_OPTIONS_COMMON: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=/usr/lib/llvm-12/bin/llvm-symbolizer"
 
   TARBALL_COMPRESSOR: gzip
   TARBALL_EXTENSION: gz
@@ -112,10 +111,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_amd64
 
-.debian-bullseye-amd64: &debian_bullseye_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
-  <<: *linux_amd64
-
 .debian-bookworm-amd64: &debian_bookworm_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_amd64
@@ -134,7 +129,7 @@ stages:
 # This is a meta image that is used as a base for non-specific jobs
 
 .base: &base_image
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
 
 ### QCOW2 Image Templates
 
@@ -273,16 +268,6 @@ stages:
     expire_in: "1 day"
     when: always
 
-.system_test_tsan: &system_test_tsan_job
-  <<: *system_test_common
-  allow_failure: true
-  after_script:
-    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-  artifacts:
-    expire_in: "1 day"
-    untracked: true
-    when: on_failure
-
 .kyua_report: &kyua_report_html
   - kyua --logfile /dev/null report-html
          --force
@@ -313,22 +298,6 @@ stages:
     untracked: true
     expire_in: "1 day"
     when: always
-
-.unit_test_tsan: &unit_test_tsan_job
-  <<: *unit_test_common
-  after_script:
-    - *kyua_report_html
-    - for f in tsan.* ; do test -f "$f" && python3 util/parse_tsan.py "$f" ; done
-    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
-  artifacts:
-    expire_in: "1 day"
-    paths:
-      - lib/*/tests/tsan.*
-      - tsan/
-      - kyua.log
-      - kyua.results
-      - kyua_html/
-    when: on_failure
 
 ### Job Definitions
 
@@ -404,7 +373,7 @@ tarball-create:
     paths:
       - bind-*.tar.${TARBALL_EXTENSION}
 
-# Jobs for doc builds on Debian 11 "bullseye" (amd64)
+# Jobs for doc builds on Debian 11 "bookworm" (amd64)
 
 docs:
   <<: *release_branch_triggering_rules
@@ -609,53 +578,14 @@ unit:gcc:buster:amd64:
     - job: gcc:buster:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Debian 11 "bullseye" (amd64)
-
-gcc:bullseye:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
-    EXTRA_CONFIGURE: "--with-libidn2"
-    LDFLAGS: "--coverage"
-  <<: *debian_bullseye_amd64_image
-  <<: *build_job
-
-system:gcc:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
-  <<: *system_test_gcov_job
-  needs:
-    - job: unit:gcc:bullseye:amd64
-      artifacts: true
-
-unit:gcc:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
-  <<: *unit_test_gcov_job
-  needs:
-    - job: gcc:bullseye:amd64
-      artifacts: true
-
-# Job for out-of-tree GCC build on Debian 11 "bullseye" (amd64)
-# Also tests configration option: --with-lmdb.
-
-gcc:out-of-tree:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    CONFIGURE: ../configure
-    EXTRA_CONFIGURE: "--with-libidn2 --with-lmdb"
-    SKIP_MAKE_DEPEND: 1
-    RUN_MAKE_INSTALL: 1
-    OOT_BUILD_WORKSPACE: workspace
-  <<: *base_image
-  <<: *build_job
-
-# Jobs for tarball GCC builds on Debian 11 "bullseye" (amd64)
+# Jobs for tarball GCC builds on Debian 11 "bookworm" (amd64)
 
 gcc:tarball:
   variables:
     CC: gcc
     EXTRA_CONFIGURE: "--with-libidn2"
     RUN_MAKE_INSTALL: 1
+    CFLAGS: "${CFLAGS_COMMON} -DOPENSSL_SUPPRESS_DEPRECATED"
   <<: *base_image
   <<: *build_job
   before_script:
@@ -793,114 +723,6 @@ unit:clang:asan:
   <<: *unit_test_job
   needs:
     - job: clang:asan
-      artifacts: true
-
-# Jobs for builds with TSAN enabled
-
-gcc:tsan:
-  <<: *base_image
-  <<: *build_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2"
-
-system:gcc:tsan:
-  variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  <<: *base_image
-  <<: *system_test_tsan_job
-  needs:
-    - job: gcc:tsan
-      artifacts: true
-
-unit:gcc:tsan:
-  variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON} suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt
-  <<: *base_image
-  <<: *unit_test_tsan_job
-  needs:
-    - job: gcc:tsan
-      artifacts: true
-
-clang:tsan:
-  <<: *base_image
-  <<: *build_job
-  variables:
-    CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
-
-system:clang:tsan:
-  variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  <<: *base_image
-  <<: *system_test_tsan_job
-  needs:
-    - job: clang:tsan
-      artifacts: true
-
-unit:clang:tsan:
-  variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON} suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt
-  <<: *base_image
-  <<: *unit_test_tsan_job
-  needs:
-    - job: clang:tsan
-      artifacts: true
-
-# Jobs for Clang builds on Debian 11 "bullseye" (amd64)
-
-clang:bullseye:amd64:
-  variables:
-    CC: ${CLANG}
-    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
-    EXTRA_CONFIGURE: "--with-python=python3 --disable-warn-error"
-  <<: *debian_bullseye_amd64_image
-  <<: *build_job
-
-system:clang:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: clang:bullseye:amd64
-      artifacts: true
-
-unit:clang:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: clang:bullseye:amd64
-      artifacts: true
-
-# Jobs for PKCS#11-enabled GCC builds on Debian "bullseye" (amd64)
-
-# "--disable-warn-error" ./configure option disables compiler warnings. This
-# ensures that the job will not fail because of warnings (e.g., array
-# inconsistencies in lib/isc/sha2.c) we don't want to fix on BIND 9.11 because
-# the version is in security-fixes-only mode.
-gcc:pkcs11:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so --disable-warn-error"
-  <<: *debian_bullseye_amd64_image
-  <<: *build_job
-
-system:gcc:pkcs11:
-  <<: *debian_bullseye_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:pkcs11
-      artifacts: true
-
-unit:gcc:pkcs11:
-  <<: *debian_bullseye_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:pkcs11
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 12 (amd64)
