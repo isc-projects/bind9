@@ -53,7 +53,7 @@ ISC_LANG_BEGINDECLS
 #define DNS_CLIENTINFO_VERSION 3
 /*
  * Any updates to this structure should also be applied in
- * contrib/modules/dlz/dlz_minmal.h.
+ * https://gitlab.isc.org/isc-projects/dlz-modules/-/raw/main/modules/include/dlz_minimal.h
  */
 typedef struct dns_clientinfo {
 	uint16_t  version;
