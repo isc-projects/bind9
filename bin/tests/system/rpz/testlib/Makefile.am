@@ -4,7 +4,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)
 
-AM_CFLAGS += -Wall -pedantic
+AM_CFLAGS += -Wall -pedantic -Wno-zero-length-array
 
 noinst_LTLIBRARIES = libdummyrpz.la
 libdummyrpz_la_SOURCES= dummylib.c test-data.c trpz.h test-data.h

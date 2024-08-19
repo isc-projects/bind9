@@ -28,24 +28,7 @@
  * limitations under the License.
  */
 
-#define LIBRPZ_LIB_OPEN 2
 #include <dns/librpz.h>
-
-#if __NAMESER < 19991006
-/*
- * If the new API is not available define the values we use.
- */
-
-#define ns_c_in 1
-
-#define ns_t_invalid 0
-#define ns_t_a	     1
-#define ns_t_cname   5
-#define ns_t_txt     16
-#define ns_t_aaaa    28
-#define ns_t_dname   39
-
-#endif
 
 #include "trpz.h"
 

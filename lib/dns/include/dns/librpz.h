@@ -214,15 +214,9 @@ typedef struct {
 	char c[120];
 } librpz_emsg_t;
 
-#ifdef LIBRPZ_HAVE_ATTR
-#define LIBRPZ_UNUSED	ISC_ATTR_UNUSED
-#define LIBRPZ_PF(f, l) __attribute__((format(printf, f, l)))
+#define LIBRPZ_UNUSED	__attribute__((__unused__))
+#define LIBRPZ_PF(f, l) __attribute__((__format__(printf, f, l)))
 #define LIBRPZ_NORET	__attribute__((__noreturn__))
-#else /* ifdef LIBRPZ_HAVE_ATTR */
-#define LIBRPZ_UNUSED
-#define LIBRPZ_PF(f, l)
-#define LIBRPZ_NORET
-#endif /* ifdef LIBRPZ_HAVE_ATTR */
 
 typedef bool(librpz_parse_log_opt_t)(librpz_emsg_t *emsg, const char *arg);
 LIBDEF_F(parse_log_opt)
