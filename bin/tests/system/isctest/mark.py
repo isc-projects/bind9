@@ -47,6 +47,10 @@ def is_dnsrps_available():
     return True
 
 
+def with_tsan(*args):  # pylint: disable=unused-argument
+    return feature_test("--tsan")
+
+
 have_libxml2 = pytest.mark.skipif(
     not feature_test("--have-libxml2"), reason="libxml2 support disabled in the build"
 )
