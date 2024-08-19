@@ -86,7 +86,8 @@ time_now(clockid_t clock) {
 	struct timespec ts;
 
 	RUNTIME_CHECK(clock_gettime(clock, &ts) == 0);
-	INSIST(ts.tv_sec >= 0 && ts.tv_nsec >= 0 && ts.tv_nsec < NS_PER_SEC);
+	INSIST(ts.tv_sec >= 0 && ts.tv_nsec >= 0 &&
+	       ts.tv_nsec < (long)NS_PER_SEC);
 
 	/*
 	 * Ensure the tv_sec value fits in t->seconds.
@@ -135,7 +136,7 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	if (ts.tv_sec < 0 || ts.tv_nsec < 0 || ts.tv_nsec >= NS_PER_SEC) {
+	if (ts.tv_sec < 0 || ts.tv_nsec < 0 || ts.tv_nsec >= (long)NS_PER_SEC) {
 		return (ISC_R_UNEXPECTED);
 	}
 
