@@ -1352,6 +1352,7 @@ load_all_updates(const char *fname, trpz_result_t **presults, size_t *pnresults,
 		{
 			fprintf(stderr,
 				"Error: could not apply update \"%s\"\n", lptr);
+			fclose(f);
 			return (-1);
 		}
 	}
