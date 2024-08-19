@@ -40,8 +40,6 @@ information about each release, and source code.
 
 .. include:: ../notes/notes-known-issues.rst
 
-.. include:: ../notes/notes-current.rst
-
 .. _relnotes_license:
 
 License
