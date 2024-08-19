@@ -898,8 +898,6 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	xfr->done = done;
 
-	isc_refcount_init(&xfr->references, 1);
-
 	/*
 	 * Set *xfrp now, before calling xfrin_start(), otherwise it's
 	 * possible the 'done' callback could be run before *xfrp
@@ -909,9 +907,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	result = xfrin_start(xfr);
 	if (result != ISC_R_SUCCESS) {
-		atomic_store(&xfr->shuttingdown, true);
-		xfr->shutdown_result = result;
-		xfrin_log(xfr, ISC_LOG_ERROR, "zone transfer setup failed");
+		xfr->done = NULL;
+		xfrin_fail(xfr, result, "zone transfer setup failed");
 		dns_xfrin_detach(xfrp);
 	}
 
@@ -1166,6 +1163,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_loop_t *loop,
 		.soa_transport_type = soa_transport_type,
 		.firstsoa = DNS_RDATA_INIT,
 		.edns = true,
+		.references = 1,
 		.magic = XFRIN_MAGIC,
 	};
 
@@ -1213,11 +1211,6 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_loop_t *loop,
 			sizeof(xfr->qbuffer_data) - 2);
 
 	isc_tlsctx_cache_attach(tlsctx_cache, &xfr->tlsctx_cache);
-
-	isc_timer_create(dns_zone_getloop(zone), xfrin_timedout, xfr,
-			 &xfr->max_time_timer);
-	isc_timer_create(dns_zone_getloop(zone), xfrin_idledout, xfr,
-			 &xfr->max_idle_timer);
 
 	dns_zone_name(xfr->zone, xfr->info, sizeof(xfr->info));
 
@@ -1268,14 +1261,6 @@ xfrin_start(dns_xfrin_t *xfr) {
 				     dns_xfrin_gettransporttype(xfr));
 	}
 
-	/* Set the maximum timer */
-	isc_interval_set(&interval, dns_zone_getmaxxfrin(xfr->zone), 0);
-	isc_timer_start(xfr->max_time_timer, isc_timertype_once, &interval);
-
-	/* Set the idle timer */
-	isc_interval_set(&interval, dns_zone_getidlein(xfr->zone), 0);
-	isc_timer_start(xfr->max_idle_timer, isc_timertype_once, &interval);
-
 	/*
 	 * XXX: timeouts are hard-coded to 30 seconds; this needs to be
 	 * configurable.
@@ -1285,6 +1270,27 @@ xfrin_start(dns_xfrin_t *xfr) {
 			       xfr->tlsctx_cache, xfrin_connect_done,
 			       xfrin_send_done, xfrin_recv_done, xfr, &xfr->id,
 			       &xfr->dispentry));
+
+	/* Set the maximum timer */
+	if (xfr->max_time_timer == NULL) {
+		isc_timer_create(dns_zone_getloop(xfr->zone), xfrin_timedout,
+				 xfr, &xfr->max_time_timer);
+	}
+	isc_interval_set(&interval, dns_zone_getmaxxfrin(xfr->zone), 0);
+	isc_timer_start(xfr->max_time_timer, isc_timertype_once, &interval);
+
+	/* Set the idle timer */
+	if (xfr->max_idle_timer == NULL) {
+		isc_timer_create(dns_zone_getloop(xfr->zone), xfrin_idledout,
+				 xfr, &xfr->max_idle_timer);
+	}
+	isc_interval_set(&interval, dns_zone_getidlein(xfr->zone), 0);
+	isc_timer_start(xfr->max_idle_timer, isc_timertype_once, &interval);
+
+	/*
+	 * The connect has to be the last thing that is called before returning,
+	 * as it can end synchronously and destroy the xfr object.
+	 */
 	CHECK(dns_dispatch_connect(xfr->dispentry));
 
 	return (ISC_R_SUCCESS);
@@ -1399,7 +1405,7 @@ failure:
 	}
 
 detach:
-	dns_xfrin_unref(xfr);
+	dns_xfrin_detach(&xfr);
 }
 
 /*
@@ -1670,8 +1676,15 @@ xfrin_end(dns_xfrin_t *xfr, isc_result_t result) {
 	}
 
 	atomic_store(&xfr->shuttingdown, true);
-	isc_timer_stop(xfr->max_time_timer);
-	isc_timer_stop(xfr->max_idle_timer);
+
+	if (xfr->max_time_timer != NULL) {
+		isc_timer_stop(xfr->max_time_timer);
+		isc_timer_destroy(&xfr->max_time_timer);
+	}
+	if (xfr->max_idle_timer != NULL) {
+		isc_timer_stop(xfr->max_idle_timer);
+		isc_timer_destroy(&xfr->max_idle_timer);
+	}
 
 	if (xfr->shutdown_result == ISC_R_UNSET) {
 		xfr->shutdown_result = result;
@@ -2103,8 +2116,8 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 		isc_tlsctx_cache_detach(&xfr->tlsctx_cache);
 	}
 
-	isc_timer_destroy(&xfr->max_idle_timer);
-	isc_timer_destroy(&xfr->max_time_timer);
+	INSIST(xfr->max_time_timer == NULL);
+	INSIST(xfr->max_idle_timer == NULL);
 
 	isc_loop_detach(&xfr->loop);
 
