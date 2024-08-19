@@ -1465,6 +1465,11 @@ transition:
 		char keystr[DST_KEY_FORMATSIZE];
 		dst_key_format(dkey->key, keystr, sizeof(keystr));
 
+		if (dkey->purge) {
+			/* Skip purged keys. */
+			continue;
+		}
+
 		/* For all records related to this key. */
 		for (int i = 0; i < NUM_KEYSTATES; i++) {
 			isc_result_t ret;
