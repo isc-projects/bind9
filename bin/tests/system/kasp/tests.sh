@@ -312,7 +312,7 @@ state_stat=$(key_get KEY1 STATE_STAT)
 
 nextpart $DIR/named.run >/dev/null
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
 privkey_stat2=$(key_stat "${basefile}.private")
 pubkey_stat2=$(key_stat "${basefile}.key")
 state_stat2=$(key_stat "${basefile}.state")
@@ -328,7 +328,7 @@ ret=0
 
 nextpart $DIR/named.run >/dev/null
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
 privkey_stat2=$(key_stat "${basefile}.private")
 pubkey_stat2=$(key_stat "${basefile}.key")
 state_stat2=$(key_stat "${basefile}.state")
@@ -1596,7 +1596,7 @@ check_rrsig_refresh
 echo_i "load keys for $ZONE, making sure a recently purged key is not an issue when verifying keys ($n)"
 ret=0
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
 grep "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -5037,7 +5037,7 @@ dig_with_opts @10.53.0.6 example SOA >dig.out.ns6.test$n.soa1 || ret=1
 cp ns6/example2.db.in ns6/example.db || ret=1
 nextpart ns6/named.run >/dev/null
 rndccmd 10.53.0.6 reload || ret=1
-wait_for_log 3 "all zones loaded" ns6/named.run
+wait_for_log 3 "all zones loaded" ns6/named.run || ret=1
 # Check that the SOA SERIAL increases and check the TTLs (should be 300 as
 # defined in ns6/example2.db.in).
 retry_quiet 10 _check_soa_ttl 300 300 || ret=1
@@ -5055,7 +5055,7 @@ cp ns6/example3.db.in ns6/example.db || ret=1
 rm ns6/example.db.jnl
 nextpart ns6/named.run >/dev/null
 start_server --noclean --restart --port ${PORT} ns6
-wait_for_log 3 "all zones loaded" ns6/named.run
+wait_for_log 3 "all zones loaded" ns6/named.run || ret=1
 # Check that the SOA SERIAL increases and check the TTLs (should be changed
 # from 300 to 400 as defined in ns6/example3.db.in).
 retry_quiet 10 _check_soa_ttl 300 400 || ret=1
