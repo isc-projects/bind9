@@ -9,6 +9,31 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "*.created",
+        "cdnskey.ns*",
+        "cds.ns*",
+        "dig.out.*",
+        "rndc.dnssec.status.out.*",
+        "secondary.cdnskey.ns*",
+        "secondary.cds.ns*",
+        "verify.out.*",
+        "ns*/K*",
+        "ns*/db-*",
+        "ns*/keygen.out.*",
+        "ns*/*.jbk",
+        "ns*/*.jnl",
+        "ns*/*.zsk",
+        "ns*/*.signed",
+        "ns*/*.journal.out.*",
+        "ns*/settime.out.*",
+        "ns*/model2.secondary.db",
+    ]
+)
+
 
 def test_multisigner(run_tests_sh):
     run_tests_sh()

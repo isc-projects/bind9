@@ -9,13 +9,22 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+
 import dns.message
+import pytest
 
 import isctest
 
-import pytest
-
 pytest.importorskip("dns", minversion="2.0.0")
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ns1/*",
+        "ns1/dsset-*",
+        "ns1/tc-test-signed.db",
+        "ns1/tc-test-signed.db.signed",
+    ]
+)
 
 
 def test_glue_full_glue_set():
