@@ -13,6 +13,26 @@ import pytest
 
 import isctest.mark
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "Ksig0.example2*",
+        "dig.out.*",
+        "dnstap.out.*",
+        "dnstapread.out*",
+        "keyname*",
+        "nsupdate.out.*",
+        "ans*/ans.run",
+        "ns*/*.bk",
+        "ns*/*.jnl",
+        "ns1/example.db",
+        "ns1/example2-toomanykeys.db",
+        "ns1/example2.db",
+        "ns3/dnstap.conf",
+        "ns3/dnstap.out",
+        "ns3/noprimary1.db",
+    ]
+)
+
 
 @pytest.mark.xfail(reason="GL #4996", condition=isctest.mark.with_dnstap())
 def test_upforwd(run_tests_sh):

@@ -17,6 +17,12 @@ import isctest
 pytest.importorskip("dns")
 import dns.message
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ans*/ans.run",
+    ]
+)
+
 
 def test_connreset():
     msg = dns.message.make_query(
