@@ -198,8 +198,8 @@ void
 dns_test_nap(uint32_t usec) {
 	struct timespec ts;
 
-	ts.tv_sec = usec / 1000000;
-	ts.tv_nsec = (usec % 1000000) * 1000;
+	ts.tv_sec = usec / (long)US_PER_SEC;
+	ts.tv_nsec = (usec % (long)US_PER_SEC) * (long)NS_PER_US;
 	nanosleep(&ts, NULL);
 }
 
