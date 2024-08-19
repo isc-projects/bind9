@@ -13,9 +13,18 @@ import concurrent.futures
 import os
 import time
 
+import dns.update
+import pytest
+
 import isctest
 
-import dns.update
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ns2/zone0*.db",
+        "ns2/zone0*.jnl",
+        "ns*/zone0*.bk",
+    ]
+)
 
 
 def rndc_loop(test_state, server):

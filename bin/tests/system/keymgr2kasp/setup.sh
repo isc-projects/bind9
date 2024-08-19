@@ -16,8 +16,6 @@
 
 set -e
 
-$SHELL clean.sh
-
 copy_setports ns3/named.conf.in ns3/named.conf
 copy_setports ns4/named.conf.in ns4/named.conf
 

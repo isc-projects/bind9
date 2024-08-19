@@ -9,9 +9,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+
 import dns.message
+import pytest
 
 import isctest
+
+pytest.importorskip("dns", minversion="2.0.0")
 
 
 def test_glue_full_glue_set():

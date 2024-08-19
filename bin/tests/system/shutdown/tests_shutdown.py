@@ -26,6 +26,13 @@ import dns.exception
 
 import isctest
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "resolver/named.conf",
+        "resolver/named.run",
+    ]
+)
+
 
 def do_work(named_proc, resolver_ip, instance, kill_method, n_workers, n_queries):
     """Creates a number of A queries to run in parallel

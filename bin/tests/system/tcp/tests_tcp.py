@@ -23,6 +23,11 @@ pytest.importorskip("dns", minversion="2.0.0")
 import dns.message
 import dns.query
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ans*/ans.run",
+    ]
+)
 
 TIMEOUT = 10
 

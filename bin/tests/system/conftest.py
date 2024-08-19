@@ -348,6 +348,7 @@ def logger(request, system_test_name):
 @pytest.fixture(scope="module")
 def expected_artifacts(request):
     common_artifacts = [
+        "ns*/named.lock",
         "ns*/named.run",
         "ns*/named.run.prev",
         "ns*/named.conf",

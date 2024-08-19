@@ -9,7 +9,21 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
 import isctest.mark
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "curl.out.*",
+        "dig.out.*",
+        "named.stats.*",
+        "stats.xml.out",
+        "xsltproc.out.*",
+        "ans*/ans.run",
+        "ns*/statistics-channels.conf",
+    ]
+)
 
 
 @isctest.mark.flaky(max_runs=2)  # GL#1621

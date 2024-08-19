@@ -20,6 +20,13 @@ from isctest.compat import dns_rcode
 
 import dns.message
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ns3/*-rpz-external.local.db",
+        "ns3/rpz*.txt",
+    ]
+)
+
 
 @pytest.mark.parametrize(
     "qname,source,rcode",
