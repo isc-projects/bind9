@@ -13,22 +13,13 @@
 
 set -e
 
-# touch dnsrps-off to not test with DNSRPS
-# touch dnsrps-only to not test with classic RPZ
-
 . ../conf.sh
 
 status=0
 
 t=0
 
-export DNSRPS_TEST_UPDATE_FILE=$(pwd)/dnsrps.cache
 ARGS=
-if grep 'dnsrps-enable yes;' dnsrps.conf >/dev/null; then
-  MODE=dnsrps
-else
-  MODE=native
-fi
 
 USAGE="$0: [-S]"
 while getopts "S:" c; do
@@ -51,14 +42,12 @@ fi
 # really quit on control-C
 trap 'exit 1' 1 2 15
 
-DNSRPSCMD=../rpz/dnsrps
 RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 # $1 = test name (such as 1a, 1b, etc. for which named.$1.conf exists)
 run_server() {
   TESTNAME=$1
 
-  start_server_rules $1 $2
   echo_i "stopping resolver"
   stop_server --use-rndc --port ${CONTROLPORT} ns2
 
@@ -68,22 +57,6 @@ run_server() {
   cp -f ns2/named.$TESTNAME.conf ns2/named.conf
   start_server --noclean --restart --port ${PORT} ns2
   sleep 3
-}
-
-start_server_rules() {
-  FCONF=ns2/named.$1.conf
-
-  cat /dev/null >$DNSRPS_TEST_UPDATE_FILE
-  cat $FCONF | grep 'zone ' | grep ' primary' | while read LINE; do
-    ZONE=$(echo $LINE | sed 's/.*zone "//g' | awk -F '"' '{print $1}')
-    DBFILE=$(echo $LINE | sed 's/.*file "//g' | awk -F '"' '{print $1}')
-    cat ns2/$DBFILE | grep -E -v '^;' | grep -E '\<(A|CNAME)\>' | awk -v zone=$ZONE '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >>$DNSRPS_TEST_UPDATE_FILE
-  done
-}
-
-produce_librpz_rules() {
-  ZONEFILE=$1/$3.db
-  cat $ZONEFILE | grep -E -v '^;' | grep -E '\<(A|CNAME)\>' | awk -v zone=$2 '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >>$DNSRPS_TEST_UPDATE_FILE
 }
 
 run_query() {
@@ -453,83 +426,77 @@ grep "status: NOERROR" dig.out.${t}.2 >/dev/null || {
   status=1
 }
 
-if [ "$MODE" = "native" ]; then
-  # Check for invalid prefix length error
-  t=$((t + 1))
-  echo_i "testing for invalid prefix length error (${t})"
-  add_test_marker 10.53.0.2
-  run_server invalidprefixlength
-  grep "invalid rpz IP address \"1000.4.0.53.10.rpz-client-ip.invalidprefixlength\"; invalid prefix length of 1000$" ns2/named.run >/dev/null || {
-    echo_ic "failed: expected that invalid prefix length error would be logged"
-    status=1
-  }
-fi
+# Check for invalid prefix length error
+t=$((t + 1))
+echo_i "testing for invalid prefix length error (${t})"
+add_test_marker 10.53.0.2
+run_server invalidprefixlength
+grep "invalid rpz IP address \"1000.4.0.53.10.rpz-client-ip.invalidprefixlength\"; invalid prefix length of 1000$" ns2/named.run >/dev/null || {
+  echo_ic "failed: expected that invalid prefix length error would be logged"
+  status=1
+}
 
-if [ "$MODE" = "native" ]; then
-  t=$((t + 1))
-  echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
-  add_test_marker 10.53.0.2 10.53.0.3
-  echo_i "timing 'nsip-wait-recurse yes' (default)"
-  produce_librpz_rules ns3 policy policy
-  ret=0
-  t1=$($PERL -e 'print time()."\n";')
-  $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.yes.$t
-  t2=$($PERL -e 'print time()."\n";')
-  p1=$((t2 - t1))
-  echo_i "elapsed time $p1 seconds"
+t=$((t + 1))
+echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
+add_test_marker 10.53.0.2 10.53.0.3
+echo_i "timing 'nsip-wait-recurse yes' (default)"
+ret=0
+t1=$($PERL -e 'print time()."\n";')
+$DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.yes.$t
+t2=$($PERL -e 'print time()."\n";')
+p1=$((t2 - t1))
+echo_i "elapsed time $p1 seconds"
 
-  $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
-  copy_setports ns3/named2.conf.in ns3/named.conf
-  nextpart ns3/named.run >/dev/null
-  $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
-  wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
+$RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
+copy_setports ns3/named2.conf.in ns3/named.conf
+nextpart ns3/named.run >/dev/null
+$RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
+wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
-  echo_i "timing 'nsip-wait-recurse no'"
-  echo "update zone policy 0 no_nsip_wait_recurse" >$DNSRPS_TEST_UPDATE_FILE
-  t3=$($PERL -e 'print time()."\n";')
-  $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.no.$t
-  t4=$($PERL -e 'print time()."\n";')
-  p2=$((t4 - t3))
-  echo_i "elapsed time $p2 seconds"
+echo_i "timing 'nsip-wait-recurse no'"
+t3=$($PERL -e 'print time()."\n";')
+$DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.no.$t
+t4=$($PERL -e 'print time()."\n";')
+p2=$((t4 - t3))
+echo_i "elapsed time $p2 seconds"
 
-  if test $p1 -le $p2; then ret=1; fi
-  if test $ret != 0; then echo_i "failed"; fi
-  status=$((status + ret))
+if test $p1 -le $p2; then ret=1; fi
+if test $ret != 0; then echo_i "failed"; fi
+status=$((status + ret))
 
-  $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
-  # restore original named.conf
-  copy_setports ns3/named1.conf.in ns3/named.conf
-  nextpart ns3/named.run >/dev/null
-  $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
-  wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
+$RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
+# restore original named.conf
+copy_setports ns3/named1.conf.in ns3/named.conf
+nextpart ns3/named.run >/dev/null
+$RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
+wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
-  t=$((t + 1))
-  echo_i "checking 'nsdname-wait-recurse no' is faster than 'nsdname-wait-recurse yes' ($t)"
-  add_test_marker 10.53.0.2 10.53.0.3
-  echo_i "timing 'nsdname-wait-recurse yes' (default)"
-  ret=0
-  t1=$($PERL -e 'print time()."\n";')
-  $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.yes.$t
-  t2=$($PERL -e 'print time()."\n";')
-  p1=$((t2 - t1))
-  echo_i "elapsed time $p1 seconds"
+t=$((t + 1))
+echo_i "checking 'nsdname-wait-recurse no' is faster than 'nsdname-wait-recurse yes' ($t)"
+add_test_marker 10.53.0.2 10.53.0.3
+echo_i "timing 'nsdname-wait-recurse yes' (default)"
+ret=0
+t1=$($PERL -e 'print time()."\n";')
+$DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.yes.$t
+t2=$($PERL -e 'print time()."\n";')
+p1=$((t2 - t1))
+echo_i "elapsed time $p1 seconds"
 
-  $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
-  copy_setports ns3/named3.conf.in ns3/named.conf
-  nextpart ns3/named.run >/dev/null
-  $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
-  wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
+$RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
+copy_setports ns3/named3.conf.in ns3/named.conf
+nextpart ns3/named.run >/dev/null
+$RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
+wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
-  echo_i "timing 'nsdname-wait-recurse no'"
-  t3=$($PERL -e 'print time()."\n";')
-  $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.no.$t
-  t4=$($PERL -e 'print time()."\n";')
-  p2=$((t4 - t3))
-  echo_i "elapsed time $p2 seconds"
+echo_i "timing 'nsdname-wait-recurse no'"
+t3=$($PERL -e 'print time()."\n";')
+$DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.no.$t
+t4=$($PERL -e 'print time()."\n";')
+p2=$((t4 - t3))
+echo_i "elapsed time $p2 seconds"
 
-  if test $p1 -le $p2; then ret=1; fi
-  if test $ret != 0; then echo_i "failed"; fi
-  status=$((status + ret))
-fi
+if test $p1 -le $p2; then ret=1; fi
+if test $ret != 0; then echo_i "failed"; fi
+status=$((status + ret))
 
 [ $status -eq 0 ] || exit 1

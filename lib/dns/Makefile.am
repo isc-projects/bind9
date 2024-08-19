@@ -65,7 +65,6 @@ libdns_la_HEADERS =			\
 	include/dns/dlz.h		\
 	include/dns/dlz_dlopen.h	\
 	include/dns/dns64.h		\
-	include/dns/dnsrps.h		\
 	include/dns/dnssec.h		\
 	include/dns/ds.h		\
 	include/dns/dsdigest.h		\
@@ -86,7 +85,6 @@ libdns_la_HEADERS =			\
 	include/dns/keystore.h		\
 	include/dns/keytable.h		\
 	include/dns/keyvalues.h		\
-	include/dns/librpz.h		\
 	include/dns/master.h		\
 	include/dns/masterdump.h	\
 	include/dns/message.h		\
@@ -171,7 +169,6 @@ libdns_la_SOURCES =			\
 	dispatch.c			\
 	dlz.c				\
 	dns64.c				\
-	dnsrps.c			\
 	dnssec.c			\
 	ds.c				\
 	dst_api.c			\

@@ -358,11 +358,6 @@ AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sy
 AC_CHECK_HEADERS([threads.h])
 
 #
-# Also missing from OpenBSD
-#
-AC_CHECK_HEADERS([arpa/nameser_compat.h])
-
-#
 # C11 Atomic Operations
 #
 
@@ -1355,65 +1350,6 @@ AS_IF([test "$enable_auto_validation" = "no"],[validation_default=yes])
 AC_DEFINE_UNQUOTED([VALIDATION_DEFAULT], ["$validation_default"], [the default value of dnssec-validation option])
 
 #
-#
-# Response policy rewriting using DNS Response Policy Service (DNSRPS)
-# interface.
-#
-# DNSRPS can be compiled into BIND everywhere with a reasonably
-# modern C compiler.  It is enabled on systems with dlopen() and librpz.so.
-#
-dnsrps_avail=yes
-
-# [pairwise: --enable-dnsrps --enable-dnsrps-dl, --disable-dnsrps]
-AC_ARG_ENABLE([dnsrps-dl],
-	      [AS_HELP_STRING([--enable-dnsrps-dl],
-			      [DNS Response Policy Service delayed link
-			       [default=yes]])],
-	      [enable_dnsrps_dl="$enableval"], [enable_dnsrps_dl="yes"])
-
-# [pairwise: skip]
-AC_ARG_WITH([dnsrps-libname],
-	    [AS_HELP_STRING([--with-dnsrps-libname],
-			    [DNSRPS provider library name (librpz.so)])],
-	    [librpz_name="$withval"], [librpz_name="librpz.so"])
-
-# [pairwise: skip]
-AC_ARG_WITH([dnsrps-dir],
-	    [AS_HELP_STRING([--with-dnsrps-dir],
-			    [path to DNSRPS provider library])],
-	    [librpz_path="$withval/$librpz_name"], [librpz_path="$librpz_name"])
-AC_DEFINE_UNQUOTED([DNSRPS_LIBRPZ_PATH], ["$librpz_path"],
-		   [dnsrps $librpz_name])
-AS_IF([test "$enable_dnsrps_dl" = "yes"],
-      [
-	dnsrps_lib_open=2
-      ],[
-	dnsrps_lib_open=1
-	# Add librpz.so to linked libraries if we are not using dlopen()
-	AC_SEARCH_LIBS([librpz_client_create], [rpz], [],
-		[dnsrps_lib_open=0
-		 dnsrps_avail=no])
-      ])
-AC_DEFINE_UNQUOTED([DNSRPS_LIB_OPEN], [$dnsrps_lib_open],
-		   [0=no DNSRPS  1=static link  2=dlopen()])
-
-# [pairwise: skip]
-AC_ARG_ENABLE([dnsrps],
-	      AS_HELP_STRING([--enable-dnsrps],
-			     [enable DNS Response Policy Service API]),
-	      [enable_dnsrps=$enableval], [enable_dnsrps=no])
-
-AS_IF([test "$enable_dnsrps" != "no"],[
-	AS_IF([test "$dnsrps_lib_open" = "0"],
-	      [AC_MSG_ERROR([dlopen and librpz.so needed for DNSRPS])])
-	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
-      ])
-
-AM_CONDITIONAL([DNSRPS], [test "$enable_dnsrps" != "no"])
-
-AC_CHECK_HEADERS([glob.h])
-
-#
 # Support for constructor and destructor attributes
 #
 AX_GCC_FUNC_ATTRIBUTE([constructor])
@@ -1576,7 +1512,6 @@ AC_CONFIG_FILES([bin/tests/Makefile
 		 bin/tests/system/dyndb/driver/Makefile
 		 bin/tests/system/dlzexternal/driver/Makefile
 		 bin/tests/system/hooks/driver/Makefile
-		 bin/tests/system/rpz/testlib/Makefile
                  ])
 
 AC_CONFIG_FILES([bin/tests/system/ifconfig.sh],
@@ -1633,8 +1568,6 @@ report() {
 	test -z "$LIBIDN2_LIBS" || echo "    IDN support (--with-libidn2)"
     fi
 
-    test "yes" = "$enable_dnsrps" && \
-	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
     test "yes" = "$enable_fixed_rrset" && \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_fips_mode" && \
@@ -1679,9 +1612,6 @@ report() {
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test -z "$MAXMINDDB_LIBS" && echo "    GeoIP2 access control (--enable-geoip)"
     test -z "$GSSAPI_LIBS" && echo "    GSS-API (--with-gssapi)"
-
-    test "no" = "$enable_dnsrps" && \
-	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
 
     test "yes" = "$enable_fixed_rrset" || \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"

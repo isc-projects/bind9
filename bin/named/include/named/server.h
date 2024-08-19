@@ -56,9 +56,6 @@ struct named_server {
 	char *version;	    /*%< User-specified version */
 	bool  hostname_set; /*%< User has set hostname */
 	char *hostname;	    /*%< User-specified hostname */
-#ifdef USE_DNSRPS
-	char *dnsrpslib;
-#endif /* ifdef USE_DNSRPS */
 
 	/* Server data structures. */
 	dns_loadmgr_t	  *loadmgr;

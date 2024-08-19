@@ -266,7 +266,6 @@ stages:
       --enable-developer
       --enable-option-checking=fatal
       --enable-dnstap
-      --enable-dnsrps
       --with-cmocka
       --with-libxml2
       --with-json-c
@@ -1108,15 +1107,7 @@ gcc:tumbleweed:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
-    # NOTE: Testing DNSRPS-enabled builds currently requires an
-    # operating system with glibc 2.34+.  This requirement will go away
-    # once the DNSRPS dynamic loading code gets reworked to use libuv's
-    # dlopen() API.
-    #
-    # NOTE: This does *not* enable testing of the DNSRPS feature itself.
-    # Doing that requires a DNSRPS provider library to be present on the
-    # test host.
-    EXTRA_CONFIGURE: "--enable-dnsrps --enable-dnsrps-dl --with-libidn2 ${WITH_READLINE_READLINE}"
+    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_READLINE}"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
 
@@ -1589,7 +1580,7 @@ respdiff:asan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
-    EXTRA_CONFIGURE: "--disable-dnsrps --without-jemalloc"
+    EXTRA_CONFIGURE: "--without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
@@ -1602,7 +1593,7 @@ respdiff:tsan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--disable-dnsrps --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
+    EXTRA_CONFIGURE: "--enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:

@@ -28,7 +28,5 @@ rm -f ns2/named.conf.header
 rm -f ns3/named.conf
 rm -f ns3/named.run.prev
 
-rm -f dnsrps.cache
-rm -f dnsrps*.conf
 rm -f ns*/session.key
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*

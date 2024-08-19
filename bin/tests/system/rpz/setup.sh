@@ -11,8 +11,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# touch dnsrps-off to not test with DNSRPS
-
 set -e
 
 . ../conf.sh
@@ -34,11 +32,6 @@ copy_setports ns7/named.conf.in ns7/named.conf
 copy_setports ns8/named.conf.in ns8/named.conf
 copy_setports ns9/named.conf.in ns9/named.conf
 copy_setports ns10/named.conf.in ns10/named.conf
-
-copy_setports dnsrps.zones.in dnsrps.zones
-
-touch dnsrps.conf
-touch dnsrps.cache
 
 # set up test policy zones.
 #   bl is the main test zone

@@ -11,10 +11,6 @@ dist-hook:
 
 SUBDIRS = dyndb/driver dlzexternal/driver hooks/driver
 
-if DNSRPS
-SUBDIRS += rpz/testlib
-endif
-
 AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS) 	\
 	$(LIBDNS_CFLAGS)
@@ -31,8 +27,7 @@ noinst_PROGRAMS =		\
 	feature-test		\
 	makejournal		\
 	pipelined/pipequeries	\
-	rndc/gencheck		\
-	rpz/dnsrps
+	rndc/gencheck
 
 feature_test_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
@@ -58,16 +53,6 @@ pipelined_pipequeries_CPPFLAGS =	\
 
 pipelined_pipequeries_LDADD =	\
 	$(LDADD)		\
-	$(LIBDNS_LIBS)
-
-rpz_dnsrps_CPPFLAGS =		\
-	$(AM_CPPFLAGS)		\
-	$(LIBDNS_CFLAGS)	\
-	-DLIBRPZ_LIB_OPEN=\"$(abs_builddir)/rpz/testlib/.libs/libdummyrpz.so\"
-
-rpz_dnsrps_LDADD =		\
-	$(LDADD)		\
-	$(LIBUV_LIBS)		\
 	$(LIBDNS_LIBS)
 
 # Longer running tests are listed (and executed) first to take the most

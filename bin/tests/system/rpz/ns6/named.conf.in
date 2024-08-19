@@ -36,8 +36,6 @@ options {
 	// add-soa yes # leave add-soa as default for unset test
 	nsip-enable yes
 	nsdname-enable yes;
-
-	include "../dnsrps.conf";
 };
 
 logging { category rpz { default_debug; }; };
