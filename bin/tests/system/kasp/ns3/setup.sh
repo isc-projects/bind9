@@ -322,6 +322,12 @@ private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >>"$infile"
 cp $infile $zonefile
 $SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
 $SETTIME -s -g HIDDEN "$ZSK" >settime.out.$zone.3 2>&1
+# An old key that is being purged should not prevent keymgr to be run.
+T1="now-1y"
+T2="now-2y"
+oldtimes="-P $T2 -A $T2 -I $T1 -D $T1"
+OLD=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $oldtimes $zone 2>keygen.out.$zone.3)
+$SETTIME -s -g $H -k $H $T1 -z $H $T1 "$OLD" >settime.out.$zone.3 2>&1
 
 #
 # The zones at enable-dnssec.autosign represent the various steps of the
