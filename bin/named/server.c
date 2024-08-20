@@ -7033,6 +7033,13 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 		return (result);
 	}
 
+	char cwd[PATH_MAX];
+	if (getcwd(cwd, sizeof(cwd)) == cwd) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_INFO, "the working directory is now '%s'",
+			      cwd);
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -8259,6 +8266,19 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 		RUNTIME_CHECK(cfg_map_get(named_g_config, "options",
 					  &named_g_defaults) == ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Log the current working directory.
+	 */
+	if (first_time) {
+		char cwd[PATH_MAX];
+		if (getcwd(cwd, sizeof(cwd)) == cwd) {
+			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "the initial working directory is '%s'",
+				      cwd);
+		}
 	}
 
 	/*
