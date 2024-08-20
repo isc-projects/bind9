@@ -85,14 +85,6 @@
 
 #endif /* HAVE_SYSCTLBYNAME */
 
-#ifndef ISC_CMSG_IP_TOS
-#ifdef __APPLE__
-#define ISC_CMSG_IP_TOS 0 /* As of 10.8.2. */
-#else			  /* ! __APPLE__ */
-#define ISC_CMSG_IP_TOS 1
-#endif /* ! __APPLE__ */
-#endif /* ! ISC_CMSG_IP_TOS */
-
 static isc_result_t ipv4_result = ISC_R_SUCCESS;
 static isc_result_t ipv6_result = ISC_R_SUCCESS;
 
