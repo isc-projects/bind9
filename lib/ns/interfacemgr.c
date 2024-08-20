@@ -1085,7 +1085,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	isc_interfaceiter_t *iter = NULL;
 	bool scan_ipv4 = false;
 	bool scan_ipv6 = false;
-	bool ipv6only = true;
 	bool ipv6pktinfo = true;
 	isc_result_t result;
 	isc_netaddr_t zero_address, zero_address6;
@@ -1124,15 +1123,11 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	 * packets as the form of mapped addresses unintentionally
 	 * unless explicitly allowed.
 	 */
-	if (scan_ipv6 && isc_net_probe_ipv6only() != ISC_R_SUCCESS) {
-		ipv6only = false;
-		log_explicit = true;
-	}
 	if (scan_ipv6 && isc_net_probe_ipv6pktinfo() != ISC_R_SUCCESS) {
 		ipv6pktinfo = false;
 		log_explicit = true;
 	}
-	if (scan_ipv6 && ipv6only && ipv6pktinfo) {
+	if (scan_ipv6 && ipv6pktinfo) {
 		for (le = ISC_LIST_HEAD(mgr->listenon6->elts); le != NULL;
 		     le = ISC_LIST_NEXT(le, link))
 		{
@@ -1283,7 +1278,7 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			 * The case of "any" IPv6 address will require
 			 * special considerations later, so remember it.
 			 */
-			if (family == AF_INET6 && ipv6only && ipv6pktinfo &&
+			if (family == AF_INET6 && ipv6pktinfo &&
 			    listenon_is_ip6_any(le))
 			{
 				ipv6_wildcard = true;

@@ -212,18 +212,6 @@ isc_net_probeipv6(void);
  */
 
 isc_result_t
-isc_net_probe_ipv6only(void);
-/*%<
- * Check if the system's kernel supports the IPV6_V6ONLY socket option.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS		the option is supported for both TCP and UDP.
- *\li	#ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
- *\li	#ISC_R_UNEXPECTED
- */
-
-isc_result_t
 isc_net_probe_ipv6pktinfo(void);
 /*
  * Check if the system's kernel supports the IPV6_(RECV)PKTINFO socket option

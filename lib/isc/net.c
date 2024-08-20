@@ -89,7 +89,6 @@
 
 #endif /* HAVE_SYSCTLBYNAME */
 
-static isc_once_t once_ipv6only = ISC_ONCE_INIT;
 #ifdef __notyet__
 static isc_once_t once_ipv6pktinfo = ISC_ONCE_INIT;
 #endif /* ifdef __notyet__ */
@@ -106,7 +105,6 @@ static isc_once_t once = ISC_ONCE_INIT;
 
 static isc_result_t ipv4_result = ISC_R_NOTFOUND;
 static isc_result_t ipv6_result = ISC_R_NOTFOUND;
-static isc_result_t ipv6only_result = ISC_R_NOTFOUND;
 static isc_result_t ipv6pktinfo_result = ISC_R_NOTFOUND;
 
 static isc_result_t
@@ -200,66 +198,6 @@ isc_net_probeipv6(void) {
 	return ipv6_result;
 }
 
-static void
-try_ipv6only(void) {
-#ifdef IPV6_V6ONLY
-	int s, on;
-#endif /* ifdef IPV6_V6ONLY */
-	isc_result_t result;
-
-	result = isc_net_probeipv6();
-	if (result != ISC_R_SUCCESS) {
-		ipv6only_result = result;
-		return;
-	}
-
-#ifndef IPV6_V6ONLY
-	ipv6only_result = ISC_R_NOTFOUND;
-	return;
-#else  /* ifndef IPV6_V6ONLY */
-	/* check for TCP sockets */
-	s = socket(PF_INET6, SOCK_STREAM, 0);
-	if (s == -1) {
-		UNEXPECTED_SYSERROR(errno, "socket()");
-		ipv6only_result = ISC_R_UNEXPECTED;
-		return;
-	}
-
-	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0) {
-		ipv6only_result = ISC_R_NOTFOUND;
-		goto close;
-	}
-
-	close(s);
-
-	/* check for UDP sockets */
-	s = socket(PF_INET6, SOCK_DGRAM, 0);
-	if (s == -1) {
-		UNEXPECTED_SYSERROR(errno, "socket()");
-		ipv6only_result = ISC_R_UNEXPECTED;
-		return;
-	}
-
-	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0) {
-		ipv6only_result = ISC_R_NOTFOUND;
-		goto close;
-	}
-
-	ipv6only_result = ISC_R_SUCCESS;
-
-close:
-	close(s);
-	return;
-#endif /* IPV6_V6ONLY */
-}
-
-static void
-initialize_ipv6only(void) {
-	isc_once_do(&once_ipv6only, try_ipv6only);
-}
-
 #ifdef __notyet__
 static void
 try_ipv6pktinfo(void) {
@@ -304,12 +242,6 @@ initialize_ipv6pktinfo(void) {
 	isc_once_do(&once_ipv6pktinfo, try_ipv6pktinfo);
 }
 #endif /* ifdef __notyet__ */
-
-isc_result_t
-isc_net_probe_ipv6only(void) {
-	initialize_ipv6only();
-	return ipv6only_result;
-}
 
 isc_result_t
 isc_net_probe_ipv6pktinfo(void) {
