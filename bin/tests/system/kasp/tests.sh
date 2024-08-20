@@ -2201,16 +2201,23 @@ check_apex
 check_subdomain
 dnssec_verify
 
-# Check that the ZSKs from the other provider are published.
+# Check that the ZSKs from the other providers are published.
 zsks_are_published() {
+  num=$1
   dig_with_opts +short "$ZONE" "@${SERVER}" DNSKEY >"dig.out.$DIR.test$n" || return 1
   # We should have three ZSKs.
   lines=$(grep "256 3 13" dig.out.$DIR.test$n | wc -l)
-  test "$lines" -eq 3 || return 1
+  test "$lines" -eq $num || return 1
   # And one KSK.
   lines=$(grep "257 3 13" dig.out.$DIR.test$n | wc -l)
   test "$lines" -eq 1 || return 1
 }
+n=$((n + 1))
+echo_i "check initial number of ZSKs (one from us and one from another provider) for zone ${ZONE} ($n)"
+ret=0
+retry_quiet 10 zsks_are_published 2 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
 
 n=$((n + 1))
 echo_i "update zone with ZSK from another provider for zone ${ZONE} ($n)"
@@ -2221,7 +2228,21 @@ ret=0
   echo update add $(cat "${DIR}/${ZONE}.zsk2")
   echo send
 ) | $NSUPDATE
-retry_quiet 10 zsks_are_published || ret=1
+retry_quiet 10 zsks_are_published 3 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "remove ZSKs from the other providers for zone ${ZONE} ($n)"
+ret=0
+(
+  echo zone ${ZONE}
+  echo server 10.53.0.3 "$PORT"
+  echo update del $(cat "${DIR}/${ZONE}.zsk1")
+  echo update del $(cat "${DIR}/${ZONE}.zsk2")
+  echo send
+) | $NSUPDATE
+retry_quiet 10 zsks_are_published 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
