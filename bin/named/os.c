@@ -295,11 +295,11 @@ setresuid(uid_t ruid, uid_t euid, uid_t suid) {
 	REQUIRE(ruid == (uid_t)-1);
 	REQUIRE(suid == (uid_t)-1);
 
-#if HAVE_SETREGID
-	return (setregid(ruid, euid));
-#else  /* HAVE_SETREGID */
-	return (setegid(euid));
-#endif /* HAVE_SETREGID */
+#if HAVE_SETREUID
+	return (setreuid(ruid, euid));
+#else  /* HAVE_SETREUID */
+	return (seteuid(euid));
+#endif /* HAVE_SETREUID */
 }
 #endif /* !HAVE_SETRESUID */
 
