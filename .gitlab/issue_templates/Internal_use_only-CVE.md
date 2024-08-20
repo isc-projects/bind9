@@ -34,8 +34,8 @@ confidential!
   - [ ] [:link:][step_versions_affected] **(SwEng)** Determine the range of product versions affected (including the Subscription Edition)
   - [ ] [:link:][step_workarounds]       **(SwEng)** Determine whether workarounds for the problem exist
   - [ ] [:link:][step_coordinate]        **(SwEng)** If necessary, coordinate with other parties
-  - [ ] [:link:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text and hand it off to Marketing
-  - [ ] [:link:][step_earliest_send]     **(Marketing)** Update "earliest" notification document in SF portal and send bulk email to earliest customers
+  - [ ] [:link:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
+  - [ ] [:link:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
   - [ ] [:link:][step_advisory_mr]       **(Support)** Create a merge request for the Security Advisory and include all readily available information in it
   - [ ] [:link:][step_reproducer_mr]     **(SwEng)** Prepare a private merge request containing a system test reproducing the problem
   - [ ] [:link:][step_notify_support]    **(SwEng)** Notify Support when a reproducer is ready
@@ -52,10 +52,12 @@ confidential!
 
 ### At T-5
 
-  - [ ] [:link:][step_asn_documents]     **(Marketing)** Update the text on the T-5 (from the Printing Press project) and "earliest" ASN documents in the SF portal
-  - [ ] [:link:][step_asn_links]         **(Marketing)** (BIND 9 only) Update the BIND -S information document in SF with download links to the new versions
-  - [ ] [:link:][step_asn_send]          **(Marketing)** Bulk email eligible customers to check the SF portal
+  - [ ] [:link:][step_asn_links]         **(Marketing)** (BIND 9 only) Update the BIND -S information document in the support portal with download links to the new versions
+  - [ ] [:link:][step_asn_send]          **(Support)** Notify eligible customers by adding a ticket to the 5 Day queue in RT with the text of the advisory (earliest, and T-5)
   - [ ] [:link:][step_preannouncement]   **(Marketing)** (BIND 9 only) Send a pre-announcement email to the *bind-announce* mailing list to alert users that the upcoming release will include security fixes
+
+### At T-3
+  - [ ] [:link:][step_asn_send]          **(Support)** Notify eligible customers by adding a ticket to the 3 Day queue in RT with the text of the advisory (T-3)
 
 ### At T-1
 
@@ -71,8 +73,8 @@ confidential!
   - [ ] [:link:][step_mitre]             **(First IM)** Advise MITRE about the disclosed CVEs
   - [ ] [:link:][step_merge_advisory]    **(First IM)** Merge the Security Advisory merge request
   - [ ] [:link:][step_embargo_end]       **(IM)** Inform original reporter (if external) that the security disclosure process is complete
-  - [ ] [:link:][step_asn_clear]         **(Marketing)** Update the SF portal to clear the ASN
-  - [ ] [:link:][step_customers]         **(Marketing)** Email ASN recipients that the embargo is lifted
+  - [ ] [:link:][step_asn_clear]         **(Support)** Update the tickets in the ASN queues in RT that the embargo is lifted
+  - [ ] [:link:][step_customers]         **(Marketing)** Open a ticket in the <software name> Announce queue that the release is published
 
 ### After Public Disclosure
 
