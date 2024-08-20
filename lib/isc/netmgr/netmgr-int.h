@@ -126,9 +126,9 @@ isc__nm_dump_active(isc_nm_t *nm);
 
 #if defined(__linux__)
 #include <syscall.h>
-#define gettid() (uint32_t) syscall(SYS_gettid)
+#define gettid() (uint32_t)syscall(SYS_gettid)
 #else
-#define gettid() (uint32_t) pthread_self()
+#define gettid() (uint32_t)pthread_self()
 #endif
 
 #ifdef NETMGR_TRACE_VERBOSE

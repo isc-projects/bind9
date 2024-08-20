@@ -48,6 +48,6 @@ isc_thread_yield(void);
 void
 isc_thread_setname(isc_thread_t thread, const char *name);
 
-#define isc_thread_self (uintptr_t) pthread_self
+#define isc_thread_self (uintptr_t)pthread_self
 
 ISC_LANG_ENDDECLS
