@@ -31,10 +31,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#ifndef socklen_t
-#define socklen_t unsigned int
-#endif /* ifndef socklen_t */
-
 /*%
  * Definitions about UDP port range specification.  This is a total mess of
  * portability variants: some use sysctl (but the sysctl names vary), some use
