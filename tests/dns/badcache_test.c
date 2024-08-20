@@ -43,20 +43,6 @@
 
 #include <tests/dns.h>
 
-static uint32_t
-crc32(const uint8_t *buf, size_t size) {
-	uint32_t crc;
-	crc = 0xFFFFFFFF;
-	while (size--) {
-		crc = crc ^ *buf++;
-		for (size_t j = 0; j < 8; j++) {
-			uint32_t mask = -(crc & 1);
-			crc = (crc >> 1) ^ (0xedb88320 & mask);
-		}
-	}
-	return (~crc);
-}
-
 #define BADCACHE_TEST_FLAG 1 << 3
 
 ISC_LOOP_TEST_IMPL(basic) {
@@ -135,8 +121,14 @@ ISC_LOOP_TEST_IMPL(print) {
 	isc_stdtime_t expire = now + 60;
 	uint32_t flags = BADCACHE_TEST_FLAG;
 	FILE *file = NULL;
-	uint8_t buf[4096];
+	char buf[4096];
 	size_t len;
+	char *pos;
+	char *endptr;
+	const char *part1 = ";\n; badcache\n;\n; example.com/A [ttl ";
+	const char *part2 = "]\n; example.com/AAAA [ttl ";
+	const char *part3 = "]\n";
+	long ttl;
 
 	dns_name_fromstring(name, "example.com.", NULL, 0, NULL);
 
@@ -153,8 +145,27 @@ ISC_LOOP_TEST_IMPL(print) {
 	assert_int_equal(len, 68);
 	fclose(file);
 
-	/* Calculated as crc32 ./badcache.out */
-	assert_int_equal(crc32(buf, len), 0x7c96678f);
+	pos = buf;
+	assert_memory_equal(pos, part1, strlen(part1));
+	pos += strlen(part1);
+
+	ttl = strtol(pos, &endptr, 0);
+	assert_ptr_not_equal(pos, endptr);
+	assert_true(ttl >= 0 && ttl <= 60);
+	pos = endptr;
+
+	assert_memory_equal(pos, part2, strlen(part2));
+	pos += strlen(part2);
+
+	ttl = strtol(pos, &endptr, 0);
+	assert_ptr_not_equal(pos, endptr);
+	assert_true(ttl >= 0 && ttl <= 60);
+	pos = endptr;
+
+	assert_memory_equal(pos, part3, strlen(part3));
+	pos += strlen(part3);
+
+	assert_int_equal(pos - buf, len);
 
 	dns_badcache_destroy(&bc);
 
