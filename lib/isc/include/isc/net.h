@@ -188,27 +188,23 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 isc_net_probeipv4(void);
 /*%<
- * Check if the system's kernel supports IPv4.
+ * Check if the IPv4 has been disabled.
  *
  * Returns:
  *
  *\li	#ISC_R_SUCCESS		IPv4 is supported.
- *\li	#ISC_R_NOTFOUND		IPv4 is not supported.
  *\li	#ISC_R_DISABLED		IPv4 is disabled.
- *\li	#ISC_R_UNEXPECTED
  */
 
 isc_result_t
 isc_net_probeipv6(void);
 /*%<
- * Check if the system's kernel supports IPv6.
+ * Check if the IPv6 has been disabled.
  *
  * Returns:
  *
  *\li	#ISC_R_SUCCESS		IPv6 is supported.
- *\li	#ISC_R_NOTFOUND		IPv6 is not supported.
  *\li	#ISC_R_DISABLED		IPv6 is disabled.
- *\li	#ISC_R_UNEXPECTED
  */
 
 isc_result_t

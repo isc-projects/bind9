@@ -101,100 +101,17 @@ static isc_once_t once_ipv6pktinfo = ISC_ONCE_INIT;
 #endif /* ! __APPLE__ */
 #endif /* ! ISC_CMSG_IP_TOS */
 
-static isc_once_t once = ISC_ONCE_INIT;
-
-static isc_result_t ipv4_result = ISC_R_NOTFOUND;
-static isc_result_t ipv6_result = ISC_R_NOTFOUND;
+static isc_result_t ipv4_result = ISC_R_SUCCESS;
+static isc_result_t ipv6_result = ISC_R_SUCCESS;
 static isc_result_t ipv6pktinfo_result = ISC_R_NOTFOUND;
-
-static isc_result_t
-try_proto(int domain) {
-	int s;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	s = socket(domain, SOCK_STREAM, 0);
-	if (s == -1) {
-		switch (errno) {
-#ifdef EAFNOSUPPORT
-		case EAFNOSUPPORT:
-#endif /* ifdef EAFNOSUPPORT */
-#ifdef EPFNOSUPPORT
-		case EPFNOSUPPORT:
-#endif /* ifdef EPFNOSUPPORT */
-#ifdef EPROTONOSUPPORT
-		case EPROTONOSUPPORT:
-#endif /* ifdef EPROTONOSUPPORT */
-#ifdef EINVAL
-		case EINVAL:
-#endif /* ifdef EINVAL */
-			return ISC_R_NOTFOUND;
-		default:
-			UNEXPECTED_SYSERROR(errno, "socket()");
-			return ISC_R_UNEXPECTED;
-		}
-	}
-
-	if (domain == PF_INET6) {
-		struct sockaddr_in6 sin6;
-		unsigned int len;
-
-		/*
-		 * Check to see if IPv6 is broken, as is common on Linux.
-		 */
-		len = sizeof(sin6);
-		if (getsockname(s, (struct sockaddr *)&sin6, (void *)&len) < 0)
-		{
-			isc_log_write(ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
-				      "retrieving the address of an IPv6 "
-				      "socket from the kernel failed.");
-			isc_log_write(ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
-				      "IPv6 is not supported.");
-			result = ISC_R_NOTFOUND;
-		} else {
-			if (len == sizeof(struct sockaddr_in6)) {
-				result = ISC_R_SUCCESS;
-			} else {
-				isc_log_write(ISC_LOGCATEGORY_GENERAL,
-					      ISC_LOGMODULE_SOCKET,
-					      ISC_LOG_ERROR,
-					      "IPv6 structures in kernel and "
-					      "user space do not match.");
-				isc_log_write(ISC_LOGCATEGORY_GENERAL,
-					      ISC_LOGMODULE_SOCKET,
-					      ISC_LOG_ERROR,
-					      "IPv6 is not supported.");
-				result = ISC_R_NOTFOUND;
-			}
-		}
-	}
-
-	(void)close(s);
-
-	return result;
-}
-
-static void
-initialize_action(void) {
-	ipv4_result = try_proto(PF_INET);
-	ipv6_result = try_proto(PF_INET6);
-}
-
-static void
-initialize(void) {
-	isc_once_do(&once, initialize_action);
-}
 
 isc_result_t
 isc_net_probeipv4(void) {
-	initialize();
 	return ipv4_result;
 }
 
 isc_result_t
 isc_net_probeipv6(void) {
-	initialize();
 	return ipv6_result;
 }
 
@@ -382,7 +299,6 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high) {
 
 void
 isc_net_disableipv4(void) {
-	initialize();
 	if (ipv4_result == ISC_R_SUCCESS) {
 		ipv4_result = ISC_R_DISABLED;
 	}
@@ -390,7 +306,6 @@ isc_net_disableipv4(void) {
 
 void
 isc_net_disableipv6(void) {
-	initialize();
 	if (ipv6_result == ISC_R_SUCCESS) {
 		ipv6_result = ISC_R_DISABLED;
 	}
@@ -398,7 +313,6 @@ isc_net_disableipv6(void) {
 
 void
 isc_net_enableipv4(void) {
-	initialize();
 	if (ipv4_result == ISC_R_DISABLED) {
 		ipv4_result = ISC_R_SUCCESS;
 	}
@@ -406,7 +320,6 @@ isc_net_enableipv4(void) {
 
 void
 isc_net_enableipv6(void) {
-	initialize();
 	if (ipv6_result == ISC_R_DISABLED) {
 		ipv6_result = ISC_R_SUCCESS;
 	}
