@@ -871,8 +871,9 @@ librpz_lib_open(librpz_emsg_t *emsg, uv_lib_t *lib, const char *path) {
 		if (errmsg == NULL) {
 			errmsg = "unknown error";
 		}
-		snprintf(emsg->c, sizeof(librpz_emsg_t), "uv_dlopen(%s): %s",
-			 path, errmsg);
+		snprintf(emsg->c, sizeof(librpz_emsg_t),
+			 "uv_dlopen(%s): ", path);
+		strlcat(emsg->c, errmsg, sizeof(librpz_emsg_t));
 		uv_dlclose(lib);
 		return (NULL);
 	}
@@ -884,7 +885,8 @@ librpz_lib_open(librpz_emsg_t *emsg, uv_lib_t *lib, const char *path) {
 		}
 		uv_dlclose(lib);
 		snprintf(emsg->c, sizeof(librpz_emsg_t),
-			 "dlsym(%s, " LIBRPZ_DEF_STR "): %s", path, errmsg);
+			 "dlsym(%s, " LIBRPZ_DEF_STR "): ", path);
+		strlcat(emsg->c, errmsg, sizeof(librpz_emsg_t));
 		return (NULL);
 	}
 
