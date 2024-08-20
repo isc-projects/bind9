@@ -425,12 +425,6 @@ AS_CASE([$host],
 
 AC_CHECK_FUNCS([sysctlbyname])
 
-#
-# Check for uid/gid setting variants
-#
-AC_CHECK_FUNCS([setresuid setreuid getresuid])
-AC_CHECK_FUNCS([setresgid setregid getresgid])
-
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINTPTR_T
