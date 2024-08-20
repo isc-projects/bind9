@@ -33,7 +33,6 @@
 #include <isc/urcu.h>
 #include <isc/util.h>
 
-#include <dns/log.h>
 #include <dns/qp.h>
 #include <dns/types.h>
 
@@ -48,9 +47,9 @@
 #define TRANSACTION_COUNT 1234
 
 #if VERBOSE
-#define TRACE(fmt, ...)                                                     \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
-		      ISC_LOG_DEBUG(7), "%s:%d:%s(): " fmt, __FILE__,       \
+#define TRACE(fmt, ...)                                               \
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP,     \
+		      ISC_LOG_DEBUG(7), "%s:%d:%s(): " fmt, __FILE__, \
 		      __LINE__, __func__, ##__VA_ARGS__)
 #else
 #define TRACE(...)
@@ -68,31 +67,15 @@
 
 static void
 setup_logging(void) {
-	isc_result_t result;
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
-
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_setcontext(lctx);
-	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
-
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination,
-			      ISC_LOG_PRINTPREFIX | ISC_LOG_PRINTTIME |
-				      ISC_LOG_ISO8601);
-
 #if VERBOSE
-	isc_log_setdebuglevel(lctx, 7);
+	isc_log_setdebuglevel(7);
 #endif
-
-	result = isc_log_usechannel(logconfig, "stderr",
-				    ISC_LOGCATEGORY_DEFAULT, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR,
+		ISC_LOG_PRINTPREFIX | ISC_LOG_PRINTTIME | ISC_LOG_ISO8601,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 }
 
 static struct {
@@ -391,7 +374,6 @@ ISC_RUN_TEST_IMPL(qpmulti) {
 	isc_loopmgr_run(loopmgr);
 	rcu_barrier();
 	isc_loopmgr_destroy(&loopmgr);
-	isc_log_destroy(&dns_lctx);
 }
 
 ISC_TEST_LIST_START

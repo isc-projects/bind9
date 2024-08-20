@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
+#include <isc/log.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -24,7 +25,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
@@ -279,16 +279,15 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto failure;
 	}
 	if (check_hints(db) != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
-			      "extra data in root hints '%s'",
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
+			      ISC_LOG_WARNING, "extra data in root hints '%s'",
 			      (filename != NULL) ? filename : "<BUILT-IN>");
 	}
 	*target = db;
 	return (ISC_R_SUCCESS);
 
 failure:
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
 		      ISC_LOG_ERROR,
 		      "could not configure root hints from "
 		      "'%s': %s",
@@ -326,13 +325,13 @@ report(dns_view_t *view, dns_name_t *name, bool missing, dns_rdata_t *rdata) {
 	databuf[isc_buffer_usedlength(&buffer)] = '\0';
 
 	if (missing) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
+			      ISC_LOG_WARNING,
 			      "checkhints%s%s: %s/%s (%s) missing from hints",
 			      sep, viewname, namebuf, typebuf, databuf);
 	} else {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
+			      ISC_LOG_WARNING,
 			      "checkhints%s%s: %s/%s (%s) extra record "
 			      "in hints",
 			      sep, viewname, namebuf, typebuf, databuf);
@@ -521,8 +520,8 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 	result = dns_db_find(hints, dns_rootname, NULL, dns_rdatatype_ns, 0,
 			     now, NULL, name, &hintns, NULL);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
+			      ISC_LOG_WARNING,
 			      "checkhints%s%s: unable to get root NS rrset "
 			      "from hints: %s",
 			      sep, viewname, isc_result_totext(result));
@@ -532,8 +531,8 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 	result = dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns, 0, now,
 			     NULL, name, &rootns, NULL);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
+			      ISC_LOG_WARNING,
 			      "checkhints%s%s: unable to get root NS rrset "
 			      "from cache: %s",
 			      sep, viewname, isc_result_totext(result));
@@ -553,7 +552,7 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			/* missing from hints */
 			dns_name_format(&ns.name, namebuf, sizeof(namebuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
 				      "checkhints%s%s: unable to find root "
 				      "NS '%s' in hints",
@@ -581,7 +580,7 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			/* extra entry in hints */
 			dns_name_format(&ns.name, namebuf, sizeof(namebuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
 				      "checkhints%s%s: extra NS '%s' in hints",
 				      sep, viewname, namebuf);

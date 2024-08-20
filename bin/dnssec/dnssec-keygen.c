@@ -39,6 +39,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/fips.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
@@ -49,7 +50,6 @@
 #include <dns/fixedname.h>
 #include <dns/kasp.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/secalg.h>
@@ -71,8 +71,6 @@ const char *program = "dnssec-keygen";
  */
 static int min_rsa = 1024;
 static int min_dh = 128;
-
-isc_log_t *lctx = NULL;
 
 ISC_NORETURN static void
 usage(void);
@@ -1145,7 +1143,7 @@ main(int argc, char **argv) {
 		min_rsa = min_dh = 2048;
 	}
 
-	setup_logging(mctx, &lctx);
+	setup_logging();
 
 	ctx.rdclass = strtoclass(classname);
 
@@ -1225,7 +1223,7 @@ main(int argc, char **argv) {
 			dns_kasp_t *kasp = NULL;
 			dns_kasp_key_t *kaspkey = NULL;
 
-			RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &parser) ==
+			RUNTIME_CHECK(cfg_parser_create(mctx, &parser) ==
 				      ISC_R_SUCCESS);
 			if (cfg_parse_file(parser, ctx.configfile,
 					   &cfg_type_namedconf,
@@ -1236,8 +1234,8 @@ main(int argc, char **argv) {
 				      ctx.policy, ctx.configfile);
 			}
 
-			kasp_from_conf(config, mctx, lctx, ctx.policy,
-				       ctx.directory, &kasp);
+			kasp_from_conf(config, mctx, ctx.policy, ctx.directory,
+				       &kasp);
 			if (kasp == NULL) {
 				fatal("failed to load dnssec-policy '%s'",
 				      ctx.policy);
@@ -1281,7 +1279,6 @@ main(int argc, char **argv) {
 		keygen(&ctx, mctx, argc, argv);
 	}
 
-	cleanup_logging(&lctx);
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

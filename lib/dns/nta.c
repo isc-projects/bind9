@@ -30,7 +30,6 @@
 
 #include <dns/db.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/nta.h>
 #include <dns/qp.h>
@@ -385,9 +384,8 @@ delete_expired(void *arg) {
 	{
 		char nb[DNS_NAME_FORMATSIZE];
 		dns_name_format(&nta->name, nb, sizeof(nb));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_NTA, ISC_LOG_INFO,
-			      "deleting expired NTA at %s", nb);
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_NTA,
+			      ISC_LOG_INFO, "deleting expired NTA at %s", nb);
 		dns_qp_deletename(qp, &nta->name, NULL, NULL);
 		dns__nta_shutdown(nta);
 		dns__nta_unref(nta);
@@ -584,12 +582,12 @@ dns__nta_shutdown_cb(void *arg) {
 
 	REQUIRE(VALID_NTA(nta));
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 		char nb[DNS_NAME_FORMATSIZE];
 		dns_name_format(&nta->name, nb, sizeof(nb));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_NTA, ISC_LOG_DEBUG(3),
-			      "shutting down NTA %p at %s", nta, nb);
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_NTA,
+			      ISC_LOG_DEBUG(3), "shutting down NTA %p at %s",
+			      nta, nb);
 	}
 	if (nta->timer) {
 		isc_timer_stop(nta->timer);

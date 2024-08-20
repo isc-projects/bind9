@@ -21,6 +21,7 @@
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
@@ -30,7 +31,6 @@
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/secalg.h>
@@ -125,7 +125,6 @@ main(int argc, char **argv) {
 	isc_textregion_t r;
 	char filename[255];
 	isc_buffer_t buf;
-	isc_log_t *log = NULL;
 	dns_rdataclass_t rdclass;
 	int options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	char *label = NULL;
@@ -332,7 +331,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	setup_logging(mctx, &log);
+	setup_logging();
 
 	if (predecessor == NULL) {
 		if (label == NULL) {
@@ -723,7 +722,6 @@ main(int argc, char **argv) {
 		dst_key_free(&prevkey);
 	}
 
-	cleanup_logging(&log);
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

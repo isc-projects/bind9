@@ -75,10 +75,7 @@ sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size);
 	(DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + sizeof("65535"))
 
 void
-setup_logging(isc_mem_t *mctx, isc_log_t **logp);
-
-void
-cleanup_logging(isc_log_t **logp);
+setup_logging(void);
 
 dns_ttl_t
 strtottl(const char *str);
@@ -118,5 +115,5 @@ void
 loadjournal(isc_mem_t *mctx, dns_db_t *db, const char *journal);
 
 void
-kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
-	       const char *name, const char *keydir, dns_kasp_t **kaspp);
+kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
+	       const char *keydir, dns_kasp_t **kaspp);

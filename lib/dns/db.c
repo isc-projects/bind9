@@ -22,6 +22,7 @@
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/result.h>
@@ -34,10 +35,7 @@
 #include <dns/callbacks.h>
 #include <dns/clientinfo.h>
 #include <dns/db.h>
-#include <dns/dbiterator.h>
-#include <dns/log.h>
 #include <dns/master.h>
-#include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 
@@ -158,8 +156,8 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 
 	RWUNLOCK(&implock, isc_rwlocktype_read);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DB,
-		      ISC_LOG_ERROR, "unsupported database type '%s'", db_type);
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DB, ISC_LOG_ERROR,
+		      "unsupported database type '%s'", db_type);
 
 	return (ISC_R_NOTFOUND);
 }

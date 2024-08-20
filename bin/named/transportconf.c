@@ -133,8 +133,7 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 
 	return (ISC_R_SUCCESS);
 failure:
-	cfg_obj_log(doh, named_g_lctx, ISC_LOG_ERROR,
-		    "configuring DoH '%s': %s", dohid,
+	cfg_obj_log(doh, ISC_LOG_ERROR, "configuring DoH '%s': %s", dohid,
 		    isc_result_totext(result));
 
 	return (result);
@@ -187,8 +186,7 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 
 	return (ISC_R_SUCCESS);
 failure:
-	cfg_obj_log(tls, named_g_lctx, ISC_LOG_ERROR,
-		    "configuring tls '%s': %s", tlsid,
+	cfg_obj_log(tls, ISC_LOG_ERROR, "configuring tls '%s': %s", tlsid,
 		    isc_result_totext(result));
 
 	return (result);

@@ -16,6 +16,7 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/stats.h>
@@ -28,7 +29,6 @@
 #include <dns/ipkeylist.h>
 #include <dns/journal.h>
 #include <dns/kasp.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/name.h>
 #include <dns/nsec3.h>
@@ -175,8 +175,8 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 	}
 
 parse_acl:
-	result = cfg_acl_fromconfig(aclobj, config, named_g_lctx, actx,
-				    named_g_mctx, 0, &acl);
+	result = cfg_acl_fromconfig(aclobj, config, actx, named_g_mctx, 0,
+				    &acl);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -262,7 +262,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		result = dns_name_fromtext(dns_fixedname_name(&fident), &b,
 					   dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
-			cfg_obj_log(identity, named_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(identity, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
 			goto cleanup;
 		}
@@ -278,8 +278,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			result = dns_name_fromtext(dns_fixedname_name(&fname),
 						   &b, dns_rootname, 0, NULL);
 			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(identity, named_g_lctx,
-					    ISC_LOG_ERROR,
+				cfg_obj_log(identity, ISC_LOG_ERROR,
 					    "'%s' is not a valid name", str);
 				goto cleanup;
 			}
@@ -315,8 +314,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 				if (max > 0xffff || end[0] != /*(*/ ')' ||
 				    end[1] != 0)
 				{
-					cfg_obj_log(identity, named_g_lctx,
-						    ISC_LOG_ERROR,
+					cfg_obj_log(identity, ISC_LOG_ERROR,
 						    "'%s' is not a valid count",
 						    bracket);
 					isc_mem_cput(mctx, types, n,
@@ -330,8 +328,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 			result = dns_rdatatype_fromtext(&types[i++].type, &r);
 			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(identity, named_g_lctx,
-					    ISC_LOG_ERROR,
+				cfg_obj_log(identity, ISC_LOG_ERROR,
 					    "'%.*s' is not a valid type",
 					    (int)r.length, str);
 				isc_mem_cput(mctx, types, n, sizeof(*types));
@@ -357,7 +354,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		dns_ssuruletype_t any = { dns_rdatatype_any, 0 };
 
 		if (named_g_server->session_keyname == NULL) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "failed to enable auto DDNS policy "
 				      "for zone %s: session key not found",
@@ -415,14 +412,14 @@ configure_staticstub_serveraddrs(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		sa = cfg_obj_assockaddr(address);
 		if (isc_sockaddr_getport(sa) != 0) {
-			cfg_obj_log(zconfig, named_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "port is not configurable for "
 				    "static stub server-addresses");
 			return (ISC_R_FAILURE);
 		}
 		isc_netaddr_fromsockaddr(&na, sa);
 		if (isc_netaddr_getzone(&na) != 0) {
-			cfg_obj_log(zconfig, named_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "scoped address is not allowed "
 				    "for static stub "
 				    "server-addresses");
@@ -508,14 +505,14 @@ configure_staticstub_servernames(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		isc_buffer_add(&b, strlen(str));
 		result = dns_name_fromtext(nsname, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
-			cfg_obj_log(zconfig, named_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "server-name '%s' is not a valid "
 				    "name",
 				    str);
 			return (result);
 		}
 		if (dns_name_issubdomain(nsname, dns_zone_getorigin(zone))) {
-			cfg_obj_log(zconfig, named_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "server-name '%s' must not be a "
 				    "subdomain of zone name '%s'",
 				    str, zname);
@@ -602,8 +599,8 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	 * to trigger delegation.
 	 */
 	if (ISC_LIST_EMPTY(rdatalist_ns.rdata)) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR,
 			      "No NS record is configured for a "
 			      "static-stub zone '%s'",
 			      zname);
@@ -854,7 +851,7 @@ process_notifytype(dns_notifytype_t ntype, dns_zonetype_t ztype,
 	 * hierarchy supplied in 'maps'.
 	 */
 	if (named_config_get(maps, "notify", &obj) == ISC_R_SUCCESS) {
-		cfg_obj_log(obj, named_g_lctx, ISC_LOG_INFO,
+		cfg_obj_log(obj, ISC_LOG_INFO,
 			    "'notify explicit;' will be used for mirror zone "
 			    "'%s'",
 			    zname);
@@ -975,7 +972,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		size_t len;
 
 		if (cpval != default_dbtype) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "zone '%s': both 'database' and 'dlz' "
 				      "specified",
@@ -1018,9 +1015,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (ztype == dns_zone_primary && cpval == default_dbtype &&
 	    filename == NULL)
 	{
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "zone '%s': 'file' not specified", zname);
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR, "zone '%s': 'file' not specified",
+			      zname);
 		CHECK(ISC_R_FAILURE);
 	}
 
@@ -1049,7 +1046,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		const char *masterstylestr = cfg_obj_asstring(obj);
 
 		if (masterformat != dns_masterformat_text) {
-			cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "zone '%s': 'masterfile-style' "
 				    "can only be used with "
 				    "'masterfile-format text'",
@@ -1233,8 +1230,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 							   &kasp);
 				if (result != ISC_R_SUCCESS) {
 					cfg_obj_log(
-						obj, named_g_lctx,
-						ISC_LOG_ERROR,
+						obj, ISC_LOG_ERROR,
 						"dnssec-policy '%s' not found ",
 						kaspname);
 					CHECK(result);
@@ -1360,7 +1356,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else {
 			uint64_t value = cfg_obj_asuint64(obj);
 			if (value > DNS_JOURNAL_SIZE_MAX) {
-				cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
+				cfg_obj_log(obj, ISC_LOG_ERROR,
 					    "'max-journal-size "
 					    "%" PRId64 "' "
 					    "is too large",
@@ -1505,7 +1501,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else {
 			uint64_t value = cfg_obj_asuint64(obj);
 			if (value > DNS_JOURNAL_SIZE_MAX) {
-				cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
+				cfg_obj_log(obj, ISC_LOG_ERROR,
 					    "'max-journal-size "
 					    "%" PRId64 "' "
 					    "is too large",
@@ -1546,7 +1542,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 		updateacl = dns_zone_getupdateacl(mayberaw);
 		if (updateacl != NULL && dns_acl_isinsecure(updateacl)) {
-			isc_log_write(named_g_lctx, DNS_LOGCATEGORY_SECURITY,
+			isc_log_write(DNS_LOGCATEGORY_SECURITY,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "zone '%s' allows unsigned updates "
 				      "from remote hosts, which is insecure",

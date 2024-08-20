@@ -626,8 +626,8 @@ named_os_adjustnofile(void) {
 	rlim_old = rl.rlim_cur;
 
 	if (rl.rlim_cur == rl.rlim_max) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			      ISC_LOG_NOTICE,
 			      "the limit on open files is already at the "
 			      "maximum allowed value: "
 			      "%" PRIu64,
@@ -641,8 +641,8 @@ named_os_adjustnofile(void) {
 		goto fail;
 	}
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "adjusted limit on open files from "
 		      "%" PRIu64 " to "
 		      "%" PRIu64,

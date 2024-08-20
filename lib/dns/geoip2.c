@@ -24,6 +24,7 @@
 #include <maxminddb.h>
 #include <netinet/in.h>
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/sockaddr.h>
@@ -33,7 +34,6 @@
 
 #include <dns/acl.h>
 #include <dns/geoip.h>
-#include <dns/log.h>
 
 /*
  * This structure preserves state from the previous GeoIP lookup,
@@ -46,9 +46,9 @@
  * the lookup was answered, and a copy of the request address.
  *
  * If the next geoip ACL lookup is for the same database and from the
- * same address, we can reuse the MMDB entry without repeating the lookup.
- * This is for the case when a single query has to process multiple
- * geoip ACLs: for example, when there are multiple views with
+ * same address, we can reuse the MMDB entry without repeating the
+ * lookup. This is for the case when a single query has to process
+ * multiple geoip ACLs: for example, when there are multiple views with
  * match-clients statements that search for different countries.
  *
  * (XXX: Currently the persistent state is stored in thread specific

@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/interfaceiter.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
@@ -29,7 +30,6 @@
 
 #include <ns/client.h>
 #include <ns/interfacemgr.h>
-#include <ns/log.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 
@@ -57,9 +57,6 @@
 
 #define IFMGR_MAGIC		 ISC_MAGIC('I', 'F', 'M', 'G')
 #define NS_INTERFACEMGR_VALID(t) ISC_MAGIC_VALID(t, IFMGR_MAGIC)
-
-#define IFMGR_COMMON_LOGARGS \
-	ns_lctx, NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR
 
 /*% nameserver interface manager structure */
 struct ns_interfacemgr {
@@ -203,7 +200,8 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	struct MSGHDR *rtm = NULL;
 	size_t rtmlen;
 
-	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(9), "route_recv: %s",
+	isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+		      ISC_LOG_DEBUG(9), "route_recv: %s",
 		      isc_result_totext(eresult));
 
 	if (handle == NULL) {
@@ -214,7 +212,8 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	case ISC_R_SUCCESS:
 		break;
 	default:
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR,
 			      "automatic interface scanning terminated: %s",
 			      isc_result_totext(eresult));
 		FALLTHROUGH;
@@ -230,7 +229,8 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 #ifdef RTM_VERSION
 	if (rtm->rtm_version != RTM_VERSION) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR,
 			      "automatic interface rescanning disabled: "
 			      "rtm->rtm_version mismatch (%u != %u) "
 			      "recompile required",
@@ -255,8 +255,9 @@ static void
 route_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	ns_interfacemgr_t *mgr = (ns_interfacemgr_t *)arg;
 
-	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(9),
-		      "route_connected: %s", isc_result_totext(eresult));
+	isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+		      ISC_LOG_DEBUG(9), "route_connected: %s",
+		      isc_result_totext(eresult));
 
 	if (eresult != ISC_R_SUCCESS) {
 		ns_interfacemgr_detach(&mgr);
@@ -352,8 +353,8 @@ ns_interfacemgr_routeconnect(ns_interfacemgr_t *mgr) {
 	isc_result_t result = isc_nm_routeconnect(mgr->nm, route_connected,
 						  mgr);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-			      "unable to open route socket: %s",
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_INFO, "unable to open route socket: %s",
 			      isc_result_totext(result));
 		ns_interfacemgr_unref(mgr);
 	}
@@ -505,8 +506,8 @@ ns_interface_listentcp(ns_interface_t *ifp, isc_nm_proxy_type_t proxy) {
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, NULL, proxy, &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "creating TCP socket: %s",
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR, "creating TCP socket: %s",
 			      isc_result_totext(result));
 	}
 
@@ -517,8 +518,8 @@ ns_interface_listentcp(ns_interface_t *ifp, isc_nm_proxy_type_t proxy) {
 	 */
 	result = ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "connecting TCP socket: %s",
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR, "connecting TCP socket: %s",
 			      isc_result_totext(result));
 	}
 
@@ -541,8 +542,8 @@ ns_interface_listentls(ns_interface_t *ifp, isc_nm_proxy_type_t proxy,
 		&ifp->tlslistensocket);
 
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "creating TLS socket: %s",
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR, "creating TLS socket: %s",
 			      isc_result_totext(result));
 		return (result);
 	}
@@ -554,8 +555,8 @@ ns_interface_listentls(ns_interface_t *ifp, isc_nm_proxy_type_t proxy,
 	 */
 	result = ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "updating TCP stats: %s",
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR, "updating TCP stats: %s",
 			      isc_result_totext(result));
 	}
 
@@ -616,8 +617,8 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_nm_proxy_type_t proxy,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "creating %s socket: %s",
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR, "creating %s socket: %s",
 			      sslctx ? "HTTPS" : "HTTP",
 			      isc_result_totext(result));
 		return (result);
@@ -636,8 +637,8 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_nm_proxy_type_t proxy,
 	 */
 	result = ns__client_tcpconn(NULL, ISC_R_SUCCESS, ifp);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "updating TCP stats: %s",
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR, "updating TCP stats: %s",
 			      isc_result_totext(result));
 	}
 
@@ -808,8 +809,8 @@ static void
 log_interface_shutdown(const ns_interface_t *ifp) {
 	char sabuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
-	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-		      "no longer listening on %s", sabuf);
+	isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+		      ISC_LOG_INFO, "no longer listening on %s", sabuf);
 }
 
 /*%
@@ -876,7 +877,8 @@ setup_locals(isc_interface_t *interface, dns_acl_t *localhost,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_WARNING,
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_WARNING,
 			      "omitting IPv4 interface %s from "
 			      "localnets ACL: %s",
 			      interface->name, isc_result_totext(result));
@@ -884,7 +886,8 @@ setup_locals(isc_interface_t *interface, dns_acl_t *localhost,
 	}
 
 	if (prefixlen == 0U) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_WARNING,
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_WARNING,
 			      "omitting %s interface %s from localnets ACL: "
 			      "zero prefix length detected",
 			      (netaddr->family == AF_INET) ? "IPv4" : "IPv6",
@@ -951,8 +954,8 @@ replace_listener_tlsctx(ns_interface_t *ifp, isc_tlsctx_t *newctx) {
 	char sabuf[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
-	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-		      "updating TLS context on %s", sabuf);
+	isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+		      ISC_LOG_INFO, "updating TLS context on %s", sabuf);
 	if (ifp->tlslistensocket != NULL) {
 		isc_nmsocket_set_tlsctx(ifp->tlslistensocket, newctx);
 	} else if (ifp->http_secure_listensocket != NULL) {
@@ -1100,7 +1103,7 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
 		scan_ipv6 = true;
 	} else if ((mgr->sctx->options & NS_SERVER_DISABLE6) == 0) {
-		isc_log_write(IFMGR_COMMON_LOGARGS,
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
 			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv6 interfaces found");
 	}
@@ -1108,7 +1111,7 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
 		scan_ipv4 = true;
 	} else if ((mgr->sctx->options & NS_SERVER_DISABLE4) == 0) {
-		isc_log_write(IFMGR_COMMON_LOGARGS,
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
 			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv4 interfaces found");
 	}
@@ -1151,7 +1154,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 				}
 			}
 
-			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+			isc_log_write(NS_LOGCATEGORY_NETWORK,
+				      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
 				      "listening on IPv6 "
 				      "interfaces, port %u",
 				      le->port);
@@ -1160,7 +1164,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			if (result == ISC_R_SUCCESS) {
 				ifp->flags |= NS_INTERFACEFLAG_ANYADDR;
 			} else {
-				isc_log_write(IFMGR_COMMON_LOGARGS,
+				isc_log_write(NS_LOGCATEGORY_NETWORK,
+					      NS_LOGMODULE_INTERFACEMGR,
 					      ISC_LOG_ERROR,
 					      "listening on all IPv6 "
 					      "interfaces failed");
@@ -1300,7 +1305,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			if (log_explicit && family == AF_INET6 &&
 			    listenon_is_ip6_any(le))
 			{
-				isc_log_write(IFMGR_COMMON_LOGARGS,
+				isc_log_write(NS_LOGCATEGORY_NETWORK,
+					      NS_LOGMODULE_INTERFACEMGR,
 					      verbose ? ISC_LOG_INFO
 						      : ISC_LOG_DEBUG(1),
 					      "IPv6 socket API is "
@@ -1311,7 +1317,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			}
 			isc_sockaddr_format(&listen_sockaddr, sabuf,
 					    sizeof(sabuf));
-			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+			isc_log_write(NS_LOGCATEGORY_NETWORK,
+				      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
 				      "listening on %s interface "
 				      "%s, %s",
 				      (family == AF_INET) ? "IPv4" : "IPv6",
@@ -1327,20 +1334,22 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			}
 
 			if (result != ISC_R_SUCCESS) {
-				isc_log_write(
-					IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-					"creating %s interface "
-					"%s failed; interface ignored",
-					(family == AF_INET) ? "IPv4" : "IPv6",
-					interface.name);
+				isc_log_write(NS_LOGCATEGORY_NETWORK,
+					      NS_LOGMODULE_INTERFACEMGR,
+					      ISC_LOG_ERROR,
+					      "creating %s interface "
+					      "%s failed; interface ignored",
+					      (family == AF_INET) ? "IPv4"
+								  : "IPv6",
+					      interface.name);
 			}
 			/* Continue. */
 		}
 		continue;
 
 	ignore_interface:
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "ignoring %s interface %s: %s",
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_ERROR, "ignoring %s interface %s: %s",
 			      (family == AF_INET) ? "IPv4" : "IPv6",
 			      interface.name, isc_result_totext(result));
 		continue;
@@ -1392,7 +1401,8 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	 * Warn if we are not listening on any interface.
 	 */
 	if (ISC_LIST_EMPTY(mgr->interfaces)) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_WARNING,
+		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
+			      ISC_LOG_WARNING,
 			      "not listening on any interfaces");
 	}
 

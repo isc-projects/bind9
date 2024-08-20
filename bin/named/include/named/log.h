@@ -18,21 +18,7 @@
 #include <isc/log.h>
 #include <isc/types.h>
 
-#include <dns/log.h>
-
 #include <named/globals.h> /* Required for named_g_(categories|modules). */
-
-/* Unused slot 0. */
-#define NAMED_LOGCATEGORY_UNMATCHED (&named_g_categories[1])
-
-/*
- * Backwards compatibility.
- */
-#define NAMED_LOGCATEGORY_GENERAL ISC_LOGCATEGORY_GENERAL
-
-#define NAMED_LOGMODULE_MAIN	(&named_g_modules[0])
-#define NAMED_LOGMODULE_SERVER	(&named_g_modules[1])
-#define NAMED_LOGMODULE_CONTROL (&named_g_modules[2])
 
 isc_result_t
 named_log_init(bool safe);
@@ -79,6 +65,3 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg);
 /*%
  * Set up "category unmatched" to go to the right places.
  */
-
-void
-named_log_shutdown(void);

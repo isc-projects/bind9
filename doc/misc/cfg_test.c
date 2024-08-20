@@ -17,33 +17,16 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <dns/log.h>
 
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
 static void
-check_result(isc_result_t result, const char *format, ...) {
-	va_list args;
-
-	if (result == ISC_R_SUCCESS) {
-		return;
-	}
-
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, ": %s\n", isc_result_totext(result));
-	exit(EXIT_FAILURE);
-}
-
-static void
-output(void *closure, const char *text, int textlen) {
-	UNUSED(closure);
+output(void *closure ISC_ATTR_UNUSED, const char *text, int textlen) {
 	(void)fwrite(text, 1, textlen, stdout);
 }
 
@@ -55,13 +38,19 @@ usage(void) {
 	exit(EXIT_FAILURE);
 }
 
+static void
+setup_logging(void) {
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, ISC_LOG_PRINTTIME,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
+}
+
 int
 main(int argc, char **argv) {
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
-	isc_log_t *lctx = NULL;
-	isc_logconfig_t *lcfg = NULL;
-	isc_logdestination_t destination;
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *cfg = NULL;
 	cfg_type_t *type = NULL;
@@ -73,26 +62,12 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 
-	isc_log_create(mctx, &lctx, &lcfg);
-	isc_log_setcontext(lctx);
-
-	/*
-	 * Create and install the default channel.
-	 */
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(lcfg, "_default", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, ISC_LOG_PRINTTIME);
-
-	result = isc_log_usechannel(lcfg, "_default", NULL, NULL);
-	check_result(result, "isc_log_usechannel()");
+	setup_logging();
 
 	/*
 	 * Set the initial debug level.
 	 */
-	isc_log_setdebuglevel(lctx, 2);
+	isc_log_setdebuglevel(2);
 
 	if (argc < 3) {
 		usage();
@@ -158,8 +133,7 @@ main(int argc, char **argv) {
 		if (type == NULL || filename == NULL) {
 			usage();
 		}
-		RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &pctx) ==
-			      ISC_R_SUCCESS);
+		RUNTIME_CHECK(cfg_parser_create(mctx, &pctx) == ISC_R_SUCCESS);
 
 		result = cfg_parse_file(pctx, filename, type, &cfg);
 
@@ -176,7 +150,6 @@ main(int argc, char **argv) {
 		cfg_parser_destroy(&pctx);
 	}
 
-	isc_log_destroy(&lctx);
 	if (memstats) {
 		isc_mem_stats(mctx, stderr);
 	}

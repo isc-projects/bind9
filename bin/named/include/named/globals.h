@@ -86,10 +86,8 @@ EXTERN named_server_t *named_g_server INIT(NULL);
 /*
  * Logging.
  */
-EXTERN isc_log_t *named_g_lctx		     INIT(NULL);
-EXTERN isc_logcategory_t *named_g_categories INIT(NULL);
-EXTERN isc_logmodule_t *named_g_modules	     INIT(NULL);
-EXTERN unsigned int named_g_debuglevel	     INIT(0);
+EXTERN bool named_g_logging	       INIT(false);
+EXTERN unsigned int named_g_debuglevel INIT(0);
 
 /*
  * Current configuration information.

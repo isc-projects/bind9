@@ -36,12 +36,12 @@
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/lex.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/log.h>
 #include <dns/time.h>
 
 #include "dst_internal.h"
@@ -620,8 +620,8 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		int level;
 
 		level = ISC_LOG_WARNING;
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_DNSSEC, level,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DNSSEC,
+			      level,
 			      "Permissions on the file %s "
 			      "have changed from 0%o to 0600 as "
 			      "a result of this operation.",

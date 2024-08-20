@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <isc/lex.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -28,7 +29,6 @@
 
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
-#include <isccfg/log.h>
 #include <isccfg/namedconf.h>
 
 #define TOKEN_STRING(pctx) (pctx->token.value.as_textregion.base)

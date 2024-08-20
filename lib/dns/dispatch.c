@@ -22,6 +22,7 @@
 #include <isc/async.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -39,7 +40,6 @@
 
 #include <dns/acl.h>
 #include <dns/dispatch.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/stats.h>
 #include <dns/transport.h>
@@ -250,7 +250,7 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -258,9 +258,8 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
-		      DNS_LOGMODULE_DISPATCH, level, "dispatchmgr %p: %s", mgr,
-		      msgbuf);
+	isc_log_write(DNS_LOGCATEGORY_DISPATCH, DNS_LOGMODULE_DISPATCH, level,
+		      "dispatchmgr %p: %s", mgr, msgbuf);
 }
 
 static void
@@ -287,7 +286,7 @@ dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...) {
 	va_list ap;
 	int r;
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -301,9 +300,8 @@ dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...) {
 	}
 	va_end(ap);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
-		      DNS_LOGMODULE_DISPATCH, level, "dispatch %p: %s", disp,
-		      msgbuf);
+	isc_log_write(DNS_LOGCATEGORY_DISPATCH, DNS_LOGMODULE_DISPATCH, level,
+		      "dispatch %p: %s", disp, msgbuf);
 }
 
 static void
@@ -316,7 +314,7 @@ dispentry_log(dns_dispentry_t *resp, int level, const char *fmt, ...) {
 	va_list ap;
 	int r;
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -536,7 +534,7 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			  NULL) == ISC_R_SUCCESS &&
 	    match > 0)
 	{
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(10))) {
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(10))) {
 			char netaddrstr[ISC_NETADDR_FORMATSIZE];
 			isc_netaddr_format(&netaddr, netaddrstr,
 					   sizeof(netaddrstr));
@@ -1195,7 +1193,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		rcu_read_unlock();
 	}
 
-	if (isc_log_wouldlog(dns_lctx, 90)) {
+	if (isc_log_wouldlog(90)) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 		isc_sockaddr_format(&disp->local, addrbuf,
@@ -1331,7 +1329,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 	dispatch_allocate(mgr, isc_socktype_udp, tid, &disp);
 
-	if (isc_log_wouldlog(dns_lctx, 90)) {
+	if (isc_log_wouldlog(90)) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 		isc_sockaddr_format(localaddr, addrbuf,
@@ -1794,7 +1792,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dns_dispentry_t *next = NULL;
 	dns_displist_t resps = ISC_LIST_INITIALIZER;
 
-	if (isc_log_wouldlog(dns_lctx, 90)) {
+	if (isc_log_wouldlog(90)) {
 		char localbuf[ISC_SOCKADDR_FORMATSIZE];
 		char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 		if (handle != NULL) {

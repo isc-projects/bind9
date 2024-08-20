@@ -526,8 +526,8 @@ rndc_start(void *arg) {
 }
 
 static void
-parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
-	     cfg_parser_t **pctxp, cfg_obj_t **configp) {
+parse_config(isc_mem_t *mctx, const char *keyname, cfg_parser_t **pctxp,
+	     cfg_obj_t **configp) {
 	isc_result_t result;
 	const char *conffile = admin_conffile;
 	const cfg_obj_t *addresses = NULL;
@@ -570,7 +570,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 			admin_keyfile, admin_conffile);
 	}
 
-	DO("create parser", cfg_parser_create(mctx, log, pctxp));
+	DO("create parser", cfg_parser_create(mctx, pctxp));
 
 	/*
 	 * The parser will output its own errors, so DO() is not used.
@@ -806,9 +806,7 @@ int
 main(int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
 	bool show_final_mem = false;
-	isc_log_t *log = NULL;
 	isc_logconfig_t *logconfig = NULL;
-	isc_logdestination_t logdest;
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *config = NULL;
 	const char *keyname = NULL;
@@ -954,20 +952,15 @@ main(int argc, char **argv) {
 
 	isc_nm_settimeouts(netmgr, timeout, timeout, timeout, 0);
 
-	isc_log_create(rndc_mctx, &log, &logconfig);
-	isc_log_setcontext(log);
+	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, progname);
-	logdest.file.stream = stderr;
-	logdest.file.name = NULL;
-	logdest.file.versions = ISC_LOG_ROLLNEVER;
-	logdest.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_INFO, &logdest,
-			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
-	DO("enabling log channel",
-	   isc_log_usechannel(logconfig, "stderr", NULL, NULL));
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC, ISC_LOG_INFO,
+		ISC_LOGDESTINATION_STDERR,
+		ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL, ISC_LOGCATEGORY_DEFAULT,
+		ISC_LOGMODULE_DEFAULT);
 
-	parse_config(rndc_mctx, log, keyname, &pctx, &config);
+	parse_config(rndc_mctx, keyname, &pctx, &config);
 
 	isc_buffer_allocate(rndc_mctx, &databuf, 2048);
 
@@ -1002,9 +995,6 @@ main(int argc, char **argv) {
 	isc_loopmgr_run(loopmgr);
 
 	isccc_ccmsg_invalidate(&rndc_ccmsg);
-
-	isc_log_destroy(&log);
-	isc_log_setcontext(NULL);
 
 	cfg_obj_destroy(pctx, &config);
 	cfg_parser_destroy(&pctx);

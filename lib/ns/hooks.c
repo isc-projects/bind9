@@ -30,7 +30,6 @@
 #include <dns/view.h>
 
 #include <ns/hooks.h>
-#include <ns/log.h>
 #include <ns/query.h>
 
 #define CHECK(op)                              \
@@ -98,8 +97,8 @@ load_symbol(uv_lib_t *handle, const char *modpath, const char *symbol_name,
 		if (errmsg == NULL) {
 			errmsg = "returned function pointer is NULL";
 		}
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
+		isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
+			      ISC_LOG_ERROR,
 			      "failed to look up symbol %s in "
 			      "plugin '%s': %s",
 			      symbol_name, modpath, errmsg);
@@ -139,8 +138,8 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
 		if (errmsg == NULL) {
 			errmsg = "unknown error";
 		}
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
+		isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
+			      ISC_LOG_ERROR,
 			      "failed to dlopen() plugin '%s': %s", modpath,
 			      errmsg);
 		CHECK(ISC_R_FAILURE);
@@ -153,8 +152,8 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
 	if (version < (NS_PLUGIN_VERSION - NS_PLUGIN_AGE) ||
 	    version > NS_PLUGIN_VERSION)
 	{
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
+		isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
+			      ISC_LOG_ERROR,
 			      "plugin API version mismatch: %d/%d", version,
 			      NS_PLUGIN_VERSION);
 		CHECK(ISC_R_FAILURE);
@@ -172,8 +171,7 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
-		      ISC_LOG_ERROR,
+	isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
 		      "failed to dynamically load plugin '%s': %s", modpath,
 		      isc_result_totext(result));
 
@@ -191,7 +189,7 @@ unload_plugin(ns_plugin_t **pluginp) {
 	plugin = *pluginp;
 	*pluginp = NULL;
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
+	isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
 		      ISC_LOG_DEBUG(1), "unloading plugin '%s'",
 		      plugin->modpath);
 
@@ -207,26 +205,23 @@ unload_plugin(ns_plugin_t **pluginp) {
 isc_result_t
 ns_plugin_register(const char *modpath, const char *parameters, const void *cfg,
 		   const char *cfg_file, unsigned long cfg_line,
-		   isc_mem_t *mctx, isc_log_t *lctx, void *actx,
-		   dns_view_t *view) {
+		   isc_mem_t *mctx, void *actx, dns_view_t *view) {
 	isc_result_t result;
 	ns_plugin_t *plugin = NULL;
 
 	REQUIRE(mctx != NULL);
-	REQUIRE(lctx != NULL);
 	REQUIRE(view != NULL);
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
-		      ISC_LOG_INFO, "loading plugin '%s'", modpath);
+	isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+		      "loading plugin '%s'", modpath);
 
 	CHECK(load_plugin(mctx, modpath, &plugin));
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
-		      ISC_LOG_INFO, "registering plugin '%s'", modpath);
+	isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+		      "registering plugin '%s'", modpath);
 
 	CHECK(plugin->register_func(parameters, cfg, cfg_file, cfg_line, mctx,
-				    lctx, actx, view->hooktable,
-				    &plugin->inst));
+				    actx, view->hooktable, &plugin->inst));
 
 	ISC_LIST_APPEND(*(ns_plugins_t *)view->plugins, plugin, link);
 
@@ -241,14 +236,14 @@ cleanup:
 isc_result_t
 ns_plugin_check(const char *modpath, const char *parameters, const void *cfg,
 		const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
-		isc_log_t *lctx, void *actx) {
+		void *actx) {
 	isc_result_t result;
 	ns_plugin_t *plugin = NULL;
 
 	CHECK(load_plugin(mctx, modpath, &plugin));
 
 	result = plugin->check_func(parameters, cfg, cfg_file, cfg_line, mctx,
-				    lctx, actx);
+				    actx);
 
 cleanup:
 	if (plugin != NULL) {

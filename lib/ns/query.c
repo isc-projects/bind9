@@ -21,6 +21,7 @@
 
 #include <isc/async.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/random.h>
@@ -67,7 +68,6 @@
 #include <ns/client.h>
 #include <ns/hooks.h>
 #include <ns/interfacemgr.h>
-#include <ns/log.h>
 #include <ns/server.h>
 #include <ns/sortlist.h>
 #include <ns/stats.h>
@@ -157,23 +157,22 @@
 static void
 client_trace(ns_client_t *client, int level, const char *message) {
 	if (client != NULL && client->query.qname != NULL) {
-		if (isc_log_wouldlog(ns_lctx, level)) {
+		if (isc_log_wouldlog(level)) {
 			char qbuf[DNS_NAME_FORMATSIZE];
 			char tbuf[DNS_RDATATYPE_FORMATSIZE];
 			dns_name_format(client->query.qname, qbuf,
 					sizeof(qbuf));
 			dns_rdatatype_format(client->query.qtype, tbuf,
 					     sizeof(tbuf));
-			isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_QUERY, level,
+			isc_log_write(NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
+				      level,
 				      "query client=%p thread=0x%" PRIxPTR
 				      "(%s/%s): %s",
 				      client, isc_thread_self(), qbuf, tbuf,
 				      message);
 		}
 	} else {
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_QUERY, level,
+		isc_log_write(NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY, level,
 			      "query client=%p thread=0x%" PRIxPTR
 			      "(<unknown-query>): %s",
 			      client, isc_thread_self(), message);
@@ -866,7 +865,7 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 			 */
 			client->query.attributes |= NS_QUERYATTR_CACHEACLOK;
 			if (!options.nolog &&
-			    isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(3)))
+			    isc_log_wouldlog(ISC_LOG_DEBUG(3)))
 			{
 				ns_client_aclmsg("query (cache)", name, qtype,
 						 client->view->rdclass, msg,
@@ -1007,7 +1006,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	if (!options.nolog) {
 		char msg[NS_CLIENT_ACLMSGSIZE("query")];
 		if (result == ISC_R_SUCCESS) {
-			if (isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(3))) {
+			if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 				ns_client_aclmsg("query", name, qtype,
 						 client->view->rdclass, msg,
 						 sizeof(msg));
@@ -1169,7 +1168,7 @@ rpz_log_rewrite(ns_client_t *client, bool disabled, dns_rpz_policy_t policy,
 		}
 	}
 
-	if (!isc_log_wouldlog(ns_lctx, DNS_RPZ_INFO_LEVEL)) {
+	if (!isc_log_wouldlog(DNS_RPZ_INFO_LEVEL)) {
 		return;
 	}
 
@@ -1196,9 +1195,9 @@ rpz_log_rewrite(ns_client_t *client, bool disabled, dns_rpz_policy_t policy,
 	dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 
 	/* It's possible to have a separate log channel for rpz passthru. */
-	isc_logcategory_t *log_cat = (policy == DNS_RPZ_POLICY_PASSTHRU)
-					     ? DNS_LOGCATEGORY_RPZ_PASSTHRU
-					     : DNS_LOGCATEGORY_RPZ;
+	isc_logcategory_t log_cat = (policy == DNS_RPZ_POLICY_PASSTHRU)
+					    ? DNS_LOGCATEGORY_RPZ_PASSTHRU
+					    : DNS_LOGCATEGORY_RPZ;
 
 	ns_client_log(client, log_cat, NS_LOGMODULE_QUERY, DNS_RPZ_INFO_LEVEL,
 		      "%srpz %s %s rewrite %s/%s/%s via %s%s%s%s",
@@ -1217,7 +1216,7 @@ rpz_log_fail_helper(ns_client_t *client, int level, dns_name_t *p_name,
 	const char *rpztypestr1;
 	const char *rpztypestr2;
 
-	if (!isc_log_wouldlog(ns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -1288,7 +1287,7 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
 		 * logging is disabled for some policy zones.
 		 */
 		if (st->popt.no_log == 0 &&
-		    isc_log_wouldlog(ns_lctx, DNS_RPZ_DEBUG_LEVEL2))
+		    isc_log_wouldlog(DNS_RPZ_DEBUG_LEVEL2))
 		{
 			dns_name_format(client->query.qname, qnamebuf,
 					sizeof(qnamebuf));
@@ -6041,8 +6040,8 @@ query_lookup(query_ctx_t *qctx) {
 	}
 
 	if (dbfind_stale) {
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+		isc_log_write(NS_LOGCATEGORY_SERVE_STALE, NS_LOGMODULE_QUERY,
+			      ISC_LOG_INFO,
 			      "%s %s resolver failure, stale answer %s (%s)",
 			      namebuf, typebuf,
 			      stale_found ? "used" : "unavailable",
@@ -6063,8 +6062,8 @@ query_lookup(query_ctx_t *qctx) {
 		 * A recent lookup failed, so during this time window we are
 		 * allowed to return stale data immediately.
 		 */
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+		isc_log_write(NS_LOGCATEGORY_SERVE_STALE, NS_LOGMODULE_QUERY,
+			      ISC_LOG_INFO,
 			      "%s %s query within stale refresh time, stale "
 			      "answer %s (%s)",
 			      namebuf, typebuf,
@@ -6110,7 +6109,7 @@ query_lookup(query_ctx_t *qctx) {
 				 * resolver fetch to refresh the data in cache.
 				 */
 				isc_log_write(
-					ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+					NS_LOGCATEGORY_SERVE_STALE,
 					NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 					"%s %s stale answer used, an attempt "
 					"to refresh the RRset will still be "
@@ -6212,7 +6211,7 @@ fetch_callback(void *arg) {
 	ns_client_t *client = resp->arg;
 	dns_fetch_t *fetch = NULL;
 	bool fetch_canceled = false;
-	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
+	isc_logcategory_t logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
 	isc_result_t result;
 	int errorloglevel;
 	query_ctx_t qctx;
@@ -6316,9 +6315,8 @@ fetch_callback(void *arg) {
 			} else {
 				errorloglevel = ISC_LOG_DEBUG(4);
 			}
-			if (isc_log_wouldlog(ns_lctx, errorloglevel)) {
-				dns_resolver_logfetch(fetch, ns_lctx,
-						      logcategory,
+			if (isc_log_wouldlog(errorloglevel)) {
+				dns_resolver_logfetch(fetch, logcategory,
 						      NS_LOGMODULE_QUERY,
 						      errorloglevel, false);
 			}
@@ -6940,7 +6938,7 @@ ns__query_sfcache(query_ctx_t *qctx) {
 	if (((flags & NS_FAILCACHE_CD) != 0) ||
 	    ((qctx->client->message->flags & DNS_MESSAGEFLAG_CD) == 0))
 	{
-		if (isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(1))) {
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
@@ -7042,7 +7040,7 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 
 		qctx->client->query.attributes |= NS_QUERYATTR_RRL_CHECKED;
 
-		wouldlog = isc_log_wouldlog(ns_lctx, DNS_RRL_LOG_DROP);
+		wouldlog = isc_log_wouldlog(DNS_RRL_LOG_DROP);
 		constname = qctx->fname;
 		if (result == DNS_R_NXDOMAIN) {
 			/*
@@ -11720,7 +11718,7 @@ log_tat(ns_client_t *client) {
 	char *tags = NULL;
 	size_t taglen = 0;
 
-	if (!isc_log_wouldlog(ns_lctx, ISC_LOG_INFO)) {
+	if (!isc_log_wouldlog(ISC_LOG_INFO)) {
 		return;
 	}
 
@@ -11763,9 +11761,9 @@ log_tat(ns_client_t *client) {
 		}
 	}
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_TAT, NS_LOGMODULE_QUERY,
-		      ISC_LOG_INFO, "trust-anchor-telemetry '%s/%s' from %s%s",
-		      namebuf, classbuf, clientbuf, tags != NULL ? tags : "");
+	isc_log_write(NS_LOGCATEGORY_TAT, NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+		      "trust-anchor-telemetry '%s/%s' from %s%s", namebuf,
+		      classbuf, clientbuf, tags != NULL ? tags : "");
 	if (tags != NULL) {
 		isc_mem_put(client->manager->mctx, tags, taglen);
 	}
@@ -11782,7 +11780,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	dns_rdataset_t *rdataset;
 	int level = ISC_LOG_INFO;
 
-	if (!isc_log_wouldlog(ns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -11825,7 +11823,7 @@ log_queryerror(ns_client_t *client, isc_result_t result, int line, int level) {
 	const char *namep, *typep, *classp, *sep1, *sep2;
 	dns_rdataset_t *rdataset;
 
-	if (!isc_log_wouldlog(ns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 

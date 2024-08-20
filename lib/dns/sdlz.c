@@ -70,7 +70,6 @@
 #include <dns/dbiterator.h>
 #include <dns/dlz.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
@@ -229,7 +228,7 @@ static void
 sdlz_log(int level, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+	isc_log_vwrite(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		       ISC_LOG_DEBUG(level), fmt, ap);
 	va_end(ap);
 }

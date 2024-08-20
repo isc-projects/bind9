@@ -36,7 +36,6 @@
 #include <dns/fixedname.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>

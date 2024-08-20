@@ -31,7 +31,6 @@
 
 #include <dns/db.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/name.h>
@@ -95,7 +94,6 @@ main(int argc, char **argv) {
 	int c;
 	char *origin = NULL;
 	const char *filename = NULL;
-	isc_log_t *lctx = NULL;
 	isc_result_t result;
 	char classname_in[] = "IN";
 	char *classname = classname_in;
@@ -525,8 +523,7 @@ main(int argc, char **argv) {
 
 	isc_mem_create(&mctx);
 	if (!quiet) {
-		RUNTIME_CHECK(setup_logging(mctx, errout, &lctx) ==
-			      ISC_R_SUCCESS);
+		RUNTIME_CHECK(setup_logging(errout) == ISC_R_SUCCESS);
 	}
 
 	origin = argv[isc_commandline_index++];
@@ -566,9 +563,6 @@ main(int argc, char **argv) {
 		fprintf(errout, "OK\n");
 	}
 	destroy();
-	if (lctx != NULL) {
-		isc_log_destroy(&lctx);
-	}
 	isc_mem_destroy(&mctx);
 
 	return ((result == ISC_R_SUCCESS) ? 0 : 1);

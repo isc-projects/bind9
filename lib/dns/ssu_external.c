@@ -24,6 +24,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
@@ -33,7 +34,6 @@
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdatatype.h>
 #include <dns/ssu.h>
@@ -45,7 +45,7 @@ ssu_e_log(int level, const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_SECURITY, DNS_LOGMODULE_ZONE,
+	isc_log_vwrite(DNS_LOGCATEGORY_SECURITY, DNS_LOGMODULE_ZONE,
 		       ISC_LOG_DEBUG(level), fmt, ap);
 	va_end(ap);
 }

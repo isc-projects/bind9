@@ -12,10 +12,11 @@
 # information regarding copyright ownership.
 
 list1=$(
-  grep LOGCATEGORY lib/*/include/*/*.h bin/named/include/named/*.h \
-    | grep "#define.*(&" \
+  grep -h LOGCATEGORY lib/*/include/*/*.h bin/named/include/named/*.h \
+    | grep -E "^[[:space:]]+[^[:space:]]+_LOGCATEGORY_[^[:space:]]+([[:space:]]+=[[:space:]]+[-0-9]+)?," \
+    | grep -Ev "ISC_LOGCATEGORY_(MAX|INVALID)" \
     | sed -e 's/.*LOGCATEGORY_\([A-Z_]*\).*/\1/' -e 's/^RRL$/rate-limit/' \
-    | tr '[A-Z]' '[a-z]' \
+    | tr 'A-Z' 'a-z' \
     | tr _ - \
     | sed 's/^tat$/trust-anchor-telemetry/' \
     | sort -u

@@ -24,6 +24,7 @@
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -33,7 +34,6 @@
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/opcode.h>
@@ -213,9 +213,9 @@ msgblock_free(isc_mem_t *, dns_msgblock_t *, unsigned int);
 
 static void
 logfmtpacket(dns_message_t *message, const char *description,
-	     const isc_sockaddr_t *address, isc_logcategory_t *category,
-	     isc_logmodule_t *module, const dns_master_style_t *style,
-	     int level, isc_mem_t *mctx);
+	     const isc_sockaddr_t *address, isc_logcategory_t category,
+	     isc_logmodule_t module, const dns_master_style_t *style, int level,
+	     isc_mem_t *mctx);
 
 /*
  * Allocate a new dns_msgblock_t, and return a pointer to it.  If no memory
@@ -1843,8 +1843,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 
 	isc_buffer_remainingregion(source, &r);
 	if (r.length != 0) {
-		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MESSAGE, ISC_LOG_DEBUG(3),
+		isc_log_write(ISC_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MESSAGE,
+			      ISC_LOG_DEBUG(3),
 			      "message has %u byte(s) of trailing garbage",
 			      r.length);
 	}
@@ -4661,9 +4661,8 @@ dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target) {
 
 void
 dns_message_logpacket(dns_message_t *message, const char *description,
-		      const isc_sockaddr_t *address,
-		      isc_logcategory_t *category, isc_logmodule_t *module,
-		      int level, isc_mem_t *mctx) {
+		      const isc_sockaddr_t *address, isc_logcategory_t category,
+		      isc_logmodule_t module, int level, isc_mem_t *mctx) {
 	REQUIRE(address != NULL);
 
 	logfmtpacket(message, description, address, category, module,
@@ -4673,7 +4672,7 @@ dns_message_logpacket(dns_message_t *message, const char *description,
 void
 dns_message_logfmtpacket(dns_message_t *message, const char *description,
 			 const isc_sockaddr_t *address,
-			 isc_logcategory_t *category, isc_logmodule_t *module,
+			 isc_logcategory_t category, isc_logmodule_t module,
 			 const dns_master_style_t *style, int level,
 			 isc_mem_t *mctx) {
 	REQUIRE(address != NULL);
@@ -4684,9 +4683,9 @@ dns_message_logfmtpacket(dns_message_t *message, const char *description,
 
 static void
 logfmtpacket(dns_message_t *message, const char *description,
-	     const isc_sockaddr_t *address, isc_logcategory_t *category,
-	     isc_logmodule_t *module, const dns_master_style_t *style,
-	     int level, isc_mem_t *mctx) {
+	     const isc_sockaddr_t *address, isc_logcategory_t category,
+	     isc_logmodule_t module, const dns_master_style_t *style, int level,
+	     isc_mem_t *mctx) {
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
 	const char *newline = "\n";
 	const char *space = " ";
@@ -4695,7 +4694,7 @@ logfmtpacket(dns_message_t *message, const char *description,
 	int len = 1024;
 	isc_result_t result;
 
-	if (!isc_log_wouldlog(dns_lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
@@ -4718,9 +4717,8 @@ logfmtpacket(dns_message_t *message, const char *description,
 			isc_mem_put(mctx, buf, len);
 			len += 1024;
 		} else if (result == ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, category, module, level,
-				      "%s%s%s%s%.*s", description, space,
-				      addrbuf, newline,
+			isc_log_write(category, module, level, "%s%s%s%s%.*s",
+				      description, space, addrbuf, newline,
 				      (int)isc_buffer_usedlength(&buffer), buf);
 		}
 	} while (result == ISC_R_NOSPACE);

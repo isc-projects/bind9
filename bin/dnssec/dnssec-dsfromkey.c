@@ -22,6 +22,7 @@
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/hash.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -33,7 +34,6 @@
 #include <dns/ds.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
@@ -368,7 +368,6 @@ main(int argc, char **argv) {
 	bool usekeyset = false;
 	bool showall = false;
 	isc_result_t result;
-	isc_log_t *log = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
 
@@ -489,7 +488,7 @@ main(int argc, char **argv) {
 		fatal("extraneous arguments");
 	}
 
-	setup_logging(mctx, &log);
+	setup_logging();
 
 	dns_rdataset_init(&rdataset);
 
@@ -542,7 +541,6 @@ main(int argc, char **argv) {
 	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
 	}
-	cleanup_logging(&log);
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

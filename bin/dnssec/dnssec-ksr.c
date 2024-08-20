@@ -39,7 +39,6 @@ const char *program = "dnssec-ksr";
 /*
  * Infrastructure
  */
-static isc_log_t *lctx = NULL;
 static isc_mem_t *mctx = NULL;
 /*
  * The domain we are working on
@@ -164,14 +163,14 @@ getkasp(ksr_ctx_t *ksr, dns_kasp_t **kasp) {
 	cfg_parser_t *parser = NULL;
 	cfg_obj_t *config = NULL;
 
-	RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &parser) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(cfg_parser_create(mctx, &parser) == ISC_R_SUCCESS);
 	if (cfg_parse_file(parser, ksr->configfile, &cfg_type_namedconf,
 			   &config) != ISC_R_SUCCESS)
 	{
 		fatal("unable to load dnssec-policy '%s' from '%s'",
 		      ksr->policy, ksr->configfile);
 	}
-	kasp_from_conf(config, mctx, lctx, ksr->policy, ksr->keydir, kasp);
+	kasp_from_conf(config, mctx, ksr->policy, ksr->keydir, kasp);
 	if (*kasp == NULL) {
 		fatal("failed to load dnssec-policy '%s'", ksr->policy);
 	}
@@ -1272,7 +1271,7 @@ main(int argc, char *argv[]) {
 		min_rsa = min_dh = 2048;
 	}
 
-	setup_logging(mctx, &lctx);
+	setup_logging();
 
 	if (set_fips_mode) {
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L

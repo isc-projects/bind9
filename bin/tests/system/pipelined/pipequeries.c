@@ -216,8 +216,6 @@ main(int argc, char *argv[]) {
 	isc_sockaddr_t bind_any;
 	struct in_addr inaddr;
 	isc_result_t result;
-	isc_log_t *lctx = NULL;
-	isc_logconfig_t *lcfg = NULL;
 	isc_nm_t *netmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchv4 = NULL;
@@ -273,8 +271,6 @@ main(int argc, char *argv[]) {
 
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
-	isc_log_create(mctx, &lctx, &lcfg);
-
 	RUNCHECK(dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr));
 
 	RUNCHECK(dns_dispatch_createudp(
@@ -291,8 +287,6 @@ main(int argc, char *argv[]) {
 	isc_loopmgr_teardown(loopmgr, teardown_dispatchmgr, dispatchmgr);
 
 	isc_loopmgr_run(loopmgr);
-
-	isc_log_destroy(&lctx);
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 

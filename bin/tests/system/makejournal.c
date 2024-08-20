@@ -25,32 +25,10 @@
 #include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/journal.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/types.h>
 
-#define CHECK(r)                             \
-	do {                                 \
-		result = (r);                \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup;        \
-	} while (0)
-
 isc_mem_t *mctx = NULL;
-isc_log_t *lctx = NULL;
-
-/*
- * Logging categories: this needs to match the list in bin/named/log.c.
- */
-static isc_logcategory_t categories[] = { { "", 0 },
-					  { "client", 0 },
-					  { "network", 0 },
-					  { "update", 0 },
-					  { "queries", 0 },
-					  { "unmatched", 0 },
-					  { "update-security", 0 },
-					  { "query-errors", 0 },
-					  { NULL, 0 } };
 
 static isc_result_t
 loadzone(dns_db_t **db, const char *origin, const char *filename) {
@@ -83,7 +61,6 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	char *origin, *file1, *file2, *journal;
 	dns_db_t *olddb = NULL, *newdb = NULL;
-	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
 
 	if (argc != 5) {
@@ -99,20 +76,11 @@ main(int argc, char **argv) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_registercategories(lctx, categories);
-	isc_log_setcontext(lctx);
-	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
-
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, 0);
-
-	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
+	logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 
 	result = loadzone(&olddb, origin, file1);
 	if (result != ISC_R_SUCCESS) {
@@ -140,9 +108,6 @@ cleanup:
 		dns_db_detach(&olddb);
 	}
 
-	if (lctx != NULL) {
-		isc_log_destroy(&lctx);
-	}
 	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);
 	}

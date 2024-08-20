@@ -45,6 +45,7 @@
 #include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/md.h>
@@ -70,7 +71,6 @@
 #include <dns/fixedname.h>
 #include <dns/kasp.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/nsec.h>
@@ -3350,7 +3350,6 @@ main(int argc, char *argv[]) {
 	isc_time_t sign_start, sign_finish;
 	dns_dnsseckey_t *key;
 	isc_result_t result, vresult;
-	isc_log_t *log = NULL;
 	bool free_output = false;
 	int tempfilelen = 0;
 	dns_rdataclass_t rdclass;
@@ -3745,7 +3744,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	setup_logging(mctx, &log);
+	setup_logging();
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
@@ -4116,7 +4115,6 @@ main(int argc, char *argv[]) {
 
 	dns_master_styledestroy(&dsstyle, mctx);
 
-	cleanup_logging(&log);
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

@@ -2028,7 +2028,7 @@ log_server_error_response(const isc_nmsocket_t *socket,
 	char client_sabuf[ISC_SOCKADDR_FORMATSIZE];
 	char local_sabuf[ISC_SOCKADDR_FORMATSIZE];
 
-	if (!isc_log_wouldlog(isc_lctx, log_level)) {
+	if (!isc_log_wouldlog(log_level)) {
 		return;
 	}
 

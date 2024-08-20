@@ -61,7 +61,6 @@
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/opcode.h>
@@ -99,7 +98,6 @@ bool port_set = false;
 unsigned int timeout = 0;
 unsigned int extrabytes;
 isc_mem_t *mctx = NULL;
-isc_log_t *lctx = NULL;
 isc_nm_t *netmgr = NULL;
 isc_loopmgr_t *loopmgr = NULL;
 isc_loop_t *mainloop = NULL;
@@ -1096,7 +1094,7 @@ read_confkey(void) {
 		return (ISC_R_FILENOTFOUND);
 	}
 
-	result = cfg_parser_create(mctx, NULL, &pctx);
+	result = cfg_parser_create(mctx, &pctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1361,15 +1359,12 @@ setup_libs(void) {
 
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_setcontext(lctx);
-	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
-
-	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
-	check_result(result, "isc_log_usechannel");
-
-	isc_log_setdebuglevel(lctx, 0);
+	logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(logconfig, "debug", ISC_LOG_TOFILEDESC,
+				    ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR,
+				    ISC_LOG_PRINTTIME, ISC_LOGCATEGORY_DEFAULT,
+				    ISC_LOGMODULE_DEFAULT);
+	isc_log_setdebuglevel(0);
 
 	isc_mem_setname(mctx, "dig");
 	mainloop = isc_loop_main(loopmgr);
@@ -4746,9 +4741,6 @@ destroy_libs(void) {
 		debug("freeing key %p", tsigkey);
 		isc_buffer_free(&namebuf);
 	}
-
-	debug("Removing log context");
-	isc_log_destroy(&lctx);
 
 	debug("Destroy memory");
 	if (memdebugging != 0) {

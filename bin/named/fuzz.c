@@ -26,12 +26,11 @@
 #include <unistd.h>
 
 #include <isc/condition.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mutex.h>
 #include <isc/thread.h>
 #include <isc/util.h>
-
-#include <dns/log.h>
 
 #include <named/globals.h>
 #include <named/log.h>

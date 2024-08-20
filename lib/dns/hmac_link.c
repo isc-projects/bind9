@@ -104,7 +104,7 @@
 		isc_result_t result;                                           \
 		result = hmac_parse(ISC_MD_##alg, key, lexer, pub);            \
 		if (result == ISC_R_SUCCESS && file != NULL) {                 \
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,       \
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,                 \
 				      DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,   \
 				      "%s: Use of K* file pairs for HMAC is "  \
 				      "deprecated\n",                          \

@@ -33,7 +33,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -42,10 +41,6 @@
 #include <dns/rdatatype.h>
 #include <dns/types.h>
 #include <dns/zone.h>
-
-#include <isccfg/log.h>
-
-#include <ns/log.h>
 
 #include "check-tool.h"
 
@@ -96,13 +91,6 @@ dns_zoneopt_t zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_CHECKMX |
 #endif /* if CHECK_SIBLING */
 			     DNS_ZONEOPT_CHECKSVCB | DNS_ZONEOPT_CHECKWILDCARD |
 			     DNS_ZONEOPT_WARNMXCNAME | DNS_ZONEOPT_WARNSRVCNAME;
-
-/*
- * This needs to match the list in bin/named/log.c.
- */
-static isc_logcategory_t categories[] = { { "", 0 },
-					  { "unmatched", 0 },
-					  { NULL, 0 } };
 
 static isc_symtab_t *symtab = NULL;
 static isc_mem_t *sym_mctx;
@@ -549,30 +537,13 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 }
 
 isc_result_t
-setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
-	isc_log_t *log = NULL;
+setup_logging(FILE *errout) {
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_FILE(errout), 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 
-	isc_log_create(mctx, &log, &logconfig);
-	isc_log_registercategories(log, categories);
-	isc_log_setcontext(log);
-	dns_log_init(log);
-	dns_log_setcontext(log);
-	cfg_log_init(log);
-	ns_log_init(log);
-
-	destination.file.stream = errout;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, 0);
-
-	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL) ==
-		      ISC_R_SUCCESS);
-
-	*logp = log;
 	return (ISC_R_SUCCESS);
 }
 

@@ -29,6 +29,7 @@
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/lex.h>
+#include <isc/log.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -44,7 +45,6 @@
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/view.h>
 #include <dns/zone.h>

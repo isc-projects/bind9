@@ -2111,8 +2111,6 @@ int
 main(int argc, char *argv[]) {
 	struct query *query = NULL;
 	isc_result_t result;
-	isc_log_t *lctx = NULL;
-	isc_logconfig_t *lcfg = NULL;
 	unsigned int i;
 	int ns;
 
@@ -2129,7 +2127,6 @@ main(int argc, char *argv[]) {
 	preparse_args(argc, argv);
 
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
-	isc_log_create(mctx, &lctx, &lcfg);
 
 	isc_nonce_buf(cookie_secret, sizeof(cookie_secret));
 
@@ -2189,8 +2186,6 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_loopmgr_run(loopmgr);
-
-	isc_log_destroy(&lctx);
 
 	query = ISC_LIST_HEAD(queries);
 	while (query != NULL) {

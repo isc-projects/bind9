@@ -19,6 +19,7 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -27,7 +28,6 @@
 #include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/diff.h>
-#include <dns/log.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -41,9 +41,6 @@
 		if (result != ISC_R_SUCCESS) \
 			goto failure;        \
 	} while (0)
-
-#define DIFF_COMMON_LOGARGS \
-	dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DIFF
 
 static dns_rdatatype_t
 rdata_covers(dns_rdata_t *rdata) {
@@ -346,7 +343,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 					dns_rdataclass_format(t->rdata.rdclass,
 							      classbuf,
 							      sizeof(classbuf));
-					isc_log_write(DIFF_COMMON_LOGARGS,
+					isc_log_write(DNS_LOGCATEGORY_GENERAL,
+						      DNS_LOGMODULE_DIFF,
 						      ISC_LOG_WARNING,
 						      "'%s/%s/%s': TTL differs "
 						      "in "
@@ -428,7 +426,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 					dns_rdataclass_format(dns_db_class(db),
 							      classbuf,
 							      sizeof(classbuf));
-					isc_log_write(DIFF_COMMON_LOGARGS,
+					isc_log_write(DNS_LOGCATEGORY_GENERAL,
+						      DNS_LOGMODULE_DIFF,
 						      ISC_LOG_WARNING,
 						      "%s/%s: dns_diff_apply: "
 						      "update with no effect",
@@ -465,7 +464,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 					dns_rdataclass_format(rdclass, classbuf,
 							      sizeof(classbuf));
 					isc_log_write(
-						DIFF_COMMON_LOGARGS,
+						DNS_LOGCATEGORY_GENERAL,
+						DNS_LOGMODULE_DIFF,
 						ISC_LOG_ERROR,
 						"dns_diff_apply: %s/%s/%s: %s "
 						"%s",
@@ -557,7 +557,8 @@ dns_diff_load(dns_diff_t *diff, dns_rdatacallbacks_t *callbacks) {
 			result = callbacks->add(callbacks->add_private, name,
 						&rds DNS__DB_FILELINE);
 			if (result == DNS_R_UNCHANGED) {
-				isc_log_write(DIFF_COMMON_LOGARGS,
+				isc_log_write(DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_DIFF,
 					      ISC_LOG_WARNING,
 					      "dns_diff_load: "
 					      "update with no effect");
@@ -707,7 +708,8 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 			fprintf(file, "%s %.*s\n", op, (int)r.length,
 				(char *)r.base);
 		} else {
-			isc_log_write(DIFF_COMMON_LOGARGS, ISC_LOG_DEBUG(7),
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_DIFF, ISC_LOG_DEBUG(7),
 				      "%s %.*s", op, (int)r.length,
 				      (char *)r.base);
 		}

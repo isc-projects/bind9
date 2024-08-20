@@ -37,7 +37,6 @@
 #include <isc/util.h>
 #include <isc/uv.h>
 
-#include <dns/log.h>
 #include <dns/qp.h>
 #include <dns/types.h>
 
@@ -54,9 +53,9 @@
 #define ZIPF	0
 
 #if VERBOSE
-#define TRACE(fmt, ...)                                                     \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
-		      ISC_LOG_DEBUG(7), "%s:%d:%s():t%d: " fmt, __FILE__,   \
+#define TRACE(fmt, ...)                                                   \
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP,         \
+		      ISC_LOG_DEBUG(7), "%s:%d:%s():t%d: " fmt, __FILE__, \
 		      __LINE__, __func__, isc_tid(), ##__VA_ARGS__)
 #else
 #define TRACE(...)
@@ -153,32 +152,16 @@ init_items(isc_mem_t *mctx) {
 }
 
 static void
-init_logging(isc_mem_t *mctx) {
-	isc_result_t result;
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
-	isc_log_t *lctx = NULL;
-
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_setcontext(lctx);
-	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
-
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination,
-			      ISC_LOG_PRINTPREFIX | ISC_LOG_PRINTTIME |
-				      ISC_LOG_ISO8601);
+init_logging(void) {
 #if VERBOSE
-	isc_log_setdebuglevel(lctx, 7);
+	isc_log_setdebuglevel(7);
 #endif
-
-	result = isc_log_usechannel(logconfig, "stderr",
-				    ISC_LOGCATEGORY_DEFAULT, NULL);
-	INSIST(result == ISC_R_SUCCESS);
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR,
+		ISC_LOG_PRINTPREFIX | ISC_LOG_PRINTTIME | ISC_LOG_ISO8601,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 }
 
 static void
@@ -893,7 +876,7 @@ main(void) {
 
 	isc_mem_create(&mctx);
 	isc_mem_setdestroycheck(mctx, true);
-	init_logging(mctx);
+	init_logging();
 	init_items(mctx);
 
 	isc_loopmgr_create(mctx, nloops, &loopmgr);
@@ -902,7 +885,6 @@ main(void) {
 	isc_loopmgr_run(loopmgr);
 	isc_loopmgr_destroy(&loopmgr);
 
-	isc_log_destroy(&dns_lctx);
 	isc_mem_free(mctx, item);
 	isc_mem_checkdestroyed(stdout);
 	isc_mem_destroy(&mctx);

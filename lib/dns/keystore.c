@@ -217,8 +217,8 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(origin, namebuf, sizeof(namebuf));
 			isc_log_write(
-				dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-				DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+				DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+				ISC_LOG_ERROR,
 				"keystore: failed to create PKCS#11 object "
 				"for zone %s, policy %s: %s",
 				namebuf, policy, isc_result_totext(result));
@@ -232,15 +232,15 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(
-				dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-				DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+				DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+				ISC_LOG_ERROR,
 				"keystore: failed to generate PKCS#11 object "
 				"%s: %s",
 				label, isc_result_totext(result));
 			return (result);
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
+			      ISC_LOG_ERROR,
 			      "keystore: generated PKCS#11 object %s", label);
 	} else {
 		result = dst_key_generate(origin, alg, size, 0, flags,

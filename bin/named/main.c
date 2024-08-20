@@ -161,10 +161,9 @@ named_main_earlywarning(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	if (named_g_lctx != NULL) {
-		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_WARNING, format,
-			       args);
+	if (named_g_logging) {
+		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			       ISC_LOG_WARNING, format, args);
 	} else {
 		fprintf(stderr, "%s: ", program_name);
 		vfprintf(stderr, format, args);
@@ -179,12 +178,11 @@ named_main_earlyfatal(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	if (named_g_lctx != NULL) {
-		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL, format,
-			       args);
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+	if (named_g_logging) {
+		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			       ISC_LOG_CRITICAL, format, args);
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			      ISC_LOG_CRITICAL,
 			      "exiting (due to early fatal error)");
 	} else {
 		fprintf(stderr, "%s: ", program_name);
@@ -208,21 +206,20 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	 * Handle assertion failures.
 	 */
 
-	if (named_g_lctx != NULL) {
+	if (named_g_logging) {
 		/*
 		 * Reset the assertion callback in case it is the log
 		 * routines causing the assertion.
 		 */
 		isc_assertion_setcallback(NULL);
 
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			      "%s:%d: %s(%s) failed", file, line,
-			      isc_assertion_typetotext(type), cond);
-		isc_backtrace_log(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			      ISC_LOG_CRITICAL, "%s:%d: %s(%s) failed", file,
+			      line, isc_assertion_typetotext(type), cond);
+		isc_backtrace_log(NAMED_LOGCATEGORY_GENERAL,
 				  NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL);
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			      ISC_LOG_CRITICAL,
 			      "exiting (due to assertion failure)");
 	} else {
 		fprintf(stderr, "%s:%d: %s(%s) failed\n", file, line,
@@ -247,21 +244,20 @@ library_fatal_error(const char *file, int line, const char *func,
 	 * Handle isc_error_fatal() calls from our libraries.
 	 */
 
-	if (named_g_lctx != NULL) {
+	if (named_g_logging) {
 		/*
 		 * Reset the error callback in case it is the log
 		 * routines causing the assertion.
 		 */
 		isc_error_setfatal(NULL);
 
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			      ISC_LOG_CRITICAL,
 			      "%s:%d:%s(): fatal error: ", file, line, func);
-		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL, format,
-			       args);
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			       ISC_LOG_CRITICAL, format, args);
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			      ISC_LOG_CRITICAL,
 			      "exiting (due to fatal error in library)");
 	} else {
 		fprintf(stderr, "%s:%d:%s(): fatal error: ", file, line, func);
@@ -288,14 +284,13 @@ library_unexpected_error(const char *file, int line, const char *func,
 	 * Handle isc_error_unexpected() calls from our libraries.
 	 */
 
-	if (named_g_lctx != NULL) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR,
+	if (named_g_logging) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			      ISC_LOG_ERROR,
 			      "%s:%d:%s(): unexpected error: ", file, line,
 			      func);
-		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			       NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR, format,
-			       args);
+		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			       ISC_LOG_ERROR, format, args);
 	} else {
 		fprintf(stderr, "%s:%d:%s(): fatal error: ", file, line, func);
 		vfprintf(stderr, format, args);
@@ -510,9 +505,8 @@ list_hmac_algorithms(isc_buffer_t *b) {
 
 static void
 logit(isc_buffer_t *b) {
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
-		      (int)isc_buffer_usedlength(b),
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "%.*s", (int)isc_buffer_usedlength(b),
 		      (char *)isc_buffer_base(b));
 }
 
@@ -657,7 +651,7 @@ printversion(bool verbose) {
 #define RTC(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
 	isc_mem_t *mctx = NULL;
 	isc_mem_create(&mctx);
-	RTC(cfg_parser_create(mctx, named_g_lctx, &parser));
+	RTC(cfg_parser_create(mctx, &parser));
 	RTC(named_config_parsedefaults(parser, &config));
 	RTC(cfg_map_get(config, "options", &defaults));
 	RTC(cfg_map_get(defaults, "geoip-directory", &obj));
@@ -1017,11 +1011,11 @@ create_managers(void) {
 		named_g_cpus = named_g_cpus_detected;
 	}
 
-	isc_log_write(
-		named_g_lctx, NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-		ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
-		named_g_cpus_detected, named_g_cpus_detected == 1 ? "" : "s",
-		named_g_cpus, named_g_cpus == 1 ? "" : "s");
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
+		      named_g_cpus_detected,
+		      named_g_cpus_detected == 1 ? "" : "s", named_g_cpus,
+		      named_g_cpus == 1 ? "" : "s");
 
 	isc_managers_create(&named_g_mctx, named_g_cpus, &named_g_loopmgr,
 			    &named_g_netmgr);
@@ -1101,141 +1095,129 @@ setup(void) {
 		named_os_daemonize();
 	}
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "starting %s%s <id:%s>", PACKAGE_STRING,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "starting %s%s <id:%s>", PACKAGE_STRING,
 		      PACKAGE_DESCRIPTION, PACKAGE_SRCID);
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "running on %s",
-		      named_os_uname());
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "running on %s", named_os_uname());
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "built with %s",
-		      PACKAGE_CONFIGARGS);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "built with %s", PACKAGE_CONFIGARGS);
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "running as: %s%s%s", program_name, saved_command_line,
-		      ellipsis);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "running as: %s%s%s", program_name,
+		      saved_command_line, ellipsis);
 #ifdef __clang__
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled by CLANG %s", __VERSION__);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled by CLANG %s", __VERSION__);
 #else /* ifdef __clang__ */
 #if defined(__ICC) || defined(__INTEL_COMPILER)
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled by ICC %s", __VERSION__);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled by ICC %s", __VERSION__);
 #else /* if defined(__ICC) || defined(__INTEL_COMPILER) */
 #ifdef __GNUC__
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled by GCC %s", __VERSION__);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled by GCC %s", __VERSION__);
 #endif /* ifdef __GNUC__ */
 #endif /* if defined(__ICC) || defined(__INTEL_COMPILER) */
 #endif /* ifdef __clang__ */
 #ifdef __SUNPRO_C
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled by Solaris Studio %x", __SUNPRO_C);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled by Solaris Studio %x",
+		      __SUNPRO_C);
 #endif /* ifdef __SUNPRO_C */
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with OpenSSL version: %s",
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled with OpenSSL version: %s",
 		      OPENSSL_VERSION_TEXT);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to OpenSSL version: %s",
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "linked to OpenSSL version: %s",
 		      OpenSSL_version(OPENSSL_VERSION));
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with libuv version: %d.%d.%d", UV_VERSION_MAJOR,
-		      UV_VERSION_MINOR, UV_VERSION_PATCH);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to libuv version: %s", uv_version_string());
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with %s version: %s", RCU_FLAVOR, RCU_VERSION);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled with libuv version: %d.%d.%d",
+		      UV_VERSION_MAJOR, UV_VERSION_MINOR, UV_VERSION_PATCH);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "linked to libuv version: %s",
+		      uv_version_string());
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled with %s version: %s",
+		      RCU_FLAVOR, RCU_VERSION);
 #if defined(JEMALLOC_VERSION)
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "compiled with jemalloc version: %u.%u.%u",
 		      JEMALLOC_VERSION_MAJOR, JEMALLOC_VERSION_MINOR,
 		      JEMALLOC_VERSION_BUGFIX);
 #elif defined(M_VERSION)
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "compiled with system jemalloc version: %u", M_VERSION);
 #endif
 #if HAVE_LIBNGHTTP2
 	nghttp2_info *nginfo = NULL;
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with libnghttp2 version: %s", NGHTTP2_VERSION);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled with libnghttp2 version: %s",
+		      NGHTTP2_VERSION);
 	nginfo = nghttp2_version(1);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to libnghttp2 version: %s", nginfo->version_str);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "linked to libnghttp2 version: %s",
+		      nginfo->version_str);
 #endif
 #ifdef HAVE_LIBXML2
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with libxml2 version: %s",
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled with libxml2 version: %s",
 		      LIBXML_DOTTED_VERSION);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to libxml2 version: %s", xmlParserVersion);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "linked to libxml2 version: %s",
+		      xmlParserVersion);
 #endif /* ifdef HAVE_LIBXML2 */
 #if defined(HAVE_JSON_C)
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with json-c version: %s", JSON_C_VERSION);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to json-c version: %s", json_c_version());
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled with json-c version: %s",
+		      JSON_C_VERSION);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "linked to json-c version: %s",
+		      json_c_version());
 #endif /* if defined(HAVE_JSON_C) */
 #if defined(HAVE_ZLIB) && defined(ZLIB_VERSION)
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with zlib version: %s", ZLIB_VERSION);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to zlib version: %s", zlibVersion());
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled with zlib version: %s",
+		      ZLIB_VERSION);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "linked to zlib version: %s",
+		      zlibVersion());
 #endif /* if defined(HAVE_ZLIB) && defined(ZLIB_VERSION) */
 #if defined(HAVE_GEOIP2)
 	/* Unfortunately, no version define on link time */
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to maxminddb version: %s", MMDB_lib_version());
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "linked to maxminddb version: %s",
+		      MMDB_lib_version());
 #endif /* if defined(HAVE_GEOIP2) */
 #if defined(HAVE_DNSTAP)
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with protobuf-c version: %s",
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "compiled with protobuf-c version: %s",
 		      PROTOBUF_C_VERSION);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to protobuf-c version: %s", protobuf_c_version());
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "linked to protobuf-c version: %s",
+		      protobuf_c_version());
 #endif /* if defined(HAVE_DNSTAP) */
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "----------------------------------------------------");
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "BIND 9 is maintained by Internet Systems Consortium,");
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "Inc. (ISC), a non-profit 501(c)(3) public-benefit ");
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "corporation.  Support and training for BIND 9 are ");
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "available at https://www.isc.org/support");
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE,
 		      "----------------------------------------------------");
 
 	/*
@@ -1367,9 +1349,8 @@ cleanup(void) {
 	 */
 	dlz_dlopen_clear();
 
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "exiting");
-	named_log_shutdown();
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "exiting");
 }
 
 static char *memstats = NULL;

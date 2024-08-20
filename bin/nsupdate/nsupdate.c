@@ -52,7 +52,6 @@
 #include <dns/dispatch.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
@@ -123,7 +122,6 @@ static bool usegsstsig = false;
 static bool local_only = false;
 static isc_nm_t *netmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
-static isc_log_t *glctx = NULL;
 static isc_mem_t *gmctx = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
@@ -559,7 +557,7 @@ failure:
  * Get a key from a named.conf format keyfile
  */
 static isc_result_t
-read_sessionkey(isc_mem_t *mctx, isc_log_t *lctx) {
+read_sessionkey(isc_mem_t *mctx) {
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *sessionkey = NULL;
 	const cfg_obj_t *key = NULL;
@@ -575,7 +573,7 @@ read_sessionkey(isc_mem_t *mctx, isc_log_t *lctx) {
 		return (ISC_R_FILENOTFOUND);
 	}
 
-	result = cfg_parser_create(mctx, lctx, &pctx);
+	result = cfg_parser_create(mctx, &pctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -622,7 +620,7 @@ cleanup:
 }
 
 static void
-setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
+setup_keyfile(isc_mem_t *mctx) {
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
 	dst_algorithm_t hmac_alg = DST_ALG_UNKNOWN;
@@ -639,7 +637,7 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 
 	/* If that didn't work, try reading it as a session.key keyfile */
 	if (result != ISC_R_SUCCESS) {
-		result = read_sessionkey(mctx, lctx);
+		result = read_sessionkey(mctx);
 		if (result == ISC_R_SUCCESS) {
 			return;
 		}
@@ -812,15 +810,12 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 
 	ddebug("setup_system()");
 
-	isc_log_create(gmctx, &glctx, &logconfig);
-	isc_log_setcontext(glctx);
-	dns_log_init(glctx);
-	dns_log_setcontext(glctx);
-
-	result = isc_log_usechannel(logconfig, "default_debug", NULL, NULL);
-	check_result(result, "isc_log_usechannel");
-
-	isc_log_setdebuglevel(glctx, logdebuglevel);
+	logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(logconfig, "debug", ISC_LOG_TOFILEDESC,
+				    ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR,
+				    ISC_LOG_PRINTTIME, ISC_LOGCATEGORY_DEFAULT,
+				    ISC_LOGMODULE_DEFAULT);
+	isc_log_setdebuglevel(logdebuglevel);
 
 	result = irs_resconf_load(gmctx, resolvconf, &resconf);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
@@ -973,13 +968,13 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 	if (keystr != NULL) {
 		setup_keystr();
 	} else if (local_only) {
-		result = read_sessionkey(gmctx, glctx);
+		result = read_sessionkey(gmctx);
 		if (result != ISC_R_SUCCESS) {
 			fatal("can't read key from %s: %s\n", keyfile,
 			      isc_result_totext(result));
 		}
 	} else if (keyfile != NULL) {
-		setup_keyfile(gmctx, glctx);
+		setup_keyfile(gmctx);
 	}
 
 	isc_mutex_init(&answer_lock);
@@ -3487,9 +3482,6 @@ cleanup(void) {
 		dns_name_free(&restart_primary, gmctx);
 	}
 #endif /* ifdef HAVE_GSSAPI */
-
-	ddebug("Removing log context");
-	isc_log_destroy(&glctx);
 
 	ddebug("Destroying memory context");
 	if (memdebugging) {

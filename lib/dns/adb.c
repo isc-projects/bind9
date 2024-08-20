@@ -22,6 +22,7 @@
 #include <isc/hash.h>
 #include <isc/hashmap.h>
 #include <isc/list.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mutex.h>
 #include <isc/netaddr.h>
@@ -35,12 +36,9 @@
 
 #include <dns/adb.h>
 #include <dns/db.h>
-#include <dns/log.h>
 #include <dns/rdata.h>
-#include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/resolver.h>
 #include <dns/stats.h>
 #include <dns/transport.h>
 
@@ -480,8 +478,8 @@ DP(int level, const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB,
-		       level, format, args);
+	isc_log_vwrite(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB, level,
+		       format, args);
 	va_end(args);
 }
 
@@ -1463,8 +1461,7 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) {
 	isc_netaddr_fromsockaddr(&netaddr, &entry->sockaddr);
 	isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB,
-		      ISC_LOG_INFO,
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB, ISC_LOG_INFO,
 		      "adb: quota %s (%" PRIuFAST32 "/%" PRIuFAST32 "): %s",
 		      addrbuf, atomic_load_relaxed(&entry->active),
 		      atomic_load_relaxed(&entry->quota), msgbuf);
@@ -1968,7 +1965,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 		REQUIRE(loop != NULL);
 	}
 
-	if (isc_log_wouldlog(dns_lctx, DEF_LEVEL)) {
+	if (isc_log_wouldlog(DEF_LEVEL)) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 	}
 

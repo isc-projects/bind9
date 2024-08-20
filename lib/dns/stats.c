@@ -16,13 +16,13 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>
 #include <isc/stats.h>
 #include <isc/util.h>
 
-#include <dns/log.h>
 #include <dns/opcode.h>
 #include <dns/rdatatype.h>
 #include <dns/stats.h>

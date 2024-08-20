@@ -52,7 +52,6 @@
 #include <dns/fixedname.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
@@ -70,7 +69,6 @@
 
 #include <dst/dst.h>
 
-#include <isccfg/log.h>
 #include <isccfg/namedconf.h>
 
 #include <ns/client.h>
@@ -94,7 +92,6 @@
 /* Variables used internally by delv. */
 char *progname = NULL;
 static isc_mem_t *mctx = NULL;
-static isc_log_t *lctx = NULL;
 static dns_view_t *view = NULL;
 static ns_server_t *sctx = NULL;
 static ns_interface_t *ifp = NULL;
@@ -287,12 +284,6 @@ warn(const char *format, ...) {
 	fprintf(stderr, "\n");
 }
 
-static isc_logcategory_t categories[] = { { "delv", 0 }, { NULL, 0 } };
-#define LOGCATEGORY_DEFAULT (&categories[0])
-#define LOGMODULE_DEFAULT   (&modules[0])
-
-static isc_logmodule_t modules[] = { { "delv", 0 }, { NULL, 0 } };
-
 static void
 delv_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
@@ -301,15 +292,15 @@ delv_log(int level, const char *fmt, ...) {
 	va_list ap;
 	char msgbuf[2048];
 
-	if (!isc_log_wouldlog(lctx, level)) {
+	if (!isc_log_wouldlog(level)) {
 		return;
 	}
 
 	va_start(ap, fmt);
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
-	isc_log_write(lctx, LOGCATEGORY_DEFAULT, LOGMODULE_DEFAULT, level, "%s",
-		      msgbuf);
+	isc_log_write(DELV_LOGCATEGORY_DEFAULT, DELV_LOGMODULE_DEFAULT, level,
+		      "%s", msgbuf);
 	va_end(ap);
 }
 
@@ -317,76 +308,45 @@ static int loglevel = 0;
 
 static void
 setup_logging(FILE *errout) {
-	isc_result_t result;
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
 	int packetlevel = 10;
 
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_registercategories(lctx, categories);
-	isc_log_registermodules(lctx, modules);
-	isc_log_setcontext(lctx);
-	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
-	cfg_log_init(lctx);
+	isc_log_setdebuglevel(loglevel);
 
-	destination.file.stream = errout;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination,
-			      ISC_LOG_PRINTPREFIX);
+	isc_logconfig_t *logconfig = isc_logconfig_get();
 
-	isc_log_setdebuglevel(lctx, loglevel);
 	isc_log_settag(logconfig, ";; ");
 
-	result = isc_log_usechannel(logconfig, "stderr",
-				    ISC_LOGCATEGORY_DEFAULT, NULL);
-	if (result != ISC_R_SUCCESS) {
-		fatal("Couldn't attach to log channel 'stderr'");
-	}
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_FILE(errout),
+		ISC_LOG_PRINTPREFIX, ISC_LOGCATEGORY_DEFAULT,
+		ISC_LOGMODULE_DEFAULT);
 
 	if (resolve_trace && loglevel < 1) {
-		isc_log_createchannel(logconfig, "resolver", ISC_LOG_TOFILEDESC,
-				      ISC_LOG_DEBUG(1), &destination,
-				      ISC_LOG_PRINTPREFIX);
-
-		result = isc_log_usechannel(logconfig, "resolver",
-					    DNS_LOGCATEGORY_RESOLVER,
-					    DNS_LOGMODULE_RESOLVER);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't attach to log channel 'resolver'");
-		}
+		isc_log_createandusechannel(
+			logconfig, "resolver", ISC_LOG_TOFILEDESC,
+			ISC_LOG_DEBUG(1), ISC_LOGDESTINATION_FILE(errout),
+			ISC_LOG_PRINTPREFIX, DNS_LOGCATEGORY_RESOLVER,
+			DNS_LOGMODULE_RESOLVER);
 	}
 
 	if (validator_trace && loglevel < 3) {
-		isc_log_createchannel(logconfig, "validator",
-				      ISC_LOG_TOFILEDESC, ISC_LOG_DEBUG(3),
-				      &destination, ISC_LOG_PRINTPREFIX);
-
-		result = isc_log_usechannel(logconfig, "validator",
-					    DNS_LOGCATEGORY_DNSSEC,
-					    DNS_LOGMODULE_VALIDATOR);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't attach to log channel 'validator'");
-		}
+		isc_log_createandusechannel(
+			logconfig, "validator", ISC_LOG_TOFILEDESC,
+			ISC_LOG_DEBUG(3), ISC_LOGDESTINATION_FILE(errout),
+			ISC_LOG_PRINTPREFIX, DNS_LOGCATEGORY_DNSSEC,
+			DNS_LOGMODULE_VALIDATOR);
 	}
 
 	if (send_trace) {
 		packetlevel = 11;
 	}
 	if ((message_trace || send_trace) && loglevel < packetlevel) {
-		isc_log_createchannel(logconfig, "messages", ISC_LOG_TOFILEDESC,
-				      ISC_LOG_DEBUG(packetlevel), &destination,
-				      ISC_LOG_PRINTPREFIX);
-
-		result = isc_log_usechannel(logconfig, "messages",
-					    DNS_LOGCATEGORY_RESOLVER,
-					    DNS_LOGMODULE_PACKETS);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Couldn't attach to log channel 'messagse'");
-		}
+		isc_log_createandusechannel(
+			logconfig, "messages", ISC_LOG_TOFILEDESC,
+			ISC_LOG_DEBUG(packetlevel),
+			ISC_LOGDESTINATION_FILE(errout), ISC_LOG_PRINTPREFIX,
+			DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_PACKETS);
 	}
 }
 
@@ -816,14 +776,14 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 
 cleanup:
 	if (result == DST_R_NOCRYPTO) {
-		cfg_obj_log(key, lctx, ISC_LOG_ERROR, "no crypto support");
+		cfg_obj_log(key, ISC_LOG_ERROR, "no crypto support");
 	} else if (result == DST_R_UNSUPPORTEDALG) {
-		cfg_obj_log(key, lctx, ISC_LOG_WARNING,
+		cfg_obj_log(key, ISC_LOG_WARNING,
 			    "skipping trusted key '%s': %s", keynamestr,
 			    isc_result_totext(result));
 		result = ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(key, lctx, ISC_LOG_ERROR,
+		cfg_obj_log(key, ISC_LOG_ERROR,
 			    "failed to add trusted key '%s': %s", keynamestr,
 			    isc_result_totext(result));
 		result = ISC_R_FAILURE;
@@ -878,7 +838,7 @@ setup_dnsseckeys(dns_client_t *client, dns_view_t *toview) {
 		CHECK(convert_name(&afn, &anchor_name, trust_anchor));
 	}
 
-	CHECK(cfg_parser_create(mctx, dns_lctx, &parser));
+	CHECK(cfg_parser_create(mctx, &parser));
 
 	if (anchorfile != NULL) {
 		if (access(anchorfile, R_OK) != 0) {
@@ -2299,8 +2259,6 @@ cleanup:
 	if (style != NULL) {
 		dns_master_styledestroy(&style, mctx);
 	}
-
-	isc_log_destroy(&lctx);
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 

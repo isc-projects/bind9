@@ -37,47 +37,12 @@
 
 #include <tests/isc.h>
 
-static isc_logcategory_t categories[] = { { "", 0 },
-					  { "client", 0 },
-					  { "network", 0 },
-					  { "update", 0 },
-					  { "queries", 0 },
-					  { "unmatched", 0 },
-					  { "update-security", 0 },
-					  { "query-errors", 0 },
-					  { NULL, 0 } };
-
 ISC_SETUP_TEST_IMPL(group) {
-	isc_result_t result;
-	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig = NULL;
-
-	isc_log_create(mctx, &lctx, &logconfig);
-	isc_log_registercategories(lctx, categories);
-	isc_log_setcontext(lctx);
-
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
-			      ISC_LOG_DYNAMIC, &destination, 0);
-	result = isc_log_usechannel(logconfig, "stderr", NULL, NULL);
-
-	if (result != ISC_R_SUCCESS) {
-		return (-1);
-	}
-
-	return (0);
-}
-
-ISC_TEARDOWN_TEST_IMPL(group) {
-	if (lctx == NULL) {
-		return (-1);
-	}
-
-	isc_log_setcontext(NULL);
-	isc_log_destroy(&lctx);
+	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 
 	return (0);
 }
@@ -179,7 +144,7 @@ ISC_RUN_TEST_IMPL(duration) {
 		isc_buffer_add(&buf1, strlen(conf) - 1);
 
 		/* Parse with default line numbering */
-		result = cfg_parser_create(mctx, lctx, &p1);
+		result = cfg_parser_create(mctx, &p1);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		result = cfg_parse_buffer(p1, &buf1, "text1", 0,
@@ -240,4 +205,4 @@ ISC_TEST_ENTRY(duration)
 
 ISC_TEST_LIST_END
 
-ISC_TEST_MAIN_CUSTOM(setup_test_group, teardown_test_group)
+ISC_TEST_MAIN_CUSTOM(setup_test_group, NULL)

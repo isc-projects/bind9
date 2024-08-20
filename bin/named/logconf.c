@@ -24,7 +24,6 @@
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
-#include <isccfg/log.h>
 
 #include <named/log.h>
 #include <named/logconf.h>
@@ -44,15 +43,14 @@ static isc_result_t
 category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 	isc_result_t result;
 	const char *catname;
-	isc_logcategory_t *category;
-	isc_logmodule_t *module;
+	isc_logcategory_t category;
 	const cfg_obj_t *destinations = NULL;
 	const cfg_listelt_t *element = NULL;
 
 	catname = cfg_obj_asstring(cfg_tuple_get(ccat, "name"));
-	category = isc_log_categorybyname(named_g_lctx, catname);
-	if (category == NULL) {
-		cfg_obj_log(ccat, named_g_lctx, ISC_LOG_ERROR,
+	category = isc_log_categorybyname(catname);
+	if (category == ISC_LOGCATEGORY_INVALID) {
+		cfg_obj_log(ccat, ISC_LOG_ERROR,
 			    "unknown logging category '%s' ignored", catname);
 		/*
 		 * Allow further processing by returning success.
@@ -64,8 +62,6 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 		return (ISC_R_SUCCESS);
 	}
 
-	module = NULL;
-
 	destinations = cfg_tuple_get(ccat, "destinations");
 	for (element = cfg_list_first(destinations); element != NULL;
 	     element = cfg_list_next(element))
@@ -74,9 +70,9 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 		const char *channelname = cfg_obj_asstring(channel);
 
 		result = isc_log_usechannel(logconfig, channelname, category,
-					    module);
+					    ISC_LOGMODULE_DEFAULT);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(named_g_lctx, CFG_LOGCATEGORY_CONFIG,
+			isc_log_write(CFG_LOGCATEGORY_CONFIG,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s': %s", channelname,
 				      isc_result_totext(result));
@@ -127,7 +123,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 	}
 
 	if (i != 1) {
-		cfg_obj_log(channel, named_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(channel, ISC_LOG_ERROR,
 			    "channel '%s': exactly one of file, syslog, "
 			    "null, and stderr must be present",
 			    channelname);

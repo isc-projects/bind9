@@ -23,6 +23,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/job.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
@@ -39,7 +40,6 @@
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/view.h>
 #include <dns/zone.h>

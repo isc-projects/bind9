@@ -599,6 +599,8 @@ nochange a7-1.tld2 # 19 PASSTHRU
 sleep 1
 cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
 rndc_reload ns2 $ns2 bl.tld2
+# sleep again to let the reload finish
+sleep 1
 add_librpz_rule "update zone bl.tld2 1 inc"
 ck_soa 3 bl.tld2 $ns3
 produce_librpz_rules ns2 bl.tld2 bl.tld2

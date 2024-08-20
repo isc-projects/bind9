@@ -25,6 +25,7 @@
 #include <isc/hashmap.h>
 #include <isc/heap.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -44,7 +45,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
@@ -434,8 +434,8 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 	nodes = (nodes + old * 3) / 4;
 
 	if (nodes != old) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+			      ISC_LOG_DEBUG(1),
 			      "adjust_quantum: old=%d, new=%d", old, nodes);
 	}
 
@@ -525,9 +525,8 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 		} else {
 			strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-			      "done free_rbtdb(%s)", buf);
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+			      ISC_LOG_DEBUG(1), "done free_rbtdb(%s)", buf);
 	}
 	if (dns_name_dynamic(&rbtdb->common.origin)) {
 		dns_name_free(&rbtdb->common.origin, rbtdb->common.mctx);
@@ -654,7 +653,7 @@ dns__rbtdb_destroy(dns_db_t *arg) {
 			} else {
 				strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 			}
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 				      "calling free_rbtdb(%s)", buf);
 			free_rbtdb(rbtdb, true);
@@ -1051,10 +1050,10 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
 
-	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
 		char printname[DNS_NAME_FORMATSIZE];
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+			      ISC_LOG_DEBUG(1),
 			      "delete_node(): %p %s (bucket %d)", node,
 			      dns_rbt_formatnodename(node, printname,
 						     sizeof(printname)),
@@ -1081,7 +1080,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 					  NULL, DNS_RBTFIND_EMPTYDATA, NULL,
 					  NULL);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
 				      "delete_node: "
 				      "dns_rbt_findnode(nsec): %s",
@@ -1091,7 +1090,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 						    false);
 			if (result != ISC_R_SUCCESS) {
 				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DATABASE,
+					DNS_LOGCATEGORY_DATABASE,
 					DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
 					"delete_node(): "
 					"dns_rbt_deletenode(nsecnode): %s",
@@ -1108,8 +1107,8 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		break;
 	}
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+			      ISC_LOG_WARNING,
 			      "delete_node(): "
 			      "dns_rbt_deletenode: %s",
 			      isc_result_totext(result));
@@ -2300,7 +2299,7 @@ dns__rbtdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 			} else {
 				strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 			}
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 				      "calling free_rbtdb(%s)", buf);
 			free_rbtdb(rbtdb, true);

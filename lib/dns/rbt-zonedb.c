@@ -25,6 +25,7 @@
 #include <isc/hashmap.h>
 #include <isc/heap.h>
 #include <isc/hex.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -44,7 +45,6 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
@@ -772,7 +772,7 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 		 * nodes in the auxiliary tree that are awaiting deletion.
 		 */
 		if (result != DNS_R_PARTIALMATCH && result != ISC_R_NOTFOUND) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_ERROR,
 				      "previous_closest_nsec(): %s",
 				      isc_result_totext(result));
@@ -1644,8 +1644,8 @@ loadnode(dns_rbtdb_t *rbtdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 
 	if (nsecresult == ISC_R_EXISTS) {
 #if 1 /* 0 */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+			      ISC_LOG_WARNING,
 			      "addnode: NSEC node already exists");
 #endif /* if 1 */
 		node->nsec = DNS_DB_NSEC_HAS_NSEC;
@@ -1658,7 +1658,7 @@ loadnode(dns_rbtdb_t *rbtdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 		 */
 		tmpresult = dns_rbt_deletenode(rbtdb->tree, node, false);
 		if (tmpresult != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
 				      "loading_addrdataset: "
 				      "dns_rbt_deletenode: %s after "

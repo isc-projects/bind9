@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include <isc/buffer.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
@@ -24,7 +25,6 @@
 #include <isc/uv.h>
 
 #include <dns/dyndb.h>
-#include <dns/log.h>
 #include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -94,8 +94,8 @@ load_symbol(uv_lib_t *handle, const char *filename, const char *symbol_name,
 		if (errmsg == NULL) {
 			errmsg = "returned function pointer is NULL";
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
+			      ISC_LOG_ERROR,
 			      "failed to lookup symbol %s in "
 			      "DynDB module '%s': %s",
 			      symbol_name, filename, errmsg);
@@ -121,7 +121,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 
 	REQUIRE(impp != NULL && *impp == NULL);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
 		      ISC_LOG_INFO, "loading DynDB instance '%s' driver '%s'",
 		      instname, filename);
 
@@ -140,8 +140,8 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 		if (errmsg == NULL) {
 			errmsg = "unknown error";
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
+			      ISC_LOG_ERROR,
 			      "failed to dlopen() DynDB instance '%s' driver "
 			      "'%s': %s",
 			      instname, filename, errmsg);
@@ -155,8 +155,8 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 	if (version < (DNS_DYNDB_VERSION - DNS_DYNDB_AGE) ||
 	    version > DNS_DYNDB_VERSION)
 	{
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DYNDB, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
+			      ISC_LOG_ERROR,
 			      "driver API version mismatch: %d/%d", version,
 			      DNS_DYNDB_VERSION);
 		CHECK(ISC_R_FAILURE);
@@ -172,7 +172,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
 		      ISC_LOG_ERROR,
 		      "failed to dynamically load DynDB instance '%s' driver "
 		      "'%s': %s",
@@ -250,9 +250,9 @@ dns_dyndb_cleanup(bool exiting) {
 	while (elem != NULL) {
 		prev = PREV(elem, link);
 		UNLINK(dyndb_implementations, elem, link);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DYNDB, ISC_LOG_INFO,
-			      "unloading DynDB instance '%s'", elem->name);
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
+			      ISC_LOG_INFO, "unloading DynDB instance '%s'",
+			      elem->name);
 		elem->destroy_func(&elem->inst);
 		ENSURE(elem->inst == NULL);
 		unload_library(&elem);
@@ -266,9 +266,9 @@ dns_dyndb_cleanup(bool exiting) {
 }
 
 isc_result_t
-dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
-		    dns_view_t *view, dns_zonemgr_t *zmgr,
-		    isc_loopmgr_t *loopmgr, dns_dyndbctx_t **dctxp) {
+dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, dns_view_t *view,
+		    dns_zonemgr_t *zmgr, isc_loopmgr_t *loopmgr,
+		    dns_dyndbctx_t **dctxp) {
 	dns_dyndbctx_t *dctx;
 
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
@@ -277,7 +277,6 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 	*dctx = (dns_dyndbctx_t){
 		.loopmgr = loopmgr,
 		.hashinit = hashinit,
-		.lctx = lctx,
 	};
 
 	if (view != NULL) {
@@ -313,7 +312,6 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp) {
 		dns_zonemgr_detach(&dctx->zmgr);
 	}
 	dctx->loopmgr = NULL;
-	dctx->lctx = NULL;
 
 	isc_mem_putanddetach(&dctx->mctx, dctx, sizeof(*dctx));
 }

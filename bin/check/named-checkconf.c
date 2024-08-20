@@ -30,7 +30,6 @@
 
 #include <dns/db.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/rootns.h>
@@ -43,8 +42,6 @@
 #include "check-tool.h"
 
 static const char *program = "named-checkconf";
-
-isc_log_t *logc = NULL;
 
 #define CHECK(r)                             \
 	do {                                 \
@@ -83,7 +80,7 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 	directory = cfg_obj_asstring(obj);
 	result = isc_dir_chdir(directory);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, logc, ISC_LOG_ERROR,
+		cfg_obj_log(obj, ISC_LOG_ERROR,
 			    "change directory to '%s' failed: %s\n", directory,
 			    isc_result_totext(result));
 		return (result);
@@ -725,9 +722,9 @@ main(int argc, char **argv) {
 		conffile = NAMED_CONFFILE;
 	}
 
-	CHECK(setup_logging(mctx, stdout, &logc));
+	CHECK(setup_logging(stdout));
 
-	CHECK(cfg_parser_create(mctx, logc, &parser));
+	CHECK(cfg_parser_create(mctx, &parser));
 
 	if (nodeprecate) {
 		cfg_parser_setflags(parser, CFG_PCTX_NODEPRECATED, true);
@@ -735,7 +732,7 @@ main(int argc, char **argv) {
 	cfg_parser_setcallback(parser, directory_callback, NULL);
 
 	CHECK(cfg_parse_file(parser, conffile, &cfg_type_namedconf, &config));
-	CHECK(isccfg_check_namedconf(config, checkflags, logc, mctx));
+	CHECK(isccfg_check_namedconf(config, checkflags, mctx));
 	if (load_zones || list_zones) {
 		CHECK(load_zones_fromconfig(config, mctx, list_zones));
 	}
@@ -751,10 +748,6 @@ cleanup:
 
 	if (parser != NULL) {
 		cfg_parser_destroy(&parser);
-	}
-
-	if (logc != NULL) {
-		isc_log_destroy(&logc);
 	}
 
 	if (mctx != NULL) {

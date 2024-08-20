@@ -30,9 +30,8 @@
 #pragma once
 
 #include <isc/error.h>
+#include <isc/log.h>
 #include <isc/result.h>
-
-#include <dns/log.h>
 
 #define log_error_r(fmt, ...) \
 	log_error(fmt ": %s", ##__VA_ARGS__, isc_result_totext(result))

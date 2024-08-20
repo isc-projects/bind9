@@ -27,8 +27,9 @@
 
 ISC_LANG_BEGINDECLS
 
-#define dst__openssl_toresult(fallback) \
-	isc__tlserr2result(NULL, NULL, NULL, fallback, __FILE__, __LINE__)
+#define dst__openssl_toresult(fallback)                                    \
+	isc__tlserr2result(ISC_LOGCATEGORY_INVALID, ISC_LOGMODULE_INVALID, \
+			   NULL, fallback, __FILE__, __LINE__)
 #define dst__openssl_toresult2(funcname, fallback)                        \
 	isc__tlserr2result(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_CRYPTO, \
 			   funcname, fallback, __FILE__, __LINE__)

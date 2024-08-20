@@ -13,10 +13,10 @@
 
 /*! \file */
 
+#include <isc/log.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
-#include <dns/log.h>
 
 static void
 stdio_error_warn_callback(dns_rdatacallbacks_t *, const char *, ...)
@@ -54,8 +54,7 @@ isclog_error_callback(dns_rdatacallbacks_t *callbacks, const char *fmt, ...) {
 	UNUSED(callbacks);
 
 	va_start(ap, fmt);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-		       DNS_LOGMODULE_MASTER, /* XXX */
+	isc_log_vwrite(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER, /* XXX */
 		       ISC_LOG_ERROR, fmt, ap);
 	va_end(ap);
 }
@@ -68,8 +67,7 @@ isclog_warn_callback(dns_rdatacallbacks_t *callbacks, const char *fmt, ...) {
 
 	va_start(ap, fmt);
 
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-		       DNS_LOGMODULE_MASTER, /* XXX */
+	isc_log_vwrite(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER, /* XXX */
 		       ISC_LOG_WARNING, fmt, ap);
 	va_end(ap);
 }

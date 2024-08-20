@@ -29,12 +29,12 @@
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
 
+#include <isc/log.h>
 #include <isc/result.h>
 
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/secalg.h>
@@ -46,10 +46,8 @@ dns_fixedname_t fname;
 dns_name_t *name;
 unsigned int bits = 2048U;
 isc_mem_t *mctx;
-isc_log_t *log_;
 isc_logconfig_t *logconfig;
 int level = ISC_LOG_WARNING;
-isc_logdestination_t destination;
 char filename[255];
 isc_result_t result;
 isc_buffer_t buf;
@@ -105,23 +103,18 @@ main(int argc, char **argv) {
 	}
 
 	isc_mem_create(&mctx);
-	isc_log_create(mctx, &log_, &logconfig);
-	isc_log_setcontext(log_);
-	dns_log_init(log_);
-	dns_log_setcontext(log_);
+
+	dns_log_init();
+
+	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, "bigkey");
 
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC, level,
-			      &destination,
-			      ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL);
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC, level,
+		ISC_LOGDESTINATION_STDERR,
+		ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL, ISC_LOGCATEGORY_DEFAULT,
+		ISC_LOGMODULE_DEFAULT);
 
-	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL), "isc_log_"
-								   "usechannel("
-								   ")");
 	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&buf, "example.", strlen("example."));
 	isc_buffer_add(&buf, strlen("example."));
@@ -144,9 +137,6 @@ main(int argc, char **argv) {
 	printf("%s\n", filename);
 	dst_key_free(&key);
 
-	isc_log_destroy(&log_);
-	isc_log_setcontext(NULL);
-	dns_log_setcontext(NULL);
 	isc_mem_destroy(&mctx);
 	return (0);
 }

@@ -22,6 +22,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
@@ -29,7 +30,6 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rcode.h>
 #include <dns/rdataclass.h>
@@ -101,9 +101,9 @@ hash_divisor(unsigned int initial) {
 		}
 	} while (pp < &primes[sizeof(primes) / sizeof(primes[0])]);
 
-	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3)) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG3,
+	if (isc_log_wouldlog(DNS_RRL_LOG_DEBUG3)) {
+		isc_log_write(DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
+			      DNS_RRL_LOG_DEBUG3,
 			      "%d hash_divisor() divisions in %d tries"
 			      " to get %d from %d",
 			      divisions, tries, result, initial);
@@ -184,8 +184,8 @@ set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now) {
 		}
 		if (i != 0) {
 			isc_log_write(
-				dns_lctx, DNS_LOGCATEGORY_RRL,
-				DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG1,
+				DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
+				DNS_RRL_LOG_DEBUG1,
 				"rrl new time base scanned %d entries"
 				" at %d for %d %d %d %d",
 				i, now, rrl->ts_bases[ts_gen],
@@ -224,13 +224,13 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 	 * Log expansions so that the user can tune max-table-size
 	 * and min-table-size.
 	 */
-	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DROP) && rrl->hash != NULL) {
+	if (isc_log_wouldlog(DNS_RRL_LOG_DROP) && rrl->hash != NULL) {
 		rate = rrl->probes;
 		if (rrl->searches != 0) {
 			rate /= rrl->searches;
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP,
+		isc_log_write(DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
+			      DNS_RRL_LOG_DROP,
 			      "increase from %d to %d RRL entries with"
 			      " %d bins; average search length %.1f",
 			      rrl->num_entries, rrl->num_entries + newsize,
@@ -310,13 +310,13 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 	rrl->hash_gen ^= 1;
 	hash->gen = rrl->hash_gen;
 
-	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DROP) && old_bins != 0) {
+	if (isc_log_wouldlog(DNS_RRL_LOG_DROP) && old_bins != 0) {
 		rate = rrl->probes;
 		if (rrl->searches != 0) {
 			rate /= rrl->searches;
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP,
+		isc_log_write(DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
+			      DNS_RRL_LOG_DROP,
 			      "increase from %d to %d RRL bins for"
 			      " %d entries; average search length %.1f",
 			      old_bins, new_bins, rrl->num_entries, rate);
@@ -619,7 +619,7 @@ debit_log(const dns_rrl_entry_t *e, int age, const char *action) {
 		snprintf(buf, sizeof(buf), "age=%d", age);
 		age_str = buf;
 	}
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
+	isc_log_write(DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
 		      DNS_RRL_LOG_DEBUG3, "rrl %08x %6s  responses=%-3d %s",
 		      hash_key(&e->key), age_str, e->responses, action);
 }
@@ -662,7 +662,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 			new_rate = 1;
 		}
 		if (ratep->scaled != new_rate) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
+			isc_log_write(DNS_LOGCATEGORY_RRL,
 				      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG1,
 				      "%d qps scaled %s by %.2f"
 				      " from %d to %d",
@@ -718,7 +718,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 	 * Debit the entry for this response.
 	 */
 	if (--e->responses >= 0) {
-		if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3)) {
+		if (isc_log_wouldlog(DNS_RRL_LOG_DEBUG3)) {
 			debit_log(e, age, "");
 		}
 		return (DNS_RRL_RESULT_OK);
@@ -738,7 +738,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 			new_slip = 2;
 		}
 		if (rrl->slip.scaled != new_slip) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
+			isc_log_write(DNS_LOGCATEGORY_RRL,
 				      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG1,
 				      "%d qps scaled slip"
 				      " by %.2f from %d to %d",
@@ -752,7 +752,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 			if ((int)e->slip_cnt >= slip) {
 				e->slip_cnt = 0;
 			}
-			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3)) {
+			if (isc_log_wouldlog(DNS_RRL_LOG_DEBUG3)) {
 				debit_log(e, age, "slip");
 			}
 			return (DNS_RRL_RESULT_SLIP);
@@ -761,7 +761,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 		}
 	}
 
-	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG3)) {
+	if (isc_log_wouldlog(DNS_RRL_LOG_DEBUG3)) {
 		debit_log(e, age, "drop");
 	}
 	return (DNS_RRL_RESULT_DROP);
@@ -970,9 +970,8 @@ log_end(dns_rrl_t *rrl, dns_rrl_entry_t *e, bool early, char *log_buf,
 					   : "stop limiting ",
 			     true, NULL, false, DNS_RRL_RESULT_OK,
 			     ISC_R_SUCCESS, log_buf, log_buf_len);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP, "%s",
-			      log_buf);
+		isc_log_write(DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
+			      DNS_RRL_LOG_DROP, "%s", log_buf);
 		free_qname(rrl, e);
 		e->logged = false;
 		--rrl->num_logged;
@@ -1067,11 +1066,8 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 		} else {
 			qps = (1.0 * rrl->qps_responses) / secs;
 			if (secs >= rrl->window) {
-				if (isc_log_wouldlog(dns_lctx,
-						     DNS_RRL_LOG_DEBUG3))
-				{
-					isc_log_write(dns_lctx,
-						      DNS_LOGCATEGORY_RRL,
+				if (isc_log_wouldlog(DNS_RRL_LOG_DEBUG3)) {
+					isc_log_write(DNS_LOGCATEGORY_RRL,
 						      DNS_LOGMODULE_REQUEST,
 						      DNS_RRL_LOG_DEBUG3,
 						      "%d responses/%d seconds"
@@ -1143,7 +1139,7 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 		return (DNS_RRL_RESULT_OK);
 	}
 
-	if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG1)) {
+	if (isc_log_wouldlog(DNS_RRL_LOG_DEBUG1)) {
 		/*
 		 * Do not worry about speed or releasing the lock.
 		 * This message appears before messages from debit_rrl_entry().
@@ -1151,9 +1147,8 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 		make_log_buf(rrl, e, "consider limiting ", NULL, false, qname,
 			     false, DNS_RRL_RESULT_OK, resp_result, log_buf,
 			     log_buf_len);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DEBUG1, "%s",
-			      log_buf);
+		isc_log_write(DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
+			      DNS_RRL_LOG_DEBUG1, "%s", log_buf);
 	}
 
 	rrl_result = debit_rrl_entry(rrl, e, qps, scale, client_addr, now,
@@ -1184,13 +1179,13 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 		if (rrl_all_result != DNS_RRL_RESULT_OK) {
 			e = e_all;
 			rrl_result = rrl_all_result;
-			if (isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DEBUG1)) {
+			if (isc_log_wouldlog(DNS_RRL_LOG_DEBUG1)) {
 				make_log_buf(rrl, e,
 					     "prefer all-per-second limiting ",
 					     NULL, true, qname, false,
 					     DNS_RRL_RESULT_OK, resp_result,
 					     log_buf, log_buf_len);
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
+				isc_log_write(DNS_LOGCATEGORY_RRL,
 					      DNS_LOGMODULE_REQUEST,
 					      DNS_RRL_LOG_DEBUG1, "%s",
 					      log_buf);
@@ -1207,7 +1202,7 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 	 * Log occasionally in the rate-limit category.
 	 */
 	if ((!e->logged || e->log_secs >= DNS_RRL_MAX_LOG_SECS) &&
-	    isc_log_wouldlog(dns_lctx, DNS_RRL_LOG_DROP))
+	    isc_log_wouldlog(DNS_RRL_LOG_DROP))
 	{
 		make_log_buf(rrl, e, rrl->log_only ? "would " : NULL,
 			     e->logged ? "continue limiting " : "limit ", true,
@@ -1228,9 +1223,8 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 			UNLOCK(&rrl->lock);
 			e = NULL;
 		}
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_DROP, "%s",
-			      log_buf);
+		isc_log_write(DNS_LOGCATEGORY_RRL, DNS_LOGMODULE_REQUEST,
+			      DNS_RRL_LOG_DROP, "%s", log_buf);
 	}
 
 	/*

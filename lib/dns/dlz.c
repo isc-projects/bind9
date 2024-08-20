@@ -56,6 +56,7 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -68,7 +69,6 @@
 #include <dns/db.h>
 #include <dns/dlz.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/ssu.h>
 #include <dns/zone.h>
@@ -177,9 +177,8 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 	REQUIRE(mctx != NULL);
 
 	/* write log message */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
-		      ISC_LOG_INFO, "Loading '%s' using driver %s", dlzname,
-		      drivername);
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ, ISC_LOG_INFO,
+		      "Loading '%s' using driver %s", dlzname, drivername);
 
 	/* lock the dlz_implementations list so we can search it. */
 	RWLOCK(&dlz_implock, isc_rwlocktype_read);
@@ -189,8 +188,8 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 	if (impinfo == NULL) {
 		RWUNLOCK(&dlz_implock, isc_rwlocktype_read);
 
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+			      ISC_LOG_ERROR,
 			      "unsupported DLZ database driver '%s'."
 			      "  %s not loaded.",
 			      drivername, dlzname);
@@ -221,12 +220,12 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 
 	db->magic = DNS_DLZ_MAGIC;
 	isc_mem_attach(mctx, &db->mctx);
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		      ISC_LOG_DEBUG(2), "DLZ driver loaded successfully.");
 	*dbp = db;
 	return (ISC_R_SUCCESS);
 failure:
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		      ISC_LOG_ERROR, "DLZ driver failed to load.");
 
 	/* impinfo->methods->create failed. */
@@ -241,7 +240,7 @@ dns_dlzdestroy(dns_dlzdb_t **dbp) {
 	dns_dlzdb_t *db;
 
 	/* Write debugging message to log */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		      ISC_LOG_DEBUG(2), "Unloading DLZ driver.");
 
 	/*
@@ -277,7 +276,7 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 	dns_dlzimplementation_t *dlz_imp;
 
 	/* Write debugging message to log */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		      ISC_LOG_DEBUG(2), "Registering DLZ driver '%s'",
 		      drivername);
 
@@ -307,8 +306,8 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 	 */
 	dlz_imp = dlz_impfind(drivername);
 	if (dlz_imp != NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+			      ISC_LOG_DEBUG(2),
 			      "DLZ Driver '%s' already registered", drivername);
 		RWUNLOCK(&dlz_implock, isc_rwlocktype_write);
 		return (ISC_R_EXISTS);
@@ -365,7 +364,7 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
 	dns_dlzimplementation_t *dlz_imp;
 
 	/* Write debugging message to log */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		      ISC_LOG_DEBUG(2), "Unregistering DLZ driver.");
 
 	/*
@@ -431,8 +430,8 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	origin = dns_fixedname_name(&fixorigin);
 
 	if (!dlzdb->search) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DLZ, ISC_LOG_WARNING,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+			      ISC_LOG_WARNING,
 			      "DLZ %s has 'search no;', but attempted to "
 			      "register writeable zone %s.",
 			      dlzdb->dlzname, zone_name);
@@ -518,8 +517,8 @@ dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
 	impl = dlzdatabase->implementation;
 
 	if (impl->methods->ssumatch == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DLZ, ISC_LOG_INFO,
+		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
+			      ISC_LOG_INFO,
 			      "No ssumatch method for DLZ database");
 		return (false);
 	}

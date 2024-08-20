@@ -15,6 +15,7 @@
 
 /*! \file isc/log.h */
 
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -23,6 +24,9 @@
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/types.h>
+#include <isc/util.h>
+
+typedef struct isc_logconfig isc_logconfig_t; /*%< Log Configuration */
 
 /*@{*/
 /*!
@@ -100,27 +104,139 @@ typedef enum {
  * structures names each category, and the id value is initialized by calling
  * isc_log_registercategories.
  */
-struct isc_logcategory {
-	const char  *name;
-	unsigned int id;
+typedef enum isc_logcategory isc_logcategory_t; /*%< Log Category */
+enum isc_logcategory {
+	/*%
+	 * Logging to DEFAULT will end with assertion failure.  Use another
+	 * category.  When in doubt, use GENERAL.
+	 */
+	ISC_LOGCATEGORY_INVALID = -1,
+	/* isc categories */
+	ISC_LOGCATEGORY_DEFAULT = 0,
+	ISC_LOGCATEGORY_GENERAL,
+	DNS_LOGCATEGORY_GENERAL = ISC_LOGCATEGORY_GENERAL,
+	NS_LOGCATEGORY_GENERAL = ISC_LOGCATEGORY_GENERAL,
+	NAMED_LOGCATEGORY_GENERAL = ISC_LOGCATEGORY_GENERAL,
+	ISC_LOGCATEGORY_SSLKEYLOG,
+	/* dns categories */
+	DNS_LOGCATEGORY_NOTIFY,
+	DNS_LOGCATEGORY_DATABASE,
+	DNS_LOGCATEGORY_SECURITY,
+	DNS_LOGCATEGORY_DNSSEC,
+	DNS_LOGCATEGORY_RESOLVER,
+	DNS_LOGCATEGORY_XFER_IN,
+	DNS_LOGCATEGORY_XFER_OUT,
+	DNS_LOGCATEGORY_DISPATCH,
+	DNS_LOGCATEGORY_LAME_SERVERS,
+	DNS_LOGCATEGORY_EDNS_DISABLED,
+	DNS_LOGCATEGORY_RPZ,
+	DNS_LOGCATEGORY_RRL,
+	DNS_LOGCATEGORY_CNAME,
+	DNS_LOGCATEGORY_SPILL,
+	DNS_LOGCATEGORY_DNSTAP,
+	DNS_LOGCATEGORY_ZONELOAD,
+	DNS_LOGCATEGORY_NSID,
+	DNS_LOGCATEGORY_RPZ_PASSTHRU,
+	/* ns categories */
+	NS_LOGCATEGORY_CLIENT,
+	NS_LOGCATEGORY_NETWORK,
+	NS_LOGCATEGORY_UPDATE,
+	NS_LOGCATEGORY_QUERIES,
+	NS_LOGCATEGORY_UPDATE_SECURITY,
+	NS_LOGCATEGORY_QUERY_ERRORS,
+	NS_LOGCATEGORY_TAT,
+	NS_LOGCATEGORY_SERVE_STALE,
+	/* cfg categories */
+	CFG_LOGCATEGORY_CONFIG,
+	/* named categories */
+	NAMED_LOGCATEGORY_UNMATCHED,
+	/* delv categories */
+	DELV_LOGCATEGORY_DEFAULT,
+
+	ISC_LOGCATEGORY_MAX, /*% The number of categories */
+	ISC_LOGCATEGORY_MAKE_ENUM_32BIT = INT32_MAX,
 };
 
 /*%
  * Similar to isc_logcategory, but for all the modules a library defines.
  */
-struct isc_logmodule {
-	const char  *name;
-	unsigned int id;
+typedef enum isc_logmodule isc_logmodule_t; /*%< Log Module */
+enum isc_logmodule {
+	ISC_LOGMODULE_INVALID = -1,
+	/* isc modules */
+	ISC_LOGMODULE_DEFAULT = 0,
+	ISC_LOGMODULE_SOCKET,
+	ISC_LOGMODULE_TIME,
+	ISC_LOGMODULE_INTERFACE,
+	ISC_LOGMODULE_TIMER,
+	ISC_LOGMODULE_FILE,
+	ISC_LOGMODULE_NETMGR,
+	ISC_LOGMODULE_OTHER,
+	/* dns modules */
+	DNS_LOGMODULE_DB,
+	DNS_LOGMODULE_RBTDB,
+	DNS_LOGMODULE_RBT,
+	DNS_LOGMODULE_RDATA,
+	DNS_LOGMODULE_MASTER,
+	DNS_LOGMODULE_MESSAGE,
+	DNS_LOGMODULE_CACHE,
+	DNS_LOGMODULE_CONFIG,
+	DNS_LOGMODULE_RESOLVER,
+	DNS_LOGMODULE_ZONE,
+	DNS_LOGMODULE_JOURNAL,
+	DNS_LOGMODULE_ADB,
+	DNS_LOGMODULE_XFER_IN,
+	DNS_LOGMODULE_XFER_OUT,
+	DNS_LOGMODULE_ACL,
+	DNS_LOGMODULE_VALIDATOR,
+	DNS_LOGMODULE_DISPATCH,
+	DNS_LOGMODULE_REQUEST,
+	DNS_LOGMODULE_MASTERDUMP,
+	DNS_LOGMODULE_TSIG,
+	DNS_LOGMODULE_TKEY,
+	DNS_LOGMODULE_SDB,
+	DNS_LOGMODULE_DIFF,
+	DNS_LOGMODULE_HINTS,
+	DNS_LOGMODULE_UNUSED1,
+	DNS_LOGMODULE_DLZ,
+	DNS_LOGMODULE_DNSSEC,
+	DNS_LOGMODULE_CRYPTO,
+	DNS_LOGMODULE_PACKETS,
+	DNS_LOGMODULE_NTA,
+	DNS_LOGMODULE_DYNDB,
+	DNS_LOGMODULE_DNSTAP,
+	DNS_LOGMODULE_SSU,
+	DNS_LOGMODULE_QP,
+	/* ns modules */
+	NS_LOGMODULE_CLIENT,
+	NS_LOGMODULE_QUERY,
+	NS_LOGMODULE_INTERFACEMGR,
+	NS_LOGMODULE_UPDATE,
+	NS_LOGMODULE_XFER_IN,
+	NS_LOGMODULE_XFER_OUT,
+	NS_LOGMODULE_NOTIFY,
+	NS_LOGMODULE_HOOKS,
+	/* cfg modules */
+	CFG_LOGMODULE_PARSER,
+	/* named modules */
+	NAMED_LOGMODULE_MAIN,
+	NAMED_LOGMODULE_SERVER,
+	NAMED_LOGMODULE_CONTROL,
+	/* delv modules */
+	DELV_LOGMODULE_DEFAULT,
+
+	ISC_LOGMODULE_MAX, /*% The number of modules */
+	ISC_LOGMODULE_MAKE_ENUM_32BIT = INT32_MAX,
 };
 
 /*%
  * The isc_logfile structure is initialized as part of an isc_logdestination
  * before calling isc_log_createchannel().
  *
- * When defining an #ISC_LOG_TOFILE
- * channel the name, versions and maximum_size should be set before calling
- * isc_log_createchannel().  To define an #ISC_LOG_TOFILEDESC channel set only
- * the stream before the call.
+ * When defining an #ISC_LOG_TOFILE channel, the name, versions and
+ * maximum_size should be set before calling isc_log_createchannel().  To
+ * define an #ISC_LOG_TOFILEDESC channel set only the stream before the
+ * call.
  *
  * Setting maximum_size to zero implies no maximum.
  */
@@ -148,8 +264,21 @@ typedef struct isc_logfile {
  */
 typedef union isc_logdestination {
 	isc_logfile_t file;
-	int	      facility; /* XXXDCL NT */
+	int	      facility;
 } isc_logdestination_t;
+
+#define ISC_LOGDESTINATION_FILE(errout)                         \
+	(&(isc_logdestination_t){                               \
+		.file = {                                       \
+			.stream = errout,                       \
+			.versions = ISC_LOG_ROLLNEVER,          \
+			.suffix = isc_log_rollsuffix_increment, \
+		} })
+
+#define ISC_LOGDESTINATION_STDERR ISC_LOGDESTINATION_FILE(stderr)
+
+#define ISC_LOGDESTINATION_SYSLOG(f) \
+	(&(isc_logdestination_t){ .facility = (f) })
 
 /*@{*/
 /*%
@@ -160,54 +289,13 @@ typedef union isc_logdestination {
  * the order of the names.
  */
 extern isc_logcategory_t isc_categories[];
-extern isc_log_t	*isc_lctx;
 extern isc_logmodule_t	 isc_modules[];
 /*@}*/
-
-/*@{*/
-/*%
- * Do not log directly to DEFAULT.  Use another category.  When in doubt,
- * use GENERAL.
- */
-#define ISC_LOGCATEGORY_DEFAULT	  (&isc_categories[0])
-#define ISC_LOGCATEGORY_GENERAL	  (&isc_categories[1])
-#define ISC_LOGCATEGORY_SSLKEYLOG (&isc_categories[2])
-/*@}*/
-
-#define ISC_LOGMODULE_SOCKET	(&isc_modules[0])
-#define ISC_LOGMODULE_TIME	(&isc_modules[1])
-#define ISC_LOGMODULE_INTERFACE (&isc_modules[2])
-#define ISC_LOGMODULE_TIMER	(&isc_modules[3])
-#define ISC_LOGMODULE_FILE	(&isc_modules[4])
-#define ISC_LOGMODULE_NETMGR	(&isc_modules[5])
-#define ISC_LOGMODULE_OTHER	(&isc_modules[6])
 
 ISC_LANG_BEGINDECLS
 
 void
-isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
-/*%<
- * Establish a new logging context, with default channels.
- *
- * Notes:
- *\li	isc_log_create() calls isc_logconfig_create(), so see its comment
- *	below for more information.
- *
- * Requires:
- *\li	mctx is a valid memory context.
- *\li	lctxp is not null and *lctxp is null.
- *\li	lcfgp is null or lcfgp is not null and *lcfgp is null.
- *
- * Ensures:
- *\li	*lctxp will point to a valid logging context if all of the necessary
- *	memory was allocated, or NULL otherwise.
- *\li	*lcfgp will point to a valid logging configuration if all of the
- *	necessary memory was allocated, or NULL otherwise.
- *\li	On failure, no additional memory is allocated.
- */
-
-void
-isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
+isc_logconfig_create(isc_logconfig_t **lcfgp);
 /*%<
  * Create the data structure that holds all of the configurable information
  * about where messages are actually supposed to be sent -- the information
@@ -248,16 +336,16 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
  *\li	On failure, no additional memory is allocated.
  */
 
+isc_logconfig_t *
+isc_logconfig_get(void);
 void
-isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
+isc_logconfig_set(isc_logconfig_t *lcfg);
 /*%<
- * Associate a new configuration with a logging context.
+ * Getter/setter for a configuration with a logging context.
  *
  * Notes:
- *\li	This is thread safe.  The logging context will lock a mutex
- *	before attempting to swap in the new configuration, and isc_log_doit
- *	(the internal function used by all of isc_log_[v]write[1]) locks
- *	the same lock for the duration of its use of the configuration.
+ *\li	The setter is thread safe.  The getter is only thread-safe
+ *	if the isc_logconfig_get() call is protected by RCU read-lock.
  *
  * Requires:
  *\li	lctx is a valid logging context.
@@ -267,23 +355,7 @@ isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
  *
  * Ensures:
  *\li	Future calls to isc_log_write will use the new configuration.
- */
-
-void
-isc_log_destroy(isc_log_t **lctxp);
-/*%<
- * Deallocate the memory associated with a logging context.
- *
- * Requires:
- *\li	*lctx is a valid logging context.
- *
- * Ensures:
- *\li	All of the memory associated with the logging context is returned
- *	to the free memory pool.
- *
- *\li	Any open files are closed.
- *
- *\li	The logging context is marked as invalid.
+ *\li	The previous configuration object will be destroyed.
  */
 
 void
@@ -299,82 +371,6 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp);
  *\li	All memory allocated for the configuration is freed.
  *
  *\li	The configuration is marked as invalid.
- */
-
-void
-isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
-/*%<
- * Identify logging categories a library will use.
- *
- * Notes:
- *\li	A category should only be registered once, but no mechanism enforces
- *	this rule.
- *
- *\li	The end of the categories array is identified by a NULL name.
- *
- *\li	Because the name is used by #ISC_LOG_PRINTCATEGORY, it should not
- *	be altered or destroyed after isc_log_registercategories().
- *
- *\li	Because each element of the categories array is used by
- *	isc_log_categorybyname, it should not be altered or destroyed
- *	after registration.
- *
- *\li	The value of the id integer in each structure is overwritten
- *	by this function, and so id need not be initialized to any particular
- *	value prior to the function call.
- *
- *\li	A subsequent call to isc_log_registercategories with the same
- *	logging context (but new categories) will cause the last
- *	element of the categories array from the prior call to have
- *	its "name" member changed from NULL to point to the new
- *	categories array, and its "id" member set to UINT_MAX.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- *\li	categories != NULL.
- *\li	categories[0].name != NULL.
- *
- * Ensures:
- * \li	There are references to each category in the logging context,
- * 	so they can be used with isc_log_usechannel() and isc_log_write().
- */
-
-void
-isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
-/*%<
- * Identify logging categories a library will use.
- *
- * Notes:
- *\li	A module should only be registered once, but no mechanism enforces
- *	this rule.
- *
- *\li	The end of the modules array is identified by a NULL name.
- *
- *\li	Because the name is used by #ISC_LOG_PRINTMODULE, it should not
- *	be altered or destroyed after isc_log_registermodules().
- *
- *\li	Because each element of the modules array is used by
- *	isc_log_modulebyname, it should not be altered or destroyed
- *	after registration.
- *
- *\li	The value of the id integer in each structure is overwritten
- *	by this function, and so id need not be initialized to any particular
- *	value prior to the function call.
- *
- *\li	A subsequent call to isc_log_registermodules with the same
- *	logging context (but new modules) will cause the last
- *	element of the modules array from the prior call to have
- *	its "name" member changed from NULL to point to the new
- *	modules array, and its "id" member set to UINT_MAX.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- *\li	modules != NULL.
- *\li	modules[0].name != NULL;
- *
- * Ensures:
- *\li	Each module has a reference in the logging context, so they can be
- *	used with isc_log_usechannel() and isc_log_write().
  */
 
 void
@@ -442,8 +438,8 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 
 isc_result_t
 isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
-		   const isc_logcategory_t *category,
-		   const isc_logmodule_t   *module);
+		   const isc_logcategory_t category,
+		   const isc_logmodule_t   module);
 /*%<
  * Associate a named logging channel with a category and module that
  * will use it.
@@ -478,50 +474,52 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  * Requires:
  *\li	lcfg is a valid logging configuration.
  *
- *\li	category is NULL or has an id that is in the range of known ids.
+ *\li	category is ISC_LOGCATEGORY_DEFAULT or has an id that is in the range of
+ *	known ids.
  *
- *	module is NULL or has an id that is in the range of known ids.
+ *	module is ISC_LOGMODULE_DEFAULT or has an id that is in the range of
+ *	known ids.
  *
  * Ensures:
- *\li	#ISC_R_SUCCESS
- *		The channel will be used by the indicated category/module
- *		arguments.
- *
- *\li	#ISC_R_NOMEMORY
- *		If assignment for a specific category has been requested,
- *		the channel has not been associated with the indicated
- *		category/module arguments and no additional memory is
- *		used by the logging context.
- *		If assignment for all categories has been requested
- *		then _some_ may have succeeded (starting with category
- *		"default" and progressing through the order of categories
- *		passed to isc_log_registercategories()) and additional memory
- *		is being used by whatever assignments succeeded.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS	Success
- *\li	#ISC_R_NOMEMORY	Resource limit: Out of memory
+ *	The channel will be used by the indicated category/module
+ *	arguments.
  */
 
-/* Attention: next four comments PRECEDE code */
-/*!
+void
+isc_log_createandusechannel(isc_logconfig_t *lcfg, const char *name,
+			    unsigned int type, int level,
+			    const isc_logdestination_t *destination,
+			    unsigned int		flags,
+			    const isc_logcategory_t	category,
+			    const isc_logmodule_t	module);
+
+/*%<
+ * The isc_log_createchannel() and isc_log_usechannel() functions, combined
+ * into one.  (This is for use by utilities that have simpler logging
+ * requirements than named, and don't have to define and assign channels
+ * dynamically.)
+ */
+
+void
+isc_log_write(isc_logcategory_t category, isc_logmodule_t module, int level,
+	      const char *format, ...) ISC_FORMAT_PRINTF(4, 5);
+/*%<
  *   \brief
  * Write a message to the log channels.
  *
  * Notes:
- *\li	lctx can be NULL; this is allowed so that programs which use
- *	libraries that use the ISC logging system are not required to
- *	also use it.
- *
  *\li	The format argument is a printf(3) string, with additional arguments
  *	as necessary.
  *
  * Requires:
- *\li	lctx is a valid logging context.
- *
  *\li	The category and module arguments must have ids that are in the
- *	range of known ids, as established by isc_log_registercategories()
- *	and isc_log_registermodules().
+ *	range of known ids.
+ *
+ *\li	category != ISC_LOGCATEGORY_DEFAULT.  ISC_LOGCATEGORY_DEFAULT is used
+ *	only to define channels.
+ *
+ *\li	module != ISC_LOGMODULE_DEFAULT.  ISC_LOGMODULE_DEFAULT is used
+ *	only to define channels.
  *
  *\li	level != #ISC_LOG_DYNAMIC.  ISC_LOG_DYNAMIC is used only to define
  *	channels, and explicit debugging level must be identified for
@@ -537,29 +535,25 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *\li	Nothing.  Failure to log a message is not construed as a
  *	meaningful error.
  */
+
 void
-isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
-	      isc_logmodule_t *module, int level, const char *format, ...)
-
-	ISC_FORMAT_PRINTF(5, 6);
-
-/*%
+isc_log_vwrite(isc_logcategory_t category, isc_logmodule_t module, int level,
+	       const char *format, va_list args) ISC_FORMAT_PRINTF(4, 0);
+/*%<
  * Write a message to the log channels.
  *
- * Notes:
- *\li	lctx can be NULL; this is allowed so that programs which use
- *	libraries that use the ISC logging system are not required to
- *	also use it.
- *
  *\li	The format argument is a printf(3) string, with additional arguments
  *	as necessary.
  *
  * Requires:
- *\li	lctx is a valid logging context.
- *
  *\li	The category and module arguments must have ids that are in the
- *	range of known ids, as established by isc_log_registercategories()
- *	and isc_log_registermodules().
+ *	range of known ids.
+ *
+ *\li	category != ISC_LOGCATEGORY_DEFAULT.  ISC_LOGCATEGORY_DEFAULT is used
+ *	only to define channels.
+ *
+ *\li	module != ISC_LOGMODULE_DEFAULT.  ISC_LOGMODULE_DEFAULT is used
+ *	only to define channels.
  *
  *\li	level != #ISC_LOG_DYNAMIC.  ISC_LOG_DYNAMIC is used only to define
  *	channels, and explicit debugging level must be identified for
@@ -575,38 +569,9 @@ isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
  *\li	Nothing.  Failure to log a message is not construed as a
  *	meaningful error.
  */
-void
-isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *format,
-	       va_list args)
-
-	ISC_FORMAT_PRINTF(5, 0);
-
-/*%
- * Write a message to the log channels, pruning duplicates that occur within
- * a configurable amount of seconds (see isc_log_[sg]etduplicateinterval).
- * This function is otherwise identical to isc_log_write().
- */
-void
-isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *format, ...)
-
-	ISC_FORMAT_PRINTF(5, 6);
-
-/*%
- * Write a message to the log channels, pruning duplicates that occur within
- * a configurable amount of seconds (see isc_log_[sg]etduplicateinterval).
- * This function is otherwise identical to isc_log_vwrite().
- */
-void
-isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
-		isc_logmodule_t *module, int level, const char *format,
-		va_list args)
-
-	ISC_FORMAT_PRINTF(5, 0);
 
 void
-isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level);
+isc_log_setdebuglevel(unsigned int level);
 /*%<
  * Set the debugging level used for logging.
  *
@@ -621,7 +586,7 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level);
  */
 
 unsigned int
-isc_log_getdebuglevel(isc_log_t *lctx);
+isc_log_getdebuglevel(void);
 /*%<
  * Get the current debugging level.
  *
@@ -640,7 +605,7 @@ isc_log_getdebuglevel(isc_log_t *lctx);
  */
 
 bool
-isc_log_wouldlog(isc_log_t *lctx, int level);
+isc_log_wouldlog(int level);
 /*%<
  * Determine whether logging something to 'lctx' at 'level' would
  * actually cause something to be logged somewhere.
@@ -648,38 +613,6 @@ isc_log_wouldlog(isc_log_t *lctx, int level);
  * If #false is returned, it is guaranteed that nothing would
  * be logged, allowing the caller to omit unnecessary
  * isc_log_write() calls and possible message preformatting.
- */
-
-void
-isc_log_setduplicateinterval(isc_logconfig_t *lcfg, unsigned int interval);
-/*%<
- * Set the interval over which duplicate log messages will be ignored
- * by isc_log_[v]write1(), in seconds.
- *
- * Notes:
- *\li	Increasing the duplicate interval from X to Y will not necessarily
- *	filter out duplicates of messages logged in Y - X seconds since the
- *	increase.  (Example: Message1 is logged at midnight.  Message2
- *	is logged at 00:01:00, when the interval is only 30 seconds, causing
- *	Message1 to be expired from the log message history.  Then the interval
- *	is increased to 3000 (five minutes) and at 00:04:00 Message1 is logged
- *	again.  It will appear the second time even though less than five
- *	passed since the first occurrence.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- */
-
-unsigned int
-isc_log_getduplicateinterval(isc_logconfig_t *lcfg);
-/*%<
- * Get the current duplicate filtering interval.
- *
- * Requires:
- *\li	lctx is a valid logging context.
- *
- * Returns:
- *\li	The current duplicate filtering interval.
  */
 
 void
@@ -767,7 +700,7 @@ isc_log_opensyslog(const char *tag, int options, int facility);
  */
 
 void
-isc_log_closefilelogs(isc_log_t *lctx);
+isc_log_closefilelogs(void);
 /*%<
  * Close all open files used by #ISC_LOG_TOFILE channels.
  *
@@ -788,8 +721,8 @@ isc_log_closefilelogs(isc_log_t *lctx);
  *	next needed.
  */
 
-isc_logcategory_t *
-isc_log_categorybyname(isc_log_t *lctx, const char *name);
+isc_logcategory_t
+isc_log_categorybyname(const char *name);
 /*%<
  * Find a category by its name.
  *
@@ -804,33 +737,6 @@ isc_log_categorybyname(isc_log_t *lctx, const char *name);
  *\li	A pointer to the _first_ isc_logcategory_t structure used by "name".
  *
  *\li	NULL if no category exists by that name.
- */
-
-isc_logmodule_t *
-isc_log_modulebyname(isc_log_t *lctx, const char *name);
-/*%<
- * Find a module by its name.
- *
- * Notes:
- *\li	The string name of a module is not required to be unique.
- *
- * Requires:
- *\li	lctx is a valid context.
- *\li	name is not NULL.
- *
- * Returns:
- *\li	A pointer to the _first_ isc_logmodule_t structure used by "name".
- *
- *\li	NULL if no module exists by that name.
- */
-
-void
-isc_log_setcontext(isc_log_t *lctx);
-/*%<
- * Sets the context used by the libisc for logging.
- *
- * Requires:
- *\li	lctx be a valid context.
  */
 
 isc_result_t
@@ -848,6 +754,14 @@ isc_log_setforcelog(bool v);
  * Turn forced logging on/off for the current thread. This can be used to
  * temporarily increase the debug level to maximum for the duration of
  * a single task event.
+ */
+
+void
+isc__log_initialize(void);
+void
+isc__log_shutdown(void);
+/*%<
+ * Library constructor/destructor
  */
 
 ISC_LANG_ENDDECLS

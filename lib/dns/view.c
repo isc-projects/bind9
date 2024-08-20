@@ -1864,9 +1864,8 @@ dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
 
 	status = mdb_env_create(&env);
 	if (status != MDB_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
-			      "mdb_env_create failed: %s",
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, ISC_LOGMODULE_OTHER,
+			      ISC_LOG_ERROR, "mdb_env_create failed: %s",
 			      mdb_strerror(status));
 		CHECK(ISC_R_FAILURE);
 	}
@@ -1874,7 +1873,7 @@ dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
 	if (mapsize != 0ULL) {
 		status = mdb_env_set_mapsize(env, mapsize);
 		if (status != MDB_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 				      "mdb_env_set_mapsize failed: %s",
 				      mdb_strerror(status));
@@ -1885,9 +1884,8 @@ dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
 
 	status = mdb_env_open(env, view->new_zone_db, DNS_LMDB_FLAGS, 0600);
 	if (status != MDB_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
-			      "mdb_env_open of '%s' failed: %s",
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, ISC_LOGMODULE_OTHER,
+			      ISC_LOG_ERROR, "mdb_env_open of '%s' failed: %s",
 			      view->new_zone_db, mdb_strerror(status));
 		CHECK(ISC_R_FAILURE);
 	}
@@ -2184,8 +2182,8 @@ dns_view_loadnta(dns_view_t *view) {
 		} else {
 			char nb[DNS_NAME_FORMATSIZE];
 			dns_name_format(ntaname, nb, sizeof(nb));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-				      DNS_LOGMODULE_NTA, ISC_LOG_INFO,
+			isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_NTA,
+				      ISC_LOG_INFO,
 				      "ignoring expired NTA at %s", nb);
 		}
 	}

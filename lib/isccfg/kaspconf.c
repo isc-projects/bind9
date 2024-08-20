@@ -16,6 +16,7 @@
 #include <stdlib.h>
 
 #include <isc/fips.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
@@ -26,7 +27,6 @@
 #include <dns/kasp.h>
 #include <dns/keystore.h>
 #include <dns/keyvalues.h>
-#include <dns/log.h>
 #include <dns/nsec3.h>
 #include <dns/secalg.h>
 #include <dns/ttl.h>
@@ -112,8 +112,7 @@ get_string(const cfg_obj_t **maps, const char *option) {
  */
 static isc_result_t
 cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
-		       bool check_algorithms, isc_log_t *logctx,
-		       dns_keystorelist_t *keystorelist,
+		       bool check_algorithms, dns_keystorelist_t *keystorelist,
 		       uint32_t ksk_min_lifetime, uint32_t zsk_min_lifetime) {
 	isc_result_t result;
 	dns_kasp_key_t *key = NULL;
@@ -163,13 +162,13 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		result = dns_keystorelist_find(keystorelist, keydir,
 					       &key->keystore);
 		if (result == ISC_R_NOTFOUND) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "dnssec-policy: keystore %s does not exist",
 				    keydir);
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		} else if (result != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "dnssec-policy: bad keystore %s", keydir);
 			result = ISC_R_FAILURE;
 			goto cleanup;
@@ -183,7 +182,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		}
 		if (key->lifetime > 0) {
 			if (key->lifetime < 30 * (24 * 3600)) {
-				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				cfg_obj_log(obj, ISC_LOG_WARNING,
 					    "dnssec-policy: key lifetime is "
 					    "shorter than 30 days");
 			}
@@ -198,7 +197,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 				error = true;
 			}
 			if (error) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				cfg_obj_log(obj, ISC_LOG_ERROR,
 					    "dnssec-policy: key lifetime is "
 					    "shorter than the time it takes to "
 					    "do a rollover");
@@ -213,7 +212,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		result = dns_secalg_fromtext(&key->algorithm,
 					     (isc_textregion_t *)&alg);
 		if (result != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "dnssec-policy: bad algorithm %s",
 				    alg.base);
 			result = DNS_R_BADALG;
@@ -224,7 +223,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		    (key->algorithm == DNS_KEYALG_RSASHA1 ||
 		     key->algorithm == DNS_KEYALG_NSEC3RSASHA1))
 		{
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "dnssec-policy: algorithm %s not supported "
 				    "in FIPS mode",
 				    alg.base);
@@ -235,7 +234,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		if (check_algorithms &&
 		    !dst_algorithm_supported(key->algorithm))
 		{
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "dnssec-policy: algorithm %s not supported",
 				    alg.base);
 			result = DNS_R_BADALG;
@@ -258,7 +257,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 					min = DNS_KEYALG_RSASHA512 ? 1024 : 512;
 				}
 				if (size < min || size > 4096) {
-					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					cfg_obj_log(obj, ISC_LOG_ERROR,
 						    "dnssec-policy: key with "
 						    "algorithm %s has invalid "
 						    "key length %u",
@@ -271,7 +270,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			case DNS_KEYALG_ECDSA384:
 			case DNS_KEYALG_ED25519:
 			case DNS_KEYALG_ED448:
-				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				cfg_obj_log(obj, ISC_LOG_WARNING,
 					    "dnssec-policy: key algorithm %s "
 					    "has predefined length; ignoring "
 					    "length value %u",
@@ -294,8 +293,7 @@ cleanup:
 }
 
 static isc_result_t
-cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
-			  isc_log_t *logctx) {
+cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
 	dns_kasp_key_t *kkey;
 	unsigned int min_keysize = 4096;
 	const cfg_obj_t *obj = NULL;
@@ -333,14 +331,14 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		char algstr[DNS_SECALG_FORMATSIZE];
 		dns_secalg_format((dns_secalg_t)badalg, algstr, sizeof(algstr));
 		cfg_obj_log(
-			obj, logctx, ISC_LOG_ERROR,
+			obj, ISC_LOG_ERROR,
 			"dnssec-policy: cannot use nsec3 with algorithm '%s'",
 			algstr);
 		return (DNS_R_NSEC3BADALG);
 	}
 
 	if (iter != DEFAULT_NSEC3PARAM_ITER) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+		cfg_obj_log(obj, ISC_LOG_ERROR,
 			    "dnssec-policy: nsec3 iterations value %u "
 			    "not allowed, must be zero",
 			    iter);
@@ -359,7 +357,7 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		saltlen = cfg_obj_asuint32(obj);
 	}
 	if (saltlen > 0xff) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+		cfg_obj_log(obj, ISC_LOG_ERROR,
 			    "dnssec-policy: nsec3 salt length %u too high",
 			    saltlen);
 		return (DNS_R_NSEC3SALTRANGE);
@@ -370,7 +368,7 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 }
 
 static isc_result_t
-add_digest(dns_kasp_t *kasp, const cfg_obj_t *digest, isc_log_t *logctx) {
+add_digest(dns_kasp_t *kasp, const cfg_obj_t *digest) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_textregion_t r;
 	dns_dsdigest_t alg;
@@ -380,11 +378,11 @@ add_digest(dns_kasp_t *kasp, const cfg_obj_t *digest, isc_log_t *logctx) {
 	r.length = strlen(str);
 	result = dns_dsdigest_fromtext(&alg, &r);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(digest, logctx, ISC_LOG_ERROR,
+		cfg_obj_log(digest, ISC_LOG_ERROR,
 			    "dnssec-policy: bad cds digest-type %s", str);
 		result = DNS_R_BADALG;
 	} else if (!dst_ds_digest_supported(alg)) {
-		cfg_obj_log(digest, logctx, ISC_LOG_ERROR,
+		cfg_obj_log(digest, ISC_LOG_ERROR,
 			    "dnssec-policy: unsupported cds "
 			    "digest-type %s",
 			    str);
@@ -397,7 +395,7 @@ add_digest(dns_kasp_t *kasp, const cfg_obj_t *digest, isc_log_t *logctx) {
 
 isc_result_t
 cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
-		    bool check_algorithms, isc_mem_t *mctx, isc_log_t *logctx,
+		    bool check_algorithms, isc_mem_t *mctx,
 		    dns_keystorelist_t *keystorelist, dns_kasplist_t *kasplist,
 		    dns_kasp_t **kaspp) {
 	isc_result_t result;
@@ -425,14 +423,14 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	kaspname = cfg_obj_asstring(cfg_tuple_get(config, "name"));
 	INSIST(kaspname != NULL);
 
-	cfg_obj_log(config, logctx, ISC_LOG_DEBUG(1),
-		    "dnssec-policy: load policy '%s'", kaspname);
+	cfg_obj_log(config, ISC_LOG_DEBUG(1), "dnssec-policy: load policy '%s'",
+		    kaspname);
 
 	result = dns_kasplist_find(kasplist, kaspname, &kasp);
 
 	if (result == ISC_R_SUCCESS) {
 		cfg_obj_log(
-			config, logctx, ISC_LOG_ERROR,
+			config, ISC_LOG_ERROR,
 			"dnssec-policy: duplicately named policy found '%s'",
 			kaspname);
 		dns_kasp_detach(&kasp);
@@ -472,7 +470,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 				   DNS_KASP_SIG_VALIDITY_DNSKEY);
 	if (sigrefresh >= (sigvalidity * 0.9)) {
 		cfg_obj_log(
-			config, logctx, ISC_LOG_ERROR,
+			config, ISC_LOG_ERROR,
 			"dnssec-policy: policy '%s' signatures-refresh must be "
 			"at most 90%% of the signatures-validity-dnskey",
 			kaspname);
@@ -482,7 +480,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 
 	if (sigjitter > sigvalidity) {
 		cfg_obj_log(
-			config, logctx, ISC_LOG_ERROR,
+			config, ISC_LOG_ERROR,
 			"dnssec-policy: policy '%s' signatures-jitter cannot "
 			"be larger than signatures-validity-dnskey",
 			kaspname);
@@ -493,7 +491,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 				   DNS_KASP_SIG_VALIDITY);
 	if (sigrefresh >= (sigvalidity * 0.9)) {
 		cfg_obj_log(
-			config, logctx, ISC_LOG_ERROR,
+			config, ISC_LOG_ERROR,
 			"dnssec-policy: policy '%s' signatures-refresh must be "
 			"at most 90%% of the signatures-validity",
 			kaspname);
@@ -503,7 +501,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 
 	if (sigjitter > sigvalidity) {
 		cfg_obj_log(
-			config, logctx, ISC_LOG_ERROR,
+			config, ISC_LOG_ERROR,
 			"dnssec-policy: policy '%s' signatures-jitter cannot "
 			"be larger than signatures-validity",
 			kaspname);
@@ -552,8 +550,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		for (element = cfg_list_first(cds); element != NULL;
 		     element = cfg_list_next(element))
 		{
-			result = add_digest(kasp, cfg_listelt_value(element),
-					    logctx);
+			result = add_digest(kasp, cfg_listelt_value(element));
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}
@@ -595,11 +592,10 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		{
 			cfg_obj_t *kobj = cfg_listelt_value(element);
 			result = cfg_kaspkey_fromconfig(
-				kobj, kasp, check_algorithms, logctx,
-				keystorelist, ksk_min_lifetime,
-				zsk_min_lifetime);
+				kobj, kasp, check_algorithms, keystorelist,
+				ksk_min_lifetime, zsk_min_lifetime);
 			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(kobj, logctx, ISC_LOG_ERROR,
+				cfg_obj_log(kobj, ISC_LOG_ERROR,
 					    "dnssec-policy: failed to "
 					    "configure keys (%s)",
 					    isc_result_totext(result));
@@ -637,20 +633,20 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 			if (role[i] !=
 			    (DNS_KASP_KEY_ROLE_ZSK | DNS_KASP_KEY_ROLE_KSK))
 			{
-				cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
+				cfg_obj_log(keys, ISC_LOG_ERROR,
 					    "dnssec-policy: algorithm %zu "
 					    "requires both KSK and ZSK roles",
 					    i);
 				result = ISC_R_FAILURE;
 			}
 			if (warn[i][0]) {
-				cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+				cfg_obj_log(keys, ISC_LOG_WARNING,
 					    "dnssec-policy: algorithm %zu has "
 					    "multiple keys with ZSK role",
 					    i);
 			}
 			if (warn[i][1]) {
-				cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+				cfg_obj_log(keys, ISC_LOG_WARNING,
 					    "dnssec-policy: algorithm %zu has "
 					    "multiple keys with KSK role",
 					    i);
@@ -673,7 +669,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 			new_key = NULL;
 			result = dns_kasp_key_create(kasp, &new_key);
 			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(config, logctx, ISC_LOG_ERROR,
+				cfg_obj_log(config, ISC_LOG_ERROR,
 					    "dnssec-policy: failed to "
 					    "configure keys (%s)",
 					    isc_result_totext(result));
@@ -692,7 +688,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 				keystorelist, DNS_KEYSTORE_KEYDIRECTORY,
 				&new_key->keystore);
 			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(config, logctx, ISC_LOG_ERROR,
+				cfg_obj_log(config, ISC_LOG_ERROR,
 					    "dnssec-policy: failed to "
 					    "find keystore (%s)",
 					    isc_result_totext(result));
@@ -723,7 +719,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		}
 	} else {
 		dns_kasp_setnsec3(kasp, true);
-		result = cfg_nsec3param_fromconfig(nsec3, kasp, logctx);
+		result = cfg_nsec3param_fromconfig(nsec3, kasp);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -748,7 +744,7 @@ cleanup:
 
 isc_result_t
 cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
-			isc_log_t *logctx, dns_keystorelist_t *keystorelist,
+			dns_keystorelist_t *keystorelist,
 			dns_keystore_t **kspp) {
 	isc_result_t result;
 	const cfg_obj_t *maps[2];
@@ -768,13 +764,13 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 	result = dns_keystorelist_find(keystorelist, name, &keystore);
 
 	if (result == ISC_R_SUCCESS) {
-		cfg_obj_log(config, logctx, ISC_LOG_ERROR,
+		cfg_obj_log(config, ISC_LOG_ERROR,
 			    "key-store: duplicate key-store found '%s'", name);
 		dns_keystore_detach(&keystore);
 		return (ISC_R_EXISTS);
 	}
 	if (result != ISC_R_NOTFOUND) {
-		cfg_obj_log(config, logctx, ISC_LOG_ERROR,
+		cfg_obj_log(config, ISC_LOG_ERROR,
 			    "key-store: lookup '%s' failed: %s", name,
 			    isc_result_totext(result));
 		return (result);
