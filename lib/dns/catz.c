@@ -806,6 +806,13 @@ cleanup_task:
 	return (result);
 }
 
+void *
+dns_catz_zones_get_udata(dns_catz_zones_t *catzs) {
+	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
+
+	return (catzs->zmm->udata);
+}
+
 void
 dns_catz_catzs_set_view(dns_catz_zones_t *catzs, dns_view_t *view) {
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
