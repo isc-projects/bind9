@@ -353,18 +353,18 @@ update_is_signed() {
     dig_with_opts "a.${ZONE}" "@${SERVER}" A >"dig.out.$DIR.test$n.a" || return 1
     grep "status: NOERROR" "dig.out.$DIR.test$n.a" >/dev/null || return 1
     grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*${ip_a}" "dig.out.$DIR.test$n.a" >/dev/null || return 1
-    lines=$(get_keys_which_signed A "dig.out.$DIR.test$n.a" | wc -l)
+    lines=$(get_keys_which_signed A 0 "dig.out.$DIR.test$n.a" | wc -l)
     test "$lines" -eq 1 || return 1
-    get_keys_which_signed A "dig.out.$DIR.test$n.a" | grep "^${KEY_ID}$" >/dev/null || return 1
+    get_keys_which_signed A 0 "dig.out.$DIR.test$n.a" | grep "^${KEY_ID}$" >/dev/null || return 1
   fi
 
   if [ "$ip_d" != "-" ]; then
     dig_with_opts "d.${ZONE}" "@${SERVER}" A >"dig.out.$DIR.test$n".d || return 1
     grep "status: NOERROR" "dig.out.$DIR.test$n".d >/dev/null || return 1
     grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*${ip_d}" "dig.out.$DIR.test$n".d >/dev/null || return 1
-    lines=$(get_keys_which_signed A "dig.out.$DIR.test$n".d | wc -l)
+    lines=$(get_keys_which_signed A 0 "dig.out.$DIR.test$n".d | wc -l)
     test "$lines" -eq 1 || return 1
-    get_keys_which_signed A "dig.out.$DIR.test$n".d | grep "^${KEY_ID}$" >/dev/null || return 1
+    get_keys_which_signed A 0 "dig.out.$DIR.test$n".d | grep "^${KEY_ID}$" >/dev/null || return 1
   fi
 }
 
