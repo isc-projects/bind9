@@ -5999,8 +5999,6 @@ rpz_add_cname(ns_client_t *client, dns_rpz_st_t *st,
 	return (ISC_R_SUCCESS);
 }
 
-#define MAX_RESTARTS 16
-
 #define QUERY_ERROR(r) \
 do { \
 	eresult = r; \
@@ -9280,7 +9278,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	/*
 	 * Restart the query?
 	 */
-	if (want_restart && client->query.restarts < MAX_RESTARTS) {
+	if (want_restart && client->query.restarts <
+	    client->view->max_restarts)
+	{
 		client->query.restarts++;
 		goto restart;
 	}

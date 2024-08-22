@@ -9297,10 +9297,26 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  This sets the maximum number of iterative queries that
-		  may be sent while servicing a recursive query.
-		  If more queries are sent, the recursive query
-		  is terminated and returns SERVFAIL.  The default is 100.
-		</para>
+		  may be sent by a resolver while looking up a single name.
+                  If more queries than this need to be sent before
+                  an answer is reached, then recursion is terminated
+		  and a SERVFAIL response is returned to the client.
+		  (Note: if the answer is a CNAME, then the subsequent
+		  lookup for the target of the CNAME is counted
+                  separately.) The default is 32.
+                </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry xml:id="max-query-restarts">
+	      <term><command>max-query-restarts</command></term>
+	      <listitem>
+		<para>
+                  This sets the maximum number of successive CNAME targets to
+                  follow when resolving a client query, before
+                  terminating the query to avoid a CNAME loop.
+                  Valid values are 1 to 255. The default is 11.
+                </para>
 	      </listitem>
 	    </varlistentry>
 

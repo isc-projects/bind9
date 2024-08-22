@@ -170,7 +170,7 @@
 
 /* The default maximum number of iterative queries to allow before giving up. */
 #ifndef DEFAULT_MAX_QUERIES
-#define DEFAULT_MAX_QUERIES 100
+#define DEFAULT_MAX_QUERIES 50
 #endif /* ifndef DEFAULT_MAX_QUERIES */
 
 /*
@@ -648,7 +648,7 @@ valcreate(fetchctx_t *fctx, dns_message_t *rmessage,
 	result = dns_validator_create(fctx->res->view, name, type, rdataset,
 				      sigrdataset, rmessage,
 				      valoptions, task, validated, valarg,
-				      &validator);
+				      fctx->qc, &validator);
 	if (result == ISC_R_SUCCESS) {
 		inc_stats(fctx->res, dns_resstatscounter_val);
 		if ((valoptions & DNS_VALIDATOR_DEFER) == 0) {
@@ -4369,16 +4369,6 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	if (fctx == NULL)
 		return (ISC_R_NOMEMORY);
 
-	fctx->qc = NULL;
-	if (qc != NULL) {
-		isc_counter_attach(qc, &fctx->qc);
-	} else {
-		result = isc_counter_create(res->mctx,
-					    res->maxqueries, &fctx->qc);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_fetch;
-	}
-
 	/*
 	 * Make fctx->info point to a copy of a formatted string
 	 * "name/type".
@@ -4390,7 +4380,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->info = isc_mem_strdup(mctx, buf);
 	if (fctx->info == NULL) {
 		result = ISC_R_NOMEMORY;
-		goto cleanup_counter;
+		goto cleanup_fetch;
 	}
 
 	FCTXTRACE("create");
@@ -4416,6 +4406,26 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->want_shutdown = false;
 	fctx->cloned = false;
 	fctx->depth = depth;
+	fctx->qc = NULL;
+
+	if (qc != NULL) {
+		isc_counter_attach(qc, &fctx->qc);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): attached to counter %p (%d)", fctx,
+			      fctx->info, fctx->qc, isc_counter_used(fctx->qc));
+	} else {
+		result = isc_counter_create(res->mctx, res->maxqueries,
+					    &fctx->qc);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_name;
+		}
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): created counter %p", fctx,
+			      fctx->info, fctx->qc);
+	}
+
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->altfinds);
@@ -4529,12 +4539,12 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			 */
 			result = dns_name_dup(domain, mctx, &fctx->domain);
 			if (result != ISC_R_SUCCESS)
-				goto cleanup_name;
+				goto cleanup_counter;
 		}
 	} else {
 		result = dns_name_dup(domain, mctx, &fctx->domain);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup_name;
+			goto cleanup_counter;
 		dns_rdataset_clone(nameservers, &fctx->nameservers);
 		fctx->ns_ttl = fctx->nameservers.ttl;
 		fctx->ns_ttl_ok = true;
@@ -4637,14 +4647,14 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	if (dns_rdataset_isassociated(&fctx->nameservers))
 		dns_rdataset_disassociate(&fctx->nameservers);
 
+ cleanup_counter:
+	isc_counter_detach(&fctx->qc);
+
  cleanup_name:
 	dns_name_free(&fctx->name, mctx);
 
  cleanup_info:
 	isc_mem_free(mctx, fctx->info);
-
- cleanup_counter:
-	isc_counter_detach(&fctx->qc);
 
  cleanup_fetch:
 	isc_mem_put(mctx, fctx, sizeof(*fctx));
@@ -7728,10 +7738,10 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		FCTXTRACE("continuing to look for parent's NS records");
 
-		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
+		result = dns_resolver_createfetch3(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
-						  nsrdataset, NULL,
-						  fctx->options, task,
+						  nsrdataset, NULL, NULL, 0,
+						  fctx->options, 0, NULL, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -9026,10 +9036,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 		FCTXTRACE("suspending DS lookup to find parent's NS records");
 
-		result = dns_resolver_createfetch(res, &fctx->nsname,
+		result = dns_resolver_createfetch3(res, &fctx->nsname,
 						  dns_rdatatype_ns,
-						  NULL, NULL, NULL,
-						  fctx->options, task,
+						  NULL, NULL, NULL, NULL, 0,
+						  fctx->options, 0, NULL, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -9532,11 +9542,11 @@ dns_resolver_prime(dns_resolver_t *res) {
 		}
 		dns_rdataset_init(rdataset);
 		LOCK(&res->primelock);
-		result = dns_resolver_createfetch(res, dns_rootname,
+		result = dns_resolver_createfetch3(res, dns_rootname,
 						  dns_rdatatype_ns,
-						  NULL, NULL, NULL,
+						  NULL, NULL, NULL, NULL, 0,
 						  DNS_FETCHOPT_NOFORWARD,
-						  res->buckets[0].task,
+						  0, NULL, res->buckets[0].task,
 						  prime_done,
 						  res, rdataset, NULL,
 						  &res->primefetch);

@@ -168,6 +168,7 @@ dns_client_mctx
 dns_client_request
 dns_client_resolve
 dns_client_setdlv
+dns_client_setmaxrestarts
 dns_client_setservers
 dns_client_startrequest
 dns_client_startresolve
@@ -1135,6 +1136,7 @@ dns_view_setdynamickeyring
 dns_view_setfailttl
 dns_view_sethints
 dns_view_setkeyring
+dns_view_setmaxrestarts
 dns_view_setnewzones
 dns_view_setresquerystats
 dns_view_setresstats
