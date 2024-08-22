@@ -40,8 +40,6 @@
 
 #include <tests/dns.h>
 
-static bool debug = false;
-
 /*
  * An array of these structures is passed to compare_ok().
  */
