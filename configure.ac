@@ -108,9 +108,6 @@ AC_PROG_MKDIR_P
 # Initialize libtool
 LT_INIT([disable-static dlopen pic-only])
 
-DLOPEN_LIBS="$lt_cv_dlopen_libs"
-AC_SUBST(DLOPEN_LIBS)
-
 AS_IF([test "$enable_static" != "no" && test "$enable_developer" != "yes"],
       [AC_MSG_ERROR([Static linking is not supported as it disables dlopen() and certain security features (e.g. RELRO, ASLR)])])
 
