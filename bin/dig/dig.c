@@ -3079,7 +3079,7 @@ void
 dig_shutdown(void) {
 	destroy_lookup(default_lookup);
 	if (atomic_load(&batchname) != 0) {
-		if (batchfp != stdin) {
+		if (batchfp != NULL && batchfp != stdin) {
 			fclose(batchfp);
 		}
 		atomic_store(&batchname, 0);
