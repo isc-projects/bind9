@@ -439,7 +439,7 @@ ret=0
 $RNDCCMD 10.53.0.7 null --- start test$n --- 2>&1 | sed 's/^/ns7 /' | cat_i
 $DIG $DIGOPTS @10.53.0.7 loop.example >dig.out.test$n
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-grep "ANSWER: 17" dig.out.test$n >/dev/null || ret=1
+grep "ANSWER: 12" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
 
