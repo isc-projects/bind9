@@ -72,9 +72,9 @@ totext_opt(ARGS_TOTEXT) {
 			or = r;
 			or.length = length;
 			if (tctx->width == 0) { /* No splitting */
-				RETERR(isc_base64_totext(& or, 60, "", target));
+				RETERR(isc_base64_totext(&or, 60, "", target));
 			} else {
-				RETERR(isc_base64_totext(& or, tctx->width - 2,
+				RETERR(isc_base64_totext(&or, tctx->width - 2,
 							 tctx->linebreak,
 							 target));
 			}
