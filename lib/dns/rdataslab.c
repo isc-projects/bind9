@@ -89,8 +89,7 @@ struct xrdata {
 #endif /* if DNS_RDATASET_FIXED */
 };
 
-#define peek_uint16(buffer) \
-	({ ((uint16_t) * (buffer) << 8) | *((buffer) + 1); })
+#define peek_uint16(buffer) ({ ((uint16_t)*(buffer) << 8) | *((buffer) + 1); })
 #define get_uint16(buffer)                            \
 	({                                            \
 		uint16_t __ret = peek_uint16(buffer); \

@@ -134,7 +134,7 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 
 #if defined(__linux__)
 #include <syscall.h>
-#define gettid() (uint64_t) syscall(SYS_gettid)
+#define gettid() (uint64_t)syscall(SYS_gettid)
 #elif defined(__FreeBSD__)
 #include <pthread_np.h>
 #define gettid() (uint64_t)(pthread_getthreadid_np())
