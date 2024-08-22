@@ -75,7 +75,6 @@ struct named_server {
 	isc_timer_t *tat_timer;
 
 	uint32_t interface_interval;
-	uint32_t heartbeat_interval;
 
 	atomic_int reload_status;
 

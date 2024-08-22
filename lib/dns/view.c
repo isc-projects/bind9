@@ -545,27 +545,6 @@ dns_view_detach(dns_view_t **viewp) {
 	}
 }
 
-static isc_result_t
-dialup(dns_zone_t *zone, void *dummy) {
-	UNUSED(dummy);
-	dns_zone_dialup(zone);
-	return (ISC_R_SUCCESS);
-}
-
-void
-dns_view_dialup(dns_view_t *view) {
-	dns_zt_t *zonetable = NULL;
-
-	REQUIRE(DNS_VIEW_VALID(view));
-
-	rcu_read_lock();
-	zonetable = rcu_dereference(view->zonetable);
-	if (zonetable != NULL) {
-		(void)dns_zt_apply(zonetable, false, NULL, dialup, NULL);
-	}
-	rcu_read_unlock();
-}
-
 void
 dns_view_weakattach(dns_view_t *source, dns_view_t **targetp) {
 	REQUIRE(DNS_VIEW_VALID(source));

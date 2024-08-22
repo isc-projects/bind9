@@ -174,7 +174,7 @@ fi
 n=$((n + 1))
 echo_i "checking named-checkconf deprecate warnings ($n)"
 ret=0
-$CHECKCONF deprecated.conf >checkconf.out$n.1 2>&1
+$CHECKCONF deprecated.conf >checkconf.out$n.1 2>&1 || ret=1
 grep "option 'managed-keys' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'trusted-keys' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'max-zone-ttl' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
@@ -182,8 +182,6 @@ grep "option 'use-v4-udp-ports' is deprecated" <checkconf.out$n.1 >/dev/null || 
 grep "option 'use-v6-udp-ports' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'avoid-v4-udp-ports' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'avoid-v6-udp-ports' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
-grep "option 'dialup' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
-grep "option 'heartbeat-interval' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'dnssec-must-be-secure' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'sortlist' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "token 'port' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1

@@ -1253,7 +1253,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	 * (scale * value) <= UINT32_MAX
 	 */
 	static intervaltable intervals[] = {
-		{ "heartbeat-interval", 60, 28 * 24 * 60 },    /* 28 days */
 		{ "interface-interval", 60, 28 * 24 * 60 },    /* 28 days */
 		{ "max-transfer-idle-in", 60, 28 * 24 * 60 },  /* 28 days */
 		{ "max-transfer-idle-out", 60, 28 * 24 * 60 }, /* 28 days */
@@ -3116,12 +3115,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		"allow-update",
 		"allow-update-forwarding",
 	};
-	static optionstable dialups[] = {
-		{ "notify", CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
-		{ "notify-passive", CFG_ZONE_SECONDARY },
-		{ "passive", CFG_ZONE_SECONDARY | CFG_ZONE_STUB },
-		{ "refresh", CFG_ZONE_SECONDARY | CFG_ZONE_STUB },
-	};
 	static const char *sources[] = {
 		"transfer-source",  "transfer-source-v6", "notify-source",
 		"notify-source-v6", "parental-source",	  "parental-source-v6",
@@ -3742,42 +3735,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "inline-signing when used in secondary "
 				    "zone");
 			result = ISC_R_FAILURE;
-		}
-	}
-
-	/*
-	 * Check the excessively complicated "dialup" option.
-	 */
-	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY ||
-	    ztype == CFG_ZONE_STUB)
-	{
-		obj = NULL;
-		(void)cfg_map_get(zoptions, "dialup", &obj);
-		if (obj != NULL && cfg_obj_isstring(obj)) {
-			const char *str = cfg_obj_asstring(obj);
-			for (i = 0; i < sizeof(dialups) / sizeof(dialups[0]);
-			     i++)
-			{
-				if (strcasecmp(dialups[i].name, str) != 0) {
-					continue;
-				}
-				if ((dialups[i].allowed & ztype) == 0) {
-					cfg_obj_log(obj, ISC_LOG_ERROR,
-						    "dialup type '%s' is not "
-						    "allowed in '%s' "
-						    "zone '%s'",
-						    str, typestr, znamestr);
-					result = ISC_R_FAILURE;
-				}
-				break;
-			}
-			if (i == sizeof(dialups) / sizeof(dialups[0])) {
-				cfg_obj_log(obj, ISC_LOG_ERROR,
-					    "invalid dialup type '%s' in zone "
-					    "'%s'",
-					    str, znamestr);
-				result = ISC_R_FAILURE;
-			}
 		}
 	}
 

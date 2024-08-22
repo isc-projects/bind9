@@ -2030,64 +2030,6 @@ Boolean Options
    :any:`memstatistics-file` at exit. The default is ``no`` unless :option:`-m
    record <named -m>` is specified on the command line, in which case it is ``yes``.
 
-.. namedconf:statement:: dialup
-   :tags: deprecated
-   :short: Concentrates zone maintenance so that all transfers take place once every :any:`heartbeat-interval`, ideally during a single call.
-
-   This option is deprecated and will be removed in a future release.
-
-   If ``yes``, then the server treats all zones as if they are doing
-   zone transfers across a dial-on-demand dialup link, which can be
-   brought up by traffic originating from this server. Although this setting has
-   different effects according to zone type, it concentrates the zone
-   maintenance so that everything happens quickly, once every
-   :any:`heartbeat-interval`, ideally during a single call. It also
-   suppresses some normal zone maintenance traffic. The default
-   is ``no``.
-
-   If specified in the :any:`view` and
-   :any:`zone` statements, the :any:`dialup` option overrides the global :any:`dialup`
-   option.
-
-   If the zone is a primary zone, the server sends out a NOTIFY
-   request to all the secondaries (default). This should trigger the zone
-   serial number check in the secondary (providing it supports NOTIFY),
-   allowing the secondary to verify the zone while the connection is active.
-   The set of servers to which NOTIFY is sent can be controlled by
-   :namedconf:ref:`notify` and :any:`also-notify`.
-
-   If the zone is a secondary or stub zone, the server suppresses
-   the regular "zone up to date" (refresh) queries and only performs them
-   when the :any:`heartbeat-interval` expires, in addition to sending NOTIFY
-   requests.
-
-   Finer control can be achieved by using :namedconf:ref:`notify`, which only sends
-   NOTIFY messages; ``notify-passive``, which sends NOTIFY messages and
-   suppresses the normal refresh queries; ``refresh``, which suppresses
-   normal refresh processing and sends refresh queries when the
-   :any:`heartbeat-interval` expires; and ``passive``, which disables
-   normal refresh processing.
-
-   +--------------------+-----------------+-----------------+-----------------+
-   | dialup mode        | normal refresh  | heart-beat      | heart-beat      |
-   |                    |                 | refresh         | notify          |
-   +--------------------+-----------------+-----------------+-----------------+
-   | ``no``             | yes             | no              | no              |
-   | (default)          |                 |                 |                 |
-   +--------------------+-----------------+-----------------+-----------------+
-   | ``yes``            | no              | yes             | yes             |
-   +--------------------+-----------------+-----------------+-----------------+
-   | ``notify``         | yes             | no              | yes             |
-   +--------------------+-----------------+-----------------+-----------------+
-   | ``refresh``        | no              | yes             | no              |
-   +--------------------+-----------------+-----------------+-----------------+
-   | ``passive``        | no              | no              | no              |
-   +--------------------+-----------------+-----------------+-----------------+
-   | ``notify-passive`` | no              | no              | yes             |
-   +--------------------+-----------------+-----------------+-----------------+
-
-   Note that normal NOTIFY processing is not affected by :any:`dialup`.
-
 .. namedconf:statement:: flush-zones-on-shutdown
    :tags: zone
    :short: Controls whether pending zone writes are flushed when the name server exits.
@@ -4064,18 +4006,6 @@ system.
 
 Periodic Task Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^
-
-.. namedconf:statement:: heartbeat-interval
-   :tags: deprecated
-   :short: Sets the interval at which the server performs zone maintenance tasks for all zones marked as :any:`dialup`.
-
-   The server performs zone maintenance tasks for all zones marked
-   as :any:`dialup` whenever this interval expires. The default is 60
-   minutes. Reasonable values are up to 1 day (1440 minutes). The
-   maximum value is 28 days (40320 minutes). If set to 0, no zone
-   maintenance for these zones occurs.
-
-   This option is deprecated and will be removed in a future release.
 
 .. namedconf:statement:: interface-interval
    :tags: server
@@ -7266,9 +7196,6 @@ Zone Options
    Other values are possible if additional database drivers have been
    linked into the server. Some sample drivers are included with the
    distribution but none are linked in by default.
-
-:any:`dialup`
-   See the description of :any:`dialup` in :ref:`boolean_options`.
 
 .. namedconf:statement:: file
    :tags: zone

@@ -2102,22 +2102,6 @@ dns_zone_getdnssecsignstats(dns_zone_t *zone);
  */
 
 void
-dns_zone_dialup(dns_zone_t *zone);
-/*%<
- * Perform dialup-time maintenance on 'zone'.
- */
-
-void
-dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
-/*%<
- * Set the dialup type of 'zone' to 'dialup'.
- *
- * Requires:
- * \li	'zone' to be valid initialised zone.
- *\li	'dialup' to be a valid dialup type.
- */
-
-void
 dns_zone_logv(dns_zone_t *zone, isc_logcategory_t category, int level,
 	      const char *prefix, const char *msg, va_list ap);
 /*%<

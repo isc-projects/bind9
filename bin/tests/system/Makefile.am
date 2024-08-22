@@ -96,7 +96,6 @@ TESTS =				\
 	checkzone		\
 	cookie			\
 	database		\
-	dialup			\
 	digdelv			\
 	dispatch		\
 	dlzexternal		\

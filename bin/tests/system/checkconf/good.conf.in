@@ -56,7 +56,6 @@ options {
 	};
 	directory ".";
 	dump-file "named_dumpdb";
-	heartbeat-interval 30;
 	hostname none;
 	interface-interval 30;
 	listen-on port 90 {

@@ -63,7 +63,6 @@ options {\n\
 	geoip-directory \".\";\n"
 #endif /* if defined(HAVE_GEOIP2) */
 			    "\
-	heartbeat-interval 60;\n\
 	interface-interval 60;\n\
 	listen-on {any;};\n\
 	listen-on-v6 {any;};\n\
@@ -217,7 +216,6 @@ options {\n\
 	check-sibling yes;\n\
 	check-srv-cname warn;\n\
 	check-wildcard yes;\n\
-	dialup no;\n\
 	dnssec-loadkeys-interval 60;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\

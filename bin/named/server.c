@@ -1967,7 +1967,6 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	if (view->queryonacl != NULL) {
 		dns_zone_setqueryonacl(zone, view->queryonacl);
 	}
-	dns_zone_setdialup(zone, dns_dialuptype_no);
 	dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
@@ -3639,7 +3638,6 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
 	dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
-	dns_zone_setdialup(zone, dns_dialuptype_no);
 	dns_zone_setautomatic(zone, true);
 	if (view->queryacl != NULL) {
 		dns_zone_setqueryacl(zone, view->queryacl);
@@ -3737,7 +3735,6 @@ create_ipv4only_zone(dns_zone_t *pzone, dns_view_t *view,
 		dns_zone_settype(zone, dns_zone_primary);
 		dns_zone_setstats(zone, named_g_server->zonestats);
 		dns_zone_setdbtype(zone, dbtypec, dbtype);
-		dns_zone_setdialup(zone, dns_dialuptype_no);
 		dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 		dns_zone_setnotifytype(zone, dns_notifytype_no);
 		dns_zone_setautomatic(zone, true);
@@ -7053,7 +7050,6 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	dns_zone_setqueryonacl(zone, none);
 	dns_acl_detach(&none);
 
-	dns_zone_setdialup(zone, dns_dialuptype_no);
 	dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
@@ -7157,18 +7153,6 @@ interface_timer_tick(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
 
 	(void)ns_interfacemgr_scan(server->interfacemgr, false, false);
-}
-
-static void
-heartbeat_timer_tick(void *arg) {
-	named_server_t *server = (named_server_t *)arg;
-	dns_view_t *view = NULL;
-
-	view = ISC_LIST_HEAD(server->viewlist);
-	while (view != NULL) {
-		dns_view_dialup(view);
-		view = ISC_LIST_NEXT(view, link);
-	}
 }
 
 typedef struct {
@@ -8308,7 +8292,6 @@ load_configuration(const char *filename, named_server_t *server,
 	isc_portset_t *v4portset = NULL;
 	isc_portset_t *v6portset = NULL;
 	isc_result_t result;
-	uint32_t heartbeat_interval;
 	uint32_t interface_interval;
 	uint32_t udpsize;
 	uint32_t transfer_message_size;
@@ -9038,22 +9021,6 @@ load_configuration(const char *filename, named_server_t *server,
 		isc_timer_start(server->interface_timer, isc_timertype_ticker,
 				&interval);
 	}
-
-	/*
-	 * Configure the dialup heartbeat timer.
-	 */
-	obj = NULL;
-	result = named_config_get(maps, "heartbeat-interval", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	heartbeat_interval = cfg_obj_asuint32(obj) * 60;
-	if (heartbeat_interval == 0) {
-		isc_timer_stop(server->heartbeat_timer);
-	} else if (server->heartbeat_interval != heartbeat_interval) {
-		isc_interval_set(&interval, heartbeat_interval, 0);
-		isc_timer_start(server->heartbeat_timer, isc_timertype_ticker,
-				&interval);
-	}
-	server->heartbeat_interval = heartbeat_interval;
 
 	isc_interval_set(&interval, 1200, 0);
 	isc_timer_start(server->pps_timer, isc_timertype_ticker, &interval);
@@ -10040,9 +10007,6 @@ run_server(void *arg) {
 	isc_timer_create(named_g_mainloop, interface_timer_tick, server,
 			 &server->interface_timer);
 
-	isc_timer_create(named_g_mainloop, heartbeat_timer_tick, server,
-			 &server->heartbeat_timer);
-
 	isc_timer_create(named_g_mainloop, tat_timer_tick, server,
 			 &server->tat_timer);
 
@@ -10155,7 +10119,6 @@ shutdown_server(void *arg) {
 	}
 
 	isc_timer_destroy(&server->interface_timer);
-	isc_timer_destroy(&server->heartbeat_timer);
 	isc_timer_destroy(&server->pps_timer);
 	isc_timer_destroy(&server->tat_timer);
 

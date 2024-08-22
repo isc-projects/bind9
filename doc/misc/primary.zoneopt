@@ -17,7 +17,6 @@ zone <string> [ <class> ] {
 	check-wildcard <boolean>;
 	checkds ( explicit | <boolean> );
 	database <string>;
-	dialup ( notify | notify-passive | passive | refresh | <boolean> ); // deprecated
 	dlz <string>;
 	dnskey-sig-validity <integer>; // obsolete
 	dnssec-dnskey-kskonly <boolean>; // obsolete
