@@ -132,6 +132,9 @@ command is one of the following:\n\
   halt		Stop the server without saving pending updates.\n\
   halt -p	Stop the server without saving pending updates reporting\n\
 		process id.\n\
+  skr -import file zone [class [view]]\n\
+		Import a SKR file for the specified zone, for offline KSK\n\
+		signing.\n\
   loadkeys zone [class [view]]\n\
 		Update keys without signing immediately.\n\
   managed-keys refresh [class [view]]\n\

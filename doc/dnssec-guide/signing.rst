@@ -1319,3 +1319,139 @@ for the next fifty years all at once and set the key times appropriately.
 Whether the increased risk in having the private key files for future keys
 available on disk offsets the overhead of having to remember to create a new
 key before a rollover depends on your organization's security policy.
+
+.. _advanced_discussions_offline_ksk:
+
+Offline KSK
+~~~~~~~~~~~
+
+For operational reasons, it is possible to keep the KSK offline. Doing so
+minimizes the risk of the key being compromised through theft or loss.
+
+This effectively means that the private keys of the KSKs and the ZSKs are
+located in two physically separate places. The KSK is kept completely offline,
+and the ZSK is used in the primary DNS server to sign the zone data. The
+DNSKEY, CDS, and CDNSKEY RRsets are signed separately by the KSK.
+
+Because of this, CSKs are incompatible with Offline KSK.
+
+To enable Offline KSK in BIND 9, add the following to the :any:`dnssec-policy`
+configuration:
+
+::
+
+   dnssec-policy "offline-ksk" {
+     ...
+     offline-ksk yes;
+   };
+
+With this configuration, BIND 9 will no longer generate signatures for the
+DNSKEY, CDS, and CDNSKEY RRsets, nor will it generate keys for rollovers.
+
+Before enabling Offline KSK, the keys and signed RRsets must be pregenerated.
+This can be done with the :iscman:`dnssec-ksr` program, which is used to
+create Signed Key Response (SKR) files that can be imported into BIND 9.
+
+Creating SKR files is a four-step process. First, the ZSKs must be
+pregenerated; then, a Key Signing Request (KSR) is created. This file is
+presented to the KSK operators to be signed. The result is a SKR file that
+is returned to the ZSK operators, to be imported into the DNS server.
+
+Pregenerating ZSKs
+^^^^^^^^^^^^^^^^^^
+
+First we need to pregenerate ZSKs for the future. Let's say we want to
+generate enough keys for the next two years; this will create several key
+files, depending on the :any:`dnssec-policy` used. If the ZSK lifetime
+is six months, this will create about four keys (other timing metadata may
+cause an extra key to be generated).
+
+This can be done with the :iscman:`dnssec-ksr` program:
+
+.. code-block:: none
+
+    # dnssec-ksr -i now -e +2y -k offline-ksk -l named.conf keygen example.net
+    Kexample.net.+013+63278
+    Kexample.net.+013+13211
+    Kexample.net.+013+50958
+    Kexample.net.+013+12403
+
+The timing metadata is set accordingly in the key files. Keys that already
+exist in the :any:`key-directory` are taken into consideration when
+pregenerating keys; if the above command is run multiple times quickly in
+succession, no additional keys are generated.
+
+Key Signing Request
+^^^^^^^^^^^^^^^^^^^
+
+Now that we have keys that can be published in the zone, we need to get
+signatures for the DNSKEY RRset to be used in the future. For that,
+we generate a Key Signing Request (KSR). In this example, we are using the
+same DNSSEC policy and interval.
+
+.. code-block:: none
+
+    # dnssec-ksr -i now -e +2y -k offline-ksk -l named.conf keygen example.net
+    ;; KeySigningRequest 1.0 20240813133035 (Tue Aug 13 15:30:35 2024)
+    example.net. 3600 IN DNSKEY	256 3 13 Z8WRuXJr9v7cSUZpJuQKN/1pZuLPEgoWx4eQOhVI8Edz49F7xpbxnGar aLelIIIlWuRyjdvUtsnitAfWvyGjqQ==
+    ;; KeySigningRequest 1.0 20250215111826 (Sat Feb 15 12:18:26 2025)
+    example.net. 3600 IN DNSKEY	256 3 13 ph7zZ/QgvwHuq2U1aYoMT3MqPUZYEq6y4qNwOb8uzurVISxL0XyhYH+Q ngEOV2ECgndMjn8e1ujH/d0H3cPX8A==
+    example.net. 3600 IN DNSKEY	256 3 13 Z8WRuXJr9v7cSUZpJuQKN/1pZuLPEgoWx4eQOhVI8Edz49F7xpbxnGar aLelIIIlWuRyjdvUtsnitAfWvyGjqQ==
+    ;; KeySigningRequest 1.0 20250225142826 (Tue Feb 25 15:28:26 2025)
+    example.net. 3600 IN DNSKEY	256 3 13 ph7zZ/QgvwHuq2U1aYoMT3MqPUZYEq6y4qNwOb8uzurVISxL0XyhYH+Q ngEOV2ECgndMjn8e1ujH/d0H3cPX8A==
+    ...
+
+The output shows that the ZSK rollovers are pre-planned, which will result
+in a number of key bundles. Each bundle contains a start time and the ZSKs that
+need to be published from that time.
+
+The data needs to be stored in a file and can be handed over to the KSK
+operators, and can be secured by encryption and/or digital signature.
+
+Signed Key Response
+^^^^^^^^^^^^^^^^^^^
+
+The KSK operators receive a KSR file that contain ZSK sets for a given
+interval. By signing the KSR, a Signed Key Response (SKR) is created that
+consists of numerous response bundles; for each bundle, the DNSKEY RRset
+needs to be constructed by combining the records of the KSK and ZSKs. Then,
+a signature is generated for the constructed RRset. In addition, the signed
+CDS and CDNSKEY RRsets are added.
+
+Again the same interval and DNSSEC policy should be used. Below is the command
+for signing a KSR file "example.net.ksr".
+
+.. code-block:: none
+
+    # dnssec-ksr -i now -e +2y -k offline-ksk -l named.conf -K ksk -f example.net.ksr sign example.net
+    ;; SignedKeyResponse 1.0 20240813134020 (Tue Aug 13 15:40:20 2024)
+    example.net. 3600 IN DNSKEY	257 3 13 vV2+6W+cFd3nn8eLrswUnhrPIxdgmslFWwF45MlCPIhjXIp6PpvaHC8k Y2RH46UrbWINDEo7k5wqvUncakKhJw==
+    example.net. 3600 IN DNSKEY	256 3 13 Z8WRuXJr9v7cSUZpJuQKN/1pZuLPEgoWx4eQOhVI8Edz49F7xpbxnGar aLelIIIlWuRyjdvUtsnitAfWvyGjqQ==
+    example.net. 3600 IN RRSIG DNSKEY 13 2 3600 20240827134020 20240813124020 6221 example.net. gkiw6M72Gi8XDu8XEAnPVR+AF4K7j1fApt2puLWgChayvaWrMPIbG2jP gvd/RJiJSsdGBx4P3GYdNqfFskNKIA==
+    example.net. 3600 IN CDNSKEY 257 3 13 vV2+6W+cFd3nn8eLrswUnhrPIxdgmslFWwF45MlCPIhjXIp6PpvaHC8k Y2RH46UrbWINDEo7k5wqvUncakKhJw==
+    example.net. 3600 IN RRSIG CDNSKEY 13 2 3600 20240827134020 20240813124020 6221 example.net. 1hAwRv2Nbkwfv8KWXdM9eBedgFZapECZJN4iTKj/yb50mjrPjK9JiQ92 m/xSFUC6gRxMkoPnaULYs+3Qc/XqDA==
+    example.net. 3600 IN CDS 6221 13 2 A9EEDE51FA154B90259A1B8788D26C53C20AFE759D3B5FEA0349675A EEC0479D
+    example.net. 3600 IN RRSIG CDS 13 2 3600 20240827134020 20240813124020 6221 example.net. TtbCbxTP4WEm5W8ZOdD3DgVlDSz0sdimm5YO28Bi+kP2ZVEM72A0B9QP pCiXKrRjCLN2aguqNlRzupWiwb22cA==
+    ;; SignedKeyResponse 1.0 20240822134020 (Thu Aug 22 15:40:20 2024)
+    example.net. 3600 IN DNSKEY	257 3 13 vV2+6W+cFd3nn8eLrswUnhrPIxdgmslFWwF45MlCPIhjXIp6PpvaHC8k Y2RH46UrbWINDEo7k5wqvUncakKhJw==
+    example.net. 3600 IN DNSKEY	256 3 13 Z8WRuXJr9v7cSUZpJuQKN/1pZuLPEgoWx4eQOhVI8Edz49F7xpbxnGar aLelIIIlWuRyjdvUtsnitAfWvyGjqQ==
+    ...
+
+The output is stored in a file and can be given back to the ZSK operators.
+
+Importing the SKR
+^^^^^^^^^^^^^^^^^
+
+Now that we have an SKR file, it needs to be imported into the DNS server,
+via the :option:`rndc skr` command. Let's say the SKR is stored
+in a file "example.net.skr":
+
+.. code-block:: none
+
+    # rndc skr -import example.net.skr example.net
+
+From now on, when it is time for a new signature for the DNSKEY, CDS, or CDNSKEY
+RRset, instead of it being generated, it will be looked up in the SKR data.
+
+When the SKR data is nearing the end of its lifetime, simply repeat the
+four-step process for the next period.

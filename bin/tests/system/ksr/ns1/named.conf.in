@@ -11,7 +11,31 @@
  * information regarding copyright ownership.
  */
 
+options {
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
+	port @PORT@;
+	pid-file "named.pid";
+	listen-on { 10.53.0.1; };
+	listen-on-v6 { none; };
+	allow-transfer { any; };
+	recursion no;
+	dnssec-validation no;
+	allow-new-zones yes;
+};
+
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm @DEFAULT_HMAC@;
+};
+
+controls {
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
+
 dnssec-policy "common" {
+	offline-ksk yes;
 	keys {
 		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		zsk lifetime P6M algorithm @DEFAULT_ALGORITHM@;
@@ -19,12 +43,14 @@ dnssec-policy "common" {
 };
 
 dnssec-policy "csk" {
+	offline-ksk no;
 	keys {
 		csk lifetime P6M algorithm @DEFAULT_ALGORITHM@;
 	};
 };
 
 dnssec-policy "unlimited" {
+	offline-ksk yes;
 	keys {
 		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		zsk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
@@ -32,6 +58,7 @@ dnssec-policy "unlimited" {
 };
 
 dnssec-policy "no-cdnskey" {
+	offline-ksk yes;
 	keys {
 		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		zsk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
@@ -41,6 +68,7 @@ dnssec-policy "no-cdnskey" {
 };
 
 dnssec-policy "no-cds" {
+	offline-ksk yes;
 	keys {
 		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		zsk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
@@ -49,6 +77,7 @@ dnssec-policy "no-cds" {
 };
 
 dnssec-policy "two-tone" {
+	offline-ksk yes;
 	keys {
 		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		ksk lifetime unlimited algorithm @ALTERNATIVE_ALGORITHM@;

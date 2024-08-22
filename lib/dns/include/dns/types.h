@@ -150,6 +150,7 @@ typedef struct dns_qpnode	dns_qpnode_t;
 typedef uint8_t			dns_secalg_t;
 typedef uint8_t			dns_secproto_t;
 typedef struct dns_signature	dns_signature_t;
+typedef struct dns_skr		dns_skr_t;
 typedef struct dns_slabheader	dns_slabheader_t;
 typedef ISC_LIST(dns_slabheader_t) dns_slabheaderlist_t;
 typedef struct dns_sortlist_arg	  dns_sortlist_arg_t;

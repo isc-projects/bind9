@@ -61,6 +61,7 @@
 #define NAMED_COMMAND_SHOWZONE	   "showzone"
 #define NAMED_COMMAND_SIGN	   "sign"
 #define NAMED_COMMAND_SIGNING	   "signing"
+#define NAMED_COMMAND_SKR	   "skr"
 #define NAMED_COMMAND_STATUS	   "status"
 #define NAMED_COMMAND_STOP	   "stop"
 #define NAMED_COMMAND_SYNC	   "sync"

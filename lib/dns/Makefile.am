@@ -121,6 +121,7 @@ libdns_la_HEADERS =			\
 	include/dns/sdlz.h		\
 	include/dns/secalg.h		\
 	include/dns/secproto.h		\
+	include/dns/skr.h		\
 	include/dns/soa.h		\
 	include/dns/ssu.h		\
 	include/dns/stats.h		\
@@ -238,6 +239,7 @@ libdns_la_SOURCES =			\
 	rrl.c				\
 	rriterator.c			\
 	sdlz.c				\
+	skr.c				\
 	soa.c				\
 	ssu.c				\
 	ssu_external.c			\

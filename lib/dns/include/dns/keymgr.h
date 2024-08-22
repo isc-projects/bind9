@@ -53,6 +53,29 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
  */
 
 isc_result_t
+dns_keymgr_offline(const dns_name_t *origin, dns_dnsseckeylist_t *keyring,
+		   dns_kasp_t *kasp, isc_stdtime_t now,
+		   isc_stdtime_t *nexttime);
+/*%<
+ * Manage keys in 'keyring' when in offline-ksk mode, and update timing data
+ * according to the metadata in the key files. KSKs are skipped.
+ *
+ * Update key states and store changes back to disk. Store when to run next
+ * in 'nexttime'.
+ *
+ *	Requires:
+ *\li		'origin' is a valid FQDN.
+ *\li		'mctx' is a valid memory context.
+ *\li		'keyring' is not NULL.
+ *\li		'kasp' is not NULL.
+ *
+ *	Returns:
+ *\li		#ISC_R_SUCCESS
+ *\li		any error returned by dst_key_getstate(), dst_key_gettime(),
+ *		isc_dir_open(), or dst_key_to_file().
+ */
+
+isc_result_t
 dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		   isc_stdtime_t now, isc_stdtime_t when, bool dspublish);
 isc_result_t

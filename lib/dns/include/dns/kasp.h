@@ -90,6 +90,7 @@ struct dns_kasp {
 	uint32_t signatures_validity_dnskey;
 
 	/* Configuration: Keys */
+	bool		      offlineksk;
 	bool		      cdnskey;
 	dns_kasp_digestlist_t digests;
 	dns_kasp_keylist_t    keys;
@@ -810,6 +811,28 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
  */
 
 bool
+dns_kasp_offlineksk(dns_kasp_t *kasp);
+/*%<
+ * Should we be using Offline KSK key management?
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, frozen kasp.
+ *
+ */
+
+void
+dns_kasp_setofflineksk(dns_kasp_t *kasp, bool offlineksk);
+/*%<
+ * Enable/disable Offline KSK.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, unfrozen kasp.
+ *
+ */
+
+bool
 dns_kasp_cdnskey(dns_kasp_t *kasp);
 /*%<
  * Do we need to publish a CDNSKEY?
@@ -823,7 +846,7 @@ dns_kasp_cdnskey(dns_kasp_t *kasp);
 void
 dns_kasp_setcdnskey(dns_kasp_t *kasp, bool cdnskey);
 /*%<
- * Set to enable publication of CDNSKEY records.
+ * Enable/disable publication of CDNSKEY records.
  *
  * Requires:
  *
