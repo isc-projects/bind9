@@ -465,6 +465,7 @@ struct dns_zone {
 	 * whether ixfr is requested
 	 */
 	bool requestixfr;
+	uint32_t requestixfr_maxdiffs;
 	uint32_t ixfr_ratio;
 
 	/*%
@@ -18260,6 +18261,7 @@ got_transfer_quota(void *arg) {
 	char primary[ISC_SOCKADDR_FORMATSIZE];
 	char source[ISC_SOCKADDR_FORMATSIZE];
 	dns_rdatatype_t xfrtype;
+	uint32_t ixfr_maxdiffs = 0;
 	isc_netaddr_t primaryip;
 	isc_sockaddr_t primaryaddr;
 	isc_sockaddr_t sourceaddr;
@@ -18326,11 +18328,19 @@ got_transfer_quota(void *arg) {
 		UNLOCK_ZONE(zone);
 	} else {
 		bool use_ixfr = true;
+
 		if (peer != NULL) {
 			result = dns_peer_getrequestixfr(peer, &use_ixfr);
 		}
 		if (peer == NULL || result != ISC_R_SUCCESS) {
 			use_ixfr = zone->requestixfr;
+		}
+		if (peer != NULL) {
+			result = dns_peer_getrequestixfrmaxdiffs(
+				peer, &ixfr_maxdiffs);
+		}
+		if (peer == NULL || result != ISC_R_SUCCESS) {
+			ixfr_maxdiffs = zone->requestixfr_maxdiffs;
 		}
 		if (!use_ixfr) {
 			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
@@ -18415,10 +18425,10 @@ got_transfer_quota(void *arg) {
 
 	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
 
-	result = dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
-				  zone->tsigkey, soa_transport_type,
-				  zone->transport, zmgr_tlsctx_cache,
-				  zone->mctx, zone_xfrdone, &zone->xfr);
+	result = dns_xfrin_create(
+		zone, xfrtype, ixfr_maxdiffs, &primaryaddr, &sourceaddr,
+		zone->tsigkey, soa_transport_type, zone->transport,
+		zmgr_tlsctx_cache, zone->mctx, zone_xfrdone, &zone->xfr);
 
 	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 
@@ -23137,6 +23147,18 @@ bool
 dns_zone_getrequestixfr(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	return (zone->requestixfr);
+}
+
+void
+dns_zone_setrequestixfrmaxdiffs(dns_zone_t *zone, uint32_t maxdiffs) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->requestixfr_maxdiffs = maxdiffs;
+}
+
+bool
+dns_zone_getrequestixfrmaxdiffs(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->requestixfr_maxdiffs);
 }
 
 void

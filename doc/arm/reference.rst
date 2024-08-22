@@ -2503,6 +2503,20 @@ Boolean Options
    or view setting for that zone. It may also be set in the
    :namedconf:ref:`server` block.
 
+.. namedconf:statement:: request-ixfr-max-diffs
+   :tags: transfer
+   :short: Sets the maximum number of incoming incremental zone transfer (IXFR) differences, exceeding which triggers a full zone transfer (AXFR).
+
+   The :any:`request-ixfr-max-diffs` clause configured for the local server,
+   acting as a secondary, sets the maximum number of incremental zone transfer
+   (IXFR) differences after which the secondary server will abort the
+   incremental zone transfer process and requeast a full zone transfer (AXFR).
+   The default value is ``0``, which means there is no maximum limit.
+
+   It may also be set in the zone block; if set there, it overrides the global
+   or view setting for that zone. It may also be set in the
+   :namedconf:ref:`server` block.
+
 .. namedconf:statement:: request-expire
    :tags: transfer, query
    :short: Specifies whether the local server requests the EDNS EXPIRE value, when acting as a secondary.

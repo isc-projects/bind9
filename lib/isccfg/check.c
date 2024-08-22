@@ -4344,6 +4344,13 @@ static struct {
 	{ "tcp-only", dns_peer_setforcetcp },
 };
 
+static struct {
+	const char *name;
+	isc_result_t (*set)(dns_peer_t *peer, uint32_t newval);
+} uint32s[] = {
+	{ "request-ixfr-max-diffs", dns_peer_setrequestixfrmaxdiffs },
+};
+
 static isc_result_t
 check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	      isc_symtab_t *symtab, isc_mem_t *mctx) {
@@ -4497,6 +4504,22 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 						    "setting server option "
 						    "'%s' failed: %s",
 						    bools[i].name,
+						    isc_result_totext(tresult));
+					result = ISC_R_FAILURE;
+				}
+			}
+		}
+		for (i = 0; i < ARRAY_SIZE(uint32s); i++) {
+			const cfg_obj_t *opt = NULL;
+			cfg_map_get(v1, uint32s[i].name, &opt);
+			if (opt != NULL) {
+				tresult = (uint32s[i].set)(
+					peer, cfg_obj_asuint32(opt));
+				if (tresult != ISC_R_SUCCESS) {
+					cfg_obj_log(opt, ISC_LOG_ERROR,
+						    "setting server option "
+						    "'%s' failed: %s",
+						    uint32s[i].name,
 						    isc_result_totext(tresult));
 					result = ISC_R_FAILURE;
 				}

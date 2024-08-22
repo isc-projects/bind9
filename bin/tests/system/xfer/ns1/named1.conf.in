@@ -74,6 +74,12 @@ zone "ixfr-too-big" {
 	file "ixfr-too-big.db";
 };
 
+zone "ixfr-too-many-diffs" {
+	type primary;
+	allow-update { any; };
+	file "ixfr-too-many-diffs.db";
+};
+
 zone "xfer-stats" {
 	type primary;
 	file "xfer-stats.db";

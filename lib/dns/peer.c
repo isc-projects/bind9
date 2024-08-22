@@ -14,6 +14,7 @@
 /*! \file */
 
 #include <inttypes.h>
+#include <limits.h>
 #include <stdbool.h>
 
 #include <isc/mem.h>
@@ -50,6 +51,7 @@ struct dns_peer {
 	bool bogus;
 	dns_transfer_format_t transfer_format;
 	uint32_t transfers;
+	uint32_t request_ixfr_maxdiffs;
 	bool support_ixfr;
 	bool provide_ixfr;
 	bool request_ixfr;
@@ -78,22 +80,29 @@ struct dns_peer {
 /*%
  * Bit positions in the dns_peer_t structure flags field
  */
-#define BOGUS_BIT		   0
-#define SERVER_TRANSFER_FORMAT_BIT 1
-#define TRANSFERS_BIT		   2
-#define PROVIDE_IXFR_BIT	   3
-#define REQUEST_IXFR_BIT	   4
-#define SUPPORT_EDNS_BIT	   5
-#define SERVER_UDPSIZE_BIT	   6
-#define SERVER_MAXUDP_BIT	   7
-#define REQUEST_NSID_BIT	   8
-#define SEND_COOKIE_BIT		   9
-#define REQUEST_EXPIRE_BIT	   10
-#define EDNS_VERSION_BIT	   11
-#define FORCE_TCP_BIT		   12
-#define SERVER_PADDING_BIT	   13
-#define REQUEST_TCP_KEEPALIVE_BIT  14
-#define REQUIRE_COOKIE_BIT	   15
+enum {
+	BOGUS_BIT = 0,
+	SERVER_TRANSFER_FORMAT_BIT,
+	TRANSFERS_BIT,
+	PROVIDE_IXFR_BIT,
+	REQUEST_IXFR_BIT,
+	REQUEST_IXFRMAXDIFFS_BIT,
+	SUPPORT_EDNS_BIT,
+	SERVER_UDPSIZE_BIT,
+	SERVER_MAXUDP_BIT,
+	REQUEST_NSID_BIT,
+	SEND_COOKIE_BIT,
+	REQUEST_EXPIRE_BIT,
+	EDNS_VERSION_BIT,
+	FORCE_TCP_BIT,
+	SERVER_PADDING_BIT,
+	REQUEST_TCP_KEEPALIVE_BIT,
+	REQUIRE_COOKIE_BIT,
+	DNS_PEER_FLAGS_COUNT
+};
+
+STATIC_ASSERT(DNS_PEER_FLAGS_COUNT <= CHAR_BIT * sizeof(uint32_t),
+	      "dns_peer_t structure flags fields are too many for uint32_t");
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -372,6 +381,8 @@ ACCESS_OPTION(maxudp, SERVER_MAXUDP_BIT, uint16_t, maxudp)
 ACCESS_OPTION(provideixfr, PROVIDE_IXFR_BIT, bool, provide_ixfr)
 ACCESS_OPTION(requestexpire, REQUEST_EXPIRE_BIT, bool, request_expire)
 ACCESS_OPTION(requestixfr, REQUEST_IXFR_BIT, bool, request_ixfr)
+ACCESS_OPTION(requestixfrmaxdiffs, REQUEST_IXFRMAXDIFFS_BIT, uint32_t,
+	      request_ixfr_maxdiffs)
 ACCESS_OPTION(requestnsid, REQUEST_NSID_BIT, bool, request_nsid)
 ACCESS_OPTION(requirecookie, REQUIRE_COOKIE_BIT, bool, require_cookie)
 ACCESS_OPTION(sendcookie, SEND_COOKIE_BIT, bool, send_cookie)

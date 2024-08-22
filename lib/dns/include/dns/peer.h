@@ -101,6 +101,12 @@ isc_result_t
 dns_peer_getrequestixfr(dns_peer_t *peer, bool *retval);
 
 isc_result_t
+dns_peer_setrequestixfrmaxdiffs(dns_peer_t *peer, uint32_t newval);
+
+isc_result_t
+dns_peer_getrequestixfrmaxdiffs(dns_peer_t *peer, uint32_t *retval);
+
+isc_result_t
 dns_peer_setprovideixfr(dns_peer_t *peer, bool newval);
 
 isc_result_t

@@ -1419,6 +1419,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setrequestixfr(zone, cfg_obj_asboolean(obj));
 
 		obj = NULL;
+		result = named_config_get(maps, "request-ixfr-max-diffs", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setrequestixfrmaxdiffs(zone, cfg_obj_asuint32(obj));
+
+		obj = NULL;
 		checknames(ztype, maps, &obj);
 		INSIST(obj != NULL);
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
