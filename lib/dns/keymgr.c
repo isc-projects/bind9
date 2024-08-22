@@ -427,10 +427,18 @@ keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 }
 
 static bool
-keymgr_keyid_conflict(dst_key_t *newkey, dns_dnsseckeylist_t *keys) {
+keymgr_keyid_conflict(dst_key_t *newkey, uint16_t min, uint16_t max,
+		      dns_dnsseckeylist_t *keys) {
 	uint16_t id = dst_key_id(newkey);
 	uint32_t rid = dst_key_rid(newkey);
 	uint32_t alg = dst_key_alg(newkey);
+
+	if (id < min || id > max) {
+		return (true);
+	}
+	if (rid < min || rid > max) {
+		return (true);
+	}
 
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keys); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
@@ -485,9 +493,11 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 		}
 
 		/* Key collision? */
-		conflict = keymgr_keyid_conflict(newkey, keylist);
+		conflict = keymgr_keyid_conflict(newkey, kkey->tag_min,
+						 kkey->tag_max, keylist);
 		if (!conflict) {
-			conflict = keymgr_keyid_conflict(newkey, newkeys);
+			conflict = keymgr_keyid_conflict(
+				newkey, kkey->tag_min, kkey->tag_max, newkeys);
 		}
 		if (conflict) {
 			/* Try again. */

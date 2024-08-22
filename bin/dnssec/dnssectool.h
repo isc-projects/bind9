@@ -109,7 +109,7 @@ set_keyversion(dst_key_t *key);
 
 bool
 key_collision(dst_key_t *key, dns_name_t *name, const char *dir,
-	      isc_mem_t *mctx, bool *exact);
+	      isc_mem_t *mctx, uint16_t min, uint16_t max, bool *exact);
 
 bool
 isoptarg(const char *arg, char **argv, void (*usage)(void));
