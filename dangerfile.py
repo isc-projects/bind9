@@ -332,31 +332,6 @@ elif not approved:
     )
 
 ###############################################################################
-# Changelog entries
-###############################################################################
-#
-# FAIL if any of the following is true:
-#
-# * The merge request title doesn't produce a changelog entry, but it does not have
-#   the "No CHANGES" label set.
-#
-# * The merge request title produces a changelog entry, but it has the "No CHANGES"
-#   label set.
-
-changes_modified = mr_title_audience in ["usr", "pkg", "dev"]
-no_changes_label_set = "No CHANGES" in mr_labels
-if not changes_modified and not no_changes_label_set:
-    fail(
-        "MR title doesn't produce a new changelog entry. "
-        "Add a `dev:`|`usr:`|`pkg:` audience to MR title or set the *No CHANGES* label."
-    )
-if changes_modified and no_changes_label_set:
-    fail(
-        "MR title produces a new changelog entry. Unset the *No Changes* label "
-        "or remove the `dev:`|`usr:`|`pkg:` audience from the MR title."
-    )
-
-###############################################################################
 # RELEASE NOTES
 ###############################################################################
 #
