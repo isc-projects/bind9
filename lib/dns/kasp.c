@@ -596,6 +596,22 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
 }
 
 bool
+dns_kasp_offlineksk(dns_kasp_t *kasp) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(kasp->frozen);
+
+	return kasp->offlineksk;
+}
+
+void
+dns_kasp_setofflineksk(dns_kasp_t *kasp, bool offlineksk) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(!kasp->frozen);
+
+	kasp->offlineksk = offlineksk;
+}
+
+bool
 dns_kasp_cdnskey(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);
 	REQUIRE(kasp->frozen);

@@ -375,3 +375,9 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 isc_result_t
 named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 			isc_buffer_t **text);
+
+/*%
+ * Import SKR file for offline KSK signing.
+ */
+isc_result_t
+named_server_skr(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text);

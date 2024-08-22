@@ -2278,6 +2278,7 @@ static cfg_clausedef_t dnssecpolicy_clauses[] = {
 	{ "keys", &cfg_type_kaspkeys, 0 },
 	{ "max-zone-ttl", &cfg_type_duration, 0 },
 	{ "nsec3param", &cfg_type_nsec3, 0 },
+	{ "offline-ksk", &cfg_type_boolean, 0 },
 	{ "parent-ds-ttl", &cfg_type_duration, 0 },
 	{ "parent-propagation-delay", &cfg_type_duration, 0 },
 	{ "parent-registration-delay", &cfg_type_duration,

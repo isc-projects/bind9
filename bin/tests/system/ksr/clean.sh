@@ -17,15 +17,22 @@ rm -f ./*.ksk*
 rm -f ./*.zsk*
 rm -f ./created.out
 rm -f ./footer.*
-rm -f ./keygen.out.*
-rm -f ./named.conf
 rm -f ./now.out
-rm -rf ./offline
+rm -f ./ns1/*.db
+rm -f ./ns1/*.db.jbk
+rm -f ./ns1/*.db.signed
+rm -f ./ns1/*.db.signed.jnl
+rm -f ./ns1/K*
+rm -f ./ns1/keygen.out.*
+rm -f ./ns1/named.conf
+rm -f ./ns1/named.memstats
+rm -f ./ns1/named.run
 rm -f ./python.out
 rm -f ./settime.out.*
-rm -f ./K*
-rm -rf ./keydir
 rm -f ./ksr.*.err.*
 rm -f ./ksr.*.expect
 rm -f ./ksr.*.expect.*
 rm -f ./ksr.*.out.*
+
+rm -rf ./ns1/keydir
+rm -rf ./ns1/offline
