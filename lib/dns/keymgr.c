@@ -605,6 +605,7 @@ keymgr_key_match_state(dst_key_t *key, dst_key_t *subject, int type,
 			continue;
 		}
 		if (next_state != NA && i == type &&
+		    dst_key_alg(key) == dst_key_alg(subject) &&
 		    dst_key_id(key) == dst_key_id(subject))
 		{
 			/* Check next state rather than current state. */
