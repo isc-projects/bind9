@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
+#include <isc/commandline.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -36,6 +37,7 @@ extern isc_loopmgr_t *loopmgr;
 extern isc_nm_t	     *netmgr;
 extern int	      ncpus;
 extern unsigned int   workers;
+extern bool	      debug;
 
 int
 setup_mctx(void **state);
@@ -169,18 +171,86 @@ teardown_managers(void **state);
 
 #define ISC_TEST_MAIN ISC_TEST_MAIN_CUSTOM(NULL, NULL)
 
-#define ISC_TEST_MAIN_CUSTOM(setup, teardown)                       \
-	int main(void) {                                            \
-		int r;                                              \
-                                                                    \
-		signal(SIGPIPE, SIG_IGN);                           \
-                                                                    \
-		setup_mctx(NULL);                                   \
-		setup_workers(NULL);                                \
-                                                                    \
-		r = cmocka_run_group_tests(tests, setup, teardown); \
-                                                                    \
-		isc_mem_destroy(&mctx);                             \
-                                                                    \
-		return (r);                                         \
+#define ISC_TEST_MAIN_CUSTOM(setup, teardown)                                           \
+	int main(int argc, char **argv) {                                               \
+		int		  c, r;                                                 \
+		size_t		  i, j;                                                 \
+		struct CMUnitTest selected[ARRAY_SIZE(tests)];                          \
+                                                                                        \
+		signal(SIGPIPE, SIG_IGN);                                               \
+                                                                                        \
+		memset(selected, 0, sizeof(selected));                                  \
+                                                                                        \
+		setup_mctx(NULL);                                                       \
+		setup_workers(NULL);                                                    \
+                                                                                        \
+		while ((c = isc_commandline_parse(argc, argv, "dlt:")) != -1)           \
+		{                                                                       \
+			switch (c) {                                                    \
+			case 'd':                                                       \
+				debug = true;                                           \
+				break;                                                  \
+			case 'l':                                                       \
+				for (i = 0;                                             \
+				     i < (sizeof(tests) / sizeof(tests[0]));            \
+				     i++)                                               \
+				{                                                       \
+					if (tests[i].name != NULL) {                    \
+						fprintf(stdout, "%s\n",                 \
+							tests[i].name);                 \
+					}                                               \
+				}                                                       \
+				return (0);                                             \
+			case 't':                                                       \
+				for (i = 0; i < ARRAY_SIZE(tests) &&                    \
+					    tests[i].name != NULL;                      \
+				     i++)                                               \
+				{                                                       \
+					if (strcmp(tests[i].name,                       \
+						   isc_commandline_argument) !=         \
+					    0)                                          \
+					{                                               \
+						continue;                               \
+					}                                               \
+					for (j = 0;                                     \
+					     j < ARRAY_SIZE(selected) &&                \
+					     selected[j].name != NULL;                  \
+					     j++)                                       \
+					{                                               \
+						if (strcmp(tests[j].name,               \
+							   isc_commandline_argument) == \
+						    0)                                  \
+						{                                       \
+							break;                          \
+						}                                       \
+					}                                               \
+					if (j < ARRAY_SIZE(selected) &&                 \
+					    selected[j].name == NULL)                   \
+					{                                               \
+						selected[j] = tests[i];                 \
+						break;                                  \
+					}                                               \
+				}                                                       \
+				if (i == ARRAY_SIZE(tests)) {                           \
+					fprintf(stderr, "unknown test '%s'\n",          \
+						isc_commandline_argument);              \
+					exit(1);                                        \
+				}                                                       \
+				break;                                                  \
+			default:                                                        \
+				fprintf(stderr, "Usage: %s [-dl] [-t test]\n",          \
+					argv[0]);                                       \
+				exit(1);                                                \
+			}                                                               \
+		}                                                                       \
+                                                                                        \
+		if (selected[0].name != NULL) {                                         \
+			r = cmocka_run_group_tests(selected, setup, teardown);          \
+		} else {                                                                \
+			r = cmocka_run_group_tests(tests, setup, teardown);             \
+		}                                                                       \
+                                                                                        \
+		isc_mem_destroy(&mctx);                                                 \
+                                                                                        \
+		return (r);                                                             \
 	}

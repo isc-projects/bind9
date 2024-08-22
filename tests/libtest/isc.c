@@ -38,6 +38,7 @@ isc_loop_t *mainloop = NULL;
 isc_loopmgr_t *loopmgr = NULL;
 isc_nm_t *netmgr = NULL;
 unsigned int workers = 0;
+bool debug = false;
 
 static void
 adjustnofile(void) {
