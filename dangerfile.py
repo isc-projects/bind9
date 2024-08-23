@@ -203,15 +203,6 @@ for commit in danger.git.commits:
             )
 
 ###############################################################################
-# MILESTONE
-###############################################################################
-#
-# FAIL if the merge request is not assigned to any milestone.
-
-if not danger.gitlab.mr.milestone:
-    fail("Please assign this merge request to a milestone.")
-
-###############################################################################
 # BACKPORT & VERSION LABELS
 ###############################################################################
 #
@@ -332,31 +323,6 @@ elif not approved:
     )
 
 ###############################################################################
-# Changelog entries
-###############################################################################
-#
-# FAIL if any of the following is true:
-#
-# * The merge request title doesn't produce a changelog entry, but it does not have
-#   the "No CHANGES" label set.
-#
-# * The merge request title produces a changelog entry, but it has the "No CHANGES"
-#   label set.
-
-changes_modified = mr_title_audience in ["usr", "pkg", "dev"]
-no_changes_label_set = "No CHANGES" in mr_labels
-if not changes_modified and not no_changes_label_set:
-    fail(
-        "MR title doesn't produce a new changelog entry. "
-        "Add a `dev:`|`usr:`|`pkg:` audience to MR title or set the *No CHANGES* label."
-    )
-if changes_modified and no_changes_label_set:
-    fail(
-        "MR title produces a new changelog entry. Unset the *No Changes* label "
-        "or remove the `dev:`|`usr:`|`pkg:` audience from the MR title."
-    )
-
-###############################################################################
 # RELEASE NOTES
 ###############################################################################
 #
@@ -389,15 +355,8 @@ if changes_modified and no_changes_label_set:
 #       linked with the `Closes` or `Fixes` keyword in the MR description.
 
 release_notes_changed = mr_title_audience in ["usr", "pkg"]
-release_notes_label_set = "Release Notes" in mr_labels
 if not release_notes_changed:
-    if release_notes_label_set:
-        fail(
-            "This merge request has the *Release Notes* label set. "
-            "Update the MR title to include `usr:`|`pkg:` audience or "
-            "unset the *Release Notes* label."
-        )
-    elif "Customer" in mr_labels:
+    if "Customer" in mr_labels and not release_notes_changed:
         warn(
             "This merge request has the *Customer* label set. "
             "Update the MR title to include `usr:`|`pkg:` audience "
@@ -413,20 +372,6 @@ if not release_notes_changed:
             "means that it adds support for a new RR type or removes support "
             "for an existing one. Update the MR title to include `usr:` audience."
         )
-if release_notes_changed and not release_notes_label_set:
-    fail(
-        "The MR title produces a release note. Set the *Release Notes* label "
-        "or remove the `usr:`|`pkg:` audience from the MR title."
-    )
-if (
-    release_notes_label_set
-    and no_changes_label_set
-    and not ("Documentation" in mr_labels or "Release" in mr_labels)
-):
-    fail(
-        "This merge request is labeled with both *Release notes* and *No CHANGES*. "
-        "A user-visible change should also be mentioned in the changelog."
-    )
 
 if release_notes_changed and not mr_issue_link_regex.search(
     danger.gitlab.mr.description
