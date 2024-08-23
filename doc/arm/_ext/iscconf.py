@@ -41,18 +41,14 @@ logger = logging.getLogger(__name__)
 
 def split_csv(argument, required):
     argument = argument or ""
-    values = list(filter(len, (s.strip() for s in argument.split(","))))
-    if required and not values:
+    outlist = list(filter(len, (s.strip() for s in argument.split(","))))
+    if required and not outlist:
         raise ValueError(
             "a non-empty list required; provide at least one value or remove"
             " this option"
         )
-    # Order-preserving de-duplication
-    outlist, seen = list(), set()  # pylint: disable=use-list-literal
-    for value in values:
-        if value not in seen:
-            seen.add(value)
-            outlist.append(value)
+    if not len(outlist) == len(set(outlist)):
+        raise ValueError("duplicate value detected")
     return outlist
 
 
