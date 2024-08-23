@@ -182,15 +182,6 @@ for commit in danger.git.commits:
             )
 
 ###############################################################################
-# MILESTONE
-###############################################################################
-#
-# FAIL if the merge request is not assigned to any milestone.
-
-if not danger.gitlab.mr.milestone:
-    fail("Please assign this merge request to a milestone.")
-
-###############################################################################
 # BACKPORT & VERSION LABELS
 ###############################################################################
 #
