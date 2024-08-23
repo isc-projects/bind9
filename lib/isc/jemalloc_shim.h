@@ -26,89 +26,6 @@ const char *malloc_conf = NULL;
 #define MALLOCX_TCACHE_NONE (0)
 #define MALLOCX_ARENA(a)    (0)
 
-#if defined(HAVE_MALLOC_SIZE) || defined(HAVE_MALLOC_USABLE_SIZE)
-
-#include <stdlib.h>
-
-#ifdef HAVE_MALLOC_SIZE
-
-#include <malloc/malloc.h>
-
-static inline size_t
-sallocx(void *ptr, int flags) {
-	UNUSED(flags);
-
-	return (malloc_size(ptr));
-}
-
-#elif HAVE_MALLOC_USABLE_SIZE
-
-#ifdef __DragonFly__
-/*
- * On DragonFly BSD 'man 3 malloc' advises us to include the following
- * header to have access to malloc_usable_size().
- */
-#include <malloc_np.h>
-#else
-#include <malloc.h>
-#endif
-
-static inline size_t
-sallocx(void *ptr, int flags) {
-	UNUSED(flags);
-
-	return (malloc_usable_size(ptr));
-}
-
-#endif /* HAVE_MALLOC_SIZE */
-
-static inline void *
-mallocx(size_t size, int flags) {
-	void *ptr = malloc(size);
-	INSIST(ptr != NULL);
-
-	if ((flags & MALLOCX_ZERO) != 0) {
-		memset(ptr, 0, sallocx(ptr, flags));
-	}
-
-	return (ptr);
-}
-
-static inline void
-sdallocx(void *ptr, size_t size, int flags) {
-	UNUSED(size);
-	UNUSED(flags);
-
-	free(ptr);
-}
-
-static inline void *
-rallocx(void *ptr, size_t size, int flags) {
-	void *new_ptr;
-	size_t old_size, new_size;
-
-	REQUIRE(size != 0);
-
-	if ((flags & MALLOCX_ZERO) != 0) {
-		old_size = sallocx(ptr, flags);
-	}
-
-	new_ptr = realloc(ptr, size);
-	INSIST(new_ptr != NULL);
-
-	if ((flags & MALLOCX_ZERO) != 0) {
-		new_size = sallocx(new_ptr, flags);
-		if (new_size > old_size) {
-			memset((uint8_t *)new_ptr + old_size, 0,
-			       new_size - old_size);
-		}
-	}
-
-	return (new_ptr);
-}
-
-#else /* defined(HAVE_MALLOC_SIZE) || defined (HAVE_MALLOC_USABLE_SIZE) */
-
 #include <stdlib.h>
 
 typedef union {
@@ -135,20 +52,15 @@ mallocx(size_t size, int flags) {
 }
 
 static inline void
-sdallocx(void *ptr, size_t size, int flags) {
+sdallocx(void *ptr, size_t size ISC_ATTR_UNUSED, int flags ISC_ATTR_UNUSED) {
 	size_info *si = &(((size_info *)ptr)[-1]);
-
-	UNUSED(size);
-	UNUSED(flags);
 
 	free(si);
 }
 
 static inline size_t
-sallocx(void *ptr, int flags) {
+sallocx(void *ptr, int flags ISC_ATTR_UNUSED) {
 	size_info *si = &(((size_info *)ptr)[-1]);
-
-	UNUSED(flags);
 
 	return (si[0].size);
 }
@@ -168,7 +80,5 @@ rallocx(void *ptr, size_t size, int flags) {
 
 	return (ptr);
 }
-
-#endif /* defined(HAVE_MALLOC_SIZE) || defined (HAVE_MALLOC_USABLE_SIZE) */
 
 #endif /* !defined(HAVE_JEMALLOC) */
