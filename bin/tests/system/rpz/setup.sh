@@ -17,8 +17,6 @@ set -e
 
 . ../conf.sh
 
-$SHELL clean.sh
-
 for dir in ns*; do
   touch $dir/named.run
   nextpart $dir/named.run >/dev/null

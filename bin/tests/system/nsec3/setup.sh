@@ -16,8 +16,6 @@
 
 set -e
 
-$SHELL clean.sh
-
 copy_setports ns2/named.conf.in ns2/named.conf
 (
   cd ns2

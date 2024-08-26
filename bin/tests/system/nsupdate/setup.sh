@@ -13,11 +13,6 @@
 
 . ../conf.sh
 
-#
-# jnl and database files MUST be removed before we start
-#
-$SHELL clean.sh
-
 if $FEATURETEST --have-fips-dh; then
   copy_setports ns1/tls.conf.in ns1/tls.conf
   copy_setports ns1/tls.options.in ns1/tls.options
