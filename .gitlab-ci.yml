@@ -711,6 +711,10 @@ cross-version-config-tests:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1}
     - *find_pytest
+    # The cross-version-config-tests job would fail when a system test is
+    # removed from the upcoming release. To avoid this, remove the system test
+    # also from the $BIND_BASELINE_VERSION.
+    - find bin/tests/system/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -e ../"$0" || rm -rfv -- "$0"' {} \;
     - cd bin/tests/system
     # Run the setup phase of all system tests in the most recently tagged BIND 9
     # release using the binaries built for the current BIND 9 version.  This
