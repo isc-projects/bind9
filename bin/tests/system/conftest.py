@@ -375,8 +375,6 @@ def system_test_dir(request, env, system_test_name, expected_artifacts):
     This fixture is responsible for creating (and potentially removing) a
     copy of the system test directory which is used as a temporary
     directory for the test execution.
-
-    FUTURE: This removes the need to have clean.sh scripts.
     """
 
     def get_test_result():

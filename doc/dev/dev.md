@@ -181,10 +181,6 @@ The following standard files are found in system test directories:
 
 - `tests.sh`: runs all the test cases. A non-zero return value results in R:FAIL
 
-- `clean.sh`: run at the end to clean up temporary files, but only if the
-  test was completed successfully; otherwise the temporary files are left
-  in place for inspection.
-
 - `ns[X]`: these subdirectories contain test name servers that can be
   queried or can interact with each other. (For example, `ns1` might be
   running as a root server, `ns2` as a TLD server, and `ns3` as a recursive
