@@ -3842,6 +3842,11 @@ system.
    is sent to that domain, it is recreated with the counters set
    to zero.)
 
+   .. note::
+
+       Fetches generated automatically in the result of :any:`prefetch` are
+       exempt from this quota.
+
 .. namedconf:statement:: fetches-per-server
    :tags: server, query
    :short: Sets the maximum number of simultaneous iterative queries allowed to be sent by a server to an upstream name server before the server blocks additional queries.
@@ -3872,6 +3877,11 @@ system.
    ratio drops below a "low" threshold, then :any:`fetches-per-server` is
    increased. The :any:`fetch-quota-params` options can be used to adjust
    the parameters for this calculation.
+
+   .. note::
+
+       Fetches generated automatically in the result of :any:`prefetch` are
+       exempt from this quota, but they are included in the quota calculations.
 
 .. namedconf:statement:: fetch-quota-params
    :tags: server, query

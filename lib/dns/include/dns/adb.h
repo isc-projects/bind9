@@ -180,6 +180,10 @@ struct dns_adbfind {
  */
 #define DNS_ADBFIND_STARTATZONE 0x00000020
 /*%
+ *	Fetches will be exempted from the quota.
+ */
+#define DNS_ADBFIND_QUOTAEXEMPT 0x00000040
+/*%
  *      The server's fetch quota is exceeded; it will be treated as
  *      lame for this query.
  */
