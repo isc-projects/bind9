@@ -3463,6 +3463,11 @@ render_json_traffic(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 
 #endif /* HAVE_JSON_C */
 
+#if HAVE_LIBXML2
+/*
+ * This is only needed if we have libxml2 and was confusingly returned if
+ * neither of libxml2 or json-c is configured.
+ */
 static isc_result_t
 render_xsl(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo, void *args,
 	   unsigned int *retcode, const char **retmsg, const char **mimetype,
@@ -3518,6 +3523,7 @@ send:
 end:
 	return (ISC_R_SUCCESS);
 }
+#endif
 
 static void
 shutdown_listener(named_statschannel_t *listener) {
@@ -3644,6 +3650,8 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	isc_httpdmgr_addurl(listener->httpdmgr,
 			    "/xml/v" STATS_XML_VERSION_MAJOR "/traffic", false,
 			    render_xml_traffic, server);
+	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.xsl", true, render_xsl,
+			    server);
 #endif /* ifdef HAVE_LIBXML2 */
 #ifdef HAVE_JSON_C
 	isc_httpdmgr_addurl(listener->httpdmgr, "/json", false, render_json_all,
@@ -3673,8 +3681,6 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 			    "/json/v" STATS_JSON_VERSION_MAJOR "/traffic",
 			    false, render_json_traffic, server);
 #endif /* ifdef HAVE_JSON_C */
-	isc_httpdmgr_addurl(listener->httpdmgr, "/bind9.xsl", true, render_xsl,
-			    server);
 
 	*listenerp = listener;
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
