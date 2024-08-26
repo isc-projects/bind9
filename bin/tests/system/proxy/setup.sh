@@ -14,8 +14,6 @@
 # shellcheck disable=SC1091
 . ../conf.sh
 
-$SHELL clean.sh
-
 $SHELL "${TOP_SRCDIR}"/bin/tests/system/genzone.sh 2 >ns1/example.db
 $SHELL "${TOP_SRCDIR}"/bin/tests/system/genzone.sh 2 >ns3/example.db
 

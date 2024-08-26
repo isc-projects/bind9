@@ -13,8 +13,6 @@
 
 . ../conf.sh
 
-$SHELL clean.sh
-
 if $FEATURETEST --md5; then
   copy_setports ns1/named-fips.conf.in ns1/named-fips.conf
   # includes named-fips.conf
