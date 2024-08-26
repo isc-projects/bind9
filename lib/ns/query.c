@@ -11498,8 +11498,8 @@ ns_query_done(query_ctx_t *qctx) {
 	/*
 	 * Do we need to restart the query (e.g. for CNAME chaining)?
 	 */
-	if (qctx->want_restart && qctx->client->query.restarts <
-	    qctx->client->view->max_restarts)
+	if (qctx->want_restart &&
+	    qctx->client->query.restarts < qctx->client->view->max_restarts)
 	{
 		qctx->client->query.restarts++;
 		return (ns__query_start(qctx));
