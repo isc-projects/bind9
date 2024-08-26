@@ -538,6 +538,10 @@ cross-version-config-tests:
     - cd "bind-${BASELINE}"
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1}
+    # The cross-version-config-tests job would fail when a system test is
+    # removed from the upcoming release. To avoid this, remove the system test
+    # also from the $BIND_BASELINE_VERSION.
+    - find bin/tests/system/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -e ../"$0" || rm -rfv -- "$0"' {} \;
     - cd bin/tests/system
     # Neutralize shell and pytests; in effect, "nsX" servers are just started
     # and stopped, thus configuration checked.
