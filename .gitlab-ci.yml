@@ -1567,6 +1567,10 @@ shotgun:dot:
   <<: *stress_test
   artifacts:
     untracked: true
+    exclude:
+      - "output/ns4/*.dtq*"
+      - "output/ns4/large-delta-rpz*.local"
+      - "output/rpz_*"
     when: always
   only:
     - merge_requests
