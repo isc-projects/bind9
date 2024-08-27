@@ -9,6 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import isctest.mark
 
+
+@isctest.mark.supported_openssl_version
 def test_keyfromlabel(run_tests_sh):
     run_tests_sh()
