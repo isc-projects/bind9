@@ -3547,6 +3547,7 @@ shutdown_listener(named_statschannel_t *listener) {
 	isc_httpdmgr_shutdown(&listener->httpdmgr);
 }
 
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 static bool
 client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 	named_statschannel_t *listener = arg;
@@ -3577,7 +3578,9 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 
 	return (false);
 }
+#endif
 
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 static void
 destroy_listener(void *arg) {
 	named_statschannel_t *listener = (named_statschannel_t *)arg;
@@ -3591,12 +3594,24 @@ destroy_listener(void *arg) {
 	isc_mutex_destroy(&listener->lock);
 	isc_mem_putanddetach(&listener->mctx, listener, sizeof(*listener));
 }
+#endif
 
 static isc_result_t
 add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	     const cfg_obj_t *listen_params, const cfg_obj_t *config,
 	     isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 	     const char *socktext) {
+#if !defined(HAVE_LIBXML2) && !defined(HAVE_JSON_C)
+	UNUSED(server);
+	UNUSED(listenerp);
+	UNUSED(listen_params);
+	UNUSED(config);
+	UNUSED(addr);
+	UNUSED(aclconfctx);
+	UNUSED(socktext);
+
+	return (ISC_R_NOTIMPLEMENTED);
+#else
 	isc_result_t result;
 	named_statschannel_t *listener = NULL;
 	const cfg_obj_t *allow = NULL;
@@ -3709,6 +3724,7 @@ cleanup:
 	isc_mem_putanddetach(&listener->mctx, listener, sizeof(*listener));
 
 	return (result);
+#endif
 }
 
 static void
