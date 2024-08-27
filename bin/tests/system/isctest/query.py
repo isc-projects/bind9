@@ -17,16 +17,7 @@ import dns.query
 import dns.message
 
 import isctest.log
-
-# compatiblity with dnspython<2.0.0
-try:
-    # In dnspython>=2.0.0, dns.rcode.Rcode class is available
-    # pylint: disable=invalid-name
-    dns_rcode = dns.rcode.Rcode  # type: Any
-except AttributeError:
-    # In dnspython<2.0.0, selected rcodes are available as integers directly
-    # from dns.rcode
-    dns_rcode = dns.rcode
+from isctest.compat import dns_rcode
 
 QUERY_TIMEOUT = 10
 

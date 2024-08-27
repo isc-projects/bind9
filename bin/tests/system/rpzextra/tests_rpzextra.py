@@ -16,19 +16,9 @@ import pytest
 
 pytest.importorskip("dns", minversion="2.0.0")
 import isctest
+from isctest.compat import dns_rcode
 
 import dns.message
-
-
-# compatiblity with dnspython<2.0.0
-try:
-    # In dnspython>=2.0.0, dns.rcode.Rcode class is available
-    # pylint: disable=invalid-name
-    dns_rcode = dns.rcode.Rcode  # type: Any
-except AttributeError:
-    # In dnspython<2.0.0, selected rcodes are available as integers directly
-    # from dns.rcode
-    dns_rcode = dns.rcode
 
 
 @pytest.mark.parametrize(

@@ -12,22 +12,12 @@
 import os
 import subprocess
 import time
-from typing import Any, Optional
+from typing import Optional
 
 import isctest.log
+from isctest.compat import dns_rcode
 
 import dns.message
-
-
-# compatiblity with dnspython<2.0.0
-try:
-    # In dnspython>=2.0.0, dns.rcode.Rcode class is available
-    # pylint: disable=invalid-name
-    dns_rcode = dns.rcode.Rcode  # type: Any
-except AttributeError:
-    # In dnspython<2.0.0, selected rcodes are available as integers directly
-    # from dns.rcode
-    dns_rcode = dns.rcode
 
 
 def cmd(  # pylint: disable=too-many-arguments
