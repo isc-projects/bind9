@@ -80,3 +80,5 @@
 #define ISC_ATTR_MALLOC_DEALLOCATOR(deallocator)
 #define ISC_ATTR_MALLOC_DEALLOCATOR_IDX(deallocator, idx)
 #endif /* HAVE_FUNC_ATTRIBUTE_MALLOC */
+
+#define ISC_ATTR_UNUSED __attribute__((__unused__))
