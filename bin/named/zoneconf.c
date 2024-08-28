@@ -1228,6 +1228,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		}
 
 		obj = NULL;
+		result = named_config_get(maps, "provide-zoneversion", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		dns_zone_setoption(zone, DNS_ZONEOPT_ZONEVERSION,
+				   cfg_obj_asboolean(obj));
+
+		obj = NULL;
 		result = named_config_get(maps, "notify", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		if (cfg_obj_isboolean(obj)) {

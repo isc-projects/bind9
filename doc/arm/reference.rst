@@ -2165,6 +2165,14 @@ Boolean Options
    ultimate primary should be set to still send NOTIFY messages to all the name servers
    listed in the NS RRset.
 
+.. namedconf:statement:: provide-zoneversion
+   :tags: transfer
+   :short: Controls the return EDNS ZONEVERSION answers.
+
+   If ``yes`` EDNS ZONEVERSION answers will be returned otherwise
+   not for primary, secondary and mirror zones.  The default is
+   ``yes``.
+
 .. namedconf:statement:: recursion
    :tags: query
    :short: Defines whether recursion and caching are allowed.
@@ -5613,6 +5621,7 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`notify-source-v6`
    - :namedconf:ref:`notify-source`
    - :namedconf:ref:`provide-ixfr`
+   - :namedconf:ref:`provide-zoneversion`
    - :namedconf:ref:`query-source-v6`
    - :namedconf:ref:`query-source`
    - :namedconf:ref:`request-expire`

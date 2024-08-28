@@ -240,6 +240,7 @@ options {\n\
 	notify yes;\n\
 	notify-delay 5;\n\
 	notify-to-soa no;\n\
+	provide-zoneversion yes;\n\
 	send-report-channel .;\n\
 	serial-update-method increment;\n\
 	sig-signing-nodes 100;\n\

@@ -1508,7 +1508,8 @@ dns_zone_getzoneversion(dns_zone_t *zone, isc_buffer_t *b) {
 
 	LOCK_ZONE(zone);
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	if (zone->db != NULL) {
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_ZONEVERSION) && zone->db != NULL)
+	{
 		result = dns_db_getzoneversion(zone->db, b);
 		if (result == ISC_R_NOTIMPLEMENTED) {
 			result = zone_get_from_db(zone, zone->db, NULL,

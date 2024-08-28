@@ -226,6 +226,7 @@ options {
 	preferred-glue <string>;
 	prefetch <integer> [ <integer> ];
 	provide-ixfr <boolean>;
+	provide-zoneversion <boolean>;
 	qname-minimization ( strict | relaxed | disabled | off );
 	query-source [ address ] ( <ipv4_address> | * | none );
 	query-source-v6 [ address ] ( <ipv6_address> | * | none );
@@ -511,6 +512,7 @@ view <string> [ <class> ] {
 	preferred-glue <string>;
 	prefetch <integer> [ <integer> ];
 	provide-ixfr <boolean>;
+	provide-zoneversion <boolean>;
 	qname-minimization ( strict | relaxed | disabled | off );
 	query-source [ address ] ( <ipv4_address> | * | none );
 	query-source-v6 [ address ] ( <ipv6_address> | * | none );
