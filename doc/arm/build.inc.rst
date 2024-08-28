@@ -62,9 +62,9 @@ To build BIND 9, the following packages must be installed:
 - ``perl``
 - ``pkg-config`` / ``pkgconfig`` / ``pkgconf``
 
-BIND 9.20 requires ``libuv`` 1.37.0 or higher, using ``libuv`` >= 1.40.0 is
-recommended. On older systems, an updated ``libuv`` package needs to be
-installed from sources such as EPEL, PPA, or other native sources. The other
+BIND 9.20 requires ``libuv`` 1.37.0 or higher; using ``libuv`` >= 1.40.0 is
+recommended. On older systems an updated ``libuv`` package needs to be
+installed from sources, such as EPEL, PPA, or other native sources. The other
 option is to build and install ``libuv`` from source.
 
 OpenSSL 1.1.1 or newer is required. If the OpenSSL library is installed
