@@ -2321,6 +2321,18 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 	}
 }
 
+unsigned int
+dns_adb_findstatus(dns_adbfind_t *find) {
+	unsigned int status;
+	REQUIRE(DNS_ADBFIND_VALID(find));
+
+	UNLOCK(&find->lock);
+	status = find->status;
+	UNLOCK(&find->lock);
+
+	return (status);
+}
+
 void
 dns_adb_dump(dns_adb_t *adb, FILE *f) {
 	isc_stdtime_t now = isc_stdtime_now();

@@ -387,6 +387,16 @@ dns_adbfind_done(dns_adbfind_t find);
  *\li	'find' != NULL and *find be valid dns_adbfind_t pointer.
  */
 
+unsigned int
+dns_adb_findstatus(dns_adbfind_t *);
+/*%<
+ * Returns the status field of the find.
+ *
+ * Requires:
+ *
+ *\li	'find' be a valid dns_adbfind_t pointer.
+ */
+
 void
 dns_adb_destroyfind(dns_adbfind_t **find);
 /*%<
