@@ -188,6 +188,7 @@ static const char *categories_description[] = {
 	[DNS_LOGCATEGORY_ZONELOAD] = "zoneload",
 	[DNS_LOGCATEGORY_NSID] = "nsid",
 	[DNS_LOGCATEGORY_RPZ_PASSTHRU] = "rpz-passthru",
+	[DNS_LOGCATEGORY_UPDATE_POLICY] = "update-policy",
 	/* ns categories */
 	[NS_LOGCATEGORY_CLIENT] = "client",
 	[NS_LOGCATEGORY_NETWORK] = "network",
