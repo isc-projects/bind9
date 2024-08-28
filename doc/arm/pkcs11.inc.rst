@@ -100,8 +100,8 @@ Configuring engine_pkcs11
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The canonical documentation for configuring engine_pkcs11 is in the
-`libp11/README.md`_, but here's copy of working configuration for
-your convenience:
+`libp11/README.md`_ file, but a sample working configuration is included
+here for the user's convenience:
 
 .. _`libp11/README.md`: https://github.com/OpenSC/libp11/blob/master/README.md#pkcs-11-module-configuration
 
@@ -244,8 +244,8 @@ Add following lines at the bottom of the file:
 Key Generation
 ^^^^^^^^^^^^^^
 
-HSM keys can now be created and used.  We are going to assume that you already
-have a BIND 9 installed, either from a package, or from the sources, and the
+HSM keys can now be created and used.  We are assuming that
+BIND 9 is already installed, either from a package or from the sources, and the
 tools are readily available in the ``$PATH``.
 
 For generating the keys, we are going to use ``pkcs11-tool`` available from the
@@ -284,7 +284,7 @@ and ZSK:
 
    dnssec-keyfromlabel -E pkcs11 -a RSASHA256 -l "pkcs11:token=bind9;object=example.net-zsk;pin-value=0000" example.net
 
-NOTE: you can use PIN stored on disk, by specifying ``pin-source=<path_to>/<file>``, f.e.:
+NOTE: a PIN stored on disk can be used by specifying ``pin-source=<path_to>/<file>``, e.g:
 
 ::
 
@@ -296,7 +296,7 @@ and then use in the label specification:
 
    pin-source=/opt/bind9/etc/pin.txt
 
-Confirm that you have one KSK and one ZSK present in the current directory:
+Confirm that there is one KSK and one ZSK present in the current directory:
 
 ::
 
@@ -311,10 +311,10 @@ The output should look like this (the second number will be different):
    Kexample.net.+008+42231.key
    Kexample.net.+008+42231.private
 
-A note on generating ECDSA keys: there is a bug in libp11 when looking up a key,
-that function compares keys only on their ID, not the label. So when looking up
-a key it returns the first key, rather than the matching key. The workaround for
-this is when creating ECDSA keys, you should specify a unique ID:
+A note on generating ECDSA keys: there is a bug in libp11 when looking up a key.
+That function compares keys only on their ID, not the label, so when looking up
+a key it returns the first key, rather than the matching key. To work around
+this when creating ECDSA keys, specify a unique ID:
 
 ::
 
