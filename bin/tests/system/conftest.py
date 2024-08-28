@@ -662,7 +662,7 @@ def system_test(
         request.node.stash[FIXTURE_OK] = True
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def servers(system_test_dir):
     instances = {}
     for entry in system_test_dir.rglob("*"):
