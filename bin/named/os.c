@@ -61,6 +61,9 @@ static struct passwd *runas_pw = NULL;
 static bool done_setuid = false;
 static int dfd[2] = { -1, -1 };
 
+static uid_t saved_uid = (uid_t)-1;
+static gid_t saved_gid = (gid_t)-1;
+
 #if HAVE_LIBCAP
 
 static bool non_root = false;
@@ -461,9 +464,30 @@ named_os_inituserinfo(const char *username) {
 }
 
 void
-named_os_changeuser(void) {
+named_os_restoreuser(void) {
+	if (runas_pw == NULL || done_setuid) {
+		return;
+	}
+
+	REQUIRE(saved_uid != (uid_t)-1);
+	REQUIRE(saved_gid != (gid_t)-1);
+
+	setperms(saved_uid, saved_gid);
+}
+
+void
+named_os_changeuser(bool permanent) {
 	char strbuf[ISC_STRERRORSIZE];
 	if (runas_pw == NULL || done_setuid) {
+		return;
+	}
+
+	if (!permanent) {
+		saved_uid = getuid();
+		saved_gid = getgid();
+
+		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
+
 		return;
 	}
 
@@ -495,7 +519,7 @@ named_os_changeuser(void) {
 }
 
 uid_t
-ns_os_uid(void) {
+named_os_uid(void) {
 	if (runas_pw == NULL) {
 		return (0);
 	}
@@ -551,7 +575,7 @@ void
 named_os_minprivs(void) {
 #if HAVE_LIBCAP
 	linux_keepcaps();
-	named_os_changeuser();
+	named_os_changeuser(true);
 	linux_minprivs();
 #endif /* HAVE_LIBCAP */
 }
@@ -678,19 +702,16 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 	free(f);
 
 	if (switch_user && runas_pw != NULL) {
-		uid_t olduid = getuid();
-		gid_t oldgid = getgid();
-
 		/*
-		 * Set UID/GID to the one we'll be running with
+		 * Temporarily set UID/GID to the one we'll be running with
 		 * eventually.
 		 */
-		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
+		named_os_changeuser(false);
 
 		fd = safe_open(filename, mode, false);
 
 		/* Restore UID/GID to previous uid/gid */
-		setperms(olduid, oldgid);
+		named_os_restoreuser();
 
 		if (fd == -1) {
 			fd = safe_open(filename, mode, false);
