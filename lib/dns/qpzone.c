@@ -1874,6 +1874,12 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 						header->resign_lsb;
 				}
 			} else {
+				if (result == DNS_R_TOOMANYRECORDS) {
+					dns__db_logtoomanyrecords(
+						(dns_db_t *)qpdb, nodename,
+						(dns_rdatatype_t)header->type,
+						"updating", qpdb->maxrrperset);
+				}
 				dns_slabheader_destroy(&newheader);
 				return result;
 			}
@@ -2108,6 +2114,11 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 					    &region, sizeof(dns_slabheader_t),
 					    qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_TOOMANYRECORDS) {
+			dns__db_logtoomanyrecords((dns_db_t *)qpdb, name,
+						  rdataset->type, "adding",
+						  qpdb->maxrrperset);
+		}
 		return result;
 	}
 
@@ -4604,6 +4615,11 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 					    &region, sizeof(dns_slabheader_t),
 					    qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_TOOMANYRECORDS) {
+			dns__db_logtoomanyrecords((dns_db_t *)qpdb, &node->name,
+						  rdataset->type, "adding",
+						  qpdb->maxrrperset);
+		}
 		return result;
 	}
 
