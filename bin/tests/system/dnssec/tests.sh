@@ -386,9 +386,9 @@ status=$((status + ret))
 
 echo_i "checking negative validation NXDOMAIN NSEC3 ($n)"
 ret=0
-dig_with_opts +noauth q.nsec3.example. \
+dig_with_opts +noauth a.b.c.d.e.f.g.h.i.j.nsec3.example. \
   @10.53.0.3 a >dig.out.ns3.test$n || ret=1
-dig_with_opts +noauth q.nsec3.example. \
+dig_with_opts +noauth a.b.c.d.e.f.g.h.i.j.nsec3.example. \
   @10.53.0.4 a >dig.out.ns4.test$n || ret=1
 digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
