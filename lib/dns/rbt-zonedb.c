@@ -1751,6 +1751,11 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 					    &region, sizeof(dns_slabheader_t),
 					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_TOOMANYRECORDS) {
+			dns__db_logtoomanyrecords((dns_db_t *)rbtdb, name,
+						  rdataset->type, "adding",
+						  rbtdb->maxrrperset);
+		}
 		return result;
 	}
 	newheader = (dns_slabheader_t *)region.base;

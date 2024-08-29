@@ -2807,6 +2807,12 @@ find_header:
 						header->resign_lsb;
 				}
 			} else {
+				if (result == DNS_R_TOOMANYRECORDS) {
+					dns__db_logtoomanyrecords(
+						(dns_db_t *)rbtdb, nodename,
+						(dns_rdatatype_t)(header->type),
+						"updating", rbtdb->maxrrperset);
+				}
 				dns_slabheader_destroy(&newheader);
 				return result;
 			}
@@ -3305,6 +3311,13 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 					    &region, sizeof(dns_slabheader_t),
 					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_TOOMANYRECORDS) {
+			name = dns_fixedname_initname(&fixed);
+			dns__rbtdb_nodefullname(db, node, name);
+			dns__db_logtoomanyrecords((dns_db_t *)rbtdb, name,
+						  rdataset->type, "adding",
+						  rbtdb->maxrrperset);
+		}
 		return result;
 	}
 
