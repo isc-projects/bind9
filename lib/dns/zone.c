@@ -1497,6 +1497,46 @@ dns_zone_getserial(dns_zone_t *zone, uint32_t *serialp) {
 	return result;
 }
 
+isc_result_t
+dns_zone_getzoneversion(dns_zone_t *zone, isc_buffer_t *b) {
+	isc_result_t result = DNS_R_NOTLOADED;
+	unsigned int soacount;
+	uint32_t serial;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(b != NULL);
+
+	LOCK_ZONE(zone);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL) {
+		result = dns_db_getzoneversion(zone->db, b);
+		if (result == ISC_R_NOTIMPLEMENTED) {
+			result = zone_get_from_db(zone, zone->db, NULL,
+						  &soacount, NULL, &serial,
+						  NULL, NULL, NULL, NULL, NULL);
+			if (result == ISC_R_SUCCESS && soacount == 0) {
+				result = ISC_R_FAILURE;
+			}
+			if (result == ISC_R_SUCCESS) {
+				if (isc_buffer_availablelength(b) >= 6) {
+					isc_buffer_putuint8(
+						b, dns_name_countlabels(
+							   &zone->origin) -
+							   1);
+					isc_buffer_putuint8(b, 0);
+					isc_buffer_putuint32(b, serial);
+				} else {
+					result = ISC_R_NOSPACE;
+				}
+			}
+		}
+	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	UNLOCK_ZONE(zone);
+
+	return result;
+}
+
 /*
  *	Single shot.
  */

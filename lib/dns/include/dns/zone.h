@@ -2785,6 +2785,24 @@ dns_zone_getrad(dns_zone_t *zone, dns_name_t *name);
  * \li	'name' is a valid name with a buffer.
  */
 
+isc_result_t
+dns_zone_getzoneversion(dns_zone_t *zone, isc_buffer_t *b);
+/**<
+ * Return the EDNS ZONEVERSION for this zone.
+ *
+ * Note: For type SERIAL a buffer of at least 6 octets is required.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'b' to be a valid buffer.
+ *
+ * Returns
+ * \li	ISC_R_SUCCESS if the zone is loaded and supports ZONEVERSION.
+ * \li	ISC_R_NOSPACE if the buffer is too small.
+ * \li	DNS_R_NOTLOADED if the database is not loaded.
+ * \li	ISC_R_FAILURE other failure.
+ */
+
 #if DNS_ZONE_TRACE
 #define dns_zone_ref(ptr)   dns_zone__ref(ptr, __func__, __FILE__, __LINE__)
 #define dns_zone_unref(ptr) dns_zone__unref(ptr, __func__, __FILE__, __LINE__)
