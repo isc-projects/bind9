@@ -1556,14 +1556,11 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	unsigned int new_spillat = 0; /* initialized to silence
 				       * compiler warnings */
 
-	/*
-	 * Caller must be holding the fctx lock.
-	 */
+	LOCK(&fctx->lock);
+
 	REQUIRE(fctx->state == fetchstate_done);
 
 	FCTXTRACE("sendevents");
-
-	LOCK(&fctx->lock);
 
 	/*
 	 * Keep some record of fetch result for logging later (if required).
