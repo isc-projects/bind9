@@ -342,7 +342,8 @@ AS_CASE([$host],
 		  ])
 	])
 
-AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/param.h sys/sysctl.h net/if6.h sys/socket.h net/route.h linux/netlink.h linux/rtnetlink.h], [], [],
+AC_CHECK_HEADERS([sys/param.h sys/socket.h])
+AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/sysctl.h net/if6.h net/route.h linux/netlink.h linux/rtnetlink.h], [], [],
 		 [$ac_includes_default
 		  #ifdef HAVE_SYS_PARAM_H
 		  # include <sys/param.h>
@@ -616,9 +617,16 @@ AM_CONDITIONAL([HAVE_LIBNGHTTP2], [test -n "$LIBNGHTTP2_LIBS"])
 AC_CHECK_FUNCS([flockfile getc_unlocked])
 
 #
-# Look for sysconf to allow detection of the number of processors.
+# Look for sysconf or other ways to allow detection of the number of processors.
 #
 AC_CHECK_FUNCS([sysconf])
+AC_CHECK_FUNCS(sysconf sched_getaffinity cpuset_getaffinity)
+AC_CHECK_HEADERS([sys/cpuset.h], [], [],
+		 [$ac_includes_default
+		  #ifdef HAVE_SYS_PARAM_H
+		  # include <sys/param.h>
+		  #endif
+		 ])
 
 #
 # Do we want to use pthread rwlock?

@@ -95,6 +95,7 @@ TESTS =				\
 	checknames		\
 	checkzone		\
 	cookie			\
+	cpu			\
 	database		\
 	digdelv			\
 	dispatch		\
