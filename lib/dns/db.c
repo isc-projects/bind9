@@ -1200,3 +1200,14 @@ dns__db_logtoomanyrecords(dns_db_t *db, const dns_name_t *name,
 		(db->attributes & DNS_DBATTR_CACHE) != 0 ? "cache" : "zone",
 		isc_result_totext(DNS_R_TOOMANYRECORDS), limit);
 }
+
+isc_result_t
+dns_db_getzoneversion(dns_db_t *db, isc_buffer_t *b) {
+	REQUIRE(db != NULL);
+	REQUIRE(b != NULL);
+
+	if (db->methods->getzoneversion != NULL) {
+		return (db->methods->getzoneversion)(db, b);
+	}
+	return ISC_R_NOTIMPLEMENTED;
+}
