@@ -244,6 +244,7 @@ struct dns_dbonupdatelistener {
 #define DNS_DBFIND_FORCENSEC3	0x0080
 #define DNS_DBFIND_ADDITIONALOK 0x0100
 #define DNS_DBFIND_NOZONECUT	0x0200
+#define DNS_DBFIND_WANTPARTIAL	0x0400
 
 /*
  * DNS_DBFIND_STALEOK: This flag is set when BIND fails to refresh a RRset due
