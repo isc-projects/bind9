@@ -118,6 +118,18 @@ grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 2$' ns3/named.run >/dev/null || 
 grep 'refused notify from non-primary: fd92:7065:b8e:ffff::2#[0-9][0-9]*$' ns3/named.run >/dev/null || ret=1
 test_end
 
+test_start "checking notify over TLS successful"
+grep "zone tls-x1/IN: notify to 10.53.0.3#${TLSPORT} successful" ns2/named.run >/dev/null || ret=1
+grep "zone tls-x2/IN: notify to 10.53.0.3#${EXTRAPORT1} successful" ns2/named.run >/dev/null || ret=1
+grep "zone tls-x3/IN: notify to 10.53.0.3#${EXTRAPORT1} successful" ns2/named.run >/dev/null || ret=1
+grep "zone tls-x5/IN: notify to 10.53.0.3#${EXTRAPORT3} successful" ns2/named.run >/dev/null || ret=1
+test_end
+
+test_start "checking notify over TLS failed"
+grep "zone tls-x4/IN: notify to 10.53.0.3#${EXTRAPORT1} failed: TLS peer certificate verification failed" ns2/named.run >/dev/null || ret=1
+grep "zone tls-x6/IN: notify to 10.53.0.3#${EXTRAPORT4} failed: TLS peer certificate verification failed" ns2/named.run >/dev/null || ret=1
+test_end
+
 test_start "checking example2 loaded"
 dig_plus_opts a.example. @10.53.0.2 a >dig.out.ns2.test$n || ret=1
 grep "10.0.0.2" dig.out.ns2.test$n >/dev/null || ret=1

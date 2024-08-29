@@ -74,6 +74,11 @@ Files: **/*.after*
        bin/tests/system/masterfile/knowngood.include
        bin/tests/system/masterfile/knowngood.ttl1
        bin/tests/system/masterfile/knowngood.ttl2
+       bin/tests/system/notify/CA/CA.cfg
+       bin/tests/system/notify/CA/README
+       bin/tests/system/notify/CA/index.txt
+       bin/tests/system/notify/CA/index.txt.attr
+       bin/tests/system/notify/CA/serial
        bin/tests/system/notify/ns4/named.port.in
        bin/tests/system/nsupdate/CA/CA.cfg
        bin/tests/system/nsupdate/CA/README
