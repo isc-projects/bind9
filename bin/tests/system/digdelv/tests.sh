@@ -810,6 +810,15 @@ if [ -x "$DIG" ]; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
+  n=$((n + 1))
+  echo_i "checking dig +zoneversion to a authoritative server with zoneversion disabled ($n)"
+  ret=0
+  dig_with_opts @10.53.0.2 +zoneversion a.example.tld >dig.out.test$n 2>&1 || ret=1
+  grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
+  grep "; ZONEVERSION:" dig.out.test$n >/dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
   if [ $HAS_PYYAML -ne 0 ]; then
     n=$((n + 1))
     echo_i "checking dig +yaml +zoneversion to a authoritative server ($n)"
