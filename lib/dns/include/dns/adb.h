@@ -121,15 +121,15 @@ struct dns_adbfind {
 	ISC_LINK(dns_adbfind_t) publink;      /*%< RW: client use */
 
 	/* Private */
-	isc_mutex_t	lock; /* locks all below */
-	in_port_t	port;
-	unsigned int	flags;
-	dns_adbname_t  *adbname;
-	dns_adb_t      *adb;
-	isc_loop_t     *loop;
-	dns_adbstatus_t status;
-	isc_job_cb	cb;
-	void	       *cbarg;
+	isc_mutex_t		 lock; /* locks all below */
+	in_port_t		 port;
+	unsigned int		 flags;
+	dns_adbname_t		*adbname;
+	dns_adb_t		*adb;
+	isc_loop_t		*loop;
+	_Atomic(dns_adbstatus_t) status;
+	isc_job_cb		 cb;
+	void			*cbarg;
 	ISC_LINK(dns_adbfind_t) plink;
 };
 
@@ -385,6 +385,16 @@ dns_adbfind_done(dns_adbfind_t find);
  * Requires:
  *
  *\li	'find' != NULL and *find be valid dns_adbfind_t pointer.
+ */
+
+unsigned int
+dns_adb_findstatus(dns_adbfind_t *);
+/*%<
+ * Returns the status field of the find.
+ *
+ * Requires:
+ *
+ *\li	'find' be a valid dns_adbfind_t pointer.
  */
 
 void
