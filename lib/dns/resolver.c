@@ -2910,7 +2910,7 @@ fctx_finddone(void *arg) {
 		 * The fetch is waiting for a name to be found.
 		 */
 		INSIST(!SHUTTINGDOWN(fctx));
-		if (find->status == DNS_ADB_MOREADDRESSES) {
+		if (dns_adb_findstatus(find) == DNS_ADB_MOREADDRESSES) {
 			FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
 			want_try = true;
 		} else {
