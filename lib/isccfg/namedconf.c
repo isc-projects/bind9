@@ -1164,8 +1164,13 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "options", &cfg_type_options, 0 },
 	{ "parental-agents", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 	{ "primaries", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 	{ "statistics-channels", &cfg_type_statschannels,
 	  CFG_CLAUSEFLAG_MULTI },
+#else
+	{ "statistics-channels", &cfg_type_statschannels,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
 	{ "tls", &cfg_type_tlsconf, CFG_CLAUSEFLAG_MULTI },
 	{ "view", &cfg_type_view, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
