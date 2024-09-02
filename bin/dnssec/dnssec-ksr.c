@@ -182,10 +182,14 @@ getkasp(ksr_ctx_t *ksr, dns_kasp_t **kasp) {
 }
 
 static int
-keytag_cmp(const void *k1, const void *k2) {
+keyalgtag_cmp(const void *k1, const void *k2) {
 	dns_dnsseckey_t **key1 = (dns_dnsseckey_t **)k1;
 	dns_dnsseckey_t **key2 = (dns_dnsseckey_t **)k2;
-	if (dst_key_id((*key1)->key) < dst_key_id((*key2)->key)) {
+	if (dst_key_alg((*key1)->key) < dst_key_alg((*key2)->key)) {
+		return (-1);
+	} else if (dst_key_alg((*key1)->key) > dst_key_alg((*key2)->key)) {
+		return (1);
+	} else if (dst_key_id((*key1)->key) < dst_key_id((*key2)->key)) {
 		return (-1);
 	} else if (dst_key_id((*key1)->key) > dst_key_id((*key2)->key)) {
 		return (1);
@@ -220,7 +224,7 @@ get_dnskeys(ksr_ctx_t *ksr, dns_dnsseckeylist_t *keys) {
 	{
 		keys_sorted[i] = dk;
 	}
-	qsort(keys_sorted, n, sizeof(dns_dnsseckey_t *), keytag_cmp);
+	qsort(keys_sorted, n, sizeof(dns_dnsseckey_t *), keyalgtag_cmp);
 	while (!ISC_LIST_EMPTY(keys_read)) {
 		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys_read);
 		ISC_LIST_UNLINK(keys_read, key, link);
