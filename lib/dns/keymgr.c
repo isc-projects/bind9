@@ -2697,7 +2697,8 @@ dns_keymgr_offline(const dns_name_t *origin, dns_dnsseckeylist_t *keyring,
 		isc_stdtime_t lastchange = 0, nextchange = 0;
 		dst_key_state_t dnskey_state = HIDDEN, zrrsig_state = HIDDEN,
 				goal_state = HIDDEN;
-		dst_key_state_t current_dnskey, current_zrrsig, current_goal;
+		dst_key_state_t current_dnskey = HIDDEN,
+				current_zrrsig = HIDDEN, current_goal = HIDDEN;
 
 		(void)dst_key_role(dkey->key, &ksk, &zsk);
 		if (ksk || !zsk) {
@@ -2716,9 +2717,8 @@ dns_keymgr_offline(const dns_name_t *origin, dns_dnsseckeylist_t *keyring,
 		RETERR(dst_key_gettime(dkey->key, DST_TIME_PUBLISH,
 				       &published));
 		RETERR(dst_key_gettime(dkey->key, DST_TIME_ACTIVATE, &active));
-		RETERR(dst_key_gettime(dkey->key, DST_TIME_INACTIVE,
-				       &inactive));
-		RETERR(dst_key_gettime(dkey->key, DST_TIME_DELETE, &remove));
+		(void)dst_key_gettime(dkey->key, DST_TIME_INACTIVE, &inactive);
+		(void)dst_key_gettime(dkey->key, DST_TIME_DELETE, &remove);
 
 		/* Determine key states from the metadata. */
 		if (active <= now) {
@@ -2753,7 +2753,7 @@ dns_keymgr_offline(const dns_name_t *origin, dns_dnsseckeylist_t *keyring,
 			goal_state = OMNIPRESENT;
 		}
 
-		if (inactive <= now) {
+		if (inactive > 0 && inactive <= now) {
 			dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp, true);
 			ttlsig += dns_kasp_zonepropagationdelay(kasp);
 			if ((inactive + ttlsig) <= now) {
@@ -2769,7 +2769,7 @@ dns_keymgr_offline(const dns_name_t *origin, dns_dnsseckeylist_t *keyring,
 			goal_state = HIDDEN;
 		}
 
-		if (remove <= now) {
+		if (remove > 0 && remove <= now) {
 			dns_ttl_t key_ttl = dst_key_getttl(dkey->key);
 			key_ttl += dns_kasp_zonepropagationdelay(kasp);
 			if ((remove + key_ttl) <= now) {
