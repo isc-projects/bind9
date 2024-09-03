@@ -21,7 +21,7 @@ dnssec-ksr - Create signed key response (SKR) files for offline KSK setups
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-ksr` [**-E** engine] [**-e** date/offset] [**-F**] [**-h**] [**-i** date/offset] [**-K** directory] [**-k** policy] [**-l** file] [**-V**] [**-v** level] {command} {zone}
+:program:`dnssec-ksr` [**-E** engine] [**-e** date/offset] [**-F**] [**-f** file] [**-h**] [**-i** date/offset] [**-K** directory] [**-k** policy] [**-l** file] [**-V**] [**-v** level] {command} {zone}
 
 Description
 ~~~~~~~~~~~
@@ -58,6 +58,10 @@ Options
    This options turns on FIPS (US Federal Information Processing Standards)
    mode if the underlying crytographic library supports running in FIPS
    mode.
+
+.. option:: -f
+
+   This option sets the SKR file to be signed when issuing a ``sign`` command.
 
 .. option:: -h
 
