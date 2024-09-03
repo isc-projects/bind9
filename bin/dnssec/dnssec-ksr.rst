@@ -21,7 +21,7 @@ dnssec-ksr - Create signed key response (SKR) files for offline KSK setups
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-ksr` [**-E** engine] [**-e** date/offset] [**-F**] [**-f** file] [**-h**] [**-i** date/offset] [**-K** directory] [**-k** policy] [**-l** file] [**-V**] [**-v** level] {command} {zone}
+:program:`dnssec-ksr` [**-E** engine] [**-e** date/offset] [**-F**] [**-f** file] [**-h**] [**-i** date/offset] [**-K** directory] [**-k** policy] [**-l** file] [**-o**] [**-V**] [**-v** level] {command} {zone}
 
 Description
 ~~~~~~~~~~~
@@ -88,6 +88,11 @@ Options
    This option provides a configuration file that contains a ``dnssec-policy``
    statement (matching the policy set with :option:`-k`).
 
+.. option:: -o
+
+   Normally when pregenerating keys, ZSKs are created. When this option is
+   set, create KSKs instead.
+
 .. option:: -V
 
    This option prints version information.
@@ -110,9 +115,8 @@ Commands
 
 .. option:: keygen
 
-  Pregenerate a number of zone signing keys (ZSKs), given a DNSSEC policy and
-  an interval. The number of generated keys depends on the interval and the
-  ZSK lifetime.
+  Pregenerate a number of keys, given a DNSSEC policy and an interval. The
+  number of generated keys depends on the interval and the key lifetime.
 
 .. option:: request
 
@@ -135,7 +139,7 @@ occurred.
 Examples
 ~~~~~~~~
 
-When you need to generate keys for the zone "example.com" for the next year,
+When you need to generate ZSKs for the zone "example.com" for the next year,
 given a ``dnssec-policy`` named "mypolicy":
 
 ::
@@ -148,7 +152,8 @@ Creating a KSR for the same zone and period can be done with:
 
     dnssec-ksr -i now -e +1y -k mypolicy -l named.conf request example.com > ksr.txt
 
-Typically you would now transfer the KSR to the system that has access to the KSK.
+Typically you would now transfer the KSR to the system that has access to
+the KSK.
 
 Signing the KSR created above can be done with:
 
@@ -156,7 +161,8 @@ Signing the KSR created above can be done with:
 
     dnssec-ksr -i now -e +1y -k kskpolicy -l named.conf -f ksr.txt sign example.com
 
-Make sure that the DNSSEC parameters in ``kskpolicy`` match those in ``mypolicy``.
+Make sure that the DNSSEC parameters in ``kskpolicy`` match those
+in ``mypolicy``.
 
 See Also
 ~~~~~~~~
