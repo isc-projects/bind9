@@ -25,6 +25,7 @@
 #include <dns/callbacks.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
+#include <dns/keymgr.h>
 #include <dns/keyvalues.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -61,16 +62,19 @@ struct ksr_ctx {
 	bool setstart;
 	bool setend;
 	/* keygen */
+	bool ksk;
 	dns_ttl_t ttl;
 	dns_secalg_t alg;
 	int size;
 	time_t lifetime;
+	time_t parentpropagation;
 	time_t propagation;
 	time_t publishsafety;
 	time_t retiresafety;
 	time_t sigrefresh;
 	time_t sigvalidity;
 	time_t signdelay;
+	time_t ttlds;
 	time_t ttlsig;
 };
 typedef struct ksr_ctx ksr_ctx_t;
@@ -239,6 +243,7 @@ get_dnskeys(ksr_ctx_t *ksr, dns_dnsseckeylist_t *keys) {
 
 static void
 setcontext(ksr_ctx_t *ksr, dns_kasp_t *kasp) {
+	ksr->parentpropagation = dns_kasp_parentpropagationdelay(kasp);
 	ksr->propagation = dns_kasp_zonepropagationdelay(kasp);
 	ksr->publishsafety = dns_kasp_publishsafety(kasp);
 	ksr->retiresafety = dns_kasp_retiresafety(kasp);
@@ -246,6 +251,7 @@ setcontext(ksr_ctx_t *ksr, dns_kasp_t *kasp) {
 	ksr->sigrefresh = dns_kasp_sigrefresh(kasp);
 	ksr->signdelay = dns_kasp_signdelay(kasp);
 	ksr->ttl = dns_kasp_dnskeyttl(kasp);
+	ksr->ttlds = dns_kasp_dsttl(kasp);
 	ksr->ttlsig = dns_kasp_zonemaxttl(kasp, true);
 }
 
@@ -313,12 +319,13 @@ freerrset(dns_rdataset_t *rdataset) {
 }
 
 static void
-create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
-	   isc_stdtime_t inception, isc_stdtime_t active,
-	   isc_stdtime_t *expiration) {
+create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
+	   dns_dnsseckeylist_t *keys, isc_stdtime_t inception,
+	   isc_stdtime_t active, isc_stdtime_t *expiration) {
 	bool conflict = false;
 	bool freekey = false;
 	bool show_progress = true;
+	bool first = true;
 	char algstr[DNS_SECALG_FORMATSIZE];
 	char filename[PATH_MAX + 1];
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
@@ -327,8 +334,14 @@ create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 	isc_buffer_t buf;
 	isc_result_t ret;
 	isc_stdtime_t prepub;
+	uint16_t flags = DNS_KEYOWNER_ZONE;
 
 	isc_stdtime_tostring(inception, timestr, sizeof(timestr));
+
+	/* ZSK or KSK? */
+	if (ksr->ksk) {
+		flags |= DNS_KEYFLAG_KSK;
+	}
 
 	/* Check algorithm and size. */
 	dns_secalg_format(ksr->alg, algstr, sizeof(algstr));
@@ -403,6 +416,7 @@ create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 				"Selecting key pair for bundle %s: ", timestr);
 			fflush(stderr);
 		}
+		first = false;
 		key = dk->key;
 		*expiration = inact;
 		goto output;
@@ -420,18 +434,18 @@ create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 			ret = dns_keystore_keygen(
 				ksr->keystore, name, ksr->policy,
 				dns_rdataclass_in, mctx, ksr->alg, ksr->size,
-				DNS_KEYOWNER_ZONE, &key);
+				flags, &key);
 		} else if (show_progress) {
-			ret = dst_key_generate(
-				name, ksr->alg, ksr->size, 0, DNS_KEYOWNER_ZONE,
-				DNS_KEYPROTO_DNSSEC, dns_rdataclass_in, NULL,
-				mctx, &key, &progress);
+			ret = dst_key_generate(name, ksr->alg, ksr->size, 0,
+					       flags, DNS_KEYPROTO_DNSSEC,
+					       dns_rdataclass_in, NULL, mctx,
+					       &key, &progress);
 			fflush(stderr);
 		} else {
-			ret = dst_key_generate(
-				name, ksr->alg, ksr->size, 0, DNS_KEYOWNER_ZONE,
-				DNS_KEYPROTO_DNSSEC, dns_rdataclass_in, NULL,
-				mctx, &key, NULL);
+			ret = dst_key_generate(name, ksr->alg, ksr->size, 0,
+					       flags, DNS_KEYPROTO_DNSSEC,
+					       dns_rdataclass_in, NULL, mctx,
+					       &key, NULL);
 		}
 
 		if (ret != ISC_R_SUCCESS) {
@@ -468,15 +482,27 @@ create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 	prepub = ksr->ttl + ksr->publishsafety + ksr->propagation;
 	dst_key_setttl(key, ksr->ttl);
 	dst_key_setnum(key, DST_NUM_LIFETIME, ksr->lifetime);
-	dst_key_setbool(key, DST_BOOL_KSK, false);
-	dst_key_setbool(key, DST_BOOL_ZSK, true);
+	dst_key_setbool(key, DST_BOOL_KSK, ksr->ksk);
+	dst_key_setbool(key, DST_BOOL_ZSK, !ksr->ksk);
 	dst_key_settime(key, DST_TIME_CREATED, ksr->now);
 	dst_key_settime(key, DST_TIME_PUBLISH, (active - prepub));
 	dst_key_settime(key, DST_TIME_ACTIVATE, active);
+	if (ksr->ksk) {
+		dns_keymgr_settime_syncpublish(key, kasp, first);
+	}
+
 	if (ksr->lifetime > 0) {
 		isc_stdtime_t inactive = (active + ksr->lifetime);
-		isc_stdtime_t remove = ksr->ttlsig + ksr->propagation +
-				       ksr->retiresafety + ksr->signdelay;
+		isc_stdtime_t remove;
+
+		if (ksr->ksk) {
+			remove = ksr->ttlds + ksr->parentpropagation +
+				 ksr->retiresafety;
+			dst_key_settime(key, DST_TIME_SYNCDELETE, inactive);
+		} else {
+			remove = ksr->ttlsig + ksr->propagation +
+				 ksr->retiresafety + ksr->signdelay;
+		}
 		dst_key_settime(key, DST_TIME_INACTIVE, inactive);
 		dst_key_settime(key, DST_TIME_DELETE, (inactive + remove));
 		*expiration = inactive;
@@ -491,6 +517,8 @@ create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 		fatal("failed to write key %s: %s\n", keystr,
 		      isc_result_totext(ret));
 	}
+
+	first = false;
 
 output:
 	isc_buffer_clear(&buf);
@@ -907,8 +935,11 @@ keygen(ksr_ctx_t *ksr) {
 	for (dns_kasp_key_t *kk = ISC_LIST_HEAD(dns_kasp_keys(kasp));
 	     kk != NULL; kk = ISC_LIST_NEXT(kk, link))
 	{
-		if (dns_kasp_key_ksk(kk)) {
+		if (dns_kasp_key_ksk(kk) && !ksr->ksk) {
 			/* only ZSKs allowed */
+			continue;
+		} else if (dns_kasp_key_zsk(kk) && ksr->ksk) {
+			/* only KSKs allowed */
 			continue;
 		}
 		ksr->alg = dns_kasp_key_algorithm(kk);
@@ -920,7 +951,7 @@ keygen(ksr_ctx_t *ksr) {
 		for (isc_stdtime_t inception = ksr->start, act = ksr->start;
 		     inception < ksr->end; inception += ksr->lifetime)
 		{
-			create_zsk(ksr, kk, &keys, inception, act, &act);
+			create_key(ksr, kasp, kk, &keys, inception, act, &act);
 			if (ksr->lifetime == 0) {
 				/* unlimited lifetime, but not infinite loop */
 				break;
@@ -928,7 +959,7 @@ keygen(ksr_ctx_t *ksr) {
 		}
 	}
 	if (noop) {
-		fatal("policy '%s' has no zsks", ksr->policy);
+		fatal("no keys created for policy '%s'", ksr->policy);
 	}
 	/* Cleanup */
 	cleanup(&keys, kasp);
@@ -1212,7 +1243,7 @@ main(int argc, char *argv[]) {
 
 	isc_commandline_errprint = false;
 
-#define OPTIONS "E:e:Ff:hi:K:k:l:v:V"
+#define OPTIONS "E:e:Ff:hi:K:k:l:ov:V"
 	while ((ch = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
 		switch (ch) {
 		case 'E':
@@ -1248,6 +1279,9 @@ main(int argc, char *argv[]) {
 			break;
 		case 'l':
 			ksr.configfile = isc_commandline_argument;
+			break;
+		case 'o':
+			ksr.ksk = true;
 			break;
 		case 'V':
 			version(program);
