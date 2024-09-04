@@ -143,6 +143,15 @@ usage(int ret) {
 	exit(ret);
 }
 
+static isc_stdtime_t
+between(isc_stdtime_t t, isc_stdtime_t start, isc_stdtime_t end) {
+	isc_stdtime_t r = end;
+	if (t > 0 && t > start && t < end) {
+		r = t;
+	}
+	return (r);
+}
+
 static void
 checkparams(ksr_ctx_t *ksr, const char *command) {
 	if (ksr->configfile == NULL) {
@@ -325,7 +334,6 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 	bool conflict = false;
 	bool freekey = false;
 	bool show_progress = true;
-	bool first = true;
 	char algstr[DNS_SECALG_FORMATSIZE];
 	char filename[PATH_MAX + 1];
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
@@ -416,7 +424,6 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 				"Selecting key pair for bundle %s: ", timestr);
 			fflush(stderr);
 		}
-		first = false;
 		key = dk->key;
 		*expiration = inact;
 		goto output;
@@ -488,7 +495,8 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 	dst_key_settime(key, DST_TIME_PUBLISH, (active - prepub));
 	dst_key_settime(key, DST_TIME_ACTIVATE, active);
 	if (ksr->ksk) {
-		dns_keymgr_settime_syncpublish(key, kasp, first);
+		dns_keymgr_settime_syncpublish(key, kasp,
+					       (inception == ksr->start));
 	}
 
 	if (ksr->lifetime > 0) {
@@ -517,8 +525,6 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 		fatal("failed to write key %s: %s\n", keystr,
 		      isc_result_totext(ret));
 	}
-
-	first = false;
 
 output:
 	isc_buffer_clear(&buf);
@@ -638,12 +644,13 @@ fail:
 	return (next_bundle);
 }
 
-static void
+static isc_stdtime_t
 sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	   dns_rdataset_t *rrset, dns_dnsseckeylist_t *keys) {
 	dns_rdatalist_t *rrsiglist = NULL;
 	dns_rdataset_t rrsigset = DNS_RDATASET_INIT;
 	isc_result_t ret;
+	isc_stdtime_t next_bundle = expiration;
 
 	UNUSED(ksr);
 
@@ -687,6 +694,25 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 		unsigned char rdatabuf[SIG_FORMATSIZE];
 		isc_stdtime_t clockskew = inception - 3600;
 
+		isc_stdtime_t pub = 0, act = 0, inact = 0, del = 0;
+
+		/* Determine next bundle. */
+		(void)dst_key_gettime(dk->key, DST_TIME_PUBLISH, &pub);
+		(void)dst_key_gettime(dk->key, DST_TIME_ACTIVATE, &act);
+		(void)dst_key_gettime(dk->key, DST_TIME_INACTIVE, &inact);
+		(void)dst_key_gettime(dk->key, DST_TIME_DELETE, &del);
+		next_bundle = between(pub, inception, next_bundle);
+		next_bundle = between(act, inception, next_bundle);
+		next_bundle = between(inact, inception, next_bundle);
+		next_bundle = between(del, inception, next_bundle);
+
+		if (act > inception) {
+			continue;
+		}
+		if (inact != 0 && inception >= inact) {
+			continue;
+		}
+
 		rrsig = isc_mem_get(mctx, sizeof(*rrsig));
 		dns_rdata_init(rrsig);
 		isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
@@ -708,21 +734,25 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	dns_rdatalist_tordataset(rrsiglist, &rrsigset);
 	print_rdata(&rrsigset);
 	freerrset(&rrsigset);
+
+	return (next_bundle);
 }
 
 /*
  * Create the DNSKEY, CDS, and CDNSKEY records beloing to the KSKs
  * listed in 'keys'.
  */
-static void
-create_ksk(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
-	   dns_rdataset_t *dnskeyset, dns_rdataset_t *cdnskeyset,
-	   dns_rdataset_t *cdsset) {
+static isc_stdtime_t
+get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
+		isc_stdtime_t next_inception, dns_dnsseckeylist_t *keys,
+		dns_rdataset_t *dnskeyset, dns_rdataset_t *cdnskeyset,
+		dns_rdataset_t *cdsset) {
+	dns_kasp_digestlist_t digests = dns_kasp_digests(kasp);
 	dns_rdatalist_t *dnskeylist = isc_mem_get(mctx, sizeof(*dnskeylist));
 	dns_rdatalist_t *cdnskeylist = isc_mem_get(mctx, sizeof(*cdnskeylist));
 	dns_rdatalist_t *cdslist = isc_mem_get(mctx, sizeof(*cdslist));
 	isc_result_t ret = ISC_R_SUCCESS;
-	dns_kasp_digestlist_t digests = dns_kasp_digests(kasp);
+	isc_stdtime_t next_bundle = next_inception;
 
 	dns_rdatalist_init(dnskeylist);
 	dnskeylist->rdclass = dns_rdataclass_in;
@@ -742,31 +772,73 @@ create_ksk(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
 	for (dns_dnsseckey_t *dk = ISC_LIST_HEAD(*keys); dk != NULL;
 	     dk = ISC_LIST_NEXT(dk, link))
 	{
+		bool published = true;
 		isc_buffer_t buf;
 		isc_buffer_t *newbuf;
 		dns_rdata_t *rdata;
 		isc_region_t r;
 		isc_region_t rcds;
+		isc_stdtime_t pub = 0, del = 0;
 		unsigned char kskbuf[DST_KEY_MAXSIZE];
 		unsigned char cdnskeybuf[DST_KEY_MAXSIZE];
 		unsigned char cdsbuf[DNS_DS_BUFFERSIZE];
 
 		/* KSK */
-		newbuf = NULL;
-		rdata = isc_mem_get(mctx, sizeof(*rdata));
-		dns_rdata_init(rdata);
+		(void)dst_key_gettime(dk->key, DST_TIME_PUBLISH, &pub);
+		(void)dst_key_gettime(dk->key, DST_TIME_DELETE, &del);
+		next_bundle = between(pub, inception, next_bundle);
+		next_bundle = between(del, inception, next_bundle);
 
-		isc_buffer_init(&buf, kskbuf, sizeof(kskbuf));
-		CHECK(dst_key_todns(dk->key, &buf));
-		isc_buffer_usedregion(&buf, &r);
-		isc_buffer_allocate(mctx, &newbuf, r.length);
-		isc_buffer_putmem(newbuf, r.base, r.length);
-		isc_buffer_usedregion(newbuf, &r);
-		dns_rdata_fromregion(rdata, dns_rdataclass_in,
-				     dns_rdatatype_dnskey, &r);
-		ISC_LIST_APPEND(dnskeylist->rdata, rdata, link);
-		ISC_LIST_APPEND(cleanup_list, newbuf, link);
-		isc_buffer_clear(newbuf);
+		if (pub > inception) {
+			published = false;
+		}
+		if (del != 0 && inception >= del) {
+			published = false;
+		}
+
+		if (published) {
+			newbuf = NULL;
+			rdata = isc_mem_get(mctx, sizeof(*rdata));
+			dns_rdata_init(rdata);
+
+			isc_buffer_init(&buf, kskbuf, sizeof(kskbuf));
+			CHECK(dst_key_todns(dk->key, &buf));
+			isc_buffer_usedregion(&buf, &r);
+			isc_buffer_allocate(mctx, &newbuf, r.length);
+			isc_buffer_putmem(newbuf, r.base, r.length);
+			isc_buffer_usedregion(newbuf, &r);
+			dns_rdata_fromregion(rdata, dns_rdataclass_in,
+					     dns_rdatatype_dnskey, &r);
+			ISC_LIST_APPEND(dnskeylist->rdata, rdata, link);
+			ISC_LIST_APPEND(cleanup_list, newbuf, link);
+			isc_buffer_clear(newbuf);
+		}
+
+		published = true;
+		if (dns_kasp_cdnskey(kasp) || !ISC_LIST_EMPTY(digests)) {
+			pub = 0;
+			del = 0;
+			(void)dst_key_gettime(dk->key, DST_TIME_SYNCPUBLISH,
+					      &pub);
+			(void)dst_key_gettime(dk->key, DST_TIME_SYNCDELETE,
+					      &del);
+
+			next_bundle = between(pub, inception, next_bundle);
+			next_bundle = between(del, inception, next_bundle);
+
+			if (pub != 0 && pub > inception) {
+				published = false;
+			}
+			if (del != 0 && inception >= del) {
+				published = false;
+			}
+		} else {
+			published = false;
+		}
+
+		if (!published) {
+			continue;
+		}
 
 		/* CDNSKEY */
 		newbuf = NULL;
@@ -820,35 +892,98 @@ create_ksk(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
 	dns_rdatalist_tordataset(dnskeylist, dnskeyset);
 	dns_rdatalist_tordataset(cdnskeylist, cdnskeyset);
 	dns_rdatalist_tordataset(cdslist, cdsset);
-	return;
+
+	return (next_bundle);
 
 fail:
 	fatal("failed to create KSK/CDS/CDNSKEY");
+	return (0);
 }
 
 static void
-sign_bundle(ksr_ctx_t *ksr, isc_stdtime_t inception,
-	    isc_stdtime_t next_inception, dns_rdatalist_t *rdatalist,
-	    dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
+sign_bundle(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
+	    isc_stdtime_t next_inception, dns_rdatalist_t *zsklist,
 	    dns_dnsseckeylist_t *keys) {
-	dns_rdataset_t rrset = DNS_RDATASET_INIT;
-	isc_stdtime_t expiration;
+	isc_stdtime_t expiration = inception + ksr->sigvalidity;
+	isc_stdtime_t next_bundle = next_inception;
+	dns_rdataset_t zsk;
 
-	dns_rdataset_init(&rrset);
-	dns_rdatalist_tordataset(rdatalist, &rrset);
-	expiration = inception + ksr->sigvalidity;
+	dns_rdataset_init(&zsk);
+	dns_rdatalist_tordataset(zsklist, &zsk);
+
 	while (inception <= next_inception) {
-		sign_rrset(ksr, inception, expiration, &rrset, keys);
-		if (dns_rdataset_count(cdnskey) > 0) {
-			sign_rrset(ksr, inception, expiration, cdnskey, keys);
+		isc_stdtime_t next_time = next_bundle;
+
+		/* DNSKEY RRset */
+		dns_rdatalist_t *dnskeylist;
+		dnskeylist = isc_mem_get(mctx, sizeof(*dnskeylist));
+		dns_rdatalist_init(dnskeylist);
+		dnskeylist->rdclass = dns_rdataclass_in;
+		dnskeylist->type = dns_rdatatype_dnskey;
+		dnskeylist->ttl = ksr->ttl;
+
+		dns_rdataset_t ksk, cdnskey, cds, rrset;
+		dns_rdataset_init(&ksk);
+		dns_rdataset_init(&cdnskey);
+		dns_rdataset_init(&cds);
+		dns_rdataset_init(&rrset);
+		next_time = get_keymaterial(ksr, kasp, inception, next_time,
+					    keys, &ksk, &cdnskey, &cds);
+		if (next_bundle > next_time) {
+			next_bundle = next_time;
 		}
-		if (dns_rdataset_count(cds) > 0) {
-			sign_rrset(ksr, inception, expiration, cds, keys);
+
+		for (isc_result_t r = dns_rdatalist_first(&ksk);
+		     r == ISC_R_SUCCESS; r = dns_rdatalist_next(&ksk))
+		{
+			dns_rdata_t *clone = isc_mem_get(mctx, sizeof(*clone));
+			dns_rdata_init(clone);
+			dns_rdatalist_current(&ksk, clone);
+			ISC_LIST_APPEND(dnskeylist->rdata, clone, link);
 		}
+
+		for (isc_result_t r = dns_rdatalist_first(&zsk);
+		     r == ISC_R_SUCCESS; r = dns_rdatalist_next(&zsk))
+		{
+			dns_rdata_t *clone = isc_mem_get(mctx, sizeof(*clone));
+			dns_rdata_init(clone);
+			dns_rdatalist_current(&zsk, clone);
+			ISC_LIST_APPEND(dnskeylist->rdata, clone, link);
+		}
+
+		dns_rdatalist_tordataset(dnskeylist, &rrset);
+		next_time = sign_rrset(ksr, inception, expiration, &rrset,
+				       keys);
+		if (next_bundle > next_time) {
+			next_bundle = next_time;
+		}
+		freerrset(&ksk);
+		freerrset(&rrset);
+
+		/* CDNSKEY */
+		if (dns_rdataset_count(&cdnskey) > 0) {
+			(void)sign_rrset(ksr, inception, expiration, &cdnskey,
+					 keys);
+		}
+		freerrset(&cdnskey);
+
+		/* CDS */
+		if (dns_rdataset_count(&cds) > 0) {
+			(void)sign_rrset(ksr, inception, expiration, &cds,
+					 keys);
+		}
+		freerrset(&cds);
+
+		/* Next response bundle. */
 		inception = expiration - ksr->sigrefresh;
+		if (inception > next_bundle) {
+			inception = next_bundle;
+		}
 		expiration = inception + ksr->sigvalidity;
+		next_bundle = expiration;
 	}
-	freerrset(&rrset);
+
+	freerrset(&zsk);
 }
 
 static isc_result_t
@@ -1038,9 +1173,6 @@ sign(ksr_ctx_t *ksr) {
 	dns_dnsseckeylist_t keys;
 	dns_kasp_t *kasp = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
-	dns_rdataset_t ksk = DNS_RDATASET_INIT;
-	dns_rdataset_t cdnskey = DNS_RDATASET_INIT;
-	dns_rdataset_t cds = DNS_RDATASET_INIT;
 	isc_result_t ret;
 	isc_stdtime_t inception;
 	isc_lex_t *lex = NULL;
@@ -1072,9 +1204,6 @@ sign(ksr_ctx_t *ksr) {
 		fatal("unable to open KSR file %s: %s", ksr->file,
 		      isc_result_totext(ret));
 	}
-
-	/* KSK, CDS and CDNSKEY */
-	create_ksk(ksr, kasp, &keys, &ksk, &cdnskey, &cds);
 
 	for (ret = isc_lex_gettoken(lex, opt, &token); ret == ISC_R_SUCCESS;
 	     ret = isc_lex_gettoken(lex, opt, &token))
@@ -1125,8 +1254,8 @@ sign(ksr_ctx_t *ksr) {
 
 			if (have_bundle) {
 				/* Sign previous bundle */
-				sign_bundle(ksr, inception, next_inception,
-					    rdatalist, &cds, &cdnskey, &keys);
+				sign_bundle(ksr, kasp, inception,
+					    next_inception, rdatalist, &keys);
 				fprintf(stdout, "\n");
 			}
 
@@ -1136,15 +1265,7 @@ sign(ksr_ctx_t *ksr) {
 			rdatalist->rdclass = dns_rdataclass_in;
 			rdatalist->type = dns_rdatatype_dnskey;
 			rdatalist->ttl = ksr->ttl;
-			for (isc_result_t r = dns_rdatalist_first(&ksk);
-			     r == ISC_R_SUCCESS; r = dns_rdatalist_next(&ksk))
-			{
-				dns_rdata_t *clone =
-					isc_mem_get(mctx, sizeof(*clone));
-				dns_rdata_init(clone);
-				dns_rdatalist_current(&ksk, clone);
-				ISC_LIST_APPEND(rdatalist->rdata, clone, link);
-			}
+
 			inception = next_inception;
 			have_bundle = true;
 
@@ -1203,8 +1324,7 @@ sign(ksr_ctx_t *ksr) {
 
 	/* Final bundle */
 	if (have_bundle && rdatalist != NULL) {
-		sign_bundle(ksr, inception, ksr->end, rdatalist, &cds, &cdnskey,
-			    &keys);
+		sign_bundle(ksr, kasp, inception, ksr->end, rdatalist, &keys);
 	} else {
 		fatal("bad KSR file %s(%lu): no bundles", ksr->file,
 		      isc_lex_getsourceline(lex));
@@ -1216,11 +1336,6 @@ sign(ksr_ctx_t *ksr) {
 		timestr, PACKAGE_VERSION);
 
 fail:
-	/* Clean up */
-	freerrset(&ksk);
-	freerrset(&cdnskey);
-	freerrset(&cds);
-
 	isc_lex_destroy(&lex);
 	cleanup(&keys, kasp);
 }
