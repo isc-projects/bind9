@@ -85,8 +85,6 @@ options {
 	attach-cache <string>;
 	auth-nxdomain <boolean>;
 	automatic-interface-scan <boolean>;
-	avoid-v4-udp-ports { <portrange>; ... }; // deprecated
-	avoid-v6-udp-ports { <portrange>; ... }; // deprecated
 	bindkeys-file <quoted_string>; // test only
 	blackhole { <address_match_element>; ... };
 	catalog-zones { zone <string> [ default-primaries [ port <integer> ] [ source ( <ipv4_address> | * ) ] [ source-v6 ( <ipv6_address> | * ) ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... } ] [ zone-directory <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
@@ -314,8 +312,6 @@ options {
 	udp-send-buffer <integer>;
 	update-check-ksk <boolean>; // obsolete
 	update-quota <integer>;
-	use-v4-udp-ports { <portrange>; ... }; // deprecated
-	use-v6-udp-ports { <portrange>; ... }; // deprecated
 	v6-bias <integer>;
 	validate-except { <string>; ... };
 	version ( <quoted_string> | none );

@@ -174,19 +174,19 @@ the following examples:
 
 .. code-block:: none
 
-	// dense single-line style
-	zone "example.com" in{type secondary; file "secondary.example.com"; primaries {10.0.0.1;};};
-	//  single-statement-per-line style
-	zone "example.com" in{
-		type secondary;
-		file "secondary.example.com";
-		primaries {10.0.0.1;};
-	};
-	// spot the difference
-	zone "example.com" in{
-		type secondary;
-	file "sec.secondary.com";
-	primaries {10.0.0.1;}; };
+        // dense single-line style
+        zone "example.com" in{type secondary; file "secondary.example.com"; primaries {10.0.0.1;};};
+        //  single-statement-per-line style
+        zone "example.com" in{
+                type secondary;
+                file "secondary.example.com";
+                primaries {10.0.0.1;};
+        };
+        // spot the difference
+        zone "example.com" in{
+                type secondary;
+        file "sec.secondary.com";
+        primaries {10.0.0.1;}; };
 
 .. _include_grammar:
 
@@ -324,7 +324,7 @@ file documentation:
         (3 days, 12 hours).
 
         ISO 8601 duration format consists of the letter "P", followed by an
-	optional series of numbers with unit suffixes "Y" (year), "M" (month),
+        optional series of numbers with unit suffixes "Y" (year), "M" (month),
         "W" (week), and "D" (day); this may optionally be followed by the
         letter "T", and another series of numbers with unit suffixes
         "H" (hour), "M" (minute), and "S" (second). Examples: "P3M10D"
@@ -3268,7 +3268,7 @@ Query Address
    :short: Controls the IPv6 address from which queries are issued.
 
    If the server does not know the answer to a question, it queries other
-   name servers. :any:`query-source` specifies the address and port used for
+   name servers. :any:`query-source` specifies the address used for
    such queries. For queries sent over IPv6, there is a separate
    :any:`query-source-v6` option. If ``address`` is ``*`` (asterisk) or is
    omitted, a wildcard IP address (``INADDR_ANY``) is used.
@@ -3278,110 +3278,12 @@ Query Address
 
    ::
 
-      query-source address * port *;
-      query-source-v6 address * port *;
-
-   .. note:: ``port`` configuration is deprecated. A warning will be logged
-      when this parameter is used.
+      query-source address *;
+      query-source-v6 address *;
 
    .. note:: The address specified in the :any:`query-source` option is
       used for both UDP and TCP queries, but the port applies only to UDP
       queries. TCP queries always use a random unprivileged port.
-
-.. namedconf:statement:: use-v4-udp-ports
-   :tags: deprecated
-   :short: Specifies a list of ports that are valid sources for UDP/IPv4 messages.
-
-.. namedconf:statement:: use-v6-udp-ports
-   :tags: deprecated
-   :short: Specifies a list of ports that are valid sources for UDP/IPv6 messages.
-
-   These statements, which are deprecated and will be removed in a future
-   release, specify a list of IPv4 and IPv6 UDP ports that are used as
-   source ports for UDP messages.
-
-   If :term:`port` is ``*`` or is omitted, a random port number from a
-   pre-configured range is selected and used for each query. The
-   port range(s) are specified in the :any:`use-v4-udp-ports` (for IPv4)
-   and :any:`use-v6-udp-ports` (for IPv6) options.
-
-   If :any:`use-v4-udp-ports` or :any:`use-v6-udp-ports` is unspecified,
-   :iscman:`named` checks whether the operating system provides a programming
-   interface to retrieve the system's default range for ephemeral ports. If
-   such an interface is available, :iscman:`named` uses the corresponding
-   system default range; otherwise, it uses its own defaults:
-
-   ::
-
-      use-v4-udp-ports { range 1024 65535; };
-      use-v6-udp-ports { range 1024 65535; };
-
-.. namedconf:statement:: avoid-v4-udp-ports
-   :tags: deprecated
-   :short: Specifies the range(s) of ports to be excluded from use as sources for UDP/IPv4 messages.
-
-.. namedconf:statement:: avoid-v6-udp-ports
-   :tags: deprecated
-   :short: Specifies the range(s) of ports to be excluded from use as sources for UDP/IPv6 messages.
-
-   These statements, which are deprecated and will be removed in a future
-   release, indicate ranges of port numbers to exclude from those specified
-   in the :any:`avoid-v4-udp-ports` and :any:`avoid-v6-udp-ports`
-   options, respectively.
-
-   The defaults of the :any:`avoid-v4-udp-ports` and :any:`avoid-v6-udp-ports`
-   options are:
-
-   ::
-
-      avoid-v4-udp-ports {};
-      avoid-v6-udp-ports {};
-
-   For example, with the following configuration:
-
-   ::
-
-      use-v6-udp-ports { range 32768 65535; };
-      avoid-v6-udp-ports { 40000; range 50000 60000; };
-
-   UDP ports of IPv6 messages sent from :iscman:`named` are in one of the
-   following ranges: 32768 to 39999, 40001 to 49999, or 60001 to 65535.
-
-   :any:`avoid-v4-udp-ports` and :any:`avoid-v6-udp-ports` can be used to prevent
-   :iscman:`named` from choosing as its random source port a port that is blocked
-   by a firewall or that is used by other applications; if a
-   query went out with a source port blocked by a firewall, the answer
-   would not pass through the firewall and the name server would have to query
-   again. Note: the desired range can also be represented only with
-   :any:`use-v4-udp-ports` and :any:`use-v6-udp-ports`, and the ``avoid-``
-   options are redundant in that sense; they are provided for backward
-   compatibility and to possibly simplify the port specification.
-
-   .. note:: Make sure the ranges are sufficiently large for security. A
-      desirable size depends on several parameters, but we generally recommend
-      it contain at least 16384 ports (14 bits of entropy). Note also that the
-      system's default range when used may be too small for this purpose, and
-      that the range may even be changed while :iscman:`named` is running; the new
-      range is automatically applied when :iscman:`named` is reloaded. Explicit
-      configuration of :any:`use-v4-udp-ports` and :any:`use-v6-udp-ports` is encouraged,
-      so that the ranges are sufficiently large and are reasonably
-      independent from the ranges used by other applications.
-
-   .. note:: The operational configuration where :iscman:`named` runs may prohibit
-      the use of some ports. For example, Unix systems do not allow
-      :iscman:`named`, if run without root privilege, to use ports less than 1024.
-      If such ports are included in the specified (or detected) set of query
-      ports, the corresponding query attempts will fail, resulting in
-      resolution failures or delay. It is therefore important to configure the
-      set of ports that can be safely used in the expected operational
-      environment.
-
-   .. warning:: Specifying a single port is discouraged, as it removes a layer of
-      protection against spoofing errors.
-
-   .. warning:: The configured :term:`port` must not be the same as the listening port.
-
-   .. note:: See also :any:`transfer-source`, :any:`notify-source` and :any:`parental-source`.
 
 .. _zone_transfers:
 
@@ -3553,24 +3455,16 @@ options apply to zone transfers.
 
    :any:`transfer-source` determines which local address is bound to
    IPv4 TCP connections used to fetch zones transferred inbound by the
-   server. It also determines the source IPv4 address, and optionally
-   the UDP port, used for the refresh queries and forwarded dynamic
-   updates. If not set, it defaults to a system-controlled value which
-   is usually the address of the interface "closest to" the remote
-   end. This address must appear in the remote end's :any:`allow-transfer`
-   option for the zone being transferred, if one is specified. This
-   statement sets the :any:`transfer-source` for all zones, but can be
+   server. It also determines the source IPv4 address, used for the refresh
+   queries and forwarded dynamic updates. If not set, it defaults to a
+   system-controlled value which is usually the address of the interface
+   "closest to" the remote end. This address must appear in the remote
+   end's :any:`allow-transfer` option for the zone being transferred,
+   if one is specified.
+   This statement sets the :any:`transfer-source` for all zones, but can be
    overridden on a per-view or per-zone basis by including a
    :any:`transfer-source` statement within the :any:`view` or :any:`zone` block
    in the configuration file.
-
-   .. note:: ``port`` configuration is deprecated. A warning will be logged
-      when this parameter is used.
-
-   .. warning:: Specifying a single port is discouraged, as it removes a layer of
-      protection against spoofing errors.
-
-   .. warning:: The configured :term:`port` must not be the same as the listening port.
 
 .. namedconf:statement:: transfer-source-v6
    :tags: transfer
@@ -3581,23 +3475,15 @@ options apply to zone transfers.
 
 .. namedconf:statement:: notify-source
    :tags: transfer
-   :short: Defines the IPv4 address (and optional port) to be used for outgoing ``NOTIFY`` messages.
+   :short: Defines the IPv4 address to be used for outgoing ``NOTIFY`` messages.
 
-   :any:`notify-source` determines which local source address, and
-   optionally UDP port, is used to send NOTIFY messages. This
-   address must appear in the secondary server's :any:`primaries` zone clause or
-   in an :any:`allow-notify` clause. This statement sets the
-   :any:`notify-source` for all zones, but can be overridden on a per-zone
-   or per-view basis by including a :any:`notify-source` statement within
-   the :any:`zone` or :any:`view` block in the configuration file.
-
-   .. note:: ``port`` configuration is deprecated. A warning will be logged
-      when this parameter is used.
-
-   .. warning:: Specifying a single port is discouraged, as it removes a layer of
-      protection against spoofing errors.
-
-   .. warning:: The configured :term:`port` must not be the same as the listening port.
+   :any:`notify-source` determines which local source address is used to send
+   NOTIFY messages. This address must appear in the secondary server's
+   :any:`primaries` zone clause or in an :any:`allow-notify` clause.
+   This statement sets the :any:`notify-source` for all zones, but can be
+   overridden on a per-zone or per-view basis by including a
+   :any:`notify-source` statement within the :any:`zone` or :any:`view`
+   block in the configuration file.
 
 .. namedconf:statement:: notify-source-v6
    :tags: transfer
@@ -6678,19 +6564,11 @@ The following options apply to DS queries sent to :any:`parental-agents`:
    :tags: dnssec
    :short: Specifies which local IPv4 source address is used to send parental DS queries.
 
-   :any:`parental-source` determines which local source address, and optionally
-   UDP port, is used to send parental DS queries. This statement sets the
+   :any:`parental-source` determines which local source address
+   is used to send parental DS queries. This statement sets the
    :any:`parental-source` for all zones, but can be overridden on a per-zone or
    per-view basis by including a :any:`parental-source` statement within the
    :any:`zone` or :any:`view` block in the configuration file.
-
-   .. note:: ``port`` configuration is deprecated. A warning will be logged
-      when this parameter is used.
-
-   .. warning:: Specifying a single port is discouraged, as it removes a layer of
-      protection against spoofing errors.
-
-   .. warning:: The configured :term:`port` must not be the same as the listening port.
 
 .. namedconf:statement:: parental-source-v6
    :tags: dnssec
@@ -7844,52 +7722,52 @@ Incoming Zone Transfers
       this zone. Possible values and their meanings are:
 
          ``Needs Refresh``
-	     The zone needs a refresh, but the process hasn't started yet,
-	     which can be due to different factors, like the retry interval of
-	     the zone.
+             The zone needs a refresh, but the process hasn't started yet,
+             which can be due to different factors, like the retry interval of
+             the zone.
 
          ``Pending``
-	     The zone is flagged for a refresh, but the process is currently
-	     in the queue and will start shortly, or is in a waiting state
-	     because of rate-limiting, see :any:`serial-query-rate`. The
-	     ``Duration (s)`` timer starts before entering this state.
+             The zone is flagged for a refresh, but the process is currently
+             in the queue and will start shortly, or is in a waiting state
+             because of rate-limiting, see :any:`serial-query-rate`. The
+             ``Duration (s)`` timer starts before entering this state.
 
          ``Refresh SOA``
-	     Sending a refresh SOA query to get the zone serial number, then
-	     initiate a zone transfer, if necessary. If this step is successful,
-	     the ``SOA Query`` and ``Got SOA`` states will be skipped.
-	     Otherwise, the zone transfer procedure can still be initiated,
-	     and the SOA request will be attempted using the same transport as
-	     the zone transfer. The ``Duration (s)`` timer restarts before
-	     entering this state, and for each attempted connection (note that
-	     in UDP mode there can be several retries during one "connection"
-	     attempt).
+             Sending a refresh SOA query to get the zone serial number, then
+             initiate a zone transfer, if necessary. If this step is successful,
+             the ``SOA Query`` and ``Got SOA`` states will be skipped.
+             Otherwise, the zone transfer procedure can still be initiated,
+             and the SOA request will be attempted using the same transport as
+             the zone transfer. The ``Duration (s)`` timer restarts before
+             entering this state, and for each attempted connection (note that
+             in UDP mode there can be several retries during one "connection"
+             attempt).
 
          ``Deferred``
-	     The zone is going to be refreshed, but the process was
-	     deferred due to quota, see :any:`transfers-in` and
-	     :any:`transfers-per-ns`. The ``Duration (s)`` timer restarts before
-	     entering this state.
+             The zone is going to be refreshed, but the process was
+             deferred due to quota, see :any:`transfers-in` and
+             :any:`transfers-per-ns`. The ``Duration (s)`` timer restarts before
+             entering this state.
 
          ``SOA Query``
-	     Sending SOA query to get the zone serial number, then
-	     follow with a zone transfer, if necessary. The ``Duration (s)``
-	     timer restarts before entering this state.
+             Sending SOA query to get the zone serial number, then
+             follow with a zone transfer, if necessary. The ``Duration (s)``
+             timer restarts before entering this state.
 
          ``Got SOA``
-	     An answer for the SOA query from the previous step is
-	     received, initiating a transfer.
+             An answer for the SOA query from the previous step is
+             received, initiating a transfer.
 
          ``Zone Transfer Request``
-	     Waiting for the zone transfer to start. The ``Duration (s)`` timer
-	     restarts before entering this state.
+             Waiting for the zone transfer to start. The ``Duration (s)`` timer
+             restarts before entering this state.
 
          ``First Data``
-	     Waiting for the first data record of the transfer.
+             Waiting for the first data record of the transfer.
 
          ``Receiving IXFR Data``
-	     Receiving data for an IXFR type incremental zone
-	     transfer.
+             Receiving data for an IXFR type incremental zone
+             transfer.
 
          ``Finalizing IXFR``
              Finalizing an IXFR type incremental zone transfer.

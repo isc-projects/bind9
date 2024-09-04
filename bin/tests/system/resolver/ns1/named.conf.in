@@ -41,13 +41,13 @@ server 10.53.0.3 {
 
 server 10.42.23.3/32 {
      notify-source 10.42.22.1;
-     query-source address 10.42.22.1 port 0;
+     query-source address 10.42.22.1;
      transfer-source 10.42.22.1;
 };
 
 server fd92:7065:b8e:ffff::1000 {
      notify-source-v6 fd92:7065:b8e:ffff::1001;
-     query-source-v6 address fd92:7065:b8e:ffff::1001 port 0;
+     query-source-v6 address fd92:7065:b8e:ffff::1001;
      transfer-source-v6 fd92:7065:b8e:ffff::1001;
 };
 

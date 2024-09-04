@@ -57,7 +57,7 @@ zone x1 {
 	type primary;
 	file "generic.db";
 	also-notify { 10.53.0.3; };
-	notify-source 10.53.0.2 port @EXTRAPORT2@;
+	notify-source 10.53.0.2;
 	notify primary-only;
 };
 zone x2 {

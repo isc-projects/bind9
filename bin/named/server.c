@@ -7485,43 +7485,6 @@ setoptstring(named_server_t *server, char **field, const cfg_obj_t *obj) {
 	}
 }
 
-static void
-portset_fromconf(isc_portset_t *portset, const cfg_obj_t *ports,
-		 bool positive) {
-	const cfg_listelt_t *element;
-
-	for (element = cfg_list_first(ports); element != NULL;
-	     element = cfg_list_next(element))
-	{
-		const cfg_obj_t *obj = cfg_listelt_value(element);
-
-		if (cfg_obj_isuint32(obj)) {
-			in_port_t port = (in_port_t)cfg_obj_asuint32(obj);
-
-			if (positive) {
-				isc_portset_add(portset, port);
-			} else {
-				isc_portset_remove(portset, port);
-			}
-		} else {
-			const cfg_obj_t *obj_loport, *obj_hiport;
-			in_port_t loport, hiport;
-
-			obj_loport = cfg_tuple_get(obj, "loport");
-			loport = (in_port_t)cfg_obj_asuint32(obj_loport);
-			obj_hiport = cfg_tuple_get(obj, "hiport");
-			hiport = (in_port_t)cfg_obj_asuint32(obj_hiport);
-
-			if (positive) {
-				isc_portset_addrange(portset, loport, hiport);
-			} else {
-				isc_portset_removerange(portset, loport,
-							hiport);
-			}
-		}
-	}
-}
-
 static isc_result_t
 removed(dns_zone_t *zone, void *uap) {
 	if (dns_zone_getview(zone) != uap) {
@@ -8270,7 +8233,6 @@ load_configuration(const char *filename, named_server_t *server,
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *obj;
 	const cfg_obj_t *options;
-	const cfg_obj_t *usev4ports, *avoidv4ports, *usev6ports, *avoidv6ports;
 	const cfg_obj_t *kasps;
 	const cfg_obj_t *keystores;
 	dns_kasp_t *kasp = NULL;
@@ -8703,74 +8665,39 @@ load_configuration(const char *filename, named_server_t *server,
 		goto cleanup_v4portset;
 	}
 
-	usev4ports = NULL;
-	usev6ports = NULL;
-	avoidv4ports = NULL;
-	avoidv6ports = NULL;
-
-	(void)named_config_get(maps, "use-v4-udp-ports", &usev4ports);
-	if (usev4ports != NULL) {
-		portset_fromconf(v4portset, usev4ports, true);
-	} else {
-		result = isc_net_getudpportrange(AF_INET, &udpport_low,
-						 &udpport_high);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "get the default UDP/IPv4 port range: %s",
-				      isc_result_totext(result));
-			goto cleanup_v6portset;
-		}
-
-		if (udpport_low == udpport_high) {
-			isc_portset_add(v4portset, udpport_low);
-		} else {
-			isc_portset_addrange(v4portset, udpport_low,
-					     udpport_high);
-		}
-		if (!ns_server_getoption(server->sctx, NS_SERVER_DISABLE4)) {
-			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "using default UDP/IPv4 port range: "
-				      "[%d, %d]",
-				      udpport_low, udpport_high);
-		}
-	}
-	(void)named_config_get(maps, "avoid-v4-udp-ports", &avoidv4ports);
-	if (avoidv4ports != NULL) {
-		portset_fromconf(v4portset, avoidv4ports, false);
+	result = isc_net_getudpportrange(AF_INET, &udpport_low, &udpport_high);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR,
+			      "get the default UDP/IPv4 port range: %s",
+			      isc_result_totext(result));
+		goto cleanup_v6portset;
 	}
 
-	(void)named_config_get(maps, "use-v6-udp-ports", &usev6ports);
-	if (usev6ports != NULL) {
-		portset_fromconf(v6portset, usev6ports, true);
-	} else {
-		result = isc_net_getudpportrange(AF_INET6, &udpport_low,
-						 &udpport_high);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "get the default UDP/IPv6 port range: %s",
-				      isc_result_totext(result));
-			goto cleanup_v6portset;
-		}
-		if (udpport_low == udpport_high) {
-			isc_portset_add(v6portset, udpport_low);
-		} else {
-			isc_portset_addrange(v6portset, udpport_low,
-					     udpport_high);
-		}
-		if (!ns_server_getoption(server->sctx, NS_SERVER_DISABLE6)) {
-			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "using default UDP/IPv6 port range: "
-				      "[%d, %d]",
-				      udpport_low, udpport_high);
-		}
+	isc_portset_addrange(v4portset, udpport_low, udpport_high);
+	if (!ns_server_getoption(server->sctx, NS_SERVER_DISABLE4)) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_INFO,
+			      "using default UDP/IPv4 port range: "
+			      "[%d, %d]",
+			      udpport_low, udpport_high);
 	}
-	(void)named_config_get(maps, "avoid-v6-udp-ports", &avoidv6ports);
-	if (avoidv6ports != NULL) {
-		portset_fromconf(v6portset, avoidv6ports, false);
+
+	result = isc_net_getudpportrange(AF_INET6, &udpport_low, &udpport_high);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR,
+			      "get the default UDP/IPv6 port range: %s",
+			      isc_result_totext(result));
+		goto cleanup_v6portset;
+	}
+	isc_portset_addrange(v6portset, udpport_low, udpport_high);
+	if (!ns_server_getoption(server->sctx, NS_SERVER_DISABLE6)) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_INFO,
+			      "using default UDP/IPv6 port range: "
+			      "[%d, %d]",
+			      udpport_low, udpport_high);
 	}
 
 	dns_dispatchmgr_setavailports(named_g_dispatchmgr, v4portset,
