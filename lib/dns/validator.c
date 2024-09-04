@@ -1951,15 +1951,26 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 
 static void
 validate_dnskey_dsset_done(dns_validator_t *val, isc_result_t result) {
-	if (result == ISC_R_SUCCESS) {
+	switch (result) {
+	case ISC_R_CANCELED:
+	case ISC_R_SHUTTINGDOWN:
+		/* Abort, abort, abort! */
+		break;
+	case ISC_R_SUCCESS:
 		marksecure(val);
 		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure (DS)");
-	} else if (result == ISC_R_NOMORE && !val->supported_algorithm) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "no supported algorithm/digest (DS)");
-		result = markanswer(val, "validate_dnskey (3)",
-				    "no supported algorithm/digest (DS)");
-	} else {
+		break;
+	case ISC_R_NOMORE:
+		if (!val->supported_algorithm) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "no supported algorithm/digest (DS)");
+			result = markanswer(
+				val, "validate_dnskey (3)",
+				"no supported algorithm/digest (DS)");
+			break;
+		}
+		FALLTHROUGH;
+	default:
 		validator_log(val, ISC_LOG_INFO,
 			      "no valid signature found (DS)");
 		result = DNS_R_NOVALIDSIG;
