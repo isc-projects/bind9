@@ -324,10 +324,17 @@ def check_signedkeyresponse(
             line_no += 1
 
         # expect cdnskey
+        have_cdnskey = False
         if cdnskey:
             for key in sorted(ksks):
-                published = key.get_timing("Publish")
-                removed = key.get_timing("Delete", must_exist=False)
+                published = key.get_timing("SyncPublish")
+                if between(published, inception, next_bundle):
+                    next_bundle = published
+
+                removed = key.get_timing("SyncDelete", must_exist=False)
+                if between(removed, inception, next_bundle):
+                    next_bundle = removed
+
                 if published > inception:
                     continue
                 if removed is not None and inception >= removed:
@@ -336,7 +343,9 @@ def check_signedkeyresponse(
                 # the cdnskey of this ksk must be in the ksr
                 assert key.dnskey_equals(lines[line_no], cdnskey=True)
                 line_no += 1
+                have_cdnskey = True
 
+        if have_cdnskey:
             # expect rrsig(cdnskey)
             for key in sorted(ksks):
                 active = key.get_timing("Activate")
@@ -354,10 +363,17 @@ def check_signedkeyresponse(
                 line_no += 1
 
         # expect cds
+        have_cds = False
         if cds != "":
             for key in sorted(ksks):
-                published = key.get_timing("Publish")
-                removed = key.get_timing("Delete", must_exist=False)
+                published = key.get_timing("SyncPublish")
+                if between(published, inception, next_bundle):
+                    next_bundle = published
+
+                removed = key.get_timing("SyncDelete", must_exist=False)
+                if between(removed, inception, next_bundle):
+                    next_bundle = removed
+
                 if published > inception:
                     continue
                 if removed is not None and inception >= removed:
@@ -368,7 +384,9 @@ def check_signedkeyresponse(
                 for alg in expected_cds:
                     assert key.cds_equals(lines[line_no], alg.strip())
                     line_no += 1
+                    have_cds = True
 
+        if have_cds:
             # expect rrsig(cds)
             for key in sorted(ksks):
                 active = key.get_timing("Activate")
