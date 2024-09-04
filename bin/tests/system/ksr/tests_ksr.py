@@ -1103,3 +1103,77 @@ def test_ksr_twotone(servers):
     isctest.kasp.check_apex(ns1, zone, ksks, zsks)
     # - check subdomain
     isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
+
+
+def test_ksr_kskroll(servers):
+    zone = "ksk-roll.test"
+    policy = "ksk-roll"
+    n = 1
+
+    # create ksk
+    kskdir = "ns1/offline"
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i now -e +1y -o")
+    ksks = keystr_to_keylist(out, kskdir)
+    assert len(ksks) == 2
+
+    lifetime = timedelta(days=31 * 6)
+    check_keys(ksks, lifetime)
+
+    # check that 'dnssec-ksr keygen' pregenerates right amount of keys
+    zskdir = "ns1"
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +1y")
+    zsks = keystr_to_keylist(out, zskdir)
+    assert len(zsks) == 1
+
+    check_keys(zsks, None)
+
+    # check that 'dnssec-ksr request' creates correct ksr
+    now = zsks[0].get_timing("Created")
+    until = now + timedelta(days=365)
+    out, _ = ksr(zone, policy, "request", options=f"-K {zskdir} -i {now} -e +1y")
+
+    fname = f"{zone}.ksr.{n}"
+    with open(fname, "w", encoding="utf-8") as file:
+        file.write(out)
+
+    check_keysigningrequest(out, zsks, now, until)
+
+    # check that 'dnssec-ksr sign' creates correct skr
+    out, _ = ksr(
+        zone, policy, "sign", options=f"-K {kskdir} -f {fname} -i {now} -e +1y"
+    )
+
+    skrfile = f"{zone}.skr.{n}"
+    with open(skrfile, "w", encoding="utf-8") as file:
+        file.write(out)
+
+    refresh = -432000  # 5 days
+    check_signedkeyresponse(out, zone, ksks, zsks, now, until, refresh)
+
+    # add zone
+    ns1 = servers["ns1"]
+    ns1.rndc(
+        f"addzone {zone} "
+        + "{ type primary; file "
+        + f'"{zone}.db"; dnssec-policy {policy}; '
+        + "};",
+        log=False,
+    )
+
+    # import skr
+    shutil.copyfile(skrfile, f"ns1/{skrfile}")
+    ns1.rndc(f"skr -import {skrfile} {zone}", log=False)
+
+    # test zone is correctly signed
+    # - check rndc dnssec -status output
+    isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
+    # - zone is signed
+    isctest.kasp.check_zone_is_signed(ns1, zone)
+    # - dnssec_verify
+    isctest.kasp.check_dnssec_verify(ns1, zone)
+    # - check keys
+    check_keys(zsks, None, with_state=True)
+    # - check apex
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
+    # - check subdomain
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
