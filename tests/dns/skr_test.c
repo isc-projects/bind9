@@ -77,7 +77,7 @@ static skr__testbundle_t test_bundles[42];
 
 static dns_dnsseckeylist_t keys;
 
-static const char *file = TESTS_DIR "/testdata/skr/test.skr";
+static const char *testskr = TESTS_DIR "/testdata/skr/test.skr";
 static const char *kskstr =
 	"257 3 13 evPZ03dt9VeWNQKqw1fpuL0V1RcyPRge4s306hGOVYg1a1IttOf3ZKIm "
 	"McMgdT1K4nxJ+S7BtX6RVECqzp1rAA==";
@@ -412,7 +412,7 @@ create_skr_file(void) {
 	/* Set up output file */
 	tempfilelen = strlen(TESTS_DIR "/testdata/skr/") + 20;
 	tempfile = isc_mem_get(mctx, tempfilelen);
-	ret = isc_file_mktemplate(file, tempfile, tempfilelen);
+	ret = isc_file_mktemplate(testskr, tempfile, tempfilelen);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 	ret = isc_file_openunique(tempfile, &outfp);
 	assert_int_equal(ret, ISC_R_SUCCESS);
@@ -427,7 +427,7 @@ create_skr_file(void) {
 
 	ret = isc_stdio_close(outfp);
 	assert_int_equal(ret, ISC_R_SUCCESS);
-	ret = isc_file_rename(tempfile, file);
+	ret = isc_file_rename(tempfile, testskr);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	isc_file_remove(tempfile);
@@ -459,9 +459,12 @@ ISC_RUN_TEST_IMPL(skr_read) {
 
 	/* Create/read the SKR file */
 	create_skr_file();
-	dns_skr_create(mctx, file, dname, dns_rdataclass_in, &skr);
-	result = dns_skr_read(mctx, file, dname, dns_rdataclass_in, TTL, &skr);
+	dns_skr_create(mctx, testskr, dname, dns_rdataclass_in, &skr);
+	result = dns_skr_read(mctx, testskr, dname, dns_rdataclass_in, TTL,
+			      &skr);
 	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_file_remove(testskr);
 
 	/* Test bundles */
 	for (dns_skrbundle_t *bundle = ISC_LIST_HEAD(skr->bundles);
