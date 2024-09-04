@@ -1793,6 +1793,9 @@ isc__nm_tls_cleartimeout(isc_nmhandle_t *handle);
  * around.
  */
 
+void
+isc__nmhandle_tls_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
+
 const char *
 isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
 
@@ -1809,6 +1812,15 @@ isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
 void
 isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,
 				  uint64_t write_timeout);
+
+bool
+isc__nmsocket_tls_timer_running(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_tls_timer_restart(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_tls_timer_stop(isc_nmsocket_t *sock);
 
 void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
