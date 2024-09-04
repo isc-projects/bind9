@@ -1627,6 +1627,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	atomic_init(&sock->keepalive, false);
 	atomic_init(&sock->connected, false);
 	atomic_init(&sock->timedout, false);
+	atomic_init(&sock->manual_read_timer, false);
 
 	atomic_init(&sock->active_child_connections, 0);
 
@@ -3930,6 +3931,24 @@ isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls) {
 		      SSL_is_server(tls) ? "server" : "client",
 		      SSL_session_reused(tls) ? "resumed" : "created",
 		      client_sabuf, local_sabuf);
+}
+
+void
+isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	isc_nmsocket_t *sock = handle->sock;
+
+	switch (sock->type) {
+	case isc_nm_tcpsocket:
+		isc__nmhandle_tcp_set_manual_timer(handle, manual);
+		return;
+	default:
+		break;
+	};
+
+	UNREACHABLE();
 }
 
 #ifdef NETMGR_TRACE
