@@ -14,11 +14,4 @@
 Known Issues
 ------------
 
-- On some platforms, including FreeBSD, :iscman:`named` must be run as
-  root to use the :iscman:`rndc` control channel on a privileged port
-  (i.e., with a port number less than 1024; this includes the default
-  :iscman:`rndc` :rndcconf:ref:`port`, 953). Currently, using the
-  :option:`named -u` option to switch to an unprivileged user makes
-  :iscman:`rndc` unusable. This will be fixed in a future release; in
-  the meantime, ``mac_portacl`` can be used as a workaround, as
-  documented in https://kb.isc.org/docs/aa-00621. :gl:`#4793`
+- There are no known issues affecting this BIND 9 branch.
