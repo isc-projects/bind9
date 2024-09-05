@@ -2613,6 +2613,8 @@ ISC_RUN_TEST_IMPL(https_svcb) {
 				   "1 example.net. key7=\"/{?dns}\""),
 		TEXT_VALID_LOOPCHG(1, "1 example.net. dohpath=/some/path{?dns}",
 				   "1 example.net. key7=\"/some/path{?dns}\""),
+		TEXT_VALID_LOOPCHG(1, "1 example.net. dohpath=/some/path?key=value{&dns}",
+				   "1 example.net. key7=\"/some/path?key=value{&dns}\""),
 		TEXT_INVALID("1 example.com. dohpath=no-slash"),
 		TEXT_INVALID("1 example.com. dohpath=/{?notdns}"),
 		TEXT_INVALID("1 example.com. dohpath=/notvariable"),

@@ -157,7 +157,7 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 				/*
 				 * Minimum valid dohpath is "/{?dns}" as
 				 * it MUST be relative (leading "/") and
-				 * MUST contain "{?dns}".
+				 * MUST contain "{?dns}" or "{&dns}".
 				 */
 				if (region->length < 7) {
 					return DNS_R_FORMERR;
@@ -172,8 +172,10 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 				{
 					return DNS_R_FORMERR;
 				}
-				/* MUST contain "{?dns}" */
+				/* MUST contain "{?dns}" or "{&dns}" */
 				if (strnstr((char *)region->base, "{?dns}",
+					    region->length) == NULL &&
+				    strnstr((char *)region->base, "{&dns}",
 					    region->length) == NULL)
 				{
 					return DNS_R_FORMERR;
