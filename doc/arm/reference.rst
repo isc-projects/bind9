@@ -6454,7 +6454,9 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     This indicates the TTL to use when generating DNSKEY resource
     records. The default is 1 hour (3600 seconds).
 
-:any:`inline-signing`
+.. _dnssec-policy-inline-signing:
+
+inline-signing
    :tags: dnssec
    :short: Specifies whether BIND 9 maintains a separate signed version of a zone.
 
@@ -6466,7 +6468,9 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
    This behavior is enabled by default.
 
-.. keys
+.. _dnssec-policy-keys:
+
+keys
    :tags: dnssec
    :short: Specifies the type of keys to be used for DNSSEC signing.
 
@@ -6634,7 +6638,9 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     This is similar to :any:`signatures-validity`, but for DNSKEY records.
     The default is ``P2W`` (2 weeks).
 
-:any:`max-zone-ttl`
+.. _dnssec-policy-max-zone-ttl:
+
+max-zone-ttl
    :tags: zone, query
    :short: Specifies a maximum permissible time-to-live (TTL) value, in seconds.
 
