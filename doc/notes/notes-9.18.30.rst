@@ -17,41 +17,41 @@ New Features
 
 - Print the full path of the working directory in startup log messages.
 
-  named now prints its initial working directory during startup and the
-  changed working directory when loading or reloading its configuration
-  file if it has a valid 'directory' option defined. :gl:`#4731`
+  :iscman:`named` now prints its initial working directory during
+  startup, and the changed working directory when loading or reloading
+  its configuration file, if it has a valid :any:`directory` option
+  defined. :gl:`#4731`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Follow the number of CPU set by taskset/cpuset.
+- Follow the number of CPUs set by ``taskset``/``cpuset``.
 
-  Administrators may wish to constrain the set of cores that BIND 9 runs
-  on via the 'taskset', 'cpuset' or 'numactl' programs (or equivalent on
-  other O/S).
+  Administrators may wish to constrain the set of cores that
+  :iscman:`named` runs on via the ``taskset``, ``cpuset``, or ``numactl``
+  programs (or equivalents on other OSes).
 
-  If the admin has used taskset, the `named` will now follow to
-  automatically use the given number of CPUs rather than the system wide
-  count. :gl:`#4884`
+  If the admin has used ``taskset``, :iscman:`named` now automatically
+  uses the given number of CPUs rather than the system-wide count.
+  :gl:`#4884`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Checking whether a EDDSA key was private or not was broken.
+- Verification of the privacy of an EDDSA key was broken.
 
-  Checking whether a EDDSA key was private or not was broken could lead
-  to attempting to sign records with a public key and this could cause a
-  segmentation failure (read of a NULL pointer) within OpenSSL.
-  :gl:`#4855`
+  The check could lead to an attempt to sign records with a public key,
+  which could cause a segmentation failure (read of a NULL pointer)
+  within OpenSSL. This has been fixed. :gl:`#4855`
 
-- Fix algoritm rollover bug when there are two keys with the same
+- Fix algorithm rollover bug when there are two keys with the same
   keytag.
 
-  If there is an algorithm rollover and two keys of different algorithm
-  share the same keytags, then there is a possibility that if we check
-  that a key matches a specific state, we are checking against the wrong
-  key. This has been fixed by not only checking for matching key tag but
-  also key algorithm. :gl:`#4878`
+  If there was an algorithm rollover and two keys of different
+  algorithms shared the same keytags, there was the possibility that the
+  check of whether the key matched a specific state could be performed
+  against the wrong key. This has been fixed by not only checking for
+  the matching key tag but also the key algorithm. :gl:`#4878`
 
 Known Issues
 ~~~~~~~~~~~~
