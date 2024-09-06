@@ -122,6 +122,12 @@ Bug Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- There are no new known issues with this release. See :ref:`above
-  <relnotes_known_issues>` for a list of all known issues affecting this
-  BIND 9 branch.
+- Long-running tasks in offloaded threads (e.g. the loading of RPZ zones
+  or processing zone transfers) may block the resolution of queries
+  during these operations and cause the queries to time out.
+
+  To work around the issue, the ``UV_THREADPOOL_SIZE`` environment
+  variable can be set to a larger value before starting :iscman:`named`.
+  The recommended value is the number of RPZ zones (or number of
+  transfers) plus the number of threads BIND should use, which is
+  typically the number of CPUs. :gl:`#4898`
