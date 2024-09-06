@@ -338,6 +338,7 @@ typedef enum isc__netievent_type {
 	netievent_privilegedtask,
 
 	netievent_settlsctx,
+	netievent_asyncrun,
 
 	/*
 	 * event type values higher than this will be treated
@@ -709,6 +710,42 @@ typedef struct isc__netievent__tlsctx {
 	}
 
 #ifdef HAVE_LIBNGHTTP2
+typedef void (*isc__nm_asyncrun_cb_t)(void *);
+
+typedef struct isc__netievent__asyncrun {
+	isc__netievent_type type;
+	ISC_LINK(isc__netievent_t) link;
+	isc__nm_asyncrun_cb_t cb;
+	void *cbarg;
+} isc__netievent__asyncrun_t;
+
+#define NETIEVENT_ASYNCRUN_TYPE(type) \
+	typedef isc__netievent__asyncrun_t isc__netievent_##type##_t;
+
+#define NETIEVENT_ASYNCRUN_DECL(type)                                 \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(      \
+		isc_nm_t *nm, isc__nm_asyncrun_cb_t cb, void *cbarg); \
+	void isc__nm_put_netievent_##type(isc_nm_t *nm,               \
+					  isc__netievent_##type##_t *ievent);
+
+#define NETIEVENT_ASYNCRUN_DEF(type)                                           \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
+		isc_nm_t *nm, isc__nm_asyncrun_cb_t cb, void *cbarg) {         \
+		isc__netievent_##type##_t *ievent =                            \
+			isc__nm_get_netievent(nm, netievent_##type);           \
+		ievent->cb = cb;                                               \
+		ievent->cbarg = cbarg;                                         \
+                                                                               \
+		return (ievent);                                               \
+	}                                                                      \
+                                                                               \
+	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+					  isc__netievent_##type##_t *ievent) { \
+		ievent->cb = NULL;                                             \
+		ievent->cbarg = NULL;                                          \
+		isc__nm_put_netievent(nm, ievent);                             \
+	}
+
 typedef struct isc__netievent__http_eps {
 	NETIEVENT__SOCKET;
 	isc_nm_http_endpoints_t *endpoints;
@@ -753,6 +790,7 @@ typedef union {
 	isc__netievent_tlsconnect_t nitc;
 	isc__netievent__tlsctx_t nitls;
 #ifdef HAVE_LIBNGHTTP2
+	isc__netievent__asyncrun_t niasync;
 	isc__netievent__http_eps_t nihttpeps;
 #endif /* HAVE_LIBNGHTTP2 */
 } isc__netievent_storage_t;
@@ -1914,7 +1952,10 @@ void
 isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 			     const uint32_t max_concurrent_streams);
 
-#endif
+void
+isc__nm_async_asyncrun(isc__networker_t *worker, isc__netievent_t *ev0);
+
+#endif /* HAVE_LIBNGHTTP2 */
 
 void
 isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -2104,6 +2145,8 @@ NETIEVENT_SOCKET_TYPE(tlsdnscycle);
 NETIEVENT_SOCKET_REQ_TYPE(httpsend);
 NETIEVENT_SOCKET_TYPE(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
+
+NETIEVENT_ASYNCRUN_TYPE(asyncrun);
 #endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_TYPE(tcpconnect);
@@ -2178,6 +2221,8 @@ NETIEVENT_SOCKET_DECL(tlsdnscycle);
 NETIEVENT_SOCKET_REQ_DECL(httpsend);
 NETIEVENT_SOCKET_DECL(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
+
+NETIEVENT_ASYNCRUN_DECL(asyncrun);
 #endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_DECL(tcpconnect);
@@ -2301,3 +2346,13 @@ isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
  * Set manual read timer control mode - so that it will not get reset
  * automatically on read nor get started when read is initiated.
  */
+
+#if HAVE_LIBNGHTTP2
+void
+isc__nm_async_run(isc__networker_t *worker, isc__nm_asyncrun_cb_t cb,
+		  void *cbarg);
+/*
+ * Call the given callback asynchronously by the give network manager
+ * worker, pass the given argument to it.
+ */
+#endif /* HAVE_LIBNGHTTP2 */

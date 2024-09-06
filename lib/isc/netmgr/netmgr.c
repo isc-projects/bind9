@@ -998,6 +998,8 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
 		NETIEVENT_CASE(httpendpoints);
+
+		NETIEVENT_CASE(asyncrun);
 #endif
 		NETIEVENT_CASE(settlsctx);
 		NETIEVENT_CASE(sockstop);
@@ -1116,6 +1118,8 @@ NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
 NETIEVENT_SOCKET_REQ_DEF(httpsend);
 NETIEVENT_SOCKET_DEF(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
+
+NETIEVENT_ASYNCRUN_DEF(asyncrun);
 #endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_DEF(tcpconnect);
@@ -3982,6 +3986,29 @@ isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
 
 	UNREACHABLE();
 }
+
+#if HAVE_LIBNGHTTP2
+void
+isc__nm_async_run(isc__networker_t *worker, isc__nm_asyncrun_cb_t cb,
+		  void *cbarg) {
+	isc__netievent__asyncrun_t *ievent = NULL;
+	REQUIRE(worker != NULL);
+	REQUIRE(cb != NULL);
+
+	ievent = isc__nm_get_netievent_asyncrun(worker->mgr, cb, cbarg);
+	isc__nm_enqueue_ievent(worker, (isc__netievent_t *)ievent);
+}
+
+void
+isc__nm_async_asyncrun(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_asyncrun_t *ievent = (isc__netievent_asyncrun_t *)ev0;
+
+	UNUSED(worker);
+
+	ievent->cb(ievent->cbarg);
+}
+
+#endif /* HAVE_LIBNGHTTP2 */
 
 #ifdef NETMGR_TRACE
 /*
