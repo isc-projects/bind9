@@ -168,7 +168,7 @@ fail=0
 success=0
 touch ans4/norespond
 for try in 1 2 3 4 5; do
-  burst 10.53.0.3 b $try 300
+  burst 10.53.0.3 d $try 300
   $DIGCMD a ${try}.example >dig.out.ns3.$n.$try
   grep "status: NOERROR" dig.out.ns3.$n.$try >/dev/null 2>&1 \
     && success=$((success + 1))
