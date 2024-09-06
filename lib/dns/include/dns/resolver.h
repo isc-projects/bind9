@@ -129,6 +129,7 @@ enum {
 						* on ip6.arpa. */
 	DNS_FETCHOPT_NOFORWARD = 1 << 15,      /*%< Do not use forwarders if
 						* possible. */
+	DNS_FETCHOPT_QMINFETCH = 1 << 16,      /*%< Qmin fetch */
 
 	/*% EDNS version bits: */
 	DNS_FETCHOPT_EDNSVERSIONSET = 1 << 23,

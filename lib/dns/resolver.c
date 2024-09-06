@@ -1436,8 +1436,6 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 		counter = isc_mem_get(fctx->mctx, sizeof(*counter));
 		*counter = (fctxcount_t){
 			.magic = FCTXCOUNT_MAGIC,
-			.count = 0,
-			.allowed = 0,
 		};
 		isc_mem_attach(fctx->mctx, &counter->mctx);
 		isc_mutex_init(&counter->lock);
@@ -4138,7 +4136,8 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 		fetchctx_ref(fctx);
 		result = dns_resolver_createfetch(
 			fctx->res, fctx->qminname, fctx->qmintype, fctx->domain,
-			&fctx->nameservers, NULL, NULL, 0, options, 0, fctx->qc,
+			&fctx->nameservers, NULL, NULL, 0,
+			options | DNS_FETCHOPT_QMINFETCH, 0, fctx->qc,
 			fctx->gqc, fctx->loop, resume_qmin, fctx, &fctx->edectx,
 			&fctx->qminrrset, NULL, &fctx->qminfetch);
 		if (result != ISC_R_SUCCESS) {
@@ -4320,7 +4319,7 @@ resume_qmin(void *arg) {
 
 	dns_name_copy(fname, fctx->domain);
 
-	result = fcount_incr(fctx, true);
+	result = fcount_incr(fctx, false);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -4746,8 +4745,12 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 
 	/*
 	 * Exempt prefetch queries from the fetches-per-zone quota check
+	 * also exempt QMIN fetches as the calling fetch has already
+	 * successfully called fcount_incr for this zone.
 	 */
-	if ((fctx->options & DNS_FETCHOPT_PREFETCH) == 0) {
+	if ((fctx->options & DNS_FETCHOPT_PREFETCH) == 0 &&
+	    (fctx->options & DNS_FETCHOPT_QMINFETCH) == 0)
+	{
 		/*
 		 * Are there too many simultaneous queries for this domain?
 		 */
@@ -7146,7 +7149,7 @@ resume_dslookup(void *arg) {
 
 		fcount_decr(fctx);
 		dns_name_copy(fctx->nsname, fctx->domain);
-		result = fcount_incr(fctx, true);
+		result = fcount_incr(fctx, false);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -9407,7 +9410,7 @@ rctx_referral(respctx_t *rctx) {
 		fctx_minimize_qname(fctx);
 	}
 
-	result = fcount_incr(fctx, true);
+	result = fcount_incr(fctx, false);
 	if (result != ISC_R_SUCCESS) {
 		rctx->result = result;
 		return ISC_R_COMPLETE;
