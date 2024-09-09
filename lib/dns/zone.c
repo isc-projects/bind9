@@ -22285,7 +22285,7 @@ zone_rekey(dns_zone_t *zone) {
 
 			if (result != ISC_R_SUCCESS) {
 				dnssec_log(zone, ISC_LOG_ERROR,
-					   "zone_rekey:dns_dnssec_keymgr "
+					   "zone_rekey:dns_keymgr_run "
 					   "failed: %s",
 					   isc_result_totext(result));
 				KASP_UNLOCK(kasp);
@@ -22301,6 +22301,13 @@ zone_rekey(dns_zone_t *zone) {
 		result = dns_keymgr_offline(&zone->origin, &keys, kasp, now,
 					    &nexttime);
 		dns_zone_unlock_keyfiles(zone);
+
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_rekey:dns_keymgr_offline "
+				   "failed: %s",
+				   isc_result_totext(result));
+		}
 	}
 
 	KASP_UNLOCK(kasp);
