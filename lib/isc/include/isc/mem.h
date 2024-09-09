@@ -21,8 +21,11 @@
 #include <isc/attributes.h>
 #include <isc/mutex.h>
 #include <isc/overflow.h>
+#include <isc/refcount.h>
 #include <isc/types.h>
 #include <isc/urcu.h>
+
+/* Add -DISC_MEM_TRACE=1 to CFLAGS for detailed reference tracing */
 
 /*%
  * Define ISC_MEM_TRACKLINES=1 to turn on detailed tracing of memory
@@ -249,28 +252,16 @@ isc_mem_arena_set_dirty_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms);
  */
 /*@}*/
 
-void
-isc_mem_attach(isc_mem_t *, isc_mem_t **);
-
-/*@{*/
-void
-isc_mem_attach(isc_mem_t *, isc_mem_t **);
-#define isc_mem_detach(cp) isc__mem_detach((cp)_ISC_MEM_FILELINE)
-void
-isc__mem_detach(isc_mem_t **_ISC_MEM_FLARG);
-/*!<
- * \brief Attach to / detach from a memory context.
- *
- * This is intended for applications that use multiple memory contexts
- * in such a way that it is not obvious when the last allocations from
- * a given context has been freed and destroying the context is safe.
- *
- * Most applications do not need to call these functions as they can
- * simply create a single memory context at the beginning of main()
- * and destroy it at the end of main(), thereby guaranteeing that it
- * is not destroyed while there are outstanding allocations.
- */
-/*@}*/
+#if ISC_MEM_TRACE
+#define isc_mem_ref(ptr)   isc_mem__ref(ptr, __func__, __FILE__, __LINE__)
+#define isc_mem_unref(ptr) isc_mem__unref(ptr, __func__, __FILE__, __LINE__)
+#define isc_mem_attach(ptr, ptrp) \
+	isc_mem__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define isc_mem_detach(ptrp) isc_mem__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(isc_mem);
+#else
+ISC_REFCOUNT_DECL(isc_mem);
+#endif
 
 void
 isc_mem_stats(isc_mem_t *mctx, FILE *out);

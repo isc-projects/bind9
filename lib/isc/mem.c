@@ -427,6 +427,8 @@ void
 isc__mem_shutdown(void) {
 	bool empty;
 
+	rcu_barrier();
+
 	isc__mem_checkdestroyed();
 
 	LOCK(&contextslock);
@@ -495,8 +497,11 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags,
  */
 
 static void
-destroy(isc_mem_t *ctx) {
+mem_destroy(isc_mem_t *ctx) {
 	unsigned int arena_no;
+
+	isc_refcount_destroy(&ctx->references);
+
 	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	UNLOCK(&contextslock);
@@ -543,36 +548,11 @@ destroy(isc_mem_t *ctx) {
 	}
 }
 
-void
-isc_mem_attach(isc_mem_t *source, isc_mem_t **targetp) {
-	REQUIRE(VALID_CONTEXT(source));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	isc_refcount_increment(&source->references);
-
-	*targetp = source;
-}
-
-void
-isc__mem_detach(isc_mem_t **ctxp FLARG) {
-	isc_mem_t *ctx = NULL;
-
-	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
-
-	ctx = *ctxp;
-	*ctxp = NULL;
-
-	if (isc_refcount_decrement(&ctx->references) == 1) {
-		isc_refcount_destroy(&ctx->references);
-#if ISC_MEM_TRACKLINES
-		if ((ctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
-			fprintf(stderr, "destroy mctx %p file %s line %u\n",
-				ctx, file, line);
-		}
+#if ISC_MEM_TRACE
+ISC_REFCOUNT_TRACE_IMPL(isc_mem, mem_destroy);
+#else
+ISC_REFCOUNT_IMPL(isc_mem, mem_destroy);
 #endif
-		destroy(ctx);
-	}
-}
 
 /*
  * isc_mem_putanddetach() is the equivalent of:
@@ -595,7 +575,11 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
 	*ctxp = NULL;
 
 	isc__mem_put(ctx, ptr, size, flags FLARG_PASS);
-	isc__mem_detach(&ctx FLARG_PASS);
+#if ISC_MEM_TRACE
+	isc_mem__detach(&ctx, __func__, file, line);
+#else
+	isc_mem_detach(&ctx);
+#endif
 }
 
 void *
