@@ -14,11 +14,12 @@
 Known Issues
 ------------
 
-- On some platforms, including FreeBSD, :iscman:`named` must be run as
-  root to use the :iscman:`rndc` control channel on a privileged port
-  (i.e., with a port number less than 1024; this includes the default
-  :iscman:`rndc` :rndcconf:ref:`port`, 953). Currently, using the
-  :option:`named -u` option to switch to an unprivileged user makes
-  :iscman:`rndc` unusable. This will be fixed in a future release; in
-  the meantime, ``mac_portacl`` can be used as a workaround, as
-  documented in https://kb.isc.org/docs/aa-00621. :gl:`#4793`
+- Long-running tasks in offloaded threads (e.g. loading RPZ zones or
+  processing zone transfers) may block the resolution of queries during
+  these operations and cause the queries to time out.
+
+  To work around the issue, the ``UV_THREADPOOL_SIZE`` environment
+  variable can be set to a larger value before starting :iscman:`named`.
+  The recommended value is the number of RPZ zones (or number of
+  transfers) plus the number of threads BIND should use, which is
+  typically the number of CPUs. :gl:`#4898`
