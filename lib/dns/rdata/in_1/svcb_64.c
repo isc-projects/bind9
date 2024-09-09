@@ -154,30 +154,7 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 			case sbpr_base64:
 				break;
 			case sbpr_dohpath:
-				/*
-				 * Minimum valid dohpath is "/{?dns}" as
-				 * it MUST be relative (leading "/") and
-				 * MUST contain "{?dns}" or "{&dns}".
-				 */
-				if (region->length < 7) {
-					return DNS_R_FORMERR;
-				}
-				/* MUST be relative */
-				if (region->base[0] != '/') {
-					return DNS_R_FORMERR;
-				}
-				/* MUST be UTF8 */
-				if (!isc_utf8_valid(region->base,
-						    region->length))
-				{
-					return DNS_R_FORMERR;
-				}
-				/* MUST contain "{?dns}" or "{&dns}" */
-				if (strnstr((char *)region->base, "{?dns}",
-					    region->length) == NULL &&
-				    strnstr((char *)region->base, "{&dns}",
-					    region->length) == NULL)
-				{
+				if (!validate_dohpath(region)) {
 					return DNS_R_FORMERR;
 				}
 				break;
