@@ -70,7 +70,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 #define isc_refcount_increment0(target)                    \
 	({                                                 \
 		uint_fast32_t __v;                         \
-		__v = atomic_fetch_add_relaxed(target, 1); \
+		__v = atomic_fetch_add_release(target, 1); \
 		INSIST(__v < UINT32_MAX);                  \
 		__v;                                       \
 	})
@@ -83,7 +83,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 #define isc_refcount_increment(target)                     \
 	({                                                 \
 		uint_fast32_t __v;                         \
-		__v = atomic_fetch_add_relaxed(target, 1); \
+		__v = atomic_fetch_add_release(target, 1); \
 		INSIST(__v > 0 && __v < UINT32_MAX);       \
 		__v;                                       \
 	})
