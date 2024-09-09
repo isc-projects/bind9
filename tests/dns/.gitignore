@@ -1,4 +1,5 @@
 /zone.data
 /testdata/dnstap/dnstap.file
 /testdata/master/master18.data
+/testdata/skr/test.skr
 /badcache.out
