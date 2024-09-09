@@ -1075,7 +1075,7 @@ cleanup(void) {
 		if (print_mem_stats && verbose > 10) {
 			isc_mem_stats(mctx, stdout);
 		}
-		isc_mem_destroy(&mctx);
+		isc_mem_detach(&mctx);
 	}
 }
 

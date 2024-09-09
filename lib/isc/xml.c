@@ -64,7 +64,7 @@ void
 isc__xml_shutdown(void) {
 #ifdef HAVE_LIBXML2
 	xmlCleanupParser();
-	isc_mem_destroy(&isc__xml_mctx);
+	isc_mem_detach(&isc__xml_mctx);
 #endif /* HAVE_LIBXML2 */
 }
 

@@ -158,7 +158,7 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	}
 
 	dns_db_detach(&db);
-	isc_mem_destroy(&mctx2);
+	isc_mem_detach(&mctx2);
 	isc_loopmgr_shutdown(loopmgr);
 }
 
@@ -208,7 +208,7 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	}
 
 	dns_db_detach(&db);
-	isc_mem_destroy(&mctx2);
+	isc_mem_detach(&mctx2);
 	isc_loopmgr_shutdown(loopmgr);
 }
 

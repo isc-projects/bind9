@@ -260,7 +260,7 @@ main(int argc, char *argv[]) {
 	if (printmemstats) {
 		isc_mem_stats(mctx, stdout);
 	}
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 
 	return 0;
 }

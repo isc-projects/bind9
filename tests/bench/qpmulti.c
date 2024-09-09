@@ -889,7 +889,7 @@ main(void) {
 
 	isc_mem_free(mctx, item);
 	isc_mem_checkdestroyed(stdout);
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 
 	return 0;
 }

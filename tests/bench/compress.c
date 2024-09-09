@@ -100,7 +100,7 @@ main(void) {
 
 	printf("names %u\n", count);
 
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 
 	return 0;
 }

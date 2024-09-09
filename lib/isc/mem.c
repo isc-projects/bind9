@@ -598,40 +598,6 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
 	isc__mem_detach(&ctx FLARG_PASS);
 }
 
-void
-isc__mem_destroy(isc_mem_t **ctxp FLARG) {
-	isc_mem_t *ctx = NULL;
-
-	/*
-	 * This routine provides legacy support for callers who use mctxs
-	 * without attaching/detaching.
-	 */
-
-	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
-
-	ctx = *ctxp;
-	*ctxp = NULL;
-
-	rcu_barrier();
-
-#if ISC_MEM_TRACKLINES
-	if ((ctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
-		fprintf(stderr, "destroy mctx %p file %s line %u\n", ctx, file,
-			line);
-	}
-
-	if (isc_refcount_decrement(&ctx->references) > 1) {
-		print_active(ctx, stderr);
-	}
-#else  /* if ISC_MEM_TRACKLINES */
-	isc_refcount_decrementz(&ctx->references);
-#endif /* if ISC_MEM_TRACKLINES */
-	isc_refcount_destroy(&ctx->references);
-	destroy(ctx);
-
-	*ctxp = NULL;
-}
-
 void *
 isc__mem_get(isc_mem_t *ctx, size_t size, int flags FLARG) {
 	void *ptr = NULL;
