@@ -114,14 +114,14 @@ unregister_algorithms(void) {
 
 static void *
 isc__crypto_malloc_ex(size_t size, const char *file, int line) {
-	return isc__mem_allocate(isc__crypto_mctx, size, 0, file,
+	return isc__mem_allocate(isc__crypto_mctx, size, 0, __func__, file,
 				 (unsigned int)line);
 }
 
 static void *
 isc__crypto_realloc_ex(void *ptr, size_t size, const char *file, int line) {
-	return isc__mem_reallocate(isc__crypto_mctx, ptr, size, 0, file,
-				   (unsigned int)line);
+	return isc__mem_reallocate(isc__crypto_mctx, ptr, size, 0, __func__,
+				   file, (unsigned int)line);
 }
 
 static void
@@ -130,7 +130,7 @@ isc__crypto_free_ex(void *ptr, const char *file, int line) {
 		return;
 	}
 	if (isc__crypto_mctx != NULL) {
-		isc__mem_free(isc__crypto_mctx, ptr, 0, file,
+		isc__mem_free(isc__crypto_mctx, ptr, 0, __func__, file,
 			      (unsigned int)line);
 	}
 }
