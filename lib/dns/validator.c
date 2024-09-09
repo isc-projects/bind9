@@ -17,6 +17,7 @@
 #include <isc/async.h>
 #include <isc/base32.h>
 #include <isc/counter.h>
+#include <isc/helper.h>
 #include <isc/job.h>
 #include <isc/log.h>
 #include <isc/md.h>
@@ -127,6 +128,8 @@ static void
 validate_async_done(dns_validator_t *val, isc_result_t result);
 static isc_result_t
 validate_async_run(dns_validator_t *val, isc_job_cb cb);
+static isc_result_t
+validate_helper_run(dns_validator_t *val, isc_job_cb cb);
 
 static void
 validate_dnskey(void *arg);
@@ -356,6 +359,9 @@ trynsec3:
 }
 
 static void
+resume_answer_with_key_done(void *arg);
+
+static void
 resume_answer_with_key(void *arg) {
 	dns_validator_t *val = arg;
 	dns_rdataset_t *rdataset = &val->frdataset;
@@ -364,6 +370,8 @@ resume_answer_with_key(void *arg) {
 	if (result == ISC_R_SUCCESS) {
 		val->keyset = &val->frdataset;
 	}
+
+	(void)validate_async_run(val, resume_answer_with_key_done);
 }
 
 static void
@@ -422,9 +430,8 @@ fetch_callback_dnskey(void *arg) {
 		if (eresult == ISC_R_SUCCESS &&
 		    rdataset->trust >= dns_trust_secure)
 		{
-			isc_work_enqueue(val->loop, resume_answer_with_key,
-					 resume_answer, val);
-			result = DNS_R_WAIT;
+			result = validate_helper_run(val,
+						     resume_answer_with_key);
 		} else {
 			result = validate_async_run(val, resume_answer);
 		}
@@ -598,9 +605,8 @@ validator_callback_dnskey(void *arg) {
 		 * Only extract the dst key if the keyset is secure.
 		 */
 		if (val->frdataset.trust >= dns_trust_secure) {
-			isc_work_enqueue(val->loop, resume_answer_with_key,
-					 resume_answer_with_key_done, val);
-			result = DNS_R_WAIT;
+			result = validate_helper_run(val,
+						     resume_answer_with_key);
 		} else {
 			result = validate_async_run(val, resume_answer);
 		}
@@ -1184,9 +1190,8 @@ seek_dnskey(dns_validator_t *val) {
 				dns_rdataset_disassociate(&val->fsigrdataset);
 			}
 
-			isc_work_enqueue(val->loop, resume_answer_with_key,
-					 resume_answer_with_key_done, val);
-			return (DNS_R_WAIT);
+			return (validate_helper_run(val,
+						    resume_answer_with_key));
 		}
 		break;
 
@@ -1566,6 +1571,9 @@ static void
 validate_answer_finish(void *arg);
 
 static void
+validate_answer_signing_key_done(void *arg);
+
+static void
 validate_answer_signing_key(void *arg) {
 	dns_validator_t *val = arg;
 	isc_result_t result = ISC_R_NOTFOUND;
@@ -1599,6 +1607,8 @@ validate_answer_signing_key(void *arg) {
 	} else {
 		INSIST(val->key == NULL);
 	}
+
+	(void)validate_async_run(val, validate_answer_signing_key_done);
 }
 
 static void
@@ -1609,8 +1619,7 @@ validate_answer_signing_key_done(void *arg) {
 		val->result = ISC_R_CANCELED;
 	} else if (val->key != NULL) {
 		/* Process with next key if we selected one */
-		isc_work_enqueue(val->loop, validate_answer_signing_key,
-				 validate_answer_signing_key_done, val);
+		(void)validate_helper_run(val, validate_answer_signing_key);
 		return;
 	}
 
@@ -1672,8 +1681,7 @@ validate_answer_process(void *arg) {
 		goto next_key;
 	}
 
-	isc_work_enqueue(val->loop, validate_answer_signing_key,
-			 validate_answer_signing_key_done, val);
+	(void)validate_helper_run(val, validate_answer_signing_key);
 	return;
 
 next_key:
@@ -1791,6 +1799,12 @@ validate_answer(void *arg) {
 static isc_result_t
 validate_async_run(dns_validator_t *val, isc_job_cb cb) {
 	isc_async_run(val->loop, cb, val);
+	return (DNS_R_WAIT);
+}
+
+static isc_result_t
+validate_helper_run(dns_validator_t *val, isc_job_cb cb) {
+	isc_helper_run(val->loop, cb, val);
 	return (DNS_R_WAIT);
 }
 
@@ -2029,6 +2043,9 @@ validate_dnskey_dsset(dns_validator_t *val) {
 }
 
 static void
+validate_dnskey_dsset_next_done(void *arg);
+
+static void
 validate_dnskey_dsset_next(void *arg) {
 	dns_validator_t *val = arg;
 
@@ -2042,6 +2059,8 @@ validate_dnskey_dsset_next(void *arg) {
 		/* continue async run */
 		val->result = validate_dnskey_dsset(val);
 	}
+
+	validate_async_run(val, validate_dnskey_dsset_next_done);
 }
 
 static void
@@ -2064,8 +2083,7 @@ validate_dnskey_dsset_next_done(void *arg) {
 		break;
 	default:
 		/* Continue validation until we have success or no more data */
-		isc_work_enqueue(val->loop, validate_dnskey_dsset_next,
-				 validate_dnskey_dsset_next_done, val);
+		(void)validate_helper_run(val, validate_dnskey_dsset_next);
 		return;
 	}
 
@@ -2087,8 +2105,8 @@ validate_dnskey_dsset_first(dns_validator_t *val) {
 		/* continue async run */
 		result = validate_dnskey_dsset(val);
 		if (result != ISC_R_SUCCESS) {
-			isc_work_enqueue(val->loop, validate_dnskey_dsset_next,
-					 validate_dnskey_dsset_next_done, val);
+			(void)validate_helper_run(val,
+						  validate_dnskey_dsset_next);
 			return;
 		}
 	}
@@ -3384,7 +3402,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		.options = options,
 		.keytable = kt,
 		.link = ISC_LINK_INITIALIZER,
-		.loop = loop,
+		.loop = isc_loop_ref(loop),
 		.cb = cb,
 		.arg = arg,
 		.rdata = DNS_RDATA_INIT,
@@ -3481,6 +3499,7 @@ destroy_validator(dns_validator_t *val) {
 		isc_counter_detach(&val->qc);
 	}
 	dns_view_detach(&val->view);
+	isc_loop_detach(&val->loop);
 	isc_mem_put(mctx, val, sizeof(*val));
 }
 
