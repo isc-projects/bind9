@@ -65,8 +65,8 @@ extern unsigned int isc_mem_defaultflags;
 /*@}*/
 
 #if ISC_MEM_TRACKLINES
-#define _ISC_MEM_FILELINE , __FILE__, __LINE__
-#define _ISC_MEM_FLARG	  , const char *, unsigned int
+#define _ISC_MEM_FILELINE , __func__, __FILE__, __LINE__
+#define _ISC_MEM_FLARG	  , const char *, const char *, unsigned int
 #else /* if ISC_MEM_TRACKLINES */
 #define _ISC_MEM_FILELINE
 #define _ISC_MEM_FLARG
