@@ -211,7 +211,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	}
 
 	dns_qp_destroy(&qp);
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 	isc_mem_checkdestroyed(stderr);
 
 	for (size_t i = 0; i < ARRAY_SIZE(item); i++) {

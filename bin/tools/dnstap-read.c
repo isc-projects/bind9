@@ -425,7 +425,7 @@ cleanup:
 	if (message != NULL) {
 		dns_message_detach(&message);
 	}
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 
 	exit(rv);
 }

@@ -47,5 +47,5 @@ isc_managers_destroy(isc_mem_t **mctxp, isc_loopmgr_t **loopmgrp,
 
 	isc_netmgr_destroy(netmgrp);
 	isc_loopmgr_destroy(loopmgrp);
-	isc_mem_destroy(mctxp);
+	isc_mem_detach(mctxp);
 }

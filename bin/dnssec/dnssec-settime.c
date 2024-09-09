@@ -949,7 +949,7 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stdout);
 	}
 	isc_mem_free(mctx, directory);
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 
 	return 0;
 }

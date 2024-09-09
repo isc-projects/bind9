@@ -761,7 +761,7 @@ cleanup:
 	}
 
 	if (mctx != NULL) {
-		isc_mem_destroy(&mctx);
+		isc_mem_detach(&mctx);
 	}
 
 	return result == ISC_R_SUCCESS ? 0 : 1;

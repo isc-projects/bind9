@@ -154,7 +154,7 @@ main(int argc, char **argv) {
 	if (memstats) {
 		isc_mem_stats(mctx, stderr);
 	}
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 
 	fflush(stdout);
 	if (ferror(stdout)) {

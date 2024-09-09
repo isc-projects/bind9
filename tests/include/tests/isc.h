@@ -249,7 +249,7 @@ teardown_managers(void **state);
 			r = cmocka_run_group_tests(tests, setup, teardown);             \
 		}                                                                       \
                                                                                         \
-		isc_mem_destroy(&mctx);                                                 \
+		isc_mem_detach(&mctx);                                                  \
                                                                                         \
 		return (r);                                                             \
 	}

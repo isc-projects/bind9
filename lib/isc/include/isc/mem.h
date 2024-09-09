@@ -272,13 +272,6 @@ isc__mem_detach(isc_mem_t **_ISC_MEM_FLARG);
  */
 /*@}*/
 
-#define isc_mem_destroy(cp) isc__mem_destroy((cp)_ISC_MEM_FILELINE)
-void
-isc__mem_destroy(isc_mem_t **_ISC_MEM_FLARG);
-/*%<
- * Destroy a memory context.
- */
-
 void
 isc_mem_stats(isc_mem_t *mctx, FILE *out);
 /*%<
