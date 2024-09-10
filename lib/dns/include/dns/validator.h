@@ -122,6 +122,7 @@ struct dns_validator {
 	bool secure;
 
 	/* Internal validator state */
+	atomic_bool	   canceling;
 	unsigned int	   attributes;
 	dns_fetch_t	  *fetch;
 	dns_validator_t	  *subvalidator;
