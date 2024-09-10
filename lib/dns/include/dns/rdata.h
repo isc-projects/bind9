@@ -117,10 +117,7 @@ struct dns_rdata {
 	ISC_LINK(dns_rdata_t) link;
 };
 
-#define DNS_RDATA_INIT                                           \
-	{                                                        \
-		NULL, 0, 0, 0, 0, { (void *)(-1), (void *)(-1) } \
-	}
+#define DNS_RDATA_INIT { NULL, 0, 0, 0, 0, { (void *)(-1), (void *)(-1) } }
 
 #define DNS_RDATA_CHECKINITIALIZED
 #ifdef DNS_RDATA_CHECKINITIALIZED
