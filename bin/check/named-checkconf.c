@@ -594,6 +594,7 @@ main(int argc, char **argv) {
 	bool list_zones = false;
 	bool print = false;
 	bool nodeprecate = false;
+	bool allconfigs = false;
 	unsigned int flags = 0;
 	unsigned int checkflags = BIND_CHECK_PLUGINS | BIND_CHECK_ALGORITHMS;
 
@@ -602,7 +603,7 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS "acdhijlm:t:pvxz"
+#define CMDLINE_FLAGS "acdhijlm:nt:pvxz"
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (c) {
 		case 'm':
@@ -654,6 +655,10 @@ main(int argc, char **argv) {
 			break;
 
 		case 'm':
+			break;
+
+		case 'n':
+			allconfigs = true;
 			break;
 
 		case 't':
@@ -728,6 +733,9 @@ main(int argc, char **argv) {
 
 	if (nodeprecate) {
 		cfg_parser_setflags(parser, CFG_PCTX_NODEPRECATED, true);
+	}
+	if (allconfigs) {
+		cfg_parser_setflags(parser, CFG_PCTX_ALLCONFIGS, true);
 	}
 	cfg_parser_setcallback(parser, directory_callback, NULL);
 

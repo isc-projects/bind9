@@ -2341,7 +2341,9 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					 clause->name);
 			CHECK(ISC_R_FAILURE);
 		}
-		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
+		if ((pctx->flags & CFG_PCTX_ALLCONFIGS) == 0 &&
+		    (clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0)
+		{
 			cfg_parser_error(pctx, 0,
 					 "option '%s' was not "
 					 "enabled at compile time",

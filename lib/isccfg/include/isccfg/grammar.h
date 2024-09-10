@@ -261,6 +261,7 @@ struct cfg_parser {
 #define CFG_PCTX_NODEPRECATED	(1 << 1)
 #define CFG_PCTX_NOOBSOLETE	(1 << 2)
 #define CFG_PCTX_NOEXPERIMENTAL (1 << 3)
+#define CFG_PCTX_ALLCONFIGS	(1 << 4)
 
 /*@{*/
 /*%
