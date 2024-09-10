@@ -1125,8 +1125,7 @@ xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
 	if (atomic_compare_exchange_strong(&xfr->shuttingdown, &(bool){ false },
 					   true))
 	{
-		if (result != DNS_R_UPTODATE && result != DNS_R_TOOMANYRECORDS)
-		{
+		if (result != DNS_R_UPTODATE) {
 			xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s", msg,
 				  isc_result_totext(result));
 			if (atomic_load(&xfr->is_ixfr) &&
