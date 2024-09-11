@@ -8375,17 +8375,20 @@ Socket I/O statistics counters are defined per socket type, which are
 a socket type. Not all counters are available for all socket types;
 exceptions are noted in the descriptions.
 
-``<TYPE>Open``
-    This indicates the number of sockets opened successfully.
+``<TYPE>Accept``
+    This indicates the number of incoming connections successfully accepted. This counter does not apply to the ``UDP`` type.
 
-``<TYPE>OpenFail``
-    This indicates the number of failures to open sockets.
-
-``<TYPE>Close``
-    This indicates the number of closed sockets.
+``<TYPE>AcceptFail``
+    This indicates the number of failures to accept incoming connection requests. This counter does not apply to the ``UDP`` type.
 
 ``<TYPE>BindFail``
     This indicates the number of failures to bind sockets.
+
+``<TYPE>Clients``
+    This indicates the number of currently conencted clients. This counter does not apply to the ``UDP`` type.
+
+``<TYPE>Close``
+    This indicates the number of closed sockets.
 
 ``<TYPE>ConnFail``
     This indicates the number of failures to connect sockets.
@@ -8393,14 +8396,14 @@ exceptions are noted in the descriptions.
 ``<TYPE>Conn``
     This indicates the number of connections established successfully.
 
-``<TYPE>AcceptFail``
-    This indicates the number of failures to accept incoming connection requests. This counter does not apply to the ``UDP`` type.
+``<TYPE>Open``
+    This indicates the number of sockets opened successfully.
 
-``<TYPE>Accept``
-    This indicates the number of incoming connections successfully accepted. This counter does not apply to the ``UDP`` type.
-
-``<TYPE>SendErr``
-    This indicates the number of errors in socket send operations.
+``<TYPE>OpenFail``
+    This indicates the number of failures to open sockets.
 
 ``<TYPE>RecvErr``
     This indicates the number of errors in socket receive operations, including errors of send operations on a connected UDP socket, notified by an ICMP error message.
+
+``<TYPE>SendErr``
+    This indicates the number of errors in socket send operations.
