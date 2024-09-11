@@ -22,12 +22,12 @@ section, cannot be the basis for CVE assignment or special security-sensitive
 handling of issues.
 
 Unauthorized access can potentially disclose sensitive data, slow down server
-operation, etc. Unauthorized, unexpected, or incorrect writes to listed objects
-can potentically cause crashes, incorrect data handling, or corruption.
+operation, etc. Unauthorized, unexpected, or incorrect writes to any of the following listed objects
+can potentially cause crashes, incorrect data handling, or corruption:
 
 - All files stored on disk - including zone files, configuration files, key
   files, temporary files, etc.
-- Clients communicating via :any:`controls` socket using configured keys
+- Clients communicating via the :any:`controls` socket using configured keys
 - Access to :any:`statistics-channels` from untrusted clients
 - Sockets used for :any:`update-policy` type `external`
 
