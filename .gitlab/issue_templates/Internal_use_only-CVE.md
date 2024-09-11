@@ -12,12 +12,14 @@ confidential!
 | Deputy Incident Manager: | @user                                |
 | Public Disclosure Date:  | YYYY-MM-DD                           |
 | CVSS Score:              | [0.0][cvss_score]                    |
+| CWE:                     | [CWE-NNN][cwe_category]
 | Security Advisory:       | isc-private/printing-press!NNN       |
 | Mattermost Channel:      | [CVE-YYYY-NNNN][mattermost_url]      |
 | Support Ticket:          | [URL]                                |
 | Release Checklist:       | #NNNN                                |
 
 [cvss_score]: https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:X/AC:X/PR:X/UI:X/S:X/C:X/I:X/A:X&version=3.1
+[cwe_category]: https://cwe.mitre.org/data/definitions/NNN.html
 [mattermost_url]:
 
 :bulb: **Click [here][checklist_explanations] (internal resource) for general information about the security incident handling process.**
@@ -30,7 +32,7 @@ confidential!
   - [ ] [:link:][step_respond]           **(IM)** Respond to the bug reporter
   - [ ] [:link:][step_public_mrs]        **(SwEng)** Ensure there are no public merge requests which inadvertently disclose the issue
   - [ ] [:link:][step_assign_cve_id]     **(IM)** Assign a CVE identifier
-  - [ ] [:link:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier and the CVSS score
+  - [ ] [:link:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier, the CVSS score, and CWE category
   - [ ] [:link:][step_versions_affected] **(SwEng)** Determine the range of product versions affected (including the Subscription Edition)
   - [ ] [:link:][step_workarounds]       **(SwEng)** Determine whether workarounds for the problem exist
   - [ ] [:link:][step_coordinate]        **(SwEng)** If necessary, coordinate with other parties
@@ -84,7 +86,7 @@ confidential!
 [step_respond]:           https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#respond-to-the-bug-reporter
 [step_public_mrs]:        https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#ensure-there-are-no-public-merge-requests-which-inadvertently-disclose-the-issue
 [step_assign_cve_id]:     https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#assign-a-cve-identifier
-[step_note_cve_info]:     https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#update-this-issue-with-the-assigned-cve-identifier-and-the-cvss-score
+[step_note_cve_info]:     https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#update-this-issue-with-the-assigned-cve-identifier-the-cvss-score-and-the-cwe-category
 [step_versions_affected]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#determine-the-range-of-product-versions-affected-including-the-subscription-edition
 [step_workarounds]:       https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#determine-whether-workarounds-for-the-problem-exist
 [step_coordinate]:        https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#if-necessary-coordinate-with-other-parties
