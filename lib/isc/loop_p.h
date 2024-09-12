@@ -110,6 +110,7 @@ struct isc_loopmgr {
 
 	/* per-thread objects */
 	isc_loop_t *loops;
+	isc_loop_t *helpers;
 };
 
 /*

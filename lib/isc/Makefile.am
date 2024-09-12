@@ -31,6 +31,7 @@ libisc_la_HEADERS =			\
 	include/isc/hash.h		\
 	include/isc/hashmap.h		\
 	include/isc/heap.h		\
+	include/isc/helper.h		\
 	include/isc/hex.h		\
 	include/isc/histo.h		\
 	include/isc/hmac.h		\
@@ -135,6 +136,7 @@ libisc_la_SOURCES =		\
 	hash.c			\
 	hashmap.c		\
 	heap.c			\
+	helper.c		\
 	hex.c			\
 	histo.c			\
 	hmac.c			\
