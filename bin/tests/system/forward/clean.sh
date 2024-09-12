@@ -14,6 +14,7 @@
 #
 # Clean up after forward tests.
 #
+rm -f ./statschannel.out.*
 rm -f ./dig.out.*
 rm -f ./*/named.conf
 rm -f ./*/named.memstats
