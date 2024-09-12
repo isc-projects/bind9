@@ -1593,7 +1593,7 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR addr_buf));
 	} else if (is_presoa) {
-		addr = dns_zone_getsourceaddr(zone);
+		dns_zone_getsourceaddr(zone, &addr);
 		isc_sockaddr_format(&addr, addr_buf, sizeof(addr_buf));
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR addr_buf));
 	} else {
@@ -2653,7 +2653,7 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 		json_object_object_add(xfrinobj, "localaddr",
 				       json_object_new_string(addr_buf));
 	} else if (is_presoa) {
-		addr = dns_zone_getsourceaddr(zone);
+		dns_zone_getsourceaddr(zone, &addr);
 		isc_sockaddr_format(&addr, addr_buf, sizeof(addr_buf));
 		json_object_object_add(xfrinobj, "localaddr",
 				       json_object_new_string(addr_buf));
