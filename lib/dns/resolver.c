@@ -3417,7 +3417,7 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 	bool all_bad;
 	dns_rdata_ns_t ns;
 	bool need_alternate = false;
-	bool all_spilled = true;
+	bool all_spilled = false;
 	unsigned int no_addresses = 0;
 	unsigned int ns_processed = 0;
 
@@ -3586,6 +3586,7 @@ normal_nses:
 	}
 
 	now = isc_stdtime_now();
+	all_spilled = true; /* resets to false below after the first success */
 
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
 	INSIST(ISC_LIST_EMPTY(fctx->altfinds));
