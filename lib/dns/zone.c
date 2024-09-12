@@ -5998,106 +5998,123 @@ dns_zone_getkeyopts(dns_zone_t *zone) {
 	return atomic_load_relaxed(&zone->keyopts);
 }
 
-isc_result_t
+void
 dns_zone_setxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(xfrsource != NULL);
 
 	LOCK_ZONE(zone);
 	zone->xfrsource4 = *xfrsource;
 	UNLOCK_ZONE(zone);
-
-	return ISC_R_SUCCESS;
 }
 
-isc_sockaddr_t *
-dns_zone_getxfrsource4(dns_zone_t *zone) {
+void
+dns_zone_getxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return &zone->xfrsource4;
+	REQUIRE(xfrsource != NULL);
+
+	LOCK_ZONE(zone);
+	*xfrsource = zone->xfrsource4;
+	UNLOCK_ZONE(zone);
 }
 
-isc_result_t
+void
 dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(xfrsource != NULL);
 
 	LOCK_ZONE(zone);
 	zone->xfrsource6 = *xfrsource;
 	UNLOCK_ZONE(zone);
-
-	return ISC_R_SUCCESS;
 }
 
-isc_sockaddr_t *
-dns_zone_getxfrsource6(dns_zone_t *zone) {
+void
+dns_zone_getxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return &zone->xfrsource6;
+	REQUIRE(xfrsource != NULL);
+
+	LOCK_ZONE(zone);
+	*xfrsource = zone->xfrsource6;
+	UNLOCK_ZONE(zone);
 }
 
-isc_result_t
+void
 dns_zone_setparentalsrc4(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(parentalsrc != NULL);
 
 	LOCK_ZONE(zone);
 	zone->parentalsrc4 = *parentalsrc;
 	UNLOCK_ZONE(zone);
-
-	return ISC_R_SUCCESS;
 }
 
-isc_sockaddr_t *
-dns_zone_getparentalsrc4(dns_zone_t *zone) {
+void
+dns_zone_getparentalsrc4(dns_zone_t *zone, isc_sockaddr_t *parentalsrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return &zone->parentalsrc4;
+	REQUIRE(parentalsrc != NULL);
+
+	LOCK_ZONE(zone);
+	*parentalsrc = zone->parentalsrc4;
+	UNLOCK_ZONE(zone);
 }
 
-isc_result_t
+void
 dns_zone_setparentalsrc6(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
 	zone->parentalsrc6 = *parentalsrc;
 	UNLOCK_ZONE(zone);
-
-	return ISC_R_SUCCESS;
 }
 
-isc_sockaddr_t *
-dns_zone_getparentalsrc6(dns_zone_t *zone) {
+void
+dns_zone_getparentalsrc6(dns_zone_t *zone, isc_sockaddr_t *parentalsrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return &zone->parentalsrc6;
+	REQUIRE(parentalsrc != NULL);
+
+	LOCK_ZONE(zone);
+	*parentalsrc = zone->parentalsrc6;
+	UNLOCK_ZONE(zone);
 }
 
-isc_result_t
+void
 dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(notifysrc != NULL);
 
 	LOCK_ZONE(zone);
 	zone->notifysrc4 = *notifysrc;
 	UNLOCK_ZONE(zone);
-
-	return ISC_R_SUCCESS;
 }
 
-isc_sockaddr_t *
-dns_zone_getnotifysrc4(dns_zone_t *zone) {
+void
+dns_zone_getnotifysrc4(dns_zone_t *zone, isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return &zone->notifysrc4;
+	REQUIRE(notifysrc != NULL);
+
+	LOCK_ZONE(zone);
+	*notifysrc = zone->notifysrc4;
+	UNLOCK_ZONE(zone);
 }
 
-isc_result_t
+void
 dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(notifysrc != NULL);
 
 	LOCK_ZONE(zone);
 	zone->notifysrc6 = *notifysrc;
 	UNLOCK_ZONE(zone);
-
-	return ISC_R_SUCCESS;
 }
 
-isc_sockaddr_t *
-dns_zone_getnotifysrc6(dns_zone_t *zone) {
+void
+dns_zone_getnotifysrc6(dns_zone_t *zone, isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return &zone->notifysrc6;
+	REQUIRE(notifysrc != NULL);
+
+	LOCK_ZONE(zone);
+	*notifysrc = zone->notifysrc6;
+	UNLOCK_ZONE(zone);
 }
 
 void
@@ -18371,31 +18388,28 @@ dns_zone_getsigresigninginterval(dns_zone_t *zone) {
 	return zone->sigresigninginterval;
 }
 
-isc_sockaddr_t
-dns_zone_getsourceaddr(dns_zone_t *zone) {
-	isc_sockaddr_t sourceaddr;
-
+void
+dns_zone_getsourceaddr(dns_zone_t *zone, isc_sockaddr_t *sourceaddr) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(sourceaddr != NULL);
 
 	LOCK_ZONE(zone);
 	INSIST(dns_remote_count(&zone->primaries) > 0);
-	sourceaddr = zone->sourceaddr;
+	*sourceaddr = zone->sourceaddr;
 	UNLOCK_ZONE(zone);
-
-	return sourceaddr;
 }
 
 isc_result_t
-dns_zone_getprimaryaddr(dns_zone_t *zone, isc_sockaddr_t *dest) {
+dns_zone_getprimaryaddr(dns_zone_t *zone, isc_sockaddr_t *primaryaddr) {
 	isc_result_t result = ISC_R_NOMORE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(dest != NULL);
+	REQUIRE(primaryaddr != NULL);
 
 	LOCK_ZONE(zone);
 	INSIST(dns_remote_count(&zone->primaries) > 0);
 	if (!dns_remote_done(&zone->primaries)) {
-		*dest = dns_remote_curraddr(&zone->primaries);
+		*primaryaddr = dns_remote_curraddr(&zone->primaries);
 		result = ISC_R_SUCCESS;
 	}
 	UNLOCK_ZONE(zone);
