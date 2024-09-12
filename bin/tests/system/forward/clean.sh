@@ -19,6 +19,7 @@ rm -f ./*/named.memstats
 rm -f ./*/named.run ./*/named.run.prev ./*/ans.run
 rm -f ./*/named_dump.db
 rm -f ./ans*/query.log
+rm -f ./statschannel.out.*
 rm -f ./dig.out.*
 rm -f ./ns*/managed-keys.bind*
 rm -f ./ns*/trusted.conf
