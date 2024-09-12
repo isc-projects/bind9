@@ -3254,6 +3254,7 @@ dns_message_checksig_async(dns_message_t *msg, dns_view_t *view,
 	dns_message_attach(msg, &chsigctx->msg);
 	dns_view_attach(view, &chsigctx->view);
 
+	dns_message_clonebuffer(msg);
 	isc_work_enqueue(loop, checksig_run, checksig_cb, chsigctx);
 
 	return (DNS_R_WAIT);
