@@ -472,6 +472,8 @@ init_desc(void) {
 			"ClientQuota");
 	SET_RESSTATDESC(nextitem, "waited for next item", "NextItem");
 	SET_RESSTATDESC(priming, "priming queries", "Priming");
+	SET_RESSTATDESC(forwardonlyfail, "all forwarders failed",
+			"ForwardOnlyFail");
 
 	INSIST(i == dns_resstatscounter_max);
 
