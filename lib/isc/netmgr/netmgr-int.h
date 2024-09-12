@@ -1332,12 +1332,6 @@ isc__nm_socket_reuse_lb(uv_os_sock_t fd);
  */
 
 isc_result_t
-isc__nm_socket_incoming_cpu(uv_os_sock_t fd);
-/*%<
- * Set the SO_INCOMING_CPU socket option on the fd if available
- */
-
-isc_result_t
 isc__nm_socket_disable_pmtud(uv_os_sock_t fd, sa_family_t sa_family);
 /*%<
  * Disable the Path MTU Discovery, either by disabling IP(V6)_DONTFRAG socket
