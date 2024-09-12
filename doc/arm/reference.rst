@@ -8236,6 +8236,9 @@ Resolver Statistics Counters
 ``ClientQuota``
     This indicates the number of queries spilled for exceeding the :any:`clients-per-query` quota.
 
+``ForwardOnlyFail``
+    This indicates the number of queries failed due to bad forwarders for ``forward only`` zones.
+
 ``NextItem``
     This indicates the number of times the server waited for the next item after receiving an invalid response.
 
