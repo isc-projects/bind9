@@ -1628,7 +1628,7 @@ shotgun:tcp:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: tcp
-    SHOTGUN_TRAFFIC_MULTIPLIER: 6
+    SHOTGUN_TRAFFIC_MULTIPLIER: 13
   when: delayed
   start_in: 5 minutes
 
@@ -1636,7 +1636,7 @@ shotgun:dot:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: dot
-    SHOTGUN_TRAFFIC_MULTIPLIER: 3
+    SHOTGUN_TRAFFIC_MULTIPLIER: 6
   when: delayed
   start_in: 5 minutes
 
