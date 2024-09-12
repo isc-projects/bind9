@@ -3576,16 +3576,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (obj != NULL) {
 			in_port_t port =
 				isc_sockaddr_getport(cfg_obj_assockaddr(obj));
-			if (port == dnsport) {
+			if (port != 0) {
 				cfg_obj_log(obj, ISC_LOG_ERROR,
-					    "'%s' cannot specify the "
-					    "DNS listener port (%d)",
-					    sources[i], port);
-				result = ISC_R_FAILURE;
-			} else if (port != 0) {
-				cfg_obj_log(obj, ISC_LOG_WARNING,
 					    "'%s': specifying a port is "
-					    "not recommended",
+					    "deprecated",
 					    sources[i]);
 			}
 		}

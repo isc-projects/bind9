@@ -40,5 +40,5 @@ zone "example" {
 zone "notify-source-port-test" {
 	type primary;
 	file "notify-source-port-test.db";
-	notify-source 10.53.0.3 port @EXTRAPORT2@;
+	notify-source 10.53.0.3;
 };

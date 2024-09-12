@@ -1109,92 +1109,6 @@ doc_serverid(cfg_printer_t *pctx, const cfg_type_t *type) {
 static cfg_type_t cfg_type_serverid = { "serverid",   parse_serverid, NULL,
 					doc_serverid, NULL,	      NULL };
 
-/*%
- * Port list.
- */
-static void
-print_porttuple(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	cfg_print_cstr(pctx, "range ");
-	cfg_print_tuple(pctx, obj);
-}
-static cfg_tuplefielddef_t porttuple_fields[] = {
-	{ "loport", &cfg_type_uint32, 0 },
-	{ "hiport", &cfg_type_uint32, 0 },
-	{ NULL, NULL, 0 }
-};
-static cfg_type_t cfg_type_porttuple = { "porttuple",	  cfg_parse_tuple,
-					 print_porttuple, cfg_doc_tuple,
-					 &cfg_rep_tuple,  porttuple_fields };
-
-static isc_result_t
-parse_port(cfg_parser_t *pctx, cfg_obj_t **ret) {
-	isc_result_t result;
-
-	CHECK(cfg_parse_uint32(pctx, NULL, ret));
-	if ((*ret)->value.uint32 > 0xffff) {
-		cfg_parser_error(pctx, CFG_LOG_NEAR, "invalid port");
-		cfg_obj_destroy(pctx, ret);
-		result = ISC_R_RANGE;
-	}
-
-cleanup:
-	return (result);
-}
-
-static isc_result_t
-parse_portrange(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	isc_result_t result;
-	cfg_obj_t *obj = NULL;
-
-	UNUSED(type);
-
-	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER));
-	if (pctx->token.type == isc_tokentype_number) {
-		CHECK(parse_port(pctx, ret));
-	} else {
-		CHECK(cfg_gettoken(pctx, 0));
-		if (pctx->token.type != isc_tokentype_string ||
-		    strcasecmp(TOKEN_STRING(pctx), "range") != 0)
-		{
-			cfg_parser_error(pctx, CFG_LOG_NEAR,
-					 "expected integer or 'range'");
-			return (ISC_R_UNEXPECTEDTOKEN);
-		}
-		CHECK(cfg_create_tuple(pctx, &cfg_type_porttuple, &obj));
-		CHECK(parse_port(pctx, &obj->value.tuple[0]));
-		CHECK(parse_port(pctx, &obj->value.tuple[1]));
-		if (obj->value.tuple[0]->value.uint32 >
-		    obj->value.tuple[1]->value.uint32)
-		{
-			cfg_parser_error(pctx, CFG_LOG_NOPREP,
-					 "low port '%u' must not be larger "
-					 "than high port",
-					 obj->value.tuple[0]->value.uint32);
-			result = ISC_R_RANGE;
-			goto cleanup;
-		}
-		*ret = obj;
-		obj = NULL;
-	}
-
-cleanup:
-	if (obj != NULL) {
-		cfg_obj_destroy(pctx, &obj);
-	}
-	return (result);
-}
-
-static cfg_type_t cfg_type_portrange = { "portrange", parse_portrange,
-					 NULL,	      cfg_doc_terminal,
-					 NULL,	      NULL };
-
-static cfg_type_t cfg_type_bracketed_portlist = { "bracketed_portlist",
-						  cfg_parse_bracketed_list,
-						  cfg_print_bracketed_list,
-						  cfg_doc_bracketed_list,
-						  &cfg_rep_list,
-						  &cfg_type_portrange };
-
 static const char *cookiealg_enums[] = { "siphash24", NULL };
 static cfg_type_t cfg_type_cookiealg = { "cookiealg",	    cfg_parse_enum,
 					 cfg_print_ustring, cfg_doc_enum,
@@ -1314,10 +1228,8 @@ static cfg_type_t cfg_type_fstrm_model = {
 static cfg_clausedef_t options_clauses[] = {
 	{ "answer-cookie", &cfg_type_boolean, 0 },
 	{ "automatic-interface-scan", &cfg_type_boolean, 0 },
-	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist,
-	  CFG_CLAUSEFLAG_DEPRECATED },
-	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist,
-	  CFG_CLAUSEFLAG_DEPRECATED },
+	{ "avoid-v4-udp-ports", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "avoid-v6-udp-ports", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "bindkeys-file", &cfg_type_qstring, CFG_CLAUSEFLAG_TESTONLY },
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "cookie-algorithm", &cfg_type_cookiealg, 0 },
@@ -1456,10 +1368,8 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "update-quota", &cfg_type_uint32, 0 },
 	{ "use-id-pool", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "use-ixfr", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "use-v4-udp-ports", &cfg_type_bracketed_portlist,
-	  CFG_CLAUSEFLAG_DEPRECATED },
-	{ "use-v6-udp-ports", &cfg_type_bracketed_portlist,
-	  CFG_CLAUSEFLAG_DEPRECATED },
+	{ "use-v4-udp-ports", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "use-v6-udp-ports", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "version", &cfg_type_qstringornone, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -2389,10 +2299,10 @@ static cfg_clausedef_t zone_clauses[] = {
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR },
 	{ "also-notify", &cfg_type_namesockaddrkeylist,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR },
-	{ "alt-transfer-source", &cfg_type_sockaddr4wild,
+	{ "alt-transfer-source", NULL,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_CLAUSEFLAG_ANCIENT },
-	{ "alt-transfer-source-v6", &cfg_type_sockaddr6wild,
+	{ "alt-transfer-source-v6", NULL,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "auto-dnssec", &cfg_type_autodnssec,
@@ -2509,7 +2419,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR },
 	{ "update-check-ksk", &cfg_type_boolean,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_OBSOLETE },
-	{ "use-alt-transfer-source", &cfg_type_boolean,
+	{ "use-alt-transfer-source", NULL,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "zero-no-soa-ttl", &cfg_type_boolean,
@@ -3070,6 +2980,7 @@ parse_maybe_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
 			goto cleanup;
 		}
 	}
+
 	*ret = obj;
 cleanup:
 	return (result);
@@ -3365,17 +3276,8 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 				have_address++;
 			} else if (strcasecmp(TOKEN_STRING(pctx), "port") == 0)
 			{
-				/* read "port" */
-				if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0)
-				{
-					cfg_parser_warning(
-						pctx, 0,
-						"token 'port' is deprecated");
-				}
-				CHECK(cfg_gettoken(pctx, 0));
-				CHECK(cfg_parse_rawport(pctx, CFG_ADDR_WILDOK,
-							&port));
-				have_port++;
+				/* Port has been removed */
+				++have_port;
 			} else if (strcasecmp(TOKEN_STRING(pctx), "tls") == 0) {
 				/* We do not expect TLS here, not parsing. */
 				++have_tls;
@@ -3394,14 +3296,18 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		}
 	}
 
-	if (have_address > 1 || have_port > 1 || have_address + have_port == 0)
-	{
-		cfg_parser_error(pctx, 0, "expected one address and/or port");
+	if (have_address != 1) {
+		cfg_parser_error(pctx, 0, "expected exactly one address");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 
 	if (have_tls > 0) {
 		cfg_parser_error(pctx, 0, "unexpected tls");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+
+	if (have_port > 0) {
+		cfg_parser_error(pctx, 0, "subconfig 'port' no longer exists");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 
@@ -3422,8 +3328,6 @@ print_querysource(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	isc_netaddr_fromsockaddr(&na, &obj->value.sockaddr);
 	cfg_print_cstr(pctx, "address ");
 	cfg_print_rawaddr(pctx, &na);
-	cfg_print_cstr(pctx, " port ");
-	cfg_print_rawuint(pctx, isc_sockaddr_getport(&obj->value.sockaddr));
 }
 
 static void

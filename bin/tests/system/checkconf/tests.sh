@@ -141,6 +141,20 @@ grep "no longer exists" ancient.out >/dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+for ancient_conf in ancient-*.conf; do
+  ancient_opt="${ancient_conf#ancient-}"
+  ancient_opt="${ancient_opt%.conf}"
+
+  n=$((n + 1))
+  echo_i "checking that ancient \"${ancient_opt}\" option report a fatal error ($n)"
+  ret=0
+
+  $CHECKCONF ${ancient_conf} >"${ancient_conf}.out" 2>&1 && ret=1
+  grep "no longer exists" "${ancient_conf}.out" >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+done
+
 n=$((n + 1))
 echo_i "checking that named-checkconf -z catches missing hint file ($n)"
 ret=0
@@ -178,13 +192,8 @@ $CHECKCONF deprecated.conf >checkconf.out$n.1 2>&1 || ret=1
 grep "option 'managed-keys' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'trusted-keys' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'max-zone-ttl' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
-grep "option 'use-v4-udp-ports' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
-grep "option 'use-v6-udp-ports' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
-grep "option 'avoid-v4-udp-ports' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
-grep "option 'avoid-v6-udp-ports' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'dnssec-must-be-secure' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'sortlist' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
-grep "token 'port' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 if $test_fixed; then
   grep "rrset-order: order 'fixed' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 else
@@ -493,17 +502,6 @@ fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "check that named-checkconf -p properly print a port range ($n)"
-ret=0
-$CHECKCONF -p portrange-good.conf >checkconf.out$n 2>&1 || ret=1
-grep "range 8610 8614;" <checkconf.out$n >/dev/null || ret=1
-if [ $ret -ne 0 ]; then
-  echo_i "failed"
-  ret=1
-fi
-status=$((status + ret))
-
-n=$((n + 1))
 echo_i "check that named-checkconf -z handles in-view ($n)"
 ret=0
 $CHECKCONF -z in-view-good.conf >checkconf.out$n 2>&1 || ret=1
@@ -746,21 +744,6 @@ echo_i "check that max-ixfr-ratio 100% generates a warning ($n)"
 ret=0
 $CHECKCONF warn-maxratio1.conf >checkconf.out$n 2>/dev/null || ret=1
 grep "exceeds 100%" <checkconf.out$n >/dev/null || ret=1
-if [ $ret -ne 0 ]; then
-  echo_i "failed"
-  ret=1
-fi
-status=$((status + ret))
-
-n=$((n + 1))
-echo_i "check that *-source options with specified port generate warnings ($n)"
-ret=0
-$CHECKCONF warn-transfer-source.conf >checkconf.out$n 2>/dev/null || ret=1
-grep "not recommended" <checkconf.out$n >/dev/null || ret=1
-$CHECKCONF warn-notify-source.conf >checkconf.out$n 2>/dev/null || ret=1
-grep "not recommended" <checkconf.out$n >/dev/null || ret=1
-$CHECKCONF warn-parental-source.conf >checkconf.out$n 2>/dev/null || ret=1
-grep "not recommended" <checkconf.out$n >/dev/null || ret=1
 if [ $ret -ne 0 ]; then
   echo_i "failed"
   ret=1

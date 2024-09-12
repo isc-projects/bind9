@@ -3272,6 +3272,8 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 	cfg_obj_t *obj = NULL;
 	int have_port = 0;
 	int have_tls = 0;
+	int is_port_ok = (flags & CFG_ADDR_PORTOK) != 0;
+	int is_tls_ok = (flags & CFG_ADDR_TLSOK) != 0;
 
 	CHECK(cfg_create_obj(pctx, type, &obj));
 	CHECK(cfg_parse_rawaddr(pctx, flags, &netaddr));
@@ -3280,18 +3282,10 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
 			if (strcasecmp(TOKEN_STRING(pctx), "port") == 0) {
-				if ((pctx->flags & CFG_PCTX_NODEPRECATED) ==
-					    0 &&
-				    (flags & CFG_ADDR_PORTOK) == 0)
-				{
-					cfg_parser_warning(
-						pctx, 0,
-						"token 'port' is deprecated");
-				}
 				CHECK(cfg_gettoken(pctx, 0)); /* read "port" */
 				CHECK(cfg_parse_rawport(pctx, flags, &port));
 				++have_port;
-			} else if ((flags & CFG_ADDR_TLSOK) != 0 &&
+			} else if (is_tls_ok &&
 				   strcasecmp(TOKEN_STRING(pctx), "tls") == 0)
 			{
 				cfg_obj_t *tls = NULL;
@@ -3310,6 +3304,11 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 		}
 	}
 
+	if (!is_port_ok && have_port > 0) {
+		cfg_parser_error(pctx, 0, "subconfig 'port' no longer exists");
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
 	if (have_port > 1) {
 		cfg_parser_error(pctx, 0, "expected at most one port");
 		result = ISC_R_UNEXPECTEDTOKEN;
@@ -3330,6 +3329,21 @@ cleanup:
 	return (result);
 }
 
+static isc_result_t
+cfg_parse_sockaddr_generic(cfg_parser_t *pctx, cfg_type_t *klass,
+			   const cfg_type_t *type, cfg_obj_t **ret) {
+	const unsigned int *flagp;
+
+	REQUIRE(pctx != NULL);
+	REQUIRE(klass != NULL);
+	REQUIRE(type != NULL);
+	REQUIRE(ret != NULL && *ret == NULL);
+
+	flagp = type->of;
+
+	return (parse_sockaddrsub(pctx, klass, *flagp, ret));
+}
+
 static unsigned int sockaddr_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK |
 				     CFG_ADDR_PORTOK;
 cfg_type_t cfg_type_sockaddr = { "sockaddr",	     cfg_parse_sockaddr,
@@ -3342,32 +3356,31 @@ cfg_type_t cfg_type_sockaddrtls = { "sockaddrtls",	  cfg_parse_sockaddrtls,
 				    cfg_print_sockaddr,	  cfg_doc_sockaddr,
 				    &cfg_rep_sockaddrtls, &sockaddrtls_flags };
 
+static unsigned int sockaddr_flags_noport = CFG_ADDR_V4OK | CFG_ADDR_V6OK;
+cfg_type_t cfg_type_sockaddr_noport = {
+	"sockaddr",	  cfg_parse_sockaddr, cfg_print_sockaddr,
+	cfg_doc_sockaddr, &cfg_rep_sockaddr,  &sockaddr_flags_noport
+};
+
+static unsigned int sockaddrtls_flags_noport = CFG_ADDR_V4OK | CFG_ADDR_V6OK |
+					       CFG_ADDR_TLSOK;
+cfg_type_t cfg_type_sockaddrtls_noport = {
+	"sockaddrtls",	  cfg_parse_sockaddrtls, cfg_print_sockaddr,
+	cfg_doc_sockaddr, &cfg_rep_sockaddrtls,	 &sockaddrtls_flags_noport
+};
+
 isc_result_t
 cfg_parse_sockaddr(cfg_parser_t *pctx, const cfg_type_t *type,
 		   cfg_obj_t **ret) {
-	const unsigned int *flagp;
-
-	REQUIRE(pctx != NULL);
-	REQUIRE(type != NULL);
-	REQUIRE(ret != NULL && *ret == NULL);
-
-	flagp = type->of;
-
-	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr, *flagp, ret));
+	return (cfg_parse_sockaddr_generic(pctx, &cfg_type_sockaddr, type,
+					   ret));
 }
 
 isc_result_t
 cfg_parse_sockaddrtls(cfg_parser_t *pctx, const cfg_type_t *type,
 		      cfg_obj_t **ret) {
-	const unsigned int *flagp;
-
-	REQUIRE(pctx != NULL);
-	REQUIRE(type != NULL);
-	REQUIRE(ret != NULL && *ret == NULL);
-
-	flagp = type->of;
-
-	return (parse_sockaddrsub(pctx, &cfg_type_sockaddrtls, *flagp, ret));
+	return (cfg_parse_sockaddr_generic(pctx, &cfg_type_sockaddrtls, type,
+					   ret));
 }
 
 void
