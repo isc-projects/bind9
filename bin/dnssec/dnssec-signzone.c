@@ -140,10 +140,10 @@ static dns_masterformat_t inputformat = dns_masterformat_text;
 static dns_masterformat_t outputformat = dns_masterformat_text;
 static uint32_t rawversion = 1, serialnum = 0;
 static bool snset = false;
-static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
-static unsigned int nverified = 0, nverifyfailed = 0;
+static atomic_uint_fast32_t nsigned = 0, nretained = 0, ndropped = 0;
+static atomic_uint_fast32_t nverified = 0, nverifyfailed = 0;
 static const char *directory = NULL, *dsdir = NULL;
-static isc_mutex_t namelock, statslock;
+static isc_mutex_t namelock;
 static isc_nm_t *netmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
 static dns_db_t *gdb;		  /* The database */
@@ -182,11 +182,9 @@ static dns_ttl_t maxttl = 0;
 static bool no_max_check = false;
 static const char *sync_records = "cdnskey,cds:sha-256";
 
-#define INCSTAT(counter)            \
-	if (printstats) {           \
-		LOCK(&statslock);   \
-		counter++;          \
-		UNLOCK(&statslock); \
+#define INCSTAT(counter)                               \
+	if (printstats) {                              \
+		atomic_fetch_add_relaxed(&counter, 1); \
 	}
 
 /*%
@@ -3309,21 +3307,24 @@ print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
 	uint64_t sig_ms;  /* Signatures per millisecond */
 	FILE *out = output_stdout ? stderr : stdout;
 
-	fprintf(out, "Signatures generated:               %10u\n", nsigned);
-	fprintf(out, "Signatures retained:                %10u\n", nretained);
-	fprintf(out, "Signatures dropped:                 %10u\n", ndropped);
-	fprintf(out, "Signatures successfully verified:   %10u\n", nverified);
-	fprintf(out,
-		"Signatures unsuccessfully "
-		"verified: %10u\n",
-		nverifyfailed);
+	fprintf(out, "Signatures generated:               %10" PRIuFAST32 "\n",
+		atomic_load(&nsigned));
+	fprintf(out, "Signatures retained:                %10" PRIuFAST32 "\n",
+		atomic_load(&nretained));
+	fprintf(out, "Signatures dropped:                 %10" PRIuFAST32 "\n",
+		atomic_load(&ndropped));
+	fprintf(out, "Signatures successfully verified:   %10" PRIuFAST32 "\n",
+		atomic_load(&nverified));
+	fprintf(out, "Signatures unsuccessfully verified: %10" PRIuFAST32 "\n",
+		atomic_load(&nverifyfailed));
 
 	time_us = isc_time_microdiff(sign_finish, sign_start);
 	time_ms = time_us / 1000;
 	fprintf(out, "Signing time in seconds:           %7u.%03u\n",
 		(unsigned int)(time_ms / 1000), (unsigned int)(time_ms % 1000));
 	if (time_us > 0) {
-		sig_ms = ((uint64_t)nsigned * 1000000000) / time_us;
+		sig_ms = ((uint64_t)atomic_load(&nsigned) * 1000000000) /
+			 time_us;
 		fprintf(out, "Signatures per second:             %7u.%03u\n",
 			(unsigned int)sig_ms / 1000,
 			(unsigned int)sig_ms % 1000);
@@ -4026,10 +4027,6 @@ main(int argc, char *argv[]) {
 
 	isc_mutex_init(&namelock);
 
-	if (printstats) {
-		isc_mutex_init(&statslock);
-	}
-
 	presign();
 	sign_start = isc_time_now();
 	signapex();
@@ -4134,7 +4131,6 @@ main(int argc, char *argv[]) {
 		timer_finish = isc_time_now();
 		print_stats(&timer_start, &timer_finish, &sign_start,
 			    &sign_finish);
-		isc_mutex_destroy(&statslock);
 	}
 	isc_mutex_destroy(&namelock);
 
