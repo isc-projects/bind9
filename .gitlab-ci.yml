@@ -18,8 +18,8 @@ variables:
   TEST_PARALLEL_JOBS: 4
 
   CONFIGURE: ./configure
-  CLANG: clang-17
-  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-17/bin/llvm-symbolizer
+  CLANG: clang-19
+  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-19/bin/llvm-symbolizer
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra
 
