@@ -49,7 +49,6 @@
 #include <dns/masterdump.h>
 #include <dns/nsec.h>
 #include <dns/qp.h>
-#include <dns/rbt.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
@@ -113,11 +112,10 @@
 #define ACTIVE(header, now) \
 	(((header)->ttl > (now)) || ((header)->ttl == (now) && ZEROTTL(header)))
 
-#define EXPIREDOK(rbtiterator) \
-	(((rbtiterator)->common.options & DNS_DB_EXPIREDOK) != 0)
+#define EXPIREDOK(iterator) \
+	(((iterator)->common.options & DNS_DB_EXPIREDOK) != 0)
 
-#define STALEOK(rbtiterator) \
-	(((rbtiterator)->common.options & DNS_DB_STALEOK) != 0)
+#define STALEOK(iterator) (((iterator)->common.options & DNS_DB_STALEOK) != 0)
 
 #define KEEPSTALE(qpdb) ((qpdb)->common.serve_stale_ttl > 0)
 
@@ -161,7 +159,6 @@
 
 /*%
  * This is the structure that is used for each node in the qp trie of trees.
- * For now it is a copy of the dns_rbtnode structure.
  */
 typedef struct qpcnode qpcnode_t;
 struct qpcnode {
@@ -3768,20 +3765,19 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 
 static void
 rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
-	qpc_rditer_t *rbtiterator = NULL;
+	qpc_rditer_t *iterator = NULL;
 
-	rbtiterator = (qpc_rditer_t *)(*iteratorp);
+	iterator = (qpc_rditer_t *)(*iteratorp);
 
-	dns__db_detachnode(rbtiterator->common.db,
-			   &rbtiterator->common.node DNS__DB_FLARG_PASS);
-	isc_mem_put(rbtiterator->common.db->mctx, rbtiterator,
-		    sizeof(*rbtiterator));
+	dns__db_detachnode(iterator->common.db,
+			   &iterator->common.node DNS__DB_FLARG_PASS);
+	isc_mem_put(iterator->common.db->mctx, iterator, sizeof(*iterator));
 
 	*iteratorp = NULL;
 }
 
 static bool
-iterator_active(qpcache_t *qpdb, qpc_rditer_t *rbtiterator,
+iterator_active(qpcache_t *qpdb, qpc_rditer_t *iterator,
 		dns_slabheader_t *header) {
 	dns_ttl_t stale_ttl = header->ttl + STALE_TTL(header, qpdb);
 
@@ -3795,7 +3791,7 @@ iterator_active(qpcache_t *qpdb, qpc_rditer_t *rbtiterator,
 	/*
 	 * If this header is still active then return it.
 	 */
-	if (ACTIVE(header, rbtiterator->common.now)) {
+	if (ACTIVE(header, iterator->common.now)) {
 		return (true);
 	}
 
@@ -3803,17 +3799,17 @@ iterator_active(qpcache_t *qpdb, qpc_rditer_t *rbtiterator,
 	 * If we are not returning stale records or the rdataset is
 	 * too old don't return it.
 	 */
-	if (!STALEOK(rbtiterator) || (rbtiterator->common.now > stale_ttl)) {
+	if (!STALEOK(iterator) || (iterator->common.now > stale_ttl)) {
 		return (false);
 	}
 	return (true);
 }
 
 static isc_result_t
-rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
-	qpc_rditer_t *rbtiterator = (qpc_rditer_t *)iterator;
-	qpcache_t *qpdb = (qpcache_t *)(rbtiterator->common.db);
-	qpcnode_t *qpnode = rbtiterator->common.node;
+rdatasetiter_first(dns_rdatasetiter_t *it DNS__DB_FLARG) {
+	qpc_rditer_t *iterator = (qpc_rditer_t *)it;
+	qpcache_t *qpdb = (qpcache_t *)(iterator->common.db);
+	qpcnode_t *qpnode = iterator->common.node;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
@@ -3822,14 +3818,13 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	for (header = qpnode->data; header != NULL; header = top_next) {
 		top_next = header->next;
 		do {
-			if (EXPIREDOK(rbtiterator)) {
+			if (EXPIREDOK(iterator)) {
 				if (!NONEXISTENT(header)) {
 					break;
 				}
 				header = header->down;
 			} else if (!IGNORE(header)) {
-				if (!iterator_active(qpdb, rbtiterator, header))
-				{
+				if (!iterator_active(qpdb, iterator, header)) {
 					header = NULL;
 				}
 				break;
@@ -3844,7 +3839,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 
 	NODE_UNLOCK(&qpdb->node_locks[qpnode->locknum].lock, &nlocktype);
 
-	rbtiterator->current = header;
+	iterator->current = header;
 
 	if (header == NULL) {
 		return (ISC_R_NOMORE);
@@ -3854,17 +3849,17 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 }
 
 static isc_result_t
-rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
-	qpc_rditer_t *rbtiterator = (qpc_rditer_t *)iterator;
-	qpcache_t *qpdb = (qpcache_t *)(rbtiterator->common.db);
-	qpcnode_t *qpnode = rbtiterator->common.node;
+rdatasetiter_next(dns_rdatasetiter_t *it DNS__DB_FLARG) {
+	qpc_rditer_t *iterator = (qpc_rditer_t *)it;
+	qpcache_t *qpdb = (qpcache_t *)(iterator->common.db);
+	qpcnode_t *qpnode = iterator->common.node;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	dns_typepair_t type, negtype;
 	dns_rdatatype_t rdtype, covers;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-	bool expiredok = EXPIREDOK(rbtiterator);
+	bool expiredok = EXPIREDOK(iterator);
 
-	header = rbtiterator->current;
+	header = iterator->current;
 	if (header == NULL) {
 		return (ISC_R_NOMORE);
 	}
@@ -3908,8 +3903,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 				}
 				header = header->down;
 			} else if (!IGNORE(header)) {
-				if (!iterator_active(qpdb, rbtiterator, header))
-				{
+				if (!iterator_active(qpdb, iterator, header)) {
 					header = NULL;
 				}
 				break;
@@ -3933,7 +3927,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 
 	NODE_UNLOCK(&qpdb->node_locks[qpnode->locknum].lock, &nlocktype);
 
-	rbtiterator->current = header;
+	iterator->current = header;
 
 	if (header == NULL) {
 		return (ISC_R_NOMORE);
@@ -3943,20 +3937,20 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 }
 
 static void
-rdatasetiter_current(dns_rdatasetiter_t *iterator,
+rdatasetiter_current(dns_rdatasetiter_t *it,
 		     dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	qpc_rditer_t *rbtiterator = (qpc_rditer_t *)iterator;
-	qpcache_t *qpdb = (qpcache_t *)(rbtiterator->common.db);
-	qpcnode_t *qpnode = rbtiterator->common.node;
+	qpc_rditer_t *iterator = (qpc_rditer_t *)it;
+	qpcache_t *qpdb = (qpcache_t *)(iterator->common.db);
+	qpcnode_t *qpnode = iterator->common.node;
 	dns_slabheader_t *header = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
-	header = rbtiterator->current;
+	header = iterator->current;
 	REQUIRE(header != NULL);
 
 	NODE_RDLOCK(&qpdb->node_locks[qpnode->locknum].lock, &nlocktype);
 
-	bindrdataset(qpdb, qpnode, header, rbtiterator->common.now, nlocktype,
+	bindrdataset(qpdb, qpnode, header, iterator->common.now, nlocktype,
 		     isc_rwlocktype_none, rdataset DNS__DB_FLARG_PASS);
 
 	NODE_UNLOCK(&qpdb->node_locks[qpnode->locknum].lock, &nlocktype);
