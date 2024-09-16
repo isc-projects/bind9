@@ -39,14 +39,14 @@ def generic_query(
     for attempt in range(attempts):
         try:
             isctest.log.debug(
-                f"{generic_query.__name__}(): ip={ip}, port={port}, source={source}, "
+                f"{query_func.__name__}(): ip={ip}, port={port}, source={source}, "
                 f"timeout={timeout}, attempts left={attempts-attempt}"
             )
             res = query_func(message, ip, timeout, port=port, source=source)
             if res.rcode() == expected_rcode or expected_rcode is None:
                 return res
         except (dns.exception.Timeout, ConnectionRefusedError) as e:
-            isctest.log.debug(f"{generic_query.__name__}(): the '{e}' exceptio raised")
+            isctest.log.debug(f"{query_func.__name__}(): the '{e}' exceptio raised")
         time.sleep(1)
     raise dns.exception.Timeout
 
