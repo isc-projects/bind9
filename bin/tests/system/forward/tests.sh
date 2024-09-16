@@ -166,10 +166,11 @@ status=$((status + ret))
 
 # GL#1793
 n=$((n + 1))
-echo_i "checking that the 'serverquota' counter isn't increased because of the SERVFAIL in the previous check ($n)"
+echo_i "checking that the correct counter is increased because of the SERVFAIL in the previous check ($n)"
 ret=0
 "${CURL}" "http://10.53.0.4:${EXTRAPORT1}/json/v1" 2>/dev/null >statschannel.out.$n
-grep -F "ServerQuota" statschannel.out.$n >/dev/null && ret=1
+grep -F '"ServerQuota"' statschannel.out.$n >/dev/null && ret=1
+grep -F '"ForwardOnlyFail":1' statschannel.out.$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

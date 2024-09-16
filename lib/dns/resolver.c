@@ -3715,12 +3715,22 @@ out:
 
 			/*
 			 * If all of the addresses found were over the
-			 * fetches-per-server quota, return the
-			 * configured response.
+			 * fetches-per-server quota, increase the ServerQuota
+			 * counter and return the configured response.
 			 */
 			if (all_spilled) {
 				result = res->quotaresp[dns_quotatype_server];
 				inc_stats(res, dns_resstatscounter_serverquota);
+			}
+
+			/*
+			 * If we are using a 'forward only' policy, and all
+			 * the forwarders are bad, increase the ForwardOnlyFail
+			 * counter.
+			 */
+			if (fctx->fwdpolicy == dns_fwdpolicy_only) {
+				inc_stats(res,
+					  dns_resstatscounter_forwardonlyfail);
 			}
 		}
 	} else {
