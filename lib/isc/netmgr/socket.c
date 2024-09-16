@@ -219,20 +219,6 @@ isc__nm_socket_reuse_lb(uv_os_sock_t fd) {
 }
 
 isc_result_t
-isc__nm_socket_incoming_cpu(uv_os_sock_t fd) {
-#ifdef SO_INCOMING_CPU
-	if (setsockopt_on(fd, SOL_SOCKET, SO_INCOMING_CPU) == -1) {
-		return (ISC_R_FAILURE);
-	} else {
-		return (ISC_R_SUCCESS);
-	}
-#else
-	UNUSED(fd);
-#endif
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-isc_result_t
 isc__nm_socket_disable_pmtud(uv_os_sock_t fd, sa_family_t sa_family) {
 	/*
 	 * Disable the Path MTU Discovery on IP packets
