@@ -60,6 +60,7 @@
  */
 #define ISC_NETMGR_UDP_RECVBUF_SIZE UINT16_MAX
 #endif
+#define ISC_NETMGR_UDP_SENDBUF_SIZE UINT16_MAX
 
 /*
  * The TCP send and receive buffers can fit one maximum sized DNS message plus
