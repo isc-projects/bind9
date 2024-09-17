@@ -54,7 +54,7 @@ if [ -x "${RESOLVE}" ]; then
   echo_i "checking that local bound address can be set (Can't query from a denied address) ($n)"
   ret=0
   resolve_with_opts -b 10.53.0.8 -t a -s 10.53.0.1 www.example.org 2>resolve.out.ns1.test${n} || ret=1
-  grep "resolution failed: SERVFAIL" resolve.out.ns1.test${n} >/dev/null || ret=1
+  grep "resolution failed: failure" resolve.out.ns1.test${n} >/dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
@@ -98,7 +98,7 @@ if [ -x "${RESOLVE}" ]; then
   echo_i "checking handling of bogus referrals using dns_client ($n)"
   ret=0
   resolve_with_opts -t a -s 10.53.0.1 www.example.com 2>resolve.out.ns1.test${n} || ret=1
-  grep "resolution failed: SERVFAIL" resolve.out.ns1.test${n} >/dev/null || ret=1
+  grep "resolution failed: failure" resolve.out.ns1.test${n} >/dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 fi
