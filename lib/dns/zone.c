@@ -846,6 +846,9 @@ zone_settimer(dns_zone_t *, isc_time_t *);
 static void
 cancel_refresh(dns_zone_t *);
 static void
+zone_debuglogc(dns_zone_t *zone, isc_logcategory_t *category, const char *me,
+	       int debuglevel, const char *fmt, ...);
+static void
 zone_debuglog(dns_zone_t *zone, const char *, int debuglevel, const char *msg,
 	      ...) ISC_FORMAT_PRINTF(4, 5);
 static void
@@ -11425,8 +11428,9 @@ zone_refresh(dns_zone_t *zone) {
 	if (dns_remote_addresses(&zone->primaries) == NULL) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOPRIMARIES);
 		if ((oldflags & DNS_ZONEFLG_NOPRIMARIES) == 0) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "cannot refresh: no primaries");
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_ERROR,
+				      "cannot refresh: no primaries");
 		}
 		return;
 	}
@@ -11445,9 +11449,9 @@ zone_refresh(dns_zone_t *zone) {
 			 0);
 	result = isc_time_nowplusinterval(&zone->refreshtime, &i);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_WARNING,
-			     "isc_time_nowplusinterval() failed: %s",
-			     isc_result_totext(result));
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_WARNING,
+			      "isc_time_nowplusinterval() failed: %s",
+			      isc_result_totext(result));
 	}
 
 	/*
@@ -12792,9 +12796,8 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 			(void)dns_view_gettransport(view, DNS_TRANSPORT_TLS,
 						    tlsname, &transport);
 
-			dns_zone_logc(
-				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
-				"got TLS configuration for zone transfer");
+			notify_log(zone, ISC_LOG_INFO,
+				   "got TLS configuration for a notify");
 		}
 
 		/* TODO: glue the transport to the notify */
@@ -13851,16 +13854,18 @@ refresh_callback(void *arg) {
 	case ISC_R_TIMEDOUT:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "refresh: timeout retrying without EDNS "
-				     "primary %s (source %s)",
-				     primary, source);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_DEBUG(1),
+				      "refresh: timeout retrying without EDNS "
+				      "primary %s (source %s)",
+				      primary, source);
 			goto same_primary;
 		} else if (!dns_request_usedtcp(request)) {
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "refresh: retry limit for "
-				     "primary %s exceeded (source %s)",
-				     primary, source);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_INFO,
+				      "refresh: retry limit for "
+				      "primary %s exceeded (source %s)",
+				      primary, source);
 			/* Try with secondary with TCP. */
 			if ((zone->type == dns_zone_secondary ||
 			     zone->type == dns_zone_mirror ||
@@ -13876,21 +13881,22 @@ refresh_callback(void *arg) {
 						DNS_ZONEFLG_SOABEFOREAXFR);
 					goto tcp_transfer;
 				}
-				dns_zone_log(zone, ISC_LOG_DEBUG(1),
-					     "refresh: skipped tcp fallback "
-					     "as primary %s (source %s) is "
-					     "unreachable (cached)",
-					     primary, source);
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_DEBUG(1),
+					      "refresh: skipped tcp fallback "
+					      "as primary %s (source %s) is "
+					      "unreachable (cached)",
+					      primary, source);
 			}
 			goto next_primary;
 		}
 		FALLTHROUGH;
 	default:
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: failure trying primary "
-			     "%s (source %s): %s",
-			     primary, source,
-			     isc_result_totext(dns_request_getresult(request)));
+		result = dns_request_getresult(request);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: failure trying primary "
+			      "%s (source %s): %s",
+			      primary, source, isc_result_totext(result));
 		goto next_primary;
 	}
 
@@ -13898,10 +13904,10 @@ refresh_callback(void *arg) {
 			   &msg);
 	result = dns_request_getresponse(request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: failure trying primary "
-			     "%s (source %s): %s",
-			     primary, source, isc_result_totext(result));
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: failure trying primary "
+			      "%s (source %s): %s",
+			      primary, source, isc_result_totext(result));
 		goto next_primary;
 	}
 
@@ -13915,10 +13921,10 @@ refresh_callback(void *arg) {
 		isc_buffer_init(&rb, opcode, sizeof(opcode));
 		(void)dns_opcode_totext(msg->opcode, &rb);
 
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: "
-			     "unexpected opcode (%.*s) from %s (source %s)",
-			     (int)rb.used, opcode, primary, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: "
+			      "unexpected opcode (%.*s) from %s (source %s)",
+			      (int)rb.used, opcode, primary, source);
 		goto next_primary;
 	}
 
@@ -13937,28 +13943,30 @@ refresh_callback(void *arg) {
 		     msg->rcode == dns_rcode_notimp ||
 		     (msg->rcode == dns_rcode_formerr && msg->opt == NULL)))
 		{
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "refresh: rcode (%.*s) retrying without "
-				     "EDNS primary %s (source %s)",
-				     (int)rb.used, rcode, primary, source);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_DEBUG(1),
+				      "refresh: rcode (%.*s) retrying without "
+				      "EDNS primary %s (source %s)",
+				      (int)rb.used, rcode, primary, source);
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			goto same_primary;
 		}
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
 		    msg->rcode == dns_rcode_badvers)
 		{
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "refresh: rcode (%.*s) retrying without "
-				     "EDNS EXPIRE OPTION primary %s "
-				     "(source %s)",
-				     (int)rb.used, rcode, primary, source);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_DEBUG(1),
+				      "refresh: rcode (%.*s) retrying without "
+				      "EDNS EXPIRE OPTION primary %s "
+				      "(source %s)",
+				      (int)rb.used, rcode, primary, source);
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			goto same_primary;
 		}
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: unexpected rcode (%.*s) from "
-			     "primary %s (source %s)",
-			     (int)rb.used, rcode, primary, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: unexpected rcode (%.*s) from "
+			      "primary %s (source %s)",
+			      (int)rb.used, rcode, primary, source);
 		/*
 		 * Perhaps AXFR/IXFR is allowed even if SOA queries aren't.
 		 */
@@ -13980,20 +13988,22 @@ refresh_callback(void *arg) {
 		    zone->type == dns_zone_mirror ||
 		    zone->type == dns_zone_redirect)
 		{
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "refresh: truncated UDP answer, "
-				     "initiating TCP zone xfer "
-				     "for primary %s (source %s)",
-				     primary, source);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_INFO,
+				      "refresh: truncated UDP answer, "
+				      "initiating TCP zone xfer "
+				      "for primary %s (source %s)",
+				      primary, source);
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR);
 			goto tcp_transfer;
 		} else {
 			INSIST(zone->type == dns_zone_stub);
 			if (dns_request_usedtcp(request)) {
-				dns_zone_log(zone, ISC_LOG_INFO,
-					     "refresh: truncated TCP response "
-					     "from primary %s (source %s)",
-					     primary, source);
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_INFO,
+					      "refresh: truncated TCP response "
+					      "from primary %s (source %s)",
+					      primary, source);
 				goto next_primary;
 			}
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEVC);
@@ -14005,10 +14015,10 @@ refresh_callback(void *arg) {
 	 * If non-auth, log and try the next primary
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: non-authoritative answer from "
-			     "primary %s (source %s)",
-			     primary, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: non-authoritative answer from "
+			      "primary %s (source %s)",
+			      primary, source);
 		goto next_primary;
 	}
 
@@ -14021,10 +14031,10 @@ refresh_callback(void *arg) {
 	 * There should not be a CNAME record at top of zone.
 	 */
 	if (cnamecnt != 0) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: CNAME at top of zone "
-			     "in primary %s (source %s)",
-			     primary, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: CNAME at top of zone "
+			      "in primary %s (source %s)",
+			      primary, source);
 		goto next_primary;
 	}
 
@@ -14032,10 +14042,10 @@ refresh_callback(void *arg) {
 	 * If referral, log and try the next primary;
 	 */
 	if (soacnt == 0 && soacount == 0 && nscount != 0) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: referral response "
-			     "from primary %s (source %s)",
-			     primary, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: referral response "
+			      "from primary %s (source %s)",
+			      primary, source);
 		goto next_primary;
 	}
 
@@ -14043,10 +14053,10 @@ refresh_callback(void *arg) {
 	 * If nodata, log and try the next primary;
 	 */
 	if (soacnt == 0 && (nscount == 0 || soacount != 0)) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: NODATA response "
-			     "from primary %s (source %s)",
-			     primary, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: NODATA response "
+			      "from primary %s (source %s)",
+			      primary, source);
 		goto next_primary;
 	}
 
@@ -14054,10 +14064,10 @@ refresh_callback(void *arg) {
 	 * Only one soa at top of zone.
 	 */
 	if (soacnt != 1) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: answer SOA count (%d) != 1 "
-			     "from primary %s (source %s)",
-			     soacnt, primary, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: answer SOA count (%d) != 1 "
+			      "from primary %s (source %s)",
+			      soacnt, primary, source);
 		goto next_primary;
 	}
 
@@ -14069,17 +14079,17 @@ refresh_callback(void *arg) {
 				      dns_rdatatype_soa, dns_rdatatype_none,
 				      NULL, &rdataset);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: unable to get SOA record "
-			     "from primary %s (source %s)",
-			     primary, source);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: unable to get SOA record "
+			      "from primary %s (source %s)",
+			      primary, source);
 		goto next_primary;
 	}
 
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: dns_rdataset_first() failed");
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refresh: dns_rdataset_first() failed");
 		goto next_primary;
 	}
 
@@ -14095,11 +14105,11 @@ refresh_callback(void *arg) {
 					  NULL, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		RUNTIME_CHECK(dbsoacount > 0U);
-		zone_debuglog(zone, __func__, 1, "serial: new %u, old %u",
-			      serial, oldserial);
+		zone_debuglogc(zone, DNS_LOGCATEGORY_XFER_IN, __func__, 1,
+			       "serial: new %u, old %u", serial, oldserial);
 	} else {
-		zone_debuglog(zone, __func__, 1,
-			      "serial: new %u, old not loaded", serial);
+		zone_debuglogc(zone, DNS_LOGCATEGORY_XFER_IN, __func__, 1,
+			       "serial: new %u, old not loaded", serial);
 	}
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) ||
@@ -14109,15 +14119,16 @@ refresh_callback(void *arg) {
 		if (dns_zonemgr_unreachable(zone->zmgr, &curraddr,
 					    &zone->sourceaddr, &now))
 		{
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "refresh: skipping %s as primary %s "
-				     "(source %s) is unreachable (cached)",
-				     (zone->type == dns_zone_secondary ||
-				      zone->type == dns_zone_mirror ||
-				      zone->type == dns_zone_redirect)
-					     ? "zone transfer"
-					     : "NS query",
-				     primary, source);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_INFO,
+				      "refresh: skipping %s as primary %s "
+				      "(source %s) is unreachable (cached)",
+				      (zone->type == dns_zone_secondary ||
+				       zone->type == dns_zone_mirror ||
+				       zone->type == dns_zone_redirect)
+					      ? "zone transfer"
+					      : "NS query",
+				      primary, source);
 			goto next_primary;
 		}
 	tcp_transfer:
@@ -14160,12 +14171,14 @@ refresh_callback(void *arg) {
 		goto next_primary;
 	} else {
 		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MULTIMASTER)) {
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "serial number (%u) "
-				     "received from primary %s < ours (%u)",
-				     soa.serial, primary, oldserial);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_INFO,
+				      "serial number (%u) "
+				      "received from primary %s < ours (%u)",
+				      soa.serial, primary, oldserial);
 		} else {
-			zone_debuglog(zone, __func__, 1, "ahead");
+			zone_debuglogc(zone, DNS_LOGCATEGORY_XFER_IN, __func__,
+				       1, "ahead");
 		}
 		dns_remote_mark(&zone->primaries, true);
 		goto next_primary;
@@ -14294,8 +14307,8 @@ soa_query(void *arg) {
 	}
 
 again:
-	dns_zone_log(
-		zone, ISC_LOG_DEBUG(3),
+	dns_zone_logc(
+		zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_DEBUG(3),
 		"soa_query: remote server current address index %d count %d",
 		zone->primaries.curraddr, zone->primaries.addrcnt);
 	INSIST(dns_remote_count(&zone->primaries) > 0);
@@ -14320,8 +14333,9 @@ again:
 		if (result != ISC_R_SUCCESS) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(keyname, namebuf, sizeof(namebuf));
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "unable to find key: %s", namebuf);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_ERROR, "unable to find key: %s",
+				      namebuf);
 			goto skip_primary;
 		}
 	}
@@ -14331,8 +14345,9 @@ again:
 			char addrbuf[ISC_NETADDR_FORMATSIZE];
 			isc_netaddr_format(&primaryip, addrbuf,
 					   sizeof(addrbuf));
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "unable to find TSIG key for %s", addrbuf);
+			dns_zone_logc(
+				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+				"unable to find TSIG key for %s", addrbuf);
 			goto skip_primary;
 		}
 	}
@@ -14345,9 +14360,10 @@ again:
 		if (result != ISC_R_SUCCESS) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(tlsname, namebuf, sizeof(namebuf));
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "unable to find TLS configuration: %s",
-				     namebuf);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_ERROR,
+				      "unable to find TLS configuration: %s",
+				      namebuf);
 			goto skip_primary;
 		}
 	}
@@ -14428,9 +14444,9 @@ again:
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, udpsize, reqnsid, reqexpire);
 		if (result != ISC_R_SUCCESS) {
-			zone_debuglog(zone, __func__, 1,
-				      "unable to add opt record: %s",
-				      isc_result_totext(result));
+			zone_debuglogc(zone, DNS_LOGCATEGORY_XFER_IN, __func__,
+				       1, "unable to add opt record: %s",
+				       isc_result_totext(result));
 		}
 	}
 
@@ -14445,9 +14461,9 @@ again:
 		zone->loop, refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&(dns_zone_t *){ zone });
-		zone_debuglog(zone, __func__, 1,
-			      "dns_request_create() failed: %s",
-			      isc_result_totext(result));
+		zone_debuglogc(zone, DNS_LOGCATEGORY_XFER_IN, __func__, 1,
+			       "dns_request_create() failed: %s",
+			       isc_result_totext(result));
 		goto skip_primary;
 	} else {
 		/* Shows in the statistics channel the duration of the query. */
@@ -15321,14 +15337,15 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	{
 		UNLOCK_ZONE(zone);
 		if (msg->counts[DNS_SECTION_QUESTION] == 0) {
-			dns_zone_log(zone, ISC_LOG_NOTICE,
-				     "NOTIFY with no "
-				     "question section from: %s",
-				     fromtext);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_NOTICE,
+				      "NOTIFY with no question "
+				      "section from: %s",
+				      fromtext);
 			return (DNS_R_FORMERR);
 		}
-		dns_zone_log(zone, ISC_LOG_NOTICE,
-			     "NOTIFY zone does not match");
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_NOTICE,
+			      "NOTIFY zone does not match");
 		return (DNS_R_NOTIMP);
 	}
 
@@ -15374,8 +15391,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		/* Accept notify. */
 	} else if (i >= dns_remote_count(&zone->primaries)) {
 		UNLOCK_ZONE(zone);
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refused notify from non-primary: %s", fromtext);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "refused notify from non-primary: %s", fromtext);
 		inc_stats(zone, dns_zonestatscounter_notifyrej);
 		return (DNS_R_REFUSED);
 	}
@@ -15415,10 +15432,11 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			RUNTIME_CHECK(soacount > 0U);
 			if (isc_serial_le(serial, oldserial)) {
-				dns_zone_log(zone, ISC_LOG_INFO,
-					     "notify from %s: "
-					     "zone is up to date",
-					     fromtext);
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_INFO,
+					      "notify from %s: "
+					      "zone is up to date",
+					      fromtext);
 				UNLOCK_ZONE(zone);
 				return (ISC_R_SUCCESS);
 			}
@@ -15435,24 +15453,28 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		zone->notifyfrom = *from;
 		UNLOCK_ZONE(zone);
 		if (have_serial) {
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "notify from %s: serial %u: refresh in "
-				     "progress, refresh check queued",
-				     fromtext, serial);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_INFO,
+				      "notify from %s: "
+				      "serial %u: refresh in progress, "
+				      "refresh check queued",
+				      fromtext, serial);
 		} else {
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "notify from %s: refresh in progress, "
-				     "refresh check queued",
-				     fromtext);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_INFO,
+				      "notify from %s: "
+				      "refresh in progress, "
+				      "refresh check queued",
+				      fromtext);
 		}
 		return (ISC_R_SUCCESS);
 	}
 	if (have_serial) {
-		dns_zone_log(zone, ISC_LOG_INFO, "notify from %s: serial %u",
-			     fromtext, serial);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "notify from %s: serial %u", fromtext, serial);
 	} else {
-		dns_zone_log(zone, ISC_LOG_INFO, "notify from %s: no serial",
-			     fromtext);
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "notify from %s: no serial", fromtext);
 	}
 	zone->notifyfrom = *from;
 	UNLOCK_ZONE(zone);
@@ -15882,6 +15904,17 @@ dns_zone_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 
 	va_start(ap, fmt);
 	dns_zone_logv(zone, DNS_LOGCATEGORY_GENERAL, level, NULL, fmt, ap);
+	va_end(ap);
+}
+
+static void
+zone_debuglogc(dns_zone_t *zone, isc_logcategory_t *category, const char *me,
+	       int debuglevel, const char *fmt, ...) {
+	int level = ISC_LOG_DEBUG(debuglevel);
+	va_list ap;
+
+	va_start(ap, fmt);
+	dns_zone_logv(zone, category, level, me, fmt, ap);
 	va_end(ap);
 }
 
@@ -17733,10 +17766,11 @@ again:
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 		if (result == ISC_R_SUCCESS) {
 			if (soacount != 1) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "transferred zone "
-					     "has %d SOA records",
-					     soacount);
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_ERROR,
+					      "transferred zone "
+					      "has %d SOA records",
+					      soacount);
 				if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HAVETIMERS))
 				{
 					zone->refresh = DNS_ZONE_DEFAULTREFRESH;
@@ -17747,9 +17781,10 @@ again:
 				goto next_primary;
 			}
 			if (nscount == 0) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "transferred zone "
-					     "has no NS records");
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_ERROR,
+					      "transferred zone "
+					      "has no NS records");
 				if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HAVETIMERS))
 				{
 					zone->refresh = DNS_ZONE_DEFAULTREFRESH;
