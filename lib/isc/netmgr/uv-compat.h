@@ -127,4 +127,5 @@ isc_uv_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
 
 #if UV_VERSION_HEX < UV_VERSION(1, 19, 0)
 #define uv_stream_get_write_queue_size(stream) ((stream)->write_queue_size)
+#define uv_udp_get_send_queue_size(handle)     ((handle)->send_queue_size)
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 19, 0) */
