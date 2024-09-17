@@ -19,6 +19,7 @@
 #include <isc/buffer.h>
 #include <isc/condition.h>
 #include <isc/errno.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -27,6 +28,7 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/stdtime.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 #include <isc/uv.h>
@@ -640,6 +642,19 @@ udp_send_cb(uv_udp_send_t *req, int status) {
 	isc__nm_sendcb(sock, uvreq, result, false);
 }
 
+static _Atomic(isc_stdtime_t) last_udpsends_log = 0;
+
+static bool
+can_log_udp_sends(void) {
+	isc_stdtime_t now = isc_stdtime_now();
+	isc_stdtime_t last = atomic_exchange_relaxed(&last_udpsends_log, now);
+	if (now != last) {
+		return (true);
+	}
+
+	return (false);
+}
+
 /*
  * Send the data in 'region' to a peer via a UDP socket. We try to find
  * a proper sibling/child socket so that we won't have to jump to
@@ -697,12 +712,39 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		goto fail;
 	}
 
-	r = uv_udp_send(&uvreq->uv_req.udp_send, &sock->uv_handle.udp,
-			&uvreq->uvbuf, 1, sa, udp_send_cb);
-	if (r < 0) {
-		isc__nm_incstats(sock, STATID_SENDFAIL);
-		result = isc_uverr2result(r);
-		goto fail;
+	if (uv_udp_get_send_queue_size(&sock->uv_handle.udp) >
+	    ISC_NETMGR_UDP_SENDBUF_SIZE)
+	{
+		/*
+		 * The kernel UDP send queue is full, try sending the UDP
+		 * response synchronously instead of just failing.
+		 */
+		r = uv_udp_try_send(&sock->uv_handle.udp, &uvreq->uvbuf, 1, sa);
+		if (r < 0) {
+			if (can_log_udp_sends()) {
+				isc__netmgr_log(
+					worker->netmgr, ISC_LOG_ERROR,
+					"Sending UDP messages failed: %s",
+					isc_result_totext(isc_uverr2result(r)));
+			}
+
+			isc__nm_incstats(sock, STATID_SENDFAIL);
+			result = isc_uverr2result(r);
+			goto fail;
+		}
+
+		RUNTIME_CHECK(r == (int)region->length);
+		isc__nm_sendcb(sock, uvreq, ISC_R_SUCCESS, true);
+
+	} else {
+		/* Send the message asynchronously */
+		r = uv_udp_send(&uvreq->uv_req.udp_send, &sock->uv_handle.udp,
+				&uvreq->uvbuf, 1, sa, udp_send_cb);
+		if (r < 0) {
+			isc__nm_incstats(sock, STATID_SENDFAIL);
+			result = isc_uverr2result(r);
+			goto fail;
+		}
 	}
 	return;
 fail:
