@@ -23,7 +23,7 @@ library which provides a low-level PKCS#11 interface to drive the HSM
 hardware. The PKCS#11 provider library comes from the HSM vendor, and it
 is specific to the HSM to be controlled.
 
-BIND 9 access PKCS#11 libraries via OpenSSL Providers. The provider for
+BIND 9 accesses PKCS#11 libraries via OpenSSL Providers. The provider for
 OpenSSL 3 and newer is `pkcs11-provider`_.
 
 .. _`pkcs11-provider`: https://github.com/latchset/pkcs11-provider
@@ -65,17 +65,17 @@ with BIND.
    $  make install
    $  /opt/pkcs11/usr/bin/softhsm-util --init-token 0 --slot 0 --label softhsmv2
 
-OpenSSL 3 with pkcs11-provider
+OpenSSL 3 With pkcs11-provider
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-OpenSSL provider-based PKCS#11 uses pkcs11-provider project.
+OpenSSL provider-based PKCS#11 uses the pkcs11-provider project.
 
-pkcs11-provider tries to fit the PKCS#11 API within the Provider API of OpenSSL.
-That is, it provides a gateway between PKCS#11 modules and the OpenSSL Provider
-API.  One has to register the provider with OpenSSL and one has to provide the
-path to the PKCS#11 module which should be gatewayed to. This can be done by
-editing the OpenSSL configuration file, using provider specific controls, or
-by using the p11-kit proxy module.
+pkcs11-provider tries to fit the PKCS#11 API within the Provider API of OpenSSL;
+that is, it provides a gateway between PKCS#11 modules and the OpenSSL Provider
+API. The provider must be registered with OpenSSL and the
+path to the PKCS#11 module gateway must be provided. This can be done by
+editing the OpenSSL configuration file, by provider-specific controls, or by using
+the p11-kit proxy module.
 
 It is required to use pkcs11-provider version 0.3 or later.  It is recommended
 to use the lastest version available.
@@ -84,36 +84,36 @@ Configuring pkcs11-provider
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The canonical documentation for configuring pkcs11-provider is in the
-`provider-pkcs11.7`_ manual page, but a sample working configuration is included
-here for the user's convenience:
+`provider-pkcs11.7`_ manual page, but a copy of a working configuration is
+provided here for convenience:
 
 .. _`provider-pkcs11.7`: https://github.com/latchset/pkcs11-provider/blob/main/docs/provider-pkcs11.7.md
 
-We are going to use our own custom copy of OpenSSL configuration, again it's
-driven by an environment variable, this time called OPENSSL_CONF.  We are
-going to copy the global OpenSSL configuration (often found in
+In this example, we use a custom copy of OpenSSL configuration,
+driven by an environment variable called OPENSSL_CONF. First, copy the
+global OpenSSL configuration (often found in
 ``etc/ssl/openssl.conf``) and customize it to use pkcs11-provider.
 
 ::
 
    cp /etc/ssl/openssl.cnf /opt/bind9/etc/openssl.cnf
 
-and export the environment variable:
+Next, export the environment variable:
 
 ::
 
    export OPENSSL_CONF=/opt/bind9/etc/openssl.cnf
 
-Now add the following line at the top of file, before any sections (in square
+Then add the following line at the top of the file, before any sections (in square
 brackets) are defined:
 
 ::
 
    openssl_conf = openssl_init
 
-And make sure there are no other 'openssl_conf = ...' lines in the file.
+Make sure there are no other 'openssl_conf = ...' lines in the file.
 
-Add following lines at the bottom of the file:
+Add the following lines at the bottom of the file:
 
 ::
 
@@ -170,7 +170,7 @@ Convert the RSA keys stored in the HSM into a format that BIND 9 understands.
 The :iscman:`dnssec-keyfromlabel` tool from BIND 9 can link the raw keys stored in the
 HSM with the ``K<zone>+<alg>+<id>`` files.
 
-You'll need to provide the algorithm (``RSASHA256``). The key is referenced with
+The algorithm (``RSASHA256``) must be provided. The key is referenced with
 the PKCS#11 URI scheme and it can contain the PKCS#11 token label (we asume that
 it has been initialized as bind9), and the PKCS#11 object label (called label
 when generating the keys using ``pkcs11-tool``) and the HSM PIN. Refer to
@@ -251,7 +251,7 @@ have access to the HSM PIN. In OpenSSL-based PKCS#11, this is
 accomplished by placing the PIN into the ``openssl.cnf`` file (in the above
 examples, ``/opt/pkcs11/usr/ssl/openssl.cnf``).
 
-See OpenSSL extension specific documentation on how to configure the PIN on
-global level. Doing so allows the ``dnssec-\*`` tools to access the HSM without
+See OpenSSL extension-specific documentation for instructions on configuring the PIN on
+the global level; doing so allows the ``dnssec-\*`` tools to access the HSM without
 PIN entry. (The ``pkcs11-\*`` tools access the HSM directly, not via OpenSSL,
 so a PIN is still required to use them.)

@@ -30,7 +30,7 @@ The following C11 features are required to compile BIND 9:
 
 -  Thread Local Storage support defined in <threads.h>
 
-Where it makes sense, BIND 9 uses C-standard fixes introduced by C17 update
+Where it makes sense, BIND 9 uses C-standard fixes introduced by the C17 update
 of the C11 standard.
 
 ISC regularly tests BIND on many operating systems and architectures,

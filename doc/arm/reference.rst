@@ -606,7 +606,7 @@ matching this name, algorithm, and secret.
 .. _key_store_statement:
 
 ``key-store`` Block Definition and Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``key-store`` statement defines how DNSSEC keys should be stored.
 
@@ -625,9 +625,9 @@ The following options can be specified in a :any:`key-store` statement:
    :tags: dnssec, pkcs11
 
    The ``uri`` is a string that specifies a PKCS#11 URI Scheme (defined in
-   :rfc:`7512`). When set, ``named`` will try to create keys inside the
+   :rfc:`7512`). When set, :iscman:`named` tries to create keys inside the
    corresponding PKCS#11 token. This requires BIND to be built with OpenSSL 3,
-   and have a PKCS#11 provider configured.
+   and to have a PKCS#11 provider configured.
 
 .. _logging_grammar:
 
@@ -792,8 +792,9 @@ by starting the :iscman:`named` server with the :option:`-d <named -d>` flag fol
 positive integer, or by running :option:`rndc trace`. The global debug level
 can be set to zero, and debugging mode turned off, by running ``rndc
 notrace``. All debugging messages in the server have a debug level;
-higher debug levels give more detailed output. Channels that specify a
-specific debug severity, for example:
+higher debug levels give more detailed output. Channels that indicate a specific debug severity
+get debugging output of level 3 or less any time the server is in
+debugging mode, regardless of the global debugging level:
 
 ::
 
@@ -802,10 +803,9 @@ specific debug severity, for example:
        severity debug 3;
    };
 
-get debugging output of level 3 or less any time the server is in
-debugging mode, regardless of the global debugging level. Channels with
+Channels with
 ``dynamic`` severity use the server's global debug level to determine
-what messages to print.
+which messages to print.
 
 .. namedconf:statement:: print-time
    :tags: logging
@@ -1247,7 +1247,7 @@ default is used.
 
    For more information on :any:`dnstap`, see https://dnstap.info.
 
-   The fstrm library has a number of tunables that are exposed in
+   The ``fstrm`` library has a number of tunables that are exposed in
    :iscman:`named.conf`, and can be modified if necessary to improve
    performance or prevent loss of data. These are:
 
@@ -1255,7 +1255,7 @@ default is used.
       :tags: logging
       :short: Sets the number of accumulated bytes in the output buffer before forcing a buffer flush.
 
-      The threshold number of bytes to
+      The indicates the threshold number of bytes to
       accumulate in the output buffer before forcing a buffer flush. The
       minimum is 1024, the maximum is 65536, and the default is 8192.
 
@@ -1263,7 +1263,7 @@ default is used.
       :tags: logging
       :short: Sets the number of seconds that unflushed data remains in the output buffer.
 
-      The number of seconds to allow
+      This is the number of seconds to allow
       unflushed data to remain in the output buffer. The minimum is 1
       second, the maximum is 600 seconds (10 minutes), and the default
       is 1 second.
@@ -1272,7 +1272,7 @@ default is used.
       :tags: logging
       :short: Sets the number of outstanding queue entries allowed on an input queue before waking the I/O thread.
 
-      The number of outstanding
+      This indicates the number of outstanding
       queue entries to allow on an input queue before waking the I/O
       thread. The minimum is 1 and the default is 32.
 
@@ -1280,7 +1280,7 @@ default is used.
       :tags: logging
       :short: Sets the queuing semantics to use for queue objects.
 
-      The queuing semantics
+      This sets the queuing semantics
       to use for queue objects. The default is ``mpsc`` (multiple
       producer, single consumer); the other option is ``spsc`` (single
       producer, single consumer).
@@ -1289,7 +1289,7 @@ default is used.
       :tags: logging
       :short: Sets the number of queue entries to allocate for each input queue.
 
-      The number of queue entries to
+      This is the number of queue entries to
       allocate for each input queue. This value must be a power of 2.
       The minimum is 2, the maximum is 16384, and the default is 512.
 
@@ -1297,7 +1297,7 @@ default is used.
       :tags: logging
       :short: Sets the number of queue entries allocated for each output queue.
 
-      The number of queue entries to
+      This specifies the number of queue entries to
       allocate for each output queue. The minimum is 2, the maximum is
       system-dependent and based on ``IOV_MAX``, and the default is 64.
 
@@ -1305,7 +1305,7 @@ default is used.
       :tags: logging
       :short: Sets the number of seconds to wait between attempts to reopen a closed output stream.
 
-      The number of seconds to wait
+      This sets the number of seconds to wait
       between attempts to reopen a closed output stream. The minimum is
       1 second, the maximum is 600 seconds (10 minutes), and the default
       is 5 seconds. For convenience, TTL-style time-unit suffixes may be
@@ -1379,7 +1379,7 @@ default is used.
    This is the directory where the public and private DNSSEC key files should be
    found when performing a dynamic update of secure zones, if different
    than the current working directory. (Note that this option has no
-   effect on the paths for files containing non-DNSSEC keys such as
+   effect on the paths for files containing non-DNSSEC keys, such as
    ``rndc.key``, or ``session.key``.)
 
 .. namedconf:statement:: lmdb-mapsize
@@ -1457,7 +1457,7 @@ default is used.
    or other unexpected responses (e.g., SERVFAIL, improper zone
    cut, REFUSED) to a minimized query.
 
-   In ``relaxed`` mode ``named`` makes NS queries for ``<domain>`` as it
+   In ``relaxed`` mode :iscman:`named` makes NS queries for ``<domain>`` as it
    walks down the tree.
 
    ``disabled`` disables QNAME minimization completely.
@@ -1501,7 +1501,7 @@ default is used.
    should be the server's domain name, or an otherwise nonexistent
    subdomain like ``_tkey.domainname``. If using GSS-TSIG,
    this variable must be defined, unless a specific keytab
-   is specified using :any:`tkey-gssapi-keytab`.
+   is indicated using :any:`tkey-gssapi-keytab`.
 
 .. namedconf:statement:: dump-file
    :tags: logging
@@ -1650,7 +1650,7 @@ default is used.
    If specified, the listed type (A or AAAA) is emitted before
    other glue in the additional section of a query response. The default
    is to prefer A records when responding to queries that arrived via
-   IPv4 and AAAA when responding to queries that arrived via IPv6.
+   IPv4, and AAAA when responding to queries that arrived via IPv6.
 
 .. namedconf:statement:: disable-algorithms
    :tags: dnssec
@@ -1795,7 +1795,7 @@ default is used.
    :short: Specifies whether to apply DNS64 mappings when sending queries.
 
    If :any:`resolver-use-dns64` is set to ``yes``, then the IPv4-to-IPv6
-   address transformations specified by the :any:`dns64` option will be
+   address transformations specified by the :any:`dns64` option are
    applied to IPv4 server addresses to which recursive queries are sent.
    This allows a server to perform lookups via a NAT64 connection; queries
    that would have been sent via IPv4 are instead sent to mapped IPv6
@@ -1827,10 +1827,10 @@ default is used.
    :short: Sets the frequency of automatic checks of the DNSSEC key repository.
 
    When a zone is configured with ``dnssec-policy;``, its key
-   repository must be checked periodically to see if the next step of a key
+   repository must be checked periodically to see whether the next step of a key
    rollover is due. The :any:`dnssec-loadkeys-interval` option
    sets the default interval of key repository checks, in minutes, in case
-   the next key event cannot be calculated (for example because a DS record
+   the next key event cannot be calculated (e.g. because a DS record
    needs to be published).
 
    The default is ``60`` (1 hour), the minimum is ``1`` (1 minute), and
@@ -1899,7 +1899,7 @@ default is used.
    :short: Specifies a maximum permissible time-to-live (TTL) value, in seconds.
 
    This should now be configured as part of :namedconf:ref:`dnssec-policy`.
-   Use of this option in :namedconf:ref:`options`, :namedconf:ref:`view`
+   Use of this option in :namedconf:ref:`options`, :namedconf:ref:`view`,
    and :namedconf:ref:`zone` blocks is a fatal error if
    :namedconf:ref:`dnssec-policy` has also been configured for the same
    zone. In zones without :namedconf:ref:`dnssec-policy`, this option is
@@ -2069,7 +2069,7 @@ Boolean Options
    that other threads can pick up the traffic that would have been sent to the
    busy thread.
 
-   Note: this option can only be set when ``named`` first starts.
+   Note: this option can only be set when :iscman:`named` first starts.
    Changes will not take effect during reconfiguration; the server
    must be restarted.
 
@@ -2197,23 +2197,23 @@ Boolean Options
 
 .. namedconf:statement:: require-cookie
    :tags: query
-   :short: Controls whether responses without a server cookie are accepted
+   :short: Controls whether responses without a server cookie are accepted.
 
    The ``require-cookie`` clause can be used to indicate that the
    remote server is known to support DNS COOKIE. Setting this option
-   to ``yes`` causes ``named`` to always retry a request over TCP when
+   to ``yes`` causes :iscman:`named` to always retry a request over TCP when
    it receives a UDP response without a DNS COOKIE from the remote
    server, even if UDP responses with DNS COOKIE have not been sent
    by this server before. This prevents spoofed answers from being
-   accepted without a retry over TCP when ``named`` has not yet
+   accepted without a retry over TCP, when :iscman:`named` has not yet
    determined whether the remote server supports DNS COOKIE. Setting
-   this option to ``no`` (the default) causes ``named`` to rely on
+   this option to ``no`` (the default) causes :iscman:`named` to rely on
    autodetection of DNS COOKIE support to determine when to retry a
    request over TCP.
 
 
    .. note::
-      If a UDP response is signed using TSIG, ``named`` accepts it even if
+      If a UDP response is signed using TSIG, :iscman:`named` accepts it even if
       ``require-cookie`` is set to ``yes`` and the response does not
       contain a DNS COOKIE.
 
@@ -2227,7 +2227,7 @@ Boolean Options
    :tags: query
    :short: Controls whether a valid server cookie is required before sending a full response to a UDP request.
 
-   If ``yes``, require a valid server cookie before sending a full response to a UDP
+   If ``yes``, BIND requires a valid server cookie before sending a full response to a UDP
    request from a cookie-aware client. BADCOOKIE is sent if there is a
    bad or nonexistent server cookie.
 
@@ -2262,15 +2262,15 @@ Boolean Options
    :tags: query
    :short: Controls whether a COOKIE EDNS option is sent along with a query.
 
-   If ``yes``, then a COOKIE EDNS option is sent along with the query.
+   If ``yes``, a COOKIE EDNS option is sent along with the query.
    If the resolver has previously communicated with the server, the COOKIE
    returned in the previous transaction is sent. This is used by the
    server to determine whether the resolver has talked to it before. A
    resolver sending the correct COOKIE is assumed not to be an off-path
    attacker sending a spoofed-source query; the query is therefore
    unlikely to be part of a reflection/amplification attack, so
-   resolvers sending a correct COOKIE option are not subject to response
-   rate limiting (RRL). Resolvers which do not send a correct COOKIE
+   resolvers sending a correct COOKIE option are not subject to response-rate
+   limiting (RRL). Resolvers which do not send a correct COOKIE
    option may be limited to receiving smaller responses via the
    :any:`nocookie-udp-size` option.
 
@@ -2283,7 +2283,7 @@ Boolean Options
    :tags: server, query
    :short: Enables the returning of "stale" cached answers when the name servers for a zone are not answering.
 
-   If ``yes``, enable the returning of "stale" cached answers when the name
+   If ``yes``, this option enables the returning of "stale" cached answers when the name
    servers for a zone are not answering and the :any:`stale-cache-enable` option is
    also enabled. The default is not to return stale answers.
 
@@ -2314,11 +2314,11 @@ Boolean Options
    is disabled.
 
    The minimum value, ``0``, causes a cached (stale) RRset to be
-   immediately returned if it is available while still attempting to
+   immediately returned if it is available, while still attempting to
    refresh the data in cache.
 
    When this option is enabled, the only supported value in the current version
-   of BIND 9 is ``0``. Non-zero values generate a warning message, and are
+   of BIND 9 is ``0``. Non-zero values generate a warning message and are
    treated as ``0``.
 
 .. namedconf:statement:: stale-cache-enable
@@ -2534,9 +2534,9 @@ Boolean Options
    anchor for the DNS root zone is used. This trust anchor is provided
    as part of BIND and is kept up-to-date using :ref:`rfc5011.support` key
    management. Adding an explicit static key using the :any:`trust-anchors`
-   statement with a ``static-key`` anchor type (or using the deprecated
-   :any:`trusted-keys` statement) for the root zone is not supported with the
-   ``auto`` setting, and is treated as a configuration error.
+   statement, with a ``static-key`` anchor type (or using the deprecated
+   :any:`trusted-keys` statement) for the root zone, is not supported with the
+   ``auto`` setting and is treated as a configuration error.
 
    If set to ``yes``, DNSSEC validation is enabled, but a trust anchor must be
    manually configured using a :any:`trust-anchors` statement (or the
@@ -2547,7 +2547,7 @@ Boolean Options
    anchors.
 
    If set to ``no``, DNSSEC validation is disabled. (Note: the resolver
-   will still set the DO bit in outgoing queries indicating that it can
+   will still set the DO bit in outgoing queries to indicate that it can
    accept DNSSEC responses, even if :any:`dnssec-validation` is disabled.)
 
    The default is ``auto``, unless BIND is built with
@@ -2556,9 +2556,9 @@ Boolean Options
 
    The default root trust anchor is compiled into :iscman:`named`
    and is current as of the release date. If the root key changes, a
-   running BIND server will detect this and roll smoothly to the new
-   key, but newly-installed servers will be unable to start validation,
-   so BIND must be upgraded to a newer version.
+   running BIND server detects this and rolls smoothly to the new
+   key. However, newly installed servers will be unable to start validation,
+   and BIND must be upgraded to a newer version.
 
 .. namedconf:statement:: validate-except
    :tags: dnssec
@@ -2679,38 +2679,38 @@ Boolean Options
    :tags: zone
    :short: Sets the response to MX records that refer to CNAMEs.
 
-   If :any:`check-integrity` is set, then fail, warn, or ignore MX records
+   If :any:`check-integrity` is set, :iscman:`named` fails, warns, or ignores MX records
    that refer to CNAMEs. The default is to ``warn``.
 
 .. namedconf:statement:: check-srv-cname
    :tags: zone
    :short: Sets the response to SRV records that refer to CNAMEs.
 
-   If :any:`check-integrity` is set, then fail, warn, or ignore SRV records
+   If :any:`check-integrity` is set, :iscman:`named` fails, warns, or ignores SRV records
    that refer to CNAMEs. The default is to ``warn``.
 
 .. namedconf:statement:: check-sibling
    :tags: zone
    :short: Specifies whether to check for sibling glue when performing integrity checks.
 
-   When performing integrity checks, also check that sibling glue
-   exists. The default is ``yes``.
+   This option instructs BIND to also check that sibling glue exists,
+   when performing integrity checks. The default is ``yes``.
 
 .. namedconf:statement:: check-spf
    :tags: zone
    :short: Specifies whether to check for a TXT Sender Policy Framework record, if an SPF record is present.
 
-   If :any:`check-integrity` is set, check that there is a TXT Sender
-   Policy Framework record present (starts with "v=spf1") if there is an
+   If :any:`check-integrity` is set, :iscman:`named` checks whether there is a TXT Sender
+   Policy Framework record present (starts with "v=spf1"), if there is an
    SPF record present. The default is ``warn``.
 
 .. namedconf:statement:: check-svcb
    :tags: zone
    :short: Specifies whether to perform additional checks on SVCB records.
 
-   If ``yes``, checks that SVCB records that start with a ``_dns``
+   If ``yes``, :iscman:`named` checks that SVCB records that start with a ``_dns``
    label prefixed by an optional ``_<port>`` label (e.g.
-   ``_443._dns.ns1.example``), have an ``alpn`` parameter and that
+   ``_443._dns.ns1.example``) have an ``alpn`` parameter, and that
    the ``dohpath`` parameter exists when the ``alpn`` indicates
    that it should be present.  The default is ``yes``.
 
@@ -2718,7 +2718,7 @@ Boolean Options
    :tags: zone, query, server
    :short: Specifies whether to set the time to live (TTL) of the SOA record to zero, when returning authoritative negative responses to SOA queries.
 
-   If ``yes``, when returning authoritative negative responses to SOA queries, set
+   If ``yes``, when returning authoritative negative responses to SOA queries, :iscman:`named` sets
    the TTL of the SOA record returned in the authority section to zero.
    The default is ``yes``.
 
@@ -2726,7 +2726,7 @@ Boolean Options
    :tags: zone, query, server
    :short: Sets the time to live (TTL) to zero when caching a negative response to an SOA query.
 
-   If ``yes``, when caching a negative response to an SOA query set the TTL to zero.
+   If ``yes``, this option instructs BIND to set the TTL to zero when caching a negative response to an SOA query.
    The default is ``no``.
 
 .. namedconf:statement:: update-check-ksk
@@ -2743,7 +2743,7 @@ Boolean Options
    :tags: transfer
    :short: Specifies that BIND 9 should attempt to refresh a zone using TCP if UDP queries fail.
 
-   If ``yes``, try to refresh the zone using TCP if UDP queries fail. The default is
+   If ``yes``, BIND tries to refresh the zone using TCP if UDP queries fail. The default is
    ``yes``.
 
 .. namedconf:statement:: dnssec-secure-to-insecure
@@ -2773,7 +2773,7 @@ Forwarding
 The forwarding facility can be used to create a large site-wide cache on
 a few servers, reducing traffic over links to external name servers. It
 can also be used to allow queries by servers that do not have direct
-access to the Internet, but wish to look up exterior names anyway.
+access to the Internet, but that wish to look up exterior names anyway.
 Forwarding occurs only on those queries for which the server is not
 authoritative and does not have the answer in its cache.
 
@@ -2796,8 +2796,8 @@ authoritative and does not have the answer in its cache.
    associated with an optional port number and a TLS transport. A default port
    number and a TLS transport can be set for the entire list.
 
-   If a TLS configuration is specified, :iscman:`named` will use DNS-over-TLS
-   (DoT) connections when connecting to the specified IP address(es), using the
+   If a TLS configuration is specified, :iscman:`named` uses DNS-over-TLS
+   (DoT) connections when connecting to the specified IP address(es), via the
    TLS configuration referenced by the :any:`tls` statement.
 
 Forwarding can also be configured on a per-domain basis, allowing for
@@ -2864,16 +2864,16 @@ for details on how to specify IP address lists.
    This :any:`address_match_list` is primarily meant to have addresses
    and subnets of the proxies that are allowed to send PROXYv2 headers
    to BIND. In most cases, we do not recommend setting this
-   :any:`address_match_list` to be very allowing, in particular, to
-   set it to `any`, especially in the cases when PROXYv2 headers can be
-   accepted on publically available networking interfaces.
+   :any:`address_match_list` to be very permissive; in particular, we recommend against
+   setting it to `any`, especially in cases when PROXYv2 headers can be
+   accepted on publicly available networking interfaces.
 
    The specified option is the only option that matches against real
    peer addresses when PROXYv2 headers are used. Most of the options
-   that work with peer addresses, use the ones extracted from PROXYv2
+   that work with peer addresses use the ones extracted from PROXYv2
    headers.
 
-   Also, see: :namedconf:ref:`allow-proxy-on`
+   See also: :namedconf:ref:`allow-proxy-on`.
 
 .. namedconf:statement:: allow-proxy-on
    :tags: server
@@ -2882,13 +2882,13 @@ for details on how to specify IP address lists.
    The default :any:`address_match_list` is `any`, which means that
    accepting PROXYv2 is allowed on any interface.
 
-   The option is useful in cases when you need to have precise control
-   over which interfaces PROXYv2 is allowed, as it is the only one
+   The option is useful in cases when a user needs to have precise control
+   over which interfaces allow PROXYv2, as it is the only option
    that matches against real interface addresses when PROXYv2 headers
-   are used. Most of the options that work with interface addresses
-   will use the ones extracted from PROXYv2 headers.
+   are used. Most options that work with interface addresses
+   use the ones extracted from PROXYv2 headers.
 
-   You may want to set :namedconf:ref:`allow-proxy` first.
+   It may be desirable to first set :namedconf:ref:`allow-proxy`.
 
 .. namedconf:statement:: allow-query
    :tags: query
@@ -2902,7 +2902,7 @@ for details on how to specify IP address lists.
 
 .. namedconf:statement:: allow-query-on
    :tags: query
-   :short: Specifies which local addresses (an IP address list) are allowed to send queries to this resolver. Used in multi-homed configurations.
+   :short: Specifies which local addresses (an IP address list) are allowed to send queries to this resolver. This option is used in multi-homed configurations.
 
    This makes it possible, for instance, to allow queries on
    internal-facing interfaces but disallow them on external-facing ones,
@@ -2923,28 +2923,28 @@ for details on how to specify IP address lists.
    :tags: query
    :short: Specifies which hosts (an IP address list) can access this server's cache and thus effectively controls recursion.
 
-   Defines an :term:`address_match_list` of IP address(es) which are allowed to
+   This option defines an :term:`address_match_list` of IP address(es) which are allowed to
    issue queries that access the local cache. Without access to the local
-   cache recursive queries are effectively useless so, in effect, this
+   cache, recursive queries are effectively useless so, in effect, this
    statement (or its default) controls recursive behavior. This statement's
    default setting depends on:
 
-   1. If :namedconf:ref:`recursion no; <recursion>` present, defaults to
+   1. If :namedconf:ref:`recursion no; <recursion>` present, it defaults to
       ``allow-query-cache {none;};``. No local cache access permitted.
 
-   2. If :namedconf:ref:`recursion yes; <recursion>` (default) then, if
-      :any:`allow-recursion` present, defaults to the value of
-      :any:`allow-recursion`. Local cache access permitted to the same
+   2. If :namedconf:ref:`recursion yes; <recursion>` (default), then, if
+      :any:`allow-recursion` is present, it defaults to the value of
+      :any:`allow-recursion`. Local cache access is permitted to the same
       :term:`address_match_list` as :any:`allow-recursion`.
 
-   3. If :namedconf:ref:`recursion yes; <recursion>` (default) then, if
-      :any:`allow-recursion` is **not** present, defaults to
-      ``allow-query-cache {localnets; localhost;};``. Local cache access permitted
+   3. If :namedconf:ref:`recursion yes; <recursion>` (default), then, if
+      :any:`allow-recursion` is **not** present, it defaults to
+      ``allow-query-cache {localnets; localhost;};``. Local cache access is permitted
       to :term:`address_match_list` localnets and localhost IP addresses only.
 
 .. namedconf:statement:: allow-query-cache-on
    :tags: query
-   :short: Specifies which hosts (an IP address list) can access this server's cache. Used on servers with multiple interfaces.
+   :short: Specifies which hosts (from an IP address list) can access this server's cache. It is used on servers with multiple interfaces.
 
    This specifies which local addresses can send answers from the cache. If
    :any:`allow-query-cache-on` is not set, then :any:`allow-recursion-on` is
@@ -2980,7 +2980,7 @@ for details on how to specify IP address lists.
    :tags: transfer
    :short: Defines an :any:`address_match_list` of hosts that are allowed to submit dynamic updates for primary zones.
 
-   A simple access control list.
+   This provides a simple access control list.
    When set in the :any:`zone` statement for a primary zone, this specifies which
    hosts are allowed to submit dynamic DNS updates to that zone. The
    default is to deny updates from all hosts.
@@ -3028,7 +3028,7 @@ for details on how to specify IP address lists.
    statement, in which case it overrides the :any:`allow-transfer`
    statement set in :namedconf:ref:`options` or :any:`view`.
 
-   The transport level limitations can also be specified. In particular,
+   Transport-level limitations can also be specified. In particular,
    zone transfers can be restricted to a specific port and/or DNS
    transport protocol by using the options :term:`port` and ``transport``.
    Either option can be specified; if both are used, both constraints
@@ -3055,7 +3055,7 @@ for details on how to specify IP address lists.
    :short: Defines an :any:`address_match_list` of hosts to ignore. The server will neither respond to queries from nor send queries to these addresses.
 
    This specifies a list of addresses which the server does not accept queries
-   from or use to resolve a query. Queries from these addresses are not
+   from or or cannot use to resolve a query. Queries from these addresses are not
    responded to. The default is ``none``.
 
 .. namedconf:statement:: no-case-compress
@@ -3100,9 +3100,9 @@ for details on how to specify IP address lists.
    :tags: query
    :short: Specifies the length of time, in milliseconds, that a resolver attempts to resolve a recursive query before failing.
 
-   This is the amount of time in milliseconds that the resolver spends
+   This is the amount of time, in milliseconds, that the resolver spends
    attempting to resolve a recursive query before failing. The default
-   is ``10000``, the minimum is ``301`` and the maximum is ``30000``.
+   is ``10000``, the minimum is ``301``, and the maximum is ``30000``.
    Setting it to ``0`` results in the default being used.
 
    This value was originally specified in seconds. Values less than or
@@ -3142,29 +3142,29 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    DNS queries on port 53 of all IPv6 interfaces.
 
    When specified, the PROXYv2 support switch ``proxy`` allows
-   enabling the PROXYv2 protocol support. The PROXYv2 protocol
+   the enabling of PROXYv2 protocol support. The PROXYv2 protocol
    provides the means for passing connection information, such as a
    client's source and destination addresses and ports, across
    multiple layers of NAT or TCP/UDP proxies to back-end servers. The
-   addresses passed to by the PROXYv2 protocol are then used instead
+   addresses passed by the PROXYv2 protocol are then used, instead
    of the peer and interface addresses provided by the operating
    system.
 
    The ``proxy`` switch can have the following values:
 
-   * ``plain`` - accept plain PROXYv2 headers. It is the only valid
+   * ``plain`` - accept plain PROXYv2 headers. This is the only valid
      option for transports that do not employ encryption. In the case
-     of transports that employ encryption, it instructs BIND that
+     of transports that employ encryption, this value instructs BIND that
      PROXYv2 headers are sent without encryption before the TLS
      handshake. In that case, only PROXYv2 headers are not encrypted.
-   * ``encrypted`` - accept encrypted PROXYv2 headers. In the case of
-     transports that employ encryption, it instructs BIND that PROXYv2
-     headers are sent encrypted immediately after the TLS
-     handshake. The option is valid only for the transports that employ
-     encryption.
+   * ``encrypted`` - accept encrypted PROXYv2 headers. This value
+     instructs BIND that PROXYv2 headers are sent encrypted immediately
+     after the TLS handshake. The option is valid only for transports
+     that employ encryption; encrypted PROXYv2 headers cannot be sent
+     via unencrypted transports.
 
-   You must consult your proxying front-end software documentation to
-   decide which value you need to use. If in doubt, use ``plain`` for
+   Please consult the documentation of any proxying front-end software to
+   decide which value should be used. If in doubt, use ``plain`` for
    encrypted transports, especially for DNS-over-HTTPS (DoH), but
    DNS-specific software is likely to need ``encrypted``.
 
@@ -3173,26 +3173,26 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    PROXYv2 headers.
 
    In some cases, PROXYv2 headers might not contain usable source and
-   destination addresses. In particular, that happens when the headers
-   use ``LOCAL`` command or the headers that use unspecified or
-   unsupported by BIND address types. If otherwise correct, such
+   destination addresses. In particular, this can happen when the headers
+   use the ``LOCAL`` command, or headers use address types that are unspecified or
+   unsupported by BIND. If otherwise correct, such
    headers are accepted by BIND and the real endpoint addresses are
    used in these cases.
 
    The PROXYv2 protocol is designed to be extensible and can carry
    additional information in the form of type-length-values
    (TLVs). Many of the types are defined in the protocol
-   specification, and for some of these, we do a reasonable amount of
+   specification, and for some of these, BIND does a reasonable amount of
    validation in order to detect and reject ill-formed or hand-crafted
    headers. Apart from that, this additional data, while accepted, is
    not currently used by BIND for anything else.
 
    By default, no client is allowed to send queries that contain
    PROXYv2 protocol headers, even when support for the protocol is
-   enabled in a :any:`listen-on` statement. If you are interested in
-   enabling the PROXYv2 protocol support, you may also want to take a
-   look at :namedconf:ref:`allow-proxy` and
-   :namedconf:ref:`allow-proxy-on` options to adjust the corresponding
+   enabled in a :any:`listen-on` statement. Users who are interested in
+   enabling the PROXYv2 protocol support may also want to
+   look at the :namedconf:ref:`allow-proxy` and
+   :namedconf:ref:`allow-proxy-on` options, to adjust the corresponding
    ACLs.
 
    If a TLS configuration is specified, :iscman:`named` will listen for DNS-over-TLS
@@ -3201,19 +3201,19 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    an ephemeral key and certificate created for the currently running
    :iscman:`named` process will be used.
 
-   If an HTTP configuration is specified, :iscman:`named` will listen for
+   If an HTTP configuration is specified, :iscman:`named` listens for
    DNS-over-HTTPS (DoH) connections using the HTTP endpoint specified in the
-   referenced :any:`http` statement.  If the name ``default`` is used, then
-   :iscman:`named` will listen for connections at the default endpoint,
+   referenced :any:`http` statement. If the name ``default`` is used, then
+   :iscman:`named` listens for connections at the default endpoint,
    ``/dns-query``.
 
    Use of an :any:`http` specification requires :any:`tls` to be specified
-   as well.  If an unencrypted connection is desired (for example,
+   as well. If an unencrypted connection is desired (for example,
    on load-sharing servers behind a reverse proxy), ``tls none`` may be used.
 
    If a port number is not specified, the default is 53 for standard DNS,
    853 for DNS over TLS, 443 for DNS over HTTPS, and 80 for
-   DNS over HTTP (unencrypted).  These defaults may be overridden using the
+   DNS over HTTP (unencrypted). These defaults may be overridden using the
    :namedconf:ref:`port`, :any:`tls-port`, :any:`https-port`, and :any:`http-port` options.
 
    Multiple :any:`listen-on` statements are allowed. For example:
@@ -3232,7 +3232,7 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    queries on port 53 of the IP address 5.6.7.8 and on port 1234 of an address
    on the machine in net 1.2 that is not 1.2.3.4. The third line instructs the
    server to listen for DNS-over-TLS connections on port 8853 of the IP
-   address 4.3.2.1 using the ephemeral key and certifcate.  The fourth line
+   address 4.3.2.1 using the ephemeral key and certifcate. The fourth line
    enables DNS-over-HTTPS connections on port 8453 of address 8.7.6.5, using
    the ephemeral key and certificate, and the HTTP endpoint or endpoints
    configured in an :any:`http` statement with the name ``myserver``.
@@ -3648,17 +3648,17 @@ system.
 
 .. namedconf:statement:: max-validations-per-fetch
    :tags: server
-   :short: Set the maximum number of DNSSEC validations that can happen in single fetch
+   :short: Sets the maximum number of DNSSEC validations that can happen in a single fetch.
 
-   This is an **experimental** setting to set the maximum number of DNSSEC
-   validations that can happen in a single resolver fetch.  The default is 16.
+   This is an **experimental** setting that defines the maximum number of DNSSEC
+   validations that can happen in a single resolver fetch. The default is 16.
 
 .. namedconf:statement:: max-validation-failures-per-fetch
    :tags: server
-   :short: Set the maximum number of DNSSEC validation failures that can happen in single fetch
+   :short: Sets the maximum number of DNSSEC validation failures that can happen in a single fetch.
 
-   This is an **experimental** setting to set the maximum number of DNSSEC
-   validation failures that can happen in a single resolver fetch.  The default
+   This is an **experimental** setting that defines the maximum number of DNSSEC
+   validation failures that can happen in a single resolver fetch. The default
    is 1.
 
 .. namedconf:statement:: fetches-per-zone
@@ -3835,7 +3835,7 @@ system.
    :tags: server, query
    :short: Sets the amount of time (in milliseconds) that the server waits on a new TCP connection for the first message from the client.
 
-   This sets the amount of time (in units of 100 milliseconds) that the server waits on
+   This sets the amount of time, in units of 100 milliseconds, that the server waits on
    a new TCP connection for the first message from the client. The
    default is 300 (30 seconds), the minimum is 25 (2.5 seconds), and the
    maximum is 1200 (two minutes). Values above the maximum or below the
@@ -3848,7 +3848,7 @@ system.
    :tags: query
    :short: Sets the amount of time (in milliseconds) that the server waits on an idle TCP connection before closing it, if the EDNS TCP keepalive option is not in use.
 
-   This sets the amount of time (in units of 100 milliseconds) that the server waits on
+   This sets the amount of time, in units of 100 milliseconds, that the server waits on
    an idle TCP connection before closing it, when the client is not using
    the EDNS TCP keepalive option. The default is 300 (30 seconds), the
    maximum is 1200 (two minutes), and the minimum is 1 (one-tenth of a
@@ -3861,7 +3861,7 @@ system.
    :tags: query
    :short: Sets the amount of time (in milliseconds) that the server waits on an idle TCP connection before closing it, if the EDNS TCP keepalive option is in use.
 
-   This sets the amount of time (in units of 100 milliseconds) that the server waits on
+   This sets the amount of time, in units of 100 milliseconds, that the server waits on
    an idle TCP connection before closing it, when the client is using the
    EDNS TCP keepalive option. The default is 300 (30 seconds), the
    maximum is 65535 (about 1.8 hours), and the minimum is 1 (one-tenth
@@ -3875,7 +3875,7 @@ system.
    :tags: query
    :short: Sets the timeout value (in milliseconds) that the server sends in responses containing the EDNS TCP keepalive option.
 
-   This sets the timeout value (in units of 100 milliseconds) that the server sends
+   This sets the timeout value, in units of 100 milliseconds, that the server sends
    in responses containing the EDNS TCP keepalive option, which informs a
    client of the amount of time it may keep the session open. The
    default is 300 (30 seconds), the maximum is 65535 (about 1.8 hours),
@@ -3905,8 +3905,8 @@ system.
    :tags: server
    :short: Exempts specific clients or client groups from SIG(0) signature checking quota.
 
-   DNS clients can be exempted from SIG(0) signature checking quota with the
-   :any:`sig0checks-quota-exempt` clause using their IP and/or Network
+   DNS clients can be exempted from the SIG(0) signature checking quota with the
+   :any:`sig0checks-quota-exempt` clause, using their IP and/or network
    addresses. The default value is an empty list.
 
    Example:
@@ -4011,7 +4011,7 @@ all the clients.
        };
    };
 
-The following example illlustrates reasonable behavior for the local host
+The following example illustrates reasonable behavior for the local host
 and hosts on directly connected networks. Responses sent to queries from the
 local host favor any of the directly connected networks. Responses
 sent to queries from any other hosts on a directly connected network
@@ -4231,7 +4231,7 @@ Tuning
    :any:`stale-answer-enable` option or by calling :option:`rndc serve-stale on <rndc serve-stale>`.
 
    When :any:`stale-cache-enable` is set to ``no``, setting the :any:`max-stale-ttl`
-   has no effect, the value of :any:`max-cache-ttl` will be ``0`` in such case.
+   has no effect; the value of :any:`max-cache-ttl` is ``0`` in such a case.
 
 .. namedconf:statement:: sig-validity-interval
    :tags: obsolete
@@ -4629,8 +4629,8 @@ include the reverse namespace for the IPv6 local address (locally assigned),
 IPv6 link local addresses, the IPv6 loopback address, and the IPv6
 unknown address.
 
-The server attempts to determine if a built-in zone already exists
-or is active (covered by a forward-only forwarding declaration) and does
+The server attempts to determine whether a built-in zone already exists
+or is active (covered by a forward-only forwarding declaration), and does
 not create an empty zone if either is true.
 
 The current list of empty zones is:
@@ -4810,7 +4810,7 @@ Content Filtering
    :tags: query
    :short: Rejects CNAME or DNAME records if the "alias" name matches a given list of :any:`domain_name` elements.
 
-   It can
+   BIND can
    also reject CNAME or DNAME records if the "alias" name (i.e., the CNAME
    alias or the substituted query name due to DNAME) matches the given
    list of :term:`domain_name` elements of the :any:`deny-answer-aliases` option,
@@ -4828,8 +4828,8 @@ Content Filtering
 
    returned by an "example.com" server is accepted.
 
-If a response message is rejected due to the filtering, the entire
-message is discarded without being cached, and a SERVFAIL error is
+If a response message is rejected due to filtering, the entire
+message is discarded without being cached and a SERVFAIL error is
 returned to the client.
 
 This filtering is intended to prevent "DNS rebinding attacks," in which
@@ -5137,7 +5137,7 @@ done to discover problems at the authoritative server.
 
 .. namedconf:statement:: dnsrps-library
    :tags: obsolete
-   :short: Turns on the DNS Response Policy Service (DNSRPS) interface.
+   :short: Specifies the path to the DNS Response Policy Service (DNSRPS) provider library.
 
    This option no longer has any effect.
 
@@ -5291,7 +5291,7 @@ Response Rate Limiting
    the same domains. When possible, closing "open" recursive servers is
    better.
 
-   Response rate limiting uses a "credit" or "token bucket" scheme. Each
+   Response-rate limiting uses a "credit" or "token bucket" scheme. Each
    combination of identical response and client has a conceptual "account"
    that earns a specified number of credits every second. A prospective
    response debits its account by one. Responses are dropped or truncated
@@ -5629,7 +5629,7 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
    :suppress_grammar:
 
    .. warning::
-      Not to be confused with :any:`keys` in :any:`dnssec-policy` specification.
+      This option is not to be confused with :any:`keys` in the :any:`dnssec-policy` specification.
       Although statements with the same name exist in both contexts, they refer
       to fundamentally incompatible concepts.
 
@@ -5766,33 +5766,33 @@ The following options can be specified in a :any:`tls` statement:
    :tags: server, security
    :short: Specifies the path to a file containing the private TLS key for a connection.
 
-    Path to a file containing the private TLS key to be used for
+    This indicates the path to a file containing the private TLS key to be used for
     the connection.
 
 .. namedconf:statement:: cert-file
    :tags: server, security
    :short: Specifies the path to a file containing the TLS certificate for a connection.
 
-    Path to a file containing the TLS certificate to be used for
+    This indicates the path to a file containing the TLS certificate to be used for
     the connection.
 
 .. namedconf:statement:: ca-file
    :tags: server, security
    :short: Specifies the path to a file containing TLS certificates for trusted CA authorities, used to verify remote peer certificates.
 
-    Path to a file containing trusted CA authorities' TLS
-    certificates used to verify remote peer certificates. Specifying
-    this option enables remote peer certificates' verification. For
+    This indicates the path to a file containing trusted CA authorities' TLS
+    certificates, used to verify remote peer certificates. Specifying
+    this option enables verification of remote peer certificates. For
     incoming connections, specifying this option makes BIND require
     a valid TLS certificate from a client. In the case of outgoing
-    connections, if :any:`remote-hostname` is not specified, then the remote
+    connections, if :any:`remote-hostname` is not specified, the remote
     server IP address is used instead.
 
 .. namedconf:statement:: dhparam-file
    :tags: server, security
    :short: Specifies the path to a file containing Diffie-Hellman parameters, for enabling cipher suites.
 
-    Path to a file containing Diffie-Hellman parameters,
+    This indicates the path to a file containing Diffie-Hellman parameters,
     which is needed to enable the cipher suites depending on the
     Diffie-Hellman ephemeral key exchange (DHE). Having these parameters
     specified is essential for enabling perfect forward secrecy capable
@@ -5802,7 +5802,7 @@ The following options can be specified in a :any:`tls` statement:
    :tags: security
    :short: Specifies the expected hostname in the TLS certificate of the remote server.
 
-    The expected hostname in the TLS certificate of the
+    This specifies the expected hostname in the TLS certificate of the
     remote server. This option enables a remote server certificate
     verification. If :any:`ca-file` is not specified, then the
     platform-specific certificates store is used for
@@ -5814,16 +5814,16 @@ The following options can be specified in a :any:`tls` statement:
    :tags: security
    :short: Specifies the allowed versions of the TLS protocol.
 
-    Allowed versions of the TLS protocol. TLS version 1.2 and higher are
+    This specifies the allowed versions of the TLS protocol. TLS version 1.2 and higher are
     supported, depending on the cryptographic library in use. Multiple
-    versions might be specified (e.g.
+    versions may be specified (e.g.
     ``protocols { TLSv1.2; TLSv1.3; };``).
 
 .. namedconf:statement:: cipher-suites
    :tags: security
    :short: Specifies a list of allowed cipher suites in the order of preference for TLSv1.3 only.
 
-    Cipher suites list which defines allowed cipher suites, such as
+    This option defines allowed cipher suites, such as
     ``TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256``.
     The string must be formed according to the rules specified in the
     OpenSSL documentation (see
@@ -5834,7 +5834,7 @@ The following options can be specified in a :any:`tls` statement:
    :tags: security
    :short: Specifies a list of allowed ciphers in the order of preference for TLSv1.2 only.
 
-    Cipher list which defines allowed ciphers, such as
+    This option defines allowed ciphers, such as
     ``HIGH:!aNULL:!MD5:!SHA1:!SHA256:!SHA384``. The string must be
     formed according to the rules specified in the OpenSSL documentation
     (see https://www.openssl.org/docs/man1.1.1/man1/ciphers.html
@@ -5844,13 +5844,13 @@ The following options can be specified in a :any:`tls` statement:
    :tags: server, security
    :short: Specifies that server ciphers should be preferred over client ones.
 
-    Specifies that server ciphers should be preferred over client ones.
+    This option specifies that server ciphers should be preferred over client ones.
 
 .. namedconf:statement:: session-tickets
    :tags: security
    :short: Enables or disables session resumption through TLS session tickets.
 
-    Enables or disables session resumption through TLS session tickets,
+    This option enables or disables session resumption through TLS session tickets,
     as defined in :rfc:`5077`. Disabling the stateless session tickets
     might be required in the cases when forward secrecy is needed,
     or the TLS certificate and key pair is planned to be used across
@@ -5891,19 +5891,19 @@ like follows:
 
    openssl dhparam -out /path/to/dhparam.pem <3072_or_4096>
 
-Ensure that it gets generated on a machine with enough entropy from
-external sources (e.g. the computer you work on should be fine,
-the remote virtual machine or server might be not). These files do
+It is important to ensure that the file is generated on a machine with enough entropy from
+external sources (e.g. the local computer should be fine,
+the remote virtual machine or server might not be). These files do
 not contain any sensitive data and can be shared if required.
 
-There are two built-in TLS connection configurations: ``ephemeral``,
+There are two built-in TLS connection configurations: ``ephemeral``, which
 uses a temporary key and certificate created for the current :iscman:`named`
 session only, and ``none``, which can be used when setting up an HTTP
 listener with no encryption.
 
-The main motivation behind having the ``ephemeral`` configuration is
-to aid in testing, as trusted certificate authorities do not issue the
-certificates associated with this configuration. Thus, these
+The main motivation behind the existence of the ``ephemeral`` configuration is
+to aid in testing. Since trusted certificate authorities do not issue the
+certificates associated with this configuration, these
 certificates will never be trusted by any clients that verify TLS
 certificates; they provide encryption of the traffic but no
 authentication of the transmission channel. That might be enough in
@@ -5914,27 +5914,27 @@ and the certificate are recreated, and all TLS certificates and keys,
 as well as associated data, are reloaded from the disk. In that case,
 listening sockets associated with TLS remain intact.
 
-Please keep in mind that performing a reconfiguration can cause a short
+Note that performing a reconfiguration can cause a short
 interruption in BIND's ability to process inbound client packets. The
 length of interruption is environment- and configuration-specific. A
 good example of when reconfiguration is necessary is when TLS keys and
 certificates are updated on the disk.
 
 BIND supports the following TLS authentication mechanisms described in
-the :rfc:`9103`, Section 9.3: Opportunistic TLS, Strict TLS, and Mutual
+:rfc:`9103`, Section 9.3: Opportunistic TLS, Strict TLS, and Mutual
 TLS.
 
 .. _opportunistic-tls:
 
 Opportunistic TLS provides encryption for data but does not provide
-any authentication for the channel. This mode is the default one and
-it is used whenever :any:`remote-hostname` and :any:`ca-file` options are not set
+any authentication for the channel. This mode is the default and
+is used whenever the :any:`remote-hostname` and :any:`ca-file` options are not set
 in :any:`tls` statements in use. :rfc:`9103` allows optional fallback to
-clear-text DNS in the cases when TLS is not available. Still, BIND
-intentionally does not support that in order to protect from
+clear-text DNS in the cases when TLS is not available; however, BIND
+intentionally does not support that fallback, to protect from
 unexpected data leaks due to misconfiguration. Both BIND and its
 complementary tools either successfully establish a secure channel via
-TLS when instructed to do so or fail to establish a connection
+TLS when instructed to do so, or fail to establish a connection
 otherwise.
 
 .. _strict-tls:
@@ -5998,7 +5998,7 @@ The following options can be specified in an :any:`http` statement:
    :tags: server, query
    :short: Specifies a list of HTTP query paths on which to listen.
 
-    A list of HTTP query paths on which to listen. This is the portion
+    This specifies a list of HTTP query paths on which to listen. This is the portion
     of an :rfc:`3986`-compliant URI following the hostname; it must be
     an absolute path, beginning with "/". The default value
     is ``"/dns-query"``, if omitted.
@@ -6007,13 +6007,13 @@ The following options can be specified in an :any:`http` statement:
    :tags: server, query
    :short: Specifies a per-listener quota for active connections.
 
-    The option specifies a per-listener quota for active connections.
+    This option specifies a per-listener quota for active connections.
 
 .. namedconf:statement:: streams-per-connection
    :tags: server, query
    :short: Specifies the maximum number of concurrent HTTP/2 streams over an HTTP/2 connection.
 
-    The option specifies the hard limit on the number of concurrent
+    This option specifies the hard limit on the number of concurrent
     HTTP/2 streams over an HTTP/2 connection.
 
 Any of the options above could be omitted. In such a case, a global value
@@ -6075,7 +6075,7 @@ domain name, followed by an "anchor type" keyword indicating
 the trust anchor's format, followed by the key or digest data.
 
 If the anchor type is ``static-key`` or
-``initial-key``, then it is followed with the
+``initial-key``, it is followed with the
 key's flags, protocol, and algorithm, plus the Base64 representation
 of the public key data. This is identical to the text
 representation of a DNSKEY record.  Spaces, tabs, newlines, and
@@ -6103,7 +6103,7 @@ the original key
 configured using ``static-key`` or
 ``static-ds`` would be unable to validate
 this zone any longer; it would reply with a SERVFAIL response
-code.  This would continue until the resolver operator had
+code. This would continue until the resolver operator had
 updated the :any:`trust-anchors` statement with
 the new key.
 
@@ -6113,7 +6113,7 @@ instead, the zone owner could add a "stand-by" key to
 the zone in advance. :iscman:`named` would store
 the stand-by key, and when the original key was revoked,
 :iscman:`named` would be able to transition smoothly
-to the new key.  It would also recognize that the old key had
+to the new key. It would also recognize that the old key had
 been revoked and cease using that key to validate answers,
 minimizing the damage that the compromised key could do.
 This is the process used to keep the ICANN root DNSSEC key
@@ -6175,10 +6175,10 @@ others, the working directory should be always be writable by
 
 If the :any:`dnssec-validation` option is set to ``auto``, :iscman:`named`
 automatically sets up an ``initial-key`` for the root zone. This
-initializing key is built in to :iscman:`named`, and is current as of the
-release date.  When the root zone key changes, a running server will detect
-the change and roll to the new key, but newly-installed servers being run
-for the first time will need to be from a recent enough version of BIND to
+initializing key is built into :iscman:`named` and is current as of the
+release date.  When the root zone key changes, a running server detects
+the change and rolls to the new key; however, newly installed servers being run
+for the first time will need to be on a recent-enough version of BIND to
 have been built with the current key.
 
 :any:`dnssec-policy` Block Grammar
@@ -6203,10 +6203,10 @@ A policy for a zone is selected using a :any:`dnssec-policy` statement in the
 used.
 
 There are three built-in policies:
-  - ``default``, which uses the :ref:`default policy <dnssec_policy_default>`,
-  - ``insecure``, to be used when you want to gracefully unsign your zone,
+  - ``default``, which uses the :ref:`default policy <dnssec_policy_default>`;
+  - ``insecure``, to be used when the zone should be unsigned gracefully; and
   - ``none``, which means no DNSSEC policy (the same as not selecting
-    :any:`dnssec-policy` at all; the zone is not signed.)
+    :any:`dnssec-policy` at all; the zone is not signed).
 
 Keys are not shared among zones, which means that one set of keys per
 zone is generated even if they have the same policy.  If multiple views
@@ -6229,12 +6229,12 @@ zone is maintained separately and is written out to a different file on disk
 (the zone's filename plus a ``.signed`` extension).
 
 If :any:`inline-signing` is disabled, the zone needs to be configured with
-an :any:`update-policy` or :any:`allow-update`. In such case, the DNSSEC
+an :any:`update-policy` or :any:`allow-update`. In such a case, the DNSSEC
 records are written to the filename set in the original zone's :any:`file`.
 
 Key rollover timing is computed for each key according to the key
-lifetime defined in the KASP.  The lifetime may be modified by zone TTLs
-and propagation delays, to prevent validation failures.  When a key
+lifetime defined in the KASP. The lifetime may be modified by zone TTLs
+and propagation delays, to prevent validation failures. When a key
 reaches the end of its lifetime, :iscman:`named` generates and publishes a new
 key automatically, then deactivates the old key and activates the new
 one; finally, the old key is retired according to a computed schedule.
@@ -6253,14 +6253,14 @@ lifetime. This policy can be displayed using the command :option:`named -C`.
 
 .. note:: The default signing policy may change in future releases.
    This could require changes to a signing policy when upgrading to a
-   new version of BIND.  Check the release notes carefully when
-   upgrading to be informed of such changes.  To prevent policy changes
+   new version of BIND. Check the release notes carefully when
+   upgrading to be informed of such changes. To prevent policy changes
    on upgrade, use an explicitly defined :any:`dnssec-policy`, rather than
    ``default``.
 
 If a :any:`dnssec-policy` statement is modified and the server restarted or
 reconfigured, :iscman:`named` attempts to change the policy smoothly from the
-old one to the new.  For example, if the key algorithm is changed, then
+old one to the new. For example, if the key algorithm is changed, then
 a new key is generated with the new algorithm, and the old algorithm is
 retired when the existing key's lifetime ends.
 
@@ -6287,7 +6287,7 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
 .. namedconf:statement:: dnskey-ttl
    :tags: dnssec
-   :short: Specifies the time to live (TTL) for DNSKEY resource records.
+   :short: Specifies the time-to-live (TTL) for DNSKEY resource records.
 
     This indicates the TTL to use when generating DNSKEY resource
     records. The default is 1 hour (3600 seconds).
@@ -6313,9 +6313,9 @@ keys
    :short: Specifies the type of keys to be used for DNSSEC signing.
 
     This is a list specifying the algorithms and roles to use when
-    generating keys and signing the zone.  Entries in this list do not
+    generating keys and signing the zone. Entries in this list do not
     represent specific DNSSEC keys, which may be changed on a regular
-    basis, but the roles that keys play in the signing policy.  For
+    basis, but the roles that keys play in the signing policy. For
     example, configuring a KSK of algorithm RSASHA256 ensures that the
     DNSKEY RRset always includes a key-signing key for that algorithm.
 
@@ -6387,10 +6387,10 @@ keys
     functionality of a ZSK and a KSK.
 
 .. note:: When changing the ``key-directory`` or the ``key-store``, BIND will
-   be unable to find existing key files. Make sure you copy key files to the
+   be unable to find existing key files. Be sure to copy key files to the
    new directory before changing the path used in the configuration file.
-   This is also true when changing to a built-in policy, for example to
-   ``insecure``. In this specific case you should move the existing key files
+   This is also true when changing to a built-in policy, e.g. to
+   ``insecure``. In this specific case, the existing key files should be moved
    to the zone's ``key-directory`` from the new configuration.
 
 .. namedconf:statement:: offline-ksk
@@ -6455,7 +6455,7 @@ keys
    :short: Specifies how frequently an RRSIG record is refreshed.
 
     This determines how frequently an RRSIG record needs to be
-    refreshed.  The signature is renewed when the time until the
+    refreshed. The signature is renewed when the time until the
     expiration time is less than the specified interval.  The default is
     ``P5D`` (5 days), meaning signatures that expire in 5 days or sooner
     are refreshed. The :any:`signatures-refresh` value must be less than
@@ -6495,7 +6495,7 @@ max-zone-ttl
    :any:`max-zone-ttl` option guarantees that the largest TTL in the
    zone is no higher than a known and predictable value.
 
-   The default value ``PT24H`` (24 hours).  A value of zero is treated
+   The default value ``PT24H`` (24 hours). A value of zero is treated
    as if the default value were in use.
 
 .. namedconf:statement:: nsec3param
@@ -6575,7 +6575,7 @@ The following options apply to DS queries sent to :any:`parental-agents`:
    agents configured.
 
    If set to ``no``, no DS queries are sent. Users should manually run
-   :option:`rndc dnssec -checkds <rndc dnssec>` with the appropriate parameters
+   :option:`rndc dnssec -checkds <rndc dnssec>` with the appropriate parameters,
    to signal that specific DS records are published and/or withdrawn.
 
 .. namedconf:statement:: parental-source
@@ -7266,7 +7266,7 @@ Zone Options
 
    The use of inline signing is determined by the :any:`dnssec-policy` for
    the zone. If :any:`inline-signing` is explicitly set to ``yes`` or ``no``
-   in :any:`zone`, then it overrides any value from :any:`dnssec-policy`.
+   in :any:`zone`, it overrides any value from :any:`dnssec-policy`.
 
 :any:`multi-master`
    See the description of :any:`multi-master` in :ref:`boolean_options`.
@@ -7277,7 +7277,7 @@ Zone Options
 :any:`max-zone-ttl`
    See the description of :any:`max-zone-ttl` in :namedconf:ref:`options`.
    The use of this option in :any:`zone` blocks is deprecated and
-   will be rendered nonoperational in a future release.
+   will be rendered non-operational in a future release.
 
 .. _dynamic_update_policies:
 
@@ -7296,7 +7296,7 @@ set in :any:`file`.
 In the case of a DNSSEC zone where :any:`inline-signing` is disabled, DNSSEC
 records are also written to the zone's filename.
 
-   .. note:: The zone file can no longer be manually updated while ``named``
+   .. note:: The zone file can no longer be manually updated while :iscman:`named`
       is running; it is now necessary to perform :option:`rndc freeze`, edit,
       and then perform :option:`rndc thaw`. Comments and formatting
       in the zone file are lost when dynamic updates occur.
@@ -7705,9 +7705,9 @@ Outgoing Queries
 Incoming Zone Transfers
    Information about in-progress incoming zone transfers.
 
-   This section describes the information, which can be seen in the
-   HTML table about in-progress incoming zone transfers.  It lists
-   the meaning, units and possible range of values of each column,
+   This section describes the information that can be seen in the
+   HTML table about in-progress incoming zone transfers. It lists
+   the meaning, units, and possible range of values of each column,
    and the key/attribute/element name (in parentheses) for the JSON
    and XML output formats.
 
@@ -7718,21 +7718,21 @@ Incoming Zone Transfers
    ``Zone Type`` (``type``)
       Text string. This is the type of zone being transferred, as
       specified in the ``zone`` declaration on this server. Possible
-      values are: ``secondary``, ``stub``, ``redirect``, ``mirror``.
+      values are: ``secondary``, ``stub``, ``redirect``, and ``mirror``.
 
    ``Local Serial`` (``serial``)
-      32 bit unsigned Integer. This is the current (old) serial
+      32-bit unsigned Integer. This is the current (old) serial
       number of the zone being transferred. It comes from the SOA
       record held on the current server.
 
    ``Remote Serial`` (``remoteserial``)
-      32 bit unsigned Integer. This is the new serial number of the
+      32-bit unsigned Integer. This is the new serial number of the
       zone being transferred. It comes from the SOA record held on
       the primary server from which the zone is being transferred.
 
    ``IXFR`` (``ixfr``)
       Boolean. This says whether the transfer is incremental (using
-      IXFR) or full (using AXFR). Possible values are: ``Yes``,
+      IXFR) or full (using AXFR). Possible values are: ``Yes`` and
       ``No``.
 
    ``State`` (``state``)
@@ -7740,20 +7740,20 @@ Incoming Zone Transfers
       this zone. Possible values and their meanings are:
 
          ``Needs Refresh``
-             The zone needs a refresh, but the process hasn't started yet,
-             which can be due to different factors, like the retry interval of
+             The zone needs a refresh, but the process has not started yet;
+             this can be due to different factors, like the retry interval of
              the zone.
 
          ``Pending``
              The zone is flagged for a refresh, but the process is currently
              in the queue and will start shortly, or is in a waiting state
-             because of rate-limiting, see :any:`serial-query-rate`. The
+             because of rate-limiting; see :any:`serial-query-rate`. The
              ``Duration (s)`` timer starts before entering this state.
 
          ``Refresh SOA``
-             Sending a refresh SOA query to get the zone serial number, then
+             BIND is sending a refresh SOA query to get the zone serial number and will then
              initiate a zone transfer, if necessary. If this step is successful,
-             the ``SOA Query`` and ``Got SOA`` states will be skipped.
+             the ``SOA Query`` and ``Got SOA`` states are skipped.
              Otherwise, the zone transfer procedure can still be initiated,
              and the SOA request will be attempted using the same transport as
              the zone transfer. The ``Duration (s)`` timer restarts before
@@ -7763,12 +7763,12 @@ Incoming Zone Transfers
 
          ``Deferred``
              The zone is going to be refreshed, but the process was
-             deferred due to quota, see :any:`transfers-in` and
+             deferred due to quota; see :any:`transfers-in` and
              :any:`transfers-per-ns`. The ``Duration (s)`` timer restarts before
              entering this state.
 
          ``SOA Query``
-             Sending SOA query to get the zone serial number, then
+             BIND is sending an SOA query to get the zone serial number and will then
              follow with a zone transfer, if necessary. The ``Duration (s)``
              timer restarts before entering this state.
 
@@ -7777,24 +7777,24 @@ Incoming Zone Transfers
              received, initiating a transfer.
 
          ``Zone Transfer Request``
-             Waiting for the zone transfer to start. The ``Duration (s)`` timer
+             BIND is waiting for the zone transfer to start. The ``Duration (s)`` timer
              restarts before entering this state.
 
          ``First Data``
-             Waiting for the first data record of the transfer.
+             BIND is waiting for the first data record of the transfer.
 
          ``Receiving IXFR Data``
-             Receiving data for an IXFR type incremental zone
+             BIND is receiving data for an IXFR type incremental zone
              transfer.
 
          ``Finalizing IXFR``
-             Finalizing an IXFR type incremental zone transfer.
+             BIND is finalizing an IXFR type incremental zone transfer.
 
          ``Receiving AXFR Data``
-             Receiving data for an AXFR type zone transfer.
+             BIND is receiving data for an AXFR type zone transfer.
 
          ``Finalizing AXFR``
-             Finalizing an AXFR type zone transfer.
+             BIND is finalizing an AXFR type zone transfer.
 
       .. note::
          State names can change between BIND versions.
@@ -7806,59 +7806,59 @@ Incoming Zone Transfers
       the ``State`` column), or when the transfer is in a running
       state, but the zone was marked for another refresh again (e.g.
       because of "notify" request from a primary server). Possible
-      values are: ``Yes``, ``No``.
+      values are: ``Yes`` and ``No``.
 
    ``Local Address`` (``localaddr``)
-      IP address - IPv4 or IPv6, as appropriate, and port number.
+      IP address (IPv4 or IPv6, as appropriate) and port number.
       This shows the source address used to establish the connection
       for the transfer.
 
    ``Remote Address`` (``remoteaddr``)
-      IP address - IPv4 or IPv6, as appropriate, and port number.
+      IP address (IPv4 or IPv6, as appropriate) and port number.
       This shows the destination address used to establish the
       connection for the transfer.
 
    ``SOA Transport`` (``soatransport``)
       Text string. This is the transport protocol in use for the
-      SOA query.  Note, that this value can potentially change during the
+      SOA query.  Note that this value can potentially change during the
       process. For example, when the transfer is in the ``Refresh SOA``
       state, the ``SOA Transport`` of the ongoing query can be shown as ``UDP``.
       If that query fails or times out, it then can be retried using another
       transport, or the transfer process can be initiated in "SOA before" mode,
       where the SOA query will be attempted using the same transport as the zone
       transfer. See the description of the ``State`` field for more information.
-      Possible values are: ``UDP``, ``TCP``, ``TLS``, ``None``.
+      Possible values are: ``UDP``, ``TCP``, ``TLS``, and ``None``.
 
    ``Transport`` (``transport``)
       Text string. This is the transport protocol in use for the
-      transfer. Possible values are: ``TCP``, ``TLS``.
+      transfer. Possible values are: ``TCP`` and ``TLS``.
 
    ``TSIG Key Name`` (``tsigkeyname``)
       Text string. This is the name of the TSIG key specified for
       use with this zone in the :any:`zone` declaration (if any).
 
    ``Duration (s)`` (``duration``)
-      64 bit unsigned Integer. This is the time, in seconds, that
+      64-bit unsigned Integer. This is the time, in seconds, that
       the current major state of the transfer process has been running so far.
       The timer starts after the refresh SOA request is queued (before the
-      ``Pending`` state), then it restarts several times during the whole
+      ``Pending`` state), and then restarts several times during the
       process to indicate the duration of the current major state. See the
-      descriptions of the different states to find out the states, before which
+      descriptions of the different states to find out the states before which
       this timer restarts.
 
    ``Messages Received`` (``nmsg``)
-      64 bit unsigned Integer. This is the number of DNS messages
+      64-bit unsigned Integer. This is the number of DNS messages
       received. It does not include transport overheads, such as
       TCP ACK.
 
    ``Records Received`` (``nrecs``)
-      64 bit unsigned Integer. This is the number of individual RRs
+      64-bit unsigned Integer. This is the number of individual RRs
       received so far. If an address record has, for example, five
       addresses associated with the same name, it counts as five
       RRs.
 
    ``Bytes Received`` (``nbytes``)
-      64 bit unsigned Integer. This is the number of usable bytes
+      64-bit unsigned Integer. This is the number of usable bytes
       of DNS data. It does not include transport overhead.
 
    .. note::
@@ -7866,7 +7866,7 @@ Incoming Zone Transfers
       values may be empty or set to ``-`` (meaning "not available").
       Also, in the case of the JSON output format, the corresponding
       keys can be missing or values can be set to ``NULL``.  For
-      example, it isn't known whether a transfer is using AXFR or
+      example, it is unknown whether a transfer is using AXFR or
       IXFR until the first data is received (see the description
       of the ``State`` column).
 
@@ -7893,7 +7893,7 @@ Cache DB RRsets
    for a particular name; this is also known as "NXRRSET". If an RR type name
    is preceded by a hash mark (#), it represents the number of RRsets for this
    type that are present in the cache but whose TTLs have expired; these RRsets
-   may only be used if stale answers are enabled.  If an RR type name is
+   may only be used if stale answers are enabled. If an RR type name is
    preceded by a tilde (~), it represents the number of RRsets for this type
    that are present in the cache database but are marked for garbage collection;
    these RRsets cannot be used.
