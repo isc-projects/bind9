@@ -12,7 +12,3 @@
  */
 
 	tls-port @TLSPORT@;
-	listen-on tls ephemeral { 10.53.0.3; };
-	listen-on port @EXTRAPORT1@ tls tls-forward-secrecy { 10.53.0.3; };
-	listen-on port @EXTRAPORT3@ tls tls-forward-secrecy-mutual-tls { 10.53.0.3; };
-	listen-on port @EXTRAPORT4@ tls tls-expired { 10.53.0.3; };
