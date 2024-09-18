@@ -5110,42 +5110,22 @@ such as SERVFAIL to appear to be rewritten, since no recursion is being
 done to discover problems at the authoritative server.
 
 .. namedconf:statement:: dnsrps-enable
-   :tags: server, security
+   :tags: obsolete
    :short: Turns on the DNS Response Policy Service (DNSRPS) interface.
 
-   The ``dnsrps-enable yes`` option turns on the DNS Response Policy Service
-   (DNSRPS) interface, if it has been compiled in :iscman:`named` using
-   ``configure --enable-dnsrps``.
+   This option no longer has any effect.
 
 .. namedconf:statement:: dnsrps-library
-   :tags: server, security
+   :tags: obsolete
    :short: Turns on the DNS Response Policy Service (DNSRPS) interface.
 
-   This option specifies the path to the DNSRPS provider library. Typically
-   this library is detected when building with ``configure --enable-dnsrps``
-   and does not need to be specified in ``named.conf``; the option exists
-   to override the default library for testing purposes.
+   This option no longer has any effect.
 
 .. namedconf:statement:: dnsrps-options
-   :tags: server, security
+   :tags: obsolete
    :short: Provides additional RPZ configuration settings, which are passed to the DNS Response Policy Service (DNSRPS) provider library.
 
-   The block provides additional RPZ configuration
-   settings, which are passed through to the DNSRPS provider library.
-   Multiple DNSRPS settings in an :any:`dnsrps-options` string should be
-   separated with semi-colons (;). The DNSRPS provider library is passed a
-   configuration string consisting of the :any:`dnsrps-options` text,
-   concatenated with settings derived from the :any:`response-policy`
-   statement.
-
-   Note: the :any:`dnsrps-options` text should only include configuration
-   settings that are specific to the DNSRPS provider. For example, the
-   DNSRPS provider from Farsight Security takes options such as
-   ``dnsrpzd-conf``, ``dnsrpzd-sock``, and ``dnzrpzd-args`` (for details of
-   these options, see the ``librpz`` documentation). Other RPZ
-   configuration settings could be included in :any:`dnsrps-options` as well,
-   but if :iscman:`named` were switched back to traditional RPZ by setting
-   :any:`dnsrps-enable` to "no", those options would be ignored.
+   This option no longer has any effect.
 
 The TTL of a record modified by RPZ policies is set from the TTL of the
 relevant record in the policy zone. It is then limited to a maximum value.

@@ -11,8 +11,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# touch dnsrps-off to not test with DNSRPS
-
 set -e
 
 . ../conf.sh

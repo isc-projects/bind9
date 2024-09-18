@@ -29,8 +29,6 @@ options {
 	dnssec-validation yes;
 	response-policy { zone "policy"; } nsdname-wait-recurse no
 		nsdname-enable yes;
-
-	include "../dnsrps.conf";
 };
 
 trust-anchors { };

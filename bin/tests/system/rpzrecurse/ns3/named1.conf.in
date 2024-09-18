@@ -32,8 +32,6 @@ options {
 		qname-wait-recurse yes
 		nsip-enable yes
 		nsdname-enable yes;
-
-	include "../dnsrps.conf";
 };
 
 trust-anchors { };

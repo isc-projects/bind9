@@ -32,8 +32,6 @@ options {
 	nsip-enable yes
 	nsdname-enable yes
 	min-update-interval 0;
-
-	include "../dnsrps.conf";
 };
 
 logging { category rpz { default_debug; }; };

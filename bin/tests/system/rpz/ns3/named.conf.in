@@ -60,7 +60,6 @@ options {
 	nsip-enable yes
 	;
 
-	include "../dnsrps.conf";
 	also-notify { 10.53.0.3 port @EXTRAPORT1@; };
 	notify-delay 0;
 };

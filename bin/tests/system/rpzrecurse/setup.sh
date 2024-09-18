@@ -11,8 +11,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# touch dnsrps-off to not test with DNSRPS
-
 set -e
 
 . ../conf.sh
@@ -29,9 +27,6 @@ copy_setports ns2/named.default.conf ns2/named.conf
 copy_setports ns3/named1.conf.in ns3/named.conf
 
 copy_setports ns4/named.conf.in ns4/named.conf
-
-touch dnsrps.conf
-touch dnsrps.cache
 
 # setup policy zones for a 64-zone test
 i=1

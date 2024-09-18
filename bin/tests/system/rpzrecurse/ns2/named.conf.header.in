@@ -25,9 +25,6 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	querylog yes;
-
-	# let ns3 start dnsrpzd
-	include "../dnsrps.conf";
 };
 
 trust-anchors { };
@@ -40,4 +37,3 @@ key rndc_key {
 controls {
 	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
-

@@ -200,7 +200,6 @@ struct dns_rpz_popt {
 	dns_rpz_zbits_t no_log;
 	dns_rpz_zbits_t nsip_on;
 	dns_rpz_zbits_t nsdname_on;
-	bool		dnsrps_enabled;
 	bool		break_dnssec;
 	bool		qname_wait_recurse;
 	bool		nsip_wait_recurse;
@@ -268,13 +267,6 @@ struct dns_rpz_zones {
 
 	dns_rpz_cidr_node_t *cidr;
 	dns_qpmulti_t	    *table;
-
-	/*
-	 * DNSRPZ librpz configuration string and handle on librpz connection
-	 */
-	char		     *rps_cstr;
-	size_t		      rps_cstr_size;
-	struct librpz_client *rps_client;
 };
 
 /*
@@ -344,11 +336,6 @@ typedef struct {
 	int	       rpz_ver;
 
 	/*
-	 * Shim db between BIND and DNRPS librpz.
-	 */
-	dns_db_t *rpsdb;
-
-	/*
 	 * p_name: current policy owner name
 	 * r_name: recursing for this name to possible policy triggers
 	 * f_name: saved found name from before recursion
@@ -392,8 +379,8 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 		     dns_name_t *selfname);
 
 isc_result_t
-dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr, char *rps_cstr,
-		  size_t rps_cstr_size, dns_rpz_zones_t **rpzsp);
+dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr,
+		  dns_rpz_zones_t **rpzsp);
 
 isc_result_t
 dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp);

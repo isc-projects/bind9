@@ -118,9 +118,9 @@ options {
 	dns64-contact <string>;
 	dns64-server <string>;
 	dnskey-sig-validity <integer>; // obsolete
-	dnsrps-enable <boolean>; // not configured
-	dnsrps-library <quoted_string>; // not configured
-	dnsrps-options { <unspecified-text> }; // not configured
+	dnsrps-enable <boolean>; // obsolete
+	dnsrps-library <quoted_string>; // obsolete
+	dnsrps-options { <unspecified-text> }; // obsolete
 	dnssec-accept-expired <boolean>;
 	dnssec-dnskey-kskonly <boolean>; // obsolete
 	dnssec-loadkeys-interval <integer>;
@@ -423,8 +423,8 @@ view <string> [ <class> ] {
 	dns64-contact <string>;
 	dns64-server <string>;
 	dnskey-sig-validity <integer>; // obsolete
-	dnsrps-enable <boolean>; // not configured
-	dnsrps-options { <unspecified-text> }; // not configured
+	dnsrps-enable <boolean>; // obsolete
+	dnsrps-options { <unspecified-text> }; // obsolete
 	dnssec-accept-expired <boolean>;
 	dnssec-dnskey-kskonly <boolean>; // obsolete
 	dnssec-loadkeys-interval <integer>;

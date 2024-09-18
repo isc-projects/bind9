@@ -40,7 +40,6 @@
 #include <dns/db.h>
 #include <dns/dlz.h>
 #include <dns/dns64.h>
-#include <dns/dnsrps.h>
 #include <dns/dnssec.h>
 #include <dns/keytable.h>
 #include <dns/message.h>
@@ -759,7 +758,6 @@ query_reset(ns_client_t *client, bool everything) {
 	if (client->query.rpz_st != NULL) {
 		rpz_st_clear(client);
 		if (everything) {
-			INSIST(client->query.rpz_st->rpsdb == NULL);
 			isc_mem_put(client->manager->mctx, client->query.rpz_st,
 				    sizeof(*client->query.rpz_st));
 			client->query.rpz_st = NULL;
@@ -2825,9 +2823,6 @@ rpz_st_clear(ns_client_t *client) {
 	st->state = 0;
 	st->m.type = DNS_RPZ_TYPE_BAD;
 	st->m.policy = DNS_RPZ_POLICY_MISS;
-	if (st->rpsdb != NULL) {
-		dns_db_detach(&st->rpsdb);
-	}
 }
 
 static dns_rpz_zbits_t
@@ -2840,19 +2835,6 @@ rpz_get_zbits(ns_client_t *client, dns_rdatatype_t ip_type,
 	REQUIRE(client->query.rpz_st != NULL);
 
 	st = client->query.rpz_st;
-
-#ifdef USE_DNSRPS
-	if (st->popt.dnsrps_enabled) {
-		if (st->rpsdb == NULL ||
-		    librpz->have_trig(dns_dnsrps_type2trig(rpz_type),
-				      ip_type == dns_rdatatype_aaaa,
-				      ((dns_rpsdb_t *)st->rpsdb)->rsp))
-		{
-			return (DNS_RPZ_ALL_ZBITS);
-		}
-		return (0);
-	}
-#endif /* ifdef USE_DNSRPS */
 
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_CLIENT_IP:
@@ -3318,284 +3300,6 @@ rpz_save_p(dns_rpz_st_t *st, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	SAVE(st->m.version, version);
 }
 
-#ifdef USE_DNSRPS
-/*
- * Check the results of a RPZ service interface lookup.
- * Stop after an error (<0) or not a hit on a disabled zone (0).
- * Continue after a hit on a disabled zone (>0).
- */
-static int
-dnsrps_ck(librpz_emsg_t *emsg, ns_client_t *client, dns_rpsdb_t *rpsdb,
-	  bool recursed) {
-	isc_region_t region;
-	librpz_domain_buf_t pname_buf;
-
-	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_ck");
-
-	if (!librpz->rsp_result(emsg, &rpsdb->result, recursed, rpsdb->rsp)) {
-		return (-1);
-	}
-
-	/*
-	 * Forget the state from before the IP address or domain check
-	 * if the lookup hit nothing.
-	 */
-	if (rpsdb->result.policy == LIBRPZ_POLICY_UNDEFINED ||
-	    rpsdb->result.hit_id != rpsdb->hit_id ||
-	    rpsdb->result.policy != LIBRPZ_POLICY_DISABLED)
-	{
-		if (!librpz->rsp_pop_discard(emsg, rpsdb->rsp)) {
-			return (-1);
-		}
-		return (0);
-	}
-
-	/*
-	 * Log a hit on a disabled zone.
-	 * Forget the zone to not try it again, and restore the pre-hit state.
-	 */
-	if (!librpz->rsp_domain(emsg, &pname_buf, rpsdb->rsp)) {
-		return (-1);
-	}
-	region.base = pname_buf.d;
-	region.length = pname_buf.size;
-	dns_name_fromregion(client->query.rpz_st->p_name, &region);
-	rpz_log_rewrite(client, true, dns_dnsrps_2policy(rpsdb->result.zpolicy),
-			dns_dnsrps_trig2type(rpsdb->result.trig), NULL,
-			client->query.rpz_st->p_name, NULL,
-			rpsdb->result.cznum);
-
-	if (!librpz->rsp_forget_zone(emsg, rpsdb->result.cznum, rpsdb->rsp) ||
-	    !librpz->rsp_pop(emsg, &rpsdb->result, rpsdb->rsp))
-	{
-		return (-1);
-	}
-	return (1);
-}
-
-/*
- * Ready the shim database and rdataset for a DNSRPS hit.
- */
-static bool
-dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
-	     dns_rdatatype_t qtype, dns_rdataset_t **p_rdatasetp,
-	     bool recursed) {
-	dns_rpsdb_t *rpsdb = NULL;
-	librpz_domain_buf_t pname_buf;
-	isc_region_t region;
-	dns_zone_t *p_zone = NULL;
-	dns_db_t *p_db = NULL;
-	dns_dbnode_t *p_node = NULL;
-	dns_rpz_policy_t policy;
-	dns_rdatatype_t foundtype, searchtype;
-	isc_result_t result;
-
-	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_set_p");
-
-	rpsdb = (dns_rpsdb_t *)st->rpsdb;
-
-	if (!librpz->rsp_result(emsg, &rpsdb->result, recursed, rpsdb->rsp)) {
-		return (false);
-	}
-
-	if (rpsdb->result.policy == LIBRPZ_POLICY_UNDEFINED) {
-		return (true);
-	}
-
-	/*
-	 * Give the fake or shim DNSRPS database its new origin.
-	 */
-	if (!librpz->rsp_soa(emsg, NULL, NULL, &rpsdb->origin_buf,
-			     &rpsdb->result, rpsdb->rsp))
-	{
-		return (false);
-	}
-	region.base = rpsdb->origin_buf.d;
-	region.length = rpsdb->origin_buf.size;
-	dns_name_fromregion(&rpsdb->common.origin, &region);
-
-	if (!librpz->rsp_domain(emsg, &pname_buf, rpsdb->rsp)) {
-		return (false);
-	}
-	region.base = pname_buf.d;
-	region.length = pname_buf.size;
-	dns_name_fromregion(st->p_name, &region);
-
-	result = rpz_ready(client, p_rdatasetp);
-	if (result != ISC_R_SUCCESS) {
-		return (false);
-	}
-	dns_db_attach(st->rpsdb, &p_db);
-	policy = dns_dnsrps_2policy(rpsdb->result.policy);
-	if (policy != DNS_RPZ_POLICY_RECORD) {
-		result = ISC_R_SUCCESS;
-	} else if (qtype == dns_rdatatype_rrsig) {
-		/*
-		 * dns_find_db() refuses to look for and fail to
-		 * find dns_rdatatype_rrsig.
-		 */
-		result = DNS_R_NXRRSET;
-		policy = DNS_RPZ_POLICY_NODATA;
-	} else {
-		dns_fixedname_t foundf;
-		dns_name_t *found = NULL;
-
-		/*
-		 * Get the next (and so first) RR from the policy node.
-		 * If it is a CNAME, then look for it regardless of the
-		 * query type.
-		 */
-		if (!librpz->rsp_rr(emsg, &foundtype, NULL, NULL, NULL,
-				    &rpsdb->result, rpsdb->qname->ndata,
-				    rpsdb->qname->length, rpsdb->rsp))
-		{
-			return (false);
-		}
-
-		if (foundtype == dns_rdatatype_cname) {
-			searchtype = dns_rdatatype_cname;
-		} else {
-			searchtype = qtype;
-		}
-		/*
-		 * Get the DNSPRS imitation rdataset.
-		 */
-		found = dns_fixedname_initname(&foundf);
-		result = dns_db_find(p_db, st->p_name, NULL, searchtype, 0, 0,
-				     &p_node, found, *p_rdatasetp, NULL);
-
-		if (result == ISC_R_SUCCESS) {
-			if (searchtype == dns_rdatatype_cname &&
-			    qtype != dns_rdatatype_cname)
-			{
-				result = DNS_R_CNAME;
-			}
-		} else if (result == DNS_R_NXRRSET) {
-			policy = DNS_RPZ_POLICY_NODATA;
-		} else {
-			snprintf(emsg->c, sizeof(emsg->c), "dns_db_find(): %s",
-				 isc_result_totext(result));
-			return (false);
-		}
-	}
-
-	rpz_save_p(st, client->view->rpzs->zones[rpsdb->result.cznum],
-		   dns_dnsrps_trig2type(rpsdb->result.trig), policy, st->p_name,
-		   0, result, &p_zone, &p_db, &p_node, p_rdatasetp, NULL);
-
-	rpz_clean(NULL, NULL, NULL, p_rdatasetp);
-
-	return (true);
-}
-
-static isc_result_t
-dnsrps_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
-		  dns_rpz_type_t rpz_type, dns_rdataset_t **p_rdatasetp) {
-	dns_rpz_st_t *st;
-	dns_rpsdb_t *rpsdb;
-	librpz_trig_t trig = LIBRPZ_TRIG_CLIENT_IP;
-	bool recursed = false;
-	int res;
-	librpz_emsg_t emsg;
-	isc_result_t result;
-
-	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_rewrite_ip");
-
-	st = client->query.rpz_st;
-	rpsdb = (dns_rpsdb_t *)st->rpsdb;
-
-	result = rpz_ready(client, p_rdatasetp);
-	if (result != ISC_R_SUCCESS) {
-		st->m.policy = DNS_RPZ_POLICY_ERROR;
-		return (result);
-	}
-
-	switch (rpz_type) {
-	case DNS_RPZ_TYPE_CLIENT_IP:
-		trig = LIBRPZ_TRIG_CLIENT_IP;
-		recursed = false;
-		break;
-	case DNS_RPZ_TYPE_IP:
-		trig = LIBRPZ_TRIG_IP;
-		recursed = true;
-		break;
-	case DNS_RPZ_TYPE_NSIP:
-		trig = LIBRPZ_TRIG_NSIP;
-		recursed = true;
-		break;
-	default:
-		UNREACHABLE();
-	}
-
-	do {
-		if (!librpz->rsp_push(&emsg, rpsdb->rsp) ||
-		    !librpz->ck_ip(&emsg,
-				   netaddr->family == AF_INET
-					   ? (const void *)&netaddr->type.in
-					   : (const void *)&netaddr->type.in6,
-				   netaddr->family, trig, ++rpsdb->hit_id,
-				   recursed, rpsdb->rsp) ||
-		    (res = dnsrps_ck(&emsg, client, rpsdb, recursed)) < 0)
-		{
-			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, NULL,
-				     rpz_type, emsg.c, DNS_R_SERVFAIL);
-			st->m.policy = DNS_RPZ_POLICY_ERROR;
-			return (DNS_R_SERVFAIL);
-		}
-	} while (res != 0);
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-dnsrps_rewrite_name(ns_client_t *client, dns_name_t *trig_name, bool recursed,
-		    dns_rpz_type_t rpz_type, dns_rdataset_t **p_rdatasetp) {
-	dns_rpz_st_t *st;
-	dns_rpsdb_t *rpsdb;
-	librpz_trig_t trig = LIBRPZ_TRIG_CLIENT_IP;
-	isc_region_t r;
-	int res;
-	librpz_emsg_t emsg;
-	isc_result_t result;
-
-	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_rewrite_name");
-
-	st = client->query.rpz_st;
-	rpsdb = (dns_rpsdb_t *)st->rpsdb;
-
-	result = rpz_ready(client, p_rdatasetp);
-	if (result != ISC_R_SUCCESS) {
-		st->m.policy = DNS_RPZ_POLICY_ERROR;
-		return (result);
-	}
-
-	switch (rpz_type) {
-	case DNS_RPZ_TYPE_QNAME:
-		trig = LIBRPZ_TRIG_QNAME;
-		break;
-	case DNS_RPZ_TYPE_NSDNAME:
-		trig = LIBRPZ_TRIG_NSDNAME;
-		break;
-	default:
-		UNREACHABLE();
-	}
-
-	dns_name_toregion(trig_name, &r);
-	do {
-		if (!librpz->rsp_push(&emsg, rpsdb->rsp) ||
-		    !librpz->ck_domain(&emsg, r.base, r.length, trig,
-				       ++rpsdb->hit_id, recursed, rpsdb->rsp) ||
-		    (res = dnsrps_ck(&emsg, client, rpsdb, recursed)) < 0)
-		{
-			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, NULL,
-				     rpz_type, emsg.c, DNS_R_SERVFAIL);
-			st->m.policy = DNS_RPZ_POLICY_ERROR;
-			return (DNS_R_SERVFAIL);
-		}
-	} while (res != 0);
-	return (ISC_R_SUCCESS);
-}
-#endif /* USE_DNSRPS */
-
 /*
  * Check this address in every eligible policy zone.
  */
@@ -3621,12 +3325,6 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 
 	rpzs = client->view->rpzs;
 	st = client->query.rpz_st;
-#ifdef USE_DNSRPS
-	if (st->popt.dnsrps_enabled) {
-		return (dnsrps_rewrite_ip(client, netaddr, rpz_type,
-					  p_rdatasetp));
-	}
-#endif /* ifdef USE_DNSRPS */
 
 	ip_name = dns_fixedname_initname(&ip_namef);
 
@@ -3928,8 +3626,7 @@ rpz_rewrite_ip_rrsets(ns_client_t *client, dns_name_t *name,
 static isc_result_t
 rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 		 dns_rdatatype_t qtype, dns_rpz_type_t rpz_type,
-		 dns_rpz_zbits_t allowed_zbits, bool recursed,
-		 dns_rdataset_t **rdatasetp) {
+		 dns_rpz_zbits_t allowed_zbits, dns_rdataset_t **rdatasetp) {
 	dns_rpz_zones_t *rpzs;
 	dns_rpz_zone_t *rpz;
 	dns_rpz_st_t *st;
@@ -3944,21 +3641,10 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 	dns_rpz_policy_t policy;
 	isc_result_t result;
 
-#ifndef USE_DNSRPS
-	UNUSED(recursed);
-#endif /* ifndef USE_DNSRPS */
-
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_rewrite_name");
 
 	rpzs = client->view->rpzs;
 	st = client->query.rpz_st;
-
-#ifdef USE_DNSRPS
-	if (st->popt.dnsrps_enabled) {
-		return (dnsrps_rewrite_name(client, trig_name, recursed,
-					    rpz_type, rdatasetp));
-	}
-#endif /* ifdef USE_DNSRPS */
 
 	zbits = rpz_get_zbits(client, qtype, rpz_type);
 	zbits &= allowed_zbits;
@@ -4132,9 +3818,6 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	dns_rpz_popt_t popt;
 	int rpz_ver;
 	unsigned int options;
-#ifdef USE_DNSRPS
-	librpz_emsg_t emsg;
-#endif /* ifdef USE_DNSRPS */
 
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_rewrite");
 
@@ -4152,7 +3835,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	}
 
 	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
-	if ((rpzs->p.num_zones == 0 && !rpzs->p.dnsrps_enabled) ||
+	if ((rpzs->p.num_zones == 0) ||
 	    (!RECURSIONOK(client) && rpzs->p.no_rd_ok == 0) ||
 	    !rpz_ck_dnssec(client, qresult, ordataset, osigset))
 	{
@@ -4164,14 +3847,9 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	rpz_ver = rpzs->rpz_ver;
 	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 
-#ifndef USE_DNSRPS
-	INSIST(!popt.dnsrps_enabled);
-#endif /* ifndef USE_DNSRPS */
-
 	if (st == NULL) {
 		st = isc_mem_get(client->manager->mctx, sizeof(*st));
 		st->state = 0;
-		st->rpsdb = NULL;
 	}
 	if (st->state == 0) {
 		st->state |= DNS_RPZ_ACTIVE;
@@ -4188,24 +3866,6 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		st->popt = popt;
 		st->rpz_ver = rpz_ver;
 		client->query.rpz_st = st;
-#ifdef USE_DNSRPS
-		if (popt.dnsrps_enabled) {
-			if (st->rpsdb != NULL) {
-				dns_db_detach(&st->rpsdb);
-			}
-			CTRACE(ISC_LOG_DEBUG(3), "dns_dnsrps_rewrite_init");
-			result = dns_dnsrps_rewrite_init(
-				&emsg, st, rpzs, client->query.qname,
-				client->manager->mctx, RECURSIONOK(client));
-			if (result != ISC_R_SUCCESS) {
-				rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, NULL,
-					     DNS_RPZ_TYPE_QNAME, emsg.c,
-					     result);
-				st->m.policy = DNS_RPZ_POLICY_ERROR;
-				return (ISC_R_SUCCESS);
-			}
-		}
-#endif /* ifdef USE_DNSRPS */
 	}
 
 	/*
@@ -4265,9 +3925,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		isc_netaddr_t netaddr;
 		dns_rpz_zbits_t allowed;
 
-		if (!st->popt.dnsrps_enabled &&
-		    qresult_type == qresult_type_recurse)
-		{
+		if (qresult_type == qresult_type_recurse) {
 			/*
 			 * This request needs recursion that has not been done.
 			 * Get bits for the policy zones that do not need
@@ -4306,10 +3964,9 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		 * There is a first time for each name in a CNAME chain
 		 */
 		if ((st->state & DNS_RPZ_DONE_QNAME) == 0) {
-			bool norec = (qresult_type != qresult_type_recurse);
 			result = rpz_rewrite_name(client, client->query.qname,
 						  qtype, DNS_RPZ_TYPE_QNAME,
-						  allowed, norec, &rdataset);
+						  allowed, &rdataset);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}
@@ -4484,7 +4141,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 				result = rpz_rewrite_name(
 					client, &ns.name, qtype,
 					DNS_RPZ_TYPE_NSDNAME, DNS_RPZ_ALL_ZBITS,
-					true, &rdataset);
+					&rdataset);
 				if (result != ISC_R_SUCCESS) {
 					dns_rdata_freestruct(&ns);
 					goto cleanup;
@@ -4533,16 +4190,6 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	result = ISC_R_SUCCESS;
 
 cleanup:
-#ifdef USE_DNSRPS
-	if (st->popt.dnsrps_enabled && st->m.policy != DNS_RPZ_POLICY_ERROR &&
-	    !dnsrps_set_p(&emsg, client, st, qtype, &rdataset,
-			  (qresult_type != qresult_type_recurse)))
-	{
-		rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, NULL,
-			     DNS_RPZ_TYPE_BAD, emsg.c, DNS_R_SERVFAIL);
-		st->m.policy = DNS_RPZ_POLICY_ERROR;
-	}
-#endif /* ifdef USE_DNSRPS */
 	if (st->m.policy != DNS_RPZ_POLICY_MISS &&
 	    st->m.policy != DNS_RPZ_POLICY_ERROR &&
 	    st->m.rpz->policy != DNS_RPZ_POLICY_GIVEN)

@@ -38,7 +38,6 @@ usage(void) {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
 	fprintf(stderr, "\t--edns-version\n");
-	fprintf(stderr, "\t--enable-dnsrps\n");
 	fprintf(stderr, "\t--enable-dnstap\n");
 	fprintf(stderr, "\t--enable-querytrace\n");
 	fprintf(stderr, "\t--fips-provider\n");
@@ -74,14 +73,6 @@ main(int argc, char **argv) {
 		printf("0\n");
 #endif /* ifdef DNS_EDNS_VERSION */
 		return (0);
-	}
-
-	if (strcmp(argv[1], "--enable-dnsrps") == 0) {
-#ifdef USE_DNSRPS
-		return (0);
-#else  /* ifdef USE_DNSRPS */
-		return (1);
-#endif /* ifdef USE_DNSRPS */
 	}
 
 	if (strcmp(argv[1], "--enable-dnstap") == 0) {

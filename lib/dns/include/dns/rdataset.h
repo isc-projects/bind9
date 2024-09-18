@@ -207,17 +207,6 @@ struct dns_rdataset {
 			const struct dns_name *noqname, *closest;
 			dns_dbnode_t	      *node;
 		} rdlist;
-
-#ifdef USE_DNSRPS
-		/*
-		 * DNSRPS rdatasets. dns_rpsdb_t is defined in dnsrps.h.
-		 */
-		struct {
-			dns_rpsdb_t *db;
-			void	    *iter_pos;
-			unsigned int iter_count;
-		} rps;
-#endif /* USE_DNSRPS */
 	};
 };
 

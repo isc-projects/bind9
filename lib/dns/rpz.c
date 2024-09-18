@@ -35,7 +35,6 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/dnsrps.h>
 #include <dns/fixedname.h>
 #include <dns/qp.h>
 #include <dns/rdata.h>
@@ -1495,13 +1494,10 @@ add_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
  * Get ready for a new set of policy zones for a view.
  */
 isc_result_t
-dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr, char *rps_cstr,
-		  size_t rps_cstr_size, dns_rpz_zones_t **rpzsp) {
+dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr,
+		  dns_rpz_zones_t **rpzsp) {
 	dns_rpz_zones_t *rpzs = NULL;
 	isc_mem_t *mctx = NULL;
-#ifdef USE_DNSRPS
-	isc_result_t result = ISC_R_SUCCESS;
-#endif
 
 	REQUIRE(rpzsp != NULL && *rpzsp == NULL);
 	REQUIRE(view != NULL);
@@ -1510,8 +1506,6 @@ dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr, char *rps_cstr,
 
 	rpzs = isc_mem_get(mctx, sizeof(*rpzs));
 	*rpzs = (dns_rpz_zones_t){
-		.rps_cstr = rps_cstr,
-		.rps_cstr_size = rps_cstr_size,
 		.loopmgr = loopmgr,
 		.magic = DNS_RPZ_ZONES_MAGIC,
 	};
@@ -1520,36 +1514,12 @@ dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr, char *rps_cstr,
 	isc_mutex_init(&rpzs->maint_lock);
 	isc_refcount_init(&rpzs->references, 1);
 
-#ifdef USE_DNSRPS
-	if (rps_cstr != NULL) {
-		result = dns_dnsrps_view_init(rpzs, rps_cstr);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-	}
-#else  /* ifdef USE_DNSRPS */
-	INSIST(!rpzs->p.dnsrps_enabled);
-#endif /* ifdef USE_DNSRPS */
-	if (!rpzs->p.dnsrps_enabled) {
-		dns_qpmulti_create(mctx, &qpmethods, view, &rpzs->table);
-	}
+	dns_qpmulti_create(mctx, &qpmethods, view, &rpzs->table);
 
 	isc_mem_attach(mctx, &rpzs->mctx);
 
 	*rpzsp = rpzs;
 	return (ISC_R_SUCCESS);
-
-#ifdef USE_DNSRPS
-	/* Only if DNSRPS is in use can this function fail */
-cleanup:
-	isc_refcount_decrementz(&rpzs->references);
-	isc_refcount_destroy(&rpzs->references);
-	isc_mutex_destroy(&rpzs->maint_lock);
-	isc_rwlock_destroy(&rpzs->search_lock);
-	isc_mem_put(mctx, rpzs, sizeof(*rpzs));
-
-	return (result);
-#endif /* ifdef USE_DNSRPS */
 }
 
 isc_result_t
@@ -2131,13 +2101,6 @@ dns__rpz_zones_destroy(dns_rpz_zones_t *rpzs) {
 		}
 
 		dns_rpz_zone_destroy(&rpzs->zones[rpz_num]);
-	}
-
-	if (rpzs->rps_cstr_size != 0) {
-#ifdef USE_DNSRPS
-		librpz->client_detach(&rpzs->rps_client);
-#endif /* ifdef USE_DNSRPS */
-		isc_mem_put(rpzs->mctx, rpzs->rps_cstr, rpzs->rps_cstr_size);
 	}
 
 	cidr_free(rpzs);

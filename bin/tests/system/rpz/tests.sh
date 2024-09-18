@@ -15,9 +15,6 @@ set -e
 
 # test response policy zones (RPZ)
 
-# touch dnsrps-off to not test with DNSRPS
-# touch dnsrps-only to not test with classic RPZ
-
 . ../conf.sh
 
 ns=10.53.0
@@ -37,14 +34,8 @@ HAVE_CORE=
 status=0
 t=0
 
-export DNSRPS_TEST_UPDATE_FILE=$(pwd)/dnsrps.cache
 SAVE_RESULTS=
 ARGS=
-if grep 'dnsrps-enable yes;' dnsrps.conf >/dev/null; then
-  MODE=dnsrps
-else
-  MODE=native
-fi
 
 USAGE="$0: [-S]"
 while getopts "S:" c; do
@@ -75,16 +66,7 @@ comment() {
   fi
 }
 
-DNSRPSCMD=./dnsrps
 RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
-
-if test -x "$DNSRPSCMD"; then
-  WAIT_CMD="$DNSRPSCMD -w 0.1"
-  TEN_SECS=100
-else
-  WAIT_CMD="sleep 1"
-  TEN_SECS=10
-fi
 
 digcmd() {
   if test "$1" = TCP; then
@@ -116,52 +98,19 @@ setret() {
   ret=1
   status=$((status + 1))
   echo_i "$*"
+  echo_i "failed"
 }
 
 # set $SN to the SOA serial number of a zone
 # $1=domain
 # $2=DNS server and client IP address
 get_sn() {
-  SOA=$($DIG -p ${PORT} +short +norecurse soa "$1" "@$2" "-b$2")
-  SN=$(expr "$SOA" : '[^ ]* [^ ]* \([^ ]*\) .*' || true)
-  test "$SN" != "" && return
-  echo_i "no serial number from \`dig -p ${PORT} soa $1 @$2\` in \"$SOA\""
+  make_dignm
+  $DIG -p "${PORT}" +short +norecurse soa "$1" "@$2" "-b$2" >$DIGNM
+  SN=$(awk '{ print $3 }' <$DIGNM)
+  [ -n "$SN" ] && return
+  echo_i "no serial number from \`dig -p ${PORT} soa $1 @$2\`"
   exit 1
-}
-
-get_sn_fast() {
-  RSN=$($DNSRPSCMD -n "$1")
-  #echo "dnsrps serial for $1 is $RSN"
-  if test -z "$RSN"; then
-    echo_i "dnsrps failed to get SOA serial number for $1"
-    exit 1
-  fi
-}
-
-# check that dnsrps provider has zones loaded
-# $1=domain
-# $2=DNS server IP address
-FZONES=$(sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrps.zones)
-dnsrps_loaded() {
-  test "$MODE" = dnsrps || return 0
-  n=0
-  for V in $FZONES; do
-    eval "$V"
-    get_sn $Z $M
-    while true; do
-      get_sn_fast "$Z"
-      if test "$SN" -eq "0$RSN"; then
-        #echo "$Z @$M serial=$SN"
-        break
-      fi
-      n=$((n + 1))
-      if test "$n" -gt $TEN_SECS; then
-        echo_i "dnsrps serial for $Z is $RSN instead of $SN"
-        exit 1
-      fi
-      $WAIT_CMD
-    done
-  done
 }
 
 # check the serial number in an SOA to ensure that a policy zone has
@@ -169,36 +118,21 @@ dnsrps_loaded() {
 # $1=serial number
 # $2=domain
 # $3=DNS server
+test_soa() {
+  get_sn "$2" "$3"
+  test "$SN" -eq "$1"
+}
+
 ck_soa() {
-  n=0
-  while true; do
-    if test "$MODE" = dnsrps; then
-      get_sn_fast "$2"
-      test "$RSN" -eq "$1" && return
-    else
-      get_sn "$2" "$3"
-      test "$SN" -eq "$1" && return
-    fi
-    n=$((n + 1))
-    if test "$n" -gt $TEN_SECS; then
-      echo_i "got serial number \"$SN\" instead of \"$1\" from $2 @$3"
-      return
-    fi
-    $WAIT_CMD
-  done
+  retry_quiet 10 test_soa "$@" && return 0
+  echo_i "got serial number \"$SN\" instead of \"$1\" from $2 @$3"
+  return 1
 }
 
 # (re)load the response policy zones with the rules in the file $TEST_FILE
 load_db() {
   if test -n "$TEST_FILE"; then
     copy_setports $TEST_FILE tmp
-
-    for ZONE in bl0 bl1 bl2 bl3 bl4 bl5 bl6 bl7 bl8 bl9 bl10 bl11 bl12 bl13 bl14 bl15 bl16 bl17 bl18 bl19; do
-      produce_librpz_rules ns5 $ZONE bl
-    done
-
-    produce_librpz_rules ns2 bl.tld2 bl.tld2
-    cat tmp >>$DNSRPS_TEST_UPDATE_FILE
 
     if $NSUPDATE -v tmp; then
       :
@@ -239,7 +173,6 @@ restart() {
   fi
   start_server --noclean --restart --port ${PORT} ns$1
   load_db
-  dnsrps_loaded
   sleep 1
 }
 
@@ -296,16 +229,6 @@ ckstatsrange() {
   eval "${NSDIR}_CNT=$NEW_CNT"
 }
 
-add_librpz_rule() {
-  echo $1 >>$DNSRPS_TEST_UPDATE_FILE
-}
-
-produce_librpz_rules() {
-  # echo "Producing rules for $1"
-  ZONEFILE=$1/$3.db
-  cat $ZONEFILE | grep -E -v '^;' | grep -E '\<(A|CNAME)\>' | awk -v zone=$2 '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >>$DNSRPS_TEST_UPDATE_FILE
-}
-
 # $1=message
 # $2=optional test file name
 start_group() {
@@ -319,7 +242,6 @@ start_group() {
   else
     GROUP_NM=
   fi
-  dnsrps_loaded
   TEST_NUM=0
 }
 
@@ -327,13 +249,11 @@ end_group() {
   if test -n "$TEST_FILE"; then
     # remove the previous set of test rules
     copy_setports $TEST_FILE tmp
-    add_librpz_rule "rollback"
     sed -e 's/[	 ]add[	 ]/ delete /' tmp | $NSUPDATE
     rm -f tmp
     TEST_FILE=
   fi
   ckalive $ns3 "failed; ns3 server crashed and restarted"
-  dnsrps_loaded
   GROUP_NM=
 }
 
@@ -590,20 +510,14 @@ nxdomain a7-1.tld2                  # 18 secondary policy zone (RT34450)
 # updating an response zone policy
 cp ns2/blv2.tld2.db.in ns2/bl.tld2.db
 rndc_reload ns2 $ns2 bl.tld2
-add_librpz_rule "update zone bl.tld2 1 inc"
 ck_soa 2 bl.tld2 $ns3
-add_librpz_rule "wipe"
-produce_librpz_rules ns2 bl.tld2 bl.tld2
 nochange a7-1.tld2 # 19 PASSTHRU
 # ensure that a clock tick has occurred so that named will do the reload
 sleep 1
 cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
 rndc_reload ns2 $ns2 bl.tld2
-# sleep again to let the reload finish
-sleep 1
-add_librpz_rule "update zone bl.tld2 1 inc"
 ck_soa 3 bl.tld2 $ns3
-produce_librpz_rules ns2 bl.tld2 bl.tld2
+sleep 1            # there's an delay between "DNS" transfer and RPZ being active
 nxdomain a7-1.tld2 # 20 secondary policy zone (RT34450)
 end_group
 ckstats $ns3 test2 ns3 12
@@ -705,7 +619,6 @@ ckstats $ns3 test5 ns3 12
 ckstats $ns5 test5 ns5 4
 
 # check that miscellaneous bugs are still absent
-add_librpz_rule "wipe"
 start_group "crashes" test6
 for Q in RRSIG SIG ANY 'ANY +dnssec'; do
   nocrash a3-1.tld2 -t$Q
@@ -734,7 +647,6 @@ rndc_reconfig ns5 10.53.0.5
 # restart the main test RPZ server to see if that creates a core file
 if test -z "$HAVE_CORE"; then
   stop_server --use-rndc --port ${CONTROLPORT} ns3
-  add_librpz_rule "restart"
   restart 3 "rebuild-bl-rpz"
   HAVE_CORE=$(find ns* -name '*core*' -print)
   test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"
@@ -750,67 +662,65 @@ for runfile in ns*/named.run; do
   fi
 done
 
-if [ native = "$MODE" ]; then
-  # restart the main test RPZ server with a bad zone.
-  t=$((t + 1))
-  echo_i "checking that ns3 with broken rpz does not crash (${t})"
-  stop_server --use-rndc --port ${CONTROLPORT} ns3
-  cp ns3/broken.db.in ns3/bl.db
-  restart 3 # do not rebuild rpz zones
-  nocrash a3-1.tld2 -tA
-  stop_server --use-rndc --port ${CONTROLPORT} ns3
-  restart 3 "rebuild-bl-rpz"
+# restart the main test RPZ server with a bad zone.
+t=$((t + 1))
+echo_i "checking that ns3 with broken rpz does not crash (${t})"
+stop_server --use-rndc --port ${CONTROLPORT} ns3
+cp ns3/broken.db.in ns3/bl.db
+restart 3 # do not rebuild rpz zones
+nocrash a3-1.tld2 -tA
+stop_server --use-rndc --port ${CONTROLPORT} ns3
+restart 3 "rebuild-bl-rpz"
 
-  t=$((t + 1))
-  echo_i "checking if rpz survives a certain class of failed reconfiguration attempts (${t})"
-  sed -e "s/^#BAD//" <ns3/named.conf.in >ns3/named.conf.tmp
-  copy_setports ns3/named.conf.tmp ns3/named.conf
-  rm ns3/named.conf.tmp
-  $RNDCCMD $ns3 reconfig >/dev/null 2>&1 && setret "failed"
-  sleep 1
-  copy_setports ns3/named.conf.in ns3/named.conf
-  $RNDCCMD $ns3 reconfig || setret "failed"
+t=$((t + 1))
+echo_i "checking if rpz survives a certain class of failed reconfiguration attempts (${t})"
+sed -e "s/^#BAD//" <ns3/named.conf.in >ns3/named.conf.tmp
+copy_setports ns3/named.conf.tmp ns3/named.conf
+rm ns3/named.conf.tmp
+$RNDCCMD $ns3 reconfig >/dev/null 2>&1 && setret "failed"
+sleep 1
+copy_setports ns3/named.conf.in ns3/named.conf
+$RNDCCMD $ns3 reconfig || setret "failed"
 
-  t=$((t + 1))
-  echo_i "checking the configured extended DNS error code (EDE) (${t})"
-  $DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t || setret "failed"
-  grep -F "EDE: 4 (Forged Answer)" dig.out.$t >/dev/null || setret "failed"
+t=$((t + 1))
+echo_i "checking the configured extended DNS error code (EDE) (${t})"
+$DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t || setret "failed"
+grep -F "EDE: 4 (Forged Answer)" dig.out.$t >/dev/null || setret "failed"
 
-  # reload a RPZ zone that is now deliberately broken.
-  t=$((t + 1))
-  echo_i "checking rpz failed update will keep previous rpz rules (${t})"
-  $DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t.before || setret "failed"
-  grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.before >/dev/null || setret "failed"
-  cp ns3/broken.db.in ns3/manual-update-rpz.db
-  rndc_reload ns3 $ns3 manual-update-rpz
-  sleep 1
-  # ensure previous RPZ rules still apply.
-  $DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t.after || setret "failed"
-  grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after >/dev/null || setret "failed"
+# reload a RPZ zone that is now deliberately broken.
+t=$((t + 1))
+echo_i "checking rpz failed update will keep previous rpz rules (${t})"
+$DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t.before || setret "failed"
+grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.before >/dev/null || setret "failed"
+cp ns3/broken.db.in ns3/manual-update-rpz.db
+rndc_reload ns3 $ns3 manual-update-rpz
+sleep 1
+# ensure previous RPZ rules still apply.
+$DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t.after || setret "failed"
+grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after >/dev/null || setret "failed"
 
-  t=$((t + 1))
-  echo_i "checking the default (unset) extended DNS error code (EDE) (${t})"
-  $DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t || setret "failed"
-  grep -F "EDE: " dig.out.$t >/dev/null && setret "failed"
+t=$((t + 1))
+echo_i "checking the default (unset) extended DNS error code (EDE) (${t})"
+$DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t || setret "failed"
+grep -F "EDE: " dig.out.$t >/dev/null && setret "failed"
 
-  t=$((t + 1))
-  echo_i "checking reload of a mixed-case RPZ zone (${t})"
-  # First, a sanity check: the A6-2.TLD2.mixed-case-rpz RPZ record should
-  # cause a6-2.tld2 NOERROR answers to be rewritten to NXDOMAIN answers.
-  $DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.before || setret "failed"
-  grep "status: NXDOMAIN" dig.out.$t.before >/dev/null || setret "failed"
-  # Add a sibling name (a6-1.tld2.mixed-case-rpz, with "tld2" in lowercase
-  # rather than uppercase) before A6-2.TLD.mixed-case-rpz.
-  nextpart ns3/named.run >/dev/null
-  cp ns3/mixed-case-rpz-2.db.in ns3/mixed-case-rpz.db
-  rndc_reload ns3 $ns3 mixed-case-rpz
-  wait_for_log 20 "rpz: mixed-case-rpz: reload done" ns3/named.run
-  # a6-2.tld2 NOERROR answers should still be rewritten to NXDOMAIN answers.
-  # (The bug we try to trigger here caused a6-2.tld2.mixed-case-rpz to be
-  # erroneously removed from the summary RPZ database after reload.)
-  $DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.after || setret "failed"
-  grep "status: NXDOMAIN" dig.out.$t.after >/dev/null || setret "failed"
-fi
+t=$((t + 1))
+echo_i "checking reload of a mixed-case RPZ zone (${t})"
+# First, a sanity check: the A6-2.TLD2.mixed-case-rpz RPZ record should
+# cause a6-2.tld2 NOERROR answers to be rewritten to NXDOMAIN answers.
+$DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.before || setret "failed"
+grep "status: NXDOMAIN" dig.out.$t.before >/dev/null || setret "failed"
+# Add a sibling name (a6-1.tld2.mixed-case-rpz, with "tld2" in lowercase
+# rather than uppercase) before A6-2.TLD.mixed-case-rpz.
+nextpart ns3/named.run >/dev/null
+cp ns3/mixed-case-rpz-2.db.in ns3/mixed-case-rpz.db
+rndc_reload ns3 $ns3 mixed-case-rpz
+wait_for_log 20 "rpz: mixed-case-rpz: reload done" ns3/named.run
+# a6-2.tld2 NOERROR answers should still be rewritten to NXDOMAIN answers.
+# (The bug we try to trigger here caused a6-2.tld2.mixed-case-rpz to be
+# erroneously removed from the summary RPZ database after reload.)
+$DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.after || setret "failed"
+grep "status: NXDOMAIN" dig.out.$t.after >/dev/null || setret "failed"
 
 t=$((t + 1))
 echo_i "checking that ttl values are not zeroed when qtype is '*' (${t})"
@@ -834,7 +744,6 @@ done
 t=$((t + 1))
 echo_i "checking that going from an empty policy zone works (${t})"
 nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
-add_librpz_rule "update add *.x.servfail.policy2 300 CNAME ."
 sleep 1
 rndc_reload ns7 $ns7 policy2
 $DIG z.x.servfail -p ${PORT} @$ns7 >dig.out.${t} || setret "failed"
@@ -850,48 +759,37 @@ echo_i "checking that 'add-soa no' at rpz zone level works (${t})"
 $DIG z.x.servfail -p ${PORT} @$ns7 >dig.out.${t} || setret "failed"
 grep "SOA" dig.out.${t} >/dev/null && setret "failed"
 
-if [ native = "$MODE" ]; then
-  t=$((t + 1))
-  echo_i "checking that 'add-soa yes' at response-policy level works (${t})"
-  $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t} || setret "failed"
-  grep "^manual-update-rpz\..*60.*SOA" dig.out.${t} >/dev/null || setret "failed"
-fi
+t=$((t + 1))
+echo_i "checking that 'add-soa yes' at response-policy level works (${t})"
+$DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t} || setret "failed"
+grep "^manual-update-rpz\..*60.*SOA" dig.out.${t} >/dev/null || setret "failed"
 
-if [ native = "$MODE" ]; then
-  t=$((t + 1))
-  echo_i "reconfiguring server with 'add-soa no' (${t})"
-  cp ns3/named.conf ns3/named.conf.tmp
-  sed -e "s/add-soa yes/add-soa no/g" <ns3/named.conf.tmp >ns3/named.conf
-  rndc_reconfig ns3 $ns3
-  echo_i "checking that 'add-soa no' at response-policy level works (${t})"
-  $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t} || setret "failed"
-  grep "^manual-update-rpz\..*SOA" dig.out.${t} >/dev/null && setret "failed"
-fi
+t=$((t + 1))
+echo_i "reconfiguring server with 'add-soa no' (${t})"
+cp ns3/named.conf ns3/named.conf.tmp
+sed -e "s/add-soa yes/add-soa no/g" <ns3/named.conf.tmp >ns3/named.conf
+rndc_reconfig ns3 $ns3
+echo_i "checking that 'add-soa no' at response-policy level works (${t})"
+$DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t} || setret "failed"
+grep "^manual-update-rpz\..*SOA" dig.out.${t} >/dev/null && setret "failed"
 
-if [ native = "$MODE" ]; then
-  t=$((t + 1))
-  echo_i "checking that 'add-soa unset' works (${t})"
-  $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 >dig.out.${t} || setret "failed"
-  grep "^manual-update-rpz\..*60.*SOA" dig.out.${t} >/dev/null || setret "failed"
-fi
+t=$((t + 1))
+echo_i "checking that 'add-soa unset' works (${t})"
+$DIG walled.tld2 -p ${PORT} +noall +add @$ns8 >dig.out.${t} || setret "failed"
+grep "^manual-update-rpz\..*60.*SOA" dig.out.${t} >/dev/null || setret "failed"
 
-# dnsrps does not allow NS RRs in policy zones, so this check
-# with dnsrps results in no rewriting.
-if [ native = "$MODE" ]; then
-  t=$((t + 1))
-  echo_i "checking rpz with delegation fails correctly (${t})"
-  $DIG -p ${PORT} @$ns3 ns example.com >dig.out.$t || setret "failed"
-  grep "status: SERVFAIL" dig.out.$t >/dev/null || setret "failed"
+t=$((t + 1))
+echo_i "checking rpz with delegation fails correctly (${t})"
+$DIG -p ${PORT} @$ns3 ns example.com >dig.out.$t || setret "failed"
+grep "status: SERVFAIL" dig.out.$t >/dev/null || setret "failed"
 
-  t=$((t + 1))
-  echo_i "checking policies from expired zone are no longer in effect ($t)"
-  $DIG -p ${PORT} @$ns3 a expired >dig.out.$t || setret "failed"
-  grep "expired.*10.0.0.10" dig.out.$t >/dev/null && setret "failed"
-  grep "fast-expire/IN: response-policy zone expired" ns3/named.run >/dev/null || setret "failed"
-fi
+t=$((t + 1))
+echo_i "checking policies from expired zone are no longer in effect ($t)"
+$DIG -p ${PORT} @$ns3 a expired >dig.out.$t || setret "failed"
+grep "expired.*10.0.0.10" dig.out.$t >/dev/null && setret "failed"
+grep "fast-expire/IN: response-policy zone expired" ns3/named.run >/dev/null || setret "failed"
 
 # RPZ 'CNAME *.' (NODATA) trumps DNS64.  Test against various DNS64 scenarios.
-produce_librpz_rules ns9 rpz rpz
 for label in a-only no-a-no-aaaa a-plus-aaaa; do
   for type in AAAA A; do
     t=$((t + 1))
@@ -916,13 +814,11 @@ for label in a-only no-a-no-aaaa a-plus-aaaa; do
   done
 done
 
-if [ native = "$MODE" ]; then
-  t=$((t + 1))
-  echo_i "checking that rewriting CD=1 queries handles pending data correctly (${t})"
-  $RNDCCMD $ns3 flush
-  $RNDCCMD $ns6 flush
-  $DIG a7-2.tld2s -p ${PORT} @$ns6 +cd >dig.out.${t} || setret "failed"
-  grep -w "1.1.1.1" dig.out.${t} >/dev/null || setret "failed"
-fi
+t=$((t + 1))
+echo_i "checking that rewriting CD=1 queries handles pending data correctly (${t})"
+$RNDCCMD $ns3 flush
+$RNDCCMD $ns6 flush
+$DIG a7-2.tld2s -p ${PORT} @$ns6 +cd >dig.out.${t} || setret "failed"
+grep -w "1.1.1.1" dig.out.${t} >/dev/null || setret "failed"
 
 [ $status -eq 0 ] || exit 1

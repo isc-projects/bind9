@@ -70,7 +70,6 @@
 #include <dns/dispatch.h>
 #include <dns/dlz.h>
 #include <dns/dns64.h>
-#include <dns/dnsrps.h>
 #include <dns/dnssec.h>
 #include <dns/dyndb.h>
 #include <dns/fixedname.h>
@@ -1983,239 +1982,6 @@ cleanup:
 	return (result);
 }
 
-#ifdef USE_DNSRPS
-typedef struct conf_dnsrps_ctx conf_dnsrps_ctx_t;
-struct conf_dnsrps_ctx {
-	isc_result_t result;
-	char *cstr;
-	size_t cstr_size;
-	isc_mem_t *mctx;
-};
-
-/*
- * Add to the DNSRPS configuration string.
- */
-static bool
-conf_dnsrps_sadd(conf_dnsrps_ctx_t *ctx, const char *p, ...) {
-	size_t new_len, cur_len, new_cstr_size;
-	char *new_cstr;
-	va_list args;
-
-	if (ctx->cstr == NULL) {
-		ctx->cstr = isc_mem_get(ctx->mctx, 256);
-		ctx->cstr[0] = '\0';
-		ctx->cstr_size = 256;
-	}
-
-	cur_len = strlen(ctx->cstr);
-	va_start(args, p);
-	new_len = vsnprintf(ctx->cstr + cur_len, ctx->cstr_size - cur_len, p,
-			    args) +
-		  1;
-	va_end(args);
-
-	if (cur_len + new_len <= ctx->cstr_size) {
-		return (true);
-	}
-
-	new_cstr_size = ((cur_len + new_len) / 256 + 1) * 256;
-	new_cstr = isc_mem_get(ctx->mctx, new_cstr_size);
-
-	memmove(new_cstr, ctx->cstr, cur_len);
-	isc_mem_put(ctx->mctx, ctx->cstr, ctx->cstr_size);
-	ctx->cstr_size = new_cstr_size;
-	ctx->cstr = new_cstr;
-
-	/* cannot use args twice after a single va_start()on some systems */
-	va_start(args, p);
-	vsnprintf(ctx->cstr + cur_len, ctx->cstr_size - cur_len, p, args);
-	va_end(args);
-	return (true);
-}
-
-/*
- * Get a DNSRPS configuration value using the global and view options
- * for the default.  Return false upon failure.
- */
-static bool
-conf_dnsrps_get(const cfg_obj_t **sub_obj, const cfg_obj_t **maps,
-		const cfg_obj_t *obj, const char *name,
-		conf_dnsrps_ctx_t *ctx) {
-	if (ctx != NULL && ctx->result != ISC_R_SUCCESS) {
-		*sub_obj = NULL;
-		return (false);
-	}
-
-	*sub_obj = cfg_tuple_get(obj, name);
-	if (cfg_obj_isvoid(*sub_obj)) {
-		*sub_obj = NULL;
-		if (maps != NULL &&
-		    ISC_R_SUCCESS != named_config_get(maps, name, sub_obj))
-		{
-			*sub_obj = NULL;
-		}
-	}
-	return (true);
-}
-
-/*
- * Handle a DNSRPS boolean configuration value with the global and view
- * options providing the default.
- */
-static void
-conf_dnsrps_yes_no(const cfg_obj_t *obj, const char *name,
-		   conf_dnsrps_ctx_t *ctx) {
-	const cfg_obj_t *sub_obj;
-
-	if (!conf_dnsrps_get(&sub_obj, NULL, obj, name, ctx)) {
-		return;
-	}
-	if (sub_obj == NULL) {
-		return;
-	}
-	if (ctx == NULL) {
-		cfg_obj_log(obj, ISC_LOG_ERROR,
-			    "\"%s\" without \"dnsrps-enable yes\"", name);
-		return;
-	}
-
-	conf_dnsrps_sadd(ctx, " %s %s", name,
-			 cfg_obj_asboolean(sub_obj) ? "yes" : "no");
-}
-
-static void
-conf_dnsrps_num(const cfg_obj_t *obj, const char *name,
-		conf_dnsrps_ctx_t *ctx) {
-	const cfg_obj_t *sub_obj;
-
-	if (!conf_dnsrps_get(&sub_obj, NULL, obj, name, ctx)) {
-		return;
-	}
-	if (sub_obj == NULL) {
-		return;
-	}
-	if (ctx == NULL) {
-		cfg_obj_log(obj, ISC_LOG_ERROR,
-			    "\"%s\" without \"dnsrps-enable yes\"", name);
-		return;
-	}
-
-	if (cfg_obj_isduration(sub_obj)) {
-		conf_dnsrps_sadd(ctx, " %s %d", name,
-				 cfg_obj_asduration(sub_obj));
-	} else {
-		conf_dnsrps_sadd(ctx, " %s %d", name,
-				 cfg_obj_asuint32(sub_obj));
-	}
-}
-
-/*
- * Convert the parsed RPZ configuration statement to a string for
- * dns_rpz_new_zones().
- */
-static isc_result_t
-conf_dnsrps(dns_view_t *view, const cfg_obj_t **maps, bool nsip_enabled,
-	    bool nsdname_enabled, dns_rpz_zbits_t *nsip_on,
-	    dns_rpz_zbits_t *nsdname_on, char **rps_cstr, size_t *rps_cstr_size,
-	    const cfg_obj_t *rpz_obj, const cfg_listelt_t *zone_element) {
-	conf_dnsrps_ctx_t ctx;
-	const cfg_obj_t *zone_obj, *obj;
-	dns_rpz_num_t rpz_num;
-	bool on;
-	const char *s;
-
-	memset(&ctx, 0, sizeof(ctx));
-	ctx.result = ISC_R_SUCCESS;
-	ctx.mctx = view->mctx;
-
-	for (rpz_num = 0; zone_element != NULL && ctx.result == ISC_R_SUCCESS;
-	     ++rpz_num)
-	{
-		zone_obj = cfg_listelt_value(zone_element);
-
-		s = cfg_obj_asstring(cfg_tuple_get(zone_obj, "zone name"));
-		conf_dnsrps_sadd(&ctx, "zone \"%s\"", s);
-
-		obj = cfg_tuple_get(zone_obj, "policy");
-		if (!cfg_obj_isvoid(obj)) {
-			s = cfg_obj_asstring(cfg_tuple_get(obj, "policy name"));
-			conf_dnsrps_sadd(&ctx, " policy %s", s);
-			if (strcasecmp(s, "cname") == 0) {
-				s = cfg_obj_asstring(
-					cfg_tuple_get(obj, "cname"));
-				conf_dnsrps_sadd(&ctx, " %s", s);
-			}
-		}
-
-		conf_dnsrps_yes_no(zone_obj, "recursive-only", &ctx);
-		conf_dnsrps_yes_no(zone_obj, "log", &ctx);
-		conf_dnsrps_num(zone_obj, "max-policy-ttl", &ctx);
-		obj = cfg_tuple_get(rpz_obj, "nsip-enable");
-		if (!cfg_obj_isvoid(obj)) {
-			if (cfg_obj_asboolean(obj)) {
-				*nsip_on |= DNS_RPZ_ZBIT(rpz_num);
-			} else {
-				*nsip_on &= ~DNS_RPZ_ZBIT(rpz_num);
-			}
-		}
-		on = ((*nsip_on & DNS_RPZ_ZBIT(rpz_num)) != 0);
-		if (nsip_enabled != on) {
-			conf_dnsrps_sadd(&ctx, on ? " nsip-enable yes "
-						  : " nsip-enable no ");
-		}
-		obj = cfg_tuple_get(rpz_obj, "nsdname-enable");
-		if (!cfg_obj_isvoid(obj)) {
-			if (cfg_obj_asboolean(obj)) {
-				*nsdname_on |= DNS_RPZ_ZBIT(rpz_num);
-			} else {
-				*nsdname_on &= ~DNS_RPZ_ZBIT(rpz_num);
-			}
-		}
-		on = ((*nsdname_on & DNS_RPZ_ZBIT(rpz_num)) != 0);
-		if (nsdname_enabled != on) {
-			conf_dnsrps_sadd(&ctx, on ? " nsdname-enable yes "
-						  : " nsdname-enable no ");
-		}
-		conf_dnsrps_sadd(&ctx, ";\n");
-		zone_element = cfg_list_next(zone_element);
-	}
-
-	conf_dnsrps_yes_no(rpz_obj, "recursive-only", &ctx);
-	conf_dnsrps_num(rpz_obj, "max-policy-ttl", &ctx);
-	conf_dnsrps_num(rpz_obj, "min-ns-dots", &ctx);
-	conf_dnsrps_yes_no(rpz_obj, "qname-wait-recurse", &ctx);
-	conf_dnsrps_yes_no(rpz_obj, "break-dnssec", &ctx);
-	if (!nsip_enabled) {
-		conf_dnsrps_sadd(&ctx, " nsip-enable no ");
-	}
-	if (!nsdname_enabled) {
-		conf_dnsrps_sadd(&ctx, " nsdname-enable no ");
-	}
-
-	/*
-	 * Get the general dnsrpzd parameters from the response-policy
-	 * statement in the view and the general options.
-	 */
-	if (conf_dnsrps_get(&obj, maps, rpz_obj, "dnsrps-options", &ctx) &&
-	    obj != NULL)
-	{
-		conf_dnsrps_sadd(&ctx, " %s\n", cfg_obj_asstring(obj));
-	}
-
-	if (ctx.result == ISC_R_SUCCESS) {
-		*rps_cstr = ctx.cstr;
-		*rps_cstr_size = ctx.cstr_size;
-	} else {
-		if (ctx.cstr != NULL) {
-			isc_mem_put(ctx.mctx, ctx.cstr, ctx.cstr_size);
-		}
-		*rps_cstr = NULL;
-		*rps_cstr_size = 0;
-	}
-	return (ctx.result);
-}
-#endif /* ifdef USE_DNSRPS */
-
 static isc_result_t
 configure_rpz_name(dns_view_t *view, const cfg_obj_t *obj, dns_name_t *name,
 		   const char *str, const char *msg) {
@@ -2321,18 +2087,14 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 			    "invalid zone name '%s'", str);
 		return (DNS_R_EMPTYLABEL);
 	}
-	if (!view->rpzs->p.dnsrps_enabled) {
-		for (rpz_num = 0; rpz_num < view->rpzs->p.num_zones - 1;
-		     ++rpz_num)
+	for (rpz_num = 0; rpz_num < view->rpzs->p.num_zones - 1; ++rpz_num) {
+		if (dns_name_equal(&view->rpzs->zones[rpz_num]->origin,
+				   &zone->origin))
 		{
-			if (dns_name_equal(&view->rpzs->zones[rpz_num]->origin,
-					   &zone->origin))
-			{
-				cfg_obj_log(rpz_obj, DNS_RPZ_ERROR_LEVEL,
-					    "duplicate '%s'", str);
-				result = DNS_R_DUPLICATE;
-				return (result);
-			}
+			cfg_obj_log(rpz_obj, DNS_RPZ_ERROR_LEVEL,
+				    "duplicate '%s'", str);
+			result = DNS_R_DUPLICATE;
+			return (result);
 		}
 	}
 	if (*old_rpz_okp && !dns_name_equal(&old->origin, &zone->origin)) {
@@ -2429,12 +2191,9 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 }
 
 static isc_result_t
-configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
-	      const cfg_obj_t *rpz_obj, bool *old_rpz_okp) {
-	bool dnsrps_enabled;
+configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *rpz_obj,
+	      bool *old_rpz_okp) {
 	const cfg_listelt_t *zone_element;
-	char *rps_cstr;
-	size_t rps_cstr_size;
 	const cfg_obj_t *sub_obj;
 	bool recursive_only_default, add_soa_default;
 	bool nsip_enabled, nsdname_enabled;
@@ -2469,53 +2228,7 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
 	}
 	nsdname_on = nsdname_enabled ? DNS_RPZ_ALL_ZBITS : 0;
 
-	/*
-	 * "dnsrps-enable yes|no" can be either a global or response-policy
-	 * clause.
-	 */
-	dnsrps_enabled = false;
-	rps_cstr = NULL;
-	rps_cstr_size = 0;
-	sub_obj = NULL;
-	(void)named_config_get(maps, "dnsrps-enable", &sub_obj);
-	if (sub_obj != NULL) {
-		dnsrps_enabled = cfg_obj_asboolean(sub_obj);
-	}
-	sub_obj = cfg_tuple_get(rpz_obj, "dnsrps-enable");
-	if (!cfg_obj_isvoid(sub_obj)) {
-		dnsrps_enabled = cfg_obj_asboolean(sub_obj);
-	}
-#ifndef USE_DNSRPS
-	if (dnsrps_enabled) {
-		cfg_obj_log(rpz_obj, DNS_RPZ_ERROR_LEVEL,
-			    "\"dnsrps-enable yes\" but"
-			    " without `./configure --enable-dnsrps`");
-		return (ISC_R_FAILURE);
-	}
-#else  /* ifndef USE_DNSRPS */
-	if (dnsrps_enabled) {
-		if (librpz == NULL) {
-			cfg_obj_log(rpz_obj, DNS_RPZ_ERROR_LEVEL,
-				    "\"dnsrps-enable yes\" but %s",
-				    librpz_lib_open_emsg.c);
-			return (ISC_R_FAILURE);
-		}
-
-		/*
-		 * Generate the DNS Response Policy Service
-		 * configuration string.
-		 */
-		result = conf_dnsrps(view, maps, nsip_enabled, nsdname_enabled,
-				     &nsip_on, &nsdname_on, &rps_cstr,
-				     &rps_cstr_size, rpz_obj, zone_element);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
-	}
-#endif /* ifndef USE_DNSRPS */
-
-	result = dns_rpz_new_zones(view, named_g_loopmgr, rps_cstr,
-				   rps_cstr_size, &view->rpzs);
+	result = dns_rpz_new_zones(view, named_g_loopmgr, &view->rpzs);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -2634,20 +2347,8 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
 	 * zones are unchanged, then use the same policy data.
 	 * Data for individual zones that must be reloaded will be merged.
 	 */
-	if (*old_rpz_okp) {
-		if (old != NULL &&
-		    memcmp(&old->p, &zones->p, sizeof(zones->p)) != 0)
-		{
-			*old_rpz_okp = false;
-		} else if ((old == NULL || old->rps_cstr == NULL) !=
-			   (zones->rps_cstr == NULL))
-		{
-			*old_rpz_okp = false;
-		} else if (old != NULL && zones->rps_cstr != NULL &&
-			   strcmp(old->rps_cstr, zones->rps_cstr) != 0)
-		{
-			*old_rpz_okp = false;
-		}
+	if (old != NULL && memcmp(&old->p, &zones->p, sizeof(zones->p)) != 0) {
+		*old_rpz_okp = false;
 	}
 
 	if (*old_rpz_okp) {
@@ -4212,7 +3913,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	if (view->rdclass == dns_rdataclass_in && need_hints &&
 	    named_config_get(maps, "response-policy", &obj) == ISC_R_SUCCESS)
 	{
-		CHECK(configure_rpz(view, NULL, maps, obj, &old_rpz_ok));
+		CHECK(configure_rpz(view, NULL, obj, &old_rpz_ok));
 		rpz_configured = true;
 	}
 
@@ -4261,7 +3962,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * zone named in the response policy statement, unless we are
 	 * using RPZ service interface.
 	 */
-	if (view->rpzs != NULL && !view->rpzs->p.dnsrps_enabled) {
+	if (view->rpzs != NULL) {
 		dns_rpz_num_t n;
 
 		for (n = 0; n < view->rpzs->p.num_zones; ++n) {
@@ -6088,7 +5789,7 @@ cleanup:
 				 * because we are reverting the same operation
 				 * done previously in the "correct" order.
 				 */
-				result2 = configure_rpz(pview, view, maps, obj,
+				result2 = configure_rpz(pview, view, obj,
 							&old_rpz_ok);
 				if (result2 != ISC_R_SUCCESS) {
 					isc_log_write(NAMED_LOGCATEGORY_GENERAL,
@@ -6803,9 +6504,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * BIND zone database has nothing to do with rpz and so we don't care.
 	 */
 	for (rpz_num = 0;; ++rpz_num) {
-		if (view->rpzs == NULL || rpz_num >= view->rpzs->p.num_zones ||
-		    view->rpzs->p.dnsrps_enabled)
-		{
+		if (view->rpzs == NULL || rpz_num >= view->rpzs->p.num_zones) {
 			rpz_num = DNS_RPZ_INVALID_NUM;
 			break;
 		}
@@ -9070,35 +8769,6 @@ load_configuration(const char *filename, named_server_t *server,
 	server->kasplist = kasplist;
 	kasplist = tmpkasplist;
 
-#ifdef USE_DNSRPS
-	/*
-	 * Find the path to the DNSRPS implementation library.
-	 */
-	obj = NULL;
-	if (named_config_get(maps, "dnsrps-library", &obj) == ISC_R_SUCCESS) {
-		if (server->dnsrpslib != NULL) {
-			dns_dnsrps_server_destroy();
-			isc_mem_free(server->mctx, server->dnsrpslib);
-			server->dnsrpslib = NULL;
-		}
-		setstring(server, &server->dnsrpslib, cfg_obj_asstring(obj));
-		result = dns_dnsrps_server_create(server->dnsrpslib);
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_DEBUG(1),
-			      "initializing DNSRPS RPZ provider '%s': %s",
-			      server->dnsrpslib, isc_result_totext(result));
-		/*
-		 * It's okay if librpz isn't available. We'll complain
-		 * later if it turns out to be needed for a view with
-		 * "dnsrps-enable yes".
-		 */
-		if (result == ISC_R_FILENOTFOUND) {
-			result = ISC_R_SUCCESS;
-		}
-		CHECKFATAL(result, "initializing RPZ service interface");
-	}
-#endif /* ifdef USE_DNSRPS */
-
 	/*
 	 * Configure the views.
 	 */
@@ -9623,22 +9293,6 @@ load_configuration(const char *filename, named_server_t *server,
 	altsecrets = tmpaltsecrets;
 
 	(void)named_server_loadnta(server);
-
-#ifdef USE_DNSRPS
-	/*
-	 * Start and connect to the DNS Response Policy Service
-	 * daemon, dnsrpzd, for each view that uses DNSRPS.
-	 */
-	for (dns_view_t *view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
-		result = dns_dnsrps_connect(view->rpzs);
-		if (result != ISC_R_SUCCESS) {
-			view = NULL;
-			goto cleanup_altsecrets;
-		}
-	}
-#endif /* ifdef USE_DNSRPS */
 
 	/*
 	 * Record the time of most recent configuration
@@ -10396,11 +10050,6 @@ named_server_destroy(named_server_t **serverp) {
 		dns_dt_detach(&server->dtenv);
 	}
 #endif /* HAVE_DNSTAP */
-
-#ifdef USE_DNSRPS
-	dns_dnsrps_server_destroy();
-	isc_mem_free(server->mctx, server->dnsrpslib);
-#endif /* ifdef USE_DNSRPS */
 
 	named_controls_destroy(&server->controls);
 

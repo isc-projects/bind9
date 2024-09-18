@@ -1238,11 +1238,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "datasize", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },
 	{ "deallocate-on-exit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
-#ifdef USE_DNSRPS
-	{ "dnsrps-library", &cfg_type_qstring, 0 },
-#else  /* ifdef USE_DNSRPS */
-	{ "dnsrps-library", &cfg_type_qstring, CFG_CLAUSEFLAG_NOTCONFIGURED },
-#endif /* ifdef USE_DNSRPS */
+	{ "dnsrps-library", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 #ifdef HAVE_DNSTAP
 	{ "dnstap-output", &cfg_type_dnstapoutput, 0 },
 	{ "dnstap-identity", &cfg_type_serverid, 0 },
@@ -1661,8 +1657,6 @@ static cfg_type_t cfg_type_dnstapoutput = { "dnstapoutput", parse_dtout,
  *	 [ break-dnssec yes|no ] [ min-ns-dots number ]
  *	 [ qname-wait-recurse yes|no ]
  *	 [ nsip-enable yes|no ] [ nsdname-enable yes|no ]
- *	 [ dnsrps-enable yes|no ]
- *	 [ dnsrps-options { DNSRPS configuration string } ];
  */
 
 static void
@@ -1884,14 +1878,8 @@ static cfg_tuplefielddef_t rpz_fields[] = {
 	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ "nsip-enable", &cfg_type_boolean, 0 },
 	{ "nsdname-enable", &cfg_type_boolean, 0 },
-#ifdef USE_DNSRPS
-	{ "dnsrps-enable", &cfg_type_boolean, 0 },
-	{ "dnsrps-options", &cfg_type_bracketed_text, 0 },
-#else  /* ifdef USE_DNSRPS */
-	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "dnsrps-options", &cfg_type_bracketed_text,
-	  CFG_CLAUSEFLAG_NOTCONFIGURED },
-#endif /* ifdef USE_DNSRPS */
+	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "dnsrps-options", &cfg_type_bracketed_text, CFG_CLAUSEFLAG_OBSOLETE },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rpz = { "rpz",
@@ -2078,14 +2066,8 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "dns64", &cfg_type_dns64, CFG_CLAUSEFLAG_MULTI },
 	{ "dns64-contact", &cfg_type_astring, 0 },
 	{ "dns64-server", &cfg_type_astring, 0 },
-#ifdef USE_DNSRPS
-	{ "dnsrps-enable", &cfg_type_boolean, 0 },
-	{ "dnsrps-options", &cfg_type_bracketed_text, 0 },
-#else  /* ifdef USE_DNSRPS */
-	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "dnsrps-options", &cfg_type_bracketed_text,
-	  CFG_CLAUSEFLAG_NOTCONFIGURED },
-#endif /* ifdef USE_DNSRPS */
+	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "dnsrps-options", &cfg_type_bracketed_text, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "dnssec-enable", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "dnssec-lookaside", NULL,
