@@ -107,6 +107,15 @@ grep "SERVFAIL" dig.out.$n.f2 >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+# GL#1793
+n=$((n + 1))
+echo_i "checking that the 'serverquota' counter isn't increased because of the SERVFAIL in the previous check ($n)"
+ret=0
+"${CURL}" "http://10.53.0.4:${EXTRAPORT1}/json/v1" 2>/dev/null >statschannel.out.$n
+grep -F "ServerQuota" statschannel.out.$n >/dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 n=$((n + 1))
 echo_i "checking for negative caching of forwarder response ($n)"
 # prime the cache, shutdown the forwarder then check that we can

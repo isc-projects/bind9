@@ -24,6 +24,8 @@ options {
 	minimal-responses yes;
 };
 
+statistics-channels { inet 10.53.0.4 port @EXTRAPORT1@ allow { localhost; }; };
+
 zone "." {
 	type hint;
 	file "root.db";
