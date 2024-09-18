@@ -58,7 +58,7 @@ zone tls-x2 {
 	type primary;
 	file "generic.db";
 	notify explicit;
-	also-notify { 10.53.0.2 port @EXTRAPORT1@ tls tls-expired; };
+	also-notify { 10.53.0.2 port @EXTRAPORT1@ tls tls-forward-secrecy; };
 };
 
 zone tls-x3 {
