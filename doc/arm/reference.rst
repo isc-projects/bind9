@@ -6474,7 +6474,9 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     This indicates the TTL to use when generating DNSKEY resource
     records. The default is 1 hour (3600 seconds).
 
-:any:`keys`
+.. _dnssec-policy-keys:
+
+keys
     This is a list specifying the algorithms and roles to use when
     generating keys and signing the zone.  Entries in this list do not
     represent specific DNSSEC keys, which may be changed on a regular
