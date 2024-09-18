@@ -43,6 +43,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <uv.h>
 
 /*
  * Allow either ordinary or dlopen() linking.
@@ -214,15 +215,9 @@ typedef struct {
 	char c[120];
 } librpz_emsg_t;
 
-#ifdef LIBRPZ_HAVE_ATTR
-#define LIBRPZ_UNUSED	ISC_ATTR_UNUSED
-#define LIBRPZ_PF(f, l) __attribute__((format(printf, f, l)))
+#define LIBRPZ_UNUSED	__attribute__((__unused__))
+#define LIBRPZ_PF(f, l) __attribute__((__format__(printf, f, l)))
 #define LIBRPZ_NORET	__attribute__((__noreturn__))
-#else /* ifdef LIBRPZ_HAVE_ATTR */
-#define LIBRPZ_UNUSED
-#define LIBRPZ_PF(f, l)
-#define LIBRPZ_NORET
-#endif /* ifdef LIBRPZ_HAVE_ATTR */
 
 typedef bool(librpz_parse_log_opt_t)(librpz_emsg_t *emsg, const char *arg);
 LIBDEF_F(parse_log_opt)
@@ -858,71 +853,50 @@ extern librpz_t	  *librpz;
  * @return address of interface structure or NULL on failure
  */
 static inline librpz_t *
-librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
-	void	 *handle;
-	librpz_t *new_librpz;
+librpz_lib_open(librpz_emsg_t *emsg, uv_lib_t *lib, const char *path) {
+	librpz_t *new_librpz = NULL;
+	int	  r;
 
 	emsg->c[0] = '\0';
 
-	/*
-	 * Close a previously opened handle on librpz.so.
-	 */
-	if (dl_handle != NULL && *dl_handle != NULL) {
-		if (dlclose(*dl_handle) != 0) {
-			snprintf(emsg->c, sizeof(librpz_emsg_t),
-				 "dlopen(NULL): %s", dlerror());
-			return (NULL);
-		}
-		*dl_handle = NULL;
-	}
-
-	/*
-	 * First try the main executable of the process in case it was
-	 * linked to librpz.
-	 * Do not worry if we cannot search the main executable of the process.
-	 */
-	handle = dlopen(NULL, RTLD_NOW | RTLD_LOCAL);
-	if (handle != NULL) {
-		new_librpz = dlsym(handle, LIBRPZ_DEF_STR);
-		if (new_librpz != NULL) {
-			if (dl_handle != NULL) {
-				*dl_handle = handle;
-				handle = NULL;
-			}
-			return (new_librpz);
-		}
-		if (dlclose(handle) != 0) {
-			snprintf(emsg->c, sizeof(librpz_emsg_t),
-				 "dlsym(NULL, " LIBRPZ_DEF_STR "): %s",
-				 dlerror());
-			return (NULL);
-		}
-	}
-
 	if (path == NULL || path[0] == '\0') {
 		snprintf(emsg->c, sizeof(librpz_emsg_t),
-			 "librpz not linked and no dlopen() path provided");
+			 "path to librpz not provided");
 		return (NULL);
 	}
 
-	handle = dlopen(path, RTLD_NOW | RTLD_LOCAL);
-	if (handle == NULL) {
-		snprintf(emsg->c, sizeof(librpz_emsg_t), "dlopen(%s): %s", path,
-			 dlerror());
+	r = uv_dlopen(path, lib);
+	if (r != 0) {
+		const char *errmsg = uv_dlerror(lib);
+		if (errmsg == NULL) {
+			errmsg = "unknown error";
+		}
+		snprintf(emsg->c, sizeof(librpz_emsg_t),
+			 "uv_dlopen(%s): ", path);
+		strlcat(emsg->c, errmsg, sizeof(librpz_emsg_t));
+		uv_dlclose(lib);
 		return (NULL);
 	}
-	new_librpz = dlsym(handle, LIBRPZ_DEF_STR);
-	if (new_librpz != NULL) {
-		if (dl_handle != NULL) {
-			*dl_handle = handle;
-			handle = NULL;
+	r = uv_dlsym(lib, LIBRPZ_DEF_STR, (void **)&new_librpz);
+	if (r != 0) {
+		const char *errmsg = uv_dlerror(lib);
+		if (errmsg == NULL) {
+			errmsg = "returned function pointer is NULL";
 		}
-		return (new_librpz);
+		uv_dlclose(lib);
+		snprintf(emsg->c, sizeof(librpz_emsg_t),
+			 "dlsym(%s, " LIBRPZ_DEF_STR "): ", path);
+		strlcat(emsg->c, errmsg, sizeof(librpz_emsg_t));
+		return (NULL);
 	}
-	snprintf(emsg->c, sizeof(librpz_emsg_t),
-		 "dlsym(%s, " LIBRPZ_DEF_STR "): %s", path, dlerror());
-	dlclose(handle);
-	return (NULL);
+
+	return (new_librpz);
+}
+
+static inline void
+librpz_lib_close(librpz_t **rpz, uv_lib_t *lib) {
+	*rpz = NULL;
+	uv_dlclose(lib);
 }
 #elif defined(LIBRPZ_LIB_OPEN)
 /*

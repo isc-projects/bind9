@@ -108,9 +108,6 @@ AC_PROG_MKDIR_P
 # Initialize libtool
 LT_INIT([disable-static dlopen pic-only])
 
-DLOPEN_LIBS="$lt_cv_dlopen_libs"
-AC_SUBST(DLOPEN_LIBS)
-
 AS_IF([test "$enable_static" != "no" && test "$enable_developer" != "yes"],
       [AC_MSG_ERROR([Static linking is not supported as it disables dlopen() and certain security features (e.g. RELRO, ASLR)])])
 
@@ -359,6 +356,11 @@ AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sy
 # NOTE: OpenBSD doesn't ship <threads.h>, so we can't require it (yet).
 #
 AC_CHECK_HEADERS([threads.h])
+
+#
+# Also missing from OpenBSD
+#
+AC_CHECK_HEADERS([arpa/nameser_compat.h])
 
 #
 # C11 Atomic Operations
@@ -1361,22 +1363,6 @@ AC_DEFINE_UNQUOTED([VALIDATION_DEFAULT], ["$validation_default"], [the default v
 # modern C compiler.  It is enabled on systems with dlopen() and librpz.so.
 #
 dnsrps_avail=yes
-AC_MSG_CHECKING([for librpz __attribute__s])
-AC_COMPILE_IFELSE(
-  [AC_LANG_PROGRAM(
-     [[]],
-     [[
-       extern void f(char *p __attribute__((unused)), ...)
-       __attribute__((format(printf,1,2))) __attribute__((__noreturn__));
-     ]])],
-  [
-    librpz_have_attr=yes
-    AC_DEFINE([LIBRPZ_HAVE_ATTR], [1], [have __attribute__s used in librpz.h])
-    AC_MSG_RESULT([yes])
-  ],[
-    librpz_have_attr=no
-    AC_MSG_RESULT([no])
-  ])
 
 # [pairwise: --enable-dnsrps --enable-dnsrps-dl, --disable-dnsrps]
 AC_ARG_ENABLE([dnsrps-dl],
@@ -1384,9 +1370,6 @@ AC_ARG_ENABLE([dnsrps-dl],
 			      [DNS Response Policy Service delayed link
 			       [default=yes]])],
 	      [enable_dnsrps_dl="$enableval"], [enable_dnsrps_dl="yes"])
-
-AS_IF([test "$enable_dnsrps_dl" = "yes" -a "$with_dlopen" = "no"],
-      [AC_MSG_ERROR([DNS Response Policy Service delayed link requires dlopen to be enabled])])
 
 # [pairwise: skip]
 AC_ARG_WITH([dnsrps-libname],

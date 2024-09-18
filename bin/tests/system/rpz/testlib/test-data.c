@@ -37,6 +37,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifdef HAVE_ARPA_NAMESER_COMPAT_H
+#include <arpa/nameser_compat.h>
+#endif /* HAVE_ARPA_NAMESER_COMPAT_H */
+
 #include <isc/atomic.h>
 #include <isc/util.h>
 
@@ -397,7 +401,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 
 	*modified = 0;
 
-	nrec.class = ns_c_in;
+	nrec.class = C_IN;
 	nrec.ttl = ttl;
 	nrec.rrn = atomic_fetch_add_relaxed(&rrn, 1);
 
@@ -412,7 +416,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 			return (-1);
 		}
 
-		nrec.type = ns_t_a;
+		nrec.type = T_A;
 		nrec.rdlength = sizeof(uint32_t);
 
 		nrec.rdata = malloc(nrec.rdlength);
@@ -433,7 +437,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 			return (-1);
 		}
 
-		nrec.type = ns_t_aaaa;
+		nrec.type = T_AAAA;
 		nrec.rdlength = sizeof(addr);
 
 		nrec.rdata = malloc(nrec.rdlength);
@@ -444,7 +448,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 
 		memmove(nrec.rdata, addr, nrec.rdlength);
 	} else if (!strcasecmp(rrtype, "TXT")) {
-		nrec.type = ns_t_txt;
+		nrec.type = T_TXT;
 		nrec.rdlength = 1 + strlen(val);
 
 		nrec.rdata = calloc(nrec.rdlength, 1);
@@ -458,7 +462,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 	} else if (!strcasecmp(rrtype, "CNAME")) {
 		int ret;
 
-		nrec.type = ns_t_cname;
+		nrec.type = T_CNAME;
 		ret = wdns_str_to_name(val, &(nrec.rdata), 1);
 
 		if (ret <= 0) {
@@ -473,7 +477,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 	} else if (!strcasecmp(rrtype, "DNAME")) {
 		int ret;
 
-		nrec.type = ns_t_dname;
+		nrec.type = T_DNAME;
 		ret = wdns_str_to_name(val, &(nrec.rdata), 1);
 
 		if (ret <= 0) {

@@ -67,8 +67,8 @@ rpz_dnsrps_CPPFLAGS =		\
 
 rpz_dnsrps_LDADD =		\
 	$(LDADD)		\
-	$(LIBDNS_LIBS)		\
-	$(DLOPEN_LIBS)
+	$(LIBUV_LIBS)		\
+	$(LIBDNS_LIBS)
 
 # Longer running tests are listed (and executed) first to take the most
 # advantage of parallel execution.

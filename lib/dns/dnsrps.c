@@ -35,7 +35,7 @@
 
 librpz_t *librpz = NULL;
 librpz_emsg_t librpz_lib_open_emsg;
-static void *librpz_handle = NULL;
+static uv_lib_t librpz_handle;
 
 #define RPSDB_MAGIC	   ISC_MAGIC('R', 'P', 'Z', 'F')
 #define VALID_RPSDB(rpsdb) ((rpsdb)->common.impmagic == RPSDB_MAGIC)
@@ -134,7 +134,6 @@ dns_dnsrps_server_create(const char *librpz_path) {
 
 	INSIST(clist == NULL);
 	INSIST(librpz == NULL);
-	INSIST(librpz_handle == NULL);
 
 	/*
 	 * Notice if librpz is available.
@@ -171,14 +170,7 @@ dns_dnsrps_server_destroy(void) {
 
 #if DNSRPS_LIB_OPEN == 2
 	if (librpz != NULL) {
-		INSIST(librpz_handle != NULL);
-		if (dlclose(librpz_handle) != 0) {
-			isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
-				      DNS_RPZ_ERROR_LEVEL,
-				      "dnsrps: dlclose(): %s", dlerror());
-		}
-		librpz_handle = NULL;
-		librpz = NULL;
+		librpz_lib_close(&librpz, &librpz_handle);
 	}
 #endif
 }

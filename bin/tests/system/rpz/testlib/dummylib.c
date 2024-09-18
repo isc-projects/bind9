@@ -42,6 +42,10 @@
 #include <time.h>
 #include <unistd.h>
 
+#ifdef HAVE_ARPA_NAMESER_COMPAT_H
+#include <arpa/nameser_compat.h>
+#endif /* HAVE_ARPA_NAMESER_COMPAT_H */
+
 #include <isc/endian.h>
 #include <isc/util.h>
 
@@ -2124,7 +2128,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 
 			/* If there's CNAME wild card expansion */
 			if (qname != NULL && qname_size != 0 &&
-			    (this_rr->type == ns_t_cname) &&
+			    (this_rr->type == T_CNAME) &&
 			    (this_rr->rdlength > 2))
 			{
 				if (this_rr->rdata[0] == 1 &&
@@ -2199,7 +2203,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 		trsp->rstack[0].result.next_rr = this_rr->rrn;
 		last_result->rridx++;
 	} else {
-		SET_IF_NOT_NULL(typep, ns_t_invalid);
+		SET_IF_NOT_NULL(typep, 0);
 
 		if (rrp != NULL) {
 			*rrp = NULL;
