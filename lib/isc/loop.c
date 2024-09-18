@@ -351,7 +351,10 @@ threadpool_initialize(uint32_t workers) {
 	int r = uv_os_getenv("UV_THREADPOOL_SIZE", buf,
 			     &(size_t){ sizeof(buf) });
 	if (r == UV_ENOENT) {
-		snprintf(buf, sizeof(buf), "%" PRIu32, workers);
+		/* FIXME The number of threadpool threads has been temporarily
+		 * doubled to work around the issue [GL #4898] until a proper
+		 * solution is implemented. */
+		snprintf(buf, sizeof(buf), "%" PRIu32, 2 * workers);
 		uv_os_setenv("UV_THREADPOOL_SIZE", buf);
 	}
 }
