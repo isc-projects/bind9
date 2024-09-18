@@ -2400,6 +2400,18 @@ ISC_RUN_TEST_IMPL(sshfp) {
 		    dns_rdatatype_sshfp, sizeof(dns_rdata_sshfp_t));
 }
 
+ISC_RUN_TEST_IMPL(wallet) {
+	text_ok_t text_ok[] = { TEXT_VALID_CHANGED("cid-example wid-example",
+						   "\"cid-example\" "
+						   "\"wid-example\""),
+				/*
+				 * Sentinel.
+				 */
+				TEXT_SENTINEL() };
+	check_rdata(text_ok, NULL, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_wallet, sizeof(dns_rdata_rkey_t));
+}
+
 /*
  * WKS tests.
  *
@@ -3104,6 +3116,7 @@ ISC_TEST_ENTRY(nxt)
 ISC_TEST_ENTRY(rkey)
 ISC_TEST_ENTRY(resinfo)
 ISC_TEST_ENTRY(sshfp)
+ISC_TEST_ENTRY(wallet)
 ISC_TEST_ENTRY(wks)
 ISC_TEST_ENTRY(zonemd)
 
