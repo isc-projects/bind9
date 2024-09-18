@@ -1207,7 +1207,7 @@ dns__db_logtoomanyrecords(dns_db_t *db, const dns_name_t *name,
 	dns_rdataclass_format(db->rdclass, clsbuf, sizeof(clsbuf));
 
 	isc_log_write(
-		dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_RBTDB,
+		dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DB,
 		ISC_LOG_ERROR,
 		"error %s '%s/%s' in '%s/%s' (%s): %s (must not exceed %u)", op,
 		namebuf, typebuf, originbuf, clsbuf,
