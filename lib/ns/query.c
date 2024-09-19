@@ -48,6 +48,7 @@
 #include <dns/nsec3.h>
 #include <dns/order.h>
 #include <dns/rbt.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -545,6 +546,90 @@ inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 	}
 }
 
+#define NS_CLIENT_FLAGS_FORMATSIZE sizeof("+E(255)STDCV")
+
+static inline void
+ns_client_log_flags(ns_client_t *client, unsigned int flags,
+		    unsigned int extflags, char *buf, size_t len) {
+	isc_buffer_t b;
+
+	isc_buffer_init(&b, buf, len);
+	isc_buffer_putuint8(&b, WANTRECURSION(client) ? '+' : '-');
+	if (client->ednsversion >= 0) {
+		char ednsbuf[sizeof("E(255)")] = { 0 };
+
+		snprintf(ednsbuf, sizeof(ednsbuf), "E(%hhu)",
+			 (unsigned char)client->ednsversion);
+		isc_buffer_putstr(&b, ednsbuf);
+	}
+	if (client->signer != NULL) {
+		isc_buffer_putuint8(&b, 'S');
+	}
+	if (TCP(client)) {
+		isc_buffer_putuint8(&b, 'T');
+	}
+	if ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) {
+		isc_buffer_putuint8(&b, 'D');
+	}
+	if ((flags & DNS_MESSAGEFLAG_CD) != 0) {
+		isc_buffer_putuint8(&b, 'C');
+	}
+	if (HAVECOOKIE(client)) {
+		isc_buffer_putuint8(&b, 'V');
+	} else if (WANTCOOKIE(client)) {
+		isc_buffer_putuint8(&b, 'K');
+	}
+	isc_buffer_putuint8(&b, 0);
+}
+
+#define NS_CLIENT_ECS_FORMATSIZE (DNS_ECS_FORMATSIZE + sizeof(" [ECS ]") - 1)
+
+static inline void
+ns_client_log_ecs(ns_client_t *client, char *ecsbuf, size_t len) {
+	strlcpy(ecsbuf, " [ECS ", len);
+	dns_ecs_format(&client->ecs, ecsbuf + 6, len - 6);
+	strlcat(ecsbuf, "]", len);
+}
+
+static inline void
+log_response(ns_client_t *client, dns_rcode_t rcode) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+	char rcodebuf[20];
+	char onbuf[ISC_NETADDR_FORMATSIZE];
+	char ecsbuf[NS_CLIENT_ECS_FORMATSIZE] = { 0 };
+	char flagsbuf[NS_CLIENT_FLAGS_FORMATSIZE] = { 0 };
+	isc_buffer_t b;
+	int level = ISC_LOG_INFO;
+
+	if (!isc_log_wouldlog(level))
+		return;
+
+	dns_name_format(client->query.origqname, namebuf, sizeof(namebuf));
+	dns_rdataclass_format(client->message->rdclass, classbuf,
+			      sizeof(classbuf));
+	dns_rdatatype_format(client->query.qtype, typebuf, sizeof(typebuf));
+	isc_buffer_init(&b, rcodebuf, sizeof(rcodebuf));
+	dns_rcode_totext(rcode, &b);
+	isc_buffer_putuint8(&b, 0);
+	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
+
+	if (HAVEECS(client)) {
+		ns_client_log_ecs(client, ecsbuf, sizeof(ecsbuf));
+	}
+
+	ns_client_log_flags(client, client->message->flags, client->extflags,
+			    flagsbuf, sizeof(flagsbuf));
+	ns_client_log(client, NS_LOGCATEGORY_RESPONSES, NS_LOGMODULE_QUERY,
+		      level, "response: %s %s %s %s %u %u %u %s (%s)%s",
+		      namebuf, classbuf, typebuf, rcodebuf,
+		      client->message->counts[DNS_SECTION_ANSWER],
+		      client->message->counts[DNS_SECTION_AUTHORITY],
+		      client->message->counts[DNS_SECTION_ADDITIONAL], flagsbuf,
+		      onbuf, ecsbuf);
+}
+
 static void
 query_send(ns_client_t *client) {
 	isc_statscounter_t counter;
@@ -577,6 +662,10 @@ query_send(ns_client_t *client) {
 	inc_stats(client, counter);
 	ns_client_send(client);
 
+	if ((client->manager->sctx->options & NS_SERVER_LOGRESPONSES) != 0) {
+		log_response(client, client->message->rcode);
+	}
+
 	if (!client->nodetach) {
 		isc_nmhandle_detach(&client->reqhandle);
 	}
@@ -585,8 +674,10 @@ query_send(ns_client_t *client) {
 static void
 query_error(ns_client_t *client, isc_result_t result, int line) {
 	int loglevel = ISC_LOG_DEBUG(3);
+	dns_rcode_t rcode;
 
-	switch (dns_result_torcode(result)) {
+	rcode = dns_result_torcode(result);
+	switch (rcode) {
 	case dns_rcode_servfail:
 		loglevel = ISC_LOG_DEBUG(1);
 		inc_stats(client, ns_statscounter_servfail);
@@ -606,6 +697,12 @@ query_error(ns_client_t *client, isc_result_t result, int line) {
 	log_queryerror(client, result, line, loglevel);
 
 	ns_client_error(client, result);
+
+	if (client->query.origqname != NULL &&
+	    (client->manager->sctx->options & NS_SERVER_LOGRESPONSES) != 0)
+	{
+		log_response(client, rcode);
+	}
 
 	if (!client->nodetach) {
 		isc_nmhandle_detach(&client->reqhandle);
@@ -11434,8 +11531,8 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	char onbuf[ISC_NETADDR_FORMATSIZE];
-	char ecsbuf[DNS_ECS_FORMATSIZE + sizeof(" [ECS ]") - 1] = { 0 };
-	char ednsbuf[sizeof("E(65535)")] = { 0 };
+	char ecsbuf[NS_CLIENT_ECS_FORMATSIZE] = { 0 };
+	char flagsbuf[NS_CLIENT_FLAGS_FORMATSIZE] = { 0 };
 	dns_rdataset_t *rdataset;
 	int level = ISC_LOG_INFO;
 
@@ -11450,28 +11547,15 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
 
-	if (client->ednsversion >= 0) {
-		snprintf(ednsbuf, sizeof(ednsbuf), "E(%hd)",
-			 client->ednsversion);
-	}
-
 	if (HAVEECS(client)) {
-		strlcpy(ecsbuf, " [ECS ", sizeof(ecsbuf));
-		dns_ecs_format(&client->ecs, ecsbuf + 6, sizeof(ecsbuf) - 6);
-		strlcat(ecsbuf, "]", sizeof(ecsbuf));
+		ns_client_log_ecs(client, ecsbuf, sizeof(ecsbuf));
 	}
+	ns_client_log_flags(client, flags, extflags, flagsbuf,
+			    sizeof(flagsbuf));
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY, level,
-		      "query: %s %s %s %s%s%s%s%s%s%s (%s)%s", namebuf,
-		      classbuf, typebuf, WANTRECURSION(client) ? "+" : "-",
-		      (client->signer != NULL) ? "S" : "", ednsbuf,
-		      TCP(client) ? "T" : "",
-		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
-		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
-		      HAVECOOKIE(client)   ? "V"
-		      : WANTCOOKIE(client) ? "K"
-					   : "",
-		      onbuf, ecsbuf);
+		      "query: %s %s %s %s (%s)%s", namebuf, classbuf, typebuf,
+		      flagsbuf, onbuf, ecsbuf);
 }
 
 static void

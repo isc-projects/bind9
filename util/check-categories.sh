@@ -34,7 +34,7 @@ for i in $list1; do
     fi
   done
   if test $ok = no; then
-    echo "$i missing from documentation."
+    echo "$i missing from doc/arm/logging-categories.rst."
     status=1
   fi
 done
@@ -46,7 +46,7 @@ for i in $list2; do
     fi
   done
   if test $ok = no; then
-    echo "$i not in code."
+    echo "documented logging category '$i' not in code."
     status=1
   fi
 done

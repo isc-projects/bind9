@@ -247,7 +247,9 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	} else if (command_compare(command, NAMED_COMMAND_NULL)) {
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NAMED_COMMAND_QUERYLOG)) {
-		result = named_server_togglequerylog(named_g_server, lex);
+		result = named_server_setortoggle(named_g_server,
+						  "query logging",
+						  NS_SERVER_LOGQUERIES, lex);
 	} else if (command_compare(command, NAMED_COMMAND_RECONFIG)) {
 		result = named_server_reconfigcommand(named_g_server);
 	} else if (command_compare(command, NAMED_COMMAND_RECURSING)) {
@@ -256,6 +258,10 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		result = named_server_refreshcommand(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_RELOAD)) {
 		result = named_server_reloadcommand(named_g_server, lex, text);
+	} else if (command_compare(command, NAMED_COMMAND_RESPONSELOG)) {
+		result = named_server_setortoggle(named_g_server,
+						  "response logging",
+						  NS_SERVER_LOGRESPONSES, lex);
 	} else if (command_compare(command, NAMED_COMMAND_RETRANSFER)) {
 		result = named_server_retransfercommand(named_g_server, lex,
 							text);
