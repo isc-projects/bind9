@@ -17,12 +17,27 @@
 #include <isc/os.h>
 #include <isc/types.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "os_p.h"
 
 static unsigned int isc__os_ncpus = 0;
 static unsigned long isc__os_cacheline = ISC_OS_CACHELINE_SIZE;
 static mode_t isc__os_umask = 0;
+
+/*
+ * The affinity support for non-Linux is in the review in the upstream
+ * yet, but will be included in the upcoming version of libuv.
+ */
+#if (UV_VERSION_HEX >= UV_VERSION(1, 44, 0) && defined(__linux__)) || \
+	UV_VERSION_HEX > UV_VERSION(1, 48, 0)
+
+static void
+ncpus_initialize(void) {
+	isc__os_ncpus = uv_available_parallelism();
+}
+
+#else /* UV_VERSION_HEX >= UV_VERSION(1, 44, 0) */
 
 #ifdef HAVE_SYSCONF
 
@@ -150,6 +165,8 @@ ncpus_initialize(void) {
 		isc__os_ncpus = 1;
 	}
 }
+
+#endif /* UV_VERSION_HEX >= UV_VERSION(1, 38, 0) */
 
 static void
 umask_initialize(void) {
