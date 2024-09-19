@@ -1301,6 +1301,9 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	stats_dumparg_t dumparg;
 	const char *ztype;
 	isc_time_t timestamp;
+	isc_stats_t *zonestats = NULL;
+	dns_stats_t *rcvquerystats = NULL;
+	dns_stats_t *dnssecsignstats = NULL;
 
 	statlevel = dns_zone_getstatlevel(zone);
 	if (statlevel == dns_zonestat_none) {
@@ -1365,14 +1368,11 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	}
 
 	if (statlevel == dns_zonestat_full) {
-		isc_stats_t *zonestats;
 		isc_stats_t *gluecachestats;
-		dns_stats_t *rcvquerystats;
-		dns_stats_t *dnssecsignstats;
 		uint64_t nsstat_values[ns_statscounter_max];
 		uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
-		zonestats = dns_zone_getrequeststats(zone);
+		dns_zone_getrequeststats(zone, &zonestats);
 		if (zonestats != NULL) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
@@ -1386,6 +1386,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 					 nsstat_values, ISC_STATSDUMP_VERBOSE));
 			/* counters type="rcode"*/
 			TRY0(xmlTextWriterEndElement(writer));
+			isc_stats_detach(&zonestats);
 		}
 
 		gluecachestats = dns_zone_getgluecachestats(zone);
@@ -1406,7 +1407,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 			TRY0(xmlTextWriterEndElement(writer));
 		}
 
-		rcvquerystats = dns_zone_getrcvquerystats(zone);
+		dns_zone_getrcvquerystats(zone, &rcvquerystats);
 		if (rcvquerystats != NULL) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
@@ -1421,9 +1422,10 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 			/* counters type="qtype"*/
 			TRY0(xmlTextWriterEndElement(writer));
+			dns_stats_detach(&rcvquerystats);
 		}
 
-		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
+		dns_zone_getdnssecsignstats(zone, &dnssecsignstats);
 		if (dnssecsignstats != NULL) {
 			/* counters type="dnssec-sign"*/
 			TRY0(xmlTextWriterStartElement(writer,
@@ -1456,6 +1458,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 			/* counters type="dnssec-refresh"*/
 			TRY0(xmlTextWriterEndElement(writer));
+			dns_stats_detach(&dnssecsignstats);
 		}
 	}
 
@@ -1463,6 +1466,15 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 	return ISC_R_SUCCESS;
 cleanup:
+	if (zonestats != NULL) {
+		isc_stats_detach(&zonestats);
+	}
+	if (rcvquerystats != NULL) {
+		dns_stats_detach(&rcvquerystats);
+	}
+	if (dnssecsignstats != NULL) {
+		dns_stats_detach(&dnssecsignstats);
+	}
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 		      ISC_LOG_ERROR, "Failed at zone_xmlrender()");
 	return ISC_R_FAILURE;
@@ -2343,6 +2355,9 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	json_object *zoneobj = NULL;
 	dns_zonestat_level_t statlevel;
 	isc_time_t timestamp;
+	isc_stats_t *zonestats = NULL;
+	dns_stats_t *rcvquerystats = NULL;
+	dns_stats_t *dnssecsignstats = NULL;
 
 	statlevel = dns_zone_getstatlevel(zone);
 	if (statlevel == dns_zonestat_none) {
@@ -2392,14 +2407,11 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	}
 
 	if (statlevel == dns_zonestat_full) {
-		isc_stats_t *zonestats;
 		isc_stats_t *gluecachestats;
-		dns_stats_t *rcvquerystats;
-		dns_stats_t *dnssecsignstats;
 		uint64_t nsstat_values[ns_statscounter_max];
 		uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
-		zonestats = dns_zone_getrequeststats(zone);
+		dns_zone_getrequeststats(zone, &zonestats);
 		if (zonestats != NULL) {
 			json_object *counters = json_object_new_object();
 			if (counters == NULL) {
@@ -2450,7 +2462,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 			}
 		}
 
-		rcvquerystats = dns_zone_getrcvquerystats(zone);
+		dns_zone_getrcvquerystats(zone, &rcvquerystats);
 		if (rcvquerystats != NULL) {
 			stats_dumparg_t dumparg;
 			json_object *counters = json_object_new_object();
@@ -2474,7 +2486,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 			}
 		}
 
-		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
+		dns_zone_getdnssecsignstats(zone, &dnssecsignstats);
 		if (dnssecsignstats != NULL) {
 			stats_dumparg_t dumparg;
 			json_object *sign_counters = json_object_new_object();
@@ -2530,6 +2542,15 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	if (zonestats != NULL) {
+		isc_stats_detach(&zonestats);
+	}
+	if (rcvquerystats != NULL) {
+		dns_stats_detach(&rcvquerystats);
+	}
+	if (dnssecsignstats != NULL) {
+		dns_stats_detach(&dnssecsignstats);
+	}
 	if (zoneobj != NULL) {
 		json_object_put(zoneobj);
 	}
@@ -4102,12 +4123,14 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	     result == ISC_R_SUCCESS;
 	     next = NULL, result = dns_zone_next(zone, &next), zone = next)
 	{
-		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
+		isc_stats_t *zonestats = NULL;
+		dns_zone_getrequeststats(zone, &zonestats);
 		if (zonestats != NULL) {
 			char zonename[DNS_NAME_FORMATSIZE];
 
 			view = dns_zone_getview(zone);
 			if (view == NULL) {
+				isc_stats_detach(&zonestats);
 				continue;
 			}
 
@@ -4123,6 +4146,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 					 NULL, nsstats_desc,
 					 ns_statscounter_max, nsstats_index,
 					 nsstat_values, 0);
+			isc_stats_detach(&zonestats);
 		}
 	}
 
