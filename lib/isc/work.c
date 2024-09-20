@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 
+#include <isc/iterated_hash.h>
 #include <isc/job.h>
 #include <isc/loop.h>
 #include <isc/urcu.h>
@@ -25,11 +26,15 @@ static void
 isc__work_cb(uv_work_t *req) {
 	isc_work_t *work = uv_req_get_data((uv_req_t *)req);
 
+	isc__iterated_hash_initialize();
+
 	rcu_register_thread();
 
 	work->work_cb(work->cbarg);
 
 	rcu_unregister_thread();
+
+	isc__iterated_hash_shutdown();
 }
 
 static void
