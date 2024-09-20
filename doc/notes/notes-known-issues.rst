@@ -14,12 +14,4 @@
 Known Issues
 ------------
 
-- Long-running tasks in offloaded threads (e.g. loading RPZ zones or
-  processing zone transfers) may block the resolution of queries during
-  these operations and cause the queries to time out.
-
-  To work around the issue, the ``UV_THREADPOOL_SIZE`` environment
-  variable can be set to a larger value before starting :iscman:`named`.
-  The recommended value is the number of RPZ zones (or number of
-  transfers) plus the number of threads BIND should use, which is
-  typically the number of CPUs. :gl:`#4898`
+- There are no known issues affecting this BIND 9 branch.
