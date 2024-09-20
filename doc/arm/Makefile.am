@@ -67,6 +67,7 @@ EXTRA_DIST =					\
 	_ext/namedconf.py			\
 	_ext/rndcconf.py			\
 	_static/custom.css			\
+	../changelog/*.rst			\
 	../dnssec-guide				\
 	../misc/options				\
 	../misc/rndc.grammar			\
