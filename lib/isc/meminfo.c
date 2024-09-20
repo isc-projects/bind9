@@ -12,42 +12,18 @@
  */
 
 #include <inttypes.h>
-#include <sys/param.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#if HAVE_SYS_SYSCTL_H && !defined(__linux__)
-#include <sys/sysctl.h>
-#endif
 
 #include <isc/meminfo.h>
+#include <isc/uv.h>
 
 uint64_t
 isc_meminfo_totalphys(void) {
-#if defined(CTL_HW) && (defined(HW_PHYSMEM64) || defined(HW_MEMSIZE))
-	int mib[2];
-	mib[0] = CTL_HW;
-#if defined(HW_MEMSIZE)
-	mib[1] = HW_MEMSIZE;
-#elif defined(HW_PHYSMEM64)
-	mib[1] = HW_PHYSMEM64;
-#endif /* if defined(HW_MEMSIZE) */
-	uint64_t size = 0;
-	size_t len = sizeof(size);
-	if (sysctl(mib, 2, &size, &len, NULL, 0) == 0) {
-		return (size);
+	uint64_t tmem = uv_get_total_memory();
+#if UV_VERSION_HEX >= UV_VERSION(1, 29, 0)
+	uint64_t cmem = uv_get_constrained_memory();
+	if (cmem > 0 && cmem < tmem) {
+		return (cmem);
 	}
-#endif /* if defined(CTL_HW) && (defined(HW_PHYSMEM64) || defined(HW_MEMSIZE)) \
-	* */
-#if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
-	long pages = sysconf(_SC_PHYS_PAGES);
-	long pagesize = sysconf(_SC_PAGESIZE);
-
-	if (pages < 0 || pagesize < 0) {
-		return (0);
-	}
-
-	return ((uint64_t)pages * pagesize);
-#endif /* if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE) */
-	return (0);
+#endif /* UV_VERSION_HEX >= UV_VERSION(1, 29, 0) */
+	return (tmem);
 }
