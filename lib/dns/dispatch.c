@@ -591,15 +591,18 @@ next:
 	 * time to wait for the correct one to arrive before the timeout fires.
 	 */
 	now = isc_loop_now(resp->loop);
-	timeout = resp->timeout - dispentry_runtime(resp, &now);
-	if (timeout <= 0) {
-		/*
-		 * The time window for receiving the correct response is
-		 * already closed, libuv has just not processed the socket
-		 * timer yet.  Invoke the read callback, indicating a timeout.
-		 */
-		eresult = ISC_R_TIMEDOUT;
-		goto done;
+	if (resp->timeout > 0) {
+		timeout = resp->timeout - dispentry_runtime(resp, &now);
+		if (timeout <= 0) {
+			/*
+			 * The time window for receiving the correct response is
+			 * already closed, libuv has just not processed the
+			 * socket timer yet.  Invoke the read callback,
+			 * indicating a timeout.
+			 */
+			eresult = ISC_R_TIMEDOUT;
+			goto done;
+		}
 	}
 
 	/*
@@ -772,7 +775,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	isc_sockaddr_t peer;
 	dns_displist_t resps = ISC_LIST_INITIALIZER;
 	isc_time_t now;
-	int timeout;
+	int timeout = 0;
 
 	REQUIRE(VALID_DISPATCH(disp));
 
@@ -835,9 +838,11 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	while (resp != NULL) {
 		dns_dispentry_t *next = ISC_LIST_NEXT(resp, alink);
 
-		timeout = resp->timeout - dispentry_runtime(resp, &now);
-		if (timeout <= 0) {
-			tcp_recv_add(&resps, resp, ISC_R_TIMEDOUT);
+		if (resp->timeout > 0) {
+			timeout = resp->timeout - dispentry_runtime(resp, &now);
+			if (timeout <= 0) {
+				tcp_recv_add(&resps, resp, ISC_R_TIMEDOUT);
+			}
 		}
 
 		resp = next;
@@ -877,10 +882,14 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	 */
 	resp = ISC_LIST_HEAD(disp->active);
 	if (resp != NULL) {
-		timeout = resp->timeout - dispentry_runtime(resp, &now);
-		INSIST(timeout > 0);
+		if (resp->timeout > 0) {
+			timeout = resp->timeout - dispentry_runtime(resp, &now);
+			INSIST(timeout > 0);
+		}
 		tcp_startrecv(disp, resp);
-		isc_nmhandle_settimeout(handle, timeout);
+		if (timeout > 0) {
+			isc_nmhandle_settimeout(handle, timeout);
+		}
 	}
 
 	rcu_read_unlock();
@@ -1521,14 +1530,16 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 
 	dns_dispatch_t *disp = resp->disp;
 	isc_result_t result = ISC_R_SUCCESS;
-	int32_t timeout = -1;
+	int32_t timeout = 0;
 
 	dispentry_log(resp, ISC_LOG_DEBUG(90), "getnext for QID %d", resp->id);
 
-	isc_time_t now = isc_loop_now(resp->loop);
-	timeout = resp->timeout - dispentry_runtime(resp, &now);
-	if (timeout <= 0) {
-		return (ISC_R_TIMEDOUT);
+	if (resp->timeout > 0) {
+		isc_time_t now = isc_loop_now(resp->loop);
+		timeout = resp->timeout - dispentry_runtime(resp, &now);
+		if (timeout <= 0) {
+			return (ISC_R_TIMEDOUT);
+		}
 	}
 
 	REQUIRE(disp->tid == isc_tid());
