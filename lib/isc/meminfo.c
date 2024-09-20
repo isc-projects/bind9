@@ -12,12 +12,15 @@
  */
 
 #include <inttypes.h>
+#include <sys/param.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-#include <isc/meminfo.h>
-#if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux__)
+#if HAVE_SYS_SYSCTL_H && !defined(__linux__)
 #include <sys/sysctl.h>
-#endif /* if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux__) */
+#endif
+
+#include <isc/meminfo.h>
 
 uint64_t
 isc_meminfo_totalphys(void) {

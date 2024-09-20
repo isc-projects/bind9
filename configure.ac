@@ -339,15 +339,10 @@ AS_CASE([$host],
 		  ])
 	])
 
-AC_CHECK_HEADERS([sys/param.h sys/socket.h])
 AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/sysctl.h net/if6.h net/route.h linux/netlink.h linux/rtnetlink.h], [], [],
 		 [$ac_includes_default
-		  #ifdef HAVE_SYS_PARAM_H
-		  # include <sys/param.h>
-		  #endif
-		  #ifdef HAVE_SYS_SOCKET_H
-		  # include <sys/socket.h>
-		  #endif
+		  #include <sys/param.h>
+		  #include <sys/socket.h>
 		 ])
 
 #
@@ -549,8 +544,6 @@ AC_COMPILE_IFELSE(
 
 AC_CHECK_FUNCS([pthread_attr_getstacksize pthread_attr_setstacksize pthread_barrier_init pthread_spin_init])
 
-AC_CHECK_HEADERS([sched.h])
-
 AC_SEARCH_LIBS([sched_yield],[rt])
 AC_CHECK_FUNCS([sched_yield pthread_yield pthread_yield_np])
 
@@ -614,16 +607,9 @@ AM_CONDITIONAL([HAVE_LIBNGHTTP2], [test -n "$LIBNGHTTP2_LIBS"])
 AC_CHECK_FUNCS([flockfile getc_unlocked])
 
 #
-# Look for sysconf or other ways to allow detection of the number of processors.
+# Look for other ways to allow detection of the number of processors.
 #
-AC_CHECK_FUNCS([sysconf])
-AC_CHECK_FUNCS(sysconf sched_getaffinity cpuset_getaffinity)
-AC_CHECK_HEADERS([sys/cpuset.h], [], [],
-		 [$ac_includes_default
-		  #ifdef HAVE_SYS_PARAM_H
-		  # include <sys/param.h>
-		  #endif
-		 ])
+AC_CHECK_FUNCS([sched_getaffinity cpuset_getaffinity])
 
 #
 # Do we want to use pthread rwlock?
