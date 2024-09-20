@@ -94,7 +94,6 @@ isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	result = isc__nm_socket(sa_family, SOCK_DGRAM, 0, &sock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	(void)isc__nm_socket_incoming_cpu(sock);
 	(void)isc__nm_socket_disable_pmtud(sock, sa_family);
 	(void)isc__nm_socket_v6only(sock, sa_family);
 
@@ -1063,8 +1062,6 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	result = isc__nm_socket_reuse_lb(sock->fd);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS ||
 		      result == ISC_R_NOTIMPLEMENTED);
-
-	(void)isc__nm_socket_incoming_cpu(sock->fd);
 
 	(void)isc__nm_socket_disable_pmtud(sock->fd, sa_family);
 
