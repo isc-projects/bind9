@@ -73,6 +73,29 @@ sysctlbyname_ncpus(void) {
 }
 #endif /* HAVE_SYSCTLBYNAME */
 
+#if HAVE_SYS_SYSCTL_H && !defined(__linux__)
+static int
+sysctl_ncpus(void) {
+	int ncpu;
+	size_t len = sizeof(ncpu);
+	static int mib[][2] = {
+#ifdef HW_NCPUONLINE
+		{ CTL_HW, HW_NCPUONLINE },
+#endif
+		{ CTL_HW, HW_NCPU },
+	};
+
+	for (size_t i = 0; i < ARRAY_SIZE(mib); i++) {
+		int r = sysctl(mib[i], ARRAY_SIZE(mib[i]), &ncpu, &len, NULL,
+			       0);
+		if (r != -1) {
+			return (ncpu);
+		}
+	}
+	return (-1);
+}
+#endif /* HAVE_SYS_SYSCTL_H */
+
 #if defined(HAVE_SCHED_GETAFFINITY)
 #include <sched.h>
 
@@ -130,6 +153,11 @@ ncpus_initialize(void) {
 #if HAVE_SYSCTLBYNAME
 	if (isc__os_ncpus <= 0) {
 		isc__os_ncpus = sysctlbyname_ncpus();
+	}
+#endif
+#if HAVE_SYS_SYSCTL_H && !defined(__linux__)
+	if (isc__os_ncpus <= 0) {
+		isc__os_ncpus = sysctl_ncpus();
 	}
 #endif
 	if (isc__os_ncpus <= 0) {
