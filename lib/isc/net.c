@@ -11,20 +11,18 @@
  * information regarding copyright ownership.
  */
 
-#include <stdbool.h>
-#include <sys/types.h>
-
-#if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux__)
-#if defined(HAVE_SYS_PARAM_H)
-#include <sys/param.h>
-#endif /* if defined(HAVE_SYS_PARAM_H) */
-#include <sys/sysctl.h>
-#endif /* if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux__) */
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <stdbool.h>
+#include <sys/param.h>
+#include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
+
+#if HAVE_SYS_SYSCTL_H && !defined(__linux__)
+#include <sys/sysctl.h>
+#endif
 
 #include <isc/log.h>
 #include <isc/net.h>

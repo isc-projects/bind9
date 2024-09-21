@@ -17,6 +17,7 @@
 #include <isc/os.h>
 #include <isc/types.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #include "os_p.h"
 
@@ -24,46 +25,79 @@ static unsigned int isc__os_ncpus = 0;
 static unsigned long isc__os_cacheline = ISC_OS_CACHELINE_SIZE;
 static mode_t isc__os_umask = 0;
 
-#ifdef HAVE_SYSCONF
+/*
+ * The affinity support for non-Linux is in the review in the upstream
+ * yet, but will be included in the upcoming version of libuv.
+ */
+#if (UV_VERSION_HEX >= UV_VERSION(1, 44, 0) && defined(__linux__)) || \
+	UV_VERSION_HEX > UV_VERSION(1, 48, 0)
 
+static void
+ncpus_initialize(void) {
+	isc__os_ncpus = uv_available_parallelism();
+}
+
+#else /* UV_VERSION_HEX >= UV_VERSION(1, 44, 0) */
+
+#include <sys/param.h> /* for NetBSD */
+#if HAVE_SYS_SYSCTL_H && !defined(__linux__)
+#include <sys/sysctl.h>
+#endif
+#include <sys/types.h> /* for OpenBSD */
 #include <unistd.h>
 
-static long
+static int
 sysconf_ncpus(void) {
-#if defined(_SC_NPROCESSORS_ONLN)
-	return (sysconf((_SC_NPROCESSORS_ONLN)));
-#elif defined(_SC_NPROC_ONLN)
-	return (sysconf((_SC_NPROC_ONLN)));
-#else  /* if defined(_SC_NPROCESSORS_ONLN) */
-	return (0);
-#endif /* if defined(_SC_NPROCESSORS_ONLN) */
+	long ncpus = sysconf((_SC_NPROCESSORS_ONLN));
+	return ((int)ncpus);
 }
-#endif /* HAVE_SYSCONF */
 
-#if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME)
-#include <sys/param.h> /* for NetBSD */
-#include <sys/sysctl.h>
-#include <sys/types.h> /* for FreeBSD */
+#if HAVE_SYSCTLBYNAME
+static int
+sysctlbyname_ncpus(void) {
+	int ncpu;
+	size_t len = sizeof(ncpu);
+	static const char *mib[] = {
+		"hw.activecpu",
+		"hw.logicalcpu",
+		"hw.ncpu",
+	};
 
+	for (size_t i = 0; i < ARRAY_SIZE(mib); i++) {
+		int r = sysctlbyname(mib[i], &ncpu, &len, NULL, 0);
+		if (r != -1) {
+			return (ncpu);
+		}
+	}
+	return (-1);
+}
+#endif /* HAVE_SYSCTLBYNAME */
+
+#if HAVE_SYS_SYSCTL_H && !defined(__linux__)
 static int
 sysctl_ncpus(void) {
-	int ncpu, result;
-	size_t len;
+	int ncpu;
+	size_t len = sizeof(ncpu);
+	static int mib[][2] = {
+#ifdef HW_NCPUONLINE
+		{ CTL_HW, HW_NCPUONLINE },
+#endif
+		{ CTL_HW, HW_NCPU },
+	};
 
-	len = sizeof(ncpu);
-	result = sysctlbyname("hw.ncpu", &ncpu, &len, 0, 0);
-	if (result != -1) {
-		return (ncpu);
+	for (size_t i = 0; i < ARRAY_SIZE(mib); i++) {
+		int r = sysctl(mib[i], ARRAY_SIZE(mib[i]), &ncpu, &len, NULL,
+			       0);
+		if (r != -1) {
+			return (ncpu);
+		}
 	}
-	return (0);
+	return (-1);
 }
-#endif /* if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME) */
+#endif /* HAVE_SYS_SYSCTL_H */
 
 #if defined(HAVE_SCHED_GETAFFINITY)
-
-#if defined(HAVE_SCHED_H)
 #include <sched.h>
-#endif
 
 /*
  * Administrators may wish to constrain the set of cores that BIND runs
@@ -77,56 +111,36 @@ sysctl_ncpus(void) {
 static int
 sched_affinity_ncpus(void) {
 	cpu_set_t cpus;
-	int result;
-
-	result = sched_getaffinity(0, sizeof(cpus), &cpus);
-	if (result != -1) {
-#ifdef CPU_COUNT
+	int r = sched_getaffinity(0, sizeof(cpus), &cpus);
+	if (r != -1) {
 		return (CPU_COUNT(&cpus));
-#else
-		int i, n = 0;
-
-		for (i = 0; i < CPU_SETSIZE; ++i) {
-			if (CPU_ISSET(i, &cpus))
-				++n;
-		}
-		return (n);
-#endif
 	}
-	return (0);
+	return (-1);
 }
 #endif
 
 /*
  * Affinity detecting variant of sched_affinity_cpus() for FreeBSD
  */
-
-#if defined(HAVE_SYS_CPUSET_H) && defined(HAVE_CPUSET_GETAFFINITY)
+#if defined(HAVE_CPUSET_GETAFFINITY)
 #include <sys/cpuset.h>
 #include <sys/param.h>
 
 static int
 cpuset_affinity_ncpus(void) {
 	cpuset_t cpus;
-	int result;
-
-	result = cpuset_getaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1,
-				    sizeof(cpus), &cpus);
-	if (result != -1) {
-		int i, n = 0;
-		for (i = 0; i < CPU_SETSIZE; ++i) {
-			if (CPU_ISSET(i, &cpus))
-				++n;
-		}
-		return (n);
+	int r = cpuset_getaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1,
+				   sizeof(cpus), &cpus);
+	if (r != -1) {
+		return (CPU_COUNT(&cpus));
 	}
-	return (0);
+	return (-1);
 }
 #endif
 
 static void
 ncpus_initialize(void) {
-#if defined(HAVE_SYS_CPUSET_H) && defined(HAVE_CPUSET_GETAFFINITY)
+#if defined(HAVE_CPUSET_GETAFFINITY)
 	if (isc__os_ncpus <= 0) {
 		isc__os_ncpus = cpuset_affinity_ncpus();
 	}
@@ -136,20 +150,25 @@ ncpus_initialize(void) {
 		isc__os_ncpus = sched_affinity_ncpus();
 	}
 #endif
-#if defined(HAVE_SYSCONF)
+#if HAVE_SYSCTLBYNAME
 	if (isc__os_ncpus <= 0) {
-		isc__os_ncpus = sysconf_ncpus();
+		isc__os_ncpus = sysctlbyname_ncpus();
 	}
-#endif /* if defined(HAVE_SYSCONF) */
-#if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME)
+#endif
+#if HAVE_SYS_SYSCTL_H && !defined(__linux__)
 	if (isc__os_ncpus <= 0) {
 		isc__os_ncpus = sysctl_ncpus();
 	}
-#endif /* if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME) */
+#endif
+	if (isc__os_ncpus <= 0) {
+		isc__os_ncpus = sysconf_ncpus();
+	}
 	if (isc__os_ncpus <= 0) {
 		isc__os_ncpus = 1;
 	}
 }
+
+#endif /* UV_VERSION_HEX >= UV_VERSION(1, 38, 0) */
 
 static void
 umask_initialize(void) {
@@ -176,7 +195,7 @@ void
 isc__os_initialize(void) {
 	umask_initialize();
 	ncpus_initialize();
-#if defined(HAVE_SYSCONF) && defined(_SC_LEVEL1_DCACHE_LINESIZE)
+#if defined(_SC_LEVEL1_DCACHE_LINESIZE)
 	long s = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
 	if (s > 0 && (unsigned long)s > isc__os_cacheline) {
 		isc__os_cacheline = s;
