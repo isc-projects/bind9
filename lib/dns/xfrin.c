@@ -1260,15 +1260,10 @@ xfrin_start(dns_xfrin_t *xfr) {
 				     dns_xfrin_gettransporttype(xfr));
 	}
 
-	/*
-	 * XXX: timeouts are hard-coded to 30 seconds; this needs to be
-	 * configurable.
-	 */
-	CHECK(dns_dispatch_add(xfr->disp, xfr->loop, 0, 30000,
-			       &xfr->primaryaddr, xfr->transport,
-			       xfr->tlsctx_cache, xfrin_connect_done,
-			       xfrin_send_done, xfrin_recv_done, xfr, &xfr->id,
-			       &xfr->dispentry));
+	CHECK(dns_dispatch_add(
+		xfr->disp, xfr->loop, 0, 0, &xfr->primaryaddr, xfr->transport,
+		xfr->tlsctx_cache, xfrin_connect_done, xfrin_send_done,
+		xfrin_recv_done, xfr, &xfr->id, &xfr->dispentry));
 
 	/* Set the maximum timer */
 	if (xfr->max_time_timer == NULL) {
@@ -1973,7 +1968,10 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		 * Read the next message.
 		 */
 		dns_message_detach(&msg);
-		dns_dispatch_getnext(xfr->dispentry);
+		result = dns_dispatch_getnext(xfr->dispentry);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
 
 		isc_interval_t interval;
 		isc_interval_set(&interval, dns_zone_getidlein(xfr->zone), 0);
