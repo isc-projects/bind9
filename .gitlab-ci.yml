@@ -1236,7 +1236,7 @@ respdiff-third-party:
     - LD_LIBRARY_PATH="${INSTALL_PATH}/usr/local/lib" BIND_INSTALL_PATH="${INSTALL_PATH}/usr/local" WORKSPACE="${CI_PROJECT_DIR}" bash stress.sh
   needs: []
 
-.stress-test-short: &stress_test_short_job
+.stress-test-long: &stress_test_long_job
   <<: *stress_test
   artifacts:
     untracked: true
@@ -1244,9 +1244,21 @@ respdiff-third-party:
       - "output/ns4/*.dtq*"
       - "output/ns4/large-delta-rpz*.local"
       - "output/rpz_*"
+    expire_in: "1 week"
     when: always
+  timeout: 2h
+
+.stress-test-short: &stress_test_short_job
+  <<: *stress_test
   only:
     - merge_requests
+  artifacts:
+    untracked: true
+    exclude:
+      - "output/ns4/*.dtq*"
+      - "output/ns4/large-delta-rpz*.local"
+      - "output/rpz_*"
+    when: always
 
 stress:short:authoritative:fedora:40:amd64:
   <<: *fedora_40_amd64_image
@@ -1352,14 +1364,6 @@ stress:short:rpz:freebsd13:amd64:
     MODE: rpz
     RATE: 1500
     RUN_TIME: 15
-
-.stress-test-long: &stress_test_long_job
-  <<: *stress_test
-  artifacts:
-    untracked: true
-    expire_in: "1 week"
-    when: always
-  timeout: 2h
 
 stress:authoritative:fedora:40:amd64:
   <<: *fedora_40_amd64_image
