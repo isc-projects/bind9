@@ -101,7 +101,11 @@ def do_work(named_proc, resolver_ip, instance, kill_method, n_workers, n_queries
 
                 qname = relname + ".test"
                 msg = dns.message.make_query(qname, "A")
-                futures[executor.submit(isctest.query.udp, msg, resolver_ip)] = tag
+                futures[
+                    executor.submit(
+                        isctest.query.udp, msg, resolver_ip, timeout=1, attempts=1
+                    )
+                ] = tag
             elif shutdown:  # We attempt to stop named in the middle
                 shutdown = False
                 if kill_method == "rndc":
