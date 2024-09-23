@@ -273,6 +273,7 @@ struct cfg_parser {
 #define CFG_ADDR_WILDOK	    0x00000008
 #define CFG_ADDR_PORTOK	    0x00000010
 #define CFG_ADDR_TLSOK	    0x00000020
+#define CFG_ADDR_TRAILINGOK 0x00000040
 #define CFG_ADDR_MASK	    (CFG_ADDR_V6OK | CFG_ADDR_V4OK)
 /*@}*/
 
@@ -378,6 +379,9 @@ cfg_lookingat_netaddr(cfg_parser_t *pctx, unsigned int flags);
 isc_result_t
 cfg_parse_rawport(cfg_parser_t *pctx, unsigned int flags, in_port_t *port);
 
+isc_result_t
+cfg_parse_sockaddr_generic(cfg_parser_t *pctx, cfg_type_t *klass,
+			   const cfg_type_t *type, cfg_obj_t **ret);
 isc_result_t
 cfg_parse_sockaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 

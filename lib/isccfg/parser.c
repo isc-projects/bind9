@@ -75,6 +75,7 @@
 #define MAP_SYM 1 /* Unique type for isc_symtab */
 
 #define TOKEN_STRING(pctx) (pctx->token.value.as_textregion.base)
+#define TOKEN_REGION(pctx) (pctx->token.value.as_textregion)
 
 /* Check a return value. */
 #define CHECK(op)                            \
@@ -116,9 +117,6 @@ create_string(cfg_parser_t *pctx, const char *contents, const cfg_type_t *type,
 
 static void
 free_string(cfg_parser_t *pctx, cfg_obj_t *obj);
-
-static void
-copy_string(cfg_parser_t *pctx, const cfg_obj_t *obj, isc_textregion_t *dst);
 
 static void
 free_sockaddrtls(cfg_parser_t *pctx, cfg_obj_t *obj);
@@ -1550,18 +1548,6 @@ static void
 free_string(cfg_parser_t *pctx, cfg_obj_t *obj) {
 	isc_mem_put(pctx->mctx, obj->value.string.base,
 		    obj->value.string.length + 1);
-}
-
-static void
-copy_string(cfg_parser_t *pctx, const cfg_obj_t *obj, isc_textregion_t *dst) {
-	if (dst->base != NULL) {
-		INSIST(dst->length != 0);
-		isc_mem_put(pctx->mctx, dst->base, dst->length + 1);
-	}
-	dst->length = obj->value.string.length;
-	dst->base = isc_mem_get(pctx->mctx, dst->length + 1);
-	memmove(dst->base, obj->value.string.base, dst->length);
-	dst->base[dst->length] = '\0';
 }
 
 static void
@@ -3263,6 +3249,16 @@ cfg_type_t cfg_type_netprefix = { "netprefix",	      cfg_parse_netprefix,
 				  print_netprefix,    cfg_doc_terminal,
 				  &cfg_rep_netprefix, NULL };
 
+static void
+copy_textregion(isc_mem_t *mctx, isc_textregion_t *dest, isc_textregion_t src) {
+	size_t dest_mem_length = (dest->base != NULL) ? dest->length + 1 : 0;
+	dest->base = isc_mem_creget(mctx, dest->base, dest_mem_length,
+				    src.length + 1, sizeof(char));
+	dest->length = src.length;
+	memmove(dest->base, src.base, src.length);
+	dest->base[dest->length] = '\0';
+}
+
 static isc_result_t
 parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 		  cfg_obj_t **ret) {
@@ -3270,31 +3266,45 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 	isc_netaddr_t netaddr;
 	in_port_t port = 0;
 	cfg_obj_t *obj = NULL;
+	int have_address = 0;
 	int have_port = 0;
 	int have_tls = 0;
 	int is_port_ok = (flags & CFG_ADDR_PORTOK) != 0;
 	int is_tls_ok = (flags & CFG_ADDR_TLSOK) != 0;
+	int is_address_ok = (flags & CFG_ADDR_TRAILINGOK) != 0;
 
-	CHECK(cfg_create_obj(pctx, type, &obj));
-	CHECK(cfg_parse_rawaddr(pctx, flags, &netaddr));
+	isc_textregion_t tls = { .base = NULL, .length = 0 };
+
+	CHECK(cfg_peektoken(pctx, 0));
+	if (cfg_lookingat_netaddr(pctx, flags)) {
+		CHECK(cfg_parse_rawaddr(pctx, flags, &netaddr));
+		++have_address;
+	}
 
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
-			if (strcasecmp(TOKEN_STRING(pctx), "port") == 0) {
+			if (is_address_ok &&
+			    strcasecmp(TOKEN_STRING(pctx), "address") == 0)
+			{
+				/* read "address" */
+				CHECK(cfg_gettoken(pctx, 0));
+				CHECK(cfg_parse_rawaddr(pctx, flags, &netaddr));
+				++have_address;
+			} else if (strcasecmp(TOKEN_STRING(pctx), "port") == 0)
+			{
 				CHECK(cfg_gettoken(pctx, 0)); /* read "port" */
 				CHECK(cfg_parse_rawport(pctx, flags, &port));
 				++have_port;
 			} else if (is_tls_ok &&
 				   strcasecmp(TOKEN_STRING(pctx), "tls") == 0)
 			{
-				cfg_obj_t *tls = NULL;
-
 				CHECK(cfg_gettoken(pctx, 0)); /* read "tls" */
-				CHECK(cfg_parse_astring(pctx, NULL, &tls));
-				copy_string(pctx, tls,
-					    &obj->value.sockaddrtls.tls);
-				CLEANUP_OBJ(tls);
+				CHECK(cfg_getstringtoken(pctx));
+
+				isc_textregion_t tok = TOKEN_REGION(pctx);
+				copy_textregion(pctx->mctx, &tls, tok);
+
 				++have_tls;
 			} else {
 				break;
@@ -3302,6 +3312,12 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 		} else {
 			break;
 		}
+	}
+
+	if (have_address != 1) {
+		cfg_parser_error(pctx, 0, "expected exactly one address");
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
 	}
 
 	if (!is_port_ok && have_port > 0) {
@@ -3314,22 +3330,30 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 		result = ISC_R_UNEXPECTEDTOKEN;
 		goto cleanup;
 	}
+
 	if (have_tls > 1) {
 		cfg_parser_error(pctx, 0, "expected at most one tls");
 		result = ISC_R_UNEXPECTEDTOKEN;
 		goto cleanup;
 	}
 
+	CHECK(cfg_create_obj(pctx, type, &obj));
+	if (have_tls == 1) {
+		obj->value.sockaddrtls.tls = tls;
+	}
 	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, port);
 	*ret = obj;
 	return (ISC_R_SUCCESS);
 
 cleanup:
+	if (tls.base != NULL) {
+		isc_mem_put(pctx->mctx, tls.base, tls.length + 1);
+	}
 	CLEANUP_OBJ(obj);
 	return (result);
 }
 
-static isc_result_t
+isc_result_t
 cfg_parse_sockaddr_generic(cfg_parser_t *pctx, cfg_type_t *klass,
 			   const cfg_type_t *type, cfg_obj_t **ret) {
 	const unsigned int *flagp;
