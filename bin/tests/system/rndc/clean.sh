@@ -18,6 +18,7 @@ rm -f ns*/named.conf
 rm -f ns*/named.memstats
 rm -f ns*/named.run ns*/named.run.prev
 rm -f ns2/named.stats
+rm -f ns2/named_dump.db*
 rm -f ns2/nil.db ns2/other.db ns2/static.db ns2/*.jnl
 rm -f ns2/secondkey.conf
 rm -f ns2/session.key
@@ -29,5 +30,7 @@ rm -f ns6/huge.zone.db
 rm -f ns7/include.db ns7/test.db ns7/*.jnl
 rm -f ns7/named_dump.db*
 rm -f nsupdate.out.*.test*
+rm -f nsupdate.out.test*
 rm -f python.out.*.test*
 rm -f rndc.out.*.test*
+rm -f rndc.out.test*
