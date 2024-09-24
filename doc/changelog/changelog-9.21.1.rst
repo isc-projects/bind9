@@ -91,8 +91,20 @@ Feature Changes
 - Restore the ability to select individual unit tests. ``2299aba5c20``
 
   This add the command line arguments: `-d` (debug), `-l` (list tests)
-  and `-t test` (run this test) to the unit tests. :gl:`#4579`
-  :gl:`!9384`
+  and `-t test` (run this test) to the unit tests, e.g.:
+
+  .. code::
+
+     % ./rdata_test -t zonemd
+     [==========] selected:
+     Running 1 test(s).
+     [ RUN      ] zonemd
+     [       OK ] zonemd
+     [==========] selected: 1 test(s) run.
+     [  PASSED  ] 1 test(s).
+     %
+
+  :gl:`#4579` :gl:`!9384`
 
 - Process also the ISC_R_CANCELED result code in rpz_rewrite()
   ``d0d6ad0c52e``
