@@ -325,6 +325,16 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "test 'rndc dumpdb' with an unwritable dump-file ($n)"
+ret=0
+touch ns2/named_dump.db
+chmod -w ns2/named_dump.db
+rndc_dumpdb ns2 2>/dev/null && ret=1
+grep -F "failed: permission denied" "rndc.out.test$n" >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "test 'rndc dumpdb' on a empty cache ($n)"
 ret=0
 rndc_dumpdb ns3 || ret=1
