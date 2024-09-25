@@ -477,7 +477,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 	isc_mem_t *mctx;
 	unsigned int permitted = ISC_LOG_PRINTALL | ISC_LOG_DEBUGONLY |
 				 ISC_LOG_BUFFERED | ISC_LOG_ISO8601 |
-				 ISC_LOG_UTC;
+				 ISC_LOG_UTC | ISC_LOG_TZINFO;
 
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(name != NULL);
@@ -486,6 +486,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 	REQUIRE(destination != NULL || type == ISC_LOG_TONULL);
 	REQUIRE(level >= ISC_LOG_CRITICAL);
 	REQUIRE((flags & ~permitted) == 0);
+	REQUIRE(!(flags & ISC_LOG_UTC) || !(flags & ISC_LOG_TZINFO));
 
 	/* FIXME: find duplicate names? */
 
@@ -1256,13 +1257,14 @@ isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 	     const char *format, va_list args) {
 	int syslog_level;
 	const char *time_string;
-	char local_time[64];
-	char iso8601z_string[64];
-	char iso8601l_string[64];
+	char local_time[64] = { 0 };
+	char iso8601z_string[64] = { 0 };
+	char iso8601l_string[64] = { 0 };
+	char iso8601tz_string[64] = { 0 };
 	char level_string[24] = { 0 };
 	struct stat statbuf;
 	bool matched = false;
-	bool printtime, iso8601, utc, printtag, printcolon;
+	bool printtime, iso8601, utc, tzinfo, printtag, printcolon;
 	bool printcategory, printmodule, printlevel, buffered;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
@@ -1279,10 +1281,6 @@ isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 	if (!isc_log_wouldlog(level)) {
 		return;
 	}
-
-	local_time[0] = '\0';
-	iso8601l_string[0] = '\0';
-	iso8601z_string[0] = '\0';
 
 	rcu_read_lock();
 	LOCK(&isc__lctx->lock);
@@ -1368,6 +1366,8 @@ isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 						 sizeof(iso8601z_string));
 			isc_time_formatISO8601Lms(&isctime, iso8601l_string,
 						  sizeof(iso8601l_string));
+			isc_time_formatISO8601TZms(&isctime, iso8601tz_string,
+						   sizeof(iso8601tz_string));
 		}
 
 		if ((channel->flags & ISC_LOG_PRINTLEVEL) != 0 &&
@@ -1396,6 +1396,7 @@ isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 		}
 
 		utc = ((channel->flags & ISC_LOG_UTC) != 0);
+		tzinfo = ((channel->flags & ISC_LOG_TZINFO) != 0);
 		iso8601 = ((channel->flags & ISC_LOG_ISO8601) != 0);
 		printtime = ((channel->flags & ISC_LOG_PRINTTIME) != 0);
 		printtag = ((channel->flags &
@@ -1412,6 +1413,8 @@ isc_log_doit(isc_logcategory_t category, isc_logmodule_t module, int level,
 			if (iso8601) {
 				if (utc) {
 					time_string = iso8601z_string;
+				} else if (tzinfo) {
+					time_string = iso8601tz_string;
 				} else {
 					time_string = iso8601l_string;
 				}

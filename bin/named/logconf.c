@@ -239,6 +239,8 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 				flags |= ISC_LOG_ISO8601;
 			} else if (strcasecmp(s, "iso8601-utc") == 0) {
 				flags |= ISC_LOG_ISO8601 | ISC_LOG_UTC;
+			} else if (strcasecmp(s, "iso8601-tzinfo") == 0) {
+				flags |= ISC_LOG_ISO8601 | ISC_LOG_TZINFO;
 			}
 		}
 	}

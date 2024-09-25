@@ -733,7 +733,7 @@ echo_i "check that trust-anchor-telemetry queries contain the correct key ($n)"
 ret=0
 # convert the hexadecimal key from the TAT query into decimal and
 # compare against the known key.
-tathex=$(grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/') || true
+tathex=$(grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $5; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/') || true
 tatkey=$($PERL -e 'printf("%d\n", hex(@ARGV[0]));' "$tathex")
 realkey=$(rndccmd 10.53.0.2 secroots - | sed -n "s#.*${DEFAULT_ALGORITHM}/\([0-9][0-9]*\) ; .*managed.*#\1#p")
 [ "$tatkey" -eq "$realkey" ] || ret=1

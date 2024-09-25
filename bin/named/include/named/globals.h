@@ -111,6 +111,7 @@ EXTERN const char *named_g_chrootdir INIT(NULL);
 EXTERN bool named_g_foreground	     INIT(false);
 EXTERN bool named_g_logstderr	     INIT(false);
 EXTERN bool named_g_nosyslog	     INIT(false);
+EXTERN unsigned int named_g_logflags INIT(0);
 EXTERN const char *named_g_logfile   INIT(NULL);
 
 EXTERN const char *named_g_defaultsessionkeyfile INIT(NAMED_LOCALSTATEDIR

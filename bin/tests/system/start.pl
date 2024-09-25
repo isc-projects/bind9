@@ -373,9 +373,9 @@ sub count_running_lines {
 	# the shell *ought* to have created the file immediately, but this
 	# logic allows the creation to be delayed without issues
 	if (open(my $fh, "<", $runfile)) {
-		# the two non-whitespace blobs should be the date and time
+		# the whitespace blob should be an ISO timestamp
 		# but we don't care about them really, only that they are there
-		return scalar(grep /^\S+ \S+ running\R/, <$fh>);
+		return scalar(grep /^\S+[ T]\S+ running\R/, <$fh>);
 	} else {
 		return 0;
 	}
