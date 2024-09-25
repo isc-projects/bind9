@@ -210,8 +210,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	{
 		result = named_server_dnstap(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_DUMPDB)) {
-		named_server_dumpdb(named_g_server, lex, text);
-		result = ISC_R_SUCCESS;
+		result = named_server_dumpdb(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_DUMPSTATS)) {
 		result = named_server_dumpstats(named_g_server);
 	} else if (command_compare(command, NAMED_COMMAND_FETCHLIMIT)) {
