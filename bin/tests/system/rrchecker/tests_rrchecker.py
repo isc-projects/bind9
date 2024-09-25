@@ -101,6 +101,7 @@ import pytest
                 "UINFO",
                 "UNSPEC",
                 "URI",
+                "WALLET",
                 "WKS",
                 "X25",
                 "ZONEMD",
