@@ -3356,19 +3356,6 @@ cfg_type_t cfg_type_sockaddrtls = { "sockaddrtls",	  cfg_parse_sockaddrtls,
 				    cfg_print_sockaddr,	  cfg_doc_sockaddr,
 				    &cfg_rep_sockaddrtls, &sockaddrtls_flags };
 
-static unsigned int sockaddr_flags_noport = CFG_ADDR_V4OK | CFG_ADDR_V6OK;
-cfg_type_t cfg_type_sockaddr_noport = {
-	"sockaddr",	  cfg_parse_sockaddr, cfg_print_sockaddr,
-	cfg_doc_sockaddr, &cfg_rep_sockaddr,  &sockaddr_flags_noport
-};
-
-static unsigned int sockaddrtls_flags_noport = CFG_ADDR_V4OK | CFG_ADDR_V6OK |
-					       CFG_ADDR_TLSOK;
-cfg_type_t cfg_type_sockaddrtls_noport = {
-	"sockaddrtls",	  cfg_parse_sockaddrtls, cfg_print_sockaddr,
-	cfg_doc_sockaddr, &cfg_rep_sockaddrtls,	 &sockaddrtls_flags_noport
-};
-
 isc_result_t
 cfg_parse_sockaddr(cfg_parser_t *pctx, const cfg_type_t *type,
 		   cfg_obj_t **ret) {

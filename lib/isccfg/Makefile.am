@@ -16,7 +16,6 @@ libisccfg_la_SOURCES =			\
 	$(libisccfg_la_HEADERS)		\
 	aclconf.c			\
 	check.c				\
-	dnsconf.c			\
 	duration.c			\
 	kaspconf.c			\
 	namedconf.c			\
