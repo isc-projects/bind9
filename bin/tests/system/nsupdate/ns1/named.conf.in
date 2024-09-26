@@ -77,6 +77,7 @@ zone "max-ttl.nil" {
 	check-integrity no;
 	allow-update { named-acl; };
 	allow-transfer { any; };
+	max-records-per-type 3;
 };
 
 zone "other.nil" {
