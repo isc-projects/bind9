@@ -3811,6 +3811,12 @@ system.
    startup, so :iscman:`named` does not adjust the cache size limits if the
    amount of physical memory is changed at runtime.
 
+   On Linux, the system administrator can use `cgroup`_ (Control Group)
+   mechanism to limit the amount of available memory to the process.  This limit
+   will be honoured when calculating the percentage-based values.
+
+.. _`cgroup`: https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
+
 .. namedconf:statement:: tcp-listen-queue
    :tags: server
    :short: Sets the listen-queue depth.
