@@ -183,6 +183,11 @@ $DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'AXFR on too many records' >/dev/null |
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+msg="error adding 'nil/TXT' in 'nil/IN' (zone): too many records (must not exceed 5)"
+wait_for_log 10 "$msg" ns1/named.run || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 n=$((n + 1))
 echo_i "testing AXFR fallback after IXFR failure (bad SOA owner) ($n)"
 ret=0
