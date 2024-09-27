@@ -28,6 +28,10 @@ def noerror(message: dns.message.Message) -> None:
     rcode(message, dns_rcode.NOERROR)
 
 
+def notimp(message: dns.message.Message) -> None:
+    rcode(message, dns_rcode.NOTIMP)
+
+
 def servfail(message: dns.message.Message) -> None:
     rcode(message, dns_rcode.SERVFAIL)
 
