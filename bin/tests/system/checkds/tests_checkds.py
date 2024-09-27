@@ -24,7 +24,6 @@ pytest.importorskip("dns", minversion="2.0.0")
 import dns.exception
 import dns.message
 import dns.name
-import dns.query
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
@@ -60,16 +59,9 @@ def has_signed_apex_nsec(zone, response):
 
 
 def do_query(server, qname, qtype, tcp=False):
-    query = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
-    try:
-        if tcp:
-            response = dns.query.tcp(query, server.ip, timeout=3, port=server.ports.dns)
-        else:
-            response = dns.query.udp(query, server.ip, timeout=3, port=server.ports.dns)
-    except dns.exception.Timeout:
-        print(f"error: query timeout for query {qname} {qtype} to {server.ip}")
-        return None
-
+    msg = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
+    query_func = isctest.query.tcp if tcp else isctest.query.udp
+    response = query_func(msg, server.ip, expected_rcode=dns.rcode.NOERROR)
     return response
 
 
@@ -96,41 +88,26 @@ def verify_zone(zone, transfer):
 
 
 def read_statefile(server, zone):
-    addr = server.ip
     count = 0
     keyid = 0
     state = {}
 
     response = do_query(server, zone, "DS", tcp=True)
-    if not isinstance(response, dns.message.Message):
-        print(f"error: no response for {zone}. DS from {addr}")
-        return {}
+    # fetch key id from response.
+    for rr in response.answer:
+        if rr.match(
+            dns.name.from_text(zone),
+            dns.rdataclass.IN,
+            dns.rdatatype.DS,
+            dns.rdatatype.NONE,
+        ):
+            if count == 0:
+                keyid = list(dict(rr.items).items())[0][0].key_tag
+            count += 1
 
-    if response.rcode() == dns.rcode.NOERROR:
-        # fetch key id from response.
-        for rr in response.answer:
-            if rr.match(
-                dns.name.from_text(zone),
-                dns.rdataclass.IN,
-                dns.rdatatype.DS,
-                dns.rdatatype.NONE,
-            ):
-                if count == 0:
-                    keyid = list(dict(rr.items).items())[0][0].key_tag
-                count += 1
-
-        if count != 1:
-            print(
-                f"error: expected a single DS in response for {zone}. "
-                "from {addr}, got {count}"
-            )
-            return {}
-    else:
-        print(
-            f"error: {dns.rcode.to_text(response.rcode())} response for {zone}. "
-            "DNSKEY from {addr}"
-        )
-        return {}
+    assert (
+        count == 1
+    ), f"expected a single DS in response for {zone} from {server.ip}, got {count}"
 
     filename = f"ns9/K{zone}.+013+{keyid:05d}.state"
     print(f"read state file {filename}")
@@ -142,7 +119,6 @@ def read_statefile(server, zone):
                     continue
                 key, val = line.strip().split(":", 1)
                 state[key.strip()] = val.strip()
-
     except FileNotFoundError:
         # file may not be written just yet.
         return {}
@@ -151,43 +127,13 @@ def read_statefile(server, zone):
 
 
 def zone_check(server, zone):
-    addr = server.ip
-
-    # wait until zone is fully signed.
-    signed = False
-    for _ in range(10):
-        response = do_query(server, zone, "NSEC")
-        if not isinstance(response, dns.message.Message):
-            print(f"error: no response for {zone}. NSEC from {addr}")
-        elif response.rcode() == dns.rcode.NOERROR:
-            signed = has_signed_apex_nsec(zone, response)
-        else:
-            print(
-                f"error: {dns.rcode.to_text(response.rcode())} response for {zone}. "
-                "NSEC from {addr}"
-            )
-
-        if signed:
-            break
-
-        time.sleep(1)
-
-    assert signed
+    # check zone is fully signed.
+    response = do_query(server, zone, "NSEC")
+    assert has_signed_apex_nsec(zone, response)
 
     # check if zone if DNSSEC valid.
-    verified = False
     transfer = do_query(server, zone, "AXFR", tcp=True)
-    if not isinstance(transfer, dns.message.Message):
-        print(f"error: no response for {zone}. AXFR from {addr}")
-    elif transfer.rcode() == dns.rcode.NOERROR:
-        verified = verify_zone(zone, transfer)
-    else:
-        print(
-            f"error: {dns.rcode.to_text(transfer.rcode())} response for {zone}. "
-            "AXFR from {addr}"
-        )
-
-    assert verified
+    assert verify_zone(zone, transfer)
 
 
 def keystate_check(server, zone, key):
