@@ -1496,6 +1496,7 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
 fail:
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(disp->mctx, resp, sizeof(*resp));
+		rcu_read_unlock();
 		return (result);
 	}
 
