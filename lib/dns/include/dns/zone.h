@@ -1771,12 +1771,6 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
  */
 
 void
-dns_zonemgr_resumexfrs(dns_zonemgr_t *zmgr);
-/*%<
- * Attempt to start any stalled zone transfers.
- */
-
-void
 dns_zonemgr_shutdown(dns_zonemgr_t *zmgr);
 /*%<
  *	Shut down the zone manager.
