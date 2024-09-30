@@ -289,7 +289,7 @@ isc__nm_tcp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 
 	/* FIXME: set mss */
 
-	result = isc__nm_socket_reuse(sock);
+	result = isc__nm_socket_reuse(sock, 1);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (mgr->load_balance_sockets) {

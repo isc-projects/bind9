@@ -1321,7 +1321,7 @@ isc__nm_closesocket(uv_os_sock_t sock);
  */
 
 isc_result_t
-isc__nm_socket_reuse(uv_os_sock_t fd);
+isc__nm_socket_reuse(uv_os_sock_t fd, int val);
 /*%<
  * Set the SO_REUSEADDR or SO_REUSEPORT (or equivalent) socket option on the fd
  */
