@@ -19121,15 +19121,6 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 }
 
 void
-dns_zonemgr_resumexfrs(dns_zonemgr_t *zmgr) {
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	zmgr_resume_xfrs(zmgr, true);
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-}
-
-void
 dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	dns_zone_t *zone;
 
