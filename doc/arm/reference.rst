@@ -6458,6 +6458,10 @@ keys
     This indicates the validity period of an RRSIG record (subject to
     inception offset and jitter). The default is ``P2W`` (2 weeks).
 
+    The :any:`signatures-validity` should be at least several multiples
+    of the SOA expire interval, to allow for reasonable interaction between
+    the various timer and expiry dates.
+
 .. namedconf:statement:: signatures-validity-dnskey
    :tags: dnssec
    :short: Indicates the validity period of DNSKEY records.
