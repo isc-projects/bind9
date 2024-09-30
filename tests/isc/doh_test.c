@@ -247,7 +247,7 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 		return (r);
 	}
 
-	result = isc__nm_socket_reuse(fd);
+	result = isc__nm_socket_reuse(fd, 1);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
 		fprintf(stderr,
 			"setup_ephemeral_port: isc__nm_socket_reuse(): %s",
