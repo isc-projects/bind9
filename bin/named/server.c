@@ -9572,6 +9572,13 @@ load_configuration(const char *filename, named_server_t *server,
 				}
 			}
 		}
+		obj = NULL;
+		result = named_config_get(maps, "responselog", &obj);
+		if (result == ISC_R_SUCCESS) {
+			ns_server_setoption(server->sctx,
+					    NS_SERVER_LOGRESPONSES,
+					    cfg_obj_asboolean(obj));
+		}
 	}
 
 	obj = NULL;
@@ -11135,9 +11142,10 @@ named_server_refreshcommand(named_server_t *server, isc_lex_t *lex,
 }
 
 isc_result_t
-named_server_togglequerylog(named_server_t *server, isc_lex_t *lex) {
+named_server_setortoggle(named_server_t *server, const char *optname,
+			 unsigned int option, isc_lex_t *lex) {
 	bool prev, value;
-	char *ptr;
+	char *ptr = NULL;
 
 	/* Skip the command name. */
 	ptr = next_token(lex, NULL);
@@ -11145,7 +11153,7 @@ named_server_togglequerylog(named_server_t *server, isc_lex_t *lex) {
 		return (ISC_R_UNEXPECTEDEND);
 	}
 
-	prev = ns_server_getoption(server->sctx, NS_SERVER_LOGQUERIES);
+	prev = ns_server_getoption(server->sctx, option);
 
 	ptr = next_token(lex, NULL);
 	if (ptr == NULL) {
@@ -11166,11 +11174,11 @@ named_server_togglequerylog(named_server_t *server, isc_lex_t *lex) {
 		return (ISC_R_SUCCESS);
 	}
 
-	ns_server_setoption(server->sctx, NS_SERVER_LOGQUERIES, value);
+	ns_server_setoption(server->sctx, option, value);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "query logging is now %s", value ? "on" : "off");
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO, "%s is now %s",
+		      optname, value ? "on" : "off");
 	return (ISC_R_SUCCESS);
 }
 
@@ -12560,6 +12568,12 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 
 	snprintf(line, sizeof(line), "query logging is %s\n",
 		 ns_server_getoption(server->sctx, NS_SERVER_LOGQUERIES)
+			 ? "ON"
+			 : "OFF");
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "response logging is %s\n",
+		 ns_server_getoption(server->sctx, NS_SERVER_LOGRESPONSES)
 			 ? "ON"
 			 : "OFF");
 	CHECK(putstr(text, line));

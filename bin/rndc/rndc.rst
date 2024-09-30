@@ -449,6 +449,17 @@ Currently supported commands are:
 
 .. program:: rndc
 
+.. option:: responselog [on | off]
+
+   This command enables or disables response logging. For backward compatibility,
+   this command can also be used without an argument to toggle response logging
+   on and off.
+
+   Unlike query logging, response logging cannot be enabled by explicitly directing
+   the ``responses`` ``category`` to a ``channel`` in the ``logging`` section
+   of :iscman:`named.conf`, but it can still be enabled by specifying
+   ``responselog yes;`` in the ``options`` section of :iscman:`named.conf`.
+
 .. option:: retransfer [-force] zone [class [view]]
 
    This command retransfers the given secondary zone from the primary server.
