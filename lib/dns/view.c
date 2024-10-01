@@ -930,7 +930,9 @@ db_find:
 		result = ISC_R_SUCCESS;
 	}
 
-	if (result == ISC_R_NOTFOUND && use_hints && view->hints != NULL) {
+	if (result == ISC_R_NOTFOUND && !is_staticstub_zone && use_hints &&
+	    view->hints != NULL)
+	{
 		if (dns_rdataset_isassociated(rdataset)) {
 			dns_rdataset_disassociate(rdataset);
 		}
@@ -1143,6 +1145,14 @@ db_find:
 			result = ISC_R_SUCCESS;
 		} else if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
+
+		/*
+		 * Tag static stub NS RRset so that when we look for
+		 * addresses we use the configured server addresses.
+		 */
+		if (dns_zone_gettype(zone) == dns_zone_staticstub) {
+			rdataset->attributes |= DNS_RDATASETATTR_STATICSTUB;
 		}
 
 		if (use_cache && view->cachedb != NULL && db != view->hints) {

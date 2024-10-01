@@ -627,8 +627,9 @@ enum {
 #define BADCOOKIE(a)   (((a)->flags & FCTX_ADDRINFO_BADCOOKIE) != 0)
 #define ISDUALSTACK(a) (((a)->flags & FCTX_ADDRINFO_DUALSTACK) != 0)
 
-#define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
-#define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
+#define NXDOMAIN(r)   (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
+#define NEGATIVE(r)   (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
+#define STATICSTUB(r) (((r)->attributes & DNS_RDATASETATTR_STATICSTUB) != 0)
 
 #ifdef ENABLE_AFL
 bool dns_fuzzing_resolver = false;
@@ -3596,6 +3597,7 @@ normal_nses:
 	     result = dns_rdataset_next(&fctx->nameservers))
 	{
 		bool overquota = false;
+		unsigned int static_stub = 0;
 
 		dns_rdataset_current(&fctx->nameservers, &rdata);
 		/*
@@ -3606,13 +3608,19 @@ normal_nses:
 			continue;
 		}
 
+		if (STATICSTUB(&fctx->nameservers) &&
+		    dns_name_equal(&ns.name, fctx->domain))
+		{
+			static_stub = DNS_ADBFIND_STATICSTUB;
+		}
+
 		if (no_addresses > NS_FAIL_LIMIT &&
 		    dns_rdataset_count(&fctx->nameservers) > NS_RR_LIMIT)
 		{
 			stdoptions |= DNS_ADBFIND_NOFETCH;
 		}
-		findname(fctx, &ns.name, 0, stdoptions, 0, now, &overquota,
-			 &need_alternate, &no_addresses);
+		findname(fctx, &ns.name, 0, stdoptions | static_stub, 0, now,
+			 &overquota, &need_alternate, &no_addresses);
 
 		if (!overquota) {
 			all_spilled = false;
