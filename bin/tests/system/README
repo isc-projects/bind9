@@ -319,6 +319,16 @@ prereq.sh   Run at the beginning to determine whether the test can be run at
             if not present, the test is assumed to have all its prerequisites
             met.
 
+*.j2        These jinja2 templates can be used for configuration files or any
+            other files which require certain variables filled in, e.g. ports from the
+            environment variables. During test setup, the pytest runner will automatically
+            fill those in and strip the filename extension .j2, e.g. `ns1/named.conf.j2`
+            becomes `ns1/named.conf`. When using advanced templating to conditionally
+            include/omit entire sections or when filling in custom variables used for the
+            test, ensure the templates always include the defaults. If you don't need the
+            file to be auto-templated during test setup, use `.j2.manual` instead and then
+            no defaults are needed.
+
 setup.sh    Run after prereq.sh, this sets up the preconditions for the tests.
             Although optional, virtually all tests will require such a file to
             set up the ports they should use for the test.
