@@ -45,8 +45,8 @@ def create_socket(host, port):
 def test_tcp_garbage(named_port):
     with create_socket("10.53.0.7", named_port) as sock:
         msg = create_msg("a.example.", "A")
-        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
-        (response, rtime) = dns.query.receive_tcp(sock, timeout())
+        dns.query.send_tcp(sock, msg, timeout())
+        dns.query.receive_tcp(sock, timeout())
 
         wire = msg.to_wire()
         assert len(wire) > 0
@@ -58,8 +58,8 @@ def test_tcp_garbage(named_port):
 
         with pytest.raises(EOFError):
             try:
-                (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
-                (response, rtime) = dns.query.receive_tcp(sock, timeout())
+                dns.query.send_tcp(sock, msg, timeout())
+                dns.query.receive_tcp(sock, timeout())
             except ConnectionError as e:
                 raise EOFError from e
 
@@ -67,8 +67,8 @@ def test_tcp_garbage(named_port):
 def test_tcp_garbage_response(named_port):
     with create_socket("10.53.0.7", named_port) as sock:
         msg = create_msg("a.example.", "A")
-        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
-        (response, rtime) = dns.query.receive_tcp(sock, timeout())
+        dns.query.send_tcp(sock, msg, timeout())
+        dns.query.receive_tcp(sock, timeout())
 
         wire = msg.to_wire()
         assert len(wire) > 0
@@ -77,11 +77,11 @@ def test_tcp_garbage_response(named_port):
         # the connection to be terminated
 
         rmsg = dns.message.make_response(msg)
-        (sbytes, stime) = dns.query.send_tcp(sock, rmsg, timeout())
+        dns.query.send_tcp(sock, rmsg, timeout())
 
         with pytest.raises(EOFError):
             try:
-                (response, rtime) = dns.query.receive_tcp(sock, timeout())
+                dns.query.receive_tcp(sock, timeout())
             except ConnectionError as e:
                 raise EOFError from e
 
@@ -90,11 +90,11 @@ def test_tcp_garbage_response(named_port):
 def test_close_wait(named_port):
     with create_socket("10.53.0.7", named_port) as sock:
         msg = create_msg("a.example.", "A")
-        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
-        (response, rtime) = dns.query.receive_tcp(sock, timeout())
+        dns.query.send_tcp(sock, msg, timeout())
+        dns.query.receive_tcp(sock, timeout())
 
         msg = dns.message.make_query("a.example.", "A", use_edns=0, payload=1232)
-        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
+        dns.query.send_tcp(sock, msg, timeout())
 
         # Shutdown the socket, but ignore the other side closing the socket
         # first because we sent DNS message with EDNS0
@@ -112,5 +112,5 @@ def test_close_wait(named_port):
     # available for the query below and it will time out.
     with create_socket("10.53.0.7", named_port) as sock:
         msg = create_msg("a.example.", "A")
-        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
-        (response, rtime) = dns.query.receive_tcp(sock, timeout())
+        dns.query.send_tcp(sock, msg, timeout())
+        dns.query.receive_tcp(sock, timeout())
