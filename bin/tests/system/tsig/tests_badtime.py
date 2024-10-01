@@ -58,6 +58,6 @@ def test_tsig_badtime(named_port):
 
         time.sleep(3)
 
-        (sbytes, stime) = dns.query.send_tcp(sock, wire, timeout())
+        dns.query.send_tcp(sock, wire, timeout())
         with pytest.raises(dns.tsig.PeerBadTime):
-            (response, rtime) = dns.query.receive_tcp(sock, timeout(), keyring=keyring)
+            dns.query.receive_tcp(sock, timeout(), keyring=keyring)
