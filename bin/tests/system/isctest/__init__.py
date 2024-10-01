@@ -16,6 +16,7 @@ from . import kasp
 from . import name
 from . import rndc
 from . import run
+from . import template
 from . import log
 from . import vars  # pylint: disable=redefined-builtin
 from . import hypothesis

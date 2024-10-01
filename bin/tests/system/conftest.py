@@ -406,6 +406,11 @@ def system_test_dir(request, system_test_name):
             unlink(symlink_dst)
 
 
+@pytest.fixture(scope="module")
+def templates(system_test_dir: Path):
+    return isctest.template.TemplateEngine(system_test_dir)
+
+
 def _run_script(
     system_test_dir: Path,
     interpreter: str,
@@ -481,6 +486,7 @@ def run_tests_sh(system_test_dir, shell):
 def system_test(
     request,
     system_test_dir,
+    templates,
     shell,
     perl,
 ):
@@ -522,6 +528,7 @@ def system_test(
             pytest.skip("Prerequisites missing.")
 
     def setup_test():
+        templates.render_auto()
         try:
             shell(f"{system_test_dir}/setup.sh")
         except FileNotFoundError:
