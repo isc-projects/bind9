@@ -438,6 +438,7 @@ enum {
 #define FIND_WANTEMPTYEVENT(fn) (((fn)->options & DNS_ADBFIND_EMPTYEVENT) != 0)
 #define FIND_AVOIDFETCHES(fn)	(((fn)->options & DNS_ADBFIND_AVOIDFETCHES) != 0)
 #define FIND_STARTATZONE(fn)	(((fn)->options & DNS_ADBFIND_STARTATZONE) != 0)
+#define FIND_STATICSTUB(fn)	(((fn)->options & DNS_ADBFIND_STATICSTUB) != 0)
 #define FIND_HINTOK(fn)		(((fn)->options & DNS_ADBFIND_HINTOK) != 0)
 #define FIND_GLUEOK(fn)		(((fn)->options & DNS_ADBFIND_GLUEOK) != 0)
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
@@ -464,6 +465,9 @@ enum {
 #define STARTATZONE_MATCHES(nf, o)                  \
 	(((nf)->flags & DNS_ADBFIND_STARTATZONE) == \
 	 ((o) & DNS_ADBFIND_STARTATZONE))
+#define STATICSTUB_MATCHES(nf, o)                  \
+	(((nf)->flags & DNS_ADBFIND_STATICSTUB) == \
+	 ((o) & DNS_ADBFIND_STATICSTUB))
 
 #define ENTER_LEVEL  ISC_LOG_DEBUG(50)
 #define EXIT_LEVEL   ENTER_LEVEL
@@ -2080,7 +2084,8 @@ find_name_and_lock(dns_adb_t *adb, const dns_name_t *name, unsigned int options,
 		if (!NAME_DEAD(adbname)) {
 			if (dns_name_equal(name, &adbname->name) &&
 			    GLUEHINT_OK(adbname, options) &&
-			    STARTATZONE_MATCHES(adbname, options))
+			    STARTATZONE_MATCHES(adbname, options) &&
+			    STATICSTUB_MATCHES(adbname, options))
 			{
 				return (adbname);
 			}
@@ -2963,6 +2968,13 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	find->port = port;
 
 	/*
+	 * If STATICSTUB is set we always want to have STARTATZONE set.
+	 */
+	if (options & DNS_ADBFIND_STATICSTUB) {
+		options |= DNS_ADBFIND_STARTATZONE;
+	}
+
+	/*
 	 * Remember what types of addresses we are interested in.
 	 */
 	find->options = options;
@@ -3011,6 +3023,9 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		}
 		if (FIND_STARTATZONE(find)) {
 			adbname->flags |= DNS_ADBFIND_STARTATZONE;
+		}
+		if (FIND_STATICSTUB(find)) {
+			adbname->flags |= DNS_ADBFIND_STATICSTUB;
 		}
 	} else {
 		/* Move this name forward in the LRU list */
@@ -3080,7 +3095,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			goto v6;
 		}
 
-		if (!NAME_FETCH_A(adbname)) {
+		if (!NAME_FETCH_A(adbname) && !FIND_STATICSTUB(find)) {
 			wanted_fetches |= DNS_ADBFIND_INET;
 		}
 	}
@@ -3116,7 +3131,7 @@ v6:
 			goto fetch;
 		}
 
-		if (!NAME_FETCH_AAAA(adbname)) {
+		if (!NAME_FETCH_AAAA(adbname) && !FIND_STATICSTUB(find)) {
 			wanted_fetches |= DNS_ADBFIND_INET6;
 		}
 	}
