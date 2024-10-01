@@ -843,12 +843,6 @@ static cfg_type_t cfg_type_bracketed_sockaddrtlslist = {
 	&cfg_type_sockaddrtls
 };
 
-static const char *autodnssec_enums[] = { "allow", "maintain", "off", NULL };
-static cfg_type_t cfg_type_autodnssec = {
-	"autodnssec", cfg_parse_enum,  cfg_print_ustring,
-	cfg_doc_enum, &cfg_rep_string, &autodnssec_enums
-};
-
 static const char *dnssecupdatemode_enums[] = { "maintain", "no-resign", NULL };
 static cfg_type_t cfg_type_dnssecupdatemode = {
 	"dnssecupdatemode", cfg_parse_enum,  cfg_print_ustring,
@@ -1234,8 +1228,8 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "cookie-algorithm", &cfg_type_cookiealg, 0 },
 	{ "cookie-secret", &cfg_type_sstring, CFG_CLAUSEFLAG_MULTI },
-	{ "coresize", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },
-	{ "datasize", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },
+	{ "coresize", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "datasize", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "deallocate-on-exit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
 	{ "dnsrps-library", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
@@ -1250,10 +1244,10 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "dnstap-version", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* ifdef HAVE_DNSTAP */
-	{ "dscp", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "dscp", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "dump-file", &cfg_type_qstring, 0 },
 	{ "fake-iquery", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "files", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },
+	{ "files", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
 #ifdef HAVE_DNSTAP
 	{ "fstrm-set-buffer-hint", &cfg_type_uint32, 0 },
@@ -1287,7 +1281,7 @@ static cfg_clausedef_t options_clauses[] = {
 #endif /* HAVE_GEOIP2 */
 	{ "geoip-use-ecs", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "has-old-clients", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "heartbeat-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "heartbeat-interval", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "host-statistics", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "host-statistics-max", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "hostname", &cfg_type_qstringornone, 0 },
@@ -1296,7 +1290,7 @@ static cfg_clausedef_t options_clauses[] = {
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
-	{ "lock-file", &cfg_type_qstringornone, CFG_CLAUSEFLAG_ANCIENT },
+	{ "lock-file", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "managed-keys-directory", &cfg_type_qstring, 0 },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
 	{ "max-rsa-exponent-size", &cfg_type_uint32, 0 },
@@ -1322,11 +1316,11 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "https-port", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "querylog", &cfg_type_boolean, 0 },
-	{ "random-device", &cfg_type_qstringornone, CFG_CLAUSEFLAG_ANCIENT },
+	{ "random-device", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "recursing-file", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },
 	{ "reuseport", &cfg_type_boolean, 0 },
-	{ "reserved-sockets", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "reserved-sockets", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "responselog", &cfg_type_boolean, 0 },
 	{ "secroots-file", &cfg_type_qstring, 0 },
 	{ "serial-queries", NULL, CFG_CLAUSEFLAG_ANCIENT },
@@ -1339,7 +1333,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "sig0checks-quota-exempt", &cfg_type_bracketed_aml,
 	  CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "sit-secret", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "stacksize", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },
+	{ "stacksize", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "startup-notify-rate", &cfg_type_uint32, 0 },
 	{ "statistics-file", &cfg_type_qstring, 0 },
 	{ "statistics-interval", NULL, CFG_CLAUSEFLAG_ANCIENT },
@@ -1377,13 +1371,6 @@ static cfg_type_t cfg_type_namelist = { "namelist",
 					cfg_doc_bracketed_list,
 					&cfg_rep_list,
 					&cfg_type_astring };
-
-static keyword_type_t exclude_kw = { "exclude", &cfg_type_namelist };
-
-static cfg_type_t cfg_type_optional_exclude = {
-	"optional_exclude",    parse_optional_keyvalue, print_keyvalue,
-	doc_optional_keyvalue, &cfg_rep_list,		&exclude_kw
-};
 
 static keyword_type_t exceptionnames_kw = { "except-from", &cfg_type_namelist };
 
@@ -2052,7 +2039,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "allow-v6-synthesis", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "attach-cache", &cfg_type_astring, 0 },
 	{ "auth-nxdomain", &cfg_type_boolean, 0 },
-	{ "cache-file", &cfg_type_qstring, CFG_CLAUSEFLAG_ANCIENT },
+	{ "cache-file", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "catalog-zones", &cfg_type_catz, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
 	{ "cleaning-interval", NULL, CFG_CLAUSEFLAG_ANCIENT },
@@ -2090,10 +2077,10 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "fetch-quota-params", &cfg_type_fetchquota, 0 },
 	{ "fetches-per-server", &cfg_type_fetchesper, 0 },
 	{ "fetches-per-zone", &cfg_type_fetchesper, 0 },
-	{ "filter-aaaa", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_ANCIENT },
-	{ "filter-aaaa-on-v4", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
-	{ "filter-aaaa-on-v6", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
-	{ "glue-cache", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
+	{ "filter-aaaa", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "filter-aaaa-on-v4", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "filter-aaaa-on-v6", NULL, CFG_CLAUSEFLAG_ANCIENT },
+	{ "glue-cache", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "ipv4only-enable", &cfg_type_boolean, 0 },
 	{ "ipv4only-contact", &cfg_type_astring, 0 },
 	{ "ipv4only-server", &cfg_type_astring, 0 },
@@ -2148,15 +2135,13 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "request-sit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "require-server-cookie", &cfg_type_boolean, 0 },
-	{ "resolver-nonbackoff-tries", &cfg_type_uint32,
-	  CFG_CLAUSEFLAG_ANCIENT },
+	{ "resolver-nonbackoff-tries", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "resolver-query-timeout", &cfg_type_uint32, 0 },
-	{ "resolver-retry-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "resolver-retry-interval", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "response-padding", &cfg_type_resppadding, 0 },
 	{ "response-policy", &cfg_type_rpz, 0 },
 	{ "rfc2308-type1", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "root-delegation-only", &cfg_type_optional_exclude,
-	  CFG_CLAUSEFLAG_ANCIENT },
+	{ "root-delegation-only", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "root-key-sentinel", &cfg_type_boolean, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "send-cookie", &cfg_type_boolean, 0 },
@@ -2168,8 +2153,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "stale-answer-ttl", &cfg_type_duration, 0 },
 	{ "stale-cache-enable", &cfg_type_boolean, 0 },
 	{ "stale-refresh-time", &cfg_type_duration, 0 },
-	{ "suppress-initial-notify", &cfg_type_boolean,
-	  CFG_CLAUSEFLAG_ANCIENT },
+	{ "suppress-initial-notify", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "synth-from-dnssec", &cfg_type_boolean, 0 },
 	{ "topology", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
@@ -2239,8 +2223,7 @@ static cfg_clausedef_t dnssecpolicy_clauses[] = {
 	{ "offline-ksk", &cfg_type_boolean, 0 },
 	{ "parent-ds-ttl", &cfg_type_duration, 0 },
 	{ "parent-propagation-delay", &cfg_type_duration, 0 },
-	{ "parent-registration-delay", &cfg_type_duration,
-	  CFG_CLAUSEFLAG_ANCIENT },
+	{ "parent-registration-delay", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "publish-safety", &cfg_type_duration, 0 },
 	{ "purge-keys", &cfg_type_duration, 0 },
 	{ "retire-safety", &cfg_type_duration, 0 },
@@ -2288,7 +2271,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "alt-transfer-source-v6", NULL,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_CLAUSEFLAG_ANCIENT },
-	{ "auto-dnssec", &cfg_type_autodnssec,
+	{ "auto-dnssec", NULL,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_ANCIENT },
 	{ "check-dup-records", &cfg_type_checkmode, CFG_ZONE_PRIMARY },
 	{ "check-integrity", &cfg_type_boolean, CFG_ZONE_PRIMARY },
@@ -2299,7 +2282,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "check-srv-cname", &cfg_type_checkmode, CFG_ZONE_PRIMARY },
 	{ "check-svcb", &cfg_type_boolean, CFG_ZONE_PRIMARY },
 	{ "check-wildcard", &cfg_type_boolean, CFG_ZONE_PRIMARY },
-	{ "dialup", &cfg_type_void,
+	{ "dialup", NULL,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_STUB |
 		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "dnssec-dnskey-kskonly", &cfg_type_boolean,
@@ -2436,7 +2419,7 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	{ "database", &cfg_type_astring,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_ZONE_STUB },
-	{ "delegation-only", &cfg_type_boolean,
+	{ "delegation-only", NULL,
 	  CFG_ZONE_HINT | CFG_ZONE_STUB | CFG_ZONE_FORWARD |
 		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "dlz", &cfg_type_astring,

@@ -29,9 +29,6 @@ extern cfg_type_t cfg_type_namedconf;
 extern cfg_type_t cfg_type_bindkeys;
 /*%< A bind.keys file. */
 
-extern cfg_type_t cfg_type_newzones;
-/*%< A new-zones file (for zones added by 'rndc addzone'). */
-
 extern cfg_type_t cfg_type_addzoneconf;
 /*%< A single zone passed via the addzone rndc command. */
 
