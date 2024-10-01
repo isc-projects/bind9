@@ -1435,6 +1435,7 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
 	dns_dispentry_t *resp = isc_mem_get(disp->mctx, sizeof(*resp));
 	*resp = (dns_dispentry_t){
 		.timeout = timeout,
+		.port = localport,
 		.peer = *dest,
 		.loop = loop,
 		.connected = connected,
