@@ -2582,6 +2582,11 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		return;
 	}
 
+	tmprdataset = ns_client_newrdataset(client);
+	if (tmprdataset == NULL) {
+		return;
+	}
+
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
 					  &client->recursionquota);
@@ -2594,13 +2599,9 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 			isc_quota_detach(&client->recursionquota);
 			FALLTHROUGH;
 		default:
+			ns_client_putrdataset(client, &tmprdataset);
 			return;
 		}
-	}
-
-	tmprdataset = ns_client_newrdataset(client);
-	if (tmprdataset == NULL) {
-		return;
 	}
 
 	if (!TCP(client)) {
@@ -2617,6 +2618,12 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		prefetch_done, client, tmprdataset, NULL,
 		&client->query.prefetch);
 	if (result != ISC_R_SUCCESS) {
+		if (client->recursionquota != NULL) {
+			isc_quota_detach(&client->recursionquota);
+			ns_stats_decrement(client->sctx->nsstats,
+					   ns_statscounter_recursclients);
+		}
+
 		ns_client_putrdataset(client, &tmprdataset);
 		isc_nmhandle_detach(&client->prefetchhandle);
 	}
@@ -2799,6 +2806,11 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 		return;
 	}
 
+	tmprdataset = ns_client_newrdataset(client);
+	if (tmprdataset == NULL) {
+		return;
+	}
+
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
 					  &client->recursionquota);
@@ -2811,13 +2823,9 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 			isc_quota_detach(&client->recursionquota);
 			FALLTHROUGH;
 		default:
+			ns_client_putrdataset(client, &tmprdataset);
 			return;
 		}
-	}
-
-	tmprdataset = ns_client_newrdataset(client);
-	if (tmprdataset == NULL) {
-		return;
 	}
 
 	if (!TCP(client)) {
@@ -2834,6 +2842,12 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 		prefetch_done, client, tmprdataset, NULL,
 		&client->query.prefetch);
 	if (result != ISC_R_SUCCESS) {
+		if (client->recursionquota != NULL) {
+			isc_quota_detach(&client->recursionquota);
+			ns_stats_decrement(client->sctx->nsstats,
+					   ns_statscounter_recursclients);
+		}
+
 		ns_client_putrdataset(client, &tmprdataset);
 		isc_nmhandle_detach(&client->prefetchhandle);
 	}
@@ -6603,11 +6617,25 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		0, NULL, client->task, fetch_callback, client, rdataset,
 		sigrdataset, &client->query.fetch);
 	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&client->fetchhandle);
+		if (client->recursionquota != NULL) {
+			isc_quota_detach(&client->recursionquota);
+			ns_stats_decrement(client->sctx->nsstats,
+					   ns_statscounter_recursclients);
+		}
+
+		LOCK(&client->manager->reclock);
+		if (ISC_LINK_LINKED(client, rlink)) {
+			ISC_LIST_UNLINK(client->manager->recursing, client,
+					rlink);
+		}
+		UNLOCK(&client->manager->reclock);
+
 		ns_client_putrdataset(client, &rdataset);
 		if (sigrdataset != NULL) {
 			ns_client_putrdataset(client, &sigrdataset);
 		}
+
+		isc_nmhandle_detach(&client->fetchhandle);
 	}
 
 	/*
@@ -6999,7 +7027,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	result = runasync(saved_qctx, client->mctx, arg, client->task,
 			  query_hookresume, client, &client->query.hookactx);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto cleanup_and_detach_from_quota;
 	}
 
 	/*
@@ -7017,6 +7045,18 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	isc_nmhandle_attach(client->handle, &client->fetchhandle);
 	return ISC_R_SUCCESS;
 
+cleanup_and_detach_from_quota:
+	if (client->recursionquota != NULL) {
+		isc_quota_detach(&client->recursionquota);
+		ns_stats_decrement(client->sctx->nsstats,
+				   ns_statscounter_recursclients);
+	}
+
+	LOCK(&client->manager->reclock);
+	if (ISC_LINK_LINKED(client, rlink)) {
+		ISC_LIST_UNLINK(client->manager->recursing, client, rlink);
+	}
+	UNLOCK(&client->manager->reclock);
 cleanup:
 	/*
 	 * If we fail, send SERVFAIL now.  It may be better to let the caller
