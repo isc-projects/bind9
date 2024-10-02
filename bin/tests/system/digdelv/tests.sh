@@ -1141,6 +1141,20 @@ fi
 
 if [ -x "$MDIG" ]; then
   n=$((n + 1))
+  echo_i "checking mdig +tcp works with a source address and port ($n)"
+  ret=0
+  # When running more than once in quick succession with a source address#port,
+  # we can get a "response failed with address not available" error because
+  # the address#port is still busy, but we are not interested in that error,
+  # as we are only looking for the unexpected error case, that's why we ignore
+  # the return code from mdig, but we check for the unexpected error message
+  # using grep. See GitLab #4969.
+  mdig_with_opts -b "10.53.0.3#${EXTRAPORT8}" +tcp @10.53.0.3 example >dig.out.test$n 2>&1 || true
+  grep -F "unexpected error" dig.out.test$n >/dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  n=$((n + 1))
   echo_i "check that mdig handles malformed option '+ednsopt=:' gracefully ($n)"
   ret=0
   mdig_with_opts @10.53.0.3 +ednsopt=: a.example >dig.out.test$n 2>&1 && ret=1
