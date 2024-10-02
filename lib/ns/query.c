@@ -6569,12 +6569,20 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		0, NULL, client->manager->loop, fetch_callback, client,
 		rdataset, sigrdataset, &FETCH_RECTYPE_NORMAL(client));
 	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&HANDLE_RECTYPE_NORMAL(client));
+		recursionquotatype_detach(client);
+
+		LOCK(&client->manager->reclock);
+		if (ISC_LINK_LINKED(client, rlink)) {
+			ISC_LIST_UNLINK(client->manager->recursing, client, rlink);
+		}
+		UNLOCK(&client->manager->reclock);
+
 		ns_client_putrdataset(client, &rdataset);
 		if (sigrdataset != NULL) {
 			ns_client_putrdataset(client, &sigrdataset);
 		}
-		recursionquotatype_detach(client);
+
+		isc_nmhandle_detach(&HANDLE_RECTYPE_NORMAL(client));
 	}
 
 	/*
@@ -6965,6 +6973,12 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 
 cleanup_and_detach_from_quota:
 	recursionquotatype_detach(client);
+
+	LOCK(&client->manager->reclock);
+	if (ISC_LINK_LINKED(client, rlink)) {
+		ISC_LIST_UNLINK(client->manager->recursing, client, rlink);
+	}
+	UNLOCK(&client->manager->reclock);
 cleanup:
 	/*
 	 * If we fail, send SERVFAIL now.  It may be better to let the caller
