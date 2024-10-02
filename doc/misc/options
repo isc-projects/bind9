@@ -37,7 +37,7 @@ http <string> {
 	endpoints { <quoted_string>; ... };
 	listener-clients <integer>;
 	streams-per-connection <integer>;
-}; // may occur multiple times
+}; // optional (only available if configured), may occur multiple times
 
 key <string> {
 	algorithm <string>;
@@ -129,10 +129,10 @@ options {
 	dnssec-secure-to-insecure <boolean>; // obsolete
 	dnssec-update-mode ( maintain | no-resign ); // obsolete
 	dnssec-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... }; // not configured
-	dnstap-identity ( <quoted_string> | none | hostname ); // not configured
-	dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited | <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix ( increment | timestamp ) ]; // not configured
-	dnstap-version ( <quoted_string> | none ); // not configured
+	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... }; // optional (only available if configured)
+	dnstap-identity ( <quoted_string> | none | hostname ); // optional (only available if configured)
+	dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited | <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix ( increment | timestamp ) ]; // optional (only available if configured)
+	dnstap-version ( <quoted_string> | none ); // optional (only available if configured)
 	dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port <integer> ] | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ); ... };
 	dump-file <quoted_string>;
 	edns-udp-size <integer>;
@@ -145,19 +145,19 @@ options {
 	flush-zones-on-shutdown <boolean>;
 	forward ( first | only );
 	forwarders [ port <integer> ] [ tls <string> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ tls <string> ]; ... };
-	fstrm-set-buffer-hint <integer>; // not configured
-	fstrm-set-flush-timeout <integer>; // not configured
-	fstrm-set-input-queue-size <integer>; // not configured
-	fstrm-set-output-notify-threshold <integer>; // not configured
-	fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
-	fstrm-set-output-queue-size <integer>; // not configured
-	fstrm-set-reopen-interval <duration>; // not configured
+	fstrm-set-buffer-hint <integer>; // optional (only available if configured)
+	fstrm-set-flush-timeout <integer>; // optional (only available if configured)
+	fstrm-set-input-queue-size <integer>; // optional (only available if configured)
+	fstrm-set-output-notify-threshold <integer>; // optional (only available if configured)
+	fstrm-set-output-queue-model ( mpsc | spsc ); // optional (only available if configured)
+	fstrm-set-output-queue-size <integer>; // optional (only available if configured)
+	fstrm-set-reopen-interval <duration>; // optional (only available if configured)
 	geoip-directory ( <quoted_string> | none );
 	hostname ( <quoted_string> | none );
-	http-listener-clients <integer>;
-	http-port <integer>;
-	http-streams-per-connection <integer>;
-	https-port <integer>;
+	http-listener-clients <integer>; // optional (only available if configured)
+	http-port <integer>; // optional (only available if configured)
+	http-streams-per-connection <integer>; // optional (only available if configured)
+	https-port <integer>; // optional (only available if configured)
 	interface-interval <duration>;
 	ipv4only-contact <string>;
 	ipv4only-enable <boolean>;
@@ -168,7 +168,7 @@ options {
 	lame-ttl <duration>;
 	listen-on [ port <integer> ] [ proxy <string> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
 	listen-on-v6 [ port <integer> ] [ proxy <string> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
-	lmdb-mapsize <sizeval>;
+	lmdb-mapsize <sizeval>; // optional (only available if configured)
 	managed-keys-directory <quoted_string>;
 	masterfile-format ( raw | text );
 	masterfile-style ( full | relative );
@@ -357,7 +357,7 @@ server <netprefix> {
 
 statistics-channels {
 	inet ( <ipv4_address> | <ipv6_address> | * ) [ port ( <integer> | * ) ] [ allow { <address_match_element>; ... } ]; // may occur multiple times
-}; // may occur multiple times
+}; // optional (only available if configured), may occur multiple times
 
 tls <string> {
 	ca-file <quoted_string>;
@@ -435,7 +435,7 @@ view <string> [ <class> ] {
 	dnssec-secure-to-insecure <boolean>; // obsolete
 	dnssec-update-mode ( maintain | no-resign ); // obsolete
 	dnssec-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... }; // not configured
+	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... }; // optional (only available if configured)
 	dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port <integer> ] | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ); ... };
 	dyndb <string> <quoted_string> { <unspecified-text> }; // may occur multiple times
 	edns-udp-size <integer>;
@@ -457,7 +457,7 @@ view <string> [ <class> ] {
 	}; // may occur multiple times
 	key-directory <quoted_string>;
 	lame-ttl <duration>;
-	lmdb-mapsize <sizeval>;
+	lmdb-mapsize <sizeval>; // optional (only available if configured)
 	managed-keys { <string> ( static-key | initial-key | static-ds | initial-ds ) <integer> <integer> <integer> <quoted_string>; ... }; // may occur multiple times, deprecated
 	masterfile-format ( raw | text );
 	masterfile-style ( full | relative );

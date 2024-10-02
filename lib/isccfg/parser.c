@@ -2589,7 +2589,10 @@ static struct flagtext {
 	const char *text;
 } flagtexts[] = { { CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
 		  { CFG_CLAUSEFLAG_TESTONLY, "test only" },
-		  { CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
+		  { CFG_CLAUSEFLAG_NOTCONFIGURED,
+		    "optional (only available if configured)" },
+		  { CFG_CLAUSEFLAG_OPTIONAL,
+		    "optional (only available if configured)" },
 		  { CFG_CLAUSEFLAG_MULTI, "may occur multiple times" },
 		  { CFG_CLAUSEFLAG_EXPERIMENTAL, "experimental" },
 		  { CFG_CLAUSEFLAG_DEPRECATED, "deprecated" },
