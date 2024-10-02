@@ -383,22 +383,6 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 }
 
 void
-isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
-	time_t now;
-	unsigned int flen;
-	struct tm tm;
-
-	REQUIRE(t != NULL);
-	INSIST(t->nanoseconds < NS_PER_SEC);
-	REQUIRE(buf != NULL);
-	REQUIRE(len > 0);
-
-	now = (time_t)t->seconds;
-	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime_r(&now, &tm));
-	INSIST(flen < len);
-}
-
-void
 isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
@@ -419,7 +403,9 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 }
 
 void
-isc_time_formatISO8601Lus(const isc_time_t *t, char *buf, unsigned int len) {
+isc_time_formatISO8601TZms(const isc_time_t *t, char *buf, unsigned int len) {
+	char strftime_buf[64] = { 0 };
+	char ms_buf[8] = { 0 };
 	time_t now;
 	unsigned int flen;
 	struct tm tm;
@@ -430,14 +416,20 @@ isc_time_formatISO8601Lus(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
-	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime_r(&now, &tm));
-	INSIST(flen < len);
-	if (flen > 0U && len - flen >= 6) {
-		snprintf(buf + flen, len - flen, ".%06u",
-			 t->nanoseconds / NS_PER_US);
-	}
-}
+	flen = strftime(strftime_buf, len, "%Y-%m-%dT%H:%M:%S.xxx%z",
+			localtime_r(&now, &tm));
+	snprintf(ms_buf, sizeof(ms_buf), ".%03u", t->nanoseconds / NS_PER_MS);
 
+	INSIST(flen < len);
+	size_t local_date_len = sizeof("yyyy-mm-ddThh:mm:ss") - 1ul;
+	size_t ms_date_len = local_date_len + 4;
+
+	memmove(buf, strftime_buf, local_date_len);
+	memmove(buf + local_date_len, ms_buf, 4);
+	memmove(buf + ms_date_len, strftime_buf + ms_date_len, 3);
+	buf[ms_date_len + 3] = ':';
+	memmove(buf + ms_date_len + 4, strftime_buf + ms_date_len + 3, 3);
+}
 void
 isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;

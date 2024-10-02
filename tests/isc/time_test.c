@@ -256,9 +256,9 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601us_test) {
 	assert_string_equal(buf, "2015-12-13T09:46:40.123456Z");
 }
 
-/* print local time in ISO8601 */
+/* print local time in ISO8601 with milliseconds and timezone */
 
-ISC_RUN_TEST_IMPL(isc_time_formatISO8601L_test) {
+ISC_RUN_TEST_IMPL(isc_time_formatISO8601TZms_test) {
 	isc_time_t t;
 	char buf[64];
 
@@ -267,28 +267,34 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601L_test) {
 	setenv("TZ", "America/Los_Angeles", 1);
 	t = isc_time_now();
 
-	/* check formatting: yyyy-mm-ddThh:mm:ss */
+	/* check formatting: yyyy-mm-ddThh:mm:ss.sss */
 	memset(buf, 'X', sizeof(buf));
-	isc_time_formatISO8601L(&t, buf, sizeof(buf));
-	assert_int_equal(strlen(buf), 19);
+	buf[63] = '\0';
+	isc_time_formatISO8601TZms(&t, buf, sizeof(buf));
+	assert_int_equal(strlen(buf), strlen("yyyy-mm-ddThh:mm:ss.sss+hh:mm"));
+
 	assert_int_equal(buf[4], '-');
 	assert_int_equal(buf[7], '-');
 	assert_int_equal(buf[10], 'T');
 	assert_int_equal(buf[13], ':');
 	assert_int_equal(buf[16], ':');
+	assert_int_equal(buf[19], '.');
+
+	size_t plus_minus[2] = { '+', '-' };
+	assert_in_set(buf[23], plus_minus, sizeof(plus_minus));
+	assert_int_equal(buf[26], ':');
 
 	/* check time conversion correctness */
 	memset(buf, 'X', sizeof(buf));
 	isc_time_settoepoch(&t);
-	isc_time_formatISO8601L(&t, buf, sizeof(buf));
-	assert_string_equal(buf, "1969-12-31T16:00:00");
+	isc_time_formatISO8601Lms(&t, buf, sizeof(buf));
+	assert_string_equal(buf, "1969-12-31T16:00:00.000");
 
 	memset(buf, 'X', sizeof(buf));
 	isc_time_set(&t, 1450000000, 123000000);
-	isc_time_formatISO8601L(&t, buf, sizeof(buf));
-	assert_string_equal(buf, "2015-12-13T01:46:40");
+	isc_time_formatISO8601Lms(&t, buf, sizeof(buf));
+	assert_string_equal(buf, "2015-12-13T01:46:40.123");
 }
-
 /* print local time in ISO8601 with milliseconds */
 
 ISC_RUN_TEST_IMPL(isc_time_formatISO8601Lms_test) {
@@ -321,40 +327,6 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601Lms_test) {
 	isc_time_set(&t, 1450000000, 123000000);
 	isc_time_formatISO8601Lms(&t, buf, sizeof(buf));
 	assert_string_equal(buf, "2015-12-13T01:46:40.123");
-}
-
-/* print local time in ISO8601 with microseconds */
-
-ISC_RUN_TEST_IMPL(isc_time_formatISO8601Lus_test) {
-	isc_time_t t;
-	char buf[64];
-
-	UNUSED(state);
-
-	setenv("TZ", "America/Los_Angeles", 1);
-	t = isc_time_now_hires();
-
-	/* check formatting: yyyy-mm-ddThh:mm:ss.ssssss */
-	memset(buf, 'X', sizeof(buf));
-	isc_time_formatISO8601Lus(&t, buf, sizeof(buf));
-	assert_int_equal(strlen(buf), 26);
-	assert_int_equal(buf[4], '-');
-	assert_int_equal(buf[7], '-');
-	assert_int_equal(buf[10], 'T');
-	assert_int_equal(buf[13], ':');
-	assert_int_equal(buf[16], ':');
-	assert_int_equal(buf[19], '.');
-
-	/* check time conversion correctness */
-	memset(buf, 'X', sizeof(buf));
-	isc_time_settoepoch(&t);
-	isc_time_formatISO8601Lus(&t, buf, sizeof(buf));
-	assert_string_equal(buf, "1969-12-31T16:00:00.000000");
-
-	memset(buf, 'X', sizeof(buf));
-	isc_time_set(&t, 1450000000, 123456000);
-	isc_time_formatISO8601Lus(&t, buf, sizeof(buf));
-	assert_string_equal(buf, "2015-12-13T01:46:40.123456");
 }
 
 /* print UTC time as yyyymmddhhmmsssss */
@@ -393,9 +365,8 @@ ISC_TEST_ENTRY(isc_time_parsehttptimestamp_test)
 ISC_TEST_ENTRY(isc_time_formatISO8601_test)
 ISC_TEST_ENTRY(isc_time_formatISO8601ms_test)
 ISC_TEST_ENTRY(isc_time_formatISO8601us_test)
-ISC_TEST_ENTRY(isc_time_formatISO8601L_test)
 ISC_TEST_ENTRY(isc_time_formatISO8601Lms_test)
-ISC_TEST_ENTRY(isc_time_formatISO8601Lus_test)
+ISC_TEST_ENTRY(isc_time_formatISO8601TZms_test)
 ISC_TEST_ENTRY(isc_time_formatshorttimestamp_test)
 
 ISC_TEST_LIST_END

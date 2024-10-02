@@ -65,7 +65,8 @@ test_end
 
 test_start "checking startup notify rate limit"
 awk '/x[0-9].*sending notify to/ {
-	split($2, a, ":");
+  split($1, ts, "T");
+	split(ts[2], a, ":");
 	this = a[1] * 3600 + a[2] * 60 + a[3];
 	if (lasta1 && lasta1 > a[1]) {
 		fix = 3600 * 24;

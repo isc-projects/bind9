@@ -889,6 +889,8 @@ parse_command_line(int argc, char *argv[]) {
 		case 'g':
 			named_g_foreground = true;
 			named_g_logstderr = true;
+			named_g_logflags = ISC_LOG_PRINTTIME | ISC_LOG_ISO8601 |
+					   ISC_LOG_TZINFO;
 			break;
 		case 'L':
 			named_g_logfile = isc_commandline_argument;

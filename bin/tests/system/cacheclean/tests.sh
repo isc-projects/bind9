@@ -101,7 +101,7 @@ digcomp --lc dig.out.ns2 knowngood.dig.out || status=1
 
 n=$((n + 1))
 echo_i "only one tcp socket was used ($n)"
-tcpclients=$(awk '$3 == "client" && $5 ~ /10.53.0.7#[0-9]*:/ {print $5}' ns2/named.run | sort | uniq -c | wc -l)
+tcpclients=$(awk '$2 == "client" && $4 ~ /10.53.0.7#[0-9]*:/ {print $4}' ns2/named.run | sort | uniq -c | wc -l)
 
 test $tcpclients -eq 1 || {
   status=1

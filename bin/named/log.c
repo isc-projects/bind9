@@ -79,6 +79,16 @@ named_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 		isc_log_createchannel(lcfg, "default_debug", ISC_LOG_TOFILE,
 				      ISC_LOG_DYNAMIC, &destination,
 				      ISC_LOG_PRINTTIME | ISC_LOG_DEBUGONLY);
+	} else if (named_g_logstderr && (named_g_logflags != 0)) {
+		/*
+		 * If the option -g is given, but we also requested iso
+		 * timestamps, we'll still need to override the "default_debug"
+		 * logger with a new one.
+		 */
+		isc_log_createchannel(lcfg, "default_debug", ISC_LOG_TOFILEDESC,
+				      ISC_LOG_DYNAMIC,
+				      ISC_LOGDESTINATION_STDERR,
+				      ISC_LOG_PRINTTIME | named_g_logflags);
 	}
 
 	if (named_g_logfile != NULL) {
@@ -118,6 +128,16 @@ named_log_setsafechannels(isc_logconfig_t *lcfg) {
 		 * discarded a bit faster.
 		 */
 		isc_log_setdebuglevel(0);
+	} else if (named_g_logstderr && (named_g_logflags != 0)) {
+		/*
+		 * If the option -g is given, but we also requested iso
+		 * timestamps, we'll still need to override the "default_debug"
+		 * logger with a new one.
+		 */
+		isc_log_createchannel(lcfg, "default_debug", ISC_LOG_TOFILEDESC,
+				      ISC_LOG_DYNAMIC,
+				      ISC_LOGDESTINATION_STDERR,
+				      ISC_LOG_PRINTTIME | named_g_logflags);
 	} else {
 		isc_log_setdebuglevel(named_g_debuglevel);
 	}

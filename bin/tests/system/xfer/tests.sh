@@ -528,7 +528,7 @@ $RNDCCMD 10.53.0.7 refresh edns-expire 2>&1 | sed 's/^/ns7 /' | cat_i
 sleep 10
 
 # there may be multiple log entries so get the last one.
-expire=$(awk '/edns-expire\/IN: got EDNS EXPIRE of/ { x=$9 } END { print x }' ns7/named.run)
+expire=$(awk '/edns-expire\/IN: got EDNS EXPIRE of/ { x=$8 } END { print x }' ns7/named.run)
 test ${expire:-0} -gt 0 -a ${expire:-0} -lt 1814400 || {
   echo_i "failed (expire=${expire:-0})"
   status=$((status + 1))

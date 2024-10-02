@@ -2631,8 +2631,8 @@ static cfg_type_t cfg_type_server = { "server",	     cfg_parse_netprefix_map,
  *  - There must exactly one of file/syslog/null/stderr
  */
 
-static const char *printtime_enums[] = { "iso8601", "iso8601-utc", "local",
-					 NULL };
+static const char *printtime_enums[] = { "iso8601", "iso8601-utc",
+					 "iso8601-tzinfo", "local", NULL };
 static isc_result_t
 parse_printtime(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));

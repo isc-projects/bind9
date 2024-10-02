@@ -72,6 +72,7 @@ typedef struct isc_logconfig isc_logconfig_t; /*%< Log Configuration */
 #define ISC_LOG_OPENERR	      0x08000 /* internal */
 #define ISC_LOG_ISO8601	      0x10000 /* if PRINTTIME, use ISO8601 */
 #define ISC_LOG_UTC	      0x20000 /* if PRINTTIME, use UTC */
+#define ISC_LOG_TZINFO	      0x40000 /* if PRINTTIME, output TZ info */
 /*@}*/
 
 /*@{*/

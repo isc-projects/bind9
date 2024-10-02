@@ -2412,10 +2412,10 @@ _check_next_key_event() {
 
   # Get the latest next key event.
   if [ "${DYNAMIC}" = "yes" ]; then
-    _time=$(awk '{print $9}' <"keyevent.out.$ZONE.test$n" | tail -1)
+    _time=$(awk '{print $8}' <"keyevent.out.$ZONE.test$n" | tail -1)
   else
     # inline-signing zone adds "(signed)"
-    _time=$(awk '{print $10}' <"keyevent.out.$ZONE.test$n" | tail -1)
+    _time=$(awk '{print $9}' <"keyevent.out.$ZONE.test$n" | tail -1)
   fi
 
   # The next key event time must within threshold of the
