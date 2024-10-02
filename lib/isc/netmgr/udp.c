@@ -78,7 +78,7 @@ isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	(void)isc__nm_socket_disable_pmtud(sock, sa_family);
 	(void)isc__nm_socket_v6only(sock, sa_family);
 
-	result = isc__nm_socket_reuse(sock);
+	result = isc__nm_socket_reuse(sock, 1);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (mgr->load_balance_sockets) {
@@ -752,9 +752,10 @@ fail:
 
 static isc_result_t
 udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
-	int uv_bind_flags = UV_UDP_REUSEADDR;
+	int uv_bind_flags = 0;
 	int r;
 	isc__networker_t *worker = sock->worker;
+	isc_result_t result;
 
 	r = uv_udp_init(&worker->loop->loop, &sock->uv_handle.udp);
 	UV_RUNTIME_CHECK(uv_udp_init, r);
@@ -770,6 +771,12 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		return (isc_uverr2result(r));
 	}
 	isc__nm_incstats(sock, STATID_OPEN);
+
+	/*
+	 * uv_udp_open() enables REUSE_ADDR, we need to disable it again.
+	 */
+	result = isc__nm_socket_reuse(sock->fd, 0);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (sock->iface.type.sa.sa_family == AF_INET6) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
@@ -846,9 +853,6 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock->client = true;
 
 	sock->fd = fd;
-	result = isc__nm_socket_reuse(sock->fd);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS ||
-		      result == ISC_R_NOTIMPLEMENTED);
 
 	(void)isc__nm_socket_disable_pmtud(sock->fd, sa_family);
 
