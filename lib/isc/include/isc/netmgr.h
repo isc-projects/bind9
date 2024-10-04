@@ -657,6 +657,12 @@ isc_nm_is_proxy_handle(isc_nmhandle_t *handle);
  * connection.
  */
 
+isc_nm_proxy_type_t
+isc_nmhandle_proxy_type(isc_nmhandle_t *handle);
+/*%<
+ * Returns the PROXYv2 type associated with 'handle'.
+ */
+
 isc_result_t
 isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,

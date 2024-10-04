@@ -114,7 +114,19 @@ enum {
 
 	ns_statscounter_recurshighwater = 68,
 
-	ns_statscounter_max = 69,
+	ns_statscounter_dot = 69,
+	ns_statscounter_doh = 70,
+	ns_statscounter_dohplain = 71,
+
+	ns_statscounter_proxyudp = 72,
+	ns_statscounter_proxytcp = 73,
+	ns_statscounter_proxydot = 74,
+	ns_statscounter_proxydoh = 75,
+	ns_statscounter_proxydohplain = 76,
+	ns_statscounter_encryptedproxydot = 77,
+	ns_statscounter_encryptedproxydoh = 78,
+
+	ns_statscounter_max = 79,
 };
 
 void

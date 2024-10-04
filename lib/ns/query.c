@@ -5622,11 +5622,84 @@ ns__query_start(query_ctx_t *qctx) {
 		}
 		qctx->client->query.authdbset = true;
 
-		/* Track TCP vs UDP stats per zone */
-		if (TCP(qctx->client)) {
-			inc_stats(qctx->client, ns_statscounter_tcp);
-		} else {
+		isc_nmhandle_t *handle = qctx->client->handle;
+
+		/* Track protocol stats per zone */
+		switch (isc_nm_socket_type(handle)) {
+		case isc_nm_httpsocket:
+			switch (isc_nmhandle_proxy_type(handle)) {
+			case ISC_NM_PROXY_ENCRYPTED:
+				/* Encrypted PROXYv2 cannot carry plain DoH */
+				INSIST(isc_nm_has_encryption(handle));
+				inc_stats(qctx->client,
+					  ns_statscounter_encryptedproxydoh);
+				break;
+			case ISC_NM_PROXY_PLAIN:
+				if (isc_nm_has_encryption(handle)) {
+					inc_stats(qctx->client,
+						  ns_statscounter_proxydoh);
+				} else {
+					inc_stats(
+						qctx->client,
+						ns_statscounter_proxydohplain);
+				}
+				break;
+			case ISC_NM_PROXY_NONE:
+				if (isc_nm_has_encryption(handle)) {
+					inc_stats(qctx->client,
+						  ns_statscounter_doh);
+				} else {
+					inc_stats(qctx->client,
+						  ns_statscounter_dohplain);
+				}
+				break;
+			}
+			break;
+		case isc_nm_streamdnssocket:
+			switch (isc_nmhandle_proxy_type(handle)) {
+			case ISC_NM_PROXY_ENCRYPTED:
+				inc_stats(qctx->client,
+					  ns_statscounter_encryptedproxydot);
+				break;
+			case ISC_NM_PROXY_PLAIN:
+				if (isc_nm_has_encryption(handle)) {
+					inc_stats(qctx->client,
+						  ns_statscounter_proxydot);
+
+				} else {
+					/*
+					 * If the StreamDNS socket doesn't have
+					 * encryption, it has to be plain TCP
+					 * DNS.
+					 */
+					inc_stats(qctx->client,
+						  ns_statscounter_proxytcp);
+				}
+				break;
+			case ISC_NM_PROXY_NONE:
+				if (isc_nm_has_encryption(handle)) {
+					inc_stats(qctx->client,
+						  ns_statscounter_dot);
+				} else {
+					/*
+					 * If the StreamDNS socket doesn't have
+					 * encryption, it has to be plain TCP
+					 * DNS.
+					 */
+					inc_stats(qctx->client,
+						  ns_statscounter_tcp);
+				}
+				break;
+			}
+			break;
+		case isc_nm_proxyudpsocket:
+			inc_stats(qctx->client, ns_statscounter_proxyudp);
+			break;
+		case isc_nm_udpsocket:
 			inc_stats(qctx->client, ns_statscounter_udp);
+			break;
+		default:
+			UNREACHABLE();
 		}
 	}
 
