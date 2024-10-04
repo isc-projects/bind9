@@ -141,7 +141,6 @@ static void
 compute_cookie(ns_client_t *client, uint32_t when, const unsigned char *secret,
 	       isc_buffer_t *buf);
 
-#ifdef HAVE_DNSTAP
 static dns_transport_type_t
 ns_client_transport_type(const ns_client_t *client) {
 	/*
@@ -186,7 +185,6 @@ ns_client_transport_type(const ns_client_t *client) {
 
 	return DNS_TRANSPORT_UDP;
 }
-#endif /* HAVE_DNSTAP */
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -2921,10 +2919,12 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 		}
 		UNLOCK(&client->query.fetchlock);
 		fprintf(f,
-			"; client %s%s%s: id %u '%s/%s/%s'%s%s "
+			"; client %s (%s)%s%s: id %u '%s/%s/%s'%s%s "
 			"requesttime %u\n",
-			peerbuf, sep, name, client->message->id, namebuf,
-			typebuf, classbuf, origfor, original,
+			peerbuf,
+			dns_transport_totext(ns_client_transport_type(client)),
+			sep, name, client->message->id, namebuf, typebuf,
+			classbuf, origfor, original,
 			isc_time_seconds(&client->requesttime));
 		client = ISC_LIST_NEXT(client, rlink);
 	}
