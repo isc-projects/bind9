@@ -1502,17 +1502,23 @@ dns_zone_getzoneversion(dns_zone_t *zone, isc_buffer_t *b) {
 	isc_result_t result = DNS_R_NOTLOADED;
 	unsigned int soacount;
 	uint32_t serial;
+	dns_zone_t *mayberaw = zone;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(b != NULL);
 
 	LOCK_ZONE(zone);
-	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_ZONEVERSION) && zone->db != NULL)
+	if (zone->raw != NULL) {
+		LOCK_ZONE(zone->raw);
+		mayberaw = zone->raw;
+	}
+	ZONEDB_LOCK(&mayberaw->dblock, isc_rwlocktype_read);
+	if (DNS_ZONE_OPTION(mayberaw, DNS_ZONEOPT_ZONEVERSION) &&
+	    mayberaw->db != NULL)
 	{
-		result = dns_db_getzoneversion(zone->db, b);
+		result = dns_db_getzoneversion(mayberaw->db, b);
 		if (result == ISC_R_NOTIMPLEMENTED) {
-			result = zone_get_from_db(zone, zone->db, NULL,
+			result = zone_get_from_db(mayberaw, mayberaw->db, NULL,
 						  &soacount, NULL, &serial,
 						  NULL, NULL, NULL, NULL, NULL);
 			if (result == ISC_R_SUCCESS && soacount == 0) {
@@ -1522,7 +1528,7 @@ dns_zone_getzoneversion(dns_zone_t *zone, isc_buffer_t *b) {
 				if (isc_buffer_availablelength(b) >= 6) {
 					isc_buffer_putuint8(
 						b, dns_name_countlabels(
-							   &zone->origin) -
+							   &mayberaw->origin) -
 							   1);
 					isc_buffer_putuint8(b, 0);
 					isc_buffer_putuint32(b, serial);
@@ -1532,7 +1538,10 @@ dns_zone_getzoneversion(dns_zone_t *zone, isc_buffer_t *b) {
 			}
 		}
 	}
-	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	ZONEDB_UNLOCK(&mayberaw->dblock, isc_rwlocktype_read);
+	if (zone->raw != NULL) {
+		UNLOCK_ZONE(zone->raw);
+	}
 	UNLOCK_ZONE(zone);
 
 	return result;
