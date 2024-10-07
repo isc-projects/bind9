@@ -11,29 +11,26 @@
 
 # pylint: disable=too-many-lines
 
+from datetime import timedelta
 import os
 import shutil
 import time
+from typing import List, Optional
 
 from datetime import datetime
 
 import isctest
-
 from isctest.kasp import (
-    addtime,
-    cds_equals,
-    dnskey_equals,
-    get_keytag,
-    get_metadata,
-    get_timing_metadata,
+    Key,
+    KeyTimingMetadata,
 )
 
 
 def between(value, start, end):
-    if int(value) == 0:
+    if value is None or start is None or end is None:
         return False
 
-    return int(value) > int(start) and int(value) < int(end)
+    return start < value < end
 
 
 def file_contents_equal(file1, file2):
@@ -44,6 +41,10 @@ def file_contents_equal(file1, file2):
         file2,
     ]
     isctest.run.cmd(diff_command)
+
+
+def keystr_to_keylist(keystr: str, keydir: Optional[str] = None) -> List[Key]:
+    return [Key(name, keydir) for name in keystr.split()]
 
 
 def keygen(zone, policy, keydir, when="now"):
@@ -65,9 +66,7 @@ def keygen(zone, policy, keydir, when="now"):
         when,
         zone,
     ]
-    output = isctest.run.cmd(keygen_command, log_stdout=True).stdout.decode("utf-8")
-    keys = output.split()
-    return keys
+    return isctest.run.cmd(keygen_command, log_stdout=True).stdout.decode("utf-8")
 
 
 def ksr(zone, policy, action, options="", raise_on_exception=True):
@@ -89,21 +88,15 @@ def ksr(zone, policy, action, options="", raise_on_exception=True):
 
 
 # pylint: disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
-def check_keys(keys, lifetime, alg, size, keydir=None, offset=0, with_state=False):
+def check_keys(keys, lifetime, alg, size, offset=0, with_state=False):
     # Check keys that were created.
-    inception = 0
     num = 0
 
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
+    now = KeyTimingMetadata.now()
 
     for key in keys:
-        if keydir is not None:
-            statefile = f"{keydir}/{key}.state"
-        else:
-            statefile = f"{key}.state"
-
         # created: from keyfile plus offset
-        created = get_timing_metadata(key, "Created", keydir=keydir, offset=offset)
+        created = key.get_timing("Created") + offset
 
         # active: retired previous key
         if num == 0:
@@ -111,23 +104,22 @@ def check_keys(keys, lifetime, alg, size, keydir=None, offset=0, with_state=Fals
         else:
             active = retired
 
-        # published: 2h5m (dnskey-ttl + publish-safety + propagation)
-        published = addtime(active, -7500)
+        # published: dnskey-ttl + publish-safety + propagation
+        published = active - timedelta(hours=2, minutes=5)
 
         # retired: zsk-lifetime
-        if lifetime > 0:
-            retired = addtime(active, lifetime)
-            # removed: 10d1h5m
-            # (ttlsig + retire-safety + sign-delay + propagation)
-            removed = addtime(retired, 867900)
+        if lifetime is not None:
+            retired = active + lifetime
+            # removed: ttlsig + retire-safety + sign-delay + propagation
+            removed = retired + timedelta(days=10, hours=1, minutes=5)
         else:
-            retired = 0
-            removed = 0
+            retired = None
+            removed = None
 
-        if between(now, published, retired) or int(retired) == 0:
+        if retired is None or between(now, published, retired):
             goal = "omnipresent"
-            pubdelay = addtime(published, 7500)
-            signdelay = addtime(active, 867900)
+            pubdelay = published + timedelta(hours=2, minutes=5)
+            signdelay = active + timedelta(days=10, hours=1, minutes=5)
 
             if between(now, published, pubdelay):
                 state_dnskey = "rumoured"
@@ -143,20 +135,21 @@ def check_keys(keys, lifetime, alg, size, keydir=None, offset=0, with_state=Fals
             state_dnskey = "hidden"
             state_zrrsig = "hidden"
 
-        with open(statefile, "r", encoding="utf-8") as file:
+        with open(key.statefile, "r", encoding="utf-8") as file:
             metadata = file.read()
             assert f"Algorithm: {alg}" in metadata
             assert f"Length: {size}" in metadata
-            assert f"Lifetime: {lifetime}" in metadata
             assert "KSK: no" in metadata
             assert "ZSK: yes" in metadata
             assert f"Published: {published}" in metadata
             assert f"Active: {active}" in metadata
 
-            if lifetime > 0:
+            if lifetime is not None:
                 assert f"Retired: {retired}" in metadata
                 assert f"Removed: {removed}" in metadata
+                assert f"Lifetime: {int(lifetime.total_seconds())}" in metadata
             else:
+                assert "Lifetime: 0" in metadata
                 assert "Retired:" not in metadata
                 assert "Removed:" not in metadata
 
@@ -167,39 +160,36 @@ def check_keys(keys, lifetime, alg, size, keydir=None, offset=0, with_state=Fals
                 assert "KRRSIGState:" not in metadata
                 assert "DSState:" not in metadata
 
-        inception += lifetime
         num += 1
 
 
-def check_keysigningrequest(out, zsks, start, end, keydir=None):
+def check_keysigningrequest(out, zsks, start, end):
     lines = out.split("\n")
     line_no = 0
 
     inception = start
-    while int(inception) < int(end):
-        next_bundle = addtime(end, 1)
+    while inception < end:
+        next_bundle = end + 1
         # expect bundle header
         assert f";; KeySigningRequest 1.0 {inception}" in lines[line_no]
         line_no += 1
         # expect zsks
         for key in sorted(zsks):
-            published = get_timing_metadata(key, "Publish", keydir=keydir)
+            published = key.get_timing("Publish")
             if between(published, inception, next_bundle):
                 next_bundle = published
 
-            removed = get_timing_metadata(
-                key, "Delete", keydir=keydir, must_exist=False
-            )
+            removed = key.get_timing("Delete", must_exist=False)
             if between(removed, inception, next_bundle):
                 next_bundle = removed
 
-            if int(published) > int(inception):
+            if published > inception:
                 continue
-            if int(removed) != 0 and int(inception) >= int(removed):
+            if removed is not None and inception >= removed:
                 continue
 
             # this zsk must be in the ksr
-            assert dnskey_equals(key, lines[line_no], keydir=keydir)
+            assert key.dnskey_equals(lines[line_no])
             line_no += 1
 
         inception = next_bundle
@@ -225,17 +215,15 @@ def check_signedkeyresponse(
     start,
     end,
     refresh,
-    kskdir=None,
-    zskdir=None,
     cdnskey=True,
     cds="SHA-256",
 ):
     lines = out.split("\n")
     line_no = 0
-    next_bundle = addtime(end, 1)
+    next_bundle = end + 1
 
     inception = start
-    while int(inception) < int(end):
+    while inception < end:
         # A single signed key response may consist of:
         # ;; SignedKeyResponse (header)
         # ;; DNSKEY 257 (one per published key in ksks)
@@ -246,9 +234,9 @@ def check_signedkeyresponse(
         # ;; CDS (one per published key in ksks)
         # ;; RRSIG(CDS) (one per active key in ksks)
 
-        sigstart = addtime(inception, -3600)  # clockskew: 1 hour
-        sigend = addtime(inception, 1209600)  # sig-validity: 14 days
-        next_bundle = addtime(sigend, refresh)
+        sigstart = inception - timedelta(hours=1)  # clockskew
+        sigend = inception + timedelta(days=14)  # sig-validity
+        next_bundle = sigend + refresh
 
         # ignore empty lines
         while line_no < len(lines):
@@ -263,56 +251,49 @@ def check_signedkeyresponse(
 
         # expect ksks
         for key in sorted(ksks):
-            published = get_timing_metadata(key, "Publish", keydir=kskdir)
-            removed = get_timing_metadata(
-                key, "Delete", keydir=kskdir, must_exist=False
-            )
+            published = key.get_timing("Publish")
+            removed = key.get_timing("Delete", must_exist=False)
 
-            if int(published) > int(inception):
+            if published > inception:
                 continue
-            if int(removed) != 0 and int(inception) >= int(removed):
+            if removed is not None and inception >= removed:
                 continue
 
             # this ksk must be in the ksr
-            assert dnskey_equals(key, lines[line_no], keydir=kskdir)
+            assert key.dnskey_equals(lines[line_no])
             line_no += 1
 
         # expect zsks
         for key in sorted(zsks):
-            published = get_timing_metadata(key, "Publish", keydir=zskdir)
+            published = key.get_timing("Publish")
             if between(published, inception, next_bundle):
                 next_bundle = published
 
-            removed = get_timing_metadata(
-                key, "Delete", keydir=zskdir, must_exist=False
-            )
+            removed = key.get_timing("Delete", must_exist=False)
             if between(removed, inception, next_bundle):
                 next_bundle = removed
 
-            if int(published) > int(inception):
+            if published > inception:
                 continue
-            if int(removed) != 0 and int(inception) >= int(removed):
+            if removed is not None and inception >= removed:
                 continue
 
             # this zsk must be in the ksr
-            assert dnskey_equals(key, lines[line_no], keydir=zskdir)
+            assert key.dnskey_equals(lines[line_no])
             line_no += 1
 
         # expect rrsig(dnskey)
         for key in sorted(ksks):
-            active = get_timing_metadata(key, "Activate", keydir=kskdir)
-            inactive = get_timing_metadata(
-                key, "Inactive", keydir=kskdir, must_exist=False
-            )
-            if int(active) > int(inception):
+            active = key.get_timing("Activate")
+            inactive = key.get_timing("Inactive", must_exist=False)
+            if active > inception:
                 continue
-            if int(inactive) != 0 and int(inception) >= int(inactive):
+            if inactive is not None and inception >= inactive:
                 continue
 
             # there must be a signature of this ksk
-            keytag = get_keytag(key)
-            alg = get_metadata(key, "Algorithm", keydir=kskdir)
-            expect = f"{zone}. 3600 IN RRSIG DNSKEY {alg} 2 3600 {sigend} {sigstart} {keytag} {zone}."
+            alg = key.get_metadata("Algorithm")
+            expect = f"{zone}. 3600 IN RRSIG DNSKEY {alg} 2 3600 {sigend} {sigstart} {key.tag} {zone}."
             rrsig = " ".join(lines[line_no].split())
             assert expect in rrsig
             line_no += 1
@@ -320,34 +301,29 @@ def check_signedkeyresponse(
         # expect cdnskey
         if cdnskey:
             for key in sorted(ksks):
-                published = get_timing_metadata(key, "Publish", keydir=kskdir)
-                removed = get_timing_metadata(
-                    key, "Delete", keydir=kskdir, must_exist=False
-                )
-                if int(published) > int(inception):
+                published = key.get_timing("Publish")
+                removed = key.get_timing("Delete", must_exist=False)
+                if published > inception:
                     continue
-                if int(removed) != 0 and int(inception) >= int(removed):
+                if removed is not None and inception >= removed:
                     continue
 
                 # the cdnskey of this ksk must be in the ksr
-                assert dnskey_equals(key, lines[line_no], keydir=kskdir, cdnskey=True)
+                assert key.dnskey_equals(lines[line_no], cdnskey=True)
                 line_no += 1
 
             # expect rrsig(cdnskey)
             for key in sorted(ksks):
-                active = get_timing_metadata(key, "Activate", keydir=kskdir)
-                inactive = get_timing_metadata(
-                    key, "Inactive", keydir=kskdir, must_exist=False
-                )
-                if int(active) > int(inception):
+                active = key.get_timing("Activate")
+                inactive = key.get_timing("Inactive", must_exist=False)
+                if active > inception:
                     continue
-                if int(inactive) != 0 and int(inception) >= int(inactive):
+                if inactive is not None and inception >= inactive:
                     continue
 
                 # there must be a signature of this ksk
-                keytag = get_keytag(key)
-                alg = get_metadata(key, "Algorithm", keydir=kskdir)
-                expect = f"{zone}. 3600 IN RRSIG CDNSKEY {alg} 2 3600 {sigend} {sigstart} {keytag} {zone}."
+                alg = key.get_metadata("Algorithm")
+                expect = f"{zone}. 3600 IN RRSIG CDNSKEY {alg} 2 3600 {sigend} {sigstart} {key.tag} {zone}."
                 rrsig = " ".join(lines[line_no].split())
                 assert expect in rrsig
                 line_no += 1
@@ -355,36 +331,31 @@ def check_signedkeyresponse(
         # expect cds
         if cds != "":
             for key in sorted(ksks):
-                published = get_timing_metadata(key, "Publish", keydir=kskdir)
-                removed = get_timing_metadata(
-                    key, "Delete", keydir=kskdir, must_exist=False
-                )
-                if int(published) > int(inception):
+                published = key.get_timing("Publish")
+                removed = key.get_timing("Delete", must_exist=False)
+                if published > inception:
                     continue
-                if int(removed) != 0 and int(inception) >= int(removed):
+                if removed is not None and inception >= removed:
                     continue
 
                 # the cds of this ksk must be in the ksr
                 expected_cds = cds.split(",")
                 for alg in expected_cds:
-                    assert cds_equals(key, lines[line_no], alg.strip(), keydir=kskdir)
+                    assert key.cds_equals(lines[line_no], alg.strip())
                     line_no += 1
 
             # expect rrsig(cds)
             for key in sorted(ksks):
-                active = get_timing_metadata(key, "Activate", keydir=kskdir)
-                inactive = get_timing_metadata(
-                    key, "Inactive", keydir=kskdir, must_exist=False
-                )
-                if int(active) > int(inception):
+                active = key.get_timing("Activate")
+                inactive = key.get_timing("Inactive", must_exist=False)
+                if active > inception:
                     continue
-                if int(inactive) != 0 and int(inception) >= int(inactive):
+                if inactive is not None and inception >= inactive:
                     continue
 
                 # there must be a signature of this ksk
-                keytag = get_keytag(key)
-                alg = get_metadata(key, "Algorithm", keydir=kskdir)
-                expect = f"{zone}. 3600 IN RRSIG CDS {alg} 2 3600 {sigend} {sigstart} {keytag} {zone}."
+                alg = key.get_metadata("Algorithm")
+                expect = f"{zone}. 3600 IN RRSIG CDS {alg} 2 3600 {sigend} {sigstart} {key.tag} {zone}."
                 rrsig = " ".join(lines[line_no].split())
                 assert expect in rrsig
                 line_no += 1
@@ -441,52 +412,55 @@ def test_ksr_common(servers):
     n = 1
 
     # create ksk
-    ksks = keygen(zone, policy, "ns1/offline")
+    kskdir = "ns1/offline"
+    out = keygen(zone, policy, kskdir)
+    ksks = keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     out, _ = ksr(zone, policy, "keygen", options="-i now -e +1y")
-    zsks = out.split()
+    zsks = keystr_to_keylist(out)
     assert len(zsks) == 2
 
     alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
     size = os.environ.get("DEFAULT_BITS")
-    lifetime = 16070400
+    lifetime = timedelta(days=31 * 6)
     check_keys(zsks, lifetime, alg, size)
 
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     # in the given key directory
-    out, _ = ksr(zone, policy, "keygen", options="-K ns1 -i now -e +1y")
-    zsks = out.split()
+    zskdir = "ns1"
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +1y")
+    zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 2
 
     alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
     size = os.environ.get("DEFAULT_BITS")
-    lifetime = 16070400
-    check_keys(zsks, lifetime, alg, size, keydir="ns1")
+    lifetime = timedelta(days=31 * 6)
+    check_keys(zsks, lifetime, alg, size)
 
     for key in zsks:
-        privatefile = f"ns1/{key}.private"
-        keyfile = f"ns1/{key}.key"
-        statefile = f"ns1/{key}.state"
+        privatefile = f"{key.path}.private"
+        keyfile = f"{key.path}.key"
+        statefile = f"{key.path}.state"
         shutil.copyfile(privatefile, f"{privatefile}.backup")
         shutil.copyfile(keyfile, f"{keyfile}.backup")
         shutil.copyfile(statefile, f"{statefile}.backup")
 
     # check that 'dnssec-ksr request' creates correct ksr
-    now = get_timing_metadata(zsks[0], "Created", keydir="ns1")
-    until = addtime(now, 31536000)  # 1 year
-    out, _ = ksr(zone, policy, "request", options=f"-K ns1 -i {now} -e +1y")
+    now = zsks[0].get_timing("Created")
+    until = now + timedelta(days=365)
+    out, _ = ksr(zone, policy, "request", options=f"-K {zskdir} -i {now} -e +1y")
 
     fname = f"{zone}.ksr.{n}"
     with open(fname, "w", encoding="utf-8") as file:
         file.write(out)
 
-    check_keysigningrequest(out, zsks, now, until, keydir="ns1")
+    check_keysigningrequest(out, zsks, now, until)
 
     # check that 'dnssec-ksr sign' creates correct skr
     out, _ = ksr(
-        zone, policy, "sign", options=f"-K ns1/offline -f {fname} -i {now} -e +1y"
+        zone, policy, "sign", options=f"-K {kskdir} -f {fname} -i {now} -e +1y"
     )
 
     fname = f"{zone}.skr.{n}"
@@ -494,28 +468,26 @@ def test_ksr_common(servers):
         file.write(out)
 
     refresh = -432000  # 5 days
-    check_signedkeyresponse(
-        out, zone, ksks, zsks, now, until, refresh, kskdir="ns1/offline", zskdir="ns1"
-    )
+    check_signedkeyresponse(out, zone, ksks, zsks, now, until, refresh)
 
     # common test cases (2)
     n = 2
 
     # check that 'dnssec-ksr keygen' selects pregenerated keys for
     # the same time bundle
-    out, _ = ksr(zone, policy, "keygen", options=f"-K ns1 -i {now} -e +1y")
-    selected_zsks = out.split()
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {now} -e +1y")
+    selected_zsks = keystr_to_keylist(out, zskdir)
     assert len(selected_zsks) == 2
     for index, key in enumerate(selected_zsks):
         assert zsks[index] == key
-        file_contents_equal(f"ns1/{key}.private", f"ns1/{key}.private.backup")
-        file_contents_equal(f"ns1/{key}.key", f"ns1/{key}.key.backup")
-        file_contents_equal(f"ns1/{key}.state", f"ns1/{key}.state.backup")
+        file_contents_equal(f"{key.path}.private", f"{key.path}.private.backup")
+        file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
+        file_contents_equal(f"{key.path}.state", f"{key.path}.state.backup")
 
     # check that 'dnssec-ksr keygen' generates only necessary keys for
     # overlapping time bundle
-    out, err = ksr(zone, policy, "keygen", options=f"-K ns1 -i {now} -e +2y -v 1")
-    overlapping_zsks = out.split()
+    out, err = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {now} -e +2y -v 1")
+    overlapping_zsks = keystr_to_keylist(out, zskdir)
     assert len(overlapping_zsks) == 4
 
     verbose = err.split()
@@ -531,15 +503,15 @@ def test_ksr_common(servers):
     for index, key in enumerate(overlapping_zsks):
         if index < 2:
             assert zsks[index] == key
-            file_contents_equal(f"ns1/{key}.private", f"ns1/{key}.private.backup")
-            file_contents_equal(f"ns1/{key}.key", f"ns1/{key}.key.backup")
-            file_contents_equal(f"ns1/{key}.state", f"ns1/{key}.state.backup")
+            file_contents_equal(f"{key.path}.private", f"{key.path}.private.backup")
+            file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
+            file_contents_equal(f"{key.path}.state", f"{key.path}.state.backup")
 
     # run 'dnssec-ksr keygen' again with verbosity 0
-    out, _ = ksr(zone, policy, "keygen", options=f"-K ns1 -i {now} -e +2y")
-    overlapping_zsks2 = out.split()
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {now} -e +2y")
+    overlapping_zsks2 = keystr_to_keylist(out, zskdir)
     assert len(overlapping_zsks2) == 4
-    check_keys(overlapping_zsks2, lifetime, alg, size, keydir="ns1")
+    check_keys(overlapping_zsks2, lifetime, alg, size)
     for index, key in enumerate(overlapping_zsks2):
         assert overlapping_zsks[index] == key
 
@@ -551,7 +523,7 @@ def test_ksr_common(servers):
     with open(fname, "w", encoding="utf-8") as file:
         file.write(out)
 
-    check_keysigningrequest(out, zsks, now, until, keydir="ns1")
+    check_keysigningrequest(out, zsks, now, until)
 
     # check that 'dnssec-ksr request' creates correct ksr with new interval
     out, _ = ksr(zone, policy, "request", options=f"-K ns1 -i {now} -e +2y")
@@ -560,8 +532,8 @@ def test_ksr_common(servers):
     with open(fname, "w", encoding="utf-8") as file:
         file.write(out)
 
-    until = addtime(now, 63072000)  # 2 years
-    check_keysigningrequest(out, overlapping_zsks, now, until, keydir="ns1")
+    until = now + timedelta(days=365 * 2)
+    check_keysigningrequest(out, overlapping_zsks, now, until)
 
     # check that 'dnssec-ksr request' errors if there are not enough keys
     _, err = ksr(
@@ -592,8 +564,6 @@ def test_ksr_common(servers):
         now,
         until,
         refresh,
-        kskdir="ns1/offline",
-        zskdir="ns1",
     )
 
     # add zone
@@ -618,15 +588,11 @@ def test_ksr_common(servers):
     # - dnssec_verify
     isctest.kasp.dnssec_verify(ns1, zone)
     # - check keys
-    check_keys(overlapping_zsks, lifetime, alg, size, keydir="ns1", with_state=True)
+    check_keys(overlapping_zsks, lifetime, alg, size, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(
-        ns1, zone, ksks, overlapping_zsks, kskdir="ns1/offline", zskdir="ns1"
-    )
+    isctest.kasp.check_apex(ns1, zone, ksks, overlapping_zsks)
     # - check subdomain
-    isctest.kasp.check_subdomain(
-        ns1, zone, ksks, overlapping_zsks, kskdir="ns1/offline", zskdir="ns1"
-    )
+    isctest.kasp.check_subdomain(ns1, zone, ksks, overlapping_zsks)
 
 
 # pylint: disable=too-many-locals
@@ -636,38 +602,39 @@ def test_ksr_lastbundle(servers):
     n = 1
 
     # create ksk
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    offset = -31536000
-    when = addtime(now, offset)
-    when = addtime(when, -86400)
-    ksks = keygen(zone, policy, "ns1/offline", when=when)
+    kskdir = "ns1/offline"
+    now = KeyTimingMetadata.now()
+    offset = -timedelta(days=365)
+    when = now + offset - timedelta(days=1)
+    out = keygen(zone, policy, kskdir, when=str(when))
+    ksks = keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
-    out, _ = ksr(zone, policy, "keygen", options="-K ns1 -i -1y -e +1d")
-    zsks = out.split()
+    zskdir = "ns1"
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i -1y -e +1d")
+    zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 2
 
     alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
     size = os.environ.get("DEFAULT_BITS")
-    lifetime = 16070400
-    check_keys(zsks, lifetime, alg, size, keydir="ns1", offset=offset)
+    lifetime = timedelta(days=31 * 6)
+    check_keys(zsks, lifetime, alg, size, offset=offset)
 
     # check that 'dnssec-ksr request' creates correct ksr
-    then = get_timing_metadata(zsks[0], "Created", keydir="ns1")
-    then = addtime(then, offset)
-    until = addtime(then, 31622400)  # 1 year, 1 day
-    out, _ = ksr(zone, policy, "request", options=f"-K ns1 -i {then} -e +1d")
+    then = zsks[0].get_timing("Created") + offset
+    until = then + timedelta(days=366)
+    out, _ = ksr(zone, policy, "request", options=f"-K {zskdir} -i {then} -e +1d")
 
     fname = f"{zone}.ksr.{n}"
     with open(fname, "w", encoding="utf-8") as file:
         file.write(out)
 
-    check_keysigningrequest(out, zsks, then, until, keydir="ns1")
+    check_keysigningrequest(out, zsks, then, until)
 
     # check that 'dnssec-ksr sign' creates correct skr
     out, _ = ksr(
-        zone, policy, "sign", options=f"-K ns1/offline -f {fname} -i {then} -e +1d"
+        zone, policy, "sign", options=f"-K {kskdir} -f {fname} -i {then} -e +1d"
     )
 
     fname = f"{zone}.skr.{n}"
@@ -675,9 +642,7 @@ def test_ksr_lastbundle(servers):
         file.write(out)
 
     refresh = -432000  # 5 days
-    check_signedkeyresponse(
-        out, zone, ksks, zsks, then, until, refresh, kskdir="ns1/offline", zskdir="ns1"
-    )
+    check_signedkeyresponse(out, zone, ksks, zsks, then, until, refresh)
 
     # add zone
     ns1 = servers["ns1"]
@@ -701,13 +666,11 @@ def test_ksr_lastbundle(servers):
     # - dnssec_verify
     isctest.kasp.dnssec_verify(ns1, zone)
     # - check keys
-    check_keys(zsks, lifetime, alg, size, keydir="ns1", offset=offset, with_state=True)
+    check_keys(zsks, lifetime, alg, size, offset=offset, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks, kskdir="ns1/offline", zskdir="ns1")
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
     # - check subdomain
-    isctest.kasp.check_subdomain(
-        ns1, zone, ksks, zsks, kskdir="ns1/offline", zskdir="ns1"
-    )
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
 
     # check that last bundle warning is logged
     warning = "last bundle in skr, please import new skr file"
@@ -721,38 +684,40 @@ def test_ksr_inthemiddle(servers):
     n = 1
 
     # create ksk
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    offset = -31536000
-    when = addtime(now, offset)
-    when = addtime(when, -86400)
-    ksks = keygen(zone, policy, "ns1/offline", when=when)
+    kskdir = "ns1/offline"
+    now = KeyTimingMetadata.now()
+    offset = -timedelta(days=365)
+    when = now + offset - timedelta(days=1)
+    out = keygen(zone, policy, kskdir, when=str(when))
+    ksks = keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
-    out, _ = ksr(zone, policy, "keygen", options="-K ns1 -i -1y -e +1y")
-    zsks = out.split()
+    zskdir = "ns1"
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i -1y -e +1y")
+    zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 4
 
     alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
     size = os.environ.get("DEFAULT_BITS")
-    lifetime = 16070400
-    check_keys(zsks, lifetime, alg, size, keydir="ns1", offset=offset)
+    lifetime = timedelta(days=31 * 6)
+    check_keys(zsks, lifetime, alg, size, offset=offset)
 
     # check that 'dnssec-ksr request' creates correct ksr
-    then = get_timing_metadata(zsks[0], "Created", keydir="ns1")
-    then = addtime(then, offset)
-    until = addtime(then, 63072000)  # 2 years
-    out, _ = ksr(zone, policy, "request", options=f"-K ns1 -i {then} -e +1y")
+    then = zsks[0].get_timing("Created")
+    then = then + offset
+    until = then + timedelta(days=365 * 2)
+    out, _ = ksr(zone, policy, "request", options=f"-K {zskdir} -i {then} -e +1y")
 
     fname = f"{zone}.ksr.{n}"
     with open(fname, "w", encoding="utf-8") as file:
         file.write(out)
 
-    check_keysigningrequest(out, zsks, then, until, keydir="ns1")
+    check_keysigningrequest(out, zsks, then, until)
 
     # check that 'dnssec-ksr sign' creates correct skr
     out, _ = ksr(
-        zone, policy, "sign", options=f"-K ns1/offline -f {fname} -i {then} -e +1y"
+        zone, policy, "sign", options=f"-K {kskdir} -f {fname} -i {then} -e +1y"
     )
 
     fname = f"{zone}.skr.{n}"
@@ -760,9 +725,7 @@ def test_ksr_inthemiddle(servers):
         file.write(out)
 
     refresh = -432000  # 5 days
-    check_signedkeyresponse(
-        out, zone, ksks, zsks, then, until, refresh, kskdir="ns1/offline", zskdir="ns1"
-    )
+    check_signedkeyresponse(out, zone, ksks, zsks, then, until, refresh)
 
     # add zone
     ns1 = servers["ns1"]
@@ -786,13 +749,11 @@ def test_ksr_inthemiddle(servers):
     # - dnssec_verify
     isctest.kasp.dnssec_verify(ns1, zone)
     # - check keys
-    check_keys(zsks, lifetime, alg, size, keydir="ns1", offset=offset, with_state=True)
+    check_keys(zsks, lifetime, alg, size, offset=offset, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks, kskdir="ns1/offline", zskdir="ns1")
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
     # - check subdomain
-    isctest.kasp.check_subdomain(
-        ns1, zone, ksks, zsks, kskdir="ns1/offline", zskdir="ns1"
-    )
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
 
     # check that no last bundle warning is logged
     warning = "last bundle in skr, please import new skr file"
@@ -804,22 +765,25 @@ def check_ksr_rekey_logs_error(server, zone, policy, offset, end):
     n = 1
 
     # create ksk
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    then = addtime(now, offset)
-    until = addtime(now, end)
-    ksks = keygen(zone, policy, "ns1/offline", when=then)
+    kskdir = "ns1/offline"
+    now = KeyTimingMetadata.now()
+    then = now + offset
+    until = now + end
+    out = keygen(zone, policy, kskdir, when=str(then))
+    ksks = keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     # key generation
-    out, _ = ksr(zone, policy, "keygen", options=f"-K ns1 -i {then} -e {until}")
-    zsks = out.split()
+    zskdir = "ns1"
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {then} -e {until}")
+    zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 2
 
     # create request
-    now = get_timing_metadata(zsks[0], "Created", keydir="ns1")
-    then = addtime(now, offset)
-    until = addtime(now, end)
-    out, _ = ksr(zone, policy, "request", options=f"-K ns1 -i {then} -e {until}")
+    now = zsks[0].get_timing("Created")
+    then = now + offset
+    until = now + end
+    out, _ = ksr(zone, policy, "request", options=f"-K {zskdir} -i {then} -e {until}")
 
     fname = f"{zone}.ksr.{n}"
     with open(fname, "w", encoding="utf-8") as file:
@@ -827,7 +791,7 @@ def check_ksr_rekey_logs_error(server, zone, policy, offset, end):
 
     # sign request
     out, _ = ksr(
-        zone, policy, "sign", options=f"-K ns1/offline -f {fname} -i {then} -e {until}"
+        zone, policy, "sign", options=f"-K {kskdir} -f {fname} -i {then} -e {until}"
     )
 
     fname = f"{zone}.skr.{n}"
@@ -878,33 +842,36 @@ def test_ksr_unlimited(servers):
     n = 1
 
     # create ksk
-    ksks = keygen(zone, policy, "ns1/offline")
+    kskdir = "ns1/offline"
+    out = keygen(zone, policy, kskdir)
+    ksks = keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
-    out, _ = ksr(zone, policy, "keygen", options="-K ns1 -i now -e +2y")
-    zsks = out.split()
+    zskdir = "ns1"
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +2y")
+    zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 1
 
     alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
     size = os.environ.get("DEFAULT_BITS")
-    lifetime = 0
-    check_keys(zsks, lifetime, alg, size, keydir="ns1")
+    lifetime = None
+    check_keys(zsks, lifetime, alg, size)
 
     # check that 'dnssec-ksr request' creates correct ksr
-    now = get_timing_metadata(zsks[0], "Created", keydir="ns1")
-    until = addtime(now, 4 * 31536000)  # 4 years
-    out, _ = ksr(zone, policy, "request", options=f"-K ns1 -i {now} -e +4y")
+    now = zsks[0].get_timing("Created")
+    until = now + timedelta(days=365 * 4)
+    out, _ = ksr(zone, policy, "request", options=f"-K {zskdir} -i {now} -e +4y")
 
     fname = f"{zone}.ksr.{n}"
     with open(fname, "w", encoding="utf-8") as file:
         file.write(out)
 
-    check_keysigningrequest(out, zsks, now, until, keydir="ns1")
+    check_keysigningrequest(out, zsks, now, until)
 
     # check that 'dnssec-ksr sign' creates correct skr without cdnskey
     out, _ = ksr(
-        zone, "no-cdnskey", "sign", options=f"-K ns1/offline -f {fname} -i {now} -e +4y"
+        zone, "no-cdnskey", "sign", options=f"-K {kskdir} -f {fname} -i {now} -e +4y"
     )
 
     skrfile = f"{zone}.no-cdnskey.skr.{n}"
@@ -920,15 +887,13 @@ def test_ksr_unlimited(servers):
         now,
         until,
         refresh,
-        kskdir="ns1/offline",
-        zskdir="ns1",
         cdnskey=False,
         cds="SHA-1, SHA-256, SHA-384",
     )
 
     # check that 'dnssec-ksr sign' creates correct skr without cds
     out, _ = ksr(
-        zone, "no-cds", "sign", options=f"-K ns1/offline -f {fname} -i {now} -e +4y"
+        zone, "no-cds", "sign", options=f"-K {kskdir} -f {fname} -i {now} -e +4y"
     )
 
     skrfile = f"{zone}.no-cds.skr.{n}"
@@ -944,14 +909,12 @@ def test_ksr_unlimited(servers):
         now,
         until,
         refresh,
-        kskdir="ns1/offline",
-        zskdir="ns1",
         cds="",
     )
 
     # check that 'dnssec-ksr sign' creates correct skr
     out, _ = ksr(
-        zone, policy, "sign", options=f"-K ns1/offline -f {fname} -i {now} -e +4y"
+        zone, policy, "sign", options=f"-K {kskdir} -f {fname} -i {now} -e +4y"
     )
 
     skrfile = f"{zone}.{policy}.skr.{n}"
@@ -959,9 +922,7 @@ def test_ksr_unlimited(servers):
         file.write(out)
 
     refresh = -432000  # 5 days
-    check_signedkeyresponse(
-        out, zone, ksks, zsks, now, until, refresh, kskdir="ns1/offline", zskdir="ns1"
-    )
+    check_signedkeyresponse(out, zone, ksks, zsks, now, until, refresh)
 
     # add zone
     ns1 = servers["ns1"]
@@ -985,13 +946,11 @@ def test_ksr_unlimited(servers):
     # - dnssec_verify
     isctest.kasp.dnssec_verify(ns1, zone)
     # - check keys
-    check_keys(zsks, lifetime, alg, size, keydir="ns1", with_state=True)
+    check_keys(zsks, lifetime, alg, size, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks, kskdir="ns1/offline", zskdir="ns1")
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
     # - check subdomain
-    isctest.kasp.check_subdomain(
-        ns1, zone, ksks, zsks, kskdir="ns1/offline", zskdir="ns1"
-    )
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
 
 
 # pylint: disable=too-many-locals
@@ -1001,12 +960,15 @@ def test_ksr_twotone(servers):
     n = 1
 
     # create ksk
-    ksks = keygen(zone, policy, "ns1/offline")
+    kskdir = "ns1/offline"
+    out = keygen(zone, policy, kskdir)
+    ksks = keystr_to_keylist(out, kskdir)
     assert len(ksks) == 2
 
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
-    out, _ = ksr(zone, policy, "keygen", options="-K ns1 -i now -e +1y")
-    zsks = out.split()
+    zskdir = "ns1"
+    out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +1y")
+    zsks = keystr_to_keylist(out, zskdir)
     # First algorithm keys have a lifetime of 3 months, so there should
     # be 4 created keys. Second algorithm keys have a lifetime of 5
     # months, so there should be 3 created keys.  While only two time
@@ -1017,7 +979,7 @@ def test_ksr_twotone(servers):
     zsks_defalg = []
     zsks_altalg = []
     for zsk in zsks:
-        alg = get_metadata(zsk, "Algorithm", keydir="ns1")
+        alg = zsk.get_metadata("Algorithm")
         if alg == os.environ.get("DEFAULT_ALGORITHM_NUMBER"):
             zsks_defalg.append(zsk)
         elif alg == os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER"):
@@ -1028,38 +990,36 @@ def test_ksr_twotone(servers):
 
     alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
     size = os.environ.get("DEFAULT_BITS")
-    lifetime = 8035200  # 3 months
-    check_keys(zsks_defalg, lifetime, alg, size, keydir="ns1")
+    lifetime = timedelta(days=31 * 3)
+    check_keys(zsks_defalg, lifetime, alg, size)
 
     alg = os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER")
     size = os.environ.get("ALTERNATIVE_BITS")
-    lifetime = 13392000  # 5 months
-    check_keys(zsks_altalg, lifetime, alg, size, keydir="ns1")
+    lifetime = timedelta(days=31 * 5)
+    check_keys(zsks_altalg, lifetime, alg, size)
 
     # check that 'dnssec-ksr request' creates correct ksr
-    now = get_timing_metadata(zsks[0], "Created", keydir="ns1")
-    until = addtime(now, 31536000)  # 1 year
-    out, _ = ksr(zone, policy, "request", options=f"-K ns1 -i {now} -e +1y")
+    now = zsks[0].get_timing("Created")
+    until = now + timedelta(days=365)
+    out, _ = ksr(zone, policy, "request", options=f"-K {zskdir} -i {now} -e +1y")
 
     fname = f"{zone}.ksr.{n}"
     with open(fname, "w", encoding="utf-8") as file:
         file.write(out)
 
-    check_keysigningrequest(out, zsks, now, until, keydir="ns1")
+    check_keysigningrequest(out, zsks, now, until)
 
     # check that 'dnssec-ksr sign' creates correct skr
     out, _ = ksr(
-        zone, policy, "sign", options=f"-K ns1/offline -f {fname} -i {now} -e +1y"
+        zone, policy, "sign", options=f"-K {kskdir} -f {fname} -i {now} -e +1y"
     )
 
     skrfile = f"{zone}.skr.{n}"
     with open(skrfile, "w", encoding="utf-8") as file:
         file.write(out)
 
-    refresh = -432000  # 5 days
-    check_signedkeyresponse(
-        out, zone, ksks, zsks, now, until, refresh, kskdir="ns1/offline", zskdir="ns1"
-    )
+    refresh = -timedelta(days=5)
+    check_signedkeyresponse(out, zone, ksks, zsks, now, until, refresh)
 
     # add zone
     ns1 = servers["ns1"]
@@ -1085,16 +1045,14 @@ def test_ksr_twotone(servers):
     # - check keys
     alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
     size = os.environ.get("DEFAULT_BITS")
-    lifetime = 8035200  # 3 months
-    check_keys(zsks_defalg, lifetime, alg, size, keydir="ns1", with_state=True)
+    lifetime = timedelta(days=31 * 3)
+    check_keys(zsks_defalg, lifetime, alg, size, with_state=True)
 
     alg = os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER")
     size = os.environ.get("ALTERNATIVE_BITS")
-    lifetime = 13392000  # 5 months
-    check_keys(zsks_altalg, lifetime, alg, size, keydir="ns1", with_state=True)
+    lifetime = timedelta(days=31 * 5)
+    check_keys(zsks_altalg, lifetime, alg, size, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks, kskdir="ns1/offline", zskdir="ns1")
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
     # - check subdomain
-    isctest.kasp.check_subdomain(
-        ns1, zone, ksks, zsks, kskdir="ns1/offline", zskdir="ns1"
-    )
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
