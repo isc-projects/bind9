@@ -668,9 +668,7 @@ query_send(ns_client_t *client) {
 		log_response(client, client->message->rcode);
 	}
 
-	if (!client->nodetach) {
-		isc_nmhandle_detach(&client->reqhandle);
-	}
+	isc_nmhandle_detach(&client->reqhandle);
 }
 
 static void
@@ -706,9 +704,7 @@ query_error(ns_client_t *client, isc_result_t result, int line) {
 		log_response(client, rcode);
 	}
 
-	if (!client->nodetach) {
-		isc_nmhandle_detach(&client->reqhandle);
-	}
+	isc_nmhandle_detach(&client->reqhandle);
 }
 
 static void
@@ -721,10 +717,7 @@ query_next(ns_client_t *client, isc_result_t result) {
 		inc_stats(client, ns_statscounter_failure);
 	}
 	ns_client_drop(client, result);
-
-	if (!client->nodetach) {
-		isc_nmhandle_detach(&client->reqhandle);
-	}
+	isc_nmhandle_detach(&client->reqhandle);
 }
 
 static void
@@ -5498,7 +5491,7 @@ qctx_freedata(query_ctx_t *qctx) {
 		qctx->zversion = NULL;
 	}
 
-	if (qctx->fresp != NULL && !qctx->client->nodetach) {
+	if (qctx->fresp != NULL) {
 		free_fresp(qctx->client, &qctx->fresp);
 	}
 }
@@ -6327,7 +6320,6 @@ fetch_callback(void *arg) {
 		client->query.attributes |= NS_QUERYATTR_RECURSIONOK;
 	}
 	client->query.dboptions &= ~DNS_DBFIND_STALETIMEOUT;
-	client->nodetach = false;
 
 	LOCK(&client->query.fetchlock);
 	INSIST(FETCH_RECTYPE_NORMAL(client) == resp->fetch ||
@@ -11649,7 +11641,7 @@ isc_result_t
 ns_query_done(query_ctx_t *qctx) {
 	isc_result_t result = ISC_R_UNSET;
 	const dns_namelist_t *secs = qctx->client->message->sections;
-	bool nodetach, partial_result_with_servfail = false;
+	bool partial_result_with_servfail = false;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "ns_query_done");
 
@@ -11790,11 +11782,6 @@ ns_query_done(query_ctx_t *qctx) {
 
 	CALL_HOOK(NS_QUERY_DONE_SEND, qctx);
 
-	/*
-	 * Client may have been detached after query_send(), so
-	 * we test and store the flag state here, for safety.
-	 */
-	nodetach = qctx->client->nodetach;
 	query_send(qctx->client);
 
 	if (qctx->refresh_rrset) {
@@ -11811,9 +11798,8 @@ ns_query_done(query_ctx_t *qctx) {
 		query_stale_refresh(qctx->client);
 	}
 
-	if (!nodetach) {
-		qctx->detach_client = true;
-	}
+	qctx->detach_client = true;
+
 	return (qctx->result);
 
 cleanup:

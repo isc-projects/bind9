@@ -166,7 +166,6 @@ struct ns_client {
 	unsigned int	 magic;
 	ns_clientmgr_t	*manager;
 	ns_clientstate_t state;
-	bool		 nodetach;
 	bool		 async;
 	unsigned int	 attributes;
 	dns_view_t	*view;
