@@ -9,8 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-(-dev)
-------
+Notes for BIND 9.18.31
+----------------------
 
 New Features
 ~~~~~~~~~~~~
@@ -86,3 +86,9 @@ Bug Fixes
   not set SO_INCOMING_CPU anymore. :gl:`#4936`
 
 
+Known Issues
+~~~~~~~~~~~~
+
+- There are no new known issues with this release. See :ref:`above
+  <relnotes_known_issues>` for a list of all known issues affecting this
+  BIND 9 branch.
