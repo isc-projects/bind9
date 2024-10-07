@@ -9,8 +9,8 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-(-dev)
-------
+Notes for BIND 9.20.3
+---------------------
 
 New Features
 ~~~~~~~~~~~~
@@ -148,3 +148,9 @@ Bug Fixes
   received Query ID can very rarely cause assertion failure. :gl:`#4952`
 
 
+Known Issues
+~~~~~~~~~~~~
+
+- There are no new known issues with this release. See :ref:`above
+  <relnotes_known_issues>` for a list of all known issues affecting this
+  BIND 9 branch.
