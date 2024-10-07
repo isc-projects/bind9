@@ -9,8 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from functools import total_ordering
 import os
+from pathlib import Path
+import re
 import time
+from typing import Optional, Union
 
 from datetime import datetime
 from datetime import timedelta
@@ -41,152 +45,191 @@ def _query(server, qname, qtype, outfile=None):
     return response
 
 
-def addtime(value, plus):
-    # Get timing metadata from a value plus additional time.
-    # Convert "%Y%m%d%H%M%S" format to epoch seconds.
-    # Then, add the additional time (can be negative).
-    now = datetime.strptime(value, "%Y%m%d%H%M%S")
-    delta = timedelta(seconds=plus)
-    then = now + delta
-    return then.strftime("%Y%m%d%H%M%S")
+@total_ordering
+class KeyTimingMetadata:
+    """
+    Represent a single timing information for a key.
+
+    These objects can be easily compared, support addition and subtraction of
+    timedelta objects or integers(value in seconds). A lack of timing metadata
+    in the key (value 0) should be represented with None rather than an
+    instance of this object.
+    """
+
+    FORMAT = "%Y%m%d%H%M%S"
+
+    def __init__(self, timestamp: str):
+        if int(timestamp) <= 0:
+            raise ValueError(f'invalid timing metadata value: "{timestamp}"')
+        self.value = datetime.strptime(timestamp, self.FORMAT)
+
+    def __repr__(self):
+        return self.value.strftime(self.FORMAT)
+
+    def __str__(self) -> str:
+        return self.value.strftime(self.FORMAT)
+
+    def __add__(self, other: Union[timedelta, int]):
+        if isinstance(other, int):
+            other = timedelta(seconds=other)
+        result = KeyTimingMetadata.__new__(KeyTimingMetadata)
+        result.value = self.value + other
+        return result
+
+    def __sub__(self, other: Union[timedelta, int]):
+        if isinstance(other, int):
+            other = timedelta(seconds=other)
+        result = KeyTimingMetadata.__new__(KeyTimingMetadata)
+        result.value = self.value - other
+        return result
+
+    def __iadd__(self, other: Union[timedelta, int]):
+        if isinstance(other, int):
+            other = timedelta(seconds=other)
+        self.value += other
+
+    def __isub__(self, other: Union[timedelta, int]):
+        if isinstance(other, int):
+            other = timedelta(seconds=other)
+        self.value -= other
+
+    def __lt__(self, other: "KeyTimingMetadata"):
+        return self.value < other.value
+
+    def __eq__(self, other: object):
+        return isinstance(other, KeyTimingMetadata) and self.value == other.value
+
+    @staticmethod
+    def now() -> "KeyTimingMetadata":
+        result = KeyTimingMetadata.__new__(KeyTimingMetadata)
+        result.value = datetime.now()
+        return result
 
 
-def get_timing_metadata(key, metadata, keydir=None, offset=0, must_exist=True):
-    value = "0"
+@total_ordering
+class Key:
+    """
+    Represent a key from a keyfile.
 
-    if keydir is not None:
-        keyfile = "{}/{}.key".format(keydir, key)
-    else:
-        keyfile = "{}.key".format(key)
+    This object keeps track of its origin (keydir + name), can be used to
+    retrieve metadata from the underlying files and supports convenience
+    operations for KASP tests.
+    """
 
-    with open(keyfile, "r", encoding="utf-8") as file:
-        for line in file:
-            if "; {}".format(metadata) in line:
-                value = line.split()[2]
-                break
+    def __init__(self, name: str, keydir: Optional[Union[str, Path]] = None):
+        self.name = name
+        if keydir is None:
+            self.keydir = Path()
+        else:
+            self.keydir = Path(keydir)
+        self.path = str(self.keydir / name)
+        self.keyfile = f"{self.path}.key"
+        self.statefile = f"{self.path}.state"
+        self.tag = int(self.name[-5:])
 
-    if must_exist:
-        assert int(value) > 0
+    def get_timing(
+        self, metadata: str, must_exist: bool = True
+    ) -> Optional[KeyTimingMetadata]:
+        regex = rf";\s+{metadata}:\s+(\d+).*"
+        with open(self.keyfile, "r", encoding="utf-8") as file:
+            for line in file:
+                match = re.match(regex, line)
+                if match is not None:
+                    try:
+                        return KeyTimingMetadata(match.group(1))
+                    except ValueError:
+                        break
+        if must_exist:
+            raise ValueError(
+                f'timing metadata "{metadata}" for key "{self.name}" invalid'
+            )
+        return None
 
-    if int(value) > 0:
-        return addtime(value, offset)
+    def get_metadata(self, metadata: str, must_exist=True) -> str:
+        value = "undefined"
+        regex = rf"{metadata}:\s+(.*)"
+        with open(self.statefile, "r", encoding="utf-8") as file:
+            for line in file:
+                match = re.match(regex, line)
+                if match is not None:
+                    value = match.group(1)
+                    break
+        if must_exist and value == "undefined":
+            raise ValueError(
+                'state metadata "{metadata}" for key "{self.name}" undefined'
+            )
+        return value
 
-    return "0"
+    def is_ksk(self) -> bool:
+        return self.get_metadata("KSK") == "yes"
 
+    def is_zsk(self) -> bool:
+        return self.get_metadata("ZSK") == "yes"
 
-def get_metadata(key, metadata, keydir=None, must_exist=True):
-    if keydir is not None:
-        statefile = "{}/{}.state".format(keydir, key)
-    else:
-        statefile = "{}.state".format(key)
+    def dnskey_equals(self, value, cdnskey=False):
+        dnskey = value.split()
 
-    value = "undefined"
-    with open(statefile, "r", encoding="utf-8") as file:
-        for line in file:
-            if f"{metadata}: " in line:
-                value = line.split()[1]
-                break
+        if cdnskey:
+            # fourth element is the rrtype
+            assert dnskey[3] == "CDNSKEY"
+            dnskey[3] = "DNSKEY"
 
-    if must_exist:
-        assert value != "undefined"
+        dnskey_fromfile = []
+        rdata = " ".join(dnskey[:7])
 
-    return value
+        with open(self.keyfile, "r", encoding="utf-8") as file:
+            for line in file:
+                if f"{rdata}" in line:
+                    dnskey_fromfile = line.split()
 
+        pubkey_fromfile = "".join(dnskey_fromfile[7:])
+        pubkey_fromwire = "".join(dnskey[7:])
 
-def get_keystate(key, metadata, keydir=None, must_exist=True):
+        return pubkey_fromfile == pubkey_fromwire
 
-    return get_metadata(key, metadata, keydir, must_exist)
+    def cds_equals(self, value, alg):
+        cds = value.split()
 
+        dsfromkey_command = [
+            os.environ.get("DSFROMKEY"),
+            "-T",
+            "3600",
+            "-a",
+            alg,
+            "-C",
+            "-w",
+            str(self.keyfile),
+        ]
 
-def get_keytag(key):
-    return int(key[-5:])
+        out = isctest.run.cmd(dsfromkey_command, log_stdout=True)
+        dsfromkey = out.stdout.decode("utf-8").split()
 
+        rdata_fromfile = " ".join(dsfromkey[:7])
+        rdata_fromwire = " ".join(cds[:7])
+        if rdata_fromfile != rdata_fromwire:
+            isctest.log.debug(
+                f"CDS RDATA MISMATCH: {rdata_fromfile} - {rdata_fromwire}"
+            )
+            return False
 
-def get_keyrole(key, keydir=None):
-    ksk = "no"
-    zsk = "no"
+        digest_fromfile = "".join(dsfromkey[7:]).lower()
+        digest_fromwire = "".join(cds[7:]).lower()
+        if digest_fromfile != digest_fromwire:
+            isctest.log.debug(
+                f"CDS DIGEST MISMATCH: {digest_fromfile} - {digest_fromwire}"
+            )
+            return False
 
-    if keydir is not None:
-        statefile = "{}/{}.state".format(keydir, key)
-    else:
-        statefile = "{}.state".format(key)
+        return digest_fromfile == digest_fromwire
 
-    with open(statefile, "r", encoding="utf-8") as file:
-        for line in file:
-            if "KSK: " in line:
-                ksk = line.split()[1]
-            if "ZSK: " in line:
-                zsk = line.split()[1]
+    def __lt__(self, other: "Key"):
+        return self.name < other.name
 
-    return ksk == "yes", zsk == "yes"
+    def __eq__(self, other: object):
+        return isinstance(other, Key) and self.path == other.path
 
-
-def dnskey_equals(key, value, keydir=None, cdnskey=False):
-    if keydir is not None:
-        keyfile = f"{keydir}/{key}.key"
-    else:
-        keyfile = f"{key}.key"
-
-    dnskey = value.split()
-
-    if cdnskey:
-        # fourth element is the rrtype
-        assert dnskey[3] == "CDNSKEY"
-        dnskey[3] = "DNSKEY"
-
-    dnskey_fromfile = []
-    rdata = " ".join(dnskey[:7])
-
-    with open(keyfile, "r", encoding="utf-8") as file:
-        for line in file:
-            if f"{rdata}" in line:
-                dnskey_fromfile = line.split()
-
-    pubkey_fromfile = "".join(dnskey_fromfile[7:])
-    pubkey_fromwire = "".join(dnskey[7:])
-
-    return pubkey_fromfile == pubkey_fromwire
-
-
-def cds_equals(key, value, alg, keydir=None):
-    if keydir is not None:
-        keyfile = f"{keydir}/{key}.key"
-    else:
-        keyfile = f"{key}.key"
-
-    cds = value.split()
-
-    dsfromkey_command = [
-        *os.environ.get("DSFROMKEY").split(),
-        "-T",
-        "3600",
-        "-a",
-        alg,
-        "-C",
-        "-w",
-        keyfile,
-    ]
-
-    out = isctest.run.cmd(dsfromkey_command, log_stdout=True)
-    dsfromkey = out.stdout.decode("utf-8").split()
-    index = 6
-    while index < len(cds):
-        dsfromkey[index] = dsfromkey[index].lower()
-        index += 1
-
-    rdata_fromfile = " ".join(dsfromkey[:7])
-    rdata_fromwire = " ".join(cds[:7])
-    if rdata_fromfile != rdata_fromwire:
-        isctest.log.debug(f"CDS RDATA MISMATCH: {rdata_fromfile} - {rdata_fromwire}")
-        return False
-
-    digest_fromfile = "".join(cds[7:])
-    digest_fromwire = "".join(cds[7:])
-    if digest_fromfile != digest_fromwire:
-        isctest.log.debug(f"CDS DIGEST MISMATCH: {digest_fromfile} - {digest_fromwire}")
-        return False
-
-    return digest_fromfile == digest_fromwire
+    def __repr__(self):
+        return self.path
 
 
 def zone_is_signed(server, zone):
@@ -278,13 +321,11 @@ def check_dnssecstatus(server, zone, keys, policy=None, view=None):
     assert "dnssec-policy: {}".format(policy) in response
 
     for key in keys:
-        keytag = get_keytag(key)
-        assert "key: {}".format(keytag) in response
+        assert "key: {}".format(key.tag) in response
 
 
-# pylint: disable=too-many-locals,too-many-branches
-def _check_signatures(signatures, covers, fqdn, keys, keydir=None):
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
+def _check_signatures(signatures, covers, fqdn, keys):
+    now = KeyTimingMetadata.now()
     numsigs = 0
     zrrsig = True
     if covers in [dns.rdatatype.DNSKEY, dns.rdatatype.CDNSKEY, dns.rdatatype.CDS]:
@@ -292,51 +333,48 @@ def _check_signatures(signatures, covers, fqdn, keys, keydir=None):
     krrsig = not zrrsig
 
     for key in keys:
-        keytag = get_keytag(key)
-        ksk, zsk = get_keyrole(key, keydir=keydir)
-        activate = get_timing_metadata(key, "Activate", keydir=keydir)
-        inactive = get_timing_metadata(key, "Inactive", keydir=keydir, must_exist=False)
+        activate = key.get_timing("Activate")
+        inactive = key.get_timing("Inactive", must_exist=False)
 
-        active = int(now) >= int(activate)
-        retired = int(inactive) != 0 and int(inactive) <= int(now)
+        active = now >= activate
+        retired = inactive is not None and inactive <= now
         signing = active and not retired
 
         if not signing:
             for rrsig in signatures:
-                assert f"{keytag} {fqdn}" not in rrsig
+                assert f"{key.tag} {fqdn}" not in rrsig
             continue
 
-        if zrrsig and zsk:
+        if zrrsig and key.is_zsk():
             has_rrsig = False
             for rrsig in signatures:
-                if f"{keytag} {fqdn}" in rrsig:
+                if f"{key.tag} {fqdn}" in rrsig:
                     has_rrsig = True
                     break
             assert has_rrsig
             numsigs += 1
 
-        if zrrsig and not zsk:
+        if zrrsig and not key.is_zsk():
             for rrsig in signatures:
-                assert f"{keytag} {fqdn}" not in rrsig
+                assert f"{key.tag} {fqdn}" not in rrsig
 
-        if krrsig and ksk:
+        if krrsig and key.is_ksk():
             has_rrsig = False
             for rrsig in signatures:
-                if f"{keytag} {fqdn}" in rrsig:
+                if f"{key.tag} {fqdn}" in rrsig:
                     has_rrsig = True
                     break
             assert has_rrsig
             numsigs += 1
 
-        if krrsig and not ksk:
+        if krrsig and not key.is_ksk():
             for rrsig in signatures:
-                assert f"{keytag} {fqdn}" not in rrsig
+                assert f"{key.tag} {fqdn}" not in rrsig
 
     return numsigs
 
 
-# pylint: disable=too-many-arguments
-def check_signatures(rrset, covers, fqdn, ksks, zsks, kskdir=None, zskdir=None):
+def check_signatures(rrset, covers, fqdn, ksks, zsks):
     # Check if signatures with covering type are signed with the right keys.
     # The right keys are the ones that expect a signature and have the
     # correct role.
@@ -350,14 +388,14 @@ def check_signatures(rrset, covers, fqdn, ksks, zsks, kskdir=None, zskdir=None):
             rrsig = f"{rr.name} {rr.ttl} {rdclass} {rdtype} {rdata}"
             signatures.append(rrsig)
 
-    numsigs += _check_signatures(signatures, covers, fqdn, ksks, keydir=kskdir)
-    numsigs += _check_signatures(signatures, covers, fqdn, zsks, keydir=zskdir)
+    numsigs += _check_signatures(signatures, covers, fqdn, ksks)
+    numsigs += _check_signatures(signatures, covers, fqdn, zsks)
 
     assert numsigs == len(signatures)
 
 
-def _check_dnskeys(dnskeys, keys, keydir=None, cdnskey=False):
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
+def _check_dnskeys(dnskeys, keys, cdnskey=False):
+    now = KeyTimingMetadata.now()
     numkeys = 0
 
     publish_md = "Publish"
@@ -367,19 +405,19 @@ def _check_dnskeys(dnskeys, keys, keydir=None, cdnskey=False):
         delete_md = f"Sync{delete_md}"
 
     for key in keys:
-        publish = get_timing_metadata(key, publish_md, keydir=keydir)
-        delete = get_timing_metadata(key, delete_md, keydir=keydir, must_exist=False)
-        published = int(now) >= int(publish)
-        removed = int(delete) != 0 and int(delete) <= int(now)
+        publish = key.get_timing(publish_md)
+        delete = key.get_timing(delete_md, must_exist=False)
+        published = now >= publish
+        removed = delete is not None and delete <= now
 
         if not published or removed:
             for dnskey in dnskeys:
-                assert not dnskey_equals(key, dnskey, keydir=keydir, cdnskey=cdnskey)
+                assert not key.dnskey_equals(dnskey, cdnskey=cdnskey)
             continue
 
         has_dnskey = False
         for dnskey in dnskeys:
-            if dnskey_equals(key, dnskey, keydir=keydir, cdnskey=cdnskey):
+            if key.dnskey_equals(dnskey, cdnskey=cdnskey):
                 has_dnskey = True
                 break
 
@@ -389,8 +427,7 @@ def _check_dnskeys(dnskeys, keys, keydir=None, cdnskey=False):
     return numkeys
 
 
-# pylint: disable=too-many-arguments
-def check_dnskeys(rrset, ksks, zsks, kskdir=None, zskdir=None, cdnskey=False):
+def check_dnskeys(rrset, ksks, zsks, cdnskey=False):
     # Check if the correct DNSKEY records are published. If the current time
     # is between the timing metadata 'publish' and 'delete', the key must have
     # a DNSKEY record published. If 'cdnskey' is True, check against CDNSKEY
@@ -405,20 +442,20 @@ def check_dnskeys(rrset, ksks, zsks, kskdir=None, zskdir=None, cdnskey=False):
             dnskey = f"{rr.name} {rr.ttl} {rdclass} {rdtype} {rdata}"
             dnskeys.append(dnskey)
 
-    numkeys += _check_dnskeys(dnskeys, ksks, keydir=kskdir, cdnskey=cdnskey)
+    numkeys += _check_dnskeys(dnskeys, ksks, cdnskey=cdnskey)
     if not cdnskey:
-        numkeys += _check_dnskeys(dnskeys, zsks, keydir=zskdir)
+        numkeys += _check_dnskeys(dnskeys, zsks)
 
     assert numkeys == len(dnskeys)
 
 
 # pylint: disable=too-many-locals
-def check_cds(rrset, keys, keydir=None):
+def check_cds(rrset, keys):
     # Check if the correct CDS records are published. If the current time
     # is between the timing metadata 'publish' and 'delete', the key must have
     # a DNSKEY record published. If 'cdnskey' is True, check against CDNSKEY
     # records instead.
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
+    now = KeyTimingMetadata.now()
     numcds = 0
 
     cdss = []
@@ -430,21 +467,20 @@ def check_cds(rrset, keys, keydir=None):
             cdss.append(cds)
 
     for key in keys:
-        ksk, _ = get_keyrole(key, keydir=keydir)
-        assert ksk
+        assert key.is_ksk()
 
-        publish = get_timing_metadata(key, "SyncPublish", keydir=keydir)
-        delete = get_timing_metadata(key, "SyncDelete", keydir=keydir, must_exist=False)
-        published = int(now) >= int(publish)
-        removed = int(delete) != 0 and int(delete) <= int(now)
+        publish = key.get_timing("SyncPublish")
+        delete = key.get_timing("SyncDelete", must_exist=False)
+        published = now >= publish
+        removed = delete is not None and delete <= now
         if not published or removed:
             for cds in cdss:
-                assert not cds_equals(key, cds, "SHA-256", keydir=keydir)
+                assert not key.cds_equals(cds, "SHA-256")
             continue
 
         has_cds = False
         for cds in cdss:
-            if cds_equals(key, cds, "SHA-256", keydir=keydir):
+            if key.cds_equals(cds, "SHA-256"):
                 has_cds = True
                 break
 
@@ -475,8 +511,7 @@ def _query_rrset(server, fqdn, qtype):
     return rrs, rrsigs
 
 
-# pylint: disable=too-many-arguments
-def check_apex(server, zone, ksks, zsks, kskdir=None, zskdir=None):
+def check_apex(server, zone, ksks, zsks):
     # Test the apex of a zone. This checks that the SOA and DNSKEY RRsets
     # are signed correctly and with the appropriate keys.
     fqdn = f"{zone}."
@@ -484,42 +519,33 @@ def check_apex(server, zone, ksks, zsks, kskdir=None, zskdir=None):
     # test dnskey query
     dnskeys, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.DNSKEY)
     assert len(dnskeys) > 0
-    check_dnskeys(dnskeys, ksks, zsks, kskdir=kskdir, zskdir=zskdir)
+    check_dnskeys(dnskeys, ksks, zsks)
     assert len(rrsigs) > 0
-    check_signatures(
-        rrsigs, dns.rdatatype.DNSKEY, fqdn, ksks, zsks, kskdir=kskdir, zskdir=zskdir
-    )
+    check_signatures(rrsigs, dns.rdatatype.DNSKEY, fqdn, ksks, zsks)
 
     # test soa query
     soa, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.SOA)
     assert len(soa) == 1
     assert f"{zone}. {DEFAULT_TTL} IN SOA" in soa[0].to_text()
     assert len(rrsigs) > 0
-    check_signatures(
-        rrsigs, dns.rdatatype.SOA, fqdn, ksks, zsks, kskdir=kskdir, zskdir=zskdir
-    )
+    check_signatures(rrsigs, dns.rdatatype.SOA, fqdn, ksks, zsks)
 
     # test cdnskey query
     cdnskeys, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.CDNSKEY)
     assert len(cdnskeys) > 0
-    check_dnskeys(cdnskeys, ksks, zsks, kskdir=kskdir, zskdir=zskdir, cdnskey=True)
+    check_dnskeys(cdnskeys, ksks, zsks, cdnskey=True)
     assert len(rrsigs) > 0
-    check_signatures(
-        rrsigs, dns.rdatatype.CDNSKEY, fqdn, ksks, zsks, kskdir=kskdir, zskdir=zskdir
-    )
+    check_signatures(rrsigs, dns.rdatatype.CDNSKEY, fqdn, ksks, zsks)
 
     # test cds query
     cds, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.CDS)
     assert len(cds) > 0
-    check_cds(cds, ksks, keydir=kskdir)
+    check_cds(cds, ksks)
     assert len(rrsigs) > 0
-    check_signatures(
-        rrsigs, dns.rdatatype.CDS, fqdn, ksks, zsks, kskdir=kskdir, zskdir=zskdir
-    )
+    check_signatures(rrsigs, dns.rdatatype.CDS, fqdn, ksks, zsks)
 
 
-# pylint: disable=too-many-arguments
-def check_subdomain(server, zone, ksks, zsks, kskdir=None, zskdir=None):
+def check_subdomain(server, zone, ksks, zsks):
     # Test an RRset below the apex and verify it is signed correctly.
     fqdn = f"{zone}."
     qname = f"a.{zone}."
@@ -538,4 +564,4 @@ def check_subdomain(server, zone, ksks, zsks, kskdir=None, zskdir=None):
             assert match in rrset.to_text()
 
     assert len(rrsigs) > 0
-    check_signatures(rrsigs, qtype, fqdn, ksks, zsks, kskdir=kskdir, zskdir=zskdir)
+    check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
