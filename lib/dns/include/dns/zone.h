@@ -1555,7 +1555,7 @@ dns_zone_getprimaryaddr(dns_zone_t *zone);
  */
 
 isc_time_t
-dns_zone_getxfrintime(const dns_zone_t *zone);
+dns_zone_getxfrintime(dns_zone_t *zone);
 /*%<
  * Get the start time of the zone's latest major step before an incoming zone
  * transfer is initiated. The time is set to the current time before the
