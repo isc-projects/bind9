@@ -584,9 +584,9 @@ def test_ksr_common(servers):
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, overlapping_zsks, policy=policy)
     # - zone is signed
-    isctest.kasp.zone_is_signed(ns1, zone)
+    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
-    isctest.kasp.dnssec_verify(ns1, zone)
+    isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
     check_keys(overlapping_zsks, lifetime, alg, size, with_state=True)
     # - check apex
@@ -662,9 +662,9 @@ def test_ksr_lastbundle(servers):
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
     # - zone is signed
-    isctest.kasp.zone_is_signed(ns1, zone)
+    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
-    isctest.kasp.dnssec_verify(ns1, zone)
+    isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
     check_keys(zsks, lifetime, alg, size, offset=offset, with_state=True)
     # - check apex
@@ -745,9 +745,9 @@ def test_ksr_inthemiddle(servers):
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
     # - zone is signed
-    isctest.kasp.zone_is_signed(ns1, zone)
+    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
-    isctest.kasp.dnssec_verify(ns1, zone)
+    isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
     check_keys(zsks, lifetime, alg, size, offset=offset, with_state=True)
     # - check apex
@@ -942,9 +942,9 @@ def test_ksr_unlimited(servers):
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
     # - zone is signed
-    isctest.kasp.zone_is_signed(ns1, zone)
+    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
-    isctest.kasp.dnssec_verify(ns1, zone)
+    isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
     check_keys(zsks, lifetime, alg, size, with_state=True)
     # - check apex
@@ -1039,9 +1039,9 @@ def test_ksr_twotone(servers):
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
     # - zone is signed
-    isctest.kasp.zone_is_signed(ns1, zone)
+    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
-    isctest.kasp.dnssec_verify(ns1, zone)
+    isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
     alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
     size = os.environ.get("DEFAULT_BITS")

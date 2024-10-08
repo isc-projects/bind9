@@ -232,7 +232,7 @@ class Key:
         return self.path
 
 
-def zone_is_signed(server, zone):
+def check_zone_is_signed(server, zone):
     addr = server.ip
     fqdn = f"{zone}."
 
@@ -283,7 +283,7 @@ def zone_is_signed(server, zone):
     assert signed
 
 
-def dnssec_verify(server, zone):
+def check_dnssec_verify(server, zone):
     # Check if zone if DNSSEC valid with dnssec-verify.
     fqdn = f"{zone}."
     transfer = _query(server, fqdn, dns.rdatatype.AXFR)
