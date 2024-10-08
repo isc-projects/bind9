@@ -88,7 +88,14 @@ def ksr(zone, policy, action, options="", raise_on_exception=True):
 
 
 # pylint: disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
-def check_keys(keys, lifetime, alg, size, offset=0, with_state=False):
+def check_keys(
+    keys,
+    lifetime,
+    alg=os.environ["DEFAULT_ALGORITHM_NUMBER"],
+    size=os.environ["DEFAULT_BITS"],
+    offset=0,
+    with_state=False,
+):
     # Check keys that were created.
     num = 0
 
@@ -422,10 +429,8 @@ def test_ksr_common(servers):
     zsks = keystr_to_keylist(out)
     assert len(zsks) == 2
 
-    alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
-    size = os.environ.get("DEFAULT_BITS")
     lifetime = timedelta(days=31 * 6)
-    check_keys(zsks, lifetime, alg, size)
+    check_keys(zsks, lifetime)
 
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     # in the given key directory
@@ -434,10 +439,8 @@ def test_ksr_common(servers):
     zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 2
 
-    alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
-    size = os.environ.get("DEFAULT_BITS")
     lifetime = timedelta(days=31 * 6)
-    check_keys(zsks, lifetime, alg, size)
+    check_keys(zsks, lifetime)
 
     for key in zsks:
         privatefile = f"{key.path}.private"
@@ -511,7 +514,7 @@ def test_ksr_common(servers):
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {now} -e +2y")
     overlapping_zsks2 = keystr_to_keylist(out, zskdir)
     assert len(overlapping_zsks2) == 4
-    check_keys(overlapping_zsks2, lifetime, alg, size)
+    check_keys(overlapping_zsks2, lifetime)
     for index, key in enumerate(overlapping_zsks2):
         assert overlapping_zsks[index] == key
 
@@ -588,7 +591,7 @@ def test_ksr_common(servers):
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
-    check_keys(overlapping_zsks, lifetime, alg, size, with_state=True)
+    check_keys(overlapping_zsks, lifetime, with_state=True)
     # - check apex
     isctest.kasp.check_apex(ns1, zone, ksks, overlapping_zsks)
     # - check subdomain
@@ -616,10 +619,8 @@ def test_ksr_lastbundle(servers):
     zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 2
 
-    alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
-    size = os.environ.get("DEFAULT_BITS")
     lifetime = timedelta(days=31 * 6)
-    check_keys(zsks, lifetime, alg, size, offset=offset)
+    check_keys(zsks, lifetime, offset=offset)
 
     # check that 'dnssec-ksr request' creates correct ksr
     then = zsks[0].get_timing("Created") + offset
@@ -666,7 +667,7 @@ def test_ksr_lastbundle(servers):
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
-    check_keys(zsks, lifetime, alg, size, offset=offset, with_state=True)
+    check_keys(zsks, lifetime, offset=offset, with_state=True)
     # - check apex
     isctest.kasp.check_apex(ns1, zone, ksks, zsks)
     # - check subdomain
@@ -698,10 +699,8 @@ def test_ksr_inthemiddle(servers):
     zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 4
 
-    alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
-    size = os.environ.get("DEFAULT_BITS")
     lifetime = timedelta(days=31 * 6)
-    check_keys(zsks, lifetime, alg, size, offset=offset)
+    check_keys(zsks, lifetime, offset=offset)
 
     # check that 'dnssec-ksr request' creates correct ksr
     then = zsks[0].get_timing("Created")
@@ -749,7 +748,7 @@ def test_ksr_inthemiddle(servers):
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
-    check_keys(zsks, lifetime, alg, size, offset=offset, with_state=True)
+    check_keys(zsks, lifetime, offset=offset, with_state=True)
     # - check apex
     isctest.kasp.check_apex(ns1, zone, ksks, zsks)
     # - check subdomain
@@ -853,10 +852,8 @@ def test_ksr_unlimited(servers):
     zsks = keystr_to_keylist(out, zskdir)
     assert len(zsks) == 1
 
-    alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
-    size = os.environ.get("DEFAULT_BITS")
     lifetime = None
-    check_keys(zsks, lifetime, alg, size)
+    check_keys(zsks, lifetime)
 
     # check that 'dnssec-ksr request' creates correct ksr
     now = zsks[0].get_timing("Created")
@@ -946,7 +943,7 @@ def test_ksr_unlimited(servers):
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
-    check_keys(zsks, lifetime, alg, size, with_state=True)
+    check_keys(zsks, lifetime, with_state=True)
     # - check apex
     isctest.kasp.check_apex(ns1, zone, ksks, zsks)
     # - check subdomain
@@ -988,10 +985,8 @@ def test_ksr_twotone(servers):
     assert len(zsks_defalg) == 4
     assert len(zsks_altalg) == 3
 
-    alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
-    size = os.environ.get("DEFAULT_BITS")
     lifetime = timedelta(days=31 * 3)
-    check_keys(zsks_defalg, lifetime, alg, size)
+    check_keys(zsks_defalg, lifetime)
 
     alg = os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER")
     size = os.environ.get("ALTERNATIVE_BITS")
@@ -1043,10 +1038,8 @@ def test_ksr_twotone(servers):
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
-    alg = os.environ.get("DEFAULT_ALGORITHM_NUMBER")
-    size = os.environ.get("DEFAULT_BITS")
     lifetime = timedelta(days=31 * 3)
-    check_keys(zsks_defalg, lifetime, alg, size, with_state=True)
+    check_keys(zsks_defalg, lifetime, with_state=True)
 
     alg = os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER")
     size = os.environ.get("ALTERNATIVE_BITS")
