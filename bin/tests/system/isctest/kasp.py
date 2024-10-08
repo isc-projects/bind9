@@ -26,21 +26,13 @@ import isctest.log
 DEFAULT_TTL = 300
 
 
-def _save_response(response, fname):
-    with open(fname, "w", encoding="utf-8") as file:
-        file.write(response.to_text())
-
-
-def _query(server, qname, qtype, outfile=None):
+def _query(server, qname, qtype):
     query = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
     try:
         response = dns.query.tcp(query, server.ip, port=server.ports.dns, timeout=3)
     except dns.exception.Timeout:
         isctest.log.debug(f"query timeout for query {qname} {qtype} to {server.ip}")
         return None
-
-    if outfile is not None:
-        _save_response(response, outfile)
 
     return response
 
