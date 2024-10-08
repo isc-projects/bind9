@@ -12,6 +12,7 @@
 # pylint: disable=too-many-lines
 
 from datetime import timedelta
+import difflib
 import os
 import shutil
 import time
@@ -33,14 +34,25 @@ def between(value, start, end):
     return start < value < end
 
 
-def file_contents_equal(file1, file2):
-    diff_command = [
-        "diff",
-        "-w",
-        file1,
-        file2,
-    ]
-    isctest.run.cmd(diff_command)
+def check_file_contents_equal(file1, file2):
+    def normalize_line(line):
+        # remove trailing&leading whitespace and replace multiple whitespaces
+        return " ".join(line.split())
+
+    def read_lines(file_path):
+        with open(file_path, "r") as file:
+            return [normalize_line(line) for line in file.readlines()]
+
+    lines1 = read_lines(file1)
+    lines2 = read_lines(file2)
+
+    differ = difflib.Differ()
+    diff = differ.compare(lines1, lines2)
+
+    for line in diff:
+        assert not line.startswith("+ ") and not line.startswith(
+            "- "
+        ), f'file contents of "{file1}" and "{file2}" differ'
 
 
 def keystr_to_keylist(keystr: str, keydir: Optional[str] = None) -> List[Key]:
@@ -483,9 +495,9 @@ def test_ksr_common(servers):
     assert len(selected_zsks) == 2
     for index, key in enumerate(selected_zsks):
         assert zsks[index] == key
-        file_contents_equal(f"{key.path}.private", f"{key.path}.private.backup")
-        file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
-        file_contents_equal(f"{key.path}.state", f"{key.path}.state.backup")
+        check_file_contents_equal(f"{key.path}.private", f"{key.path}.private.backup")
+        check_file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
+        check_file_contents_equal(f"{key.path}.state", f"{key.path}.state.backup")
 
     # check that 'dnssec-ksr keygen' generates only necessary keys for
     # overlapping time bundle
@@ -506,9 +518,11 @@ def test_ksr_common(servers):
     for index, key in enumerate(overlapping_zsks):
         if index < 2:
             assert zsks[index] == key
-            file_contents_equal(f"{key.path}.private", f"{key.path}.private.backup")
-            file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
-            file_contents_equal(f"{key.path}.state", f"{key.path}.state.backup")
+            check_file_contents_equal(
+                f"{key.path}.private", f"{key.path}.private.backup"
+            )
+            check_file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
+            check_file_contents_equal(f"{key.path}.state", f"{key.path}.state.backup")
 
     # run 'dnssec-ksr keygen' again with verbosity 0
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {now} -e +2y")
