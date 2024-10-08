@@ -49,7 +49,7 @@ def keystr_to_keylist(keystr: str, keydir: Optional[str] = None) -> List[Key]:
 
 def keygen(zone, policy, keydir, when="now"):
     keygen_command = [
-        *os.environ.get("KEYGEN").split(),
+        os.environ.get("KEYGEN"),
         "-l",
         "ns1/named.conf",
         "-fK",
@@ -71,7 +71,7 @@ def keygen(zone, policy, keydir, when="now"):
 
 def ksr(zone, policy, action, options="", raise_on_exception=True):
     ksr_command = [
-        *os.environ.get("KSR").split(),
+        os.environ.get("KSR"),
         "-l",
         "ns1/named.conf",
         "-k",

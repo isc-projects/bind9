@@ -291,8 +291,7 @@ def check_dnssec_verify(server, zone):
                 file.write(rr.to_text())
                 file.write("\n")
 
-    verify_command = [*os.environ.get("VERIFY").split(), "-z", "-o", zone, zonefile]
-
+    verify_command = [os.environ.get("VERIFY"), "-z", "-o", zone, zonefile]
     isctest.run.cmd(verify_command)
 
 
