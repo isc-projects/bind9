@@ -301,18 +301,18 @@ def check_dnssecstatus(server, zone, keys, policy=None, view=None):
     # policy name is returned, and if all expected keys are listed.
     response = ""
     if view is None:
-        response = server.rndc("dnssec -status {}".format(zone), log=False)
+        response = server.rndc(f"dnssec -status {zone}", log=False)
     else:
-        response = server.rndc("dnssec -status {} in {}".format(zone, view), log=False)
+        response = server.rndc(f"dnssec -status {zone} in {view}", log=False)
 
     if policy is None:
         assert "Zone does not have dnssec-policy" in response
         return
 
-    assert "dnssec-policy: {}".format(policy) in response
+    assert f"dnssec-policy: {policy}" in response
 
     for key in keys:
-        assert "key: {}".format(key.tag) in response
+        assert f"key: {key.tag}" in response
 
 
 def _check_signatures(signatures, covers, fqdn, keys):
