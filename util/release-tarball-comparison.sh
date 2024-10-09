@@ -67,7 +67,6 @@ run_in_container "apt-get update &&			\
 docker cp "${BIND_TARBALL}" "${CONTAINER_ID}:/usr/src"
 
 BIND_VERSION=$(basename "${BIND_TARBALL}" | sed -E "s|bind-(.*)\.tar\.xz|\1|")
-BIND_DIRECTORY="bind-${BIND_VERSION}"
 
 # Prepare a temporary "release" tarball from upstream BIND 9 project.
 run_in_container "git -c advice.detachedHead=false clone --branch v${BIND_VERSION} --depth 1 https://${GITLAB_USER}:${GITLAB_TOKEN}@gitlab.isc.org/isc-private/bind9.git && \
@@ -75,22 +74,11 @@ run_in_container "git -c advice.detachedHead=false clone --branch v${BIND_VERSIO
 	apt-get -y install --no-install-recommends python3-pip && \
 	rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED && \
 	pip3 install -r doc/arm/requirements.txt && \
-	if [ $(echo "${BIND_VERSION}" | cut -b 1-5) = 9.16. ]; then \
-		git archive --prefix=${BIND_DIRECTORY}/ --output=${BIND_DIRECTORY}.tar HEAD && \
-		mkdir ${BIND_DIRECTORY} && \
-		echo SRCID=\$(git rev-list --max-count=1 HEAD | cut -b1-7) > ${BIND_DIRECTORY}/srcid && \
-		tar --append --file=${BIND_DIRECTORY}.tar ${BIND_DIRECTORY}/srcid && \
-		sphinx-build -b man -d ${BIND_DIRECTORY}/tmp/.doctrees/ -W -a -v -c doc/man/ -D version=@BIND9_VERSION@ -D today=@RELEASE_DATE@ -D release=@BIND9_VERSIONSTRING@ doc/man ${BIND_DIRECTORY}/doc/man && \
-		rm -rf ${BIND_DIRECTORY}/tmp/.doctrees/ && \
-		for man in ${BIND_DIRECTORY}/doc/man/*; do mv \${man} \${man}in; done && \
-		tar --append --file=${BIND_DIRECTORY}.tar ${BIND_DIRECTORY}/doc/man/*in && \
-		xz ${BIND_DIRECTORY}.tar; \
-	else \
-		autoreconf -fi && \
-		./configure --enable-umbrella && \
-		make -j && \
-		make dist; \
-	fi"
+	autoreconf -fi && \
+	./configure --enable-umbrella && \
+	make -j && \
+	make dist; \
+	"
 
 # Compare release-ready and custom tarballs; they are expected to be the same.
 run_in_container "pkgdiff bind9/bind-${BIND_VERSION}.tar.xz bind-${BIND_VERSION}.tar.xz" || true
