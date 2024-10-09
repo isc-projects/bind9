@@ -50,6 +50,7 @@ run_in_container "apt-get update &&			\
 		git					\
 		libcap2-dev				\
 		libjemalloc-dev				\
+		libjson-c-dev				\
 		liblmdb-dev				\
 		libmaxminddb-dev			\
 		libnghttp2-dev				\
