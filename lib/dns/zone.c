@@ -18199,10 +18199,16 @@ dns_zone_getprimaryaddr(dns_zone_t *zone) {
 }
 
 isc_time_t
-dns_zone_getxfrintime(const dns_zone_t *zone) {
+dns_zone_getxfrintime(dns_zone_t *zone) {
+	isc_time_t xfrintime;
+
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (zone->xfrintime);
+	LOCK_ZONE(zone);
+	xfrintime = zone->xfrintime;
+	UNLOCK_ZONE(zone);
+
+	return (xfrintime);
 }
 
 static void
