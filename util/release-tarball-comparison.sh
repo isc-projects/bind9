@@ -73,7 +73,7 @@ run_in_container "git -c advice.detachedHead=false clone --branch v${BIND_VERSIO
 	cd bind9 && \
 	apt-get -y install --no-install-recommends python3-pip && \
 	rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED && \
-	pip3 install -r doc/arm/requirements.txt && \
+	pip3 install -r https://gitlab.isc.org/isc-projects/bind9/-/raw/main/doc/arm/requirements.txt && \
 	autoreconf -fi && \
 	./configure --enable-umbrella && \
 	make -j && \
