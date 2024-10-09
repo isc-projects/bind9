@@ -238,6 +238,12 @@ query_addanswer(query_ctx_t *qctx);
 static isc_result_t
 query_prepare_delegation_response(query_ctx_t *qctx);
 
+static isc_result_t
+acquire_recursionquota(ns_client_t *client);
+
+static void
+release_recursionquota(ns_client_t *client);
+
 /*
  * Return the hooktable in use with 'qctx', or if there isn't one
  * set, return the default hooktable.
@@ -5996,14 +6002,7 @@ fetch_callback(void *arg) {
 	 * We're done recursing, detach from quota and unlink from
 	 * the manager's recursing-clients list.
 	 */
-
-	recursionquotatype_detach(client);
-
-	LOCK(&client->manager->reclock);
-	if (ISC_LINK_LINKED(client, rlink)) {
-		ISC_LIST_UNLINK(client->manager->recursing, client, rlink);
-	}
-	UNLOCK(&client->manager->reclock);
+	release_recursionquota(client);
 
 	isc_nmhandle_detach(&HANDLE_RECTYPE_NORMAL(client));
 
@@ -6104,6 +6103,7 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 		dns_name_copy(qdomain, param->qdomain);
 	}
 }
+
 static void
 recursionquota_log(ns_client_t *client, atomic_uint_fast32_t *last_log_time,
 		   const char *format, isc_quota_t *quota) {
@@ -6121,10 +6121,10 @@ recursionquota_log(ns_client_t *client, atomic_uint_fast32_t *last_log_time,
 static atomic_uint_fast32_t last_soft, last_hard;
 
 /*%
- * Check recursion quota before making the current client "recursing".
+ * Acquire recursion quota before making the current client "recursing".
  */
 static isc_result_t
-check_recursionquota(ns_client_t *client) {
+acquire_recursionquota(ns_client_t *client) {
 	isc_result_t result;
 
 	result = recursionquotatype_attach_soft(client);
@@ -6154,6 +6154,20 @@ check_recursionquota(ns_client_t *client) {
 	return (ISC_R_SUCCESS);
 }
 
+/*%
+ * Release recursion quota and remove the client from the "recursing" list.
+ */
+static void
+release_recursionquota(ns_client_t *client) {
+	recursionquotatype_detach(client);
+
+	LOCK(&client->manager->reclock);
+	if (ISC_LINK_LINKED(client, rlink)) {
+		ISC_LIST_UNLINK(client->manager->recursing, client, rlink);
+	}
+	UNLOCK(&client->manager->reclock);
+}
+
 isc_result_t
 ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		 dns_name_t *qdomain, dns_rdataset_t *nameservers,
@@ -6180,7 +6194,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		inc_stats(client, ns_statscounter_recursion);
 	}
 
-	result = check_recursionquota(client);
+	result = acquire_recursionquota(client);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -6214,12 +6228,14 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		0, NULL, client->manager->loop, fetch_callback, client,
 		rdataset, sigrdataset, &FETCH_RECTYPE_NORMAL(client));
 	if (result != ISC_R_SUCCESS) {
-		isc_nmhandle_detach(&HANDLE_RECTYPE_NORMAL(client));
+		release_recursionquota(client);
+
 		ns_client_putrdataset(client, &rdataset);
 		if (sigrdataset != NULL) {
 			ns_client_putrdataset(client, &sigrdataset);
 		}
-		recursionquotatype_detach(client);
+
+		isc_nmhandle_detach(&HANDLE_RECTYPE_NORMAL(client));
 	}
 
 	/*
@@ -6449,13 +6465,7 @@ query_hookresume(void *arg) {
 	UNLOCK(&client->query.fetchlock);
 	SAVE(hctx, rev->ctx);
 
-	recursionquotatype_detach(client);
-
-	LOCK(&client->manager->reclock);
-	if (ISC_LINK_LINKED(client, rlink)) {
-		ISC_LIST_UNLINK(client->manager->recursing, client, rlink);
-	}
-	UNLOCK(&client->manager->reclock);
+	release_recursionquota(client);
 
 	/*
 	 * The fetch handle should be detached before resuming query processing
@@ -6580,7 +6590,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	REQUIRE(client->query.hookactx == NULL);
 	REQUIRE(FETCH_RECTYPE_NORMAL(client) == NULL);
 
-	result = check_recursionquota(client);
+	result = acquire_recursionquota(client);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -6609,7 +6619,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	return (ISC_R_SUCCESS);
 
 cleanup_and_detach_from_quota:
-	recursionquotatype_detach(client);
+	release_recursionquota(client);
 cleanup:
 	/*
 	 * If we fail, send SERVFAIL now.  It may be better to let the caller
