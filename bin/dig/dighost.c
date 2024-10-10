@@ -3308,6 +3308,10 @@ start_udp(dig_query_t *query) {
 		return;
 	}
 
+	if (!port_set) {
+		port = 53;
+	}
+
 	result = get_address(query->servname, port, &query->sockaddr);
 	if (result != ISC_R_SUCCESS) {
 		/* This servname doesn't have an address. */
