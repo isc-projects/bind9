@@ -25,6 +25,12 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- Improve performance for queries that require an NSEC3 wildcard proof.
+
+  Rather than starting from the longest matching part of the requested name,
+  lookup the shortest partial match. Most of the time this will be the actual
+  closest encloser. :gl:`#4460`
+
 - Follow the number of CPUs set by ``taskset``/``cpuset``.
 
   Administrators may wish to constrain the set of cores that
