@@ -577,7 +577,9 @@ coccinelle:
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
 pylint:
-  <<: *precheck_job
+  <<: *default_triggering_rules
+  <<: *debian_sid_amd64_image
+  stage: precheck
   needs: []
   variables:
     PYTHONPATH: "${CI_PROJECT_DIR}/bin/tests/system"
@@ -630,7 +632,9 @@ checkbashisms:
     - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print)
 
 mypy:
-  <<: *precheck_job
+  <<: *default_triggering_rules
+  <<: *debian_sid_amd64_image
+  stage: precheck
   script:
     - mypy "bin/tests/system/isctest/"
 
