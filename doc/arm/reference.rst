@@ -6394,6 +6394,14 @@ zone is generated even if they have the same policy.  If multiple views
 are configured with different versions of the same zone, each separate
 version uses the same set of signing keys.
 
+If the expected key files that were previously observed have gone missing or
+are inaccessible, key management is halted. This will prevent rollovers
+from being started if there is a temporary file access issue. If his problem
+is permanent it will eventually lead to expired signatures in your zone.
+Note that if the key files are missing or inaccessible during :iscman:`named`
+startup, BIND 9 will try to generate new keys according to the DNSSEC policy,
+because it has no cached information about existing keys yet.
+
 The :any:`dnssec-policy` statement requires dynamic DNS to be set up, or
 :any:`inline-signing` to be enabled (which is the default for DNSSEC zones).
 
