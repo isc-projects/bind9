@@ -98,6 +98,10 @@ getstats() {
   grep "2 recursing clients" $last_stats >/dev/null || return 1
 }
 retry_quiet 5 getstats || ret=1
+# confirm agreement with 'rndc recursing'
+$RNDCCMD -s 10.53.0.3 recursing || ret=1
+lines=$(grep -c "; client .*(tcp)" ns3/named.recursing || true)
+[ "$lines" -eq 2 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
