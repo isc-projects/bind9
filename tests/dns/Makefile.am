@@ -46,6 +46,7 @@ check_PROGRAMS =		\
 	sigs_test		\
 	skr_test		\
 	time_test		\
+	transport_test		\
 	tsig_test		\
 	update_test		\
 	zonemgr_test		\
