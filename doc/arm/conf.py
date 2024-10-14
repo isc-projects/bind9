@@ -22,7 +22,7 @@ from sphinx import addnodes
 try:
     from sphinx.util.docutils import ReferenceRole
 except ImportError:
-    # pylint: disable=too-few-public-methods
+
     class ReferenceRole(roles.GenericRole):
         """
         The ReferenceRole class (used as a base class by GitLabRefRole

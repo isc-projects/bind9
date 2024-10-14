@@ -5,5 +5,17 @@ disable=
     C0115, # missing-class-docstring
     C0116, # missing-function-docstring
     C0209, # consider-using-f-string
+    C0302, # too-many-lines
     C0415, # import-outside-toplevel
     R0801, # duplicate-code
+    R0901, # too-many-ancestors
+    R0902, # too-many-instance-attributes
+    R0903, # too-few-public-methods
+    R0904, # too-many-public-methods
+    R0911, # too-many-return-statements
+    R0912, # too-many-branches
+    R0913, # too-many-arguments
+    R0914, # too-many-locals
+    R0915, # too-many-statements
+    R0916, # too-many-boolean-expressions
+    R0917, # too-many-positional-arguments
