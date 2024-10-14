@@ -52,7 +52,6 @@ def split_csv(argument, required):
     return outlist
 
 
-# pylint: disable=too-many-statements
 def domain_factory(domainname, domainlabel, todolist, grammar):
     """
     Return parametrized Sphinx domain object.
@@ -318,7 +317,6 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     ]
                 )
 
-        # pylint: disable=too-many-arguments
         def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
             """
             Sphinx API:

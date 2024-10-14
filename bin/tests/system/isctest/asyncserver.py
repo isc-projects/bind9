@@ -97,7 +97,6 @@ class _AsyncUdpHandler(asyncio.DatagramProtocol):
             loop.create_task(handler_coroutine)
 
 
-# pylint: disable=too-few-public-methods
 class AsyncServer:
     """
     A generic asynchronous server which may handle UDP and/or TCP traffic.
@@ -225,7 +224,6 @@ class DnsProtocol(enum.Enum):
     TCP = enum.auto()
 
 
-# pylint: disable=too-many-instance-attributes
 @dataclass
 class QueryContext:
     """
