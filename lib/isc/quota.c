@@ -36,7 +36,6 @@ isc_quota_init(isc_quota_t *quota, unsigned int max) {
 void
 isc_quota_soft(isc_quota_t *quota, unsigned int soft) {
 	REQUIRE(VALID_QUOTA(quota));
-	REQUIRE(atomic_load_relaxed(&quota->max) > soft);
 	atomic_store_relaxed(&quota->soft, soft);
 }
 
