@@ -312,7 +312,7 @@ state_stat=$(key_get KEY1 STATE_STAT)
 
 nextpart $DIR/named.run >/dev/null
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
 privkey_stat2=$(key_stat "${basefile}.private")
 pubkey_stat2=$(key_stat "${basefile}.key")
 state_stat2=$(key_stat "${basefile}.state")
@@ -328,7 +328,7 @@ ret=0
 
 nextpart $DIR/named.run >/dev/null
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
 privkey_stat2=$(key_stat "${basefile}.private")
 pubkey_stat2=$(key_stat "${basefile}.key")
 state_stat2=$(key_stat "${basefile}.state")
@@ -379,7 +379,7 @@ echo_i "test that if private key files are inaccessible this doesn't trigger a r
 basefile=$(key_get KEY1 BASEFILE)
 mv "${basefile}.private" "${basefile}.offline"
 rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "offline, policy default" $DIR/named.run || ret=1
+wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run || ret=1
 mv "${basefile}.offline" "${basefile}.private"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -1592,6 +1592,15 @@ check_subdomain
 dnssec_verify
 check_rrsig_refresh
 
+# Load again, make sure the purged key is not an issue when verifying keys.
+echo_i "load keys for $ZONE, making sure a recently purged key is not an issue when verifying keys ($n)"
+ret=0
+rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
+grep "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run && ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 #
 # Zone: legacy-keys.kasp.
 #
@@ -1686,6 +1695,68 @@ set_addkeytime "KEY2" "REMOVED" "${retired}" 867900
 check_keytimes
 check_apex
 check_subdomain
+dnssec_verify
+
+#
+# Zone: keyfiles-missing.autosign.
+#
+set_zone "keyfiles-missing.autosign"
+set_policy "autosign" "2" "300"
+set_server "ns3" "10.53.0.3"
+# Key properties.
+key_clear "KEY1"
+set_keyrole "KEY1" "ksk"
+set_keylifetime "KEY1" "63072000"
+set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY1" "yes"
+set_zonesigning "KEY1" "no"
+
+key_clear "KEY2"
+set_keyrole "KEY2" "zsk"
+set_keylifetime "KEY2" "31536000"
+set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning "KEY2" "no"
+set_zonesigning "KEY2" "yes"
+
+# Both KSK and ZSK stay OMNIPRESENT.
+set_keystate "KEY1" "GOAL" "omnipresent"
+set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
+set_keystate "KEY1" "STATE_DS" "omnipresent"
+
+set_keystate "KEY2" "GOAL" "omnipresent"
+set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
+set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
+
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+set_keytimes_autosign_policy
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+# All good, now remove key files and reload keys.
+rm_keyfiles() {
+  _basefile=$(key_get "$1" BASEFILE)
+  echo_i "remove key files $_basefile"
+  _keyfile="${_basefile}.key"
+  _privatefile="${_basefile}.private"
+  _statefile="${_basefile}.state"
+  rm -f $_keyfile
+  rm -f $_privatefile
+  rm -f $_statefile
+}
+rm_keyfiles "KEY1"
+rm_keyfiles "KEY2"
+
+rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
+wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run || ret=1
+# Check keys again, make sure no new keys are created.
+set_policy "autosign" "0" "300"
+key_clear "KEY1"
+key_clear "KEY2"
+check_keys
+# Zone is still signed correctly.
 dnssec_verify
 
 #
@@ -2075,16 +2146,23 @@ check_apex
 check_subdomain
 dnssec_verify
 
-# Check that the ZSKs from the other provider are published.
+# Check that the ZSKs from the other providers are published.
 zsks_are_published() {
+  num=$1
   dig_with_opts +short "$ZONE" "@${SERVER}" DNSKEY >"dig.out.$DIR.test$n" || return 1
   # We should have three ZSKs.
   lines=$(grep "256 3 13" dig.out.$DIR.test$n | wc -l)
-  test "$lines" -eq 3 || return 1
+  test "$lines" -eq $num || return 1
   # And one KSK.
   lines=$(grep "257 3 13" dig.out.$DIR.test$n | wc -l)
   test "$lines" -eq 1 || return 1
 }
+n=$((n + 1))
+echo_i "check initial number of ZSKs (one from us and one from another provider) for zone ${ZONE} ($n)"
+ret=0
+retry_quiet 10 zsks_are_published 2 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
 
 n=$((n + 1))
 echo_i "update zone with ZSK from another provider for zone ${ZONE} ($n)"
@@ -2095,7 +2173,21 @@ ret=0
   echo update add $(cat "${DIR}/${ZONE}.zsk2")
   echo send
 ) | $NSUPDATE
-retry_quiet 10 zsks_are_published || ret=1
+retry_quiet 10 zsks_are_published 3 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "remove ZSKs from the other providers for zone ${ZONE} ($n)"
+ret=0
+(
+  echo zone ${ZONE}
+  echo server 10.53.0.3 "$PORT"
+  echo update del $(cat "${DIR}/${ZONE}.zsk1")
+  echo update del $(cat "${DIR}/${ZONE}.zsk2")
+  echo send
+) | $NSUPDATE
+retry_quiet 10 zsks_are_published 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
@@ -4966,7 +5058,7 @@ dig_with_opts @10.53.0.6 example SOA >dig.out.ns6.test$n.soa1 || ret=1
 cp ns6/example2.db.in ns6/example.db || ret=1
 nextpart ns6/named.run >/dev/null
 rndccmd 10.53.0.6 reload || ret=1
-wait_for_log 3 "all zones loaded" ns6/named.run
+wait_for_log 3 "all zones loaded" ns6/named.run || ret=1
 # Check that the SOA SERIAL increases and check the TTLs (should be 300 as
 # defined in ns6/example2.db.in).
 retry_quiet 10 _check_soa_ttl 300 300 || ret=1
@@ -4984,7 +5076,7 @@ cp ns6/example3.db.in ns6/example.db || ret=1
 rm ns6/example.db.jnl
 nextpart ns6/named.run >/dev/null
 start_server --noclean --restart --port ${PORT} ns6
-wait_for_log 3 "all zones loaded" ns6/named.run
+wait_for_log 3 "all zones loaded" ns6/named.run || ret=1
 # Check that the SOA SERIAL increases and check the TTLs (should be changed
 # from 300 to 400 as defined in ns6/example3.db.in).
 retry_quiet 10 _check_soa_ttl 300 400 || ret=1

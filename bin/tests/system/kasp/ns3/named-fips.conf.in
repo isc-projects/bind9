@@ -323,6 +323,16 @@ zone "unfresh-sigs.autosign" {
 };
 
 /*
+ * Zone that has missing key files.
+ */
+zone "keyfiles-missing.autosign" {
+	type primary;
+	file "keyfiles-missing.autosign.db";
+	inline-signing yes;
+	dnssec-policy "autosign";
+};
+
+/*
  * Zone that has missing private KSK.
  */
 zone "ksk-missing.autosign" {

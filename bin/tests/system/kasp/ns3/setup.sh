@@ -128,15 +128,19 @@ $KEYGEN -G -k rsasha256 -l policies/kasp.conf $zone >keygen.out.$zone.2 2>&1
 
 zone="multisigner-model2.kasp"
 echo_i "setting up zone: $zone"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -f KSK -L 3600 $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 $zone 2>keygen.out.$zone.2)
+cat "${KSK}.key" | grep -v ";.*" >>"${zone}.db"
+cat "${ZSK}.key" | grep -v ";.*" >>"${zone}.db"
 # Import the ZSK sets of the other providers into their DNSKEY RRset.
-ZSK1=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 $zone 2>keygen.out.$zone.1)
-ZSK2=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 $zone 2>keygen.out.$zone.2)
-# ZSK1 will be added to the unsigned zonefile.
+# ZSK1 is from a different provider and is added to the unsigned zonefile.
+# ZSK2 is also from a different provider and is added with a Dynamic Update.
+ZSK1=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 $zone 2>keygen.out.$zone.3)
+ZSK2=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 $zone 2>keygen.out.$zone.4)
 cat "../${ZSK1}.key" | grep -v ";.*" >>"${zone}.db"
 cat "../${ZSK1}.key" | grep -v ";.*" >"${zone}.zsk1"
-rm -f "../${ZSK1}.*"
-# ZSK2 will be used with a Dynamic Update.
 cat "../${ZSK2}.key" | grep -v ";.*" >"${zone}.zsk2"
+rm -f "../${ZSK1}.*"
 rm -f "../${ZSK2}.*"
 
 zone="rumoured.kasp"
@@ -177,11 +181,12 @@ $SIGNER -PS -x -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone
 setup dynamic-signed-inline-signing.kasp
 T="now-1d"
 csktimes="-P $T -A $T -P sync $T"
-CSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $csktimes $zone 2>keygen.out.$zone.1)
-$SETTIME -s -g $O -d $O $T -k $O $T -z $O $T -r $O $T "$CSK" >settime.out.$zone.1 2>&1
-cat template.db.in "${CSK}.key" >"$infile"
+CSK=$($KEYGEN -K keys -a $DEFAULT_ALGORITHM -L 3600 -f KSK $csktimes $zone 2>keygen.out.$zone.1)
+$SETTIME -s -g $O -d $O $T -k $O $T -z $O $T -r $O $T "keys/$CSK" >settime.out.$zone.1 2>&1
+cat template.db.in "keys/${CSK}.key" >"$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "keys/$CSK" >>"$infile"
 cp $infile $zonefile
-$SIGNER -PS -z -x -s now-2w -e now-1mi -o $zone -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
+$SIGNER -PS -K keys -z -x -s now-2w -e now-1mi -o $zone -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
 
 # These signatures are set to expire long in the past, update immediately.
 setup expired-sigs.autosign
@@ -274,6 +279,22 @@ echo "ZSK: yes" >>"${ZSK}".state
 echo "Lifetime: 31536000" >>"${ZSK}".state # PT1Y
 rm -f "${ZSK}".private
 
+# These signatures are still good, but the key files will be removed
+# before a second run of reconfiguring keys.
+setup keyfiles-missing.autosign
+T="now-6mo"
+ksktimes="-P $T -A $T -P sync $T"
+zsktimes="-P $T -A $T"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
+$SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
+cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >>"$infile"
+private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >>"$infile"
+cp $infile $zonefile
+$SIGNER -S -x -s now-1w -e now+1w -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
+
 # These signatures are already expired, and the private ZSK is retired.
 setup zsk-retired.autosign
 T="now-6mo"
@@ -289,6 +310,12 @@ private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >>"$infile"
 cp $infile $zonefile
 $SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
 $SETTIME -s -g HIDDEN "$ZSK" >settime.out.$zone.3 2>&1
+# An old key that is being purged should not prevent keymgr to be run.
+T1="now-1y"
+T2="now-2y"
+oldtimes="-P $T2 -A $T2 -I $T1 -D $T1"
+OLD=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $oldtimes $zone 2>keygen.out.$zone.3)
+$SETTIME -s -g $H -k $H $T1 -z $H $T1 "$OLD" >settime.out.$zone.3 2>&1
 
 #
 # The zones at enable-dnssec.autosign represent the various steps of the
