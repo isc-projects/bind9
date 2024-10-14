@@ -18,8 +18,6 @@ import shutil
 import time
 from typing import List, Optional
 
-from datetime import datetime
-
 import isctest
 from isctest.kasp import (
     Key,
@@ -40,7 +38,7 @@ def check_file_contents_equal(file1, file2):
         return " ".join(line.split())
 
     def read_lines(file_path):
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             return [normalize_line(line) for line in file.readlines()]
 
     lines1 = read_lines(file1)

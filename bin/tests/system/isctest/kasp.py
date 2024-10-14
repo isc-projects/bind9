@@ -315,6 +315,7 @@ def check_dnssecstatus(server, zone, keys, policy=None, view=None):
         assert f"key: {key.tag}" in response
 
 
+# pylint: disable=too-many-branches,too-many-locals
 def _check_signatures(signatures, covers, fqdn, keys):
     now = KeyTimingMetadata.now()
     numsigs = 0
