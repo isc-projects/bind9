@@ -204,3 +204,9 @@ dns_transport_list_detach(dns_transport_list_t **listp);
  *\li	'listp' is not NULL.
  *\li	'*listp' is a valid transport list.
  */
+
+const char *
+dns_transport_totext(dns_transport_type_t type);
+/*%<
+ * Convert a transport type value into a string.
+ */

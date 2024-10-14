@@ -772,3 +772,19 @@ dns_transport_list_detach(dns_transport_list_t **listp) {
 		transport_list_destroy(list);
 	}
 }
+
+const char *
+dns_transport_totext(dns_transport_type_t type) {
+	switch (type) {
+	case DNS_TRANSPORT_UDP:
+		return ("udp");
+	case DNS_TRANSPORT_TCP:
+		return ("tcp");
+	case DNS_TRANSPORT_TLS:
+		return ("tls");
+	case DNS_TRANSPORT_HTTP:
+		return ("https");
+	default:
+		UNREACHABLE();
+	}
+}

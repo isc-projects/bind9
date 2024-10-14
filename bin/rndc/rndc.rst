@@ -429,8 +429,10 @@ Currently supported commands are:
 
    The first list includes all unique clients that are waiting for
    recursion to complete, including the query that is awaiting a
-   response and the timestamp (seconds since the Unix epoch) of
-   when named started processing this client query.
+   response, the timestamp (seconds since the Unix epoch) of
+   when named started processing this client query, the client's
+   address, and the transport over which the the query was received
+   (UDP, TCP, TLS, or HTTP).
 
    The second list comprises of domains for which there are active
    (or recently active) fetches in progress.  It reports the number
