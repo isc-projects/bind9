@@ -363,6 +363,7 @@ stages:
   needs:
     - job: ci-variables
       artifacts: true
+  timeout: 2h
 
 .system_test_common: &system_test_common
   <<: *default_triggering_rules
