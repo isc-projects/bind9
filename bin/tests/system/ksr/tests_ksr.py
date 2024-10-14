@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# pylint: disable=too-many-lines
-
 from datetime import timedelta
 import difflib
 import os
@@ -97,7 +95,6 @@ def ksr(zone, policy, action, options="", raise_on_exception=True):
     return out.stdout.decode("utf-8"), out.stderr.decode("utf-8")
 
 
-# pylint: disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
 def check_keys(
     keys,
     lifetime,
@@ -223,7 +220,6 @@ def check_keysigningrequest(out, zsks, start, end):
     assert line_no == len(lines)
 
 
-# pylint: disable=too-many-arguments,too-many-branches,too-many-locals,too-many-statements
 def check_signedkeyresponse(
     out,
     zone,
@@ -421,7 +417,6 @@ def test_ksr_errors():
     assert "dnssec-ksr: fatal: 'sign' requires a KSR file" in err
 
 
-# pylint: disable=too-many-locals,too-many-statements
 def test_ksr_common(servers):
     # common test cases (1)
     zone = "common.test"
@@ -610,7 +605,6 @@ def test_ksr_common(servers):
     isctest.kasp.check_subdomain(ns1, zone, ksks, overlapping_zsks)
 
 
-# pylint: disable=too-many-locals
 def test_ksr_lastbundle(servers):
     zone = "last-bundle.test"
     policy = "common"
@@ -690,7 +684,6 @@ def test_ksr_lastbundle(servers):
     assert f"zone {zone}/IN (signed): zone_rekey: {warning}" in ns1.log
 
 
-# pylint: disable=too-many-locals
 def test_ksr_inthemiddle(servers):
     zone = "in-the-middle.test"
     policy = "common"
@@ -771,7 +764,6 @@ def test_ksr_inthemiddle(servers):
     assert f"zone {zone}/IN (signed): zone_rekey: {warning}" not in ns1.log
 
 
-# pylint: disable=too-many-locals
 def check_ksr_rekey_logs_error(server, zone, policy, offset, end):
     n = 1
 
@@ -846,7 +838,6 @@ def test_ksr_rekey_logs_error(servers):
     )
 
 
-# pylint: disable=too-many-locals
 def test_ksr_unlimited(servers):
     zone = "unlimited.test"
     policy = "unlimited"
@@ -962,7 +953,6 @@ def test_ksr_unlimited(servers):
     isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
 
 
-# pylint: disable=too-many-locals
 def test_ksr_twotone(servers):
     zone = "two-tone.test"
     policy = "two-tone"

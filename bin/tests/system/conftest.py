@@ -297,9 +297,7 @@ def logger(request, system_test_name):
 
 
 @pytest.fixture(scope="module")
-def system_test_dir(
-    request, system_test_name
-):  # pylint: disable=too-many-statements,too-many-locals
+def system_test_dir(request, system_test_name):
     """
     Temporary directory for executing the test.
 
@@ -408,7 +406,7 @@ def system_test_dir(
             unlink(symlink_dst)
 
 
-def _run_script(  # pylint: disable=too-many-arguments
+def _run_script(
     system_test_dir: Path,
     interpreter: str,
     script: str,
@@ -471,7 +469,7 @@ def run_tests_sh(system_test_dir, shell):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def system_test(  # pylint: disable=too-many-arguments,too-many-statements
+def system_test(
     request,
     system_test_dir,
     shell,
