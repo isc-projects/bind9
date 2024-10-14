@@ -53,7 +53,7 @@ def get_child_pipeline_id(project, pipeline_id):
         pipeline.refresh()
         return pipeline.finished_at is not None
 
-    wait_until(pipeline_finished, timeout=3000)
+    wait_until(pipeline_finished, timeout=6600)
 
     bridges = pipeline.bridges.list()
     if len(bridges) != 1:
