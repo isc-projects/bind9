@@ -71,9 +71,11 @@ mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 # - FAIL if the MR title doesn't have the expected format
 #
 # - FAIL if the MR title doesn't contain changelog action
+#
+# - FAIL if the MR title doesn't contain changelog audience
 
 MR_TITLE_RE = re.compile(
-    r"^(\[9\.[0-9]{2}(-S)?\])?\s*(\[[^]]*\]\s*)?((chg|fix|new|rem|sec):)?\s*((dev|usr|pkg|doc|test)\s*:)?\s*([^\n]*)$",
+    r"^(\[9\.[0-9]{2}(-S)?\])?\s*(\[[^]]*\]\s*)?((chg|fix|new|rem|sec):)?\s*((dev|usr|pkg|doc|test|ci|nil)\s*:)?\s*([^\n]*)$",
 )
 mr_title_match = MR_TITLE_RE.match(mr_title)
 mr_title_cve = mr_title_match.group(3) if mr_title_match else None
@@ -85,7 +87,11 @@ if not mr_title_match:
 else:
     if mr_title_action is None:
         fail(
-            "Add one of `chg:`|`fix:`|`new:`|`rem:`|`sec:` to the MR title to categorize this change."
+            "Add one of `chg:`|`fix:`|`new:`|`rem:`|`sec:` to the MR title to [categorize this change](https://gitlab.isc.org/isc-projects/bind9/-/wikis/BIND-development-workflow#mr-title)."
+        )
+    if mr_title_audience is None:
+        fail(
+            "Add one of `dev:`|`usr:`|`pkg:`|`doc:`|`test:`|`ci:`|`nil:` to the MR title as [intended audience](https://gitlab.isc.org/isc-projects/bind9/-/wikis/BIND-development-workflow#mr-title)."
         )
 
 ###############################################################################
