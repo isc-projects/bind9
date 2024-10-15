@@ -1428,6 +1428,7 @@ unit:clang:freebsd14:amd64:
   needs:
     - job: clang:freebsd14:amd64
       artifacts: true
+  retry: 1  # GL #4924
 
 # Jobs for Clang builds on OpenBSD (amd64)
 
