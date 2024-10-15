@@ -535,6 +535,12 @@ black:
     expire_in: "1 week"
     when: on_failure
 
+vulture:
+  <<: *precheck_job
+  needs: []
+  script:
+    - vulture --exclude "*/ans*/ans.py,conftest.py,get_algorithms.py,isctest" --ignore-names "pytestmark" bin/tests/system/
+
 ci-variables:
   stage: precheck
   <<: *precheck_job
