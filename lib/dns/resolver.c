@@ -2049,9 +2049,10 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		}
 		isc_sockaddr_setport(&addr, 0);
 
-		result = dns_dispatch_createtcp(
-			res->view->dispatchmgr, &addr, &sockaddr,
-			DNS_DISPATCHOPT_UNSHARED, &query->dispatch);
+		result = dns_dispatch_createtcp(res->view->dispatchmgr, &addr,
+						&sockaddr, addrinfo->transport,
+						DNS_DISPATCHOPT_UNSHARED,
+						&query->dispatch);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_query;
 		}

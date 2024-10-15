@@ -113,10 +113,11 @@ struct dns_dispatch {
 	isc_socktype_t socktype;
 	isc_refcount_t references;
 	isc_mem_t *mctx;
-	dns_dispatchmgr_t *mgr; /*%< dispatch manager */
-	isc_nmhandle_t *handle; /*%< netmgr handle for TCP connection */
-	isc_sockaddr_t local;	/*%< local address */
-	isc_sockaddr_t peer;	/*%< peer address (TCP) */
+	dns_dispatchmgr_t *mgr;	    /*%< dispatch manager */
+	isc_nmhandle_t *handle;	    /*%< netmgr handle for TCP connection */
+	isc_sockaddr_t local;	    /*%< local address */
+	isc_sockaddr_t peer;	    /*%< peer address (TCP) */
+	dns_transport_t *transport; /*%< TCP transport parameters */
 
 	dns_dispatchopt_t options;
 	dns_dispatchstate_t state;
@@ -1136,6 +1137,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type, uint32_t tid,
 struct dispatch_key {
 	const isc_sockaddr_t *local;
 	const isc_sockaddr_t *peer;
+	const dns_transport_t *transport;
 };
 
 static uint32_t
@@ -1164,13 +1166,15 @@ dispatch_match(struct cds_lfht_node *node, const void *key0) {
 	}
 
 	return (isc_sockaddr_equal(&peer, key->peer) &&
+		disp->transport == key->transport &&
 		(key->local == NULL || isc_sockaddr_equal(&local, key->local)));
 }
 
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		       const isc_sockaddr_t *destaddr,
-		       dns_dispatchopt_t options, dns_dispatch_t **dispp) {
+		       dns_transport_t *transport, dns_dispatchopt_t options,
+		       dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp = NULL;
 	uint32_t tid = isc_tid();
 
@@ -1181,6 +1185,9 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 	disp->options = options;
 	disp->peer = *destaddr;
+	if (transport != NULL) {
+		dns_transport_attach(transport, &disp->transport);
+	}
 
 	if (localaddr != NULL) {
 		disp->local = *localaddr;
@@ -1197,6 +1204,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 	struct dispatch_key key = {
 		.local = &disp->local,
 		.peer = &disp->peer,
+		.transport = transport,
 	};
 
 	if ((disp->options & DNS_DISPATCHOPT_UNSHARED) == 0) {
@@ -1224,7 +1232,8 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
-		    const isc_sockaddr_t *localaddr, dns_dispatch_t **dispp) {
+		    const isc_sockaddr_t *localaddr, dns_transport_t *transport,
+		    dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp_connected = NULL;
 	dns_dispatch_t *disp_fallback = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
@@ -1237,6 +1246,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 	struct dispatch_key key = {
 		.local = localaddr,
 		.peer = destaddr,
+		.transport = transport,
 	};
 
 	rcu_read_lock();
@@ -1399,6 +1409,9 @@ dispatch_destroy(dns_dispatch_t *disp) {
 			     &disp->handle);
 		isc_nmhandle_detach(&disp->handle);
 	}
+	if (disp->transport != NULL) {
+		dns_transport_detach(&disp->transport);
+	}
 	dns_dispatchmgr_detach(&disp->mgr);
 
 	call_rcu(&disp->rcu_head, dispatch_destroy_rcu);
@@ -1428,6 +1441,7 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
 	REQUIRE(sent != NULL);
 	REQUIRE(loop != NULL);
 	REQUIRE(disp->tid == isc_tid());
+	REQUIRE(disp->transport == transport);
 
 	if (disp->state == DNS_DISPATCHSTATE_CANCELED) {
 		return (ISC_R_CANCELED);
