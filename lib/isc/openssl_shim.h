@@ -15,7 +15,6 @@
 
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
-#include <openssl/hmac.h>
 #include <openssl/opensslv.h>
 #include <openssl/ssl.h>
 
