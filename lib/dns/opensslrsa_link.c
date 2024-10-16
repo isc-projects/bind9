@@ -202,13 +202,13 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	switch (dctx->key->key_alg) {
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
-		type = EVP_sha1(); /* SHA1 + RSA */
+		type = isc__crypto_sha1; /* SHA1 + RSA */
 		break;
 	case DST_ALG_RSASHA256:
-		type = EVP_sha256(); /* SHA256 + RSA */
+		type = isc__crypto_sha256; /* SHA256 + RSA */
 		break;
 	case DST_ALG_RSASHA512:
-		type = EVP_sha512();
+		type = isc__crypto_sha512;
 		break;
 	default:
 		UNREACHABLE();
@@ -1236,17 +1236,17 @@ check_algorithm(unsigned char algorithm) {
 	switch (algorithm) {
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
-		type = EVP_sha1(); /* SHA1 + RSA */
+		type = isc__crypto_sha1; /* SHA1 + RSA */
 		sig = sha1_sig;
 		len = sizeof(sha1_sig) - 1;
 		break;
 	case DST_ALG_RSASHA256:
-		type = EVP_sha256(); /* SHA256 + RSA */
+		type = isc__crypto_sha256; /* SHA256 + RSA */
 		sig = sha256_sig;
 		len = sizeof(sha256_sig) - 1;
 		break;
 	case DST_ALG_RSASHA512:
-		type = EVP_sha512();
+		type = isc__crypto_sha512;
 		sig = sha512_sig;
 		len = sizeof(sha512_sig) - 1;
 		break;

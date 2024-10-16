@@ -36,6 +36,7 @@
 #endif /* HAVE_LIBIDN2 */
 
 #include <isc/base64.h>
+#include <isc/crypto.h>
 #include <isc/file.h>
 #include <isc/getaddresses.h>
 #include <isc/hex.h>
@@ -4754,7 +4755,7 @@ destroy_libs(void) {
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 
 #if ENABLE_LEAK_DETECTION
-	isc__tls_setdestroycheck(true);
+	isc__crypto_setdestroycheck(true);
 	isc__uv_setdestroycheck(true);
 	isc__xml_setdestroycheck(true);
 #endif

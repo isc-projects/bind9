@@ -608,15 +608,6 @@ isc_tlsctx_set_random_session_id_context(isc_tlsctx_t *ctx);
  *\li   'ctx' - a valid non-NULL pointer;
  */
 
-void
-isc__tls_initialize(void);
-
-void
-isc__tls_shutdown(void);
-
-void
-isc__tls_setdestroycheck(bool check);
-
 #define isc_tlserr2result(category, module, funcname, fallback)            \
 	isc__tlserr2result(category, module, funcname, fallback, __FILE__, \
 			   __LINE__)

@@ -13,9 +13,9 @@
 
 /*! \file */
 
+#include <isc/crypto.h>
 #include <isc/hash.h>
 #include <isc/iterated_hash.h>
-#include <isc/log.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/os.h>
@@ -48,10 +48,9 @@ isc__initialize(void) {
 	isc__mutex_initialize();
 	isc__mem_initialize();
 	isc__log_initialize();
-	isc__tls_initialize();
+	isc__crypto_initialize();
 	isc__uv_initialize();
 	isc__xml_initialize();
-	isc__md_initialize();
 	isc__hash_initialize();
 	isc__iterated_hash_initialize();
 	(void)isc_os_ncpus();
@@ -61,10 +60,9 @@ isc__initialize(void) {
 void
 isc__shutdown(void) {
 	isc__iterated_hash_shutdown();
-	isc__md_shutdown();
 	isc__xml_shutdown();
 	isc__uv_shutdown();
-	isc__tls_shutdown();
+	isc__crypto_shutdown();
 	isc__log_shutdown();
 	isc__mem_shutdown();
 	isc__mutex_shutdown();

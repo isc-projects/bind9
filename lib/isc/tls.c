@@ -34,6 +34,7 @@
 #include <openssl/x509v3.h>
 
 #include <isc/atomic.h>
+#include <isc/crypto.h>
 #include <isc/fips.h>
 #include <isc/ht.h>
 #include <isc/log.h>
@@ -54,146 +55,6 @@
 
 #define COMMON_SSL_OPTIONS \
 	(SSL_OP_NO_COMPRESSION | SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION)
-
-static isc_mem_t *isc__tls_mctx = NULL;
-
-#if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x30000000L
-/*
- * This was crippled with LibreSSL, so just skip it:
- * https://cvsweb.openbsd.org/src/lib/libcrypto/Attic/mem.c
- */
-
-#if ISC_MEM_TRACKLINES
-/*
- * We use the internal isc__mem API here, so we can pass the file and line
- * arguments passed from OpenSSL >= 1.1.0 to our memory functions for better
- * tracking of the OpenSSL allocations.  Without this, we would always just see
- * isc__tls_{malloc,realloc,free} in the tracking output, but with this in place
- * we get to see the places in the OpenSSL code where the allocations happen.
- */
-
-static void *
-isc__tls_malloc_ex(size_t size, const char *file, int line) {
-	return (isc__mem_allocate(isc__tls_mctx, size, 0, file,
-				  (unsigned int)line));
-}
-
-static void *
-isc__tls_realloc_ex(void *ptr, size_t size, const char *file, int line) {
-	return (isc__mem_reallocate(isc__tls_mctx, ptr, size, 0, file,
-				    (unsigned int)line));
-}
-
-static void
-isc__tls_free_ex(void *ptr, const char *file, int line) {
-	if (ptr == NULL) {
-		return;
-	}
-	if (isc__tls_mctx != NULL) {
-		isc__mem_free(isc__tls_mctx, ptr, 0, file, (unsigned int)line);
-	}
-}
-
-#else /* ISC_MEM_TRACKLINES */
-
-static void *
-isc__tls_malloc_ex(size_t size, const char *file, int line) {
-	UNUSED(file);
-	UNUSED(line);
-	return (isc_mem_allocate(isc__tls_mctx, size));
-}
-
-static void *
-isc__tls_realloc_ex(void *ptr, size_t size, const char *file, int line) {
-	UNUSED(file);
-	UNUSED(line);
-	return (isc_mem_reallocate(isc__tls_mctx, ptr, size));
-}
-
-static void
-isc__tls_free_ex(void *ptr, const char *file, int line) {
-	UNUSED(file);
-	UNUSED(line);
-	if (ptr == NULL) {
-		return;
-	}
-	if (isc__tls_mctx != NULL) {
-		isc__mem_free(isc__tls_mctx, ptr, 0);
-	}
-}
-
-#endif /* ISC_MEM_TRACKLINES */
-
-#endif /* !defined(LIBRESSL_VERSION_NUMBER) */
-
-static void
-enable_fips_mode(void) {
-#if defined(ENABLE_FIPS_MODE)
-	if (isc_fips_mode()) {
-		/*
-		 * FIPS mode is already enabled.
-		 */
-		return;
-	}
-
-	if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
-		isc_tlserr2result(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_OTHER,
-				  "FIPS_mode_set", ISC_R_CRYPTOFAILURE);
-		exit(EXIT_FAILURE);
-	}
-#endif
-}
-
-void
-isc__tls_initialize(void) {
-	isc_mem_create(&isc__tls_mctx);
-	isc_mem_setname(isc__tls_mctx, "OpenSSL");
-	isc_mem_setdestroycheck(isc__tls_mctx, false);
-
-#if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x30000000L
-	/*
-	 * CRYPTO_set_mem_(_ex)_functions() returns 1 on success or 0 on
-	 * failure, which means OpenSSL already allocated some memory.  There's
-	 * nothing we can do about it.
-	 */
-	(void)CRYPTO_set_mem_functions(isc__tls_malloc_ex, isc__tls_realloc_ex,
-				       isc__tls_free_ex);
-#endif /* !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
-	  0x30000000L  */
-
-	uint64_t opts = OPENSSL_INIT_LOAD_CONFIG;
-
-#if defined(OPENSSL_INIT_NO_ATEXIT)
-	/*
-	 * We call OPENSSL_cleanup() manually, in a correct order, thus disable
-	 * the automatic atexit() handler.
-	 */
-	opts |= OPENSSL_INIT_NO_ATEXIT;
-#endif
-
-	RUNTIME_CHECK(OPENSSL_init_ssl(opts, NULL) == 1);
-
-	/* Protect ourselves against unseeded PRNG */
-	if (RAND_status() != 1) {
-		FATAL_ERROR("OpenSSL pseudorandom number generator "
-			    "cannot be initialized (see the `PRNG not "
-			    "seeded' message in the OpenSSL FAQ)");
-	}
-
-	enable_fips_mode();
-}
-
-void
-isc__tls_shutdown(void) {
-	OPENSSL_cleanup();
-
-	isc_mem_destroy(&isc__tls_mctx);
-}
-
-void
-isc__tls_setdestroycheck(bool check) {
-	isc_mem_setdestroycheck(isc__tls_mctx, check);
-}
 
 void
 isc_tlsctx_free(isc_tlsctx_t **ctxp) {
@@ -441,7 +302,7 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 					   -1, -1, 0);
 
 		X509_set_issuer_name(cert, name);
-		X509_sign(cert, pkey, EVP_sha256());
+		X509_sign(cert, pkey, isc__crypto_sha256);
 		rv = SSL_CTX_use_certificate(ctx, cert);
 		if (rv != 1) {
 			goto ssl_error;
