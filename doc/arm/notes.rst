@@ -37,6 +37,7 @@ https://www.isc.org/download/. There you will find additional
 information about each release, and source code.
 
 .. include:: ../notes/notes-known-issues.rst
+.. include:: ../notes/notes-9.18.31.rst
 .. include:: ../notes/notes-9.18.30.rst
 .. include:: ../notes/notes-9.18.29.rst
 .. include:: ../notes/notes-9.18.28.rst
