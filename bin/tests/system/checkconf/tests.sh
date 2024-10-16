@@ -767,6 +767,17 @@ fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "check that using dnssec-policy generates a warning for dynamic zones wrt inline-signing ($n)"
+ret=0
+$CHECKCONF warn-kasp-ddns-inline-signing-no.conf >checkconf.out$n 2>/dev/null || ret=1
+grep "'inline-signing' default changed to 'yes' in 9\.20\." <checkconf.out$n >/dev/null || ret=1
+if [ $ret != 0 ]; then
+  echo_i "failed"
+  ret=1
+fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "check obsolete options generate warnings ($n)"
 ret=0
 $CHECKCONF warn-random-device.conf >checkconf.out$n 2>/dev/null || ret=1
