@@ -76,13 +76,13 @@ not loading; or the web browser returning an error message indicating
 that the page cannot be displayed. For example, if root name
 servers were misconfigured with the wrong information about ``.org``, it
 could cause all validation for ``.org`` domains to fail. To end
-users, it would appear that all ``.org`` web
-sites were out of service [#]_. Should you encounter DNSSEC-related problems, don't be
-tempted to disable validation; there is almost certainly a solution that
-leaves validation enabled. A basic troubleshooting guide can be found in
-:ref:`dnssec_troubleshooting`.
+users, it would appear that all ``.org`` web sites were out of service.
+[#wrong_root_addr]_ Should you encounter DNSSEC-related problems, don't
+be tempted to disable validation; there is almost certainly a solution
+that leaves validation enabled. A basic troubleshooting guide can be
+found in :ref:`dnssec_troubleshooting`.
 
-.. [#]
+.. [#wrong_root_addr]
    Of course, something like this could happen for reasons other than
    DNSSEC: for example, the root publishing the wrong addresses for the
    ``.org`` nameservers.
@@ -400,7 +400,7 @@ Let's discuss the difference between *yes* and *auto*. If set to
 using the :any:`trust-anchors` statement (with either the ``static-key`` or
 ``static-ds`` modifier) in the configuration file; if set to
 *auto* (the default, and as shown in the example), then no further
-action should be required as BIND includes a copy [#]_ of the root key.
+action should be required as BIND includes a copy [#root_zone_key_update]_ of the root key.
 When set to *auto*, BIND automatically keeps the keys (also known as
 trust anchors, discussed in :ref:`trust_anchors_description`)
 up-to-date without intervention from the DNS administrator.
@@ -646,7 +646,7 @@ If you followed the recommendation in
 :ref:`easy_start_guide_for_recursive_servers`, by setting
 :any:`dnssec-validation` to *auto*, there is nothing left to do.
 BIND already includes a copy of the root key, and automatically updates it
-when the root key changes. [#]_ It looks something like this:
+when the root key changes. [#root_zone_key_update]_ It looks something like this:
 
 ::
 
@@ -715,7 +715,7 @@ the top-level domains have been signed, including all the largest ones.
 Unless you have a particular need to manage keys yourself, it is best to
 use the BIND defaults and let the software manage the root key.
 
-.. [#]
+.. [#root_zone_key_update]
    The root zone was signed in July 2010 and, as at the time of this writing
    (mid-2020), the key has been changed once, in October 2018. The intention going
    forward is to roll the key once every five years.
