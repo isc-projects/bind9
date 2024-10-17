@@ -80,9 +80,9 @@ ACLs give users finer control over who can access the
 name server, without cluttering up configuration files with huge lists of
 IP addresses.
 
-It is a *good idea* to use ACLs, and to control access.
+It is a *good idea* to use ACLs and to control access.
 Limiting access to the server by outside parties can help prevent
-spoofing and denial of service (DoS) attacks against the server.
+spoofing and denial-of-service (DoS) attacks against the server.
 
 ACLs match clients on the basis of up to three characteristics: 1) The
 client's IP address; 2) the TSIG or SIG(0) key that was used to sign the
