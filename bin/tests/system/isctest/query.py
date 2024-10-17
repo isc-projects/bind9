@@ -22,7 +22,6 @@ from isctest.compat import dns_rcode
 QUERY_TIMEOUT = 10
 
 
-# pylint: disable=too-many-arguments
 def generic_query(
     query_func: Callable[..., Any],
     message: dns.message.Message,

@@ -61,8 +61,6 @@ def do_work(named_proc, resolver_ip, instance, kill_method, n_workers, n_queries
     :param n_queries: Total number of queries to send
     :type n_queries: int
     """
-    # pylint: disable-msg=too-many-arguments
-    # pylint: disable-msg=too-many-locals
 
     # helper function, 'command' is the rndc command to run
     def launch_rndc(command):

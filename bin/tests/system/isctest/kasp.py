@@ -329,7 +329,6 @@ def check_dnssecstatus(server, zone, keys, policy=None, view=None):
         assert f"key: {key.tag}" in response
 
 
-# pylint: disable=too-many-branches,too-many-locals
 def _check_signatures(signatures, covers, fqdn, keys):
     now = KeyTimingMetadata.now()
     numsigs = 0
@@ -455,7 +454,6 @@ def check_dnskeys(rrset, ksks, zsks, cdnskey=False):
     assert numkeys == len(dnskeys)
 
 
-# pylint: disable=too-many-locals
 def check_cds(rrset, keys):
     # Check if the correct CDS records are published. If the current time
     # is between the timing metadata 'publish' and 'delete', the key must have
