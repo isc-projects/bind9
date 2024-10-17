@@ -594,7 +594,7 @@ dns_kasp_nsec3(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);
 	REQUIRE(kasp->frozen);
 
-	return kasp->nsec3;
+	return (kasp->nsec3);
 }
 
 void
@@ -622,7 +622,7 @@ dns_kasp_offlineksk(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);
 	REQUIRE(kasp->frozen);
 
-	return kasp->offlineksk;
+	return (kasp->offlineksk);
 }
 
 void
@@ -638,7 +638,7 @@ dns_kasp_cdnskey(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);
 	REQUIRE(kasp->frozen);
 
-	return kasp->cdnskey;
+	return (kasp->cdnskey);
 }
 
 void

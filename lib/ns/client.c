@@ -151,7 +151,7 @@ ns_client_transport_type(const ns_client_t *client) {
 	 * When DoQ support this had to be removed to get correct DoQ entries.
 	 */
 	if (!TCP_CLIENT(client)) {
-		return DNS_TRANSPORT_UDP;
+		return (DNS_TRANSPORT_UDP);
 	}
 
 	INSIST(client->handle != NULL);
@@ -161,31 +161,31 @@ ns_client_transport_type(const ns_client_t *client) {
 	case isc_nm_udplistener:
 	case isc_nm_proxyudpsocket:
 	case isc_nm_proxyudplistener:
-		return DNS_TRANSPORT_UDP;
+		return (DNS_TRANSPORT_UDP);
 	case isc_nm_tlssocket:
 	case isc_nm_tlslistener:
-		return DNS_TRANSPORT_TLS;
+		return (DNS_TRANSPORT_TLS);
 	case isc_nm_httpsocket:
 	case isc_nm_httplistener:
-		return DNS_TRANSPORT_HTTP;
+		return (DNS_TRANSPORT_HTTP);
 	case isc_nm_streamdnslistener:
 	case isc_nm_streamdnssocket:
 	case isc_nm_proxystreamlistener:
 	case isc_nm_proxystreamsocket:
 		/* If it isn't DoT, it is DNS-over-TCP */
 		if (isc_nm_has_encryption(client->handle)) {
-			return DNS_TRANSPORT_TLS;
+			return (DNS_TRANSPORT_TLS);
 		}
 		FALLTHROUGH;
 	case isc_nm_tcpsocket:
 	case isc_nm_tcplistener:
-		return DNS_TRANSPORT_TCP;
+		return (DNS_TRANSPORT_TCP);
 	case isc_nm_maxsocket:
 	case isc_nm_nonesocket:
 		UNREACHABLE();
 	}
 
-	return DNS_TRANSPORT_UDP;
+	return (DNS_TRANSPORT_UDP);
 }
 #endif /* HAVE_DNSTAP */
 

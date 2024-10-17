@@ -45,7 +45,7 @@ BN_GENCB_free(BN_GENCB *cb) {
 
 static inline void *
 BN_GENCB_get_arg(BN_GENCB *cb) {
-	return cb->arg;
+	return (cb->arg);
 }
 #endif /* !HAVE_BN_GENCB_NEW */
 

@@ -70,10 +70,10 @@ static bool
 cmp_tolower1(void *va, void *vb, unsigned int size) {
 	for (uint8_t *a = va, *b = vb; size-- > 0; a++, b++) {
 		if (TOLOWER(*a) != TOLOWER(*b)) {
-			return false;
+			return (false);
 		}
 	}
-	return true;
+	return (true);
 }
 
 static bool oldskool_result;
