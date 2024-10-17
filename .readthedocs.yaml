@@ -6,6 +6,9 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  jobs:
+    pre_build:
+      - python -m pip install -r https://gitlab.isc.org/isc-projects/bind9/-/raw/main/doc/arm/requirements.txt
 
 # Build documentation in doc/arm/ with Sphinx
 sphinx:
@@ -13,8 +16,3 @@ sphinx:
 
 # Build all formats
 formats: all
-
-# Explicitly set the version of Python and its requirements
-python:
-   install:
-   - requirements: doc/arm/requirements.txt
