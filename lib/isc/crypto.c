@@ -12,11 +12,15 @@
  */
 
 #include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 
 #include <isc/crypto.h>
+#include <isc/fips.h>
+#include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 static isc_mem_t *isc__crypto_mctx = NULL;
