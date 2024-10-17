@@ -119,7 +119,6 @@ Files: **/*.after*
        doc/arm/*.dia
        doc/arm/*.png
        doc/arm/isc-logo.pdf
-       doc/arm/requirements.txt
        doc/man/*.1in
        doc/man/*.5in
        doc/man/*.8in
