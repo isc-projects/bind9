@@ -609,8 +609,9 @@ log_response(ns_client_t *client, dns_rcode_t rcode) {
 	isc_buffer_t b;
 	int level = ISC_LOG_INFO;
 
-	if (!isc_log_wouldlog(level))
+	if (!isc_log_wouldlog(level)) {
 		return;
+	}
 
 	dns_name_format(client->query.origqname, namebuf, sizeof(namebuf));
 	dns_rdataclass_format(client->message->rdclass, classbuf,

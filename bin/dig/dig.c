@@ -1500,9 +1500,9 @@ plus_tls_options(const char *cmd, const char *value, const bool state,
 		goto invalid_option;
 	}
 
-	return true;
+	return (true);
 invalid_option:
-	return false;
+	return (false);
 }
 
 /*%

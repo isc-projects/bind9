@@ -54,16 +54,16 @@
 
 #define IS_PRINTABLE_ASCII(c) ((unsigned char)(c) - 040u < 0137u)
 
-#define CHECK_EOF()           \
-	if (buf == buf_end) { \
-		*ret = -2;    \
-		return NULL;  \
+#define CHECK_EOF()            \
+	if (buf == buf_end) {  \
+		*ret = -2;     \
+		return (NULL); \
 	}
 
 #define EXPECT_CHAR_NO_CHECK(ch) \
 	if (*buf++ != ch) {      \
 		*ret = -1;       \
-		return NULL;     \
+		return (NULL);   \
 	}
 
 #define EXPECT_CHAR(ch) \
@@ -88,7 +88,7 @@
 				    *buf == '\177')                       \
 				{                                         \
 					*ret = -1;                        \
-					return NULL;                      \
+					return (NULL);                    \
 				}                                         \
 			}                                                 \
 			++buf;                                            \
@@ -138,7 +138,7 @@ findchar_fast(const char *buf, const char *buf_end, const char *ranges,
 	(void)ranges;
 	(void)ranges_size;
 #endif
-	return buf;
+	return (buf);
 }
 
 static const char *
@@ -207,11 +207,11 @@ FOUND_CTL:
 		++buf;
 	} else {
 		*ret = -1;
-		return NULL;
+		return (NULL);
 	}
 	*token = token_start;
 
-	return buf;
+	return (buf);
 }
 
 static const char *
@@ -234,19 +234,19 @@ is_complete(const char *buf, const char *buf_end, size_t last_len, int *ret) {
 			ret_cnt = 0;
 		}
 		if (ret_cnt == 2) {
-			return buf;
+			return (buf);
 		}
 	}
 
 	*ret = -2;
-	return NULL;
+	return (NULL);
 }
 
 #define PARSE_INT(valp_, mul_)          \
 	if (*buf < '0' || '9' < *buf) { \
 		buf++;                  \
 		*ret = -1;              \
-		return NULL;            \
+		return (NULL);          \
 	}                               \
 	*(valp_) = (mul_) * (*buf++ - '0');
 
@@ -289,14 +289,14 @@ parse_token(const char *buf, const char *buf_end, const char **token,
 			break;
 		} else if (!token_char_map[(unsigned char)*buf]) {
 			*ret = -1;
-			return NULL;
+			return (NULL);
 		}
 		++buf;
 		CHECK_EOF();
 	}
 	*token = buf_start;
 	*token_len = buf - buf_start;
-	return buf;
+	return (buf);
 }
 
 /* returned pointer is always within [buf, buf_end), or null */
@@ -306,7 +306,7 @@ parse_http_version(const char *buf, const char *buf_end, int *minor_version,
 	/* we want at least [HTTP/1.<two chars>] to try to parse */
 	if (buf_end - buf < 9) {
 		*ret = -2;
-		return NULL;
+		return (NULL);
 	}
 	EXPECT_CHAR_NO_CHECK('H');
 	EXPECT_CHAR_NO_CHECK('T');
@@ -316,7 +316,7 @@ parse_http_version(const char *buf, const char *buf_end, int *minor_version,
 	EXPECT_CHAR_NO_CHECK('1');
 	EXPECT_CHAR_NO_CHECK('.');
 	PARSE_INT(minor_version, 1);
-	return buf;
+	return (buf);
 }
 
 static const char *
@@ -334,7 +334,7 @@ parse_headers(const char *buf, const char *buf_end, struct phr_header *headers,
 		}
 		if (*num_headers == max_headers) {
 			*ret = -1;
-			return NULL;
+			return (NULL);
 		}
 		if (!(*num_headers != 0 && (*buf == ' ' || *buf == '\t'))) {
 			/* parsing name, but do not discard SP before colon, see
@@ -345,11 +345,11 @@ parse_headers(const char *buf, const char *buf_end, struct phr_header *headers,
 					       &headers[*num_headers].name_len,
 					       ':', ret)) == NULL)
 			{
-				return NULL;
+				return (NULL);
 			}
 			if (headers[*num_headers].name_len == 0) {
 				*ret = -1;
-				return NULL;
+				return (NULL);
 			}
 			++buf;
 			for (;; ++buf) {
@@ -367,7 +367,7 @@ parse_headers(const char *buf, const char *buf_end, struct phr_header *headers,
 		if ((buf = get_token_to_eol(buf, buf_end, &value, &value_len,
 					    ret)) == NULL)
 		{
-			return NULL;
+			return (NULL);
 		}
 		/* remove trailing SPs and HTABs */
 		const char *value_end = value + value_len;
@@ -380,7 +380,7 @@ parse_headers(const char *buf, const char *buf_end, struct phr_header *headers,
 		headers[*num_headers].value = value;
 		headers[*num_headers].value_len = value_end - value;
 	}
-	return buf;
+	return (buf);
 }
 
 static const char *
@@ -401,7 +401,7 @@ parse_request(const char *buf, const char *buf_end, const char **method,
 	if ((buf = parse_token(buf, buf_end, method, method_len, ' ', ret)) ==
 	    NULL)
 	{
-		return NULL;
+		return (NULL);
 	}
 	do {
 		++buf;
@@ -414,12 +414,12 @@ parse_request(const char *buf, const char *buf_end, const char **method,
 	} while (*buf == ' ');
 	if (*method_len == 0 || *path_len == 0) {
 		*ret = -1;
-		return NULL;
+		return (NULL);
 	}
 	if ((buf = parse_http_version(buf, buf_end, minor_version, ret)) ==
 	    NULL)
 	{
-		return NULL;
+		return (NULL);
 	}
 	if (*buf == '\015') {
 		++buf;
@@ -428,11 +428,11 @@ parse_request(const char *buf, const char *buf_end, const char **method,
 		++buf;
 	} else {
 		*ret = -1;
-		return NULL;
+		return (NULL);
 	}
 
-	return parse_headers(buf, buf_end, headers, num_headers, max_headers,
-			     ret);
+	return (parse_headers(buf, buf_end, headers, num_headers, max_headers,
+			      ret));
 }
 
 int
@@ -454,14 +454,14 @@ phr_parse_request(const char *buf_start, size_t len, const char **method,
 	/* if last_len != 0, check if the request is complete (a fast
 	   countermeasure againt slowloris */
 	if (last_len != 0 && is_complete(buf, buf_end, last_len, &r) == NULL) {
-		return r;
+		return (r);
 	}
 
 	if ((buf = parse_request(buf, buf_end, method, method_len, path,
 				 path_len, minor_version, headers, num_headers,
 				 max_headers, &r)) == NULL)
 	{
-		return r;
+		return (r);
 	}
 
 	return (int)(buf - buf_start);
@@ -476,12 +476,12 @@ parse_response(const char *buf, const char *buf_end, int *minor_version,
 	if ((buf = parse_http_version(buf, buf_end, minor_version, ret)) ==
 	    NULL)
 	{
-		return NULL;
+		return (NULL);
 	}
 	/* skip space */
 	if (*buf != ' ') {
 		*ret = -1;
-		return NULL;
+		return (NULL);
 	}
 	do {
 		++buf;
@@ -491,13 +491,13 @@ parse_response(const char *buf, const char *buf_end, int *minor_version,
 	 * char> to try to parse */
 	if (buf_end - buf < 4) {
 		*ret = -2;
-		return NULL;
+		return (NULL);
 	}
 	PARSE_INT_3(status);
 
 	/* get message including preceding space */
 	if ((buf = get_token_to_eol(buf, buf_end, msg, msg_len, ret)) == NULL) {
-		return NULL;
+		return (NULL);
 	}
 	if (*msg_len == 0) {
 		/* ok */
@@ -513,11 +513,11 @@ parse_response(const char *buf, const char *buf_end, int *minor_version,
 	} else {
 		/* garbage found after status code */
 		*ret = -1;
-		return NULL;
+		return (NULL);
 	}
 
-	return parse_headers(buf, buf_end, headers, num_headers, max_headers,
-			     ret);
+	return (parse_headers(buf, buf_end, headers, num_headers, max_headers,
+			      ret));
 }
 
 int
@@ -538,14 +538,14 @@ phr_parse_response(const char *buf_start, size_t len, int *minor_version,
 	/* if last_len != 0, check if the response is complete (a fast
 	   countermeasure against slowloris */
 	if (last_len != 0 && is_complete(buf, buf_end, last_len, &r) == NULL) {
-		return r;
+		return (r);
 	}
 
 	if ((buf = parse_response(buf, buf_end, minor_version, status, msg,
 				  msg_len, headers, num_headers, max_headers,
 				  &r)) == NULL)
 	{
-		return r;
+		return (r);
 	}
 
 	return (int)(buf - buf_start);
@@ -563,13 +563,13 @@ phr_parse_headers(const char *buf_start, size_t len, struct phr_header *headers,
 	/* if last_len != 0, check if the response is complete (a fast
 	   countermeasure against slowloris */
 	if (last_len != 0 && is_complete(buf, buf_end, last_len, &r) == NULL) {
-		return r;
+		return (r);
 	}
 
 	if ((buf = parse_headers(buf, buf_end, headers, num_headers,
 				 max_headers, &r)) == NULL)
 	{
-		return r;
+		return (r);
 	}
 
 	return (int)(buf - buf_start);
@@ -587,13 +587,13 @@ enum {
 static int
 decode_hex(int ch) {
 	if ('0' <= ch && ch <= '9') {
-		return ch - '0';
+		return (ch - '0');
 	} else if ('A' <= ch && ch <= 'F') {
-		return ch - 'A' + 0xa;
+		return (ch - 'A' + 0xa);
 	} else if ('a' <= ch && ch <= 'f') {
-		return ch - 'a' + 0xa;
+		return (ch - 'a' + 0xa);
 	} else {
-		return -1;
+		return (-1);
 	}
 }
 
@@ -608,8 +608,9 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 		case CHUNKED_IN_CHUNK_SIZE:
 			for (;; ++src) {
 				int v;
-				if (src == bufsz)
+				if (src == bufsz) {
 					goto Exit;
+				}
 				if ((v = decode_hex(buf[src])) == -1) {
 					if (decoder->_hex_count == 0) {
 						ret = -1;
@@ -632,10 +633,12 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 			/* RFC 7230 A.2 "Line folding in chunk extensions is
 			 * disallowed" */
 			for (;; ++src) {
-				if (src == bufsz)
+				if (src == bufsz) {
 					goto Exit;
-				if (buf[src] == '\012')
+				}
+				if (buf[src] == '\012') {
 					break;
+				}
 			}
 			++src;
 			if (decoder->bytes_left_in_chunk == 0) {
@@ -652,16 +655,18 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 		case CHUNKED_IN_CHUNK_DATA: {
 			size_t avail = bufsz - src;
 			if (avail < decoder->bytes_left_in_chunk) {
-				if (dst != src)
+				if (dst != src) {
 					memmove(buf + dst, buf + src, avail);
+				}
 				src += avail;
 				dst += avail;
 				decoder->bytes_left_in_chunk -= avail;
 				goto Exit;
 			}
-			if (dst != src)
+			if (dst != src) {
 				memmove(buf + dst, buf + src,
 					decoder->bytes_left_in_chunk);
+			}
 			src += decoder->bytes_left_in_chunk;
 			dst += decoder->bytes_left_in_chunk;
 			decoder->bytes_left_in_chunk = 0;
@@ -670,10 +675,12 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 		/* fallthru */
 		case CHUNKED_IN_CHUNK_CRLF:
 			for (;; ++src) {
-				if (src == bufsz)
+				if (src == bufsz) {
 					goto Exit;
-				if (buf[src] != '\015')
+				}
+				if (buf[src] != '\015') {
 					break;
+				}
 			}
 			if (buf[src] != '\012') {
 				ret = -1;
@@ -684,21 +691,26 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 			break;
 		case CHUNKED_IN_TRAILERS_LINE_HEAD:
 			for (;; ++src) {
-				if (src == bufsz)
+				if (src == bufsz) {
 					goto Exit;
-				if (buf[src] != '\015')
+				}
+				if (buf[src] != '\015') {
 					break;
+				}
 			}
-			if (buf[src++] == '\012')
+			if (buf[src++] == '\012') {
 				goto Complete;
+			}
 			decoder->_state = CHUNKED_IN_TRAILERS_LINE_MIDDLE;
 		/* fallthru */
 		case CHUNKED_IN_TRAILERS_LINE_MIDDLE:
 			for (;; ++src) {
-				if (src == bufsz)
+				if (src == bufsz) {
 					goto Exit;
-				if (buf[src] == '\012')
+				}
+				if (buf[src] == '\012') {
 					break;
+				}
 			}
 			++src;
 			decoder->_state = CHUNKED_IN_TRAILERS_LINE_HEAD;
@@ -711,15 +723,16 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 Complete:
 	ret = bufsz - src;
 Exit:
-	if (dst != src)
+	if (dst != src) {
 		memmove(buf + dst, buf + src, bufsz - src);
+	}
 	*_bufsz = dst;
-	return ret;
+	return (ret);
 }
 
 int
 phr_decode_chunked_is_in_data(struct phr_chunked_decoder *decoder) {
-	return decoder->_state == CHUNKED_IN_CHUNK_DATA;
+	return (decoder->_state == CHUNKED_IN_CHUNK_DATA);
 }
 
 #undef CHECK_EOF

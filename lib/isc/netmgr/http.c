@@ -2583,7 +2583,7 @@ isc_nm_http_endpoints_new(isc_mem_t *mctx) {
 	atomic_init(&eps->in_use, false);
 	eps->magic = HTTP_ENDPOINTS_MAGIC;
 
-	return eps;
+	return (eps);
 }
 
 void

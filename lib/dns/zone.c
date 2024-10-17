@@ -20724,7 +20724,7 @@ do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 			     count, dst_key_id(key));
 
 		if (count != num) {
-			return false;
+			return (false);
 		}
 	} else {
 		(void)dst_key_getnum(key, DST_NUM_DSDELCOUNT, &count);
@@ -20736,7 +20736,7 @@ do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 			     count, dst_key_id(key));
 
 		if (count != num) {
-			return false;
+			return (false);
 		}
 	}
 
@@ -20755,10 +20755,10 @@ do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 		dns_zone_log(zone, ISC_LOG_WARNING,
 			     "checkds: checkds for key %u failed: %s",
 			     dst_key_id(key), isc_result_totext(result));
-		return false;
+		return (false);
 	}
 
-	return true;
+	return (true);
 }
 
 static isc_result_t

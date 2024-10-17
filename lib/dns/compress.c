@@ -227,7 +227,7 @@ insert_label(dns_compress_t *cctx, isc_buffer_t *buffer, const dns_name_t *name,
 	unsigned int prefix_len = name->offsets[label];
 	unsigned int coff = isc_buffer_usedlength(buffer) + prefix_len;
 	if (coff >= 0x4000 || cctx->count > cctx->mask * 3 / 4) {
-		return false;
+		return (false);
 	}
 	for (;;) {
 		unsigned int slot = slot_index(cctx, hash, probe);
@@ -236,7 +236,7 @@ insert_label(dns_compress_t *cctx, isc_buffer_t *buffer, const dns_name_t *name,
 			cctx->set[slot].hash = hash;
 			cctx->set[slot].coff = coff;
 			cctx->count++;
-			return true;
+			return (true);
 		}
 		/* he steals from the rich and gives to the poor */
 		if (probe > probe_distance(cctx, slot)) {
