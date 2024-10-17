@@ -52,7 +52,6 @@ EXTRA_DIST =					\
 	recursive-query.png			\
 	reference.rst				\
 	requirements.inc.rst			\
-	requirements.txt			\
 	resolver-forward.dia			\
 	resolver-forward.png			\
 	rpz.inc.rst				\
