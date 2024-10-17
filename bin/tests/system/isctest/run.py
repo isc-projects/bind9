@@ -20,7 +20,7 @@ from isctest.compat import dns_rcode
 import dns.message
 
 
-def cmd(  # pylint: disable=too-many-arguments
+def cmd(
     args,
     cwd=None,
     timeout=60,
