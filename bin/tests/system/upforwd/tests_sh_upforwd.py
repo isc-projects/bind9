@@ -9,6 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
 
+import isctest.mark
+
+
+@pytest.mark.xfail(reason="GL #4996", condition=isctest.mark.with_dnstap())
 def test_upforwd(run_tests_sh):
     run_tests_sh()
