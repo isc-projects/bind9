@@ -68,15 +68,15 @@ check_ndots(irs_resconf_t *resconf) {
 static isc_result_t
 check_options(irs_resconf_t *resconf) {
 	if (irs_resconf_getattempts(resconf) != 3) {
-		return ISC_R_BADNUMBER; /* default value only */
+		return (ISC_R_BADNUMBER); /* default value only */
 	}
 
 	if (irs_resconf_getndots(resconf) != 2) {
-		return ISC_R_BADNUMBER;
+		return (ISC_R_BADNUMBER);
 	}
 
 	if (irs_resconf_gettimeout(resconf) != 1) {
-		return ISC_R_BADNUMBER;
+		return (ISC_R_BADNUMBER);
 	}
 
 	return (ISC_R_SUCCESS);

@@ -101,7 +101,7 @@ main(int argc, char **argv) {
 	ret = LLVMFuzzerInitialize(&argc, &argv);
 	if (ret != 0) {
 		fprintf(stderr, "LLVMFuzzerInitialize failure: %d\n", ret);
-		return 1;
+		return (1);
 	}
 
 	if (argv[1] != NULL && strcmp(argv[1], "-d") == 0) {
@@ -142,7 +142,7 @@ main(int argc, char **argv) {
 	LLVMFuzzerInitialize(&argc, &argv);
 	if (ret != 0) {
 		fprintf(stderr, "LLVMFuzzerInitialize failure: %d\n", ret);
-		return 1;
+		return (1);
 	}
 
 #ifdef __AFL_LOOP

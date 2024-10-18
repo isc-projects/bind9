@@ -1440,11 +1440,11 @@ static const char *
 request_type(dns_xfrin_t *xfr) {
 	switch (xfr->reqtype) {
 	case dns_rdatatype_soa:
-		return "SOA";
+		return ("SOA");
 	case dns_rdatatype_axfr:
-		return "AXFR";
+		return ("AXFR");
 	case dns_rdatatype_ixfr:
-		return "IXFR";
+		return ("IXFR");
 	default:
 		ISC_UNREACHABLE();
 	}

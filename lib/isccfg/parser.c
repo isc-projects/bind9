@@ -1146,7 +1146,7 @@ cfg_obj_isduration(const cfg_obj_t *obj) {
 uint32_t
 cfg_obj_asduration(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_duration);
-	return isccfg_duration_toseconds(&(obj->value.duration));
+	return (isccfg_duration_toseconds(&(obj->value.duration)));
 }
 
 static isc_result_t

@@ -133,11 +133,13 @@ strnstr(const char *s, const char *find, size_t slen) {
 		len = strlen(find);
 		do {
 			do {
-				if (slen-- < 1 || (sc = *s++) == '\0')
+				if (slen-- < 1 || (sc = *s++) == '\0') {
 					return (NULL);
+				}
 			} while (sc != c);
-			if (len > slen)
+			if (len > slen) {
 				return (NULL);
+			}
 		} while (strncmp(s, find, len) != 0);
 		s--;
 	}

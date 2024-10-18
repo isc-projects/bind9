@@ -78,7 +78,7 @@ rand_zipf(uint32_t max, double skew) {
 		double ratio = sample <= 1 ? pow(sample, -s)
 					   : pow(sample, -s) / pow(invB, -s);
 		if (ratio > (double)isc_random32() / UINT32_MAX) {
-			return sample - 1;
+			return (sample - 1);
 		}
 	}
 }

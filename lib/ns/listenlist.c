@@ -219,8 +219,8 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, dns_acl_t *acl,
 		    const ns_listen_tls_params_t *tls_params,
 		    isc_tlsctx_cache_t *tlsctx_cache, isc_nm_proxy_type_t proxy,
 		    ns_listenelt_t **target) {
-	return listenelt_create(mctx, port, acl, family, false, tls, tls_params,
-				tlsctx_cache, proxy, target);
+	return (listenelt_create(mctx, port, acl, family, false, tls,
+				 tls_params, tlsctx_cache, proxy, target));
 }
 
 isc_result_t

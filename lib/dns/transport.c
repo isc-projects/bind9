@@ -358,7 +358,7 @@ dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
 	}
 
 	UNREACHABLE();
-	return false;
+	return (false);
 }
 
 void
@@ -377,7 +377,7 @@ dns_transport_get_always_verify_remote(dns_transport_t *transport) {
 	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
 		transport->type == DNS_TRANSPORT_HTTP);
 
-	return transport->tls.always_verify_remote;
+	return (transport->tls.always_verify_remote);
 }
 
 isc_result_t
