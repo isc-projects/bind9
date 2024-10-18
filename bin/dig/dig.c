@@ -1824,9 +1824,12 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 							     "specified");
 							goto exit_or_usage;
 						}
-						extra = strtok_r(NULL, "\0",
+						extra = strtok_r(NULL, "",
 								 &last);
 						save_opt(lookup, code, extra);
+						if (extra != NULL) {
+							extra[-1] = ':';
+						}
 						break;
 					default:
 						goto invalid_option;
@@ -2555,6 +2558,9 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		fprintf(stderr, "Invalid option: +%s\n", option);
 		usage();
 	}
+	if (value != NULL) {
+		value[-1] = '=';
+	}
 	return (lookup);
 
 #if !TARGET_OS_IPHONE
@@ -2814,8 +2820,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 								    * secret */
 			usage();
 		}
-		if ((ptr3 = strtok_r(NULL, ":", &last)) != NULL) { /* secret or
-								    * NULL */
+		if ((ptr3 = strtok_r(NULL, "", &last)) != NULL) { /* secret or
+								   * NULL */
 			parse_hmac(ptr);
 			ptr = ptr2;
 			ptr2 = ptr3;
@@ -2826,6 +2832,10 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		/* XXXONDREJ: FIXME */
 		strlcpy(keynametext, ptr, sizeof(keynametext));
 		strlcpy(keysecret, ptr2, sizeof(keysecret));
+		if (ptr3 != NULL) {
+			ptr[-1] = ':';
+		}
+		ptr2[-1] = ':';
 		return (value_from_next);
 	case 'x':
 		if (*need_clone) {
