@@ -63,7 +63,7 @@ openssleddsa_alg_info(unsigned int key_alg) {
 			.key_size = DNS_KEY_ED25519SIZE,
 			.sig_size = DNS_SIG_ED25519SIZE,
 		};
-		return &ed25519_alginfo;
+		return (&ed25519_alginfo);
 	}
 #if HAVE_OPENSSL_ED448
 	if (key_alg == DST_ALG_ED448) {
@@ -73,10 +73,10 @@ openssleddsa_alg_info(unsigned int key_alg) {
 			.key_size = DNS_KEY_ED448SIZE,
 			.sig_size = DNS_SIG_ED448SIZE,
 		};
-		return &ed448_alginfo;
+		return (&ed448_alginfo);
 	}
 #endif /* HAVE_OPENSSL_ED448 */
-	return NULL;
+	return (NULL);
 }
 
 static isc_result_t
@@ -344,7 +344,7 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	len = r.length;
 	ret = raw_key_to_ossl(alginfo, 0, r.base, &len, &pkey);
 	if (ret != ISC_R_SUCCESS) {
-		return ret;
+		return (ret);
 	}
 
 	isc_buffer_forward(data, len);

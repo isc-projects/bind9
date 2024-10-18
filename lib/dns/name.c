@@ -170,7 +170,7 @@ dns_name_isabsolute(const dns_name_t *name) {
 
 	REQUIRE(DNS_NAME_VALID(name));
 
-	return name->attributes.absolute;
+	return (name->attributes.absolute);
 }
 
 #define hyphenchar(c) ((c) == 0x2d)

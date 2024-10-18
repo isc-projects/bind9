@@ -53,22 +53,22 @@ try_parse_message(isccc_ccmsg_t *ccmsg) {
 
 	uint32_t len = 0;
 	if (isc_buffer_peekuint32(ccmsg->buffer, &len) != ISC_R_SUCCESS) {
-		return ISC_R_NOMORE;
+		return (ISC_R_NOMORE);
 	}
 	if (len == 0) {
-		return ISC_R_UNEXPECTEDEND;
+		return (ISC_R_UNEXPECTEDEND);
 	}
 	if (len > ccmsg->maxsize) {
-		return ISC_R_RANGE;
+		return (ISC_R_RANGE);
 	}
 	if (isc_buffer_remaininglength(ccmsg->buffer) < sizeof(uint32_t) + len)
 	{
-		return ISC_R_NOMORE;
+		return (ISC_R_NOMORE);
 	}
 	/* Skip the size we just peeked */
 	isc_buffer_forward(ccmsg->buffer, sizeof(uint32_t));
 	ccmsg->size = len;
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 static void

@@ -172,7 +172,7 @@ buildpkcs11label(const char *uri, const dns_name_t *zname, const char *policy,
 	}
 	/* key type + current time */
 	isc_time_formatshorttimestamp(&now, timebuf, sizeof(timebuf));
-	return isc_buffer_printf(buf, "-%s-%s", ksk ? "ksk" : "zsk", timebuf);
+	return (isc_buffer_printf(buf, "-%s-%s", ksk ? "ksk" : "zsk", timebuf));
 }
 
 isc_result_t

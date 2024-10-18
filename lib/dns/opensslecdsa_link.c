@@ -79,11 +79,11 @@ opensslecdsa_set_deterministic(EVP_PKEY_CTX *pctx, unsigned int key_alg) {
 	params[2] = OSSL_PARAM_construct_end();
 
 	if (EVP_PKEY_CTX_set_params(pctx, params) != 1) {
-		return dst__openssl_toresult2("EVP_PKEY_CTX_set_params",
-					      DST_R_OPENSSLFAILURE);
+		return (dst__openssl_toresult2("EVP_PKEY_CTX_set_params",
+					       DST_R_OPENSSLFAILURE));
 	}
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30200000L */
 
