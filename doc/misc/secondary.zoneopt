@@ -22,6 +22,7 @@ zone <string> [ <class> ] {
 	ixfr-from-differences <boolean>;
 	journal <quoted_string>;
 	key-directory <quoted_string>;
+	log-report-channel <boolean>;
 	masterfile-format ( raw | text );
 	masterfile-style ( full | relative );
 	max-ixfr-ratio ( unlimited | <percentage> );

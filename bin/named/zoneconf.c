@@ -1493,6 +1493,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else {
 			dns_zone_setrad(zone, NULL);
 		}
+
+		obj = NULL;
+		result = cfg_map_get(zoptions, "log-report-channel", &obj);
+		if (result == ISC_R_SUCCESS) {
+			dns_zone_setoption(zone, DNS_ZONEOPT_LOGREPORTS,
+					   cfg_obj_asboolean(obj));
+		}
 	} else if (ztype == dns_zone_redirect) {
 		dns_zone_setnotifytype(zone, dns_notifytype_no);
 

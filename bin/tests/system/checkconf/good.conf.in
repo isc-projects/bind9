@@ -105,6 +105,11 @@ view "first" {
 		file "yyy";
 		max-ixfr-ratio unlimited;
 	};
+	zone "reports" {
+		type primary;
+		file "reports";
+		log-report-channel yes;
+	};
 	dnssec-validation auto;
 	max-query-restarts 15;
 	zone-statistics terse;

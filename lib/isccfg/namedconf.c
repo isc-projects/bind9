@@ -2438,6 +2438,8 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	{ "ixfr-tmp-file", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "journal", &cfg_type_qstring,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR },
+	{ "log-report-channel", &cfg_type_boolean,
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
 	{ "masters", &cfg_type_namesockaddrkeylist,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_ZONE_REDIRECT | CFG_CLAUSEFLAG_NODOC },

@@ -94,9 +94,9 @@ typedef enum {
 					      */
 	DNS_ZONEOPT_NOTIFYTOSOA = 1 << 21,   /*%< Notify the SOA MNAME */
 	DNS_ZONEOPT_NSEC3TESTZONE = 1 << 22, /*%< nsec3-test-zone */
-	/* DNS_ZONEOPT_SECURETOINSECURE = 1 << 23, */
-	DNS_ZONEOPT_DNSKEYKSKONLY = 1 << 24,  /*%< dnssec-dnskey-kskonly */
-	DNS_ZONEOPT_CHECKDUPRR = 1 << 25,     /*%< check-dup-records */
+	DNS_ZONEOPT_LOGREPORTS = 1 << 23,    /* Log error-reporting queries */
+	DNS_ZONEOPT_DNSKEYKSKONLY = 1 << 24, /*%< dnssec-dnskey-kskonly */
+	DNS_ZONEOPT_CHECKDUPRR = 1 << 25,    /*%< check-dup-records */
 	DNS_ZONEOPT_CHECKDUPRRFAIL = 1 << 26, /*%< fatal check-dup-records
 					       * failures */
 	DNS_ZONEOPT_CHECKSPF = 1 << 27,	      /*%< check SPF records */
