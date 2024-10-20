@@ -212,5 +212,15 @@ grep "; Report-Channel: rad.example.net" dig.out.test$n >/dev/null && ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "check that error report queries to non-logging zones are not logged ($n)"
+ret=0
+nextpart ns1/named.run >/dev/null
+$DIG $DIGOPTS @10.53.0.1 _er.0.example.1._er.example.com TXT >dig.out.test$n
+nextpart ns1/named.run | grep "dns-reporting-agent '_er.0.example.1._er.example.com/IN'" >/dev/null && ret=1
+grep "; Report-Channel: rad.example.com" dig.out.test$n >/dev/null || ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

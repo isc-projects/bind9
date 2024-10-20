@@ -44,7 +44,7 @@
     A catch-all for many things that still are not classified into categories.
 
 ``dns-reporting-agent``
-    Logs reports from clients that the there is an error in our responses.
+    Reports from clients indicating that there is an error in our responses.
 
 ``lame-servers``
     Misconfigurations in remote servers, discovered by BIND 9 when trying to query those servers during resolution.

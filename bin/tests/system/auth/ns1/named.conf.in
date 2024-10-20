@@ -38,6 +38,12 @@ view main in {
 		file "example.com.db";
 		send-report-channel "rad.example.com";
 	};
+
+	zone rad.example.net {
+		type primary;
+		file "rad.db";
+		log-report-channel yes;
+	};
 };
 
 view alt chaos {

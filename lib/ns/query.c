@@ -5332,6 +5332,75 @@ root_key_sentinel_detect(query_ctx_t *qctx) {
 	}
 }
 
+static void
+qctx_reportquery(query_ctx_t *qctx) {
+	ns_client_t *client = qctx->client;
+
+	client->attributes |= NS_CLIENTATTR_WANTRC;
+
+	/* If this isn't a report-logging zone, there's no more to do */
+	dns_zoneopt_t opts = dns_zone_getoptions(qctx->zone);
+	if ((opts & DNS_ZONEOPT_LOGREPORTS) == 0) {
+		return;
+	}
+
+	/*
+	 * Suppress EDNS Report-Channel in responses from report-
+	 * logging zones; this prevents infinite loops.
+	 */
+	client->attributes &= ~NS_CLIENTATTR_WANTRC;
+
+	/* If this isn't an error-report query, there's nothing more to do */
+	if (client->query.qtype != dns_rdatatype_txt ||
+	    !dns_name_israd(client->query.qname,
+			    dns_zone_getorigin(qctx->zone)))
+	{
+		return;
+	}
+
+	/*
+	 * Check for TCP or a good server cookie.  If neither, send
+	 * back BADCOOKIE or TC=1.
+	 */
+	if (!TCP(client) && !HAVECOOKIE(client)) {
+		if (WANTCOOKIE(client)) {
+			client->attributes |= NS_CLIENTATTR_BADCOOKIE;
+		} else {
+			client->attributes |= NS_CLIENTATTR_NEEDTCP;
+		}
+	}
+
+	if (isc_log_wouldlog(ISC_LOG_INFO)) {
+		char classbuf[DNS_RDATACLASS_FORMATSIZE];
+		char namebuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+		dns_rdataclass_format(client->view->rdclass, classbuf,
+				      sizeof(classbuf));
+
+		isc_log_write(NS_LOGCATEGORY_DRA, NS_LOGMODULE_QUERY,
+			      ISC_LOG_INFO, "dns-reporting-agent '%s/%s'",
+			      namebuf, classbuf);
+	}
+}
+
+static void
+qctx_setrad(query_ctx_t *qctx) {
+	ns_client_t *client = qctx->client;
+
+	/* Set the client to send a Report-Channel option when replying */
+	if ((client->attributes & NS_CLIENTATTR_WANTRC) != 0) {
+		dns_fixedname_t fixed;
+		dns_name_t *rad = dns_fixedname_initname(&fixed);
+
+		if (!dns_name_dynamic(&client->rad) &&
+		    dns_zone_getrad(qctx->zone, rad) == ISC_R_SUCCESS)
+		{
+			dns_name_dup(rad, client->manager->mctx, &client->rad);
+		}
+	}
+}
+
 /*%
  * Starting point for a client query or a chaining query.
  *
@@ -5518,8 +5587,6 @@ ns__query_start(query_ctx_t *qctx) {
 	if (qctx->is_zone) {
 		qctx->authoritative = true;
 		if (qctx->zone != NULL) {
-			dns_fixedname_t fixed;
-			dns_name_t *rad;
 			switch (dns_zone_gettype(qctx->zone)) {
 			case dns_zone_mirror:
 				qctx->authoritative = false;
@@ -5529,16 +5596,8 @@ ns__query_start(query_ctx_t *qctx) {
 				break;
 			case dns_zone_primary:
 			case dns_zone_secondary:
-				rad = dns_fixedname_initname(&fixed);
-				if (!dns_name_dynamic(&qctx->client->rad) &&
-				    dns_zone_getrad(qctx->zone, rad) ==
-					    ISC_R_SUCCESS)
-				{
-					dns_name_dup(
-						rad,
-						qctx->client->manager->mctx,
-						&qctx->client->rad);
-				}
+				qctx_reportquery(qctx);
+				qctx_setrad(qctx);
 				break;
 			default:
 				break;
@@ -11494,54 +11553,6 @@ cleanup:
 }
 
 static void
-log_reportchannel(ns_client_t *client) {
-	char classbuf[DNS_RDATACLASS_FORMATSIZE];
-	char namebuf[DNS_NAME_FORMATSIZE];
-
-	client->attributes |= NS_CLIENTATTR_WANTRC;
-
-	if (client->view->rad != NULL &&
-	    dns_name_issubdomain(client->query.qname, client->view->rad))
-	{
-		/*
-		 * Don't add Report-Channel to responses at or below the
-		 * reporting agent domain to prevent infinite loops.
-		 */
-		client->attributes &= ~NS_CLIENTATTR_WANTRC;
-	}
-
-	if (client->query.qtype != dns_rdatatype_txt ||
-	    client->view->rad == NULL ||
-	    !dns_name_israd(client->query.qname, client->view->rad))
-	{
-		return;
-	}
-
-	/*
-	 * Check for TCP or a good server cookie.  If neither send
-	 * back BADCOOKIE or TC=1.
-	 */
-	if (!TCP(client) && !HAVECOOKIE(client)) {
-		if (WANTCOOKIE(client)) {
-			client->attributes |= NS_CLIENTATTR_BADCOOKIE;
-		} else {
-			client->attributes |= NS_CLIENTATTR_NEEDTCP;
-		}
-	}
-
-	if (!isc_log_wouldlog(ISC_LOG_INFO)) {
-		return;
-	}
-
-	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
-	dns_rdataclass_format(client->view->rdclass, classbuf,
-			      sizeof(classbuf));
-
-	isc_log_write(NS_LOGCATEGORY_DRA, NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-		      "dns-reporting-agent '%s/%s'", namebuf, classbuf);
-}
-
-static void
 log_tat(ns_client_t *client) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char clientbuf[ISC_NETADDR_FORMATSIZE];
@@ -11796,7 +11807,6 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	dns_rdatatypestats_increment(client->manager->sctx->rcvquerystats,
 				     qtype);
 
-	log_reportchannel(client);
 	log_tat(client);
 
 	if (dns_rdatatype_ismeta(qtype)) {

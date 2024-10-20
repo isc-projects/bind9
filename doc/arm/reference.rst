@@ -1680,44 +1680,6 @@ default is used.
    If all supported digest types are disabled, the zones covered by
    :any:`disable-ds-digests` are treated as insecure.
 
-.. namedconf:statement:: send-report-channel
-   :tags: query
-   :short: Sets the Agent Domain value for the EDNS Report-Channel option
-
-   The EDNS Report-Channel option can be added to responses by an
-   authoritative server to inform clients of a domain name to which
-   operational and protocol errors may be reported. This can help
-   operators find out about configuration errors that are causing
-   problems with resolution or validation elsewhere (for example,
-   expired DNSSEC signatures).
-
-   When :any:`send-report-channel` is set in :namedconf:ref:`options`,
-   :namedconf:ref:`view`, or :namedconf:ref:`zone`, :iscman:`named` adds a
-   Report-Channel option to authoritative responses, using the specified
-   domain name as the Agent-Domain.
-
-   When it is set in :namedconf:ref:`options` or :namedconf:ref:`view` (but
-   *not* :namedconf:ref:`zone`), :iscman:`named` also logs any TXT queries
-   received for names matching the prescribed error-reporting format
-   (_er.<type>.<name>.<extended-rcode>._er.<agent-domain>) to the
-   ``dns-reporting-agent`` logging category at level ``info``.
-
-   There should be a zone delegated to respond to these queries with TXT
-   records, to avoid unnecessarily query repetition. For example:
-
-   ::
-
-      e.g.
-          $ORIGIN <agent-domain>
-          @ 600 SOA <namserver1> <contact-email> 0 0 0 0 600
-          @ 600 NS <nameserver1>
-          @ 600 NS <nameserver2>
-          *._er 600 TXT ""
-
-   If :any:`send-report-channel` is not set, or is set to ``.``, then
-   the EDNS option is not added to responses, and error-report queries are
-   not logged.
-
 .. namedconf:statement:: dnssec-must-be-secure
    :tags: deprecated
    :short: Defines hierarchies that must or may not be secure (signed and validated).
@@ -1956,6 +1918,32 @@ default is used.
    When used in :namedconf:ref:`options`, :namedconf:ref:`view` and
    :namedconf:ref:`zone` blocks, setting :any:`max-zone-ttl` to zero
    is equivalent to "unlimited".
+
+.. namedconf:statement:: send-report-channel
+   :tags: query
+   :short: Sets the Agent Domain value for the EDNS Report-Channel option
+
+   The EDNS Report-Channel option can be added to responses by an
+   authoritative server to inform clients of a domain name to which
+   operational and protocol errors may be reported. This can help
+   operators find out about configuration errors that are causing
+   problems with resolution or validation elsewhere (for example,
+   expired DNSSEC signatures).
+
+   When :any:`send-report-channel` is set in :namedconf:ref:`options`,
+   :namedconf:ref:`view`, or :namedconf:ref:`zone`, :iscman:`named` adds a
+   Report-Channel option to authoritative responses, using the specified
+   domain name as the Agent-Domain.
+
+   If :any:`send-report-channel` is not set, or is set to ``.``, then
+   the EDNS option is not added to responses.
+
+   A client that wishes to report an error can send a query for type TXT
+   to a name matching the prescribed RFC 9567 error-reporting format:
+   ``_er.<type>.<name>.<extended-rcode>._er.<agent-domain>``.
+
+   There should be an authoritative zone configured to respond to such
+   queries, with the :any:`log-report-channel` option set to ``yes``.
 
 .. namedconf:statement:: stale-answer-ttl
    :tags: query
@@ -7316,6 +7304,30 @@ Zone Options
    See the description of :any:`max-zone-ttl` in :namedconf:ref:`options`.
    The use of this option in :any:`zone` blocks is deprecated and
    will be rendered non-operational in a future release.
+
+.. namedconf:statement:: log-report-channel
+   :tags: logging
+   :short: Specifies whether to log error-report queries.
+
+   When this option is set to ``yes``, TXT queries for names
+   matching the prescribed RFC 9567 error-reporting format
+   (``_er.<type>.<name>.<extended-rcode>._er.<zone-name>``)
+   are logged to the ``dns-reporting-agent`` logging category at
+   level ``info``.
+
+   The zone should have a wildcard record in place to respond to such
+   queries. For example:
+
+   ::
+
+          $ORIGIN <agent-domain>
+          @ 600 SOA <namserver1> <contact-email> 0 0 0 0 600
+          @ 600 NS <nameserver1>
+          @ 600 NS <nameserver2>
+          *._er 600 TXT "Report received"
+
+:any:`send-report-channel`
+   See the description of :any:`send-report-channel` in :namedconf:ref:`options`.
 
 .. _dynamic_update_policies:
 

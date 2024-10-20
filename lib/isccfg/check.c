@@ -3911,6 +3911,22 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
+	 * "log-report-channel" cannot be set for the root zone.
+	 */
+	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY) {
+		obj = NULL;
+		tresult = cfg_map_get(zoptions, "log-report-channel", &obj);
+		if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(obj) &&
+		    dns_name_equal(zname, dns_rootname))
+		{
+			cfg_obj_log(zconfig, ISC_LOG_ERROR,
+				    "'log-report-channel' cannot be set in "
+				    "the root zone");
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	/*
 	 * Check various options.
 	 */
 	tresult = check_options(zoptions, config, false, mctx, optlevel_zone);
@@ -5070,73 +5086,28 @@ cleanup:
 
 typedef enum { special_zonetype_rpz, special_zonetype_catz } special_zonetype_t;
 
-static bool
-iszone(const cfg_obj_t *nameobj, const char *what, const char *forview,
-       const char *viewname, int level, isc_symtab_t *symtab) {
-	char namebuf[DNS_NAME_FORMATSIZE];
-	const cfg_obj_t *obj = NULL;
-	const char *zonename = cfg_obj_asstring(nameobj);
-	const char *zonetype = "";
-	dns_fixedname_t fixed;
-	dns_name_t *name = dns_fixedname_initname(&fixed);
-	isc_result_t result;
-	isc_symvalue_t value;
-
-	if (viewname == NULL) {
-		viewname = "";
-		forview = "";
-	}
-
-	result = dns_name_fromstring(name, zonename, dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(nameobj, ISC_LOG_ERROR, "bad domain name '%s'",
-			    zonename);
-		return (false);
-	}
-
-	dns_name_format(name, namebuf, sizeof(namebuf));
-	result = isc_symtab_lookup(symtab, namebuf, 3, &value);
-	if (result == ISC_R_SUCCESS) {
-		const cfg_obj_t *zoneobj = value.as_cpointer;
-		if (zoneobj != NULL && cfg_obj_istuple(zoneobj)) {
-			zoneobj = cfg_tuple_get(zoneobj, "options");
-		}
-		if (zoneobj != NULL && cfg_obj_ismap(zoneobj)) {
-			(void)cfg_map_get(zoneobj, "type", &obj);
-		}
-		if (obj != NULL) {
-			zonetype = cfg_obj_asstring(obj);
-		}
-	}
-
-	if (strcasecmp(zonetype, "primary") != 0 &&
-	    strcasecmp(zonetype, "master") != 0 &&
-	    strcasecmp(zonetype, "secondary") != 0 &&
-	    strcasecmp(zonetype, "slave") != 0)
-	{
-		cfg_obj_log(nameobj, level,
-			    "%s '%s'%s%s is not a primary or secondary zone",
-			    what, zonename, forview, viewname);
-		return (false);
-	}
-	return (true);
-}
-
 static isc_result_t
 check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	       const char *viewname, isc_symtab_t *symtab,
 	       special_zonetype_t specialzonetype) {
 	const cfg_listelt_t *element;
-	const cfg_obj_t *obj, *nameobj;
+	const cfg_obj_t *obj, *nameobj, *zoneobj;
+	const char *zonename, *zonetype;
 	const char *forview = " for view ";
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_symvalue_t value;
+	isc_result_t result, tresult;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	char namebuf[DNS_NAME_FORMATSIZE];
 	unsigned int num_zones = 0;
 
 	if (viewname == NULL) {
 		viewname = "";
 		forview = "";
 	}
+	result = ISC_R_SUCCESS;
 
+	name = dns_fixedname_initname(&fixed);
 	obj = cfg_tuple_get(rpz_obj, "zone list");
 
 	for (element = cfg_list_first(obj); element != NULL;
@@ -5144,21 +5115,56 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	{
 		obj = cfg_listelt_value(element);
 		nameobj = cfg_tuple_get(obj, "zone name");
+		zonename = cfg_obj_asstring(nameobj);
+		zonetype = "";
 
 		if (specialzonetype == special_zonetype_rpz) {
 			if (++num_zones > 64) {
 				cfg_obj_log(nameobj, ISC_LOG_ERROR,
 					    "more than 64 response policy "
-					    "zones%s'%s'",
-					    forview, viewname);
+					    "zones in view '%s'",
+					    viewname);
 				return (ISC_R_FAILURE);
 			}
 		}
 
-		if (!iszone(nameobj, rpz_catz, forview, viewname, ISC_LOG_ERROR,
-			    symtab))
+		tresult = dns_name_fromstring(name, zonename, dns_rootname, 0,
+					      NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(nameobj, ISC_LOG_ERROR,
+				    "bad domain name '%s'", zonename);
+			if (result == ISC_R_SUCCESS) {
+				result = tresult;
+			}
+			continue;
+		}
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		tresult = isc_symtab_lookup(symtab, namebuf, 3, &value);
+		if (tresult == ISC_R_SUCCESS) {
+			obj = NULL;
+			zoneobj = value.as_cpointer;
+			if (zoneobj != NULL && cfg_obj_istuple(zoneobj)) {
+				zoneobj = cfg_tuple_get(zoneobj, "options");
+			}
+			if (zoneobj != NULL && cfg_obj_ismap(zoneobj)) {
+				(void)cfg_map_get(zoneobj, "type", &obj);
+			}
+			if (obj != NULL) {
+				zonetype = cfg_obj_asstring(obj);
+			}
+		}
+		if (strcasecmp(zonetype, "primary") != 0 &&
+		    strcasecmp(zonetype, "master") != 0 &&
+		    strcasecmp(zonetype, "secondary") != 0 &&
+		    strcasecmp(zonetype, "slave") != 0)
 		{
-			result = ISC_R_FAILURE;
+			cfg_obj_log(nameobj, ISC_LOG_ERROR,
+				    "%s '%s'%s%s is not a primary or secondary "
+				    "zone",
+				    rpz_catz, zonename, forview, viewname);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
 		}
 	}
 	return (result);
@@ -5438,8 +5444,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 
 	/*
 	 * Check that the response-policy and catalog-zones options
-	 * refer to zones that exist.  Also warn if send-report-channel
-	 * is not a zone.
+	 * refer to zones that exist.
 	 */
 	if (opts != NULL) {
 		obj = NULL;
@@ -5460,14 +5465,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				    special_zonetype_catz) != ISC_R_SUCCESS))
 		{
 			result = ISC_R_FAILURE;
-		}
-
-		obj = NULL;
-		if ((cfg_map_get(opts, "send-report-channel", &obj) ==
-		     ISC_R_SUCCESS))
-		{
-			(void)iszone(obj, "send-report-channel", " for view ",
-				     viewname, ISC_LOG_WARNING, symtab);
 		}
 	}
 
