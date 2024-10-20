@@ -4727,6 +4727,47 @@ process_zone_setnsec3param(dns_zone_t *zone) {
 	}
 }
 
+static unsigned char er_offset[] = { 0, 1 };
+static unsigned char er_ndata[] = "\001*\003_er";
+static dns_name_t er = DNS_NAME_INITNONABSOLUTE(er_ndata, er_offset);
+
+static isc_result_t
+check_reportchannel(dns_zone_t *zone, dns_db_t *db) {
+	isc_result_t result;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
+	dns_dbnode_t *node = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
+
+	/*
+	 * If this zone isn't logging reports, it's fine.
+	 */
+	if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_LOGREPORTS)) {
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Otherwise, we need a '*._er' wildcard with a TXT rdataset.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	CHECK(dns_name_concatenate(&er, &zone->origin, name, NULL));
+	CHECK(dns_db_findnode(db, name, false, &node));
+
+	dns_db_currentversion(db, &version);
+
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_txt,
+				     dns_rdatatype_none, 0, &rdataset, NULL);
+	dns_db_closeversion(db, &version, false);
+	dns_db_detachnode(db, &node);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+
+failure:
+	return (result);
+}
+
 /*
  * The zone is presumed to be locked.
  * If this is a inline_raw zone the secure version is also locked.
@@ -4970,6 +5011,15 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     "failed");
 				goto cleanup;
 			}
+		}
+
+		result = check_reportchannel(zone, db);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "'log-report-channel' is set, but no "
+				     "'*._er/TXT' wildcard found");
+			result = DNS_R_BADZONE;
+			goto cleanup;
 		}
 
 		result = dns_zone_verifydb(zone, db, NULL);

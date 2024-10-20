@@ -7315,8 +7315,9 @@ Zone Options
    are logged to the ``dns-reporting-agent`` logging category at
    level ``info``.
 
-   The zone should have a wildcard record in place to respond to such
-   queries. For example:
+   The zone must have a wildcard record in place to respond to such
+   queries; it is a configuration error to use this option in a
+   zone without such a record. For example:
 
    ::
 

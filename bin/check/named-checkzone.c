@@ -159,7 +159,7 @@ main(int argc, char **argv) {
 
 	while ((c = isc_commandline_parse(argc, argv,
 					  "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:C:"
-					  "DF:M:S:T:W:")) != EOF)
+					  "DF:M:R:S:T:W:")) != EOF)
 	{
 		switch (c) {
 		case 'c':
@@ -318,6 +318,18 @@ main(int argc, char **argv) {
 						  DNS_ZONEOPT_CHECKDUPRRFAIL);
 			} else {
 				fprintf(stderr, "invalid argument to -r: %s\n",
+					isc_commandline_argument);
+				exit(EXIT_FAILURE);
+			}
+			break;
+
+		case 'R':
+			if (ARGCMP("fail")) {
+				zone_options |= DNS_ZONEOPT_LOGREPORTS;
+			} else if (ARGCMP("ignore")) {
+				zone_options &= ~DNS_ZONEOPT_LOGREPORTS;
+			} else {
+				fprintf(stderr, "invalid argument to -R: %s\n",
 					isc_commandline_argument);
 				exit(EXIT_FAILURE);
 			}
