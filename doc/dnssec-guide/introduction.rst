@@ -346,7 +346,7 @@ want to consider deploying DNSSEC:
    implementing DNSSEC, if your organization is subject to compliance
    standards that mandate it. For example, the US government set a
    deadline in 2008 to have all ``.gov`` subdomains signed by
-   December 2009  [#]_. So if you operate a subdomain in ``.gov``, you
+   December 2009. [#omb_memo]_ So if you operate a subdomain in ``.gov``, you
    must implement DNSSEC to be compliant. ICANN also requires
    that all new top-level domains support DNSSEC.
 
@@ -369,7 +369,7 @@ want to consider deploying DNSSEC:
    infrastructure. To take a peek at these next-generation DNS features,
    check out :ref:`introduction_to_dane`.
 
-.. [#]
+.. [#omb_memo]
    The Office of Management and Budget (OMB) for the US government
    published `a memo in
    2008 <https://georgewbush-whitehouse.archives.gov/omb/memoranda/fy2008/m08-23.pdf>`__,
