@@ -190,7 +190,7 @@ n=$((n + 1))
 echo_i "check that a Report-Channel EDNS option is added to responses ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.1 example.net >dig.out.test$n
-grep "; Report-Channel: rad.example.net" dig.out.test$n >/dev/null || ret=1
+grep "; Report-Channel: example.rad" dig.out.test$n >/dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
@@ -198,7 +198,7 @@ n=$((n + 1))
 echo_i "check that a zone-level Report-Channel EDNS option is added to responses ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.1 example.com >dig.out.test$n
-grep "; Report-Channel: rad.example.com" dig.out.test$n >/dev/null || ret=1
+grep "; Report-Channel: rad.example.net" dig.out.test$n >/dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
@@ -206,9 +206,9 @@ n=$((n + 1))
 echo_i "check that error report queries are logged and no Report-Channel option is present in the response ($n)"
 ret=0
 nextpart ns1/named.run >/dev/null
-$DIG $DIGOPTS @10.53.0.1 _er.0.example.1._er.rad.example.net TXT >dig.out.test$n
-nextpart ns1/named.run | grep "dns-reporting-agent '_er.0.example.1._er.rad.example.net/IN'" >/dev/null || ret=1
-grep "; Report-Channel: rad.example.net" dig.out.test$n >/dev/null && ret=1
+$DIG $DIGOPTS @10.53.0.1 _er.0.example.1._er.example.rad TXT >dig.out.test$n
+nextpart ns1/named.run | grep "dns-reporting-agent '_er.0.example.1._er.example.rad/IN'" >/dev/null || ret=1
+grep "; Report-Channel: example.rad" dig.out.test$n >/dev/null && ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
@@ -218,7 +218,7 @@ ret=0
 nextpart ns1/named.run >/dev/null
 $DIG $DIGOPTS @10.53.0.1 _er.0.example.1._er.example.com TXT >dig.out.test$n
 nextpart ns1/named.run | grep "dns-reporting-agent '_er.0.example.1._er.example.com/IN'" >/dev/null && ret=1
-grep "; Report-Channel: rad.example.com" dig.out.test$n >/dev/null || ret=1
+grep "; Report-Channel: rad.example.net" dig.out.test$n >/dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 

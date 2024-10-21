@@ -1618,18 +1618,21 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	}
 
 	/*
-	 * Check send-report-channel.
+	 * Check send-report-channel. (Skip for zone level because we
+	 * have an additional check in check_zoneconf() for that.)
 	 */
-	obj = NULL;
-	(void)cfg_map_get(options, "send-report-channel", &obj);
-	if (obj != NULL) {
-		str = cfg_obj_asstring(obj);
-		tresult = check_name(str);
-		if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, ISC_LOG_ERROR,
-				    "'%s' is not a valid name", str);
-			if (result == ISC_R_SUCCESS) {
-				result = tresult;
+	if (optlevel != optlevel_zone) {
+		obj = NULL;
+		(void)cfg_map_get(options, "send-report-channel", &obj);
+		if (obj != NULL) {
+			str = cfg_obj_asstring(obj);
+			tresult = check_name(str);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(obj, ISC_LOG_ERROR,
+					    "'%s' is not a valid name", str);
+				if (result == ISC_R_SUCCESS) {
+					result = tresult;
+				}
 			}
 		}
 	}
@@ -3853,6 +3856,31 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					    "server-name '%s' must not be a "
 					    "subdomain of zone name '%s'",
 					    snamestr, znamestr);
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "send-report-channel", &obj);
+	if (obj != NULL) {
+		const char *str = cfg_obj_asstring(obj);
+		dns_fixedname_t fad;
+		dns_name_t *ad = dns_fixedname_initname(&fad);
+
+		tresult = dns_name_fromstring(ad, str, dns_rootname, 0, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "'%s' is not a valid name", str);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		} else if (dns_name_issubdomain(ad, zname)) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "send-report-channel '%s' cannot "
+				    "be at or below the zone name '%s'",
+				    str, znamestr);
+			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
 		}

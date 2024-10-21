@@ -22,7 +22,7 @@ options {
 	recursion no;
 	notify yes;
 	dnssec-validation no;
-	send-report-channel "rad.example.net";
+	send-report-channel "example.rad";
 };
 
 view main in {
@@ -36,10 +36,10 @@ view main in {
 	zone example.com {
 		type primary;
 		file "example.com.db";
-		send-report-channel "rad.example.com";
+		send-report-channel "rad.example.net";
 	};
 
-	zone rad.example.net {
+	zone example.rad {
 		type primary;
 		file "rad.db";
 		log-report-channel yes;

@@ -1945,6 +1945,9 @@ default is used.
    There should be an authoritative zone configured to respond to such
    queries, with the :any:`log-report-channel` option set to ``yes``.
 
+   Note that a zone cannot be configured to use itself or any subdomain
+   of itself as an agent-domain.
+
 .. namedconf:statement:: stale-answer-ttl
    :tags: query
    :short: Specifies the time to live (TTL) to be returned on stale answers, in seconds.
