@@ -3715,7 +3715,6 @@ static isc_result_t
 parse_sockaddrnameport(cfg_parser_t *pctx, const cfg_type_t *type,
 		       cfg_obj_t **ret) {
 	isc_result_t result;
-	cfg_obj_t *obj = NULL;
 	UNUSED(type);
 
 	CHECK(cfg_peektoken(pctx, CFG_LEXOPT_QSTRING));
@@ -3727,17 +3726,7 @@ parse_sockaddrnameport(cfg_parser_t *pctx, const cfg_type_t *type,
 			CHECK(cfg_parse_sockaddr(pctx, &cfg_type_sockaddr,
 						 ret));
 		} else {
-			const cfg_tuplefielddef_t *fields =
-				cfg_type_nameport.of;
-			CHECK(cfg_create_tuple(pctx, &cfg_type_nameport, &obj));
-			CHECK(cfg_parse_obj(pctx, fields[0].type,
-					    &obj->value.tuple[0]));
-			CHECK(cfg_parse_obj(pctx, fields[1].type,
-					    &obj->value.tuple[1]));
-			CHECK(cfg_parse_obj(pctx, fields[2].type,
-					    &obj->value.tuple[2]));
-			*ret = obj;
-			obj = NULL;
+			CHECK(cfg_parse_tuple(pctx, &cfg_type_nameport, ret));
 		}
 	} else {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
@@ -3745,7 +3734,6 @@ parse_sockaddrnameport(cfg_parser_t *pctx, const cfg_type_t *type,
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 cleanup:
-	CLEANUP_OBJ(obj);
 	return (result);
 }
 
