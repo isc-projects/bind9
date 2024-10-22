@@ -79,9 +79,9 @@ dnssec-policy "no-cds" {
 dnssec-policy "two-tone" {
 	offline-ksk yes;
 	keys {
-		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		ksk lifetime unlimited algorithm @ALTERNATIVE_ALGORITHM@;
-		zsk lifetime P3M algorithm @DEFAULT_ALGORITHM@;
 		zsk lifetime P5M algorithm @ALTERNATIVE_ALGORITHM@;
+		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk lifetime P3M algorithm @DEFAULT_ALGORITHM@;
 	};
 };
