@@ -39,9 +39,14 @@ view main in {
 		send-report-channel "rad.example.net";
 	};
 
-	zone example.rad {
+	zone rad {
 		type primary;
 		file "rad.db";
+	};
+
+	zone example.rad {
+		type primary;
+		file "example.rad.db";
 		log-report-channel yes;
 	};
 };

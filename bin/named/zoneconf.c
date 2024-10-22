@@ -1208,6 +1208,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (ztype != dns_zone_stub && ztype != dns_zone_staticstub &&
 	    ztype != dns_zone_redirect)
 	{
+		bool logreports = false;
+
 		/* Make a reference to the default policy. */
 		result = dns_kasplist_find(kasplist, "default", &kasp);
 		INSIST(result == ISC_R_SUCCESS && kasp != NULL);
@@ -1483,22 +1485,48 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "send-report-channel", &obj);
-		if (obj != NULL) {
-			dns_fixedname_t fixed;
-			dns_name_t *rad = dns_fixedname_initname(&fixed);
-			CHECK(dns_name_fromstring(rad, cfg_obj_asstring(obj),
-						  dns_rootname, 0, mctx));
-			dns_zone_setrad(zone, rad);
-		} else {
-			dns_zone_setrad(zone, NULL);
-		}
-
-		obj = NULL;
 		result = cfg_map_get(zoptions, "log-report-channel", &obj);
 		if (result == ISC_R_SUCCESS) {
+			logreports = cfg_obj_asboolean(obj);
 			dns_zone_setoption(zone, DNS_ZONEOPT_LOGREPORTS,
-					   cfg_obj_asboolean(obj));
+					   logreports);
+		}
+		obj = NULL;
+		result = named_config_get(maps, "send-report-channel", &obj);
+		if (result == ISC_R_SUCCESS && obj != NULL) {
+			dns_fixedname_t fixed;
+			dns_name_t *rad = dns_fixedname_initname(&fixed);
+			const char *adstr = cfg_obj_asstring(obj);
+			dns_name_t *zn = dns_zone_getorigin(zone);
+
+			CHECK(dns_name_fromstring(rad, adstr, dns_rootname, 0,
+						  mctx));
+			if (logreports || dns_name_equal(rad, dns_rootname)) {
+				/* Disable RC for error-logging zones or root */
+				dns_zone_setrad(zone, NULL);
+			} else if (dns_name_equal(rad, zn)) {
+				/*
+				 * It's illegal to set a matching agent
+				 * domain at the zone level, but it could
+				 * be set in options/view. If so, and the
+				 * matching zone doesn't log reports, warn.
+				 */
+				cfg_obj_log(obj, ISC_LOG_WARNING,
+					    "send-report-channel is set to "
+					    "'%s' but that zone does not have "
+					    "log-report-channel set",
+					    zname);
+				dns_zone_setrad(zone, NULL);
+			} else if (dns_name_issubdomain(rad, zn)) {
+				cfg_obj_log(obj, ISC_LOG_WARNING,
+					    "send-report-channel '%s' ignored "
+					    "for zone '%s' because it is a "
+					    "subdomain of the zone",
+					    adstr, zname);
+				dns_zone_setrad(zone, NULL);
+			} else {
+				dns_zone_setrad(zone, rad);
+			}
 		}
 	} else if (ztype == dns_zone_redirect) {
 		dns_zone_setnotifytype(zone, dns_notifytype_no);

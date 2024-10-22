@@ -1243,8 +1243,6 @@ no_nsid:
 		dns_name_t *rad = NULL;
 		if (dns_name_dynamic(&client->rad)) {
 			rad = &client->rad;
-		} else if (view != NULL && view->rad != NULL) {
-			rad = view->rad;
 		}
 		if (rad != NULL && !dns_name_equal(rad, dns_rootname)) {
 			INSIST(count < DNS_EDNSOPTIONS);
