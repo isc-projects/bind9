@@ -900,6 +900,7 @@ system:gcc:bookworm:amd64:
   <<: *system_test_gcov_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
+    TZ: Australia/Sydney
   needs:
     - job: unit:gcc:bookworm:amd64
       artifacts: true

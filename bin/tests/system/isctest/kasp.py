@@ -17,8 +17,7 @@ import subprocess
 import time
 from typing import Optional, Union
 
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 import dns
 import isctest.log
@@ -54,7 +53,9 @@ class KeyTimingMetadata:
     def __init__(self, timestamp: str):
         if int(timestamp) <= 0:
             raise ValueError(f'invalid timing metadata value: "{timestamp}"')
-        self.value = datetime.strptime(timestamp, self.FORMAT)
+        self.value = datetime.strptime(timestamp, self.FORMAT).replace(
+            tzinfo=timezone.utc
+        )
 
     def __repr__(self):
         return self.value.strftime(self.FORMAT)
@@ -95,7 +96,7 @@ class KeyTimingMetadata:
     @staticmethod
     def now() -> "KeyTimingMetadata":
         result = KeyTimingMetadata.__new__(KeyTimingMetadata)
-        result.value = datetime.now()
+        result.value = datetime.now(timezone.utc)
         return result
 
 
