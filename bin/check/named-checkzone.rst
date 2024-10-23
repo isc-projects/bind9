@@ -23,7 +23,7 @@ named-checkzone - zone file validation tool
 Synopsis
 ~~~~~~~~
 
-:program:`named-checkzone` [**-d**] [**-h**] [**-j**] [**-q**] [**-v**] [**-c** class] [**-C** mode] [**-f** format] [**-F** format] [**-J** filename] [**-i** mode] [**-k** mode] [**-m** mode] [**-M** mode] [**-n** mode] [**-l** ttl] [**-L** serial] [**-o** filename] [**-r** mode] [**-s** style] [**-S** mode] [**-t** directory] [**-T** mode] [**-w** directory] [**-D**] [**-W** mode] {zonename} {filename}
+:program:`named-checkzone` [**-d**] [**-h**] [**-j**] [**-q**] [**-v**] [**-c** class] [**-C** mode] [**-f** format] [**-F** format] [**-J** filename] [**-i** mode] [**-k** mode] [**-m** mode] [**-M** mode] [**-n** mode] [**-l** ttl] [**-L** serial] [**-o** filename] [**-r** mode] [**-R** mode] [**-s** style] [**-S** mode] [**-t** directory] [**-T** mode] [**-w** directory] [**-D**] [**-W** mode] {zonename} {filename}
 
 Description
 ~~~~~~~~~~~
@@ -165,6 +165,12 @@ Options
    This option checks for records that are treated as different by DNSSEC but are
    semantically equal in plain DNS. Possible modes are ``fail``,
    ``warn`` (the default), and ``ignore``.
+
+.. option:: -R mode
+
+   This option checks whether a TXT wildcard record exists that
+   matches the name format for RFC 9567 error-reporting queries: ``*._er``.
+   Possible modes are ``fail`` and ``ignore`` (the default).
 
 .. option:: -s style
 

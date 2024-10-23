@@ -97,13 +97,11 @@
 #define COOKIE_SIZE 24U /* 8 + 4 + 4 + 8 */
 #define ECS_SIZE    20U /* 2 + 1 + 1 + [0..16] */
 
-#define TCPBUFFERS_FILLCOUNT 1U
-#define TCPBUFFERS_FREEMAX   8U
-
-#define WANTNSID(x)	(((x)->attributes & NS_CLIENTATTR_WANTNSID) != 0)
-#define WANTEXPIRE(x)	(((x)->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0)
-#define WANTPAD(x)	(((x)->attributes & NS_CLIENTATTR_WANTPAD) != 0)
 #define USEKEEPALIVE(x) (((x)->attributes & NS_CLIENTATTR_USEKEEPALIVE) != 0)
+#define WANTEXPIRE(x)	(((x)->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0)
+#define WANTNSID(x)	(((x)->attributes & NS_CLIENTATTR_WANTNSID) != 0)
+#define WANTPAD(x)	(((x)->attributes & NS_CLIENTATTR_WANTPAD) != 0)
+#define WANTRC(x)	(((x)->attributes & NS_CLIENTATTR_WANTRC) != 0)
 
 #define MANAGER_MAGIC	 ISC_MAGIC('N', 'S', 'C', 'm')
 #define VALID_MANAGER(m) ISC_MAGIC_VALID(m, MANAGER_MAGIC)
@@ -317,6 +315,9 @@ ns_client_endrequest(ns_client_t *client) {
 	client->extflags = 0;
 	client->ednsversion = -1;
 	client->additionaldepth = 0;
+	if (dns_name_dynamic(&client->rad)) {
+		dns_name_free(&client->rad, client->manager->mctx);
+	}
 	dns_ecs_init(&client->ecs);
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
@@ -1236,6 +1237,20 @@ no_nsid:
 		ednsopts[count].length = client->ede->length;
 		ednsopts[count].value = client->ede->value;
 		count++;
+	}
+
+	if (WANTRC(client)) {
+		dns_name_t *rad = NULL;
+		if (dns_name_dynamic(&client->rad)) {
+			rad = &client->rad;
+		}
+		if (rad != NULL && !dns_name_equal(rad, dns_rootname)) {
+			INSIST(count < DNS_EDNSOPTIONS);
+			ednsopts[count].code = DNS_OPT_REPORT_CHANNEL;
+			ednsopts[count].length = rad->length;
+			ednsopts[count].value = rad->ndata;
+			count++;
+		}
 	}
 
 	/* Padding must be added last */
@@ -2560,6 +2575,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	client->udpsize = 512;
 	client->ednsversion = -1;
 	dns_name_init(&client->signername, NULL);
+	dns_name_init(&client->rad, NULL);
 	dns_ecs_init(&client->ecs);
 	isc_sockaddr_any(&client->formerrcache.addr);
 	client->formerrcache.time = 0;

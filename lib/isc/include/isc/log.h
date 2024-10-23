@@ -149,6 +149,7 @@ enum isc_logcategory {
 	NS_LOGCATEGORY_TAT,
 	NS_LOGCATEGORY_SERVE_STALE,
 	NS_LOGCATEGORY_RESPONSES,
+	NS_LOGCATEGORY_DRA,
 	/* cfg categories */
 	CFG_LOGCATEGORY_CONFIG,
 	/* named categories */

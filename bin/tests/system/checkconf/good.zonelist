@@ -1,5 +1,6 @@
 example1 IN first primary
 clone IN first primary
+reports IN first primary
 example1 IN second primary
 example2 IN second static-stub
 example3 IN second static-stub

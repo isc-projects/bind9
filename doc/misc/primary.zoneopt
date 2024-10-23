@@ -31,6 +31,7 @@ zone <string> [ <class> ] {
 	ixfr-from-differences <boolean>;
 	journal <quoted_string>;
 	key-directory <quoted_string>;
+	log-report-channel <boolean>;
 	masterfile-format ( raw | text );
 	masterfile-style ( full | relative );
 	max-ixfr-ratio ( unlimited | <percentage> );
@@ -50,6 +51,7 @@ zone <string> [ <class> ] {
 	parental-agents [ port <integer> ] [ source ( <ipv4_address> | * ) ] [ source-v6 ( <ipv6_address> | * ) ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	parental-source ( <ipv4_address> | * );
 	parental-source-v6 ( <ipv6_address> | * );
+	send-report-channel <string>;
 	serial-update-method ( date | increment | unixtime );
 	sig-signing-nodes <integer>;
 	sig-signing-signatures <integer>;

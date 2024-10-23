@@ -22,6 +22,7 @@ zone <string> [ <class> ] {
 	ixfr-from-differences <boolean>;
 	journal <quoted_string>;
 	key-directory <quoted_string>;
+	log-report-channel <boolean>;
 	masterfile-format ( raw | text );
 	masterfile-style ( full | relative );
 	max-ixfr-ratio ( unlimited | <percentage> );
@@ -51,6 +52,7 @@ zone <string> [ <class> ] {
 	request-expire <boolean>;
 	request-ixfr <boolean>;
 	request-ixfr-max-diffs <integer>;
+	send-report-channel <string>;
 	sig-signing-nodes <integer>;
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;

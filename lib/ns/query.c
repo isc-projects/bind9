@@ -107,6 +107,8 @@
 	(((c)->query.attributes & NS_QUERYATTR_WANTRECURSION) != 0)
 /*% Is TCP? */
 #define TCP(c) (((c)->attributes & NS_CLIENTATTR_TCP) != 0)
+/*% This query needs to have been sent over TCP.  Return TC=1. */
+#define NEEDTCP(c) (((c)->attributes & NS_CLIENTATTR_NEEDTCP) != 0)
 
 /*% Want DNSSEC? */
 #define WANTDNSSEC(c) (((c)->attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
@@ -5330,6 +5332,75 @@ root_key_sentinel_detect(query_ctx_t *qctx) {
 	}
 }
 
+static void
+qctx_reportquery(query_ctx_t *qctx) {
+	ns_client_t *client = qctx->client;
+
+	client->attributes |= NS_CLIENTATTR_WANTRC;
+
+	/* If this isn't a report-logging zone, there's no more to do */
+	dns_zoneopt_t opts = dns_zone_getoptions(qctx->zone);
+	if ((opts & DNS_ZONEOPT_LOGREPORTS) == 0) {
+		return;
+	}
+
+	/*
+	 * Suppress EDNS Report-Channel in responses from report-
+	 * logging zones; this prevents infinite loops.
+	 */
+	client->attributes &= ~NS_CLIENTATTR_WANTRC;
+
+	/* If this isn't an error-report query, there's nothing more to do */
+	if (client->query.qtype != dns_rdatatype_txt ||
+	    !dns_name_israd(client->query.qname,
+			    dns_zone_getorigin(qctx->zone)))
+	{
+		return;
+	}
+
+	/*
+	 * Check for TCP or a good server cookie.  If neither, send
+	 * back BADCOOKIE or TC=1.
+	 */
+	if (!TCP(client) && !HAVECOOKIE(client)) {
+		if (WANTCOOKIE(client)) {
+			client->attributes |= NS_CLIENTATTR_BADCOOKIE;
+		} else {
+			client->attributes |= NS_CLIENTATTR_NEEDTCP;
+		}
+	}
+
+	if (isc_log_wouldlog(ISC_LOG_INFO)) {
+		char classbuf[DNS_RDATACLASS_FORMATSIZE];
+		char namebuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+		dns_rdataclass_format(client->view->rdclass, classbuf,
+				      sizeof(classbuf));
+
+		isc_log_write(NS_LOGCATEGORY_DRA, NS_LOGMODULE_QUERY,
+			      ISC_LOG_INFO, "dns-reporting-agent '%s/%s'",
+			      namebuf, classbuf);
+	}
+}
+
+static void
+qctx_setrad(query_ctx_t *qctx) {
+	ns_client_t *client = qctx->client;
+
+	/* Set the client to send a Report-Channel option when replying */
+	if ((client->attributes & NS_CLIENTATTR_WANTRC) != 0) {
+		dns_fixedname_t fixed;
+		dns_name_t *rad = dns_fixedname_initname(&fixed);
+
+		if (!dns_name_dynamic(&client->rad) &&
+		    dns_zone_getrad(qctx->zone, rad) == ISC_R_SUCCESS)
+		{
+			dns_name_dup(rad, client->manager->mctx, &client->rad);
+		}
+	}
+}
+
 /*%
  * Starting point for a client query or a chaining query.
  *
@@ -5363,6 +5434,17 @@ ns__query_start(query_ctx_t *qctx) {
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AA;
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		qctx->client->message->rcode = dns_rcode_badcookie;
+		qctx->client->attributes &= ~NS_CLIENTATTR_WANTRC;
+		return (ns_query_done(qctx));
+	}
+
+	/*
+	 * Respond with TC=1 if we need TCP for this request.
+	 */
+	if (!TCP(qctx->client) && NEEDTCP(qctx->client)) {
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AA;
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
+		qctx->client->message->flags |= DNS_MESSAGEFLAG_TC;
 		return (ns_query_done(qctx));
 	}
 
@@ -5505,12 +5587,20 @@ ns__query_start(query_ctx_t *qctx) {
 	if (qctx->is_zone) {
 		qctx->authoritative = true;
 		if (qctx->zone != NULL) {
-			if (dns_zone_gettype(qctx->zone) == dns_zone_mirror) {
+			switch (dns_zone_gettype(qctx->zone)) {
+			case dns_zone_mirror:
 				qctx->authoritative = false;
-			}
-			if (dns_zone_gettype(qctx->zone) == dns_zone_staticstub)
-			{
+				break;
+			case dns_zone_staticstub:
 				qctx->is_staticstub_zone = true;
+				break;
+			case dns_zone_primary:
+			case dns_zone_secondary:
+				qctx_reportquery(qctx);
+				qctx_setrad(qctx);
+				break;
+			default:
+				break;
 			}
 		}
 	}
@@ -6891,6 +6981,8 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 							~DNS_MESSAGEFLAG_AD;
 						qctx->client->message->rcode =
 							dns_rcode_badcookie;
+						qctx->client->attributes &=
+							~NS_CLIENTATTR_WANTRC;
 					} else {
 						qctx->client->message->flags |=
 							DNS_MESSAGEFLAG_TC;
@@ -11323,6 +11415,7 @@ ns_query_done(query_ctx_t *qctx) {
 	 */
 	if (qctx->client->query.restarts == 0 && !qctx->authoritative) {
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AA;
+		qctx->client->attributes &= ~NS_CLIENTATTR_WANTRC;
 	}
 
 	/*

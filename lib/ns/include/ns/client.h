@@ -197,6 +197,8 @@ struct ns_client {
 	isc_buffer_t *buffer;
 	isc_buffer_t  tbuffer;
 
+	dns_name_t rad; /* Zone rad domain */
+
 	isc_sockaddr_t peeraddr;
 	bool	       peeraddr_valid;
 	isc_netaddr_t  destaddr;
@@ -247,7 +249,7 @@ struct ns_client {
 #define NS_CLIENTATTR_WANTNSID	 0x00020 /*%< include nameserver ID */
 #define NS_CLIENTATTR_BADCOOKIE \
 	0x00040 /*%< Presented cookie is bad/out-of-date */
-/* Obsolete: NS_CLIENTATTR_FILTER_AAAA_RC 0x00080 */
+#define NS_CLIENTATTR_WANTRC	   0x00080 /*%< include Report-Channel */
 #define NS_CLIENTATTR_WANTAD	   0x00100 /*%< want AD in response if possible */
 #define NS_CLIENTATTR_WANTCOOKIE   0x00200 /*%< return a COOKIE */
 #define NS_CLIENTATTR_HAVECOOKIE   0x00400 /*%< has a valid COOKIE */
@@ -257,8 +259,8 @@ struct ns_client {
 #define NS_CLIENTATTR_HAVEECS	   0x04000 /*%< received an ECS option */
 #define NS_CLIENTATTR_WANTPAD	   0x08000 /*%< pad reply */
 #define NS_CLIENTATTR_USEKEEPALIVE 0x10000 /*%< use TCP keepalive */
-
-#define NS_CLIENTATTR_NOSETFC 0x20000 /*%< don't set servfail cache */
+#define NS_CLIENTATTR_NOSETFC	   0x20000 /*%< don't set servfail cache */
+#define NS_CLIENTATTR_NEEDTCP	   0x40000 /*%< send TC=1 */
 
 /*
  * Flag to use with the SERVFAIL cache to indicate

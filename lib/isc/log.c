@@ -197,6 +197,7 @@ static const char *categories_description[] = {
 	[NS_LOGCATEGORY_UPDATE_SECURITY] = "update-security",
 	[NS_LOGCATEGORY_QUERY_ERRORS] = "query-errors",
 	[NS_LOGCATEGORY_TAT] = "trust-anchor-telemetry",
+	[NS_LOGCATEGORY_DRA] = "dns-reporting-agent",
 	[NS_LOGCATEGORY_SERVE_STALE] = "serve-stale",
 	[NS_LOGCATEGORY_RESPONSES] = "responses",
 	/* cfg categories */

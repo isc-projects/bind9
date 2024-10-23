@@ -94,9 +94,9 @@ typedef enum {
 					      */
 	DNS_ZONEOPT_NOTIFYTOSOA = 1 << 21,   /*%< Notify the SOA MNAME */
 	DNS_ZONEOPT_NSEC3TESTZONE = 1 << 22, /*%< nsec3-test-zone */
-	/* DNS_ZONEOPT_SECURETOINSECURE = 1 << 23, */
-	DNS_ZONEOPT_DNSKEYKSKONLY = 1 << 24,  /*%< dnssec-dnskey-kskonly */
-	DNS_ZONEOPT_CHECKDUPRR = 1 << 25,     /*%< check-dup-records */
+	DNS_ZONEOPT_LOGREPORTS = 1 << 23,    /* Log error-reporting queries */
+	DNS_ZONEOPT_DNSKEYKSKONLY = 1 << 24, /*%< dnssec-dnskey-kskonly */
+	DNS_ZONEOPT_CHECKDUPRR = 1 << 25,    /*%< check-dup-records */
 	DNS_ZONEOPT_CHECKDUPRRFAIL = 1 << 26, /*%< fatal check-dup-records
 					       * failures */
 	DNS_ZONEOPT_CHECKSPF = 1 << 27,	      /*%< check SPF records */
@@ -2768,6 +2768,26 @@ dns_zone_import_skr(dns_zone_t *zone, const char *file);
  *
  * Returns:
  * \li  ISC_R_SUCCESS if there were no errors loading the SKR.
+ */
+
+void
+dns_zone_setrad(dns_zone_t *zone, dns_name_t *name);
+/**<
+ * \brief Set the per zone RAD
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'name' is NULL or a valid name.
+ */
+
+isc_result_t
+dns_zone_getrad(dns_zone_t *zone, dns_name_t *name);
+/**<
+ * \brief get the per zone RAD
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'name' is a valid name with a buffer.
  */
 
 #if DNS_ZONE_TRACE

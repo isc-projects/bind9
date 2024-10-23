@@ -276,6 +276,7 @@ struct dns_zone {
 	isc_timer_t *timer;
 	isc_refcount_t irefs;
 	dns_name_t origin;
+	dns_name_t rad;
 	char *masterfile;
 	const FILE *stream;		     /* loading from a stream? */
 	ISC_LIST(dns_include_t) includes;    /* Include files */
@@ -1167,6 +1168,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	isc_refcount_init(&zone->references, 1);
 	isc_refcount_init(&zone->irefs, 0);
 	dns_name_init(&zone->origin, NULL);
+	dns_name_init(&zone->rad, NULL);
 	isc_sockaddr_any(&zone->notifysrc4);
 	isc_sockaddr_any6(&zone->notifysrc6);
 	isc_sockaddr_any(&zone->parentalsrc4);
@@ -1347,6 +1349,9 @@ zone_free(dns_zone_t *zone) {
 	}
 	if (dns_name_dynamic(&zone->origin)) {
 		dns_name_free(&zone->origin, zone->mctx);
+	}
+	if (dns_name_dynamic(&zone->rad)) {
+		dns_name_free(&zone->rad, zone->mctx);
 	}
 	if (zone->strnamerd != NULL) {
 		isc_mem_free(zone->mctx, zone->strnamerd);
@@ -4722,6 +4727,47 @@ process_zone_setnsec3param(dns_zone_t *zone) {
 	}
 }
 
+static unsigned char er_offset[] = { 0, 1 };
+static unsigned char er_ndata[] = "\001*\003_er";
+static dns_name_t er = DNS_NAME_INITNONABSOLUTE(er_ndata, er_offset);
+
+static isc_result_t
+check_reportchannel(dns_zone_t *zone, dns_db_t *db) {
+	isc_result_t result;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
+	dns_dbnode_t *node = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
+
+	/*
+	 * If this zone isn't logging reports, it's fine.
+	 */
+	if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_LOGREPORTS)) {
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Otherwise, we need a '*._er' wildcard with a TXT rdataset.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	CHECK(dns_name_concatenate(&er, &zone->origin, name, NULL));
+	CHECK(dns_db_findnode(db, name, false, &node));
+
+	dns_db_currentversion(db, &version);
+
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_txt,
+				     dns_rdatatype_none, 0, &rdataset, NULL);
+	dns_db_closeversion(db, &version, false);
+	dns_db_detachnode(db, &node);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+
+failure:
+	return (result);
+}
+
 /*
  * The zone is presumed to be locked.
  * If this is a inline_raw zone the secure version is also locked.
@@ -4965,6 +5011,15 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     "failed");
 				goto cleanup;
 			}
+		}
+
+		result = check_reportchannel(zone, db);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "'log-report-channel' is set, but no "
+				     "'*._er/TXT' wildcard found");
+			result = DNS_R_BADZONE;
+			goto cleanup;
 		}
 
 		result = dns_zone_verifydb(zone, db, NULL);
@@ -24508,4 +24563,35 @@ failure:
 	dns_skr_detach(&skr);
 
 	return (result);
+}
+
+isc_result_t
+dns_zone_getrad(dns_zone_t *zone, dns_name_t *name) {
+	isc_result_t result = ISC_R_NOTFOUND;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(DNS_NAME_VALID(name));
+
+	LOCK_ZONE(zone);
+	if (dns_name_dynamic(&zone->rad)) {
+		dns_name_copy(&zone->rad, name);
+		result = ISC_R_SUCCESS;
+	}
+	UNLOCK_ZONE(zone);
+	return (result);
+}
+
+void
+dns_zone_setrad(dns_zone_t *zone, dns_name_t *name) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(name == NULL || DNS_NAME_VALID(name));
+
+	LOCK_ZONE(zone);
+	if (dns_name_dynamic(&zone->rad)) {
+		dns_name_free(&zone->rad, zone->mctx);
+	}
+	if (name != NULL) {
+		dns_name_dup(name, zone->mctx, &zone->rad);
+	}
+	UNLOCK_ZONE(zone);
 }

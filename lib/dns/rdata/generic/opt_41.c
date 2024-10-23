@@ -93,17 +93,22 @@ totext_opt(ARGS_TOTEXT) {
 
 static isc_result_t
 fromwire_opt(ARGS_FROMWIRE) {
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_buffer_t b;
 	isc_region_t sregion;
 	isc_region_t tregion;
-	uint16_t opt;
+	isc_result_t result;
 	uint16_t length;
+	uint16_t opt;
 	unsigned int total;
 
 	REQUIRE(type == dns_rdatatype_opt);
 
 	UNUSED(type);
 	UNUSED(rdclass);
-	UNUSED(dctx);
+
+	dctx = dns_decompress_setpermitted(dctx, false);
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length == 0) {
@@ -241,6 +246,22 @@ fromwire_opt(ARGS_FROMWIRE) {
 			FALLTHROUGH;
 		case DNS_OPT_SERVER_TAG:
 			if (length != 2) {
+				return (DNS_R_OPTERR);
+			}
+			isc_region_consume(&sregion, length);
+			break;
+		case DNS_OPT_REPORT_CHANNEL:
+			/* A domain name in wire format. RFC 9567 */
+			if (length == 0 || length > DNS_NAME_MAXWIRE) {
+				return (DNS_R_OPTERR);
+			}
+			isc_buffer_init(&b, sregion.base, length);
+			isc_buffer_add(&b, length);
+			name = dns_fixedname_initname(&fixed);
+			result = dns_name_fromwire(name, &b, dctx, NULL);
+			if (result != ISC_R_SUCCESS || name->length != length ||
+			    !dns_name_isabsolute(name))
+			{
 				return (DNS_R_OPTERR);
 			}
 			isc_region_consume(&sregion, length);

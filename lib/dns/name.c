@@ -2281,3 +2281,72 @@ dns_name_isdnssvcb(const dns_name_t *name) {
 
 	return (false);
 }
+
+bool
+dns_name_israd(const dns_name_t *name, const dns_name_t *rad) {
+	dns_name_t suffix;
+	dns_offsets_t offsets;
+	char labelbuf[64];
+	unsigned long v, last = ULONG_MAX;
+	char *end, *l;
+
+	REQUIRE(DNS_NAME_VALID(name));
+	REQUIRE(DNS_NAME_VALID(rad));
+
+	if (name->labels < rad->labels + 4U || name->length < 4U) {
+		return (false);
+	}
+
+	if (name->ndata[0] != 3 || name->ndata[1] != '_' ||
+	    tolower(name->ndata[2]) != 'e' || tolower(name->ndata[3]) != 'r')
+	{
+		return (false);
+	}
+
+	dns_name_init(&suffix, offsets);
+	dns_name_split(name, rad->labels + 1, NULL, &suffix);
+
+	if (suffix.ndata[0] != 3 || suffix.ndata[1] != '_' ||
+	    tolower(suffix.ndata[2]) != 'e' || tolower(suffix.ndata[3]) != 'r')
+	{
+		return (false);
+	}
+
+	/* type list */
+	dns_name_split(name, name->labels - 1, NULL, &suffix);
+	INSIST(*suffix.ndata < sizeof(labelbuf));
+	memmove(labelbuf, suffix.ndata + 1, *suffix.ndata);
+	labelbuf[*suffix.ndata] = 0;
+	if (strlen(labelbuf) != *suffix.ndata) {
+		return (false);
+	}
+	l = labelbuf;
+	do {
+		v = strtoul(l, &end, 10);
+		if (v > 0xffff || (*end != 0 && *end != '-') || end == l) {
+			return (false);
+		}
+		if (last != ULONG_MAX && v <= last) {
+			return (false);
+		}
+		last = v;
+		if (*end == '-') {
+			l = end + 1;
+		}
+	} while (*end != 0);
+
+	/* extended error code */
+	dns_name_split(name, rad->labels + 2, NULL, &suffix);
+	INSIST(*suffix.ndata < sizeof(labelbuf));
+	memmove(labelbuf, suffix.ndata + 1, *suffix.ndata);
+	labelbuf[*suffix.ndata] = 0;
+	if (strlen(labelbuf) != *suffix.ndata) {
+		return (false);
+	}
+	v = strtoul(labelbuf, &end, 10);
+	if (v > 0xfff || *end != 0) {
+		return (false);
+	}
+
+	return (dns_name_issubdomain(name, rad));
+}

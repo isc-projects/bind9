@@ -1618,6 +1618,26 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	}
 
 	/*
+	 * Check send-report-channel. (Skip for zone level because we
+	 * have an additional check in check_zoneconf() for that.)
+	 */
+	if (optlevel != optlevel_zone) {
+		obj = NULL;
+		(void)cfg_map_get(options, "send-report-channel", &obj);
+		if (obj != NULL) {
+			str = cfg_obj_asstring(obj);
+			tresult = check_name(str);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(obj, ISC_LOG_ERROR,
+					    "'%s' is not a valid name", str);
+				if (result == ISC_R_SUCCESS) {
+					result = tresult;
+				}
+			}
+		}
+	}
+
+	/*
 	 * Check dnssec-must-be-secure.
 	 */
 	obj = NULL;
@@ -3841,6 +3861,31 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 	}
 
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "send-report-channel", &obj);
+	if (obj != NULL) {
+		const char *str = cfg_obj_asstring(obj);
+		dns_fixedname_t fad;
+		dns_name_t *ad = dns_fixedname_initname(&fad);
+
+		tresult = dns_name_fromstring(ad, str, dns_rootname, 0, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "'%s' is not a valid name", str);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		} else if (dns_name_issubdomain(ad, zname)) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "send-report-channel '%s' cannot "
+				    "be at or below the zone name '%s'",
+				    str, znamestr);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+
 	/*
 	 * Warn if key-directory doesn't exist
 	 */
@@ -3890,6 +3935,22 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
+		}
+	}
+
+	/*
+	 * "log-report-channel" cannot be set for the root zone.
+	 */
+	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY) {
+		obj = NULL;
+		tresult = cfg_map_get(zoptions, "log-report-channel", &obj);
+		if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(obj) &&
+		    dns_name_equal(zname, dns_rootname))
+		{
+			cfg_obj_log(zconfig, ISC_LOG_ERROR,
+				    "'log-report-channel' cannot be set in "
+				    "the root zone");
+			result = ISC_R_FAILURE;
 		}
 	}
 
