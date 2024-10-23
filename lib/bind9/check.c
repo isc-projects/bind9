@@ -3468,6 +3468,15 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 						    : "");
 				result = ISC_R_FAILURE;
 			}
+			if (ddns && res1 != ISC_R_SUCCESS) {
+				cfg_obj_log(
+					zconfig, logctx, ISC_LOG_WARNING,
+					"'inline-signing' default changed "
+					"to 'yes' in 9.20. Before upgrading, "
+					"explicitly set 'inline-signing "
+					"no;' to your dnssec-policy or "
+					"zone configuration");
+			}
 		}
 
 		obj = NULL;
