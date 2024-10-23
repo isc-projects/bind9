@@ -11,7 +11,6 @@
 
 import pytest
 
-import isctest.mark
 
 pytestmark = pytest.mark.extra_artifacts(
     [
@@ -34,6 +33,5 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-@pytest.mark.xfail(reason="GL #4996", condition=isctest.mark.with_dnstap())
 def test_upforwd(run_tests_sh):
     run_tests_sh()
