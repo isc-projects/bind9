@@ -36,7 +36,10 @@ RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 status=0
 n=0
 
+nextpartreset ns1/named.run
 nextpartreset ns3/named.run
+nextpartreset ns5/named.run
+nextpartreset ns6/named.run
 
 # wait for zone transfer to complete
 tries=0
@@ -62,6 +65,10 @@ has_positive_response() {
   grep "status: NOERROR" dig.out.post.test$n >/dev/null || return 1
   grep "ANSWER: 0," dig.out.post.test$n >/dev/null && return 1
   return 0
+}
+
+update_policy_log() {
+  nextpart $1 | sed -n 's/^[^ ]* \(update-policy:.*\)$/\1/p'
 }
 
 ret=0
@@ -91,6 +98,7 @@ digcomp knowngood.ns1.before dig.out.ns2 || ret=1
 
 ret=0
 echo_i "ensure an unrelated zone is mentioned in its NOTAUTH log"
+nextpart ns1/named.run >/dev/null
 $NSUPDATE -k ns1/ddns.key >nsupdate.out 2>&1 <<END && ret=1
 server 10.53.0.1 ${PORT}
 zone unconfigured.test
@@ -106,7 +114,20 @@ grep ' unconfigured.test: not authoritative' ns1/named.run \
 }
 
 ret=0
+n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+update_policy_log ns1/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+ret=0
 echo_i "ensure a subdomain is mentioned in its NOTAUTH log"
+nextpart ns1/named.run >/dev/null
 $NSUPDATE -k ns1/ddns.key >nsupdate.out 2>&1 <<END && ret=1
 server 10.53.0.1 ${PORT}
 zone sub.sub.example.nil
@@ -122,8 +143,21 @@ grep ' sub.sub.example.nil: not authoritative' ns1/named.run \
 }
 
 ret=0
+n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+update_policy_log ns1/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+ret=0
 echo_i "updating zone"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
+nextpart ns1/named.run >/dev/null
 $NSUPDATE -k ns1/ddns.key <<END >/dev/null || ret=1
 server 10.53.0.1 ${PORT}
 update add updated.example.nil. 600 A 10.10.10.1
@@ -131,6 +165,33 @@ add updated.example.nil. 600 TXT Foo
 delete t.example.nil.
 
 END
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+ret=0
+n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+update_policy_log ns1/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer=ddns-key.example.nil name=updated.example.nil addr=10.53.0.1 tcp=0 type=A target=
+update-policy: trying: grant zonesub-key.example.nil zonesub TXT
+update-policy: next rule: signer does not match identity
+update-policy: trying: grant ddns-key.example.nil subdomain example.nil ANY
+update-policy: matched: grant ddns-key.example.nil subdomain example.nil ANY
+update-policy: using: signer=ddns-key.example.nil name=updated.example.nil addr=10.53.0.1 tcp=0 type=TXT target=
+update-policy: trying: grant zonesub-key.example.nil zonesub TXT
+update-policy: next rule: signer does not match identity
+update-policy: trying: grant ddns-key.example.nil subdomain example.nil ANY
+update-policy: matched: grant ddns-key.example.nil subdomain example.nil ANY
+update-policy: using: signer=ddns-key.example.nil name=t.example.nil addr=10.53.0.1 tcp=0 type=A target=
+update-policy: trying: grant zonesub-key.example.nil zonesub TXT
+update-policy: next rule: signer does not match identity
+update-policy: trying: grant ddns-key.example.nil subdomain example.nil ANY
+update-policy: matched: grant ddns-key.example.nil subdomain example.nil ANY
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
   status=1
@@ -175,12 +236,28 @@ pre=$($DIG $DIGOPTS +short new.other.nil. @10.53.0.1 a) || ret=1
 
 ret=0
 echo_i "updating zone"
+nextpart ns1/named.run >/dev/null
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
 $NSUPDATE -4 -l -p ${PORT} -k ns1/session.key >/dev/null <<END || ret=1
 zone other.nil.
 update add new.other.nil. 600 IN A 10.10.10.1
 send
 END
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+ret=0
+n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+update_policy_log ns1/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer=local-ddns name=new.other.nil addr=127.0.0.1 tcp=0 type=A target=
+update-policy: trying: local
+update-policy: matched: local
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
   status=1
@@ -208,6 +285,7 @@ digcomp knowngood.ns1.after dig.out.ns1 || ret=1
 
 ret=0
 echo_i "testing zone consistency checks"
+nextpart ns1/named.run >/dev/null
 # inserting an NS record without a corresponding A or AAAA record should fail
 $NSUPDATE -4 -l -p ${PORT} -k ns1/session.key >nsupdate.out 2>&1 <<END && ret=1
 update add other.nil. 600 in ns ns3.other.nil.
@@ -242,6 +320,39 @@ grep REFUSED nsupdate.out >/dev/null 2>&1 && ret=1
   status=1
 }
 
+ret=0
+n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+update_policy_log ns1/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer=local-ddns name=other.nil addr=127.0.0.1 tcp=0 type=NS target=
+update-policy: trying: local
+update-policy: matched: local
+update-policy: using: signer=local-ddns name=ns4.other.nil addr=127.0.0.1 tcp=0 type=A target=
+update-policy: trying: local
+update-policy: matched: local
+update-policy: using: signer=local-ddns name=other.nil addr=127.0.0.1 tcp=0 type=NS target=
+update-policy: trying: local
+update-policy: matched: local
+update-policy: using: signer=local-ddns name=ns5.other.nil addr=127.0.0.1 tcp=0 type=AAAA target=
+update-policy: trying: local
+update-policy: matched: local
+update-policy: using: signer=local-ddns name=other.nil addr=127.0.0.1 tcp=0 type=NS target=
+update-policy: trying: local
+update-policy: matched: local
+update-policy: using: signer=local-ddns name=other.nil addr=127.0.0.1 tcp=0 type=NS target=
+update-policy: trying: local
+update-policy: matched: local
+update-policy: using: signer=local-ddns name=ns6.other.nil addr=127.0.0.1 tcp=0 type=A target=
+update-policy: trying: local
+update-policy: matched: local
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
 echo_i "sleeping 5 seconds for server to incorporate changes"
 sleep 5
 
@@ -259,6 +370,7 @@ grep ns6.other.nil dig.out.ns1 >/dev/null 2>&1 || ret=1
 
 ret=0
 echo_i "ensure 'check-mx ignore' allows adding MX records containing an address without a warning"
+nextpart ns1/named.run >/dev/null
 $NSUPDATE -k ns1/ddns.key >nsupdate.out 2>&1 <<END || ret=1
 server 10.53.0.1 ${PORT}
 update add mx03.example.nil 600 IN MX 10 10.53.0.1
@@ -272,13 +384,46 @@ grep "mx03.example.nil/MX:.*MX is an address" ns1/named.run >/dev/null 2>&1 && r
 }
 
 ret=0
+n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+update_policy_log ns1/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer=ddns-key.example.nil name=mx03.example.nil addr=10.53.0.1 tcp=0 type=MX target=
+update-policy: trying: grant zonesub-key.example.nil zonesub TXT
+update-policy: next rule: signer does not match identity
+update-policy: trying: grant ddns-key.example.nil subdomain example.nil ANY
+update-policy: matched: grant ddns-key.example.nil subdomain example.nil ANY
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+ret=0
 echo_i "ensure 'check-mx warn' allows adding MX records containing an address with a warning"
+nextpart ns1/named.run >/dev/null
 $NSUPDATE -4 -l -p ${PORT} -k ns1/session.key >nsupdate.out 2>&1 <<END || ret=1
 update add mx03.other.nil 600 IN MX 10 10.53.0.1
 send
 END
 grep REFUSED nsupdate.out >/dev/null 2>&1 && ret=1
 grep "mx03.other.nil/MX:.*MX is an address" ns1/named.run >/dev/null 2>&1 || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+ret=0
+n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+update_policy_log ns1/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer=local-ddns name=mx03.other.nil addr=127.0.0.1 tcp=0 type=MX target=
+update-policy: trying: local
+update-policy: matched: local
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
   status=1
@@ -665,6 +810,7 @@ fi
 n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy local' works from localhost address ($n)"
+nextpart ns5/named.run >/dev/null
 $NSUPDATE -k ns5/session.key >nsupdate.out.$n 2>&1 <<END || ret=1
 server 10.53.0.5 ${PORT}
 local 127.0.0.1
@@ -682,9 +828,25 @@ if test $ret -ne 0; then
 fi
 
 n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+ret=0
+update_policy_log ns5/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer=local-ddns name=fromlocal.local.nil addr=127.0.0.1 tcp=0 type=A target=
+update-policy: trying: local
+update-policy: matched: local
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy local' fails from non-localhost address ($n)"
 grep 'match on session key not from localhost' ns5/named.run >/dev/null && ret=1
+nextpart ns5/named.run >/dev/null
 $NSUPDATE -k ns5/session.key >nsupdate.out.$n 2>&1 <<END && ret=1
 server 10.53.0.5 ${PORT}
 local 10.53.0.1
@@ -703,8 +865,25 @@ if test $ret -ne 0; then
 fi
 
 n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+ret=0
+update_policy_log ns5/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer=local-ddns name=nonlocal.local.nil addr=10.53.0.1 tcp=0 type=A target=
+update-policy: trying: local
+update-policy: next rule: address not local
+update-policy: no match found
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy tcp-self' refuses update of records via UDP ($n)"
+nextpart ns6/named.run >/dev/null
 $NSUPDATE >nsupdate.out.$n 2>&1 <<END && ret=1
 server 10.53.0.6 ${PORT}
 local 127.0.0.1
@@ -722,8 +901,21 @@ if test $ret -ne 0; then
 fi
 
 n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+ret=0
+update_policy_log ns6/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy tcp-self' permits update of records for the client's own address via TCP ($n)"
+nextpart ns6/named.run >/dev/null
 $NSUPDATE -v >nsupdate.out.$n 2>&1 <<END || ret=1
 server 10.53.0.6 ${PORT}
 local 127.0.0.1
@@ -741,8 +933,25 @@ if test $ret -ne 0; then
 fi
 
 n=$((n + 1))
+echo_i "check update-policy logs ($n)"
 ret=0
+update_policy_log ns6/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer= name=1.0.0.127.in-addr.arpa addr=127.0.0.1 tcp=1 type=PTR target=localhost
+update-policy: trying: grant * tcp-self . PTR(1) ANY(2) A
+update-policy: tcp-self=1.0.0.127.IN-ADDR.ARPA
+update-policy: matched: grant * tcp-self . PTR(1) ANY(2) A
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+n=$((n + 1))
 echo_i "check that 'update-policy tcp-self' refuses update of records for a different address from the client's own address via TCP ($n)"
+ret=0
+nextpart ns6/named.run >/dev/null
 $NSUPDATE -v >nsupdate.out.$n 2>&1 <<END && ret=1
 server 10.53.0.6 ${PORT}
 local 127.0.0.1
@@ -760,8 +969,26 @@ if test $ret -ne 0; then
 fi
 
 n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+ret=0
+update_policy_log ns6/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer= name=1.0.168.192.in-addr.arpa addr=127.0.0.1 tcp=1 type=PTR target=localhost
+update-policy: trying: grant * tcp-self . PTR(1) ANY(2) A
+update-policy: tcp-self=1.0.0.127.IN-ADDR.ARPA
+update-policy: next rule: tcp-self name does not match record name
+update-policy: no match found
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy 6to4-self' refuses update of records via UDP over IPv4 ($n)"
+nextpart ns6/named.run >/dev/null
 REVERSE_NAME=6.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa
 $NSUPDATE >nsupdate.out.$n 2>&1 <<END && ret=1
 server 10.53.0.6 ${PORT}
@@ -779,10 +1006,23 @@ if test $ret -ne 0; then
   echo_i "failed"
   status=1
 fi
+
+n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+ret=0
+update_policy_log ns6/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
 
 n=$((n + 1))
 echo_i "check that 'update-policy 6to4-self' permits update of records for the client's own address via TCP over IPv4 ($n)"
 ret=0
+nextpart ns6/named.run >/dev/null
 REVERSE_NAME=6.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa
 $NSUPDATE -v >nsupdate.out.$n 2>&1 <<END || ret=1
 server 10.53.0.6 ${PORT}
@@ -802,8 +1042,25 @@ if test $ret -ne 0; then
 fi
 
 n=$((n + 1))
+echo_i "check update-policy logs ($n)"
 ret=0
+update_policy_log ns6/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer= name=6.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa addr=10.53.0.6 tcp=1 type=NS target=
+update-policy: trying: grant * 6to4-self . NS(10) DS(4)
+update-policy: 6to4-self=6.0.0.0.5.3.a.0.2.0.0.2.IP6.ARPA
+update-policy: matched: grant * 6to4-self . NS(10) DS(4)
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+n=$((n + 1))
 echo_i "check that 'update-policy 6to4-self' refuses update of records via UDP over IPv6 ($n)"
+ret=0
+nextpart ns6/named.run >/dev/null
 REVERSE_NAME=7.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa
 $NSUPDATE >nsupdate.out.$n 2>&1 <<END && ret=1
 server fd92:7065:b8e:ffff::6 ${PORT}
@@ -823,8 +1080,21 @@ if test $ret -ne 0; then
 fi
 
 n=$((n + 1))
+echo_i "check update-policy logs ($n)"
+ret=0
+update_policy_log ns6/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+
+n=$((n + 1))
 echo_i "check that 'update-policy 6to4-self' permits update of records for the client's own address via TCP over IPv6 ($n)"
 ret=0
+nextpart ns6/named.run >/dev/null
 REVERSE_NAME=7.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa
 $NSUPDATE -v >nsupdate.out.$n 2>&1 <<END || ret=1
 server fd92:7065:b8e:ffff::6 ${PORT}
@@ -842,6 +1112,21 @@ if test $ret -ne 0; then
   echo_i "failed"
   status=1
 fi
+
+echo_i "check update-policy logs ($n)"
+ret=0
+update_policy_log ns6/named.run >policy.log.$n
+cat <<EOF >policy.expected.$n
+update-policy: using: signer= name=7.0.0.0.5.3.a.0.2.0.0.2.ip6.arpa addr=2002:a35:7::1 tcp=1 type=NS target=
+update-policy: trying: grant * 6to4-self . NS(10) DS(4)
+update-policy: 6to4-self=7.0.0.0.5.3.a.0.2.0.0.2.IP6.ARPA
+update-policy: matched: grant * 6to4-self . NS(10) DS(4)
+EOF
+diff policy.expected.$n policy.log.$n || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
 
 n=$((n + 1))
 ret=0

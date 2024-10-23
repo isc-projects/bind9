@@ -203,6 +203,11 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
 	bool autoddns = false;
 	isc_result_t result = ISC_R_SUCCESS;
+	char debug[1024];
+	isc_buffer_t dbuf;
+
+	isc_buffer_init(&dbuf, debug, sizeof(debug));
+	isc_buffer_setmctx(&dbuf, mctx);
 
 	(void)cfg_map_get(zconfig, "update-policy", &updatepolicy);
 
@@ -237,7 +242,9 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		isc_buffer_t b;
 		dns_ssuruletype_t *types;
 		unsigned int i, n;
+		char namebuf[DNS_NAME_FORMATSIZE];
 
+		isc_buffer_clear(&dbuf);
 		str = cfg_obj_asstring(mode);
 		if (strcasecmp(str, "grant") == 0) {
 			grant = true;
@@ -246,14 +253,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		} else {
 			UNREACHABLE();
 		}
-
-		str = cfg_obj_asstring(matchtype);
-		CHECK(dns_ssu_mtypefromstring(str, &mtype));
-		if (mtype == dns_ssumatchtype_subdomain &&
-		    strcasecmp(str, "zonesub") == 0)
-		{
-			usezone = true;
-		}
+		isc_buffer_putstr(&dbuf, str);
 
 		dns_fixedname_init(&fident);
 		str = cfg_obj_asstring(identity);
@@ -266,6 +266,20 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 				    "'%s' is not a valid name", str);
 			goto cleanup;
 		}
+		dns_name_format(dns_fixedname_name(&fident), namebuf,
+				sizeof(namebuf));
+		isc_buffer_putstr(&dbuf, " ");
+		isc_buffer_putstr(&dbuf, namebuf);
+
+		str = cfg_obj_asstring(matchtype);
+		CHECK(dns_ssu_mtypefromstring(str, &mtype));
+		if (mtype == dns_ssumatchtype_subdomain &&
+		    strcasecmp(str, "zonesub") == 0)
+		{
+			usezone = true;
+		}
+		isc_buffer_putstr(&dbuf, " ");
+		isc_buffer_putstr(&dbuf, str);
 
 		dns_fixedname_init(&fname);
 		if (usezone) {
@@ -282,6 +296,10 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 					    "'%s' is not a valid name", str);
 				goto cleanup;
 			}
+			dns_name_format(dns_fixedname_name(&fname), namebuf,
+					sizeof(namebuf));
+			isc_buffer_putstr(&dbuf, " ");
+			isc_buffer_putstr(&dbuf, namebuf);
 		}
 
 		n = named_config_listcount(typelist);
@@ -305,6 +323,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			typeobj = cfg_listelt_value(element2);
 			str = cfg_obj_asstring(typeobj);
 			r.base = UNCONST(str);
+			isc_buffer_putstr(&dbuf, " ");
+			isc_buffer_putstr(&dbuf, str);
 
 			bracket = strchr(str, '(' /*)*/);
 			if (bracket != NULL) {
@@ -337,9 +357,10 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		}
 		INSIST(i == n);
 
+		isc_buffer_putuint8(&dbuf, '\0');
 		dns_ssutable_addrule(table, grant, dns_fixedname_name(&fident),
 				     mtype, dns_fixedname_name(&fname), n,
-				     types);
+				     types, isc_buffer_base(&dbuf));
 		if (types != NULL) {
 			isc_mem_cput(mctx, types, n, sizeof(*types));
 		}
@@ -363,15 +384,16 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			goto cleanup;
 		}
 
-		dns_ssutable_addrule(table, true,
-				     named_g_server->session_keyname,
-				     dns_ssumatchtype_local,
-				     dns_zone_getorigin(zone), 1, &any);
+		dns_ssutable_addrule(
+			table, true, named_g_server->session_keyname,
+			dns_ssumatchtype_local, dns_zone_getorigin(zone), 1,
+			&any, "local");
 	}
 
 	dns_zone_setssutable(zone, table);
 
 cleanup:
+	isc_buffer_clearmctx(&dbuf);
 	dns_ssutable_detach(&table);
 	return (result);
 }

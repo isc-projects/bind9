@@ -110,6 +110,9 @@
 ``update``
     Dynamic updates.
 
+``update-policy``
+    Update-policy rule matching.
+
 ``update-security``
     Approval and denial of update requests.
 

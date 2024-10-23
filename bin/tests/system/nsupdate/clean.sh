@@ -28,14 +28,14 @@ rm -f keygen.out.*
 rm -f nextpart.out.*
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*
 rm -f ns1/example.db ns1/unixtime.db ns1/yyyymmddvv.db ns1/update.db ns1/other.db ns1/keytests.db
+rm -f ns1/legacy157.key ns1/legacy161.key ns1/legacy162.key ns1/legacy163.key ns1/legacy164.key ns1/legacy165.key
 rm -f ns1/many.test.db
 rm -f ns1/maxjournal.db
 rm -f ns1/md5.key ns1/sha1.key ns1/sha224.key ns1/sha256.key ns1/sha384.key
-rm -f ns1/legacy157.key ns1/legacy161.key ns1/legacy162.key ns1/legacy163.key ns1/legacy164.key ns1/legacy165.key
 rm -f ns1/sample.db
+rm -f ns1/sha512.key ns1/ddns.key
 rm -f ns1/tls.conf
 rm -f ns1/tls.options
-rm -f ns1/sha512.key ns1/ddns.key
 rm -f ns10/_default.tsigkeys
 rm -f ns10/example.com.db
 rm -f ns10/in-addr.db
@@ -48,10 +48,10 @@ rm -f ns3/delegation.test.db
 rm -f ns3/dnskey.test.db
 rm -f ns3/dsset-*
 rm -f ns3/example.db
-rm -f ns3/relaxed.db
-rm -f ns3/multisigner.test.db
 rm -f ns3/many.test.bk
+rm -f ns3/multisigner.test.db
 rm -f ns3/nsec3param.test.db
+rm -f ns3/relaxed.db
 rm -f ns3/too-big.test.db
 rm -f ns5/local.db
 rm -f ns6/2.0.0.2.ip6.addr.db
@@ -66,10 +66,12 @@ rm -f ns9/_default.tsigkeys
 rm -f ns9/denyname.example.db
 rm -f ns9/example.com.db
 rm -f ns9/in-addr.db
-rm -f perl.update_test.out
 rm -f nsupdate.alg-*
 rm -f nsupdate.out*
+rm -f perl.update_test.out
+rm -f policy.expected.*
+rm -f policy.log*
 rm -f typelist.out.*
-rm -f update.out.*
 rm -f update.in.*
+rm -f update.out.*
 rm -f verylarge
