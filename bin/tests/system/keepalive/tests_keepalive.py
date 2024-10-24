@@ -31,24 +31,24 @@ def test_dig_tcp_keepalive_handling(named_port, servers):
     dig = isctest.run.Dig(f"-p {str(named_port)}")
 
     isctest.log.info("check that dig handles TCP keepalive in query")
-    assert "; TCP KEEPALIVE" in dig("+qr +keepalive foo.example. @10.53.0.2")
+    assert "; TCP-KEEPALIVE" in dig("+qr +keepalive foo.example. @10.53.0.2")
 
     isctest.log.info("check that dig added TCP keepalive was received")
     assert get_keepalive_options_received() == 1
 
     isctest.log.info("check that TCP keepalive is added for TCP responses")
-    assert "; TCP KEEPALIVE" in dig("+tcp +keepalive foo.example. @10.53.0.2")
+    assert "; TCP-KEEPALIVE" in dig("+tcp +keepalive foo.example. @10.53.0.2")
 
     isctest.log.info("check that TCP keepalive requires TCP")
-    assert "; TCP KEEPALIVE" not in dig("+keepalive foo.example. @10.53.0.2")
+    assert "; TCP-KEEPALIVE" not in dig("+keepalive foo.example. @10.53.0.2")
 
     isctest.log.info("check the default keepalive value")
-    assert "; TCP KEEPALIVE: 30.0 secs" in dig(
+    assert "; TCP-KEEPALIVE: 30.0 secs" in dig(
         "+tcp +keepalive foo.example. @10.53.0.3"
     )
 
     isctest.log.info("check a keepalive configured value")
-    assert "; TCP KEEPALIVE: 15.0 secs" in dig(
+    assert "; TCP-KEEPALIVE: 15.0 secs" in dig(
         "+tcp +keepalive foo.example. @10.53.0.2"
     )
 
@@ -58,7 +58,7 @@ def test_dig_tcp_keepalive_handling(named_port, servers):
     assert "tcp-idle-timeout=300" in response
     assert "tcp-keepalive-timeout=300" in response
     assert "tcp-advertised-timeout=200" in response
-    assert "; TCP KEEPALIVE: 20.0 secs" in dig(
+    assert "; TCP-KEEPALIVE: 20.0 secs" in dig(
         "+tcp +keepalive foo.example. @10.53.0.2"
     )
 
