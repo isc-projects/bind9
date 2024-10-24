@@ -348,13 +348,13 @@ def _check_signatures(signatures, covers, fqdn, keys):
 
         if not signing:
             for rrsig in signatures:
-                assert f"{key.tag} {fqdn}" not in rrsig
+                assert f" {key.tag} {fqdn}" not in rrsig
             continue
 
         if zrrsig and key.is_zsk():
             has_rrsig = False
             for rrsig in signatures:
-                if f"{key.tag} {fqdn}" in rrsig:
+                if f" {key.tag} {fqdn}" in rrsig:
                     has_rrsig = True
                     break
             assert has_rrsig
@@ -362,12 +362,12 @@ def _check_signatures(signatures, covers, fqdn, keys):
 
         if zrrsig and not key.is_zsk():
             for rrsig in signatures:
-                assert f"{key.tag} {fqdn}" not in rrsig
+                assert f" {key.tag} {fqdn}" not in rrsig
 
         if krrsig and key.is_ksk():
             has_rrsig = False
             for rrsig in signatures:
-                if f"{key.tag} {fqdn}" in rrsig:
+                if f" {key.tag} {fqdn}" in rrsig:
                     has_rrsig = True
                     break
             assert has_rrsig
@@ -375,7 +375,7 @@ def _check_signatures(signatures, covers, fqdn, keys):
 
         if krrsig and not key.is_ksk():
             for rrsig in signatures:
-                assert f"{key.tag} {fqdn}" not in rrsig
+                assert f" {key.tag} {fqdn}" not in rrsig
 
     return numsigs
 
