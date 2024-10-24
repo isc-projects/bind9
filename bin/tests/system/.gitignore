@@ -15,6 +15,7 @@ named.run
 /*.trs
 /*.xml
 /resolve
+/legacy.run.sh
 /run.log
 /start.sh
 /stop.sh
