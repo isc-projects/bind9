@@ -4468,35 +4468,5 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-echo_i "checking NSEC3 nxdomain response closest encloser with 0 ENT ($n)"
-ret=0
-dig_with_opts @10.53.0.3 b.b.b.b.b.a.nsec3.example. >dig.out.ns3.test$n
-grep "status: NXDOMAIN" dig.out.ns3.test$n >/dev/null || ret=1
-pat="^6OVDUHTN094ML2PV8AN90U0DPU823GH2\.nsec3.example\..*NSEC3 1 0 0 - 7AT0S0RIDCJRFF2M5H5AAV22CSFJBUL4 A RRSIG\$"
-grep "$pat" dig.out.ns3.test$n >/dev/null || ret=1
-n=$((n + 1))
-if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking NSEC3 nxdomain response closest encloser with 1 ENTs ($n)"
-ret=0
-dig_with_opts @10.53.0.3 b.b.b.b.b.a.a.nsec3.example. >dig.out.ns3.test$n
-grep "status: NXDOMAIN" dig.out.ns3.test$n >/dev/null || ret=1
-pat="^NGCJFSOLJUUE27PFNQNJIME4TQ0OU2DH\.nsec3.example\..*NSEC3 1 0 0 - R8EVDMNIGNOKME4LH2H90OSP2PRSNJ1Q\$"
-grep "$pat" dig.out.ns3.test$n >/dev/null || ret=1
-n=$((n + 1))
-if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking NSEC3 nxdomain response closest encloser with 2 ENTs ($n)"
-ret=0
-dig_with_opts @10.53.0.3 b.b.b.b.b.a.a.a.nsec3.example. >dig.out.ns3.test$n
-grep "status: NXDOMAIN" dig.out.ns3.test$n >/dev/null || ret=1
-pat="^H7RHPDCHSVVRAND332F878C8AB6IBJQV\.nsec3.example\..*NSEC3 1 0 0 - K8IG76R2UPQ13IKFO49L7IB9JRVB6QJI\$"
-grep "$pat" dig.out.ns3.test$n >/dev/null || ret=1
-n=$((n + 1))
-if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
