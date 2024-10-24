@@ -338,12 +338,12 @@ isblackholed(dns_dispatchmgr_t *dispatchmgr, const isc_sockaddr_t *destaddr) {
 static isc_result_t
 tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
-	     dns_dispatch_t **dispatchp) {
+	     dns_transport_t *transport, dns_dispatch_t **dispatchp) {
 	isc_result_t result;
 
 	if (!newtcp) {
 		result = dns_dispatch_gettcp(requestmgr->dispatchmgr, destaddr,
-					     srcaddr, dispatchp);
+					     srcaddr, transport, dispatchp);
 		if (result == ISC_R_SUCCESS) {
 			char peer[ISC_SOCKADDR_FORMATSIZE];
 
@@ -355,7 +355,7 @@ tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	}
 
 	result = dns_dispatch_createtcp(requestmgr->dispatchmgr, srcaddr,
-					destaddr, 0, dispatchp);
+					destaddr, transport, 0, dispatchp);
 	return (result);
 }
 
@@ -391,12 +391,12 @@ udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 static isc_result_t
 get_dispatch(bool tcp, bool newtcp, dns_requestmgr_t *requestmgr,
 	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
-	     dns_dispatch_t **dispatchp) {
+	     dns_transport_t *transport, dns_dispatch_t **dispatchp) {
 	isc_result_t result;
 
 	if (tcp) {
 		result = tcp_dispatch(newtcp, requestmgr, srcaddr, destaddr,
-				      dispatchp);
+				      transport, dispatchp);
 	} else {
 		result = udp_dispatch(requestmgr, srcaddr, destaddr, dispatchp);
 	}
@@ -471,7 +471,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 again:
 	result = get_dispatch(tcp, newtcp, requestmgr, srcaddr, destaddr,
-			      &request->dispatch);
+			      transport, &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -596,7 +596,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 again:
 	result = get_dispatch(tcp, false, requestmgr, srcaddr, destaddr,
-			      &request->dispatch);
+			      transport, &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

@@ -508,7 +508,7 @@ connected_gettcp(isc_result_t eresult ISC_ATTR_UNUSED,
 	};
 
 	result = dns_dispatch_gettcp(test2->dispatchmgr, &tcp_server_addr,
-				     &tcp_connect_addr, &test2->dispatch);
+				     &tcp_connect_addr, NULL, &test2->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_ptr_equal(test1->dispatch, test2->dispatch);
@@ -537,11 +537,11 @@ connected_newtcp(isc_result_t eresult ISC_ATTR_UNUSED,
 		.dispatchmgr = dns_dispatchmgr_ref(test3->dispatchmgr),
 	};
 	result = dns_dispatch_gettcp(test4->dispatchmgr, &tcp_server_addr,
-				     &tcp_connect_addr, &test4->dispatch);
+				     &tcp_connect_addr, NULL, &test4->dispatch);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	result = dns_dispatch_createtcp(
-		test4->dispatchmgr, &tcp_connect_addr, &tcp_server_addr,
+		test4->dispatchmgr, &tcp_connect_addr, &tcp_server_addr, NULL,
 		DNS_DISPATCHOPT_UNSHARED, &test4->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -593,7 +593,8 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_connect) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(test->dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, 0, &test->dispatch);
+					&tcp_server_addr, NULL, 0,
+					&test->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_add(test->dispatch, isc_loop_main(loopmgr), 0,
@@ -638,7 +639,8 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_response) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(test->dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, 0, &test->dispatch);
+					&tcp_server_addr, NULL, 0,
+					&test->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_add(test->dispatch, isc_loop_main(loopmgr), 0,
@@ -673,7 +675,8 @@ ISC_LOOP_TEST_IMPL(dispatch_tcp_response) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(test->dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, 0, &test->dispatch);
+					&tcp_server_addr, NULL, 0,
+					&test->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_add(
@@ -711,7 +714,8 @@ ISC_LOOP_TEST_IMPL(dispatch_tls_response) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(test->dispatchmgr, &tls_connect_addr,
-					&tls_server_addr, 0, &test->dispatch);
+					&tls_server_addr, tls_transport, 0,
+					&test->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_add(test->dispatch, isc_loop_main(loopmgr), 0,
@@ -816,7 +820,8 @@ ISC_LOOP_TEST_IMPL(dispatch_gettcp) {
 
 	/* Client */
 	result = dns_dispatch_createtcp(test->dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, 0, &test->dispatch);
+					&tcp_server_addr, NULL, 0,
+					&test->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_add(
@@ -848,7 +853,7 @@ ISC_LOOP_TEST_IMPL(dispatch_newtcp) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(
-		test->dispatchmgr, &tcp_connect_addr, &tcp_server_addr,
+		test->dispatchmgr, &tcp_connect_addr, &tcp_server_addr, NULL,
 		DNS_DISPATCHOPT_UNSHARED, &test->dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
