@@ -185,15 +185,27 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		       const isc_sockaddr_t *destaddr,
-		       dns_dispatchopt_t options, dns_dispatch_t **dispp);
+		       dns_transport_t *transport, dns_dispatchopt_t options,
+		       dns_dispatch_t **dispp);
 /*%<
  * Create a new TCP dns_dispatch.
+ *
+ * Note: a NULL transport is different from a non-NULL transport of type
+ *	 DNS_TRANSPORT_TCP, though currently their behavior is the same.
+ *	 This allows for different types of transactions to be seperated
+ *	 in the future if needed.
  *
  * Requires:
  *
  *\li	mgr is a valid dispatch manager.
  *
- *\li	sock is a valid.
+ *\li	dstaddr to be a valid sockaddr.
+ *
+ *\li	localaddr to be a valid sockaddr.
+ *
+ *\li	transport is NULL or a valid transport.
+ *
+ *\li	dispp to be non NULL and *dispp to be NULL
  *
  * Returns:
  *\li	ISC_R_SUCCESS	-- success.
@@ -255,9 +267,31 @@ dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout);
 
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
-		    const isc_sockaddr_t *localaddr, dns_dispatch_t **dispp);
+		    const isc_sockaddr_t *localaddr, dns_transport_t *transport,
+		    dns_dispatch_t **dispp);
 /*
- * Attempt to connect to a existing TCP connection.
+ * Attempt to connect to a existing TCP connection that was created with
+ * parameters that match destaddr, localaddr and transport.
+ *
+ * If localaddr is NULL, we ignore the dispatch's localaddr when looking
+ * for a match.  However, if transport is NULL, then the matching dispatch
+ * must also have been created with a NULL transport.
+ *
+ * Requires:
+ *\li	mgr to be valid dispatch manager.
+ *
+ *\li	dstaddr to be a valid sockaddr.
+ *
+ *\li	localaddr to be NULL or a valid sockaddr.
+ *
+ *\li	transport is NULL or a valid transport.
+ *
+ *\li	dispp to be non NULL and *dispp to be NULL
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS	-- success.
+ *
+ *\li	Anything else	-- failure.
  */
 
 typedef void (*dispatch_cb_t)(isc_result_t eresult, isc_region_t *region,
@@ -292,6 +326,9 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
  *\li	"dest" be non-NULL and valid.
  *
  *\li	"resp" be non-NULL and *resp be NULL
+ *
+ *\li	"transport" to be the same one used with dns_dispatch_createtcp or
+ *	dns_dispatch_gettcp.
  *
  * Ensures:
  *
