@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Changes prior to 9.20.0
+Changes prior to 9.20.1
 -----------------------
 
 .. code-block:: none
