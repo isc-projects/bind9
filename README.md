@@ -154,7 +154,7 @@ Additional information on various subjects can be found in other
 
 #### Bug report identifiers
 
-Most notes in the CHANGES file include a reference to a bug report or
+Most notes in the ARM Changelog appendix include a reference to a bug report or
 issue number. Prior to 2018, these were usually of the form `[RT #NNN]`
 and referred to entries in the "bind9-bugs" RT database, which was not open
 to the public. More recent entries use the form `[GL #NNN]` or, less often,
