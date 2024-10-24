@@ -12491,6 +12491,7 @@ notify_send_toaddr(void *arg) {
 	isc_sockaddr_t src;
 	unsigned int options, timeout, udptimeout;
 	bool have_notifysource = false;
+	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
 
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 
@@ -12605,10 +12606,17 @@ again:
 		udptimeout = 0;
 		timeout = 15;
 	}
-	result = dns_request_create(
-		notify->zone->view->requestmgr, message, &src, &notify->dst,
-		NULL, NULL, options, key, timeout, udptimeout, 2,
-		notify->zone->loop, notify_done, notify, &notify->request);
+
+	zmgr_tlsctx_attach(notify->zone->zmgr, &zmgr_tlsctx_cache);
+
+	result = dns_request_create(notify->zone->view->requestmgr, message,
+				    &src, &notify->dst, notify->transport,
+				    zmgr_tlsctx_cache, options, key, timeout,
+				    udptimeout, 2, notify->zone->loop,
+				    notify_done, notify, &notify->request);
+
+	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
+
 	if (result == ISC_R_SUCCESS) {
 		if (isc_sockaddr_pf(&notify->dst) == AF_INET) {
 			inc_stats(notify->zone,
@@ -12835,11 +12843,23 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 
 		if (dns_remote_tlsname(&zone->notify) != NULL) {
 			dns_name_t *tlsname = dns_remote_tlsname(&zone->notify);
-			(void)dns_view_gettransport(view, DNS_TRANSPORT_TLS,
-						    tlsname, &transport);
+			result = dns_view_gettransport(view, DNS_TRANSPORT_TLS,
+						       tlsname, &transport);
 
-			notify_log(zone, ISC_LOG_INFO,
-				   "got TLS configuration for a notify");
+			if (result == ISC_R_SUCCESS) {
+				notify_log(
+					zone, ISC_LOG_INFO,
+					"got TLS configuration for a notify");
+			} else {
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_ERROR,
+					      "could not get TLS configuration "
+					      "for zone transfer: %s",
+					      isc_result_totext(result));
+				goto next;
+			}
+
+			flags |= DNS_NOTIFY_TCP;
 		}
 
 		/* TODO: glue the transport to the notify */
@@ -12901,6 +12921,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 			loggednotify = true;
 		}
 	next:
+		flags &= ~DNS_NOTIFY_TCP;
 		dns_remote_next(&zone->notify, false);
 	}
 	UNLOCK_ZONE(zone);
