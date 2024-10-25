@@ -308,10 +308,8 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
  * with the dispatch entry object.
  *
  * The 'connected' and 'sent' callbacks are run to inform the caller when
- * the connect and send functions are complete. The 'timedout' callback
- * is run to inform the caller that a read has timed out; it may optionally
- * reset the read timer. The 'response' callback is run for recv results
- * (response packets, timeouts, or cancellations).
+ * the connect and send functions are complete. The 'response' callback is run
+ * for recv results (response packets, timeouts, or cancellations).
  *
  * All the callback functions are sent 'arg' as a parameter.
  *
