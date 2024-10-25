@@ -113,9 +113,8 @@ def check_keys(
         created = key.get_timing("Created") + offset
 
         # active: retired previous key
-        if num == 0:
-            active = created
-        else:
+        active = created
+        if num > 0 and retired is not None:
             active = retired
 
         # published: dnskey-ttl + publish-safety + propagation
