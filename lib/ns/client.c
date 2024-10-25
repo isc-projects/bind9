@@ -1550,17 +1550,6 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	 * XXXRTH need library support for this!
 	 */
 	client->ednsversion = (opt->ttl & 0x00FF0000) >> 16;
-	if (client->ednsversion > DNS_EDNS_VERSION) {
-		ns_stats_increment(client->manager->sctx->nsstats,
-				   ns_statscounter_badednsver);
-		result = ns_client_addopt(client, client->message,
-					  &client->opt);
-		if (result == ISC_R_SUCCESS) {
-			result = DNS_R_BADVERS;
-		}
-		ns_client_error(client, result);
-		return result;
-	}
 
 	/* Check for NSID request */
 	result = dns_rdataset_first(opt);
@@ -1572,6 +1561,17 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 		while (isc_buffer_remaininglength(&optbuf) >= 4) {
 			optcode = isc_buffer_getuint16(&optbuf);
 			optlen = isc_buffer_getuint16(&optbuf);
+			/*
+			 * When returning BADVERSION, only process
+			 * DNS_OPT_NSID or DNS_OPT_COOKIE options.
+			 */
+			if (client->ednsversion > DNS_EDNS_VERSION &&
+			    optcode != DNS_OPT_NSID &&
+			    optcode != DNS_OPT_COOKIE)
+			{
+				isc_buffer_forward(&optbuf, optlen);
+				continue;
+			}
 			switch (optcode) {
 			case DNS_OPT_NSID:
 				if (!WANTNSID(client)) {
@@ -1641,6 +1641,18 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				break;
 			}
 		}
+	}
+
+	if (client->ednsversion > DNS_EDNS_VERSION) {
+		ns_stats_increment(client->manager->sctx->nsstats,
+				   ns_statscounter_badednsver);
+		result = ns_client_addopt(client, client->message,
+					  &client->opt);
+		if (result == ISC_R_SUCCESS) {
+			result = DNS_R_BADVERS;
+		}
+		ns_client_error(client, result);
+		return result;
 	}
 
 	ns_stats_increment(client->manager->sctx->nsstats,
