@@ -193,6 +193,7 @@ typedef struct dns_include dns_include_t;
 	} while (0)
 #define UNLOCK_ZONE(z)               \
 	do {                         \
+		INSIST((z)->locked); \
 		(z)->locked = false; \
 		UNLOCK(&(z)->lock);  \
 	} while (0)
