@@ -645,6 +645,18 @@ if [ -x "$DIG" ]; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    ret=0
+    echo_i "check that dig processes +ednsopt=key-tag:<value-list> +yaml ($n)"
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=key-tag:00010002 a.example +qr >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS KEY-TAG >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "[1, 2]" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
+
   n=$((n + 1))
   echo_i "check that dig processes +ednsopt=key-tag:<malformed-value-list> and FORMERR is returned ($n)"
   ret=0

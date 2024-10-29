@@ -3852,7 +3852,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 				break;
 			case DNS_OPT_KEY_TAG:
 				if (optlen > 0U && (optlen % 2U) == 0U) {
-					const char *sep = "";
+					const char *sep = " [";
 					while (optlen > 0U) {
 						uint16_t id =
 							isc_buffer_getuint16(
@@ -3863,7 +3863,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 						sep = ",";
 						optlen -= 2;
 					}
-					ADD_STRING(target, "\n");
+					ADD_STRING(target, " ]\n");
 					continue;
 				}
 				break;
