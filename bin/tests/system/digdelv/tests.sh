@@ -482,6 +482,18 @@ if [ -x "$DIG" ]; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "checking dig +subnet=0 +yaml ($n)"
+    ret=0
+    dig_with_opts +yaml +tcp @10.53.0.2 +subnet=0 A a.example >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data OPT_PSEUDOSECTION EDNS CLIENT-SUBNET >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "0.0.0.0/0/0" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
+
   n=$((n + 1))
   echo_i "checking dig +subnet=::/0 ($n)"
   ret=0
@@ -492,6 +504,28 @@ if [ -x "$DIG" ]; then
   check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
+
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "checking dig +subnet=::/0 +yaml ($n)"
+    ret=0
+    dig_with_opts +yaml +tcp @10.53.0.2 +subnet=::/0 A a.example >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data OPT_PSEUDOSECTION EDNS CLIENT-SUBNET >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "::/0/0" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+
+    n=$((n + 1))
+    echo_i "checking dig +subnet=dead::/16 +yaml ($n)"
+    ret=0
+    dig_with_opts +yaml +tcp @10.53.0.2 +qr +subnet=dead::/16 A a.example >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS CLIENT-SUBNET >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "dead::/16/0" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
 
   n=$((n + 1))
   echo_i "checking dig +ednsopt=8:00000000 (family=0, source=0, scope=0) ($n)"
