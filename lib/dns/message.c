@@ -3528,39 +3528,81 @@ cleanup:
 }
 
 static isc_result_t
-render_llq(isc_buffer_t *optbuf, isc_buffer_t *target) {
+render_llq(isc_buffer_t *optbuf, dns_message_t *msg,
+	   const dns_master_style_t *style, isc_buffer_t *target) {
 	char buf[sizeof("18446744073709551615")]; /* 2^64-1 */
 	isc_result_t result = ISC_R_SUCCESS;
 	uint32_t u;
 	uint64_t q;
+	const char *sep1 = " ", *sep2 = ", ";
+	size_t count = msg->indent.count;
+	bool yaml = false;
+
+	if ((dns_master_styleflags(style) & DNS_STYLEFLAG_YAML) != 0) {
+		sep1 = sep2 = "\n";
+		msg->indent.count++;
+		yaml = true;
+	}
 
 	u = isc_buffer_getuint16(optbuf);
-	ADD_STRING(target, " Version: ");
+	ADD_STRING(target, sep1);
+	INDENT(style);
+	if (yaml) {
+		ADD_STRING(target, "LLQ-VERSION: ");
+	} else {
+		ADD_STRING(target, "Version: ");
+	}
 	snprintf(buf, sizeof(buf), "%u", u);
 	ADD_STRING(target, buf);
 
 	u = isc_buffer_getuint16(optbuf);
-	ADD_STRING(target, ", Opcode: ");
+	ADD_STRING(target, sep2);
+	INDENT(style);
+	if (yaml) {
+		ADD_STRING(target, "LLQ-OPCODE: ");
+	} else {
+		ADD_STRING(target, "Opcode: ");
+	}
 	snprintf(buf, sizeof(buf), "%u", u);
 	ADD_STRING(target, buf);
 
 	u = isc_buffer_getuint16(optbuf);
-	ADD_STRING(target, ", Error: ");
+	ADD_STRING(target, sep2);
+	INDENT(style);
+	if (yaml) {
+		ADD_STRING(target, "LLQ-ERROR: ");
+	} else {
+		ADD_STRING(target, "Error: ");
+	}
 	snprintf(buf, sizeof(buf), "%u", u);
 	ADD_STRING(target, buf);
 
 	q = isc_buffer_getuint32(optbuf);
 	q <<= 32;
 	q |= isc_buffer_getuint32(optbuf);
-	ADD_STRING(target, ", Identifier: ");
+	ADD_STRING(target, sep2);
+	INDENT(style);
+	if (yaml) {
+		ADD_STRING(target, "LLQ-ID: ");
+	} else {
+		ADD_STRING(target, "Identifier: ");
+	}
 	snprintf(buf, sizeof(buf), "%" PRIu64, q);
 	ADD_STRING(target, buf);
 
 	u = isc_buffer_getuint32(optbuf);
-	ADD_STRING(target, ", Lifetime: ");
+	ADD_STRING(target, sep2);
+	INDENT(style);
+	if (yaml) {
+		ADD_STRING(target, "LLQ-LEASE: ");
+	} else {
+		ADD_STRING(target, "Lifetime: ");
+	}
 	snprintf(buf, sizeof(buf), "%u", u);
 	ADD_STRING(target, buf);
+
 cleanup:
+	msg->indent.count = count;
 	return result;
 }
 
@@ -3743,7 +3785,8 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 			switch (optcode) {
 			case DNS_OPT_LLQ:
 				if (optlen == 18U) {
-					result = render_llq(&optbuf, target);
+					result = render_llq(&optbuf, msg, style,
+							    target);
 					if (result != ISC_R_SUCCESS) {
 						goto cleanup;
 					}
@@ -4126,7 +4169,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 			switch (optcode) {
 			case DNS_OPT_LLQ:
 				if (optlen == 18U) {
-					result = render_llq(&optbuf, target);
+					result = render_llq(&optbuf, msg, style,
+							    target);
 					if (result != ISC_R_SUCCESS) {
 						return result;
 					}
