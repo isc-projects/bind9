@@ -3607,7 +3607,7 @@ cleanup:
 }
 
 static isc_result_t
-render_reportchan(isc_buffer_t *optbuf, isc_buffer_t *target) {
+render_nameopt(isc_buffer_t *optbuf, isc_buffer_t *target) {
 	dns_decompress_t dctx = DNS_DECOMPRESS_NEVER;
 	dns_fixedname_t fixed;
 	dns_name_t *name = dns_fixedname_initname(&fixed);
@@ -3617,14 +3617,36 @@ render_reportchan(isc_buffer_t *optbuf, isc_buffer_t *target) {
 	result = dns_name_fromwire(name, optbuf, dctx, NULL);
 	if (result == ISC_R_SUCCESS && isc_buffer_activelength(optbuf) == 0) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		ADD_STRING(target, " ");
+		ADD_STRING(target, " \"");
 		ADD_STRING(target, namebuf);
+		ADD_STRING(target, "\"");
 		return (result);
 	}
 	result = ISC_R_FAILURE;
 cleanup:
 	return (result);
 }
+
+static const char *option_names[] = {
+	[DNS_OPT_LLQ] = "LLQ",
+	[DNS_OPT_UL] = "UL",
+	[DNS_OPT_NSID] = "NSID",
+	[DNS_OPT_DAU] = "DAU",
+	[DNS_OPT_DHU] = "DHU",
+	[DNS_OPT_N3U] = "N3U",
+	[DNS_OPT_CLIENT_SUBNET] = "CLIENT-SUBNET",
+	[DNS_OPT_EXPIRE] = "EXPIRE",
+	[DNS_OPT_COOKIE] = "COOKIE",
+	[DNS_OPT_TCP_KEEPALIVE] = "TCP-KEEPALIVE",
+	[DNS_OPT_PAD] = "PADDING",
+	[DNS_OPT_CHAIN] = "CHAIN",
+	[DNS_OPT_KEY_TAG] = "KEY-TAG",
+	[DNS_OPT_EDE] = "EDE",
+	[DNS_OPT_CLIENT_TAG] = "CLIENT-TAG",
+	[DNS_OPT_SERVER_TAG] = "SERVER-TAG",
+	[DNS_OPT_REPORT_CHANNEL] = "Report-Channel",
+	[DNS_OPT_ZONEVERSION] = "ZONEVERSION",
+};
 
 static isc_result_t
 dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
@@ -3640,8 +3662,9 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 	isc_buffer_t optbuf;
 	uint16_t optcode, optlen;
 	size_t saved_count;
-	unsigned char *optdata;
+	unsigned char *optdata = NULL;
 	unsigned int indent;
+	isc_buffer_t ecsbuf;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -3709,15 +3732,28 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 		isc_buffer_add(&optbuf, rdata.length);
 		while (isc_buffer_remaininglength(&optbuf) != 0) {
 			bool extra_text = false;
+			const char *option_name = NULL;
+
 			msg->indent.count = indent;
 			INSIST(isc_buffer_remaininglength(&optbuf) >= 4U);
 			optcode = isc_buffer_getuint16(&optbuf);
 			optlen = isc_buffer_getuint16(&optbuf);
 			INSIST(isc_buffer_remaininglength(&optbuf) >= optlen);
 
-			if (optcode == DNS_OPT_LLQ) {
-				INDENT(style);
-				ADD_STRING(target, "LLQ:");
+			INDENT(style);
+			if (optcode < ARRAY_SIZE(option_names)) {
+				option_name = option_names[optcode];
+			}
+			if (option_name != NULL) {
+				ADD_STRING(target, option_names[optcode])
+			} else {
+				snprintf(buf, sizeof(buf), "OPT=%u", optcode);
+				ADD_STRING(target, buf);
+			}
+			ADD_STRING(target, ":");
+
+			switch (optcode) {
+			case DNS_OPT_LLQ:
 				if (optlen == 18U) {
 					result = render_llq(&optbuf, target);
 					if (result != ISC_R_SUCCESS) {
@@ -3726,9 +3762,8 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, "\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_UL) {
-				INDENT(style);
-				ADD_STRING(target, "UL:");
+				break;
+			case DNS_OPT_UL:
 				if (optlen == 4U || optlen == 8U) {
 					uint32_t secs, key = 0;
 					secs = isc_buffer_getuint32(&optbuf);
@@ -3759,16 +3794,8 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, ")\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_NSID) {
-				INDENT(style);
-				ADD_STRING(target, "NSID:");
-			} else if (optcode == DNS_OPT_COOKIE) {
-				INDENT(style);
-				ADD_STRING(target, "COOKIE:");
-			} else if (optcode == DNS_OPT_CLIENT_SUBNET) {
-				isc_buffer_t ecsbuf;
-				INDENT(style);
-				ADD_STRING(target, "CLIENT-SUBNET:");
+				break;
+			case DNS_OPT_CLIENT_SUBNET:
 				isc_buffer_init(&ecsbuf,
 						isc_buffer_current(&optbuf),
 						optlen);
@@ -3783,9 +3810,8 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					continue;
 				}
 				ADD_STRING(target, "\n");
-			} else if (optcode == DNS_OPT_EXPIRE) {
-				INDENT(style);
-				ADD_STRING(target, "EXPIRE:");
+				break;
+			case DNS_OPT_EXPIRE:
 				if (optlen == 4) {
 					uint32_t secs;
 					secs = isc_buffer_getuint32(&optbuf);
@@ -3800,32 +3826,38 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, ")\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_TCP_KEEPALIVE) {
+				break;
+			case DNS_OPT_TCP_KEEPALIVE:
 				if (optlen == 2) {
 					unsigned int dsecs;
 					dsecs = isc_buffer_getuint16(&optbuf);
-					INDENT(style);
-					ADD_STRING(target, "TCP-KEEPALIVE: ");
 					snprintf(buf, sizeof(buf), "%u.%u",
 						 dsecs / 10U, dsecs % 10U);
 					ADD_STRING(target, buf);
 					ADD_STRING(target, " secs\n");
 					continue;
 				}
-				INDENT(style);
-				ADD_STRING(target, "TCP-KEEPALIVE:");
-			} else if (optcode == DNS_OPT_PAD) {
-				INDENT(style);
-				ADD_STRING(target, "PAD:");
-			} else if (optcode == DNS_OPT_KEY_TAG) {
-				INDENT(style);
-				ADD_STRING(target, "KEY-TAG:");
+				break;
+			case DNS_OPT_CHAIN:
+				if (optlen > 0U) {
+					isc_buffer_t sb = optbuf;
+					isc_buffer_setactive(&optbuf, optlen);
+					result = render_nameopt(&optbuf,
+								target);
+					if (result == ISC_R_SUCCESS) {
+						ADD_STRING(target, "\n");
+						continue;
+					}
+					optbuf = sb;
+				}
+				break;
+			case DNS_OPT_KEY_TAG:
 				if (optlen > 0U && (optlen % 2U) == 0U) {
 					const char *sep = "";
-					uint16_t id;
 					while (optlen > 0U) {
-						id = isc_buffer_getuint16(
-							&optbuf);
+						uint16_t id =
+							isc_buffer_getuint16(
+								&optbuf);
 						snprintf(buf, sizeof(buf),
 							 "%s %u", sep, id);
 						ADD_STRING(target, buf);
@@ -3835,9 +3867,8 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, "\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_EDE) {
-				INDENT(style);
-				ADD_STRING(target, "EDE:");
+				break;
+			case DNS_OPT_EDE:
 				if (optlen >= 2U) {
 					uint16_t ede;
 					ADD_STRING(target, "\n");
@@ -3862,44 +3893,40 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 						extra_text = true;
 					}
 				}
-			} else if (optcode == DNS_OPT_CLIENT_TAG) {
-				uint16_t id;
-				INDENT(style);
-				ADD_STRING(target, "CLIENT-TAG:");
+				break;
+			case DNS_OPT_CLIENT_TAG:
 				if (optlen == 2U) {
-					id = isc_buffer_getuint16(&optbuf);
+					uint16_t id =
+						isc_buffer_getuint16(&optbuf);
 					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					continue;
 				}
-			} else if (optcode == DNS_OPT_SERVER_TAG) {
-				uint16_t id;
-				INDENT(style);
-				ADD_STRING(target, "SERVER-TAG:");
+				break;
+			case DNS_OPT_SERVER_TAG:
 				if (optlen == 2U) {
-					id = isc_buffer_getuint16(&optbuf);
+					uint16_t id =
+						isc_buffer_getuint16(&optbuf);
 					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					continue;
 				}
-			} else if (optcode == DNS_OPT_REPORT_CHANNEL) {
-				INDENT(style);
-				ADD_STRING(target, "Report-Channel:");
+				break;
+			case DNS_OPT_REPORT_CHANNEL:
 				if (optlen > 0U) {
 					isc_buffer_t sb = optbuf;
 					isc_buffer_setactive(&optbuf, optlen);
-					result = render_reportchan(&optbuf,
-								   target);
+					result = render_nameopt(&optbuf,
+								target);
 					if (result == ISC_R_SUCCESS) {
+						ADD_STRING(target, "\n");
 						continue;
 					}
 					optbuf = sb;
 				}
-			} else {
-				INDENT(style);
-				ADD_STRING(target, "OPT=");
-				snprintf(buf, sizeof(buf), "%u:", optcode);
-				ADD_STRING(target, buf);
+				break;
+			default:
+				break;
 			}
 
 			if (optlen != 0) {
@@ -4048,7 +4075,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
 	uint16_t optcode, optlen;
-	unsigned char *optdata;
+	unsigned char *optdata = NULL;
+	isc_buffer_t ecsbuf;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -4110,6 +4138,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 		isc_buffer_init(&optbuf, rdata.data, rdata.length);
 		isc_buffer_add(&optbuf, rdata.length);
 		while (isc_buffer_remaininglength(&optbuf) != 0) {
+			const char *option_name = NULL;
+
 			INSIST(isc_buffer_remaininglength(&optbuf) >= 4U);
 			optcode = isc_buffer_getuint16(&optbuf);
 			optlen = isc_buffer_getuint16(&optbuf);
@@ -4117,9 +4147,20 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 			INSIST(isc_buffer_remaininglength(&optbuf) >= optlen);
 
 			INDENT(style);
+			ADD_STRING(target, "; ");
+			if (optcode < ARRAY_SIZE(option_names)) {
+				option_name = option_names[optcode];
+			}
+			if (option_name != NULL) {
+				ADD_STRING(target, option_names[optcode])
+			} else {
+				snprintf(buf, sizeof(buf), "OPT=%u", optcode);
+				ADD_STRING(target, buf);
+			}
+			ADD_STRING(target, ":");
 
-			if (optcode == DNS_OPT_LLQ) {
-				ADD_STRING(target, "; LLQ:");
+			switch (optcode) {
+			case DNS_OPT_LLQ:
 				if (optlen == 18U) {
 					result = render_llq(&optbuf, target);
 					if (result != ISC_R_SUCCESS) {
@@ -4128,8 +4169,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, "\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_UL) {
-				ADD_STRING(target, "; UL:");
+				break;
+			case DNS_OPT_UL:
 				if (optlen == 4U || optlen == 8U) {
 					uint32_t secs, key = 0;
 					secs = isc_buffer_getuint32(&optbuf);
@@ -4160,14 +4201,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, ")\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_NSID) {
-				ADD_STRING(target, "; NSID:");
-			} else if (optcode == DNS_OPT_COOKIE) {
-				ADD_STRING(target, "; COOKIE:");
-			} else if (optcode == DNS_OPT_CLIENT_SUBNET) {
-				isc_buffer_t ecsbuf;
-
-				ADD_STRING(target, "; CLIENT-SUBNET:");
+				break;
+			case DNS_OPT_CLIENT_SUBNET:
 				isc_buffer_init(&ecsbuf,
 						isc_buffer_current(&optbuf),
 						optlen);
@@ -4181,8 +4216,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, "\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_EXPIRE) {
-				ADD_STRING(target, "; EXPIRE:");
+				break;
+			case DNS_OPT_EXPIRE:
 				if (optlen == 4) {
 					uint32_t secs;
 					secs = isc_buffer_getuint32(&optbuf);
@@ -4197,8 +4232,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, ")\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_TCP_KEEPALIVE) {
-				ADD_STRING(target, "; TCP KEEPALIVE:");
+				break;
+			case DNS_OPT_TCP_KEEPALIVE:
 				if (optlen == 2) {
 					unsigned int dsecs;
 					dsecs = isc_buffer_getuint16(&optbuf);
@@ -4208,8 +4243,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, " secs\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_PAD) {
-				ADD_STRING(target, "; PAD:");
+				break;
+			case DNS_OPT_PAD:
 				if (optlen > 0U) {
 					snprintf(buf, sizeof(buf),
 						 " (%u bytes)", optlen);
@@ -4218,14 +4253,27 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				}
 				ADD_STRING(target, "\n");
 				continue;
-			} else if (optcode == DNS_OPT_KEY_TAG) {
-				ADD_STRING(target, "; KEY-TAG:");
+			case DNS_OPT_CHAIN:
+				if (optlen > 0U) {
+					isc_buffer_t sb = optbuf;
+					isc_buffer_setactive(&optbuf, optlen);
+					result = render_nameopt(&optbuf,
+								target);
+					if (result == ISC_R_SUCCESS) {
+						ADD_STRING(target, "\n");
+						continue;
+					}
+					optbuf = sb;
+				}
+				ADD_STRING(target, "\n");
+				break;
+			case DNS_OPT_KEY_TAG:
 				if (optlen > 0U && (optlen % 2U) == 0U) {
 					const char *sep = "";
-					uint16_t id;
 					while (optlen > 0U) {
-						id = isc_buffer_getuint16(
-							&optbuf);
+						uint16_t id =
+							isc_buffer_getuint16(
+								&optbuf);
 						snprintf(buf, sizeof(buf),
 							 "%s %u", sep, id);
 						ADD_STRING(target, buf);
@@ -4235,8 +4283,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, "\n");
 					continue;
 				}
-			} else if (optcode == DNS_OPT_EDE) {
-				ADD_STRING(target, "; EDE:");
+				break;
+			case DNS_OPT_EDE:
 				if (optlen >= 2U) {
 					uint16_t ede;
 					ede = isc_buffer_getuint16(&optbuf);
@@ -4264,41 +4312,40 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ADD_STRING(target, buf);
 					continue;
 				}
-			} else if (optcode == DNS_OPT_CLIENT_TAG) {
-				uint16_t id;
-				ADD_STRING(target, "; CLIENT-TAG:");
+				break;
+			case DNS_OPT_CLIENT_TAG:
 				if (optlen == 2U) {
-					id = isc_buffer_getuint16(&optbuf);
+					uint16_t id =
+						isc_buffer_getuint16(&optbuf);
 					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					continue;
 				}
-			} else if (optcode == DNS_OPT_SERVER_TAG) {
-				uint16_t id;
-				ADD_STRING(target, "; SERVER-TAG:");
+				break;
+			case DNS_OPT_SERVER_TAG:
 				if (optlen == 2U) {
-					id = isc_buffer_getuint16(&optbuf);
+					uint16_t id =
+						isc_buffer_getuint16(&optbuf);
 					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					continue;
 				}
-			} else if (optcode == DNS_OPT_REPORT_CHANNEL) {
-				ADD_STRING(target, "; Report-Channel:");
+				break;
+			case DNS_OPT_REPORT_CHANNEL:
 				if (optlen > 0U) {
 					isc_buffer_t sb = optbuf;
 					isc_buffer_setactive(&optbuf, optlen);
-					result = render_reportchan(&optbuf,
-								   target);
+					result = render_nameopt(&optbuf,
+								target);
 					if (result == ISC_R_SUCCESS) {
 						ADD_STRING(target, "\n");
 						continue;
 					}
 					optbuf = sb;
 				}
-			} else {
-				ADD_STRING(target, "; OPT=");
-				snprintf(buf, sizeof(buf), "%u:", optcode);
-				ADD_STRING(target, buf);
+				break;
+			default:
+				break;
 			}
 
 			if (optlen != 0) {

@@ -1377,24 +1377,27 @@ typedef struct dig_ednsoptname {
 } dig_ednsoptname_t;
 
 dig_ednsoptname_t optnames[] = {
-	{ 1, "LLQ" },	       /* draft-sekar-dns-llq */
-	{ 2, "UL" },	       /* draft-ietf-dnssd-update-lease */
-	{ 3, "NSID" },	       /* RFC 5001 */
-	{ 5, "DAU" },	       /* RFC 6975 */
-	{ 6, "DHU" },	       /* RFC 6975 */
-	{ 7, "N3U" },	       /* RFC 6975 */
-	{ 8, "ECS" },	       /* RFC 7871 */
-	{ 9, "EXPIRE" },       /* RFC 7314 */
-	{ 10, "COOKIE" },      /* RFC 7873 */
-	{ 11, "KEEPALIVE" },   /* RFC 7828 */
-	{ 12, "PADDING" },     /* RFC 7830 */
-	{ 12, "PAD" },	       /* shorthand */
-	{ 13, "CHAIN" },       /* RFC 7901 */
-	{ 14, "KEY-TAG" },     /* RFC 8145 */
-	{ 15, "EDE" },	       /* ietf-dnsop-extended-error-16 */
-	{ 16, "CLIENT-TAG" },  /* draft-bellis-dnsop-edns-tags */
-	{ 17, "SERVER-TAG" },  /* draft-bellis-dnsop-edns-tags */
-	{ 26946, "DEVICEID" }, /* Brian Hartvigsen */
+	{ 1, "LLQ" },		  /* draft-sekar-dns-llq */
+	{ 2, "UL" },		  /* draft-ietf-dnssd-update-lease */
+	{ 3, "NSID" },		  /* RFC 5001 */
+	{ 5, "DAU" },		  /* RFC 6975 */
+	{ 6, "DHU" },		  /* RFC 6975 */
+	{ 7, "N3U" },		  /* RFC 6975 */
+	{ 8, "ECS" },		  /* RFC 7871 */
+	{ 9, "EXPIRE" },	  /* RFC 7314 */
+	{ 10, "COOKIE" },	  /* RFC 7873 */
+	{ 11, "KEEPALIVE" },	  /* RFC 7828 */
+	{ 12, "PADDING" },	  /* RFC 7830 */
+	{ 12, "PAD" },		  /* shorthand */
+	{ 13, "CHAIN" },	  /* RFC 7901 */
+	{ 14, "KEY-TAG" },	  /* RFC 8145 */
+	{ 15, "EDE" },		  /* ietf-dnsop-extended-error-16 */
+	{ 16, "CLIENT-TAG" },	  /* draft-bellis-dnsop-edns-tags */
+	{ 17, "SERVER-TAG" },	  /* draft-bellis-dnsop-edns-tags */
+	{ 18, "REPORT-CHANNEL" }, /* RFC 9567 */
+	{ 18, "RC" },		  /* shorthand */
+	{ 19, "ZONEVERSION" },	  /* RFC 9660 */
+	{ 26946, "DEVICEID" },	  /* Brian Hartvigsen */
 };
 
 #define N_EDNS_OPTNAMES (sizeof(optnames) / sizeof(optnames[0]))

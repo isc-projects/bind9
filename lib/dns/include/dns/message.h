@@ -106,16 +106,21 @@
 #define DNS_OPT_LLQ	       1  /*%< LLQ opt code */
 #define DNS_OPT_UL	       2  /*%< UL opt code */
 #define DNS_OPT_NSID	       3  /*%< NSID opt code */
+#define DNS_OPT_DAU	       5  /*%< DNSSEC algorithm understood */
+#define DNS_OPT_DHU	       6  /*%< DNSSEC hash understood */
+#define DNS_OPT_N3U	       7  /*%< NSEC3 hash understood */
 #define DNS_OPT_CLIENT_SUBNET  8  /*%< client subnet opt code */
 #define DNS_OPT_EXPIRE	       9  /*%< EXPIRE opt code */
 #define DNS_OPT_COOKIE	       10 /*%< COOKIE opt code */
 #define DNS_OPT_TCP_KEEPALIVE  11 /*%< TCP keepalive opt code */
 #define DNS_OPT_PAD	       12 /*%< PAD opt code */
+#define DNS_OPT_CHAIN	       13 /*%< CHAIN opt code */
 #define DNS_OPT_KEY_TAG	       14 /*%< Key tag opt code */
 #define DNS_OPT_EDE	       15 /*%< Extended DNS Error opt code */
 #define DNS_OPT_CLIENT_TAG     16 /*%< Client tag opt code */
 #define DNS_OPT_SERVER_TAG     17 /*%< Server tag opt code */
 #define DNS_OPT_REPORT_CHANNEL 18 /*%< DNS Reporting Channel */
+#define DNS_OPT_ZONEVERSION    19 /*%< Zoneversion opt code */
 
 /*%< Experimental options [65001...65534] as per RFC6891 */
 
