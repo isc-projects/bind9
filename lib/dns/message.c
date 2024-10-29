@@ -3424,7 +3424,29 @@ cleanup:
 }
 
 static isc_result_t
-render_nameopt(isc_buffer_t *optbuf, isc_buffer_t *target) {
+put_yamlstr(isc_buffer_t *target, unsigned char *namebuf, size_t len,
+	    bool utfok) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	for (size_t i = 0; i < len; i++) {
+		if (isprint(namebuf[i]) || (utfok && namebuf[i] > 127)) {
+			if (namebuf[i] == '\\' || namebuf[i] == '"') {
+				ADD_STRING(target, "\\");
+			}
+			if (isc_buffer_availablelength(target) < 1) {
+				return ISC_R_NOSPACE;
+			}
+			isc_buffer_putmem(target, &namebuf[i], 1);
+		} else {
+			ADD_STRING(target, ".");
+		}
+	}
+cleanup:
+	return result;
+}
+
+static isc_result_t
+render_nameopt(isc_buffer_t *optbuf, bool yaml, isc_buffer_t *target) {
 	dns_decompress_t dctx = DNS_DECOMPRESS_NEVER;
 	dns_fixedname_t fixed;
 	dns_name_t *name = dns_fixedname_initname(&fixed);
@@ -3435,7 +3457,15 @@ render_nameopt(isc_buffer_t *optbuf, isc_buffer_t *target) {
 	if (result == ISC_R_SUCCESS && isc_buffer_activelength(optbuf) == 0) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		ADD_STRING(target, " \"");
-		ADD_STRING(target, namebuf);
+		if (yaml) {
+			result = put_yamlstr(target, (unsigned char *)namebuf,
+					     strlen(namebuf), false);
+			if (result != ISC_R_SUCCESS) {
+				goto cleanup;
+			}
+		} else {
+			ADD_STRING(target, namebuf);
+		}
 		ADD_STRING(target, "\"");
 		return result;
 	}
@@ -3501,19 +3531,11 @@ render_zoneversion(dns_message_t *msg, isc_buffer_t *optbuf,
 		INDENT(style);
 		ADD_STRING(target, "ZONE: ");
 		if (yaml) {
-			char *s = namebuf;
 			ADD_STRING(target, "\"");
-			while (*s != 0) {
-				if (*s == '\\' || *s == '"') {
-					ADD_STRING(target, "\\");
-				}
-				if (isc_buffer_availablelength(target) < 1) {
-					result = ISC_R_NOSPACE;
-					goto cleanup;
-				}
-				isc_buffer_putmem(target, (unsigned char *)s,
-						  1);
-				s++;
+			put_yamlstr(target, (unsigned char *)namebuf,
+				    strlen(namebuf), false);
+			if (result != ISC_R_SUCCESS) {
+				goto cleanup;
 			}
 			ADD_STRING(target, "\"");
 		} else {
@@ -3546,27 +3568,23 @@ render_zoneversion(dns_message_t *msg, isc_buffer_t *optbuf,
 			ADD_STRING(target, sep2);
 			INDENT(style);
 			ADD_STRING(target, "PVALUE: \"");
-		} else {
-			ADD_STRING(target, " (\"");
-		}
-		for (size_t i = 0; i < len; i++) {
-			if (isprint(data[i])) {
-				if (yaml && (data[i] == '\\' || data[i] == '"'))
-				{
-					ADD_STRING(target, "\\");
-				}
-				if (isc_buffer_availablelength(target) < 1) {
-					result = ISC_R_NOSPACE;
-					goto cleanup;
-				}
-				isc_buffer_putmem(target, &data[i], 1);
-			} else {
-				ADD_STRING(target, ".");
-			}
-		}
-		if (yaml) {
+			put_yamlstr(target, data, len, false);
 			ADD_STRING(target, "\"");
 		} else {
+			ADD_STRING(target, " (\"");
+			for (size_t i = 0; i < len; i++) {
+				if (isprint(data[i])) {
+					if (isc_buffer_availablelength(target) <
+					    1)
+					{
+						result = ISC_R_NOSPACE;
+						goto cleanup;
+					}
+					isc_buffer_putmem(target, &data[i], 1);
+				} else {
+					ADD_STRING(target, ".");
+				}
+			}
 			ADD_STRING(target, "\")");
 		}
 		isc_buffer_forward(optbuf, len);
@@ -3770,7 +3788,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 				if (optlen > 0U) {
 					isc_buffer_t sb = optbuf;
 					isc_buffer_setactive(&optbuf, optlen);
-					result = render_nameopt(&optbuf,
+					result = render_nameopt(&optbuf, true,
 								target);
 					if (result == ISC_R_SUCCESS) {
 						ADD_STRING(target, "\n");
@@ -3920,21 +3938,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 				} else {
 					ADD_STRING(target, "\"");
 				}
-				if (isc_buffer_availablelength(target) < optlen)
-				{
-					result = ISC_R_NOSPACE;
-					goto cleanup;
-				}
-				for (i = 0; i < optlen; i++) {
-					if (isprint(optdata[i]) ||
-					    (utf8ok && optdata[i] > 127))
-					{
-						isc_buffer_putmem(
-							target, &optdata[i], 1);
-					} else {
-						isc_buffer_putstr(target, ".");
-					}
-				}
+				put_yamlstr(target, optdata, optlen, utf8ok);
 				if (!extra_text) {
 					ADD_STRING(target, "\")");
 				} else {
@@ -4179,7 +4183,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				if (optlen > 0U) {
 					isc_buffer_t sb = optbuf;
 					isc_buffer_setactive(&optbuf, optlen);
-					result = render_nameopt(&optbuf,
+					result = render_nameopt(&optbuf, false,
 								target);
 					if (result == ISC_R_SUCCESS) {
 						ADD_STRING(target, "\n");

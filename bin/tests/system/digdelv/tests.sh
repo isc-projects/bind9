@@ -680,6 +680,26 @@ if [ -x "$DIG" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
+  echo_i "check that dig processes +ednsopt=chain:02002200 ($n)"
+  ret=0
+  dig_with_opts @10.53.0.3 +ednsopt=chain:02002200 'a.\000"' +qr >dig.out.test$n 2>&1 || ret=1
+  grep '; CHAIN: "\\000\\""' dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "check that dig processes +ednsopt=chain:02002200 +yaml ($n)"
+    ret=0
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=chain:02002200 'a.\000"' +qr >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS CHAIN >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = '\000\"' ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
+
+  n=$((n + 1))
   echo_i "check that Extended DNS Error 0 is printed correctly ($n)"
   ret=0
   # First defined EDE code, additional text "foo".
@@ -688,6 +708,19 @@ if [ -x "$DIG" ]; then
   grep "$pat" dig.out.test$n >/dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
+
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "check that Extended DNS Error 0 is printed correctly +yaml ($n)"
+    ret=0
+    # add specials '"' and '\'
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=ede:0000666f6f225c a.example +qr >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS EDE EXTRA-TEXT >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = 'foo"\' ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
 
   n=$((n + 1))
   echo_i "check that Extended DNS Error 24 is printed correctly ($n)"
