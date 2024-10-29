@@ -3476,7 +3476,7 @@ cleanup:
 
 static const char *option_names[] = {
 	[DNS_OPT_LLQ] = "LLQ",
-	[DNS_OPT_UL] = "UL",
+	[DNS_OPT_UL] = "UPDATE-LEASE",
 	[DNS_OPT_NSID] = "NSID",
 	[DNS_OPT_DAU] = "DAU",
 	[DNS_OPT_DHU] = "DHU",
@@ -3711,32 +3711,44 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 			case DNS_OPT_UL:
 				if (optlen == 4U || optlen == 8U) {
 					uint32_t secs, key = 0;
+					msg->indent.count++;
+
 					secs = isc_buffer_getuint32(&optbuf);
+					ADD_STRING(target, "\n");
+					INDENT(style);
+					ADD_STRING(target, "LEASE:");
 					snprintf(buf, sizeof(buf), " %u", secs);
 					ADD_STRING(target, buf);
-					if (optlen == 8U) {
-						key = isc_buffer_getuint32(
-							&optbuf);
-						snprintf(buf, sizeof(buf),
-							 "/%u", key);
-						ADD_STRING(target, buf);
-					}
+
 					ADD_STRING(target, " (");
 					result = dns_ttl_totext(secs, true,
 								true, target);
 					if (result != ISC_R_SUCCESS) {
 						goto cleanup;
 					}
+					ADD_STRING(target, ")");
+
 					if (optlen == 8U) {
-						ADD_STRING(target, "/");
+						key = isc_buffer_getuint32(
+							&optbuf);
+						ADD_STRING(target, "\n");
+						INDENT(style);
+						ADD_STRING(target,
+							   "KEY-LEASE:");
+						snprintf(buf, sizeof(buf),
+							 " %u", key);
+						ADD_STRING(target, buf);
+
+						ADD_STRING(target, " (");
 						result = dns_ttl_totext(
 							key, true, true,
 							target);
 						if (result != ISC_R_SUCCESS) {
 							goto cleanup;
 						}
+						ADD_STRING(target, ")");
 					}
-					ADD_STRING(target, ")\n");
+					ADD_STRING(target, "\n");
 					continue;
 				}
 				break;

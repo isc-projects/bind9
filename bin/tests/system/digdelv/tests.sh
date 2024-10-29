@@ -562,24 +562,50 @@ if [ -x "$DIG" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
-  echo_i "checking ednsopt UL prints as expected (single lease) ($n)"
+  echo_i "checking ednsopt UPDATE-LEASE prints as expected (single lease) ($n)"
   ret=0
-  dig_with_opts @10.53.0.3 +ednsopt=UL:00000e10 +qr a.example >dig.out.test$n 2>&1 || ret=1
-  pat='UL: 3600 (1 hour)'
+  dig_with_opts @10.53.0.3 +ednsopt=UPDATE-LEASE:00000e10 +qr a.example >dig.out.test$n 2>&1 || ret=1
+  pat='UPDATE-LEASE: 3600 (1 hour)'
   grep "$pat" dig.out.test$n >/dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
   n=$((n + 1))
 
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "checking ednsopt UPDATE-LEASE prints as expected (single lease) +yaml ($n)"
+    ret=0
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=UPDATE-LEASE:00000e10 +qr a.example >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS UPDATE-LEASE LEASE >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "3600 (1 hour)" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
+
   n=$((n + 1))
-  echo_i "checking ednsopt UL prints as expected (split lease) ($n)"
+  echo_i "checking ednsopt UPDATE-LEASE prints as expected (split lease) ($n)"
   ret=0
-  dig_with_opts @10.53.0.3 +ednsopt=UL:00000e1000127500 +qr a.example >dig.out.test$n 2>&1 || ret=1
-  pat='UL: 3600/1209600 (1 hour/2 weeks)'
+  dig_with_opts @10.53.0.3 +ednsopt=UPDATE-LEASE:00000e1000127500 +qr a.example >dig.out.test$n 2>&1 || ret=1
+  pat='UPDATE-LEASE: 3600/1209600 (1 hour/2 weeks)'
   grep "$pat" dig.out.test$n >/dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
-  n=$((n + 1))
+
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "checking ednsopt UPDATE-LEASE prints as expected (split lease) +yaml ($n)"
+    ret=0
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=UPDATE-LEASE:00000e1000127500 +qr a.example >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS UPDATE-LEASE LEASE >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "3600 (1 hour)" ] || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS UPDATE-LEASE KEY-LEASE >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "1209600 (2 weeks)" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
 
   echo_i "checking ednsopt LLQ prints as expected ($n)"
   ret=0
