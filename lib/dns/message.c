@@ -3766,6 +3766,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 				}
 				break;
 			case DNS_OPT_CHAIN:
+			case DNS_OPT_REPORT_CHANNEL:
 				if (optlen > 0U) {
 					isc_buffer_t sb = optbuf;
 					isc_buffer_setactive(&optbuf, optlen);
@@ -3822,14 +3823,6 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 				}
 				break;
 			case DNS_OPT_CLIENT_TAG:
-				if (optlen == 2U) {
-					uint16_t id =
-						isc_buffer_getuint16(&optbuf);
-					snprintf(buf, sizeof(buf), " %u\n", id);
-					ADD_STRING(target, buf);
-					continue;
-				}
-				break;
 			case DNS_OPT_SERVER_TAG:
 				if (optlen == 2U) {
 					uint16_t id =
@@ -3837,19 +3830,6 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					continue;
-				}
-				break;
-			case DNS_OPT_REPORT_CHANNEL:
-				if (optlen > 0U) {
-					isc_buffer_t sb = optbuf;
-					isc_buffer_setactive(&optbuf, optlen);
-					result = render_nameopt(&optbuf,
-								target);
-					if (result == ISC_R_SUCCESS) {
-						ADD_STRING(target, "\n");
-						continue;
-					}
-					optbuf = sb;
 				}
 				break;
 			case DNS_OPT_ZONEVERSION:
@@ -4195,6 +4175,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				ADD_STRING(target, "\n");
 				continue;
 			case DNS_OPT_CHAIN:
+			case DNS_OPT_REPORT_CHANNEL:
 				if (optlen > 0U) {
 					isc_buffer_t sb = optbuf;
 					isc_buffer_setactive(&optbuf, optlen);
@@ -4255,14 +4236,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				}
 				break;
 			case DNS_OPT_CLIENT_TAG:
-				if (optlen == 2U) {
-					uint16_t id =
-						isc_buffer_getuint16(&optbuf);
-					snprintf(buf, sizeof(buf), " %u\n", id);
-					ADD_STRING(target, buf);
-					continue;
-				}
-				break;
 			case DNS_OPT_SERVER_TAG:
 				if (optlen == 2U) {
 					uint16_t id =
@@ -4270,19 +4243,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					continue;
-				}
-				break;
-			case DNS_OPT_REPORT_CHANNEL:
-				if (optlen > 0U) {
-					isc_buffer_t sb = optbuf;
-					isc_buffer_setactive(&optbuf, optlen);
-					result = render_nameopt(&optbuf,
-								target);
-					if (result == ISC_R_SUCCESS) {
-						ADD_STRING(target, "\n");
-						continue;
-					}
-					optbuf = sb;
 				}
 				break;
 			case DNS_OPT_ZONEVERSION:
