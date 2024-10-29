@@ -618,6 +618,30 @@ if [ -x "$DIG" ]; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "checking ednsopt LLQ prints as expected +yaml ($n)"
+    ret=0
+    dig_with_opts @10.53.0.3 +yaml +ednsopt=llq:0001000200001234567812345678fefefefe +qr a.example >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS LLQ LLQ-VERSION >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "1" ] || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS LLQ LLQ-OPCODE >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "2" ] || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS LLQ LLQ-ERROR >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "0" ] || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS LLQ LLQ-ID >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "1311768465173141112" ] || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS LLQ LLQ-LEASE >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "4278124286" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
+
   n=$((n + 1))
   echo_i "checking that dig warns about .local queries ($n)"
   ret=0
