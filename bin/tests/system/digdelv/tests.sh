@@ -765,6 +765,27 @@ if [ -x "$DIG" ]; then
   fi
 
   n=$((n + 1))
+  echo_i "check that dig processes +expire ($n)"
+  ret=0
+  dig_with_opts @10.53.0.1 +expire . soa >dig.out.test$n 2>&1 || ret=1
+  grep '; EXPIRE: 1200 (20 minutes)' dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  if [ $HAS_PYYAML -ne 0 ]; then
+    n=$((n + 1))
+    echo_i "check that dig processes +expire +yaml ($n)"
+    ret=0
+    dig_with_opts @10.53.0.1 +yaml +expire . soa >dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data OPT_PSEUDOSECTION EDNS EXPIRE >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "1200" ] || ret=1
+    grep "EXPIRE: 1200 # 20 minutes" dig.out.test$n >/dev/null || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+  fi
+
+  n=$((n + 1))
   echo_i "check that Extended DNS Error 0 is printed correctly ($n)"
   ret=0
   # First defined EDE code, additional text "foo".
