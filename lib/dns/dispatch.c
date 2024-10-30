@@ -86,6 +86,7 @@ struct dns_dispentry {
 	dns_transport_t *transport;
 	isc_tlsctx_cache_t *tlsctx_cache;
 	unsigned int retries;
+	unsigned int connect_timeout;
 	unsigned int timeout;
 	isc_time_t start;
 	isc_sockaddr_t local;
@@ -1095,6 +1096,13 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats) {
 	isc_stats_attach(stats, &mgr->stats);
 }
 
+isc_nm_t *
+dns_dispatchmgr_getnetmgr(dns_dispatchmgr_t *mgr) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+
+	return mgr->nm;
+}
+
 /*
  * Allocate and set important limits.
  */
@@ -1414,11 +1422,12 @@ ISC_REFCOUNT_IMPL(dns_dispatch, dispatch_destroy);
 
 isc_result_t
 dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
-		 dns_dispatchopt_t options, unsigned int timeout,
-		 const isc_sockaddr_t *dest, dns_transport_t *transport,
-		 isc_tlsctx_cache_t *tlsctx_cache, dispatch_cb_t connected,
-		 dispatch_cb_t sent, dispatch_cb_t response, void *arg,
-		 dns_messageid_t *idp, dns_dispentry_t **respp) {
+		 dns_dispatchopt_t options, unsigned int connect_timeout,
+		 unsigned int timeout, const isc_sockaddr_t *dest,
+		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
+		 dispatch_cb_t connected, dispatch_cb_t sent,
+		 dispatch_cb_t response, void *arg, dns_messageid_t *idp,
+		 dns_dispentry_t **respp) {
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(dest != NULL);
 	REQUIRE(respp != NULL && *respp == NULL);
@@ -1439,6 +1448,7 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
 	in_port_t localport = isc_sockaddr_getport(&disp->local);
 	dns_dispentry_t *resp = isc_mem_get(disp->mctx, sizeof(*resp));
 	*resp = (dns_dispentry_t){
+		.connect_timeout = connect_timeout,
 		.timeout = timeout,
 		.port = localport,
 		.peer = *dest,
@@ -1866,6 +1876,13 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	} else if (eresult == ISC_R_SUCCESS) {
 		disp->state = DNS_DISPATCHSTATE_CONNECTED;
 		isc_nmhandle_attach(handle, &disp->handle);
+		if (resp != NULL) {
+			isc_nmhandle_cleartimeout(disp->handle);
+			if (resp->timeout != 0) {
+				isc_nmhandle_settimeout(disp->handle,
+							resp->timeout);
+			}
+		}
 		tcp_startrecv(disp, resp);
 	} else {
 		disp->state = DNS_DISPATCHSTATE_NONE;
@@ -1994,7 +2011,7 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		dns_dispatch_ref(disp); /* DISPATCH003 */
 		dispentry_log(resp, ISC_LOG_DEBUG(90),
 			      "connecting from %s to %s, timeout %u", localbuf,
-			      peerbuf, resp->timeout);
+			      peerbuf, resp->connect_timeout);
 
 		char *hostname = NULL;
 		if (resp->transport != NULL) {
@@ -2004,7 +2021,7 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 
 		isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
 					&disp->peer, tcp_connected, disp,
-					resp->timeout, tlsctx, hostname,
+					resp->connect_timeout, tlsctx, hostname,
 					sess_cache, ISC_NM_PROXY_NONE, NULL);
 		break;
 
@@ -2028,6 +2045,11 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 
 		if (!disp->reading) {
 			/* Restart the reading */
+			isc_nmhandle_cleartimeout(disp->handle);
+			if (resp->timeout != 0) {
+				isc_nmhandle_settimeout(disp->handle,
+							resp->timeout);
+			}
 			tcp_startrecv(disp, resp);
 		}
 

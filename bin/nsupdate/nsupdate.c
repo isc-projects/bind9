@@ -2665,9 +2665,9 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 
 	result = dns_request_create(requestmgr, updatemsg, srcaddr, primary,
 				    req_transport, req_tls_ctx_cache, options,
-				    tsigkey, timeout, udp_timeout, udp_retries,
-				    isc_loop_main(loopmgr), update_completed,
-				    NULL, &request);
+				    tsigkey, timeout, timeout, udp_timeout,
+				    udp_retries, isc_loop_main(loopmgr),
+				    update_completed, NULL, &request);
 	check_result(result, "dns_request_create");
 
 	if (debugging) {
@@ -2770,11 +2770,11 @@ recvsoa(void *arg) {
 			srcaddr = localaddr4;
 		}
 
-		result = dns_request_create(requestmgr, soaquery, srcaddr, addr,
-					    req_transport, req_tls_ctx_cache,
-					    options, NULL, timeout, udp_timeout,
-					    udp_retries, isc_loop_main(loopmgr),
-					    recvsoa, reqinfo, &request);
+		result = dns_request_create(
+			requestmgr, soaquery, srcaddr, addr, req_transport,
+			req_tls_ctx_cache, options, NULL, timeout, timeout,
+			udp_timeout, udp_retries, isc_loop_main(loopmgr),
+			recvsoa, reqinfo, &request);
 		check_result(result, "dns_request_create");
 		requests++;
 		return;
@@ -3009,8 +3009,8 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	result = dns_request_create(
 		requestmgr, msg, srcaddr, destaddr, req_transport,
 		req_tls_ctx_cache, options, default_servers ? NULL : tsigkey,
-		timeout, udp_timeout, udp_retries, isc_loop_main(loopmgr),
-		recvsoa, reqinfo, request);
+		timeout, timeout, udp_timeout, udp_retries,
+		isc_loop_main(loopmgr), recvsoa, reqinfo, request);
 	check_result(result, "dns_request_create");
 	requests++;
 }
@@ -3210,10 +3210,11 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(
-		requestmgr, msg, srcaddr, destaddr, req_transport,
-		req_tls_ctx_cache, options, tsigkey, timeout, udp_timeout,
-		udp_retries, isc_loop_main(loopmgr), recvgss, reqinfo, request);
+	result = dns_request_create(requestmgr, msg, srcaddr, destaddr,
+				    req_transport, req_tls_ctx_cache, options,
+				    tsigkey, timeout, timeout, udp_timeout,
+				    udp_retries, isc_loop_main(loopmgr),
+				    recvgss, reqinfo, request);
 	check_result(result, "dns_request_create");
 	if (debugging) {
 		show_message(stdout, msg, "Outgoing update query:");

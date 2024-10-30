@@ -162,7 +162,7 @@ sendquery(void) {
 
 	result = dns_request_create(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, NULL,
-		NULL, DNS_REQUESTOPT_TCP, NULL, TIMEOUT, 0, 0,
+		NULL, DNS_REQUESTOPT_TCP, NULL, TIMEOUT, TIMEOUT, 0, 0,
 		isc_loop_main(loopmgr), recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 

@@ -2110,12 +2110,12 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	UNLOCK(&fctx->lock);
 
 	/* Set up the dispatch and set the query ID */
-	result = dns_dispatch_add(query->dispatch, fctx->loop, 0,
-				  isc_interval_ms(&fctx->interval), &sockaddr,
-				  addrinfo->transport, tlsctx_cache,
-				  resquery_connected, resquery_senddone,
-				  resquery_response, query, &query->id,
-				  &query->dispentry);
+	const unsigned int timeout_ms = isc_interval_ms(&fctx->interval);
+	result = dns_dispatch_add(query->dispatch, fctx->loop, 0, timeout_ms,
+				  timeout_ms, &sockaddr, addrinfo->transport,
+				  tlsctx_cache, resquery_connected,
+				  resquery_senddone, resquery_response, query,
+				  &query->id, &query->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_udpfetch;
 	}

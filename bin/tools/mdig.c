@@ -751,9 +751,9 @@ sendquery(struct query *query) {
 
 	result = dns_request_create(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, NULL,
-		NULL, options, NULL, query->timeout, query->udptimeout,
-		query->udpretries, isc_loop_main(loopmgr), recvresponse,
-		message, &request);
+		NULL, options, NULL, query->timeout, query->timeout,
+		query->udptimeout, query->udpretries, isc_loop_main(loopmgr),
+		recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 
 	return ISC_R_SUCCESS;

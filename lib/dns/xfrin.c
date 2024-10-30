@@ -1253,6 +1253,7 @@ static isc_result_t
 xfrin_start(dns_xfrin_t *xfr) {
 	isc_result_t result = ISC_R_FAILURE;
 	isc_interval_t interval;
+	uint32_t initial;
 
 	dns_xfrin_ref(xfr);
 
@@ -1263,14 +1264,16 @@ xfrin_start(dns_xfrin_t *xfr) {
 	if (dispmgr == NULL) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto failure;
-	} else {
-		result = dns_dispatch_createtcp(
-			dispmgr, &xfr->sourceaddr, &xfr->primaryaddr,
-			xfr->transport, DNS_DISPATCHOPT_UNSHARED, &xfr->disp);
-		dns_dispatchmgr_detach(&dispmgr);
-		if (result != ISC_R_SUCCESS) {
-			goto failure;
-		}
+	}
+
+	isc_nm_gettimeouts(dns_dispatchmgr_getnetmgr(dispmgr), &initial, NULL,
+			   NULL, NULL);
+	result = dns_dispatch_createtcp(dispmgr, &xfr->sourceaddr,
+					&xfr->primaryaddr, xfr->transport,
+					DNS_DISPATCHOPT_UNSHARED, &xfr->disp);
+	dns_dispatchmgr_detach(&dispmgr);
+	if (result != ISC_R_SUCCESS) {
+		goto failure;
 	}
 
 	LIBDNS_XFRIN_START(xfr, xfr->info);
@@ -1293,10 +1296,19 @@ xfrin_start(dns_xfrin_t *xfr) {
 				     dns_xfrin_gettransporttype(xfr));
 	}
 
-	CHECK(dns_dispatch_add(
-		xfr->disp, xfr->loop, 0, 0, &xfr->primaryaddr, xfr->transport,
-		xfr->tlsctx_cache, xfrin_connect_done, xfrin_send_done,
-		xfrin_recv_done, xfr, &xfr->id, &xfr->dispentry));
+	/*
+	 * Before a configuration option for the primary servers' TCP timeout
+	 * is implemented, use initial TCP timeout as the connect timeout.
+	 * The receive timeout timer is disabled on the dispatch level because
+	 * the xfr module has its own timeouts.
+	 */
+	const unsigned int connect_timeout = initial, timeout = 0;
+
+	CHECK(dns_dispatch_add(xfr->disp, xfr->loop, 0, connect_timeout,
+			       timeout, &xfr->primaryaddr, xfr->transport,
+			       xfr->tlsctx_cache, xfrin_connect_done,
+			       xfrin_send_done, xfrin_recv_done, xfr, &xfr->id,
+			       &xfr->dispentry));
 
 	/* Set the maximum timer */
 	if (xfr->max_time_timer == NULL) {
