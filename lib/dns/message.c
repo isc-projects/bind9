@@ -3946,6 +3946,68 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					continue;
 				}
 				break;
+			case DNS_OPT_COOKIE:
+				if (optlen == 8 ||
+				    (optlen >= 16 && optlen < 40))
+				{
+					size_t i;
+
+					msg->indent.count++;
+					optdata = isc_buffer_current(&optbuf);
+
+					ADD_STRING(target, "\n");
+					INDENT(style);
+					ADD_STRING(target, "CLIENT: ");
+					for (i = 0; i < 8; i++) {
+						snprintf(buf, sizeof(buf),
+							 "%02x", optdata[i]);
+						ADD_STRING(target, buf);
+					}
+					ADD_STRING(target, "\n");
+
+					if (optlen >= 16) {
+						INDENT(style);
+						ADD_STRING(target, "SERVER: ");
+						for (; i < optlen; i++) {
+							snprintf(buf,
+								 sizeof(buf),
+								 "%02x",
+								 optdata[i]);
+							ADD_STRING(target, buf);
+						}
+						ADD_STRING(target, "\n");
+					}
+
+					/*
+					 * Valid server cookie?
+					 */
+					if (msg->cc_ok && optlen >= 16) {
+						INDENT(style);
+						ADD_STRING(target,
+							   "STATUS: good\n");
+					}
+					/*
+					 * Server cookie is not valid but
+					 * we had our cookie echoed back.
+					 */
+					if (msg->cc_ok && optlen < 16) {
+						INDENT(style);
+						ADD_STRING(target,
+							   "STATUS: echoed\n");
+					}
+					/*
+					 * We didn't get our cookie echoed
+					 * back.
+					 */
+					if (msg->cc_bad) {
+						INDENT(style);
+						ADD_STRING(target,
+							   "STATUS: bad\n)");
+					}
+					isc_buffer_forward(&optbuf, optlen);
+					continue;
+				}
+				break;
 			default:
 				break;
 			}
@@ -3981,32 +4043,9 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 
 				isc_buffer_forward(&optbuf, optlen);
 
-				if (optcode == DNS_OPT_COOKIE) {
-					/*
-					 * Valid server cookie?
-					 */
-					if (msg->cc_ok && optlen >= 16) {
-						ADD_STRING(target, " (good)");
-					}
-					/*
-					 * Server cookie is not valid but
-					 * we had our cookie echoed back.
-					 */
-					if (msg->cc_ok && optlen < 16) {
-						ADD_STRING(target, " (echoed)");
-					}
-					/*
-					 * We didn't get our cookie echoed
-					 * back.
-					 */
-					if (msg->cc_bad) {
-						ADD_STRING(target, " (bad)");
-					}
-					ADD_STRING(target, "\n");
-					continue;
-				}
-
-				if (optcode == DNS_OPT_CLIENT_SUBNET) {
+				if (optcode == DNS_OPT_COOKIE ||
+				    optcode == DNS_OPT_CLIENT_SUBNET)
+				{
 					ADD_STRING(target, "\n");
 					continue;
 				}
