@@ -351,10 +351,15 @@ Feature Changes
   :gl:`#4349`
 
 - The :any:`inline-signing` statement can now also be set inside
-  :any:`dnssec-policy`. The built-in policies ``default`` and
-  ``insecure`` enable the use of :any:`inline-signing`. If
-  :any:`inline-signing` is set at the ``zone`` level, it overrides the
+  :any:`dnssec-policy`. The default is to use :any:`inline-signing`.
+  This also applies to the built-in policies ``default` and ``insecure``.
+  If  :any:`inline-signing` is set at the ``zone`` level, it overrides the
   value set in :any:`dnssec-policy`. :gl:`#3677`
+
+- Due to the change in default value from ``no`` to ``yes``,
+  DNSSEC-enabled dynamic zones that do not have :any:`inline-signing`
+  explicitly set must now add the option to their configuration with the
+  value ``no`` if they do not want their zone also to be inline-signed.
 
 - Following :rfc:`9276` recommendations, :any:`dnssec-policy` now only
   allows an NSEC3 iteration count of 0 for the DNSSEC-signed zones using
