@@ -262,7 +262,7 @@ dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r);
  */
 
 void
-dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout);
+dns_dispatch_resume(dns_dispentry_t *resp, unsigned int timeout);
 /*%<
  * Reset the read timeout in the socket associated with 'resp' and
  * continue reading.

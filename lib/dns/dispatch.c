@@ -195,9 +195,9 @@ static void
 tcp_startrecv(dns_dispatch_t *disp, dns_dispentry_t *resp);
 static void
 tcp_dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp,
-		     int32_t timeout);
+		     int64_t timeout);
 static void
-udp_dispatch_getnext(dns_dispentry_t *resp, int32_t timeout);
+udp_dispatch_getnext(dns_dispentry_t *resp, int64_t timeout);
 
 static const char *
 socktype2str(dns_dispentry_t *resp) {
@@ -488,7 +488,8 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	unsigned int flags;
 	isc_sockaddr_t peer;
 	isc_netaddr_t netaddr;
-	int match, timeout = 0;
+	int match;
+	int64_t timeout = 0;
 	bool respond = true;
 	isc_time_t now;
 
@@ -1549,7 +1550,7 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 
 	dns_dispatch_t *disp = resp->disp;
 	isc_result_t result = ISC_R_SUCCESS;
-	int32_t timeout = 0;
+	int64_t timeout = 0;
 
 	dispentry_log(resp, ISC_LOG_DEBUG(90), "getnext for QID %d", resp->id);
 
@@ -1561,7 +1562,7 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 		}
 	}
 
-	REQUIRE(disp->tid == isc_tid());
+	INSIST(disp->tid == isc_tid());
 	switch (disp->socktype) {
 	case isc_socktype_udp:
 		udp_dispatch_getnext(resp, timeout);
@@ -2110,9 +2111,7 @@ send_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 static void
 tcp_dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp,
-		     int32_t timeout) {
-	REQUIRE(timeout <= INT16_MAX);
-
+		     int64_t timeout) {
 	dispentry_log(resp, ISC_LOG_DEBUG(90), "continue reading");
 
 	if (!resp->reading) {
@@ -2124,7 +2123,8 @@ tcp_dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp,
 		return;
 	}
 
-	if (timeout > 0) {
+	if (timeout != 0) {
+		INSIST(timeout > 0 && timeout <= UINT32_MAX);
 		isc_nmhandle_settimeout(disp->handle, timeout);
 	}
 
@@ -2134,14 +2134,13 @@ tcp_dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp,
 }
 
 static void
-udp_dispatch_getnext(dns_dispentry_t *resp, int32_t timeout) {
-	REQUIRE(timeout <= INT16_MAX);
-
+udp_dispatch_getnext(dns_dispentry_t *resp, int64_t timeout) {
 	if (resp->reading) {
 		return;
 	}
 
-	if (timeout > 0) {
+	if (timeout != 0) {
+		INSIST(timeout > 0 && timeout <= UINT32_MAX);
 		isc_nmhandle_settimeout(resp->handle, timeout);
 	}
 
@@ -2153,7 +2152,7 @@ udp_dispatch_getnext(dns_dispentry_t *resp, int32_t timeout) {
 }
 
 void
-dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout) {
+dns_dispatch_resume(dns_dispentry_t *resp, unsigned int timeout) {
 	REQUIRE(VALID_RESPONSE(resp));
 	REQUIRE(VALID_DISPATCH(resp->disp));
 
