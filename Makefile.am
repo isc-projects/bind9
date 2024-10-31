@@ -19,7 +19,6 @@ dist_sysconf_DATA = bind.keys
 EXTRA_DIST =			\
 	util/bindkeys.pl	\
 	contrib			\
-	CHANGES			\
 	COPYRIGHT		\
 	LICENSE			\
 	*.md
