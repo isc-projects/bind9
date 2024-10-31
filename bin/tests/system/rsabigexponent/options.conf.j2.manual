@@ -12,5 +12,5 @@
  */
 
 options {
-	max-rsa-exponent-size 4096;
+	max-rsa-exponent-size @max_rsa_exponent_size@;
 };
