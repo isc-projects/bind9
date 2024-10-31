@@ -3763,18 +3763,17 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					snprintf(buf, sizeof(buf), " %u", secs);
 					ADD_STRING(target, buf);
 
-					ADD_STRING(target, " (");
+					ADD_STRING(target, " # ");
 					result = dns_ttl_totext(secs, true,
 								true, target);
 					if (result != ISC_R_SUCCESS) {
 						goto cleanup;
 					}
-					ADD_STRING(target, ")");
+					ADD_STRING(target, "\n");
 
 					if (optlen == 8U) {
 						key = isc_buffer_getuint32(
 							&optbuf);
-						ADD_STRING(target, "\n");
 						INDENT(style);
 						ADD_STRING(target,
 							   "KEY-LEASE:");
@@ -3782,16 +3781,15 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 							 " %u", key);
 						ADD_STRING(target, buf);
 
-						ADD_STRING(target, " (");
+						ADD_STRING(target, " # ");
 						result = dns_ttl_totext(
 							key, true, true,
 							target);
 						if (result != ISC_R_SUCCESS) {
 							goto cleanup;
 						}
-						ADD_STRING(target, ")");
+						ADD_STRING(target, "\n");
 					}
-					ADD_STRING(target, "\n");
 					continue;
 				}
 				break;
@@ -3817,13 +3815,13 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					secs = isc_buffer_getuint32(&optbuf);
 					snprintf(buf, sizeof(buf), " %u", secs);
 					ADD_STRING(target, buf);
-					ADD_STRING(target, " (");
+					ADD_STRING(target, " # ");
 					result = dns_ttl_totext(secs, true,
 								true, target);
 					if (result != ISC_R_SUCCESS) {
 						goto cleanup;
 					}
-					ADD_STRING(target, ")\n");
+					ADD_STRING(target, "\n");
 					continue;
 				}
 				break;
