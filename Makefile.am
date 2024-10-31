@@ -21,7 +21,6 @@ EXTRA_DIST =			\
 	util/bindkeys.pl	\
 	util/dtrace.sh		\
 	contrib			\
-	CHANGES			\
 	COPYRIGHT		\
 	LICENSE			\
 	*.md
