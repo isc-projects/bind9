@@ -578,7 +578,8 @@ if [ -x "$DIG" ]; then
     dig_with_opts @10.53.0.3 +yaml +ednsopt=UPDATE-LEASE:00000e10 +qr a.example >dig.out.test$n 2>&1 || ret=1
     $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS UPDATE-LEASE LEASE >yamlget.out.test$n 2>&1 || ret=1
     read -r value <yamlget.out.test$n
-    [ "$value" = "3600 (1 hour)" ] || ret=1
+    [ "$value" = "3600" ] || ret=1
+    grep "LEASE: 3600 # 1 hour" dig.out.test$n >/dev/null || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
   fi
@@ -599,10 +600,12 @@ if [ -x "$DIG" ]; then
     dig_with_opts @10.53.0.3 +yaml +ednsopt=UPDATE-LEASE:00000e1000127500 +qr a.example >dig.out.test$n 2>&1 || ret=1
     $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS UPDATE-LEASE LEASE >yamlget.out.test$n 2>&1 || ret=1
     read -r value <yamlget.out.test$n
-    [ "$value" = "3600 (1 hour)" ] || ret=1
+    [ "$value" = "3600" ] || ret=1
+    grep "LEASE: 3600 # 1 hour" dig.out.test$n >/dev/null || ret=1
     $PYTHON yamlget.py dig.out.test$n 0 message query_message_data OPT_PSEUDOSECTION EDNS UPDATE-LEASE KEY-LEASE >yamlget.out.test$n 2>&1 || ret=1
     read -r value <yamlget.out.test$n
-    [ "$value" = "1209600 (2 weeks)" ] || ret=1
+    [ "$value" = "1209600" ] || ret=1
+    grep "KEY-LEASE: 1209600 # 2 weeks" dig.out.test$n >/dev/null || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
   fi
