@@ -24,6 +24,17 @@
 
 ISC_LANG_BEGINDECLS
 
+void
+dns_keymgr_settime_syncpublish(dst_key_t *key, dns_kasp_t *kasp, bool first);
+/*%<
+ * Set the SyncPublish time (when the DS may be submitted to the parent).
+ * If 'first' is true, also make sure that the zone signatures are omnipresent.
+ *
+ *      Requires:
+ *\li           'key' is a valid DNSSEC key.
+ *\li           'kasp' is a valid DNSSEC policy.
+ */
+
 isc_result_t
 dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	       isc_mem_t *mctx, dns_dnsseckeylist_t *keyring,

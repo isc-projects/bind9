@@ -26,3 +26,4 @@ cp template.db.in last-bundle.test.db
 cp template.db.in in-the-middle.test.db
 cp template.db.in unlimited.test.db
 cp template.db.in two-tone.test.db
+cp template.db.in ksk-roll.test.db

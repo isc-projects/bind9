@@ -431,8 +431,11 @@ def _check_dnskeys(dnskeys, keys, cdnskey=False):
                 has_dnskey = True
                 break
 
-        assert has_dnskey
-        numkeys += 1
+        if not cdnskey:
+            assert has_dnskey
+
+        if has_dnskey:
+            numkeys += 1
 
     return numkeys
 
@@ -541,17 +544,17 @@ def check_apex(server, zone, ksks, zsks):
 
     # test cdnskey query
     cdnskeys, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.CDNSKEY)
-    assert len(cdnskeys) > 0
     check_dnskeys(cdnskeys, ksks, zsks, cdnskey=True)
-    assert len(rrsigs) > 0
-    check_signatures(rrsigs, dns.rdatatype.CDNSKEY, fqdn, ksks, zsks)
+    if len(cdnskeys) > 0:
+        assert len(rrsigs) > 0
+        check_signatures(rrsigs, dns.rdatatype.CDNSKEY, fqdn, ksks, zsks)
 
     # test cds query
     cds, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.CDS)
-    assert len(cds) > 0
     check_cds(cds, ksks)
-    assert len(rrsigs) > 0
-    check_signatures(rrsigs, dns.rdatatype.CDS, fqdn, ksks, zsks)
+    if len(cds) > 0:
+        assert len(rrsigs) > 0
+        check_signatures(rrsigs, dns.rdatatype.CDS, fqdn, ksks, zsks)
 
 
 def check_subdomain(server, zone, ksks, zsks):
