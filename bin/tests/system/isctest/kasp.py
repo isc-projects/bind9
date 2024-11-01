@@ -345,37 +345,41 @@ def _check_signatures(signatures, covers, fqdn, keys):
         active = now >= activate
         retired = inactive is not None and inactive <= now
         signing = active and not retired
+        alg = key.get_metadata("Algorithm")
+        rtype = dns.rdatatype.to_text(covers)
+
+        expect = rf"IN RRSIG {rtype} {alg} (\d) (\d+) (\d+) (\d+) {key.tag} {fqdn}"
 
         if not signing:
             for rrsig in signatures:
-                assert f" {key.tag} {fqdn}" not in rrsig
+                assert re.search(expect, rrsig) is None
             continue
 
         if zrrsig and key.is_zsk():
             has_rrsig = False
             for rrsig in signatures:
-                if f" {key.tag} {fqdn}" in rrsig:
+                if re.search(expect, rrsig) is not None:
                     has_rrsig = True
                     break
-            assert has_rrsig
+            assert has_rrsig, f"Expected signature but not found: {expect}"
             numsigs += 1
 
         if zrrsig and not key.is_zsk():
             for rrsig in signatures:
-                assert f" {key.tag} {fqdn}" not in rrsig
+                assert re.search(expect, rrsig) is None
 
         if krrsig and key.is_ksk():
             has_rrsig = False
             for rrsig in signatures:
-                if f" {key.tag} {fqdn}" in rrsig:
+                if re.search(expect, rrsig) is not None:
                     has_rrsig = True
                     break
-            assert has_rrsig
+            assert has_rrsig, f"Expected signature but not found: {expect}"
             numsigs += 1
 
         if krrsig and not key.is_ksk():
             for rrsig in signatures:
-                assert f" {key.tag} {fqdn}" not in rrsig
+                assert re.search(expect, rrsig) is None
 
     return numsigs
 
