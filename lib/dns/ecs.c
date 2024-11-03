@@ -22,7 +22,6 @@
 
 #include <dns/ecs.h>
 #include <dns/nsec.h>
-#include <dns/rbt.h>
 #include <dns/rdata.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>

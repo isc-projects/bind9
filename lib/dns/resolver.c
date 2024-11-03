@@ -58,7 +58,6 @@
 #include <dns/nsec3.h>
 #include <dns/opcode.h>
 #include <dns/peer.h>
-#include <dns/rbt.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>

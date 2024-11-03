@@ -19,7 +19,6 @@
 
 #include <dns/nsec3.h>
 #include <dns/qp.h>
-#include <dns/rbt.h>
 #include <dns/types.h>
 
 /*****

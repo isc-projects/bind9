@@ -19,6 +19,7 @@
 #include <isc/hashmap.h>
 #include <isc/ht.h>
 #include <isc/list.h>
+#include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/thread.h>
 #include <isc/urcu.h>
@@ -26,7 +27,6 @@
 
 #include <dns/fixedname.h>
 #include <dns/qp.h>
-#include <dns/rbt.h>
 #include <dns/types.h>
 
 #include "qp_p.h"
@@ -299,78 +299,6 @@ thread_ht(void *arg0) {
 }
 
 /*
- * rbt
- */
-
-static void *
-new_rbt(isc_mem_t *mem) {
-	dns_rbt_t *rbt = NULL;
-	(void)dns_rbt_create(mem, NULL, NULL, &rbt);
-	return (rbt);
-}
-
-static isc_result_t
-add_rbt(void *rbt, size_t count) {
-	isc_result_t result;
-	dns_rbtnode_t *node = NULL;
-
-	result = dns_rbt_addnode(rbt, &item[count].fixed.name, &node);
-	if (result == ISC_R_SUCCESS ||
-	    (result == ISC_R_EXISTS && node->data == NULL))
-	{
-		node->data = &item[count];
-		result = ISC_R_SUCCESS;
-	}
-
-	return (result);
-}
-
-static isc_result_t
-get_rbt(void *rbt, size_t count, void **pval) {
-	isc_result_t result;
-	dns_rbtnode_t *node = NULL;
-
-	result = dns_rbt_findnode(rbt, &item[count].fixed.name, NULL, &node,
-				  NULL, 0, NULL, NULL);
-	if (result == ISC_R_SUCCESS) {
-		*pval = node->data;
-	}
-	return (result);
-}
-
-static void *
-thread_rbt(void *arg0) {
-	struct thread_s *arg = arg0;
-
-	isc_barrier_wait(&barrier);
-
-	isc_time_t t0 = isc_time_now_hires();
-	WRLOCK(&rwl);
-	for (size_t n = arg->start; n < arg->end; n++) {
-		isc_result_t result = add_rbt(arg->map, n);
-		CHECK(n, result);
-	}
-	WRUNLOCK(&rwl);
-
-	isc_time_t t1 = isc_time_now_hires();
-	RDLOCK(&rwl);
-	for (size_t n = arg->start; n < arg->end; n++) {
-		void *pval = NULL;
-		isc_result_t result = get_rbt(arg->map, n, &pval);
-		CHECK(n, result);
-		assert(pval == &item[n]);
-	}
-	RDUNLOCK(&rwl);
-
-	isc_time_t t2 = isc_time_now_hires();
-
-	arg->d0 = isc_time_microdiff(&t1, &t0);
-	arg->d1 = isc_time_microdiff(&t2, &t1);
-
-	return (NULL);
-}
-
-/*
  * qp
  */
 
@@ -463,7 +391,6 @@ static struct fun fun_list[] = {
 	{ "lfht", new_lfht, thread_lfht },
 	{ "ht", new_ht, thread_ht },
 	{ "hashmap", new_hashmap, thread_hashmap },
-	{ "rbt", new_rbt, thread_rbt },
 	{ "qp", new_qp, thread_qp },
 	{ "qp+nosqz", new_qp, thread_qp_nosqz },
 	{ "qp+barrier", new_qp, thread_qp_brr },

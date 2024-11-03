@@ -23,7 +23,6 @@
 
 #include <dns/fixedname.h>
 #include <dns/qp.h>
-#include <dns/rbt.h>
 #include <dns/types.h>
 
 #include <tests/dns.h>

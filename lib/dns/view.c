@@ -51,7 +51,6 @@
 #include <dns/nta.h>
 #include <dns/order.h>
 #include <dns/peer.h>
-#include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/request.h>
 #include <dns/resolver.h>

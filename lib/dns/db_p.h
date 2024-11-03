@@ -18,7 +18,6 @@
 #include <isc/urcu.h>
 
 #include <dns/nsec3.h>
-#include <dns/rbt.h>
 #include <dns/types.h>
 
 #define GLUETABLE_INIT_SIZE 1 << 2

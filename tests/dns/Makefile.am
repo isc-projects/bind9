@@ -37,7 +37,6 @@ check_PROGRAMS =		\
 	qpmulti_test		\
 	qpdb_test		\
 	qpzone_test		\
-	rbt_test		\
 	rdata_test		\
 	rdataset_test		\
 	rdatasetstats_test	\

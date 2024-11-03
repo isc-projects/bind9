@@ -89,7 +89,6 @@
 #include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/private.h>
-#include <dns/rbt.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
