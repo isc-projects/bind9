@@ -201,9 +201,13 @@ struct dns_xfrin {
 #define XFRIN_MAGIC    ISC_MAGIC('X', 'f', 'r', 'I')
 #define VALID_XFRIN(x) ISC_MAGIC_VALID(x, XFRIN_MAGIC)
 
+#define XFRIN_WORK_MAGIC    ISC_MAGIC('X', 'f', 'r', 'W')
+#define VALID_XFRIN_WORK(x) ISC_MAGIC_VALID(x, XFRIN_WORK_MAGIC)
+
 typedef struct xfrin_work {
-	dns_xfrin_t *xfr;
+	unsigned int magic;
 	isc_result_t result;
+	dns_xfrin_t *xfr;
 } xfrin_work_t;
 
 /**************************************************************************/
@@ -300,6 +304,9 @@ failure:
 	return result;
 }
 
+static void
+axfr_apply(void *arg);
+
 static isc_result_t
 axfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	     dns_rdata_t *rdata) {
@@ -312,8 +319,21 @@ axfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	}
 
 	CHECK(dns_zone_checknames(xfr->zone, name, rdata));
+	if (dns_diff_size(&xfr->diff) > 128 &&
+	    dns_diff_is_boundary(&xfr->diff, name))
+	{
+		xfrin_work_t work = (xfrin_work_t){
+			.magic = XFRIN_WORK_MAGIC,
+			.result = ISC_R_UNSET,
+			.xfr = xfr,
+		};
+		axfr_apply((void *)&work);
+		CHECK(work.result);
+	}
+
 	dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata, &tuple);
 	dns_diff_append(&xfr->diff, &tuple);
+
 	result = ISC_R_SUCCESS;
 failure:
 	return result;
@@ -325,11 +345,13 @@ failure:
 static void
 axfr_apply(void *arg) {
 	xfrin_work_t *work = arg;
+	REQUIRE(VALID_XFRIN_WORK(work));
+
 	dns_xfrin_t *xfr = work->xfr;
+	REQUIRE(VALID_XFRIN(xfr));
+
 	isc_result_t result = ISC_R_SUCCESS;
 	uint64_t records;
-
-	REQUIRE(VALID_XFRIN(xfr));
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -357,6 +379,7 @@ axfr_apply_done(void *arg) {
 	isc_result_t result = work->result;
 
 	REQUIRE(VALID_XFRIN(xfr));
+	REQUIRE(VALID_XFRIN_WORK(work));
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -392,8 +415,9 @@ axfr_commit(dns_xfrin_t *xfr) {
 
 	xfrin_work_t *work = isc_mem_get(xfr->mctx, sizeof(*work));
 	*work = (xfrin_work_t){
-		.xfr = dns_xfrin_ref(xfr),
+		.magic = XFRIN_WORK_MAGIC,
 		.result = ISC_R_UNSET,
+		.xfr = dns_xfrin_ref(xfr),
 	};
 	xfr->diff_running = true;
 	isc_work_enqueue(xfr->loop, axfr_apply, axfr_apply_done, work);
@@ -527,6 +551,7 @@ ixfr_apply(void *arg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_XFRIN(xfr));
+	REQUIRE(VALID_XFRIN_WORK(work));
 
 	struct __cds_wfcq_head diff_head;
 	struct cds_wfcq_tail diff_tail;
@@ -564,10 +589,12 @@ ixfr_apply(void *arg) {
 static void
 ixfr_apply_done(void *arg) {
 	xfrin_work_t *work = arg;
-	dns_xfrin_t *xfr = work->xfr;
-	isc_result_t result = work->result;
+	REQUIRE(VALID_XFRIN_WORK(work));
 
+	dns_xfrin_t *xfr = work->xfr;
 	REQUIRE(VALID_XFRIN(xfr));
+
+	isc_result_t result = work->result;
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -629,8 +656,9 @@ ixfr_commit(dns_xfrin_t *xfr) {
 	if (!xfr->diff_running) {
 		xfrin_work_t *work = isc_mem_get(xfr->mctx, sizeof(*work));
 		*work = (xfrin_work_t){
-			.xfr = dns_xfrin_ref(xfr),
+			.magic = XFRIN_WORK_MAGIC,
 			.result = ISC_R_UNSET,
+			.xfr = dns_xfrin_ref(xfr),
 		};
 		xfr->diff_running = true;
 		isc_work_enqueue(xfr->loop, ixfr_apply, ixfr_apply_done, work);
@@ -1097,7 +1125,6 @@ xfrin_reset(dns_xfrin_t *xfr) {
 	}
 
 	dns_diff_clear(&xfr->diff);
-
 	xfr->ixfr.diffs = 0;
 
 	if (xfr->ixfr.journal != NULL) {

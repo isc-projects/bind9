@@ -27,6 +27,8 @@
  *** Imports
  ***/
 
+#include <stddef.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 
@@ -97,6 +99,7 @@ struct dns_diff {
 	unsigned int	    magic;
 	isc_mem_t	   *mctx;
 	dns_difftuplelist_t tuples;
+	size_t		    size;
 };
 
 /* Type of comparison function for sorting diffs. */
@@ -186,12 +189,32 @@ dns_diff_append(dns_diff_t *diff, dns_difftuple_t **tuple);
 /*%<
  * Append a single tuple to a diff.
  *
- *\li	'diff' is a valid diff.
+ * Requires:
+ * \li	'diff' is a valid diff.
  * \li	'*tuple' is a valid tuple.
  *
  * Ensures:
- *\li	*tuple is NULL.
- *\li	The tuple has been freed, or will be freed when the diff is cleared.
+ * \li	*tuple is NULL.
+ * \li	The tuple has been freed, or will be freed when the diff is cleared.
+ */
+
+bool
+dns_diff_is_boundary(const dns_diff_t *diff, dns_name_t *name);
+/*%<
+ * Checks if 'name' is equal, up to case, to the last name of the diff.
+ *
+ * Requires:
+ * \li	'diff' is a valid diff.
+ * \li	'name' is a valid dns name.
+ */
+
+size_t
+dns_diff_size(const dns_diff_t *diff);
+/*%<
+ * Returns the number of elements in the diff.
+ *
+ * Requires:
+ * \li	'diff' is a valid diff.
  */
 
 void
@@ -218,9 +241,10 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare);
  */
 
 isc_result_t
-dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
+dns_diff_apply(const dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
 isc_result_t
-dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
+dns_diff_applysilently(const dns_diff_t *diff, dns_db_t *db,
+		       dns_dbversion_t *ver);
 /*%<
  * Apply 'diff' to the database 'db'.
  *
@@ -239,7 +263,7 @@ dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
  */
 
 isc_result_t
-dns_diff_load(dns_diff_t *diff, dns_rdatacallbacks_t *callbacks);
+dns_diff_load(const dns_diff_t *diff, dns_rdatacallbacks_t *callbacks);
 /*%<
  * Like dns_diff_apply, but for use when loading a new database
  * instead of modifying an existing one.  This bypasses the
@@ -251,7 +275,7 @@ dns_diff_load(dns_diff_t *diff, dns_rdatacallbacks_t *callbacks);
  */
 
 isc_result_t
-dns_diff_print(dns_diff_t *diff, FILE *file);
+dns_diff_print(const dns_diff_t *diff, FILE *file);
 
 /*%<
  * Print the differences to 'file' or if 'file' is NULL via the
