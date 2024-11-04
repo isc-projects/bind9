@@ -2019,6 +2019,8 @@ static void
 xfrin_destroy(dns_xfrin_t *xfr) {
 	uint64_t msecs, persec;
 	isc_time_t now = isc_time_now();
+	char expireopt[sizeof("4000000000")] = { 0 };
+	const char *sep = "";
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -2045,15 +2047,22 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 		msecs = 1;
 	}
 	persec = (atomic_load_relaxed(&xfr->nbytes) * 1000) / msecs;
+
+	if (xfr->expireoptset) {
+		sep = ", expire option ";
+		snprintf(expireopt, sizeof(expireopt), "%u", xfr->expireopt);
+	}
+
 	xfrin_log(xfr, ISC_LOG_INFO,
 		  "Transfer completed: %d messages, %d records, "
 		  "%" PRIu64 " bytes, "
-		  "%u.%03u secs (%u bytes/sec) (serial %" PRIuFAST32 ")",
+		  "%u.%03u secs (%u bytes/sec) (serial %" PRIuFAST32 "%s%s)",
 		  atomic_load_relaxed(&xfr->nmsg),
 		  atomic_load_relaxed(&xfr->nrecs),
 		  atomic_load_relaxed(&xfr->nbytes),
 		  (unsigned int)(msecs / 1000), (unsigned int)(msecs % 1000),
-		  (unsigned int)persec, atomic_load_relaxed(&xfr->end_serial));
+		  (unsigned int)persec, atomic_load_relaxed(&xfr->end_serial),
+		  sep, expireopt);
 
 	/* Cleanup unprocessed IXFR data */
 	struct cds_wfcq_node *node, *next;
