@@ -85,3 +85,11 @@ dnssec-policy "two-tone" {
 		zsk lifetime P3M algorithm @DEFAULT_ALGORITHM@;
 	};
 };
+
+dnssec-policy "ksk-roll" {
+	offline-ksk yes;
+	keys {
+		ksk lifetime P6M algorithm @DEFAULT_ALGORITHM@;
+		zsk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+	};
+};

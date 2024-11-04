@@ -164,26 +164,25 @@ keymgr_settime_remove(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
  * Set the SyncPublish time (when the DS may be submitted to the parent).
  *
  */
-static void
-keymgr_settime_syncpublish(dns_dnsseckey_t *key, dns_kasp_t *kasp, bool first) {
+void
+dns_keymgr_settime_syncpublish(dst_key_t *key, dns_kasp_t *kasp, bool first) {
 	isc_stdtime_t published, syncpublish;
 	bool ksk = false;
 	isc_result_t ret;
 
 	REQUIRE(key != NULL);
-	REQUIRE(key->key != NULL);
 
-	ret = dst_key_gettime(key->key, DST_TIME_PUBLISH, &published);
+	ret = dst_key_gettime(key, DST_TIME_PUBLISH, &published);
 	if (ret != ISC_R_SUCCESS) {
 		return;
 	}
 
-	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
+	ret = dst_key_getbool(key, DST_BOOL_KSK, &ksk);
 	if (ret != ISC_R_SUCCESS || !ksk) {
 		return;
 	}
 
-	syncpublish = published + dst_key_getttl(key->key) +
+	syncpublish = published + dst_key_getttl(key) +
 		      dns_kasp_zonepropagationdelay(kasp) +
 		      dns_kasp_publishsafety(kasp);
 	if (first) {
@@ -197,7 +196,7 @@ keymgr_settime_syncpublish(dns_dnsseckey_t *key, dns_kasp_t *kasp, bool first) {
 			syncpublish = zrrsig_present;
 		}
 	}
-	dst_key_settime(key->key, DST_TIME_SYNCPUBLISH, syncpublish);
+	dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncpublish);
 }
 
 /*
@@ -1863,7 +1862,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		 */
 		dst_key_settime(new_key->key, DST_TIME_PUBLISH, now);
 		dst_key_settime(new_key->key, DST_TIME_ACTIVATE, now);
-		keymgr_settime_syncpublish(new_key, kasp, true);
+		dns_keymgr_settime_syncpublish(new_key->key, kasp, true);
 		active = now;
 	} else {
 		/*
@@ -1895,7 +1894,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		}
 		dst_key_settime(new_key->key, DST_TIME_PUBLISH, prepub);
 		dst_key_settime(new_key->key, DST_TIME_ACTIVATE, active);
-		keymgr_settime_syncpublish(new_key, kasp, false);
+		dns_keymgr_settime_syncpublish(new_key->key, kasp, false);
 
 		/*
 		 * Retire predecessor.
