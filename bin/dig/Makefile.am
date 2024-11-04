@@ -5,7 +5,8 @@ AM_CPPFLAGS +=			\
 	$(LIBDNS_CFLAGS)	\
 	$(LIBISCCFG_CFLAGS)	\
 	$(LIBIDN2_CFLAGS)	\
-	$(LIBUV_CFLAGS)
+	$(LIBUV_CFLAGS)		\
+	$(OPENSSL_CFLAGS)
 
 LDADD +=			\
 	libdighost.la		\
