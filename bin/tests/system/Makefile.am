@@ -134,6 +134,7 @@ TESTS =				\
 	proxy			\
 	pipelined		\
 	qmin			\
+	query-source		\
 	reclimit		\
 	redirect		\
 	resolver		\

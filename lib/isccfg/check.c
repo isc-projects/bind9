@@ -1315,24 +1315,21 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 		 * Warn if query-source or query-source-v6 options specify
 		 * a port, and fail if they specify the DNS port.
 		 */
+		unsigned int none_found = false;
+
 		for (i = 0; i < ARRAY_SIZE(sources); i++) {
 			obj = NULL;
 			(void)cfg_map_get(options, sources[i], &obj);
-			if (obj != NULL) {
-				const isc_sockaddr_t *sa =
-					cfg_obj_assockaddr(obj);
-				in_port_t port = isc_sockaddr_getport(sa);
-				if (port == dnsport) {
+			if (obj != NULL && cfg_obj_isvoid(obj)) {
+				none_found++;
+
+				if (none_found > 1) {
 					cfg_obj_log(obj, ISC_LOG_ERROR,
-						    "'%s' cannot specify the "
-						    "DNS listener port (%d)",
-						    sources[i], port);
+						    "query-source and "
+						    "query-source-v6 can't be "
+						    "none at the same time.");
 					result = ISC_R_FAILURE;
-				} else if (port != 0) {
-					cfg_obj_log(obj, ISC_LOG_WARNING,
-						    "'%s': specifying a port "
-						    "is not recommended",
-						    sources[i]);
+					break;
 				}
 			}
 		}
@@ -4419,14 +4416,26 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			}
 			(void)cfg_map_get(v1, xfr, &obj);
 			if (obj != NULL) {
-				const isc_sockaddr_t *sa =
-					cfg_obj_assockaddr(obj);
-				in_port_t port = isc_sockaddr_getport(sa);
-				if (port == dnsport) {
+				if (cfg_obj_issockaddr(obj)) {
+					const isc_sockaddr_t *sa =
+						cfg_obj_assockaddr(obj);
+					in_port_t port =
+						isc_sockaddr_getport(sa);
+					if (port == dnsport) {
+						cfg_obj_log(obj, ISC_LOG_ERROR,
+							    "'%s' cannot "
+							    "specify the "
+							    "DNS listener port "
+							    "(%d)",
+							    xfr, port);
+						result = ISC_R_FAILURE;
+					}
+				} else {
 					cfg_obj_log(obj, ISC_LOG_ERROR,
-						    "'%s' cannot specify the "
-						    "DNS listener port (%d)",
-						    xfr, port);
+						    "'none' is not a legal "
+						    "'%s' parameter in a "
+						    "server block",
+						    xfr);
 					result = ISC_R_FAILURE;
 				}
 			}
