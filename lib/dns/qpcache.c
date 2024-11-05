@@ -170,9 +170,10 @@ struct qpcnode {
 	unsigned int nsec	: 2; /*%< range is 0..3 */
 	uint8_t			: 0;
 
+	uint16_t locknum;
+
 	isc_refcount_t references;
 	isc_refcount_t erefs;
-	uint16_t locknum;
 	void *data;
 
 	/*%
