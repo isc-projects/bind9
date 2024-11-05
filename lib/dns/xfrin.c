@@ -865,24 +865,20 @@ failure:
 	return (result);
 }
 
-isc_result_t
+void
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 uint32_t ixfr_maxdiffs, const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
 		 dns_transport_type_t soa_transport_type,
 		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
-		 isc_mem_t *mctx, dns_xfrindone_t done, dns_xfrin_t **xfrp) {
+		 isc_mem_t *mctx, dns_xfrin_t **xfrp) {
 	dns_name_t *zonename = dns_zone_getorigin(zone);
 	dns_xfrin_t *xfr = NULL;
-	isc_result_t result;
 	dns_db_t *db = NULL;
 	isc_loop_t *loop = NULL;
 
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
-	REQUIRE(done != NULL);
 	REQUIRE(isc_sockaddr_getport(primaryaddr) != 0);
-	REQUIRE(zone != NULL);
-	REQUIRE(dns_zone_getview(zone) != NULL);
 
 	loop = dns_zone_getloop(zone);
 
@@ -898,26 +894,26 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	if (db != NULL) {
 		xfr->zone_had_db = true;
+		dns_db_detach(&db);
 	}
 
-	xfr->done = done;
-
-	/*
-	 * Set *xfrp now, before calling xfrin_start(), otherwise it's
-	 * possible the 'done' callback could be run before *xfrp
-	 * was attached.
-	 */
 	*xfrp = xfr;
+}
+
+isc_result_t
+dns_xfrin_start(dns_xfrin_t *xfr, dns_xfrindone_t done) {
+	isc_result_t result;
+
+	REQUIRE(xfr != NULL);
+	REQUIRE(xfr->zone != NULL);
+	REQUIRE(done != NULL);
+
+	xfr->done = done;
 
 	result = xfrin_start(xfr);
 	if (result != ISC_R_SUCCESS) {
 		xfr->done = NULL;
-		xfrin_fail(xfr, result, "zone transfer setup failed");
-		dns_xfrin_detach(xfrp);
-	}
-
-	if (db != NULL) {
-		dns_db_detach(&db);
+		xfrin_fail(xfr, result, "zone transfer start failed");
 	}
 
 	return (result);

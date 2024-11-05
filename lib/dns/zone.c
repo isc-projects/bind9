@@ -314,6 +314,7 @@ struct dns_zone {
 	char *keydirectory;
 	dns_keyfileio_t *kfio;
 	dns_keystorelist_t *keystores;
+	dns_xfrin_t *xfr;
 
 	uint32_t maxrefresh;
 	uint32_t minrefresh;
@@ -342,7 +343,6 @@ struct dns_zone {
 	isc_sockaddr_t xfrsource4;
 	isc_sockaddr_t xfrsource6;
 	isc_sockaddr_t sourceaddr;
-	dns_xfrin_t *xfr;	    /* loop locked */
 	dns_tsigkey_t *tsigkey;	    /* key used for xfr */
 	dns_transport_t *transport; /* transport used for xfr */
 	/* Access Control Lists */
@@ -18006,10 +18006,9 @@ again:
 	zone_settimer(zone, &now);
 
 	/*
-	 * If creating the transfer object failed, zone->xfr is NULL.
-	 * Otherwise, we are called as the done callback of a zone
-	 * transfer object that just entered its shutting-down
-	 * state.  Since we are no longer responsible for shutting
+	 * We are called as the done callback of a zone
+	 * transfer object that just entered its shutting-down state or
+	 * failed to start.  Since we are no longer responsible for shutting
 	 * it down, we can detach our reference.
 	 */
 	if (zone->xfr != NULL) {
@@ -18365,6 +18364,7 @@ got_transfer_quota(void *arg) {
 	const char *soa_before = "";
 	bool loaded;
 	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
+	dns_xfrin_t *xfr = NULL;
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		zone_xfrdone(zone, NULL, ISC_R_CANCELED);
@@ -18514,24 +18514,30 @@ got_transfer_quota(void *arg) {
 
 	INSIST(isc_sockaddr_pf(&primaryaddr) == isc_sockaddr_pf(&sourceaddr));
 
+	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
+
+	dns_xfrin_create(zone, xfrtype, ixfr_maxdiffs, &primaryaddr,
+			 &sourceaddr, zone->tsigkey, soa_transport_type,
+			 zone->transport, zmgr_tlsctx_cache, zone->mctx, &xfr);
+	INSIST(xfr != NULL);
+
+	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
+
+	LOCK_ZONE(zone);
 	if (zone->xfr != NULL) {
 		dns_xfrin_detach(&zone->xfr);
 	}
+	dns_xfrin_attach(xfr, &zone->xfr);
+	UNLOCK_ZONE(zone);
 
-	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
-
-	result = dns_xfrin_create(
-		zone, xfrtype, ixfr_maxdiffs, &primaryaddr, &sourceaddr,
-		zone->tsigkey, soa_transport_type, zone->transport,
-		zmgr_tlsctx_cache, zone->mctx, zone_xfrdone, &zone->xfr);
-
-	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
+	dns_xfrin_detach(&xfr);
 
 	/*
 	 * Any failure in this function is handled like a failed
 	 * zone transfer.  This ensures that we get removed from
 	 * zmgr->xfrin_in_progress.
 	 */
+	result = dns_xfrin_start(zone->xfr, zone_xfrdone);
 	if (result != ISC_R_SUCCESS) {
 		zone_xfrdone(zone, NULL, result);
 		return;
