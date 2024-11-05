@@ -17285,7 +17285,7 @@ restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 }
 
 static isc_result_t
-copy_non_dnssec_records(dns_db_t *db, dns_db_t *version, dns_db_t *rawdb,
+copy_non_dnssec_records(dns_db_t *db, dns_dbversion_t *version, dns_db_t *rawdb,
 			dns_dbiterator_t *dbiterator, unsigned int *oldserial) {
 	dns_dbnode_t *rawnode = NULL, *node = NULL;
 	dns_fixedname_t fixed;

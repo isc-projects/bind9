@@ -1095,8 +1095,8 @@ setsecure(dns_db_t *db, qpz_version_t *version, dns_dbnode_t *origin) {
 	isc_result_t result;
 
 	dns_rdataset_init(&keyset);
-	result = dns_db_findrdataset(db, origin, version, dns_rdatatype_dnskey,
-				     0, 0, &keyset, NULL);
+	result = dns_db_findrdataset(db, origin, (dns_dbversion_t *)version,
+				     dns_rdatatype_dnskey, 0, 0, &keyset, NULL);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_rdataset_first(&keyset);
 		while (result == ISC_R_SUCCESS) {
@@ -1118,8 +1118,9 @@ setsecure(dns_db_t *db, qpz_version_t *version, dns_dbnode_t *origin) {
 
 	dns_rdataset_init(&nsecset);
 	dns_rdataset_init(&signsecset);
-	result = dns_db_findrdataset(db, origin, version, dns_rdatatype_nsec, 0,
-				     0, &nsecset, &signsecset);
+	result = dns_db_findrdataset(db, origin, (dns_dbversion_t *)version,
+				     dns_rdatatype_nsec, 0, 0, &nsecset,
+				     &signsecset);
 	if (result == ISC_R_SUCCESS) {
 		if (dns_rdataset_isassociated(&signsecset)) {
 			hasnsec = true;
@@ -1159,14 +1160,14 @@ static void
 attachversion(dns_db_t *db, dns_dbversion_t *source,
 	      dns_dbversion_t **targetp) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	qpz_version_t *version = source;
+	qpz_version_t *version = (qpz_version_t *)source;
 
 	REQUIRE(VALID_QPZONE(qpdb));
 	INSIST(version != NULL && version->qpdb == qpdb);
 
 	isc_refcount_increment(&version->references);
 
-	*targetp = version;
+	*targetp = source;
 }
 
 static isc_result_t
@@ -1201,7 +1202,7 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	qpdb->future_version = version;
 	RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
 
-	*versionp = version;
+	*versionp = (dns_dbversion_t *)version;
 
 	return (ISC_R_SUCCESS);
 }
@@ -1511,7 +1512,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	dns_slabheader_t *header = NULL, *header_next = NULL;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
 	uint32_t serial;
-	qpz_version_t *version = dbversion;
+	qpz_version_t *version = (qpz_version_t *)dbversion;
 	bool close_version = false;
 	dns_typepair_t matchtype, sigmatchtype;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -2224,7 +2225,7 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	qpdb->attributes |= QPDB_ATTR_LOADED;
 
 	if (qpdb->origin != NULL) {
-		dns_dbversion_t *version = qpdb->current_version;
+		qpz_version_t *version = qpdb->current_version;
 		RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
 		setsecure(db, version, (dns_dbnode_t *)qpdb->origin);
 	} else {
@@ -2263,7 +2264,7 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *dbversion, dns_hash_t *hash,
 		   size_t *salt_length) {
 	qpzonedb_t *qpdb = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
-	qpz_version_t *version = dbversion;
+	qpz_version_t *version = (qpz_version_t *)dbversion;
 
 	qpdb = (qpzonedb_t *)db;
 
@@ -2303,7 +2304,7 @@ static isc_result_t
 getsize(dns_db_t *db, dns_dbversion_t *dbversion, uint64_t *records,
 	uint64_t *xfrsize) {
 	qpzonedb_t *qpdb = NULL;
-	qpz_version_t *version = dbversion;
+	qpz_version_t *version = (qpz_version_t *)dbversion;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	qpdb = (qpzonedb_t *)db;
@@ -3311,7 +3312,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	search = (qpz_search_t){
 		.qpdb = (qpzonedb_t *)db,
-		.version = version,
+		.version = (qpz_version_t *)version,
 		.serial = ((qpz_version_t *)version)->serial,
 		.options = options,
 	};
@@ -3798,7 +3799,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = (qpznode_t *)dbnode;
-	qpz_version_t *version = dbversion;
+	qpz_version_t *version = (qpz_version_t *)dbversion;
 	qpdb_rdatasetiter_t *iterator = NULL;
 
 	REQUIRE(VALID_QPZONE(qpdb));
@@ -4004,7 +4005,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	qpdb_rdatasetiter_t *qrditer = (qpdb_rdatasetiter_t *)iterator;
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
 	qpznode_t *node = (qpznode_t *)qrditer->common.node;
-	qpz_version_t *version = qrditer->common.version;
+	qpz_version_t *version = (qpz_version_t *)qrditer->common.version;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
@@ -4045,7 +4046,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	qpdb_rdatasetiter_t *qrditer = (qpdb_rdatasetiter_t *)iterator;
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
 	qpznode_t *node = (qpznode_t *)qrditer->common.node;
-	qpz_version_t *version = qrditer->common.version;
+	qpz_version_t *version = (qpz_version_t *)qrditer->common.version;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	dns_typepair_t type, negtype;
 	dns_rdatatype_t rdtype;
@@ -4574,7 +4575,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	isc_result_t result;
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = (qpznode_t *)dbnode;
-	qpz_version_t *version = dbversion;
+	qpz_version_t *version = (qpz_version_t *)dbversion;
 	isc_region_t region;
 	dns_slabheader_t *newheader = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -4697,7 +4698,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		 dns_rdataset_t *newrdataset DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = (qpznode_t *)dbnode;
-	qpz_version_t *version = dbversion;
+	qpz_version_t *version = (qpz_version_t *)dbversion;
 	dns_fixedname_t fname;
 	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
@@ -4887,7 +4888,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	       dns_rdatatype_t type, dns_rdatatype_t covers DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = (qpznode_t *)dbnode;
-	qpz_version_t *version = dbversion;
+	qpz_version_t *version = (qpz_version_t *)dbversion;
 	dns_fixedname_t fname;
 	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	isc_result_t result;
@@ -5269,7 +5270,7 @@ static void
 addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
 	dns_message_t *msg) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	qpz_version_t *version = dbversion;
+	qpz_version_t *version = (qpz_version_t *)dbversion;
 	qpznode_t *node = (qpznode_t *)rdataset->slab.node;
 	dns_gluenode_t *gluenode = NULL;
 

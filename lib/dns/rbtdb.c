@@ -736,7 +736,7 @@ dns__rbtdb_newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	rbtdb->future_version = version;
 	RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
-	*versionp = version;
+	*versionp = (dns_dbversion_t *)version;
 
 	return (ISC_R_SUCCESS);
 }
@@ -745,14 +745,14 @@ void
 dns__rbtdb_attachversion(dns_db_t *db, dns_dbversion_t *source,
 			 dns_dbversion_t **targetp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-	dns_rbtdb_version_t *rbtversion = source;
+	dns_rbtdb_version_t *rbtversion = (dns_rbtdb_version_t *)source;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion != NULL && rbtversion->rbtdb == rbtdb);
 
 	isc_refcount_increment(&rbtversion->references);
 
-	*targetp = rbtversion;
+	*targetp = source;
 }
 
 static rbtdb_changed_t *
@@ -1604,8 +1604,8 @@ dns__rbtdb_setsecure(dns_db_t *db, dns_rbtdb_version_t *version,
 	REQUIRE(version != NULL);
 
 	dns_rdataset_init(&keyset);
-	result = dns_db_findrdataset(db, origin, version, dns_rdatatype_dnskey,
-				     0, 0, &keyset, NULL);
+	result = dns_db_findrdataset(db, origin, (dns_dbversion_t *)version,
+				     dns_rdatatype_dnskey, 0, 0, &keyset, NULL);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_rdataset_first(&keyset);
 		while (result == ISC_R_SUCCESS) {
@@ -1627,8 +1627,9 @@ dns__rbtdb_setsecure(dns_db_t *db, dns_rbtdb_version_t *version,
 
 	dns_rdataset_init(&nsecset);
 	dns_rdataset_init(&signsecset);
-	result = dns_db_findrdataset(db, origin, version, dns_rdatatype_nsec, 0,
-				     0, &nsecset, &signsecset);
+	result = dns_db_findrdataset(db, origin, (dns_dbversion_t *)version,
+				     dns_rdatatype_nsec, 0, 0, &nsecset,
+				     &signsecset);
 	if (result == ISC_R_SUCCESS) {
 		if (dns_rdataset_isassociated(&signsecset)) {
 			hasnsec = true;
@@ -2359,7 +2360,7 @@ dns__rbtdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node,
 			dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	dns_rbtdb_version_t *rbtversion = version;
+	dns_rbtdb_version_t *rbtversion = (dns_rbtdb_version_t *)version;
 	rbtdb_rdatasetiter_t *iterator = NULL;
 	uint_fast32_t refs;
 
@@ -3258,7 +3259,7 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 		       dns_rdataset_t *addedrdataset DNS__DB_FLARG) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	dns_rbtdb_version_t *rbtversion = version;
+	dns_rbtdb_version_t *rbtversion = (dns_rbtdb_version_t *)version;
 	isc_region_t region;
 	dns_slabheader_t *newheader = NULL;
 	isc_result_t result;
@@ -3488,7 +3489,7 @@ dns__rbtdb_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 			    dns_rdataset_t *newrdataset DNS__DB_FLARG) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	dns_rbtdb_version_t *rbtversion = version;
+	dns_rbtdb_version_t *rbtversion = (dns_rbtdb_version_t *)version;
 	dns_fixedname_t fname;
 	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
@@ -3687,18 +3688,6 @@ dns__rbtdb_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 unlock:
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 
-	/*
-	 * Update the zone's secure status.  If version is non-NULL
-	 * this is deferred until dns__rbtdb_closeversion() is called.
-	 */
-	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
-		RWLOCK(&rbtdb->lock, isc_rwlocktype_read);
-		version = rbtdb->current_version;
-		RWUNLOCK(&rbtdb->lock, isc_rwlocktype_read);
-		dns__rbtdb_setsecure(db, version,
-				     (dns_dbnode_t *)rbtdb->origin_node);
-	}
-
 	return (result);
 }
 
@@ -3708,7 +3697,7 @@ dns__rbtdb_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 			  dns_rdatatype_t covers DNS__DB_FLARG) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	dns_rbtdb_version_t *rbtversion = version;
+	dns_rbtdb_version_t *rbtversion = (dns_rbtdb_version_t *)version;
 	dns_fixedname_t fname;
 	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	isc_result_t result;
@@ -3745,11 +3734,11 @@ dns__rbtdb_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 	 * Update the zone's secure status.  If version is non-NULL
 	 * this is deferred until dns__rbtdb_closeversion() is called.
 	 */
-	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
+	if (result == ISC_R_SUCCESS && rbtversion == NULL && !IS_CACHE(rbtdb)) {
 		RWLOCK(&rbtdb->lock, isc_rwlocktype_read);
-		version = rbtdb->current_version;
+		rbtversion = rbtdb->current_version;
 		RWUNLOCK(&rbtdb->lock, isc_rwlocktype_read);
-		dns__rbtdb_setsecure(db, version,
+		dns__rbtdb_setsecure(db, rbtversion,
 				     (dns_dbnode_t *)rbtdb->origin_node);
 	}
 
@@ -4150,7 +4139,8 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	rbtdb_rdatasetiter_t *rbtiterator = (rbtdb_rdatasetiter_t *)iterator;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(rbtiterator->common.db);
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)rbtiterator->common.node;
-	dns_rbtdb_version_t *rbtversion = rbtiterator->common.version;
+	dns_rbtdb_version_t *rbtversion =
+		(dns_rbtdb_version_t *)rbtiterator->common.version;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	uint32_t serial = IS_CACHE(rbtdb) ? 1 : rbtversion->serial;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -4198,7 +4188,8 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	rbtdb_rdatasetiter_t *rbtiterator = (rbtdb_rdatasetiter_t *)iterator;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(rbtiterator->common.db);
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)rbtiterator->common.node;
-	dns_rbtdb_version_t *rbtversion = rbtiterator->common.version;
+	dns_rbtdb_version_t *rbtversion =
+		(dns_rbtdb_version_t *)rbtiterator->common.version;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	uint32_t serial = IS_CACHE(rbtdb) ? 1 : rbtversion->serial;
 	dns_typepair_t type, negtype;
