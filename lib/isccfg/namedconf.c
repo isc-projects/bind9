@@ -3218,77 +3218,14 @@ static cfg_type_t cfg_type_optional_class = { "optional_class",
 
 static isc_result_t
 parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	isc_netaddr_t netaddr;
-	in_port_t port = 0;
-	unsigned int have_address = 0;
-	unsigned int have_port = 0;
-	unsigned int have_tls = 0;
-	const unsigned int *flagp = type->of;
+	REQUIRE(type != NULL);
 
-	if ((*flagp & CFG_ADDR_V4OK) != 0) {
-		isc_netaddr_any(&netaddr);
-	} else if ((*flagp & CFG_ADDR_V6OK) != 0) {
-		isc_netaddr_any6(&netaddr);
-	} else {
-		UNREACHABLE();
+	isc_result_t result = cfg_parse_sockaddr_generic(
+		pctx, &cfg_type_querysource, type, ret);
+	/* Preserve legacy query-source logging. */
+	if (result != ISC_R_SUCCESS) {
+		cfg_parser_error(pctx, CFG_LOG_NEAR, "invalid query source");
 	}
-
-	for (;;) {
-		CHECK(cfg_peektoken(pctx, 0));
-		if (pctx->token.type == isc_tokentype_string) {
-			if (strcasecmp(TOKEN_STRING(pctx), "address") == 0) {
-				/* read "address" */
-				CHECK(cfg_gettoken(pctx, 0));
-				CHECK(cfg_parse_rawaddr(pctx, *flagp,
-							&netaddr));
-				have_address++;
-			} else if (strcasecmp(TOKEN_STRING(pctx), "port") == 0)
-			{
-				/* Port has been removed */
-				++have_port;
-			} else if (strcasecmp(TOKEN_STRING(pctx), "tls") == 0) {
-				/* We do not expect TLS here, not parsing. */
-				++have_tls;
-			} else if (have_port == 0 && have_tls == 0 &&
-				   have_address == 0)
-			{
-				return (cfg_parse_sockaddr(pctx, type, ret));
-			} else {
-				cfg_parser_error(pctx, CFG_LOG_NEAR,
-						 "expected 'address' "
-						 "or 'port'");
-				return (ISC_R_UNEXPECTEDTOKEN);
-			}
-		} else {
-			break;
-		}
-	}
-
-	if (have_address != 1) {
-		cfg_parser_error(pctx, 0, "expected exactly one address");
-		return (ISC_R_UNEXPECTEDTOKEN);
-	}
-
-	if (have_tls > 0) {
-		cfg_parser_error(pctx, 0, "unexpected tls");
-		return (ISC_R_UNEXPECTEDTOKEN);
-	}
-
-	if (have_port > 0) {
-		cfg_parser_error(pctx, 0, "subconfig 'port' no longer exists");
-		return (ISC_R_UNEXPECTEDTOKEN);
-	}
-
-	CHECK(cfg_create_obj(pctx, &cfg_type_querysource, &obj));
-	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, port);
-	*ret = obj;
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	cfg_parser_error(pctx, CFG_LOG_NEAR, "invalid query source");
-	CLEANUP_OBJ(obj);
 	return (result);
 }
 
@@ -3318,14 +3255,19 @@ doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
 static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK;
 static unsigned int sockaddr6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK;
 
+static unsigned int querysource4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK |
+					     CFG_ADDR_TRAILINGOK;
+static unsigned int querysource6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK |
+					     CFG_ADDR_TRAILINGOK;
+
 static cfg_type_t cfg_type_querysource4 = {
-	"querysource4", parse_querysource,   NULL, doc_querysource,
-	NULL,		&sockaddr4wild_flags
+	"querysource4", parse_querysource,	NULL, doc_querysource,
+	NULL,		&querysource4wild_flags
 };
 
 static cfg_type_t cfg_type_querysource6 = {
-	"querysource6", parse_querysource,   NULL, doc_querysource,
-	NULL,		&sockaddr6wild_flags
+	"querysource6", parse_querysource,	NULL, doc_querysource,
+	NULL,		&querysource6wild_flags
 };
 
 static cfg_type_t cfg_type_querysource = { "querysource",     NULL,
