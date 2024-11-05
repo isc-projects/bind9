@@ -2317,17 +2317,29 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 		 * locks in that order, to match locking hierarchy
 		 * elsewhere.
 		 */
+		dns_adbname_ref(adbname);
 		UNLOCK(&find->lock);
+
+		/*
+		 * Other thread could cancel the find between the unlock and
+		 * lock, so we need to recheck whether the adbname is still
+		 * valid and reference the adbname, so it does not vanish before
+		 * we have a chance to lock it again.
+		 */
+
 		LOCK(&adbname->lock);
 		LOCK(&find->lock);
 
-		ISC_LIST_UNLINK(adbname->finds, find, plink);
-		find->adbname = NULL;
+		if (find->adbname != NULL) {
+			ISC_LIST_UNLINK(find->adbname->finds, find, plink);
+			find->adbname = NULL;
+		}
 
 		find_sendevent(find);
 
 		UNLOCK(&find->lock);
 		UNLOCK(&adbname->lock);
+		dns_adbname_detach(&adbname);
 	}
 }
 
