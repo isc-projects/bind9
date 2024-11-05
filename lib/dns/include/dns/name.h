@@ -96,10 +96,9 @@ ISC_LANG_BEGINDECLS
  * for whatever purpose the client desires.
  */
 struct dns_name {
-	unsigned int   magic;
-	unsigned char *ndata;
-	unsigned int   length;
-	unsigned int   labels;
+	unsigned int magic;
+	uint8_t	     length;
+	uint8_t	     labels;
 	struct dns_name_attrs {
 		bool absolute	  : 1; /*%< Used by name.c */
 		bool readonly	  : 1; /*%< Used by name.c */
@@ -116,6 +115,7 @@ struct dns_name {
 		bool update	  : 1; /*%< Used by client. */
 		bool hasupdaterec : 1; /*%< Used by client. */
 	} attributes;
+	unsigned char *ndata;
 	unsigned char *offsets;
 	isc_buffer_t  *buffer;
 	ISC_LINK(dns_name_t) link;

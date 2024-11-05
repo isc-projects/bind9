@@ -153,11 +153,11 @@ struct qpznode {
 	isc_refcount_t references;
 	isc_refcount_t erefs;
 	uint16_t locknum;
-	void *data;
 	atomic_uint_fast8_t nsec;
 	atomic_bool wild;
 	atomic_bool delegating;
 	atomic_bool dirty;
+	void *data;
 };
 
 struct qpzonedb {

@@ -720,6 +720,10 @@ cross-version-config-tests:
     # also from the $BIND_BASELINE_VERSION.
     - find bin/tests/system/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -e ../"$0" || rm -rfv -- "$0"' {} \;
     - cd bin/tests/system
+    # System tests that employ binary drivers will fail on ABI change and
+    # should not be run.
+    - rm -r dlzexternal
+    - rm -r dyndb
     # Run the setup phase of all system tests in the most recently tagged BIND 9
     # release using the binaries built for the current BIND 9 version.  This
     # intends to detect obvious backward compatibility issues with the latter.

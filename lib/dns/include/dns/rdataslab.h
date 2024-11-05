@@ -68,31 +68,32 @@ struct dns_slabheader_proof {
 };
 
 struct dns_slabheader {
+	_Atomic(uint16_t) attributes;
+
 	/*%
 	 * Locked by the owning node's lock.
 	 */
-	uint32_t	      serial;
-	dns_ttl_t	      ttl;
-	dns_typepair_t	      type;
-	atomic_uint_least16_t attributes;
-	dns_trust_t	      trust;
+	dns_trust_t    trust;
+	uint32_t       serial;
+	dns_ttl_t      ttl;
+	dns_typepair_t type;
 
-	unsigned int heap_index;
-	/*%<
-	 * Used for TTL-based cache cleaning.
-	 */
-
-	isc_stdtime_t resign;
-	unsigned int  resign_lsb : 1;
-
-	atomic_uint_fast16_t count;
+	_Atomic(uint16_t) count;
 	/*%<
 	 * Monotonically increased every time this rdataset is bound so that
 	 * it is used as the base of the starting point in DNS responses
 	 * when the "cyclic" rrset-order is required.
 	 */
 
-	atomic_uint_fast32_t last_refresh_fail_ts;
+	unsigned int  resign_lsb : 1;
+	isc_stdtime_t resign;
+	unsigned int  heap_index;
+	/*%<
+	 * Used for TTL-based cache cleaning.
+	 */
+
+	isc_stdtime_t	  last_used;
+	_Atomic(uint32_t) last_refresh_fail_ts;
 
 	dns_slabheader_proof_t *noqname;
 	dns_slabheader_proof_t *closest;
@@ -122,7 +123,6 @@ struct dns_slabheader {
 	 * this rdataset, if any.
 	 */
 
-	isc_stdtime_t last_used;
 	ISC_LINK(struct dns_slabheader) link;
 
 	/*%
