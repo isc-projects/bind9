@@ -285,7 +285,7 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		 * count here because we're going to use the reference we
 		 * already have in the search block.
 		 */
-		*nodep = node;
+		*nodep = (dns_dbnode_t *)node;
 		search->need_cleanup = false;
 	}
 	if (rdataset != NULL) {
@@ -905,7 +905,7 @@ again:
 							search->rbtdb, node,
 							isc_rwlocktype_read
 								DNS__DB_FLARG_PASS);
-						*nodep = node;
+						*nodep = (dns_dbnode_t *)node;
 					}
 					dns__rbtdb_bindrdataset(
 						search->rbtdb, node, found,
@@ -1373,7 +1373,7 @@ found:
 		if (nodep != NULL) {
 			dns__rbtdb_newref(search.rbtdb, node,
 					  nlocktype DNS__DB_FLARG_PASS);
-			*nodep = node;
+			*nodep = (dns_dbnode_t *)node;
 		}
 		if ((search.rbtversion->secure &&
 		     !search.rbtversion->havensec3))
@@ -1447,7 +1447,7 @@ found:
 		} else {
 			search.need_cleanup = false;
 		}
-		*nodep = node;
+		*nodep = (dns_dbnode_t *)node;
 	}
 
 	if (type != dns_rdatatype_any) {
@@ -1758,12 +1758,13 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
 		.ttl = rdataset->ttl + loadctx->now,
 		.trust = rdataset->trust,
-		.node = node,
+		.node = (dns_dbnode_t *)node,
 		.serial = 1,
 		.count = 1,
 	};
 
-	dns_slabheader_reset(newheader, (dns_db_t *)rbtdb, node);
+	dns_slabheader_reset(newheader, (dns_db_t *)rbtdb,
+			     (dns_dbnode_t *)node);
 	dns_slabheader_setownercase(newheader, name);
 
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
@@ -1844,7 +1845,8 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	if (rbtdb->origin_node != NULL) {
 		dns_dbversion_t *version = rbtdb->current_version;
 		RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
-		dns__rbtdb_setsecure(db, version, rbtdb->origin_node);
+		dns__rbtdb_setsecure(db, version,
+				     (dns_dbnode_t *)rbtdb->origin_node);
 	} else {
 		RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 	}
@@ -2214,11 +2216,12 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 
 	if (node_a != NULL) {
 		dns__db_detachnode(ctx->db,
-				   (dns_dbnode_t *)&node_a DNS__DB_FLARG_PASS);
+				   (dns_dbnode_t **)&node_a DNS__DB_FLARG_PASS);
 	}
 	if (node_aaaa != NULL) {
 		dns__db_detachnode(
-			ctx->db, (dns_dbnode_t *)&node_aaaa DNS__DB_FLARG_PASS);
+			ctx->db,
+			(dns_dbnode_t **)&node_aaaa DNS__DB_FLARG_PASS);
 	}
 
 	return (result);
@@ -2320,7 +2323,7 @@ newglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rbtnode_t *node,
 	 * determining which NS records in the delegation are
 	 * in-bailiwick).
 	 */
-	dns__rbtdb_nodefullname(db, node, ctx.nodename);
+	dns__rbtdb_nodefullname(db, (dns_dbnode_t *)node, ctx.nodename);
 
 	(void)dns_rdataset_additionaldata(rdataset, dns_rootname,
 					  glue_nsdname_cb, &ctx);
@@ -2341,14 +2344,16 @@ new_gluenode(dns_db_t *db, dns_dbversion_t *dbversion, dns_rbtnode_t *node,
 	};
 
 	isc_mem_attach(db->mctx, &gluenode->mctx);
-	dns_db_attachnode(db, node, (dns_dbnode_t **)&gluenode->node);
+	dns_db_attachnode(db, (dns_dbnode_t *)node,
+			  (dns_dbnode_t **)&gluenode->node);
 
 	return (gluenode);
 }
 
 static uint32_t
 rbtnode_hash(const dns_rbtnode_t *node) {
-	return (isc_hash32(&node, sizeof(node), true));
+	uintptr_t key = (uintptr_t)node;
+	return (isc_hash32(&key, sizeof(key), true));
 }
 
 static int

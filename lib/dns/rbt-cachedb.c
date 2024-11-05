@@ -295,7 +295,7 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		 * count here because we're going to use the reference we
 		 * already have in the search block.
 		 */
-		*nodep = node;
+		*nodep = (dns_dbnode_t *)node;
 		search->need_cleanup = false;
 	}
 	if (rdataset != NULL) {
@@ -593,7 +593,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 			if (nodep != NULL) {
 				dns__rbtdb_newref(search->rbtdb, node,
 						  nlocktype DNS__DB_FLARG_PASS);
-				*nodep = node;
+				*nodep = (dns_dbnode_t *)node;
 			}
 			dns__rbtdb_bindrdataset(search->rbtdb, node, found,
 						search->now, nlocktype,
@@ -748,7 +748,7 @@ find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
 
 		dns_name_copy(fname, foundname);
 
-		*nodep = node;
+		*nodep = (dns_dbnode_t *)node;
 		result = DNS_R_COVERINGNSEC;
 	} else {
 		result = ISC_R_NOTFOUND;
@@ -1011,7 +1011,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			if (nodep != NULL) {
 				dns__rbtdb_newref(search.rbtdb, node,
 						  nlocktype DNS__DB_FLARG_PASS);
-				*nodep = node;
+				*nodep = (dns_dbnode_t *)node;
 			}
 			dns__rbtdb_bindrdataset(search.rbtdb, node, nsecheader,
 						search.now, nlocktype,
@@ -1056,7 +1056,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			if (nodep != NULL) {
 				dns__rbtdb_newref(search.rbtdb, node,
 						  nlocktype DNS__DB_FLARG_PASS);
-				*nodep = node;
+				*nodep = (dns_dbnode_t *)node;
 			}
 			dns__rbtdb_bindrdataset(search.rbtdb, node, nsheader,
 						search.now, nlocktype,
@@ -1091,7 +1091,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	if (nodep != NULL) {
 		dns__rbtdb_newref(search.rbtdb, node,
 				  nlocktype DNS__DB_FLARG_PASS);
-		*nodep = node;
+		*nodep = (dns_dbnode_t *)node;
 	}
 
 	if (NEGATIVE(found)) {
@@ -1307,7 +1307,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	if (nodep != NULL) {
 		dns__rbtdb_newref(search.rbtdb, node,
 				  nlocktype DNS__DB_FLARG_PASS);
-		*nodep = node;
+		*nodep = (dns_dbnode_t *)node;
 	}
 
 	dns__rbtdb_bindrdataset(search.rbtdb, node, found, search.now,

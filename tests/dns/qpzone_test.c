@@ -109,13 +109,16 @@ ownercase_test_one(const char *str1, const char *str2) {
 	};
 	qpznode_t node = { .locknum = 0 };
 	dns_slabheader_t header = {
-		.node = &node,
+		.node = (dns_dbnode_t *)&node,
 		.db = (dns_db_t *)&qpdb,
 	};
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
-		.slab = { .db = (dns_db_t *)&qpdb, .node = &node, .raw = raw },
+		.slab = { .db = (dns_db_t *)&qpdb,
+			  .node = (dns_dbnode_t *)&node,
+			  .raw = raw,
+		},
 		.methods = &dns_rdataslab_rdatasetmethods,
 	};
 	isc_buffer_t b;
@@ -174,13 +177,16 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	};
 	qpznode_t node = { .locknum = 0 };
 	dns_slabheader_t header = {
-		.node = &node,
+		.node = (dns_dbnode_t *)&node,
 		.db = (dns_db_t *)&qpdb,
 	};
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
-		.slab = { .db = (dns_db_t *)&qpdb, .node = &node, .raw = raw },
+		.slab = { .db = (dns_db_t *)&qpdb,
+			  .node = (dns_dbnode_t *)&node,
+			  .raw = raw,
+		},
 		.methods = &dns_rdataslab_rdatasetmethods,
 	};
 	const char *str1 =

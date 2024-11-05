@@ -859,7 +859,7 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 		return (result);
 	}
 
-	*nodep = node;
+	*nodep = (dns_dbnode_t *)node;
 	return (ISC_R_SUCCESS);
 }
 
@@ -905,7 +905,7 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 		}
 	}
 
-	*nodep = node;
+	*nodep = (dns_dbnode_t *)node;
 	return (ISC_R_SUCCESS);
 }
 
@@ -1015,7 +1015,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * and try again.
 		 */
 		if (i < nlabels) {
-			destroynode(node);
+			destroynode((bdbnode_t *)node);
 			node = NULL;
 			continue;
 		}

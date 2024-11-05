@@ -1304,7 +1304,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	 * it the current version.
 	 */
 	if (version->writer && commit) {
-		setsecure(db, version, qpdb->origin);
+		setsecure(db, version, (dns_dbnode_t *)qpdb->origin);
 	}
 
 	RWLOCK(&qpdb->lock, isc_rwlocktype_write);
@@ -2115,12 +2115,12 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
 		.ttl = rdataset->ttl + loadctx->now,
 		.trust = rdataset->trust,
-		.node = node,
+		.node = (dns_dbnode_t *)node,
 		.serial = 1,
 		.count = 1,
 	};
 
-	dns_slabheader_reset(newheader, (dns_db_t *)qpdb, node);
+	dns_slabheader_reset(newheader, (dns_db_t *)qpdb, (dns_dbnode_t *)node);
 	dns_slabheader_setownercase(newheader, name);
 
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
@@ -2226,7 +2226,7 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	if (qpdb->origin != NULL) {
 		dns_dbversion_t *version = qpdb->current_version;
 		RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
-		setsecure(db, version, qpdb->origin);
+		setsecure(db, version, (dns_dbnode_t *)qpdb->origin);
 	} else {
 		RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
 	}
@@ -2587,7 +2587,7 @@ setup_delegation(qpz_search_t *search, dns_dbnode_t **nodep,
 		 * count here because we're going to use the reference we
 		 * already have in the search block.
 		 */
-		*nodep = node;
+		*nodep = (dns_dbnode_t *)node;
 		search->need_cleanup = false;
 	}
 	if (rdataset != NULL) {
@@ -3080,7 +3080,7 @@ again:
 				if (nodep != NULL) {
 					newref(search->qpdb,
 					       node DNS__DB_FLARG_PASS);
-					*nodep = node;
+					*nodep = (dns_dbnode_t *)node;
 				}
 				bindrdataset(search->qpdb, node, found,
 					     search->now,
@@ -3678,7 +3678,7 @@ found:
 		}
 		if (nodep != NULL) {
 			newref(search.qpdb, node DNS__DB_FLARG_PASS);
-			*nodep = node;
+			*nodep = (dns_dbnode_t *)node;
 		}
 		if ((search.version->secure && !search.version->havensec3)) {
 			bindrdataset(search.qpdb, node, nsecheader, 0,
@@ -3745,7 +3745,7 @@ found:
 		} else {
 			search.need_cleanup = false;
 		}
-		*nodep = node;
+		*nodep = (dns_dbnode_t *)node;
 	}
 
 	if (type != dns_rdatatype_any) {
@@ -3814,7 +3814,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	*iterator = (qpdb_rdatasetiter_t){
 		.common.methods = &rdatasetiter_methods,
 		.common.db = db,
-		.common.node = node,
+		.common.node = (dns_dbnode_t *)node,
 		.common.version = (dns_dbversion_t *)version,
 		.common.options = options,
 		.common.magic = DNS_RDATASETITER_MAGIC,
@@ -3936,16 +3936,14 @@ setloop(dns_db_t *db, isc_loop_t *loop) {
 static isc_result_t
 getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	qpznode_t *onode = NULL;
 
 	REQUIRE(VALID_QPZONE(qpdb));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	/* Note that the access to the origin node doesn't require a DB lock */
-	onode = (qpznode_t *)qpdb->origin;
-	INSIST(onode != NULL);
-	newref(qpdb, onode DNS__DB_FLARG_PASS);
-	*nodep = onode;
+	INSIST(qpdb->origin != NULL);
+	newref(qpdb, qpdb->origin DNS__DB_FLARG_PASS);
+	*nodep = (dns_dbnode_t *)qpdb->origin;
 
 	return (ISC_R_SUCCESS);
 }
@@ -4005,7 +4003,7 @@ static isc_result_t
 rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	qpdb_rdatasetiter_t *qrditer = (qpdb_rdatasetiter_t *)iterator;
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
-	qpznode_t *node = qrditer->common.node;
+	qpznode_t *node = (qpznode_t *)qrditer->common.node;
 	qpz_version_t *version = qrditer->common.version;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -4046,7 +4044,7 @@ static isc_result_t
 rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	qpdb_rdatasetiter_t *qrditer = (qpdb_rdatasetiter_t *)iterator;
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
-	qpznode_t *node = qrditer->common.node;
+	qpznode_t *node = (qpznode_t *)qrditer->common.node;
 	qpz_version_t *version = qrditer->common.version;
 	dns_slabheader_t *header = NULL, *top_next = NULL;
 	dns_typepair_t type, negtype;
@@ -4118,7 +4116,7 @@ rdatasetiter_current(dns_rdatasetiter_t *iterator,
 		     dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	qpdb_rdatasetiter_t *qrditer = (qpdb_rdatasetiter_t *)iterator;
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
-	qpznode_t *node = qrditer->common.node;
+	qpznode_t *node = (qpznode_t *)qrditer->common.node;
 	dns_slabheader_t *header = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
@@ -4508,7 +4506,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 
 	newref(qpdb, node DNS__DB_FLARG_PASS);
 
-	*nodep = qpdbiter->node;
+	*nodep = (dns_dbnode_t *)qpdbiter->node;
 
 	return (ISC_R_SUCCESS);
 }
@@ -4615,10 +4613,10 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	*newheader = (dns_slabheader_t){
 		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
 		.trust = rdataset->trust,
-		.node = node,
+		.node = (dns_dbnode_t *)node,
 	};
 
-	dns_slabheader_reset(newheader, db, node);
+	dns_slabheader_reset(newheader, db, (dns_dbnode_t *)node);
 	newheader->ttl = rdataset->ttl;
 	if (rdataset->ttl == 0U) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_ZEROTTL);
@@ -4729,7 +4727,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	}
 
 	newheader = (dns_slabheader_t *)region.base;
-	dns_slabheader_reset(newheader, db, node);
+	dns_slabheader_reset(newheader, db, (dns_dbnode_t *)node);
 	newheader->ttl = rdataset->ttl;
 	newheader->type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers);
 	atomic_init(&newheader->attributes, 0);
@@ -4740,7 +4738,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 	newheader->last_used = 0;
-	newheader->node = node;
+	newheader->node = (dns_dbnode_t *)node;
 	newheader->db = (dns_db_t *)qpdb;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_RESIGN);
@@ -4795,7 +4793,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		if (result == ISC_R_SUCCESS) {
 			dns_slabheader_destroy(&newheader);
 			newheader = (dns_slabheader_t *)subresult;
-			dns_slabheader_reset(newheader, db, node);
+			dns_slabheader_reset(newheader, db,
+					     (dns_dbnode_t *)node);
 			dns_slabheader_copycase(newheader, header);
 			if (RESIGN(header)) {
 				DNS_SLABHEADER_SETATTR(
@@ -4905,7 +4904,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
-	newheader = dns_slabheader_new(db, node);
+	newheader = dns_slabheader_new(db, (dns_dbnode_t *)node);
 	newheader->type = DNS_TYPEPAIR_VALUE(type, covers);
 	newheader->ttl = 0;
 	atomic_init(&newheader->attributes, DNS_SLABHEADERATTR_NONEXISTENT);
@@ -5063,11 +5062,12 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 
 	if (node_a != NULL) {
 		dns__db_detachnode(ctx->db,
-				   (dns_dbnode_t *)&node_a DNS__DB_FLARG_PASS);
+				   (dns_dbnode_t **)&node_a DNS__DB_FLARG_PASS);
 	}
 	if (node_aaaa != NULL) {
 		dns__db_detachnode(
-			ctx->db, (dns_dbnode_t *)&node_aaaa DNS__DB_FLARG_PASS);
+			ctx->db,
+			(dns_dbnode_t **)&node_aaaa DNS__DB_FLARG_PASS);
 	}
 
 	return (result);
@@ -5240,7 +5240,8 @@ free_gluenode(dns_gluenode_t *gluenode) {
 
 static uint32_t
 qpznode_hash(const qpznode_t *node) {
-	return (isc_hash32(&node, sizeof(node), true));
+	const uintptr_t key = (uintptr_t)node;
+	return (isc_hash32(&key, sizeof(key), true));
 }
 
 static int
