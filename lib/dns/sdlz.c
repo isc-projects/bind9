@@ -606,7 +606,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 		dns_name_dup(name, sdlz->common.mctx, node->name);
 	}
 
-	*nodep = node;
+	*nodep = (dns_dbnode_t *)node;
 	return (ISC_R_SUCCESS);
 }
 
@@ -1271,7 +1271,8 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		   dns_name_t *name DNS__DB_FLARG) {
 	sdlz_dbiterator_t *sdlziter = (sdlz_dbiterator_t *)iterator;
 
-	attachnode(iterator->db, sdlziter->current, nodep DNS__DB_FLARG_PASS);
+	attachnode(iterator->db, (dns_dbnode_t *)sdlziter->current,
+		   nodep DNS__DB_FLARG_PASS);
 	if (name != NULL) {
 		dns_name_copy(sdlziter->current->name, name);
 		return (ISC_R_SUCCESS);
