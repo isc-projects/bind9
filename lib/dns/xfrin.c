@@ -879,6 +879,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 	REQUIRE(isc_sockaddr_getport(primaryaddr) != 0);
+	REQUIRE(zone != NULL);
+	REQUIRE(dns_zone_getview(zone) != NULL);
 
 	loop = dns_zone_getloop(zone);
 
