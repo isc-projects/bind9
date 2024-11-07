@@ -1021,7 +1021,7 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	search = (rbtdb_search_t){
 		.rbtdb = (dns_rbtdb_t *)db,
-		.rbtversion = version,
+		.rbtversion = (dns_rbtdb_version_t *)version,
 		.serial = ((dns_rbtdb_version_t *)version)->serial,
 		.options = options,
 	};
@@ -1505,7 +1505,7 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_slabheader_t *header = NULL, *header_next = NULL;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
 	uint32_t serial;
-	dns_rbtdb_version_t *rbtversion = version;
+	dns_rbtdb_version_t *rbtversion = (dns_rbtdb_version_t *)version;
 	bool close_version = false;
 	dns_typepair_t matchtype, sigmatchtype;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -1843,9 +1843,9 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	 * zone key, we consider the zone secure.
 	 */
 	if (rbtdb->origin_node != NULL) {
-		dns_dbversion_t *version = rbtdb->current_version;
+		dns_rbtdb_version_t *rbtversion = rbtdb->current_version;
 		RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
-		dns__rbtdb_setsecure(db, version,
+		dns__rbtdb_setsecure(db, rbtversion,
 				     (dns_dbnode_t *)rbtdb->origin_node);
 	} else {
 		RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
@@ -1879,7 +1879,7 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
 		   size_t *salt_length) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	isc_result_t result = ISC_R_NOTFOUND;
-	dns_rbtdb_version_t *rbtversion = version;
+	dns_rbtdb_version_t *rbtversion = (dns_rbtdb_version_t *)version;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion == NULL || rbtversion->rbtdb == rbtdb);
@@ -1919,7 +1919,7 @@ getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
 	uint64_t *xfrsize) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_rbtdb_version_t *rbtversion = version;
+	dns_rbtdb_version_t *rbtversion = (dns_rbtdb_version_t *)version;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion == NULL || rbtversion->rbtdb == rbtdb);
@@ -2381,7 +2381,7 @@ static void
 addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
 	dns_message_t *msg) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-	dns_rbtdb_version_t *version = dbversion;
+	dns_rbtdb_version_t *version = (dns_rbtdb_version_t *)dbversion;
 	dns_rbtnode_t *node = (dns_rbtnode_t *)rdataset->slab.node;
 	dns_gluenode_t *gluenode = NULL;
 
@@ -2413,7 +2413,7 @@ addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
 				  ht_node);
 	if (gluenode == NULL) {
 		/* No cached glue was found in the table. Get new glue. */
-		gluenode = new_gluenode(db, version, node, rdataset);
+		gluenode = new_gluenode(db, dbversion, node, rdataset);
 
 		struct cds_lfht_node *ht_node = cds_lfht_add_unique(
 			version->glue_table, gluenode_hash(gluenode),

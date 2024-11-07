@@ -925,7 +925,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	REQUIRE(VALID_BDB(bdb));
 	REQUIRE(nodep == NULL || *nodep == NULL);
-	REQUIRE(version == NULL || version == (void *)&dummy);
+	REQUIRE(version == NULL || version == (dns_dbversion_t *)&dummy);
 
 	if (!dns_name_issubdomain(name, &db->origin)) {
 		return (DNS_R_NXDOMAIN);
@@ -1142,7 +1142,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	bdb_rdatasetiter_t *iterator = NULL;
 
-	REQUIRE(version == NULL || version == &dummy);
+	REQUIRE(version == NULL || version == (dns_dbversion_t *)&dummy);
 
 	iterator = isc_mem_get(db->mctx, sizeof(bdb_rdatasetiter_t));
 	*iterator = (bdb_rdatasetiter_t){

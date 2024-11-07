@@ -336,7 +336,8 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	dns_name_format(&sdlz->common.origin, origin, sizeof(origin));
 
 	result = sdlz->dlzimp->methods->newversion(
-		origin, sdlz->dlzimp->driverarg, sdlz->dbdata, versionp);
+		origin, sdlz->dlzimp->driverarg, sdlz->dbdata,
+		(void **)versionp);
 	if (result != ISC_R_SUCCESS) {
 		sdlz_log(ISC_LOG_ERROR,
 			 "sdlz newversion on origin %s failed : %s", origin,
@@ -380,7 +381,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 
 	sdlz->dlzimp->methods->closeversion(origin, commit,
 					    sdlz->dlzimp->driverarg,
-					    sdlz->dbdata, versionp);
+					    sdlz->dbdata, (void **)versionp);
 	if (*versionp != NULL) {
 		sdlz_log(ISC_LOG_ERROR, "sdlz closeversion on origin %s failed",
 			 origin);

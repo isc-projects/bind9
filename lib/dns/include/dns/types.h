@@ -64,7 +64,7 @@ typedef void			       dns_dbload_t;
 typedef struct dns_dbnode dns_dbnode_t; /* this is dummy struct for proper type
 					   checking */
 typedef struct dns_dbonupdatelistener dns_dbonupdatelistener_t;
-typedef void			      dns_dbversion_t;
+typedef struct dns_dbversion	      dns_dbversion_t;
 typedef struct dns_dlzimplementation  dns_dlzimplementation_t;
 typedef struct dns_dlzdb	      dns_dlzdb_t;
 typedef ISC_LIST(dns_dlzdb_t) dns_dlzdblist_t;
