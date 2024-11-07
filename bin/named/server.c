@@ -5679,6 +5679,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_view_setmaxrestarts(view, cfg_obj_asuint32(obj));
 
 	obj = NULL;
+	result = named_config_get(maps, "max-query-count", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_view_setmaxqueries(view, cfg_obj_asuint32(obj));
+
+	obj = NULL;
 	result = named_config_get(maps, "fetches-per-zone", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	obj2 = cfg_tuple_get(obj, "fetches");
