@@ -74,6 +74,7 @@ options {
 	check-names primary warn;
 	check-names secondary ignore;
 	max-cache-size 20000000000000;
+	max-query-count 100;
 	max-query-restarts 10;
 	nta-lifetime 604800;
 	nta-recheck 604800;

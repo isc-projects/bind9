@@ -4472,6 +4472,15 @@ Tuning
    format is more human-readable, and is thus suitable when a zone is to
    be edited by hand. The default is ``relative``.
 
+.. namedconf:statement:: max-query-count
+   :tags: server, query
+   :short: Sets the maximum number of iterative queries while servicing a recursive query.
+
+   This sets the maximum number of iterative queries that may be sent
+   by a resolver while looking up a single name. If more queries than this
+   need to be sent before an answer is reached, then recursion is terminated
+   and a SERVFAIL response is returned to the client. The default is ``200``.
+
 .. namedconf:statement:: max-recursion-depth
    :tags: server
    :short: Sets the maximum number of levels of recursion permitted at any one time while servicing a recursive query.
