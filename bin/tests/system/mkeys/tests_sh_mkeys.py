@@ -11,6 +11,8 @@
 
 import pytest
 
+import isctest.mark
+
 pytestmark = [
     pytest.mark.algorithm_set("ecc_default"),
     pytest.mark.extra_artifacts(
@@ -49,5 +51,6 @@ pytestmark = [
 ]
 
 
+@isctest.mark.flaky(max_runs=2)  # GL#3098
 def test_mkeys(run_tests_sh):
     run_tests_sh()
