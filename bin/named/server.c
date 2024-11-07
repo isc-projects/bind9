@@ -10298,10 +10298,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	dns_zonemgr_shutdown(server->zonemgr);
 
-	if (named_g_sessionkey != NULL) {
-		dns_tsigkey_detach(&named_g_sessionkey);
-		dns_name_free(&named_g_sessionkeyname, server->mctx);
-	}
 #if defined(HAVE_GEOIP2)
 	named_geoip_shutdown();
 #endif /* HAVE_GEOIP2 */
