@@ -38,7 +38,15 @@ The latest versions of BIND 9 software can always be found at
 https://www.isc.org/download/. There you will find additional
 information about each release, and source code.
 
-.. include:: ../notes/notes-known-issues.rst
+.. _relnotes_known_issues:
+
+Known Issues
+------------
+
+The list of known issues affecting the latest version in the 9.21 branch can be
+found at
+https://gitlab.isc.org/isc-projects/bind9/-/wikis/Known-Issues-in-BIND-9.21
+
 .. include:: ../notes/notes-9.21.2.rst
 .. include:: ../notes/notes-9.21.1.rst
 .. include:: ../notes/notes-9.21.0.rst
