@@ -33,6 +33,13 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ns1/K*",
+        "ns1/example.nil.db",
+    ]
+)
+
 
 class CraftedTKEYQuery:
     """

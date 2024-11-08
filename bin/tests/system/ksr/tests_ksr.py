@@ -16,10 +16,69 @@ import shutil
 import time
 from typing import List, Optional
 
+import pytest
+
 import isctest
 from isctest.kasp import (
     Key,
     KeyTimingMetadata,
+)
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "K*",
+        "common.test.*",
+        "future.test.*",
+        "in-the-middle.test.*",
+        "ksk-roll.test.*",
+        "last-bundle.test.*",
+        "past.test.*",
+        "two-tone.test.*",
+        "unlimited.test.*",
+        "ns1/K*",
+        "ns1/_default.nzd",
+        "ns1/_default.nzf",
+        "ns1/common.test.db",
+        "ns1/common.test.db.jbk",
+        "ns1/common.test.db.signed",
+        "ns1/common.test.db.signed.jnl",
+        "ns1/common.test.skr.2",
+        "ns1/future.test.db",
+        "ns1/future.test.db.jbk",
+        "ns1/future.test.db.signed",
+        "ns1/future.test.skr.1",
+        "ns1/in-the-middle.test.db",
+        "ns1/in-the-middle.test.db.jbk",
+        "ns1/in-the-middle.test.db.signed",
+        "ns1/in-the-middle.test.db.signed.jnl",
+        "ns1/in-the-middle.test.skr.1",
+        "ns1/keydir",
+        "ns1/ksk-roll.test.db",
+        "ns1/ksk-roll.test.db.jbk",
+        "ns1/ksk-roll.test.db.signed",
+        "ns1/ksk-roll.test.db.signed.jnl",
+        "ns1/ksk-roll.test.skr.1",
+        "ns1/last-bundle.test.db",
+        "ns1/last-bundle.test.db.jbk",
+        "ns1/last-bundle.test.db.signed",
+        "ns1/last-bundle.test.db.signed.jnl",
+        "ns1/last-bundle.test.skr.1",
+        "ns1/offline",
+        "ns1/past.test.db",
+        "ns1/past.test.db.jbk",
+        "ns1/past.test.db.signed",
+        "ns1/past.test.skr.1",
+        "ns1/two-tone.test.db",
+        "ns1/two-tone.test.db.jbk",
+        "ns1/two-tone.test.db.signed",
+        "ns1/two-tone.test.db.signed.jnl",
+        "ns1/two-tone.test.skr.1",
+        "ns1/unlimited.test.db",
+        "ns1/unlimited.test.db.jbk",
+        "ns1/unlimited.test.db.signed",
+        "ns1/unlimited.test.db.signed.jnl",
+        "ns1/unlimited.test.unlimited.skr.1",
+    ]
 )
 
 

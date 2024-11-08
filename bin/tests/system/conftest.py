@@ -10,6 +10,7 @@
 # information regarding copyright ownership.
 
 from functools import partial
+import filecmp
 import os
 from pathlib import Path
 import re
@@ -297,15 +298,34 @@ def logger(request, system_test_name):
 
 
 @pytest.fixture(scope="module")
-def system_test_dir(request, system_test_name):
+def expected_artifacts(request):
+    common_artifacts = [
+        "ns*/named.run",
+        "ns*/named.run.prev",
+        "ns*/named.conf",
+        "ns*/named.memstats",
+        "pytest.log.txt",
+    ]
+
+    try:
+        test_specific_artifacts = request.node.get_closest_marker("extra_artifacts")
+    except AttributeError:
+        return None
+
+    if test_specific_artifacts:
+        return common_artifacts + test_specific_artifacts.args[0]
+
+    return common_artifacts
+
+
+@pytest.fixture(scope="module")
+def system_test_dir(request, system_test_name, expected_artifacts):
     """
     Temporary directory for executing the test.
 
     This fixture is responsible for creating (and potentially removing) a
     copy of the system test directory which is used as a temporary
     directory for the test execution.
-
-    FUTURE: This removes the need to have clean.sh scripts.
     """
 
     def get_test_result():
@@ -345,6 +365,38 @@ def system_test_dir(request, system_test_name):
         except FileNotFoundError:
             pass
 
+    def check_artifacts(source_dir, run_dir):
+        def check_artifacts_recursive(dcmp):
+            def artifact_expected(path, expected):
+                for glob in expected:
+                    if path.match(glob):
+                        return True
+                return False
+
+            # test must not remove any Git-tracked file, ignore libtool and gcov artifacts
+            for name in dcmp.left_only:
+                assert name.startswith("lt-") or name.endswith(".gcda")
+            assert not dcmp.diff_files, "test must not modify any Git-tracked file"
+
+            dir_path = Path(dcmp.left).relative_to(source_dir)
+            for name in dcmp.right_only:
+                file = dir_path / Path(name)
+                if not artifact_expected(file, expected_artifacts):
+                    unexpected_files.append(str(file))
+            for subdir in dcmp.subdirs.values():
+                check_artifacts_recursive(subdir)
+
+        if expected_artifacts is None:  # skip the check if artifact list is unavailable
+            return
+
+        unexpected_files = []
+        dcmp = filecmp.dircmp(source_dir, run_dir)
+        check_artifacts_recursive(dcmp)
+
+        assert (
+            not unexpected_files
+        ), f"Unexpected files found in test directory: {unexpected_files}"
+
     # Create a temporary directory with a copy of the original system test dir contents
     system_test_root = Path(os.environ["builddir"])
     testdir = Path(
@@ -373,6 +425,9 @@ def system_test_dir(request, system_test_name):
         isctest.log.debug("changed workdir to: %s", old_cwd)
 
         result = get_test_result()
+
+        if result == "passed":
+            check_artifacts(system_test_root / system_test_name, testdir)
 
         # Clean temporary dir unless it should be kept
         keep = False

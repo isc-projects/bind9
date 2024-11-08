@@ -17,6 +17,19 @@ import pytest
 
 import isctest
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "dig.out.*",
+        "options.conf",
+        "ns*/dsset-*",
+        "ns*/K*",
+        "ns*/trusted.conf",
+        "ns*/*.signed",
+        "ns1/root.db",
+        "ns2/signer.err",
+    ]
+)
+
 CHECKCONF = os.environ["CHECKCONF"]
 
 
