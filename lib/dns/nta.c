@@ -178,7 +178,7 @@ fetch_done(void *arg) {
 		dns_db_detach(&resp->db);
 	}
 
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+	dns_resolver_freefresp(&resp);
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:

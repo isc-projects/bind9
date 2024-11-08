@@ -352,6 +352,7 @@ struct fetchctx {
 	bool spilled;
 	ISC_LINK(struct fetchctx) link;
 	ISC_LIST(dns_fetchresponse_t) resps;
+	dns_edelist_t edelist;
 
 	/*% Locked by loop event serialization. */
 	dns_fixedname_t dfname;
@@ -1328,6 +1329,8 @@ fctx_cleanup(fetchctx_t *fctx) {
 		ISC_LIST_UNLINK(fctx->altaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
 	}
+
+	dns_ede_unlinkall(fctx->mctx, &fctx->edelist);
 }
 
 static void
@@ -1588,6 +1591,17 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		{
 			INSIST(resp->result == DNS_R_NCACHENXDOMAIN ||
 			       resp->result == DNS_R_NCACHENXRRSET);
+		}
+
+		/*
+		 * Copy EDE that occured during the resolution to all
+		 * clients
+		 */
+		for (dns_ede_t *ede = ISC_LIST_HEAD(fctx->edelist); ede != NULL;
+		     ede = ISC_LIST_NEXT(ede, link))
+		{
+			dns_ede_append(resp->mctx, &resp->edelist,
+				       ede->info_code, ede->extra_text);
 		}
 
 		FCTXTRACE("post response event");
@@ -4150,7 +4164,8 @@ resume_qmin(void *arg) {
 	}
 
 	result = resp->result;
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+
+	dns_resolver_freefresp(&resp);
 
 	LOCK(&fctx->lock);
 	if (SHUTTINGDOWN(fctx)) {
@@ -4296,6 +4311,7 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 	REQUIRE(ISC_LIST_EMPTY(fctx->finds));
 	REQUIRE(ISC_LIST_EMPTY(fctx->altfinds));
+	REQUIRE(ISC_LIST_EMPTY(fctx->edelist));
 	REQUIRE(atomic_load_acquire(&fctx->pending) == 0);
 	REQUIRE(ISC_LIST_EMPTY(fctx->validators));
 	REQUIRE(fctx->state != fetchstate_active);
@@ -4359,6 +4375,12 @@ fctx_expired(void *arg) {
 		      ISC_LOG_INFO,
 		      "shut down hung fetch while resolving %p(%s)", fctx,
 		      fctx->info);
+
+	LOCK(&fctx->lock);
+	dns_ede_append(fctx->mctx, &fctx->edelist, DNS_EDE_NOREACHABLEAUTH,
+		       NULL);
+	UNLOCK(&fctx->lock);
+
 	fctx_done_detach(&fctx, DNS_R_SERVFAIL);
 }
 
@@ -4422,6 +4444,7 @@ fctx_add_event(fetchctx_t *fctx, isc_loop_t *loop, const isc_sockaddr_t *client,
 	resp = isc_mem_get(fctx->mctx, sizeof(*resp));
 	*resp = (dns_fetchresponse_t){
 		.result = DNS_R_SERVFAIL,
+		.edelist = ISC_LIST_INITIALIZER,
 		.qtype = fctx->type,
 		.rdataset = rdataset,
 		.sigrdataset = sigrdataset,
@@ -4512,6 +4535,7 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		.loop = loop,
 		.nvalidations = atomic_load_relaxed(&res->maxvalidations),
 		.nfails = atomic_load_relaxed(&res->maxvalidationfails),
+		.edelist = ISC_LIST_INITIALIZER,
 	};
 
 	isc_mem_attach(mctx, &fctx->mctx);
@@ -7029,7 +7053,8 @@ resume_dslookup(void *arg) {
 	/* Preserve data from resp before freeing it. */
 	frdataset = resp->rdataset; /* a.k.a. fctx->nsrrset */
 	result = resp->result;
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+
+	dns_resolver_freefresp(&resp);
 
 	LOCK(&fctx->lock);
 	if (SHUTTINGDOWN(fctx)) {
@@ -10081,7 +10106,7 @@ prime_done(void *arg) {
 	INSIST(resp->sigrdataset == NULL);
 
 	isc_mem_put(res->mctx, resp->rdataset, sizeof(*resp->rdataset));
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+	dns_resolver_freefresp(&resp);
 	dns_resolver_destroyfetch(&fetch);
 }
 
@@ -11013,4 +11038,19 @@ dns_resolver_getquerystats(dns_resolver_t *res, dns_stats_t **statsp) {
 	if (res->querystats != NULL) {
 		dns_stats_attach(res->querystats, statsp);
 	}
+}
+
+void
+dns_resolver_freefresp(dns_fetchresponse_t **frespp) {
+	REQUIRE(frespp);
+
+	if (*frespp == NULL) {
+		return;
+	}
+
+	dns_fetchresponse_t *fresp = *frespp;
+
+	*frespp = NULL;
+	dns_ede_unlinkall(fresp->mctx, &fresp->edelist);
+	isc_mem_putanddetach(&fresp->mctx, fresp, sizeof(*fresp));
 }

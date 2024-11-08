@@ -2558,8 +2558,7 @@ free_fresp(ns_client_t *client, dns_fetchresponse_t **frespp) {
 		ns_client_putrdataset(client, &fresp->sigrdataset);
 	}
 
-	*frespp = NULL;
-	isc_mem_putanddetach(&fresp->mctx, fresp, sizeof(*fresp));
+	dns_resolver_freefresp(frespp);
 }
 
 static isc_result_t
@@ -6171,6 +6170,13 @@ fetch_callback(void *arg) {
 
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
 	client->state = NS_CLIENTSTATE_WORKING;
+
+	for (dns_ede_t *ede = ISC_LIST_HEAD(resp->edelist); ede != NULL;
+	     ede = ISC_LIST_NEXT(ede, link))
+	{
+		ns_client_extendederror(client, ede->info_code,
+					ede->extra_text);
+	}
 
 	/*
 	 * Initialize a new qctx and use it to either resume from
