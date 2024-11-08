@@ -2944,7 +2944,7 @@ check_result:
 out:
 	dns_resolver_destroyfetch(&fetch->fetch);
 	free_adbfetch(adb, &fetch);
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+	dns_resolver_freefresp(&resp);
 	if (astat != DNS_ADB_CANCELED) {
 		clean_finds_at_name(name, astat, address_type);
 	}

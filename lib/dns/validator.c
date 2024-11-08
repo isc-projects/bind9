@@ -448,7 +448,7 @@ fetch_callback_dnskey(void *arg) {
 	}
 
 cleanup:
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+	dns_resolver_freefresp(&resp);
 	validate_async_done(val, result);
 	dns_validator_detach(&val);
 }
@@ -578,7 +578,7 @@ fetch_callback_ds(void *arg) {
 	}
 
 cleanup:
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+	dns_resolver_freefresp(&resp);
 	validate_async_done(val, result);
 	dns_validator_detach(&val);
 }

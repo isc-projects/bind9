@@ -555,7 +555,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 			fname = resp->foundname;
 			INSIST(resp->rdataset == rctx->rdataset);
 			INSIST(resp->sigrdataset == rctx->sigrdataset);
-			isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+			dns_resolver_freefresp(&resp);
 		}
 
 		/*

@@ -10801,9 +10801,9 @@ cleanup:
 		dns_rdataset_disassociate(dnskeysigs);
 	}
 
+	dns_resolver_freefresp(&resp);
 	dns_name_free(keyname, mctx);
 	isc_mem_putanddetach(&kfetch->mctx, kfetch, sizeof(dns_keyfetch_t));
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
 
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
@@ -21781,7 +21781,8 @@ cleanup:
 	if (dns_rdataset_isassociated(nssigset)) {
 		dns_rdataset_disassociate(nssigset);
 	}
-	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+
+	dns_resolver_freefresp(&resp);
 
 	if (levelup) {
 		UNLOCK_ZONE(zone);
