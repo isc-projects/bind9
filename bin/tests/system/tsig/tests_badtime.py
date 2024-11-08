@@ -23,6 +23,13 @@ import dns.message
 import dns.query
 import dns.tsigkeyring
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ans*/ans.run",
+        "ns1/named-fips.conf",
+    ]
+)
+
 TIMEOUT = 10
 
 

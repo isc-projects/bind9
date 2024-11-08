@@ -28,6 +28,11 @@ import dns.rdatatype
 
 import isctest.mark  # pylint: disable=import-error
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ns1/large.db",
+    ]
+)
 
 TIMEOUT = 10
 

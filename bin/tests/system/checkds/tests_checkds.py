@@ -11,6 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+
 from typing import NamedTuple, Tuple
 
 import os
@@ -29,9 +30,29 @@ import dns.rdataclass
 import dns.rdatatype
 
 
-pytestmark = pytest.mark.skipif(
-    sys.version_info < (3, 7), reason="Python >= 3.7 required [GL #3001]"
-)
+pytestmark = [
+    pytest.mark.skipif(
+        sys.version_info < (3, 7), reason="Python >= 3.7 required [GL #3001]"
+    ),
+    pytest.mark.extra_artifacts(
+        [
+            "*.out",
+            "ns*/*.db",
+            "ns*/*.db.infile",
+            "ns*/*.db.signed",
+            "ns*/*.jnl",
+            "ns*/*.jbk",
+            "ns*/*.keyname",
+            "ns*/dsset-*",
+            "ns*/K*",
+            "ns*/keygen.out*",
+            "ns*/settime.out*",
+            "ns*/signer.out*",
+            "ns*/trusted.conf",
+            "ns*/zones",
+        ]
+    ),
+]
 
 
 def has_signed_apex_nsec(zone, response):
