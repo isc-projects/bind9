@@ -68,7 +68,7 @@ isc_counter_setlimit(isc_counter_t *counter, int limit);
  * Set the counter limit.
  */
 
-int
+unsigned int
 isc_counter_getlimit(isc_counter_t *counter);
 /*%<
  * Get the counter limit.

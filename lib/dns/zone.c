@@ -10943,7 +10943,7 @@ do_keyfetch(void *arg) {
 	 */
 	result = dns_resolver_createfetch(
 		resolver, kname, dns_rdatatype_dnskey, NULL, NULL, NULL, NULL,
-		0, options, 0, NULL, zone->loop, keyfetch_done, kfetch,
+		0, options, 0, NULL, NULL, zone->loop, keyfetch_done, kfetch,
 		&kfetch->dnskeyset, &kfetch->dnskeysigset, &kfetch->fetch);
 
 	dns_resolver_detach(&resolver);
@@ -12461,7 +12461,7 @@ notify_find_address(dns_notify_t *notify) {
 	result = dns_adb_createfind(
 		adb, notify->zone->loop, process_notify_adb_event, notify,
 		&notify->ns, dns_rootname, 0, options, 0, NULL,
-		notify->zone->view->dstport, 0, NULL, &notify->find);
+		notify->zone->view->dstport, 0, NULL, NULL, &notify->find);
 	dns_adb_detach(&adb);
 
 	/* Something failed? */
@@ -21228,7 +21228,7 @@ checkds_find_address(dns_checkds_t *checkds) {
 	result = dns_adb_createfind(
 		adb, checkds->zone->loop, process_checkds_adb_event, checkds,
 		&checkds->ns, dns_rootname, 0, options, 0, NULL,
-		checkds->zone->view->dstport, 0, NULL, &checkds->find);
+		checkds->zone->view->dstport, 0, NULL, NULL, &checkds->find);
 	dns_adb_detach(&adb);
 
 	/* Something failed? */
@@ -21813,8 +21813,9 @@ do_nsfetch(void *arg) {
 	 */
 	result = dns_resolver_createfetch(
 		resolver, &nsfetch->pname, dns_rdatatype_ns, NULL, NULL, NULL,
-		NULL, 0, options, 0, NULL, zone->loop, nsfetch_done, nsfetch,
-		&nsfetch->nsrrset, &nsfetch->nssigset, &nsfetch->fetch);
+		NULL, 0, options, 0, NULL, NULL, zone->loop, nsfetch_done,
+		nsfetch, &nsfetch->nsrrset, &nsfetch->nssigset,
+		&nsfetch->fetch);
 
 	dns_resolver_detach(&resolver);
 

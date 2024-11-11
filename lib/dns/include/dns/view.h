@@ -1348,5 +1348,4 @@ dns_view_setmaxqueries(dns_view_t *view, uint16_t max_queries);
  *\li	'max_queries' is greater than 0.
  */
 
-
 ISC_LANG_ENDDECLS
