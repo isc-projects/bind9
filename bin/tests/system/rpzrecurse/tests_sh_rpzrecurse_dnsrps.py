@@ -9,9 +9,26 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
 import isctest.mark
 
-pytestmark = isctest.mark.dnsrps_enabled
+pytestmark = [
+    isctest.mark.dnsrps_enabled,
+    pytest.mark.extra_artifacts(
+        [
+            "dig.out.*",
+            "dnsrps.cache",
+            "dnsrps*.conf",
+            "dnsrpzd*",
+            "ans*/ans.run",
+            "ns2/*.queries",
+            "ns2/*.local",
+            "ns2/named.*.conf",
+            "ns2/named.conf.header",
+        ]
+    ),
+]
 
 
 def test_rpzrecurse_dnsrps(run_tests_sh):

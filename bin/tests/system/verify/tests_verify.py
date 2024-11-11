@@ -16,6 +16,19 @@ import pytest
 
 import isctest
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "verify.out.*",
+        "zones/K*",
+        "zones/dsset-*",
+        "zones/*.bad",
+        "zones/*.good",
+        "zones/*.out*",
+        "zones/*.tmp",
+        "zones/updated*",
+    ]
+)
+
 VERIFY = os.environ.get("VERIFY")
 
 

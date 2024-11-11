@@ -22,6 +22,14 @@ import dns.message
 
 pytest.importorskip("dns", minversion="2.0.0")
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "dnstap.out.*",
+        "ns*/dnstap.out*",
+        "ns2/example.db",
+    ]
+)
+
 
 def run_rndc(server, rndc_command):
     """

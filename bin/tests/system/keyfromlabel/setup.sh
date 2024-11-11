@@ -16,6 +16,7 @@
 
 set -e
 
+softhsm2-util --delete-token --token "softhsm2-keyfromlabel" >/dev/null 2>&1 || echo_i "softhsm2-keyfromlabel token not found for cleaning"
 softhsm2-util --init-token --free --pin 1234 --so-pin 1234 --label "softhsm2-keyfromlabel" | awk '/^The token has been initialized and is reassigned to slot/ { print $NF }'
 
 printf '%s' "${HSMPIN:-1234}" >pin

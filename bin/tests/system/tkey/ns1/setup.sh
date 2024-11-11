@@ -17,4 +17,5 @@ set -e
 
 keyname=$($KEYGEN -T KEY -a DH -b 768 -n host server)
 keyid=$(keyfile_to_key_id "$keyname")
-sed -i -e "s;KEYID;$keyid;" named.conf
+sed -e "s;KEYID;$keyid;" named.conf >named.conf.tmp
+mv named.conf.tmp named.conf

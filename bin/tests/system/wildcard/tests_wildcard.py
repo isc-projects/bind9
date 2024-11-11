@@ -11,7 +11,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-
 """
 Example property-based test for wildcard synthesis.
 Verifies that otherwise-empty zone with single wildcard record * A 192.0.2.1
@@ -53,6 +52,26 @@ from isctest.hypothesis.strategies import dns_names, dns_rdatatypes_without_meta
 import isctest.check
 import isctest.name
 import isctest.query
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ns1/K*",
+        "ns1/dsset-*",
+        "ns1/*.signed",
+        "ns1/allwild.db",
+        "ns1/example.db",
+        "ns1/nestedwild.db",
+        "ns1/nsec.db",
+        "ns1/nsec3.db",
+        "ns1/private.nsec.conf",
+        "ns1/private.nsec.db",
+        "ns1/private.nsec3.conf",
+        "ns1/private.nsec3.db",
+        "ns1/root.db",
+        "ns1/signer.err",
+        "ns1/trusted.conf",
+    ]
+)
 
 
 # labels of a zone with * A 192.0.2.1 wildcard

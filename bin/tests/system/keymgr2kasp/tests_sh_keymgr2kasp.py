@@ -9,6 +9,34 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ns*/K*",
+        "ns*/kasp.conf",
+        "ns*/keygen.out*",
+        "ns*/signer.out*",
+        "ns*/zones",
+        "ns*/dsset-*",
+        "ns*/*.db",
+        "ns*/*.db.jnl",
+        "ns*/*.db.jbk",
+        "ns*/*.db.signed*",
+        "ns*/*.db.infile",
+        "ns*/managed-keys.bind*",
+        "ns*/*.mkeys*",
+        "*.created",
+        "created.key-*",
+        "dig.out*",
+        "python.out.*",
+        "retired.*",
+        "rndc.dnssec.*",
+        "unused.key*",
+        "verify.out.*",
+    ]
+)
+
 
 def test_keymgr2kasp(run_tests_sh):
     run_tests_sh()

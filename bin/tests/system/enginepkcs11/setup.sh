@@ -16,6 +16,7 @@
 
 set -e
 
+softhsm2-util --delete-token --token "softhsm2-enginepkcs11" >/dev/null 2>&1 || true
 softhsm2-util --init-token --free --pin 1234 --so-pin 1234 --label "softhsm2-enginepkcs11" | awk '/^The token has been initialized and is reassigned to slot/ { print $NF }'
 
 printf '%s' "${HSMPIN:-1234}" >pin

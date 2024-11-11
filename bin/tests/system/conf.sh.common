@@ -432,8 +432,7 @@ private_type_record() {
 # has been appended since the last time we read it.
 #
 # Calling some of these functions causes temporary *.prev files to be
-# created that need to be cleaned up manually (usually by a given system
-# test's clean.sh script).
+# created.
 #
 # Note that unlike other nextpart*() functions, nextpartread() is not
 # meant to be directly used in system tests; its sole purpose is to

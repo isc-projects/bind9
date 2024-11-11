@@ -16,8 +16,6 @@
 
 set -e
 
-$SHELL clean.sh
-
 mkdir keys
 mkdir ns3/keys
 

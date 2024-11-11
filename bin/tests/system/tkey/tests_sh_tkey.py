@@ -9,6 +9,19 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "K*",
+        "dig.out.*",
+        "rndc.out.*",
+        "ns*/_default.tsigkeys",
+        "ns*/K*",
+        "ns*/example.db",
+    ]
+)
+
 
 def test_tkey(run_tests_sh):
     run_tests_sh()

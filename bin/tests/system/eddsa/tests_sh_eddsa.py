@@ -9,6 +9,23 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "*-supported.file",
+        "dig.out.*",
+        "ns*/*.signed",
+        "ns*/K*",
+        "ns*/dsset-*",
+        "ns*/signer.err",
+        "ns*/trusted.conf",
+        "ns1/root.db",
+        "ns2/example.com.db",
+        "ns3/example.com.db",
+    ]
+)
+
 
 def test_eddsa(run_tests_sh):
     run_tests_sh()
