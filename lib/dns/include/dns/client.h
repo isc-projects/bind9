@@ -187,6 +187,19 @@ dns_client_setmaxrestarts(dns_client_t *client, uint8_t max_restarts);
  *\li	'max_restarts' is greater than 0.
  */
 
+void
+dns_client_setmaxqueries(dns_client_t *client, uint8_t max_queries);
+/*%<
+ * Set the number of permissible outgoing queries before we give up,
+ * This defaults to 200.
+ *
+ * Requires:
+ *
+ *\li	'client' is a valid client.
+
+ *\li	'max_queries' is greater than 0.
+ */
+
 typedef void (*dns_client_resolve_cb)(dns_client_t     *client,
 				      const dns_name_t *name,
 				      dns_namelist_t   *namelist,

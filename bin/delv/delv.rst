@@ -349,6 +349,11 @@ assign values to options like the timeout interval. They have the form
    This option specifies the maximum number of queries to send to resolve
    a name before giving up. The default is 32.
 
+.. option:: +maxtotalqueries
+
+   This option specifies the maximum number of queries to send to resolve
+   a client request before giving up. The default is 200.
+
 .. option:: +trust, +notrust
 
    This option controls whether to display the trust level when printing a record.
