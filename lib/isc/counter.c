@@ -80,7 +80,7 @@ isc_counter_setlimit(isc_counter_t *counter, int limit) {
 	atomic_store(&counter->limit, limit);
 }
 
-int
+unsigned int
 isc_counter_getlimit(isc_counter_t *counter) {
 	REQUIRE(VALID_COUNTER(counter));
 
