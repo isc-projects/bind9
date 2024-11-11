@@ -151,6 +151,7 @@ struct dns_validator {
 	bool	       failed;
 	isc_stdtime_t  start;
 	isc_counter_t *qc;
+	isc_counter_t *gqc;
 };
 
 /*%
@@ -168,7 +169,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
-		     isc_counter_t *qc, dns_validator_t **validatorp);
+		     isc_counter_t *qc, isc_counter_t *gqc,
+		     dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.
  *

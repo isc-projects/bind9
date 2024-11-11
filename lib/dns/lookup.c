@@ -85,7 +85,7 @@ start_fetch(dns_lookup_t *lookup) {
 
 	result = dns_resolver_createfetch(
 		lookup->view->resolver, dns_fixedname_name(&lookup->name),
-		lookup->type, NULL, NULL, NULL, NULL, 0, 0, 0, NULL,
+		lookup->type, NULL, NULL, NULL, NULL, 0, 0, 0, NULL, NULL,
 		lookup->task, fetch_done, lookup, &lookup->rdataset,
 		&lookup->sigrdataset, &lookup->fetch);
 

@@ -343,7 +343,7 @@ static isc_result_t
 dbfind_name(dns_adbname_t *, isc_stdtime_t, dns_rdatatype_t);
 static isc_result_t
 fetch_name(dns_adbname_t *, bool, unsigned int, isc_counter_t *qc,
-	   dns_rdatatype_t);
+	   isc_counter_t *gqc, dns_rdatatype_t);
 static void
 check_exit(dns_adb_t *);
 static void
@@ -2903,7 +2903,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
-		   unsigned int depth, isc_counter_t *qc,
+		   unsigned int depth, isc_counter_t *qc, isc_counter_t *gqc,
 		   dns_adbfind_t **findp) {
 	dns_adbfind_t *find = NULL;
 	dns_adbname_t *adbname = NULL;
@@ -3162,7 +3162,7 @@ fetch:
 		 * Start V4.
 		 */
 		if (WANT_INET(wanted_fetches) &&
-		    fetch_name(adbname, start_at_zone, depth, qc,
+		    fetch_name(adbname, start_at_zone, depth, qc, gqc,
 			       dns_rdatatype_a) == ISC_R_SUCCESS)
 		{
 			DP(DEF_LEVEL,
@@ -3175,7 +3175,7 @@ fetch:
 		 * Start V6.
 		 */
 		if (WANT_INET6(wanted_fetches) &&
-		    fetch_name(adbname, start_at_zone, depth, qc,
+		    fetch_name(adbname, start_at_zone, depth, qc, gqc,
 			       dns_rdatatype_aaaa) == ISC_R_SUCCESS)
 		{
 			DP(DEF_LEVEL,
@@ -4055,7 +4055,7 @@ out:
 
 static isc_result_t
 fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
-	   isc_counter_t *qc, dns_rdatatype_t type) {
+	   isc_counter_t *qc, isc_counter_t *gqc, dns_rdatatype_t type) {
 	isc_result_t result;
 	dns_adbfetch_t *fetch = NULL;
 	dns_adb_t *adb;
@@ -4105,8 +4105,8 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	 */
 	result = dns_resolver_createfetch(
 		adb->view->resolver, &adbname->name, type, name, nameservers,
-		NULL, NULL, 0, options, depth, qc, adb->task, fetch_callback,
-		adbname, &fetch->rdataset, NULL, &fetch->fetch);
+		NULL, NULL, 0, options, depth, qc, gqc, adb->task,
+		fetch_callback, adbname, &fetch->rdataset, NULL, &fetch->fetch);
 	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL, "fetch_name: createfetch failed with %s",
 		   isc_result_totext(result));

@@ -139,14 +139,14 @@
 /*%
  * KASP flags
  */
-#define KASP_LOCK(k)                  \
-	if ((k) != NULL) {            \
-		LOCK((&((k)->lock))); \
+#define KASP_LOCK(k)                \
+	if ((k) != NULL) {          \
+		LOCK(&((k)->lock)); \
 	}
 
-#define KASP_UNLOCK(k)                  \
-	if ((k) != NULL) {              \
-		UNLOCK((&((k)->lock))); \
+#define KASP_UNLOCK(k)                \
+	if ((k) != NULL) {            \
+		UNLOCK(&((k)->lock)); \
 	}
 
 /*
@@ -11091,8 +11091,8 @@ do_keyfetch(isc_task_t *task, isc_event_t *event) {
 		NULL, NULL, 0,
 		DNS_FETCHOPT_NOVALIDATE | DNS_FETCHOPT_UNSHARED |
 			DNS_FETCHOPT_NOCACHED,
-		0, NULL, zone->task, keyfetch_done, kfetch, &kfetch->dnskeyset,
-		&kfetch->dnskeysigset, &kfetch->fetch);
+		0, NULL, NULL, zone->task, keyfetch_done, kfetch,
+		&kfetch->dnskeyset, &kfetch->dnskeysigset, &kfetch->fetch);
 
 	if (result != ISC_R_SUCCESS) {
 		retry_keyfetch(kfetch, kname);
@@ -12542,7 +12542,7 @@ notify_find_address(dns_notify_t *notify) {
 	result = dns_adb_createfind(
 		notify->zone->view->adb, notify->zone->task, process_adb_event,
 		notify, &notify->ns, dns_rootname, 0, options, 0, NULL,
-		notify->zone->view->dstport, 0, NULL, &notify->find);
+		notify->zone->view->dstport, 0, NULL, NULL, &notify->find);
 
 	/* Something failed? */
 	if (result != ISC_R_SUCCESS) {

@@ -54,6 +54,7 @@ typedef struct ns_query_recparam {
 struct ns_query {
 	unsigned int	 attributes;
 	unsigned int	 restarts;
+	isc_counter_t	*qc;
 	bool		 timerset;
 	dns_name_t	*qname;
 	dns_name_t	*origqname;

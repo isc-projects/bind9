@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <isc/counter.h>
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -763,6 +764,9 @@ query_reset(ns_client_t *client, bool everything) {
 				    sizeof(*client->query.rpz_st));
 			client->query.rpz_st = NULL;
 		}
+	}
+	if (client->query.qc != NULL) {
+		isc_counter_detach(&client->query.qc);
 	}
 	client->query.origqname = NULL;
 	client->query.dboptions = 0;
@@ -2614,8 +2618,8 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, rdataset->type, NULL, NULL, NULL,
-		peeraddr, client->message->id, options, 0, NULL, client->task,
-		prefetch_done, client, tmprdataset, NULL,
+		peeraddr, client->message->id, options, 0, NULL, NULL,
+		client->task, prefetch_done, client, tmprdataset, NULL,
 		&client->query.prefetch);
 	if (result != ISC_R_SUCCESS) {
 		if (client->recursionquota != NULL) {
@@ -2838,7 +2842,7 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 	isc_nmhandle_attach(client->handle, &client->prefetchhandle);
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, type, NULL, NULL, NULL, peeraddr,
-		client->message->id, options, 0, NULL, client->task,
+		client->message->id, options, 0, NULL, NULL, client->task,
 		prefetch_done, client, tmprdataset, NULL,
 		&client->query.prefetch);
 	if (result != ISC_R_SUCCESS) {
@@ -6614,8 +6618,8 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, qtype, qdomain, nameservers,
 		NULL, peeraddr, client->message->id, client->query.fetchoptions,
-		0, NULL, client->task, fetch_callback, client, rdataset,
-		sigrdataset, &client->query.fetch);
+		0, NULL, client->query.qc, client->task, fetch_callback, client,
+		rdataset, sigrdataset, &client->query.fetch);
 	if (result != ISC_R_SUCCESS) {
 		if (client->recursionquota != NULL) {
 			isc_quota_detach(&client->recursionquota);
@@ -12544,6 +12548,17 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	 */
 	if (WANTDNSSEC(client) || WANTAD(client)) {
 		message->flags |= DNS_MESSAGEFLAG_AD;
+	}
+
+	/*
+	 * Start global outgoing query count.
+	 */
+	result = isc_counter_create(client->manager->mctx,
+				    client->view->max_queries,
+				    &client->query.qc);
+	if (result != ISC_R_SUCCESS) {
+		query_next(client, result);
+		return;
 	}
 
 	(void)query_setup(client, qtype);
