@@ -1269,7 +1269,7 @@ cleanup:
  */
 static isc_result_t
 get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
-			      dns_dispatch_t **dispatchp, bool is_firstview) {
+			      dns_dispatch_t **dispatchp) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_dispatch_t *disp = NULL;
 	isc_sockaddr_t sa;
@@ -1290,6 +1290,7 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 
 	sa = *(cfg_obj_assockaddr(obj));
 	INSIST(isc_sockaddr_pf(&sa) == af);
+	INSIST(isc_sockaddr_getport(&sa) == 0);
 
 	/*
 	 * If we don't support this address family, we're done!
@@ -1311,16 +1312,6 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 	/*
 	 * Try to find a dispatcher that we can share.
 	 */
-	if (isc_sockaddr_getport(&sa) != 0) {
-		INSIST(obj != NULL);
-		if (is_firstview) {
-			cfg_obj_log(obj, ISC_LOG_INFO,
-				    "using specific query-source port "
-				    "suppresses port randomization and can be "
-				    "insecure.");
-		}
-	}
-
 	result = dns_dispatch_createudp(named_g_dispatchmgr, &sa, &disp);
 	if (result != ISC_R_SUCCESS) {
 		isc_sockaddr_t any;
@@ -4506,12 +4497,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Resolver.
 	 */
-	CHECK(get_view_querysource_dispatch(
-		maps, AF_INET, &dispatch4,
-		(ISC_LIST_PREV(view, link) == NULL)));
-	CHECK(get_view_querysource_dispatch(
-		maps, AF_INET6, &dispatch6,
-		(ISC_LIST_PREV(view, link) == NULL)));
+	CHECK(get_view_querysource_dispatch(maps, AF_INET, &dispatch4));
+	CHECK(get_view_querysource_dispatch(maps, AF_INET6, &dispatch6));
 	if (dispatch4 == NULL && dispatch6 == NULL) {
 		UNEXPECTED_ERROR("unable to obtain either an IPv4 or"
 				 " an IPv6 dispatch");
