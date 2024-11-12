@@ -46,6 +46,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns1/*.weird.db",
         "ns1/*.weird.db.signed",
         "ns2/keys",
+        "ns2/named.args",
         "ns2/*.view*.db",
         "ns2/*.view*.db.signed",
     ]
