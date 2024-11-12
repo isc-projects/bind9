@@ -134,16 +134,25 @@ def pytest_collection_modifyitems(items):
 
 class NodeResult:
     def __init__(self, report=None):
-        self.outcome = None
-        self.messages = []
+        self._outcomes = {}
+        self.messages = {}
         if report is not None:
             self.update(report)
 
     def update(self, report):
-        if self.outcome is None or report.outcome != "passed":
-            self.outcome = report.outcome
-        if report.longreprtext:
-            self.messages.append(report.longreprtext)
+        # Allow the same nodeid/when to be overriden. This only happens when
+        # the test is re-run with flaky plugin. In that case, we want the
+        # latest result to override any previous results.
+        key = (report.nodeid, report.when)
+        self._outcomes[key] = report.outcome
+        self.messages[key] = report.longreprtext
+
+    @property
+    def outcome(self):
+        for outcome in self._outcomes.values():
+            if outcome != "passed":
+                return outcome
+        return "passed"
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -347,7 +356,7 @@ def system_test_dir(request, system_test_name, expected_artifacts):
         messages = []
         for node, result in test_results.items():
             isctest.log.debug("%s %s", result.outcome.upper(), node)
-            messages.extend(result.messages)
+            messages.extend(result.messages.values())
         for message in messages:
             isctest.log.debug("\n" + message)
         failed = any(res.outcome == "failed" for res in test_results.values())
