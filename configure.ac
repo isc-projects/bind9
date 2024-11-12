@@ -171,7 +171,7 @@ AC_ARG_ENABLE([developer],
 
 AS_IF([test "$enable_developer" = "yes"],
       [DEVELOPER_MODE=yes
-       STD_CPPFLAGS="$STD_CPPFLAGS -DISC_MEM_DEFAULTFILL=1 -DISC_MEM_TRACKLINES=1 -DISC_LIST_CHECKINIT=1 -DISC_STATS_CHECKUNDERFLOW=1 -DDNS_RBTDB_STRONG_RWLOCK_CHECK=1 -DISC_MUTEX_ERROR_CHECK=1"
+       STD_CPPFLAGS="$STD_CPPFLAGS -DISC_MEM_DEFAULTFILL=1 -DISC_MEM_TRACKLINES=1 -DISC_LIST_CHECKINIT=1 -DISC_STATS_CHECKUNDERFLOW=1 -DISC_MUTEX_ERROR_CHECK=1"
        test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
@@ -1399,34 +1399,10 @@ AS_IF([test -z "$DTRACE"],
 AC_SUBST([DTRACE])
 
 #
-# Which should be the default zone database, RBTDB or QPZONE?
-# [pairwise: --with-zonedb=qp, --with-zonedb=rbt]
+# We only support QP zone and cache databases
 #
-AC_ARG_WITH([zonedb],
-	    [AS_HELP_STRING([--with-zonedb=detect],[specify default zone database type (default is "qpzone")])],
-	    [],[with_zonedb=qp])
-zonedb="qpzone"
-AS_CASE([$with_zonedb],
-	[RBT*|rbt*],[zonedb="rbt"],
-        [QP|qp],[],
-	[AC_MSG_ERROR([Unknown zone database type])]
-       )
-AC_DEFINE_UNQUOTED([ZONEDB_DEFAULT], ["$zonedb"], [Default zone database type])
-
-#
-# Which should be the default zone database, RBTDB or QPCACHE?
-# [pairwise: --with-cachedb=qp, --with-cachedb=rbt]
-#
-AC_ARG_WITH([cachedb],
-	    [AS_HELP_STRING([--with-cachedb=detect],[specify default cache database type (default is "qpcache")])],
-	    [],[with_cachedb=qp])
-cachedb="qpcache"
-AS_CASE([$with_cachedb],
-	[RBT*|rbt*],[cachedb="rbt"],
-        [QP*|qp*],[],
-	[AC_MSG_ERROR([Unknown cache database type])]
-       )
-AC_DEFINE_UNQUOTED([CACHEDB_DEFAULT], ["$cachedb"], [Default cache database type])
+AC_DEFINE_UNQUOTED([ZONEDB_DEFAULT], ["qpzone"], [Default zone database type])
+AC_DEFINE_UNQUOTED([CACHEDB_DEFAULT], ["qpcache"], [Default cache database type])
 
 #
 # Files to configure.  These are listed here because we used to

@@ -47,7 +47,6 @@
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/order.h>
-#include <dns/rbt.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>

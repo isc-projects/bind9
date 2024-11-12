@@ -25,7 +25,6 @@
 
 #include <isc/util.h>
 
-#include <dns/rbt.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>

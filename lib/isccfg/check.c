@@ -50,7 +50,6 @@
 #include <dns/keystore.h>
 #include <dns/keyvalues.h>
 #include <dns/peer.h>
-#include <dns/rbt.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/rpz.h>
