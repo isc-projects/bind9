@@ -5261,7 +5261,7 @@ create_gluelist(qpzonedb_t *qpdb, qpz_version_t *version, qpznode_t *node,
 	 */
 
 	(void)dns_rdataset_additionaldata(rdataset, dns_rootname,
-					  glue_nsdname_cb, &ctx);
+					  glue_nsdname_cb, &ctx, 0);
 
 	CMM_STORE_SHARED(gluelist->glue, ctx.glue);
 
