@@ -43,12 +43,10 @@
 #define TAPSAVED TESTS_DIR "/testdata/dnstap/dnstap.saved"
 #define TAPTEXT	 TESTS_DIR "/testdata/dnstap/dnstap.text"
 
-static int
+static void
 cleanup(void **state ISC_ATTR_UNUSED) {
 	(void)isc_file_remove(TAPFILE);
 	(void)isc_file_remove(TAPSOCK);
-
-	return 0;
 }
 
 static int
@@ -63,11 +61,23 @@ setup(void **state) {
 	 * the testdata was originally generated.
 	 */
 	setenv("TZ", "PDT8", 1);
+
+	setup_loopmgr(state);
+
+	return 0;
+}
+
+static int
+teardown(void **state) {
+	cleanup(state);
+
+	teardown_loopmgr(state);
+
 	return 0;
 }
 
 /* set up dnstap environment */
-ISC_RUN_TEST_IMPL(dns_dt_create) {
+ISC_LOOP_TEST_IMPL(dns_dt_create) {
 	isc_result_t result;
 	dns_dtenv_t *dtenv = NULL;
 	struct fstrm_iothr_options *fopt;
@@ -118,10 +128,12 @@ ISC_RUN_TEST_IMPL(dns_dt_create) {
 	if (fopt != NULL) {
 		fstrm_iothr_options_destroy(&fopt);
 	}
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* send dnstap messages */
-ISC_RUN_TEST_IMPL(dns_dt_send) {
+ISC_LOOP_TEST_IMPL(dns_dt_send) {
 	isc_result_t result;
 	dns_dtenv_t *dtenv = NULL;
 	dns_dthandle_t *handle = NULL;
@@ -283,17 +295,17 @@ ISC_RUN_TEST_IMPL(dns_dt_send) {
 	if (handle != NULL) {
 		dns_dt_close(&handle);
 	}
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* dnstap message to text */
-ISC_RUN_TEST_IMPL(dns_dt_totext) {
+ISC_LOOP_TEST_IMPL(dns_dt_totext) {
 	isc_result_t result;
 	dns_dthandle_t *handle = NULL;
 	uint8_t *data;
 	size_t dsize;
 	FILE *fp = NULL;
-
-	UNUSED(state);
 
 	result = dns_dt_open(TAPSAVED, dns_dtmode_file, mctx, &handle);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -348,13 +360,14 @@ ISC_RUN_TEST_IMPL(dns_dt_totext) {
 	if (handle != NULL) {
 		dns_dt_close(&handle);
 	}
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_TEST_LIST_START
 
-ISC_TEST_ENTRY_CUSTOM(dns_dt_create, setup, cleanup)
-ISC_TEST_ENTRY_CUSTOM(dns_dt_send, setup, cleanup)
-ISC_TEST_ENTRY_CUSTOM(dns_dt_totext, setup, cleanup)
+ISC_TEST_ENTRY_CUSTOM(dns_dt_create, setup, teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_dt_send, setup, teardown)
+ISC_TEST_ENTRY_CUSTOM(dns_dt_totext, setup, teardown)
 
 ISC_TEST_LIST_END
 

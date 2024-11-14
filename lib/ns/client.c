@@ -1073,7 +1073,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		if (result == ISC_R_SUCCESS) {
 			dns_badcache_add(client->view->failcache,
 					 client->query.qname,
-					 client->query.qtype, true, flags,
+					 client->query.qtype, flags,
 					 isc_time_seconds(&expire));
 		}
 	}

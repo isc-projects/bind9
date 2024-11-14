@@ -6572,8 +6572,9 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	}
 	INSIST(view == NULL);
 
-	result = dns_view_create(named_g_mctx, named_g_dispatchmgr, viewclass,
-				 viewname, &view);
+	result = dns_view_create(named_g_mctx, named_g_loopmgr,
+				 named_g_dispatchmgr, viewclass, viewname,
+				 &view);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

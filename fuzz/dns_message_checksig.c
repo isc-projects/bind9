@@ -183,7 +183,8 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 
 	isc_loopmgr_create(mctx, 1, &loopmgr);
 
-	result = dns_view_create(mctx, NULL, dns_rdataclass_in, "view", &view);
+	result = dns_view_create(mctx, loopmgr, NULL, dns_rdataclass_in, "view",
+				 &view);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_view_create failed: %s\n",
 			isc_result_totext(result));

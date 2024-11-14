@@ -10031,7 +10031,7 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 #endif
 	isc_refcount_init(&res->references, 1);
 
-	res->badcache = dns_badcache_new(res->mctx);
+	res->badcache = dns_badcache_new(res->mctx, res->loopmgr);
 
 	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS, &res->fctxs);
 	isc_rwlock_init(&res->fctxs_lock);
@@ -10744,12 +10744,13 @@ void
 dns_resolver_addbadcache(dns_resolver_t *resolver, const dns_name_t *name,
 			 dns_rdatatype_t type, isc_time_t *expire) {
 #ifdef ENABLE_AFL
-	if (!dns_fuzzing_resolver)
-#endif /* ifdef ENABLE_AFL */
-	{
-		dns_badcache_add(resolver->badcache, name, type, false, 0,
-				 isc_time_seconds(expire));
+	if (dns_fuzzing_resolver) {
+		return;
 	}
+#endif /* ifdef ENABLE_AFL */
+
+	dns_badcache_add(resolver->badcache, name, type, 0,
+			 isc_time_seconds(expire));
 }
 
 isc_result_t
