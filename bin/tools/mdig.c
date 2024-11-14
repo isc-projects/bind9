@@ -2103,7 +2103,7 @@ setup(void *arg ISC_ATTR_UNUSED) {
 		mctx, loopmgr, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
 		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
-	RUNCHECK(dns_view_create(mctx, NULL, 0, "_mdig", &view));
+	RUNCHECK(dns_view_create(mctx, loopmgr, NULL, 0, "_mdig", &view));
 }
 
 /*% Main processing routine for mdig */

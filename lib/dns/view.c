@@ -85,9 +85,9 @@
 #define DEFAULT_EDNS_BUFSIZE 1232
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
-		dns_rdataclass_t rdclass, const char *name,
-		dns_view_t **viewp) {
+dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		dns_dispatchmgr_t *dispatchmgr, dns_rdataclass_t rdclass,
+		const char *name, dns_view_t **viewp) {
 	dns_view_t *view = NULL;
 	isc_result_t result;
 	char buffer[1024];
@@ -149,7 +149,7 @@ dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 
 	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
-	view->failcache = dns_badcache_new(view->mctx);
+	view->failcache = dns_badcache_new(view->mctx, loopmgr);
 
 	isc_mutex_init(&view->new_zone_lock);
 
