@@ -10632,7 +10632,7 @@ no_glue:
 	maybe_rehash_gluetable(rbtversion);
 	idx = hash_32(hash, rbtversion->glue_table_bits);
 
-	(void)dns_rdataset_additionaldata(rdataset, glue_nsdname_cb, &ctx);
+	(void)dns_rdataset_additionaldata(rdataset, glue_nsdname_cb, &ctx, 0);
 
 	cur = isc_mem_get(rbtdb->common.mctx, sizeof(*cur));
 
