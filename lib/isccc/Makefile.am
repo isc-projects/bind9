@@ -27,7 +27,8 @@ libisccc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)	\
-	$(LIBISCCC_CFLAGS)
+	$(LIBISCCC_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
 
 libisccc_la_LIBADD =	\
 	$(LIBISC_LIBS)
