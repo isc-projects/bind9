@@ -11565,33 +11565,24 @@ again:
 		 * No NSEC proof available, return NSEC3 proofs instead.
 		 */
 		cname = dns_fixedname_initname(&cfixed);
-
 		/*
-		 * Find the closest encloser using a binary search.
-		 * maxlabels: suffix length of NXDOMAIN result
-		 * minlabels: suffix length of non NXDOMAIN result
+		 * Find the closest encloser.
 		 */
-		unsigned int maxlabels = dns_name_countlabels(name);
-		unsigned int minlabels = dns_name_countlabels(fname);
-		bool search = result == DNS_R_NXDOMAIN;
 		dns_name_copy(name, cname);
-		while (search) {
-			labels = (maxlabels + minlabels) / 2;
-			dns_name_split(name, labels, NULL, cname);
-			if (labels == minlabels) {
-				break;
+		while (result == DNS_R_NXDOMAIN) {
+			labels = dns_name_countlabels(cname) - 1;
+			/*
+			 * Sanity check.
+			 */
+			if (labels == 0U) {
+				goto cleanup;
 			}
+			dns_name_split(cname, labels, NULL, cname);
 			result = dns_db_findext(qctx->db, cname, qctx->version,
 						dns_rdatatype_nsec, options, 0,
 						NULL, fname, &cm, &ci, NULL,
 						NULL);
-			if (result == DNS_R_NXDOMAIN) {
-				maxlabels = labels;
-			} else {
-				minlabels = labels;
-			}
 		}
-
 		/*
 		 * Add closest (provable) encloser NSEC3.
 		 */
