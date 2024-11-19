@@ -215,7 +215,7 @@ ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
 	client->ede->length = len;
 	client->ede->value = isc_mem_get(client->mctx, len);
 	memmove(client->ede->value, ede, len);
-};
+}
 
 static void
 ns_client_endrequest(ns_client_t *client) {

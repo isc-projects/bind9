@@ -51,7 +51,7 @@ readline(const char *prompt) {
 		return NULL;
 	}
 	return buf;
-};
+}
 
 #define add_history(line)
 
