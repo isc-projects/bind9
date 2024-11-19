@@ -59,7 +59,7 @@ setup_test(void **state) {
 
 	dns_dispatchmgr_detach(&dispatchmgr);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -68,7 +68,7 @@ teardown_test(void **state) {
 	dns_view_detach(&view);
 	teardown_managers(state);
 
-	return (0);
+	return 0;
 }
 
 static void

@@ -99,9 +99,9 @@ static atomic_int __state_uv_udp_open = 0;
 int
 __wrap_uv_udp_open(uv_udp_t *handle, uv_os_sock_t sock) {
 	if (atomic_load(&__state_uv_udp_open) == 0) {
-		return (uv_udp_open(handle, sock));
+		return uv_udp_open(handle, sock);
 	}
-	return (atomic_load(&__state_uv_udp_open));
+	return atomic_load(&__state_uv_udp_open);
 }
 
 static atomic_int __state_uv_udp_bind = 0;
@@ -110,9 +110,9 @@ int
 __wrap_uv_udp_bind(uv_udp_t *handle, const struct sockaddr *addr,
 		   unsigned int flags) {
 	if (atomic_load(&__state_uv_udp_bind) == 0) {
-		return (uv_udp_bind(handle, addr, flags));
+		return uv_udp_bind(handle, addr, flags);
 	}
-	return (atomic_load(&__state_uv_udp_bind));
+	return atomic_load(&__state_uv_udp_bind);
 }
 
 static atomic_int __state_uv_udp_connect ISC_ATTR_UNUSED = 0;
@@ -120,9 +120,9 @@ static atomic_int __state_uv_udp_connect ISC_ATTR_UNUSED = 0;
 int
 __wrap_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 	if (atomic_load(&__state_uv_udp_connect) == 0) {
-		return (uv_udp_connect(handle, addr));
+		return uv_udp_connect(handle, addr);
 	}
-	return (atomic_load(&__state_uv_udp_connect));
+	return atomic_load(&__state_uv_udp_connect);
 }
 
 static atomic_int __state_uv_udp_getpeername ISC_ATTR_UNUSED = 0;
@@ -131,9 +131,9 @@ int
 __wrap_uv_udp_getpeername(const uv_udp_t *handle, struct sockaddr *name,
 			  int *namelen) {
 	if (atomic_load(&__state_uv_udp_getpeername) == 0) {
-		return (uv_udp_getpeername(handle, name, namelen));
+		return uv_udp_getpeername(handle, name, namelen);
 	}
-	return (atomic_load(&__state_uv_udp_getpeername));
+	return atomic_load(&__state_uv_udp_getpeername);
 }
 
 static atomic_int __state_uv_udp_getsockname = 0;
@@ -141,9 +141,9 @@ int
 __wrap_uv_udp_getsockname(const uv_udp_t *handle, struct sockaddr *name,
 			  int *namelen) {
 	if (atomic_load(&__state_uv_udp_getsockname) == 0) {
-		return (uv_udp_getsockname(handle, name, namelen));
+		return uv_udp_getsockname(handle, name, namelen);
 	}
-	return (atomic_load(&__state_uv_udp_getsockname));
+	return atomic_load(&__state_uv_udp_getsockname);
 }
 
 static atomic_int __state_uv_udp_send = 0;
@@ -152,9 +152,9 @@ __wrap_uv_udp_send(uv_udp_send_t *req, uv_udp_t *handle, const uv_buf_t bufs[],
 		   unsigned int nbufs, const struct sockaddr *addr,
 		   uv_udp_send_cb send_cb) {
 	if (atomic_load(&__state_uv_udp_send) == 0) {
-		return (uv_udp_send(req, handle, bufs, nbufs, addr, send_cb));
+		return uv_udp_send(req, handle, bufs, nbufs, addr, send_cb);
 	}
-	return (atomic_load(&__state_uv_udp_send));
+	return atomic_load(&__state_uv_udp_send);
 }
 
 static atomic_int __state_uv_udp_recv_start = 0;
@@ -162,27 +162,27 @@ int
 __wrap_uv_udp_recv_start(uv_udp_t *handle, uv_alloc_cb alloc_cb,
 			 uv_udp_recv_cb recv_cb) {
 	if (atomic_load(&__state_uv_udp_recv_start) == 0) {
-		return (uv_udp_recv_start(handle, alloc_cb, recv_cb));
+		return uv_udp_recv_start(handle, alloc_cb, recv_cb);
 	}
-	return (atomic_load(&__state_uv_udp_recv_start));
+	return atomic_load(&__state_uv_udp_recv_start);
 }
 
 static atomic_int __state_uv_udp_recv_stop = 0;
 int
 __wrap_uv_udp_recv_stop(uv_udp_t *handle) {
 	if (atomic_load(&__state_uv_udp_recv_stop) == 0) {
-		return (uv_udp_recv_stop(handle));
+		return uv_udp_recv_stop(handle);
 	}
-	return (atomic_load(&__state_uv_udp_recv_stop));
+	return atomic_load(&__state_uv_udp_recv_stop);
 }
 
 static atomic_int __state_uv_tcp_open = 0;
 int
 __wrap_uv_tcp_open(uv_tcp_t *handle, uv_os_sock_t sock) {
 	if (atomic_load(&__state_uv_tcp_open) == 0) {
-		return (uv_tcp_open(handle, sock));
+		return uv_tcp_open(handle, sock);
 	}
-	return (atomic_load(&__state_uv_tcp_open));
+	return atomic_load(&__state_uv_tcp_open);
 }
 
 static atomic_int __state_uv_tcp_bind = 0;
@@ -190,9 +190,9 @@ int
 __wrap_uv_tcp_bind(uv_tcp_t *handle, const struct sockaddr *addr,
 		   unsigned int flags) {
 	if (atomic_load(&__state_uv_tcp_bind) == 0) {
-		return (uv_tcp_bind(handle, addr, flags));
+		return uv_tcp_bind(handle, addr, flags);
 	}
-	return (atomic_load(&__state_uv_tcp_bind));
+	return atomic_load(&__state_uv_tcp_bind);
 }
 
 static atomic_int __state_uv_tcp_getsockname = 0;
@@ -200,9 +200,9 @@ int
 __wrap_uv_tcp_getsockname(const uv_tcp_t *handle, struct sockaddr *name,
 			  int *namelen) {
 	if (atomic_load(&__state_uv_tcp_getsockname) == 0) {
-		return (uv_tcp_getsockname(handle, name, namelen));
+		return uv_tcp_getsockname(handle, name, namelen);
 	}
-	return (atomic_load(&__state_uv_tcp_getsockname));
+	return atomic_load(&__state_uv_tcp_getsockname);
 }
 
 static atomic_int __state_uv_tcp_getpeername = 0;
@@ -210,9 +210,9 @@ int
 __wrap_uv_tcp_getpeername(const uv_tcp_t *handle, struct sockaddr *name,
 			  int *namelen) {
 	if (atomic_load(&__state_uv_tcp_getpeername) == 0) {
-		return (uv_tcp_getpeername(handle, name, namelen));
+		return uv_tcp_getpeername(handle, name, namelen);
 	}
-	return (atomic_load(&__state_uv_tcp_getpeername));
+	return atomic_load(&__state_uv_tcp_getpeername);
 }
 
 static atomic_int __state_uv_tcp_connect = 0;
@@ -220,54 +220,54 @@ int
 __wrap_uv_tcp_connect(uv_connect_t *req, uv_tcp_t *handle,
 		      const struct sockaddr *addr, uv_connect_cb cb) {
 	if (atomic_load(&__state_uv_tcp_connect) == 0) {
-		return (uv_tcp_connect(req, handle, addr, cb));
+		return uv_tcp_connect(req, handle, addr, cb);
 	}
-	return (atomic_load(&__state_uv_tcp_connect));
+	return atomic_load(&__state_uv_tcp_connect);
 }
 
 static atomic_int __state_uv_listen = 0;
 int
 __wrap_uv_listen(uv_stream_t *stream, int backlog, uv_connection_cb cb) {
 	if (atomic_load(&__state_uv_listen) == 0) {
-		return (uv_listen(stream, backlog, cb));
+		return uv_listen(stream, backlog, cb);
 	}
-	return (atomic_load(&__state_uv_listen));
+	return atomic_load(&__state_uv_listen);
 }
 
 static atomic_int __state_uv_accept = 0;
 int
 __wrap_uv_accept(uv_stream_t *server, uv_stream_t *client) {
 	if (atomic_load(&__state_uv_accept) == 0) {
-		return (uv_accept(server, client));
+		return uv_accept(server, client);
 	}
-	return (atomic_load(&__state_uv_accept));
+	return atomic_load(&__state_uv_accept);
 }
 
 static atomic_int __state_uv_send_buffer_size = 0;
 int
 __wrap_uv_send_buffer_size(uv_handle_t *handle, int *value) {
 	if (atomic_load(&__state_uv_send_buffer_size) == 0) {
-		return (uv_send_buffer_size(handle, value));
+		return uv_send_buffer_size(handle, value);
 	}
-	return (atomic_load(&__state_uv_send_buffer_size));
+	return atomic_load(&__state_uv_send_buffer_size);
 }
 
 static atomic_int __state_uv_recv_buffer_size = 0;
 int
 __wrap_uv_recv_buffer_size(uv_handle_t *handle, int *value) {
 	if (atomic_load(&__state_uv_recv_buffer_size) == 0) {
-		return (uv_recv_buffer_size(handle, value));
+		return uv_recv_buffer_size(handle, value);
 	}
-	return (atomic_load(&__state_uv_recv_buffer_size));
+	return atomic_load(&__state_uv_recv_buffer_size);
 }
 
 static atomic_int __state_uv_fileno = 0;
 int
 __wrap_uv_fileno(const uv_handle_t *handle, uv_os_fd_t *fd) {
 	if (atomic_load(&__state_uv_fileno) == 0) {
-		return (uv_fileno(handle, fd));
+		return uv_fileno(handle, fd);
 	}
-	return (atomic_load(&__state_uv_fileno));
+	return atomic_load(&__state_uv_fileno);
 }
 
 #define uv_udp_open(...)	__wrap_uv_udp_open(__VA_ARGS__)

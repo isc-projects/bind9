@@ -78,17 +78,17 @@ igamc(double a, double x) {
 	double pkm1, pkm2, qkm1, qkm2;
 
 	if ((x <= 0) || (a <= 0)) {
-		return (1.0);
+		return 1.0;
 	}
 
 	if ((x < 1.0) || (x < a)) {
-		return (1.0 - igam(a, x));
+		return 1.0 - igam(a, x);
 	}
 
 	ax = a * log(x) - x - lgamma(a);
 	if (ax < -MAXLOG) {
 		print_error("# igamc: UNDERFLOW, ax=%f\n", ax);
-		return (0.0);
+		return 0.0;
 	}
 	ax = exp(ax);
 
@@ -131,7 +131,7 @@ igamc(double a, double x) {
 		}
 	} while (t > MACHEP);
 
-	return (ans * ax);
+	return ans * ax;
 }
 
 static double
@@ -139,18 +139,18 @@ igam(double a, double x) {
 	double ans, ax, c, r;
 
 	if ((x <= 0) || (a <= 0)) {
-		return (0.0);
+		return 0.0;
 	}
 
 	if ((x > 1.0) && (x > a)) {
-		return (1.0 - igamc(a, x));
+		return 1.0 - igamc(a, x);
 	}
 
 	/* Compute  x**a * exp(-x) / md_gamma(a)  */
 	ax = a * log(x) - x - lgamma(a);
 	if (ax < -MAXLOG) {
 		print_error("# igam: UNDERFLOW, ax=%f\n", ax);
-		return (0.0);
+		return 0.0;
 	}
 	ax = exp(ax);
 
@@ -165,7 +165,7 @@ igam(double a, double x) {
 		ans += c;
 	} while (c / ans > MACHEP);
 
-	return (ans * ax / a);
+	return ans * ax / a;
 }
 
 static int8_t scounts_table[65536];
@@ -190,7 +190,7 @@ scount_calculate(uint16_t n) {
 		n >>= 1;
 	}
 
-	return (sc);
+	return sc;
 }
 
 static uint8_t
@@ -210,7 +210,7 @@ bitcount_calculate(uint16_t n) {
 		n >>= 1;
 	}
 
-	return (bc);
+	return bc;
 }
 
 static void
@@ -252,7 +252,7 @@ matrix_binaryrank(uint32_t *bits, size_t rows, size_t cols) {
 				}
 			}
 
-			return (rank);
+			return rank;
 		}
 
 		rank++;
@@ -273,7 +273,7 @@ matrix_binaryrank(uint32_t *bits, size_t rows, size_t cols) {
 		rt++;
 	}
 
-	return (rank);
+	return rank;
 }
 
 static void
@@ -417,7 +417,7 @@ monobit(uint16_t *values, size_t length) {
 	s_obs = abs(scount) / sqrt(numbits);
 	p_value = erfc(s_obs / sqrt(2.0));
 
-	return (p_value);
+	return p_value;
 }
 
 /*
@@ -459,7 +459,7 @@ runs(uint16_t *values, size_t length) {
 	 * cases.
 	 */
 	if (fabs(pi - 0.5) >= tau) {
-		return (0.0);
+		return 0.0;
 	}
 
 	/* Compute v_obs */
@@ -490,7 +490,7 @@ runs(uint16_t *values, size_t length) {
 
 	p_value = erfc(numer / denom);
 
-	return (p_value);
+	return p_value;
 }
 
 /*
@@ -547,7 +547,7 @@ blockfrequency(uint16_t *values, size_t length) {
 
 	p_value = igamc(numblocks * 0.5, chi_square * 0.5);
 
-	return (p_value);
+	return p_value;
 }
 
 /*
@@ -633,7 +633,7 @@ binarymatrixrank(uint16_t *values, size_t length) {
 
 	p_value = exp(-chi_square * 0.5);
 
-	return (p_value);
+	return p_value;
 }
 
 /***

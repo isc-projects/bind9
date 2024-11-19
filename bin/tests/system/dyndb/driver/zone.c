@@ -100,7 +100,7 @@ create_zone(sample_instance_t *const inst, dns_name_t *const name,
 	dns_acl_detach(&acl_any);
 
 	*rawp = raw;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	dns_name_format(name, zone_name, DNS_NAME_FORMATSIZE);
@@ -116,7 +116,7 @@ cleanup:
 		dns_acl_detach(&acl_any);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -188,7 +188,7 @@ cleanup:
 		dns_view_freeze(inst->view);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -223,7 +223,7 @@ load_zone(dns_zone_t *zone) {
 	}
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*
@@ -253,5 +253,5 @@ activate_zone(sample_instance_t *inst, dns_zone_t *raw) {
 	}
 
 cleanup:
-	return (result);
+	return result;
 }

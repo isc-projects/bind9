@@ -30,7 +30,7 @@ bool debug = false;
 
 int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
-	return (0);
+	return 0;
 }
 
 int
@@ -99,5 +99,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	REQUIRE(new_buf.used == old_buf.used);
 	REQUIRE(new_buf.length == old_buf.length);
 
-	return (0);
+	return 0;
 }

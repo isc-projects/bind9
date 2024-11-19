@@ -32,7 +32,7 @@ extern thread_local uint32_t isc__tid_local;
 
 static inline uint32_t
 isc_tid(void) {
-	return (isc__tid_local);
+	return isc__tid_local;
 }
 /*%<
  * Returns the thread ID of the currently-running loop.

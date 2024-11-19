@@ -330,5 +330,5 @@ main(int argc, char *argv[]) {
 	}
 	isc_mem_destroy(&mctx);
 
-	return (result == ISC_R_SUCCESS ? 0 : 1);
+	return result == ISC_R_SUCCESS ? 0 : 1;
 }

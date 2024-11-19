@@ -68,7 +68,7 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 	if (digits != 0 || !valid) {
 		RETTOK(ISC_R_UNEXPECTEDEND);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -89,7 +89,7 @@ totext_in_nsap(ARGS_TOTEXT) {
 		isc_region_consume(&region, 1);
 		RETERR(str_totext(buf, target));
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -105,12 +105,12 @@ fromwire_in_nsap(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &region);
 	if (region.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	RETERR(mem_tobuffer(target, region.base, region.length));
 	isc_buffer_forward(source, region.length);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -121,7 +121,7 @@ towire_in_nsap(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -138,7 +138,7 @@ compare_in_nsap(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -155,7 +155,7 @@ fromstruct_in_nsap(ARGS_FROMSTRUCT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	return (mem_tobuffer(target, nsap->nsap, nsap->nsap_len));
+	return mem_tobuffer(target, nsap->nsap, nsap->nsap_len);
 }
 
 static isc_result_t
@@ -176,7 +176,7 @@ tostruct_in_nsap(ARGS_TOSTRUCT) {
 	nsap->nsap_len = r.length;
 	nsap->nsap = mem_maybedup(mctx, r.base, r.length);
 	nsap->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -207,7 +207,7 @@ additionaldata_in_nsap(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -219,7 +219,7 @@ digest_in_nsap(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -232,7 +232,7 @@ checkowner_in_nsap(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -244,12 +244,12 @@ checknames_in_nsap(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_in_nsap(ARGS_COMPARE) {
-	return (compare_in_nsap(rdata1, rdata2));
+	return compare_in_nsap(rdata1, rdata2);
 }
 
 #endif /* RDATA_IN_1_NSAP_22_C */

@@ -196,7 +196,7 @@ qpiter_makekey(dns_qpkey_t key, void *uctx, void *pval, uint32_t ival) {
 	}
 	key[i++] = SHIFT_NOBYTE;
 
-	return (i);
+	return i;
 }
 
 static void
@@ -353,10 +353,10 @@ qpkey_fromstring(dns_qpkey_t key, void *uctx, void *pval, uint32_t ival) {
 	UNUSED(uctx);
 	UNUSED(ival);
 	if (*(char *)pval == '\0') {
-		return (0);
+		return 0;
 	}
 	dns_test_namefromstring(pval, &fixed);
-	return (dns_qpkey_fromname(key, dns_fixedname_name(&fixed)));
+	return dns_qpkey_fromname(key, dns_fixedname_name(&fixed));
 }
 
 const dns_qpmethods_t string_methods = {

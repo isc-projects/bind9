@@ -86,7 +86,7 @@ dns_badcache_new(isc_mem_t *mctx) {
 
 	isc_mem_attach(mctx, &bc->mctx);
 
-	return (bc);
+	return bc;
 }
 
 void
@@ -114,7 +114,7 @@ bcentry_match(struct cds_lfht_node *ht_node, const void *key) {
 	const dns_name_t *name = key;
 	dns_bcentry_t *bad = caa_container_of(ht_node, dns_bcentry_t, ht_node);
 
-	return (dns_name_equal(bad->name, name));
+	return dns_name_equal(bad->name, name);
 }
 
 static dns_bcentry_t *
@@ -132,7 +132,7 @@ bcentry_new(dns_badcache_t *bc, const dns_name_t *name,
 	bad->name = dns_fixedname_initname(&bad->fname);
 	dns_name_copy(name, bad->name);
 
-	return (bad);
+	return bad;
 }
 
 static void
@@ -164,13 +164,13 @@ bcentry_evict(struct cds_lfht *ht, dns_bcentry_t *bad) {
 static bool
 bcentry_alive(struct cds_lfht *ht, dns_bcentry_t *bad, isc_stdtime_t now) {
 	if (cds_lfht_is_node_deleted(&bad->ht_node)) {
-		return (false);
+		return false;
 	} else if (atomic_load_relaxed(&bad->expire) < now) {
 		bcentry_evict(ht, bad);
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 #define cds_lfht_for_each_entry_next(ht, iter, pos, member)     \
@@ -283,7 +283,7 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 
 	rcu_read_unlock();
 
-	return (result);
+	return result;
 }
 
 void

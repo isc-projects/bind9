@@ -540,10 +540,10 @@ STATIC_ASSERT((ISC_R_NRESULTS < INT32_MAX), "result.h enum too big");
 
 const char *
 isc_result_totext(isc_result_t result) {
-	return (description[result]);
+	return description[result];
 }
 
 const char *
 isc_result_toid(isc_result_t result) {
-	return (identifier[result]);
+	return identifier[result];
 }

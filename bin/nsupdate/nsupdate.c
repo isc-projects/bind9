@@ -253,7 +253,7 @@ getzoneclass(void) {
 	if (zoneclass == dns_rdataclass_none) {
 		zoneclass = defaultclass;
 	}
-	return (zoneclass);
+	return zoneclass;
 }
 
 static bool
@@ -263,9 +263,9 @@ setzoneclass(dns_rdataclass_t rdclass) {
 		zoneclass = rdclass;
 	}
 	if (zoneclass != rdclass) {
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 static void
@@ -329,7 +329,7 @@ nsu_strsep(char **stringp, const char *delim) {
 	char sc, dc;
 
 	if (string == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	for (; *string != '\0'; string++) {
@@ -350,11 +350,11 @@ nsu_strsep(char **stringp, const char *delim) {
 			if (sc == dc) {
 				*s++ = '\0';
 				*stringp = s;
-				return (string);
+				return string;
 			}
 		}
 	}
-	return (string);
+	return string;
 }
 
 static void
@@ -390,7 +390,7 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 
 	if (len >= sizeof(buf)) {
 		error("unknown key type '%.*s'", (int)(len), hmacstr);
-		return (false);
+		return false;
 	}
 
 	/* Copy len bytes and NUL terminate. */
@@ -403,7 +403,7 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		result = isc_parse_uint16(&digestbits, &buf[9], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 128) {
 			error("digest-bits out of range [0..128]");
-			return (false);
+			return false;
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
@@ -413,7 +413,7 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		result = isc_parse_uint16(&digestbits, &buf[10], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 160) {
 			error("digest-bits out of range [0..160]");
-			return (false);
+			return false;
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
@@ -423,7 +423,7 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 224) {
 			error("digest-bits out of range [0..224]");
-			return (false);
+			return false;
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
@@ -433,7 +433,7 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 256) {
 			error("digest-bits out of range [0..256]");
-			return (false);
+			return false;
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
@@ -443,7 +443,7 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 384) {
 			error("digest-bits out of range [0..384]");
-			return (false);
+			return false;
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
@@ -453,14 +453,14 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 512) {
 			error("digest-bits out of range [0..512]");
-			return (false);
+			return false;
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else {
 		error("unknown key type '%s'", buf);
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 static int
@@ -474,7 +474,7 @@ basenamelen(const char *file) {
 	} else if (len > 4 && strcmp(file + len - 4, ".key") == 0) {
 		len -= 4;
 	}
-	return (len);
+	return len;
 }
 
 static void
@@ -570,7 +570,7 @@ read_sessionkey(isc_mem_t *mctx) {
 	int len;
 
 	if (!isc_file_exists(keyfile)) {
-		return (ISC_R_FILENOTFOUND);
+		return ISC_R_FILENOTFOUND;
 	}
 
 	result = cfg_parser_create(mctx, &pctx);
@@ -616,7 +616,7 @@ cleanup:
 		isc_mem_free(mctx, keystr);
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -794,8 +794,8 @@ create_name(const char *str, char *namedata, size_t len, dns_name_t *name) {
 	isc_buffer_add(&namesrc, strlen(str));
 	isc_buffer_init(&namebuf, namedata, len);
 
-	return (dns_name_fromtext(name, &namesrc, dns_rootname,
-				  DNS_NAME_DOWNCASE, &namebuf));
+	return dns_name_fromtext(name, &namesrc, dns_rootname,
+				 DNS_NAME_DOWNCASE, &namebuf);
 }
 
 static void
@@ -993,7 +993,7 @@ get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 		error("couldn't get address for '%s': %s", host,
 		      isc_result_totext(result));
 	}
-	return (count);
+	return count;
 }
 
 #define PARSE_ARGS_FMT "46A:C:dDE:ghH:iK:lL:MoOk:p:Pr:R:St:Tu:vVy:"
@@ -1303,7 +1303,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	word = nsu_strsep(cmdlinep, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read owner name\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	dns_message_gettempname(msg, namep);
@@ -1314,10 +1314,10 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 		error("invalid owner name: %s", isc_result_totext(result));
 		isc_buffer_invalidate(&source);
 		dns_message_puttempname(msg, namep);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	isc_buffer_invalidate(&source);
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1332,7 +1332,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 
 	if (cmdline == NULL) {
 		rdata->flags = DNS_RDATA_UPDATE;
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 
 	while (*cmdline != 0 && isspace((unsigned char)*cmdline)) {
@@ -1363,13 +1363,13 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 			fprintf(stderr, "invalid rdata format: %s\n",
 				isc_result_totext(result));
 			isc_buffer_free(&buf);
-			return (STATUS_SYNTAX);
+			return STATUS_SYNTAX;
 		}
 	} else {
 		rdata->flags = DNS_RDATA_UPDATE;
 	}
 	*cmdlinep = cmdline;
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1392,7 +1392,7 @@ make_prereq(char *cmdline, bool ispositive, bool isrrset) {
 	 */
 	retval = parse_name(&cmdline, updatemsg, &name);
 	if (retval != STATUS_MORE) {
-		return (retval);
+		return retval;
 	}
 
 	/*
@@ -1472,13 +1472,13 @@ make_prereq(char *cmdline, bool ispositive, bool isrrset) {
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_PREREQUISITE);
-	return (STATUS_MORE);
+	return STATUS_MORE;
 
 failure:
 	if (name != NULL) {
 		dns_message_puttempname(updatemsg, &name);
 	}
-	return (STATUS_SYNTAX);
+	return STATUS_SYNTAX;
 }
 
 static uint16_t
@@ -1490,7 +1490,7 @@ evaluate_prereq(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read operation code\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	if (strcasecmp(word, "nxdomain") == 0) {
 		ispositive = false;
@@ -1506,9 +1506,9 @@ evaluate_prereq(char *cmdline) {
 		isrrset = true;
 	} else {
 		fprintf(stderr, "incorrect operation code: %s\n", word);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
-	return (make_prereq(cmdline, ispositive, isrrset));
+	return make_prereq(cmdline, ispositive, isrrset);
 }
 
 static void
@@ -1554,7 +1554,7 @@ evaluate_lease(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read ttl\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	if (!strcasecmp(word, "none")) {
@@ -1563,12 +1563,12 @@ evaluate_lease(char *cmdline) {
 		keylease = 0;
 		keylease_set = false;
 		updateopt();
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 
 	result = isc_parse_uint32(&value1, word, 10);
 	if (result != ISC_R_SUCCESS) {
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -1578,12 +1578,12 @@ evaluate_lease(char *cmdline) {
 		keylease = 0;
 		keylease_set = false;
 		updateopt();
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 
 	result = isc_parse_uint32(&value2, word, 10);
 	if (result != ISC_R_SUCCESS) {
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	lease = value1;
@@ -1592,7 +1592,7 @@ evaluate_lease(char *cmdline) {
 	keylease_set = true;
 	updateopt();
 
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1602,13 +1602,13 @@ evaluate_server(char *cmdline) {
 
 	if (local_only) {
 		fprintf(stderr, "cannot reset server in localhost-only mode\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read server name\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	server = word;
 
@@ -1620,13 +1620,13 @@ evaluate_server(char *cmdline) {
 		port = strtol(word, &endp, 10);
 		if (*endp != 0) {
 			fprintf(stderr, "port '%s' is not numeric\n", word);
-			return (STATUS_SYNTAX);
+			return STATUS_SYNTAX;
 		} else if (port < 1 || port > 65535) {
 			fprintf(stderr,
 				"port '%s' is out of range "
 				"(1 to 65535)\n",
 				word);
-			return (STATUS_SYNTAX);
+			return STATUS_SYNTAX;
 		}
 	}
 
@@ -1644,10 +1644,10 @@ evaluate_server(char *cmdline) {
 	servers = isc_mem_cget(gmctx, ns_alloc, sizeof(isc_sockaddr_t));
 	ns_total = get_addresses(server, (in_port_t)port, servers, ns_alloc);
 	if (ns_total == 0) {
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1660,7 +1660,7 @@ evaluate_local(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read server name\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	local = word;
 
@@ -1672,13 +1672,13 @@ evaluate_local(char *cmdline) {
 		port = strtol(word, &endp, 10);
 		if (*endp != 0) {
 			fprintf(stderr, "port '%s' is not numeric\n", word);
-			return (STATUS_SYNTAX);
+			return STATUS_SYNTAX;
 		} else if (port < 1 || port > 65535) {
 			fprintf(stderr,
 				"port '%s' is out of range "
 				"(1 to 65535)\n",
 				word);
-			return (STATUS_SYNTAX);
+			return STATUS_SYNTAX;
 		}
 	}
 
@@ -1694,10 +1694,10 @@ evaluate_local(char *cmdline) {
 		isc_sockaddr_fromin(localaddr4, &in4, (in_port_t)port);
 	} else {
 		fprintf(stderr, "invalid address %s", local);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1718,7 +1718,7 @@ evaluate_key(char *cmdline) {
 	namestr = nsu_strsep(&cmdline, " \t\r\n");
 	if (namestr == NULL || *namestr == 0) {
 		fprintf(stderr, "could not read key name\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	mykeyname = dns_fixedname_initname(&fkeyname);
@@ -1726,7 +1726,7 @@ evaluate_key(char *cmdline) {
 	n = strchr(namestr, ':');
 	if (n != NULL) {
 		if (!parse_hmac(namestr, n - namestr, &hmac_alg, &digestbits)) {
-			return (STATUS_SYNTAX);
+			return STATUS_SYNTAX;
 		}
 		namestr = n + 1;
 	} else {
@@ -1738,13 +1738,13 @@ evaluate_key(char *cmdline) {
 	result = dns_name_fromtext(mykeyname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not parse key name\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	secretstr = nsu_strsep(&cmdline, "\r\n");
 	if (secretstr == NULL || *secretstr == 0) {
 		fprintf(stderr, "could not read key secret\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	secretlen = strlen(secretstr) * 3 / 4;
 	secret = isc_mem_allocate(gmctx, secretlen);
@@ -1755,7 +1755,7 @@ evaluate_key(char *cmdline) {
 		fprintf(stderr, "could not create key from %s: %s\n", secretstr,
 			isc_result_totext(result));
 		isc_mem_free(gmctx, secret);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	secretlen = isc_buffer_usedlength(&secretbuf);
 
@@ -1768,10 +1768,10 @@ evaluate_key(char *cmdline) {
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not create key from %s %s: %s\n",
 			namestr, secretstr, isc_result_totext(result));
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	dst_key_setbits(tsigkey->key, digestbits);
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1783,7 +1783,7 @@ evaluate_zone(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read zone name\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	userzone = dns_fixedname_initname(&fuserzone);
@@ -1793,10 +1793,10 @@ evaluate_zone(char *cmdline) {
 	if (result != ISC_R_SUCCESS) {
 		userzone = NULL; /* Lest it point to an invalid name */
 		fprintf(stderr, "could not parse zone name\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1813,19 +1813,19 @@ evaluate_realm(char *cmdline) {
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 
 	n = snprintf(buf, sizeof(buf), "@%s", word);
 	if (n < 0 || (size_t)n >= sizeof(buf)) {
 		error("realm is too long");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	realm = isc_mem_strdup(gmctx, buf);
-	return (STATUS_MORE);
+	return STATUS_MORE;
 #else  /* HAVE_GSSAPI */
 	UNUSED(cmdline);
-	return (STATUS_SYNTAX);
+	return STATUS_SYNTAX;
 #endif /* HAVE_GSSAPI */
 }
 
@@ -1838,29 +1838,29 @@ evaluate_ttl(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read ttl\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	if (!strcasecmp(word, "none")) {
 		default_ttl = 0;
 		default_ttl_set = false;
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 
 	result = isc_parse_uint32(&ttl, word, 10);
 	if (result != ISC_R_SUCCESS) {
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	if (ttl > TTL_MAX) {
 		fprintf(stderr, "ttl '%s' is out of range (0 to %u)\n", word,
 			TTL_MAX);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	default_ttl = ttl;
 	default_ttl_set = true;
 
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1873,7 +1873,7 @@ evaluate_class(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read class name\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 
 	r.base = word;
@@ -1881,19 +1881,19 @@ evaluate_class(char *cmdline) {
 	result = dns_rdataclass_fromtext(&rdclass, &r);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not parse class name: %s\n", word);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	switch (rdclass) {
 	case dns_rdataclass_none:
 	case dns_rdataclass_any:
 	case dns_rdataclass_reserved0:
 		fprintf(stderr, "bad default class: %s\n", word);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	default:
 		defaultclass = rdclass;
 	}
 
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -1917,7 +1917,7 @@ update_addordelete(char *cmdline, bool isdelete) {
 	 */
 	retval = parse_name(&cmdline, updatemsg, &name);
 	if (retval != STATUS_MORE) {
-		return (retval);
+		return retval;
 	}
 
 	dns_message_gettemprdata(updatemsg, &rdata);
@@ -2103,14 +2103,14 @@ doneparsing:
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_UPDATE);
-	return (STATUS_MORE);
+	return STATUS_MORE;
 
 failure:
 	if (name != NULL) {
 		dns_message_puttempname(updatemsg, &name);
 	}
 	dns_message_puttemprdata(updatemsg, &rdata);
-	return (STATUS_SYNTAX);
+	return STATUS_SYNTAX;
 }
 
 static uint16_t
@@ -2122,7 +2122,7 @@ evaluate_update(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read operation code\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	if (strcasecmp(word, "delete") == 0) {
 		isdelete = true;
@@ -2132,9 +2132,9 @@ evaluate_update(char *cmdline) {
 		isdelete = false;
 	} else {
 		fprintf(stderr, "incorrect operation code: %s\n", word);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
-	return (update_addordelete(cmdline, isdelete));
+	return update_addordelete(cmdline, isdelete);
 }
 
 static uint16_t
@@ -2145,7 +2145,7 @@ evaluate_checknames(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read check-names directive\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	if (strcasecmp(word, "yes") == 0 || strcasecmp(word, "true") == 0 ||
 	    strcasecmp(word, "on") == 0)
@@ -2158,9 +2158,9 @@ evaluate_checknames(char *cmdline) {
 		checknames = false;
 	} else {
 		fprintf(stderr, "incorrect check-names directive: %s\n", word);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static uint16_t
@@ -2171,7 +2171,7 @@ evaluate_checksvcb(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
 		fprintf(stderr, "could not read check-svcb directive\n");
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
 	if (strcasecmp(word, "yes") == 0 || strcasecmp(word, "true") == 0 ||
 	    strcasecmp(word, "on") == 0)
@@ -2184,9 +2184,9 @@ evaluate_checksvcb(char *cmdline) {
 		checksvcb = false;
 	} else {
 		fprintf(stderr, "incorrect check-svcb directive: %s\n", word);
-		return (STATUS_SYNTAX);
+		return STATUS_SYNTAX;
 	}
-	return (STATUS_MORE);
+	return STATUS_MORE;
 }
 
 static void
@@ -2264,58 +2264,58 @@ do_next_command(char *cmdline) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 
 	if (word == NULL || *word == 0) {
-		return (STATUS_SEND);
+		return STATUS_SEND;
 	}
 	if (word[0] == ';') {
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 	if (strcasecmp(word, "quit") == 0) {
-		return (STATUS_QUIT);
+		return STATUS_QUIT;
 	}
 	if (strcasecmp(word, "prereq") == 0) {
-		return (evaluate_prereq(cmdline));
+		return evaluate_prereq(cmdline);
 	}
 	if (strcasecmp(word, "nxdomain") == 0) {
-		return (make_prereq(cmdline, false, false));
+		return make_prereq(cmdline, false, false);
 	}
 	if (strcasecmp(word, "yxdomain") == 0) {
-		return (make_prereq(cmdline, true, false));
+		return make_prereq(cmdline, true, false);
 	}
 	if (strcasecmp(word, "nxrrset") == 0) {
-		return (make_prereq(cmdline, false, true));
+		return make_prereq(cmdline, false, true);
 	}
 	if (strcasecmp(word, "yxrrset") == 0) {
-		return (make_prereq(cmdline, true, true));
+		return make_prereq(cmdline, true, true);
 	}
 	if (strcasecmp(word, "update") == 0) {
-		return (evaluate_update(cmdline));
+		return evaluate_update(cmdline);
 	}
 	if (strcasecmp(word, "delete") == 0) {
-		return (update_addordelete(cmdline, true));
+		return update_addordelete(cmdline, true);
 	}
 	if (strcasecmp(word, "del") == 0) {
-		return (update_addordelete(cmdline, true));
+		return update_addordelete(cmdline, true);
 	}
 	if (strcasecmp(word, "add") == 0) {
-		return (update_addordelete(cmdline, false));
+		return update_addordelete(cmdline, false);
 	}
 	if (strcasecmp(word, "lease") == 0) {
-		return (evaluate_lease(cmdline));
+		return evaluate_lease(cmdline);
 	}
 	if (strcasecmp(word, "server") == 0) {
-		return (evaluate_server(cmdline));
+		return evaluate_server(cmdline);
 	}
 	if (strcasecmp(word, "local") == 0) {
-		return (evaluate_local(cmdline));
+		return evaluate_local(cmdline);
 	}
 	if (strcasecmp(word, "zone") == 0) {
-		return (evaluate_zone(cmdline));
+		return evaluate_zone(cmdline);
 	}
 	if (strcasecmp(word, "class") == 0) {
-		return (evaluate_class(cmdline));
+		return evaluate_class(cmdline);
 	}
 	if (strcasecmp(word, "send") == 0) {
-		return (STATUS_SEND);
+		return STATUS_SEND;
 	}
 	if (strcasecmp(word, "debug") == 0) {
 		if (debugging) {
@@ -2323,14 +2323,14 @@ do_next_command(char *cmdline) {
 		} else {
 			debugging = true;
 		}
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 	if (strcasecmp(word, "ttl") == 0) {
-		return (evaluate_ttl(cmdline));
+		return evaluate_ttl(cmdline);
 	}
 	if (strcasecmp(word, "show") == 0) {
 		show_message(stdout, updatemsg, "Outgoing update query:");
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 	if (strcasecmp(word, "answer") == 0) {
 		LOCK(&answer_lock);
@@ -2338,24 +2338,24 @@ do_next_command(char *cmdline) {
 			show_message(stdout, answer, "Answer:");
 		}
 		UNLOCK(&answer_lock);
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 	if (strcasecmp(word, "key") == 0) {
 		usegsstsig = false;
-		return (evaluate_key(cmdline));
+		return evaluate_key(cmdline);
 	}
 	if (strcasecmp(word, "realm") == 0) {
-		return (evaluate_realm(cmdline));
+		return evaluate_realm(cmdline);
 	}
 	if (strcasecmp(word, "check-names") == 0 ||
 	    strcasecmp(word, "checknames") == 0)
 	{
-		return (evaluate_checknames(cmdline));
+		return evaluate_checknames(cmdline);
 	}
 	if (strcasecmp(word, "check-svcb") == 0 ||
 	    strcasecmp(word, "checksvcb") == 0)
 	{
-		return (evaluate_checksvcb(cmdline));
+		return evaluate_checksvcb(cmdline);
 	}
 	if (strcasecmp(word, "gsstsig") == 0) {
 #if HAVE_GSSAPI
@@ -2363,7 +2363,7 @@ do_next_command(char *cmdline) {
 #else  /* HAVE_GSSAPI */
 		fprintf(stderr, "gsstsig not supported\n");
 #endif /* HAVE_GSSAPI */
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 	if (strcasecmp(word, "oldgsstsig") == 0) {
 #if HAVE_GSSAPI
@@ -2371,7 +2371,7 @@ do_next_command(char *cmdline) {
 #else  /* HAVE_GSSAPI */
 		fprintf(stderr, "gsstsig not supported\n");
 #endif /* HAVE_GSSAPI */
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 	if (strcasecmp(word, "help") == 0) {
 		fprintf(stdout, "nsupdate " PACKAGE_VERSION ":\n"
@@ -2411,14 +2411,14 @@ do_next_command(char *cmdline) {
 				"record to the zone)\n"
 				"[update] del[ete] ....    (remove the given "
 				"record(s) from the zone)\n");
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 	if (strcasecmp(word, "version") == 0) {
 		fprintf(stdout, "nsupdate " PACKAGE_VERSION "\n");
-		return (STATUS_MORE);
+		return STATUS_MORE;
 	}
 	fprintf(stderr, "incorrect section name: %s\n", word);
-	return (STATUS_SYNTAX);
+	return STATUS_SYNTAX;
 }
 
 static uint16_t
@@ -2450,7 +2450,7 @@ get_next_command(void) {
 		free(ptr);
 	}
 
-	return (result);
+	return result;
 }
 
 static bool
@@ -2465,9 +2465,9 @@ user_interaction(void) {
 		}
 	}
 	if (result == STATUS_SEND) {
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 static void
@@ -2512,10 +2512,10 @@ next_primary(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
 	fprintf(stderr, "; Communication with %s failed: %s\n", addrbuf,
 		isc_result_totext(eresult));
 	if (++primary_inuse >= primary_total) {
-		return (false);
+		return false;
 	}
 	ddebug("%s: trying next server", caller);
-	return (true);
+	return true;
 }
 
 static void
@@ -3556,8 +3556,8 @@ main(int argc, char **argv) {
 	cleanup();
 
 	if (seenerror) {
-		return (2);
+		return 2;
 	}
 
-	return (0);
+	return 0;
 }

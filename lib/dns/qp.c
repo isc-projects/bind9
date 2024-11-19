@@ -219,7 +219,7 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name) {
 
 	if (name->labels == 0) {
 		key[0] = SHIFT_NOBYTE;
-		return (0);
+		return 0;
 	}
 
 	if (name->offsets == NULL) {
@@ -246,7 +246,7 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name) {
 	/* mark end with a double NOBYTE */
 	key[len] = SHIFT_NOBYTE;
 	ENSURE(len < sizeof(dns_qpkey_t));
-	return (len);
+	return len;
 }
 
 void
@@ -353,10 +353,10 @@ qpkey_compare(const dns_qpkey_t key_a, const size_t keylen_a,
 		if (qpkey_bit(key_a, keylen_a, offset) !=
 		    qpkey_bit(key_b, keylen_b, offset))
 		{
-			return (offset);
+			return offset;
 		}
 	}
-	return (QPKEY_EQUAL);
+	return QPKEY_EQUAL;
 }
 
 /***********************************************************************
@@ -377,7 +377,7 @@ qpkey_compare(const dns_qpkey_t key_a, const size_t keylen_a,
 static size_t
 chunk_size_raw(void) {
 	size_t size = (size_t)sysconf(_SC_PAGE_SIZE);
-	return (ISC_MAX(size, QP_CHUNK_BYTES));
+	return ISC_MAX(size, QP_CHUNK_BYTES);
 }
 
 static void *
@@ -387,9 +387,9 @@ chunk_get_raw(dns_qp_t *qp) {
 		void *ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
 				 MAP_ANON | MAP_PRIVATE, -1, 0);
 		RUNTIME_CHECK(ptr != MAP_FAILED);
-		return (ptr);
+		return ptr;
 	} else {
-		return (isc_mem_allocate(qp->mctx, QP_CHUNK_BYTES));
+		return isc_mem_allocate(qp->mctx, QP_CHUNK_BYTES);
 	}
 }
 
@@ -405,9 +405,9 @@ chunk_free_raw(dns_qp_t *qp, void *ptr) {
 static void *
 chunk_shrink_raw(dns_qp_t *qp, void *ptr, size_t bytes) {
 	if (qp->write_protect) {
-		return (ptr);
+		return ptr;
 	} else {
-		return (isc_mem_reallocate(qp->mctx, ptr, bytes));
+		return isc_mem_reallocate(qp->mctx, ptr, bytes);
 	}
 }
 
@@ -450,9 +450,9 @@ cells_immutable(dns_qp_t *qp, dns_qpref_t ref) {
 	dns_qpchunk_t chunk = ref_chunk(ref);
 	dns_qpcell_t cell = ref_cell(ref);
 	if (chunk == qp->bump) {
-		return (cell < qp->fender);
+		return cell < qp->fender;
 	} else {
-		return (qp->usage[chunk].immutable);
+		return qp->usage[chunk].immutable;
 	}
 }
 
@@ -474,7 +474,7 @@ chunk_alloc(dns_qp_t *qp, dns_qpchunk_t chunk, dns_qpweight_t size) {
 	if (qp->write_protect) {
 		TRACE("chunk %u base %p", chunk, qp->base->ptr[chunk]);
 	}
-	return (make_ref(chunk, 0));
+	return make_ref(chunk, 0);
 }
 
 /*
@@ -522,12 +522,12 @@ alloc_slow(dns_qp_t *qp, dns_qpweight_t size) {
 
 	for (chunk = 0; chunk < qp->chunk_max; chunk++) {
 		if (!qp->usage[chunk].exists) {
-			return (chunk_alloc(qp, chunk, size));
+			return chunk_alloc(qp, chunk, size);
 		}
 	}
 	ENSURE(chunk == qp->chunk_max);
 	realloc_chunk_arrays(qp, GROWTH_FACTOR(chunk));
-	return (chunk_alloc(qp, chunk, size));
+	return chunk_alloc(qp, chunk, size);
 }
 
 /*
@@ -549,9 +549,9 @@ alloc_twigs(dns_qp_t *qp, dns_qpweight_t size) {
 	if (cell + size <= QP_CHUNK_SIZE) {
 		qp->usage[chunk].used += size;
 		qp->used_count += size;
-		return (make_ref(chunk, cell));
+		return make_ref(chunk, cell);
 	} else {
-		return (alloc_slow(qp, size));
+		return alloc_slow(qp, size);
 	}
 }
 
@@ -577,10 +577,10 @@ free_twigs(dns_qp_t *qp, dns_qpref_t twigs, dns_qpweight_t size) {
 	if (cells_immutable(qp, twigs)) {
 		qp->hold_count += size;
 		ENSURE(qp->free_count >= qp->hold_count);
-		return (false);
+		return false;
 	} else {
 		zero_twigs(ref_ptr(qp, twigs), size);
-		return (true);
+		return true;
 	}
 }
 
@@ -608,7 +608,7 @@ attach_twigs(dns_qp_t *qp, dns_qpnode_t *twigs, dns_qpweight_t size) {
  */
 static inline dns_qpcell_t
 chunk_usage(dns_qp_t *qp, dns_qpchunk_t chunk) {
-	return (qp->usage[chunk].used - qp->usage[chunk].free);
+	return qp->usage[chunk].used - qp->usage[chunk].free;
 }
 
 /*
@@ -852,7 +852,7 @@ evacuate(dns_qp_t *qp, dns_qpnode_t *n) {
 		attach_twigs(qp, new_twigs, size);
 	}
 
-	return (new_ref);
+	return new_ref;
 }
 
 /*
@@ -867,7 +867,7 @@ make_root_mutable(dns_qp_t *qp) {
 	if (cells_immutable(qp, qp->root_ref)) {
 		qp->root_ref = evacuate(qp, MOVABLE_ROOT(qp));
 	}
-	return (ref_ptr(qp, qp->root_ref));
+	return ref_ptr(qp, qp->root_ref);
 }
 
 static inline void
@@ -922,7 +922,7 @@ compact_recursive(dns_qp_t *qp, dns_qpnode_t *parent) {
 		}
 		*child = make_node(branch_index(child), new_grandtwigs);
 	}
-	return (twigs_ref);
+	return twigs_ref;
 }
 
 static void
@@ -1007,7 +1007,7 @@ squash_twigs(dns_qp_t *qp, dns_qpref_t twigs, dns_qpweight_t size) {
 			qp->compact_all = true;
 		}
 	}
-	return (destroyed);
+	return destroyed;
 }
 
 /***********************************************************************
@@ -1045,7 +1045,7 @@ dns_qp_memusage(dns_qp_t *qp) {
 			 qp->chunk_max * sizeof(qp->base->ptr[0]) +
 			 qp->chunk_max * sizeof(qp->usage[0]);
 
-	return (memusage);
+	return memusage;
 }
 
 dns_qp_memusage_t
@@ -1065,7 +1065,7 @@ dns_qpmulti_memusage(dns_qpmulti_t *multi) {
 	}
 
 	UNLOCK(&multi->mutex);
-	return (memusage);
+	return memusage;
 }
 
 void
@@ -1114,7 +1114,7 @@ transaction_open(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	qp->hold_count = qp->free_count;
 
 	*qptp = qp;
-	return (qp);
+	return qp;
 }
 
 /*
@@ -1320,7 +1320,7 @@ reader_open(dns_qpmulti_t *multi, dns_qpreadable_t qpr) {
 	} else {
 		multi = unpack_reader(qp, reader);
 	}
-	return (multi);
+	return multi;
 }
 
 /*
@@ -1583,7 +1583,7 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 		attach_leaf(qp, new_twigs);
 		qp->leaf_count++;
 		qp->root_ref = new_ref;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -1607,7 +1607,7 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 	old_keylen = leaf_qpkey(qp, n, old_key);
 	offset = qpkey_compare(new_key, new_keylen, old_key, old_keylen);
 	if (offset == QPKEY_EQUAL) {
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 	new_bit = qpkey_bit(new_key, new_keylen, offset);
 	old_bit = qpkey_bit(old_key, old_keylen, offset);
@@ -1648,7 +1648,7 @@ newbranch:
 	attach_leaf(qp, &new_leaf);
 	qp->leaf_count++;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 growbranch:
 	INSIST(!branch_has_twig(n, new_bit));
@@ -1680,7 +1680,7 @@ growbranch:
 	}
 	qp->leaf_count++;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1690,7 +1690,7 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 	REQUIRE(search_keylen < sizeof(dns_qpkey_t));
 
 	if (get_root(qp) == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	dns_qpshift_t bit = 0; /* suppress warning */
@@ -1700,7 +1700,7 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 		prefetch_twigs(qp, n);
 		bit = branch_keybit(n, search_key, search_keylen);
 		if (!branch_has_twig(n, bit)) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		make_twigs_mutable(qp, n);
 		parent = n;
@@ -1712,7 +1712,7 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 	if (qpkey_compare(search_key, search_keylen, found_key, found_keylen) !=
 	    QPKEY_EQUAL)
 	{
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	SET_IF_NOT_NULL(pval_r, leaf_pval(n));
@@ -1726,7 +1726,7 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 		INSIST(n == get_root(qp));
 		free_twigs(qp, qp->root_ref, 1);
 		qp->root_ref = INVALID_REF;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/* step back to parent node */
@@ -1755,7 +1755,7 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 		squash_twigs(qp, ref + size - 1, 1);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1763,7 +1763,7 @@ dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name, void **pval_r,
 		  uint32_t *ival_r) {
 	dns_qpkey_t key;
 	size_t keylen = dns_qpkey_fromname(key, name);
-	return (dns_qp_deletekey(qp, key, keylen, pval_r, ival_r));
+	return dns_qp_deletekey(qp, key, keylen, pval_r, ival_r);
 }
 
 /***********************************************************************
@@ -1799,7 +1799,7 @@ unsigned int
 dns_qpchain_length(dns_qpchain_t *chain) {
 	REQUIRE(QPCHAIN_VALID(chain));
 
-	return (chain->len);
+	return chain->len;
 }
 
 void
@@ -1846,7 +1846,7 @@ last_twig(dns_qpiter_t *qpi, bool forward) {
 			max = branch_twigs_size(parent) - 1;
 		}
 	}
-	return (pos == max);
+	return pos == max;
 }
 
 /*
@@ -1868,7 +1868,7 @@ iterate(bool forward, dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
 
 	node = get_root(qp);
 	if (node == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	do {
@@ -1896,7 +1896,7 @@ iterate(bool forward, dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
 				 * the iterator, then return ISC_R_NOMORE.
 				 */
 				dns_qpiter_init(qpi->qp, qpi);
-				return (ISC_R_NOMORE);
+				return ISC_R_NOMORE;
 			}
 
 			/*
@@ -1932,19 +1932,19 @@ iterate(bool forward, dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
 	SET_IF_NOT_NULL(pval_r, leaf_pval(node));
 	SET_IF_NOT_NULL(ival_r, leaf_ival(node));
 	maybe_set_name(qpi->qp, node, name);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_qpiter_next(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
 		uint32_t *ival_r) {
-	return (iterate(true, qpi, name, pval_r, ival_r));
+	return iterate(true, qpi, name, pval_r, ival_r);
 }
 
 isc_result_t
 dns_qpiter_prev(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
 		uint32_t *ival_r) {
-	return (iterate(false, qpi, name, pval_r, ival_r));
+	return iterate(false, qpi, name, pval_r, ival_r);
 }
 
 isc_result_t
@@ -1956,13 +1956,13 @@ dns_qpiter_current(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
 
 	node = qpi->stack[qpi->sp];
 	if (node == NULL || is_branch(node)) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	SET_IF_NOT_NULL(pval_r, leaf_pval(node));
 	SET_IF_NOT_NULL(ival_r, leaf_ival(node));
 	maybe_set_name(qpi->qp, node, name);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /***********************************************************************
@@ -1984,14 +1984,14 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 
 	n = get_root(qp);
 	if (n == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	while (is_branch(n)) {
 		prefetch_twigs(qp, n);
 		bit = branch_keybit(n, search_key, search_keylen);
 		if (!branch_has_twig(n, bit)) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		n = branch_twig_ptr(qp, n, bit);
 	}
@@ -2000,12 +2000,12 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 	if (qpkey_compare(search_key, search_keylen, found_key, found_keylen) !=
 	    QPKEY_EQUAL)
 	{
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 	SET_IF_NOT_NULL(ival_r, leaf_ival(n));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2013,7 +2013,7 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 	       uint32_t *ival_r) {
 	dns_qpkey_t key;
 	size_t keylen = dns_qpkey_fromname(key, name);
-	return (dns_qp_getkey(qpr, key, keylen, pval_r, ival_r));
+	return dns_qp_getkey(qpr, key, keylen, pval_r, ival_r);
 }
 
 static inline void
@@ -2053,7 +2053,7 @@ anyleaf(dns_qpreader_t *qp, dns_qpnode_t *n) {
 	while (is_branch(n)) {
 		n = branch_twigs(qp, n);
 	}
-	return (n);
+	return n;
 }
 
 static inline int
@@ -2061,9 +2061,9 @@ twig_offset(dns_qpnode_t *n, dns_qpshift_t sbit, dns_qpshift_t kbit,
 	    dns_qpshift_t fbit) {
 	dns_qpweight_t pos = branch_twig_pos(n, sbit);
 	if (branch_has_twig(n, sbit)) {
-		return (pos - (kbit < fbit));
+		return pos - (kbit < fbit);
 	}
-	return (pos - 1);
+	return pos - 1;
 }
 
 /*
@@ -2218,7 +2218,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 
 	n = get_root(qp);
 	if (n == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	iter->stack[0] = n;
 
@@ -2306,7 +2306,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 		SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 		SET_IF_NOT_NULL(ival_r, leaf_ival(n));
 		maybe_set_name(qp, n, foundname);
-		return (result);
+		return result;
 	}
 
 	/*
@@ -2320,7 +2320,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 			SET_IF_NOT_NULL(ival_r, leaf_ival(n));
 			maybe_set_name(qp, n, foundname);
-			return (DNS_R_PARTIALMATCH);
+			return DNS_R_PARTIALMATCH;
 		} else {
 			/*
 			 * oops, during the search we found and added
@@ -2332,7 +2332,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	}
 
 	/* nothing was found at all */
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 /**********************************************************************/

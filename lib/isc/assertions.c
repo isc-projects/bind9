@@ -85,7 +85,7 @@ isc_assertion_typetotext(isc_assertiontype_t type) {
 	default:
 		result = "UNKNOWN";
 	}
-	return (result);
+	return result;
 }
 
 /*

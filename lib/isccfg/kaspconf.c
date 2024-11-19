@@ -46,10 +46,10 @@ static isc_result_t
 confget(cfg_obj_t const *const *maps, const char *name, const cfg_obj_t **obj) {
 	for (size_t i = 0;; i++) {
 		if (maps[i] == NULL) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 }
@@ -70,7 +70,7 @@ parse_duration(const char *str) {
 	if (result == ISC_R_SUCCESS) {
 		time = isccfg_duration_toseconds(&duration);
 	}
-	return (time);
+	return time;
 }
 
 /*
@@ -84,10 +84,10 @@ get_duration(const cfg_obj_t **maps, const char *option, const char *dfl) {
 
 	result = confget(maps, option, &obj);
 	if (result == ISC_R_NOTFOUND) {
-		return (parse_duration(dfl));
+		return parse_duration(dfl);
 	}
 	INSIST(result == ISC_R_SUCCESS);
-	return (cfg_obj_asduration(obj));
+	return cfg_obj_asduration(obj);
 }
 
 /*
@@ -101,10 +101,10 @@ get_string(const cfg_obj_t **maps, const char *option) {
 
 	result = confget(maps, option, &obj);
 	if (result == ISC_R_NOTFOUND) {
-		return (NULL);
+		return NULL;
 	}
 	INSIST(result == ISC_R_SUCCESS);
-	return (cfg_obj_asstring(obj));
+	return cfg_obj_asstring(obj);
 }
 
 /*
@@ -122,7 +122,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	/* Create a new key reference. */
 	result = dns_kasp_key_create(kasp, &key);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	if (config == NULL) {
@@ -327,12 +327,12 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	}
 
 	dns_kasp_addkey(kasp, key);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 
 	dns_kasp_key_destroy(key);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -377,7 +377,7 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
 			obj, ISC_LOG_ERROR,
 			"dnssec-policy: cannot use nsec3 with algorithm '%s'",
 			algstr);
-		return (DNS_R_NSEC3BADALG);
+		return DNS_R_NSEC3BADALG;
 	}
 
 	if (iter != DEFAULT_NSEC3PARAM_ITER) {
@@ -385,7 +385,7 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
 			    "dnssec-policy: nsec3 iterations value %u "
 			    "not allowed, must be zero",
 			    iter);
-		return (DNS_R_NSEC3ITERRANGE);
+		return DNS_R_NSEC3ITERRANGE;
 	}
 
 	/* Opt-out? */
@@ -403,11 +403,11 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
 		cfg_obj_log(obj, ISC_LOG_ERROR,
 			    "dnssec-policy: nsec3 salt length %u too high",
 			    saltlen);
-		return (DNS_R_NSEC3SALTRANGE);
+		return DNS_R_NSEC3SALTRANGE;
 	}
 
 	dns_kasp_setnsec3param(kasp, iter, optout, saltlen);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -433,7 +433,7 @@ add_digest(dns_kasp_t *kasp, const cfg_obj_t *digest) {
 	} else {
 		dns_kasp_adddigest(kasp, alg);
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -478,17 +478,17 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 			"dnssec-policy: duplicately named policy found '%s'",
 			kaspname);
 		dns_kasp_detach(&kasp);
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 	if (result != ISC_R_NOTFOUND) {
-		return (result);
+		return result;
 	}
 
 	/* No kasp with configured name was found in list, create new one. */
 	INSIST(kasp == NULL);
 	result = dns_kasp_create(mctx, kaspname, &kasp);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	INSIST(kasp != NULL);
 
@@ -785,13 +785,13 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	dns_kasp_attach(kasp, kaspp);
 
 	/* Don't detach as kasp is on '*kasplist' */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 
 	/* Something bad happened, detach (destroys kasp) and return error. */
 	dns_kasp_detach(&kasp);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -819,13 +819,13 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 		cfg_obj_log(config, ISC_LOG_ERROR,
 			    "key-store: duplicate key-store found '%s'", name);
 		dns_keystore_detach(&keystore);
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 	if (result != ISC_R_NOTFOUND) {
 		cfg_obj_log(config, ISC_LOG_ERROR,
 			    "key-store: lookup '%s' failed: %s", name,
 			    isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	/*
@@ -834,7 +834,7 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 	INSIST(keystore == NULL);
 	result = dns_keystore_create(mctx, name, &keystore);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	INSIST(keystore != NULL);
 
@@ -862,5 +862,5 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 	}
 
 	/* Don't detach as keystore is on '*keystorelist' */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

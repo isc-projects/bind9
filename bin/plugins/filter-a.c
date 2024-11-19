@@ -177,7 +177,7 @@ static const char *filter_a_enums[] = { "break-dnssec", NULL };
 
 static isc_result_t
 parse_filter_a(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+	return cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret);
 }
 
 static void
@@ -210,7 +210,7 @@ parse_filter_a_on(const cfg_obj_t *param_obj, const char *param_name,
 
 	result = cfg_map_get(param_obj, param_name, &obj);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (cfg_obj_isboolean(obj)) {
@@ -225,7 +225,7 @@ parse_filter_a_on(const cfg_obj_t *param_obj, const char *param_name,
 		result = ISC_R_UNEXPECTED;
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -237,7 +237,7 @@ check_syntax(cfg_obj_t *fmap, const void *cfg, isc_mem_t *mctx, void *actx) {
 
 	cfg_map_get(fmap, "filter-a", &aclobj);
 	if (aclobj == NULL) {
-		return (result);
+		return result;
 	}
 
 	CHECK(cfg_acl_fromconfig(aclobj, (const cfg_obj_t *)cfg,
@@ -265,7 +265,7 @@ cleanup:
 		dns_acl_detach(&acl);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -306,7 +306,7 @@ cleanup:
 	if (parser != NULL) {
 		cfg_parser_destroy(&parser);
 	}
-	return (result);
+	return result;
 }
 
 /**
@@ -358,7 +358,7 @@ cleanup:
 		plugin_destroy((void **)&inst);
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -385,7 +385,7 @@ cleanup:
 	if (parser != NULL) {
 		cfg_parser_destroy(&parser);
 	}
-	return (result);
+	return result;
 }
 
 /*
@@ -415,7 +415,7 @@ plugin_destroy(void **instp) {
  */
 int
 plugin_version(void) {
-	return (NS_PLUGIN_VERSION);
+	return NS_PLUGIN_VERSION;
 }
 
 /**
@@ -440,14 +440,14 @@ typedef struct section_filter {
 static bool
 is_v4_client(ns_client_t *client) {
 	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET) {
-		return (true);
+		return true;
 	}
 	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
 	    IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
 	{
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 /*
@@ -458,9 +458,9 @@ is_v6_client(ns_client_t *client) {
 	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
 	    !IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
 	{
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 static filter_data_t *
@@ -473,7 +473,7 @@ client_state_get(const query_ctx_t *qctx, filter_instance_t *inst) {
 			     sizeof(qctx->client), (void **)&client_state);
 	UNLOCK(&inst->hlock);
 
-	return (result == ISC_R_SUCCESS ? client_state : NULL);
+	return result == ISC_R_SUCCESS ? client_state : NULL;
 }
 
 static void
@@ -569,7 +569,7 @@ process_name(query_ctx_t *qctx, filter_a_t mode, const dns_name_t *name,
 	}
 
 cleanup:
-	return (modified);
+	return modified;
 }
 
 /*%
@@ -640,7 +640,7 @@ filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 		client_state_create(qctx, inst);
 	}
 
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }
 
 /*
@@ -658,7 +658,7 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	*resp = ISC_R_UNSET;
 
 	if (client_state == NULL) {
-		return (NS_HOOK_CONTINUE);
+		return NS_HOOK_CONTINUE;
 	}
 
 	if (inst->v4_a != NONE || inst->v6_a != NONE) {
@@ -675,7 +675,7 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 		}
 	}
 
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }
 
 /*
@@ -695,7 +695,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	*resp = ISC_R_UNSET;
 
 	if (client_state == NULL) {
-		return (NS_HOOK_CONTINUE);
+		return NS_HOOK_CONTINUE;
 	}
 
 	if (client_state->mode != BREAK_DNSSEC &&
@@ -703,7 +703,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	     (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
 	      dns_rdataset_isassociated(qctx->sigrdataset))))
 	{
-		return (NS_HOOK_CONTINUE);
+		return NS_HOOK_CONTINUE;
 	}
 
 	if (qctx->qtype == dns_rdatatype_a) {
@@ -776,11 +776,11 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 
 		*resp = result;
 
-		return (NS_HOOK_RETURN);
+		return NS_HOOK_RETURN;
 	}
 
 	*resp = result;
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }
 
 /*
@@ -813,7 +813,7 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 		process_section(&filter_answer);
 	}
 
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }
 
 /*
@@ -850,7 +850,7 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 		}
 	}
 
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }
 
 /*
@@ -865,10 +865,10 @@ filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
 	*resp = ISC_R_UNSET;
 
 	if (!qctx->detach_client) {
-		return (NS_HOOK_CONTINUE);
+		return NS_HOOK_CONTINUE;
 	}
 
 	client_state_destroy(qctx, inst);
 
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }

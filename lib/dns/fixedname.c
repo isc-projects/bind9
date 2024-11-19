@@ -29,11 +29,11 @@ dns_fixedname_invalidate(dns_fixedname_t *fixed) {
 
 dns_name_t *
 dns_fixedname_name(dns_fixedname_t *fixed) {
-	return (&fixed->name);
+	return &fixed->name;
 }
 
 dns_name_t *
 dns_fixedname_initname(dns_fixedname_t *fixed) {
 	dns_fixedname_init(fixed);
-	return (dns_fixedname_name(fixed));
+	return dns_fixedname_name(fixed);
 }

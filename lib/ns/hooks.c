@@ -74,11 +74,11 @@ ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {
 	}
 
 	if (result < 0) {
-		return (isc_errno_toresult(errno));
+		return isc_errno_toresult(errno);
 	} else if ((size_t)result >= dstsize) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	} else {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 }
 
@@ -102,12 +102,12 @@ load_symbol(uv_lib_t *handle, const char *modpath, const char *symbol_name,
 			      "failed to look up symbol %s in "
 			      "plugin '%s': %s",
 			      symbol_name, modpath, errmsg);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	*symbolp = symbol;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -168,7 +168,7 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
 
 	*pluginp = plugin;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
@@ -177,7 +177,7 @@ cleanup:
 
 	unload_plugin(&plugin);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -230,7 +230,7 @@ cleanup:
 		unload_plugin(&plugin);
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -250,7 +250,7 @@ cleanup:
 		unload_plugin(&plugin);
 	}
 
-	return (result);
+	return result;
 }
 
 void
@@ -274,7 +274,7 @@ ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep) {
 
 	*tablep = hooktable;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

@@ -100,7 +100,7 @@ dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 	dns64->mctx = NULL;
 	isc_mem_attach(mctx, &dns64->mctx);
 	*dns64p = dns64;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -137,23 +137,23 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 	if ((dns64->flags & DNS_DNS64_RECURSIVE_ONLY) != 0 &&
 	    (flags & DNS_DNS64_RECURSIVE) == 0)
 	{
-		return (DNS_R_DISALLOWED);
+		return DNS_R_DISALLOWED;
 	}
 
 	if ((dns64->flags & DNS_DNS64_BREAK_DNSSEC) == 0 &&
 	    (flags & DNS_DNS64_DNSSEC) != 0)
 	{
-		return (DNS_R_DISALLOWED);
+		return DNS_R_DISALLOWED;
 	}
 
 	if (dns64->clients != NULL && reqaddr != NULL) {
 		result = dns_acl_match(reqaddr, reqsigner, dns64->clients, env,
 				       &match, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		if (match <= 0) {
-			return (DNS_R_DISALLOWED);
+			return DNS_R_DISALLOWED;
 		}
 	}
 
@@ -166,10 +166,10 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		result = dns_acl_match(&netaddr, NULL, dns64->mapped, env,
 				       &match, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		if (match <= 0) {
-			return (DNS_R_DISALLOWED);
+			return DNS_R_DISALLOWED;
 		}
 	}
 
@@ -191,13 +191,13 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 	}
 	/* Copy suffix. */
 	memmove(aaaa + nbytes, dns64->bits + nbytes, 16 - nbytes);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 dns_dns64_t *
 dns_dns64_next(dns_dns64_t *dns64) {
 	dns64 = ISC_LIST_NEXT(dns64, link);
-	return (dns64);
+	return dns64;
 }
 
 void
@@ -321,7 +321,7 @@ done:
 			aaaaok[i] = true;
 		}
 	}
-	return (found ? answer : true);
+	return found ? answer : true;
 }
 
 /*
@@ -387,7 +387,7 @@ search(const dns_rdata_t *rd1, const dns_rdata_t *rd2, unsigned int plen) {
 			/* Does the prefix match? */
 			while ((j * 8U) < plen) {
 				if (rd1->data[j] != rd2->data[j]) {
-					return (0);
+					return 0;
 				}
 				j++;
 			}
@@ -402,13 +402,13 @@ search(const dns_rdata_t *rd1, const dns_rdata_t *rd2, unsigned int plen) {
 			}
 		}
 		if (j == 16U) {
-			return (prefixes[i].plen);
+			return prefixes[i].plen;
 		}
 		if (rd2 != NULL) {
-			return (0);
+			return 0;
 		}
 	}
-	return (0);
+	return 0;
 }
 
 isc_result_t
@@ -473,12 +473,12 @@ dns_dns64_findprefix(dns_rdataset_t *rdataset, isc_netprefix_t *prefix,
 		}
 	}
 	if (count == 0U) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	if (count > *len) {
 		*len = count;
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	*len = count;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

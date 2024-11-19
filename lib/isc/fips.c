@@ -20,36 +20,36 @@
 #include <openssl/evp.h>
 bool
 isc_fips_mode(void) {
-	return (EVP_default_properties_is_fips_enabled(NULL) != 0);
+	return EVP_default_properties_is_fips_enabled(NULL) != 0;
 }
 
 isc_result_t
 isc_fips_set_mode(int mode) {
-	return (EVP_default_properties_enable_fips(NULL, mode) != 0
-			? ISC_R_SUCCESS
-			: ISC_R_FAILURE);
+	return EVP_default_properties_enable_fips(NULL, mode) != 0
+		       ? ISC_R_SUCCESS
+		       : ISC_R_FAILURE;
 }
 #elif defined(HAVE_FIPS_MODE)
 #include <openssl/crypto.h>
 
 bool
 isc_fips_mode(void) {
-	return (FIPS_mode() != 0);
+	return FIPS_mode() != 0;
 }
 
 isc_result_t
 isc_fips_set_mode(int mode) {
-	return (FIPS_mode_set(mode) != 0 ? ISC_R_SUCCESS : ISC_R_FAILURE);
+	return FIPS_mode_set(mode) != 0 ? ISC_R_SUCCESS : ISC_R_FAILURE;
 }
 #else
 bool
 isc_fips_mode(void) {
-	return (false);
+	return false;
 }
 
 isc_result_t
 isc_fips_set_mode(int mode) {
 	UNUSED(mode);
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 #endif

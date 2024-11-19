@@ -31,29 +31,29 @@
 static inline size_t
 smallname_length(void *pval, uint32_t ival) {
 	UNUSED(pval);
-	return (ival & 0xff);
+	return ival & 0xff;
 }
 
 static inline size_t
 smallname_labels(void *pval, uint32_t ival) {
 	UNUSED(pval);
-	return (ival >> 8);
+	return ival >> 8;
 }
 
 static inline isc_refcount_t *
 smallname_refcount(void *pval, uint32_t ival) {
 	UNUSED(ival);
-	return (pval);
+	return pval;
 }
 
 static inline uint8_t *
 smallname_ndata(void *pval, uint32_t ival) {
-	return ((uint8_t *)(smallname_refcount(pval, ival) + 1));
+	return (uint8_t *)(smallname_refcount(pval, ival) + 1);
 }
 
 static inline uint8_t *
 smallname_offsets(void *pval, uint32_t ival) {
-	return (smallname_ndata(pval, ival) + smallname_length(pval, ival));
+	return smallname_ndata(pval, ival) + smallname_length(pval, ival);
 }
 
 static void
@@ -91,7 +91,7 @@ qpkey_from_smallname(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	dns_name_t name = DNS_NAME_INITEMPTY;
 	name_from_smallname(&name, pval, ival);
-	return (dns_qpkey_fromname(key, &name));
+	return dns_qpkey_fromname(key, &name);
 }
 
 static void
@@ -191,7 +191,7 @@ load_qp(dns_qp_t *qp, const char *filename) {
 		names++;
 	}
 
-	return (names);
+	return names;
 }
 
 int
@@ -283,5 +283,5 @@ main(int argc, char **argv) {
 	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
 	isc_mem_cput(mctx, items, n, sizeof(dns_fixedname_t));
-	return (0);
+	return 0;
 }

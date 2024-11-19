@@ -393,7 +393,7 @@ formatset(dns_rdataset_t *rdataset) {
 	}
 
 	isc_buffer_putuint8(buf, 0);
-	return (buf);
+	return buf;
 }
 
 static void
@@ -503,14 +503,14 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness) {
 			vbprintf(1, "found matching %s %d %d %d\n",
 				 c ? "CDS" : "DS", ds.key_tag, ds.algorithm,
 				 ds.digest_type);
-			return (true);
+			return true;
 		} else if (strictness == TIGHT) {
 			vbprintf(0,
 				 "key does not match %s %d %d %d "
 				 "when it looks like it should\n",
 				 c ? "CDS" : "DS", ds.key_tag, ds.algorithm,
 				 ds.digest_type);
-			return (false);
+			return false;
 		}
 	}
 
@@ -519,7 +519,7 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness) {
 		 ki->rdata.type == dns_rdatatype_cdnskey ? "CDNSKEY" : "DNSKEY",
 		 ki->tag, ki->algo);
 
-	return (false);
+	return false;
 }
 
 /*
@@ -573,7 +573,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 		}
 	}
 
-	return (keytable);
+	return keytable;
 }
 
 static void
@@ -679,7 +679,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 		}
 	}
 
-	return (algo);
+	return algo;
 }
 
 /*
@@ -696,7 +696,7 @@ signed_loose(dns_secalg_t *algo) {
 		}
 	}
 	isc_mem_cput(mctx, algo, nkey, sizeof(algo[0]));
-	return (ok);
+	return ok;
 }
 
 /*
@@ -738,7 +738,7 @@ signed_strict(dns_rdataset_t *dsset, dns_secalg_t *algo) {
 	}
 
 	isc_mem_cput(mctx, algo, nkey, sizeof(algo[0]));
-	return (all_ok);
+	return all_ok;
 }
 
 /*
@@ -759,10 +759,10 @@ ds_from_cds(isc_buffer_t *buf, dns_rdata_t *rds, dns_dsdigest_t dt,
 	ds.common.rdtype = dns_rdatatype_ds;
 
 	if (ds.digest_type != dt) {
-		return (ISC_R_IGNORE);
+		return ISC_R_IGNORE;
 	}
 
-	return (dns_rdata_fromstruct(rds, rdclass, dns_rdatatype_ds, &ds, buf));
+	return dns_rdata_fromstruct(rds, rdclass, dns_rdatatype_ds, &ds, buf);
 }
 
 static isc_result_t
@@ -775,7 +775,7 @@ ds_from_cdnskey(isc_buffer_t *buf, dns_rdata_t *ds, dns_dsdigest_t dt,
 
 	isc_buffer_availableregion(buf, &r);
 	if (r.length < DNS_DS_BUFFERSIZE) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	result = dns_ds_buildrdata(name, cdnskey, dt, r.base, ds);
@@ -783,7 +783,7 @@ ds_from_cdnskey(isc_buffer_t *buf, dns_rdata_t *ds, dns_dsdigest_t dt,
 		isc_buffer_add(buf, DNS_DS_BUFFERSIZE);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -814,14 +814,14 @@ append_new_ds_set(ds_maker_func_t *ds_from_rdata, isc_buffer_t *buf,
 			continue;
 		case ISC_R_NOSPACE:
 			isc_mem_put(mctx, ds, sizeof(*ds));
-			return (result);
+			return result;
 		default:
 			isc_mem_put(mctx, ds, sizeof(*ds));
 			check_result(result, "ds_from_rdata()");
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -866,8 +866,8 @@ make_new_ds_set(ds_maker_func_t *ds_from_rdata, uint32_t ttl,
 
 static int
 rdata_cmp(const void *rdata1, const void *rdata2) {
-	return (dns_rdata_compare((const dns_rdata_t *)rdata1,
-				  (const dns_rdata_t *)rdata2));
+	return dns_rdata_compare((const dns_rdata_t *)rdata1,
+				 (const dns_rdata_t *)rdata2);
 }
 
 /*
@@ -948,7 +948,7 @@ consistent_digests(dns_rdataset_t *dsset) {
 	isc_mem_cput(mctx, ds, n, sizeof(dns_rdata_ds_t));
 	isc_mem_cput(mctx, arrdata, n, sizeof(dns_rdata_t));
 
-	return (match);
+	return match;
 }
 
 static void
@@ -1339,5 +1339,5 @@ cleanup:
 	print_mem_stats = true;
 	cleanup();
 
-	return (0);
+	return 0;
 }

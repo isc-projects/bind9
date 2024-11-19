@@ -43,7 +43,7 @@ isc_utf8_valid(const unsigned char *buf, size_t len) {
 			w = (buf[i] & 0x1f) << 6;
 			w |= (buf[++i] & 0x3f);
 			if (w < 0x80) {
-				return (false);
+				return false;
 			}
 			continue;
 		}
@@ -55,7 +55,7 @@ isc_utf8_valid(const unsigned char *buf, size_t len) {
 			w |= (buf[++i] & 0x3f) << 6;
 			w |= (buf[++i] & 0x3f);
 			if (w < 0x0800) {
-				return (false);
+				return false;
 			}
 			continue;
 		}
@@ -69,13 +69,13 @@ isc_utf8_valid(const unsigned char *buf, size_t len) {
 			w |= (buf[++i] & 0x3f) << 6;
 			w |= (buf[++i] & 0x3f);
 			if (w < 0x10000 || w > 0x10FFFF) {
-				return (false);
+				return false;
 			}
 			continue;
 		}
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 bool
@@ -83,7 +83,7 @@ isc_utf8_bom(const unsigned char *buf, size_t len) {
 	REQUIRE(buf != NULL);
 
 	if (len >= 3U && !memcmp(buf, "\xef\xbb\xbf", 3)) {
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }

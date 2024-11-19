@@ -38,7 +38,7 @@ setup_test(void **state) {
 	setup_loopmgr(state);
 	setup_netmgr(state);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -46,7 +46,7 @@ teardown_test(void **state) {
 	teardown_netmgr(state);
 	teardown_loopmgr(state);
 
-	return (0);
+	return 0;
 }
 
 /* create zone manager */

@@ -65,7 +65,7 @@ ux_socket_connect(const char *path) {
 			  "ssu_external: socket path '%s' "
 			  "longer than system maximum %zu",
 			  path, sizeof(addr.sun_path));
-		return (-1);
+		return -1;
 	}
 
 	memset(&addr, 0, sizeof(addr));
@@ -78,7 +78,7 @@ ux_socket_connect(const char *path) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to create socket - %s",
 			  strbuf);
-		return (-1);
+		return -1;
 	}
 
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
@@ -89,9 +89,9 @@ ux_socket_connect(const char *path) {
 			  "socket '%s' - %s",
 			  path, strbuf);
 		close(fd);
-		return (-1);
+		return -1;
 	}
-	return (fd);
+	return fd;
 }
 
 /* Change this version if you update the format of the request */
@@ -136,13 +136,13 @@ dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
 	if (strncmp(b_identity, "local:", 6) != 0) {
 		ssu_e_log(3, "ssu_external: invalid socket path '%s'",
 			  b_identity);
-		return (false);
+		return false;
 	}
 	sock_path = &b_identity[6];
 
 	fd = ux_socket_connect(sock_path);
 	if (fd == -1) {
-		return (false);
+		return false;
 	}
 
 	if (key != NULL) {
@@ -220,7 +220,7 @@ dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
 		ssu_e_log(3, "ssu_external: unable to send request - %s",
 			  strbuf);
 		close(fd);
-		return (false);
+		return false;
 	}
 
 	/* Receive the reply */
@@ -231,7 +231,7 @@ dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
 		ssu_e_log(3, "ssu_external: unable to receive reply - %s",
 			  strbuf);
 		close(fd);
-		return (false);
+		return false;
 	}
 
 	close(fd);
@@ -241,14 +241,14 @@ dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
 	if (reply == 0) {
 		ssu_e_log(3, "ssu_external: denied external auth for '%s'",
 			  b_name);
-		return (false);
+		return false;
 	} else if (reply == 1) {
 		ssu_e_log(3, "ssu_external: allowed external auth for '%s'",
 			  b_name);
-		return (true);
+		return true;
 	}
 
 	ssu_e_log(3, "ssu_external: invalid reply 0x%08x", reply);
 
-	return (false);
+	return false;
 }

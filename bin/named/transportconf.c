@@ -131,12 +131,12 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 				       dns_transport_set_remote_hostname);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 failure:
 	cfg_obj_log(doh, ISC_LOG_ERROR, "configuring DoH '%s': %s", dohid,
 		    isc_result_totext(result));
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -184,12 +184,12 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 				       dns_transport_set_remote_hostname);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 failure:
 	cfg_obj_log(tls, ISC_LOG_ERROR, "configuring tls '%s': %s", tlsid,
 		    isc_result_totext(result));
 
-	return (result);
+	return result;
 }
 
 #define CHECK(f)                             \
@@ -216,7 +216,7 @@ transport_list_fromconfig(const cfg_obj_t *config, dns_transport_list_t *list) {
 		obj = NULL;
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -258,8 +258,8 @@ named_transports_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	*listp = list;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 failure:
 	dns_transport_list_detach(&list);
-	return (result);
+	return result;
 }

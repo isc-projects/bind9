@@ -60,7 +60,7 @@
  */
 int
 isc_string_strerror_r(int errnum, char *buf, size_t buflen) {
-	return (strerror_r(errnum, buf, buflen));
+	return strerror_r(errnum, buf, buflen);
 }
 
 #if !defined(HAVE_STRLCPY)
@@ -88,7 +88,7 @@ strlcpy(char *dst, const char *src, size_t size) {
 		}
 	}
 
-	return (s - src - 1); /* count does not include NUL */
+	return s - src - 1; /* count does not include NUL */
 }
 #endif /* !defined(HAVE_STRLCPY) */
 
@@ -108,7 +108,7 @@ strlcat(char *dst, const char *src, size_t size) {
 	n = size - dlen;
 
 	if (n == 0U) {
-		return (dlen + strlen(s));
+		return dlen + strlen(s);
 	}
 	while (*s != '\0') {
 		if (n != 1U) {
@@ -119,7 +119,7 @@ strlcat(char *dst, const char *src, size_t size) {
 	}
 	*d = '\0';
 
-	return (dlen + (s - src)); /* count does not include NUL */
+	return dlen + (s - src); /* count does not include NUL */
 }
 #endif /* !defined(HAVE_STRLCAT) */
 
@@ -134,15 +134,15 @@ strnstr(const char *s, const char *find, size_t slen) {
 		do {
 			do {
 				if (slen-- < 1 || (sc = *s++) == '\0') {
-					return (NULL);
+					return NULL;
 				}
 			} while (sc != c);
 			if (len > slen) {
-				return (NULL);
+				return NULL;
 			}
 		} while (strncmp(s, find, len) != 0);
 		s--;
 	}
-	return ((char *)s);
+	return (char *)s;
 }
 #endif

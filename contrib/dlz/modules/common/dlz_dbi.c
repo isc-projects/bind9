@@ -95,10 +95,10 @@ build_querylist(const char *query_str, char **zone, char **record,
 	if (query_str == NULL || strlen(query_str) < 1) {
 		if ((flags & REQUIRE_QUERY) == 0) {
 			/* we don't need it were ok. */
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		} else {
 			/* we did need it, PROBLEM!!! */
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 	}
 
@@ -106,7 +106,7 @@ build_querylist(const char *query_str, char **zone, char **record,
 	tql = calloc(1, sizeof(query_list_t));
 	/* couldn't allocate memory.  Problem!! */
 	if (tql == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	/* initialize the query segment list */
@@ -236,7 +236,7 @@ build_querylist(const char *query_str, char **zone, char **record,
 	*querylist = (query_list_t *)tql;
 
 	/* return success */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	/* get rid of temp_str */
@@ -247,7 +247,7 @@ cleanup:
 flag_fail:
 	/* get rid of what was build of the query list */
 	destroy_querylist(&tql);
-	return (result);
+	return result;
 }
 
 /*%
@@ -279,7 +279,7 @@ build_querystring(query_list_t *querylist) {
 
 	qs = malloc(length + 1);
 	if (qs == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	*qs = '\0';
@@ -297,7 +297,7 @@ build_querystring(query_list_t *querylist) {
 		tseg = DLZ_LIST_NEXT(tseg, link);
 	}
 
-	return (qs);
+	return qs;
 }
 
 /*% constructs a dbinstance (DBI) */
@@ -317,7 +317,7 @@ build_dbinstance(const char *allnodes_str, const char *allowxfr_str,
 			log(ISC_LOG_ERROR, "Could not allocate memory for "
 					   "database instance object.");
 		}
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	memset(db, 0, sizeof(dbinstance_t));
 	db->dbconn = NULL;
@@ -423,13 +423,13 @@ build_dbinstance(const char *allnodes_str, const char *allowxfr_str,
 	*dbi = (dbinstance_t *)db;
 
 	/* return success */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	/* destroy whatever was build of the db instance */
 	destroy_dbinstance(db);
 	/* return failure */
-	return (ISC_R_FAILURE);
+	return ISC_R_FAILURE;
 }
 
 void
@@ -457,19 +457,19 @@ get_parameter_value(const char *input, const char *key) {
 	int i;
 
 	if (key == NULL || input == NULL || *input == '\0') {
-		return (NULL);
+		return NULL;
 	}
 
 	keylen = strlen(key);
 
 	if (keylen < 1) {
-		return (NULL);
+		return NULL;
 	}
 
 	keystart = strstr(input, key);
 
 	if (keystart == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	for (i = 0; i < 255; i++) {
@@ -480,5 +480,5 @@ get_parameter_value(const char *input, const char *key) {
 		}
 	}
 
-	return (strdup(value));
+	return strdup(value);
 }

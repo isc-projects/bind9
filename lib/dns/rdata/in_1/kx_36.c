@@ -46,7 +46,7 @@ fromtext_in_kx(ARGS_FROMTEXT) {
 		origin = dns_rootname;
 	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -76,7 +76,7 @@ totext_in_kx(ARGS_TOTEXT) {
 	dns_name_fromregion(&name, &region);
 	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
 							 : 0;
-	return (dns_name_totext(&prefix, opts, target));
+	return dns_name_totext(&prefix, opts, target);
 }
 
 static isc_result_t
@@ -96,11 +96,11 @@ fromwire_in_kx(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	RETERR(mem_tobuffer(target, sregion.base, 2));
 	isc_buffer_forward(source, 2);
-	return (dns_name_fromwire(&name, source, dctx, target));
+	return dns_name_fromwire(&name, source, dctx, target);
 }
 
 static isc_result_t
@@ -121,7 +121,7 @@ towire_in_kx(ARGS_TOWIRE) {
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
 
-	return (dns_name_towire(&name, cctx, target, NULL));
+	return dns_name_towire(&name, cctx, target, NULL);
 }
 
 static int
@@ -141,7 +141,7 @@ compare_in_kx(ARGS_COMPARE) {
 
 	order = memcmp(rdata1->data, rdata2->data, 2);
 	if (order != 0) {
-		return (order < 0 ? -1 : 1);
+		return order < 0 ? -1 : 1;
 	}
 
 	dns_name_init(&name1, NULL);
@@ -156,7 +156,7 @@ compare_in_kx(ARGS_COMPARE) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_rdatacompare(&name1, &name2));
+	return dns_name_rdatacompare(&name1, &name2);
 }
 
 static isc_result_t
@@ -175,7 +175,7 @@ fromstruct_in_kx(ARGS_FROMSTRUCT) {
 
 	RETERR(uint16_tobuffer(kx->preference, target));
 	dns_name_toregion(&kx->exchange, &region);
-	return (isc_buffer_copyregion(target, &region));
+	return isc_buffer_copyregion(target, &region);
 }
 
 static isc_result_t
@@ -203,7 +203,7 @@ tostruct_in_kx(ARGS_TOSTRUCT) {
 	dns_name_init(&kx->exchange, NULL);
 	name_duporclone(&name, mctx, &kx->exchange);
 	kx->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -238,7 +238,7 @@ additionaldata_in_kx(ARGS_ADDLDATA) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	return ((add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE));
+	return (add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE);
 }
 
 static isc_result_t
@@ -256,7 +256,7 @@ digest_in_kx(ARGS_DIGEST) {
 	RETERR((digest)(arg, &r1));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
-	return (dns_name_digest(&name, digest, arg));
+	return dns_name_digest(&name, digest, arg);
 }
 
 static bool
@@ -269,7 +269,7 @@ checkowner_in_kx(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -281,12 +281,12 @@ checknames_in_kx(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_in_kx(ARGS_COMPARE) {
-	return (compare_in_kx(rdata1, rdata2));
+	return compare_in_kx(rdata1, rdata2);
 }
 
 #endif /* RDATA_IN_1_KX_36_C */

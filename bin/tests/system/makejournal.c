@@ -40,20 +40,20 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 
 	result = dns_name_fromstring(name, origin, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_db_create(mctx, ZONEDB_DEFAULT, name, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, db);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_db_load(*db, filename, dns_masterformat_text, 0);
 	if (result == DNS_R_SEENINCLUDE) {
 		result = ISC_R_SUCCESS;
 	}
-	return (result);
+	return result;
 }
 
 int
@@ -65,7 +65,7 @@ main(int argc, char **argv) {
 
 	if (argc != 5) {
 		printf("usage: %s origin file1 file2 journal\n", argv[0]);
-		return (1);
+		return 1;
 	}
 
 	origin = argv[1];
@@ -112,5 +112,5 @@ cleanup:
 		isc_mem_destroy(&mctx);
 	}
 
-	return (result != ISC_R_SUCCESS ? 1 : 0);
+	return result != ISC_R_SUCCESS ? 1 : 0;
 }

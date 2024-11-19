@@ -102,10 +102,10 @@ impfind(const char *name) {
 	     imp = ISC_LIST_NEXT(imp, link))
 	{
 		if (strcasecmp(name, imp->name) == 0) {
-			return (imp);
+			return imp;
 		}
 	}
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -142,7 +142,7 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 		fprintf(stderr, "dns_db_create:%s:%s:%d:%p->references = 1\n",
 			__func__, __FILE__, __LINE__ + 1, *dbp);
 #endif
-		return (result);
+		return result;
 	}
 
 	RWUNLOCK(&implock, isc_rwlocktype_read);
@@ -150,7 +150,7 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DB, ISC_LOG_ERROR,
 		      "unsupported database type '%s'", db_type);
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 static void
@@ -173,10 +173,10 @@ dns_db_iscache(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & DNS_DBATTR_CACHE) != 0) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 bool
@@ -188,10 +188,10 @@ dns_db_iszone(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & (DNS_DBATTR_CACHE | DNS_DBATTR_STUB)) == 0) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 bool
@@ -203,10 +203,10 @@ dns_db_isstub(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & DNS_DBATTR_STUB) != 0) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 bool
@@ -219,9 +219,9 @@ dns_db_issecure(dns_db_t *db) {
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 
 	if (db->methods->issecure != NULL) {
-		return ((db->methods->issecure)(db));
+		return (db->methods->issecure)(db);
 	}
-	return (false);
+	return false;
 }
 
 bool
@@ -234,10 +234,10 @@ dns_db_ispersistent(dns_db_t *db) {
 
 	if (db->methods->beginload == NULL) {
 		/* If the database can't be loaded, assume it's persistent */
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 dns_name_t *
@@ -248,7 +248,7 @@ dns_db_origin(dns_db_t *db) {
 
 	REQUIRE(DNS_DB_VALID(db));
 
-	return (&db->origin);
+	return &db->origin;
 }
 
 dns_rdataclass_t
@@ -259,7 +259,7 @@ dns_db_class(dns_db_t *db) {
 
 	REQUIRE(DNS_DB_VALID(db));
 
-	return (db->rdclass);
+	return db->rdclass;
 }
 
 isc_result_t
@@ -272,9 +272,9 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	REQUIRE(DNS_CALLBACK_VALID(callbacks));
 
 	if (db->methods->beginload != NULL) {
-		return ((db->methods->beginload)(db, callbacks));
+		return (db->methods->beginload)(db, callbacks);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -295,10 +295,10 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	call_updatenotify(db);
 
 	if (db->methods->endload != NULL) {
-		return ((db->methods->endload)(db, callbacks));
+		return (db->methods->endload)(db, callbacks);
 	}
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -320,7 +320,7 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
 	dns_rdatacallbacks_init(&callbacks);
 	result = dns_db_beginload(db, &callbacks);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	result = dns_master_loadfile(filename, &db->origin, &db->origin,
 				     db->rdclass, options, 0, &callbacks, NULL,
@@ -337,7 +337,7 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
 		result = eresult;
 	}
 
-	return (result);
+	return result;
 }
 
 /***
@@ -368,9 +368,9 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	REQUIRE(versionp != NULL && *versionp == NULL);
 
 	if (db->methods->newversion != NULL) {
-		return ((db->methods->newversion)(db, versionp));
+		return (db->methods->newversion)(db, versionp);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 void
@@ -425,11 +425,11 @@ dns__db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	if (db->methods->findnode != NULL) {
-		return ((db->methods->findnode)(db, name, create,
-						nodep DNS__DB_FLARG_PASS));
+		return (db->methods->findnode)(db, name, create,
+					       nodep DNS__DB_FLARG_PASS);
 	} else {
-		return ((db->methods->findnodeext)(db, name, create, NULL, NULL,
-						   nodep DNS__DB_FLARG_PASS));
+		return (db->methods->findnodeext)(db, name, create, NULL, NULL,
+						  nodep DNS__DB_FLARG_PASS);
 	}
 }
 
@@ -447,12 +447,12 @@ dns__db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	if (db->methods->findnodeext != NULL) {
-		return ((db->methods->findnodeext)(db, name, create, methods,
-						   clientinfo,
-						   nodep DNS__DB_FLARG_PASS));
+		return (db->methods->findnodeext)(db, name, create, methods,
+						  clientinfo,
+						  nodep DNS__DB_FLARG_PASS);
 	} else {
-		return ((db->methods->findnode)(db, name, create,
-						nodep DNS__DB_FLARG_PASS));
+		return (db->methods->findnode)(db, name, create,
+					       nodep DNS__DB_FLARG_PASS);
 	}
 }
 
@@ -466,8 +466,8 @@ dns__db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
-	return ((db->methods->findnsec3node)(db, name, create,
-					     nodep DNS__DB_FLARG_PASS));
+	return (db->methods->findnsec3node)(db, name, create,
+					    nodep DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -492,13 +492,13 @@ dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 !dns_rdataset_isassociated(sigrdataset)));
 
 	if (db->methods->find != NULL) {
-		return ((db->methods->find)(db, name, version, type, options,
-					    now, nodep, foundname, rdataset,
-					    sigrdataset DNS__DB_FLARG_PASS));
+		return (db->methods->find)(db, name, version, type, options,
+					   now, nodep, foundname, rdataset,
+					   sigrdataset DNS__DB_FLARG_PASS);
 	} else {
-		return ((db->methods->findext)(
+		return (db->methods->findext)(
 			db, name, version, type, options, now, nodep, foundname,
-			NULL, NULL, rdataset, sigrdataset DNS__DB_FLARG_PASS));
+			NULL, NULL, rdataset, sigrdataset DNS__DB_FLARG_PASS);
 	}
 }
 
@@ -525,14 +525,14 @@ dns__db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 !dns_rdataset_isassociated(sigrdataset)));
 
 	if (db->methods->findext != NULL) {
-		return ((db->methods->findext)(db, name, version, type, options,
-					       now, nodep, foundname, methods,
-					       clientinfo, rdataset,
-					       sigrdataset DNS__DB_FLARG_PASS));
+		return (db->methods->findext)(db, name, version, type, options,
+					      now, nodep, foundname, methods,
+					      clientinfo, rdataset,
+					      sigrdataset DNS__DB_FLARG_PASS);
 	} else {
-		return ((db->methods->find)(db, name, version, type, options,
-					    now, nodep, foundname, rdataset,
-					    sigrdataset DNS__DB_FLARG_PASS));
+		return (db->methods->find)(db, name, version, type, options,
+					   now, nodep, foundname, rdataset,
+					   sigrdataset DNS__DB_FLARG_PASS);
 	}
 }
 
@@ -557,11 +557,11 @@ dns__db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		 !dns_rdataset_isassociated(sigrdataset)));
 
 	if (db->methods->findzonecut != NULL) {
-		return ((db->methods->findzonecut)(
+		return (db->methods->findzonecut)(
 			db, name, options, now, nodep, foundname, dcname,
-			rdataset, sigrdataset DNS__DB_FLARG_PASS));
+			rdataset, sigrdataset DNS__DB_FLARG_PASS);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 void
@@ -620,9 +620,9 @@ dns_db_createiterator(dns_db_t *db, unsigned int flags,
 		(DNS_DB_NSEC3ONLY | DNS_DB_NONSEC3));
 
 	if (db->methods->createiterator != NULL) {
-		return (db->methods->createiterator(db, flags, iteratorp));
+		return db->methods->createiterator(db, flags, iteratorp);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 /***
@@ -644,9 +644,9 @@ dns__db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		(DNS_RDATASET_VALID(sigrdataset) &&
 		 !dns_rdataset_isassociated(sigrdataset)));
 
-	return ((db->methods->findrdataset)(db, node, version, type, covers,
-					    now, rdataset,
-					    sigrdataset DNS__DB_FLARG_PASS));
+	return (db->methods->findrdataset)(db, node, version, type, covers, now,
+					   rdataset,
+					   sigrdataset DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -661,8 +661,8 @@ dns__db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(iteratorp != NULL && *iteratorp == NULL);
 
-	return ((db->methods->allrdatasets)(db, node, version, options, now,
-					    iteratorp DNS__DB_FLARG_PASS));
+	return (db->methods->allrdatasets)(db, node, version, options, now,
+					   iteratorp DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -689,11 +689,11 @@ dns__db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 !dns_rdataset_isassociated(addedrdataset)));
 
 	if (db->methods->addrdataset != NULL) {
-		return ((db->methods->addrdataset)(
+		return (db->methods->addrdataset)(
 			db, node, version, now, rdataset, options,
-			addedrdataset DNS__DB_FLARG_PASS));
+			addedrdataset DNS__DB_FLARG_PASS);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -717,11 +717,11 @@ dns__db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 		 !dns_rdataset_isassociated(newrdataset)));
 
 	if (db->methods->subtractrdataset != NULL) {
-		return ((db->methods->subtractrdataset)(
+		return (db->methods->subtractrdataset)(
 			db, node, version, rdataset, options,
-			newrdataset DNS__DB_FLARG_PASS));
+			newrdataset DNS__DB_FLARG_PASS);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -739,10 +739,10 @@ dns__db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 		((db->attributes & DNS_DBATTR_CACHE) != 0 && version == NULL));
 
 	if (db->methods->deleterdataset != NULL) {
-		return ((db->methods->deleterdataset)(
-			db, node, version, type, covers DNS__DB_FLARG_PASS));
+		return (db->methods->deleterdataset)(db, node, version, type,
+						     covers DNS__DB_FLARG_PASS);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -757,7 +757,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, uint32_t *serialp) {
 
 	result = dns_db_findnode(db, dns_db_origin(db), false, &node);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	dns_rdataset_init(&rdataset);
@@ -788,7 +788,7 @@ freerdataset:
 
 freenode:
 	dns_db_detachnode(db, &node);
-	return (result);
+	return result;
 }
 
 unsigned int
@@ -796,9 +796,9 @@ dns_db_nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if (db->methods->nodecount != NULL) {
-		return ((db->methods->nodecount)(db, tree));
+		return (db->methods->nodecount)(db, tree);
 	}
-	return (0);
+	return 0;
 }
 
 size_t
@@ -806,10 +806,10 @@ dns_db_hashsize(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if (db->methods->hashsize == NULL) {
-		return (0);
+		return 0;
 	}
 
-	return ((db->methods->hashsize)(db));
+	return (db->methods->hashsize)(db);
 }
 
 void
@@ -835,7 +835,7 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 	imp = impfind(name);
 	if (imp != NULL) {
 		RWUNLOCK(&implock, isc_rwlocktype_write);
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 
 	imp = isc_mem_get(mctx, sizeof(dns_dbimplementation_t));
@@ -850,7 +850,7 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 
 	*dbimp = imp;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -877,11 +877,11 @@ dns__db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	if (db->methods->getoriginnode != NULL) {
-		return ((db->methods->getoriginnode)(db,
-						     nodep DNS__DB_FLARG_PASS));
+		return (db->methods->getoriginnode)(db,
+						    nodep DNS__DB_FLARG_PASS);
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 dns_stats_t *
@@ -889,10 +889,10 @@ dns_db_getrrsetstats(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if (db->methods->getrrsetstats != NULL) {
-		return ((db->methods->getrrsetstats)(db));
+		return (db->methods->getrrsetstats)(db);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 isc_result_t
@@ -900,10 +900,10 @@ dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if (db->methods->setcachestats != NULL) {
-		return ((db->methods->setcachestats)(db, stats));
+		return (db->methods->setcachestats)(db, stats);
 	}
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -915,12 +915,12 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 	REQUIRE(dns_db_iszone(db));
 
 	if (db->methods->getnsec3parameters != NULL) {
-		return ((db->methods->getnsec3parameters)(db, version, hash,
-							  flags, iterations,
-							  salt, salt_length));
+		return (db->methods->getnsec3parameters)(db, version, hash,
+							 flags, iterations,
+							 salt, salt_length);
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t
@@ -930,29 +930,29 @@ dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
 	REQUIRE(dns_db_iszone(db));
 
 	if (db->methods->getsize != NULL) {
-		return ((db->methods->getsize)(db, version, records, bytes));
+		return (db->methods->getsize)(db, version, records, bytes);
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t
 dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 		      isc_stdtime_t resign) {
 	if (db->methods->setsigningtime != NULL) {
-		return ((db->methods->setsigningtime)(db, rdataset, resign));
+		return (db->methods->setsigningtime)(db, rdataset, resign);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
 dns_db_getsigningtime(dns_db_t *db, isc_stdtime_t *resign, dns_name_t *name,
 		      dns_typepair_t *typepair) {
 	if (db->methods->getsigningtime != NULL) {
-		return ((db->methods->getsigningtime)(db, resign, name,
-						      typepair));
+		return (db->methods->getsigningtime)(db, resign, name,
+						     typepair);
 	}
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 static void
@@ -986,8 +986,8 @@ updatenotify_match(struct cds_lfht_node *ht_node, const void *_key) {
 		caa_container_of(ht_node, dns_dbonupdatelistener_t, ht_node);
 	const dns_dbonupdatelistener_t *key = _key;
 
-	return (listener->onupdate == key->onupdate &&
-		listener->onupdate_arg == key->onupdate_arg);
+	return listener->onupdate == key->onupdate &&
+	       listener->onupdate_arg == key->onupdate_arg;
 }
 
 /*
@@ -1054,9 +1054,9 @@ dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl) {
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
 
 	if (db->methods->setservestalettl != NULL) {
-		return ((db->methods->setservestalettl)(db, ttl));
+		return (db->methods->setservestalettl)(db, ttl);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -1065,9 +1065,9 @@ dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl) {
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
 
 	if (db->methods->getservestalettl != NULL) {
-		return ((db->methods->getservestalettl)(db, ttl));
+		return (db->methods->getservestalettl)(db, ttl);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -1076,9 +1076,9 @@ dns_db_setservestalerefresh(dns_db_t *db, uint32_t interval) {
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
 
 	if (db->methods->setservestalerefresh != NULL) {
-		return ((db->methods->setservestalerefresh)(db, interval));
+		return (db->methods->setservestalerefresh)(db, interval);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -1087,9 +1087,9 @@ dns_db_getservestalerefresh(dns_db_t *db, uint32_t *interval) {
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
 
 	if (db->methods->getservestalerefresh != NULL) {
-		return ((db->methods->getservestalerefresh)(db, interval));
+		return (db->methods->getservestalerefresh)(db, interval);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -1098,10 +1098,10 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 	REQUIRE(stats != NULL);
 
 	if (db->methods->setgluecachestats != NULL) {
-		return ((db->methods->setgluecachestats)(db, stats));
+		return (db->methods->setgluecachestats)(db, stats);
 	}
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -1116,10 +1116,10 @@ dns_db_addglue(dns_db_t *db, dns_dbversion_t *version, dns_rdataset_t *rdataset,
 	if (db->methods->addglue != NULL) {
 		(db->methods->addglue)(db, version, rdataset, msg);
 
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 void
@@ -1157,9 +1157,9 @@ dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
 	REQUIRE(name != NULL);
 
 	if (db->methods->nodefullname != NULL) {
-		return ((db->methods->nodefullname)(db, node, name));
+		return (db->methods->nodefullname)(db, node, name);
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 void

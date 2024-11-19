@@ -238,7 +238,7 @@ static void *
 quota_release(void *arg) {
 	uv_sleep(10);
 	isc_quota_release((isc_quota_t *)arg);
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -263,7 +263,7 @@ quota_thread(void *qtip) {
 					  &g_threads[tnum]);
 		}
 	}
-	return (NULL);
+	return NULL;
 }
 
 ISC_RUN_TEST_IMPL(isc_quota_callback_mt) {

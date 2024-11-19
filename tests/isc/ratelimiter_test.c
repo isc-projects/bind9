@@ -282,10 +282,10 @@ setup_test(void **state) {
 
 	r = setup_loopmgr(state);
 	if (r != 0) {
-		return (r);
+		return r;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -294,10 +294,10 @@ teardown_test(void **state) {
 
 	r = teardown_loopmgr(state);
 	if (r != 0) {
-		return (r);
+		return r;
 	}
 
-	return (0);
+	return 0;
 }
 
 ISC_TEST_LIST_START

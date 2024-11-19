@@ -83,7 +83,7 @@ new_forwarders(isc_mem_t *mctx, const dns_name_t *name,
 
 	dns_name_dupwithoffsets(name, mctx, &forwarders->name);
 
-	return (forwarders);
+	return forwarders;
 }
 
 isc_result_t
@@ -123,7 +123,7 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 
 	dns_forwarders_detach(&forwarders);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -155,7 +155,7 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 
 	dns_forwarders_detach(&forwarders);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -176,7 +176,7 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	}
 	dns_qpread_destroy(fwdtable->table, &qpr);
 
-	return (result);
+	return result;
 }
 
 void
@@ -241,7 +241,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns_forwarders_t *fwd = pval;
-	return (dns_qpkey_fromname(key, &fwd->name));
+	return dns_qpkey_fromname(key, &fwd->name);
 }
 
 static void

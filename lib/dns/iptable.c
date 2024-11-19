@@ -59,7 +59,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 	result = isc_radix_insert(tab->radix, &node, NULL, &pfx);
 	if (result != ISC_R_SUCCESS) {
 		isc_refcount_destroy(&pfx.refcount);
-		return (result);
+		return result;
 	}
 
 	/* If a node already contains data, don't overwrite it */
@@ -82,7 +82,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 	}
 
 	isc_refcount_destroy(&pfx.refcount);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -99,7 +99,7 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos) {
 		result = isc_radix_insert(tab->radix, &new_node, node, NULL);
 
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 
 		/*
@@ -124,7 +124,7 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos) {
 	RADIX_WALK_END;
 
 	tab->radix->num_added_node += max_node;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void

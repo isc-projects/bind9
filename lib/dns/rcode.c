@@ -191,12 +191,12 @@ str_totext(const char *source, isc_buffer_t *target) {
 	l = strlen(source);
 
 	if (l > region.length) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	memmove(region.base, source, l);
 	isc_buffer_add(target, l);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -210,7 +210,7 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source, unsigned int max,
 	if (!isdigit((unsigned char)source->base[0]) ||
 	    source->length > NUMBERSIZE - 1)
 	{
-		return (ISC_R_BADNUMBER);
+		return ISC_R_BADNUMBER;
 	}
 
 	/*
@@ -221,7 +221,7 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source, unsigned int max,
 	v = snprintf(buffer, sizeof(buffer), "%.*s", (int)source->length,
 		     source->base);
 	if (v < 0 || (unsigned int)v != source->length) {
-		return (ISC_R_BADNUMBER);
+		return ISC_R_BADNUMBER;
 	}
 	INSIST(buffer[source->length] == '\0');
 
@@ -230,13 +230,13 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source, unsigned int max,
 		result = isc_parse_uint32(&n, buffer, 16);
 	}
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	if (n > max) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	*valuep = n;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -247,7 +247,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 
 	result = maybe_numeric(valuep, source, max, false);
 	if (result != ISC_R_BADNUMBER) {
-		return (result);
+		return result;
 	}
 
 	for (i = 0; table[i].name != NULL; i++) {
@@ -257,10 +257,10 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 		    strncasecmp(source->base, table[i].name, n) == 0)
 		{
 			*valuep = table[i].value;
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
-	return (DNS_R_UNKNOWN);
+	return DNS_R_UNKNOWN;
 }
 
 static isc_result_t
@@ -270,12 +270,12 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
 	char buf[sizeof("4294967296")];
 	while (table[i].name != NULL) {
 		if (table[i].value == value) {
-			return (str_totext(table[i].name, target));
+			return str_totext(table[i].name, target);
 		}
 		i++;
 	}
 	snprintf(buf, sizeof(buf), "%u", value);
-	return (str_totext(buf, target));
+	return str_totext(buf, target);
 }
 
 isc_result_t
@@ -283,12 +283,12 @@ dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, rcodes, 0xffff));
 	*rcodep = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(rcode, target, rcodes));
+	return dns_mnemonic_totext(rcode, target, rcodes);
 }
 
 isc_result_t
@@ -296,12 +296,12 @@ dns_tsigrcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, tsigrcodes, 0xffff));
 	*rcodep = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_tsigrcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(rcode, target, tsigrcodes));
+	return dns_mnemonic_totext(rcode, target, tsigrcodes);
 }
 
 isc_result_t
@@ -309,12 +309,12 @@ dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, certs, 0xffff));
 	*certp = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_cert_totext(dns_cert_t cert, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(cert, target, certs));
+	return dns_mnemonic_totext(cert, target, certs);
 }
 
 isc_result_t
@@ -322,12 +322,12 @@ dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, secalgs, 0xff));
 	*secalgp = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(secalg, target, secalgs));
+	return dns_mnemonic_totext(secalg, target, secalgs);
 }
 
 void
@@ -351,12 +351,12 @@ dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, secprotos, 0xff));
 	*secprotop = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(secproto, target, secprotos));
+	return dns_mnemonic_totext(secproto, target, secprotos);
 }
 
 isc_result_t
@@ -364,7 +364,7 @@ dns_hashalg_fromtext(unsigned char *hashalg, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, hashalgs, 0xff));
 	*hashalg = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -379,10 +379,10 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source) {
 	result = maybe_numeric(&value, source, 0xffff, true);
 	if (result == ISC_R_SUCCESS) {
 		*flagsp = value;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (result != ISC_R_BADNUMBER) {
-		return (result);
+		return result;
 	}
 
 	text = source->base;
@@ -403,7 +403,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source) {
 			}
 		}
 		if (p->name == NULL) {
-			return (DNS_R_UNKNOWNFLAG);
+			return DNS_R_UNKNOWNFLAG;
 		}
 		value |= p->value;
 #ifdef notyet
@@ -418,7 +418,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source) {
 		}
 	}
 	*flagsp = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -426,12 +426,12 @@ dns_dsdigest_fromtext(dns_dsdigest_t *dsdigestp, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, dsdigests, 0xff));
 	*dsdigestp = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_dsdigest_totext(dns_dsdigest_t dsdigest, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(dsdigest, target, dsdigests));
+	return dns_mnemonic_totext(dsdigest, target, dsdigests);
 }
 
 void
@@ -494,7 +494,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 			val = strtoul(buf, &endp, 10);
 			if (*endp == '\0' && val <= 0xffff) {
 				*classp = (dns_rdataclass_t)val;
-				return (ISC_R_SUCCESS);
+				return ISC_R_SUCCESS;
 			}
 		}
 		break;
@@ -515,26 +515,26 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
 #undef COMPARE
 
-	return (DNS_R_UNKNOWN);
+	return DNS_R_UNKNOWN;
 }
 
 isc_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	switch (rdclass) {
 	case dns_rdataclass_any:
-		return (str_totext("ANY", target));
+		return str_totext("ANY", target);
 	case dns_rdataclass_chaos:
-		return (str_totext("CH", target));
+		return str_totext("CH", target);
 	case dns_rdataclass_hs:
-		return (str_totext("HS", target));
+		return str_totext("HS", target);
 	case dns_rdataclass_in:
-		return (str_totext("IN", target));
+		return str_totext("IN", target);
 	case dns_rdataclass_none:
-		return (str_totext("NONE", target));
+		return str_totext("NONE", target);
 	case dns_rdataclass_reserved0:
-		return (str_totext("RESERVED0", target));
+		return str_totext("RESERVED0", target);
 	default:
-		return (dns_rdataclass_tounknowntext(rdclass, target));
+		return dns_rdataclass_tounknowntext(rdclass, target);
 	}
 }
 
@@ -543,7 +543,7 @@ dns_rdataclass_tounknowntext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	char buf[sizeof("CLASS65535")];
 
 	snprintf(buf, sizeof(buf), "CLASS%u", rdclass);
-	return (str_totext(buf, target));
+	return str_totext(buf, target);
 }
 
 void

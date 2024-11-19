@@ -48,8 +48,8 @@ ncpus_initialize(void) {
 
 static int
 sysconf_ncpus(void) {
-	long ncpus = sysconf((_SC_NPROCESSORS_ONLN));
-	return ((int)ncpus);
+	long ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+	return (int)ncpus;
 }
 
 #if HAVE_SYSCTLBYNAME
@@ -66,10 +66,10 @@ sysctlbyname_ncpus(void) {
 	for (size_t i = 0; i < ARRAY_SIZE(mib); i++) {
 		int r = sysctlbyname(mib[i], &ncpu, &len, NULL, 0);
 		if (r != -1) {
-			return (ncpu);
+			return ncpu;
 		}
 	}
-	return (-1);
+	return -1;
 }
 #endif /* HAVE_SYSCTLBYNAME */
 
@@ -89,10 +89,10 @@ sysctl_ncpus(void) {
 		int r = sysctl(mib[i], ARRAY_SIZE(mib[i]), &ncpu, &len, NULL,
 			       0);
 		if (r != -1) {
-			return (ncpu);
+			return ncpu;
 		}
 	}
-	return (-1);
+	return -1;
 }
 #endif /* HAVE_SYS_SYSCTL_H */
 
@@ -113,9 +113,9 @@ sched_affinity_ncpus(void) {
 	cpu_set_t cpus;
 	int r = sched_getaffinity(0, sizeof(cpus), &cpus);
 	if (r != -1) {
-		return (CPU_COUNT(&cpus));
+		return CPU_COUNT(&cpus);
 	}
-	return (-1);
+	return -1;
 }
 #endif
 
@@ -132,9 +132,9 @@ cpuset_affinity_ncpus(void) {
 	int r = cpuset_getaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1,
 				   sizeof(cpus), &cpus);
 	if (r != -1) {
-		return (CPU_COUNT(&cpus));
+		return CPU_COUNT(&cpus);
 	}
-	return (-1);
+	return -1;
 }
 #endif
 
@@ -178,17 +178,17 @@ umask_initialize(void) {
 
 unsigned int
 isc_os_ncpus(void) {
-	return (isc__os_ncpus);
+	return isc__os_ncpus;
 }
 
 unsigned long
 isc_os_cacheline(void) {
-	return (isc__os_cacheline);
+	return isc__os_cacheline;
 }
 
 mode_t
 isc_os_umask(void) {
-	return (isc__os_umask);
+	return isc__os_umask;
 }
 
 void

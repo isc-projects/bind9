@@ -54,7 +54,7 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	isc_refcount_init(&kasp->references, 1);
 
 	*kaspp = kasp;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -110,7 +110,7 @@ const char *
 dns_kasp_getname(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 
-	return (kasp->name);
+	return kasp->name;
 }
 
 void
@@ -134,7 +134,7 @@ dns_kasp_signdelay(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->signatures_validity - kasp->signatures_refresh);
+	return kasp->signatures_validity - kasp->signatures_refresh;
 }
 
 uint32_t
@@ -142,7 +142,7 @@ dns_kasp_sigjitter(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->signatures_jitter);
+	return kasp->signatures_jitter;
 }
 
 void
@@ -158,7 +158,7 @@ dns_kasp_sigrefresh(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->signatures_refresh);
+	return kasp->signatures_refresh;
 }
 
 void
@@ -174,7 +174,7 @@ dns_kasp_sigvalidity(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->signatures_validity);
+	return kasp->signatures_validity;
 }
 
 void
@@ -190,7 +190,7 @@ dns_kasp_sigvalidity_dnskey(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->signatures_validity_dnskey);
+	return kasp->signatures_validity_dnskey;
 }
 
 void
@@ -206,7 +206,7 @@ dns_kasp_dnskeyttl(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->dnskey_ttl);
+	return kasp->dnskey_ttl;
 }
 
 void
@@ -222,7 +222,7 @@ dns_kasp_purgekeys(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->purge_keys);
+	return kasp->purge_keys;
 }
 
 void
@@ -238,7 +238,7 @@ dns_kasp_publishsafety(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->publish_safety);
+	return kasp->publish_safety;
 }
 
 void
@@ -254,7 +254,7 @@ dns_kasp_retiresafety(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->retire_safety);
+	return kasp->retire_safety;
 }
 
 void
@@ -270,7 +270,7 @@ dns_kasp_inlinesigning(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->inline_signing);
+	return kasp->inline_signing;
 }
 
 void
@@ -287,9 +287,9 @@ dns_kasp_zonemaxttl(dns_kasp_t *kasp, bool fallback) {
 	REQUIRE(kasp->frozen);
 
 	if (kasp->zone_max_ttl == 0 && fallback) {
-		return (DEFAULT_TTLSIG);
+		return DEFAULT_TTLSIG;
 	}
-	return (kasp->zone_max_ttl);
+	return kasp->zone_max_ttl;
 }
 
 void
@@ -305,7 +305,7 @@ dns_kasp_zonepropagationdelay(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->zone_propagation_delay);
+	return kasp->zone_propagation_delay;
 }
 
 void
@@ -321,7 +321,7 @@ dns_kasp_dsttl(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->parent_ds_ttl);
+	return kasp->parent_ds_ttl;
 }
 
 void
@@ -337,7 +337,7 @@ dns_kasp_parentpropagationdelay(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->parent_propagation_delay);
+	return kasp->parent_propagation_delay;
 }
 
 void
@@ -355,7 +355,7 @@ dns_kasplist_find(dns_kasplist_t *list, const char *name, dns_kasp_t **kaspp) {
 	REQUIRE(kaspp != NULL && *kaspp == NULL);
 
 	if (list == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	for (kasp = ISC_LIST_HEAD(*list); kasp != NULL;
@@ -367,11 +367,11 @@ dns_kasplist_find(dns_kasplist_t *list, const char *name, dns_kasp_t **kaspp) {
 	}
 
 	if (kasp == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	dns_kasp_attach(kasp, kaspp);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 dns_kasp_keylist_t
@@ -379,14 +379,14 @@ dns_kasp_keys(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->keys);
+	return kasp->keys;
 }
 
 bool
 dns_kasp_keylist_empty(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 
-	return (ISC_LIST_EMPTY(kasp->keys));
+	return ISC_LIST_EMPTY(kasp->keys);
 }
 
 void
@@ -415,7 +415,7 @@ dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp) {
 	ISC_LINK_INIT(key, link);
 
 	*keyp = key;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -432,7 +432,7 @@ uint32_t
 dns_kasp_key_algorithm(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
-	return (key->algorithm);
+	return key->algorithm;
 }
 
 unsigned int
@@ -476,47 +476,47 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 		/* unsupported */
 		break;
 	}
-	return (size);
+	return size;
 }
 
 uint32_t
 dns_kasp_key_lifetime(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
-	return (key->lifetime);
+	return key->lifetime;
 }
 
 dns_keystore_t *
 dns_kasp_key_keystore(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
-	return (key->keystore);
+	return key->keystore;
 }
 
 bool
 dns_kasp_key_ksk(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
-	return (key->role & DNS_KASP_KEY_ROLE_KSK);
+	return key->role & DNS_KASP_KEY_ROLE_KSK;
 }
 
 bool
 dns_kasp_key_zsk(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
-	return (key->role & DNS_KASP_KEY_ROLE_ZSK);
+	return key->role & DNS_KASP_KEY_ROLE_ZSK;
 }
 
 uint16_t
 dns_kasp_key_tagmin(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
-	return (key->tag_min);
+	return key->tag_min;
 }
 
 uint16_t
 dns_kasp_key_tagmax(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
-	return (key->tag_min);
+	return key->tag_min;
 }
 
 bool
@@ -529,33 +529,33 @@ dns_kasp_key_match(dns_kasp_key_t *key, dns_dnsseckey_t *dkey) {
 
 	/* Matching algorithms? */
 	if (dst_key_alg(dkey->key) != dns_kasp_key_algorithm(key)) {
-		return (false);
+		return false;
 	}
 	/* Matching length? */
 	if (dst_key_size(dkey->key) != dns_kasp_key_size(key)) {
-		return (false);
+		return false;
 	}
 	/* Matching role? */
 	ret = dst_key_getbool(dkey->key, DST_BOOL_KSK, &role);
 	if (ret != ISC_R_SUCCESS || role != dns_kasp_key_ksk(key)) {
-		return (false);
+		return false;
 	}
 	ret = dst_key_getbool(dkey->key, DST_BOOL_ZSK, &role);
 	if (ret != ISC_R_SUCCESS || role != dns_kasp_key_zsk(key)) {
-		return (false);
+		return false;
 	}
 	/* Valid key tag range? */
 	uint16_t id = dst_key_id(dkey->key);
 	uint16_t rid = dst_key_rid(dkey->key);
 	if (id < key->tag_min || id > key->tag_max) {
-		return (false);
+		return false;
 	}
 	if (rid < key->tag_min || rid > key->tag_max) {
-		return (false);
+		return false;
 	}
 
 	/* Found a match. */
-	return (true);
+	return true;
 }
 
 uint8_t
@@ -564,7 +564,7 @@ dns_kasp_nsec3iter(dns_kasp_t *kasp) {
 	REQUIRE(kasp->frozen);
 	REQUIRE(kasp->nsec3);
 
-	return (kasp->nsec3param.iterations);
+	return kasp->nsec3param.iterations;
 }
 
 uint8_t
@@ -574,9 +574,9 @@ dns_kasp_nsec3flags(dns_kasp_t *kasp) {
 	REQUIRE(kasp->nsec3);
 
 	if (kasp->nsec3param.optout) {
-		return (0x01);
+		return 0x01;
 	}
-	return (0x00);
+	return 0x00;
 }
 
 uint8_t
@@ -585,7 +585,7 @@ dns_kasp_nsec3saltlen(dns_kasp_t *kasp) {
 	REQUIRE(kasp->frozen);
 	REQUIRE(kasp->nsec3);
 
-	return (kasp->nsec3param.saltlen);
+	return kasp->nsec3param.saltlen;
 }
 
 bool
@@ -593,7 +593,7 @@ dns_kasp_nsec3(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);
 	REQUIRE(kasp->frozen);
 
-	return (kasp->nsec3);
+	return kasp->nsec3;
 }
 
 void
@@ -621,7 +621,7 @@ dns_kasp_offlineksk(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);
 	REQUIRE(kasp->frozen);
 
-	return (kasp->offlineksk);
+	return kasp->offlineksk;
 }
 
 void
@@ -637,7 +637,7 @@ dns_kasp_cdnskey(dns_kasp_t *kasp) {
 	REQUIRE(kasp != NULL);
 	REQUIRE(kasp->frozen);
 
-	return (kasp->cdnskey);
+	return kasp->cdnskey;
 }
 
 void
@@ -653,7 +653,7 @@ dns_kasp_digests(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
-	return (kasp->digests);
+	return kasp->digests;
 }
 
 void

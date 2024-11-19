@@ -79,14 +79,14 @@ const EVP_MD *isc__crypto_sha512 = NULL;
 
 static void *
 isc__crypto_malloc_ex(size_t size, const char *file, int line) {
-	return (isc__mem_allocate(isc__crypto_mctx, size, 0, file,
-				  (unsigned int)line));
+	return isc__mem_allocate(isc__crypto_mctx, size, 0, file,
+				 (unsigned int)line);
 }
 
 static void *
 isc__crypto_realloc_ex(void *ptr, size_t size, const char *file, int line) {
-	return (isc__mem_reallocate(isc__crypto_mctx, ptr, size, 0, file,
-				    (unsigned int)line));
+	return isc__mem_reallocate(isc__crypto_mctx, ptr, size, 0, file,
+				   (unsigned int)line);
 }
 
 static void
@@ -106,14 +106,14 @@ static void *
 isc__crypto_malloc_ex(size_t size, const char *file, int line) {
 	UNUSED(file);
 	UNUSED(line);
-	return (isc_mem_allocate(isc__crypto_mctx, size));
+	return isc_mem_allocate(isc__crypto_mctx, size);
 }
 
 static void *
 isc__crypto_realloc_ex(void *ptr, size_t size, const char *file, int line) {
 	UNUSED(file);
 	UNUSED(line);
-	return (isc_mem_reallocate(isc__crypto_mctx, ptr, size));
+	return isc_mem_reallocate(isc__crypto_mctx, ptr, size);
 }
 
 static void

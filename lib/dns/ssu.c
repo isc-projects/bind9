@@ -137,45 +137,45 @@ static const char *
 mtypetostring(dns_ssumatchtype_t matchtype) {
 	switch (matchtype) {
 	case dns_ssumatchtype_name:
-		return ("name");
+		return "name";
 	case dns_ssumatchtype_wildcard:
-		return ("wildcard");
+		return "wildcard";
 	case dns_ssumatchtype_self:
-		return ("self");
+		return "self";
 	case dns_ssumatchtype_selfsub:
-		return ("selfsub");
+		return "selfsub";
 	case dns_ssumatchtype_selfwild:
-		return ("selfwild");
+		return "selfwild";
 	case dns_ssumatchtype_selfms:
-		return ("ms-self");
+		return "ms-self";
 	case dns_ssumatchtype_selfsubms:
-		return ("ms-selfsub");
+		return "ms-selfsub";
 	case dns_ssumatchtype_selfkrb5:
-		return ("krb5-self");
+		return "krb5-self";
 	case dns_ssumatchtype_selfsubkrb5:
-		return ("krb5-selfsub");
+		return "krb5-selfsub";
 	case dns_ssumatchtype_subdomainms:
-		return ("ms-subdomain");
+		return "ms-subdomain";
 	case dns_ssumatchtype_subdomainselfmsrhs:
-		return ("ms-subdomain-self-rhs");
+		return "ms-subdomain-self-rhs";
 	case dns_ssumatchtype_subdomainkrb5:
-		return ("krb5-subdomain");
+		return "krb5-subdomain";
 	case dns_ssumatchtype_subdomainselfkrb5rhs:
-		return ("krb5-subdomain-self-rhs");
+		return "krb5-subdomain-self-rhs";
 	case dns_ssumatchtype_tcpself:
-		return ("tcp-self");
+		return "tcp-self";
 	case dns_ssumatchtype_6to4self:
-		return ("6to4-self");
+		return "6to4-self";
 	case dns_ssumatchtype_subdomain:
-		return ("subdomain");
+		return "subdomain";
 	case dns_ssumatchtype_external:
-		return ("external");
+		return "external";
 	case dns_ssumatchtype_local:
-		return ("local");
+		return "local";
 	case dns_ssumatchtype_dlz:
-		return ("dlz");
+		return "dlz";
 	}
-	return ("UnknownMatchType");
+	return "UnknownMatchType";
 }
 
 void
@@ -229,8 +229,8 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 
 static bool
 isusertype(dns_rdatatype_t type) {
-	return (type != dns_rdatatype_ns && type != dns_rdatatype_soa &&
-		type != dns_rdatatype_rrsig);
+	return type != dns_rdatatype_ns && type != dns_rdatatype_soa &&
+	       type != dns_rdatatype_rrsig;
 }
 
 static void
@@ -372,7 +372,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 	}
 
 	if (signer == NULL && addr == NULL) {
-		return (false);
+		return false;
 	}
 
 	for (rule = ISC_LIST_HEAD(table->rules); rule != NULL;
@@ -976,7 +976,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 				      rule->debug != NULL ? rule->debug
 							  : "not available");
 		}
-		return (rule->grant);
+		return rule->grant;
 	}
 	if (logit) {
 		isc_log_write(DNS_LOGCATEGORY_UPDATE_POLICY, DNS_LOGMODULE_SSU,
@@ -984,31 +984,31 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			      "update-policy: no match found");
 	}
 
-	return (false);
+	return false;
 }
 
 bool
 dns_ssurule_isgrant(const dns_ssurule_t *rule) {
 	REQUIRE(VALID_SSURULE(rule));
-	return (rule->grant);
+	return rule->grant;
 }
 
 dns_name_t *
 dns_ssurule_identity(const dns_ssurule_t *rule) {
 	REQUIRE(VALID_SSURULE(rule));
-	return (rule->identity);
+	return rule->identity;
 }
 
 unsigned int
 dns_ssurule_matchtype(const dns_ssurule_t *rule) {
 	REQUIRE(VALID_SSURULE(rule));
-	return (rule->matchtype);
+	return rule->matchtype;
 }
 
 dns_name_t *
 dns_ssurule_name(const dns_ssurule_t *rule) {
 	REQUIRE(VALID_SSURULE(rule));
-	return (rule->name);
+	return rule->name;
 }
 
 unsigned int
@@ -1016,7 +1016,7 @@ dns_ssurule_types(const dns_ssurule_t *rule, dns_ssuruletype_t **types) {
 	REQUIRE(VALID_SSURULE(rule));
 	REQUIRE(types != NULL && *types != NULL);
 	*types = rule->types;
-	return (rule->ntypes);
+	return rule->ntypes;
 }
 
 unsigned int
@@ -1031,10 +1031,10 @@ dns_ssurule_max(const dns_ssurule_t *rule, dns_rdatatype_t type) {
 			max = rule->types[i].max;
 		}
 		if (rule->types[i].type == type) {
-			return (rule->types[i].max);
+			return rule->types[i].max;
 		}
 	}
-	return (max);
+	return max;
 }
 
 isc_result_t
@@ -1042,7 +1042,7 @@ dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule) {
 	REQUIRE(VALID_SSUTABLE(table));
 	REQUIRE(rule != NULL && *rule == NULL);
 	*rule = ISC_LIST_HEAD(table->rules);
-	return (*rule != NULL ? ISC_R_SUCCESS : ISC_R_NOMORE);
+	return *rule != NULL ? ISC_R_SUCCESS : ISC_R_NOMORE;
 }
 
 isc_result_t
@@ -1050,7 +1050,7 @@ dns_ssutable_nextrule(dns_ssurule_t *rule, dns_ssurule_t **nextrule) {
 	REQUIRE(VALID_SSURULE(rule));
 	REQUIRE(nextrule != NULL && *nextrule == NULL);
 	*nextrule = ISC_LIST_NEXT(rule, link);
-	return (*nextrule != NULL ? ISC_R_SUCCESS : ISC_R_NOMORE);
+	return *nextrule != NULL ? ISC_R_SUCCESS : ISC_R_NOMORE;
 }
 
 /*
@@ -1124,7 +1124,7 @@ dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype) {
 	} else if (strcasecmp(str, "external") == 0) {
 		*mtype = dns_ssumatchtype_external;
 	} else {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

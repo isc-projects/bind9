@@ -248,5 +248,5 @@ cleanup:
 	}
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	return 0;
 }
