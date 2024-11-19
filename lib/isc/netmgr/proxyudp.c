@@ -200,7 +200,7 @@ proxyudp_on_header_data_cb(const isc_result_t result,
 
 unexpected:
 	isc__nm_proxyudp_failed_read_cb(proxysock, ISC_R_UNEXPECTED, false);
-};
+}
 
 static isc_nmsocket_t *
 proxyudp_sock_new(isc__networker_t *worker, const isc_nmsocket_type_t type,

@@ -218,7 +218,7 @@ proxystream_on_header_data_cb(const isc_result_t result,
 		proxystream_failed_read_cb(sock, result);
 		break;
 	};
-};
+}
 
 static void
 proxystream_handle_incoming_header_data(isc_nmsocket_t *sock,
