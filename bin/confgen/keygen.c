@@ -45,24 +45,24 @@ alg_fromtext(const char *name) {
 	}
 
 	if (strcasecmp(p, "md5") == 0) {
-		return (DST_ALG_HMACMD5);
+		return DST_ALG_HMACMD5;
 	}
 	if (strcasecmp(p, "sha1") == 0) {
-		return (DST_ALG_HMACSHA1);
+		return DST_ALG_HMACSHA1;
 	}
 	if (strcasecmp(p, "sha224") == 0) {
-		return (DST_ALG_HMACSHA224);
+		return DST_ALG_HMACSHA224;
 	}
 	if (strcasecmp(p, "sha256") == 0) {
-		return (DST_ALG_HMACSHA256);
+		return DST_ALG_HMACSHA256;
 	}
 	if (strcasecmp(p, "sha384") == 0) {
-		return (DST_ALG_HMACSHA384);
+		return DST_ALG_HMACSHA384;
 	}
 	if (strcasecmp(p, "sha512") == 0) {
-		return (DST_ALG_HMACSHA512);
+		return DST_ALG_HMACSHA512;
 	}
-	return (DST_ALG_UNKNOWN);
+	return DST_ALG_UNKNOWN;
 }
 
 /*%
@@ -72,19 +72,19 @@ int
 alg_bits(dns_secalg_t alg) {
 	switch (alg) {
 	case DST_ALG_HMACMD5:
-		return (128);
+		return 128;
 	case DST_ALG_HMACSHA1:
-		return (160);
+		return 160;
 	case DST_ALG_HMACSHA224:
-		return (224);
+		return 224;
 	case DST_ALG_HMACSHA256:
-		return (256);
+		return 256;
 	case DST_ALG_HMACSHA384:
-		return (384);
+		return 384;
 	case DST_ALG_HMACSHA512:
-		return (512);
+		return 512;
 	default:
-		return (0);
+		return 0;
 	}
 }
 

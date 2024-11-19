@@ -74,7 +74,7 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	fd = socket(AF_INET6, family, 0);
 	if (fd < 0) {
 		perror("setup_ephemeral_port: socket()");
-		return (-1);
+		return -1;
 	}
 
 	r = bind(fd, (const struct sockaddr *)&addr->type.sa,
@@ -82,14 +82,14 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	if (r != 0) {
 		perror("setup_ephemeral_port: bind()");
 		close(fd);
-		return (r);
+		return r;
 	}
 
 	r = getsockname(fd, (struct sockaddr *)&addr->type.sa, &addrlen);
 	if (r != 0) {
 		perror("setup_ephemeral_port: getsockname()");
 		close(fd);
-		return (r);
+		return r;
 	}
 
 #if IPV6_RECVERR
@@ -100,11 +100,11 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	if (r != 0) {
 		perror("setup_ephemeral_port");
 		close(fd);
-		return (r);
+		return r;
 	}
 #endif
 
-	return (fd);
+	return fd;
 }
 
 static void
@@ -124,14 +124,14 @@ _setup(void **state) {
 	udp_server_addr = (isc_sockaddr_t){ .length = 0 };
 	sock = setup_ephemeral_port(&udp_server_addr, SOCK_DGRAM);
 	if (sock < 0) {
-		return (-1);
+		return -1;
 	}
 	close(sock);
 
 	tcp_server_addr = (isc_sockaddr_t){ .length = 0 };
 	sock = setup_ephemeral_port(&tcp_server_addr, SOCK_STREAM);
 	if (sock < 0) {
-		return (-1);
+		return -1;
 	}
 	close(sock);
 
@@ -155,7 +155,7 @@ _setup(void **state) {
 
 	reset_testdata();
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -167,7 +167,7 @@ _teardown(void **state) {
 
 	teardown_managers(state);
 
-	return (0);
+	return 0;
 }
 
 static isc_result_t
@@ -178,19 +178,19 @@ make_dispatchset(unsigned int ndisps) {
 
 	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	isc_sockaddr_any(&any);
 	result = dns_dispatch_createudp(dispatchmgr, &any, &disp);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_dispatchset_create(mctx, disp, &dset, ndisps);
 	dns_dispatch_detach(&disp);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -321,7 +321,7 @@ accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	UNUSED(handle);
 	UNUSED(cbarg);
 
-	return (eresult);
+	return eresult;
 }
 
 static void

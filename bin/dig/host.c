@@ -98,7 +98,7 @@ rcode_totext(dns_rcode_t rcode) {
 	} else {
 		totext.consttext = rcodetext[rcode];
 	}
-	return (totext.deconsttext);
+	return totext.deconsttext;
 }
 
 noreturn static void
@@ -224,9 +224,9 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 
 	result = dns_message_firstname(msg, sectionid);
 	if (result == ISC_R_NOMORE) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	for (;;) {
@@ -264,7 +264,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 							     print_name, false,
 							     no_rdata, &target);
 				if (result != ISC_R_SUCCESS) {
-					return (result);
+					return result;
 				}
 #ifdef USEINITALWS
 				if (first) {
@@ -319,11 +319,11 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 		if (result == ISC_R_NOMORE) {
 			break;
 		} else if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -343,12 +343,12 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset,
 
 	result = dns_rdataset_totext(rdataset, owner, false, false, &target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	isc_buffer_usedregion(&target, &r);
 	printf("%.*s", (int)r.length, (char *)r.base);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -425,7 +425,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 				       : query->lookup->textname,
 			       msg->rcode, rcode_totext(msg->rcode));
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (default_lookups && query->lookup->rdtype == dns_rdatatype_a) {
@@ -519,7 +519,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION",
 				      true, query);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 	if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
@@ -529,7 +529,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER",
 				      !short_form, query);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -540,7 +540,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY",
 				      true, query);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 	if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ADDITIONAL]) &&
@@ -550,7 +550,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		result = printsection(msg, DNS_SECTION_ADDITIONAL, "ADDITIONAL",
 				      true, query);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 	if ((tsig != NULL) && !short_form) {
@@ -558,7 +558,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		result = printrdata(msg, tsig, tsigname, "PSEUDOSECTION TSIG",
 				    true);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 	if (!short_form) {
@@ -576,7 +576,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		printf("%s has no %s record\n", namestr, typestr);
 	}
 	seen_error = force_error;
-	return (result);
+	return result;
 }
 
 static const char *optstring = "46aAc:dilnm:p:rst:vVwCDN:R:TUW:";
@@ -928,5 +928,5 @@ main(int argc, char **argv) {
 	cancel_all();
 	destroy_libs();
 	isc_app_finish();
-	return ((seen_error == 0) ? 0 : 1);
+	return (seen_error == 0) ? 0 : 1;
 }

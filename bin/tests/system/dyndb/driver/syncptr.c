@@ -200,7 +200,7 @@ cleanup:
 		dns_rdata_freestruct(&ipv6);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -302,7 +302,7 @@ cleanup:
 		isc_event_free((isc_event_t **)&pevent);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -333,5 +333,5 @@ syncptrs(sample_instance_t *inst, dns_name_t *name, dns_rdataset_t *rdataset,
 	}
 
 cleanup:
-	return (result);
+	return result;
 }

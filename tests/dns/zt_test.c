@@ -45,7 +45,7 @@ _setup(void **state) {
 	isc_app_start();
 	setup_managers(state);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -53,7 +53,7 @@ _teardown(void **state) {
 	teardown_managers(state);
 	isc_app_finish();
 
-	return (0);
+	return 0;
 }
 
 struct args {
@@ -69,7 +69,7 @@ count_zone(dns_zone_t *zone, void *uap) {
 	UNUSED(zone);
 
 	*nzones += 1;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -82,7 +82,7 @@ load_done(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 
 	atomic_store(done, true);
 	isc_app_shutdown();
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -91,7 +91,7 @@ all_done(void *arg) {
 
 	atomic_store(done, true);
 	isc_app_shutdown();
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void

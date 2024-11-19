@@ -69,7 +69,7 @@ initname(char *setname) {
 	isc_buffer_init(&buf, setname, strlen(setname));
 	isc_buffer_add(&buf, strlen(setname));
 	result = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
-	return (result);
+	return result;
 }
 
 static void
@@ -142,7 +142,7 @@ loadset(const char *filename, dns_rdataset_t *rdataset) {
 	if (db != NULL) {
 		dns_db_detach(&db);
 	}
-	return (result);
+	return result;
 }
 
 static void
@@ -470,8 +470,8 @@ main(int argc, char **argv) {
 	fflush(stdout);
 	if (ferror(stdout)) {
 		fprintf(stderr, "write error\n");
-		return (1);
+		return 1;
 	} else {
-		return (0);
+		return 0;
 	}
 }

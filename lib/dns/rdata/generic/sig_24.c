@@ -118,7 +118,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	/*
 	 * Sig.
 	 */
-	return (isc_base64_tobuffer(lexer, target, -2));
+	return isc_base64_tobuffer(lexer, target, -2);
 }
 
 static isc_result_t
@@ -234,7 +234,7 @@ totext_sig(ARGS_TOTEXT) {
 		RETERR(str_totext(" )", target));
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -260,7 +260,7 @@ fromwire_sig(ARGS_FROMWIRE) {
 	 * key footprint: 2
 	 */
 	if (sr.length < 18) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	isc_buffer_forward(source, 18);
@@ -277,10 +277,10 @@ fromwire_sig(ARGS_FROMWIRE) {
 	 */
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length == 0) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	isc_buffer_forward(source, sr.length);
-	return (mem_tobuffer(target, sr.base, sr.length));
+	return mem_tobuffer(target, sr.base, sr.length);
 }
 
 static isc_result_t
@@ -317,7 +317,7 @@ towire_sig(ARGS_TOWIRE) {
 	/*
 	 * Signature.
 	 */
-	return (mem_tobuffer(target, sr.base, sr.length));
+	return mem_tobuffer(target, sr.base, sr.length);
 }
 
 static int
@@ -343,7 +343,7 @@ compare_sig(ARGS_COMPARE) {
 	r2.length = 18;
 	order = isc_region_compare(&r1, &r2);
 	if (order != 0) {
-		return (order);
+		return order;
 	}
 
 	dns_name_init(&name1, NULL);
@@ -356,13 +356,13 @@ compare_sig(ARGS_COMPARE) {
 	dns_name_fromregion(&name2, &r2);
 	order = dns_name_rdatacompare(&name1, &name2);
 	if (order != 0) {
-		return (order);
+		return order;
 	}
 
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));
 
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -421,7 +421,7 @@ fromstruct_sig(ARGS_FROMSTRUCT) {
 	/*
 	 * Signature.
 	 */
-	return (mem_tobuffer(target, sig->signature, sig->siglen));
+	return mem_tobuffer(target, sig->signature, sig->siglen);
 }
 
 static isc_result_t
@@ -498,13 +498,13 @@ tostruct_sig(ARGS_TOSTRUCT) {
 	}
 
 	sig->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (mctx != NULL) {
 		dns_name_free(&sig->signer, mctx);
 	}
-	return (ISC_R_NOMEMORY);
+	return ISC_R_NOMEMORY;
 }
 
 static void
@@ -534,7 +534,7 @@ additionaldata_sig(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -545,7 +545,7 @@ digest_sig(ARGS_DIGEST) {
 	UNUSED(digest);
 	UNUSED(arg);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 static dns_rdatatype_t
@@ -558,7 +558,7 @@ covers_sig(dns_rdata_t *rdata) {
 	dns_rdata_toregion(rdata, &r);
 	type = uint16_fromregion(&r);
 
-	return (type);
+	return type;
 }
 
 static bool
@@ -570,7 +570,7 @@ checkowner_sig(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -581,11 +581,11 @@ checknames_sig(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_sig(ARGS_COMPARE) {
-	return (compare_sig(rdata1, rdata2));
+	return compare_sig(rdata1, rdata2);
 }
 #endif /* RDATA_GENERIC_SIG_24_C */

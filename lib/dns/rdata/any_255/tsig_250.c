@@ -128,7 +128,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	/*
 	 * Other Data.
 	 */
-	return (isc_base64_tobuffer(lexer, target, (int)token.value.as_ulong));
+	return isc_base64_tobuffer(lexer, target, (int)token.value.as_ulong);
 }
 
 static isc_result_t
@@ -246,9 +246,9 @@ totext_any_tsig(ARGS_TOTEXT) {
 	 * Other.
 	 */
 	if (tctx->width == 0) { /* No splitting */
-		return (isc_base64_totext(&sr, 60, "", target));
+		return isc_base64_totext(&sr, 60, "", target);
 	} else {
-		return (isc_base64_totext(&sr, 60, " ", target));
+		return isc_base64_totext(&sr, 60, " ", target);
 	}
 }
 
@@ -277,7 +277,7 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	 * Time Signed + Fudge.
 	 */
 	if (sr.length < 8) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	RETERR(mem_tobuffer(target, sr.base, 8));
 	isc_region_consume(&sr, 8);
@@ -287,11 +287,11 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	 * Signature Length + Signature.
 	 */
 	if (sr.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	n = uint16_fromregion(&sr);
 	if (sr.length < n + 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	RETERR(mem_tobuffer(target, sr.base, n + 2));
 	isc_region_consume(&sr, n + 2);
@@ -301,7 +301,7 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	 * Original ID + Error.
 	 */
 	if (sr.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	RETERR(mem_tobuffer(target, sr.base, 4));
 	isc_region_consume(&sr, 4);
@@ -311,14 +311,14 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	 * Other Length + Other.
 	 */
 	if (sr.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	n = uint16_fromregion(&sr);
 	if (sr.length < n + 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	isc_buffer_forward(source, n + 2);
-	return (mem_tobuffer(target, sr.base, n + 2));
+	return mem_tobuffer(target, sr.base, n + 2);
 }
 
 static isc_result_t
@@ -337,7 +337,7 @@ towire_any_tsig(ARGS_TOWIRE) {
 	dns_name_fromregion(&name, &sr);
 	RETERR(dns_name_towire(&name, cctx, target));
 	isc_region_consume(&sr, name_length(&name));
-	return (mem_tobuffer(target, sr.base, sr.length));
+	return mem_tobuffer(target, sr.base, sr.length);
 }
 
 static int
@@ -363,11 +363,11 @@ compare_any_tsig(ARGS_COMPARE) {
 	dns_name_fromregion(&name2, &r2);
 	order = dns_name_rdatacompare(&name1, &name2);
 	if (order != 0) {
-		return (order);
+		return order;
 	}
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -391,7 +391,7 @@ fromstruct_any_tsig(ARGS_FROMSTRUCT) {
 
 	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 6 + 2 + 2) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/*
@@ -418,7 +418,7 @@ fromstruct_any_tsig(ARGS_FROMSTRUCT) {
 
 	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 2 + 2 + 2) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/*
@@ -439,7 +439,7 @@ fromstruct_any_tsig(ARGS_FROMSTRUCT) {
 	/*
 	 * Other Data.
 	 */
-	return (mem_tobuffer(target, tsig->other, tsig->otherlen));
+	return mem_tobuffer(target, tsig->other, tsig->otherlen);
 }
 
 static isc_result_t
@@ -530,7 +530,7 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 	}
 
 	tsig->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (mctx != NULL) {
@@ -539,7 +539,7 @@ cleanup:
 	if (mctx != NULL && tsig->signature != NULL) {
 		isc_mem_free(mctx, tsig->signature);
 	}
-	return (ISC_R_NOMEMORY);
+	return ISC_R_NOMEMORY;
 }
 
 static void
@@ -574,7 +574,7 @@ additionaldata_any_tsig(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -586,7 +586,7 @@ digest_any_tsig(ARGS_DIGEST) {
 	UNUSED(digest);
 	UNUSED(arg);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 static bool
@@ -599,7 +599,7 @@ checkowner_any_tsig(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -611,12 +611,12 @@ checknames_any_tsig(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_any_tsig(ARGS_COMPARE) {
-	return (compare_any_tsig(rdata1, rdata2));
+	return compare_any_tsig(rdata1, rdata2);
 }
 
 #endif /* RDATA_ANY_255_TSIG_250_C */

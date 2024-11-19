@@ -27,7 +27,7 @@ bool debug = false;
 int
 LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 		     char ***argv __attribute__((unused))) {
-	return (0);
+	return 0;
 }
 
 int
@@ -48,5 +48,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 		fprintf(stderr, "dns_name_fromtext: %s\n",
 			isc_result_totext(result));
 	}
-	return (0);
+	return 0;
 }

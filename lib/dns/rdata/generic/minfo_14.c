@@ -52,7 +52,7 @@ fromtext_minfo(ARGS_FROMTEXT) {
 			warn_badname(&name, lexer, callbacks);
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -85,7 +85,7 @@ totext_minfo(ARGS_TOTEXT) {
 	RETERR(str_totext(" ", target));
 
 	sub = name_prefix(&email, tctx->origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	return dns_name_totext(&prefix, sub, target);
 }
 
 static isc_result_t
@@ -104,7 +104,7 @@ fromwire_minfo(ARGS_FROMWIRE) {
 	dns_name_init(&email, NULL);
 
 	RETERR(dns_name_fromwire(&rmail, source, dctx, options, target));
-	return (dns_name_fromwire(&email, source, dctx, options, target));
+	return dns_name_fromwire(&email, source, dctx, options, target);
 }
 
 static isc_result_t
@@ -133,7 +133,7 @@ towire_minfo(ARGS_TOWIRE) {
 	dns_name_fromregion(&rmail, &region);
 	isc_region_consume(&region, rmail.length);
 
-	return (dns_name_towire(&rmail, cctx, target));
+	return dns_name_towire(&rmail, cctx, target);
 }
 
 static int
@@ -161,7 +161,7 @@ compare_minfo(ARGS_COMPARE) {
 
 	order = dns_name_rdatacompare(&name1, &name2);
 	if (order != 0) {
-		return (order);
+		return order;
 	}
 
 	isc_region_consume(&region1, name_length(&name1));
@@ -174,7 +174,7 @@ compare_minfo(ARGS_COMPARE) {
 	dns_name_fromregion(&name2, &region2);
 
 	order = dns_name_rdatacompare(&name1, &name2);
-	return (order);
+	return order;
 }
 
 static isc_result_t
@@ -193,7 +193,7 @@ fromstruct_minfo(ARGS_FROMSTRUCT) {
 	dns_name_toregion(&minfo->rmailbox, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
 	dns_name_toregion(&minfo->emailbox, &region);
-	return (isc_buffer_copyregion(target, &region));
+	return isc_buffer_copyregion(target, &region);
 }
 
 static isc_result_t
@@ -221,7 +221,7 @@ tostruct_minfo(ARGS_TOSTRUCT) {
 	dns_name_init(&minfo->emailbox, NULL);
 	name_duporclone(&name, mctx, &minfo->emailbox);
 	minfo->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -249,7 +249,7 @@ additionaldata_minfo(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -265,13 +265,13 @@ digest_minfo(ARGS_DIGEST) {
 	dns_name_fromregion(&name, &r);
 	result = dns_name_digest(&name, digest, arg);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	isc_region_consume(&r, name_length(&name));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r);
 
-	return (dns_name_digest(&name, digest, arg));
+	return dns_name_digest(&name, digest, arg);
 }
 
 static bool
@@ -283,7 +283,7 @@ checkowner_minfo(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -302,7 +302,7 @@ checknames_minfo(ARGS_CHECKNAMES) {
 		if (bad != NULL) {
 			dns_name_clone(&name, bad);
 		}
-		return (false);
+		return false;
 	}
 	isc_region_consume(&region, name_length(&name));
 	dns_name_fromregion(&name, &region);
@@ -310,14 +310,14 @@ checknames_minfo(ARGS_CHECKNAMES) {
 		if (bad != NULL) {
 			dns_name_clone(&name, bad);
 		}
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 static int
 casecompare_minfo(ARGS_COMPARE) {
-	return (compare_minfo(rdata1, rdata2));
+	return compare_minfo(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_MINFO_14_C */

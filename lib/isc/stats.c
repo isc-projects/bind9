@@ -66,7 +66,7 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	stats->magic = ISC_STATS_MAGIC;
 	*statsp = stats;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -100,14 +100,14 @@ int
 isc_stats_ncounters(isc_stats_t *stats) {
 	REQUIRE(ISC_STATS_VALID(stats));
 
-	return (stats->ncounters);
+	return stats->ncounters;
 }
 
 isc_result_t
 isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, ncounters, statsp));
+	return create_stats(mctx, ncounters, statsp);
 }
 
 void
@@ -171,7 +171,7 @@ isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	return (atomic_load_acquire(&stats->counters[counter]));
+	return atomic_load_acquire(&stats->counters[counter]);
 }
 
 void

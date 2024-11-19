@@ -200,7 +200,7 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	fd = socket(AF_INET6, family, 0);
 	if (fd < 0) {
 		perror("setup_ephemeral_port: socket()");
-		return (-1);
+		return -1;
 	}
 
 	r = bind(fd, (const struct sockaddr *)&addr->type.sa,
@@ -208,14 +208,14 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	if (r != 0) {
 		perror("setup_ephemeral_port: bind()");
 		isc__nm_closesocket(fd);
-		return (r);
+		return r;
 	}
 
 	r = getsockname(fd, (struct sockaddr *)&addr->type.sa, &addrlen);
 	if (r != 0) {
 		perror("setup_ephemeral_port: getsockname()");
 		isc__nm_closesocket(fd);
-		return (r);
+		return r;
 	}
 
 	result = isc__nm_socket_reuse(fd, 1);
@@ -224,7 +224,7 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 			"setup_ephemeral_port: isc__nm_socket_reuse(): %s",
 			isc_result_totext(result));
 		close(fd);
-		return (-1);
+		return -1;
 	}
 
 	result = isc__nm_socket_reuse_lb(fd);
@@ -233,7 +233,7 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 			"setup_ephemeral_port: isc__nm_socket_reuse_lb(): %s",
 			isc_result_totext(result));
 		close(fd);
-		return (-1);
+		return -1;
 	}
 	if (result == ISC_R_NOTIMPLEMENTED) {
 		reuse_supported = false;
@@ -247,11 +247,11 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	if (r != 0) {
 		perror("setup_ephemeral_port");
 		close(fd);
-		return (r);
+		return r;
 	}
 #endif
 
-	return (fd);
+	return fd;
 }
 
 /* Generic */
@@ -278,7 +278,7 @@ setup_test(void **state) {
 	tcp_listen_addr = (isc_sockaddr_t){ .length = 0 };
 	tcp_listen_sock = setup_ephemeral_port(&tcp_listen_addr, SOCK_STREAM);
 	if (tcp_listen_sock < 0) {
-		return (-1);
+		return -1;
 	}
 	close(tcp_listen_sock);
 	tcp_listen_sock = -1;
@@ -315,7 +315,7 @@ setup_test(void **state) {
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 	isc_nonce_buf(&stop_magic, sizeof(stop_magic));
 	if (send_magic == stop_magic) {
-		return (-1);
+		return -1;
 	}
 
 	nm = isc_mem_get(mctx, MAX_NM * sizeof(nm[0]));
@@ -343,7 +343,7 @@ setup_test(void **state) {
 
 	*state = nm;
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -369,7 +369,7 @@ teardown_test(void **state) {
 
 	isc_nm_http_endpoints_detach(&endpoints);
 
-	return (0);
+	return 0;
 }
 
 thread_local size_t nwrites = NWRITES;
@@ -388,7 +388,7 @@ init_listener_quota(size_t nthreads) {
 		isc_quota_max(&listener_quota, max_quota);
 		quotap = &listener_quota;
 	}
-	return (quotap);
+	return quotap;
 }
 
 static void
@@ -752,7 +752,7 @@ doh_connect_thread(isc_threadarg_t arg) {
 		sends = atomic_load(&nsends);
 	}
 
-	return ((isc_threadresult_t)0);
+	return (isc_threadresult_t)0;
 }
 
 static void

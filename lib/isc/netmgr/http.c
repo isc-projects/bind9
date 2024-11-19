@@ -244,12 +244,12 @@ http_get_listener_endpoints(isc_nmsocket_t *listener, const int tid);
 static bool
 http_session_active(isc_nm_http_session_t *session) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
-	return (!session->closed && !session->closing);
+	return !session->closed && !session->closing;
 }
 
 static void *
 http_malloc(size_t sz, isc_mem_t *mctx) {
-	return (isc_mem_allocate(mctx, sz));
+	return isc_mem_allocate(mctx, sz);
 }
 
 static void *
@@ -258,12 +258,12 @@ http_calloc(size_t n, size_t sz, isc_mem_t *mctx) {
 	void *data = isc_mem_allocate(mctx, msize);
 
 	memset(data, 0, msize);
-	return (data);
+	return data;
 }
 
 static void *
 http_realloc(void *p, size_t newsz, isc_mem_t *mctx) {
-	return (isc_mem_reallocate(mctx, p, newsz));
+	return isc_mem_reallocate(mctx, p, newsz);
 }
 
 static void
@@ -357,7 +357,7 @@ find_http_cstream(int32_t stream_id, isc_nm_http_session_t *session) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
 	if (ISC_LIST_EMPTY(session->cstreams)) {
-		return (NULL);
+		return NULL;
 	}
 
 	for (cstream = ISC_LIST_HEAD(session->cstreams); cstream != NULL;
@@ -374,7 +374,7 @@ find_http_cstream(int32_t stream_id, isc_nm_http_session_t *session) {
 		ISC_LIST_PREPEND(session->cstreams, cstream, link);
 	}
 
-	return (cstream);
+	return cstream;
 }
 
 static isc_result_t
@@ -399,7 +399,7 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_free(mctx, stream->uri);
 		isc_mem_put(mctx, stream, sizeof(http_cstream_t));
-		return (result);
+		return result;
 	}
 
 	isc__nmsocket_attach(sock, &stream->httpsock);
@@ -451,7 +451,7 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 	ISC_LIST_PREPEND(sock->h2.session->cstreams, stream, link);
 	*streamp = stream;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -540,13 +540,13 @@ on_client_data_chunk_recv_callback(int32_t stream_id, const uint8_t *data,
 		{
 			isc_buffer_putmem(cstream->rbuf, data, len);
 		} else {
-			return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+			return NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE;
 		}
 	} else {
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_CALLBACK_FAILURE;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -571,15 +571,15 @@ on_server_data_chunk_recv_callback(int32_t stream_id, const uint8_t *data,
 				break;
 			}
 
-			return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+			return NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE;
 		}
 		h2 = ISC_LIST_NEXT(h2, link);
 	}
 	if (h2 == NULL) {
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_CALLBACK_FAILURE;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -600,7 +600,7 @@ on_data_chunk_recv_callback(nghttp2_session *ngsession, uint8_t flags,
 							session);
 	}
 
-	return (rv);
+	return rv;
 }
 
 static void
@@ -634,17 +634,17 @@ on_client_stream_close_callback(int32_t stream_id,
 			rv = nghttp2_session_terminate_session(
 				session->ngsession, NGHTTP2_NO_ERROR);
 			if (rv != 0) {
-				return (rv);
+				return rv;
 			}
 			/* Mark the session as closing one to finish it on a
 			 * subsequent call to http_do_bio() */
 			session->closing = true;
 		}
 	} else {
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_CALLBACK_FAILURE;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -673,7 +673,7 @@ on_server_stream_close_callback(int32_t stream_id,
 	 */
 	isc__nmsocket_prep_destroy(sock);
 	isc__nmsocket_detach(&sock);
-	return (rv);
+	return rv;
 }
 
 static int
@@ -693,7 +693,7 @@ on_stream_close_callback(nghttp2_session *ngsession, int32_t stream_id,
 		rv = on_server_stream_close_callback(stream_id, session);
 	}
 
-	return (rv);
+	return rv;
 }
 
 static bool
@@ -706,10 +706,10 @@ client_handle_status_header(http_cstream_t *cstream, const uint8_t *value,
 	cstream->response_status.code = strtoul(tmp, NULL, 10);
 
 	if (SUCCESSFUL_HTTP_STATUS(cstream->response_status.code)) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 static bool
@@ -725,10 +725,10 @@ client_handle_content_length_header(http_cstream_t *cstream,
 	if (cstream->response_status.content_length == 0 ||
 	    cstream->response_status.content_length > MAX_DNS_MESSAGE_SIZE)
 	{
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -741,10 +741,10 @@ client_handle_content_type_header(http_cstream_t *cstream, const uint8_t *value,
 
 	if (strncasecmp((const char *)value, type_dns_message, len) == 0) {
 		cstream->response_status.content_type_valid = true;
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 static int
@@ -773,7 +773,7 @@ client_on_header_callback(nghttp2_session *ngsession,
 		 * - we closed the session prematurely before receiving all
 		 *   responses (i.e., because of a belated or partial response).
 		 */
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_CALLBACK_FAILURE;
 	}
 
 	INSIST(!ISC_LIST_EMPTY(session->cstreams));
@@ -798,10 +798,10 @@ client_on_header_callback(nghttp2_session *ngsession,
 	}
 
 	if (!header_ok) {
-		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE;
 	}
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -844,10 +844,10 @@ send_client_connection_header(isc_nm_http_session_t *session) {
 	rv = nghttp2_submit_settings(session->ngsession, NGHTTP2_FLAG_NONE, iv,
 				     sizeof(iv) / sizeof(iv[0]));
 	if (rv != 0) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 #define MAKE_NV(NAME, VALUE, VALUELEN)                                 \
@@ -874,7 +874,7 @@ client_read_callback(nghttp2_session *ngsession, int32_t stream_id,
 	cstream = find_http_cstream(stream_id, session);
 	if (!cstream || cstream->stream_id != stream_id) {
 		/* We haven't found the stream, so we are not reading */
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_CALLBACK_FAILURE;
 	}
 
 	if (cstream->post) {
@@ -894,13 +894,13 @@ client_read_callback(nghttp2_session *ngsession, int32_t stream_id,
 			*data_flags |= NGHTTP2_DATA_FLAG_EOF;
 		}
 
-		return (len);
+		return len;
 	} else {
 		*data_flags |= NGHTTP2_DATA_FLAG_EOF;
-		return (0);
+		return 0;
 	}
 
-	return (0);
+	return 0;
 }
 
 /*
@@ -959,12 +959,12 @@ client_submit_request(isc_nm_http_session_t *session, http_cstream_t *stream) {
 			sizeof(hdrs) / sizeof(hdrs[0]), &dp, stream);
 	}
 	if (stream_id < 0) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	stream->stream_id = stream_id;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -1092,7 +1092,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	    (!nghttp2_session_want_write(session->ngsession) &&
 	     session->pending_write_data == NULL))
 	{
-		return (false);
+		return false;
 	}
 
 	/* We need to attach to the session->handle earlier because as an
@@ -1221,10 +1221,10 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	session->sending++;
 	isc_buffer_usedregion(send->pending_write_data, &send_data);
 	isc_nm_send(transphandle, &send_data, http_writecb, send);
-	return (true);
+	return true;
 nothing_to_send:
 	isc_nmhandle_detach(&transphandle);
-	return (false);
+	return false;
 }
 
 static void
@@ -1308,12 +1308,12 @@ get_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 		result = new_http_cstream(sock, &cstream);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(cstream == NULL);
-			return (result);
+			return result;
 		}
 	}
 
 	*streamp = cstream;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -1531,7 +1531,7 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 	REQUIRE(region->length <= MAX_DNS_MESSAGE_SIZE);
 
 	if (session->closed) {
-		return (ISC_R_CANCELED);
+		return ISC_R_CANCELED;
 	}
 
 	INSIST(cstream != NULL);
@@ -1591,7 +1591,7 @@ client_send(isc_nmhandle_t *handle, const isc_region_t *region) {
 	}
 
 error:
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1613,21 +1613,21 @@ isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
 	isc__nm_http_read(handle, cb, cbarg);
 	if (!http_session_active(handle->sock->h2.session)) {
 		/* the callback was called by isc__nm_http_read() */
-		return (ISC_R_CANCELED);
+		return ISC_R_CANCELED;
 	}
 	result = client_send(handle, region);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 error:
 	cstream = sock->h2.connect.cstream;
 	if (cstream->read_cb != NULL) {
 		cstream->read_cb(handle, result, NULL, cstream->read_cbarg);
 	}
-	return (result);
+	return result;
 }
 
 static int
@@ -1639,13 +1639,13 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	if (frame->hd.type != NGHTTP2_HEADERS ||
 	    frame->headers.cat != NGHTTP2_HCAT_REQUEST)
 	{
-		return (0);
+		return 0;
 	} else if (frame->hd.length > MAX_ALLOWED_DATA_IN_HEADERS) {
-		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE;
 	}
 
 	if (session->nsstreams >= session->max_concurrent_streams) {
-		return (NGHTTP2_ERR_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_CALLBACK_FAILURE;
 	}
 
 	socket = isc_mem_get(session->mctx, sizeof(isc_nmsocket_t));
@@ -1673,7 +1673,7 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 
 	nghttp2_session_set_stream_user_data(ngsession, frame->hd.stream_id,
 					     socket);
-	return (0);
+	return 0;
 }
 
 static isc_http_error_responses_t
@@ -1697,7 +1697,7 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 	if (!isc_nm_http_path_isvalid(socket->h2.request_path)) {
 		isc_mem_free(socket->mgr->mctx, socket->h2.request_path);
 		socket->h2.request_path = NULL;
-		return (ISC_HTTP_ERROR_BAD_REQUEST);
+		return ISC_HTTP_ERROR_BAD_REQUEST;
 	}
 
 	handler = http_endpoints_find(socket->h2.request_path,
@@ -1709,7 +1709,7 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 	} else {
 		isc_mem_free(socket->mgr->mctx, socket->h2.request_path);
 		socket->h2.request_path = NULL;
-		return (ISC_HTTP_ERROR_NOT_FOUND);
+		return ISC_HTTP_ERROR_NOT_FOUND;
 	}
 
 	if (qstr != NULL) {
@@ -1732,13 +1732,13 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 						&socket->h2.query_data_len);
 			} else {
 				socket->h2.query_too_large = true;
-				return (ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE);
+				return ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE;
 			}
 		} else {
-			return (ISC_HTTP_ERROR_BAD_REQUEST);
+			return ISC_HTTP_ERROR_BAD_REQUEST;
 		}
 	}
-	return (ISC_HTTP_ERROR_SUCCESS);
+	return ISC_HTTP_ERROR_SUCCESS;
 }
 
 static isc_http_error_responses_t
@@ -1752,9 +1752,9 @@ server_handle_method_header(isc_nmsocket_t *socket, const uint8_t *value,
 	} else if (HEADER_MATCH(post, value, valuelen)) {
 		socket->h2.request_type = ISC_HTTP_REQ_POST;
 	} else {
-		return (ISC_HTTP_ERROR_NOT_IMPLEMENTED);
+		return ISC_HTTP_ERROR_NOT_IMPLEMENTED;
 	}
-	return (ISC_HTTP_ERROR_SUCCESS);
+	return ISC_HTTP_ERROR_SUCCESS;
 }
 
 static isc_http_error_responses_t
@@ -1768,9 +1768,9 @@ server_handle_scheme_header(isc_nmsocket_t *socket, const uint8_t *value,
 	} else if (HEADER_MATCH(http, value, valuelen)) {
 		socket->h2.request_scheme = ISC_HTTP_SCHEME_HTTP;
 	} else {
-		return (ISC_HTTP_ERROR_BAD_REQUEST);
+		return ISC_HTTP_ERROR_BAD_REQUEST;
 	}
-	return (ISC_HTTP_ERROR_SUCCESS);
+	return ISC_HTTP_ERROR_SUCCESS;
 }
 
 static isc_http_error_responses_t
@@ -1784,11 +1784,11 @@ server_handle_content_length_header(isc_nmsocket_t *socket,
 		valuelen > tmplen ? tmplen : valuelen);
 	socket->h2.content_length = strtoul(tmp, NULL, 10);
 	if (socket->h2.content_length > MAX_DNS_MESSAGE_SIZE) {
-		return (ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE);
+		return ISC_HTTP_ERROR_PAYLOAD_TOO_LARGE;
 	} else if (socket->h2.content_length == 0) {
-		return (ISC_HTTP_ERROR_BAD_REQUEST);
+		return ISC_HTTP_ERROR_BAD_REQUEST;
 	}
-	return (ISC_HTTP_ERROR_SUCCESS);
+	return ISC_HTTP_ERROR_SUCCESS;
 }
 
 static isc_http_error_responses_t
@@ -1802,7 +1802,7 @@ server_handle_content_type_header(isc_nmsocket_t *socket, const uint8_t *value,
 	if (!HEADER_MATCH(type_dns_message, value, valuelen)) {
 		resp = ISC_HTTP_ERROR_UNSUPPORTED_MEDIA_TYPE;
 	}
-	return (resp);
+	return resp;
 }
 
 static isc_http_error_responses_t
@@ -1836,7 +1836,7 @@ server_handle_header(isc_nmsocket_t *socket, const uint8_t *name,
 							 valuelen);
 	}
 
-	return (code);
+	return code;
 }
 
 static int
@@ -1853,7 +1853,7 @@ server_on_header_callback(nghttp2_session *session, const nghttp2_frame *frame,
 	socket = nghttp2_session_get_stream_user_data(session,
 						      frame->hd.stream_id);
 	if (socket == NULL) {
-		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE;
 	}
 
 	socket->h2.headers_data_processed += (namelen + valuelen);
@@ -1871,18 +1871,18 @@ server_on_header_callback(nghttp2_session *session, const nghttp2_frame *frame,
 	INSIST(socket != NULL);
 
 	if (socket->h2.headers_data_processed > MAX_ALLOWED_DATA_IN_HEADERS) {
-		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE;
 	} else if (socket->h2.content_length > MAX_ALLOWED_DATA_IN_POST) {
-		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE;
 	}
 
 	if (code == ISC_HTTP_ERROR_SUCCESS) {
-		return (0);
+		return 0;
 	} else {
 		socket->h2.headers_error_code = code;
 	}
 
-	return (0);
+	return 0;
 }
 
 static ssize_t
@@ -1913,7 +1913,7 @@ server_read_callback(nghttp2_session *ngsession, int32_t stream_id,
 		*data_flags |= NGHTTP2_DATA_FLAG_EOF;
 	}
 
-	return (buflen);
+	return buflen;
 }
 
 static isc_result_t
@@ -1929,7 +1929,7 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 		 * same HTTP/2 stream. Thus, we need to handle this case
 		 * manually. We will return failure code so that it will be
 		 * passed to the write callback. */
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	data_prd.source.ptr = socket;
@@ -1938,11 +1938,11 @@ server_send_response(nghttp2_session *ngsession, int32_t stream_id,
 	rv = nghttp2_submit_response(ngsession, stream_id, nva, nvlen,
 				     &data_prd);
 	if (rv != 0) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	socket->h2.response_submitted = true;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #define MAKE_ERROR_REPLY(tag, code, desc) \
@@ -2009,14 +2009,14 @@ server_send_error_response(const isc_http_error_responses_t error,
 	{
 		if (error_responses[i].type == error) {
 			log_server_error_response(socket, &error_responses[i]);
-			return (server_send_response(
+			return server_send_response(
 				ngsession, socket->h2.stream_id,
-				&error_responses[i].header, 1, socket));
+				&error_responses[i].header, 1, socket);
 		}
 	}
 
-	return (server_send_error_response(ISC_HTTP_ERROR_GENERIC, ngsession,
-					   socket));
+	return server_send_error_response(ISC_HTTP_ERROR_GENERIC, ngsession,
+					  socket);
 }
 
 static void
@@ -2132,14 +2132,14 @@ server_on_request_recv(nghttp2_session *ngsession, isc_nmsocket_t *socket) {
 
 	server_call_cb(socket, ISC_R_SUCCESS, &data);
 
-	return (0);
+	return 0;
 
 error:
 	result = server_send_error_response(code, ngsession, socket);
 	if (result != ISC_R_SUCCESS) {
-		return (NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE);
+		return NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE;
 	}
-	return (0);
+	return 0;
 }
 
 void
@@ -2338,16 +2338,16 @@ server_on_frame_recv_callback(nghttp2_session *ngsession,
 			 * the stream is still alive.
 			 */
 			if (socket == NULL) {
-				return (0);
+				return 0;
 			}
 
-			return (server_on_request_recv(ngsession, socket));
+			return server_on_request_recv(ngsession, socket);
 		}
 		break;
 	default:
 		break;
 	}
-	return (0);
+	return 0;
 }
 
 static void
@@ -2392,9 +2392,9 @@ server_send_connection_header(isc_nm_http_session_t *session) {
 	rv = nghttp2_submit_settings(session->ngsession, NGHTTP2_FLAG_NONE, iv,
 				     1);
 	if (rv != 0) {
-		return (-1);
+		return -1;
 	}
-	return (0);
+	return 0;
 }
 
 /*
@@ -2446,12 +2446,12 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	 * detect this case.
 	 */
 	if (isc__nmsocket_closing(handle->sock) || httpserver == NULL) {
-		return (ISC_R_CANCELED);
+		return ISC_R_CANCELED;
 	}
 
 	if (result != ISC_R_SUCCESS) {
 		/* XXXWPK do nothing? */
-		return (result);
+		return result;
 	}
 
 	REQUIRE(VALID_NMSOCK(httplistensock));
@@ -2460,7 +2460,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	if (isc__nmsocket_closing(httplistensock) ||
 	    !atomic_load(&httplistensock->listening))
 	{
-		return (ISC_R_CANCELED);
+		return ISC_R_CANCELED;
 	}
 
 	http_transpost_tcp_nodelay(handle);
@@ -2477,7 +2477,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	/* TODO H2 */
 	http_do_bio(session, NULL, NULL, NULL);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2515,7 +2515,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 	if (result != ISC_R_SUCCESS) {
 		atomic_store(&sock->closed, true);
 		isc__nmsocket_detach(&sock);
-		return (result);
+		return result;
 	}
 
 	isc__nmsocket_attach(sock, &sock->outer->h2.httpserver);
@@ -2530,7 +2530,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 
 	atomic_store(&sock->listening, true);
 	*sockp = sock;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_nm_http_endpoints_t *
@@ -2605,7 +2605,7 @@ http_endpoints_find(const char *request_path,
 	REQUIRE(VALID_HTTP_ENDPOINTS(eps));
 
 	if (request_path == NULL || *request_path == '\0') {
-		return (NULL);
+		return NULL;
 	}
 
 	for (handler = ISC_LIST_HEAD(eps->handlers); handler != NULL;
@@ -2618,7 +2618,7 @@ http_endpoints_find(const char *request_path,
 		}
 	}
 
-	return (handler);
+	return handler;
 }
 
 isc_result_t
@@ -2649,7 +2649,7 @@ isc_nm_http_endpoints_add(isc_nm_http_endpoints_t *restrict eps,
 		ISC_LIST_APPEND(eps->handlers, handler, link);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -2864,10 +2864,10 @@ isc__nm_http_has_encryption(const isc_nmhandle_t *handle) {
 	INSIST(VALID_HTTP2_SESSION(session));
 
 	if (session->handle == NULL) {
-		return (false);
+		return false;
 	}
 
-	return (isc_nm_socket_type(session->handle) == isc_nm_tlssocket);
+	return isc_nm_socket_type(session->handle) == isc_nm_tlssocket;
 }
 
 const char *
@@ -2888,20 +2888,20 @@ isc__nm_http_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	 */
 	if (session == NULL && sock->h2.connect.tls_peer_verify_string != NULL)
 	{
-		return (sock->h2.connect.tls_peer_verify_string);
+		return sock->h2.connect.tls_peer_verify_string;
 	}
 
 	if (session == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	INSIST(VALID_HTTP2_SESSION(session));
 
 	if (session->handle == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
-	return (isc_nm_verify_tls_peer_result_string(session->handle));
+	return isc_nm_verify_tls_peer_result_string(session->handle);
 }
 
 void
@@ -3013,7 +3013,7 @@ http_get_listener_endpoints(isc_nmsocket_t *listener, const int tid) {
 
 	eps = listener->h2.listener_endpoints[tid];
 	INSIST(eps != NULL);
-	return (eps);
+	return eps;
 }
 
 static const bool base64url_validation_table[256] = {
@@ -3052,7 +3052,7 @@ isc__nm_base64url_to_base64(isc_mem_t *mem, const char *base64url,
 	size_t i, k, len;
 
 	if (mem == NULL || base64url == NULL || base64url_len == 0) {
-		return (NULL);
+		return NULL;
 	}
 
 	len = base64url_len % 4 ? base64url_len + (4 - base64url_len % 4)
@@ -3072,7 +3072,7 @@ isc__nm_base64url_to_base64(isc_mem_t *mem, const char *base64url,
 				res[i] = base64url[i];
 			} else {
 				isc_mem_free(mem, res);
-				return (NULL);
+				return NULL;
 			}
 			break;
 		}
@@ -3092,7 +3092,7 @@ isc__nm_base64url_to_base64(isc_mem_t *mem, const char *base64url,
 
 	res[len] = '\0';
 
-	return (res);
+	return res;
 }
 
 char *
@@ -3102,7 +3102,7 @@ isc__nm_base64_to_base64url(isc_mem_t *mem, const char *base64,
 	size_t i;
 
 	if (mem == NULL || base64 == NULL || base64_len == 0) {
-		return (NULL);
+		return NULL;
 	}
 
 	res = isc_mem_allocate(mem, base64_len + 1); /* '\0' */
@@ -3130,7 +3130,7 @@ isc__nm_base64_to_base64url(isc_mem_t *mem, const char *base64,
 				res[i] = base64[i];
 			} else {
 				isc_mem_free(mem, res);
-				return (NULL);
+				return NULL;
 			}
 			break;
 		}
@@ -3142,7 +3142,7 @@ end:
 
 	res[i] = '\0';
 
-	return (res);
+	return res;
 }
 
 void
@@ -3374,22 +3374,22 @@ isc__nm_parse_httpquery(const char *query_string, const char **start,
 	REQUIRE(len != NULL);
 
 	if (query_string == NULL || query_string[0] == '\0') {
-		return (false);
+		return false;
 	}
 
 	state = (isc_httpparser_state_t){ .str = query_string };
 	if (!rule_query_string(&state)) {
-		return (false);
+		return false;
 	}
 
 	if (!state.query_found) {
-		return (false);
+		return false;
 	}
 
 	*start = state.query;
 	*len = state.query_len;
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -3421,23 +3421,23 @@ rule_query_string(isc_httpparser_state_t *st) {
 	}
 
 	if (!MATCH('\0')) {
-		return (false);
+		return false;
 	}
 
 	ADVANCE();
-	return (true);
+	return true;
 }
 
 static bool
 rule_key_value_pair(isc_httpparser_state_t *st) {
 	if (!rule_key(st)) {
-		return (false);
+		return false;
 	}
 
 	if (MATCH('=')) {
 		ADVANCE();
 	} else {
-		return (false);
+		return false;
 	}
 
 	if (rule_value(st)) {
@@ -3450,14 +3450,14 @@ rule_key_value_pair(isc_httpparser_state_t *st) {
 			st->query_len = st->last_value_len;
 		}
 	} else {
-		return (false);
+		return false;
 	}
 
 	if (MATCH('&')) {
 		ADVANCE();
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -3466,7 +3466,7 @@ rule_key(isc_httpparser_state_t *st) {
 		st->last_key = GETP();
 		ADVANCE();
 	} else {
-		return (false);
+		return false;
 	}
 
 	while (MATCH('_') || MATCH_ALNUM()) {
@@ -3474,14 +3474,14 @@ rule_key(isc_httpparser_state_t *st) {
 	}
 
 	st->last_key_len = GETP() - st->last_key;
-	return (true);
+	return true;
 }
 
 static bool
 rule_value(isc_httpparser_state_t *st) {
 	const char *s = GETP();
 	if (!rule_value_char(st)) {
-		return (false);
+		return false;
 	}
 
 	st->last_value = s;
@@ -3489,16 +3489,16 @@ rule_value(isc_httpparser_state_t *st) {
 		/* skip */;
 	}
 	st->last_value_len = GETP() - st->last_value;
-	return (true);
+	return true;
 }
 
 static bool
 rule_value_char(isc_httpparser_state_t *st) {
 	if (rule_unreserved_char(st)) {
-		return (true);
+		return true;
 	}
 
-	return (rule_percent_charcode(st));
+	return rule_percent_charcode(st);
 }
 
 static bool
@@ -3507,9 +3507,9 @@ rule_unreserved_char(isc_httpparser_state_t *st) {
 	    MATCH('~'))
 	{
 		ADVANCE();
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 static bool
@@ -3517,20 +3517,20 @@ rule_percent_charcode(isc_httpparser_state_t *st) {
 	if (MATCH('%')) {
 		ADVANCE();
 	} else {
-		return (false);
+		return false;
 	}
 
 	if (!MATCH_XDIGIT()) {
-		return (false);
+		return false;
 	}
 	ADVANCE();
 
 	if (!MATCH_XDIGIT()) {
-		return (false);
+		return false;
 	}
 	ADVANCE();
 
-	return (true);
+	return true;
 }
 
 /*
@@ -3593,7 +3593,7 @@ rule_loc_path_absolute(isc_http_location_parser_state_t *st) {
 	if (MATCH('/')) {
 		ADVANCE();
 	} else {
-		return (false);
+		return false;
 	}
 
 	(void)rule_loc_segments(st);
@@ -3601,23 +3601,23 @@ rule_loc_path_absolute(isc_http_location_parser_state_t *st) {
 	if (MATCH('\0')) {
 		ADVANCE();
 	} else {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
 rule_loc_segments(isc_http_location_parser_state_t *st) {
 	if (!rule_loc_segment_nz(st)) {
-		return (false);
+		return false;
 	}
 
 	while (rule_loc_slash_segment(st)) {
 		/* zero or more */;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -3625,10 +3625,10 @@ rule_loc_slash_segment(isc_http_location_parser_state_t *st) {
 	if (MATCH('/')) {
 		ADVANCE();
 	} else {
-		return (false);
+		return false;
 	}
 
-	return (rule_loc_segment(st));
+	return rule_loc_segment(st);
 }
 
 static bool
@@ -3637,36 +3637,36 @@ rule_loc_segment(isc_http_location_parser_state_t *st) {
 		/* zero or more */;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
 rule_loc_segment_nz(isc_http_location_parser_state_t *st) {
 	if (!rule_loc_pchar(st)) {
-		return (false);
+		return false;
 	}
 
 	while (rule_loc_pchar(st)) {
 		/* zero or more */;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
 rule_loc_pchar(isc_http_location_parser_state_t *st) {
 	if (rule_loc_unreserved(st)) {
-		return (true);
+		return true;
 	} else if (rule_loc_pct_encoded(st)) {
-		return (true);
+		return true;
 	} else if (rule_loc_sub_delims(st)) {
-		return (true);
+		return true;
 	} else if (MATCH(':') || MATCH('@')) {
 		ADVANCE();
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 static bool
@@ -3675,29 +3675,29 @@ rule_loc_unreserved(isc_http_location_parser_state_t *st) {
 	    MATCH('_') | MATCH('~'))
 	{
 		ADVANCE();
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 static bool
 rule_loc_pct_encoded(isc_http_location_parser_state_t *st) {
 	if (!MATCH('%')) {
-		return (false);
+		return false;
 	}
 	ADVANCE();
 
 	if (!MATCH_XDIGIT()) {
-		return (false);
+		return false;
 	}
 	ADVANCE();
 
 	if (!MATCH_XDIGIT()) {
-		return (false);
+		return false;
 	}
 	ADVANCE();
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -3707,10 +3707,10 @@ rule_loc_sub_delims(isc_http_location_parser_state_t *st) {
 	    MATCH('='))
 	{
 		ADVANCE();
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 bool
@@ -3721,5 +3721,5 @@ isc_nm_http_path_isvalid(const char *path) {
 
 	state.str = path;
 
-	return (rule_loc_path_absolute(&state));
+	return rule_loc_path_absolute(&state);
 }

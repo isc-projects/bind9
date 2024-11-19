@@ -55,11 +55,11 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 		*timermgrp = timermgr;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 fail:
 	isc_managers_destroy(netmgrp, taskmgrp, timermgrp);
 
-	return (result);
+	return result;
 }
 
 void

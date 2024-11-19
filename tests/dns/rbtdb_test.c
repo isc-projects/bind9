@@ -139,7 +139,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 
 	NODE_DESTROYLOCK(&rbtdb.node_locks[0].lock);
 
-	return (dns_name_caseequal(name1, name2));
+	return dns_name_caseequal(name1, name2);
 }
 
 ISC_RUN_TEST_IMPL(ownercase) {

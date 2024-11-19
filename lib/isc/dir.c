@@ -61,7 +61,7 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
 	 */
 	if (strlen(dirname) + 3 > sizeof(dir->dirname)) {
 		/* XXXDCL ? */
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	strlcpy(dir->dirname, dirname, sizeof(dir->dirname));
 
@@ -81,10 +81,10 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
 	dir->handle = opendir(dirname);
 
 	if (dir->handle == NULL) {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 
-	return (result);
+	return result;
 }
 
 /*!
@@ -106,14 +106,14 @@ isc_dir_read(isc_dir_t *dir) {
 	entry = readdir(dir->handle);
 
 	if (entry == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	/*
 	 * Make sure that the space for the name is long enough.
 	 */
 	if (sizeof(dir->entry.name) <= strlen(entry->d_name)) {
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	strlcpy(dir->entry.name, entry->d_name, sizeof(dir->entry.name));
@@ -123,7 +123,7 @@ isc_dir_read(isc_dir_t *dir) {
 	 */
 	dir->entry.length = strlen(entry->d_name);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*!
@@ -146,7 +146,7 @@ isc_dir_reset(isc_dir_t *dir) {
 
 	rewinddir(dir->handle);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -158,10 +158,10 @@ isc_dir_chdir(const char *dirname) {
 	REQUIRE(dirname != NULL);
 
 	if (chdir(dirname) < 0) {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -185,12 +185,12 @@ isc_dir_chroot(const char *dirname) {
 	}
 
 	if (chroot(dirname) < 0 || chdir("/") < 0) {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 #else  /* ifdef HAVE_CHROOT */
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 #endif /* ifdef HAVE_CHROOT */
 }
 
@@ -264,5 +264,5 @@ isc_dir_createunique(char *templet) {
 		result = ISC_R_SUCCESS;
 	}
 
-	return (result);
+	return result;
 }

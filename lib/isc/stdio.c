@@ -26,10 +26,10 @@ isc_stdio_open(const char *filename, const char *mode, FILE **fp) {
 
 	f = fopen(filename, mode);
 	if (f == NULL) {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 	*fp = f;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -38,9 +38,9 @@ isc_stdio_close(FILE *f) {
 
 	r = fclose(f);
 	if (r == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 }
 
@@ -50,9 +50,9 @@ isc_stdio_seek(FILE *f, off_t offset, int whence) {
 
 	r = fseeko(f, offset, whence);
 	if (r == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 }
 
@@ -65,9 +65,9 @@ isc_stdio_tell(FILE *f, off_t *offsetp) {
 	r = ftello(f);
 	if (r >= 0) {
 		*offsetp = r;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 }
 
@@ -88,7 +88,7 @@ isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f, size_t *nret) {
 	if (nret != NULL) {
 		*nret = r;
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -105,7 +105,7 @@ isc_stdio_write(const void *ptr, size_t size, size_t nmemb, FILE *f,
 	if (nret != NULL) {
 		*nret = r;
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -114,9 +114,9 @@ isc_stdio_flush(FILE *f) {
 
 	r = fflush(f);
 	if (r == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 }
 
@@ -133,20 +133,20 @@ isc_stdio_sync(FILE *f) {
 	int r;
 
 	if (fstat(fileno(f), &buf) != 0) {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 
 	/*
 	 * Only call fsync() on regular files.
 	 */
 	if ((buf.st_mode & S_IFMT) != S_IFREG) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	r = fsync(fileno(f));
 	if (r == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 }

@@ -98,7 +98,7 @@ isc_buffer_getuint8(isc_buffer_t *b) {
 	b->current += 1;
 	result = ((uint8_t)(cp[0]));
 
-	return (result);
+	return result;
 }
 
 uint16_t
@@ -119,7 +119,7 @@ isc_buffer_getuint16(isc_buffer_t *b) {
 	result = ((unsigned int)(cp[0])) << 8;
 	result |= ((unsigned int)(cp[1]));
 
-	return (result);
+	return result;
 }
 
 uint32_t
@@ -142,7 +142,7 @@ isc_buffer_getuint32(isc_buffer_t *b) {
 	result |= ((unsigned int)(cp[2])) << 8;
 	result |= ((unsigned int)(cp[3]));
 
-	return (result);
+	return result;
 }
 
 uint64_t
@@ -167,7 +167,7 @@ isc_buffer_getuint48(isc_buffer_t *b) {
 	result |= ((int64_t)(cp[4])) << 8;
 	result |= ((int64_t)(cp[5]));
 
-	return (result);
+	return result;
 }
 
 void
@@ -209,7 +209,7 @@ isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src) {
 	result = isc_buffer_copyregion(dst, &region);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); /* NOSPACE is impossible */
 	*dstp = dst;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -222,12 +222,12 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	if (b->autore) {
 		result = isc_buffer_reserve(&b, r->length);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
 	if (r->length > isc_buffer_availablelength(b)) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	if (r->length > 0U) {
@@ -235,7 +235,7 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 		b->used += r->length;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -264,11 +264,11 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 
 	len = (*dynbuffer)->length;
 	if ((len - (*dynbuffer)->used) >= size) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if ((*dynbuffer)->mctx == NULL) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/* Round to nearest buffer size increment */
@@ -281,7 +281,7 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 	}
 
 	if ((len - (*dynbuffer)->used) < size) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	(*dynbuffer)->base = isc_mem_reget((*dynbuffer)->mctx,
@@ -289,7 +289,7 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 					   (*dynbuffer)->length, len);
 	(*dynbuffer)->length = (unsigned int)len;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -324,18 +324,18 @@ isc_buffer_printf(isc_buffer_t *b, const char *format, ...) {
 	va_end(ap);
 
 	if (n < 0) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if (b->autore) {
 		result = isc_buffer_reserve(&b, n + 1);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
 	if (isc_buffer_availablelength(b) < (unsigned int)n + 1) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	va_start(ap, format);
@@ -343,10 +343,10 @@ isc_buffer_printf(isc_buffer_t *b, const char *format, ...) {
 	va_end(ap);
 
 	if (n < 0) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	b->used += n;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

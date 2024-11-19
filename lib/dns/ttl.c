@@ -60,12 +60,12 @@ ttlfmt(unsigned int t, const char *s, bool verbose, bool space,
 	INSIST(len + 1 <= sizeof(tmp));
 	isc_buffer_availableregion(target, &region);
 	if (len > region.length) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(region.base, tmp, len);
 	isc_buffer_add(target, len);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -127,12 +127,12 @@ dns_ttl_totext(uint32_t src, bool verbose, bool upcase, isc_buffer_t *target) {
 		region.base[region.length - 1] =
 			toupper(region.base[region.length - 1]);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_counter_fromtext(isc_textregion_t *source, uint32_t *ttl) {
-	return (bind_ttl(source, ttl));
+	return bind_ttl(source, ttl);
 }
 
 isc_result_t
@@ -143,7 +143,7 @@ dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl) {
 	if (result != ISC_R_SUCCESS && result != ISC_R_RANGE) {
 		result = DNS_R_BADTTL;
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -159,7 +159,7 @@ bind_ttl(isc_textregion_t *source, uint32_t *ttl) {
 	 * No legal counter / ttl is longer that 63 characters.
 	 */
 	if (source->length > sizeof(buf) - 1) {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	/* Copy source->length bytes and NUL terminate. */
 	snprintf(buf, sizeof(buf), "%.*s", (int)source->length, source->base);
@@ -176,7 +176,7 @@ bind_ttl(isc_textregion_t *source, uint32_t *ttl) {
 		INSIST(np - nbuf <= (int)sizeof(nbuf));
 		result = isc_parse_uint32(&n, nbuf, 10);
 		if (result != ISC_R_SUCCESS) {
-			return (DNS_R_SYNTAX);
+			return DNS_R_SYNTAX;
 		}
 		switch (*s) {
 		case 'w':
@@ -207,19 +207,19 @@ bind_ttl(isc_textregion_t *source, uint32_t *ttl) {
 		case '\0':
 			/* Plain number? */
 			if (tmp != 0ULL) {
-				return (DNS_R_SYNTAX);
+				return DNS_R_SYNTAX;
 			}
 			tmp = n;
 			break;
 		default:
-			return (DNS_R_SYNTAX);
+			return DNS_R_SYNTAX;
 		}
 	} while (*s != '\0');
 
 	if (tmp > 0xffffffffULL) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	*ttl = (uint32_t)(tmp & 0xffffffffUL);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

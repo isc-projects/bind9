@@ -225,14 +225,14 @@ increment_malloced(isc_mem_t *ctx, size_t size) {
 					       malloced);
 	}
 
-	return (malloced);
+	return malloced;
 }
 
 static size_t
 decrement_malloced(isc_mem_t *ctx, size_t size) {
 	size_t malloced = atomic_fetch_sub_relaxed(&ctx->malloced, size) - size;
 
-	return (malloced);
+	return malloced;
 }
 
 #if ISC_MEM_TRACKLINES
@@ -356,7 +356,7 @@ mem_get(isc_mem_t *ctx, size_t size, int flags) {
 		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
 	}
 
-	return (ret);
+	return ret;
 }
 
 /*!
@@ -392,7 +392,7 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 		}
 	}
 
-	return (new_ptr);
+	return new_ptr;
 }
 
 #define stats_bucket(ctx, size)                      \
@@ -450,15 +450,15 @@ mem_jemalloc_arena_create(unsigned int *pnew_arenano) {
 
 	res = mallctl("arenas.create", &arenano, &len, NULL, 0);
 	if (res != 0) {
-		return (false);
+		return false;
 	}
 
 	*pnew_arenano = arenano;
 
-	return (true);
+	return true;
 #else
 	*pnew_arenano = ISC_MEM_ILLEGAL_ARENA;
-	return (true);
+	return true;
 #endif /* defined(JEMALLOC_API_SUPPORTED) && JEMALLOC_VERSION_MAJOR >= 4 */
 }
 
@@ -471,13 +471,13 @@ mem_jemalloc_arena_destroy(unsigned int arenano) {
 	(void)snprintf(buf, sizeof(buf), "arena.%u.destroy", arenano);
 	res = mallctl(buf, NULL, NULL, NULL, 0);
 	if (res != 0) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 #else
 	UNUSED(arenano);
-	return (true);
+	return true;
 #endif /* defined(JEMALLOC_API_SUPPORTED) && JEMALLOC_VERSION_MAJOR >= 4 */
 }
 
@@ -763,12 +763,12 @@ hi_water(isc_mem_t *ctx) {
 	size_t hiwater = atomic_load_relaxed(&ctx->hi_water);
 
 	if (hiwater == 0) {
-		return (false);
+		return false;
 	}
 
 	inuse = atomic_load_acquire(&ctx->inuse);
 	if (inuse <= hiwater) {
-		return (false);
+		return false;
 	}
 
 	maxinuse = atomic_load_acquire(&ctx->maxinuse);
@@ -783,13 +783,13 @@ hi_water(isc_mem_t *ctx) {
 	}
 
 	if (atomic_load_acquire(&ctx->hi_called)) {
-		return (false);
+		return false;
 	}
 
 	/* We are over water (for the first time) */
 	atomic_store_release(&ctx->is_overmem, true);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -798,22 +798,22 @@ lo_water(isc_mem_t *ctx) {
 	size_t lowater = atomic_load_relaxed(&ctx->lo_water);
 
 	if (lowater == 0) {
-		return (false);
+		return false;
 	}
 
 	inuse = atomic_load_acquire(&ctx->inuse);
 	if (inuse >= lowater) {
-		return (false);
+		return false;
 	}
 
 	if (!atomic_load_acquire(&ctx->hi_called)) {
-		return (false);
+		return false;
 	}
 
 	/* We are no longer overmem */
 	atomic_store_release(&ctx->is_overmem, false);
 
-	return (true);
+	return true;
 }
 
 void *
@@ -829,7 +829,7 @@ isc__mem_get(isc_mem_t *ctx, size_t size, size_t alignment FLARG) {
 
 	CALL_HI_WATER(ctx);
 
-	return (ptr);
+	return ptr;
 }
 
 void
@@ -966,7 +966,7 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 
 	CALL_HI_WATER(ctx);
 
-	return (ptr);
+	return ptr;
 }
 
 void *
@@ -998,7 +998,7 @@ isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 		CALL_HI_WATER(ctx);
 	}
 
-	return (new_ptr);
+	return new_ptr;
 }
 
 void *
@@ -1034,7 +1034,7 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size FLARG) {
 		CALL_HI_WATER(ctx);
 	}
 
-	return (new_ptr);
+	return new_ptr;
 }
 
 void
@@ -1071,7 +1071,7 @@ isc__mem_strdup(isc_mem_t *mctx, const char *s FLARG) {
 
 	strlcpy(ns, s, len);
 
-	return (ns);
+	return ns;
 }
 
 char *
@@ -1092,7 +1092,7 @@ isc__mem_strndup(isc_mem_t *mctx, const char *s, size_t size FLARG) {
 
 	strlcpy(ns, s, len);
 
-	return (ns);
+	return ns;
 }
 
 void
@@ -1110,35 +1110,35 @@ size_t
 isc_mem_inuse(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_acquire(&ctx->inuse));
+	return atomic_load_acquire(&ctx->inuse);
 }
 
 size_t
 isc_mem_maxinuse(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_acquire(&ctx->maxinuse));
+	return atomic_load_acquire(&ctx->maxinuse);
 }
 
 size_t
 isc_mem_total(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_acquire(&ctx->total));
+	return atomic_load_acquire(&ctx->total);
 }
 
 size_t
 isc_mem_malloced(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_acquire(&ctx->malloced));
+	return atomic_load_acquire(&ctx->malloced);
 }
 
 size_t
 isc_mem_maxmalloced(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_acquire(&ctx->maxmalloced));
+	return atomic_load_acquire(&ctx->maxmalloced);
 }
 
 void
@@ -1195,7 +1195,7 @@ bool
 isc_mem_isovermem(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_relaxed(&ctx->is_overmem));
+	return atomic_load_relaxed(&ctx->is_overmem);
 }
 
 void
@@ -1212,10 +1212,10 @@ isc_mem_getname(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	if (ctx->name[0] == 0) {
-		return ("");
+		return "";
 	}
 
-	return (ctx->name);
+	return ctx->name;
 }
 
 /*
@@ -1368,7 +1368,7 @@ isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 
 	ADD_TRACE(mpctx->mctx, item, mpctx->size, file, line);
 
-	return (item);
+	return item;
 }
 
 /* coverity[+free : arg-1] */
@@ -1425,21 +1425,21 @@ unsigned int
 isc_mempool_getfreemax(isc_mempool_t *restrict mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	return (mpctx->freemax);
+	return mpctx->freemax;
 }
 
 unsigned int
 isc_mempool_getfreecount(isc_mempool_t *restrict mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	return (mpctx->freecount);
+	return mpctx->freecount;
 }
 
 unsigned int
 isc_mempool_getallocated(isc_mempool_t *restrict mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	return (mpctx->allocated);
+	return mpctx->allocated;
 }
 
 void
@@ -1455,7 +1455,7 @@ unsigned int
 isc_mempool_getfillcount(isc_mempool_t *restrict mpctx) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
-	return (mpctx->fillcount);
+	return mpctx->fillcount;
 }
 
 /*
@@ -1507,7 +1507,7 @@ isc__mem_checkdestroyed(void) {
 
 unsigned int
 isc_mem_references(isc_mem_t *ctx) {
-	return (isc_refcount_current(&ctx->references));
+	return isc_refcount_current(&ctx->references);
 }
 
 typedef struct summarystat {
@@ -1608,7 +1608,7 @@ xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 error:
 	MCTXUNLOCK(ctx);
 
-	return (xmlrc);
+	return xmlrc;
 }
 
 int
@@ -1664,7 +1664,7 @@ isc_mem_renderxml(void *writer0) {
 
 	TRY0(xmlTextWriterEndElement(writer)); /* summary */
 error:
-	return (xmlrc);
+	return xmlrc;
 }
 
 #endif /* HAVE_LIBXML2 */
@@ -1749,7 +1749,7 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 
 	MCTXUNLOCK(ctx);
 	json_object_array_add(array, ctxobj);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1798,13 +1798,13 @@ isc_mem_renderjson(void *memobj0) {
 	json_object_object_add(memobj, "Lost", obj);
 
 	json_object_object_add(memobj, "contexts", ctxarray);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 error:
 	if (ctxarray != NULL) {
 		json_object_put(ctxarray);
 	}
-	return (result);
+	return result;
 }
 #endif /* HAVE_JSON_C */
 
@@ -1853,7 +1853,7 @@ jemalloc_set_ssize_value(const char *valname, ssize_t newval) {
 	int ret;
 
 	ret = mallctl(valname, NULL, NULL, &newval, sizeof(newval));
-	return (ret == 0);
+	return ret == 0;
 }
 #endif /* defined(JEMALLOC_API_SUPPORTED) && JEMALLOC_VERSION_MAJOR >= 4 */
 
@@ -1866,7 +1866,7 @@ mem_set_arena_ssize_value(isc_mem_t *mctx, const char *arena_valname,
 	char buf[256] = { 0 };
 
 	if (mctx->jemalloc_arena == ISC_MEM_ILLEGAL_ARENA) {
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	(void)snprintf(buf, sizeof(buf), "arena.%u.%s", mctx->jemalloc_arena,
@@ -1875,25 +1875,25 @@ mem_set_arena_ssize_value(isc_mem_t *mctx, const char *arena_valname,
 	ret = jemalloc_set_ssize_value(buf, newval);
 
 	if (!ret) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 #else
 	UNUSED(arena_valname);
 	UNUSED(newval);
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 #endif /* defined(JEMALLOC_API_SUPPORTED) && JEMALLOC_VERSION_MAJOR >= 4 */
 }
 
 isc_result_t
 isc_mem_arena_set_muzzy_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms) {
-	return (mem_set_arena_ssize_value(mctx, "muzzy_decay_ms", decay_ms));
+	return mem_set_arena_ssize_value(mctx, "muzzy_decay_ms", decay_ms);
 }
 
 isc_result_t
 isc_mem_arena_set_dirty_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms) {
-	return (mem_set_arena_ssize_value(mctx, "dirty_decay_ms", decay_ms));
+	return mem_set_arena_ssize_value(mctx, "dirty_decay_ms", decay_ms);
 }
 
 void

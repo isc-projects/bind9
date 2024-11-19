@@ -76,14 +76,14 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 			break;
 		default:
 			isc_mem_put(mctx, tsec, sizeof(*tsec));
-			return (DNS_R_BADALG);
+			return DNS_R_BADALG;
 		}
 		result = dns_tsigkey_createfromkey(dst_key_name(key), algname,
 						   key, false, NULL, 0, 0, mctx,
 						   NULL, &tsigkey);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(mctx, tsec, sizeof(*tsec));
-			return (result);
+			return result;
 		}
 		tsec->ukey.tsigkey = tsigkey;
 		break;
@@ -97,7 +97,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 	tsec->magic = DNS_TSEC_MAGIC;
 
 	*tsecp = tsec;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -128,7 +128,7 @@ dns_tsectype_t
 dns_tsec_gettype(dns_tsec_t *tsec) {
 	REQUIRE(DNS_TSEC_VALID(tsec));
 
-	return (tsec->type);
+	return tsec->type;
 }
 
 void

@@ -76,7 +76,7 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 
 	*symtabp = symtab;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -130,7 +130,7 @@ hash(const char *key, bool case_sensitive) {
 		}
 	}
 
-	return (h);
+	return h;
 }
 
 #define FIND(s, k, t, b, e)                                                   \
@@ -161,14 +161,14 @@ isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
 	FIND(symtab, key, type, bucket, elt);
 
 	if (elt == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (value != NULL) {
 		*value = elt->value;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -224,7 +224,7 @@ isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 
 	if (exists_policy != isc_symexists_add && elt != NULL) {
 		if (exists_policy == isc_symexists_reject) {
-			return (ISC_R_EXISTS);
+			return ISC_R_EXISTS;
 		}
 		INSIST(exists_policy == isc_symexists_replace);
 		UNLINK(symtab->table[bucket], elt, link);
@@ -259,7 +259,7 @@ isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 		grow_table(symtab);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -273,7 +273,7 @@ isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type) {
 	FIND(symtab, key, type, bucket, elt);
 
 	if (elt == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (symtab->undefine_action != NULL) {
@@ -284,11 +284,11 @@ isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type) {
 	isc_mem_put(symtab->mctx, elt, sizeof(*elt));
 	symtab->count--;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 unsigned int
 isc_symtab_count(isc_symtab_t *symtab) {
 	REQUIRE(VALID_SYMTAB(symtab));
-	return (symtab->count);
+	return symtab->count;
 }

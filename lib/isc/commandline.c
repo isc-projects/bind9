@@ -107,7 +107,7 @@ isc_commandline_parse(int argc, char *const *argv, const char *options) {
 			 * Index out of range or points to non-option.
 			 */
 			place = ENDOPT;
-			return (-1);
+			return -1;
 		}
 
 		if (place[1] != '\0' && *++place == '-' && place[1] == '\0') {
@@ -117,7 +117,7 @@ isc_commandline_parse(int argc, char *const *argv, const char *options) {
 			 */
 			isc_commandline_index++;
 			place = ENDOPT;
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -140,7 +140,7 @@ isc_commandline_parse(int argc, char *const *argv, const char *options) {
 				isc_commandline_option);
 		}
 
-		return (BADOPT);
+		return BADOPT;
 	}
 
 	if (*++option != ':') {
@@ -180,7 +180,7 @@ isc_commandline_parse(int argc, char *const *argv, const char *options) {
 			 * when ':' starts options string, per historical spec.
 			 */
 			if (*options == ':') {
-				return (BADARG);
+				return BADARG;
 			}
 
 			if (isc_commandline_errprint) {
@@ -191,7 +191,7 @@ isc_commandline_parse(int argc, char *const *argv, const char *options) {
 					isc_commandline_option);
 			}
 
-			return (BADOPT);
+			return BADOPT;
 		}
 
 		place = ENDOPT;
@@ -202,7 +202,7 @@ isc_commandline_parse(int argc, char *const *argv, const char *options) {
 		isc_commandline_index++;
 	}
 
-	return (isc_commandline_option);
+	return isc_commandline_option;
 }
 
 isc_result_t
@@ -256,10 +256,10 @@ restart:
 		result = isc_commandline_strtoargv(mctx, p, argcp, argvp,
 						   n + 1);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		(*argvp)[n] = s;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

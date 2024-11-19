@@ -33,16 +33,16 @@ isc_glob(const char *pattern, glob_t *pglob) {
 
 	switch (rc) {
 	case 0:
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 
 	case GLOB_NOMATCH:
-		return (ISC_R_FILENOTFOUND);
+		return ISC_R_FILENOTFOUND;
 
 	case GLOB_NOSPACE:
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 
 	default:
-		return (errno != 0 ? isc_errno_toresult(errno) : ISC_R_IOERROR);
+		return errno != 0 ? isc_errno_toresult(errno) : ISC_R_IOERROR;
 	}
 }
 

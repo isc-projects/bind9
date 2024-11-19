@@ -248,23 +248,23 @@ ixfr_rrstream_create(isc_mem_t *mctx, const char *journal_filename,
 				    sizep));
 
 	*sp = (rrstream_t *)s;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	ixfr_rrstream_destroy((rrstream_t **)(void *)&s);
-	return (result);
+	return result;
 }
 
 static isc_result_t
 ixfr_rrstream_first(rrstream_t *rs) {
 	ixfr_rrstream_t *s = (ixfr_rrstream_t *)rs;
-	return (dns_journal_first_rr(s->journal));
+	return dns_journal_first_rr(s->journal);
 }
 
 static isc_result_t
 ixfr_rrstream_next(rrstream_t *rs) {
 	ixfr_rrstream_t *s = (ixfr_rrstream_t *)rs;
-	return (dns_journal_next_rr(s->journal));
+	return dns_journal_next_rr(s->journal);
 }
 
 static void
@@ -329,11 +329,11 @@ axfr_rrstream_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
 	s->it_valid = true;
 
 	*sp = (rrstream_t *)s;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	axfr_rrstream_destroy((rrstream_t **)(void *)&s);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -342,7 +342,7 @@ axfr_rrstream_first(rrstream_t *rs) {
 	isc_result_t result;
 	result = dns_rriterator_first(&s->it);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	/* Skip SOA records. */
 	for (;;) {
@@ -359,7 +359,7 @@ axfr_rrstream_first(rrstream_t *rs) {
 			break;
 		}
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -382,7 +382,7 @@ axfr_rrstream_next(rrstream_t *rs) {
 			break;
 		}
 	}
-	return (result);
+	return result;
 }
 
 static void
@@ -449,23 +449,23 @@ soa_rrstream_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
 				    &s->soa_tuple));
 
 	*sp = (rrstream_t *)s;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	soa_rrstream_destroy((rrstream_t **)(void *)&s);
-	return (result);
+	return result;
 }
 
 static isc_result_t
 soa_rrstream_first(rrstream_t *rs) {
 	UNUSED(rs);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
 soa_rrstream_next(rrstream_t *rs) {
 	UNUSED(rs);
-	return (ISC_R_NOMORE);
+	return ISC_R_NOMORE;
 }
 
 static void
@@ -553,7 +553,7 @@ compound_rrstream_create(isc_mem_t *mctx, rrstream_t **soa_stream,
 	*data_stream = NULL;
 	*soa_stream = NULL;
 	*sp = (rrstream_t *)s;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -564,7 +564,7 @@ compound_rrstream_first(rrstream_t *rs) {
 		rrstream_t *curstream = s->components[s->state];
 		s->result = curstream->methods->first(curstream);
 	} while (s->result == ISC_R_NOMORE && s->state < 2);
-	return (s->result);
+	return s->result;
 }
 
 static isc_result_t
@@ -579,13 +579,13 @@ compound_rrstream_next(rrstream_t *rs) {
 		 */
 		curstream->methods->pause(curstream);
 		if (s->state == 2) {
-			return (ISC_R_NOMORE);
+			return ISC_R_NOMORE;
 		}
 		s->state++;
 		curstream = s->components[s->state];
 		s->result = curstream->methods->first(curstream);
 	}
-	return (s->result);
+	return s->result;
 }
 
 static void

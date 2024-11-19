@@ -96,7 +96,7 @@ dst__openssl_init(const char *engine) {
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 cleanup_init:
 	ENGINE_finish(e);
 cleanup_rm:
@@ -108,7 +108,7 @@ cleanup_rm:
 #else
 	UNUSED(engine);
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-	return (result);
+	return result;
 }
 
 void
@@ -151,7 +151,7 @@ toresult(isc_result_t fallback) {
 		break;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -161,13 +161,13 @@ dst__openssl_toresult(isc_result_t fallback) {
 	result = toresult(fallback);
 
 	ERR_clear_error();
-	return (result);
+	return result;
 }
 
 isc_result_t
 dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
-	return (dst__openssl_toresult3(DNS_LOGCATEGORY_GENERAL, funcname,
-				       fallback));
+	return dst__openssl_toresult3(DNS_LOGCATEGORY_GENERAL, funcname,
+				      fallback);
 }
 
 isc_result_t
@@ -201,22 +201,22 @@ dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
 
 done:
 	ERR_clear_error();
-	return (result);
+	return result;
 }
 
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 ENGINE *
 dst__openssl_getengine(const char *engine) {
 	if (engine == NULL) {
-		return (NULL);
+		return NULL;
 	}
 	if (e == NULL) {
-		return (NULL);
+		return NULL;
 	}
 	if (strcmp(engine, ENGINE_get_id(e)) == 0) {
-		return (e);
+		return e;
 	}
-	return (NULL);
+	return NULL;
 }
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 

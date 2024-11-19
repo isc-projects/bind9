@@ -36,7 +36,7 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	result = isc_lex_create(mctx, 1024, &lex);
 	REQUIRE(result == ISC_R_SUCCESS);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -55,5 +55,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 		result = isc_lex_gettoken(lex, 0, &token);
 	} while (result == ISC_R_SUCCESS);
 
-	return (0);
+	return 0;
 }

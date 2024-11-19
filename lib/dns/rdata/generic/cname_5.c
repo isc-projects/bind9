@@ -38,7 +38,7 @@ fromtext_cname(ARGS_FROMTEXT) {
 		origin = dns_rootname;
 	}
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -59,7 +59,7 @@ totext_cname(ARGS_TOTEXT) {
 
 	sub = name_prefix(&name, tctx->origin, &prefix);
 
-	return (dns_name_totext(&prefix, sub, target));
+	return dns_name_totext(&prefix, sub, target);
 }
 
 static isc_result_t
@@ -74,7 +74,7 @@ fromwire_cname(ARGS_FROMWIRE) {
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
 	dns_name_init(&name, NULL);
-	return (dns_name_fromwire(&name, source, dctx, options, target));
+	return dns_name_fromwire(&name, source, dctx, options, target);
 }
 
 static isc_result_t
@@ -92,7 +92,7 @@ towire_cname(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	return (dns_name_towire(&name, cctx, target));
+	return dns_name_towire(&name, cctx, target);
 }
 
 static int
@@ -117,7 +117,7 @@ compare_cname(ARGS_COMPARE) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_rdatacompare(&name1, &name2));
+	return dns_name_rdatacompare(&name1, &name2);
 }
 
 static isc_result_t
@@ -134,7 +134,7 @@ fromstruct_cname(ARGS_FROMSTRUCT) {
 	UNUSED(rdclass);
 
 	dns_name_toregion(&cname->cname, &region);
-	return (isc_buffer_copyregion(target, &region));
+	return isc_buffer_copyregion(target, &region);
 }
 
 static isc_result_t
@@ -157,7 +157,7 @@ tostruct_cname(ARGS_TOSTRUCT) {
 	dns_name_init(&cname->cname, NULL);
 	name_duporclone(&name, mctx, &cname->cname);
 	cname->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -183,7 +183,7 @@ additionaldata_cname(ARGS_ADDLDATA) {
 
 	REQUIRE(rdata->type == dns_rdatatype_cname);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -197,7 +197,7 @@ digest_cname(ARGS_DIGEST) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r);
 
-	return (dns_name_digest(&name, digest, arg));
+	return dns_name_digest(&name, digest, arg);
 }
 
 static bool
@@ -209,7 +209,7 @@ checkowner_cname(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -220,12 +220,12 @@ checknames_cname(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_cname(ARGS_COMPARE) {
-	return (compare_cname(rdata1, rdata2));
+	return compare_cname(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_CNAME_5_C */

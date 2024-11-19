@@ -166,12 +166,12 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	keytable->magic = KEYTABLE_MAGIC;
 	*keytablep = keytable;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_keytable:
 	isc_mem_putanddetach(&mctx, keytable, sizeof(*keytable));
 
-	return (result);
+	return result;
 }
 
 void
@@ -272,7 +272,7 @@ delete_ds(dns_keytable_t *keytable, dns_rbtnode_t *node, dns_rdata_ds_t *ds) {
 	RWLOCK(&knode->rwlock, isc_rwlocktype_read);
 	if (knode->dslist == NULL) {
 		RWUNLOCK(&knode->rwlock, isc_rwlocktype_read);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	isc_buffer_init(&b, data, DNS_DS_BUFFERSIZE);
@@ -281,7 +281,7 @@ delete_ds(dns_keytable_t *keytable, dns_rbtnode_t *node, dns_rdata_ds_t *ds) {
 				      dns_rdatatype_ds, ds, &b);
 	if (result != ISC_R_SUCCESS) {
 		RWUNLOCK(&knode->rwlock, isc_rwlocktype_write);
-		return (result);
+		return result;
 	}
 
 	for (rdata = ISC_LIST_HEAD(knode->dslist->rdata); rdata != NULL;
@@ -299,7 +299,7 @@ delete_ds(dns_keytable_t *keytable, dns_rbtnode_t *node, dns_rdata_ds_t *ds) {
 		 * The keyname must have matched or we wouldn't be here,
 		 * so we use DNS_R_PARTIALMATCH instead of ISC_R_NOTFOUND.
 		 */
-		return (DNS_R_PARTIALMATCH);
+		return DNS_R_PARTIALMATCH;
 	}
 
 	/*
@@ -321,7 +321,7 @@ delete_ds(dns_keytable_t *keytable, dns_rbtnode_t *node, dns_rdata_ds_t *ds) {
 
 	keynode_detach(keytable->mctx, &knode);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -355,7 +355,7 @@ new_keynode(dns_rdata_ds_t *ds, dns_keytable_t *keytable, bool managed,
 	knode->managed = managed;
 	knode->initial = initial;
 
-	return (knode);
+	return knode;
 }
 
 /*%
@@ -409,7 +409,7 @@ insert(dns_keytable_t *keytable, bool managed, bool initial,
 
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -419,13 +419,13 @@ dns_keytable_add(dns_keytable_t *keytable, bool managed, bool initial,
 	REQUIRE(ds != NULL);
 	REQUIRE(!initial || managed);
 
-	return (insert(keytable, managed, initial, name, ds, callback,
-		       callback_arg));
+	return insert(keytable, managed, initial, name, ds, callback,
+		      callback_arg);
 }
 
 isc_result_t
 dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name) {
-	return (insert(keytable, true, false, name, NULL, NULL, NULL));
+	return insert(keytable, true, false, name, NULL, NULL, NULL);
 }
 
 isc_result_t
@@ -455,7 +455,7 @@ dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname,
 	}
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -515,7 +515,7 @@ dns_keytable_deletekey(dns_keytable_t *keytable, const dns_name_t *keyname,
 
 finish:
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -542,7 +542,7 @@ dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
 	}
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -570,7 +570,7 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
 
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
 
-	return (result);
+	return result;
 }
 
 void
@@ -614,7 +614,7 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
 
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -623,11 +623,11 @@ putstr(isc_buffer_t **b, const char *str) {
 
 	result = isc_buffer_reserve(b, strlen(str));
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	isc_buffer_putstr(*b, str);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -655,7 +655,7 @@ dns_keytable_dump(dns_keytable_t *keytable, FILE *fp) {
 		(char *)isc_buffer_base(text));
 
 	isc_buffer_free(&text);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -670,7 +670,7 @@ keynode_dslist_totext(dns_name_t *name, dns_keynode_t *keynode,
 
 	dns_rdataset_init(&dsset);
 	if (!dns_keynode_dsset(keynode, &dsset)) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	for (result = dns_rdataset_first(&dsset); result == ISC_R_SUCCESS;
@@ -696,12 +696,12 @@ keynode_dslist_totext(dns_name_t *name, dns_keynode_t *keynode,
 		result = putstr(text, obuf);
 		if (result != ISC_R_SUCCESS) {
 			dns_rdataset_disassociate(&dsset);
-			return (result);
+			return result;
 		}
 	}
 	dns_rdataset_disassociate(&dsset);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -758,7 +758,7 @@ dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **text) {
 cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -808,7 +808,7 @@ dns_keytable_forall(dns_keytable_t *keytable,
 cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
-	return (result);
+	return result;
 }
 
 bool
@@ -827,7 +827,7 @@ dns_keynode_dsset(dns_keynode_t *keynode, dns_rdataset_t *rdataset) {
 		result = false;
 	}
 	RWUNLOCK(&keynode->rwlock, isc_rwlocktype_read);
-	return (result);
+	return result;
 }
 
 bool
@@ -840,7 +840,7 @@ dns_keynode_managed(dns_keynode_t *keynode) {
 	managed = keynode->managed;
 	RWUNLOCK(&keynode->rwlock, isc_rwlocktype_read);
 
-	return (managed);
+	return managed;
 }
 
 bool
@@ -853,7 +853,7 @@ dns_keynode_initial(dns_keynode_t *keynode) {
 	initial = keynode->initial;
 	RWUNLOCK(&keynode->rwlock, isc_rwlocktype_read);
 
-	return (initial);
+	return initial;
 }
 
 void
@@ -892,10 +892,10 @@ keynode_first(dns_rdataset_t *rdataset) {
 	RWUNLOCK(&keynode->rwlock, isc_rwlocktype_read);
 
 	if (rdataset->private2 == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -908,7 +908,7 @@ keynode_next(dns_rdataset_t *rdataset) {
 
 	rdata = rdataset->private2;
 	if (rdata == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	keynode = rdataset->private1;
@@ -917,10 +917,10 @@ keynode_next(dns_rdataset_t *rdataset) {
 	RWUNLOCK(&keynode->rwlock, isc_rwlocktype_read);
 
 	if (rdataset->private2 == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void

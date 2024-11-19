@@ -43,13 +43,13 @@
 static int
 setup_test(void **state) {
 	isc__nm_force_tid(0);
-	return (setup_server(state));
+	return setup_server(state);
 }
 
 static int
 teardown_test(void **state) {
 	isc__nm_force_tid(-1);
-	return (teardown_server(state));
+	return teardown_server(state);
 }
 
 static void

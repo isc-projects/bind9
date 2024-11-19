@@ -249,7 +249,7 @@ do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 	ISC_LIST_UNLINK(temp_diff.tuples, *tuple, link);
 	if (result != ISC_R_SUCCESS) {
 		dns_difftuple_free(tuple);
-		return (result);
+		return result;
 	}
 
 	/*
@@ -260,7 +260,7 @@ do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 	/*
 	 * Do not clear temp_diff.
 	 */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -271,9 +271,9 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	isc_result_t result;
 	result = dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
-	return (do_one_tuple(&tuple, db, ver, diff));
+	return do_one_tuple(&tuple, db, ver, diff);
 }
 
 /**************************************************************************/
@@ -332,13 +332,13 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset) {
 		rr.ttl = rdataset->ttl;
 		result = (*ctx->rr_action)(ctx->rr_action_data, &rr);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 	if (result != ISC_R_NOMORE) {
-		return (result);
+		return result;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -358,10 +358,10 @@ foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	node = NULL;
 	result = dns_db_findnode(db, name, false, &node);
 	if (result == ISC_R_NOTFOUND) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	iter = NULL;
@@ -395,7 +395,7 @@ cleanup_iterator:
 cleanup_node:
 	dns_db_detachnode(db, &node);
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -412,7 +412,7 @@ foreach_node_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	foreach_node_rr_ctx_t ctx;
 	ctx.rr_action = rr_action;
 	ctx.rr_action_data = rr_action_data;
-	return (foreach_rrset(db, ver, name, foreach_node_rr_action, &ctx));
+	return foreach_rrset(db, ver, name, foreach_node_rr_action, &ctx);
 }
 
 /*%
@@ -433,8 +433,8 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_t rdataset;
 
 	if (type == dns_rdatatype_any) {
-		return (foreach_node_rr(db, ver, name, rr_action,
-					rr_action_data));
+		return foreach_node_rr(db, ver, name, rr_action,
+				       rr_action_data);
 	}
 
 	node = NULL;
@@ -446,10 +446,10 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		result = dns_db_findnode(db, name, false, &node);
 	}
 	if (result == ISC_R_NOTFOUND) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	dns_rdataset_init(&rdataset);
@@ -484,7 +484,7 @@ cleanup_rdataset:
 cleanup_node:
 	dns_db_detachnode(db, &node);
 
-	return (result);
+	return result;
 }
 
 /**************************************************************************/
@@ -506,7 +506,7 @@ static isc_result_t
 rrset_exists_action(void *data, rr_t *rr) {
 	UNUSED(data);
 	UNUSED(rr);
-	return (ISC_R_EXISTS);
+	return ISC_R_EXISTS;
 }
 
 /*%
@@ -578,7 +578,7 @@ rrset_visible(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		*visible = false; /* silence false compiler warning */
 		break;
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -589,7 +589,7 @@ static isc_result_t
 name_exists_action(void *data, dns_rdataset_t *rrset) {
 	UNUSED(data);
 	UNUSED(rrset);
-	return (ISC_R_EXISTS);
+	return ISC_R_EXISTS;
 }
 
 /*%
@@ -628,14 +628,14 @@ temp_order(const void *av, const void *bv) {
 	int r;
 	r = dns_name_compare(&a->name, &b->name);
 	if (r != 0) {
-		return (r);
+		return r;
 	}
 	r = (b->rdata.type - a->rdata.type);
 	if (r != 0) {
-		return (r);
+		return r;
 	}
 	r = dns_rdata_casecompare(&a->rdata, &b->rdata);
-	return (r);
+	return r;
 }
 
 /**************************************************************************/
@@ -667,7 +667,7 @@ static bool
 true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	UNUSED(update_rr);
 	UNUSED(db_rr);
-	return (true);
+	return true;
 }
 
 /*%
@@ -676,7 +676,7 @@ true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 static bool
 rrsig_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	UNUSED(update_rr);
-	return ((db_rr->type == dns_rdatatype_rrsig) ? true : false);
+	return (db_rr->type == dns_rdatatype_rrsig) ? true : false;
 }
 
 /*%
@@ -690,9 +690,9 @@ delete_if_action(void *data, rr_t *rr) {
 		result = update_one_rr(ctx->db, ctx->ver, ctx->diff,
 				       DNS_DIFFOP_DEL, ctx->name, rr->ttl,
 				       &rr->rdata);
-		return (result);
+		return result;
 	} else {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 }
 
@@ -714,8 +714,7 @@ delete_if(rr_predicate *predicate, dns_db_t *db, dns_dbversion_t *ver,
 	ctx.diff = diff;
 	ctx.name = name;
 	ctx.update_rr = update_rr;
-	return (foreach_rr(db, ver, name, type, covers, delete_if_action,
-			   &ctx));
+	return foreach_rr(db, ver, name, type, covers, delete_if_action, &ctx);
 }
 
 /**************************************************************************/
@@ -737,7 +736,7 @@ namelist_append_name(dns_diff_t *list, dns_name_t *name) {
 				   &dummy_rdata, &tuple));
 	dns_diff_append(list, &tuple);
 failure:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -770,7 +769,7 @@ failure:
 	if (dbit != NULL) {
 		dns_dbiterator_destroy(&dbit);
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -785,9 +784,9 @@ is_non_nsec_action(void *data, dns_rdataset_t *rrset) {
 	       (rrset->covers == dns_rdatatype_nsec ||
 		rrset->covers == dns_rdatatype_nsec3))))
 	{
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -815,7 +814,7 @@ name_order(const void *av, const void *bv) {
 	dns_difftuple_t const *const *bp = bv;
 	dns_difftuple_t const *a = *ap;
 	dns_difftuple_t const *b = *bp;
-	return (dns_name_compare(&a->name, &b->name));
+	return dns_name_compare(&a->name, &b->name);
 }
 
 static isc_result_t
@@ -838,7 +837,7 @@ uniqify_name_list(dns_diff_t *list) {
 		p = ISC_LIST_NEXT(p, link);
 	}
 failure:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -857,7 +856,7 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 		if (unsecure != NULL) {
 			*unsecure = false;
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (result == DNS_R_ZONECUT) {
 		*flag = true;
 		*cut = true;
@@ -876,7 +875,7 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 				*unsecure = false;
 			}
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (result == DNS_R_GLUE || result == DNS_R_DNAME ||
 		   result == DNS_R_DELEGATION || result == DNS_R_NXDOMAIN)
 	{
@@ -885,7 +884,7 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 		if (unsecure != NULL) {
 			*unsecure = false;
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
 		/*
 		 * Silence compiler.
@@ -895,7 +894,7 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 		if (unsecure != NULL) {
 			*unsecure = false;
 		}
-		return (result);
+		return result;
 	}
 }
 
@@ -981,7 +980,7 @@ failure:
 		dns_dbiterator_destroy(&dbit);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -1032,7 +1031,7 @@ failure:
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -1054,7 +1053,7 @@ add_placeholder_nsec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				   &tuple));
 	CHECK(do_one_tuple(&tuple, db, ver, diff));
 failure:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1079,7 +1078,7 @@ failure:
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -1283,7 +1282,7 @@ failure:
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
 	}
-	return (result);
+	return result;
 }
 
 /*
@@ -1305,7 +1304,7 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 	result = dns_db_findnode(db, name, false, &node);
 	if (result == ISC_R_NOTFOUND) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
@@ -1316,7 +1315,7 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_db_detachnode(db, &node);
 
 	if (result == ISC_R_NOTFOUND) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
@@ -1368,7 +1367,7 @@ failure:
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1385,10 +1384,10 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	node = NULL;
 	result = dns_db_findnode(db, name, false, &node);
 	if (result == ISC_R_NOTFOUND) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	iter = NULL;
@@ -1444,7 +1443,7 @@ cleanup_iterator:
 cleanup_node:
 	dns_db_detachnode(db, &node);
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -1462,8 +1461,8 @@ isc_result_t
 dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		      dns_dbversion_t *oldver, dns_dbversion_t *newver,
 		      dns_diff_t *diff, uint32_t sigvalidityinterval) {
-	return (dns_update_signaturesinc(log, zone, db, oldver, newver, diff,
-					 sigvalidityinterval, NULL));
+	return dns_update_signaturesinc(log, zone, db, oldver, newver, diff,
+					sigvalidityinterval, NULL);
 }
 
 struct dns_update_state {
@@ -1522,7 +1521,7 @@ dns__jitter_expire(dns_zone_t *zone) {
 			sigvalidity -= isc_random_uniform(1200);
 		}
 	}
-	return (sigvalidity);
+	return sigvalidity;
 }
 
 isc_result_t
@@ -1713,7 +1712,7 @@ next_state:
 				}
 			}
 			if (state != &mystate && sigs > maxsigs) {
-				return (DNS_R_CONTINUE);
+				return DNS_R_CONTINUE;
 			}
 		}
 		ISC_LIST_APPENDLIST(diff->tuples, state->work.tuples, link);
@@ -1906,7 +1905,7 @@ next_state:
 			ISC_LIST_UNLINK(state->affected.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
 			if (state != &mystate && sigs > maxsigs) {
-				return (DNS_R_CONTINUE);
+				return DNS_R_CONTINUE;
 			}
 		}
 		ISC_LIST_APPENDLIST(state->affected.tuples, state->work.tuples,
@@ -1986,7 +1985,7 @@ next_state:
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
 			if (state != &mystate && sigs > maxsigs) {
-				return (DNS_R_CONTINUE);
+				return DNS_R_CONTINUE;
 			}
 		}
 		ISC_LIST_APPENDLIST(state->nsec_mindiff.tuples,
@@ -2117,7 +2116,7 @@ next_state:
 			ISC_LIST_UNLINK(state->affected.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
 			if (state != &mystate && sigs > maxsigs) {
-				return (DNS_R_CONTINUE);
+				return DNS_R_CONTINUE;
 			}
 		}
 		ISC_LIST_APPENDLIST(state->affected.tuples, state->work.tuples,
@@ -2162,7 +2161,7 @@ next_state:
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
 			if (state != &mystate && sigs > maxsigs) {
-				return (DNS_R_CONTINUE);
+				return DNS_R_CONTINUE;
 			}
 		}
 		ISC_LIST_APPENDLIST(state->nsec_mindiff.tuples,
@@ -2210,17 +2209,17 @@ failure:
 		isc_mem_put(diff->mctx, state, sizeof(*state));
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_stdtime_t
 epoch_to_yyyymmdd(time_t when) {
 	struct tm t, *tm = localtime_r(&when, &t);
 	if (tm == NULL) {
-		return (0);
+		return 0;
 	}
-	return (((tm->tm_year + 1900) * 10000) + ((tm->tm_mon + 1) * 100) +
-		tm->tm_mday);
+	return ((tm->tm_year + 1900) * 10000) + ((tm->tm_mon + 1) * 100) +
+	       tm->tm_mday;
 }
 
 static uint32_t
@@ -2229,20 +2228,20 @@ dns__update_soaserial(uint32_t serial, dns_updatemethod_t method) {
 
 	switch (method) {
 	case dns_updatemethod_none:
-		return (serial);
+		return serial;
 	case dns_updatemethod_unixtime:
 		isc_stdtime_get(&now);
-		return (now);
+		return now;
 	case dns_updatemethod_date:
 		isc_stdtime_get(&now);
-		return (epoch_to_yyyymmdd((time_t)now) * 100);
+		return epoch_to_yyyymmdd((time_t)now) * 100;
 	case dns_updatemethod_increment:
 		/* RFC1982 */
 		serial = (serial + 1) & 0xFFFFFFFF;
 		if (serial == 0) {
-			return (1);
+			return 1;
 		}
-		return (serial);
+		return serial;
 	default:
 		UNREACHABLE();
 	}
@@ -2282,5 +2281,5 @@ dns_update_soaserial(uint32_t serial, dns_updatemethod_t method,
 		*used = method;
 	}
 
-	return (new_serial);
+	return new_serial;
 }

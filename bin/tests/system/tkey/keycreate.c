@@ -274,5 +274,5 @@ main(int argc, char *argv[]) {
 
 	isc_app_finish();
 
-	return (0);
+	return 0;
 }

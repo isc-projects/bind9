@@ -870,7 +870,7 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 		if (dlclose(*dl_handle) != 0) {
 			snprintf(emsg->c, sizeof(librpz_emsg_t),
 				 "dlopen(NULL): %s", dlerror());
-			return (NULL);
+			return NULL;
 		}
 		*dl_handle = NULL;
 	}
@@ -887,39 +887,39 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 			if (dl_handle != NULL) {
 				*dl_handle = handle;
 			}
-			return (new_librpz);
+			return new_librpz;
 		}
 		if (dlclose(handle) != 0) {
 			snprintf(emsg->c, sizeof(librpz_emsg_t),
 				 "dlsym(NULL, " LIBRPZ_DEF_STR "): %s",
 				 dlerror());
-			return (NULL);
+			return NULL;
 		}
 	}
 
 	if (path == NULL || path[0] == '\0') {
 		snprintf(emsg->c, sizeof(librpz_emsg_t),
 			 "librpz not linked and no dlopen() path provided");
-		return (NULL);
+		return NULL;
 	}
 
 	handle = dlopen(path, RTLD_NOW | RTLD_LOCAL);
 	if (handle == NULL) {
 		snprintf(emsg->c, sizeof(librpz_emsg_t), "dlopen(%s): %s", path,
 			 dlerror());
-		return (NULL);
+		return NULL;
 	}
 	new_librpz = dlsym(handle, LIBRPZ_DEF_STR);
 	if (new_librpz != NULL) {
 		if (dl_handle != NULL) {
 			*dl_handle = handle;
 		}
-		return (new_librpz);
+		return new_librpz;
 	}
 	snprintf(emsg->c, sizeof(librpz_emsg_t),
 		 "dlsym(%s, " LIBRPZ_DEF_STR "): %s", path, dlerror());
 	dlclose(handle);
-	return (NULL);
+	return NULL;
 }
 #elif defined(LIBRPZ_LIB_OPEN)
 /*
@@ -935,11 +935,11 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 
 #if LIBRPZ_LIB_OPEN == 1
 	emsg->c[0] = '\0';
-	return (&LIBRPZ_DEF);
+	return &LIBRPZ_DEF;
 #else  /* if LIBRPZ_LIB_OPEN == 1 */
 	snprintf(emsg->c, sizeof(librpz_emsg_t),
 		 "librpz not available via ./configure");
-	return (NULL);
+	return NULL;
 #endif /* LIBRPZ_LIB_OPEN */
 }
 #endif /* LIBRPZ_LIB_OPEN */

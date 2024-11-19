@@ -83,7 +83,7 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 	if (!ok && callbacks != NULL) {
 		warn_badname(&name, lexer, callbacks);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -135,7 +135,7 @@ totext_in_srv(ARGS_TOTEXT) {
 	 */
 	dns_name_fromregion(&name, &region);
 	sub = name_prefix(&name, tctx->origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	return dns_name_totext(&prefix, sub, target);
 }
 
 static isc_result_t
@@ -158,7 +158,7 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 	 */
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 6) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	RETERR(mem_tobuffer(target, sr.base, 6));
 	isc_buffer_forward(source, 6);
@@ -166,7 +166,7 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 	/*
 	 * Target.
 	 */
-	return (dns_name_fromwire(&name, source, dctx, options, target));
+	return dns_name_fromwire(&name, source, dctx, options, target);
 }
 
 static isc_result_t
@@ -191,7 +191,7 @@ towire_in_srv(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
-	return (dns_name_towire(&name, cctx, target));
+	return dns_name_towire(&name, cctx, target);
 }
 
 static int
@@ -214,7 +214,7 @@ compare_in_srv(ARGS_COMPARE) {
 	 */
 	order = memcmp(rdata1->data, rdata2->data, 6);
 	if (order != 0) {
-		return (order < 0 ? -1 : 1);
+		return order < 0 ? -1 : 1;
 	}
 
 	/*
@@ -232,7 +232,7 @@ compare_in_srv(ARGS_COMPARE) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_rdatacompare(&name1, &name2));
+	return dns_name_rdatacompare(&name1, &name2);
 }
 
 static isc_result_t
@@ -253,7 +253,7 @@ fromstruct_in_srv(ARGS_FROMSTRUCT) {
 	RETERR(uint16_tobuffer(srv->weight, target));
 	RETERR(uint16_tobuffer(srv->port, target));
 	dns_name_toregion(&srv->target, &region);
-	return (isc_buffer_copyregion(target, &region));
+	return isc_buffer_copyregion(target, &region);
 }
 
 static isc_result_t
@@ -283,7 +283,7 @@ tostruct_in_srv(ARGS_TOSTRUCT) {
 	dns_name_init(&srv->target, NULL);
 	name_duporclone(&name, mctx, &srv->target);
 	srv->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -325,12 +325,12 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 	dns_name_fromregion(&name, &region);
 
 	if (dns_name_equal(&name, dns_rootname)) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	result = (add)(arg, &name, dns_rdatatype_a, NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	dns_fixedname_init(&fixed);
@@ -338,17 +338,16 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 	result = dns_name_fromstring2(dns_fixedname_name(&fixed), buf, NULL, 0,
 				      NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	result = dns_name_concatenate(dns_fixedname_name(&fixed), &name,
 				      dns_fixedname_name(&fixed), NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
-	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa,
-		      NULL));
+	return (add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa, NULL);
 }
 
 static isc_result_t
@@ -366,7 +365,7 @@ digest_in_srv(ARGS_DIGEST) {
 	RETERR((digest)(arg, &r1));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
-	return (dns_name_digest(&name, digest, arg));
+	return dns_name_digest(&name, digest, arg);
 }
 
 static bool
@@ -379,7 +378,7 @@ checkowner_in_srv(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -400,14 +399,14 @@ checknames_in_srv(ARGS_CHECKNAMES) {
 		if (bad != NULL) {
 			dns_name_clone(&name, bad);
 		}
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 static int
 casecompare_in_srv(ARGS_COMPARE) {
-	return (compare_in_srv(rdata1, rdata2));
+	return compare_in_srv(rdata1, rdata2);
 }
 
 #endif /* RDATA_IN_1_SRV_33_C */

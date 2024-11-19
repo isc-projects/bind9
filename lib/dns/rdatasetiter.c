@@ -42,7 +42,7 @@ dns_rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 
 	REQUIRE(DNS_RDATASETITER_VALID(iterator));
 
-	return (iterator->methods->first(iterator));
+	return iterator->methods->first(iterator);
 }
 
 isc_result_t
@@ -53,7 +53,7 @@ dns_rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 
 	REQUIRE(DNS_RDATASETITER_VALID(iterator));
 
-	return (iterator->methods->next(iterator));
+	return iterator->methods->next(iterator);
 }
 
 void

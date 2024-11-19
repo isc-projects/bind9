@@ -41,7 +41,7 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	isc_mem_create(&mctx);
 	output = isc_mem_get(mctx, output_len);
 
-	return (0);
+	return 0;
 }
 
 static isc_result_t
@@ -62,7 +62,7 @@ parse_message(isc_buffer_t *input, dns_message_t **messagep) {
 		dns_message_detach(&message);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -87,7 +87,7 @@ print_message(dns_message_t *message) {
 			output);
 	}
 
-	return (result);
+	return result;
 }
 
 #define CHECKRESULT(r, f)                 \
@@ -114,7 +114,7 @@ render_message(dns_message_t **messagep) {
 
 	result = dns_compress_init(&cctx, -1, mctx);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	CHECKRESULT(result, dns_message_renderbegin(message, &cctx, &buffer));
 
@@ -139,11 +139,11 @@ render_message(dns_message_t **messagep) {
 
 	result = parse_message(&buffer, messagep);
 
-	return (result);
+	return result;
 
 cleanup:
 	dns_compress_invalidate(&cctx);
-	return (result);
+	return result;
 }
 
 int
@@ -153,7 +153,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	dns_message_t *message = NULL;
 
 	if (size > 65535) {
-		return (0);
+		return 0;
 	}
 
 	isc_buffer_constinit(&buffer, data, size);
@@ -185,5 +185,5 @@ cleanup:
 		dns_message_detach(&message);
 	}
 
-	return (0);
+	return 0;
 }

@@ -212,7 +212,7 @@ msgblock_allocate(isc_mem_t *mctx, unsigned int sizeof_type,
 
 	ISC_LINK_INIT(block, link);
 
-	return (block);
+	return block;
 }
 
 /*
@@ -224,7 +224,7 @@ msgblock_internalget(dns_msgblock_t *block, unsigned int sizeof_type) {
 	void *ptr;
 
 	if (block == NULL || block->remaining == 0) {
-		return (NULL);
+		return NULL;
 	}
 
 	block->remaining--;
@@ -232,7 +232,7 @@ msgblock_internalget(dns_msgblock_t *block, unsigned int sizeof_type) {
 	ptr = (((unsigned char *)block) + sizeof(dns_msgblock_t) +
 	       (sizeof_type * block->remaining));
 
-	return (ptr);
+	return ptr;
 }
 
 static void
@@ -266,7 +266,7 @@ newbuffer(dns_message_t *msg, unsigned int size) {
 	isc_buffer_allocate(msg->mctx, &dynbuf, size);
 
 	ISC_LIST_APPEND(msg->scratchpad, dynbuf, link);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_buffer_t *
@@ -276,7 +276,7 @@ currentbuffer(dns_message_t *msg) {
 	dynbuf = ISC_LIST_TAIL(msg->scratchpad);
 	INSIST(dynbuf != NULL);
 
-	return (dynbuf);
+	return dynbuf;
 }
 
 static void
@@ -292,7 +292,7 @@ newrdata(dns_message_t *msg) {
 	rdata = ISC_LIST_HEAD(msg->freerdata);
 	if (rdata != NULL) {
 		ISC_LIST_UNLINK(msg->freerdata, rdata, link);
-		return (rdata);
+		return rdata;
 	}
 
 	msgblock = ISC_LIST_TAIL(msg->rdatas);
@@ -306,7 +306,7 @@ newrdata(dns_message_t *msg) {
 	}
 
 	dns_rdata_init(rdata);
-	return (rdata);
+	return rdata;
 }
 
 static void
@@ -336,7 +336,7 @@ newrdatalist(dns_message_t *msg) {
 	}
 out:
 	dns_rdatalist_init(rdatalist);
-	return (rdatalist);
+	return rdatalist;
 }
 
 static dns_offsets_t *
@@ -354,7 +354,7 @@ newoffsets(dns_message_t *msg) {
 		offsets = msgblock_get(msgblock, dns_offsets_t);
 	}
 
-	return (offsets);
+	return offsets;
 }
 
 static void
@@ -701,7 +701,7 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 			x = 0;
 		}
 	}
-	return (26 + r1.length + r2.length + x + otherlen);
+	return 26 + r1.length + r2.length + x + otherlen;
 }
 
 void
@@ -799,11 +799,11 @@ name_hash_add(isc_ht_t *ht, dns_name_t *name, dns_name_t **foundp) {
 	isc_result_t result = isc_ht_find(ht, name->ndata, name->length,
 					  (void **)foundp);
 	if (result == ISC_R_SUCCESS) {
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 	result = isc_ht_add(ht, name->ndata, name->length, (void *)name);
 	INSIST(result == ISC_R_SUCCESS);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -818,11 +818,11 @@ findname(dns_name_t **foundname, const dns_name_t *target,
 			if (foundname != NULL) {
 				*foundname = curr;
 			}
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 typedef struct __attribute__((__packed__)) rds_key {
@@ -839,12 +839,12 @@ rds_hash_add(isc_ht_t *ht, dns_rdataset_t *rds, dns_rdataset_t **foundp) {
 	isc_result_t result = isc_ht_find(ht, (const unsigned char *)&key,
 					  sizeof(key), (void **)foundp);
 	if (result == ISC_R_SUCCESS) {
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 	result = isc_ht_add(ht, (const unsigned char *)&key, sizeof(key),
 			    (void *)rds);
 	INSIST(result == ISC_R_SUCCESS);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -862,11 +862,11 @@ dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
 			if (rdataset != NULL) {
 				*rdataset = curr;
 			}
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 /*
@@ -894,13 +894,13 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 
 			result = newbuffer(msg, SCRATCHPAD_SIZE);
 			if (result != ISC_R_SUCCESS) {
-				return (result);
+				return result;
 			}
 
 			scratch = currentbuffer(msg);
 			dns_name_reset(name);
 		} else {
-			return (result);
+			return result;
 		}
 	}
 
@@ -943,7 +943,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			} else {
 				INSIST(trysize != 0);
 				if (trysize >= 65535) {
-					return (ISC_R_NOSPACE);
+					return ISC_R_NOSPACE;
 				}
 				/* XXX DNS_R_RRTOOLONG? */
 				trysize *= 2;
@@ -951,12 +951,12 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			tries++;
 			result = newbuffer(msg, trysize);
 			if (result != ISC_R_SUCCESS) {
-				return (result);
+				return result;
 			}
 
 			scratch = currentbuffer(msg);
 		} else {
-			return (result);
+			return result;
 		}
 	}
 }
@@ -1182,19 +1182,19 @@ cleanup:
 		isc_ht_destroy(&name_map);
 	}
 
-	return (result);
+	return result;
 }
 
 static bool
 update(dns_section_t section, dns_rdataclass_t rdclass) {
 	if (section == DNS_SECTION_PREREQUISITE) {
-		return (rdclass == dns_rdataclass_any ||
-			rdclass == dns_rdataclass_none);
+		return rdclass == dns_rdataclass_any ||
+		       rdclass == dns_rdataclass_none;
 	}
 	if (section == DNS_SECTION_UPDATE) {
-		return (rdclass == dns_rdataclass_any);
+		return rdclass == dns_rdataclass_any;
 	}
-	return (false);
+	return false;
 }
 
 /*
@@ -1246,11 +1246,11 @@ auth_signed(dns_namelist_t *section) {
 		}
 
 		if (auth_dnssec != auth_rrsig) {
-			return (false);
+			return false;
 		}
 	}
 
-	return (true);
+	return true;
 }
 
 static isc_result_t
@@ -1759,7 +1759,7 @@ cleanup:
 		isc_ht_destroy(&name_map);
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1797,7 +1797,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 
 	isc_buffer_remainingregion(source, &r);
 	if (r.length < DNS_MESSAGE_HEADERLEN) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	msg->id = isc_buffer_getuint16(source);
@@ -1830,7 +1830,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		ret = ISC_R_SUCCESS;
 	}
 	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+		return ret;
 	}
 	msg->question_ok = 1;
 
@@ -1843,7 +1843,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		ret = ISC_R_SUCCESS;
 	}
 	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+		return ret;
 	}
 
 	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY, options);
@@ -1855,7 +1855,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		ret = ISC_R_SUCCESS;
 	}
 	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+		return ret;
 	}
 
 	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL, options);
@@ -1867,7 +1867,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		ret = ISC_R_SUCCESS;
 	}
 	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+		return ret;
 	}
 
 	isc_buffer_remainingregion(source, &r);
@@ -1881,12 +1881,12 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 truncated:
 
 	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc) {
-		return (DNS_R_RECOVERABLE);
+		return DNS_R_RECOVERABLE;
 	}
 	if (seen_problem) {
-		return (DNS_R_RECOVERABLE);
+		return DNS_R_RECOVERABLE;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1913,11 +1913,11 @@ dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
 	 */
 	isc_buffer_availableregion(buffer, &r);
 	if (r.length < DNS_MESSAGE_HEADERLEN) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	if (r.length - DNS_MESSAGE_HEADERLEN < msg->reserved) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/*
@@ -1927,7 +1927,7 @@ dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
 
 	msg->buffer = buffer;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1956,7 +1956,7 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer) {
 
 	msg->buffer = buffer;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -1976,13 +1976,13 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space) {
 	if (msg->buffer != NULL) {
 		isc_buffer_availableregion(msg->buffer, &r);
 		if (r.length < (space + msg->reserved)) {
-			return (ISC_R_NOSPACE);
+			return ISC_R_NOSPACE;
 		}
 	}
 
 	msg->reserved += space;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
@@ -1993,7 +1993,7 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 	 * If we are not rendering class IN, this ordering is bogus.
 	 */
 	if (rds->rdclass != dns_rdataclass_in) {
-		return (false);
+		return false;
 	}
 
 	switch (rds->type) {
@@ -2014,10 +2014,10 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 	}
 
 	if (pass_needed >= pass) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 static isc_result_t
@@ -2030,7 +2030,7 @@ renderset(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	 * Shrink the space in the buffer by the reserved amount.
 	 */
 	if (target->length - target->used < reserved) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	target->length -= reserved;
@@ -2038,7 +2038,7 @@ renderset(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 				     options, countp);
 	target->length += reserved;
 
-	return (result);
+	return result;
 }
 
 static void
@@ -2110,7 +2110,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	 * Shrink the space in the buffer by the reserved amount.
 	 */
 	if (msg->buffer->length - msg->buffer->used < msg->reserved) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	msg->buffer->length -= msg->reserved;
 
@@ -2149,7 +2149,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				msg->flags |= DNS_MESSAGEFLAG_TC;
 				msg->buffer->length += msg->reserved;
 				msg->counts[sectionid] += total;
-				return (result);
+				return result;
 			}
 			if (result == ISC_R_NOSPACE) {
 				msg->flags |= DNS_MESSAGEFLAG_TC;
@@ -2161,7 +2161,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				*(msg->buffer) = st; /* rollback */
 				msg->buffer->length += msg->reserved;
 				msg->counts[sectionid] += total;
-				return (result);
+				return result;
 			}
 
 			update_min_section_ttl(msg, sectionid, rdataset);
@@ -2175,7 +2175,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 		if (name == NULL) {
 			msg->buffer->length += msg->reserved;
 			msg->counts[sectionid] += total;
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 
 		while (name != NULL) {
@@ -2235,7 +2235,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				if (partial && result == ISC_R_NOSPACE) {
 					msg->buffer->length += msg->reserved;
 					msg->counts[sectionid] += total;
-					return (result);
+					return result;
 				}
 				if (result != ISC_R_SUCCESS) {
 					INSIST(st.used < 65536);
@@ -2245,7 +2245,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 					msg->buffer->length += msg->reserved;
 					msg->counts[sectionid] += total;
 					maybe_clear_ad(msg, sectionid);
-					return (result);
+					return result;
 				}
 
 				/*
@@ -2279,7 +2279,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	msg->buffer->length += msg->reserved;
 	msg->counts[sectionid] += total;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -2329,7 +2329,7 @@ dns_message_renderend(dns_message_t *msg) {
 		/*
 		 * We have an extended rcode but are not using EDNS.
 		 */
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	}
 
 	/*
@@ -2353,7 +2353,7 @@ dns_message_renderend(dns_message_t *msg) {
 		result = dns_message_rendersection(msg, DNS_SECTION_QUESTION,
 						   0);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -2378,7 +2378,7 @@ dns_message_renderend(dns_message_t *msg) {
 				   msg->buffer, msg->reserved, 0, &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -2397,7 +2397,7 @@ dns_message_renderend(dns_message_t *msg) {
 		if ((cp[-4] != 0) || (cp[-3] != DNS_OPT_PAD) || (cp[-2] != 0) ||
 		    (cp[-1] != 0))
 		{
-			return (ISC_R_UNEXPECTED);
+			return ISC_R_UNEXPECTED;
 		}
 
 		/*
@@ -2440,14 +2440,14 @@ dns_message_renderend(dns_message_t *msg) {
 		msg->sig_reserved = 0;
 		result = dns_tsig_sign(msg);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		count = 0;
 		result = renderset(msg->tsig, msg->tsigname, msg->cctx,
 				   msg->buffer, msg->reserved, 0, &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -2459,7 +2459,7 @@ dns_message_renderend(dns_message_t *msg) {
 		msg->sig_reserved = 0;
 		result = dns_dnssec_signmessage(msg, msg->sig0key);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		count = 0;
 		/*
@@ -2471,7 +2471,7 @@ dns_message_renderend(dns_message_t *msg) {
 				   msg->buffer, msg->reserved, 0, &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -2482,7 +2482,7 @@ dns_message_renderend(dns_message_t *msg) {
 
 	msg->buffer = NULL; /* forget about this buffer only on success XXX */
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -2537,10 +2537,10 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section) {
 	msg->cursors[section] = ISC_LIST_HEAD(msg->sections[section]);
 
 	if (msg->cursors[section] == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2552,10 +2552,10 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section) {
 	msg->cursors[section] = ISC_LIST_NEXT(msg->cursors[section], link);
 
 	if (msg->cursors[section] == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -2597,9 +2597,9 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	result = findname(&foundname, target, &msg->sections[section]);
 
 	if (result == ISC_R_NOTFOUND) {
-		return (DNS_R_NXDOMAIN);
+		return DNS_R_NXDOMAIN;
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	if (name != NULL) {
@@ -2610,15 +2610,15 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	 * And now look for the type.
 	 */
 	if (type == dns_rdatatype_any) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	result = dns_message_findtype(foundname, type, covers, rdataset);
 	if (result == ISC_R_NOTFOUND) {
-		return (DNS_R_NXRRSET);
+		return DNS_R_NXRRSET;
 	}
 
-	return (result);
+	return result;
 }
 
 void
@@ -2653,7 +2653,7 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item) {
 	fn = isc_mempool_get(msg->namepool);
 	*item = dns_fixedname_initname(fn);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2662,7 +2662,7 @@ dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item) {
 	REQUIRE(item != NULL && *item == NULL);
 
 	*item = newrdata(msg);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2672,7 +2672,7 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item) {
 
 	*item = isc_mempool_get(msg->rdspool);
 	dns_rdataset_init(*item);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2681,7 +2681,7 @@ dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item) {
 	REQUIRE(item != NULL && *item == NULL);
 
 	*item = newrdatalist(msg);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -2758,7 +2758,7 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 
 	isc_buffer_remainingregion(&buffer, &r);
 	if (r.length < DNS_MESSAGE_HEADERLEN) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	id = isc_buffer_getuint16(&buffer);
@@ -2772,7 +2772,7 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 		*idp = id;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2784,7 +2784,7 @@ dns_message_reply(dns_message_t *msg, bool want_question_section) {
 	REQUIRE((msg->flags & DNS_MESSAGEFLAG_QR) == 0);
 
 	if (!msg->header_ok) {
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	}
 	if (msg->opcode != dns_opcode_query && msg->opcode != dns_opcode_notify)
 	{
@@ -2794,7 +2794,7 @@ dns_message_reply(dns_message_t *msg, bool want_question_section) {
 		clear_from = DNS_SECTION_PREREQUISITE;
 	} else if (want_question_section) {
 		if (!msg->question_ok) {
-			return (DNS_R_FORMERR);
+			return DNS_R_FORMERR;
 		}
 		clear_from = DNS_SECTION_ANSWER;
 	} else {
@@ -2831,7 +2831,7 @@ dns_message_reply(dns_message_t *msg, bool want_question_section) {
 		result = dns_message_renderreserve(msg, msg->sig_reserved);
 		if (result != ISC_R_SUCCESS) {
 			msg->sig_reserved = 0;
-			return (result);
+			return result;
 		}
 	}
 	if (msg->saved.base != NULL) {
@@ -2843,7 +2843,7 @@ dns_message_reply(dns_message_t *msg, bool want_question_section) {
 		msg->free_saved = 0;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 dns_rdataset_t *
@@ -2854,7 +2854,7 @@ dns_message_getopt(dns_message_t *msg) {
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
-	return (msg->opt);
+	return msg->opt;
 }
 
 isc_result_t
@@ -2901,12 +2901,12 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 
 	msg->opt = opt;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	dns_rdataset_disassociate(opt);
 	dns_message_puttemprdataset(msg, &opt);
-	return (result);
+	return result;
 }
 
 dns_rdataset_t *
@@ -2921,7 +2921,7 @@ dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner) {
 	if (owner != NULL) {
 		*owner = msg->tsigname;
 	}
-	return (msg->tsig);
+	return msg->tsig;
 }
 
 isc_result_t
@@ -2951,11 +2951,11 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
 			if (result != ISC_R_SUCCESS) {
 				dns_tsigkey_detach(&msg->tsigkey);
 				msg->sig_reserved = 0;
-				return (result);
+				return result;
 			}
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 dns_tsigkey_t *
@@ -2966,7 +2966,7 @@ dns_message_gettsigkey(dns_message_t *msg) {
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
-	return (msg->tsigkey);
+	return msg->tsigkey;
 }
 
 isc_result_t
@@ -2982,7 +2982,7 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 	REQUIRE(msg->querytsig == NULL);
 
 	if (querytsig == NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	result = dns_message_gettemprdata(msg, &rdata);
@@ -3014,7 +3014,7 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 
 	msg->querytsig = set;
 
-	return (result);
+	return result;
 
 cleanup:
 	if (rdata != NULL) {
@@ -3026,7 +3026,7 @@ cleanup:
 	if (set != NULL) {
 		dns_message_puttemprdataset(msg, &set);
 	}
-	return (ISC_R_NOMEMORY);
+	return ISC_R_NOMEMORY;
 }
 
 isc_result_t
@@ -3041,19 +3041,19 @@ dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
 	REQUIRE(querytsig != NULL && *querytsig == NULL);
 
 	if (msg->tsig == NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	result = dns_rdataset_first(msg->tsig);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	dns_rdataset_current(msg->tsig, &rdata);
 	dns_rdata_toregion(&rdata, &r);
 
 	isc_buffer_allocate(mctx, querytsig, r.length);
 	isc_buffer_putmem(*querytsig, r.base, r.length);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 dns_rdataset_t *
@@ -3076,7 +3076,7 @@ dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner) {
 			*owner = msg->sig0name;
 		}
 	}
-	return (msg->sig0);
+	return msg->sig0;
 }
 
 isc_result_t
@@ -3118,17 +3118,17 @@ dns_message_setsig0key(dns_message_t *msg, dst_key_t *key) {
 		result = dst_key_sigsize(key, &x);
 		if (result != ISC_R_SUCCESS) {
 			msg->sig_reserved = 0;
-			return (result);
+			return result;
 		}
 		msg->sig_reserved = 27 + r.length + x;
 		result = dns_message_renderreserve(msg, msg->sig_reserved);
 		if (result != ISC_R_SUCCESS) {
 			msg->sig_reserved = 0;
-			return (result);
+			return result;
 		}
 		msg->sig0key = key;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 dst_key_t *
@@ -3139,7 +3139,7 @@ dns_message_getsig0key(dns_message_t *msg) {
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
-	return (msg->sig0key);
+	return msg->sig0key;
 }
 
 void
@@ -3162,11 +3162,11 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
 
 	if (msg->tsig == NULL && msg->sig0 == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (msg->verify_attempted == 0) {
-		return (DNS_R_NOTVERIFIEDYET);
+		return DNS_R_NOTVERIFIEDYET;
 	}
 
 	if (!dns_name_hasbuffer(signer)) {
@@ -3185,7 +3185,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 
 		result = dns_rdata_tostruct(&rdata, &sig, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 
 		if (msg->verified_sig && msg->sig0status == dns_rcode_noerror) {
@@ -3239,7 +3239,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 void
@@ -3259,7 +3259,7 @@ dns_message_resetsig(dns_message_t *msg) {
 isc_result_t
 dns_message_rechecksig(dns_message_t *msg, dns_view_t *view) {
 	dns_message_resetsig(msg);
-	return (dns_message_checksig(msg, view));
+	return dns_message_checksig(msg, view);
 }
 
 #ifdef SKAN_MSG_DEBUG
@@ -3297,7 +3297,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
 	if (msg->tsigkey == NULL && msg->tsig == NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	INSIST(msg->saved.base != NULL);
@@ -3307,9 +3307,9 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	dns_message_dumpsig(msg, "dns_message_checksig#1");
 #endif /* ifdef SKAN_MSG_DEBUG */
 	if (view != NULL) {
-		return (dns_view_checksig(view, &msgb, msg));
+		return dns_view_checksig(view, &msgb, msg);
 	} else {
-		return (dns_tsig_verify(&msgb, msg, NULL, NULL));
+		return dns_tsig_verify(&msgb, msg, NULL, NULL);
 	}
 }
 
@@ -3428,7 +3428,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 
 cleanup:
 	msg->indent.count = saved_count;
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -3444,7 +3444,7 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	 */
 
 	if (isc_buffer_remaininglength(ecsbuf) < 4) {
-		return (DNS_R_OPTERR);
+		return DNS_R_OPTERR;
 	}
 	family = isc_buffer_getuint16(ecsbuf);
 	addrlen = isc_buffer_getuint8(ecsbuf);
@@ -3452,11 +3452,11 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 
 	addrbytes = (addrlen + 7) / 8;
 	if (isc_buffer_remaininglength(ecsbuf) < addrbytes) {
-		return (DNS_R_OPTERR);
+		return DNS_R_OPTERR;
 	}
 
 	if (addrbytes > sizeof(addr)) {
-		return (DNS_R_OPTERR);
+		return DNS_R_OPTERR;
 	}
 
 	memset(addr, 0, sizeof(addr));
@@ -3467,24 +3467,24 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	switch (family) {
 	case 0:
 		if (addrlen != 0U || scopelen != 0U) {
-			return (DNS_R_OPTERR);
+			return DNS_R_OPTERR;
 		}
 		strlcpy(addr_text, "0", sizeof(addr_text));
 		break;
 	case 1:
 		if (addrlen > 32 || scopelen > 32) {
-			return (DNS_R_OPTERR);
+			return DNS_R_OPTERR;
 		}
 		inet_ntop(AF_INET, addr, addr_text, sizeof(addr_text));
 		break;
 	case 2:
 		if (addrlen > 128 || scopelen > 128) {
-			return (DNS_R_OPTERR);
+			return DNS_R_OPTERR;
 		}
 		inet_ntop(AF_INET6, addr, addr_text, sizeof(addr_text));
 		break;
 	default:
-		return (DNS_R_OPTERR);
+		return DNS_R_OPTERR;
 	}
 
 	ADD_STRING(target, " ");
@@ -3495,7 +3495,7 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -3532,7 +3532,7 @@ render_llq(isc_buffer_t *optbuf, isc_buffer_t *target) {
 	snprintf(buf, sizeof(buf), "%u", u);
 	ADD_STRING(target, buf);
 cleanup:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -3895,7 +3895,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 
 cleanup:
 	msg->indent.count = saved_count;
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -3918,15 +3918,15 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 	REQUIRE(VALID_PSEUDOSECTION(section));
 
 	if ((dns_master_styleflags(style) & DNS_STYLEFLAG_YAML) != 0) {
-		return (dns_message_pseudosectiontoyaml(msg, section, style,
-							flags, target));
+		return dns_message_pseudosectiontoyaml(msg, section, style,
+						       flags, target);
 	}
 
 	switch (section) {
 	case DNS_PSEUDOSECTION_OPT:
 		ps = dns_message_getopt(msg);
 		if (ps == NULL) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0) {
 			INDENT(style);
@@ -3957,7 +3957,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 
 		result = dns_rdataset_first(ps);
 		if (result != ISC_R_SUCCESS) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 
 		/*
@@ -3986,7 +3986,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				if (optlen == 18U) {
 					result = render_llq(&optbuf, target);
 					if (result != ISC_R_SUCCESS) {
-						return (result);
+						return result;
 					}
 					ADD_STRING(target, "\n");
 					continue;
@@ -4005,7 +4005,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				isc_buffer_add(&ecsbuf, optlen);
 				result = render_ecs(&ecsbuf, target);
 				if (result == ISC_R_NOSPACE) {
-					return (result);
+					return result;
 				}
 				if (result == ISC_R_SUCCESS) {
 					isc_buffer_forward(&optbuf, optlen);
@@ -4023,7 +4023,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					result = dns_ttl_totext(secs, true,
 								true, target);
 					if (result != ISC_R_SUCCESS) {
-						return (result);
+						return result;
 					}
 					ADD_STRING(target, ")\n");
 					continue;
@@ -4191,7 +4191,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 				}
 				if (isc_buffer_availablelength(target) < optlen)
 				{
-					return (ISC_R_NOSPACE);
+					return ISC_R_NOSPACE;
 				}
 				for (i = 0; i < optlen; i++) {
 					if (isprint(optdata[i]) ||
@@ -4211,11 +4211,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 			}
 			ADD_STRING(target, "\n");
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	case DNS_PSEUDOSECTION_TSIG:
 		ps = dns_message_gettsig(msg, &name);
 		if (ps == NULL) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		INDENT(style);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0) {
@@ -4228,11 +4228,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 		{
 			ADD_STRING(target, "\n");
 		}
-		return (result);
+		return result;
 	case DNS_PSEUDOSECTION_SIG0:
 		ps = dns_message_getsig0(msg, &name);
 		if (ps == NULL) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		INDENT(style);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0) {
@@ -4245,11 +4245,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 		{
 			ADD_STRING(target, "\n");
 		}
-		return (result);
+		return result;
 	}
 	result = ISC_R_UNEXPECTED;
 cleanup:
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -4262,7 +4262,7 @@ dns_message_headertotext(dns_message_t *msg, const dns_master_style_t *style,
 	REQUIRE(target != NULL);
 
 	if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) != 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (dns_master_styleflags(style) & DNS_STYLEFLAG_YAML) {
@@ -4274,7 +4274,7 @@ dns_message_headertotext(dns_message_t *msg, const dns_master_style_t *style,
 		ADD_STRING(target, "status: ");
 		result = dns_rcode_totext(msg->rcode, target);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		ADD_STRING(target, "\n");
 		INDENT(style);
@@ -4360,7 +4360,7 @@ dns_message_headertotext(dns_message_t *msg, const dns_master_style_t *style,
 		ADD_STRING(target, ", status: ");
 		result = dns_rcode_totext(msg->rcode, target);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		ADD_STRING(target, ", id: ");
 		snprintf(buf, sizeof(buf), "%6u", msg->id);
@@ -4430,7 +4430,7 @@ dns_message_headertotext(dns_message_t *msg, const dns_master_style_t *style,
 	}
 
 cleanup:
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -4443,54 +4443,54 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 
 	result = dns_message_headertotext(msg, style, flags, target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_message_pseudosectiontotext(msg, DNS_PSEUDOSECTION_OPT,
 						 style, flags, target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_message_sectiontotext(msg, DNS_SECTION_QUESTION, style,
 					   flags, target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_message_sectiontotext(msg, DNS_SECTION_ANSWER, style,
 					   flags, target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_message_sectiontotext(msg, DNS_SECTION_AUTHORITY, style,
 					   flags, target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_message_sectiontotext(msg, DNS_SECTION_ADDITIONAL, style,
 					   flags, target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_message_pseudosectiontotext(msg, DNS_PSEUDOSECTION_TSIG,
 						 style, flags, target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_message_pseudosectiontotext(msg, DNS_PSEUDOSECTION_SIG0,
 						 style, flags, target);
-	return (result);
+	return result;
 }
 
 isc_region_t *
 dns_message_getrawmessage(dns_message_t *msg) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	return (&msg->saved);
+	return &msg->saved;
 }
 
 void
@@ -4520,7 +4520,7 @@ dns_message_settimeadjust(dns_message_t *msg, int timeadjust) {
 int
 dns_message_gettimeadjust(dns_message_t *msg) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	return (msg->timeadjust);
+	return msg->timeadjust;
 }
 
 isc_result_t
@@ -4528,10 +4528,10 @@ dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target) {
 	REQUIRE(opcode < 16);
 
 	if (isc_buffer_availablelength(target) < strlen(opcodetext[opcode])) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	isc_buffer_putstr(target, opcodetext[opcode]);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -4620,7 +4620,7 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 
 	result = dns_message_gettemprdatalist(message, &rdatalist);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	result = dns_message_gettemprdata(message, &rdata);
 	if (result != ISC_R_SUCCESS) {
@@ -4701,7 +4701,7 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	*rdatasetp = rdataset;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (rdata != NULL) {
@@ -4713,7 +4713,7 @@ cleanup:
 	if (rdatalist != NULL) {
 		dns_message_puttemprdatalist(message, &rdatalist);
 	}
-	return (result);
+	return result;
 }
 
 void
@@ -4763,7 +4763,7 @@ message_authority_soa_min(dns_message_t *msg, dns_ttl_t *pttl) {
 	dns_name_t *name = NULL;
 
 	if (msg->counts[DNS_SECTION_AUTHORITY] == 0) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	for (result = dns_message_firstname(msg, DNS_SECTION_AUTHORITY);
@@ -4824,13 +4824,13 @@ message_authority_soa_min(dns_message_t *msg, dns_ttl_t *pttl) {
 					*pttl = ISC_MIN(
 						rdataset->ttl,
 						dns_soa_getminimum(&rdata));
-					return (ISC_R_SUCCESS);
+					return ISC_R_SUCCESS;
 				}
 			}
 		}
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t
@@ -4840,11 +4840,11 @@ dns_message_minttl(dns_message_t *msg, const dns_section_t sectionid,
 	REQUIRE(pttl != NULL);
 
 	if (!msg->minttl[sectionid].is_set) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	*pttl = msg->minttl[sectionid].ttl;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -4856,8 +4856,8 @@ dns_message_response_minttl(dns_message_t *msg, dns_ttl_t *pttl) {
 
 	result = dns_message_minttl(msg, DNS_SECTION_ANSWER, pttl);
 	if (result != ISC_R_SUCCESS) {
-		return (message_authority_soa_min(msg, pttl));
+		return message_authority_soa_min(msg, pttl);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

@@ -87,7 +87,7 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 		break;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -100,7 +100,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	if (value == ISC_RESOURCE_UNLIMITED) {
@@ -133,7 +133,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	unixresult = setrlimit(unixresource, &rl);
 
 	if (unixresult == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 #if defined(OPEN_MAX) && defined(__APPLE__)
@@ -147,7 +147,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		rl.rlim_cur = OPEN_MAX;
 		unixresult = setrlimit(unixresource, &rl);
 		if (unixresult == 0) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 #elif defined(__linux__)
@@ -163,7 +163,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		rl.rlim_cur = rl.rlim_max = NR_OPEN;
 		unixresult = setrlimit(unixresource, &rl);
 		if (unixresult == 0) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 #endif /* if defined(OPEN_MAX) && defined(__APPLE__) */
@@ -172,11 +172,11 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 			rl.rlim_cur = rl.rlim_max;
 			unixresult = setrlimit(unixresource, &rl);
 			if (unixresult == 0) {
-				return (ISC_R_SUCCESS);
+				return ISC_R_SUCCESS;
 			}
 		}
 	}
-	return (isc__errno2result(errno));
+	return isc__errno2result(errno);
 }
 
 isc_result_t
@@ -187,15 +187,15 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	if (getrlimit(unixresource, &rl) != 0) {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 
 	*value = rl.rlim_max;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -206,13 +206,13 @@ isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	if (getrlimit(unixresource, &rl) != 0) {
-		return (isc__errno2result(errno));
+		return isc__errno2result(errno);
 	}
 
 	*value = rl.rlim_cur;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

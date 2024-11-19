@@ -91,14 +91,14 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 		       ratelimiter_shutdowncomplete, rl, rl, NULL, NULL);
 
 	*ratelimiterp = rl;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 free_mutex:
 	isc_refcount_decrementz(&rl->references);
 	isc_refcount_destroy(&rl->references);
 	isc_mutex_destroy(&rl->lock);
 	isc_mem_put(mctx, rl, sizeof(*rl));
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -118,7 +118,7 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval) {
 					 &rl->interval, false);
 	}
 	UNLOCK(&rl->lock);
-	return (result);
+	return result;
 }
 
 void
@@ -176,7 +176,7 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 	if (*eventp != NULL && result == ISC_R_SUCCESS) {
 		isc_task_send(task, eventp);
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -194,7 +194,7 @@ isc_ratelimiter_dequeue(isc_ratelimiter_t *rl, isc_event_t *event) {
 		result = ISC_R_NOTFOUND;
 	}
 	UNLOCK(&rl->lock);
-	return (result);
+	return result;
 }
 
 static void
@@ -337,7 +337,7 @@ isc_ratelimiter_stall(isc_ratelimiter_t *rl) {
 		break;
 	}
 	UNLOCK(&rl->lock);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -368,5 +368,5 @@ isc_ratelimiter_release(isc_ratelimiter_t *rl) {
 		break;
 	}
 	UNLOCK(&rl->lock);
-	return (result);
+	return result;
 }

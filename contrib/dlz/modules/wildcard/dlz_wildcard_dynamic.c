@@ -159,7 +159,7 @@ done:
 		free(querystring);
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -173,9 +173,9 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 		"dlz_wildcard allowzonexfr called for client '%s'", client);
 
 	if (fnmatch(cd->axfr_pattern, client, FNM_CASEFOLD) == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 }
 
@@ -198,13 +198,13 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 
 	p = shortest_match(cd->zone_pattern, name);
 	if (p == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	/* Write info message to log */
 	cd->log(ISC_LOG_DEBUG(1), "dlz_wildcard findzonedb matched '%s'", p);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #if DLZ_DLOPEN_VERSION == 1
@@ -232,7 +232,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 
 	p = shortest_match(cd->zone_pattern, zone);
 	if (p == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	DE_CONST(name, cd->record);
@@ -243,7 +243,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		size_t len = p - zone;
 		namebuf = malloc(len);
 		if (namebuf == NULL) {
-			return (ISC_R_NOMEMORY);
+			return ISC_R_NOMEMORY;
 		}
 		strncpy(namebuf, zone, len - 1);
 		namebuf[len - 1] = '\0';
@@ -299,7 +299,7 @@ done:
 		free(querystring);
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -312,7 +312,7 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 
 	p = shortest_match(cd->zone_pattern, zone);
 	if (p == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	DE_CONST(p, cd->zone);
@@ -355,7 +355,7 @@ done:
 		free(querystring);
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -397,12 +397,12 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	va_list ap;
 
 	if (argc < 8 || argc % 4 != 0) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	cd = calloc(1, sizeof(config_data_t));
 	if (cd == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	memset(cd, 0, sizeof(config_data_t));
 
@@ -480,7 +480,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 
 	*dbdata = cd;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 full_cleanup:
 	destroy_rrlist(cd);
@@ -494,7 +494,7 @@ cleanup:
 	}
 	free(cd);
 
-	return (result);
+	return result;
 }
 
 void
@@ -520,7 +520,7 @@ int
 dlz_version(unsigned int *flags) {
 	UNUSED(flags);
 	/* XXX: ok to set DNS_SDLZFLAG_THREADSAFE here? */
-	return (DLZ_DLOPEN_VERSION);
+	return DLZ_DLOPEN_VERSION;
 }
 
 /*
@@ -546,22 +546,22 @@ static const char *
 shortest_match(const char *pattern, const char *string) {
 	const char *p = string;
 	if (pattern == NULL || p == NULL || *p == '\0') {
-		return (NULL);
+		return NULL;
 	}
 
 	p += strlen(p);
 	while (p-- > string) {
 		if (*p == '.') {
 			if (fnmatch(pattern, p + 1, FNM_CASEFOLD) == 0) {
-				return (p + 1);
+				return p + 1;
 			}
 		}
 	}
 	if (fnmatch(pattern, string, FNM_CASEFOLD) == 0) {
-		return (string);
+		return string;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /*
@@ -588,21 +588,21 @@ fnmatch(const char *pattern, const char *string, int flags) {
 		switch (c = *pattern++) {
 		case EOS:
 			if ((flags & FNM_LEADING_DIR) && *string == '/') {
-				return (0);
+				return 0;
 			}
-			return (*string == EOS ? 0 : FNM_NOMATCH);
+			return *string == EOS ? 0 : FNM_NOMATCH;
 		case '?':
 			if (*string == EOS) {
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 			if (*string == '/' && (flags & FNM_PATHNAME)) {
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 			if (*string == '.' && (flags & FNM_PERIOD) &&
 			    (string == stringstart ||
 			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
 			{
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 			++string;
 			break;
@@ -617,24 +617,24 @@ fnmatch(const char *pattern, const char *string, int flags) {
 			    (string == stringstart ||
 			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
 			{
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 
 			/* Optimize for pattern with * at end or before /. */
 			if (c == EOS) {
 				if (flags & FNM_PATHNAME) {
-					return ((flags & FNM_LEADING_DIR) ||
-								index(string,
-								      '/') ==
-									NULL
-							? 0
-							: FNM_NOMATCH);
+					return (flags & FNM_LEADING_DIR) ||
+							       index(string,
+								     '/') ==
+								       NULL
+						       ? 0
+						       : FNM_NOMATCH;
 				} else {
-					return (0);
+					return 0;
 				}
 			} else if (c == '/' && flags & FNM_PATHNAME) {
 				if ((string = index(string, '/')) == NULL) {
-					return (FNM_NOMATCH);
+					return FNM_NOMATCH;
 				}
 				break;
 			}
@@ -644,26 +644,26 @@ fnmatch(const char *pattern, const char *string, int flags) {
 				if (!fnmatch(pattern, string,
 					     flags & ~FNM_PERIOD))
 				{
-					return (0);
+					return 0;
 				}
 				if (test == '/' && flags & FNM_PATHNAME) {
 					break;
 				}
 				++string;
 			}
-			return (FNM_NOMATCH);
+			return FNM_NOMATCH;
 		case '[':
 			if (*string == EOS) {
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 			if (*string == '/' && (flags & FNM_PATHNAME)) {
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 			if (*string == '.' && (flags & FNM_PERIOD) &&
 			    (string == stringstart ||
 			     ((flags & FNM_PATHNAME) && *(string - 1) == '/')))
 			{
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 
 			switch (rangematch(pattern, *string, flags, &newp)) {
@@ -673,7 +673,7 @@ fnmatch(const char *pattern, const char *string, int flags) {
 				pattern = newp;
 				break;
 			case RANGE_NOMATCH:
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 			++string;
 			break;
@@ -693,7 +693,7 @@ fnmatch(const char *pattern, const char *string, int flags) {
 				    tolower((unsigned char)*string)))
 			{
 			} else {
-				return (FNM_NOMATCH);
+				return FNM_NOMATCH;
 			}
 			string++;
 			break;
@@ -734,11 +734,11 @@ rangematch(const char *pattern, char test, int flags, char **newp) {
 			c = *pattern++;
 		}
 		if (c == EOS) {
-			return (RANGE_ERROR);
+			return RANGE_ERROR;
 		}
 
 		if (c == '/' && (flags & FNM_PATHNAME)) {
-			return (RANGE_NOMATCH);
+			return RANGE_NOMATCH;
 		}
 
 		if (flags & FNM_CASEFOLD) {
@@ -753,7 +753,7 @@ rangematch(const char *pattern, char test, int flags, char **newp) {
 				c2 = *pattern++;
 			}
 			if (c2 == EOS) {
-				return (RANGE_ERROR);
+				return RANGE_ERROR;
 			}
 
 			if (flags & FNM_CASEFOLD) {
@@ -769,5 +769,5 @@ rangematch(const char *pattern, char test, int flags, char **newp) {
 	} while ((c = *pattern++) != ']');
 
 	*newp = (char *)(uintptr_t)pattern;
-	return (ok == negate ? RANGE_NOMATCH : RANGE_MATCH);
+	return ok == negate ? RANGE_NOMATCH : RANGE_MATCH;
 }

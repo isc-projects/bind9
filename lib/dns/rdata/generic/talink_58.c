@@ -43,7 +43,7 @@ fromtext_talink(ARGS_FROMTEXT) {
 					 target));
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -75,7 +75,7 @@ totext_talink(ARGS_TOTEXT) {
 	RETERR(str_totext(" ", target));
 
 	sub = name_prefix(&next, tctx->origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	return dns_name_totext(&prefix, sub, target);
 }
 
 static isc_result_t
@@ -94,7 +94,7 @@ fromwire_talink(ARGS_FROMWIRE) {
 	dns_name_init(&next, NULL);
 
 	RETERR(dns_name_fromwire(&prev, source, dctx, options, target));
-	return (dns_name_fromwire(&next, source, dctx, options, target));
+	return dns_name_fromwire(&next, source, dctx, options, target);
 }
 
 static isc_result_t
@@ -121,7 +121,7 @@ towire_talink(ARGS_TOWIRE) {
 
 	dns_name_fromregion(&next, &sregion);
 	isc_region_consume(&sregion, name_length(&next));
-	return (dns_name_towire(&next, cctx, target));
+	return dns_name_towire(&next, cctx, target);
 }
 
 static int
@@ -137,7 +137,7 @@ compare_talink(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
-	return (isc_region_compare(&region1, &region2));
+	return isc_region_compare(&region1, &region2);
 }
 
 static isc_result_t
@@ -156,7 +156,7 @@ fromstruct_talink(ARGS_FROMSTRUCT) {
 	dns_name_toregion(&talink->prev, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
 	dns_name_toregion(&talink->next, &region);
-	return (isc_buffer_copyregion(target, &region));
+	return isc_buffer_copyregion(target, &region);
 }
 
 static isc_result_t
@@ -187,7 +187,7 @@ tostruct_talink(ARGS_TOSTRUCT) {
 	name_duporclone(&name, mctx, &talink->next);
 
 	talink->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -215,7 +215,7 @@ additionaldata_talink(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -225,7 +225,7 @@ digest_talink(ARGS_DIGEST) {
 	REQUIRE(rdata->type == dns_rdatatype_talink);
 
 	dns_rdata_toregion(rdata, &r);
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -237,7 +237,7 @@ checkowner_talink(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -247,12 +247,12 @@ checknames_talink(ARGS_CHECKNAMES) {
 	UNUSED(bad);
 	UNUSED(owner);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_talink(ARGS_COMPARE) {
-	return (compare_talink(rdata1, rdata2));
+	return compare_talink(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_TALINK_58_C */

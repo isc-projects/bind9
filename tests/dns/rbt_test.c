@@ -170,7 +170,7 @@ test_context_setup(void) {
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
-	return (ctx);
+	return ctx;
 }
 
 static void
@@ -427,7 +427,7 @@ insert_helper(dns_rbt_t *rbt, const char *namestr, dns_rbtnode_t **node) {
 	dns_test_namefromstring(namestr, &fname);
 	name = dns_fixedname_name(&fname);
 
-	return (dns_rbt_addnode(rbt, name, node));
+	return dns_rbt_addnode(rbt, name, node);
 }
 
 static bool
@@ -447,7 +447,7 @@ compare_labelsequences(dns_rbtnode_t *node, const char *labelstr) {
 
 	isc_mem_free(mctx, nodestr);
 
-	return (is_equal);
+	return is_equal;
 }
 
 /* Test insertion into a tree */
@@ -1200,7 +1200,7 @@ find_thread(void *arg) {
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 /* Benchmark RBT implementation */

@@ -364,13 +364,13 @@ named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 
 	isc_buffer_init(&b, defaultconf, sizeof(defaultconf) - 1);
 	isc_buffer_add(&b, sizeof(defaultconf) - 1);
-	return (cfg_parse_buffer(parser, &b, __FILE__, 0, &cfg_type_namedconf,
-				 CFG_PCTX_NODEPRECATED, conf));
+	return cfg_parse_buffer(parser, &b, __FILE__, 0, &cfg_type_namedconf,
+				CFG_PCTX_NODEPRECATED, conf);
 }
 
 const char *
 named_config_getdefault(void) {
-	return (defaultconf);
+	return defaultconf;
 }
 
 isc_result_t
@@ -380,10 +380,10 @@ named_config_get(cfg_obj_t const *const *maps, const char *name,
 
 	for (i = 0; maps[i] != NULL; i++) {
 		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t
@@ -409,7 +409,7 @@ named_checknames_get(const cfg_obj_t **maps, const char *const names[],
 			 */
 			if (checknames != NULL && !cfg_obj_islist(checknames)) {
 				*obj = checknames;
-				return (ISC_R_SUCCESS);
+				return ISC_R_SUCCESS;
 			}
 			for (element = cfg_list_first(checknames);
 			     element != NULL; element = cfg_list_next(element))
@@ -423,13 +423,13 @@ named_checknames_get(const cfg_obj_t **maps, const char *const names[],
 					{
 						*obj = cfg_tuple_get(value,
 								     "mode");
-						return (ISC_R_SUCCESS);
+						return ISC_R_SUCCESS;
 					}
 				}
 			}
 		}
 	}
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 int
@@ -441,7 +441,7 @@ named_config_listcount(const cfg_obj_t *list) {
 		i++;
 	}
 
-	return (i);
+	return i;
 }
 
 isc_result_t
@@ -452,7 +452,7 @@ named_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 
 	if (!cfg_obj_isstring(classobj)) {
 		*classp = defclass;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	DE_CONST(cfg_obj_asstring(classobj), r.base);
 	r.length = strlen(r.base);
@@ -461,7 +461,7 @@ named_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 		cfg_obj_log(classobj, named_g_lctx, ISC_LOG_ERROR,
 			    "unknown class '%s'", r.base);
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -472,7 +472,7 @@ named_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 
 	if (!cfg_obj_isstring(typeobj)) {
 		*typep = deftype;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	DE_CONST(cfg_obj_asstring(typeobj), r.base);
 	r.length = strlen(r.base);
@@ -481,7 +481,7 @@ named_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 		cfg_obj_log(typeobj, named_g_lctx, ISC_LOG_ERROR,
 			    "unknown type '%s'", r.base);
 	}
-	return (result);
+	return result;
 }
 
 dns_zonetype_t
@@ -507,7 +507,7 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 	} else {
 		UNREACHABLE();
 	}
-	return (ztype);
+	return ztype;
 }
 
 isc_result_t
@@ -534,7 +534,7 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		if (val > UINT16_MAX) {
 			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		port = (in_port_t)val;
 	} else if (defport != 0) {
@@ -542,7 +542,7 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	} else {
 		result = named_config_getport(config, "port", &port);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -564,7 +564,7 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	*addrsp = addrs;
 	*countp = count;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -589,7 +589,7 @@ getremotesdef(const cfg_obj_t *cctx, const char *list, const char *name,
 
 	result = cfg_map_get(cctx, list, &obj);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	elt = cfg_list_first(obj);
 	while (elt != NULL) {
@@ -598,11 +598,11 @@ getremotesdef(const cfg_obj_t *cctx, const char *list, const char *name,
 			       name) == 0)
 		{
 			*ret = obj;
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		elt = cfg_list_next(elt);
 	}
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t
@@ -611,15 +611,15 @@ named_config_getremotesdef(const cfg_obj_t *cctx, const char *list,
 	isc_result_t result;
 
 	if (strcmp(list, "parental-agents") == 0) {
-		return (getremotesdef(cctx, list, name, ret));
+		return getremotesdef(cctx, list, name, ret);
 	} else if (strcmp(list, "primaries") == 0) {
 		result = getremotesdef(cctx, list, name, ret);
 		if (result != ISC_R_SUCCESS) {
 			result = getremotesdef(cctx, "masters", name, ret);
 		}
-		return (result);
+		return result;
 	}
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 static isc_result_t
@@ -634,7 +634,7 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 
 	if (!cfg_obj_isstring(obj)) {
 		*namep = NULL;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	*namep = isc_mem_get(mctx, sizeof(**namep));
@@ -649,11 +649,11 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, *namep, sizeof(**namep));
 		*namep = NULL;
-		return (result);
+		return result;
 	}
 	dns_name_dup(dns_fixedname_name(&fname), mctx, *namep);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #define grow_array(mctx, array, newlen, oldlen)                    \
@@ -873,7 +873,7 @@ resume:
 	ipkl->count = addrcount;
 	ipkl->allocated = addrcount;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (addrs != NULL) {
@@ -909,7 +909,7 @@ cleanup:
 	if (stack != NULL) {
 		isc_mem_put(mctx, stack, stackcount * sizeof(stack[0]));
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -935,10 +935,10 @@ named_config_getport(const cfg_obj_t *config, const char *type,
 		cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 			    "port '%u' out of range",
 			    cfg_obj_asuint32(portobj));
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	*portp = (in_port_t)cfg_obj_asuint32(portobj);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 struct keyalgorithms {
@@ -967,7 +967,7 @@ struct keyalgorithms {
 isc_result_t
 named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
 			     uint16_t *digestbits) {
-	return (named_config_getkeyalgorithm2(str, name, NULL, digestbits));
+	return named_config_getkeyalgorithm2(str, name, NULL, digestbits);
 }
 
 isc_result_t
@@ -988,15 +988,15 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 		}
 	}
 	if (algorithms[i].str == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	if (str[len] == '-') {
 		result = isc_parse_uint16(&bits, str + len + 1, 10);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		if (bits > algorithms[i].size) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 	} else if (algorithms[i].size == 0) {
 		bits = 128;
@@ -1034,5 +1034,5 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 	if (digestbits != NULL) {
 		*digestbits = bits;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

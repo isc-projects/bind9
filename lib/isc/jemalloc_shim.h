@@ -46,7 +46,7 @@ mallocx(size_t size, int flags) {
 	si->size = size;
 	ptr = &si[1];
 
-	return (ptr);
+	return ptr;
 }
 
 static inline void
@@ -60,7 +60,7 @@ static inline size_t
 sallocx(void *ptr, int flags ISC_ATTR_UNUSED) {
 	size_info *si = &(((size_info *)ptr)[-1]);
 
-	return (si[0].size);
+	return si[0].size;
 }
 
 static inline void *
@@ -75,7 +75,7 @@ rallocx(void *ptr, size_t size, int flags) {
 	si->size = size;
 	ptr = &si[1];
 
-	return (ptr);
+	return ptr;
 }
 
 #endif /* !defined(HAVE_JEMALLOC) */

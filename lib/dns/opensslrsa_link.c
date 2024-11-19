@@ -68,19 +68,19 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */
 		if (dctx->key->key_size > 4096) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 		break;
 	case DST_ALG_RSASHA256:
 		/* From RFC 5702 */
 		if (dctx->key->key_size < 512 || dctx->key->key_size > 4096) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 		break;
 	case DST_ALG_RSASHA512:
 		/* From RFC 5702 */
 		if (dctx->key->key_size < 1024 || dctx->key->key_size > 4096) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 		break;
 	default:
@@ -89,7 +89,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 	evp_md_ctx = EVP_MD_CTX_create();
 	if (evp_md_ctx == NULL) {
-		return (dst__openssl_toresult(ISC_R_NOMEMORY));
+		return dst__openssl_toresult(ISC_R_NOMEMORY);
 	}
 
 	switch (dctx->key->key_alg) {
@@ -109,12 +109,12 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 	if (!EVP_DigestInit_ex(evp_md_ctx, type, NULL)) {
 		EVP_MD_CTX_destroy(evp_md_ctx);
-		return (dst__openssl_toresult3(
-			dctx->category, "EVP_DigestInit_ex", ISC_R_FAILURE));
+		return dst__openssl_toresult3(
+			dctx->category, "EVP_DigestInit_ex", ISC_R_FAILURE);
 	}
 	dctx->ctxdata.evp_md_ctx = evp_md_ctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -148,10 +148,10 @@ opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
 	if (!EVP_DigestUpdate(evp_md_ctx, data->base, data->length)) {
-		return (dst__openssl_toresult3(
-			dctx->category, "EVP_DigestUpdate", ISC_R_FAILURE));
+		return dst__openssl_toresult3(
+			dctx->category, "EVP_DigestUpdate", ISC_R_FAILURE);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -175,17 +175,17 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_buffer_availableregion(sig, &r);
 
 	if (r.length < (unsigned int)EVP_PKEY_size(pkey)) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	if (!EVP_SignFinal(evp_md_ctx, r.base, &siglen, pkey)) {
-		return (dst__openssl_toresult3(dctx->category, "EVP_SignFinal",
-					       ISC_R_FAILURE));
+		return dst__openssl_toresult3(dctx->category, "EVP_SignFinal",
+					      ISC_R_FAILURE);
 	}
 
 	isc_buffer_add(sig, siglen);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -215,44 +215,43 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	rsa = EVP_PKEY_get1_RSA(pkey);
 	if (rsa == NULL) {
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		return dst__openssl_toresult(DST_R_OPENSSLFAILURE);
 	}
 	RSA_get0_key(rsa, NULL, &e, NULL);
 	if (e == NULL) {
 		RSA_free(rsa);
-		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
+		return dst__openssl_toresult(DST_R_VERIFYFAILURE);
 	}
 	bits = BN_num_bits(e);
 	RSA_free(rsa);
 #else
 	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e);
 	if (e == NULL) {
-		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
+		return dst__openssl_toresult(DST_R_VERIFYFAILURE);
 	}
 	bits = BN_num_bits(e);
 	BN_free(e);
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	if (bits > maxbits && maxbits != 0) {
-		return (DST_R_VERIFYFAILURE);
+		return DST_R_VERIFYFAILURE;
 	}
 
 	status = EVP_VerifyFinal(evp_md_ctx, sig->base, sig->length, pkey);
 	switch (status) {
 	case 1:
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	case 0:
-		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
+		return dst__openssl_toresult(DST_R_VERIFYFAILURE);
 	default:
-		return (dst__openssl_toresult3(dctx->category,
-					       "EVP_VerifyFinal",
-					       DST_R_VERIFYFAILURE));
+		return dst__openssl_toresult3(dctx->category, "EVP_VerifyFinal",
+					      DST_R_VERIFYFAILURE);
 	}
 }
 
 static isc_result_t
 opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
-	return (opensslrsa_verify2(dctx, 0, sig));
+	return opensslrsa_verify2(dctx, 0, sig);
 }
 
 static bool
@@ -274,9 +273,9 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	if (pkey1 == NULL && pkey2 == NULL) {
-		return (true);
+		return true;
 	} else if (pkey1 == NULL || pkey2 == NULL) {
-		return (false);
+		return false;
 	}
 
 	/* `EVP_PKEY_eq` checks only the public key components and paramters. */
@@ -355,7 +354,7 @@ err:
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -372,7 +371,7 @@ progress_cb(int p, int n, BN_GENCB *cb) {
 	if (u.fptr != NULL) {
 		u.fptr(p);
 	}
-	return (1);
+	return 1;
 }
 #else
 static int
@@ -387,7 +386,7 @@ progress_cb(EVP_PKEY_CTX *ctx) {
 		int p = EVP_PKEY_CTX_get_keygen_info(ctx, 0);
 		u.fptr(p);
 	}
-	return (1);
+	return 1;
 }
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
@@ -522,7 +521,7 @@ err:
 	if (e != NULL) {
 		BN_free(e);
 	}
-	return (ret);
+	return ret;
 }
 
 static bool
@@ -543,7 +542,7 @@ opensslrsa_isprivate(const dst_key_t *key) {
 
 	pkey = key->keydata.pkey;
 	if (pkey == NULL) {
-		return (false);
+		return false;
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -567,7 +566,7 @@ opensslrsa_isprivate(const dst_key_t *key) {
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 static void
@@ -656,7 +655,7 @@ err:
 		BN_free(n);
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -808,7 +807,7 @@ err:
 		EVP_PKEY_free(pkey);
 	}
 
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -834,7 +833,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	}
 
 	if (key->external) {
-		return (dst__privstruct_writefile(key, &priv, directory));
+		return dst__privstruct_writefile(key, &priv, directory);
 	}
 
 	pkey = key->keydata.pkey;
@@ -991,7 +990,7 @@ err:
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -1010,12 +1009,12 @@ rsa_check(RSA *rsa, RSA *pub) {
 		RSA_get0_key(pub, &n2, &e2, NULL);
 		if (n1 != NULL) {
 			if (BN_cmp(n1, n2) != 0) {
-				return (DST_R_INVALIDPRIVATEKEY);
+				return DST_R_INVALIDPRIVATEKEY;
 			}
 		} else {
 			n = BN_dup(n2);
 			if (n == NULL) {
-				return (ISC_R_NOMEMORY);
+				return ISC_R_NOMEMORY;
 			}
 		}
 		if (e1 != NULL) {
@@ -1023,7 +1022,7 @@ rsa_check(RSA *rsa, RSA *pub) {
 				if (n != NULL) {
 					BN_free(n);
 				}
-				return (DST_R_INVALIDPRIVATEKEY);
+				return DST_R_INVALIDPRIVATEKEY;
 			}
 		} else {
 			e = BN_dup(e2);
@@ -1031,7 +1030,7 @@ rsa_check(RSA *rsa, RSA *pub) {
 				if (n != NULL) {
 					BN_free(n);
 				}
-				return (ISC_R_NOMEMORY);
+				return ISC_R_NOMEMORY;
 			}
 		}
 		if (RSA_set0_key(rsa, n, e, NULL) == 0) {
@@ -1046,10 +1045,10 @@ rsa_check(RSA *rsa, RSA *pub) {
 
 	RSA_get0_key(rsa, &n1, &e1, NULL);
 	if (n1 == NULL || e1 == NULL) {
-		return (DST_R_INVALIDPRIVATEKEY);
+		return DST_R_INVALIDPRIVATEKEY;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 #else
 static isc_result_t
@@ -1116,7 +1115,7 @@ err:
 		BN_free(e2);
 	}
 
-	return (ret);
+	return ret;
 }
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
@@ -1459,7 +1458,7 @@ err:
 	dst__privstruct_free(&priv, mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
 
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -1534,13 +1533,13 @@ err:
 	if (pubpkey != NULL) {
 		EVP_PKEY_free(pubpkey);
 	}
-	return (ret);
+	return ret;
 #else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	UNUSED(key);
 	UNUSED(engine);
 	UNUSED(label);
 	UNUSED(pin);
-	return (DST_R_NOENGINE);
+	return DST_R_NOENGINE;
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
@@ -1795,7 +1794,7 @@ err:
 		EVP_MD_CTX_destroy(evp_md_ctx);
 	}
 	ERR_clear_error();
-	return (ret);
+	return ret;
 }
 
 isc_result_t
@@ -1814,5 +1813,5 @@ dst__opensslrsa_init(dst_func_t **funcp, unsigned char algorithm) {
 		result = ISC_R_SUCCESS;
 	}
 
-	return (result);
+	return result;
 }

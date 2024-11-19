@@ -57,7 +57,7 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 
 	result = dns_tkeyctx_create(mctx, &tctx);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	obj = NULL;
@@ -107,9 +107,9 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 	}
 
 	*tctxp = tctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	dns_tkeyctx_destroy(&tctx);
-	return (result);
+	return result;
 }

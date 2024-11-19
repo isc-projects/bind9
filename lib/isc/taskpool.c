@@ -74,14 +74,14 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,
 							    &pool->tasks[i], i);
 		if (result != ISC_R_SUCCESS) {
 			isc_taskpool_destroy(&pool);
-			return (result);
+			return result;
 		}
 		isc_task_setprivilege(pool->tasks[i], priv);
 		isc_task_setname(pool->tasks[i], "taskpool", NULL);
 	}
 
 	*poolp = pool;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -92,7 +92,7 @@ isc_taskpool_gettask(isc_taskpool_t *pool, isc_task_t **targetp) {
 int
 isc_taskpool_size(isc_taskpool_t *pool) {
 	REQUIRE(pool != NULL);
-	return (pool->ntasks);
+	return pool->ntasks;
 }
 
 isc_result_t
@@ -127,7 +127,7 @@ isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size, bool priv,
 			if (result != ISC_R_SUCCESS) {
 				*sourcep = pool;
 				isc_taskpool_destroy(&newpool);
-				return (result);
+				return result;
 			}
 			isc_task_setprivilege(newpool->tasks[i], priv);
 			isc_task_setname(newpool->tasks[i], "taskpool", NULL);
@@ -138,7 +138,7 @@ isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size, bool priv,
 	}
 
 	*targetp = pool;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

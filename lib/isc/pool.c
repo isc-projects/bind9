@@ -52,7 +52,7 @@ alloc_pool(isc_mem_t *mctx, unsigned int count, isc_pool_t **poolp) {
 	memset(pool->pool, 0, count * sizeof(void *));
 
 	*poolp = pool;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -68,7 +68,7 @@ isc_pool_create(isc_mem_t *mctx, unsigned int count,
 	/* Allocate the pool structure */
 	result = alloc_pool(mctx, count, &pool);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	pool->free = release;
@@ -80,23 +80,23 @@ isc_pool_create(isc_mem_t *mctx, unsigned int count,
 		result = init(&pool->pool[i], initarg);
 		if (result != ISC_R_SUCCESS) {
 			isc_pool_destroy(&pool);
-			return (result);
+			return result;
 		}
 	}
 
 	*poolp = pool;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void *
 isc_pool_get(isc_pool_t *pool) {
-	return (pool->pool[isc_random_uniform(pool->count)]);
+	return pool->pool[isc_random_uniform(pool->count)];
 }
 
 int
 isc_pool_count(isc_pool_t *pool) {
 	REQUIRE(pool != NULL);
-	return (pool->count);
+	return pool->count;
 }
 
 isc_result_t
@@ -117,7 +117,7 @@ isc_pool_expand(isc_pool_t **sourcep, unsigned int count,
 		/* Allocate a new pool structure */
 		result = alloc_pool(pool->mctx, count, &newpool);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 
 		newpool->free = pool->free;
@@ -130,7 +130,7 @@ isc_pool_expand(isc_pool_t **sourcep, unsigned int count,
 					       newpool->initarg);
 			if (result != ISC_R_SUCCESS) {
 				isc_pool_destroy(&newpool);
-				return (result);
+				return result;
 			}
 		}
 
@@ -145,7 +145,7 @@ isc_pool_expand(isc_pool_t **sourcep, unsigned int count,
 	}
 
 	*targetp = pool;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

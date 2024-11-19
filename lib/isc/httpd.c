@@ -243,7 +243,7 @@ isc_httpdmgr_create(isc_nm_t *nm, isc_mem_t *mctx, isc_sockaddr_t *addr,
 	httpdmgr->magic = HTTPDMGR_MAGIC;
 	*httpdmgrp = httpdmgr;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	httpdmgr->magic = 0;
@@ -253,7 +253,7 @@ cleanup:
 	isc_mutex_destroy(&httpdmgr->lock);
 	isc_mem_put(mctx, httpdmgr, sizeof(isc_httpdmgr_t));
 
-	return (result);
+	return result;
 }
 
 static void
@@ -323,9 +323,9 @@ static bool
 name_match(const struct phr_header *header, const char *match) {
 	size_t match_len = strlen(match);
 	if (match_len != header->name_len) {
-		return (false);
+		return false;
 	}
-	return (strncasecmp(header->name, match, match_len) == 0);
+	return strncasecmp(header->name, match, match_len) == 0;
 }
 
 static bool
@@ -334,7 +334,7 @@ value_match(const struct phr_header *header, const char *match) {
 	size_t limit;
 
 	if (match_len > header->value_len) {
-		return (false);
+		return false;
 	}
 
 	limit = header->value_len - match_len + 1;
@@ -358,7 +358,7 @@ value_match(const struct phr_header *header, const char *match) {
 			if (i == header->value_len || header->value[i] == ',' ||
 			    header->value[i] == ';')
 			{
-				return (true);
+				return true;
 			}
 		}
 
@@ -366,7 +366,7 @@ value_match(const struct phr_header *header, const char *match) {
 			i++;
 		}
 	}
-	return (false);
+	return false;
 }
 
 static isc_result_t
@@ -389,16 +389,16 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 
 	if (pret == -1) {
 		/* Parse Error */
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	} else if (pret == -2) {
 		/* Need more data */
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	INSIST(pret > 0);
 
 	if (pret > HTTP_MAX_REQUEST_LEN) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	httpd->consume = pret;
@@ -412,7 +412,7 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 	} else if (strncmp(method, "POST ", method_len) == 0) {
 		httpd->method = METHOD_POST;
 	} else {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	/*
@@ -420,7 +420,7 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 	 */
 	result = isc_url_parse(path, path_len, 0, &httpd->up);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	httpd->path = path;
 
@@ -446,15 +446,15 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 
 			/* ensure we consumed all digits */
 			if ((header->value + header->value_len) != endptr) {
-				return (ISC_R_BADNUMBER);
+				return ISC_R_BADNUMBER;
 			}
 			/* ensure there was no minus sign */
 			if (val < 0) {
-				return (ISC_R_BADNUMBER);
+				return ISC_R_BADNUMBER;
 			}
 			/* ensure it did not overflow */
 			if (errno != 0) {
-				return (ISC_R_RANGE);
+				return ISC_R_RANGE;
 			}
 			content_len = val;
 		} else if (name_match(header, "Connection")) {
@@ -489,17 +489,17 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 	 * For a GET the length must be zero.
 	 */
 	if (httpd->method == METHOD_GET && content_len != 0) {
-		return (ISC_R_BADNUMBER);
+		return ISC_R_BADNUMBER;
 	}
 
 	if (content_len >= HTTP_MAX_REQUEST_LEN) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	size_t consume = httpd->consume + content_len;
 	if (consume > httpd->recvlen) {
 		/* The request data isn't complete yet. */
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	/* Consume the request's data, which we do not use. */
@@ -519,11 +519,11 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 		break;
 	case 1:
 		if (!host_header) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		break;
 	default:
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	/*
@@ -534,7 +534,7 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 	 * to the buffer.
 	 */
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -594,7 +594,7 @@ isc__httpd_sendreq_new(isc_httpd_t *httpd) {
 
 	isc_buffer_initnull(&req->bodybuffer);
 
-	return (req);
+	return req;
 }
 
 static void
@@ -661,24 +661,24 @@ httpd_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	REQUIRE(VALID_HTTPDMGR(httpdmgr));
 
 	if ((httpdmgr->flags & ISC_HTTPDMGR_SHUTTINGDOWN) != 0) {
-		return (ISC_R_CANCELED);
+		return ISC_R_CANCELED;
 	} else if (result == ISC_R_CANCELED) {
 		isc_httpdmgr_shutdown(&httpdmgr);
-		return (result);
+		return result;
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	peeraddr = isc_nmhandle_peeraddr(handle);
 	if (httpdmgr->client_ok != NULL &&
 	    !(httpdmgr->client_ok)(&peeraddr, httpdmgr->cb_arg))
 	{
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	new_httpd(httpdmgr, handle);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -699,7 +699,7 @@ render_404(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo, void *arg,
 	*freecb = NULL;
 	*freecb_args = NULL;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -720,7 +720,7 @@ render_500(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo, void *arg,
 	*freecb = NULL;
 	*freecb_args = NULL;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #ifdef HAVE_ZLIB
@@ -748,7 +748,7 @@ httpd_compress(isc_httpd_sendreq_t *req) {
 	 */
 	inputlen = isc_buffer_usedlength(&req->bodybuffer);
 	if (inputlen == 0) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	isc_buffer_allocate(req->mctx, &req->compbuffer, inputlen);
@@ -769,10 +769,10 @@ httpd_compress(isc_httpd_sendreq_t *req) {
 	deflateEnd(&zstr);
 	if (ret == Z_STREAM_END) {
 		isc_buffer_add(req->compbuffer, zstr.total_out);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
 		isc_buffer_free(&req->compbuffer);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 }
 #endif /* ifdef HAVE_ZLIB */
@@ -1103,7 +1103,7 @@ isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url, bool isstatic,
 
 	if (url == NULL) {
 		httpdmgr->render_404 = func;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	item = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpdurl_t));
@@ -1121,7 +1121,7 @@ isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url, bool isstatic,
 	ISC_LIST_APPEND(httpdmgr->urls, item, link);
 	UNLOCK(&httpdmgr->lock);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -1135,15 +1135,15 @@ isc_httpd_setfinishhook(void (*fn)(void)) {
 
 bool
 isc_httpdurl_isstatic(const isc_httpdurl_t *url) {
-	return (url->isstatic);
+	return url->isstatic;
 }
 
 const isc_time_t *
 isc_httpdurl_loadtime(const isc_httpdurl_t *url) {
-	return (&url->loadtime);
+	return &url->loadtime;
 }
 
 const isc_time_t *
 isc_httpd_if_modified_since(const isc_httpd_t *httpd) {
-	return ((const isc_time_t *)&httpd->if_modified_since);
+	return (const isc_time_t *)&httpd->if_modified_since;
 }

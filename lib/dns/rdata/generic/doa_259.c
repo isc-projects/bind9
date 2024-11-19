@@ -64,10 +64,10 @@ fromtext_doa(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 	if (strcmp(DNS_AS_STR(token), "-") == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
 		isc_lex_ungettoken(lexer, &token);
-		return (isc_base64_tobuffer(lexer, target, -1));
+		return isc_base64_tobuffer(lexer, target, -1);
 	}
 }
 
@@ -119,9 +119,9 @@ totext_doa(ARGS_TOTEXT) {
 	 * DOA-DATA
 	 */
 	if (region.length == 0) {
-		return (str_totext("-", target));
+		return str_totext("-", target);
 	} else {
-		return (isc_base64_totext(&region, 60, "", target));
+		return isc_base64_totext(&region, 60, "", target);
 	}
 }
 
@@ -142,18 +142,18 @@ fromwire_doa(ARGS_FROMWIRE) {
 	 * zero length.
 	 */
 	if (region.length < 4 + 4 + 1 + 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	/*
 	 * Check whether DOA-MEDIA-TYPE length is not malformed.
 	 */
 	if (region.base[9] > region.length - 10) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	isc_buffer_forward(source, region.length);
-	return (mem_tobuffer(target, region.base, region.length));
+	return mem_tobuffer(target, region.base, region.length);
 }
 
 static isc_result_t
@@ -167,7 +167,7 @@ towire_doa(ARGS_TOWIRE) {
 	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &region);
-	return (mem_tobuffer(target, region.base, region.length));
+	return mem_tobuffer(target, region.base, region.length);
 }
 
 static int
@@ -185,7 +185,7 @@ compare_doa(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -202,7 +202,7 @@ fromstruct_doa(ARGS_FROMSTRUCT) {
 	RETERR(uint8_tobuffer(doa->location, target));
 	RETERR(uint8_tobuffer(doa->mediatype_len, target));
 	RETERR(mem_tobuffer(target, doa->mediatype, doa->mediatype_len));
-	return (mem_tobuffer(target, doa->data, doa->data_len));
+	return mem_tobuffer(target, doa->data, doa->data_len);
 }
 
 static isc_result_t
@@ -225,7 +225,7 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	 * DOA-ENTERPRISE
 	 */
 	if (region.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	doa->enterprise = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
@@ -234,7 +234,7 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	 * DOA-TYPE
 	 */
 	if (region.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	doa->type = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
@@ -243,7 +243,7 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	 * DOA-LOCATION
 	 */
 	if (region.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	doa->location = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
@@ -252,7 +252,7 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	 * DOA-MEDIA-TYPE
 	 */
 	if (region.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	doa->mediatype_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
@@ -278,13 +278,13 @@ tostruct_doa(ARGS_TOSTRUCT) {
 
 	doa->mctx = mctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (mctx != NULL && doa->mediatype != NULL) {
 		isc_mem_free(mctx, doa->mediatype);
 	}
-	return (ISC_R_NOMEMORY);
+	return ISC_R_NOMEMORY;
 }
 
 static void
@@ -317,7 +317,7 @@ additionaldata_doa(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -328,7 +328,7 @@ digest_doa(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -340,7 +340,7 @@ checkowner_doa(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_doa);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -351,12 +351,12 @@ checknames_doa(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_doa);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_doa(ARGS_COMPARE) {
-	return (compare_doa(rdata1, rdata2));
+	return compare_doa(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_DOA_259_C */

@@ -111,7 +111,7 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	sctx->magic = SCTX_MAGIC;
 	*sctxp = sctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -232,7 +232,7 @@ ns_server_setserverid(ns_server_t *sctx, const char *serverid) {
 		sctx->server_id = isc_mem_strdup(sctx->mctx, serverid);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -249,7 +249,7 @@ bool
 ns_server_getoption(ns_server_t *sctx, unsigned int option) {
 	REQUIRE(SCTX_VALID(sctx));
 
-	return ((sctx->options & option) != 0);
+	return (sctx->options & option) != 0;
 }
 
 void

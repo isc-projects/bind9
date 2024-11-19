@@ -324,7 +324,7 @@ fromtext_caa(ARGS_FROMTEXT) {
 		RETERR(DNS_R_SYNTAX);
 	}
 	RETERR(multitxt_fromtext(&token.value.as_textregion, target));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -358,7 +358,7 @@ totext_caa(ARGS_TOTEXT) {
 	 * Value
 	 */
 	RETERR(multitxt_totext(&region, target));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -378,7 +378,7 @@ fromwire_caa(ARGS_FROMWIRE) {
 	 */
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	/*
@@ -409,7 +409,7 @@ fromwire_caa(ARGS_FROMWIRE) {
 	 * Tag + Value
 	 */
 	isc_buffer_forward(source, sr.length);
-	return (mem_tobuffer(target, sr.base, sr.length));
+	return mem_tobuffer(target, sr.base, sr.length);
 }
 
 static isc_result_t
@@ -423,7 +423,7 @@ towire_caa(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	dns_rdata_toregion(rdata, &region);
-	return (mem_tobuffer(target, region.base, region.length));
+	return mem_tobuffer(target, region.base, region.length);
 }
 
 static int
@@ -440,7 +440,7 @@ compare_caa(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -486,7 +486,7 @@ fromstruct_caa(ARGS_FROMSTRUCT) {
 	 */
 	region.base = caa->value;
 	region.length = caa->value_len;
-	return (isc_buffer_copyregion(target, &region));
+	return isc_buffer_copyregion(target, &region);
 }
 
 static isc_result_t
@@ -509,7 +509,7 @@ tostruct_caa(ARGS_TOSTRUCT) {
 	 * Flags
 	 */
 	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	caa->flags = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
@@ -518,7 +518,7 @@ tostruct_caa(ARGS_TOSTRUCT) {
 	 * Tag length
 	 */
 	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	caa->tag_len = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
@@ -527,11 +527,11 @@ tostruct_caa(ARGS_TOSTRUCT) {
 	 * Tag
 	 */
 	if (sr.length < caa->tag_len) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	caa->tag = mem_maybedup(mctx, sr.base, caa->tag_len);
 	if (caa->tag == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	isc_region_consume(&sr, caa->tag_len);
 
@@ -541,11 +541,11 @@ tostruct_caa(ARGS_TOSTRUCT) {
 	caa->value_len = sr.length;
 	caa->value = mem_maybedup(mctx, sr.base, sr.length);
 	if (caa->value == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	caa->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -579,7 +579,7 @@ additionaldata_caa(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -592,7 +592,7 @@ digest_caa(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -604,7 +604,7 @@ checkowner_caa(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -617,12 +617,12 @@ checknames_caa(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_caa(ARGS_COMPARE) {
-	return (compare_caa(rdata1, rdata2));
+	return compare_caa(rdata1, rdata2);
 }
 
 #endif /* GENERIC_CAA_257_C */

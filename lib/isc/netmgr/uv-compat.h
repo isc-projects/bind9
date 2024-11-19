@@ -47,7 +47,7 @@
 #if UV_VERSION_HEX < UV_VERSION(1, 19, 0)
 static inline void *
 uv_handle_get_data(const uv_handle_t *handle) {
-	return (handle->data);
+	return handle->data;
 }
 
 static inline void
@@ -57,7 +57,7 @@ uv_handle_set_data(uv_handle_t *handle, void *data) {
 
 static inline void *
 uv_req_get_data(const uv_req_t *req) {
-	return (req->data);
+	return req->data;
 }
 
 static inline void
@@ -99,19 +99,19 @@ uv_os_getenv(const char *name, char *buffer, size_t *size) {
 	char *buf = getenv(name);
 
 	if (buf == NULL) {
-		return (UV_ENOENT);
+		return UV_ENOENT;
 	}
 
 	len = strlen(buf) + 1;
 	if (len > *size) {
 		*size = len;
-		return (UV_ENOBUFS);
+		return UV_ENOBUFS;
 	}
 
 	*size = len;
 	memmove(buffer, buf, len);
 
-	return (0);
+	return 0;
 }
 
 #define uv_os_setenv(name, value) setenv(name, value, 0)

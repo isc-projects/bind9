@@ -146,7 +146,7 @@ eatline(FILE *fp) {
 		ch = fgetc(fp);
 	}
 
-	return (ch);
+	return ch;
 }
 
 /*!
@@ -167,7 +167,7 @@ eatwhite(FILE *fp) {
 		ch = eatline(fp);
 	}
 
-	return (ch);
+	return ch;
 }
 
 /*!
@@ -190,7 +190,7 @@ getword(FILE *fp, char *buffer, size_t size) {
 	ch = eatwhite(fp);
 
 	if (ch == EOF) {
-		return (EOF);
+		return EOF;
 	}
 
 	do {
@@ -199,14 +199,14 @@ getword(FILE *fp, char *buffer, size_t size) {
 		if (ch == EOF || isspace((unsigned char)ch)) {
 			break;
 		} else if ((size_t)(p - buffer) == size - 1) {
-			return (EOF); /* Not enough space. */
+			return EOF; /* Not enough space. */
 		}
 
 		*p++ = (char)ch;
 		ch = fgetc(fp);
 	} while (1);
 
-	return (ch);
+	return ch;
 }
 
 static isc_result_t
@@ -225,7 +225,7 @@ add_server(isc_mem_t *mctx, const char *address_str,
 	hints.ai_flags = AI_NUMERICHOST;
 	error = getaddrinfo(address_str, "53", &hints, &res);
 	if (error != 0) {
-		return (ISC_R_BADADDRESSFORM);
+		return ISC_R_BADADDRESSFORM;
 	}
 
 	/* XXX: special case: treat all-0 IPv4 address as loopback */
@@ -254,7 +254,7 @@ add_server(isc_mem_t *mctx, const char *address_str,
 cleanup:
 	freeaddrinfo(res);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -278,10 +278,10 @@ create_addr(const char *buffer, isc_netaddr_t *addr, int convert_zero) {
 		memmove(&addr->type.in6, &v6, NS_IN6ADDRSZ);
 		addr->zone = 0;
 	} else {
-		return (ISC_R_BADADDRESSFORM); /* Unrecognised format. */
+		return ISC_R_BADADDRESSFORM; /* Unrecognised format. */
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -292,26 +292,26 @@ resconf_parsenameserver(irs_resconf_t *conf, FILE *fp) {
 
 	cp = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
-		return (ISC_R_UNEXPECTEDEND); /* Nothing on line. */
+		return ISC_R_UNEXPECTEDEND; /* Nothing on line. */
 	} else if (cp == ' ' || cp == '\t') {
 		cp = eatwhite(fp);
 	}
 
 	if (cp != EOF && cp != '\n') {
-		return (ISC_R_UNEXPECTEDTOKEN); /* Extra junk on line. */
+		return ISC_R_UNEXPECTEDTOKEN; /* Extra junk on line. */
 	}
 
 	if (conf->numns == RESCONFMAXNAMESERVERS) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	result = add_server(conf->mctx, word, &conf->nameservers);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	conf->numns++;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -322,13 +322,13 @@ resconf_parsedomain(irs_resconf_t *conf, FILE *fp) {
 
 	res = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
-		return (ISC_R_UNEXPECTEDEND); /* Nothing else on line. */
+		return ISC_R_UNEXPECTEDEND; /* Nothing else on line. */
 	} else if (res == ' ' || res == '\t') {
 		res = eatwhite(fp);
 	}
 
 	if (res != EOF && res != '\n') {
-		return (ISC_R_UNEXPECTEDTOKEN); /* Extra junk on line. */
+		return ISC_R_UNEXPECTEDTOKEN; /* Extra junk on line. */
 	}
 
 	if (conf->domainname != NULL) {
@@ -348,7 +348,7 @@ resconf_parsedomain(irs_resconf_t *conf, FILE *fp) {
 
 	conf->domainname = isc_mem_strdup(conf->mctx, word);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -378,7 +378,7 @@ resconf_parsesearch(irs_resconf_t *conf, FILE *fp) {
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
-		return (ISC_R_UNEXPECTEDEND); /* Nothing else on line. */
+		return ISC_R_UNEXPECTEDEND; /* Nothing else on line. */
 	}
 
 	idx = 0;
@@ -400,7 +400,7 @@ resconf_parsesearch(irs_resconf_t *conf, FILE *fp) {
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -412,12 +412,12 @@ resconf_parsesortlist(irs_resconf_t *conf, FILE *fp) {
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
-		return (ISC_R_UNEXPECTEDEND); /* Empty line after keyword. */
+		return ISC_R_UNEXPECTEDEND; /* Empty line after keyword. */
 	}
 
 	while (strlen(word) > 0U) {
 		if (conf->sortlistnxt == RESCONFMAXSORTLIST) {
-			return (ISC_R_QUOTA); /* Too many values. */
+			return ISC_R_QUOTA; /* Too many values. */
 		}
 
 		p = strchr(word, '/');
@@ -430,13 +430,13 @@ resconf_parsesortlist(irs_resconf_t *conf, FILE *fp) {
 		       sizeof(conf->sortlist) / sizeof(conf->sortlist[0]));
 		res = create_addr(word, &conf->sortlist[idx].addr, 1);
 		if (res != ISC_R_SUCCESS) {
-			return (res);
+			return res;
 		}
 
 		if (p != NULL) {
 			res = create_addr(p, &conf->sortlist[idx].mask, 0);
 			if (res != ISC_R_SUCCESS) {
-				return (res);
+				return res;
 			}
 		} else {
 			/*
@@ -456,7 +456,7 @@ resconf_parsesortlist(irs_resconf_t *conf, FILE *fp) {
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -466,13 +466,13 @@ resconf_optionnumber(const char *word, uint8_t *number) {
 
 	n = strtol(word, &p, 10);
 	if (*p != '\0') { /* Bad string. */
-		return (ISC_R_UNEXPECTEDTOKEN);
+		return ISC_R_UNEXPECTEDTOKEN;
 	}
 	if (n < 0 || n > 0xff) { /* Out of range. */
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	*number = n;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -483,7 +483,7 @@ resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
-		return (ISC_R_UNEXPECTEDEND); /* Empty line after keyword. */
+		return ISC_R_UNEXPECTEDEND; /* Empty line after keyword. */
 	}
 
 	while (strlen(word) > 0U) {
@@ -505,7 +505,7 @@ resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 	}
 
 cleanup:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -518,7 +518,7 @@ add_search(irs_resconf_t *conf, char *domain) {
 	ISC_LINK_INIT(entry, link);
 	ISC_LIST_APPEND(conf->searchlist, entry, link);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*% parses a file and fills in the data structure. */
@@ -595,7 +595,7 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
 			break;
 		default:
 			isc_mem_put(mctx, conf, sizeof(*conf));
-			return (ISC_R_INVALIDFILE);
+			return ISC_R_INVALIDFILE;
 		}
 	}
 
@@ -639,7 +639,7 @@ error:
 		*confp = conf;
 	}
 
-	return (ret);
+	return ret;
 }
 
 void
@@ -681,33 +681,33 @@ isc_sockaddrlist_t *
 irs_resconf_getnameservers(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
-	return (&conf->nameservers);
+	return &conf->nameservers;
 }
 
 irs_resconf_searchlist_t *
 irs_resconf_getsearchlist(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
-	return (&conf->searchlist);
+	return &conf->searchlist;
 }
 
 unsigned int
 irs_resconf_getndots(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
-	return ((unsigned int)conf->ndots);
+	return (unsigned int)conf->ndots;
 }
 
 unsigned int
 irs_resconf_getattempts(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
-	return ((unsigned int)conf->attempts);
+	return (unsigned int)conf->attempts;
 }
 
 unsigned int
 irs_resconf_gettimeout(irs_resconf_t *conf) {
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
-	return ((unsigned int)conf->timeout);
+	return (unsigned int)conf->timeout;
 }

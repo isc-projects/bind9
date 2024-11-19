@@ -78,7 +78,7 @@ static int
 compare_rdata(const void *p1, const void *p2) {
 	const struct xrdata *x1 = p1;
 	const struct xrdata *x2 = p2;
-	return (dns_rdata_compare(&x1->rdata, &x2->rdata));
+	return dns_rdata_compare(&x1->rdata, &x2->rdata);
 }
 
 #if DNS_RDATASET_FIXED
@@ -146,7 +146,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	 */
 	if (nitems == 0) {
 		if (rdataset->type != 0) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 		rawbuf = isc_mem_get(mctx, buflen);
 		region->base = rawbuf;
@@ -154,15 +154,15 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		rawbuf += reservelen;
 		*rawbuf++ = 0;
 		*rawbuf = 0;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (maxrrperset > 0 && nitems > maxrrperset) {
-		return (DNS_R_TOOMANYRECORDS);
+		return DNS_R_TOOMANYRECORDS;
 	}
 
 	if (nitems > 0xffff) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/*
@@ -340,7 +340,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 
 free_rdatas:
 	isc_mem_put(mctx, x, nalloc * sizeof(struct xrdata));
-	return (result);
+	return result;
 }
 
 unsigned int
@@ -367,7 +367,7 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
 #endif /* if DNS_RDATASET_FIXED */
 	}
 
-	return ((unsigned int)(current - slab));
+	return (unsigned int)(current - slab);
 }
 
 unsigned int
@@ -395,7 +395,7 @@ dns_rdataslab_rdatasize(unsigned char *slab, unsigned int reservelen) {
 #endif /* if DNS_RDATASET_FIXED */
 	}
 
-	return (rdatalen);
+	return rdatalen;
 }
 
 unsigned int
@@ -408,7 +408,7 @@ dns_rdataslab_count(unsigned char *slab, unsigned int reservelen) {
 	current = slab + reservelen;
 	count = *current++ * 256;
 	count += *current++;
-	return (count);
+	return count;
 }
 
 /*
@@ -475,14 +475,14 @@ rdata_in_slab(unsigned char *slab, unsigned int reservelen,
 
 		n = dns_rdata_compare(&trdata, rdata);
 		if (n == 0) {
-			return (true);
+			return true;
 		}
 		if (n > 0) { /* In DNSSEC order. */
 			break;
 		}
 		dns_rdata_reset(&trdata);
 	}
-	return (false);
+	return false;
 }
 
 isc_result_t
@@ -531,7 +531,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	INSIST(ocount > 0 && ncount > 0);
 
 	if (maxrrperset > 0 && ocount + ncount > maxrrperset) {
-		return (DNS_R_TOOMANYRECORDS);
+		return DNS_R_TOOMANYRECORDS;
 	}
 
 #if DNS_RDATASET_FIXED
@@ -593,11 +593,11 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 
 	if (((flags & DNS_RDATASLAB_EXACT) != 0) && (tcount != ncount + ocount))
 	{
-		return (DNS_R_NOTEXACT);
+		return DNS_R_NOTEXACT;
 	}
 
 	if (!added_something && (flags & DNS_RDATASLAB_FORCE) == 0) {
-		return (DNS_R_UNCHANGED);
+		return DNS_R_UNCHANGED;
 	}
 
 	/*
@@ -608,11 +608,11 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		 * We have a singleton type, but there's more than one
 		 * RR in the rdataset.
 		 */
-		return (DNS_R_SINGLETON);
+		return DNS_R_SINGLETON;
 	}
 
 	if (tcount > 0xffff) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/*
@@ -752,7 +752,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 
 	*tslabp = tstart;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -835,21 +835,21 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	 * check only works as rdataslabs do not contain duplicates.
 	 */
 	if (((flags & DNS_RDATASLAB_EXACT) != 0) && (rcount != scount)) {
-		return (DNS_R_NOTEXACT);
+		return DNS_R_NOTEXACT;
 	}
 
 	/*
 	 * Don't continue if the new rdataslab would be empty.
 	 */
 	if (tcount == 0) {
-		return (DNS_R_NXRRSET);
+		return DNS_R_NXRRSET;
 	}
 
 	/*
 	 * If nothing is going to change, we can stop.
 	 */
 	if (rcount == 0) {
-		return (DNS_R_UNCHANGED);
+		return DNS_R_UNCHANGED;
 	}
 
 	/*
@@ -925,7 +925,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 
 	*tslabp = tstart;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 bool
@@ -944,7 +944,7 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 	count2 += *current2++;
 
 	if (count1 != count2) {
-		return (false);
+		return false;
 	}
 
 #if DNS_RDATASET_FIXED
@@ -967,7 +967,7 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 		if (length1 != length2 ||
 		    memcmp(current1, current2, length1) != 0)
 		{
-			return (false);
+			return false;
 		}
 
 		current1 += length1;
@@ -975,7 +975,7 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 
 		count1--;
 	}
-	return (true);
+	return true;
 }
 
 bool
@@ -996,7 +996,7 @@ dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
 	count2 += *current2++;
 
 	if (count1 != count2) {
-		return (false);
+		return false;
 	}
 
 #if DNS_RDATASET_FIXED
@@ -1008,10 +1008,10 @@ dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
 		rdata_from_slab(&current1, rdclass, type, &rdata1);
 		rdata_from_slab(&current2, rdclass, type, &rdata2);
 		if (dns_rdata_compare(&rdata1, &rdata2) != 0) {
-			return (false);
+			return false;
 		}
 		dns_rdata_reset(&rdata1);
 		dns_rdata_reset(&rdata2);
 	}
-	return (true);
+	return true;
 }

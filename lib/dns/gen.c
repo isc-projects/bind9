@@ -182,9 +182,9 @@ start_directory(const char *path, isc_dir_t *dir) {
 	dir->handle = opendir(path);
 
 	if (dir->handle != NULL) {
-		return (true);
+		return true;
 	} else {
-		return (false);
+		return false;
 	}
 }
 
@@ -210,9 +210,9 @@ next_file(isc_dir_t *dir) {
 	}
 
 	if (dir->filename != NULL) {
-		return (true);
+		return true;
 	} else {
-		return (false);
+		return false;
 	}
 }
 
@@ -247,7 +247,7 @@ upper(char *s) {
 		*b++ = islower(c) ? toupper(c) : c;
 	}
 	*b = '\0';
-	return (buf[buf_to_use]);
+	return buf[buf_to_use];
 }
 
 static char *
@@ -260,7 +260,7 @@ funname(const char *s, char *buf) {
 		*b++ = (c == '-') ? '_' : c;
 	}
 	*b = '\0';
-	return (buf);
+	return buf;
 }
 
 static void
@@ -342,10 +342,10 @@ find_typename(int type) {
 
 	for (i = 0; i < TYPENAMES; i++) {
 		if (typenames[i].typebuf[0] != 0 && typenames[i].type == type) {
-			return (&typenames[i]);
+			return &typenames[i];
 		}
 	}
-	return (NULL);
+	return NULL;
 }
 
 static void
@@ -576,7 +576,7 @@ HASH(char *string) {
 	a = tolower((unsigned char)string[0]);
 	b = tolower((unsigned char)string[n - 1]);
 
-	return (((a + n) * b) % 256);
+	return ((a + n) * b) % 256;
 }
 
 int
@@ -1058,5 +1058,5 @@ main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	return (0);
+	return 0;
 }

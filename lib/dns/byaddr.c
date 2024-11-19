@@ -80,13 +80,13 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
 		remaining = sizeof(textname) - (cp - textname);
 		strlcpy(cp, "ip6.arpa.", remaining);
 	} else {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	len = (unsigned int)strlen(textname);
 	isc_buffer_init(&buffer, textname, len);
 	isc_buffer_add(&buffer, len);
-	return (dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL));
+	return dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL);
 }
 
 struct dns_byaddr {
@@ -124,7 +124,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ptr, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		name = isc_mem_get(byaddr->mctx, sizeof(*name));
 		dns_name_init(name, NULL);
@@ -138,7 +138,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 		result = ISC_R_SUCCESS;
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -232,7 +232,7 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 
 	*byaddrp = byaddr;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_lock:
 	isc_mutex_destroy(&byaddr->lock);
@@ -245,7 +245,7 @@ cleanup_lock:
 
 	isc_mem_putanddetach(&mctx, byaddr, sizeof(*byaddr));
 
-	return (result);
+	return result;
 }
 
 void

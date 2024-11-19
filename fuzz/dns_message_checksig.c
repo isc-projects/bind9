@@ -195,14 +195,14 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	wd = mkdtemp(template);
 	if (wd == NULL) {
 		fprintf(stderr, "mkdtemp failed\n");
-		return (1);
+		return 1;
 	}
 
 	snprintf(pathbuf, sizeof(pathbuf), "%s/%s", wd, f1);
 	fd = fopen(pathbuf, "w");
 	if (fd == NULL) {
 		fprintf(stderr, "fopen(%s) failed\n", pathbuf);
-		return (1);
+		return 1;
 	}
 	fputs(c1, fd);
 	fclose(fd);
@@ -211,7 +211,7 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	fd = fopen(pathbuf, "w");
 	if (fd == NULL) {
 		fprintf(stderr, "fopen(%s) failed\n", pathbuf);
-		return (1);
+		return 1;
 	}
 	fputs(c2, fd);
 	fclose(fd);
@@ -220,7 +220,7 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	fd = fopen(pathbuf, "w");
 	if (fd == NULL) {
 		fprintf(stderr, "fopen(%s) failed\n", pathbuf);
-		return (1);
+		return 1;
 	}
 	fputs(c3, fd);
 	fclose(fd);
@@ -231,7 +231,7 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dst_lib_init failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 	destroy_dst = true;
 
@@ -239,28 +239,28 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_view_create failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_tsigkeyring_create(mctx, &ring);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_tsigkeyring_create failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_tsigkeyring_create(mctx, &emptyring);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_tsigkeyring_create failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_name_fromstring(name, "tsig-key", 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_name_fromstring failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_tsigkey_create(name, dns_tsig_hmacsha256_name, secret,
@@ -269,28 +269,28 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_tsigkey_create failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_name_fromstring(name, "sig0key", 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_name_fromstring failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_zone_create(&zone, mctx);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_zone_create failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_zone_setorigin(zone, name);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_zone_setorigin failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	dns_zone_setclass(zone, view->rdclass);
@@ -300,7 +300,7 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_zone_setkeydirectory failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_zone_setfile(zone, pathbuf, dns_masterformat_text,
@@ -308,28 +308,28 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_zone_setfile failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_zone_load(zone, false);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_zone_load failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	result = dns_view_addzone(view, zone);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_view_addzone failed: %s\n",
 			isc_result_totext(result));
-		return (1);
+		return 1;
 	}
 
 	dns_view_freeze(view);
 
 	dns_zone_detach(&zone);
 
-	return (0);
+	return 0;
 }
 
 static isc_result_t
@@ -405,7 +405,7 @@ create_message(dns_message_t **messagep, const uint8_t *data, size_t size,
 		}
 		*messagep = message;
 	}
-	return (result);
+	return result;
 }
 
 int
@@ -434,7 +434,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	 * opcode.
 	 */
 	if (size > 65535 || size < 2) {
-		return (0);
+		return 0;
 	}
 
 	addasig = (*data & 0x80) != 0;
@@ -459,7 +459,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
 	result = create_message(&message, data, size, addasig, addtsig);
 	if (result != ISC_R_SUCCESS) {
-		return (0);
+		return 0;
 	}
 
 	/*
@@ -538,5 +538,5 @@ cleanup:
 		dns_message_detach(&message);
 	}
 
-	return (0);
+	return 0;
 }

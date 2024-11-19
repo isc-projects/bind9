@@ -51,7 +51,7 @@ setup_test(void **state) {
 
 	setenv("TZ", "", 1);
 
-	return (0);
+	return 0;
 }
 
 static uint32_t mystdtime;

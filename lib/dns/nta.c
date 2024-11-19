@@ -137,7 +137,7 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	ntatable->magic = NTATABLE_MAGIC;
 	*ntatablep = ntatable;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_task:
 	isc_task_detach(&ntatable->task);
@@ -145,7 +145,7 @@ cleanup_task:
 cleanup_ntatable:
 	isc_mem_put(view->mctx, ntatable, sizeof(*ntatable));
 
-	return (result);
+	return result;
 }
 
 void
@@ -281,12 +281,12 @@ settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
 	REQUIRE(VALID_NTA(nta));
 
 	if (ntatable->timermgr == NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	view = ntatable->view;
 	if (view->nta_recheck == 0 || lifetime <= view->nta_recheck) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	isc_interval_set(&interval, view->nta_recheck, 0);
@@ -296,7 +296,7 @@ settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
 	if (result != ISC_R_SUCCESS) {
 		isc_timer_destroy(&nta->timer);
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -327,7 +327,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 	nta->magic = NTA_MAGIC;
 
 	*target = nta;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -386,7 +386,7 @@ unlock:
 		nta_detach(view->mctx, &nta);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -413,7 +413,7 @@ deletenode(dns_ntatable_t *ntatable, const dns_name_t *name) {
 		result = ISC_R_NOTFOUND;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -424,7 +424,7 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	result = deletenode(ntatable, name);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
-	return (result);
+	return result;
 }
 
 bool
@@ -442,7 +442,7 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 	REQUIRE(dns_name_isabsolute(name));
 
 	if (ntatable == NULL) {
-		return (false);
+		return false;
 	}
 
 	foundname = dns_fixedname_initname(&fn);
@@ -496,7 +496,7 @@ again:
 	}
 	RWUNLOCK(&ntatable->rwlock, locktype);
 
-	return (answer);
+	return answer;
 }
 
 static isc_result_t
@@ -505,11 +505,11 @@ putstr(isc_buffer_t **b, const char *str) {
 
 	result = isc_buffer_reserve(b, strlen(str));
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	isc_buffer_putstr(*b, str);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -590,7 +590,7 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -666,9 +666,9 @@ cleanup:
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	} else {
-		return (written ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
+		return written ? ISC_R_SUCCESS : ISC_R_NOTFOUND;
 	}
 }
 

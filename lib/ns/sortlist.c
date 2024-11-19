@@ -73,14 +73,14 @@ ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env, isc_netaddr_t *clientaddr,
 		if (order_elt == NULL) {
 			INSIST(matched_elt != NULL);
 			*argp = matched_elt;
-			return (NS_SORTLISTTYPE_1ELEMENT);
+			return NS_SORTLISTTYPE_1ELEMENT;
 		}
 
 		if (order_elt->type == dns_aclelementtype_nestedacl) {
 			dns_acl_t *inner = NULL;
 			dns_acl_attach(order_elt->nestedacl, &inner);
 			*argp = inner;
-			return (NS_SORTLISTTYPE_2ELEMENT);
+			return NS_SORTLISTTYPE_2ELEMENT;
 		}
 
 		if (order_elt->type == dns_aclelementtype_localhost) {
@@ -93,7 +93,7 @@ ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env, isc_netaddr_t *clientaddr,
 
 			if (inner != NULL) {
 				*argp = inner;
-				return (NS_SORTLISTTYPE_2ELEMENT);
+				return NS_SORTLISTTYPE_2ELEMENT;
 			}
 		}
 
@@ -106,7 +106,7 @@ ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env, isc_netaddr_t *clientaddr,
 			RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
 			if (inner != NULL) {
 				*argp = inner;
-				return (NS_SORTLISTTYPE_2ELEMENT);
+				return NS_SORTLISTTYPE_2ELEMENT;
 			}
 		}
 
@@ -116,12 +116,12 @@ ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env, isc_netaddr_t *clientaddr,
 		 * sortlist statement.
 		 */
 		*argp = order_elt;
-		return (NS_SORTLISTTYPE_1ELEMENT);
+		return NS_SORTLISTTYPE_1ELEMENT;
 	}
 
 dont_sort:
 	*argp = NULL;
-	return (NS_SORTLISTTYPE_NONE);
+	return NS_SORTLISTTYPE_NONE;
 }
 
 int
@@ -133,11 +133,11 @@ ns_sortlist_addrorder2(const isc_netaddr_t *addr, const void *arg) {
 
 	(void)dns_acl_match(addr, NULL, sortacl, env, &match, NULL);
 	if (match > 0) {
-		return (match);
+		return match;
 	} else if (match < 0) {
-		return (INT_MAX - (-match));
+		return INT_MAX - (-match);
 	} else {
-		return (INT_MAX / 2);
+		return INT_MAX / 2;
 	}
 }
 
@@ -148,10 +148,10 @@ ns_sortlist_addrorder1(const isc_netaddr_t *addr, const void *arg) {
 	const dns_aclelement_t *element = sla->element;
 
 	if (dns_aclelement_match(addr, NULL, element, env, NULL)) {
-		return (0);
+		return 0;
 	}
 
-	return (INT_MAX);
+	return INT_MAX;
 }
 
 void

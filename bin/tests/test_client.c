@@ -73,12 +73,12 @@ parse_port(const char *input) {
 	long val = strtol(input, &endptr, 10);
 
 	if ((*endptr != '\0') || (val <= 0) || (val >= 65536)) {
-		return (ISC_R_BADNUMBER);
+		return ISC_R_BADNUMBER;
 	}
 
 	port = input;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -86,11 +86,11 @@ parse_protocol(const char *input) {
 	for (size_t i = 0; i < ARRAY_SIZE(protocols); i++) {
 		if (!strcasecmp(input, protocols[i])) {
 			protocol = i;
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 
-	return (ISC_R_BADNUMBER);
+	return ISC_R_BADNUMBER;
 }
 
 static isc_result_t
@@ -101,16 +101,16 @@ parse_address(const char *input) {
 	if (inet_pton(AF_INET6, input, &in6) == 1) {
 		family = AF_INET6;
 		address = input;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (inet_pton(AF_INET, input, &in) == 1) {
 		family = AF_INET;
 		address = input;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
-	return (ISC_R_BADADDRESSFORM);
+	return ISC_R_BADADDRESSFORM;
 }
 
 static int
@@ -119,12 +119,12 @@ parse_workers(const char *input) {
 	long val = strtol(input, &endptr, 10);
 
 	if ((*endptr != '\0') || (val <= 0) || (val >= 128)) {
-		return (ISC_R_BADNUMBER);
+		return ISC_R_BADNUMBER;
 	}
 
 	workers = val;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -133,12 +133,12 @@ parse_timeout(const char *input) {
 	long val = strtol(input, &endptr, 10);
 
 	if ((*endptr != '\0') || (val <= 0) || (val >= 120)) {
-		return (ISC_R_BADNUMBER);
+		return ISC_R_BADNUMBER;
 	}
 
 	timeout = (in_port_t)val * 1000;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -156,7 +156,7 @@ parse_input(const char *input) {
 
 	close(in);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -169,7 +169,7 @@ parse_output(const char *input) {
 	}
 	RUNTIME_CHECK(out >= 0);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -449,5 +449,5 @@ main(int argc, char **argv) {
 
 	teardown();
 
-	return (EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }

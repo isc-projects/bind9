@@ -35,7 +35,7 @@ dns_zonekey_iszonekey(dns_rdata_t *keyrdata) {
 
 	result = dns_rdata_tostruct(keyrdata, &key, NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (false);
+		return false;
 	}
 
 	if ((key.flags & DNS_KEYTYPE_NOAUTH) != 0) {
@@ -50,5 +50,5 @@ dns_zonekey_iszonekey(dns_rdata_t *keyrdata) {
 		iszonekey = false;
 	}
 
-	return (iszonekey);
+	return iszonekey;
 }

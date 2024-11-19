@@ -20,7 +20,7 @@ static isc_result_t
 fromtext_ninfo(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_ninfo);
 
-	return (generic_fromtext_txt(CALL_FROMTEXT));
+	return generic_fromtext_txt(CALL_FROMTEXT);
 }
 
 static isc_result_t
@@ -28,14 +28,14 @@ totext_ninfo(ARGS_TOTEXT) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
-	return (generic_totext_txt(CALL_TOTEXT));
+	return generic_totext_txt(CALL_TOTEXT);
 }
 
 static isc_result_t
 fromwire_ninfo(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_ninfo);
 
-	return (generic_fromwire_txt(CALL_FROMWIRE));
+	return generic_fromwire_txt(CALL_FROMWIRE);
 }
 
 static isc_result_t
@@ -44,7 +44,7 @@ towire_ninfo(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -58,14 +58,14 @@ compare_ninfo(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
 fromstruct_ninfo(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_ninfo);
 
-	return (generic_fromstruct_txt(CALL_FROMSTRUCT));
+	return generic_fromstruct_txt(CALL_FROMSTRUCT);
 }
 
 static isc_result_t
@@ -79,7 +79,7 @@ tostruct_ninfo(ARGS_TOSTRUCT) {
 	ninfo->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&ninfo->common, link);
 
-	return (generic_tostruct_txt(CALL_TOSTRUCT));
+	return generic_tostruct_txt(CALL_TOSTRUCT);
 }
 
 static void
@@ -101,7 +101,7 @@ additionaldata_ninfo(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -112,7 +112,7 @@ digest_ninfo(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -124,7 +124,7 @@ checkowner_ninfo(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -135,12 +135,12 @@ checknames_ninfo(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_ninfo(ARGS_COMPARE) {
-	return (compare_ninfo(rdata1, rdata2));
+	return compare_ninfo(rdata1, rdata2);
 }
 
 isc_result_t
@@ -148,7 +148,7 @@ dns_rdata_ninfo_first(dns_rdata_ninfo_t *ninfo) {
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
-	return (generic_txt_first(ninfo));
+	return generic_txt_first(ninfo);
 }
 
 isc_result_t
@@ -156,7 +156,7 @@ dns_rdata_ninfo_next(dns_rdata_ninfo_t *ninfo) {
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
-	return (generic_txt_next(ninfo));
+	return generic_txt_next(ninfo);
 }
 
 isc_result_t
@@ -165,6 +165,6 @@ dns_rdata_ninfo_current(dns_rdata_ninfo_t *ninfo,
 	REQUIRE(ninfo != NULL);
 	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
 
-	return (generic_txt_current(ninfo, string));
+	return generic_txt_current(ninfo, string);
 }
 #endif /* RDATA_GENERIC_NINFO_56_C */

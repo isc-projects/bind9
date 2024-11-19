@@ -120,7 +120,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		dns_tsigkey_detach(&tsigkey);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
@@ -129,7 +129,7 @@ failure:
 	if (secret != NULL) {
 		isc_mem_put(mctx, secret, secretalloc);
 	}
-	return (ret);
+	return ret;
 }
 
 isc_result_t
@@ -154,7 +154,7 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 	result = dns_tsigkeyring_create(mctx, &ring);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	for (i = 0;; i++) {
@@ -173,9 +173,9 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	*ringp = ring;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	dns_tsigkeyring_detach(&ring);
-	return (result);
+	return result;
 }

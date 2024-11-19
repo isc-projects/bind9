@@ -47,9 +47,9 @@ _cmocka_add_test_byname(const struct CMUnitTest *tests, size_t ntests,
 		if (j < nselected && selected[j].name == NULL) {
 			selected[j] = tests[i];
 		}
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 ISC_LANG_ENDDECLS

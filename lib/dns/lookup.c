@@ -89,7 +89,7 @@ start_fetch(dns_lookup_t *lookup) {
 		lookup->task, fetch_done, lookup, &lookup->rdataset,
 		&lookup->sigrdataset, &lookup->fetch);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -135,7 +135,7 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
 			       &lookup->event->db, &lookup->event->node,
 			       foundname, &lookup->rdataset,
 			       &lookup->sigrdataset);
-	return (result);
+	return result;
 }
 
 static void
@@ -401,7 +401,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 
 	lookup_find(lookup, NULL);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

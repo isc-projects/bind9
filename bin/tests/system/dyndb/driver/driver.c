@@ -138,7 +138,7 @@ cleanup:
 		isc_mem_put(mctx, argv, argc * sizeof(*argv));
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -160,5 +160,5 @@ int
 dyndb_version(unsigned int *flags) {
 	UNUSED(flags);
 
-	return (DNS_DYNDB_VERSION);
+	return DNS_DYNDB_VERSION;
 }

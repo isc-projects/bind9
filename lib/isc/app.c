@@ -130,7 +130,7 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 		FATAL_SYSERROR(presult, "pthread_sigmask()");
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -139,13 +139,13 @@ isc_app_start(void) {
 	isc_g_appctx.mctx = NULL;
 	/* The remaining members will be initialized in ctxstart() */
 
-	return (isc_app_ctxstart(&isc_g_appctx));
+	return isc_app_ctxstart(&isc_g_appctx);
 }
 
 isc_result_t
 isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	      void *arg) {
-	return (isc_app_ctxonrun(&isc_g_appctx, mctx, task, action, arg));
+	return isc_app_ctxonrun(&isc_g_appctx, mctx, task, action, arg);
 }
 
 isc_result_t
@@ -155,7 +155,7 @@ isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 	isc_task_t *cloned_task = NULL;
 
 	if (atomic_load_acquire(&ctx->running)) {
-		return (ISC_R_ALREADYRUNNING);
+		return ISC_R_ALREADYRUNNING;
 	}
 
 	/*
@@ -171,7 +171,7 @@ isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 	ISC_LIST_APPEND(ctx->on_run, event, ev_link);
 	UNLOCK(&ctx->lock);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -254,7 +254,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 		if (atomic_compare_exchange_strong_acq_rel(
 			    &ctx->want_reload, &(bool){ true }, false))
 		{
-			return (ISC_R_RELOAD);
+			return ISC_R_RELOAD;
 		}
 
 		if (atomic_load_acquire(&ctx->want_shutdown) &&
@@ -264,7 +264,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -276,12 +276,12 @@ isc_app_run(void) {
 	result = isc_app_ctxrun(&isc_g_appctx);
 	atomic_store_release(&is_running, false);
 
-	return (result);
+	return result;
 }
 
 bool
 isc_app_isrunning(void) {
-	return (atomic_load_acquire(&is_running));
+	return atomic_load_acquire(&is_running);
 }
 
 void
@@ -403,7 +403,7 @@ isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 
 	*ctxp = ctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

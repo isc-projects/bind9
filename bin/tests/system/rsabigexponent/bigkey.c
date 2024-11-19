@@ -151,7 +151,7 @@ main(int argc, char **argv) {
 	dns_log_setcontext(NULL);
 	dst_lib_destroy();
 	isc_mem_destroy(&mctx);
-	return (0);
+	return 0;
 }
 
 /*! \file */

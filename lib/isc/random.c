@@ -85,7 +85,7 @@ static thread_local uint32_t seed[4] = { 0 };
 
 static uint32_t
 rotl(const uint32_t x, int k) {
-	return ((x << k) | (x >> (32 - k)));
+	return (x << k) | (x >> (32 - k));
 }
 
 static uint32_t
@@ -104,7 +104,7 @@ next(void) {
 
 	seed[3] = rotl(seed[3], 11);
 
-	return (result_starstar);
+	return result_starstar;
 }
 
 static thread_local isc_once_t isc_random_once = ISC_ONCE_INIT;
@@ -128,21 +128,21 @@ uint8_t
 isc_random8(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
 		      ISC_R_SUCCESS);
-	return (next() & 0xff);
+	return next() & 0xff;
 }
 
 uint16_t
 isc_random16(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
 		      ISC_R_SUCCESS);
-	return (next() & 0xffff);
+	return next() & 0xffff;
 }
 
 uint32_t
 isc_random32(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once, isc_random_initialize) ==
 		      ISC_R_SUCCESS);
-	return (next());
+	return next();
 }
 
 void
@@ -174,7 +174,7 @@ isc_random_uniform(uint32_t upper_bound) {
 		      ISC_R_SUCCESS);
 
 	if (upper_bound < 2) {
-		return (0);
+		return 0;
 	}
 
 #if (ULONG_MAX > 0xffffffffUL)
@@ -202,5 +202,5 @@ isc_random_uniform(uint32_t upper_bound) {
 		}
 	}
 
-	return (r % upper_bound);
+	return r % upper_bound;
 }

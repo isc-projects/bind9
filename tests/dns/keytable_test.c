@@ -87,7 +87,7 @@ str2name(const char *namestr) {
 		dns_name_fromtext(name, &namebuf, dns_rootname, 0, NULL),
 		ISC_R_SUCCESS);
 
-	return (name);
+	return name;
 }
 
 static void

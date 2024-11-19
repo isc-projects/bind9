@@ -61,7 +61,7 @@ fromtext_ch_a(ARGS_FROMTEXT) {
 	if (token.value.as_ulong > 0xffffU) {
 		RETTOK(ISC_R_RANGE);
 	}
-	return (uint16_tobuffer(token.value.as_ulong, target));
+	return uint16_tobuffer(token.value.as_ulong, target);
 }
 
 static isc_result_t
@@ -90,7 +90,7 @@ totext_ch_a(ARGS_TOTEXT) {
 
 	snprintf(buf, sizeof(buf), "%o", addr); /* note octal */
 	RETERR(str_totext(" ", target));
-	return (str_totext(buf, target));
+	return str_totext(buf, target);
 }
 
 static isc_result_t
@@ -114,17 +114,17 @@ fromwire_ch_a(ARGS_FROMWIRE) {
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
 	if (sregion.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	if (tregion.length < 2) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	memmove(tregion.base, sregion.base, 2);
 	isc_buffer_forward(source, 2);
 	isc_buffer_add(target, 2);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -150,12 +150,12 @@ towire_ch_a(ARGS_TOWIRE) {
 
 	isc_buffer_availableregion(target, &tregion);
 	if (tregion.length < 2) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	memmove(tregion.base, sregion.base, 2);
 	isc_buffer_add(target, 2);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static int
@@ -186,14 +186,14 @@ compare_ch_a(ARGS_COMPARE) {
 
 	order = dns_name_rdatacompare(&name1, &name2);
 	if (order != 0) {
-		return (order);
+		return order;
 	}
 
 	order = memcmp(region1.base, region2.base, 2);
 	if (order != 0) {
 		order = (order < 0) ? -1 : 1;
 	}
-	return (order);
+	return order;
 }
 
 static isc_result_t
@@ -212,7 +212,7 @@ fromstruct_ch_a(ARGS_FROMSTRUCT) {
 	dns_name_toregion(&a->ch_addr_dom, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
 
-	return (uint16_tobuffer(ntohs(a->ch_addr), target));
+	return uint16_tobuffer(ntohs(a->ch_addr), target);
 }
 
 static isc_result_t
@@ -239,7 +239,7 @@ tostruct_ch_a(ARGS_TOSTRUCT) {
 	name_duporclone(&name, mctx, &a->ch_addr_dom);
 	a->ch_addr = htons(uint16_fromregion(&region));
 	a->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -267,7 +267,7 @@ additionaldata_ch_a(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -283,7 +283,7 @@ digest_ch_a(ARGS_DIGEST) {
 	dns_name_fromregion(&name, &r);
 	isc_region_consume(&r, name_length(&name));
 	RETERR(dns_name_digest(&name, digest, arg));
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -293,7 +293,7 @@ checkowner_ch_a(ARGS_CHECKOWNER) {
 
 	UNUSED(type);
 
-	return (dns_name_ishostname(name, wildcard));
+	return dns_name_ishostname(name, wildcard);
 }
 
 static bool
@@ -313,14 +313,14 @@ checknames_ch_a(ARGS_CHECKNAMES) {
 		if (bad != NULL) {
 			dns_name_clone(&name, bad);
 		}
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_ch_a(ARGS_COMPARE) {
-	return (compare_ch_a(rdata1, rdata2));
+	return compare_ch_a(rdata1, rdata2);
 }
 #endif /* RDATA_CH_3_A_1_C */

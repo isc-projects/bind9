@@ -259,7 +259,7 @@ quota_detach(void *quotap) {
 	isc_quota_t *quota = (isc_quota_t *)quotap;
 	uv_sleep(10);
 	isc_quota_detach(&quota);
-	return ((isc_threadresult_t)0);
+	return (isc_threadresult_t)0;
 }
 
 static void
@@ -285,7 +285,7 @@ quota_thread(void *qtip) {
 					  &g_threads[tnum]);
 		}
 	}
-	return ((isc_threadresult_t)0);
+	return (isc_threadresult_t)0;
 }
 
 ISC_RUN_TEST_IMPL(isc_quota_callback_mt) {

@@ -63,7 +63,7 @@ bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
 			isc_sockaddr_v6fromin(&addrs[0], &in4, port);
 		}
 		*addrcount = 1;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (strlen(hostname) <= 127U) {
 		char tmpbuf[128], *d;
 		uint32_t zone = 0;
@@ -78,7 +78,7 @@ bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
 			isc_netaddr_t na;
 
 			if (!have_ipv6) {
-				return (ISC_R_FAMILYNOSUPPORT);
+				return ISC_R_FAMILYNOSUPPORT;
 			}
 
 			if (d != NULL) {
@@ -88,7 +88,7 @@ bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
 							    &in6, &zone);
 
 				if (iresult != ISC_R_SUCCESS) {
-					return (iresult);
+					return iresult;
 				}
 			}
 
@@ -98,7 +98,7 @@ bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
 				&addrs[0], (const isc_netaddr_t *)&na, port);
 
 			*addrcount = 1;
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 	memset(&hints, 0, sizeof(hints));
@@ -124,7 +124,7 @@ again:
 #if defined(EAI_NODATA) && (EAI_NODATA != EAI_NONAME)
 	case EAI_NODATA:
 #endif /* if defined(EAI_NODATA) && (EAI_NODATA != EAI_NONAME) */
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 #ifdef AI_ADDRCONFIG
 	case EAI_BADFLAGS:
 		if ((hints.ai_flags & AI_ADDRCONFIG) != 0) {
@@ -134,7 +134,7 @@ again:
 #endif /* ifdef AI_ADDRCONFIG */
 		FALLTHROUGH;
 	default:
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	for (tmpai = ai, i = 0; tmpai != NULL && i < addrsize;
 	     tmpai = tmpai->ai_next)
@@ -157,8 +157,8 @@ again:
 	freeaddrinfo(ai);
 	*addrcount = i;
 	if (*addrcount == 0) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	} else {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 }

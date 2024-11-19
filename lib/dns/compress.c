@@ -137,7 +137,7 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 
 	cctx->magic = CCTX_MAGIC;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -178,7 +178,7 @@ dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed) {
 unsigned int
 dns_compress_getmethods(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->allowed & DNS_COMPRESS_ALL);
+	return cctx->allowed & DNS_COMPRESS_ALL;
 }
 
 void
@@ -202,13 +202,13 @@ bool
 dns_compress_getsensitive(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 
-	return (cctx->allowed & DNS_COMPRESS_CASESENSITIVE);
+	return cctx->allowed & DNS_COMPRESS_CASESENSITIVE;
 }
 
 int
 dns_compress_getedns(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->edns);
+	return cctx->edns;
 }
 
 /*
@@ -230,11 +230,11 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 	REQUIRE(offset != NULL);
 
 	if ((cctx->allowed & DNS_COMPRESS_ENABLED) == 0) {
-		return (false);
+		return false;
 	}
 
 	if (cctx->count == 0) {
-		return (false);
+		return false;
 	}
 
 	labels = dns_name_countlabels(name);
@@ -351,7 +351,7 @@ found:
 	 * If node == NULL, we found no match at all.
 	 */
 	if (node == NULL) {
-		return (false);
+		return false;
 	}
 
 	if (n == 0) {
@@ -361,14 +361,14 @@ found:
 	}
 
 	*offset = (node->offset & 0x7fff);
-	return (true);
+	return true;
 }
 
 static unsigned int
 name_length(const dns_name_t *name) {
 	isc_region_t r;
 	dns_name_toregion(name, &r);
-	return (r.length);
+	return r.length;
 }
 
 void
@@ -562,19 +562,19 @@ unsigned int
 dns_decompress_getmethods(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
-	return (dctx->allowed);
+	return dctx->allowed;
 }
 
 int
 dns_decompress_edns(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
-	return (dctx->edns);
+	return dctx->edns;
 }
 
 dns_decompresstype_t
 dns_decompress_type(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
-	return (dctx->type);
+	return dctx->type;
 }

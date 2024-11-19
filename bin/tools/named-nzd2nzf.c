@@ -99,5 +99,5 @@ main(int argc, char *argv[]) {
 	mdb_txn_abort(txn);
 	mdb_env_close(env);
 
-	return (0);
+	return 0;
 }

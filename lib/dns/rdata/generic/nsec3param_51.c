@@ -87,7 +87,7 @@ fromtext_nsec3param(ARGS_FROMTEXT) {
 		RETERR(isc_hex_decodestring(DNS_AS_STR(token), target));
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -137,7 +137,7 @@ totext_nsec3param(ARGS_TOTEXT) {
 		RETERR(str_totext("-", target));
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -168,7 +168,7 @@ fromwire_nsec3param(ARGS_FROMWIRE) {
 	isc_region_consume(&sr, saltlen);
 	RETERR(mem_tobuffer(target, rr.base, rr.length));
 	isc_buffer_forward(source, rr.length);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -181,7 +181,7 @@ towire_nsec3param(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	dns_rdata_toregion(rdata, &sr);
-	return (mem_tobuffer(target, sr.base, sr.length));
+	return mem_tobuffer(target, sr.base, sr.length);
 }
 
 static int
@@ -197,7 +197,7 @@ compare_nsec3param(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -217,7 +217,7 @@ fromstruct_nsec3param(ARGS_FROMSTRUCT) {
 	RETERR(uint16_tobuffer(nsec3param->iterations, target));
 	RETERR(uint8_tobuffer(nsec3param->salt_length, target));
 	RETERR(mem_tobuffer(target, nsec3param->salt, nsec3param->salt_length));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -244,12 +244,12 @@ tostruct_nsec3param(ARGS_TOSTRUCT) {
 	nsec3param->salt = mem_maybedup(mctx, region.base,
 					nsec3param->salt_length);
 	if (nsec3param->salt == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	isc_region_consume(&region, nsec3param->salt_length);
 
 	nsec3param->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -278,7 +278,7 @@ additionaldata_nsec3param(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -288,7 +288,7 @@ digest_nsec3param(ARGS_DIGEST) {
 	REQUIRE(rdata->type == dns_rdatatype_nsec3param);
 
 	dns_rdata_toregion(rdata, &r);
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -300,7 +300,7 @@ checkowner_nsec3param(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -311,12 +311,12 @@ checknames_nsec3param(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_nsec3param(ARGS_COMPARE) {
-	return (compare_nsec3param(rdata1, rdata2));
+	return compare_nsec3param(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_NSEC3PARAM_51_C */

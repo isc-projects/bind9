@@ -58,7 +58,7 @@ _setup(void **state) {
 	result = dns_dispatch_createudp(dispatchmgr, &local, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -69,7 +69,7 @@ _teardown(void **state) {
 
 	teardown_managers(state);
 
-	return (0);
+	return 0;
 }
 
 static void

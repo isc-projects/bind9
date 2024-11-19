@@ -56,7 +56,7 @@ tohexstr(unsigned char *d, char *out) {
 	isc_buffer_init(&b, out, 2 * ISC_AES_BLOCK_LENGTH + 1);
 	r.base = d;
 	r.length = ISC_AES_BLOCK_LENGTH;
-	return (isc_hex_totext(&r, 0, "", &b));
+	return isc_hex_totext(&r, 0, "", &b);
 }
 
 size_t
@@ -67,9 +67,9 @@ fromhexstr(const char *in, unsigned char *d) {
 	isc_buffer_init(&b, d, ISC_AES256_KEYLENGTH + 1);
 	ret = isc_hex_decodestring(in, &b);
 	if (ret != ISC_R_SUCCESS) {
-		return (0);
+		return 0;
 	}
-	return (isc_buffer_usedlength(&b));
+	return isc_buffer_usedlength(&b);
 }
 
 typedef struct aes_testcase {

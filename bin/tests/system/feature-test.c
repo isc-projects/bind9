@@ -51,7 +51,7 @@ int
 main(int argc, char **argv) {
 	if (argc != 2) {
 		usage();
-		return (1);
+		return 1;
 	}
 
 	if (strcmp(argv[1], "--edns-version") == 0) {
@@ -60,30 +60,30 @@ main(int argc, char **argv) {
 #else  /* ifdef DNS_EDNS_VERSION */
 		printf("0\n");
 #endif /* ifdef DNS_EDNS_VERSION */
-		return (0);
+		return 0;
 	}
 
 	if (strcmp(argv[1], "--enable-dnsrps") == 0) {
 #ifdef USE_DNSRPS
-		return (0);
+		return 0;
 #else  /* ifdef USE_DNSRPS */
-		return (1);
+		return 1;
 #endif /* ifdef USE_DNSRPS */
 	}
 
 	if (strcmp(argv[1], "--enable-dnstap") == 0) {
 #ifdef HAVE_DNSTAP
-		return (0);
+		return 0;
 #else  /* ifdef HAVE_DNSTAP */
-		return (1);
+		return 1;
 #endif /* ifdef HAVE_DNSTAP */
 	}
 
 	if (strcmp(argv[1], "--enable-querytrace") == 0) {
 #ifdef WANT_QUERYTRACE
-		return (0);
+		return 0;
 #else  /* ifdef WANT_QUERYTRACE */
-		return (1);
+		return 1;
 #endif /* ifdef WANT_QUERYTRACE */
 	}
 
@@ -94,54 +94,54 @@ main(int argc, char **argv) {
 		n = gethostname(hostname, sizeof(hostname));
 		if (n == -1) {
 			perror("gethostname");
-			return (1);
+			return 1;
 		}
 		fprintf(stdout, "%s\n", hostname);
-		return (0);
+		return 0;
 	}
 
 	if (strcmp(argv[1], "--gssapi") == 0) {
 #if HAVE_GSSAPI
-		return (0);
+		return 0;
 #else  /* HAVE_GSSAPI */
-		return (1);
+		return 1;
 #endif /* HAVE_GSSAPI */
 	}
 
 	if (strcmp(argv[1], "--have-geoip2") == 0) {
 #ifdef HAVE_GEOIP2
-		return (0);
+		return 0;
 #else  /* ifdef HAVE_GEOIP2 */
-		return (1);
+		return 1;
 #endif /* ifdef HAVE_GEOIP2 */
 	}
 
 	if (strcmp(argv[1], "--have-json-c") == 0) {
 #ifdef HAVE_JSON_C
-		return (0);
+		return 0;
 #else  /* ifdef HAVE_JSON_C */
-		return (1);
+		return 1;
 #endif /* ifdef HAVE_JSON_C */
 	}
 
 	if (strcmp(argv[1], "--have-libxml2") == 0) {
 #ifdef HAVE_LIBXML2
-		return (0);
+		return 0;
 #else  /* ifdef HAVE_LIBXML2 */
-		return (1);
+		return 1;
 #endif /* ifdef HAVE_LIBXML2 */
 	}
 
 	if (strcmp(argv[1], "--tsan") == 0) {
 #if defined(__has_feature)
 #if __has_feature(thread_sanitizer)
-		return (0);
+		return 0;
 #endif
 #endif
 #if __SANITIZE_THREAD__
-		return (0);
+		return 0;
 #else
-		return (1);
+		return 1;
 #endif
 	}
 
@@ -153,9 +153,9 @@ main(int argc, char **argv) {
 		if (isc_md(ISC_MD_MD5, test, sizeof(test), digest, &size) ==
 		    ISC_R_SUCCESS)
 		{
-			return (0);
+			return 0;
 		} else {
-			return (1);
+			return 1;
 		}
 	}
 
@@ -172,53 +172,53 @@ main(int argc, char **argv) {
 				       (void *)&v6only, &len);
 			close(s);
 		}
-		return ((n == 0 && v6only == 0) ? 0 : 1);
+		return (n == 0 && v6only == 0) ? 0 : 1;
 #else  /* defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY) */
-		return (1);
+		return 1;
 #endif /* defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY) */
 	}
 
 	if (strcmp(argv[1], "--with-dlz-filesystem") == 0) {
 #ifdef DLZ_FILESYSTEM
-		return (0);
+		return 0;
 #else  /* ifdef DLZ_FILESYSTEM */
-		return (1);
+		return 1;
 #endif /* ifdef DLZ_FILESYSTEM */
 	}
 
 	if (strcmp(argv[1], "--with-libidn2") == 0) {
 #ifdef HAVE_LIBIDN2
-		return (0);
+		return 0;
 #else  /* ifdef HAVE_LIBIDN2 */
-		return (1);
+		return 1;
 #endif /* ifdef HAVE_LIBIDN2 */
 	}
 
 	if (strcmp(argv[1], "--with-lmdb") == 0) {
 #ifdef HAVE_LMDB
-		return (0);
+		return 0;
 #else  /* ifdef HAVE_LMDB */
-		return (1);
+		return 1;
 #endif /* ifdef HAVE_LMDB */
 	}
 
 	if (strcmp(argv[1], "--with-libnghttp2") == 0) {
 #ifdef HAVE_LIBNGHTTP2
-		return (0);
+		return 0;
 #else  /* ifdef HAVE_LIBNGHTTP2 */
-		return (1);
+		return 1;
 #endif /* ifdef HAVE_LIBNGHTTP2 */
 	}
 
 	if (strcmp(argv[1], "--with-zlib") == 0) {
 #ifdef HAVE_ZLIB
-		return (0);
+		return 0;
 #else  /* ifdef HAVE_ZLIB */
-		return (1);
+		return 1;
 #endif /* ifdef HAVE_ZLIB */
 	}
 
 	fprintf(stderr, "unknown arg: %s\n", argv[1]);
 	usage();
-	return (1);
+	return 1;
 }

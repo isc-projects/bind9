@@ -80,12 +80,12 @@ ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 	isc_mem_attach(mctx, &stats->mctx);
 	*statsp = stats;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 clean_mem:
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -109,7 +109,7 @@ isc_stats_t *
 ns_stats_get(ns_stats_t *stats) {
 	REQUIRE(NS_STATS_VALID(stats));
 
-	return (stats->counters);
+	return stats->counters;
 }
 
 void
@@ -124,5 +124,5 @@ isc_statscounter_t
 ns_stats_get_counter(ns_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(NS_STATS_VALID(stats));
 
-	return (isc_stats_get_counter(stats->counters, counter));
+	return isc_stats_get_counter(stats->counters, counter);
 }

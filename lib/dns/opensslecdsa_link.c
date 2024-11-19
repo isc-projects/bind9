@@ -157,7 +157,7 @@ err:
 		BN_clear_free(priv);
 	}
 
-	return (ret);
+	return ret;
 }
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000 \
 	*/
@@ -206,7 +206,7 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	dctx->ctxdata.evp_md_ctx = evp_md_ctx;
 
 err:
-	return (ret);
+	return ret;
 }
 
 static void
@@ -251,7 +251,7 @@ opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	}
 
 err:
-	return (ret);
+	return ret;
 }
 
 static int
@@ -264,7 +264,7 @@ BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
 		*buf++ = 0;
 	}
 	BN_bn2bin(bn, buf);
-	return (size);
+	return size;
 }
 
 static isc_result_t
@@ -327,7 +327,7 @@ err:
 		isc_mem_put(dctx->mctx, sigder, sigder_alloced);
 	}
 
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -408,7 +408,7 @@ err:
 		isc_mem_put(dctx->mctx, sigder, sigder_alloced);
 	}
 
-	return (ret);
+	return ret;
 }
 
 static bool
@@ -427,9 +427,9 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	if (pkey1 == NULL && pkey2 == NULL) {
-		return (true);
+		return true;
 	} else if (pkey1 == NULL || pkey2 == NULL) {
-		return (false);
+		return false;
 	}
 
 	/* `EVP_PKEY_eq` checks only the public key components and paramters. */
@@ -483,7 +483,7 @@ err:
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -596,7 +596,7 @@ err:
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 static bool
@@ -614,7 +614,7 @@ opensslecdsa_isprivate(const dst_key_t *key) {
 
 	pkey = key->keydata.pkey;
 	if (pkey == NULL) {
-		return (false);
+		return false;
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -635,7 +635,7 @@ opensslecdsa_isprivate(const dst_key_t *key) {
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 static void
@@ -735,7 +735,7 @@ err:
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -820,7 +820,7 @@ err:
 		EC_KEY_free(eckey);
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -911,7 +911,7 @@ err:
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -921,21 +921,21 @@ ecdsa_check(EC_KEY *eckey, EC_KEY *pubeckey) {
 
 	pubkey = EC_KEY_get0_public_key(eckey);
 	if (pubkey != NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (pubeckey != NULL) {
 		pubkey = EC_KEY_get0_public_key(pubeckey);
 		if (pubkey == NULL) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		if (EC_KEY_set_public_key(eckey, pubkey) != 1) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 	if (EC_KEY_check_key(eckey) == 1) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
-	return (ISC_R_FAILURE);
+	return ISC_R_FAILURE;
 }
 #else
 static isc_result_t
@@ -1077,7 +1077,7 @@ err:
 		BN_clear_free(y);
 	}
 
-	return (ret);
+	return ret;
 }
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
@@ -1090,7 +1090,7 @@ load_privkey_from_privstruct(EC_KEY *eckey, dst_private_t *priv,
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (privkey == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	if (!EC_KEY_set_private_key(eckey, privkey)) {
@@ -1098,7 +1098,7 @@ load_privkey_from_privstruct(EC_KEY *eckey, dst_private_t *priv,
 	}
 
 	BN_clear_free(privkey);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1107,14 +1107,14 @@ eckey_to_pkey(EC_KEY *eckey, EVP_PKEY **pkey) {
 
 	*pkey = EVP_PKEY_new();
 	if (*pkey == NULL) {
-		return (dst__openssl_toresult(ISC_R_NOMEMORY));
+		return dst__openssl_toresult(ISC_R_NOMEMORY);
 	}
 	if (!EVP_PKEY_set1_EC_KEY(*pkey, eckey)) {
 		EVP_PKEY_free(*pkey);
 		*pkey = NULL;
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		return dst__openssl_toresult(DST_R_OPENSSLFAILURE);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
@@ -1132,7 +1132,7 @@ finalize_eckey(dst_key_t *key,
 
 	result = eckey_to_pkey(eckey, &pkey);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	key->keydata.pkey = pkey;
@@ -1149,7 +1149,7 @@ finalize_eckey(dst_key_t *key,
 		key->key_size = DNS_KEY_ECDSA384SIZE * 4;
 	}
 
-	return (result);
+	return result;
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -1172,10 +1172,10 @@ dst__key_to_eckey(dst_key_t *key, EC_KEY **eckey) {
 
 	*eckey = EC_KEY_new_by_curve_name(group_nid);
 	if (*eckey == NULL) {
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		return dst__openssl_toresult(DST_R_OPENSSLFAILURE);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
@@ -1315,7 +1315,7 @@ err:
 	dst__privstruct_free(&priv, key->mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
 
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -1336,7 +1336,7 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	UNUSED(pin);
 
 	if (engine == NULL || label == NULL) {
-		return (DST_R_NOENGINE);
+		return DST_R_NOENGINE;
 	}
 	e = dst__openssl_getengine(engine);
 	if (e == NULL) {
@@ -1409,13 +1409,13 @@ err:
 		EC_KEY_free(eckey);
 	}
 
-	return (ret);
+	return ret;
 #else
 	UNUSED(key);
 	UNUSED(engine);
 	UNUSED(label);
 	UNUSED(pin);
-	return (DST_R_NOENGINE);
+	return DST_R_NOENGINE;
 #endif /* !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
@@ -1449,5 +1449,5 @@ dst__opensslecdsa_init(dst_func_t **funcp) {
 	if (*funcp == NULL) {
 		*funcp = &opensslecdsa_functions;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
