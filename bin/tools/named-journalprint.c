@@ -59,7 +59,7 @@ setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
 		      ISC_R_SUCCESS);
 
 	*logp = log;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 int
@@ -130,5 +130,5 @@ main(int argc, char **argv) {
 	}
 	isc_log_destroy(&lctx);
 	isc_mem_detach(&mctx);
-	return (result != ISC_R_SUCCESS ? 1 : 0);
+	return result != ISC_R_SUCCESS ? 1 : 0;
 }

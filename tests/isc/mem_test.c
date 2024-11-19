@@ -453,7 +453,7 @@ mem_thread(isc_threadarg_t arg) {
 		}
 	}
 
-	return ((isc_threadresult_t)0);
+	return (isc_threadresult_t)0;
 }
 
 ISC_RUN_TEST_IMPL(isc_mem_benchmark) {

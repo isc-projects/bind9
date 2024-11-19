@@ -43,14 +43,14 @@ static int
 setup_test(void **state) {
 	isc__nm_force_tid(0);
 	setup_server(state);
-	return (0);
+	return 0;
 }
 
 static int
 teardown_test(void **state) {
 	isc__nm_force_tid(-1);
 	teardown_server(state);
-	return (0);
+	return 0;
 }
 
 /* can be used for client->sendcb to avoid disruption on sending a response */
@@ -661,7 +661,7 @@ test_hookasync(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
 	ns_hook_resevent_t *rev = NULL;
 
 	if (asdata->start_result != ISC_R_SUCCESS) {
-		return (asdata->start_result);
+		return asdata->start_result;
 	}
 
 	ctx = isc_mem_get(memctx, sizeof(*ctx));
@@ -681,7 +681,7 @@ test_hookasync(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
 	ctx->cancel = cancel_hookactx;
 
 	*ctxp = ctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -726,121 +726,118 @@ hook_async_common(void *arg, void *data, isc_result_t *resultp,
 	}
 
 	*resultp = ISC_R_UNSET;
-	return (NS_HOOK_RETURN);
+	return NS_HOOK_RETURN;
 }
 
 static ns_hookresult_t
 hook_async_query_setup(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_SETUP));
+	return hook_async_common(arg, data, resultp, NS_QUERY_SETUP);
 }
 
 static ns_hookresult_t
 hook_async_query_start_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_START_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_START_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_lookup_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_LOOKUP_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_LOOKUP_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_resume_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_RESUME_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_RESUME_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_got_answer_begin(void *arg, void *data,
 				  isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp,
-				  NS_QUERY_GOT_ANSWER_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_GOT_ANSWER_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_respond_any_begin(void *arg, void *data,
 				   isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp,
-				  NS_QUERY_RESPOND_ANY_BEGIN));
+	return hook_async_common(arg, data, resultp,
+				 NS_QUERY_RESPOND_ANY_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_addanswer_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp,
-				  NS_QUERY_ADDANSWER_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_ADDANSWER_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_notfound_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_NOTFOUND_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_NOTFOUND_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_prep_delegation_begin(void *arg, void *data,
 				       isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp,
-				  NS_QUERY_PREP_DELEGATION_BEGIN));
+	return hook_async_common(arg, data, resultp,
+				 NS_QUERY_PREP_DELEGATION_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_zone_delegation_begin(void *arg, void *data,
 				       isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp,
-				  NS_QUERY_ZONE_DELEGATION_BEGIN));
+	return hook_async_common(arg, data, resultp,
+				 NS_QUERY_ZONE_DELEGATION_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_delegation_begin(void *arg, void *data,
 				  isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp,
-				  NS_QUERY_DELEGATION_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_DELEGATION_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_delegation_recurse_begin(void *arg, void *data,
 					  isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp,
-				  NS_QUERY_DELEGATION_RECURSE_BEGIN));
+	return hook_async_common(arg, data, resultp,
+				 NS_QUERY_DELEGATION_RECURSE_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_nodata_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_NODATA_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_NODATA_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_nxdomain_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_NXDOMAIN_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_NXDOMAIN_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_ncache_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_NCACHE_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_NCACHE_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_cname_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_CNAME_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_CNAME_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_dname_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_DNAME_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_DNAME_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_respond_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_RESPOND_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_RESPOND_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_response_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp,
-				  NS_QUERY_PREP_RESPONSE_BEGIN));
+	return hook_async_common(arg, data, resultp,
+				 NS_QUERY_PREP_RESPONSE_BEGIN);
 }
 
 static ns_hookresult_t
 hook_async_query_done_begin(void *arg, void *data, isc_result_t *resultp) {
-	return (hook_async_common(arg, data, resultp, NS_QUERY_DONE_BEGIN));
+	return hook_async_common(arg, data, resultp, NS_QUERY_DONE_BEGIN);
 }
 
 /*
@@ -854,7 +851,7 @@ ns_test_qctx_destroy_hook(void *arg, void *data, isc_result_t *resultp) {
 
 	asdata->qctx = *qctx; /* remember passed ctx for inspection */
 	*resultp = ISC_R_UNSET;
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }
 
 static void
@@ -1302,7 +1299,7 @@ test_hookasync_e2e(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
 	hookasync_e2e_data_t *asdata = arg;
 
 	if (asdata->start_result != ISC_R_SUCCESS) {
-		return (asdata->start_result);
+		return asdata->start_result;
 	}
 
 	ctx = isc_mem_get(memctx, sizeof(*ctx));
@@ -1321,7 +1318,7 @@ test_hookasync_e2e(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
 	ctx->cancel = cancel_e2ehookactx;
 
 	*ctxp = ctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static ns_hookresult_t
@@ -1335,18 +1332,18 @@ hook_async_e2e(void *arg, void *data, isc_result_t *resultp) {
 		result = ns_query_hookasync(qctx, test_hookasync_e2e, asdata);
 		if (result != ISC_R_SUCCESS) {
 			*resultp = result;
-			return (NS_HOOK_RETURN);
+			return NS_HOOK_RETURN;
 		}
 
 		asdata->async = true;
 		asdata->rev->origresult = *resultp; /* save it for resume */
 		*resultp = ISC_R_UNSET;
-		return (NS_HOOK_RETURN);
+		return NS_HOOK_RETURN;
 	} else {
 		/* Resume from the completion of async event */
 		asdata->async = false;
 		/* Don't touch 'resultp' */
-		return (NS_HOOK_CONTINUE);
+		return NS_HOOK_CONTINUE;
 	}
 }
 
@@ -1362,7 +1359,7 @@ hook_donesend(void *arg, void *data, isc_result_t *resultp) {
 	INSIST(qctx->client->message->rcode == asdata->expected_rcode);
 	asdata->done = true; /* Let the test know this hook is called */
 	*resultp = ISC_R_UNSET;
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }
 
 static void

@@ -38,7 +38,7 @@ int
 LLVMFuzzerInitialize(int *argc, char ***argv) {
 	UNUSED(argc);
 	UNUSED(argv);
-	return (0);
+	return 0;
 }
 
 /* following code was copied from named-rrchecker */
@@ -147,5 +147,5 @@ cleanup:
 	isc_lex_close(lex);
 	isc_lex_destroy(&lex);
 	isc_mem_destroy(&mctx);
-	return (0);
+	return 0;
 }

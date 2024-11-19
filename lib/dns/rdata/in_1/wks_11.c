@@ -40,7 +40,7 @@ mygetprotobyname(const char *name, long *proto) {
 		*proto = pe->p_proto;
 	}
 	UNLOCK(&wks_lock);
-	return (pe != NULL);
+	return pe != NULL;
 }
 
 static bool
@@ -53,7 +53,7 @@ mygetservbyname(const char *name, const char *proto, long *port) {
 		*port = ntohs(se->s_port);
 	}
 	UNLOCK(&wks_lock);
-	return (se != NULL);
+	return se != NULL;
 }
 
 static isc_result_t
@@ -95,7 +95,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 		CHECKTOK(DNS_R_BADDOTTEDQUAD);
 	}
 	if (region.length < 4) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(region.base, &addr, 4);
 	isc_buffer_add(target, 4);
@@ -166,7 +166,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	result = mem_tobuffer(target, bm, n);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -208,7 +208,7 @@ totext_in_wks(ARGS_TOTEXT) {
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -228,23 +228,23 @@ fromwire_in_wks(ARGS_FROMWIRE) {
 	isc_buffer_availableregion(target, &tr);
 
 	if (sr.length < 5) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	if (sr.length > 8 * 1024 + 5) {
-		return (DNS_R_EXTRADATA);
+		return DNS_R_EXTRADATA;
 	}
 	if (sr.length > 5 && sr.base[sr.length - 1] == 0) {
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	}
 	if (tr.length < sr.length) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	memmove(tr.base, sr.base, sr.length);
 	isc_buffer_add(target, sr.length);
 	isc_buffer_forward(source, sr.length);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -258,7 +258,7 @@ towire_in_wks(ARGS_TOWIRE) {
 	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
-	return (mem_tobuffer(target, sr.base, sr.length));
+	return mem_tobuffer(target, sr.base, sr.length);
 }
 
 static int
@@ -275,7 +275,7 @@ compare_in_wks(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -297,7 +297,7 @@ fromstruct_in_wks(ARGS_FROMSTRUCT) {
 	a = ntohl(wks->in_addr.s_addr);
 	RETERR(uint32_tobuffer(a, target));
 	RETERR(uint8_tobuffer(wks->protocol, target));
-	return (mem_tobuffer(target, wks->map, wks->map_len));
+	return mem_tobuffer(target, wks->map, wks->map_len);
 }
 
 static isc_result_t
@@ -324,10 +324,10 @@ tostruct_in_wks(ARGS_TOSTRUCT) {
 	wks->map_len = region.length;
 	wks->map = mem_maybedup(mctx, region.base, region.length);
 	if (wks->map == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	wks->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -358,7 +358,7 @@ additionaldata_in_wks(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -370,7 +370,7 @@ digest_in_wks(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -381,7 +381,7 @@ checkowner_in_wks(ARGS_CHECKOWNER) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	return (dns_name_ishostname(name, wildcard));
+	return dns_name_ishostname(name, wildcard);
 }
 
 static bool
@@ -393,12 +393,12 @@ checknames_in_wks(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_in_wks(ARGS_COMPARE) {
-	return (compare_in_wks(rdata1, rdata2));
+	return compare_in_wks(rdata1, rdata2);
 }
 
 #endif /* RDATA_IN_1_WKS_11_C */

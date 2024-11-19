@@ -100,7 +100,7 @@ parse_params(isc_mem_t *mctx, int argc, char **argv, dns_name_t *z1,
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*
@@ -154,7 +154,7 @@ cleanup:
 	if (result != ISC_R_SUCCESS) {
 		destroy_sample_instance(&inst);
 	}
-	return (result);
+	return result;
 }
 
 /*
@@ -196,7 +196,7 @@ load_sample_instance_zones(sample_instance_t *inst) {
 	}
 
 cleanup:
-	return (result);
+	return result;
 }
 
 void

@@ -126,7 +126,7 @@ dns64_rdata(unsigned char *v, size_t start, unsigned char *rdata) {
 		}
 	}
 	memmove(&rdata[j], "\07in-addr\04arpa", 14);
-	return (j + 14);
+	return j + 14;
 }
 
 static isc_result_t
@@ -149,7 +149,7 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 	zlen = zone->length;
 	nlen = name->length;
 	if ((zlen + nlen) > 74U || zlen < 10U || (nlen % 2) != 0U) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	/*
@@ -175,11 +175,11 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 	while (j != 0U) {
 		INSIST((i / 2) < sizeof(v));
 		if (ndata[0] != 1) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		n = hex16[ndata[1] & 0xff];
 		if (n == 1) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		v[i / 2] = n | (v[i / 2] >> 4);
 		j -= 2;
@@ -201,14 +201,14 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * to exist in the zone.
 		 */
 		if (nlen > 16U && v[(nlen - 1) / 4 - 4] != 0) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
 		if (nlen + zlen != 74U) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		len = dns64_rdata(v, 8, rdata);
 		break;
@@ -218,14 +218,14 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * to exist in the zone.
 		 */
 		if (nlen > 12U && v[(nlen - 1) / 4 - 3] != 0) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
 		if (nlen + zlen != 74U) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		len = dns64_rdata(v, 6, rdata);
 		break;
@@ -235,14 +235,14 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * to exist in the zone.
 		 */
 		if (nlen > 8U && v[(nlen - 1) / 4 - 2] != 0) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
 		if (nlen + zlen != 74U) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		len = dns64_rdata(v, 5, rdata);
 		break;
@@ -252,14 +252,14 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * to exist in the zone.
 		 */
 		if (nlen > 4U && v[(nlen - 1) / 4 - 1] != 0) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
 		if (nlen + zlen != 74U) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		len = dns64_rdata(v, 4, rdata);
 		break;
@@ -269,14 +269,14 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * to exist in the zone.
 		 */
 		if (v[(nlen - 1) / 4] != 0) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		/*
 		 * If the total length is not 74 then this is a empty node
 		 * so return success.
 		 */
 		if (nlen + zlen != 74U) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		len = dns64_rdata(v, 3, rdata);
 		break;
@@ -286,7 +286,7 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * so return success.
 		 */
 		if (nlen + zlen != 74U) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		len = dns64_rdata(v, 0, rdata);
 		break;
@@ -295,7 +295,7 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 		 * This should never be reached unless someone adds a
 		 * zone declaration with this internal type to named.conf.
 		 */
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	/*
@@ -304,12 +304,12 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 	if ((v[0] == 170 || v[0] == 171) && v[1] == 0 && v[2] == 0 &&
 	    v[3] == 192)
 	{
-		return (dns_sdb_putrdata(lookup, dns_rdatatype_ptr, 3600,
-					 ipv4only, sizeof(ipv4only)));
+		return dns_sdb_putrdata(lookup, dns_rdatatype_ptr, 3600,
+					ipv4only, sizeof(ipv4only));
 	}
 
-	return (dns_sdb_putrdata(lookup, dns_rdatatype_cname, 600, rdata,
-				 (unsigned int)len));
+	return dns_sdb_putrdata(lookup, dns_rdatatype_cname, 600, rdata,
+				(unsigned int)len);
 }
 
 static isc_result_t
@@ -323,9 +323,9 @@ builtin_lookup(const char *zone, const char *name, void *dbdata,
 	UNUSED(clientinfo);
 
 	if (strcmp(name, "@") == 0) {
-		return (b->do_lookup(lookup));
+		return b->do_lookup(lookup);
 	} else {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 }
 
@@ -339,9 +339,9 @@ dns64_lookup(const dns_name_t *zone, const dns_name_t *name, void *dbdata,
 	UNUSED(clientinfo);
 
 	if (name->labels == 0 && name->length == 0) {
-		return (b->do_lookup(lookup));
+		return b->do_lookup(lookup);
 	} else {
-		return (dns64_cname(zone, name, lookup));
+		return dns64_cname(zone, name, lookup);
 	}
 }
 
@@ -354,19 +354,19 @@ put_txt(dns_sdblookup_t *lookup, const char *text) {
 	}
 	buf[0] = len;
 	memmove(&buf[1], text, len);
-	return (dns_sdb_putrdata(lookup, dns_rdatatype_txt, 0, buf, len + 1));
+	return dns_sdb_putrdata(lookup, dns_rdatatype_txt, 0, buf, len + 1);
 }
 
 static isc_result_t
 do_version_lookup(dns_sdblookup_t *lookup) {
 	if (named_g_server->version_set) {
 		if (named_g_server->version == NULL) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		} else {
-			return (put_txt(lookup, named_g_server->version));
+			return put_txt(lookup, named_g_server->version);
 		}
 	} else {
-		return (put_txt(lookup, PACKAGE_VERSION));
+		return put_txt(lookup, PACKAGE_VERSION);
 	}
 }
 
@@ -374,16 +374,16 @@ static isc_result_t
 do_hostname_lookup(dns_sdblookup_t *lookup) {
 	if (named_g_server->hostname_set) {
 		if (named_g_server->hostname == NULL) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		} else {
-			return (put_txt(lookup, named_g_server->hostname));
+			return put_txt(lookup, named_g_server->hostname);
 		}
 	} else {
 		char buf[256];
 		if (gethostname(buf, sizeof(buf)) != 0) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
-		return (put_txt(lookup, buf));
+		return put_txt(lookup, buf);
 	}
 }
 
@@ -405,16 +405,16 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 	 * If a version string is specified, disable the authors.bind zone.
 	 */
 	if (named_g_server->version_set) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	for (p = authors; *p != NULL; p++) {
 		result = put_txt(lookup, *p);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -422,26 +422,26 @@ do_id_lookup(dns_sdblookup_t *lookup) {
 	if (named_g_server->sctx->usehostname) {
 		char buf[256];
 		if (gethostname(buf, sizeof(buf)) != 0) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
-		return (put_txt(lookup, buf));
+		return put_txt(lookup, buf);
 	} else if (named_g_server->sctx->server_id != NULL) {
-		return (put_txt(lookup, named_g_server->sctx->server_id));
+		return put_txt(lookup, named_g_server->sctx->server_id);
 	} else {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 }
 
 static isc_result_t
 do_dns64_lookup(dns_sdblookup_t *lookup) {
 	UNUSED(lookup);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
 do_empty_lookup(dns_sdblookup_t *lookup) {
 	UNUSED(lookup);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -453,10 +453,10 @@ do_ipv4only_lookup(dns_sdblookup_t *lookup) {
 		result = dns_sdb_putrdata(lookup, dns_rdatatype_a, 3600,
 					  data[i], 4);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -465,7 +465,7 @@ do_ipv4reverse_lookup(dns_sdblookup_t *lookup) {
 
 	result = dns_sdb_putrdata(lookup, dns_rdatatype_ptr, 3600, ipv4only,
 				  sizeof(ipv4only));
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -492,15 +492,15 @@ builtin_authority(const char *zone, void *dbdata, dns_sdblookup_t *lookup) {
 
 	result = dns_sdb_putsoa(lookup, server, contact, 0);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	result = dns_sdb_putrr(lookup, "ns", 0, server);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -516,10 +516,10 @@ builtin_create(const char *zone, int argc, char **argv, void *driverdata,
 	    strcmp(argv[0], "ipv4reverse") == 0)
 	{
 		if (argc != 3) {
-			return (DNS_R_SYNTAX);
+			return DNS_R_SYNTAX;
 		}
 	} else if (argc != 1) {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 
 	if (strcmp(argv[0], "authors") == 0) {
@@ -540,7 +540,7 @@ builtin_create(const char *zone, int argc, char **argv, void *driverdata,
 		char *contact;
 
 		if (argc != 3) {
-			return (DNS_R_SYNTAX);
+			return DNS_R_SYNTAX;
 		}
 
 		/*
@@ -589,9 +589,9 @@ builtin_create(const char *zone, int argc, char **argv, void *driverdata,
 			*dbdata = empty;
 		}
 	} else {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -640,7 +640,7 @@ named_builtin_init(void) {
 					       DNS_SDBFLAG_DNS64,
 				       named_g_mctx,
 				       &dns64_impl) == ISC_R_SUCCESS);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

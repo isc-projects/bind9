@@ -43,11 +43,11 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 	}
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 16) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(region.base, addr, 16);
 	isc_buffer_add(target, 16);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -69,15 +69,15 @@ totext_in_aaaa(ARGS_TOTEXT) {
 			n = snprintf(buf + len, sizeof(buf) - len, "%s%02x%02x",
 				     sep, rdata->data[i], rdata->data[i + 1]);
 			if (n < 0) {
-				return (ISC_R_FAILURE);
+				return ISC_R_FAILURE;
 			}
 			len += n;
 			sep = ":";
 		}
-		return (str_totext(buf, target));
+		return str_totext(buf, target);
 	}
 	dns_rdata_toregion(rdata, &region);
-	return (inet_totext(AF_INET6, tctx->flags, &region, target));
+	return inet_totext(AF_INET6, tctx->flags, &region, target);
 }
 
 static isc_result_t
@@ -96,16 +96,16 @@ fromwire_in_aaaa(ARGS_FROMWIRE) {
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
 	if (sregion.length < 16) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	if (tregion.length < 16) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	memmove(tregion.base, sregion.base, 16);
 	isc_buffer_forward(source, 16);
 	isc_buffer_add(target, 16);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -120,11 +120,11 @@ towire_in_aaaa(ARGS_TOWIRE) {
 
 	isc_buffer_availableregion(target, &region);
 	if (region.length < rdata->length) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(region.base, rdata->data, rdata->length);
 	isc_buffer_add(target, 16);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static int
@@ -141,7 +141,7 @@ compare_in_aaaa(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -157,7 +157,7 @@ fromstruct_in_aaaa(ARGS_FROMSTRUCT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	return (mem_tobuffer(target, aaaa->in6_addr.s6_addr, 16));
+	return mem_tobuffer(target, aaaa->in6_addr.s6_addr, 16);
 }
 
 static isc_result_t
@@ -180,7 +180,7 @@ tostruct_in_aaaa(ARGS_TOSTRUCT) {
 	INSIST(r.length == 16);
 	memmove(aaaa->in6_addr.s6_addr, r.base, 16);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -204,7 +204,7 @@ additionaldata_in_aaaa(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -216,7 +216,7 @@ digest_in_aaaa(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -240,11 +240,11 @@ checkowner_in_aaaa(ARGS_CHECKOWNER) {
 		if (dns_name_equal(&gc_msdcs, &prefix) &&
 		    dns_name_ishostname(&suffix, false))
 		{
-			return (true);
+			return true;
 		}
 	}
 
-	return (dns_name_ishostname(name, wildcard));
+	return dns_name_ishostname(name, wildcard);
 }
 
 static bool
@@ -256,11 +256,11 @@ checknames_in_aaaa(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_in_aaaa(ARGS_COMPARE) {
-	return (compare_in_aaaa(rdata1, rdata2));
+	return compare_in_aaaa(rdata1, rdata2);
 }
 #endif /* RDATA_IN_1_AAAA_28_C */

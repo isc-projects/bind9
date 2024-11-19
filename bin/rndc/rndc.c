@@ -1118,8 +1118,8 @@ main(int argc, char **argv) {
 	isc_mem_destroy(&rndc_mctx);
 
 	if (failed) {
-		return (1);
+		return 1;
 	}
 
-	return (0);
+	return 0;
 }

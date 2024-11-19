@@ -115,7 +115,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 	if (timer->type != isc_timertype_once) {
 		isc_result_t result = isc_time_add(now, &timer->interval, &due);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		if (timer->type == isc_timertype_limited &&
 		    isc_time_compare(&timer->expires, &due) < 0)
@@ -176,7 +176,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 		SIGNAL(&manager->wakeup);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline void
@@ -306,7 +306,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		result = isc_time_add(&now, interval, &timer->idle);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(manager->mctx, timer, sizeof(*timer));
-			return (result);
+			return result;
 		}
 	} else {
 		isc_time_settoepoch(&timer->idle);
@@ -361,10 +361,10 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		isc_mutex_destroy(&timer->lock);
 		isc_task_detach(&timer->task);
 		isc_mem_put(manager->mctx, timer, sizeof(*timer));
-		return (result);
+		return result;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -438,7 +438,7 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	UNLOCK(&timer->lock);
 	UNLOCK(&manager->lock);
 
-	return (result);
+	return result;
 }
 
 isc_timertype_t
@@ -451,7 +451,7 @@ isc_timer_gettype(isc_timer_t *timer) {
 	t = timer->type;
 	UNLOCK(&timer->lock);
 
-	return (t);
+	return t;
 }
 
 isc_result_t
@@ -481,7 +481,7 @@ isc_timer_touch(isc_timer_t *timer) {
 
 	UNLOCK(&timer->lock);
 
-	return (result);
+	return result;
 }
 
 void
@@ -659,7 +659,7 @@ run(void *uap) {
 	}
 	UNLOCK(&manager->lock);
 
-	return ((isc_threadresult_t)0);
+	return (isc_threadresult_t)0;
 }
 
 static bool
@@ -672,9 +672,9 @@ sooner(void *v1, void *v2) {
 	REQUIRE(VALID_TIMER(t2));
 
 	if (isc_time_compare(&t1->due, &t2->due) < 0) {
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 static void
@@ -715,7 +715,7 @@ isc__timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 
 	*managerp = manager;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

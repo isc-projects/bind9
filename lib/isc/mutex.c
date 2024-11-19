@@ -46,8 +46,8 @@ isc__mutex_init(isc_mutex_t *mp) {
 	result = isc_once_do(&once_attr, initialize_attr);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	return (pthread_mutex_init(mp, &attr));
+	return pthread_mutex_init(mp, &attr);
 #else  /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
-	return (pthread_mutex_init(mp, NULL));
+	return pthread_mutex_init(mp, NULL);
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 }

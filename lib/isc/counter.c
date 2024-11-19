@@ -51,7 +51,7 @@ isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
 
 	counter->magic = COUNTER_MAGIC;
 	*counterp = counter;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -60,17 +60,17 @@ isc_counter_increment(isc_counter_t *counter) {
 	uint32_t limit = atomic_load_acquire(&counter->limit);
 
 	if (limit != 0 && used >= limit) {
-		return (ISC_R_QUOTA);
+		return ISC_R_QUOTA;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 unsigned int
 isc_counter_used(isc_counter_t *counter) {
 	REQUIRE(VALID_COUNTER(counter));
 
-	return (atomic_load_acquire(&counter->used));
+	return atomic_load_acquire(&counter->used);
 }
 
 void

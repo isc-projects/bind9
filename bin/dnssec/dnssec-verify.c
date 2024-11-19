@@ -341,5 +341,5 @@ main(int argc, char *argv[]) {
 
 	(void)isc_app_finish();
 
-	return (result == ISC_R_SUCCESS ? 0 : 1);
+	return result == ISC_R_SUCCESS ? 0 : 1;
 }

@@ -42,7 +42,7 @@ dns_dbiterator_first(dns_dbiterator_t *iterator) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->first(iterator));
+	return iterator->methods->first(iterator);
 }
 
 isc_result_t
@@ -53,7 +53,7 @@ dns_dbiterator_last(dns_dbiterator_t *iterator) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->last(iterator));
+	return iterator->methods->last(iterator);
 }
 
 isc_result_t
@@ -64,7 +64,7 @@ dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->seek(iterator, name));
+	return iterator->methods->seek(iterator, name);
 }
 
 isc_result_t
@@ -75,7 +75,7 @@ dns_dbiterator_prev(dns_dbiterator_t *iterator) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->prev(iterator));
+	return iterator->methods->prev(iterator);
 }
 
 isc_result_t
@@ -86,7 +86,7 @@ dns_dbiterator_next(dns_dbiterator_t *iterator) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->next(iterator));
+	return iterator->methods->next(iterator);
 }
 
 isc_result_t
@@ -100,7 +100,7 @@ dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 	REQUIRE(name == NULL || dns_name_hasbuffer(name));
 
-	return (iterator->methods->current(iterator, nodep, name));
+	return iterator->methods->current(iterator, nodep, name);
 }
 
 isc_result_t
@@ -111,7 +111,7 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->pause(iterator));
+	return iterator->methods->pause(iterator);
 }
 
 isc_result_t
@@ -124,7 +124,7 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	REQUIRE(iterator->relative_names);
 	REQUIRE(dns_name_hasbuffer(name));
 
-	return (iterator->methods->origin(iterator, name));
+	return iterator->methods->origin(iterator, name);
 }
 
 void

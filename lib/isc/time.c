@@ -70,10 +70,10 @@ isc_interval_iszero(const isc_interval_t *i) {
 	INSIST(i->nanoseconds < NS_PER_SEC);
 
 	if (i->seconds == 0 && i->nanoseconds == 0) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 unsigned int
@@ -81,7 +81,7 @@ isc_interval_ms(const isc_interval_t *i) {
 	REQUIRE(i != NULL);
 	INSIST(i->nanoseconds < NS_PER_SEC);
 
-	return ((i->seconds * MS_PER_SEC) + (i->nanoseconds / NS_PER_MS));
+	return (i->seconds * MS_PER_SEC) + (i->nanoseconds / NS_PER_MS);
 }
 
 /***
@@ -116,10 +116,10 @@ isc_time_isepoch(const isc_time_t *t) {
 	INSIST(t->nanoseconds < NS_PER_SEC);
 
 	if (t->seconds == 0 && t->nanoseconds == 0) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 static isc_result_t
@@ -130,11 +130,11 @@ time_now(isc_time_t *t, clockid_t clock) {
 
 	if (clock_gettime(clock, &ts) == -1) {
 		UNEXPECTED_SYSERROR(errno, "clock_gettime()");
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	if (ts.tv_sec < 0 || ts.tv_nsec < 0 || ts.tv_nsec >= (long)NS_PER_SEC) {
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	/*
@@ -143,13 +143,13 @@ time_now(isc_time_t *t, clockid_t clock) {
 	if (sizeof(ts.tv_sec) > sizeof(t->seconds) &&
 	    ((ts.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) != 0U)
 	{
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	t->seconds = ts.tv_sec;
 	t->nanoseconds = ts.tv_nsec;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -172,11 +172,11 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 
 	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
 		UNEXPECTED_SYSERROR(errno, "clock_gettime()");
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	if (ts.tv_sec < 0 || ts.tv_nsec < 0 || ts.tv_nsec >= (long)NS_PER_SEC) {
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	/*
@@ -188,7 +188,7 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	if ((ts.tv_sec > INT_MAX || i->seconds > INT_MAX) &&
 	    ((long long)ts.tv_sec + i->seconds > UINT_MAX))
 	{
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	t->seconds = ts.tv_sec + i->seconds;
@@ -198,7 +198,7 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 		t->nanoseconds -= NS_PER_SEC;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 int
@@ -207,18 +207,18 @@ isc_time_compare(const isc_time_t *t1, const isc_time_t *t2) {
 	INSIST(t1->nanoseconds < NS_PER_SEC && t2->nanoseconds < NS_PER_SEC);
 
 	if (t1->seconds < t2->seconds) {
-		return (-1);
+		return -1;
 	}
 	if (t1->seconds > t2->seconds) {
-		return (1);
+		return 1;
 	}
 	if (t1->nanoseconds < t2->nanoseconds) {
-		return (-1);
+		return -1;
 	}
 	if (t1->nanoseconds > t2->nanoseconds) {
-		return (1);
+		return 1;
 	}
-	return (0);
+	return 0;
 }
 
 isc_result_t
@@ -229,11 +229,11 @@ isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result) {
 	/* Seconds */
 #if HAVE_BUILTIN_OVERFLOW
 	if (__builtin_uadd_overflow(t->seconds, i->seconds, &result->seconds)) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 #else
 	if (t->seconds > UINT_MAX - i->seconds) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	result->seconds = t->seconds + i->seconds;
 #endif
@@ -242,13 +242,13 @@ isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result) {
 	result->nanoseconds = t->nanoseconds + i->nanoseconds;
 	if (result->nanoseconds >= NS_PER_SEC) {
 		if (result->seconds == UINT_MAX) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		result->nanoseconds -= NS_PER_SEC;
 		result->seconds++;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -260,11 +260,11 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 	/* Seconds */
 #if HAVE_BUILTIN_OVERFLOW
 	if (__builtin_usub_overflow(t->seconds, i->seconds, &result->seconds)) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 #else
 	if (t->seconds < i->seconds) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	result->seconds = t->seconds - i->seconds;
 #endif
@@ -274,14 +274,14 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 		result->nanoseconds = t->nanoseconds - i->nanoseconds;
 	} else {
 		if (result->seconds == 0) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		result->seconds--;
 		result->nanoseconds = NS_PER_SEC + t->nanoseconds -
 				      i->nanoseconds;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 uint64_t
@@ -295,7 +295,7 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	i2 = (uint64_t)t2->seconds * NS_PER_SEC + t2->nanoseconds;
 
 	if (i1 <= i2) {
-		return (0);
+		return 0;
 	}
 
 	i3 = i1 - i2;
@@ -305,7 +305,7 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	 */
 	i3 /= NS_PER_US;
 
-	return (i3);
+	return i3;
 }
 
 uint32_t
@@ -313,7 +313,7 @@ isc_time_seconds(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_SEC);
 
-	return ((uint32_t)t->seconds);
+	return (uint32_t)t->seconds;
 }
 
 isc_result_t
@@ -346,12 +346,12 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 	INSIST(sizeof(time_t) >= sizeof(uint32_t));
 
 	if (t->seconds > (~0U >> 1) && seconds <= (time_t)(~0U >> 1)) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	*secondsp = seconds;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 uint32_t
@@ -360,7 +360,7 @@ isc_time_nanoseconds(const isc_time_t *t) {
 
 	ENSURE(t->nanoseconds < NS_PER_SEC);
 
-	return ((uint32_t)t->nanoseconds);
+	return (uint32_t)t->nanoseconds;
 }
 
 void
@@ -417,14 +417,14 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 
 	p = isc_tm_strptime(buf, "%a, %d %b %Y %H:%M:%S", &t_tm);
 	if (p == NULL) {
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 	when = isc_tm_timegm(&t_tm);
 	if (when == -1) {
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 	isc_time_set(t, when, 0);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

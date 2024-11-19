@@ -32,13 +32,13 @@ isc_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 
 	if (err) {
 #if UV_VERSION_HEX >= UV_VERSION(1, 10, 0)
-		return (uv_translate_sys_error(errno));
+		return uv_translate_sys_error(errno);
 #else
-		return (-errno);
+		return -errno;
 #endif /* UV_VERSION_HEX >= UV_VERSION(1, 10, 0) */
 	}
 
-	return (0);
+	return 0;
 }
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 27, 0) */
 
@@ -49,14 +49,14 @@ uv_tcp_close_reset(uv_tcp_t *handle, uv_close_cb close_cb) {
 		       &(struct linger){ 1, 0 }, sizeof(struct linger)) == -1)
 	{
 #if UV_VERSION_HEX >= UV_VERSION(1, 10, 0)
-		return (uv_translate_sys_error(errno));
+		return uv_translate_sys_error(errno);
 #else
-		return (-errno);
+		return -errno;
 #endif /* UV_VERSION_HEX >= UV_VERSION(1, 10, 0) */
 	}
 
 	uv_close((uv_handle_t *)handle, close_cb);
-	return (0);
+	return 0;
 }
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 32, 0) */
 
@@ -68,7 +68,7 @@ isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
 
 	r = uv_fileno((const uv_handle_t *)handle, (uv_os_fd_t *)&fd);
 	if (r < 0) {
-		return (r);
+		return r;
 	}
 
 	r = uv_udp_bind(handle, addr, flags);
@@ -84,7 +84,7 @@ isc_uv_udp_freebind(uv_udp_t *handle, const struct sockaddr *addr,
 		r = uv_udp_bind(handle, addr, flags);
 	}
 
-	return (r);
+	return r;
 }
 
 static int
@@ -96,7 +96,7 @@ isc__uv_tcp_bind_now(uv_tcp_t *handle, const struct sockaddr *addr,
 
 	r = uv_tcp_bind(handle, addr, flags);
 	if (r < 0) {
-		return (r);
+		return r;
 	}
 
 	/*
@@ -106,10 +106,10 @@ isc__uv_tcp_bind_now(uv_tcp_t *handle, const struct sockaddr *addr,
 	 */
 	r = uv_tcp_getsockname(handle, (struct sockaddr *)&sname, &snamelen);
 	if (r < 0) {
-		return (r);
+		return r;
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -120,7 +120,7 @@ isc_uv_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
 
 	r = uv_fileno((const uv_handle_t *)handle, (uv_os_fd_t *)&fd);
 	if (r < 0) {
-		return (r);
+		return r;
 	}
 
 	r = isc__uv_tcp_bind_now(handle, addr, flags);
@@ -136,5 +136,5 @@ isc_uv_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
 		r = isc__uv_tcp_bind_now(handle, addr, flags);
 	}
 
-	return (r);
+	return r;
 }

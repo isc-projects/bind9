@@ -40,11 +40,11 @@ fromtext_hs_a(ARGS_FROMTEXT) {
 	}
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 4) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(region.base, &addr, 4);
 	isc_buffer_add(target, 4);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -58,7 +58,7 @@ totext_hs_a(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	dns_rdata_toregion(rdata, &region);
-	return (inet_totext(AF_INET, tctx->flags, &region, target));
+	return inet_totext(AF_INET, tctx->flags, &region, target);
 }
 
 static isc_result_t
@@ -77,16 +77,16 @@ fromwire_hs_a(ARGS_FROMWIRE) {
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
 	if (sregion.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	if (tregion.length < 4) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	memmove(tregion.base, sregion.base, 4);
 	isc_buffer_forward(source, 4);
 	isc_buffer_add(target, 4);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -101,11 +101,11 @@ towire_hs_a(ARGS_TOWIRE) {
 
 	isc_buffer_availableregion(target, &region);
 	if (region.length < rdata->length) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(region.base, rdata->data, rdata->length);
 	isc_buffer_add(target, 4);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static int
@@ -124,7 +124,7 @@ compare_hs_a(ARGS_COMPARE) {
 		order = (order < 0) ? -1 : 1;
 	}
 
-	return (order);
+	return order;
 }
 
 static isc_result_t
@@ -143,7 +143,7 @@ fromstruct_hs_a(ARGS_FROMSTRUCT) {
 
 	n = ntohl(a->in_addr.s_addr);
 
-	return (uint32_tobuffer(n, target));
+	return uint32_tobuffer(n, target);
 }
 
 static isc_result_t
@@ -167,7 +167,7 @@ tostruct_hs_a(ARGS_TOSTRUCT) {
 	n = uint32_fromregion(&region);
 	a->in_addr.s_addr = htonl(n);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -187,7 +187,7 @@ additionaldata_hs_a(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -199,7 +199,7 @@ digest_hs_a(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -212,7 +212,7 @@ checkowner_hs_a(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -224,10 +224,10 @@ checknames_hs_a(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_hs_a(ARGS_COMPARE) {
-	return (compare_hs_a(rdata1, rdata2));
+	return compare_hs_a(rdata1, rdata2);
 }

@@ -47,30 +47,30 @@ static int
 _setup(void **state) {
 	isc_hmac_t *hmac_st = isc_hmac_new();
 	if (hmac_st == NULL) {
-		return (-1);
+		return -1;
 	}
 	*state = hmac_st;
-	return (0);
+	return 0;
 }
 
 static int
 _teardown(void **state) {
 	if (*state == NULL) {
-		return (-1);
+		return -1;
 	}
 	isc_hmac_free(*state);
-	return (0);
+	return 0;
 }
 
 static int
 _reset(void **state) {
 	if (*state == NULL) {
-		return (-1);
+		return -1;
 	}
 	if (isc_hmac_reset(*state) != ISC_R_SUCCESS) {
-		return (-1);
+		return -1;
 	}
-	return (0);
+	return 0;
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_new) {

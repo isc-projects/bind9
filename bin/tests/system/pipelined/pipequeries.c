@@ -138,7 +138,7 @@ sendquery(isc_task_t *task) {
 
 	c = scanf("%255s", host);
 	if (c == EOF) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	onfly++;
@@ -175,7 +175,7 @@ sendquery(isc_task_t *task) {
 				    task, recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -299,5 +299,5 @@ main(int argc, char *argv[]) {
 
 	isc_app_finish();
 
-	return (0);
+	return 0;
 }

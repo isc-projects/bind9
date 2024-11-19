@@ -81,7 +81,7 @@ isc_hash_get_initializer(void) {
 			ISC_R_SUCCESS);
 	}
 
-	return (isc_hash_key);
+	return isc_hash_key;
 }
 
 void
@@ -121,7 +121,7 @@ isc_hash64(const void *data, const size_t length, const bool case_sensitive) {
 		isc_siphash24(isc_hash_key, input, length, (uint8_t *)&hval);
 	}
 
-	return (hval);
+	return hval;
 }
 
 uint32_t
@@ -145,5 +145,5 @@ isc_hash32(const void *data, const size_t length, const bool case_sensitive) {
 				  (uint8_t *)&hval);
 	}
 
-	return (hval);
+	return hval;
 }

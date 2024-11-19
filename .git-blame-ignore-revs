@@ -26,3 +26,7 @@ b8b9b4ac2c0ae88de85f4d83982edb97694959d7
 fe8d6023e05416ba5c030bb65878a24a57aa16cb
 # Reformat sources with up-to-date clang-format-19
 50221d6ff1ebfbd7bc97d11a17d12f0a5926d18a
+# Remove redundant semicolons after the closing braces of functions
+b3d8f2796a2a060b35a5e77d808dd031db2a3a37
+# Remove redundant parentheses from the return statement
+c5bac96fd07493a13e791ea81de1d05697b983f6

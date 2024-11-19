@@ -153,7 +153,7 @@ sqlite3_find_avail(sqlite3_instance_t *sqlite3) {
 	while (count < dbc_search_limit) {
 		/* try to lock on the mutex */
 		if (dlz_mutex_trylock(&dbi->lock) == 0) {
-			return (dbi); /* success, return the DBI for use. */
+			return dbi; /* success, return the DBI for use. */
 		}
 		/* not successful, keep trying */
 		dbi = DLZ_LIST_NEXT(dbi, link);
@@ -169,7 +169,7 @@ sqlite3_find_avail(sqlite3_instance_t *sqlite3) {
 		     "SQLite3 module: unable to find available connection "
 		     "after searching %d times",
 		     count);
-	return (NULL);
+	return NULL;
 }
 
 /*%
@@ -189,13 +189,13 @@ escape_string(const char *instr) {
 	unsigned int i;
 
 	if (instr == NULL) {
-		return (NULL);
+		return NULL;
 	}
 	len = strlen(instr);
 	atlen = (2 * len * sizeof(char)) + 1;
 	outstr = malloc(atlen);
 	if (outstr == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	ptr = outstr;
@@ -214,7 +214,7 @@ escape_string(const char *instr) {
 	}
 	*ptr = '\0';
 
-	return (outstr);
+	return outstr;
 }
 
 /*%
@@ -248,7 +248,7 @@ sqlite3_get_resultset(const char *zone, const char *record, const char *client,
 	dbi = sqlite3_find_avail(db);
 
 	if (dbi == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* what type of query are we going to run? */
@@ -431,7 +431,7 @@ cleanup:
 		free(querystring);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -450,7 +450,7 @@ dlz_sqlite3_fetch_row(sqlite3_res_t *rs) {
 			rs->curRow++;
 		}
 	}
-	return (retval);
+	return retval;
 }
 
 static unsigned int
@@ -459,7 +459,7 @@ dlz_sqlite3_num_fields(sqlite3_res_t *rs) {
 	if (rs != NULL) {
 		retval = rs->pnColumn;
 	}
-	return (retval);
+	return retval;
 }
 
 static unsigned int
@@ -468,7 +468,7 @@ dlz_sqlite3_num_rows(sqlite3_res_t *rs) {
 	if (rs != NULL) {
 		retval = rs->pnRow;
 	}
-	return (retval);
+	return retval;
 }
 
 static void
@@ -524,7 +524,7 @@ dlz_sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
 				db->log(ISC_LOG_ERROR, "SQLite3 module: TTL "
 						       "must be "
 						       "a positive number");
-				return (ISC_R_FAILURE);
+				return ISC_R_FAILURE;
 			}
 
 			result = db->putrr(lookup, safeGet(row[1]), ttl,
@@ -551,7 +551,7 @@ dlz_sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
 						       "memory for temporary "
 						       "string");
 				dlz_sqlite3_free_result(rs);
-				return (ISC_R_FAILURE);
+				return ISC_R_FAILURE;
 			}
 
 			strcpy(tmpString, safeGet(row[2]));
@@ -566,7 +566,7 @@ dlz_sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
 						       "must be "
 						       "a positive number");
 				free(tmpString);
-				return (ISC_R_FAILURE);
+				return ISC_R_FAILURE;
 			}
 
 			result = db->putrr(lookup, safeGet(row[1]), ttl,
@@ -578,14 +578,14 @@ dlz_sqlite3_process_rs(sqlite3_instance_t *db, dns_sdlzlookup_t *lookup,
 			dlz_sqlite3_free_result(rs);
 			db->log(ISC_LOG_ERROR, "putrr returned error: %d",
 				result);
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 
 		row = dlz_sqlite3_fetch_row(rs);
 	}
 
 	dlz_sqlite3_free_result(rs);
-	return (result);
+	return result;
 }
 
 /*
@@ -613,7 +613,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for FINDZONE query");
 
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/*
@@ -624,10 +624,10 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	if (rows > 0) {
 		sqlite3_get_resultset(name, NULL, NULL, COUNTZONE, dbdata,
 				      NULL);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 /*% Determine if the client is allowed to perform a zone transfer */
@@ -641,7 +641,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	/* first check if the zone is supported by the database. */
 	result = dlz_findzonedb(dbdata, name, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	/*
@@ -653,7 +653,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	result = sqlite3_get_resultset(name, NULL, client, ALLOWXFR, dbdata,
 				       &rs);
 	if (result == ISC_R_NOTIMPLEMENTED) {
-		return (result);
+		return result;
 	}
 
 	if (result != ISC_R_SUCCESS || rs == NULL) {
@@ -662,7 +662,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for ALLOWXFR query");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/*
@@ -672,10 +672,10 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	rows = dlz_sqlite3_num_rows(rs);
 	dlz_sqlite3_free_result(rs);
 	if (rows > 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
-	return (ISC_R_NOPERM);
+	return ISC_R_NOPERM;
 }
 
 /*%
@@ -697,7 +697,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 
 	result = sqlite3_get_resultset(zone, NULL, NULL, ALLNODES, dbdata, &rs);
 	if (result == ISC_R_NOTIMPLEMENTED) {
-		return (result);
+		return result;
 	}
 
 	/* if we didn't get a result set, log an err msg. */
@@ -780,7 +780,7 @@ cleanup:
 		dlz_sqlite3_free_result(rs);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -796,7 +796,7 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 	result = sqlite3_get_resultset(zone, NULL, NULL, AUTHORITY, dbdata,
 				       &rs);
 	if (result == ISC_R_NOTIMPLEMENTED) {
-		return (result);
+		return result;
 	}
 
 	if (result != ISC_R_SUCCESS) {
@@ -805,14 +805,14 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for AUTHORITY query");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/*
 	 * lookup and authority result sets are processed in the same
 	 * manner: dlz_sqlite3_process_rs does the job for both functions.
 	 */
-	return (dlz_sqlite3_process_rs(db, lookup, rs));
+	return dlz_sqlite3_process_rs(db, lookup, rs);
 }
 
 /*% If zone is supported, lookup up a (or multiple) record(s) in it */
@@ -836,14 +836,14 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		}
 		db->log(ISC_LOG_ERROR, "SQLite3 module: unable to return "
 				       "result set for LOOKUP query");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/*
 	 * lookup and authority result sets are processed in the same
 	 * manner: dlz_sqlite3_process_rs does the job for both functions.
 	 */
-	return (dlz_sqlite3_process_rs(db, lookup, rs));
+	return dlz_sqlite3_process_rs(db, lookup, rs);
 }
 
 /*%
@@ -867,7 +867,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	/* allocate memory for SQLite3 instance */
 	s3 = calloc(1, sizeof(sqlite3_instance_t));
 	if (s3 == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	memset(s3, 0, sizeof(sqlite3_instance_t));
 
@@ -885,14 +885,14 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	if (argc < 4) {
 		s3->log(ISC_LOG_ERROR, "SQLite3 module requires "
 				       "at least 4 command line args.");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* no more than 8 arg's should be passed to the module */
 	if (argc > 8) {
 		s3->log(ISC_LOG_ERROR, "SQLite3 module cannot accept "
 				       "more than 8 command line args.");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* get db name - required */
@@ -1002,12 +1002,12 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	}
 
 	*dbdata = s3;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	dlz_destroy(s3);
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -1033,7 +1033,7 @@ int
 dlz_version(unsigned int *flags) {
 	*flags |= (DNS_SDLZFLAG_RELATIVEOWNER | DNS_SDLZFLAG_RELATIVERDATA |
 		   DNS_SDLZFLAG_THREADSAFE);
-	return (DLZ_DLOPEN_VERSION);
+	return DLZ_DLOPEN_VERSION;
 }
 
 /*

@@ -66,19 +66,19 @@ isc_quota_max(isc_quota_t *quota, unsigned int max) {
 unsigned int
 isc_quota_getmax(isc_quota_t *quota) {
 	REQUIRE(VALID_QUOTA(quota));
-	return (atomic_load_relaxed(&quota->max));
+	return atomic_load_relaxed(&quota->max);
 }
 
 unsigned int
 isc_quota_getsoft(isc_quota_t *quota) {
 	REQUIRE(VALID_QUOTA(quota));
-	return (atomic_load_relaxed(&quota->soft));
+	return atomic_load_relaxed(&quota->soft);
 }
 
 unsigned int
 isc_quota_getused(isc_quota_t *quota) {
 	REQUIRE(VALID_QUOTA(quota));
-	return (atomic_load_relaxed(&quota->used));
+	return atomic_load_relaxed(&quota->used);
 }
 
 static isc_result_t
@@ -89,7 +89,7 @@ quota_reserve(isc_quota_t *quota) {
 	uint_fast32_t used = atomic_load_acquire(&quota->used);
 	do {
 		if (max != 0 && used >= max) {
-			return (ISC_R_QUOTA);
+			return ISC_R_QUOTA;
 		}
 		if (soft != 0 && used >= soft) {
 			result = ISC_R_SOFTQUOTA;
@@ -98,7 +98,7 @@ quota_reserve(isc_quota_t *quota) {
 		}
 	} while (!atomic_compare_exchange_weak_acq_rel(&quota->used, &used,
 						       used + 1));
-	return (result);
+	return result;
 }
 
 /* Must be quota->cbslock locked */
@@ -116,7 +116,7 @@ dequeue(isc_quota_t *quota) {
 	INSIST(cb != NULL);
 	ISC_LIST_DEQUEUE(quota->cbs, cb, link);
 	atomic_fetch_sub_relaxed(&quota->waiting, 1);
-	return (cb);
+	return cb;
 }
 
 static void
@@ -157,7 +157,7 @@ doattach(isc_quota_t *quota, isc_quota_t **p) {
 		*p = quota;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -165,7 +165,7 @@ isc_quota_attach(isc_quota_t *quota, isc_quota_t **quotap) {
 	REQUIRE(VALID_QUOTA(quota));
 	REQUIRE(quotap != NULL && *quotap == NULL);
 
-	return (isc_quota_attach_cb(quota, quotap, NULL));
+	return isc_quota_attach_cb(quota, quotap, NULL);
 }
 
 isc_result_t
@@ -181,7 +181,7 @@ isc_quota_attach_cb(isc_quota_t *quota, isc_quota_t **quotap,
 		enqueue(quota, cb);
 		UNLOCK(&quota->cblock);
 	}
-	return (result);
+	return result;
 }
 
 void

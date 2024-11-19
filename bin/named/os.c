@@ -378,15 +378,15 @@ named_os_closedevnull(void) {
 static bool
 all_digits(const char *s) {
 	if (*s == '\0') {
-		return (false);
+		return false;
 	}
 	while (*s != '\0') {
 		if (!isdigit((unsigned char)(*s))) {
-			return (false);
+			return false;
 		}
 		s++;
 	}
-	return (true);
+	return true;
 }
 
 void
@@ -478,9 +478,9 @@ named_os_changeuser(void) {
 uid_t
 ns_os_uid(void) {
 	if (runas_pw == NULL) {
-		return (0);
+		return 0;
 	}
-	return (runas_pw->pw_uid);
+	return runas_pw->pw_uid;
 }
 
 void
@@ -520,22 +520,22 @@ safe_open(const char *filename, mode_t mode, bool append) {
 
 	if (stat(filename, &sb) == -1) {
 		if (errno != ENOENT) {
-			return (-1);
+			return -1;
 		}
 	} else if ((sb.st_mode & S_IFREG) == 0) {
 		errno = EOPNOTSUPP;
-		return (-1);
+		return -1;
 	}
 
 	if (append) {
 		fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, mode);
 	} else {
 		if (unlink(filename) < 0 && errno != ENOENT) {
-			return (-1);
+			return -1;
 		}
 		fd = open(filename, O_WRONLY | O_CREAT | O_EXCL, mode);
 	}
-	return (fd);
+	return fd;
 }
 
 static void
@@ -603,7 +603,7 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 			    !strcmp(slash + 1, ".."))
 			{
 				*slash = '/';
-				return (0);
+				return 0;
 			}
 			mode = S_IRUSR | S_IWUSR | S_IXUSR; /* u=rwx */
 			mode |= S_IRGRP | S_IXGRP;	    /* g=rx */
@@ -625,11 +625,11 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 		}
 		*slash = '/';
 	}
-	return (0);
+	return 0;
 
 error:
 	*slash = '/';
-	return (-1);
+	return -1;
 }
 
 #if !HAVE_SYS_CAPABILITY_H
@@ -696,11 +696,11 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("couldn't strdup() '%s': %s", filename,
 					strbuf);
-		return (NULL);
+		return NULL;
 	}
 	if (mkdirpath(f, named_main_earlywarning) == -1) {
 		free(f);
-		return (NULL);
+		return NULL;
 	}
 	free(f);
 
@@ -745,7 +745,7 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("could not open file '%s': %s",
 					filename, strbuf);
-		return (NULL);
+		return NULL;
 	}
 
 	fp = fdopen(fd, "w");
@@ -755,7 +755,7 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 					filename, strbuf);
 	}
 
-	return (fp);
+	return fp;
 }
 
 void
@@ -812,11 +812,11 @@ named_os_issingleton(const char *filename) {
 	struct flock lock;
 
 	if (singletonfd != -1) {
-		return (true);
+		return true;
 	}
 
 	if (strcasecmp(filename, "none") == 0) {
-		return (true);
+		return true;
 	}
 
 	/*
@@ -833,7 +833,7 @@ named_os_issingleton(const char *filename) {
 			named_main_earlywarning("couldn't create '%s'",
 						filename);
 			cleanup_lockfile(false);
-			return (false);
+			return false;
 		}
 	}
 
@@ -845,7 +845,7 @@ named_os_issingleton(const char *filename) {
 			   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 	if (singletonfd == -1) {
 		cleanup_lockfile(false);
-		return (false);
+		return false;
 	}
 
 	memset(&lock, 0, sizeof(lock));
@@ -857,10 +857,10 @@ named_os_issingleton(const char *filename) {
 	/* Non-blocking (does not wait for lock) */
 	if (fcntl(singletonfd, F_SETLK, &lock) == -1) {
 		cleanup_lockfile(false);
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 void
@@ -929,5 +929,5 @@ named_os_uname(void) {
 	if (unamep == NULL) {
 		getuname();
 	}
-	return (unamep);
+	return unamep;
 }

@@ -734,7 +734,7 @@ ISC_RUN_TEST_IMPL(fromwire_thread(void *arg) {
 		(void)dns_name_fromwire(&name, &source, &dctx, 0, &target);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 ISC_RUN_TEST_IMPL(benchmark) {

@@ -963,5 +963,5 @@ main(int argc, char **argv) {
 	isc_mem_free(mctx, directory);
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	return 0;
 }

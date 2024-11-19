@@ -36,7 +36,7 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 	SHA_CTX ctx;
 
 	if (hashalg != 1) {
-		return (0);
+		return 0;
 	}
 
 	buf = in;
@@ -45,29 +45,29 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 	do {
 		if (SHA1_Init(&ctx) != 1) {
 			ERR_clear_error();
-			return (0);
+			return 0;
 		}
 
 		if (SHA1_Update(&ctx, buf, len) != 1) {
 			ERR_clear_error();
-			return (0);
+			return 0;
 		}
 
 		if (SHA1_Update(&ctx, salt, saltlength) != 1) {
 			ERR_clear_error();
-			return (0);
+			return 0;
 		}
 
 		if (SHA1_Final(out, &ctx) != 1) {
 			ERR_clear_error();
-			return (0);
+			return 0;
 		}
 
 		buf = out;
 		len = SHA_DIGEST_LENGTH;
 	} while (n++ < iterations);
 
-	return (SHA_DIGEST_LENGTH);
+	return SHA_DIGEST_LENGTH;
 }
 
 #else
@@ -92,7 +92,7 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 	EVP_MD *md;
 
 	if (hashalg != 1) {
-		return (0);
+		return 0;
 	}
 
 	ctx = EVP_MD_CTX_new();
@@ -127,13 +127,13 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 	EVP_MD_CTX_free(ctx);
 	EVP_MD_free(md);
 
-	return (outlength);
+	return outlength;
 
 fail:
 	EVP_MD_CTX_free(ctx);
 	EVP_MD_free(md);
 	ERR_clear_error();
-	return (0);
+	return 0;
 }
 
 #endif

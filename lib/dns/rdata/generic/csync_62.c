@@ -44,7 +44,7 @@ fromtext_csync(ARGS_FROMTEXT) {
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* Type Map */
-	return (typemap_fromtext(lexer, target, true));
+	return typemap_fromtext(lexer, target, true);
 }
 
 static isc_result_t
@@ -78,7 +78,7 @@ totext_csync(ARGS_TOTEXT) {
 	if (sr.length > 0) {
 		RETERR(str_totext(" ", target));
 	}
-	return (typemap_totext(&sr, NULL, target));
+	return typemap_totext(&sr, NULL, target);
 }
 
 static isc_result_t
@@ -97,7 +97,7 @@ fromwire_csync(ARGS_FROMWIRE) {
 	 */
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 6) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	RETERR(mem_tobuffer(target, sr.base, 6));
@@ -108,7 +108,7 @@ fromwire_csync(ARGS_FROMWIRE) {
 
 	RETERR(mem_tobuffer(target, sr.base, sr.length));
 	isc_buffer_forward(source, sr.length);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -118,7 +118,7 @@ towire_csync(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -134,7 +134,7 @@ compare_csync(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -157,7 +157,7 @@ fromstruct_csync(ARGS_FROMSTRUCT) {
 	region.base = csync->typebits;
 	region.length = csync->len;
 	RETERR(typemap_test(&region, true));
-	return (mem_tobuffer(target, csync->typebits, csync->len));
+	return mem_tobuffer(target, csync->typebits, csync->len);
 }
 
 static isc_result_t
@@ -188,10 +188,10 @@ tostruct_csync(ARGS_TOSTRUCT) {
 	}
 
 	csync->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
-	return (ISC_R_NOMEMORY);
+	return ISC_R_NOMEMORY;
 }
 
 static void
@@ -220,7 +220,7 @@ additionaldata_csync(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -230,7 +230,7 @@ digest_csync(ARGS_DIGEST) {
 	REQUIRE(rdata->type == dns_rdatatype_csync);
 
 	dns_rdata_toregion(rdata, &r);
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -242,7 +242,7 @@ checkowner_csync(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -253,7 +253,7 @@ checknames_csync(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
@@ -269,6 +269,6 @@ casecompare_csync(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
-	return (isc_region_compare(&region1, &region2));
+	return isc_region_compare(&region1, &region2);
 }
 #endif /* RDATA_GENERIC_CSYNC_62_C */

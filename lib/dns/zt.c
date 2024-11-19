@@ -108,12 +108,12 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 	isc_refcount_init(&zt->loads_pending, 0);
 	*ztp = zt;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_zt:
 	isc_mem_put(mctx, zt, sizeof(*zt));
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -135,7 +135,7 @@ dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone) {
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -153,7 +153,7 @@ dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone) {
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -203,7 +203,7 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, unsigned int options,
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 
-	return (result);
+	return result;
 }
 
 void
@@ -219,7 +219,7 @@ dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp) {
 static isc_result_t
 flush(dns_zone_t *zone, void *uap) {
 	UNUSED(uap);
-	return (dns_zone_flush(zone));
+	return dns_zone_flush(zone);
 }
 
 static void
@@ -266,7 +266,7 @@ dns_zt_load(dns_zt_t *zt, bool stop, bool newonly) {
 	params.newonly = newonly;
 	result = dns_zt_apply(zt, isc_rwlocktype_read, stop, NULL, load,
 			      &params);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -279,7 +279,7 @@ load(dns_zone_t *zone, void *paramsv) {
 	{
 		result = ISC_R_SUCCESS;
 	}
-	return (result);
+	return result;
 }
 
 static void
@@ -346,7 +346,7 @@ dns_zt_asyncload(dns_zt_t *zt, bool newonly, dns_zt_allloaded_t alldone,
 		call_loaddone(zt);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -373,7 +373,7 @@ asyncload(dns_zone_t *zone, void *zt_) {
 		isc_refcount_decrement1(&zt->references);
 		isc_refcount_decrement1(&zt->loads_pending);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -388,7 +388,7 @@ dns_zt_freezezones(dns_zt_t *zt, dns_view_t *view, bool freeze) {
 	if (tresult == ISC_R_NOTFOUND) {
 		tresult = ISC_R_SUCCESS;
 	}
-	return ((result == ISC_R_SUCCESS) ? tresult : result);
+	return (result == ISC_R_SUCCESS) ? tresult : result;
 }
 
 static isc_result_t
@@ -412,19 +412,19 @@ freezezones(dns_zone_t *zone, void *uap) {
 		if (raw != NULL) {
 			dns_zone_detach(&raw);
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (dns_zone_gettype(zone) != dns_zone_primary) {
 		if (raw != NULL) {
 			dns_zone_detach(&raw);
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (!dns_zone_isdynamic(zone, true)) {
 		if (raw != NULL) {
 			dns_zone_detach(&raw);
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	frozen = dns_zone_getupdatedisabled(zone);
@@ -469,7 +469,7 @@ freezezones(dns_zone_t *zone, void *uap) {
 	if (raw != NULL) {
 		dns_zone_detach(&raw);
 	}
-	return (result);
+	return result;
 }
 
 void
@@ -576,7 +576,7 @@ cleanup:
 		RWUNLOCK(&zt->rwlock, lock);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -599,7 +599,7 @@ doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 		zt_destroy(zt);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /***

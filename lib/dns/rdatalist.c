@@ -91,7 +91,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset) {
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -100,7 +100,7 @@ dns_rdatalist_fromrdataset(dns_rdataset_t *rdataset,
 	REQUIRE(rdatalist != NULL && rdataset != NULL);
 	*rdatalist = rdataset->private1;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -116,10 +116,10 @@ isc__rdatalist_first(dns_rdataset_t *rdataset) {
 	rdataset->private2 = ISC_LIST_HEAD(rdatalist->rdata);
 
 	if (rdataset->private2 == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -130,16 +130,16 @@ isc__rdatalist_next(dns_rdataset_t *rdataset) {
 
 	rdata = rdataset->private2;
 	if (rdata == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	rdataset->private2 = ISC_LIST_NEXT(rdata, link);
 
 	if (rdataset->private2 == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -184,7 +184,7 @@ isc__rdatalist_count(dns_rdataset_t *rdataset) {
 		count++;
 	}
 
-	return (count);
+	return count;
 }
 
 isc_result_t
@@ -209,7 +209,7 @@ isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, const dns_name_t *name) {
 		}
 	}
 	if (neg == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	for (rdset = ISC_LIST_HEAD(name->list); rdset != NULL;
@@ -223,7 +223,7 @@ isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	}
 
 	if (negsig == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	/*
 	 * Minimise ttl.
@@ -238,7 +238,7 @@ isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	rdataset->ttl = neg->ttl = negsig->ttl = ttl;
 	rdataset->attributes |= DNS_RDATASETATTR_NOQNAME;
 	rdataset->private6 = name;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -270,7 +270,7 @@ isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		}
 	}
 	if (tneg == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	for (rdataset = ISC_LIST_HEAD(noqname->list); rdataset != NULL;
@@ -283,13 +283,13 @@ isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		}
 	}
 	if (tnegsig == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	dns_name_clone(noqname, name);
 	dns_rdataset_clone(tneg, neg);
 	dns_rdataset_clone(tnegsig, negsig);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -314,7 +314,7 @@ isc__rdatalist_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 		}
 	}
 	if (neg == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	for (rdset = ISC_LIST_HEAD(name->list); rdset != NULL;
@@ -328,7 +328,7 @@ isc__rdatalist_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	}
 
 	if (negsig == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	/*
 	 * Minimise ttl.
@@ -343,7 +343,7 @@ isc__rdatalist_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	rdataset->ttl = neg->ttl = negsig->ttl = ttl;
 	rdataset->attributes |= DNS_RDATASETATTR_CLOSEST;
 	rdataset->private7 = name;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -375,7 +375,7 @@ isc__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		}
 	}
 	if (tneg == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	for (rdataset = ISC_LIST_HEAD(closest->list); rdataset != NULL;
@@ -388,13 +388,13 @@ isc__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		}
 	}
 	if (tnegsig == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	dns_name_clone(closest, name);
 	dns_rdataset_clone(tneg, neg);
 	dns_rdataset_clone(tnegsig, negsig);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

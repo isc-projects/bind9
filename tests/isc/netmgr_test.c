@@ -214,7 +214,7 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	fd = socket(AF_INET6, family, 0);
 	if (fd < 0) {
 		perror("setup_ephemeral_port: socket()");
-		return (-1);
+		return -1;
 	}
 
 	r = bind(fd, (const struct sockaddr *)&addr->type.sa,
@@ -222,14 +222,14 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	if (r != 0) {
 		perror("setup_ephemeral_port: bind()");
 		isc__nm_closesocket(fd);
-		return (r);
+		return r;
 	}
 
 	r = getsockname(fd, (struct sockaddr *)&addr->type.sa, &addrlen);
 	if (r != 0) {
 		perror("setup_ephemeral_port: getsockname()");
 		isc__nm_closesocket(fd);
-		return (r);
+		return r;
 	}
 
 #if IPV6_RECVERR
@@ -240,11 +240,11 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 	if (r != 0) {
 		perror("setup_ephemeral_port");
 		isc__nm_closesocket(fd);
-		return (r);
+		return r;
 	}
 #endif
 
-	return (fd);
+	return fd;
 }
 
 static int
@@ -275,7 +275,7 @@ setup_test(void **state __attribute__((unused))) {
 	udp_listen_addr = (isc_sockaddr_t){ .length = 0 };
 	udp_listen_sock = setup_ephemeral_port(&udp_listen_addr, SOCK_DGRAM);
 	if (udp_listen_sock < 0) {
-		return (-1);
+		return -1;
 	}
 	isc__nm_closesocket(udp_listen_sock);
 	udp_listen_sock = -1;
@@ -286,7 +286,7 @@ setup_test(void **state __attribute__((unused))) {
 	tcp_listen_addr = (isc_sockaddr_t){ .length = 0 };
 	tcp_listen_sock = setup_ephemeral_port(&tcp_listen_addr, SOCK_STREAM);
 	if (tcp_listen_sock < 0) {
-		return (-1);
+		return -1;
 	}
 	isc__nm_closesocket(tcp_listen_sock);
 	tcp_listen_sock = -1;
@@ -314,7 +314,7 @@ setup_test(void **state __attribute__((unused))) {
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 	isc_nonce_buf(&stop_magic, sizeof(stop_magic));
 	if (send_magic == stop_magic) {
-		return (-1);
+		return -1;
 	}
 
 	isc__netmgr_create(mctx, nworkers, &listen_nm);
@@ -336,10 +336,10 @@ setup_test(void **state __attribute__((unused))) {
 	if (isc_tlsctx_createserver(NULL, NULL, &tcp_listen_tlsctx) !=
 	    ISC_R_SUCCESS)
 	{
-		return (-1);
+		return -1;
 	}
 	if (isc_tlsctx_createclient(&tcp_connect_tlsctx) != ISC_R_SUCCESS) {
-		return (-1);
+		return -1;
 	}
 
 	isc_tlsctx_enable_dot_client_alpn(tcp_connect_tlsctx);
@@ -349,7 +349,7 @@ setup_test(void **state __attribute__((unused))) {
 		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
 		&tcp_tlsctx_client_sess_cache);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -379,7 +379,7 @@ teardown_test(void **state __attribute__((unused))) {
 
 	isc_tlsctx_client_session_cache_detach(&tcp_tlsctx_client_sess_cache);
 
-	return (0);
+	return 0;
 }
 
 /* Callbacks */
@@ -402,7 +402,7 @@ noop_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		(void)atomic_fetch_add(&saccepts, 1);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -569,7 +569,7 @@ listen_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	F();
 
-	return (eresult);
+	return eresult;
 }
 
 static isc_result_t
@@ -581,7 +581,7 @@ stream_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	F();
 
 	if (eresult != ISC_R_SUCCESS) {
-		return (eresult);
+		return eresult;
 	}
 
 	atomic_fetch_add(&saccepts, 1);
@@ -590,7 +590,7 @@ stream_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, listen_read_cb, readhandle);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 typedef void (*connect_func)(isc_nm_t *);
@@ -617,7 +617,7 @@ connect_thread(isc_threadarg_t arg) {
 		connect(connect_nm);
 	}
 
-	return ((isc_threadresult_t)0);
+	return (isc_threadresult_t)0;
 }
 
 /* UDP */
@@ -1124,7 +1124,7 @@ tcp_listener_init_quota(size_t nthreads) {
 		isc_quota_max(&listener_quota, max_quota);
 		quotap = &listener_quota;
 	}
-	return (quotap);
+	return quotap;
 }
 
 static void
@@ -1142,10 +1142,10 @@ static stream_connect_function
 get_stream_connect_function(void) {
 #if HAVE_LIBNGHTTP2
 	if (stream_use_TLS) {
-		return (tls_connect);
+		return tls_connect;
 	}
 #endif
-	return (tcp_connect);
+	return tcp_connect;
 }
 
 static isc_result_t
@@ -1160,14 +1160,14 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 					  accept_cb, accept_cbarg,
 					  extrahandlesize, backlog, quota,
 					  tcp_listen_tlsctx, sockp);
-		return (result);
+		return result;
 	}
 #endif
 	result = isc_nm_listentcp(listen_nm, &tcp_listen_addr, accept_cb,
 				  accept_cbarg, extrahandlesize, backlog, quota,
 				  sockp);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -2447,7 +2447,7 @@ tlsdns_many_listen_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	F();
 
 	if (eresult != ISC_R_SUCCESS) {
-		return (eresult);
+		return eresult;
 	}
 
 	atomic_fetch_add(&saccepts, 1);
@@ -2456,7 +2456,7 @@ tlsdns_many_listen_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, tlsdns_many_listen_read_cb, cbarg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -2890,16 +2890,16 @@ tls_accept_cb_noalpn(isc_nmhandle_t *handle, isc_result_t eresult,
 	F();
 
 	if (eresult != ISC_R_SUCCESS) {
-		return (eresult);
+		return eresult;
 	}
 
 	atomic_fetch_add(&saccepts, 1);
 
 	if (isc_nm_xfr_checkperm(handle) != ISC_R_SUCCESS) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
-	return (stream_accept_cb(handle, eresult, cbarg));
+	return stream_accept_cb(handle, eresult, cbarg);
 }
 
 ISC_RUN_TEST_IMPL(tlsdns_listen_noalpn) {

@@ -43,7 +43,7 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 	ISC_EVENT_INIT(event, size, 0, NULL, type, action, arg, sender, destroy,
 		       mctx);
 
-	return (event);
+	return event;
 }
 
 isc_event_t *
@@ -74,7 +74,7 @@ isc_event_constallocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 	ISC_EVENT_INIT(event, size, 0, NULL, type, action, deconst_arg, sender,
 		       destroy, mctx);
 
-	return (event);
+	return event;
 }
 
 void

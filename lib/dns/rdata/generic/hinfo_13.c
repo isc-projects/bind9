@@ -33,7 +33,7 @@ fromtext_hinfo(ARGS_FROMTEXT) {
 					      isc_tokentype_qstring, false));
 		RETTOK(txt_fromtext(&token.value.as_textregion, target));
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -48,7 +48,7 @@ totext_hinfo(ARGS_TOTEXT) {
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, true, target));
 	RETERR(str_totext(" ", target));
-	return (txt_totext(&region, true, target));
+	return txt_totext(&region, true, target);
 }
 
 static isc_result_t
@@ -61,7 +61,7 @@ fromwire_hinfo(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	RETERR(txt_fromwire(source, target));
-	return (txt_fromwire(source, target));
+	return txt_fromwire(source, target);
 }
 
 static isc_result_t
@@ -71,7 +71,7 @@ towire_hinfo(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);
 	REQUIRE(rdata->length != 0);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -87,7 +87,7 @@ compare_hinfo(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -105,7 +105,7 @@ fromstruct_hinfo(ARGS_FROMSTRUCT) {
 	RETERR(uint8_tobuffer(hinfo->cpu_len, target));
 	RETERR(mem_tobuffer(target, hinfo->cpu, hinfo->cpu_len));
 	RETERR(uint8_tobuffer(hinfo->os_len, target));
-	return (mem_tobuffer(target, hinfo->os, hinfo->os_len));
+	return mem_tobuffer(target, hinfo->os, hinfo->os_len);
 }
 
 static isc_result_t
@@ -126,7 +126,7 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	hinfo->cpu = mem_maybedup(mctx, region.base, hinfo->cpu_len);
 	if (hinfo->cpu == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	isc_region_consume(&region, hinfo->cpu_len);
 
@@ -138,13 +138,13 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 	}
 
 	hinfo->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (mctx != NULL && hinfo->cpu != NULL) {
 		isc_mem_free(mctx, hinfo->cpu);
 	}
-	return (ISC_R_NOMEMORY);
+	return ISC_R_NOMEMORY;
 }
 
 static void
@@ -175,7 +175,7 @@ additionaldata_hinfo(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -186,7 +186,7 @@ digest_hinfo(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -198,7 +198,7 @@ checkowner_hinfo(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -209,10 +209,10 @@ checknames_hinfo(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_hinfo(ARGS_COMPARE) {
-	return (compare_hinfo(rdata1, rdata2));
+	return compare_hinfo(rdata1, rdata2);
 }

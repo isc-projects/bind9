@@ -123,44 +123,44 @@ openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 
 	isc_buffer_availableregion(secret, &r);
 	if (r.length < len) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	DH_get0_key(dhpub, &pub_key, NULL);
 	secret_len = DH_compute_key(r.base, pub_key, dhpriv);
 	if (secret_len <= 0) {
-		return (dst__openssl_toresult2("DH_compute_key",
-					       DST_R_COMPUTESECRETFAILURE));
+		return dst__openssl_toresult2("DH_compute_key",
+					      DST_R_COMPUTESECRETFAILURE);
 	}
 #else
 	ctx = EVP_PKEY_CTX_new_from_pkey(NULL, dhpriv, NULL);
 	if (ctx == NULL) {
-		return (dst__openssl_toresult2("EVP_PKEY_CTX_new_from_pkey",
-					       DST_R_OPENSSLFAILURE));
+		return dst__openssl_toresult2("EVP_PKEY_CTX_new_from_pkey",
+					      DST_R_OPENSSLFAILURE);
 	}
 	if (EVP_PKEY_derive_init(ctx) != 1) {
 		EVP_PKEY_CTX_free(ctx);
-		return (dst__openssl_toresult2("EVP_PKEY_derive_init",
-					       DST_R_OPENSSLFAILURE));
+		return dst__openssl_toresult2("EVP_PKEY_derive_init",
+					      DST_R_OPENSSLFAILURE);
 	}
 	if (EVP_PKEY_derive_set_peer(ctx, dhpub) != 1) {
 		EVP_PKEY_CTX_free(ctx);
-		return (dst__openssl_toresult2("EVP_PKEY_derive_set_peer",
-					       DST_R_OPENSSLFAILURE));
+		return dst__openssl_toresult2("EVP_PKEY_derive_set_peer",
+					      DST_R_OPENSSLFAILURE);
 	}
 	secret_len = r.length;
 	if (EVP_PKEY_derive(ctx, r.base, &secret_len) != 1 || secret_len == 0) {
 		EVP_PKEY_CTX_free(ctx);
-		return (dst__openssl_toresult2("EVP_PKEY_derive",
-					       DST_R_COMPUTESECRETFAILURE));
+		return dst__openssl_toresult2("EVP_PKEY_derive",
+					      DST_R_COMPUTESECRETFAILURE);
 	}
 	EVP_PKEY_CTX_free(ctx);
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	isc_buffer_add(secret, (unsigned int)secret_len);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
@@ -183,9 +183,9 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh2 = key2->keydata.dh;
 
 	if (dh1 == NULL && dh2 == NULL) {
-		return (true);
+		return true;
 	} else if (dh1 == NULL || dh2 == NULL) {
-		return (false);
+		return false;
 	}
 
 	DH_get0_key(dh1, &pub_key1, &priv_key1);
@@ -197,9 +197,9 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	pkey2 = key2->keydata.pkey;
 
 	if (pkey1 == NULL && pkey2 == NULL) {
-		return (true);
+		return true;
 	} else if (pkey1 == NULL || pkey2 == NULL) {
-		return (false);
+		return false;
 	}
 
 	EVP_PKEY_get_bn_param(pkey1, OSSL_PKEY_PARAM_FFC_P, &p1);
@@ -255,7 +255,7 @@ err:
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000 \
 	*/
 
-	return (ret);
+	return ret;
 }
 
 static bool
@@ -274,9 +274,9 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh2 = key2->keydata.dh;
 
 	if (dh1 == NULL && dh2 == NULL) {
-		return (true);
+		return true;
 	} else if (dh1 == NULL || dh2 == NULL) {
-		return (false);
+		return false;
 	}
 
 	DH_get0_pqg(dh1, &p1, NULL, &g1);
@@ -286,9 +286,9 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	pkey2 = key2->keydata.pkey;
 
 	if (pkey1 == NULL && pkey2 == NULL) {
-		return (true);
+		return true;
 	} else if (pkey1 == NULL || pkey2 == NULL) {
-		return (false);
+		return false;
 	}
 
 	EVP_PKEY_get_bn_param(pkey1, OSSL_PKEY_PARAM_FFC_P, &p1);
@@ -318,7 +318,7 @@ err:
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000 \
 	*/
 
-	return (ret);
+	return ret;
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -335,7 +335,7 @@ progress_cb(int p, int n, BN_GENCB *cb) {
 	if (u.fptr != NULL) {
 		u.fptr(p);
 	}
-	return (1);
+	return 1;
 }
 #else
 static int
@@ -350,7 +350,7 @@ progress_cb(EVP_PKEY_CTX *ctx) {
 		int p = EVP_PKEY_CTX_get_keygen_info(ctx, 0);
 		u.fptr(p);
 	}
-	return (1);
+	return 1;
 }
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
@@ -605,7 +605,7 @@ err:
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	return (ret);
+	return ret;
 }
 
 static bool
@@ -616,7 +616,7 @@ openssldh_isprivate(const dst_key_t *key) {
 
 	DH_get0_key(dh, NULL, &priv_key);
 
-	return (dh != NULL && priv_key != NULL);
+	return dh != NULL && priv_key != NULL;
 #else
 	bool ret;
 	EVP_PKEY *pkey;
@@ -624,7 +624,7 @@ openssldh_isprivate(const dst_key_t *key) {
 
 	pkey = key->keydata.pkey;
 	if (pkey == NULL) {
-		return (false);
+		return false;
 	}
 
 	ret = (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY,
@@ -634,7 +634,7 @@ openssldh_isprivate(const dst_key_t *key) {
 		BN_clear_free(priv_key);
 	}
 
-	return (ret);
+	return ret;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 }
 
@@ -679,7 +679,7 @@ uint16_fromregion(isc_region_t *region) {
 
 	isc_region_consume(region, 2);
 
-	return (val);
+	return val;
 }
 
 static isc_result_t
@@ -769,7 +769,7 @@ err:
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000 \
 	*/
 
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -791,7 +791,7 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -998,7 +998,7 @@ err:
 		BN_free(pub_key);
 	}
 
-	return (ret);
+	return ret;
 }
 
 static isc_result_t
@@ -1016,12 +1016,12 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 	isc_result_t result;
 
 	if (key->external) {
-		return (DST_R_EXTERNALKEY);
+		return DST_R_EXTERNALKEY;
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (key->keydata.dh == NULL) {
-		return (DST_R_NULLKEY);
+		return DST_R_NULLKEY;
 	}
 
 	dh = key->keydata.dh;
@@ -1029,7 +1029,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 	DH_get0_pqg(dh, &p, NULL, &g);
 #else
 	if (key->keydata.pkey == NULL) {
-		return (DST_R_NULLKEY);
+		return DST_R_NULLKEY;
 	}
 
 	pkey = key->keydata.pkey;
@@ -1093,7 +1093,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000 \
 	*/
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1119,7 +1119,7 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_DH, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+		return ret;
 	}
 
 	if (key->external) {
@@ -1257,7 +1257,7 @@ err:
 	dst__privstruct_free(&priv, mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
 
-	return (ret);
+	return ret;
 }
 
 static void
@@ -1317,7 +1317,7 @@ dst__openssldh_init(dst_func_t **funcp) {
 		}
 		*funcp = &openssldh_functions;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (bn2 != NULL) {
@@ -1332,5 +1332,5 @@ cleanup:
 	if (bn1536 != NULL) {
 		BN_free(bn1536);
 	}
-	return (ISC_R_NOMEMORY);
+	return ISC_R_NOMEMORY;
 }

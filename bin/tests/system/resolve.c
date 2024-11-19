@@ -93,12 +93,12 @@ ctxs_init(void) {
 		goto fail;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 fail:
 	ctxs_destroy();
 
-	return (result);
+	return result;
 }
 
 static char *algname = NULL;
@@ -112,19 +112,19 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 
 	if (!dns_rdataset_isassociated(rdataset)) {
 		printf("[WARN: empty]\n");
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	isc_buffer_init(&target, t, sizeof(t));
 
 	result = dns_rdataset_totext(rdataset, owner, false, false, &target);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	isc_buffer_usedregion(&target, &r);
 	printf("%.*s", (int)r.length, (char *)r.base);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 noreturn static void
@@ -501,5 +501,5 @@ cleanup:
 	ctxs_destroy();
 	dst_lib_destroy();
 
-	return (0);
+	return 0;
 }

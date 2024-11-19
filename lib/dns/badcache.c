@@ -93,7 +93,7 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 	bc->magic = BADCACHE_MAGIC;
 
 	*bcp = bc;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -362,7 +362,7 @@ skip:
 	}
 
 	RWUNLOCK(&bc->lock, isc_rwlocktype_read);
-	return (answer);
+	return answer;
 }
 
 void

@@ -255,7 +255,7 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 
 	*ctxp = ctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 ssl_error:
 	err = ERR_get_error();
@@ -264,7 +264,7 @@ ssl_error:
 		      ISC_LOG_ERROR, "Error initializing TLS context: %s",
 		      errbuf);
 
-	return (ISC_R_TLSERROR);
+	return ISC_R_TLSERROR;
 }
 
 isc_result_t
@@ -277,14 +277,14 @@ isc_tlsctx_load_certificate(isc_tlsctx_t *ctx, const char *keyfile,
 
 	rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
 	if (rv != 1) {
-		return (ISC_R_TLSERROR);
+		return ISC_R_TLSERROR;
 	}
 	rv = SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM);
 	if (rv != 1) {
-		return (ISC_R_TLSERROR);
+		return ISC_R_TLSERROR;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -485,7 +485,7 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 	sslkeylogfile_init(ctx);
 
 	*ctxp = ctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 ssl_error:
 	err = ERR_get_error();
@@ -516,7 +516,7 @@ ssl_error:
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
-	return (ISC_R_TLSERROR);
+	return ISC_R_TLSERROR;
 }
 
 static long
@@ -543,12 +543,12 @@ get_tls_version_disable_bit(const isc_tls_protocol_version_t tls_ver) {
 		break;
 	};
 
-	return (bit);
+	return bit;
 }
 
 bool
 isc_tls_protocol_supported(const isc_tls_protocol_version_t tls_ver) {
-	return (get_tls_version_disable_bit(tls_ver) != 0);
+	return get_tls_version_disable_bit(tls_ver) != 0;
 }
 
 isc_tls_protocol_version_t
@@ -556,12 +556,12 @@ isc_tls_protocol_name_to_version(const char *name) {
 	REQUIRE(name != NULL);
 
 	if (strcasecmp(name, "TLSv1.2") == 0) {
-		return (ISC_TLS_PROTO_VER_1_2);
+		return ISC_TLS_PROTO_VER_1_2;
 	} else if (strcasecmp(name, "TLSv1.3") == 0) {
-		return (ISC_TLS_PROTO_VER_1_3);
+		return ISC_TLS_PROTO_VER_1_3;
 	}
 
-	return (ISC_TLS_PROTO_VER_UNDEFINED);
+	return ISC_TLS_PROTO_VER_UNDEFINED;
 }
 
 void
@@ -636,18 +636,18 @@ isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
 		fclose(paramfile);
 
 		if (dh == NULL) {
-			return (false);
+			return false;
 		} else if (DH_check(dh, &check) != 1 || check != 0) {
 			DH_free(dh);
-			return (false);
+			return false;
 		}
 	} else {
-		return (false);
+		return false;
 	}
 
 	if (SSL_CTX_set_tmp_dh(ctx, dh) != 1) {
 		DH_free(dh);
-		return (false);
+		return false;
 	}
 
 	DH_free(dh);
@@ -658,19 +658,19 @@ isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
 
 	bio = BIO_new_file(dhparams_file, "r");
 	if (bio == NULL) {
-		return (false);
+		return false;
 	}
 
 	dh = PEM_read_bio_Parameters(bio, NULL);
 	if (dh == NULL) {
 		BIO_free(bio);
-		return (false);
+		return false;
 	}
 
 	if (SSL_CTX_set0_tmp_dh_pkey(ctx, dh) != 1) {
 		BIO_free(bio);
 		EVP_PKEY_free(dh);
-		return (false);
+		return false;
 	}
 
 	/* No need to call EVP_PKEY_free(dh) as the "dh" is owned by the
@@ -679,7 +679,7 @@ isc_tlsctx_load_dhparams(isc_tlsctx_t *ctx, const char *dhparams_file) {
 	BIO_free(bio);
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
-	return (true);
+	return true;
 }
 
 bool
@@ -690,23 +690,23 @@ isc_tls_cipherlist_valid(const char *cipherlist) {
 	REQUIRE(cipherlist != NULL);
 
 	if (*cipherlist == '\0') {
-		return (false);
+		return false;
 	}
 
 	method = TLS_server_method();
 	if (method == NULL) {
-		return (false);
+		return false;
 	}
 	tmp_ctx = SSL_CTX_new(method);
 	if (tmp_ctx == NULL) {
-		return (false);
+		return false;
 	}
 
 	result = SSL_CTX_set_cipher_list(tmp_ctx, cipherlist) == 1;
 
 	isc_tlsctx_free(&tmp_ctx);
 
-	return (result);
+	return result;
 }
 
 void
@@ -757,7 +757,7 @@ isc_tls_create(isc_tlsctx_t *ctx) {
 			errbuf);
 	}
 
-	return (newctx);
+	return newctx;
 }
 
 void
@@ -774,7 +774,7 @@ const char *
 isc_tls_verify_peer_result_string(isc_tls_t *tls) {
 	REQUIRE(tls != NULL);
 
-	return (X509_verify_cert_error_string(SSL_get_verify_result(tls)));
+	return X509_verify_cert_error_string(SSL_get_verify_result(tls));
 }
 
 #if HAVE_LIBNGHTTP2
@@ -789,9 +789,9 @@ select_next_proto_cb(SSL *ssl, unsigned char **out, unsigned char *outlen,
 	UNUSED(arg);
 
 	if (nghttp2_select_next_protocol(out, outlen, in, inlen) <= 0) {
-		return (SSL_TLSEXT_ERR_NOACK);
+		return SSL_TLSEXT_ERR_NOACK;
 	}
-	return (SSL_TLSEXT_ERR_OK);
+	return SSL_TLSEXT_ERR_OK;
 }
 #endif /* !OPENSSL_NO_NEXTPROTONEG */
 
@@ -818,7 +818,7 @@ next_proto_cb(isc_tls_t *ssl, const unsigned char **data, unsigned int *len,
 
 	*data = (const unsigned char *)NGHTTP2_PROTO_ALPN;
 	*len = (unsigned int)NGHTTP2_PROTO_ALPN_LEN;
-	return (SSL_TLSEXT_ERR_OK);
+	return SSL_TLSEXT_ERR_OK;
 }
 #endif /* !OPENSSL_NO_NEXTPROTONEG */
 
@@ -835,10 +835,10 @@ alpn_select_proto_cb(SSL *ssl, const unsigned char **out, unsigned char *outlen,
 					   outlen, in, inlen);
 
 	if (ret != 1) {
-		return (SSL_TLSEXT_ERR_NOACK);
+		return SSL_TLSEXT_ERR_NOACK;
 	}
 
-	return (SSL_TLSEXT_ERR_OK);
+	return SSL_TLSEXT_ERR_OK;
 }
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
@@ -880,10 +880,10 @@ protoneg_check_protocol(const uint8_t **pout, uint8_t *pout_len,
 		if (memcmp(&in[i], key, key_len) == 0) {
 			*pout = (const uint8_t *)(&in[i + 1]);
 			*pout_len = in[i];
-			return (true);
+			return true;
 		}
 	}
-	return (false);
+	return false;
 }
 
 /* dot prepended by its length (3 bytes) */
@@ -893,9 +893,9 @@ protoneg_check_protocol(const uint8_t **pout, uint8_t *pout_len,
 static bool
 dot_select_next_protocol(const uint8_t **pout, uint8_t *pout_len,
 			 const uint8_t *in, size_t in_len) {
-	return (protoneg_check_protocol(pout, pout_len, in, in_len,
-					(const uint8_t *)DOT_PROTO_ALPN,
-					DOT_PROTO_ALPN_LEN));
+	return protoneg_check_protocol(pout, pout_len, in, in_len,
+				       (const uint8_t *)DOT_PROTO_ALPN,
+				       DOT_PROTO_ALPN_LEN);
 }
 
 void
@@ -921,10 +921,10 @@ dot_alpn_select_proto_cb(SSL *ssl, const unsigned char **out,
 	ret = dot_select_next_protocol(out, outlen, in, inlen);
 
 	if (!ret) {
-		return (SSL_TLSEXT_ERR_NOACK);
+		return SSL_TLSEXT_ERR_NOACK;
 	}
 
-	return (SSL_TLSEXT_ERR_OK);
+	return SSL_TLSEXT_ERR_OK;
 }
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10002000L */
 
@@ -964,7 +964,7 @@ isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
 		}
 		if (ret != 1) {
 			ERR_clear_error();
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 
 #ifdef X509_CHECK_FLAG_NEVER_CHECK_SUBJECT
@@ -1003,7 +1003,7 @@ isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
 		SSL_CTX_set_verify(tlsctx, SSL_VERIFY_PEER, NULL);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1015,12 +1015,12 @@ isc_tlsctx_load_client_ca_names(isc_tlsctx_t *ctx, const char *ca_bundle_file) {
 	cert_names = SSL_load_client_CA_file(ca_bundle_file);
 	if (cert_names == NULL) {
 		ERR_clear_error();
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	SSL_CTX_set_client_CA_list(ctx, cert_names);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1052,14 +1052,14 @@ isc_tls_cert_store_create(const char *ca_bundle_filename,
 	}
 
 	*pstore = store;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 error:
 	ERR_clear_error();
 	if (store != NULL) {
 		X509_STORE_free(store);
 	}
-	return (ISC_R_FAILURE);
+	return ISC_R_FAILURE;
 }
 
 void
@@ -1285,7 +1285,7 @@ isc_tlsctx_cache_add(
 
 	RWUNLOCK(&cache->rwlock, isc_rwlocktype_write);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1342,7 +1342,7 @@ isc_tlsctx_cache_find(
 
 	RWUNLOCK(&cache->rwlock, isc_rwlocktype_read);
 
-	return (result);
+	return result;
 }
 
 typedef struct client_session_cache_entry client_session_cache_entry_t;
@@ -1502,7 +1502,7 @@ ssl_session_seems_resumable(const SSL_SESSION *sess) {
 	 * is expected to be available on OpenSSL >= 1.1.1 and its modern
 	 * siblings.
 	 */
-	return (SSL_SESSION_is_resumable(sess) != 0);
+	return SSL_SESSION_is_resumable(sess) != 0;
 #elif (OPENSSL_VERSION_NUMBER >= 0x10100000L)
 	/*
 	 * Taking into consideration that OpenSSL 1.1.0 uses opaque
@@ -1514,10 +1514,10 @@ ssl_session_seems_resumable(const SSL_SESSION *sess) {
 	 */
 	unsigned int session_id_len = 0;
 	(void)SSL_SESSION_get_id(sess, &session_id_len);
-	return (SSL_SESSION_has_ticket(sess) || session_id_len > 0);
+	return SSL_SESSION_has_ticket(sess) || session_id_len > 0;
 #else
-	return (!sess->not_resumable &&
-		(sess->session_id_length > 0 || sess->tlsext_ticklen > 0));
+	return !sess->not_resumable &&
+	       (sess->session_id_length > 0 || sess->tlsext_ticklen > 0);
 #endif
 }
 
@@ -1663,7 +1663,7 @@ const isc_tlsctx_t *
 isc_tlsctx_client_session_cache_getctx(
 	isc_tlsctx_client_session_cache_t *cache) {
 	REQUIRE(VALID_TLSCTX_CLIENT_SESSION_CACHE(cache));
-	return (cache->ctx);
+	return cache->ctx;
 }
 
 void

@@ -68,7 +68,7 @@ isc__trampoline_new(int tid, isc_threadfunc_t start, isc_threadarg_t arg) {
 		.self = ISC__TRAMPOLINE_UNUSED,
 	};
 
-	return (trampoline);
+	return trampoline;
 }
 
 void
@@ -132,7 +132,7 @@ done:
 	INSIST(trampoline != NULL);
 	uv_mutex_unlock(&isc__trampoline_lock);
 
-	return (trampoline);
+	return trampoline;
 }
 
 void
@@ -191,5 +191,5 @@ isc__trampoline_run(isc_threadarg_t arg) {
 
 	isc__trampoline_detach(trampoline);
 
-	return (result);
+	return result;
 }

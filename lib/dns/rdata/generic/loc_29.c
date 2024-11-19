@@ -29,10 +29,10 @@ loc_getdecimal(const char *str, unsigned long max, size_t precision, char units,
 
 	value = strtoul(str, &e, 10);
 	if (*e != 0 && *e != '.' && *e != units) {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	if (value > max) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	ok = e != str;
 	if (*e == '.') {
@@ -42,7 +42,7 @@ loc_getdecimal(const char *str, unsigned long max, size_t precision, char units,
 				break;
 			}
 			if ((tmp = decvalue(*e++)) < 0) {
-				return (DNS_R_SYNTAX);
+				return DNS_R_SYNTAX;
 			}
 			ok = true;
 			value *= 10;
@@ -60,10 +60,10 @@ loc_getdecimal(const char *str, unsigned long max, size_t precision, char units,
 		e++;
 	}
 	if (!ok || *e != 0) {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	*valuep = value;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -80,10 +80,10 @@ loc_getprecision(const char *str, unsigned char *valuep) {
 
 	m = strtoul(str, &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm') {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	if (m > 90000000) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	cm = 0;
 	ok = e != str;
@@ -94,7 +94,7 @@ loc_getprecision(const char *str, unsigned char *valuep) {
 				break;
 			}
 			if ((tmp = decvalue(*e++)) < 0) {
-				return (DNS_R_SYNTAX);
+				return DNS_R_SYNTAX;
 			}
 			ok = true;
 			cm *= 10;
@@ -108,7 +108,7 @@ loc_getprecision(const char *str, unsigned char *valuep) {
 		e++;
 	}
 	if (!ok || *e != 0) {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 
 	/*
@@ -130,7 +130,7 @@ loc_getprecision(const char *str, unsigned char *valuep) {
 		exp = 0;
 	}
 	*valuep = (man << 4) + exp;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -139,20 +139,20 @@ get_degrees(isc_lex_t *lexer, isc_token_t *token, unsigned long *d) {
 				      false));
 	*d = token->value.as_ulong;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
 check_coordinate(unsigned long d, unsigned long m, unsigned long s,
 		 unsigned long maxd) {
 	if (d > maxd || m > 59U) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	if (d == maxd && (m != 0 || s != 0)) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -162,7 +162,7 @@ get_minutes(isc_lex_t *lexer, isc_token_t *token, unsigned long *m) {
 
 	*m = token->value.as_ulong;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -171,7 +171,7 @@ get_seconds(isc_lex_t *lexer, isc_token_t *token, unsigned long *s) {
 				      false));
 	RETERR(loc_getdecimal(DNS_AS_STR(*token), 59, 3, '\0', s));
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -183,19 +183,19 @@ get_direction(isc_lex_t *lexer, isc_token_t *token, const char *directions,
 	    DNS_AS_STR(*token)[1] == 0)
 	{
 		*direction = DNS_AS_STR(*token)[0];
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (DNS_AS_STR(*token)[0] == directions[0] &&
 	    DNS_AS_STR(*token)[1] == 0)
 	{
 		*direction = DNS_AS_STR(*token)[0];
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	*direction = 0;
 	isc_lex_ungettoken(lexer, token);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -256,7 +256,7 @@ done:
 	*mp = m;
 	*sp = s;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -277,7 +277,7 @@ loc_getlatitude(isc_lex_t *lexer, unsigned long *latitude) {
 		UNREACHABLE();
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -298,7 +298,7 @@ loc_getlongitude(isc_lex_t *lexer, unsigned long *longitude) {
 		UNREACHABLE();
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -324,7 +324,7 @@ loc_getaltitude(isc_lex_t *lexer, unsigned long *altitude) {
 		*altitude = 10000000 + cm;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -336,26 +336,26 @@ loc_getoptionalprecision(isc_lex_t *lexer, unsigned char *valuep) {
 	if (token.type == isc_tokentype_eol || token.type == isc_tokentype_eof)
 	{
 		isc_lex_ungettoken(lexer, &token);
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 	RETTOK(loc_getprecision(DNS_AS_STR(token), valuep));
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
 loc_getsize(isc_lex_t *lexer, unsigned char *sizep) {
-	return (loc_getoptionalprecision(lexer, sizep));
+	return loc_getoptionalprecision(lexer, sizep);
 }
 
 static isc_result_t
 loc_gethorizontalprecision(isc_lex_t *lexer, unsigned char *hpp) {
-	return (loc_getoptionalprecision(lexer, hpp));
+	return loc_getoptionalprecision(lexer, hpp);
 }
 
 static isc_result_t
 loc_getverticalprecision(isc_lex_t *lexer, unsigned char *vpp) {
-	return (loc_getoptionalprecision(lexer, vpp));
+	return loc_getoptionalprecision(lexer, vpp);
 }
 
 /* The LOC record is expressed in a master file in the following format:
@@ -432,7 +432,7 @@ encode:
 	RETERR(uint32_tobuffer(longitude, target));
 	RETERR(uint32_tobuffer(altitude, target));
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -465,7 +465,7 @@ totext_loc(ARGS_TOTEXT) {
 	dns_rdata_toregion(rdata, &sr);
 
 	if (sr.base[0] != 0) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	REQUIRE(rdata->length == 16);
@@ -551,7 +551,7 @@ totext_loc(ARGS_TOTEXT) {
 		 east ? "E" : "W", below ? "-" : "", altitude / 100,
 		 altitude % 100, sbuf, hbuf, vbuf);
 
-	return (str_totext(buf, target));
+	return str_totext(buf, target);
 }
 
 static isc_result_t
@@ -570,15 +570,15 @@ fromwire_loc(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 1) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	if (sr.base[0] != 0) {
 		/* Treat as unknown. */
 		isc_buffer_forward(source, sr.length);
-		return (mem_tobuffer(target, sr.base, sr.length));
+		return mem_tobuffer(target, sr.base, sr.length);
 	}
 	if (sr.length < 16) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	/*
@@ -589,7 +589,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
 		    ((c >> 4) & 0xf) == 0)
 		{
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 
 			/*
 			 * Horizontal precision.
@@ -605,7 +605,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
 		    ((c >> 4) & 0xf) == 0)
 		{
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 
 			/*
 			 * Vertical precision.
@@ -621,7 +621,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
 		    ((c >> 4) & 0xf) == 0)
 		{
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 	}
 	isc_region_consume(&sr, 4);
@@ -633,7 +633,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 	if (latitude < (0x80000000UL - 90 * 3600000) ||
 	    latitude > (0x80000000UL + 90 * 3600000))
 	{
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	isc_region_consume(&sr, 4);
 
@@ -644,7 +644,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 	if (longitude < (0x80000000UL - 180 * 3600000) ||
 	    longitude > (0x80000000UL + 180 * 3600000))
 	{
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	/*
@@ -654,7 +654,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, 16);
-	return (mem_tobuffer(target, sr.base, 16));
+	return mem_tobuffer(target, sr.base, 16);
 }
 
 static isc_result_t
@@ -664,7 +664,7 @@ towire_loc(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_loc);
 	REQUIRE(rdata->length != 0);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -680,7 +680,7 @@ compare_loc(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -697,42 +697,42 @@ fromstruct_loc(ARGS_FROMSTRUCT) {
 	UNUSED(rdclass);
 
 	if (loc->v.v0.version != 0) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 	RETERR(uint8_tobuffer(loc->v.v0.version, target));
 
 	c = loc->v.v0.size;
 	if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 || ((c >> 4) & 0xf) == 0) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	RETERR(uint8_tobuffer(loc->v.v0.size, target));
 
 	c = loc->v.v0.horizontal;
 	if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 || ((c >> 4) & 0xf) == 0) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	RETERR(uint8_tobuffer(loc->v.v0.horizontal, target));
 
 	c = loc->v.v0.vertical;
 	if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 || ((c >> 4) & 0xf) == 0) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	RETERR(uint8_tobuffer(loc->v.v0.vertical, target));
 
 	if (loc->v.v0.latitude < (0x80000000UL - 90 * 3600000) ||
 	    loc->v.v0.latitude > (0x80000000UL + 90 * 3600000))
 	{
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	RETERR(uint32_tobuffer(loc->v.v0.latitude, target));
 
 	if (loc->v.v0.longitude < (0x80000000UL - 180 * 3600000) ||
 	    loc->v.v0.longitude > (0x80000000UL + 180 * 3600000))
 	{
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	RETERR(uint32_tobuffer(loc->v.v0.longitude, target));
-	return (uint32_tobuffer(loc->v.v0.altitude, target));
+	return uint32_tobuffer(loc->v.v0.altitude, target);
 }
 
 static isc_result_t
@@ -750,7 +750,7 @@ tostruct_loc(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	version = uint8_fromregion(&r);
 	if (version != 0) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	loc->common.rdclass = rdata->rdclass;
@@ -771,7 +771,7 @@ tostruct_loc(ARGS_TOSTRUCT) {
 	isc_region_consume(&r, 4);
 	loc->v.v0.altitude = uint32_fromregion(&r);
 	isc_region_consume(&r, 4);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -794,7 +794,7 @@ additionaldata_loc(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -805,7 +805,7 @@ digest_loc(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -817,7 +817,7 @@ checkowner_loc(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -828,12 +828,12 @@ checknames_loc(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_loc(ARGS_COMPARE) {
-	return (compare_loc(rdata1, rdata2));
+	return compare_loc(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_LOC_29_C */

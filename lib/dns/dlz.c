@@ -96,10 +96,10 @@ dlz_impfind(const char *name) {
 	     imp = ISC_LIST_NEXT(imp, link))
 	{
 		if (strcasecmp(name, imp->name) == 0) {
-			return (imp);
+			return imp;
 		}
 	}
-	return (NULL);
+	return NULL;
 }
 
 /***
@@ -140,7 +140,7 @@ dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
 		case ISC_R_SUCCESS:
 		case ISC_R_NOPERM:
 		case ISC_R_DEFAULT:
-			return (result);
+			return result;
 		default:
 			break;
 		}
@@ -150,7 +150,7 @@ dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
 		result = ISC_R_NOTFOUND;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -193,7 +193,7 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 			      "  %s not loaded.",
 			      drivername, dlzname);
 
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	/* Allocate memory to hold the DLZ database driver */
@@ -221,7 +221,7 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
 			      "DLZ driver loaded successfully.");
 		*dbp = db;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -232,7 +232,7 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 	RWUNLOCK(&dlz_implock, isc_rwlocktype_read);
 	isc_mem_free(mctx, db->dlzname);
 	isc_mem_put(mctx, db, sizeof(dns_dlzdb_t));
-	return (result);
+	return result;
 }
 
 void
@@ -311,7 +311,7 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
 			      "DLZ Driver '%s' already registered", drivername);
 		RWUNLOCK(&dlz_implock, isc_rwlocktype_write);
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 
 	/*
@@ -345,7 +345,7 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 	/* Pass back the dlz_implementation that we created. */
 	*dlzimp = dlz_imp;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -357,7 +357,7 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
  */
 isc_result_t
 dns_dlzstrtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp) {
-	return (isc_commandline_strtoargv(mctx, s, argcp, argvp, 0));
+	return isc_commandline_strtoargv(mctx, s, argcp, argvp, 0);
 }
 
 /*%
@@ -483,7 +483,7 @@ cleanup:
 		dns_zone_detach(&zone);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -502,14 +502,14 @@ dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	impl = dlzdb->implementation;
 
 	if (impl->methods->configure == NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	dlzdb->configure_callback = callback;
 
 	result = impl->methods->configure(impl->driverarg, dlzdb->dbdata, view,
 					  dlzdb);
-	return (result);
+	return result;
 }
 
 bool
@@ -528,10 +528,10 @@ dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_INFO,
 			      "No ssumatch method for DLZ database");
-		return (false);
+		return false;
 	}
 
 	r = impl->methods->ssumatch(signer, name, tcpaddr, type, key,
 				    impl->driverarg, dlzdatabase->dbdata);
-	return (r);
+	return r;
 }

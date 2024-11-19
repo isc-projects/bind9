@@ -41,9 +41,9 @@ static const char *trustnames[] = {
 const char *
 dns_trust_totext(dns_trust_t trust) {
 	if (trust >= sizeof(trustnames) / sizeof(*trustnames)) {
-		return ("bad");
+		return "bad";
 	}
-	return (trustnames[trust]);
+	return trustnames[trust];
 }
 
 void
@@ -135,10 +135,10 @@ dns_rdataset_isassociated(dns_rdataset_t *rdataset) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	if (rdataset->methods != NULL) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 static void
@@ -150,7 +150,7 @@ static isc_result_t
 question_cursor(dns_rdataset_t *rdataset) {
 	UNUSED(rdataset);
 
-	return (ISC_R_NOMORE);
+	return ISC_R_NOMORE;
 }
 
 static void
@@ -177,7 +177,7 @@ question_count(dns_rdataset_t *rdataset) {
 	UNUSED(rdataset);
 	REQUIRE(0);
 
-	return (0);
+	return 0;
 }
 
 static dns_rdatasetmethods_t question_methods = {
@@ -225,7 +225,7 @@ dns_rdataset_count(dns_rdataset_t *rdataset) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
-	return ((rdataset->methods->count)(rdataset));
+	return (rdataset->methods->count)(rdataset);
 }
 
 void
@@ -251,7 +251,7 @@ dns_rdataset_first(dns_rdataset_t *rdataset) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
-	return ((rdataset->methods->first)(rdataset));
+	return (rdataset->methods->first)(rdataset);
 }
 
 isc_result_t
@@ -263,7 +263,7 @@ dns_rdataset_next(dns_rdataset_t *rdataset) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
-	return ((rdataset->methods->next)(rdataset));
+	return (rdataset->methods->next)(rdataset);
 }
 
 void
@@ -292,7 +292,7 @@ static int
 towire_compare(const void *av, const void *bv) {
 	const struct towire_sort *a = (const struct towire_sort *)av;
 	const struct towire_sort *b = (const struct towire_sort *)bv;
-	return (a->key - b->key);
+	return a->key - b->key;
 }
 
 static void
@@ -351,16 +351,16 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		if ((options & DNS_RDATASETTOWIRE_OMITDNSSEC) != 0) {
 			ncache_opts |= DNS_NCACHETOWIRE_OMITDNSSEC;
 		}
-		return (dns_ncache_towire(rdataset, cctx, target, ncache_opts,
-					  countp));
+		return dns_ncache_towire(rdataset, cctx, target, ncache_opts,
+					 countp);
 	} else {
 		count = (rdataset->methods->count)(rdataset);
 		result = dns_rdataset_first(rdataset);
 		if (result == ISC_R_NOMORE) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -376,7 +376,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		}
 	}
 
-	if ((shuffle || sort)) {
+	if (shuffle || sort) {
 		if (count > MAX_SHUFFLE) {
 			in = isc_mem_get(cctx->mctx, count * sizeof(*in));
 			out = isc_mem_get(cctx->mctx, count * sizeof(*out));
@@ -386,7 +386,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		}
 	}
 
-	if ((shuffle || sort)) {
+	if (shuffle || sort) {
 		uint32_t seed = 0;
 		unsigned int j = 0;
 
@@ -542,7 +542,7 @@ cleanup:
 	if (in != NULL && in != in_fixed) {
 		isc_mem_put(cctx->mctx, in, count * sizeof(*in));
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -551,8 +551,8 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 			  isc_buffer_t *target, dns_rdatasetorderfunc_t order,
 			  const void *order_arg, unsigned int options,
 			  unsigned int *countp) {
-	return (towiresorted(rdataset, owner_name, cctx, target, order,
-			     order_arg, false, options, countp, NULL));
+	return towiresorted(rdataset, owner_name, cctx, target, order,
+			    order_arg, false, options, countp, NULL);
 }
 
 isc_result_t
@@ -562,16 +562,16 @@ dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
 			   const void *order_arg, unsigned int options,
 			   unsigned int *countp, void **state) {
 	REQUIRE(state == NULL); /* XXX remove when implemented */
-	return (towiresorted(rdataset, owner_name, cctx, target, order,
-			     order_arg, true, options, countp, state));
+	return towiresorted(rdataset, owner_name, cctx, target, order,
+			    order_arg, true, options, countp, state);
 }
 
 isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		    dns_compress_t *cctx, isc_buffer_t *target,
 		    unsigned int options, unsigned int *countp) {
-	return (towiresorted(rdataset, owner_name, cctx, target, NULL, NULL,
-			     false, options, countp, NULL));
+	return towiresorted(rdataset, owner_name, cctx, target, NULL, NULL,
+			    false, options, countp, NULL);
 }
 
 isc_result_t
@@ -591,7 +591,7 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	do {
@@ -604,10 +604,10 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 	} while (result == ISC_R_SUCCESS);
 
 	if (result != ISC_R_NOMORE) {
-		return (result);
+		return result;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -615,9 +615,9 @@ dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	if (rdataset->methods->addnoqname == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
-	return ((rdataset->methods->addnoqname)(rdataset, name));
+	return (rdataset->methods->addnoqname)(rdataset, name);
 }
 
 isc_result_t
@@ -627,9 +627,9 @@ dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	REQUIRE(rdataset->methods != NULL);
 
 	if (rdataset->methods->getnoqname == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
-	return ((rdataset->methods->getnoqname)(rdataset, name, neg, negsig));
+	return (rdataset->methods->getnoqname)(rdataset, name, neg, negsig);
 }
 
 isc_result_t
@@ -637,9 +637,9 @@ dns_rdataset_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	if (rdataset->methods->addclosest == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
-	return ((rdataset->methods->addclosest)(rdataset, name));
+	return (rdataset->methods->addclosest)(rdataset, name);
 }
 
 isc_result_t
@@ -649,9 +649,9 @@ dns_rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	REQUIRE(rdataset->methods != NULL);
 
 	if (rdataset->methods->getclosest == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
-	return ((rdataset->methods->getclosest)(rdataset, name, neg, negsig));
+	return (rdataset->methods->getclosest)(rdataset, name, neg, negsig);
 }
 
 void
@@ -742,8 +742,8 @@ dns_rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 
 	if (rdataset->methods->addglue == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
-	return ((rdataset->methods->addglue)(rdataset, version, msg));
+	return (rdataset->methods->addglue)(rdataset, version, msg);
 }

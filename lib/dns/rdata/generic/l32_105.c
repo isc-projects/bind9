@@ -49,11 +49,11 @@ fromtext_l32(ARGS_FROMTEXT) {
 	}
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 4) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(region.base, &addr, 4);
 	isc_buffer_add(target, 4);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -75,7 +75,7 @@ totext_l32(ARGS_TOTEXT) {
 
 	RETERR(str_totext(" ", target));
 
-	return (inet_totext(AF_INET, tctx->flags, &region, target));
+	return inet_totext(AF_INET, tctx->flags, &region, target);
 }
 
 static isc_result_t
@@ -91,10 +91,10 @@ fromwire_l32(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length != 6) {
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	}
 	isc_buffer_forward(source, sregion.length);
-	return (mem_tobuffer(target, sregion.base, sregion.length));
+	return mem_tobuffer(target, sregion.base, sregion.length);
 }
 
 static isc_result_t
@@ -104,7 +104,7 @@ towire_l32(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -120,7 +120,7 @@ compare_l32(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
-	return (isc_region_compare(&region1, &region2));
+	return isc_region_compare(&region1, &region2);
 }
 
 static isc_result_t
@@ -138,7 +138,7 @@ fromstruct_l32(ARGS_FROMSTRUCT) {
 
 	RETERR(uint16_tobuffer(l32->pref, target));
 	n = ntohl(l32->l32.s_addr);
-	return (uint32_tobuffer(n, target));
+	return uint32_tobuffer(n, target);
 }
 
 static isc_result_t
@@ -161,7 +161,7 @@ tostruct_l32(ARGS_TOSTRUCT) {
 	l32->pref = uint16_fromregion(&region);
 	n = uint32_fromregion(&region);
 	l32->l32.s_addr = htonl(n);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -184,7 +184,7 @@ additionaldata_l32(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -196,7 +196,7 @@ digest_l32(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -208,7 +208,7 @@ checkowner_l32(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -220,12 +220,12 @@ checknames_l32(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_l32(ARGS_COMPARE) {
-	return (compare_l32(rdata1, rdata2));
+	return compare_l32(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_L32_105_C */

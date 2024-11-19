@@ -36,7 +36,7 @@ struct isc_portset {
 
 static bool
 portset_isset(isc_portset_t *portset, in_port_t port) {
-	return ((portset->buf[port >> 5] & ((uint32_t)1 << (port & 31))) != 0);
+	return (portset->buf[port >> 5] & ((uint32_t)1 << (port & 31))) != 0;
 }
 
 static void
@@ -67,7 +67,7 @@ isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp) {
 	memset(portset, 0, sizeof(*portset));
 	*portsetp = portset;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -84,14 +84,14 @@ bool
 isc_portset_isset(isc_portset_t *portset, in_port_t port) {
 	REQUIRE(portset != NULL);
 
-	return (portset_isset(portset, port));
+	return portset_isset(portset, port);
 }
 
 unsigned int
 isc_portset_nports(isc_portset_t *portset) {
 	REQUIRE(portset != NULL);
 
-	return (portset->nports);
+	return portset->nports;
 }
 
 void

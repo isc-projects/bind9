@@ -59,6 +59,6 @@ isc_stdtime_tostring(isc_stdtime_t t, char *out, size_t outlen) {
 
 	/* time_t and isc_stdtime_t might be different sizes */
 	when = t;
-	INSIST((ctime_r(&when, out) != NULL));
+	INSIST(ctime_r(&when, out) != NULL);
 	*(out + strlen(out) - 1) = '\0';
 }

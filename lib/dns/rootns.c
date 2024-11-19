@@ -107,7 +107,7 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 	dns_rdata_ns_t ns;
 
 	if (!dns_rdataset_isassociated(rootns)) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	result = dns_rdataset_first(rootns);
@@ -115,10 +115,10 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 		dns_rdataset_current(rootns, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		if (dns_name_compare(name, &ns.name) == 0) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		result = dns_rdataset_next(rootns);
 		dns_rdata_reset(&rdata);
@@ -126,7 +126,7 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_NOTFOUND;
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -166,7 +166,7 @@ cleanup:
 	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -226,7 +226,7 @@ cleanup:
 	if (dbiter != NULL) {
 		dns_dbiterator_destroy(&dbiter);
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -287,7 +287,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 			      (filename != NULL) ? filename : "<BUILT-IN>");
 	}
 	*target = db;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
@@ -301,7 +301,7 @@ failure:
 		dns_db_detach(&db);
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -350,12 +350,12 @@ inrrset(dns_rdataset_t *rrset, dns_rdata_t *rdata) {
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(rrset, &current);
 		if (dns_rdata_compare(rdata, &current) == 0) {
-			return (true);
+			return true;
 		}
 		dns_rdata_reset(&current);
 		result = dns_rdataset_next(rrset);
 	}
-	return (false);
+	return false;
 }
 
 static bool
@@ -364,10 +364,10 @@ changing(const dns_name_t *name, dns_rdatatype_t type, isc_stdtime_t now) {
 		if (upcoming[i].time > now && upcoming[i].type == type &&
 		    dns_name_equal(&upcoming[i].name, name))
 		{
-			return (true);
+			return true;
 		}
 	}
-	return (false);
+	return false;
 }
 
 /*

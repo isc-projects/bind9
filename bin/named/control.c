@@ -45,23 +45,23 @@ getcommand(isc_lex_t *lex, char **cmdp) {
 
 	result = isc_lex_gettoken(lex, ISC_LEXOPT_EOF, &token);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	isc_lex_ungettoken(lex, &token);
 
 	if (token.type != isc_tokentype_string) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	*cmdp = token.value.as_textregion.base;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
 command_compare(const char *str, const char *command) {
-	return (strcasecmp(str, command) == 0);
+	return strcasecmp(str, command) == 0;
 }
 
 /*%
@@ -87,7 +87,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		/*
 		 * No data section.
 		 */
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	result = isccc_cc_lookupstring(data, "type", &cmdline);
@@ -95,12 +95,12 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		/*
 		 * We have no idea what this is.
 		 */
-		return (result);
+		return result;
 	}
 
 	result = isc_lex_create(named_g_mctx, strlen(cmdline), &lex);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	isc_buffer_init(&src, cmdline, strlen(cmdline));
@@ -303,5 +303,5 @@ cleanup:
 		isc_lex_destroy(&lex);
 	}
 
-	return (result);
+	return result;
 }

@@ -66,7 +66,7 @@ initname(char *setname) {
 	isc_buffer_init(&buf, setname, strlen(setname));
 	isc_buffer_add(&buf, strlen(setname));
 	result = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
-	return (result);
+	return result;
 }
 
 static void
@@ -138,7 +138,7 @@ loadset(const char *filename, dns_rdataset_t *rdataset) {
 	if (db != NULL) {
 		dns_db_detach(&db);
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -153,7 +153,7 @@ loadkeyset(char *dirname, dns_rdataset_t *rdataset) {
 	if (dirname != NULL) {
 		/* allow room for a trailing slash */
 		if (strlen(dirname) >= isc_buffer_availablelength(&buf)) {
-			return (ISC_R_NOSPACE);
+			return ISC_R_NOSPACE;
 		}
 		isc_buffer_putstr(&buf, dirname);
 		if (dirname[strlen(dirname) - 1] != '/') {
@@ -162,18 +162,18 @@ loadkeyset(char *dirname, dns_rdataset_t *rdataset) {
 	}
 
 	if (isc_buffer_availablelength(&buf) < 7) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	isc_buffer_putstr(&buf, "keyset-");
 
 	result = dns_name_tofilenametext(name, false, &buf);
 	check_result(result, "dns_name_tofilenametext()");
 	if (isc_buffer_availablelength(&buf) == 0) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	isc_buffer_putuint8(&buf, 0);
 
-	return (loadset(filename, rdataset));
+	return loadset(filename, rdataset);
 }
 
 static void
@@ -554,8 +554,8 @@ main(int argc, char **argv) {
 	fflush(stdout);
 	if (ferror(stdout)) {
 		fprintf(stderr, "write error\n");
-		return (1);
+		return 1;
 	} else {
-		return (0);
+		return 0;
 	}
 }

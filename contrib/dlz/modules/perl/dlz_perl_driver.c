@@ -117,7 +117,7 @@ b9_add_helper(config_data_t *state, const char *helper_name, void *ptr) {
 int
 dlz_version(unsigned int *flags) {
 	UNUSED(flags);
-	return (DLZ_DLOPEN_VERSION);
+	return DLZ_DLOPEN_VERSION;
 }
 
 isc_result_t
@@ -221,7 +221,7 @@ CLEAN_UP_AND_RETURN:
 	carp("DLZ Perl: Returning from allnodes, r = %i, retval = %i", r,
 	     retval);
 
-	return (retval);
+	return retval;
 }
 
 isc_result_t
@@ -285,7 +285,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
-	return (retval);
+	return retval;
 }
 
 #if DLZ_DLOPEN_VERSION < 3
@@ -356,7 +356,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
-	return (retval);
+	return retval;
 }
 
 #if DLZ_DLOPEN_VERSION == 1
@@ -473,7 +473,7 @@ CLEAN_UP_AND_RETURN:
 
 	carp("DLZ Perl: Returning from lookup, r = %i, retval = %i", r, retval);
 
-	return (retval);
+	return retval;
 }
 
 static const char *
@@ -492,12 +492,12 @@ missing_perl_method(const char *perl_class_name)
 			 methods[i]);
 
 		if (get_cv(full_name, 0) == NULL) {
-			return (methods[i]);
+			return methods[i];
 		}
 		i++;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 isc_result_t
@@ -517,7 +517,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 
 	cd = malloc(sizeof(config_data_t));
 	if (cd == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	memset(cd, 0, sizeof(config_data_t));
@@ -533,14 +533,14 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 		cd->log(ISC_LOG_ERROR,
 			"DLZ Perl '%s': Missing script argument.", dlzname);
 		free(cd);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if (argc < 3) {
 		cd->log(ISC_LOG_ERROR,
 			"DLZ Perl '%s': Missing class name argument.", dlzname);
 		free(cd);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	perl_class_name = argv[2];
 
@@ -565,7 +565,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	cd->perl = perl_alloc();
 	if (cd->perl == NULL) {
 		free(cd);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 #ifdef MULTIPLICITY
 	my_perl = cd->perl;
@@ -586,7 +586,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	cd->perl_source = strdup(argv[1]);
 	if (cd->perl_source == NULL) {
 		free(cd);
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	perlrun[1] = cd->perl_source;
@@ -677,7 +677,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 #ifndef MULTIPLICITY
 	global_perl = cd->perl;
 #endif /* ifndef MULTIPLICITY */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 CLEAN_UP_PERL_AND_FAIL:
 	PL_perl_destruct_level = 1;
@@ -685,7 +685,7 @@ CLEAN_UP_PERL_AND_FAIL:
 	perl_free(cd->perl);
 	free(cd->perl_source);
 	free(cd);
-	return (ISC_R_FAILURE);
+	return ISC_R_FAILURE;
 }
 
 void

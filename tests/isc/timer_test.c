@@ -62,14 +62,14 @@ _setup(void **state) {
 
 	setup_managers(state);
 
-	return (0);
+	return 0;
 }
 
 static int
 _teardown(void **state) {
 	teardown_managers(state);
 
-	return (0);
+	return 0;
 }
 
 static void

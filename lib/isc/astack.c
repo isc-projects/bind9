@@ -40,7 +40,7 @@ isc_astack_new(isc_mem_t *mctx, size_t size) {
 	isc_mem_attach(mctx, &stack->mctx);
 	memset(stack->nodes, 0, size * sizeof(uintptr_t));
 	isc_mutex_init(&stack->lock);
-	return (stack);
+	return stack;
 }
 
 bool
@@ -48,13 +48,13 @@ isc_astack_trypush(isc_astack_t *stack, void *obj) {
 	if (!isc_mutex_trylock(&stack->lock)) {
 		if (stack->pos >= stack->size) {
 			UNLOCK(&stack->lock);
-			return (false);
+			return false;
 		}
 		stack->nodes[stack->pos++] = (uintptr_t)obj;
 		UNLOCK(&stack->lock);
-		return (true);
+		return true;
 	} else {
-		return (false);
+		return false;
 	}
 }
 
@@ -68,7 +68,7 @@ isc_astack_pop(isc_astack_t *stack) {
 		rv = stack->nodes[--stack->pos];
 	}
 	UNLOCK(&stack->lock);
-	return ((void *)rv);
+	return (void *)rv;
 }
 
 void

@@ -138,26 +138,26 @@ memcasecmp(const void *vs1, const void *vs2, size_t len) {
 static bool
 isc__ht_node_match(isc_ht_node_t *node, const uint32_t hashval,
 		   const uint8_t *key, uint32_t keysize, bool case_sensitive) {
-	return (node->hashval == hashval && node->keysize == keysize &&
-		(case_sensitive ? (memcmp(node->key, key, keysize) == 0)
-				: (memcasecmp(node->key, key, keysize) == 0)));
+	return node->hashval == hashval && node->keysize == keysize &&
+	       (case_sensitive ? (memcmp(node->key, key, keysize) == 0)
+			       : (memcasecmp(node->key, key, keysize) == 0));
 }
 
 static uint32_t
 hash_32(uint32_t val, unsigned int bits) {
 	REQUIRE(bits <= HT_MAX_BITS);
 	/* High bits are more random. */
-	return (val * GOLDEN_RATIO_32 >> (32 - bits));
+	return val * GOLDEN_RATIO_32 >> (32 - bits);
 }
 
 static bool
 rehashing_in_progress(const isc_ht_t *ht) {
-	return (ht->table[HT_NEXTTABLE(ht->hindex)] != NULL);
+	return ht->table[HT_NEXTTABLE(ht->hindex)] != NULL;
 }
 
 static bool
 hashtable_is_overcommited(isc_ht_t *ht) {
-	return (ht->count >= (ht->size[ht->hindex] * HT_OVERCOMMIT));
+	return ht->count >= (ht->size[ht->hindex] * HT_OVERCOMMIT);
 }
 
 static uint32_t
@@ -168,7 +168,7 @@ rehash_bits(isc_ht_t *ht, size_t newcount) {
 		newbits += 1;
 	}
 
-	return (newbits);
+	return newbits;
 }
 
 /*
@@ -364,12 +364,12 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize,
 	hashval = isc_hash32(key, keysize, ht->case_sensitive);
 
 	if (isc__ht_find(ht, key, keysize, hashval, ht->hindex) != NULL) {
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 
 	isc__ht_add(ht, key, keysize, hashval, ht->hindex, value);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_ht_node_t *
@@ -387,7 +387,7 @@ nexttable:
 		if (isc__ht_node_match(node, hashval, key, keysize,
 				       ht->case_sensitive))
 		{
-			return (node);
+			return node;
 		}
 	}
 	if (TRY_NEXTTABLE(findex, ht)) {
@@ -398,7 +398,7 @@ nexttable:
 		goto nexttable;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 isc_result_t
@@ -415,13 +415,13 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 
 	node = isc__ht_find(ht, key, keysize, hashval, ht->hindex);
 	if (node == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (valuep != NULL) {
 		*valuep = node->value;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -447,11 +447,11 @@ isc__ht_delete(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize,
 				    sizeof(*node) + node->keysize);
 			ht->count--;
 
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t
@@ -481,7 +481,7 @@ nexttable:
 		goto nexttable;
 	}
 
-	return (result);
+	return result;
 }
 
 void
@@ -524,7 +524,7 @@ isc_ht_iter_first(isc_ht_iter_t *it) {
 	it->hindex = ht->hindex;
 	it->i = 0;
 
-	return (isc__ht_iter_next(it));
+	return isc__ht_iter_next(it);
 }
 
 static isc_result_t
@@ -540,16 +540,16 @@ isc__ht_iter_next(isc_ht_iter_t *it) {
 	if (it->i < ht->size[it->hindex]) {
 		it->cur = ht->table[it->hindex][it->i];
 
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (TRY_NEXTTABLE(it->hindex, ht)) {
 		it->hindex = HT_NEXTTABLE(it->hindex);
 		it->i = 0;
-		return (isc__ht_iter_next(it));
+		return isc__ht_iter_next(it);
 	}
 
-	return (ISC_R_NOMORE);
+	return ISC_R_NOMORE;
 }
 
 isc_result_t
@@ -560,12 +560,12 @@ isc_ht_iter_next(isc_ht_iter_t *it) {
 	it->cur = it->cur->next;
 
 	if (it->cur != NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	it->i++;
 
-	return (isc__ht_iter_next(it));
+	return isc__ht_iter_next(it);
 }
 
 isc_result_t
@@ -589,7 +589,7 @@ isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
 				 dindex);
 	INSIST(dresult == ISC_R_SUCCESS);
 
-	return (result);
+	return result;
 }
 
 void
@@ -616,5 +616,5 @@ size_t
 isc_ht_count(const isc_ht_t *ht) {
 	REQUIRE(ISC_HT_VALID(ht));
 
-	return (ht->count);
+	return ht->count;
 }

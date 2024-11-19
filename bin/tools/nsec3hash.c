@@ -191,5 +191,5 @@ skip:
 		nsec3hash(nsec3hash_print, argv[1], NULL, argv[2], argv[0],
 			  argv[3]);
 	}
-	return (0);
+	return 0;
 }

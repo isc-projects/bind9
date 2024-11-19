@@ -86,56 +86,56 @@ list_add(dns_transport_list_t *list, const dns_name_t *name,
 
 	RWUNLOCK(&list->lock, isc_rwlocktype_write);
 
-	return (result);
+	return result;
 }
 
 dns_transport_type_t
 dns_transport_get_type(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->type);
+	return transport->type;
 }
 
 char *
 dns_transport_get_certfile(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->tls.certfile);
+	return transport->tls.certfile;
 }
 
 char *
 dns_transport_get_keyfile(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->tls.keyfile);
+	return transport->tls.keyfile;
 }
 
 char *
 dns_transport_get_cafile(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->tls.cafile);
+	return transport->tls.cafile;
 }
 
 char *
 dns_transport_get_remote_hostname(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->tls.remote_hostname);
+	return transport->tls.remote_hostname;
 }
 
 char *
 dns_transport_get_endpoint(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->doh.endpoint);
+	return transport->doh.endpoint;
 }
 
 dns_http_mode_t
 dns_transport_get_mode(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->doh.mode);
+	return transport->doh.mode;
 }
 
 dns_transport_t *
@@ -150,7 +150,7 @@ dns_transport_new(const dns_name_t *name, dns_transport_type_t type,
 
 	list_add(list, name, type, transport);
 
-	return (transport);
+	return transport;
 }
 
 void
@@ -254,7 +254,7 @@ uint32_t
 dns_transport_get_tls_versions(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->tls.protocol_versions);
+	return transport->tls.protocol_versions;
 }
 
 void
@@ -293,14 +293,14 @@ char *
 dns_transport_get_ciphers(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->tls.ciphers);
+	return transport->tls.ciphers;
 }
 
 char *
 dns_transport_get_tlsname(dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
-	return (transport->tls.tlsname);
+	return transport->tls.tlsname;
 }
 
 void
@@ -319,13 +319,13 @@ dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
 	REQUIRE(VALID_TRANSPORT(transport));
 	REQUIRE(preferp != NULL);
 	if (transport->tls.prefer_server_ciphers == ter_none) {
-		return (false);
+		return false;
 	} else if (transport->tls.prefer_server_ciphers == ter_true) {
 		*preferp = true;
-		return (true);
+		return true;
 	} else if (transport->tls.prefer_server_ciphers == ter_false) {
 		*preferp = false;
-		return (true);
+		return true;
 	}
 
 	UNREACHABLE();
@@ -407,7 +407,7 @@ dns_transport_find(const dns_transport_type_t type, const dns_name_t *name,
 	}
 	RWUNLOCK(&list->lock, isc_rwlocktype_read);
 
-	return (transport);
+	return transport;
 }
 
 dns_transport_list_t *
@@ -430,7 +430,7 @@ dns_transport_list_new(isc_mem_t *mctx) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
-	return (list);
+	return list;
 }
 
 void

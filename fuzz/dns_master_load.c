@@ -31,7 +31,7 @@ int
 LLVMFuzzerInitialize(int *argc, char ***argv) {
 	UNUSED(argc);
 	UNUSED(argv);
-	return (0);
+	return 0;
 }
 
 int
@@ -74,5 +74,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 end:
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx);
-	return (0);
+	return 0;
 }

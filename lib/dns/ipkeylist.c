@@ -102,12 +102,12 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 	REQUIRE(dst->count == 0);
 
 	if (src->count == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	result = dns_ipkeylist_resize(mctx, dst, src->count);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	memmove(dst->addrs, src->addrs, src->count * sizeof(isc_sockaddr_t));
@@ -152,7 +152,7 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 		}
 	}
 	dst->count = src->count;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -166,7 +166,7 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 	REQUIRE(n > ipkl->count);
 
 	if (n <= ipkl->allocated) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	addrs = isc_mem_get(mctx, n * sizeof(isc_sockaddr_t));
@@ -215,12 +215,12 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 	       (n - ipkl->allocated) * sizeof(dns_name_t *));
 
 	ipkl->allocated = n;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 	isc_mem_put(mctx, addrs, n * sizeof(isc_sockaddr_t));
 	isc_mem_put(mctx, tlss, n * sizeof(dns_name_t *));
 	isc_mem_put(mctx, keys, n * sizeof(dns_name_t *));
 	isc_mem_put(mctx, labels, n * sizeof(dns_name_t *));
 
-	return (ISC_R_NOMEMORY);
+	return ISC_R_NOMEMORY;
 }

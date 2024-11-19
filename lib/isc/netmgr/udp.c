@@ -105,7 +105,7 @@ isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
-	return (sock);
+	return sock;
 }
 
 static void
@@ -219,7 +219,7 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 		isc_nmsocket_close(&sock);
 	}
 
-	return (result);
+	return result;
 }
 
 #ifdef USE_ROUTE_SOCKET
@@ -235,7 +235,7 @@ route_socket(uv_os_sock_t *fdp) {
 	result = isc__nm_socket(ROUTE_SOCKET_PF, SOCK_RAW,
 				ROUTE_SOCKET_PROTOCOL, &fd);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 #ifdef USE_NETLINK
@@ -244,12 +244,12 @@ route_socket(uv_os_sock_t *fdp) {
 	r = bind(fd, (struct sockaddr *)&sa, sizeof(sa));
 	if (r < 0) {
 		isc__nm_closesocket(fd);
-		return (isc_errno_toresult(r));
+		return isc_errno_toresult(r);
 	}
 #endif
 
 	*fdp = fd;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -301,7 +301,7 @@ error:
 	INSIST(atomic_load(&sock->active));
 	UNLOCK(&sock->lock);
 
-	return (result);
+	return result;
 }
 
 /*
@@ -378,7 +378,7 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg,
 		isc__nm_connectcb(sock, req, result, true);
 		atomic_store(&sock->closed, true);
 		isc__nmsocket_detach(&sock);
-		return (result);
+		return result;
 	}
 
 	event = isc__nm_get_netievent_routeconnect(mgr, sock, req);
@@ -403,13 +403,13 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg,
 	BROADCAST(&sock->scond);
 	UNLOCK(&sock->lock);
 
-	return (sock->result);
+	return sock->result;
 #else  /* USE_ROUTE_SOCKET */
 	UNUSED(mgr);
 	UNUSED(cb);
 	UNUSED(cbarg);
 	UNUSED(extrahandlesize);
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 #endif /* USE_ROUTE_SOCKET */
 }
 
@@ -596,7 +596,7 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 *   bigger than 'maxudp' bytes for testing purposes.
 	 */
 	maxudp = atomic_load(&sock->mgr->maxudp);
-	if ((maxudp != 0 && (uint32_t)nrecv > maxudp)) {
+	if (maxudp != 0 && (uint32_t)nrecv > maxudp) {
 		/*
 		 * We need to keep the read_cb intact in case, so the
 		 * readtimeout_cb can trigger and not crash because of
@@ -819,10 +819,10 @@ can_log_udp_sends(void) {
 	isc_stdtime_get(&now);
 	isc_stdtime_t last = atomic_exchange_relaxed(&last_udpsends_log, now);
 	if (now != last) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 /*
@@ -841,7 +841,7 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(sock->type == isc_nm_udpsocket);
 
 	if (isc__nmsocket_closing(sock)) {
-		return (ISC_R_CANCELED);
+		return ISC_R_CANCELED;
 	}
 
 #if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
@@ -874,7 +874,7 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 						      isc__nm_uverr2result(r)));
 			}
 
-			return (isc__nm_uverr2result(r));
+			return isc__nm_uverr2result(r);
 		}
 
 		isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
@@ -883,11 +883,11 @@ udp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 		r = uv_udp_send(&req->uv_req.udp_send, &sock->uv_handle.udp,
 				&req->uvbuf, 1, sa, udp_send_cb);
 		if (r < 0) {
-			return (isc__nm_uverr2result(r));
+			return isc__nm_uverr2result(r);
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -974,7 +974,7 @@ error:
 	INSIST(atomic_load(&sock->active));
 	UNLOCK(&sock->lock);
 
-	return (result);
+	return result;
 }
 
 /*

@@ -23,7 +23,7 @@ RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
 	 * left NULL (in case only the public key is used).
 	 */
 	if ((r->n == NULL && n == NULL) || (r->e == NULL && e == NULL)) {
-		return (0);
+		return 0;
 	}
 
 	if (n != NULL) {
@@ -39,7 +39,7 @@ RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
 		r->d = d;
 	}
 
-	return (1);
+	return 1;
 }
 
 int
@@ -49,7 +49,7 @@ RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q) {
 	 * parameters MUST be non-NULL.
 	 */
 	if ((r->p == NULL && p == NULL) || (r->q == NULL && q == NULL)) {
-		return (0);
+		return 0;
 	}
 
 	if (p != NULL) {
@@ -61,7 +61,7 @@ RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q) {
 		r->q = q;
 	}
 
-	return (1);
+	return 1;
 }
 
 int
@@ -74,7 +74,7 @@ RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp) {
 	    (r->dmq1 == NULL && dmq1 == NULL) ||
 	    (r->iqmp == NULL && iqmp == NULL))
 	{
-		return (0);
+		return 0;
 	}
 
 	if (dmp1 != NULL) {
@@ -90,7 +90,7 @@ RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp) {
 		r->iqmp = iqmp;
 	}
 
-	return (1);
+	return 1;
 }
 
 void
@@ -133,7 +133,7 @@ RSA_get0_crt_params(const RSA *r, const BIGNUM **dmp1, const BIGNUM **dmq1,
 
 int
 RSA_test_flags(const RSA *r, int flags) {
-	return (r->flags & flags);
+	return r->flags & flags;
 }
 #endif /* !HAVE_RSA_SET0_KEY && OPENSSL_VERSION_NUMBER < 0x30000000L */
 
@@ -152,7 +152,7 @@ ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps) {
 int
 ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s) {
 	if (r == NULL || s == NULL) {
-		return (0);
+		return 0;
 	}
 
 	BN_clear_free(sig->r);
@@ -160,7 +160,7 @@ ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s) {
 	sig->r = r;
 	sig->s = s;
 
-	return (1);
+	return 1;
 }
 #endif /* !HAVE_ECDSA_SIG_GET0 */
 
@@ -191,7 +191,7 @@ DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key) {
 		dh->priv_key = priv_key;
 	}
 
-	return (1);
+	return 1;
 }
 
 void
@@ -214,7 +214,7 @@ DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g) {
 	 * parameters MUST be non-NULL.  q may remain NULL.
 	 */
 	if ((dh->p == NULL && p == NULL) || (dh->g == NULL && g == NULL)) {
-		return (0);
+		return 0;
 	}
 
 	if (p != NULL) {
@@ -234,7 +234,7 @@ DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g) {
 		dh->length = BN_num_bits(q);
 	}
 
-	return (1);
+	return 1;
 }
 #endif /* !HAVE_DH_GET0_KEY && OPENSSL_VERSION_NUMBER < 0x30000000L */
 
@@ -247,6 +247,6 @@ ERR_get_error_all(const char **file, int *line, const char **func,
 	if (func != NULL) {
 		*func = &err_empty_string;
 	}
-	return (ERR_get_error_line_data(file, line, data, flags));
+	return ERR_get_error_line_data(file, line, data, flags);
 }
 #endif /* if !HAVE_ERR_GET_ERROR_ALL */
