@@ -196,7 +196,7 @@ markanswer(dns_validator_t *val, const char *where, const char *mbstext) {
 	if (val->mustbesecure && mbstext != NULL) {
 		validator_log(val, ISC_LOG_WARNING,
 			      "must be secure failure, %s", mbstext);
-		return (DNS_R_MUSTBESECURE);
+		return DNS_R_MUSTBESECURE;
 	}
 
 	validator_log(val, ISC_LOG_DEBUG(3), "marking as answer (%s)", where);
@@ -207,7 +207,7 @@ markanswer(dns_validator_t *val, const char *where, const char *mbstext) {
 		dns_rdataset_settrust(val->sigrdataset, dns_trust_answer);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -272,7 +272,7 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 			goto trynsec3;
 		}
 		if (result != ISC_R_SUCCESS) {
-			return (false);
+			return false;
 		}
 	}
 
@@ -286,7 +286,7 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&set);
-	return (found);
+	return found;
 
 trynsec3:
 	/*
@@ -333,7 +333,7 @@ trynsec3:
 				found = dns_nsec3_typepresent(&rdata,
 							      dns_rdatatype_ns);
 				dns_rdataset_disassociate(&set);
-				return (found);
+				return found;
 			}
 			if ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) == 0) {
 				continue;
@@ -349,12 +349,12 @@ trynsec3:
 			      memcmp(hash, nsec3.next, length) < 0)))
 			{
 				dns_rdataset_disassociate(&set);
-				return (true);
+				return true;
 			}
 		}
 		dns_rdataset_disassociate(&set);
 	}
-	return (found);
+	return found;
 }
 
 static void
@@ -859,7 +859,7 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 		dns_rdatatype_format(type, typebuf, sizeof(typebuf));
 		validator_log(val, ISC_LOG_INFO, "bad cache hit (%s/%s)",
 			      namebuf, typebuf);
-		return (DNS_R_BROKENCHAIN);
+		return DNS_R_BROKENCHAIN;
 	}
 
 	options = DNS_DBFIND_PENDINGOK;
@@ -878,12 +878,12 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 		goto notfound;
 	}
 
-	return (result);
+	return result;
 
 notfound:
 	disassociate_rdatasets(val);
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -910,10 +910,10 @@ check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "continuing validation would lead to "
 				      "deadlock: aborting validation");
-			return (true);
+			return true;
 		}
 	}
-	return (false);
+	return false;
 }
 
 /*%
@@ -930,7 +930,7 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	if (check_deadlock(val, name, type, NULL, NULL)) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "deadlock found (create_fetch)");
-		return (DNS_R_NOVALIDSIG);
+		return DNS_R_NOVALIDSIG;
 	}
 
 	if ((val->options & DNS_VALIDATOR_NOCDFLAG) != 0) {
@@ -952,7 +952,7 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		dns_validator_detach(&val);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -973,7 +973,7 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	if (check_deadlock(val, name, type, rdataset, sig)) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "deadlock found (create_validator)");
-		return (DNS_R_NOVALIDSIG);
+		return DNS_R_NOVALIDSIG;
 	}
 
 	/* OK to clear other options, but preserve NOCDFLAG and NONTA. */
@@ -989,7 +989,7 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		dns_validator_attach(val, &val->subvalidator->parent);
 		val->subvalidator->depth = val->depth + 1;
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -1064,7 +1064,7 @@ done:
 		result = ISC_R_NOTFOUND;
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -1089,7 +1089,7 @@ seek_dnskey(dns_validator_t *val) {
 	if (namereln != dns_namereln_subdomain &&
 	    namereln != dns_namereln_equal)
 	{
-		return (DNS_R_CONTINUE);
+		return DNS_R_CONTINUE;
 	}
 
 	if (namereln == dns_namereln_equal) {
@@ -1098,7 +1098,7 @@ seek_dnskey(dns_validator_t *val) {
 		 * (since seek_dnskey is not called from validate_dnskey).
 		 */
 		if (val->rdataset->type == dns_rdatatype_dnskey) {
-			return (DNS_R_CONTINUE);
+			return DNS_R_CONTINUE;
 		}
 
 		/*
@@ -1106,7 +1106,7 @@ seek_dnskey(dns_validator_t *val) {
 		 * points cannot be self-signed.
 		 */
 		if (dns_rdatatype_atparent(val->rdataset->type)) {
-			return (DNS_R_CONTINUE);
+			return DNS_R_CONTINUE;
 		}
 	} else {
 		/*
@@ -1125,7 +1125,7 @@ seek_dnskey(dns_validator_t *val) {
 			}
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "%s signer mismatch", type);
-			return (DNS_R_CONTINUE);
+			return DNS_R_CONTINUE;
 		}
 	}
 
@@ -1153,9 +1153,9 @@ seek_dnskey(dns_validator_t *val) {
 				&val->frdataset, &val->fsigrdataset,
 				validator_callback_dnskey, "seek_dnskey");
 			if (result != ISC_R_SUCCESS) {
-				return (result);
+				return result;
 			}
-			return (DNS_R_WAIT);
+			return DNS_R_WAIT;
 		} else if (DNS_TRUST_PENDING(val->frdataset.trust)) {
 			/*
 			 * Having a pending key with no signature means that
@@ -1189,8 +1189,7 @@ seek_dnskey(dns_validator_t *val) {
 				dns_rdataset_disassociate(&val->fsigrdataset);
 			}
 
-			return (validate_helper_run(val,
-						    resume_answer_with_key));
+			return validate_helper_run(val, resume_answer_with_key);
 		}
 		break;
 
@@ -1202,9 +1201,9 @@ seek_dnskey(dns_validator_t *val) {
 				      dns_rdatatype_dnskey,
 				      fetch_callback_dnskey, "seek_dnskey");
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
-		return (DNS_R_WAIT);
+		return DNS_R_WAIT;
 
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
@@ -1218,7 +1217,7 @@ seek_dnskey(dns_validator_t *val) {
 		break;
 
 	case DNS_R_BROKENCHAIN:
-		return (result);
+		return result;
 
 	default:
 		break;
@@ -1233,7 +1232,7 @@ seek_dnskey(dns_validator_t *val) {
 		dns_rdataset_disassociate(&val->fsigrdataset);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -1244,18 +1243,18 @@ compute_keytag(dns_rdata_t *rdata) {
 	isc_region_t r;
 
 	dns_rdata_toregion(rdata, &r);
-	return (dst_region_computeid(&r));
+	return dst_region_computeid(&r);
 }
 
 static bool
 over_max_validations(dns_validator_t *val) {
 	if (val->nvalidations == NULL || (*val->nvalidations) > 0) {
-		return (false);
+		return false;
 	}
 
 	/* The attribute is set only on failure */
 	val->attributes |= VALATTR_MAXVALIDATIONS;
-	return (true);
+	return true;
 }
 
 static void
@@ -1271,12 +1270,12 @@ consume_validation(dns_validator_t *val) {
 static bool
 over_max_fails(dns_validator_t *val) {
 	if (val->nfails == NULL || (*val->nfails) > 0) {
-		return (false);
+		return false;
 	}
 
 	/* The attribute is set only on failure */
 	val->attributes |= VALATTR_MAXVALIDATIONFAILS;
-	return (true);
+	return true;
 }
 
 static void
@@ -1301,7 +1300,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 	isc_mem_t *mctx = val->view->mctx;
 
 	if (rdataset->type != dns_rdatatype_dnskey) {
-		return (DNS_R_NOKEYMATCH);
+		return DNS_R_NOKEYMATCH;
 	}
 
 	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
@@ -1343,7 +1342,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 			 * This will be verified later.
 			 */
 			if ((key.flags & DNS_KEYFLAG_REVOKE) == 0) {
-				return (ISC_R_SUCCESS);
+				return ISC_R_SUCCESS;
 			}
 
 			result = dns_dnssec_keyfromrdata(name, &keyrdata, mctx,
@@ -1361,7 +1360,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 			{
 				if (over_max_validations(val)) {
 					dst_key_free(&dstkey);
-					return (ISC_R_QUOTA);
+					return ISC_R_QUOTA;
 				}
 				result = dns_dnssec_verify(
 					name, rdataset, dstkey, true,
@@ -1388,7 +1387,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 					consume_validation(val);
 					if (over_max_fails(val)) {
 						dst_key_free(&dstkey);
-						return (ISC_R_QUOTA);
+						return ISC_R_QUOTA;
 					}
 					consume_validation_fail(val);
 				}
@@ -1404,7 +1403,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 		}
 	}
 
-	return (DNS_R_NOKEYMATCH);
+	return DNS_R_NOKEYMATCH;
 }
 
 /*%
@@ -1427,7 +1426,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 	val->attributes |= VALATTR_TRIEDVERIFY;
 	wild = dns_fixedname_initname(&fixed);
 	if (over_max_validations(val)) {
-		return (ISC_R_QUOTA);
+		return ISC_R_QUOTA;
 	}
 again:
 	result = dns_dnssec_verify(val->name, val->rdataset, key, ignore,
@@ -1493,7 +1492,7 @@ again:
 		}
 		consume_validation_fail(val);
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -1798,13 +1797,13 @@ validate_answer(void *arg) {
 static isc_result_t
 validate_async_run(dns_validator_t *val, isc_job_cb cb) {
 	isc_async_run(val->loop, cb, val);
-	return (DNS_R_WAIT);
+	return DNS_R_WAIT;
 }
 
 static isc_result_t
 validate_helper_run(dns_validator_t *val, isc_job_cb cb) {
 	isc_helper_run(val->loop, cb, val);
-	return (DNS_R_WAIT);
+	return DNS_R_WAIT;
 }
 
 static void
@@ -1871,7 +1870,7 @@ check_signer(dns_validator_t *val, dns_rdata_t *keyrdata, uint16_t keyid,
 		dst_key_free(&dstkey);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -1913,7 +1912,7 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 			if (result != ISC_R_SUCCESS) {
 				*resp = result;
 			}
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		} else if (DNS_TRUST_PENDING(val->frdataset.trust)) {
 			/*
 			 * There should never be an unsigned DS.
@@ -1922,7 +1921,7 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 			validator_log(val, ISC_LOG_DEBUG(2),
 				      "unsigned DS record");
 			*resp = DNS_R_NOVALIDSIG;
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		}
 		break;
 
@@ -1936,7 +1935,7 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 		if (result != ISC_R_SUCCESS) {
 			*resp = result;
 		}
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
@@ -1950,17 +1949,17 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 		disassociate_rdatasets(val);
 		validator_log(val, ISC_LOG_DEBUG(2), "no DS record");
 		*resp = DNS_R_NOVALIDSIG;
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 
 	case DNS_R_BROKENCHAIN:
 		*resp = result;
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 
 	default:
 		break;
 	}
 
-	return (DNS_R_CONTINUE);
+	return DNS_R_CONTINUE;
 }
 
 static void
@@ -2011,19 +2010,19 @@ validate_dnskey_dsset(dns_validator_t *val) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (ds.digest_type == DNS_DSDIGEST_SHA1 && val->digest_sha1 == false) {
-		return (DNS_R_BADALG);
+		return DNS_R_BADALG;
 	}
 
 	if (!dns_resolver_ds_digest_supported(val->view->resolver, val->name,
 					      ds.digest_type))
 	{
-		return (DNS_R_BADALG);
+		return DNS_R_BADALG;
 	}
 
 	if (!dns_resolver_algorithm_supported(val->view->resolver, val->name,
 					      ds.algorithm))
 	{
-		return (DNS_R_BADALG);
+		return DNS_R_BADALG;
 	}
 
 	val->supported_algorithm = true;
@@ -2035,7 +2034,7 @@ validate_dnskey_dsset(dns_validator_t *val) {
 				       &keyrdata);
 	if (result != ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3), "no DNSKEY matching DS");
-		return (DNS_R_NOKEYMATCH);
+		return DNS_R_NOKEYMATCH;
 	}
 
 	/*
@@ -2046,10 +2045,10 @@ validate_dnskey_dsset(dns_validator_t *val) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "no RRSIG matching DS key");
 
-		return (DNS_R_NOVALIDSIG);
+		return DNS_R_NOVALIDSIG;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -2273,7 +2272,7 @@ val_rdataset_first(dns_validator_t *val, dns_name_t **namep,
 	if (message != NULL) {
 		result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY, namep);
 		*rdatasetp = ISC_LIST_HEAD((*namep)->list);
@@ -2284,7 +2283,7 @@ val_rdataset_first(dns_validator_t *val, dns_name_t **namep,
 			dns_ncache_current(val->rdataset, *namep, *rdatasetp);
 		}
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -2318,7 +2317,7 @@ val_rdataset_next(dns_validator_t *val, dns_name_t **namep,
 			dns_ncache_current(val->rdataset, *namep, *rdatasetp);
 		}
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -2345,7 +2344,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 	if (dns_name_countlabels(wild) == 0) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "in checkwildcard: no wildcard to check");
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	dns_name_format(wild, namebuf, sizeof(namebuf));
@@ -2392,7 +2391,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 			if (dns_rdataset_isassociated(&trdataset)) {
 				dns_rdataset_disassociate(&trdataset);
 			}
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 
 		if (rdataset->type == dns_rdatatype_nsec3 &&
@@ -2419,7 +2418,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 			if (dns_rdataset_isassociated(&trdataset)) {
 				dns_rdataset_disassociate(&trdataset);
 			}
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 	if (result == ISC_R_NOMORE) {
@@ -2428,7 +2427,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 	if (dns_rdataset_isassociated(&trdataset)) {
 		dns_rdataset_disassociate(&trdataset);
 	}
-	return (result);
+	return result;
 }
 
 /*
@@ -2479,7 +2478,7 @@ findnsec3proofs(dns_validator_t *val) {
 			if (dns_rdataset_isassociated(&trdataset)) {
 				dns_rdataset_disassociate(&trdataset);
 			}
-			return (result);
+			return result;
 		}
 	}
 	if (result != ISC_R_NOMORE) {
@@ -2491,7 +2490,7 @@ findnsec3proofs(dns_validator_t *val) {
 		if (dns_rdataset_isassociated(&trdataset)) {
 			dns_rdataset_disassociate(&trdataset);
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -2562,7 +2561,7 @@ findnsec3proofs(dns_validator_t *val) {
 			if (dns_rdataset_isassociated(&trdataset)) {
 				dns_rdataset_disassociate(&trdataset);
 			}
-			return (result);
+			return result;
 		}
 		if (result != ISC_R_SUCCESS) {
 			continue;
@@ -2618,13 +2617,13 @@ findnsec3proofs(dns_validator_t *val) {
 			if (dns_rdataset_isassociated(&trdataset)) {
 				dns_rdataset_disassociate(&trdataset);
 			}
-			return (result);
+			return result;
 		}
 	}
 	if (dns_rdataset_isassociated(&trdataset)) {
 		dns_rdataset_disassociate(&trdataset);
 	}
-	return (result);
+	return result;
 }
 
 /*
@@ -2659,11 +2658,11 @@ validate_neg_rrset(dns_validator_t *val, dns_name_t *name,
 
 		result = dns_rdataset_first(rdataset);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		dns_rdataset_current(rdataset, &nsec);
 		if (dns_nsec_typepresent(&nsec, dns_rdatatype_soa)) {
-			return (DNS_R_CONTINUE);
+			return DNS_R_CONTINUE;
 		}
 	}
 
@@ -2672,11 +2671,11 @@ validate_neg_rrset(dns_validator_t *val, dns_name_t *name,
 				  sigrdataset, validator_callback_nsec,
 				  "validate_neg_rrset");
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	val->authcount++;
-	return (DNS_R_WAIT);
+	return DNS_R_WAIT;
 }
 
 /*%
@@ -2730,14 +2729,14 @@ validate_authority(dns_validator_t *val, bool resume) {
 			result = validate_neg_rrset(val, name, rdataset,
 						    sigrdataset);
 			if (result != DNS_R_CONTINUE) {
-				return (result);
+				return result;
 			}
 		}
 	}
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -2781,13 +2780,13 @@ validate_ncache(dns_validator_t *val, bool resume) {
 			continue;
 		}
 
-		return (result);
+		return result;
 	}
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -2818,7 +2817,7 @@ validate_nx(dns_validator_t *val, bool resume) {
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	/*
@@ -2832,7 +2831,7 @@ validate_nx(dns_validator_t *val, bool resume) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					      "too many iterations");
 				markanswer(val, "validate_nx (3)", NULL);
-				return (ISC_R_SUCCESS);
+				return ISC_R_SUCCESS;
 			}
 		}
 
@@ -2841,7 +2840,7 @@ validate_nx(dns_validator_t *val, bool resume) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "marking as secure, noqname proof found");
 			marksecure(val);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		} else if (FOUNDOPTOUT(val) &&
 			   dns_name_countlabels(
 				   dns_fixedname_name(&val->wild)) != 0)
@@ -2850,16 +2849,16 @@ validate_nx(dns_validator_t *val, bool resume) {
 				      "optout proof found");
 			val->optout = true;
 			markanswer(val, "validate_nx (1)", NULL);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		} else if ((val->attributes & VALATTR_FOUNDUNKNOWN) != 0) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "unknown NSEC3 hash algorithm found");
 			markanswer(val, "validate_nx (2)", NULL);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 
 		validator_log(val, ISC_LOG_DEBUG(3), "noqname proof not found");
-		return (DNS_R_NOVALIDNSEC);
+		return DNS_R_NOVALIDNSEC;
 	}
 
 	if (!FOUNDNOQNAME(val) && !FOUNDNODATA(val)) {
@@ -2868,7 +2867,7 @@ validate_nx(dns_validator_t *val, bool resume) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "too many iterations");
 			markanswer(val, "validate_nx (4)", NULL);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 
@@ -2880,7 +2879,7 @@ validate_nx(dns_validator_t *val, bool resume) {
 	{
 		result = checkwildcard(val, dns_rdatatype_nsec, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -2898,14 +2897,14 @@ validate_nx(dns_validator_t *val, bool resume) {
 		} else {
 			val->secure = true;
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (val->authfail != 0 && val->authcount == val->authfail) {
-		return (DNS_R_BROKENCHAIN);
+		return DNS_R_BROKENCHAIN;
 	}
 
-	return (proveunsecure(val, false, false));
+	return proveunsecure(val, false, false);
 }
 
 /*%
@@ -2932,11 +2931,11 @@ check_ds_algs(dns_validator_t *val, dns_name_t *name,
 						     ds.algorithm))
 		{
 			dns_rdata_reset(&dsrdata);
-			return (true);
+			return true;
 		}
 		dns_rdata_reset(&dsrdata);
 	}
-	return (false);
+	return false;
 }
 
 /*%
@@ -2987,7 +2986,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 				*resp = markanswer(val, "proveunsecure (5)",
 						   "no supported "
 						   "algorithm/digest (DS)");
-				return (ISC_R_COMPLETE);
+				return ISC_R_COMPLETE;
 			}
 
 			break;
@@ -3014,7 +3013,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 			*resp = DNS_R_NOVALIDSIG;
 		}
 
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 
 	case ISC_R_NOTFOUND:
 		/*
@@ -3026,7 +3025,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		if (result != ISC_R_SUCCESS) {
 			*resp = result;
 		}
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 
 	case DNS_R_NXRRSET:
 	case DNS_R_NCACHENXRRSET:
@@ -3048,7 +3047,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 			if (result != ISC_R_SUCCESS) {
 				*resp = result;
 			}
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		}
 
 		/*
@@ -3065,7 +3064,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		{
 			*resp = markanswer(val, "proveunsecure (3)",
 					   "no DS at zone cut");
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		}
 
 		if (val->frdataset.trust < dns_trust_secure) {
@@ -3079,13 +3078,13 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 				      "can't validate existing "
 				      "negative responses (no DS)");
 			*resp = DNS_R_MUSTBESECURE;
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		}
 
 		if (isdelegation(tname, &val->frdataset, result)) {
 			*resp = markanswer(val, "proveunsecure (4)",
 					   "this is a delegation");
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		}
 
 		break;
@@ -3102,7 +3101,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 			 * are still in a secure zone.
 			 */
 			*resp = DNS_R_NOVALIDNSEC;
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		} else if (DNS_TRUST_PENDING(val->frdataset.trust) ||
 			   DNS_TRUST_ANSWER(val->frdataset.trust))
 		{
@@ -3119,7 +3118,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 			if (result != ISC_R_SUCCESS) {
 				*resp = result;
 			}
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		} else if (val->frdataset.trust < dns_trust_secure) {
 			/*
 			 * This shouldn't happen, since the negative
@@ -3132,7 +3131,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 				      "negative responses "
 				      "(not a zone cut)");
 			*resp = DNS_R_NOVALIDSIG;
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		}
 
 		break;
@@ -3151,20 +3150,20 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 			if (result != ISC_R_SUCCESS) {
 				*resp = result;
 			}
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		}
 
 		break;
 
 	default:
 		*resp = result;
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 	}
 
 	/*
 	 * No definite answer yet; continue walking down labels.
 	 */
-	return (DNS_R_CONTINUE);
+	return DNS_R_CONTINUE;
 }
 
 /*%
@@ -3212,10 +3211,10 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 	result = dns_keytable_finddeepestmatch(val->keytable, secroot, secroot);
 	if (result == ISC_R_NOTFOUND) {
 		validator_log(val, ISC_LOG_DEBUG(3), "not beneath secure root");
-		return (markanswer(val, "proveunsecure (1)",
-				   "not beneath secure root"));
+		return markanswer(val, "proveunsecure (1)",
+				  "not beneath secure root");
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	if (!resume) {
@@ -3268,13 +3267,13 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 	/* Couldn't complete insecurity proof. */
 	validator_log(val, ISC_LOG_DEBUG(3), "insecurity proof failed: %s",
 		      isc_result_totext(result));
-	return (DNS_R_NOTINSECURE);
+	return DNS_R_NOTINSECURE;
 
 out:
 	if (result != DNS_R_WAIT) {
 		disassociate_rdatasets(val);
 	}
-	return (result);
+	return result;
 }
 
 /*%
@@ -3340,7 +3339,7 @@ validator_start(void *arg) {
 				      "got insecure response; "
 				      "parent indicates it should be secure");
 		}
-	} else if ((val->rdataset == NULL && val->sigrdataset == NULL)) {
+	} else if (val->rdataset == NULL && val->sigrdataset == NULL) {
 		/*
 		 * This is a validation of a negative response.
 		 */
@@ -3356,7 +3355,7 @@ validator_start(void *arg) {
 		}
 
 		result = validate_nx(val, false);
-	} else if ((val->rdataset != NULL && NEGATIVE(val->rdataset))) {
+	} else if (val->rdataset != NULL && NEGATIVE(val->rdataset)) {
 		/*
 		 * This is a delayed validation of a negative cache entry.
 		 */
@@ -3398,7 +3397,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	result = dns_view_getsecroots(view, &kt);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	val = isc_mem_get(view->mctx, sizeof(*val));
@@ -3446,7 +3445,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	*validatorp = val;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

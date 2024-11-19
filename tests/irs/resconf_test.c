@@ -47,39 +47,39 @@ setup_test(void) {
 
 static isc_result_t
 check_number(unsigned int n, unsigned int expected) {
-	return ((n == expected) ? ISC_R_SUCCESS : ISC_R_BADNUMBER);
+	return (n == expected) ? ISC_R_SUCCESS : ISC_R_BADNUMBER;
 }
 
 static isc_result_t
 check_attempts(irs_resconf_t *resconf) {
-	return (check_number(irs_resconf_getattempts(resconf), 4));
+	return check_number(irs_resconf_getattempts(resconf), 4);
 }
 
 static isc_result_t
 check_timeout(irs_resconf_t *resconf) {
-	return (check_number(irs_resconf_gettimeout(resconf), 1));
+	return check_number(irs_resconf_gettimeout(resconf), 1);
 }
 
 static isc_result_t
 check_ndots(irs_resconf_t *resconf) {
-	return (check_number(irs_resconf_getndots(resconf), 2));
+	return check_number(irs_resconf_getndots(resconf), 2);
 }
 
 static isc_result_t
 check_options(irs_resconf_t *resconf) {
 	if (irs_resconf_getattempts(resconf) != 3) {
-		return (ISC_R_BADNUMBER); /* default value only */
+		return ISC_R_BADNUMBER; /* default value only */
 	}
 
 	if (irs_resconf_getndots(resconf) != 2) {
-		return (ISC_R_BADNUMBER);
+		return ISC_R_BADNUMBER;
 	}
 
 	if (irs_resconf_gettimeout(resconf) != 1) {
-		return (ISC_R_BADNUMBER);
+		return ISC_R_BADNUMBER;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /* test irs_resconf_load() */
@@ -166,7 +166,7 @@ main(void) {
 		cmocka_unit_test(irs_resconf_load_test),
 	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return cmocka_run_group_tests(tests, NULL, NULL);
 }
 
 #else /* HAVE_CMOCKA */
@@ -176,7 +176,7 @@ main(void) {
 int
 main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
-	return (SKIPPED_TEST_EXIT_CODE);
+	return SKIPPED_TEST_EXIT_CODE;
 }
 
 #endif /* if HAVE_CMOCKA */

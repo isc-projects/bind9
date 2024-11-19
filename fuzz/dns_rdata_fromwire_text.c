@@ -56,7 +56,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	isc_lex_setspecials(lex, specials);
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -99,7 +99,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	 * dns_rdata_fromwire() only accepts input up to 2^16-1 octets.
 	 */
 	if (size < 2 || size > 0xffff + 2) {
-		return (0);
+		return 0;
 	}
 
 	/*
@@ -210,5 +210,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	assert(target.used == size);
 	assert(!memcmp(target.base, data, size));
 
-	return (0);
+	return 0;
 }

@@ -49,7 +49,7 @@ setup_test(void **state) {
 
 	dst_lib_init(mctx, NULL);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -58,7 +58,7 @@ teardown_test(void **state) {
 
 	dst_lib_destroy();
 
-	return (0);
+	return 0;
 }
 
 /* Read sig in file at path to buf. Check signature ineffability */
@@ -128,7 +128,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 
 err:
 	isc_mem_put(mctx, data, size + 1);
-	return (result);
+	return result;
 }
 
 static void

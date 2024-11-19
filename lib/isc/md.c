@@ -26,7 +26,7 @@ isc_md_t *
 isc_md_new(void) {
 	isc_md_t *md = EVP_MD_CTX_new();
 	RUNTIME_CHECK(md != NULL);
-	return (md);
+	return md;
 }
 
 void
@@ -43,15 +43,15 @@ isc_md_init(isc_md_t *md, const isc_md_type_t *md_type) {
 	REQUIRE(md != NULL);
 
 	if (md_type == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	if (EVP_DigestInit_ex(md, md_type, NULL) != 1) {
 		ERR_clear_error();
-		return (ISC_R_CRYPTOFAILURE);
+		return ISC_R_CRYPTOFAILURE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -60,10 +60,10 @@ isc_md_reset(isc_md_t *md) {
 
 	if (EVP_MD_CTX_reset(md) != 1) {
 		ERR_clear_error();
-		return (ISC_R_CRYPTOFAILURE);
+		return ISC_R_CRYPTOFAILURE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -71,15 +71,15 @@ isc_md_update(isc_md_t *md, const unsigned char *buf, const size_t len) {
 	REQUIRE(md != NULL);
 
 	if (buf == NULL || len == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (EVP_DigestUpdate(md, buf, len) != 1) {
 		ERR_clear_error();
-		return (ISC_R_CRYPTOFAILURE);
+		return ISC_R_CRYPTOFAILURE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -89,31 +89,31 @@ isc_md_final(isc_md_t *md, unsigned char *digest, unsigned int *digestlen) {
 
 	if (EVP_DigestFinal_ex(md, digest, digestlen) != 1) {
 		ERR_clear_error();
-		return (ISC_R_CRYPTOFAILURE);
+		return ISC_R_CRYPTOFAILURE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 const isc_md_type_t *
 isc_md_get_md_type(isc_md_t *md) {
 	REQUIRE(md != NULL);
 
-	return (EVP_MD_CTX_get0_md(md));
+	return EVP_MD_CTX_get0_md(md);
 }
 
 size_t
 isc_md_get_size(isc_md_t *md) {
 	REQUIRE(md != NULL);
 
-	return (EVP_MD_CTX_size(md));
+	return EVP_MD_CTX_size(md);
 }
 
 size_t
 isc_md_get_block_size(isc_md_t *md) {
 	REQUIRE(md != NULL);
 
-	return (EVP_MD_CTX_block_size(md));
+	return EVP_MD_CTX_block_size(md);
 }
 
 size_t
@@ -122,10 +122,10 @@ isc_md_type_get_size(const isc_md_type_t *md_type) {
 		      "Change ISC_MAX_MD_SIZE to be greater than or equal to "
 		      "EVP_MAX_MD_SIZE");
 	if (md_type != NULL) {
-		return ((size_t)EVP_MD_size(md_type));
+		return (size_t)EVP_MD_size(md_type);
 	}
 
-	return (ISC_MAX_MD_SIZE);
+	return ISC_MAX_MD_SIZE;
 }
 
 size_t
@@ -134,10 +134,10 @@ isc_md_type_get_block_size(const isc_md_type_t *md_type) {
 		      "Change ISC_MAX_MD_SIZE to be greater than or equal to "
 		      "EVP_MAX_MD_SIZE");
 	if (md_type != NULL) {
-		return ((size_t)EVP_MD_block_size(md_type));
+		return (size_t)EVP_MD_block_size(md_type);
 	}
 
-	return (ISC_MAX_MD_SIZE);
+	return ISC_MAX_MD_SIZE;
 }
 
 isc_result_t
@@ -165,7 +165,7 @@ isc_md(const isc_md_type_t *md_type, const unsigned char *buf, const size_t len,
 end:
 	isc_md_free(md);
 
-	return (res);
+	return res;
 }
 
 #ifndef UNIT_TESTING

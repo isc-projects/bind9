@@ -41,30 +41,30 @@ static int
 _setup(void **state) {
 	isc_md_t *md = isc_md_new();
 	if (md == NULL) {
-		return (-1);
+		return -1;
 	}
 	*state = md;
-	return (0);
+	return 0;
 }
 
 static int
 _teardown(void **state) {
 	if (*state == NULL) {
-		return (-1);
+		return -1;
 	}
 	isc_md_free(*state);
-	return (0);
+	return 0;
 }
 
 static int
 _reset(void **state) {
 	if (*state == NULL) {
-		return (-1);
+		return -1;
 	}
 	if (isc_md_reset(*state) != ISC_R_SUCCESS) {
-		return (-1);
+		return -1;
 	}
-	return (0);
+	return 0;
 }
 
 ISC_RUN_TEST_IMPL(isc_md_new) {

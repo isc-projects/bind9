@@ -102,7 +102,7 @@ struct nsec3_chain_fixed {
  */
 static size_t
 chain_length(struct nsec3_chain_fixed *chain) {
-	return (chain->salt_length + 2 * chain->next_length);
+	return chain->salt_length + 2 * chain->next_length;
 }
 
 /*%
@@ -133,7 +133,7 @@ is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	isc_result_t result;
 
 	if (dns_name_equal(name, vctx->origin)) {
-		return (false);
+		return false;
 	}
 
 	dns_rdataset_init(&nsset);
@@ -146,7 +146,7 @@ is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 		dns_rdataset_disassociate(&nsset);
 	}
 
-	return ((result == ISC_R_SUCCESS));
+	return result == ISC_R_SUCCESS;
 }
 
 /*%
@@ -166,7 +166,7 @@ has_dname(const vctx_t *vctx, dns_dbnode_t *node) {
 		dns_rdataset_disassociate(&dnameset);
 	}
 
-	return ((result == ISC_R_SUCCESS));
+	return result == ISC_R_SUCCESS;
 }
 
 static bool
@@ -188,10 +188,10 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 		result = dns_dnssec_verify(name, rdataset, dstkeys[key], false,
 					   0, vctx->mctx, sigrdata, NULL);
 		if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
-			return (true);
+			return true;
 		}
 	}
-	return (false);
+	return false;
 }
 
 static bool
@@ -205,9 +205,9 @@ nsec_bitmap_equal(dns_rdata_nsec_t *nsec, dns_rdata_t *rdata) {
 	if (nsec->len != tmpnsec.len ||
 	    memcmp(nsec->typebits, tmpnsec.typebits, nsec->len) != 0)
 	{
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 static isc_result_t
@@ -294,7 +294,7 @@ done:
 		dns_rdataset_disassociate(&rdataset);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -311,7 +311,7 @@ check_no_rrsig(const vctx_t *vctx, const dns_rdataset_t *rdataset,
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter))
@@ -337,7 +337,7 @@ check_no_rrsig(const vctx_t *vctx, const dns_rdataset_t *rdataset,
 	}
 	dns_rdatasetiter_destroy(&rdsiter);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
@@ -347,52 +347,52 @@ chain_compare(void *arg1, void *arg2) {
 	 * Do each element in turn to get a stable sort.
 	 */
 	if (e1->hash < e2->hash) {
-		return (true);
+		return true;
 	}
 	if (e1->hash > e2->hash) {
-		return (false);
+		return false;
 	}
 	if (e1->iterations < e2->iterations) {
-		return (true);
+		return true;
 	}
 	if (e1->iterations > e2->iterations) {
-		return (false);
+		return false;
 	}
 	if (e1->salt_length < e2->salt_length) {
-		return (true);
+		return true;
 	}
 	if (e1->salt_length > e2->salt_length) {
-		return (false);
+		return false;
 	}
 	if (e1->next_length < e2->next_length) {
-		return (true);
+		return true;
 	}
 	if (e1->next_length > e2->next_length) {
-		return (false);
+		return false;
 	}
 	if (memcmp(e1 + 1, e2 + 1, chain_length(e1)) < 0) {
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 static bool
 chain_equal(const struct nsec3_chain_fixed *e1,
 	    const struct nsec3_chain_fixed *e2, size_t data_length) {
 	if (e1->hash != e2->hash) {
-		return (false);
+		return false;
 	}
 	if (e1->iterations != e2->iterations) {
-		return (false);
+		return false;
 	}
 	if (e1->salt_length != e2->salt_length) {
-		return (false);
+		return false;
 	}
 	if (e1->next_length != e2->next_length) {
-		return (false);
+		return false;
 	}
 
-	return (memcmp(e1 + 1, e2 + 1, data_length) == 0);
+	return memcmp(e1 + 1, e2 + 1, data_length) == 0;
 }
 
 static void
@@ -447,11 +447,11 @@ find_nsec3_match(const dns_rdata_nsec3param_t *nsec3param,
 		    memcmp(nsec3_match->salt, nsec3param->salt,
 			   nsec3param->salt_length) == 0)
 		{
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -472,7 +472,7 @@ match_nsec3(const vctx_t *vctx, const dns_name_t *name,
 		zoneverify_log_error(vctx, "Missing NSEC3 record for %s",
 				     namebuf);
 		*vresult = result;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -486,7 +486,7 @@ match_nsec3(const vctx_t *vctx, const dns_name_t *name,
 				     "mismatch",
 				     namebuf);
 		*vresult = ISC_R_FAILURE;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -517,16 +517,16 @@ match_nsec3(const vctx_t *vctx, const dns_name_t *name,
 					     "same parameter set for %s",
 					     namebuf);
 			*vresult = DNS_R_DUPLICATE;
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 	if (result != ISC_R_NOMORE) {
-		return (result);
+		return result;
 	}
 
 	*vresult = ISC_R_SUCCESS;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
@@ -548,10 +548,10 @@ innsec3params(const dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 		    memcmp(nsec3param.salt, nsec3->salt, nsec3->salt_length) ==
 			    0)
 		{
-			return (true);
+			return true;
 		}
 	}
-	return (false);
+	return false;
 }
 
 static isc_result_t
@@ -566,7 +566,7 @@ record_found(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 
 	if (nsec3paramset == NULL || !dns_rdataset_isassociated(nsec3paramset))
 	{
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	dns_rdataset_init(&rdataset);
@@ -574,7 +574,7 @@ record_found(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 				     dns_rdatatype_nsec3, 0, 0, &rdataset,
 				     NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	dns_name_getlabel(name, 0, &hashlabel);
@@ -614,7 +614,7 @@ record_found(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 
 cleanup:
 	dns_rdataset_disassociate(&rdataset);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -638,7 +638,7 @@ isoptout(const vctx_t *vctx, const dns_rdata_nsec3param_t *nsec3param,
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_nsec3_hashname(): %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	dns_rdataset_init(&rdataset);
@@ -676,7 +676,7 @@ done:
 		dns_db_detachnode(vctx->db, &node);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -700,23 +700,23 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (nsec3param.flags != 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (!dns_nsec3_supportedhash(nsec3param.hash)) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (nsec3param.iterations > DNS_NSEC3_MAXITERATIONS) {
 		result = DNS_R_NSEC3ITERRANGE;
 		zoneverify_log_error(vctx, "verifynsec3: %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	result = isoptout(vctx, &nsec3param, &optout);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	dns_fixedname_init(&fixed);
@@ -726,7 +726,7 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_nsec3_hashname(): %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	/*
@@ -774,7 +774,7 @@ done:
 		dns_db_detachnode(vctx->db, &node);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -793,7 +793,7 @@ verifynsec3s(const vctx_t *vctx, const dns_name_t *name,
 		result = verifynsec3(vctx, name, &rdata, delegation, empty,
 				     types, maxtype, vresult);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		if (*vresult != ISC_R_SUCCESS) {
 			break;
@@ -802,7 +802,7 @@ verifynsec3s(const vctx_t *vctx, const dns_name_t *name,
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -821,7 +821,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter))
@@ -905,7 +905,7 @@ done:
 	}
 	dns_rdatasetiter_destroy(&rdsiter);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -925,7 +925,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	result = dns_rdatasetiter_first(rdsiter);
@@ -948,7 +948,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 			if (result != ISC_R_SUCCESS) {
 				dns_rdataset_disassociate(&rdataset);
 				dns_rdatasetiter_destroy(&rdsiter);
-				return (result);
+				return result;
 			}
 			dns_nsec_setbit(types, rdataset.type, 1);
 			if (rdataset.type > maxtype) {
@@ -965,7 +965,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 			if (result != ISC_R_SUCCESS) {
 				dns_rdataset_disassociate(&rdataset);
 				dns_rdatasetiter_destroy(&rdsiter);
-				return (result);
+				return result;
 			}
 		} else {
 			dns_nsec_setbit(types, rdataset.type, 1);
@@ -980,11 +980,11 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	if (result != ISC_R_NOMORE) {
 		zoneverify_log_error(vctx, "rdataset iteration failed: %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	if (vresult == NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	*vresult = ISC_R_SUCCESS;
@@ -992,7 +992,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	if (nsecset != NULL && dns_rdataset_isassociated(nsecset)) {
 		result = verifynsec(vctx, name, node, nextname, &tvresult);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		*vresult = tvresult;
 	}
@@ -1001,14 +1001,14 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 		result = verifynsec3s(vctx, name, nsec3paramset, delegation,
 				      false, types, maxtype, &tvresult);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		if (*vresult == ISC_R_SUCCESS) {
 			*vresult = tvresult;
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1020,12 +1020,12 @@ is_empty(const vctx_t *vctx, dns_dbnode_t *node) {
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 	result = dns_rdatasetiter_first(rdsiter);
 	dns_rdatasetiter_destroy(&rdsiter);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1049,7 +1049,7 @@ check_no_nsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node) {
 		dns_rdataset_disassociate(&rdataset);
 	}
 
-	return (nsec_exists ? ISC_R_FAILURE : ISC_R_SUCCESS);
+	return nsec_exists ? ISC_R_FAILURE : ISC_R_SUCCESS;
 }
 
 static void
@@ -1081,7 +1081,7 @@ _checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 	d2 += e->salt_length;
 
 	if (memcmp(d1, d2, first->next_length) == 0) {
-		return (true);
+		return true;
 	}
 
 	sr.base = UNCONST(d1 - first->next_length);
@@ -1105,7 +1105,7 @@ _checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 	zoneverify_log_error(vctx, "Found: %.*s",
 			     (int)isc_buffer_usedlength(&b), buf);
 
-	return (false);
+	return false;
 }
 
 static bool
@@ -1118,7 +1118,7 @@ checknext(isc_mem_t *mctx, const vctx_t *vctx,
 		free_element(mctx, prev);
 	}
 
-	return (result);
+	return result;
 }
 
 static bool
@@ -1130,7 +1130,7 @@ checklast(isc_mem_t *mctx, const vctx_t *vctx, struct nsec3_chain_fixed *first,
 	}
 	free_element(mctx, first);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1226,7 +1226,7 @@ verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
 		}
 	} while (f != NULL);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1243,7 +1243,7 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 
 	reln = dns_name_fullcompare(prevname, name, &order, &labels);
 	if (order >= 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	nlabels = dns_name_countlabels(name);
@@ -1262,7 +1262,7 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 					vctx, &suffix, nsec3paramset,
 					isdelegation, true, NULL, 0, &tvresult);
 				if (result != ISC_R_SUCCESS) {
-					return (result);
+					return result;
 				}
 				if (*vresult == ISC_R_SUCCESS) {
 					*vresult = tvresult;
@@ -1271,7 +1271,7 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -1347,7 +1347,7 @@ check_apex_rrsets(vctx_t *vctx) {
 		zoneverify_log_error(vctx,
 				     "failed to find the zone's origin: %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	result = dns_db_findrdataset(vctx->db, node, vctx->ver,
@@ -1428,7 +1428,7 @@ check_apex_rrsets(vctx_t *vctx) {
 done:
 	dns_db_detachnode(vctx->db, &node);
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -1605,7 +1605,7 @@ check_dnskey(vctx_t *vctx) {
 					zoneverify_log_error(
 						vctx, "dns_rdata_totext: %s",
 						isc_result_totext(result));
-					return (ISC_R_FAILURE);
+					return ISC_R_FAILURE;
 				}
 				zoneverify_log_error(
 					vctx,
@@ -1614,7 +1614,7 @@ check_dnskey(vctx_t *vctx) {
 					namebuf,
 					(int)isc_buffer_usedlength(&buf),
 					buffer);
-				return (ISC_R_FAILURE);
+				return ISC_R_FAILURE;
 			}
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
 			    vctx->revoked_ksk[dnskey.algorithm] !=
@@ -1634,7 +1634,7 @@ check_dnskey(vctx_t *vctx) {
 		dns_rdata_reset(&rdata);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -1869,7 +1869,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_createiterator(): %s",
 				     isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	for (result = dns_dbiterator_first(dbiter); result == ISC_R_SUCCESS;
@@ -1908,7 +1908,7 @@ done:
 		dns_dbiterator_destroy(&dbiter);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1933,7 +1933,7 @@ check_bad_algorithms(const vctx_t *vctx, void (*report)(const char *, ...)) {
 		report(".");
 	}
 
-	return (first ? ISC_R_SUCCESS : ISC_R_FAILURE);
+	return first ? ISC_R_SUCCESS : ISC_R_FAILURE;
 }
 
 static void
@@ -2035,5 +2035,5 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 done:
 	vctx_destroy(&vctx);
 
-	return (result);
+	return result;
 }

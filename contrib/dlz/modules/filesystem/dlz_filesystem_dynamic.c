@@ -89,15 +89,15 @@ is_safe(const char *input) {
 		if (input[i] == '.') {
 			/* '.' is not allowed as first char */
 			if (i == 0) {
-				return (false);
+				return false;
 			}
 			/* '..', two dots together is not allowed. */
 			if (input[i - 1] == '.') {
-				return (false);
+				return false;
 			}
 			/* '.' is not allowed as last char */
 			if (i == len - 1) {
-				return (false);
+				return false;
 			}
 			/* only 1 dot in ok location, continue at next char */
 			continue;
@@ -140,10 +140,10 @@ is_safe(const char *input) {
 		 * if we reach this point we have encountered a
 		 * disallowed char!
 		 */
-		return (false);
+		return false;
 	}
 	/* everything ok. */
-	return (true);
+	return true;
 }
 
 static isc_result_t
@@ -154,7 +154,7 @@ create_path_helper(char *out, const char *in, config_data_t *cd) {
 
 	tmpString = strdup(in);
 	if (tmpString == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	/*
@@ -204,7 +204,7 @@ create_path_helper(char *out, const char *in, config_data_t *cd) {
 	}
 
 	free(tmpString);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -229,17 +229,17 @@ create_path(const char *zone, const char *host, const char *client,
 
 	/* if the requested zone is "unsafe", return error */
 	if (!isroot && !is_safe(zone)) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* if host was passed, verify that it is safe */
 	if (host != NULL && !is_safe(host)) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* if client was passed, verify that it is safe */
 	if (client != NULL && !is_safe(client)) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* Determine how much memory the split up string will require */
@@ -338,7 +338,7 @@ cleanup_mem:
 		free(tmpPath);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -477,7 +477,7 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 				if (dir_list != NULL) {
 					direntry = malloc(sizeof(dir_entry_t));
 					if (direntry == NULL) {
-						return (ISC_R_NOMEMORY);
+						return ISC_R_NOMEMORY;
 					}
 					strcpy(direntry->dirpath, tmp);
 					DLZ_LINK_INIT(direntry, link);
@@ -507,7 +507,7 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 				"Filesystem driver: "
 				"%s could not be parsed properly",
 				tmp);
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 
 		/* replace separator char with NULL to split string */
@@ -521,7 +521,7 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 				"Filesystem driver: "
 				"%s could not be parsed properly",
 				tmp);
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 
 		/* replace separator char with NULL to split string */
@@ -557,11 +557,11 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 
 		/* if error, return error right away */
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	} /* end of while loop */
 
-	return (result);
+	return result;
 }
 
 /*
@@ -578,7 +578,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	cd = (config_data_t *)dbdata;
 
 	if (create_path(name, NULL, client, cd, &path) != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (stat(path, &sb) != 0) {
@@ -595,7 +595,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 
 complete_AXFR:
 	free(path);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -706,7 +706,7 @@ complete_allnds:
 		free(basepath);
 	}
 
-	return (result);
+	return result;
 }
 
 #if DLZ_DLOPEN_VERSION < 3
@@ -730,7 +730,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 #endif /* if DLZ_DLOPEN_VERSION >= 3 */
 
 	if (create_path(name, NULL, NULL, cd, &path) != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	cd->log(ISC_LOG_DEBUG(1),
@@ -751,7 +751,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 complete_FZ:
 
 	free(path);
-	return (result);
+	return result;
 }
 
 #if DLZ_DLOPEN_VERSION == 1
@@ -788,7 +788,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	/* remove path separator at end of path so stat works properly */
@@ -828,7 +828,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 complete_lkup:
 
 	free(path);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -931,7 +931,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	*dbdata = cd;
 
 	/* return success */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 	/* handle no memory error */
 no_mem:
@@ -950,7 +950,7 @@ free_cd:
 	}
 
 	/* return error */
-	return (result);
+	return result;
 }
 
 void
@@ -985,7 +985,7 @@ dlz_destroy(void *dbdata) {
 int
 dlz_version(unsigned int *flags) {
 	UNUSED(flags);
-	return (DLZ_DLOPEN_VERSION);
+	return DLZ_DLOPEN_VERSION;
 }
 
 /*

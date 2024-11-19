@@ -116,7 +116,7 @@ dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list) {
 
 	*list = l;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -222,7 +222,7 @@ dns_peerlist_peerbyaddr(dns_peerlist_t *servers, const isc_netaddr_t *addr,
 		res = ISC_R_NOTFOUND;
 	}
 
-	return (res);
+	return res;
 }
 
 isc_result_t
@@ -233,7 +233,7 @@ dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval) {
 
 	dns_peer_attach(p, retval);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -252,7 +252,7 @@ dns_peer_new(isc_mem_t *mem, const isc_netaddr_t *addr, dns_peer_t **peerptr) {
 		UNREACHABLE();
 	}
 
-	return (dns_peer_newprefix(mem, addr, prefixlen, peerptr));
+	return dns_peer_newprefix(mem, addr, prefixlen, peerptr);
 }
 
 isc_result_t
@@ -278,7 +278,7 @@ dns_peer_newprefix(isc_mem_t *mem, const isc_netaddr_t *addr,
 
 	*peerptr = peer;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -467,7 +467,7 @@ dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval) {
 		*retval = peer->key;
 	}
 
-	return (peer->key == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	return peer->key == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -483,7 +483,7 @@ dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval) {
 	peer->key = *keyval;
 	*keyval = NULL;
 
-	return (exists ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	return exists ? ISC_R_EXISTS : ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -499,7 +499,7 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 	result = dns_name_fromtext(dns_fixedname_name(&fname), &b, dns_rootname,
 				   0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	name = isc_mem_get(peer->mem, sizeof(dns_name_t));
@@ -512,5 +512,5 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 		isc_mem_put(peer->mem, name, sizeof(dns_name_t));
 	}
 
-	return (result);
+	return result;
 }

@@ -241,7 +241,7 @@ mech_oid_set_create(OM_uint32 *minor, gss_OID_set *mech_oid_set) {
 
 	gret = gss_create_empty_oid_set(minor, mech_oid_set);
 	if (gret != GSS_S_COMPLETE) {
-		return (gret);
+		return gret;
 	}
 
 	gret = gss_add_oid_set_member(minor, GSS_KRB5_MECHANISM, mech_oid_set);
@@ -258,7 +258,7 @@ mech_oid_set_create(OM_uint32 *minor, gss_OID_set *mech_oid_set) {
 release:
 	REQUIRE(gss_release_oid_set(minor, mech_oid_set) == GSS_S_COMPLETE);
 
-	return (gret);
+	return gret;
 }
 
 static void
@@ -303,7 +303,7 @@ dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 			gss_log(3, "failed gss_import_name: %s",
 				gss_error_tostring(gret, minor, buf,
 						   sizeof(buf)));
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 	} else {
 		gname = NULL;
@@ -328,7 +328,7 @@ dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 	if (gret != GSS_S_COMPLETE) {
 		gss_log(3, "failed to create OID_set: %s",
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	gret = gss_acquire_cred(&minor, gname, GSS_C_INDEFINITE, mech_oid_set,
@@ -365,7 +365,7 @@ cleanup:
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 bool
@@ -397,13 +397,13 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	 */
 	rname = strchr(sbuf, '@');
 	if (rname == NULL) {
-		return (false);
+		return false;
 	}
 	*rname = '\0';
 	rname++;
 
 	if (strcmp(rname, rbuf) != 0) {
-		return (false);
+		return false;
 	}
 
 	/*
@@ -416,12 +416,12 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	 */
 	sname = strchr(sbuf, '/');
 	if (sname == NULL) {
-		return (false);
+		return false;
 	}
 	*sname = '\0';
 	sname++;
 	if (strcmp(sbuf, "host") != 0) {
-		return (false);
+		return false;
 	}
 
 	/*
@@ -436,15 +436,15 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 		result = dns_name_fromstring(machine, sname, dns_rootname, 0,
 					     NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (false);
+			return false;
 		}
 		if (subdomain) {
-			return (dns_name_issubdomain(name, machine));
+			return dns_name_issubdomain(name, machine);
 		}
-		return (dns_name_equal(name, machine));
+		return dns_name_equal(name, machine);
 	}
 
-	return (true);
+	return true;
 }
 
 bool
@@ -476,18 +476,18 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	 */
 	rname = strchr(sbuf, '@');
 	if (rname == NULL) {
-		return (false);
+		return false;
 	}
 	sname = strchr(sbuf, '$');
 	if (sname == NULL) {
-		return (false);
+		return false;
 	}
 
 	/*
 	 * Verify that the $ and @ follow one another.
 	 */
 	if (rname - sname != 1) {
-		return (false);
+		return false;
 	}
 
 	/*
@@ -503,7 +503,7 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	*sname = '\0';
 
 	if (strcmp(rname, rbuf) != 0) {
-		return (false);
+		return false;
 	}
 
 	/*
@@ -517,15 +517,15 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 		machine = dns_fixedname_initname(&fixed);
 		result = dns_name_fromstring(machine, sbuf, realm, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (false);
+			return false;
 		}
 		if (subdomain) {
-			return (dns_name_issubdomain(name, machine));
+			return dns_name_issubdomain(name, machine);
 		}
-		return (dns_name_equal(name, machine));
+		return dns_name_equal(name, machine);
 	}
 
-	return (true);
+	return true;
 }
 
 isc_result_t
@@ -543,7 +543,7 @@ dst_gssapi_releasecred(dns_gss_cred_id_t *cred) {
 	}
 	*cred = NULL;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -652,7 +652,7 @@ out:
 		(void)gss_release_buffer(&minor, &gouttoken);
 	}
 	(void)gss_release_name(&minor, &gname);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -689,7 +689,7 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 				"gsskrb5_register_acceptor_identity(%s): %s",
 				gssapi_keytab,
 				gss_error_tostring(gret, 0, buf, sizeof(buf)));
-			return (DNS_R_INVALIDTKEY);
+			return DNS_R_INVALIDTKEY;
 		}
 #else
 		/*
@@ -704,11 +704,11 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 			size = strlen(gssapi_keytab) + 13;
 			kt = malloc(size);
 			if (kt == NULL) {
-				return (ISC_R_NOMEMORY);
+				return ISC_R_NOMEMORY;
 			}
 			snprintf(kt, size, "KRB5_KTNAME=%s", gssapi_keytab);
 			if (putenv(kt) != 0) {
-				return (ISC_R_NOMEMORY);
+				return ISC_R_NOMEMORY;
 			}
 		}
 #endif
@@ -745,7 +745,7 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 		if (gouttoken.length > 0U) {
 			(void)gss_release_buffer(&minor, &gouttoken);
 		}
-		return (result);
+		return result;
 	}
 
 	if (gouttoken.length > 0U) {
@@ -811,7 +811,7 @@ out:
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -831,7 +831,7 @@ dst_gssapi_deletectx(isc_mem_t *mctx, dns_gss_ctx_id_t *gssctx) {
 		gss_log(3, "Failure deleting security context %s",
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 char *
@@ -859,7 +859,7 @@ gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
 	if (msg_minor.length != 0U) {
 		(void)gss_release_buffer(&minor_stat, &msg_minor);
 	}
-	return (buf);
+	return buf;
 }
 
 #else
@@ -873,7 +873,7 @@ dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 	UNUSED(initiate);
 	UNUSED(cred);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 bool
@@ -885,7 +885,7 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	UNUSED(realm);
 	UNUSED(subdomain);
 
-	return (false);
+	return false;
 }
 
 bool
@@ -897,14 +897,14 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	UNUSED(realm);
 	UNUSED(subdomain);
 
-	return (false);
+	return false;
 }
 
 isc_result_t
 dst_gssapi_releasecred(dns_gss_cred_id_t *cred) {
 	UNUSED(cred);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -918,7 +918,7 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 	UNUSED(mctx);
 	UNUSED(err_message);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -934,14 +934,14 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 	UNUSED(principal);
 	UNUSED(mctx);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
 dst_gssapi_deletectx(isc_mem_t *mctx, dns_gss_ctx_id_t *gssctx) {
 	UNUSED(mctx);
 	UNUSED(gssctx);
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 char *
@@ -949,7 +949,7 @@ gss_error_tostring(uint32_t major, uint32_t minor, char *buf, size_t buflen) {
 	snprintf(buf, buflen, "GSSAPI error: Major = %u, Minor = %u.", major,
 		 minor);
 
-	return (buf);
+	return buf;
 }
 
 #endif

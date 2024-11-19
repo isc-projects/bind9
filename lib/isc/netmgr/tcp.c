@@ -46,10 +46,10 @@ can_log_tcp_quota(void) {
 	isc_stdtime_t now = isc_stdtime_now();
 	last = atomic_exchange_relaxed(&last_tcpquota_log, now);
 	if (now != last) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 static isc_result_t
@@ -105,7 +105,7 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	if (r != 0) {
 		isc__nm_closesocket(sock->fd);
 		isc__nm_incstats(sock, STATID_OPENFAIL);
-		return (isc_uverr2result(r));
+		return isc_uverr2result(r);
 	}
 	isc__nm_incstats(sock, STATID_OPEN);
 
@@ -113,7 +113,7 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		r = uv_tcp_bind(&sock->uv_handle.tcp, &req->local.type.sa, 0);
 		if (r != 0) {
 			isc__nm_incstats(sock, STATID_BINDFAIL);
-			return (isc_uverr2result(r));
+			return isc_uverr2result(r);
 		}
 	}
 
@@ -125,14 +125,14 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			   &req->peer.type.sa, tcp_connect_cb);
 	if (r != 0) {
 		isc__nm_incstats(sock, STATID_CONNECTFAIL);
-		return (isc_uverr2result(r));
+		return isc_uverr2result(r);
 	}
 
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer,
 			   &req->uv_req.connect);
 	isc__nmsocket_timer_start(sock);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -297,7 +297,7 @@ isc__nm_tcp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
-	return (sock);
+	return sock;
 }
 
 static void
@@ -508,13 +508,13 @@ isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		isc__nm_tcp_stoplistening(sock);
 		isc_nmsocket_close(&sock);
 
-		return (result);
+		return result;
 	}
 
 	sock->active = true;
 
 	*sockp = sock;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -971,7 +971,7 @@ accept_connection(isc_nmsocket_t *csock) {
 	 */
 	isc__nmsocket_detach(&csock);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	csock->active = false;
@@ -988,7 +988,7 @@ failure:
 
 	isc__nmsocket_detach(&csock);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -1118,7 +1118,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	size_t nbufs = 1;
 
 	if (isc__nmsocket_closing(sock)) {
-		return (ISC_R_CANCELED);
+		return ISC_R_CANCELED;
 	}
 
 	/* Check if we are not trying to send a DNS message */
@@ -1132,12 +1132,12 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			/* Wrote everything */
 			isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
 			tcp_maybe_restart_reading(sock);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		} else if (r > 0) {
 			bufs[0].base += (size_t)r;
 			bufs[0].len -= (size_t)r;
 		} else if (!(r == UV_ENOSYS || r == UV_EAGAIN)) {
-			return (isc_uverr2result(r));
+			return isc_uverr2result(r);
 		}
 	} else {
 		nbufs = 2;
@@ -1152,7 +1152,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			/* Wrote everything */
 			isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
 			tcp_maybe_restart_reading(sock);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		} else if (r == 1) {
 			/* Partial write of DNSMSG length */
 			bufs[0].base = req->tcplen + 1;
@@ -1163,7 +1163,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			bufs[0].base = req->uvbuf.base + (r - 2);
 			bufs[0].len = req->uvbuf.len - (r - 2);
 		} else if (!(r == UV_ENOSYS || r == UV_EAGAIN)) {
-			return (isc_uverr2result(r));
+			return isc_uverr2result(r);
 		}
 	}
 
@@ -1177,7 +1177,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	r = uv_write(&req->uv_req.write, &sock->uv_handle.stream, bufs, nbufs,
 		     tcp_send_cb);
 	if (r < 0) {
-		return (isc_uverr2result(r));
+		return isc_uverr2result(r);
 	}
 
 	isc_nm_timer_create(req->handle, isc__nmsocket_writetimeout_cb, req,
@@ -1186,7 +1186,7 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		isc_nm_timer_start(req->timer, sock->write_timeout);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void

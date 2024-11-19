@@ -304,7 +304,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 	if (ntabs > 0) {
 		isc_buffer_availableregion(target, &r);
 		if (r.length < (unsigned int)ntabs) {
-			return (ISC_R_NOSPACE);
+			return ISC_R_NOSPACE;
 		}
 		p = r.base;
 
@@ -327,7 +327,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 
 	isc_buffer_availableregion(target, &r);
 	if (r.length < (unsigned int)nspaces) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	p = r.base;
 
@@ -344,7 +344,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 	isc_buffer_add(target, nspaces);
 
 	*current = to;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -380,7 +380,7 @@ totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
 
 		isc_buffer_availableregion(&buf, &r);
 		if (r.length < 1) {
-			return (DNS_R_TEXTTOOLONG);
+			return DNS_R_TEXTTOOLONG;
 		}
 		r.base[0] = '\n';
 		isc_buffer_add(&buf, 1);
@@ -391,7 +391,7 @@ totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
 			unsigned int i, len = strlen(indentctx->string);
 			for (i = 0; i < indentctx->count; i++) {
 				if (isc_buffer_availablelength(&buf) < len) {
-					return (DNS_R_TEXTTOOLONG);
+					return DNS_R_TEXTTOOLONG;
 				}
 				isc_buffer_putstr(&buf, indentctx->string);
 			}
@@ -400,7 +400,7 @@ totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
 		if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0) {
 			isc_buffer_availableregion(&buf, &r);
 			if (r.length < 1) {
-				return (DNS_R_TEXTTOOLONG);
+				return DNS_R_TEXTTOOLONG;
 			}
 			r.base[0] = ';';
 			isc_buffer_add(&buf, 1);
@@ -416,15 +416,15 @@ totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
 		 * so it won't help.  Use DNS_R_TEXTTOOLONG as a substitute.
 		 */
 		if (result == ISC_R_NOSPACE) {
-			return (DNS_R_TEXTTOOLONG);
+			return DNS_R_TEXTTOOLONG;
 		}
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 
 		isc_buffer_availableregion(&buf, &r);
 		if (r.length < 1) {
-			return (DNS_R_TEXTTOOLONG);
+			return DNS_R_TEXTTOOLONG;
 		}
 		r.base[0] = '\0';
 		isc_buffer_add(&buf, 1);
@@ -440,7 +440,7 @@ totext_ctx_init(const dns_master_style_t *style, const dns_indent_t *indentctx,
 	ctx->serve_stale_ttl = 0;
 	ctx->indent = *indentctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #define INDENT_TO(col)                                                        \
@@ -464,12 +464,12 @@ str_totext(const char *source, isc_buffer_t *target) {
 	l = strlen(source);
 
 	if (l > region.length) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	memmove(region.base, source, l);
 	isc_buffer_add(target, l);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -480,7 +480,7 @@ yaml_stringify(isc_buffer_t *target, char *start) {
 
 	isc_buffer_availableregion(target, &r);
 	if (r.length < 1) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/* NUL terminate buffer for string operations below */
@@ -491,7 +491,7 @@ yaml_stringify(isc_buffer_t *target, char *start) {
 		isc_buffer_availableregion(target, &r);
 		/* Space to shift by 1 with trailing NUL? */
 		if (r.length < 2) {
-			return (ISC_R_NOSPACE);
+			return ISC_R_NOSPACE;
 		}
 		memmove(tmp + 1, tmp,
 			(char *)isc_buffer_used(target) - tmp + 1);
@@ -500,7 +500,7 @@ yaml_stringify(isc_buffer_t *target, char *start) {
 		s = tmp + 2;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -572,7 +572,7 @@ cleanup:
 		dns_rdataset_disassociate(&rds);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -669,7 +669,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 				result = dns_ttl_totext(rdataset->ttl, false,
 							false, target);
 				if (result != ISC_R_SUCCESS) {
-					return (result);
+					return result;
 				}
 				column += target->used - length;
 			} else {
@@ -678,7 +678,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 				INSIST(length <= sizeof(ttlbuf));
 				isc_buffer_availableregion(target, &r);
 				if (r.length < length) {
-					return (ISC_R_NOSPACE);
+					return ISC_R_NOSPACE;
 				}
 				memmove(r.base, ttlbuf, length);
 				isc_buffer_add(target, length);
@@ -715,7 +715,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 					rdataset->rdclass, target);
 			}
 			if (result != ISC_R_SUCCESS) {
-				return (result);
+				return result;
 			}
 			column += (target->used - class_start);
 		}
@@ -742,7 +742,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 				if (isc_buffer_availablelength(target) <
 				    (sizeof(KEYDATA) - 1))
 				{
-					return (ISC_R_NOSPACE);
+					return ISC_R_NOSPACE;
 				}
 				isc_buffer_putstr(target, KEYDATA);
 				break;
@@ -758,7 +758,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 				result = dns_rdatatype_totext(type, target);
 			}
 			if (result != ISC_R_SUCCESS) {
-				return (result);
+				return result;
 			}
 		}
 		column += (target->used - type_start);
@@ -804,7 +804,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 
 	if (result != ISC_R_NOMORE) {
-		return (result);
+		return result;
 	}
 
 	/*
@@ -818,7 +818,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	ctx->current_ttl = current_ttl;
 	ctx->current_ttl_valid = current_ttl_valid;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -866,7 +866,7 @@ question_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 						       target);
 		}
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		column += (target->used - class_start);
 	}
@@ -883,7 +883,7 @@ question_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			result = dns_rdatatype_totext(rdataset->type, target);
 		}
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		column += (target->used - type_start);
 	}
@@ -894,7 +894,7 @@ question_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 	RETERR(str_totext("\n", target));
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -905,7 +905,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	result = totext_ctx_init(&dns_master_style_debug, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR("could not set master file style");
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	/*
@@ -919,11 +919,11 @@ dns_rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 
 	if (question) {
-		return (question_totext(rdataset, owner_name, &ctx,
-					omit_final_dot, target));
+		return question_totext(rdataset, owner_name, &ctx,
+				       omit_final_dot, target);
 	} else {
-		return (rdataset_totext(rdataset, owner_name, &ctx,
-					omit_final_dot, target));
+		return rdataset_totext(rdataset, owner_name, &ctx,
+				       omit_final_dot, target);
 	}
 }
 
@@ -937,10 +937,10 @@ dns_master_rdatasettotext(const dns_name_t *owner_name,
 	result = totext_ctx_init(style, indent, &ctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR("could not set master file style");
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
-	return (rdataset_totext(rdataset, owner_name, &ctx, false, target));
+	return rdataset_totext(rdataset, owner_name, &ctx, false, target);
 }
 
 isc_result_t
@@ -953,10 +953,10 @@ dns_master_questiontotext(const dns_name_t *owner_name,
 	result = totext_ctx_init(style, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR("could not set master file style");
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
-	return (question_totext(rdataset, owner_name, &ctx, false, target));
+	return question_totext(rdataset, owner_name, &ctx, false, target);
 }
 
 /*
@@ -1018,7 +1018,7 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name, dns_rdataset_t *rdataset,
 		isc_buffer_init(buffer, newmem, newlength);
 	}
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	/*
@@ -1030,10 +1030,10 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name, dns_rdataset_t *rdataset,
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR("master file write failed: %s",
 				 isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -1067,13 +1067,13 @@ dump_order(const dns_rdataset_t *rds) {
 		t += 2;
 		break;
 	}
-	return ((t << 1) + sig);
+	return (t << 1) + sig;
 }
 
 static int
 dump_order_compare(const void *a, const void *b) {
-	return (dump_order(*((const dns_rdataset_t *const *)a)) -
-		dump_order(*((const dns_rdataset_t *const *)b)));
+	return dump_order(*((const dns_rdataset_t *const *)a)) -
+	       dump_order(*((const dns_rdataset_t *const *)b));
 }
 
 /*
@@ -1198,7 +1198,7 @@ again:
 	}
 
 	if (dumpresult != ISC_R_SUCCESS) {
-		return (dumpresult);
+		return dumpresult;
 	}
 
 	/*
@@ -1213,7 +1213,7 @@ again:
 		itresult = ISC_R_SUCCESS;
 	}
 
-	return (itresult);
+	return itresult;
 }
 
 /*
@@ -1295,7 +1295,7 @@ restart:
 	} while (result == ISC_R_SUCCESS);
 
 	if (result != ISC_R_NOMORE) {
-		return (result);
+		return result;
 	}
 
 	/*
@@ -1317,10 +1317,10 @@ restart:
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR("raw master file write failed: %s",
 				 isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1352,7 +1352,7 @@ dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 		}
 		dns_rdataset_disassociate(&rdataset);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -1360,7 +1360,7 @@ dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 		result = ISC_R_SUCCESS;
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -1423,13 +1423,13 @@ dns_dumpctx_detach(dns_dumpctx_t **dctxp) {
 dns_dbversion_t *
 dns_dumpctx_version(dns_dumpctx_t *dctx) {
 	REQUIRE(DNS_DCTX_VALID(dctx));
-	return (dctx->version);
+	return dctx->version;
 }
 
 dns_db_t *
 dns_dumpctx_db(dns_dumpctx_t *dctx) {
 	REQUIRE(DNS_DCTX_VALID(dctx));
-	return (dctx->db);
+	return dctx->db;
 }
 
 void
@@ -1477,7 +1477,7 @@ flushandsync(FILE *f, isc_result_t result, const char *temp) {
 				      isc_result_totext(result));
 		}
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1513,7 +1513,7 @@ closeandrename(FILE *f, isc_result_t result, const char *temp,
 			      "dumping master file: rename: %s: %s", file,
 			      isc_result_totext(result));
 	}
-	return (result);
+	return result;
 }
 
 /*
@@ -1626,7 +1626,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	isc_refcount_init(&dctx->references, 1);
 	dctx->magic = DNS_DCTX_MAGIC;
 	*dctxp = dctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (dctx->dbiter != NULL) {
@@ -1636,7 +1636,7 @@ cleanup:
 		dns_db_detach(&dctx->db);
 	}
 	isc_mem_put(mctx, dctx, sizeof(*dctx));
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1707,7 +1707,7 @@ writeheader(dns_dumpctx_t *dctx) {
 	}
 
 	isc_mem_put(dctx->mctx, buffer.base, buffer.length);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1783,7 +1783,7 @@ dumptostream(dns_dumpctx_t *dctx) {
 cleanup:
 	RUNTIME_CHECK(dns_dbiterator_pause(dctx->dbiter) == ISC_R_SUCCESS);
 	isc_mem_put(dctx->mctx, buffer.base, buffer.length);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1802,7 +1802,7 @@ dns_master_dumptostreamasync(isc_mem_t *mctx, dns_db_t *db,
 	result = dumpctx_create(mctx, db, version, style, f, &dctx,
 				dns_masterformat_text, NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	dctx->done = done;
 	dctx->done_arg = done_arg;
@@ -1810,7 +1810,7 @@ dns_master_dumptostreamasync(isc_mem_t *mctx, dns_db_t *db,
 	dns_dumpctx_attach(dctx, dctxp);
 	isc_work_enqueue(loop, master_dump_cb, master_dump_done_cb, dctx);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1824,7 +1824,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	result = dumpctx_create(mctx, db, version, style, f, &dctx, format,
 				header);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dumptostream(dctx);
@@ -1832,7 +1832,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dns_dumpctx_detach(&dctx);
 
 	result = flushandsync(f, result, NULL);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1865,11 +1865,11 @@ opentmp(isc_mem_t *mctx, const char *file, char **tempp, FILE **fp) {
 
 	*tempp = tempname;
 	*fp = f;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	isc_mem_free(mctx, tempname);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1905,7 +1905,7 @@ dns_master_dumpasync(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dns_dumpctx_attach(dctx, dctxp);
 	isc_work_enqueue(loop, master_dump_cb, master_dump_done_cb, dctx);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_tempname:
 	(void)isc_stdio_close(f);
@@ -1915,7 +1915,7 @@ cleanup_tempname:
 cleanup_file:
 	isc_mem_free(mctx, file);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1929,7 +1929,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	result = opentmp(mctx, filename, &tempname, &f);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dumpctx_create(mctx, db, version, style, f, &dctx, format,
@@ -1946,13 +1946,13 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 cleanup:
 	isc_mem_free(mctx, tempname);
-	return (result);
+	return result;
 }
 
 dns_masterstyle_flags_t
 dns_master_styleflags(const dns_master_style_t *style) {
 	REQUIRE(style != NULL);
-	return (style->flags);
+	return style->flags;
 }
 
 isc_result_t
@@ -1976,7 +1976,7 @@ dns_master_stylecreate(dns_master_style_t **stylep,
 	style->tab_width = tab_width;
 	style->split_width = split_width;
 	*stylep = style;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

@@ -41,15 +41,15 @@ uint8_t
 qp_test_bittoascii(dns_qpshift_t bit) {
 	uint8_t byte = dns_qp_byte_for_bit[bit];
 	if (bit == SHIFT_NOBYTE) {
-		return ('.');
+		return '.';
 	} else if (qp_common_character(byte)) {
-		return (byte);
+		return byte;
 	} else if (byte < '-') {
-		return ('#');
+		return '#';
 	} else if (byte < '_') {
-		return ('@');
+		return '@';
 	} else {
-		return ('~' - SHIFT_OFFSET + bit);
+		return '~' - SHIFT_OFFSET + bit;
 	}
 }
 
@@ -59,7 +59,7 @@ qp_test_keytoascii(dns_qpkey_t key, size_t len) {
 		key[offset] = qp_test_bittoascii(key[offset]);
 	}
 	key[len] = '\0';
-	return ((const char *)key);
+	return (const char *)key;
 }
 
 /***********************************************************************
@@ -70,7 +70,7 @@ qp_test_keytoascii(dns_qpkey_t key, size_t len) {
 static size_t
 getheight(dns_qp_t *qp, dns_qpnode_t *n) {
 	if (node_tag(n) == LEAF_TAG) {
-		return (0);
+		return 0;
 	}
 	size_t max_height = 0;
 	dns_qpnode_t *twigs = branch_twigs(qp, n);
@@ -79,20 +79,20 @@ getheight(dns_qp_t *qp, dns_qpnode_t *n) {
 		size_t height = getheight(qp, &twigs[pos]);
 		max_height = ISC_MAX(max_height, height);
 	}
-	return (max_height + 1);
+	return max_height + 1;
 }
 
 size_t
 qp_test_getheight(dns_qp_t *qp) {
 	dns_qpnode_t *root = get_root(qp);
-	return (root == NULL ? 0 : getheight(qp, root));
+	return root == NULL ? 0 : getheight(qp, root);
 }
 
 static size_t
 maxkeylen(dns_qp_t *qp, dns_qpnode_t *n) {
 	if (node_tag(n) == LEAF_TAG) {
 		dns_qpkey_t key;
-		return (leaf_qpkey(qp, n, key));
+		return leaf_qpkey(qp, n, key);
 	}
 	size_t max_len = 0;
 	dns_qpnode_t *twigs = branch_twigs(qp, n);
@@ -101,13 +101,13 @@ maxkeylen(dns_qp_t *qp, dns_qpnode_t *n) {
 		size_t len = maxkeylen(qp, &twigs[pos]);
 		max_len = ISC_MAX(max_len, len);
 	}
-	return (max_len);
+	return max_len;
 }
 
 size_t
 qp_test_maxkeylen(dns_qp_t *qp) {
 	dns_qpnode_t *root = get_root(qp);
-	return (root == NULL ? 0 : maxkeylen(qp, root));
+	return root == NULL ? 0 : maxkeylen(qp, root);
 }
 
 /***********************************************************************

@@ -43,7 +43,7 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "GeoIP2 database '%s/%s': path too long", dir,
 			      dbfile);
-		return (NULL);
+		return NULL;
 	}
 
 	ret = MMDB_open(pathbuf, MMDB_MODE_MMAP, mmdb);
@@ -51,7 +51,7 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "opened GeoIP2 database '%s'", pathbuf);
-		return (mmdb);
+		return mmdb;
 	}
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -59,7 +59,7 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 		      "unable to open GeoIP2 database '%s' (status %d)",
 		      pathbuf, ret);
 
-	return (NULL);
+	return NULL;
 }
 #endif /* HAVE_GEOIP2 */
 

@@ -147,7 +147,7 @@ Name(dns_rbtnode_t *node) {
 		node_name(node, &name);
 	}
 
-	return (name);
+	return name;
 }
 #endif /* DEBUG */
 
@@ -157,7 +157,7 @@ Name(dns_rbtnode_t *node) {
  */
 static dns_rbtnode_t *
 get_upper_node(dns_rbtnode_t *node) {
-	return (node->uppernode);
+	return node->uppernode;
 }
 
 size_t
@@ -172,7 +172,7 @@ dns__rbtnode_getdistance(dns_rbtnode_t *node) {
 		node = node->parent;
 	}
 
-	return (nodes);
+	return nodes;
 }
 
 /*
@@ -249,14 +249,14 @@ dns__rbtnode_namelen(dns_rbtnode_t *node) {
 		node = get_upper_node(node);
 	} while (!dns_name_isabsolute(&current));
 
-	return (len);
+	return len;
 }
 
 unsigned int
 dns__rbtnode_getsize(dns_rbtnode_t *node) {
 	REQUIRE(DNS_RBTNODE_VALID(node));
 
-	return (NODE_SIZE(node));
+	return NODE_SIZE(node);
 }
 
 /*
@@ -285,7 +285,7 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter, void *deleter_arg,
 
 	*rbtp = rbt;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -301,7 +301,7 @@ dns_rbt_destroy(dns_rbt_t **rbtp, unsigned int quantum) {
 
 	deletetreeflat(rbt, quantum, false, &rbt->root);
 	if (rbt->root != NULL) {
-		return (ISC_R_QUOTA);
+		return ISC_R_QUOTA;
 	}
 
 	*rbtp = NULL;
@@ -318,14 +318,14 @@ dns_rbt_destroy(dns_rbt_t **rbtp, unsigned int quantum) {
 	rbt->magic = 0;
 
 	isc_mem_putanddetach(&rbt->mctx, rbt, sizeof(*rbt));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 unsigned int
 dns_rbt_nodecount(dns_rbt_t *rbt) {
 	REQUIRE(VALID_RBT(rbt));
 
-	return (rbt->nodecount);
+	return rbt->nodecount;
 }
 
 size_t
@@ -336,7 +336,7 @@ dns_rbt_hashsize(dns_rbt_t *rbt) {
 				   ? rbt->hashbits[0]
 				   : rbt->hashbits[1];
 
-	return (1 << hashbits);
+	return 1 << hashbits;
 }
 
 static isc_result_t
@@ -360,10 +360,10 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 		result = dns_name_concatenate(name, &nodename, name, NULL);
 
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -387,7 +387,7 @@ move_chain_to_last(dns_rbtnodechain_t *chain, dns_rbtnode_t *node) {
 
 	chain->end = node;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -461,7 +461,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 		rbt->root = new_current;
 		*nodep = new_current;
 		hash_node(rbt, new_current, name);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	level_count = 0;
@@ -652,7 +652,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 					 * a new level.
 					 */
 					*nodep = new_current;
-					return (ISC_R_SUCCESS);
+					return ISC_R_SUCCESS;
 				} else {
 					/*
 					 * The current node has no data,
@@ -691,7 +691,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 		hash_node(rbt, new_current, name);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -733,7 +733,7 @@ dns__rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	}
 
 	if (rbt->root == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	/*
@@ -958,7 +958,7 @@ dns__rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 						chain, callback_name, false);
 					if (result != ISC_R_SUCCESS) {
 						dns_rbtnodechain_reset(chain);
-						return (result);
+						return result;
 					}
 
 					result =
@@ -1222,7 +1222,7 @@ dns__rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 
 	ENSURE(*node == NULL || DNS_RBTNODE_VALID(*node));
 
-	return (result);
+	return result;
 }
 
 /*
@@ -1288,7 +1288,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, bool recurse) {
 			 * of the comment at the start of this function).
 			 * But join_nodes() function has now been removed.
 			 */
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
 
@@ -1320,7 +1320,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, bool recurse) {
 	/*
 	 * This function never fails.
 	 */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -1357,7 +1357,7 @@ dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name) {
 		node = get_upper_node(node);
 	} while (!dns_name_isabsolute(name));
 
-	return (result);
+	return result;
 }
 
 char *
@@ -1379,7 +1379,7 @@ dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname,
 			 isc_result_totext(result));
 	}
 
-	return (printname);
+	return printname;
 }
 
 static dns_rbtnode_t *
@@ -1433,7 +1433,7 @@ rbtnode_new(isc_mem_t *mctx, const dns_name_t *name) {
 #if DNS_RBT_USEMAGIC
 	node->magic = DNS_RBTNODE_MAGIC;
 #endif /* if DNS_RBT_USEMAGIC */
-	return (node);
+	return node;
 }
 
 /*
@@ -1489,7 +1489,7 @@ rehash_bits(dns_rbt_t *rbt, size_t newcount) {
 		newbits += 1;
 	}
 
-	return (newbits);
+	return newbits;
 }
 
 /*
@@ -1567,13 +1567,13 @@ maybe_rehash(dns_rbt_t *rbt, size_t newcount) {
 
 static bool
 rehashing_in_progress(dns_rbt_t *rbt) {
-	return (rbt->hashtable[RBT_HASH_NEXTTABLE(rbt->hindex)] != NULL);
+	return rbt->hashtable[RBT_HASH_NEXTTABLE(rbt->hindex)] != NULL;
 }
 
 static bool
 hashtable_is_overcommited(dns_rbt_t *rbt) {
-	return (rbt->nodecount >= (ISC_HASHSIZE(rbt->hashbits[rbt->hindex]) *
-				   ISC_HASH_OVERCOMMIT));
+	return rbt->nodecount >=
+	       (ISC_HASHSIZE(rbt->hashbits[rbt->hindex]) * ISC_HASH_OVERCOMMIT);
 }
 
 /*
@@ -2121,7 +2121,7 @@ getheight_helper(dns_rbtnode_t *node) {
 	size_t this_height, down_height;
 
 	if (node == NULL) {
-		return (0);
+		return 0;
 	}
 
 	dl = getheight_helper(node->left);
@@ -2130,43 +2130,43 @@ getheight_helper(dns_rbtnode_t *node) {
 	this_height = ISC_MAX(dl + 1, dr + 1);
 	down_height = getheight_helper(node->down);
 
-	return (ISC_MAX(this_height, down_height));
+	return ISC_MAX(this_height, down_height);
 }
 
 size_t
 dns__rbt_getheight(dns_rbt_t *rbt) {
-	return (getheight_helper(rbt->root));
+	return getheight_helper(rbt->root);
 }
 
 static bool
 check_properties_helper(dns_rbtnode_t *node) {
 	if (node == NULL) {
-		return (true);
+		return true;
 	}
 
 	if (IS_RED(node)) {
 		/* Root nodes must be BLACK. */
 		if (node->is_root) {
-			return (false);
+			return false;
 		}
 
 		/* Both children of RED nodes must be BLACK. */
 		if (IS_RED(node->left) || IS_RED(node->right)) {
-			return (false);
+			return false;
 		}
 	}
 
 	if ((node->down != NULL) && (!node->down->is_root)) {
-		return (false);
+		return false;
 	}
 
 	if (node->is_root) {
 		if ((node->parent != NULL) && (node->parent->down != node)) {
-			return (false);
+			return false;
 		}
 
 		if (get_upper_node(node) != node->parent) {
-			return (false);
+			return false;
 		}
 	}
 
@@ -2176,13 +2176,13 @@ check_properties_helper(dns_rbtnode_t *node) {
 	if (((!node->parent) || (node->parent->down == node)) &&
 	    (!node->is_root))
 	{
-		return (false);
+		return false;
 	}
 
 	/* Repeat tests with this node's children. */
-	return (check_properties_helper(node->left) &&
-		check_properties_helper(node->right) &&
-		check_properties_helper(node->down));
+	return check_properties_helper(node->left) &&
+	       check_properties_helper(node->right) &&
+	       check_properties_helper(node->down);
 }
 
 static bool
@@ -2191,24 +2191,24 @@ check_black_distance_helper(dns_rbtnode_t *node, size_t *distance) {
 
 	if (node == NULL) {
 		*distance = 1;
-		return (true);
+		return true;
 	}
 
 	if (!check_black_distance_helper(node->left, &dl)) {
-		return (false);
+		return false;
 	}
 
 	if (!check_black_distance_helper(node->right, &dr)) {
-		return (false);
+		return false;
 	}
 
 	if (!check_black_distance_helper(node->down, &dd)) {
-		return (false);
+		return false;
 	}
 
 	/* Left and right side black node counts must match. */
 	if (dl != dr) {
-		return (false);
+		return false;
 	}
 
 	if (IS_BLACK(node)) {
@@ -2217,7 +2217,7 @@ check_black_distance_helper(dns_rbtnode_t *node, size_t *distance) {
 
 	*distance = dl;
 
-	return (true);
+	return true;
 }
 
 bool
@@ -2225,7 +2225,7 @@ dns__rbt_checkproperties(dns_rbt_t *rbt) {
 	size_t dd;
 
 	if (!check_properties_helper(rbt->root)) {
-		return (false);
+		return false;
 	}
 
 	/* Path from a given node to all its leaves must contain the
@@ -2233,7 +2233,7 @@ dns__rbt_checkproperties(dns_rbt_t *rbt) {
 	 * here instead of inside check_properties_helper() as
 	 * it would take (n log n) complexity otherwise.
 	 */
-	return (check_black_distance_helper(rbt->root, &dd));
+	return check_black_distance_helper(rbt->root, &dd);
 }
 
 static void
@@ -2357,7 +2357,7 @@ print_dot_helper(dns_rbtnode_t *node, unsigned int *nodecount,
 	unsigned int l, r, d;
 
 	if (node == NULL) {
-		return (0);
+		return 0;
 	}
 
 	l = print_dot_helper(node->left, nodecount, show_pointers, f);
@@ -2407,7 +2407,7 @@ print_dot_helper(dns_rbtnode_t *node, unsigned int *nodecount,
 		fprintf(f, "\"node%u\":f2 -> \"node%u\":f1;\n", *nodecount, r);
 	}
 
-	return (*nodecount);
+	return *nodecount;
 }
 
 void
@@ -2451,7 +2451,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 	SET_IF_NOT_NULL(node, chain->end);
 
 	if (chain->end == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (name != NULL) {
@@ -2482,7 +2482,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -2604,7 +2604,7 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		result = ISC_R_NOMORE;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -2671,7 +2671,7 @@ dns_rbtnodechain_down(dns_rbtnodechain_t *chain, dns_name_t *name,
 		result = ISC_R_NOMORE;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -2717,7 +2717,7 @@ dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name) {
 		result = ISC_R_NOMORE;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -2862,7 +2862,7 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		result = ISC_R_NOMORE;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -2885,7 +2885,7 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		result = DNS_R_NEWORIGIN;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -2902,7 +2902,7 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 
 	result = move_chain_to_last(chain, rbt->root);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_rbtnodechain_current(chain, name, origin, NULL);
@@ -2911,7 +2911,7 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		result = DNS_R_NEWORIGIN;
 	}
 
-	return (result);
+	return result;
 }
 
 void

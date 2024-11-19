@@ -201,7 +201,7 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, dns_acl_t *acl,
 	elt->proxy = proxy;
 
 	*target = elt;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 tls_error:
 	if (sslctx != NULL) {
 		isc_tlsctx_free(&sslctx);
@@ -210,7 +210,7 @@ tls_error:
 	if (store != NULL && store != found_store) {
 		isc_tls_cert_store_free(&store);
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -219,8 +219,8 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, dns_acl_t *acl,
 		    const ns_listen_tls_params_t *tls_params,
 		    isc_tlsctx_cache_t *tlsctx_cache, isc_nm_proxy_type_t proxy,
 		    ns_listenelt_t **target) {
-	return (listenelt_create(mctx, port, acl, family, false, tls,
-				 tls_params, tlsctx_cache, proxy, target));
+	return listenelt_create(mctx, port, acl, family, false, tls, tls_params,
+				tlsctx_cache, proxy, target);
 }
 
 isc_result_t
@@ -259,7 +259,7 @@ ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, dns_acl_t *acl,
 		}
 		isc_mem_free(mctx, endpoints);
 	}
-	return (result);
+	return result;
 }
 
 void
@@ -293,7 +293,7 @@ ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target) {
 	list->refcount = 1;
 	ISC_LIST_INIT(list->elts);
 	*target = list;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -356,12 +356,12 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port, bool enabled,
 	ISC_LIST_APPEND(list->elts, elt, link);
 
 	*target = list;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_listenelt:
 	ns_listenelt_destroy(elt);
 cleanup_acl:
 	dns_acl_detach(&acl);
 cleanup:
-	return (result);
+	return result;
 }

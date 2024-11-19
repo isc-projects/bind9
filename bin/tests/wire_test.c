@@ -48,11 +48,11 @@ CHECKRESULT(isc_result_t result, const char *msg) {
 static int
 fromhex(char c) {
 	if (c >= '0' && c <= '9') {
-		return (c - '0');
+		return c - '0';
 	} else if (c >= 'a' && c <= 'f') {
-		return (c - 'a' + 10);
+		return c - 'a' + 10;
 	} else if (c >= 'A' && c <= 'F') {
-		return (c - 'A' + 10);
+		return c - 'A' + 10;
 	}
 
 	fprintf(stderr, "bad input format: %02x\n", c);
@@ -97,7 +97,7 @@ printmessage(dns_message_t *msg) {
 		isc_mem_put(mctx, buf, len);
 	}
 
-	return (result);
+	return result;
 }
 
 int
@@ -260,7 +260,7 @@ main(int argc, char *argv[]) {
 	}
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	return 0;
 }
 
 static void

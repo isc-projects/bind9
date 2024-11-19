@@ -174,7 +174,7 @@ cleanup:
 		isc_portset_destroy(mctx, &v6portset);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -194,7 +194,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		*dispp = disp;
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -208,7 +208,7 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_nm_t *nm,
 	result = dns_view_create(mctx, dispatchmgr, rdclass,
 				 DNS_CLIENTVIEW_NAME, &view);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	/* Initialize view security roots */
@@ -221,11 +221,11 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_nm_t *nm,
 			    &view->cachedb));
 
 	*viewp = view;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	dns_view_detach(&view);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -312,7 +312,7 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 
 	*clientp = client;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_references:
 	isc_refcount_decrementz(&client->references);
@@ -328,7 +328,7 @@ cleanup_dispatchmgr:
 cleanup_client:
 	isc_mem_put(mctx, client, sizeof(*client));
 
-	return (result);
+	return result;
 }
 
 static void
@@ -382,7 +382,7 @@ dns_client_setservers(dns_client_t *client, dns_rdataclass_t rdclass,
 	result = dns_fwdtable_add(client->view->fwdtable, name_space, addrs,
 				  dns_fwdpolicy_only);
 
-	return (result);
+	return result;
 }
 
 void
@@ -406,7 +406,7 @@ getrdataset(isc_mem_t *mctx, dns_rdataset_t **rdatasetp) {
 
 	*rdatasetp = rdataset;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -458,7 +458,7 @@ start_fetch(resctx_t *rctx) {
 		rctx->client->loop, fetch_done, rctx, rctx->rdataset,
 		rctx->sigrdataset, &rctx->fetch);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -478,7 +478,7 @@ view_find(resctx_t *rctx, dns_db_t **dbp, dns_dbnode_t **nodep,
 			       nodep, foundname, rctx->rdataset,
 			       rctx->sigrdataset);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -938,7 +938,7 @@ startresolve(dns_client_t *client, const dns_name_t *name,
 	*transp = (dns_clientrestrans_t *)rctx;
 	client_resfind(rctx, NULL);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	if (rdataset != NULL) {
@@ -950,7 +950,7 @@ cleanup:
 	isc_mem_put(mctx, rctx, sizeof(*rctx));
 	isc_mem_put(mctx, rev, sizeof(*rev));
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -981,10 +981,10 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 			      resolve_done, resarg, &resarg->trans);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(client->mctx, resarg, sizeof(*resarg));
-		return (result);
+		return result;
 	}
 
-	return (result);
+	return result;
 }
 
 void
@@ -1050,5 +1050,5 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(rdclass == dns_rdataclass_in);
 
-	return (dns_view_addtrustedkey(client->view, rdtype, keyname, databuf));
+	return dns_view_addtrustedkey(client->view, rdtype, keyname, databuf);
 }

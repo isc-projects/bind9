@@ -226,7 +226,7 @@ tls_setup(void **state ISC_ATTR_UNUSED) {
 	stream_use_TLS = true;
 	stream = true;
 
-	return (0);
+	return 0;
 }
 
 ISC_TEST_MAIN_CUSTOM(tls_setup, NULL)

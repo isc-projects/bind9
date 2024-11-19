@@ -60,16 +60,16 @@ alpn_fromtxt(isc_textregion_t *source, isc_buffer_t *target) {
 	do {
 		RETERR(commatxt_fromtext(&source0, true, target));
 	} while (source0.length != 0);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static int
 svckeycmp(const void *a1, const void *a2) {
 	const unsigned char *u1 = a1, *u2 = a2;
 	if (*u1 != *u2) {
-		return (*u1 - *u2);
+		return *u1 - *u2;
 	}
-	return (*(++u1) - *(++u2));
+	return *(++u1) - *(++u2);
 }
 
 static isc_result_t
@@ -85,11 +85,11 @@ svcsortkeylist(isc_buffer_t *target, unsigned int used) {
 		if (region.base[0] == region.base[2] &&
 		    region.base[1] == region.base[3])
 		{
-			return (DNS_R_SYNTAX);
+			return DNS_R_SYNTAX;
 		}
 		isc_region_consume(&region, 2);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -101,31 +101,31 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 			switch (sbpr[i].encoding) {
 			case sbpr_port:
 				if (region->length != 2) {
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				break;
 			case sbpr_ipv4s:
 				if ((region->length % 4) != 0 ||
 				    region->length == 0)
 				{
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				break;
 			case sbpr_ipv6s:
 				if ((region->length % 16) != 0 ||
 				    region->length == 0)
 				{
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				break;
 			case sbpr_alpn: {
 				if (region->length == 0) {
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				while (region->length != 0) {
 					size_t l = *region->base + 1;
 					if (l == 1U || l > region->length) {
-						return (DNS_R_FORMERR);
+						return DNS_R_FORMERR;
 					}
 					isc_region_consume(region, l);
 				}
@@ -135,7 +135,7 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 				if ((region->length % 2) != 0 ||
 				    region->length == 0)
 				{
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				/* In order? */
 				while (region->length >= 4) {
@@ -145,7 +145,7 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 					     region->base[1] >=
 						     region->base[3]))
 					{
-						return (DNS_R_FORMERR);
+						return DNS_R_FORMERR;
 					}
 					isc_region_consume(region, 2);
 				}
@@ -161,34 +161,34 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 				 * MUST contain "{?dns}".
 				 */
 				if (region->length < 7) {
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				/* MUST be relative */
 				if (region->base[0] != '/') {
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				/* MUST be UTF8 */
 				if (!isc_utf8_valid(region->base,
 						    region->length))
 				{
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				/* MUST contain "{?dns}" */
 				if (strnstr((char *)region->base, "{?dns}",
 					    region->length) == NULL)
 				{
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				break;
 			case sbpr_empty:
 				if (region->length != 0) {
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 				break;
 			}
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -215,32 +215,32 @@ svc_keyfromregion(isc_textregion_t *region, char sep, uint16_t *value,
 	}
 	/* Handle keyXXXXX form. */
 	if (strncmp(region->base, "key", 3) != 0) {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	isc_textregion_consume(region, 3);
 	/* Disallow [+-]XXXXX which is allowed by strtoul. */
 	if (region->length == 0 || *region->base == '-' || *region->base == '+')
 	{
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	/* No zero padding. */
 	if (region->length > 1 && *region->base == '0' &&
 	    region->base[1] != sep)
 	{
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	ul = strtoul(region->base, &e, 10);
 	/* Valid number? */
 	if (e == region->base || (*e != sep && *e != 0)) {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	if (ul > 0xffff) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	isc_textregion_consume(region, e - region->base);
 finish:
 	if (sep == ',' && region->length == 1) {
-		return (DNS_R_SYNTAX);
+		return DNS_R_SYNTAX;
 	}
 	/* Consume separator. */
 	if (region->length != 0) {
@@ -248,7 +248,7 @@ finish:
 	}
 	RETERR(uint16_tobuffer(ul, target));
 	SET_IF_NOT_NULL(value, ul);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -292,14 +292,14 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			break;
 		case sbpr_port:
 			if (!isdigit((unsigned char)*region->base)) {
-				return (DNS_R_SYNTAX);
+				return DNS_R_SYNTAX;
 			}
 			ul = strtoul(region->base, &e, 10);
 			if (*e != '\0') {
-				return (DNS_R_SYNTAX);
+				return DNS_R_SYNTAX;
 			}
 			if (ul > 0xffff) {
-				return (ISC_R_RANGE);
+				return ISC_R_RANGE;
 			}
 			RETERR(uint16_tobuffer(ul, target));
 			break;
@@ -314,7 +314,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 							       e - tbuf);
 				}
 				if (inet_pton(AF_INET, tbuf, abuf) != 1) {
-					return (DNS_R_SYNTAX);
+					return DNS_R_SYNTAX;
 				}
 				mem_tobuffer(target, abuf, 4);
 			} while (e != NULL);
@@ -330,7 +330,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 							       e - tbuf);
 				}
 				if (inet_pton(AF_INET6, tbuf, abuf) != 1) {
-					return (DNS_R_SYNTAX);
+					return DNS_R_SYNTAX;
 				}
 				mem_tobuffer(target, abuf, 16);
 			} while (e != NULL);
@@ -340,12 +340,12 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			break;
 		case sbpr_empty:
 			if (region->length != 0) {
-				return (DNS_R_SYNTAX);
+				return DNS_R_SYNTAX;
 			}
 			break;
 		case sbpr_keylist:
 			if (region->length == 0) {
-				return (DNS_R_SYNTAX);
+				return DNS_R_SYNTAX;
 			}
 			used = isc_buffer_usedlength(target);
 			while (region->length != 0) {
@@ -374,7 +374,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 		default:
 			break;
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	RETERR(svc_keyfromregion(region, '=', &key, target));
@@ -383,7 +383,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 		/* Sanity check keyXXXXX form. */
 		keyregion.base = isc_buffer_used(target);
 		keyregion.length = 0;
-		return (svcb_validate(key, &keyregion));
+		return svcb_validate(key, &keyregion);
 	}
 	sb = *target;
 	RETERR(uint16_tobuffer(0, target)); /* dummy length */
@@ -393,7 +393,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 	/* Sanity check keyXXXXX form. */
 	keyregion.base = isc_buffer_used(&sb);
 	keyregion.length = len;
-	return (svcb_validate(key, &keyregion));
+	return svcb_validate(key, &keyregion);
 }
 
 static const char *
@@ -405,13 +405,13 @@ svcparamkey(unsigned short value, enum encoding *encoding, char *buf,
 	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
 		if (sbpr[i].value == value && sbpr[i].initial) {
 			*encoding = sbpr[i].encoding;
-			return (sbpr[i].name);
+			return sbpr[i].name;
 		}
 	}
 	n = snprintf(buf, len, "key%u", value);
 	INSIST(n > 0 && (unsigned int)n < len);
 	*encoding = sbpr_text;
-	return (buf);
+	return buf;
 }
 
 static isc_result_t
@@ -422,7 +422,7 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 	bool have_alpn = false;
 
 	if (isc_buffer_usedlength(target) == used) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -454,18 +454,18 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 			if (mankey != 0) {
 				/* Is this the last mandatory key? */
 				if (key1 != mankey || man.length != 0) {
-					return (DNS_R_INCONSISTENTRR);
+					return DNS_R_INCONSISTENTRR;
 				}
 			} else if (key1 == SVCB_MAN_KEY) {
 				/* Lone mandatory field. */
-				return (DNS_R_DISALLOWED);
+				return DNS_R_DISALLOWED;
 			} else if (key1 == SVCB_NO_DEFAULT_ALPN_KEY &&
 				   !have_alpn)
 			{
 				/* Missing required ALPN field. */
-				return (DNS_R_DISALLOWED);
+				return DNS_R_DISALLOWED;
 			}
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 
 		/*
@@ -479,7 +479,7 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 			isc_region_consume(&r1, 2);
 			isc_region_consume(&r1, len2);
 			if (key2 == key1) {
-				return (DNS_R_DUPLICATE);
+				return DNS_R_DUPLICATE;
 			}
 			if (key2 < key1) {
 				base1 = base2;
@@ -524,7 +524,7 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 			have_alpn = true;
 		} else if (key1 == SVCB_NO_DEFAULT_ALPN_KEY && !have_alpn) {
 			/* Missing required ALPN field. */
-			return (DNS_R_DISALLOWED);
+			return DNS_R_DISALLOWED;
 		}
 
 		/*
@@ -532,7 +532,7 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 		 */
 		if (mankey != 0) {
 			if (key1 > mankey) {
-				return (DNS_R_INCONSISTENTRR);
+				return DNS_R_INCONSISTENTRR;
 			}
 			if (key1 == mankey) {
 				if (man.length >= 2) {
@@ -555,10 +555,10 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 				mankey = uint16_fromregion(&man);
 				isc_region_consume(&man, 2);
 				if (mankey == SVCB_MAN_KEY) {
-					return (DNS_R_DISALLOWED);
+					return DNS_R_DISALLOWED;
 				}
 			} else {
-				return (DNS_R_SYNTAX);
+				return DNS_R_SYNTAX;
 			}
 		}
 
@@ -627,7 +627,7 @@ generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 		    token.type == isc_tokentype_eof)
 		{
 			isc_lex_ungettoken(lexer, &token);
-			return (svcsortkeys(target, used));
+			return svcsortkeys(target, used);
 		}
 
 		if (token.type != isc_tokentype_string && /* key only */
@@ -648,7 +648,7 @@ fromtext_in_svcb(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
-	return (generic_fromtext_in_svcb(CALL_FROMTEXT));
+	return generic_fromtext_in_svcb(CALL_FROMTEXT);
 }
 
 static isc_result_t
@@ -779,7 +779,7 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 			UNREACHABLE();
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -788,7 +788,7 @@ totext_in_svcb(ARGS_TOTEXT) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
-	return (generic_totext_in_svcb(CALL_TOTEXT));
+	return generic_totext_in_svcb(CALL_TOTEXT);
 }
 
 static isc_result_t
@@ -810,7 +810,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 	 */
 	isc_buffer_activeregion(source, &region);
 	if (region.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	RETERR(mem_tobuffer(target, region.base, 2));
 	isc_buffer_forward(source, 2);
@@ -832,7 +832,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 		 * SvcParamKey
 		 */
 		if (region.length < 2U) {
-			return (ISC_R_UNEXPECTEDEND);
+			return ISC_R_UNEXPECTEDEND;
 		}
 		RETERR(mem_tobuffer(target, region.base, 2));
 		key = uint16_fromregion(&region);
@@ -842,7 +842,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 		 * Keys must be unique and in order.
 		 */
 		if (!first && key <= lastkey) {
-			return (DNS_R_FORMERR);
+			return DNS_R_FORMERR;
 		}
 
 		/*
@@ -851,7 +851,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 		if (mankey != 0) {
 			/* Missing mandatory key? */
 			if (key > mankey) {
-				return (DNS_R_FORMERR);
+				return DNS_R_FORMERR;
 			}
 			if (key == mankey) {
 				/* Get next mandatory key. */
@@ -870,7 +870,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 		if (key == SVCB_ALPN_KEY) {
 			have_alpn = true;
 		} else if (key == SVCB_NO_DEFAULT_ALPN_KEY && !have_alpn) {
-			return (DNS_R_FORMERR);
+			return DNS_R_FORMERR;
 		}
 
 		first = false;
@@ -880,7 +880,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 		 * SvcParamValue length.
 		 */
 		if (region.length < 2U) {
-			return (ISC_R_UNEXPECTEDEND);
+			return ISC_R_UNEXPECTEDEND;
 		}
 		RETERR(mem_tobuffer(target, region.base, 2));
 		len = uint16_fromregion(&region);
@@ -890,7 +890,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 		 * SvcParamValue.
 		 */
 		if (region.length < len) {
-			return (ISC_R_UNEXPECTEDEND);
+			return ISC_R_UNEXPECTEDEND;
 		}
 
 		/*
@@ -904,10 +904,10 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 				mankey = uint16_fromregion(&man);
 				isc_region_consume(&man, 2);
 				if (mankey == SVCB_MAN_KEY) {
-					return (DNS_R_FORMERR);
+					return DNS_R_FORMERR;
 				}
 			} else {
-				return (DNS_R_FORMERR);
+				return DNS_R_FORMERR;
 			}
 		}
 		keyregion = region;
@@ -922,10 +922,10 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 	 * Do we have an outstanding mandatory key?
 	 */
 	if (mankey != 0) {
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -933,7 +933,7 @@ fromwire_in_svcb(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_svcb);
 	REQUIRE(rdclass == dns_rdataclass_in);
 
-	return (generic_fromwire_in_svcb(CALL_FROMWIRE));
+	return generic_fromwire_in_svcb(CALL_FROMWIRE);
 }
 
 static isc_result_t
@@ -964,7 +964,7 @@ generic_towire_in_svcb(ARGS_TOWIRE) {
 	/*
 	 * SvcParams.
 	 */
-	return (mem_tobuffer(target, region.base, region.length));
+	return mem_tobuffer(target, region.base, region.length);
 }
 
 static isc_result_t
@@ -972,7 +972,7 @@ towire_in_svcb(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(rdata->length != 0);
 
-	return (generic_towire_in_svcb(CALL_TOWIRE));
+	return generic_towire_in_svcb(CALL_TOWIRE);
 }
 
 static int
@@ -990,7 +990,7 @@ compare_in_svcb(ARGS_COMPARE) {
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
 
-	return (isc_region_compare(&region1, &region2));
+	return isc_region_compare(&region1, &region2);
 }
 
 static isc_result_t
@@ -1009,7 +1009,7 @@ generic_fromstruct_in_svcb(ARGS_FROMSTRUCT) {
 	dns_name_toregion(&svcb->svcdomain, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
 
-	return (mem_tobuffer(target, svcb->svc, svcb->svclen));
+	return mem_tobuffer(target, svcb->svc, svcb->svclen);
 }
 
 static isc_result_t
@@ -1022,7 +1022,7 @@ fromstruct_in_svcb(ARGS_FROMSTRUCT) {
 	REQUIRE(svcb->common.rdtype == type);
 	REQUIRE(svcb->common.rdclass == rdclass);
 
-	return (generic_fromstruct_in_svcb(CALL_FROMSTRUCT));
+	return generic_fromstruct_in_svcb(CALL_FROMSTRUCT);
 }
 
 static isc_result_t
@@ -1055,7 +1055,7 @@ generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 	svcb->offset = 0;
 	svcb->mctx = mctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1067,7 +1067,7 @@ tostruct_in_svcb(ARGS_TOSTRUCT) {
 	REQUIRE(svcb != NULL);
 	REQUIRE(rdata->length != 0);
 
-	return (generic_tostruct_in_svcb(CALL_TOSTRUCT));
+	return generic_tostruct_in_svcb(CALL_TOSTRUCT);
 }
 
 static void
@@ -1120,11 +1120,11 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 		if (alias || dns_name_equal(owner, dns_rootname) ||
 		    !dns_name_ishostname(owner, false))
 		{
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		/* Only lookup address records */
-		return ((add)(arg, owner, dns_rdatatype_a,
-			      NULL DNS__DB_FILELINE));
+		return (add)(arg, owner, dns_rdatatype_a,
+			     NULL DNS__DB_FILELINE);
 	}
 
 	/*
@@ -1160,7 +1160,7 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 		 * Stop following a potentially infinite CNAME chain.
 		 */
 		if (!done && cnames++ > MAX_CNAMES) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	} while (!done);
 
@@ -1176,10 +1176,10 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 		 */
 		if (dns_rdataset_isassociated(&rdataset)) {
 			dns_rdataset_disassociate(&rdataset);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 	}
-	return ((add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE));
+	return (add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE);
 }
 
 static isc_result_t
@@ -1187,7 +1187,7 @@ additionaldata_in_svcb(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
-	return (generic_additionaldata_in_svcb(CALL_ADDLDATA));
+	return generic_additionaldata_in_svcb(CALL_ADDLDATA);
 }
 
 static isc_result_t
@@ -1198,7 +1198,7 @@ digest_in_svcb(ARGS_DIGEST) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
 	dns_rdata_toregion(rdata, &region1);
-	return ((digest)(arg, &region1));
+	return (digest)(arg, &region1);
 }
 
 static bool
@@ -1211,7 +1211,7 @@ checkowner_in_svcb(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -1232,9 +1232,9 @@ generic_checknames_in_svcb(ARGS_CHECKNAMES) {
 		if (bad != NULL) {
 			dns_name_clone(&name, bad);
 		}
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 static bool
@@ -1242,21 +1242,21 @@ checknames_in_svcb(ARGS_CHECKNAMES) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
-	return (generic_checknames_in_svcb(CALL_CHECKNAMES));
+	return generic_checknames_in_svcb(CALL_CHECKNAMES);
 }
 
 static int
 casecompare_in_svcb(ARGS_COMPARE) {
-	return (compare_in_svcb(rdata1, rdata2));
+	return compare_in_svcb(rdata1, rdata2);
 }
 
 static isc_result_t
 generic_rdata_in_svcb_first(dns_rdata_in_svcb_t *svcb) {
 	if (svcb->svclen == 0) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 	svcb->offset = 0;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1265,7 +1265,7 @@ generic_rdata_in_svcb_next(dns_rdata_in_svcb_t *svcb) {
 	size_t len;
 
 	if (svcb->offset >= svcb->svclen) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	region.base = svcb->svc + svcb->offset;
@@ -1275,7 +1275,7 @@ generic_rdata_in_svcb_next(dns_rdata_in_svcb_t *svcb) {
 	len = uint16_fromregion(&region);
 	INSIST(region.length >= len + 2);
 	svcb->offset += len + 4;
-	return (svcb->offset >= svcb->svclen ? ISC_R_NOMORE : ISC_R_SUCCESS);
+	return svcb->offset >= svcb->svclen ? ISC_R_NOMORE : ISC_R_SUCCESS;
 }
 
 static void
@@ -1300,7 +1300,7 @@ dns_rdata_in_svcb_first(dns_rdata_in_svcb_t *svcb) {
 	REQUIRE(svcb->common.rdtype == dns_rdatatype_svcb);
 	REQUIRE(svcb->common.rdclass == dns_rdataclass_in);
 
-	return (generic_rdata_in_svcb_first(svcb));
+	return generic_rdata_in_svcb_first(svcb);
 }
 
 isc_result_t
@@ -1309,7 +1309,7 @@ dns_rdata_in_svcb_next(dns_rdata_in_svcb_t *svcb) {
 	REQUIRE(svcb->common.rdtype == dns_rdatatype_svcb);
 	REQUIRE(svcb->common.rdclass == dns_rdataclass_in);
 
-	return (generic_rdata_in_svcb_next(svcb));
+	return generic_rdata_in_svcb_next(svcb);
 }
 
 void

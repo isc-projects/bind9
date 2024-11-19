@@ -40,20 +40,20 @@ main() {
 
 	if (ctx == NULL || evp_md_ctx == NULL) {
 		ERR_clear_error();
-		return (1);
+		return 1;
 	}
 
 	if (EVP_PKEY_keygen_init(ctx) != 1 ||
 	    EVP_PKEY_keygen(ctx, &pkey) != 1 || pkey == NULL)
 	{
 		ERR_clear_error();
-		return (1);
+		return 1;
 	}
 
 	bytes = sizeof(buf);
 	if (EVP_PKEY_get_raw_public_key(pkey, buf, &bytes) != 1) {
 		ERR_clear_error();
-		return (1);
+		return 1;
 	}
 
 	printf("unsigned char ed25519_pub[] = \"");
@@ -68,7 +68,7 @@ main() {
 			   (const unsigned char *)"test", 4) != 1)
 	{
 		ERR_clear_error();
-		return (1);
+		return 1;
 	}
 
 	printf("unsigned char ed25519_sig[] = \"");
@@ -85,20 +85,20 @@ main() {
 	evp_md_ctx = EVP_MD_CTX_create();
 	if (ctx == NULL || evp_md_ctx == NULL) {
 		ERR_clear_error();
-		return (1);
+		return 1;
 	}
 
 	if (EVP_PKEY_keygen_init(ctx) != 1 ||
 	    EVP_PKEY_keygen(ctx, &pkey) != 1 || pkey == NULL)
 	{
 		ERR_clear_error();
-		return (1);
+		return 1;
 	}
 
 	bytes = sizeof(buf);
 	if (EVP_PKEY_get_raw_public_key(pkey, buf, &bytes) != 1) {
 		ERR_clear_error();
-		return (1);
+		return 1;
 	}
 
 	printf("unsigned char ed448_pub[] = \"");
@@ -113,7 +113,7 @@ main() {
 			   (const unsigned char *)"test", 4) != 1)
 	{
 		ERR_clear_error();
-		return (1);
+		return 1;
 	}
 
 	printf("unsigned char ed448_sig[] = \"");
@@ -125,5 +125,5 @@ main() {
 	EVP_MD_CTX_free(evp_md_ctx);
 	EVP_PKEY_free(pkey);
 
-	return (0);
+	return 0;
 }

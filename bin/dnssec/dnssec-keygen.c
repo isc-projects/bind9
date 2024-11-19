@@ -1333,5 +1333,5 @@ main(int argc, char **argv) {
 		free(freeit);
 	}
 
-	return (0);
+	return 0;
 }

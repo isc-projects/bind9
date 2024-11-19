@@ -188,7 +188,7 @@ HASH(char *string) {
 	a = tolower((unsigned char)string[0]);
 	b = tolower((unsigned char)string[n - 1]);
 
-	return (((a + n) * b) % 256);
+	return ((a + n) * b) % 256;
 }
 
 static bool
@@ -196,9 +196,9 @@ start_directory(const char *path, isc_dir_t *dir) {
 	dir->handle = opendir(path);
 
 	if (dir->handle != NULL) {
-		return (true);
+		return true;
 	} else {
-		return (false);
+		return false;
 	}
 }
 
@@ -224,9 +224,9 @@ next_file(isc_dir_t *dir) {
 	}
 
 	if (dir->filename != NULL) {
-		return (true);
+		return true;
 	} else {
-		return (false);
+		return false;
 	}
 }
 
@@ -261,7 +261,7 @@ upper(char *s) {
 		*b++ = islower(c) ? toupper(c) : c;
 	}
 	*b = '\0';
-	return (buf[buf_to_use]);
+	return buf[buf_to_use];
 }
 
 static char *
@@ -274,7 +274,7 @@ funname(const char *s, char *buf) {
 		*b++ = (c == '-') ? '_' : c;
 	}
 	*b = '\0';
-	return (buf);
+	return buf;
 }
 
 static void
@@ -565,7 +565,7 @@ sd(unsigned int rdclass, const char *classbuf, const char *dirbuf,
 static int
 ttnam_cmp(const void *va, const void *vb) {
 	const struct ttnam *ttna = va, *ttnb = vb;
-	return (ttna->type - ttnb->type);
+	return ttna->type - ttnb->type;
 }
 
 int
@@ -1026,5 +1026,5 @@ main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	return (0);
+	return 0;
 }

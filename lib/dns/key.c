@@ -47,7 +47,7 @@ dst_region_computeid(const isc_region_t *source) {
 	}
 	ac += (ac >> 16) & 0xffff;
 
-	return ((uint16_t)(ac & 0xffff));
+	return (uint16_t)(ac & 0xffff);
 }
 
 uint16_t
@@ -73,61 +73,61 @@ dst_region_computerid(const isc_region_t *source) {
 	}
 	ac += (ac >> 16) & 0xffff;
 
-	return ((uint16_t)(ac & 0xffff));
+	return (uint16_t)(ac & 0xffff);
 }
 
 dns_name_t *
 dst_key_name(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_name);
+	return key->key_name;
 }
 
 unsigned int
 dst_key_size(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_size);
+	return key->key_size;
 }
 
 unsigned int
 dst_key_proto(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_proto);
+	return key->key_proto;
 }
 
 unsigned int
 dst_key_alg(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_alg);
+	return key->key_alg;
 }
 
 uint32_t
 dst_key_flags(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_flags);
+	return key->key_flags;
 }
 
 dns_keytag_t
 dst_key_id(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_id);
+	return key->key_id;
 }
 
 dns_keytag_t
 dst_key_rid(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_rid);
+	return key->key_rid;
 }
 
 dns_rdataclass_t
 dst_key_class(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_class);
+	return key->key_class;
 }
 
 const char *
 dst_key_directory(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->directory);
+	return key->directory;
 }
 
 bool
@@ -135,17 +135,17 @@ dst_key_iszonekey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 
 	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0) {
-		return (false);
+		return false;
 	}
 	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
-		return (false);
+		return false;
 	}
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
 	    key->key_proto != DNS_KEYPROTO_ANY)
 	{
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 bool
@@ -153,17 +153,17 @@ dst_key_isnullkey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 
 	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY) {
-		return (false);
+		return false;
 	}
 	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
-		return (false);
+		return false;
 	}
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
 	    key->key_proto != DNS_KEYPROTO_ANY)
 	{
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 #define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
@@ -221,7 +221,7 @@ dst_key_have_ksk_and_zsk(dst_key_t **keys, unsigned int nkeys, unsigned int i,
 
 	SET_IF_NOT_NULL(have_ksk, hksk);
 	SET_IF_NOT_NULL(have_zsk, hzsk);
-	return (hksk && hzsk);
+	return hksk && hzsk;
 }
 
 void
@@ -239,7 +239,7 @@ dst_key_setbits(dst_key_t *key, uint16_t bits) {
 uint16_t
 dst_key_getbits(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_bits);
+	return key->key_bits;
 }
 
 void
@@ -251,7 +251,7 @@ dst_key_setttl(dst_key_t *key, dns_ttl_t ttl) {
 dns_ttl_t
 dst_key_getttl(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return (key->key_ttl);
+	return key->key_ttl;
 }
 
 void

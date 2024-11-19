@@ -78,7 +78,7 @@ rand_zipf(uint32_t max, double skew) {
 		double ratio = sample <= 1 ? pow(sample, -s)
 					   : pow(sample, -s) / pow(invB, -s);
 		if (ratio > (double)isc_random32() / UINT32_MAX) {
-			return (sample - 1);
+			return sample - 1;
 		}
 	}
 }
@@ -102,7 +102,7 @@ item_makekey(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	UNUSED(pval);
 	memmove(key, item[ival].key, item[ival].len);
-	return (item[ival].len);
+	return item[ival].len;
 }
 
 static void
@@ -120,7 +120,7 @@ const dns_qpmethods_t item_methods = {
 
 static uint8_t
 random_byte(void) {
-	return (isc_random_uniform(SHIFT_OFFSET - SHIFT_NOBYTE) + SHIFT_NOBYTE);
+	return isc_random_uniform(SHIFT_OFFSET - SHIFT_NOBYTE) + SHIFT_NOBYTE;
 }
 
 static void
@@ -907,5 +907,5 @@ main(void) {
 	isc_mem_checkdestroyed(stdout);
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	return 0;
 }

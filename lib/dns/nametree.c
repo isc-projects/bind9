@@ -128,7 +128,7 @@ newnode(isc_mem_t *mctx, const dns_name_t *name) {
 
 	dns_name_dupwithoffsets(name, mctx, &node->name);
 
-	return (node);
+	return node;
 }
 
 static bool
@@ -137,9 +137,9 @@ matchbit(unsigned char *bits, uint32_t val) {
 	unsigned int mask = 1 << (val % 8);
 
 	if (len <= bits[0] && (bits[len - 1] & mask) != 0) {
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 isc_result_t
@@ -208,7 +208,7 @@ dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name,
 out:
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(nametree->table, &qp);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -243,7 +243,7 @@ dns_nametree_delete(dns_nametree_t *nametree, const dns_name_t *name) {
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(nametree->table, &qp);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -264,7 +264,7 @@ dns_nametree_find(dns_nametree_t *nametree, const dns_name_t *name,
 	}
 	dns_qpread_destroy(nametree->table, &qpr);
 
-	return (result);
+	return result;
 }
 
 bool
@@ -298,7 +298,7 @@ dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
 	}
 
 	dns_qpread_destroy(nametree->table, &qpr);
-	return (ret);
+	return ret;
 }
 
 static void
@@ -319,7 +319,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns_ntnode_t *ntnode = pval;
-	return (dns_qpkey_fromname(key, &ntnode->name));
+	return dns_qpkey_fromname(key, &ntnode->name);
 }
 
 static void

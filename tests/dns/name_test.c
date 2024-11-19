@@ -562,12 +562,12 @@ ISC_RUN_TEST_IMPL(istat) {
 
 static bool
 name_attr_zero(struct dns_name_attrs attributes) {
-	return (!(attributes.absolute | attributes.readonly |
-		  attributes.dynamic | attributes.dynoffsets |
-		  attributes.nocompress | attributes.cache | attributes.answer |
-		  attributes.ncache | attributes.chaining | attributes.chase |
-		  attributes.wildcard | attributes.prerequisite |
-		  attributes.update | attributes.hasupdaterec));
+	return !(attributes.absolute | attributes.readonly |
+		 attributes.dynamic | attributes.dynoffsets |
+		 attributes.nocompress | attributes.cache | attributes.answer |
+		 attributes.ncache | attributes.chaining | attributes.chase |
+		 attributes.wildcard | attributes.prerequisite |
+		 attributes.update | attributes.hasupdaterec);
 }
 
 /* dns_name_init */
@@ -962,7 +962,7 @@ ISC_RUN_TEST_IMPL(fromwire_thread(void *arg) {
 		(void)dns_name_fromwire(&name, &source, &dctx, &target);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 ISC_RUN_TEST_IMPL(benchmark) {

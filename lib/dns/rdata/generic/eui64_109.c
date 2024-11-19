@@ -40,7 +40,7 @@ fromtext_eui64(ARGS_FROMTEXT) {
 	if (n != 8 || l0 > 255U || l1 > 255U || l2 > 255U || l3 > 255U ||
 	    l4 > 255U || l5 > 255U || l6 > 255U || l7 > 255U)
 	{
-		return (DNS_R_BADEUI);
+		return DNS_R_BADEUI;
 	}
 
 	eui64[0] = l0;
@@ -51,7 +51,7 @@ fromtext_eui64(ARGS_FROMTEXT) {
 	eui64[5] = l5;
 	eui64[6] = l6;
 	eui64[7] = l7;
-	return (mem_tobuffer(target, eui64, sizeof(eui64)));
+	return mem_tobuffer(target, eui64, sizeof(eui64));
 }
 
 static isc_result_t
@@ -67,7 +67,7 @@ totext_eui64(ARGS_TOTEXT) {
 		buf, sizeof(buf), "%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x",
 		rdata->data[0], rdata->data[1], rdata->data[2], rdata->data[3],
 		rdata->data[4], rdata->data[5], rdata->data[6], rdata->data[7]);
-	return (str_totext(buf, target));
+	return str_totext(buf, target);
 }
 
 static isc_result_t
@@ -82,10 +82,10 @@ fromwire_eui64(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length != 8) {
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	}
 	isc_buffer_forward(source, sregion.length);
-	return (mem_tobuffer(target, sregion.base, sregion.length));
+	return mem_tobuffer(target, sregion.base, sregion.length);
 }
 
 static isc_result_t
@@ -95,7 +95,7 @@ towire_eui64(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -111,7 +111,7 @@ compare_eui64(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
-	return (isc_region_compare(&region1, &region2));
+	return isc_region_compare(&region1, &region2);
 }
 
 static isc_result_t
@@ -126,7 +126,7 @@ fromstruct_eui64(ARGS_FROMSTRUCT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	return (mem_tobuffer(target, eui64->eui64, sizeof(eui64->eui64)));
+	return mem_tobuffer(target, eui64->eui64, sizeof(eui64->eui64));
 }
 
 static isc_result_t
@@ -144,7 +144,7 @@ tostruct_eui64(ARGS_TOSTRUCT) {
 	ISC_LINK_INIT(&eui64->common, link);
 
 	memmove(eui64->eui64, rdata->data, rdata->length);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -167,7 +167,7 @@ additionaldata_eui64(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -179,7 +179,7 @@ digest_eui64(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -191,7 +191,7 @@ checkowner_eui64(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -203,12 +203,12 @@ checknames_eui64(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_eui64(ARGS_COMPARE) {
-	return (compare_eui64(rdata1, rdata2));
+	return compare_eui64(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_EUI64_109_C */

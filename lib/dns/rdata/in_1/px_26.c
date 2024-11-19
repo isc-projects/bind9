@@ -62,7 +62,7 @@ fromtext_in_px(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -107,7 +107,7 @@ totext_in_px(ARGS_TOTEXT) {
 	dns_name_fromregion(&name, &region);
 	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
 							 : 0;
-	return (dns_name_totext(&prefix, opts, target));
+	return dns_name_totext(&prefix, opts, target);
 }
 
 static isc_result_t
@@ -130,7 +130,7 @@ fromwire_in_px(ARGS_FROMWIRE) {
 	 */
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length < 2) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 	RETERR(mem_tobuffer(target, sregion.base, 2));
 	isc_buffer_forward(source, 2);
@@ -143,7 +143,7 @@ fromwire_in_px(ARGS_FROMWIRE) {
 	/*
 	 * MAPX400.
 	 */
-	return (dns_name_fromwire(&name, source, dctx, target));
+	return dns_name_fromwire(&name, source, dctx, target);
 }
 
 static isc_result_t
@@ -177,7 +177,7 @@ towire_in_px(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
-	return (dns_name_towire(&name, cctx, target, NULL));
+	return dns_name_towire(&name, cctx, target, NULL);
 }
 
 static int
@@ -197,7 +197,7 @@ compare_in_px(ARGS_COMPARE) {
 
 	order = memcmp(rdata1->data, rdata2->data, 2);
 	if (order != 0) {
-		return (order < 0 ? -1 : 1);
+		return order < 0 ? -1 : 1;
 	}
 
 	dns_name_init(&name1, NULL);
@@ -214,7 +214,7 @@ compare_in_px(ARGS_COMPARE) {
 
 	order = dns_name_rdatacompare(&name1, &name2);
 	if (order != 0) {
-		return (order);
+		return order;
 	}
 
 	isc_region_consume(&region1, name_length(&name1));
@@ -223,7 +223,7 @@ compare_in_px(ARGS_COMPARE) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_rdatacompare(&name1, &name2));
+	return dns_name_rdatacompare(&name1, &name2);
 }
 
 static isc_result_t
@@ -244,7 +244,7 @@ fromstruct_in_px(ARGS_FROMSTRUCT) {
 	dns_name_toregion(&px->map822, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
 	dns_name_toregion(&px->mapx400, &region);
-	return (isc_buffer_copyregion(target, &region));
+	return isc_buffer_copyregion(target, &region);
 }
 
 static isc_result_t
@@ -278,7 +278,7 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 	name_duporclone(&name, mctx, &px->mapx400);
 
 	px->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -308,7 +308,7 @@ additionaldata_in_px(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -326,19 +326,19 @@ digest_in_px(ARGS_DIGEST) {
 	r1.length = 2;
 	result = (digest)(arg, &r1);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 	result = dns_name_digest(&name, digest, arg);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	isc_region_consume(&r2, name_length(&name));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 
-	return (dns_name_digest(&name, digest, arg));
+	return dns_name_digest(&name, digest, arg);
 }
 
 static bool
@@ -351,7 +351,7 @@ checkowner_in_px(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -363,12 +363,12 @@ checknames_in_px(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_in_px(ARGS_COMPARE) {
-	return (compare_in_px(rdata1, rdata2));
+	return compare_in_px(rdata1, rdata2);
 }
 
 #endif /* RDATA_IN_1_PX_26_C */

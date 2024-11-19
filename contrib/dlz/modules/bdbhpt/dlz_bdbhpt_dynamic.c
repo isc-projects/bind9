@@ -92,14 +92,14 @@ bdbhpt_strrev(char *str) {
 	char *p1, *p2;
 
 	if (!str || !*str) {
-		return (str);
+		return str;
 	}
 	for (p1 = str, p2 = str + strlen(str) - 1; p2 > p1; ++p1, --p2) {
 		*p1 ^= *p2;
 		*p2 ^= *p1;
 		*p1 ^= *p2;
 	}
-	return (str);
+	return str;
 }
 
 /*%
@@ -144,11 +144,11 @@ bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd) {
 	tmp = strchr(tmp, ' ');
 	/* verify we found a space */
 	if (tmp == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	/* make sure it is safe to increment pointer */
 	if (++tmp > lastchar) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* save pointer to host */
@@ -158,13 +158,13 @@ bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd) {
 	tmp = strchr(tmp, ' ');
 	/* verify we found a space */
 	if (tmp == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	/* change the space to a null (string terminator) */
 	tmp[0] = '\0';
 	/* make sure it is safe to increment pointer */
 	if (++tmp > lastchar) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* save pointer to ttl string */
@@ -174,13 +174,13 @@ bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd) {
 	tmp = strchr(tmp, ' ');
 	/* verify we found a space */
 	if (tmp == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	/* change the space to a null (string terminator) */
 	tmp[0] = '\0';
 	/* make sure it is safe to increment pointer */
 	if (++tmp > lastchar) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* save pointer to dns type */
@@ -190,13 +190,13 @@ bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd) {
 	tmp = strchr(tmp, ' ');
 	/* verify we found a space */
 	if (tmp == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	/* change the space to a null (string terminator) */
 	tmp[0] = '\0';
 	/* make sure it is safe to increment pointer */
 	if (++tmp > lastchar) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* save pointer to remainder of DNS data */
@@ -207,11 +207,11 @@ bdbhpt_parse_data(log_t *log, char *in, bdbhpt_parsed_data_t *pd) {
 	if (*endp != '\0' || pd->ttl < 0) {
 		log(ISC_LOG_ERROR, "bdbhpt_dynamic: "
 				   "ttl must be a positive number");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* if we get this far everything should have worked. */
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -230,7 +230,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	result = dlz_findzonedb(dbdata, name);
 #endif /* if DLZ_DLOPEN_VERSION >= 3 */
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	memset(&key, 0, sizeof(DBT));
@@ -273,7 +273,7 @@ xfr_cleanup:
 		free(data.data);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -323,7 +323,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 
 	xfr_key.data = tmp_zone = strdup(zone);
 	if (xfr_key.data == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	xfr_key.size = strlen(xfr_key.data);
@@ -426,7 +426,7 @@ allnodes_cleanup:
 		dns_cursor->c_close(dns_cursor);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -484,7 +484,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	key.data = strdup(name);
 
 	if (key.data == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	/*
@@ -516,7 +516,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 		free(data.data);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -559,7 +559,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	key.data = keyStr = malloc((key.size + 1) * sizeof(char));
 
 	if (keyStr == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	strcpy(keyStr, zone);
@@ -608,7 +608,7 @@ lookup_cleanup:
 		free(tmp);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -625,7 +625,7 @@ bdbhpt_opendb(log_t *log, DB_ENV *db_env, DBTYPE db_type, DB **db,
 		    "bdbhpt_dynamic: could not initialize %s database. "
 		    "BerkeleyDB error: %s",
 		    db_name, db_strerror(result));
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* set database flags. */
@@ -634,7 +634,7 @@ bdbhpt_opendb(log_t *log, DB_ENV *db_env, DBTYPE db_type, DB **db,
 		    "bdbhpt_dynamic: could not set flags for %s database. "
 		    "BerkeleyDB error: %s",
 		    db_name, db_strerror(result));
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* open the database. */
@@ -645,10 +645,10 @@ bdbhpt_opendb(log_t *log, DB_ENV *db_env, DBTYPE db_type, DB **db,
 		    "bdbhpt_dynamic: could not open %s database in %s. "
 		    "BerkeleyDB error: %s",
 		    db_name, db_file, db_strerror(result));
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -670,7 +670,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	/* Allocate memory for our db structures and helper functions */
 	db = calloc(1, sizeof(struct bdbhpt_instance));
 	if (db == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	/* Fill in the helper functions */
@@ -686,7 +686,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 			"bdbhpt_dynamic: please supply 3 command line args. "
 			"You supplied: %s",
 			argc);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	switch ((char)*argv[1]) {
@@ -726,7 +726,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 			"operating mode must be set to P or C or T. "
 			"You specified '%s'",
 			argv[1]);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/*
@@ -788,11 +788,11 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 
 	db->log(ISC_LOG_INFO, "bdbhpt_dynamic: version %s, started",
 		dlz_bdbhpt_dynamic_version);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 init_cleanup:
 	bdbhpt_cleanup(db);
-	return (result);
+	return result;
 }
 
 /*
@@ -814,7 +814,7 @@ dlz_destroy(void *dbdata) {
 int
 dlz_version(unsigned int *flags) {
 	UNUSED(flags);
-	return (DLZ_DLOPEN_VERSION);
+	return DLZ_DLOPEN_VERSION;
 }
 
 /*

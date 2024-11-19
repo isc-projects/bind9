@@ -63,7 +63,7 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 	isc_mem_attach(mctx, &order->mctx);
 	order->magic = DNS_ORDER_MAGIC;
 	*orderp = order;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -87,15 +87,15 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
 	ent->mode = mode;
 	ISC_LINK_INIT(ent, link);
 	ISC_LIST_INITANDAPPEND(order->ents, ent, link);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
 match(const dns_name_t *name1, const dns_name_t *name2) {
 	if (dns_name_iswildcard(name2)) {
-		return (dns_name_matcheswildcard(name1, name2));
+		return dns_name_matcheswildcard(name1, name2);
 	}
-	return (dns_name_equal(name1, name2));
+	return dns_name_equal(name1, name2);
 }
 
 unsigned int
@@ -116,10 +116,10 @@ dns_order_find(dns_order_t *order, const dns_name_t *name,
 			continue;
 		}
 		if (match(name, dns_fixedname_name(&ent->name))) {
-			return (ent->mode);
+			return ent->mode;
 		}
 	}
-	return (DNS_RDATASETATTR_NONE);
+	return DNS_RDATASETATTR_NONE;
 }
 
 void

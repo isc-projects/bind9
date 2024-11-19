@@ -32,7 +32,7 @@
 /* These are new in OpenSSL 1.1.0. */
 static inline BN_GENCB *
 BN_GENCB_new(void) {
-	return (OPENSSL_malloc(sizeof(BN_GENCB)));
+	return OPENSSL_malloc(sizeof(BN_GENCB));
 }
 
 static inline void
@@ -45,21 +45,21 @@ BN_GENCB_free(BN_GENCB *cb) {
 
 static inline void *
 BN_GENCB_get_arg(BN_GENCB *cb) {
-	return (cb->arg);
+	return cb->arg;
 }
 #endif /* !HAVE_BN_GENCB_NEW */
 
 #if !HAVE_EVP_PKEY_GET0_RSA && OPENSSL_VERSION_NUMBER < 0x10100000L
 static inline const RSA *
 EVP_PKEY_get0_RSA(const EVP_PKEY *pkey) {
-	return (pkey->type == EVP_PKEY_RSA ? pkey->pkey.rsa : NULL);
+	return pkey->type == EVP_PKEY_RSA ? pkey->pkey.rsa : NULL;
 }
 #endif
 
 #if !HAVE_EVP_PKEY_GET0_EC_KEY && OPENSSL_VERSION_NUMBER < 0x10100000L
 static inline const EC_KEY *
 EVP_PKEY_get0_EC_KEY(const EVP_PKEY *pkey) {
-	return (pkey->type == EVP_PKEY_EC ? pkey->pkey.ec : NULL);
+	return pkey->type == EVP_PKEY_EC ? pkey->pkey.ec : NULL;
 }
 #endif
 

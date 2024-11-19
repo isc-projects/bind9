@@ -123,7 +123,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		dns_tsigkey_detach(&tsigkey);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	if (secret != NULL) {
@@ -131,7 +131,7 @@ failure:
 	}
 	cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 		    "configuring key '%s': %s", keyid, isc_result_totext(ret));
-	return (ret);
+	return ret;
 }
 
 isc_result_t
@@ -172,9 +172,9 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	*ringp = ring;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	dns_tsigkeyring_detach(&ring);
-	return (result);
+	return result;
 }

@@ -153,7 +153,7 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 
 	*instp = inst;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -168,7 +168,7 @@ plugin_check(const char *parameters, const void *cfg, const char *cfg_file,
 	UNUSED(lctx);
 	UNUSED(actx);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -195,7 +195,7 @@ plugin_destroy(void **instp) {
  */
 int
 plugin_version(void) {
-	return (NS_PLUGIN_VERSION);
+	return NS_PLUGIN_VERSION;
 }
 
 static state_t *
@@ -208,7 +208,7 @@ client_state_get(const query_ctx_t *qctx, async_instance_t *inst) {
 			     sizeof(qctx->client), (void **)&state);
 	UNLOCK(&inst->hlock);
 
-	return (result == ISC_R_SUCCESS ? state : NULL);
+	return result == ISC_R_SUCCESS ? state : NULL;
 }
 
 static void
@@ -258,7 +258,7 @@ async_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 		client_state_create(qctx, inst);
 	}
 
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }
 
 static void
@@ -304,7 +304,7 @@ doasync(query_ctx_t *qctx, isc_mem_t *mctx, void *arg, isc_loop_t *loop,
 	isc_async_run(loop, cb, rev);
 
 	*ctxp = ctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static ns_hookresult_t
@@ -321,7 +321,7 @@ async_query_done_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	if (state->async) {
 		/* resuming */
 		state->async = false;
-		return (NS_HOOK_CONTINUE);
+		return NS_HOOK_CONTINUE;
 	}
 
 	/* initial call */
@@ -329,7 +329,7 @@ async_query_done_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	state->hookpoint = NS_QUERY_DONE_BEGIN;
 	state->origresult = *resp;
 	ns_query_hookasync(qctx, doasync, state);
-	return (NS_HOOK_RETURN);
+	return NS_HOOK_RETURN;
 }
 
 static ns_hookresult_t
@@ -341,10 +341,10 @@ async_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
 	*resp = ISC_R_UNSET;
 
 	if (!qctx->detach_client) {
-		return (NS_HOOK_CONTINUE);
+		return NS_HOOK_CONTINUE;
 	}
 
 	client_state_destroy(qctx, inst);
 
-	return (NS_HOOK_CONTINUE);
+	return NS_HOOK_CONTINUE;
 }

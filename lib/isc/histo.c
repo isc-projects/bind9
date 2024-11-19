@@ -117,7 +117,7 @@ isc_histo_destroy(isc_histo_t **hgp) {
 uint
 isc_histo_sigbits(isc_histo_t *hg) {
 	REQUIRE(HISTO_VALID(hg));
-	return (hg->sigbits);
+	return hg->sigbits;
 }
 
 /*
@@ -128,14 +128,14 @@ uint
 isc_histo_bits_to_digits(uint bits) {
 	REQUIRE(bits >= ISC_HISTO_MINBITS);
 	REQUIRE(bits <= ISC_HISTO_MAXBITS);
-	return (floor(1.0 - (1.0 - bits) * LN_2 / LN_10));
+	return floor(1.0 - (1.0 - bits) * LN_2 / LN_10);
 }
 
 uint
 isc_histo_digits_to_bits(uint digits) {
 	REQUIRE(digits >= ISC_HISTO_MINDIGITS);
 	REQUIRE(digits <= ISC_HISTO_MAXDIGITS);
-	return (ceil(1.0 - (1.0 - digits) * LN_10 / LN_2));
+	return ceil(1.0 - (1.0 - digits) * LN_10 / LN_2);
 }
 
 /**********************************************************************/
@@ -186,7 +186,7 @@ value_to_key(const isc_histo_t *hg, uint64_t value) {
 	/* mantissa has leading bit set except for denormals */
 	uint mantissa = value >> exponent;
 	/* leading bit of mantissa adds one to exponent */
-	return ((exponent << hg->sigbits) + mantissa);
+	return (exponent << hg->sigbits) + mantissa;
 }
 
 /*
@@ -215,12 +215,12 @@ key_to_minval(const isc_histo_t *hg, uint key) {
 	uint chunksize = CHUNKSIZE(hg);
 	uint exponent = (key / chunksize) - 1;
 	uint64_t mantissa = (key % chunksize) + chunksize;
-	return (key < chunksize ? key : mantissa << exponent);
+	return key < chunksize ? key : mantissa << exponent;
 }
 
 static inline uint64_t
 key_to_maxval(const isc_histo_t *hg, uint key) {
-	return (key_to_minval(hg, key + 1) - 1);
+	return key_to_minval(hg, key + 1) - 1;
 }
 
 /**********************************************************************/
@@ -236,18 +236,18 @@ key_to_new_bucket(isc_histo_t *hg, uint key) {
 					   sizeof(hg_bucket_t));
 	hg_chunk_t *cpp = &hg->chunk[chunk];
 	if (atomic_compare_exchange_strong_acq_rel(cpp, &old_cp, new_cp)) {
-		return (&new_cp[bucket]);
+		return &new_cp[bucket];
 	} else {
 		/* lost the race, so use the winner's chunk */
 		isc_mem_cput(hg->mctx, new_cp, CHUNKSIZE(hg),
 			     sizeof(hg_bucket_t));
-		return (&old_cp[bucket]);
+		return &old_cp[bucket];
 	}
 }
 
 static hg_bucket_t *
 get_chunk(const isc_histo_t *hg, uint chunk) {
-	return (atomic_load_acquire(&hg->chunk[chunk]));
+	return atomic_load_acquire(&hg->chunk[chunk]);
 }
 
 static inline hg_bucket_t *
@@ -257,17 +257,17 @@ key_to_bucket(const isc_histo_t *hg, uint key) {
 	uint chunk = key / chunksize;
 	uint bucket = key % chunksize;
 	hg_bucket_t *cp = get_chunk(hg, chunk);
-	return (cp == NULL ? NULL : &cp[bucket]);
+	return cp == NULL ? NULL : &cp[bucket];
 }
 
 static inline uint64_t
 bucket_count(const hg_bucket_t *bp) {
-	return (bp == NULL ? 0 : atomic_load_relaxed(bp));
+	return bp == NULL ? 0 : atomic_load_relaxed(bp);
 }
 
 static inline uint64_t
 get_key_count(const isc_histo_t *hg, uint key) {
-	return (bucket_count(key_to_bucket(hg, key)));
+	return bucket_count(key_to_bucket(hg, key));
 }
 
 static inline void
@@ -320,9 +320,9 @@ isc_histo_get(const isc_histo_t *hg, uint key, uint64_t *minp, uint64_t *maxp,
 		SET_IF_NOT_NULL(minp, key_to_minval(hg, key));
 		SET_IF_NOT_NULL(maxp, key_to_maxval(hg, key));
 		SET_IF_NOT_NULL(countp, get_key_count(hg, key));
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 }
 
@@ -473,7 +473,7 @@ lerp(uint64_t min, uint64_t max, uint64_t lo, uint64_t in, uint64_t hi) {
 	double inpart = (double)(in - lo);
 	double outrange = (double)(max - min);
 	double outpart = round(outrange * inpart / inrange);
-	return (min + ISC_MIN((uint64_t)outpart, max - min));
+	return min + ISC_MIN((uint64_t)outpart, max - min);
 }
 
 /*
@@ -481,7 +481,7 @@ lerp(uint64_t min, uint64_t max, uint64_t lo, uint64_t in, uint64_t hi) {
  */
 static inline bool
 inside(uint64_t lo, uint64_t in, uint64_t hi) {
-	return (lo < hi && lo <= in && in <= hi);
+	return lo < hi && lo <= in && in <= hi;
 }
 
 isc_result_t
@@ -559,13 +559,13 @@ isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
 						key_to_maxval(hg, key),
 						bucket_lo, rank[i], bucket_hi);
 				if (++i == size) {
-					return (ISC_R_SUCCESS);
+					return ISC_R_SUCCESS;
 				}
 			}
 		}
 	}
 
-	return (ISC_R_UNSET);
+	return ISC_R_UNSET;
 }
 
 /**********************************************************************/

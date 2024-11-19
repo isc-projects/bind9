@@ -64,14 +64,14 @@ main(int argc, char **argv) {
 		case 'a':
 			if (!link_dnsrps(&emsg)) {
 				printf("I:%s\n", emsg.c);
-				return (1);
+				return 1;
 			}
-			return (0);
+			return 0;
 
 		case 'n':
 			if (!link_dnsrps(&emsg)) {
 				fprintf(stderr, "## %s\n", emsg.c);
-				return (1);
+				return 1;
 			}
 #ifdef USE_DNSRPS
 			/*
@@ -81,7 +81,7 @@ main(int argc, char **argv) {
 						     NULL, NULL);
 			if (clist == NULL) {
 				fprintf(stderr, "## %s: %s\n", optarg, emsg.c);
-				return (1);
+				return 1;
 			}
 			snprintf(cstr, sizeof(cstr), "zone %s;", optarg);
 			client = librpz->client_create(&emsg, clist, cstr,
@@ -89,7 +89,7 @@ main(int argc, char **argv) {
 			if (client == NULL) {
 				fprintf(stderr, "## %s\n", emsg.c);
 				librpz->clist_detach(&clist);
-				return (1);
+				return 1;
 			}
 
 			rsp = NULL;
@@ -100,7 +100,7 @@ main(int argc, char **argv) {
 				fprintf(stderr, "## %s\n", emsg.c);
 				librpz->client_detach(&client);
 				librpz->clist_detach(&clist);
-				return (1);
+				return 1;
 			}
 
 			if (!librpz->soa_serial(&emsg, &serial, optarg, rsp)) {
@@ -108,7 +108,7 @@ main(int argc, char **argv) {
 				librpz->rsp_detach(&rsp);
 				librpz->client_detach(&client);
 				librpz->clist_detach(&clist);
-				return (1);
+				return 1;
 			}
 			librpz->rsp_detach(&rsp);
 			librpz->client_detach(&client);
@@ -117,24 +117,24 @@ main(int argc, char **argv) {
 #else  /* ifdef USE_DNSRPS */
 			UNREACHABLE();
 #endif /* ifdef USE_DNSRPS */
-			return (0);
+			return 0;
 
 		case 'w':
 			seconds = strtod(optarg, &p);
 			if (seconds <= 0 || *p != '\0') {
 				fprintf(stderr, USAGE);
-				return (1);
+				return 1;
 			}
 			usleep((int)(seconds * 1000.0 * 1000.0));
-			return (0);
+			return 0;
 
 		default:
 			fprintf(stderr, USAGE);
-			return (1);
+			return 1;
 		}
 	}
 	fprintf(stderr, USAGE);
-	return (1);
+	return 1;
 }
 
 static bool
@@ -142,12 +142,12 @@ link_dnsrps(librpz_emsg_t *emsg) {
 #ifdef USE_DNSRPS
 	librpz = librpz_lib_open(emsg, NULL, LIBRPZ_LIB_OPEN);
 	if (librpz == NULL) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 #else  /* ifdef USE_DNSRPS */
 	snprintf(emsg->c, sizeof(emsg->c), "DNSRPS not configured");
-	return (false);
+	return false;
 #endif /* ifdef USE_DNSRPS */
 }

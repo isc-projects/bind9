@@ -194,7 +194,7 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *restrict rl,
 		UNREACHABLE();
 	}
 	UNLOCK(&rl->lock);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -212,7 +212,7 @@ isc_ratelimiter_dequeue(isc_ratelimiter_t *restrict rl, isc_rlevent_t **rlep) {
 		result = ISC_R_NOTFOUND;
 	}
 	UNLOCK(&rl->lock);
-	return (result);
+	return result;
 }
 
 static void

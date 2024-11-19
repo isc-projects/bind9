@@ -38,7 +38,7 @@ fromtext_opt(ARGS_FROMTEXT) {
 	UNUSED(target);
 	UNUSED(callbacks);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 static isc_result_t
@@ -88,7 +88,7 @@ totext_opt(ARGS_TOTEXT) {
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -107,12 +107,12 @@ fromwire_opt(ARGS_FROMWIRE) {
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	total = 0;
 	while (sregion.length != 0) {
 		if (sregion.length < 4) {
-			return (ISC_R_UNEXPECTEDEND);
+			return ISC_R_UNEXPECTEDEND;
 		}
 		opt = uint16_fromregion(&sregion);
 		isc_region_consume(&sregion, 2);
@@ -120,18 +120,18 @@ fromwire_opt(ARGS_FROMWIRE) {
 		isc_region_consume(&sregion, 2);
 		total += 4;
 		if (sregion.length < length) {
-			return (ISC_R_UNEXPECTEDEND);
+			return ISC_R_UNEXPECTEDEND;
 		}
 		switch (opt) {
 		case DNS_OPT_LLQ:
 			if (length != 18U) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			isc_region_consume(&sregion, length);
 			break;
 		case DNS_OPT_UL:
 			if (length != 4U && length != 8U) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			isc_region_consume(&sregion, length);
 			break;
@@ -142,7 +142,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 			uint8_t addrbytes;
 
 			if (length < 4) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			family = uint16_fromregion(&sregion);
 			isc_region_consume(&sregion, 2);
@@ -163,32 +163,32 @@ fromwire_opt(ARGS_FROMWIRE) {
 				 * family is unknown.
 				 */
 				if (addrlen != 0U || scope != 0U) {
-					return (DNS_R_OPTERR);
+					return DNS_R_OPTERR;
 				}
 				break;
 			case 1:
 				if (addrlen > 32U || scope > 32U) {
-					return (DNS_R_OPTERR);
+					return DNS_R_OPTERR;
 				}
 				break;
 			case 2:
 				if (addrlen > 128U || scope > 128U) {
-					return (DNS_R_OPTERR);
+					return DNS_R_OPTERR;
 				}
 				break;
 			default:
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			addrbytes = (addrlen + 7) / 8;
 			if (addrbytes + 4 != length) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 
 			if (addrbytes != 0U && (addrlen % 8) != 0) {
 				uint8_t bits = ~0U << (8 - (addrlen % 8));
 				bits &= sregion.base[addrbytes - 1];
 				if (bits != sregion.base[addrbytes - 1]) {
-					return (DNS_R_OPTERR);
+					return DNS_R_OPTERR;
 				}
 			}
 			isc_region_consume(&sregion, addrbytes);
@@ -199,7 +199,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 			 * Request has zero length.  Response is 32 bits.
 			 */
 			if (length != 0 && length != 4) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			isc_region_consume(&sregion, length);
 			break;
@@ -209,23 +209,23 @@ fromwire_opt(ARGS_FROMWIRE) {
 			 * Client + server cookie is 8 + [8..32].
 			 */
 			if (length != 8 && (length < 16 || length > 40)) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			isc_region_consume(&sregion, length);
 			break;
 		case DNS_OPT_KEY_TAG:
 			if (length == 0 || (length % 2) != 0) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			isc_region_consume(&sregion, length);
 			break;
 		case DNS_OPT_EDE:
 			if (length < 2) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			/* UTF-8 Byte Order Mark is not permitted. RFC 5198 */
 			if (isc_utf8_bom(sregion.base + 2, length - 2)) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			/*
 			 * The EXTRA-TEXT field is specified as UTF-8, and
@@ -233,7 +233,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 			 * according to RFC 3269 security considerations.
 			 */
 			if (!isc_utf8_valid(sregion.base + 2, length - 2)) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			isc_region_consume(&sregion, length);
 			break;
@@ -241,7 +241,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 			FALLTHROUGH;
 		case DNS_OPT_SERVER_TAG:
 			if (length != 2) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 			isc_region_consume(&sregion, length);
 			break;
@@ -255,13 +255,13 @@ fromwire_opt(ARGS_FROMWIRE) {
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
 	if (tregion.length < total) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(tregion.base, sregion.base, total);
 	isc_buffer_forward(source, total);
 	isc_buffer_add(target, total);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -270,7 +270,7 @@ towire_opt(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -284,7 +284,7 @@ compare_opt(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -309,15 +309,15 @@ fromstruct_opt(ARGS_FROMSTRUCT) {
 		length = uint16_fromregion(&region);
 		isc_region_consume(&region, 2);
 		if (region.length < length) {
-			return (ISC_R_UNEXPECTEDEND);
+			return ISC_R_UNEXPECTEDEND;
 		}
 		isc_region_consume(&region, length);
 	}
 	if (region.length != 0) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
-	return (mem_tobuffer(target, opt->options, opt->length));
+	return mem_tobuffer(target, opt->options, opt->length);
 }
 
 static isc_result_t
@@ -337,7 +337,7 @@ tostruct_opt(ARGS_TOSTRUCT) {
 	opt->options = mem_maybedup(mctx, r.base, r.length);
 	opt->offset = 0;
 	opt->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -366,7 +366,7 @@ additionaldata_opt(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -381,7 +381,7 @@ digest_opt(ARGS_DIGEST) {
 	UNUSED(digest);
 	UNUSED(arg);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 static bool
@@ -392,7 +392,7 @@ checkowner_opt(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (dns_name_equal(name, dns_rootname));
+	return dns_name_equal(name, dns_rootname);
 }
 
 static bool
@@ -403,12 +403,12 @@ checknames_opt(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_opt(ARGS_COMPARE) {
-	return (compare_opt(rdata1, rdata2));
+	return compare_opt(rdata1, rdata2);
 }
 
 isc_result_t
@@ -418,11 +418,11 @@ dns_rdata_opt_first(dns_rdata_opt_t *opt) {
 	REQUIRE(opt->options != NULL || opt->length == 0);
 
 	if (opt->length == 0) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	opt->offset = 0;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -442,9 +442,9 @@ dns_rdata_opt_next(dns_rdata_opt_t *opt) {
 	INSIST(opt->offset + 4 + length <= opt->length);
 	opt->offset = opt->offset + 4 + length;
 	if (opt->offset == opt->length) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -468,7 +468,7 @@ dns_rdata_opt_current(dns_rdata_opt_t *opt, dns_rdata_opt_opcode_t *opcode) {
 	opcode->data = r.base;
 	INSIST(opt->offset + 4 + opcode->length <= opt->length);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #endif /* RDATA_GENERIC_OPT_41_C */

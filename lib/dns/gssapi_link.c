@@ -74,7 +74,7 @@ gssapi_create_signverify_ctx(dst_key_t *key, dst_context_t *dctx) {
 
 	dctx->ctxdata.gssctx = ctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -110,7 +110,7 @@ gssapi_adddata(dst_context_t *dctx, const isc_region_t *data) {
 
 	result = isc_buffer_copyregion(ctx->buffer, data);
 	if (result == ISC_R_SUCCESS) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	length = isc_buffer_length(ctx->buffer) + data->length + BUFFER_EXTRA;
@@ -124,7 +124,7 @@ gssapi_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	isc_buffer_free(&ctx->buffer);
 	ctx->buffer = newbuffer;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -158,7 +158,7 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	if (gret != GSS_S_COMPLETE) {
 		gss_log(3, "GSS sign error: %s",
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/*
@@ -167,7 +167,7 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	 */
 	if (gsig.length > isc_buffer_availablelength(sig)) {
 		gss_release_buffer(&minor, &gsig);
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/*
@@ -179,7 +179,7 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		gss_release_buffer(&minor, &gsig);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -219,13 +219,13 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		    gret == GSS_S_CONTEXT_EXPIRED || gret == GSS_S_NO_CONTEXT ||
 		    gret == GSS_S_FAILURE)
 		{
-			return (DST_R_VERIFYFAILURE);
+			return DST_R_VERIFYFAILURE;
 		} else {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
@@ -234,7 +234,7 @@ gssapi_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	gss_ctx_id_t gsskey2 = key2->keydata.gssctx;
 
 	/* No idea */
-	return (gsskey1 == gsskey2);
+	return gsskey1 == gsskey2;
 }
 
 static isc_result_t
@@ -244,13 +244,13 @@ gssapi_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	UNUSED(callback);
 
 	/* No idea */
-	return (ISC_R_FAILURE);
+	return ISC_R_FAILURE;
 }
 
 static bool
 gssapi_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (true);
+	return true;
 }
 
 static void
@@ -271,7 +271,7 @@ gssapi_restore(dst_key_t *key, const char *keystr) {
 
 	len = strlen(keystr);
 	if ((len % 4) != 0U) {
-		return (ISC_R_BADBASE64);
+		return ISC_R_BADBASE64;
 	}
 
 	len = (len / 4) * 3;
@@ -281,7 +281,7 @@ gssapi_restore(dst_key_t *key, const char *keystr) {
 	result = isc_base64_decodestring(keystr, b);
 	if (result != ISC_R_SUCCESS) {
 		isc_buffer_free(&b);
-		return (result);
+		return result;
 	}
 
 	isc_buffer_remainingregion(b, &r);
@@ -290,11 +290,11 @@ gssapi_restore(dst_key_t *key, const char *keystr) {
 				       (gss_ctx_id_t *)&key->keydata.gssctx);
 	if (major != GSS_S_COMPLETE) {
 		isc_buffer_free(&b);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	isc_buffer_free(&b);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -312,10 +312,10 @@ gssapi_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
 	if (major != GSS_S_COMPLETE) {
 		fprintf(stderr, "gss_export_sec_context -> %u, %u\n", major,
 			minor);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	if (gssbuffer.length == 0U) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	len = ((gssbuffer.length + 2) / 3) * 4;
 	buf = isc_mem_get(mctx, len);
@@ -326,7 +326,7 @@ gssapi_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
 	gss_release_buffer(&minor, &gssbuffer);
 	*buffer = buf;
 	*length = (int)len;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static dst_func_t gssapi_functions = {
@@ -359,5 +359,5 @@ dst__gssapi_init(dst_func_t **funcp) {
 	if (*funcp == NULL) {
 		*funcp = &gssapi_functions;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

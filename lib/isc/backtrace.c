@@ -34,7 +34,7 @@ isc_backtrace(void **addrs, int maxaddrs) {
 	 * See notes in backtrace.h.
 	 */
 	if (addrs == NULL || maxaddrs <= 0) {
-		return (-1);
+		return -1;
 	}
 
 	/*
@@ -43,17 +43,17 @@ isc_backtrace(void **addrs, int maxaddrs) {
 	 */
 	n = backtrace(addrs, maxaddrs);
 	if (n < 2) {
-		return (-1);
+		return -1;
 	}
 	n--;
 	memmove(addrs, &addrs[1], sizeof(addrs[0]) * n);
 
-	return (n);
+	return n;
 }
 
 char **
 isc_backtrace_symbols(void *const *buffer, int size) {
-	return (backtrace_symbols(buffer, size));
+	return backtrace_symbols(buffer, size);
 }
 
 void
@@ -88,7 +88,7 @@ isc_backtrace(void **addrs, int maxaddrs) {
 	UNUSED(addrs);
 	UNUSED(maxaddrs);
 
-	return (-1);
+	return -1;
 }
 
 char **
@@ -96,7 +96,7 @@ isc_backtrace_symbols(void *const *buffer, int size) {
 	UNUSED(buffer);
 	UNUSED(size);
 
-	return (NULL);
+	return NULL;
 }
 
 void

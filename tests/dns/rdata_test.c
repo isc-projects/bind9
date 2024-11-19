@@ -149,7 +149,7 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 				    DNS_DECOMPRESS_ALWAYS, &target);
 	detect_uncleared_libcrypto_error();
 
-	return (result);
+	return result;
 }
 
 /*
@@ -177,7 +177,7 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
 
 	*length = isc_buffer_usedlength(&target);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -187,7 +187,7 @@ additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	UNUSED(name);
 	UNUSED(qtype);
 	UNUSED(found);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -195,8 +195,8 @@ additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
  */
 static isc_result_t
 rdata_additionadata(dns_rdata_t *rdata) {
-	return (dns_rdata_additionaldata(rdata, dns_rootname, additionaldata_cb,
-					 NULL));
+	return dns_rdata_additionaldata(rdata, dns_rootname, additionaldata_cb,
+					NULL);
 }
 
 /*

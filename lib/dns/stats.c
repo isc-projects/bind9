@@ -248,9 +248,9 @@ dns_generalstats_increment(dns_stats_t *stats, isc_statscounter_t counter) {
 static isc_statscounter_t
 rdatatype2counter(dns_rdatatype_t type) {
 	if (type > (dns_rdatatype_t)RDTYPECOUNTER_MAXTYPE) {
-		return (0);
+		return 0;
 	}
-	return ((isc_statscounter_t)type);
+	return (isc_statscounter_t)type;
 }
 
 void

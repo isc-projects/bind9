@@ -68,7 +68,7 @@ str_printf(const char *fmt, ...) {
 		perror("strdup");
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -85,7 +85,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 	bool is_ipv6 = false;
 
 	if (astr == NULL || pfamily == NULL || pbuf == NULL) {
-		return (-1);
+		return -1;
 	}
 
 	strncpy(tmpc, astr, sizeof(tmpc) - 1);
@@ -140,7 +140,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 				errno = 0;
 				hexval = strtoul(tok, &eptr, 16);
 				if (errno != 0) {
-					return (-1);
+					return -1;
 				}
 				hex_values[lcount - 2] = hexval;
 			}
@@ -154,7 +154,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 
 	/* Not acceptable for either address family. */
 	if (lcount > 9) {
-		return (-1);
+		return -1;
 	}
 
 	*pfamily = (!is_ipv6 && (lcount == 5)) ? AF_INET : AF_INET6;
@@ -172,9 +172,9 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 					(optname ? optname : astr), prefix);
 			}
 
-			return (-1);
+			return -1;
 		} else if (bcount > 0) {
-			return (-1);
+			return -1;
 		}
 
 		sprintf(pbuf, "%u.%u.%u.%u", values[3], values[2], values[1],
@@ -190,7 +190,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 					(optname ? optname : astr), prefix);
 			}
 
-			return (-1);
+			return -1;
 		}
 
 		*pbuf = 0;
@@ -204,7 +204,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 				strcat(pbuf, ":");
 			} else {
 				if (hex_values[n - 1] > 0xffff) {
-					return (-1);
+					return -1;
 				} else if (n > 1) {
 					sprintf(&pbuf[strlen(pbuf)],
 						"%x:", hex_values[n - 1]);
@@ -216,7 +216,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 rpz_soa_t *
@@ -229,7 +229,7 @@ parse_serial(unsigned char *rdata, size_t rdlen) {
 	result = calloc(1, sizeof(*result));
 	if (result == NULL) {
 		perror("calloc");
-		return (NULL);
+		return NULL;
 	}
 
 	mlen = wdns_domain_to_str(rdata, rdlen, dname);
@@ -247,7 +247,7 @@ parse_serial(unsigned char *rdata, size_t rdlen) {
 	uptr++;
 	result->minimum = ntohl(*uptr);
 
-	return (result);
+	return result;
 }
 
 size_t
@@ -257,7 +257,7 @@ wdns_domain_to_str(const uint8_t *src, size_t src_len, char *dst) {
 	uint8_t oclen;
 
 	if (src == NULL) {
-		return (0);
+		return 0;
 	}
 
 	oclen = *src;
@@ -290,7 +290,7 @@ wdns_domain_to_str(const uint8_t *src, size_t src_len, char *dst) {
 	bytes_read++;
 
 	*dst = '\0';
-	return ((bytes_read));
+	return bytes_read;
 }
 
 /* Add parsed update specification to maintained list of nodes. */
@@ -320,7 +320,7 @@ apply_update_to_set(trpz_result_t **results, size_t *pnresults,
 			fprintf(stderr,
 				"Error in determining IP address type: %s\n",
 				node);
-			return (NULL);
+			return NULL;
 		} else if (family == AF_INET) {
 			(*pzones)[zidx].has_triggers[0][trigger] = 1;
 		} else {
@@ -343,7 +343,7 @@ apply_update_to_set(trpz_result_t **results, size_t *pnresults,
 			if (rptr->result.trig == trigger &&
 			    rptr->result.policy == policy && rptr->ttl == ttl)
 			{
-				return (rptr);
+				return rptr;
 			}
 
 			rptr->result.trig = trigger;
@@ -351,7 +351,7 @@ apply_update_to_set(trpz_result_t **results, size_t *pnresults,
 			rptr->result.zpolicy = policy;
 			rptr->ttl = ttl;
 			*modified = 1;
-			return (rptr);
+			return rptr;
 		}
 	}
 
@@ -361,7 +361,7 @@ apply_update_to_set(trpz_result_t **results, size_t *pnresults,
 	*results = realloc(*results, (*pnresults * sizeof(**results)));
 	if (*results == NULL) {
 		perror("realloc");
-		return (NULL);
+		return NULL;
 	}
 
 	memset(&((*results)[*pnresults - 1]), 0, sizeof(**results));
@@ -381,7 +381,7 @@ apply_update_to_set(trpz_result_t **results, size_t *pnresults,
 	}
 
 	*modified = 1;
-	return ((&((*results)[*pnresults - 1])));
+	return &((*results)[*pnresults - 1]);
 }
 
 /*
@@ -409,7 +409,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 				"Error determining policy record IPv4 address: "
 				"%s\n",
 				val);
-			return (-1);
+			return -1;
 		}
 
 		nrec.type = ns_t_a;
@@ -430,7 +430,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 				"Error determining policy record IPv6 address: "
 				"%s\n",
 				val);
-			return (-1);
+			return -1;
 		}
 
 		nrec.type = ns_t_aaaa;
@@ -466,7 +466,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 				"Error processing CNAME policy record data "
 				"(%d)!\n",
 				ret);
-			return (-1);
+			return -1;
 		}
 
 		nrec.rdlength = ret;
@@ -481,7 +481,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 				"Error processing DNAME policy record data "
 				"(%d)!\n",
 				ret);
-			return (-1);
+			return -1;
 		}
 
 		nrec.rdlength = ret;
@@ -489,7 +489,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 		fprintf(stderr,
 			"Error: unsupported policy record type: \"%s\"\n",
 			rrtype);
-		return (-1);
+		return -1;
 	}
 
 	for (n = 0; n < node->nrrs; n++) {
@@ -501,7 +501,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 		    !memcmp(rptr->rdata, nrec.rdata, nrec.rdlength))
 		{
 			free(nrec.rdata);
-			return (n + 1);
+			return n + 1;
 		}
 	}
 
@@ -517,7 +517,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 	node->rrs[node->nrrs - 1] = nrec;
 	*modified = 1;
 
-	return (node->nrrs);
+	return node->nrrs;
 }
 
 void
@@ -568,7 +568,7 @@ parse_zone_options(const char *str) {
 	unsigned long result = 0;
 
 	if (str == NULL || *str == 0) {
-		return (0);
+		return 0;
 	}
 
 	strncpy(tmpstr, str, sizeof(tmpstr) - 1);
@@ -671,7 +671,7 @@ parse_zone_options(const char *str) {
 	}
 
 	/*        LIBRPZ_POLICY_CNAME,      */
-	return (result);
+	return result;
 }
 
 /*
@@ -696,7 +696,7 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 	nfield = sscanf(updstr, "%63s %255s %u %31s %255s", cmdbuf, nodebuf,
 			&ttl, rrbuf, databuf);
 	if (nfield < 1) {
-		return (-1);
+		return -1;
 	}
 
 	/*
@@ -711,7 +711,7 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 		     recursive_only = false, no_nsip_wait_recurse = false;
 
 		if (nfield < 3) {
-			return (-1);
+			return -1;
 		}
 
 		if (!strcasecmp(rrbuf, "qname_as_ns")) {
@@ -794,7 +794,7 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 						true;
 				}
 
-				return (0);
+				return 0;
 			}
 		}
 
@@ -836,15 +836,15 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 			zptr->name[strlen(zptr->name) - 1] = 0;
 		}
 
-		return (0);
+		return 0;
 	} else if (nfield != 5) {
-		return (-1);
+		return -1;
 	}
 
 	if (strcasecmp(cmdbuf, "add")) {
 		fprintf(stderr, "Warning: only update add action is currently "
 				"supported!\n");
-		return (-1);
+		return -1;
 	}
 
 	if (!strcasecmp(rrbuf, "A")) {
@@ -871,7 +871,7 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 		if (ftext == NULL) {
 			fprintf(stderr, "Error parsing TXT record: \"%s\"\n",
 				updstr);
-			return (-1);
+			return -1;
 		}
 
 		if (*ftext == '"') {
@@ -893,13 +893,13 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 		fprintf(stderr,
 			"Warning: target \"%s\" is not currently supported!\n",
 			rrbuf);
-		return (-1);
+		return -1;
 	}
 
 	if (policy == LIBRPZ_POLICY_UNDEFINED) {
 		fprintf(stderr, "Error: could not determine appropriate policy "
 				"for update!\n");
-		return (-1);
+		return -1;
 	}
 
 	for (n = 0; (size_t)n < *pnzones; n++) {
@@ -977,7 +977,7 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 	}
 
 	if (zidx == -1) {
-		return (0);
+		return 0;
 	}
 
 	nodebuf[ndlen] = 0;
@@ -1039,12 +1039,12 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 					"Error: could not add policy record %s "
 					"/ %s\n",
 					rrbuf, databuf);
-				return (-1);
+				return -1;
 			}
 		}
 	}
 
-	return (0);
+	return 0;
 }
 
 /*
@@ -1120,7 +1120,7 @@ sanity_check_data_file(const char *fname, char **errp) {
 	if (f == NULL) {
 		fprintf(stderr, "couldn't sanity check %s\n", fname);
 		perror("fopen");
-		return (-1);
+		return -1;
 	}
 
 	while (!feof(f)) {
@@ -1239,7 +1239,7 @@ sanity_check_data_file(const char *fname, char **errp) {
 out:
 	fclose(f);
 
-	return (result);
+	return result;
 }
 
 /* Load a database of nodes from a given filename. */
@@ -1252,7 +1252,7 @@ load_all_updates(const char *fname, trpz_result_t **presults, size_t *pnresults,
 	if (f == NULL) {
 		fprintf(stderr, "couldn't load updates from %s\n", fname);
 		perror("fopen");
-		return (-1);
+		return -1;
 	}
 
 	while (!feof(f)) {
@@ -1353,13 +1353,13 @@ load_all_updates(const char *fname, trpz_result_t **presults, size_t *pnresults,
 			fprintf(stderr,
 				"Error: could not apply update \"%s\"\n", lptr);
 			fclose(f);
-			return (-1);
+			return -1;
 		}
 	}
 
 	fclose(f);
 
-	return (0);
+	return 0;
 }
 
 #define WDNS_MAXLEN_NAME 255
@@ -1383,7 +1383,7 @@ wdns_str_to_name(const char *str, uint8_t **pbuf, bool downcase) {
 			exit(EXIT_FAILURE);
 		}
 		*pbuf[0] = 0;
-		return (1);
+		return 1;
 	}
 
 	res = 0;
@@ -1482,10 +1482,10 @@ wdns_str_to_name(const char *str, uint8_t **pbuf, bool downcase) {
 		slen--;
 	}
 
-	return (res);
+	return res;
 
 out:
 	free(*pbuf);
 	*pbuf = NULL;
-	return (-1);
+	return -1;
 }

@@ -20,7 +20,7 @@ static isc_result_t
 fromtext_wallet(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_wallet);
 
-	return (generic_fromtext_txt(CALL_FROMTEXT));
+	return generic_fromtext_txt(CALL_FROMTEXT);
 }
 
 static isc_result_t
@@ -28,14 +28,14 @@ totext_wallet(ARGS_TOTEXT) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_wallet);
 
-	return (generic_totext_txt(CALL_TOTEXT));
+	return generic_totext_txt(CALL_TOTEXT);
 }
 
 static isc_result_t
 fromwire_wallet(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_wallet);
 
-	return (generic_fromwire_txt(CALL_FROMWIRE));
+	return generic_fromwire_txt(CALL_FROMWIRE);
 }
 
 static isc_result_t
@@ -44,7 +44,7 @@ towire_wallet(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -58,14 +58,14 @@ compare_wallet(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
 fromstruct_wallet(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_wallet);
 
-	return (generic_fromstruct_txt(CALL_FROMSTRUCT));
+	return generic_fromstruct_txt(CALL_FROMSTRUCT);
 }
 
 static isc_result_t
@@ -79,7 +79,7 @@ tostruct_wallet(ARGS_TOSTRUCT) {
 	wallet->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&wallet->common, link);
 
-	return (generic_tostruct_txt(CALL_TOSTRUCT));
+	return generic_tostruct_txt(CALL_TOSTRUCT);
 }
 
 static void
@@ -101,7 +101,7 @@ additionaldata_wallet(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -112,7 +112,7 @@ digest_wallet(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -124,7 +124,7 @@ checkowner_wallet(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -135,12 +135,12 @@ checknames_wallet(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_wallet(ARGS_COMPARE) {
-	return (compare_wallet(rdata1, rdata2));
+	return compare_wallet(rdata1, rdata2);
 }
 
 isc_result_t
@@ -148,7 +148,7 @@ dns_rdata_wallet_first(dns_rdata_wallet_t *wallet) {
 	REQUIRE(wallet != NULL);
 	REQUIRE(wallet->common.rdtype == dns_rdatatype_wallet);
 
-	return (generic_txt_first(wallet));
+	return generic_txt_first(wallet);
 }
 
 isc_result_t
@@ -156,7 +156,7 @@ dns_rdata_wallet_next(dns_rdata_wallet_t *wallet) {
 	REQUIRE(wallet != NULL);
 	REQUIRE(wallet->common.rdtype == dns_rdatatype_wallet);
 
-	return (generic_txt_next(wallet));
+	return generic_txt_next(wallet);
 }
 
 isc_result_t
@@ -165,6 +165,6 @@ dns_rdata_wallet_current(dns_rdata_wallet_t *wallet,
 	REQUIRE(wallet != NULL);
 	REQUIRE(wallet->common.rdtype == dns_rdatatype_wallet);
 
-	return (generic_txt_current(wallet, string));
+	return generic_txt_current(wallet, string);
 }
 #endif /* RDATA_GENERIC_WALLET_262_C */

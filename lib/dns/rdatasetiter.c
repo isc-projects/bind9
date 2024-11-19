@@ -42,7 +42,7 @@ dns__rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 
 	REQUIRE(DNS_RDATASETITER_VALID(iterator));
 
-	return (iterator->methods->first(iterator DNS__DB_FLARG_PASS));
+	return iterator->methods->first(iterator DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -53,7 +53,7 @@ dns__rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 
 	REQUIRE(DNS_RDATASETITER_VALID(iterator));
 
-	return (iterator->methods->next(iterator DNS__DB_FLARG_PASS));
+	return iterator->methods->next(iterator DNS__DB_FLARG_PASS);
 }
 
 void

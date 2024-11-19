@@ -44,12 +44,12 @@ isc_queue_destroy(isc_queue_t *queue) {
 
 static inline bool
 isc_queue_empty(isc_queue_t *queue) {
-	return (cds_wfcq_empty(&(queue)->head, &(queue)->tail));
+	return cds_wfcq_empty(&(queue)->head, &(queue)->tail);
 }
 
 static inline bool
 isc_queue_enqueue(isc_queue_t *queue, isc_queue_node_t *node) {
-	return (cds_wfcq_enqueue(&(queue)->head, &(queue)->tail, node));
+	return cds_wfcq_enqueue(&(queue)->head, &(queue)->tail, node);
 }
 
 #define isc_queue_enqueue_entry(queue, entry, member) \
@@ -57,7 +57,7 @@ isc_queue_enqueue(isc_queue_t *queue, isc_queue_node_t *node) {
 
 static inline isc_queue_node_t *
 isc_queue_dequeue(isc_queue_t *queue) {
-	return (__cds_wfcq_dequeue_nonblocking(&(queue)->head, &(queue)->tail));
+	return __cds_wfcq_dequeue_nonblocking(&(queue)->head, &(queue)->tail);
 }
 
 #define isc_queue_entry(ptr, type, member) \
@@ -73,7 +73,7 @@ isc_queue_splice(isc_queue_t *dest, isc_queue_t *src) {
 	INSIST(ret != CDS_WFCQ_RET_WOULDBLOCK &&
 	       ret != CDS_WFCQ_RET_DEST_NON_EMPTY);
 
-	return (ret != CDS_WFCQ_RET_SRC_EMPTY);
+	return ret != CDS_WFCQ_RET_SRC_EMPTY;
 }
 
 #define isc_queue_first_entry(queue, type, member)                         \

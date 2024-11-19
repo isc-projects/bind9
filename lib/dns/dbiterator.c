@@ -42,7 +42,7 @@ dns__dbiterator_first(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->first(iterator DNS__DB_FLARG_PASS));
+	return iterator->methods->first(iterator DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -53,7 +53,7 @@ dns__dbiterator_last(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->last(iterator DNS__DB_FLARG_PASS));
+	return iterator->methods->last(iterator DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -65,7 +65,7 @@ dns__dbiterator_seek(dns_dbiterator_t *iterator,
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->seek(iterator, name DNS__DB_FLARG_PASS));
+	return iterator->methods->seek(iterator, name DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -76,7 +76,7 @@ dns__dbiterator_prev(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->prev(iterator DNS__DB_FLARG_PASS));
+	return iterator->methods->prev(iterator DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -87,7 +87,7 @@ dns__dbiterator_next(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->next(iterator DNS__DB_FLARG_PASS));
+	return iterator->methods->next(iterator DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -101,8 +101,8 @@ dns__dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 	REQUIRE(name == NULL || dns_name_hasbuffer(name));
 
-	return (iterator->methods->current(iterator, nodep,
-					   name DNS__DB_FLARG_PASS));
+	return iterator->methods->current(iterator, nodep,
+					  name DNS__DB_FLARG_PASS);
 }
 
 isc_result_t
@@ -113,7 +113,7 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return (iterator->methods->pause(iterator));
+	return iterator->methods->pause(iterator);
 }
 
 isc_result_t
@@ -126,5 +126,5 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	REQUIRE(iterator->relative_names);
 	REQUIRE(dns_name_hasbuffer(name));
 
-	return (iterator->methods->origin(iterator, name));
+	return iterator->methods->origin(iterator, name);
 }
