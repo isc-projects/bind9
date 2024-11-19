@@ -34,7 +34,7 @@ int
 LLVMFuzzerInitialize(int *argc, char ***argv) {
 	UNUSED(argc);
 	UNUSED(argv);
-	return (0);
+	return 0;
 }
 
 int
@@ -73,5 +73,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	assert((namerel == 0) == (keyrel == 0));
 	assert((namerel > 0) == (keyrel > 0));
 
-	return (0);
+	return 0;
 }

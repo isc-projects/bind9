@@ -74,10 +74,10 @@ parse_rr(isc_lex_t *lex, isc_mem_t *mctx, char *owner, dns_name_t *origin,
 	isc_buffer_add(&b, strlen(owner));
 	ret = dns_name_fromtext(dname, &b, dns_rootname, 0, NULL);
 	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+		return ret;
 	}
 	if (dns_name_compare(dname, origin) != 0) {
-		return (DNS_R_BADOWNERNAME);
+		return DNS_R_BADOWNERNAME;
 	}
 	isc_buffer_clear(&b);
 
@@ -129,7 +129,7 @@ parse_rr(isc_lex_t *lex, isc_mem_t *mctx, char *owner, dns_name_t *origin,
 				 buf, &callbacks);
 cleanup:
 	isc_lex_setcomments(lex, 0);
-	return (ret);
+	return ret;
 }
 
 static void
@@ -178,7 +178,7 @@ dns_skrbundle_getsig(dns_skrbundle_t *bundle, dst_key_t *key,
 
 		result = dns_rdata_tostruct(&tuple->rdata, &rrsig, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 
 		/*
@@ -189,13 +189,13 @@ dns_skrbundle_getsig(dns_skrbundle_t *bundle, dst_key_t *key,
 		    rrsig.keyid == dst_key_id(key))
 		{
 			dns_rdata_clone(&tuple->rdata, sigrdata);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 
 		tuple = ISC_LIST_NEXT(tuple, link);
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 void
@@ -265,7 +265,7 @@ dns_skr_read(isc_mem_t *mctx, const char *filename, dns_name_t *origin,
 			      "unable to open ksr file %s: %s", filename,
 			      isc_result_totext(result));
 		isc_lex_destroy(&lex);
-		return (result);
+		return result;
 	}
 
 	for (result = isc_lex_gettoken(lex, opt, &token);
@@ -389,7 +389,7 @@ failure:
 
 	/* Clean up */
 	isc_lex_destroy(&lex);
-	return (result);
+	return result;
 }
 
 dns_skrbundle_t *
@@ -403,16 +403,16 @@ dns_skr_lookup(dns_skr_t *skr, isc_stdtime_t time, uint32_t sigval) {
 		if (next == NULL) {
 			isc_stdtime_t expired = b->inception + sigval;
 			if (b->inception <= time && time < expired) {
-				return (b);
+				return b;
 			}
-			return (NULL);
+			return NULL;
 		}
 		if (b->inception <= time && time < next->inception) {
-			return (b);
+			return b;
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 void

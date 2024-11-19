@@ -29,17 +29,17 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->family != b->family) {
-		return (false);
+		return false;
 	}
 
 	if (a->zone != b->zone) {
-		return (false);
+		return false;
 	}
 
 	switch (a->family) {
 	case AF_INET:
 		if (a->type.in.s_addr != b->type.in.s_addr) {
-			return (false);
+			return false;
 		}
 		break;
 	case AF_INET6:
@@ -47,13 +47,13 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {
 			    0 ||
 		    a->zone != b->zone)
 		{
-			return (false);
+			return false;
 		}
 		break;
 	default:
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 bool
@@ -67,11 +67,11 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->family != b->family) {
-		return (false);
+		return false;
 	}
 
 	if (a->zone != b->zone && b->zone != 0) {
-		return (false);
+		return false;
 	}
 
 	switch (a->family) {
@@ -86,7 +86,7 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		ipabytes = 16;
 		break;
 	default:
-		return (false);
+		return false;
 	}
 
 	/*
@@ -101,7 +101,7 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 
 	if (nbytes > 0) {
 		if (memcmp(pa, pb, nbytes) != 0) {
-			return (false);
+			return false;
 		}
 	}
 	if (nbits > 0) {
@@ -112,10 +112,10 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		byteb = pb[nbytes];
 		mask = (0xFF << (8 - nbits)) & 0xFF;
 		if ((bytea & mask) != (byteb & mask)) {
-			return (false);
+			return false;
 		}
 	}
-	return (true);
+	return true;
 }
 
 isc_result_t
@@ -137,11 +137,11 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 		type = &netaddr->type.in6;
 		break;
 	default:
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	r = inet_ntop(netaddr->family, type, abuf, sizeof(abuf));
 	if (r == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	alen = strlen(abuf);
@@ -151,19 +151,19 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 	if (netaddr->family == AF_INET6 && netaddr->zone != 0) {
 		zlen = snprintf(zbuf, sizeof(zbuf), "%%%u", netaddr->zone);
 		if (zlen < 0) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 		INSIST((unsigned int)zlen < sizeof(zbuf));
 	}
 
 	if (alen + zlen > isc_buffer_availablelength(target)) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	isc_buffer_putmem(target, (unsigned char *)abuf, alen);
 	isc_buffer_putmem(target, (unsigned char *)zbuf, (unsigned int)zlen);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -207,34 +207,34 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
 		p = (const unsigned char *)&na->type.in;
 		ipbytes = 4;
 		if (prefixlen > 32) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		break;
 	case AF_INET6:
 		p = (const unsigned char *)&na->type.in6;
 		ipbytes = 16;
 		if (prefixlen > 128) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		break;
 	default:
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 	nbytes = prefixlen / 8;
 	nbits = prefixlen % 8;
 	if (nbits != 0) {
 		INSIST(nbytes < ipbytes);
 		if ((p[nbytes] & (0xff >> nbits)) != 0U) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 		nbytes++;
 	}
 	if (nbytes < ipbytes &&
 	    memcmp(p + nbytes, zeros, ipbytes - nbytes) != 0)
 	{
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -252,7 +252,7 @@ isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp) {
 		ipbytes = 16;
 		break;
 	default:
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 	for (i = 0; i < ipbytes; i++) {
 		if (p[i] != 0xFF) {
@@ -267,17 +267,17 @@ isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp) {
 			nbits++;
 		}
 		if ((c & 0xFF) != 0) {
-			return (ISC_R_MASKNONCONTIG);
+			return ISC_R_MASKNONCONTIG;
 		}
 		i++;
 	}
 	for (; i < ipbytes; i++) {
 		if (p[i] != 0) {
-			return (ISC_R_MASKNONCONTIG);
+			return ISC_R_MASKNONCONTIG;
 		}
 	}
 	*lenp = nbytes * 8 + nbits;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -304,7 +304,7 @@ isc_netaddr_setzone(isc_netaddr_t *netaddr, uint32_t zone) {
 
 uint32_t
 isc_netaddr_getzone(const isc_netaddr_t *netaddr) {
-	return (netaddr->zone);
+	return netaddr->zone;
 }
 
 void
@@ -349,11 +349,11 @@ bool
 isc_netaddr_ismulticast(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
-		return (ISC_IPADDR_ISMULTICAST(na->type.in.s_addr));
+		return ISC_IPADDR_ISMULTICAST(na->type.in.s_addr);
 	case AF_INET6:
-		return (IN6_IS_ADDR_MULTICAST(&na->type.in6));
+		return IN6_IS_ADDR_MULTICAST(&na->type.in6);
 	default:
-		return (false); /* XXXMLG ? */
+		return false; /* XXXMLG ? */
 	}
 }
 
@@ -361,9 +361,9 @@ bool
 isc_netaddr_isexperimental(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
-		return (ISC_IPADDR_ISEXPERIMENTAL(na->type.in.s_addr));
+		return ISC_IPADDR_ISEXPERIMENTAL(na->type.in.s_addr);
 	default:
-		return (false); /* XXXMLG ? */
+		return false; /* XXXMLG ? */
 	}
 }
 
@@ -371,11 +371,11 @@ bool
 isc_netaddr_islinklocal(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
-		return (false);
+		return false;
 	case AF_INET6:
-		return (IN6_IS_ADDR_LINKLOCAL(&na->type.in6));
+		return IN6_IS_ADDR_LINKLOCAL(&na->type.in6);
 	default:
-		return (false);
+		return false;
 	}
 }
 
@@ -383,11 +383,11 @@ bool
 isc_netaddr_issitelocal(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
-		return (false);
+		return false;
 	case AF_INET6:
-		return (IN6_IS_ADDR_SITELOCAL(&na->type.in6));
+		return IN6_IS_ADDR_SITELOCAL(&na->type.in6);
 	default:
-		return (false);
+		return false;
 	}
 }
 
@@ -398,11 +398,11 @@ bool
 isc_netaddr_isnetzero(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
-		return (ISC_IPADDR_ISNETZERO(na->type.in.s_addr));
+		return ISC_IPADDR_ISNETZERO(na->type.in.s_addr);
 	case AF_INET6:
-		return (false);
+		return false;
 	default:
-		return (false);
+		return false;
 	}
 }
 
@@ -424,11 +424,10 @@ bool
 isc_netaddr_isloopback(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
-		return (((ntohl(na->type.in.s_addr) & 0xff000000U) ==
-			 0x7f000000U));
+		return (ntohl(na->type.in.s_addr) & 0xff000000U) == 0x7f000000U;
 	case AF_INET6:
-		return (IN6_IS_ADDR_LOOPBACK(&na->type.in6));
+		return IN6_IS_ADDR_LOOPBACK(&na->type.in6);
 	default:
-		return (false);
+		return false;
 	}
 }

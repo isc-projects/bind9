@@ -31,7 +31,7 @@ int
 LLVMFuzzerInitialize(int *argc, char ***argv) {
 	UNUSED(argc);
 	UNUSED(argv);
-	return (0);
+	return 0;
 }
 
 int
@@ -53,7 +53,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 			       dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
 			       &db);
 	if (result != ISC_R_SUCCESS) {
-		return (0);
+		return 0;
 	}
 
 	result = dns_db_beginload(db, &callbacks);
@@ -75,5 +75,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 end:
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx);
-	return (0);
+	return 0;
 }

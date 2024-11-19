@@ -87,7 +87,7 @@ isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
-	return (sock);
+	return sock;
 }
 
 /*
@@ -220,7 +220,7 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	worker = &mgr->workers[0];
 
 	if (isc__nm_closing(worker)) {
-		return (ISC_R_SHUTTINGDOWN);
+		return ISC_R_SHUTTINGDOWN;
 	}
 
 	if (workers == 0) {
@@ -276,13 +276,13 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		isc__nm_udp_stoplistening(sock);
 		isc_nmsocket_close(&sock);
 
-		return (result);
+		return result;
 	}
 
 	sock->active = true;
 
 	*sockp = sock;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #ifdef USE_ROUTE_SOCKET
@@ -298,7 +298,7 @@ route_socket(uv_os_sock_t *fdp) {
 	result = isc__nm_socket(ROUTE_SOCKET_PF, SOCK_RAW,
 				ROUTE_SOCKET_PROTOCOL, &fd);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 #ifdef USE_NETLINK
@@ -307,12 +307,12 @@ route_socket(uv_os_sock_t *fdp) {
 	r = bind(fd, (struct sockaddr *)&sa, sizeof(sa));
 	if (r < 0) {
 		isc__nm_closesocket(fd);
-		return (isc_errno_toresult(r));
+		return isc_errno_toresult(r);
 	}
 #endif
 
 	*fdp = fd;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -335,12 +335,12 @@ route_connect_direct(isc_nmsocket_t *sock) {
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 
 	if (isc__nm_closing(worker)) {
-		return (ISC_R_SHUTTINGDOWN);
+		return ISC_R_SHUTTINGDOWN;
 	}
 
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r != 0) {
-		return (isc_uverr2result(r));
+		return isc_uverr2result(r);
 	}
 
 	isc__nm_set_network_buffers(sock->worker->netmgr,
@@ -349,7 +349,7 @@ route_connect_direct(isc_nmsocket_t *sock) {
 	sock->connecting = false;
 	sock->connected = true;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #endif /* USE_ROUTE_SOCKET */
@@ -369,12 +369,12 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
-		return (ISC_R_SHUTTINGDOWN);
+		return ISC_R_SHUTTINGDOWN;
 	}
 
 	result = route_socket(&fd);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	sock = isc_mempool_get(worker->nmsocket_pool);
@@ -403,13 +403,13 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 
 	isc__nmsocket_detach(&sock);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 #else  /* USE_ROUTE_SOCKET */
 	UNUSED(mgr);
 	UNUSED(cb);
 	UNUSED(cbarg);
 	UNUSED(extrahandlesize);
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 #endif /* USE_ROUTE_SOCKET */
 }
 
@@ -507,7 +507,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 *   bigger than 'maxudp' bytes for testing purposes.
 	 */
 	maxudp = atomic_load_relaxed(&sock->worker->netmgr->maxudp);
-	if ((maxudp != 0 && (uint32_t)nrecv > maxudp)) {
+	if (maxudp != 0 && (uint32_t)nrecv > maxudp) {
 		/*
 		 * We need to keep the read_cb intact in case, so the
 		 * readtimeout_cb can trigger and not crash because of
@@ -649,10 +649,10 @@ can_log_udp_sends(void) {
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_stdtime_t last = atomic_exchange_relaxed(&last_udpsends_log, now);
 	if (now != last) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 /*
@@ -769,7 +769,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
 	if (r != 0) {
 		isc__nm_incstats(sock, STATID_OPENFAIL);
-		return (isc_uverr2result(r));
+		return isc_uverr2result(r);
 	}
 	isc__nm_incstats(sock, STATID_OPEN);
 
@@ -791,7 +791,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 			uv_bind_flags);
 	if (r != 0) {
 		isc__nm_incstats(sock, STATID_BINDFAIL);
-		return (isc_uverr2result(r));
+		return isc_uverr2result(r);
 	}
 
 	isc__nm_set_network_buffers(sock->worker->netmgr,
@@ -807,11 +807,11 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	} while (r == UV_EADDRINUSE && --req->connect_tries > 0);
 	if (r != 0) {
 		isc__nm_incstats(sock, STATID_CONNECTFAIL);
-		return (isc_uverr2result(r));
+		return isc_uverr2result(r);
 	}
 	isc__nm_incstats(sock, STATID_CONNECT);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

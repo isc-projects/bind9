@@ -79,7 +79,7 @@ setup(void **state ISC_ATTR_UNUSED) {
 	dns_test_namefromstring("sub.example.com.", &fn);
 	assert_int_equal(dns_nametree_add(bitstree, name, 2), ISC_R_SUCCESS);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -88,7 +88,7 @@ teardown(void **state ISC_ATTR_UNUSED) {
 	dns_nametree_detach(&bitstree);
 	dns_nametree_detach(&counttree);
 	rcu_barrier();
-	return (0);
+	return 0;
 }
 
 ISC_RUN_TEST_IMPL(add_bool) {

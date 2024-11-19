@@ -406,7 +406,7 @@ parse_int(char *arg, const char *desc) {
 	if (tmp < 0 || tmp != ltmp) {
 		named_main_earlyfatal("%s '%s' out of range", desc, arg);
 	}
-	return (tmp);
+	return tmp;
 }
 
 static struct flag_def {
@@ -1043,7 +1043,7 @@ create_managers(void) {
 
 	isc_nm_maxudp(named_g_netmgr, maxudp);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -1437,7 +1437,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 			UNEXPECTED_ERROR("scf_handle_create() failed: %s",
 					 scf_strerror(scf_error()));
 		}
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if (scf_handle_bind(h) == -1) {
@@ -1446,7 +1446,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 					 scf_strerror(scf_error()));
 		}
 		scf_handle_destroy(h);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if ((namelen = scf_myname(h, NULL, 0)) == -1) {
@@ -1455,7 +1455,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 					 scf_strerror(scf_error()));
 		}
 		scf_handle_destroy(h);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if ((instance = isc_mem_allocate(mctx, namelen + 1)) == NULL) {
@@ -1463,7 +1463,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 				 "allocation failed: %s",
 				 isc_result_totext(ISC_R_NOMEMORY));
 		scf_handle_destroy(h);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if (scf_myname(h, instance, namelen + 1) == -1) {
@@ -1473,12 +1473,12 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 		}
 		scf_handle_destroy(h);
 		isc_mem_free(mctx, instance);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	scf_handle_destroy(h);
 	*ins_name = instance;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 #endif /* HAVE_LIBSCF */
 
@@ -1635,5 +1635,5 @@ main(int argc, char *argv[]) {
 	ProfilerStop();
 #endif /* ifdef HAVE_GPERFTOOLS_PROFILER */
 
-	return (0);
+	return 0;
 }

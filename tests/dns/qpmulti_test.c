@@ -135,7 +135,7 @@ item_makekey(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 		ISC_INSIST(pval == &item[ival]);
 	}
 	memmove(key, item[ival].key, item[ival].len);
-	return (item[ival].len);
+	return item[ival].len;
 }
 
 static void
@@ -153,7 +153,7 @@ const dns_qpmethods_t test_methods = {
 
 static uint8_t
 random_byte(void) {
-	return (isc_random_uniform(SHIFT_OFFSET - SHIFT_NOBYTE) + SHIFT_NOBYTE);
+	return isc_random_uniform(SHIFT_OFFSET - SHIFT_NOBYTE) + SHIFT_NOBYTE;
 }
 
 static void
@@ -201,7 +201,7 @@ checkkey(dns_qpreadable_t qpr, size_t i, bool exists, const char *rubric) {
 		      rubric);
 		UNUSED(rubric);
 	}
-	return (ok);
+	return ok;
 }
 
 static bool
@@ -214,7 +214,7 @@ checkallro(dns_qpreadable_t qp) {
 		qp_test_dumptrie(qp);
 		TRACE("checkallro failed");
 	}
-	return (ok);
+	return ok;
 }
 
 static bool
@@ -227,7 +227,7 @@ checkallrw(dns_qpreadable_t qp) {
 		qp_test_dumptrie(qp);
 		TRACE("checkallrw failed");
 	}
-	return (ok);
+	return ok;
 }
 
 static void

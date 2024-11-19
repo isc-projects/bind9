@@ -241,7 +241,7 @@ cleanup:
 		isc_mem_putanddetach(&env->mctx, env, sizeof(dns_dtenv_t));
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -257,9 +257,9 @@ dns_dt_setupfile(dns_dtenv_t *env, uint64_t max_size, int rolls,
 		if (max_size == 0 && rolls == ISC_LOG_ROLLINFINITE &&
 		    suffix == isc_log_rollsuffix_increment)
 		{
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		} else {
-			return (ISC_R_INVALIDFILE);
+			return ISC_R_INVALIDFILE;
 		}
 	}
 
@@ -267,7 +267,7 @@ dns_dt_setupfile(dns_dtenv_t *env, uint64_t max_size, int rolls,
 	env->rolls = rolls;
 	env->suffix = suffix;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -382,7 +382,7 @@ cleanup:
 
 	isc_loopmgr_resume(loopmgr);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -405,21 +405,21 @@ toregion(dns_dtenv_t *env, isc_region_t *r, const char *str) {
 		r->length = strlen((char *)p);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_dt_setidentity(dns_dtenv_t *env, const char *identity) {
 	REQUIRE(VALID_DTENV(env));
 
-	return (toregion(env, &env->identity, identity));
+	return toregion(env, &env->identity, identity);
 }
 
 isc_result_t
 dns_dt_setversion(dns_dtenv_t *env, const char *version) {
 	REQUIRE(VALID_DTENV(env));
 
-	return (toregion(env, &env->version, version));
+	return toregion(env, &env->version, version);
 }
 
 static void
@@ -435,7 +435,7 @@ dt_queue(dns_dtenv_t *env) {
 	unsigned int generation;
 
 	if (env->iothr == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
 	generation = atomic_load_acquire(&global_generation);
@@ -448,7 +448,7 @@ dt_queue(dns_dtenv_t *env) {
 		set_dt_ioq(generation, ioq);
 	}
 
-	return (dt_ioq.ioq);
+	return dt_ioq.ioq;
 }
 
 void
@@ -466,10 +466,10 @@ dns_dt_getstats(dns_dtenv_t *env, isc_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	if (env->stats == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	isc_stats_attach(env->stats, statsp);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -532,17 +532,17 @@ pack_dt(const Dnstap__Dnstap *d, void **buf, size_t *sz) {
 	/* Need to use malloc() here because protobuf uses free() */
 	sbuf.data = malloc(sbuf.alloced);
 	if (sbuf.data == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	sbuf.must_free_data = 1;
 
 	*sz = dnstap__dnstap__pack_to_buffer(d, (ProtobufCBuffer *)&sbuf);
 	if (sbuf.data == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 	*buf = sbuf.data;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -603,33 +603,33 @@ static Dnstap__Message__Type
 dnstap_type(dns_dtmsgtype_t msgtype) {
 	switch (msgtype) {
 	case DNS_DTTYPE_SQ:
-		return (DNSTAP__MESSAGE__TYPE__STUB_QUERY);
+		return DNSTAP__MESSAGE__TYPE__STUB_QUERY;
 	case DNS_DTTYPE_SR:
-		return (DNSTAP__MESSAGE__TYPE__STUB_RESPONSE);
+		return DNSTAP__MESSAGE__TYPE__STUB_RESPONSE;
 	case DNS_DTTYPE_CQ:
-		return (DNSTAP__MESSAGE__TYPE__CLIENT_QUERY);
+		return DNSTAP__MESSAGE__TYPE__CLIENT_QUERY;
 	case DNS_DTTYPE_CR:
-		return (DNSTAP__MESSAGE__TYPE__CLIENT_RESPONSE);
+		return DNSTAP__MESSAGE__TYPE__CLIENT_RESPONSE;
 	case DNS_DTTYPE_AQ:
-		return (DNSTAP__MESSAGE__TYPE__AUTH_QUERY);
+		return DNSTAP__MESSAGE__TYPE__AUTH_QUERY;
 	case DNS_DTTYPE_AR:
-		return (DNSTAP__MESSAGE__TYPE__AUTH_RESPONSE);
+		return DNSTAP__MESSAGE__TYPE__AUTH_RESPONSE;
 	case DNS_DTTYPE_RQ:
-		return (DNSTAP__MESSAGE__TYPE__RESOLVER_QUERY);
+		return DNSTAP__MESSAGE__TYPE__RESOLVER_QUERY;
 	case DNS_DTTYPE_RR:
-		return (DNSTAP__MESSAGE__TYPE__RESOLVER_RESPONSE);
+		return DNSTAP__MESSAGE__TYPE__RESOLVER_RESPONSE;
 	case DNS_DTTYPE_FQ:
-		return (DNSTAP__MESSAGE__TYPE__FORWARDER_QUERY);
+		return DNSTAP__MESSAGE__TYPE__FORWARDER_QUERY;
 	case DNS_DTTYPE_FR:
-		return (DNSTAP__MESSAGE__TYPE__FORWARDER_RESPONSE);
+		return DNSTAP__MESSAGE__TYPE__FORWARDER_RESPONSE;
 	case DNS_DTTYPE_TQ:
-		return (DNSTAP__MESSAGE__TYPE__TOOL_QUERY);
+		return DNSTAP__MESSAGE__TYPE__TOOL_QUERY;
 	case DNS_DTTYPE_TR:
-		return (DNSTAP__MESSAGE__TYPE__TOOL_RESPONSE);
+		return DNSTAP__MESSAGE__TYPE__TOOL_RESPONSE;
 	case DNS_DTTYPE_UQ:
-		return (DNSTAP__MESSAGE__TYPE__UPDATE_QUERY);
+		return DNSTAP__MESSAGE__TYPE__UPDATE_QUERY;
 	case DNS_DTTYPE_UR:
-		return (DNSTAP__MESSAGE__TYPE__UPDATE_RESPONSE);
+		return DNSTAP__MESSAGE__TYPE__UPDATE_RESPONSE;
 	default:
 		UNREACHABLE();
 	}
@@ -867,11 +867,11 @@ putstr(isc_buffer_t **b, const char *str) {
 
 	result = isc_buffer_reserve(*b, strlen(str));
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	isc_buffer_putstr(*b, str);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -880,17 +880,17 @@ putaddr(isc_buffer_t **b, isc_region_t *ip) {
 
 	if (ip->length == 4) {
 		if (!inet_ntop(AF_INET, ip->base, buf, sizeof(buf))) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 	} else if (ip->length == 16) {
 		if (!inet_ntop(AF_INET6, ip->base, buf, sizeof(buf))) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 	} else {
-		return (ISC_R_BADADDRESSFORM);
+		return ISC_R_BADADDRESSFORM;
 	}
 
-	return (putstr(b, buf));
+	return putstr(b, buf);
 }
 
 static bool
@@ -903,30 +903,30 @@ dnstap_file(struct fstrm_reader *r) {
 
 	res = fstrm_reader_get_control(r, FSTRM_CONTROL_START, &control);
 	if (res != fstrm_res_success) {
-		return (false);
+		return false;
 	}
 
 	res = fstrm_control_get_num_field_content_type(control, &n);
 	if (res != fstrm_res_success) {
-		return (false);
+		return false;
 	}
 	if (n > 0) {
 		res = fstrm_control_get_field_content_type(control, 0, &rtype,
 							   &rlen);
 		if (res != fstrm_res_success) {
-			return (false);
+			return false;
 		}
 
 		if (rlen != dlen) {
-			return (false);
+			return false;
 		}
 
 		if (memcmp(DNSTAP_CONTENT_TYPE, rtype, dlen) == 0) {
-			return (true);
+			return true;
 		}
 	}
 
-	return (false);
+	return false;
 }
 
 isc_result_t
@@ -990,7 +990,7 @@ cleanup:
 	if (handle != NULL) {
 		isc_mem_put(mctx, handle, sizeof(*handle));
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1008,14 +1008,14 @@ dns_dt_getframe(dns_dthandle_t *handle, uint8_t **bufp, size_t *sizep) {
 	switch (res) {
 	case fstrm_res_success:
 		if (data == NULL) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 		*bufp = UNCONST(data);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	case fstrm_res_stop:
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	default:
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 }
 
@@ -1222,7 +1222,7 @@ cleanup:
 		dns_dtdata_free(&d);
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1294,7 +1294,7 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 		CHECK(putstr(dest, "UR "));
 		break;
 	default:
-		return (DNS_R_BADDNSTAP);
+		return DNS_R_BADDNSTAP;
 	}
 
 	/* Query and response addresses */
@@ -1374,7 +1374,7 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 	isc_buffer_putuint8(*dest, 0);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 void

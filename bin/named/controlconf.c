@@ -246,7 +246,7 @@ address_ok(isc_sockaddr_t *sockaddr, controllistener_t *listener) {
 
 	result = dns_acl_match(&netaddr, NULL, listener->acl, env, &match,
 			       NULL);
-	return (result == ISC_R_SUCCESS && match > 0);
+	return result == ISC_R_SUCCESS && match > 0;
 }
 
 static void
@@ -641,7 +641,7 @@ control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		if (result == ISC_R_SHUTTINGDOWN) {
 			shutdown_listener(listener);
 		}
-		return (result);
+		return result;
 	}
 
 	peeraddr = isc_nmhandle_peeraddr(handle);
@@ -652,11 +652,11 @@ control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "rejected command channel message from %s",
 			      socktext);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	newconnection(listener, handle);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -710,11 +710,11 @@ cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
 		}
 	}
 	if (element == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	obj = cfg_listelt_value(element);
 	*objp = obj;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -838,7 +838,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_INFO,
 		      "configuring command channel from '%s'", named_g_keyfile);
 	if (!isc_file_exists(named_g_keyfile)) {
-		return (ISC_R_FILENOTFOUND);
+		return ISC_R_FILENOTFOUND;
 	}
 
 	CHECK(cfg_parser_create(mctx, named_g_lctx, &pctx));
@@ -904,7 +904,7 @@ cleanup:
 	if (pctx != NULL) {
 		cfg_parser_destroy(&pctx);
 	}
-	return (result);
+	return result;
 }
 
 /*
@@ -1212,7 +1212,7 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 					    ISC_LOG_ERROR,
 					    "UNIX domain sockets are not "
 					    "supported");
-				return (ISC_R_FAILURE);
+				return ISC_R_FAILURE;
 			}
 
 			(void)cfg_map_get(controls, "inet", &inetcontrols);
@@ -1341,7 +1341,7 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 	 * down will be taken care of by listen_done().
 	 */
 	ISC_LIST_APPENDLIST(cp->listeners, new_listeners, link);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1364,10 +1364,10 @@ named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
 	if (result != ISC_R_SUCCESS) {
 		isc_mutex_destroy(&controls->symtab_lock);
 		isc_mem_put(server->mctx, controls, sizeof(*controls));
-		return (result);
+		return result;
 	}
 	*ctrlsp = controls;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

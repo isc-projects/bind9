@@ -57,11 +57,11 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 		/*
 		 * Allow further processing by returning success.
 		 */
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (logconfig == NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	module = NULL;
@@ -80,10 +80,10 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s': %s", channelname,
 				      isc_result_totext(result));
-			return (result);
+			return result;
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -131,7 +131,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 			    "channel '%s': exactly one of file, syslog, "
 			    "null, and stderr must be present",
 			    channelname);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	type = ISC_LOG_TONULL;
@@ -310,7 +310,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 	}
 
 done:
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -365,8 +365,8 @@ named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 		CHECK(named_log_setunmatchedcategory(logconfig));
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
-	return (result);
+	return result;
 }

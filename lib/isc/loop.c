@@ -290,7 +290,7 @@ helper_thread(void *arg) {
 
 	isc_barrier_wait(&helper->loopmgr->stopping);
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -338,7 +338,7 @@ loop_thread(void *arg) {
 
 	isc_barrier_wait(&loopmgr->stopping);
 
-	return (NULL);
+	return NULL;
 }
 
 /**
@@ -438,7 +438,7 @@ isc_loop_setup(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
 	cds_wfcq_enqueue(&loop->setup_jobs.head, &loop->setup_jobs.tail,
 			 &job->wfcq_node);
 
-	return (job);
+	return job;
 }
 
 isc_job_t *
@@ -459,7 +459,7 @@ isc_loop_teardown(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
 	cds_wfcq_enqueue(&loop->teardown_jobs.head, &loop->teardown_jobs.tail,
 			 &job->wfcq_node);
 
-	return (job);
+	return job;
 }
 
 void
@@ -628,21 +628,21 @@ uint32_t
 isc_loopmgr_nloops(isc_loopmgr_t *loopmgr) {
 	REQUIRE(VALID_LOOPMGR(loopmgr));
 
-	return (loopmgr->nloops);
+	return loopmgr->nloops;
 }
 
 isc_mem_t *
 isc_loop_getmctx(isc_loop_t *loop) {
 	REQUIRE(VALID_LOOP(loop));
 
-	return (loop->mctx);
+	return loop->mctx;
 }
 
 isc_loop_t *
 isc_loop_main(isc_loopmgr_t *loopmgr) {
 	REQUIRE(VALID_LOOPMGR(loopmgr));
 
-	return (DEFAULT_LOOP(loopmgr));
+	return DEFAULT_LOOP(loopmgr);
 }
 
 isc_loop_t *
@@ -650,7 +650,7 @@ isc_loop_get(isc_loopmgr_t *loopmgr, uint32_t tid) {
 	REQUIRE(VALID_LOOPMGR(loopmgr));
 	REQUIRE(tid < loopmgr->nloops);
 
-	return (LOOP(loopmgr, tid));
+	return LOOP(loopmgr, tid);
 }
 
 void
@@ -673,7 +673,7 @@ isc_loopmgr_t *
 isc_loop_getloopmgr(isc_loop_t *loop) {
 	REQUIRE(VALID_LOOP(loop));
 
-	return (loop->loopmgr);
+	return loop->loopmgr;
 }
 
 isc_time_t
@@ -686,7 +686,7 @@ isc_loop_now(isc_loop_t *loop) {
 		.nanoseconds = (msec % MS_PER_SEC) * NS_PER_MS,
 	};
 
-	return (t);
+	return t;
 }
 
 bool
@@ -694,5 +694,5 @@ isc_loop_shuttingdown(isc_loop_t *loop) {
 	REQUIRE(VALID_LOOP(loop));
 	REQUIRE(loop->tid == isc_tid());
 
-	return (loop->shuttingdown);
+	return loop->shuttingdown;
 }

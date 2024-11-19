@@ -46,14 +46,14 @@ static int
 setup_test(void **state) {
 	setup_loopmgr(state);
 
-	return (0);
+	return 0;
 }
 
 static int
 teardown_test(void **state) {
 	teardown_loopmgr(state);
 
-	return (0);
+	return 0;
 }
 
 dns_keytable_t *keytable = NULL;
@@ -99,7 +99,7 @@ str2name(const char *namestr) {
 		dns_name_fromtext(name, &namebuf, dns_rootname, 0, NULL),
 		ISC_R_SUCCESS);
 
-	return (name);
+	return name;
 }
 
 static void

@@ -68,7 +68,7 @@ dummy_subtlv_iter_cb(const uint8_t client, const bool client_cert_verified,
 		break;
 	};
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -92,7 +92,7 @@ dummy_tlv_iter_cb(const isc_proxy2_tlv_type_t tlv_type,
 
 		assert_true(result == ISC_R_SUCCESS);
 	}
-	return (true);
+	return true;
 }
 
 static void
@@ -146,14 +146,14 @@ static int
 setup_test_proxy(void **state) {
 	isc_proxy2_handler_t **handler = (isc_proxy2_handler_t **)state;
 	*handler = isc_proxy2_handler_new(mctx, 0, proxy2_handler_dummy, NULL);
-	return (0);
+	return 0;
 }
 
 static int
 teardown_test_proxy(void **state) {
 	isc_proxy2_handler_free((isc_proxy2_handler_t **)state);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -714,7 +714,7 @@ rebuild_subtlv_iter_cb(const uint8_t client, const bool client_cert_verified,
 	result = isc_proxy2_append_tlv(outbuf, tls_subtlv_type, data);
 	assert_true(result == ISC_R_SUCCESS);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -756,7 +756,7 @@ rebuild_tlv_iter_cb(const isc_proxy2_tlv_type_t tlv_type,
 		assert_true(result == ISC_R_SUCCESS);
 	}
 
-	return (true);
+	return true;
 }
 
 static void

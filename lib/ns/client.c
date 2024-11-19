@@ -126,10 +126,10 @@ can_log_sigchecks_quota(void) {
 	isc_stdtime_t now = isc_stdtime_now();
 	last = atomic_exchange_relaxed(&last_sigchecks_quota_log, now);
 	if (now != last) {
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 static void
@@ -151,7 +151,7 @@ ns_client_transport_type(const ns_client_t *client) {
 	 * When DoQ support this had to be removed to get correct DoQ entries.
 	 */
 	if (!TCP_CLIENT(client)) {
-		return (DNS_TRANSPORT_UDP);
+		return DNS_TRANSPORT_UDP;
 	}
 
 	INSIST(client->handle != NULL);
@@ -161,31 +161,31 @@ ns_client_transport_type(const ns_client_t *client) {
 	case isc_nm_udplistener:
 	case isc_nm_proxyudpsocket:
 	case isc_nm_proxyudplistener:
-		return (DNS_TRANSPORT_UDP);
+		return DNS_TRANSPORT_UDP;
 	case isc_nm_tlssocket:
 	case isc_nm_tlslistener:
-		return (DNS_TRANSPORT_TLS);
+		return DNS_TRANSPORT_TLS;
 	case isc_nm_httpsocket:
 	case isc_nm_httplistener:
-		return (DNS_TRANSPORT_HTTP);
+		return DNS_TRANSPORT_HTTP;
 	case isc_nm_streamdnslistener:
 	case isc_nm_streamdnssocket:
 	case isc_nm_proxystreamlistener:
 	case isc_nm_proxystreamsocket:
 		/* If it isn't DoT, it is DNS-over-TCP */
 		if (isc_nm_has_encryption(client->handle)) {
-			return (DNS_TRANSPORT_TLS);
+			return DNS_TRANSPORT_TLS;
 		}
 		FALLTHROUGH;
 	case isc_nm_tcpsocket:
 	case isc_nm_tcplistener:
-		return (DNS_TRANSPORT_TCP);
+		return DNS_TRANSPORT_TCP;
 	case isc_nm_maxsocket:
 	case isc_nm_nonesocket:
 		UNREACHABLE();
 	}
 
-	return (DNS_TRANSPORT_UDP);
+	return DNS_TRANSPORT_UDP;
 }
 #endif /* HAVE_DNSTAP */
 
@@ -272,7 +272,7 @@ ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
 	client->ede->length = len;
 	client->ede->value = isc_mem_get(client->manager->mctx, len);
 	memmove(client->ede->value, ede, len);
-};
+}
 
 static void
 ns_client_endrequest(ns_client_t *client) {
@@ -890,11 +890,11 @@ ns_client_dropport(in_port_t port) {
 	case 13: /* daytime */
 	case 19: /* chargen */
 	case 37: /* time */
-		return (DROPPORT_REQUEST);
+		return DROPPORT_REQUEST;
 	case 464: /* kpasswd */
-		return (DROPPORT_RESPONSE);
+		return DROPPORT_RESPONSE;
 	}
-	return (DROPPORT_NO);
+	return DROPPORT_NO;
 }
 #endif /* if NS_CLIENT_DROPPORT */
 
@@ -1266,7 +1266,7 @@ no_nsid:
 
 	result = dns_message_buildopt(message, opt, 0, udpsize, flags, ednsopts,
 				      count);
-	return (result);
+	return result;
 }
 
 static void
@@ -1422,7 +1422,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	 */
 	if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
 		isc_buffer_forward(buf, (unsigned int)optlen);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -1435,7 +1435,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "EDNS client-subnet option too short");
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	}
 
 	family = isc_buffer_getuint16(buf);
@@ -1447,7 +1447,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "EDNS client-subnet option: invalid scope");
-		return (DNS_R_OPTERR);
+		return DNS_R_OPTERR;
 	}
 
 	memset(&caddr, 0, sizeof(caddr));
@@ -1465,7 +1465,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 				      "EDNS client-subnet option: invalid "
 				      "address length (%u) for FAMILY=0",
 				      addrlen);
-			return (DNS_R_OPTERR);
+			return DNS_R_OPTERR;
 		}
 		caddr.family = AF_UNSPEC;
 		break;
@@ -1476,7 +1476,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 				      "EDNS client-subnet option: invalid "
 				      "address length (%u) for IPv4",
 				      addrlen);
-			return (DNS_R_OPTERR);
+			return DNS_R_OPTERR;
 		}
 		caddr.family = AF_INET;
 		break;
@@ -1487,7 +1487,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 				      "EDNS client-subnet option: invalid "
 				      "address length (%u) for IPv6",
 				      addrlen);
-			return (DNS_R_OPTERR);
+			return DNS_R_OPTERR;
 		}
 		caddr.family = AF_INET6;
 		break;
@@ -1495,7 +1495,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "EDNS client-subnet option: invalid family");
-		return (DNS_R_OPTERR);
+		return DNS_R_OPTERR;
 	}
 
 	addrbytes = (addrlen + 7) / 8;
@@ -1503,7 +1503,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "EDNS client-subnet option: address too short");
-		return (DNS_R_OPTERR);
+		return DNS_R_OPTERR;
 	}
 
 	paddr = (uint8_t *)&caddr.type;
@@ -1516,7 +1516,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 			uint8_t bits = ~0U << (8 - (addrlen % 8));
 			bits &= paddr[addrbytes - 1];
 			if (bits != paddr[addrbytes - 1]) {
-				return (DNS_R_OPTERR);
+				return DNS_R_OPTERR;
 			}
 		}
 	}
@@ -1527,20 +1527,20 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	client->attributes |= NS_CLIENTATTR_HAVEECS;
 
 	isc_buffer_forward(buf, (unsigned int)optlen);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
 process_keytag(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	if (optlen == 0 || (optlen % 2) != 0) {
 		isc_buffer_forward(buf, (unsigned int)optlen);
-		return (DNS_R_OPTERR);
+		return DNS_R_OPTERR;
 	}
 
 	/* Silently drop additional keytag options. */
 	if (client->keytag != NULL) {
 		isc_buffer_forward(buf, (unsigned int)optlen);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	client->keytag = isc_mem_get(client->manager->mctx, optlen);
@@ -1549,7 +1549,7 @@ process_keytag(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		memmove(client->keytag, isc_buffer_current(buf), optlen);
 	}
 	isc_buffer_forward(buf, (unsigned int)optlen);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1593,7 +1593,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 			result = DNS_R_BADVERS;
 		}
 		ns_client_error(client, result);
-		return (result);
+		return result;
 	}
 
 	/* Check for NSID request */
@@ -1632,7 +1632,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				result = process_ecs(client, &optbuf, optlen);
 				if (result != ISC_R_SUCCESS) {
 					ns_client_error(client, result);
-					return (result);
+					return result;
 				}
 				ns_stats_increment(
 					client->manager->sctx->nsstats,
@@ -1661,7 +1661,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 							optlen);
 				if (result != ISC_R_SUCCESS) {
 					ns_client_error(client, result);
-					return (result);
+					return result;
 				}
 				ns_stats_increment(
 					client->manager->sctx->nsstats,
@@ -1681,7 +1681,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 			   ns_statscounter_edns0in);
 	client->attributes |= NS_CLIENTATTR_WANTOPT;
 
-	return (result);
+	return result;
 }
 
 static void
@@ -1790,7 +1790,7 @@ ns_client_setup_view(ns_client_t *client, isc_netaddr_t *netaddr) {
 	/* Async mode. */
 	if (result == DNS_R_WAIT) {
 		INSIST(client->async == true);
-		return (DNS_R_WAIT);
+		return DNS_R_WAIT;
 	}
 
 	/*
@@ -1803,7 +1803,7 @@ ns_client_setup_view(ns_client_t *client, isc_netaddr_t *netaddr) {
 	/* Non-async mode. */
 	ns_client_async_reset(client);
 
-	return (result);
+	return result;
 }
 
 /*
@@ -2492,7 +2492,7 @@ ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	int match;
 
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	if (handle != NULL) {
@@ -2504,7 +2504,7 @@ ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 				   &match, NULL) == ISC_R_SUCCESS) &&
 		    match > 0)
 		{
-			return (ISC_R_CONNREFUSED);
+			return ISC_R_CONNREFUSED;
 		}
 	}
 
@@ -2512,7 +2512,7 @@ ns__client_tcpconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	ns_stats_update_if_greater(sctx->nsstats, ns_statscounter_tcphighwater,
 				   tcpquota);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -2636,7 +2636,7 @@ ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
 
 	*managerp = manager;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -2658,12 +2658,12 @@ ns_clientmgr_shutdown(ns_clientmgr_t *manager) {
 
 isc_sockaddr_t *
 ns_client_getsockaddr(ns_client_t *client) {
-	return (&client->peeraddr);
+	return &client->peeraddr;
 }
 
 isc_sockaddr_t *
 ns_client_getdestaddr(ns_client_t *client) {
-	return (&client->destsockaddr);
+	return &client->destsockaddr;
 }
 
 isc_result_t
@@ -2705,10 +2705,10 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 	goto deny; /* Negative match or no match. */
 
 allow:
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 deny:
-	return (DNS_R_REFUSED);
+	return DNS_R_REFUSED;
 }
 
 isc_result_t
@@ -2735,7 +2735,7 @@ ns_client_checkacl(ns_client_t *client, isc_sockaddr_t *sockaddr,
 			      NS_LOGMODULE_CLIENT, log_level, "%s denied",
 			      opname);
 	}
-	return (result);
+	return result;
 }
 
 static void
@@ -2955,7 +2955,7 @@ ns_client_sourceip(dns_clientinfo_t *ci, isc_sockaddr_t **addrp) {
 	REQUIRE(addrp != NULL);
 
 	*addrp = &client->peeraddr;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 dns_rdataset_t *
@@ -2967,7 +2967,7 @@ ns_client_newrdataset(ns_client_t *client) {
 	rdataset = NULL;
 	dns_message_gettemprdataset(client->message, &rdataset);
 
-	return (rdataset);
+	return rdataset;
 }
 
 void
@@ -2997,7 +2997,7 @@ ns_client_newnamebuf(ns_client_t *client) {
 	ISC_LIST_APPEND(client->query.namebufs, dbuf, link);
 
 	CTRACE("ns_client_newnamebuf: done");
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 dns_name_t *
@@ -3017,7 +3017,7 @@ ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf) {
 	client->query.attributes |= NS_QUERYATTR_NAMEBUFUSED;
 
 	CTRACE("ns_client_newname: done");
-	return (name);
+	return name;
 }
 
 isc_buffer_t *
@@ -3045,7 +3045,7 @@ ns_client_getnamebuf(ns_client_t *client) {
 		INSIST(r.length >= 255);
 	}
 	CTRACE("ns_client_getnamebuf: done");
-	return (dbuf);
+	return dbuf;
 }
 
 void
@@ -3093,7 +3093,7 @@ ns_client_newdbversion(ns_client_t *client, unsigned int n) {
 				       link);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static ns_dbversion_t *
@@ -3107,7 +3107,7 @@ client_getdbversion(ns_client_t *client) {
 	INSIST(dbversion != NULL);
 	ISC_LIST_UNLINK(client->query.freeversions, dbversion, link);
 
-	return (dbversion);
+	return dbversion;
 }
 
 ns_dbversion_t *
@@ -3129,7 +3129,7 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db) {
 		 */
 		dbversion = client_getdbversion(client);
 		if (dbversion == NULL) {
-			return (NULL);
+			return NULL;
 		}
 		dns_db_attach(db, &dbversion->db);
 		dns_db_currentversion(db, &dbversion->version);
@@ -3138,5 +3138,5 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db) {
 		ISC_LIST_APPEND(client->query.activeversions, dbversion, link);
 	}
 
-	return (dbversion);
+	return dbversion;
 }

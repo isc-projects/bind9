@@ -29,9 +29,9 @@ isc__mem_get(void *mem, unsigned int size FLARG) {
 	}
 	__coverity_negative_sink__(size);
 	if (condition) {
-		return (0);
+		return 0;
 	}
-	return (__coverity_alloc__(size));
+	return __coverity_alloc__(size);
 }
 
 void
@@ -57,9 +57,9 @@ isc__mem_allocate(void *mem, unsigned int size FLARG) {
 	}
 	__coverity_negative_sink__(size);
 	if (condition) {
-		return (0);
+		return 0;
 	}
-	return (__coverity_alloc__(size));
+	return __coverity_alloc__(size);
 }
 
 void *
@@ -83,7 +83,7 @@ isc__mem_reallocate(void *mem, void *ptr, size_t size FLARG) {
 	} else if (ptr) {
 		__coverity_free__(ptr);
 	}
-	return (p);
+	return p;
 }
 
 void
@@ -104,11 +104,11 @@ isc__mem_strdup(void *mem, char *s FLARG) {
 		__coverity_panic__();
 	}
 	if (condition) {
-		return (0);
+		return 0;
 	}
 	d = __coverity_alloc__(strlen(s) + 1);
 	__coverity_writeall__(d);
-	return (d);
+	return d;
 }
 
 void *
@@ -118,9 +118,9 @@ isc__mempool_get(void *mem FLARG) {
 		__coverity_panic__();
 	}
 	if (condition) {
-		return (0);
+		return 0;
 	}
-	return (__coverity_alloc__(size));
+	return __coverity_alloc__(size);
 }
 
 void

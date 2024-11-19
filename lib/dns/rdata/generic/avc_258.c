@@ -20,7 +20,7 @@ static isc_result_t
 fromtext_avc(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_avc);
 
-	return (generic_fromtext_txt(CALL_FROMTEXT));
+	return generic_fromtext_txt(CALL_FROMTEXT);
 }
 
 static isc_result_t
@@ -28,14 +28,14 @@ totext_avc(ARGS_TOTEXT) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_avc);
 
-	return (generic_totext_txt(CALL_TOTEXT));
+	return generic_totext_txt(CALL_TOTEXT);
 }
 
 static isc_result_t
 fromwire_avc(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_avc);
 
-	return (generic_fromwire_txt(CALL_FROMWIRE));
+	return generic_fromwire_txt(CALL_FROMWIRE);
 }
 
 static isc_result_t
@@ -44,7 +44,7 @@ towire_avc(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return mem_tobuffer(target, rdata->data, rdata->length);
 }
 
 static int
@@ -58,14 +58,14 @@ compare_avc(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
 fromstruct_avc(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_avc);
 
-	return (generic_fromstruct_txt(CALL_FROMSTRUCT));
+	return generic_fromstruct_txt(CALL_FROMSTRUCT);
 }
 
 static isc_result_t
@@ -79,7 +79,7 @@ tostruct_avc(ARGS_TOSTRUCT) {
 	avc->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&avc->common, link);
 
-	return (generic_tostruct_txt(CALL_TOSTRUCT));
+	return generic_tostruct_txt(CALL_TOSTRUCT);
 }
 
 static void
@@ -101,7 +101,7 @@ additionaldata_avc(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -112,7 +112,7 @@ digest_avc(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -124,7 +124,7 @@ checkowner_avc(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -135,11 +135,11 @@ checknames_avc(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_avc(ARGS_COMPARE) {
-	return (compare_avc(rdata1, rdata2));
+	return compare_avc(rdata1, rdata2);
 }
 #endif /* RDATA_GENERIC_AVC_258_C */

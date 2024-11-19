@@ -47,7 +47,7 @@
 static double
 millis_since(isc_nanosecs_t start) {
 	isc_nanosecs_t end = isc_time_monotonic();
-	return ((double)(end - start) / NS_PER_MS);
+	return (double)(end - start) / NS_PER_MS;
 }
 
 #else

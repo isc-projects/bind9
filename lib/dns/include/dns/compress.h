@@ -212,11 +212,11 @@ dns_compress_rollback(dns_compress_t *cctx, unsigned int offset);
 static inline dns_decompress_t /* inline to suppress code generation */
 dns_decompress_setpermitted(dns_decompress_t dctx, bool permitted) {
 	if (dctx == DNS_DECOMPRESS_NEVER || dctx == DNS_DECOMPRESS_ALWAYS) {
-		return (dctx);
+		return dctx;
 	} else if (permitted) {
-		return (DNS_DECOMPRESS_PERMITTED);
+		return DNS_DECOMPRESS_PERMITTED;
 	} else {
-		return (DNS_DECOMPRESS_DEFAULT);
+		return DNS_DECOMPRESS_DEFAULT;
 	}
 }
 
@@ -225,8 +225,8 @@ dns_decompress_setpermitted(dns_decompress_t dctx, bool permitted) {
  */
 static inline bool /* inline to suppress code generation */
 dns_decompress_getpermitted(dns_decompress_t dctx) {
-	return (dctx == DNS_DECOMPRESS_ALWAYS ||
-		dctx == DNS_DECOMPRESS_PERMITTED);
+	return dctx == DNS_DECOMPRESS_ALWAYS ||
+	       dctx == DNS_DECOMPRESS_PERMITTED;
 }
 
 ISC_LANG_ENDDECLS

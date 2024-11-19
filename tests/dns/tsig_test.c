@@ -55,10 +55,10 @@ setup_test(void **state) {
 	result = dst_lib_init(mctx, NULL);
 
 	if (result != ISC_R_SUCCESS) {
-		return (1);
+		return 1;
 	}
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -67,7 +67,7 @@ teardown_test(void **state) {
 
 	dst_lib_destroy();
 
-	return (0);
+	return 0;
 }
 
 static isc_result_t
@@ -90,7 +90,7 @@ add_mac(dst_context_t *tsigctx, isc_buffer_t *buf) {
 	result = dst_context_adddata(tsigctx, &r);
 	dns_rdata_freestruct(&tsig);
 cleanup:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -171,7 +171,7 @@ cleanup:
 	}
 	dns_compress_invalidate(&cctx);
 
-	return (result);
+	return result;
 }
 
 static void

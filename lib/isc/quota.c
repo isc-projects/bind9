@@ -48,19 +48,19 @@ isc_quota_max(isc_quota_t *quota, unsigned int max) {
 unsigned int
 isc_quota_getmax(isc_quota_t *quota) {
 	REQUIRE(VALID_QUOTA(quota));
-	return (atomic_load_relaxed(&quota->max));
+	return atomic_load_relaxed(&quota->max);
 }
 
 unsigned int
 isc_quota_getsoft(isc_quota_t *quota) {
 	REQUIRE(VALID_QUOTA(quota));
-	return (atomic_load_relaxed(&quota->soft));
+	return atomic_load_relaxed(&quota->soft);
 }
 
 unsigned int
 isc_quota_getused(isc_quota_t *quota) {
 	REQUIRE(VALID_QUOTA(quota));
-	return (atomic_load_relaxed(&quota->used));
+	return atomic_load_relaxed(&quota->used);
 }
 
 void
@@ -104,15 +104,15 @@ isc_quota_acquire_cb(isc_quota_t *quota, isc_job_t *job, isc_job_cb cb,
 			cds_wfcq_enqueue(&quota->jobs.head, &quota->jobs.tail,
 					 &job->wfcq_node);
 		}
-		return (ISC_R_QUOTA);
+		return ISC_R_QUOTA;
 	}
 
 	uint_fast32_t soft = atomic_load_relaxed(&quota->soft);
 	if (soft != 0 && used >= soft) {
-		return (ISC_R_SOFTQUOTA);
+		return ISC_R_SOFTQUOTA;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void

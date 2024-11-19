@@ -128,7 +128,7 @@ rcode_totext(dns_rcode_t rcode) {
 	} else {
 		totext.consttext = rcodetext[rcode];
 	}
-	return (totext.deconsttext);
+	return totext.deconsttext;
 }
 
 static void
@@ -210,9 +210,9 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 
 	result = dns_message_firstname(msg, section);
 	if (result == ISC_R_NOMORE) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	for (;;) {
 		name = NULL;
@@ -256,10 +256,10 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 		if (result == ISC_R_NOMORE) {
 			break;
 		} else if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -294,9 +294,9 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 
 	result = dns_message_firstname(msg, section);
 	if (result == ISC_R_NOMORE) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	for (;;) {
 		name = NULL;
@@ -338,10 +338,10 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 		if (result == ISC_R_NOMORE) {
 			break;
 		} else if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -424,7 +424,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 		/* the lookup failed */
 		print_error |= 1;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (default_lookups && query->lookup->rdtype == dns_rdatatype_a) {
@@ -478,7 +478,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		printsection(query, msg, headers, DNS_SECTION_AUTHORITY);
 		printsection(query, msg, headers, DNS_SECTION_ADDITIONAL);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -537,10 +537,10 @@ testtype(char *typetext) {
 	tr.length = strlen(typetext);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
 	if (result == ISC_R_SUCCESS) {
-		return (true);
+		return true;
 	} else {
 		printf("unknown query type: %s\n", typetext);
-		return (false);
+		return false;
 	}
 }
 
@@ -554,10 +554,10 @@ testclass(char *typetext) {
 	tr.length = strlen(typetext);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
 	if (result == ISC_R_SUCCESS) {
-		return (true);
+		return true;
 	} else {
 		printf("unknown query class: %s\n", typetext);
-		return (false);
+		return false;
 	}
 }
 
@@ -975,5 +975,5 @@ main(int argc, char **argv) {
 	cancel_all();
 	destroy_libs();
 
-	return (query_error | print_error);
+	return query_error | print_error;
 }

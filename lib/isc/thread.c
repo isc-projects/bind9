@@ -62,7 +62,7 @@ thread_wrap(isc_threadfunc_t func, void *arg) {
 		.func = func,
 		.arg = arg,
 	};
-	return (wrap);
+	return wrap;
 }
 
 static void *
@@ -84,7 +84,7 @@ thread_body(struct thread_wrap *wrap) {
 
 	ret = func(arg);
 
-	return (ret);
+	return ret;
 }
 
 static void *
@@ -103,7 +103,7 @@ thread_run(void *wrap) {
 
 	rcu_unregister_thread();
 
-	return (ret);
+	return ret;
 }
 
 void

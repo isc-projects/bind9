@@ -53,5 +53,5 @@ isc__tid_initcount(uint32_t count) {
 
 uint32_t
 isc_tid_count(void) {
-	return (tid_count);
+	return tid_count;
 }

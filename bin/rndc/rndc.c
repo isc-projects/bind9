@@ -1023,8 +1023,8 @@ main(int argc, char **argv) {
 	isc_managers_destroy(&rndc_mctx, &loopmgr, &netmgr);
 
 	if (failed) {
-		return (1);
+		return 1;
 	}
 
-	return (0);
+	return 0;
 }

@@ -161,12 +161,12 @@ getkeybits(dst_key_t *key, struct dst_private_element *element) {
 	uint16_t *bits = (uint16_t *)element->data;
 
 	if (element->length != 2) {
-		return (DST_R_INVALIDPRIVATEKEY);
+		return DST_R_INVALIDPRIVATEKEY;
 	}
 
 	key->key_bits = ntohs(*bits);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -180,11 +180,11 @@ hmac_createctx(const isc_md_type_t *type, const dst_key_t *key,
 			       type);
 	if (result != ISC_R_SUCCESS) {
 		isc_hmac_free(ctx);
-		return (DST_R_UNSUPPORTEDALG);
+		return DST_R_UNSUPPORTEDALG;
 	}
 
 	dctx->ctxdata.hmac_ctx = ctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -205,10 +205,10 @@ hmac_adddata(const dst_context_t *dctx, const isc_region_t *data) {
 
 	result = isc_hmac_update(ctx, data->base, data->length);
 	if (result != ISC_R_SUCCESS) {
-		return (DST_R_OPENSSLFAILURE);
+		return DST_R_OPENSSLFAILURE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -219,20 +219,20 @@ hmac_sign(const dst_context_t *dctx, isc_buffer_t *sig) {
 	unsigned int digestlen = sizeof(digest);
 
 	if (isc_hmac_final(ctx, digest, &digestlen) != ISC_R_SUCCESS) {
-		return (DST_R_OPENSSLFAILURE);
+		return DST_R_OPENSSLFAILURE;
 	}
 
 	if (isc_hmac_reset(ctx) != ISC_R_SUCCESS) {
-		return (DST_R_OPENSSLFAILURE);
+		return DST_R_OPENSSLFAILURE;
 	}
 
 	if (isc_buffer_availablelength(sig) < digestlen) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	isc_buffer_putmem(sig, digest, digestlen);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -244,20 +244,20 @@ hmac_verify(const dst_context_t *dctx, const isc_region_t *sig) {
 	REQUIRE(ctx != NULL);
 
 	if (isc_hmac_final(ctx, digest, &digestlen) != ISC_R_SUCCESS) {
-		return (DST_R_OPENSSLFAILURE);
+		return DST_R_OPENSSLFAILURE;
 	}
 
 	if (isc_hmac_reset(ctx) != ISC_R_SUCCESS) {
-		return (DST_R_OPENSSLFAILURE);
+		return DST_R_OPENSSLFAILURE;
 	}
 
 	if (sig->length > digestlen) {
-		return (DST_R_VERIFYFAILURE);
+		return DST_R_VERIFYFAILURE;
 	}
 
-	return (isc_safe_memequal(digest, sig->base, sig->length)
-			? ISC_R_SUCCESS
-			: DST_R_VERIFYFAILURE);
+	return isc_safe_memequal(digest, sig->base, sig->length)
+		       ? ISC_R_SUCCESS
+		       : DST_R_VERIFYFAILURE;
 }
 
 static bool
@@ -269,13 +269,13 @@ hmac_compare(const isc_md_type_t *type, const dst_key_t *key1,
 	hkey2 = key2->keydata.hmac_key;
 
 	if (hkey1 == NULL && hkey2 == NULL) {
-		return (true);
+		return true;
 	} else if (hkey1 == NULL || hkey2 == NULL) {
-		return (false);
+		return false;
 	}
 
-	return (isc_safe_memequal(hkey1->key, hkey2->key,
-				  isc_md_type_get_block_size(type)));
+	return isc_safe_memequal(hkey1->key, hkey2->key,
+				 isc_md_type_get_block_size(type));
 }
 
 static isc_result_t
@@ -303,13 +303,13 @@ hmac_generate(const isc_md_type_t *type, dst_key_t *key) {
 
 	isc_safe_memwipe(data, sizeof(data));
 
-	return (ret);
+	return ret;
 }
 
 static bool
 hmac_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (true);
+	return true;
 }
 
 static void
@@ -328,11 +328,11 @@ hmac_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 	bytes = (key->key_size + 7) / 8;
 	if (isc_buffer_availablelength(data) < bytes) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	isc_buffer_putmem(data, hkey->key, bytes);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -343,7 +343,7 @@ hmac_fromdns(const isc_md_type_t *type, dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	hkey = isc_mem_get(key->mctx, sizeof(dst_hmac_key_t));
@@ -356,7 +356,7 @@ hmac_fromdns(const isc_md_type_t *type, dst_key_t *key, isc_buffer_t *data) {
 		    ISC_R_SUCCESS)
 		{
 			isc_mem_put(key->mctx, hkey, sizeof(dst_hmac_key_t));
-			return (DST_R_OPENSSLFAILURE);
+			return DST_R_OPENSSLFAILURE;
 		}
 	} else {
 		memmove(hkey->key, r.base, r.length);
@@ -368,23 +368,23 @@ hmac_fromdns(const isc_md_type_t *type, dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_forward(data, r.length);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static int
 hmac__get_tag_key(const isc_md_type_t *type) {
 	if (type == ISC_MD_MD5) {
-		return (TAG_HMACMD5_KEY);
+		return TAG_HMACMD5_KEY;
 	} else if (type == ISC_MD_SHA1) {
-		return (TAG_HMACSHA1_KEY);
+		return TAG_HMACSHA1_KEY;
 	} else if (type == ISC_MD_SHA224) {
-		return (TAG_HMACSHA224_KEY);
+		return TAG_HMACSHA224_KEY;
 	} else if (type == ISC_MD_SHA256) {
-		return (TAG_HMACSHA256_KEY);
+		return TAG_HMACSHA256_KEY;
 	} else if (type == ISC_MD_SHA384) {
-		return (TAG_HMACSHA384_KEY);
+		return TAG_HMACSHA384_KEY;
 	} else if (type == ISC_MD_SHA512) {
-		return (TAG_HMACSHA512_KEY);
+		return TAG_HMACSHA512_KEY;
 	} else {
 		UNREACHABLE();
 	}
@@ -393,17 +393,17 @@ hmac__get_tag_key(const isc_md_type_t *type) {
 static int
 hmac__get_tag_bits(const isc_md_type_t *type) {
 	if (type == ISC_MD_MD5) {
-		return (TAG_HMACMD5_BITS);
+		return TAG_HMACMD5_BITS;
 	} else if (type == ISC_MD_SHA1) {
-		return (TAG_HMACSHA1_BITS);
+		return TAG_HMACSHA1_BITS;
 	} else if (type == ISC_MD_SHA224) {
-		return (TAG_HMACSHA224_BITS);
+		return TAG_HMACSHA224_BITS;
 	} else if (type == ISC_MD_SHA256) {
-		return (TAG_HMACSHA256_BITS);
+		return TAG_HMACSHA256_BITS;
 	} else if (type == ISC_MD_SHA384) {
-		return (TAG_HMACSHA384_BITS);
+		return TAG_HMACSHA384_BITS;
 	} else if (type == ISC_MD_SHA512) {
-		return (TAG_HMACSHA512_BITS);
+		return TAG_HMACSHA512_BITS;
 	} else {
 		UNREACHABLE();
 	}
@@ -418,11 +418,11 @@ hmac_tofile(const isc_md_type_t *type, const dst_key_t *key,
 	uint16_t bits;
 
 	if (key->keydata.hmac_key == NULL) {
-		return (DST_R_NULLKEY);
+		return DST_R_NULLKEY;
 	}
 
 	if (key->external) {
-		return (DST_R_EXTERNALKEY);
+		return DST_R_EXTERNALKEY;
 	}
 
 	hkey = key->keydata.hmac_key;
@@ -439,23 +439,23 @@ hmac_tofile(const isc_md_type_t *type, const dst_key_t *key,
 
 	priv.nelements = 2;
 
-	return (dst__privstruct_writefile(key, &priv, directory));
+	return dst__privstruct_writefile(key, &priv, directory);
 }
 
 static int
 hmac__to_dst_alg(const isc_md_type_t *type) {
 	if (type == ISC_MD_MD5) {
-		return (DST_ALG_HMACMD5);
+		return DST_ALG_HMACMD5;
 	} else if (type == ISC_MD_SHA1) {
-		return (DST_ALG_HMACSHA1);
+		return DST_ALG_HMACSHA1;
 	} else if (type == ISC_MD_SHA224) {
-		return (DST_ALG_HMACSHA224);
+		return DST_ALG_HMACSHA224;
 	} else if (type == ISC_MD_SHA256) {
-		return (DST_ALG_HMACSHA256);
+		return DST_ALG_HMACSHA256;
 	} else if (type == ISC_MD_SHA384) {
-		return (DST_ALG_HMACSHA384);
+		return DST_ALG_HMACSHA384;
 	} else if (type == ISC_MD_SHA512) {
-		return (DST_ALG_HMACSHA512);
+		return DST_ALG_HMACSHA512;
 	} else {
 		UNREACHABLE();
 	}
@@ -475,7 +475,7 @@ hmac_parse(const isc_md_type_t *type, dst_key_t *key, isc_lex_t *lexer,
 	result = dst__privstruct_parse(key, hmac__to_dst_alg(type), lexer, mctx,
 				       &priv);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	if (key->external) {
@@ -517,7 +517,7 @@ hmac_parse(const isc_md_type_t *type, dst_key_t *key, isc_lex_t *lexer,
 	}
 	dst__privstruct_free(&priv, mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
-	return (result);
+	return result;
 }
 
 hmac_register_algorithm(md5);

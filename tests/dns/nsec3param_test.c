@@ -95,7 +95,7 @@ rdata_fromparams(uint8_t hash, uint8_t flags, uint16_t iter, uint8_t saltlen,
 	nsec3param.iterations = iter;
 	nsec3param.salt_length = saltlen;
 	nsec3param.salt = salt;
-	return (nsec3param);
+	return nsec3param;
 }
 
 /*%

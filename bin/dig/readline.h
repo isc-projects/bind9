@@ -48,10 +48,10 @@ readline(const char *prompt) {
 	line = fgets(buf, RL_MAXCMD, stdin);
 	if (line == NULL) {
 		free(buf);
-		return (NULL);
+		return NULL;
 	}
-	return (buf);
-};
+	return buf;
+}
 
 #define add_history(line)
 

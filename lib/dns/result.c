@@ -25,7 +25,7 @@ dns_result_torcode(isc_result_t result) {
 	switch (result) {
 	case DNS_R_NOERROR:
 	case ISC_R_SUCCESS:
-		return (dns_rcode_noerror);
+		return dns_rcode_noerror;
 	case DNS_R_FORMERR:
 	case ISC_R_BADBASE64:
 	case ISC_R_RANGE:
@@ -47,40 +47,40 @@ dns_result_torcode(isc_result_t result) {
 	case DNS_R_UNKNOWN:
 	case DNS_R_NAMETOOLONG:
 	case DNS_R_OPTERR:
-		return (dns_rcode_formerr);
+		return dns_rcode_formerr;
 	case DNS_R_SERVFAIL:
-		return (dns_rcode_servfail);
+		return dns_rcode_servfail;
 	case DNS_R_NXDOMAIN:
-		return (dns_rcode_nxdomain);
+		return dns_rcode_nxdomain;
 	case DNS_R_NOTIMP:
-		return (dns_rcode_notimp);
+		return dns_rcode_notimp;
 	case DNS_R_REFUSED:
 	case DNS_R_DISALLOWED:
-		return (dns_rcode_refused);
+		return dns_rcode_refused;
 	case DNS_R_YXDOMAIN:
-		return (dns_rcode_yxdomain);
+		return dns_rcode_yxdomain;
 	case DNS_R_YXRRSET:
-		return (dns_rcode_yxrrset);
+		return dns_rcode_yxrrset;
 	case DNS_R_NXRRSET:
-		return (dns_rcode_nxrrset);
+		return dns_rcode_nxrrset;
 	case DNS_R_NOTAUTH:
 	case DNS_R_TSIGVERIFYFAILURE:
 	case DNS_R_CLOCKSKEW:
-		return (dns_rcode_notauth);
+		return dns_rcode_notauth;
 	case DNS_R_NOTZONE:
-		return (dns_rcode_notzone);
+		return dns_rcode_notzone;
 	case DNS_R_RCODE11:
 	case DNS_R_RCODE12:
 	case DNS_R_RCODE13:
 	case DNS_R_RCODE14:
 	case DNS_R_RCODE15:
-		return (result - DNS_R_NOERROR);
+		return result - DNS_R_NOERROR;
 	case DNS_R_BADVERS:
-		return (dns_rcode_badvers);
+		return dns_rcode_badvers;
 	case DNS_R_BADCOOKIE:
-		return (dns_rcode_badcookie);
+		return dns_rcode_badcookie;
 	default:
-		return (dns_rcode_servfail);
+		return dns_rcode_servfail;
 	}
 }
 
@@ -88,32 +88,32 @@ isc_result_t
 dns_result_fromrcode(dns_rcode_t rcode) {
 	switch (rcode) {
 	case dns_rcode_noerror:
-		return (DNS_R_NOERROR);
+		return DNS_R_NOERROR;
 	case dns_rcode_formerr:
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	case dns_rcode_servfail:
-		return (DNS_R_SERVFAIL);
+		return DNS_R_SERVFAIL;
 	case dns_rcode_nxdomain:
-		return (DNS_R_NXDOMAIN);
+		return DNS_R_NXDOMAIN;
 	case dns_rcode_notimp:
-		return (DNS_R_NOTIMP);
+		return DNS_R_NOTIMP;
 	case dns_rcode_refused:
-		return (DNS_R_REFUSED);
+		return DNS_R_REFUSED;
 	case dns_rcode_yxdomain:
-		return (DNS_R_YXDOMAIN);
+		return DNS_R_YXDOMAIN;
 	case dns_rcode_yxrrset:
-		return (DNS_R_YXRRSET);
+		return DNS_R_YXRRSET;
 	case dns_rcode_nxrrset:
-		return (DNS_R_NXRRSET);
+		return DNS_R_NXRRSET;
 	case dns_rcode_notauth:
-		return (DNS_R_NOTAUTH);
+		return DNS_R_NOTAUTH;
 	case dns_rcode_notzone:
-		return (DNS_R_NOTZONE);
+		return DNS_R_NOTZONE;
 	case dns_rcode_badvers:
-		return (DNS_R_BADVERS);
+		return DNS_R_BADVERS;
 	case dns_rcode_badcookie:
-		return (DNS_R_BADCOOKIE);
+		return DNS_R_BADCOOKIE;
 	default:
-		return (DNS_R_SERVFAIL);
+		return DNS_R_SERVFAIL;
 	}
 }

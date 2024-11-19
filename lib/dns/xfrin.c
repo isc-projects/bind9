@@ -293,7 +293,7 @@ axfr_init(dns_xfrin_t *xfr) {
 	CHECK(dns_db_beginload(xfr->db, &xfr->axfr));
 	result = ISC_R_SUCCESS;
 failure:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -304,7 +304,7 @@ axfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	dns_difftuple_t *tuple = NULL;
 
 	if (rdata->rdclass != xfr->rdclass) {
-		return (DNS_R_BADCLASS);
+		return DNS_R_BADCLASS;
 	}
 
 	CHECK(dns_zone_checknames(xfr->zone, name, rdata));
@@ -313,7 +313,7 @@ axfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	dns_diff_append(&xfr->diff, &tuple);
 	result = ISC_R_SUCCESS;
 failure:
-	return (result);
+	return result;
 }
 
 /*
@@ -404,7 +404,7 @@ axfr_finalize(dns_xfrin_t *xfr) {
 	result = dns_zone_replacedb(xfr->zone, xfr->db, true);
 	LIBDNS_XFRIN_AXFR_FINALIZE_END(xfr, xfr->info, result);
 
-	return (result);
+	return result;
 }
 
 /**************************************************************************/
@@ -425,7 +425,7 @@ ixfr_init(dns_xfrin_t *xfr) {
 	if (xfr->reqtype != dns_rdatatype_ixfr) {
 		xfrin_log(xfr, ISC_LOG_NOTICE,
 			  "got incremental response to AXFR request");
-		return (DNS_R_FORMERR);
+		return DNS_R_FORMERR;
 	}
 
 	atomic_store(&xfr->is_ixfr, true);
@@ -439,7 +439,7 @@ ixfr_init(dns_xfrin_t *xfr) {
 
 	result = ISC_R_SUCCESS;
 failure:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -449,7 +449,7 @@ ixfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	dns_difftuple_t *tuple = NULL;
 
 	if (rdata->rdclass != xfr->rdclass) {
-		return (DNS_R_BADCLASS);
+		return DNS_R_BADCLASS;
 	}
 
 	if (op == DNS_DIFFOP_ADD) {
@@ -460,7 +460,7 @@ ixfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	dns_diff_append(&xfr->diff, &tuple);
 	result = ISC_R_SUCCESS;
 failure:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -471,7 +471,7 @@ ixfr_begin_transaction(dns_xfrin_t *xfr) {
 		CHECK(dns_journal_begin_transaction(xfr->ixfr.journal));
 	}
 failure:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -484,7 +484,7 @@ ixfr_end_transaction(dns_xfrin_t *xfr) {
 		CHECK(dns_journal_commit(xfr->ixfr.journal));
 	}
 failure:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -508,12 +508,12 @@ ixfr_apply_one(dns_xfrin_t *xfr, ixfr_apply_data_t *data) {
 
 	result = ixfr_end_transaction(xfr);
 
-	return (result);
+	return result;
 failure:
 	/* We need to end the transaction, but keep the previous error */
 	(void)ixfr_end_transaction(xfr);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -633,7 +633,7 @@ ixfr_commit(dns_xfrin_t *xfr) {
 	}
 
 failure:
-	return (result);
+	return result;
 }
 
 /**************************************************************************/
@@ -858,7 +858,7 @@ redo:
 	}
 	result = ISC_R_SUCCESS;
 failure:
-	return (result);
+	return result;
 }
 
 void
@@ -914,7 +914,7 @@ dns_xfrin_start(dns_xfrin_t *xfr, dns_xfrindone_t done) {
 		xfrin_fail(xfr, result, "zone transfer start failed");
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -935,7 +935,7 @@ isc_time_t
 dns_xfrin_getstarttime(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
-	return (atomic_load_relaxed(&xfr->start));
+	return atomic_load_relaxed(&xfr->start);
 }
 
 void
@@ -987,7 +987,7 @@ uint32_t
 dns_xfrin_getendserial(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
-	return (atomic_load_relaxed(&xfr->end_serial));
+	return atomic_load_relaxed(&xfr->end_serial);
 }
 
 void
@@ -1005,14 +1005,14 @@ const isc_sockaddr_t *
 dns_xfrin_getsourceaddr(const dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
-	return (&xfr->sourceaddr);
+	return &xfr->sourceaddr;
 }
 
 const isc_sockaddr_t *
 dns_xfrin_getprimaryaddr(const dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
-	return (&xfr->primaryaddr);
+	return &xfr->primaryaddr;
 }
 
 dns_transport_type_t
@@ -1020,17 +1020,17 @@ dns_xfrin_gettransporttype(const dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
 	if (xfr->transport != NULL) {
-		return (dns_transport_get_type(xfr->transport));
+		return dns_transport_get_type(xfr->transport);
 	}
 
-	return (DNS_TRANSPORT_TCP);
+	return DNS_TRANSPORT_TCP;
 }
 
 dns_transport_type_t
 dns_xfrin_getsoatransporttype(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
-	return (atomic_load_relaxed(&xfr->soa_transport_type));
+	return atomic_load_relaxed(&xfr->soa_transport_type);
 }
 
 const dns_name_t *
@@ -1038,10 +1038,10 @@ dns_xfrin_gettsigkeyname(const dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
 	if (xfr->tsigkey == NULL || xfr->tsigkey->key == NULL) {
-		return (NULL);
+		return NULL;
 	}
 
-	return (dst_key_name(xfr->tsigkey->key));
+	return dst_key_name(xfr->tsigkey->key);
 }
 
 static void
@@ -1285,13 +1285,13 @@ xfrin_start(dns_xfrin_t *xfr) {
 	 */
 	CHECK(dns_dispatch_connect(xfr->dispentry));
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	xfrin_cancelio(xfr);
 	dns_xfrin_detach(&xfr);
 
-	return (result);
+	return result;
 }
 
 /* XXX the resolver could use this, too */
@@ -1311,7 +1311,7 @@ render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
 	result = ISC_R_SUCCESS;
 failure:
 	dns_compress_invalidate(&cctx);
-	return (result);
+	return result;
 }
 
 /*
@@ -1438,11 +1438,11 @@ static const char *
 request_type(dns_xfrin_t *xfr) {
 	switch (xfr->reqtype) {
 	case dns_rdatatype_soa:
-		return ("SOA");
+		return "SOA";
 	case dns_rdatatype_axfr:
-		return ("AXFR");
+		return "AXFR";
 	case dns_rdatatype_ixfr:
-		return ("IXFR");
+		return "IXFR";
 	default:
 		ISC_UNREACHABLE();
 	}
@@ -1474,10 +1474,10 @@ add_opt(dns_message_t *message, uint16_t udpsize, bool reqnsid,
 	result = dns_message_buildopt(message, &rdataset, 0, udpsize, 0,
 				      ednsopts, count);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
-	return (dns_message_setopt(message, rdataset));
+	return dns_message_setopt(message, rdataset);
 }
 
 /*
@@ -1595,7 +1595,7 @@ failure:
 		dns_db_closeversion(xfr->db, &ver, false);
 	}
 
-	return (result);
+	return result;
 }
 
 static void

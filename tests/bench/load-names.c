@@ -63,7 +63,7 @@ static size_t
 item_makekey(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	assert(pval == &item[ival]);
-	return (dns_qpkey_fromname(key, &item[ival].fixed.name));
+	return dns_qpkey_fromname(key, &item[ival].fixed.name);
 }
 
 static void
@@ -105,7 +105,7 @@ static void *
 new_lfht(isc_mem_t *mem ISC_ATTR_UNUSED) {
 	struct cds_lfht *lfht = cds_lfht_new(
 		1, 1, 0, CDS_LFHT_AUTO_RESIZE | CDS_LFHT_ACCOUNTING, NULL);
-	return (lfht);
+	return lfht;
 }
 
 static int
@@ -114,7 +114,7 @@ lfht_match(struct cds_lfht_node *ht_node, const void *_key) {
 						  ht_node);
 	const dns_name_t *key = _key;
 
-	return (dns_name_equal(key, &i->fixed.name));
+	return dns_name_equal(key, &i->fixed.name);
 }
 
 static isc_result_t
@@ -126,10 +126,10 @@ add_lfht(void *lfht, size_t count) {
 		&item[count].ht_node);
 
 	if (ht_node != &item[count].ht_node) {
-		return (ISC_R_EXISTS);
+		return ISC_R_EXISTS;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -141,11 +141,11 @@ get_lfht(void *lfht, size_t count, void **pval) {
 
 	struct cds_lfht_node *ht_node = cds_lfht_iter_get_node(&iter);
 	if (ht_node == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	*pval = caa_container_of(ht_node, struct item_s, ht_node);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void *
@@ -173,7 +173,7 @@ thread_lfht(void *arg0) {
 	arg->d0 = isc_time_microdiff(&t1, &t0);
 	arg->d1 = isc_time_microdiff(&t2, &t1);
 
-	return (NULL);
+	return NULL;
 }
 
 /*
@@ -185,13 +185,13 @@ new_hashmap(isc_mem_t *mem) {
 	isc_hashmap_t *hashmap = NULL;
 	isc_hashmap_create(mem, 1, &hashmap);
 
-	return (hashmap);
+	return hashmap;
 }
 
 static bool
 name_match(void *node, const void *key) {
 	const struct item_s *i = node;
-	return (dns_name_equal(&i->fixed.name, key));
+	return dns_name_equal(&i->fixed.name, key);
 }
 
 static isc_result_t
@@ -199,7 +199,7 @@ add_hashmap(void *hashmap, size_t count) {
 	isc_result_t result = isc_hashmap_add(
 		hashmap, dns_name_hash(&item[count].fixed.name), name_match,
 		&item[count].fixed.name, &item[count], NULL);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -207,7 +207,7 @@ get_hashmap(void *hashmap, size_t count, void **pval) {
 	isc_result_t result = isc_hashmap_find(
 		hashmap, dns_name_hash(&item[count].fixed.name), name_match,
 		&item[count].fixed.name, pval);
-	return (result);
+	return result;
 }
 
 static void *
@@ -238,7 +238,7 @@ thread_hashmap(void *arg0) {
 	arg->d0 = isc_time_microdiff(&t1, &t0);
 	arg->d1 = isc_time_microdiff(&t2, &t1);
 
-	return (NULL);
+	return NULL;
 }
 
 /*
@@ -249,7 +249,7 @@ static void *
 new_ht(isc_mem_t *mem) {
 	isc_ht_t *ht = NULL;
 	isc_ht_init(&ht, mem, 1, 0);
-	return (ht);
+	return ht;
 }
 
 static isc_result_t
@@ -257,14 +257,14 @@ add_ht(void *ht, size_t count) {
 	isc_result_t result = isc_ht_add(ht, item[count].fixed.name.ndata,
 					 item[count].fixed.name.length,
 					 &item[count]);
-	return (result);
+	return result;
 }
 
 static isc_result_t
 get_ht(void *ht, size_t count, void **pval) {
 	isc_result_t result = isc_ht_find(ht, item[count].fixed.name.ndata,
 					  item[count].fixed.name.length, pval);
-	return (result);
+	return result;
 }
 
 static void *
@@ -295,7 +295,7 @@ thread_ht(void *arg0) {
 	arg->d0 = isc_time_microdiff(&t1, &t0);
 	arg->d1 = isc_time_microdiff(&t2, &t1);
 
-	return (NULL);
+	return NULL;
 }
 
 /*
@@ -306,7 +306,7 @@ static void *
 new_rbt(isc_mem_t *mem) {
 	dns_rbt_t *rbt = NULL;
 	(void)dns_rbt_create(mem, NULL, NULL, &rbt);
-	return (rbt);
+	return rbt;
 }
 
 static isc_result_t
@@ -322,7 +322,7 @@ add_rbt(void *rbt, size_t count) {
 		result = ISC_R_SUCCESS;
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -335,7 +335,7 @@ get_rbt(void *rbt, size_t count, void **pval) {
 	if (result == ISC_R_SUCCESS) {
 		*pval = node->data;
 	}
-	return (result);
+	return result;
 }
 
 static void *
@@ -367,7 +367,7 @@ thread_rbt(void *arg0) {
 	arg->d0 = isc_time_microdiff(&t1, &t0);
 	arg->d1 = isc_time_microdiff(&t2, &t1);
 
-	return (NULL);
+	return NULL;
 }
 
 /*
@@ -378,13 +378,13 @@ static void *
 new_qp(isc_mem_t *mem) {
 	dns_qpmulti_t *qpmulti = NULL;
 	dns_qpmulti_create(mem, &qpmethods, NULL, &qpmulti);
-	return (qpmulti);
+	return qpmulti;
 }
 
 static isc_result_t
 add_qp(void *qp, size_t count) {
 	isc_result_t result = dns_qp_insert(qp, &item[count], count);
-	return (result);
+	return result;
 }
 
 static void
@@ -394,7 +394,7 @@ sqz_qp(void *qp) {
 
 static isc_result_t
 get_qp(void *qp, size_t count, void **pval) {
-	return (dns_qp_getname(qp, &item[count].fixed.name, pval, NULL));
+	return dns_qp_getname(qp, &item[count].fixed.name, pval, NULL);
 }
 
 static void *
@@ -438,22 +438,22 @@ _thread_qp(void *arg0, bool sqz, bool brr) {
 	arg->d0 = isc_time_microdiff(&t1, &t0);
 	arg->d1 = isc_time_microdiff(&t2, &t1);
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
 thread_qp(void *arg0) {
-	return (_thread_qp(arg0, true, false));
+	return _thread_qp(arg0, true, false);
 }
 
 static void *
 thread_qp_nosqz(void *arg0) {
-	return (_thread_qp(arg0, false, false));
+	return _thread_qp(arg0, false, false);
 }
 
 static void *
 thread_qp_brr(void *arg0) {
-	return (_thread_qp(arg0, true, true));
+	return _thread_qp(arg0, true, true);
 }
 
 /*

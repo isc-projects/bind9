@@ -1544,3 +1544,7 @@ b7de2c7cb959fa35099d72c3f9b13938348c74e6
 0aeefb974197ccf05c3f25c20506b4e8b97ded5d
 # Reformat sources with up-to-date clang-format-19
 f2fa1b7d63100564dc55463a05bdeed893f83d86
+# Remove redundant semicolons after the closing braces of functions
+c22176c0f9a71217be9bfab00573f8f0265499af
+# Remove redundant parentheses from the return statement
+58a15d38c2c321fac75abef389a48ff82deaccf0

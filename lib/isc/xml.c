@@ -23,17 +23,17 @@ static isc_mem_t *isc__xml_mctx = NULL;
 
 static void *
 isc__xml_malloc(size_t size) {
-	return (isc_mem_allocate(isc__xml_mctx, size));
+	return isc_mem_allocate(isc__xml_mctx, size);
 }
 
 static void *
 isc__xml_realloc(void *ptr, size_t size) {
-	return (isc_mem_reallocate(isc__xml_mctx, ptr, size));
+	return isc_mem_reallocate(isc__xml_mctx, ptr, size);
 }
 
 static char *
 isc__xml_strdup(const char *str) {
-	return (isc_mem_strdup(isc__xml_mctx, str));
+	return isc_mem_strdup(isc__xml_mctx, str);
 }
 
 static void

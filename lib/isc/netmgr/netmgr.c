@@ -363,7 +363,7 @@ bool
 isc_nm_getloadbalancesockets(isc_nm_t *mgr) {
 	REQUIRE(VALID_NM(mgr));
 
-	return (mgr->load_balance_sockets);
+	return mgr->load_balance_sockets;
 }
 
 void
@@ -393,7 +393,7 @@ bool
 isc__nmsocket_active(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	return (sock->active);
+	return sock->active;
 }
 
 void
@@ -506,19 +506,19 @@ nmsocket_cleanup(void *arg) {
 static bool
 nmsocket_has_active_handles(isc_nmsocket_t *sock) {
 	if (!ISC_LIST_EMPTY(sock->active_handles)) {
-		return (true);
+		return true;
 	}
 
 	if (sock->children != NULL) {
 		for (size_t i = 0; i < sock->nchildren; i++) {
 			isc_nmsocket_t *csock = &sock->children[i];
 			if (!ISC_LIST_EMPTY(csock->active_handles)) {
-				return (true);
+				return true;
 			}
 		}
 	}
 
-	return (false);
+	return false;
 }
 
 static void
@@ -799,7 +799,7 @@ alloc_handle(isc_nmsocket_t *sock) {
 	};
 	isc_refcount_init(&handle->references, 1);
 
-	return (handle);
+	return handle;
 }
 
 static isc_nmhandle_t *
@@ -813,12 +813,12 @@ dequeue_handle(isc_nmsocket_t *sock) {
 
 		isc_refcount_init(&handle->references, 1);
 		INSIST(VALID_NMHANDLE(handle));
-		return (handle);
+		return handle;
 	}
 #else
 	INSIST(ISC_LIST_EMPTY(sock->inactive_handles));
 #endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
-	return (NULL);
+	return NULL;
 }
 
 isc_nmhandle_t *
@@ -889,18 +889,18 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 	}
 #endif
 
-	return (handle);
+	return handle;
 }
 
 bool
 isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	return (handle->sock->type == isc_nm_tcpsocket ||
-		handle->sock->type == isc_nm_tlssocket ||
-		handle->sock->type == isc_nm_httpsocket ||
-		handle->sock->type == isc_nm_streamdnssocket ||
-		handle->sock->type == isc_nm_proxystreamsocket);
+	return handle->sock->type == isc_nm_tcpsocket ||
+	       handle->sock->type == isc_nm_tlssocket ||
+	       handle->sock->type == isc_nm_httpsocket ||
+	       handle->sock->type == isc_nm_streamdnssocket ||
+	       handle->sock->type == isc_nm_proxystreamsocket;
 }
 
 static void
@@ -996,7 +996,7 @@ void *
 isc_nmhandle_getdata(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	return (handle->opaque);
+	return handle->opaque;
 }
 
 void
@@ -1217,18 +1217,18 @@ isc__nmsocket_timer_running(isc_nmsocket_t *sock) {
 
 	switch (sock->type) {
 	case isc_nm_tlssocket:
-		return (isc__nmsocket_tls_timer_running(sock));
+		return isc__nmsocket_tls_timer_running(sock);
 	case isc_nm_streamdnssocket:
-		return (isc__nmsocket_streamdns_timer_running(sock));
+		return isc__nmsocket_streamdns_timer_running(sock);
 	case isc_nm_proxystreamsocket:
-		return (isc__nmsocket_proxystream_timer_running(sock));
+		return isc__nmsocket_proxystream_timer_running(sock);
 	case isc_nm_proxyudpsocket:
-		return (isc__nmsocket_proxyudp_timer_running(sock));
+		return isc__nmsocket_proxyudp_timer_running(sock);
 	default:
 		break;
 	}
 
-	return (uv_is_active((uv_handle_t *)&sock->read_timer));
+	return uv_is_active((uv_handle_t *)&sock->read_timer);
 }
 
 void
@@ -1313,7 +1313,7 @@ isc___nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr FLARG) {
 		break;
 	}
 
-	return (req);
+	return req;
 }
 
 /*%<
@@ -1362,7 +1362,7 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 	int r;
 
 	if (uv_is_active(&sock->uv_handle.handle)) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	switch (sock->type) {
@@ -1381,7 +1381,7 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 		result = isc_uverr2result(r);
 	}
 
-	return (result);
+	return result;
 }
 
 void
@@ -1408,14 +1408,14 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 
 bool
 isc__nm_closing(isc__networker_t *worker) {
-	return (worker->shuttingdown);
+	return worker->shuttingdown;
 }
 
 bool
 isc__nmsocket_closing(isc_nmsocket_t *sock) {
-	return (!sock->active || sock->closing ||
-		isc__nm_closing(sock->worker) ||
-		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
+	return !sock->active || sock->closing ||
+	       isc__nm_closing(sock->worker) ||
+	       (sock->server != NULL && !isc__nmsocket_active(sock->server));
 }
 
 void
@@ -1529,21 +1529,21 @@ isc_nmhandle_timer_running(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	return (isc__nmsocket_timer_running(handle->sock));
+	return isc__nmsocket_timer_running(handle->sock);
 }
 
 isc_sockaddr_t
 isc_nmhandle_peeraddr(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	return (handle->peer);
+	return handle->peer;
 }
 
 isc_sockaddr_t
 isc_nmhandle_localaddr(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	return (handle->local);
+	return handle->local;
 }
 
 isc_nm_t *
@@ -1551,7 +1551,7 @@ isc_nmhandle_netmgr(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	return (handle->sock->worker->netmgr);
+	return handle->sock->worker->netmgr;
 }
 
 isc__nm_uvreq_t *
@@ -1574,7 +1574,7 @@ isc___nm_uvreq_get(isc_nmsocket_t *sock FLARG) {
 
 	ISC_LIST_APPEND(sock->active_uvreqs, req, active_link);
 
-	return (req);
+	return req;
 }
 
 void
@@ -2057,7 +2057,7 @@ isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type) {
 		proto = SOCK_DGRAM;
 		break;
 	default:
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	pf = isc_sockaddr_pf(addr);
@@ -2069,17 +2069,17 @@ isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type) {
 
 	fd = socket(pf, proto, 0);
 	if (fd < 0) {
-		return (isc_errno_toresult(errno));
+		return isc_errno_toresult(errno);
 	}
 
 	r = bind(fd, (const struct sockaddr *)&addr->type.sa, addrlen);
 	if (r < 0) {
 		close(fd);
-		return (isc_errno_toresult(errno));
+		return isc_errno_toresult(errno);
 	}
 
 	close(fd);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #if defined(TCP_CONNECTIONTIMEOUT)
@@ -2182,7 +2182,7 @@ isc_nm_xfr_checkperm(isc_nmhandle_t *handle) {
 		break;
 	}
 
-	return (result);
+	return result;
 }
 
 bool
@@ -2190,7 +2190,7 @@ isc_nm_is_http_handle(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	return (handle->sock->type == isc_nm_httpsocket);
+	return handle->sock->type == isc_nm_httpsocket;
 }
 
 static isc_nmhandle_t *
@@ -2202,24 +2202,24 @@ get_proxy_handle(isc_nmhandle_t *handle) {
 	switch (sock->type) {
 	case isc_nm_proxystreamsocket:
 	case isc_nm_proxyudpsocket:
-		return (handle);
+		return handle;
 #ifdef HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
 		if (sock->h2 != NULL) {
-			return (get_proxy_handle(
-				isc__nm_httpsession_handle(sock->h2->session)));
+			return get_proxy_handle(
+				isc__nm_httpsession_handle(sock->h2->session));
 		}
-		return (NULL);
+		return NULL;
 #endif /* HAVE_LIBNGHTTP2 */
 	default:
 		break;
 	}
 
 	if (sock->outerhandle != NULL) {
-		return (get_proxy_handle(sock->outerhandle));
+		return get_proxy_handle(sock->outerhandle);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 bool
@@ -2227,7 +2227,7 @@ isc_nm_is_proxy_handle(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	return (get_proxy_handle(handle) != NULL);
+	return get_proxy_handle(handle) != NULL;
 }
 
 bool
@@ -2237,15 +2237,15 @@ isc_nm_is_proxy_unspec(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	if (handle->sock->client) {
-		return (false);
+		return false;
 	}
 
 	proxyhandle = get_proxy_handle(handle);
 	if (proxyhandle == NULL) {
-		return (false);
+		return false;
 	}
 
-	return (proxyhandle->proxy_is_unspec);
+	return proxyhandle->proxy_is_unspec;
 }
 
 isc_sockaddr_t
@@ -2256,7 +2256,7 @@ isc_nmhandle_real_peeraddr(isc_nmhandle_t *handle) {
 
 	proxyhandle = get_proxy_handle(handle);
 	if (proxyhandle == NULL) {
-		return (isc_nmhandle_peeraddr(handle));
+		return isc_nmhandle_peeraddr(handle);
 	}
 
 	INSIST(VALID_NMSOCK(proxyhandle->sock));
@@ -2268,7 +2268,7 @@ isc_nmhandle_real_peeraddr(isc_nmhandle_t *handle) {
 		addr = isc_nmhandle_peeraddr(proxyhandle->proxy_udphandle);
 	}
 
-	return (addr);
+	return addr;
 }
 
 isc_sockaddr_t
@@ -2279,7 +2279,7 @@ isc_nmhandle_real_localaddr(isc_nmhandle_t *handle) {
 
 	proxyhandle = get_proxy_handle(handle);
 	if (proxyhandle == NULL) {
-		return (isc_nmhandle_localaddr(handle));
+		return isc_nmhandle_localaddr(handle);
 	}
 
 	INSIST(VALID_NMSOCK(proxyhandle->sock));
@@ -2291,7 +2291,7 @@ isc_nmhandle_real_localaddr(isc_nmhandle_t *handle) {
 		addr = isc_nmhandle_localaddr(proxyhandle->proxy_udphandle);
 	}
 
-	return (addr);
+	return addr;
 }
 
 bool
@@ -2303,7 +2303,7 @@ isc__nm_valid_proxy_addresses(const isc_sockaddr_t *src,
 	isc_netaddr_t src_addr = { 0 }, dst_addr = { 0 };
 
 	if (src == NULL || dst == NULL) {
-		return (false);
+		return false;
 	}
 
 	/*
@@ -2312,7 +2312,7 @@ isc__nm_valid_proxy_addresses(const isc_sockaddr_t *src,
 	 * addresses (kdig).
 	 */
 	if (isc_sockaddr_getport(dst) == 0) {
-		return (false);
+		return false;
 	}
 
 	/*
@@ -2335,27 +2335,27 @@ isc__nm_valid_proxy_addresses(const isc_sockaddr_t *src,
 	switch (isc_sockaddr_pf(src)) {
 	case AF_INET:
 		if (isc_netaddr_equal(&src_addr, &zerov4)) {
-			return (false);
+			return false;
 		}
 
 		if (isc_netaddr_equal(&dst_addr, &zerov4)) {
-			return (false);
+			return false;
 		}
 		break;
 	case AF_INET6:
 		if (isc_netaddr_equal(&src_addr, &zerov6)) {
-			return (false);
+			return false;
 		}
 
 		if (isc_netaddr_equal(&dst_addr, &zerov6)) {
-			return (false);
+			return false;
 		}
 		break;
 	default:
 		UNREACHABLE();
 	}
 
-	return (true);
+	return true;
 }
 
 void
@@ -2396,7 +2396,7 @@ isc_nm_socket_type(const isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	return (handle->sock->type);
+	return handle->sock->type;
 }
 
 bool
@@ -2406,20 +2406,20 @@ isc_nm_has_encryption(const isc_nmhandle_t *handle) {
 
 	switch (handle->sock->type) {
 	case isc_nm_tlssocket:
-		return (true);
+		return true;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
-		return (isc__nm_http_has_encryption(handle));
+		return isc__nm_http_has_encryption(handle);
 #endif /* HAVE_LIBNGHTTP2 */
 	case isc_nm_streamdnssocket:
-		return (isc__nm_streamdns_has_encryption(handle));
+		return isc__nm_streamdns_has_encryption(handle);
 	case isc_nm_proxystreamsocket:
-		return (isc__nm_proxystream_has_encryption(handle));
+		return isc__nm_proxystream_has_encryption(handle);
 	default:
-		return (false);
+		return false;
 	};
 
-	return (false);
+	return false;
 }
 
 const char *
@@ -2432,26 +2432,25 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	sock = handle->sock;
 	switch (sock->type) {
 	case isc_nm_tlssocket:
-		return (isc__nm_tls_verify_tls_peer_result_string(handle));
+		return isc__nm_tls_verify_tls_peer_result_string(handle);
 		break;
 	case isc_nm_proxystreamsocket:
-		return (isc__nm_proxystream_verify_tls_peer_result_string(
-			handle));
+		return isc__nm_proxystream_verify_tls_peer_result_string(
+			handle);
 		break;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
-		return (isc__nm_http_verify_tls_peer_result_string(handle));
+		return isc__nm_http_verify_tls_peer_result_string(handle);
 		break;
 #endif /* HAVE_LIBNGHTTP2 */
 	case isc_nm_streamdnssocket:
-		return (isc__nm_streamdns_verify_tls_peer_result_string(
-			handle));
+		return isc__nm_streamdns_verify_tls_peer_result_string(handle);
 		break;
 	default:
 		break;
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 typedef struct settlsctx_data {
@@ -2800,13 +2799,13 @@ isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value) {
 		break;
 	};
 
-	return (result);
+	return result;
 }
 
 isc_sockaddr_t
 isc_nmsocket_getaddr(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
-	return (sock->iface);
+	return sock->iface;
 }
 
 void
@@ -2849,33 +2848,33 @@ static const char *
 nmsocket_type_totext(isc_nmsocket_type type) {
 	switch (type) {
 	case isc_nm_udpsocket:
-		return ("isc_nm_udpsocket");
+		return "isc_nm_udpsocket";
 	case isc_nm_udplistener:
-		return ("isc_nm_udplistener");
+		return "isc_nm_udplistener";
 	case isc_nm_tcpsocket:
-		return ("isc_nm_tcpsocket");
+		return "isc_nm_tcpsocket";
 	case isc_nm_tcplistener:
-		return ("isc_nm_tcplistener");
+		return "isc_nm_tcplistener";
 	case isc_nm_tlssocket:
-		return ("isc_nm_tlssocket");
+		return "isc_nm_tlssocket";
 	case isc_nm_tlslistener:
-		return ("isc_nm_tlslistener");
+		return "isc_nm_tlslistener";
 	case isc_nm_httplistener:
-		return ("isc_nm_httplistener");
+		return "isc_nm_httplistener";
 	case isc_nm_httpsocket:
-		return ("isc_nm_httpsocket");
+		return "isc_nm_httpsocket";
 	case isc_nm_streamdnslistener:
-		return ("isc_nm_streamdnslistener");
+		return "isc_nm_streamdnslistener";
 	case isc_nm_streamdnssocket:
-		return ("isc_nm_streamdnssocket");
+		return "isc_nm_streamdnssocket";
 	case isc_nm_proxystreamlistener:
-		return ("isc_nm_proxystreamlistener");
+		return "isc_nm_proxystreamlistener";
 	case isc_nm_proxystreamsocket:
-		return ("isc_nm_proxystreamsocket");
+		return "isc_nm_proxystreamsocket";
 	case isc_nm_proxyudplistener:
-		return ("isc_nm_proxyudplistener");
+		return "isc_nm_proxyudplistener";
 	case isc_nm_proxyudpsocket:
-		return ("isc_nm_proxyudpsocket");
+		return "isc_nm_proxyudpsocket";
 	default:
 		UNREACHABLE();
 	}

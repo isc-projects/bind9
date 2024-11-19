@@ -214,15 +214,15 @@ socktype2str(dns_dispentry_t *resp) {
 
 	switch (transport_type) {
 	case DNS_TRANSPORT_UDP:
-		return ("UDP");
+		return "UDP";
 	case DNS_TRANSPORT_TCP:
-		return ("TCP");
+		return "TCP";
 	case DNS_TRANSPORT_TLS:
-		return ("TLS");
+		return "TLS";
 	case DNS_TRANSPORT_HTTP:
-		return ("HTTP");
+		return "HTTP";
 	default:
-		return ("<unexpected>");
+		return "<unexpected>";
 	}
 }
 
@@ -230,15 +230,15 @@ static const char *
 state2str(dns_dispatchstate_t state) {
 	switch (state) {
 	case DNS_DISPATCHSTATE_NONE:
-		return ("none");
+		return "none";
 	case DNS_DISPATCHSTATE_CONNECTING:
-		return ("connecting");
+		return "connecting";
 	case DNS_DISPATCHSTATE_CONNECTED:
-		return ("connected");
+		return "connected";
 	case DNS_DISPATCHSTATE_CANCELED:
-		return ("canceled");
+		return "canceled";
 	default:
-		return ("<unexpected>");
+		return "<unexpected>";
 	}
 }
 
@@ -347,7 +347,7 @@ setup_socket(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	in_port_t port = *portp;
 
 	if (resp->retries++ > 5) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if (isc_sockaddr_pf(&disp->local) == AF_INET) {
@@ -358,7 +358,7 @@ setup_socket(dns_dispatch_t *disp, dns_dispentry_t *resp,
 		ports = mgr->v6ports;
 	}
 	if (nports == 0) {
-		return (ISC_R_ADDRNOTAVAIL);
+		return ISC_R_ADDRNOTAVAIL;
 	}
 
 	resp->local = disp->local;
@@ -371,7 +371,7 @@ setup_socket(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	}
 	resp->port = port;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static uint32_t
@@ -384,7 +384,7 @@ qid_hash(const dns_dispentry_t *dispentry) {
 	isc_hash32_hash(&hash, &dispentry->id, sizeof(dispentry->id), true);
 	isc_hash32_hash(&hash, &dispentry->port, sizeof(dispentry->port), true);
 
-	return (isc_hash32_finalize(&hash));
+	return isc_hash32_finalize(&hash);
 }
 
 static int
@@ -393,8 +393,8 @@ qid_match(struct cds_lfht_node *node, const void *key0) {
 		caa_container_of(node, dns_dispentry_t, ht_node);
 	const dns_dispentry_t *key = key0;
 
-	return (dispentry->id == key->id && dispentry->port == key->port &&
-		isc_sockaddr_equal(&dispentry->peer, &key->peer));
+	return dispentry->id == key->id && dispentry->port == key->port &&
+	       isc_sockaddr_equal(&dispentry->peer, &key->peer);
 }
 
 static void
@@ -458,10 +458,10 @@ ISC_REFCOUNT_IMPL(dns_dispentry, dispentry_destroy);
 static unsigned int
 dispentry_runtime(dns_dispentry_t *resp, const isc_time_t *now) {
 	if (isc_time_isepoch(&resp->start)) {
-		return (0);
+		return 0;
 	}
 
-	return (isc_time_microdiff(now, &resp->start) / 1000);
+	return isc_time_microdiff(now, &resp->start) / 1000;
 }
 
 /*
@@ -634,10 +634,10 @@ tcp_recv_oldest(dns_dispatch_t *disp, dns_dispentry_t **respp) {
 		disp->timedout++;
 
 		*respp = resp;
-		return (ISC_R_TIMEDOUT);
+		return ISC_R_TIMEDOUT;
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 /*
@@ -663,7 +663,7 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region,
 	result = dns_message_peekheader(&source, &id, &flags);
 	if (result != ISC_R_SUCCESS) {
 		dispatch_log(disp, ISC_LOG_DEBUG(10), "got garbage packet");
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	dispatch_log(disp, ISC_LOG_DEBUG(92),
@@ -677,7 +677,7 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region,
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
 		dispatch_log(disp, ISC_LOG_DEBUG(10),
 			     "got DNS query instead of answer");
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	/*
@@ -714,7 +714,7 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region,
 		     "search for response in hashtable: %s",
 		     isc_result_totext(result));
 
-	return (result);
+	return result;
 }
 
 static void
@@ -967,7 +967,7 @@ setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 	mgr->v6ports = v6ports;
 	mgr->nv6ports = nv6ports;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -1021,7 +1021,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 	mgr->magic = DNS_DISPATCHMGR_MAGIC;
 
 	*mgrp = mgr;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 #if DNS_DISPATCH_TRACE
@@ -1042,14 +1042,14 @@ dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole) {
 dns_acl_t *
 dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
-	return (mgr->blackhole);
+	return mgr->blackhole;
 }
 
 isc_result_t
 dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 			      isc_portset_t *v6portset) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
-	return (setavailports(mgr, v4portset, v6portset));
+	return setavailports(mgr, v4portset, v6portset);
 }
 
 static void
@@ -1147,7 +1147,7 @@ dispatch_hash(struct dispatch_key *key) {
 		hashval ^= isc_sockaddr_hash(key->local, true);
 	}
 
-	return (hashval);
+	return hashval;
 }
 
 static int
@@ -1165,9 +1165,9 @@ dispatch_match(struct cds_lfht_node *node, const void *key0) {
 		peer = disp->peer;
 	}
 
-	return (isc_sockaddr_equal(&peer, key->peer) &&
-		disp->transport == key->transport &&
-		(key->local == NULL || isc_sockaddr_equal(&local, key->local)));
+	return isc_sockaddr_equal(&peer, key->peer) &&
+	       disp->transport == key->transport &&
+	       (key->local == NULL || isc_sockaddr_equal(&local, key->local));
 }
 
 isc_result_t
@@ -1227,7 +1227,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 	}
 	*dispp = disp;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1311,7 +1311,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		result = ISC_R_SUCCESS;
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1329,7 +1329,7 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		*dispp = disp;
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1346,7 +1346,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 	if (!isc_sockaddr_eqaddr(&sa_any, localaddr)) {
 		result = isc_nm_checkaddr(localaddr, isc_socktype_udp);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -1373,7 +1373,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 	*dispp = disp;
 
-	return (result);
+	return result;
 }
 
 static void
@@ -1444,7 +1444,7 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
 	REQUIRE(disp->transport == transport);
 
 	if (disp->state == DNS_DISPATCHSTATE_CANCELED) {
-		return (ISC_R_CANCELED);
+		return ISC_R_CANCELED;
 	}
 
 	in_port_t localport = isc_sockaddr_getport(&disp->local);
@@ -1476,7 +1476,7 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(disp->mctx, resp, sizeof(*resp));
 			inc_stats(disp->mgr, dns_resstatscounter_dispsockfail);
-			return (result);
+			return result;
 		}
 	}
 
@@ -1514,7 +1514,7 @@ fail:
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(disp->mctx, resp, sizeof(*resp));
 		rcu_read_unlock();
-		return (result);
+		return result;
 	}
 
 	isc_mem_attach(disp->mctx, &resp->mctx);
@@ -1540,7 +1540,7 @@ fail:
 	*idp = resp->id;
 	*respp = resp;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1558,7 +1558,7 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 		isc_time_t now = isc_loop_now(resp->loop);
 		timeout = resp->timeout - dispentry_runtime(resp, &now);
 		if (timeout <= 0) {
-			return (ISC_R_TIMEDOUT);
+			return ISC_R_TIMEDOUT;
 		}
 	}
 
@@ -1574,7 +1574,7 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 		UNREACHABLE();
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -1978,7 +1978,7 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			resp->mctx, &tlsctx, &sess_cache);
 
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		INSIST(tlsctx != NULL);
 	}
@@ -2045,7 +2045,7 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		UNREACHABLE();
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2057,11 +2057,11 @@ dns_dispatch_connect(dns_dispentry_t *resp) {
 
 	switch (disp->socktype) {
 	case isc_socktype_tcp:
-		return (tcp_dispatch_connect(disp, resp));
+		return tcp_dispatch_connect(disp, resp);
 
 	case isc_socktype_udp:
 		udp_dispatch_connect(disp, resp);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 
 	default:
 		UNREACHABLE();
@@ -2190,9 +2190,9 @@ dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp) {
 
 	if (disp->socktype == isc_socktype_udp) {
 		*addrp = disp->local;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -2206,10 +2206,10 @@ dns_dispentry_getlocaladdress(dns_dispentry_t *resp, isc_sockaddr_t *addrp) {
 	switch (disp->socktype) {
 	case isc_socktype_tcp:
 		*addrp = disp->local;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	case isc_socktype_udp:
 		*addrp = isc_nmhandle_localaddr(resp->handle);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	default:
 		UNREACHABLE();
 	}
@@ -2221,12 +2221,12 @@ dns_dispatchset_get(dns_dispatchset_t *dset) {
 
 	/* check that dispatch set is configured */
 	if (dset == NULL || dset->ndisp == 0) {
-		return (NULL);
+		return NULL;
 	}
 
 	INSIST(tid < dset->ndisp);
 
-	return (dset->dispatches[tid]);
+	return dset->dispatches[tid];
 }
 
 isc_result_t
@@ -2264,7 +2264,7 @@ dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
 
 	*dsetp = dset;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 fail:
 	for (size_t j = 0; j < i; j++) {
@@ -2274,7 +2274,7 @@ fail:
 		     sizeof(dns_dispatch_t *));
 
 	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
-	return (result);
+	return result;
 }
 
 void
@@ -2297,8 +2297,8 @@ dns_dispatch_checkperm(dns_dispatch_t *disp) {
 	REQUIRE(VALID_DISPATCH(disp));
 
 	if (disp->handle == NULL || disp->socktype == isc_socktype_udp) {
-		return (ISC_R_NOPERM);
+		return ISC_R_NOPERM;
 	}
 
-	return (isc_nm_xfr_checkperm(disp->handle));
+	return isc_nm_xfr_checkperm(disp->handle);
 }

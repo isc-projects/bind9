@@ -89,9 +89,9 @@ rcode_totext(dns_rcode_t rcode) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	if (strspn(buf + 1, "0123456789") == strlen(buf + 1)) {
 		buf[0] = '?';
-		return (buf);
+		return buf;
 	}
-	return (buf + 1);
+	return buf + 1;
 }
 
 /*% print usage */
@@ -473,7 +473,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	if (query->lookup->trace || query->lookup->ns_search_only) {
 		result = dns_rdatatype_totext(rdata->type, buf);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		ADD_STRING(buf, " ");
 	}
@@ -494,7 +494,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0, splitwidth,
 				     " ", buf);
 	if (result == ISC_R_NOSPACE) {
-		return (result);
+		return result;
 	}
 	check_result(result, "dns_rdata_totext");
 	if (query->lookup->identify) {
@@ -511,7 +511,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		ADD_STRING(buf, store);
 	}
 	ADD_STRING(buf, "\n");
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -535,14 +535,14 @@ dns64prefix_answer(dns_message_t *msg, isc_buffer_t *buf) {
 				      dns_rdatatype_aaaa, dns_rdatatype_none,
 				      NULL, &rdataset);
 	if (result == DNS_R_NXDOMAIN || result == DNS_R_NXRRSET) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_dns64_findprefix(rdataset, prefix, &count);
 	if (result == ISC_R_NOTFOUND) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (count > 10) {
 		count = 10;
@@ -550,15 +550,15 @@ dns64prefix_answer(dns_message_t *msg, isc_buffer_t *buf) {
 	for (i = 0; i < count; i++) {
 		result = isc_netaddr_totext(&prefix[i].addr, buf);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		result = isc_buffer_printf(buf, "/%u\n", prefix[i].prefixlen);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -578,9 +578,9 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 	dns_name_init(&empty_name, NULL);
 	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	if (result == ISC_R_NOMORE) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	for (;;) {
@@ -595,7 +595,7 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 				dns_rdataset_current(rdataset, &rdata);
 				result = say_message(&rdata, query, buf);
 				if (result == ISC_R_NOSPACE) {
-					return (result);
+					return result;
 				}
 				check_result(result, "say_message");
 				loopresult = dns_rdataset_next(rdataset);
@@ -606,11 +606,11 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 		if (result == ISC_R_NOMORE) {
 			break;
 		} else if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
@@ -628,10 +628,10 @@ isdotlocal(dns_message_t *msg) {
 		dns_name_t *name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
 		if (dns_name_issubdomain(name, &local)) {
-			return (true);
+			return true;
 		}
 	}
-	return (false);
+	return false;
 }
 
 /*
@@ -1024,7 +1024,7 @@ repopulate_buffer:
 
 	dig_idnsetup(query->lookup, false);
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -1193,7 +1193,7 @@ proxy_handle_addr_string(const char *addr_start, const size_t addr_len,
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 static bool
@@ -1213,7 +1213,7 @@ parse_proxy_addresses(const char *addrs, isc_sockaddr_t *psrc,
 	/* start syntax analysis and verification */
 	if (!rule_proxy_addrs(&st)) {
 		warn("PROXY source and destination addresses cannot be parsed");
-		return (false);
+		return false;
 	}
 
 	/* get port numeric values */
@@ -1240,7 +1240,7 @@ parse_proxy_addresses(const char *addrs, isc_sockaddr_t *psrc,
 	if (result != ISC_R_SUCCESS) {
 		warn("Cannot get PROXY source address: %s",
 		     isc_result_totext(result));
-		return (false);
+		return false;
 	}
 
 	result = proxy_handle_addr_string(st.dst_addr_start, st.dst_addr_len,
@@ -1248,26 +1248,26 @@ parse_proxy_addresses(const char *addrs, isc_sockaddr_t *psrc,
 	if (result != ISC_R_SUCCESS) {
 		warn("Cannot get PROXY destination address: %s",
 		     isc_result_totext(result));
-		return (false);
+		return false;
 	}
 
 	/* addresses should be of the same type */
 	if (isc_sockaddr_pf(&src) != isc_sockaddr_pf(&dst)) {
 		warn("PROXY source and destination addresses must be of the "
 		     "same type");
-		return (false);
+		return false;
 	}
 
 	*psrc = src;
 	*pdst = dst;
 
-	return (true);
+	return true;
 }
 
 static bool
 rule_proxy_addrs(isc_proxy_addrs_parser_state_t *st) {
 	if (!rule_addr(st)) {
-		return (false);
+		return false;
 	}
 
 	st->src_addr_start = st->last_addr_start;
@@ -1276,13 +1276,13 @@ rule_proxy_addrs(isc_proxy_addrs_parser_state_t *st) {
 	st->src_port_len = st->last_port_len;
 
 	if (!MATCH('-')) {
-		return (false);
+		return false;
 	}
 
 	ADVANCE();
 
 	if (!rule_addr(st)) {
-		return (false);
+		return false;
 	}
 
 	st->dst_addr_start = st->last_addr_start;
@@ -1291,17 +1291,17 @@ rule_proxy_addrs(isc_proxy_addrs_parser_state_t *st) {
 	st->dst_port_len = st->last_port_len;
 
 	if (!MATCH('\0')) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
 rule_addr(isc_proxy_addrs_parser_state_t *st) {
 	const char *start = GETP();
 	if (!rule_addr_char(st)) {
-		return (false);
+		return false;
 	}
 
 	while (rule_addr_char(st)) {
@@ -1315,18 +1315,18 @@ rule_addr(isc_proxy_addrs_parser_state_t *st) {
 		ADVANCE();
 
 		if (!rule_port(st)) {
-			return (false);
+			return false;
 		}
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
 rule_port(isc_proxy_addrs_parser_state_t *st) {
 	const char *start = GETP();
 	if (!MATCH_DIGIT()) {
-		return (false);
+		return false;
 	}
 
 	ADVANCE();
@@ -1338,18 +1338,18 @@ rule_port(isc_proxy_addrs_parser_state_t *st) {
 	st->last_port_start = start;
 	st->last_port_len = GETP() - start;
 
-	return (true);
+	return true;
 }
 
 static bool
 rule_addr_char(isc_proxy_addrs_parser_state_t *st) {
 	if (MATCH('#') || MATCH('-') || MATCH('\0')) {
-		return (false);
+		return false;
 	}
 
 	ADVANCE();
 
-	return (true);
+	return true;
 }
 
 #undef GETP
@@ -1366,20 +1366,20 @@ plus_proxy_handle_addresses(const char *value, const bool state,
 		 * We are not interested in the option value in that
 		 * case
 		 */
-		return (true);
+		return true;
 	}
 
 	if (value == NULL || *value == '\0') {
 		lookup->proxy_local = true;
-		return (true);
+		return true;
 	}
 
 	if (!parse_proxy_addresses(value, &lookup->proxy_src_addr,
 				   &lookup->proxy_dst_addr))
 	{
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 static bool
@@ -1402,10 +1402,10 @@ plus_proxy_options(const char *cmd, const char *value, const bool state,
 	default:
 		goto invalid_option;
 	}
-	return (true);
+	return true;
 
 invalid_option:
-	return (false);
+	return false;
 }
 
 static bool
@@ -1500,9 +1500,9 @@ plus_tls_options(const char *cmd, const char *value, const bool state,
 		goto invalid_option;
 	}
 
-	return (true);
+	return true;
 invalid_option:
-	return (false);
+	return false;
 }
 
 /*%
@@ -1525,7 +1525,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 
 	if ((cmd = strtok_r(option, "=", &last)) == NULL) {
 		printf(";; Invalid option %s\n", option);
-		return (lookup);
+		return lookup;
 	}
 	if (strncasecmp(cmd, "no", 2) == 0) {
 		cmd += 2;
@@ -2561,7 +2561,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 	if (value != NULL) {
 		value[-1] = '=';
 	}
-	return (lookup);
+	return lookup;
 
 #if !TARGET_OS_IPHONE
 exit_or_usage:
@@ -2607,7 +2607,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			} else {
 				fatal("can't find IPv4 networking");
 				UNREACHABLE();
-				return (false);
+				return false;
 			}
 			break;
 		case '6':
@@ -2617,7 +2617,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			} else {
 				fatal("can't find IPv6 networking");
 				UNREACHABLE();
-				return (false);
+				return false;
 			}
 			break;
 		case 'd':
@@ -2626,7 +2626,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				cmd = option;
 				FULLCHECK("debug");
 				debugging = true;
-				return (false);
+				return false;
 			} else {
 				debugging = true;
 			}
@@ -2657,7 +2657,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		if (strlen(option) > 1U) {
 			option = &option[1];
 		} else {
-			return (false);
+			return false;
 		}
 	}
 	opt = option[0];
@@ -2701,7 +2701,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			*hash = '#';
 		}
 		specified_source = true;
-		return (value_from_next);
+		return value_from_next;
 	case 'c':
 		if ((*lookup)->rdclassset) {
 			fprintf(stderr, ";; Warning, extra class option\n");
@@ -2720,13 +2720,13 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				"invalid class %s\n",
 				value);
 		}
-		return (value_from_next);
+		return value_from_next;
 	case 'f':
 		batchname = value;
-		return (value_from_next);
+		return value_from_next;
 	case 'k':
 		strlcpy(keyfile, value, sizeof(keyfile));
-		return (value_from_next);
+		return value_from_next;
 	case 'p':
 		result = parse_uint(&num, value, MAXPORT, "port number");
 		if (result != ISC_R_SUCCESS) {
@@ -2734,7 +2734,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		}
 		port = num;
 		port_set = true;
-		return (value_from_next);
+		return value_from_next;
 	case 'q':
 		if (!config_only) {
 			if (*need_clone) {
@@ -2753,7 +2753,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			ISC_LIST_APPEND(lookup_list, (*lookup), link);
 			debug("looking up %s", (*lookup)->textname);
 		}
-		return (value_from_next);
+		return value_from_next;
 	case 't':
 		*open_type_class = false;
 		if (strncasecmp(value, "ixfr=", 5) == 0) {
@@ -2811,7 +2811,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				"invalid type %s\n",
 				value);
 		}
-		return (value_from_next);
+		return value_from_next;
 	case 'y':
 		if ((ptr = strtok_r(value, ":", &last)) == NULL) {
 			usage();
@@ -2836,7 +2836,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			ptr[-1] = ':';
 		}
 		ptr2[-1] = ':';
-		return (value_from_next);
+		return value_from_next;
 	case 'x':
 		if (*need_clone) {
 			*lookup = clone_lookup(default_lookup, true);
@@ -2866,14 +2866,14 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			fprintf(stderr, "Invalid IP address %s\n", value);
 			exit(EXIT_FAILURE);
 		}
-		return (value_from_next);
+		return value_from_next;
 	invalid_option:
 	default:
 		fprintf(stderr, "Invalid option: -%s\n", option);
 		usage();
 	}
 	UNREACHABLE();
-	return (false);
+	return false;
 }
 
 /*%
@@ -2967,7 +2967,7 @@ split_batchline(char *batchline, char **bargv, int len, const char *msg) {
 	{
 		debug("%s %d: %s", msg, bargc, bargv[bargc]);
 	}
-	return (bargc);
+	return bargc;
 }
 
 static void
@@ -3428,5 +3428,5 @@ main(int argc, char **argv) {
 	dig_startup();
 	dig_shutdown();
 
-	return (exitcode);
+	return exitcode;
 }

@@ -46,7 +46,7 @@ dns_rriterator_init(dns_rriterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	it->node = NULL;
 	result = dns_db_createiterator(it->db, 0, &it->dbit);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	it->rdatasetit = NULL;
 	dns_rdata_init(&it->rdata);
@@ -54,7 +54,7 @@ dns_rriterator_init(dns_rriterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	dns_fixedname_init(&it->fixedname);
 	INSIST(!dns_rdataset_isassociated(&it->rdataset));
 	it->result = ISC_R_SUCCESS;
-	return (it->result);
+	return it->result;
 }
 
 isc_result_t
@@ -81,13 +81,13 @@ dns_rriterator_first(dns_rriterator_t *it) {
 			it->dbit, &it->node,
 			dns_fixedname_name(&it->fixedname));
 		if (it->result != ISC_R_SUCCESS) {
-			return (it->result);
+			return it->result;
 		}
 
 		it->result = dns_db_allrdatasets(it->db, it->node, it->ver, 0,
 						 it->now, &it->rdatasetit);
 		if (it->result != ISC_R_SUCCESS) {
-			return (it->result);
+			return it->result;
 		}
 
 		it->result = dns_rdatasetiter_first(it->rdatasetit);
@@ -105,9 +105,9 @@ dns_rriterator_first(dns_rriterator_t *it) {
 					  dns_fixedname_name(&it->fixedname));
 		it->rdataset.attributes |= DNS_RDATASETATTR_LOADORDER;
 		it->result = dns_rdataset_first(&it->rdataset);
-		return (it->result);
+		return it->result;
 	}
-	return (it->result);
+	return it->result;
 }
 
 isc_result_t
@@ -127,40 +127,40 @@ dns_rriterator_nextrrset(dns_rriterator_t *it) {
 		it->result = dns_dbiterator_next(it->dbit);
 		if (it->result == ISC_R_NOMORE) {
 			/* We are at the end of the entire database. */
-			return (it->result);
+			return it->result;
 		}
 		if (it->result != ISC_R_SUCCESS) {
-			return (it->result);
+			return it->result;
 		}
 		it->result = dns_dbiterator_current(
 			it->dbit, &it->node,
 			dns_fixedname_name(&it->fixedname));
 		if (it->result != ISC_R_SUCCESS) {
-			return (it->result);
+			return it->result;
 		}
 		it->result = dns_db_allrdatasets(it->db, it->node, it->ver, 0,
 						 it->now, &it->rdatasetit);
 		if (it->result != ISC_R_SUCCESS) {
-			return (it->result);
+			return it->result;
 		}
 		it->result = dns_rdatasetiter_first(it->rdatasetit);
 	}
 	if (it->result != ISC_R_SUCCESS) {
-		return (it->result);
+		return it->result;
 	}
 	dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
 	dns_rdataset_getownercase(&it->rdataset,
 				  dns_fixedname_name(&it->fixedname));
 	it->rdataset.attributes |= DNS_RDATASETATTR_LOADORDER;
 	it->result = dns_rdataset_first(&it->rdataset);
-	return (it->result);
+	return it->result;
 }
 
 isc_result_t
 dns_rriterator_next(dns_rriterator_t *it) {
 	REQUIRE(VALID_RRITERATOR(it));
 	if (it->result != ISC_R_SUCCESS) {
-		return (it->result);
+		return it->result;
 	}
 
 	INSIST(it->dbit != NULL);
@@ -169,9 +169,9 @@ dns_rriterator_next(dns_rriterator_t *it) {
 
 	it->result = dns_rdataset_next(&it->rdataset);
 	if (it->result == ISC_R_NOMORE) {
-		return (dns_rriterator_nextrrset(it));
+		return dns_rriterator_nextrrset(it);
 	}
-	return (it->result);
+	return it->result;
 }
 
 void

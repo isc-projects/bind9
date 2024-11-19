@@ -478,7 +478,7 @@ mem_thread(void *arg) {
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 ISC_RUN_TEST_IMPL(isc_mem_benchmark) {

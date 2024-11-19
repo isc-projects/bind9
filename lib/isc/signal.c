@@ -43,7 +43,7 @@ isc_signal_new(isc_loopmgr_t *loopmgr, isc_signal_cb cb, void *cbarg,
 
 	uv_handle_set_data((uv_handle_t *)&signal->signal, signal);
 
-	return (signal);
+	return signal;
 }
 
 static void

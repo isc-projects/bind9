@@ -66,7 +66,7 @@ static thread_local uint32_t seed[4] = { 0 };
 
 static uint32_t
 rotl(const uint32_t x, int k) {
-	return ((x << k) | (x >> (32 - k)));
+	return (x << k) | (x >> (32 - k));
 }
 
 static uint32_t
@@ -85,7 +85,7 @@ next(void) {
 
 	seed[3] = rotl(seed[3], 11);
 
-	return (result_starstar);
+	return result_starstar;
 }
 
 static void
@@ -112,19 +112,19 @@ isc__random_initialize(void) {
 uint8_t
 isc_random8(void) {
 	isc__random_initialize();
-	return ((uint8_t)next());
+	return (uint8_t)next();
 }
 
 uint16_t
 isc_random16(void) {
 	isc__random_initialize();
-	return ((uint16_t)next());
+	return (uint16_t)next();
 }
 
 uint32_t
 isc_random32(void) {
 	isc__random_initialize();
-	return (next());
+	return next();
 }
 
 void
@@ -219,5 +219,5 @@ isc_random_uniform(uint32_t limit) {
 	/*
 	 * Return the integer part (upper 32 bits).
 	 */
-	return ((uint32_t)(num >> 32));
+	return (uint32_t)(num >> 32);
 }

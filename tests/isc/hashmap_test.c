@@ -46,7 +46,7 @@ static bool
 nodes_match(void *node0, const void *key) {
 	struct test_node *node = node0;
 
-	return (memcmp(node->key, key, 16) == 0);
+	return memcmp(node->key, key, 16) == 0;
 }
 
 static bool
@@ -54,14 +54,14 @@ long_nodes_match(void *node0, const void *key) {
 	struct test_node *node = node0;
 	size_t len = strlen(key);
 
-	return (memcmp(node->key, key, len) == 0);
+	return memcmp(node->key, key, len) == 0;
 }
 
 static bool
 upper_nodes_match(void *node0, const void *key) {
 	struct test_node *node = node0;
 
-	return (isc_ascii_lowerequal((uint8_t *)node->key, key, 16));
+	return isc_ascii_lowerequal((uint8_t *)node->key, key, 16);
 }
 
 static void
@@ -431,7 +431,7 @@ case_match(void *node0, const void *key) {
 	struct test_node *node = node0;
 	size_t len = strlen(key);
 
-	return (memcmp(node->key, key, len) == 0);
+	return memcmp(node->key, key, len) == 0;
 }
 
 static bool
@@ -439,7 +439,7 @@ nocase_match(void *node0, const void *key) {
 	struct test_node *node = node0;
 	size_t len = strlen(key);
 
-	return (isc_ascii_lowerequal((uint8_t *)node->key, key, len));
+	return isc_ascii_lowerequal((uint8_t *)node->key, key, len);
 }
 
 ISC_RUN_TEST_IMPL(isc_hashmap_case) {

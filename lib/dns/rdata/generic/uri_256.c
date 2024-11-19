@@ -57,7 +57,7 @@ fromtext_uri(ARGS_FROMTEXT) {
 		RETTOK(DNS_R_SYNTAX);
 	}
 	RETTOK(multitxt_fromtext(&token.value.as_textregion, target));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -93,7 +93,7 @@ totext_uri(ARGS_TOTEXT) {
 	 * Target URI
 	 */
 	RETERR(multitxt_totext(&region, target));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -111,14 +111,14 @@ fromwire_uri(ARGS_FROMWIRE) {
 	 */
 	isc_buffer_activeregion(source, &region);
 	if (region.length < 4) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	/*
 	 * Priority, weight and target URI
 	 */
 	isc_buffer_forward(source, region.length);
-	return (mem_tobuffer(target, region.base, region.length));
+	return mem_tobuffer(target, region.base, region.length);
 }
 
 static isc_result_t
@@ -131,7 +131,7 @@ towire_uri(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	dns_rdata_toregion(rdata, &region);
-	return (mem_tobuffer(target, region.base, region.length));
+	return mem_tobuffer(target, region.base, region.length);
 }
 
 static int
@@ -154,7 +154,7 @@ compare_uri(ARGS_COMPARE) {
 	 */
 	order = memcmp(r1.base, r2.base, 2);
 	if (order != 0) {
-		return (order < 0 ? -1 : 1);
+		return order < 0 ? -1 : 1;
 	}
 	isc_region_consume(&r1, 2);
 	isc_region_consume(&r2, 2);
@@ -164,12 +164,12 @@ compare_uri(ARGS_COMPARE) {
 	 */
 	order = memcmp(r1.base, r2.base, 2);
 	if (order != 0) {
-		return (order < 0 ? -1 : 1);
+		return order < 0 ? -1 : 1;
 	}
 	isc_region_consume(&r1, 2);
 	isc_region_consume(&r2, 2);
 
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
@@ -198,7 +198,7 @@ fromstruct_uri(ARGS_FROMSTRUCT) {
 	/*
 	 * Target URI
 	 */
-	return (mem_tobuffer(target, uri->target, uri->tgt_len));
+	return mem_tobuffer(target, uri->target, uri->tgt_len);
 }
 
 static isc_result_t
@@ -234,7 +234,7 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	uri->tgt_len = sr.length;
 	uri->target = mem_maybedup(mctx, sr.base, sr.length);
 	uri->mctx = mctx;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -263,7 +263,7 @@ additionaldata_uri(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -274,7 +274,7 @@ digest_uri(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -286,7 +286,7 @@ checkowner_uri(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -297,12 +297,12 @@ checknames_uri(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
 casecompare_uri(ARGS_COMPARE) {
-	return (compare_uri(rdata1, rdata2));
+	return compare_uri(rdata1, rdata2);
 }
 
 #endif /* GENERIC_URI_256_C */

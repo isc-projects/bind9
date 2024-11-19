@@ -24,7 +24,7 @@ static isc_result_t
 fromtext_dnskey(ARGS_FROMTEXT) {
 	REQUIRE(type == dns_rdatatype_dnskey);
 
-	return (generic_fromtext_key(CALL_FROMTEXT));
+	return generic_fromtext_key(CALL_FROMTEXT);
 }
 
 static isc_result_t
@@ -32,14 +32,14 @@ totext_dnskey(ARGS_TOTEXT) {
 	REQUIRE(rdata != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_dnskey);
 
-	return (generic_totext_key(CALL_TOTEXT));
+	return generic_totext_key(CALL_TOTEXT);
 }
 
 static isc_result_t
 fromwire_dnskey(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_dnskey);
 
-	return (generic_fromwire_key(CALL_FROMWIRE));
+	return generic_fromwire_key(CALL_FROMWIRE);
 }
 
 static isc_result_t
@@ -53,7 +53,7 @@ towire_dnskey(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	dns_rdata_toregion(rdata, &sr);
-	return (mem_tobuffer(target, sr.base, sr.length));
+	return mem_tobuffer(target, sr.base, sr.length);
 }
 
 static int
@@ -71,14 +71,14 @@ compare_dnskey(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (isc_region_compare(&r1, &r2));
+	return isc_region_compare(&r1, &r2);
 }
 
 static isc_result_t
 fromstruct_dnskey(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_dnskey);
 
-	return (generic_fromstruct_key(CALL_FROMSTRUCT));
+	return generic_fromstruct_key(CALL_FROMSTRUCT);
 }
 
 static isc_result_t
@@ -93,7 +93,7 @@ tostruct_dnskey(ARGS_TOSTRUCT) {
 	dnskey->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&dnskey->common, link);
 
-	return (generic_tostruct_key(CALL_TOSTRUCT));
+	return generic_tostruct_key(CALL_TOSTRUCT);
 }
 
 static void
@@ -115,7 +115,7 @@ additionaldata_dnskey(ARGS_ADDLDATA) {
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -127,7 +127,7 @@ digest_dnskey(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return (digest)(arg, &r);
 }
 
 static bool
@@ -139,7 +139,7 @@ checkowner_dnskey(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -151,7 +151,7 @@ checknames_dnskey(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (true);
+	return true;
 }
 
 static int
@@ -159,7 +159,7 @@ casecompare_dnskey(ARGS_COMPARE) {
 	/*
 	 * Treat ALG 253 (private DNS) subtype name case sensitively.
 	 */
-	return (compare_dnskey(rdata1, rdata2));
+	return compare_dnskey(rdata1, rdata2);
 }
 
 #endif /* RDATA_GENERIC_DNSKEY_48_C */

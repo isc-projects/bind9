@@ -606,7 +606,7 @@ setup_style(void) {
 						48, 80, 8, splitwidth, mctx);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -627,11 +627,11 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "failed to convert name %s: %s", text,
 			 isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	*name = n;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -664,7 +664,7 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 	CHECK(convert_name(&fkeyname, &keyname, keynamestr));
 
 	if (!root_validation) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (anchor_name) {
@@ -672,11 +672,11 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 	}
 
 	if (!match_root) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (!root_validation) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	delv_log(ISC_LOG_DEBUG(3), "adding trust anchor %s", trust_anchor);
@@ -829,7 +829,7 @@ cleanup:
 		result = ISC_R_FAILURE;
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -854,7 +854,7 @@ cleanup:
 	if (result == DST_R_NOCRYPTO) {
 		result = ISC_R_SUCCESS;
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -867,7 +867,7 @@ setup_dnsseckeys(dns_client_t *client, dns_view_t *toview) {
 	cfg_obj_t *bindkeys = NULL;
 
 	if (!root_validation) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (trust_anchor == NULL) {
@@ -934,7 +934,7 @@ cleanup:
 		delv_log(ISC_LOG_ERROR, "setup_dnsseckeys: %s",
 			 isc_result_totext(result));
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -981,7 +981,7 @@ addserver(dns_client_t *client) {
 		if (gaierror != 0) {
 			delv_log(ISC_LOG_ERROR, "getaddrinfo failed: %s",
 				 gai_strerror(gaierror));
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 
 		result = ISC_R_SUCCESS;
@@ -1017,7 +1017,7 @@ cleanup:
 			 isc_result_totext(result));
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1086,7 +1086,7 @@ cleanup:
 	if (resconf != NULL) {
 		irs_resconf_destroy(&resconf);
 	}
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1099,10 +1099,10 @@ parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc) {
 	if (result != ISC_R_SUCCESS) {
 		printf("invalid %s '%s': %s\n", desc, value,
 		       isc_result_totext(result));
-		return (result);
+		return result;
 	}
 	*uip = n;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -1482,7 +1482,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		if (strlen(option) > 1U) {
 			option = &option[1];
 		} else {
-			return (false);
+			return false;
 		}
 	}
 	opt = option[0];
@@ -1499,7 +1499,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 	switch (opt) {
 	case 'a':
 		anchorfile = isc_mem_strdup(mctx, value);
-		return (value_from_next);
+		return value_from_next;
 	case 'b':
 		hash = strchr(value, '#');
 		if (hash != NULL) {
@@ -1536,7 +1536,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		if (hash != NULL) {
 			*hash = '#';
 		}
-		return (value_from_next);
+		return value_from_next;
 	case 'c':
 		if (classset) {
 			warn("extra query class");
@@ -1554,28 +1554,28 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		} else {
 			warn("ignoring invalid class");
 		}
-		return (value_from_next);
+		return value_from_next;
 	case 'd':
 		result = parse_uint(&num, value, 99, "debug level");
 		if (result != ISC_R_SUCCESS) {
 			fatal("Couldn't parse debug level");
 		}
 		loglevel = num;
-		return (value_from_next);
+		return value_from_next;
 	case 'p':
 		port = value;
 		result = parse_uint(&destport, port, 0xffff, "port");
 		if (result != ISC_R_SUCCESS) {
 			fatal("Couldn't parse port number");
 		}
-		return (value_from_next);
+		return value_from_next;
 	case 'q':
 		if (curqname != NULL) {
 			warn("extra query name");
 			isc_mem_free(mctx, curqname);
 		}
 		curqname = isc_mem_strdup(mctx, value);
-		return (value_from_next);
+		return value_from_next;
 	case 't':
 		*open_type_class = false;
 		tr.base = value;
@@ -1596,7 +1596,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		} else {
 			warn("ignoring invalid type");
 		}
-		return (value_from_next);
+		return value_from_next;
 	case 'x':
 		result = get_reverse(textname, sizeof(textname), value, false);
 		if (result == ISC_R_SUCCESS) {
@@ -1614,14 +1614,14 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			fprintf(stderr, "Invalid IP address %s\n", value);
 			exit(EXIT_FAILURE);
 		}
-		return (value_from_next);
+		return value_from_next;
 	invalid_option:
 	default:
 		fprintf(stderr, "Invalid option: -%s\n", option);
 		usage();
 	}
 	UNREACHABLE();
-	return (false);
+	return false;
 }
 
 /*
@@ -1788,11 +1788,11 @@ parse_args(int argc, char **argv) {
 static isc_result_t
 append_str(const char *text, int len, char **p, char *end) {
 	if (len > end - *p) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(*p, text, len);
 	*p += len;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1803,17 +1803,17 @@ reverse_octets(const char *in, char **p, char *end) {
 		isc_result_t result;
 		result = reverse_octets(dot + 1, p, end);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		result = append_str(".", 1, p, end);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		len = (int)(dot - in);
 	} else {
 		len = strlen(in);
 	}
-	return (append_str(in, len, p, end));
+	return append_str(in, len, p, end);
 }
 
 static isc_result_t
@@ -1832,10 +1832,10 @@ get_reverse(char *reverse, size_t len, char *value, bool strict) {
 		name = dns_fixedname_initname(&fname);
 		result = dns_byaddr_createptrname(&addr, name);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		dns_name_format(name, reverse, (unsigned int)len);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else {
 		/*
 		 * Not a valid IPv6 address.  Assume IPv4.
@@ -1848,17 +1848,17 @@ get_reverse(char *reverse, size_t len, char *value, bool strict) {
 		char *p = reverse;
 		char *end = reverse + len;
 		if (strict && inet_pton(AF_INET, value, &addr.type.in) != 1) {
-			return (DNS_R_BADDOTTEDQUAD);
+			return DNS_R_BADDOTTEDQUAD;
 		}
 		result = reverse_octets(value, &p, end);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		result = append_str(".in-addr.arpa.", 15, &p, end);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 }
 
@@ -2095,7 +2095,7 @@ accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	UNUSED(handle);
 	UNUSED(arg);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -2170,7 +2170,7 @@ matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 
 	*viewp = view;
 	*viewpatchresultp = ISC_R_SUCCESS;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -2310,5 +2310,5 @@ cleanup:
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 
-	return (0);
+	return 0;
 }

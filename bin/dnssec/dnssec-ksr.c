@@ -152,7 +152,7 @@ between(isc_stdtime_t t, isc_stdtime_t start, isc_stdtime_t end) {
 	if (t > 0 && t > start && t < end) {
 		r = t;
 	}
-	return (r);
+	return r;
 }
 
 static void
@@ -203,15 +203,15 @@ keyalgtag_cmp(const void *k1, const void *k2) {
 	dns_dnsseckey_t **key1 = (dns_dnsseckey_t **)k1;
 	dns_dnsseckey_t **key2 = (dns_dnsseckey_t **)k2;
 	if (dst_key_alg((*key1)->key) < dst_key_alg((*key2)->key)) {
-		return (-1);
+		return -1;
 	} else if (dst_key_alg((*key1)->key) > dst_key_alg((*key2)->key)) {
-		return (1);
+		return 1;
 	} else if (dst_key_id((*key1)->key) < dst_key_id((*key2)->key)) {
-		return (-1);
+		return -1;
 	} else if (dst_key_id((*key1)->key) > dst_key_id((*key2)->key)) {
-		return (1);
+		return 1;
 	}
-	return (0);
+	return 0;
 }
 
 static void
@@ -645,7 +645,7 @@ fail:
 		      namestr, algstr, timestr);
 	}
 
-	return (next_bundle);
+	return next_bundle;
 }
 
 static isc_stdtime_t
@@ -739,7 +739,7 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	print_rdata(&rrsigset);
 	freerrset(&rrsigset);
 
-	return (next_bundle);
+	return next_bundle;
 }
 
 /*
@@ -897,11 +897,11 @@ get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 	dns_rdatalist_tordataset(cdnskeylist, cdnskeyset);
 	dns_rdatalist_tordataset(cdslist, cdsset);
 
-	return (next_bundle);
+	return next_bundle;
 
 fail:
 	fatal("failed to create KSK/CDS/CDNSKEY");
-	return (0);
+	return 0;
 }
 
 static void
@@ -1012,10 +1012,10 @@ parse_dnskey(isc_lex_t *lex, char *owner, isc_buffer_t *buf, dns_ttl_t *ttl) {
 	isc_buffer_add(&b, strlen(owner));
 	ret = dns_name_fromtext(dname, &b, dns_rootname, 0, NULL);
 	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+		return ret;
 	}
 	if (dns_name_compare(dname, name) != 0) {
-		return (DNS_R_BADOWNERNAME);
+		return DNS_R_BADOWNERNAME;
 	}
 	isc_buffer_clear(&b);
 
@@ -1053,7 +1053,7 @@ parse_dnskey(isc_lex_t *lex, char *owner, isc_buffer_t *buf, dns_ttl_t *ttl) {
 
 cleanup:
 	isc_lex_setcomments(lex, 0);
-	return (ret);
+	return ret;
 }
 
 static void

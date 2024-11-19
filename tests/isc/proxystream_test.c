@@ -312,7 +312,7 @@ proxystream_setup(void **state ISC_ATTR_UNUSED) {
 	stream_use_TLS = false;
 	stream = true;
 
-	return (0);
+	return 0;
 }
 
 ISC_TEST_MAIN_CUSTOM(proxystream_setup, NULL)

@@ -56,33 +56,33 @@ shutdownconnect_connectcb(isc_nmhandle_t *handle, isc_result_t eresult,
 int
 stream_shutdownconnect_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
-	return (r);
+	return r;
 }
 
 int
 proxystream_shutdownconnect_setup(void **state) {
 	stream_use_PROXY = true;
-	return (stream_shutdownconnect_setup(state));
+	return stream_shutdownconnect_setup(state);
 }
 
 int
 proxystream_shutdownconnect_teardown(void **state) {
 	int r = stream_shutdownconnect_teardown(state);
 	stream_use_PROXY = false;
-	return (r);
+	return r;
 }
 
 int
 proxystreamtls_shutdownconnect_setup(void **state) {
 	stream_PROXY_over_TLS = true;
-	return (proxystream_shutdownconnect_setup(state));
+	return proxystream_shutdownconnect_setup(state);
 }
 
 int
 proxystreamtls_shutdownconnect_teardown(void **state) {
 	int r = proxystream_shutdownconnect_teardown(state);
 	stream_PROXY_over_TLS = false;
-	return (r);
+	return r;
 }
 
 void
@@ -108,7 +108,7 @@ stream_shutdownconnect_teardown(void **state ISC_ATTR_UNUSED) {
 	atomic_assert_int_eq(csends, 0);
 	atomic_assert_int_eq(creads, 0);
 
-	return (teardown_netmgr_test(state));
+	return teardown_netmgr_test(state);
 }
 
 /* Issue the shutdown before reading */
@@ -171,33 +171,33 @@ shutdownread_connectcb(isc_nmhandle_t *handle, isc_result_t eresult,
 int
 stream_shutdownread_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
-	return (r);
+	return r;
 }
 
 int
 proxystream_shutdownread_setup(void **state) {
 	stream_use_PROXY = true;
-	return (stream_shutdownread_setup(state));
+	return stream_shutdownread_setup(state);
 }
 
 int
 proxystream_shutdownread_teardown(void **state) {
 	int r = stream_shutdownread_teardown(state);
 	stream_use_PROXY = false;
-	return (r);
+	return r;
 }
 
 int
 proxystreamtls_shutdownread_setup(void **state) {
 	stream_PROXY_over_TLS = true;
-	return (proxystream_shutdownread_setup(state));
+	return proxystream_shutdownread_setup(state);
 }
 
 int
 proxystreamtls_shutdownread_teardown(void **state) {
 	int r = proxystream_shutdownread_teardown(state);
 	stream_PROXY_over_TLS = false;
-	return (r);
+	return r;
 }
 
 void
@@ -220,5 +220,5 @@ stream_shutdownread_teardown(void **state ISC_ATTR_UNUSED) {
 	atomic_assert_int_eq(csends, 1);
 	atomic_assert_int_eq(creads, 1);
 
-	return (teardown_netmgr_test(state));
+	return teardown_netmgr_test(state);
 }

@@ -220,18 +220,18 @@ has_base_zone(trpz_rsp_t *trsp, ssize_t zone) {
 
 	if (trsp == NULL || trsp->base_zones == NULL || trsp->nbase_zones == 0)
 	{
-		return (false);
+		return false;
 	}
 
 	for (n = 0; n < trsp->nbase_zones; n++) {
 		if (trsp->base_zones[n] == BASE_ZONE_ANY ||
 		    trsp->base_zones[n] == zone)
 		{
-			return (true);
+			return true;
 		}
 	}
 
-	return (false);
+	return false;
 }
 
 static bool
@@ -242,17 +242,17 @@ pack_soa_record(unsigned char *rdatap, size_t rbufsz, size_t *rdlenp,
 	size_t mlen = 0, rlen = 0, used = 0;
 
 	if (needed > rbufsz) {
-		return (false);
+		return false;
 	}
 
 	if (!domain_pton2(psoa->mname, rdatap, rbufsz, &rlen, true)) {
-		return (false);
+		return false;
 	}
 
 	if (!domain_pton2(psoa->rname, rdatap + rlen, rbufsz - rlen, &mlen,
 			  true))
 	{
-		return (false);
+		return false;
 	}
 
 	used = rlen + mlen;
@@ -271,7 +271,7 @@ pack_soa_record(unsigned char *rdatap, size_t rbufsz, size_t *rdlenp,
 
 	SET_IF_NOT_NULL(rdlenp, used);
 
-	return (true);
+	return true;
 }
 
 static void
@@ -333,12 +333,12 @@ trpz_set_log(librpz_log_fnc_t *new_log, const char *prog_nm) {
 librpz_log_level_t
 trpz_log_level_val(librpz_log_level_t level) {
 	if (level >= LIBRPZ_LOG_INVALID) {
-		return (g_log_level);
+		return g_log_level;
 	}
 
 	g_log_level = (level < LIBRPZ_LOG_FATAL) ? LIBRPZ_LOG_FATAL : level;
 
-	return (g_log_level);
+	return g_log_level;
 }
 
 void
@@ -411,7 +411,7 @@ trpz_clist_create(librpz_emsg_t *emsg, librpz_mutex_t *lock,
 	result = calloc(1, sizeof(*result));
 	if (result == NULL) {
 		trpz_pemsg(emsg, "calloc: %s", strerror(errno));
-		return (NULL);
+		return NULL;
 	}
 
 	result->mutex_ctx = mutex_ctx;
@@ -424,7 +424,7 @@ trpz_clist_create(librpz_emsg_t *emsg, librpz_mutex_t *lock,
 		scan_data_file_for_errors(log_ctx);
 	}
 
-	return ((librpz_clist_t *)result);
+	return (librpz_clist_t *)result;
 }
 
 void
@@ -444,10 +444,10 @@ trpz_connect(librpz_emsg_t *emsg, librpz_client_t *client, bool optional) {
 
 	if (client == NULL) {
 		trpz_pemsg(emsg, "Can't connect to null client");
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 const char *
@@ -455,7 +455,7 @@ trpz_policy2str(librpz_policy_t policy, char *buf, size_t buf_size) {
 	const char *pname = NULL;
 
 	if (buf == NULL || buf_size == 0) {
-		return (NULL);
+		return NULL;
 	}
 
 	switch (policy) {
@@ -499,7 +499,7 @@ trpz_policy2str(librpz_policy_t policy, char *buf, size_t buf_size) {
 
 	strncpy(buf, pname, buf_size);
 	buf[buf_size - 1] = 0;
-	return (buf);
+	return buf;
 }
 
 /*
@@ -526,7 +526,7 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 	if (cstr == NULL) {
 		result[0] = BASE_ZONE_ANY;
 		*pnzones = 1;
-		return (result);
+		return result;
 	}
 
 	strncpy(tmpc, cstr, sizeof(tmpc) - 1);
@@ -557,7 +557,7 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 					fprintf(stderr, "Error parsing cstr "
 							"contents!\n");
 					free(result);
-					return (NULL);
+					return NULL;
 				}
 
 				*qend++ = 0;
@@ -589,7 +589,7 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 			{
 				fprintf(stderr, "Internal error {%s}!\n", zcmd);
 				free(result);
-				return (NULL);
+				return NULL;
 			}
 
 			if (trsp->num_zones > old_zct) {
@@ -610,7 +610,7 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 
 			if (zind == trsp->num_zones) {
 				free(result);
-				return (NULL);
+				return NULL;
 			}
 
 			result[cur_idx++] = zind;
@@ -632,7 +632,7 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 
 	if (nzones == 0) {
 		free(result);
-		return (NULL);
+		return NULL;
 	}
 
 	if (zflags != 0) {
@@ -663,7 +663,7 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 librpz_client_t *
@@ -673,26 +673,26 @@ trpz_client_create(librpz_emsg_t *emsg, librpz_clist_t *clist, const char *cstr,
 
 	if (clist == NULL) {
 		trpz_pemsg(emsg, "clist was NULL\n");
-		return (NULL);
+		return NULL;
 	}
 
 	result = calloc(1, sizeof(*result));
 	if (result == NULL) {
 		trpz_pemsg(emsg, "calloc: %s", strerror(errno));
-		return (NULL);
+		return NULL;
 	}
 
 	result->cstr = strdup(cstr);
 	if (result->cstr == NULL) {
 		trpz_pemsg(emsg, "strdup: %s", strerror(errno));
 		free(result);
-		return (NULL);
+		return NULL;
 	}
 
 	result->uses_expired = use_expired;
 	result->pclist = (trpz_clist_t *)clist;
 
-	return ((librpz_client_t *)result);
+	return (librpz_client_t *)result;
 }
 
 void
@@ -721,12 +721,12 @@ apply_all_updates(trpz_rsp_t *trsp) {
 
 	updfile = getenv("DNSRPS_TEST_UPDATE_FILE");
 	if (updfile == NULL) {
-		return (0);
+		return 0;
 	}
 
 	tmp = strdup(updfile);
 	if (tmp == NULL) {
-		return (-1);
+		return -1;
 	}
 
 	fname = strtok_r(updfile, ":", &last);
@@ -745,14 +745,14 @@ apply_all_updates(trpz_rsp_t *trsp) {
 
 		if (ret < 0) {
 			free(tmp);
-			return (-1);
+			return -1;
 		}
 
 		fname = strtok_r(NULL, ":", &last);
 	}
 	free(tmp);
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -816,19 +816,19 @@ trpz_rsp_create(librpz_emsg_t *emsg, librpz_rsp_t **rspp, int *min_ns_dotsp,
 
 	if (client == NULL) {
 		trpz_pemsg(emsg, "client was NULL");
-		return (false);
+		return false;
 	} else if (rspp == NULL) {
 		trpz_pemsg(emsg, "rspp was NULL");
-		return (false);
+		return false;
 	} else if (cli->cstr == NULL) {
 		trpz_pemsg(emsg, "no valid policy zone specified");
-		return (false);
+		return false;
 	}
 
 	result = calloc(1, sizeof(*result));
 	if (result == NULL) {
 		trpz_pemsg(emsg, "calloc: %s", strerror(errno));
-		return (false);
+		return false;
 	}
 
 	result->idx = 0;
@@ -847,7 +847,7 @@ trpz_rsp_create(librpz_emsg_t *emsg, librpz_rsp_t **rspp, int *min_ns_dotsp,
 		trpz_pemsg(emsg, "no valid policy zone specified");
 		clear_all_updates(result);
 		free(result);
-		return (false);
+		return false;
 	}
 
 	if (apply_all_updates(result) < 0) {
@@ -855,12 +855,12 @@ trpz_rsp_create(librpz_emsg_t *emsg, librpz_rsp_t **rspp, int *min_ns_dotsp,
 		clear_all_updates(result);
 		free(result->base_zones);
 		free(result);
-		return (false);
+		return false;
 	}
 
 	*rspp = (librpz_rsp_t *)result;
 
-	return (true);
+	return true;
 }
 
 bool
@@ -872,16 +872,16 @@ trpz_rsp_push(librpz_emsg_t *emsg, librpz_rsp_t *rsp) {
 	if (trsp->stack_idx == 0) {
 		memset(&(trsp->rstack[0]), 0, sizeof(trsp->rstack[0]) * 2);
 		trsp->stack_idx++;
-		return (true);
+		return true;
 	} else if (trsp->stack_idx >= LIBRPZ_RSP_STACK_DEPTH) {
-		return (false);
+		return false;
 	}
 
 	memmove(&(trsp->rstack[1]), &(trsp->rstack[0]),
 		(trsp->stack_idx * sizeof(trsp->rstack[0])));
 	trsp->stack_idx++;
 
-	return (true);
+	return true;
 }
 
 bool
@@ -891,7 +891,7 @@ trpz_rsp_pop(librpz_emsg_t *emsg, librpz_result_t *result, librpz_rsp_t *rsp) {
 	UNUSED(emsg);
 
 	if (trsp->stack_idx <= 1) {
-		return (false);
+		return false;
 	}
 
 	memmove(&(trsp->rstack[0]), &(trsp->rstack[1]),
@@ -899,7 +899,7 @@ trpz_rsp_pop(librpz_emsg_t *emsg, librpz_result_t *result, librpz_rsp_t *rsp) {
 	memmove(result, &(trsp->rstack[0].result), sizeof(*result));
 	trsp->stack_idx--;
 
-	return (true);
+	return true;
 }
 
 bool
@@ -909,9 +909,9 @@ trpz_rsp_pop_discard(librpz_emsg_t *emsg, librpz_rsp_t *rsp) {
 	UNUSED(emsg);
 
 	if (trsp->stack_idx == 0) {
-		return (false);
+		return false;
 	} else if (trsp->stack_idx == 1) {
-		return (true);
+		return true;
 	}
 
 	if (trsp->stack_idx > 1) {
@@ -921,7 +921,7 @@ trpz_rsp_pop_discard(librpz_emsg_t *emsg, librpz_rsp_t *rsp) {
 
 	trsp->stack_idx--;
 
-	return (true);
+	return true;
 }
 
 void
@@ -950,19 +950,19 @@ trpz_rsp_domain(librpz_emsg_t *emsg, librpz_domain_buf_t *owner,
 
 	if (rsp == NULL) {
 		trpz_pemsg(emsg, "rsp was NULL");
-		return (false);
+		return false;
 	} else if (trsp->stack_idx == 0) {
 		trpz_pemsg(emsg, "domain not found [1]");
-		return (false);
+		return false;
 	} else if (trsp->rstack[0].result.policy == LIBRPZ_POLICY_UNDEFINED) {
 		trpz_pemsg(emsg, "domain not found [2]");
-		return (false);
+		return false;
 	}
 
 	if (trsp->all_zones[trsp->rstack[0].result.dznum].forgotten) {
 		trpz_pemsg(emsg, "domain not found [3]");
 		memset(owner, 0, sizeof(*owner));
-		return (true);
+		return true;
 	}
 
 	switch (trsp->rstack[0].result.trig) {
@@ -986,16 +986,16 @@ trpz_rsp_domain(librpz_emsg_t *emsg, librpz_domain_buf_t *owner,
 		     tstr, trsp->all_zones[trsp->rstack[0].result.dznum].name);
 	if (n > sizeof(tmpname)) {
 		trpz_pemsg(emsg, "%s truncated", tmpname);
-		return (false);
+		return false;
 	}
 
 	if (!domain_pton2(tmpname, owner->d, sizeof(owner->d), &osz, true)) {
 		trpz_pemsg(emsg, "unable to read hostname from rsp!");
-		return (false);
+		return false;
 	}
 
 	owner->size = osz;
-	return (true);
+	return true;
 }
 
 bool
@@ -1007,10 +1007,10 @@ trpz_rsp_result(librpz_emsg_t *emsg, librpz_result_t *result, bool recursed,
 
 	if (rsp == NULL) {
 		trpz_pemsg(emsg, "rsp was NULL!");
-		return (false);
+		return false;
 	} else if (result == NULL) {
 		trpz_pemsg(emsg, "result was NULL");
-		return (false);
+		return false;
 	}
 
 	if (trsp->stack_idx == 0) {
@@ -1033,7 +1033,7 @@ trpz_rsp_result(librpz_emsg_t *emsg, librpz_result_t *result, bool recursed,
 		}
 	}
 
-	return (true);
+	return true;
 }
 
 bool
@@ -1051,21 +1051,21 @@ trpz_rsp_soa(librpz_emsg_t *emsg, uint32_t *ttlp, librpz_rr_t **rrp,
 
 	if (result == NULL) {
 		trpz_pemsg(emsg, "result was NULL!");
-		return (false);
+		return false;
 	} else if (rsp == NULL) {
 		trpz_pemsg(emsg, "rsp was NULL!");
-		return (false);
+		return false;
 	}
 
 	if (trsp->zidx >= trsp->num_zones) {
 		trpz_pemsg(emsg, "bad zone");
-		return (false);
+		return false;
 	}
 
 	rdbuf = calloc(1024, 1);
 	if (rdbuf == NULL) {
 		trpz_pemsg(emsg, "calloc: %s", strerror(errno));
-		return (false);
+		return false;
 	}
 
 	rres = (librpz_rr_t *)rdbuf;
@@ -1091,7 +1091,7 @@ trpz_rsp_soa(librpz_emsg_t *emsg, uint32_t *ttlp, librpz_rr_t **rrp,
 	{
 		trpz_pemsg(emsg, "Error packing SOA reply");
 		free(rdbuf);
-		return (false);
+		return false;
 	}
 
 	rres->rdlength = htons(rdlen);
@@ -1103,7 +1103,7 @@ trpz_rsp_soa(librpz_emsg_t *emsg, uint32_t *ttlp, librpz_rr_t **rrp,
 		if ((nbytes = wdns_str_to_name(tmpsoa.mname, &buf, 1)) < 0) {
 			trpz_pemsg(emsg, "Error packing domain");
 			free(rdbuf);
-			return (false);
+			return false;
 		}
 
 		memset(origin, 0, sizeof(*origin));
@@ -1118,7 +1118,7 @@ trpz_rsp_soa(librpz_emsg_t *emsg, uint32_t *ttlp, librpz_rr_t **rrp,
 		free(rdbuf);
 	}
 
-	return (true);
+	return true;
 }
 
 /*
@@ -1146,18 +1146,18 @@ domain_cmp(const char *query, const char *record, bool *wildp) {
 
 			if (strncmp(qptr, rptr, (cmplen - 2)) == 0) {
 				*wildp = true;
-				return (0);
+				return 0;
 			}
 		}
 	}
 
 	if (strlen(query) > cmplen) {
-		return (1);
+		return 1;
 	} else if (strlen(query) < cmplen) {
-		return (-1);
+		return -1;
 	}
 
-	return ((strncmp(record, query, cmplen)));
+	return strncmp(record, query, cmplen);
 }
 
 /*
@@ -1169,7 +1169,7 @@ count_labels(const char *domain) {
 	size_t result = 1;
 
 	if (domain == NULL || *domain == '\0') {
-		return (0);
+		return 0;
 	}
 
 	dptr = domain + strlen(domain);
@@ -1187,7 +1187,7 @@ count_labels(const char *domain) {
 		dptr--;
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -1211,13 +1211,13 @@ result_supercedes(const trpz_result_t *new, const trpz_result_t *old) {
 	if (old == NULL || old->result.policy == 0 || old->dname == NULL ||
 	    old->dname[0] == '\0')
 	{
-		return (true);
+		return true;
 	}
 
 	if (new->result.dznum < old->result.dznum) {
-		return (true);
+		return true;
 	} else if (new->result.dznum > old->result.dznum) {
-		return (false);
+		return false;
 	}
 
 	nsz = count_labels(new->dname);
@@ -1225,18 +1225,18 @@ result_supercedes(const trpz_result_t *new, const trpz_result_t *old) {
 
 	/* More matching labels is better. */
 	if (nsz > osz) {
-		return (true);
+		return true;
 	} else if (nsz < osz) {
-		return (false);
+		return false;
 	}
 
 	if (new->result.trig < old->result.trig) {
-		return (true);
+		return true;
 	} else if (new->result.trig > old->result.trig) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -1244,25 +1244,25 @@ result_supercedes_address(const trpz_result_t *new, const trpz_result_t *old) {
 	if (old == NULL || old->result.policy == 0 || old->dname == NULL ||
 	    old->dname[0] == '\0')
 	{
-		return (true);
+		return true;
 	}
 
 	if (new->result.dznum < old->result.dznum) {
-		return (true);
+		return true;
 	} else if (new->result.dznum > old->result.dznum) {
-		return (false);
+		return false;
 	}
 
 	if (new->result.trig < old->result.trig) {
-		return (true);
+		return true;
 	} else if (new->result.trig > old->result.trig) {
-		return (false);
+		return false;
 	}
 
 	if ((new->flags &NODE_FLAG_IPV6_ADDRESS) &&
 	    !(old->flags & NODE_FLAG_IPV6_ADDRESS))
 	{
-		return (true);
+		return true;
 	}
 
 	/*
@@ -1270,10 +1270,10 @@ result_supercedes_address(const trpz_result_t *new, const trpz_result_t *old) {
 	 * example, by most specific prefix match.
 	 */
 	if (strcmp(old->dname, new->dname) < 0) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 bool
@@ -1289,16 +1289,16 @@ trpz_ck_domain(librpz_emsg_t *emsg, const uint8_t *domain, size_t domain_size,
 
 	if (rsp == NULL) {
 		trpz_pemsg(emsg, "rsp was NULL!");
-		return (false);
+		return false;
 	} else if (domain == NULL || domain_size == 0) {
 		trpz_pemsg(emsg, "domain was empty");
-		return (false);
+		return false;
 	} else if (trig != LIBRPZ_TRIG_QNAME && trig != LIBRPZ_TRIG_NSDNAME) {
 		trpz_pemsg(emsg, "invalid trigger type");
-		return (false);
+		return false;
 	} else if (!domain_ntop(domain, dname, sizeof(dname))) {
 		trpz_pemsg(emsg, "domain was invalid");
-		return (false);
+		return false;
 	}
 
 	if (trsp->stack_idx == 0) {
@@ -1384,7 +1384,7 @@ trpz_ck_domain(librpz_emsg_t *emsg, const uint8_t *domain, size_t domain_size,
 			trsp->rstack[0].result.zpolicy =
 				trsp->rstack[0].hidden_policy;
 			trsp->rstack[0].hidden_policy = LIBRPZ_POLICY_UNDEFINED;
-			return (true);
+			return true;
 		}
 	}
 
@@ -1394,7 +1394,7 @@ trpz_ck_domain(librpz_emsg_t *emsg, const uint8_t *domain, size_t domain_size,
 		if (!result_supercedes(&(trsp->all_nodes[fidx]),
 				       &(trsp->rstack[0])))
 		{
-			return (true);
+			return true;
 		}
 
 		strncpy(trsp->domain, dname, sizeof(trsp->domain));
@@ -1467,7 +1467,7 @@ trpz_ck_domain(librpz_emsg_t *emsg, const uint8_t *domain, size_t domain_size,
 			}
 		}
 
-		return (true);
+		return true;
 	} else if (nfidx >= 0) {
 		strncpy(trsp->domain, dname, sizeof(trsp->domain));
 		memmove(&(trsp->rstack[0]), &(trsp->all_nodes[nfidx]),
@@ -1477,7 +1477,7 @@ trpz_ck_domain(librpz_emsg_t *emsg, const uint8_t *domain, size_t domain_size,
 		trsp->rstack[0].result.hit_id = hit_id;
 		trsp->rstack[0].result.policy = LIBRPZ_POLICY_UNDEFINED;
 		trsp->rstack[0].result.zpolicy = LIBRPZ_POLICY_UNDEFINED;
-		return (true);
+		return true;
 	}
 
 out:
@@ -1485,7 +1485,7 @@ out:
 		memset(&(trsp->rstack[0]), 0, sizeof(trsp->rstack[0]));
 	}
 
-	return (true);
+	return true;
 }
 
 static void
@@ -1526,16 +1526,16 @@ get_mask(unsigned char prefix) {
 	unsigned char n;
 
 	if (prefix == 0) {
-		return (0);
+		return 0;
 	} else if (prefix >= 32) {
-		return (~(0));
+		return ~(0);
 	}
 
 	for (n = 1; n < prefix; n++) {
 		result |= (1 << n);
 	}
 
-	return (result);
+	return result;
 }
 
 /* XXX: this is broken for handling subnet masks in IPv6. */
@@ -1548,7 +1548,7 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 
 	if (family == AF_INET6) {
 		if (inet_ntop(AF_INET6, addr, abuf, sizeof(abuf)) == 0) {
-			return (-1);
+			return -1;
 		}
 
 		rpzify_ipv6_str(abuf);
@@ -1561,13 +1561,13 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 		{
 			nmask = ipstr[0];
 			if (nmask > 32) {
-				return (-1);
+				return -1;
 			}
 		} else if (sscanf(addrstr, "%d.%d.%d.%d", &ipstr[1], &ipstr[2],
 				  &ipstr[3], &ipstr[4]) != 4)
 		{
 			perror("bad address format");
-			return (-1);
+			return -1;
 		}
 
 		if (ipstr[1] > 255 || ipstr[2] > 255 || ipstr[3] > 255 ||
@@ -1575,7 +1575,7 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 		    ipstr[3] < 0 || ipstr[4] < 0)
 		{
 			perror("bad address format");
-			return (-1);
+			return -1;
 		}
 
 		sprintf(newstr, "%u.%u.%u.%u", ipstr[4], ipstr[3], ipstr[2],
@@ -1584,7 +1584,7 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 		a1 = inet_addr(newstr);
 		if (a1 == INADDR_NONE) {
 			perror("inet_addr");
-			return (-1);
+			return -1;
 		} else {
 			uint32_t m;
 
@@ -1595,11 +1595,11 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 				*pmask = nmask;
 			}
 
-			return (((a1 & m) == (a2 & m)) ? 0 : 1);
+			return ((a1 & m) == (a2 & m)) ? 0 : 1;
 		}
 
 	} else {
-		return (-1);
+		return -1;
 	}
 
 	if (strcmp(addrstr, abuf) == 0) {
@@ -1607,10 +1607,10 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 			*pmask = nmask;
 		}
 
-		return (0);
+		return 0;
 	}
 
-	return (1);
+	return 1;
 }
 
 bool
@@ -1623,15 +1623,15 @@ trpz_ck_ip(librpz_emsg_t *emsg, const void *addr, uint family,
 
 	if (rsp == NULL) {
 		trpz_pemsg(emsg, "rsp was NULL!");
-		return (false);
+		return false;
 	} else if (addr == NULL) {
 		trpz_pemsg(emsg, "addr was empty");
-		return (false);
+		return false;
 	} else if (trig != LIBRPZ_TRIG_IP && trig != LIBRPZ_TRIG_CLIENT_IP &&
 		   trig != LIBRPZ_TRIG_NSIP)
 	{
 		trpz_pemsg(emsg, "trigger type not supported for IP");
-		return (false);
+		return false;
 	}
 
 	if (trsp->stack_idx == 0) {
@@ -1704,7 +1704,7 @@ trpz_ck_ip(librpz_emsg_t *emsg, const void *addr, uint family,
 			trsp->rstack[0].result.zpolicy =
 				trsp->rstack[0].hidden_policy;
 			trsp->rstack[0].hidden_policy = LIBRPZ_POLICY_UNDEFINED;
-			return (true);
+			return true;
 		}
 	}
 
@@ -1714,7 +1714,7 @@ trpz_ck_ip(librpz_emsg_t *emsg, const void *addr, uint family,
 		if (!result_supercedes_address(&(trsp->all_nodes[fidx]),
 					       &(trsp->rstack[0])))
 		{
-			return (true);
+			return true;
 		}
 
 		memmove(&(trsp->rstack[0]), &(trsp->all_nodes[fidx]),
@@ -1753,7 +1753,7 @@ trpz_ck_ip(librpz_emsg_t *emsg, const void *addr, uint family,
 			trsp->rstack[0].poverride = LIBRPZ_POLICY_DISABLED;
 		}
 
-		return (true);
+		return true;
 	} else if (nfidx >= 0) {
 		memmove(&(trsp->rstack[0]), &(trsp->all_nodes[nfidx]),
 			sizeof(trsp->rstack[0]));
@@ -1762,7 +1762,7 @@ trpz_ck_ip(librpz_emsg_t *emsg, const void *addr, uint family,
 		trsp->rstack[0].hidden_policy = trsp->rstack[0].result.policy;
 		trsp->rstack[0].result.policy = LIBRPZ_POLICY_UNDEFINED;
 		trsp->rstack[0].result.zpolicy = LIBRPZ_POLICY_UNDEFINED;
-		return (true);
+		return true;
 	}
 
 out:
@@ -1786,7 +1786,7 @@ out:
 		trsp->rstack[0].result.trig = trig;
 	}
 
-	return (true);
+	return true;
 }
 
 bool
@@ -1797,13 +1797,13 @@ trpz_soa_serial(librpz_emsg_t *emsg, uint32_t *serialp, const char *domain_nm,
 
 	if (rsp == NULL) {
 		trpz_pemsg(emsg, "rsp was NULL");
-		return (false);
+		return false;
 	} else if (domain_nm == NULL) {
 		trpz_pemsg(emsg, "domain_nm was NULL");
-		return (false);
+		return false;
 	} else if (serialp == NULL) {
 		trpz_pemsg(emsg, "serialp was NULL");
-		return (false);
+		return false;
 	}
 
 	dlen = strlen(domain_nm);
@@ -1827,12 +1827,12 @@ trpz_soa_serial(librpz_emsg_t *emsg, uint32_t *serialp, const char *domain_nm,
 			}
 
 			*serialp = trsp->all_zones[n].serial;
-			return (true);
+			return true;
 		}
 	}
 
 	trpz_pemsg(emsg, "zone not found");
-	return (false);
+	return false;
 }
 
 static bool
@@ -1841,14 +1841,14 @@ domain_ntop(const u_char *src, char *dst, size_t dstsiz) {
 	char *dptr = dst, *dend = dst + dstsiz;
 
 	if (dst == NULL || dstsiz == 0) {
-		return (false);
+		return false;
 	}
 
 	memset(dst, 0, dstsiz);
 
 	while (*sptr) {
-		if (((dptr + *sptr) > dend)) {
-			return (false);
+		if ((dptr + *sptr) > dend) {
+			return false;
 		}
 
 		if (sptr != src) {
@@ -1861,7 +1861,7 @@ domain_ntop(const u_char *src, char *dst, size_t dstsiz) {
 		sptr++;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -1874,7 +1874,7 @@ domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 	UNUSED(lower);
 
 	if (src == NULL || dst == NULL || dstsiz == 0) {
-		return (false);
+		return false;
 	}
 
 	memset(dst, 0, dstsiz);
@@ -1882,7 +1882,7 @@ domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 	tmps = strdup(src);
 	if (tmps == NULL) {
 		perror("strdup");
-		return (false);
+		return false;
 	}
 
 	tptr = tmps;
@@ -1892,9 +1892,9 @@ domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 	while (tptr && *tptr) {
 		tok = strsep(&tptr, ".");
 
-		if (((dptr + strlen(tok) + 1) > dend)) {
+		if ((dptr + strlen(tok) + 1) > dend) {
 			free(tmps);
-			return (false);
+			return false;
 		}
 
 		*dptr++ = strlen(tok);
@@ -1908,7 +1908,7 @@ domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 
 	if (dptr >= dend) {
 		free(tmps);
-		return (false);
+		return false;
 	}
 
 	*dptr = 0;
@@ -1919,7 +1919,7 @@ domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 
 	free(tmps);
 
-	return (true);
+	return true;
 }
 
 /* XXX: needs IPv6 support. */
@@ -1932,16 +1932,16 @@ trpz_rsp_clientip_prefix(librpz_emsg_t *emsg, librpz_prefix_t *prefix,
 
 	if (rsp == NULL) {
 		trpz_pemsg(emsg, "rsp was NULL");
-		return (false);
+		return false;
 	} else if (prefix == NULL) {
 		trpz_pemsg(emsg, "prefix was NULL");
-		return (false);
+		return false;
 	}
 
 	memset(prefix, 0, sizeof(*prefix));
 
 	if (trsp->rstack[0].result.trig != LIBRPZ_TRIG_CLIENT_IP) {
-		return (true);
+		return true;
 	}
 
 	if (sscanf(trsp->rstack[0].dname, "%u.%u.%u.%u.%u", &cbytes[0],
@@ -1951,28 +1951,28 @@ trpz_rsp_clientip_prefix(librpz_emsg_t *emsg, librpz_prefix_t *prefix,
 		int family = 0;
 
 		if (sscanf(trsp->rstack[0].dname, "%u.", &cbytes[0]) != 1) {
-			return (true);
+			return true;
 		}
 
 		if (get_address_info(trsp->rstack[0].dname, &family, abuf, NULL,
 				     NULL) < 0)
 		{
-			return (true);
+			return true;
 		} else if (family != AF_INET6) {
-			return (true);
+			return true;
 		}
 
 		aptr = (uint8_t *)&(prefix->addr.in6);
 		memset(aptr, 0, sizeof(prefix->addr.in6));
 
 		if (inet_pton(AF_INET6, abuf, aptr) != 1) {
-			return (true);
+			return true;
 		}
 
 		prefix->family = AF_INET6;
 		prefix->len = cbytes[0];
 
-		return (true);
+		return true;
 	}
 
 	prefix->family = AF_INET;
@@ -1996,7 +1996,7 @@ trpz_rsp_clientip_prefix(librpz_emsg_t *emsg, librpz_prefix_t *prefix,
 	*aptr++ = cbytes[2];
 	*aptr++ = cbytes[1];
 
-	return (true);
+	return true;
 }
 
 bool
@@ -2005,7 +2005,7 @@ trpz_have_trig(librpz_trig_t trig, bool ipv6, const librpz_rsp_t *rsp) {
 	size_t ind = ipv6 ? 1 : 0;
 
 	if (rsp == NULL) {
-		return (false);
+		return false;
 	}
 
 	/* No hit, so look in all zones for trigger. */
@@ -2020,7 +2020,7 @@ trpz_have_trig(librpz_trig_t trig, bool ipv6, const librpz_rsp_t *rsp) {
 			{
 				continue;
 			} else if (trsp->all_zones[n].has_triggers[ind][trig]) {
-				return (true);
+				return true;
 			} else if (trsp->all_zones[n].ip_as_ns &&
 				   (((trig == LIBRPZ_TRIG_IP) &&
 				     trsp->all_zones[n]
@@ -2031,7 +2031,7 @@ trpz_have_trig(librpz_trig_t trig, bool ipv6, const librpz_rsp_t *rsp) {
 					     .has_triggers[ind]
 							  [LIBRPZ_TRIG_IP])))
 			{
-				return (true);
+				return true;
 			} else if (trsp->all_zones[n].qname_as_ns &&
 				   (((trig == LIBRPZ_TRIG_QNAME) &&
 				     trsp->all_zones[n].has_triggers
@@ -2041,18 +2041,18 @@ trpz_have_trig(librpz_trig_t trig, bool ipv6, const librpz_rsp_t *rsp) {
 					     .has_triggers[ind]
 							  [LIBRPZ_TRIG_QNAME])))
 			{
-				return (true);
+				return true;
 			}
 		}
 
-		return (false);
+		return false;
 	}
 
 	/* Special case of first base zone. */
 	if (trsp->rstack[0].result.dznum == 0 &&
 	    (trig > trsp->rstack[0].result.trig))
 	{
-		return (false);
+		return false;
 	}
 
 	/* Otherwise check lower zones (of higher precedence). */
@@ -2060,7 +2060,7 @@ trpz_have_trig(librpz_trig_t trig, bool ipv6, const librpz_rsp_t *rsp) {
 		if (!trsp->have_rd && !trsp->all_zones[n].not_recursive_only) {
 			continue;
 		} else if (trsp->all_zones[n].has_triggers[ind][trig]) {
-			return (true);
+			return true;
 		} else if (trsp->all_zones[n].ip_as_ns &&
 			   (((trig == LIBRPZ_TRIG_IP) &&
 			     trsp->all_zones[n]
@@ -2069,7 +2069,7 @@ trpz_have_trig(librpz_trig_t trig, bool ipv6, const librpz_rsp_t *rsp) {
 			     trsp->all_zones[n]
 				     .has_triggers[ind][LIBRPZ_TRIG_IP])))
 		{
-			return (true);
+			return true;
 		} else if (trsp->all_zones[n].qname_as_ns &&
 			   (((trig == LIBRPZ_TRIG_QNAME) &&
 			     trsp->all_zones[n]
@@ -2078,11 +2078,11 @@ trpz_have_trig(librpz_trig_t trig, bool ipv6, const librpz_rsp_t *rsp) {
 			     trsp->all_zones[n]
 				     .has_triggers[ind][LIBRPZ_TRIG_QNAME])))
 		{
-			return (true);
+			return true;
 		}
 	}
 
-	return (false);
+	return false;
 }
 
 bool
@@ -2094,10 +2094,10 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 
 	if (result == NULL) {
 		trpz_pemsg(emsg, "result was NULL");
-		return (false);
+		return false;
 	} else if (rsp == NULL) {
 		trpz_pemsg(emsg, "rsp was NULL");
-		return (false);
+		return false;
 	}
 
 	last_result = &(trsp->rstack[0]);
@@ -2157,7 +2157,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 								emsg,
 								"%s truncated",
 								tmpexp3);
-							return (false);
+							return false;
 						}
 						nrd = wdns_str_to_name(
 							tmpexp3, &nrdata, 1);
@@ -2166,7 +2166,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 								emsg,
 								"Error packing "
 								"domain");
-							return (false);
+							return false;
 						}
 						to_copy = nrd;
 						copy_src = nrdata;
@@ -2182,7 +2182,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 				if (nrdata != NULL) {
 					free(nrdata);
 				}
-				return (false);
+				return false;
 			}
 
 			(*rrp)->type = htons(this_rr->type);
@@ -2209,7 +2209,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 		trsp->rstack[0].result.next_rr = 0;
 	}
 
-	return (true);
+	return true;
 }
 
 bool
@@ -2219,13 +2219,13 @@ trpz_rsp_forget_zone(librpz_emsg_t *emsg, librpz_cznum_t znum,
 
 	if (znum >= trsp->num_zones) {
 		trpz_pemsg(emsg, "invalid zone number");
-		return (false);
+		return false;
 	} else if (trsp->all_zones[znum].forgotten) {
 		trpz_pemsg(emsg, "zone already forgotten");
-		return (false);
+		return false;
 	}
 
 	trsp->all_zones[znum].forgotten = true;
 
-	return (true);
+	return true;
 }

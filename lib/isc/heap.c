@@ -260,9 +260,9 @@ isc_heap_element(isc_heap_t *heap, unsigned int idx) {
 
 	heap_check(heap);
 	if (idx <= heap->last) {
-		return (heap->array[idx]);
+		return heap->array[idx];
 	}
-	return (NULL);
+	return NULL;
 }
 
 void

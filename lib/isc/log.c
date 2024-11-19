@@ -537,13 +537,13 @@ isc_log_categorybyname(isc_log_t *lctx, const char *name) {
 			catp = UNCONST(catp->name);
 		} else {
 			if (strcmp(catp->name, name) == 0) {
-				return (catp);
+				return catp;
 			}
 			catp++;
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -608,13 +608,13 @@ isc_log_modulebyname(isc_log_t *lctx, const char *name) {
 			modp = UNCONST(modp->name);
 		} else {
 			if (strcmp(modp->name, name) == 0) {
-				return (modp);
+				return modp;
 			}
 			modp++;
 		}
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 void
@@ -720,7 +720,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 	}
 
 	if (channel == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (category != NULL) {
@@ -744,7 +744,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 	}
 	rcu_read_unlock();
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -836,7 +836,7 @@ unsigned int
 isc_log_getdebuglevel(isc_log_t *lctx) {
 	REQUIRE(VALID_CONTEXT(lctx));
 
-	return (atomic_load_acquire(&lctx->debug_level));
+	return atomic_load_acquire(&lctx->debug_level);
 }
 
 void
@@ -850,7 +850,7 @@ unsigned int
 isc_log_getduplicateinterval(isc_logconfig_t *lcfg) {
 	REQUIRE(VALID_CONTEXT(lcfg));
 
-	return (lcfg->duplicate_interval);
+	return lcfg->duplicate_interval;
 }
 
 void
@@ -874,7 +874,7 @@ char *
 isc_log_gettag(isc_logconfig_t *lcfg) {
 	REQUIRE(VALID_CONFIG(lcfg));
 
-	return (lcfg->tag);
+	return lcfg->tag;
 }
 
 /* XXXDCL NT  -- This interface will assuredly be changing. */
@@ -1001,7 +1001,7 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 			result = ISC_R_NOSPACE;
 			syslog(LOG_ERR, "unable to remove log files: %s",
 			       isc_result_totext(result));
-			return (result);
+			return result;
 		}
 
 		/*
@@ -1023,7 +1023,7 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 	 * Return if the directory open failed.
 	 */
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
@@ -1065,7 +1065,7 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 	isc_dir_close(&dir);
 
 	*greatestp = greatest;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -1091,7 +1091,7 @@ last_to_keep(int64_t versions, isc_dir_t *dirp, const char *bname,
 	int64_t version = 0;
 
 	if (versions <= 0) {
-		return (INT64_MAX);
+		return INT64_MAX;
 	}
 
 	if (versions > ISC_LOG_MAX_VERSIONS) {
@@ -1124,7 +1124,7 @@ last_to_keep(int64_t versions, isc_dir_t *dirp, const char *bname,
 	/*
 	 * to_keep[versions - 1] is the last one we want to keep
 	 */
-	return (to_keep[versions - 1]);
+	return to_keep[versions - 1];
 }
 
 static isc_result_t
@@ -1148,7 +1148,7 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 			result = ISC_R_NOSPACE;
 			syslog(LOG_ERR, "unable to remove log files: %s",
 			       isc_result_totext(result));
-			return (result);
+			return result;
 		}
 
 		/*
@@ -1170,7 +1170,7 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 	 * Return if the directory open failed.
 	 */
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	last = last_to_keep(versions, &dir, bname, bnamelen);
@@ -1210,7 +1210,7 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 		}
 	}
 	isc_dir_close(&dir);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1246,7 +1246,7 @@ roll_increment(isc_logfile_t *file) {
 		 */
 		result = greatest_version(file, file->versions, &greatest);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 
 		/*
@@ -1293,7 +1293,7 @@ roll_increment(isc_logfile_t *file) {
 		       path, path, isc_result_totext(result));
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1333,7 +1333,7 @@ roll_timestamp(isc_logfile_t *file) {
 		       path, path, isc_result_totext(result));
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1348,23 +1348,23 @@ isc_logfile_roll(isc_logfile_t *file) {
 	 * files is desired.
 	 */
 	if (file->versions == ISC_LOG_ROLLNEVER) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (file->versions == 0) {
 		result = isc_file_remove(file->name);
 		if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 			syslog(LOG_ERR, "unable to remove log file '%s': %s",
 			       file->name, isc_result_totext(result));
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	switch (file->suffix) {
 	case isc_log_rollsuffix_increment:
-		return (roll_increment(file));
+		return roll_increment(file);
 	case isc_log_rollsuffix_timestamp:
-		return (roll_timestamp(file));
+		return roll_timestamp(file);
 	default:
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 }
 
@@ -1410,7 +1410,7 @@ isc_log_open(isc_logchannel_t *channel) {
 	 */
 	if (result == ISC_R_SUCCESS && roll) {
 		if (FILE_VERSIONS(channel) == ISC_LOG_ROLLNEVER) {
-			return (ISC_R_MAXSIZE);
+			return ISC_R_MAXSIZE;
 		}
 		result = isc_logfile_roll(&channel->destination.file);
 		if (result != ISC_R_SUCCESS) {
@@ -1422,13 +1422,13 @@ isc_log_open(isc_logchannel_t *channel) {
 				       isc_result_totext(result));
 				channel->flags |= ISC_LOG_OPENERR;
 			}
-			return (result);
+			return result;
 		}
 	}
 
 	result = isc_stdio_open(path, "a", &FILE_STREAM(channel));
 
-	return (result);
+	return result;
 }
 
 ISC_NO_SANITIZE_THREAD bool
@@ -1444,24 +1444,24 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 	 * entered to see if the message should really be output.
 	 */
 	if (lctx == NULL) {
-		return (false);
+		return false;
 	}
 	if (forcelog) {
-		return (true);
+		return true;
 	}
 
 	int highest_level = atomic_load_acquire(&lctx->highest_level);
 	if (level <= highest_level) {
-		return (true);
+		return true;
 	}
 	if (atomic_load_acquire(&lctx->dynamic)) {
 		int debug_level = atomic_load_acquire(&lctx->debug_level);
 		if (level <= debug_level) {
-			return (true);
+			return true;
 		}
 	}
 
-	return (false);
+	return false;
 }
 
 static void

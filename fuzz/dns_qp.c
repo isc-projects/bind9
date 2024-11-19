@@ -76,7 +76,7 @@ fuzz_makekey(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	assert(ctx == NULL);
 	assert(pval == &item[ival]);
 	memmove(key, item[ival].key, item[ival].len);
-	return (item[ival].len);
+	return item[ival].len;
 }
 
 static void
@@ -94,7 +94,7 @@ const dns_qpmethods_t fuzz_methods = {
 
 static uint8_t
 random_byte(void) {
-	return (isc_random_uniform(SHIFT_OFFSET - SHIFT_NOBYTE) + SHIFT_NOBYTE);
+	return isc_random_uniform(SHIFT_OFFSET - SHIFT_NOBYTE) + SHIFT_NOBYTE;
 }
 
 int
@@ -112,7 +112,7 @@ LLVMFuzzerInitialize(int *argc, char ***argv) {
 		qp_test_keytoascii(item[i].ascii, len);
 	}
 
-	return (0);
+	return 0;
 }
 
 int
@@ -219,5 +219,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 		assert(item[i].refcount == 0);
 	}
 
-	return (0);
+	return 0;
 }
