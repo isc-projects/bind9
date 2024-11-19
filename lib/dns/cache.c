@@ -143,7 +143,7 @@ cache_create_db(dns_cache_t *cache, dns_db_t **dbp, isc_mem_t **tmctxp,
 	*hmctxp = hmctx;
 	*tmctxp = tmctx;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_db:
 	dns_db_detach(&db);
@@ -151,7 +151,7 @@ cleanup_mctx:
 	isc_mem_detach(&hmctx);
 	isc_mem_detach(&tmctx);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -202,11 +202,11 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 	}
 
 	*cachep = cache;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	cache_destroy(cache);
-	return (result);
+	return result;
 }
 
 static void
@@ -243,7 +243,7 @@ const char *
 dns_cache_getname(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
 
-	return (cache->name);
+	return cache->name;
 }
 
 static void
@@ -285,7 +285,7 @@ dns_cache_getcachesize(dns_cache_t *cache) {
 	size = cache->size;
 	UNLOCK(&cache->lock);
 
-	return (size);
+	return size;
 }
 
 void
@@ -311,7 +311,7 @@ dns_cache_getservestalettl(dns_cache_t *cache) {
 	 * to confirm the value that the db is really using.
 	 */
 	result = dns_db_getservestalettl(cache->db, &ttl);
-	return (result == ISC_R_SUCCESS ? ttl : 0);
+	return result == ISC_R_SUCCESS ? ttl : 0;
 }
 
 void
@@ -333,7 +333,7 @@ dns_cache_getservestalerefresh(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
 
 	result = dns_db_getservestalerefresh(cache->db, &interval);
-	return (result == ISC_R_SUCCESS ? interval : 0);
+	return result == ISC_R_SUCCESS ? interval : 0;
 }
 
 isc_result_t
@@ -345,7 +345,7 @@ dns_cache_flush(dns_cache_t *cache) {
 
 	result = cache_create_db(cache, &db, &tmctx, &hmctx);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	LOCK(&cache->lock);
@@ -363,7 +363,7 @@ dns_cache_flush(dns_cache_t *cache) {
 	isc_mem_detach(&oldhmctx);
 	isc_mem_detach(&oldtmctx);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -374,7 +374,7 @@ clearnode(dns_db_t *db, dns_dbnode_t *node) {
 	result = dns_db_allrdatasets(db, node, NULL, DNS_DB_STALEOK,
 				     (isc_stdtime_t)0, &iter);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	for (result = dns_rdatasetiter_first(iter); result == ISC_R_SUCCESS;
@@ -397,7 +397,7 @@ clearnode(dns_db_t *db, dns_dbnode_t *node) {
 	}
 
 	dns_rdatasetiter_destroy(&iter);
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -472,12 +472,12 @@ cleanup:
 		dns_db_detachnode(db, &top);
 	}
 
-	return (answer);
+	return answer;
 }
 
 isc_result_t
 dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name) {
-	return (dns_cache_flushnode(cache, name, false));
+	return dns_cache_flushnode(cache, name, false);
 }
 
 isc_result_t
@@ -487,7 +487,7 @@ dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name, bool tree) {
 	dns_db_t *db = NULL;
 
 	if (tree && dns_name_equal(name, dns_rootname)) {
-		return (dns_cache_flush(cache));
+		return dns_cache_flush(cache);
 	}
 
 	LOCK(&cache->lock);
@@ -496,7 +496,7 @@ dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name, bool tree) {
 	}
 	UNLOCK(&cache->lock);
 	if (db == NULL) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (tree) {
@@ -516,13 +516,13 @@ dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name, bool tree) {
 
 cleanup_db:
 	dns_db_detach(&db);
-	return (result);
+	return result;
 }
 
 isc_stats_t *
 dns_cache_getstats(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
-	return (cache->stats);
+	return cache->stats;
 }
 
 void
@@ -668,7 +668,7 @@ renderstat(const char *name, uint64_t value, xmlTextWriterPtr writer) {
 	TRY0(xmlTextWriterEndElement(writer)); /* counter */
 
 error:
-	return (xmlrc);
+	return xmlrc;
 }
 
 int
@@ -707,7 +707,7 @@ dns_cache_renderxml(dns_cache_t *cache, void *writer0) {
 
 	TRY0(renderstat("HeapMemInUse", isc_mem_inuse(cache->hmctx), writer));
 error:
-	return (xmlrc);
+	return xmlrc;
 }
 #endif /* ifdef HAVE_LIBXML2 */
 
@@ -785,6 +785,6 @@ dns_cache_renderjson(dns_cache_t *cache, void *cstats0) {
 
 	result = ISC_R_SUCCESS;
 error:
-	return (result);
+	return result;
 }
 #endif /* ifdef HAVE_JSON_C */

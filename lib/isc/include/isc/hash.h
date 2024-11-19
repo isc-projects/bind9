@@ -56,7 +56,7 @@ isc_hash32(const void *data, const size_t length, const bool case_sensitive) {
 	isc_hash32_t state;
 	isc_hash32_init(&state);
 	isc_hash32_hash(&state, data, length, case_sensitive);
-	return (isc_hash32_finalize(&state));
+	return isc_hash32_finalize(&state);
 }
 
 void
@@ -71,7 +71,7 @@ isc_hash64(const void *data, const size_t length, const bool case_sensitive) {
 	isc_hash64_t state;
 	isc_hash64_init(&state);
 	isc_hash64_hash(&state, data, length, case_sensitive);
-	return (isc_hash64_finalize(&state));
+	return isc_hash64_finalize(&state);
 }
 /*!<
  * \brief Calculate a hash over data.
@@ -116,7 +116,7 @@ static inline uint32_t
 isc_hash_bits32(uint32_t val, unsigned int bits) {
 	ISC_REQUIRE(bits <= ISC_HASH_MAX_BITS);
 	/* High bits are more random. */
-	return (val * ISC_HASH_GOLDENRATIO_32 >> (32 - bits));
+	return val * ISC_HASH_GOLDENRATIO_32 >> (32 - bits);
 }
 
 ISC_LANG_ENDDECLS

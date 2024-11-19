@@ -231,7 +231,7 @@ static int
 tlsdns_setup(void **state ISC_ATTR_UNUSED) {
 	stream_port = TLSDNS_TEST_PORT;
 
-	return (0);
+	return 0;
 }
 
 ISC_TEST_MAIN_CUSTOM(tlsdns_setup, NULL)

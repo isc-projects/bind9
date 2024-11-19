@@ -48,7 +48,7 @@ cleanup(void **state ISC_ATTR_UNUSED) {
 	(void)isc_file_remove(TAPFILE);
 	(void)isc_file_remove(TAPSOCK);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -63,7 +63,7 @@ setup(void **state) {
 	 * the testdata was originally generated.
 	 */
 	setenv("TZ", "PDT8", 1);
-	return (0);
+	return 0;
 }
 
 /* set up dnstap environment */

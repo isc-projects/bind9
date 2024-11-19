@@ -40,8 +40,8 @@ main(int argc, char *argv[]) {
 			argv++;
 			continue;
 		}
-		return (1);
+		return 1;
 	}
 	fflush(stdout);
-	return (ferror(stdout));
+	return ferror(stdout);
 }

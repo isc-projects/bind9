@@ -40,7 +40,7 @@ compare(void *p1, void *p2) {
 	struct e *e1 = p1;
 	struct e *e2 = p2;
 
-	return (e1->value < e2->value);
+	return e1->value < e2->value;
 }
 
 static void

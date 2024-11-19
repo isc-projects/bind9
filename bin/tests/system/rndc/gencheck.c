@@ -32,11 +32,11 @@ check(const char *buf, ssize_t count, size_t *start) {
 			continue;
 		}
 		if (buf[i] != chars[*start]) {
-			return (0);
+			return 0;
 		}
 	}
 
-	return (1);
+	return 1;
 }
 
 int
@@ -84,5 +84,5 @@ out:
 		close(fd);
 	}
 
-	return (ret);
+	return ret;
 }

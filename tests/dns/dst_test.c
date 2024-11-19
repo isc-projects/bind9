@@ -110,7 +110,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 
 err:
 	isc_mem_put(mctx, data, size + 1);
-	return (result);
+	return result;
 }
 
 static void

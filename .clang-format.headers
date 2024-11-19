@@ -78,3 +78,5 @@ PenaltyBreakString: 80
 PenaltyExcessCharacter: 100
 Standard: Cpp11
 ContinuationIndentWidth: 8
+RemoveParentheses: ReturnStatement
+RemoveSemicolon: true

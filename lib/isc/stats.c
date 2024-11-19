@@ -75,7 +75,7 @@ int
 isc_stats_ncounters(isc_stats_t *stats) {
 	REQUIRE(ISC_STATS_VALID(stats));
 
-	return (stats->ncounters);
+	return stats->ncounters;
 }
 
 void
@@ -102,7 +102,7 @@ isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	return (atomic_fetch_add_relaxed(&stats->counters[counter], 1));
+	return atomic_fetch_add_relaxed(&stats->counters[counter], 1);
 }
 
 void
@@ -162,7 +162,7 @@ isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	return (atomic_load_acquire(&stats->counters[counter]));
+	return atomic_load_acquire(&stats->counters[counter]);
 }
 
 void

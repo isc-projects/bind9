@@ -345,9 +345,9 @@ static dns_name_t const ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
 
 static bool
 dns_master_isprimary(dns_loadctx_t *lctx) {
-	return ((lctx->options & DNS_MASTER_ZONE) != 0 &&
-		(lctx->options & DNS_MASTER_SECONDARY) == 0 &&
-		(lctx->options & DNS_MASTER_KEY) == 0);
+	return (lctx->options & DNS_MASTER_ZONE) != 0 &&
+	       (lctx->options & DNS_MASTER_SECONDARY) == 0 &&
+	       (lctx->options & DNS_MASTER_KEY) == 0;
 }
 
 static isc_result_t
@@ -361,7 +361,7 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token, bool eol,
 	if (result != ISC_R_SUCCESS) {
 		switch (result) {
 		case ISC_R_NOMEMORY:
-			return (ISC_R_NOMEMORY);
+			return ISC_R_NOMEMORY;
 		default:
 			(*callbacks->error)(callbacks,
 					    "dns_master_load: %s:%lu:"
@@ -369,7 +369,7 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token, bool eol,
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex),
 					    isc_result_totext(result));
-			return (result);
+			return result;
 		}
 		/*NOTREACHED*/
 	}
@@ -393,11 +393,11 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token, bool eol,
 						    "dns_master_load: %s:%lu: "
 						    "unexpected end of %s",
 						    file, line, what);
-				return (ISC_R_UNEXPECTEDEND);
+				return ISC_R_UNEXPECTEDEND;
 			}
 		}
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 void
@@ -640,7 +640,7 @@ nibbles(char *numbuf, size_t length, unsigned int width, char mode,
 			count++;
 		}
 	} while (value != 0 || width > 0);
-	return (count);
+	return count;
 }
 
 static isc_result_t
@@ -666,7 +666,7 @@ genname(char *name, int it, char *buffer, size_t length) {
 			name++;
 			if (*name == '$') {
 				if (r.length == 0) {
-					return (ISC_R_NOSPACE);
+					return ISC_R_NOSPACE;
 				}
 				r.base[0] = *name++;
 				isc_textregion_consume(&r, 1);
@@ -681,7 +681,7 @@ genname(char *name, int it, char *buffer, size_t length) {
 					   &delta, comma1, &width, comma2, mode,
 					   brace);
 				if (n < 2 || n > 6) {
-					return (DNS_R_SYNTAX);
+					return DNS_R_SYNTAX;
 				}
 				if (comma1[0] == '}') {
 					/* %{delta} */
@@ -701,10 +701,10 @@ genname(char *name, int it, char *buffer, size_t length) {
 					n = snprintf(fmt, sizeof(fmt),
 						     "%%0%u%c", width, mode[0]);
 				} else {
-					return (DNS_R_SYNTAX);
+					return DNS_R_SYNTAX;
 				}
 				if (n >= sizeof(fmt)) {
-					return (ISC_R_NOSPACE);
+					return ISC_R_NOSPACE;
 				}
 				/* Skip past closing brace. */
 				while (*name != '\0' && *name++ != '}') {
@@ -715,8 +715,8 @@ genname(char *name, int it, char *buffer, size_t length) {
 			 * 'it' is >= 0 so we don't need to check for
 			 * underflow.
 			 */
-			if ((it > 0 && delta > INT_MAX - it)) {
-				return (ISC_R_RANGE);
+			if (it > 0 && delta > INT_MAX - it) {
+				return ISC_R_RANGE;
 			}
 			if (nibblemode) {
 				n = nibbles(numbuf, sizeof(numbuf), width,
@@ -726,19 +726,19 @@ genname(char *name, int it, char *buffer, size_t length) {
 					     it + delta);
 			}
 			if (n >= sizeof(numbuf)) {
-				return (ISC_R_NOSPACE);
+				return ISC_R_NOSPACE;
 			}
 			cp = numbuf;
 			while (*cp != '\0') {
 				if (r.length == 0) {
-					return (ISC_R_NOSPACE);
+					return ISC_R_NOSPACE;
 				}
 				r.base[0] = *cp++;
 				isc_textregion_consume(&r, 1);
 			}
 		} else if (*name == '\\') {
 			if (r.length == 0) {
-				return (ISC_R_NOSPACE);
+				return ISC_R_NOSPACE;
 			}
 			r.base[0] = *name++;
 			isc_textregion_consume(&r, 1);
@@ -746,23 +746,23 @@ genname(char *name, int it, char *buffer, size_t length) {
 				continue;
 			}
 			if (r.length == 0) {
-				return (ISC_R_NOSPACE);
+				return ISC_R_NOSPACE;
 			}
 			r.base[0] = *name++;
 			isc_textregion_consume(&r, 1);
 		} else {
 			if (r.length == 0) {
-				return (ISC_R_NOSPACE);
+				return ISC_R_NOSPACE;
 			}
 			r.base[0] = *name++;
 			isc_textregion_consume(&r, 1);
 		}
 	}
 	if (r.length == 0) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	r.base[0] = '\0';
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -929,7 +929,7 @@ cleanup:
 	if (rhsbuf != NULL) {
 		isc_mem_put(lctx->mctx, rhsbuf, DNS_MASTER_RHS);
 	}
-	return (result);
+	return result;
 }
 
 static void
@@ -984,7 +984,7 @@ check_ns(dns_loadctx_t *lctx, isc_token_t *token, const char *source,
 	if (tmp != NULL) {
 		isc_mem_free(lctx->mctx, tmp);
 	}
-	return (result);
+	return result;
 }
 
 static void
@@ -1006,7 +1006,7 @@ check_wildcard(dns_incctx_t *ictx, const char *source, unsigned long line,
 
 static isc_result_t
 openfile_text(dns_loadctx_t *lctx, const char *master_file) {
-	return (isc_lex_openfile(lctx->lex, master_file));
+	return isc_lex_openfile(lctx->lex, master_file);
 }
 
 static int
@@ -1019,7 +1019,7 @@ find_free_name(dns_incctx_t *incctx) {
 		}
 	}
 	INSIST(!incctx->in_use[i]);
-	return (i);
+	return i;
 }
 
 static isc_result_t
@@ -2178,7 +2178,7 @@ cleanup:
 		isc_mem_free(mctx, rhs);
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -2223,11 +2223,11 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	if (lctx->include_cb != NULL) {
 		lctx->include_cb(master_file, lctx->include_arg);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	incctx_destroy(lctx->mctx, newctx);
-	return (result);
+	return result;
 }
 
 /*
@@ -2246,18 +2246,18 @@ read_and_check(bool do_read, isc_buffer_t *buffer, size_t len, FILE *f,
 		result = isc_stdio_read(isc_buffer_used(buffer), 1, len, f,
 					NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		isc_buffer_add(buffer, (unsigned int)len);
 		if (*totallen < len) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		*totallen -= (uint32_t)len;
 	} else if (isc_buffer_remaininglength(buffer) < len) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -2273,7 +2273,7 @@ load_header(dns_loadctx_t *lctx) {
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
 	if (lctx->format != dns_masterformat_raw) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	callbacks = lctx->callbacks;
@@ -2286,7 +2286,7 @@ load_header(dns_loadctx_t *lctx) {
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR("isc_stdio_read failed: %s",
 				 isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	isc_buffer_add(&target, (unsigned int)commonlen);
@@ -2295,7 +2295,7 @@ load_header(dns_loadctx_t *lctx) {
 		(*callbacks->error)(callbacks,
 				    "dns_master_load: "
 				    "file format mismatch (not raw)");
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	header.version = isc_buffer_getuint32(&target);
@@ -2311,14 +2311,14 @@ load_header(dns_loadctx_t *lctx) {
 		(*callbacks->error)(callbacks, "dns_master_load: "
 					       "unsupported file format "
 					       "version");
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	result = isc_stdio_read(data + commonlen, 1, remainder, lctx->f, NULL);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR("isc_stdio_read failed: %s",
 				 isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	isc_buffer_add(&target, (unsigned int)remainder);
@@ -2332,7 +2332,7 @@ load_header(dns_loadctx_t *lctx) {
 	lctx->first = false;
 	lctx->header = header;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -2345,7 +2345,7 @@ openfile_raw(dns_loadctx_t *lctx, const char *master_file) {
 				 isc_result_totext(result));
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -2371,7 +2371,7 @@ load_raw(dns_loadctx_t *lctx) {
 	if (lctx->first) {
 		result = load_header(lctx);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -2649,7 +2649,7 @@ cleanup:
 				    isc_result_totext(result));
 	}
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -2679,7 +2679,7 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 
 cleanup:
 	dns_loadctx_detach(&lctx);
-	return (result);
+	return result;
 }
 
 static void
@@ -2721,13 +2721,13 @@ dns_master_loadfileasync(const char *master_file, dns_name_t *top,
 	result = (lctx->openfile)(lctx, master_file);
 	if (result != ISC_R_SUCCESS) {
 		dns_loadctx_detach(&lctx);
-		return (result);
+		return result;
 	}
 
 	dns_loadctx_attach(lctx, lctxp);
 	isc_work_enqueue(loop, load, load_done, lctx);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2752,7 +2752,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
 cleanup:
 	dns_loadctx_detach(&lctx);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -2777,7 +2777,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top, dns_name_t *origin,
 
 cleanup:
 	dns_loadctx_detach(&lctx);
-	return (result);
+	return result;
 }
 
 /*
@@ -2825,7 +2825,7 @@ grow_rdatalist(int new_len, dns_rdatalist_t *oldlist, int old_len,
 	if (oldlist != NULL) {
 		isc_mem_cput(mctx, oldlist, old_len, sizeof(*oldlist));
 	}
-	return (newlist);
+	return newlist;
 }
 
 /*
@@ -2886,7 +2886,7 @@ grow_rdata(int new_len, dns_rdata_t *oldlist, int old_len,
 	if (oldlist != NULL) {
 		isc_mem_cput(mctx, oldlist, old_len, sizeof(*oldlist));
 	}
-	return (newlist);
+	return newlist;
 }
 
 static uint32_t
@@ -2914,7 +2914,7 @@ resign_fromlist(dns_rdatalist_t *this, dns_loadctx_t *lctx) {
 		}
 		rdata = ISC_LIST_NEXT(rdata, link);
 	}
-	return (when);
+	return when;
 }
 
 /*
@@ -2974,7 +2974,7 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 		this = ISC_LIST_HEAD(*head);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -2999,7 +2999,7 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 		this = ISC_LIST_NEXT(this, link);
 	}
 	if (this == NULL) {
-		return (false);
+		return false;
 	}
 
 	rdata = ISC_LIST_HEAD(this->rdata);
@@ -3008,11 +3008,11 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 		dns_rdata_toregion(rdata, &region);
 		dns_name_fromregion(&name, &region);
 		if (dns_name_equal(&name, owner)) {
-			return (true);
+			return true;
 		}
 		rdata = ISC_LIST_NEXT(rdata, link);
 	}
-	return (false);
+	return false;
 }
 
 void

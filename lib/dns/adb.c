@@ -529,7 +529,7 @@ ttlclamp(dns_ttl_t ttl) {
 		ttl = ADB_CACHE_MAXIMUM;
 	}
 
-	return (ttl);
+	return ttl;
 }
 
 /*
@@ -638,12 +638,12 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		UNREACHABLE();
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static bool
 match_ptr(void *node, const void *key) {
-	return (node == key);
+	return node == key;
 }
 
 /*
@@ -830,12 +830,12 @@ set_target(dns_adb_t *adb, const dns_name_t *name, const dns_name_t *fname,
 		 */
 		result = dns_rdataset_first(rdataset);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &cname, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		dns_name_dup(&cname.cname, adb->mctx, target);
 		dns_rdata_freestruct(&cname);
@@ -856,12 +856,12 @@ set_target(dns_adb_t *adb, const dns_name_t *name, const dns_name_t *fname,
 		 */
 		result = dns_rdataset_first(rdataset);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dname, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 
 		/*
@@ -874,12 +874,12 @@ set_target(dns_adb_t *adb, const dns_name_t *name, const dns_name_t *fname,
 					      NULL);
 		dns_rdata_freestruct(&dname);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		dns_name_dup(new_target, adb->mctx, target);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -986,7 +986,7 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, unsigned int flags) {
 	dns_name_init(&name->target, NULL);
 
 	inc_adbstats(adb, dns_adbstats_namescnt);
-	return (name);
+	return name;
 }
 
 #if DNS_ADB_TRACE
@@ -1026,7 +1026,7 @@ new_adbnamehook(dns_adb_t *adb) {
 		.magic = DNS_ADBNAMEHOOK_MAGIC,
 	};
 
-	return (nh);
+	return nh;
 }
 
 static void
@@ -1071,7 +1071,7 @@ new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr, isc_stdtime_t now) {
 
 	inc_adbstats(adb, dns_adbstats_entriescnt);
 
-	return (entry);
+	return entry;
 }
 
 static void
@@ -1127,7 +1127,7 @@ new_adbfind(dns_adb_t *adb, in_port_t port) {
 
 	find->magic = DNS_ADBFIND_MAGIC;
 
-	return (find);
+	return find;
 }
 
 static void
@@ -1165,7 +1165,7 @@ new_adbfetch(dns_adb_t *adb) {
 
 	fetch->magic = DNS_ADBFETCH_MAGIC;
 
-	return (fetch);
+	return fetch;
 }
 
 static void
@@ -1206,7 +1206,7 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 
 	isc_sockaddr_setport(&ai->sockaddr, port);
 
-	return (ai);
+	return ai;
 }
 
 static void
@@ -1238,10 +1238,10 @@ match_adbname(void *node, const void *key) {
 	if ((adbname0->flags & ADBNAME_FLAGS_MASK) !=
 	    (adbname1->flags & ADBNAME_FLAGS_MASK))
 	{
-		return (false);
+		return false;
 	}
 
-	return (dns_name_equal(adbname0->name, adbname1->name));
+	return dns_name_equal(adbname0->name, adbname1->name);
 }
 
 static uint32_t
@@ -1253,7 +1253,7 @@ hash_adbname(const dns_adbname_t *adbname) {
 	isc_hash32_hash(&hash, adbname->name->ndata, adbname->name->length,
 			false);
 	isc_hash32_hash(&hash, &flags, sizeof(flags), true);
-	return (isc_hash32_finalize(&hash));
+	return isc_hash32_finalize(&hash);
 }
 
 /*
@@ -1334,7 +1334,7 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 	 */
 	RWUNLOCK(&adb->names_lock, locktype);
 
-	return (adbname);
+	return adbname;
 }
 
 static void
@@ -1351,7 +1351,7 @@ static bool
 match_adbentry(void *node, const void *key) {
 	dns_adbentry_t *adbentry = node;
 
-	return (isc_sockaddr_equal(&adbentry->sockaddr, key));
+	return isc_sockaddr_equal(&adbentry->sockaddr, key);
 }
 
 /*
@@ -1444,7 +1444,7 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 
 	RWUNLOCK(&adb->entries_lock, locktype);
 
-	return (adbentry);
+	return adbentry;
 }
 
 static void
@@ -1530,12 +1530,12 @@ maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now) {
 
 	/* Leave this name alone if it still has active namehooks... */
 	if (NAME_HAS_V4(adbname) || NAME_HAS_V6(adbname)) {
-		return (false);
+		return false;
 	}
 
 	/* ...an active fetch in progres... */
 	if (NAME_FETCH(adbname)) {
-		return (false);
+		return false;
 	}
 
 	/* ... or is not yet expired. */
@@ -1543,12 +1543,12 @@ maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now) {
 	    !EXPIRE_OK(adbname->expire_v6, now) ||
 	    !EXPIRE_OK(adbname->expire_target, now))
 	{
-		return (false);
+		return false;
 	}
 
 	expire_name(adbname, DNS_ADB_EXPIRED);
 
-	return (true);
+	return true;
 }
 
 static void
@@ -1573,14 +1573,14 @@ expire_entry(dns_adbentry_t *adbentry) {
 static bool
 entry_expired(dns_adbentry_t *adbentry, isc_stdtime_t now) {
 	if (!ISC_LIST_EMPTY(adbentry->nhs)) {
-		return (false);
+		return false;
 	}
 
 	if (!EXPIRE_OK(adbentry->expires, now)) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 static bool
@@ -1589,10 +1589,10 @@ maybe_expire_entry(dns_adbentry_t *adbentry, isc_stdtime_t now) {
 
 	if (entry_expired(adbentry, now)) {
 		expire_entry(adbentry);
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 /*%
@@ -1952,7 +1952,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 		DP(DEF_LEVEL, "dns_adb_createfind: returning "
 			      "ISC_R_SHUTTINGDOWN");
 
-		return (ISC_R_SHUTTINGDOWN);
+		return ISC_R_SHUTTINGDOWN;
 	}
 
 	if (now == 0) {
@@ -2239,7 +2239,7 @@ post_copy:
 	UNLOCK(&adbname->lock);
 	dns_adbname_detach(&adbname);
 
-	return (result);
+	return result;
 }
 
 void
@@ -2344,7 +2344,7 @@ unsigned int
 dns_adb_findstatus(dns_adbfind_t *find) {
 	REQUIRE(DNS_ADBFIND_VALID(find));
 
-	return (atomic_load(&find->status));
+	return atomic_load(&find->status);
 }
 
 void
@@ -2587,11 +2587,11 @@ putstr(isc_buffer_t **b, const char *str) {
 
 	result = isc_buffer_reserve(*b, strlen(str));
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	isc_buffer_putstr(*b, str);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2632,7 +2632,7 @@ dns_adb_dumpquota(dns_adb_t *adb, isc_buffer_t **buf) {
 	isc_hashmap_iter_destroy(&it);
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_read);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -2779,7 +2779,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 		dns_rdataset_disassociate(&rdataset);
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -3035,7 +3035,7 @@ cleanup:
 		dns_rdataset_disassociate(&rdataset);
 	}
 
-	return (result);
+	return result;
 }
 
 void
@@ -3283,7 +3283,7 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 	size = entry->udpsize;
 	UNLOCK(&entry->lock);
 
-	return (size);
+	return size;
 }
 
 void
@@ -3338,7 +3338,7 @@ dns_adb_getcookie(dns_adbaddrinfo_t *addr, unsigned char *cookie, size_t len) {
 unlock:
 	UNLOCK(&entry->lock);
 
-	return (len);
+	return len;
 }
 
 isc_result_t
@@ -3354,7 +3354,7 @@ dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
 	in_port_t port;
 
 	if (atomic_load(&adb->exiting)) {
-		return (ISC_R_SHUTTINGDOWN);
+		return ISC_R_SHUTTINGDOWN;
 	}
 
 	entry = get_attached_and_locked_entry(adb, now, sa);
@@ -3367,7 +3367,7 @@ dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
 
 	dns_adbentry_detach(&entry);
 
-	return (result);
+	return result;
 }
 
 void
@@ -3533,14 +3533,14 @@ adbentry_overquota(dns_adbentry_t *entry) {
 	uint_fast32_t quota = atomic_load_relaxed(&entry->quota);
 	uint_fast32_t active = atomic_load_acquire(&entry->active);
 
-	return (quota != 0 && active >= quota);
+	return quota != 0 && active >= quota;
 }
 
 bool
 dns_adb_overquota(dns_adb_t *adb ISC_ATTR_UNUSED, dns_adbaddrinfo_t *addrinfo) {
 	REQUIRE(DNS_ADBADDRINFO_VALID(addrinfo));
 
-	return (adbentry_overquota(addrinfo->entry));
+	return adbentry_overquota(addrinfo->entry);
 }
 
 void
@@ -3569,5 +3569,5 @@ isc_stats_t *
 dns_adb_getstats(dns_adb_t *adb) {
 	REQUIRE(DNS_ADB_VALID(adb));
 
-	return (adb->stats);
+	return adb->stats;
 }

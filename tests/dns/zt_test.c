@@ -50,7 +50,7 @@ count_zone(dns_zone_t *zone, void *uap) {
 	UNUSED(zone);
 
 	*nzones += 1;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /* apply a function to a zone table */
@@ -110,7 +110,7 @@ load_done_last(void *uap) {
 
 	isc_loopmgr_shutdown(loopmgr);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -125,7 +125,7 @@ load_done_new_only(void *uap) {
 
 	dns_zone_asyncload(zone, true, load_done_last, zone);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -148,7 +148,7 @@ load_done_first(void *uap) {
 
 	dns_zone_asyncload(zone, true, load_done_new_only, zone);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /* asynchronous zone load */
@@ -220,7 +220,7 @@ all_done(void *arg ISC_ATTR_UNUSED) {
 	dns_view_detach(&view);
 
 	isc_loopmgr_shutdown(loopmgr);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /* asynchronous zone table load */

@@ -73,7 +73,7 @@ matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	UNUSED(viewp);
 
 	*viewmatchresultp = ISC_R_NOTIMPLEMENTED;
-	return (ISC_R_NOTIMPLEMENTED);
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 static void
@@ -113,11 +113,11 @@ setup_server(void **state) {
 
 	isc_loop_setup(mainloop, scan_interfaces, NULL);
 
-	return (0);
+	return 0;
 
 cleanup:
 	teardown_server(state);
-	return (-1);
+	return -1;
 }
 
 void
@@ -141,7 +141,7 @@ teardown_server(void **state) {
 	}
 
 	teardown_managers(state);
-	return (0);
+	return 0;
 }
 
 static dns_zone_t *served_zone = NULL;
@@ -157,7 +157,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	 */
 	result = dns_test_makezone(zonename, &served_zone, view, false);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	/*
@@ -196,7 +196,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 		dns_db_detach(&db);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 release_zone:
 	dns_test_releasezone(served_zone);
@@ -204,7 +204,7 @@ close_zonemgr:
 	dns_test_closezonemgr();
 	dns_zone_detach(&served_zone);
 
-	return (result);
+	return result;
 }
 
 void
@@ -326,7 +326,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	 * Parse the rendered query, storing results in client->message.
 	 */
 	isc_buffer_first(&querybuf);
-	return (dns_message_parse(client->message, &querybuf, 0));
+	return dns_message_parse(client->message, &querybuf, 0);
 
 put_name:
 	dns_message_puttempname(message, &qname);
@@ -334,7 +334,7 @@ put_name:
 destroy_message:
 	dns_message_detach(&message);
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -369,7 +369,7 @@ extract_qctx(void *arg, void *data, isc_result_t *resultp) {
 	*qctxp = qctx;
 	*resultp = ISC_R_UNSET;
 
-	return (NS_HOOK_RETURN);
+	return NS_HOOK_RETURN;
 }
 
 /*%
@@ -413,9 +413,9 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	isc_nmhandle_detach(&client->reqhandle);
 
 	if (*qctxp == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	} else {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 }
 
@@ -480,7 +480,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	handle = client->handle;
 	isc_nmhandle_detach(&handle);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 detach_query:
 	dns_message_detach(&client->message);
@@ -489,7 +489,7 @@ detach_view:
 detach_client:
 	isc_nmhandle_detach(&client->handle);
 
-	return (result);
+	return result;
 }
 
 void
@@ -522,7 +522,7 @@ ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp) {
 
 	*resultp = ISC_R_UNSET;
 
-	return (NS_HOOK_RETURN);
+	return NS_HOOK_RETURN;
 }
 
 isc_result_t
@@ -538,27 +538,27 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 
 	result = dns_name_fromstring(name, origin, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_db_create(mctx, dbimp, name, dbtype, dns_rdataclass_in, 0,
 			       NULL, db);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	result = dns_db_load(*db, testfile, dns_masterformat_text, 0);
-	return (result);
+	return result;
 }
 
 static int
 fromhex(char c) {
 	if (c >= '0' && c <= '9') {
-		return (c - '0');
+		return c - '0';
 	} else if (c >= 'a' && c <= 'f') {
-		return (c - 'a' + 10);
+		return c - 'a' + 10;
 	} else if (c >= 'A' && c <= 'F') {
-		return (c - 'A' + 10);
+		return c - 'A' + 10;
 	}
 
 	printf("bad input format: %02x\n", c);
@@ -578,7 +578,7 @@ ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
 
 	result = isc_stdio_open(file, "r", &f);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	bp = buf;
@@ -624,5 +624,5 @@ ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
 
 cleanup:
 	isc_stdio_close(f);
-	return (result);
+	return result;
 }

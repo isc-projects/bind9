@@ -95,7 +95,7 @@ isc_proxy2_handler_new(isc_mem_t *mctx, const uint16_t max_size,
 	newhandler = isc_mem_get(mctx, sizeof(*newhandler));
 	isc_proxy2_handler_init(newhandler, mctx, max_size, cb, cbarg);
 
-	return (newhandler);
+	return newhandler;
 }
 
 void
@@ -140,7 +140,7 @@ proxy2_socktype_to_socktype(const isc_proxy2_socktype_t proxy_socktype) {
 		ISC_UNREACHABLE();
 	};
 
-	return (socktype);
+	return socktype;
 }
 
 static inline void
@@ -197,7 +197,7 @@ isc__proxy2_handler_handle_signature(isc_proxy2_handler_t *restrict handler) {
 
 	if (memcmp(ISC_PROXY2_HEADER_SIGNATURE, remaining.base, len) != 0) {
 		isc__proxy2_handler_error(handler, ISC_R_UNEXPECTED);
-		return (false);
+		return false;
 	} else if (len == ISC_PROXY2_HEADER_SIGNATURE_SIZE) {
 		isc_buffer_forward(&handler->hdrbuf,
 				   ISC_PROXY2_HEADER_SIGNATURE_SIZE);
@@ -207,9 +207,9 @@ isc__proxy2_handler_handle_signature(isc_proxy2_handler_t *restrict handler) {
 	} else {
 		INSIST(len < ISC_PROXY2_HEADER_SIGNATURE_SIZE);
 		isc__proxy2_handler_error(handler, ISC_R_NOMORE);
-		return (false);
+		return false;
 	}
-	return (true);
+	return true;
 }
 
 static inline bool
@@ -239,7 +239,7 @@ isc__proxy2_handler_handle_header(isc_proxy2_handler_t *restrict handler) {
 	if ((ver_cmd & 0xF0U) >> 4 != 2) {
 		/* only support for version 2 is implemented */
 		isc__proxy2_handler_error(handler, ISC_R_NOTIMPLEMENTED);
-		return (false);
+		return false;
 	}
 
 	/* extract command */
@@ -341,14 +341,14 @@ isc__proxy2_handler_handle_header(isc_proxy2_handler_t *restrict handler) {
 
 	handler->state++;
 
-	return (true);
+	return true;
 
 error_unexpected:
 	isc__proxy2_handler_error(handler, ISC_R_UNEXPECTED);
-	return (false);
+	return false;
 error_range:
 	isc__proxy2_handler_error(handler, ISC_R_RANGE);
-	return (false);
+	return false;
 }
 
 static inline isc_result_t
@@ -449,13 +449,13 @@ isc__proxy2_handler_get_addresses(isc_proxy2_handler_t *restrict handler,
 			 * without a terminating '\0' byte - not a friend
 			 * knocking at the door.
 			 */
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		isc_buffer_forward(hdrbuf, addr_size);
 
 		ret = memchr(isc_buffer_current(hdrbuf), '\0', addr_size);
 		if (ret == NULL) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		isc_buffer_forward(hdrbuf, addr_size);
 	} break;
@@ -463,7 +463,7 @@ isc__proxy2_handler_get_addresses(isc_proxy2_handler_t *restrict handler,
 		UNREACHABLE();
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline void
@@ -518,7 +518,7 @@ isc__proxy2_handler_handle_data(isc_proxy2_handler_t *restrict handler) {
 	if (isc_buffer_remaininglength(&handler->hdrbuf) < handler->expect_data)
 	{
 		isc__proxy2_handler_error(handler, ISC_R_NOMORE);
-		return (false);
+		return false;
 	}
 
 	switch (handler->state) {
@@ -531,13 +531,13 @@ isc__proxy2_handler_handle_data(isc_proxy2_handler_t *restrict handler) {
 		 * by byte, we would detect the problem when processing the
 		 * first unexpected byte.
 		 */
-		return (isc__proxy2_handler_handle_signature(handler));
+		return isc__proxy2_handler_handle_signature(handler);
 	case ISC_PROXY2_STATE_WAITING_HEADER:
 		/*
 		 * Handle the rest of the header (except signature which we
 		 * heave verified by now).
 		 */
-		return (isc__proxy2_handler_handle_header(handler));
+		return isc__proxy2_handler_handle_header(handler);
 	case ISC_PROXY2_STATE_WAITING_PAYLOAD:
 		/*
 		 * Handle the PROXYv2 header payload - addresses and TLVs.
@@ -549,7 +549,7 @@ isc__proxy2_handler_handle_data(isc_proxy2_handler_t *restrict handler) {
 		break;
 	};
 
-	return (false);
+	return false;
 }
 
 static inline isc_result_t
@@ -560,7 +560,7 @@ isc__proxy2_handler_process_data(isc_proxy2_handler_t *restrict handler) {
 		}
 	}
 
-	return (handler->result);
+	return handler->result;
 }
 
 isc_result_t
@@ -582,7 +582,7 @@ isc_proxy2_handler_push_data(isc_proxy2_handler_t *restrict handler,
 
 	result = isc__proxy2_handler_process_data(handler);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -596,7 +596,7 @@ isc_proxy2_handler_push(isc_proxy2_handler_t *restrict handler,
 	result = isc_proxy2_handler_push_data(handler, region->base,
 					      region->length);
 
-	return (result);
+	return result;
 }
 
 static inline bool
@@ -604,10 +604,10 @@ proxy2_payload_is_processed(const isc_proxy2_handler_t *restrict handler) {
 	if (handler->state < ISC_PROXY2_STATE_END ||
 	    handler->result != ISC_R_SUCCESS)
 	{
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 size_t
@@ -618,7 +618,7 @@ isc_proxy2_handler_header(const isc_proxy2_handler_t *restrict handler,
 		(region->base == NULL && region->length == 0));
 
 	if (!proxy2_payload_is_processed(handler)) {
-		return (0);
+		return 0;
 	}
 
 	if (region != NULL) {
@@ -626,7 +626,7 @@ isc_proxy2_handler_header(const isc_proxy2_handler_t *restrict handler,
 		region->length = handler->header_size;
 	}
 
-	return (handler->header_size);
+	return handler->header_size;
 }
 
 size_t
@@ -637,12 +637,12 @@ isc_proxy2_handler_tlvs(const isc_proxy2_handler_t *restrict handler,
 		(region->base == NULL && region->length == 0));
 
 	if (!proxy2_payload_is_processed(handler)) {
-		return (0);
+		return 0;
 	}
 
 	SET_IF_NOT_NULL(region, handler->tlv_data);
 
-	return (handler->tlv_data.length);
+	return handler->tlv_data.length;
 }
 
 size_t
@@ -653,19 +653,19 @@ isc_proxy2_handler_extra(const isc_proxy2_handler_t *restrict handler,
 		(region->base == NULL && region->length == 0));
 
 	if (!proxy2_payload_is_processed(handler)) {
-		return (0);
+		return 0;
 	}
 
 	SET_IF_NOT_NULL(region, handler->extra_data);
 
-	return (handler->extra_data.length);
+	return handler->extra_data.length;
 }
 
 isc_result_t
 isc_proxy2_handler_result(const isc_proxy2_handler_t *restrict handler) {
 	REQUIRE(handler != NULL);
 
-	return (handler->result);
+	return handler->result;
 }
 
 isc_result_t
@@ -681,7 +681,7 @@ isc_proxy2_handler_addresses(const isc_proxy2_handler_t *restrict handler,
 	REQUIRE(handler != NULL);
 
 	if (!proxy2_payload_is_processed(handler)) {
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	ret = isc_proxy2_handler_header(handler, &header_region);
@@ -697,13 +697,13 @@ isc_proxy2_handler_addresses(const isc_proxy2_handler_t *restrict handler,
 		(isc_proxy2_handler_t *)handler, &buf, psrc_addr, pdst_addr);
 
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	SET_IF_NOT_NULL(psocktype,
 			proxy2_socktype_to_socktype(handler->proxy_socktype));
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -760,7 +760,7 @@ isc_proxy2_tlv_iterate(const isc_region_t *restrict tlv_data,
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 typedef struct proxy2_tls_cbarg {
@@ -780,7 +780,7 @@ proxy2_tls_iter_cb(const isc_proxy2_tlv_type_t tlv_type,
 			    (isc_proxy2_tlv_subtype_tls_t)tlv_type, data,
 			    tls_cbarg->cbarg);
 
-	return (ret);
+	return ret;
 }
 
 isc_result_t
@@ -806,7 +806,7 @@ isc_proxy2_subtlv_tls_header_data(const isc_region_t *restrict tls_tlv_data,
 		*pclient_cert_verified == false);
 
 	if (tls_tlv_data->length < ISC_PROXY2_TLS_SUBHEADER_MIN_SIZE) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	p = tls_tlv_data->base;
@@ -820,7 +820,7 @@ isc_proxy2_subtlv_tls_header_data(const isc_region_t *restrict tls_tlv_data,
 	SET_IF_NOT_NULL(pclient_flags, client_flags);
 	SET_IF_NOT_NULL(pclient_cert_verified, client_cert_verified);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -837,14 +837,14 @@ isc_proxy2_subtlv_tls_iterate(const isc_region_t *restrict tls_tlv_data,
 	REQUIRE(cb != NULL);
 
 	if (tls_tlv_data->length < ISC_PROXY2_TLS_SUBHEADER_MIN_SIZE) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	result = isc_proxy2_subtlv_tls_header_data(tls_tlv_data, &client_flags,
 						   &client_cert_verified);
 
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	p = tls_tlv_data->base;
@@ -865,7 +865,7 @@ isc_proxy2_subtlv_tls_iterate(const isc_region_t *restrict tls_tlv_data,
 						&tls_cbarg);
 	}
 
-	return (result);
+	return result;
 }
 
 typedef struct tls_subtlv_verify_cbarg {
@@ -890,7 +890,7 @@ proxy2_subtlv_verify_iter_cb(const uint8_t client,
 	    type == ISC_PROXY2_TLV_TYPE_NETNS)
 	{
 		arg->verif_result = ISC_R_UNEXPECTED;
-		return (false);
+		return false;
 	}
 
 	switch (tls_subtlv_type) {
@@ -900,7 +900,7 @@ proxy2_subtlv_verify_iter_cb(const uint8_t client,
 	case ISC_PROXY2_TLV_SUBTYPE_TLS_KEY_ALG:
 		if (data->length == 0) {
 			arg->verif_result = ISC_R_RANGE;
-			return (false);
+			return false;
 		}
 		arg->count[tls_subtlv_type]++;
 		verify_count = true;
@@ -911,10 +911,10 @@ proxy2_subtlv_verify_iter_cb(const uint8_t client,
 
 	if (verify_count && arg->count[tls_subtlv_type] > 1) {
 		arg->verif_result = ISC_R_UNEXPECTED;
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 typedef struct tlv_verify_cbarg {
@@ -969,17 +969,17 @@ isc_proxy2_tlv_verify_cb(const isc_proxy2_tlv_type_t tlv_type,
 			isc_proxy2_subtlv_tls_header_data(data, &client, NULL);
 
 		if (arg->verify_result != ISC_R_SUCCESS) {
-			return (false);
+			return false;
 		}
 
 		arg->verify_result = isc_proxy2_subtlv_tls_iterate(
 			data, proxy2_subtlv_verify_iter_cb, &tls_cbarg);
 
 		if (arg->verify_result != ISC_R_SUCCESS) {
-			return (false);
+			return false;
 		} else if (tls_cbarg.verif_result != ISC_R_SUCCESS) {
 			arg->verify_result = tls_cbarg.verif_result;
-			return (false);
+			return false;
 		}
 
 		/*
@@ -1028,15 +1028,15 @@ isc_proxy2_tlv_verify_cb(const isc_proxy2_tlv_type_t tlv_type,
 		goto error_unexpected;
 	}
 
-	return (true);
+	return true;
 
 error_unexpected:
 	arg->verify_result = ISC_R_UNEXPECTED;
-	return (false);
+	return false;
 
 error_range:
 	arg->verify_result = ISC_R_RANGE;
-	return (false);
+	return false;
 }
 
 isc_result_t
@@ -1047,10 +1047,10 @@ isc_proxy2_tlv_data_verify(const isc_region_t *restrict tlv_data) {
 	result = isc_proxy2_tlv_iterate(tlv_data, isc_proxy2_tlv_verify_cb,
 					&cbarg);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
-	return (cbarg.verify_result);
+	return cbarg.verify_result;
 }
 
 isc_result_t
@@ -1067,7 +1067,7 @@ isc_proxy2_header_handle_directly(const isc_region_t *restrict header_data,
 
 	result = isc__proxy2_handler_process_data(&handler);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1160,12 +1160,12 @@ isc_proxy2_make_header(isc_buffer_t *restrict outbuf,
 					(void *)&dst_addr->type.sin6.sin6_addr;
 				break;
 			default:
-				return (ISC_R_UNEXPECTED);
+				return ISC_R_UNEXPECTED;
 			}
 		}
 		break;
 	default:
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	switch (socktype) {
@@ -1179,20 +1179,20 @@ isc_proxy2_make_header(isc_buffer_t *restrict outbuf,
 		proxy_socktype = ISC_PROXY2_SOCK_DGRAM;
 		break;
 	default:
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	if (tlv_data != NULL) {
 		if (tlv_data->length > UINT16_MAX) {
-			return (ISC_R_RANGE);
+			return ISC_R_RANGE;
 		}
 		total_size += tlv_data->length;
 	}
 
 	if (isc_buffer_availablelength(outbuf) < total_size) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	} else if (total_size > UINT16_MAX) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	/*
@@ -1238,7 +1238,7 @@ isc_proxy2_make_header(isc_buffer_t *restrict outbuf,
 		isc_buffer_putmem(outbuf, tlv_data->base, tlv_data->length);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1256,9 +1256,9 @@ isc_proxy2_header_append(isc_buffer_t *restrict outbuf,
 	REQUIRE(data != NULL);
 
 	if (isc_buffer_availablelength(outbuf) < data->length) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	} else if ((data->length + header_data.length) > UINT16_MAX) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	INSIST(memcmp(header_data.base, ISC_PROXY2_HEADER_SIGNATURE,
@@ -1270,7 +1270,7 @@ isc_proxy2_header_append(isc_buffer_t *restrict outbuf,
 	new_len = ntohs(new_len);
 	/* check */
 	if ((data->length + new_len) > UINT16_MAX) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 	/* update */
 	new_len += (uint16_t)data->length;
@@ -1280,7 +1280,7 @@ isc_proxy2_header_append(isc_buffer_t *restrict outbuf,
 
 	isc_buffer_putmem(outbuf, data->base, data->length);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline void
@@ -1329,10 +1329,10 @@ isc_proxy2_header_append_tlv(isc_buffer_t *restrict outbuf,
 	new_data_len = tlv_data->length + 3;
 
 	if (isc_buffer_availablelength(outbuf) < (new_data_len)) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	} else if ((isc_buffer_usedlength(outbuf) + new_data_len) > UINT16_MAX)
 	{
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	append_type_and_length(outbuf, (uint8_t)tlv_type,
@@ -1344,7 +1344,7 @@ isc_proxy2_header_append_tlv(isc_buffer_t *restrict outbuf,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1361,7 +1361,7 @@ isc_proxy2_header_append_tlv_string(isc_buffer_t *restrict outbuf,
 
 	result = isc_proxy2_header_append_tlv(outbuf, tlv_type, &region);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -1378,9 +1378,9 @@ isc_proxy2_make_tls_subheader(isc_buffer_t *restrict outbuf,
 	}
 
 	if (isc_buffer_availablelength(outbuf) < total_size) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	} else if (total_size > UINT16_MAX) {
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	isc_buffer_putuint8(outbuf, client_flags);
@@ -1393,7 +1393,7 @@ isc_proxy2_make_tls_subheader(isc_buffer_t *restrict outbuf,
 				  tls_subtlvs_data->length);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1406,11 +1406,11 @@ isc_proxy2_append_tlv(isc_buffer_t *restrict outbuf, const uint8_t type,
 	new_data_len = (data->length + 3);
 
 	if (isc_buffer_availablelength(outbuf) < new_data_len) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	} else if ((isc_buffer_usedlength(outbuf) + (data->length + 3)) >
 		   UINT16_MAX)
 	{
-		return (ISC_R_RANGE);
+		return ISC_R_RANGE;
 	}
 
 	append_type_and_length(outbuf, (uint8_t)type, ((uint16_t)data->length),
@@ -1420,7 +1420,7 @@ isc_proxy2_append_tlv(isc_buffer_t *restrict outbuf, const uint8_t type,
 		isc_buffer_putmem(outbuf, data->base, data->length);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1436,5 +1436,5 @@ isc_proxy2_append_tlv_string(isc_buffer_t *restrict outbuf, const uint8_t type,
 
 	result = isc_proxy2_append_tlv(outbuf, type, &region);
 
-	return (result);
+	return result;
 }

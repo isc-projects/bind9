@@ -138,7 +138,7 @@ main(int argc, char **argv) {
 	dst_key_free(&key);
 
 	isc_mem_destroy(&mctx);
-	return (0);
+	return 0;
 }
 
 /*! \file */

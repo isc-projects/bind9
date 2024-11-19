@@ -54,12 +54,12 @@ named_log_init(bool safe) {
 
 	named_g_logging = true;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	rcu_read_unlock();
 
-	return (result);
+	return result;
 }
 
 void
@@ -219,7 +219,7 @@ named_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	}
 
 cleanup:
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -228,5 +228,5 @@ named_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
 
 	result = isc_log_usechannel(lcfg, "null", NAMED_LOGCATEGORY_UNMATCHED,
 				    ISC_LOGMODULE_DEFAULT);
-	return (result);
+	return result;
 }

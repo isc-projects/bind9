@@ -110,5 +110,5 @@ main(int argc, char **argv) {
 		}
 	}
 	isc_mem_detach(&mctx);
-	return (result != ISC_R_SUCCESS ? 1 : 0);
+	return result != ISC_R_SUCCESS ? 1 : 0;
 }

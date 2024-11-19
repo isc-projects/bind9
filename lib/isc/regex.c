@@ -425,11 +425,11 @@ isc_regex_validate(const char *c) {
 	if (!have_atom) {
 		FAIL("no atom");
 	}
-	return (sub);
+	return sub;
 
 error:
 #if VALREGEX_REPORT_REASON
 	fprintf(stderr, "%s\n", reason);
 #endif /* if VALREGEX_REPORT_REASON */
-	return (-1);
+	return -1;
 }

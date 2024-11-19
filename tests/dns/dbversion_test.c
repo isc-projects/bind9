@@ -90,7 +90,7 @@ setup_test(void **state) {
 	dns_db_newversion(db2, &v2);
 	assert_non_null(v1);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -119,7 +119,7 @@ teardown_test(void **state) {
 		assert_null(db2);
 	}
 
-	return (0);
+	return 0;
 }
 
 /*

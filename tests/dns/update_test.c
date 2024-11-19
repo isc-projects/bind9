@@ -51,7 +51,7 @@ setup_test(void **state) {
 
 	setenv("TZ", "", 1);
 
-	return (0);
+	return 0;
 }
 
 static uint32_t mystdtime;
@@ -69,7 +69,7 @@ set_mystdtime(int year, int month, int day) {
 
 isc_stdtime_t
 isc_stdtime_now(void) {
-	return (mystdtime);
+	return mystdtime;
 }
 
 /* simple increment by 1 */

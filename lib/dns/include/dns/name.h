@@ -602,7 +602,7 @@ dns_name_countlabels(const dns_name_t *name) {
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(name->labels <= DNS_NAME_MAXLABELS);
 
-	return (name->labels);
+	return name->labels;
 }
 /*%<
  * How many labels does 'name' have?

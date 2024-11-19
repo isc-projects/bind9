@@ -845,7 +845,7 @@ isc_buffer_peekuint8(const isc_buffer_t *restrict b, uint8_t *valp) {
 
 	uint8_t *cp = isc_buffer_current(b);
 	SET_IF_NOT_NULL(valp, (uint8_t)(cp[0]));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline uint8_t
@@ -854,7 +854,7 @@ isc_buffer_getuint8(isc_buffer_t *restrict b) {
 	isc_result_t result = isc_buffer_peekuint8(b, &val);
 	ENSURE(result == ISC_R_SUCCESS);
 	b->current += sizeof(val);
-	return (val);
+	return val;
 }
 
 #define ISC_BUFFER_PUT_RESERVE(b, v, s)                                 \
@@ -885,7 +885,7 @@ isc_buffer_peekuint16(const isc_buffer_t *restrict b, uint16_t *valp) {
 	uint8_t *cp = isc_buffer_current(b);
 
 	SET_IF_NOT_NULL(valp, ISC_U8TO16_BE(cp));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline uint16_t
@@ -894,7 +894,7 @@ isc_buffer_getuint16(isc_buffer_t *restrict b) {
 	isc_result_t result = isc_buffer_peekuint16(b, &val);
 	ENSURE(result == ISC_R_SUCCESS);
 	b->current += sizeof(val);
-	return (val);
+	return val;
 }
 
 static inline void
@@ -913,7 +913,7 @@ isc_buffer_peekuint32(const isc_buffer_t *restrict b, uint32_t *valp) {
 	uint8_t *cp = isc_buffer_current(b);
 
 	SET_IF_NOT_NULL(valp, ISC_U8TO32_BE(cp));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 uint32_t
@@ -922,7 +922,7 @@ isc_buffer_getuint32(isc_buffer_t *restrict b) {
 	isc_result_t result = isc_buffer_peekuint32(b, &val);
 	ENSURE(result == ISC_R_SUCCESS);
 	b->current += sizeof(val);
-	return (val);
+	return val;
 }
 
 static inline void
@@ -942,7 +942,7 @@ isc_buffer_peekuint48(const isc_buffer_t *restrict b, uint64_t *valp) {
 	uint8_t *cp = isc_buffer_current(b);
 
 	SET_IF_NOT_NULL(valp, ISC_U8TO48_BE(cp));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline uint64_t
@@ -951,7 +951,7 @@ isc_buffer_getuint48(isc_buffer_t *restrict b) {
 	isc_result_t result = isc_buffer_peekuint48(b, &val);
 	ENSURE(result == ISC_R_SUCCESS);
 	b->current += 6; /* 48-bits */
-	return (val);
+	return val;
 }
 
 static inline void
@@ -1118,11 +1118,11 @@ isc_buffer_reserve(isc_buffer_t *restrict dbuf, const unsigned int size) {
 
 	len = dbuf->length;
 	if ((len - dbuf->used) >= size) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	if (dbuf->mctx == NULL) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/* Round to nearest buffer size increment */
@@ -1135,7 +1135,7 @@ isc_buffer_reserve(isc_buffer_t *restrict dbuf, const unsigned int size) {
 	}
 
 	if ((len - dbuf->used) < size) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	if (!dbuf->dynamic) {
@@ -1151,7 +1151,7 @@ isc_buffer_reserve(isc_buffer_t *restrict dbuf, const unsigned int size) {
 	}
 	dbuf->length = (unsigned int)len;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline void
@@ -1188,7 +1188,7 @@ isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **restrict dstp,
 	result = isc_buffer_copyregion(dst, &region);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); /* NOSPACE is impossible */
 	*dstp = dst;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline isc_result_t
@@ -1202,12 +1202,12 @@ isc_buffer_copyregion(isc_buffer_t *restrict b,
 	if (b->mctx) {
 		result = isc_buffer_reserve(b, r->length);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
 	if (r->length > isc_buffer_availablelength(b)) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	if (r->length > 0U) {
@@ -1215,7 +1215,7 @@ isc_buffer_copyregion(isc_buffer_t *restrict b,
 		b->used += r->length;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline isc_result_t
@@ -1231,18 +1231,18 @@ isc_buffer_printf(isc_buffer_t *restrict b, const char *restrict format, ...) {
 	va_end(ap);
 
 	if (n < 0) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if (b->mctx) {
 		result = isc_buffer_reserve(b, n + 1);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
 	if (isc_buffer_availablelength(b) < (unsigned int)n + 1) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	va_start(ap, format);
@@ -1250,12 +1250,12 @@ isc_buffer_printf(isc_buffer_t *restrict b, const char *restrict format, ...) {
 	va_end(ap);
 
 	if (n < 0) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	b->used += n;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 ISC_LANG_ENDDECLS

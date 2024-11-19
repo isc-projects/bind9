@@ -130,7 +130,7 @@ sendquery(void) {
 
 	c = scanf("%255s", host);
 	if (c == EOF) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	onfly++;
@@ -166,7 +166,7 @@ sendquery(void) {
 		isc_loop_main(loopmgr), recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -290,5 +290,5 @@ main(int argc, char *argv[]) {
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 
-	return (0);
+	return 0;
 }

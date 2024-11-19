@@ -44,7 +44,7 @@ isc__hash_initialize(void) {
 
 const void *
 isc_hash_get_initializer(void) {
-	return (isc_hash_key);
+	return isc_hash_key;
 }
 
 void
@@ -73,7 +73,7 @@ isc_hash32_finalize(isc_hash32_t *restrict state) {
 
 	isc_halfsiphash24_finalize(state, (uint8_t *)&hval);
 
-	return (hval);
+	return hval;
 }
 
 void
@@ -95,5 +95,5 @@ isc_hash64_finalize(isc_hash64_t *restrict state) {
 
 	isc_siphash24_finalize(state, (uint8_t *)&hval);
 
-	return (hval);
+	return hval;
 }

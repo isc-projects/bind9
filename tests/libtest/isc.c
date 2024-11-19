@@ -66,7 +66,7 @@ setup_workers(void **state ISC_ATTR_UNUSED) {
 	}
 	INSIST(workers != 0);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -74,14 +74,14 @@ setup_mctx(void **state ISC_ATTR_UNUSED) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
-	return (0);
+	return 0;
 }
 
 int
 teardown_mctx(void **state ISC_ATTR_UNUSED) {
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -93,7 +93,7 @@ setup_loopmgr(void **state ISC_ATTR_UNUSED) {
 	isc_loopmgr_create(mctx, workers, &loopmgr);
 	mainloop = isc_loop_main(loopmgr);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -103,7 +103,7 @@ teardown_loopmgr(void **state ISC_ATTR_UNUSED) {
 	mainloop = NULL;
 	isc_loopmgr_destroy(&loopmgr);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -114,7 +114,7 @@ setup_netmgr(void **state ISC_ATTR_UNUSED) {
 
 	isc_netmgr_create(mctx, loopmgr, &netmgr);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -123,7 +123,7 @@ teardown_netmgr(void **state ISC_ATTR_UNUSED) {
 
 	isc_netmgr_destroy(&netmgr);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -131,7 +131,7 @@ setup_managers(void **state) {
 	setup_loopmgr(state);
 	setup_netmgr(state);
 
-	return (0);
+	return 0;
 }
 
 int
@@ -139,5 +139,5 @@ teardown_managers(void **state) {
 	teardown_netmgr(state);
 	teardown_loopmgr(state);
 
-	return (0);
+	return 0;
 }

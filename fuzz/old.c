@@ -156,12 +156,12 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 				 * 14-bit compression pointer
 				 */
 				if (!dns_decompress_getpermitted(dctx)) {
-					return (DNS_R_DISALLOWED);
+					return DNS_R_DISALLOWED;
 				}
 				new_current = c & 0x3F;
 				state = fw_newcurrent;
 			} else {
-				return (DNS_R_BADLABELTYPE);
+				return DNS_R_BADLABELTYPE;
 			}
 			break;
 		case fw_ordinary:
@@ -178,7 +178,7 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 			new_current *= 256;
 			new_current += c;
 			if (new_current >= biggest_pointer) {
-				return (DNS_R_BADPOINTER);
+				return DNS_R_BADPOINTER;
 			}
 			biggest_pointer = new_current;
 			current = new_current;
@@ -193,7 +193,7 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 	}
 
 	if (!done) {
-		return (ISC_R_UNEXPECTEDEND);
+		return ISC_R_UNEXPECTEDEND;
 	}
 
 	name->ndata = (unsigned char *)target->base + target->used;
@@ -204,7 +204,7 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 	isc_buffer_forward(source, cused);
 	isc_buffer_add(target, name->length);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 full:
 	if (nmax == DNS_NAME_MAXWIRE) {
@@ -212,12 +212,12 @@ full:
 		 * The name did not fit even though we had a buffer
 		 * big enough to fit a maximum-length name.
 		 */
-		return (DNS_R_NAMETOOLONG);
+		return DNS_R_NAMETOOLONG;
 	} else {
 		/*
 		 * The name might fit if only the caller could give us a
 		 * big enough buffer.
 		 */
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 }

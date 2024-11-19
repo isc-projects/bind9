@@ -253,10 +253,10 @@ static ns_hooktable_t *
 get_hooktab(query_ctx_t *qctx) {
 	if (qctx == NULL || qctx->view == NULL || qctx->view->hooktable == NULL)
 	{
-		return (ns__hook_table);
+		return ns__hook_table;
 	}
 
-	return (qctx->view->hooktable);
+	return qctx->view->hooktable;
 }
 
 /*
@@ -999,9 +999,9 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 		client->query.attributes |= NS_QUERYATTR_CACHEACLOKVALID;
 	}
 
-	return ((client->query.attributes & NS_QUERYATTR_CACHEACLOK) != 0
-			? ISC_R_SUCCESS
-			: DNS_R_REFUSED);
+	return (client->query.attributes & NS_QUERYATTR_CACHEACLOK) != 0
+		       ? ISC_R_SUCCESS
+		       : DNS_R_REFUSED;
 }
 
 static isc_result_t
@@ -1020,7 +1020,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	 * Mirror zone data is treated as cache data.
 	 */
 	if (dns_zone_gettype(zone) == dns_zone_mirror) {
-		return (query_checkcacheaccess(client, name, qtype, options));
+		return query_checkcacheaccess(client, name, qtype, options);
 	}
 
 	/*
@@ -1034,7 +1034,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	    !(WANTRECURSION(client) && RECURSIONOK(client)) &&
 	    client->query.authdbset && db != client->query.authdb)
 	{
-		return (DNS_R_REFUSED);
+		return DNS_R_REFUSED;
 	}
 
 	/*
@@ -1045,7 +1045,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	if (dns_zone_gettype(zone) == dns_zone_staticstub &&
 	    !RECURSIONOK(client))
 	{
-		return (DNS_R_REFUSED);
+		return DNS_R_REFUSED;
 	}
 
 	/*
@@ -1062,7 +1062,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	dbversion = ns_client_findversion(client, db);
 	if (dbversion == NULL) {
 		CTRACE(ISC_LOG_ERROR, "unable to get db version");
-		return (DNS_R_SERVFAIL);
+		return DNS_R_SERVFAIL;
 	}
 
 	if (options.ignoreacl) {
@@ -1070,7 +1070,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	}
 	if (dbversion->acl_checked) {
 		if (!dbversion->queryok) {
-			return (DNS_R_REFUSED);
+			return DNS_R_REFUSED;
 		}
 		goto approved;
 	}
@@ -1091,7 +1091,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 			    0)
 			{
 				dbversion->queryok = false;
-				return (DNS_R_REFUSED);
+				return DNS_R_REFUSED;
 			}
 			dbversion->queryok = true;
 			goto approved;
@@ -1162,14 +1162,14 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	dbversion->acl_checked = true;
 	if (result != ISC_R_SUCCESS) {
 		dbversion->queryok = false;
-		return (DNS_R_REFUSED);
+		return DNS_R_REFUSED;
 	}
 	dbversion->queryok = true;
 
 approved:
 	/* Transfer ownership, if necessary. */
 	SET_IF_NOT_NULL(versionp, dbversion->version);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1219,9 +1219,9 @@ query_getzonedb(ns_client_t *client, const dns_name_t *name,
 	*dbp = db;
 
 	if (partial && options.partial) {
-		return (DNS_R_PARTIALMATCH);
+		return DNS_R_PARTIALMATCH;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 fail:
 	if (zone != NULL) {
@@ -1231,7 +1231,7 @@ fail:
 		dns_db_detach(&db);
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -1395,11 +1395,11 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
 				      p_namebuf);
 		}
 		*versionp = rpz_version;
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, p_name, rpz_type,
 		     "query_getzonedb()", result);
-	return (result);
+	return result;
 }
 
 /*%
@@ -1416,7 +1416,7 @@ query_getcachedb(ns_client_t *client, const dns_name_t *name,
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
 	if (!USECACHE(client)) {
-		return (DNS_R_REFUSED);
+		return DNS_R_REFUSED;
 	}
 
 	dns_db_attach(client->view->cachedb, &db);
@@ -1432,7 +1432,7 @@ query_getcachedb(ns_client_t *client, const dns_name_t *name,
 	 */
 	*dbp = db;
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1535,7 +1535,7 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 		}
 		*is_zonep = false;
 	}
-	return (result);
+	return result;
 }
 
 static bool
@@ -1558,7 +1558,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 			 */
 			CTRACE(ISC_LOG_DEBUG(3), "query_isduplicate: true: "
 						 "done");
-			return (true);
+			return true;
 		} else if (result == DNS_R_NXRRSET) {
 			/*
 			 * The name exists, but the rdataset does not.
@@ -1575,7 +1575,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 	SET_IF_NOT_NULL(mnamep, mname);
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_isduplicate: false: done");
-	return (false);
+	return false;
 }
 
 /*
@@ -1638,7 +1638,7 @@ query_additionalauthfind(dns_db_t *db, dns_dbversion_t *version,
 			dns_db_detachnode(db, &node);
 		}
 
-		return (result);
+		return result;
 	}
 
 	/*
@@ -1652,7 +1652,7 @@ query_additionalauthfind(dns_db_t *db, dns_dbversion_t *version,
 
 	*nodep = node;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -1693,12 +1693,12 @@ query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
 	 * additional data.
 	 */
 	if (!client->query.authdbset || client->query.authdb == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	dbversion = ns_client_findversion(client, client->query.authdb);
 	if (dbversion == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	dns_db_attach(client->query.authdb, &db);
@@ -1722,7 +1722,7 @@ query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
 		result = query_getzonedb(client, name, type, options, &zone,
 					 &db, &version);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 		dns_zone_detach(&zone);
 
@@ -1743,7 +1743,7 @@ query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
 		db = NULL;
 	}
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -1772,7 +1772,7 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	REQUIRE(qtype != dns_rdatatype_any);
 
 	if (!WANTDNSSEC(client) && dns_rdatatype_isdnssec(qtype)) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional_cb");
@@ -2167,7 +2167,7 @@ cleanup:
 	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional_cb: done");
-	return (eresult);
+	return eresult;
 }
 
 /*
@@ -2398,7 +2398,7 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 		result = dns_db_findnodeext(db, &rrsig->signer, false, &cm, &ci,
 					    &node);
 		if (result != ISC_R_SUCCESS) {
-			return (false);
+			return false;
 		}
 
 		result = dns_db_findrdataset(db, node, NULL,
@@ -2406,11 +2406,11 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 					     client->now, keyrdataset, NULL);
 		dns_db_detachnode(db, &node);
 		if (result != ISC_R_SUCCESS) {
-			return (false);
+			return false;
 		}
 
 		if (keyrdataset->trust != dns_trust_secure) {
-			return (false);
+			return false;
 		}
 
 		result = dns_rdataset_first(keyrdataset);
@@ -2440,7 +2440,7 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 		}
 		dst_key_free(keyp);
 	}
-	return (secure);
+	return secure;
 }
 
 static bool
@@ -2461,9 +2461,9 @@ again:
 		goto again;
 	}
 	if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 /*
@@ -2479,7 +2479,7 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 	dns_rdataset_t keyrdataset;
 
 	if (sigrdataset == NULL || !dns_rdataset_isassociated(sigrdataset)) {
-		return (false);
+		return false;
 	}
 
 	for (result = dns_rdataset_first(sigrdataset); result == ISC_R_SUCCESS;
@@ -2507,7 +2507,7 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 				dns_rdataset_disassociate(&keyrdataset);
 				mark_secure(client, db, name, &rrsig, rdataset,
 					    sigrdataset);
-				return (true);
+				return true;
 			}
 			dst_key_free(&key);
 		} while (1);
@@ -2515,7 +2515,7 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 			dns_rdataset_disassociate(&keyrdataset);
 		}
 	}
-	return (false);
+	return false;
 }
 
 static void
@@ -2584,7 +2584,7 @@ recursionquotatype_attach(ns_client_t *client, bool soft_limit) {
 		isc_quota_release(&client->manager->sctx->recursionquota);
 		FALLTHROUGH;
 	default:
-		return (result);
+		return result;
 	}
 
 	recurscount = ns_stats_increment(client->manager->sctx->nsstats,
@@ -2594,17 +2594,17 @@ recursionquotatype_attach(ns_client_t *client, bool soft_limit) {
 				   ns_statscounter_recurshighwater,
 				   recurscount + 1);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
 recursionquotatype_attach_hard(ns_client_t *client) {
-	return (recursionquotatype_attach(client, false));
+	return recursionquotatype_attach(client, false);
 }
 
 static isc_result_t
 recursionquotatype_attach_soft(ns_client_t *client) {
-	return (recursionquotatype_attach(client, true));
+	return recursionquotatype_attach(client, true);
 }
 
 static void
@@ -2889,7 +2889,7 @@ rpz_ready(ns_client_t *client, dns_rdataset_t **rdatasetp) {
 	} else if (dns_rdataset_isassociated(*rdatasetp)) {
 		dns_rdataset_disassociate(*rdatasetp);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -2989,7 +2989,7 @@ rpz_get_zbits(ns_client_t *client, dns_rdatatype_t ip_type,
 		zbits &= st->popt.no_rd_ok;
 	}
 
-	return (zbits);
+	return zbits;
 }
 
 static void
@@ -3043,13 +3043,13 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 			st->m.policy = DNS_RPZ_POLICY_ERROR;
 			result = DNS_R_SERVFAIL;
 		}
-		return (result);
+		return result;
 	}
 
 	result = rpz_ready(client, rdatasetp);
 	if (result != ISC_R_SUCCESS) {
 		st->m.policy = DNS_RPZ_POLICY_ERROR;
-		return (result);
+		return result;
 	}
 	if (*dbp != NULL) {
 		is_zone = false;
@@ -3068,7 +3068,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 			if (zone != NULL) {
 				dns_zone_detach(&zone);
 			}
-			return (result);
+			return result;
 		}
 		if (zone != NULL) {
 			dns_zone_detach(&zone);
@@ -3118,7 +3118,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 			}
 		}
 	}
-	return (result);
+	return result;
 }
 
 /*
@@ -3182,7 +3182,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 		if (labels - first < 2) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, suffix,
 				     rpz_type, "concatenate()", result);
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 		/*
 		 * Complain once about trimming the trigger name.
@@ -3193,7 +3193,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 		}
 		++first;
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -3235,12 +3235,12 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 	result = rpz_ready(client, rdatasetp);
 	if (result != ISC_R_SUCCESS) {
 		CTRACE(ISC_LOG_ERROR, "rpz_ready() failed");
-		return (DNS_R_SERVFAIL);
+		return DNS_R_SERVFAIL;
 	}
 	*versionp = NULL;
 	result = rpz_getdb(client, p_name, rpz_type, zonep, dbp, versionp);
 	if (result != ISC_R_SUCCESS) {
-		return (DNS_R_NXDOMAIN);
+		return DNS_R_NXDOMAIN;
 	}
 	found = dns_fixedname_initname(&foundf);
 
@@ -3261,7 +3261,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 				     rpz_type, "allrdatasets()", result);
 			CTRACE(ISC_LOG_ERROR,
 			       "rpz_find_p: allrdatasets failed");
-			return (DNS_R_SERVFAIL);
+			return DNS_R_SERVFAIL;
 		}
 		if (qtype == dns_rdatatype_aaaa &&
 		    !ISC_LIST_EMPTY(client->view->dns64))
@@ -3297,7 +3297,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 					     result);
 				CTRACE(ISC_LOG_ERROR, "rpz_find_p: "
 						      "rdatasetiter failed");
-				return (DNS_R_SERVFAIL);
+				return DNS_R_SERVFAIL;
 			}
 			/*
 			 * Ask again to get the right DNS_R_DNAME/NXRRSET/...
@@ -3332,17 +3332,17 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 			    qtype != dns_rdatatype_cname &&
 			    qtype != dns_rdatatype_any)
 			{
-				return (DNS_R_CNAME);
+				return DNS_R_CNAME;
 			}
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	case DNS_R_NXRRSET:
 		if (found_a) {
 			*policyp = DNS_RPZ_POLICY_DNS64;
 		} else {
 			*policyp = DNS_RPZ_POLICY_NODATA;
 		}
-		return (result);
+		return result;
 	case DNS_R_DNAME:
 	/*
 	 * DNAME policy RRs have very few if any uses that are not
@@ -3356,12 +3356,12 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 	 */
 	case DNS_R_NXDOMAIN:
 	case DNS_R_EMPTYNAME:
-		return (DNS_R_NXDOMAIN);
+		return DNS_R_NXDOMAIN;
 	default:
 		rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, p_name, rpz_type, "",
 			     result);
 		CTRACE(ISC_LOG_ERROR, "rpz_find_p: unexpected result");
-		return (DNS_R_SERVFAIL);
+		return DNS_R_SERVFAIL;
 	}
 }
 
@@ -3483,7 +3483,7 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		case DNS_R_SERVFAIL:
 			rpz_clean(&p_zone, &p_db, &p_node, p_rdatasetp);
 			st->m.policy = DNS_RPZ_POLICY_ERROR;
-			return (DNS_R_SERVFAIL);
+			return DNS_R_SERVFAIL;
 		default:
 			/*
 			 * Forget this policy if it is not preferable
@@ -3535,7 +3535,7 @@ rpz_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 	}
 
 	rpz_clean(&p_zone, &p_db, &p_node, p_rdatasetp);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -3561,7 +3561,7 @@ rpz_rewrite_ip_rrset(ns_client_t *client, dns_name_t *name,
 	do {
 		zbits = rpz_get_zbits(client, ip_type, rpz_type);
 		if (zbits == 0) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 
 		/*
@@ -3582,17 +3582,17 @@ rpz_rewrite_ip_rrset(ns_client_t *client, dns_name_t *name,
 		case DNS_R_NXRRSET:
 		case DNS_R_NCACHENXRRSET:
 		case ISC_R_NOTFOUND:
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		case DNS_R_DELEGATION:
 		case DNS_R_DUPLICATE:
 		case DNS_R_DROP:
-			return (result);
+			return result;
 		case DNS_R_CNAME:
 		case DNS_R_DNAME:
 			rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, name,
 				     rpz_type, "NS address rewrite rrset",
 				     result);
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		default:
 			if (client->query.rpz_st->m.policy !=
 			    DNS_RPZ_POLICY_ERROR)
@@ -3607,7 +3607,7 @@ rpz_rewrite_ip_rrset(ns_client_t *client, dns_name_t *name,
 			CTRACE(ISC_LOG_ERROR,
 			       "rpz_rewrite_ip_rrset: unexpected "
 			       "result");
-			return (DNS_R_SERVFAIL);
+			return DNS_R_SERVFAIL;
 		}
 
 		/*
@@ -3648,13 +3648,13 @@ rpz_rewrite_ip_rrset(ns_client_t *client, dns_name_t *name,
 			result = rpz_rewrite_ip(client, &netaddr, qtype,
 						rpz_type, zbits, p_rdatasetp);
 			if (result != ISC_R_SUCCESS) {
-				return (result);
+				return result;
 			}
 		}
 	} while (!done &&
 		 client->query.rpz_st->m.policy == DNS_RPZ_POLICY_MISS);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -3711,7 +3711,7 @@ rpz_rewrite_ip_rrsets(ns_client_t *client, dns_name_t *name,
 		dns_db_detach(&ip_db);
 	}
 	ns_client_putrdataset(client, &p_rdataset);
-	return (result);
+	return result;
 }
 
 /*
@@ -3747,7 +3747,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 	zbits = rpz_get_zbits(client, qtype, rpz_type);
 	zbits &= allowed_zbits;
 	if (zbits == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -3758,7 +3758,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 	 */
 	zbits = dns_rpz_find_name(rpzs, rpz_type, zbits, trig_name);
 	if (zbits == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	p_name = dns_fixedname_initname(&p_namef);
@@ -3821,7 +3821,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 		case DNS_R_SERVFAIL:
 			rpz_clean(&p_zone, &p_db, &p_node, rdatasetp);
 			st->m.policy = DNS_RPZ_POLICY_ERROR;
-			return (DNS_R_SERVFAIL);
+			return DNS_R_SERVFAIL;
 		default:
 			/*
 			 * With more than one applicable policy, prefer
@@ -3851,7 +3851,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 				 * are irrelevant
 				 */
 				rpz_clean(&p_zone, &p_db, &p_node, rdatasetp);
-				return (ISC_R_SUCCESS);
+				return ISC_R_SUCCESS;
 			}
 			/*
 			 * Log DNS_RPZ_POLICY_DISABLED zones
@@ -3864,7 +3864,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 	}
 
 	rpz_clean(&p_zone, &p_db, &p_node, rdatasetp);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -3923,13 +3923,13 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	st = client->query.rpz_st;
 
 	if (rpzs == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	if (st != NULL && (st->state & DNS_RPZ_REWRITTEN) != 0) {
-		return (DNS_R_DISALLOWED);
+		return DNS_R_DISALLOWED;
 	}
 	if (RECURSING(client)) {
-		return (DNS_R_DISALLOWED);
+		return DNS_R_DISALLOWED;
 	}
 
 	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
@@ -3938,7 +3938,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	    !rpz_ck_dnssec(client, qresult, ordataset, osigset))
 	{
 		RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
-		return (DNS_R_DISALLOWED);
+		return DNS_R_DISALLOWED;
 	}
 	have = rpzs->have;
 	popt = rpzs->p;
@@ -4006,13 +4006,13 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL3, NULL,
 			     DNS_RPZ_TYPE_QNAME,
 			     "stop on qresult in rpz_rewrite()", qresult);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	default:
 		rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, NULL,
 			     DNS_RPZ_TYPE_QNAME,
 			     "stop on unrecognized qresult in rpz_rewrite()",
 			     qresult);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	rdataset = NULL;
@@ -4031,7 +4031,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			 */
 			allowed = st->have.qname_skip_recurse;
 			if (allowed == 0) {
-				return (ISC_R_SUCCESS);
+				return ISC_R_SUCCESS;
 			}
 		} else {
 			allowed = DNS_RPZ_ALL_ZBITS;
@@ -4317,7 +4317,7 @@ cleanup:
 		rpz_clean(NULL, &st->r.db, NULL, &st->r.ns_rdataset);
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -4336,7 +4336,7 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_ck_dnssec");
 
 	if (client->view->rpzs->p.break_dnssec || !WANTDNSSEC(client)) {
-		return (true);
+		return true;
 	}
 
 	/*
@@ -4344,21 +4344,21 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	 * for them.
 	 */
 	if (qresult == DNS_R_DELEGATION || qresult == ISC_R_NOTFOUND) {
-		return (false);
+		return false;
 	}
 
 	if (sigrdataset == NULL) {
-		return (true);
+		return true;
 	}
 	if (dns_rdataset_isassociated(sigrdataset)) {
-		return (false);
+		return false;
 	}
 
 	/*
 	 * We are happy to rewrite nothing.
 	 */
 	if (rdataset == NULL || !dns_rdataset_isassociated(rdataset)) {
-		return (true);
+		return true;
 	}
 	/*
 	 * Do not rewrite if there is any sign of signatures.
@@ -4367,14 +4367,14 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	    rdataset->type == dns_rdatatype_nsec3 ||
 	    rdataset->type == dns_rdatatype_rrsig)
 	{
-		return (false);
+		return false;
 	}
 
 	/*
 	 * Look for a signature in a negative cache rdataset.
 	 */
 	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) == 0) {
-		return (true);
+		return true;
 	}
 	found = dns_fixedname_initname(&fixed);
 	dns_rdataset_init(&trdataset);
@@ -4387,10 +4387,10 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 		if (type == dns_rdatatype_nsec || type == dns_rdatatype_nsec3 ||
 		    type == dns_rdatatype_rrsig)
 		{
-			return (false);
+			return false;
 		}
 	}
-	return (true);
+	return true;
 }
 
 /*
@@ -4411,14 +4411,14 @@ rdata_tonetaddr(const dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
 		INSIST(rdata->length == 4);
 		memmove(&ina.s_addr, rdata->data, 4);
 		isc_netaddr_fromin(netaddr, &ina);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	case dns_rdatatype_aaaa:
 		INSIST(rdata->length == 16);
 		memmove(in6a.s6_addr, rdata->data, 16);
 		isc_netaddr_fromin6(netaddr, &in6a);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	default:
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 }
 
@@ -4663,7 +4663,7 @@ cleanup:
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
 	}
-	return (ttl);
+	return ttl;
 }
 
 static bool
@@ -4682,7 +4682,7 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 	INSIST(client->query.dns64_sigaaaa == NULL);
 
 	if (dns64 == NULL) {
-		return (true);
+		return true;
 	}
 
 	if (RECURSIONOK(client)) {
@@ -4713,13 +4713,13 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 			isc_mem_cput(client->manager->mctx, aaaaok, count,
 				     sizeof(bool));
 		}
-		return (true);
+		return true;
 	}
 	if (aaaaok != NULL) {
 		isc_mem_cput(client->manager->mctx, aaaaok, count,
 			     sizeof(bool));
 	}
-	return (false);
+	return false;
 }
 
 /*
@@ -4748,7 +4748,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	CTRACE(ISC_LOG_DEBUG(3), "redirect");
 
 	if (client->view->redirect == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	found = dns_fixedname_initname(&fixed);
@@ -4760,18 +4760,18 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 
 	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
 	{
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (WANTDNSSEC(client) && dns_rdataset_isassociated(rdataset)) {
 		if (rdataset->trust == dns_trust_secure) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		if (rdataset->trust == dns_trust_ultimate &&
 		    (rdataset->type == dns_rdatatype_nsec ||
 		     rdataset->type == dns_rdatatype_nsec3))
 		{
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			for (result = dns_rdataset_first(rdataset);
@@ -4785,7 +4785,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 				    type == dns_rdatatype_nsec3 ||
 				    type == dns_rdatatype_rrsig)
 				{
-					return (ISC_R_NOTFOUND);
+					return ISC_R_NOTFOUND;
 				}
 			}
 		}
@@ -4795,18 +4795,18 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		client, NULL, dns_zone_getqueryacl(client->view->redirect),
 		true);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	result = dns_zone_getdb(client->view->redirect, &db);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	dbversion = ns_client_findversion(client, db);
 	if (dbversion == NULL) {
 		dns_db_detach(&db);
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	/*
@@ -4831,7 +4831,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 			dns_db_detachnode(db, &node);
 		}
 		dns_db_detach(&db);
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "redirect: found data: done");
@@ -4857,7 +4857,7 @@ nxrrset:
 	client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 				     NS_QUERYATTR_NOADDITIONAL);
 
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -4882,11 +4882,11 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	CTRACE(ISC_LOG_DEBUG(3), "redirect2");
 
 	if (client->view->redirectzone == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (dns_name_issubdomain(name, client->view->redirectzone)) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	found = dns_fixedname_initname(&fixed);
@@ -4898,18 +4898,18 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 
 	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
 	{
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	if (WANTDNSSEC(client) && dns_rdataset_isassociated(rdataset)) {
 		if (rdataset->trust == dns_trust_secure) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		if (rdataset->trust == dns_trust_ultimate &&
 		    (rdataset->type == dns_rdatatype_nsec ||
 		     rdataset->type == dns_rdatatype_nsec3))
 		{
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			for (result = dns_rdataset_first(rdataset);
@@ -4923,7 +4923,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 				    type == dns_rdatatype_nsec3 ||
 				    type == dns_rdatatype_rrsig)
 				{
-					return (ISC_R_NOTFOUND);
+					return ISC_R_NOTFOUND;
 				}
 			}
 		}
@@ -4941,7 +4941,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 					      client->view->redirectzone,
 					      redirectname, NULL);
 		if (result != ISC_R_SUCCESS) {
-			return (ISC_R_NOTFOUND);
+			return ISC_R_NOTFOUND;
 		}
 	} else {
 		dns_name_copy(redirectname, client->view->redirectzone);
@@ -4951,7 +4951,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 			     (dns_getdb_options_t){ 0 }, &zone, &db, &version,
 			     &is_zone);
 	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
@@ -4993,10 +4993,10 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 					NS_QUERYATTR_RECURSING;
 				client->query.attributes |=
 					NS_QUERYATTR_REDIRECT;
-				return (DNS_R_CONTINUE);
+				return DNS_R_CONTINUE;
 			}
 		}
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	} else if (result != ISC_R_SUCCESS) {
 		if (dns_rdataset_isassociated(&trdataset)) {
 			dns_rdataset_disassociate(&trdataset);
@@ -5005,7 +5005,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 			dns_db_detachnode(db, &node);
 		}
 		dns_db_detach(&db);
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "redirect2: found data: done");
@@ -5043,7 +5043,7 @@ nxrrset:
 	client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 				     NS_QUERYATTR_NOADDITIONAL);
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -5276,16 +5276,16 @@ get_root_key_sentinel_id(query_ctx_t *qctx, const char *ndata) {
 
 	for (i = 0; i < 5; i++) {
 		if (!isdigit((unsigned char)ndata[i])) {
-			return (false);
+			return false;
 		}
 		v *= 10;
 		v += ndata[i] - '0';
 	}
 	if (v > 65535U) {
-		return (false);
+		return false;
 	}
 	qctx->client->query.root_key_sentinel_keyid = v;
-	return (true);
+	return true;
 }
 
 /*%
@@ -5434,7 +5434,7 @@ ns__query_start(query_ctx_t *qctx) {
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		qctx->client->message->rcode = dns_rcode_badcookie;
 		qctx->client->attributes &= ~NS_CLIENTATTR_WANTRC;
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	/*
@@ -5444,7 +5444,7 @@ ns__query_start(query_ctx_t *qctx) {
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AA;
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		qctx->client->message->flags |= DNS_MESSAGEFLAG_TC;
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	if (qctx->view->checknames &&
@@ -5466,7 +5466,7 @@ ns__query_start(query_ctx_t *qctx) {
 			      "check-names failure %s/%s/%s", namebuf, typebuf,
 			      classbuf);
 		QUERY_ERROR(qctx, DNS_R_REFUSED);
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	/*
@@ -5574,7 +5574,7 @@ ns__query_start(query_ctx_t *qctx) {
 					       "failed");
 			QUERY_ERROR(qctx, result);
 		}
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	/*
@@ -5651,7 +5651,7 @@ ns__query_start(query_ctx_t *qctx) {
 	qctx->options.stalefirst = false;
 
 cleanup:
-	return (result);
+	return result;
 }
 
 static void
@@ -5693,7 +5693,7 @@ qctx_prepare_buffers(query_ctx_t *qctx, isc_buffer_t *buffer) {
 		qctx->sigrdataset = ns_client_newrdataset(qctx->client);
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -5709,9 +5709,9 @@ stale_client_answer(isc_result_t result) {
 	case DNS_R_NCACHENXRRSET:
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
-		return (true);
+		return true;
 	default:
-		return (false);
+		return false;
 	}
 
 	UNREACHABLE();
@@ -5756,7 +5756,7 @@ query_lookup(query_ctx_t *qctx) {
 	result = qctx_prepare_buffers(qctx, &buffer);
 	if (result != ISC_R_SUCCESS) {
 		QUERY_ERROR(qctx, result);
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	/*
@@ -5888,7 +5888,7 @@ query_lookup(query_ctx_t *qctx) {
 			 * can do, return SERVFAIL.
 			 */
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 	} else if (stale_refresh_window) {
 		/*
@@ -5913,7 +5913,7 @@ query_lookup(query_ctx_t *qctx) {
 			 * to refresh the data, because a recent lookup failed.
 			 */
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 	} else if (stale_timeout) {
 		if (qctx->options.stalefirst) {
@@ -5935,7 +5935,7 @@ query_lookup(query_ctx_t *qctx) {
 						&FETCH_RECTYPE_NORMAL(
 							qctx->client));
 				}
-				return (query_lookup(qctx));
+				return query_lookup(qctx);
 			} else if (stale_client_answer(result)) {
 				/*
 				 * Immediately return the stale answer, start a
@@ -5974,7 +5974,7 @@ query_lookup(query_ctx_t *qctx) {
 	result = query_gotanswer(qctx, result);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*
@@ -6162,10 +6162,10 @@ recparam_match(const ns_query_recparam_t *param, dns_rdatatype_t qtype,
 	       const dns_name_t *qname, const dns_name_t *qdomain) {
 	REQUIRE(param != NULL);
 
-	return (param->qtype == qtype && param->qname != NULL &&
-		qname != NULL && param->qdomain != NULL && qdomain != NULL &&
-		dns_name_equal(param->qname, qname) &&
-		dns_name_equal(param->qdomain, qdomain));
+	return param->qtype == qtype && param->qname != NULL && qname != NULL &&
+	       param->qdomain != NULL && qdomain != NULL &&
+	       dns_name_equal(param->qname, qname) &&
+	       dns_name_equal(param->qdomain, qdomain);
 }
 
 /*%
@@ -6233,7 +6233,7 @@ acquire_recursionquota(ns_client_t *client) {
 				   "no more recursive clients (%u/%u/%u)",
 				   &client->manager->sctx->recursionquota);
 		ns_client_killoldestquery(client);
-		return (result);
+		return result;
 	default:
 		UNREACHABLE();
 	}
@@ -6241,7 +6241,7 @@ acquire_recursionquota(ns_client_t *client) {
 	dns_message_clonebuffer(client->message);
 	ns_client_recursing(client);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -6275,7 +6275,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	if (recparam_match(&client->query.recparam, qtype, qname, qdomain)) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
 			      ISC_LOG_INFO, "recursion loop detected");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	recparam_update(&client->query.recparam, qtype, qname, qdomain);
@@ -6286,7 +6286,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 
 	result = acquire_recursionquota(client);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	/*
@@ -6334,7 +6334,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	 * have been received.
 	 */
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -6489,7 +6489,7 @@ query_resume(query_ctx_t *qctx) {
 				      qctx->view->rpzs->rpz_ver,
 				      qctx->rpz_st->rpz_ver);
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 	}
 
@@ -6525,10 +6525,10 @@ query_resume(query_ctx_t *qctx) {
 
 	qctx->resuming = true;
 
-	return (query_gotanswer(qctx, result));
+	return query_gotanswer(qctx, result);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 static void
@@ -6706,7 +6706,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	 * the client task or pausing it.
 	 */
 	isc_nmhandle_attach(client->handle, &HANDLE_RECTYPE_HOOK(client));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup_and_detach_from_quota:
 	release_recursionquota(client);
@@ -6732,7 +6732,7 @@ cleanup:
 			    sizeof(*saved_qctx));
 	}
 	qctx->detach_client = true;
-	return (result);
+	return result;
 }
 
 /*%
@@ -6751,7 +6751,7 @@ ns__query_sfcache(query_ctx_t *qctx) {
 	 * The SERVFAIL cache doesn't apply to authoritative queries.
 	 */
 	if (!RECURSIONOK(qctx->client)) {
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 	}
 
 	flags = 0;
@@ -6768,7 +6768,7 @@ ns__query_sfcache(query_ctx_t *qctx) {
 	}
 
 	if (failcache != ISC_R_SUCCESS) {
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 	}
 
 	if (((flags & NS_FAILCACHE_CD) != 0) ||
@@ -6793,10 +6793,10 @@ ns__query_sfcache(query_ctx_t *qctx) {
 
 		qctx->client->attributes |= NS_CLIENTATTR_NOSETFC;
 		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
-	return (ISC_R_COMPLETE);
+	return ISC_R_COMPLETE;
 }
 
 static void
@@ -6994,12 +6994,12 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 						}
 					}
 				}
-				return (DNS_R_DROP);
+				return DNS_R_DROP;
 			}
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -7019,7 +7019,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		break;
 	case ISC_R_NOTFOUND:
 	case DNS_R_DISALLOWED:
-		return (result);
+		return result;
 	case DNS_R_DELEGATION:
 		/*
 		 * recursing for NS names or addresses,
@@ -7037,10 +7037,10 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		dns_name_copy(qctx->fname, qctx->rpz_st->fname);
 		qctx->rpz_st->q.result = result;
 		qctx->client->query.attributes |= NS_QUERYATTR_RECURSING;
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 	default:
 		QUERY_ERROR(qctx, rresult);
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 	}
 
 	if (qctx->rpz_st->m.policy != DNS_RPZ_POLICY_MISS) {
@@ -7082,7 +7082,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 					       DNS_SECTION_ADDITIONAL);
 			if (rresult != ISC_R_SUCCESS) {
 				QUERY_ERROR(qctx, result);
-				return (ISC_R_COMPLETE);
+				return ISC_R_COMPLETE;
 			}
 		}
 
@@ -7100,7 +7100,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 					qctx->rpz_st->m.type, qctx->zone,
 					qctx->rpz_st->p_name, NULL,
 					qctx->rpz_st->m.rpz->num);
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		case DNS_RPZ_POLICY_DROP:
 			QUERY_ERROR(qctx, DNS_R_DROP);
 			rpz_log_rewrite(qctx->client, false,
@@ -7108,7 +7108,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 					qctx->rpz_st->m.type, qctx->zone,
 					qctx->rpz_st->p_name, NULL,
 					qctx->rpz_st->m.rpz->num);
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		case DNS_RPZ_POLICY_NXDOMAIN:
 			result = DNS_R_NXDOMAIN;
 			qctx->nxrewrite = true;
@@ -7156,11 +7156,11 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			dns_rdata_reset(&rdata);
 			result = query_rpzcname(qctx, &cname.cname);
 			if (result != ISC_R_SUCCESS) {
-				return (ISC_R_COMPLETE);
+				return ISC_R_COMPLETE;
 			}
 			qctx->fname = NULL;
 			qctx->want_restart = true;
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		}
 		case DNS_RPZ_POLICY_CNAME:
 			/*
@@ -7170,11 +7170,11 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			result = query_rpzcname(qctx,
 						&qctx->rpz_st->m.rpz->cname);
 			if (result != ISC_R_SUCCESS) {
-				return (ISC_R_COMPLETE);
+				return ISC_R_COMPLETE;
 			}
 			qctx->fname = NULL;
 			qctx->want_restart = true;
-			return (ISC_R_COMPLETE);
+			return ISC_R_COMPLETE;
 		default:
 			UNREACHABLE();
 		}
@@ -7202,7 +7202,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 				qctx->rpz_st->m.rpz->num);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -7238,7 +7238,7 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 		if (result == DNS_R_NAMETOOLONG) {
 			client->message->rcode = dns_rcode_yxdomain;
 		} else if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	} else {
 		dns_name_copy(cname, qctx->fname);
@@ -7261,7 +7261,7 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 	client->attributes &= ~(NS_CLIENTATTR_WANTDNSSEC |
 				NS_CLIENTATTR_WANTAD);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -7280,7 +7280,7 @@ has_ta(query_ctx_t *qctx) {
 
 	result = dns_view_getsecroots(qctx->view, &keytable);
 	if (result != ISC_R_SUCCESS) {
-		return (false);
+		return false;
 	}
 
 	result = dns_keytable_find(keytable, dns_rootname, &keynode);
@@ -7289,7 +7289,7 @@ has_ta(query_ctx_t *qctx) {
 			dns_keynode_detach(&keynode);
 		}
 		dns_keytable_detach(&keytable);
-		return (false);
+		return false;
 	}
 
 	dns_rdataset_init(&dsset);
@@ -7309,7 +7309,7 @@ has_ta(query_ctx_t *qctx) {
 				dns_keynode_detach(&keynode);
 				dns_keytable_detach(&keytable);
 				dns_rdataset_disassociate(&dsset);
-				return (true);
+				return true;
 			}
 		}
 		dns_rdataset_disassociate(&dsset);
@@ -7321,7 +7321,7 @@ has_ta(query_ctx_t *qctx) {
 
 	dns_keytable_detach(&keytable);
 
-	return (false);
+	return false;
 }
 
 /*%
@@ -7335,7 +7335,7 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
 	if (!qctx->client->query.root_key_sentinel_is_ta &&
 	    !qctx->client->query.root_key_sentinel_not_ta)
 	{
-		return (false);
+		return false;
 	}
 
 	/*
@@ -7350,7 +7350,7 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
 	case DNS_R_NCACHENXRRSET:
 		break;
 	default:
-		return (false);
+		return false;
 	}
 
 	/*
@@ -7360,7 +7360,7 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
 	    ((qctx->client->query.root_key_sentinel_is_ta && !has_ta(qctx)) ||
 	     (qctx->client->query.root_key_sentinel_not_ta && has_ta(qctx))))
 	{
-		return (true);
+		return true;
 	}
 
 	/*
@@ -7370,7 +7370,7 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
 	qctx->client->query.root_key_sentinel_is_ta = false;
 	qctx->client->query.root_key_sentinel_not_ta = false;
 
-	return (false);
+	return false;
 }
 
 /*%
@@ -7384,7 +7384,7 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 		 * Query was already using stale, if that didn't work the
 		 * last time, it won't work this time either.
 		 */
-		return (false);
+		return false;
 	}
 
 	if (result == DNS_R_DUPLICATE || result == DNS_R_DROP) {
@@ -7392,7 +7392,7 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 		 * Don't enable serve-stale if the result signals a duplicate
 		 * query or query that is being dropped.
 		 */
-		return (false);
+		return false;
 	}
 
 	qctx_clean(qctx);
@@ -7409,7 +7409,7 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 			 * Failed to get the database, unexpected, but let us
 			 * at least abandon serve-stale.
 			 */
-			return (false);
+			return false;
 		}
 
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
@@ -7425,10 +7425,10 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 		if (qctx->resuming && result == ISC_R_TIMEDOUT) {
 			qctx->client->query.dboptions |= DNS_DBFIND_STALESTART;
 		}
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 /*%
@@ -7445,7 +7445,7 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	CALL_HOOK(NS_QUERY_GOT_ANSWER_BEGIN, qctx);
 
 	if (query_checkrrl(qctx, result) != ISC_R_SUCCESS) {
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	if (!dns_name_equal(qctx->client->query.qname, dns_rootname)) {
@@ -7464,10 +7464,10 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 			 * bail out and wait for recursion to complete, as we
 			 * we can't perform the RPZ rewrite rules.
 			 */
-			return (result);
+			return result;
 		}
 		if (result == ISC_R_COMPLETE) {
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 	}
 
@@ -7482,51 +7482,51 @@ root_key_sentinel:
 		 */
 		qctx->client->attributes |= NS_CLIENTATTR_NOSETFC;
 		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	switch (result) {
 	case ISC_R_SUCCESS:
-		return (query_prepresponse(qctx));
+		return query_prepresponse(qctx);
 
 	case DNS_R_GLUE:
 	case DNS_R_ZONECUT:
 		INSIST(qctx->is_zone);
 		qctx->authoritative = false;
-		return (query_prepresponse(qctx));
+		return query_prepresponse(qctx);
 
 	case ISC_R_NOTFOUND:
-		return (query_notfound(qctx));
+		return query_notfound(qctx);
 
 	case DNS_R_DELEGATION:
-		return (query_delegation(qctx));
+		return query_delegation(qctx);
 
 	case DNS_R_EMPTYNAME:
 	case DNS_R_NXRRSET:
-		return (query_nodata(qctx, result));
+		return query_nodata(qctx, result);
 
 	case DNS_R_EMPTYWILD:
 	case DNS_R_NXDOMAIN:
-		return (query_nxdomain(qctx, result));
+		return query_nxdomain(qctx, result);
 
 	case DNS_R_COVERINGNSEC:
-		return (query_coveringnsec(qctx));
+		return query_coveringnsec(qctx);
 
 	case DNS_R_NCACHENXDOMAIN:
 		result = query_redirect(qctx, result);
 		if (result != ISC_R_COMPLETE) {
-			return (result);
+			return result;
 		}
-		return (query_ncache(qctx, DNS_R_NCACHENXDOMAIN));
+		return query_ncache(qctx, DNS_R_NCACHENXDOMAIN);
 
 	case DNS_R_NCACHENXRRSET:
-		return (query_ncache(qctx, DNS_R_NCACHENXRRSET));
+		return query_ncache(qctx, DNS_R_NCACHENXRRSET);
 
 	case DNS_R_CNAME:
-		return (query_cname(qctx));
+		return query_cname(qctx);
 
 	case DNS_R_DNAME:
-		return (query_dname(qctx));
+		return query_dname(qctx);
 
 	default:
 		/*
@@ -7541,7 +7541,7 @@ root_key_sentinel:
 			 * If serve-stale is enabled, query_usestale() already
 			 * set up 'qctx' for looking up a stale response.
 			 */
-			return (query_lookup(qctx));
+			return query_lookup(qctx);
 		}
 
 		/*
@@ -7551,11 +7551,11 @@ root_key_sentinel:
 		qctx->client->rcode_override = dns_rcode_servfail;
 
 		QUERY_ERROR(qctx, result);
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 cleanup:
-	return (result);
+	return result;
 }
 
 static void
@@ -7643,7 +7643,7 @@ query_respond_any(query_ctx_t *qctx) {
 		CCTRACE(ISC_LOG_ERROR, "query_respond_any: allrdatasets "
 				       "failed");
 		QUERY_ERROR(qctx, result);
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	/*
@@ -7780,7 +7780,7 @@ query_respond_any(query_ctx_t *qctx) {
 		CCTRACE(ISC_LOG_ERROR, "query_respond_any: rdataset iterator "
 				       "failed");
 		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 
 	if (found) {
@@ -7812,7 +7812,7 @@ query_respond_any(query_ctx_t *qctx) {
 			qctx->authoritative = false;
 			qctx->client->attributes &= ~NS_CLIENTATTR_RA;
 			query_addauth(qctx);
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 
 		if (qctx->qtype == dns_rdatatype_rrsig &&
@@ -7827,7 +7827,7 @@ query_respond_any(query_ctx_t *qctx) {
 		}
 
 		qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-		return (query_sign_nodata(qctx));
+		return query_sign_nodata(qctx);
 	} else if (!hidden) {
 		/*
 		 * No matching rdatasets were found and nothing was
@@ -7836,10 +7836,10 @@ query_respond_any(query_ctx_t *qctx) {
 		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 	}
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*
@@ -7936,24 +7936,24 @@ query_addanswer(query_ctx_t *qctx) {
 #ifndef dns64_bis_return_excluded_addresses
 			if (qctx->dns64_exclude) {
 				if (!qctx->is_zone) {
-					return (ns_query_done(qctx));
+					return ns_query_done(qctx);
 				}
 				/*
 				 * Add a fake SOA record.
 				 */
 				(void)query_addsoa(qctx, 600,
 						   DNS_SECTION_AUTHORITY);
-				return (ns_query_done(qctx));
+				return ns_query_done(qctx);
 			}
 #endif /* ifndef dns64_bis_return_excluded_addresses */
 			if (qctx->is_zone) {
-				return (query_nodata(qctx, DNS_R_NXDOMAIN));
+				return query_nodata(qctx, DNS_R_NXDOMAIN);
 			} else {
-				return (query_ncache(qctx, DNS_R_NXDOMAIN));
+				return query_ncache(qctx, DNS_R_NXDOMAIN);
 			}
 		} else if (result != ISC_R_SUCCESS) {
 			qctx->result = result;
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 	} else if (qctx->client->query.dns64_aaaaok != NULL) {
 		query_filter64(qctx);
@@ -7972,10 +7972,10 @@ query_addanswer(query_ctx_t *qctx) {
 			       sigrdatasetp, qctx->dbuf, DNS_SECTION_ANSWER);
 	}
 
-	return (ISC_R_COMPLETE);
+	return ISC_R_COMPLETE;
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -8010,7 +8010,7 @@ query_respond(query_ctx_t *qctx) {
 		qctx->type = qctx->qtype = dns_rdatatype_a;
 		qctx->dns64_exclude = qctx->dns64 = true;
 
-		return (query_lookup(qctx));
+		return query_lookup(qctx);
 	}
 
 	/*
@@ -8061,7 +8061,7 @@ query_respond(query_ctx_t *qctx) {
 
 	result = query_addanswer(qctx);
 	if (result != ISC_R_COMPLETE) {
-		return (result);
+		return result;
 	}
 
 	query_addnoqnameproof(qctx);
@@ -8080,10 +8080,10 @@ query_respond(query_ctx_t *qctx) {
 
 	query_addauth(qctx);
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 static isc_result_t
@@ -8140,7 +8140,7 @@ query_dns64(query_ctx_t *qctx) {
 		if (qctx->dbuf != NULL) {
 			ns_client_releasename(client, &qctx->fname);
 		}
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	} else if (result == DNS_R_NXDOMAIN) {
 		/*
 		 * The name doesn't exist.
@@ -8268,7 +8268,7 @@ cleanup:
 	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_dns64: done");
-	return (result);
+	return result;
 }
 
 static void
@@ -8481,24 +8481,24 @@ query_notfound(query_ctx_t *qctx) {
 				 * already set up 'qctx' for looking up a
 				 * stale response.
 				 */
-				return (query_lookup(qctx));
+				return query_lookup(qctx);
 			} else {
 				QUERY_ERROR(qctx, result);
 			}
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		} else {
 			/* Unable to give root server referral. */
 			CCTRACE(ISC_LOG_ERROR, "unable to give root server "
 					       "referral");
 			QUERY_ERROR(qctx, result);
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 	}
 
-	return (query_delegation(qctx));
+	return query_delegation(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -8549,10 +8549,10 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 	 */
 	query_addds(qctx);
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -8614,7 +8614,7 @@ query_zone_delegation(query_ctx_t *qctx) {
 			RESTORE(qctx->zone, tzone);
 			qctx->authoritative = true;
 
-			return (query_lookup(qctx));
+			return query_lookup(qctx);
 		}
 	}
 
@@ -8642,13 +8642,13 @@ query_zone_delegation(query_ctx_t *qctx) {
 		dns_db_attach(qctx->view->cachedb, &qctx->db);
 		qctx->is_zone = false;
 
-		return (query_lookup(qctx));
+		return query_lookup(qctx);
 	}
 
-	return (query_prepare_delegation_response(qctx));
+	return query_prepare_delegation_response(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -8670,7 +8670,7 @@ query_delegation(query_ctx_t *qctx) {
 	qctx->authoritative = false;
 
 	if (qctx->is_zone) {
-		return (query_zone_delegation(qctx));
+		return query_zone_delegation(qctx);
 	}
 
 	if (qctx->zfname != NULL &&
@@ -8720,13 +8720,13 @@ query_delegation(query_ctx_t *qctx) {
 
 	result = query_delegation_recurse(qctx);
 	if (result != ISC_R_COMPLETE) {
-		return (result);
+		return result;
 	}
 
-	return (query_prepare_delegation_response(qctx));
+	return query_prepare_delegation_response(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -8741,7 +8741,7 @@ query_delegation_recurse(query_ctx_t *qctx) {
 	CCTRACE(ISC_LOG_DEBUG(3), "query_delegation_recurse");
 
 	if (!RECURSIONOK(qctx->client)) {
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 	}
 
 	CALL_HOOK(NS_QUERY_DELEGATION_RECURSE_BEGIN, qctx);
@@ -8791,15 +8791,15 @@ query_delegation_recurse(query_ctx_t *qctx) {
 		 * If serve-stale is enabled, query_usestale() already set up
 		 * 'qctx' for looking up a stale response.
 		 */
-		return (query_lookup(qctx));
+		return query_lookup(qctx);
 	} else {
 		QUERY_ERROR(qctx, result);
 	}
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -8995,7 +8995,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t res) {
 		 * Resume the diverted processing of the AAAA response?
 		 */
 		if (qctx->dns64_exclude) {
-			return (query_prepresponse(qctx));
+			return query_prepresponse(qctx);
 		}
 #endif /* ifdef dns64_bis_return_excluded_addresses */
 	} else if ((result == DNS_R_NXRRSET || result == DNS_R_NCACHENXRRSET) &&
@@ -9038,11 +9038,11 @@ query_nodata(query_ctx_t *qctx, isc_result_t res) {
 		dns_db_detachnode(qctx->db, &qctx->node);
 		qctx->type = qctx->qtype = dns_rdatatype_a;
 		qctx->dns64 = true;
-		return (query_lookup(qctx));
+		return query_lookup(qctx);
 	}
 
 	if (qctx->is_zone) {
-		return (query_sign_nodata(qctx));
+		return query_sign_nodata(qctx);
 	} else {
 		/*
 		 * We don't call query_addrrset() because we don't need any
@@ -9060,10 +9060,10 @@ query_nodata(query_ctx_t *qctx, isc_result_t res) {
 		}
 	}
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -9079,7 +9079,7 @@ query_sign_nodata(query_ctx_t *qctx) {
 	 * Look for a NSEC3 record if we don't have a NSEC record.
 	 */
 	if (qctx->redirected) {
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	}
 	if (!dns_rdataset_isassociated(qctx->rdataset) &&
 	    WANTDNSSEC(qctx->client))
@@ -9139,7 +9139,7 @@ query_sign_nodata(query_ctx_t *qctx) {
 							       "closest "
 							       "encloser");
 					QUERY_ERROR(qctx, ISC_R_NOMEMORY);
-					return (ns_query_done(qctx));
+					return ns_query_done(qctx);
 				}
 				/*
 				 * 'nearest' doesn't exist so
@@ -9180,7 +9180,7 @@ query_sign_nodata(query_ctx_t *qctx) {
 		result = query_addsoa(qctx, UINT32_MAX, DNS_SECTION_AUTHORITY);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(qctx, result);
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 	}
 
@@ -9193,7 +9193,7 @@ query_sign_nodata(query_ctx_t *qctx) {
 		query_addnxrrsetnsec(qctx);
 	}
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 }
 
 static void
@@ -9268,7 +9268,7 @@ query_nxdomain(query_ctx_t *qctx, isc_result_t result) {
 	if (!empty_wild) {
 		result = query_redirect(qctx, result);
 		if (result != ISC_R_COMPLETE) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -9311,7 +9311,7 @@ query_nxdomain(query_ctx_t *qctx, isc_result_t result) {
 		result = query_addsoa(qctx, ttl, section);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(qctx, result);
-			return (ns_query_done(qctx));
+			return ns_query_done(qctx);
 		}
 	}
 
@@ -9336,10 +9336,10 @@ query_nxdomain(query_ctx_t *qctx, isc_result_t result) {
 		qctx->client->message->rcode = dns_rcode_nxdomain;
 	}
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*
@@ -9364,15 +9364,15 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	switch (result) {
 	case ISC_R_SUCCESS:
 		inc_stats(qctx->client, ns_statscounter_nxdomainredirect);
-		return (query_prepresponse(qctx));
+		return query_prepresponse(qctx);
 	case DNS_R_NXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = true;
-		return (query_nodata(qctx, DNS_R_NXRRSET));
+		return query_nodata(qctx, DNS_R_NXRRSET);
 	case DNS_R_NCACHENXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = false;
-		return (query_ncache(qctx, DNS_R_NCACHENXRRSET));
+		return query_ncache(qctx, DNS_R_NCACHENXRRSET);
 	default:
 		break;
 	}
@@ -9383,7 +9383,7 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	switch (result) {
 	case ISC_R_SUCCESS:
 		inc_stats(qctx->client, ns_statscounter_nxdomainredirect);
-		return (query_prepresponse(qctx));
+		return query_prepresponse(qctx);
 	case DNS_R_CONTINUE:
 		inc_stats(qctx->client,
 			  ns_statscounter_nxdomainredirect_rlookup);
@@ -9400,20 +9400,20 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 		qctx->client->query.redirect.authoritative =
 			qctx->authoritative;
 		qctx->client->query.redirect.is_zone = qctx->is_zone;
-		return (ns_query_done(qctx));
+		return ns_query_done(qctx);
 	case DNS_R_NXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = true;
-		return (query_nodata(qctx, DNS_R_NXRRSET));
+		return query_nodata(qctx, DNS_R_NXRRSET);
 	case DNS_R_NCACHENXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = false;
-		return (query_ncache(qctx, DNS_R_NCACHENXRRSET));
+		return query_ncache(qctx, DNS_R_NCACHENXRRSET);
 	default:
 		break;
 	}
 
-	return (ISC_R_COMPLETE);
+	return ISC_R_COMPLETE;
 }
 
 /*%
@@ -9461,7 +9461,7 @@ query_synthttl(dns_rdataset_t *soardataset, dns_rdataset_t *sigsoardataset,
 		ttl = ISC_MIN(ttl, sigp2rdataset->ttl);
 	}
 
-	return (ttl);
+	return ttl;
 }
 
 /*
@@ -9518,7 +9518,7 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 	if (name != NULL) {
 		ns_client_releasename(qctx->client, &name);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -9585,7 +9585,7 @@ query_synthwildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	if (clonesigset != NULL) {
 		ns_client_putrdataset(qctx->client, &clonesigset);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -9603,7 +9603,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 
 	result = query_synthwildcard(qctx, rdataset, sigrdataset);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	qctx->client->query.attributes |= NS_QUERYATTR_PARTIALANSWER;
@@ -9617,7 +9617,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS) {
 		dns_message_puttempname(qctx->client->message, &tname);
-		return (result);
+		return result;
 	}
 
 	dns_rdataset_current(rdataset, &rdata);
@@ -9628,7 +9628,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	if (dns_name_equal(qctx->client->query.qname, &cname.cname)) {
 		dns_message_puttempname(qctx->client->message, &tname);
 		dns_rdata_freestruct(&cname);
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	dns_name_copy(&cname.cname, tname);
@@ -9640,7 +9640,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 		qctx->options.nolog = true;
 	}
 
-	return (result);
+	return result;
 }
 
 /*
@@ -9734,7 +9734,7 @@ query_synthnxdomainnodata(query_ctx_t *qctx, bool nodata, dns_name_t *nowild,
 	if (clonesigset != NULL) {
 		ns_client_putrdataset(qctx->client, &clonesigset);
 	}
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -9756,11 +9756,11 @@ checksignames(dns_name_t *signer, dns_rdataset_t *sigrdataset) {
 		if (dns_name_countlabels(signer) == 0) {
 			dns_name_copy(&rrsig.signer, signer);
 		} else if (!dns_name_equal(signer, &rrsig.signer)) {
-			return (ISC_R_FAILURE);
+			return ISC_R_FAILURE;
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -10055,7 +10055,7 @@ cleanup:
 	}
 
 	if (redirected) {
-		return (result);
+		return result;
 	}
 
 	if (!done) {
@@ -10073,10 +10073,10 @@ cleanup:
 		if (qctx->sigrdataset != NULL) {
 			ns_client_putrdataset(qctx->client, &qctx->sigrdataset);
 		}
-		return (query_lookup(qctx));
+		return query_lookup(qctx);
 	}
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 }
 
 /*%
@@ -10114,10 +10114,10 @@ query_ncache(query_ctx_t *qctx, isc_result_t result) {
 		}
 	}
 
-	return (query_nodata(qctx, result));
+	return query_nodata(qctx, result);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*
@@ -10132,7 +10132,7 @@ query_zerottl_refetch(query_ctx_t *qctx) {
 	if (qctx->is_zone || qctx->resuming || STALE(qctx->rdataset) ||
 	    qctx->rdataset->ttl != 0 || !RECURSIONOK(qctx->client))
 	{
-		return (ISC_R_COMPLETE);
+		return ISC_R_COMPLETE;
 	}
 
 	qctx_clean(qctx);
@@ -10161,10 +10161,10 @@ query_zerottl_refetch(query_ctx_t *qctx) {
 		QUERY_ERROR(qctx, result);
 	}
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*
@@ -10259,10 +10259,10 @@ query_cname(query_ctx_t *qctx) {
 
 	query_addauth(qctx);
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*
@@ -10412,10 +10412,10 @@ query_dname(query_ctx_t *qctx) {
 
 	query_addauth(qctx);
 
-	return (ns_query_done(qctx));
+	return ns_query_done(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -10488,7 +10488,7 @@ query_prepresponse(query_ctx_t *qctx) {
 	}
 
 	if (qctx->type == dns_rdatatype_any) {
-		return (query_respond_any(qctx));
+		return query_respond_any(qctx);
 	}
 
 	result = query_zerottl_refetch(qctx);
@@ -10496,10 +10496,10 @@ query_prepresponse(query_ctx_t *qctx) {
 		goto cleanup;
 	}
 
-	return (query_respond(qctx));
+	return query_respond(qctx);
 
 cleanup:
-	return (result);
+	return result;
 }
 
 /*%
@@ -10530,7 +10530,7 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 	if (((client->manager->sctx->options & NS_SERVER_NOSOA) != 0) &&
 	    (!WANTDNSSEC(client) || !dns_rdataset_isassociated(qctx->rdataset)))
 	{
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -10630,7 +10630,7 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 		dns_db_detachnode(qctx->db, &node);
 	}
 
-	return (eresult);
+	return eresult;
 }
 
 /*%
@@ -10715,7 +10715,7 @@ query_addns(query_ctx_t *qctx) {
 	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_addns: done");
-	return (eresult);
+	return eresult;
 }
 
 /*%
@@ -11280,9 +11280,9 @@ query_sortlist_order_2element(const dns_rdata_t *rdata, const void *arg) {
 	isc_netaddr_t netaddr;
 
 	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS) {
-		return (INT_MAX);
+		return INT_MAX;
 	}
-	return (ns_sortlist_addrorder2(&netaddr, arg));
+	return ns_sortlist_addrorder2(&netaddr, arg);
 }
 
 /*
@@ -11294,9 +11294,9 @@ query_sortlist_order_1element(const dns_rdata_t *rdata, const void *arg) {
 	isc_netaddr_t netaddr;
 
 	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS) {
-		return (INT_MAX);
+		return INT_MAX;
 	}
-	return (ns_sortlist_addrorder1(&netaddr, arg));
+	return ns_sortlist_addrorder1(&netaddr, arg);
 }
 
 /*
@@ -11433,7 +11433,7 @@ ns_query_done(query_ctx_t *qctx) {
 					    &qctx->client->restarthandle);
 			isc_async_run(qctx->client->manager->loop,
 				      async_restart, saved_qctx);
-			return (DNS_R_CONTINUE);
+			return DNS_R_CONTINUE;
 		} else {
 			/*
 			 * This is e.g. a long CNAME chain which we cut short.
@@ -11483,7 +11483,7 @@ ns_query_done(query_ctx_t *qctx) {
 		}
 
 		qctx->detach_client = true;
-		return (qctx->result);
+		return qctx->result;
 	}
 
 	/*
@@ -11494,7 +11494,7 @@ ns_query_done(query_ctx_t *qctx) {
 	    (!QUERY_STALETIMEOUT(&qctx->client->query) ||
 	     qctx->options.stalefirst))
 	{
-		return (qctx->result);
+		return qctx->result;
 	}
 
 	/*
@@ -11545,10 +11545,10 @@ ns_query_done(query_ctx_t *qctx) {
 
 	qctx->detach_client = true;
 
-	return (qctx->result);
+	return qctx->result;
 
 cleanup:
-	return (result);
+	return result;
 }
 
 static void

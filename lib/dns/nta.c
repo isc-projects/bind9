@@ -304,7 +304,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 	REQUIRE(VALID_NTATABLE(ntatable));
 
 	if (atomic_load(&ntatable->shuttingdown)) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
@@ -341,7 +341,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 	dns_qpmulti_commit(ntatable->table, &qp);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -363,7 +363,7 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(ntatable->table, &qp);
 
-	return (result);
+	return result;
 }
 
 static void
@@ -445,7 +445,7 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 done:
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 	dns_qpread_destroy(ntatable->table, &qpr);
-	return (answer);
+	return answer;
 }
 
 static isc_result_t
@@ -454,11 +454,11 @@ putstr(isc_buffer_t **b, const char *str) {
 
 	result = isc_buffer_reserve(*b, strlen(str));
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	isc_buffer_putstr(*b, str);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -515,7 +515,7 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 cleanup:
 	dns_qpread_destroy(ntatable->table, &qpr);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -573,7 +573,7 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 		result = ISC_R_NOTFOUND;
 	}
 
-	return (result);
+	return result;
 }
 
 static void
@@ -648,7 +648,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns__nta_t *nta = pval;
-	return (dns_qpkey_fromname(key, &nta->name));
+	return dns_qpkey_fromname(key, &nta->name);
 }
 
 static void

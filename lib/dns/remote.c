@@ -28,31 +28,31 @@
 isc_sockaddr_t *
 dns_remote_addresses(dns_remote_t *remote) {
 	REQUIRE(DNS_REMOTE_VALID(remote));
-	return (remote->addresses);
+	return remote->addresses;
 }
 
 isc_sockaddr_t *
 dns_remote_sources(dns_remote_t *remote) {
 	REQUIRE(DNS_REMOTE_VALID(remote));
-	return (remote->sources);
+	return remote->sources;
 }
 
 unsigned int
 dns_remote_count(dns_remote_t *remote) {
 	REQUIRE(DNS_REMOTE_VALID(remote));
-	return (remote->addrcnt);
+	return remote->addrcnt;
 }
 
 dns_name_t **
 dns_remote_keynames(dns_remote_t *remote) {
 	REQUIRE(DNS_REMOTE_VALID(remote));
-	return (remote->keynames);
+	return remote->keynames;
 }
 
 dns_name_t **
 dns_remote_tlsnames(dns_remote_t *remote) {
 	REQUIRE(DNS_REMOTE_VALID(remote));
-	return (remote->tlsnames);
+	return remote->tlsnames;
 }
 
 void
@@ -145,18 +145,18 @@ same_addrs(isc_sockaddr_t const *oldlist, isc_sockaddr_t const *newlist,
 	unsigned int i;
 
 	if (oldlist == NULL && newlist == NULL) {
-		return (true);
+		return true;
 	}
 	if (oldlist == NULL || newlist == NULL) {
-		return (false);
+		return false;
 	}
 
 	for (i = 0; i < count; i++) {
 		if (!isc_sockaddr_equal(&oldlist[i], &newlist[i])) {
-			return (false);
+			return false;
 		}
 	}
-	return (true);
+	return true;
 }
 
 static bool
@@ -165,10 +165,10 @@ same_names(dns_name_t *const *oldlist, dns_name_t *const *newlist,
 	unsigned int i;
 
 	if (oldlist == NULL && newlist == NULL) {
-		return (true);
+		return true;
 	}
 	if (oldlist == NULL || newlist == NULL) {
-		return (false);
+		return false;
 	}
 
 	for (i = 0; i < count; i++) {
@@ -178,10 +178,10 @@ same_names(dns_name_t *const *oldlist, dns_name_t *const *newlist,
 		if (oldlist[i] == NULL || newlist[i] == NULL ||
 		    !dns_name_equal(oldlist[i], newlist[i]))
 		{
-			return (false);
+			return false;
 		}
 	}
-	return (true);
+	return true;
 }
 
 void
@@ -256,20 +256,20 @@ dns_remote_equal(dns_remote_t *a, dns_remote_t *b) {
 	REQUIRE(DNS_REMOTE_VALID(b));
 
 	if (a->addrcnt != b->addrcnt) {
-		return (false);
+		return false;
 	}
 
 	if (!same_addrs(a->addresses, b->addresses, a->addrcnt)) {
-		return (false);
+		return false;
 	}
 	if (!same_names(a->keynames, b->keynames, a->addrcnt)) {
-		return (false);
+		return false;
 	}
 	if (!same_names(a->tlsnames, b->tlsnames, a->addrcnt)) {
-		return (false);
+		return false;
 	}
 
-	return (true);
+	return true;
 }
 
 void
@@ -291,7 +291,7 @@ dns_remote_curraddr(dns_remote_t *remote) {
 	REQUIRE(remote->addresses != NULL);
 	REQUIRE(remote->curraddr < remote->addrcnt);
 
-	return (remote->addresses[remote->curraddr]);
+	return remote->addresses[remote->curraddr];
 }
 
 isc_sockaddr_t
@@ -300,7 +300,7 @@ dns_remote_addr(dns_remote_t *remote, unsigned int i) {
 	REQUIRE(remote->addresses != NULL);
 	REQUIRE(i < remote->addrcnt);
 
-	return (remote->addresses[i]);
+	return remote->addresses[i];
 }
 
 isc_sockaddr_t
@@ -309,7 +309,7 @@ dns_remote_sourceaddr(dns_remote_t *remote) {
 	REQUIRE(remote->sources != NULL);
 	REQUIRE(remote->curraddr < remote->addrcnt);
 
-	return (remote->sources[remote->curraddr]);
+	return remote->sources[remote->curraddr];
 }
 
 dns_name_t *
@@ -317,13 +317,13 @@ dns_remote_keyname(dns_remote_t *remote) {
 	REQUIRE(DNS_REMOTE_VALID(remote));
 
 	if (remote->keynames == NULL) {
-		return (NULL);
+		return NULL;
 	}
 	if (remote->curraddr >= remote->addrcnt) {
-		return (NULL);
+		return NULL;
 	}
 
-	return (remote->keynames[remote->curraddr]);
+	return remote->keynames[remote->curraddr];
 }
 
 dns_name_t *
@@ -331,13 +331,13 @@ dns_remote_tlsname(dns_remote_t *remote) {
 	REQUIRE(DNS_REMOTE_VALID(remote));
 
 	if (remote->tlsnames == NULL) {
-		return (NULL);
+		return NULL;
 	}
 	if (remote->curraddr >= remote->addrcnt) {
-		return (NULL);
+		return NULL;
 	}
 
-	return (remote->tlsnames[remote->curraddr]);
+	return remote->tlsnames[remote->curraddr];
 }
 
 void
@@ -360,7 +360,7 @@ bool
 dns_remote_done(dns_remote_t *remote) {
 	REQUIRE(DNS_REMOTE_VALID(remote));
 
-	return (remote->curraddr >= remote->addrcnt);
+	return remote->curraddr >= remote->addrcnt;
 }
 
 void

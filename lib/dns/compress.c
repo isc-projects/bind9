@@ -82,7 +82,7 @@ dns_compress_setpermitted(dns_compress_t *cctx, bool permitted) {
 bool
 dns_compress_getpermitted(dns_compress_t *cctx) {
 	REQUIRE(CCTX_VALID(cctx));
-	return ((cctx->flags & DNS_COMPRESS_PERMITTED) != 0);
+	return (cctx->flags & DNS_COMPRESS_PERMITTED) != 0;
 }
 
 /*
@@ -109,16 +109,16 @@ hash_label(uint16_t init, uint8_t *ptr, bool sensitive) {
 		}
 	}
 
-	return (isc_hash_bits32(hash, 16));
+	return isc_hash_bits32(hash, 16);
 }
 
 static bool
 match_wirename(uint8_t *a, uint8_t *b, unsigned int len, bool sensitive) {
 	if (sensitive) {
-		return (memcmp(a, b, len) == 0);
+		return memcmp(a, b, len) == 0;
 	} else {
 		/* label lengths are < 'A' so unaffected by tolower() */
-		return (isc_ascii_lowerequal(a, b, len));
+		return isc_ascii_lowerequal(a, b, len);
 	}
 }
 
@@ -164,7 +164,7 @@ match_suffix(isc_buffer_t *buffer, unsigned int new_coff, uint8_t *sptr,
 	INSIST(llen <= 64 && llen < slen);
 
 	if (blen < new_coff + llen) {
-		return (false);
+		return false;
 	}
 
 	blen -= new_coff;
@@ -172,12 +172,12 @@ match_suffix(isc_buffer_t *buffer, unsigned int new_coff, uint8_t *sptr,
 
 	/* does the first label of the suffix appear here? */
 	if (!match_wirename(bptr, sptr, llen, sensitive)) {
-		return (false);
+		return false;
 	}
 
 	/* is this label followed by the previously matched suffix? */
 	if (old_coff == new_coff + llen) {
-		return (true);
+		return true;
 	}
 
 	blen -= llen;
@@ -187,16 +187,16 @@ match_suffix(isc_buffer_t *buffer, unsigned int new_coff, uint8_t *sptr,
 
 	/* are both labels followed by the root label? */
 	if (blen >= 1 && slen == 1 && bptr[0] == 0 && sptr[0] == 0) {
-		return (true);
+		return true;
 	}
 
 	/* is this label followed by a pointer to the previous match? */
 	if (blen >= 2 && bptr[0] == pptr[0] && bptr[1] == pptr[1]) {
-		return (true);
+		return true;
 	}
 
 	/* is this label followed by a copy of the rest of the suffix? */
-	return (blen >= slen && match_wirename(bptr, sptr, slen, sensitive));
+	return blen >= slen && match_wirename(bptr, sptr, slen, sensitive);
 }
 
 /*
@@ -209,12 +209,12 @@ match_suffix(isc_buffer_t *buffer, unsigned int new_coff, uint8_t *sptr,
  */
 static unsigned int
 probe_distance(dns_compress_t *cctx, unsigned int slot) {
-	return ((slot - cctx->set[slot].hash) & cctx->mask);
+	return (slot - cctx->set[slot].hash) & cctx->mask;
 }
 
 static unsigned int
 slot_index(dns_compress_t *cctx, unsigned int hash, unsigned int probe) {
-	return ((hash + probe) & cctx->mask);
+	return (hash + probe) & cctx->mask;
 }
 
 static bool
@@ -227,7 +227,7 @@ insert_label(dns_compress_t *cctx, isc_buffer_t *buffer, const dns_name_t *name,
 	unsigned int prefix_len = name->offsets[label];
 	unsigned int coff = isc_buffer_usedlength(buffer) + prefix_len;
 	if (coff >= 0x4000 || cctx->count > cctx->mask * 3 / 4) {
-		return (false);
+		return false;
 	}
 	for (;;) {
 		unsigned int slot = slot_index(cctx, hash, probe);
@@ -236,7 +236,7 @@ insert_label(dns_compress_t *cctx, isc_buffer_t *buffer, const dns_name_t *name,
 			cctx->set[slot].hash = hash;
 			cctx->set[slot].coff = coff;
 			cctx->count++;
-			return (true);
+			return true;
 		}
 		/* he steals from the rich and gives to the poor */
 		if (probe > probe_distance(cctx, slot)) {

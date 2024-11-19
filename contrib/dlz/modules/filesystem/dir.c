@@ -32,7 +32,7 @@ dir_open(dir_t *dir, const char *dirname) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (strlen(dirname) + 3 > sizeof(dir->dirname)) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	strcpy(dir->dirname, dirname);
 
@@ -69,7 +69,7 @@ dir_open(dir_t *dir, const char *dirname) {
 		}
 	}
 
-	return (result);
+	return result;
 }
 
 /*!
@@ -85,17 +85,17 @@ dir_read(dir_t *dir) {
 
 	entry = readdir(dir->handle);
 	if (entry == NULL) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	if (sizeof(dir->entry.name) <= strlen(entry->d_name)) {
-		return (ISC_R_UNEXPECTED);
+		return ISC_R_UNEXPECTED;
 	}
 
 	strcpy(dir->entry.name, entry->d_name);
 
 	dir->entry.length = strlen(entry->d_name);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*!
@@ -114,5 +114,5 @@ isc_result_t
 dir_reset(dir_t *dir) {
 	rewinddir(dir->handle);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

@@ -44,7 +44,7 @@ ISC_SETUP_TEST_IMPL(group) {
 		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, 0,
 		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
 
-	return (0);
+	return 0;
 }
 
 struct duration_conf {

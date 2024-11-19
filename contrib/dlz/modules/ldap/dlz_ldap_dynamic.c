@@ -170,7 +170,7 @@ cleanup:
 		ldap_free_urldesc(ldap_url);
 	}
 
-	return (result);
+	return result;
 }
 
 /*% Connects / reconnects to LDAP server */
@@ -190,7 +190,7 @@ dlz_ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc) {
 	/* initialize. */
 	dbc->dbconn = ldap_init(dbi->hosts, LDAP_PORT);
 	if (dbc->dbconn == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	/* set protocol version. */
@@ -210,7 +210,7 @@ dlz_ldap_connect(ldap_instance_t *dbi, dbinstance_t *dbc) {
 		goto cleanup;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 
@@ -220,7 +220,7 @@ cleanup:
 		dbc->dbconn = NULL;
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -275,7 +275,7 @@ dlz_ldap_find_avail_conn(ldap_instance_t *ldap) {
 	while (count < dbc_search_limit) {
 		/* try to lock on the mutex */
 		if (dlz_mutex_trylock(&dbi->lock) == 0) {
-			return (dbi); /* success, return the DBI for use. */
+			return dbi; /* success, return the DBI for use. */
 		}
 		/* not successful, keep trying */
 		dbi = DLZ_LIST_NEXT(dbi, link);
@@ -291,7 +291,7 @@ dlz_ldap_find_avail_conn(ldap_instance_t *ldap) {
 		  "LDAP driver unable to find available connection "
 		  "after searching %d times",
 		  count);
-	return (NULL);
+	return NULL;
 }
 
 static isc_result_t
@@ -314,7 +314,7 @@ dlz_ldap_process_results(ldap_instance_t *db, LDAP *dbc, LDAPMessage *msg,
 	entry = ldap_first_entry(dbc, msg);
 	if (entry == NULL) {
 		db->log(ISC_LOG_INFO, "LDAP no entries to process.");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* loop through all entries returned */
@@ -507,7 +507,7 @@ cleanup:
 		free(data);
 	}
 
-	return (result);
+	return result;
 }
 
 /*%
@@ -541,7 +541,7 @@ dlz_ldap_get_results(const char *zone, const char *record, const char *client,
 
 	/* if DBI is null, can't do anything else */
 	if (dbi == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* set fields */
@@ -802,7 +802,7 @@ cleanup:
 	}
 
 	/* return result */
-	return (result);
+	return result;
 }
 
 /*
@@ -819,25 +819,25 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	result = dlz_findzonedb(dbdata, name, NULL, NULL);
 #endif /* if DLZ_DLOPEN_VERSION < 3 */
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	/* get all the zone data */
 	result = dlz_ldap_get_results(name, NULL, client, ALLOWXFR, dbdata,
 				      NULL);
-	return (result);
+	return result;
 }
 
 isc_result_t
 dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
-	return (dlz_ldap_get_results(zone, NULL, NULL, ALLNODES, dbdata,
-				     allnodes));
+	return dlz_ldap_get_results(zone, NULL, NULL, ALLNODES, dbdata,
+				    allnodes);
 }
 
 isc_result_t
 dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
-	return (dlz_ldap_get_results(zone, NULL, NULL, AUTHORITY, dbdata,
-				     lookup));
+	return dlz_ldap_get_results(zone, NULL, NULL, AUTHORITY, dbdata,
+				    lookup);
 }
 
 #if DLZ_DLOPEN_VERSION < 3
@@ -853,7 +853,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	UNUSED(methods);
 	UNUSED(clientinfo);
 #endif /* if DLZ_DLOPEN_VERSION >= 3 */
-	return (dlz_ldap_get_results(name, NULL, NULL, FINDZONE, dbdata, NULL));
+	return dlz_ldap_get_results(name, NULL, NULL, FINDZONE, dbdata, NULL);
 }
 
 #if DLZ_DLOPEN_VERSION == 1
@@ -881,7 +881,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		result = dlz_ldap_get_results(zone, name, NULL, LOOKUP, dbdata,
 					      lookup);
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -900,7 +900,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	/* allocate memory for LDAP instance */
 	ldap = calloc(1, sizeof(ldap_instance_t));
 	if (ldap == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	memset(ldap, 0, sizeof(ldap_instance_t));
 
@@ -1131,12 +1131,12 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	/* set dbdata to the ldap_instance we created. */
 	*dbdata = ldap;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 cleanup:
 	dlz_destroy(ldap);
 
-	return (result);
+	return result;
 }
 
 void
@@ -1167,7 +1167,7 @@ dlz_destroy(void *dbdata) {
 int
 dlz_version(unsigned int *flags) {
 	*flags |= DNS_SDLZFLAG_RELATIVERDATA | DNS_SDLZFLAG_THREADSAFE;
-	return (DLZ_DLOPEN_VERSION);
+	return DLZ_DLOPEN_VERSION;
 }
 
 /*

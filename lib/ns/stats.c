@@ -82,7 +82,7 @@ isc_statscounter_t
 ns_stats_increment(ns_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(NS_STATS_VALID(stats));
 
-	return (isc_stats_increment(stats->counters, counter));
+	return isc_stats_increment(stats->counters, counter);
 }
 
 void
@@ -96,7 +96,7 @@ isc_stats_t *
 ns_stats_get(ns_stats_t *stats) {
 	REQUIRE(NS_STATS_VALID(stats));
 
-	return (stats->counters);
+	return stats->counters;
 }
 
 void
@@ -111,5 +111,5 @@ isc_statscounter_t
 ns_stats_get_counter(ns_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(NS_STATS_VALID(stats));
 
-	return (isc_stats_get_counter(stats->counters, counter));
+	return isc_stats_get_counter(stats->counters, counter);
 }

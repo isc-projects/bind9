@@ -37,7 +37,7 @@ extern const uint8_t isc__ascii_toupper[256];
  */
 static inline uint8_t
 isc__ascii_tolower1(uint8_t c) {
-	return (c + ('a' - 'A') * ('A' <= c && c <= 'Z'));
+	return c + ('a' - 'A') * ('A' <= c && c <= 'Z');
 }
 
 /*
@@ -100,7 +100,7 @@ isc_ascii_tolower8(uint64_t octets) {
 	 * Move the is_upper flag bits to bit 0x20 (which is 'a' - 'A')
 	 * and use them to adjust each byte as required
 	 */
-	return (octets | (is_upper >> 2));
+	return octets | (is_upper >> 2);
 }
 
 /*
@@ -114,7 +114,7 @@ isc_ascii_tolower4(uint32_t octets) {
 	uint32_t is_gt_Z = heptets + (0x7F - 'Z') * all_bytes;
 	uint32_t is_ge_A = heptets + (0x80 - 'A') * all_bytes;
 	uint32_t is_upper = (is_ge_A ^ is_gt_Z) & is_ascii;
-	return (octets | (is_upper >> 2));
+	return octets | (is_upper >> 2);
 }
 
 /*
@@ -124,7 +124,7 @@ static inline uint64_t
 isc__ascii_load8(const uint8_t *ptr) {
 	uint64_t bytes = 0;
 	memmove(&bytes, ptr, sizeof(bytes));
-	return (bytes);
+	return bytes;
 }
 
 /*
@@ -137,7 +137,7 @@ isc_ascii_lowerequal(const uint8_t *a, const uint8_t *b, unsigned int len) {
 		a8 = isc_ascii_tolower8(isc__ascii_load8(a));
 		b8 = isc_ascii_tolower8(isc__ascii_load8(b));
 		if (a8 != b8) {
-			return (false);
+			return false;
 		}
 		len -= 8;
 		a += 8;
@@ -145,10 +145,10 @@ isc_ascii_lowerequal(const uint8_t *a, const uint8_t *b, unsigned int len) {
 	}
 	while (len-- > 0) {
 		if (isc_ascii_tolower(*a++) != isc_ascii_tolower(*b++)) {
-			return (false);
+			return false;
 		}
 	}
-	return (true);
+	return true;
 }
 
 /*
@@ -179,10 +179,10 @@ isc_ascii_lowercmp(const uint8_t *a, const uint8_t *b, unsigned int len) {
 	}
 ret:
 	if (a8 < b8) {
-		return (-1);
+		return -1;
 	}
 	if (a8 > b8) {
-		return (+1);
+		return +1;
 	}
-	return (0);
+	return 0;
 }

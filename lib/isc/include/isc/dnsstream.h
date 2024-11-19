@@ -268,7 +268,7 @@ isc_dnsstream_assembler_new(isc_mem_t *memctx, isc_dnsstream_assembler_cb_t cb,
 	newasm = isc_mem_get(memctx, sizeof(*newasm));
 	isc_dnsstream_assembler_init(newasm, memctx, cb, cbarg);
 
-	return (newasm);
+	return newasm;
 }
 
 static inline void
@@ -306,7 +306,7 @@ isc__dnsstream_assembler_callcb(isc_dnsstream_assembler_t *restrict dnsasm,
 	ret = dnsasm->onmsg_cb(dnsasm, result, region, dnsasm->cbarg, userarg);
 	dnsasm->calling_cb = false;
 
-	return (ret);
+	return ret;
 }
 
 static inline bool
@@ -361,7 +361,7 @@ isc__dnsstream_assembler_handle_message(
 						      userarg);
 	}
 
-	return (cont);
+	return cont;
 }
 
 static inline void
@@ -420,7 +420,7 @@ isc__dnsstream_assembler_incoming_direct_non_empty(
 	size_t	 remaining_no_len;
 
 	if (isc_buffer_peekuint16(dnsasm->current, &dnslen) != ISC_R_SUCCESS) {
-		return (false);
+		return false;
 	}
 
 	remaining = isc_buffer_remaininglength(dnsasm->current);
@@ -431,7 +431,7 @@ isc__dnsstream_assembler_incoming_direct_non_empty(
 	 * previous iteration we stopped prematurely intentionally.
 	 */
 	if (remaining_no_len >= dnslen) {
-		return (false);
+		return false;
 	}
 
 	/*
@@ -457,7 +457,7 @@ isc__dnsstream_assembler_incoming_direct_non_empty(
 
 		INSIST(isc_buffer_remaininglength(dnsasm->current) == 0);
 		if (unprocessed_size == 0) {
-			return (true);
+			return true;
 		}
 
 		if (cont) {
@@ -478,10 +478,10 @@ isc__dnsstream_assembler_incoming_direct_non_empty(
 					  unprocessed_size);
 		}
 
-		return (true);
+		return true;
 	}
 
-	return (false);
+	return false;
 }
 
 static inline void
@@ -565,7 +565,7 @@ isc_dnsstream_assembler_result(
 	const isc_dnsstream_assembler_t *restrict dnsasm) {
 	REQUIRE(dnsasm != NULL);
 
-	return (dnsasm->result);
+	return dnsasm->result;
 }
 
 static inline size_t
@@ -573,7 +573,7 @@ isc_dnsstream_assembler_remaininglength(
 	const isc_dnsstream_assembler_t *restrict dnsasm) {
 	REQUIRE(dnsasm != NULL);
 
-	return (isc_buffer_remaininglength(dnsasm->current));
+	return isc_buffer_remaininglength(dnsasm->current);
 }
 
 static inline void

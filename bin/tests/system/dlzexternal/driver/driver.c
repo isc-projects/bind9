@@ -104,10 +104,10 @@ single_valued(const char *type) {
 
 	for (i = 0; single[i]; i++) {
 		if (strcasecmp(single[i], type) == 0) {
-			return (true);
+			return true;
 		}
 	}
-	return (false);
+	return false;
 }
 
 /*
@@ -141,14 +141,14 @@ add_name(struct dlz_example_data *state, struct record *list, const char *name,
 	}
 	if (i == MAX_RECORDS) {
 		logerr("dlz_example: out of record space");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if (strlen(name) >= sizeof(list[i].name) ||
 	    strlen(type) >= sizeof(list[i].type) ||
 	    strlen(data) >= sizeof(list[i].data))
 	{
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	strncpy(list[i].name, name, sizeof(list[i].name) - 1);
@@ -162,7 +162,7 @@ add_name(struct dlz_example_data *state, struct record *list, const char *name,
 
 	list[i].ttl = ttl;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -184,10 +184,10 @@ del_name(struct dlz_example_data *state, struct record *list, const char *name,
 		}
 	}
 	if (i == MAX_RECORDS) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 	memset(&list[i], 0, sizeof(struct record));
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -208,15 +208,15 @@ fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size) {
 				sizeof(addr_buf));
 		break;
 	default:
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	if (ret == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	snprintf(buffer, size, "%s#%u", addr_buf, port);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -225,7 +225,7 @@ fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size) {
 int
 dlz_version(unsigned int *flags) {
 	UNUSED(flags);
-	return (DLZ_DLOPEN_VERSION);
+	return DLZ_DLOPEN_VERSION;
 }
 
 /*
@@ -265,7 +265,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 
 	state = calloc(1, sizeof(struct dlz_example_data));
 	if (state == NULL) {
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 
 	/* Fill in the helper functions */
@@ -278,14 +278,14 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	if (argc < 2 || argv[1][0] == '\0') {
 		logerr("dlz_example: please specify a zone name");
 		dlz_destroy(state);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/* Ensure zone name is absolute */
 	state->zone_name = malloc(strlen(argv[1]) + 2);
 	if (state->zone_name == NULL) {
 		free(state);
-		return (ISC_R_NOMEMORY);
+		return ISC_R_NOMEMORY;
 	}
 	if (argv[1][strlen(argv[1]) - 1] == '.') {
 		strcpy(state->zone_name, argv[1]);
@@ -319,11 +319,11 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 	loginfo("dlz_example: started for zone %s", state->zone_name);
 
 	*dbdata = state;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 
 failure:
 	free(state);
-	return (result);
+	return result;
 }
 
 /*
@@ -370,7 +370,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	 * this; it will move onto the next database after a single query.
 	 */
 	if (strcasecmp(name, "test.example.com") == 0) {
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	/*
@@ -380,7 +380,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	if (strcasecmp(name, "test.example.net") == 0 &&
 	    strncmp(addrbuf, "10.53.0.1", 9) == 0)
 	{
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 	}
 
 	/*
@@ -389,7 +389,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	 * zone origin nodes could fail to return SERVFAIL to the client.
 	 */
 	if (strcasecmp(name, "bigcname.domain") == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -397,15 +397,15 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	 * zone name and the qname
 	 */
 	if (strcasecmp(state->zone_name, name) == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
 	snprintf(absolute, sizeof(absolute), "%s.", name);
 	if (strcasecmp(state->zone_name, absolute) == 0) {
-		return (ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 
-	return (ISC_R_NOTFOUND);
+	return ISC_R_NOTFOUND;
 }
 
 /*
@@ -435,7 +435,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	UNUSED(zone);
 
 	if (state->putrr == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	if (strcmp(name, "@") == 0) {
@@ -451,7 +451,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	if (size < 0 || (size_t)size >= sizeof(full_name) ||
 	    (size_t)size >= sizeof(last))
 	{
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	/*
@@ -515,7 +515,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		found = true;
 		result = state->putrr(lookup, "TXT", 0, buf);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -529,7 +529,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		found = true;
 		result = state->putrr(lookup, "TXT", 0, buf);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -538,7 +538,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		result = state->putrr(lookup, "A", 0, "100.100.100.2");
 		found = true;
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -548,7 +548,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		result = state->putrr(lookup, "A", 0, "100.100.100.3");
 		found = true;
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
@@ -560,16 +560,16 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 					      state->current[i].ttl,
 					      state->current[i].data);
 			if (result != ISC_R_SUCCESS) {
-				return (result);
+				return result;
 			}
 		}
 	}
 
 	if (!found) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -586,7 +586,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	if (result != ISC_R_SUCCESS) {
 		loginfo("dlz_example: findzonedb returned %s",
 			isc_result_totext(result));
-		return (result);
+		return result;
 	}
 
 	/*
@@ -595,7 +595,7 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	 */
 	if (strcmp(name, "example.org") == 0) {
 		loginfo("dlz_example: use view ACL for example.org");
-		return (ISC_R_DEFAULT);
+		return ISC_R_DEFAULT;
 	}
 
 	/*
@@ -604,12 +604,12 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	 */
 	if (strcmp(client, "10.53.0.5") == 0) {
 		loginfo("dlz_example: disallow transfer to 10.53.0.5");
-		return (ISC_R_NOPERM);
+		return ISC_R_NOPERM;
 	}
 
 	loginfo("dlz_example: transfer allowed for %s", name);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -623,7 +623,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	UNUSED(zone);
 
 	if (state->putnamedrr == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	for (i = 0; i < MAX_RECORDS; i++) {
@@ -636,11 +636,11 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 					   state->current[i].ttl,
 					   state->current[i].data);
 		if (result != ISC_R_SUCCESS) {
-			return (result);
+			return result;
 		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -653,13 +653,13 @@ dlz_newversion(const char *zone, void *dbdata, void **versionp) {
 	if (state->transaction_started) {
 		loginfo("dlz_example: transaction already started for zone %s",
 			zone);
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	state->transaction_started = true;
 	*versionp = (void *)&state->transaction_started;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -720,18 +720,18 @@ dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata) {
 
 	if (state->writeable_zone == NULL) {
 		loginfo("dlz_example: no writeable_zone method available");
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	result = state->writeable_zone(view, dlzdb, state->zone_name);
 	if (result != ISC_R_SUCCESS) {
 		loginfo("dlz_example: failed to configure zone %s",
 			state->zone_name);
-		return (result);
+		return result;
 	}
 
 	loginfo("dlz_example: configured writeable zone %s", state->zone_name);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -752,10 +752,10 @@ dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 	if (strncmp(name, "deny.", 5) == 0) {
 		loginfo("dlz_example: denying update of name=%s by %s", name,
 			signer);
-		return (false);
+		return false;
 	}
 	loginfo("dlz_example: allowing update of name=%s by %s", name, signer);
-	return (true);
+	return true;
 }
 
 static isc_result_t
@@ -768,7 +768,7 @@ modrdataset(struct dlz_example_data *state, const char *name,
 
 	buf = strdup(rdatastr);
 	if (buf == NULL) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	/*
@@ -812,11 +812,11 @@ modrdataset(struct dlz_example_data *state, const char *name,
 	result = add_name(state, list, name, type, strtoul(ttlstr, NULL, 10),
 			  data);
 	free(buf);
-	return (result);
+	return result;
 
 error:
 	free(buf);
-	return (ISC_R_FAILURE);
+	return ISC_R_FAILURE;
 }
 
 isc_result_t
@@ -825,12 +825,12 @@ dlz_addrdataset(const char *name, const char *rdatastr, void *dbdata,
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (version != (void *)&state->transaction_started) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	loginfo("dlz_example: adding rdataset %s '%s'", name, rdatastr);
 
-	return (modrdataset(state, name, rdatastr, &state->adds[0]));
+	return modrdataset(state, name, rdatastr, &state->adds[0]);
 }
 
 isc_result_t
@@ -839,12 +839,12 @@ dlz_subrdataset(const char *name, const char *rdatastr, void *dbdata,
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (version != (void *)&state->transaction_started) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	loginfo("dlz_example: subtracting rdataset %s '%s'", name, rdatastr);
 
-	return (modrdataset(state, name, rdatastr, &state->deletes[0]));
+	return modrdataset(state, name, rdatastr, &state->deletes[0]);
 }
 
 isc_result_t
@@ -853,10 +853,10 @@ dlz_delrdataset(const char *name, const char *type, void *dbdata,
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 
 	if (version != (void *)&state->transaction_started) {
-		return (ISC_R_FAILURE);
+		return ISC_R_FAILURE;
 	}
 
 	loginfo("dlz_example: deleting rdataset %s of type %s", name, type);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

@@ -22,8 +22,8 @@ isc_meminfo_totalphys(void) {
 #if UV_VERSION_HEX >= UV_VERSION(1, 29, 0)
 	uint64_t cmem = uv_get_constrained_memory();
 	if (cmem > 0 && cmem < tmem) {
-		return (cmem);
+		return cmem;
 	}
 #endif /* UV_VERSION_HEX >= UV_VERSION(1, 29, 0) */
-	return (tmem);
+	return tmem;
 }

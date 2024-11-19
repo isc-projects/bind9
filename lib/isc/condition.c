@@ -41,7 +41,7 @@ isc__condition_waituntil(pthread_cond_t *c, pthread_mutex_t *m, isc_time_t *t) {
 	if (result == ISC_R_RANGE) {
 		ts.tv_sec = INT_MAX;
 	} else if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 
 	/*!
@@ -53,13 +53,13 @@ isc__condition_waituntil(pthread_cond_t *c, pthread_mutex_t *m, isc_time_t *t) {
 	do {
 		presult = pthread_cond_timedwait(c, m, &ts);
 		if (presult == 0) {
-			return (ISC_R_SUCCESS);
+			return ISC_R_SUCCESS;
 		}
 		if (presult == ETIMEDOUT) {
-			return (ISC_R_TIMEDOUT);
+			return ISC_R_TIMEDOUT;
 		}
 	} while (presult == EINTR);
 
 	UNEXPECTED_SYSERROR(presult, "pthread_cond_timedwait()");
-	return (ISC_R_UNEXPECTED);
+	return ISC_R_UNEXPECTED;
 }

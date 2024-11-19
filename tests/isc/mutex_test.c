@@ -54,7 +54,7 @@ setup_env(void **unused __attribute__((__unused__))) {
 	}
 	assert_int_not_equal(delay_loop, 0);
 
-	return (0);
+	return 0;
 }
 
 ISC_RUN_TEST_IMPL(isc_mutex) {
@@ -95,7 +95,7 @@ pthread_mutex_thread(void *arg) {
 		isc_pause_n(cont);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 static void *
@@ -111,7 +111,7 @@ isc_mutex_thread(void *arg) {
 		isc_pause_n(cont);
 	}
 
-	return (NULL);
+	return NULL;
 }
 
 ISC_RUN_TEST_IMPL(isc_mutex_benchmark) {

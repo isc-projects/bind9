@@ -49,7 +49,7 @@ dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp) {
 	keystore->magic = DNS_KEYSTORE_MAGIC;
 	*kspp = keystore;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static inline void
@@ -80,22 +80,22 @@ const char *
 dns_keystore_name(dns_keystore_t *keystore) {
 	REQUIRE(DNS_KEYSTORE_VALID(keystore));
 
-	return (keystore->name);
+	return keystore->name;
 }
 
 const char *
 dns_keystore_directory(dns_keystore_t *keystore, const char *keydir) {
 	if (keystore == NULL) {
-		return (keydir);
+		return keydir;
 	}
 
 	INSIST(DNS_KEYSTORE_VALID(keystore));
 
 	if (keystore->directory == NULL) {
-		return (keydir);
+		return keydir;
 	}
 
-	return (keystore->directory);
+	return keystore->directory;
 }
 
 void
@@ -114,7 +114,7 @@ const char *
 dns_keystore_pkcs11uri(dns_keystore_t *keystore) {
 	REQUIRE(DNS_KEYSTORE_VALID(keystore));
 
-	return (keystore->pkcs11uri);
+	return keystore->pkcs11uri;
 }
 
 void
@@ -142,14 +142,14 @@ buildpkcs11label(const char *uri, const dns_name_t *zname, const char *policy,
 	/* uri + object */
 	if (isc_buffer_availablelength(buf) < strlen(uri) + strlen(";object="))
 	{
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	isc_buffer_putstr(buf, uri);
 	isc_buffer_putstr(buf, ";object=");
 	/* zone name */
 	result = dns_name_tofilenametext(zname, false, buf);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	/*
 	 * policy name
@@ -159,20 +159,20 @@ buildpkcs11label(const char *uri, const dns_name_t *zname, const char *policy,
 	 * dns_name_tofilenametext() certainly won't fit.
 	 */
 	if (isc_buffer_availablelength(buf) < (strlen(policy) + 1)) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	isc_buffer_putstr(buf, "-");
 	result = dns_name_fromstring(pname, policy, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	result = dns_name_tofilenametext(pname, false, buf);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		return result;
 	}
 	/* key type + current time */
 	isc_time_formatshorttimestamp(&now, timebuf, sizeof(timebuf));
-	return (isc_buffer_printf(buf, "-%s-%s", ksk ? "ksk" : "zsk", timebuf));
+	return isc_buffer_printf(buf, "-%s-%s", ksk ? "ksk" : "zsk", timebuf);
 }
 
 isc_result_t
@@ -222,7 +222,7 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 				"keystore: failed to create PKCS#11 object "
 				"for zone %s, policy %s: %s",
 				namebuf, policy, isc_result_totext(result));
-			return (result);
+			return result;
 		}
 
 		/* Generate the key */
@@ -237,7 +237,7 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 				"keystore: failed to generate PKCS#11 object "
 				"%s: %s",
 				label, isc_result_totext(result));
-			return (result);
+			return result;
 		}
 		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
 			      ISC_LOG_ERROR,
@@ -251,7 +251,7 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 	if (result == ISC_R_SUCCESS) {
 		*dstkey = newkey;
 	}
-	return (result);
+	return result;
 }
 
 isc_result_t
@@ -262,7 +262,7 @@ dns_keystorelist_find(dns_keystorelist_t *list, const char *name,
 	REQUIRE(kspp != NULL && *kspp == NULL);
 
 	if (list == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	for (keystore = ISC_LIST_HEAD(*list); keystore != NULL;
@@ -274,9 +274,9 @@ dns_keystorelist_find(dns_keystorelist_t *list, const char *name,
 	}
 
 	if (keystore == NULL) {
-		return (ISC_R_NOTFOUND);
+		return ISC_R_NOTFOUND;
 	}
 
 	dns_keystore_attach(keystore, kspp);
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }

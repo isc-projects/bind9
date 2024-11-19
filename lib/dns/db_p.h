@@ -181,9 +181,9 @@ prio_type(dns_typepair_t type) {
 	case DNS_SIGTYPE(dns_rdatatype_ptr):
 	case dns_rdatatype_naptr:
 	case DNS_SIGTYPE(dns_rdatatype_naptr):
-		return (true);
+		return true;
 	}
-	return (false);
+	return false;
 }
 
 ISC_LANG_ENDDECLS

@@ -183,7 +183,7 @@ rcode_totext(dns_rcode_t rcode) {
 	} else {
 		totext.consttext = rcodetext[rcode];
 	}
-	return (totext.deconsttext);
+	return totext.deconsttext;
 }
 
 static void
@@ -756,7 +756,7 @@ sendquery(struct query *query) {
 		message, &request);
 	CHECK("dns_request_create", result);
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static void
@@ -910,20 +910,20 @@ parse_uint_helper(uint32_t *uip, const char *value, uint32_t max,
 	if (result != ISC_R_SUCCESS) {
 		printf("invalid %s '%s': %s\n", desc, value,
 		       isc_result_totext(result));
-		return (result);
+		return result;
 	}
 	*uip = n;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
 parse_uint(uint32_t *uip, const char *value, uint32_t max, const char *desc) {
-	return (parse_uint_helper(uip, value, max, desc, 10));
+	return parse_uint_helper(uip, value, max, desc, 10);
 }
 
 static isc_result_t
 parse_xint(uint32_t *uip, const char *value, uint32_t max, const char *desc) {
-	return (parse_uint_helper(uip, value, max, desc, 0));
+	return parse_uint_helper(uip, value, max, desc, 0);
 }
 
 static void
@@ -1041,7 +1041,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	sa->length = netmask;
 	*sap = sa;
 
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -1051,11 +1051,11 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 static isc_result_t
 append(const char *text, int len, char **p, char *end) {
 	if (len > end - *p) {
-		return (ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 	memmove(*p, text, len);
 	*p += len;
-	return (ISC_R_SUCCESS);
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1072,7 +1072,7 @@ reverse_octets(const char *in, char **p, char *end) {
 	} else {
 		len = strlen(in);
 	}
-	return (append(in, len, p, end));
+	return append(in, len, p, end);
 }
 
 static void
@@ -1675,7 +1675,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 			} else {
 				fatal("can't find IPv4 networking");
 				UNREACHABLE();
-				return (false);
+				return false;
 			}
 			break;
 		case '6':
@@ -1686,7 +1686,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 			} else {
 				fatal("can't find IPv6 networking");
 				UNREACHABLE();
-				return (false);
+				return false;
 			}
 			break;
 		case 'h':
@@ -1708,7 +1708,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 		if (strlen(option) > 1U) {
 			option = &option[1];
 		} else {
-			return (false);
+			return false;
 		}
 	}
 	opt = option[0];
@@ -1751,7 +1751,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 			*hash = '#';
 		}
 		have_src = true;
-		return (value_from_next);
+		return value_from_next;
 	case 'c':
 		tr.base = value;
 		tr.length = strlen(value);
@@ -1759,16 +1759,16 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 						 (isc_textregion_t *)&tr);
 		CHECK("dns_rdataclass_fromtext", result);
 		query->rdclass = rdclass;
-		return (value_from_next);
+		return value_from_next;
 	case 'f':
 		batchname = value;
-		return (value_from_next);
+		return value_from_next;
 	case 'p':
 		GLOBAL();
 		result = parse_uint(&num, value, MAXPORT, "port number");
 		CHECK("parse_uint(port)", result);
 		port = num;
-		return (value_from_next);
+		return value_from_next;
 	case 't':
 		tr.base = value;
 		tr.length = strlen(value);
@@ -1776,14 +1776,14 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 						(isc_textregion_t *)&tr);
 		CHECK("dns_rdatatype_fromtext", result);
 		query->rdtype = rdtype;
-		return (value_from_next);
+		return value_from_next;
 	case 'x':
 		get_reverse(textname, sizeof(textname), value);
 		strlcpy(query->textname, textname, sizeof(query->textname));
 		query->rdtype = dns_rdatatype_ptr;
 		query->rdclass = dns_rdataclass_in;
 		*setname = true;
-		return (value_from_next);
+		return value_from_next;
 	global_option:
 		fprintf(stderr, "Ignored late global option: -%s\n", option);
 		usage();
@@ -1793,7 +1793,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 		usage();
 	}
 	UNREACHABLE();
-	return (false);
+	return false;
 }
 
 static struct query *
@@ -1813,7 +1813,7 @@ clone_default_query(void) {
 		query->timeout = tcp_mode ? TCPTIMEOUT : UDPTIMEOUT;
 	}
 
-	return (query);
+	return query;
 }
 
 /*%
@@ -2213,5 +2213,5 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
-	return (0);
+	return 0;
 }

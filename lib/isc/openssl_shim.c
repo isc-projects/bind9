@@ -34,7 +34,7 @@ BIO_read_ex(BIO *b, void *data, size_t dlen, size_t *readbytes) {
 		rv = 1;
 	}
 
-	return (rv);
+	return rv;
 }
 #endif /* !HAVE_BIO_READ_EX */
 
@@ -47,7 +47,7 @@ BIO_write_ex(BIO *b, const void *data, size_t dlen, size_t *written) {
 		rv = 1;
 	}
 
-	return (rv);
+	return rv;
 }
 #endif /* !HAVE_BIO_WRITE_EX */
 
@@ -67,6 +67,6 @@ unsigned long
 ERR_get_error_all(const char **file, int *line, const char **func,
 		  const char **data, int *flags) {
 	SET_IF_NOT_NULL(func, &err_empty_string);
-	return (ERR_get_error_line_data(file, line, data, flags));
+	return ERR_get_error_line_data(file, line, data, flags);
 }
 #endif /* if !HAVE_ERR_GET_ERROR_ALL */
