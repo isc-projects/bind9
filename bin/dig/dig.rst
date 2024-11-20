@@ -20,7 +20,7 @@ dig - DNS lookup utility
 
 Synopsis
 ~~~~~~~~
-:program:`dig` [@server] [**-b** address] [**-c** class] [**-f** filename] [**-k** filename] [**-m**] [**-p** port#] [**-q** name] [**-t** type] [**-v**] [**-x** addr] [**-y** [hmac:]name:key] [ [**-4**] | [**-6**] ] [name] [type] [class] [queryopt...]
+:program:`dig` [@server] [**-b** address] [**-c** class] [**-f** filename] [**-F**] [**-k** filename] [**-m**] [**-p** port#] [**-q** name] [**-t** type] [**-v**] [**-x** addr] [**-y** [hmac:]name:key] [ [**-4**] | [**-6**] ] [name] [type] [class] [queryopt...]
 
 :program:`dig` [**-h**]
 
@@ -125,6 +125,10 @@ Options
    the given ``file``. Each line in the file should be organized in the
    same way it would be presented as a query to :program:`dig` using the
    command-line interface.
+
+.. option:: -F
+
+   This option enables FIPS mode if supported by the cryptographic library in use.
 
 .. option:: -h
 
