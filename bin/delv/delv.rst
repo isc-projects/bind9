@@ -21,7 +21,7 @@ delv - DNS lookup and validation utility
 Synopsis
 ~~~~~~~~
 
-:program:`delv` [@server] [ [**-4**] | [**-6**] ] [**-a** anchor-file] [**-b** address] [**-c** class] [**-d** level] [**-i**] [**-m**] [**-p** port#] [**-q** name] [**-t** type] [**-x** addr] [name] [type] [class] [queryopt...]
+:program:`delv` [@server] [ [**-4**] | [**-6**] ] [**-a** anchor-file] [**-b** address] [**-c** class] [**-d** level] [**-F**] [**-i**] [**-m**] [**-p** port#] [**-q** name] [**-t** type] [**-x** addr] [name] [type] [class] [queryopt...]
 
 :program:`delv` [**-h**]
 
@@ -137,6 +137,10 @@ Options
    :program:`delv` become more verbose as the debug level increases. See the
    :option:`+mtrace`, :option:`+rtrace`, and :option:`+vtrace` options below for
    additional debugging details.
+
+.. option:: -F
+
+   This option enables FIPS mode if supported by the cryptographic library in use.
 
 .. option:: -h
 

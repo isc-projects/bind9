@@ -20,4 +20,5 @@ delv_LDADD =				\
 	$(LIBISC_LIBS)			\
 	$(LIBDNS_LIBS)			\
 	$(LIBNS_LIBS)			\
-	$(LIBISCCFG_LIBS)
+	$(LIBISCCFG_LIBS)		\
+	$(OPENSSL_LIBS)
