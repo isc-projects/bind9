@@ -1675,9 +1675,9 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 	}
 
 	if (dns_zone_getupdatedisabled(zone)) {
-		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled "
-				     "because the zone is frozen.  Use "
-				     "'rndc thaw' to re-enable updates.");
+		FAILC(DNS_R_REFUSED,
+		      "dynamic update temporarily disabled because the zone is "
+		      "frozen.  Use 'rndc thaw' to re-enable updates.");
 	}
 
 	/*
@@ -1756,20 +1756,16 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 		 */
 		if (rdata.type == dns_rdatatype_nsec3) {
 			FAILC(DNS_R_REFUSED, "explicit NSEC3 updates are not "
-					     "allowed "
-					     "in secure zones");
+					     "allowed in secure zones");
 		} else if (rdata.type == dns_rdatatype_nsec) {
 			FAILC(DNS_R_REFUSED, "explicit NSEC updates are not "
-					     "allowed "
-					     "in secure zones");
+					     "allowed in secure zones");
 		} else if (rdata.type == dns_rdatatype_rrsig &&
 			   !dns_name_equal(name, zonename))
 		{
-			FAILC(DNS_R_REFUSED, "explicit RRSIG updates are "
-					     "currently "
-					     "not supported in secure zones "
-					     "except "
-					     "at the apex");
+			FAILC(DNS_R_REFUSED,
+			      "explicit RRSIG updates are currently not "
+			      "supported in secure zones except at the apex");
 		}
 
 		if (ssutable != NULL) {
@@ -1847,16 +1843,16 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 					    rdata.type, target, tsigkey,
 					    &rules[rule]))
 				{
-					FAILC(DNS_R_REFUSED, "rejected by "
-							     "secure update");
+					FAILC(DNS_R_REFUSED,
+					      "rejected by secure update");
 				}
 			} else {
 				if (!ssu_checkall(db, ver, name, ssutable,
 						  client->signer, &netaddr, env,
 						  TCPCLIENT(client), tsigkey))
 				{
-					FAILC(DNS_R_REFUSED, "rejected by "
-							     "secure update");
+					FAILC(DNS_R_REFUSED,
+					      "rejected by secure update");
 				}
 			}
 		}
@@ -1961,15 +1957,15 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		FAILC(DNS_R_FORMERR, "update zone section contains non-SOA");
 	}
 	if (ISC_LIST_NEXT(zone_rdataset, link) != NULL) {
-		FAILC(DNS_R_FORMERR, "update zone section contains multiple "
-				     "RRs");
+		FAILC(DNS_R_FORMERR,
+		      "update zone section contains multiple RRs");
 	}
 
 	/* The zone section must have exactly one name. */
 	result = dns_message_nextname(request, DNS_SECTION_ZONE);
 	if (result != ISC_R_NOMORE) {
-		FAILC(DNS_R_FORMERR, "update zone section contains multiple "
-				     "RRs");
+		FAILC(DNS_R_FORMERR,
+		      "update zone section contains multiple RRs");
 	}
 
 	result = dns_view_findzone(client->view, zonename, DNS_ZTFIND_EXACT,
@@ -2173,10 +2169,10 @@ check_mx(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		}
 
 		if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN) {
-			update_log(client, zone, ISC_LOG_ERROR,
-				   "%s/MX '%s' has no address records "
-				   "(A or AAAA)",
-				   ownerbuf, namebuf);
+			update_log(
+				client, zone, ISC_LOG_ERROR,
+				"%s/MX '%s' has no address records (A or AAAA)",
+				ownerbuf, namebuf);
 			ok = false;
 		} else if (result == DNS_R_CNAME) {
 			update_log(client, zone, ISC_LOG_ERROR,
@@ -2790,8 +2786,8 @@ update_action(void *arg) {
 			       &name, &rdata, &covers, &ttl, &update_class);
 
 		if (ttl != 0) {
-			PREREQFAILC(DNS_R_FORMERR, "prerequisite TTL is not "
-						   "zero");
+			PREREQFAILC(DNS_R_FORMERR,
+				    "prerequisite TTL is not zero");
 		}
 
 		if (!dns_name_issubdomain(name, zonename)) {
@@ -2801,57 +2797,53 @@ update_action(void *arg) {
 
 		if (update_class == dns_rdataclass_any) {
 			if (rdata.length != 0) {
-				PREREQFAILC(DNS_R_FORMERR, "class ANY "
-							   "prerequisite "
-							   "RDATA is not "
-							   "empty");
+				PREREQFAILC(DNS_R_FORMERR,
+					    "class ANY prerequisite RDATA is "
+					    "not empty");
 			}
 			if (rdata.type == dns_rdatatype_any) {
 				CHECK(name_exists(db, ver, name, &flag));
 				if (!flag) {
-					PREREQFAILN(DNS_R_NXDOMAIN, name,
-						    "'name in use' "
-						    "prerequisite not "
-						    "satisfied");
+					PREREQFAILN(
+						DNS_R_NXDOMAIN, name,
+						"'name in use' prerequisite "
+						"not satisfied");
 				}
 			} else {
 				CHECK(rrset_exists(db, ver, name, rdata.type,
 						   covers, &flag));
 				if (!flag) {
 					/* RRset does not exist. */
-					PREREQFAILNT(DNS_R_NXRRSET, name,
-						     rdata.type,
-						     "'rrset exists (value "
-						     "independent)' "
-						     "prerequisite not "
-						     "satisfied");
+					PREREQFAILNT(
+						DNS_R_NXRRSET, name, rdata.type,
+						"'rrset exists (value "
+						"independent)' prerequisite "
+						"not satisfied");
 				}
 			}
 		} else if (update_class == dns_rdataclass_none) {
 			if (rdata.length != 0) {
-				PREREQFAILC(DNS_R_FORMERR, "class NONE "
-							   "prerequisite "
-							   "RDATA is not "
-							   "empty");
+				PREREQFAILC(DNS_R_FORMERR,
+					    "class NONE prerequisite RDATA is "
+					    "not empty");
 			}
 			if (rdata.type == dns_rdatatype_any) {
 				CHECK(name_exists(db, ver, name, &flag));
 				if (flag) {
-					PREREQFAILN(DNS_R_YXDOMAIN, name,
-						    "'name not in use' "
-						    "prerequisite not "
-						    "satisfied");
+					PREREQFAILN(
+						DNS_R_YXDOMAIN, name,
+						"'name not in use' "
+						"prerequisite not satisfied");
 				}
 			} else {
 				CHECK(rrset_exists(db, ver, name, rdata.type,
 						   covers, &flag));
 				if (flag) {
 					/* RRset exists. */
-					PREREQFAILNT(DNS_R_YXRRSET, name,
-						     rdata.type,
-						     "'rrset does not exist' "
-						     "prerequisite not "
-						     "satisfied");
+					PREREQFAILNT(
+						DNS_R_YXRRSET, name, rdata.type,
+						"'rrset does not exist' "
+						"prerequisite not satisfied");
 				}
 			}
 		} else if (update_class == zoneclass) {
@@ -2886,8 +2878,8 @@ update_action(void *arg) {
 		result = temp_check(mctx, &temp, db, ver, tmpname, &type);
 		if (result != ISC_R_SUCCESS) {
 			FAILNT(result, tmpname, type,
-			       "'RRset exists (value dependent)' "
-			       "prerequisite not satisfied");
+			       "'RRset exists (value dependent)' prerequisite "
+			       "not satisfied");
 		}
 	}
 
@@ -2949,11 +2941,10 @@ update_action(void *arg) {
 				CHECK(cname_incompatible_rrset_exists(
 					db, ver, name, &flag));
 				if (flag) {
-					update_log(client, zone,
-						   LOGLEVEL_PROTOCOL,
-						   "attempt to add CNAME "
-						   "alongside non-CNAME "
-						   "ignored");
+					update_log(
+						client, zone, LOGLEVEL_PROTOCOL,
+						"attempt to add CNAME "
+						"alongside non-CNAME ignored");
 					continue;
 				}
 			} else {
@@ -2977,8 +2968,8 @@ update_action(void *arg) {
 				if (!flag) {
 					update_log(client, zone,
 						   LOGLEVEL_PROTOCOL,
-						   "attempt to create 2nd "
-						   "SOA ignored");
+						   "attempt to create 2nd SOA "
+						   "ignored");
 					continue;
 				}
 				CHECK(check_soa_increment(db, ver, &rdata,
@@ -2987,8 +2978,8 @@ update_action(void *arg) {
 					update_log(client, zone,
 						   LOGLEVEL_PROTOCOL,
 						   "SOA update failed to "
-						   "increment serial, "
-						   "ignoring it");
+						   "increment serial, ignoring "
+						   "it");
 					continue;
 				}
 				soa_serial_changed = true;
@@ -3002,17 +2993,16 @@ update_action(void *arg) {
 				dns_rdatatype_format(rdata.type, typebuf,
 						     sizeof(typebuf));
 				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "attempt to add a %s record at "
-					   "zone apex ignored",
+					   "attempt to add a %s record at zone "
+					   "apex ignored",
 					   typebuf);
 				continue;
 			}
 
 			if (rdata.type == privatetype) {
 				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "attempt to add a private type "
-					   "(%u) record rejected internal "
-					   "use only",
+					   "attempt to add a private type (%u) "
+					   "record rejected internal use only",
 					   privatetype);
 				continue;
 			}
@@ -3025,11 +3015,10 @@ update_action(void *arg) {
 				if ((rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) !=
 				    0)
 				{
-					update_log(client, zone,
-						   LOGLEVEL_PROTOCOL,
-						   "attempt to add NSEC3PARAM "
-						   "record with non OPTOUT "
-						   "flag");
+					update_log(
+						client, zone, LOGLEVEL_PROTOCOL,
+						"attempt to add NSEC3PARAM "
+						"record with non OPTOUT flag");
 					continue;
 				}
 			}
@@ -3040,8 +3029,8 @@ update_action(void *arg) {
 				char namestr[DNS_NAME_FORMATSIZE];
 				dns_name_format(name, namestr, sizeof(namestr));
 				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "warning: ownername '%s' contains "
-					   "a non-terminal wildcard",
+					   "warning: ownername '%s' contains a "
+					   "non-terminal wildcard",
 					   namestr);
 			}
 
@@ -3092,10 +3081,10 @@ update_action(void *arg) {
 					len = (int)isc_buffer_usedlength(&buf);
 					truncated = " [TRUNCATED]";
 				} else if (result != ISC_R_SUCCESS) {
-					snprintf(rdstr, sizeof(rdstr),
-						 "[dns_"
-						 "rdata_totext failed: %s]",
-						 isc_result_totext(result));
+					snprintf(
+						rdstr, sizeof(rdstr),
+						"[dns_rdata_totext failed: %s]",
+						isc_result_totext(result));
 					len = strlen(rdstr);
 				} else {
 					len = (int)isc_buffer_usedlength(&buf);
@@ -3181,8 +3170,8 @@ update_action(void *arg) {
 				    rdata.type == dns_rdatatype_ns))
 			{
 				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "attempt to delete all SOA "
-					   "or NS records ignored");
+					   "attempt to delete all SOA or NS "
+					   "records ignored");
 				continue;
 			} else {
 				if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {
@@ -3226,9 +3215,8 @@ update_action(void *arg) {
 					if (count == 1) {
 						update_log(client, zone,
 							   LOGLEVEL_PROTOCOL,
-							   "attempt to "
-							   "delete last "
-							   "NS ignored");
+							   "attempt to delete "
+							   "last NS ignored");
 						continue;
 					}
 				}
@@ -3253,9 +3241,8 @@ update_action(void *arg) {
 							sizeof(typebuf));
 						update_log(client, zone,
 							   LOGLEVEL_PROTOCOL,
-							   "attempt to "
-							   "delete in use "
-							   "%s ignored",
+							   "attempt to delete "
+							   "in use %s ignored",
 							   typebuf);
 						continue;
 					}
@@ -3374,8 +3361,8 @@ update_action(void *arg) {
 			result = dns_db_getsize(db, ver, &records, NULL);
 			if (result == ISC_R_SUCCESS && records > maxrecords) {
 				update_log(client, zone, ISC_LOG_ERROR,
-					   "records in zone (%" PRIu64 ") "
-					   "exceeds max-records (%u)",
+					   "records in zone (%" PRIu64
+					   ") exceeds max-records (%u)",
 					   records, maxrecords);
 				result = DNS_R_TOOMANYRECORDS;
 				goto failure;
