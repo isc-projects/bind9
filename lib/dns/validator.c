@@ -846,21 +846,8 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 	dns_name_t *foundname;
 	isc_result_t result;
 	unsigned int options;
-	isc_time_t now = isc_time_now();
-	char namebuf[DNS_NAME_FORMATSIZE];
-	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 	disassociate_rdatasets(val);
-
-	result = dns_resolver_getbadcache(val->view->resolver, name, type,
-					  &now);
-	if (result == ISC_R_SUCCESS) {
-		dns_name_format(name, namebuf, sizeof(namebuf));
-		dns_rdatatype_format(type, typebuf, sizeof(typebuf));
-		validator_log(val, ISC_LOG_INFO, "bad cache hit (%s/%s)",
-			      namebuf, typebuf);
-		return DNS_R_BROKENCHAIN;
-	}
 
 	options = DNS_DBFIND_PENDINGOK;
 	foundname = dns_fixedname_initname(&fixedname);

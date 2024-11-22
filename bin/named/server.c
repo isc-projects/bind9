@@ -253,7 +253,6 @@ struct dumpcontext {
 	bool dumpcache;
 	bool dumpzones;
 	bool dumpadb;
-	bool dumpbad;
 	bool dumpexpired;
 	bool dumpfail;
 	FILE *fp;
@@ -4936,9 +4935,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
 			    "disabling lame cache despite lame-ttl > 0 as it "
 			    "may cause performance issues");
-		lame_ttl = 0;
 	}
-	dns_resolver_setlamettl(view->resolver, lame_ttl);
 
 	/*
 	 * Set the resolver's query timeout.
@@ -10834,7 +10831,7 @@ zone_from_args(named_server_t *server, isc_lex_t *lex, const char *zonetxt,
 			}
 		} else {
 			result = dns_viewlist_findzone(&server->viewlist, name,
-						       (classtxt == NULL),
+						       classtxt == NULL,
 						       rdclass, zonep);
 			if (result == ISC_R_NOTFOUND) {
 				snprintf(problem, sizeof(problem),
@@ -11755,8 +11752,8 @@ resume:
 		}
 	}
 
-	if ((dctx->dumpadb || dctx->dumpbad || dctx->dumpfail) &&
-	    dctx->cache == NULL && dctx->view->view->cachedb != NULL)
+	if ((dctx->dumpadb || dctx->dumpfail) && dctx->cache == NULL &&
+	    dctx->view->view->cachedb != NULL)
 	{
 		dns_db_attach(dctx->view->view->cachedb, &dctx->cache);
 	}
@@ -11769,10 +11766,6 @@ resume:
 				dns_adb_dump(adb, dctx->fp);
 				dns_adb_detach(&adb);
 			}
-		}
-		if (dctx->dumpbad) {
-			dns_resolver_printbadcache(dctx->view->view->resolver,
-						   dctx->fp);
 		}
 		if (dctx->dumpfail) {
 			dns_badcache_print(dctx->view->view->failcache,
@@ -11870,7 +11863,6 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 		.mctx = server->mctx,
 		.dumpcache = true,
 		.dumpadb = true,
-		.dumpbad = true,
 		.dumpfail = true,
 		.viewlist = ISC_LIST_INITIALIZER,
 	};
@@ -11898,14 +11890,12 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 	} else if (ptr != NULL && strcmp(ptr, "-zones") == 0) {
 		/* only dump zones, suppress caches */
 		dctx->dumpadb = false;
-		dctx->dumpbad = false;
 		dctx->dumpcache = false;
 		dctx->dumpfail = false;
 		dctx->dumpzones = true;
 		ptr = next_token(lex, NULL);
 	} else if (ptr != NULL && strcmp(ptr, "-adb") == 0) {
 		/* only dump adb, suppress other caches */
-		dctx->dumpbad = false;
 		dctx->dumpcache = false;
 		dctx->dumpfail = false;
 		ptr = next_token(lex, NULL);
@@ -11918,7 +11908,6 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 	} else if (ptr != NULL && strcmp(ptr, "-fail") == 0) {
 		/* only dump servfail cache, suppress other caches */
 		dctx->dumpadb = false;
-		dctx->dumpbad = false;
 		dctx->dumpcache = false;
 		ptr = next_token(lex, NULL);
 	}
@@ -12599,9 +12588,8 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	reload_status = atomic_load(&server->reload_status);
 	if (reload_status != NAMED_RELOAD_DONE) {
 		snprintf(line, sizeof(line), "reload/reconfig %s\n",
-			 (reload_status == NAMED_RELOAD_FAILED
-				  ? "failed"
-				  : "in progress"));
+			 reload_status == NAMED_RELOAD_FAILED ? "failed"
+							      : "in progress");
 		CHECK(putstr(text, line));
 	}
 

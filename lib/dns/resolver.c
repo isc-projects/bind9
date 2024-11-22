@@ -40,7 +40,6 @@
 
 #include <dns/acl.h>
 #include <dns/adb.h>
-#include <dns/badcache.h>
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
@@ -252,9 +251,6 @@ STATIC_ASSERT(NS_PROCESSING_LIMIT > NS_RR_LIMIT,
  * disable EDNS0 on the query.
  */
 #define MAX_EDNS0_TIMEOUTS 3
-
-#define DNS_RESOLVER_BADCACHETTL(fctx) \
-	(((fctx)->res->lame_ttl > 30) ? (fctx)->res->lame_ttl : 30)
 
 typedef struct fetchctx fetchctx_t;
 
@@ -596,8 +592,6 @@ struct dns_resolver {
 	/* Locked by lock. */
 	unsigned int spillat; /* clients-per-query */
 
-	dns_badcache_t *badcache; /* Bad cache. */
-
 	/* Locked by primelock. */
 	dns_fetch_t *primefetch;
 
@@ -661,7 +655,7 @@ resquery_response_continue(void *arg, isc_result_t result);
 static void
 resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
-fctx_try(fetchctx_t *fctx, bool retrying, bool badcache);
+fctx_try(fetchctx_t *fctx, bool retrying);
 static void
 fctx_shutdown(void *arg);
 static void
@@ -1784,7 +1778,7 @@ resquery_senddone(isc_result_t eresult, isc_region_t *region, void *arg) {
 			badns_unreachable);
 		fctx_cancelquery(&copy, NULL, true, false);
 		FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
-		fctx_try(fctx, true, false);
+		fctx_try(fctx, true);
 		break;
 
 	default:
@@ -2872,7 +2866,7 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 		fctx_cancelquery(&copy, NULL, true, false);
 
 		FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
-		fctx_try(fctx, true, false);
+		fctx_try(fctx, true);
 		break;
 
 	default:
@@ -2939,7 +2933,7 @@ fctx_finddone(void *arg) {
 
 		fctx_done_unref(fctx, ISC_R_FAILURE);
 	} else if (want_try) {
-		fctx_try(fctx, true, false);
+		fctx_try(fctx, true);
 	}
 
 	fetchctx_detach(&fctx);
@@ -3414,7 +3408,7 @@ isstrictsubdomain(const dns_name_t *name1, const dns_name_t *name2) {
 }
 
 static isc_result_t
-fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
+fctx_getaddresses(fetchctx_t *fctx) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	dns_resolver_t *res;
@@ -3707,24 +3701,12 @@ out:
 			 */
 			result = DNS_R_WAIT;
 		} else {
-			isc_time_t expire;
-			isc_interval_t i;
 			/*
 			 * We've lost completely.  We don't know any
 			 * addresses, and the ADB has told us it can't
 			 * get them.
 			 */
 			FCTXTRACE("no addresses");
-			isc_interval_set(&i, DNS_RESOLVER_BADCACHETTL(fctx), 0);
-			result = isc_time_nowplusinterval(&expire, &i);
-			if (badcache &&
-			    (fctx->type == dns_rdatatype_dnskey ||
-			     fctx->type == dns_rdatatype_ds) &&
-			    result == ISC_R_SUCCESS)
-			{
-				dns_resolver_addbadcache(res, fctx->name,
-							 fctx->type, &expire);
-			}
 
 			result = ISC_R_FAILURE;
 
@@ -3983,7 +3965,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 }
 
 static void
-fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
+fctx_try(fetchctx_t *fctx, bool retrying) {
 	isc_result_t result;
 	dns_adbaddrinfo_t *addrinfo = NULL;
 	dns_resolver_t *res = NULL;
@@ -4018,7 +4000,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		/* We have no more addresses.  Start over. */
 		fctx_cancelqueries(fctx, true, false);
 		fctx_cleanup(fctx);
-		result = fctx_getaddresses(fctx, badcache);
+		result = fctx_getaddresses(fctx);
 		switch (result) {
 		case ISC_R_SUCCESS:
 			break;
@@ -4289,7 +4271,7 @@ resume_qmin(void *arg) {
 		fctx_cleanup(fctx);
 	}
 
-	fctx_try(fctx, true, false);
+	fctx_try(fctx, true);
 
 cleanup:
 	if (result != ISC_R_SUCCESS) {
@@ -4415,7 +4397,7 @@ fctx_start(void *arg) {
 	 * while a response is being processed normally.)
 	 */
 	fctx_starttimer(fctx);
-	fctx_try(fctx, false, false);
+	fctx_try(fctx, false);
 
 detach:
 	fetchctx_detach(&fctx);
@@ -5303,24 +5285,10 @@ validated(void *arg) {
 			done = true;
 			goto cleanup_fetchctx;
 		} else if (result == DNS_R_BROKENCHAIN) {
-			isc_result_t tresult;
-			isc_time_t expire;
-			isc_interval_t i;
-
-			isc_interval_set(&i, DNS_RESOLVER_BADCACHETTL(fctx), 0);
-			tresult = isc_time_nowplusinterval(&expire, &i);
-			if (negative &&
-			    (fctx->type == dns_rdatatype_dnskey ||
-			     fctx->type == dns_rdatatype_ds) &&
-			    tresult == ISC_R_SUCCESS)
-			{
-				dns_resolver_addbadcache(res, fctx->name,
-							 fctx->type, &expire);
-			}
 			done = true;
 			goto cleanup_fetchctx;
 		} else {
-			fctx_try(fctx, true, true);
+			fctx_try(fctx, true);
 			goto cleanup_fetchctx;
 		}
 		UNREACHABLE();
@@ -7102,7 +7070,7 @@ resume_dslookup(void *arg) {
 		}
 
 		/* Try again. */
-		fctx_try(fctx, true, false);
+		fctx_try(fctx, true);
 		break;
 
 	case ISC_R_SHUTTINGDOWN:
@@ -9514,7 +9482,7 @@ rctx_nextserver(respctx_t *rctx, dns_message_t *message,
 	/*
 	 * Try again.
 	 */
-	fctx_try(fctx, retrying, false);
+	fctx_try(fctx, retrying);
 }
 
 /*
@@ -9937,7 +9905,6 @@ dns_resolver__destroy(dns_resolver_t *res) {
 		}
 		isc_mem_put(res->mctx, a, sizeof(*a));
 	}
-	dns_badcache_destroy(&res->badcache);
 
 	dns_view_weakdetach(&res->view);
 
@@ -10030,8 +9997,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		__func__, __FILE__, __LINE__, res);
 #endif
 	isc_refcount_init(&res->references, 1);
-
-	res->badcache = dns_badcache_new(res->mctx, res->loopmgr);
 
 	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS, &res->fctxs);
 	isc_rwlock_init(&res->fctxs_lock);
@@ -10691,18 +10656,6 @@ dns_resolver_dispatchv6(dns_resolver_t *resolver) {
 	return dns_dispatchset_get(resolver->dispatches6);
 }
 
-uint32_t
-dns_resolver_getlamettl(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	return resolver->lame_ttl;
-}
-
-void
-dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	resolver->lame_ttl = lame_ttl;
-}
-
 void
 dns_resolver_addalternate(dns_resolver_t *res, const isc_sockaddr_t *alt,
 			  const dns_name_t *name, in_port_t port) {
@@ -10724,45 +10677,6 @@ dns_resolver_addalternate(dns_resolver_t *res, const isc_sockaddr_t *alt,
 	}
 	ISC_LINK_INIT(a, link);
 	ISC_LIST_APPEND(res->alternates, a, link);
-}
-
-void
-dns_resolver_flushbadcache(dns_resolver_t *resolver, const dns_name_t *name) {
-	if (name != NULL) {
-		dns_badcache_flushname(resolver->badcache, name);
-	} else {
-		dns_badcache_flush(resolver->badcache);
-	}
-}
-
-void
-dns_resolver_flushbadnames(dns_resolver_t *resolver, const dns_name_t *name) {
-	dns_badcache_flushtree(resolver->badcache, name);
-}
-
-void
-dns_resolver_addbadcache(dns_resolver_t *resolver, const dns_name_t *name,
-			 dns_rdatatype_t type, isc_time_t *expire) {
-#ifdef ENABLE_AFL
-	if (dns_fuzzing_resolver) {
-		return;
-	}
-#endif /* ifdef ENABLE_AFL */
-
-	dns_badcache_add(resolver->badcache, name, type, 0,
-			 isc_time_seconds(expire));
-}
-
-isc_result_t
-dns_resolver_getbadcache(dns_resolver_t *resolver, const dns_name_t *name,
-			 dns_rdatatype_t type, isc_time_t *now) {
-	return dns_badcache_find(resolver->badcache, name, type, NULL,
-				 isc_time_seconds(now));
-}
-
-void
-dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp) {
-	(void)dns_badcache_print(resolver->badcache, "Bad cache", fp);
 }
 
 isc_result_t
