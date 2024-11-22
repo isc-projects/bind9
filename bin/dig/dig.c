@@ -21,6 +21,7 @@
 
 #include <isc/attributes.h>
 #include <isc/dir.h>
+#include <isc/fips.h>
 #include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
@@ -68,6 +69,16 @@ static char hexcookie[81];
 static bool short_form = false, printcmd = true, plusquest = false,
 	    pluscomm = false, ipv4only = false, ipv6only = false, digrc = true;
 static uint32_t splitwidth = 0xffffffff;
+
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#include <openssl/err.h>
+#include <openssl/provider.h>
+#endif
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+static OSSL_PROVIDER *fips = NULL, *base = NULL;
+#endif
 
 /*% opcode text */
 static const char *const opcodetext[] = {
@@ -2573,8 +2584,8 @@ exit_or_usage:
 /*%
  * #true returned if value was used
  */
-static const char *single_dash_opts = "46dhimnruv";
-static const char *dash_opts = "46bcdfhikmnpqrtvyx";
+static const char *single_dash_opts = "46dFhimnruv";
+static const char *dash_opts = "46bcdFfhikmnpqrtvyx";
 static bool
 dash_option(char *option, char *next, dig_lookup_t **lookup,
 	    bool *open_type_class, bool *need_clone, bool config_only, int argc,
@@ -2630,6 +2641,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			} else {
 				debugging = true;
 			}
+			break;
+		case 'F': /* FIPS */
+			/* FIPS is handled in preparse_args() */
 			break;
 		case 'h':
 			help();
@@ -2903,6 +2917,28 @@ preparse_args(int argc, char **argv) {
 			case 'd':
 				/* For debugging early startup */
 				debugging = true;
+				break;
+			case 'F':
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+				fips = OSSL_PROVIDER_load(NULL, "fips");
+				if (fips == NULL) {
+					ERR_clear_error();
+					fatal("Failed to load FIPS provider");
+				}
+				base = OSSL_PROVIDER_load(NULL, "base");
+				if (base == NULL) {
+					OSSL_PROVIDER_unload(fips);
+					ERR_clear_error();
+					fatal("Failed to load base provider");
+				}
+#endif
+				/* Already in FIPS mode?  */
+				if (isc_fips_mode()) {
+					break;
+				}
+				if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+					fatal("setting FIPS mode failed");
+				}
 				break;
 			case 'm':
 				memdebugging = true;
@@ -3427,6 +3463,15 @@ main(int argc, char **argv) {
 	dig_query_setup(false, false, argc, argv);
 	dig_startup();
 	dig_shutdown();
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+	if (base != NULL) {
+		OSSL_PROVIDER_unload(base);
+	}
+	if (fips != NULL) {
+		OSSL_PROVIDER_unload(fips);
+	}
+#endif
 
 	return exitcode;
 }

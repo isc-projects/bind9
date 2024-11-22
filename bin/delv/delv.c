@@ -25,10 +25,17 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#include <openssl/err.h>
+#include <openssl/provider.h>
+#endif
+
 #include <isc/async.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/fips.h>
 #include <isc/hex.h>
 #include <isc/log.h>
 #include <isc/managers.h>
@@ -155,6 +162,10 @@ static dns_fixedname_t qfn;
 
 /* Default trust anchors */
 static char anchortext[] = TRUST_ANCHORS;
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+static OSSL_PROVIDER *fips = NULL, *base = NULL;
+#endif
 
 /*
  * Static function prototypes
@@ -1379,8 +1390,8 @@ plus_option(char *option) {
 /*
  * options: "46a:b:c:d:himp:q:t:vx:";
  */
-static const char *single_dash_opts = "46himv";
-static const char *dash_opts = "46abcdhimpqtvx";
+static const char *single_dash_opts = "46Fhimv";
+static const char *dash_opts = "46abcdFhimpqtvx";
 
 static bool
 dash_option(char *option, char *next, bool *open_type_class) {
@@ -1422,6 +1433,9 @@ dash_option(char *option, char *next, bool *open_type_class) {
 				isc_net_disableipv4();
 				use_ipv4 = false;
 			}
+			break;
+		case 'F': /* FIPS */
+			/* handled in preparse_args() */
 			break;
 		case 'h':
 			usage();
@@ -1601,6 +1615,28 @@ preparse_args(int argc, char **argv) {
 		option = &argv[0][1];
 		while (strpbrk(option, single_dash_opts) == &option[0]) {
 			switch (option[0]) {
+			case 'F':
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+				fips = OSSL_PROVIDER_load(NULL, "fips");
+				if (fips == NULL) {
+					ERR_clear_error();
+					fatal("Failed to load FIPS provider");
+				}
+				base = OSSL_PROVIDER_load(NULL, "base");
+				if (base == NULL) {
+					OSSL_PROVIDER_unload(fips);
+					ERR_clear_error();
+					fatal("Failed to load base provider");
+				}
+#endif
+				/* Already in FIPS mode?  */
+				if (isc_fips_mode()) {
+					break;
+				}
+				if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+					fatal("setting FIPS mode failed");
+				}
+				break;
 			case 'm':
 				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
 						    ISC_MEM_DEBUGRECORD;
@@ -2261,6 +2297,15 @@ cleanup:
 	}
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+	if (base != NULL) {
+		OSSL_PROVIDER_unload(base);
+	}
+	if (fips != NULL) {
+		OSSL_PROVIDER_unload(fips);
+	}
+#endif
 
 	return 0;
 }
