@@ -3134,10 +3134,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		"allow-update",
 		"allow-update-forwarding",
 	};
-	static const char *sources[] = {
-		"transfer-source",  "transfer-source-v6", "notify-source",
-		"notify-source-v6", "parental-source",	  "parental-source-v6",
-	};
 
 	znamestr = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 
@@ -3578,28 +3574,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					    "empty 'primaries' entry",
 					    znamestr);
 				result = ISC_R_FAILURE;
-			}
-		}
-	}
-
-	/*
-	 * Warn if *-source and *-source-v6 options specify a port,
-	 * and fail if they specify the default listener port.
-	 */
-	for (i = 0; i < ARRAY_SIZE(sources); i++) {
-		obj = NULL;
-		(void)cfg_map_get(zoptions, sources[i], &obj);
-		if (obj == NULL && goptions != NULL) {
-			(void)cfg_map_get(goptions, sources[i], &obj);
-		}
-		if (obj != NULL) {
-			in_port_t port =
-				isc_sockaddr_getport(cfg_obj_assockaddr(obj));
-			if (port != 0) {
-				cfg_obj_log(obj, ISC_LOG_ERROR,
-					    "'%s': specifying a port is "
-					    "deprecated",
-					    sources[i]);
 			}
 		}
 	}
