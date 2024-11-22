@@ -280,8 +280,7 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601TZms_test) {
 	assert_int_equal(buf[16], ':');
 	assert_int_equal(buf[19], '.');
 
-	LargestIntegralType plus_minus[2] = { '+', '-' };
-	assert_in_set(buf[23], plus_minus, sizeof(plus_minus));
+	assert_true((buf[23] == '+') || (buf[23] == '-'));
 	assert_int_equal(buf[26], ':');
 
 	/* check time conversion correctness */
