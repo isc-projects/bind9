@@ -8107,6 +8107,39 @@ Name Server Statistics Counters
 ``QryNXRedirRLookup``
     This indicates the number of queries that resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup.
 
+``QryUDP``
+    This indicates the number of UDP DNS queries received.
+
+``QryTCP``
+    This indicates the number of TCP DNS queries received.
+
+``QryDoT``
+    This indicates the number of DNS-over-TLS queries received.
+
+``QryDoH``
+    This indicates the number of DNS-over-HTTPS queries received.
+
+``QryDoHPlain``
+    This indicates the number of DNS-over-HTTP (without TLS) queries received.
+
+``QryProxyUDP``
+    This indicates the number of DNS-over-UDP queries made over a PROXYv2 connection.
+
+``QryProxyTCP``
+    This indicates the number of DNS-over-TCP queries made over a PROXYv2 connection.
+
+``QryProxyDoT``
+    This indicates the number of DNS-over-TLS queries made over a PROXYv2 connection.
+
+``QryProxyDoH``
+    This indicates the number of DNS-over-HTTPS queries made over a PROXYv2 connection.
+
+``QryEncryptedProxyDoT``
+    This indicates the number of DNS-over-TLS queries made over an encrypted PROXYv2 connection.
+
+``QryEncryptedProxyDoH``
+    This indicates the number of DNS-over-HTTPS queries made over an encrypted PROXYv2 connection.
+
 ``XfrReqDone``
     This indicates the number of requested and completed zone transfers.
 
