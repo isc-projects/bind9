@@ -97,3 +97,15 @@ isc_nmhandle_detach(isc_nmhandle_t **handlep) {
 
 	return;
 }
+
+isc_nmsocket_type
+isc_nm_socket_type(const isc_nmhandle_t *handle ISC_ATTR_UNUSED) {
+	/*
+	 * By arbitrary choice, we treat mock handles as if
+	 * they were always for UDP sockets. If it's necessary
+	 * to test with other socket types in the future, this
+	 * could be changed to a global variable rather than a
+	 * constant.
+	 */
+	return isc_nm_udpsocket;
+}

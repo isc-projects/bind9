@@ -339,6 +339,21 @@ init_desc(void) {
 		       "RPZRewrites");
 	SET_NSSTATDESC(udp, "UDP queries received", "QryUDP");
 	SET_NSSTATDESC(tcp, "TCP queries received", "QryTCP");
+	SET_NSSTATDESC(dot, "DoT queries received", "QryDoT");
+	SET_NSSTATDESC(doh, "DoH queries received", "QryDoH");
+	SET_NSSTATDESC(dohplain, "DoH-Plain queries received", "QryDoHPlain");
+	SET_NSSTATDESC(proxyudp, "PROXYv2 UDP queries received", "QryProxyUDP");
+	SET_NSSTATDESC(proxytcp, "PROXYv2 TCP queries received", "QryProxyTCP");
+	SET_NSSTATDESC(proxydot, "PROXYv2 DoT queries received", "QryProxyDoT");
+	SET_NSSTATDESC(proxydoh, "PROXYv2 DoH queries received", "QryProxyDoH");
+	SET_NSSTATDESC(proxydohplain, "PROXYv2/DoH-Plain queries received",
+		       "QryProxyDoHPlain");
+	SET_NSSTATDESC(encryptedproxydot,
+		       "Encrypted PROXYv2 DoT queries received",
+		       "QryEncryptedProxyDoT");
+	SET_NSSTATDESC(encryptedproxydoh,
+		       "Encrypted PROXYv2 DoH queries received",
+		       "QryEncryptedProxyDoH");
 	SET_NSSTATDESC(nsidopt, "NSID option received", "NSIDOpt");
 	SET_NSSTATDESC(expireopt, "Expire option received", "ExpireOpt");
 	SET_NSSTATDESC(keepaliveopt, "EDNS TCP keepalive option received",

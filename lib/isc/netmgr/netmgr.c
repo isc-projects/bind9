@@ -2397,6 +2397,26 @@ isc_nm_socket_type(const isc_nmhandle_t *handle) {
 	return handle->sock->type;
 }
 
+isc_nm_proxy_type_t
+isc_nmhandle_proxy_type(isc_nmhandle_t *handle) {
+	isc_nmhandle_t *proxyhandle;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	proxyhandle = get_proxy_handle(handle);
+
+	if (proxyhandle == NULL) {
+		return ISC_NM_PROXY_NONE;
+	}
+
+	if (isc_nm_has_encryption(proxyhandle)) {
+		return ISC_NM_PROXY_ENCRYPTED;
+	}
+
+	return ISC_NM_PROXY_PLAIN;
+}
+
 bool
 isc_nm_has_encryption(const isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
