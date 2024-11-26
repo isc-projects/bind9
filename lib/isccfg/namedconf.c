@@ -131,6 +131,8 @@ static cfg_type_t cfg_type_printtime;
 static cfg_type_t cfg_type_qminmethod;
 static cfg_type_t cfg_type_querysource4;
 static cfg_type_t cfg_type_querysource6;
+static cfg_type_t cfg_type_server_querysource4;
+static cfg_type_t cfg_type_server_querysource6;
 static cfg_type_t cfg_type_querysource;
 static cfg_type_t cfg_type_server;
 static cfg_type_t cfg_type_server_key_kludge;
@@ -2603,8 +2605,8 @@ static cfg_clausedef_t server_clauses[] = {
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "padding", &cfg_type_uint32, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
-	{ "query-source", &cfg_type_querysource4, 0 },
-	{ "query-source-v6", &cfg_type_querysource6, 0 },
+	{ "query-source", &cfg_type_server_querysource4, 0 },
+	{ "query-source-v6", &cfg_type_server_querysource6, 0 },
 	{ "request-expire", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "request-ixfr-max-diffs", &cfg_type_uint32, 0 },
@@ -3218,14 +3220,33 @@ static cfg_type_t cfg_type_optional_class = { "optional_class",
 
 static isc_result_t
 parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	REQUIRE(type != NULL);
+	isc_result_t result;
 
-	isc_result_t result = cfg_parse_sockaddr_generic(
-		pctx, &cfg_type_querysource, type, ret);
-	/* Preserve legacy query-source logging. */
+	REQUIRE(type != NULL);
+	CHECK(cfg_peektoken(pctx, 0));
+
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(TOKEN_STRING(pctx), "address") == 0)
+	{
+		CHECK(cfg_gettoken(pctx, 0));
+		CHECK(cfg_peektoken(pctx, 0));
+	}
+
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(TOKEN_STRING(pctx), "none") == 0)
+	{
+		CHECK(cfg_gettoken(pctx, 0));
+		CHECK(cfg_create_obj(pctx, &cfg_type_none, ret));
+	} else {
+		CHECK(cfg_parse_sockaddr_generic(pctx, &cfg_type_querysource,
+						 type, ret));
+	}
+
+cleanup:
 	if (result != ISC_R_SUCCESS) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR, "invalid query source");
 	}
+
 	return result;
 }
 
@@ -3233,15 +3254,15 @@ static void
 print_querysource(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	isc_netaddr_t na;
 	isc_netaddr_fromsockaddr(&na, &obj->value.sockaddr);
-	cfg_print_cstr(pctx, "address ");
 	cfg_print_rawaddr(pctx, &na);
 }
 
 static void
-doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
+doc__querysource(cfg_printer_t *pctx, const cfg_type_t *type, bool has_none) {
 	const unsigned int *flagp = type->of;
 
 	cfg_print_cstr(pctx, "[ address ] ( ");
+
 	if ((*flagp & CFG_ADDR_V4OK) != 0) {
 		cfg_print_cstr(pctx, "<ipv4_address>");
 	} else if ((*flagp & CFG_ADDR_V6OK) != 0) {
@@ -3249,7 +3270,22 @@ doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
 	} else {
 		UNREACHABLE();
 	}
-	cfg_print_cstr(pctx, " | * )");
+
+	cfg_print_cstr(pctx, " | *");
+	if (has_none) {
+		cfg_print_cstr(pctx, " | none");
+	}
+	cfg_print_cstr(pctx, " )");
+}
+
+static void
+doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc__querysource(pctx, type, true);
+}
+
+static void
+doc_serverquerysource(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc__querysource(pctx, type, false);
 }
 
 static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK;
@@ -3267,6 +3303,16 @@ static cfg_type_t cfg_type_querysource4 = {
 
 static cfg_type_t cfg_type_querysource6 = {
 	"querysource6", parse_querysource,	NULL, doc_querysource,
+	NULL,		&querysource6wild_flags
+};
+
+static cfg_type_t cfg_type_server_querysource4 = {
+	"querysource4", parse_querysource,	NULL, doc_serverquerysource,
+	NULL,		&querysource4wild_flags
+};
+
+static cfg_type_t cfg_type_server_querysource6 = {
+	"querysource6", parse_querysource,	NULL, doc_serverquerysource,
 	NULL,		&querysource6wild_flags
 };
 

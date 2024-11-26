@@ -1288,9 +1288,22 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		UNREACHABLE();
 	}
 
-	sa = *(cfg_obj_assockaddr(obj));
-	INSIST(isc_sockaddr_pf(&sa) == af);
-	INSIST(isc_sockaddr_getport(&sa) == 0);
+	if (cfg_obj_isvoid(obj)) {
+		/*
+		 * We don't want to use this address family, let's
+		 * bail now. The dispatch object for this family will
+		 * be null then not used to run queries.
+		 */
+		return ISC_R_SUCCESS;
+	} else {
+		/*
+		 * obj _has_ to be sockaddr here, cfg_obj_assockaddr()
+		 * asserts this internally.
+		 */
+		sa = *(cfg_obj_assockaddr(obj));
+		INSIST(isc_sockaddr_pf(&sa) == af);
+		INSIST(isc_sockaddr_getport(&sa) == 0);
+	}
 
 	/*
 	 * If we don't support this address family, we're done!
@@ -1614,6 +1627,7 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 		(void)cfg_map_get(cpeer, "query-source-v6", &obj);
 	}
 	if (obj != NULL) {
+		INSIST(cfg_obj_issockaddr(obj));
 		result = dns_peer_setquerysource(peer, cfg_obj_assockaddr(obj));
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;

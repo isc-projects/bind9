@@ -3304,11 +3304,15 @@ Query Address
 
 .. namedconf:statement:: query-source
    :tags: query
-   :short: Controls the IPv4 address from which queries are issued.
+   :short: Controls the IPv4 address from which queries are issued. If
+           `none`, then no IPv4 address would be used to issue the
+           query and therefore only IPv6 servers are queried.
 
 .. namedconf:statement:: query-source-v6
    :tags: query
-   :short: Controls the IPv6 address from which queries are issued.
+   :short: Controls the IPv6 address from which queries are issued. If
+           `none`, then no IPv6 address would be used to issue the
+           query and therefore only IPv4 servers are quried.
 
    If the server does not know the answer to a question, it queries other
    name servers. :any:`query-source` specifies the address used for
