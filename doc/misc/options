@@ -233,8 +233,8 @@ options {
 	prefetch <integer> [ <integer> ];
 	provide-ixfr <boolean>;
 	qname-minimization ( strict | relaxed | disabled | off );
-	query-source [ address ] ( <ipv4_address> | * );
-	query-source-v6 [ address ] ( <ipv6_address> | * );
+	query-source [ address ] ( <ipv4_address> | * | none );
+	query-source-v6 [ address ] ( <ipv6_address> | * | none );
 	querylog <boolean>;
 	rate-limit {
 		all-per-second <integer>;
@@ -520,8 +520,8 @@ view <string> [ <class> ] {
 	prefetch <integer> [ <integer> ];
 	provide-ixfr <boolean>;
 	qname-minimization ( strict | relaxed | disabled | off );
-	query-source [ address ] ( <ipv4_address> | * );
-	query-source-v6 [ address ] ( <ipv6_address> | * );
+	query-source [ address ] ( <ipv4_address> | * | none );
+	query-source-v6 [ address ] ( <ipv6_address> | * | none );
 	rate-limit {
 		all-per-second <integer>;
 		errors-per-second <integer>;
