@@ -902,7 +902,8 @@ gcc:bookworm:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
-    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_LIBEDIT}"
+    # Tracing needs to be disabled otherwise gcovr fails
+    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_LIBEDIT} --disable-tracing"
     RUN_MAKE_INSTALL: 1
   <<: *debian_bookworm_amd64_image
   <<: *build_job
