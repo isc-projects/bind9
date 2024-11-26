@@ -277,10 +277,25 @@ isc_tlsctx_load_certificate(isc_tlsctx_t *ctx, const char *keyfile,
 
 	rv = SSL_CTX_use_certificate_chain_file(ctx, certfile);
 	if (rv != 1) {
+		unsigned long err = ERR_peek_last_error();
+		char errbuf[1024] = { 0 };
+		ERR_error_string_n(err, errbuf, sizeof(errbuf));
+		isc_log_write(
+			isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+			ISC_LOG_ERROR,
+			"SSL_CTX_use_certificate_chain_file: '%s' failed: %s",
+			certfile, errbuf);
 		return ISC_R_TLSERROR;
 	}
 	rv = SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM);
 	if (rv != 1) {
+		unsigned long err = ERR_peek_last_error();
+		char errbuf[1024] = { 0 };
+		ERR_error_string_n(err, errbuf, sizeof(errbuf));
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
+			      "SSL_CTX_use_PrivateKey_file: '%s' failed: %s",
+			      keyfile, errbuf);
 		return ISC_R_TLSERROR;
 	}
 
