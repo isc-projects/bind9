@@ -83,7 +83,7 @@ isc_tlsctx_attach(isc_tlsctx_t *src, isc_tlsctx_t **ptarget) {
  */
 static void
 sslkeylogfile_append(const SSL *ssl ISC_ATTR_UNUSED, const char *line) {
-	isc_log_write(ISC_LOGCATEGORY_SSLKEYLOG, ISC_LOGMODULE_NETMGR,
+	isc_log_write(ISC_LOGCATEGORY_SSLKEYLOG, ISC_LOGMODULE_CRYPTO,
 		      ISC_LOG_INFO, "%s", line);
 }
 
@@ -130,7 +130,7 @@ isc_tlsctx_createclient(isc_tlsctx_t **ctxp) {
 ssl_error:
 	err = ERR_get_error();
 	ERR_error_string_n(err, errbuf, sizeof(errbuf));
-	isc_log_write(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+	isc_log_write(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_CRYPTO,
 		      ISC_LOG_ERROR, "Error initializing TLS context: %s",
 		      errbuf);
 
@@ -345,7 +345,7 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 ssl_error:
 	err = ERR_get_error();
 	ERR_error_string_n(err, errbuf, sizeof(errbuf));
-	isc_log_write(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+	isc_log_write(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_CRYPTO,
 		      ISC_LOG_ERROR, "Error initializing TLS context: %s",
 		      errbuf);
 

@@ -169,6 +169,8 @@ isc__crypto_initialize(void) {
 
 	/* Protect ourselves against unseeded PRNG */
 	if (RAND_status() != 1) {
+		isc_tlserr2result(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_CRYPTO,
+				  "RAND_status", ISC_R_CRYPTOFAILURE);
 		FATAL_ERROR("OpenSSL pseudorandom number generator "
 			    "cannot be initialized (see the `PRNG not "
 			    "seeded' message in the OpenSSL FAQ)");
@@ -178,7 +180,7 @@ isc__crypto_initialize(void) {
 	if (!isc_fips_mode()) {
 		if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
 			isc_tlserr2result(ISC_LOGCATEGORY_GENERAL,
-					  ISC_LOGMODULE_OTHER, "FIPS_mode_set",
+					  ISC_LOGMODULE_CRYPTO, "FIPS_mode_set",
 					  ISC_R_CRYPTOFAILURE);
 			exit(EXIT_FAILURE);
 		}

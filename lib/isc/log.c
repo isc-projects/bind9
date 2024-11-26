@@ -221,6 +221,7 @@ static const char *modules_description[] = {
 	[ISC_LOGMODULE_FILE] = "file",
 	[ISC_LOGMODULE_NETMGR] = "netmgr",
 	[ISC_LOGMODULE_OTHER] = "other",
+	[ISC_LOGMODULE_CRYPTO] = "crypto",
 	/* dns modules */
 	[DNS_LOGMODULE_DB] = "dns/db",
 	[DNS_LOGMODULE_RBTDB] = "dns/rbtdb",
