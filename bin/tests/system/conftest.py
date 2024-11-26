@@ -309,6 +309,7 @@ def logger(request, system_test_name):
 @pytest.fixture(scope="module")
 def expected_artifacts(request):
     common_artifacts = [
+        ".libs/*",  # possible build artifacts, see GL #5055
         "ns*/named.run",
         "ns*/named.run.prev",
         "ns*/named.conf",
