@@ -11522,11 +11522,23 @@ zone_refresh(dns_zone_t *zone) {
 	queue_soa_query(zone);
 }
 
-void
-dns_zone_refresh(dns_zone_t *zone) {
+static void
+zone_refresh_async(void *arg) {
+	dns_zone_t *zone = arg;
+
 	LOCK_ZONE(zone);
 	zone_refresh(zone);
 	UNLOCK_ZONE(zone);
+
+	dns_zone_detach(&zone);
+}
+
+void
+dns_zone_refresh(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	dns_zone_ref(zone);
+	isc_async_run(zone->loop, zone_refresh_async, zone);
 }
 
 static isc_result_t
@@ -17971,17 +17983,6 @@ again:
 		inc_stats(zone, dns_zonestatscounter_xfrfail);
 		break;
 
-	case ISC_R_CANCELED:
-		/*
-		 * A new "retransfer" command with a "-force" argument could
-		 * have canceled the current transfer in which case we should
-		 * make sure to try again from the beginning.
-		 */
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
-			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
-			again = true;
-		}
-		FALLTHROUGH;
 	case ISC_R_SHUTTINGDOWN:
 		dns_remote_reset(&zone->primaries, true);
 		break;
