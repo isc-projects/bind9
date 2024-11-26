@@ -39,5 +39,5 @@ trust-anchors { };
 
 zone "database" {
 	type primary;
-	database "_builtin empty localhost. marka.isc.org.";
+	database "_builtin empty localhost. @rname | default('hostmaster.isc.org.')@";
 };
