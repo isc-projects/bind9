@@ -85,6 +85,8 @@ isc_region_compare(isc_region_t *r1, isc_region_t *r2);
  * Requires:
  *\li	'r1' is a valid region
  *\li	'r2' is a valid region
+ *\li	'r1->base' is not null
+ *\li	'r2->base' is not null
  *
  * Returns:
  *\li	 < 0 if r1 is lexicographically less than r2
