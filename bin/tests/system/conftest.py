@@ -521,8 +521,8 @@ def system_test_dir(request, env, system_test_name, expected_artifacts):
 
 
 @pytest.fixture(scope="module")
-def templates(system_test_dir: Path):
-    return isctest.template.TemplateEngine(system_test_dir)
+def templates(system_test_dir: Path, env):
+    return isctest.template.TemplateEngine(system_test_dir, env)
 
 
 def _run_script(
