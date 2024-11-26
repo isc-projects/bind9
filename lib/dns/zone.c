@@ -19584,11 +19584,6 @@ void
 dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 			   isc_sockaddr_t *local) {
 	unsigned int i;
-	char primary[ISC_SOCKADDR_FORMATSIZE];
-	char source[ISC_SOCKADDR_FORMATSIZE];
-
-	isc_sockaddr_format(remote, primary, sizeof(primary));
-	isc_sockaddr_format(local, source, sizeof(source));
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
