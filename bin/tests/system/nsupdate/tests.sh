@@ -1645,6 +1645,27 @@ if [ $ret -ne 0 ]; then
 fi
 
 n=$((n + 1))
+echo_i "check adding more records than max-records-per-type fails ($n)"
+ret=0
+$NSUPDATE <<END >nsupdate.out.test$n 2>&1 && ret=1
+server 10.53.0.1 ${PORT}
+zone max-ttl.nil.
+update add a.max-ttl.nil. 60 IN A 192.0.2.1
+update add a.max-ttl.nil. 60 IN A 192.0.2.2
+update add a.max-ttl.nil. 60 IN A 192.0.2.3
+update add a.max-ttl.nil. 60 IN A 192.0.2.4
+send
+END
+grep "update failed: SERVFAIL" nsupdate.out.test$n >/dev/null || ret=1
+msg="error updating 'a.max-ttl.nil/A' in 'max-ttl.nil/IN' (zone): too many records (must not exceed 3)"
+wait_for_log 10 "$msg" ns1/named.run || ret=1
+[ $ret = 0 ] || {
+  echo_i "failed"
+  status=1
+}
+nextpart ns1/named.run >/dev/null
+
+n=$((n + 1))
 ret=0
 echo_i "add a record which is truncated when logged. ($n)"
 $NSUPDATE verylarge || ret=1

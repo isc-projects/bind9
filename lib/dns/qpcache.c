@@ -3412,6 +3412,11 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					    &region, sizeof(dns_slabheader_t),
 					    qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_TOOMANYRECORDS) {
+			dns__db_logtoomanyrecords((dns_db_t *)qpdb,
+						  &qpnode->name, rdataset->type,
+						  "adding", qpdb->maxrrperset);
+		}
 		return result;
 	}
 
