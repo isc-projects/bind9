@@ -660,6 +660,28 @@ wait_for_message() (
   grep -F "$1" wait_for_message.$n >/dev/null
 )
 
+nextpart ns6/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "test that named tries the next primary in the list when the first one fails (XoT -> Do53) ($n)"
+tmp=0
+$RNDCCMD 10.53.0.6 retransfer xot-primary-try-next 2>&1 | sed 's/^/ns6 /' | cat_i
+msg="'xot-primary-try-next/IN' from 10.53.0.1#${PORT}: Transfer status: success"
+retry_quiet 60 wait_for_message "$msg" || tmp=1
+if test $tmp != 0; then echo_i "failed"; fi
+status=$((status + tmp))
+
+nextpart ns6/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "test that named tries the next primary in the list when the first one is already marked as unreachable (XoT -> Do53) ($n)"
+tmp=0
+$RNDCCMD 10.53.0.6 retransfer xot-primary-try-next 2>&1 | sed 's/^/ns6 /' | cat_i
+msg="'xot-primary-try-next/IN' from 10.53.0.1#${PORT}: Transfer status: success"
+retry_quiet 60 wait_for_message "$msg" || tmp=1
+if test $tmp != 0; then echo_i "failed"; fi
+status=$((status + tmp))
+
 # Restart ns1 with -T transferslowly
 stop_server ns1
 copy_setports ns1/named2.conf.in ns1/named.conf
