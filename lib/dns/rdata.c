@@ -25,6 +25,7 @@
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/utf8.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -601,6 +602,176 @@ typemap_test(isc_region_t *sr, bool allow_empty) {
 
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
+
+/*
+ * A relative URI template that has a "dns" variable.
+ */
+static bool
+validate_dohpath(isc_region_t *region) {
+	const unsigned char *p;
+	const unsigned char *v = NULL;
+	const unsigned char *n = NULL;
+	unsigned char c;
+	bool dns = false;
+	bool wasop = false;
+	enum {
+		path,
+		variable,
+		percent1,
+		percent2,
+		variable_percent1,
+		variable_percent2,
+		prefix,
+		explode
+	} state = path;
+
+	if (region->length == 0 || *region->base != '/' ||
+	    !isc_utf8_valid(region->base, region->length))
+	{
+		return false;
+	}
+
+	/*
+	 * RFC 6570 URI Template check + "dns" variable.
+	 */
+	p = region->base;
+	while (p < region->base + region->length) {
+		switch (state) {
+		case path:
+			switch (*p++) {
+			case '{': /*}*/
+				state = variable;
+				wasop = false;
+				v = p;
+				break;
+			case '%':
+				state = percent1;
+				break;
+			default:
+				break;
+			}
+			break;
+		case variable:
+			c = *p++;
+			switch (c) {
+			case '+':
+			case '#':
+			case '.':
+			case '/':
+			case ';':
+			case '?':
+			case '&':
+				/* Operators. */
+				if (p != v + 1 || wasop) {
+					return false;
+				}
+				wasop = true;
+				v = p;
+				break;
+			case '=':
+			case '!':
+			case '@':
+			case '|':
+				/* Reserved operators. */
+				return false;
+			case '*':
+			case ':':
+			case '}':
+			case ',':
+				/* Found the end of the variable name. */
+				if (p == (v + 1)) {
+					return false;
+				}
+				/* 'p' has been incremented so 4 not 3 */
+				if ((p - v) == 4 && memcmp(v, "dns", 3) == 0) {
+					dns = true;
+				}
+				switch (c) {
+				case ':':
+					state = prefix;
+					n = p;
+					break;
+				case /*{*/ '}':
+					state = path;
+					break;
+				case '*':
+					state = explode;
+					break;
+				case ',':
+					wasop = false;
+					v = p;
+					break;
+				}
+				break;
+			case '%':
+				/* Percent encoded variable name. */
+				state = variable_percent1;
+				break;
+			default:
+				/* Valid variable name character? */
+				if (c != '_' && !isalnum(c)) {
+					return false;
+				}
+				break;
+			}
+			break;
+		case explode:
+			switch (*p++) {
+			case ',':
+				state = variable;
+				wasop = false;
+				v = p;
+				break;
+			case /*}*/ '}':
+				state = path;
+				break;
+			default:
+				return false;
+			}
+			break;
+		/* Check % encoding */
+		case percent1:
+		case percent2:
+		case variable_percent1:
+		case variable_percent2:
+			/* bad percent encoding? */
+			if (!isxdigit(*p++)) {
+				return false;
+			}
+			if (state == percent1) {
+				state = percent2;
+			} else if (state == percent2) {
+				state = path;
+			} else if (state == variable_percent1) {
+				state = variable_percent2;
+			} else {
+				state = variable;
+			}
+			break;
+		case prefix:
+			c = *p++;
+			if (!isdigit(c)) {
+				/* valid number range [1..9999] */
+				if ((p == n + 1) || (p - n) > 5 || *n == '0') {
+					return false;
+				}
+				switch (c) {
+				case ',':
+					state = variable;
+					wasop = false;
+					break;
+				case /*{*/ '}':
+					state = path;
+					break;
+				default:
+					return false;
+				}
+			}
+			break;
+		}
+	}
+	return state == path && dns;
+}
 
 #include "code.h"
 
