@@ -663,7 +663,7 @@ msg="'axfr-rndc-retransfer-force/IN' from 10.53.0.1#${PORT}: received"
 retry_quiet 5 wait_for_message "$msg" || tmp=1
 # Issue a retransfer-force command which should cancel the ongoing transfer and start a new one
 $RNDCCMD 10.53.0.6 retransfer -force axfr-rndc-retransfer-force 2>&1 | sed 's/^/ns6 /' | cat_i
-msg="'axfr-rndc-retransfer-force/IN' from 10.53.0.1#${PORT}: Transfer status: operation canceled"
+msg="'axfr-rndc-retransfer-force/IN' from 10.53.0.1#${PORT}: Transfer status: shutting down"
 retry_quiet 5 wait_for_message "$msg" || tmp=1
 # Wait for the new transfer to complete successfully
 msg="'axfr-rndc-retransfer-force/IN' from 10.53.0.1#${PORT}: Transfer status: success"
