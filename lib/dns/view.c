@@ -85,9 +85,9 @@
 #define DEFAULT_EDNS_BUFSIZE 1232
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
-		dns_rdataclass_t rdclass, const char *name,
-		dns_view_t **viewp) {
+dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		dns_dispatchmgr_t *dispatchmgr, dns_rdataclass_t rdclass,
+		const char *name, dns_view_t **viewp) {
 	dns_view_t *view = NULL;
 	isc_result_t result;
 	char buffer[1024];
@@ -149,7 +149,7 @@ dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 
 	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
-	view->failcache = dns_badcache_new(view->mctx);
+	view->failcache = dns_badcache_new(view->mctx, loopmgr);
 
 	isc_mutex_init(&view->new_zone_lock);
 
@@ -1453,9 +1453,6 @@ dns_view_flushcache(dns_view_t *view, bool fixuponly) {
 	}
 	dns_db_detach(&view->cachedb);
 	dns_cache_attachdb(view->cache, &view->cachedb);
-	if (view->resolver != NULL) {
-		dns_resolver_flushbadcache(view->resolver, NULL);
-	}
 	if (view->failcache != NULL) {
 		dns_badcache_flush(view->failcache);
 	}
@@ -1489,9 +1486,6 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree) {
 			dns_adb_flushnames(adb, name);
 		}
 		rcu_read_unlock();
-		if (view->resolver != NULL) {
-			dns_resolver_flushbadnames(view->resolver, name);
-		}
 		if (view->failcache != NULL) {
 			dns_badcache_flushtree(view->failcache, name);
 		}
@@ -1502,9 +1496,6 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree) {
 			dns_adb_flushname(adb, name);
 		}
 		rcu_read_unlock();
-		if (view->resolver != NULL) {
-			dns_resolver_flushbadcache(view->resolver, name);
-		}
 		if (view->failcache != NULL) {
 			dns_badcache_flushname(view->failcache, name);
 		}

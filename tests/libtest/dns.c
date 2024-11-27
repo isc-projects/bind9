@@ -72,8 +72,8 @@ dns_test_makeview(const char *name, bool with_dispatchmgr, bool with_cache,
 		}
 	}
 
-	result = dns_view_create(mctx, dispatchmgr, dns_rdataclass_in, name,
-				 &view);
+	result = dns_view_create(mctx, loopmgr, dispatchmgr, dns_rdataclass_in,
+				 name, &view);
 
 	if (dispatchmgr != NULL) {
 		dns_dispatchmgr_detach(&dispatchmgr);

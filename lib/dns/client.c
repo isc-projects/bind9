@@ -16,6 +16,7 @@
 
 #include <isc/async.h>
 #include <isc/buffer.h>
+#include <isc/loop.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -199,13 +200,13 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 
 static isc_result_t
 createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_nm_t *nm,
-	   isc_tlsctx_cache_t *tlsctx_client_cache,
+	   isc_tlsctx_cache_t *tlsctx_client_cache, isc_loopmgr_t *loopmgr,
 	   dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
 	   dns_dispatch_t *dispatchv6, dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
-	result = dns_view_create(mctx, dispatchmgr, rdclass,
+	result = dns_view_create(mctx, loopmgr, dispatchmgr, rdclass,
 				 DNS_CLIENTVIEW_NAME, &view);
 	if (result != ISC_R_SUCCESS) {
 		return result;
@@ -292,6 +293,7 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 
 	/* Create the default view for class IN */
 	result = createview(mctx, dns_rdataclass_in, nm, tlsctx_client_cache,
+			    isc_loop_getloopmgr(client->loop),
 			    client->dispatchmgr, dispatchv4, dispatchv6, &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;
