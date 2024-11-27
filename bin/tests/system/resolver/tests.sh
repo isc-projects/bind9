@@ -985,5 +985,19 @@ grep "response: should.not.be.logged" ns6/named.run >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "check that attach-cache with arbitrary cache name is preserved across reload ($n)"
+ret=0
+# send a query, wait a second, reload the configuration, and query again.
+# the TTL should indicate that the cache was still populated.
+dig_with_opts +noall +answer @10.53.0.1 www.example.org >/dev/null || ret=1
+sleep 1
+rndc_reload ns1 10.53.0.1
+dig_with_opts +noall +answer @10.53.0.1 www.example.org >dig.ns1.out.${n} || ret=1
+ttl=$(awk '{print $2}' dig.ns1.out.${n})
+[ $ttl -lt 300 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
