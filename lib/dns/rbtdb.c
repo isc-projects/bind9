@@ -1417,7 +1417,7 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	UNUSED(refs);
 #endif
 
-	if (KEEP_NODE(node, rbtdb, (locked || write_locked))) {
+	if (KEEP_NODE(node, rbtdb, locked || write_locked)) {
 		goto restore_locks;
 	}
 
@@ -2030,7 +2030,7 @@ dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 				    sizeof(*changed));
 		}
 		if (rbtdb->loop != NULL) {
-			isc_refcount_increment(&rbtdb->common.references);
+			dns_db_attach((dns_db_t *)rbtdb, &(dns_db_t *){ NULL });
 			isc_async_run(rbtdb->loop, cleanup_dead_nodes_callback,
 				      rbtdb);
 		} else {
