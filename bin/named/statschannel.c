@@ -1478,6 +1478,7 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	unsigned int nmsg = 0;
 	unsigned int nrecs = 0;
 	uint64_t nbytes = 0;
+	uint64_t rate = 0;
 
 	statlevel = dns_zone_getstatlevel(zone);
 	if (statlevel == dns_zonestat_none) {
@@ -1691,7 +1692,7 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	TRY0(xmlTextWriterEndElement(writer));
 
 	if (is_running) {
-		dns_xfrin_getstats(xfr, &nmsg, &nrecs, &nbytes);
+		dns_xfrin_getstats(xfr, &nmsg, &nrecs, &nbytes, &rate);
 	}
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "nmsg"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%u", nmsg));
@@ -1701,6 +1702,9 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	TRY0(xmlTextWriterEndElement(writer));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "nbytes"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64, nbytes));
+	TRY0(xmlTextWriterEndElement(writer));
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "rate"));
+	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64, rate));
 	TRY0(xmlTextWriterEndElement(writer));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ixfr"));
@@ -2552,6 +2556,7 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	unsigned int nmsg = 0;
 	unsigned int nrecs = 0;
 	uint64_t nbytes = 0;
+	uint64_t rate = 0;
 
 	statlevel = dns_zone_getstatlevel(zone);
 	if (statlevel == dns_zonestat_none) {
@@ -2749,7 +2754,7 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	}
 
 	if (is_running) {
-		dns_xfrin_getstats(xfr, &nmsg, &nrecs, &nbytes);
+		dns_xfrin_getstats(xfr, &nmsg, &nrecs, &nbytes, &rate);
 	}
 	json_object_object_add(xfrinobj, "nmsg",
 			       json_object_new_int64((int64_t)nmsg));
@@ -2759,6 +2764,10 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 		xfrinobj, "nbytes",
 		json_object_new_int64(nbytes > INT64_MAX ? INT64_MAX
 							 : (int64_t)nbytes));
+	json_object_object_add(xfrinobj, "rate",
+			       json_object_new_int64(rate > INT64_MAX
+							     ? INT64_MAX
+							     : (int64_t)rate));
 
 	if (is_running && is_first_data_received) {
 		json_object_object_add(

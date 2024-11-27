@@ -8117,6 +8117,12 @@ Incoming Zone Transfers
       64-bit unsigned Integer. This is the number of usable bytes
       of DNS data. It does not include transport overhead.
 
+   ``Transfer Rate (B/s)`` (``rate``)
+      64 bit unsigned Integer. This is the average zone transfer rate in
+      bytes-per-second during the latest full interval that is configured by the
+      :any:`min-transfer-rate-in` configuration option. If no such interval
+      has passed yet, then the overall average rate is reported instead.
+
    .. note::
       Depending on the current state of the transfer, some of the
       values may be empty or set to ``-`` (meaning "not available").
