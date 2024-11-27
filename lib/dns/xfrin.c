@@ -154,6 +154,7 @@ struct dns_xfrin {
 	atomic_uint nrecs;	     /*%< Number of records recvd */
 	atomic_uint_fast64_t nbytes; /*%< Number of bytes received */
 	_Atomic(isc_time_t) start;   /*%< Start time of the transfer */
+	atomic_uint_fast64_t rate_bytes_per_second;
 	_Atomic(dns_transport_type_t) soa_transport_type;
 	atomic_uint_fast32_t end_serial;
 
@@ -975,13 +976,21 @@ xfrin_minratecheck(void *arg) {
 
 	const uint64_t nbytes = atomic_load_relaxed(&xfr->nbytes);
 	const uint64_t min = dns_zone_getminxfrratebytesin(xfr->zone);
+	uint64_t rate = nbytes - xfr->nbytes_saved;
 
-	if (nbytes - xfr->nbytes_saved < min) {
+	if (rate < min) {
 		isc_timer_stop(xfr->min_rate_timer);
 		xfrin_fail(xfr, ISC_R_TIMEDOUT,
 			   "minimum transfer rate reached");
 	} else {
 		xfr->nbytes_saved = nbytes;
+
+		/*
+		 * Calculate and store for the statistics channel the transfer
+		 * rate in bytes-per-second for the latest interval.
+		 */
+		rate /= dns_zone_getminxfrratesecondsin(xfr->zone);
+		atomic_store_relaxed(&xfr->rate_bytes_per_second, rate);
 	}
 }
 
@@ -1046,13 +1055,29 @@ dns_xfrin_getendserial(dns_xfrin_t *xfr) {
 
 void
 dns_xfrin_getstats(dns_xfrin_t *xfr, unsigned int *nmsgp, unsigned int *nrecsp,
-		   uint64_t *nbytesp) {
+		   uint64_t *nbytesp, uint64_t *ratep) {
 	REQUIRE(VALID_XFRIN(xfr));
 	REQUIRE(nmsgp != NULL && nrecsp != NULL && nbytesp != NULL);
+
+	uint64_t rate = atomic_load_relaxed(&xfr->rate_bytes_per_second);
+	if (rate == 0) {
+		/*
+		 * Likely the first 'min-transfer-rate-in <bytes> <minutes>'
+		 * minutes interval hasn't passed yet. Calculate the overall
+		 * average transfer rate instead.
+		 */
+		isc_time_t now = isc_time_now();
+		isc_time_t start = atomic_load_relaxed(&xfr->start);
+		uint64_t sec = isc_time_microdiff(&now, &start) / US_PER_SEC;
+		if (sec > 0) {
+			rate = atomic_load_relaxed(&xfr->nbytes) / sec;
+		}
+	}
 
 	SET_IF_NOT_NULL(nmsgp, atomic_load_relaxed(&xfr->nmsg));
 	SET_IF_NOT_NULL(nrecsp, atomic_load_relaxed(&xfr->nrecs));
 	SET_IF_NOT_NULL(nbytesp, atomic_load_relaxed(&xfr->nbytes));
+	SET_IF_NOT_NULL(ratep, rate);
 }
 
 const isc_sockaddr_t *
