@@ -1085,12 +1085,9 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	isc_interfaceiter_t *iter = NULL;
 	bool scan_ipv4 = false;
 	bool scan_ipv6 = false;
-	bool ipv6only = true;
-	bool ipv6pktinfo = true;
 	isc_result_t result;
 	isc_netaddr_t zero_address, zero_address6;
 	ns_listenelt_t *le = NULL;
-	isc_sockaddr_t listen_addr;
 	ns_interface_t *ifp = NULL;
 	bool log_explicit = false;
 	bool dolistenon;
@@ -1114,64 +1111,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
 			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv4 interfaces found");
-	}
-
-	/*
-	 * A special, but typical case; listen-on-v6 { any; }.
-	 * When we can make the socket IPv6-only, open a single wildcard
-	 * socket for IPv6 communication.  Otherwise, make separate
-	 * socket for each IPv6 address in order to avoid accepting IPv4
-	 * packets as the form of mapped addresses unintentionally
-	 * unless explicitly allowed.
-	 */
-	if (scan_ipv6 && isc_net_probe_ipv6only() != ISC_R_SUCCESS) {
-		ipv6only = false;
-		log_explicit = true;
-	}
-	if (scan_ipv6 && isc_net_probe_ipv6pktinfo() != ISC_R_SUCCESS) {
-		ipv6pktinfo = false;
-		log_explicit = true;
-	}
-	if (scan_ipv6 && ipv6only && ipv6pktinfo) {
-		for (le = ISC_LIST_HEAD(mgr->listenon6->elts); le != NULL;
-		     le = ISC_LIST_NEXT(le, link))
-		{
-			struct in6_addr in6a;
-
-			if (!listenon_is_ip6_any(le)) {
-				continue;
-			}
-
-			in6a = in6addr_any;
-			isc_sockaddr_fromin6(&listen_addr, &in6a, le->port);
-
-			ifp = find_matching_interface(mgr, &listen_addr);
-			if (ifp != NULL) {
-				bool cont = interface_update_or_shutdown(
-					mgr, ifp, le, config);
-				if (cont) {
-					continue;
-				}
-			}
-
-			isc_log_write(NS_LOGCATEGORY_NETWORK,
-				      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
-				      "listening on IPv6 "
-				      "interfaces, port %u",
-				      le->port);
-			result = interface_setup(mgr, &listen_addr, "<any>",
-						 &ifp, le, NULL);
-			if (result == ISC_R_SUCCESS) {
-				ifp->flags |= NS_INTERFACEFLAG_ANYADDR;
-			} else {
-				isc_log_write(NS_LOGCATEGORY_NETWORK,
-					      NS_LOGMODULE_INTERFACEMGR,
-					      ISC_LOG_ERROR,
-					      "listening on all IPv6 "
-					      "interfaces failed");
-			}
-			/* Continue. */
-		}
 	}
 
 	isc_netaddr_any(&zero_address);
@@ -1253,7 +1192,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 		{
 			int match;
 			bool addr_in_use = false;
-			bool ipv6_wildcard = false;
 			isc_sockaddr_t listen_sockaddr;
 
 			isc_sockaddr_fromnetaddr(&listen_sockaddr,
@@ -1279,16 +1217,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 				dolistenon = false;
 			}
 
-			/*
-			 * The case of "any" IPv6 address will require
-			 * special considerations later, so remember it.
-			 */
-			if (family == AF_INET6 && ipv6only && ipv6pktinfo &&
-			    listenon_is_ip6_any(le))
-			{
-				ipv6_wildcard = true;
-			}
-
 			ifp = find_matching_interface(mgr, &listen_sockaddr);
 			if (ifp != NULL) {
 				bool cont = interface_update_or_shutdown(
@@ -1296,10 +1224,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 				if (cont) {
 					continue;
 				}
-			}
-
-			if (ipv6_wildcard) {
-				continue;
 			}
 
 			if (log_explicit && family == AF_INET6 &&

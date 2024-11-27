@@ -31,10 +31,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#ifndef socklen_t
-#define socklen_t unsigned int
-#endif /* ifndef socklen_t */
-
 /*%
  * Definitions about UDP port range specification.  This is a total mess of
  * portability variants: some use sysctl (but the sysctl names vary), some use
@@ -89,243 +85,17 @@
 
 #endif /* HAVE_SYSCTLBYNAME */
 
-static isc_once_t once_ipv6only = ISC_ONCE_INIT;
-#ifdef __notyet__
-static isc_once_t once_ipv6pktinfo = ISC_ONCE_INIT;
-#endif /* ifdef __notyet__ */
-
-#ifndef ISC_CMSG_IP_TOS
-#ifdef __APPLE__
-#define ISC_CMSG_IP_TOS 0 /* As of 10.8.2. */
-#else			  /* ! __APPLE__ */
-#define ISC_CMSG_IP_TOS 1
-#endif /* ! __APPLE__ */
-#endif /* ! ISC_CMSG_IP_TOS */
-
-static isc_once_t once = ISC_ONCE_INIT;
-
-static isc_result_t ipv4_result = ISC_R_NOTFOUND;
-static isc_result_t ipv6_result = ISC_R_NOTFOUND;
-static isc_result_t ipv6only_result = ISC_R_NOTFOUND;
-static isc_result_t ipv6pktinfo_result = ISC_R_NOTFOUND;
-
-static isc_result_t
-try_proto(int domain) {
-	int s;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	s = socket(domain, SOCK_STREAM, 0);
-	if (s == -1) {
-		switch (errno) {
-#ifdef EAFNOSUPPORT
-		case EAFNOSUPPORT:
-#endif /* ifdef EAFNOSUPPORT */
-#ifdef EPFNOSUPPORT
-		case EPFNOSUPPORT:
-#endif /* ifdef EPFNOSUPPORT */
-#ifdef EPROTONOSUPPORT
-		case EPROTONOSUPPORT:
-#endif /* ifdef EPROTONOSUPPORT */
-#ifdef EINVAL
-		case EINVAL:
-#endif /* ifdef EINVAL */
-			return ISC_R_NOTFOUND;
-		default:
-			UNEXPECTED_SYSERROR(errno, "socket()");
-			return ISC_R_UNEXPECTED;
-		}
-	}
-
-	if (domain == PF_INET6) {
-		struct sockaddr_in6 sin6;
-		unsigned int len;
-
-		/*
-		 * Check to see if IPv6 is broken, as is common on Linux.
-		 */
-		len = sizeof(sin6);
-		if (getsockname(s, (struct sockaddr *)&sin6, (void *)&len) < 0)
-		{
-			isc_log_write(ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
-				      "retrieving the address of an IPv6 "
-				      "socket from the kernel failed.");
-			isc_log_write(ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
-				      "IPv6 is not supported.");
-			result = ISC_R_NOTFOUND;
-		} else {
-			if (len == sizeof(struct sockaddr_in6)) {
-				result = ISC_R_SUCCESS;
-			} else {
-				isc_log_write(ISC_LOGCATEGORY_GENERAL,
-					      ISC_LOGMODULE_SOCKET,
-					      ISC_LOG_ERROR,
-					      "IPv6 structures in kernel and "
-					      "user space do not match.");
-				isc_log_write(ISC_LOGCATEGORY_GENERAL,
-					      ISC_LOGMODULE_SOCKET,
-					      ISC_LOG_ERROR,
-					      "IPv6 is not supported.");
-				result = ISC_R_NOTFOUND;
-			}
-		}
-	}
-
-	(void)close(s);
-
-	return result;
-}
-
-static void
-initialize_action(void) {
-	ipv4_result = try_proto(PF_INET);
-	ipv6_result = try_proto(PF_INET6);
-}
-
-static void
-initialize(void) {
-	isc_once_do(&once, initialize_action);
-}
+static isc_result_t ipv4_result = ISC_R_SUCCESS;
+static isc_result_t ipv6_result = ISC_R_SUCCESS;
 
 isc_result_t
 isc_net_probeipv4(void) {
-	initialize();
 	return ipv4_result;
 }
 
 isc_result_t
 isc_net_probeipv6(void) {
-	initialize();
 	return ipv6_result;
-}
-
-static void
-try_ipv6only(void) {
-#ifdef IPV6_V6ONLY
-	int s, on;
-#endif /* ifdef IPV6_V6ONLY */
-	isc_result_t result;
-
-	result = isc_net_probeipv6();
-	if (result != ISC_R_SUCCESS) {
-		ipv6only_result = result;
-		return;
-	}
-
-#ifndef IPV6_V6ONLY
-	ipv6only_result = ISC_R_NOTFOUND;
-	return;
-#else  /* ifndef IPV6_V6ONLY */
-	/* check for TCP sockets */
-	s = socket(PF_INET6, SOCK_STREAM, 0);
-	if (s == -1) {
-		UNEXPECTED_SYSERROR(errno, "socket()");
-		ipv6only_result = ISC_R_UNEXPECTED;
-		return;
-	}
-
-	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0) {
-		ipv6only_result = ISC_R_NOTFOUND;
-		goto close;
-	}
-
-	close(s);
-
-	/* check for UDP sockets */
-	s = socket(PF_INET6, SOCK_DGRAM, 0);
-	if (s == -1) {
-		UNEXPECTED_SYSERROR(errno, "socket()");
-		ipv6only_result = ISC_R_UNEXPECTED;
-		return;
-	}
-
-	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0) {
-		ipv6only_result = ISC_R_NOTFOUND;
-		goto close;
-	}
-
-	ipv6only_result = ISC_R_SUCCESS;
-
-close:
-	close(s);
-	return;
-#endif /* IPV6_V6ONLY */
-}
-
-static void
-initialize_ipv6only(void) {
-	isc_once_do(&once_ipv6only, try_ipv6only);
-}
-
-#ifdef __notyet__
-static void
-try_ipv6pktinfo(void) {
-	int s, on;
-	isc_result_t result;
-	int optname;
-
-	result = isc_net_probeipv6();
-	if (result != ISC_R_SUCCESS) {
-		ipv6pktinfo_result = result;
-		return;
-	}
-
-	/* we only use this for UDP sockets */
-	s = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-	if (s == -1) {
-		UNEXPECTED_SYSERROR(errno, "socket()");
-		ipv6pktinfo_result = ISC_R_UNEXPECTED;
-		return;
-	}
-
-#ifdef IPV6_RECVPKTINFO
-	optname = IPV6_RECVPKTINFO;
-#else  /* ifdef IPV6_RECVPKTINFO */
-	optname = IPV6_PKTINFO;
-#endif /* ifdef IPV6_RECVPKTINFO */
-	on = 1;
-	if (setsockopt(s, IPPROTO_IPV6, optname, &on, sizeof(on)) < 0) {
-		ipv6pktinfo_result = ISC_R_NOTFOUND;
-		goto close;
-	}
-
-	ipv6pktinfo_result = ISC_R_SUCCESS;
-
-close:
-	close(s);
-	return;
-}
-
-static void
-initialize_ipv6pktinfo(void) {
-	isc_once_do(&once_ipv6pktinfo, try_ipv6pktinfo);
-}
-#endif /* ifdef __notyet__ */
-
-isc_result_t
-isc_net_probe_ipv6only(void) {
-	initialize_ipv6only();
-	return ipv6only_result;
-}
-
-isc_result_t
-isc_net_probe_ipv6pktinfo(void) {
-/*
- * XXXWPK if pktinfo were supported then we could listen on :: for ipv6 and get
- * the information about the destination address from pktinfo structure passed
- * in recvmsg but this method is not portable and libuv doesn't support it - so
- * we need to listen on all interfaces.
- * We should verify that this doesn't impact performance (we already do it for
- * ipv4) and either remove all the ipv6pktinfo detection code from above
- * or think of fixing libuv.
- */
-#ifdef __notyet__
-	initialize_ipv6pktinfo();
-#endif /* ifdef __notyet__ */
-	return ipv6pktinfo_result;
 }
 
 #if defined(USE_SYSCTL_PORTRANGE)
@@ -450,7 +220,6 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high) {
 
 void
 isc_net_disableipv4(void) {
-	initialize();
 	if (ipv4_result == ISC_R_SUCCESS) {
 		ipv4_result = ISC_R_DISABLED;
 	}
@@ -458,7 +227,6 @@ isc_net_disableipv4(void) {
 
 void
 isc_net_disableipv6(void) {
-	initialize();
 	if (ipv6_result == ISC_R_SUCCESS) {
 		ipv6_result = ISC_R_DISABLED;
 	}
@@ -466,7 +234,6 @@ isc_net_disableipv6(void) {
 
 void
 isc_net_enableipv4(void) {
-	initialize();
 	if (ipv4_result == ISC_R_DISABLED) {
 		ipv4_result = ISC_R_SUCCESS;
 	}
@@ -474,7 +241,6 @@ isc_net_enableipv4(void) {
 
 void
 isc_net_enableipv6(void) {
-	initialize();
 	if (ipv6_result == ISC_R_DISABLED) {
 		ipv6_result = ISC_R_SUCCESS;
 	}

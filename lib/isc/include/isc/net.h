@@ -188,52 +188,23 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 isc_net_probeipv4(void);
 /*%<
- * Check if the system's kernel supports IPv4.
+ * Check if the IPv4 has been disabled.
  *
  * Returns:
  *
  *\li	#ISC_R_SUCCESS		IPv4 is supported.
- *\li	#ISC_R_NOTFOUND		IPv4 is not supported.
  *\li	#ISC_R_DISABLED		IPv4 is disabled.
- *\li	#ISC_R_UNEXPECTED
  */
 
 isc_result_t
 isc_net_probeipv6(void);
 /*%<
- * Check if the system's kernel supports IPv6.
+ * Check if the IPv6 has been disabled.
  *
  * Returns:
  *
  *\li	#ISC_R_SUCCESS		IPv6 is supported.
- *\li	#ISC_R_NOTFOUND		IPv6 is not supported.
  *\li	#ISC_R_DISABLED		IPv6 is disabled.
- *\li	#ISC_R_UNEXPECTED
- */
-
-isc_result_t
-isc_net_probe_ipv6only(void);
-/*%<
- * Check if the system's kernel supports the IPV6_V6ONLY socket option.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS		the option is supported for both TCP and UDP.
- *\li	#ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
- *\li	#ISC_R_UNEXPECTED
- */
-
-isc_result_t
-isc_net_probe_ipv6pktinfo(void);
-/*
- * Check if the system's kernel supports the IPV6_(RECV)PKTINFO socket option
- * for UDP sockets.
- *
- * Returns:
- *
- * \li	#ISC_R_SUCCESS		the option is supported.
- * \li	#ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
- * \li	#ISC_R_UNEXPECTED
  */
 
 void
