@@ -77,6 +77,12 @@ zone "axfr-rndc-retransfer-force" {
 	file "axfr-rndc-retransfer-force.bk";
 };
 
+zone "xot-primary-try-next" {
+	type secondary;
+	primaries { 10.53.0.99 port @EXTRAPORT1@ tls ephemeral; 10.53.0.1; };
+	file "xot-primary-try-next.bk";
+};
+
 zone "axfr-too-big" {
 	type secondary;
 	max-records 30;
