@@ -17203,7 +17203,8 @@ getprivate:
 			{
 				next = ISC_LIST_NEXT(nsec3p, link);
 
-				if (nsec3p->length == rdata.length + 1 &&
+				if (nsec3p->length ==
+					    (unsigned int)rdata.length + 1 &&
 				    memcmp(rdata.data, nsec3p->data + 1,
 					   nsec3p->length - 1) == 0)
 				{
@@ -23774,7 +23775,7 @@ rss_post(void *arg) {
 			dns_rdata_init(&rdata);
 			dns_rdataset_current(&nrdataset, &rdata);
 
-			if (np->length == (rdata.length + 1) &&
+			if (np->length == ((unsigned int)rdata.length + 1) &&
 			    memcmp(rdata.data, np->data + 1, np->length - 1) ==
 				    0)
 			{

@@ -110,16 +110,17 @@ ISC_LANG_BEGINDECLS
  */
 struct dns_rdata {
 	unsigned char	*data;
-	unsigned int	 length;
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t	 type;
-	unsigned int	 flags;
+	uint16_t	 length;
+	uint16_t	 flags;
 	ISC_LINK(dns_rdata_t) link;
 };
 
-#define DNS_RDATA_INIT                                           \
-	{                                                        \
-		NULL, 0, 0, 0, 0, { (void *)(-1), (void *)(-1) } \
+#define DNS_RDATA_INIT                        \
+	{                                     \
+		.data = NULL,                 \
+		.link = ISC_LINK_INITIALIZER, \
 	}
 
 #define DNS_RDATA_CHECKINITIALIZED
