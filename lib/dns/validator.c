@@ -15,6 +15,7 @@
 #include <stdbool.h>
 
 #include <isc/async.h>
+#include <isc/atomic.h>
 #include <isc/base32.h>
 #include <isc/counter.h>
 #include <isc/helper.h>
@@ -78,6 +79,8 @@ enum valattr {
 	VALATTR_MAXVALIDATIONS = 1 << 5,     /*%< Max validations quota */
 	VALATTR_MAXVALIDATIONFAILS = 1 << 6, /*%< Max validation fails
 						quota */
+	VALATTR_OFFLOADED = 1 << 7, /*%< The ownership has been passed to
+				       offloaded thread */
 
 	/*!
 	 * NSEC proofs to be looked for.
@@ -106,8 +109,10 @@ enum valattr {
 #define FOUNDCLOSEST(val)    ((val->attributes & VALATTR_FOUNDCLOSEST) != 0)
 #define FOUNDOPTOUT(val)     ((val->attributes & VALATTR_FOUNDOPTOUT) != 0)
 
-#define CANCELED(v) (((v)->attributes & VALATTR_CANCELED) != 0)
-#define COMPLETE(v) (((v)->attributes & VALATTR_COMPLETE) != 0)
+#define CANCELING(v) atomic_load(&(v)->canceling)
+#define CANCELED(v)  (((v)->attributes & VALATTR_CANCELED) != 0)
+#define OFFLOADED(v) (((v)->attributes & VALATTR_OFFLOADED) != 0)
+#define COMPLETE(v)  (((v)->attributes & VALATTR_COMPLETE) != 0)
 
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
@@ -408,7 +413,7 @@ fetch_callback_dnskey(void *arg) {
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_dnskey");
 	dns_resolver_destroyfetch(&val->fetch);
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -482,7 +487,7 @@ fetch_callback_ds(void *arg) {
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_ds");
 	dns_resolver_destroyfetch(&val->fetch);
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -592,7 +597,7 @@ validator_callback_dnskey(void *arg) {
 
 	val->subvalidator = NULL;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -641,7 +646,7 @@ validator_callback_ds(void *arg) {
 
 	val->subvalidator = NULL;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -702,7 +707,7 @@ validator_callback_cname(void *arg) {
 
 	val->subvalidator = NULL;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -747,7 +752,7 @@ validator_callback_nsec(void *arg) {
 
 	val->subvalidator = NULL;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -1514,6 +1519,9 @@ static void
 validate_answer_iter_done(dns_validator_t *val, isc_result_t result);
 
 static void
+validator_cancel_finish(dns_validator_t *validator);
+
+static void
 validate_answer_iter_start(dns_validator_t *val) {
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -1521,7 +1529,9 @@ validate_answer_iter_start(dns_validator_t *val) {
 	 * Caller must be holding the validator lock.
 	 */
 
-	if (CANCELED(val)) {
+	val->attributes &= ~VALATTR_OFFLOADED;
+	if (CANCELING(val)) {
+		validator_cancel_finish(val);
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -1549,7 +1559,9 @@ validate_answer_iter_next(void *arg) {
 	dns_validator_t *val = arg;
 	isc_result_t result;
 
-	if (CANCELED(val)) {
+	val->attributes &= ~VALATTR_OFFLOADED;
+	if (CANCELING(val)) {
+		validator_cancel_finish(val);
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -1577,7 +1589,7 @@ validate_answer_signing_key(void *arg) {
 	dns_validator_t *val = arg;
 	isc_result_t result = ISC_R_NOTFOUND;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		val->result = ISC_R_CANCELED;
 	} else {
 		val->result = verify(val, val->key, &val->rdata,
@@ -1614,7 +1626,9 @@ static void
 validate_answer_signing_key_done(void *arg) {
 	dns_validator_t *val = arg;
 
-	if (CANCELED(val)) {
+	val->attributes &= ~VALATTR_OFFLOADED;
+	if (CANCELING(val)) {
+		validator_cancel_finish(val);
 		val->result = ISC_R_CANCELED;
 	} else if (val->key != NULL) {
 		/* Process with next key if we selected one */
@@ -1630,7 +1644,9 @@ validate_answer_process(void *arg) {
 	dns_validator_t *val = arg;
 	isc_result_t result;
 
-	if (CANCELED(val)) {
+	val->attributes &= ~VALATTR_OFFLOADED;
+	if (CANCELING(val)) {
+		validator_cancel_finish(val);
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -1784,6 +1800,7 @@ validate_answer_iter_done(dns_validator_t *val, isc_result_t result) {
 static void
 resume_answer(void *arg) {
 	dns_validator_t *val = arg;
+
 	val->resume = true;
 	validate_answer_iter_start(val);
 }
@@ -1803,6 +1820,7 @@ validate_async_run(dns_validator_t *val, isc_job_cb cb) {
 
 static isc_result_t
 validate_helper_run(dns_validator_t *val, isc_job_cb cb) {
+	val->attributes |= VALATTR_OFFLOADED;
 	isc_helper_run(val->loop, cb, val);
 	return DNS_R_WAIT;
 }
@@ -2059,7 +2077,7 @@ static void
 validate_dnskey_dsset_next(void *arg) {
 	dns_validator_t *val = arg;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		val->result = ISC_R_CANCELED;
 	} else {
 		val->result = dns_rdataset_next(val->dsset);
@@ -2078,7 +2096,9 @@ validate_dnskey_dsset_next_done(void *arg) {
 	dns_validator_t *val = arg;
 	isc_result_t result = val->result;
 
-	if (CANCELED(val)) {
+	val->attributes &= ~VALATTR_OFFLOADED;
+	if (CANCELING(val)) {
+		validator_cancel_finish(val);
 		result = ISC_R_CANCELED;
 	}
 
@@ -2105,7 +2125,7 @@ static void
 validate_dnskey_dsset_first(dns_validator_t *val) {
 	isc_result_t result;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 	} else {
 		result = dns_rdataset_first(val->dsset);
@@ -2131,7 +2151,7 @@ validate_dnskey(void *arg) {
 	dns_keynode_t *keynode = NULL;
 	dns_rdata_ds_t ds;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -3294,7 +3314,7 @@ validator_start(void *arg) {
 	dns_validator_t *val = (dns_validator_t *)arg;
 	isc_result_t result = ISC_R_FAILURE;
 
-	if (CANCELED(val)) {
+	if (CANCELED(val) || CANCELING(val)) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -3461,14 +3481,11 @@ dns_validator_send(dns_validator_t *val) {
 	(void)validate_async_run(val, validator_start);
 }
 
-void
-dns_validator_cancel(dns_validator_t *validator) {
-	REQUIRE(VALID_VALIDATOR(validator));
-	REQUIRE(validator->tid == isc_tid());
+static void
+validator_cancel_finish(dns_validator_t *validator) {
+	validator_log(validator, ISC_LOG_DEBUG(3), "validator_cancel_finish");
 
-	validator_log(validator, ISC_LOG_DEBUG(3), "dns_validator_cancel");
-
-	if (!CANCELED(validator)) {
+	if (CANCELING(validator) && !CANCELED(validator)) {
 		if (validator->fetch != NULL) {
 			dns_resolver_cancelfetch(validator->fetch);
 		}
@@ -3480,6 +3497,20 @@ dns_validator_cancel(dns_validator_t *validator) {
 			validator_done(validator, ISC_R_CANCELED);
 		}
 		validator->attributes |= VALATTR_CANCELED;
+	}
+}
+
+void
+dns_validator_cancel(dns_validator_t *validator) {
+	REQUIRE(VALID_VALIDATOR(validator));
+	REQUIRE(validator->tid == isc_tid());
+
+	validator_log(validator, ISC_LOG_DEBUG(3), "dns_validator_cancel");
+
+	atomic_store(&validator->canceling, true);
+
+	if (!OFFLOADED(validator)) {
+		validator_cancel_finish(validator);
 	}
 }
 
