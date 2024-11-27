@@ -315,6 +315,14 @@ n=$((n + 1))
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
+# Check that the corresponding log message about exceeding the limit is present.
+msg="error adding '2100-txt.over-limit/TXT' in 'over-limit/IN' (zone): too many records (must not exceed 2050)"
+wait_for_log 10 "$msg" ns1/named.run || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+# Prepare for any further checking of the logs later on.
+nextpart ns1/named.run >/dev/null
+
 echo_i "checking that kasp-max-records-per-type rdatasets loaded ($n)"
 for _attempt in 0 1 2 3 4 5 6 7 8 9; do
   ret=0

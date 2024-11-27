@@ -6557,6 +6557,12 @@ find_header:
 						header->resign_lsb;
 				}
 			} else {
+				if (result == DNS_R_TOOMANYRECORDS) {
+					dns__db_logtoomanyrecords(
+						(dns_db_t *)rbtdb, nodename,
+						(dns_rdatatype_t)(header->type),
+						"updating", rbtdb->maxrrperset);
+				}
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
 				return result;
@@ -7057,6 +7063,13 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					    &region, sizeof(rdatasetheader_t),
 					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_TOOMANYRECORDS) {
+			name = dns_fixedname_initname(&fixed);
+			dns_db_nodefullname(db, node, name);
+			dns__db_logtoomanyrecords((dns_db_t *)rbtdb, name,
+						  rdataset->type, "adding",
+						  rbtdb->maxrrperset);
+		}
 		return result;
 	}
 
@@ -7654,6 +7667,11 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 					    &region, sizeof(rdatasetheader_t),
 					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_TOOMANYRECORDS) {
+			dns__db_logtoomanyrecords((dns_db_t *)rbtdb, name,
+						  rdataset->type, "adding",
+						  rbtdb->maxrrperset);
+		}
 		return result;
 	}
 	newheader = (rdatasetheader_t *)region.base;

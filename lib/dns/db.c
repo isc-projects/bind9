@@ -35,6 +35,7 @@
 #include <dns/log.h>
 #include <dns/master.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 
@@ -1138,4 +1139,27 @@ dns_db_setmaxtypepername(dns_db_t *db, uint32_t value) {
 	if (db->methods->setmaxtypepername != NULL) {
 		(db->methods->setmaxtypepername)(db, value);
 	}
+}
+
+void
+dns__db_logtoomanyrecords(dns_db_t *db, const dns_name_t *name,
+			  dns_rdatatype_t type, const char *op,
+			  uint32_t limit) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char originbuf[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	char clsbuf[DNS_RDATACLASS_FORMATSIZE];
+
+	dns_name_format(name, namebuf, sizeof(namebuf));
+	dns_name_format(&db->origin, originbuf, sizeof(originbuf));
+	dns_rdatatype_format(type, typebuf, sizeof(typebuf));
+	dns_rdataclass_format(db->rdclass, clsbuf, sizeof(clsbuf));
+
+	isc_log_write(
+		dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DB,
+		ISC_LOG_ERROR,
+		"error %s '%s/%s' in '%s/%s' (%s): %s (must not exceed %u)", op,
+		namebuf, typebuf, originbuf, clsbuf,
+		(db->attributes & DNS_DBATTR_CACHE) != 0 ? "cache" : "zone",
+		isc_result_totext(DNS_R_TOOMANYRECORDS), limit);
 }

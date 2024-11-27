@@ -1778,4 +1778,13 @@ dns_db_setmaxtypepername(dns_db_t *db, uint32_t value);
  * RR type that would exceed the number of already stored RR types will return
  * ISC_R_NOSPACE.
  */
+
+void
+dns__db_logtoomanyrecords(dns_db_t *db, const dns_name_t *name,
+			  dns_rdatatype_t type, const char *op, uint32_t limit);
+/*
+ * Emit a log message when adding an rdataset of name/type would exceed the
+ * 'maxrrperset' limit. 'op' is 'adding' or 'updating' depending on whether
+ * the addition is to create a new rdataset or to merge to an existing one.
+ */
 ISC_LANG_ENDDECLS
