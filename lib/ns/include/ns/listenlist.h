@@ -131,12 +131,3 @@ ns_listenlist_detach(ns_listenlist_t **listp);
 /*%<
  * Detach 'listp'.
  */
-
-isc_result_t
-ns_listenlist_default(isc_mem_t *mctx, in_port_t port, bool enabled,
-		      const uint16_t family, ns_listenlist_t **target);
-/*%<
- * Create a listen-on list with default contents, matching
- * all addresses with port 'port' (if 'enabled' is true),
- * or no addresses (if 'enabled' is false).
- */
