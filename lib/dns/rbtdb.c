@@ -2483,10 +2483,7 @@ cleanup_dead_nodes_callback(isc_task_t *task, isc_event_t *event) {
 		isc_task_send(task, &event);
 	} else {
 		isc_event_free(&event);
-		if (isc_refcount_decrement(&rbtdb->references) == 1) {
-			(void)isc_refcount_current(&rbtdb->references);
-			maybe_free_rbtdb(rbtdb);
-		}
+		detach((dns_db_t **)&rbtdb);
 	}
 }
 
@@ -2749,7 +2746,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 				    sizeof(*changed));
 		}
 		if (event != NULL) {
-			isc_refcount_increment(&rbtdb->references);
+			attach((dns_db_t *)rbtdb, &(dns_db_t *){ NULL });
 			isc_task_send(rbtdb->task, &event);
 		} else {
 			RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
