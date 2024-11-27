@@ -63,6 +63,11 @@ zone "axfr-rndc-retransfer-force" {
 	file "axfr-rndc-retransfer-force.db";
 };
 
+zone "xot-primary-try-next" {
+	type primary;
+	file "xot-primary-try-next.db";
+};
+
 zone "axfr-too-big" {
 	type primary;
 	file "axfr-too-big.db";

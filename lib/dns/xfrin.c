@@ -1082,7 +1082,7 @@ xfrin_shutdown(void *arg) {
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
+	xfrin_fail(xfr, ISC_R_SHUTTINGDOWN, "shut down");
 	dns_xfrin_detach(&xfr);
 }
 
@@ -1094,7 +1094,7 @@ dns_xfrin_shutdown(dns_xfrin_t *xfr) {
 		dns_xfrin_ref(xfr);
 		isc_async_run(xfr->loop, xfrin_shutdown, xfr);
 	} else {
-		xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
+		xfrin_fail(xfr, ISC_R_SHUTTINGDOWN, "shut down");
 	}
 }
 

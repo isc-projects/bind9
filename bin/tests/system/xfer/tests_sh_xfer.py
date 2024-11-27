@@ -49,6 +49,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns6/primary.db",
         "ns6/primary.db.jnl",
         "ns6/sec.bk",
+        "ns6/xot-primary-try-next.bk",
         "ns7/edns-expire.bk",
         "ns7/primary2.db",
         "ns7/sec.bk",
