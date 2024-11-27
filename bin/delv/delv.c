@@ -2193,8 +2193,8 @@ run_server(void *arg) {
 	CHECK(ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr, dispatchmgr,
 				     NULL, &interfacemgr));
 
-	CHECK(dns_view_create(mctx, dispatchmgr, dns_rdataclass_in, "_default",
-			      &view));
+	CHECK(dns_view_create(mctx, loopmgr, dispatchmgr, dns_rdataclass_in,
+			      "_default", &view));
 	CHECK(dns_cache_create(loopmgr, dns_rdataclass_in, "", mctx, &cache));
 	dns_view_setcache(view, cache, false);
 	dns_cache_detach(&cache);
