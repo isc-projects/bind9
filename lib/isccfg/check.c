@@ -13,7 +13,6 @@
 
 /*! \file */
 
-#include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -469,7 +468,7 @@ exists(const cfg_obj_t *obj, const char *name, int value, isc_symtab_t *symtab,
 static isc_result_t
 checkacl(const char *aclname, cfg_aclconfctx_t *actx, const cfg_obj_t *zconfig,
 	 const cfg_obj_t *voptions, const cfg_obj_t *config, isc_mem_t *mctx) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *aclobj = NULL;
 	const cfg_obj_t *options;
 	dns_acl_t *acl = NULL;
@@ -1003,7 +1002,7 @@ kasp_name_allowed(const cfg_listelt_t *element) {
 
 static const cfg_obj_t *
 find_maplist(const cfg_obj_t *config, const char *listname, const char *name) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *maplist = NULL;
 	const cfg_listelt_t *elt = NULL;
 
@@ -1166,7 +1165,7 @@ check_listeners(const cfg_obj_t *list, const cfg_obj_t *config,
 static isc_result_t
 check_port(const cfg_obj_t *options, const char *type, in_port_t *portp) {
 	const cfg_obj_t *portobj = NULL;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	result = cfg_map_get(options, type, &portobj);
 	if (result != ISC_R_SUCCESS) {
@@ -2049,7 +2048,7 @@ static isc_result_t
 check_remoteserverlist(const cfg_obj_t *cctx, const char *list,
 		       isc_symtab_t *symtab, isc_mem_t *mctx) {
 	isc_symvalue_t symvalue;
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt;
 
@@ -2105,7 +2104,7 @@ check_remoteserverlists(const cfg_obj_t *cctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS, tresult;
 	isc_symtab_t *symtab = NULL;
 
-	isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
+	isc_symtab_create(mctx, freekey, mctx, false, &symtab);
 
 	tresult = check_remoteserverlist(cctx, "remote-servers", symtab, mctx);
 	if (tresult != ISC_R_SUCCESS) {
@@ -2131,7 +2130,7 @@ check_remoteserverlists(const cfg_obj_t *cctx, isc_mem_t *mctx) {
 #if HAVE_LIBNGHTTP2
 static isc_result_t
 check_httpserver(const cfg_obj_t *http, isc_symtab_t *symtab) {
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	const char *name = cfg_obj_asstring(cfg_map_getname(http));
 	const cfg_obj_t *eps = NULL;
 	const cfg_listelt_t *elt = NULL;
@@ -2193,12 +2192,12 @@ check_httpserver(const cfg_obj_t *http, isc_symtab_t *symtab) {
 
 static isc_result_t
 check_httpservers(const cfg_obj_t *config, isc_mem_t *mctx) {
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt = NULL;
 	isc_symtab_t *symtab = NULL;
 
-	isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
+	isc_symtab_create(mctx, NULL, NULL, false, &symtab);
 
 	result = cfg_map_get(config, "http", &obj);
 	if (result != ISC_R_SUCCESS) {
@@ -2223,7 +2222,7 @@ done:
 static isc_result_t
 check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
 		    isc_symtab_t *symtab) {
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	const cfg_obj_t *tls_proto_list = NULL, *tls_key = NULL,
 			*tls_cert = NULL, *tls_ciphers = NULL,
 			*tls_cipher_suites = NULL;
@@ -2357,7 +2356,7 @@ check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
 
 static isc_result_t
 check_tls_definitions(const cfg_obj_t *config, isc_mem_t *mctx) {
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt = NULL;
 	isc_symtab_t *symtab = NULL;
@@ -2368,7 +2367,7 @@ check_tls_definitions(const cfg_obj_t *config, isc_mem_t *mctx) {
 		return result;
 	}
 
-	isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
+	isc_symtab_create(mctx, NULL, NULL, false, &symtab);
 
 	for (elt = cfg_list_first(obj); elt != NULL; elt = cfg_list_next(elt)) {
 		const char *name;
@@ -2388,7 +2387,7 @@ check_tls_definitions(const cfg_obj_t *config, isc_mem_t *mctx) {
 static isc_result_t
 get_remotes(const cfg_obj_t *cctx, const char *list, const char *name,
 	    const cfg_obj_t **ret) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt = NULL;
 
@@ -2449,7 +2448,7 @@ validate_remotes(const cfg_obj_t *obj, const cfg_obj_t *config,
 	const cfg_obj_t *listobj;
 
 	REQUIRE(countp != NULL);
-	isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
+	isc_symtab_create(mctx, NULL, NULL, false, &symtab);
 
 newlist:
 	listobj = cfg_tuple_get(obj, "addresses");
@@ -2833,7 +2832,7 @@ check_recursion(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		isc_mem_t *mctx) {
 	dns_acl_t *acl = NULL;
 	const cfg_obj_t *obj;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	bool retval = true;
 
 	/*
@@ -3175,7 +3174,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		RUNTIME_CHECK(n > 0 && (size_t)n < len);
 		switch (ztype) {
 		case CFG_ZONE_INVIEW:
-			tresult = isc_symtab_lookup(inview, key, 0, NULL);
+			tresult = isc_symtab_lookup(inview, key, 1, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(inviewobj, ISC_LOG_ERROR,
 					    "'in-view' zone '%s' "
@@ -3913,7 +3912,7 @@ isccfg_check_key(const cfg_obj_t *key) {
 	const char *algorithm;
 	int i;
 	size_t len = 0;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_buffer_t buf;
 	unsigned char secretbuf[1024];
 	static const algorithmtable algorithms[] = {
@@ -4003,50 +4002,67 @@ isccfg_check_key(const cfg_obj_t *key) {
 	return ISC_R_SUCCESS;
 }
 
+typedef enum symtab_file_type {
+	READ_ONLY = 1,
+	WRITEABLE = 2,
+} symtab_file_type_t;
+
 static isc_result_t
 fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable) {
-	isc_result_t result;
-	isc_symvalue_t symvalue;
+	isc_result_t result_ro, result_w;
+	isc_symvalue_t symvalue_ro, symvalue_w;
 	unsigned int line;
 	const char *file;
 
-	result = isc_symtab_lookup(symtab, cfg_obj_asstring(obj), 0, &symvalue);
-	if (result == ISC_R_SUCCESS) {
-		if (writeable) {
-			file = cfg_obj_file(symvalue.as_cpointer);
-			line = cfg_obj_line(symvalue.as_cpointer);
-			cfg_obj_log(obj, ISC_LOG_ERROR,
-				    "writeable file '%s': already in use: "
-				    "%s:%u",
-				    cfg_obj_asstring(obj), file, line);
-			return ISC_R_EXISTS;
-		}
-		result = isc_symtab_lookup(symtab, cfg_obj_asstring(obj), 2,
-					   &symvalue);
-		if (result == ISC_R_SUCCESS) {
-			file = cfg_obj_file(symvalue.as_cpointer);
-			line = cfg_obj_line(symvalue.as_cpointer);
-			cfg_obj_log(obj, ISC_LOG_ERROR,
-				    "writeable file '%s': already in use: "
-				    "%s:%u",
-				    cfg_obj_asstring(obj), file, line);
-			return ISC_R_EXISTS;
-		}
-		return ISC_R_SUCCESS;
-	}
+	/*
+	 * Since symtab doesn't let us query the file type, we need to query
+	 * twice. Once per type.
+	 */
+	result_ro = isc_symtab_lookup(symtab, cfg_obj_asstring(obj), READ_ONLY,
+				      &symvalue_ro);
+	result_w = isc_symtab_lookup(symtab, cfg_obj_asstring(obj), WRITEABLE,
+				     &symvalue_w);
 
-	symvalue.as_cpointer = obj;
-	result = isc_symtab_define(symtab, cfg_obj_asstring(obj),
-				   writeable ? 2 : 1, symvalue,
-				   isc_symexists_reject);
-	return result;
+	bool found_read_only = result_ro == ISC_R_SUCCESS;
+	bool found_writable = result_w == ISC_R_SUCCESS;
+
+	/*
+	 * If either the new file, the old file or both files are writeable,
+	 * bail out.
+	 */
+	if ((writeable && found_read_only) || found_writable) {
+		isc_symvalue_t symvalue = (writeable && found_read_only)
+						  ? symvalue_ro
+						  : symvalue_w;
+
+		file = cfg_obj_file(symvalue.as_cpointer);
+		line = cfg_obj_line(symvalue.as_cpointer);
+		cfg_obj_log(obj, ISC_LOG_ERROR,
+			    "writeable file '%s': already in use: "
+			    "%s:%u",
+			    cfg_obj_asstring(obj), file, line);
+		return ISC_R_EXISTS;
+	} else if (found_read_only) {
+		/* If a read only file is already in the hashtable, we have
+		 * nothing to do */
+		return ISC_R_SUCCESS;
+	} else {
+		/* If the file was not present already in the hashmap, add it */
+		isc_symvalue_t symvalue =
+			(isc_symvalue_t){ .as_cpointer = obj };
+		symtab_file_type_t type = writeable ? WRITEABLE : READ_ONLY;
+		isc_result_t result =
+			isc_symtab_define(symtab, cfg_obj_asstring(obj), type,
+					  symvalue, isc_symexists_reject);
+		return result;
+	}
 }
 
 static isc_result_t
 keydirexist(const cfg_obj_t *zcfg, const char *optname, dns_name_t *zname,
 	    const char *dirname, const char *kaspnamestr, isc_symtab_t *symtab,
 	    isc_mem_t *mctx) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_symvalue_t symvalue;
 	char *symkey;
 	char keydirbuf[DNS_NAME_FORMATSIZE + 128];
@@ -4070,7 +4086,7 @@ keydirexist(const cfg_obj_t *zcfg, const char *optname, dns_name_t *zname,
 	}
 	keydir = keydirbuf;
 
-	result = isc_symtab_lookup(symtab, keydir, 0, &symvalue);
+	result = isc_symtab_lookup(symtab, keydir, 1, &symvalue);
 	if (result == ISC_R_SUCCESS) {
 		const cfg_obj_t *kasp = NULL;
 		const cfg_obj_t *exist = symvalue.as_cpointer;
@@ -4104,7 +4120,7 @@ keydirexist(const cfg_obj_t *zcfg, const char *optname, dns_name_t *zname,
 	 */
 	symkey = isc_mem_strdup(mctx, keydir);
 	symvalue.as_cpointer = zcfg;
-	result = isc_symtab_define(symtab, symkey, 2, symvalue,
+	result = isc_symtab_define(symtab, symkey, 1, symvalue,
 				   isc_symexists_reject);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	return result;
@@ -4888,8 +4904,8 @@ check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 	const cfg_obj_t *keylist = NULL;
 	isc_symtab_t *statictab = NULL, *dstab = NULL;
 
-	isc_symtab_create(mctx, 100, freekey, mctx, false, &statictab);
-	isc_symtab_create(mctx, 100, freekey, mctx, false, &dstab);
+	isc_symtab_create(mctx, freekey, mctx, false, &statictab);
+	isc_symtab_create(mctx, freekey, mctx, false, &dstab);
 
 	/*
 	 * First we record all the static keys (trust-anchors configured with
@@ -4971,7 +4987,7 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	const char *zonename, *zonetype;
 	const char *forview = " for view ";
 	isc_symvalue_t value;
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -5106,7 +5122,7 @@ check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_mem_t *mctx) {
 		forview = "";
 	}
 
-	isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
+	isc_symtab_create(mctx, freekey, mctx, false, &symtab);
 
 	obj = cfg_tuple_get(catz_obj, "zone list");
 
@@ -5186,7 +5202,7 @@ check_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 		 void *callback_data) {
 	struct check_one_plugin_data *data = callback_data;
 	char full_path[PATH_MAX];
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	result = ns_plugin_expandpath(plugin_path, full_path,
 				      sizeof(full_path));
@@ -5287,7 +5303,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that all zone statements are syntactically correct and
 	 * there are no duplicate zones.
 	 */
-	isc_symtab_create(mctx, 1000, freekey, mctx, false, &symtab);
+	isc_symtab_create(mctx, freekey, mctx, false, &symtab);
 
 	cfg_aclconfctx_create(mctx, &actx);
 
@@ -5400,7 +5416,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that all key statements are syntactically correct and
 	 * there are no duplicate keys.
 	 */
-	isc_symtab_create(mctx, 1000, freekey, mctx, false, &symtab);
+	isc_symtab_create(mctx, freekey, mctx, false, &symtab);
 
 	(void)cfg_map_get(config, "key", &keys);
 	tresult = check_keylist(keys, symtab, mctx);
@@ -5630,7 +5646,7 @@ check_logging(const cfg_obj_t *config, isc_mem_t *mctx) {
 		return ISC_R_SUCCESS;
 	}
 
-	isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
+	isc_symtab_create(mctx, NULL, NULL, false, &symtab);
 
 	symvalue.as_cpointer = NULL;
 	for (i = 0; default_channels[i] != NULL; i++) {
@@ -5764,7 +5780,7 @@ check_controls(const cfg_obj_t *config, isc_mem_t *mctx) {
 
 	cfg_aclconfctx_create(mctx, &actx);
 
-	isc_symtab_create(mctx, 100, freekey, mctx, true, &symtab);
+	isc_symtab_create(mctx, freekey, mctx, true, &symtab);
 
 	/*
 	 * INET: Check allow clause.
@@ -5839,7 +5855,7 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 	const cfg_obj_t *acls = NULL;
 	const cfg_listelt_t *velement;
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_result_t tresult;
+	isc_result_t tresult = ISC_R_SUCCESS;
 	isc_symtab_t *symtab = NULL;
 	isc_symtab_t *files = NULL;
 	isc_symtab_t *keydirs = NULL;
@@ -5900,9 +5916,9 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 	 * case sensitive. This will prevent people using FOO.DB and foo.db
 	 * on case sensitive file systems but that shouldn't be a major issue.
 	 */
-	isc_symtab_create(mctx, 100, NULL, NULL, false, &files);
-	isc_symtab_create(mctx, 100, freekey, mctx, false, &keydirs);
-	isc_symtab_create(mctx, 100, freekey, mctx, true, &inview);
+	isc_symtab_create(mctx, NULL, NULL, false, &files);
+	isc_symtab_create(mctx, freekey, mctx, false, &keydirs);
+	isc_symtab_create(mctx, freekey, mctx, true, &inview);
 
 	if (views == NULL) {
 		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
@@ -5931,7 +5947,7 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 		}
 	}
 
-	isc_symtab_create(mctx, 100, NULL, NULL, true, &symtab);
+	isc_symtab_create(mctx, NULL, NULL, true, &symtab);
 
 	for (velement = cfg_list_first(views); velement != NULL;
 	     velement = cfg_list_next(velement))

@@ -9,7 +9,6 @@ libisccc_la_HEADERS =			\
 	include/isccc/cc.h		\
 	include/isccc/ccmsg.h		\
 	include/isccc/sexpr.h		\
-	include/isccc/symtab.h		\
 	include/isccc/symtype.h		\
 	include/isccc/types.h		\
 	include/isccc/util.h
@@ -20,8 +19,7 @@ libisccc_la_SOURCES =		\
 	base64.c		\
 	cc.c			\
 	ccmsg.c			\
-	sexpr.c			\
-	symtab.c
+	sexpr.c
 
 libisccc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\

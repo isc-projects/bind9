@@ -42,8 +42,6 @@ typedef uint32_t isccc_time_t;
 typedef struct isccc_sexpr isccc_sexpr_t;
 /*% isccc_dottedpair_t typedef */
 typedef struct isccc_dottedpair isccc_dottedpair_t;
-/*% isccc_symtab_t typedef */
-typedef struct isccc_symtab isccc_symtab_t;
 
 /*% iscc region structure */
 typedef struct isccc_region {

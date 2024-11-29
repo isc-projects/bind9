@@ -35,6 +35,7 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
+#include <isc/symtab.h>
 
 #include <dst/dst.h>
 
@@ -114,14 +115,14 @@ isc_result_t
 isccc_cc_lookupuint32(isccc_sexpr_t *alist, const char *key, uint32_t *uintp);
 
 /*% Create Symbol Table */
-isc_result_t
-isccc_cc_createsymtab(isccc_symtab_t **symtabp);
+void
+isccc_cc_createsymtab(isc_mem_t *mctx, isc_symtab_t **symtabp);
 
 /*% Clean up Symbol Table */
 void
-isccc_cc_cleansymtab(isccc_symtab_t *symtab, isccc_time_t now);
+isccc_cc_cleansymtab(isc_symtab_t *symtab, isccc_time_t now);
 
 /*% Check for Duplicates */
 isc_result_t
-isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
+isccc_cc_checkdup(isc_symtab_t *symtab, isccc_sexpr_t *message,
 		  isccc_time_t now);
