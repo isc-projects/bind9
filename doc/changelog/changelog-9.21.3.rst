@@ -100,10 +100,10 @@ Removed Features
   time and it's not possible to configure RBTDB as the database backend
   in the configuration file. :gl:`#5027` :gl:`!9733`
 
-- Remove namedconf port/tls deprecated check on *-source[-v6] options.
+- Remove namedconf port/tls deprecated check on `*-source[-v6]` options.
   ``29f1d4bb6f``
 
-  The usage of port and tls arguments in *-source and *-source-v6 named
+  The usage of port and tls arguments in `*-source` and `*-source-v6` named
   configuration options has been previously removed. Remove various
   configuration check deprecating usage of those arguments. :gl:`!9738`
 
@@ -208,8 +208,10 @@ Feature Changes
 - Add two new clang-format options that help with code formatting.
   ``94b65f5eb0``
 
-  * Add new clang-format option to remove redundant semicolons * Add new
-  clang-format option to remove redundant parentheses :gl:`!9749`
+  * Add new clang-format option to remove redundant semicolons
+  * Add new clang-format option to remove redundant parentheses
+
+  :gl:`!9749`
 
 - Assume IPv6 is universally available (on the kernel level)
   ``b72a2300b9``
@@ -236,7 +238,7 @@ Feature Changes
 - Enforce type checking for dns_dbversion_t. ``4b47c96a89``
 
   Originally, the dns_dbversion_t was typedef'ed to void type.  This
-  allowed some flexibility, but using (void *) just removes any
+  allowed some flexibility, but using `(void *)` just removes any
   type-checking that C might have.  Instead of using:
 
   typedef void dns_dbversion_t;
@@ -408,7 +410,7 @@ Bug Fixes
 - Enforce type checking for dns_dbnode_t. ``4b47c4f628``
 
   Originally, the dns_dbnode_t was typedef'ed to void type.  This
-  allowed some flexibility, but using (void *) just removes any
+  allowed some flexibility, but using `(void *)` just removes any
   type-checking that C might have.  Instead of using:
 
   typedef void dns_dbnode_t;
