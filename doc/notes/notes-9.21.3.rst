@@ -120,6 +120,9 @@ Feature Changes
   keys have become unavailable, this will prevent the internal key
   manager from running.
 
+- Reduce memory footprint by optimizing commonly-used data structures.
+  :gl:`#5022`
+
 Bug Fixes
 ~~~~~~~~~
 
