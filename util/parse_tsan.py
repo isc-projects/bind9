@@ -23,9 +23,6 @@ from hashlib import sha256
 class State:
     """Class that holds state of the TSAN parser."""
 
-    # pylint: disable=too-many-instance-attributes
-    # pylint: disable=too-few-public-methods
-
     inside = False
     block = ""
     last_line = None
