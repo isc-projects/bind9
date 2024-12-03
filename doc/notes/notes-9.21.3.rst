@@ -170,6 +170,8 @@ Bug Fixes
 - Fix a race condition when canceling ADB find which could cause an assertion
   failure. :gl:`#5024`
 
+- Fix doubled memory usage during incoming zone transfer. :gl:`#4986`
+
 - SERVFAIL cache memory cleaning is now more aggressive; it no longer consumes a
   lot of memory if the server encounters many SERVFAILs at once.
   :gl:`#5025`
