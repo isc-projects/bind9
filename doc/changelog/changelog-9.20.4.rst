@@ -92,8 +92,10 @@ Feature Changes
 - Add two new clang-format options that help with code formatting.
   ``4230b2b514``
 
-  * Add new clang-format option to remove redundant semicolons * Add new
-  clang-format option to remove redundant parentheses :gl:`!9750`
+  * Add new clang-format option to remove redundant semicolons
+  * Add new clang-format option to remove redundant parentheses
+
+  :gl:`!9750`
 
 - Emit more helpful log for exceeding max-records-per-type.
   ``74e7e229f2``
