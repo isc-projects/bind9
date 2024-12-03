@@ -20,9 +20,6 @@
 #include <dns/nsec3.h>
 #include <dns/types.h>
 
-#define GLUETABLE_INIT_SIZE 1 << 2
-#define GLUETABLE_MIN_SIZE  1 << 8
-
 #define RDATATYPE_NCACHEANY DNS_TYPEPAIR_VALUE(0, dns_rdatatype_any)
 
 #ifdef STRONG_RWLOCK_CHECK
@@ -127,6 +124,9 @@ struct dns_glue {
 	dns_rdataset_t sigrdataset_a;
 	dns_rdataset_t rdataset_aaaa;
 	dns_rdataset_t sigrdataset_aaaa;
+
+	isc_mem_t *mctx;
+	struct rcu_head rcu_head;
 };
 
 typedef struct {
