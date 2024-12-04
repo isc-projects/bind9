@@ -62,6 +62,7 @@ echo_i "checking no response handling with a longer than resolver-query-timeout 
 ret=0
 dig_with_opts +tcp +tries=1 +timeout=7 noresponse.example.net @10.53.0.1 a >dig.out.ns1.test${n} || ret=1
 grep -F "status: SERVFAIL" dig.out.ns1.test${n} >/dev/null || ret=1
+grep -F "EDE: 22 (No Reachable Authority)" dig.out.ns1.test${n} >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
