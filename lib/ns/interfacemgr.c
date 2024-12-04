@@ -845,12 +845,6 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 	}
 }
 
-static bool
-listenon_is_ip6_any(ns_listenelt_t *elt) {
-	REQUIRE(elt && elt->acl);
-	return dns_acl_isany(elt->acl);
-}
-
 static isc_result_t
 setup_locals(isc_interface_t *interface, dns_acl_t *localhost,
 	     dns_acl_t *localnets) {
@@ -1089,7 +1083,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	isc_netaddr_t zero_address, zero_address6;
 	ns_listenelt_t *le = NULL;
 	ns_interface_t *ifp = NULL;
-	bool log_explicit = false;
 	bool dolistenon;
 	char sabuf[ISC_SOCKADDR_FORMATSIZE];
 	bool tried_listening;
@@ -1226,19 +1219,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 				}
 			}
 
-			if (log_explicit && family == AF_INET6 &&
-			    listenon_is_ip6_any(le))
-			{
-				isc_log_write(NS_LOGCATEGORY_NETWORK,
-					      NS_LOGMODULE_INTERFACEMGR,
-					      verbose ? ISC_LOG_INFO
-						      : ISC_LOG_DEBUG(1),
-					      "IPv6 socket API is "
-					      "incomplete; explicitly "
-					      "binding to each IPv6 "
-					      "address separately");
-				log_explicit = false;
-			}
 			isc_sockaddr_format(&listen_sockaddr, sabuf,
 					    sizeof(sabuf));
 			isc_log_write(NS_LOGCATEGORY_NETWORK,
