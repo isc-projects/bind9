@@ -57,9 +57,8 @@ named_config_getremotesdef(const cfg_obj_t *cctx, const char *list,
 			   const char *name, const cfg_obj_t **ret);
 
 isc_result_t
-named_config_getipandkeylist(const cfg_obj_t *config, const char *listtype,
-			     const cfg_obj_t *list, isc_mem_t *mctx,
-			     dns_ipkeylist_t *ipkl);
+named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
+			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl);
 
 isc_result_t
 named_config_getport(const cfg_obj_t *config, const char *type,

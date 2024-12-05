@@ -898,7 +898,7 @@ presence. Let's look at the following configuration excerpt:
 
 ::
 
-   parental-agents "net" {
+   remote-servers "net" {
        10.53.0.11; 10.53.0.12;
    };
 

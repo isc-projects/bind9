@@ -1273,8 +1273,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
 
-			CHECK(named_config_getipandkeylist(config, "primaries",
-							   obj, mctx, &ipkl));
+			CHECK(named_config_getipandkeylist(config, obj, mctx,
+							   &ipkl));
 			dns_zone_setalsonotify(zone, ipkl.addrs, ipkl.sources,
 					       ipkl.keys, ipkl.tlss,
 					       ipkl.count);
@@ -1679,9 +1679,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (parentals != NULL) {
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
-			CHECK(named_config_getipandkeylist(
-				config, "parental-agents", parentals, mctx,
-				&ipkl));
+			CHECK(named_config_getipandkeylist(config, parentals,
+							   mctx, &ipkl));
 			dns_zone_setparentals(zone, ipkl.addrs, ipkl.sources,
 					      ipkl.keys, ipkl.tlss, ipkl.count);
 			dns_ipkeylist_clear(mctx, &ipkl);
@@ -1861,8 +1860,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
 
-			CHECK(named_config_getipandkeylist(config, "primaries",
-							   obj, mctx, &ipkl));
+			CHECK(named_config_getipandkeylist(config, obj, mctx,
+							   &ipkl));
 			dns_zone_setprimaries(mayberaw, ipkl.addrs,
 					      ipkl.sources, ipkl.keys,
 					      ipkl.tlss, ipkl.count);

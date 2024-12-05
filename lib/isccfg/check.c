@@ -2098,10 +2098,10 @@ check_remoteserverlist(const cfg_obj_t *cctx, const char *list,
 }
 
 /*
- * Check primaries lists for duplicates.
+ * Check remote-server lists for duplicates.
  */
 static isc_result_t
-check_primarylists(const cfg_obj_t *cctx, isc_mem_t *mctx) {
+check_remoteserverlists(const cfg_obj_t *cctx, isc_mem_t *mctx) {
 	isc_result_t result, tresult;
 	isc_symtab_t *symtab = NULL;
 
@@ -2109,31 +2109,7 @@ check_primarylists(const cfg_obj_t *cctx, isc_mem_t *mctx) {
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	tresult = check_remoteserverlist(cctx, "primaries", symtab, mctx);
-	if (tresult != ISC_R_SUCCESS) {
-		result = tresult;
-	}
-	tresult = check_remoteserverlist(cctx, "masters", symtab, mctx);
-	if (tresult != ISC_R_SUCCESS) {
-		result = tresult;
-	}
-	isc_symtab_destroy(&symtab);
-	return result;
-}
-
-/*
- * Check parental-agents lists for duplicates.
- */
-static isc_result_t
-check_parentalagentlists(const cfg_obj_t *cctx, isc_mem_t *mctx) {
-	isc_result_t result, tresult;
-	isc_symtab_t *symtab = NULL;
-
-	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
-	tresult = check_remoteserverlist(cctx, "parental-agents", symtab, mctx);
+	tresult = check_remoteserverlist(cctx, "remote-servers", symtab, mctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
@@ -2405,8 +2381,8 @@ check_tls_definitions(const cfg_obj_t *config, isc_mem_t *mctx) {
 }
 
 static isc_result_t
-get_remotes(const cfg_obj_t *cctx, const char *list, const char *name,
-	    const cfg_obj_t **ret) {
+get_remoteservers_def(const char *list, const char *name, const cfg_obj_t *cctx,
+		      const cfg_obj_t **ret) {
 	isc_result_t result;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt = NULL;
@@ -2435,24 +2411,8 @@ get_remotes(const cfg_obj_t *cctx, const char *list, const char *name,
 }
 
 static isc_result_t
-get_remoteservers_def(const char *list, const char *name, const cfg_obj_t *cctx,
-		      const cfg_obj_t **ret) {
-	isc_result_t result = ISC_R_NOTFOUND;
-
-	if (strcmp(list, "primaries") == 0) {
-		result = get_remotes(cctx, "primaries", name, ret);
-		if (result != ISC_R_SUCCESS) {
-			result = get_remotes(cctx, "masters", name, ret);
-		}
-	} else if (strcmp(list, "parental-agents") == 0) {
-		result = get_remotes(cctx, "parental-agents", name, ret);
-	}
-	return result;
-}
-
-static isc_result_t
-validate_remotes(const char *list, const cfg_obj_t *obj,
-		 const cfg_obj_t *config, uint32_t *countp, isc_mem_t *mctx) {
+validate_remotes(const cfg_obj_t *obj, const cfg_obj_t *config,
+		 uint32_t *countp, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	uint32_t count = 0;
@@ -2555,13 +2515,14 @@ resume:
 		if (tresult == ISC_R_EXISTS) {
 			continue;
 		}
-		tresult = get_remoteservers_def(list, listname, config, &obj);
+		tresult = get_remoteservers_def("remote-servers", listname,
+						config, &obj);
 		if (tresult != ISC_R_SUCCESS) {
 			if (result == ISC_R_SUCCESS) {
 				result = tresult;
 			}
 			cfg_obj_log(addr, ISC_LOG_ERROR,
-				    "unable to find %s list '%s'", list,
+				    "unable to find remote-servers list '%s'",
 				    listname);
 			continue;
 		}
@@ -3444,8 +3405,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 		if (tresult == ISC_R_SUCCESS && donotify) {
 			uint32_t count;
-			tresult = validate_remotes("primaries", obj, config,
-						   &count, mctx);
+			tresult = validate_remotes(obj, config, &count, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
 			{
 				result = tresult;
@@ -3487,8 +3447,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			result = ISC_R_FAILURE;
 		} else {
 			uint32_t count;
-			tresult = validate_remotes("primaries", obj, config,
-						   &count, mctx);
+			tresult = validate_remotes(obj, config, &count, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
 			{
 				result = tresult;
@@ -3512,8 +3471,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		(void)cfg_map_get(zoptions, "parental-agents", &obj);
 		if (obj != NULL) {
 			uint32_t count;
-			tresult = validate_remotes("parental-agents", obj,
-						   config, &count, mctx);
+			tresult = validate_remotes(obj, config, &count, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
 			{
 				result = tresult;
@@ -5911,11 +5869,7 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 		result = ISC_R_FAILURE;
 	}
 
-	if (check_primarylists(config, mctx) != ISC_R_SUCCESS) {
-		result = ISC_R_FAILURE;
-	}
-
-	if (check_parentalagentlists(config, mctx) != ISC_R_SUCCESS) {
+	if (check_remoteserverlists(config, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 
