@@ -257,12 +257,6 @@ typedef enum dns_message_intent {
 
 typedef struct dns_msgblock dns_msgblock_t;
 
-struct dns_sortlist_arg {
-	dns_aclenv_t	       *env;
-	dns_acl_t	       *acl;
-	const dns_aclelement_t *element;
-};
-
 typedef struct dns_minttl {
 	bool	  is_set;
 	dns_ttl_t ttl;
@@ -353,9 +347,6 @@ struct dns_message {
 	 * Time to be used when fuzzing.
 	 */
 	isc_stdtime_t fuzztime;
-
-	dns_rdatasetorderfunc_t order;
-	dns_sortlist_arg_t	order_arg;
 
 	dns_indent_t indent;
 
@@ -1386,26 +1377,6 @@ dns_message_getrawmessage(dns_message_t *msg);
  * Returns:
  *\li	NULL	if there is no saved message.
  *	a pointer to a region which refers the dns message.
- */
-
-void
-dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 dns_aclenv_t *env, dns_acl_t *acl,
-			 const dns_aclelement_t *element);
-/*%<
- * Define the order in which RR sets get rendered by
- * dns_message_rendersection() to be the ascending order
- * defined by the integer value returned by 'order' when
- * given each RR and a ns_sortlist_arg_t constructed from 'env',
- * 'acl', and 'element' as arguments.
- *
- * If 'order' is NULL, a default order is used.
- *
- * Requires:
- *\li	msg be a valid message.
- *\li	If 'env' is NULL, 'order' must be NULL.
- *\li	If 'env' is not NULL, 'order' must not be NULL and at least one of
- *	'acl' and 'element' must also not be NULL.
  */
 
 void

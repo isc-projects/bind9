@@ -233,8 +233,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	      const dns_acl_t *acl, dns_aclenv_t *env, int *match,
 	      const dns_aclelement_t **matchelt);
 /*%<
- * General, low-level ACL matching.  This is expected to
- * be useful even for weird stuff like the topology and sortlist statements.
+ * General, low-level ACL matching.
  *
  * Match the address 'reqaddr', and optionally the key name 'reqsigner',
  * against 'acl'.  'reqsigner' may be NULL.

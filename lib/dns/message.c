@@ -441,10 +441,6 @@ msginit(dns_message_t *m) {
 	m->tcp_continuation = 0;
 	m->verified_sig = 0;
 	m->verify_attempted = 0;
-	m->order = NULL;
-	m->order_arg.env = NULL;
-	m->order_arg.acl = NULL;
-	m->order_arg.element = NULL;
 	m->query.base = NULL;
 	m->query.length = 0;
 	m->free_query = 0;
@@ -660,13 +656,6 @@ msgreset(dns_message_t *msg, bool everything) {
 		ISC_LIST_UNLINK(msg->cleanup, dynbuf, link);
 		isc_buffer_free(&dynbuf);
 		dynbuf = next_dynbuf;
-	}
-
-	if (msg->order_arg.env != NULL) {
-		dns_aclenv_detach(&msg->order_arg.env);
-	}
-	if (msg->order_arg.acl != NULL) {
-		dns_acl_detach(&msg->order_arg.acl);
 	}
 
 	/*
@@ -2104,19 +2093,16 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			    0 &&
 		    (rdataset->attributes & DNS_RDATASETATTR_RENDERED) == 0)
 		{
-			const void *order_arg = &msg->order_arg;
 			st = *(msg->buffer);
 			count = 0;
 			if (partial) {
 				result = dns_rdataset_towirepartial(
 					rdataset, name, msg->cctx, msg->buffer,
-					msg->order, order_arg, rd_options,
-					&count, NULL);
+					rd_options, &count, NULL);
 			} else {
-				result = dns_rdataset_towiresorted(
+				result = dns_rdataset_towire(
 					rdataset, name, msg->cctx, msg->buffer,
-					msg->order, order_arg, rd_options,
-					&count);
+					rd_options, &count);
 			}
 			total += count;
 			if (partial && result == ISC_R_NOSPACE) {
@@ -2178,14 +2164,12 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				if (partial) {
 					result = dns_rdataset_towirepartial(
 						rdataset, name, msg->cctx,
-						msg->buffer, msg->order,
-						&msg->order_arg, rd_options,
-						&count, NULL);
+						msg->buffer, rd_options, &count,
+						NULL);
 				} else {
-					result = dns_rdataset_towiresorted(
+					result = dns_rdataset_towire(
 						rdataset, name, msg->cctx,
-						msg->buffer, msg->order,
-						&msg->order_arg, rd_options,
+						msg->buffer, rd_options,
 						&count);
 				}
 
@@ -4720,24 +4704,6 @@ isc_region_t *
 dns_message_getrawmessage(dns_message_t *msg) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	return &msg->saved;
-}
-
-void
-dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 dns_aclenv_t *env, dns_acl_t *acl,
-			 const dns_aclelement_t *elem) {
-	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE((order == NULL) == (env == NULL));
-	REQUIRE(env == NULL || (acl != NULL || elem != NULL));
-
-	msg->order = order;
-	if (env != NULL) {
-		dns_aclenv_attach(env, &msg->order_arg.env);
-	}
-	if (acl != NULL) {
-		dns_acl_attach(acl, &msg->order_arg.acl);
-	}
-	msg->order_arg.element = elem;
 }
 
 void

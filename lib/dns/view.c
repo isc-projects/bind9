@@ -324,9 +324,6 @@ destroy(dns_view_t *view) {
 	if (view->recursiononacl != NULL) {
 		dns_acl_detach(&view->recursiononacl);
 	}
-	if (view->sortlist != NULL) {
-		dns_acl_detach(&view->sortlist);
-	}
 	if (view->transferacl != NULL) {
 		dns_acl_detach(&view->transferacl);
 	}

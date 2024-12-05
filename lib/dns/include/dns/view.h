@@ -132,7 +132,6 @@ struct dns_view {
 	dns_acl_t	     *queryonacl;
 	dns_acl_t	     *recursionacl;
 	dns_acl_t	     *recursiononacl;
-	dns_acl_t	     *sortlist;
 	dns_acl_t	     *notifyacl;
 	dns_acl_t	     *transferacl;
 	dns_acl_t	     *updateacl;
