@@ -4501,7 +4501,7 @@ Tuning
    need to be sent before an answer is reached, then recursion is terminated
    and a SERVFAIL response is returned to the client. (Note: if the answer
    is a CNAME, then the subsequent lookup for the target of the CNAME is
-   counted separately.) The default is 32.
+   counted separately.) The default is 50.
 
 .. namedconf:statement:: max-query-restarts
    :tags: server, query

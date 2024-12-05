@@ -93,7 +93,7 @@
 
 #define MAXNAME (DNS_NAME_MAXTEXT + 1)
 
-#define MAX_QUERIES  32
+#define MAX_QUERIES  50
 #define MAX_TOTAL    200
 #define MAX_RESTARTS 11
 
