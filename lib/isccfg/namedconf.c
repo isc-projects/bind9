@@ -159,7 +159,7 @@ static cfg_tuplefielddef_t listenon_tuple_fields[] = {
 	{ "proxy", &cfg_type_astring, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "tls", &cfg_type_astring, 0 },
 #if HAVE_LIBNGHTTP2
-	{ "http", &cfg_type_astring, 0 },
+	{ "http", &cfg_type_astring, CFG_CLAUSEFLAG_OPTIONAL },
 #else
 	{ "http", &cfg_type_astring, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
@@ -1156,7 +1156,8 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "controls", &cfg_type_controls, CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-policy", &cfg_type_dnssecpolicy, CFG_CLAUSEFLAG_MULTI },
 #if HAVE_LIBNGHTTP2
-	{ "http", &cfg_type_http_description, CFG_CLAUSEFLAG_MULTI },
+	{ "http", &cfg_type_http_description,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OPTIONAL },
 #else
 	{ "http", &cfg_type_http_description,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1171,7 +1172,7 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "primaries", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 	{ "statistics-channels", &cfg_type_statschannels,
-	  CFG_CLAUSEFLAG_MULTI },
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OPTIONAL },
 #else
 	{ "statistics-channels", &cfg_type_statschannels,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1236,9 +1237,9 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
 	{ "dnsrps-library", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 #ifdef HAVE_DNSTAP
-	{ "dnstap-output", &cfg_type_dnstapoutput, 0 },
-	{ "dnstap-identity", &cfg_type_serverid, 0 },
-	{ "dnstap-version", &cfg_type_qstringornone, 0 },
+	{ "dnstap-output", &cfg_type_dnstapoutput, CFG_CLAUSEFLAG_OPTIONAL },
+	{ "dnstap-identity", &cfg_type_serverid, CFG_CLAUSEFLAG_OPTIONAL },
+	{ "dnstap-version", &cfg_type_qstringornone, CFG_CLAUSEFLAG_OPTIONAL },
 #else  /* ifdef HAVE_DNSTAP */
 	{ "dnstap-output", &cfg_type_dnstapoutput,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1252,13 +1253,19 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "files", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
 #ifdef HAVE_DNSTAP
-	{ "fstrm-set-buffer-hint", &cfg_type_uint32, 0 },
-	{ "fstrm-set-flush-timeout", &cfg_type_uint32, 0 },
-	{ "fstrm-set-input-queue-size", &cfg_type_uint32, 0 },
-	{ "fstrm-set-output-notify-threshold", &cfg_type_uint32, 0 },
-	{ "fstrm-set-output-queue-model", &cfg_type_fstrm_model, 0 },
-	{ "fstrm-set-output-queue-size", &cfg_type_uint32, 0 },
-	{ "fstrm-set-reopen-interval", &cfg_type_duration, 0 },
+	{ "fstrm-set-buffer-hint", &cfg_type_uint32, CFG_CLAUSEFLAG_OPTIONAL },
+	{ "fstrm-set-flush-timeout", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_OPTIONAL },
+	{ "fstrm-set-input-queue-size", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_OPTIONAL },
+	{ "fstrm-set-output-notify-threshold", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_OPTIONAL },
+	{ "fstrm-set-output-queue-model", &cfg_type_fstrm_model,
+	  CFG_CLAUSEFLAG_OPTIONAL },
+	{ "fstrm-set-output-queue-size", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_OPTIONAL },
+	{ "fstrm-set-reopen-interval", &cfg_type_duration,
+	  CFG_CLAUSEFLAG_OPTIONAL },
 #else  /* ifdef HAVE_DNSTAP */
 	{ "fstrm-set-buffer-hint", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1305,10 +1312,11 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "port", &cfg_type_uint32, 0 },
 	{ "tls-port", &cfg_type_uint32, 0 },
 #if HAVE_LIBNGHTTP2
-	{ "http-port", &cfg_type_uint32, 0 },
-	{ "http-listener-clients", &cfg_type_uint32, 0 },
-	{ "http-streams-per-connection", &cfg_type_uint32, 0 },
-	{ "https-port", &cfg_type_uint32, 0 },
+	{ "http-port", &cfg_type_uint32, CFG_CLAUSEFLAG_OPTIONAL },
+	{ "http-listener-clients", &cfg_type_uint32, CFG_CLAUSEFLAG_OPTIONAL },
+	{ "http-streams-per-connection", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_OPTIONAL },
+	{ "https-port", &cfg_type_uint32, CFG_CLAUSEFLAG_OPTIONAL },
 #else
 	{ "http-port", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "http-listener-clients", &cfg_type_uint32,
@@ -2066,7 +2074,7 @@ static cfg_clausedef_t view_clauses[] = {
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_DEPRECATED },
 	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
 #ifdef HAVE_DNSTAP
-	{ "dnstap", &cfg_type_dnstap, 0 },
+	{ "dnstap", &cfg_type_dnstap, CFG_CLAUSEFLAG_OPTIONAL },
 #else  /* ifdef HAVE_DNSTAP */
 	{ "dnstap", &cfg_type_dnstap, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_DNSTAP */
@@ -2089,7 +2097,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_duration, 0 },
 #ifdef HAVE_LMDB
-	{ "lmdb-mapsize", &cfg_type_sizeval, 0 },
+	{ "lmdb-mapsize", &cfg_type_sizeval, CFG_CLAUSEFLAG_OPTIONAL },
 #else  /* ifdef HAVE_LMDB */
 	{ "lmdb-mapsize", &cfg_type_sizeval, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* ifdef HAVE_LMDB */

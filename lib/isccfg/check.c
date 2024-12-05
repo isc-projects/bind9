@@ -3102,7 +3102,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	const char *znamestr;
 	const char *typestr = NULL;
 	const char *target = NULL;
-	unsigned int ztype;
+	int ztype;
 	const cfg_obj_t *zoptions, *goptions = NULL;
 	const cfg_obj_t *obj = NULL, *kasp = NULL;
 	const cfg_obj_t *inviewobj = NULL;
