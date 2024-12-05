@@ -140,8 +140,6 @@ static void
 shutdown_trigger_close_cb(uv_handle_t *handle) {
 	isc_loop_t *loop = uv_handle_get_data(handle);
 
-	loop->shuttingdown = true;
-
 	isc_loop_detach(&loop);
 }
 
@@ -166,6 +164,9 @@ shutdown_cb(uv_async_t *handle) {
 
 	/* Make sure, we can't be called again */
 	uv_close(&loop->shutdown_trigger, shutdown_trigger_close_cb);
+
+	/* Mark this loop as shutting down */
+	loop->shuttingdown = true;
 
 	if (DEFAULT_LOOP(loopmgr) == CURRENT_LOOP(loopmgr)) {
 		/* Stop the signal handlers */
