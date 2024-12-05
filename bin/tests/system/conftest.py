@@ -358,13 +358,20 @@ def logger(request, system_test_name):
 def expected_artifacts(request):
     common_artifacts = [
         ".libs/*",  # possible build artifacts, see GL #5055
+        "ns*/named.conf",
         "ns*/named.lock",
+        "ns*/named.memstats",
         "ns*/named.run",
         "ns*/named.run.prev",
-        "ns*/named.conf",
-        "ns*/named.memstats",
         "pytest.log.txt",
     ]
+
+    if "USE_RR" in os.environ:
+        common_artifacts += [
+            "ns*/cpu_lock",
+            "ns*/latest-trace",
+            "ns*/named-[0-9]*",
+        ]
 
     try:
         test_specific_artifacts = request.node.get_closest_marker("extra_artifacts")
