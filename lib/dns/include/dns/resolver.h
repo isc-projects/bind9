@@ -57,6 +57,7 @@
 #include <isc/types.h>
 
 #include <dns/fixedname.h>
+#include <dns/message.h>
 #include <dns/types.h>
 
 /* Add -DDNS_RESOLVER_TRACE=1 to CFLAGS for detailed reference tracing */
@@ -81,6 +82,7 @@ struct dns_fetchresponse {
 	isc_mem_t	     *mctx;
 	isc_result_t	      result;
 	isc_result_t	      vresult;
+	dns_edelist_t	      edelist;
 	dns_rdatatype_t	      qtype;
 	dns_db_t	     *db;
 	dns_dbnode_t	     *node;
@@ -632,4 +634,15 @@ dns_resolver_getquerystats(dns_resolver_t *res, dns_stats_t **statsp);
  *
  *\li	'statsp' != NULL && '*statsp' != NULL
  */
+
+void
+dns_resolver_freefresp(dns_fetchresponse_t **frespp);
+/*%<
+ * Free a dns_fetchresponse_t object and internal owned object as
+ * well.
+ *
+ * Requires:
+ * \li	'frespp' is valid. No-op if *frespp == NULL
+ */
+
 ISC_LANG_ENDDECLS

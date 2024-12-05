@@ -5015,3 +5015,57 @@ dns_message_destroypools(isc_mempool_t **namepoolp, isc_mempool_t **rdspoolp) {
 	isc_mempool_destroy(rdspoolp);
 	isc_mempool_destroy(namepoolp);
 }
+
+void
+dns_ede_append(isc_mem_t *mctx, dns_edelist_t *list, uint16_t info_code,
+	       const char *extra_text) {
+	REQUIRE(mctx);
+	REQUIRE(list);
+	REQUIRE(info_code <= 24);
+
+	dns_ede_t *ede = isc_mem_get(mctx, sizeof(*ede));
+	*ede = (dns_ede_t){
+		.info_code = info_code,
+		.extra_text = NULL,
+		.link = ISC_LINK_INITIALIZER,
+	};
+
+	if (extra_text) {
+		size_t len = strlen(extra_text);
+
+		if (len >= DNS_EDE_EXTRATEXT_LEN) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MESSAGE, ISC_LOG_PRINTTIME,
+				      "truncate EDE code %hu text: %s",
+				      info_code, extra_text);
+			len = DNS_EDE_EXTRATEXT_LEN - 1;
+		}
+
+		ede->extra_text = isc_mem_allocate(mctx, len + 1);
+		strncpy(ede->extra_text, extra_text, len);
+		ede->extra_text[len] = '\0';
+	}
+
+	ISC_LIST_APPEND(*list, ede, link);
+}
+
+void
+dns_ede_unlinkall(isc_mem_t *mctx, dns_edelist_t *list) {
+	dns_ede_t *ede, *next;
+
+	REQUIRE(mctx);
+	REQUIRE(list);
+
+	for (ede = ISC_LIST_HEAD(*list); ede != NULL; ede = next) {
+		next = ISC_LIST_NEXT(ede, link);
+
+		ISC_LIST_UNLINK(*list, ede, link);
+		if (ede->extra_text) {
+			isc_mem_free(mctx, ede->extra_text);
+			ede->extra_text = NULL;
+		}
+		isc_mem_put(mctx, ede, sizeof(*ede));
+	}
+
+	INSIST(ISC_LIST_EMPTY(*list));
+}

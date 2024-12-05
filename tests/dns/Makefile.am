@@ -28,6 +28,7 @@ check_PROGRAMS =		\
 	dispatch_test		\
 	dns64_test		\
 	dst_test		\
+	ede_test		\
 	keytable_test		\
 	name_test		\
 	nametree_test		\
