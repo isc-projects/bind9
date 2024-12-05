@@ -38,16 +38,16 @@ def check_server_soa(resolver):
 
 
 @pytest.mark.skipif(
-    not os.environ["ECDSAP384SHA384_SUPPORTED"],
-    reason="algorithm ECDSA384 not supported",
+    not os.environ["ECDSAP256SHA256_SUPPORTED"],
+    reason="algorithm ECDSA256 not supported",
 )
 def test_ecdsa256():
     check_server_soa("10.53.0.2")
 
 
 @pytest.mark.skipif(
-    not os.environ["ECDSAP256SHA256_SUPPORTED"],
-    reason="algorithm ECDSA256 not supported",
+    not os.environ["ECDSAP384SHA384_SUPPORTED"],
+    reason="algorithm ECDSA384 not supported",
 )
 def test_ecdsa384():
     check_server_soa("10.53.0.3")
