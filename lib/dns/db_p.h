@@ -119,21 +119,31 @@ ISC_LANG_BEGINDECLS
 
 struct dns_glue {
 	struct dns_glue *next;
-	dns_fixedname_t fixedname;
+	dns_name_t name;
 	dns_rdataset_t rdataset_a;
 	dns_rdataset_t sigrdataset_a;
 	dns_rdataset_t rdataset_aaaa;
 	dns_rdataset_t sigrdataset_aaaa;
-
-	isc_mem_t *mctx;
-	struct rcu_head rcu_head;
 };
 
-typedef struct {
-	dns_glue_t *glue_list;
+struct dns_gluelist {
+	isc_mem_t *mctx;
+
+	const dns_dbversion_t *version;
+	dns_slabheader_t *header;
+
+	struct dns_glue *glue;
+
+	struct rcu_head rcu_head;
+	struct cds_wfs_node wfs_node;
+};
+
+typedef struct dns_glue_additionaldata_ctx {
 	dns_db_t *db;
 	dns_dbversion_t *version;
-	dns_name_t *nodename;
+	dns_dbnode_t *node;
+
+	dns_glue_t *glue;
 } dns_glue_additionaldata_ctx_t;
 
 typedef struct {
