@@ -68,6 +68,12 @@ isc_counter_setlimit(isc_counter_t *counter, int limit);
  * Set the counter limit.
  */
 
+unsigned int
+isc_counter_getlimit(isc_counter_t *counter);
+/*%<
+ * Get the counter limit.
+ */
+
 void
 isc_counter_attach(isc_counter_t *source, isc_counter_t **targetp);
 /*%<
