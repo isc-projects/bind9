@@ -17,7 +17,7 @@ This document aims to describe the design of the basic event loop handling in
 the BIND 9.
 
 Every application is expected to create and use a single ``isc_loopmgr_t``
-instance, but the ``isc_loopmgr`` API itself doesn't enforce this requirement.
+instance.
 
 ## Event Loops
 
