@@ -211,9 +211,7 @@ count_acl_elements(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 
 	REQUIRE(count != NULL);
 
-	if (has_negative != NULL) {
-		*has_negative = false;
-	}
+	SET_IF_NOT_NULL(has_negative, false);
 
 	for (elt = cfg_list_first(caml); elt != NULL; elt = cfg_list_next(elt))
 	{

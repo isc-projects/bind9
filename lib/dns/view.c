@@ -1624,9 +1624,7 @@ dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 		return result;
 	}
 
-	if (ntap != NULL) {
-		*ntap = false;
-	}
+	SET_IF_NOT_NULL(ntap, false);
 	if (checknta && secure && view->ntatable_priv != NULL &&
 	    dns_ntatable_covered(view->ntatable_priv, now, name, anchor))
 	{
