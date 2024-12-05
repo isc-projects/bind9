@@ -93,7 +93,7 @@ options {
 	transfer-source 0.0.0.0;
 	zone-statistics none;
 };
-parental-agents "parents" port 5353 source 10.10.10.10 port 5354 source-v6 2001:db8::10 port 5355 {
+remote-servers "parents" port 5353 source 10.10.10.10 port 5354 source-v6 2001:db8::10 port 5355 {
 	10.10.10.11;
 	2001:db8::11;
 };
