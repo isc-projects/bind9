@@ -521,7 +521,7 @@ inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 	dns_zone_t *zone = client->query.authzone;
 	dns_rdatatype_t qtype;
 	dns_rdataset_t *rdataset;
-	isc_stats_t *zonestats = NULL;
+	isc_stats_t *zonestats;
 	dns_stats_t *querystats = NULL;
 
 	ns_stats_increment(client->manager->sctx->nsstats, counter);
@@ -531,11 +531,10 @@ inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 	}
 
 	/* Do regular response type stats */
-	dns_zone_getrequeststats(zone, &zonestats);
+	zonestats = dns_zone_getrequeststats(zone);
 
 	if (zonestats != NULL) {
 		isc_stats_increment(zonestats, counter);
-		isc_stats_detach(&zonestats);
 	}
 
 	/* Do query type statistics
@@ -544,14 +543,13 @@ inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 	 * answer counter, preventing double-counting.
 	 */
 	if (counter == ns_statscounter_authans) {
-		dns_zone_getrcvquerystats(zone, &querystats);
+		querystats = dns_zone_getrcvquerystats(zone);
 		if (querystats != NULL) {
 			rdataset = ISC_LIST_HEAD(client->query.qname->list);
 			if (rdataset != NULL) {
 				qtype = rdataset->type;
 				dns_rdatatypestats_increment(querystats, qtype);
 			}
-			dns_stats_detach(&querystats);
 		}
 	}
 }
@@ -1252,7 +1250,7 @@ rpz_log_rewrite(ns_client_t *client, bool disabled, dns_rpz_policy_t policy,
 	const char *s1 = cname_buf, *s2 = cname_buf;
 	dns_rdataset_t *rdataset;
 	dns_rpz_st_t *st;
-	isc_stats_t *zonestats = NULL;
+	isc_stats_t *zonestats;
 
 	/*
 	 * Count enabled rewrites in the global counter.
@@ -1263,11 +1261,10 @@ rpz_log_rewrite(ns_client_t *client, bool disabled, dns_rpz_policy_t policy,
 				   ns_statscounter_rpz_rewrites);
 	}
 	if (p_zone != NULL) {
-		dns_zone_getrequeststats(p_zone, &zonestats);
+		zonestats = dns_zone_getrequeststats(p_zone);
 		if (zonestats != NULL) {
 			isc_stats_increment(zonestats,
 					    ns_statscounter_rpz_rewrites);
-			isc_stats_detach(&zonestats);
 		}
 	}
 

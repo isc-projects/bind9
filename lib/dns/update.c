@@ -1107,7 +1107,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
-	dns_stats_t *dnssecsignstats = NULL;
+	dns_stats_t *dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 	isc_buffer_t buffer;
 	unsigned char data[1024]; /* XXX */
 	unsigned int i;
@@ -1120,8 +1120,6 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		use_kasp = true;
 		offlineksk = dns_kasp_offlineksk(kasp);
 	}
-
-	dns_zone_getdnssecsignstats(zone, &dnssecsignstats);
 
 	dns_rdataset_init(&rdataset);
 	isc_buffer_init(&buffer, data, sizeof(data));
@@ -1278,9 +1276,6 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	}
 
 failure:
-	if (dnssecsignstats != NULL) {
-		dns_stats_detach(&dnssecsignstats);
-	}
 	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
 	}
