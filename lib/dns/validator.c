@@ -1060,8 +1060,8 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	validator_logcreate(val, name, type, caller, "fetch");
 	return dns_resolver_createfetch(
 		val->view->resolver, name, type, NULL, NULL, NULL, NULL, 0,
-		fopts, 0, NULL, NULL, val->event->ev_sender, callback, val,
-		&val->frdataset, &val->fsigrdataset, &val->fetch);
+		fopts, 0, val->qc, val->gqc, val->event->ev_sender, callback,
+		val, &val->frdataset, &val->fsigrdataset, &val->fetch);
 }
 
 /*%
