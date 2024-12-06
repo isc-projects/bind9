@@ -2220,6 +2220,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "max-ncache-ttl", &cfg_type_duration, 0 },
 	{ "max-recursion-depth", &cfg_type_uint32, 0 },
 	{ "max-recursion-queries", &cfg_type_uint32, 0 },
+	{ "max-query-count", &cfg_type_uint32, 0 },
 	{ "max-query-restarts", &cfg_type_uint32, 0 },
 	{ "max-stale-ttl", &cfg_type_duration, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
