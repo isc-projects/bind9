@@ -2076,20 +2076,19 @@ dns_zone_setdnssecsignstats(dns_zone_t *zone, dns_stats_t *stats);
  *\li	stats is a valid statistics.
  */
 
-void
-dns_zone_getrequeststats(dns_zone_t *zone, isc_stats_t **statsp);
+isc_stats_t *
+dns_zone_getrequeststats(dns_zone_t *zone);
 
-void
-dns_zone_getrcvquerystats(dns_zone_t *zone, dns_stats_t **statsp);
+dns_stats_t *
+dns_zone_getrcvquerystats(dns_zone_t *zone);
 
-void
-dns_zone_getdnssecsignstats(dns_zone_t *zone, dns_stats_t **statsp);
+dns_stats_t *
+dns_zone_getdnssecsignstats(dns_zone_t *zone);
 /*%<
  * Get the additional statistics for zone, if one is installed.
  *
  * Requires:
  * \li	'zone' to be a valid zone.
- * \li	'statsp' to be non-NULL and *stastp to be NULL.
  *
  * Returns:
  * \li	when available, a pointer to the statistics set installed in zone;
