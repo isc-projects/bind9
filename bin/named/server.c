@@ -5679,6 +5679,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_view_setmaxrestarts(view, cfg_obj_asuint32(obj));
 
 	obj = NULL;
+	result = named_config_get(maps, "max-query-count", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_view_setmaxqueries(view, cfg_obj_asuint32(obj));
+
+	obj = NULL;
 	result = named_config_get(maps, "fetches-per-zone", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	obj2 = cfg_tuple_get(obj, "fetches");
@@ -7405,7 +7410,7 @@ tat_send(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_SUCCESS) {
 		result = dns_resolver_createfetch(
 			tat->view->resolver, tatname, dns_rdatatype_null,
-			domain, &nameservers, NULL, NULL, 0, 0, 0, NULL,
+			domain, &nameservers, NULL, NULL, 0, 0, 0, NULL, NULL,
 			tat->task, tat_done, tat, &tat->rdataset,
 			&tat->sigrdataset, &tat->fetch);
 	}

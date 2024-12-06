@@ -1060,7 +1060,7 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	validator_logcreate(val, name, type, caller, "fetch");
 	return dns_resolver_createfetch(
 		val->view->resolver, name, type, NULL, NULL, NULL, NULL, 0,
-		fopts, 0, NULL, val->event->ev_sender, callback, val,
+		fopts, 0, NULL, NULL, val->event->ev_sender, callback, val,
 		&val->frdataset, &val->fsigrdataset, &val->fetch);
 }
 
@@ -1092,7 +1092,7 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	validator_logcreate(val, name, type, caller, "validator");
 	result = dns_validator_create(val->view, name, type, rdataset, sig,
 				      NULL, vopts, val->task, action, val,
-				      val->qc, &val->subvalidator);
+				      val->qc, val->gqc, &val->subvalidator);
 	if (result == ISC_R_SUCCESS) {
 		val->subvalidator->parent = val;
 		val->subvalidator->depth = val->depth + 1;
@@ -3153,7 +3153,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
-		     isc_counter_t *qc, dns_validator_t **validatorp) {
+		     isc_counter_t *qc, isc_counter_t *gqc,
+		     dns_validator_t **validatorp) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val;
 	isc_task_t *tclone = NULL;
@@ -3196,6 +3197,9 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	if (qc != NULL) {
 		isc_counter_attach(qc, &val->qc);
+	}
+	if (gqc != NULL) {
+		isc_counter_attach(gqc, &val->gqc);
 	}
 
 	val->mustbesecure = dns_resolver_getmustbesecure(view->resolver, name);
@@ -3304,6 +3308,9 @@ destroy(dns_validator_t *val) {
 	}
 	if (val->qc != NULL) {
 		isc_counter_detach(&val->qc);
+	}
+	if (val->gqc != NULL) {
+		isc_counter_detach(&val->gqc);
 	}
 	isc_mutex_destroy(&val->lock);
 	dns_view_weakdetach(&val->view);

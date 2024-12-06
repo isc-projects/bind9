@@ -2806,3 +2806,11 @@ dns_view_setmaxrestarts(dns_view_t *view, uint8_t max_restarts) {
 
 	view->max_restarts = max_restarts;
 }
+
+void
+dns_view_setmaxqueries(dns_view_t *view, uint16_t max_queries) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(max_queries > 0);
+
+	view->max_queries = max_queries;
+}

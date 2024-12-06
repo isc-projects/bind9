@@ -380,6 +380,7 @@ struct fetchctx {
 	bool ns_ttl_ok;
 	uint32_t ns_ttl;
 	isc_counter_t *qc;
+	isc_counter_t *gqc;
 	bool minimized;
 	unsigned int qmin_labels;
 	isc_result_t qmin_warning;
@@ -581,6 +582,7 @@ struct dns_resolver {
 	unsigned int query_timeout;
 	unsigned int maxdepth;
 	unsigned int maxqueries;
+	unsigned int maxquerycount;
 	isc_result_t quotaresp[2];
 
 	/* Additions for serve-stale feature. */
@@ -975,7 +977,8 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 
 	result = dns_validator_create(fctx->res->view, name, type, rdataset,
 				      sigrdataset, message, valoptions, task,
-				      validated, valarg, fctx->qc, &validator);
+				      validated, valarg, fctx->qc, fctx->gqc,
+				      &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	if (result == ISC_R_SUCCESS) {
 		inc_stats(fctx->res, dns_resstatscounter_val);
@@ -3426,7 +3429,8 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	result = dns_adb_createfind(
 		fctx->adb, res->buckets[fctx->bucketnum].task, fctx_finddone,
 		fctx, name, fctx->name, fctx->type, options, now, NULL,
-		res->view->dstport, fctx->depth + 1, fctx->qc, &find);
+		res->view->dstport, fctx->depth + 1, fctx->qc, fctx->gqc,
+		&find);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
@@ -4136,6 +4140,9 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	unsigned int bucketnum;
 
 	FCTXTRACE5("try", "fctx->qc=", isc_counter_used(fctx->qc));
+	if (fctx->gqc != NULL) {
+		FCTXTRACE5("try", "fctx->gqc=", isc_counter_used(fctx->gqc));
+	}
 
 	REQUIRE(!ADDRWAIT(fctx));
 
@@ -4143,13 +4150,27 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	bucketnum = fctx->bucketnum;
 
 	/* We've already exceeded maximum query count */
-	if (isc_counter_used(fctx->qc) > res->maxqueries) {
+	if (isc_counter_used(fctx->qc) > isc_counter_getlimit(fctx->qc)) {
+		isc_log_write(
+			dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+			"exceeded max queries resolving '%s' "
+			"(max-recursion-queries, querycount=%u, maxqueries=%u)",
+			fctx->info, isc_counter_used(fctx->qc),
+			isc_counter_getlimit(fctx->qc));
+		fctx_done_detach(&fctx, DNS_R_SERVFAIL);
+		return;
+	}
+
+	if (fctx->gqc != NULL &&
+	    isc_counter_used(fctx->gqc) > isc_counter_getlimit(fctx->gqc))
+	{
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-			      "exceeded max queries resolving '%s' "
-			      "(querycount=%u, maxqueries=%u)",
-			      fctx->info, isc_counter_used(fctx->qc),
-			      res->maxqueries);
+			      "exceeded global max queries resolving '%s' "
+			      "(max-query-count, querycount=%u, maxqueries=%u)",
+			      fctx->info, isc_counter_used(fctx->gqc),
+			      isc_counter_getlimit(fctx->gqc));
 		fctx_done_detach(&fctx, DNS_R_SERVFAIL);
 		return;
 	}
@@ -4255,8 +4276,8 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		result = dns_resolver_createfetch(
 			fctx->res, fctx->qminname, fctx->qmintype, fctx->domain,
 			&fctx->nameservers, NULL, NULL, 0, options, 0, fctx->qc,
-			task, resume_qmin, fctx, &fctx->qminrrset, NULL,
-			&fctx->qminfetch);
+			fctx->gqc, task, resume_qmin, fctx, &fctx->qminrrset,
+			NULL, &fctx->qminfetch);
 		if (result != ISC_R_SUCCESS) {
 			fctx_unref(fctx);
 			fctx_done_detach(&fctx, DNS_R_SERVFAIL);
@@ -4268,10 +4289,24 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-			      "exceeded max queries resolving '%s'",
-			      fctx->info);
+			      "exceeded max queries resolving '%s' "
+			      "(max-recursion-queries, querycount=%u)",
+			      fctx->info, isc_counter_used(fctx->qc));
 		fctx_done_detach(&fctx, DNS_R_SERVFAIL);
 		return;
+	}
+
+	if (fctx->gqc != NULL) {
+		result = isc_counter_increment(fctx->gqc);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+				      "exceeded global max queries resolving "
+				      "'%s' (max-query-count, querycount=%u)",
+				      fctx->info, isc_counter_used(fctx->gqc));
+			fctx_done_detach(&fctx, DNS_R_SERVFAIL);
+			return;
+		}
 	}
 
 	result = fctx_query(fctx, addrinfo, fctx->options);
@@ -4512,6 +4547,9 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 	}
 
 	isc_counter_detach(&fctx->qc);
+	if (fctx->gqc != NULL) {
+		isc_counter_detach(&fctx->gqc);
+	}
 	fcount_decr(fctx);
 	dns_message_detach(&fctx->qmessage);
 	if (dns_rdataset_isassociated(&fctx->nameservers)) {
@@ -4784,7 +4822,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	    dns_rdatatype_t type, const dns_name_t *domain,
 	    dns_rdataset_t *nameservers, const isc_sockaddr_t *client,
 	    unsigned int options, unsigned int bucketnum, unsigned int depth,
-	    isc_counter_t *qc, fetchctx_t **fctxp) {
+	    isc_counter_t *qc, isc_counter_t *gqc, fetchctx_t **fctxp) {
 	fetchctx_t *fctx = NULL;
 	isc_result_t result;
 	isc_result_t iresult;
@@ -4846,6 +4884,15 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
 			      "fctx %p(%s): created counter %p", fctx,
 			      fctx->info, fctx->qc);
+	}
+
+	if (gqc != NULL) {
+		isc_counter_attach(gqc, &fctx->gqc);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(9),
+			      "fctx %p(%s): attached to counter %p (%d)", fctx,
+			      fctx->info, fctx->gqc,
+			      isc_counter_used(fctx->gqc));
 	}
 
 	isc_refcount_init(&fctx->references, 1);
@@ -5104,6 +5151,9 @@ cleanup_nameservers:
 	}
 	isc_mem_free(res->mctx, fctx->info);
 	isc_counter_detach(&fctx->qc);
+	if (fctx->gqc != NULL) {
+		isc_counter_detach(&fctx->gqc);
+	}
 
 cleanup_fetch:
 	dns_resolver_detach(&fctx->res);
@@ -7583,7 +7633,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		options = fctx->options & ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 		result = dns_resolver_createfetch(
 			res, fctx->nsname, dns_rdatatype_ns, domain, nsrdataset,
-			NULL, NULL, 0, options, 0, fctx->qc, task,
+			NULL, NULL, 0, options, 0, fctx->qc, fctx->gqc, task,
 			resume_dslookup, fctx, &fctx->nsrrset, NULL,
 			&fctx->nsfetch);
 		if (result != ISC_R_SUCCESS) {
@@ -9951,8 +10001,8 @@ rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 	options = fctx->options & ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	result = dns_resolver_createfetch(
 		fctx->res, fctx->nsname, dns_rdatatype_ns, NULL, NULL, NULL,
-		NULL, 0, options, 0, fctx->qc, task, resume_dslookup, fctx,
-		&fctx->nsrrset, NULL, &fctx->nsfetch);
+		NULL, 0, options, 0, fctx->qc, fctx->gqc, task, resume_dslookup,
+		fctx, &fctx->nsrrset, NULL, &fctx->nsfetch);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_DUPLICATE) {
 			result = DNS_R_SERVFAIL;
@@ -10655,7 +10705,7 @@ dns_resolver_prime(dns_resolver_t *res) {
 		INSIST(res->primefetch == NULL);
 		result = dns_resolver_createfetch(
 			res, dns_rootname, dns_rdatatype_ns, NULL, NULL, NULL,
-			NULL, 0, DNS_FETCHOPT_NOFORWARD, 0, NULL,
+			NULL, 0, DNS_FETCHOPT_NOFORWARD, 0, NULL, NULL,
 			res->buckets[0].task, prime_done, res, rdataset, NULL,
 			&res->primefetch);
 		UNLOCK(&res->primelock);
@@ -10933,8 +10983,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 dns_forwarders_t *forwarders,
 			 const isc_sockaddr_t *client, dns_messageid_t id,
 			 unsigned int options, unsigned int depth,
-			 isc_counter_t *qc, isc_task_t *task,
-			 isc_taskaction_t action, void *arg,
+			 isc_counter_t *qc, isc_counter_t *gqc,
+			 isc_task_t *task, isc_taskaction_t action, void *arg,
 			 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp) {
 	dns_fetch_t *fetch;
@@ -11039,7 +11089,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 	if (fctx == NULL) {
 		result = fctx_create(res, task, name, type, domain, nameservers,
-				     client, options, bucketnum, depth, qc,
+				     client, options, bucketnum, depth, qc, gqc,
 				     &fctx);
 		if (result != ISC_R_SUCCESS) {
 			goto unlock;

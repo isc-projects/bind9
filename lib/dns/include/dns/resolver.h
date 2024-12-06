@@ -279,8 +279,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 dns_forwarders_t     *forwarders,
 			 const isc_sockaddr_t *client, dns_messageid_t id,
 			 unsigned int options, unsigned int depth,
-			 isc_counter_t *qc, isc_task_t *task,
-			 isc_taskaction_t action, void *arg,
+			 isc_counter_t *qc, isc_counter_t *gqc,
+			 isc_task_t *task, isc_taskaction_t action, void *arg,
 			 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp);
 /*%<

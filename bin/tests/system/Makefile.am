@@ -99,6 +99,7 @@ TESTS =				\
 	autosign		\
 	builtin			\
 	cacheclean		\
+	camp			\
 	case			\
 	catz			\
 	cds			\
