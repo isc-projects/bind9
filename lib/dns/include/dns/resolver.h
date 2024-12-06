@@ -448,13 +448,6 @@ dns_resolver_ds_digest_supported(dns_resolver_t	  *resolver,
  * crypto libraries if it was not specifically disabled.
  */
 
-isc_result_t
-dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
-			     bool value);
-
-bool
-dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name);
-
 void
 dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int timeout);
 /*%<

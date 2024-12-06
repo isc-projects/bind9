@@ -23,7 +23,6 @@ options {
 	listen-on-v6 { none; };
 	recursion yes;
 	dnssec-validation yes;
-	dnssec-must-be-secure mustbesecure.example yes;
 	minimal-responses no;
 
 	nta-lifetime 12s;

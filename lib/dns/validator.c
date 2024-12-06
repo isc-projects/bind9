@@ -193,18 +193,9 @@ disassociate_rdatasets(dns_validator_t *val) {
 /*%
  * Mark the rdatasets in val->vstat with trust level "answer",
  * indicating that they did not validate, but could be cached as insecure.
- *
- * If we are validating a name that is marked as "must be secure", log a
- * warning and return DNS_R_MUSTBESECURE instead.
  */
 static isc_result_t
-markanswer(dns_validator_t *val, const char *where, const char *mbstext) {
-	if (val->mustbesecure && mbstext != NULL) {
-		validator_log(val, ISC_LOG_WARNING,
-			      "must be secure failure, %s", mbstext);
-		return DNS_R_MUSTBESECURE;
-	}
-
+markanswer(dns_validator_t *val, const char *where) {
 	validator_log(val, ISC_LOG_DEBUG(3), "marking as answer (%s)", where);
 	if (val->rdataset != NULL) {
 		dns_rdataset_settrust(val->rdataset, dns_trust_answer);
@@ -557,9 +548,7 @@ fetch_callback_ds(void *arg) {
 				 * insecurity. If this is a zone cut, that
 				 * means we're insecure.
 				 */
-				result = markanswer(
-					val, "fetch_callback_ds",
-					"no DS and this is a delegation");
+				result = markanswer(val, "fetch_callback_ds");
 				break;
 			}
 			FALLTHROUGH;
@@ -667,8 +656,7 @@ validator_callback_ds(void *arg) {
 		    NEGATIVE(&val->frdataset) &&
 		    isdelegation(name, &val->frdataset, DNS_R_NCACHENXRRSET))
 		{
-			result = markanswer(val, "validator_callback_ds",
-					    "no DS and this is a delegation");
+			result = markanswer(val, "validator_callback_ds");
 		} else if ((val->attributes & VALATTR_INSECURITY) != 0) {
 			result = proveunsecure(val, have_dsset, true);
 		} else {
@@ -1983,9 +1971,7 @@ validate_dnskey_dsset_done(dns_validator_t *val, isc_result_t result) {
 		if (!val->supported_algorithm) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no supported algorithm/digest (DS)");
-			result = markanswer(
-				val, "validate_dnskey (3)",
-				"no supported algorithm/digest (DS)");
+			result = markanswer(val, "validate_dnskey (3)");
 			break;
 		}
 		FALLTHROUGH;
@@ -2195,7 +2181,7 @@ validate_dnskey(void *arg) {
 	INSIST(val->dsset != NULL);
 
 	if (val->dsset->trust < dns_trust_secure) {
-		result = markanswer(val, "validate_dnskey (2)", "insecure DS");
+		result = markanswer(val, "validate_dnskey (2)");
 		goto cleanup;
 	}
 
@@ -2838,7 +2824,7 @@ validate_nx(dns_validator_t *val, bool resume) {
 			if (result == DNS_R_NSEC3ITERRANGE) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					      "too many iterations");
-				markanswer(val, "validate_nx (3)", NULL);
+				markanswer(val, "validate_nx (3)");
 				return ISC_R_SUCCESS;
 			}
 		}
@@ -2856,12 +2842,12 @@ validate_nx(dns_validator_t *val, bool resume) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "optout proof found");
 			val->optout = true;
-			markanswer(val, "validate_nx (1)", NULL);
+			markanswer(val, "validate_nx (1)");
 			return ISC_R_SUCCESS;
 		} else if ((val->attributes & VALATTR_FOUNDUNKNOWN) != 0) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "unknown NSEC3 hash algorithm found");
-			markanswer(val, "validate_nx (2)", NULL);
+			markanswer(val, "validate_nx (2)");
 			return ISC_R_SUCCESS;
 		}
 
@@ -2874,7 +2860,7 @@ validate_nx(dns_validator_t *val, bool resume) {
 		if (result == DNS_R_NSEC3ITERRANGE) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "too many iterations");
-			markanswer(val, "validate_nx (4)", NULL);
+			markanswer(val, "validate_nx (4)");
 			return ISC_R_SUCCESS;
 		}
 	}
@@ -2991,9 +2977,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 					val, ISC_LOG_DEBUG(3),
 					"no supported algorithm/digest (%s/DS)",
 					namebuf);
-				*resp = markanswer(val, "proveunsecure (5)",
-						   "no supported "
-						   "algorithm/digest (DS)");
+				*resp = markanswer(val, "proveunsecure (5)");
 				return ISC_R_COMPLETE;
 			}
 
@@ -3070,8 +3054,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 					 NULL) == ISC_R_SUCCESS &&
 		    dns_name_equal(tname, found))
 		{
-			*resp = markanswer(val, "proveunsecure (3)",
-					   "no DS at zone cut");
+			*resp = markanswer(val, "proveunsecure (3)");
 			return ISC_R_COMPLETE;
 		}
 
@@ -3090,8 +3073,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		}
 
 		if (isdelegation(tname, &val->frdataset, result)) {
-			*resp = markanswer(val, "proveunsecure (4)",
-					   "this is a delegation");
+			*resp = markanswer(val, "proveunsecure (4)");
 			return ISC_R_COMPLETE;
 		}
 
@@ -3219,8 +3201,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 	result = dns_keytable_finddeepestmatch(val->keytable, secroot, secroot);
 	if (result == ISC_R_NOTFOUND) {
 		validator_log(val, ISC_LOG_DEBUG(3), "not beneath secure root");
-		return markanswer(val, "proveunsecure (1)",
-				  "not beneath secure root");
+		return markanswer(val, "proveunsecure (1)");
 	} else if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -3249,7 +3230,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no supported algorithm/digest (%s/DS)",
 				      namebuf);
-			result = markanswer(val, "proveunsecure (2)", namebuf);
+			result = markanswer(val, "proveunsecure (2)");
 			goto out;
 		}
 		val->labels++;
@@ -3441,7 +3422,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		isc_counter_attach(gqc, &val->gqc);
 	}
 
-	val->mustbesecure = dns_resolver_getmustbesecure(view->resolver, name);
 	dns_rdataset_init(&val->fdsset);
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);

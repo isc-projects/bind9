@@ -63,10 +63,6 @@ ns.bogus		A	10.53.0.3
 dynamic			NS	dynamic
 dynamic			A	10.53.0.3
 
-; A insecure subdomain
-mustbesecure		NS	ns.mustbesecure
-ns.mustbesecure		A	10.53.0.3
-
 ; A rfc2535 signed zone w/ CNAME
 rfc2535			NS	ns.rfc2535
 ns.rfc2535		A	10.53.0.3

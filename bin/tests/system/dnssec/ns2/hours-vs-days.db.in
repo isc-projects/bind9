@@ -67,10 +67,6 @@ ns.badds		A	10.53.0.3
 dynamic			NS	dynamic
 dynamic			A	10.53.0.3
 
-; A insecure subdomain
-mustbesecure		NS	ns.mustbesecure
-ns.mustbesecure		A	10.53.0.3
-
 ; A subdomain with expired signatures
 expired			NS	ns.expired
 ns.expired		A	10.53.0.3

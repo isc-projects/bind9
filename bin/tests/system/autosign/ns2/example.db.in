@@ -52,10 +52,6 @@ ns.secure		A	10.53.0.3
 insecure		NS	ns.insecure
 ns.insecure		A	10.53.0.3
 
-; A insecure subdomain
-mustbesecure		NS	ns.mustbesecure
-ns.mustbesecure		A	10.53.0.3
-
 z			A	10.0.0.26
 
 nsec3			NS	ns.nsec3
