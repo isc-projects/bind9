@@ -193,6 +193,7 @@ typedef struct dns_include dns_include_t;
 	} while (0)
 #define UNLOCK_ZONE(z)               \
 	do {                         \
+		INSIST((z)->locked); \
 		(z)->locked = false; \
 		UNLOCK(&(z)->lock);  \
 	} while (0)
@@ -6858,7 +6859,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	 isc_stdtime_t inception, isc_stdtime_t expire) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
-	dns_stats_t *dnssecsignstats;
+	dns_stats_t *dnssecsignstats = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	unsigned char data[1024]; /* XXX */
@@ -7033,7 +7034,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 		isc_buffer_init(&buffer, data, sizeof(data));
 
 		/* Update DNSSEC sign statistics. */
-		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
+		dns_zone_getdnssecsignstats(zone, &dnssecsignstats);
 		if (dnssecsignstats != NULL) {
 			/* Generated a new signature. */
 			dns_dnssecsignstats_increment(dnssecsignstats,
@@ -7045,6 +7046,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				dnssecsignstats, ID(keys[i]),
 				(uint8_t)ALG(keys[i]),
 				dns_dnssecsignstats_refresh);
+			dns_stats_detach(&dnssecsignstats);
 		}
 	}
 
@@ -7516,7 +7518,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	dns_rdatasetiter_t *iterator = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_stats_t *dnssecsignstats;
+	dns_stats_t *dnssecsignstats = NULL;
 	bool offlineksk = false;
 	isc_buffer_t buffer;
 	unsigned char data[1024];
@@ -7649,7 +7651,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		dns_rdata_reset(&rdata);
 
 		/* Update DNSSEC sign statistics. */
-		dnssecsignstats = dns_zone_getdnssecsignstats(zone);
+		dns_zone_getdnssecsignstats(zone, &dnssecsignstats);
 		if (dnssecsignstats != NULL) {
 			/* Generated a new signature. */
 			dns_dnssecsignstats_increment(dnssecsignstats, ID(key),
@@ -7659,6 +7661,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 			dns_dnssecsignstats_increment(
 				dnssecsignstats, ID(key), ALG(key),
 				dns_dnssecsignstats_refresh);
+			dns_stats_detach(&dnssecsignstats);
 		}
 
 		(*signatures)--;
@@ -19774,15 +19777,27 @@ dns_zone_setdnssecsignstats(dns_zone_t *zone, dns_stats_t *stats) {
 	UNLOCK_ZONE(zone);
 }
 
-dns_stats_t *
-dns_zone_getdnssecsignstats(dns_zone_t *zone) {
+static void
+getdnssecsignstats(dns_zone_t *zone, dns_stats_t **statsp) {
+	REQUIRE(statsp != NULL && *statsp == NULL);
+	if (zone->dnssecsignstats != NULL) {
+		dns_stats_attach(zone->dnssecsignstats, statsp);
+	}
+}
+void
+dns_zone_getdnssecsignstats(dns_zone_t *zone, dns_stats_t **statsp) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return zone->dnssecsignstats;
+	LOCK_ZONE(zone);
+	getdnssecsignstats(zone, statsp);
+	UNLOCK_ZONE(zone);
 }
 
-isc_stats_t *
-dns_zone_getrequeststats(dns_zone_t *zone) {
+void
+dns_zone_getrequeststats(dns_zone_t *zone, isc_stats_t **statsp) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
 	/*
 	 * We don't lock zone for efficiency reason.  This is not catastrophic
 	 * because requeststats must always be valid when requeststats_on is
@@ -19791,24 +19806,27 @@ dns_zone_getrequeststats(dns_zone_t *zone) {
 	 * false, or some cannot be incremented just after the statistics are
 	 * installed, but it shouldn't matter much in practice.
 	 */
-	if (zone->requeststats_on) {
-		return zone->requeststats;
-	} else {
-		return NULL;
+	LOCK_ZONE(zone);
+	if (zone->requeststats_on && zone->requeststats != NULL) {
+		isc_stats_attach(zone->requeststats, statsp);
 	}
+	UNLOCK_ZONE(zone);
 }
 
 /*
  * Return the received query stats bucket
  * see note from dns_zone_getrequeststats()
  */
-dns_stats_t *
-dns_zone_getrcvquerystats(dns_zone_t *zone) {
-	if (zone->requeststats_on) {
-		return zone->rcvquerystats;
-	} else {
-		return NULL;
+void
+dns_zone_getrcvquerystats(dns_zone_t *zone, dns_stats_t **statsp) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	LOCK_ZONE(zone);
+	if (zone->requeststats_on && zone->rcvquerystats != NULL) {
+		dns_stats_attach(zone->rcvquerystats, statsp);
 	}
+	UNLOCK_ZONE(zone);
 }
 
 isc_result_t
@@ -22617,8 +22635,9 @@ zone_rekey(dns_zone_t *zone) {
 
 	if (commit) {
 		dns_difftuple_t *tuple;
-		dns_stats_t *dnssecsignstats =
-			dns_zone_getdnssecsignstats(zone);
+		dns_stats_t *dnssecsignstats = NULL;
+
+		getdnssecsignstats(zone, &dnssecsignstats);
 
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 
@@ -22657,6 +22676,9 @@ zone_rekey(dns_zone_t *zone) {
 						dst_key_alg(key->key));
 				}
 			}
+		}
+		if (dnssecsignstats != NULL) {
+			dns_stats_detach(&dnssecsignstats);
 		}
 
 		if (fullsign) {
