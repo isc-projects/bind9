@@ -111,11 +111,9 @@ static void
 inc_stats(ns_client_t *client, dns_zone_t *zone, isc_statscounter_t counter) {
 	ns_stats_increment(client->manager->sctx->nsstats, counter);
 	if (zone != NULL) {
-		isc_stats_t *zonestats = NULL;
-		dns_zone_getrequeststats(zone, &zonestats);
+		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
 		if (zonestats != NULL) {
 			isc_stats_increment(zonestats, counter);
-			isc_stats_detach(&zonestats);
 		}
 	}
 }
