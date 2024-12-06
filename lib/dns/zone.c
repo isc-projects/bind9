@@ -21666,7 +21666,7 @@ nsfetch_done(void *arg) {
 	if (!dns_rdataset_isassociated(nssigset)) {
 		dnssec_log(zone, ISC_LOG_WARNING, "No NS RRSIGs found for '%s'",
 			   pnamebuf);
-		result = DNS_R_MUSTBESECURE;
+		result = DNS_R_NOVALIDSIG;
 		goto done;
 	}
 
@@ -21675,7 +21675,7 @@ nsfetch_done(void *arg) {
 		dnssec_log(zone, ISC_LOG_WARNING,
 			   "Invalid NS RRset for '%s' trust level %u", pnamebuf,
 			   nsrrset->trust);
-		result = DNS_R_MUSTBESECURE;
+		result = DNS_R_NOVALIDSIG;
 		goto done;
 	}
 

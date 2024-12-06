@@ -3068,7 +3068,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 			validator_log(val, ISC_LOG_WARNING,
 				      "can't validate existing "
 				      "negative responses (no DS)");
-			*resp = DNS_R_MUSTBESECURE;
+			*resp = DNS_R_NOVALIDSIG;
 			return ISC_R_COMPLETE;
 		}
 
@@ -3167,8 +3167,6 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
  * Returns:
  * \li	ISC_R_SUCCESS		val->name is in an unsecure zone
  * \li	DNS_R_WAIT		validation is in progress.
- * \li	DNS_R_MUSTBESECURE	val->name is supposed to be secure
- *				(policy) but we proved that it is unsecure.
  * \li	DNS_R_NOVALIDSIG
  * \li	DNS_R_NOVALIDNSEC
  * \li	DNS_R_NOTINSECURE
