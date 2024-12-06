@@ -440,12 +440,6 @@ The following blocks are supported:
     :any:`trust-anchors`
         Defines DNSSEC trust anchors: if used with the ``initial-key`` or ``initial-ds`` keyword, trust anchors are kept up-to-date using :rfc:`5011` trust anchor maintenance; if used with ``static-key`` or ``static-ds``, keys are permanent.
 
-    :any:`managed-keys`
-        Is identical to :any:`trust-anchors`; this option is deprecated in favor of :any:`trust-anchors` with the ``initial-key`` keyword, and may be removed in a future release.
-
-    :any:`trusted-keys`
-        Defines permanent trusted DNSSEC keys; this option is deprecated in favor of :any:`trust-anchors` with the ``static-key`` keyword, and may be removed in a future release.
-
     :any:`view`
         Defines a view.
 
@@ -1664,9 +1658,8 @@ default is used.
    If all supported algorithms are disabled, the zones covered by the
    :any:`disable-algorithms` setting are treated as insecure.
 
-   Configured trust anchors in :any:`trust-anchors` (or :any:`managed-keys` or
-   :any:`trusted-keys`) that match a disabled algorithm are ignored and treated
-   as if they were not configured.
+   Configured trust anchors in :any:`trust-anchors` that match a disabled
+   algorithm are ignored and treated as if they were not configured.
 
 .. namedconf:statement:: disable-ds-digests
    :tags: dnssec, zone
@@ -2550,13 +2543,11 @@ Boolean Options
    anchor for the DNS root zone is used. This trust anchor is provided
    as part of BIND and is kept up-to-date using :ref:`rfc5011.support` key
    management. Adding an explicit static key using the :any:`trust-anchors`
-   statement, with a ``static-key`` anchor type (or using the deprecated
-   :any:`trusted-keys` statement) for the root zone, is not supported with the
-   ``auto`` setting and is treated as a configuration error.
+   statement, with a ``static-key`` anchor type for the root zone, is not
+   supported with the ``auto`` setting and is treated as a configuration error.
 
    If set to ``yes``, DNSSEC validation is enabled, but a trust anchor must be
-   manually configured using a :any:`trust-anchors` statement (or the
-   :any:`managed-keys` or :any:`trusted-keys` statements, both deprecated). If
+   manually configured using a :any:`trust-anchors` statement. If
    :any:`trust-anchors` is not configured, it is a configuration error. If
    :any:`trust-anchors` does not include a valid root key, then validation does
    not take place for names which are not covered by any of the configured trust
@@ -6111,8 +6102,6 @@ Trust anchors configured with the
 anchor types are immutable, while keys configured with
 ``initial-key`` or ``initial-ds``
 can be kept up-to-date automatically, without intervention from the resolver operator.
-(``static-key`` keys are identical to keys configured using the
-deprecated :any:`trusted-keys` statement.)
 
 Suppose, for example, that a zone's key-signing key was compromised, and
 the zone owner had to revoke and replace the key. A resolver which had
@@ -6611,29 +6600,6 @@ The following options apply to DS queries sent to :any:`parental-agents`:
 
    This option acts like :any:`parental-source`, but applies to parental DS
    queries sent to IPv6 addresses.
-
-:any:`managed-keys` Block Grammar
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. namedconf:statement:: managed-keys
-   :tags: deprecated
-
-:any:`managed-keys` Block Definition and Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :any:`managed-keys` statement has been
-deprecated in favor of :any:`trust-anchors`
-with the ``initial-key`` keyword.
-
-:any:`trusted-keys` Block Grammar
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. namedconf:statement:: trusted-keys
-   :tags: deprecated
-
-:any:`trusted-keys` Block Definition and Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :any:`trusted-keys` statement has been deprecated in favor of
-:any:`trust-anchors` with the ``static-key`` keyword.
 
 :any:`view` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -516,22 +516,6 @@ static cfg_type_t cfg_type_maxduration = {
 };
 
 /*%
- * A dnssec key, as used in the "trusted-keys" statement.
- */
-static cfg_tuplefielddef_t dnsseckey_fields[] = {
-	{ "name", &cfg_type_astring, 0 },
-	{ "anchortype", &cfg_type_void, 0 },
-	{ "rdata1", &cfg_type_uint32, 0 },
-	{ "rdata2", &cfg_type_uint32, 0 },
-	{ "rdata3", &cfg_type_uint32, 0 },
-	{ "data", &cfg_type_qstring, 0 },
-	{ NULL, NULL, 0 }
-};
-static cfg_type_t cfg_type_dnsseckey = { "dnsseckey",	  cfg_parse_tuple,
-					 cfg_print_tuple, cfg_doc_tuple,
-					 &cfg_rep_tuple,  dnsseckey_fields };
-
-/*%
  * Optional enums.
  *
  */
@@ -550,8 +534,7 @@ doc_optional_enum(cfg_printer_t *pctx, const cfg_type_t *type) {
 }
 
 /*%
- * A key initialization specifier, as used in the
- * "trust-anchors" (or synonymous "managed-keys") statement.
+ * A key initialization specifier, as used in the "trust-anchors" statement.
  */
 static const char *anchortype_enums[] = { "static-key", "initial-key",
 					  "static-ds", "initial-ds", NULL };
@@ -900,14 +883,6 @@ static cfg_type_t cfg_type_keylist = { "keylist",
 				       &cfg_rep_list,
 				       &cfg_type_astring };
 
-/*% A list of dnssec keys, as in "trusted-keys". Deprecated. */
-static cfg_type_t cfg_type_trustedkeys = { "trustedkeys",
-					   cfg_parse_bracketed_list,
-					   cfg_print_bracketed_list,
-					   cfg_doc_bracketed_list,
-					   &cfg_rep_list,
-					   &cfg_type_dnsseckey };
-
 /*%
  * A list of managed trust anchors.  Each entry contains a name, a keyword
  * ("static-key", initial-key", "static-ds" or "initial-ds"), and the
@@ -1191,12 +1166,11 @@ static cfg_clausedef_t namedconf_or_view_clauses[] = {
 	{ "dyndb", &cfg_type_dyndb, CFG_CLAUSEFLAG_MULTI },
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "managed-keys", &cfg_type_dnsseckeys,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_DEPRECATED },
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "plugin", &cfg_type_plugin, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
 	{ "trust-anchors", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
-	{ "trusted-keys", &cfg_type_trustedkeys,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_DEPRECATED },
+	{ "trusted-keys", NULL, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
 	{ NULL, NULL, 0 }
 };
@@ -1206,10 +1180,9 @@ static cfg_clausedef_t namedconf_or_view_clauses[] = {
  */
 static cfg_clausedef_t bindkeys_clauses[] = {
 	{ "managed-keys", &cfg_type_dnsseckeys,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_DEPRECATED },
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "trust-anchors", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
-	{ "trusted-keys", &cfg_type_trustedkeys,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_DEPRECATED },
+	{ "trusted-keys", NULL, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ NULL, NULL, 0 }
 };
 
@@ -2465,7 +2438,7 @@ cfg_type_t cfg_type_namedconf = { "namedconf",	     cfg_parse_mapbody,
 				  cfg_print_mapbody, cfg_doc_mapbody,
 				  &cfg_rep_map,	     namedconf_clausesets };
 
-/*% The bind.keys syntax (trust-anchors/managed-keys/trusted-keys only). */
+/*% The bind.keys syntax (trust-anchors). */
 static cfg_clausedef_t *bindkeys_clausesets[] = { bindkeys_clauses, NULL };
 cfg_type_t cfg_type_bindkeys = { "bindkeys",	    cfg_parse_mapbody,
 				 cfg_print_mapbody, cfg_doc_mapbody,

@@ -379,7 +379,7 @@ take a closer look at what DNSSEC validation actually does, and some other optio
    };
 
 This “auto” line enables automatic DNSSEC trust anchor configuration
-using the :any:`managed-keys` feature. In this case, no manual key
+using the :any:`trust-anchors` feature. In this case, no manual key
 configuration is needed. There are three possible choices for the
 :any:`dnssec-validation` option:
 

@@ -141,14 +141,14 @@
 /*%
  * KASP flags
  */
-#define KASP_LOCK(k)                  \
-	if ((k) != NULL) {            \
-		LOCK((&((k)->lock))); \
+#define KASP_LOCK(k)                \
+	if ((k) != NULL) {          \
+		LOCK(&((k)->lock)); \
 	}
 
-#define KASP_UNLOCK(k)                  \
-	if ((k) != NULL) {              \
-		UNLOCK((&((k)->lock))); \
+#define KASP_UNLOCK(k)                \
+	if ((k) != NULL) {            \
+		UNLOCK(&((k)->lock)); \
 	}
 
 /*
@@ -216,7 +216,7 @@ typedef struct dns_include dns_include_t;
 	} while (0)
 #endif /* ifdef DNS_ZONE_CHECKLOCK */
 
-#define ZONEDB_INITLOCK(l)    isc_rwlock_init((l))
+#define ZONEDB_INITLOCK(l)    isc_rwlock_init(l)
 #define ZONEDB_DESTROYLOCK(l) isc_rwlock_destroy(l)
 #define ZONEDB_LOCK(l, t)     RWLOCK((l), (t))
 #define ZONEDB_UNLOCK(l, t)   RWUNLOCK((l), (t))
@@ -4492,9 +4492,9 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
 }
 
 /*
- * Synchronize the set of initializing keys found in managed-keys {}
+ * Synchronize the set of initializing keys found in trust-anchors {}
  * statements with the set of trust anchors found in the managed-keys.bind
- * zone.  If a domain is no longer named in managed-keys, delete all keys
+ * zone.  If a domain is no longer named in trust-anchors, delete all keys
  * from that domain from the key zone.	If a domain is configured as an
  * initial-key in trust-anchors, but there are no references to it in the
  * key zone, load the key zone with the initializing key(s) for that
@@ -10828,7 +10828,7 @@ done:
 failure:
 	if (result != ISC_R_SUCCESS) {
 		dnssec_log(zone, ISC_LOG_ERROR,
-			   "error during managed-keys processing (%s): "
+			   "error during trust anchor processing (%s): "
 			   "DNSSEC validation may be at risk",
 			   isc_result_totext(result));
 	}
