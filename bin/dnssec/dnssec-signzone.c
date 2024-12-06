@@ -679,6 +679,10 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	for (key = ISC_LIST_HEAD(keylist); key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
 	{
+		if (REVOKE(key->key) && set->type != dns_rdatatype_dnskey) {
+			continue;
+		}
+
 		if (nowsignedby[key->index]) {
 			continue;
 		}

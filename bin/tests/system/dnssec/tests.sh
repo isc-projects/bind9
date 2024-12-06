@@ -4468,5 +4468,34 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "checking that records other than DNSKEY are not signed by a revoked key by dnssec-signzone ($n)"
+ret=0
+(
+  cd signer || exit 0
+  key1=$(${KEYGEN} -a "${DEFAULT_ALGORITHM}" -f KSK revoke.example)
+  key2=$(${KEYGEN} -a "${DEFAULT_ALGORITHM}" -f KSK revoke.example)
+  key3=$(${KEYGEN} -a "${DEFAULT_ALGORITHM}" revoke.example)
+  rkey=$(${REVOKE} "$key2")
+  cat >>revoke.example.db <<EOF
+\$TTL 3600
+@ SOA . . 0 0 0 0 3600
+@ NS .
+\$INCLUDE "${key1}.key"
+\$INCLUDE "${rkey}.key"
+\$INCLUDE "${key3}.key"
+EOF
+  "${DSFROMKEY}" -C "$key1" >>revoke.example.db
+  "${SIGNER}" -o revoke.example revoke.example.db >signer.out.$n
+) || ret=1
+keycount=$(grep -c "RRSIG.DNSKEY ${DEFAULT_ALGORITHM_NUMBER} " signer/revoke.example.db.signed)
+cdscount=$(grep -c "RRSIG.CDS ${DEFAULT_ALGORITHM_NUMBER} " signer/revoke.example.db.signed)
+soacount=$(grep -c "RRSIG.SOA ${DEFAULT_ALGORITHM_NUMBER} " signer/revoke.example.db.signed)
+[ $keycount -eq 3 ] || ret=1
+[ $cdscount -eq 2 ] || ret=1
+[ $soacount -eq 1 ] || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
