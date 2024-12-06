@@ -567,7 +567,6 @@ struct dns_resolver {
 	unsigned int query_timeout;
 	unsigned int maxdepth;
 	unsigned int maxqueries;
-	unsigned int maxquerycount;
 	isc_result_t quotaresp[2];
 	isc_stats_t *stats;
 	dns_stats_t *querystats;
