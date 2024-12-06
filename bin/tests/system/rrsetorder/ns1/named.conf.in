@@ -24,7 +24,6 @@ options {
 	dnssec-validation no;
 	notify no;
 	rrset-order {
-		name "fixed.example" order fixed;
 		name "random.example" order random;
 		name "cyclic.example" order cyclic;
 		name "none.example" order none;

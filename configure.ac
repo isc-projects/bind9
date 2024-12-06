@@ -172,7 +172,6 @@ AC_ARG_ENABLE([developer],
 AS_IF([test "$enable_developer" = "yes"],
       [DEVELOPER_MODE=yes
        STD_CPPFLAGS="$STD_CPPFLAGS -DISC_MEM_DEFAULTFILL=1 -DISC_MEM_TRACKLINES=1 -DISC_LIST_CHECKINIT=1 -DISC_STATS_CHECKUNDERFLOW=1 -DISC_MUTEX_ERROR_CHECK=1"
-       test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
        test "${with_zlib+set}" = set || with_zlib=yes
@@ -1103,18 +1102,6 @@ AC_LINK_IFELSE(
   ])
 
 #
-# Activate "rrset-order fixed" or not?
-#
-# [pairwise: --enable-fixed-rrset, --disable-fixed-rrset]
-AC_ARG_ENABLE([fixed-rrset],
-	      [AS_HELP_STRING([--enable-fixed-rrset],
-			      [enable fixed rrset ordering [default=no]])],
-	      [], [enable_fixed_rrset="no"])
-AS_IF([test "$enable_fixed_rrset" = "yes"],
-      [AC_MSG_WARN([fixed rrset ordering is deprecated and will be removed in the future release])
-       AC_DEFINE([DNS_RDATASET_FIXED], [1], [Define to enable "rrset-order fixed" syntax.])])
-
-#
 # Activate dnstap?
 #
 # [pairwise: --enable-dnstap, --disable-dnstap]
@@ -1530,8 +1517,6 @@ report() {
 	test -z "$LIBIDN2_LIBS" || echo "    IDN support (--with-libidn2)"
     fi
 
-    test "yes" = "$enable_fixed_rrset" && \
-	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_fips_mode" && \
 	echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
 
@@ -1574,9 +1559,6 @@ report() {
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test -z "$MAXMINDDB_LIBS" && echo "    GeoIP2 access control (--enable-geoip)"
     test -z "$GSSAPI_LIBS" && echo "    GSS-API (--with-gssapi)"
-
-    test "yes" = "$enable_fixed_rrset" || \
-	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 
     test "yes" = "$validation_default" && echo "    DNSSEC validation requires configuration (--enable-auto-validation)"
 

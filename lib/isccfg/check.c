@@ -165,17 +165,6 @@ check_orderent(const cfg_obj_t *ent) {
 		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
-	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") == 0) {
-#if DNS_RDATASET_FIXED
-		if ((ent->pctx->flags & CFG_PCTX_NODEPRECATED) == 0) {
-			cfg_obj_log(obj, ISC_LOG_WARNING,
-				    "rrset-order: order 'fixed' is deprecated");
-		}
-#else
-		cfg_obj_log(obj, ISC_LOG_WARNING,
-			    "rrset-order: order 'fixed' was disabled at "
-			    "compilation time");
-#endif /* if !DNS_RDATASET_FIXED */
 	} else if (strcasecmp(cfg_obj_asstring(obj), "random") != 0 &&
 		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0 &&
 		   strcasecmp(cfg_obj_asstring(obj), "none") != 0)

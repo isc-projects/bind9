@@ -2198,7 +2198,6 @@ query_setorder(query_ctx_t *qctx, dns_name_t *name, dns_rdataset_t *rdataset) {
 		rdataset->attributes |= dns_order_find(
 			order, name, rdataset->type, rdataset->rdclass);
 	}
-	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
 }
 
 /*

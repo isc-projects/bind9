@@ -103,7 +103,6 @@ dns_rriterator_first(dns_rriterator_t *it) {
 		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
 		dns_rdataset_getownercase(&it->rdataset,
 					  dns_fixedname_name(&it->fixedname));
-		it->rdataset.attributes |= DNS_RDATASETATTR_LOADORDER;
 		it->result = dns_rdataset_first(&it->rdataset);
 		return it->result;
 	}
@@ -151,7 +150,6 @@ dns_rriterator_nextrrset(dns_rriterator_t *it) {
 	dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
 	dns_rdataset_getownercase(&it->rdataset,
 				  dns_fixedname_name(&it->fixedname));
-	it->rdataset.attributes |= DNS_RDATASETATTR_LOADORDER;
 	it->result = dns_rdataset_first(&it->rdataset);
 	return it->result;
 }

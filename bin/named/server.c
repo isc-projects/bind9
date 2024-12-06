@@ -1396,13 +1396,7 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	obj = cfg_tuple_get(ent, "ordering");
 	INSIST(cfg_obj_isstring(obj));
 	str = cfg_obj_asstring(obj);
-	if (!strcasecmp(str, "fixed")) {
-#if DNS_RDATASET_FIXED
-		mode = DNS_RDATASETATTR_FIXEDORDER;
-#else  /* if DNS_RDATASET_FIXED */
-		mode = DNS_RDATASETATTR_CYCLIC;
-#endif /* DNS_RDATASET_FIXED */
-	} else if (!strcasecmp(str, "random")) {
+	if (!strcasecmp(str, "random")) {
 		mode = DNS_RDATASETATTR_RANDOMIZE;
 	} else if (!strcasecmp(str, "cyclic")) {
 		mode = DNS_RDATASETATTR_CYCLIC;

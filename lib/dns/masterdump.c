@@ -599,7 +599,6 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
-	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
 	result = dns_rdataset_first(rdataset);
 
 	current_ttl = ctx->current_ttl;
@@ -1229,7 +1228,6 @@ dump_rdataset_raw(isc_mem_t *mctx, const dns_name_t *name,
 	REQUIRE(buffer->length > 0);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
-	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
 restart:
 	totallen = 0;
 	result = dns_rdataset_first(rdataset);
