@@ -580,6 +580,9 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 		oldlen = newlen;                                    \
 	}
 
+static const char *remotesnames[4] = { "remote-servers", "parental-agents",
+				       "primaries", "masters" };
+
 isc_result_t
 named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
@@ -695,17 +698,22 @@ resume:
 				continue;
 			}
 			list = NULL;
-			tresult = named_config_getremotesdef(
-				config, "remote-servers", listname, &list);
+			tresult = ISC_R_NOTFOUND;
+			for (size_t n = 0; n < ARRAY_SIZE(remotesnames); n++) {
+				tresult = named_config_getremotesdef(
+					config, remotesnames[n], listname,
+					&list);
+				if (tresult == ISC_R_SUCCESS) {
+					break;
+				}
+			}
 			if (tresult == ISC_R_NOTFOUND) {
 				cfg_obj_log(addr, ISC_LOG_ERROR,
 					    "remote-servers \"%s\" not found",
 					    listname);
-
-				result = tresult;
-				goto cleanup;
 			}
 			if (tresult != ISC_R_SUCCESS) {
+				result = tresult;
 				goto cleanup;
 			}
 			lists[l++].name = listname;

@@ -2113,6 +2113,19 @@ check_remoteserverlists(const cfg_obj_t *cctx, isc_mem_t *mctx) {
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
+	/* parental-agents, primaries, masters are treated as synonyms */
+	tresult = check_remoteserverlist(cctx, "parental-agents", symtab, mctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
+	tresult = check_remoteserverlist(cctx, "primaries", symtab, mctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
+	tresult = check_remoteserverlist(cctx, "masters", symtab, mctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
 	isc_symtab_destroy(&symtab);
 	return result;
 }
@@ -2381,8 +2394,8 @@ check_tls_definitions(const cfg_obj_t *config, isc_mem_t *mctx) {
 }
 
 static isc_result_t
-get_remoteservers_def(const char *list, const char *name, const cfg_obj_t *cctx,
-		      const cfg_obj_t **ret) {
+get_remotes(const cfg_obj_t *cctx, const char *list, const char *name,
+	    const cfg_obj_t **ret) {
 	isc_result_t result;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt = NULL;
@@ -2408,6 +2421,26 @@ get_remoteservers_def(const char *list, const char *name, const cfg_obj_t *cctx,
 	}
 
 	return ISC_R_NOTFOUND;
+}
+
+static isc_result_t
+get_remoteservers_def(const char *name, const cfg_obj_t *cctx,
+		      const cfg_obj_t **ret) {
+	isc_result_t result;
+
+	result = get_remotes(cctx, "remote-servers", name, ret);
+	if (result == ISC_R_SUCCESS) {
+		return result;
+	}
+	result = get_remotes(cctx, "primaries", name, ret);
+	if (result == ISC_R_SUCCESS) {
+		return result;
+	}
+	result = get_remotes(cctx, "parental-agents", name, ret);
+	if (result == ISC_R_SUCCESS) {
+		return result;
+	}
+	return get_remotes(cctx, "masters", name, ret);
 }
 
 static isc_result_t
@@ -2515,8 +2548,7 @@ resume:
 		if (tresult == ISC_R_EXISTS) {
 			continue;
 		}
-		tresult = get_remoteservers_def("remote-servers", listname,
-						config, &obj);
+		tresult = get_remoteservers_def(listname, config, &obj);
 		if (tresult != ISC_R_SUCCESS) {
 			if (result == ISC_R_SUCCESS) {
 				result = tresult;
