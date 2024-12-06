@@ -190,7 +190,7 @@ usage(void) {
 			"(default: AUTHCONF)\n");
 	fprintf(stderr, "    -h: print usage and exit\n");
 	fprintf(stderr, "    -m <memory debugging mode>:\n");
-	fprintf(stderr, "       usage | trace | record | size | mctx\n");
+	fprintf(stderr, "       usage | trace | record\n");
 	fprintf(stderr, "    -v <level>: set verbosity level (0 - 10)\n");
 	fprintf(stderr, "    -V: print version information\n");
 	fprintf(stderr, "Timing options:\n");
