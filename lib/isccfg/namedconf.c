@@ -1260,6 +1260,10 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "masters", &cfg_type_remoteservers,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
 	{ "options", &cfg_type_options, 0 },
+	{ "parental-agents", &cfg_type_remoteservers,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
+	{ "primaries", &cfg_type_remoteservers,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
 	{ "remote-servers", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 	{ "statistics-channels", &cfg_type_statschannels,
