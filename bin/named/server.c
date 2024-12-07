@@ -1818,9 +1818,7 @@ setquerystats(dns_zone_t *zone, isc_mem_t *mctx, dns_zonestat_level_t level) {
 static named_cache_t *
 cachelist_find(named_cachelist_t *cachelist, const char *cachename,
 	       dns_rdataclass_t rdclass) {
-	named_cache_t *nsc;
-
-	for (nsc = ISC_LIST_HEAD(*cachelist); nsc != NULL;
+	for (named_cache_t *nsc = ISC_LIST_HEAD(*cachelist); nsc != NULL;
 	     nsc = ISC_LIST_NEXT(nsc, link))
 	{
 		if (nsc->rdclass == rdclass &&
@@ -1838,12 +1836,13 @@ cache_reusable(dns_view_t *originview, dns_view_t *view,
 	       bool new_zero_no_soattl) {
 	if (originview->rdclass != view->rdclass ||
 	    originview->checknames != view->checknames ||
-	    dns_resolver_getzeronosoattl(originview->resolver) !=
-		    new_zero_no_soattl ||
 	    originview->acceptexpired != view->acceptexpired ||
 	    originview->enablevalidation != view->enablevalidation ||
 	    originview->maxcachettl != view->maxcachettl ||
-	    originview->maxncachettl != view->maxncachettl)
+	    originview->maxncachettl != view->maxncachettl ||
+	    originview->resolver == NULL ||
+	    dns_resolver_getzeronosoattl(originview->resolver) !=
+		    new_zero_no_soattl)
 	{
 		return false;
 	}
@@ -4105,9 +4104,9 @@ static const char *const response_synonyms[] = { "response", NULL };
 static isc_result_t
 configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	       cfg_obj_t *vconfig, named_cachelist_t *cachelist,
-	       dns_kasplist_t *kasplist, dns_keystorelist_t *keystores,
-	       const cfg_obj_t *bindkeys, isc_mem_t *mctx,
-	       cfg_aclconfctx_t *actx, bool need_hints) {
+	       named_cachelist_t *oldcachelist, dns_kasplist_t *kasplist,
+	       dns_keystorelist_t *keystores, const cfg_obj_t *bindkeys,
+	       isc_mem_t *mctx, cfg_aclconfctx_t *actx, bool need_hints) {
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *cfgmaps[3];
 	const cfg_obj_t *optionmaps[3];
@@ -4159,7 +4158,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	isc_stats_t *resstats = NULL;
 	dns_stats_t *resquerystats = NULL;
 	bool auto_root = false;
-	named_cache_t *nsc;
+	named_cache_t *nsc = NULL;
 	bool zero_no_soattl;
 	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
 	unsigned int query_timeout;
@@ -4168,6 +4167,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_ntatable_t *ntatable = NULL;
 	const char *qminmode = NULL;
 	dns_adb_t *adb = NULL;
+	bool oldcache = false;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -4721,83 +4721,96 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	} else {
 		cachename = view->name;
 	}
-	cache = NULL;
+
 	nsc = cachelist_find(cachelist, cachename, view->rdclass);
+	if (result == ISC_R_SUCCESS && nsc == NULL) {
+		/*
+		 * If we're using 'attach-cache' but didn't find the
+		 * specified cache in the cache list already, check
+		 * the old list.
+		 */
+		nsc = cachelist_find(oldcachelist, cachename, view->rdclass);
+		oldcache = true;
+	}
 	if (nsc != NULL) {
 		if (!cache_sharable(nsc->primaryview, view, zero_no_soattl,
 				    max_cache_size, max_stale_ttl,
 				    stale_refresh_time))
 		{
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "views %s and %s can't share the cache "
-				      "due to configuration parameter mismatch",
-				      nsc->primaryview->name, view->name);
-			result = ISC_R_FAILURE;
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "view %s can't use existing cache %s due "
+				      "to configuration parameter mismatch",
+				      view->name,
+				      dns_cache_getname(nsc->cache));
+			nsc = NULL;
+		} else {
+			if (oldcache) {
+				ISC_LIST_UNLINK(*oldcachelist, nsc, link);
+				ISC_LIST_APPEND(*cachelist, nsc, link);
+				nsc->primaryview = view;
+			}
+			dns_cache_attach(nsc->cache, &cache);
+			shared_cache = true;
+		}
+	} else if (strcmp(cachename, view->name) == 0) {
+		result = dns_viewlist_find(&named_g_server->viewlist, cachename,
+					   view->rdclass, &pview);
+		if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-		dns_cache_attach(nsc->cache, &cache);
-		shared_cache = true;
-	} else {
-		if (strcmp(cachename, view->name) == 0) {
-			result = dns_viewlist_find(&named_g_server->viewlist,
-						   cachename, view->rdclass,
-						   &pview);
-			if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
-			{
-				goto cleanup;
+		if (pview != NULL) {
+			if (!cache_reusable(pview, view, zero_no_soattl)) {
+				isc_log_write(named_g_lctx,
+					      NAMED_LOGCATEGORY_GENERAL,
+					      NAMED_LOGMODULE_SERVER,
+					      ISC_LOG_DEBUG(1),
+					      "cache cannot be reused "
+					      "for view %s due to "
+					      "configuration parameter "
+					      "mismatch",
+					      view->name);
+			} else {
+				INSIST(pview->cache != NULL);
+				isc_log_write(named_g_lctx,
+					      NAMED_LOGCATEGORY_GENERAL,
+					      NAMED_LOGMODULE_SERVER,
+					      ISC_LOG_DEBUG(3),
+					      "reusing existing cache");
+				dns_cache_attach(pview->cache, &cache);
 			}
-			if (pview != NULL) {
-				if (!cache_reusable(pview, view,
-						    zero_no_soattl))
-				{
-					isc_log_write(named_g_lctx,
-						      NAMED_LOGCATEGORY_GENERAL,
-						      NAMED_LOGMODULE_SERVER,
-						      ISC_LOG_DEBUG(1),
-						      "cache cannot be reused "
-						      "for view %s due to "
-						      "configuration parameter "
-						      "mismatch",
-						      view->name);
-				} else {
-					INSIST(pview->cache != NULL);
-					isc_log_write(named_g_lctx,
-						      NAMED_LOGCATEGORY_GENERAL,
-						      NAMED_LOGMODULE_SERVER,
-						      ISC_LOG_DEBUG(3),
-						      "reusing existing cache");
-					dns_cache_attach(pview->cache, &cache);
-				}
-				dns_resolver_getstats(pview->resolver,
-						      &resstats);
-				dns_resolver_getquerystats(pview->resolver,
-							   &resquerystats);
-				dns_view_detach(&pview);
-			}
+			dns_resolver_getstats(pview->resolver, &resstats);
+			dns_resolver_getquerystats(pview->resolver,
+						   &resquerystats);
+			dns_view_detach(&pview);
 		}
+	}
+
+	if (nsc == NULL) {
+		/*
+		 * Create a cache with the desired name.  This normally
+		 * equals the view name, but may also be a forward
+		 * reference to a view that share the cache with this
+		 * view but is not yet configured.  If it is not the
+		 * view name but not a forward reference either, then it
+		 * is simply a named cache that is not shared.
+		 */
 		if (cache == NULL) {
-			/*
-			 * Create a cache with the desired name.  This normally
-			 * equals the view name, but may also be a forward
-			 * reference to a view that share the cache with this
-			 * view but is not yet configured.  If it is not the
-			 * view name but not a forward reference either, then it
-			 * is simply a named cache that is not shared.
-			 */
 			CHECK(dns_cache_create(named_g_loopmgr, view->rdclass,
 					       cachename, mctx, &cache));
 		}
+
 		nsc = isc_mem_get(mctx, sizeof(*nsc));
-		nsc->cache = NULL;
+		*nsc = (named_cache_t){
+			.primaryview = view,
+			.rdclass = view->rdclass,
+			.link = ISC_LINK_INITIALIZER,
+		};
+
 		dns_cache_attach(cache, &nsc->cache);
-		nsc->primaryview = view;
-		nsc->needflush = false;
-		nsc->adbsizeadjusted = false;
-		nsc->rdclass = view->rdclass;
-		ISC_LINK_INIT(nsc, link);
 		ISC_LIST_APPEND(*cachelist, nsc, link);
 	}
+
 	dns_view_setcache(view, cache, shared_cache);
 
 	dns_cache_setcachesize(cache, max_cache_size);
@@ -8313,8 +8326,7 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_keystore_t *keystore = NULL;
 	dns_keystore_t *keystore_next = NULL;
 	dns_keystorelist_t tmpkeystorelist, keystorelist;
-	const cfg_obj_t *views;
-
+	const cfg_obj_t *views = NULL;
 	dns_view_t *view_next = NULL;
 	dns_viewlist_t tmpviewlist;
 	dns_viewlist_t viewlist, builtin_viewlist;
@@ -8333,7 +8345,7 @@ load_configuration(const char *filename, named_server_t *server,
 	uint32_t send_tcp_buffer_size;
 	uint32_t recv_udp_buffer_size;
 	uint32_t send_udp_buffer_size;
-	named_cache_t *nsc;
+	named_cache_t *nsc = NULL;
 	named_cachelist_t cachelist, tmpcachelist;
 	ns_altsecret_t *altsecret;
 	ns_altsecretlist_t altsecrets, tmpaltsecrets;
@@ -9295,7 +9307,8 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 
 		result = configure_view(view, &viewlist, config, vconfig,
-					&cachelist, &server->kasplist,
+					&cachelist, &server->cachelist,
+					&server->kasplist,
 					&server->keystorelist, bindkeys,
 					named_g_mctx, named_g_aclconfctx, true);
 		if (result != ISC_R_SUCCESS) {
@@ -9317,7 +9330,8 @@ load_configuration(const char *filename, named_server_t *server,
 			goto cleanup_cachelist;
 		}
 		result = configure_view(view, &viewlist, config, NULL,
-					&cachelist, &server->kasplist,
+					&cachelist, &server->cachelist,
+					&server->kasplist,
 					&server->keystorelist, bindkeys,
 					named_g_mctx, named_g_aclconfctx, true);
 		if (result != ISC_R_SUCCESS) {
@@ -9347,8 +9361,9 @@ load_configuration(const char *filename, named_server_t *server,
 
 		result = configure_view(
 			view, &viewlist, config, vconfig, &cachelist,
-			&server->kasplist, &server->keystorelist, bindkeys,
-			named_g_mctx, named_g_aclconfctx, false);
+			&server->cachelist, &server->kasplist,
+			&server->keystorelist, bindkeys, named_g_mctx,
+			named_g_aclconfctx, false);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
 			goto cleanup_cachelist;
