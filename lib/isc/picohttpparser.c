@@ -154,17 +154,19 @@ get_token_to_eol(const char *buf, const char *buf_end, const char **token,
 			      "\177\177"; /* allow chars w. MSB set */
 	int found;
 	buf = findchar_fast(buf, buf_end, ranges1, 6, &found);
-	if (found)
+	if (found) {
 		goto FOUND_CTL;
+	}
 #else
 	/* find non-printable char within the next 8 bytes, this is the hottest
 	 * code; manually inlined */
 	while (likely(buf_end - buf >= 8)) {
-#define DOIT()                                           \
-	do {                                             \
-		if (unlikely(!IS_PRINTABLE_ASCII(*buf))) \
-			goto NonPrintable;               \
-		++buf;                                   \
+#define DOIT()                                             \
+	do {                                               \
+		if (unlikely(!IS_PRINTABLE_ASCII(*buf))) { \
+			goto NonPrintable;                 \
+		}                                          \
+		++buf;                                     \
 	} while (0)
 		DOIT();
 		DOIT();
@@ -603,6 +605,8 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 	size_t dst = 0, src = 0, bufsz = *_bufsz;
 	ssize_t ret = -2; /* incomplete */
 
+	decoder->_total_read += bufsz;
+
 	while (1) {
 		switch (decoder->_state) {
 		case CHUNKED_IN_CHUNK_SIZE:
@@ -612,6 +616,20 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 					goto Exit;
 				if ((v = decode_hex(buf[src])) == -1) {
 					if (decoder->_hex_count == 0) {
+						ret = -1;
+						goto Exit;
+					}
+					/* the only characters that may appear
+					 * after the chunk size are BWS,
+					 * semicolon, or CRLF */
+					switch (buf[src]) {
+					case ' ':
+					case '\011':
+					case ';':
+					case '\012':
+					case '\015':
+						break;
+					default:
 						ret = -1;
 						goto Exit;
 					}
@@ -714,6 +732,15 @@ Exit:
 	if (dst != src)
 		memmove(buf + dst, buf + src, bufsz - src);
 	*_bufsz = dst;
+	/* if incomplete but the overhead of the chunked encoding is >=100KB and
+	 * >80%, signal an error */
+	if (ret == -2) {
+		decoder->_total_overhead += bufsz - dst;
+		if (decoder->_total_overhead >= 100 * 1024 &&
+		    decoder->_total_read - decoder->_total_overhead <
+			    decoder->_total_read / 4)
+			ret = -1;
+	}
 	return ret;
 }
 
