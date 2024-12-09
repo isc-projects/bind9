@@ -31,6 +31,7 @@
 #include <cmocka.h>
 
 #include <isc/file.h>
+#include <isc/fips.h>
 #include <isc/hex.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
@@ -467,7 +468,11 @@ ISC_RUN_TEST_IMPL(ecdsa_determinism_test) {
 	dst_context_destroy(&ctx);
 
 #if OPENSSL_VERSION_NUMBER >= 0x30200000L
-	assert_memory_equal(sigbuf1->base, sigbuf2->base, siglen);
+	if (isc_fips_mode()) {
+		assert_memory_not_equal(sigbuf1->base, sigbuf2->base, siglen);
+	} else {
+		assert_memory_equal(sigbuf1->base, sigbuf2->base, siglen);
+	}
 #else
 	assert_memory_not_equal(sigbuf1->base, sigbuf2->base, siglen);
 #endif

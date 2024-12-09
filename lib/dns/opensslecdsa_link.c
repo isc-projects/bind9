@@ -26,6 +26,7 @@
 #include <openssl/param_build.h>
 #endif
 
+#include <isc/fips.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/safe.h>
@@ -706,9 +707,12 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		}
 
 #if OPENSSL_VERSION_NUMBER >= 0x30200000L
-		ret = opensslecdsa_set_deterministic(pctx, dctx->key->key_alg);
-		if (ret != ISC_R_SUCCESS) {
-			goto err;
+		if (!isc_fips_mode()) {
+			ret = opensslecdsa_set_deterministic(
+				pctx, dctx->key->key_alg);
+			if (ret != ISC_R_SUCCESS) {
+				goto err;
+			}
 		}
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30200000L */
 
