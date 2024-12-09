@@ -61,13 +61,6 @@ typedef enum {
 	allow_update_forwarding
 } acl_type_t;
 
-#define RETERR(x)                        \
-	do {                             \
-		isc_result_t _r = (x);   \
-		if (_r != ISC_R_SUCCESS) \
-			return ((_r));   \
-	} while (0)
-
 #define CHECK(x)                             \
 	do {                                 \
 		result = (x);                \
@@ -577,9 +570,12 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	isc_region_t region;
 
 	/* Create the DB beforehand */
-	RETERR(dns_db_create(mctx, dbtype, dns_zone_getorigin(zone),
-			     dns_dbtype_stub, dns_zone_getclass(zone), 0, NULL,
-			     &db));
+	result = dns_db_create(mctx, dbtype, dns_zone_getorigin(zone),
+			       dns_dbtype_stub, dns_zone_getclass(zone), 0,
+			       NULL, &db);
+	if (result != ISC_R_SUCCESS) {
+		return result;
+	}
 
 	dns_rdataset_init(&rdataset);
 
