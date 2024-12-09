@@ -999,7 +999,7 @@ void
 dns_nsec3param_toprivate(dns_rdata_t *src, dns_rdata_t *target,
 			 dns_rdatatype_t privatetype, unsigned char *buf,
 			 size_t buflen) {
-	REQUIRE(buflen >= src->length + 1);
+	REQUIRE(buflen >= (unsigned int)src->length + 1);
 
 	REQUIRE(DNS_RDATA_INITIALIZED(target));
 

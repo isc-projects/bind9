@@ -327,7 +327,6 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		 * Digest the length of the rdata.
 		 */
 		isc_buffer_init(&lenbuf, &len, sizeof(len));
-		INSIST(rdatas[i].length < 65536);
 		isc_buffer_putuint16(&lenbuf, (uint16_t)rdatas[i].length);
 		isc_buffer_usedregion(&lenbuf, &lenr);
 		ret = dst_context_adddata(ctx, &lenr);
@@ -539,7 +538,6 @@ again:
 		 * Digest the rdata length.
 		 */
 		isc_buffer_init(&lenbuf, &len, sizeof(len));
-		INSIST(rdatas[i].length < 65536);
 		isc_buffer_putuint16(&lenbuf, (uint16_t)rdatas[i].length);
 		isc_buffer_usedregion(&lenbuf, &lenr);
 
