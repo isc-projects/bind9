@@ -20,11 +20,6 @@ $TTL 3600
 .                       NS      cyclic.example.
 a.root-servers.nil.	A       10.53.0.1
 ;
-fixed.example.		A	1.2.3.4
-fixed.example.		A	1.2.3.3
-fixed.example.		A	1.2.3.1
-fixed.example.		A	1.2.3.2
-;
 random.example.		A	1.2.3.1
 random.example.		A	1.2.3.2
 random.example.		A	1.2.3.3

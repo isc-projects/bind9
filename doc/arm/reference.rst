@@ -4100,16 +4100,6 @@ RRset Ordering
 
    The legal values for ``<ordering>`` are:
 
-   ``fixed``
-       Records are returned in the order they are defined in the zone file.
-
-       This value is deprecated and will be removed in a future release.
-
-   .. note::
-
-       The ``fixed`` option is only available if BIND is configured with
-       ``--enable-fixed-rrset`` at compile time.
-
    ``random``
        Records are returned in a random order.
 
@@ -4148,7 +4138,6 @@ RRset Ordering
        rrset-order {
            type A name "foo.isc.org" order random;
            type AAAA name "foo.isc.org" order cyclic;
-           name "bar.isc.org" order fixed;
            name "*.bar.isc.org" order random;
            name "*.baz.isc.org" order cyclic;
        };
@@ -4162,7 +4151,6 @@ RRset Ordering
    ``foo.isc.org``        ``AAAA``    ``cyclic``
    ``foo.isc.org``        ``TXT``     ``none``
    ``sub.foo.isc.org``    all         ``none``
-   ``bar.isc.org``        all         ``fixed``
    ``sub.bar.isc.org``    all         ``random``
    ``baz.isc.org``        all         ``none``
    ``sub.baz.isc.org``    all         ``cyclic``

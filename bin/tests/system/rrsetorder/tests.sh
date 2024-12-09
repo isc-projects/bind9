@@ -27,49 +27,6 @@ status=0
 GOOD_RANDOM="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"
 GOOD_RANDOM_NO=24
 
-if grep "^#define DNS_RDATASET_FIXED" "$TOP_BUILDDIR/config.h" >/dev/null 2>&1; then
-  test_fixed=true
-else
-  echo_i "Order 'fixed' disabled at compile time"
-  test_fixed=false
-fi
-
-#
-#
-#
-if $test_fixed; then
-  echo_i "Checking order fixed (primary)"
-  ret=0
-  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
-    dig_cmd @10.53.0.1 fixed.example >dig.out.fixed || ret=1
-    diff dig.out.fixed reference.dig.out.fixed.good >/dev/null || ret=1
-  done
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-else
-  echo_i "Checking order fixed behaves as cyclic when disabled (primary)"
-  ret=0
-  matches=0
-  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
-    j=$((i % 4))
-    dig_cmd @10.53.0.1 fixed.example >dig.out.fixed || ret=1
-    if [ $i -le 4 ]; then
-      cp dig.out.fixed dig.out.$j
-    else
-      diff dig.out.fixed dig.out.$j >/dev/null && matches=$((matches + 1))
-    fi
-  done
-  diff dig.out.0 dig.out.1 >/dev/null && ret=1
-  diff dig.out.0 dig.out.2 >/dev/null && ret=1
-  diff dig.out.0 dig.out.3 >/dev/null && ret=1
-  diff dig.out.1 dig.out.2 >/dev/null && ret=1
-  diff dig.out.1 dig.out.3 >/dev/null && ret=1
-  diff dig.out.2 dig.out.3 >/dev/null && ret=1
-  if [ $matches -ne 16 ]; then ret=1; fi
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-fi
-
 #
 #
 #
@@ -156,20 +113,6 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
-
-#
-#
-#
-if $test_fixed; then
-  echo_i "Checking order fixed (secondary)"
-  ret=0
-  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
-    dig_cmd @10.53.0.2 fixed.example >dig.out.fixed || ret=1
-    diff dig.out.fixed reference.dig.out.fixed.good || ret=1
-  done
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-fi
 
 #
 #
@@ -277,20 +220,6 @@ start_server --noclean --restart --port ${PORT} ns2
 #
 #
 #
-if $test_fixed; then
-  echo_i "Checking order fixed (secondary loaded from disk)"
-  ret=0
-  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
-    dig_cmd @10.53.0.2 fixed.example >dig.out.fixed || ret=1
-    diff dig.out.fixed reference.dig.out.fixed.good || ret=1
-  done
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-fi
-
-#
-#
-#
 echo_i "Checking order cyclic (secondary + additional, loaded from disk)"
 ret=0
 matches=0
@@ -375,20 +304,6 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
-
-#
-#
-#
-if $test_fixed; then
-  echo_i "Checking order fixed (cache)"
-  ret=0
-  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
-    dig_cmd @10.53.0.3 fixed.example >dig.out.fixed || ret=1
-    diff dig.out.fixed reference.dig.out.fixed.good || ret=1
-  done
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-fi
 
 #
 #
