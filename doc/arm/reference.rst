@@ -1680,19 +1680,6 @@ default is used.
    If all supported digest types are disabled, the zones covered by
    :any:`disable-ds-digests` are treated as insecure.
 
-.. namedconf:statement:: dnssec-must-be-secure
-   :tags: deprecated
-   :short: Defines hierarchies that must or may not be secure (signed and validated).
-
-   This option is deprecated and will be removed in a future release.
-
-   This specifies hierarchies which must be or may not be secure (signed and
-   validated). If ``yes``, then :iscman:`named` only accepts answers if
-   they are secure. If ``no``, then normal DNSSEC validation applies,
-   allowing insecure answers to be accepted. The specified domain
-   must be defined as a trust anchor, for instance in a :any:`trust-anchors`
-   statement, or ``dnssec-validation auto`` must be active.
-
 .. namedconf:statement:: dns64
    :tags: query
    :short: Instructs :iscman:`named` to return mapped IPv4 addresses to AAAA queries when there are no AAAA records.

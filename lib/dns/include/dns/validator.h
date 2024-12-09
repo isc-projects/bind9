@@ -141,7 +141,6 @@ struct dns_validator {
 	dns_fixedname_t	   wild;
 	dns_fixedname_t	   closest;
 	ISC_LINK(dns_validator_t) link;
-	bool	      mustbesecure;
 	unsigned int  depth;
 	unsigned int  authcount;
 	unsigned int  authfail;

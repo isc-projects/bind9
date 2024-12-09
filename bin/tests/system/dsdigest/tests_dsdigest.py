@@ -38,17 +38,6 @@ def test_dsdigest_good():
     assert res.flags & dns.flags.AD
 
 
-def test_dsdigest_bad():
-    """Check that validation with not supported digest types
-    and "dnssec-must-be-secure yes;" results in SERVFAIL"""
-    msg = dns.message.make_query("a.bad.", "A", want_dnssec=True)
-    res = isctest.query.tcp(
-        msg,
-        "10.53.0.3",
-    )
-    isctest.check.servfail(res)
-
-
 def test_dsdigest_insecure():
     """Check that validation with not supported digest algorithms is insecure"""
     msg_ds = dns.message.make_query("bad.", "DS", want_dnssec=True)

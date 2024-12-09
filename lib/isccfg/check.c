@@ -467,34 +467,6 @@ exists(const cfg_obj_t *obj, const char *name, int value, isc_symtab_t *symtab,
 }
 
 static isc_result_t
-mustbesecure(const cfg_obj_t *secure, isc_symtab_t *symtab, isc_mem_t *mctx) {
-	const cfg_obj_t *obj;
-	char namebuf[DNS_NAME_FORMATSIZE];
-	const char *str;
-	dns_fixedname_t fixed;
-	dns_name_t *name;
-	isc_buffer_t b;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	name = dns_fixedname_initname(&fixed);
-	obj = cfg_tuple_get(secure, "name");
-	str = cfg_obj_asstring(obj);
-	isc_buffer_constinit(&b, str, strlen(str));
-	isc_buffer_add(&b, strlen(str));
-	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, ISC_LOG_ERROR, "bad domain name '%s'", str);
-	} else {
-		dns_name_format(name, namebuf, sizeof(namebuf));
-		result = exists(secure, namebuf, 1, symtab,
-				"dnssec-must-be-secure '%s': already exists "
-				"previous definition: %s:%u",
-				mctx);
-	}
-	return result;
-}
-
-static isc_result_t
 checkacl(const char *aclname, cfg_aclconfctx_t *actx, const cfg_obj_t *zconfig,
 	 const cfg_obj_t *voptions, const cfg_obj_t *config, isc_mem_t *mctx) {
 	isc_result_t result;
@@ -1223,7 +1195,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	unsigned int i;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *element;
-	isc_symtab_t *symtab = NULL;
 	const char *str;
 	isc_buffer_t b;
 	uint32_t lifetime = 3600;
@@ -1619,34 +1590,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 					result = tresult;
 				}
 			}
-		}
-	}
-
-	/*
-	 * Check dnssec-must-be-secure.
-	 */
-	obj = NULL;
-	(void)cfg_map_get(options, "dnssec-must-be-secure", &obj);
-	if (obj != NULL) {
-		tresult = isc_symtab_create(mctx, 100, freekey, mctx, false,
-					    &symtab);
-		if (tresult != ISC_R_SUCCESS) {
-			result = tresult;
-		} else {
-			for (element = cfg_list_first(obj); element != NULL;
-			     element = cfg_list_next(element))
-			{
-				obj = cfg_listelt_value(element);
-				tresult = mustbesecure(obj, symtab, mctx);
-				if (result == ISC_R_SUCCESS &&
-				    tresult != ISC_R_SUCCESS)
-				{
-					result = tresult;
-				}
-			}
-		}
-		if (symtab != NULL) {
-			isc_symtab_destroy(&symtab);
 		}
 	}
 

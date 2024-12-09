@@ -1447,17 +1447,6 @@ static cfg_type_t cfg_type_disabledsdigest = {
 	cfg_doc_tuple,	   &cfg_rep_tuple,  disabledsdigest_fields
 };
 
-static cfg_tuplefielddef_t mustbesecure_fields[] = {
-	{ "name", &cfg_type_astring, 0 },
-	{ "value", &cfg_type_boolean, 0 },
-	{ NULL, NULL, 0 }
-};
-
-static cfg_type_t cfg_type_mustbesecure = {
-	"mustbesecure", cfg_parse_tuple, cfg_print_tuple,
-	cfg_doc_tuple,	&cfg_rep_tuple,	 mustbesecure_fields
-};
-
 static const char *masterformat_enums[] = { "raw", "text", NULL };
 static cfg_type_t cfg_type_masterformat = {
 	"masterformat", cfg_parse_enum,	 cfg_print_ustring,
@@ -2070,8 +2059,8 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "dnssec-enable", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "dnssec-lookaside", NULL,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
-	{ "dnssec-must-be-secure", &cfg_type_mustbesecure,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_DEPRECATED },
+	{ "dnssec-must-be-secure", NULL,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
 #ifdef HAVE_DNSTAP
 	{ "dnstap", &cfg_type_dnstap, CFG_CLAUSEFLAG_OPTIONAL },

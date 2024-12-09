@@ -559,7 +559,6 @@ struct dns_resolver {
 	ISC_LIST(alternate_t) alternates;
 	dns_nametree_t *algorithms;
 	dns_nametree_t *digests;
-	dns_nametree_t *mustbesecure;
 	unsigned int spillatmax;
 	unsigned int spillatmin;
 	isc_timer_t *spillattimer;
@@ -9939,7 +9938,6 @@ dns_resolver__destroy(dns_resolver_t *res) {
 
 	dns_nametree_detach(&res->algorithms);
 	dns_nametree_detach(&res->digests);
-	dns_nametree_detach(&res->mustbesecure);
 
 	if (res->querystats != NULL) {
 		dns_stats_detach(&res->querystats);
@@ -10088,8 +10086,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 			    &res->algorithms);
 	dns_nametree_create(res->mctx, DNS_NAMETREE_BITS, "ds-digests",
 			    &res->digests);
-	dns_nametree_create(res->mctx, DNS_NAMETREE_BOOL,
-			    "dnssec-must-be-secure", &res->mustbesecure);
 
 	res->namepools = isc_mem_cget(res->mctx, res->nloops,
 				      sizeof(res->namepools[0]));
@@ -10796,24 +10792,6 @@ dns_resolver_ds_digest_supported(dns_resolver_t *resolver,
 	}
 
 	return dst_ds_digest_supported(digest_type);
-}
-
-isc_result_t
-dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
-			     bool value) {
-	isc_result_t result;
-
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	result = dns_nametree_add(resolver->mustbesecure, name, value);
-	return result;
-}
-
-bool
-dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	return dns_nametree_covered(resolver->mustbesecure, name, NULL, 0);
 }
 
 void

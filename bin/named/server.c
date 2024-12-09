@@ -1233,36 +1233,6 @@ cleanup:
 	return result;
 }
 
-static isc_result_t
-mustbesecure(const cfg_obj_t *mbs, dns_resolver_t *resolver) {
-	const cfg_listelt_t *element;
-	const cfg_obj_t *obj;
-	const char *str;
-	dns_fixedname_t fixed;
-	dns_name_t *name;
-	bool value;
-	isc_result_t result;
-	isc_buffer_t b;
-
-	name = dns_fixedname_initname(&fixed);
-	for (element = cfg_list_first(mbs); element != NULL;
-	     element = cfg_list_next(element))
-	{
-		obj = cfg_listelt_value(element);
-		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
-		isc_buffer_constinit(&b, str, strlen(str));
-		isc_buffer_add(&b, strlen(str));
-		CHECK(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
-		value = cfg_obj_asboolean(cfg_tuple_get(obj, "value"));
-		CHECK(dns_resolver_setmustbesecure(resolver, name, value));
-	}
-
-	result = ISC_R_SUCCESS;
-
-cleanup:
-	return result;
-}
-
 /*%
  * Get a dispatch appropriate for the resolver of a given view.
  */
@@ -5374,12 +5344,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
 					auto_root));
-
-	obj = NULL;
-	result = named_config_get(maps, "dnssec-must-be-secure", &obj);
-	if (result == ISC_R_SUCCESS) {
-		CHECK(mustbesecure(obj, view->resolver));
-	}
 
 	obj = NULL;
 	result = named_config_get(maps, "nta-recheck", &obj);
