@@ -3372,9 +3372,12 @@ main(int argc, char *argv[]) {
 	atomic_init(&shuttingdown, false);
 	atomic_init(&finished, false);
 
-	/* Unused letters: Bb G J q Yy (and F is reserved). */
-#define CMDLINE_FLAGS                                                          \
-	"3:AaCc:Dd:E:e:f:FgG:hH:i:I:j:J:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:" \
+	/*
+	 * Unused letters: Bb G J l q Yy (and F is reserved).
+	 * l was previously used for DLV lookaside.
+	 */
+#define CMDLINE_FLAGS                                                        \
+	"3:AaCc:Dd:E:e:f:FgG:hH:i:I:j:J:K:k:L:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:" \
 	"VX:xzZ:"
 
 	/*
@@ -3546,10 +3549,6 @@ main(int argc, char *argv[]) {
 						"must be numeric");
 				exit(EXIT_FAILURE);
 			}
-			break;
-
-		case 'l':
-			fatal("-l option (DLV lookaside) is obsolete");
 			break;
 
 		case 'M':
