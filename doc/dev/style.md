@@ -31,6 +31,15 @@ all supported platforms that don't support all of the C11 features.
 Given a reasonable set of things to warn about (e.g. -W -Wall for gcc), the goal
 is to compile with no warnings.
 
+#### Automatic style enforcement
+
+All code merged into BIND 9 is checked first with the most recent
+stable version of clang-format, using the settings defined in the files
+.clang-format and .clang-format.headers at the top of the source tree.
+It can reformat code as needed to follow most of the style guidelines
+described below, except in cases where human judgment is required,
+such as choice of variable names.
+
 #### Copyright Notices
 
 The license described in the ``COPYING`` file applies to the BIND 9 source as a
@@ -65,29 +74,29 @@ Use tabs for indentation.  Spaces before statements are only allowed when
 needed to line up a continued expression.  In the following example, spaces
 used for indentation are indicated with `"_"`:
 
-    	if (i == 0) {
-    		printf("this is going to be %s very long %s statement\\n",
-    		_______"a", "printf");
-    	}
+        if (i == 0) {
+                printf("this is going to be %s very long %s statement\\n",
+                _______"a", "printf");
+        }
 
 Text editors should be configured with tab-stop set to 8 characters, and
 tabs should not be expanded to into spaces.  The following `vim` settings
 conform well to BIND 9 C style:
 
-    	set showmatch
-    	set showmode
-    	set autoindent
-    	set expandtab
+        set showmatch
+        set showmode
+        set autoindent
+        set expandtab
 
-    	filetype plugin on
-    	let c_syntax_for_h = 1
-    	autocmd FileType c,cc,cpp set cindent
-    	autocmd FileType c,cc,cpp set cino=(0:0l1
-    	autocmd FileType c,cc,cpp set fo=rotcq
-    	autocmd FileType c,cc,cpp set noexpandtab ts=8
-    	autocmd FileType python set ts=4 sw=4
+        filetype plugin on
+        let c_syntax_for_h = 1
+        autocmd FileType c,cc,cpp set cindent
+        autocmd FileType c,cc,cpp set cino=(0:0l1
+        autocmd FileType c,cc,cpp set fo=rotcq
+        autocmd FileType c,cc,cpp set noexpandtab ts=8
+        autocmd FileType python set ts=4 sw=4
 
-    	filetype indent on
+        filetype indent on
 
 #### Vertical Whitespace
 
@@ -103,10 +112,10 @@ indentation rules to make them fit.  Since C11 is assumed, the best way to
 deal with strings that extend past column 80 is to break them into two or
 more sections separated from each other by a newline and indentation:
 
-    					puts("This string got very far to the "
-    					     "right and wrapped.  ANSI "
-    					     "catenation rules will turn this "
-    					     "into one long string.");
+                                        puts("This string got very far to the "
+                                             "right and wrapped.  ANSI "
+                                             "catenation rules will turn this "
+                                             "into one long string.");
 
 The rule for string formatting can be violated in cases where breaking
 the string prevents ability to lookup the string using grep.  Also please
@@ -133,19 +142,19 @@ and end with a period.
 
 Good:
 
-    	/*
-    	 * Private variables.
-    	 */
+        /*
+         * Private variables.
+         */
 
-    	static int	a	       /* Description of 'a'. */
-    	static int	b	       /* Description of 'b'. */
-    	static char *	c	       /* Description of 'c'. */
+        static int	a	       /* Description of 'a'. */
+        static int	b	       /* Description of 'b'. */
+        static char *	c	       /* Description of 'c'. */
 
 
 The following macros should be used where appropriate:
 
-    	FALLTHROUGH;
-    	UNREACHABLE();
+        FALLTHROUGH;
+        UNREACHABLE();
 
 #### Header files
 
@@ -179,63 +188,63 @@ include the file.  `<isc/lang.h>` SHOULD be included for private header files
 or for public files that do not declare any functions.
 
 
-    	/*
-    	 * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
-    	 *
-    	 * This Source Code Form is subject to the terms of the Mozilla Public
-    	 * License, v. 2.0. If a copy of the MPL was not distributed with this
-    	 * file, you can obtain one at https://mozilla.org/MPL/2.0/.
-    	 */
+        /*
+         * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
+         *
+         * This Source Code Form is subject to the terms of the Mozilla Public
+         * License, v. 2.0. If a copy of the MPL was not distributed with this
+         * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+         */
 
-    	#pragma once
+        #pragma once
 
-    	/*****
-    	 ***** Module Info
-    	 *****/
+        /*****
+         ***** Module Info
+         *****/
 
-    	/*
-    	 * (Module name here.)
-    	 *
-    	 * (One line description here.)
-    	 *
-    	 * (Extended description and notes here.)
-    	 *
-    	 * MP:
-    	 *	(Information about multiprocessing considerations
-    	 *	here, e.g. locking requirements.)
-    	 *
-    	 * Reliability:
-    	 *	(Any reliability concerns should be mentioned here.)
-    	 *
-    	 * Resources:
-    	 *	(A rough guide to how resources are used by this module.)
-    	 *
-    	 * Security:
-    	 *	(Any security issues are discussed here.)
-    	 *
-    	 * Standards:
-    	 *	(Any standards relevant to the module are listed here.)
-    	 */
+        /*
+         * (Module name here.)
+         *
+         * (One line description here.)
+         *
+         * (Extended description and notes here.)
+         *
+         * MP:
+         *	(Information about multiprocessing considerations
+         *	here, e.g. locking requirements.)
+         *
+         * Reliability:
+         *	(Any reliability concerns should be mentioned here.)
+         *
+         * Resources:
+         *	(A rough guide to how resources are used by this module.)
+         *
+         * Security:
+         *	(Any security issues are discussed here.)
+         *
+         * Standards:
+         *	(Any standards relevant to the module are listed here.)
+         */
 
-    	/***
-    	 *** Imports
-    	 ***/
+        /***
+         *** Imports
+         ***/
 
-    	/* #includes here. */
-    	#include <isc/lang.h>
+        /* #includes here. */
+        #include <isc/lang.h>
 
-    	/***
-    	 *** Types
-    	 ***/
+        /***
+         *** Types
+         ***/
 
-    	/* (Type definitions here.) */
+        /* (Type definitions here.) */
 
-    	/***
-    	 *** Functions
-    	 ***/
-    	ISC_LANG_BEGINDECLS
-    	/* (Function declarations here, with full prototypes.) */
-    	ISC_LANG_ENDDECLS
+        /***
+         *** Functions
+         ***/
+        ISC_LANG_BEGINDECLS
+        /* (Function declarations here, with full prototypes.) */
+        ISC_LANG_ENDDECLS
 
 #### Including Interfaces (.h files)
 
@@ -255,10 +264,10 @@ not be used to form compound statements.
 
 Bad:
 
-    	if (i > 0) {
-    		printf("yes\\n"); i = 0; j = 0;
-    		x = 4, y *= 2;
-    	}
+        if (i > 0) {
+                printf("yes\\n"); i = 0; j = 0;
+                x = 4, y *= 2;
+        }
 
 #### Functions
 
@@ -266,20 +275,18 @@ The use of ANSI C function prototypes is required.
 
 The return type of the function should be listed on a line by itself when
 specifying the implementation of the function.  The opening curly brace
-should occur on the same line as the argument list, unless the argument
-list is more than one line long:
+should occur on the same line as the argument list:
 
-    	static void
-    	func1(int i) {
-    		/* whatever */
-    	}
+        static void
+        func1(int i) {
+                /* whatever */
+        }
 
-    	int
-    	func2(int first_argument, int next_argument,
-    	      int last_argument)
-    	{
-    		/* whatever */
-    	}
+        int
+        func2(int first_argument, int next_argument,
+              int last_argument) {
+                /* whatever */
+        }
 
 To suppress compiler warnings, unused function arguments must be
 declared within the function via the `UNUSED()` macro.
@@ -312,28 +319,28 @@ this.
 
 Good:
 
-    	static void
-    	f(int i) {
-    	       if (i > 0) {
-    		       printf("yes\\n");
-    		       i = 0;
-    	       } else {
-    		       printf("no\\n");
-    	       }
+        static void
+        f(int i) {
+               if (i > 0) {
+                       printf("yes\\n");
+                       i = 0;
+               } else {
+                       printf("no\\n");
+               }
        }
 
 Bad:
 
-    	void f(int i)
-    	 {
-    	   if(i<0){i=0;printf("was negative\\n");}
-    	   if (i == 0)
-    	       printf("no\\n");
-    	   if (i > 0)
-    	     {
-    	       printf("yes\\n");
-    	       i = 0;
-    	     }}
+        void f(int i)
+         {
+           if(i<0){i=0;printf("was negative\\n");}
+           if (i == 0)
+               printf("no\\n");
+           if (i > 0)
+             {
+               printf("yes\\n");
+               i = 0;
+             }}
 
 #### Spaces
 
@@ -341,7 +348,7 @@ Bad:
 * DO put a space after `,`.
 * DO put a space after `;` in a `for` statement.
 * DO put spaces after C reserved words such as `if`, `for`, `while`, and `do`.
-* DO put a space after `return`, and parenthesize the return value.
+* DO put a space between `return` and the return value, if any.
 * Do NOT put a space between a variable or function name and `(` or `[`.
 * Do NOT put a space after the `sizeof` operator name, and DO parenthesize its argument: `malloc(4 * sizeof(long))`.
 * Do NOT put a space immediately after a `(` or immediately before a `)`, unless it improves readability.  The same goes for `[` and `]`.
@@ -369,29 +376,29 @@ avoided.
 
 Good:
 
-    	os_result_t result;
-    	os_descriptor_t	s;
+        os_result_t result;
+        os_descriptor_t	s;
 
-    	result = os_socket_create(AF_INET, SOCK_STREAM, 0, &s);
-    	if (result != OS_R_SUCCESS) {
-    		/* Do something about the error. */
-    		return;
-    	}
+        result = os_socket_create(AF_INET, SOCK_STREAM, 0, &s);
+        if (result != OS_R_SUCCESS) {
+                /* Do something about the error. */
+                return;
+        }
 
 Not so good:
 
-    	int s;
+        int s;
 
-    	/*
-    	 * Obviously using interfaces like socket() (below) is allowed
-    	 * since otherwise you couldn't call operating system routines; the
-    	 * point is not to write more interfaces like them.
-    	 */
-    	s = socket(AF_INET, SOCK_STREAM, 0);
-    	if (s < 0) {
-    		/* Do something about the error using errno. */
-    		return;
-    	}
+        /*
+         * Obviously using interfaces like socket() (below) is allowed
+         * since otherwise you couldn't call operating system routines; the
+         * point is not to write more interfaces like them.
+         */
+        s = socket(AF_INET, SOCK_STREAM, 0);
+        if (s < 0) {
+                /* Do something about the error using errno. */
+                return;
+        }
 
 #### Integral Types
 
@@ -430,29 +437,29 @@ Bit testing should be as follows:
 
 Good:
 
-    	/* Test if flag set. */
-    	if ((flags & FOO) != 0) {
+        /* Test if flag set. */
+        if ((flags & FOO) != 0) {
 
-    	}
-    	/* Test if flag clear. */
-    	if ((flags & BAR) == 0) {
+        }
+        /* Test if flag clear. */
+        if ((flags & BAR) == 0) {
 
-    	}
-    	/* Test if both flags set. */
-    	if ((flags & (FOO|BAR)) == (FOO|BAR)) {
+        }
+        /* Test if both flags set. */
+        if ((flags & (FOO|BAR)) == (FOO|BAR)) {
 
-    	}
+        }
 
 Bad:
 
-    	/* Test if flag set. */
-    	if (flags & FOO) {
+        /* Test if flag set. */
+        if (flags & FOO) {
 
-    	}
-    	/* Test if flag clear. */
-    	if (! (flags & BAR)) {
+        }
+        /* Test if flag clear. */
+        if (! (flags & BAR)) {
 
-    	}
+        }
 
 #### Testing for Zero or Non-zero
 
@@ -461,23 +468,23 @@ variables.
 
 Good:
 
-    	int i = 10;
+        int i = 10;
 
-    	/* ... */
+        /* ... */
 
-    	if (i != 0) {
-    		/* Do something. */
-    	}
+        if (i != 0) {
+                /* Do something. */
+        }
 
 Bad:
 
-    	int i = 10;
+        int i = 10;
 
-    	/* ... */
+        /* ... */
 
-    	if (i) {
-    		/* Do something. */
-    	}
+        if (i) {
+                /* Do something. */
+        }
 
 #### Null Pointer
 
@@ -488,23 +495,23 @@ comparison; do not treat a pointer variable as if it were a boolean.
 
 Good:
 
-    	char *c = NULL;
+        char *c = NULL;
 
-    	/* ... */
+        /* ... */
 
-    	if (c != NULL) {
-    		/* Do something. */
-    	}
+        if (c != NULL) {
+                /* Do something. */
+        }
 
 Bad:
 
-    	char *c = NULL;
+        char *c = NULL;
 
-    	/* ... */
+        /* ... */
 
-    	if (c) {
-    		/* Do something. */
-    	}
+        if (c) {
+                /* Do something. */
+        }
 
 #### The Ternary Operator
 
@@ -522,22 +529,22 @@ permissible, and never when returning result codes.
 
 Good:
 
-    	printf("%c is%s a number.\\n", c, isdigit(c) ? "" : " NOT");
-    	l = (l1 < l2) ? l1 : l2;
-    	s = (a_very_long_variable < an_even_longer_variable)
-    	      ? "true"
-    	      : "false";
-    	if (gp.length + (go < 16384 ? 2 : 3) >= name->length) {
-    		/* whatever */
-    	}
+        printf("%c is%s a number.\\n", c, isdigit(c) ? "" : " NOT");
+        l = (l1 < l2) ? l1 : l2;
+        s = (a_very_long_variable < an_even_longer_variable)
+              ? "true"
+              : "false";
+        if (gp.length + (go < 16384 ? 2 : 3) >= name->length) {
+                /* whatever */
+        }
 
     Okay:
 
-    	return ((length1 < length2) ? -1 : 1);
+        return (length1 < length2) ? -1 : 1;
 
     Bad:
 
-    	return (success ? ISC_R_SUCCESS : ISC_R_FAILURE);
+        return success ? ISC_R_SUCCESS : ISC_R_FAILURE;
 
 #### Assignment in Parameters
 
@@ -547,11 +554,11 @@ operators.
 
 Bad:
 
-    	isc_mem_get(mctx, size = 20);
+        isc_mem_get(mctx, size = 20);
 
 Okay:
 
-    	fputc(c++, stdout);
+        fputc(c++, stdout);
 
 #### Invalidating Pointers
 
@@ -561,12 +568,12 @@ structure which is itself going to be freed immediately.
 
 Good:
 
-    	char *text;
+        char *text;
 
-    	/* text is initialized here. */
+        /* text is initialized here. */
 
-    	isc_mem_free(mctx, text);
-    	text = NULL;
+        isc_mem_free(mctx, text);
+        text = NULL;
 
 #### Variable Scopes
 
@@ -574,44 +581,44 @@ Always use minimal scopes for the variables, e.g. use block scope instead of
 local scope whenever possible.
 
 Bad:
-    	void
-    	foo() {
-    		size_t i;
-    		[...];
-    		for (i = 0; i < 10; i++);
-    		[...]
-    	}
+        void
+        foo() {
+                size_t i;
+                [...];
+                for (i = 0; i < 10; i++);
+                [...]
+        }
 
 Good:
-    	void
-    	foo() {
-    		[...];
-    		for (size_t i = 0; i < 10; i++);
-    		[...]
-    	}
+        void
+        foo() {
+                [...];
+                for (size_t i = 0; i < 10; i++);
+                [...]
+        }
 
 Bad:
-    	void
-    	foo() {
-    		size_t j = 0;
-    		[...] /* j not used here */
-    		if (true) {
-    			while (j < 10) ++j;
-    		}
-    		[...] /* j not used here */
-    		return (0);
-    	}
+        void
+        foo() {
+                size_t j = 0;
+                [...] /* j not used here */
+                if (true) {
+                        while (j < 10) ++j;
+                }
+                [...] /* j not used here */
+                return 0;
+        }
 
 Good:
-    	void
-    	foo() {
-    		[...]
-    		if (true) {
-    			size_t j = 0;
-    			while (j < 10) ++j;
-    		}
-    		[...]
-    	}
+        void
+        foo() {
+                [...]
+                if (true) {
+                        size_t j = 0;
+                        while (j < 10) ++j;
+                }
+                [...]
+        }
 
 Integrating cppcheck with editor of your choice (f.e. flycheck with emacs) could
 be a great help in identifying places where variable scopes can be reduced.
@@ -621,59 +628,59 @@ be a great help in identifying places where variable scopes can be reduced.
 Static initializers should be used instead of memset.
 
 Good:
-    	char array[10] = { 0 };
+        char array[10] = { 0 };
 
 Bad:
-    	char array[10];
-    	memset(array, 0, sizeof(array));
+        char array[10];
+        memset(array, 0, sizeof(array));
 
 Designated initializers should be used to initialize structures.
 
 Good:
-    	struct example {
-    		int foo;
-    		int bar;
-    		int baz;
-    	};
+        struct example {
+                int foo;
+                int bar;
+                int baz;
+        };
 
-    	struct example x = { .foo = -1 };
+        struct example x = { .foo = -1 };
 
 Bad:
-    	struct example {
-    		int foo;
-    		int bar;
-    		int baz;
-    	};
+        struct example {
+                int foo;
+                int bar;
+                int baz;
+        };
 
-    	struct example x;
+        struct example x;
 
-    	x.foo = -1;
-    	x.bar = 0;
-    	x.baz = 0;
+        x.foo = -1;
+        x.bar = 0;
+        x.baz = 0;
 
 Good:
-    	struct example {
-    		int foo;
-    		int bar;
-    		int baz;
-    	};
+        struct example {
+                int foo;
+                int bar;
+                int baz;
+        };
 
-    	struct example *x = isc_mem_get(mctx, sizeof(*x));
+        struct example *x = isc_mem_get(mctx, sizeof(*x));
 
-    	*x = (struct example){ .foo = -1 };
+        *x = (struct example){ .foo = -1 };
 
 Bad:
-    	struct example {
-    		int foo;
-    		int bar;
-    		int baz;
-    	};
+        struct example {
+                int foo;
+                int bar;
+                int baz;
+        };
 
-    	struct example *x = isc_mem_get(mctx, sizeof(*x));
+        struct example *x = isc_mem_get(mctx, sizeof(*x));
 
-    	x->foo = -1;
-    	x->bar = 0;
-    	x->baz = 0;
+        x->foo = -1;
+        x->bar = 0;
+        x->baz = 0;
 
 #### Const
 
@@ -696,18 +703,18 @@ All public interfaces to functions, macros, typedefs, and variables
 provided by the library, should use names of the form
 `{library}_{module}_{what}`, such as:
 
-    	isc_buffer_t			    /* typedef */
-    	dns_name_setbuffer(name, buffer)	/* function */
-    	ISC_LIST_HEAD(list)		     /* macro */
-    	isc_commandline_argument		/* variable */
+        isc_buffer_t			    /* typedef */
+        dns_name_setbuffer(name, buffer)	/* function */
+        ISC_LIST_HEAD(list)		     /* macro */
+        isc_commandline_argument		/* variable */
 
 Structures which are `typedef`'d generally have the name of the typedef
 sans the final `_t`:
 
-    	typedef struct dns_rbtnode dns_rbtnode_t;
-    	struct dns_rbtnode {
-    		/* ... members ... */
-    	}
+        typedef struct dns_rbtnode dns_rbtnode_t;
+        struct dns_rbtnode {
+                /* ... members ... */
+        }
 
 In some cases, structures are specific to a single C file and are
 opaque outside that file.  In these cases, the `typedef` occurs in the
@@ -727,34 +734,15 @@ separating natural word elements, as demonstrated in
 `isc_commandline_argument` and `dns_name_setbuffer` above.  The `{module}`
 part is usually the same as the basename of the source file, but sometimes
 other `{module}` interfaces appear within one file, such as `dns_label_*`
-interfaces in `lib/dns/name.c`.  However, in the public libraries the file
-name must be the same as some module interface provided by the file; e.g.,
-`dns_rbt_*` interfaces would not be declared in a file named redblack.c (in
-lieu of any other `dns_redblack_*` interfaces in the file).
+interfaces in `lib/dns/name.c`.  But generally, the file name must be
+the same as some module interface provided by the file; e.g., `dns_rbt_*`
+interfaces would not be declared in a file named redblack.c (in lieu of any
+other `dns_redblack_*` interfaces in the file).
 
 The one notable exception to this naming rule is the interfaces provided by
 `<isc/util.h>`.  There's a large caveat associated with the public
 description of this file that it is hazardous to use because it pollutes
 the general namespace.
-
-When the signature of a public function needs to change, the old function
-name should be retained for backward compatibility, if at all possible.
-For example, when `dns_zone_setfile()` needed to include a file format
-parameter, it was changed to `dns_zone_setfile2()`; the original function
-name became a wrapper for the new function, calling it with the default
-value of the format parameter:
-
-    	isc_result_t
-    	dns_zone_setfile(dns_zone_t *zone, const char *file) {
-    		return (dns_zone_setfile2(zone, file, dns_masterformat_text);
-    	}
-
-    	isc_result_t
-    	dns_zone_setfile2(dns_zone_t *zone, const char *file,
-    			  dns_masterformat_t format)
-    	{
-    		...
-    	}
 
 #### <a name="private_namespace"></a>Shared Private Interfaces
 
@@ -834,7 +822,7 @@ lame".
 When the variable text forms a separate phrase, such as when it separated
 from the rest of the message by a colon, it can be left unquoted:
 
-   	isc_log_write(... "open: %s: %s", filename, isc_result_totext(result));
+        isc_log_write(... "open: %s: %s", filename, isc_result_totext(result));
 
 File names (`__FILE__`), line numbers (`__LINE__`), function names,
 memory addresses, and other references to program internals may be used
@@ -856,14 +844,14 @@ There are also a few other requirements:
 * The `__init__()` method should always be the first one declared in a
   class definition, like so:
 
-    	class Foo:
-    	    # constructor definition here
-    	    def __init__(self):
-    		...
-    	    # other functions may follow
-    	    def bar(self):
-    		...
-    		Close all file and socket objects
+        class Foo:
+            # constructor definition here
+            def __init__(self):
+                ...
+            # other functions may follow
+            def bar(self):
+                ...
+                Close all file and socket objects
 
 * All Python standard library objects that have an underlying file
   descriptor (fd) should be closed explicitly using the `.close()` method.
@@ -871,8 +859,8 @@ There are also a few other requirements:
 * In cases where a file is opened and closed in a single block, it
   is often preferable to use the `with` statement:
 
-    	with open('filename') as f:
-    	    do_something_with(f)
+        with open('filename') as f:
+            do_something_with(f)
 
 ### <a name="plstyle"></a>Perl
 
