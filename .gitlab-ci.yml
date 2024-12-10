@@ -745,6 +745,12 @@ cross-version-config-tests:
     untracked: true
     expire_in: "1 day"
     when: always
+  # Changes in the January milestone necessitate allowing this job to fail. The
+  # "soft failure" should be reverted when January releases are published.
+  # - #4261 introduced extra artifacts check but missed a file visible only in
+  #   this job. This is fixed in !9815 but present in December releases.
+  #   System test affected: mkeys.
+  allow_failure: true
 
 # Jobs for regular GCC builds on Alpine Linux 3.21 (amd64)
 
