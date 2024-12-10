@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#if HAVE_CMOCKA
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
@@ -31,19 +29,7 @@
 
 #include <irs/resconf.h>
 
-static isc_mem_t *mctx = NULL;
-
-static void
-setup_test(void) {
-	isc_mem_create(&mctx);
-
-	/*
-	 * the caller might run from another directory, but tests
-	 * that access test data files must first chdir to the proper
-	 * location.
-	 */
-	assert_return_code(chdir(TESTS_DIR), 0);
-}
+#include <tests/isc.h>
 
 static isc_result_t
 check_number(unsigned int n, unsigned int expected) {
@@ -66,6 +52,24 @@ check_ndots(irs_resconf_t *resconf) {
 }
 
 static isc_result_t
+search_example(irs_resconf_t *resconf) {
+	irs_resconf_search_t *entry;
+	irs_resconf_searchlist_t *list;
+	list = irs_resconf_getsearchlist(resconf);
+	if (list == NULL) {
+		return ISC_R_NOTFOUND;
+	}
+	entry = ISC_LIST_HEAD(*list);
+	assert_true(entry != NULL && entry->domain != NULL);
+	assert_string_equal(entry->domain, "example.com");
+
+	entry = ISC_LIST_TAIL(*list);
+	assert_true(entry != NULL && entry->domain != NULL);
+	assert_string_equal(entry->domain, "example.net");
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
 check_options(irs_resconf_t *resconf) {
 	if (irs_resconf_getattempts(resconf) != 3) {
 		return ISC_R_BADNUMBER; /* default value only */
@@ -83,8 +87,7 @@ check_options(irs_resconf_t *resconf) {
 }
 
 /* test irs_resconf_load() */
-static void
-irs_resconf_load_test(void **state) {
+ISC_RUN_TEST_IMPL(irs_resconf_load) {
 	isc_result_t result;
 	irs_resconf_t *resconf = NULL;
 	unsigned int i;
@@ -119,18 +122,27 @@ irs_resconf_load_test(void **state) {
 		  ISC_R_SUCCESS },
 		{ "testdata/port.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
 		{ "testdata/resolv.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
-		{ "testdata/search.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		{ "testdata/search.conf", ISC_R_SUCCESS, search_example,
+		  ISC_R_SUCCESS },
 		{ "testdata/sortlist-v4.conf", ISC_R_SUCCESS, NULL,
 		  ISC_R_SUCCESS },
 		{ "testdata/timeout.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
-		{ "testdata/unknown.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS }
+		{ "testdata/unknown-with-value.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/unknown-without-value.conf", ISC_R_SUCCESS, NULL,
+		  ISC_R_SUCCESS },
+		{ "testdata/unknown+search.conf", ISC_R_SUCCESS, search_example,
+		  ISC_R_SUCCESS }
 	};
 
 	UNUSED(state);
 
-	setup_test();
+	assert_return_code(chdir(TESTS_DIR), 0);
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[1]); i++) {
+		if (debug) {
+			fprintf(stderr, "# testing '%s'\n", tests[i].file);
+		}
 		result = irs_resconf_load(mctx, tests[i].file, &resconf);
 		if (result != tests[i].loadres) {
 			fail_msg("# unexpected result %s loading %s",
@@ -156,27 +168,10 @@ irs_resconf_load_test(void **state) {
 			irs_resconf_destroy(&resconf);
 		}
 	}
-
-	isc_mem_detach(&mctx);
 }
 
-int
-main(void) {
-	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(irs_resconf_load_test),
-	};
+ISC_TEST_LIST_START
+ISC_TEST_ENTRY(irs_resconf_load)
+ISC_TEST_LIST_END
 
-	return cmocka_run_group_tests(tests, NULL, NULL);
-}
-
-#else /* HAVE_CMOCKA */
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
-	return SKIPPED_TEST_EXIT_CODE;
-}
-
-#endif /* if HAVE_CMOCKA */
+ISC_TEST_MAIN
