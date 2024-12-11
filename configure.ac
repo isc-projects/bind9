@@ -1437,7 +1437,6 @@ AC_CONFIG_FILES([tests/Makefile
 		 tests/isc/Makefile
 		 tests/dns/Makefile
 		 tests/ns/Makefile
-		 tests/irs/Makefile
 		 tests/isccfg/Makefile
 		 tests/libtest/Makefile])
 

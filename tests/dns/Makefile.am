@@ -42,6 +42,7 @@ check_PROGRAMS =		\
 	rdata_test		\
 	rdataset_test		\
 	rdatasetstats_test	\
+	resconf_test		\
 	resolver_test		\
 	rsa_test		\
 	sigs_test		\
