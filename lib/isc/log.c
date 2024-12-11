@@ -224,8 +224,6 @@ static const char *modules_description[] = {
 	[ISC_LOGMODULE_CRYPTO] = "crypto",
 	/* dns modules */
 	[DNS_LOGMODULE_DB] = "dns/db",
-	[DNS_LOGMODULE_RBTDB] = "dns/rbtdb",
-	[DNS_LOGMODULE_RBT] = "dns/rbt",
 	[DNS_LOGMODULE_RDATA] = "dns/rdata",
 	[DNS_LOGMODULE_MASTER] = "dns/master",
 	[DNS_LOGMODULE_MESSAGE] = "dns/message",
@@ -257,6 +255,8 @@ static const char *modules_description[] = {
 	[DNS_LOGMODULE_DNSTAP] = "dns/dnstap",
 	[DNS_LOGMODULE_SSU] = "dns/ssu",
 	[DNS_LOGMODULE_QP] = "dns/qp",
+	[DNS_LOGMODULE_RPZ] = "dns/rpz",
+	[DNS_LOGMODULE_CATZ] = "dns/catz",
 	/* ns modules */
 	[NS_LOGMODULE_CLIENT] = "ns/client",
 	[NS_LOGMODULE_QUERY] = "ns/query",
