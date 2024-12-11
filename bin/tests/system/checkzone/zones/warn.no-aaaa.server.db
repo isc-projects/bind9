@@ -1,0 +1,22 @@
+; Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+;
+; SPDX-License-Identifier: MPL-2.0
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0.  If a copy of the MPL was not distributed with this
+; file, you can obtain one at https://mozilla.org/MPL/2.0/.
+;
+; See the COPYRIGHT file distributed with this work for additional
+; information regarding copyright ownership.
+
+@		30	IN	SOA	ns1 hostmaster 2017052201 3600 600 604800 30
+@		7200	IN	NS	ns1
+@		7200	IN	NS	ns2
+@		7200	IN	NS	ns3
+@		7200	IN	NS	ns4
+ns1		3600	IN	A	10.53.0.1
+ns2		3600	IN	A	10.53.0.2
+ns3		3600	IN	A	10.53.0.4
+ns4		3600	IN	A	10.53.0.4
+dualstack	300	IN	AAAA	2001:db8::1
+dualstack	300	IN	A	10.53.0.5

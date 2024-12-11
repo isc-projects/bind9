@@ -91,9 +91,13 @@ Options
    (both in-zone and out-of-zone hostnames). Mode ``local`` only
    checks SRV records which refer to in-zone hostnames.
 
+   Mode ``full`` checks that a zone that has A or AAAA records it is served
+   by a server with the same type of address records.
+
    Mode ``full`` checks that delegation NS records refer to A or AAAA
    records (both in-zone and out-of-zone hostnames). It also checks that
    glue address records in the zone match those advertised by the child.
+
    Mode ``local`` only checks NS records which refer to in-zone
    hostnames or verifies that some required glue exists, i.e., when the
    name server is in a child zone.
