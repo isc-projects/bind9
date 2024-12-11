@@ -668,7 +668,7 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 	if (cfg_obj_isvoid(obj)) {
 		/*
 		 * "anchortype" is not defined, this must be a static-key
-		 * configured with trusted-keys.
+		 * configured with trust-anchors.
 		 */
 		anchortype = STATIC_KEY;
 	} else {
@@ -834,8 +834,6 @@ static isc_result_t
 setup_dnsseckeys(dns_client_t *client, dns_view_t *toview) {
 	isc_result_t result;
 	cfg_parser_t *parser = NULL;
-	const cfg_obj_t *trusted_keys = NULL;
-	const cfg_obj_t *managed_keys = NULL;
 	const cfg_obj_t *trust_anchors = NULL;
 	cfg_obj_t *bindkeys = NULL;
 
@@ -877,16 +875,7 @@ setup_dnsseckeys(dns_client_t *client, dns_view_t *toview) {
 	}
 
 	INSIST(bindkeys != NULL);
-	cfg_map_get(bindkeys, "trusted-keys", &trusted_keys);
-	cfg_map_get(bindkeys, "managed-keys", &managed_keys);
 	cfg_map_get(bindkeys, "trust-anchors", &trust_anchors);
-
-	if (trusted_keys != NULL) {
-		CHECK(load_keys(trusted_keys, client, toview));
-	}
-	if (managed_keys != NULL) {
-		CHECK(load_keys(managed_keys, client, toview));
-	}
 	if (trust_anchors != NULL) {
 		CHECK(load_keys(trust_anchors, client, toview));
 	}

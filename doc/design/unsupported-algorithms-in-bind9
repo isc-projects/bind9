@@ -79,14 +79,8 @@ treated as unsupported.
 
 ### Trust anchors
 
-In BIND 9, trust anchors can be configured using two clauses:
-
-  * `trusted-keys`, which contains hardcoded (static) trust anchors,
-  * `managed-keys`, which will be kept up to date automatically, following the
-     zone's key rollovers (according to the algorithm specified in RFC 5011).
-
-When put into the above clauses, keys using unsupported algorithms will be
-ignored:
+In BIND 9, trust anchors can be configured using `trust-anchors`. When put into
+such clause, keys using unsupported algorithms will be ignored:
 
     trusted.conf:3: skipping trusted key for 't.example.': algorithm is unsupported
     managed.conf:3: skipping managed key for 'm.example.': algorithm is unsupported
@@ -118,8 +112,8 @@ treated as secure and thus attempts to resolve names in the domains pointed to
 by the records in that DLV zone will yield SERVFAIL responses.  Consider the
 following example:
 
-    trusted-keys {
-        "dlv.example." 257 3 1 ...;
+    trust-anchors {
+        "dlv.example." static-key 257 3 1 ...;
     };
 
     options {
@@ -141,7 +135,7 @@ ignored altogether and do not cause an associated trust point to be defined.
 
 A zone for which BIND 9 has a trust anchor configured may decide to do an
 algorithm rollover to an unsupported algorithm.  If configured with
-`managed-keys`, BIND 9 will ignore the newly introduced DNSKEY if it does
+`trust-anchors`, BIND 9 will ignore the newly introduced DNSKEY if it does
 not support the algorithm.  That means that the moment the predecessor DNSKEY
 gets revoked, BIND 9 will no longer have any trust anchors for the given zone
 and it will treat the trust point as if it does not exist, meaning that

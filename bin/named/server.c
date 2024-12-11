@@ -995,11 +995,11 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	}
 
 	/*
-	 * Add the key to 'secroots'.  Keys from a "trust-anchors" or
-	 * "managed-keys" statement may be either static or initializing
-	 * keys. If it's not initializing, we don't want to treat it as
-	 * managed, so we use 'initializing' twice here, for both the
-	 * 'managed' and 'initializing' arguments to dns_keytable_add().
+	 * Add the key to 'secroots'.  Keys from a "trust-anchors" statement
+	 * may be either static or initializing keys. If it's not initializing,
+	 * we don't want to treat it as managed, so we use 'initializing'
+	 * twice here, for both the 'managed' and 'initializing' arguments to
+	 * dns_keytable_add().
 	 */
 	result = dns_keytable_add(secroots, initializing, initializing, keyname,
 				  &ds, sfd_add, view);
@@ -1082,11 +1082,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			  const cfg_obj_t *config, const cfg_obj_t *bindkeys,
 			  bool auto_root) {
 	isc_result_t result = ISC_R_SUCCESS;
-	const cfg_obj_t *view_keys = NULL;
-	const cfg_obj_t *global_keys = NULL;
-	const cfg_obj_t *view_managed_keys = NULL;
 	const cfg_obj_t *view_trust_anchors = NULL;
-	const cfg_obj_t *global_managed_keys = NULL;
 	const cfg_obj_t *global_trust_anchors = NULL;
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *voptions = NULL;
@@ -1105,26 +1101,15 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	if (vconfig != NULL) {
 		voptions = cfg_tuple_get(vconfig, "options");
 		if (voptions != NULL) {
-			(void)cfg_map_get(voptions, "trusted-keys", &view_keys);
-
-			/* managed-keys and trust-anchors are synonyms. */
-			(void)cfg_map_get(voptions, "managed-keys",
-					  &view_managed_keys);
 			(void)cfg_map_get(voptions, "trust-anchors",
 					  &view_trust_anchors);
-
 			maps[i++] = voptions;
 		}
 	}
 
 	if (config != NULL) {
-		(void)cfg_map_get(config, "trusted-keys", &global_keys);
-
-		/* managed-keys and trust-anchors are synonyms. */
-		(void)cfg_map_get(config, "managed-keys", &global_managed_keys);
 		(void)cfg_map_get(config, "trust-anchors",
 				  &global_trust_anchors);
-
 		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL) {
 			maps[i++] = options;
@@ -1189,13 +1174,8 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	}
 
 	if (view->rdclass == dns_rdataclass_in) {
-		CHECK(load_view_keys(view_keys, view, false, NULL));
 		CHECK(load_view_keys(view_trust_anchors, view, true, NULL));
-		CHECK(load_view_keys(view_managed_keys, view, true, NULL));
-
-		CHECK(load_view_keys(global_keys, view, false, NULL));
 		CHECK(load_view_keys(global_trust_anchors, view, true, NULL));
-		CHECK(load_view_keys(global_managed_keys, view, true, NULL));
 	}
 
 	/*

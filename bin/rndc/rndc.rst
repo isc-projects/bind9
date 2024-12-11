@@ -491,9 +491,8 @@ Currently supported commands are:
 .. option:: secroots [-] [view ...]
 
    This command dumps the security roots (i.e., trust anchors configured via
-   ``trust-anchors``, or the ``managed-keys`` or ``trusted-keys`` statements
-   [both deprecated], or ``dnssec-validation auto``) and negative trust anchors
-   for the specified views. If no view is specified, all views are
+   ``trust-anchors`` statement, or ``dnssec-validation auto``) and negative
+   trust anchors for the specified views. If no view is specified, all views are
    dumped. Security roots indicate whether they are configured as trusted
    keys, managed keys, or initializing managed keys (managed keys that have not
    yet been updated by a successful key refresh query).

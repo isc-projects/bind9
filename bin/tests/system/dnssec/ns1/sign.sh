@@ -50,7 +50,7 @@ cp trusted.conf ../ns6/trusted.conf
 cp trusted.conf ../ns7/trusted.conf
 cp trusted.conf ../ns9/trusted.conf
 
-keyfile_to_trusted_keys "$ksk" >trusted.keys
+keyfile_to_static_keys "$ksk" >trusted.keys
 
 # ...or with an initializing key.
 keyfile_to_initial_ds "$ksk" >managed.conf

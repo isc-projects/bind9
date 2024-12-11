@@ -4463,7 +4463,8 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 #define ROOT_KSK_2017	 0x08
 
 static isc_result_t
-check_trust_anchor(const cfg_obj_t *key, bool managed, unsigned int *flagsp) {
+check_trust_anchor(const cfg_obj_t *key, unsigned int *flagsp) {
+	bool managed = true;
 	const char *str = NULL, *namestr = NULL;
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname = NULL;
@@ -4479,7 +4480,6 @@ check_trust_anchor(const cfg_obj_t *key, bool managed, unsigned int *flagsp) {
 		STATIC_DNSKEY,
 		INIT_DS,
 		STATIC_DS,
-		TRUSTED
 	} anchortype;
 
 	/*
@@ -4575,41 +4575,33 @@ check_trust_anchor(const cfg_obj_t *key, bool managed, unsigned int *flagsp) {
 		result = ISC_R_FAILURE;
 	}
 
-	if (managed) {
-		atstr = cfg_obj_asstring(cfg_tuple_get(key, "anchortype"));
-
-		if (strcasecmp(atstr, "static-key") == 0) {
-			managed = false;
-			anchortype = STATIC_DNSKEY;
-		} else if (strcasecmp(atstr, "static-ds") == 0) {
-			managed = false;
-			anchortype = STATIC_DS;
-		} else if (strcasecmp(atstr, "initial-key") == 0) {
-			anchortype = INIT_DNSKEY;
-		} else if (strcasecmp(atstr, "initial-ds") == 0) {
-			anchortype = INIT_DS;
-		} else {
-			cfg_obj_log(key, ISC_LOG_ERROR,
-				    "key '%s': "
-				    "invalid initialization method '%s'",
-				    namestr, atstr);
-			result = ISC_R_FAILURE;
-
-			/*
-			 * We can't interpret the trust anchor, so
-			 * we skip all other checks.
-			 */
-			goto cleanup;
-		}
+	atstr = cfg_obj_asstring(cfg_tuple_get(key, "anchortype"));
+	if (strcasecmp(atstr, "static-key") == 0) {
+		managed = false;
+		anchortype = STATIC_DNSKEY;
+	} else if (strcasecmp(atstr, "static-ds") == 0) {
+		managed = false;
+		anchortype = STATIC_DS;
+	} else if (strcasecmp(atstr, "initial-key") == 0) {
+		anchortype = INIT_DNSKEY;
+	} else if (strcasecmp(atstr, "initial-ds") == 0) {
+		anchortype = INIT_DS;
 	} else {
-		atstr = "trusted-key";
-		anchortype = TRUSTED;
+		cfg_obj_log(key, ISC_LOG_ERROR,
+			    "key '%s': "
+			    "invalid initialization method '%s'",
+			    namestr, atstr);
+		result = ISC_R_FAILURE;
+		/*
+		 * We can't interpret the trust anchor, so
+		 * we skip all other checks.
+		 */
+		goto cleanup;
 	}
 
 	switch (anchortype) {
 	case INIT_DNSKEY:
 	case STATIC_DNSKEY:
-	case TRUSTED:
 		if (rdata1 > 0xffff) {
 			cfg_obj_log(key, ISC_LOG_ERROR, "flags too big: %u",
 				    rdata1);
@@ -4916,7 +4908,6 @@ record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
  */
 static isc_result_t
 check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
-		   const cfg_obj_t *global_tkeys, const cfg_obj_t *view_tkeys,
 		   bool autovalidation, isc_mem_t *mctx) {
 	isc_result_t result, tresult;
 	const cfg_listelt_t *elt = NULL;
@@ -4934,9 +4925,8 @@ check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 	}
 
 	/*
-	 * First we record all the static keys (i.e., old-style
-	 * trusted-keys and trust-anchors configured with "static-key"),
-	 * and all the DS-style trust anchors.
+	 * First we record all the static keys (trust-anchors configured with
+	 * "static-key"), and all the DS-style trust anchors.
 	 */
 	for (elt = cfg_list_first(global_ta); elt != NULL;
 	     elt = cfg_list_next(elt))
@@ -4965,28 +4955,6 @@ check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 		}
 
 		tresult = record_ds_keys(dstab, mctx, keylist);
-		if (result == ISC_R_SUCCESS) {
-			result = tresult;
-		}
-	}
-
-	for (elt = cfg_list_first(global_tkeys); elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
-		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(statictab, mctx, keylist,
-					     autovalidation);
-		if (result == ISC_R_SUCCESS) {
-			result = tresult;
-		}
-	}
-
-	for (elt = cfg_list_first(view_tkeys); elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
-		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(statictab, mctx, keylist,
-					     autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -5320,8 +5288,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       isc_symtab_t *files, isc_symtab_t *keydirs, unsigned int flags,
 	       isc_symtab_t *inview, isc_mem_t *mctx) {
 	const cfg_obj_t *zones = NULL;
-	const cfg_obj_t *view_tkeys = NULL, *global_tkeys = NULL;
-	const cfg_obj_t *view_mkeys = NULL, *global_mkeys = NULL;
 	const cfg_obj_t *view_ta = NULL, *global_ta = NULL;
 	const cfg_obj_t *check_keys[2] = { NULL, NULL };
 	const cfg_obj_t *keys = NULL;
@@ -5335,7 +5301,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *opts = NULL;
 	const cfg_obj_t *plugin_list = NULL;
 	bool autovalidation = false;
-	unsigned int tflags = 0, dflags = 0;
+	unsigned int dflags = 0;
 	int i;
 	bool check_plugins = (flags & BIND_CHECK_PLUGINS) != 0;
 	bool check_algorithms = (flags & BIND_CHECK_ALGORITHMS) != 0;
@@ -5513,72 +5479,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Load all DNSSEC keys.
 	 */
 	if (voptions != NULL) {
-		(void)cfg_map_get(voptions, "trusted-keys", &view_tkeys);
 		(void)cfg_map_get(voptions, "trust-anchors", &view_ta);
-		(void)cfg_map_get(voptions, "managed-keys", &view_mkeys);
 	}
-	(void)cfg_map_get(config, "trusted-keys", &global_tkeys);
 	(void)cfg_map_get(config, "trust-anchors", &global_ta);
-	(void)cfg_map_get(config, "managed-keys", &global_mkeys);
-
-	/*
-	 * Check trusted-keys.
-	 */
-	check_keys[0] = view_tkeys;
-	check_keys[1] = global_tkeys;
-	for (i = 0; i < 2; i++) {
-		if (check_keys[i] != NULL) {
-			unsigned int taflags = 0;
-
-			for (element = cfg_list_first(check_keys[i]);
-			     element != NULL; element = cfg_list_next(element))
-			{
-				const cfg_obj_t *keylist =
-					cfg_listelt_value(element);
-				for (element2 = cfg_list_first(keylist);
-				     element2 != NULL;
-				     element2 = cfg_list_next(element2))
-				{
-					obj = cfg_listelt_value(element2);
-					tresult = check_trust_anchor(obj, false,
-								     &taflags);
-					if (tresult != ISC_R_SUCCESS) {
-						result = tresult;
-					}
-				}
-			}
-
-			if ((taflags & ROOT_KSK_STATIC) != 0) {
-				cfg_obj_log(check_keys[i], ISC_LOG_WARNING,
-					    "trusted-keys entry for the root "
-					    "zone WILL FAIL after key "
-					    "rollover - use trust-anchors "
-					    "with initial-key "
-					    "or initial-ds instead.");
-			}
-
-			tflags |= taflags;
-		}
-	}
-
-	/*
-	 * Check dnssec/managed-keys. (Only one or the other can be used.)
-	 */
-	if ((view_mkeys != NULL || global_mkeys != NULL) &&
-	    (view_ta != NULL || global_ta != NULL))
-	{
-		keys = (view_mkeys != NULL) ? view_mkeys : global_mkeys;
-
-		cfg_obj_log(keys, ISC_LOG_ERROR,
-			    "use of managed-keys is not allowed when "
-			    "trust-anchors is also in use");
-		result = ISC_R_FAILURE;
-	}
-
-	if (view_ta == NULL && global_ta == NULL) {
-		view_ta = view_mkeys;
-		global_ta = global_mkeys;
-	}
 
 	check_keys[0] = view_ta;
 	check_keys[1] = global_ta;
@@ -5596,7 +5499,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				     element2 = cfg_list_next(element2))
 				{
 					obj = cfg_listelt_value(element2);
-					tresult = check_trust_anchor(obj, true,
+					tresult = check_trust_anchor(obj,
 								     &taflags);
 					if (tresult != ISC_R_SUCCESS) {
 						result = tresult;
@@ -5626,13 +5529,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		}
 	}
 
-	if ((tflags & ROOT_KSK_ANY) != 0 && (dflags & ROOT_KSK_ANY) != 0) {
-		keys = (view_ta != NULL) ? view_ta : global_ta;
-		cfg_obj_log(keys, ISC_LOG_WARNING,
-			    "both trusted-keys and trust-anchors "
-			    "for the root zone are present");
-	}
-
 	if ((dflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
 		keys = (view_ta != NULL) ? view_ta : global_ta;
 		cfg_obj_log(keys, ISC_LOG_WARNING,
@@ -5651,9 +5547,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		if (!cfg_obj_isboolean(obj)) {
 			autovalidation = true;
 		} else if (cfg_obj_asboolean(obj)) {
-			if (global_ta == NULL && view_ta == NULL &&
-			    global_tkeys == NULL && view_tkeys == NULL)
-			{
+			if (global_ta == NULL && view_ta == NULL) {
 				cfg_obj_log(obj, ISC_LOG_ERROR,
 					    "the 'dnssec-validation yes' "
 					    "option requires configured "
@@ -5664,8 +5558,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		}
 	}
 
-	tresult = check_ta_conflicts(global_ta, view_ta, global_tkeys,
-				     view_tkeys, autovalidation, mctx);
+	tresult = check_ta_conflicts(global_ta, view_ta, autovalidation, mctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
