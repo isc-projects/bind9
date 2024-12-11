@@ -609,7 +609,7 @@ fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 	}
 
 set:
-	isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+	isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RPZ,
 		      DNS_RPZ_DEBUG_QUIET,
 		      "computed RPZ qname_skip_recurse mask=0x%" PRIx64,
 		      (uint64_t)mask);
@@ -721,7 +721,7 @@ badname(int level, const dns_name_t *name, const char *str1, const char *str2) {
 	if (level < DNS_RPZ_DEBUG_QUIET && isc_log_wouldlog(level)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB, level,
+		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RPZ, level,
 			      "invalid rpz IP address \"%s\"%s%s", namebuf,
 			      str1, str2);
 	}
@@ -1023,7 +1023,7 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		{
 			char ip2_str[DNS_NAME_FORMATSIZE];
 			dns_name_format(ip_name2, ip2_str, sizeof(ip2_str));
-			isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+			isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RPZ,
 				      log_level,
 				      "rpz IP address \"%s\""
 				      " is not the canonical \"%s\"",
@@ -1384,7 +1384,7 @@ add_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		 * bin/tests/system/rpz/tests.sh looks for "rpz.*failed".
 		 */
 		dns_name_format(src_name, namebuf, sizeof(namebuf));
-		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RPZ,
 			      DNS_RPZ_ERROR_LEVEL,
 			      "rpz add_cidr(%s) failed: %s", namebuf,
 			      isc_result_totext(result));
@@ -1614,7 +1614,7 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		rpz->updatepending = true;
 
 		dns_name_format(&rpz->origin, dname, DNS_NAME_FORMATSIZE);
-		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RPZ,
 			      ISC_LOG_DEBUG(3),
 			      "rpz: %s: update already queued or running",
 			      dname);
@@ -1660,7 +1660,7 @@ dns__rpz_timer_start(dns_rpz_zone_t *rpz) {
 		char dname[DNS_NAME_FORMATSIZE];
 
 		dns_name_format(&rpz->origin, dname, DNS_NAME_FORMATSIZE);
-		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RPZ,
 			      ISC_LOG_INFO,
 			      "rpz: %s: new zone version came "
 			      "too soon, deferring update for "
@@ -1711,8 +1711,8 @@ update_rpz_done_cb(void *data) {
 
 	UNLOCK(&rpz->rpzs->maint_lock);
 
-	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
-		      ISC_LOG_INFO, "rpz: %s: reload done: %s", dname,
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RPZ, ISC_LOG_INFO,
+		      "rpz: %s: reload done: %s", dname,
 		      isc_result_totext(rpz->updateresult));
 
 	dns_rpz_zones_unref(rpz->rpzs);
@@ -1732,7 +1732,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 
 	result = dns_db_createiterator(rpz->updb, DNS_DB_NONSEC3, &updbit);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RPZ,
 			      ISC_LOG_ERROR,
 			      "rpz: %s: failed to create DB iterator - %s",
 			      domain, isc_result_totext(result));
@@ -1741,7 +1741,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 
 	result = dns_dbiterator_first(updbit);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
-		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RPZ,
 			      ISC_LOG_ERROR,
 			      "rpz: %s: failed to get db iterator - %s", domain,
 			      isc_result_totext(result));
@@ -1761,7 +1761,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		result = dns_dbiterator_current(updbit, &node, name);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      DNS_LOGMODULE_RPZ, ISC_LOG_ERROR,
 				      "rpz: %s: failed to get dbiterator - %s",
 				      domain, isc_result_totext(result));
 			goto cleanup;
@@ -1774,7 +1774,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 					     0, 0, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      DNS_LOGMODULE_RPZ, ISC_LOG_ERROR,
 				      "rpz: %s: failed to fetch "
 				      "rrdatasets - %s",
 				      domain, isc_result_totext(result));
@@ -1791,7 +1791,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 			if (result != ISC_R_NOMORE) {
 				isc_log_write(
 					DNS_LOGCATEGORY_GENERAL,
-					DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+					DNS_LOGMODULE_RPZ, ISC_LOG_ERROR,
 					"rpz: %s: error %s while creating "
 					"rdatasetiter",
 					domain, isc_result_totext(result));
@@ -1806,7 +1806,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		if (result != ISC_R_SUCCESS) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			isc_log_write(DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      DNS_LOGMODULE_RPZ, ISC_LOG_ERROR,
 				      "rpz: %s, adding node %s to HT error %s",
 				      domain, namebuf,
 				      isc_result_totext(result));
@@ -1833,7 +1833,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		if (result != ISC_R_SUCCESS) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			isc_log_write(DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      DNS_LOGMODULE_RPZ, ISC_LOG_ERROR,
 				      "rpz: %s: adding node %s "
 				      "to RPZ error %s",
 				      domain, namebuf,
@@ -1841,7 +1841,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		} else if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			isc_log_write(DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
+				      DNS_LOGMODULE_RPZ, ISC_LOG_DEBUG(3),
 				      "rpz: %s: adding node %s", domain,
 				      namebuf);
 		}
@@ -1978,8 +1978,8 @@ dns__rpz_timer_cb(void *arg) {
 	rpz->dbversion = NULL;
 
 	dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
-	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
-		      ISC_LOG_INFO, "rpz: %s: reload start", domain);
+	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RPZ, ISC_LOG_INFO,
+		      "rpz: %s: reload start", domain);
 
 	dns_rpz_zones_ref(rpz->rpzs);
 	isc_work_enqueue(rpz->loop, update_rpz_cb, update_rpz_done_cb, rpz);
@@ -2323,7 +2323,7 @@ del_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			 * "rpz.*failed".
 			 */
 			dns_name_format(src_name, namebuf, sizeof(namebuf));
-			isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+			isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RPZ,
 				      DNS_RPZ_ERROR_LEVEL,
 				      "rpz del_name(%s) node delete "
 				      "failed: %s",
@@ -2488,7 +2488,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		/*
 		 * bin/tests/system/rpz/tests.sh looks for "rpz.*failed".
 		 */
-		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RPZ,
 			      DNS_RPZ_ERROR_LEVEL, "rpz ip2name() failed: %s",
 			      isc_result_totext(result));
 		return DNS_RPZ_INVALID_NUM;
@@ -2551,7 +2551,7 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		 * bin/tests/system/rpz/tests.sh looks for "rpz.*failed".
 		 */
 		dns_name_format(trig_name, namebuf, sizeof(namebuf));
-		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
+		isc_log_write(DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RPZ,
 			      DNS_RPZ_ERROR_LEVEL,
 			      "dns_rpz_find_name(%s) failed: %s", namebuf,
 			      isc_result_totext(result));
