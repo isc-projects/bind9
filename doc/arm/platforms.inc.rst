@@ -94,7 +94,7 @@ supported platforms.
    -  Debian 8 Jessie, 9 Stretch, 10 Buster, 11 Bullseye
    -  Red Hat Enterprise Linux / CentOS / Oracle Linux 6, 7
    -  Debian 8 Jessie, 9 Stretch, 10 Buster
-   -  FreeBSD 10.x, 11.x
+   -  FreeBSD 10.x, 11.x, 12.x
 
 -  Less common CPU architectures (i386, i686, mips, mipsel, sparc, ppc, and others)
 
