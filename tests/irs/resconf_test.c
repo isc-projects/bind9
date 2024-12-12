@@ -25,11 +25,38 @@
 #include <cmocka.h>
 
 #include <isc/mem.h>
+#include <isc/sockaddr.h>
 #include <isc/util.h>
 
 #include <irs/resconf.h>
 
 #include <tests/isc.h>
+
+static isc_result_t
+check_nameserver(irs_resconf_t *resconf, const char *expected) {
+	char buf[ISC_SOCKADDR_FORMATSIZE];
+	isc_sockaddrlist_t *servers = irs_resconf_getnameservers(resconf);
+	isc_sockaddr_t *entry = ISC_LIST_HEAD(*servers);
+	assert_true(entry != NULL);
+	isc_sockaddr_format(entry, buf, sizeof(buf));
+	assert_string_equal(buf, expected);
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+check_ns4(irs_resconf_t *resconf) {
+	return check_nameserver(resconf, "10.0.0.1#53");
+}
+
+static isc_result_t
+check_ns6(irs_resconf_t *resconf) {
+	return check_nameserver(resconf, "2001:db8::1#53");
+}
+
+static isc_result_t
+check_scoped(irs_resconf_t *resconf) {
+	return check_nameserver(resconf, "fe80::1%1#53");
+}
 
 static isc_result_t
 check_number(unsigned int n, unsigned int expected) {
@@ -98,12 +125,12 @@ ISC_RUN_TEST_IMPL(irs_resconf_load) {
 		isc_result_t checkres;
 	} tests[] = {
 		{ "testdata/domain.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
-		{ "testdata/nameserver-v4.conf", ISC_R_SUCCESS, NULL,
+		{ "testdata/nameserver-v4.conf", ISC_R_SUCCESS, check_ns4,
 		  ISC_R_SUCCESS },
-		{ "testdata/nameserver-v6.conf", ISC_R_SUCCESS, NULL,
+		{ "testdata/nameserver-v6.conf", ISC_R_SUCCESS, check_ns6,
 		  ISC_R_SUCCESS },
-		{ "testdata/nameserver-v6-scoped.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
+		{ "testdata/nameserver-v6-scoped.conf", ISC_R_SUCCESS,
+		  check_scoped, ISC_R_SUCCESS },
 		{ "testdata/options-attempts.conf", ISC_R_SUCCESS,
 		  check_attempts, ISC_R_SUCCESS },
 		{ "testdata/options-debug.conf", ISC_R_SUCCESS, NULL,
