@@ -482,30 +482,12 @@ dns_rdataset_towire(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
  */
 
 isc_result_t
-dns_rdataset_towiresorted(dns_rdataset_t   *rdataset,
-			  const dns_name_t *owner_name, dns_compress_t *cctx,
-			  isc_buffer_t *target, dns_rdatasetorderfunc_t order,
-			  const void *order_arg, unsigned int options,
-			  unsigned int *countp);
-/*%<
- * Like dns_rdataset_towire(), but sorting the rdatasets according to
- * the integer value returned by 'order' when called with the rdataset
- * and 'order_arg' as arguments.
- *
- * Requires:
- *\li	All the requirements of dns_rdataset_towire(), and
- *	that order_arg is NULL if and only if order is NULL.
- */
-
-isc_result_t
 dns_rdataset_towirepartial(dns_rdataset_t   *rdataset,
 			   const dns_name_t *owner_name, dns_compress_t *cctx,
-			   isc_buffer_t *target, dns_rdatasetorderfunc_t order,
-			   const void *order_arg, unsigned int options,
+			   isc_buffer_t *target, unsigned int options,
 			   unsigned int *countp, void **state);
 /*%<
- * Like dns_rdataset_towiresorted() except that a partial rdataset
- * may be written.
+ * Like dns_rdataset_towire() except that a partial rdataset may be written.
  *
  * Requires:
  *\li	All the requirements of dns_rdataset_towiresorted().

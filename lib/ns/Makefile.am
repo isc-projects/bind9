@@ -15,7 +15,6 @@ libns_la_HEADERS =			\
 	include/ns/notify.h		\
 	include/ns/query.h		\
 	include/ns/server.h		\
-	include/ns/sortlist.h		\
 	include/ns/stats.h		\
 	include/ns/types.h		\
 	include/ns/update.h		\
@@ -31,7 +30,6 @@ libns_la_SOURCES =		\
 	probes.d		\
 	query.c			\
 	server.c		\
-	sortlist.c		\
 	stats.c			\
 	update.c		\
 	xfrout.c

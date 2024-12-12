@@ -240,7 +240,7 @@ Definition and Usage
 
 Address match lists are primarily used to determine access control for
 various server operations. They are also used in the :any:`listen-on` and
-:any:`sortlist` statements. The elements which constitute an address match
+:any:`listen-on-v6` statements. The elements which constitute an address match
 list can be any of the following:
 
 - :term:`ip_address`: an IP address (IPv4 or IPv6)
@@ -269,8 +269,8 @@ comparisons require that the list of keys be traversed until a matching
 key is found, and therefore may be somewhat slower.
 
 The interpretation of a match depends on whether the list is being used
-for access control, defining :any:`listen-on` ports, or in a :any:`sortlist`,
-and whether the element was negated.
+for access control or for defining :any:`listen-on` ports, and whether
+the element was negated.
 
 When used as an access control list, a non-negated match allows access
 and a negated match denies access. If there is no match, access is
@@ -3948,94 +3948,6 @@ Periodic Task Intervals
    gone away. For convenience, TTL-style time-unit suffixes may be used to
    specify the value. It also accepts ISO 8601 duration formats.
 
-The :any:`sortlist` Statement
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The response to a DNS query may consist of multiple resource records
-(RRs) forming a resource record set (RRset). The name server
-normally returns the RRs within the RRset in an indeterminate order (but
-see the :any:`rrset-order` statement in :ref:`rrset_ordering`). The client resolver code should
-rearrange the RRs as appropriate: that is, using any addresses on the
-local net in preference to other addresses. However, not all resolvers
-can do this or are correctly configured. When a client is using a local
-server, the sorting can be performed in the server, based on the
-client's address. This only requires configuring the name servers, not
-all the clients.
-
-.. namedconf:statement:: sortlist
-   :tags: query, deprecated
-   :short: Controls the ordering of RRs returned to the client, based on the client's IP address.
-
-   This option is deprecated and will be removed in a future release.
-
-   The :any:`sortlist` statement (see below) takes an :term:`address_match_list` and
-   interprets it in a special way. Each top-level statement in the :any:`sortlist`
-   must itself be an explicit :term:`address_match_list` with one or two elements. The
-   first element (which may be an IP address, an IP prefix, an ACL name, or a nested
-   :term:`address_match_list`) of each top-level list is checked against the source
-   address of the query until a match is found. When the addresses in the first
-   element overlap, the first rule to match is selected.
-
-   Once the source address of the query has been matched, if the top-level
-   statement contains only one element, the actual primitive element that
-   matched the source address is used to select the address in the response
-   to move to the beginning of the response. If the statement is a list of
-   two elements, then the second element is interpreted as a topology
-   preference list. Each top-level element is assigned a distance, and the
-   address in the response with the minimum distance is moved to the
-   beginning of the response.
-
-   In the following example, any queries received from any of the addresses
-   of the host itself get responses preferring addresses on any of the
-   locally connected networks. Next most preferred are addresses on the
-   192.168.1/24 network, and after that either the 192.168.2/24 or
-   192.168.3/24 network, with no preference shown between these two
-   networks. Queries received from a host on the 192.168.1/24 network
-   prefer other addresses on that network to the 192.168.2/24 and
-   192.168.3/24 networks. Queries received from a host on the 192.168.4/24
-   or the 192.168.5/24 network only prefer other addresses on their
-   directly connected networks.
-
-::
-
-   sortlist {
-       // IF the local host
-       // THEN first fit on the following nets
-       { localhost;
-       { localnets;
-           192.168.1/24;
-           { 192.168.2/24; 192.168.3/24; }; }; };
-       // IF on class C 192.168.1 THEN use .1, or .2 or .3
-       { 192.168.1/24;
-       { 192.168.1/24;
-           { 192.168.2/24; 192.168.3/24; }; }; };
-       // IF on class C 192.168.2 THEN use .2, or .1 or .3
-       { 192.168.2/24;
-       { 192.168.2/24;
-           { 192.168.1/24; 192.168.3/24; }; }; };
-       // IF on class C 192.168.3 THEN use .3, or .1 or .2
-       { 192.168.3/24;
-       { 192.168.3/24;
-           { 192.168.1/24; 192.168.2/24; }; }; };
-       // IF .4 or .5 THEN prefer that net
-       { { 192.168.4/24; 192.168.5/24; };
-       };
-   };
-
-The following example illustrates reasonable behavior for the local host
-and hosts on directly connected networks. Responses sent to queries from the
-local host favor any of the directly connected networks. Responses
-sent to queries from any other hosts on a directly connected network
-prefer addresses on that same network. Responses to other queries
-are not sorted.
-
-::
-
-   sortlist {
-          { localhost; localnets; };
-          { localnets; };
-   };
-
 .. _rrset_ordering:
 
 RRset Ordering
@@ -4053,8 +3965,7 @@ RRset Ordering
    :short: Defines the order in which equal RRs (RRsets) are returned.
 
    The :any:`rrset-order` statement permits configuration of the ordering of
-   the records in a multiple-record response. See also:
-   :any:`sortlist`.
+   the records in a multiple-record response.
 
    Each rule in an :any:`rrset-order` statement is defined as follows:
 

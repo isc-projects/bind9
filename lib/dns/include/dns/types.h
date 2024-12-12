@@ -153,7 +153,6 @@ typedef struct dns_signature	dns_signature_t;
 typedef struct dns_skr		dns_skr_t;
 typedef struct dns_slabheader	dns_slabheader_t;
 typedef ISC_LIST(dns_slabheader_t) dns_slabheaderlist_t;
-typedef struct dns_sortlist_arg	  dns_sortlist_arg_t;
 typedef struct dns_ssurule	  dns_ssurule_t;
 typedef struct dns_ssutable	  dns_ssutable_t;
 typedef struct dns_stats	  dns_stats_t;

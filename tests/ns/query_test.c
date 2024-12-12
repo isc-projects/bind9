@@ -1383,7 +1383,6 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 	result = ns_test_qctx_create(&qctx_params, &qctx);
 	INSIST(result == ISC_R_SUCCESS);
 
-	isc_sockaddr_any(&qctx->client->peeraddr); /* for sortlist */
 	qctx->client->sendcb = send_noop;
 
 	/* Load a zone.  it should have ns.foo/A */

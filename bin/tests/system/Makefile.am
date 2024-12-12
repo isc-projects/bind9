@@ -150,7 +150,6 @@ TESTS =				\
 	sfcache			\
 	shutdown		\
 	smartsign		\
-	sortlist		\
 	spf			\
 	staticstub		\
 	statistics		\

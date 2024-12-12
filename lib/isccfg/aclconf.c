@@ -812,9 +812,8 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 			/*
 			 * If we're nesting ACLs, put the nested
 			 * ACL onto the elements list; otherwise
-			 * merge it into *this* ACL.  We nest ACLs
-			 * in two cases: 1) sortlist, 2) if the
-			 * nested ACL contains negated members.
+			 * merge it into *this* ACL.  We nest the
+			 * ACL if it contains negated members.
 			 */
 			if (inneracl != NULL) {
 				dns_acl_detach(&inneracl);
@@ -953,7 +952,7 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 		/*
 		 * This should only be reached for localhost, localnets
 		 * and keyname elements, and nested ACLs if nest_level is
-		 * nonzero (i.e., in sortlists).
+		 * nonzero.
 		 */
 		if (de->nestedacl != NULL &&
 		    de->type != dns_aclelementtype_nestedacl)

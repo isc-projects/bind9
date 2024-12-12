@@ -584,51 +584,6 @@ configure_view_acl(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	return result;
 }
 
-/*%
- * Configure a sortlist at '*aclp'.  Essentially the same as
- * configure_view_acl() except it calls cfg_acl_fromconfig with a
- * nest_level value of 2.
- */
-static isc_result_t
-configure_view_sortlist(const cfg_obj_t *vconfig, const cfg_obj_t *config,
-			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			dns_acl_t **aclp) {
-	isc_result_t result;
-	const cfg_obj_t *maps[3];
-	const cfg_obj_t *aclobj = NULL;
-	int i = 0;
-
-	if (*aclp != NULL) {
-		dns_acl_detach(aclp);
-	}
-	if (vconfig != NULL) {
-		maps[i++] = cfg_tuple_get(vconfig, "options");
-	}
-	if (config != NULL) {
-		const cfg_obj_t *options = NULL;
-		(void)cfg_map_get(config, "options", &options);
-		if (options != NULL) {
-			maps[i++] = options;
-		}
-	}
-	maps[i] = NULL;
-
-	(void)named_config_get(maps, "sortlist", &aclobj);
-	if (aclobj == NULL) {
-		return ISC_R_SUCCESS;
-	}
-
-	/*
-	 * Use a nest level of 3 for the "top level" of the sortlist;
-	 * this means each entry in the top three levels will be stored
-	 * as lists of separate, nested ACLs, rather than merged together
-	 * into IP tables as is usually done with ACLs.
-	 */
-	result = cfg_acl_fromconfig(aclobj, config, actx, mctx, 3, aclp);
-
-	return result;
-}
-
 static isc_result_t
 configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 			 const char *confname, const char *conftuplename,
@@ -5120,12 +5075,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	CHECK(configure_view_nametable(vconfig, config, "deny-answer-aliases",
 				       "except-from", named_g_mctx,
 				       &view->answernames_exclude));
-
-	/*
-	 * Configure sortlist, if set
-	 */
-	CHECK(configure_view_sortlist(vconfig, config, actx, named_g_mctx,
-				      &view->sortlist));
 
 	/*
 	 * Configure default allow-update and allow-update-forwarding ACLs,

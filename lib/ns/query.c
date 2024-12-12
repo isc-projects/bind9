@@ -69,7 +69,6 @@
 #include <ns/hooks.h>
 #include <ns/interfacemgr.h>
 #include <ns/server.h>
-#include <ns/sortlist.h>
 #include <ns/stats.h>
 #include <ns/xfrout.h>
 
@@ -4394,35 +4393,6 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 		}
 	}
 	return true;
-}
-
-/*
- * Extract a network address from the RDATA of an A or AAAA
- * record.
- *
- * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_NOTIMPLEMENTED	The rdata is not a known address type.
- */
-static isc_result_t
-rdata_tonetaddr(const dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
-	struct in_addr ina;
-	struct in6_addr in6a;
-
-	switch (rdata->type) {
-	case dns_rdatatype_a:
-		INSIST(rdata->length == 4);
-		memmove(&ina.s_addr, rdata->data, 4);
-		isc_netaddr_fromin(netaddr, &ina);
-		return ISC_R_SUCCESS;
-	case dns_rdatatype_aaaa:
-		INSIST(rdata->length == 16);
-		memmove(in6a.s6_addr, rdata->data, 16);
-		isc_netaddr_fromin6(netaddr, &in6a);
-		return ISC_R_SUCCESS;
-	default:
-		return ISC_R_NOTIMPLEMENTED;
-	}
 }
 
 static unsigned char inaddr10_offsets[] = { 0, 3, 11, 16 };
@@ -11355,72 +11325,6 @@ query_addauth(query_ctx_t *qctx) {
 }
 
 /*
- * Find the sort order of 'rdata' in the topology-like
- * ACL forming the second element in a 2-element top-level
- * sortlist statement.
- */
-static int
-query_sortlist_order_2element(const dns_rdata_t *rdata, const void *arg) {
-	isc_netaddr_t netaddr;
-
-	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS) {
-		return INT_MAX;
-	}
-	return ns_sortlist_addrorder2(&netaddr, arg);
-}
-
-/*
- * Find the sort order of 'rdata' in the matching element
- * of a 1-element top-level sortlist statement.
- */
-static int
-query_sortlist_order_1element(const dns_rdata_t *rdata, const void *arg) {
-	isc_netaddr_t netaddr;
-
-	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS) {
-		return INT_MAX;
-	}
-	return ns_sortlist_addrorder1(&netaddr, arg);
-}
-
-/*
- * Find the sortlist statement that applies to 'client' and set up
- * the sortlist info in in client->message appropriately.
- */
-static void
-query_setup_sortlist(query_ctx_t *qctx) {
-	isc_netaddr_t netaddr;
-	ns_client_t *client = qctx->client;
-	dns_aclenv_t *env = client->manager->aclenv;
-	dns_acl_t *acl = NULL;
-	dns_aclelement_t *elt = NULL;
-	void *order_arg = NULL;
-
-	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-	switch (ns_sortlist_setup(client->view->sortlist, env, &netaddr,
-				  &order_arg))
-	{
-	case NS_SORTLISTTYPE_1ELEMENT:
-		elt = order_arg;
-		dns_message_setsortorder(client->message,
-					 query_sortlist_order_1element, env,
-					 NULL, elt);
-		break;
-	case NS_SORTLISTTYPE_2ELEMENT:
-		acl = order_arg;
-		dns_message_setsortorder(client->message,
-					 query_sortlist_order_2element, env,
-					 acl, NULL);
-		dns_acl_detach(&acl);
-		break;
-	case NS_SORTLISTTYPE_NONE:
-		break;
-	default:
-		UNREACHABLE();
-	}
-}
-
-/*
  * When sending a referral, if the answer to the question is
  * in the glue, sort it to the start of the additional section.
  */
@@ -11582,13 +11486,11 @@ ns_query_done(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * We are done.  Set up sortlist data for the message
-	 * rendering code, sort the answer to the front of the
+	 * We are done. Sort the answer to the front of the
 	 * additional section if necessary, make a final tweak
 	 * to the AA bit if the auth-nxdomain config option
 	 * says so, then render and send the response.
 	 */
-	query_setup_sortlist(qctx);
 	query_glueanswer(qctx);
 
 	if (qctx->client->message->rcode == dns_rcode_nxdomain &&
