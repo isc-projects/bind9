@@ -14590,10 +14590,16 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		/*
 		 * Output the DNSSEC status of the key and signing policy.
 		 */
+		isc_result_t r;
 		LOCK(&kasp->lock);
-		dns_keymgr_status(kasp, &keys, now, &output[0], sizeof(output));
+		r = dns_keymgr_status(kasp, &keys, now, &output[0],
+				      sizeof(output));
 		UNLOCK(&kasp->lock);
 		CHECK(putstr(text, output));
+		if (r != ISC_R_SUCCESS) {
+			CHECK(putstr(text,
+				     "\n\nStatus output is truncated..."));
+		}
 	} else if (checkds) {
 		/*
 		 * Mark DS record has been seen, so it may move to the

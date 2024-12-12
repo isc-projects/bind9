@@ -61,7 +61,7 @@
 					ISC_LOG_DEBUG(3),                      \
 					"keymgr: DNSKEY %s (%s) initialize "   \
 					"%s state to %s (policy %s)",          \
-					keystr, keymgr_keyrole((key)),         \
+					keystr, keymgr_keyrole(key),           \
 					keystatetags[state],                   \
 					keystatestrings[target],               \
 					dns_kasp_getname(kasp));               \
@@ -2397,36 +2397,38 @@ dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 			      true);
 }
 
-static void
+static isc_result_t
 keytime_status(dst_key_t *key, isc_stdtime_t now, isc_buffer_t *buf,
 	       const char *pre, int ks, int kt) {
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
-	isc_result_t ret;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t when = 0;
 	dst_key_state_t state = NA;
 
-	isc_buffer_printf(buf, "%s", pre);
+	RETERR(isc_buffer_printf(buf, "%s", pre));
 	(void)dst_key_getstate(key, ks, &state);
-	ret = dst_key_gettime(key, kt, &when);
+	isc_result_t r = dst_key_gettime(key, kt, &when);
 	if (state == RUMOURED || state == OMNIPRESENT) {
-		isc_buffer_printf(buf, "yes - since ");
+		RETERR(isc_buffer_printf(buf, "yes - since "));
 	} else if (now < when) {
-		isc_buffer_printf(buf, "no  - scheduled ");
+		RETERR(isc_buffer_printf(buf, "no  - scheduled "));
 	} else {
-		isc_buffer_printf(buf, "no\n");
-		return;
+		return isc_buffer_printf(buf, "no\n");
 	}
-	if (ret == ISC_R_SUCCESS) {
+	if (r == ISC_R_SUCCESS) {
 		isc_stdtime_tostring(when, timestr, sizeof(timestr));
-		isc_buffer_printf(buf, "%s\n", timestr);
+		RETERR(isc_buffer_printf(buf, "%s\n", timestr));
 	}
+
+failure:
+	return result;
 }
 
-static void
+static isc_result_t
 rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 		isc_buffer_t *buf, bool zsk) {
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
-	isc_result_t ret = ISC_R_SUCCESS;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t active_time = 0;
 	dst_key_state_t state = NA, goal = NA;
 	int rrsig, active, retire;
@@ -2442,14 +2444,14 @@ rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 		retire = DST_TIME_DELETE;
 	}
 
-	isc_buffer_printf(buf, "\n");
+	RETERR(isc_buffer_printf(buf, "\n"));
 
 	(void)dst_key_getstate(key, DST_KEY_GOAL, &goal);
 	(void)dst_key_getstate(key, rrsig, &state);
 	(void)dst_key_gettime(key, active, &active_time);
 	if (active_time == 0) {
 		// only interested in keys that were once active.
-		return;
+		return ISC_R_SUCCESS;
 	}
 
 	if (goal == HIDDEN && (state == UNRETENTIVE || state == HIDDEN)) {
@@ -2458,79 +2460,89 @@ rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 		state = NA;
 		(void)dst_key_getstate(key, DST_KEY_DNSKEY, &state);
 		if (state == RUMOURED || state == OMNIPRESENT) {
-			ret = dst_key_gettime(key, DST_TIME_DELETE,
-					      &remove_time);
-			if (ret == ISC_R_SUCCESS) {
-				isc_buffer_printf(buf, "  Key is retired, will "
-						       "be removed on ");
+			result = dst_key_gettime(key, DST_TIME_DELETE,
+						 &remove_time);
+			if (result == ISC_R_SUCCESS) {
+				RETERR(isc_buffer_printf(
+					buf, "  Key is retired, will be "
+					     "removed on "));
 				isc_stdtime_tostring(remove_time, timestr,
 						     sizeof(timestr));
-				isc_buffer_printf(buf, "%s", timestr);
+				RETERR(isc_buffer_printf(buf, "%s", timestr));
 			}
 		} else {
-			isc_buffer_printf(
-				buf, "  Key has been removed from the zone");
+			RETERR(isc_buffer_printf(buf, "  Key has been removed "
+						      "from the zone"));
 		}
 	} else {
 		isc_stdtime_t retire_time = 0;
-		ret = dst_key_gettime(key, retire, &retire_time);
-		if (ret == ISC_R_SUCCESS) {
+		result = dst_key_gettime(key, retire, &retire_time);
+		if (result == ISC_R_SUCCESS) {
 			if (now < retire_time) {
 				if (goal == OMNIPRESENT) {
-					isc_buffer_printf(buf,
-							  "  Next rollover "
-							  "scheduled on ");
+					RETERR(isc_buffer_printf(
+						buf, "  Next rollover "
+						     "scheduled on "));
 					retire_time = keymgr_prepublication_time(
 						dkey, kasp,
 						(retire_time - active_time),
 						now);
 				} else {
-					isc_buffer_printf(
-						buf, "  Key will retire on ");
+					RETERR(isc_buffer_printf(
+						buf, "  Key will retire on "));
 				}
 			} else {
-				isc_buffer_printf(buf,
-						  "  Rollover is due since ");
+				RETERR(isc_buffer_printf(buf, "  Rollover is "
+							      "due since "));
 			}
 			isc_stdtime_tostring(retire_time, timestr,
 					     sizeof(timestr));
-			isc_buffer_printf(buf, "%s", timestr);
+			RETERR(isc_buffer_printf(buf, "%s", timestr));
 		} else {
-			isc_buffer_printf(buf, "  No rollover scheduled");
+			RETERR(isc_buffer_printf(buf,
+						 "  No rollover scheduled"));
 		}
 	}
-	isc_buffer_printf(buf, "\n");
+	RETERR(isc_buffer_printf(buf, "\n"));
+
+failure:
+	return result;
 }
 
-static void
+static isc_result_t
 keystate_status(dst_key_t *key, isc_buffer_t *buf, const char *pre, int ks) {
 	dst_key_state_t state = NA;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	(void)dst_key_getstate(key, ks, &state);
 	switch (state) {
 	case HIDDEN:
-		isc_buffer_printf(buf, "  - %shidden\n", pre);
+		RETERR(isc_buffer_printf(buf, "  - %shidden\n", pre));
 		break;
 	case RUMOURED:
-		isc_buffer_printf(buf, "  - %srumoured\n", pre);
+		RETERR(isc_buffer_printf(buf, "  - %srumoured\n", pre));
 		break;
 	case OMNIPRESENT:
-		isc_buffer_printf(buf, "  - %somnipresent\n", pre);
+		RETERR(isc_buffer_printf(buf, "  - %somnipresent\n", pre));
 		break;
 	case UNRETENTIVE:
-		isc_buffer_printf(buf, "  - %sunretentive\n", pre);
+		RETERR(isc_buffer_printf(buf, "  - %sunretentive\n", pre));
 		break;
 	case NA:
 	default:
 		/* print nothing */
 		break;
 	}
+
+failure:
+	return result;
 }
 
-void
+isc_result_t
 dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		  isc_stdtime_t now, char *out, size_t out_len) {
 	isc_buffer_t buf;
+	isc_result_t result = ISC_R_SUCCESS;
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 
 	REQUIRE(DNS_KASP_VALID(kasp));
@@ -2540,17 +2552,17 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	isc_buffer_init(&buf, out, out_len);
 
 	// policy name
-	isc_buffer_printf(&buf, "dnssec-policy: %s\n", dns_kasp_getname(kasp));
-	isc_buffer_printf(&buf, "current time:  ");
+	RETERR(isc_buffer_printf(&buf, "dnssec-policy: %s\n",
+				 dns_kasp_getname(kasp)));
+	RETERR(isc_buffer_printf(&buf, "current time:  "));
 	isc_stdtime_tostring(now, timestr, sizeof(timestr));
-	isc_buffer_printf(&buf, "%s\n", timestr);
+	RETERR(isc_buffer_printf(&buf, "%s\n", timestr));
 
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
 		char algstr[DNS_NAME_FORMATSIZE];
 		bool ksk = false, zsk = false;
-		isc_result_t ret;
 
 		if (dst_key_is_unused(dkey->key)) {
 			continue;
@@ -2559,44 +2571,48 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		// key data
 		dns_secalg_format((dns_secalg_t)dst_key_alg(dkey->key), algstr,
 				  sizeof(algstr));
-		isc_buffer_printf(&buf, "\nkey: %d (%s), %s\n",
-				  dst_key_id(dkey->key), algstr,
-				  keymgr_keyrole(dkey->key));
+		RETERR(isc_buffer_printf(&buf, "\nkey: %d (%s), %s\n",
+					 dst_key_id(dkey->key), algstr,
+					 keymgr_keyrole(dkey->key)));
 
 		// publish status
-		keytime_status(dkey->key, now, &buf,
-			       "  published:      ", DST_KEY_DNSKEY,
-			       DST_TIME_PUBLISH);
+		RETERR(keytime_status(dkey->key, now, &buf,
+				      "  published:      ", DST_KEY_DNSKEY,
+				      DST_TIME_PUBLISH));
 
 		// signing status
-		ret = dst_key_getbool(dkey->key, DST_BOOL_KSK, &ksk);
-		if (ret == ISC_R_SUCCESS && ksk) {
-			keytime_status(dkey->key, now, &buf,
-				       "  key signing:    ", DST_KEY_KRRSIG,
-				       DST_TIME_PUBLISH);
+		result = dst_key_getbool(dkey->key, DST_BOOL_KSK, &ksk);
+		if (result == ISC_R_SUCCESS && ksk) {
+			RETERR(keytime_status(
+				dkey->key, now, &buf, "  key signing:    ",
+				DST_KEY_KRRSIG, DST_TIME_PUBLISH));
 		}
-		ret = dst_key_getbool(dkey->key, DST_BOOL_ZSK, &zsk);
-		if (ret == ISC_R_SUCCESS && zsk) {
-			keytime_status(dkey->key, now, &buf,
-				       "  zone signing:   ", DST_KEY_ZRRSIG,
-				       DST_TIME_ACTIVATE);
+		result = dst_key_getbool(dkey->key, DST_BOOL_ZSK, &zsk);
+		if (result == ISC_R_SUCCESS && zsk) {
+			RETERR(keytime_status(
+				dkey->key, now, &buf, "  zone signing:   ",
+				DST_KEY_ZRRSIG, DST_TIME_ACTIVATE));
 		}
 
 		// rollover status
-		rollover_status(dkey, kasp, now, &buf, zsk);
+		RETERR(rollover_status(dkey, kasp, now, &buf, zsk));
 
 		// key states
-		keystate_status(dkey->key, &buf,
-				"goal:           ", DST_KEY_GOAL);
-		keystate_status(dkey->key, &buf,
-				"dnskey:         ", DST_KEY_DNSKEY);
-		keystate_status(dkey->key, &buf,
-				"ds:             ", DST_KEY_DS);
-		keystate_status(dkey->key, &buf,
-				"zone rrsig:     ", DST_KEY_ZRRSIG);
-		keystate_status(dkey->key, &buf,
-				"key rrsig:      ", DST_KEY_KRRSIG);
+		RETERR(keystate_status(dkey->key, &buf,
+				       "goal:           ", DST_KEY_GOAL));
+		RETERR(keystate_status(dkey->key, &buf,
+				       "dnskey:         ", DST_KEY_DNSKEY));
+		RETERR(keystate_status(dkey->key, &buf,
+				       "ds:             ", DST_KEY_DS));
+		RETERR(keystate_status(dkey->key, &buf,
+				       "zone rrsig:     ", DST_KEY_ZRRSIG));
+		RETERR(keystate_status(dkey->key, &buf,
+				       "key rrsig:      ", DST_KEY_KRRSIG));
 	}
+
+failure:
+
+	return result;
 }
 
 isc_result_t
