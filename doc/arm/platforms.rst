@@ -92,7 +92,7 @@ supported platforms.
 
 -  Platforms past or close to their respective EOL dates, such as:
 
-   -  Ubuntu 14.04, 16.04 (Ubuntu ESM releases are not supported)
+   -  Ubuntu 14.04, 16.04, 18.04, 20.04 (Ubuntu ESM releases are not supported)
    -  Red Hat Enterprise Linux / CentOS / Oracle Linux 6, 7
    -  Debian 8 Jessie, 9 Stretch, 10 Buster
    -  FreeBSD 10.x, 11.x
