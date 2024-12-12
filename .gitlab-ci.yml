@@ -113,10 +113,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-amd64"
   <<: *linux_amd64
 
-.ubuntu-focal-amd64: &ubuntu_focal_amd64_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
-  <<: *linux_amd64
-
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
 
@@ -572,7 +568,7 @@ gcc:bionic:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip --with-gssapi"
+    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip --with-gssapi=/usr"
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
 
@@ -588,23 +584,6 @@ unit:gcc:bionic:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:bionic:amd64
-      artifacts: true
-
-# Jobs for regular GCC builds on Ubuntu 20.04 Focal Fossa (amd64)
-
-gcc:focal:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr"
-  <<: *ubuntu_focal_amd64_image
-  <<: *build_job
-
-system:gcc:focal:amd64:
-  <<: *ubuntu_focal_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:focal:amd64
       artifacts: true
 
 # Jobs for builds with ASAN enabled
