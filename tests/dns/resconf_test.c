@@ -32,6 +32,32 @@
 #include <tests/isc.h>
 
 static isc_result_t
+check_nameserver(irs_resconf_t *resconf, const char *expected) {
+	char buf[ISC_SOCKADDR_FORMATSIZE];
+	isc_sockaddrlist_t *servers = irs_resconf_getnameservers(resconf);
+	isc_sockaddr_t *entry = ISC_LIST_HEAD(*servers);
+	assert_true(entry != NULL);
+	isc_sockaddr_format(entry, buf, sizeof(buf));
+	assert_string_equal(buf, expected);
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+check_ns4(irs_resconf_t *resconf) {
+	return check_nameserver(resconf, "10.0.0.1#53");
+}
+
+static isc_result_t
+check_ns6(irs_resconf_t *resconf) {
+	return check_nameserver(resconf, "2001:db8::1#53");
+}
+
+static isc_result_t
+check_scoped(irs_resconf_t *resconf) {
+	return check_nameserver(resconf, "fe80::1%1#53");
+}
+
+static isc_result_t
 check_number(unsigned int n, unsigned int expected) {
 	return (n == expected) ? ISC_R_SUCCESS : ISC_R_BADNUMBER;
 }
@@ -96,44 +122,46 @@ ISC_RUN_TEST_IMPL(irs_resconf_load) {
 		isc_result_t loadres;
 		isc_result_t (*check)(irs_resconf_t *resconf);
 		isc_result_t checkres;
-	} tests[] = {
-		{ "testdata/domain.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
-		{ "testdata/nameserver-v4.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/nameserver-v6.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/nameserver-v6-scoped.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/options-attempts.conf", ISC_R_SUCCESS,
-		  check_attempts, ISC_R_SUCCESS },
-		{ "testdata/options-debug.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/options-ndots.conf", ISC_R_SUCCESS, check_ndots,
-		  ISC_R_SUCCESS },
-		{ "testdata/options-timeout.conf", ISC_R_SUCCESS, check_timeout,
-		  ISC_R_SUCCESS },
-		{ "testdata/options-unknown.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/options.conf", ISC_R_SUCCESS, check_options,
-		  ISC_R_SUCCESS },
-		{ "testdata/options-bad-ndots.conf", ISC_R_RANGE, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/options-empty.conf", ISC_R_UNEXPECTEDEND, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/port.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
-		{ "testdata/resolv.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
-		{ "testdata/search.conf", ISC_R_SUCCESS, search_example,
-		  ISC_R_SUCCESS },
-		{ "testdata/sortlist-v4.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/timeout.conf", ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
-		{ "testdata/unknown-with-value.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/unknown-without-value.conf", ISC_R_SUCCESS, NULL,
-		  ISC_R_SUCCESS },
-		{ "testdata/unknown+search.conf", ISC_R_SUCCESS, search_example,
-		  ISC_R_SUCCESS }
-	};
+	} tests[] = { { "testdata/resconf/domain.conf", ISC_R_SUCCESS, NULL,
+			ISC_R_SUCCESS },
+		      { "testdata/resconf/nameserver-v4.conf", ISC_R_SUCCESS,
+			check_ns4, ISC_R_SUCCESS },
+		      { "testdata/resconf/nameserver-v6.conf", ISC_R_SUCCESS,
+			check_ns6, ISC_R_SUCCESS },
+		      { "testdata/resconf/nameserver-v6-scoped.conf",
+			ISC_R_SUCCESS, check_scoped, ISC_R_SUCCESS },
+		      { "testdata/resconf/options-attempts.conf", ISC_R_SUCCESS,
+			check_attempts, ISC_R_SUCCESS },
+		      { "testdata/resconf/options-debug.conf", ISC_R_SUCCESS,
+			NULL, ISC_R_SUCCESS },
+		      { "testdata/resconf/options-ndots.conf", ISC_R_SUCCESS,
+			check_ndots, ISC_R_SUCCESS },
+		      { "testdata/resconf/options-timeout.conf", ISC_R_SUCCESS,
+			check_timeout, ISC_R_SUCCESS },
+		      { "testdata/resconf/options-unknown.conf", ISC_R_SUCCESS,
+			NULL, ISC_R_SUCCESS },
+		      { "testdata/resconf/options.conf", ISC_R_SUCCESS,
+			check_options, ISC_R_SUCCESS },
+		      { "testdata/resconf/options-bad-ndots.conf", ISC_R_RANGE,
+			NULL, ISC_R_SUCCESS },
+		      { "testdata/resconf/options-empty.conf",
+			ISC_R_UNEXPECTEDEND, NULL, ISC_R_SUCCESS },
+		      { "testdata/resconf/port.conf", ISC_R_SUCCESS, NULL,
+			ISC_R_SUCCESS },
+		      { "testdata/resconf/resolv.conf", ISC_R_SUCCESS, NULL,
+			ISC_R_SUCCESS },
+		      { "testdata/resconf/search.conf", ISC_R_SUCCESS,
+			search_example, ISC_R_SUCCESS },
+		      { "testdata/resconf/sortlist-v4.conf", ISC_R_SUCCESS,
+			NULL, ISC_R_SUCCESS },
+		      { "testdata/resconf/timeout.conf", ISC_R_SUCCESS, NULL,
+			ISC_R_SUCCESS },
+		      { "testdata/resconf/unknown-with-value.conf",
+			ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		      { "testdata/resconf/unknown-without-value.conf",
+			ISC_R_SUCCESS, NULL, ISC_R_SUCCESS },
+		      { "testdata/resconf/unknown+search.conf", ISC_R_SUCCESS,
+			search_example, ISC_R_SUCCESS } };
 
 	UNUSED(state);
 
