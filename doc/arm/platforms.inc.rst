@@ -90,7 +90,7 @@ supported platforms.
    -  Ubuntu 14.04, 16.04, 18.04, 20.04 (Ubuntu ESM releases are not supported)
    -  Red Hat Enterprise Linux / CentOS / Oracle Linux 6, 7
    -  Debian 8 Jessie, 9 Stretch, 10 Buster, 11 Bullseye
-   -  FreeBSD 10.x, 11.x
+   -  FreeBSD 10.x, 11.x, 12.x
 
 -  Less common CPU architectures (i386, i686, mips, mipsel, sparc, ppc, and others)
 
