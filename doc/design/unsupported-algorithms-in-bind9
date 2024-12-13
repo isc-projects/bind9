@@ -62,8 +62,7 @@ BIND 9 also does not allow unsupported algorithms to be used with `auto-dnssec`:
 A validator has more possible interactions with unsupported algorithms:
 
   * a key using one of these algorithms may be configured as a trust anchor,
-  * a DLV record for such a key may be placed in a DLV zone.
-  * upstream answers may contain signatures using such algorithms,
+  * upstream answers may contain signatures using such algorithms.
 
 ### Disabled algorithms
 
@@ -98,38 +97,6 @@ algorithms were not ignored and that lead to SERVFAILs for associated domains.
 This behavior has changed to be more consistent with unsupported algorithms:
 BIND 9 will ignore such trust anchors, and responses for those domains will
 now be treated as insecure.
-
-### DLV
-
-If a DLV record in a DLV zone points to a DNSKEY using an unsupported algorithm
-or an algorithm which has been disabled for the relevant part of the tree using
-a `disable-algorithms` clause in `named.conf`, the corresponding zone will be
-treated as insecure.
-
-However, if the trust anchor specified for the DLV zone itself uses an
-unsupported or disabled algorithm, no DLV record in that DLV zone can be
-treated as secure and thus attempts to resolve names in the domains pointed to
-by the records in that DLV zone will yield SERVFAIL responses.  Consider the
-following example:
-
-    trust-anchors {
-        "dlv.example." static-key 257 3 1 ...;
-    };
-
-    options {
-        ...
-        dnssec-lookaside "foo." trust-anchor "dlv.example";
-    };
-
-The example above specifies a DLV trust anchor using the RSAMD5 algorithm
-(algorithm number 1), which effectively prevents resolution of data in any zone
-at and below `foo.` that is listed in `dlv.example` (and does not have a valid,
-non-DLV chain of trust established otherwise).  This outcome is different than
-for a trust anchor which uses an unsupported or disabled algorithm and is not
-associated with a `dnssec-lookaside` clause; the reason for this is that in the
-case of a DLV-referenced, unusable key, the trust point is still defined, but
-has no keys associated with it, whereas non-DLV-referenced, unusable keys are
-ignored altogether and do not cause an associated trust point to be defined.
 
 ### Algorithm rollover
 

@@ -228,7 +228,6 @@ usage(void) {
 		"                 +[no]crypto         (Control display of "
 		"cryptographic\n"
 		"                                      fields in records)\n"
-		"                 +[no]dlv            (Obsolete)\n"
 		"                 +[no]dnssec         (Display DNSSEC "
 		"records)\n"
 		"                 +[no]mtrace         (Trace messages "
@@ -1125,14 +1124,6 @@ plus_option(char *option) {
 		break;
 	case 'd':
 		switch (cmd[1]) {
-		case 'l': /* dlv */
-			FULLCHECK("dlv");
-			if (state) {
-				fprintf(stderr, "Invalid option: "
-						"+dlv is obsolete\n");
-				exit(EXIT_FAILURE);
-			}
-			break;
 		case 'n': /* dnssec */
 			FULLCHECK("dnssec");
 			showdnssec = state;

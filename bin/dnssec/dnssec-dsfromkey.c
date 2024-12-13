@@ -381,7 +381,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = false;
 
-#define OPTIONS "12Aa:Cc:d:Ff:K:l:sT:v:whV"
+#define OPTIONS "12Aa:Cc:d:Ff:K:sT:v:whV"
 	while ((ch = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
 		switch (ch) {
 		case '1':
@@ -416,9 +416,6 @@ main(int argc, char **argv) {
 			break;
 		case 'f':
 			filename = isc_commandline_argument;
-			break;
-		case 'l':
-			fatal("-l option (DLV lookaside) is obsolete");
 			break;
 		case 's':
 			usekeyset = true;
