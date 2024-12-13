@@ -2568,9 +2568,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 		return result;
 	}
 
-	if (name != NULL) {
-		*name = foundname;
-	}
+	SET_IF_NOT_NULL(name, foundname);
 
 	/*
 	 * And now look for the type.

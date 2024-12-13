@@ -565,7 +565,13 @@ clang-format:
     when: on_failure
 
 coccinelle:
-  <<: *precheck_job
+  ######################################################################
+  # Revert to using the "precheck_job" anchor after the "base" image is
+  # upgraded to Debian trixie, which has Coccinelle 1.2.
+  <<: *default_triggering_rules
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  ######################################################################
   needs: []
   script:
     - util/check-cocci
