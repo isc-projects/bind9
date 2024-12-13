@@ -460,9 +460,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	dns_secalg_t alg;
 	isc_stdtime_t now = isc_stdtime_now();
 
-	if (exact != NULL) {
-		*exact = false;
-	}
+	SET_IF_NOT_NULL(exact, false);
 
 	id = dst_key_id(dstkey);
 	rid = dst_key_rid(dstkey);
