@@ -364,8 +364,8 @@ file documentation:
     ``portrange``
         A list of a :term:`port` or a port range. A port range is specified in the form of ``range`` followed by two :term:`port` s, ``port_low`` and ``port_high``, which represents port numbers from ``port_low`` through ``port_high``, inclusive. ``port_low`` must not be larger than ``port_high``. For example, ``range 1024 65535`` represents ports from 1024 through 65535. The asterisk (``*``) character is not allowed as a valid :term:`port` or as a port range boundary.
 
-    ``remote-servers``
-        A named list of one or more :term:`ip_address` es with optional :term:`tls_id`, :term:`server_key`, and/or :term:`port`. A ``remote-servers`` list may include other ``remote-servers`` lists. See :any:`primaries` block.
+    ``server-list``
+        A named list of one or more :term:`ip_address` es with optional :term:`tls_id`, :term:`server_key`, and/or :term:`port`. A ``server-list`` list may include other ``server-list`` lists.
 
     ``server_key``
         A :term:`domain_name` representing the name of a shared key, to be used for
@@ -413,17 +413,11 @@ The following blocks are supported:
     :any:`logging`
         Specifies what information the server logs and where the log messages are sent.
 
-    ``masters``
-        Synonym for :any:`primaries`.
-
     :namedconf:ref:`options`
         Controls global server configuration options and sets defaults for other statements.
 
-    :any:`parental-agents`
-        Defines a named list of servers for inclusion in primary and secondary zones' :any:`parental-agents` lists.
-
-    :any:`primaries`
-        Defines a named list of servers for inclusion in stub and secondary zones' :any:`primaries` or :any:`also-notify` lists. (Note: this is a synonym for the original keyword ``masters``, which can still be used, but is no longer the preferred terminology.)
+    :namedconf:ref:`remote-servers`
+        Defines a named list of servers for inclusion in various zone statements such as :any:`parental-agents`, :any:`primaries` or :any:`also-notify` lists.
 
     :namedconf:ref:`server`
         Sets certain configuration options on a per-server basis.
@@ -1051,34 +1045,20 @@ At ``debug`` level 4 or higher, the detailed context information logged at
 ``debug`` level 2 is logged for errors other than SERVFAIL and for negative
 responses such as NXDOMAIN.
 
-:any:`parental-agents` Block Grammar
+``remote-servers`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. namedconf:statement:: parental-agents
-   :tags: zone
-   :short: Defines a list of delegation agents to be used by primary and secondary zones.
+.. namedconf:statement:: remote-servers
+   :tags: server
+   :short: Defines a list of servers to be used by primary and secondary zones.
 
-:any:`parental-agents` Block Definition and Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This specifies a list that allows for a common set of servers to be easily used
+by multiple zones. The following options may reference to a list of
+remote servers: :any:`parental-agents`, :any:`primaries`, and :any:`also-notify`.
 
-:any:`parental-agents` lists allow for a common set of parental agents to be
-easily used by multiple primary and secondary zones. A "parental agent" is a
-trusted DNS server that is queried to check whether DS records for a given zones
-are up-to-date.
+A "parental agent" is a trusted DNS server that is queried to check whether DS
+records for a given zones are up-to-date.
 
-:any:`primaries` Block Grammar
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. namedconf:statement:: primaries
-   :tags: zone
-   :short: Defines one or more primary servers for a zone.
-
-:any:`primaries` Block Definition and Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-:any:`primaries` lists allow for a common set of primary servers to be easily
-used by multiple stub and secondary zones in their :any:`primaries` or
-:any:`also-notify` lists. (Note: :any:`primaries` is a synonym for the original
-keyword ``masters``, which can still be used, but is no longer the
-preferred terminology.)
+A "primary server" is where a secondary server can request zone transfers from.
 
 To force the zone transfer requests to be sent over TLS, use :any:`tls` keyword,
 e.g. ``primaries { 192.0.2.1 tls tls-configuration-name; };``,
@@ -3519,6 +3499,19 @@ options apply to zone transfers.
    are subject to a separate rate limit; see below.) The default is 20
    per second. The lowest possible rate is one per second; when set to
    zero, it is silently raised to one.
+
+.. namedconf:statement:: primaries
+   :tags: transfer, zone
+   :short: Defines one or more servers that zone transfer can be requested from.
+
+   This specifies a list of one or more IP addresses of primary servers that
+   the secondary contacts to update its copy of the zone. Primaries list
+   elements can also be names of :any:`remote-servers` blocks.
+
+   By default, transfers are made from port 53 on the servers; this can be
+   changed for all servers by specifying a port number before the list of IP
+   addresses, or on a per-server basis after the IP address. Authentication to
+   the primary can also be done with per-server TSIG keys.
 
 .. namedconf:statement:: startup-notify-rate
    :tags: transfer, zone
@@ -6753,6 +6746,18 @@ old DNSSEC key.
       trust relationship with the parental agent. For example, use TSIG to
       authenticate the parental agent, or point to a validating resolver.
 
+.. namedconf:statement:: parental-agents
+   :tags: dnssec
+
+   This specifies a list of one or more IP addresses of parental agents that
+   are used to query the zone's DS records during a KSK rollover. The list of
+   parental agents can also contain the names of :any:`remote-servers` blocks.
+
+   By default, DS queries are sent from port 53 on the servers; this can be
+   changed for all servers by specifying a port number before the list of IP
+   addresses, or on a per-server basis after the IP address. Authentication to
+   the primary can also be done with per-server TSIG keys.
+
 The following options apply to DS queries sent to :any:`parental-agents`:
 
 .. namedconf:statement:: checkds
@@ -6970,33 +6975,22 @@ Zone Types
    :tags: zone
    :short: Contains a duplicate of the data for a zone that has been transferred from a primary server.
 
-    A secondary zone is a replica of a primary zone. Type ``slave`` is a
-    synonym for :any:`secondary <type secondary>`. The :any:`primaries` list specifies one or more IP
-    addresses of primary servers that the secondary contacts to update
-    its copy of the zone. Primaries list elements can
-    also be names of other primaries lists. By default,
-    transfers are made from port 53 on the servers;
-    this can be changed for all servers by specifying
-    a port number before the list of IP addresses,
-    or on a per-server basis after the IP address.
-    Authentication to the primary can also be done with
-    per-server TSIG keys.  If a file is specified, then the
-    replica is written to this file
-    whenever the zone
-    is changed, and reloaded from this file on a server
-    restart. Use of a file is recommended, since it
-    often speeds server startup and eliminates a
-    needless waste of bandwidth. Note that for large
-    numbers (in the tens or hundreds of thousands) of
-    zones per server, it is best to use a two-level
-    naming scheme for zone filenames. For example,
-    a secondary server for the zone
-    ``example.com`` might place
-    the zone contents into a file called
-    ``ex/example.com``, where
-    ``ex/`` is just the first two
-    letters of the zone name. (Most operating systems
-    behave very slowly if there are 100,000 files in a single directory.)
+   A secondary zone is a replica of a primary zone. Type ``slave`` is a
+   synonym for :any:`secondary <type secondary>`. The :any:`primaries` list
+   specifies one or more IP addresses of primary servers that the secondary
+   contacts to update its copy of the zone.
+
+   If a file is
+   specified, then the replica is written to this file whenever the zone
+   is changed, and reloaded from this file on a server restart. Use of a file
+   is recommended, since it often speeds server startup and eliminates a
+   needless waste of bandwidth. Note that for large numbers (in the tens or
+   hundreds of thousands) of zones per server, it is best to use a two-level
+   naming scheme for zone filenames. For example, a secondary server for the
+   zone ``example.com`` might place the zone contents into a file called
+   ``ex/example.com``, where ``ex/`` is just the first two letters of the zone
+   name. (Most operating systems behave very slowly if there are 100,000 files
+   in a single directory.)
 
 .. namedconf:statement:: type mirror
    :tags: zone
@@ -7366,6 +7360,15 @@ Zone Options
 
 :any:`notify-to-soa`
    See the description of :any:`notify-to-soa` in :ref:`boolean_options`.
+
+:any:`parental-agents`
+   This option is only meaningful if the zone is DNSSEC signed. When performing
+   a key rollover, BIND will query the parental agents to see if the new DS is
+   actually published before withdrawing the old DNSSEC key.
+
+:any:`primaries`
+   For secondary zones, these are the name servers to request zone transfers
+   from.
 
 :any:`zone-statistics`
    See the description of :any:`zone-statistics` in :namedconf:ref:`options`.

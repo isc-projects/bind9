@@ -235,9 +235,9 @@ static cfg_tuplefielddef_t remotes_fields[] = {
 	{ NULL, NULL, 0 }
 };
 
-static cfg_type_t cfg_type_remoteservers = { "remote-servers", cfg_parse_tuple,
-					     cfg_print_tuple,  cfg_doc_tuple,
-					     &cfg_rep_tuple,   remotes_fields };
+static cfg_type_t cfg_type_serverlist = { "server-list",   cfg_parse_tuple,
+					  cfg_print_tuple, cfg_doc_tuple,
+					  &cfg_rep_tuple,  remotes_fields };
 
 /*%
  * "sockaddrkeylist", a list of socket addresses with optional keys
@@ -1257,11 +1257,14 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "key-store", &cfg_type_keystore, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
 	{ "lwres", NULL, CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
-	{ "masters", &cfg_type_remoteservers,
+	{ "masters", &cfg_type_serverlist,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
 	{ "options", &cfg_type_options, 0 },
-	{ "parental-agents", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
-	{ "primaries", &cfg_type_remoteservers, CFG_CLAUSEFLAG_MULTI },
+	{ "parental-agents", &cfg_type_serverlist,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
+	{ "primaries", &cfg_type_serverlist,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NODOC },
+	{ "remote-servers", &cfg_type_serverlist, CFG_CLAUSEFLAG_MULTI },
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 	{ "statistics-channels", &cfg_type_statschannels,
 	  CFG_CLAUSEFLAG_MULTI },
@@ -3973,7 +3976,7 @@ static void
 doc_remoteselement(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
 	cfg_print_cstr(pctx, "( ");
-	cfg_print_cstr(pctx, "<remote-servers>");
+	cfg_print_cstr(pctx, "<server-list>");
 	cfg_print_cstr(pctx, " | ");
 	cfg_print_cstr(pctx, "<ipv4_address>");
 	cfg_print_cstr(pctx, " ");

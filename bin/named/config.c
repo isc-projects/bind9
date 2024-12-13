@@ -335,7 +335,7 @@ dnssec-policy \"insecure\" {\n\
 
 			    "# END TRUST ANCHORS\n\
 \n\
-primaries " DEFAULT_IANA_ROOT_ZONE_PRIMARIES " {\n\
+remote-servers " DEFAULT_IANA_ROOT_ZONE_PRIMARIES " {\n\
 	2801:1b8:10::b;		# b.root-servers.net\n\
 	2001:500:2::c;		# c.root-servers.net\n\
 	2001:500:2f::f;		# f.root-servers.net\n\
@@ -507,9 +507,9 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 	return ztype;
 }
 
-static isc_result_t
-getremotesdef(const cfg_obj_t *cctx, const char *list, const char *name,
-	      const cfg_obj_t **ret) {
+isc_result_t
+named_config_getremotesdef(const cfg_obj_t *cctx, const char *list,
+			   const char *name, const cfg_obj_t **ret) {
 	isc_result_t result;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt;
@@ -532,23 +532,6 @@ getremotesdef(const cfg_obj_t *cctx, const char *list, const char *name,
 			return ISC_R_SUCCESS;
 		}
 		elt = cfg_list_next(elt);
-	}
-	return ISC_R_NOTFOUND;
-}
-
-isc_result_t
-named_config_getremotesdef(const cfg_obj_t *cctx, const char *list,
-			   const char *name, const cfg_obj_t **ret) {
-	isc_result_t result;
-
-	if (strcmp(list, "parental-agents") == 0) {
-		return getremotesdef(cctx, list, name, ret);
-	} else if (strcmp(list, "primaries") == 0) {
-		result = getremotesdef(cctx, list, name, ret);
-		if (result != ISC_R_SUCCESS) {
-			result = getremotesdef(cctx, "masters", name, ret);
-		}
-		return result;
 	}
 	return ISC_R_NOTFOUND;
 }
@@ -601,10 +584,12 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 		oldlen = newlen;                                    \
 	}
 
+static const char *remotesnames[4] = { "remote-servers", "parental-agents",
+				       "primaries", "masters" };
+
 isc_result_t
-named_config_getipandkeylist(const cfg_obj_t *config, const char *listtype,
-			     const cfg_obj_t *list, isc_mem_t *mctx,
-			     dns_ipkeylist_t *ipkl) {
+named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
+			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 	uint32_t addrcount = 0, srccount = 0;
 	uint32_t keycount = 0, tlscount = 0;
 	uint32_t listcount = 0, l = 0, i = 0;
@@ -687,8 +672,6 @@ newlist:
 		isc_sockaddr_any6(&src6);
 	}
 
-	result = ISC_R_NOMEMORY;
-
 	element = cfg_list_first(addrlist);
 resume:
 	for (; element != NULL; element = cfg_list_next(element)) {
@@ -719,17 +702,22 @@ resume:
 				continue;
 			}
 			list = NULL;
-			tresult = named_config_getremotesdef(config, listtype,
-							     listname, &list);
+			tresult = ISC_R_NOTFOUND;
+			for (size_t n = 0; n < ARRAY_SIZE(remotesnames); n++) {
+				tresult = named_config_getremotesdef(
+					config, remotesnames[n], listname,
+					&list);
+				if (tresult == ISC_R_SUCCESS) {
+					break;
+				}
+			}
 			if (tresult == ISC_R_NOTFOUND) {
 				cfg_obj_log(addr, named_g_lctx, ISC_LOG_ERROR,
-					    "%s \"%s\" not found", listtype,
+					    "remote-servers \"%s\" not found",
 					    listname);
-
-				result = tresult;
-				goto cleanup;
 			}
 			if (tresult != ISC_R_SUCCESS) {
+				result = tresult;
 				goto cleanup;
 			}
 			lists[l++].name = listname;
