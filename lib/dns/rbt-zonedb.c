@@ -2097,6 +2097,7 @@ new_gluelist(isc_mem_t *mctx, dns_name_t *name) {
 	*glue = (dns_glue_t){ 0 };
 	dns_name_t *gluename = dns_fixedname_initname(&glue->fixedname);
 
+	isc_mem_attach(mctx, &glue->mctx);
 	dns_name_copy(name, gluename);
 
 	return glue;
@@ -2310,12 +2311,12 @@ addglue_to_message(dns_glue_t *ge, dns_message_t *msg) {
 }
 
 static dns_glue_t *
-newglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rbtnode_t *node,
-	dns_rdataset_t *rdataset) {
+newglue(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *rbtversion,
+	dns_rbtnode_t *node, dns_rdataset_t *rdataset) {
 	dns_fixedname_t nodename;
 	dns_glue_additionaldata_ctx_t ctx = {
-		.db = db,
-		.version = dbversion,
+		.db = (dns_db_t *)rbtdb,
+		.version = (dns_dbversion_t *)rbtversion,
 		.nodename = dns_fixedname_initname(&nodename),
 	};
 
@@ -2325,7 +2326,7 @@ newglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rbtnode_t *node,
 	 * determining which NS records in the delegation are
 	 * in-bailiwick).
 	 */
-	dns__rbtdb_nodefullname(db, node, ctx.nodename);
+	dns__rbtdb_nodefullname((dns_db_t *)rbtdb, node, ctx.nodename);
 
 	(void)dns_rdataset_additionaldata(rdataset, dns_rootname,
 					  glue_nsdname_cb, &ctx);
@@ -2333,117 +2334,60 @@ newglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rbtnode_t *node,
 	return ctx.glue_list;
 }
 
-/* FIXME: Perhaps we can squash dns_gluenode_t with
- * dns_glue_additionaldata_ctx_t */
-
-static dns_gluenode_t *
-new_gluenode(dns_db_t *db, dns_dbversion_t *dbversion, dns_rbtnode_t *node,
-	     dns_rdataset_t *rdataset) {
-	dns_gluenode_t *gluenode = isc_mem_get(db->mctx, sizeof(*gluenode));
-	*gluenode = (dns_gluenode_t){
-		.glue = newglue(db, dbversion, node, rdataset),
-		.db = db,
-	};
-
-	isc_mem_attach(db->mctx, &gluenode->mctx);
-	dns_db_attachnode(db, node, (dns_dbnode_t **)&gluenode->node);
-
-	return gluenode;
-}
-
-static uint32_t
-rbtnode_hash(const dns_rbtnode_t *node) {
-	return isc_hash32(&node, sizeof(node), true);
-}
-
-static int
-rbtnode_match(struct cds_lfht_node *ht_node, const void *key) {
-	const dns_gluenode_t *gluenode =
-		caa_container_of(ht_node, dns_gluenode_t, ht_node);
-	const dns_rbtnode_t *node = key;
-
-	return gluenode->node == node;
-}
-
-static uint32_t
-gluenode_hash(const dns_gluenode_t *gluenode) {
-	return rbtnode_hash(gluenode->node);
-}
-
-static int
-gluenode_match(struct cds_lfht_node *ht_node, const void *key) {
-	const dns_gluenode_t *gluenode = key;
-
-	return rbtnode_match(ht_node, gluenode->node);
-}
-
-static void
-addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
+static isc_result_t
+addglue(dns_db_t *db, dns_dbversion_t *version, dns_rdataset_t *rdataset,
 	dns_message_t *msg) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-	dns_rbtdb_version_t *version = dbversion;
+	dns_rbtdb_version_t *rbtversion = version;
 	dns_rbtnode_t *node = (dns_rbtnode_t *)rdataset->slab.node;
-	dns_gluenode_t *gluenode = NULL;
+	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
 
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 	REQUIRE(rbtdb == (dns_rbtdb_t *)rdataset->slab.db);
-	REQUIRE(rbtdb == version->rbtdb);
+	REQUIRE(rbtdb == rbtversion->rbtdb);
 	REQUIRE(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
-
-	/*
-	 * The glue table cache that forms a part of the DB version
-	 * structure is not explicitly bounded and there's no cache
-	 * cleaning. The zone data size itself is an implicit bound.
-	 *
-	 * The key into the glue hashtable is the node pointer. This is
-	 * because the glue hashtable is a property of the DB version,
-	 * and the glue is keyed for the ownername/NS tuple. We don't
-	 * bother with using an expensive dns_name_t comparison here as
-	 * the node pointer is a fixed value that won't change for a DB
-	 * version and can be compared directly.
-	 */
 
 	rcu_read_lock();
 
-	struct cds_lfht_iter iter;
-	cds_lfht_lookup(version->glue_table, rbtnode_hash(node), rbtnode_match,
-			node, &iter);
-
-	gluenode = cds_lfht_entry(cds_lfht_iter_get_node(&iter), dns_gluenode_t,
-				  ht_node);
-	if (gluenode == NULL) {
+	dns_glue_t *glue = rcu_dereference(header->glue_list);
+	if (glue == NULL) {
 		/* No cached glue was found in the table. Get new glue. */
-		gluenode = new_gluenode(db, version, node, rdataset);
+		glue = newglue(rbtdb, rbtversion, node, rdataset);
 
-		struct cds_lfht_node *ht_node = cds_lfht_add_unique(
-			version->glue_table, gluenode_hash(gluenode),
-			gluenode_match, gluenode, &gluenode->ht_node);
-
-		if (ht_node != &gluenode->ht_node) {
-			dns__rbtdb_free_gluenode_rcu(&gluenode->rcu_head);
-
-			gluenode = cds_lfht_entry(ht_node, dns_gluenode_t,
-						  ht_node);
+		/* Cache the glue or (void *)-1 if no glue was found. */
+		dns_glue_t *old_glue = rcu_cmpxchg_pointer(
+			&header->glue_list, NULL, (glue) ? glue : (void *)-1);
+		if (old_glue != NULL) {
+			/* Somebody else was faster */
+			dns__rbtdb_freeglue(glue);
+			glue = old_glue;
+		} else if (glue != NULL) {
+			cds_wfs_push(&rbtversion->glue_stack,
+				     &header->wfs_node);
 		}
 	}
 
-	INSIST(gluenode != NULL);
+	/* We have a cached result. Add it to the message and return. */
 
-	dns_glue_t *glue = gluenode->glue;
-	isc_statscounter_t counter = dns_gluecachestatscounter_hits_present;
+	if (rbtdb->gluecachestats != NULL) {
+		isc_stats_increment(
+			rbtdb->gluecachestats,
+			(glue == (void *)-1)
+				? dns_gluecachestatscounter_hits_absent
+				: dns_gluecachestatscounter_hits_present);
+	}
 
-	if (glue != NULL) {
-		/* We have a cached result. Add it to the message and return. */
+	/*
+	 * (void *)-1 is a special value that means no glue is present in the
+	 * zone.
+	 */
+	if (glue != (void *)-1) {
 		addglue_to_message(glue, msg);
-	} else {
-		counter = dns_gluecachestatscounter_hits_absent;
 	}
 
 	rcu_read_unlock();
 
-	if (rbtdb->gluecachestats != NULL) {
-		isc_stats_increment(rbtdb->gluecachestats, counter);
-	}
+	return ISC_R_SUCCESS;
 }
 
 dns_dbmethods_t dns__rbtdb_zonemethods = {
