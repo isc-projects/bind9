@@ -1657,7 +1657,7 @@ if [ -x "$DELV" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
-  echo_i "checking delv H is ignored, and treated like IN ($n)"
+  echo_i "checking delv -c CH is ignored, and treated like IN ($n)"
   ret=0
   delv_with_opts @10.53.0.3 -c CH -t a a.example >delv.out.test$n || ret=1
   grep "a.example." <delv.out.test$n >/dev/null || ret=1
