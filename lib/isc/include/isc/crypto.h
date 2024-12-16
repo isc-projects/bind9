@@ -24,6 +24,20 @@ extern const EVP_MD *isc__crypto_sha256;
 extern const EVP_MD *isc__crypto_sha384;
 extern const EVP_MD *isc__crypto_sha512;
 
+bool
+isc_crypto_fips_mode(void);
+/*
+ * Return if FIPS mode is currently enabled or not.
+ */
+
+isc_result_t
+isc_crypto_fips_enable(void);
+/*
+ * Enable FIPS mode. It cannot be disabled afterwards.
+ *
+ * This function is NOT thread safe.
+ */
+
 /**
  * Private
  */

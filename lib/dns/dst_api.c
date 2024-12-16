@@ -38,9 +38,9 @@
 #include <unistd.h>
 
 #include <isc/buffer.h>
+#include <isc/crypto.h>
 #include <isc/dir.h>
 #include <isc/file.h>
-#include <isc/fips.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>

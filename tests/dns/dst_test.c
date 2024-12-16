@@ -30,8 +30,8 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/crypto.h>
 #include <isc/file.h>
-#include <isc/fips.h>
 #include <isc/hex.h>
 #include <isc/lib.h>
 #include <isc/result.h>
@@ -471,7 +471,7 @@ ISC_RUN_TEST_IMPL(ecdsa_determinism_test) {
 	dst_context_destroy(&ctx);
 
 #if OPENSSL_VERSION_NUMBER >= 0x30200000L
-	if (isc_fips_mode()) {
+	if (isc_crypto_fips_mode()) {
 		assert_memory_not_equal(sigbuf1->base, sigbuf2->base, siglen);
 	} else {
 		assert_memory_equal(sigbuf1->base, sigbuf2->base, siglen);

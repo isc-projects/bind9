@@ -38,7 +38,6 @@
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/file.h>
-#include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/hmac.h>
@@ -9377,7 +9376,7 @@ view_loaded(void *arg) {
 
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_NOTICE, "FIPS mode is %s",
-			      isc_fips_mode() ? "enabled" : "disabled");
+			      isc_crypto_fips_mode() ? "enabled" : "disabled");
 
 #if HAVE_LIBSYSTEMD
 		sd_notifyf(0,

@@ -11,19 +11,27 @@
  * information regarding copyright ownership.
  */
 
+#include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#include <openssl/provider.h>
+#endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
+
 #include <isc/crypto.h>
-#include <isc/fips.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/tls.h>
 #include <isc/util.h>
 
 static isc_mem_t *isc__crypto_mctx = NULL;
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+static OSSL_PROVIDER *base = NULL, *fips = NULL;
+#endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
 
 const EVP_MD *isc__crypto_md5 = NULL;
 const EVP_MD *isc__crypto_sha1 = NULL;
@@ -49,7 +57,6 @@ const EVP_MD *isc__crypto_sha512 = NULL;
 			isc__crypto_##alg = NULL;                \
 		}                                                \
 	}
-
 #else /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
 #define md_register_algorithm(alg, algname)      \
 	{                                        \
@@ -60,6 +67,34 @@ const EVP_MD *isc__crypto_sha512 = NULL;
 	}
 #define md_unregister_algorithm(alg)
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
+
+static isc_result_t
+register_algorithms(void) {
+	if (!isc_crypto_fips_mode()) {
+		md_register_algorithm(md5, "MD5");
+	}
+
+	md_register_algorithm(sha1, "SHA1");
+	md_register_algorithm(sha224, "SHA224");
+	md_register_algorithm(sha256, "SHA256");
+	md_register_algorithm(sha384, "SHA384");
+	md_register_algorithm(sha512, "SHA512");
+
+	return ISC_R_SUCCESS;
+}
+
+static void
+unregister_algorithms(void) {
+	md_unregister_algorithm(sha512);
+	md_unregister_algorithm(sha384);
+	md_unregister_algorithm(sha256);
+	md_unregister_algorithm(sha224);
+	md_unregister_algorithm(sha1);
+	md_unregister_algorithm(md5);
+}
+
+#undef md_unregister_algorithm
+#undef md_register_algorithm
 
 #if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x30000000L
 /*
@@ -132,6 +167,82 @@ isc__crypto_free_ex(void *ptr, const char *file, int line) {
 
 #endif /* !defined(LIBRESSL_VERSION_NUMBER) */
 
+#if defined(HAVE_EVP_DEFAULT_PROPERTIES_ENABLE_FIPS)
+bool
+isc_crypto_fips_mode(void) {
+	return EVP_default_properties_is_fips_enabled(NULL) != 0;
+}
+
+isc_result_t
+isc_crypto_fips_enable(void) {
+	if (isc_crypto_fips_mode()) {
+		return ISC_R_SUCCESS;
+	}
+
+	INSIST(fips == NULL);
+	fips = OSSL_PROVIDER_load(NULL, "fips");
+	if (fips == NULL) {
+		return isc_tlserr2result(
+			ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_CRYPTO,
+			"OSSL_PROVIDER_load", ISC_R_CRYPTOFAILURE);
+	}
+
+	INSIST(base == NULL);
+	base = OSSL_PROVIDER_load(NULL, "base");
+	if (base == NULL) {
+		OSSL_PROVIDER_unload(fips);
+		return isc_tlserr2result(
+			ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_CRYPTO,
+			"OSS_PROVIDER_load", ISC_R_CRYPTOFAILURE);
+	}
+
+	if (EVP_default_properties_enable_fips(NULL, 1) == 0) {
+		return isc_tlserr2result(ISC_LOGCATEGORY_GENERAL,
+					 ISC_LOGMODULE_CRYPTO,
+					 "EVP_default_properties_enable_fips",
+					 ISC_R_CRYPTOFAILURE);
+	}
+
+	unregister_algorithms();
+	register_algorithms();
+
+	return ISC_R_SUCCESS;
+}
+#elif defined(HAVE_FIPS_MODE)
+bool
+isc_crypto_fips_mode(void) {
+	return FIPS_mode() != 0;
+}
+
+isc_result_t
+isc_crypto_fips_enable(void) {
+	if (isc_crypto_fips_mode()) {
+		return ISC_R_SUCCESS;
+	}
+
+	if (FIPS_mode_set(1) == 0) {
+		return isc_tlserr2result(ISC_LOGCATEGORY_GENERAL,
+					 ISC_LOGMODULE_CRYPTO, "FIPS_mode_set",
+					 ISC_R_CRYPTOFAILURE);
+	}
+
+	unregister_algorithms();
+	register_algorithms();
+
+	return ISC_R_SUCCESS;
+}
+#else
+bool
+isc_crypto_fips_mode(void) {
+	return false;
+}
+
+isc_result_t
+isc_crypto_fips_enable(void) {
+	return ISC_R_NOTIMPLEMENTED;
+}
+#endif
+
 void
 isc__crypto_setdestroycheck(bool check) {
 	isc_mem_setdestroycheck(isc__crypto_mctx, check);
@@ -167,6 +278,16 @@ isc__crypto_initialize(void) {
 
 	RUNTIME_CHECK(OPENSSL_init_ssl(opts, NULL) == 1);
 
+	register_algorithms();
+
+#if defined(ENABLE_FIPS_MODE)
+	if (isc_crypto_fips_enable() != ISC_R_SUCCESS) {
+		ERR_clear_error();
+		FATAL_ERROR("Failed to toggle FIPS mode but is "
+			    "required for this build");
+	}
+#endif
+
 	/* Protect ourselves against unseeded PRNG */
 	if (RAND_status() != 1) {
 		isc_tlserr2result(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_CRYPTO,
@@ -175,39 +296,23 @@ isc__crypto_initialize(void) {
 			    "cannot be initialized (see the `PRNG not "
 			    "seeded' message in the OpenSSL FAQ)");
 	}
-
-#if defined(ENABLE_FIPS_MODE)
-	if (!isc_fips_mode()) {
-		if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
-			isc_tlserr2result(ISC_LOGCATEGORY_GENERAL,
-					  ISC_LOGMODULE_CRYPTO, "FIPS_mode_set",
-					  ISC_R_CRYPTOFAILURE);
-			exit(EXIT_FAILURE);
-		}
-	}
-#endif
-
-	md_register_algorithm(md5, "MD5");
-	md_register_algorithm(sha1, "SHA1");
-	md_register_algorithm(sha224, "SHA224");
-	md_register_algorithm(sha256, "SHA256");
-	md_register_algorithm(sha384, "SHA384");
-	md_register_algorithm(sha512, "SHA512");
 }
 
 void
 isc__crypto_shutdown(void) {
-	md_unregister_algorithm(sha512);
-	md_unregister_algorithm(sha384);
-	md_unregister_algorithm(sha256);
-	md_unregister_algorithm(sha224);
-	md_unregister_algorithm(sha1);
-	md_unregister_algorithm(md5);
+	unregister_algorithms();
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+	if (base != NULL) {
+		OSSL_PROVIDER_unload(base);
+	}
+
+	if (fips != NULL) {
+		OSSL_PROVIDER_unload(fips);
+	}
+#endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
 
 	OPENSSL_cleanup();
 
 	isc_mem_destroy(&isc__crypto_mctx);
 }
-
-#undef md_unregister_algorithm
-#undef md_register_algorithm
