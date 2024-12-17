@@ -2007,10 +2007,16 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			      "connecting from %s to %s, timeout %u", localbuf,
 			      peerbuf, resp->timeout);
 
+		char *hostname = NULL;
+		if (resp->transport != NULL) {
+			hostname = dns_transport_get_remote_hostname(
+				resp->transport);
+		}
+
 		isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
 					&disp->peer, tcp_connected, disp,
-					resp->timeout, tlsctx, NULL, sess_cache,
-					ISC_NM_PROXY_NONE, NULL);
+					resp->timeout, tlsctx, hostname,
+					sess_cache, ISC_NM_PROXY_NONE, NULL);
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTING:
