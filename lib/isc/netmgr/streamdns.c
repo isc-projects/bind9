@@ -387,6 +387,7 @@ void
 isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
 			unsigned int timeout, isc_tlsctx_t *tlsctx,
+			const char *sni_hostname,
 			isc_tlsctx_client_session_cache_t *client_sess_cache,
 			isc_nm_proxy_type_t proxy_type,
 			isc_nm_proxyheader_info_t *proxy_info) {
@@ -418,7 +419,7 @@ isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 		} else {
 			isc_nm_tlsconnect(
 				mgr, local, peer, streamdns_transport_connected,
-				nsock, tlsctx, client_sess_cache,
+				nsock, tlsctx, sni_hostname, client_sess_cache,
 				nsock->connect_timeout, false, proxy_info);
 		}
 		break;
@@ -427,20 +428,20 @@ isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			isc_nm_proxystreamconnect(mgr, local, peer,
 						  streamdns_transport_connected,
 						  nsock, nsock->connect_timeout,
-						  NULL, NULL, proxy_info);
+						  NULL, NULL, NULL, proxy_info);
 		} else {
 			isc_nm_tlsconnect(
 				mgr, local, peer, streamdns_transport_connected,
-				nsock, tlsctx, client_sess_cache,
+				nsock, tlsctx, sni_hostname, client_sess_cache,
 				nsock->connect_timeout, true, proxy_info);
 		}
 		break;
 	case ISC_NM_PROXY_ENCRYPTED:
 		INSIST(tlsctx != NULL);
-		isc_nm_proxystreamconnect(mgr, local, peer,
-					  streamdns_transport_connected, nsock,
-					  nsock->connect_timeout, tlsctx,
-					  client_sess_cache, proxy_info);
+		isc_nm_proxystreamconnect(
+			mgr, local, peer, streamdns_transport_connected, nsock,
+			nsock->connect_timeout, tlsctx, sni_hostname,
+			client_sess_cache, proxy_info);
 		break;
 	default:
 		UNREACHABLE();

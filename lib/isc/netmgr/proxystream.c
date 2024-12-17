@@ -459,6 +459,7 @@ void
 isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			  isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
 			  unsigned int timeout, isc_tlsctx_t *tlsctx,
+			  const char *sni_hostname,
 			  isc_tlsctx_client_session_cache_t *client_sess_cache,
 			  isc_nm_proxyheader_info_t *proxy_info) {
 	isc_result_t result = ISC_R_FAILURE;
@@ -501,8 +502,9 @@ isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 				  nsock, nsock->connect_timeout);
 	} else {
 		isc_nm_tlsconnect(mgr, local, peer, proxystream_connect_cb,
-				  nsock, tlsctx, client_sess_cache,
-				  nsock->connect_timeout, false, NULL);
+				  nsock, tlsctx, sni_hostname,
+				  client_sess_cache, nsock->connect_timeout,
+				  false, NULL);
 	}
 }
 

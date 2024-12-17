@@ -494,6 +494,7 @@ void
 isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			  isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
 			  unsigned int timeout, isc_tlsctx_t *tlsctx,
+			  const char			    *sni_hostname,
 			  isc_tlsctx_client_session_cache_t *client_sess_cache,
 			  isc_nm_proxyheader_info_t	    *proxy_info);
 /*%<
@@ -616,6 +617,7 @@ void
 isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
 			unsigned int timeout, isc_tlsctx_t *tlsctx,
+			const char			  *sni_hostname,
 			isc_tlsctx_client_session_cache_t *client_sess_cache,
 			isc_nm_proxy_type_t		   proxy_type,
 			isc_nm_proxyheader_info_t	  *proxy_info);
@@ -666,7 +668,7 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 void
 isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t connect_cb, void *connect_cbarg,
-		  isc_tlsctx_t			    *ctx,
+		  isc_tlsctx_t *ctx, const char *sni_hostname,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
 		  unsigned int timeout, bool proxy,
 		  isc_nm_proxyheader_info_t *proxy_info);
@@ -678,7 +680,7 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t			     *ctx,
+		   isc_tlsctx_t *ctx, const char *sni_hostname,
 		   isc_tlsctx_client_session_cache_t *client_sess_cache,
 		   unsigned int timeout, isc_nm_proxy_type_t proxy_type,
 		   isc_nm_proxyheader_info_t *proxy_info);
