@@ -2785,6 +2785,12 @@ _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 	check_if_done();
 }
 
+static inline const char *
+get_tls_sni_hostname(dig_query_t *query) {
+	return query->lookup->tls_hostname_set ? query->lookup->tls_hostname
+					       : query->userarg;
+}
+
 static isc_tlsctx_t *
 get_create_tls_context(dig_query_t *query, const bool is_https,
 		       isc_tlsctx_client_session_cache_t **psess_cache) {
@@ -2831,10 +2837,7 @@ get_create_tls_context(dig_query_t *query, const bool is_https,
 		}
 
 		if (store != NULL) {
-			const char *hostname =
-				query->lookup->tls_hostname_set
-					? query->lookup->tls_hostname
-					: query->userarg;
+			const char *hostname = get_tls_sni_hostname(query);
 			/*
 			 * According to RFC 8310, Subject field MUST NOT be
 			 * inspected when verifying hostname for DoT. Only
@@ -3048,7 +3051,8 @@ start_tcp(dig_query_t *query) {
 		}
 		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
 					tcp_connected, connectquery,
-					local_timeout, tlsctx, NULL, sess_cache,
+					local_timeout, tlsctx,
+					get_tls_sni_hostname(query), sess_cache,
 					proxy_type, ppi);
 #if HAVE_LIBNGHTTP2
 	} else if (query->lookup->https_mode) {
@@ -3068,7 +3072,8 @@ start_tcp(dig_query_t *query) {
 
 		isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr, uri,
 				   !query->lookup->https_get, tcp_connected,
-				   connectquery, tlsctx, NULL, sess_cache,
+				   connectquery, tlsctx,
+				   get_tls_sni_hostname(query), sess_cache,
 				   local_timeout, proxy_type, ppi);
 #endif
 	} else {
