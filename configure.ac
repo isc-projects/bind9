@@ -143,6 +143,13 @@ TEST_CFLAGS="-Wno-vla"
 STD_CPPFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
 
 #
+# Define constexpr if it is missing from the compiler
+#
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[constexpr int foo = 0;]])],
+		  [],
+		  [AC_DEFINE([constexpr],[static const],[Define compatibility shim for non-C23 compilers.])])
+
+#
 # Additional compiler settings.
 #
 AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
