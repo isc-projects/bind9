@@ -48,8 +48,6 @@
 
 #include <dst/dst.h>
 
-ISC_LANG_BEGINDECLS
-
 /***
  *** Types
  ***/
@@ -292,5 +290,3 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
  *
  *\li	Anything else				Failure.
  */
-
-ISC_LANG_ENDDECLS

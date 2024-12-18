@@ -19,10 +19,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_file_settime(const char *file, isc_time_t *time);
@@ -369,5 +366,3 @@ isc_file_isdirwritable(const char *path);
 /*%<
  *	Return true if the path is a directory and is writable
  */
-
-ISC_LANG_ENDDECLS

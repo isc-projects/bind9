@@ -15,11 +15,8 @@
 
 /*! \file isc/getaddresses.h */
 
-#include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
@@ -48,5 +45,3 @@ isc_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
  *\li	#ISC_R_FAMILYNOSUPPORT - 'hostname' is an IPv6 address, and IPv6 is
  *		not supported.
  */
-
-ISC_LANG_ENDDECLS

@@ -15,7 +15,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <isc/lang.h>
 #include <isc/thread.h>
 #include <isc/tid.h>
 #include <isc/util.h>

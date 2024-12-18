@@ -26,11 +26,7 @@
  *     its associated unit tests.
  */
 
-ISC_LANG_BEGINDECLS
-
 bool
 dns__tsig_algvalid(unsigned int alg);
 dst_algorithm_t
 dns__tsig_algfromname(const dns_name_t *algorithm);
-
-ISC_LANG_ENDDECLS

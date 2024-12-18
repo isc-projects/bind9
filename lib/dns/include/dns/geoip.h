@@ -30,7 +30,6 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
 #include <isc/refcount.h>
@@ -99,13 +98,9 @@ struct dns_geoip_databases {
  *** Functions
  ***/
 
-ISC_LANG_BEGINDECLS
-
 bool
 dns_geoip_match(const isc_netaddr_t	    *reqaddr,
 		const dns_geoip_databases_t *geoip,
 		const dns_geoip_elem_t	    *elt);
-
-ISC_LANG_ENDDECLS
 
 #endif /* HAVE_GEOIP2 */

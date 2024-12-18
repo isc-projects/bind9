@@ -21,7 +21,6 @@
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/formatcheck.h>
-#include <isc/lang.h>
 #include <isc/list.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
@@ -84,8 +83,6 @@
  * created.  It's job is mainly to prevent the program from running away
  * in a tight loop of constant lookups.  It's value is arbitrary.
  */
-
-ISC_LANG_BEGINDECLS
 
 typedef struct dig_lookup dig_lookup_t;
 typedef struct dig_query dig_query_t;
@@ -466,5 +463,3 @@ dig_shutdown(void);
 
 bool
 dig_lookup_is_tls(const dig_lookup_t *lookup);
-
-ISC_LANG_ENDDECLS

@@ -15,11 +15,7 @@
 
 /*! \file dns/secproto.h */
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source);
@@ -58,5 +54,3 @@ dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target);
  *\li	ISC_R_SUCCESS			on success
  *\li	ISC_R_NOSPACE			target buffer is too small
  */
-
-ISC_LANG_ENDDECLS

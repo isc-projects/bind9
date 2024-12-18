@@ -34,11 +34,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <isc/lang.h>
-
 #include <isccc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isccc_sexpr_t *
 isccc_alist_create(void);
@@ -82,5 +78,3 @@ isccc_alist_lookupbinary(isccc_sexpr_t *alist, const char *key,
 void
 isccc_alist_prettyprint(isccc_sexpr_t *sexpr, unsigned int indent,
 			FILE *stream);
-
-ISC_LANG_ENDDECLS

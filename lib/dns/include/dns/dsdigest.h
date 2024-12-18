@@ -15,11 +15,7 @@
 
 /*! \file dns/dsdigest.h */
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_dsdigest_fromtext(dns_dsdigest_t *dsdigestp, isc_textregion_t *source);
@@ -65,5 +61,3 @@ dns_dsdigest_format(dns_dsdigest_t typ, char *cp, unsigned int size);
 /*%<
  * Wrapper for dns_dsdigest_totext(), writing text into 'cp'
  */
-
-ISC_LANG_ENDDECLS

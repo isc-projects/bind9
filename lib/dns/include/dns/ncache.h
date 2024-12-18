@@ -41,12 +41,9 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*%
  * _OMITDNSSEC:
@@ -180,5 +177,3 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
  * \li	'found' to be valid.
  * \li	'rdataset' to be unassociated.
  */
-
-ISC_LANG_ENDDECLS

@@ -15,8 +15,6 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
-
 #include <dns/geoip.h>
 #include <dns/types.h>
 
@@ -34,8 +32,6 @@ typedef struct cfg_aclconfctx {
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret);
@@ -76,5 +72,3 @@ cfg_acl_fromconfig(const cfg_obj_t *caml, const cfg_obj_t *cctx,
  *	'ctx' to be non NULL.
  *	'*target' to be NULL or a valid dns_acl_t.
  */
-
-ISC_LANG_ENDDECLS

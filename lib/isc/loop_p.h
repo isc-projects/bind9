@@ -17,7 +17,6 @@
 
 #include <isc/barrier.h>
 #include <isc/job.h>
-#include <isc/lang.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>

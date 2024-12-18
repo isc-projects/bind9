@@ -13,15 +13,12 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <dns/db.h>
 #include <dns/types.h>
 
 #pragma once
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
@@ -62,5 +59,3 @@ dns_private_totext(dns_rdata_t *privaterdata, isc_buffer_t *buffer);
  * \li 	ISC_R_SUCCESS
  * \li	other on error
  */
-
-ISC_LANG_ENDDECLS

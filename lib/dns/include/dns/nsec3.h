@@ -16,7 +16,6 @@
 #include <stdbool.h>
 
 #include <isc/iterated_hash.h>
-#include <isc/lang.h>
 #include <isc/log.h>
 
 #include <dns/db.h>
@@ -42,8 +41,6 @@
  * Test "unknown" algorithm.  Is mapped to dns_hash_sha1.
  */
 #define DNS_NSEC3_UNKNOWNALG ((dns_hash_t)245U)
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
@@ -265,5 +262,3 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			bool *optout, bool *unknown, bool *setclosest,
 			bool *setnearest, dns_name_t *closest,
 			dns_name_t *nearest, dns_nseclog_t logit, void *arg);
-
-ISC_LANG_ENDDECLS

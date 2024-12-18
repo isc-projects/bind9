@@ -18,11 +18,6 @@ typedef struct dns_rdata_txt_string dns_rdata_wallet_string_t;
 
 typedef struct dns_rdata_txt dns_rdata_wallet_t;
 
-/*
- * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
- * via rdatastructpre.h and rdatastructsuf.h.
- */
-
 isc_result_t
 dns_rdata_wallet_first(dns_rdata_wallet_t *);
 

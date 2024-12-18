@@ -21,8 +21,6 @@
 
 #include <stdio.h>
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
 
 /***
@@ -119,8 +117,6 @@ typedef struct dns_master_style dns_master_style_t;
  * be included when printing a new name.
  */
 #define DNS_STYLEFLAG_CLASS_PERNAME 0x400000000ULL
-
-ISC_LANG_BEGINDECLS
 
 /***
  ***	Constants
@@ -349,5 +345,3 @@ dns_master_stylecreate(dns_master_style_t    **style,
 
 void
 dns_master_styledestroy(dns_master_style_t **style, isc_mem_t *mctx);
-
-ISC_LANG_ENDDECLS

@@ -29,7 +29,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 
 #include <dns/diff.h>
@@ -74,8 +73,6 @@ typedef struct dns_journal dns_journal_t;
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 /**************************************************************************/
 
@@ -334,5 +331,3 @@ dns_journal_set_sourceserial(dns_journal_t *j, uint32_t sourceserial);
  * Returns:
  *      true if sourceserial has previously been set.
  */
-
-ISC_LANG_ENDDECLS

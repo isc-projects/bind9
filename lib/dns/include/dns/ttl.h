@@ -22,10 +22,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  ***	Functions
@@ -73,5 +70,3 @@ dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl);
  *\li	ISC_R_SUCCESS
  *\li	DNS_R_BADTTL
  */
-
-ISC_LANG_ENDDECLS

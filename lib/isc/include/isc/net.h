@@ -72,7 +72,6 @@
 #include <sys/socket.h> /* Contractual promise. */
 #include <sys/types.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #ifndef IN6ADDR_LOOPBACK_INIT
@@ -183,8 +182,6 @@
  *** Functions.
  ***/
 
-ISC_LANG_BEGINDECLS
-
 isc_result_t
 isc_net_probeipv4(void);
 /*%<
@@ -235,5 +232,3 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
  *\li	*low and *high will be the ports specifying the low and high ends of
  *	the range.
  */
-
-ISC_LANG_ENDDECLS

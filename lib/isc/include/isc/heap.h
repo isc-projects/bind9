@@ -17,10 +17,7 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*%
  * The comparison function returns true if the first argument has
@@ -157,5 +154,3 @@ isc_heap_foreach(isc_heap_t *heap, isc_heapaction_t action, void *uap);
  *\li	The heap structure CANNOT be modified during this iteration.  The only
  *	safe function to call while iterating the heap is isc_heap_element().
  */
-
-ISC_LANG_ENDDECLS

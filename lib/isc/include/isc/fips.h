@@ -21,10 +21,7 @@
  *** Imports
  ***/
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Functions
@@ -41,5 +38,3 @@ isc_fips_set_mode(int mode);
 /*
  * Enable FIPS mode.
  */
-
-ISC_LANG_ENDDECLS

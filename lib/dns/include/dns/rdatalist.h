@@ -37,8 +37,6 @@
  *\li	None.
  */
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
 
 /*%
@@ -58,8 +56,6 @@ struct dns_rdatalist {
 	 */
 	unsigned char upper[32];
 };
-
-ISC_LANG_BEGINDECLS
 
 void
 dns_rdatalist_init(dns_rdatalist_t *rdatalist);
@@ -151,5 +147,3 @@ dns_rdatalist_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name);
 
 void
 dns_rdatalist_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
-
-ISC_LANG_ENDDECLS

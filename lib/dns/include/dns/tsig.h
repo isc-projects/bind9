@@ -18,7 +18,6 @@
 #include <stdbool.h>
 
 #include <isc/hashmap.h>
-#include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdio.h>
@@ -94,8 +93,6 @@ struct dns_tsigkey {
 	isc_refcount_t	   references;	  /*%< reference counter */
 	ISC_LINK(dns_tsigkey_t) link;
 };
-
-ISC_LANG_BEGINDECLS
 
 const dns_name_t *
 dns_tsigkey_identity(const dns_tsigkey_t *tsigkey);
@@ -308,5 +305,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_tsigkeyring);
 ISC_REFCOUNT_DECL(dns_tsigkey);
 ISC_REFCOUNT_DECL(dns_tsigkeyring);
 #endif
-
-ISC_LANG_ENDDECLS

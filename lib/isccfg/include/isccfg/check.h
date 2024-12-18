@@ -15,7 +15,6 @@
 
 /*! \file isccfg/check.h */
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <isccfg/cfg.h>
@@ -42,8 +41,6 @@
  * supported by the crypto provider.
  */
 
-ISC_LANG_BEGINDECLS
-
 isc_result_t
 isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 		       isc_mem_t *mctx);
@@ -69,5 +66,3 @@ isccfg_check_key(const cfg_obj_t *config);
 /*%<
  * Same as isccfg_check_namedconf(), but for a single 'key' statement.
  */
-
-ISC_LANG_ENDDECLS

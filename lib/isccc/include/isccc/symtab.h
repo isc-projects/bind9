@@ -75,8 +75,6 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <isccc/types.h>
 
 /***
@@ -103,8 +101,6 @@ typedef enum {
 	isccc_symexists_add = 2
 } isccc_symexists_t;
 
-ISC_LANG_BEGINDECLS
-
 isc_result_t
 isccc_symtab_create(unsigned int	      size,
 		    isccc_symtabundefaction_t undefine_action,
@@ -129,5 +125,3 @@ isccc_symtab_undefine(isccc_symtab_t *symtab, const char *key,
 void
 isccc_symtab_foreach(isccc_symtab_t *symtab, isccc_symtabforeachaction_t action,
 		     void *arg);
-
-ISC_LANG_ENDDECLS

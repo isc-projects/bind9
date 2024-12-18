@@ -66,7 +66,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -74,8 +73,6 @@
 
 #include <dns/types.h>
 #include <dns/view.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Magic number checks
@@ -754,4 +751,3 @@ dns_adb_dumpquota(dns_adb_t *adb, isc_buffer_t **buf);
  * Requires:
  * \li 'adb' is valid.
  */
-ISC_LANG_ENDDECLS

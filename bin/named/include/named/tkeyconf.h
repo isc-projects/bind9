@@ -15,12 +15,9 @@
 
 /*! \file */
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <isccfg/cfg.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
@@ -39,5 +36,3 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
  *\li		ISC_R_SUCCESS
  *\li		ISC_R_NOMEMORY
  */
-
-ISC_LANG_ENDDECLS

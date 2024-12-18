@@ -46,14 +46,11 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  ***	Functions
@@ -273,5 +270,3 @@ dns_cache_renderjson(dns_cache_t *cache, void *cstats0);
  * Render cache statistics and status in JSON
  */
 #endif /* HAVE_JSON_C */
-
-ISC_LANG_ENDDECLS

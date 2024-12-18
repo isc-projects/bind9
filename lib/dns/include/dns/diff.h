@@ -29,7 +29,6 @@
 
 #include <stddef.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 
 #include <dns/name.h>
@@ -109,8 +108,6 @@ dns_diff_compare_func(const void *, const void *);
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 /**************************************************************************/
 /*
@@ -291,5 +288,3 @@ dns_diff_print(const dns_diff_t *diff, FILE *file);
  *\li	#ISC_R_UNEXPECTED
  *\li	any error from dns_rdataset_totext()
  */
-
-ISC_LANG_ENDDECLS

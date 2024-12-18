@@ -83,8 +83,6 @@ enum {
 	isc_sockstatscounter_max,
 };
 
-ISC_LANG_BEGINDECLS
-
 /*%<
  * Flag(s) for isc_stats_dump().
  */
@@ -224,5 +222,3 @@ isc_stats_resize(isc_stats_t **stats, int ncounters);
  *\li	'stats' is a valid isc_stats_t.
  *\li	'ncounters' is a non-zero positive number.
  */
-
-ISC_LANG_ENDDECLS

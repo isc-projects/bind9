@@ -19,8 +19,6 @@
 
 #include <dns/types.h>
 
-ISC_LANG_BEGINDECLS
-
 /*!
  * \brief
  * Context for initializing a dyndb module.
@@ -153,5 +151,3 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp);
  * Destroys a dyndb initialization context structure; all
  * reference-counted members are detached and the structure is freed.
  */
-
-ISC_LANG_ENDDECLS

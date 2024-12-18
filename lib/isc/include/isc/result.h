@@ -17,8 +17,6 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
-
 typedef enum isc_result {
 	ISC_R_SUCCESS,		      /*%< success */
 	ISC_R_NOMEMORY,		      /*%< out of memory */
@@ -280,8 +278,6 @@ typedef enum isc_result {
 	ISC_R_MAKE_ENUM_32BIT = INT32_MAX,
 } isc_result_t;
 
-ISC_LANG_BEGINDECLS
-
 const char *isc_result_totext(isc_result_t);
 /*%<
  * Convert an isc_result_t into a string message describing the result.
@@ -292,5 +288,3 @@ const char *isc_result_toid(isc_result_t);
  * Convert an isc_result_t into a string identifier such as
  * "ISC_R_SUCCESS".
  */
-
-ISC_LANG_ENDDECLS

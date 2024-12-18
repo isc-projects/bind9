@@ -46,7 +46,6 @@
  *** Functions
  ***/
 
-ISC_LANG_BEGINDECLS
 int
 isc_backtrace(void **addrs, int maxaddrs);
 /*%<
@@ -111,5 +110,3 @@ isc_backtrace_log(isc_logcategory_t category, isc_logmodule_t module,
 /*
  * Write a backtrace to the log.
  */
-
-ISC_LANG_ENDDECLS

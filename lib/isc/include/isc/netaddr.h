@@ -20,11 +20,8 @@
 #include <sys/types.h>
 #include <sys/un.h>
 
-#include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * Any updates to this structure should also be applied in
@@ -190,4 +187,3 @@ isc_netaddr_isloopback(const isc_netaddr_t *na);
  * Test whether the netaddr 'na' is a loopback IPv4 or IPv6 address (in
  * 127.0.0.0/8 or ::1).
  */
-ISC_LANG_ENDDECLS

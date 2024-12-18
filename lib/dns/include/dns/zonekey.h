@@ -17,11 +17,7 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 bool
 dns_zonekey_iszonekey(dns_rdata_t *keyrdata);
@@ -31,5 +27,3 @@ dns_zonekey_iszonekey(dns_rdata_t *keyrdata);
  *	Requires:
  *		'keyrdata' is not NULL.
  */
-
-ISC_LANG_ENDDECLS

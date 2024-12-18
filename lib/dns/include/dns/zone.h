@@ -24,7 +24,6 @@
 #include <stdio.h>
 
 #include <isc/formatcheck.h>
-#include <isc/lang.h>
 #include <isc/rwlock.h>
 #include <isc/tls.h>
 
@@ -149,8 +148,6 @@ typedef enum {
 	60 /*%< 1 minute, subject to \
 	    * exponential backoff */
 #endif	   /* ifndef DNS_ZONE_DEFAULTRETRY */
-
-ISC_LANG_BEGINDECLS
 
 /***
  ***	Functions
@@ -2674,7 +2671,6 @@ dns_zone_setserial(dns_zone_t *zone, uint32_t serial);
 /*%
  * Set the zone's serial to 'serial'.
  */
-ISC_LANG_ENDDECLS
 
 isc_stats_t *
 dns_zone_getgluecachestats(dns_zone_t *zone);

@@ -36,7 +36,6 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
@@ -46,8 +45,6 @@
 #include <dns/types.h>
 
 #include <dst/dst.h>
-
-ISC_LANG_BEGINDECLS
 
 typedef void (*dns_keytable_callback_t)(const dns_name_t *name, void *fn_arg);
 
@@ -296,4 +293,3 @@ dns_keytable_forall(dns_keytable_t *keytable,
 
 ISC_REFCOUNT_DECL(dns_keytable);
 ISC_REFCOUNT_DECL(dns_keynode);
-ISC_LANG_ENDDECLS

@@ -26,7 +26,6 @@
  *** Imports
  ***/
 
-#include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/sockaddr.h>
 #include <isc/tls.h>
@@ -48,8 +47,6 @@ typedef struct dns_xfrin dns_xfrin_t;
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 void
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
@@ -235,4 +232,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_xfrin);
 #else
 ISC_REFCOUNT_DECL(dns_xfrin);
 #endif
-ISC_LANG_ENDDECLS

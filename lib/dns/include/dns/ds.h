@@ -13,8 +13,6 @@
 
 #pragma once
 
-#include <isc/lang.h>
-
 #include <dns/rdatastruct.h>
 #include <dns/types.h>
 
@@ -27,8 +25,6 @@
  * Assuming SHA-384 digest type.
  */
 #define DNS_DS_BUFFERSIZE (52)
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
@@ -61,5 +57,3 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
  *  \li    *rdata	Contains a valid DS rdata.  The 'data' member refers
  *		to 'buffer'.
  */
-
-ISC_LANG_ENDDECLS

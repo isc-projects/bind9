@@ -35,7 +35,6 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
 #include <isc/netaddr.h>
 #include <isc/types.h>
 
@@ -65,8 +64,6 @@ struct isc_interface {
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp);
@@ -123,5 +120,3 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp);
 /*!<
  * \brief Destroy the iterator.
  */
-
-ISC_LANG_ENDDECLS

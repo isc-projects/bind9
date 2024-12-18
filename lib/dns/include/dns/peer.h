@@ -29,7 +29,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
 #include <isc/refcount.h>
@@ -45,8 +44,6 @@
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list);
@@ -217,4 +214,3 @@ dns_peer_setednsversion(dns_peer_t *peer, uint8_t ednsversion);
 
 isc_result_t
 dns_peer_getednsversion(dns_peer_t *peer, uint8_t *ednsversion);
-ISC_LANG_ENDDECLS

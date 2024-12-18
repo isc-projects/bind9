@@ -15,11 +15,7 @@
 
 /*! \file dns/rcode.h */
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
@@ -103,5 +99,3 @@ dns_hashalg_fromtext(unsigned char *hashalg, isc_textregion_t *source);
  *\li	#ISC_R_SUCCESS			on success
  *\li	#DNS_R_UNKNOWN			type is unknown
  */
-
-ISC_LANG_ENDDECLS

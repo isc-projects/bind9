@@ -15,7 +15,6 @@
 
 /*! \file dns/forward.h */
 
-#include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
@@ -26,8 +25,6 @@
 #include <dns/types.h>
 
 /* Add -DDNS_FORWARD_TRACE=1 to CFLAGS for detailed reference tracing */
-
-ISC_LANG_BEGINDECLS
 
 struct dns_forwarder {
 	isc_sockaddr_t addr;
@@ -122,4 +119,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_forwarders);
 #else
 ISC_REFCOUNT_DECL(dns_forwarders);
 #endif
-ISC_LANG_ENDDECLS

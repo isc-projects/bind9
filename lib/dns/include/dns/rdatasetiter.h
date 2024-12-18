@@ -54,13 +54,10 @@
 ***** Imports
 *****/
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*****
 ***** Types
@@ -166,5 +163,3 @@ dns__rdatasetiter_current(dns_rdatasetiter_t	  *iterator,
  *\li	The rdataset cursor of 'iterator' is at a valid location (i.e. the
  *	result of last call to a cursor movement command was #ISC_R_SUCCESS).
  */
-
-ISC_LANG_ENDDECLS

@@ -31,7 +31,6 @@
 #include <time.h>
 
 #include <isc/formatcheck.h>
-#include <isc/lang.h>
 #include <isc/list.h>
 #include <isc/refcount.h>
 #include <isc/types.h>
@@ -77,8 +76,6 @@ typedef isc_result_t (*cfg_parsecallback_t)(const char	    *clausename,
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 void
 cfg_parser_attach(cfg_parser_t *src, cfg_parser_t **dest);
@@ -623,5 +620,3 @@ cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
  *     'list'
  * \li first 'callback' return value which was not #ISC_R_SUCCESS otherwise
  */
-
-ISC_LANG_ENDDECLS

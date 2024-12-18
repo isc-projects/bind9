@@ -40,11 +40,7 @@
  *\li	Drafts:	TBS
  */
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_byaddr_createptrname(const isc_netaddr_t *address, dns_name_t *name);
@@ -56,5 +52,3 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, dns_name_t *name);
  * \li	'address' is a valid address.
  * \li	'name' is a valid name with a dedicated buffer.
  */
-
-ISC_LANG_ENDDECLS

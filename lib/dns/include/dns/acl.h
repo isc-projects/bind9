@@ -30,7 +30,6 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
 #include <isc/refcount.h>
@@ -117,8 +116,6 @@ struct dns_aclenv {
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 void
 dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
@@ -312,5 +309,3 @@ dns_acl_merge_ports_transports(dns_acl_t *dest, dns_acl_t *source, bool pos);
  *\li		'dest' is a valid ACL object;
  *\li		'source' is a valid ACL object.
  */
-
-ISC_LANG_ENDDECLS

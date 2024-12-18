@@ -15,11 +15,7 @@
 
 /*! \file dns/cert.h */
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
@@ -56,5 +52,3 @@ dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
  *\li	#ISC_R_SUCCESS			on success
  *\li	#ISC_R_NOSPACE			target buffer is too small
  */
-
-ISC_LANG_ENDDECLS

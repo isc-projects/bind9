@@ -26,7 +26,6 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
@@ -44,8 +43,6 @@ typedef enum {
 	DNS_NAMETREE_BITS,
 	DNS_NAMETREE_COUNT
 } dns_nametree_type_t;
-
-ISC_LANG_BEGINDECLS
 
 void
 dns_nametree_create(isc_mem_t *mctx, dns_nametree_type_t type, const char *name,
@@ -190,4 +187,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_ntnode);
 ISC_REFCOUNT_DECL(dns_nametree);
 ISC_REFCOUNT_DECL(dns_ntnode);
 #endif
-ISC_LANG_ENDDECLS

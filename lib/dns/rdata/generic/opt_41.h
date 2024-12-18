@@ -31,11 +31,6 @@ typedef struct dns_rdata_opt {
 	uint16_t offset;
 } dns_rdata_opt_t;
 
-/*
- * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
- * via rdatastructpre.h and rdatastructsuf.h.
- */
-
 isc_result_t
 dns_rdata_opt_first(dns_rdata_opt_t *);
 

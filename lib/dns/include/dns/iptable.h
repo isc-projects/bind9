@@ -16,7 +16,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/radix.h>
 #include <isc/refcount.h>
@@ -39,8 +38,6 @@ struct dns_iptable {
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 void
 dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target);
@@ -73,5 +70,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_iptable);
 #else
 ISC_REFCOUNT_DECL(dns_iptable);
 #endif
-
-ISC_LANG_ENDDECLS

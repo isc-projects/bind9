@@ -30,7 +30,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/loop.h>
 #include <isc/time.h>
 #include <isc/types.h>
@@ -43,8 +42,6 @@ struct isc_rlevent {
 	void		  *arg;
 	ISC_LINK(isc_rlevent_t) link;
 };
-
-ISC_LANG_BEGINDECLS
 
 /*****
 ***** Functions.
@@ -138,5 +135,3 @@ ISC_REFCOUNT_DECL(isc_ratelimiter);
 /*%<
  * The rate limiter reference counting.
  */
-
-ISC_LANG_ENDDECLS

@@ -15,12 +15,9 @@
 
 /*! \file dns/order.h */
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_order_create(isc_mem_t *mctx, dns_order_t **orderp);
@@ -86,5 +83,3 @@ dns_order_detach(dns_order_t **orderp);
  * Requires:
  *\li	'*orderp' to be valid.
  */
-
-ISC_LANG_ENDDECLS

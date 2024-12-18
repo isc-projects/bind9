@@ -19,7 +19,6 @@
 #include <stdbool.h>
 
 #include <isc/ht.h>
-#include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/time.h>
@@ -30,8 +29,6 @@
 #include <dns/ipkeylist.h>
 #include <dns/rdata.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define DNS_CATZ_ERROR_LEVEL  ISC_LOG_WARNING
 #define DNS_CATZ_INFO_LEVEL   ISC_LOG_INFO
@@ -446,5 +443,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_catz_zones);
 ISC_REFCOUNT_DECL(dns_catz_zone);
 ISC_REFCOUNT_DECL(dns_catz_zones);
 #endif /* DNS_CATZ_TRACE */
-
-ISC_LANG_ENDDECLS

@@ -15,10 +15,6 @@
 
 /*! \file isc/safe.h */
 
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
-
 int
 isc_safe_memequal(const void *, const void *, size_t);
 
@@ -40,5 +36,3 @@ isc_safe_memwipe(void *, size_t);
  * function to perform the memset operation so that the compiler cannot
  * infer about what the function does and optimize the call away.
  */
-
-ISC_LANG_ENDDECLS

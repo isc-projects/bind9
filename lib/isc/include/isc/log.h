@@ -22,7 +22,6 @@
 #include <syslog.h> /* XXXDCL NT */
 
 #include <isc/formatcheck.h>
-#include <isc/lang.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -296,8 +295,6 @@ typedef union isc_logdestination {
 extern isc_logcategory_t isc_categories[];
 extern isc_logmodule_t	 isc_modules[];
 /*@}*/
-
-ISC_LANG_BEGINDECLS
 
 void
 isc_logconfig_create(isc_logconfig_t **lcfgp);
@@ -768,5 +765,3 @@ isc__log_shutdown(void);
 /*%<
  * Library constructor/destructor
  */
-
-ISC_LANG_ENDDECLS

@@ -45,15 +45,12 @@
 
 #include <isc/atomic.h>
 #include <isc/heap.h>
-#include <isc/lang.h>
 #include <isc/stdtime.h>
 #include <isc/urcu.h>
 
 #include <dns/name.h>
 #include <dns/rdataset.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define DNS_RDATASLAB_FORCE 0x1
 #define DNS_RDATASLAB_EXACT 0x2
@@ -321,4 +318,3 @@ dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proof);
 /*%<
  * Free all memory associated with a nonexistence proof.
  */
-ISC_LANG_ENDDECLS

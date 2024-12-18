@@ -15,11 +15,7 @@
 
 /*! \file dns/rootns.h */
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
@@ -32,5 +28,3 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db);
  *
  * Requires view, hints and (cache) db to be valid.
  */
-
-ISC_LANG_ENDDECLS

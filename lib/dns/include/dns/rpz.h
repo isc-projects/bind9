@@ -19,7 +19,6 @@
 #include <stdbool.h>
 
 #include <isc/ht.h>
-#include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/time.h>
@@ -29,8 +28,6 @@
 #include <dns/qp.h>
 #include <dns/rdata.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define DNS_RPZ_PREFIX "rpz-"
 /*
@@ -418,5 +415,3 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 dns_rpz_zbits_t
 dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		  dns_rpz_zbits_t zbits, dns_name_t *trig_name);
-
-ISC_LANG_ENDDECLS

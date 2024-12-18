@@ -18,11 +18,8 @@
 
 /*! \file isc/rwlock.h */
 
-#include <isc/lang.h>
 #include <isc/types.h>
 #include <isc/util.h>
-
-ISC_LANG_BEGINDECLS
 
 typedef enum {
 	isc_rwlocktype_none = 0,
@@ -260,5 +257,3 @@ isc_rwlock_setworkers(uint16_t workers);
 	}
 
 #endif /* USE_PTHREAD_RWLOCK */
-
-ISC_LANG_ENDDECLS

@@ -28,7 +28,6 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/stdtime.h>
 
@@ -40,8 +39,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*****
 ***** Types
@@ -175,5 +172,3 @@ dns_rriterator_destroy(dns_rriterator_t *it);
  *
  *\li	All resources used by the rriterator are freed.
  */
-
-ISC_LANG_ENDDECLS

@@ -17,7 +17,6 @@
 #include <stdbool.h>
 
 #include <isc/assertions.h>
-#include <isc/lang.h>
 #include <isc/siphash.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -33,7 +32,6 @@ typedef struct isc_siphash24	 isc_hash64_t;
 /***
  *** Functions
  ***/
-ISC_LANG_BEGINDECLS
 
 void
 isc__hash_initialize(void);
@@ -118,5 +116,3 @@ isc_hash_bits32(uint32_t val, unsigned int bits) {
 	/* High bits are more random. */
 	return val * ISC_HASH_GOLDENRATIO_32 >> (32 - bits);
 }
-
-ISC_LANG_ENDDECLS

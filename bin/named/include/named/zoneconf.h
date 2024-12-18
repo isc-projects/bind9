@@ -17,13 +17,10 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
@@ -76,5 +73,3 @@ named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
  * \li	'rdclass' to be a valid rdataclass
  * \li	'name' to be a valid zone origin name
  */
-
-ISC_LANG_ENDDECLS

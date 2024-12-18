@@ -24,7 +24,6 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>
 #include <isc/types.h>
@@ -47,8 +46,6 @@ struct isc_job {
 		.link = ISC_LINK_INITIALIZER, \
 	}
 
-ISC_LANG_BEGINDECLS
-
 void
 isc_job_run(isc_loop_t *loop, isc_job_t *job, isc_job_cb cb, void *cbarg);
 /*%<
@@ -62,5 +59,3 @@ isc_job_run(isc_loop_t *loop, isc_job_t *job, isc_job_cb cb, void *cbarg);
  *\li	'cb' is a callback function, must be non-NULL
  *\li	'cbarg' is passed to the 'cb' as the only argument, may be NULL
  */
-
-ISC_LANG_ENDDECLS

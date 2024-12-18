@@ -18,10 +18,7 @@
  */
 #include <time.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 time_t
 isc_tm_timegm(struct tm *tm);
@@ -35,5 +32,3 @@ isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm);
 /*
  * Parse a formatted date string into struct tm.
  */
-
-ISC_LANG_ENDDECLS

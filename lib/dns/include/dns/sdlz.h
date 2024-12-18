@@ -56,8 +56,6 @@
 #include <dns/clientinfo.h>
 #include <dns/dlz.h>
 
-ISC_LANG_BEGINDECLS
-
 #define DNS_SDLZFLAG_THREADSAFE	   0x00000001U
 #define DNS_SDLZFLAG_RELATIVEOWNER 0x00000002U
 #define DNS_SDLZFLAG_RELATIVERDATA 0x00000004U
@@ -352,5 +350,3 @@ dns_sdlz_setdb_t dns_sdlz_setdb;
 /*%<
  * Create the database pointers for a writeable SDLZ zone
  */
-
-ISC_LANG_ENDDECLS

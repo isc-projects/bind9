@@ -49,7 +49,6 @@
 #include <stdbool.h>
 
 #include <isc/job.h>
-#include <isc/lang.h>
 #include <isc/refcount.h>
 
 #include <dns/fixedname.h>
@@ -164,8 +163,6 @@ struct dns_validator {
 #define DNS_VALIDATOR_NOCDFLAG 0x0004U
 #define DNS_VALIDATOR_NONTA    0x0008U /*% Ignore NTA table */
 
-ISC_LANG_BEGINDECLS
-
 isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
@@ -264,5 +261,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_validator);
 #else
 ISC_REFCOUNT_DECL(dns_validator);
 #endif
-
-ISC_LANG_ENDDECLS

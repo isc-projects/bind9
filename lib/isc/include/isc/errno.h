@@ -17,11 +17,8 @@
 
 #include <isc/types.h>
 
-ISC_LANG_BEGINDECLS
-
 isc_result_t
 isc_errno_toresult(int err);
 /*!<
  * \brief Convert a POSIX errno value to an ISC result code.
  */
-ISC_LANG_ENDDECLS
