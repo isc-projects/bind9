@@ -19,7 +19,6 @@
 #include <sys/un.h>
 
 #include <isc/hash.h>
-#include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>
 
@@ -49,8 +48,6 @@ struct isc_sockaddr {
 #define ISC_SOCKADDR_CMPSCOPEZERO         \
 	0x0008 /*%< when comparing scopes \
 		*   zero scopes always match */
-
-ISC_LANG_BEGINDECLS
 
 bool
 isc_sockaddr_compare(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
@@ -247,5 +244,3 @@ isc_sockaddr_disabled(const isc_sockaddr_t *sockaddr);
  * Report whether or not the address family of 'sockaddr'
  * has been disabled.
  */
-
-ISC_LANG_ENDDECLS

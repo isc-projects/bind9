@@ -17,15 +17,11 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <dns/diff.h>
 #include <dns/name.h>
 #include <dns/types.h>
 
 #define DNS_NSEC_BUFFERSIZE (DNS_NAME_MAXWIRE + 8192 + 512)
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
@@ -122,5 +118,3 @@ dns_nsec_requiredtypespresent(dns_rdataset_t *rdataset);
  * Requires:
  * \li	rdataset to be a NSEC rdataset.
  */
-
-ISC_LANG_ENDDECLS

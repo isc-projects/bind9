@@ -80,7 +80,6 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 /*
@@ -102,8 +101,6 @@ typedef enum {
 	isc_symexists_replace = 1, /*%< Replace the old value with the new */
 	isc_symexists_add = 2	   /*%< Add the new tuple */
 } isc_symexists_t;
-
-ISC_LANG_BEGINDECLS
 
 /*% Create a symbol table. */
 isc_result_t
@@ -132,4 +129,3 @@ isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type);
 /*% Return the number of items in a symbol table. */
 unsigned int
 isc_symtab_count(isc_symtab_t *symtab);
-ISC_LANG_ENDDECLS

@@ -26,8 +26,6 @@
 #include <dns/diff.h>
 #include <dns/types.h>
 
-ISC_LANG_BEGINDECLS
-
 #define DNS_SKR_MAGIC	 ISC_MAGIC('S', 'K', 'R', '-')
 #define DNS_SKR_VALID(t) ISC_MAGIC_VALID(t, DNS_SKR_MAGIC)
 
@@ -145,5 +143,3 @@ dns_skr_destroy(dns_skr_t *skr);
  * Requires:
  * \li   'skr' is a valid SKR
  */
-
-ISC_LANG_ENDDECLS

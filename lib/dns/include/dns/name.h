@@ -69,13 +69,10 @@
 
 #include <isc/buffer.h>
 #include <isc/hashmap.h>
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/region.h> /* Required for storage size of dns_label_t. */
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*****
 ***** Names
@@ -1367,5 +1364,3 @@ dns_name_israd(const dns_name_t *name, const dns_name_t *rad);
  * Requires:
  * \li	'name' to be valid.
  */
-
-ISC_LANG_ENDDECLS

@@ -15,10 +15,7 @@
 
 /*! \file */
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
@@ -37,5 +34,3 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
  *	\li	ISC_R_SUCCESS
  *	\li	ISC_R_NOMEMORY
  */
-
-ISC_LANG_ENDDECLS

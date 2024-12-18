@@ -81,11 +81,6 @@ for (<>) {
 
   # check use of macros without having included proper header for them.
 
-  if (/^(\Uisc\E_LANG_(BEGIN|END)DECLS)$/m &&
-      ! m%^#include <isc/lang\.h>$%m) {
-    print "$file has $1 without <isc/lang.h>\n";
-  }
-
   if (/$nocomment.*ISC_EVENTCLASS_/m && ! m%^#include <isc/eventclass\.h>%m) {
     print "$file has ISC_EVENTCLASS_ without <isc/eventclass.h>\n"
       unless $file =~ m%isc/eventclass.h%;
@@ -102,11 +97,6 @@ for (<>) {
       ! m%^#include <\L$1\E/result.h>%m) {
     print "$file has $1_R_ without <\L$1\E/result.h>\n"
       unless $file =~ m%\L$1\E/result.h%m;
-  }
-
-  if (/^$nocomment(?!#define)[a-z].*([a-zA-Z0-9]\([^;]*\);)/m &&
-      ! m%^#include <isc/lang.h>%m) {
-    print "$file has declarations without <isc/lang.h>\n";
   }
 
   #
@@ -179,19 +169,6 @@ for (<>) {
         # There is an {foo}_R_; this is a necessary include.
         next;
       }
-    }
-
-    if ($elided eq "<isc/lang.h>") {
-      if (! /^\Uisc\E_LANG_BEGINDECLS$/m) {
-        print "$file includes <isc/lang.h> but " .
-          	"has no \Uisc\E_LANG_BEGINDECLS\n";
-      } elsif (! /^\Uisc\E_LANG_ENDDECLS$/m) {
-        print "$file has \Uisc\E_LANG_BEGINDECLS but " .
-          	"has no \Uisc\E_LANG_ENDDECLS\n";
-      } elsif (! /^$nocomment(?!#define)[a-z].*([a-zA-Z0-9]\()/m) {
-        print "$file has <isc/lang.h> apparently not function declarations\n";
-      }
-      next;
     }
 
     if ($elided eq "<isc/eventclass.h>") {

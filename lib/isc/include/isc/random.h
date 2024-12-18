@@ -16,7 +16,6 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 /*! \file isc/random.h
@@ -24,8 +23,6 @@
  * pseudo-random number generator.
  *
  */
-
-ISC_LANG_BEGINDECLS
 
 uint8_t
 isc_random8(void);
@@ -67,5 +64,3 @@ isc_random_uniform(uint32_t upper_bound);
  * resample is very small when the upper_bound is small, rising to 0.5
  * when upper_bound is UINT32_MAX/2.
  */
-
-ISC_LANG_ENDDECLS

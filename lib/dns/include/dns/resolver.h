@@ -49,7 +49,6 @@
 #include <netinet/in.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/loop.h>
 #include <isc/refcount.h>
 #include <isc/stats.h>
@@ -61,8 +60,6 @@
 #include <dns/types.h>
 
 /* Add -DDNS_RESOLVER_TRACE=1 to CFLAGS for detailed reference tracing */
-
-ISC_LANG_BEGINDECLS
 
 /*%
  * A dns_fetchresponse_t is sent to the caller when a fetch completes.
@@ -637,5 +634,3 @@ dns_resolver_freefresp(dns_fetchresponse_t **frespp);
  * Requires:
  * \li	'frespp' is valid. No-op if *frespp == NULL
  */
-
-ISC_LANG_ENDDECLS

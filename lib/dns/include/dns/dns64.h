@@ -15,11 +15,7 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * dns_dns64_create() flags.
@@ -190,5 +186,3 @@ dns_dns64_findprefix(dns_rdataset_t *rdataset, isc_netprefix_t *prefix,
  *			into 'prefix'.
  *	ISC_R_NOTFOUND	no prefixes where found.
  */
-
-ISC_LANG_ENDDECLS

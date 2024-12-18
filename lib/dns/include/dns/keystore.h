@@ -26,7 +26,6 @@
 
 /* Add -DDNS_KEYSTORE_TRACE=1 to CFLAGS for detailed reference tracing */
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/refcount.h>
@@ -34,8 +33,6 @@
 #include <dns/types.h>
 
 #include <dst/dst.h>
-
-ISC_LANG_BEGINDECLS
 
 /* Key store */
 struct dns_keystore {
@@ -198,5 +195,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_keystore);
 #else
 ISC_REFCOUNT_DECL(dns_keystore);
 #endif /* DNS_KEYSTORE_TRACE */
-
-ISC_LANG_ENDDECLS

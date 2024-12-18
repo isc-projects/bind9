@@ -18,12 +18,9 @@
 #include <inttypes.h>
 
 #include <isc/job.h>
-#include <isc/lang.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 void
 isc_helper_run(isc_loop_t *loop, isc_job_cb cb, void *cbarg);
@@ -41,5 +38,3 @@ isc_helper_run(isc_loop_t *loop, isc_job_cb cb, void *cbarg);
 /*%<
  * Helper macro to run the job on the current loop
  */
-
-ISC_LANG_ENDDECLS

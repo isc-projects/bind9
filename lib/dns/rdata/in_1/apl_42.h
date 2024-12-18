@@ -32,11 +32,6 @@ typedef struct dns_rdata_in_apl {
 	uint16_t offset;
 } dns_rdata_in_apl_t;
 
-/*
- * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
- * via rdatastructpre.h and rdatastructsuf.h.
- */
-
 isc_result_t
 dns_rdata_apl_first(dns_rdata_in_apl_t *);
 

@@ -14,7 +14,6 @@
 #pragma once
 
 #include <isc/heap.h>
-#include <isc/lang.h>
 #include <isc/urcu.h>
 
 #include <dns/nsec3.h>
@@ -115,8 +114,6 @@
 #define IS_STUB(db)  (((db)->common.attributes & DNS_DBATTR_STUB) != 0)
 #define IS_CACHE(db) (((db)->common.attributes & DNS_DBATTR_CACHE) != 0)
 
-ISC_LANG_BEGINDECLS
-
 struct dns_glue {
 	struct dns_glue *next;
 	dns_name_t name;
@@ -204,5 +201,3 @@ dns__db_logtoomanyrecords(dns_db_t *db, const dns_name_t *name,
  * 'maxrrperset' limit. 'op' is 'adding' or 'updating' depending on whether
  * the addition is to create a new rdataset or to merge to an existing one.
  */
-
-ISC_LANG_ENDDECLS

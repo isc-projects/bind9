@@ -57,7 +57,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/net.h>
@@ -77,8 +76,6 @@
 #include <dns/transport.h>
 #include <dns/types.h>
 #include <dns/zt.h>
-
-ISC_LANG_BEGINDECLS
 
 struct dns_view {
 	/* Unlocked. */
@@ -1346,5 +1343,3 @@ dns_view_setmaxqueries(dns_view_t *view, uint16_t max_queries);
  *\li	'view' is valid;
  *\li	'max_queries' is greater than 0.
  */
-
-ISC_LANG_ENDDECLS

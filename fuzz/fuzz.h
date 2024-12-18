@@ -18,15 +18,12 @@
 #include <stdint.h>
 
 #include <isc/dir.h>
-#include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
 #include <dst/dst.h>
-
-ISC_LANG_BEGINDECLS
 
 extern bool debug;
 
@@ -40,5 +37,3 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 	if ((x) != ISC_R_SUCCESS) { \
 		return (0);         \
 	}
-
-ISC_LANG_ENDDECLS

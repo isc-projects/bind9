@@ -18,7 +18,6 @@
 #include <isc/assertions.h>
 #include <isc/atomic.h>
 #include <isc/error.h>
-#include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/tid.h>
 #include <isc/types.h>
@@ -29,8 +28,6 @@
  * These macros uses C11(-like) atomic functions to implement reference
  * counting.  The isc_refcount_t type must not be accessed directly.
  */
-
-ISC_LANG_BEGINDECLS
 
 typedef atomic_uint_fast32_t isc_refcount_t;
 
@@ -235,5 +232,3 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 	ISC__REFCOUNT_IMPL(name, destroy, ISC_REFCOUNT_BLANK)
 #define ISC_REFCOUNT_STATIC_IMPL(name, destroy) \
 	ISC__REFCOUNT_IMPL(name, destroy, static inline)
-
-ISC_LANG_ENDDECLS

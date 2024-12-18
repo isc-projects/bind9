@@ -15,10 +15,7 @@
 
 /*! \file */
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_syslog_facilityfromstring(const char *str, int *facilityp);
@@ -34,5 +31,3 @@ isc_syslog_facilityfromstring(const char *str, int *facilityp);
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND
  */
-
-ISC_LANG_ENDDECLS

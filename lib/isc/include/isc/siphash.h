@@ -31,7 +31,6 @@
 
 #include <isc/ascii.h>
 #include <isc/endian.h>
-#include <isc/lang.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -79,8 +78,6 @@
 
 #define U8TO64_ONE(case_sensitive, byte) \
 	(uint64_t)(case_sensitive ? byte : isc__ascii_tolower1(byte))
-
-ISC_LANG_BEGINDECLS
 
 typedef struct isc_siphash24 {
 	uint64_t k0;
@@ -429,5 +426,3 @@ isc_halfsiphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 	isc_halfsiphash24_hash(&state, in, inlen, case_sensitive);
 	isc_halfsiphash24_finalize(&state, out);
 }
-
-ISC_LANG_ENDDECLS

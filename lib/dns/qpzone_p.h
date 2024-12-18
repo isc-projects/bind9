@@ -14,7 +14,6 @@
 #pragma once
 
 #include <isc/heap.h>
-#include <isc/lang.h>
 #include <isc/urcu.h>
 
 #include <dns/nsec3.h>
@@ -29,8 +28,6 @@
  * \brief
  * DNS QP-Trie DB Implementation
  */
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
@@ -48,4 +45,3 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
  *
  * \li argc == 0 or argv[0] is a valid memory context.
  */
-ISC_LANG_ENDDECLS

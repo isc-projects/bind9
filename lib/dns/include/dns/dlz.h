@@ -79,16 +79,12 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <dns/clientinfo.h>
 #include <dns/name.h>
 #include <dns/types.h>
 #include <dns/view.h>
 
 #include <dst/dst.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Types
@@ -329,5 +325,3 @@ dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
 /*%<
  * call a DLZ drivers ssumatch method, if supplied. Otherwise return false
  */
-
-ISC_LANG_ENDDECLS

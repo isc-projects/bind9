@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <isc/lang.h>
 #include <isc/md.h>
 #include <isc/result.h>
 #include <isc/types.h>

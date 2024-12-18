@@ -17,8 +17,6 @@
 
 #include <inttypes.h>
 
-ISC_LANG_BEGINDECLS
-
 /*%
  * Convert a string of an IPv6 scope zone to zone index.  If the conversion
  * succeeds, 'zoneid' will store the index value.
@@ -32,5 +30,3 @@ ISC_LANG_BEGINDECLS
  */
 isc_result_t
 isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid);
-
-ISC_LANG_ENDDECLS

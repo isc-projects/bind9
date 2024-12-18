@@ -28,7 +28,6 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
@@ -41,8 +40,6 @@
 #include <dns/view.h>
 
 /* Add -DDNS_NTA_TRACE=1 to CFLAGS for detailed reference tracing */
-
-ISC_LANG_BEGINDECLS
 
 #define NTATABLE_MAGIC	   ISC_MAGIC('N', 'T', 'A', 't')
 #define VALID_NTATABLE(nt) ISC_MAGIC_VALID(nt, NTATABLE_MAGIC)
@@ -180,5 +177,3 @@ ISC_REFCOUNT_TRACE_DECL(dns__nta);
 #else
 ISC_REFCOUNT_DECL(dns__nta);
 #endif
-
-ISC_LANG_ENDDECLS

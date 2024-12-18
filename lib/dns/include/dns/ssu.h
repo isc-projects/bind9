@@ -17,14 +17,10 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <dns/acl.h>
 #include <dns/types.h>
 
 #include <dst/dst.h>
-
-ISC_LANG_BEGINDECLS
 
 typedef enum {
 	dns_ssumatchtype_name = 0,
@@ -258,5 +254,3 @@ dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype);
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOTFOUND
  */
-
-ISC_LANG_ENDDECLS

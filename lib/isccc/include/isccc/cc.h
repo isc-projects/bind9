@@ -35,13 +35,10 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
-#include <isc/lang.h>
 
 #include <dst/dst.h>
 
 #include <isccc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*%
  * The HMAC algorithms supported by isccc_cc_fromwire and
@@ -128,5 +125,3 @@ isccc_cc_cleansymtab(isccc_symtab_t *symtab, isccc_time_t now);
 isc_result_t
 isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 		  isccc_time_t now);
-
-ISC_LANG_ENDDECLS

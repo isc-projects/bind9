@@ -13,15 +13,11 @@
 
 #pragma once
 
-#include <isc/lang.h>
-
 #include <isccfg/cfg.h>
 
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
@@ -87,5 +83,3 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
  *
  *\li  Other errors are possible.
  */
-
-ISC_LANG_ENDDECLS

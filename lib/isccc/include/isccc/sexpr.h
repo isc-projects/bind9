@@ -34,11 +34,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <isc/lang.h>
-
 #include <isccc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*% dotted pair structure */
 struct isccc_dottedpair {
@@ -115,5 +111,3 @@ isccc_sexpr_tostring(isccc_sexpr_t *sexpr);
 
 isccc_region_t *
 isccc_sexpr_tobinary(isccc_sexpr_t *sexpr);
-
-ISC_LANG_ENDDECLS

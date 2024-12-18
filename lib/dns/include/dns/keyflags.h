@@ -15,11 +15,7 @@
 
 /*! \file dns/keyflags.h */
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source);
@@ -41,5 +37,3 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source);
  *\li	ISC_R_RANGE			numeric flag value is out of range
  *\li	DNS_R_UNKNOWN			mnemonic flag is unknown
  */
-
-ISC_LANG_ENDDECLS

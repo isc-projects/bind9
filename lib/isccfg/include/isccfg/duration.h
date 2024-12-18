@@ -19,10 +19,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define CFG_DURATION_MAXLEN 80
 
@@ -83,5 +80,3 @@ isccfg_duration_toseconds(const isccfg_duration_t *duration);
  * Returns:
  *\li	The duration in seconds.
  */
-
-ISC_LANG_ENDDECLS

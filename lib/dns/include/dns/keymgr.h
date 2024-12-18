@@ -15,14 +15,11 @@
 
 /*! \file dns/keymgr.h */
 
-#include <isc/lang.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
 
 #include <dst/dst.h>
-
-ISC_LANG_BEGINDECLS
 
 void
 dns_keymgr_settime_syncpublish(dst_key_t *key, dns_kasp_t *kasp, bool first);
@@ -158,5 +155,3 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
  *\li		Printable status in 'out'.
  *
  */
-
-ISC_LANG_ENDDECLS

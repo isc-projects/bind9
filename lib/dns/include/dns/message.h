@@ -20,7 +20,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
 
@@ -364,8 +363,6 @@ typedef void (*dns_message_cb_t)(void *arg, isc_result_t result);
 /***
  *** Functions
  ***/
-
-ISC_LANG_BEGINDECLS
 
 void
 dns_message_create(isc_mem_t *mctx, isc_mempool_t *namepool,
@@ -1533,5 +1530,3 @@ dns_ede_unlinkall(isc_mem_t *mctx, dns_edelist_t *list);
  * \li   mctx to be non NULL;
  * \li   list to be non NULL;
  */
-
-ISC_LANG_ENDDECLS

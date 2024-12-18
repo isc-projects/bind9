@@ -16,10 +16,7 @@
 /*! \file isc/os.h */
 #include <sys/stat.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*%<
  * Hardcode the L1 cacheline size of the CPU to 64, this is checked in
@@ -48,5 +45,3 @@ isc_os_umask(void);
 /*%<
  * Return umask of the current process as initialized at the program start
  */
-
-ISC_LANG_ENDDECLS

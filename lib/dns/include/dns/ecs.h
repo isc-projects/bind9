@@ -15,7 +15,6 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
 #include <isc/netaddr.h>
 #include <isc/types.h>
 
@@ -45,8 +44,6 @@ struct dns_ecs {
 
 /* <address>/NNN/NNN */
 #define DNS_ECS_FORMATSIZE (ISC_NETADDR_FORMATSIZE + 9)
-
-ISC_LANG_BEGINDECLS
 
 void
 dns_ecs_init(dns_ecs_t *ecs);
@@ -78,4 +75,3 @@ dns_ecs_format(const dns_ecs_t *ecs, char *buf, size_t size);
  * \li  'buf' is not NULL.
  * \li  'size' is at least DNS_ECS_FORMATSIZE
  */
-ISC_LANG_ENDDECLS

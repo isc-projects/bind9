@@ -15,10 +15,7 @@
 
 #pragma once
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 bool
 isc_utf8_bom(const unsigned char *buf, size_t len);
@@ -39,5 +36,3 @@ isc_utf8_valid(const unsigned char *buf, size_t len);
  * Requires:
  *\li 	'buf' != NULL
  */
-
-ISC_LANG_ENDDECLS

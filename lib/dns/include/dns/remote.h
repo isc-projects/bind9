@@ -17,13 +17,10 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define DNS_REMOTE_MAGIC	 ISC_MAGIC('R', 'm', 't', 'e')
 #define DNS_REMOTE_VALID(remote) ISC_MAGIC_VALID(remote, DNS_REMOTE_MAGIC)
@@ -215,5 +212,3 @@ dns_remote_done(dns_remote_t *remote);
  *	Requires:
  *		'remote' is a valid remote structure.
  */
-
-ISC_LANG_ENDDECLS

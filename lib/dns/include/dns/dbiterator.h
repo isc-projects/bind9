@@ -56,12 +56,9 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*****
 ***** Types
@@ -288,5 +285,3 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
  *
  *\li	Other results are possible, depending on the DB implementation.
  */
-
-ISC_LANG_ENDDECLS

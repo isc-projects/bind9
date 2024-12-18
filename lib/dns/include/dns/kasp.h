@@ -25,7 +25,6 @@
  * signed and maintained.
  */
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/refcount.h>
@@ -33,8 +32,6 @@
 #include <dns/dnssec.h>
 #include <dns/keystore.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /* For storing a list of digest types */
 struct dns_kasp_digest {
@@ -904,5 +901,3 @@ dns_kasp_adddigest(dns_kasp_t *kasp, dns_dsdigest_t alg);
  *
  *\li   'kasp' is a valid, thawed kasp.
  */
-
-ISC_LANG_ENDDECLS

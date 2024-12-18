@@ -50,8 +50,6 @@
 #define ISC_PROXY2_TLS_SUBHEADER_MIN_SIZE \
 	(1 /* client_flags */ + 4 /* verify */)
 
-ISC_LANG_BEGINDECLS
-
 typedef enum isc_proxy2_command {
 	ISC_PROXY2_CMD_ILLEGAL = -1,
 	/*
@@ -851,5 +849,3 @@ isc_proxy2_append_tlv_string(isc_buffer_t *restrict outbuf, const uint8_t type,
  *\li	'ISC_R_NOSPACE' - not enough data in the output buffer
  *\li	'ISC_R_RANGE' - too much data for PROXYv2 header.
  */
-
-ISC_LANG_ENDDECLS

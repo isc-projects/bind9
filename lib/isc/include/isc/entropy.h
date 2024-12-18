@@ -15,8 +15,6 @@
 
 #include <stdlib.h>
 
-#include <isc/lang.h>
-
 /*! \file isc/entropy.h
  * \brief Implements wrapper around CSPRNG cryptographic library calls
  * for getting cryptographically secure pseudo-random numbers.
@@ -24,12 +22,8 @@
  * Uses synchronous version of uv_random().
  */
 
-ISC_LANG_BEGINDECLS
-
 void
 isc_entropy_get(void *buf, size_t buflen);
 /*!<
  * \brief Get cryptographically-secure pseudo-random data.
  */
-
-ISC_LANG_ENDDECLS

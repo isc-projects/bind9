@@ -28,12 +28,9 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define DNS_SOA_BUFFERSIZE ((2 * DNS_NAME_MAXWIRE) + (4 * 5))
 
@@ -89,5 +86,3 @@ dns_soa_setminimum(uint32_t val, dns_rdata_t *rdata);
  * Requires:
  *	rdata refers to the rdata of a well-formed SOA record.
  */
-
-ISC_LANG_ENDDECLS

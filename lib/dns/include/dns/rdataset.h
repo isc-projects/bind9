@@ -47,7 +47,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/stdtime.h>
 
@@ -65,8 +64,6 @@
 #define DNS_RDATASET_ORDER 0
 #define DNS_RDATASET_COUNT 0
 #endif /* DNS_RDATASET_FIXED */
-
-ISC_LANG_BEGINDECLS
 
 typedef enum {
 	dns_rdatasetadditional_fromauth,
@@ -655,5 +652,3 @@ dns_trust_totext(dns_trust_t trust);
 /*%<
  * Display trust in textual form.
  */
-
-ISC_LANG_ENDDECLS

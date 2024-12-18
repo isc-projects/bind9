@@ -13,13 +13,10 @@
 
 #pragma once
 
-#include <isc/lang.h>
 #include <isc/sockaddr.h>
 
 #include <dns/name.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 typedef struct dns_rdatacommon {
 	dns_rdataclass_t rdclass;

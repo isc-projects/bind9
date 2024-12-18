@@ -50,7 +50,6 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
-#include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/netmgr.h>
 #include <isc/refcount.h>
@@ -59,8 +58,6 @@
 #include <dns/types.h>
 
 /* Add -DDNS_DISPATCH_TRACE=1 to CFLAGS for detailed reference tracing */
-
-ISC_LANG_BEGINDECLS
 
 /*%
  * This is a set of one or more dispatches which can be retrieved
@@ -435,5 +432,3 @@ dns_dispatch_checkperm(dns_dispatch_t *disp);
  * Requires:
  *\li	disp is valid
  */
-
-ISC_LANG_ENDDECLS

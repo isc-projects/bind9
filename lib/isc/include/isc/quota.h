@@ -32,7 +32,6 @@
 
 #include <isc/atomic.h>
 #include <isc/job.h>
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/os.h>
@@ -45,8 +44,6 @@
 *****/
 
 /* Add -DISC_QUOTA_TRACE=1 to CFLAGS for detailed reference tracing */
-
-ISC_LANG_BEGINDECLS
 
 /*%
  * isc_quota structure
@@ -142,5 +139,3 @@ isc_quota_release(isc_quota_t *quota);
 /*%<
  * Release one unit of quota.
  */
-
-ISC_LANG_ENDDECLS

@@ -19,13 +19,10 @@
 #include <stdio.h>
 
 #include <isc/attributes.h>
-#include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/overflow.h>
 #include <isc/types.h>
 #include <isc/urcu.h>
-
-ISC_LANG_BEGINDECLS
 
 /*%
  * Define ISC_MEM_TRACKLINES=1 to turn on detailed tracing of memory
@@ -548,5 +545,3 @@ isc__mempool_put(isc_mempool_t *, void *_ISC_MEM_FLARG);
  */
 #pragma pop_macro("malloc")
 #endif
-
-ISC_LANG_ENDDECLS

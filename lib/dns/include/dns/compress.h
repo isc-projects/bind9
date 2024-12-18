@@ -16,13 +16,10 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/region.h>
 
 #include <dns/name.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*! \file dns/compress.h
  * Direct manipulation of the structures is strongly discouraged.
@@ -228,5 +225,3 @@ dns_decompress_getpermitted(dns_decompress_t dctx) {
 	return dctx == DNS_DECOMPRESS_ALWAYS ||
 	       dctx == DNS_DECOMPRESS_PERMITTED;
 }
-
-ISC_LANG_ENDDECLS

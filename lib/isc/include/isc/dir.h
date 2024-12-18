@@ -19,7 +19,6 @@
 #include <limits.h>
 #include <sys/types.h> /* Required on some systems. */
 
-#include <isc/lang.h>
 #include <isc/result.h>
 
 #ifndef NAME_MAX
@@ -44,8 +43,6 @@ typedef struct isc_dir {
 	DIR	      *handle;
 } isc_dir_t;
 
-ISC_LANG_BEGINDECLS
-
 void
 isc_dir_init(isc_dir_t *dir);
 
@@ -66,5 +63,3 @@ isc_dir_chdir(const char *dirname);
 
 isc_result_t
 isc_dir_chroot(const char *dirname);
-
-ISC_LANG_ENDDECLS

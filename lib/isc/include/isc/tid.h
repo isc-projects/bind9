@@ -15,10 +15,7 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
 #include <isc/thread.h>
-
-ISC_LANG_BEGINDECLS
 
 #define ISC_TID_UNKNOWN UINT32_MAX
 
@@ -45,5 +42,3 @@ isc__tid_init(uint32_t tid);
 
 void
 isc__tid_initcount(uint32_t count);
-
-ISC_LANG_ENDDECLS

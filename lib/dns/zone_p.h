@@ -22,8 +22,6 @@
  *     associated unit tests.
  */
 
-ISC_LANG_BEGINDECLS
-
 typedef struct {
 	dns_diff_t *diff;
 	bool offline;
@@ -40,5 +38,3 @@ isc_result_t
 dns__zone_lookup_nsec3param(dns_zone_t *zone, dns_rdata_nsec3param_t *lookup,
 			    dns_rdata_nsec3param_t *param,
 			    unsigned char saltbuf[255], bool resalt);
-
-ISC_LANG_ENDDECLS

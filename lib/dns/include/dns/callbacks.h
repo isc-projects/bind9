@@ -19,12 +19,9 @@
  ***	Imports
  ***/
 
-#include <isc/lang.h>
 #include <isc/magic.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  ***	Types
@@ -100,5 +97,3 @@ dns_rdatacallbacks_init_stdio(dns_rdatacallbacks_t *callbacks);
 /*%<
  * Like dns_rdatacallbacks_init, but logs to stdio.
  */
-
-ISC_LANG_ENDDECLS

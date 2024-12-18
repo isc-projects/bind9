@@ -86,13 +86,9 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Types
@@ -822,5 +818,3 @@ dns_rdata_checksvcb(const dns_name_t *owner, const dns_rdata_t *rdata);
  *\li	#DNS_R_NOALPN		-- ALPN required for 'owner', but not found
  *\li	#DNS_R_NODOHPATH	-- DOHPATH required for 'owner', but not found
  */
-
-ISC_LANG_ENDDECLS

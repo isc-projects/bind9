@@ -17,10 +17,6 @@
 
 #include <string.h>
 
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
-
 #if !defined(HAVE_STRLCPY)
 size_t
 strlcpy(char *dst, const char *src, size_t size);
@@ -38,5 +34,3 @@ strnstr(const char *s, const char *find, size_t slen);
 
 int
 isc_string_strerror_r(int errnum, char *buf, size_t buflen);
-
-ISC_LANG_ENDDECLS

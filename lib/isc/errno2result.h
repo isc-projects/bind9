@@ -20,15 +20,10 @@
 #include <errno.h> /* Provides errno. */
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define isc__errno2result(x) isc___errno2result(x, true, __FILE__, __LINE__)
 
 isc_result_t
 isc___errno2result(int posixerrno, bool dolog, const char *file,
 		   unsigned int line);
-
-ISC_LANG_ENDDECLS

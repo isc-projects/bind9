@@ -51,8 +51,6 @@
 
 #include <dns/types.h>
 
-ISC_LANG_BEGINDECLS
-
 /***
  ***	Functions
  ***/
@@ -146,5 +144,3 @@ dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp);
  * \li	cachename != NULL
  * \li	fp != NULL
  */
-
-ISC_LANG_ENDDECLS

@@ -19,7 +19,6 @@
 #include <time.h>
 
 #include <isc/attributes.h>
-#include <isc/lang.h>
 #include <isc/types.h>
 
 /*
@@ -44,8 +43,6 @@ ISC_CONSTEXPR unsigned int NS_PER_SEC = 1000 * 1000 * 1000;
  */
 #define isc_interval_zero isc_time_epoch
 #define isc_interval_t	  isc_time_t
-
-ISC_LANG_BEGINDECLS
 
 #define isc_interval_set(i, seconds, nanoseconds) \
 	isc_time_set((isc_time_t *)i, seconds, nanoseconds)
@@ -478,5 +475,3 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
  *\li      'buf' points to an array of at least len chars
  *
  */
-
-ISC_LANG_ENDDECLS

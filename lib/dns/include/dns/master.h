@@ -22,8 +22,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
 
 /*
@@ -60,8 +58,6 @@
 #define DNS_MASTER_NOTTL     0x00008000 /*%< Don't require ttl. */
 #define DNS_MASTER_CHECKTTL  0x00010000 /*%< Check max-zone-ttl */
 #define DNS_MASTER_CHECKSVCB 0x00020000 /*%< Check SVBC records */
-
-ISC_LANG_BEGINDECLS
 
 /*
  * Structures that implement the "raw" format for master dump.
@@ -229,4 +225,3 @@ dns_master_initrawheader(dns_masterrawheader_t *header);
  * Initializes the header for a raw master file, setting all
  * values to zero.
  */
-ISC_LANG_ENDDECLS

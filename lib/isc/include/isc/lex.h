@@ -47,11 +47,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <isc/lang.h>
 #include <isc/region.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Options
@@ -440,5 +437,3 @@ isc_lex_isfile(isc_lex_t *lex);
  * \li	#true if the current input is a file,
  *\li	#false otherwise.
  */
-
-ISC_LANG_ENDDECLS

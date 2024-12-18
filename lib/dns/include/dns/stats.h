@@ -257,8 +257,6 @@ typedef void (*dns_dnssecsignstats_dumper_t)(uint32_t, uint64_t, void *);
 typedef void (*dns_opcodestats_dumper_t)(dns_opcode_t, uint64_t, void *);
 typedef void (*dns_rcodestats_dumper_t)(dns_rcode_t, uint64_t, void *);
 
-ISC_LANG_BEGINDECLS
-
 void
 dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters);
 /*%<
@@ -515,5 +513,3 @@ dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().
  */
-
-ISC_LANG_ENDDECLS

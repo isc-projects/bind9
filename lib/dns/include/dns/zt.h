@@ -17,12 +17,9 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/rwlock.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 typedef enum dns_ztfind {
 	DNS_ZTFIND_EXACT = 1 << 0,
@@ -215,5 +212,3 @@ dns_zt_setviewrevert(dns_zt_t *zt);
  * Requires:
  *\li	'zt' to be valid.
  */
-
-ISC_LANG_ENDDECLS

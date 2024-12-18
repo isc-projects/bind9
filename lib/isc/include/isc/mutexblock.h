@@ -15,11 +15,8 @@
 
 /*! \file isc/mutexblock.h */
 
-#include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 void
 isc_mutexblock_init(isc_mutex_t *block, unsigned int count);
@@ -50,5 +47,3 @@ isc_mutexblock_destroy(isc_mutex_t *block, unsigned int count);
  * 	the whole block was initialized via isc_mutex_initblock().
  *
  */
-
-ISC_LANG_ENDDECLS

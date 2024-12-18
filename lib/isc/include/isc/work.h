@@ -15,14 +15,11 @@
 
 #include <stdlib.h>
 
-#include <isc/lang.h>
 #include <isc/loop.h>
 
 typedef void (*isc_work_cb)(void *arg);
 typedef void (*isc_after_work_cb)(void *arg);
 typedef struct isc_work isc_work_t;
-
-ISC_LANG_BEGINDECLS
 
 void
 isc_work_enqueue(isc_loop_t *loop, isc_work_cb work_cb,
@@ -37,5 +34,3 @@ isc_work_enqueue(isc_loop_t *loop, isc_work_cb work_cb,
  * \li 'loop' is a valid event loop.
  * \li 'work_cb' and 'after_work_cb' are not NULL.
  */
-
-ISC_LANG_ENDDECLS

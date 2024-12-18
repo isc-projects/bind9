@@ -16,12 +16,9 @@
 /*! \file */
 
 #include <isc/buffer.h>
-#include <isc/lang.h>
 #include <isc/mem.h>
 
 #include <dns/secalg.h>
-
-ISC_LANG_BEGINDECLS
 
 void
 generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
@@ -37,5 +34,3 @@ dns_secalg_t
 alg_fromtext(const char *name);
 int
 alg_bits(dns_secalg_t alg);
-
-ISC_LANG_ENDDECLS

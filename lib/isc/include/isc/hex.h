@@ -15,10 +15,7 @@
 
 /*! \file isc/hex.h */
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * An `isc__hex_char` table entry is non-zero if the character is a hex digit;
@@ -107,5 +104,3 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
  *	be read, if `length` is non-negative.  The 'used' pointer in
  *	'target' will be advanced as necessary.
  */
-
-ISC_LANG_ENDDECLS

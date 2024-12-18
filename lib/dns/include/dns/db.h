@@ -52,7 +52,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/rwlock.h>
@@ -66,8 +65,6 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*%
  * Tuning: external query load in packets per seconds.
@@ -1821,4 +1818,3 @@ dns_db_setmaxtypepername(dns_db_t *db, uint32_t value);
  * stored at a given node, then any subsequent attempt to add an rdataset
  * with a new RR type will return ISC_R_TOOMANYRECORDS.
  */
-ISC_LANG_ENDDECLS

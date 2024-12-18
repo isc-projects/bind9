@@ -19,15 +19,12 @@
 #include <stdbool.h>
 
 #include <isc/formatcheck.h>
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <dns/types.h>
 
 typedef void *dns_gss_cred_id_t;
 typedef void *dns_gss_ctx_id_t;
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Types
@@ -188,5 +185,3 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
  *	in "name" (which represents the realm name).
  *
  */
-
-ISC_LANG_ENDDECLS

@@ -20,13 +20,9 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <dns/fixedname.h>
 #include <dns/rdata.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * Memory allocation or other failures.
@@ -265,5 +261,3 @@ dns_rrl_view_destroy(dns_view_t *view);
 
 isc_result_t
 dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries);
-
-ISC_LANG_ENDDECLS

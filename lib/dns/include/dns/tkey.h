@@ -18,14 +18,10 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
-
 #include <dns/types.h>
 
 #include <dst/dst.h>
 #include <dst/gssapi.h>
-
-ISC_LANG_BEGINDECLS
 
 /* Key agreement modes */
 #define DNS_TKEYMODE_SERVERASSIGNED   1
@@ -139,4 +135,3 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
  *		DNS_R_CONTINUE  additional context negotiation is required;
  *					send the new qmsg to the server
  */
-ISC_LANG_ENDDECLS

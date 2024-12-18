@@ -17,10 +17,6 @@
 
 #include <stdio.h>
 
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
-
 int
 set_user(FILE *fd, const char *user);
 /*%<
@@ -29,5 +25,3 @@ set_user(FILE *fd, const char *user);
  *   0 		success
  *   -1 	insufficient permissions, or 'user' does not exist.
  */
-
-ISC_LANG_ENDDECLS

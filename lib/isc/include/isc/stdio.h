@@ -26,10 +26,7 @@
 
 #include <stdio.h>
 
-#include <isc/lang.h>
 #include <isc/result.h>
-
-ISC_LANG_BEGINDECLS
 
 /*% Open */
 isc_result_t
@@ -67,5 +64,3 @@ isc_stdio_sync(FILE *f);
  * equivalent system-dependent operation.  Note that this function has no
  * direct counterpart in the stdio library.
  */
-
-ISC_LANG_ENDDECLS

@@ -16,7 +16,6 @@
 #include <inttypes.h>
 
 #include <isc/job.h>
-#include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>
 #include <isc/types.h>
@@ -24,8 +23,6 @@
 typedef void (*isc_job_cb)(void *);
 
 /* Add -DISC_LOOP_TRACE=1 to CFLAGS for detailed reference tracing */
-
-ISC_LANG_BEGINDECLS
 
 /*%<
  * Returns the current running loop.
@@ -225,4 +222,3 @@ isc_loop_shuttingdown(isc_loop_t *loop);
  *
  * \li 'loop' is a valid loop and the loop tid matches the current tid.
  */
-ISC_LANG_ENDDECLS

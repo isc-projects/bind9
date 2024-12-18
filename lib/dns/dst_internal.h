@@ -39,7 +39,6 @@
 
 #include <isc/buffer.h>
 #include <isc/hmac.h>
-#include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/md.h>
 #include <isc/refcount.h>
@@ -50,8 +49,6 @@
 #include <dns/time.h>
 
 #include <dst/dst.h>
-
-ISC_LANG_BEGINDECLS
 
 #define KEY_MAGIC ISC_MAGIC('D', 'S', 'T', 'K')
 #define CTX_MAGIC ISC_MAGIC('D', 'S', 'T', 'C')
@@ -226,7 +223,5 @@ isc_result_t
 dst_key_close(char *tmpname, FILE *fp, char *filename);
 isc_result_t
 dst_key_cleanup(char *tmpname, FILE *fp);
-
-ISC_LANG_ENDDECLS
 
 /*! \file */

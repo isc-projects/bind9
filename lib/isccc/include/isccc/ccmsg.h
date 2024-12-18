@@ -34,7 +34,6 @@
 #include <inttypes.h>
 
 #include <isc/buffer.h>
-#include <isc/lang.h>
 #include <isc/netmgr.h>
 #include <isc/sockaddr.h>
 
@@ -54,8 +53,6 @@ typedef struct isccc_ccmsg {
 	isc_nm_cb_t	send_cb;
 	void	       *send_cbarg;
 } isccc_ccmsg_t;
-
-ISC_LANG_BEGINDECLS
 
 void
 isccc_ccmsg_init(isc_mem_t *mctx, isc_nmhandle_t *handle, isccc_ccmsg_t *ccmsg);
@@ -141,5 +138,3 @@ isccc_ccmsg_invalidate(isccc_ccmsg_t *ccmsg);
 
 void
 isccc_ccmsg_toregion(isccc_ccmsg_t *ccmsg, isccc_region_t *ccregion);
-
-ISC_LANG_ENDDECLS

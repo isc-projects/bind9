@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <isc/lang.h>
 #include <isc/list.h>
 #include <isc/types.h>
 
@@ -38,8 +37,6 @@ typedef struct irs_resconf_search {
 } irs_resconf_search_t;
 
 typedef ISC_LIST(irs_resconf_search_t) irs_resconf_searchlist_t;
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp);
@@ -136,5 +133,3 @@ irs_resconf_gettimeout(irs_resconf_t *conf);
  *
  *\li	'conf' is a valid resconf object.
  */
-
-ISC_LANG_ENDDECLS

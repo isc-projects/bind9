@@ -20,12 +20,9 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
-#include <isc/lang.h>
 #include <isc/log.h>
 #include <isc/result.h>
 #include <isc/tls.h>
-
-ISC_LANG_BEGINDECLS
 
 #define dst__openssl_toresult(fallback)                                    \
 	isc__tlserr2result(ISC_LOGCATEGORY_INVALID, ISC_LOGMODULE_INVALID, \
@@ -49,5 +46,3 @@ dst__openssl_keypair_isprivate(const dst_key_t *key);
 
 void
 dst__openssl_keypair_destroy(dst_key_t *key);
-
-ISC_LANG_ENDDECLS

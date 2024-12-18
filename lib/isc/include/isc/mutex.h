@@ -19,11 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <isc/lang.h>
 #include <isc/result.h> /* for ISC_R_ codes */
 #include <isc/util.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * We use macros instead of static inline functions so that the exact code
@@ -89,5 +86,3 @@ extern pthread_mutexattr_t isc__mutex_init_attr;
 		int _ret = pthread_mutex_destroy(mp);                \
 		PTHREADS_RUNTIME_CHECK(pthread_mutex_destroy, _ret); \
 	}
-
-ISC_LANG_ENDDECLS

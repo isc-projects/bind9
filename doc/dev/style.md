@@ -180,14 +180,6 @@ within a library but not for public use, are kept in the source tree at the
 same level as their related C files, and often have `"_p"` in their names,
 e.g. `lib/isc/mem_p.h`.
 
-Header files that define modules should have a structure like the
-following.  Note that `<isc/lang.h>` MUST be included by any public header
-file using the ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS macros, so the
-correct name-mangling happens for function declarations when C++ programs
-include the file.  `<isc/lang.h>` SHOULD be included for private header files
-or for public files that do not declare any functions.
-
-
         /*
          * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
          *
@@ -231,7 +223,6 @@ or for public files that do not declare any functions.
          ***/
 
         /* #includes here. */
-        #include <isc/lang.h>
 
         /***
          *** Types
@@ -242,9 +233,7 @@ or for public files that do not declare any functions.
         /***
          *** Functions
          ***/
-        ISC_LANG_BEGINDECLS
         /* (Function declarations here, with full prototypes.) */
-        ISC_LANG_ENDDECLS
 
 #### Including Interfaces (.h files)
 

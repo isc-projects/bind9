@@ -106,7 +106,6 @@
 #include <isc/assertions.h>
 #include <isc/endian.h>
 #include <isc/formatcheck.h>
-#include <isc/lang.h>
 #include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -114,8 +113,6 @@
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
-
-ISC_LANG_BEGINDECLS
 
 /*@{*/
 /*!
@@ -1257,5 +1254,3 @@ isc_buffer_printf(isc_buffer_t *restrict b, const char *restrict format, ...) {
 
 	return ISC_R_SUCCESS;
 }
-
-ISC_LANG_ENDDECLS

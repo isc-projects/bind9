@@ -20,8 +20,6 @@
 
 #include <dns/sdlz.h>
 
-ISC_LANG_BEGINDECLS
-
 /*
  * This header provides a minimal set of defines and typedefs needed
  * for the entry points of an external DLZ module for bind9.
@@ -152,5 +150,3 @@ dlz_dlopen_subrdataset_t(const char *name, const char *rdatastr, void *dbdata,
 typedef isc_result_t
 dlz_dlopen_delrdataset_t(const char *name, const char *type, void *dbdata,
 			 void *version);
-
-ISC_LANG_ENDDECLS

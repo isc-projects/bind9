@@ -26,8 +26,3 @@ typedef struct dns_rdata_resinfo {
 	/* private */
 	uint16_t offset;
 } dns_rdata_resinfo_t;
-
-/*
- * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
- * via rdatastructpre.h and rdatastructsuf.h.
- */

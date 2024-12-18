@@ -40,7 +40,6 @@
 #include <isc/file.h>
 #include <isc/getaddresses.h>
 #include <isc/hex.h>
-#include <isc/lang.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/managers.h>

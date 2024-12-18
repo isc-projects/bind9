@@ -37,8 +37,6 @@
  *** Functions
  ***/
 
-ISC_LANG_BEGINDECLS
-
 isc_result_t
 isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp);
 /*%<
@@ -131,5 +129,3 @@ isc_portset_removerange(isc_portset_t *portset, in_port_t port_lo,
  *\li	'portlist' to be valid.
  *\li	port_lo <= port_hi
  */
-
-ISC_LANG_ENDDECLS

@@ -19,10 +19,7 @@
 #include <stdlib.h>
 
 #include <isc/atomic.h>
-#include <isc/lang.h>
 #include <isc/util.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * We use macros instead of static inline functions so that the exact code
@@ -121,5 +118,3 @@ typedef atomic_uint_fast32_t isc_spinlock_t;
 	}
 
 #endif
-
-ISC_LANG_ENDDECLS

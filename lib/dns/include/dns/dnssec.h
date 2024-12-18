@@ -17,7 +17,6 @@
 
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
 
@@ -26,8 +25,6 @@
 #include <dns/types.h>
 
 #include <dst/dst.h>
-
-ISC_LANG_BEGINDECLS
 
 extern isc_stats_t *dns_dnssec_stats;
 
@@ -423,4 +420,3 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
  *\li	ISC_R_NOTFOUND
  *\li	Other values indicate error
  */
-ISC_LANG_ENDDECLS

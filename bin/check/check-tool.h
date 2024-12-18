@@ -18,15 +18,12 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/stdio.h>
 #include <isc/types.h>
 
 #include <dns/masterdump.h>
 #include <dns/types.h>
 #include <dns/zone.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 setup_logging(FILE *errout);
@@ -48,5 +45,3 @@ extern bool docheckmx;
 extern bool docheckns;
 extern bool dochecksrv;
 extern dns_zoneopt_t zone_options;
-
-ISC_LANG_ENDDECLS

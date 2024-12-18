@@ -21,8 +21,6 @@
 
 #include <inttypes.h>
 
-#include <isc/lang.h>
-
 #include <dns/diff.h>
 #include <dns/types.h>
 
@@ -31,8 +29,6 @@ typedef struct {
 		     const char *message);
 	void *arg;
 } dns_update_log_t;
-
-ISC_LANG_BEGINDECLS
 
 /***
  ***	Functions
@@ -68,5 +64,3 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 dns_dbversion_t *oldver, dns_dbversion_t *newver,
 			 dns_diff_t *diff, uint32_t sigvalidityinterval,
 			 dns_update_state_t **state);
-
-ISC_LANG_ENDDECLS

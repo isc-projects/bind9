@@ -30,15 +30,12 @@
  *** Imports.
  ***/
 
-#include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/types.h>
 
 /*****
 ***** Types.
 *****/
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp);
@@ -86,5 +83,3 @@ isc_counter_detach(isc_counter_t **counterp);
  * Detach (and destroy if reference counter has dropped to zero)
  * a counter object.
  */
-
-ISC_LANG_ENDDECLS

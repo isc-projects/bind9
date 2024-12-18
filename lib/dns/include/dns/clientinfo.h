@@ -44,8 +44,6 @@
 
 #include <dns/ecs.h>
 
-ISC_LANG_BEGINDECLS
-
 /*****
 ***** Types
 *****/
@@ -98,5 +96,3 @@ dns_clientinfo_setecs(dns_clientinfo_t *ci, dns_ecs_t *ecs);
  * Set the ECS client data associated with a clientinfo object 'ci'.
  * If 'ecs' is NULL, initialize ci->ecs to 0/0/0; otherwise copy it.
  */
-
-ISC_LANG_ENDDECLS

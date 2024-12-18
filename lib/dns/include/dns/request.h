@@ -37,7 +37,6 @@
 #include <stdbool.h>
 
 #include <isc/job.h>
-#include <isc/lang.h>
 #include <isc/tls.h>
 
 #include <dns/types.h>
@@ -48,8 +47,6 @@
 #define DNS_REQUESTOPT_CASE    0x00000002U
 #define DNS_REQUESTOPT_FIXEDID 0x00000004U
 #define DNS_REQUESTOPT_LARGE   0x00000008U
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_requestmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
@@ -305,5 +302,3 @@ ISC_REFCOUNT_TRACE_DECL(dns_request);
 #else
 ISC_REFCOUNT_DECL(dns_request);
 #endif
-
-ISC_LANG_ENDDECLS

@@ -15,17 +15,12 @@
 
 /*! \file dns/result.h */
 
-#include <isc/lang.h>
 #include <isc/result.h>
 
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 dns_rcode_t
 dns_result_torcode(isc_result_t result);
 
 isc_result_t
 dns_result_fromrcode(dns_rcode_t rcode);
-
-ISC_LANG_ENDDECLS

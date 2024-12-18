@@ -31,11 +31,7 @@
 
 /*! \file isccc/base64.h */
 
-#include <isc/lang.h>
-
 #include <isccc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Functions
@@ -75,5 +71,3 @@ isccc_base64_decode(const char *cstr, isccc_region_t *target);
  *\li	#ISC_R_BADBASE64 -- 'cstr' is not a valid base64 encoding.
  *\li	#ISC_R_NOSPACE	-- 'target' is not big enough.
  */
-
-ISC_LANG_ENDDECLS

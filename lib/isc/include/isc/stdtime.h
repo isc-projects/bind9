@@ -18,7 +18,6 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-#include <isc/lang.h>
 #include <isc/time.h>
 
 /*%
@@ -27,8 +26,6 @@
  * about its size.
  */
 typedef uint32_t isc_stdtime_t;
-
-ISC_LANG_BEGINDECLS
 
 isc_stdtime_t
 isc_stdtime_now(void);
@@ -49,5 +46,3 @@ isc_stdtime_tostring(isc_stdtime_t t, char *out, size_t outlen);
  *	'out' is a valid pointer.
  *	'outlen' is at least 26.
  */
-
-ISC_LANG_ENDDECLS

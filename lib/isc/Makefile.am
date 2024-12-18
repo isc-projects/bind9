@@ -41,7 +41,6 @@ libisc_la_HEADERS =			\
 	include/isc/interfaceiter.h	\
 	include/isc/iterated_hash.h	\
 	include/isc/job.h		\
-	include/isc/lang.h		\
 	include/isc/lex.h		\
 	include/isc/list.h		\
 	include/isc/log.h		\

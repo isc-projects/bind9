@@ -22,9 +22,6 @@
 #include <inttypes.h>
 
 #include <isc/buffer.h>
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  ***	Functions
@@ -66,5 +63,3 @@ dns_time64_from32(uint32_t value);
 /*%<
  * Covert a 32-bit cyclic time value into a 64 bit time stamp.
  */
-
-ISC_LANG_ENDDECLS

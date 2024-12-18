@@ -15,14 +15,11 @@
 
 /*! \file */
 
-#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <dns/transport.h>
 
 #include <isccfg/cfg.h>
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 named_transports_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
@@ -39,5 +36,3 @@ named_transports_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
  *	\li	'listp' is not NULL, and '*listp' is NULL
  *
  */
-
-ISC_LANG_ENDDECLS

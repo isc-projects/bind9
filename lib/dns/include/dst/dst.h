@@ -18,7 +18,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/lang.h>
 #include <isc/log.h>
 #include <isc/stdtime.h>
 
@@ -29,8 +28,6 @@
 #include <dns/types.h>
 
 #include <dst/gssapi.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Types
@@ -1232,5 +1229,3 @@ dst_hmac_algorithm_totext(dst_algorithm_t alg);
  * Return the name associtated with the HMAC algorithm 'alg'
  * or return "unknown".
  */
-
-ISC_LANG_ENDDECLS

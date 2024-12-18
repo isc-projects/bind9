@@ -19,14 +19,11 @@
 #include <stdlib.h>
 
 #include <isc/error.h>
-#include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * We use macros instead of static inline functions so that the exact code
@@ -98,5 +95,3 @@ typedef pthread_cond_t isc_condition_t;
 
 isc_result_t
 isc__condition_waituntil(pthread_cond_t *, pthread_mutex_t *, isc_time_t *);
-
-ISC_LANG_ENDDECLS
