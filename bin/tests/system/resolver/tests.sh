@@ -281,6 +281,10 @@ done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+$PERL $SYSTEMTESTTOP/stop.pl resolver ns4
+touch ns4/named.noaa
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} resolver ns4 || ret=1
+
 n=`expr $n + 1`
 echo_i "RT21594 regression test check setup ($n)"
 ret=0
@@ -316,6 +320,10 @@ $DIG $DIGOPTS +tcp noexistant @10.53.0.5 txt > dig.ns5.out.${n} || ret=1
 grep "status: NXDOMAIN" dig.ns5.out.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+$PERL $SYSTEMTESTTOP/stop.pl resolver ns4
+rm ns4/named.noaa
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} resolver ns4 || ret=1
 
 n=`expr $n + 1`
 echo_i "check that replacement of additional data by a negative cache no data entry clears the additional RRSIGs ($n)"
