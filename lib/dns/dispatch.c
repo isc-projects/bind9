@@ -1871,18 +1871,17 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		}
 	}
 
-	if (ISC_LIST_EMPTY(disp->active)) {
+	/* Take the oldest active response. */
+	resp = ISC_LIST_HEAD(disp->active);
+	if (resp == NULL) {
 		/* All responses have been canceled */
 		disp->state = DNS_DISPATCHSTATE_CANCELED;
 	} else if (eresult == ISC_R_SUCCESS) {
 		disp->state = DNS_DISPATCHSTATE_CONNECTED;
 		isc_nmhandle_attach(handle, &disp->handle);
-		if (resp != NULL) {
-			isc_nmhandle_cleartimeout(disp->handle);
-			if (resp->timeout != 0) {
-				isc_nmhandle_settimeout(disp->handle,
-							resp->timeout);
-			}
+		isc_nmhandle_cleartimeout(disp->handle);
+		if (resp->timeout != 0) {
+			isc_nmhandle_settimeout(disp->handle, resp->timeout);
 		}
 		tcp_startrecv(disp, resp);
 	} else {
