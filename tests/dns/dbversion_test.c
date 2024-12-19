@@ -170,7 +170,14 @@ ISC_RUN_TEST_IMPL(find) {
 	dns_rdataset_init(&rdataset);
 	res = dns_db_find(db1, dns_rootname, v1, dns_rdatatype_soa, 0, 0, NULL,
 			  name, &rdataset, NULL);
-	assert_int_equal(res, DNS_R_NXDOMAIN);
+	/*
+	 * Note: in the QPzone database, the root node always exists,
+	 * even if it's empty, so we would get DNS_R_NXRRSET from this
+	 * query. In other databases (including the old RBTDB) the root
+	 * node can be nonexistent, and the query would then return
+	 * DNS_R_NXDOMAIN. Allow for both possibilities.
+	 */
+	assert_true(res == DNS_R_NXRRSET || res == DNS_R_NXDOMAIN);
 
 	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
