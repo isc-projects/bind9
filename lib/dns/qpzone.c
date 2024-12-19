@@ -3407,10 +3407,8 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		if (tresult != DNS_R_CONTINUE) {
 			result = tresult;
 			search.chain.len = i - 1;
+			dns_name_copy(&n->name, foundname);
 			node = n;
-			if (foundname != NULL) {
-				dns_name_copy(&node->name, foundname);
-			}
 		}
 	}
 
@@ -3678,12 +3676,20 @@ found:
 		/*
 		 * We have an exact match for the name, but there are no
 		 * active rdatasets in the desired version.  That means that
-		 * this node doesn't exist in the desired version, and that
-		 * we really have a partial match.
+		 * this node doesn't exist in the desired version.
+		 * If there's a node above this one, reassign the
+		 * foundname to the parent and treat this as a partial
+		 * match.
 		 */
 		if (!wild) {
-			NODE_UNLOCK(lock, &nlocktype);
-			goto partial_match;
+			unsigned int len = search.chain.len - 1;
+			if (len > 0) {
+				NODE_UNLOCK(lock, &nlocktype);
+				dns_qpchain_node(&search.chain, len - 1, NULL,
+						 (void **)&node, NULL);
+				dns_name_copy(&node->name, foundname);
+				goto partial_match;
+			}
 		}
 	}
 
