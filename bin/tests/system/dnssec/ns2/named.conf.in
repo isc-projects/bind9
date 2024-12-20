@@ -224,4 +224,9 @@ zone "peer.peer-ns-spoof" {
 	file "peer.peer-ns-spoof.db.signed";
 };
 
+zone "dnskey-rrsigs-stripped" {
+	type primary;
+	file "dnskey-rrsigs-stripped.db.signed";
+};
+
 include "trusted.conf";
