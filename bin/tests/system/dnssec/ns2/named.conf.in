@@ -216,4 +216,9 @@ zone "lazy-ksk" {
 	allow-update { any; };
 };
 
+zone "dnskey-rrsigs-stripped" {
+	type primary;
+	file "dnskey-rrsigs-stripped.db.signed";
+};
+
 include "trusted.conf";
