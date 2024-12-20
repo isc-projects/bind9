@@ -1912,6 +1912,66 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	}
 
 	/*
+	 * Maybe apply DNS64 mappings to IPv4 addresses.
+	 */
+	sockaddr = addrinfo->sockaddr;
+	dns64 = ISC_LIST_HEAD(fctx->res->view->dns64);
+	if (isc_sockaddr_pf(&sockaddr) == AF_INET &&
+	    fctx->res->view->usedns64 && dns64 != NULL)
+	{
+		struct in6_addr aaaa;
+
+		result = dns_dns64_aaaafroma(
+			dns64, NULL, NULL, fctx->res->view->aclenv, 0,
+			(unsigned char *)&sockaddr.type.sin.sin_addr.s_addr,
+			aaaa.s6_addr);
+		if (result == ISC_R_SUCCESS) {
+			char sockaddrbuf1[ISC_SOCKADDR_FORMATSIZE];
+			char sockaddrbuf2[ISC_SOCKADDR_FORMATSIZE];
+
+			/* format old address */
+			isc_sockaddr_format(&sockaddr, sockaddrbuf1,
+					    sizeof(sockaddrbuf1));
+
+			/* replace address */
+			isc_sockaddr_fromin6(&sockaddr, &aaaa,
+					     ntohs(sockaddr.type.sin.sin_port));
+			addrinfo->sockaddr = sockaddr;
+
+			/* format new address */
+			isc_sockaddr_format(&sockaddr, sockaddrbuf2,
+					    sizeof(sockaddrbuf2));
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+				      "Using DNS64 address %s to talk to %s\n",
+				      sockaddrbuf2, sockaddrbuf1);
+		}
+	}
+
+	/*
+	 * Check if the address is in the peers list and has a special
+	 * confguration.
+	 */
+	if (res->view->peers != NULL) {
+		dns_peer_t *peer = NULL;
+		isc_netaddr_t dstip;
+		bool usetcp = false;
+		isc_netaddr_fromsockaddr(&dstip, &sockaddr);
+		result = dns_peerlist_peerbyaddr(res->view->peers, &dstip,
+						 &peer);
+		if (result == ISC_R_SUCCESS) {
+			result = dns_peer_getquerysource(peer, &addr);
+			if (result == ISC_R_SUCCESS) {
+				have_addr = true;
+			}
+			result = dns_peer_getforcetcp(peer, &usetcp);
+			if (result == ISC_R_SUCCESS && usetcp) {
+				options |= DNS_FETCHOPT_TCP;
+			}
+		}
+	}
+
+	/*
 	 * Allow an additional second for the kernel to resend the SYN
 	 * (or SYN without ECN in the case of stupid firewalls blocking
 	 * ECN negotiation) over the current RTT estimate.
@@ -1959,61 +2019,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			   fctx->res->rdspools[fctx->tid],
 			   DNS_MESSAGE_INTENTPARSE, &query->rmessage);
 	query->start = isc_time_now();
-
-	/*
-	 * Maybe apply DNS64 mappings to IPv4 addresses.
-	 */
-	sockaddr = addrinfo->sockaddr;
-	dns64 = ISC_LIST_HEAD(fctx->res->view->dns64);
-	if (isc_sockaddr_pf(&sockaddr) == AF_INET &&
-	    fctx->res->view->usedns64 && dns64 != NULL)
-	{
-		struct in6_addr aaaa;
-
-		result = dns_dns64_aaaafroma(
-			dns64, NULL, NULL, fctx->res->view->aclenv, 0,
-			(unsigned char *)&sockaddr.type.sin.sin_addr.s_addr,
-			aaaa.s6_addr);
-		if (result == ISC_R_SUCCESS) {
-			char sockaddrbuf1[ISC_SOCKADDR_FORMATSIZE];
-			char sockaddrbuf2[ISC_SOCKADDR_FORMATSIZE];
-
-			/* format old address */
-			isc_sockaddr_format(&sockaddr, sockaddrbuf1,
-					    sizeof(sockaddrbuf1));
-
-			/* replace address */
-			isc_sockaddr_fromin6(&sockaddr, &aaaa,
-					     ntohs(sockaddr.type.sin.sin_port));
-			addrinfo->sockaddr = sockaddr;
-
-			/* format new address */
-			isc_sockaddr_format(&sockaddr, sockaddrbuf2,
-					    sizeof(sockaddrbuf2));
-			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-				      "Using DNS64 address %s to talk to %s\n",
-				      sockaddrbuf2, sockaddrbuf1);
-		}
-	}
-	if (res->view->peers != NULL) {
-		dns_peer_t *peer = NULL;
-		isc_netaddr_t dstip;
-		bool usetcp = false;
-		isc_netaddr_fromsockaddr(&dstip, &sockaddr);
-		result = dns_peerlist_peerbyaddr(res->view->peers, &dstip,
-						 &peer);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_peer_getquerysource(peer, &addr);
-			if (result == ISC_R_SUCCESS) {
-				have_addr = true;
-			}
-			result = dns_peer_getforcetcp(peer, &usetcp);
-			if (result == ISC_R_SUCCESS && usetcp) {
-				query->options |= DNS_FETCHOPT_TCP;
-			}
-		}
-	}
 
 	/*
 	 * If this is a TCP query, then we need to make a socket and
