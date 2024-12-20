@@ -196,9 +196,6 @@ cp ns2/dnskey-rrsigs-stripped.db.next ns2/dnskey-rrsigs-stripped.db.signed
 nextpart ns2/named.run >/dev/null
 rndccmd 10.53.0.2 reload dnskey-rrsigs-stripped | sed 's/^/ns2 /' | cat_i
 wait_for_log 5 "zone dnskey-rrsigs-stripped/IN: loaded serial 2000042408" ns2/named.run || ret=1
-# make a query that flushes the unsigned DNSKEY RRset
-dig_with_opts +noauth a.dnskey-rrsigs-stripped. @10.53.0.4 a >dig.out.ns4.test$n || ret=1
-# make a second query that should now validate
 dig_with_opts +noauth b.dnskey-rrsigs-stripped. @10.53.0.2 a >dig.out.ns2.test$n || ret=1
 dig_with_opts +noauth b.dnskey-rrsigs-stripped. @10.53.0.4 a >dig.out.ns4.test$n || ret=1
 digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
@@ -219,9 +216,6 @@ cp ns2/ds-rrsigs-stripped.db.next ns2/ds-rrsigs-stripped.db.signed
 nextpart ns2/named.run >/dev/null
 rndccmd 10.53.0.2 reload ds-rrsigs-stripped | sed 's/^/ns2 /' | cat_i
 wait_for_log 5 "zone ds-rrsigs-stripped/IN: loaded serial 2000042408" ns2/named.run || ret=1
-# make a query that flushes the unsigned DS RRset
-dig_with_opts +noauth a.child.ds-rrsigs-stripped. @10.53.0.4 a >dig.out.ns4.test$n || ret=1
-# make a second query that should now validate
 dig_with_opts +noauth b.child.ds-rrsigs-stripped. @10.53.0.2 a >dig.out.ns2.test$n || ret=1
 dig_with_opts +noauth b.child.ds-rrsigs-stripped. @10.53.0.4 a >dig.out.ns4.test$n || ret=1
 digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1

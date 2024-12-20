@@ -161,6 +161,10 @@ validator_logcreate(dns_validator_t *val, dns_name_t *name,
 		    dns_rdatatype_t type, const char *caller,
 		    const char *operation);
 
+static isc_result_t
+create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
+	     isc_job_cb callback, const char *caller);
+
 /*%
  * Ensure the validator's rdatasets are marked as expired.
  */
@@ -621,13 +625,19 @@ validator_callback_dnskey(void *arg) {
 			result = validate_async_run(val, resume_answer);
 		}
 	} else {
-		if (result != DNS_R_BROKENCHAIN) {
-			expire_rdatasets(val);
-		}
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "validator_callback_dnskey: got %s",
 			      isc_result_totext(result));
-		result = DNS_R_BROKENCHAIN;
+		if (result != DNS_R_BROKENCHAIN) {
+			expire_rdatasets(val);
+			result = create_fetch(val, &val->siginfo->signer,
+					      dns_rdatatype_dnskey,
+					      fetch_callback_dnskey,
+					      "validator_callback_dnskey");
+			if (result == ISC_R_SUCCESS) {
+				result = DNS_R_WAIT;
+			}
+		}
 	}
 
 cleanup:
@@ -646,8 +656,7 @@ static void
 validator_callback_ds(void *arg) {
 	dns_validator_t *subvalidator = (dns_validator_t *)arg;
 	dns_validator_t *val = subvalidator->parent;
-	isc_result_t result;
-	isc_result_t eresult = subvalidator->result;
+	isc_result_t result = subvalidator->result;
 
 	val->subvalidator = NULL;
 
@@ -657,7 +666,7 @@ validator_callback_ds(void *arg) {
 	}
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_ds");
-	if (eresult == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		bool have_dsset;
 		dns_name_t *name;
 		validator_log(val, ISC_LOG_DEBUG(3), "%s with trust %s",
@@ -680,13 +689,18 @@ validator_callback_ds(void *arg) {
 			result = validate_async_run(val, validate_dnskey);
 		}
 	} else {
-		if (eresult != DNS_R_BROKENCHAIN) {
-			expire_rdatasets(val);
-		}
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "validator_callback_ds: got %s",
-			      isc_result_totext(eresult));
-		result = DNS_R_BROKENCHAIN;
+			      isc_result_totext(result));
+		if (result != DNS_R_BROKENCHAIN) {
+			expire_rdatasets(val);
+			result = create_fetch(val, val->name, dns_rdatatype_ds,
+					      fetch_callback_ds,
+					      "validator_callback_ds");
+			if (result == ISC_R_SUCCESS) {
+				result = DNS_R_WAIT;
+			}
+		}
 	}
 
 cleanup:
