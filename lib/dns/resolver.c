@@ -360,7 +360,6 @@ struct fetchctx {
 	atomic_uint_fast32_t attributes;
 	isc_timer_t *timer;
 	isc_time_t expires;
-	isc_time_t next_timeout;
 	isc_interval_t interval;
 	dns_message_t *qmessage;
 	ISC_LIST(resquery_t) queries;
@@ -1875,7 +1874,6 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	seconds = us / US_PER_SEC;
 	us -= seconds * US_PER_SEC;
 	isc_interval_set(&fctx->interval, seconds, us * NS_PER_US);
-	isc_time_nowplusinterval(&fctx->next_timeout, &fctx->interval);
 }
 
 static isc_result_t
