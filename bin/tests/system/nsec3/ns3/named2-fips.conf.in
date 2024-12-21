@@ -147,7 +147,7 @@ zone "nsec3-inline-to-dynamic.kasp" {
 };
 
 /*
- * This zone will have a node deleted.
+ * This zone will have an empty nonterminal node added and a node deleted.
  */
 zone "nsec3-ent.kasp" {
 	type primary;
