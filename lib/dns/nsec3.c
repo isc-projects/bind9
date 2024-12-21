@@ -779,7 +779,7 @@ addnsec3:
 		/*
 		 * Create the node if it doesn't exist and hold
 		 * a reference to it until we have added the NSEC3
-		 * or we discover we don't need to add make a change.
+		 * or we discover we don't need to make a change.
 		 */
 		CHECK(dns_db_findnsec3node(db, hashname, true, &newnode));
 		result = dns_db_findrdataset(db, newnode, version,
@@ -795,6 +795,17 @@ addnsec3:
 			if (result != ISC_R_NOMORE) {
 				goto failure;
 			}
+		} else if (result == ISC_R_NOTFOUND) {
+			/*
+			 * If we didn't find an NSEC3 in the node,
+			 * then the node must have been newly created
+			 * by dns_db_findnsec3node(). The iterator
+			 * needs to be updated so we can seek for
+			 * the node's predecessor.
+			 */
+			dns_dbiterator_destroy(&dbit);
+			CHECK(dns_db_createiterator(db, DNS_DB_NSEC3ONLY,
+						    &dbit));
 		}
 
 		/*
