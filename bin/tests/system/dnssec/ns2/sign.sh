@@ -371,3 +371,31 @@ cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
   | awk '$4 == "SOA" { $7 = $7 + 1; print; next } { print }' >"$zonefile.next"
 "$SIGNER" -g -o "$zone" -f "$zonefile.next" "$zonefile.next" >/dev/null 2>&1
 cp "$zonefile.stripped" "$zonefile.signed"
+
+#
+# A child zone for the stripped DS RRSIGs test
+#
+zone=child.ds-rrsigs-stripped
+infile=child.ds-rrsigs-stripped.db.in
+zonefile=child.ds-rrsigs-stripped.db
+ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
+"$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1
+
+#
+# A zone with the DNSKEY RRSIGS stripped
+#
+zone=ds-rrsigs-stripped
+infile=ds-rrsigs-stripped.db.in
+zonefile=ds-rrsigs-stripped.db
+ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
+"$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1
+"$CHECKZONE" -D -q -i local "$zone" "$zonefile.signed" \
+  | awk '$4 == "RRSIG" && $5 == "DS" { next } { print }' >"$zonefile.stripped"
+"$CHECKZONE" -D -q -i local "$zone" "$zonefile.signed" \
+  | awk '$4 == "SOA" { $7 = $7 + 1; print; next } { print }' >"$zonefile.next"
+"$SIGNER" -g -o "$zone" -f "$zonefile.next" "$zonefile.next" >/dev/null 2>&1
+cp "$zonefile.stripped" "$zonefile.signed"
