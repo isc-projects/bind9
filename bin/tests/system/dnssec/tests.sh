@@ -227,6 +227,29 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking recovery from stripped DS RRSIG ($n)"
+ret=0
+# prime cache with DS without RRSIGs
+dig_with_opts +noauth +cd child.ds-rrsigs-stripped. @10.53.0.4 ds >dig.out.prime.ns4.test$n || ret=1
+grep ";; flags: qr rd ra cd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" dig.out.prime.ns4.test$n >/dev/null || ret=1
+grep "status: NOERROR" dig.out.prime.ns4.test$n >/dev/null || ret=1
+grep "RRSIG.DS" dig.out.prime.ns4.test$n >/dev/null && ret=1
+# reload server with properly signed zone
+cp ns2/ds-rrsigs-stripped.db.next ns2/ds-rrsigs-stripped.db.signed
+nextpart ns2/named.run >/dev/null
+rndccmd 10.53.0.2 reload ds-rrsigs-stripped | sed 's/^/ns2 /' | cat_i
+wait_for_log 5 "zone ds-rrsigs-stripped/IN: loaded serial 2000042408" ns2/named.run || ret=1
+# make a query that flushes the unsigned DS RRset
+dig_with_opts +noauth a.child.ds-rrsigs-stripped. @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+# make a second query that should now validate
+dig_with_opts +noauth b.child.ds-rrsigs-stripped. @10.53.0.2 a >dig.out.ns2.test$n || ret=1
+dig_with_opts +noauth b.child.ds-rrsigs-stripped. @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking that 'example/DS' from the referral was used in previous validation ($n)"
 ret=0
 grep "query 'example/DS/IN' approved" ns1/named.run >/dev/null && ret=1
