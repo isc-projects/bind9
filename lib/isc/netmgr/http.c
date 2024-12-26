@@ -1464,7 +1464,7 @@ error:
 void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool post, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t *tlsctx,
+		   isc_tlsctx_t *tlsctx, const char *sni_hostname,
 		   isc_tlsctx_client_session_cache_t *client_sess_cache,
 		   unsigned int timeout, isc_nm_proxy_type_t proxy_type,
 		   isc_nm_proxyheader_info_t *proxy_info) {
@@ -1535,8 +1535,8 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		if (tlsctx != NULL) {
 			isc_nm_tlsconnect(mgr, local, peer,
 					  transport_connect_cb, sock, tlsctx,
-					  client_sess_cache, timeout, false,
-					  NULL);
+					  sni_hostname, client_sess_cache,
+					  timeout, false, NULL);
 		} else {
 			isc_nm_tcpconnect(mgr, local, peer,
 					  transport_connect_cb, sock, timeout);
@@ -1546,19 +1546,19 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		if (tlsctx != NULL) {
 			isc_nm_tlsconnect(mgr, local, peer,
 					  transport_connect_cb, sock, tlsctx,
-					  client_sess_cache, timeout, true,
-					  proxy_info);
+					  sni_hostname, client_sess_cache,
+					  timeout, true, proxy_info);
 		} else {
 			isc_nm_proxystreamconnect(
 				mgr, local, peer, transport_connect_cb, sock,
-				timeout, NULL, NULL, proxy_info);
+				timeout, NULL, NULL, NULL, proxy_info);
 		}
 		break;
 	case ISC_NM_PROXY_ENCRYPTED:
 		INSIST(tlsctx != NULL);
 		isc_nm_proxystreamconnect(
 			mgr, local, peer, transport_connect_cb, sock, timeout,
-			tlsctx, client_sess_cache, proxy_info);
+			tlsctx, sni_hostname, client_sess_cache, proxy_info);
 		break;
 	default:
 		UNREACHABLE();

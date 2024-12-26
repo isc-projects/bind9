@@ -63,7 +63,7 @@ static void
 tcpdns_connect(isc_nm_t *nm) {
 	isc_nm_streamdnsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
 				connect_connect_cb, tcpdns_connect, T_CONNECT,
-				NULL, NULL, get_proxy_type(), NULL);
+				NULL, NULL, NULL, get_proxy_type(), NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_noop) {
@@ -73,7 +73,7 @@ ISC_LOOP_TEST_IMPL(tcpdns_noop) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 				connect_success_cb, tcpdns_connect, T_CONNECT,
-				NULL, NULL, get_proxy_type(), NULL);
+				NULL, NULL, NULL, get_proxy_type(), NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_noresponse) {
@@ -82,7 +82,7 @@ ISC_LOOP_TEST_IMPL(tcpdns_noresponse) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 				connect_connect_cb, tcpdns_connect, T_CONNECT,
-				NULL, NULL, get_proxy_type(), NULL);
+				NULL, NULL, NULL, get_proxy_type(), NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_timeout_recovery) {
