@@ -516,6 +516,7 @@ struct isc_nmsocket {
 		isc_tlsctx_t **listener_tls_ctx; /*%< A context reference per
 						    worker */
 		size_t n_listener_tls_ctx;
+		char *sni_hostname;
 		isc_tlsctx_client_session_cache_t *client_sess_cache;
 		bool client_session_saved;
 		isc_nmsocket_t *tlslistener;
