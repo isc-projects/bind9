@@ -1152,20 +1152,11 @@ static int
 dispatch_match(struct cds_lfht_node *node, const void *key0) {
 	dns_dispatch_t *disp = caa_container_of(node, dns_dispatch_t, ht_node);
 	const struct dispatch_key *key = key0;
-	isc_sockaddr_t local;
-	isc_sockaddr_t peer;
 
-	if (disp->handle != NULL) {
-		local = isc_nmhandle_localaddr(disp->handle);
-		peer = isc_nmhandle_peeraddr(disp->handle);
-	} else {
-		local = disp->local;
-		peer = disp->peer;
-	}
-
-	return isc_sockaddr_equal(&peer, key->peer) &&
-	       disp->transport == key->transport &&
-	       (key->local == NULL || isc_sockaddr_equal(&local, key->local));
+	return disp->transport == key->transport &&
+	       isc_sockaddr_equal(&disp->peer, key->peer) &&
+	       (key->local == NULL ||
+		isc_sockaddr_equal(&disp->local, key->local));
 }
 
 isc_result_t
