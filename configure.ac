@@ -178,7 +178,7 @@ AC_ARG_ENABLE([developer],
 
 AS_IF([test "$enable_developer" = "yes"],
       [DEVELOPER_MODE=yes
-       STD_CPPFLAGS="$STD_CPPFLAGS -DISC_MEM_DEFAULTFILL=1 -DISC_MEM_TRACKLINES=1 -DISC_LIST_CHECKINIT=1 -DISC_STATS_CHECKUNDERFLOW=1 -DISC_MUTEX_ERROR_CHECK=1"
+       STD_CPPFLAGS="$STD_CPPFLAGS -DISC_MEM_DEFAULTFILL=1 -DISC_MEM_TRACKLINES=1 -DISC_LIST_CHECKINIT=1 -DISC_STATS_CHECKUNDERFLOW=1 -DISC_MUTEX_ERROR_CHECK=1 -DISC_SOCKET_DETAILS=1"
        test "${enable_querytrace+set}" = set || enable_querytrace=yes
        test "${with_cmocka+set}" = set || with_cmocka=yes
        test "${with_zlib+set}" = set || with_zlib=yes

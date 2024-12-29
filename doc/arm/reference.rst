@@ -1214,7 +1214,11 @@ default is used.
       :ref:`query source address <query_address>` is explicitly set,
       these sockets are bound to wildcard IP addresses and determining
       the specific IP address used by each of them requires issuing a
-      system call (i.e. incurring a performance penalty).
+      system call (i.e. incurring a performance penalty). If the highest
+      possible logging accuracy is required, BIND 9 can be built with
+      ``-DISC_SOCKET_DETAILS=1`` added to ``CFLAGS`` at compile-time;
+      this enables exact socket addresses to be logged, although at the
+      cost of lowering the server's performance.
 
    Logged :any:`dnstap` messages can be parsed using the :iscman:`dnstap-read`
    utility (see :ref:`man_dnstap-read` for details).

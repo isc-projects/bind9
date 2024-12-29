@@ -1539,9 +1539,45 @@ isc_nmhandle_peeraddr(isc_nmhandle_t *handle) {
 
 isc_sockaddr_t
 isc_nmhandle_localaddr(isc_nmhandle_t *handle) {
+	isc_sockaddr_t addr;
+
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	return handle->local;
+	addr = handle->local;
+
+#ifdef ISC_SOCKET_DETAILS
+	switch (handle->sock->type) {
+	case isc_nm_tcpsocket:
+		uv_tcp_getsockname(&handle->sock->uv_handle.tcp,
+				   (struct sockaddr *)&addr.type,
+				   &(int){ sizeof(addr.type) });
+		break;
+
+	case isc_nm_udpsocket:
+		uv_udp_getsockname(&handle->sock->uv_handle.udp,
+				   (struct sockaddr *)&addr.type,
+				   &(int){ sizeof(addr.type) });
+		break;
+
+	case isc_nm_tlssocket:
+	case isc_nm_httpsocket:
+	case isc_nm_streamdnssocket:
+		if (handle->sock->outerhandle) {
+			addr = isc_nmhandle_localaddr(
+				handle->sock->outerhandle);
+		}
+		break;
+
+	case isc_nm_proxystreamsocket:
+	case isc_nm_proxyudpsocket:
+		break;
+
+	default:
+		UNREACHABLE();
+	}
+#endif /* ISC_SOCKET_DETAILS */
+
+	return addr;
 }
 
 isc_nm_t *
