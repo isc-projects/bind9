@@ -8162,7 +8162,7 @@ rctx_edns(respctx_t *rctx) {
 	     query->rmessage->rcode == dns_rcode_yxdomain) &&
 	    bad_edns(fctx, &query->addrinfo->sockaddr))
 	{
-		dns_message_logpacket(
+		dns_message_logpacketfrom(
 			query->rmessage, "received packet (bad edns) from",
 			&query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
 			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), fctx->mctx);
@@ -8188,7 +8188,7 @@ rctx_edns(respctx_t *rctx) {
 		 * this should be safe to do for any rcode we limit it
 		 * to NOERROR and NXDOMAIN.
 		 */
-		dns_message_logpacket(
+		dns_message_logpacketfrom(
 			query->rmessage, "received packet (no opt) from",
 			&query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
 			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), fctx->mctx);

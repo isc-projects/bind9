@@ -1396,9 +1396,10 @@ dns_message_gettimeadjust(dns_message_t *msg);
  */
 
 void
-dns_message_logpacket(dns_message_t *message, const char *description,
-		      const isc_sockaddr_t *address, isc_logcategory_t category,
-		      isc_logmodule_t module, int level, isc_mem_t *mctx);
+dns_message_logpacketfrom(dns_message_t *message, const char *description,
+			  const isc_sockaddr_t *address,
+			  isc_logcategory_t category, isc_logmodule_t module,
+			  int level, isc_mem_t *mctx);
 
 void
 dns_message_logpacketfromto(dns_message_t *message, const char *description,
@@ -1410,8 +1411,8 @@ dns_message_logpacketfromto(dns_message_t *message, const char *description,
  * Log the provided DNS 'message' using the specified logging parameters,
  * prepending it with the given 'description'.
  *
- * For dns_message_logpacket(), only the address of the sending socket must be
- * provided (in the 'address' parameter).
+ * For dns_message_logpacketfrom(), only the address of the sending socket must
+ * be provided (in the 'address' parameter).
  *
  * For dns_message_logpacketfromto(), the addresses of both the sending socket
  * ('from') and the receiving socket ('to') must be provided.
@@ -1419,7 +1420,7 @@ dns_message_logpacketfromto(dns_message_t *message, const char *description,
  * Requires:
  * \li   'message' be a valid DNS message.
  * \li   'description' to be non-NULL.
- * \li   'address' to be non-NULL (dns_message_logpacket() only).
+ * \li   'address' to be non-NULL (dns_message_logpacketfrom() only).
  * \li   'from' and 'to' be non-NULL (dns_message_logpacketfromto() only).
  * \li   'category' to be a valid logging category.
  * \li   'module' to be a valid logging module.

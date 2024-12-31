@@ -4728,9 +4728,10 @@ dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target) {
 }
 
 void
-dns_message_logpacket(dns_message_t *message, const char *description,
-		      const isc_sockaddr_t *address, isc_logcategory_t category,
-		      isc_logmodule_t module, int level, isc_mem_t *mctx) {
+dns_message_logpacketfrom(dns_message_t *message, const char *description,
+			  const isc_sockaddr_t *address,
+			  isc_logcategory_t category, isc_logmodule_t module,
+			  int level, isc_mem_t *mctx) {
 	REQUIRE(address != NULL);
 
 	logfmtpacket(message, description, address, NULL, category, module,
