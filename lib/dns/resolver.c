@@ -8163,7 +8163,7 @@ rctx_edns(respctx_t *rctx) {
 	    bad_edns(fctx, &query->addrinfo->sockaddr))
 	{
 		dns_message_logpacketfrom(
-			query->rmessage, "received packet (bad edns) from",
+			query->rmessage, "received packet (bad edns)",
 			&query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
 			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), fctx->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
@@ -8189,7 +8189,7 @@ rctx_edns(respctx_t *rctx) {
 		 * to NOERROR and NXDOMAIN.
 		 */
 		dns_message_logpacketfrom(
-			query->rmessage, "received packet (no opt) from",
+			query->rmessage, "received packet (no opt)",
 			&query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
 			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), fctx->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
