@@ -2715,9 +2715,9 @@ resquery_send(resquery_t *query) {
 	}
 
 	dns_message_logpacketfromto(
-		fctx->qmessage, "sending packet to", la, &query->addrinfo->sockaddr,
-		DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_PACKETS,
-		ISC_LOG_DEBUG(11), fctx->mctx);
+		fctx->qmessage, "sending packet", la,
+		&query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
+		DNS_LOGMODULE_PACKETS, ISC_LOG_DEBUG(11), fctx->mctx);
 
 	/*
 	 * We're now done with the query message.
@@ -9736,7 +9736,7 @@ rctx_logpacket(respctx_t *rctx) {
 	}
 
 	dns_message_logpacketfromto(
-		rctx->query->rmessage, "received packet from",
+		rctx->query->rmessage, "received packet",
 		&rctx->query->addrinfo->sockaddr, la, DNS_LOGCATEGORY_RESOLVER,
 		DNS_LOGMODULE_PACKETS, ISC_LOG_DEBUG(10), fctx->mctx);
 
