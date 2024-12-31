@@ -2200,7 +2200,7 @@ dns_dispentry_getlocaladdress(dns_dispentry_t *resp, isc_sockaddr_t *addrp) {
 
 	switch (disp->socktype) {
 	case isc_socktype_tcp:
-		*addrp = disp->local;
+		*addrp = isc_nmhandle_localaddr(disp->handle);
 		return ISC_R_SUCCESS;
 	case isc_socktype_udp:
 		*addrp = isc_nmhandle_localaddr(resp->handle);
