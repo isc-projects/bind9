@@ -4755,8 +4755,6 @@ logfmtpacket(dns_message_t *message, const char *description,
 	     isc_logmodule_t module, const dns_master_style_t *style, int level,
 	     isc_mem_t *mctx) {
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
-	const char *newline = "\n";
-	const char *space = " ";
 	isc_buffer_t buffer;
 	char *buf = NULL;
 	int len = 1024;
@@ -4773,8 +4771,6 @@ logfmtpacket(dns_message_t *message, const char *description,
 
 	if (address != NULL) {
 		isc_sockaddr_format(address, addrbuf, sizeof(addrbuf));
-	} else {
-		newline = space = "";
 	}
 
 	do {
@@ -4785,8 +4781,8 @@ logfmtpacket(dns_message_t *message, const char *description,
 			isc_mem_put(mctx, buf, len);
 			len += 1024;
 		} else if (result == ISC_R_SUCCESS) {
-			isc_log_write(category, module, level, "%s%s%s%s%.*s",
-				      description, space, addrbuf, newline,
+			isc_log_write(category, module, level, "%s %s\n%.*s",
+				      description, addrbuf,
 				      (int)isc_buffer_usedlength(&buffer), buf);
 		}
 	} while (result == ISC_R_NOSPACE);
