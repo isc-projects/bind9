@@ -1404,8 +1404,7 @@ void
 dns_message_logfmtpacket(dns_message_t *message, const char *description,
 			 const isc_sockaddr_t *address,
 			 isc_logcategory_t category, isc_logmodule_t module,
-			 const dns_master_style_t *style, int level,
-			 isc_mem_t *mctx);
+			 int level, isc_mem_t *mctx);
 /*%<
  * Log 'message' at the specified logging parameters.
  *
@@ -1422,7 +1421,6 @@ dns_message_logfmtpacket(dns_message_t *message, const char *description,
  * \li   address to be non NULL.
  * \li   category to be valid.
  * \li   module to be valid.
- * \li   style to be valid.
  * \li   mctx to be a valid.
  */
 
