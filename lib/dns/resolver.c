@@ -2710,7 +2710,7 @@ resquery_send(resquery_t *query) {
 	 * Log the outgoing packet.
 	 */
 	dns_message_logfmtpacket(
-		fctx->qmessage, "sending packet to", &query->addrinfo->sockaddr,
+		fctx->qmessage, "sending packet to", NULL, &query->addrinfo->sockaddr,
 		DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_PACKETS,
 		ISC_LOG_DEBUG(11), fctx->mctx);
 
@@ -9731,7 +9731,7 @@ rctx_logpacket(respctx_t *rctx) {
 
 	dns_message_logfmtpacket(
 		rctx->query->rmessage, "received packet from",
-		&rctx->query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
+		&rctx->query->addrinfo->sockaddr, NULL, DNS_LOGCATEGORY_RESOLVER,
 		DNS_LOGMODULE_PACKETS, ISC_LOG_DEBUG(10), fctx->mctx);
 
 #ifdef HAVE_DNSTAP
