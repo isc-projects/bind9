@@ -1760,8 +1760,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	result = dns_message_parse(msg, &buffer,
 				   DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result == ISC_R_SUCCESS) {
-		dns_message_logpacket(
-			msg, "received message from", &xfr->primaryaddr,
+		dns_message_logpacketfrom(
+			msg, "received message", &xfr->primaryaddr,
 			DNS_LOGCATEGORY_XFER_IN, DNS_LOGMODULE_XFER_IN,
 			ISC_LOG_DEBUG(10), xfr->mctx);
 	} else {

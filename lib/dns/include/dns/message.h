@@ -1396,34 +1396,35 @@ dns_message_gettimeadjust(dns_message_t *msg);
  */
 
 void
-dns_message_logpacket(dns_message_t *message, const char *description,
-		      const isc_sockaddr_t *address, isc_logcategory_t category,
-		      isc_logmodule_t module, int level, isc_mem_t *mctx);
+dns_message_logpacketfrom(dns_message_t *message, const char *description,
+			  const isc_sockaddr_t *address,
+			  isc_logcategory_t category, isc_logmodule_t module,
+			  int level, isc_mem_t *mctx);
 
 void
-dns_message_logfmtpacket(dns_message_t *message, const char *description,
-			 const isc_sockaddr_t *address,
-			 isc_logcategory_t category, isc_logmodule_t module,
-			 const dns_master_style_t *style, int level,
-			 isc_mem_t *mctx);
+dns_message_logpacketfromto(dns_message_t *message, const char *description,
+			    const isc_sockaddr_t *from,
+			    const isc_sockaddr_t *to,
+			    isc_logcategory_t category, isc_logmodule_t module,
+			    int level, isc_mem_t *mctx);
 /*%<
- * Log 'message' at the specified logging parameters.
+ * Log the provided DNS 'message' using the specified logging parameters,
+ * prepending it with the given 'description'.
  *
- * For dns_message_logpacket and dns_message_logfmtpacket expect the
- * 'description' to end in a newline.
+ * For dns_message_logpacketfrom(), only the address of the sending socket must
+ * be provided (in the 'address' parameter).
  *
- * For dns_message_logpacket2 and dns_message_logfmtpacket2
- * 'description' will be emitted at the start of the message followed
- * by the formatted address and a newline.
+ * For dns_message_logpacketfromto(), the addresses of both the sending socket
+ * ('from') and the receiving socket ('to') must be provided.
  *
  * Requires:
- * \li   message be a valid.
- * \li   description to be non NULL.
- * \li   address to be non NULL.
- * \li   category to be valid.
- * \li   module to be valid.
- * \li   style to be valid.
- * \li   mctx to be a valid.
+ * \li   'message' be a valid DNS message.
+ * \li   'description' to be non-NULL.
+ * \li   'address' to be non-NULL (dns_message_logpacketfrom() only).
+ * \li   'from' and 'to' be non-NULL (dns_message_logpacketfromto() only).
+ * \li   'category' to be a valid logging category.
+ * \li   'module' to be a valid logging module.
+ * \li   'mctx' to be a valid memory context.
  */
 
 isc_result_t

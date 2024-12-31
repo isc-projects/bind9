@@ -216,9 +216,9 @@ msgblock_free(isc_mem_t *, dns_msgblock_t *, unsigned int);
 
 static void
 logfmtpacket(dns_message_t *message, const char *description,
-	     const isc_sockaddr_t *address, isc_logcategory_t category,
-	     isc_logmodule_t module, const dns_master_style_t *style, int level,
-	     isc_mem_t *mctx);
+	     const isc_sockaddr_t *from, const isc_sockaddr_t *to,
+	     isc_logcategory_t category, isc_logmodule_t module,
+	     const dns_master_style_t *style, int level, isc_mem_t *mctx);
 
 /*
  * Allocate a new dns_msgblock_t, and return a pointer to it.  If no memory
@@ -4728,35 +4728,35 @@ dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target) {
 }
 
 void
-dns_message_logpacket(dns_message_t *message, const char *description,
-		      const isc_sockaddr_t *address, isc_logcategory_t category,
-		      isc_logmodule_t module, int level, isc_mem_t *mctx) {
+dns_message_logpacketfrom(dns_message_t *message, const char *description,
+			  const isc_sockaddr_t *address,
+			  isc_logcategory_t category, isc_logmodule_t module,
+			  int level, isc_mem_t *mctx) {
 	REQUIRE(address != NULL);
 
-	logfmtpacket(message, description, address, category, module,
+	logfmtpacket(message, description, address, NULL, category, module,
 		     &dns_master_style_debug, level, mctx);
 }
 
 void
-dns_message_logfmtpacket(dns_message_t *message, const char *description,
-			 const isc_sockaddr_t *address,
-			 isc_logcategory_t category, isc_logmodule_t module,
-			 const dns_master_style_t *style, int level,
-			 isc_mem_t *mctx) {
-	REQUIRE(address != NULL);
+dns_message_logpacketfromto(dns_message_t *message, const char *description,
+			    const isc_sockaddr_t *from,
+			    const isc_sockaddr_t *to,
+			    isc_logcategory_t category, isc_logmodule_t module,
+			    int level, isc_mem_t *mctx) {
+	REQUIRE(from != NULL && to != NULL);
 
-	logfmtpacket(message, description, address, category, module, style,
-		     level, mctx);
+	logfmtpacket(message, description, from, to, category, module,
+		     &dns_master_style_comment, level, mctx);
 }
 
 static void
 logfmtpacket(dns_message_t *message, const char *description,
-	     const isc_sockaddr_t *address, isc_logcategory_t category,
-	     isc_logmodule_t module, const dns_master_style_t *style, int level,
-	     isc_mem_t *mctx) {
-	char addrbuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
-	const char *newline = "\n";
-	const char *space = " ";
+	     const isc_sockaddr_t *from, const isc_sockaddr_t *to,
+	     isc_logcategory_t category, isc_logmodule_t module,
+	     const dns_master_style_t *style, int level, isc_mem_t *mctx) {
+	char frombuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
+	char tobuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
 	isc_buffer_t buffer;
 	char *buf = NULL;
 	int len = 1024;
@@ -4771,10 +4771,11 @@ logfmtpacket(dns_message_t *message, const char *description,
 	 * to appear in the log after each message.
 	 */
 
-	if (address != NULL) {
-		isc_sockaddr_format(address, addrbuf, sizeof(addrbuf));
-	} else {
-		newline = space = "";
+	if (from != NULL) {
+		isc_sockaddr_format(from, frombuf, sizeof(frombuf));
+	}
+	if (to != NULL) {
+		isc_sockaddr_format(to, tobuf, sizeof(tobuf));
 	}
 
 	do {
@@ -4785,8 +4786,10 @@ logfmtpacket(dns_message_t *message, const char *description,
 			isc_mem_put(mctx, buf, len);
 			len += 1024;
 		} else if (result == ISC_R_SUCCESS) {
-			isc_log_write(category, module, level, "%s%s%s%s%.*s",
-				      description, space, addrbuf, newline,
+			isc_log_write(category, module, level,
+				      "%s%s%s%s%s\n%.*s", description,
+				      (from != NULL ? " from " : ""), frombuf,
+				      (to != NULL ? " to " : ""), tobuf,
 				      (int)isc_buffer_usedlength(&buffer), buf);
 		}
 	} while (result == ISC_R_NOSPACE);
