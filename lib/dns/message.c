@@ -4738,10 +4738,11 @@ dns_message_logpacket(dns_message_t *message, const char *description,
 }
 
 void
-dns_message_logfmtpacket(dns_message_t *message, const char *description,
-			 const isc_sockaddr_t *from, const isc_sockaddr_t *to,
-			 isc_logcategory_t category, isc_logmodule_t module,
-			 int level, isc_mem_t *mctx) {
+dns_message_logpacketfromto(dns_message_t *message, const char *description,
+			    const isc_sockaddr_t *from,
+			    const isc_sockaddr_t *to,
+			    isc_logcategory_t category, isc_logmodule_t module,
+			    int level, isc_mem_t *mctx) {
 	REQUIRE(from != NULL && to != NULL);
 
 	logfmtpacket(message, description, from, to, category, module,
