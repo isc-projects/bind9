@@ -2340,8 +2340,8 @@ resquery_send(resquery_t *query) {
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned int ednsopt = 0;
 	uint16_t hint = 0, udpsize = 0; /* No EDNS */
-#ifdef HAVE_DNSTAP
 	isc_sockaddr_t localaddr, *la = NULL;
+#ifdef HAVE_DNSTAP
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	dns_transport_type_t transport_type;
 	dns_dtmsgtype_t dtmsgtype;
@@ -2709,8 +2709,13 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Log the outgoing packet.
 	 */
+	result = dns_dispentry_getlocaladdress(query->dispentry, &localaddr);
+	if (result == ISC_R_SUCCESS) {
+		la = &localaddr;
+	}
+
 	dns_message_logpacketfromto(
-		fctx->qmessage, "sending packet to", NULL, &query->addrinfo->sockaddr,
+		fctx->qmessage, "sending packet to", la, &query->addrinfo->sockaddr,
 		DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_PACKETS,
 		ISC_LOG_DEBUG(11), fctx->mctx);
 
@@ -2735,11 +2740,6 @@ resquery_send(resquery_t *query) {
 		dtmsgtype = DNS_DTTYPE_FQ;
 	} else {
 		dtmsgtype = DNS_DTTYPE_RQ;
-	}
-
-	result = dns_dispentry_getlocaladdress(query->dispentry, &localaddr);
-	if (result == ISC_R_SUCCESS) {
-		la = &localaddr;
 	}
 
 	if (query->addrinfo->transport != NULL) {
@@ -9718,9 +9718,9 @@ detach:
 static void
 rctx_logpacket(respctx_t *rctx) {
 	fetchctx_t *fctx = rctx->fctx;
-#ifdef HAVE_DNSTAP
 	isc_result_t result;
 	isc_sockaddr_t localaddr, *la = NULL;
+#ifdef HAVE_DNSTAP
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	dns_transport_type_t transport_type;
 	dns_dtmsgtype_t dtmsgtype;
@@ -9729,9 +9729,15 @@ rctx_logpacket(respctx_t *rctx) {
 	isc_buffer_t zb;
 #endif /* HAVE_DNSTAP */
 
+	result = dns_dispentry_getlocaladdress(rctx->query->dispentry,
+					       &localaddr);
+	if (result == ISC_R_SUCCESS) {
+		la = &localaddr;
+	}
+
 	dns_message_logpacketfromto(
 		rctx->query->rmessage, "received packet from",
-		&rctx->query->addrinfo->sockaddr, NULL, DNS_LOGCATEGORY_RESOLVER,
+		&rctx->query->addrinfo->sockaddr, la, DNS_LOGCATEGORY_RESOLVER,
 		DNS_LOGMODULE_PACKETS, ISC_LOG_DEBUG(10), fctx->mctx);
 
 #ifdef HAVE_DNSTAP
@@ -9752,12 +9758,6 @@ rctx_logpacket(respctx_t *rctx) {
 		dtmsgtype = DNS_DTTYPE_FR;
 	} else {
 		dtmsgtype = DNS_DTTYPE_RR;
-	}
-
-	result = dns_dispentry_getlocaladdress(rctx->query->dispentry,
-					       &localaddr);
-	if (result == ISC_R_SUCCESS) {
-		la = &localaddr;
 	}
 
 	if (rctx->query->addrinfo->transport != NULL) {
