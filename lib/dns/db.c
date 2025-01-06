@@ -1403,7 +1403,7 @@ create_gluelist(dns_db_t *db, dns_dbversion_t *dbversion, dns_dbnode_t *dbnode,
 
 	(void)dns_rdataset_additionaldata(rdataset, dns_rootname, add, &ctx);
 
-	gluelist->glue = ctx.glue;
+	CMM_STORE_SHARED(gluelist->glue, ctx.glue);
 
 	return gluelist;
 }
@@ -1450,7 +1450,7 @@ dns__db_addglue(dns_db_t *db, dns_dbversion_t *dbversion,
 		}
 	}
 
-	glue = gluelist->glue;
+	glue = CMM_LOAD_SHARED(gluelist->glue);
 
 	if (glue != NULL) {
 		addglue_to_message(glue, msg);
