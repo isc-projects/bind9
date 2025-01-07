@@ -472,7 +472,8 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			 * request.
 			 */
 			cntflag = atomic_fetch_sub_release(&rwl->cnt_and_flag,
-							   READER_INCR);
+							   READER_INCR) &
+				  ~WRITER_ACTIVE;
 			/*
 			 * If no other readers are waiting and we've suspended
 			 * new writers in this short period, wake them up.
