@@ -1668,6 +1668,14 @@ shotgun:dot:
   when: delayed
   start_in: 5 minutes
 
+shotgun:doh-get:
+  <<: *shotgun_job
+  variables:
+    SHOTGUN_SCENARIO: doh-get
+    SHOTGUN_TRAFFIC_MULTIPLIER: 3
+  when: delayed
+  start_in: 5 minutes
+
 .stress-test: &stress_test
   stage: performance
   script:
