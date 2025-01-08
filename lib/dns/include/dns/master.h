@@ -179,7 +179,7 @@ dns_master_loadfileasync(const char *master_file, dns_name_t *top,
  *
  * Returns:
  *\li	ISC_R_SUCCESS upon successfully loading the master file.
- *\li	ISC_R_SEENINCLUDE upon successfully loading the master file with
+ *\li	DNS_R_SEENINCLUDE upon successfully loading the master file with
  *		a $INCLUDE statement.
  *\li	ISC_R_NOMEMORY out of memory.
  *\li	ISC_R_UNEXPECTEDEND expected to be able to read a input token and

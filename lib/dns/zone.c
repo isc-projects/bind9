@@ -2653,13 +2653,13 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	}
 
 cleanup:
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE) {
 		dns_zone_rpz_disable_db(zone, load->db);
 		dns_zone_catz_disable_db(zone, load->db);
 	}
 
 	tresult = dns_db_endload(db, &load->callbacks);
-	if (result == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE) {
 		result = tresult;
 	}
 
