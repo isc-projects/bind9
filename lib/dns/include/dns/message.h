@@ -698,8 +698,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t section,
  *				   no more records for this section.
  *\li	#ISC_R_NOSPACE		-- Not enough room in the buffer to write
  *				   all records requested.
- *\li	#DNS_R_MOREDATA		-- All requested records written, and there
- *				   are records remaining for this section.
  */
 
 void
