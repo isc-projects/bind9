@@ -904,15 +904,6 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 			    initializing ? "initial-key" : "static-key",
 			    namestr, isc_result_totext(result));
 		return ISC_R_SUCCESS;
-	case DST_R_NOCRYPTO:
-		/*
-		 * Crypto support is not available.
-		 */
-		cfg_obj_log(key, ISC_LOG_ERROR,
-			    "ignoring %s for '%s': no crypto support",
-			    initializing ? "initial-key" : "static-key",
-			    namestr);
-		return result;
 	default:
 		/*
 		 * Something unexpected happened; we have no choice but to
@@ -993,9 +984,6 @@ load_view_keys(const cfg_obj_t *keys, dns_view_t *view, bool managed,
 cleanup:
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
-	}
-	if (result == DST_R_NOCRYPTO) {
-		result = ISC_R_SUCCESS;
 	}
 	return result;
 }
