@@ -428,14 +428,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
  *	#ISC_LOG_DEBUGONLY or #ISC_LOG_BUFFERED.
  *
  * Ensures:
- *\li	#ISC_R_SUCCESS
- *		A channel with the given name is usable with
- *		isc_log_usechannel().
- *
- *\li	#ISC_R_NOMEMORY or #ISC_R_UNEXPECTED
- *		No additional memory is being used by the logging context.
- *		Any channel that previously existed with the given name
- *		is not redefined.
+ *	A channel with the given name is usable with isc_log_usechannel().
  */
 
 isc_result_t

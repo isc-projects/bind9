@@ -70,7 +70,6 @@ dns_dyndb_register_t(isc_mem_t *mctx, const char *name, const char *parameters,
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  *\li	Other errors are possible
  */
 
@@ -114,7 +113,6 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  *\li	Other errors are possible
  */
 
@@ -127,7 +125,7 @@ dns_dyndb_cleanup(bool exiting);
  * as opposed to merely being reconfigured.
  */
 
-isc_result_t
+void
 dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, dns_view_t *view,
 		    dns_zonemgr_t *zmgr, isc_loopmgr_t *loopmgr,
 		    dns_dyndbctx_t **dctxp);
@@ -138,11 +136,6 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, dns_view_t *view,
  * etc). This structure is expected to last only until all dyndb
  * modules have been loaded and initialized; after that it will be
  * destroyed with dns_dyndb_destroyctx().
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	Other errors are possible
  */
 
 void

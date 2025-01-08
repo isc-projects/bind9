@@ -405,10 +405,6 @@ isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
  * Defaults:
  *\li	freemax = 1
  *\li	fillcount = 1
- *
- * Returns:
- *\li	#ISC_R_NOMEMORY		-- not enough memory to create pool
- *\li	#ISC_R_SUCCESS		-- all is well.
  */
 
 #define isc_mempool_destroy(mp) isc__mempool_destroy((mp)_ISC_MEM_FILELINE)

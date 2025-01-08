@@ -766,14 +766,12 @@ set_source_ports(dns_dispatchmgr_t *manager) {
 	in_port_t udpport_low, udpport_high;
 	isc_result_t result;
 
-	result = isc_portset_create(gmctx, &v4portset);
-	check_result(result, "isc_portset_create (v4)");
+	isc_portset_create(gmctx, &v4portset);
 	result = isc_net_getudpportrange(AF_INET, &udpport_low, &udpport_high);
 	check_result(result, "isc_net_getudpportrange (v4)");
 	isc_portset_addrange(v4portset, udpport_low, udpport_high);
 
-	result = isc_portset_create(gmctx, &v6portset);
-	check_result(result, "isc_portset_create (v6)");
+	isc_portset_create(gmctx, &v6portset);
 	result = isc_net_getudpportrange(AF_INET6, &udpport_low, &udpport_high);
 	check_result(result, "isc_net_getudpportrange (v6)");
 	isc_portset_addrange(v6portset, udpport_low, udpport_high);

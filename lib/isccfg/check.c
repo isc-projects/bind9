@@ -2102,13 +2102,11 @@ check_remoteserverlist(const cfg_obj_t *cctx, const char *list,
  */
 static isc_result_t
 check_remoteserverlists(const cfg_obj_t *cctx, isc_mem_t *mctx) {
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	isc_symtab_t *symtab = NULL;
 
-	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
+
 	tresult = check_remoteserverlist(cctx, "remote-servers", symtab, mctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
@@ -2200,10 +2198,7 @@ check_httpservers(const cfg_obj_t *config, isc_mem_t *mctx) {
 	const cfg_listelt_t *elt = NULL;
 	isc_symtab_t *symtab = NULL;
 
-	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
 
 	result = cfg_map_get(config, "http", &obj);
 	if (result != ISC_R_SUCCESS) {
@@ -2373,10 +2368,7 @@ check_tls_definitions(const cfg_obj_t *config, isc_mem_t *mctx) {
 		return result;
 	}
 
-	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
 
 	for (elt = cfg_list_first(obj); elt != NULL; elt = cfg_list_next(elt)) {
 		const char *name;
@@ -2457,11 +2449,7 @@ validate_remotes(const cfg_obj_t *obj, const cfg_obj_t *config,
 	const cfg_obj_t *listobj;
 
 	REQUIRE(countp != NULL);
-	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
-	if (result != ISC_R_SUCCESS) {
-		*countp = count;
-		return result;
-	}
+	isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
 
 newlist:
 	listobj = cfg_tuple_get(obj, "addresses");
@@ -4895,20 +4883,13 @@ record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 static isc_result_t
 check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 		   bool autovalidation, isc_mem_t *mctx) {
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	const cfg_listelt_t *elt = NULL;
 	const cfg_obj_t *keylist = NULL;
 	isc_symtab_t *statictab = NULL, *dstab = NULL;
 
-	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &statictab);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &dstab);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_symtab_create(mctx, 100, freekey, mctx, false, &statictab);
+	isc_symtab_create(mctx, 100, freekey, mctx, false, &dstab);
 
 	/*
 	 * First we record all the static keys (trust-anchors configured with
@@ -4970,7 +4951,6 @@ check_ta_conflicts(const cfg_obj_t *global_ta, const cfg_obj_t *view_ta,
 		}
 	}
 
-cleanup:
 	if (statictab != NULL) {
 		isc_symtab_destroy(&statictab);
 	}
@@ -5116,7 +5096,7 @@ check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_mem_t *mctx) {
 	const cfg_obj_t *obj, *nameobj, *primariesobj;
 	const char *zonename;
 	const char *forview = " for view ";
-	isc_result_t result, tresult;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
 	isc_symtab_t *symtab = NULL;
 	dns_fixedname_t fixed;
 	dns_name_t *name = dns_fixedname_initname(&fixed);
@@ -5126,10 +5106,7 @@ check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_mem_t *mctx) {
 		forview = "";
 	}
 
-	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
 
 	obj = cfg_tuple_get(catz_obj, "zone list");
 
@@ -5310,10 +5287,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that all zone statements are syntactically correct and
 	 * there are no duplicate zones.
 	 */
-	tresult = isc_symtab_create(mctx, 1000, freekey, mctx, false, &symtab);
-	if (tresult != ISC_R_SUCCESS) {
-		return ISC_R_NOMEMORY;
-	}
+	isc_symtab_create(mctx, 1000, freekey, mctx, false, &symtab);
 
 	cfg_aclconfctx_create(mctx, &actx);
 
@@ -5426,10 +5400,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check that all key statements are syntactically correct and
 	 * there are no duplicate keys.
 	 */
-	tresult = isc_symtab_create(mctx, 1000, freekey, mctx, false, &symtab);
-	if (tresult != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_symtab_create(mctx, 1000, freekey, mctx, false, &symtab);
 
 	(void)cfg_map_get(config, "key", &keys);
 	tresult = check_keylist(keys, symtab, mctx);
@@ -5659,10 +5630,7 @@ check_logging(const cfg_obj_t *config, isc_mem_t *mctx) {
 		return ISC_R_SUCCESS;
 	}
 
-	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
 
 	symvalue.as_cpointer = NULL;
 	for (i = 0; default_channels[i] != NULL; i++) {
@@ -5796,10 +5764,7 @@ check_controls(const cfg_obj_t *config, isc_mem_t *mctx) {
 
 	cfg_aclconfctx_create(mctx, &actx);
 
-	result = isc_symtab_create(mctx, 100, freekey, mctx, true, &symtab);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_symtab_create(mctx, 100, freekey, mctx, true, &symtab);
 
 	/*
 	 * INET: Check allow clause.
@@ -5858,7 +5823,7 @@ check_controls(const cfg_obj_t *config, isc_mem_t *mctx) {
 			result = ISC_R_FAMILYNOSUPPORT;
 		}
 	}
-cleanup:
+
 	cfg_aclconfctx_detach(&actx);
 	if (symtab != NULL) {
 		isc_symtab_destroy(&symtab);
@@ -5935,23 +5900,9 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 	 * case sensitive. This will prevent people using FOO.DB and foo.db
 	 * on case sensitive file systems but that shouldn't be a major issue.
 	 */
-	tresult = isc_symtab_create(mctx, 100, NULL, NULL, false, &files);
-	if (tresult != ISC_R_SUCCESS) {
-		result = tresult;
-		goto cleanup;
-	}
-
-	tresult = isc_symtab_create(mctx, 100, freekey, mctx, false, &keydirs);
-	if (tresult != ISC_R_SUCCESS) {
-		result = tresult;
-		goto cleanup;
-	}
-
-	tresult = isc_symtab_create(mctx, 100, freekey, mctx, true, &inview);
-	if (tresult != ISC_R_SUCCESS) {
-		result = tresult;
-		goto cleanup;
-	}
+	isc_symtab_create(mctx, 100, NULL, NULL, false, &files);
+	isc_symtab_create(mctx, 100, freekey, mctx, false, &keydirs);
+	isc_symtab_create(mctx, 100, freekey, mctx, true, &inview);
 
 	if (views == NULL) {
 		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
@@ -5980,11 +5931,8 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 		}
 	}
 
-	tresult = isc_symtab_create(mctx, 100, NULL, NULL, true, &symtab);
-	if (tresult != ISC_R_SUCCESS) {
-		result = tresult;
-		goto cleanup;
-	}
+	isc_symtab_create(mctx, 100, NULL, NULL, true, &symtab);
+
 	for (velement = cfg_list_first(views); velement != NULL;
 	     velement = cfg_list_next(velement))
 	{
@@ -6108,7 +6056,6 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 		}
 	}
 
-cleanup:
 	if (symtab != NULL) {
 		isc_symtab_destroy(&symtab);
 	}

@@ -47,8 +47,7 @@ ISC_RUN_TEST_IMPL(symtab_grow) {
 
 	UNUSED(state);
 
-	result = isc_symtab_create(mctx, 3, undefine, NULL, false, &st);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_symtab_create(mctx, 3, undefine, NULL, false, &st);
 	assert_non_null(st);
 
 	/* Nothing should be in the table yet */

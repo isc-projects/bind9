@@ -842,15 +842,12 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	CHECK(cfg_map_get(config, "key", &key));
 
 	keyid = isc_mem_get(mctx, sizeof(*keyid));
+	*keyid = (controlkey_t){
+		.algorithm = DST_ALG_UNKNOWN,
+		.link = ISC_LINK_INITIALIZER,
+	};
 	keyid->keyname = isc_mem_strdup(mctx,
 					cfg_obj_asstring(cfg_map_getname(key)));
-	keyid->secret.base = NULL;
-	keyid->secret.length = 0;
-	keyid->algorithm = DST_ALG_UNKNOWN;
-	ISC_LINK_INIT(keyid, link);
-	if (keyid->keyname == NULL) {
-		CHECK(ISC_R_NOMEMORY);
-	}
 
 	CHECK(isccfg_check_key(key));
 

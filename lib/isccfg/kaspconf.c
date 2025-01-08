@@ -120,10 +120,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	const cfg_obj_t *tagrange = NULL;
 
 	/* Create a new key reference. */
-	result = dns_kasp_key_create(kasp, &key);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	dns_kasp_key_create(kasp, &key);
 
 	if (config == NULL) {
 		/* We are creating a key reference for the default kasp. */
@@ -484,12 +481,11 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		return result;
 	}
 
+	result = ISC_R_SUCCESS;
+
 	/* No kasp with configured name was found in list, create new one. */
 	INSIST(kasp == NULL);
-	result = dns_kasp_create(mctx, kaspname, &kasp);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	dns_kasp_create(mctx, kaspname, &kasp);
 	INSIST(kasp != NULL);
 
 	/* Now configure. */
@@ -719,14 +715,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		{
 			/* Create a new key reference. */
 			new_key = NULL;
-			result = dns_kasp_key_create(kasp, &new_key);
-			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(config, ISC_LOG_ERROR,
-					    "dnssec-policy: failed to "
-					    "configure keys (%s)",
-					    isc_result_totext(result));
-				goto cleanup;
-			}
+			dns_kasp_key_create(kasp, &new_key);
 			if (dns_kasp_key_ksk(key)) {
 				new_key->role |= DNS_KASP_KEY_ROLE_KSK;
 			}
@@ -832,10 +821,7 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 	 * No key-store with configured name was found in list, create new one.
 	 */
 	INSIST(keystore == NULL);
-	result = dns_keystore_create(mctx, name, &keystore);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	dns_keystore_create(mctx, name, &keystore);
 	INSIST(keystore != NULL);
 
 	/* Now configure. */

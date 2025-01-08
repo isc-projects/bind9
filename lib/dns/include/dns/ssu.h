@@ -60,10 +60,6 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
  *	Requires:
  *\li		'mctx' is a valid memory context
  *\li		'table' is not NULL, and '*table' is NULL
- *
- *	Returns:
- *\li		ISC_R_SUCCESS
- *\li		ISC_R_NOMEMORY
  */
 
 void
@@ -131,10 +127,6 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
  *\li		'name' is a valid absolute name
  *\li		If 'ntypes' > 0, 'types' must not be NULL
  *\li		'debug' must not be NULL
- *
- *	Returns:
- *\li		ISC_R_SUCCESS
- *\li		ISC_R_NOMEMORY
  */
 
 bool

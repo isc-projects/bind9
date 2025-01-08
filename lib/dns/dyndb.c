@@ -265,7 +265,7 @@ dns_dyndb_cleanup(bool exiting) {
 	}
 }
 
-isc_result_t
+void
 dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, dns_view_t *view,
 		    dns_zonemgr_t *zmgr, isc_loopmgr_t *loopmgr,
 		    dns_dyndbctx_t **dctxp) {
@@ -290,8 +290,6 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, dns_view_t *view,
 	dctx->magic = DNS_DYNDBCTX_MAGIC;
 
 	*dctxp = dctx;
-
-	return ISC_R_SUCCESS;
 }
 
 void

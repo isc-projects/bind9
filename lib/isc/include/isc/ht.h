@@ -61,7 +61,6 @@ isc_ht_destroy(isc_ht_t **htp);
  *\li   write-lock
  *
  * Returns:
- *\li	#ISC_R_NOMEMORY		-- not enough memory to create pool
  *\li	#ISC_R_EXISTS		-- node of the same key already exists
  *\li	#ISC_R_SUCCESS		-- all is well.
  */

@@ -259,7 +259,7 @@ struct dns_view {
 #endif /* __OpenBSD__ */
 #endif /* HAVE_LMDB */
 
-isc_result_t
+void
 dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		dns_dispatchmgr_t *dispmgr, dns_rdataclass_t rdclass,
 		const char *name, dns_view_t **viewp);
@@ -280,13 +280,6 @@ dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
  *\li	'name' is a valid C string.
  *
  *\li	viewp != NULL && *viewp == NULL
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *
- *\li	Other errors are possible.
  */
 
 void
@@ -869,7 +862,7 @@ dns_view_flushcache(dns_view_t *view, bool fixuponly);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ *	other returns are failures.
  */
 
 isc_result_t

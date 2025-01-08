@@ -3181,9 +3181,6 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db) {
 		 * the active list.
 		 */
 		dbversion = client_getdbversion(client);
-		if (dbversion == NULL) {
-			return NULL;
-		}
 		dns_db_attach(db, &dbversion->db);
 		dns_db_currentversion(db, &dbversion->version);
 		dbversion->acl_checked = false;

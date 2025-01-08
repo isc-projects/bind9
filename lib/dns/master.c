@@ -319,14 +319,9 @@ loadctx_destroy(dns_loadctx_t *lctx);
 	else                                                                   \
 		LOGIT(result)
 
-#define LOGIT(result)                                                 \
-	if (result == ISC_R_NOMEMORY)                                 \
-		(*callbacks->error)(callbacks, "dns_master_load: %s", \
-				    isc_result_totext(result));       \
-	else                                                          \
-		(*callbacks->error)(callbacks, "%s: %s:%lu: %s",      \
-				    "dns_master_load", source, line,  \
-				    isc_result_totext(result))
+#define LOGIT(result)                                                       \
+	(*callbacks->error)(callbacks, "%s: %s:%lu: %s", "dns_master_load", \
+			    source, line, isc_result_totext(result))
 
 static unsigned char in_addr_arpa_data[] = "\007IN-ADDR\004ARPA";
 static unsigned char in_addr_arpa_offsets[] = { 0, 8, 13 };
@@ -360,8 +355,6 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token, bool eol,
 	result = isc_lex_gettoken(lex, options, token);
 	if (result != ISC_R_SUCCESS) {
 		switch (result) {
-		case ISC_R_NOMEMORY:
-			return ISC_R_NOMEMORY;
 		default:
 			(*callbacks->error)(callbacks,
 					    "dns_master_load: %s:%lu:"
@@ -796,10 +789,6 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	target_mem = isc_mem_get(lctx->mctx, target_size);
 	rhsbuf = isc_mem_get(lctx->mctx, DNS_MASTER_RHS);
 	lhsbuf = isc_mem_get(lctx->mctx, DNS_MASTER_LHS);
-	if (target_mem == NULL || rhsbuf == NULL || lhsbuf == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto error_cleanup;
-	}
 	isc_buffer_init(&target, target_mem, target_size);
 
 	n = sscanf(range, "%d-%d%1[/]%d", &start, &stop, dummy, &step);
@@ -908,13 +897,8 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	goto cleanup;
 
 error_cleanup:
-	if (result == ISC_R_NOMEMORY) {
-		(*callbacks->error)(callbacks, "$GENERATE: %s",
-				    isc_result_totext(result));
-	} else {
-		(*callbacks->error)(callbacks, "$GENERATE: %s:%lu: %s", source,
-				    line, isc_result_totext(result));
-	}
+	(*callbacks->error)(callbacks, "$GENERATE: %s:%lu: %s", source, line,
+			    isc_result_totext(result));
 
 insist_cleanup:
 	INSIST(result != ISC_R_SUCCESS);
@@ -1781,10 +1765,6 @@ load_text(dns_loadctx_t *lctx) {
 			new_rdata = grow_rdata(rdata_size + RDSZ, rdata,
 					       rdata_size, &current_list,
 					       &glue_list, mctx);
-			if (new_rdata == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto log_and_cleanup;
-			}
 			rdata_size += RDSZ;
 			rdata = new_rdata;
 		}
@@ -2052,10 +2032,6 @@ load_text(dns_loadctx_t *lctx) {
 					rdatalist_size + RDLSZ, rdatalist,
 					rdatalist_size, &current_list,
 					&glue_list, mctx);
-				if (new_rdatalist == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto log_and_cleanup;
-				}
 				rdatalist = new_rdatalist;
 				rdatalist_size += RDLSZ;
 			}
@@ -2524,10 +2500,6 @@ load_raw(dns_loadctx_t *lctx) {
 
 			new_rdata = grow_rdata(rdcount + RDSZ, rdata,
 					       rdata_size, &head, &dummy, mctx);
-			if (new_rdata == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
 			rdata_size = rdcount + RDSZ;
 			rdata = new_rdata;
 		}
@@ -2742,15 +2714,11 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 	loadctx_create(dns_masterformat_text, mctx, options, 0, top, zclass,
 		       origin, callbacks, NULL, NULL, NULL, NULL, NULL, &lctx);
 
-	result = isc_lex_openstream(lctx->lex, stream);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_lex_openstream(lctx->lex, stream);
 
 	result = (lctx->load)(lctx);
 	INSIST(result != DNS_R_CONTINUE);
 
-cleanup:
 	dns_loadctx_detach(&lctx);
 	return result;
 }
@@ -2950,10 +2918,7 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 		}
 		result = callbacks->add(callbacks->add_private, owner,
 					&dataset DNS__DB_FILELINE);
-		if (result == ISC_R_NOMEMORY) {
-			(*error)(callbacks, "dns_master_load: %s",
-				 isc_result_totext(result));
-		} else if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			dns_name_format(owner, namebuf, sizeof(namebuf));
 			if (source != NULL) {
 				(*error)(callbacks, "%s: %s:%lu: %s: %s",

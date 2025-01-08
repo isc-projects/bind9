@@ -396,11 +396,7 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 
 	isc_nmhandle_detach(&client->reqhandle);
 
-	if (*qctxp == NULL) {
-		return ISC_R_NOMEMORY;
-	} else {
-		return ISC_R_SUCCESS;
-	}
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t

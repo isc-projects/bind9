@@ -53,10 +53,7 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 	isc_buffer_t b;
 	const cfg_obj_t *obj;
 
-	result = dns_tkeyctx_create(mctx, &tctx);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	dns_tkeyctx_create(mctx, &tctx);
 
 	obj = NULL;
 	result = cfg_map_get(options, "tkey-domain", &obj);

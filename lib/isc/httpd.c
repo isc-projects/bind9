@@ -713,7 +713,6 @@ render_500(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo, void *arg,
  *
  * Returns:
  *\li	#ISC_R_SUCCESS	  -- all is well.
- *\li	#ISC_R_NOMEMORY	  -- not enough memory to compress data
  *\li	#ISC_R_FAILURE	  -- error during compression or compressed
  *			     data would be larger than input data
  */

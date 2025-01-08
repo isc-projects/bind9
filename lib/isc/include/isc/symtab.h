@@ -103,7 +103,7 @@ typedef enum {
 } isc_symexists_t;
 
 /*% Create a symbol table. */
-isc_result_t
+void
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action, void *undefine_arg,
 		  bool case_sensitive, isc_symtab_t **symtabp);

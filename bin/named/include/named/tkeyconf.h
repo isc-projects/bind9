@@ -34,5 +34,5 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
  *
  *	Returns:
  *\li		ISC_R_SUCCESS
- *\li		ISC_R_NOMEMORY
+ *\li		return codes from dns_name_fromtext()
  */

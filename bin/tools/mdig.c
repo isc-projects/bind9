@@ -2044,11 +2044,7 @@ set_source_ports(dns_dispatchmgr_t *manager) {
 	in_port_t udpport_low, udpport_high;
 	isc_result_t result;
 
-	result = isc_portset_create(mctx, &v4portset);
-	if (result != ISC_R_SUCCESS) {
-		fatal("isc_portset_create (v4) failed");
-	}
-
+	isc_portset_create(mctx, &v4portset);
 	result = isc_net_getudpportrange(AF_INET, &udpport_low, &udpport_high);
 	if (result != ISC_R_SUCCESS) {
 		fatal("isc_net_getudpportrange (v4) failed");
@@ -2056,10 +2052,7 @@ set_source_ports(dns_dispatchmgr_t *manager) {
 
 	isc_portset_addrange(v4portset, udpport_low, udpport_high);
 
-	result = isc_portset_create(mctx, &v6portset);
-	if (result != ISC_R_SUCCESS) {
-		fatal("isc_portset_create (v6) failed");
-	}
+	isc_portset_create(mctx, &v6portset);
 	result = isc_net_getudpportrange(AF_INET6, &udpport_low, &udpport_high);
 	if (result != ISC_R_SUCCESS) {
 		fatal("isc_net_getudpportrange (v6) failed");
@@ -2103,7 +2096,7 @@ setup(void *arg ISC_ATTR_UNUSED) {
 		mctx, loopmgr, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
 		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
-	RUNCHECK(dns_view_create(mctx, loopmgr, NULL, 0, "_mdig", &view));
+	dns_view_create(mctx, loopmgr, NULL, 0, "_mdig", &view);
 }
 
 /*% Main processing routine for mdig */

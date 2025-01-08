@@ -1492,10 +1492,7 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 					sizeof(sockaddr));
 			}
 		} else {
-			result = dns_ipkeylist_resize(mctx, ipkl, i + 1);
-			if (result != ISC_R_SUCCESS) {
-				return result;
-			}
+			dns_ipkeylist_resize(mctx, ipkl, i + 1);
 
 			ipkl->labels[i] = isc_mem_get(mctx,
 						      sizeof(*ipkl->labels[0]));
@@ -1521,10 +1518,7 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 
 	rcount = dns_rdataset_count(value) + ipkl->count;
 
-	result = dns_ipkeylist_resize(mctx, ipkl, rcount);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	dns_ipkeylist_resize(mctx, ipkl, rcount);
 
 	for (result = dns_rdataset_first(value); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(value))

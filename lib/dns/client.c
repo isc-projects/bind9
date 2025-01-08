@@ -149,20 +149,14 @@ setsourceports(isc_mem_t *mctx, dns_dispatchmgr_t *manager) {
 	in_port_t udpport_low, udpport_high;
 	isc_result_t result;
 
-	result = isc_portset_create(mctx, &v4portset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_portset_create(mctx, &v4portset);
 	result = isc_net_getudpportrange(AF_INET, &udpport_low, &udpport_high);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 	isc_portset_addrange(v4portset, udpport_low, udpport_high);
 
-	result = isc_portset_create(mctx, &v6portset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_portset_create(mctx, &v6portset);
 	result = isc_net_getudpportrange(AF_INET6, &udpport_low, &udpport_high);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -210,11 +204,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_nm_t *nm,
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
-	result = dns_view_create(mctx, loopmgr, dispatchmgr, rdclass,
-				 DNS_CLIENTVIEW_NAME, &view);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	dns_view_create(mctx, loopmgr, dispatchmgr, rdclass,
+			DNS_CLIENTVIEW_NAME, &view);
 
 	/* Initialize view security roots */
 	dns_view_initsecroots(view);

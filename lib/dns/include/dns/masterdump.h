@@ -271,7 +271,6 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
  *
  * Returns:
  *\li	ISC_R_SUCCESS
- *\li	ISC_R_NOMEMORY
  *\li	Any database or rrset iterator error.
  *\li	Any dns_rdata_totext() error code.
  */
@@ -303,7 +302,6 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
  *
  * Returns:
  *\li	ISC_R_SUCCESS
- *\li	ISC_R_NOMEMORY
  *\li	Any database or rrset iterator error.
  *\li	Any dns_rdata_totext() error code.
  */

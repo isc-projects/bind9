@@ -70,9 +70,6 @@ dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
 	(void)dns_name_downcase(owner, name, NULL);
 
 	md = isc_md_new();
-	if (md == NULL) {
-		return ISC_R_NOMEMORY;
-	}
 
 	result = isc_md_init(md, md_type);
 	if (result != ISC_R_SUCCESS) {

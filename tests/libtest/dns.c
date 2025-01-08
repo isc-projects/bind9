@@ -72,15 +72,11 @@ dns_test_makeview(const char *name, bool with_dispatchmgr, bool with_cache,
 		}
 	}
 
-	result = dns_view_create(mctx, loopmgr, dispatchmgr, dns_rdataclass_in,
-				 name, &view);
+	dns_view_create(mctx, loopmgr, dispatchmgr, dns_rdataclass_in, name,
+			&view);
 
 	if (dispatchmgr != NULL) {
 		dns_dispatchmgr_detach(&dispatchmgr);
-	}
-
-	if (result != ISC_R_SUCCESS) {
-		return result;
 	}
 
 	if (with_cache) {
@@ -129,10 +125,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	if (result != ISC_R_SUCCESS) {
 		goto detach_zone;
 	}
-	result = dns_zone_setorigin(zone, origin);
-	if (result != ISC_R_SUCCESS) {
-		goto detach_zone;
-	}
+	dns_zone_setorigin(zone, origin);
 
 	/*
 	 * If requested, create a view.

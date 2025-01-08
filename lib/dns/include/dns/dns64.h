@@ -38,7 +38,7 @@
 #define DNS_DNS64_RECURSIVE 0x01 /* Recursive query. */
 #define DNS_DNS64_DNSSEC    0x02 /* DNSSEC sensitive query. */
 
-isc_result_t
+void
 dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 		 unsigned int prefixlen, const isc_netaddr_t *suffix,
 		 dns_acl_t *client, dns_acl_t *mapped, dns_acl_t *excluded,
@@ -79,10 +79,6 @@ dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
  *	'client'	to be NULL or a valid acl.
  *	'mapped'	to be NULL or a valid acl.
  *	'excluded'	to be NULL or a valid acl.
- *
- * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_NOMEMORY
  */
 
 void

@@ -110,7 +110,7 @@ peerlist_delete(dns_peerlist_t **list);
 static void
 peer_delete(dns_peer_t **peer);
 
-isc_result_t
+void
 dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list) {
 	dns_peerlist_t *l;
 
@@ -124,8 +124,6 @@ dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list) {
 	l->magic = DNS_PEERLIST_MAGIC;
 
 	*list = l;
-
-	return ISC_R_SUCCESS;
 }
 
 void

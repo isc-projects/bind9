@@ -47,7 +47,7 @@ struct isc_symtab {
 	bool case_sensitive;
 };
 
-isc_result_t
+void
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action, void *undefine_arg,
 		  bool case_sensitive, isc_symtab_t **symtabp) {
@@ -75,8 +75,6 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 	symtab->magic = SYMTAB_MAGIC;
 
 	*symtabp = symtab;
-
-	return ISC_R_SUCCESS;
 }
 
 void

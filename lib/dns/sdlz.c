@@ -1024,10 +1024,6 @@ modrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	rdatastr = isc_buffer_base(buffer);
-	if (rdatastr == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	rdatastr[isc_buffer_usedlength(buffer) - 1] = 0;
 
 	MAYBE_LOCK(sdlz->dlzimp);

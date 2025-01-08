@@ -348,7 +348,6 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
  * Returns:
  *
  *\li	ISC_R_SUCCESS		-- all is well.
- *\li	ISC_R_NOMEMORY		-- memory could not be allocated.
  *\li	ISC_R_NOMORE		-- no more message ids can be allocated
  *				   for this destination.
  */

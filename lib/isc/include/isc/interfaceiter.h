@@ -73,7 +73,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  *\li	Various network-related errors
  */
 

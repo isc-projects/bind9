@@ -37,20 +37,15 @@ struct dns_tkeyctx {
 	char		 *gssapi_keytab;
 };
 
-isc_result_t
+void
 dns_tkeyctx_create(isc_mem_t *mctx, dns_tkeyctx_t **tctxp);
 /*%<
  *	Create an empty TKEY context.
  *
  * 	Requires:
  *\li		'mctx' is not NULL
- *\li		'tctx' is not NULL
- *\li		'*tctx' is NULL
- *
- *	Returns
- *\li		#ISC_R_SUCCESS
- *\li		#ISC_R_NOMEMORY
- *\li		return codes from dns_name_fromtext()
+ *\li		'tctxp' is not NULL
+ *\li		'*tctxp' is NULL
  */
 
 void

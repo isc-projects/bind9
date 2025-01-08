@@ -266,7 +266,7 @@ dns_zone_setviewrevert(dns_zone_t *zone);
  *\li	'zone' to be a valid zone.
  */
 
-isc_result_t
+void
 dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin);
 /*%<
  *	Sets the zones origin to 'origin'.
@@ -277,7 +277,6 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li 	#ISC_R_NOMEMORY
  */
 
 dns_name_t *
@@ -289,7 +288,7 @@ dns_zone_getorigin(dns_zone_t *zone);
  *\li	'zone' to be a valid zone.
  */
 
-isc_result_t
+void
 dns_zone_setfile(dns_zone_t *zone, const char *file, dns_masterformat_t format,
 		 const dns_master_style_t *style);
 /*%<
@@ -303,10 +302,6 @@ dns_zone_setfile(dns_zone_t *zone, const char *file, dns_masterformat_t format,
  *
  * Require:
  *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_SUCCESS
  */
 
 const char *
@@ -321,7 +316,7 @@ dns_zone_getfile(dns_zone_t *zone);
  *\li	Pointer to null-terminated file name, or NULL.
  */
 
-isc_result_t
+void
 dns_zone_setstream(dns_zone_t *zone, const FILE *stream,
 		   dns_masterformat_t format, const dns_master_style_t *style);
 /*%<
@@ -332,10 +327,6 @@ dns_zone_setstream(dns_zone_t *zone, const FILE *stream,
  *\li	'stream' to be a valid and open FILE *.
  *\li	'zone->masterfile' to be NULL, since we should load data either from
  *	'stream' or from a master file, but not both.
- *
- * Returns:
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_SUCCESS
  */
 
 void
@@ -495,7 +486,6 @@ dns_zone_asyncload(dns_zone_t *zone, bool newonly, dns_zt_callback_t done,
  *\li	#ISC_R_ALREADYRUNNING
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_FAILURE
- *\li	#ISC_R_NOMEMORY
  */
 
 bool
@@ -578,7 +568,7 @@ dns_zone_setdbtype(dns_zone_t *zone, unsigned int dbargc,
  *\li	'dbargv' to point to dbargc NULL-terminated strings
  */
 
-isc_result_t
+void
 dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx);
 /*%<
  *	Returns the current dbtype.  isc_mem_free() should be used
@@ -588,10 +578,6 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx);
  *\li	'zone' to be a valid zone.
  *\li	'argv' to be non NULL and *argv to be NULL.
  *\li	'mctx' to be valid.
- *
- * Returns:
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_SUCCESS
  */
 
 void
@@ -681,11 +667,6 @@ dns_zone_setprimaries(dns_zone_t *zone, isc_sockaddr_t *addresses,
  *\li	'keynames' array of dns_name_t's for tsig keys or NULL.
  *
  *\li	If 'addresses' is NULL then 'count' must be zero.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li      Any result dns_name_dup() can return, if keynames!=NULL
  */
 
 void
@@ -702,11 +683,6 @@ dns_zone_setparentals(dns_zone_t *zone, isc_sockaddr_t *addresses,
  *\li	'keynames' array of dns_name_t's for tsig keys or NULL.
  *
  *\li	If 'addresses' is NULL then 'count' must be zero.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li      Any result dns_name_dup() can return, if keynames!=NULL
  */
 
 void
@@ -724,10 +700,6 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *addresses,
  *\li	'zone' to be a valid zone.
  *\li	'addresses' to be non-NULL if count != 0.
  *\li	'count' to be the number of notifiees.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 void
@@ -1303,7 +1275,7 @@ dns_zone_getmaxxfrout(dns_zone_t *zone);
  *\li	'zone' to be valid initialised zone.
  */
 
-isc_result_t
+void
 dns_zone_setjournal(dns_zone_t *zone, const char *myjournal);
 /*%<
  * Sets the filename used for journaling updates / IXFR transfers.
@@ -1313,10 +1285,6 @@ dns_zone_setjournal(dns_zone_t *zone, const char *myjournal);
  *
  * Requires:
  *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 char *
@@ -1607,7 +1575,6 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
  *\li	'callback' to be non NULL.
  * Returns:
  *\li	#ISC_R_SUCCESS if the message has been forwarded,
- *\li	#ISC_R_NOMEMORY
  *\li	Others
  */
 
@@ -1643,7 +1610,7 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first);
  *	(result ISC_R_NOMORE).
  */
 
-isc_result_t
+void
 dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory);
 /*%<
  *	Sets the name of the directory where private keys used for
@@ -1651,10 +1618,6 @@ dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory);
  *
  * Require:
  *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_SUCCESS
  */
 
 const char *

@@ -136,7 +136,7 @@ struct dns_kasp {
 #define DNS_KASP_KEY_ROLE_KSK 0x01
 #define DNS_KASP_KEY_ROLE_ZSK 0x02
 
-isc_result_t
+void
 dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp);
 /*%<
  * Create a KASP.
@@ -150,11 +150,6 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp);
  *\li  kaspp != NULL && *kaspp == NULL
  *
  * Returns:
- *
- *\li  #ISC_R_SUCCESS
- *\li  #ISC_R_NOMEMORY
- *
- *\li  Other errors are possible.
  */
 
 void
@@ -566,13 +561,6 @@ dns_kasp_keys(dns_kasp_t *kasp);
  * Requires:
  *
  *\li   'kasp' is a valid, frozen kasp.
- *
- * Returns:
- *
- *\li  #ISC_R_SUCCESS
- *\li  #ISC_R_NOMEMORY
- *
- *\li  Other errors are possible.
  */
 
 bool
@@ -600,7 +588,7 @@ dns_kasp_addkey(dns_kasp_t *kasp, dns_kasp_key_t *key);
  *\li   'key' is not NULL.
  */
 
-isc_result_t
+void
 dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp);
 /*%<
  * Create a key inside a KASP.
@@ -610,13 +598,6 @@ dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp);
  *\li   'kasp' is a valid kasp.
  *
  *\li  keyp != NULL && *keyp == NULL
- *
- * Returns:
- *
- *\li  #ISC_R_SUCCESS
- *\li  #ISC_R_NOMEMORY
- *
- *\li  Other errors are possible.
  */
 
 void
@@ -882,13 +863,6 @@ dns_kasp_digests(dns_kasp_t *kasp);
  * Requires:
  *
  *\li   'kasp' is a valid, frozen kasp.
- *
- * Returns:
- *
- *\li  #ISC_R_SUCCESS
- *\li  #ISC_R_NOMEMORY
- *
- *\li  Other errors are possible.
  */
 
 void

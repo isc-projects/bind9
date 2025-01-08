@@ -152,7 +152,6 @@ cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer, const char *file,
  *
  * Returns:
  *     \li #ISC_R_SUCCESS                 - success
- *\li      #ISC_R_NOMEMORY                - no memory available
  *\li      #ISC_R_INVALIDFILE             - file doesn't exist or is unreadable
  *\li      others	                      - file contains errors
  */

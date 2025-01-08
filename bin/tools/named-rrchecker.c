@@ -182,7 +182,7 @@ main(int argc, char *argv[]) {
 	options = ISC_LEXOPT_EOL;
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
-	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
+	isc_lex_openstream(lex, stdin);
 
 	if (origin != NULL) {
 		name = dns_fixedname_initname(&fixed);

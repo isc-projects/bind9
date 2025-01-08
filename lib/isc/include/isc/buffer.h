@@ -485,7 +485,6 @@ isc_buffer_printf(isc_buffer_t *restrict b, const char *restrict format, ...)
  *\li	#ISC_R_SUCCESS	Operation succeeded.
  *\li	#ISC_R_NOSPACE	'b' does not allow reallocation and appending the
  *			formatted string to it would cause it to overflow.
- *\li	#ISC_R_NOMEMORY	Reallocation failed.
  *\li	#ISC_R_FAILURE	Other error occurred.
  */
 

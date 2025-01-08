@@ -284,7 +284,5 @@ dns_diff_print(const dns_diff_t *diff, FILE *file);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_UNEXPECTED
  *\li	any error from dns_rdataset_totext()
  */

@@ -309,7 +309,6 @@ isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
  * Returns:
  * - ISC_R_SUCCESS on success
  * - ISC_R_INVALIDFILE if 'path' is empty or ends with '/'
- * - ISC_R_NOMEMORY if unable to allocate memory
  */
 
 isc_result_t

@@ -584,7 +584,6 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- all is well
- *\li	#ISC_R_NOMEMORY		-- no memory
  *\li	#DNS_R_RECOVERABLE	-- the message parsed properly, but contained
  *				   errors.
  *\li	Many other errors possible XXXMLG
@@ -1207,7 +1206,7 @@ dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
  * Returns:
  *
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ *\li	any return code from dns_rdataset_first()
  *
  * Ensures:
  *\li 	'tsig' points to NULL or an allocated buffer which must be freed
@@ -1441,10 +1440,8 @@ dns_message_buildopt(dns_message_t *msg, dns_rdataset_t **opt,
  * \li   opt to be a non NULL and *opt to be NULL.
  *
  * Returns:
- * \li	 ISC_R_SUCCESS on success.
- * \li	 ISC_R_NOMEMORY
+ * \li	 ISC_R_SUCCESS
  * \li	 ISC_R_NOSPACE
- * \li	 other.
  */
 
 void

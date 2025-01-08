@@ -634,8 +634,8 @@ isc_file_safecreate(const char *filename, FILE **fp) {
 isc_result_t
 isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
 		   char const **bname) {
-	char *dir;
-	const char *file, *slash;
+	char *dir = NULL;
+	const char *file = NULL, *slash = NULL;
 
 	if (path == NULL) {
 		return ISC_R_INVALIDFILE;
@@ -653,10 +653,6 @@ isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
 	} else {
 		file = path;
 		dir = isc_mem_strdup(mctx, ".");
-	}
-
-	if (dir == NULL) {
-		return ISC_R_NOMEMORY;
 	}
 
 	if (*file == '\0') {

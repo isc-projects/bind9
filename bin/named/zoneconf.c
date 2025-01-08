@@ -978,9 +978,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (result == ISC_R_SUCCESS) {
 		cpval = isc_mem_strdup(mctx, cfg_obj_asstring(obj));
 	}
-	if (cpval == NULL) {
-		CHECK(ISC_R_NOMEMORY);
-	}
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "dlz", &obj);
@@ -1109,24 +1106,20 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		size_t signedlen = strlen(filename) + sizeof(SIGNED);
 		char *signedname;
 
-		CHECK(dns_zone_setfile(raw, filename, masterformat,
-				       masterstyle));
+		dns_zone_setfile(raw, filename, masterformat, masterstyle);
 		signedname = isc_mem_get(mctx, signedlen);
 
 		(void)snprintf(signedname, signedlen, "%s" SIGNED, filename);
-		result = dns_zone_setfile(zone, signedname,
-					  dns_masterformat_raw, NULL);
+		dns_zone_setfile(zone, signedname, dns_masterformat_raw, NULL);
 		isc_mem_put(mctx, signedname, signedlen);
-		CHECK(result);
 	} else {
-		CHECK(dns_zone_setfile(zone, filename, masterformat,
-				       masterstyle));
+		dns_zone_setfile(zone, filename, masterformat, masterstyle);
 	}
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "journal", &obj);
 	if (result == ISC_R_SUCCESS) {
-		CHECK(dns_zone_setjournal(mayberaw, cfg_obj_asstring(obj)));
+		dns_zone_setjournal(mayberaw, cfg_obj_asstring(obj));
 	}
 
 	/*
@@ -1627,7 +1620,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "key-directory", &obj);
 		if (result == ISC_R_SUCCESS) {
 			filename = cfg_obj_asstring(obj);
-			CHECK(dns_zone_setkeydirectory(zone, filename));
+			dns_zone_setkeydirectory(zone, filename);
 		}
 		/* Also save a reference to the keystore list. */
 		dns_zone_setkeystores(zone, keystorelist);

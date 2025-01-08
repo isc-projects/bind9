@@ -45,7 +45,7 @@
  *** Functions
  ***/
 
-isc_result_t
+void
 dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list);
 
 void
