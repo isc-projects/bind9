@@ -248,10 +248,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	[DNS_R_BADCOOKIE] = "BADCOOKIE",
 
 	[ISCCC_R_UNKNOWNVERSION] = "unknown version",
-	[ISCCC_R_SYNTAX] = "syntax error",
 	[ISCCC_R_BADAUTH] = "bad auth",
-	[ISCCC_R_EXPIRED] = "expired",
-	[ISCCC_R_CLOCKSKEW] = "clock skew",
 	[ISCCC_R_DUPLICATE] = "duplicate",
 	[ISCCC_R_MAXDEPTH] = "max depth",
 };
@@ -482,10 +479,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	[DNS_R_BADCOOKIE] = "DNS_R_BADCOOKIE",
 
 	[ISCCC_R_UNKNOWNVERSION] = "ISCCC_R_UNKNOWNVERSION",
-	[ISCCC_R_SYNTAX] = "ISCCC_R_SYNTAX",
 	[ISCCC_R_BADAUTH] = "ISCCC_R_BADAUTH",
-	[ISCCC_R_EXPIRED] = "ISCCC_R_EXPIRED",
-	[ISCCC_R_CLOCKSKEW] = "ISCCC_R_CLOCKSKEW",
 	[ISCCC_R_DUPLICATE] = "ISCCC_R_DUPLICATE",
 	[ISCCC_R_MAXDEPTH] = "ISCCC_R_MAXDEPTH",
 };

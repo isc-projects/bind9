@@ -489,7 +489,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		if ((sent + CLOCKSKEW) < conn->now ||
 		    (sent - CLOCKSKEW) > conn->now)
 		{
-			result = ISCCC_R_CLOCKSKEW;
+			result = DNS_R_CLOCKSKEW;
 			goto cleanup;
 		}
 	} else {
@@ -503,7 +503,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	if (isccc_cc_lookupuint32(conn->ctrl, "_exp", &exp) == ISC_R_SUCCESS &&
 	    conn->now > exp)
 	{
-		result = ISCCC_R_EXPIRED;
+		result = DNS_R_EXPIRED;
 		goto cleanup;
 	}
 
