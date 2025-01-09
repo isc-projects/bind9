@@ -11407,7 +11407,15 @@ again:
 		 * Add no qname proof.
 		 */
 		labels = dns_name_countlabels(cname) + 1;
-		if (dns_name_countlabels(name) == labels) {
+		if (labels > maxlabels) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(cname, namebuf, sizeof(namebuf));
+			ns_client_log(qctx->client, DNS_LOGCATEGORY_DNSSEC,
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "closest-encloser name too long: %s",
+				      namebuf);
+			dns_name_copy(name, wname);
+		} else if (labels == maxlabels) {
 			dns_name_copy(name, wname);
 		} else {
 			dns_name_split(name, labels, NULL, wname);
