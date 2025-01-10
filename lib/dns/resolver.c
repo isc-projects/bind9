@@ -350,7 +350,6 @@ struct fetchctx {
 	bool hashed;
 	bool cloned;
 	bool spilled;
-	ISC_LINK(struct fetchctx) link;
 	ISC_LIST(dns_fetchresponse_t) resps;
 	dns_edelist_t edelist;
 
@@ -4782,7 +4781,6 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	dns_view_getadb(res->view, &fctx->adb);
 
 	ISC_LIST_INIT(fctx->resps);
-	ISC_LINK_INIT(fctx, link);
 	fctx->magic = FCTX_MAGIC;
 
 	/*
