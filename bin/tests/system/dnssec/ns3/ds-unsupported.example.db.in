@@ -17,38 +17,6 @@ $TTL 300	; 5 minutes
 				1814400    ; expire (3 weeks)
 				3600       ; minimum (1 hour)
 				)
-			NS	ns3
-ns3			A	10.53.0.3
-
+			NS	ns
+ns			A	10.53.0.3
 a			A	10.0.0.1
-b			A	10.0.0.2
-c			A	10.0.0.3
-d			A	10.0.0.4
-e			A	10.0.0.5
-f			A	10.0.0.6
-g			A	10.0.0.7
-z			A	10.0.0.26
-a.a.a.a.a.a.a.a.a.a.e	A	10.0.0.27
-x			CNAME	a
-badalg			A	10.53.0.4
-
-private			NS	ns.private
-ns.private		A	10.53.0.2
-
-insecure		NS	ns2.insecure
-ns2.insecure		A	10.53.0.2
-
-nosoa 			NS	ns.nosoa
-ns.nosoa		A	10.53.0.7
-
-normalthenrrsig		A	10.0.0.28
-rrsigonly		A	10.0.0.29
-
-cnameandkey		CNAME	@
-cnamenokey		CNAME	@
-dnameandkey		DNAME	@
-
-mixedcase		A	10.0.0.30
-mixedCASE		TXT	"mixed case"
-MIXEDcase		AAAA	2002::
-mIxEdCaSe		LOC	37 52 56.788 N 121 54 55.02 W 1120m 10m 100m 10m

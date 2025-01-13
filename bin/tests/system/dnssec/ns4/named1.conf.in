@@ -27,8 +27,10 @@ options {
 
 	nta-lifetime 12s;
 	nta-recheck 9s;
-
 	validate-except { corp; };
+
+	disable-ds-digests "ds-unsupported.example." {"SHA1"; "SHA-1"; "SHA256"; "SHA-256"; "SHA384"; "SHA-384"; };
+	disable-algorithms "badalg.secure.example." { ECDSAP256SHA256; };
 
 	# Note: We only reference the bind.keys file here to confirm that it
 	# is *not* being used.  It contains the real root key, and we're

@@ -131,6 +131,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns3/update-nsec3.example.db.signed",
         "ns3/upper.example.db",
         "ns3/upper.example.db.lower",
+        "ns3/ds-unsupported.example.db",
         "ns4/managed.conf",
         "ns4/managed-keys.bind",
         "ns4/named.secroots",
