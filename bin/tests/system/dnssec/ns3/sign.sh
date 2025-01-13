@@ -299,6 +299,24 @@ DSFILE="dsset-${zone}."
 $DSFROMKEY -A -f ${zonefile}.signed "$zone" >"$DSFILE"
 
 #
+# A zone which is fime by itself (supported alg and digest) but that is used
+# to mimic unsupported DS digest (see ns8).
+#
+zone=ds-unsupported.example.
+infile=ds-unsupported.example.db.in
+zonefile=ds-unsupported.example.db
+
+cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "cnameandkey.$zone")
+dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "dnameandkey.$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+
+cat "$infile" "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" >"$zonefile"
+
+"$SIGNER" -z -D -o "$zone" "$zonefile" >/dev/null
+cat "$zonefile" "$zonefile".signed >"$zonefile".tmp
+mv "$zonefile".tmp "$zonefile".signed
+
+#
 # A zone with a published unsupported DNSKEY algorithm (Reserved).
 # Different from above because this key is not intended for signing.
 #
