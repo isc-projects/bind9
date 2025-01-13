@@ -262,6 +262,8 @@ ISC_REFCOUNT_TRACE_DECL(dns_resolver);
 ISC_REFCOUNT_DECL(dns_resolver);
 #endif
 
+typedef struct fetchctx fetchctx_t;
+
 isc_result_t
 dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 dns_rdatatype_t type, const dns_name_t *domain,
@@ -631,4 +633,32 @@ dns_resolver_freefresp(dns_fetchresponse_t **frespp);
  *
  * Requires:
  * \li	'frespp' is valid. No-op if *frespp == NULL
+ */
+
+void
+dns_resolver_edeappend(fetchctx_t *fctx, uint16_t info_code, const char *what,
+		       const dns_name_t *name, dns_rdatatype_t type);
+/*%<
+ * Helper for EDE message creation in resolver context. Creates message
+ * containing the "what" context message as well as the "name"/"type" being
+ * resolved
+ *
+ * Requires:
+ * \li "fctx" is valid
+ * \li "what" is valid
+ * \li "info_code" is within the range of defined EDE codes
+ * \li "name" is valid
+ */
+
+void
+dns_resolver_copyede(dns_fetch_t *from, fetchctx_t *to);
+/*%<
+ * Copy all EDE messages from the fetchctx_t "from->private" to the fetchctx_t
+ * "to". The fetchctx_t from "from" is not locked. This is reponsability of the
+ * caller to lock it if this function is called in a context needing "from"
+ * synchronization.
+ *
+ * Requires:
+ * \li "from" is valid
+ * \li "to" is valid
  */
