@@ -180,7 +180,7 @@ struct ns_client {
 	size_t		tcpbuf_size;
 	dns_message_t  *message;
 	dns_rdataset_t *opt;
-	dns_ednsopt_t  *ede;
+	dns_ednsopt_t  *ede[DNS_EDE_MAX_ERRORS];
 	uint16_t	udpsize;
 	uint16_t	extflags;
 	int16_t		ednsversion; /* -1 noedns */

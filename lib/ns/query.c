@@ -902,6 +902,7 @@ ns_query_init(ns_client_t *client) {
 	ISC_LIST_INIT(client->query.namebufs);
 	ISC_LIST_INIT(client->query.activeversions);
 	ISC_LIST_INIT(client->query.freeversions);
+	memset(client->ede, 0, sizeof(dns_ednsopt_t *) * DNS_EDE_MAX_ERRORS);
 	/*
 	 * This mutex is destroyed when the client is destroyed in
 	 * exit_check().

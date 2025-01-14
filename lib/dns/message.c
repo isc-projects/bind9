@@ -5029,19 +5029,9 @@ dns_ede_append(isc_mem_t *mctx, dns_edelist_t *list, uint16_t info_code,
 	};
 
 	if (extra_text) {
-		size_t len = strlen(extra_text);
-
-		if (len >= DNS_EDE_EXTRATEXT_LEN) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MESSAGE, ISC_LOG_PRINTTIME,
-				      "truncate EDE code %hu text: %s",
-				      info_code, extra_text);
-			len = DNS_EDE_EXTRATEXT_LEN - 1;
-		}
-
-		ede->extra_text = isc_mem_allocate(mctx, len + 1);
-		strncpy(ede->extra_text, extra_text, len);
-		ede->extra_text[len] = '\0';
+		ede->extra_text = isc_mem_allocate(mctx,
+						   strlen(extra_text) + 1);
+		strcpy(ede->extra_text, extra_text);
 	}
 
 	ISC_LIST_APPEND(*list, ede, link);
