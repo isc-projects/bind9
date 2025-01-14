@@ -1358,6 +1358,33 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_ic "two DNSKEYs, DNSKEY RRset only by KSK ($n)"
+ret=0
+(
+cd signer/general || exit 1
+rm -f signed.zone
+$SIGNER -s now-1mo -e now+2d -P -x -f signed.zone -O full -o example.com. test1.zone >signer.out.$n
+test -f signed.zone
+) || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_ic "two DNSKEYs, DNSKEY RRset only by KSK, private key missing ($n)"
+ret=0
+(
+  cd signer/general || exit 1
+  cp signed.zone signed.expect
+  grep "example\.com\..*3600.*IN.*RRSIG.*DNSKEY.*10.*2.*3600.*28633.*example\.com\." signed.expect >dnskey.expect || exit 1
+  mv Kexample.com.+010+28633.private Kexample.com.+010+28633.offline
+  $SIGNER -P -x -f signed.zone -O full -o example.com. signed.zone >signer.out.$n
+  mv Kexample.com.+010+28633.offline Kexample.com.+010+28633.private
+  grep "$(cat dnskey.expect)" signed.zone >/dev/null || exit 1
+) || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_ic "one non-KSK DNSKEY ($n)"
 ret=0
 (
