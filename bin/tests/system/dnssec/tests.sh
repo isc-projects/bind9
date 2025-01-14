@@ -1361,14 +1361,14 @@ status=$((status + ret))
 echo_ic "two DNSKEYs, DNSKEY RRset only by KSK ($n)"
 ret=0
 (
-cd signer/general || exit 1
-rm -f signed.zone
-$SIGNER -s now-1mo -e now+2d -P -x -f signed.zone -O full -o example.com. test1.zone >signer.out.$n
-test -f signed.zone
+  cd signer/general || exit 1
+  rm -f signed.zone
+  $SIGNER -s now-1mo -e now+2d -P -x -f signed.zone -O full -o example.com. test1.zone >signer.out.$n
+  test -f signed.zone
 ) || ret=1
-n=$((n+1))
+n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
+status=$((status + ret))
 
 echo_ic "two DNSKEYs, DNSKEY RRset only by KSK, private key missing ($n)"
 ret=0
