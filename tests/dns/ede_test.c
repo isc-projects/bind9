@@ -56,12 +56,16 @@ ISC_RUN_TEST_IMPL(ede_enqueue_unlink) {
 	assert_string_equal(ede->extra_text, msg1);
 	assert_ptr_not_equal(ede->extra_text, msg1);
 
+	/*
+	 * Even though we limit the length of an EDE message to 64 bytes,
+	 * this is done only at the ns/client.c level (to make sure to cover all
+	 * the flows).
+	 */
 	ede = ISC_LIST_NEXT(ede, link);
 	assert_non_null(ede);
 	assert_int_equal(ede->info_code, 4);
-	assert_string_not_equal(ede->extra_text, msg2);
+	assert_string_equal(ede->extra_text, msg2);
 	assert_ptr_not_equal(ede->extra_text, msg2);
-	assert_int_equal(strlen(ede->extra_text), 63);
 
 	dns_ede_unlinkall(mctx, &list);
 	assert_true(ISC_LIST_EMPTY(list));
