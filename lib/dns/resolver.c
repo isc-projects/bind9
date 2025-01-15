@@ -8576,9 +8576,6 @@ rctx_answer_any(respctx_t *rctx) {
 		rdataset->attributes |= DNS_RDATASETATTR_ANSWER;
 		rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 		rdataset->trust = rctx->trust;
-
-		(void)dns_rdataset_additionaldata(rdataset, rctx->aname,
-						  check_related, rctx);
 	}
 
 	return ISC_R_SUCCESS;
@@ -8626,7 +8623,8 @@ rctx_answer_match(respctx_t *rctx) {
 	rctx->ardataset->attributes |= DNS_RDATASETATTR_CACHE;
 	rctx->ardataset->trust = rctx->trust;
 	(void)dns_rdataset_additionaldata(rctx->ardataset, rctx->aname,
-					  check_related, rctx);
+					  check_related, rctx,
+					  DNS_RDATASET_MAXADDITIONAL);
 
 	for (sigrdataset = ISC_LIST_HEAD(rctx->aname->list);
 	     sigrdataset != NULL;
@@ -8833,7 +8831,8 @@ rctx_authority_positive(respctx_t *rctx) {
 					 */
 					(void)dns_rdataset_additionaldata(
 						rdataset, name, check_related,
-						rctx);
+						rctx,
+						DNS_RDATASET_MAXADDITIONAL);
 					done = true;
 				}
 			}
@@ -9340,8 +9339,11 @@ rctx_referral(respctx_t *rctx) {
 	 */
 	INSIST(rctx->ns_rdataset != NULL);
 	FCTX_ATTR_SET(fctx, FCTX_ATTR_GLUING);
+	/*
+	 * We want to append **all** the GLUE records here.
+	 */
 	(void)dns_rdataset_additionaldata(rctx->ns_rdataset, rctx->ns_name,
-					  check_related, rctx);
+					  check_related, rctx, 0);
 #if CHECK_FOR_GLUE_IN_ANSWER
 	/*
 	 * Look in the answer section for "glue" that is incorrectly
@@ -9456,7 +9458,8 @@ again:
 			if (CHASE(rdataset)) {
 				rdataset->attributes &= ~DNS_RDATASETATTR_CHASE;
 				(void)dns_rdataset_additionaldata(
-					rdataset, name, check_related, rctx);
+					rdataset, name, check_related, rctx,
+					DNS_RDATASET_MAXADDITIONAL);
 				rescan = true;
 			}
 		}
