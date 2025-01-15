@@ -718,21 +718,21 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
 
 cleanup:
 	if (newentries != NULL) {
-		isc_mem_put(adb->mctx, newentries, sizeof(*newentries) * n);
+		isc_mem_put(adb->hmctx, newentries, sizeof(*newentries) * n);
 	}
 	if (newdeadentries != NULL) {
-		isc_mem_put(adb->mctx, newdeadentries,
+		isc_mem_put(adb->hmctx, newdeadentries,
 			    sizeof(*newdeadentries) * n);
 	}
 	if (newentrylocks != NULL) {
-		isc_mem_put(adb->mctx, newentrylocks,
+		isc_mem_put(adb->hmctx, newentrylocks,
 			    sizeof(*newentrylocks) * n);
 	}
 	if (newentry_sd != NULL) {
-		isc_mem_put(adb->mctx, newentry_sd, sizeof(*newentry_sd) * n);
+		isc_mem_put(adb->hmctx, newentry_sd, sizeof(*newentry_sd) * n);
 	}
 	if (newentry_refcnt != NULL) {
-		isc_mem_put(adb->mctx, newentry_refcnt,
+		isc_mem_put(adb->hmctx, newentry_refcnt,
 			    sizeof(*newentry_refcnt) * n);
 	}
 done:
@@ -1929,7 +1929,7 @@ static dns_adbfind_t *
 new_adbfind(dns_adb_t *adb) {
 	dns_adbfind_t *h;
 
-	h = isc_mem_get(adb->mctx, sizeof(*h));
+	h = isc_mem_get(adb->hmctx, sizeof(*h));
 	isc_refcount_increment0(&adb->ahrefcnt);
 
 	/*
@@ -1965,7 +1965,7 @@ static dns_adbfetch_t *
 new_adbfetch(dns_adb_t *adb) {
 	dns_adbfetch_t *f;
 
-	f = isc_mem_get(adb->mctx, sizeof(*f));
+	f = isc_mem_get(adb->hmctx, sizeof(*f));
 
 	f->magic = 0;
 	f->fetch = NULL;
@@ -1991,7 +1991,7 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch) {
 		dns_rdataset_disassociate(&f->rdataset);
 	}
 
-	isc_mem_put(adb->mctx, f, sizeof(*f));
+	isc_mem_put(adb->hmctx, f, sizeof(*f));
 }
 
 static bool
@@ -2013,7 +2013,7 @@ free_adbfind(dns_adb_t *adb, dns_adbfind_t **findp) {
 	isc_mutex_destroy(&find->lock);
 
 	isc_refcount_decrement(&adb->ahrefcnt);
-	isc_mem_put(adb->mctx, find, sizeof(*find));
+	isc_mem_put(adb->hmctx, find, sizeof(*find));
 	return dec_adb_irefcnt(adb);
 }
 
@@ -2026,7 +2026,7 @@ static dns_adbaddrinfo_t *
 new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	dns_adbaddrinfo_t *ai;
 
-	ai = isc_mem_get(adb->mctx, sizeof(*ai));
+	ai = isc_mem_get(adb->hmctx, sizeof(*ai));
 
 	ai->magic = DNS_ADBADDRINFO_MAGIC;
 	ai->sockaddr = entry->sockaddr;
@@ -2052,7 +2052,7 @@ free_adbaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **ainfo) {
 
 	ai->magic = 0;
 
-	isc_mem_put(adb->mctx, ai, sizeof(*ai));
+	isc_mem_put(adb->hmctx, ai, sizeof(*ai));
 }
 
 /*
@@ -2635,7 +2635,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	isc_mutex_init(&adb->namescntlock);
 
 	isc_mem_create(&adb->hmctx);
-	isc_mem_setname(adb->hmctx, "ADB_hashmaps");
+	isc_mem_setname(adb->hmctx, "ADB_dynamic");
 
 #define ALLOCENTRY(adb, el)                                                    \
 	do {                                                                   \
