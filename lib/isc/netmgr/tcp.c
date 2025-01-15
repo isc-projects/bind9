@@ -784,7 +784,9 @@ isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
 		return;
 	}
 
-	isc__nmsocket_timer_start(sock);
+	if (!atomic_load(&sock->manual_read_timer)) {
+		isc__nmsocket_timer_start(sock);
+	}
 }
 
 void
@@ -822,7 +824,9 @@ isc__nm_async_tcppauseread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_nm_tid());
 	UNUSED(worker);
 
-	isc__nmsocket_timer_stop(sock);
+	if (!atomic_load(&sock->manual_read_timer)) {
+		isc__nmsocket_timer_stop(sock);
+	}
 	isc__nm_stop_reading(sock);
 }
 
@@ -931,8 +935,10 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 			}
 		}
 
-		/* The timer will be updated */
-		isc__nmsocket_timer_restart(sock);
+		if (!atomic_load(&sock->manual_read_timer)) {
+			/* The timer will be updated */
+			isc__nmsocket_timer_restart(sock);
+		}
 	}
 
 free:
@@ -1520,4 +1526,16 @@ isc__nm_tcp_listener_nactive(isc_nmsocket_t *listener) {
 	nactive = atomic_load(&listener->active_child_connections);
 	INSIST(nactive >= 0);
 	return nactive;
+}
+
+void
+isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+
+	atomic_store(&sock->manual_read_timer, manual);
 }
