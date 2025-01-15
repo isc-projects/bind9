@@ -60,11 +60,7 @@
 #define UCTX_MAGIC    ISC_MAGIC('U', 'c', 't', 'x')
 #define UCTX_VALID(c) ISC_MAGIC_VALID(c, UCTX_MAGIC)
 
-#ifdef TUNE_LARGE
 #define RESOLVER_NTASKS 523
-#else /* ifdef TUNE_LARGE */
-#define RESOLVER_NTASKS 31
-#endif /* TUNE_LARGE */
 
 #define CHECK(r)                             \
 	do {                                 \
