@@ -1009,6 +1009,7 @@ streamdns_close_direct(isc_nmsocket_t *sock) {
 
 	if (sock->outerhandle != NULL) {
 		sock->streamdns.reading = false;
+		isc__nmsocket_timer_stop(sock);
 		isc_nm_read_stop(sock->outerhandle);
 		isc_nmhandle_close(sock->outerhandle);
 		isc_nmhandle_detach(&sock->outerhandle);
