@@ -123,7 +123,7 @@ Feature Changes
   9.21.1).
 
   There was a bug in the code (#4950), so we reverted the change in
-  !9611, !9613 and !9614 (not released).
+  !9611, !9613 and !9614.
 
   Then a new attempt was merged in main (MR !9610) and backported to
   9.20 (MR !9631) and 9.18 (MR !9632). The latter should not have been
