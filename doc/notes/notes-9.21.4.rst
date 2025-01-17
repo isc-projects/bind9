@@ -127,6 +127,13 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Querying an NSEC3-signed zone for an empty record could trigger an
+  assertion.
+
+  A bug in the qpzone database could trigger a crash when querying for a
+  deleted name, or a newly added empty non-terminal name, in an
+  NSEC3-signed zone. This has been fixed. :gl:`#5108`
+
 - Fix :iscman:`nsupdate` hang when processing a large update.
 
   To mitigate DNS flood attacks over a single TCP connection, throttle
@@ -177,13 +184,6 @@ Bug Fixes
   skipped, potentially affecting :iscman:`dig`, :iscman:`host`,
   :iscman:`nslookup`, :iscman:`nsupdate`, or :iscman:`delv`. This has been
   fixed. :gl:`#5084`
-
-- Querying an NSEC3-signed zone for an empty record could trigger an
-  assertion.
-
-  A bug in the qpzone database could trigger a crash when querying for a
-  deleted name, or a newly added empty non-terminal name, in an
-  NSEC3-signed zone. This has been fixed. :gl:`#5108`
 
 - Fix response policy zones and catalog zones with an ``$INCLUDE`` statement
   defined.
