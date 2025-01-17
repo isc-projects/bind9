@@ -86,6 +86,12 @@ New Features
   50. This allows :any:`named` to send a few more queries
   while looking up a single name. :gl:`#4980` :gl:`#4921`
 
+- Use the Server Name Indication (SNI) extension for all outgoing TLS
+  connections.
+
+  This improves compatibility with other DNS server software.
+  :gl:`#5099`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
