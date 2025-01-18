@@ -2046,27 +2046,34 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	isc_result_t result;
 	bool write_locked;
 	bool locked = tlock != isc_rwlocktype_none;
-	rbtdb_nodelock_t *nodelock;
 	int bucket = node->locknum;
+	rbtdb_nodelock_t *nodelock = &rbtdb->node_locks[bucket];
 	bool no_reference = true;
 	uint_fast32_t refs;
-
-	nodelock = &rbtdb->node_locks[bucket];
 
 #define KEEP_NODE(n, r, l)                                  \
 	((n)->data != NULL || ((l) && (n)->down != NULL) || \
 	 (n) == (r)->origin_node || (n) == (r)->nsec3_origin_node)
 
+	/* Handle easy and/or typical case first. */
+	if (isc_refcount_decrement(&node->references) > 1) {
+		return false;
+	}
+
+	refs = isc_refcount_decrement(&nodelock->references);
+	INSIST(refs > 0);
+
 	/* Handle easy and typical case first. */
 	if (!node->dirty && KEEP_NODE(node, rbtdb, locked)) {
-		if (isc_refcount_decrement(&node->references) == 1) {
-			refs = isc_refcount_decrement(&nodelock->references);
-			INSIST(refs > 0);
-			return true;
-		} else {
-			return false;
-		}
+		return true;
 	}
+
+	/*
+	 * Node lock ref has decremented to 0 and we may need to clean up the
+	 * node. To clean it up, the node ref needs to decrement to 0 under the
+	 * node write lock, so we regain the ref and try again.
+	 */
+	new_reference(rbtdb, node, nlock);
 
 	/* Upgrade the lock? */
 	if (nlock == isc_rwlocktype_read) {
