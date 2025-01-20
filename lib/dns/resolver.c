@@ -6472,7 +6472,7 @@ chase_additional(fetchctx_t *fctx, dns_message_t *rmessage) {
 				rdataset->attributes &= ~DNS_RDATASETATTR_CHASE;
 				(void)dns_rdataset_additionaldata(rdataset,
 								  check_related,
-								  &chkarg);
+								  &chkarg, 0);
 				rescan = true;
 			}
 		}
@@ -7106,8 +7106,12 @@ noanswer_response(fetchctx_t *fctx, dns_message_t *message,
 		FCTX_ATTR_SET(fctx, FCTX_ATTR_GLUING);
 		chkarg.fctx = fctx;
 		chkarg.rmessage = message;
+
+		/*
+		 * Mark the glue records in the additional section to be cached.
+		 */
 		(void)dns_rdataset_additionaldata(ns_rdataset, check_related,
-						  &chkarg);
+						  &chkarg, 0);
 #if CHECK_FOR_GLUE_IN_ANSWER
 		/*
 		 * Look in the answer section for "glue" that is incorrectly
@@ -7123,7 +7127,7 @@ noanswer_response(fetchctx_t *fctx, dns_message_t *message,
 			chkarg.fcx = fctx;
 			chkarg.rmessage = message;
 			(void)dns_rdataset_additionaldata(ns_rdataset,
-							  check_answer, &chkarg);
+							  check_answer, &chkarg, 0);
 		}
 #endif
 		FCTX_ATTR_CLR(fctx, FCTX_ATTR_GLUING);
@@ -7365,7 +7369,7 @@ answer_response(fetchctx_t *fctx, dns_message_t *message) {
 			chkarg.rmessage = message;
 			(void)dns_rdataset_additionaldata(rdataset,
 							  check_related,
-							  &chkarg);
+							  &chkarg, 0);
 		}
 	} else if (aname != NULL) {
 		dns_chkarg_t chkarg;
@@ -7393,7 +7397,7 @@ answer_response(fetchctx_t *fctx, dns_message_t *message) {
 		chkarg.fctx = fctx;
 		chkarg.rmessage = message;
 		(void)dns_rdataset_additionaldata(ardataset, check_related,
-						  &chkarg);
+						  &chkarg, 0);
 		for (sigrdataset = ISC_LIST_HEAD(aname->list);
 		     sigrdataset != NULL;
 		     sigrdataset = ISC_LIST_NEXT(sigrdataset, link)) {
@@ -7556,7 +7560,7 @@ answer_response(fetchctx_t *fctx, dns_message_t *message) {
 					(void)dns_rdataset_additionaldata(
 							rdataset,
 							check_related,
-							&chkarg);
+							&chkarg, 0);
 					done = true;
 				}
 			}
