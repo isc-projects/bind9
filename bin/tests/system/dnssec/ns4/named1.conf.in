@@ -30,6 +30,8 @@ options {
 	nta-recheck 9s;
 	validate-except { corp; };
 
+	disable-algorithms "digest-alg-unsupported.example." { ED448; };
+	disable-ds-digests "digest-alg-unsupported.example." { "SHA1"; "SHA-1"; };
 	disable-ds-digests "ds-unsupported.example." {"SHA1"; "SHA-1"; "SHA256"; "SHA-256"; "SHA384"; "SHA-384"; };
 	disable-algorithms "badalg.secure.example." { ECDSAP256SHA256; };
 
