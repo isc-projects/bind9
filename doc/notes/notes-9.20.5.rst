@@ -82,6 +82,9 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- Performance optimization for NSEC3 lookups introduced in BIND 9.20.2 was
+  reverted to avoid risks associated with a complex code change. :gl:`#5108`
+
 - The configuration clauses ``parental-agents`` and ``primaries`` are renamed to
   :any:`remote-servers`.
 
@@ -93,27 +96,6 @@ Feature Changes
 - Add `none` parameter to :namedconf:ref:`query-source` and
   :namedconf:ref:`query-source-v6` to disable IPv4 or IPv6 upstream queries but
   allow listening to queries from clients on IPv4 or IPv6. :gl:`#4981`
-
-- Revert "Fix NSEC3 closest encloser lookup for names with empty
-  non-terminals"
-
-  Revert the fix for #4950 for 9.20.
-
-  This reverts MR !9438.
-
-  History: A performance improvement for NSEC3 closest encloser lookups
-  (#4460) was introduced (in MR !9436) and backported to 9.20 (MR !9438)
-  and to 9.18 in (MR !9439). It was released in 9.18.30 (and 9.20.2 and
-  9.21.1).
-
-  There was a bug in the code (#4950), so we reverted the change in
-  !9611, !9613 and !9614.
-
-  Then a new attempt was merged in main (MR !9610) and backported to
-  9.20 (MR !9631) and 9.18 (MR !9632). The latter should not have been
-  backported and was reverted in !9689.
-
-  We now also revert the fix for 9.20 :gl:`#5108`
 
 Bug Fixes
 ~~~~~~~~~
