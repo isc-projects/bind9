@@ -183,6 +183,8 @@ struct dns_view {
 	uint32_t	      fail_ttl;
 	dns_badcache_t	     *failcache;
 	unsigned int	      udpsize;
+	uint32_t	      sig0key_checks_limit;
+	uint32_t	      sig0message_checks_limit;
 	uint32_t	      maxrrperset;
 	uint32_t	      maxtypepername;
 	uint16_t	      max_queries;
