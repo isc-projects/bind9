@@ -96,6 +96,7 @@ doc/man/pkcs11-tokens.8in
 /GPATH
 /GRTAGS
 /GTAGS
+TAGS
 # Emacs specific files
 \.dir-locals-2.el
 /emacs.desktop
