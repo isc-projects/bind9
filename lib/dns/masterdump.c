@@ -767,10 +767,17 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		INDENT_TO(rdata_column);
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 			if (NXDOMAIN(rdataset)) {
-				RETERR(str_totext(";-$NXDOMAIN\n", target));
+				RETERR(str_totext(";-$NXDOMAIN", target));
 			} else {
-				RETERR(str_totext(";-$NXRRSET\n", target));
+				RETERR(str_totext(";-$NXRRSET", target));
 			}
+			if (start != NULL) {
+				RETERR(yaml_stringify(target, start));
+				RETERR(str_totext("'\n", target));
+			} else {
+				RETERR(str_totext("\n", target));
+			}
+
 			/*
 			 * Print a summary of the cached records which make
 			 * up the negative response.
