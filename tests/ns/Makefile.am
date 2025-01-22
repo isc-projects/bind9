@@ -17,7 +17,8 @@ LDADD +=			\
 check_PROGRAMS =		\
 	notify_test		\
 	plugin_test		\
-	query_test
+	query_test		\
+	client_test
 
 notify_test_SOURCES =		\
 	notify_test.c		\

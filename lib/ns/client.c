@@ -220,27 +220,54 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
 
 static void
 client_extendederror_reset(ns_client_t *client) {
-	if (client->ede == NULL) {
-		return;
+	for (size_t i = 0; i < DNS_EDE_MAX_ERRORS; i++) {
+		if (client->ede[i]) {
+			dns_ednsopt_t *ede = client->ede[i];
+
+			isc_mem_put(client->manager->mctx, ede->value,
+				    ede->length);
+			isc_mem_put(client->manager->mctx, ede, sizeof(*ede));
+			client->ede[i] = NULL;
+		}
 	}
-	isc_mem_put(client->manager->mctx, client->ede->value,
-		    client->ede->length);
-	isc_mem_put(client->manager->mctx, client->ede, sizeof(dns_ednsopt_t));
-	client->ede = NULL;
 }
 
 void
 ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
-	unsigned char ede[DNS_EDE_EXTRATEXT_LEN + 2];
-	isc_buffer_t buf;
-	uint16_t len = sizeof(uint16_t);
+	const uint16_t codelen = sizeof(code);
+	uint16_t textlen = 0;
+	size_t pos = 0;
+	unsigned char *ede = NULL;
+	dns_ednsopt_t *edns = NULL;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
-	if (client->ede != NULL) {
+	/*
+	 * As ede will be directly put in the DNS message we need to make sure
+	 * the code is in big-endian format
+	 */
+	code = htobe16(code);
+
+	for (pos = 0; pos < DNS_EDE_MAX_ERRORS; pos++) {
+		edns = client->ede[pos];
+
+		if (edns == NULL) {
+			break;
+		}
+
+		if (memcmp(&code, edns->value, sizeof(code)) == 0) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
+				      "ignoring duplicate ede %u %s", code,
+				      text == NULL ? "(null)" : text);
+			return;
+		}
+	}
+
+	if (pos >= DNS_EDE_MAX_ERRORS) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
-			      "already have ede, ignoring %u %s", code,
+			      "too many ede, ignoring %u %s", code,
 			      text == NULL ? "(null)" : text);
 		return;
 	}
@@ -249,24 +276,31 @@ ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
 		      ISC_LOG_DEBUG(1), "set ede: info-code %u extra-text %s",
 		      code, text == NULL ? "(null)" : text);
 
-	isc_buffer_init(&buf, ede, sizeof(ede));
-	isc_buffer_putuint16(&buf, code);
 	if (text != NULL && strlen(text) > 0) {
-		if (strlen(text) < DNS_EDE_EXTRATEXT_LEN) {
-			isc_buffer_putstr(&buf, text);
-			len += (uint16_t)(strlen(text));
-		} else {
+		textlen = strlen(text);
+
+		if (textlen > DNS_EDE_EXTRATEXT_LEN) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
-				      "ede extra-text too long, ignoring");
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
+				      "truncate EDE code %hu text: %s", code,
+				      text);
+			textlen = DNS_EDE_EXTRATEXT_LEN;
 		}
 	}
 
-	client->ede = isc_mem_get(client->manager->mctx, sizeof(dns_ednsopt_t));
-	client->ede->code = DNS_OPT_EDE;
-	client->ede->length = len;
-	client->ede->value = isc_mem_get(client->manager->mctx, len);
-	memmove(client->ede->value, ede, len);
+	ede = isc_mem_get(client->manager->mctx, codelen + textlen);
+
+	memcpy(ede, &code, sizeof(code));
+	if (textlen > 0) {
+		memcpy(ede + codelen, text, textlen);
+	}
+
+	edns = isc_mem_get(client->manager->mctx, sizeof(*edns));
+	*edns = (dns_ednsopt_t){ .code = DNS_OPT_EDE,
+				 .length = codelen + textlen,
+				 .value = ede };
+
+	client->ede[pos] = edns;
 }
 
 static void
@@ -1231,11 +1265,17 @@ no_nsid:
 		count++;
 	}
 
-	if (client->ede != NULL) {
+	for (size_t i = 0; i < DNS_EDE_MAX_ERRORS; i++) {
+		dns_ednsopt_t *ede = client->ede[i];
+
+		if (ede == NULL) {
+			break;
+		}
+
 		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_EDE;
-		ednsopts[count].length = client->ede->length;
-		ednsopts[count].value = client->ede->value;
+		ednsopts[count].length = ede->length;
+		ednsopts[count].value = ede->value;
 		count++;
 	}
 
@@ -2034,7 +2074,6 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 
 	client->message->rcode = dns_rcode_noerror;
-	client->ede = NULL;
 
 	/*
 	 * Deal with EDNS.
