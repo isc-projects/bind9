@@ -1112,7 +1112,7 @@ static dns_adbfind_t *
 new_adbfind(dns_adb_t *adb, in_port_t port) {
 	dns_adbfind_t *find = NULL;
 
-	find = isc_mem_get(adb->mctx, sizeof(*find));
+	find = isc_mem_get(adb->hmctx, sizeof(*find));
 	*find = (dns_adbfind_t){
 		.port = port,
 		.result_v4 = ISC_R_UNEXPECTED,
@@ -1151,7 +1151,7 @@ free_adbfind(dns_adbfind_t **findp) {
 
 	isc_mutex_destroy(&find->lock);
 
-	isc_mem_put(adb->mctx, find, sizeof(*find));
+	isc_mem_put(adb->hmctx, find, sizeof(*find));
 	dns_adb_detach(&adb);
 }
 
@@ -1159,7 +1159,7 @@ static dns_adbfetch_t *
 new_adbfetch(dns_adb_t *adb) {
 	dns_adbfetch_t *fetch = NULL;
 
-	fetch = isc_mem_get(adb->mctx, sizeof(*fetch));
+	fetch = isc_mem_get(adb->hmctx, sizeof(*fetch));
 	*fetch = (dns_adbfetch_t){ 0 };
 	dns_rdataset_init(&fetch->rdataset);
 
@@ -1183,7 +1183,7 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetchp) {
 		dns_rdataset_disassociate(&fetch->rdataset);
 	}
 
-	isc_mem_put(adb->mctx, fetch, sizeof(*fetch));
+	isc_mem_put(adb->hmctx, fetch, sizeof(*fetch));
 }
 
 /*
@@ -1194,7 +1194,7 @@ static dns_adbaddrinfo_t *
 new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	dns_adbaddrinfo_t *ai = NULL;
 
-	ai = isc_mem_get(adb->mctx, sizeof(*ai));
+	ai = isc_mem_get(adb->hmctx, sizeof(*ai));
 	*ai = (dns_adbaddrinfo_t){
 		.srtt = atomic_load(&entry->srtt),
 		.flags = atomic_load(&entry->flags),
@@ -1227,7 +1227,7 @@ free_adbaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **ainfo) {
 	}
 	dns_adbentry_detach(&ai->entry);
 
-	isc_mem_put(adb->mctx, ai, sizeof(*ai));
+	isc_mem_put(adb->hmctx, ai, sizeof(*ai));
 }
 
 static bool
@@ -1863,7 +1863,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb) {
 	isc_mem_attach(mem, &adb->mctx);
 
 	isc_mem_create(&adb->hmctx);
-	isc_mem_setname(adb->hmctx, "ADB_hashmaps");
+	isc_mem_setname(adb->hmctx, "ADB_dynamic");
 
 	isc_hashmap_create(adb->hmctx, ADB_HASH_BITS, &adb->names);
 	isc_rwlock_init(&adb->names_lock);
