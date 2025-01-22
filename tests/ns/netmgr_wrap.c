@@ -109,3 +109,9 @@ isc_nm_socket_type(const isc_nmhandle_t *handle ISC_ATTR_UNUSED) {
 	 */
 	return isc_nm_udpsocket;
 }
+
+void
+ns_client_error(ns_client_t *client ISC_ATTR_UNUSED,
+		isc_result_t result ISC_ATTR_UNUSED) {
+	return;
+}
