@@ -10604,6 +10604,7 @@ fail:
 void
 dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 	fetchctx_t *fctx = NULL;
+	bool last_fetch = false;
 
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
@@ -10634,11 +10635,15 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 		}
 	}
 
-	/*
-	 * The fctx continues running even if no fetches remain;
-	 * the answer is still cached.
-	 */
+	if (ISC_LIST_EMPTY(fctx->resps)) {
+		last_fetch = true;
+	}
 	UNLOCK(&fctx->lock);
+
+	if (last_fetch) {
+		fetchctx_ref(fctx);
+		isc_async_run(fctx->loop, fctx_shutdown, fctx);
+	}
 }
 
 void
