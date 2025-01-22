@@ -658,16 +658,11 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 }
 
 static void
-newref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
-	uint_fast32_t refs;
-
-	qpznode_ref(node);
-	refs = isc_refcount_increment0(&node->erefs);
+qpznode_newref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
+	uint_fast32_t refs = isc_refcount_increment0(&node->erefs);
 #if DNS_DB_NODETRACE
 	fprintf(stderr, "incr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
 		func, file, line, node, refs + 1);
-#else
-	UNUSED(refs);
 #endif
 
 	if (refs == 0) {
@@ -684,6 +679,12 @@ newref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
 		UNUSED(refs);
 #endif
 	}
+}
+
+static void
+newref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
+	qpznode_ref(node);
+	qpznode_newref(qpdb, node DNS__DB_FLARG_PASS);
 }
 
 static void
@@ -821,39 +822,46 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 static void
 decref(qpzonedb_t *qpdb, qpznode_t *node, uint32_t least_serial,
        isc_rwlocktype_t *nlocktypep DNS__DB_FLARG) {
-	db_nodelock_t *nodelock = NULL;
 	int bucket = node->locknum;
+	db_nodelock_t *nodelock = &qpdb->node_locks[bucket];
 	uint_fast32_t refs;
 
 	REQUIRE(*nlocktypep != isc_rwlocktype_none);
 
-	nodelock = &qpdb->node_locks[bucket];
+	refs = isc_refcount_decrement(&node->erefs);
+#if DNS_DB_NODETRACE
+	fprintf(stderr, "decr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
+		func, file, line, node, refs - 1);
+#endif
+	if (refs > 1) {
+		qpznode_unref(node);
+		return;
+	}
+
+	refs = isc_refcount_decrement(&nodelock->references);
+#if DNS_DB_NODETRACE
+	fprintf(stderr,
+		"decr:nodelock:%s:%s:%u:%p:%p->references = "
+		"%" PRIuFAST32 "\n",
+		func, file, line, node, nodelock, refs - 1);
+#else
+	UNUSED(refs);
+#endif
 
 	/* Handle easy and typical case first. */
 	if (!node->dirty && (node->data != NULL || node == qpdb->origin ||
 			     node == qpdb->nsec3_origin))
 	{
-		refs = isc_refcount_decrement(&node->erefs);
-#if DNS_DB_NODETRACE
-		fprintf(stderr,
-			"decr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
-			func, file, line, node, refs - 1);
-#else
-		UNUSED(refs);
-#endif
-		if (refs == 1) {
-			refs = isc_refcount_decrement(&nodelock->references);
-#if DNS_DB_NODETRACE
-			fprintf(stderr,
-				"decr:nodelock:%s:%s:%u:%p:%p->references = "
-				"%" PRIuFAST32 "\n",
-				func, file, line, node, nodelock, refs - 1);
-#else
-			UNUSED(refs);
-#endif
-		}
-		goto done;
+		qpznode_unref(node);
+		return;
 	}
+
+	/*
+	 * Node lock ref has decremented to 0 and we may need to clean up the
+	 * node. To clean it up, the node ref needs to decrement to 0 under the
+	 * node write lock, so we regain the ref and try again.
+	 */
+	qpznode_newref(qpdb, node DNS__DB_FLARG_PASS);
 
 	/* Upgrade the lock? */
 	if (*nlocktypep == isc_rwlocktype_read) {
@@ -865,32 +873,34 @@ decref(qpzonedb_t *qpdb, qpznode_t *node, uint32_t least_serial,
 	fprintf(stderr, "decr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
 		func, file, line, node, refs - 1);
 #endif
-	if (refs == 1) {
-		if (node->dirty) {
-			if (least_serial == 0) {
-				/*
-				 * Caller doesn't know the least serial.
-				 * Get it.
-				 */
-				RWLOCK(&qpdb->lock, isc_rwlocktype_read);
-				least_serial = qpdb->least_serial;
-				RWUNLOCK(&qpdb->lock, isc_rwlocktype_read);
-			}
-			clean_zone_node(node, least_serial);
-		}
-
-		refs = isc_refcount_decrement(&nodelock->references);
-#if DNS_DB_NODETRACE
-		fprintf(stderr,
-			"decr:nodelock:%s:%s:%u:%p:%p->references = "
-			"%" PRIuFAST32 "\n",
-			func, file, line, node, nodelock, refs - 1);
-#else
-		UNUSED(refs);
-#endif
+	if (refs > 1) {
+		qpznode_unref(node);
+		return;
 	}
 
-done:
+	if (node->dirty) {
+		if (least_serial == 0) {
+			/*
+			 * Caller doesn't know the least serial.
+			 * Get it.
+			 */
+			RWLOCK(&qpdb->lock, isc_rwlocktype_read);
+			least_serial = qpdb->least_serial;
+			RWUNLOCK(&qpdb->lock, isc_rwlocktype_read);
+		}
+		clean_zone_node(node, least_serial);
+	}
+
+	refs = isc_refcount_decrement(&nodelock->references);
+#if DNS_DB_NODETRACE
+	fprintf(stderr,
+		"decr:nodelock:%s:%s:%u:%p:%p->references = "
+		"%" PRIuFAST32 "\n",
+		func, file, line, node, nodelock, refs - 1);
+#else
+	UNUSED(refs);
+#endif
+
 	qpznode_unref(node);
 }
 
