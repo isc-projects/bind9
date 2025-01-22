@@ -350,7 +350,6 @@ struct fetchctx {
 	bool hashed;
 	bool cloned;
 	bool spilled;
-	ISC_LINK(struct fetchctx) link;
 	ISC_LIST(dns_fetchresponse_t) resps;
 	dns_edelist_t edelist;
 
@@ -381,7 +380,6 @@ struct fetchctx {
 	isc_sockaddrlist_t bad;
 	ISC_LIST(struct tried) edns;
 	isc_sockaddrlist_t bad_edns;
-	dns_validator_t *validator;
 	ISC_LIST(dns_validator_t) validators;
 	dns_db_t *cache;
 	dns_adb_t *adb;
@@ -983,10 +981,6 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 		&fctx->nfails, fctx->qc, fctx->gqc, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	inc_stats(fctx->res, dns_resstatscounter_val);
-	if ((valoptions & DNS_VALIDATOR_DEFER) == 0) {
-		INSIST(fctx->validator == NULL);
-		fctx->validator = validator;
-	}
 	ISC_LIST_APPEND(fctx->validators, validator, link);
 	return ISC_R_SUCCESS;
 }
@@ -4787,7 +4781,6 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	dns_view_getadb(res->view, &fctx->adb);
 
 	ISC_LIST_INIT(fctx->resps);
-	ISC_LINK_INIT(fctx, link);
 	fctx->magic = FCTX_MAGIC;
 
 	/*
@@ -5174,6 +5167,7 @@ has_000_label(dns_rdataset_t *nsecset) {
 static void
 validated(void *arg) {
 	dns_validator_t *val = (dns_validator_t *)arg;
+	dns_validator_t *nextval = NULL;
 	dns_adbaddrinfo_t *addrinfo = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_dbnode_t *nsnode = NULL;
@@ -5219,7 +5213,6 @@ validated(void *arg) {
 
 	LOCK(&fctx->lock);
 	ISC_LIST_UNLINK(fctx->validators, val, link);
-	fctx->validator = NULL;
 	UNLOCK(&fctx->lock);
 
 	/*
@@ -5346,11 +5339,9 @@ validated(void *arg) {
 
 		UNLOCK(&fctx->lock);
 
-		INSIST(fctx->validator == NULL);
-
-		fctx->validator = ISC_LIST_HEAD(fctx->validators);
-		if (fctx->validator != NULL) {
-			dns_validator_send(fctx->validator);
+		nextval = ISC_LIST_HEAD(fctx->validators);
+		if (nextval != NULL) {
+			dns_validator_send(nextval);
 			goto cleanup_fetchctx;
 		} else if (sentresponse) {
 			done = true;
