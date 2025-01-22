@@ -11210,10 +11210,9 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 		isc_task_sendanddetach(&etask, ISC_EVENT_PTR(&event_fetchdone));
 	}
 
-	/*
-	 * The fctx continues running even if no fetches remain;
-	 * the answer is still cached.
-	 */
+	if (ISC_LIST_EMPTY(fctx->events)) {
+		fctx_shutdown(fctx);
+	}
 	UNLOCK(&res->buckets[fctx->bucketnum].lock);
 }
 
