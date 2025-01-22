@@ -214,4 +214,14 @@ zone "lazy-ksk" {
 	allow-update { any; };
 };
 
+zone "peer-ns-spoof" {
+	type primary;
+	file "peer-ns-spoof.db.signed";
+};
+
+zone "peer.peer-ns-spoof" {
+	type primary;
+	file "peer.peer-ns-spoof.db.signed";
+};
+
 include "trusted.conf";

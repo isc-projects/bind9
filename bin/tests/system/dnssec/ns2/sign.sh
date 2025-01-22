@@ -27,6 +27,8 @@ for subdomain in secure unsupported disabled enabled; do
   cp "../ns3/dsset-$subdomain.trusted." .
 done
 
+cp "../ns3/dsset-target.peer-ns-spoof." .
+
 # Sign the "trusted." and "managed." zones.
 zone=managed.
 infile=key.db.in
@@ -354,3 +356,34 @@ rm "$rm1.key"
 rm "$rm1.private"
 rm "$rm2.key"
 rm "$rm2.private"
+
+#
+# A zone with where the address for peer zone server is modified and signatures
+# stripped.
+#
+zone=peer.peer-ns-spoof
+infile=peer.peer-ns-spoof.db.in
+zonefile=peer.peer-ns-spoof.db
+ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
+"$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1
+"$CHECKZONE" -D -q -i local "$zone" "$zonefile.signed" \
+  | awk '$1 == "ns3.peer.peer-ns-spoof." && $4 == "RRSIG" && $5 == "A" { next }
+	 $1 == "ns3.peer.peer-ns-spoof." && $4 == "A" { $5 = "10.53.0.100" }
+	 { print }' >"$zonefile.stripped"
+"$CHECKZONE" -D -q -i local "$zone" "$zonefile.signed" \
+  | awk '$4 == "SOA" { $7 = $7 + 1; print; next } { print }' >"$zonefile.next"
+"$SIGNER" -g -o "$zone" -f "$zonefile.next" "$zonefile.next" >/dev/null 2>&1
+cp "$zonefile.stripped" "$zonefile.signed"
+
+#
+# parent zone for peer.peer-ns-spoof
+#
+zone=peer-ns-spoof
+infile=peer-ns-spoof.db.in
+zonefile=peer-ns-spoof.db
+ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
+"$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1

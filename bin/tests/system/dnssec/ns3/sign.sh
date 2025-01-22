@@ -701,3 +701,14 @@ zone=rsasha1-1024.example
 zonefile=rsasha1-1024.example.db
 awk '$4 == "DNSKEY" && $5 == 257 { print }' "$zonefile" \
   | $DSFROMKEY -f - "$zone" >"dsset-${zone}."
+
+#
+#
+#
+zone=target.peer-ns-spoof
+infile=target.peer-ns-spoof.db.in
+zonefile=target.peer-ns-spoof.db
+ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
+"$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1

@@ -30,6 +30,7 @@ cp "../ns2/dsset-example." .
 cp "../ns2/dsset-in-addr.arpa." .
 cp "../ns2/dsset-too-many-iterations." .
 cp "../ns2/dsset-lazy-ksk." .
+cp "../ns2/dsset-peer-ns-spoof." .
 
 grep "$DEFAULT_ALGORITHM_NUMBER [12] " "../ns2/dsset-algroll." >"dsset-algroll."
 cp "../ns6/dsset-optout-tld." .
