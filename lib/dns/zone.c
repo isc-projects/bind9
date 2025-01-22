@@ -12651,7 +12651,7 @@ notify_send_toaddr(void *arg) {
 	dns_tsigkey_t *key = NULL;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t src;
-	unsigned int options, timeout, udptimeout;
+	unsigned int options, connect_timeout, timeout, udptimeout;
 	bool have_notifysource = false;
 	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
 
@@ -12761,7 +12761,7 @@ notify_send_toaddr(void *arg) {
 		goto cleanup_key;
 	}
 	udptimeout = 5;
-	timeout = 3 * udptimeout + 1;
+	connect_timeout = timeout = 3 * udptimeout + 1;
 again:
 	if ((notify->flags & DNS_NOTIFY_TCP) != 0) {
 		options |= DNS_REQUESTOPT_TCP;
@@ -12771,11 +12771,11 @@ again:
 
 	zmgr_tlsctx_attach(notify->zone->zmgr, &zmgr_tlsctx_cache);
 
-	result = dns_request_create(notify->zone->view->requestmgr, message,
-				    &src, &notify->dst, notify->transport,
-				    zmgr_tlsctx_cache, options, key, timeout,
-				    udptimeout, 2, notify->zone->loop,
-				    notify_done, notify, &notify->request);
+	result = dns_request_create(
+		notify->zone->view->requestmgr, message, &src, &notify->dst,
+		notify->transport, zmgr_tlsctx_cache, options, key,
+		connect_timeout, timeout, udptimeout, 2, notify->zone->loop,
+		notify_done, notify, &notify->request);
 
 	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 
@@ -13522,8 +13522,8 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
 		NULL, NULL, DNS_REQUESTOPT_TCP, args->tsig_key,
-		args->timeout * 3, args->timeout, 2, zone->loop,
-		stub_glue_response, sgr, &sgr->request);
+		args->timeout * 3 + 1, args->timeout * 3 + 1, args->timeout, 2,
+		zone->loop, stub_glue_response, sgr, &sgr->request);
 
 	if (result != ISC_R_SUCCESS) {
 		uint_fast32_t pr;
@@ -14676,11 +14676,11 @@ again:
 
 	zone_iattach(zone, &(dns_zone_t *){ NULL });
 
-	int timeout = 5;
+	const unsigned int timeout = 5;
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, options, key, timeout * 3 + 1, timeout, 2,
-		zone->loop, refresh_callback, zone, &zone->request);
+		NULL, NULL, options, key, timeout * 3 + 1, timeout * 3 + 1,
+		timeout, 2, zone->loop, refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&(dns_zone_t *){ zone });
 		zone_debuglogc(zone, DNS_LOGCATEGORY_XFER_IN, __func__, 1,
@@ -14952,11 +14952,12 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args->timeout = 15;
 	cb_args->reqnsid = reqnsid;
 
-	int timeout = 5;
-	result = dns_request_create(
-		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, DNS_REQUESTOPT_TCP, key, timeout * 3 + 1, timeout,
-		2, zone->loop, stub_callback, cb_args, &zone->request);
+	const unsigned int timeout = 5;
+	result = dns_request_create(zone->view->requestmgr, message,
+				    &zone->sourceaddr, &curraddr, NULL, NULL,
+				    DNS_REQUESTOPT_TCP, key, timeout * 3 + 1,
+				    timeout * 3 + 1, timeout, 2, zone->loop,
+				    stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_debuglog(zone, __func__, 1,
 			      "dns_request_create() failed: %s",
@@ -18817,7 +18818,7 @@ next:
 	result = dns_request_createraw(
 		forward->zone->view->requestmgr, forward->msgbuf, &src,
 		&forward->addr, forward->transport, zmgr_tlsctx_cache,
-		forward->options, 15 /* XXX */, 0, 0, forward->zone->loop,
+		forward->options, 15, 15 /* XXX */, 0, 0, forward->zone->loop,
 		forward_callback, forward, &forward->request);
 
 	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
@@ -21416,7 +21417,7 @@ checkds_send_toaddr(void *arg) {
 	dns_tsigkey_t *key = NULL;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t src;
-	unsigned int options, timeout;
+	unsigned int options;
 	bool have_checkdssource = false;
 	bool canceled = checkds->rlevent->canceled;
 
@@ -21529,12 +21530,13 @@ checkds_send_toaddr(void *arg) {
 	dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 		     "checkds: create request for DS query to %s", addrbuf);
 
-	timeout = 5;
+	const unsigned int timeout = 5;
 	options |= DNS_REQUESTOPT_TCP;
-	result = dns_request_create(
-		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
-		NULL, NULL, options, key, timeout * 3 + 1, timeout, 2,
-		checkds->zone->loop, checkds_done, checkds, &checkds->request);
+	result = dns_request_create(checkds->zone->view->requestmgr, message,
+				    &src, &checkds->dst, NULL, NULL, options,
+				    key, timeout * 3 + 1, timeout * 3 + 1,
+				    timeout, 2, checkds->zone->loop,
+				    checkds_done, checkds, &checkds->request);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 			     "checkds: dns_request_create() to %s failed: %s",

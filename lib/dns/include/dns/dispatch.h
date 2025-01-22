@@ -162,6 +162,15 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
  *	(see dns/stats.h).
  */
 
+isc_nm_t *
+dns_dispatchmgr_getnetmgr(dns_dispatchmgr_t *mgr);
+/*%<
+ * Get the network manager object associated with the dispatch manager.
+ *
+ * Requires:
+ *\li	disp is valid
+ */
+
 isc_result_t
 dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		       dns_dispatch_t **dispp);
@@ -253,7 +262,7 @@ dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r);
  */
 
 void
-dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout);
+dns_dispatch_resume(dns_dispentry_t *resp, unsigned int timeout);
 /*%<
  * Reset the read timeout in the socket associated with 'resp' and
  * continue reading.
@@ -296,22 +305,26 @@ typedef void (*dispatch_cb_t)(isc_result_t eresult, isc_region_t *region,
 
 isc_result_t
 dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
-		 dns_dispatchopt_t options, unsigned int timeout,
-		 const isc_sockaddr_t *dest, dns_transport_t *transport,
-		 isc_tlsctx_cache_t *tlsctx_cache, dispatch_cb_t connected,
-		 dispatch_cb_t sent, dispatch_cb_t response, void *arg,
-		 dns_messageid_t *idp, dns_dispentry_t **resp);
+		 dns_dispatchopt_t options, unsigned int connect_timeout,
+		 unsigned int timeout, const isc_sockaddr_t *dest,
+		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
+		 dispatch_cb_t connected, dispatch_cb_t sent,
+		 dispatch_cb_t response, void *arg, dns_messageid_t *idp,
+		 dns_dispentry_t **respp);
 /*%<
  * Add a response entry for this dispatch.
+ *
+ * The 'connect_timeout' and 'timeout' define the number of milliseconds for
+ * the connect and read timeouts respectively. When 0 is provided, the
+ * corresponding timeout timer is disabled. For UDP disptaches 'connect_timeout'
+ * is ignored.
  *
  * "*idp" is filled in with the assigned message ID, and *resp is filled in
  * with the dispatch entry object.
  *
  * The 'connected' and 'sent' callbacks are run to inform the caller when
- * the connect and send functions are complete. The 'timedout' callback
- * is run to inform the caller that a read has timed out; it may optionally
- * reset the read timer. The 'response' callback is run for recv results
- * (response packets, timeouts, or cancellations).
+ * the connect and send functions are complete. The 'response' callback is run
+ * for recv results (response packets, timeouts, or cancellations).
  *
  * All the callback functions are sent 'arg' as a parameter.
  *

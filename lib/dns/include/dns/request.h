@@ -111,21 +111,23 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   const isc_sockaddr_t *srcaddr,
 		   const isc_sockaddr_t *destaddr, dns_transport_t *transport,
 		   isc_tlsctx_cache_t *tlsctx_cache, unsigned int options,
-		   dns_tsigkey_t *key, unsigned int timeout,
-		   unsigned int udptimeout, unsigned int udpretries,
-		   isc_loop_t *loop, isc_job_cb cb, void *arg,
-		   dns_request_t **requestp);
+		   dns_tsigkey_t *key, unsigned int connect_timeout,
+		   unsigned int timeout, unsigned int udptimeout,
+		   unsigned int udpretries, isc_loop_t *loop, isc_job_cb cb,
+		   void *arg, dns_request_t **requestp);
 /*%<
  * Create and send a request.
  *
  * Notes:
  *
  *\li	'message' will be rendered and sent to 'address'.  If the
- *	#DNS_REQUESTOPT_TCP option is set, TCP will be used,
- *	#DNS_REQUESTOPT_SHARE option is set too, connecting TCP
- *	(vs. connected) will be shared too.  The request
- *	will timeout after 'timeout' seconds.  UDP requests will be resent
- *	at 'udptimeout' intervals if non-zero or 'udpretries' is non-zero.
+ *	#DNS_REQUESTOPT_TCP option is set or the request message's size is
+ *	larger than 512 bytes then TCP will be used, and #DNS_REQUESTOPT_SHARE
+ *	option is set too, connecting TCP (vs. connected) will be shared too.
+ *	With TCP a connection attempt will timeout after 'connect_timeout'
+ *	seconds.  The request will timeout after 'timeout' seconds for both TCP
+ *	and UDP.  UDP requests will be resent at 'udptimeout' intervals if
+ *	non-zero or 'udpretries' is non-zero.
  *
  *\li	If the #DNS_REQUESTOPT_CASE option is set, use case sensitive
  *	compression.
@@ -146,7 +148,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
  *
  *\li	'srcaddr' and 'dstaddr' are the same protocol family.
  *
- *\li	'timeout' > 0
+ *\li	'connect_timeout' > 0 and 'timeout' > 0.
  *
  *\li	'loop' is a valid loop.
  *
@@ -159,20 +161,23 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      const isc_sockaddr_t *destaddr,
 		      dns_transport_t	   *transport,
 		      isc_tlsctx_cache_t *tlsctx_cache, unsigned int options,
-		      unsigned int timeout, unsigned int udptimeout,
-		      unsigned int udpretries, isc_loop_t *loop, isc_job_cb cb,
-		      void *arg, dns_request_t **requestp);
+		      unsigned int connect_timeout, unsigned int timeout,
+		      unsigned int udptimeout, unsigned int udpretries,
+		      isc_loop_t *loop, isc_job_cb cb, void *arg,
+		      dns_request_t **requestp);
 /*!<
  * \brief Create and send a request.
  *
  * Notes:
  *
  *\li	'msgbuf' will be sent to 'destaddr' after setting the id.  If the
- *	#DNS_REQUESTOPT_TCP option is set, TCP will be used,
- *	#DNS_REQUESTOPT_SHARE option is set too, connecting TCP
- *	(vs. connected) will be shared too.  The request
- *	will timeout after 'timeout' seconds.   UDP requests will be resent
- *	at 'udptimeout' intervals if non-zero or if 'udpretries' is not zero.
+ *	#DNS_REQUESTOPT_TCP option is set or the request message's size is
+ *	larger than 512 bytes then TCP will be used, and #DNS_REQUESTOPT_SHARE
+ *	option is set too, connecting TCP (vs. connected) will be shared too.
+ *	With TCP a connection attempt will timeout after 'connect_timeout'
+ *	seconds.  The request wll timeout after timeout' seconds for both TCP
+ *	and UDP.  UDP requests will be resent at 'udptimeout' intervals if
+ *	non-zero or if 'udpretries' is not zero.
  *
  *\li	When the request completes, successfully, due to a timeout, or
  *	because it was canceled, a completion callback will run in 'loop'.
@@ -187,7 +192,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
  *
  *\li	'srcaddr' and 'dstaddr' are the same protocol family.
  *
- *\li	'timeout' > 0
+ *\li	'connect_timeout' > 0 and 'timeout' > 0.
  *
  *\li	'loop' is a valid loop.
  *

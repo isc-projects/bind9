@@ -81,6 +81,7 @@ struct dns_request {
 	isc_buffer_t *tsig;
 	dns_tsigkey_t *tsigkey;
 	isc_sockaddr_t destaddr;
+	unsigned int connect_timeout;
 	unsigned int timeout;
 	unsigned int udpcount;
 };
@@ -278,8 +279,8 @@ req_send(dns_request_t *request) {
 
 static dns_request_t *
 new_request(isc_mem_t *mctx, isc_loop_t *loop, isc_job_cb cb, void *arg,
-	    bool tcp, unsigned int timeout, unsigned int udptimeout,
-	    unsigned int udpretries) {
+	    bool tcp, unsigned int connect_timeout, unsigned int timeout,
+	    unsigned int udptimeout, unsigned int udpretries) {
 	dns_request_t *request = isc_mem_get(mctx, sizeof(*request));
 	*request = (dns_request_t){
 		.magic = REQUEST_MAGIC,
@@ -296,6 +297,7 @@ new_request(isc_mem_t *mctx, isc_loop_t *loop, isc_job_cb cb, void *arg,
 	isc_mem_attach(mctx, &request->mctx);
 
 	if (tcp) {
+		request->connect_timeout = connect_timeout * 1000;
 		request->timeout = timeout * 1000;
 	} else {
 		if (udptimeout == 0) {
@@ -409,9 +411,10 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      const isc_sockaddr_t *destaddr,
 		      dns_transport_t *transport,
 		      isc_tlsctx_cache_t *tlsctx_cache, unsigned int options,
-		      unsigned int timeout, unsigned int udptimeout,
-		      unsigned int udpretries, isc_loop_t *loop, isc_job_cb cb,
-		      void *arg, dns_request_t **requestp) {
+		      unsigned int connect_timeout, unsigned int timeout,
+		      unsigned int udptimeout, unsigned int udpretries,
+		      isc_loop_t *loop, isc_job_cb cb, void *arg,
+		      dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
@@ -427,7 +430,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	REQUIRE(loop != NULL);
 	REQUIRE(cb != NULL);
 	REQUIRE(requestp != NULL && *requestp == NULL);
-	REQUIRE(timeout > 0);
+	REQUIRE(connect_timeout > 0 && timeout > 0);
 	REQUIRE(udpretries != UINT_MAX);
 
 	if (srcaddr != NULL) {
@@ -460,8 +463,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		tcp = true;
 	}
 
-	request = new_request(mctx, loop, cb, arg, tcp, timeout, udptimeout,
-			      udpretries);
+	request = new_request(mctx, loop, cb, arg, tcp, connect_timeout,
+			      timeout, udptimeout, udpretries);
 
 	isc_buffer_allocate(mctx, &request->query, r.length + (tcp ? 2 : 0));
 	result = isc_buffer_copyregion(request->query, &r);
@@ -481,10 +484,11 @@ again:
 		dispopt |= DNS_DISPATCHOPT_FIXEDID;
 	}
 
-	result = dns_dispatch_add(
-		request->dispatch, loop, dispopt, request->timeout, destaddr,
-		transport, tlsctx_cache, req_connected, req_senddone,
-		req_response, request, &id, &request->dispentry);
+	result = dns_dispatch_add(request->dispatch, loop, dispopt,
+				  request->connect_timeout, request->timeout,
+				  destaddr, transport, tlsctx_cache,
+				  req_connected, req_senddone, req_response,
+				  request, &id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			dns_dispatch_detach(&request->dispatch);
@@ -537,10 +541,10 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   const isc_sockaddr_t *srcaddr,
 		   const isc_sockaddr_t *destaddr, dns_transport_t *transport,
 		   isc_tlsctx_cache_t *tlsctx_cache, unsigned int options,
-		   dns_tsigkey_t *key, unsigned int timeout,
-		   unsigned int udptimeout, unsigned int udpretries,
-		   isc_loop_t *loop, isc_job_cb cb, void *arg,
-		   dns_request_t **requestp) {
+		   dns_tsigkey_t *key, unsigned int connect_timeout,
+		   unsigned int timeout, unsigned int udptimeout,
+		   unsigned int udpretries, isc_loop_t *loop, isc_job_cb cb,
+		   void *arg, dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
@@ -553,7 +557,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	REQUIRE(loop != NULL);
 	REQUIRE(cb != NULL);
 	REQUIRE(requestp != NULL && *requestp == NULL);
-	REQUIRE(timeout > 0);
+	REQUIRE(connect_timeout > 0 && timeout > 0);
 	REQUIRE(udpretries != UINT_MAX);
 
 	if (srcaddr != NULL &&
@@ -582,8 +586,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		tcp = true;
 	}
 
-	request = new_request(mctx, loop, cb, arg, tcp, timeout, udptimeout,
-			      udpretries);
+	request = new_request(mctx, loop, cb, arg, tcp, connect_timeout,
+			      timeout, udptimeout, udpretries);
 
 	if (key != NULL) {
 		dns_tsigkey_attach(key, &request->tsigkey);
@@ -601,7 +605,8 @@ again:
 		goto cleanup;
 	}
 
-	result = dns_dispatch_add(request->dispatch, loop, 0, request->timeout,
+	result = dns_dispatch_add(request->dispatch, loop, 0,
+				  request->connect_timeout, request->timeout,
 				  destaddr, transport, tlsctx_cache,
 				  req_connected, req_senddone, req_response,
 				  request, &id, &request->dispentry);
