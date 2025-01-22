@@ -2649,6 +2649,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	dns_adb_t *adb = NULL;
 	dns_fixedname_t foundname;
 	dns_name_t *fname = NULL;
+	unsigned int options = DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK;
 
 	REQUIRE(DNS_ADBNAME_VALID(adbname));
 
@@ -2674,11 +2675,13 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	 * any matching static-stub zone without looking into the cache to honor
 	 * the configuration on which server we should send queries to.
 	 */
-	result =
-		dns_view_find(adb->view, adbname->name, rdtype, now,
-			      DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK, true,
-			      ((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0),
-			      NULL, NULL, fname, &rdataset, NULL);
+	if ((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0) {
+		options |= DNS_DBFIND_PENDINGOK;
+	}
+	result = dns_view_find(
+		adb->view, adbname->name, rdtype, now, options, true,
+		((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0), NULL, NULL,
+		fname, &rdataset, NULL);
 
 	switch (result) {
 	case DNS_R_GLUE:
