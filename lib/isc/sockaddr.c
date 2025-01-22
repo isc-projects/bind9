@@ -137,24 +137,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 			 ntohs(sockaddr->type.sin6.sin6_port));
 		break;
 	case AF_UNIX:
-		plen = strlen(sockaddr->type.sunix.sun_path);
-		if (plen >= isc_buffer_availablelength(target)) {
-			return ISC_R_NOSPACE;
-		}
-
-		isc_buffer_putmem(
-			target,
-			(const unsigned char *)sockaddr->type.sunix.sun_path,
-			plen);
-
-		/*
-		 * Null terminate after used region.
-		 */
-		isc_buffer_availableregion(target, &avail);
-		INSIST(avail.length >= 1);
-		avail.base[0] = '\0';
-
-		return ISC_R_SUCCESS;
+		return ISC_R_NOTIMPLEMENTED;
 	default:
 		return ISC_R_FAILURE;
 	}
@@ -461,16 +444,9 @@ isc_sockaddr_isnetzero(const isc_sockaddr_t *sockaddr) {
 }
 
 isc_result_t
-isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path) {
-	if (strlen(path) >= sizeof(sockaddr->type.sunix.sun_path)) {
-		return ISC_R_NOSPACE;
-	}
-	memset(sockaddr, 0, sizeof(*sockaddr));
-	sockaddr->length = sizeof(sockaddr->type.sunix);
-	sockaddr->type.sunix.sun_family = AF_UNIX;
-	strlcpy(sockaddr->type.sunix.sun_path, path,
-		sizeof(sockaddr->type.sunix.sun_path));
-	return ISC_R_SUCCESS;
+isc_sockaddr_frompath(isc_sockaddr_t *sockaddr ISC_ATTR_UNUSED,
+		      const char *path ISC_ATTR_UNUSED) {
+	return ISC_R_NOTIMPLEMENTED;
 }
 
 isc_result_t
@@ -485,8 +461,7 @@ isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa) {
 		length = sizeof(isa->type.sin6);
 		break;
 	case AF_UNIX:
-		length = sizeof(isa->type.sunix);
-		break;
+		return ISC_R_NOTIMPLEMENTED;
 	default:
 		return ISC_R_NOTIMPLEMENTED;
 	}

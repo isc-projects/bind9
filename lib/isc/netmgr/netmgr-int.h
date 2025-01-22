@@ -391,16 +391,11 @@ struct isc__nm_uvreq {
 	int connect_tries;     /* connect retries */
 
 	union {
-		uv_handle_t handle;
 		uv_req_t req;
-		uv_getaddrinfo_t getaddrinfo;
-		uv_getnameinfo_t getnameinfo;
-		uv_shutdown_t shutdown;
+		uv_handle_t handle;
 		uv_write_t write;
 		uv_connect_t connect;
 		uv_udp_send_t udp_send;
-		uv_fs_t fs;
-		uv_work_t work;
 	} uv_req;
 	ISC_LINK(isc__nm_uvreq_t) link;
 };
