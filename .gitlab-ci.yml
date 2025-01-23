@@ -1596,7 +1596,7 @@ respdiff:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.15"
   script:
     - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
 
@@ -1609,7 +1609,7 @@ respdiff:asan:
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--without-jemalloc"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.15"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
 
@@ -1622,7 +1622,7 @@ respdiff:tsan:
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.15"
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
@@ -1637,7 +1637,7 @@ respdiff-third-party:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.2"
   script:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
 
