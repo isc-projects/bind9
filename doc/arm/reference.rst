@@ -6676,8 +6676,43 @@ Zone Types
    specifies one or more IP addresses of primary servers that the secondary
    contacts to update its copy of the zone.
 
-   If a file is
-   specified, then the replica is written to this file whenever the zone
+   A zone may refresh on timer or on receipt of a notify. If a valid notify is
+   received where the notify carries a serial number larger than the one in the
+   SOA currently served, then the secondary will schedule a zone refresh.
+
+   A notify is considered valid if the sender is one of the servers in the NS
+   RRset for the zone, has been explicitly allowed using an :any:`allow-notify`
+   clause, or is from an address listed in the primary servers clause.
+
+   If no notifies have been received, the server will try to refresh the zone.
+   The REFRESH field in the SOA record determines how long after the last zone
+   update it should query the primaries for the SOA record. Again, if the
+   SOA record contains a serial number larger than the one in the SOA currently
+   served, a zone refresh is scheduled. If a notify is received while a
+   refresh is in progress, the serial number of the notify is checked and if
+   it is larger, another refresh for the zone is queued. There will at most
+   be one zone refresh queued.
+
+   The primary servers are queried in turn, :any:`named` will move on to the
+   next server in the list if either it is unable to get a valid response from
+   the server it is currently querying, or the primary being queried returns
+   the same or smaller SOA than the secondary is currently serving. On the
+   first SOA received that has a serial bigger than the one currently served,
+   :any:`named` will initiate a zone transfer with that server. Once the zone
+   transfer has been received and the zone has been updated, then this zone
+   refresh is complete, and no other servers are tried.
+
+   When receiving a notify, :any:`named` does not first query the sender of
+   the notify. It will continue with the next server in the list that
+   transferred the zone, skipping over unreachable servers. A primary is
+   considered unreachable if the secondary cannot get a response from the
+   server. This state will be cached for 10 minutes, or until a notify is
+   received from that address.
+
+   Furthermore, a zone is refreshed when the secondary server is restarted,
+   or when a :option:`rndc refresh <rndc refresh>` command is received.
+
+   If a file is specified, then the replica is written to this file whenever the zone
    is changed, and reloaded from this file on a server restart. Use of a file
    is recommended, since it often speeds server startup and eliminates a
    needless waste of bandwidth. Note that for large numbers (in the tens or
