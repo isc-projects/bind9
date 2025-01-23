@@ -132,9 +132,3 @@ def get_named_cmdline(cfg_dir, cfg_file="named.conf"):
     named_cmdline = [named, "-c", cfg_file, "-d", "99", "-g"]
 
     return named_cmdline
-
-
-def assert_custom_named_is_alive(named_proc, resolver_ip):
-    assert named_proc.poll() is None, "named isn't running"
-    msg = dns.message.make_query("version.bind", "TXT", "CH")
-    isctest.query.tcp(msg, resolver_ip, expected_rcode=dns_rcode.NOERROR)
