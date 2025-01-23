@@ -177,7 +177,7 @@ def test_named_shutdown(kill_method):
             named_cmdline, cwd=cfg_dir, stderr=named_log
         ) as named_proc:
             try:
-                isctest.run.assert_custom_named_is_alive(named_proc, resolver_ip)
+                isctest.check.named_alive(named_proc, resolver_ip)
                 do_work(
                     named_proc,
                     resolver_ip,
