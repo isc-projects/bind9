@@ -11,13 +11,15 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from typing import NamedTuple, Optional
+from typing import List, NamedTuple, Optional
 
 import logging
 import os
+from pathlib import Path
 import re
 
 from .rndc import RNDCBinaryExecutor, RNDCException, RNDCExecutor
+from .run import perl
 from .log import info, LogFile, WatchLogFromStart, WatchLogFromHere
 
 
@@ -67,6 +69,12 @@ class NamedInstance:
         `rndc_executor` is an object implementing the `RNDCExecutor` interface
         that is used for executing RNDC commands on this `named` instance.
         """
+        self.directory = Path(identifier).absolute()
+        if not self.directory.is_dir():
+            raise ValueError(f"{self.directory} isn't a directory")
+        self.system_test_name = self.directory.parent.name
+
+        self.identifier = identifier
         self.ip = self._identifier_to_ip(identifier)
         if ports is None:
             ports = NamedPorts.from_env()
@@ -175,3 +183,19 @@ class NamedInstance:
             info(fmt, args)
         else:
             self._rndc_logger.info(fmt, args)
+
+    def stop(self, args: Optional[List[str]] = None) -> None:
+        """Stop the instance."""
+        args = args or []
+        perl(
+            f"{os.environ['srcdir']}/stop.pl",
+            [self.system_test_name, self.identifier] + args,
+        )
+
+    def start(self, args: Optional[List[str]] = None) -> None:
+        """Start the instance."""
+        args = args or []
+        perl(
+            f"{os.environ['srcdir']}/start.pl",
+            [self.system_test_name, self.identifier] + args,
+        )
