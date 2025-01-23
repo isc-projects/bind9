@@ -1981,7 +1981,6 @@ fctx__done_detach(fetchctx_t **fctxp, isc_result_t result, const char *file,
 	fctx->qmin_warning = ISC_R_SUCCESS;
 
 	fctx_cancelqueries(fctx, no_response, age_untried);
-	fctx_stoptimer(fctx);
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 	FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
@@ -4688,6 +4687,8 @@ fctx_shutdown(fetchctx_t *fctx) {
 	 * exit.
 	 */
 	if (fctx->state != fetchstate_init) {
+		fctx_stoptimer(fctx);
+
 		FCTXTRACE("posting control event");
 		cevent = &fctx->control_event;
 		isc_task_sendto(fctx->res->buckets[fctx->bucketnum].task,
