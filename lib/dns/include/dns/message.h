@@ -119,10 +119,10 @@
 
 /*%<
  * The maximum number of EDNS options we allow to set. Reserve space for the
- * options we know about. Extended DNS Errors may occur multiple times, but we
- * will set only one per message (for now).
+ * options we know about. Extended DNS Errors may occur multiple times, see
+ * DNS_EDE_MAX_ERRORS.
  */
-#define DNS_EDNSOPTIONS 8
+#define DNS_EDNSOPTIONS 7 + DNS_EDE_MAX_ERRORS
 
 /*%< EDNS0 extended DNS errors */
 #define DNS_EDE_OTHER		     0	/*%< Other Error */
@@ -169,6 +169,8 @@ typedef ISC_LIST(dns_ede_t) dns_edelist_t;
  * Following this advice we limit the EXTRA-TEXT length to 64 characters.
  */
 #define DNS_EDE_EXTRATEXT_LEN 64
+
+#define DNS_EDE_MAX_ERRORS 3
 
 #define DNS_MESSAGE_REPLYPRESERVE	 (DNS_MESSAGEFLAG_RD | DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
