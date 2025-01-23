@@ -10,9 +10,10 @@
 # information regarding copyright ownership.
 
 import os
+from pathlib import Path
 import subprocess
 import time
-from typing import Optional
+from typing import List, Optional
 
 import isctest.log
 from isctest.compat import dns_rcode
@@ -63,6 +64,51 @@ def cmd(
         if raise_on_exception:
             raise exc
         return exc
+
+
+def _run_script(
+    interpreter: str,
+    script: str,
+    args: Optional[List[str]] = None,
+):
+    if args is None:
+        args = []
+    path = Path(script)
+    script = str(path)
+    cwd = os.getcwd()
+    if not path.exists():
+        raise FileNotFoundError(f"script {script} not found in {cwd}")
+    isctest.log.debug("running script: %s %s %s", interpreter, script, " ".join(args))
+    isctest.log.debug("  workdir: %s", cwd)
+    returncode = 1
+
+    command = [interpreter, script] + args
+    with subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        bufsize=1,
+        universal_newlines=True,
+        errors="backslashreplace",
+    ) as proc:
+        if proc.stdout:
+            for line in proc.stdout:
+                isctest.log.info("    %s", line.rstrip("\n"))
+        proc.communicate()
+        returncode = proc.returncode
+        if returncode:
+            raise subprocess.CalledProcessError(returncode, command)
+        isctest.log.debug("  exited with %d", returncode)
+
+
+def shell(script: str, args: Optional[List[str]] = None) -> None:
+    """Run a given script with system's shell interpreter."""
+    _run_script(os.environ["SHELL"], script, args)
+
+
+def perl(script: str, args: Optional[List[str]] = None) -> None:
+    """Run a given script with system's perl interpreter."""
+    _run_script(os.environ["PERL"], script, args)
 
 
 def retry_with_timeout(func, timeout, delay=1, msg=None):
