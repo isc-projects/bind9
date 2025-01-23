@@ -68,6 +68,7 @@ struct dns_dnsseckey {
 				      *  an older version of BIND9) and
 				      *  should be ignored when searching
 				      *  for keys to import into the zone */
+	bool	     pubkey;	     /*% public key only */
 	unsigned int index;	     /*% position in list */
 	ISC_LINK(dns_dnsseckey_t) link;
 };
