@@ -1987,6 +1987,10 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	fctx_setretryinterval(fctx, srtt);
 	if (isc_interval_iszero(&fctx->interval)) {
 		FCTXTRACE("fetch expired");
+		LOCK(&fctx->lock);
+		dns_ede_append(fctx->mctx, &fctx->edelist,
+			       DNS_EDE_NOREACHABLEAUTH, NULL);
+		UNLOCK(&fctx->lock);
 		return ISC_R_TIMEDOUT;
 	}
 
@@ -7948,6 +7952,10 @@ rctx_timedout(respctx_t *rctx) {
 		if (isc_time_microdiff(&fctx->expires, &now) < US_PER_MS) {
 			FCTXTRACE("query timed out; stopped trying to make "
 				  "fetch happen");
+			LOCK(&fctx->lock);
+			dns_ede_append(fctx->mctx, &fctx->edelist,
+				       DNS_EDE_NOREACHABLEAUTH, NULL);
+			UNLOCK(&fctx->lock);
 		} else {
 			FCTXTRACE("query timed out; trying next server");
 			/* try next server */
