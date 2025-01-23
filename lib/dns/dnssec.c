@@ -1123,6 +1123,7 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 	dk->hint_remove = false;
 	dk->first_sign = false;
 	dk->is_active = false;
+	dk->pubkey = false;
 	dk->purge = false;
 	dk->prepublish = 0;
 	dk->source = dns_keysource_unknown;
@@ -1411,7 +1412,7 @@ failure:
  */
 static void
 addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
-       isc_mem_t *mctx) {
+       bool pubkey_only, isc_mem_t *mctx) {
 	dns_dnsseckey_t *key = NULL;
 
 	/* Skip duplicates */
@@ -1446,6 +1447,7 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
 	}
 
 	dns_dnsseckey_create(mctx, newkey, &key);
+	key->pubkey = pubkey_only;
 	if (key->legacy || savekeys) {
 		key->force_publish = true;
 		key->force_sign = dst_key_isprivate(key->key);
@@ -1586,7 +1588,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 		}
 
 		if (publickey) {
-			addkey(keylist, &dnskey, savekeys, mctx);
+			addkey(keylist, &dnskey, savekeys, true, mctx);
 			goto skip;
 		}
 
@@ -1674,9 +1676,9 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 	addkey:
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
 			if (pubkey != NULL) {
-				addkey(keylist, &pubkey, savekeys, mctx);
+				addkey(keylist, &pubkey, savekeys, true, mctx);
 			} else {
-				addkey(keylist, &dnskey, savekeys, mctx);
+				addkey(keylist, &dnskey, savekeys, false, mctx);
 			}
 			goto skip;
 		}
@@ -1693,7 +1695,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 		 */
 		dst_key_setttl(privkey, dst_key_getttl(dnskey));
 
-		addkey(keylist, &privkey, savekeys, mctx);
+		addkey(keylist, &privkey, savekeys, false, mctx);
 	skip:
 		if (dnskey != NULL) {
 			dst_key_free(&dnskey);
