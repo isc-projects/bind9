@@ -9,15 +9,5 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import pytest
-
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "dig.out.*",
-        "ns*/example*.db",
-    ]
-)
-
-
-def test_cipher_suites(run_tests_sh):
-    run_tests_sh()
+transfers_complete  # unused function (cipher-suites/tests_cipher_suites.py:31)
+transfers_complete  # unused variable (cipher-suites/tests_cipher_suites.py:86)
