@@ -137,18 +137,6 @@ def get_named_cmdline(cfg_dir, cfg_file="named.conf"):
     return named_cmdline
 
 
-def get_custom_named_instance(assumed_ns):
-    # This test launches and monitors a named instance itself rather than using
-    # bin/tests/system/start.pl, so manually defining a NamedInstance here is
-    # necessary for sending RNDC commands to that instance. If this "custom"
-    # instance listens on 10.53.0.3, use "ns3" as the identifier passed to
-    # the NamedInstance constructor.
-    named_ports = isctest.instance.NamedPorts.from_env()
-    instance = isctest.instance.NamedInstance(assumed_ns, named_ports)
-
-    return instance
-
-
 def assert_custom_named_is_alive(named_proc, resolver_ip):
     assert named_proc.poll() is None, "named isn't running"
     msg = dns.message.make_query("version.bind", "TXT", "CH")

@@ -50,13 +50,17 @@ class NamedInstance:
     def __init__(
         self,
         identifier: str,
+        num: Optional[int] = None,
         ports: Optional[NamedPorts] = None,
         rndc_logger: Optional[logging.Logger] = None,
         rndc_executor: Optional[RNDCExecutor] = None,
     ) -> None:
         """
-        `identifier` must be an `ns<X>` string, where `<X>` is an integer
-        identifier of the `named` instance this object should represent.
+        `identifier` is the name of the instance's directory
+
+        `num` is optional if the identifier is in a form of `ns<X>`, in which
+        case `<X>` is assumed to be numeric identifier; otherwise it must be
+        provided to assign a numeric identification to the server
 
         `ports` is the `NamedPorts` instance listing the UDP/TCP ports on which
         this `named` instance is listening for various types of traffic (both
@@ -75,7 +79,7 @@ class NamedInstance:
         self.system_test_name = self.directory.parent.name
 
         self.identifier = identifier
-        self.ip = self._identifier_to_ip(identifier)
+        self.num = self._identifier_to_num(identifier, num)
         if ports is None:
             ports = NamedPorts.from_env()
         self.ports = ports
@@ -83,12 +87,21 @@ class NamedInstance:
         self._rndc_executor = rndc_executor or RNDCBinaryExecutor()
         self._rndc_logger = rndc_logger
 
+    @property
+    def ip(self) -> str:
+        """IPv4 address of the instance."""
+        return f"10.53.0.{self.num}"
+
     @staticmethod
-    def _identifier_to_ip(identifier: str) -> str:
+    def _identifier_to_num(identifier: str, num: Optional[int] = None) -> int:
         regex_match = re.match(r"^ns(?P<index>[0-9]{1,2})$", identifier)
         if not regex_match:
-            raise ValueError("Invalid named instance identifier" + identifier)
-        return "10.53.0." + regex_match.group("index")
+            if num is None:
+                raise ValueError(f'Can\'t parse numeric identifier from "{identifier}"')
+            return num
+        parsed_num = int(regex_match.group("index"))
+        assert num is None or num == parsed_num, "mismatched num and identifier"
+        return parsed_num
 
     def rndc(self, command: str, ignore_errors: bool = False, log: bool = True) -> str:
         """
