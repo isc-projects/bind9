@@ -1181,7 +1181,7 @@ default is used.
    https://github.com/farsightsec/fstrm) to send event payloads which
    are encoded using Protocol Buffers (``libprotobuf-c``, a mechanism
    for serializing structured data developed by Google, Inc.; see
-   https://developers.google.com/protocol-buffers/).
+   https://protobuf.dev).
 
    To enable :any:`dnstap` at compile time, the ``fstrm`` and
    ``protobuf-c`` libraries must be available, and BIND must be
@@ -5743,7 +5743,7 @@ The following options can be specified in a :any:`tls` statement:
     ``TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256``.
     The string must be formed according to the rules specified in the
     OpenSSL documentation (see
-    https://www.openssl.org/docs/man1.1.1/man1/ciphers.html, section
+    https://docs.openssl.org/1.1.1/man1/ciphers/, section
     "TLS v1.3 cipher suites" for details).
 
 .. namedconf:statement:: ciphers
@@ -5753,7 +5753,7 @@ The following options can be specified in a :any:`tls` statement:
     This option defines allowed ciphers, such as
     ``HIGH:!aNULL:!MD5:!SHA1:!SHA256:!SHA384``. The string must be
     formed according to the rules specified in the OpenSSL documentation
-    (see https://www.openssl.org/docs/man1.1.1/man1/ciphers.html
+    (see https://docs.openssl.org/1.1.1/man1/ciphers/
     for details).
 
 .. namedconf:statement:: prefer-server-ciphers

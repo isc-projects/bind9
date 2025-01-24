@@ -683,6 +683,18 @@ changelog:
   artifacts:
     untracked: true
 
+linkcheck:
+  <<: *base_image
+  stage: docs
+  script:
+    - pushd doc/arm/ > /dev/null && sphinx-build -b linkcheck . linkcheck_output/
+  artifacts:
+    paths:
+      - doc/arm/linkcheck_output/
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  needs: []
+
 docs:
   <<: *default_triggering_rules
   <<: *base_image

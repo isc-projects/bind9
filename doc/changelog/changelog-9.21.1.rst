@@ -25,8 +25,8 @@ New Features
   are loaded from the currently active bundle from the imported SKR.
 
   The implementation is loosely based on:
-  https://www.iana.org/dnssec/archive/files/draft-icann-dnssec-
-  keymgmt-01.txt :gl:`#1128` :gl:`!9119`
+  https://www.iana.org/dnssec/archive/files/draft-icann-dnssec-keymgmt-01.txt
+  :gl:`#1128` :gl:`!9119`
 
 - Implement the 'request-ixfr-max-diffs' configuration option.
   ``99b18bab7e1``
