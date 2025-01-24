@@ -115,6 +115,9 @@ static void
 rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
 static dns_slabheader_t *
 rdataset_getheader(const dns_rdataset_t *rdataset);
+static bool
+rdataset_equals(const dns_rdataset_t *rdataset1,
+		const dns_rdataset_t *rdataset2);
 
 /*% Note: the "const void *" are just to make qsort happy.  */
 static int
@@ -943,6 +946,7 @@ dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.setownercase = rdataset_setownercase,
 	.getownercase = rdataset_getownercase,
 	.getheader = rdataset_getheader,
+	.equals = rdataset_equals,
 };
 
 /* Fixed RRSet helper macros */
@@ -1233,4 +1237,20 @@ static dns_slabheader_t *
 rdataset_getheader(const dns_rdataset_t *rdataset) {
 	dns_slabheader_t *header = (dns_slabheader_t *)rdataset->slab.raw;
 	return header - 1;
+}
+
+static bool
+rdataset_equals(const dns_rdataset_t *rdataset1,
+		const dns_rdataset_t *rdataset2) {
+	if (rdataset1->rdclass != rdataset2->rdclass ||
+	    rdataset1->type != rdataset2->type)
+	{
+		return false;
+	}
+
+	dns_slabheader_t *header1 = (dns_slabheader_t *)rdataset1->slab.raw - 1;
+	dns_slabheader_t *header2 = (dns_slabheader_t *)rdataset2->slab.raw - 1;
+
+	return dns_rdataslab_equalx(header1, header2, rdataset1->rdclass,
+				    rdataset2->type);
 }

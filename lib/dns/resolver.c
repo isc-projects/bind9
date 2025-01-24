@@ -6096,33 +6096,43 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 				if (result == DNS_R_UNCHANGED) {
 					result = ISC_R_SUCCESS;
 					if (!need_validation &&
-					    ardataset != NULL &&
-					    NEGATIVE(ardataset))
+					    ardataset != NULL)
 					{
 						/*
 						 * The answer in the
 						 * cache is better than
-						 * the answer we found,
-						 * and is a negative
-						 * cache entry, so we
+						 * the answer we found.
+						 * If it's a negative
+						 * cache entry, we
 						 * must set eresult
 						 * appropriately.
 						 */
 						if (NXDOMAIN(ardataset)) {
 							eresult =
 								DNS_R_NCACHENXDOMAIN;
-						} else {
+						} else if (NEGATIVE(ardataset))
+						{
 							eresult =
 								DNS_R_NCACHENXRRSET;
 						}
+
 						/*
-						 * We have a negative
-						 * response from the
-						 * cache so don't
-						 * attempt to add the
-						 * RRSIG rrset.
+						 * The cache wasn't updated
+						 * because something was
+						 * already there. If the
+						 * data was the same as what
+						 * we were trying to add,
+						 * then sigrdataset might
+						 * still be useful. If
+						 * not, move on.
 						 */
-						continue;
+						if (sigrdataset != NULL &&
+						    !dns_rdataset_equals(
+							    rdataset,
+							    addedrdataset))
+						{
+							continue;
+						}
 					}
 				}
 				if (result != ISC_R_SUCCESS) {
