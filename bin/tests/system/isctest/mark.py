@@ -41,11 +41,15 @@ def with_tsan(*args):  # pylint: disable=unused-argument
     return feature_test("--tsan")
 
 
-have_libxml2 = pytest.mark.skipif(
+without_fips = pytest.mark.skipif(
+    feature_test("--have-fips-mode"), reason="FIPS support enabled in the build"
+)
+
+with_libxml2 = pytest.mark.skipif(
     not feature_test("--have-libxml2"), reason="libxml2 support disabled in the build"
 )
 
-have_json_c = pytest.mark.skipif(
+with_json_c = pytest.mark.skipif(
     not feature_test("--have-json-c"), reason="json-c support disabled in the build"
 )
 
