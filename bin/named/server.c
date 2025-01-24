@@ -904,15 +904,6 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 			    initializing ? "initial-key" : "static-key",
 			    namestr, isc_result_totext(result));
 		return ISC_R_SUCCESS;
-	case DST_R_NOCRYPTO:
-		/*
-		 * Crypto support is not available.
-		 */
-		cfg_obj_log(key, ISC_LOG_ERROR,
-			    "ignoring %s for '%s': no crypto support",
-			    initializing ? "initial-key" : "static-key",
-			    namestr);
-		return result;
 	default:
 		/*
 		 * Something unexpected happened; we have no choice but to
@@ -993,9 +984,6 @@ load_view_keys(const cfg_obj_t *keys, dns_view_t *view, bool managed,
 cleanup:
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
-	}
-	if (result == DST_R_NOCRYPTO) {
-		result = ISC_R_SUCCESS;
 	}
 	return result;
 }
@@ -1317,15 +1305,12 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	 * explicit entry for "." when the name is "*".
 	 */
 	if (addroot) {
-		result = dns_order_add(order, dns_rootname, rdtype, rdclass,
-				       mode);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
+		dns_order_add(order, dns_rootname, rdtype, rdclass, mode);
 	}
 
-	return dns_order_add(order, dns_fixedname_name(&fixed), rdtype, rdclass,
-			     mode);
+	dns_order_add(order, dns_fixedname_name(&fixed), rdtype, rdclass, mode);
+
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -1684,7 +1669,7 @@ check_dbtype(dns_zone_t *zone, unsigned int dbtypec, const char **dbargv,
 	unsigned int i;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	CHECK(dns_zone_getdbtype(zone, &argv, mctx));
+	dns_zone_getdbtype(zone, &argv, mctx);
 
 	/*
 	 * Check that all the arguments match.
@@ -1853,7 +1838,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	isc_buffer_add(&b, strlen(reverse));
 	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
 	dns_zone_create(&zone, mctx, 0);
-	CHECK(dns_zone_setorigin(zone, name));
+	dns_zone_setorigin(zone, name);
 	dns_zone_setview(zone, view);
 	CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 	dns_zone_setclass(zone, view->rdclass);
@@ -3223,7 +3208,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 
 	if (pzone == NULL) {
 		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
-		CHECK(dns_zone_setorigin(zone, name));
+		dns_zone_setorigin(zone, name);
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		if (db == NULL) {
 			dns_zone_setdbtype(zone, empty_dbtypec, empty_dbtype);
@@ -3330,7 +3315,7 @@ create_ipv4only_zone(dns_zone_t *pzone, dns_view_t *view,
 		 * Create the actual zone.
 		 */
 		dns_zone_create(&zone, mctx, 0);
-		CHECK(dns_zone_setorigin(zone, name));
+		dns_zone_setorigin(zone, name);
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		dns_zone_setclass(zone, view->rdclass);
 		dns_zone_settype(zone, dns_zone_primary);
@@ -3913,11 +3898,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			const cfg_obj_t *name, *search = NULL;
 			char *s = isc_mem_strdup(mctx, cfg_obj_asstring(obj));
 
-			if (s == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
-
 			result = isc_commandline_strtoargv(mctx, s, &dlzargc,
 							   &dlzargv, 0);
 			if (result != ISC_R_SUCCESS) {
@@ -4147,12 +4127,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 				dns64options |= DNS_DNS64_BREAK_DNSSEC;
 			}
 
-			result = dns_dns64_create(mctx, &na, prefixlen, sp,
-						  clients, mapped, excluded,
-						  dns64options, &dns64);
-			if (result != ISC_R_SUCCESS) {
-				goto cleanup;
-			}
+			dns_dns64_create(mctx, &na, prefixlen, sp, clients,
+					 mapped, excluded, dns64options,
+					 &dns64);
 			dns_dns64_append(&view->dns64, dns64);
 			view->dns64cnt++;
 			result = dns64_reverse(view, mctx, &na, prefixlen,
@@ -4748,7 +4725,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		dns_peerlist_t *newpeers = NULL;
 
 		(void)named_config_get(cfgmaps, "server", &peers);
-		CHECK(dns_peerlist_new(mctx, &newpeers));
+		dns_peerlist_new(mctx, &newpeers);
 		for (element = cfg_list_first(peers); element != NULL;
 		     element = cfg_list_next(element))
 		{
@@ -4770,7 +4747,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		const cfg_obj_t *rrsetorder = NULL;
 
 		(void)named_config_get(maps, "rrset-order", &rrsetorder);
-		CHECK(dns_order_create(mctx, &order));
+		dns_order_create(mctx, &order);
 		for (element = cfg_list_first(rrsetorder); element != NULL;
 		     element = cfg_list_next(element))
 		{
@@ -5316,9 +5293,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 		if (dctx == NULL) {
 			const void *hashinit = isc_hash_get_initializer();
-			CHECK(dns_dyndb_createctx(mctx, hashinit, view,
-						  named_g_server->zonemgr,
-						  named_g_loopmgr, &dctx));
+			dns_dyndb_createctx(mctx, hashinit, view,
+					    named_g_server->zonemgr,
+					    named_g_loopmgr, &dctx);
 		}
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
@@ -6160,12 +6137,8 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	}
 	INSIST(view == NULL);
 
-	result = dns_view_create(named_g_mctx, named_g_loopmgr,
-				 named_g_dispatchmgr, viewclass, viewname,
-				 &view);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	dns_view_create(named_g_mctx, named_g_loopmgr, named_g_dispatchmgr,
+			viewclass, viewname, &view);
 
 	isc_nonce_buf(view->secret, sizeof(view->secret));
 
@@ -6369,7 +6342,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		} else {
 			CHECK(dns_zonemgr_createzone(named_g_server->zonemgr,
 						     &zone));
-			CHECK(dns_zone_setorigin(zone, origin));
+			dns_zone_setorigin(zone, origin);
 			dns_zone_setview(zone, view);
 			CHECK(dns_zonemgr_managezone(named_g_server->zonemgr,
 						     zone));
@@ -6472,7 +6445,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		 * to create a new one.
 		 */
 		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
-		CHECK(dns_zone_setorigin(zone, origin));
+		dns_zone_setorigin(zone, origin);
 		dns_zone_setview(zone, view);
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		dns_zone_setstats(zone, named_g_server->zonestats);
@@ -6530,7 +6503,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		if (raw == NULL) {
 			dns_zone_create(&raw, dns_zone_getmem(zone),
 					dns_zone_gettid(zone));
-			CHECK(dns_zone_setorigin(raw, origin));
+			dns_zone_setorigin(raw, origin);
 			dns_zone_setview(raw, view);
 			dns_zone_setstats(raw, named_g_server->zonestats);
 			CHECK(dns_zone_link(zone, raw));
@@ -6631,14 +6604,14 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 
 	/* No existing keydata zone was found; create one */
 	CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
-	CHECK(dns_zone_setorigin(zone, dns_rootname));
+	dns_zone_setorigin(zone, dns_rootname);
 
 	defaultview = (strcmp(view->name, "_default") == 0);
 	CHECK(isc_file_sanitize(
 		directory, defaultview ? "managed-keys" : view->name,
 		defaultview ? "bind" : "mkeys", filename, sizeof(filename)));
-	CHECK(dns_zone_setfile(zone, filename, dns_masterformat_text,
-			       &dns_master_style_default));
+	dns_zone_setfile(zone, filename, dns_masterformat_text,
+			 &dns_master_style_default);
 
 	dns_zone_setview(zone, view);
 	dns_zone_settype(zone, dns_zone_key);
@@ -8251,20 +8224,8 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Configure sets of UDP query source ports.
 	 */
-	result = isc_portset_create(named_g_mctx, &v4portset);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_ERROR, "creating UDP/IPv4 port set: %s",
-			      isc_result_totext(result));
-		goto cleanup_bindkeys_parser;
-	}
-	result = isc_portset_create(named_g_mctx, &v6portset);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_ERROR, "creating UDP/IPv6 port set: %s",
-			      isc_result_totext(result));
-		goto cleanup_v4portset;
-	}
+	isc_portset_create(named_g_mctx, &v4portset);
+	isc_portset_create(named_g_mctx, &v6portset);
 
 	result = isc_net_getudpportrange(AF_INET, &udpport_low, &udpport_high);
 	if (result != ISC_R_SUCCESS) {
@@ -8272,7 +8233,7 @@ load_configuration(const char *filename, named_server_t *server,
 			      ISC_LOG_ERROR,
 			      "get the default UDP/IPv4 port range: %s",
 			      isc_result_totext(result));
-		goto cleanup_v6portset;
+		goto cleanup_portsets;
 	}
 
 	isc_portset_addrange(v4portset, udpport_low, udpport_high);
@@ -8290,7 +8251,7 @@ load_configuration(const char *filename, named_server_t *server,
 			      ISC_LOG_ERROR,
 			      "get the default UDP/IPv6 port range: %s",
 			      isc_result_totext(result));
-		goto cleanup_v6portset;
+		goto cleanup_portsets;
 	}
 	isc_portset_addrange(v6portset, udpport_low, udpport_high);
 	if (!ns_server_getoption(server->sctx, NS_SERVER_DISABLE6)) {
@@ -8369,7 +8330,7 @@ load_configuration(const char *filename, named_server_t *server,
 	} else {
 		result = named_config_getport(config, "port", &listen_port);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_v6portset;
+			goto cleanup_portsets;
 		}
 	}
 
@@ -8416,13 +8377,13 @@ load_configuration(const char *filename, named_server_t *server,
 
 		result = named_config_get(maps, "listen-on", &clistenon);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_v6portset;
+			goto cleanup_portsets;
 		}
 		result = listenlist_fromconfig(
 			clistenon, config, named_g_aclconfctx, named_g_mctx,
 			AF_INET, server->tlsctx_server_cache, &listenon);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_v6portset;
+			goto cleanup_portsets;
 		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon4(server->interfacemgr,
@@ -8440,13 +8401,13 @@ load_configuration(const char *filename, named_server_t *server,
 
 		result = named_config_get(maps, "listen-on-v6", &clistenon);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_v6portset;
+			goto cleanup_portsets;
 		}
 		result = listenlist_fromconfig(
 			clistenon, config, named_g_aclconfctx, named_g_mctx,
 			AF_INET6, server->tlsctx_server_cache, &listenon);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_v6portset;
+			goto cleanup_portsets;
 		}
 		if (listenon != NULL) {
 			ns_interfacemgr_setlistenon6(server->interfacemgr,
@@ -8476,7 +8437,7 @@ load_configuration(const char *filename, named_server_t *server,
 				      "unable to listen on any configured "
 				      "interfaces");
 			result = ISC_R_FAILURE;
-			goto cleanup_v6portset;
+			goto cleanup_portsets;
 		}
 	}
 
@@ -9283,10 +9244,8 @@ cleanup_keystorelist:
 		dns_keystore_detach(&keystore);
 	}
 
-cleanup_v6portset:
+cleanup_portsets:
 	isc_portset_destroy(named_g_mctx, &v6portset);
-
-cleanup_v4portset:
 	isc_portset_destroy(named_g_mctx, &v4portset);
 
 cleanup_bindkeys_parser:

@@ -1414,14 +1414,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 		return ISC_R_FAILURE;
 	}
 
-	if ((instance = isc_mem_allocate(mctx, namelen + 1)) == NULL) {
-		UNEXPECTED_ERROR("named_smf_get_instance memory "
-				 "allocation failed: %s",
-				 isc_result_totext(ISC_R_NOMEMORY));
-		scf_handle_destroy(h);
-		return ISC_R_FAILURE;
-	}
-
+	instance = isc_mem_allocate(mctx, namelen + 1);
 	if (scf_myname(h, instance, namelen + 1) == -1) {
 		if (debug) {
 			UNEXPECTED_ERROR("scf_myname() failed: %s",

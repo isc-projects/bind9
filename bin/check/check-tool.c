@@ -112,11 +112,8 @@ add(char *key, int value) {
 	}
 
 	if (symtab == NULL) {
-		result = isc_symtab_create(sym_mctx, 100, freekey, sym_mctx,
-					   false, &symtab);
-		if (result != ISC_R_SUCCESS) {
-			return;
-		}
+		isc_symtab_create(sym_mctx, 100, freekey, sym_mctx, false,
+				  &symtab);
 	}
 
 	key = isc_mem_strdup(sym_mctx, key);
@@ -660,17 +657,17 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	isc_buffer_add(&buffer, strlen(zonename));
 	origin = dns_fixedname_initname(&fixorigin);
 	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
-	CHECK(dns_zone_setorigin(zone, origin));
+	dns_zone_setorigin(zone, origin);
 	dns_zone_setdbtype(zone, 1, (const char *const *)dbtype);
 	if (strcmp(filename, "-") == 0) {
-		CHECK(dns_zone_setstream(zone, stdin, fileformat,
-					 &dns_master_style_default));
+		dns_zone_setstream(zone, stdin, fileformat,
+				   &dns_master_style_default);
 	} else {
-		CHECK(dns_zone_setfile(zone, filename, fileformat,
-				       &dns_master_style_default));
+		dns_zone_setfile(zone, filename, fileformat,
+				 &dns_master_style_default);
 	}
 	if (journal != NULL) {
-		CHECK(dns_zone_setjournal(zone, journal));
+		dns_zone_setjournal(zone, journal);
 	}
 
 	region.base = UNCONST(classname);

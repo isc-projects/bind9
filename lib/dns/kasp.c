@@ -31,7 +31,7 @@
 /* Default TTLsig (maximum zone ttl) */
 #define DEFAULT_TTLSIG 604800 /* one week */
 
-isc_result_t
+void
 dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	dns_kasp_t *kasp;
 	dns_kasp_t k = {
@@ -54,7 +54,6 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	isc_refcount_init(&kasp->references, 1);
 
 	*kaspp = kasp;
-	return ISC_R_SUCCESS;
 }
 
 void
@@ -398,7 +397,7 @@ dns_kasp_addkey(dns_kasp_t *kasp, dns_kasp_key_t *key) {
 	ISC_LIST_APPEND(kasp->keys, key, link);
 }
 
-isc_result_t
+void
 dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp) {
 	dns_kasp_key_t *key = NULL;
 	dns_kasp_key_t k = { .tag_max = 0xffff, .length = -1 };
@@ -415,7 +414,6 @@ dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp) {
 	ISC_LINK_INIT(key, link);
 
 	*keyp = key;
-	return ISC_R_SUCCESS;
 }
 
 void

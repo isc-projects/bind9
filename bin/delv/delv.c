@@ -787,9 +787,7 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 	num_keys++;
 
 cleanup:
-	if (result == DST_R_NOCRYPTO) {
-		cfg_obj_log(key, ISC_LOG_ERROR, "no crypto support");
-	} else if (result == DST_R_UNSUPPORTEDALG) {
+	if (result == DST_R_UNSUPPORTEDALG) {
 		cfg_obj_log(key, ISC_LOG_WARNING,
 			    "skipping trusted key '%s': %s", keynamestr,
 			    isc_result_totext(result));
@@ -823,9 +821,6 @@ load_keys(const cfg_obj_t *keys, dns_client_t *client, dns_view_t *toview) {
 	}
 
 cleanup:
-	if (result == DST_R_NOCRYPTO) {
-		result = ISC_R_SUCCESS;
-	}
 	return result;
 }
 
@@ -2202,8 +2197,8 @@ run_server(void *arg) {
 	CHECK(ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr, dispatchmgr,
 				     NULL, &interfacemgr));
 
-	CHECK(dns_view_create(mctx, loopmgr, dispatchmgr, dns_rdataclass_in,
-			      "_default", &view));
+	dns_view_create(mctx, loopmgr, dispatchmgr, dns_rdataclass_in,
+			"_default", &view);
 	CHECK(dns_cache_create(loopmgr, dns_rdataclass_in, "", mctx, &cache));
 	dns_view_setcache(view, cache, false);
 	dns_cache_detach(&cache);

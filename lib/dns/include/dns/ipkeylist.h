@@ -71,7 +71,8 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
  *\li	#ISC_R_SUCCESS	-- success
  *\li	any other value -- failure
  */
-isc_result_t
+
+void
 dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
 /*%<
  * Resize ipkl to contain n elements. Size (count) is not changed, and the
@@ -81,8 +82,4 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
  * \li	'mctx' to be a valid memory context.
  * \li	'ipk' to be non NULL
  * \li	'n' >= ipkl->count
- *
- * Returns:
- * \li	#ISC_R_SUCCESS if success
- * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untouched
  */

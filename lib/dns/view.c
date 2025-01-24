@@ -84,7 +84,7 @@
  */
 #define DEFAULT_EDNS_BUFSIZE 1232
 
-isc_result_t
+void
 dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		dns_dispatchmgr_t *dispatchmgr, dns_rdataclass_t rdclass,
 		const char *name, dns_view_t **viewp) {
@@ -96,9 +96,7 @@ dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
 	result = isc_file_sanitize(NULL, name, "nta", buffer, sizeof(buffer));
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	view = isc_mem_get(mctx, sizeof(*view));
 	*view = (dns_view_t){
@@ -153,15 +151,9 @@ dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 
 	isc_mutex_init(&view->new_zone_lock);
 
-	result = dns_order_create(view->mctx, &view->order);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_new_zone_lock;
-	}
+	dns_order_create(view->mctx, &view->order);
 
-	result = dns_peerlist_new(view->mctx, &view->peers);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_order;
-	}
+	dns_peerlist_new(view->mctx, &view->peers);
 
 	dns_aclenv_create(view->mctx, &view->aclenv);
 
@@ -169,41 +161,6 @@ dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 
 	view->magic = DNS_VIEW_MAGIC;
 	*viewp = view;
-
-	return ISC_R_SUCCESS;
-
-cleanup_order:
-	if (view->order != NULL) {
-		dns_order_detach(&view->order);
-	}
-
-cleanup_new_zone_lock:
-	isc_mutex_destroy(&view->new_zone_lock);
-	dns_badcache_destroy(&view->failcache);
-
-	if (view->dynamickeys != NULL) {
-		dns_tsigkeyring_detach(&view->dynamickeys);
-	}
-
-	isc_refcount_decrementz(&view->weakrefs);
-	isc_refcount_destroy(&view->weakrefs);
-
-	isc_refcount_decrementz(&view->references);
-	isc_refcount_destroy(&view->references);
-
-	dns_fwdtable_destroy(&view->fwdtable);
-	dns_zt_detach(&view->zonetable);
-
-	isc_mutex_destroy(&view->lock);
-
-	if (view->nta_file != NULL) {
-		isc_mem_free(mctx, view->nta_file);
-	}
-
-	isc_mem_free(mctx, view->name);
-	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
-
-	return result;
 }
 
 static void

@@ -450,10 +450,7 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 
 	/* Create it */
 	dns_zone_create(&zone, view->mctx, 0);
-	result = dns_zone_setorigin(zone, origin);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_zone_setorigin(zone, origin);
 	dns_zone_setview(zone, view);
 
 	dns_zone_setadded(zone, true);

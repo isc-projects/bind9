@@ -173,13 +173,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 
 	isc_loopmgr_create(mctx, 1, &loopmgr);
 
-	result = dns_view_create(mctx, loopmgr, NULL, dns_rdataclass_in, "view",
-				 &view);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_view_create failed: %s\n",
-			isc_result_totext(result));
-		return 1;
-	}
+	dns_view_create(mctx, loopmgr, NULL, dns_rdataclass_in, "view", &view);
 
 	dns_tsigkeyring_create(mctx, &ring);
 	dns_tsigkeyring_create(mctx, &emptyring);
@@ -214,30 +208,12 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 
 	dns_zone_create(&zone, mctx, 0);
 
-	result = dns_zone_setorigin(zone, name);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_zone_setorigin failed: %s\n",
-			isc_result_totext(result));
-		return 1;
-	}
-
+	dns_zone_setorigin(zone, name);
 	dns_zone_setclass(zone, view->rdclass);
 	dns_zone_settype(zone, dns_zone_primary);
-
-	result = dns_zone_setkeydirectory(zone, wd);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_zone_setkeydirectory failed: %s\n",
-			isc_result_totext(result));
-		return 1;
-	}
-
-	result = dns_zone_setfile(zone, pathbuf, dns_masterformat_text,
-				  &dns_master_style_default);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_zone_setfile failed: %s\n",
-			isc_result_totext(result));
-		return 1;
-	}
+	dns_zone_setkeydirectory(zone, wd);
+	dns_zone_setfile(zone, pathbuf, dns_masterformat_text,
+			 &dns_master_style_default);
 
 	result = dns_zone_load(zone, false);
 	if (result != ISC_R_SUCCESS) {

@@ -75,7 +75,7 @@ tkey_log(const char *fmt, ...) {
 	va_end(ap);
 }
 
-isc_result_t
+void
 dns_tkeyctx_create(isc_mem_t *mctx, dns_tkeyctx_t **tctxp) {
 	REQUIRE(mctx != NULL);
 	REQUIRE(tctxp != NULL && *tctxp == NULL);
@@ -87,7 +87,6 @@ dns_tkeyctx_create(isc_mem_t *mctx, dns_tkeyctx_t **tctxp) {
 	isc_mem_attach(mctx, &tctx->mctx);
 
 	*tctxp = tctx;
-	return ISC_R_SUCCESS;
 }
 
 void

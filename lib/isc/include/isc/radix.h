@@ -143,7 +143,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
  *	a valid prefix.
  *
  * Returns:
- * \li	ISC_R_NOMEMORY
  * \li	ISC_R_SUCCESS
  */
 
@@ -166,10 +165,6 @@ isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits);
  * \li	'mctx' to be valid.
  * \li	'target' to be non NULL and '*target' to be NULL.
  * \li	'maxbits' to be less than or equal to RADIX_MAXBITS.
- *
- * Returns:
- * \li	ISC_R_NOMEMORY
- * \li	ISC_R_SUCCESS
  */
 
 void

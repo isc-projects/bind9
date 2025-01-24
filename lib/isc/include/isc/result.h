@@ -21,7 +21,6 @@ typedef enum isc_result {
 	ISC_R_SUCCESS,		      /*%< success */
 	ISC_R_NOMEMORY,		      /*%< out of memory */
 	ISC_R_TIMEDOUT,		      /*%< timed out */
-	ISC_R_NOTHREADS,	      /*%< no available threads */
 	ISC_R_ADDRNOTAVAIL,	      /*%< address not available */
 	ISC_R_ADDRINUSE,	      /*%< address in use */
 	ISC_R_NOPERM,		      /*%< permission denied */
@@ -33,14 +32,12 @@ typedef enum isc_result {
 	ISC_R_CONNREFUSED,	      /*%< connection refused */
 	ISC_R_NORESOURCES,	      /*%< not enough free resources */
 	ISC_R_EOF,		      /*%< end of file */
-	ISC_R_BOUND,		      /*%< socket already bound */
 	ISC_R_RELOAD,		      /*%< reload */
 	ISC_R_SUSPEND = ISC_R_RELOAD, /*%< alias of 'reload' */
 	ISC_R_LOCKBUSY,		      /*%< lock busy */
 	ISC_R_EXISTS,		      /*%< already exists */
 	ISC_R_NOSPACE,		      /*%< ran out of space */
 	ISC_R_CANCELED,		      /*%< operation canceled */
-	ISC_R_NOTBOUND,		      /*%< socket is not bound */
 	ISC_R_SHUTTINGDOWN,	      /*%< shutting down */
 	ISC_R_NOTFOUND,		      /*%< not found */
 	ISC_R_UNEXPECTEDEND,	      /*%< unexpected end of input */
@@ -64,15 +61,11 @@ typedef enum isc_result {
 	ISC_R_NOENTROPY,	      /*%< out of entropy */
 	ISC_R_MULTICAST,	      /*%< invalid use of multicast */
 	ISC_R_NOTFILE,		      /*%< not a file */
-	ISC_R_NOTDIRECTORY,	      /*%< not a directory */
-	ISC_R_EMPTY,		      /*%< queue is empty */
 	ISC_R_FAMILYMISMATCH,	      /*%< address family mismatch */
 	ISC_R_FAMILYNOSUPPORT,	      /*%< AF not supported */
 	ISC_R_BADHEX,		      /*%< bad hex encoding */
 	ISC_R_TOOMANYOPENFILES,	      /*%< too many open files */
-	ISC_R_NOTBLOCKING,	      /*%< not blocking */
 	ISC_R_UNBALANCEDQUOTES,	      /*%< unbalanced quotes */
-	ISC_R_INPROGRESS,	      /*%< operation in progress */
 	ISC_R_CONNECTIONRESET,	      /*%< connection reset */
 	ISC_R_SOFTQUOTA,	      /*%< soft quota reached */
 	ISC_R_BADNUMBER,	      /*%< not a valid number */
@@ -82,7 +75,6 @@ typedef enum isc_result {
 	ISC_R_BADBASE32,	      /*%< bad base32 encoding */
 	ISC_R_UNSET,		      /*%< unset */
 	ISC_R_MULTIPLE,		      /*%< multiple */
-	ISC_R_WOULDBLOCK,	      /*%< would block */
 	ISC_R_COMPLETE,		      /*%< complete */
 	ISC_R_CRYPTOFAILURE,	      /*%< cryptography library failure */
 	ISC_R_DISCQUOTA,	      /*%< disc quota */
@@ -103,14 +95,12 @@ typedef enum isc_result {
 	DNS_R_UNKNOWN,
 	DNS_R_BADLABELTYPE,
 	DNS_R_BADPOINTER,
-	DNS_R_TOOMANYHOPS,
 	DNS_R_DISALLOWED,
 	DNS_R_EXTRATOKEN,
 	DNS_R_EXTRADATA,
 	DNS_R_TEXTTOOLONG,
 	DNS_R_NOTZONETOP,
 	DNS_R_SYNTAX,
-	DNS_R_BADCKSUM,
 	DNS_R_BADAAAA,
 	DNS_R_NOOWNER,
 	DNS_R_NOTTL,
@@ -120,7 +110,6 @@ typedef enum isc_result {
 	DNS_R_NEWORIGIN,
 	DNS_R_UNCHANGED,
 	DNS_R_BADTTL,
-	DNS_R_NOREDATA,
 	DNS_R_CONTINUE,
 	DNS_R_DELEGATION,
 	DNS_R_GLUE,
@@ -129,7 +118,6 @@ typedef enum isc_result {
 	DNS_R_BADDB,
 	DNS_R_ZONECUT,
 	DNS_R_BADZONE,
-	DNS_R_MOREDATA,
 	DNS_R_UPTODATE,
 	DNS_R_TSIGVERIFYFAILURE,
 	DNS_R_TSIGERRORSET,
@@ -157,7 +145,6 @@ typedef enum isc_result {
 	DNS_R_NOTINSECURE,
 	DNS_R_UNKNOWNSERVICE,
 	DNS_R_RECOVERABLE,
-	DNS_R_UNKNOWNOPT,
 	DNS_R_UNEXPECTEDID,
 	DNS_R_SEENINCLUDE,
 	DNS_R_NOTEXACT,
@@ -172,12 +159,10 @@ typedef enum isc_result {
 	DNS_R_CLOCKSKEW,
 	DNS_R_BADIXFR,
 	DNS_R_NOTAUTHORITATIVE,
-	DNS_R_NOVALIDKEY,
 	DNS_R_OBSOLETE,
 	DNS_R_FROZEN,
 	DNS_R_UNKNOWNFLAG,
 	DNS_R_EXPECTEDRESPONSE,
-	DNS_R_NOVALIDDS,
 	DNS_R_NSISADDRESS,
 	DNS_R_REMOTEFORMERR,
 	DNS_R_TRUNCATEDTCP,
@@ -202,7 +187,6 @@ typedef enum isc_result {
 	DNS_R_EXPIRED,
 	DNS_R_NOTDYNAMIC,
 	DNS_R_BADEUI,
-	DNS_R_NTACOVERED,
 	DNS_R_BADCDS,
 	DNS_R_BADCDNSKEY,
 	DNS_R_OPTERR,
@@ -230,7 +214,6 @@ typedef enum isc_result {
 	DST_R_CRYPTOFAILURE,
 	/* compat */
 	DST_R_OPENSSLFAILURE = DST_R_CRYPTOFAILURE,
-	DST_R_NOCRYPTO,
 	DST_R_NULLKEY,
 	DST_R_INVALIDPUBLICKEY,
 	DST_R_INVALIDPRIVATEKEY,
@@ -241,8 +224,6 @@ typedef enum isc_result {
 	DST_R_NOTPUBLICKEY,
 	DST_R_NOTPRIVATEKEY,
 	DST_R_KEYCANNOTCOMPUTESECRET,
-	DST_R_COMPUTESECRETFAILURE,
-	DST_R_NORANDOMNESS,
 	DST_R_BADKEYTYPE,
 	DST_R_NOENGINE,
 	DST_R_EXTERNALKEY,
@@ -267,10 +248,7 @@ typedef enum isc_result {
 	DNS_R_BADCOOKIE = DNS_R_NOERROR + 23,
 
 	ISCCC_R_UNKNOWNVERSION,
-	ISCCC_R_SYNTAX,
 	ISCCC_R_BADAUTH,
-	ISCCC_R_EXPIRED,
-	ISCCC_R_CLOCKSKEW,
 	ISCCC_R_DUPLICATE,
 	ISCCC_R_MAXDEPTH,
 

@@ -19,7 +19,7 @@
 
 #include <dns/types.h>
 
-isc_result_t
+void
 dns_order_create(isc_mem_t *mctx, dns_order_t **orderp);
 /*%<
  * Create a order object.
@@ -27,13 +27,9 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp);
  * Requires:
  * \li	'orderp' to be non NULL and '*orderp == NULL'.
  *\li	'mctx' to be valid.
- *
- * Returns:
- *\li	ISC_R_SUCCESS
- *\li	ISC_R_NOMEMORY
  */
 
-isc_result_t
+void
 dns_order_add(dns_order_t *order, const dns_name_t *name,
 	      dns_rdatatype_t rdtype, dns_rdataclass_t rdclass,
 	      unsigned int mode);
@@ -45,10 +41,6 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
  *\li	'name' to be valid.
  *\li	'mode' to be one of #DNS_RDATASETATTR_RANDOMIZE,
  *		#DNS_RDATASETATTR_FIXEDORDER or zero (#DNS_RDATASETATTR_CYCLIC).
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 unsigned int

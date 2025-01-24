@@ -3797,8 +3797,8 @@ create_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	cfg_obj_t *obj = NULL;
 
 	CHECK(cfg_create_obj(pctx, type, &obj));
-	CHECK(isc_symtab_create(pctx->mctx, 5, /* XXX */
-				map_symtabitem_destroy, pctx, false, &symtab));
+	isc_symtab_create(pctx->mctx, 5, /* XXX */
+			  map_symtabitem_destroy, pctx, false, &symtab);
 	obj->value.map.symtab = symtab;
 	obj->value.map.id = NULL;
 

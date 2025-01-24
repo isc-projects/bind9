@@ -137,7 +137,6 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain);
  *
  * Returns:
  * \li	ISC_R_SUCCESS on success
- * \li	ISC_R_NOMEMORY on allocation failure
  */
 
 dns_catz_entry_t *
@@ -151,7 +150,6 @@ dns_catz_entry_copy(dns_catz_zone_t *catz, const dns_catz_entry_t *entry);
  *
  * Returns:
  * \li	ISC_R_SUCCESS on success
- * \li	ISC_R_NOMEMORY on allocation failure
  */
 
 void

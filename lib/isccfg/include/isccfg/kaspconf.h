@@ -51,7 +51,6 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
  *
  *\li  #ISC_R_SUCCESS  If creating and configuring the KASP succeeds.
  *\li  #ISC_R_EXISTS   If 'kasplist' already has a kasp structure with 'name'.
- *\li  #ISC_R_NOMEMORY
  *
  *\li  Other errors are possible.
  */
@@ -79,7 +78,6 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
  *
  *\li  #ISC_R_SUCCESS  If creating and configuring the keystore succeeds.
  *\li  #ISC_R_EXISTS   If 'keystorelist' already has a keystore with 'name'.
- *\li  #ISC_R_NOMEMORY
  *
  *\li  Other errors are possible.
  */

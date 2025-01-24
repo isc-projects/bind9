@@ -530,7 +530,7 @@ value_fromwire(isccc_region_t *source, unsigned int depth,
 	} else if (msgtype == ISCCC_CCMSGTYPE_LIST) {
 		result = list_fromwire(&active, depth + 1, valuep);
 	} else {
-		result = ISCCC_R_SYNTAX;
+		result = DNS_R_SYNTAX;
 	}
 
 	return result;

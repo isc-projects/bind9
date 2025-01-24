@@ -370,7 +370,6 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  * \li	#ISC_R_NOTFOUND				db_type not found
  *
  * \li	Many other errors are possible, depending on what db_type was
@@ -501,7 +500,6 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
@@ -527,7 +525,6 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
@@ -557,7 +554,6 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
@@ -577,7 +573,6 @@ dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename);
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used, OS file errors, etc.
@@ -622,7 +617,6 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -731,7 +725,6 @@ dns__db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
  *
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND			If !create and name not found.
- * \li	#ISC_R_NOMEMORY			Can only happen if create is true.
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -928,8 +921,6 @@ dns__db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
  *
  *	Error results:
  *
- *	\li	#ISC_R_NOMEMORY
- *
  *	\li	#DNS_R_BADDB			Data that is required to be
  *						present in the DB, e.g. an NSEC
  *						record in a secure zone, is not
@@ -1105,7 +1096,6 @@ dns_db_createiterator(dns_db_t *db, unsigned int options,
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  */
 
 /***
@@ -1274,8 +1264,8 @@ dns__db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#DNS_R_UNCHANGED			The operation did not change
- * anything. \li	#ISC_R_NOMEMORY \li	#DNS_R_NOTEXACT
+ * \li	#DNS_R_UNCHANGED	The operation did not change anything.
+ * \li	#DNS_R_NOTEXACT
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -1455,7 +1445,6 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
  *
  * Returns:
  * \li	#ISC_R_SUCCESS	The registration succeeded
- * \li	#ISC_R_NOMEMORY	Out of memory
  * \li	#ISC_R_EXISTS	A database implementation with the same name exists
  *
  * Ensures:
@@ -1568,7 +1557,6 @@ dns__db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
  *
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND			If !create and name not found.
- * \li	#ISC_R_NOMEMORY			Can only happen if create is true.
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -1586,7 +1574,6 @@ dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
  *
  * Returns:
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
  */
 

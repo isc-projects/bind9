@@ -182,8 +182,9 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
  *
  * Returns:
  *\li	ISC_R_SUCCESS		- successful completion
- *\li	ISC_R_NOMEMORY		- no memory.
- *\li	XXX others
+ *\li	ISC_R_NOSPACE		- more than 64k RRs
+ *\li	DNS_R_TOOMANYRECORDS	- more than max-records-per-rrset RRs
+ *\li	DNS_R_SINGLETON		- singleton type has more than one RR
  */
 
 unsigned int

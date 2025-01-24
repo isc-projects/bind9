@@ -1507,15 +1507,12 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 			*versionp = NULL;
 
 			dbversion = ns_client_findversion(client, tdbp);
-			if (dbversion == NULL) {
-				tresult = ISC_R_NOMEMORY;
-			} else {
-				/*
-				 * Be sure to return our database.
-				 */
-				*dbp = tdbp;
-				*versionp = dbversion->version;
-			}
+
+			/*
+			 * Be sure to return our database.
+			 */
+			*dbp = tdbp;
+			*versionp = dbversion->version;
 
 			/*
 			 * We return a null zone, No stats for DLZ zones.
@@ -7619,7 +7616,7 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname = NULL;
 	dns_rdataset_t *neg = NULL, *negsig = NULL;
-	isc_result_t result = ISC_R_NOMEMORY;
+	isc_result_t result;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_addnoqnameproof");
 
@@ -9179,23 +9176,15 @@ query_sign_nodata(query_ctx_t *qctx) {
 				dns_name_getlabelsequence(qname, skip, count,
 							  found);
 
+				/*
+				 * These ensure fname, rdataset, and
+				 * sigrdataset are non-NULL
+				 */
 				fixfname(qctx->client, &qctx->fname,
 					 &qctx->dbuf, &b);
 				fixrdataset(qctx->client, &qctx->rdataset);
 				fixrdataset(qctx->client, &qctx->sigrdataset);
-				if (qctx->fname == NULL ||
-				    qctx->rdataset == NULL ||
-				    qctx->sigrdataset == NULL)
-				{
-					CCTRACE(ISC_LOG_ERROR, "query_sign_"
-							       "nodata: "
-							       "failure "
-							       "getting "
-							       "closest "
-							       "encloser");
-					QUERY_ERROR(qctx, ISC_R_NOMEMORY);
-					return ns_query_done(qctx);
-				}
+
 				/*
 				 * 'nearest' doesn't exist so
 				 * 'exist' is set to false.

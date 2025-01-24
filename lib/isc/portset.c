@@ -55,7 +55,7 @@ portset_remove(isc_portset_t *portset, in_port_t port) {
 	}
 }
 
-isc_result_t
+void
 isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp) {
 	isc_portset_t *portset;
 
@@ -64,8 +64,6 @@ isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp) {
 	portset = isc_mem_get(mctx, sizeof(*portset));
 	*portset = (isc_portset_t){ 0 };
 	*portsetp = portset;
-
-	return ISC_R_SUCCESS;
 }
 
 void

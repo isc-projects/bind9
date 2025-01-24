@@ -342,7 +342,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
  *\li	#ISC_R_NOMORE	Addresses might have been returned, but no events
  *			will ever be posted for this context.  This is only
  *			returned if task != NULL.
- *\li	#ISC_R_NOMEMORY	insufficient resources
  *\li	#DNS_R_ALIAS	'name' is an alias for another name.
  *
  * Notes:
@@ -575,7 +574,6 @@ dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  *\li	#ISC_R_SHUTTINGDOWN
  */
 

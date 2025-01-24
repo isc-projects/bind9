@@ -25,7 +25,7 @@
 #include <dns/keystore.h>
 #include <dns/keyvalues.h>
 
-isc_result_t
+void
 dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp) {
 	dns_keystore_t *keystore;
 
@@ -48,8 +48,6 @@ dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp) {
 
 	keystore->magic = DNS_KEYSTORE_MAGIC;
 	*kspp = keystore;
-
-	return ISC_R_SUCCESS;
 }
 
 static inline void

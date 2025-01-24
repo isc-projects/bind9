@@ -93,7 +93,6 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
  * Returns:
  *
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 void
@@ -190,7 +189,6 @@ dns_cache_flush(dns_cache_t *cache);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 isc_result_t
@@ -205,7 +203,6 @@ dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name, bool tree);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  *\li	other error returns.
  */
 
@@ -221,7 +218,6 @@ dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  *\li	other error returns.
  */
 

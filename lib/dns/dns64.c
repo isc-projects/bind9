@@ -49,7 +49,7 @@ struct dns_dns64 {
 	ISC_LINK(dns_dns64_t) link;
 };
 
-isc_result_t
+void
 dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 		 unsigned int prefixlen, const isc_netaddr_t *suffix,
 		 dns_acl_t *clients, dns_acl_t *mapped, dns_acl_t *excluded,
@@ -100,7 +100,6 @@ dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 	dns64->mctx = NULL;
 	isc_mem_attach(mctx, &dns64->mctx);
 	*dns64p = dns64;
-	return ISC_R_SUCCESS;
 }
 
 void

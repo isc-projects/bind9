@@ -80,7 +80,7 @@ dns_rriterator_init(dns_rriterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
+ * \li  any error from dns_db_createiterator()
  */
 
 isc_result_t

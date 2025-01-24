@@ -229,7 +229,9 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t category,
  *
  * Returns:
  * \li	ISC_R_SUCCESS
- * \li	ISC_R_NOMEMORY
+ * \li	DST_R_UNSUPPORTEDALG
+ * \li	DST_R_NULLKEY
+ * \li	Other errors are possible.
  *
  * Ensures:
  * \li	*dctxp will contain a usable context.
@@ -1053,7 +1055,6 @@ dst_key_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length);
  *
  * Returns:
  *	ISC_R_SUCCESS
- *	ISC_R_NOMEMORY
  *	ISC_R_NOTIMPLEMENTED
  *	others.
  */

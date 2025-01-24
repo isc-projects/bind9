@@ -59,7 +59,7 @@ struct dns_keystore {
 
 #define DNS_KEYSTORE_KEYDIRECTORY "key-directory"
 
-isc_result_t
+void
 dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp);
 /*%<
  * Create a key store.
@@ -71,13 +71,6 @@ dns_keystore_create(isc_mem_t *mctx, const char *name, dns_keystore_t **kspp);
  *\li  'name' is a valid C string.
  *
  *\li  kspp != NULL && *kspp == NULL
- *
- * Returns:
- *
- *\li  #ISC_R_SUCCESS
- *\li  #ISC_R_NOMEMORY
- *
- *\li  Other errors are possible.
  */
 
 const char *

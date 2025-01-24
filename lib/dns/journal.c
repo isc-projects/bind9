@@ -1854,13 +1854,10 @@ read_one_rr(dns_journal_t *j);
  *	previously allocated by isc_mem_get().
  */
 
-static isc_result_t
+static void
 size_buffer(isc_mem_t *mctx, isc_buffer_t *b, unsigned int size) {
 	if (b->length < size) {
 		void *mem = isc_mem_get(mctx, size);
-		if (mem == NULL) {
-			return ISC_R_NOMEMORY;
-		}
 		if (b->base != NULL) {
 			isc_mem_put(mctx, b->base, b->length);
 		}
@@ -1868,7 +1865,6 @@ size_buffer(isc_mem_t *mctx, isc_buffer_t *b, unsigned int size) {
 		b->length = size;
 	}
 	isc_buffer_clear(b);
-	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -2033,7 +2029,7 @@ read_one_rr(dns_journal_t *j) {
 		FAIL(ISC_R_UNEXPECTED);
 	}
 
-	CHECK(size_buffer(j->mctx, &j->it.source, rrhdr.size));
+	size_buffer(j->mctx, &j->it.source, rrhdr.size);
 	CHECK(journal_read(j, j->it.source.base, rrhdr.size));
 	isc_buffer_add(&j->it.source, rrhdr.size);
 
@@ -2043,7 +2039,7 @@ read_one_rr(dns_journal_t *j) {
 	 * no compression in present, the output of dns_*_fromwire()
 	 * is no larger than the input.
 	 */
-	CHECK(size_buffer(j->mctx, &j->it.target, rrhdr.size));
+	size_buffer(j->mctx, &j->it.target, rrhdr.size);
 
 	/*
 	 * Parse the owner name.  We don't know where it

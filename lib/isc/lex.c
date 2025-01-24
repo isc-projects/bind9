@@ -64,7 +64,7 @@ struct isc_lex {
 	LIST(struct inputsource) sources;
 };
 
-static isc_result_t
+static void
 grow_data(isc_lex_t *lex, size_t *remainingp, char **currp, char **prevp) {
 	char *tmp;
 
@@ -78,7 +78,6 @@ grow_data(isc_lex_t *lex, size_t *remainingp, char **currp, char **prevp) {
 	lex->data = tmp;
 	*remainingp += lex->max_token;
 	lex->max_token *= 2;
-	return ISC_R_SUCCESS;
 }
 
 void
@@ -179,27 +178,24 @@ isc_lex_setspecials(isc_lex_t *lex, isc_lexspecials_t specials) {
 	memmove(lex->specials, specials, 256);
 }
 
-static isc_result_t
+static void
 new_source(isc_lex_t *lex, bool is_file, bool need_close, void *input,
 	   const char *name) {
 	inputsource *source;
 
 	source = isc_mem_get(lex->mctx, sizeof(*source));
-	source->result = ISC_R_SUCCESS;
-	source->is_file = is_file;
-	source->need_close = need_close;
-	source->at_eof = false;
-	source->last_was_eol = lex->last_was_eol;
-	source->input = input;
-	source->name = isc_mem_strdup(lex->mctx, name);
-	source->pushback = NULL;
+	*source = (inputsource){
+		.is_file = is_file,
+		.need_close = need_close,
+		.last_was_eol = lex->last_was_eol,
+		.input = input,
+		.name = isc_mem_strdup(lex->mctx, name),
+		.line = 1,
+		.link = ISC_LINK_INITIALIZER,
+	};
 	isc_buffer_allocate(lex->mctx, &source->pushback,
 			    (unsigned int)lex->max_token);
-	source->ignored = 0;
-	source->line = 1;
-	ISC_LIST_INITANDPREPEND(lex->sources, source, link);
-
-	return ISC_R_SUCCESS;
+	ISC_LIST_PREPEND(lex->sources, source, link);
 }
 
 isc_result_t
@@ -218,14 +214,11 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename) {
 		return result;
 	}
 
-	result = new_source(lex, true, true, stream, filename);
-	if (result != ISC_R_SUCCESS) {
-		(void)fclose(stream);
-	}
-	return result;
+	new_source(lex, true, true, stream, filename);
+	return ISC_R_SUCCESS;
 }
 
-isc_result_t
+void
 isc_lex_openstream(isc_lex_t *lex, FILE *stream) {
 	char name[128];
 
@@ -237,7 +230,7 @@ isc_lex_openstream(isc_lex_t *lex, FILE *stream) {
 
 	snprintf(name, sizeof(name), "stream-%p", stream);
 
-	return new_source(lex, true, false, stream, name);
+	new_source(lex, true, false, stream, name);
 }
 
 isc_result_t
@@ -252,7 +245,8 @@ isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer) {
 
 	snprintf(name, sizeof(name), "buffer-%p", buffer);
 
-	return new_source(lex, false, false, buffer, name);
+	new_source(lex, false, false, buffer, name);
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -669,11 +663,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				state = lexstate_string;
 			}
 			if (remaining == 0U) {
-				result = grow_data(lex, &remaining, &curr,
-						   &prev);
-				if (result != ISC_R_SUCCESS) {
-					goto done;
-				}
+				grow_data(lex, &remaining, &curr, &prev);
 			}
 			INSIST(remaining > 0U);
 			*curr++ = c;
@@ -685,11 +675,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			    (options & ISC_LEXOPT_VPAIR) != 0)
 			{
 				if (remaining == 0U) {
-					result = grow_data(lex, &remaining,
-							   &curr, &prev);
-					if (result != ISC_R_SUCCESS) {
-						goto done;
-					}
+					grow_data(lex, &remaining, &curr,
+						  &prev);
 				}
 				INSIST(remaining > 0U);
 				*curr++ = c;
@@ -744,11 +731,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 								  : false;
 			}
 			if (remaining == 0U) {
-				result = grow_data(lex, &remaining, &curr,
-						   &prev);
-				if (result != ISC_R_SUCCESS) {
-					goto done;
-				}
+				grow_data(lex, &remaining, &curr, &prev);
 			}
 			INSIST(remaining > 0U);
 			*curr++ = c;
@@ -849,11 +832,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					escaped = false;
 				}
 				if (remaining == 0U) {
-					result = grow_data(lex, &remaining,
-							   &curr, &prev);
-					if (result != ISC_R_SUCCESS) {
-						goto done;
-					}
+					grow_data(lex, &remaining, &curr,
+						  &prev);
 				}
 				INSIST(remaining > 0U);
 				prev = curr;
@@ -901,11 +881,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 
 			if (remaining == 0U) {
-				result = grow_data(lex, &remaining, &curr,
-						   &prev);
-				if (result != ISC_R_SUCCESS) {
-					goto done;
-				}
+				grow_data(lex, &remaining, &curr, &prev);
 			}
 			INSIST(remaining > 0U);
 			prev = curr;

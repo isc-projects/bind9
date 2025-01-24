@@ -474,7 +474,6 @@ ns_plugin_register_t(const char *parameters, const void *cfg, const char *file,
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  *\li	Other errors are possible
  */
 

@@ -408,7 +408,6 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
  * Returns:
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_RANGE
- *\li	#ISC_R_NOMEMORY
  */
 
 isc_result_t
@@ -421,7 +420,6 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
  * Returns:
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_RANGE
- *\li	#ISC_R_NOMEMORY
  */
 
 bool

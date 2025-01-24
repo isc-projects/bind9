@@ -73,7 +73,7 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
  *
  * Returns:
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
+ * \li  other errors from dns_qp_insert()
  */
 
 isc_result_t

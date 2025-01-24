@@ -158,7 +158,6 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
  *\li		#ISC_R_SUCCESS
  *\li		#ISC_R_EXISTS - a key with this name already exists
  *\li		#ISC_R_NOTIMPLEMENTED - algorithm is not implemented
- *\li		#ISC_R_NOMEMORY
  */
 
 void
@@ -183,7 +182,6 @@ dns_tsig_sign(dns_message_t *msg);
  *
  *	Returns:
  *\li		#ISC_R_SUCCESS
- *\li		#ISC_R_NOMEMORY
  *\li		#ISC_R_NOSPACE
  *\li		#DNS_R_EXPECTEDTSIG
  *			- this is a response & msg->querytsig is NULL
@@ -205,7 +203,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
  *
  *	Returns:
  *\li		#ISC_R_SUCCESS
- *\li		#ISC_R_NOMEMORY
  *\li		#DNS_R_EXPECTEDTSIG - A TSIG was expected but not seen
  *\li		#DNS_R_UNEXPECTEDTSIG - A TSIG was seen but not expected
  *\li		#DNS_R_TSIGERRORSET - the TSIG verified but ->error was set

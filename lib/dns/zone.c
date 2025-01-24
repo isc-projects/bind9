@@ -885,7 +885,7 @@ static void
 zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs);
 static void
 zone_catz_disable(dns_zone_t *zone);
-static isc_result_t
+static void
 default_journal(dns_zone_t *zone);
 static void
 zone_xfrdone(dns_zone_t *zone, uint32_t *expireopt, isc_result_t result);
@@ -1537,11 +1537,10 @@ zone_freedbargs(dns_zone_t *zone) {
 	zone->db_argv = NULL;
 }
 
-isc_result_t
+void
 dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 	size_t size = 0;
 	unsigned int i;
-	isc_result_t result = ISC_R_SUCCESS;
 	void *mem;
 	char **tmp, *tmp2, *base;
 
@@ -1568,7 +1567,6 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 	}
 	UNLOCK_ZONE(zone);
 	*argv = mem;
-	return result;
 }
 
 void
@@ -1682,9 +1680,8 @@ dns_zone_setviewrevert(dns_zone_t *zone) {
 	UNLOCK_ZONE(zone);
 }
 
-isc_result_t
+void
 dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
-	isc_result_t result = ISC_R_SUCCESS;
 	char namebuf[1024];
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1711,14 +1708,13 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 	zone->strname = isc_mem_strdup(zone->mctx, namebuf);
 
 	if (inline_secure(zone)) {
-		result = dns_zone_setorigin(zone->raw, origin);
+		dns_zone_setorigin(zone->raw, origin);
 	}
 	UNLOCK_ZONE(zone);
-	return result;
 }
 
-static isc_result_t
-dns_zone_setstring(dns_zone_t *zone, char **field, const char *value) {
+static void
+setstring(dns_zone_t *zone, char **field, const char *value) {
 	char *copy;
 
 	if (value != NULL) {
@@ -1732,29 +1728,22 @@ dns_zone_setstring(dns_zone_t *zone, char **field, const char *value) {
 	}
 
 	*field = copy;
-	return ISC_R_SUCCESS;
 }
 
-isc_result_t
+void
 dns_zone_setfile(dns_zone_t *zone, const char *file, dns_masterformat_t format,
 		 const dns_master_style_t *style) {
-	isc_result_t result = ISC_R_SUCCESS;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->stream == NULL);
 
 	LOCK_ZONE(zone);
-	result = dns_zone_setstring(zone, &zone->masterfile, file);
-	if (result == ISC_R_SUCCESS) {
-		zone->masterformat = format;
-		if (format == dns_masterformat_text) {
-			zone->masterstyle = style;
-		}
-		result = default_journal(zone);
+	setstring(zone, &zone->masterfile, file);
+	zone->masterformat = format;
+	if (format == dns_masterformat_text) {
+		zone->masterstyle = style;
 	}
+	default_journal(zone);
 	UNLOCK_ZONE(zone);
-
-	return result;
 }
 
 const char *
@@ -1764,11 +1753,9 @@ dns_zone_getfile(dns_zone_t *zone) {
 	return zone->masterfile;
 }
 
-isc_result_t
+void
 dns_zone_setstream(dns_zone_t *zone, const FILE *stream,
 		   dns_masterformat_t format, const dns_master_style_t *style) {
-	isc_result_t result = ISC_R_SUCCESS;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(stream != NULL);
 	REQUIRE(zone->masterfile == NULL);
@@ -1779,10 +1766,8 @@ dns_zone_setstream(dns_zone_t *zone, const FILE *stream,
 	if (format == dns_masterformat_text) {
 		zone->masterstyle = style;
 	}
-	result = default_journal(zone);
+	default_journal(zone);
 	UNLOCK_ZONE(zone);
-
-	return result;
 }
 
 dns_ttl_t
@@ -1808,9 +1793,8 @@ dns_zone_setmaxttl(dns_zone_t *zone, dns_ttl_t maxttl) {
 	return;
 }
 
-static isc_result_t
+static void
 default_journal(dns_zone_t *zone) {
-	isc_result_t result;
 	char *journal;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1825,24 +1809,19 @@ default_journal(dns_zone_t *zone) {
 	} else {
 		journal = NULL;
 	}
-	result = dns_zone_setstring(zone, &zone->journal, journal);
+	setstring(zone, &zone->journal, journal);
 	if (journal != NULL) {
 		isc_mem_free(zone->mctx, journal);
 	}
-	return result;
 }
 
-isc_result_t
+void
 dns_zone_setjournal(dns_zone_t *zone, const char *myjournal) {
-	isc_result_t result = ISC_R_SUCCESS;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	result = dns_zone_setstring(zone, &zone->journal, myjournal);
+	setstring(zone, &zone->journal, myjournal);
 	UNLOCK_ZONE(zone);
-
-	return result;
 }
 
 char *
@@ -5474,15 +5453,11 @@ cleanup:
 	{
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FIRSTREFRESH);
 
-		if (result != ISC_R_NOMEMORY) {
-			if (zone->journal != NULL) {
-				zone_saveunique(zone, zone->journal,
-						"jn-XXXXXXXX");
-			}
-			if (zone->masterfile != NULL) {
-				zone_saveunique(zone, zone->masterfile,
-						"db-XXXXXXXX");
-			}
+		if (zone->journal != NULL) {
+			zone_saveunique(zone, zone->journal, "jn-XXXXXXXX");
+		}
+		if (zone->masterfile != NULL) {
+			zone_saveunique(zone, zone->masterfile, "db-XXXXXXXX");
 		}
 
 		/* Mark the zone for immediate refresh. */
@@ -19962,17 +19937,13 @@ dns_zone_getrcvquerystats(dns_zone_t *zone) {
 	}
 }
 
-isc_result_t
+void
 dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory) {
-	isc_result_t result = ISC_R_SUCCESS;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	result = dns_zone_setstring(zone, &zone->keydirectory, directory);
+	setstring(zone, &zone->keydirectory, directory);
 	UNLOCK_ZONE(zone);
-
-	return result;
 }
 
 const char *
