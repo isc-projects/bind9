@@ -977,7 +977,7 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	result = dns_validator_create(
 		fctx->res->view, name, type, rdataset, sigrdataset, message,
 		valoptions, fctx->loop, validated, valarg, &fctx->nvalidations,
-		&fctx->nfails, fctx->qc, fctx->gqc, &validator);
+		&fctx->nfails, fctx->qc, fctx->gqc, fctx, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	inc_stats(fctx->res, dns_resstatscounter_val);
 	ISC_LIST_APPEND(fctx->validators, validator, link);
@@ -1322,8 +1322,6 @@ fctx_cleanup(fetchctx_t *fctx) {
 		ISC_LIST_UNLINK(fctx->altaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
 	}
-
-	dns_ede_unlinkall(fctx->mctx, &fctx->edelist);
 }
 
 static void
@@ -1588,7 +1586,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 
 		/*
 		 * Copy EDE that occured during the resolution to all
-		 * clients
+		 * clients.
 		 */
 		for (dns_ede_t *ede = ISC_LIST_HEAD(fctx->edelist); ede != NULL;
 		     ede = ISC_LIST_NEXT(ede, link))
@@ -4083,7 +4081,6 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 					sizeof(namebuf));
 			dns_rdatatype_format(fctx->qmintype, typebuf,
 					     sizeof(typebuf));
-
 			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
 				      "fctx %p(%s): attempting QNAME "
@@ -4200,6 +4197,7 @@ resume_qmin(void *arg) {
 	}
 	UNLOCK(&fctx->lock);
 
+	dns_resolver_copyede(fctx->qminfetch, fctx);
 	dns_resolver_destroyfetch(&fctx->qminfetch);
 
 	/*
@@ -4338,7 +4336,6 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 	REQUIRE(ISC_LIST_EMPTY(fctx->finds));
 	REQUIRE(ISC_LIST_EMPTY(fctx->altfinds));
-	REQUIRE(ISC_LIST_EMPTY(fctx->edelist));
 	REQUIRE(atomic_load_acquire(&fctx->pending) == 0);
 	REQUIRE(ISC_LIST_EMPTY(fctx->validators));
 	REQUIRE(fctx->state != fetchstate_active);
@@ -4373,6 +4370,8 @@ fctx_destroy(fetchctx_t *fctx) {
 		ISC_LIST_UNLINK(fctx->bad_edns, sa, link);
 		isc_mem_put(fctx->mctx, sa, sizeof(*sa));
 	}
+
+	dns_ede_unlinkall(fctx->mctx, &fctx->edelist);
 
 	isc_counter_detach(&fctx->qc);
 	if (fctx->gqc != NULL) {
@@ -7201,6 +7200,7 @@ resume_dslookup(void *arg) {
 	}
 
 cleanup:
+	dns_resolver_copyede(fetch, fctx);
 	dns_resolver_destroyfetch(&fetch);
 
 	if (result != ISC_R_SUCCESS) {
@@ -11077,4 +11077,45 @@ dns_resolver_freefresp(dns_fetchresponse_t **frespp) {
 	*frespp = NULL;
 	dns_ede_unlinkall(fresp->mctx, &fresp->edelist);
 	isc_mem_putanddetach(&fresp->mctx, fresp, sizeof(*fresp));
+}
+
+void
+dns_resolver_edeappend(fetchctx_t *fctx, uint16_t info_code, const char *what,
+		       const dns_name_t *name, dns_rdatatype_t type) {
+	REQUIRE(VALID_FCTX(fctx));
+	REQUIRE(what);
+	REQUIRE(name);
+
+	char extra[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE +
+		   DNS_EDE_EXTRATEXT_LEN];
+	size_t offset = 0;
+
+	/*
+	 * -2 to leave room for separator "/" and NULL terminator
+	 */
+	snprintf(extra, DNS_EDE_EXTRATEXT_LEN - 2, "%s ", what);
+	offset += strlen(extra);
+	dns_name_format(name, extra + offset, DNS_NAME_FORMATSIZE);
+	offset = strlcat(extra, "/", sizeof(extra));
+	dns_rdatatype_format(type, extra + offset,
+			     DNS_RDATATYPE_FORMATSIZE + 1);
+
+	LOCK(&fctx->lock);
+	dns_ede_append(fctx->mctx, &fctx->edelist, info_code, extra);
+	UNLOCK(&fctx->lock)
+}
+
+void
+dns_resolver_copyede(dns_fetch_t *from, fetchctx_t *to) {
+	REQUIRE(DNS_FETCH_VALID(from));
+	REQUIRE(VALID_FCTX(to));
+
+	LOCK(&to->lock);
+	for (dns_ede_t *ede = ISC_LIST_HEAD(from->private->edelist);
+	     ede != NULL; ede = ISC_LIST_NEXT(ede, link))
+	{
+		dns_ede_append(to->mctx, &to->edelist, ede->info_code,
+			       ede->extra_text);
+	}
+	UNLOCK(&to->lock);
 }

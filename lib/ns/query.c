@@ -2492,6 +2492,18 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 		if (!dns_resolver_algorithm_supported(client->view->resolver,
 						      name, rrsig.algorithm))
 		{
+			char txt[DNS_NAME_FORMATSIZE + 32];
+			isc_buffer_t buffer;
+
+			isc_buffer_init(&buffer, txt, sizeof(txt));
+			dns_secalg_totext(rrsig.algorithm, &buffer);
+			isc_buffer_putstr(&buffer, " ");
+			dns_name_totext(name, DNS_NAME_OMITFINALDOT, &buffer);
+			isc_buffer_putstr(&buffer, " (cached)");
+			isc_buffer_putuint8(&buffer, 0);
+
+			ns_client_extendederror(client, DNS_EDE_DNSKEYALG,
+						isc_buffer_base(&buffer));
 			continue;
 		}
 		if (!dns_name_issubdomain(name, &rrsig.signer)) {
