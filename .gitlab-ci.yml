@@ -467,10 +467,12 @@ stages:
       junit: junit.xml
 
 .docs: &docs_job
+  variables:
+    DOC_MAKE_TARGET: doc
   stage: docs
   script:
     - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} -k ${DOC_MAKE_TARGET} V=1
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" -e "input text line longer than 80 bytes" )
 
 .respdiff: &respdiff_job
@@ -671,12 +673,15 @@ changelog:
     GIT_AUTHOR_EMAIL: $GITLAB_USER_EMAIL
     GIT_COMMITTER_NAME: $GITLAB_USER_NAME
     GIT_COMMITTER_EMAIL: $GITLAB_USER_EMAIL
+    DOC_MAKE_TARGET: html
   before_script:
     - echo -e "$CI_MERGE_REQUEST_TITLE\n" > commitmsg
     - sed -i 's/^Draft:\s*//' commitmsg
     - echo -e "$CI_MERGE_REQUEST_DESCRIPTION" >> commitmsg
     - git commit --allow-empty -F commitmsg
-    - ./contrib/gitchangelog/gitchangelog.py HEAD^..HEAD
+    - ./contrib/gitchangelog/gitchangelog.py HEAD^..HEAD >> $(ls doc/changelog/changelog-9.* | sort --version-sort | tail -n 1)
+  after_script:
+    - git diff
   needs:
     - job: autoreconf
       artifacts: true
