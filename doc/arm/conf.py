@@ -227,6 +227,11 @@ linkcheck_ignore = [
     "https://www.godaddy.com",
     "https://www.icann.org",
 ]
+# Anchors checking does not work for GitHub, see
+# https://github.com/pypa/packaging.python.org/issues/1272.
+linkcheck_anchors_ignore_for_url = [
+    "https://.*github.*",
+]
 
 #
 # The rst_epilog will be completely overwritten from the Makefile,
