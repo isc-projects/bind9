@@ -388,3 +388,15 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
  */
 isc_result_t
 named_server_skr(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
+
+/*%
+ * Toggle memory profiling if supported.
+ */
+isc_result_t
+named_server_togglememprof(isc_lex_t *lex);
+
+/*%
+ * Get status of memory profiling.
+ */
+const char *
+named_server_getmemprof(void);
