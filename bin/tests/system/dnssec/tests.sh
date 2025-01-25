@@ -4723,5 +4723,56 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "checking validating forwarder behavior with mismatching NS ($n)"
+ret=0
+rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
+$DIG +tcp +cd -p "$PORT" -t ns inconsistent @10.53.0.9 >dig.out.ns9.test$n.1 || ret=1
+grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" dig.out.ns9.test$n.1 >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns9.test$n.1 >/dev/null && ret=1
+$DIG +tcp +cd +dnssec -p "$PORT" -t ns inconsistent @10.53.0.9 >dig.out.ns9.test$n.2 || ret=1
+grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" dig.out.ns9.test$n.2 >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns9.test$n.2 >/dev/null && ret=1
+$DIG +tcp +dnssec -p "$PORT" -t ns inconsistent @10.53.0.9 >dig.out.ns9.test$n.3 || ret=1
+grep "ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1" dig.out.ns9.test$n.3 >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns9.test$n.3 >/dev/null || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "checking forwarder CD behavior (DS mismatch and local trust anchor) ($n)"
+ret=0
+rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
+# confirm invalid DS produces SERVFAIL in resolver
+$DIG +tcp +dnssec -p "$PORT" @10.53.0.4 localkey.example soa >dig.out.ns4.test$n || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n >/dev/null || ret=1
+# check that lookup using forwarder succeeds and that SERVFAIL was received
+nextpart ns9/named.run >/dev/null
+$DIG +tcp +dnssec -p "$PORT" @10.53.0.9 localkey.example soa >dig.out.ns9.test$n || ret=1
+grep "status: NOERROR" dig.out.ns9.test$n >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns9.test$n >/dev/null || ret=1
+nextpart ns9/named.run | grep 'status: SERVFAIL' >/dev/null || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+copy_setports ns4/named5.conf.in ns4/named.conf
+rndccmd 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
+sleep 3
+
+echo_i "checking forwarder CD behavior (forward server with bad trust anchor) ($n)"
+ret=0
+# confirm invalid trust anchor produces SERVFAIL in resolver
+$DIG +tcp +dnssec -p "$PORT" @10.53.0.4 a.secure.example >dig.out.ns4.test$n || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n >/dev/null || ret=1
+# check that lookup using forwarder succeeds and that SERVFAIL was received
+nextpart ns9/named.run >/dev/null
+$DIG +tcp +dnssec -p "$PORT" @10.53.0.9 a.secure.example soa >dig.out.ns9.test$n || ret=1
+grep "status: NOERROR" dig.out.ns9.test$n >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns9.test$n >/dev/null || ret=1
+nextpart ns9/named.run | grep 'status: SERVFAIL' >/dev/null || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

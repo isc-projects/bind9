@@ -621,6 +621,21 @@ cat "$infile" "$keyname.key" >"$zonefile"
 sed -e 's/bogus/badds/g' <dsset-bogus.example. >dsset-badds.example.
 
 #
+# Same as badds, but locally trusted by the forwarder
+#
+zone=localkey.example.
+infile=bogus.example.db.in
+zonefile=localkey.example.db
+
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+
+cat "$infile" "$keyname.key" >"$zonefile"
+
+"$SIGNER" -P -o "$zone" "$zonefile" >/dev/null
+sed -e 's/bogus/localkey/g' <dsset-bogus.example. >dsset-localkey.example.
+keyfile_to_static_keys $keyname >../ns9/trusted-localkey.conf
+
+#
 # A zone with future signatures.
 #
 zone=future.example

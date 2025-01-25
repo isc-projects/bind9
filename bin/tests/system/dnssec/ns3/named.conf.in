@@ -103,6 +103,12 @@ zone "badds.example" {
 	allow-update { any; };
 };
 
+zone "localkey.example" {
+	type primary;
+	file "localkey.example.db.signed";
+	allow-update { any; };
+};
+
 zone "dynamic.example" {
 	type primary;
 	file "dynamic.example.db.signed";
