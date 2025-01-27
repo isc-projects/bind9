@@ -3704,8 +3704,8 @@ status=$((status + ret))
 echo_i "checking both EDE code 1 and 2 for unsupported digest on one DNSKEY and alg on the other ($n)"
 ret=0
 dig_with_opts @10.53.0.4 a.digest-alg-unsupported.example >dig.out.ns4.test$n || ret=1
-grep "; EDE: 1 (Unsupported DNSKEY Algorithm): (ED448 digest-alg-unsupported.example/DNSKEY)" dig.out.ns4.test$n >/dev/null || ret=1
-grep "; EDE: 2 (Unsupported DS Digest Type): (SHA-1 digest-alg-unsupported.example/DNSKEY)" dig.out.ns4.test$n >/dev/null || ret=1
+grep "; EDE: 1 (Unsupported DNSKEY Algorithm): (ECDSAP384SHA384 digest-alg-unsupported.example/DNSKEY)" dig.out.ns4.test$n >/dev/null || ret=1
+grep "; EDE: 2 (Unsupported DS Digest Type): (SHA-384 digest-alg-unsupported.example/DNSKEY)" dig.out.ns4.test$n >/dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
