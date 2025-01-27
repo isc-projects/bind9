@@ -626,30 +626,32 @@ qpcnode_newref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t nlocktype,
 		func, file, line, node, refs + 1);
 #endif
 
-	if (refs == 0) {
-		/*
-		 * this is the first external reference to the node.
-		 *
-		 * we need to hold the node or tree lock to avoid
-		 * incrementing the reference count while also deleting
-		 * the node. delete_node() is always protected by both
-		 * tree and node locks being write-locked.
-		 */
-		INSIST(nlocktype != isc_rwlocktype_none ||
-		       tlocktype != isc_rwlocktype_none);
-
-		refs = isc_refcount_increment0(
-			&qpdb->node_locks[node->locknum].references);
-#if DNS_DB_NODETRACE
-		fprintf(stderr,
-			"incr:nodelock:%s:%s:%u:%p:%p->references = "
-			"%" PRIuFAST32 "\n",
-			func, file, line, node,
-			&qpdb->node_locks[node->locknum], refs + 1);
-#else
-		UNUSED(refs);
-#endif
+	if (refs > 0) {
+		return;
 	}
+
+	/*
+	 * this is the first external reference to the node.
+	 *
+	 * we need to hold the node or tree lock to avoid
+	 * incrementing the reference count while also deleting
+	 * the node. delete_node() is always protected by both
+	 * tree and node locks being write-locked.
+	 */
+	INSIST(nlocktype != isc_rwlocktype_none ||
+	       tlocktype != isc_rwlocktype_none);
+
+	refs = isc_refcount_increment0(
+		&qpdb->node_locks[node->locknum].references);
+#if DNS_DB_NODETRACE
+	fprintf(stderr,
+		"incr:nodelock:%s:%s:%u:%p:%p->references = "
+		"%" PRIuFAST32 "\n",
+		func, file, line, node, &qpdb->node_locks[node->locknum],
+		refs + 1);
+#else
+	UNUSED(refs);
+#endif
 }
 
 static void
@@ -661,6 +663,33 @@ newref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t nlocktype,
 
 static void
 cleanup_deadnodes(void *arg);
+
+static bool
+qpcnode_decref(qpcache_t *qpdb, qpcnode_t *node DNS__DB_FLARG) {
+	uint_fast32_t refs = isc_refcount_decrement(&node->erefs);
+
+#if DNS_DB_NODETRACE
+	fprintf(stderr, "decr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
+		func, file, line, node, refs - 1);
+#endif
+	if (refs > 1) {
+		return false;
+	}
+
+	refs = isc_refcount_decrement(
+		&qpdb->node_locks[node->locknum].references);
+#if DNS_DB_NODETRACE
+	fprintf(stderr,
+		"decr:nodelock:%s:%s:%u:%p:%p->references = "
+		"%" PRIuFAST32 "\n",
+		func, file, line, node, &qpdb->node_locks[node->locknum],
+		refs - 1);
+#else
+	UNUSED(refs);
+#endif
+
+	return true;
+}
 
 /*
  * Caller must be holding the node lock; either the read or write lock.
@@ -678,42 +707,22 @@ cleanup_deadnodes(void *arg);
  * to zero.  (NOTE: Decrementing the reference count of a node to zero does
  * not mean it will be immediately freed.)
  */
-static bool
+static void
 decref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
        isc_rwlocktype_t *tlocktypep, bool tryupgrade DNS__DB_FLARG) {
 	isc_result_t result;
 	bool locked = *tlocktypep != isc_rwlocktype_none;
 	bool write_locked = false;
-	int bucket = node->locknum;
-	db_nodelock_t *nodelock = &qpdb->node_locks[bucket];
-	uint_fast32_t refs;
 
 	REQUIRE(*nlocktypep != isc_rwlocktype_none);
 
-	refs = isc_refcount_decrement(&node->erefs);
-#if DNS_DB_NODETRACE
-	fprintf(stderr, "decr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
-		func, file, line, node, refs - 1);
-#endif
-	if (refs > 1) {
-		qpcnode_unref(node);
-		return false;
+	if (!qpcnode_decref(qpdb, node DNS__DB_FLARG_PASS)) {
+		goto unref;
 	}
-
-	refs = isc_refcount_decrement(&nodelock->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr,
-		"decr:nodelock:%s:%s:%u:%p:%p->references = "
-		"%" PRIuFAST32 "\n",
-		func, file, line, node, nodelock, refs - 1);
-#else
-	UNUSED(refs);
-#endif
 
 	/* Handle easy and typical case first. */
 	if (!node->dirty && (node->data != NULL || node == qpdb->origin_node)) {
-		qpcnode_unref(node);
-		return false;
+		goto unref;
 	}
 
 	/*
@@ -725,18 +734,12 @@ decref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
 
 	/* Upgrade the lock? */
 	if (*nlocktypep == isc_rwlocktype_read) {
-		NODE_FORCEUPGRADE(&nodelock->lock, nlocktypep);
+		NODE_FORCEUPGRADE(&qpdb->node_locks[node->locknum].lock,
+				  nlocktypep);
 	}
 
-	refs = isc_refcount_decrement(&node->erefs);
-#if DNS_DB_NODETRACE
-	fprintf(stderr, "decr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
-		func, file, line, node, refs - 1);
-#endif
-
-	if (refs > 1) {
-		qpcnode_unref(node);
-		return false;
+	if (!qpcnode_decref(qpdb, node DNS__DB_FLARG_PASS)) {
+		goto unref;
 	}
 
 	if (node->dirty) {
@@ -776,20 +779,9 @@ decref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
 		write_locked = true;
 	}
 
-	refs = isc_refcount_decrement(&nodelock->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr,
-		"decr:nodelock:%s:%s:%u:%p:%p->references = %" PRIuFAST32 "\n",
-		func, file, line, node, nodelock, refs - 1);
-#else
-	UNUSED(refs);
-#endif
-
 	if (node->data != NULL || node == qpdb->origin_node) {
 		goto restore_locks;
 	}
-
-#undef KEEP_NODE
 
 	if (write_locked) {
 		/*
@@ -800,11 +792,12 @@ decref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
 		newref(qpdb, node, *nlocktypep, *tlocktypep DNS__DB_FLARG_PASS);
 
 		isc_queue_node_init(&node->deadlink);
-		if (!isc_queue_enqueue_entry(&qpdb->deadnodes[bucket], node,
-					     deadlink))
+		if (!isc_queue_enqueue_entry(&qpdb->deadnodes[node->locknum],
+					     node, deadlink))
 		{
 			/* Queue was empty, trigger new cleaning */
-			isc_loop_t *loop = isc_loop_get(qpdb->loopmgr, bucket);
+			isc_loop_t *loop = isc_loop_get(qpdb->loopmgr,
+							node->locknum);
 
 			isc_async_run(loop, cleanup_deadnodes, qpdb);
 		}
@@ -818,8 +811,8 @@ restore_locks:
 		TREE_UNLOCK(&qpdb->tree_lock, tlocktypep);
 	}
 
+unref:
 	qpcnode_unref(node);
-	return true;
 }
 
 static void
@@ -2752,13 +2745,11 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 
 	NODE_RDLOCK(&nodelock->lock, &nlocktype);
 
-	if (decref(qpdb, node, &nlocktype, &tlocktype, true DNS__DB_FLARG_PASS))
+	decref(qpdb, node, &nlocktype, &tlocktype, true DNS__DB_FLARG_PASS);
+	if (isc_refcount_current(&nodelock->references) == 0 &&
+	    nodelock->exiting)
 	{
-		if (isc_refcount_current(&nodelock->references) == 0 &&
-		    nodelock->exiting)
-		{
-			inactive = true;
-		}
+		inactive = true;
 	}
 
 	NODE_UNLOCK(&nodelock->lock, &nlocktype);
