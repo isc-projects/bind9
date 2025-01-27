@@ -234,7 +234,8 @@ client_extendederror_reset(ns_client_t *client) {
 
 void
 ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
-	const uint16_t codelen = sizeof(code);
+	uint16_t becode;
+	const uint16_t becodelen = sizeof(becode);
 	uint16_t textlen = 0;
 	size_t pos = 0;
 	unsigned char *ede = NULL;
@@ -246,7 +247,7 @@ ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
 	 * As ede will be directly put in the DNS message we need to make sure
 	 * the code is in big-endian format
 	 */
-	code = htobe16(code);
+	becode = htobe16(code);
 
 	for (pos = 0; pos < DNS_EDE_MAX_ERRORS; pos++) {
 		edns = client->ede[pos];
@@ -255,7 +256,7 @@ ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
 			break;
 		}
 
-		if (memcmp(&code, edns->value, sizeof(code)) == 0) {
+		if (memcmp(&becode, edns->value, becodelen) == 0) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 				      "ignoring duplicate ede %u %s", code,
@@ -288,16 +289,16 @@ ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
 		}
 	}
 
-	ede = isc_mem_get(client->manager->mctx, codelen + textlen);
+	ede = isc_mem_get(client->manager->mctx, becodelen + textlen);
 
-	memcpy(ede, &code, sizeof(code));
+	memcpy(ede, &becode, sizeof(code));
 	if (textlen > 0) {
-		memcpy(ede + codelen, text, textlen);
+		memcpy(ede + becodelen, text, textlen);
 	}
 
 	edns = isc_mem_get(client->manager->mctx, sizeof(*edns));
 	*edns = (dns_ednsopt_t){ .code = DNS_OPT_EDE,
-				 .length = codelen + textlen,
+				 .length = becodelen + textlen,
 				 .value = ede };
 
 	client->ede[pos] = edns;
