@@ -101,7 +101,7 @@ const char *ownercase_vectors[12][2] = {
 static bool
 ownercase_test_one(const char *str1, const char *str2) {
 	isc_result_t result;
-	db_nodelock_t node_locks[1];
+	isc_rwlock_t node_locks[1];
 	qpzonedb_t qpdb = {
 		.common.methods = &qpdb_zonemethods,
 		.common.mctx = mctx,
@@ -125,7 +125,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 
 	memset(node_locks, 0, sizeof(node_locks));
 	/* Minimal initialization of the mock objects */
-	NODE_INITLOCK(&qpdb.node_locks[0].lock);
+	NODE_INITLOCK(&qpdb.node_locks[0]);
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
@@ -145,7 +145,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 	/* Retrieve the case to name2 */
 	dns_rdataset_getownercase(&rdataset, name2);
 
-	NODE_DESTROYLOCK(&qpdb.node_locks[0].lock);
+	NODE_DESTROYLOCK(&qpdb.node_locks[0]);
 
 	return dns_name_caseequal(name1, name2);
 }
@@ -166,7 +166,7 @@ ISC_RUN_TEST_IMPL(ownercase) {
 
 ISC_RUN_TEST_IMPL(setownercase) {
 	isc_result_t result;
-	db_nodelock_t node_locks[1];
+	isc_rwlock_t node_locks[1];
 	qpzonedb_t qpdb = {
 		.common.methods = &qpdb_zonemethods,
 		.common.mctx = mctx,
@@ -194,7 +194,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 
 	/* Minimal initialization of the mock objects */
 	memset(node_locks, 0, sizeof(node_locks));
-	NODE_INITLOCK(&qpdb.node_locks[0].lock);
+	NODE_INITLOCK(&qpdb.node_locks[0]);
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
@@ -211,7 +211,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	/* Retrieve the case to name2 */
 	dns_rdataset_getownercase(&rdataset, name2);
 
-	NODE_DESTROYLOCK(&qpdb.node_locks[0].lock);
+	NODE_DESTROYLOCK(&qpdb.node_locks[0]);
 
 	assert_true(dns_name_caseequal(name1, name2));
 }
