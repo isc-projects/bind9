@@ -207,7 +207,6 @@ struct qpcache {
 	/* Locks for individual tree nodes */
 	unsigned int node_lock_count;
 	db_nodelock_t *node_locks;
-	qpcnode_t *origin_node;
 	dns_stats_t *rrsetstats;     /* cache DB only */
 	isc_stats_t *cachestats;     /* cache DB only */
 	isc_stats_t *gluecachestats; /* zone DB only */
@@ -720,7 +719,7 @@ decref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
 	}
 
 	/* Handle easy and typical case first. */
-	if (!node->dirty && (node->data != NULL || node == qpdb->origin_node)) {
+	if (!node->dirty && node->data != NULL) {
 		goto unref;
 	}
 
@@ -778,7 +777,7 @@ decref(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
 		write_locked = true;
 	}
 
-	if (node->data != NULL || node == qpdb->origin_node) {
+	if (node->data != NULL) {
 		goto restore_locks;
 	}
 
@@ -2555,10 +2554,6 @@ qpcache_destroy(dns_db_t *arg) {
 	unsigned int i;
 	unsigned int inactive = 0;
 
-	if (qpdb->origin_node != NULL) {
-		qpcnode_detach(&qpdb->origin_node);
-	}
-
 	/*
 	 * Even though there are no external direct references, there still
 	 * may be nodes in use.
@@ -3622,28 +3617,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	return mu.leaves;
 }
 
-static isc_result_t
-getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
-	qpcache_t *qpdb = (qpcache_t *)db;
-	qpcnode_t *onode = NULL;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(VALID_QPDB(qpdb));
-	REQUIRE(nodep != NULL && *nodep == NULL);
-
-	/* Note that the access to origin_node doesn't require a DB lock */
-	onode = (qpcnode_t *)qpdb->origin_node;
-	if (onode != NULL) {
-		newref(qpdb, onode, isc_rwlocktype_none,
-		       isc_rwlocktype_none DNS__DB_FLARG_PASS);
-		*nodep = (dns_dbnode_t *)qpdb->origin_node;
-	} else {
-		result = ISC_R_NOTFOUND;
-	}
-
-	return result;
-}
-
 static void
 locknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type) {
 	qpcache_t *qpdb = (qpcache_t *)db;
@@ -4387,7 +4360,6 @@ static dns_dbmethods_t qpdb_cachemethods = {
 	.addrdataset = qpcache_addrdataset,
 	.deleterdataset = qpcache_deleterdataset,
 	.nodecount = nodecount,
-	.getoriginnode = getoriginnode,
 	.getrrsetstats = getrrsetstats,
 	.setcachestats = setcachestats,
 	.setservestalettl = setservestalettl,
