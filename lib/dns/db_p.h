@@ -143,14 +143,6 @@ typedef struct dns_glue_additionaldata_ctx {
 	dns_glue_t *glue;
 } dns_glue_additionaldata_ctx_t;
 
-typedef struct {
-	isc_rwlock_t lock;
-	/* Protected in the refcount routines. */
-	isc_refcount_t references;
-	/* Locked by lock. */
-	bool exiting;
-} db_nodelock_t;
-
 static inline bool
 prio_type(dns_typepair_t type) {
 	switch (type) {
