@@ -309,7 +309,7 @@ zonefile=digest-alg-unsupported.example.db
 cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "cnameandkey.$zone")
 dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "dnameandkey.$zone")
 keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
-keyname2=$("$KEYGEN" -q -a ED448 -b "$DEFAULT_BITS" -n zone "$zone")
+keyname2=$("$KEYGEN" -q -a ECDSAP384SHA384 -b "$DEFAULT_BITS" -n zone "$zone")
 
 cat "$infile" "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" "$keyname2.key" >"$zonefile"
 
@@ -319,7 +319,7 @@ mv "$zonefile".tmp "$zonefile".signed
 
 # override generated DS record file so we can set different digest to each keys
 DSFILE="dsset-${zone}"
-$DSFROMKEY -1 -A -f ${zonefile}.signed "$zone" | head -n 1 >"$DSFILE"
+$DSFROMKEY -a SHA-384 -A -f ${zonefile}.signed "$zone" | head -n 1 >"$DSFILE"
 $DSFROMKEY -2 -A -f ${zonefile}.signed "$zone" | tail -1 >>"$DSFILE"
 
 #
