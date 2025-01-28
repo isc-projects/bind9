@@ -1727,6 +1727,6 @@ backports:
 merged-metadata:
   <<: *post_merge
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+(-sub)?$/ || $CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+.[0-9]+-release$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+(-sub)?$/ || $CI_COMMIT_REF_NAME =~ /^v9.[0-9]+.[0-9]+-release$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
     - bind9-qa/releng/after_merge.py "$CI_PROJECT_ID" "$MERGE_REQUEST_ID"
