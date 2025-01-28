@@ -66,6 +66,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns2/settime.out.updatecheck-kskonly.secure.zsk",
         "ns2/single-nsec3.db",
         "ns2/too-many-iterations.db",
+        "ns2/inconsistent.db",
         "ns2/trusted.db",
         "ns2/updatecheck-kskonly.secure.ksk.id",
         "ns2/updatecheck-kskonly.secure.ksk.key",
