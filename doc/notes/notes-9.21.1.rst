@@ -27,7 +27,7 @@ New Features
 
   The implementation is loosely based on
   `draft-icann-dnssec-keymgmt-01.txt
-  <https://www.iana.org/dnssec/archive/files/draft-icann-dnssec-keymgmt-01.txt>`_.
+  <https://web.archive.org/web/20250121040252/https://www.iana.org/dnssec/archive/files/draft-icann-dnssec-keymgmt-01.txt>`_.
   :gl:`#1128`
 
 - Allow limiting the number of differences in IXFR.
