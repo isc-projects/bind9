@@ -317,8 +317,10 @@ enum {
 #define dns_opcode_status ((dns_opcode_t)dns_opcode_status)
 	dns_opcode_notify = 4,
 #define dns_opcode_notify ((dns_opcode_t)dns_opcode_notify)
-	dns_opcode_update = 5 /* dynamic update */
+	dns_opcode_update = 5, /* dynamic update */
 #define dns_opcode_update ((dns_opcode_t)dns_opcode_update)
+	dns_opcode_max = 6,
+#define dns_opcode_max ((dns_opcode_t)dns_opcode_max)
 };
 
 /*%
