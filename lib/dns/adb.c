@@ -3012,7 +3012,7 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	result = dns_resolver_createfetch(
 		adb->res, adbname->name, type, name, nameservers, NULL, NULL, 0,
 		options, depth, qc, gqc, isc_loop(), fetch_callback, adbname,
-		&fetch->rdataset, NULL, &fetch->fetch);
+		NULL, &fetch->rdataset, NULL, &fetch->fetch);
 	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL, "fetch_name: createfetch failed with %s",
 		   isc_result_totext(result));

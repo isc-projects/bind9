@@ -60,6 +60,7 @@
 #include <isc/xml.h>
 
 #include <dns/byaddr.h>
+#include <dns/ede.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/message.h>
