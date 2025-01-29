@@ -159,26 +159,54 @@ ISC_RUN_TEST_IMPL(dns_ede_test_infocode_range) {
 ISC_RUN_TEST_IMPL(dns_ede_test_copy) {
 	dns_edectx_t edectx1;
 	dns_edectx_t edectx2;
+	dns_edectx_t edectx3;
 
 	dns_ede_init(mctx, &edectx1);
 	dns_ede_init(mctx, &edectx2);
 
 	dns_ede_add(&edectx1, 1, NULL);
-	dns_ede_add(&edectx1, 2, "two");
+	dns_ede_add(&edectx1, 2, "two-the-first");
 	dns_ede_add(&edectx1, 3, "three");
 
 	const ede_test_expected_t expected[] = {
 		{ .code = 1, .txt = NULL },
-		{ .code = 2, .txt = "two" },
+		{ .code = 2, .txt = "two-the-first" },
 		{ .code = 3, .txt = "three" },
 	};
 
 	dns_ede_test_equals(expected, 3, &edectx1);
 	dns_ede_copy(&edectx2, &edectx1);
 	dns_ede_test_equals(expected, 3, &edectx2);
+	dns_ede_test_equals(expected, 3, &edectx1);
+
+	dns_ede_reset(&edectx2);
+	dns_ede_add(&edectx2, 1, "one-the-first-with-txt");
+	dns_ede_add(&edectx2, 2, "two-the-second");
+
+	const ede_test_expected_t expected2[] = {
+		{ .code = 1, .txt = "one-the-first-with-txt" },
+		{ .code = 2, .txt = "two-the-second" },
+		{ .code = 3, .txt = "three" }
+	};
+
+	dns_ede_copy(&edectx2, &edectx1);
+	dns_ede_test_equals(expected2, 3, &edectx2);
+	dns_ede_test_equals(expected, 3, &edectx1);
+
+	dns_ede_init(mctx, &edectx3);
+	dns_ede_add(&edectx3, 2, "two-the-third");
+	dns_ede_copy(&edectx3, &edectx2);
+
+	const ede_test_expected_t expected3[] = {
+		{ .code = 2, .txt = "two-the-third" },
+		{ .code = 1, .txt = "one-the-first-with-txt" },
+		{ .code = 3, .txt = "three" }
+	};
+	dns_ede_test_equals(expected3, 3, &edectx3);
 
 	dns_ede_reset(&edectx1);
 	dns_ede_reset(&edectx2);
+	dns_ede_reset(&edectx3);
 }
 
 ISC_TEST_LIST_START
