@@ -465,6 +465,7 @@ tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
 
 		isc__nmsocket_log_tls_session_reuse(sock, sock->tlsstream.tls);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
+		isc__nmsocket_timer_stop(sock);
 		tls_read_stop(sock);
 
 		if (isc__nm_closing(sock->worker)) {
@@ -1154,6 +1155,10 @@ isc__nm_tls_read_stop(isc_nmhandle_t *handle) {
 
 	handle->sock->reading = false;
 
+	if (!handle->sock->manual_read_timer) {
+		isc__nmsocket_timer_stop(handle->sock);
+	}
+
 	tls_read_stop(handle->sock);
 }
 
@@ -1174,6 +1179,7 @@ isc__nm_tls_close(isc_nmsocket_t *sock) {
 	 */
 	tls_read_stop(sock);
 	if (sock->outerhandle != NULL) {
+		isc__nmsocket_timer_stop(sock);
 		isc_nm_read_stop(sock->outerhandle);
 		isc_nmhandle_close(sock->outerhandle);
 		isc_nmhandle_detach(&sock->outerhandle);

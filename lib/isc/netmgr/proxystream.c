@@ -121,6 +121,7 @@ proxystream_on_header_data_cb(const isc_result_t result,
 		 * the case of TCP it is disabled by default
 		 */
 		proxystream_read_stop(sock);
+		isc__nmsocket_timer_stop(sock);
 		isc__nmhandle_set_manual_timer(sock->outerhandle, false);
 
 		sock->proxy.header_processed = true;
@@ -775,6 +776,7 @@ isc__nm_proxystream_close(isc_nmsocket_t *sock) {
 	 * external references, we can close everything.
 	 */
 	proxystream_read_stop(sock);
+	isc__nmsocket_timer_stop(sock);
 	if (sock->outerhandle != NULL) {
 		sock->reading = false;
 		isc_nm_read_stop(sock->outerhandle);

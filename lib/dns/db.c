@@ -1401,7 +1401,7 @@ create_gluelist(dns_db_t *db, dns_dbversion_t *dbversion, dns_dbnode_t *dbnode,
 	 * in-bailiwick).
 	 */
 
-	(void)dns_rdataset_additionaldata(rdataset, dns_rootname, add, &ctx);
+	(void)dns_rdataset_additionaldata(rdataset, dns_rootname, add, &ctx, 0);
 
 	CMM_STORE_SHARED(gluelist->glue, ctx.glue);
 
