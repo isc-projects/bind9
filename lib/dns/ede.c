@@ -24,6 +24,7 @@
 void
 dns_ede_add(dns_edectx_t *edectx, uint16_t code, const char *text) {
 	REQUIRE(DNS_EDE_VALID(edectx));
+	REQUIRE(code <= DNS_EDE_MAX_CODE);
 
 	size_t pos = 0;
 	uint16_t becode = htobe16(code);
