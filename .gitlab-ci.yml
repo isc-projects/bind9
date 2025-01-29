@@ -53,6 +53,9 @@ variables:
 
   HYPOTHESIS_PROFILE: "ci"
 
+  # Some jobs may clean up the build artifacts unless this is set to 0.
+  CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 1
+
 default:
   # Allow all running CI jobs to be automatically canceled when a new
   # version of a branch is pushed.
@@ -373,6 +376,7 @@ stages:
     - >
       "$PYTEST" --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "$TEST_PARALLEL_JOBS" | tee pytest.out.txt
     - '( ! grep -F "grep: warning:" pytest.out.txt )'
+    - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || ( cd ../../.. && make clean >/dev/null 2>&1 )
   after_script:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *display_pytest_failures
@@ -427,6 +431,7 @@ stages:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
   script:
     - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
+    - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || make clean >/dev/null 2>&1
   after_script:
     - test -d bind-* && cd bind-*
     - REALSOURCEDIR="$PWD"
@@ -936,8 +941,9 @@ system:gcc:bookworm:amd64:
   <<: *system_test_gcov_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
+    CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 0
     TZ: Australia/Sydney
-  needs:
+  needs:  # using artifacts from unit test job is required for gcov
     - job: unit:gcc:bookworm:amd64
       artifacts: true
 
@@ -946,6 +952,7 @@ unit:gcc:bookworm:amd64:
   <<: *unit_test_gcov_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
+    CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 0
   needs:
     - job: gcc:bookworm:amd64
       artifacts: true
@@ -964,7 +971,7 @@ system:gcc:bookworm:rbt:amd64:
   <<: *debian_bookworm_amd64_image
   <<: *system_test_job
   needs:
-    - job: unit:gcc:bookworm:rbt:amd64
+    - job: gcc:bookworm:rbt:amd64
       artifacts: true
 
 unit:gcc:bookworm:rbt:amd64:
@@ -1616,6 +1623,7 @@ respdiff:
     MAX_DISAGREEMENTS_PERCENTAGE: "0.15"
   script:
     - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - cd ../.. && make clean >/dev/null 2>&1
 
 respdiff:asan:
   <<: *respdiff_job
@@ -1629,6 +1637,7 @@ respdiff:asan:
     MAX_DISAGREEMENTS_PERCENTAGE: "0.15"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - cd ../.. && make clean >/dev/null 2>&1
 
 respdiff:tsan:
   <<: *respdiff_job
@@ -1643,6 +1652,7 @@ respdiff:tsan:
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - cd ../.. && make clean >/dev/null 2>&1
   after_script:
     - *find_python
     - *parse_tsan
@@ -1657,6 +1667,7 @@ respdiff-third-party:
     MAX_DISAGREEMENTS_PERCENTAGE: "0.2"
   script:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
+    - cd ../.. && make clean >/dev/null 2>&1
 
 # Performance tests
 
