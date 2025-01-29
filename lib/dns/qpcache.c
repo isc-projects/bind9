@@ -1532,10 +1532,11 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 }
 
 static isc_result_t
-find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-     dns_dbnode_t **nodep, dns_name_t *foundname, dns_rdataset_t *rdataset,
-     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
+qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
+	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+	     dns_dbnode_t **nodep, dns_name_t *foundname,
+	     dns_rdataset_t *rdataset,
+	     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	qpcnode_t *node = NULL;
 	isc_result_t result;
 	qpc_search_t search;
@@ -1977,10 +1978,11 @@ tree_exit:
 }
 
 static isc_result_t
-findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-	    isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_name_t *dcname, dns_rdataset_t *rdataset,
-	    dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
+qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
+		    isc_stdtime_t now, dns_dbnode_t **nodep,
+		    dns_name_t *foundname, dns_name_t *dcname,
+		    dns_rdataset_t *rdataset,
+		    dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	qpcnode_t *node = NULL;
 	isc_rwlock_t *lock = NULL;
 	isc_result_t result;
@@ -2152,10 +2154,10 @@ tree_exit:
 }
 
 static isc_result_t
-findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	     dns_rdatatype_t type, dns_rdatatype_t covers, isc_stdtime_t now,
-	     dns_rdataset_t *rdataset,
-	     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
+qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		     dns_rdatatype_t type, dns_rdatatype_t covers,
+		     isc_stdtime_t now, dns_rdataset_t *rdataset,
+		     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *qpnode = (qpcnode_t *)node;
 	dns_slabheader_t *header = NULL, *header_next = NULL;
@@ -2554,7 +2556,7 @@ free_qpdb(qpcache_t *qpdb, bool log) {
 }
 
 static void
-qpdb_destroy(dns_db_t *arg) {
+qpcache_destroy(dns_db_t *arg) {
 	qpcache_t *qpdb = (qpcache_t *)arg;
 	bool want_free = false;
 	unsigned int i;
@@ -2682,8 +2684,8 @@ new_qpcnode(qpcache_t *qpdb, const dns_name_t *name) {
 }
 
 static isc_result_t
-findnode(dns_db_t *db, const dns_name_t *name, bool create,
-	 dns_dbnode_t **nodep DNS__DB_FLARG) {
+qpcache_findnode(dns_db_t *db, const dns_name_t *name, bool create,
+		 dns_dbnode_t **nodep DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *node = NULL;
 	isc_result_t result;
@@ -2718,8 +2720,8 @@ unlock:
 }
 
 static void
-attachnode(dns_db_t *db, dns_dbnode_t *source,
-	   dns_dbnode_t **targetp DNS__DB_FLARG) {
+qpcache_attachnode(dns_db_t *db, dns_dbnode_t *source,
+		   dns_dbnode_t **targetp DNS__DB_FLARG) {
 	REQUIRE(VALID_QPDB((qpcache_t *)db));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -2733,7 +2735,7 @@ attachnode(dns_db_t *db, dns_dbnode_t *source,
 }
 
 static void
-detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
+qpcache_detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *node = NULL;
 	bool want_free = false;
@@ -2788,8 +2790,8 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 }
 
 static isc_result_t
-createiterator(dns_db_t *db, unsigned int options ISC_ATTR_UNUSED,
-	       dns_dbiterator_t **iteratorp) {
+qpcache_createiterator(dns_db_t *db, unsigned int options ISC_ATTR_UNUSED,
+		       dns_dbiterator_t **iteratorp) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpc_dbit_t *qpdbiter = NULL;
 
@@ -2811,9 +2813,9 @@ createiterator(dns_db_t *db, unsigned int options ISC_ATTR_UNUSED,
 }
 
 static isc_result_t
-allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	     unsigned int options, isc_stdtime_t now,
-	     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
+qpcache_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		     unsigned int options, isc_stdtime_t now,
+		     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *qpnode = (qpcnode_t *)node;
 	qpc_rditer_t *iterator = NULL;
@@ -3388,9 +3390,10 @@ expire_ttl_headers(qpcache_t *qpdb, unsigned int locknum,
 		   isc_stdtime_t now, bool cache_is_overmem DNS__DB_FLARG);
 
 static isc_result_t
-addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	    isc_stdtime_t now, dns_rdataset_t *rdataset, unsigned int options,
-	    dns_rdataset_t *addedrdataset DNS__DB_FLARG) {
+qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		    isc_stdtime_t now, dns_rdataset_t *rdataset,
+		    unsigned int options,
+		    dns_rdataset_t *addedrdataset DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *qpnode = (qpcnode_t *)node;
 	isc_region_t region;
@@ -3571,8 +3574,9 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 static isc_result_t
-deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	       dns_rdatatype_t type, dns_rdatatype_t covers DNS__DB_FLARG) {
+qpcache_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
+		       dns_dbversion_t *version, dns_rdatatype_t type,
+		       dns_rdatatype_t covers DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *qpnode = (qpcnode_t *)node;
 	isc_result_t result;
@@ -4380,17 +4384,17 @@ setmaxtypepername(dns_db_t *db, uint32_t value) {
 }
 
 static dns_dbmethods_t qpdb_cachemethods = {
-	.destroy = qpdb_destroy,
-	.findnode = findnode,
-	.find = find,
-	.findzonecut = findzonecut,
-	.attachnode = attachnode,
-	.detachnode = detachnode,
-	.createiterator = createiterator,
-	.findrdataset = findrdataset,
-	.allrdatasets = allrdatasets,
-	.addrdataset = addrdataset,
-	.deleterdataset = deleterdataset,
+	.destroy = qpcache_destroy,
+	.findnode = qpcache_findnode,
+	.find = qpcache_find,
+	.findzonecut = qpcache_findzonecut,
+	.attachnode = qpcache_attachnode,
+	.detachnode = qpcache_detachnode,
+	.createiterator = qpcache_createiterator,
+	.findrdataset = qpcache_findrdataset,
+	.allrdatasets = qpcache_allrdatasets,
+	.addrdataset = qpcache_addrdataset,
+	.deleterdataset = qpcache_deleterdataset,
 	.nodecount = nodecount,
 	.getoriginnode = getoriginnode,
 	.getrrsetstats = getrrsetstats,

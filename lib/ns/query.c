@@ -2141,7 +2141,8 @@ addname:
 	if (trdataset != NULL && dns_rdatatype_followadditional(type)) {
 		if (client->additionaldepth++ < client->view->max_restarts) {
 			eresult = dns_rdataset_additionaldata(
-				trdataset, fname, query_additional_cb, qctx);
+				trdataset, fname, query_additional_cb, qctx,
+				DNS_RDATASET_MAXADDITIONAL);
 		}
 		client->additionaldepth--;
 	}
@@ -2238,7 +2239,7 @@ regular:
 	 * We don't care if dns_rdataset_additionaldata() fails.
 	 */
 	(void)dns_rdataset_additionaldata(rdataset, name, query_additional_cb,
-					  qctx);
+					  qctx, DNS_RDATASET_MAXADDITIONAL);
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional: done");
 }
 

@@ -759,7 +759,9 @@ isc__nm_tcp_read_stop(isc_nmhandle_t *handle) {
 
 	isc_nmsocket_t *sock = handle->sock;
 
-	isc__nmsocket_timer_stop(sock);
+	if (!sock->manual_read_timer) {
+		isc__nmsocket_timer_stop(sock);
+	}
 	isc__nm_stop_reading(sock);
 	sock->reading = false;
 
