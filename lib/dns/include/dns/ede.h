@@ -63,6 +63,8 @@ struct dns_edectx {
 	int	       magic;
 	isc_mem_t     *mctx;
 	dns_ednsopt_t *ede[DNS_EDE_MAX_ERRORS];
+	uint32_t       edeused;
+	size_t	       nextede;
 };
 /*%<
  * Multiple extended DNS errors (EDE) (defined in RFC 8914) can be raised during
@@ -132,7 +134,7 @@ dns_ede_add(dns_edectx_t *edectx, uint16_t code, const char *text);
  */
 
 void
-dns_ede_copy(dns_edectx_t *edectx_to, dns_edectx_t *edectx_from);
+dns_ede_copy(dns_edectx_t *edectx_to, const dns_edectx_t *edectx_from);
 /*%<
  * Copy all EDE from "edectx_from" into "edectx_to". If "edectx_to" reaches the
  * maximum number of EDE (see DNS_EDE_MAX_ERRORS), the copy stops and
