@@ -998,6 +998,8 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
 		NETIEVENT_CASE(httpendpoints);
+
+		NETIEVENT_CASE(asyncrun);
 #endif
 		NETIEVENT_CASE(settlsctx);
 		NETIEVENT_CASE(sockstop);
@@ -1116,6 +1118,8 @@ NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
 NETIEVENT_SOCKET_REQ_DEF(httpsend);
 NETIEVENT_SOCKET_DEF(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
+
+NETIEVENT_ASYNCRUN_DEF(asyncrun);
 #endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_DEF(tcpconnect);
@@ -1627,6 +1631,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	atomic_init(&sock->keepalive, false);
 	atomic_init(&sock->connected, false);
 	atomic_init(&sock->timedout, false);
+	atomic_init(&sock->manual_read_timer, false);
 
 	atomic_init(&sock->active_child_connections, 0);
 
@@ -2136,6 +2141,15 @@ void
 isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
+	switch (sock->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		return isc__nmsocket_tls_timer_restart(sock);
+#endif /*  HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	}
+
 	if (uv_is_closing((uv_handle_t *)&sock->read_timer)) {
 		return;
 	}
@@ -2170,6 +2184,15 @@ bool
 isc__nmsocket_timer_running(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
+	switch (sock->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		return isc__nmsocket_tls_timer_running(sock);
+#endif /*  HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	}
+
 	return uv_is_active((uv_handle_t *)&sock->read_timer);
 }
 
@@ -2189,6 +2212,15 @@ isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
 	int r;
 
 	REQUIRE(VALID_NMSOCK(sock));
+
+	switch (sock->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		return isc__nmsocket_tls_timer_stop(sock);
+#endif /*  HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	}
 
 	/* uv_timer_stop() is idempotent, no need to check if running */
 
@@ -3931,6 +3963,52 @@ isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls) {
 		      SSL_session_reused(tls) ? "resumed" : "created",
 		      client_sabuf, local_sabuf);
 }
+
+void
+isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	isc_nmsocket_t *sock = handle->sock;
+
+	switch (sock->type) {
+	case isc_nm_tcpsocket:
+		isc__nmhandle_tcp_set_manual_timer(handle, manual);
+		return;
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		isc__nmhandle_tls_set_manual_timer(handle, manual);
+		return;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	};
+
+	UNREACHABLE();
+}
+
+#if HAVE_LIBNGHTTP2
+void
+isc__nm_async_run(isc__networker_t *worker, isc__nm_asyncrun_cb_t cb,
+		  void *cbarg) {
+	isc__netievent__asyncrun_t *ievent = NULL;
+	REQUIRE(worker != NULL);
+	REQUIRE(cb != NULL);
+
+	ievent = isc__nm_get_netievent_asyncrun(worker->mgr, cb, cbarg);
+	isc__nm_enqueue_ievent(worker, (isc__netievent_t *)ievent);
+}
+
+void
+isc__nm_async_asyncrun(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_asyncrun_t *ievent = (isc__netievent_asyncrun_t *)ev0;
+
+	UNUSED(worker);
+
+	ievent->cb(ievent->cbarg);
+}
+
+#endif /* HAVE_LIBNGHTTP2 */
 
 #ifdef NETMGR_TRACE
 /*
