@@ -11069,7 +11069,8 @@ do_keyfetch(void *arg) {
 	result = dns_resolver_createfetch(
 		resolver, kname, dns_rdatatype_dnskey, NULL, NULL, NULL, NULL,
 		0, options, 0, NULL, NULL, zone->loop, keyfetch_done, kfetch,
-		&kfetch->dnskeyset, &kfetch->dnskeysigset, &kfetch->fetch);
+		NULL, &kfetch->dnskeyset, &kfetch->dnskeysigset,
+		&kfetch->fetch);
 
 	dns_resolver_detach(&resolver);
 	if (result == ISC_R_SUCCESS) {
@@ -21944,7 +21945,7 @@ do_nsfetch(void *arg) {
 	result = dns_resolver_createfetch(
 		resolver, &nsfetch->pname, dns_rdatatype_ns, NULL, NULL, NULL,
 		NULL, 0, options, 0, NULL, NULL, zone->loop, nsfetch_done,
-		nsfetch, &nsfetch->nsrrset, &nsfetch->nssigset,
+		nsfetch, NULL, &nsfetch->nsrrset, &nsfetch->nssigset,
 		&nsfetch->fetch);
 
 	dns_resolver_detach(&resolver);

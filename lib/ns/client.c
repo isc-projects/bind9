@@ -219,92 +219,6 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
 }
 
 static void
-client_extendederror_reset(ns_client_t *client) {
-	for (size_t i = 0; i < DNS_EDE_MAX_ERRORS; i++) {
-		if (client->ede[i]) {
-			dns_ednsopt_t *ede = client->ede[i];
-
-			isc_mem_put(client->manager->mctx, ede->value,
-				    ede->length);
-			isc_mem_put(client->manager->mctx, ede, sizeof(*ede));
-			client->ede[i] = NULL;
-		}
-	}
-}
-
-void
-ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
-	uint16_t becode;
-	const uint16_t becodelen = sizeof(becode);
-	uint16_t textlen = 0;
-	size_t pos = 0;
-	unsigned char *ede = NULL;
-	dns_ednsopt_t *edns = NULL;
-
-	REQUIRE(NS_CLIENT_VALID(client));
-
-	/*
-	 * As ede will be directly put in the DNS message we need to make sure
-	 * the code is in big-endian format
-	 */
-	becode = htobe16(code);
-
-	for (pos = 0; pos < DNS_EDE_MAX_ERRORS; pos++) {
-		edns = client->ede[pos];
-
-		if (edns == NULL) {
-			break;
-		}
-
-		if (memcmp(&becode, edns->value, becodelen) == 0) {
-			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
-				      "ignoring duplicate ede %u %s", code,
-				      text == NULL ? "(null)" : text);
-			return;
-		}
-	}
-
-	if (pos >= DNS_EDE_MAX_ERRORS) {
-		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
-			      "too many ede, ignoring %u %s", code,
-			      text == NULL ? "(null)" : text);
-		return;
-	}
-
-	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT,
-		      ISC_LOG_DEBUG(1), "set ede: info-code %u extra-text %s",
-		      code, text == NULL ? "(null)" : text);
-
-	if (text != NULL && strlen(text) > 0) {
-		textlen = strlen(text);
-
-		if (textlen > DNS_EDE_EXTRATEXT_LEN) {
-			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
-				      "truncate EDE code %hu text: %s", code,
-				      text);
-			textlen = DNS_EDE_EXTRATEXT_LEN;
-		}
-	}
-
-	ede = isc_mem_get(client->manager->mctx, becodelen + textlen);
-
-	memcpy(ede, &becode, sizeof(code));
-	if (textlen > 0) {
-		memcpy(ede + becodelen, text, textlen);
-	}
-
-	edns = isc_mem_get(client->manager->mctx, sizeof(*edns));
-	*edns = (dns_ednsopt_t){ .code = DNS_OPT_EDE,
-				 .length = becodelen + textlen,
-				 .value = ede };
-
-	client->ede[pos] = edns;
-}
-
-static void
 ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->state == NS_CLIENTSTATE_WORKING ||
 	       client->state == NS_CLIENTSTATE_RECURSING);
@@ -344,7 +258,6 @@ ns_client_endrequest(ns_client_t *client) {
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
 
-	client_extendederror_reset(client);
 	client->signer = NULL;
 	client->udpsize = 512;
 	client->extflags = 0;
@@ -1267,7 +1180,7 @@ no_nsid:
 	}
 
 	for (size_t i = 0; i < DNS_EDE_MAX_ERRORS; i++) {
-		dns_ednsopt_t *ede = client->ede[i];
+		dns_ednsopt_t *ede = client->edectx.ede[i];
 
 		if (ede == NULL) {
 			break;
@@ -1798,7 +1711,7 @@ ns__client_put_cb(void *client0) {
 	 * Call this first because it requires a valid client.
 	 */
 	ns_query_free(client);
-	client_extendederror_reset(client);
+	dns_ede_invalidate(&client->edectx);
 
 	client->magic = 0;
 
@@ -2263,7 +2176,7 @@ ns_client_request_continue(void *arg) {
 					      "no matching view in class");
 		}
 
-		ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
+		dns_ede_add(&client->edectx, DNS_EDE_PROHIBITED, NULL);
 		ns_client_error(client, DNS_R_REFUSED);
 
 		goto cleanup;
@@ -2594,6 +2507,8 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		 */
 		client->magic = NS_CLIENT_MAGIC;
 		ns_query_init(client);
+
+		dns_ede_init(client->manager->mctx, &client->edectx);
 	} else {
 		REQUIRE(NS_CLIENT_VALID(client));
 		REQUIRE(client->manager->tid == isc_tid());
@@ -2606,8 +2521,11 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 			.magic = 0,
 			.manager = client->manager,
 			.message = client->message,
+			.edectx = client->edectx,
 			.query = client->query,
 		};
+
+		dns_ede_reset(&client->edectx);
 	}
 
 	client->query.attributes &= ~NS_QUERYATTR_ANSWERED;
@@ -2783,7 +2701,7 @@ ns_client_checkacl(ns_client_t *client, isc_sockaddr_t *sockaddr,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "%s approved", opname);
 	} else {
-		ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
+		dns_ede_add(&client->edectx, DNS_EDE_PROHIBITED, NULL);
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, log_level, "%s denied",
 			      opname);

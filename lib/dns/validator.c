@@ -34,6 +34,7 @@
 #include <dns/db.h>
 #include <dns/dnssec.h>
 #include <dns/ds.h>
+#include <dns/ede.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
 #include <dns/message.h>
@@ -405,7 +406,7 @@ fetch_callback_dnskey(void *arg) {
 	}
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_dnskey");
-	dns_resolver_copyede(val->fetch, val->fctx);
+
 	dns_resolver_destroyfetch(&val->fetch);
 
 	if (CANCELED(val) || CANCELING(val)) {
@@ -480,7 +481,7 @@ fetch_callback_ds(void *arg) {
 	}
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_ds");
-	dns_resolver_copyede(val->fetch, val->fctx);
+
 	dns_resolver_destroyfetch(&val->fetch);
 
 	if (CANCELED(val) || CANCELING(val)) {
@@ -933,7 +934,7 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	result = dns_resolver_createfetch(
 		val->view->resolver, name, type, NULL, NULL, NULL, NULL, 0,
 		fopts, 0, val->qc, val->gqc, val->loop, callback, val,
-		&val->frdataset, &val->fsigrdataset, &val->fetch);
+		val->edectx, &val->frdataset, &val->fsigrdataset, &val->fetch);
 	if (result != ISC_R_SUCCESS) {
 		dns_validator_detach(&val);
 	}
@@ -967,10 +968,10 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		  (DNS_VALIDATOR_NOCDFLAG | DNS_VALIDATOR_NONTA));
 
 	validator_logcreate(val, name, type, caller, "validator");
-	result = dns_validator_create(val->view, name, type, rdataset, sig,
-				      NULL, vopts, val->loop, cb, val,
-				      val->nvalidations, val->nfails, val->qc,
-				      val->gqc, val->fctx, &val->subvalidator);
+	result = dns_validator_create(
+		val->view, name, type, rdataset, sig, NULL, vopts, val->loop,
+		cb, val, val->nvalidations, val->nfails, val->qc, val->gqc,
+		val->edectx, &val->subvalidator);
 	if (result == ISC_R_SUCCESS) {
 		dns_validator_attach(val, &val->subvalidator->parent);
 		val->subvalidator->depth = val->depth + 1;
@@ -3400,8 +3401,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_message_t *message, unsigned int options,
 		     isc_loop_t *loop, isc_job_cb cb, void *arg,
 		     uint32_t *nvalidations, uint32_t *nfails,
-		     isc_counter_t *qc, isc_counter_t *gqc, fetchctx_t *fctx,
-		     dns_validator_t **validatorp) {
+		     isc_counter_t *qc, isc_counter_t *gqc,
+		     dns_edectx_t *edectx, dns_validator_t **validatorp) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val = NULL;
 	dns_keytable_t *kt = NULL;
@@ -3433,7 +3434,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		.rdata = DNS_RDATA_INIT,
 		.nvalidations = nvalidations,
 		.nfails = nfails,
-		.fctx = fctx,
+		.edectx = edectx,
 	};
 
 	isc_refcount_init(&val->references, 1);
@@ -3643,20 +3644,43 @@ validator_logcreate(dns_validator_t *val, dns_name_t *name,
 
 static void
 validate_extendederror(dns_validator_t *val) {
-	char txt[32];
-
 	REQUIRE(VALID_VALIDATOR(val));
 
+	char extra[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE +
+		   DNS_EDE_EXTRATEXT_LEN];
+	isc_buffer_t b;
+	dns_validator_t *edeval = val;
+
+	while (edeval->parent != NULL) {
+		edeval = edeval->parent;
+	}
+
 	if (val->unsupported_algorithm != 0) {
-		dns_secalg_format(val->unsupported_algorithm, txt, sizeof(txt));
-		dns_resolver_edeappend(val->fctx, DNS_EDE_DNSKEYALG, txt,
-				       val->name, val->type);
+		isc_buffer_init(&b, extra, sizeof(extra));
+		dns_secalg_totext(val->unsupported_algorithm, &b);
+
+		isc_buffer_putuint8(&b, ' ');
+		dns_name_totext(val->name, DNS_NAME_OMITFINALDOT, &b);
+		isc_buffer_putuint8(&b, '/');
+		dns_rdatatype_totext(val->type, &b);
+		isc_buffer_putuint8(&b, '\0');
+
+		dns_ede_add(val->edectx, DNS_EDE_DNSKEYALG, extra);
 	}
 
 	if (val->unsupported_digest != 0) {
-		dns_dsdigest_format(val->unsupported_digest, txt, sizeof(txt));
-		dns_resolver_edeappend(val->fctx, DNS_EDE_DSDIGESTTYPE, txt,
-				       val->name, val->type);
+		isc_buffer_init(&b, extra, sizeof(extra));
+
+		dns_dsdigest_totext(val->unsupported_digest, &b);
+		isc_buffer_putuint8(&b, ' ');
+		dns_name_totext(val->name, DNS_NAME_OMITFINALDOT, &b);
+		isc_buffer_putuint8(&b, '/');
+		dns_rdatatype_totext(val->type, &b);
+		isc_buffer_putuint8(&b, '\0');
+
+		dns_ede_add(val->edectx, DNS_EDE_DSDIGESTTYPE, extra);
+
+		isc_buffer_invalidate(&b);
 	}
 }
 

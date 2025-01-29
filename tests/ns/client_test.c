@@ -49,20 +49,14 @@ client_ede_test_initclient(void) {
 	client->magic = NS_CLIENT_MAGIC;
 	client->manager = &client_ede_test_dummy_manager;
 
+	dns_ede_init(mctx, &client->edectx);
+
 	return client;
 }
 
 static void
 client_ede_test_free(ns_client_t *client) {
-	for (size_t i = 0; i < DNS_EDE_MAX_ERRORS; i++) {
-		dns_ednsopt_t *ede = client->ede[i];
-
-		if (ede) {
-			isc_mem_put(mctx, ede->value, ede->length);
-			isc_mem_put(mctx, ede, sizeof(*ede));
-		}
-		client->ede[i] = NULL;
-	}
+	dns_ede_reset(&client->edectx);
 	isc_mem_put(mctx, client, sizeof(*client));
 }
 
@@ -72,14 +66,13 @@ client_ede_test_equals(const client_tests_ede_expected_t *expected,
 	size_t count = 0;
 
 	for (size_t i = 0; i < DNS_EDE_MAX_ERRORS; i++) {
-		dns_ednsopt_t *edns = client->ede[i];
+		dns_ednsopt_t *edns = client->edectx.ede[i];
 
 		if (edns == NULL) {
 			break;
 		}
 
 		uint16_t code;
-		const size_t codelen = sizeof(code);
 		const unsigned char *txt;
 
 		assert_in_range(count, 0, expected_count);
@@ -88,11 +81,11 @@ client_ede_test_equals(const client_tests_ede_expected_t *expected,
 		code = ISC_U8TO16_BE(edns->value);
 		assert_int_equal(code, expected[count].code);
 
-		if (edns->length > codelen) {
+		if (edns->length > sizeof(code)) {
 			assert_non_null(expected[count].txt);
-			txt = edns->value + codelen;
+			txt = edns->value + sizeof(code);
 			assert_memory_equal(expected[count].txt, txt,
-					    edns->length - codelen);
+					    edns->length - sizeof(code));
 		} else {
 			assert_null(expected[count].txt);
 		}
@@ -109,9 +102,9 @@ ISC_RUN_TEST_IMPL(client_ede_test_text_max_count) {
 	const char *txt2 = "It's been a long time since I rock-and-rolled"
 			   "Ooh, let me get it back, let me get it back";
 
-	ns_client_extendederror(client, 2, txt1);
-	ns_client_extendederror(client, 22, NULL);
-	ns_client_extendederror(client, 3, txt2);
+	dns_ede_add(&client->edectx, 2, txt1);
+	dns_ede_add(&client->edectx, 22, NULL);
+	dns_ede_add(&client->edectx, 3, txt2);
 
 	const client_tests_ede_expected_t expected[3] = {
 		{ .code = 2, .txt = "foobar" },
@@ -128,11 +121,11 @@ ISC_RUN_TEST_IMPL(client_ede_test_text_max_count) {
 ISC_RUN_TEST_IMPL(client_ede_test_max_count) {
 	ns_client_t *client = client_ede_test_initclient();
 
-	ns_client_extendederror(client, 1, NULL);
-	ns_client_extendederror(client, 22, "two");
-	ns_client_extendederror(client, 3, "three");
-	ns_client_extendederror(client, 4, "four");
-	ns_client_extendederror(client, 5, "five");
+	dns_ede_add(&client->edectx, 1, NULL);
+	dns_ede_add(&client->edectx, 22, "two");
+	dns_ede_add(&client->edectx, 3, "three");
+	dns_ede_add(&client->edectx, 4, "four");
+	dns_ede_add(&client->edectx, 5, "five");
 
 	const client_tests_ede_expected_t expected[3] = {
 		{ .code = 1, .txt = NULL },
@@ -147,9 +140,9 @@ ISC_RUN_TEST_IMPL(client_ede_test_max_count) {
 ISC_RUN_TEST_IMPL(client_ede_test_duplicates) {
 	ns_client_t *client = client_ede_test_initclient();
 
-	ns_client_extendederror(client, 1, NULL);
-	ns_client_extendederror(client, 1, "two");
-	ns_client_extendederror(client, 1, "three");
+	dns_ede_add(&client->edectx, 1, NULL);
+	dns_ede_add(&client->edectx, 1, "two");
+	dns_ede_add(&client->edectx, 1, "three");
 
 	const client_tests_ede_expected_t expected[] = {
 		{ .code = 1, .txt = NULL },

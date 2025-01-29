@@ -71,6 +71,7 @@ libdns_la_HEADERS =			\
 	include/dns/dnstap.h		\
 	include/dns/dyndb.h		\
 	include/dns/ecs.h		\
+	include/dns/ede.h		\
 	include/dns/edns.h		\
 	include/dns/fixedname.h		\
 	include/dns/forward.h		\
@@ -177,6 +178,7 @@ libdns_la_SOURCES =			\
 	dst_parse.h			\
 	dyndb.c				\
 	ecs.c				\
+	ede.c				\
 	fixedname.c			\
 	forward.c			\
 	gssapictx.c			\
