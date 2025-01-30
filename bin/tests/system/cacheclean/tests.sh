@@ -239,25 +239,38 @@ nrecords=$(filter_tree flushtest.example ns2/named_dump.db.test$n | grep -E '(TX
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+run_adb_flush_test() {
+  ret=0
+  load_cache
+  dump_cache
+  mv ns2/named_dump.db.test$n ns2/named_dump.db.test$n.a
+  sed -n '/plain success\/timeout/,/Unassociated entries/p' \
+    ns2/named_dump.db.test$n.a >sed.out.$n.a
+  grep 'plain success/timeout' sed.out.$n.a >/dev/null 2>&1 || ret=1
+  grep 'Unassociated entries' sed.out.$n.a >/dev/null 2>&1 || ret=1
+  grep 'ns.flushtest.example' sed.out.$n.a >/dev/null 2>&1 || ret=1
+  $RNDC $RNDCOPTS "$@" || ret=1
+  dump_cache
+  mv ns2/named_dump.db.test$n ns2/named_dump.db.test$n.b
+  sed -n '/plain success\/timeout/,/Unassociated entries/p' \
+    ns2/named_dump.db.test$n.b >sed.out.$n.b
+  grep 'plain success/timeout' sed.out.$n.b >/dev/null 2>&1 || ret=1
+  grep 'Unassociated entries' sed.out.$n.b >/dev/null 2>&1 || ret=1
+  grep 'ns.flushtest.example' sed.out.$n.b >/dev/null 2>&1 && ret=1
+  return $ret
+}
+
+n=$((n + 1))
+echo_i "check flushname clears adb correctly ($n)"
+ret=0
+run_adb_flush_test flushname ns.flushtest.example || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 n=$((n + 1))
 echo_i "check flushtree clears adb correctly ($n)"
 ret=0
-load_cache
-dump_cache
-mv ns2/named_dump.db.test$n ns2/named_dump.db.test$n.a
-sed -n '/plain success\/timeout/,/Unassociated entries/p' \
-  ns2/named_dump.db.test$n.a >sed.out.$n.a
-grep 'plain success/timeout' sed.out.$n.a >/dev/null 2>&1 || ret=1
-grep 'Unassociated entries' sed.out.$n.a >/dev/null 2>&1 || ret=1
-grep 'ns.flushtest.example' sed.out.$n.a >/dev/null 2>&1 || ret=1
-$RNDC $RNDCOPTS flushtree flushtest.example || ret=1
-dump_cache
-mv ns2/named_dump.db.test$n ns2/named_dump.db.test$n.b
-sed -n '/plain success\/timeout/,/Unassociated entries/p' \
-  ns2/named_dump.db.test$n.b >sed.out.$n.b
-grep 'plain success/timeout' sed.out.$n.b >/dev/null 2>&1 || ret=1
-grep 'Unassociated entries' sed.out.$n.b >/dev/null 2>&1 || ret=1
-grep 'ns.flushtest.example' sed.out.$n.b >/dev/null 2>&1 && ret=1
+run_adb_flush_test flushtree flushtest.example || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

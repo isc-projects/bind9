@@ -4631,7 +4631,7 @@ dns_adb_flushname(dns_adb_t *adb, const dns_name_t *name) {
 	REQUIRE(name != NULL);
 
 	LOCK(&adb->lock);
-	bucket = dns_name_hash(name, false) % adb->nnames;
+	bucket = dns_name_fullhash(name, false) % adb->nnames;
 	LOCK(&adb->namelocks[bucket]);
 	adbname = ISC_LIST_HEAD(adb->names[bucket]);
 	while (adbname != NULL) {
