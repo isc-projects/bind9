@@ -2418,14 +2418,6 @@ cname_and_other_data(dns_rbtnode_t *node, uint32_t serial) {
 	 */
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (!prio_type(header->type)) {
-			/*
-			 * CNAME is in the priority list, so if we are done
-			 * with the priority list, we know there will not be
-			 * CNAME, so we are safe to skip the rest of the types.
-			 */
-			return false;
-		}
 		if (header->type == dns_rdatatype_cname) {
 			/*
 			 * Look for an active extant CNAME.
@@ -2481,6 +2473,16 @@ cname_and_other_data(dns_rbtnode_t *node, uint32_t serial) {
 					}
 				} while (header != NULL);
 				if (header != NULL) {
+					if (!prio_type(header->type)) {
+						/*
+						 * CNAME is in the priority
+						 * list, so if we are done with
+						 * priority types, we know there
+						 * will not be a CNAME, and are
+						 * safe to skip the rest.
+						 */
+						return cname;
+					}
 					other_data = true;
 				}
 			}
