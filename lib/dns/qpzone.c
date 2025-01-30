@@ -151,8 +151,32 @@ typedef ISC_LIST(qpz_version_t) qpz_versionlist_t;
 struct qpznode {
 	dns_name_t name;
 	isc_mem_t *mctx;
+
+	/*
+	 * 'erefs' counts external references held by a caller: for
+	 * example, it could be incremented by dns_db_findnode(),
+	 * and decremented by dns_db_detachnode().
+	 *
+	 * 'references' counts internal references to the node object,
+	 * including the one held by the QP trie so the node won't be
+	 * deleted while it's quiescently stored in the database - even
+	 * though 'erefs' may be zero because no external caller is
+	 * using it at the time.
+	 *
+	 * Generally when 'erefs' is incremented or decremented,
+	 * 'references' is too. When both go to zero (meaning callers
+	 * and the database have both released the object) the object
+	 * is freed.
+	 *
+	 * Whenever 'erefs' is incremented from zero, we also aquire a
+	 * node use reference (see 'qpzonedb->references' below), and
+	 * release it when 'erefs' goes back to zero. This prevents the
+	 * database from being shut down until every caller has released
+	 * all nodes.
+	 */
 	isc_refcount_t references;
 	isc_refcount_t erefs;
+
 	uint16_t locknum;
 	atomic_uint_fast8_t nsec;
 	atomic_bool wild;
@@ -166,10 +190,27 @@ struct qpzonedb {
 	dns_db_t common;
 	/* Locks the data in this struct */
 	isc_rwlock_t lock;
+
+	/*
+	 * NOTE: 'references' is NOT the global reference counter for
+	 * the database object handled by dns_db_attach() and _detach();
+	 * that one is 'common.references'.
+	 *
+	 * Instead, 'references' counts the number of nodes being used by
+	 * at least one external caller. (It's called 'references' to
+	 * leverage the ISC_REFCOUNT_STATIC macros, but 'nodes_in_use'
+	 * might be a clearer name.)
+	 *
+	 * One additional reference to this counter is held by the database
+	 * object itself. When 'common.references' goes to zero, that
+	 * reference is released. When in turn 'references' goes to zero,
+	 * the database is shut down and freed.
+	 */
+	isc_refcount_t references;
+
 	/* Locks for tree nodes */
 	int node_lock_count;
 	isc_rwlock_t *node_locks;
-	isc_refcount_t references;
 
 	qpznode_t *origin;
 	qpznode_t *nsec3_origin;
@@ -628,8 +669,16 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	return ISC_R_SUCCESS;
 }
 
+/*
+ * If incrementing erefs from zero, we also increment the node use counter
+ * in the qpzonedb object.
+ *
+ * This function is called from qpznode_acquire(), so that internal
+ * and external references are acquired at the same time, and from
+ * qpznode_release() when we only need to increase the internal references.
+ */
 static void
-qpznode_newref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
+qpznode_erefs_increment(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
 	uint_fast32_t refs = isc_refcount_increment0(&node->erefs);
 #if DNS_DB_NODETRACE
 	fprintf(stderr, "incr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
@@ -644,9 +693,9 @@ qpznode_newref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
 }
 
 static void
-newref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
+qpznode_acquire(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
 	qpznode_ref(node);
-	qpznode_newref(qpdb, node DNS__DB_FLARG_PASS);
+	qpznode_erefs_increment(qpdb, node DNS__DB_FLARG_PASS);
 }
 
 static void
@@ -766,8 +815,13 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 	}
 }
 
+/*
+ * Decrement the external references to a node. If the counter
+ * goes to zero, decrement the node use counter in the qpzonedb object
+ * as well, and return true. Otherwise return false.
+ */
 static bool
-qpznode_decref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
+qpznode_erefs_decrement(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
 	uint_fast32_t refs = isc_refcount_decrement(&node->erefs);
 
 #if DNS_DB_NODETRACE
@@ -791,19 +845,16 @@ qpznode_decref(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
  * threads are decreasing the reference to zero simultaneously and at least
  * one of them is going to free the node.
  *
- * This decrements both the internal and external node reference counters.
- * If the external reference count drops to zero, then the node lock
- * reference count is also decremented.
- *
- * (NOTE: Decrementing the reference count of a node to zero does
- * not mean it will be immediately freed.)
+ * This calls dec_erefs() to decrement the external node reference counter,
+ * (and possibly the node use counter), cleans up and deletes the node
+ * if necessary, then decrements the internal reference counter as well.
  */
 static void
-decref(qpzonedb_t *qpdb, qpznode_t *node, uint32_t least_serial,
-       isc_rwlocktype_t *nlocktypep DNS__DB_FLARG) {
+qpznode_release(qpzonedb_t *qpdb, qpznode_t *node, uint32_t least_serial,
+		isc_rwlocktype_t *nlocktypep DNS__DB_FLARG) {
 	REQUIRE(*nlocktypep != isc_rwlocktype_none);
 
-	if (!qpznode_decref(qpdb, node DNS__DB_FLARG_PASS)) {
+	if (!qpznode_erefs_decrement(qpdb, node DNS__DB_FLARG_PASS)) {
 		goto unref;
 	}
 
@@ -814,21 +865,22 @@ decref(qpzonedb_t *qpdb, qpznode_t *node, uint32_t least_serial,
 		goto unref;
 	}
 
-	/*
-	 * Node lock ref has decremented to 0 and we may need to clean up the
-	 * node. To clean it up, the node ref needs to decrement to 0 under the
-	 * node write lock, so we regain the ref and try again.
-	 */
-	qpznode_newref(qpdb, node DNS__DB_FLARG_PASS);
-
-	/* Upgrade the lock? */
 	if (*nlocktypep == isc_rwlocktype_read) {
+		/*
+		 * The external reference count went to zero and the node
+		 * is dirty or has no data, so we might want to delete it.
+		 * To do that, we'll need a write lock. If we don't already
+		 * have one, we have to make sure nobody else has
+		 * acquired a reference in the meantime, so we increment
+		 * erefs (but NOT references!), upgrade the node lock,
+		 * decrement erefs again, and see if it's still zero.
+		 */
 		isc_rwlock_t *nlock = &qpdb->node_locks[node->locknum];
+		qpznode_erefs_increment(qpdb, node DNS__DB_FLARG_PASS);
 		NODE_FORCEUPGRADE(nlock, nlocktypep);
-	}
-
-	if (!qpznode_decref(qpdb, node DNS__DB_FLARG_PASS)) {
-		goto unref;
+		if (!qpznode_erefs_decrement(qpdb, node DNS__DB_FLARG_PASS)) {
+			goto unref;
+		}
 	}
 
 	if (node->dirty) {
@@ -855,7 +907,7 @@ bindrdataset(qpzonedb_t *qpdb, qpznode_t *node, dns_slabheader_t *header,
 		return;
 	}
 
-	newref(qpdb, node DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, node DNS__DB_FLARG_PASS);
 
 	INSIST(rdataset->methods == NULL); /* We must be disassociated. */
 
@@ -1158,7 +1210,7 @@ resigndelete(qpzonedb_t *qpdb, qpz_version_t *version,
 	RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
 
 	header->heap_index = 0;
-	newref(qpdb, HEADERNODE(header) DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, HEADERNODE(header) DNS__DB_FLARG_PASS);
 	ISC_LIST_APPEND(version->resigned_list, header, link);
 }
 
@@ -1396,8 +1448,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		if (rollback && !IGNORE(header)) {
 			resigninsert(qpdb, header);
 		}
-		decref(qpdb, HEADERNODE(header), least_serial,
-		       &nlocktype DNS__DB_FLARG_PASS);
+		qpznode_release(qpdb, HEADERNODE(header), least_serial,
+				&nlocktype DNS__DB_FLARG_PASS);
 		NODE_UNLOCK(nlock, &nlocktype);
 	}
 
@@ -1420,7 +1472,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		if (rollback) {
 			rollback_node(node, serial);
 		}
-		decref(qpdb, node, least_serial, &nlocktype DNS__DB_FILELINE);
+		qpznode_release(qpdb, node, least_serial,
+				&nlocktype DNS__DB_FILELINE);
 
 		NODE_UNLOCK(nlock, &nlocktype);
 
@@ -1663,7 +1716,7 @@ add_changed(dns_slabheader_t *header, qpz_version_t *version DNS__DB_FLARG) {
 
 	*changed = (qpz_changed_t){ .node = node };
 	ISC_LIST_INITANDAPPEND(version->changed_list, changed, link);
-	newref(qpdb, node DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, node DNS__DB_FLARG_PASS);
 	RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
 
 	return changed;
@@ -2424,7 +2477,7 @@ findnodeintree(qpzonedb_t *qpdb, const dns_name_t *name, bool create,
 		INSIST(node->nsec == DNS_DB_NSEC_NSEC3 || !nsec3);
 	}
 
-	newref(qpdb, node DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, node DNS__DB_FLARG_PASS);
 
 	if (create) {
 		dns_qp_compact(qp, DNS_QPGC_MAYBE);
@@ -3024,8 +3077,9 @@ again:
 				 */
 				dns_name_copy(name, foundname);
 				if (nodep != NULL) {
-					newref(search->qpdb,
-					       node DNS__DB_FLARG_PASS);
+					qpznode_acquire(
+						search->qpdb,
+						node DNS__DB_FLARG_PASS);
 					*nodep = node;
 				}
 				bindrdataset(search->qpdb, node, found,
@@ -3169,7 +3223,7 @@ check_zonecut(qpznode_t *node, void *arg DNS__DB_FLARG) {
 		 * We increment the reference count on node to ensure that
 		 * search->zonecut_header will still be valid later.
 		 */
-		newref(search->qpdb, node DNS__DB_FLARG_PASS);
+		qpznode_acquire(search->qpdb, node DNS__DB_FLARG_PASS);
 		search->zonecut = node;
 		search->zonecut_header = found;
 		search->need_cleanup = true;
@@ -3446,7 +3500,8 @@ found:
 				 * ensure that search->zonecut_header will
 				 * still be valid later.
 				 */
-				newref(search.qpdb, node DNS__DB_FLARG_PASS);
+				qpznode_acquire(search.qpdb,
+						node DNS__DB_FLARG_PASS);
 				search.zonecut = node;
 				search.zonecut_header = header;
 				search.zonecut_sigheader = NULL;
@@ -3621,7 +3676,7 @@ found:
 			goto tree_exit;
 		}
 		if (nodep != NULL) {
-			newref(search.qpdb, node DNS__DB_FLARG_PASS);
+			qpznode_acquire(search.qpdb, node DNS__DB_FLARG_PASS);
 			*nodep = node;
 		}
 		if (search.version->secure && !search.version->havensec3) {
@@ -3685,7 +3740,7 @@ found:
 
 	if (nodep != NULL) {
 		if (!at_zonecut) {
-			newref(search.qpdb, node DNS__DB_FLARG_PASS);
+			qpznode_acquire(search.qpdb, node DNS__DB_FLARG_PASS);
 		} else {
 			search.need_cleanup = false;
 		}
@@ -3725,7 +3780,8 @@ tree_exit:
 		nlock = &search.qpdb->node_locks[node->locknum];
 
 		NODE_RDLOCK(nlock, &nlocktype);
-		decref(search.qpdb, node, 0, &nlocktype DNS__DB_FLARG_PASS);
+		qpznode_release(search.qpdb, node, 0,
+				&nlocktype DNS__DB_FLARG_PASS);
 		NODE_UNLOCK(nlock, &nlocktype);
 	}
 
@@ -3764,7 +3820,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		.common.magic = DNS_RDATASETITER_MAGIC,
 	};
 
-	newref(qpdb, node DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, node DNS__DB_FLARG_PASS);
 
 	*iteratorp = (dns_rdatasetiter_t *)iterator;
 	return ISC_R_SUCCESS;
@@ -3779,7 +3835,7 @@ attachnode(dns_db_t *db, dns_dbnode_t *source,
 	REQUIRE(VALID_QPZONE(qpdb));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	newref(qpdb, node DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, node DNS__DB_FLARG_PASS);
 
 	*targetp = source;
 }
@@ -3798,10 +3854,15 @@ detachnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	*nodep = NULL;
 	nlock = &qpdb->node_locks[node->locknum];
 
+	/*
+	 * We can't destroy qpzonedb while holding a nodelock, so
+	 * we need to reference it before acquiring the lock
+	 * and release it afterward.
+	 */
 	qpzonedb_ref(qpdb);
 
 	NODE_RDLOCK(nlock, &nlocktype);
-	decref(qpdb, node, 0, &nlocktype DNS__DB_FLARG_PASS);
+	qpznode_release(qpdb, node, 0, &nlocktype DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(nlock, &nlocktype);
 
 	qpzonedb_detach(&qpdb);
@@ -3862,7 +3923,7 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	/* Note that the access to the origin node doesn't require a DB lock */
 	onode = (qpznode_t *)qpdb->origin;
 	INSIST(onode != NULL);
-	newref(qpdb, onode DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, onode DNS__DB_FLARG_PASS);
 	*nodep = onode;
 
 	return ISC_R_SUCCESS;
@@ -4066,7 +4127,7 @@ reference_iter_node(qpdb_dbiterator_t *iter DNS__DB_FLARG) {
 		return;
 	}
 
-	newref(qpdb, node DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, node DNS__DB_FLARG_PASS);
 }
 
 static void
@@ -4084,7 +4145,7 @@ dereference_iter_node(qpdb_dbiterator_t *iter DNS__DB_FLARG) {
 	nlock = &qpdb->node_locks[node->locknum];
 
 	NODE_RDLOCK(nlock, &nlocktype);
-	decref(qpdb, node, 0, &nlocktype DNS__DB_FLARG_PASS);
+	qpznode_release(qpdb, node, 0, &nlocktype DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(nlock, &nlocktype);
 }
 
@@ -4428,7 +4489,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		dns_name_copy(&qpdbiter->node->name, name);
 	}
 
-	newref(qpdb, node DNS__DB_FLARG_PASS);
+	qpznode_acquire(qpdb, node DNS__DB_FLARG_PASS);
 
 	*nodep = qpdbiter->node;
 
