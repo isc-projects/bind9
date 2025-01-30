@@ -1115,14 +1115,39 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	}
 }
 
+static void
+rbtnode_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node DNS__DB_FLARG) {
+	uint_fast32_t refs = isc_refcount_increment0(&node->references);
+
+#if DNS_DB_NODETRACE
+	fprintf(stderr, "incr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
+		func, file, line, node, refs + 1);
+#endif
+
+	if (refs > 0) {
+		return;
+	}
+
+	/* this is the first reference to the node */
+	refs = isc_refcount_increment0(
+		&rbtdb->node_locks[node->locknum].references);
+#if DNS_DB_NODETRACE
+	fprintf(stderr,
+		"incr:nodelock:%s:%s:%u:%p:%p->references = "
+		"%" PRIuFAST32 "\n",
+		func, file, line, node, &rbtdb->node_locks[node->locknum],
+		refs + 1);
+#else
+	UNUSED(refs);
+#endif
+}
+
 /*
  * Caller must be holding the node lock.
  */
 void
 dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		  isc_rwlocktype_t nlocktype DNS__DB_FLARG) {
-	uint_fast32_t refs;
-
 	if (nlocktype == isc_rwlocktype_write &&
 	    ISC_LINK_LINKED(node, deadlink))
 	{
@@ -1130,28 +1155,7 @@ dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 				deadlink);
 	}
 
-	refs = isc_refcount_increment0(&node->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr, "incr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
-		func, file, line, node, refs + 1);
-#else
-	UNUSED(refs);
-#endif
-
-	if (refs == 0) {
-		/* this is the first reference to the node */
-		refs = isc_refcount_increment0(
-			&rbtdb->node_locks[node->locknum].references);
-#if DNS_DB_NODETRACE
-		fprintf(stderr,
-			"incr:nodelock:%s:%s:%u:%p:%p->references = "
-			"%" PRIuFAST32 "\n",
-			func, file, line, node,
-			&rbtdb->node_locks[node->locknum], refs + 1);
-#else
-		UNUSED(refs);
-#endif
-	}
+	rbtnode_newref(rbtdb, node);
 }
 
 /*%
@@ -1280,6 +1284,29 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	NODE_UNLOCK(nodelock, &nlocktype);
 }
 
+static bool
+rbtnode_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node DNS__DB_FLARG) {
+	db_nodelock_t *nodelock = &rbtdb->node_locks[node->locknum];
+	uint_fast32_t refs = isc_refcount_decrement(&node->references);
+#if DNS_DB_NODETRACE
+	fprintf(stderr, "decr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
+		func, file, line, node, refs - 1);
+#endif
+	if (refs > 1) {
+		return false;
+	}
+	refs = isc_refcount_decrement(&nodelock->references);
+#if DNS_DB_NODETRACE
+	fprintf(stderr,
+		"decr:nodelock:%s:%s:%u:%p:%p->references = "
+		"%" PRIuFAST32 "\n",
+		func, file, line, node, nodelock, refs - 1);
+#else
+	UNUSED(refs);
+#endif
+	return true;
+}
+
 /*
  * Caller must be holding the node lock; either the read or write lock.
  * Note that the lock must be held even when node references are
@@ -1302,10 +1329,8 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	isc_result_t result;
 	bool locked = *tlocktypep != isc_rwlocktype_none;
 	bool write_locked = false;
-	int bucket = node->locknum;
-	db_nodelock_t *nodelock = &rbtdb->node_locks[bucket];
+	db_nodelock_t *nodelock = &rbtdb->node_locks[node->locknum];
 	bool no_reference = true;
-	uint_fast32_t refs;
 
 	REQUIRE(*nlocktypep != isc_rwlocktype_none);
 
@@ -1313,24 +1338,10 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	((n)->data != NULL || ((l) && (n)->down != NULL) || \
 	 (n) == (r)->origin_node || (n) == (r)->nsec3_origin_node)
 
-	/* Handle easy and/or typical case first. */
-	refs = isc_refcount_decrement(&node->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr, "decr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
-		func, file, line, node, refs - 1);
-#endif
-	if (refs > 1) {
+	if (!rbtnode_decref(rbtdb, node DNS__DB_FLARG_PASS)) {
 		return false;
 	}
-	refs = isc_refcount_decrement(&nodelock->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr,
-		"decr:nodelock:%s:%s:%u:%p:%p->references = "
-		"%" PRIuFAST32 "\n",
-		func, file, line, node, nodelock, refs - 1);
-#else
-	UNUSED(refs);
-#endif
+
 	if (!node->dirty && KEEP_NODE(node, rbtdb, locked)) {
 		return true;
 	}
@@ -1340,21 +1351,14 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	 * node. To clean it up, the node ref needs to decrement to 0 under the
 	 * node write lock, so we regain the ref and try again.
 	 */
-	dns__rbtdb_newref(rbtdb, node, *nlocktypep DNS__DB_FLARG_PASS);
+	rbtnode_newref(rbtdb, node DNS__DB_FLARG_PASS);
 
 	/* Upgrade the lock? */
 	if (*nlocktypep == isc_rwlocktype_read) {
 		NODE_FORCEUPGRADE(&nodelock->lock, nlocktypep);
 	}
 
-	refs = isc_refcount_decrement(&node->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr, "decr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
-		func, file, line, node, refs - 1);
-#else
-	UNUSED(refs);
-#endif
-	if (refs > 1) {
+	if (!rbtnode_decref(rbtdb, node DNS__DB_FLARG_PASS)) {
 		return false;
 	}
 
@@ -1407,15 +1411,6 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		write_locked = true;
 	}
 
-	refs = isc_refcount_decrement(&nodelock->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr,
-		"decr:nodelock:%s:%s:%u:%p:%p->references = %" PRIuFAST32 "\n",
-		func, file, line, node, nodelock, refs - 1);
-#else
-	UNUSED(refs);
-#endif
-
 	if (KEEP_NODE(node, rbtdb, locked || write_locked)) {
 		goto restore_locks;
 	}
@@ -1455,7 +1450,7 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	} else {
 		INSIST(node->data == NULL);
 		if (!ISC_LINK_LINKED(node, deadlink)) {
-			ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node,
+			ISC_LIST_APPEND(rbtdb->deadnodes[node->locknum], node,
 					deadlink);
 		}
 	}
