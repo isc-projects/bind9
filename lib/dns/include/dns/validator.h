@@ -55,6 +55,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h> /* for dns_rdata_rrsig_t */
+#include <dns/resolver.h>
 #include <dns/types.h>
 
 #include <dst/dst.h>
@@ -155,11 +156,7 @@ struct dns_validator {
 	isc_counter_t *qc;
 	isc_counter_t *gqc;
 
-	/*
-	 * opaque type here, used to send EDE errors during DNSSEC valiration
-	 * to the fetch context.
-	 */
-	fetchctx_t *fctx;
+	dns_edectx_t *edectx;
 };
 
 /*%
@@ -176,8 +173,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_message_t *message, unsigned int options,
 		     isc_loop_t *loop, isc_job_cb cb, void *arg,
 		     uint32_t *nvalidations, uint32_t *nfails,
-		     isc_counter_t *qc, isc_counter_t *gqc, fetchctx_t *fctx,
-		     dns_validator_t **validatorp);
+		     isc_counter_t *qc, isc_counter_t *gqc,
+		     dns_edectx_t *edectx, dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.
  *

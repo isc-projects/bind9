@@ -55,6 +55,7 @@
 #include <isc/tls.h>
 #include <isc/types.h>
 
+#include <dns/ede.h>
 #include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/types.h>
@@ -79,7 +80,7 @@ struct dns_fetchresponse {
 	isc_mem_t	     *mctx;
 	isc_result_t	      result;
 	isc_result_t	      vresult;
-	dns_edelist_t	      edelist;
+	dns_edectx_t	     *edectx;
 	dns_rdatatype_t	      qtype;
 	dns_db_t	     *db;
 	dns_dbnode_t	     *node;
@@ -273,8 +274,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 unsigned int options, unsigned int depth,
 			 isc_counter_t *qc, isc_counter_t *gqc,
 			 isc_loop_t *loop, isc_job_cb cb, void *arg,
-			 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-			 dns_fetch_t **fetchp);
+			 dns_edectx_t *edectx, dns_rdataset_t *rdataset,
+			 dns_rdataset_t *sigrdataset, dns_fetch_t **fetchp);
 /*%<
  * Recurse to answer a question.
  *
@@ -633,32 +634,4 @@ dns_resolver_freefresp(dns_fetchresponse_t **frespp);
  *
  * Requires:
  * \li	'frespp' is valid. No-op if *frespp == NULL
- */
-
-void
-dns_resolver_edeappend(fetchctx_t *fctx, uint16_t info_code, const char *what,
-		       const dns_name_t *name, dns_rdatatype_t type);
-/*%<
- * Helper for EDE message creation in resolver context. Creates message
- * containing the "what" context message as well as the "name"/"type" being
- * resolved
- *
- * Requires:
- * \li "fctx" is valid
- * \li "what" is valid
- * \li "info_code" is within the range of defined EDE codes
- * \li "name" is valid
- */
-
-void
-dns_resolver_copyede(dns_fetch_t *from, fetchctx_t *to);
-/*%<
- * Copy all EDE messages from the fetchctx_t "from->private" to the fetchctx_t
- * "to". The fetchctx_t from "from" is not locked. This is reponsability of the
- * caller to lock it if this function is called in a context needing "from"
- * synchronization.
- *
- * Requires:
- * \li "from" is valid
- * \li "to" is valid
  */

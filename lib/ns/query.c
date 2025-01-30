@@ -42,6 +42,7 @@
 #include <dns/dlz.h>
 #include <dns/dns64.h>
 #include <dns/dnssec.h>
+#include <dns/ede.h>
 #include <dns/keytable.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
@@ -899,7 +900,7 @@ ns_query_init(ns_client_t *client) {
 	ISC_LIST_INIT(client->query.namebufs);
 	ISC_LIST_INIT(client->query.activeversions);
 	ISC_LIST_INIT(client->query.freeversions);
-	memset(client->ede, 0, sizeof(dns_ednsopt_t *) * DNS_EDE_MAX_ERRORS);
+
 	/*
 	 * This mutex is destroyed when the client is destroyed in
 	 * exit_check().
@@ -982,8 +983,7 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 			 * since it is cleared by query_reset(), before query
 			 * processing starts.
 			 */
-			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
-						NULL);
+			dns_ede_add(&client->edectx, DNS_EDE_PROHIBITED, NULL);
 
 			if (!options.nolog) {
 				ns_client_aclmsg("query (cache)", name, qtype,
@@ -1122,8 +1122,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 				      "%s denied", msg);
-			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
-						NULL);
+			dns_ede_add(&client->edectx, DNS_EDE_PROHIBITED, NULL);
 		}
 	}
 
@@ -1153,8 +1152,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 		result = ns_client_checkaclsilent(client, &client->destaddr,
 						  queryonacl, true);
 		if (result != ISC_R_SUCCESS) {
-			ns_client_extendederror(client, DNS_EDE_PROHIBITED,
-						NULL);
+			dns_ede_add(&client->edectx, DNS_EDE_PROHIBITED, NULL);
 		}
 		if (!options.nolog && result != ISC_R_SUCCESS) {
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
@@ -2503,8 +2501,8 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 			isc_buffer_putstr(&buffer, " (cached)");
 			isc_buffer_putuint8(&buffer, 0);
 
-			ns_client_extendederror(client, DNS_EDE_DNSKEYALG,
-						isc_buffer_base(&buffer));
+			dns_ede_add(&client->edectx, DNS_EDE_DNSKEYALG,
+				    isc_buffer_base(&buffer));
 			continue;
 		}
 		if (!dns_name_issubdomain(name, &rrsig.signer)) {
@@ -2813,7 +2811,7 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 		client->view->resolver, qname, qtype, NULL, NULL, NULL,
 		peeraddr, client->message->id, options, 0, NULL,
 		client->query.qc, client->manager->loop, cb, client,
-		tmprdataset, NULL, fetchp);
+		&client->edectx, tmprdataset, NULL, fetchp);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_putrdataset(client, &tmprdataset);
 		isc_nmhandle_detach(handlep);
@@ -5937,8 +5935,8 @@ query_lookup(query_ctx_t *qctx) {
 			      stale_found ? "used" : "unavailable",
 			      isc_result_totext(result));
 		if (stale_found) {
-			ns_client_extendederror(qctx->client, ede,
-						"resolver failure");
+			dns_ede_add(&qctx->client->edectx, ede,
+				    "resolver failure");
 		} else if (!answer_found) {
 			/*
 			 * Resolver failure, no stale data, nothing more we
@@ -5961,9 +5959,8 @@ query_lookup(query_ctx_t *qctx) {
 			      isc_result_totext(result));
 
 		if (stale_found) {
-			ns_client_extendederror(
-				qctx->client, ede,
-				"query within stale refresh time window");
+			dns_ede_add(&qctx->client->edectx, ede,
+				    "query within stale refresh time window");
 		} else if (!answer_found) {
 			/*
 			 * During the stale refresh window explicitly do not try
@@ -6007,8 +6004,8 @@ query_lookup(query_ctx_t *qctx) {
 					namebuf, typebuf);
 				qctx->refresh_rrset = STALE(qctx->rdataset);
 				if (stale_found) {
-					ns_client_extendederror(
-						qctx->client, ede,
+					dns_ede_add(
+						&qctx->client->edectx, ede,
 						"stale data prioritized over "
 						"lookup");
 				}
@@ -6155,13 +6152,6 @@ fetch_callback(void *arg) {
 
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
 	client->state = NS_CLIENTSTATE_WORKING;
-
-	for (dns_ede_t *ede = ISC_LIST_HEAD(resp->edelist); ede != NULL;
-	     ede = ISC_LIST_NEXT(ede, link))
-	{
-		ns_client_extendederror(client, ede->info_code,
-					ede->extra_text);
-	}
 
 	/*
 	 * Initialize a new qctx and use it to either resume from
@@ -6380,7 +6370,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		client->view->resolver, qname, qtype, qdomain, nameservers,
 		NULL, peeraddr, client->message->id, client->query.fetchoptions,
 		0, NULL, client->query.qc, client->manager->loop,
-		fetch_callback, client, rdataset, sigrdataset,
+		fetch_callback, client, &client->edectx, rdataset, sigrdataset,
 		&FETCH_RECTYPE_NORMAL(client));
 	if (result != ISC_R_SUCCESS) {
 		release_recursionquota(client);
@@ -7247,8 +7237,8 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		if (qctx->rpz_st->m.rpz->ede != 0 &&
 		    qctx->rpz_st->m.rpz->ede != UINT16_MAX)
 		{
-			ns_client_extendederror(qctx->client,
-						qctx->rpz_st->m.rpz->ede, NULL);
+			dns_ede_add(&qctx->client->edectx,
+				    qctx->rpz_st->m.rpz->ede, NULL);
 		}
 
 		/*
@@ -11448,8 +11438,8 @@ ns_query_done(query_ctx_t *qctx) {
 			 */
 			partial_result_with_servfail = true;
 
-			ns_client_extendederror(qctx->client, 0,
-						"max. restarts reached");
+			dns_ede_add(&qctx->client->edectx, DNS_EDE_OTHER,
+				    "max. restarts reached");
 			ns_client_log(qctx->client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 				      "query iterations limit reached");

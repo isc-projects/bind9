@@ -46,6 +46,7 @@
 #include <dns/dns64.h>
 #include <dns/dnstap.h>
 #include <dns/ds.h>
+#include <dns/ede.h>
 #include <dns/edns.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
@@ -341,6 +342,8 @@ struct fetchctx {
 	isc_loop_t *loop;
 	unsigned int tid;
 
+	dns_edectx_t edectx;
+
 	/* Atomic */
 	isc_refcount_t references;
 
@@ -351,7 +354,6 @@ struct fetchctx {
 	bool cloned;
 	bool spilled;
 	ISC_LIST(dns_fetchresponse_t) resps;
-	dns_edelist_t edelist;
 
 	/*% Locked by loop event serialization. */
 	dns_fixedname_t dfname;
@@ -977,7 +979,7 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	result = dns_validator_create(
 		fctx->res->view, name, type, rdataset, sigrdataset, message,
 		valoptions, fctx->loop, validated, valarg, &fctx->nvalidations,
-		&fctx->nfails, fctx->qc, fctx->gqc, fctx, &validator);
+		&fctx->nfails, fctx->qc, fctx->gqc, &fctx->edectx, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	inc_stats(fctx->res, dns_resstatscounter_val);
 	ISC_LIST_APPEND(fctx->validators, validator, link);
@@ -1585,14 +1587,11 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		}
 
 		/*
-		 * Copy EDE that occured during the resolution to all
-		 * clients.
+		 * Finalize the EDE context, so it becomes "constant" and assign
+		 * it to all clients.
 		 */
-		for (dns_ede_t *ede = ISC_LIST_HEAD(fctx->edelist); ede != NULL;
-		     ede = ISC_LIST_NEXT(ede, link))
-		{
-			dns_ede_append(resp->mctx, &resp->edelist,
-				       ede->info_code, ede->extra_text);
+		if (resp->edectx != NULL) {
+			dns_ede_copy(resp->edectx, &fctx->edectx);
 		}
 
 		FCTXTRACE("post response event");
@@ -1987,10 +1986,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	fctx_setretryinterval(fctx, srtt);
 	if (isc_interval_iszero(&fctx->interval)) {
 		FCTXTRACE("fetch expired");
-		LOCK(&fctx->lock);
-		dns_ede_append(fctx->mctx, &fctx->edelist,
-			       DNS_EDE_NOREACHABLEAUTH, NULL);
-		UNLOCK(&fctx->lock);
+		dns_ede_add(&fctx->edectx, DNS_EDE_NOREACHABLEAUTH, NULL);
 		return ISC_R_TIMEDOUT;
 	}
 
@@ -4114,7 +4110,7 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 		result = dns_resolver_createfetch(
 			fctx->res, fctx->qminname, fctx->qmintype, fctx->domain,
 			&fctx->nameservers, NULL, NULL, 0, options, 0, fctx->qc,
-			fctx->gqc, fctx->loop, resume_qmin, fctx,
+			fctx->gqc, fctx->loop, resume_qmin, fctx, &fctx->edectx,
 			&fctx->qminrrset, NULL, &fctx->qminfetch);
 		if (result != ISC_R_SUCCESS) {
 			fetchctx_unref(fctx);
@@ -4201,7 +4197,6 @@ resume_qmin(void *arg) {
 	}
 	UNLOCK(&fctx->lock);
 
-	dns_resolver_copyede(fctx->qminfetch, fctx);
 	dns_resolver_destroyfetch(&fctx->qminfetch);
 
 	/*
@@ -4375,8 +4370,6 @@ fctx_destroy(fetchctx_t *fctx) {
 		isc_mem_put(fctx->mctx, sa, sizeof(*sa));
 	}
 
-	dns_ede_unlinkall(fctx->mctx, &fctx->edelist);
-
 	isc_counter_detach(&fctx->qc);
 	if (fctx->gqc != NULL) {
 		isc_counter_detach(&fctx->gqc);
@@ -4390,6 +4383,8 @@ fctx_destroy(fetchctx_t *fctx) {
 	dns_adb_detach(&fctx->adb);
 
 	dns_resolver_detach(&fctx->res);
+
+	dns_ede_invalidate(&fctx->edectx);
 
 	isc_mutex_destroy(&fctx->lock);
 
@@ -4409,10 +4404,7 @@ fctx_expired(void *arg) {
 		      "shut down hung fetch while resolving %p(%s)", fctx,
 		      fctx->info);
 
-	LOCK(&fctx->lock);
-	dns_ede_append(fctx->mctx, &fctx->edelist, DNS_EDE_NOREACHABLEAUTH,
-		       NULL);
-	UNLOCK(&fctx->lock);
+	dns_ede_add(&fctx->edectx, DNS_EDE_NOREACHABLEAUTH, NULL);
 
 	fctx_done_detach(&fctx, DNS_R_SERVFAIL);
 }
@@ -4468,8 +4460,8 @@ detach:
 static void
 fctx_add_event(fetchctx_t *fctx, isc_loop_t *loop, const isc_sockaddr_t *client,
 	       dns_messageid_t id, isc_job_cb cb, void *arg,
-	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-	       dns_fetch_t *fetch) {
+	       dns_edectx_t *edectx, dns_rdataset_t *rdataset,
+	       dns_rdataset_t *sigrdataset, dns_fetch_t *fetch) {
 	dns_fetchresponse_t *resp = NULL;
 
 	FCTXTRACE("addevent");
@@ -4477,7 +4469,6 @@ fctx_add_event(fetchctx_t *fctx, isc_loop_t *loop, const isc_sockaddr_t *client,
 	resp = isc_mem_get(fctx->mctx, sizeof(*resp));
 	*resp = (dns_fetchresponse_t){
 		.result = DNS_R_SERVFAIL,
-		.edelist = ISC_LIST_INITIALIZER,
 		.qtype = fctx->type,
 		.rdataset = rdataset,
 		.sigrdataset = sigrdataset,
@@ -4488,6 +4479,7 @@ fctx_add_event(fetchctx_t *fctx, isc_loop_t *loop, const isc_sockaddr_t *client,
 		.cb = cb,
 		.arg = arg,
 		.link = ISC_LINK_INITIALIZER,
+		.edectx = edectx,
 	};
 	isc_mem_attach(fctx->mctx, &resp->mctx);
 
@@ -4506,15 +4498,15 @@ fctx_add_event(fetchctx_t *fctx, isc_loop_t *loop, const isc_sockaddr_t *client,
 
 static void
 fctx_join(fetchctx_t *fctx, isc_loop_t *loop, const isc_sockaddr_t *client,
-	  dns_messageid_t id, isc_job_cb cb, void *arg,
+	  dns_messageid_t id, isc_job_cb cb, void *arg, dns_edectx_t *edectx,
 	  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 	  dns_fetch_t *fetch) {
 	FCTXTRACE("join");
 
 	REQUIRE(!SHUTTINGDOWN(fctx));
 
-	fctx_add_event(fctx, loop, client, id, cb, arg, rdataset, sigrdataset,
-		       fetch);
+	fctx_add_event(fctx, loop, client, id, cb, arg, edectx, rdataset,
+		       sigrdataset, fetch);
 
 	fetch->magic = DNS_FETCH_MAGIC;
 	fetchctx_attach(fctx, &fetch->private);
@@ -4568,13 +4560,14 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		.loop = loop,
 		.nvalidations = atomic_load_relaxed(&res->maxvalidations),
 		.nfails = atomic_load_relaxed(&res->maxvalidationfails),
-		.edelist = ISC_LIST_INITIALIZER,
 	};
 
 	isc_mem_attach(mctx, &fctx->mctx);
 	dns_resolver_attach(res, &fctx->res);
 
 	isc_mutex_init(&fctx->lock);
+
+	dns_ede_init(fctx->mctx, &fctx->edectx);
 
 	/*
 	 * Make fctx->info point to a copy of a formatted string
@@ -7189,8 +7182,8 @@ resume_dslookup(void *arg) {
 		result = dns_resolver_createfetch(
 			res, fctx->nsname, dns_rdatatype_ns, domain, nsrdataset,
 			NULL, NULL, 0, fctx->options, 0, fctx->qc, fctx->gqc,
-			loop, resume_dslookup, fctx, &fctx->nsrrset, NULL,
-			&fctx->nsfetch);
+			loop, resume_dslookup, fctx, &fctx->edectx,
+			&fctx->nsrrset, NULL, &fctx->nsfetch);
 		if (result != ISC_R_SUCCESS) {
 			fetchctx_unref(fctx);
 			if (result == DNS_R_DUPLICATE) {
@@ -7204,7 +7197,6 @@ resume_dslookup(void *arg) {
 	}
 
 cleanup:
-	dns_resolver_copyede(fetch, fctx);
 	dns_resolver_destroyfetch(&fetch);
 
 	if (result != ISC_R_SUCCESS) {
@@ -7952,10 +7944,8 @@ rctx_timedout(respctx_t *rctx) {
 		if (isc_time_microdiff(&fctx->expires, &now) < US_PER_MS) {
 			FCTXTRACE("query timed out; stopped trying to make "
 				  "fetch happen");
-			LOCK(&fctx->lock);
-			dns_ede_append(fctx->mctx, &fctx->edelist,
-				       DNS_EDE_NOREACHABLEAUTH, NULL);
-			UNLOCK(&fctx->lock);
+			dns_ede_add(&fctx->edectx, DNS_EDE_NOREACHABLEAUTH,
+				    NULL);
 		} else {
 			FCTXTRACE("query timed out; trying next server");
 			/* try next server */
@@ -9621,7 +9611,8 @@ rctx_chaseds(respctx_t *rctx, dns_message_t *message,
 	result = dns_resolver_createfetch(
 		fctx->res, fctx->nsname, dns_rdatatype_ns, NULL, NULL, NULL,
 		NULL, 0, fctx->options, 0, fctx->qc, fctx->gqc, fctx->loop,
-		resume_dslookup, fctx, &fctx->nsrrset, NULL, &fctx->nsfetch);
+		resume_dslookup, fctx, &fctx->edectx, &fctx->nsrrset, NULL,
+		&fctx->nsfetch);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_DUPLICATE) {
 			result = DNS_R_SERVFAIL;
@@ -10191,7 +10182,7 @@ dns_resolver_prime(dns_resolver_t *res) {
 		result = dns_resolver_createfetch(
 			res, dns_rootname, dns_rdatatype_ns, NULL, NULL, NULL,
 			NULL, 0, DNS_FETCHOPT_NOFORWARD, 0, NULL, NULL,
-			isc_loop(), prime_done, res, rdataset, NULL,
+			isc_loop(), prime_done, res, NULL, rdataset, NULL,
 			&res->primefetch);
 		UNLOCK(&res->primelock);
 
@@ -10467,8 +10458,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 unsigned int options, unsigned int depth,
 			 isc_counter_t *qc, isc_counter_t *gqc,
 			 isc_loop_t *loop, isc_job_cb cb, void *arg,
-			 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-			 dns_fetch_t **fetchp) {
+			 dns_edectx_t *edectx, dns_rdataset_t *rdataset,
+			 dns_rdataset_t *sigrdataset, dns_fetch_t **fetchp) {
 	dns_fetch_t *fetch = NULL;
 	fetchctx_t *fctx = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -10568,8 +10559,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 		fctx->depth = depth;
 	}
 
-	fctx_join(fctx, loop, client, id, cb, arg, rdataset, sigrdataset,
-		  fetch);
+	fctx_join(fctx, loop, client, id, cb, arg, edectx, rdataset,
+		  sigrdataset, fetch);
 
 	if (new_fctx) {
 		fetchctx_ref(fctx);
@@ -11077,7 +11068,7 @@ dns_resolver_getquerystats(dns_resolver_t *res, dns_stats_t **statsp) {
 
 void
 dns_resolver_freefresp(dns_fetchresponse_t **frespp) {
-	REQUIRE(frespp);
+	REQUIRE(frespp != NULL);
 
 	if (*frespp == NULL) {
 		return;
@@ -11086,47 +11077,5 @@ dns_resolver_freefresp(dns_fetchresponse_t **frespp) {
 	dns_fetchresponse_t *fresp = *frespp;
 
 	*frespp = NULL;
-	dns_ede_unlinkall(fresp->mctx, &fresp->edelist);
 	isc_mem_putanddetach(&fresp->mctx, fresp, sizeof(*fresp));
-}
-
-void
-dns_resolver_edeappend(fetchctx_t *fctx, uint16_t info_code, const char *what,
-		       const dns_name_t *name, dns_rdatatype_t type) {
-	REQUIRE(VALID_FCTX(fctx));
-	REQUIRE(what);
-	REQUIRE(name);
-
-	char extra[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE +
-		   DNS_EDE_EXTRATEXT_LEN];
-	size_t offset = 0;
-
-	/*
-	 * -2 to leave room for separator "/" and NULL terminator
-	 */
-	snprintf(extra, DNS_EDE_EXTRATEXT_LEN - 2, "%s ", what);
-	offset += strlen(extra);
-	dns_name_format(name, extra + offset, DNS_NAME_FORMATSIZE);
-	offset = strlcat(extra, "/", sizeof(extra));
-	dns_rdatatype_format(type, extra + offset,
-			     DNS_RDATATYPE_FORMATSIZE + 1);
-
-	LOCK(&fctx->lock);
-	dns_ede_append(fctx->mctx, &fctx->edelist, info_code, extra);
-	UNLOCK(&fctx->lock)
-}
-
-void
-dns_resolver_copyede(dns_fetch_t *from, fetchctx_t *to) {
-	REQUIRE(DNS_FETCH_VALID(from));
-	REQUIRE(VALID_FCTX(to));
-
-	LOCK(&to->lock);
-	for (dns_ede_t *ede = ISC_LIST_HEAD(from->private->edelist);
-	     ede != NULL; ede = ISC_LIST_NEXT(ede, link))
-	{
-		dns_ede_append(to->mctx, &to->edelist, ede->info_code,
-			       ede->extra_text);
-	}
-	UNLOCK(&to->lock);
 }

@@ -24,6 +24,7 @@
 #include <isc/refcount.h>
 
 #include <dns/compress.h>
+#include <dns/ede.h>
 #include <dns/masterdump.h>
 #include <dns/types.h>
 
@@ -129,54 +130,6 @@
  * DNS_EDE_MAX_ERRORS.
  */
 #define DNS_EDNSOPTIONS 8 + DNS_EDE_MAX_ERRORS
-
-/*%< EDNS0 extended DNS errors */
-#define DNS_EDE_OTHER		     0	/*%< Other Error */
-#define DNS_EDE_DNSKEYALG	     1	/*%< Unsupported DNSKEY Algorithm */
-#define DNS_EDE_DSDIGESTTYPE	     2	/*%< Unsupported DS Digest Type */
-#define DNS_EDE_STALEANSWER	     3	/*%< Stale Answer */
-#define DNS_EDE_FORGEDANSWER	     4	/*%< Forged Answer */
-#define DNS_EDE_DNSSECINDETERMINATE  5	/*%< DNSSEC Indeterminate */
-#define DNS_EDE_DNSSECBOGUS	     6	/*%< DNSSEC Bogus */
-#define DNS_EDE_SIGNATUREEXPIRED     7	/*%< Signature Expired */
-#define DNS_EDE_SIGNATURENOTYETVALID 8	/*%< Signature Not Yet Valid */
-#define DNS_EDE_DNSKEYMISSING	     9	/*%< DNSKEY Missing */
-#define DNS_EDE_RRSIGSMISSING	     10 /*%< RRSIGs Missing */
-#define DNS_EDE_NOZONEKEYBITSET	     11 /*%< No Zone Key Bit Set */
-#define DNS_EDE_NSECMISSING	     12 /*%< NSEC Missing */
-#define DNS_EDE_CACHEDERROR	     13 /*%< Cached Error */
-#define DNS_EDE_NOTREADY	     14 /*%< Not Ready */
-#define DNS_EDE_BLOCKED		     15 /*%< Blocked */
-#define DNS_EDE_CENSORED	     16 /*%< Censored */
-#define DNS_EDE_FILTERED	     17 /*%< Filtered */
-#define DNS_EDE_PROHIBITED	     18 /*%< Prohibited */
-#define DNS_EDE_STALENXANSWER	     19 /*%< Stale NXDomain Answer */
-#define DNS_EDE_NOTAUTH		     20 /*%< Not Authoritative */
-#define DNS_EDE_NOTSUPPORTED	     21 /*%< Not Supported */
-#define DNS_EDE_NOREACHABLEAUTH	     22 /*%< No Reachable Authority */
-#define DNS_EDE_NETWORKERROR	     23 /*%< Network Error */
-#define DNS_EDE_INVALIDDATA	     24 /*%< Invalid Data */
-
-typedef struct dns_ede dns_ede_t;
-struct dns_ede {
-	uint16_t info_code;
-	char	*extra_text;
-	ISC_LINK(dns_ede_t) link;
-};
-
-typedef ISC_LIST(dns_ede_t) dns_edelist_t;
-
-/*
- * From RFC 8914:
- * Because long EXTRA-TEXT fields may trigger truncation (which is undesirable
- * given the supplemental nature of EDE), implementers and operators creating
- * EDE options SHOULD avoid lengthy EXTRA-TEXT contents.
- *
- * Following this advice we limit the EXTRA-TEXT length to 64 characters.
- */
-#define DNS_EDE_EXTRATEXT_LEN 64
-
-#define DNS_EDE_MAX_ERRORS 3
 
 #define DNS_MESSAGE_REPLYPRESERVE	 (DNS_MESSAGEFLAG_RD | DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
@@ -355,9 +308,9 @@ struct dns_message {
 };
 
 struct dns_ednsopt {
-	uint16_t       code;
-	uint16_t       length;
-	unsigned char *value;
+	uint16_t code;
+	uint16_t length;
+	uint8_t *value;
 };
 
 typedef void (*dns_message_cb_t)(void *arg, isc_result_t result);
@@ -1500,31 +1453,3 @@ dns_message_createpools(isc_mem_t *mctx, isc_mempool_t **namepoolp,
 			isc_mempool_t **rdspoolp);
 void
 dns_message_destroypools(isc_mempool_t **namepoolp, isc_mempool_t **rdspoolp);
-
-void
-dns_ede_append(isc_mem_t *mctx, dns_edelist_t *list, uint16_t info_code,
-	       const char *extra_text);
-/*%<
- * Adds a new EDE message at the end of 'list'. If 'extra_text' is non
- * NULL, the string is synchronously copied internally, so the called
- * doesn't have to keep it alive once this call returns. RFC8914
- * section 4 define the valid range of possible numbers for
- * 'info_code'.
- *
- * Requires:
- * \li   mctx to be non NULL;
- * \li   list to be non NULL;
- * \li   info_code to be valid;
- * \li   extra_text can be NULL or non NULL, do not take ownership.
- */
-
-void
-dns_ede_unlinkall(isc_mem_t *mctx, dns_edelist_t *list);
-/*%<
- * Unlink all elements from from 'list' and free it from
- * memory. Optional text owned by elements is also freed.
- *
- * Requires:
- * \li   mctx to be non NULL;
- * \li   list to be non NULL;
- */

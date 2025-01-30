@@ -15,65 +15,207 @@
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/buffer.h>
-#include <isc/net.h>
-#include <isc/timer.h>
-#include <isc/tls.h>
-#include <isc/util.h>
+#include <isc/list.h>
 
-#include <dns/message.h>
+#include <dns/ede.h>
+
+#include "../../lib/dns/ede.c"
 
 #include <tests/isc.h>
 
-ISC_RUN_TEST_IMPL(ede_enqueue_unlink) {
-	dns_edelist_t list;
-	dns_ede_t *ede = NULL;
-	const char *msg1 = "abcd";
-	const char *msg2 = "abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabc"
-			   "dabcdabcdadcdabcd";
+typedef struct {
+	uint16_t code;
+	const char *txt;
+} ede_test_expected_t;
 
-	ISC_LIST_INIT(list);
+static void
+dns_ede_test_equals(const ede_test_expected_t *expected, size_t expected_count,
+		    dns_edectx_t *edectx) {
+	size_t count = 0;
 
-	dns_ede_append(mctx, &list, 22, NULL);
-	dns_ede_append(mctx, &list, 12, msg1);
-	dns_ede_append(mctx, &list, 4, msg2);
+	for (size_t i = 0; i < DNS_EDE_MAX_ERRORS; i++) {
+		dns_ednsopt_t *edns = edectx->ede[i];
 
-	ede = ISC_LIST_HEAD(list);
-	assert_non_null(ede);
-	assert_int_equal(ede->info_code, 22);
-	assert_null(ede->extra_text);
+		if (edns == NULL) {
+			break;
+		}
 
-	ede = ISC_LIST_NEXT(ede, link);
-	assert_non_null(ede);
-	assert_int_equal(ede->info_code, 12);
-	assert_string_equal(ede->extra_text, msg1);
-	assert_ptr_not_equal(ede->extra_text, msg1);
+		uint16_t code;
+		const unsigned char *txt;
 
-	/*
-	 * Even though we limit the length of an EDE message to 64 bytes,
-	 * this is done only at the ns/client.c level (to make sure to cover all
-	 * the flows).
-	 */
-	ede = ISC_LIST_NEXT(ede, link);
-	assert_non_null(ede);
-	assert_int_equal(ede->info_code, 4);
-	assert_string_equal(ede->extra_text, msg2);
-	assert_ptr_not_equal(ede->extra_text, msg2);
+		assert_in_range(count, 0, expected_count);
+		assert_int_equal(edns->code, DNS_OPT_EDE);
 
-	dns_ede_unlinkall(mctx, &list);
-	assert_true(ISC_LIST_EMPTY(list));
+		code = ISC_U8TO16_BE(edns->value);
+		assert_int_equal(code, expected[count].code);
+
+		if (edns->length > sizeof(code)) {
+			assert_non_null(expected[count].txt);
+			txt = edns->value + sizeof(code);
+			assert_memory_equal(expected[count].txt, txt,
+					    edns->length - sizeof(code));
+		} else {
+			assert_null(expected[count].txt);
+		}
+
+		count++;
+	}
+	assert_int_equal(count, expected_count);
+}
+
+ISC_RUN_TEST_IMPL(dns_ede_test_text_max_count) {
+	dns_edectx_t edectx;
+
+	dns_ede_init(mctx, &edectx);
+
+	const char *txt1 = "foobar";
+	const char *txt2 = "It's been a long time since I rock-and-rolled"
+			   "Ooh, let me get it back, let me get it back";
+
+	dns_ede_add(&edectx, 2, txt1);
+	dns_ede_add(&edectx, 22, NULL);
+	dns_ede_add(&edectx, 3, txt2);
+
+	const ede_test_expected_t expected[3] = {
+		{ .code = 2, .txt = "foobar" },
+		{ .code = 22, .txt = NULL },
+		{ .code = 3,
+		  .txt = "It's been a long time since I rock-and-rolledOoh, "
+			 "let me get it " }
+	};
+
+	dns_ede_test_equals(expected, 3, &edectx);
+
+	dns_ede_reset(&edectx);
+}
+
+ISC_RUN_TEST_IMPL(dns_ede_test_max_count) {
+	dns_edectx_t edectx;
+
+	dns_ede_init(mctx, &edectx);
+
+	dns_ede_add(&edectx, 1, NULL);
+	dns_ede_add(&edectx, 22, "two");
+	dns_ede_add(&edectx, 3, "three");
+	dns_ede_add(&edectx, 4, "four");
+	dns_ede_add(&edectx, 5, "five");
+
+	const ede_test_expected_t expected[3] = {
+		{ .code = 1, .txt = NULL },
+		{ .code = 22, .txt = "two" },
+		{ .code = 3, .txt = "three" },
+	};
+
+	dns_ede_test_equals(expected, 3, &edectx);
+
+	dns_ede_reset(&edectx);
+}
+
+ISC_RUN_TEST_IMPL(dns_ede_test_duplicates) {
+	dns_edectx_t edectx;
+
+	dns_ede_init(mctx, &edectx);
+
+	dns_ede_add(&edectx, 1, NULL);
+	dns_ede_add(&edectx, 1, "two");
+	dns_ede_add(&edectx, 1, "three");
+
+	const ede_test_expected_t expected[] = {
+		{ .code = 1, .txt = NULL },
+	};
+	dns_ede_test_equals(expected, 1, &edectx);
+
+	dns_ede_reset(&edectx);
+
+	const ede_test_expected_t expectedempty[] = {};
+	dns_ede_test_equals(expectedempty, 0, &edectx);
+}
+
+ISC_RUN_TEST_IMPL(dns_ede_test_infocode_range) {
+	dns_edectx_t edectx;
+
+	dns_ede_init(mctx, &edectx);
+
+	dns_ede_add(&edectx, 1, NULL);
+	expect_assert_failure(dns_ede_add(&edectx, 32, NULL));
+
+	const ede_test_expected_t expected[] = {
+		{ .code = 1, .txt = NULL },
+	};
+	dns_ede_test_equals(expected, 1, &edectx);
+
+	dns_ede_reset(&edectx);
+}
+
+ISC_RUN_TEST_IMPL(dns_ede_test_copy) {
+	dns_edectx_t edectx1;
+	dns_edectx_t edectx2;
+	dns_edectx_t edectx3;
+
+	dns_ede_init(mctx, &edectx1);
+	dns_ede_init(mctx, &edectx2);
+
+	dns_ede_add(&edectx1, 1, NULL);
+	dns_ede_add(&edectx1, 2, "two-the-first");
+	dns_ede_add(&edectx1, 3, "three");
+
+	const ede_test_expected_t expected[] = {
+		{ .code = 1, .txt = NULL },
+		{ .code = 2, .txt = "two-the-first" },
+		{ .code = 3, .txt = "three" },
+	};
+
+	dns_ede_test_equals(expected, 3, &edectx1);
+	dns_ede_copy(&edectx2, &edectx1);
+	dns_ede_test_equals(expected, 3, &edectx2);
+	dns_ede_test_equals(expected, 3, &edectx1);
+
+	dns_ede_reset(&edectx2);
+	dns_ede_add(&edectx2, 1, "one-the-first-with-txt");
+	dns_ede_add(&edectx2, 2, "two-the-second");
+
+	const ede_test_expected_t expected2[] = {
+		{ .code = 1, .txt = "one-the-first-with-txt" },
+		{ .code = 2, .txt = "two-the-second" },
+		{ .code = 3, .txt = "three" }
+	};
+
+	dns_ede_copy(&edectx2, &edectx1);
+	dns_ede_test_equals(expected2, 3, &edectx2);
+	dns_ede_test_equals(expected, 3, &edectx1);
+
+	dns_ede_init(mctx, &edectx3);
+	dns_ede_add(&edectx3, 2, "two-the-third");
+	dns_ede_copy(&edectx3, &edectx2);
+
+	const ede_test_expected_t expected3[] = {
+		{ .code = 2, .txt = "two-the-third" },
+		{ .code = 1, .txt = "one-the-first-with-txt" },
+		{ .code = 3, .txt = "three" }
+	};
+	dns_ede_test_equals(expected3, 3, &edectx3);
+
+	dns_ede_reset(&edectx1);
+	dns_ede_reset(&edectx2);
+	dns_ede_reset(&edectx3);
 }
 
 ISC_TEST_LIST_START
 
-ISC_TEST_ENTRY(ede_enqueue_unlink)
+ISC_TEST_ENTRY(dns_ede_test_text_max_count)
+ISC_TEST_ENTRY(dns_ede_test_max_count)
+ISC_TEST_ENTRY(dns_ede_test_duplicates)
+ISC_TEST_ENTRY(dns_ede_test_infocode_range)
+ISC_TEST_ENTRY(dns_ede_test_copy)
 
 ISC_TEST_LIST_END
 
