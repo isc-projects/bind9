@@ -11722,7 +11722,7 @@ ns_query_done(query_ctx_t *qctx) {
 			 */
 			partial_result_with_servfail = true;
 
-			dns_ede_add(&qctx->client->edectx, 0,
+			dns_ede_add(&qctx->client->edectx, DNS_EDE_OTHER,
 				    "max. restarts reached");
 			ns_client_log(qctx->client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
