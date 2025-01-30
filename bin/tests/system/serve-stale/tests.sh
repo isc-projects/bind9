@@ -340,11 +340,15 @@ $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT >dig.out.test$((n + 4)) &
 
 wait
 
+# no stale answers are used and the authoritative queries timed out. So no EDE 3
+# is not sent but EDE 22 is sent.
+
 n=$((n + 1))
 echo_i "check stale data.example TXT (serve-stale off) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -352,7 +356,8 @@ n=$((n + 1))
 echo_i "check stale othertype.example CAA (serve-stale off) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -360,7 +365,8 @@ n=$((n + 1))
 echo_i "check stale nodata.example TXT (serve-stale off) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -368,7 +374,8 @@ n=$((n + 1))
 echo_i "check stale nxdomain.example TXT (serve-stale off) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -739,11 +746,15 @@ $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT >dig.out.test$((n + 4)) &
 
 wait
 
+# stale-answer is enabled, but with a very low TTL so the following answer have
+# been removed from the stale cache. Hence, no EDE 3 anymore, but EDE 22.
+
 n=$((n + 1))
 echo_i "check ancient data.example TXT (low max-stale-ttl) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -752,7 +763,8 @@ n=$((n + 1))
 echo_i "check ancient othertype.example CAA (low max-stale-ttl) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -761,7 +773,8 @@ n=$((n + 1))
 echo_i "check ancient nodata.example TXT (low max-stale-ttl) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -770,7 +783,8 @@ n=$((n + 1))
 echo_i "check ancient nxdomain.example TXT (low max-stale-ttl) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1093,11 +1107,15 @@ $DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT >dig.out.test$((n + 4)) &
 
 wait
 
+# no stale answers are used and the authoritative queries timed out. So no EDE 3
+# is not sent but EDE 22 is sent.
+
 n=$((n + 1))
 echo_i "check fail of data.example TXT (max-stale-ttl default) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1106,7 +1124,8 @@ n=$((n + 1))
 echo_i "check fail of othertype.example CAA (max-stale-ttl default) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1115,7 +1134,8 @@ n=$((n + 1))
 echo_i "check fail of nodata.example TXT (max-stale-ttl default) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1124,7 +1144,8 @@ n=$((n + 1))
 echo_i "check fail of nxdomain.example TXT (max-stale-ttl default) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1225,11 +1246,13 @@ status=$((status + ret))
 
 # The notfound.example check is different than nxdomain.example because
 # we didn't send a prime query to add notfound.example to the cache.
+# Independently, EDE 22 is sent as the authoritative server doesn't respond.
 n=$((n + 1))
 echo_i "check notfound.example TXT (max-stale-ttl default) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1341,11 +1364,15 @@ $DIG -p ${PORT} @10.53.0.4 nxdomain.example TXT >dig.out.test$((n + 4)) &
 
 wait
 
+# no stale answers are used and the authoritative queries timed out. So no EDE 3
+# is not sent but EDE 22 is sent.
+
 n=$((n + 1))
 echo_i "check fail of data.example TXT (serve-stale answers disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1354,7 +1381,8 @@ n=$((n + 1))
 echo_i "check fail of othertype.example TXT (serve-stale answers disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1363,7 +1391,8 @@ n=$((n + 1))
 echo_i "check fail of nodata.example TXT (serve-stale answers disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1372,7 +1401,8 @@ n=$((n + 1))
 echo_i "check fail of nxdomain.example TXT (serve-stale answers disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1549,11 +1579,15 @@ $DIG -p ${PORT} @10.53.0.5 nxdomain.example TXT >dig.out.test$((n + 4)) &
 
 wait
 
+# no stale answers are used and the authoritative queries timed out. So no EDE 3
+# is not sent but EDE 22 is sent.
+
 n=$((n + 1))
 echo_i "check fail of data.example TXT (serve-stale cache disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1562,7 +1596,8 @@ n=$((n + 1))
 echo_i "check fail of othertype.example CAA (serve-stale cache disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1571,7 +1606,8 @@ n=$((n + 1))
 echo_i "check fail of nodata.example TXT (serve-stale cache disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1580,7 +1616,8 @@ n=$((n + 1))
 echo_i "check fail of nxdomain.example TXT (serve-stale cache disabled) ($n)"
 ret=0
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-grep "EDE" dig.out.test$n >/dev/null && ret=1
+grep "EDE: 22 (No Reachable Authority)" dig.out.test$n >/dev/null || ret=1
+grep "EDE: 3 (Stale Answer)" dig.out.test$n >/dev/null && ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
