@@ -1878,6 +1878,15 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	}
 }
 
+static void
+rbtnode_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
+	if (isc_refcount_increment0(&node->references) == 0) {
+		/* this is the first reference to the node */
+		isc_refcount_increment0(
+			&rbtdb->node_locks[node->locknum].references);
+	}
+}
+
 /*
  * Caller must be holding the node lock.
  */
@@ -1890,11 +1899,8 @@ new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum], node,
 				deadlink);
 	}
-	if (isc_refcount_increment0(&node->references) == 0) {
-		/* this is the first reference to the node */
-		isc_refcount_increment0(
-			&rbtdb->node_locks[node->locknum].references);
-	}
+
+	rbtnode_newref(rbtdb, node);
 }
 
 /*%
@@ -2025,6 +2031,22 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	NODE_UNLOCK(nodelock, locktype);
 }
 
+static bool
+rbtnode_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
+	uint32_t refs;
+	rbtdb_nodelock_t *nodelock = &rbtdb->node_locks[node->locknum];
+
+	/* Handle easy and/or typical case first. */
+	if (isc_refcount_decrement(&node->references) > 1) {
+		return false;
+	}
+
+	refs = isc_refcount_decrement(&nodelock->references);
+	INSIST(refs > 0);
+
+	return true;
+}
+
 /*
  * Caller must be holding the node lock; either the "strong", read or write
  * lock.  Note that the lock must be held even when node references are
@@ -2049,44 +2071,34 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	int bucket = node->locknum;
 	rbtdb_nodelock_t *nodelock = &rbtdb->node_locks[bucket];
 	bool no_reference = true;
-	uint_fast32_t refs;
 
 #define KEEP_NODE(n, r, l)                                  \
 	((n)->data != NULL || ((l) && (n)->down != NULL) || \
 	 (n) == (r)->origin_node || (n) == (r)->nsec3_origin_node)
 
-	/* Handle easy and/or typical case first. */
-	if (isc_refcount_decrement(&node->references) > 1) {
+	if (!rbtnode_decref(rbtdb, node)) {
 		return false;
 	}
 
-	refs = isc_refcount_decrement(&nodelock->references);
-	INSIST(refs > 0);
-
-	/* Handle easy and typical case first. */
 	if (!node->dirty && KEEP_NODE(node, rbtdb, locked)) {
 		return true;
 	}
 
-	/*
-	 * Node lock ref has decremented to 0 and we may need to clean up the
-	 * node. To clean it up, the node ref needs to decrement to 0 under the
-	 * node write lock, so we regain the ref and try again.
-	 */
-	new_reference(rbtdb, node, nlock);
-
 	/* Upgrade the lock? */
 	if (nlock == isc_rwlocktype_read) {
+		/*
+		 * Node lock ref has decremented to 0 and we may need to clean
+		 * up the node. To clean it up, the node ref needs to decrement
+		 * to 0 under the node write lock, so we regain the ref and try
+		 * again.
+		 */
+		rbtnode_newref(rbtdb, node);
 		NODE_UNLOCK(&nodelock->lock, isc_rwlocktype_read);
 		NODE_LOCK(&nodelock->lock, isc_rwlocktype_write);
-	}
-
-	if (isc_refcount_decrement(&node->references) > 1) {
-		/* Restore the lock? */
-		if (nlock == isc_rwlocktype_read) {
+		if (!rbtnode_decref(rbtdb, node)) {
 			NODE_DOWNGRADE(&nodelock->lock);
+			return false;
 		}
-		return false;
 	}
 
 	if (node->dirty) {
@@ -2131,9 +2143,6 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		write_locked = true;
 	}
 
-	refs = isc_refcount_decrement(&nodelock->references);
-	INSIST(refs > 0);
-
 	if (KEEP_NODE(node, rbtdb, locked || write_locked)) {
 		goto restore_locks;
 	}
@@ -2172,7 +2181,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	} else {
 		INSIST(node->data == NULL);
 		if (!ISC_LINK_LINKED(node, deadlink)) {
-			ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node,
+			ISC_LIST_APPEND(rbtdb->deadnodes[node->locknum], node,
 					deadlink);
 		}
 	}
