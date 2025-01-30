@@ -967,10 +967,10 @@ abi-check:
     - set +o pipefail; git log --format='%H' | grep --silent "$CI_COMMIT_BEFORE_SHA" && PREVIOUS_TIP_REACHABLE=1
     - test "$PREVIOUS_TIP_REACHABLE" != "1" && echo "force-push detected, stop" && exit 1
     # non-fast-forward merges are disabled so we have to have merge commit on top
-    - MERGE_REQUEST_ID="$(git log -1 --format='%b' | sed --silent -e 's/^See merge request [^!]\+!//p')"
+    - MERGE_REQUEST_ID="$(git log -1 --format='%b' | sed --silent -e "s|^See merge request ${CI_PROJECT_PATH}\!||p")"
     - >
-      : stop if this is not a merge request
-    - test "$MERGE_REQUEST_ID" -ge 0
+      : stop if this is not a merge request in the current project's namespace
+    - test -n "$MERGE_REQUEST_ID"
     - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
 
 merged-metadata:
