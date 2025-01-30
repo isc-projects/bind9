@@ -18,8 +18,7 @@ check_PROGRAMS =		\
 	listenlist_test		\
 	notify_test		\
 	plugin_test		\
-	query_test		\
-	client_test
+	query_test
 
 notify_test_SOURCES =		\
 	notify_test.c		\
