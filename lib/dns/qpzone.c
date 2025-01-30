@@ -3326,6 +3326,34 @@ qpzone_check_zonecut(qpznode_t *node, void *arg DNS__DB_FLARG) {
 	return result;
 }
 
+static void
+qpz_search_init(qpz_search_t *search, qpzonedb_t *db, qpz_version_t *version,
+		unsigned int options) {
+	/*
+	 * qpz_search_t contains two structures with large buffers (dns_qpiter_t
+	 * and dns_qpchain_t). Those two structures will be initialized later by
+	 * dns_qp_lookup anyway.
+	 * To avoid the overhead of zero initialization, we avoid designated
+	 * initializers and initialize all "small" fields manually.
+	 */
+	search->qpdb = db;
+	search->version = version;
+	search->qpr = (dns_qpread_t){};
+	search->serial = version->serial;
+	search->options = options;
+	/*
+	 * qpch->in -- init in dns_qp_lookup
+	 * qpiter -- init in dns_qp_lookup
+	 */
+	search->copy_name = false;
+	search->need_cleanup = false;
+	search->wild = false;
+	search->zonecut = NULL;
+	search->zonecut_header = NULL;
+	search->zonecut_sigheader = NULL;
+	dns_fixedname_init(&search->zonecut_name);
+}
+
 static isc_result_t
 qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options,
@@ -3335,7 +3363,6 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	isc_result_t result;
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpznode_t *node = NULL;
-	qpz_search_t search;
 	bool cname_ok = true, close_version = false;
 	bool maybe_zonecut = false, at_zonecut = false;
 	bool wild = false, empty_node = false;
@@ -3361,13 +3388,9 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		close_version = true;
 	}
 
-	search = (qpz_search_t){
-		.qpdb = (qpzonedb_t *)db,
-		.version = (qpz_version_t *)version,
-		.serial = ((qpz_version_t *)version)->serial,
-		.options = options,
-	};
-	dns_fixedname_init(&search.zonecut_name);
+	qpz_search_t search;
+	qpz_search_init(&search, (qpzonedb_t *)db, (qpz_version_t *)version,
+			options);
 
 	if ((options & DNS_DBFIND_FORCENSEC3) != 0) {
 		dns_qpmulti_query(qpdb->nsec3, &search.qpr);

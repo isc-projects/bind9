@@ -1785,10 +1785,14 @@ dns_qpchain_init(dns_qpreadable_t qpr, dns_qpchain_t *chain) {
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(chain != NULL);
 
-	*chain = (dns_qpchain_t){
-		.magic = QPCHAIN_MAGIC,
-		.qp = qp,
-	};
+	/*
+	 * dns_qpchain_t contains a 2kb buffer, which is slow to
+	 * zero-initialize. Therefore we avoid designated initializers, and
+	 * initialize each field manually.
+	 */
+	chain->magic = QPCHAIN_MAGIC;
+	chain->qp = qp;
+	chain->len = 0;
 }
 
 unsigned int
@@ -1821,10 +1825,19 @@ dns_qpiter_init(dns_qpreadable_t qpr, dns_qpiter_t *qpi) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(qpi != NULL);
-	*qpi = (dns_qpiter_t){
-		.qp = qp,
-		.magic = QPITER_MAGIC,
-	};
+
+	/*
+	 * dns_qpiter_t contains a 4kb buffer, which is slow to zero-initialize.
+	 * Therefore we avoid designated initializers, and initialize each
+	 * field manually.
+	 */
+	qpi->qp = qp;
+	qpi->sp = 0;
+	qpi->magic = QPITER_MAGIC;
+	/*
+	 * The top of the stack must be initialized.
+	 */
+	qpi->stack[qpi->sp] = NULL;
 }
 
 /*

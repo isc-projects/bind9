@@ -1458,6 +1458,29 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 	 (DNS_TRUST_PENDING((found)->trust) &&             \
 	  (((options) & DNS_DBFIND_PENDINGOK) == 0)))
 
+static void
+qpc_search_init(qpc_search_t *search, qpcache_t *db, unsigned int options,
+		isc_stdtime_t now) {
+	/*
+	 * qpc_search_t contains two structures with large buffers (dns_qpiter_t
+	 * and dns_qpchain_t). Those two structures will be initialized later by
+	 * dns_qp_lookup anyway.
+	 * To avoid the overhead of zero initialization, we avoid designated
+	 * initializers and initialize all "small" fields manually.
+	 */
+	search->qpdb = (qpcache_t *)db;
+	search->options = options;
+	/*
+	 * qpch->in - Init by dns_qp_lookup
+	 * qpiter - Init by dns_qp_lookup
+	 */
+	search->need_cleanup = false;
+	search->now = now ? now : isc_stdtime_now();
+	search->zonecut = NULL;
+	search->zonecut_header = NULL;
+	search->zonecut_sigheader = NULL;
+}
+
 static isc_result_t
 qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t __now,
@@ -1479,11 +1502,9 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	dns_slabheader_t *foundsig = NULL, *nssig = NULL, *cnamesig = NULL;
 	dns_slabheader_t *nsecheader = NULL, *nsecsig = NULL;
 	dns_typepair_t sigtype, negtype;
-	qpc_search_t search = (qpc_search_t){
-		.qpdb = (qpcache_t *)db,
-		.options = options,
-		.now = __now ? __now : isc_stdtime_now(),
-	};
+
+	qpc_search_t search;
+	qpc_search_init(&search, (qpcache_t *)db, options, __now);
 
 	REQUIRE(VALID_QPDB((qpcache_t *)db));
 	REQUIRE(version == NULL);
