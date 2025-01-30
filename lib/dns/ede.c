@@ -41,29 +41,32 @@ dns_ede_add(dns_edectx_t *edectx, uint16_t code, const char *text) {
 	size_t textlen = 0;
 
 	if (dns__ede_checkandupdateedeused(edectx, code)) {
-		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-			      ISC_LOG_DEBUG(1), "ignoring duplicate ede %u %s",
-			      code, text == NULL ? "(null)" : text);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
+			      "ignoring duplicate ede %u %s", code,
+			      text == NULL ? "(null)" : text);
 		return;
 	}
 
 	if (edectx->nextede >= DNS_EDE_MAX_ERRORS) {
-		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-			      ISC_LOG_DEBUG(1), "too many ede, ignoring %u %s",
-			      code, text == NULL ? "(null)" : text);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
+			      "too many ede, ignoring %u %s", code,
+			      text == NULL ? "(null)" : text);
 		return;
 	}
 	INSIST(edectx->ede[edectx->nextede] == NULL);
 
-	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-		      ISC_LOG_DEBUG(1), "set ede: info-code %u extra-text %s",
-		      code, text == NULL ? "(null)" : text);
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
+		      "set ede: info-code %u extra-text %s", code,
+		      text == NULL ? "(null)" : text);
 
 	if (text != NULL) {
 		textlen = strlen(text);
 
 		if (textlen > DNS_EDE_EXTRATEXT_LEN) {
-			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
 				      "truncate EDE code %hu text: %s", code,
 				      text);
@@ -147,7 +150,7 @@ dns_ede_copy(dns_edectx_t *edectx_to, const dns_edectx_t *edectx_from) {
 		}
 
 		if (edectx_to->nextede >= DNS_EDE_MAX_ERRORS) {
-			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
 				      "too many ede from subfetch");
 			break;
