@@ -31,11 +31,11 @@ confidential!
   - [ ] [:link:][step_deputy]            **(IM)** Pick a Deputy Incident Manager
   - [ ] [:link:][step_respond]           **(IM)** Respond to the bug reporter
   - [ ] [:link:][step_public_mrs]        **(SwEng)** Ensure there are no public merge requests which inadvertently disclose the issue
+  - [ ] [:link:][step_coordinate_cve_id] **(SwEng)** Check if we need to coordinate with other vendors (an industry-wide CVE identifier might be necessary)
   - [ ] [:link:][step_assign_cve_id]     **(IM)** Assign a CVE identifier
-  - [ ] [:link:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier, the CVSS score, and CWE category
+  - [ ] [:link:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier, the CVSS score, and the CWE category
   - [ ] [:link:][step_versions_affected] **(SwEng)** Determine the range of product versions affected (including the Subscription Edition)
   - [ ] [:link:][step_workarounds]       **(SwEng)** Determine whether workarounds for the problem exist
-  - [ ] [:link:][step_coordinate]        **(SwEng)** If necessary, coordinate with other parties
   - [ ] [:link:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
   - [ ] [:link:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
   - [ ] [:link:][step_advisory_mr]       **(Support)** Create a merge request for the Security Advisory and include all readily available information in it
@@ -48,6 +48,7 @@ confidential!
   - [ ] [:link:][step_backports]         **(SwEng)** Prepare backports of the merge request addressing the problem for all affected (and still maintained) branches of a given product
   - [ ] [:link:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory
   - [ ] [:link:][step_meta_issue]        **(QA)** Create (or update) the private issue containing links to fixes & reproducers for all CVEs fixed in a given release cycle
+  - [ ] [:link:][step_coordinate_check]  **(SwEng)** Make sure other vendors are able to release on the date that was previously agreed upon
   - [ ] [:link:][step_merge_fixes]       **(QA)** Merge the CVE fixes in CVE identifier order
   - [ ] [:link:][step_patches]           **(QA)** Prepare a standalone patch for the last stable release of each affected (and still maintained) product branch
   - [ ] [:link:][step_asn_releases]      **(QA)** Prepare ASN releases (as outlined in the Release Checklist)
@@ -68,15 +69,15 @@ confidential!
 ### On the Day of Public Disclosure
 
   - [ ] [:link:][step_clearance]         **(IM)** Grant QA & Marketing clearance to proceed with public release
-  - [ ] [:link:][step_publish]           **(QA/Marketing)** Publish the releases (as outlined in the release checklist)
   - [ ] [:link:][step_matrix]            **(Support)** (BIND 9 only) Add the new CVEs to the vulnerability matrix in the Knowledge Base
   - [ ] [:link:][step_publish_advisory]  **(Support)** Bump Document Version for the Security Advisory and publish it in the Knowledge Base
+  - [ ] [:link:][step_publish]           **(QA/Marketing)** Publish the releases (as outlined in the release checklist)
   - [ ] [:link:][step_notifications]     **(First IM)** Send notification emails to third parties
   - [ ] [:link:][step_mitre]             **(First IM)** Advise MITRE about the disclosed CVEs
   - [ ] [:link:][step_merge_advisory]    **(First IM)** Merge the Security Advisory merge request
   - [ ] [:link:][step_embargo_end]       **(IM)** Inform original reporter (if external) that the security disclosure process is complete
   - [ ] [:link:][step_asn_clear]         **(Support)** Update the tickets in the ASN queues in RT that the embargo is lifted
-  - [ ] [:link:][step_customers]         **(Marketing)** Open a ticket in the <software name> Announce queue that the release is published
+  - [ ] [:link:][step_customers]         **(Marketing)** Open a ticket in the appropriate announce queue in RT that the release is published
 
 ### After Public Disclosure
 
