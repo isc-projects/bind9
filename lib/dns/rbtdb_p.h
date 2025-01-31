@@ -373,8 +373,8 @@ void
 dns__rbtdb_freeglue(dns_glue_t *glue_list);
 
 void
-dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-		  isc_rwlocktype_t locktype DNS__DB_FLARG);
+dns__rbtnode_acquire(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		     isc_rwlocktype_t locktype DNS__DB_FLARG);
 /*%<
  * Increment the reference counter to a node in an RBT database.
  * If the caller holds a node lock then its lock type is specified
@@ -384,10 +384,10 @@ dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
  */
 
 bool
-dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-		  uint32_t least_serial, isc_rwlocktype_t *nlocktypep,
-		  isc_rwlocktype_t *tlocktypep, bool tryupgrade,
-		  bool pruning DNS__DB_FLARG);
+dns__rbtnode_release(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		     uint32_t least_serial, isc_rwlocktype_t *nlocktypep,
+		     isc_rwlocktype_t *tlocktypep, bool tryupgrade,
+		     bool pruning DNS__DB_FLARG);
 /*%<
  * Decrement the reference counter to a node in an RBT database.
  * 'nlocktypep' and 'tlocktypep' are pointers to the current status

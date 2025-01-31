@@ -199,8 +199,8 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
 		 * We increment the reference count on node to ensure that
 		 * search->zonecut_header will still be valid later.
 		 */
-		dns__rbtdb_newref(search->rbtdb, node,
-				  isc_rwlocktype_read DNS__DB_FLARG_PASS);
+		dns__rbtnode_acquire(search->rbtdb, node,
+				     isc_rwlocktype_read DNS__DB_FLARG_PASS);
 		search->zonecut = node;
 		search->zonecut_header = found;
 		search->need_cleanup = true;
@@ -902,7 +902,7 @@ again:
 							      foundname, NULL);
 				if (result == ISC_R_SUCCESS) {
 					if (nodep != NULL) {
-						dns__rbtdb_newref(
+						dns__rbtnode_acquire(
 							search->rbtdb, node,
 							isc_rwlocktype_read
 								DNS__DB_FLARG_PASS);
@@ -1195,8 +1195,9 @@ found:
 				 * ensure that search->zonecut_header will
 				 * still be valid later.
 				 */
-				dns__rbtdb_newref(search.rbtdb, node,
-						  nlocktype DNS__DB_FLARG_PASS);
+				dns__rbtnode_acquire(
+					search.rbtdb, node,
+					nlocktype DNS__DB_FLARG_PASS);
 				search.zonecut = node;
 				search.zonecut_header = header;
 				search.zonecut_sigheader = NULL;
@@ -1372,8 +1373,8 @@ found:
 			goto tree_exit;
 		}
 		if (nodep != NULL) {
-			dns__rbtdb_newref(search.rbtdb, node,
-					  nlocktype DNS__DB_FLARG_PASS);
+			dns__rbtnode_acquire(search.rbtdb, node,
+					     nlocktype DNS__DB_FLARG_PASS);
 			*nodep = node;
 		}
 		if (search.rbtversion->secure && !search.rbtversion->havensec3)
@@ -1442,8 +1443,8 @@ found:
 
 	if (nodep != NULL) {
 		if (!at_zonecut) {
-			dns__rbtdb_newref(search.rbtdb, node,
-					  nlocktype DNS__DB_FLARG_PASS);
+			dns__rbtnode_acquire(search.rbtdb, node,
+					     nlocktype DNS__DB_FLARG_PASS);
 		} else {
 			search.need_cleanup = false;
 		}
@@ -1480,8 +1481,9 @@ tree_exit:
 		lock = &(search.rbtdb->node_locks[node->locknum].lock);
 
 		NODE_RDLOCK(lock, &nlocktype);
-		dns__rbtdb_decref(search.rbtdb, node, 0, &nlocktype, &tlocktype,
-				  true, false DNS__DB_FLARG_PASS);
+		dns__rbtnode_release(search.rbtdb, node, 0, &nlocktype,
+				     &tlocktype, true,
+				     false DNS__DB_FLARG_PASS);
 		NODE_UNLOCK(lock, &nlocktype);
 		INSIST(tlocktype == isc_rwlocktype_none);
 	}
@@ -2311,7 +2313,7 @@ dns__zonerbt_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
 				header->heap_index);
 		header->heap_index = 0;
 		if (version != NULL) {
-			dns__rbtdb_newref(
+			dns__rbtnode_acquire(
 				rbtdb, RBTDB_HEADERNODE(header),
 				isc_rwlocktype_write DNS__DB_FLARG_PASS);
 			ISC_LIST_APPEND(version->resigned_list, header, link);
