@@ -834,7 +834,7 @@ gcc:focal:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr --disable-geoip"
+    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=/usr --disable-geoip --without-cmocka"
   <<: *ubuntu_focal_amd64_image
   <<: *build_job
 
@@ -858,7 +858,7 @@ gcc:jammy:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-dnstap --with-gssapi --without-cmocka"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-dnstap --with-gssapi"
   <<: *ubuntu_jammy_amd64_image
   <<: *build_job
 
