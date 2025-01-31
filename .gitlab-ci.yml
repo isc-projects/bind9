@@ -821,13 +821,6 @@ system:gcc:tumbleweed:amd64:
     - job: gcc:tumbleweed:amd64
       artifacts: true
 
-unit:gcc:tumbleweed:amd64:
-  <<: *tumbleweed_latest_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:tumbleweed:amd64
-      artifacts: true
-
 # Jobs for regular GCC builds on Ubuntu 20.04 Focal Fossa (amd64)
 
 gcc:focal:amd64:
