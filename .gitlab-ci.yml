@@ -1710,7 +1710,7 @@ pairwise:
     # non-fast-forward merges are disabled so we have to have merge commit on top
     - MERGE_REQUEST_ID="$(git log -1 --format='%b' | sed --silent -e "s|^See merge request ${CI_PROJECT_PATH}\!||p")"
     - >
-      : stop if this is not a merge request in the current project's namespace
+      : stop if this is not a merge request in the current project\'s namespace
     - test -n "$MERGE_REQUEST_ID"
     - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
 
