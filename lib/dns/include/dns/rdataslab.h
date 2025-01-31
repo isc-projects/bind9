@@ -102,12 +102,16 @@ struct dns_slabheader {
 	 * both head and tail pointers, and is doubly linked.
 	 */
 
-	struct dns_slabheader *next;
+	union {
+		struct dns_slabheader *next;
+		struct dns_slabheader *up;
+	};
 	/*%<
 	 * If this is the top header for an rdataset, 'next' points
 	 * to the top header for the next rdataset (i.e., the next type).
-	 * Otherwise, it points up to the header whose down pointer points
-	 * at this header.
+	 *
+	 * Otherwise 'up' points up to the header whose down pointer points at
+	 * this header.
 	 */
 
 	struct dns_slabheader *down;
@@ -321,4 +325,10 @@ void
 dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proof);
 /*%<
  * Free all memory associated with a nonexistence proof.
+ */
+
+dns_slabheader_t *
+dns_slabheader_top(dns_slabheader_t *header);
+/*%<
+ * Return the top header for the type or the negtype
  */

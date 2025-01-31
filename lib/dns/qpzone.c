@@ -765,7 +765,7 @@ qpznode_acquire(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
 static void
 clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 	dns_slabheader_t *current = NULL, *dcurrent = NULL;
-	dns_slabheader_t *down_next = NULL, *dparent = NULL;
+	dns_slabheader_t *dcurrent_down = NULL, *dparent = NULL;
 	dns_slabheader_t *top_prev = NULL, *top_next = NULL;
 	bool still_dirty = false;
 
@@ -784,17 +784,17 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		 */
 		dparent = current;
 		for (dcurrent = current->down; dcurrent != NULL;
-		     dcurrent = down_next)
+		     dcurrent = dcurrent_down)
 		{
-			down_next = dcurrent->down;
+			dcurrent_down = dcurrent->down;
 			INSIST(dcurrent->serial <= dparent->serial);
 			if (dcurrent->serial == dparent->serial ||
 			    IGNORE(dcurrent))
 			{
-				if (down_next != NULL) {
-					down_next->next = dparent;
+				if (dcurrent_down != NULL) {
+					dcurrent_down->up = dparent;
 				}
-				dparent->down = down_next;
+				dparent->down = dcurrent_down;
 				dns_slabheader_destroy(&dcurrent);
 			} else {
 				dparent = dcurrent;
@@ -805,9 +805,10 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		 * We've now eliminated all IGNORE datasets with the possible
 		 * exception of current, which we now check.
 		 */
-		if (IGNORE(current)) {
-			down_next = current->down;
-			if (down_next == NULL) {
+		dcurrent = current;
+		if (IGNORE(dcurrent)) {
+			dcurrent_down = current->down;
+			if (dcurrent_down == NULL) {
 				if (top_prev != NULL) {
 					top_prev->next = current->next;
 				} else {
@@ -825,13 +826,13 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 				 * current.
 				 */
 				if (top_prev != NULL) {
-					top_prev->next = down_next;
+					top_prev->next = dcurrent_down;
 				} else {
-					node->data = down_next;
+					node->data = dcurrent_down;
 				}
-				down_next->next = top_next;
+				dcurrent_down->next = top_next;
 				dns_slabheader_destroy(&current);
-				current = down_next;
+				current = dcurrent_down;
 			}
 		}
 
@@ -841,9 +842,9 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		 */
 		dparent = current;
 		for (dcurrent = current->down; dcurrent != NULL;
-		     dcurrent = down_next)
+		     dcurrent = dcurrent_down)
 		{
-			down_next = dcurrent->down;
+			dcurrent_down = dcurrent->down;
 			if (dcurrent->serial < least_serial) {
 				break;
 			}
@@ -856,10 +857,10 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		 */
 		if (dcurrent != NULL) {
 			do {
-				down_next = dcurrent->down;
+				dcurrent_down = dcurrent->down;
 				INSIST(dcurrent->serial <= least_serial);
 				dns_slabheader_destroy(&dcurrent);
-				dcurrent = down_next;
+				dcurrent = dcurrent_down;
 			} while (dcurrent != NULL);
 			dparent->down = NULL;
 		}
@@ -2056,7 +2057,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			}
 			newheader->next = topheader->next;
 			newheader->down = topheader;
-			topheader->next = newheader;
+			topheader->up = newheader;
 			node->dirty = true;
 			if (changed != NULL) {
 				changed->dirty = true;
@@ -2099,7 +2100,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			}
 			newheader->next = topheader->next;
 			newheader->down = topheader;
-			topheader->next = newheader;
+			topheader->up = newheader;
 			if (changed != NULL) {
 				changed->dirty = true;
 			}
@@ -4184,9 +4185,8 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
 	qpznode_t *node = (qpznode_t *)qrditer->common.node;
 	qpz_version_t *version = (qpz_version_t *)qrditer->common.version;
-	dns_slabheader_t *header = NULL, *top_next = NULL;
-	dns_typepair_t type, negtype;
-	dns_rdatatype_t rdtype;
+	dns_slabheader_t *header = NULL;
+	dns_slabheader_t *topheader, *topheader_next = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	isc_rwlock_t *nlock = &qpdb->buckets[node->locknum].lock;
 
@@ -4197,22 +4197,14 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 
 	NODE_RDLOCK(nlock, &nlocktype);
 
-	type = header->type;
-	rdtype = DNS_TYPEPAIR_TYPE(header->type);
-	negtype = DNS_TYPEPAIR_VALUE(0, rdtype);
-
 	/*
-	 * Find the start of the header chain for the next type
-	 * by walking back up the list.
+	 * Find the start of the header chain for the next type.
 	 */
-	top_next = header->next;
-	while (top_next != NULL &&
-	       (top_next->type == type || top_next->type == negtype))
+	topheader = dns_slabheader_top(header);
+
+	for (header = topheader->next; header != NULL; header = topheader_next)
 	{
-		top_next = top_next->next;
-	}
-	for (header = top_next; header != NULL; header = top_next) {
-		top_next = header->next;
+		topheader_next = header->next;
 		do {
 			if (header->serial <= version->serial &&
 			    !IGNORE(header))
@@ -4228,15 +4220,11 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 		if (header != NULL) {
 			break;
 		}
+
 		/*
-		 * Find the start of the header chain for the next type
-		 * by walking back up the list.
+		 * Find the start of the header chain for the next type.
 		 */
-		while (top_next != NULL &&
-		       (top_next->type == type || top_next->type == negtype))
-		{
-			top_next = top_next->next;
-		}
+		topheader = topheader->next;
 	}
 
 	NODE_UNLOCK(nlock, &nlocktype);

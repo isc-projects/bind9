@@ -39,6 +39,9 @@
 #define NONEXISTENT(header)                            \
 	((atomic_load_acquire(&(header)->attributes) & \
 	  DNS_SLABHEADERATTR_NONEXISTENT) != 0)
+#define NEGATIVE(header)                               \
+	((atomic_load_acquire(&(header)->attributes) & \
+	  DNS_SLABHEADERATTR_NEGATIVE) != 0)
 
 /*
  * The rdataslab structure allows iteration to occur in both load order
@@ -1187,4 +1190,31 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 
 unlock:
 	dns_db_unlocknode(header->db, header->node, isc_rwlocktype_read);
+}
+
+dns_slabheader_t *
+dns_slabheader_top(dns_slabheader_t *header) {
+	dns_typepair_t type, negtype;
+	dns_rdatatype_t rdtype, covers;
+
+	type = header->type;
+	rdtype = DNS_TYPEPAIR_TYPE(header->type);
+	if (NEGATIVE(header)) {
+		covers = DNS_TYPEPAIR_COVERS(header->type);
+		negtype = DNS_TYPEPAIR_VALUE(covers, 0);
+	} else {
+		negtype = DNS_TYPEPAIR_VALUE(0, rdtype);
+	}
+
+	/*
+	 * Find the start of the header chain for the next type
+	 * by walking back up the list.
+	 */
+	while (header->up != NULL &&
+	       (header->up->type == type || header->up->type == negtype))
+	{
+		header = header->up;
+	}
+
+	return header;
 }
