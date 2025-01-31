@@ -404,7 +404,7 @@ check_stale_header(dns_rbtnode_t *node, dns_slabheader_t *header,
 				/*
 				 * header->down can be non-NULL if the
 				 * refcount has just decremented to 0
-				 * but dns__rbtdb_decref() has not
+				 * but dns__rbtnode_release() has not
 				 * performed clean_cache_node(), in
 				 * which case we need to purge the stale
 				 * headers first.
@@ -483,8 +483,8 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
 		 * We increment the reference count on node to ensure that
 		 * search->zonecut_header will still be valid later.
 		 */
-		dns__rbtdb_newref(search->rbtdb, node,
-				  nlocktype DNS__DB_FLARG_PASS);
+		dns__rbtnode_acquire(search->rbtdb, node,
+				     nlocktype DNS__DB_FLARG_PASS);
 		search->zonecut = node;
 		search->zonecut_header = dname_header;
 		search->zonecut_sigheader = sigdname_header;
@@ -591,8 +591,9 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 			}
 			result = DNS_R_DELEGATION;
 			if (nodep != NULL) {
-				dns__rbtdb_newref(search->rbtdb, node,
-						  nlocktype DNS__DB_FLARG_PASS);
+				dns__rbtnode_acquire(
+					search->rbtdb, node,
+					nlocktype DNS__DB_FLARG_PASS);
 				*nodep = node;
 			}
 			dns__rbtdb_bindrdataset(search->rbtdb, node, found,
@@ -743,8 +744,8 @@ find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
 						now, nlocktype,
 						sigrdataset DNS__DB_FLARG_PASS);
 		}
-		dns__rbtdb_newref(search->rbtdb, node,
-				  nlocktype DNS__DB_FLARG_PASS);
+		dns__rbtnode_acquire(search->rbtdb, node,
+				     nlocktype DNS__DB_FLARG_PASS);
 
 		dns_name_copy(fname, foundname);
 
@@ -1009,8 +1010,9 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		    nsecheader != NULL)
 		{
 			if (nodep != NULL) {
-				dns__rbtdb_newref(search.rbtdb, node,
-						  nlocktype DNS__DB_FLARG_PASS);
+				dns__rbtnode_acquire(
+					search.rbtdb, node,
+					nlocktype DNS__DB_FLARG_PASS);
 				*nodep = node;
 			}
 			dns__rbtdb_bindrdataset(search.rbtdb, node, nsecheader,
@@ -1054,8 +1056,9 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 */
 		if (nsheader != NULL) {
 			if (nodep != NULL) {
-				dns__rbtdb_newref(search.rbtdb, node,
-						  nlocktype DNS__DB_FLARG_PASS);
+				dns__rbtnode_acquire(
+					search.rbtdb, node,
+					nlocktype DNS__DB_FLARG_PASS);
 				*nodep = node;
 			}
 			dns__rbtdb_bindrdataset(search.rbtdb, node, nsheader,
@@ -1089,8 +1092,8 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	 */
 
 	if (nodep != NULL) {
-		dns__rbtdb_newref(search.rbtdb, node,
-				  nlocktype DNS__DB_FLARG_PASS);
+		dns__rbtnode_acquire(search.rbtdb, node,
+				     nlocktype DNS__DB_FLARG_PASS);
 		*nodep = node;
 	}
 
@@ -1166,8 +1169,9 @@ tree_exit:
 		lock = &(search.rbtdb->node_locks[node->locknum].lock);
 
 		NODE_RDLOCK(lock, &nlocktype);
-		dns__rbtdb_decref(search.rbtdb, node, 0, &nlocktype, &tlocktype,
-				  true, false DNS__DB_FLARG_PASS);
+		dns__rbtnode_release(search.rbtdb, node, 0, &nlocktype,
+				     &tlocktype, true,
+				     false DNS__DB_FLARG_PASS);
 		NODE_UNLOCK(lock, &nlocktype);
 		INSIST(tlocktype == isc_rwlocktype_none);
 	}
@@ -1305,8 +1309,8 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	}
 
 	if (nodep != NULL) {
-		dns__rbtdb_newref(search.rbtdb, node,
-				  nlocktype DNS__DB_FLARG_PASS);
+		dns__rbtnode_acquire(search.rbtdb, node,
+				     nlocktype DNS__DB_FLARG_PASS);
 		*nodep = node;
 	}
 
@@ -1604,13 +1608,13 @@ dns__cacherbt_expireheader(dns_slabheader_t *header,
 		/*
 		 * If no one else is using the node, we can clean it up now.
 		 * We first need to gain a new reference to the node to meet a
-		 * requirement of dns__rbtdb_decref().
+		 * requirement of dns__rbtnode_release().
 		 */
-		dns__rbtdb_newref(rbtdb, RBTDB_HEADERNODE(header),
-				  nlocktype DNS__DB_FLARG_PASS);
-		dns__rbtdb_decref(rbtdb, RBTDB_HEADERNODE(header), 0,
-				  &nlocktype, tlocktypep, true,
-				  false DNS__DB_FLARG_PASS);
+		dns__rbtnode_acquire(rbtdb, RBTDB_HEADERNODE(header),
+				     nlocktype DNS__DB_FLARG_PASS);
+		dns__rbtnode_release(rbtdb, RBTDB_HEADERNODE(header), 0,
+				     &nlocktype, tlocktypep, true,
+				     false DNS__DB_FLARG_PASS);
 
 		if (rbtdb->cachestats == NULL) {
 			return;

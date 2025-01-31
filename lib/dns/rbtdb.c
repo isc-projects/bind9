@@ -1116,7 +1116,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 }
 
 static void
-rbtnode_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node DNS__DB_FLARG) {
+rbtnode_erefs_increment(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node DNS__DB_FLARG) {
 	uint_fast32_t refs = isc_refcount_increment0(&node->references);
 
 #if DNS_DB_NODETRACE
@@ -1146,8 +1146,8 @@ rbtnode_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node DNS__DB_FLARG) {
  * Caller must be holding the node lock.
  */
 void
-dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-		  isc_rwlocktype_t nlocktype DNS__DB_FLARG) {
+dns__rbtnode_acquire(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		     isc_rwlocktype_t nlocktype DNS__DB_FLARG) {
 	if (nlocktype == isc_rwlocktype_write &&
 	    ISC_LINK_LINKED(node, deadlink))
 	{
@@ -1155,7 +1155,7 @@ dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 				deadlink);
 	}
 
-	rbtnode_newref(rbtdb, node);
+	rbtnode_erefs_increment(rbtdb, node);
 }
 
 /*%
@@ -1174,7 +1174,7 @@ send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	*prune = (rbtdb_prune_t){ .node = node };
 
 	dns_db_attach((dns_db_t *)rbtdb, &prune->db);
-	dns__rbtdb_newref(rbtdb, node, nlocktype DNS__DB_FLARG_PASS);
+	dns__rbtnode_acquire(rbtdb, node, nlocktype DNS__DB_FLARG_PASS);
 
 	isc_async_run(rbtdb->loop, prune_tree, prune);
 }
@@ -1279,13 +1279,13 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		}
 	}
 
-	dns__rbtdb_newref(rbtdb, node, nlocktype DNS__DB_FLARG_PASS);
+	dns__rbtnode_acquire(rbtdb, node, nlocktype DNS__DB_FLARG_PASS);
 
 	NODE_UNLOCK(nodelock, &nlocktype);
 }
 
 static bool
-rbtnode_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node DNS__DB_FLARG) {
+rbtnode_erefs_decrement(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node DNS__DB_FLARG) {
 	db_nodelock_t *nodelock = &rbtdb->node_locks[node->locknum];
 	uint_fast32_t refs = isc_refcount_decrement(&node->references);
 #if DNS_DB_NODETRACE
@@ -1322,10 +1322,10 @@ rbtnode_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node DNS__DB_FLARG) {
  * will be immediately freed.
  */
 bool
-dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-		  uint32_t least_serial, isc_rwlocktype_t *nlocktypep,
-		  isc_rwlocktype_t *tlocktypep, bool tryupgrade,
-		  bool pruning DNS__DB_FLARG) {
+dns__rbtnode_release(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		     uint32_t least_serial, isc_rwlocktype_t *nlocktypep,
+		     isc_rwlocktype_t *tlocktypep, bool tryupgrade,
+		     bool pruning DNS__DB_FLARG) {
 	isc_result_t result;
 	bool locked = *tlocktypep != isc_rwlocktype_none;
 	bool write_locked = false;
@@ -1338,7 +1338,7 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	((n)->data != NULL || ((l) && (n)->down != NULL) || \
 	 (n) == (r)->origin_node || (n) == (r)->nsec3_origin_node)
 
-	if (!rbtnode_decref(rbtdb, node DNS__DB_FLARG_PASS)) {
+	if (!rbtnode_erefs_decrement(rbtdb, node DNS__DB_FLARG_PASS)) {
 		return false;
 	}
 
@@ -1346,20 +1346,19 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		return true;
 	}
 
-	/*
-	 * Node lock ref has decremented to 0 and we may need to clean up the
-	 * node. To clean it up, the node ref needs to decrement to 0 under the
-	 * node write lock, so we regain the ref and try again.
-	 */
-	rbtnode_newref(rbtdb, node DNS__DB_FLARG_PASS);
-
 	/* Upgrade the lock? */
 	if (*nlocktypep == isc_rwlocktype_read) {
+		/*
+		 * Node lock ref has decremented to 0 and we may need to clean
+		 * up the node. To clean it up, the node ref needs to decrement
+		 * to 0 under the node write lock, so we regain the ref and try
+		 * again.
+		 */
+		rbtnode_erefs_increment(rbtdb, node DNS__DB_FLARG_PASS);
 		NODE_FORCEUPGRADE(&nodelock->lock, nlocktypep);
-	}
-
-	if (!rbtnode_decref(rbtdb, node DNS__DB_FLARG_PASS)) {
-		return false;
+		if (!rbtnode_erefs_decrement(rbtdb, node DNS__DB_FLARG_PASS)) {
+			return false;
+		}
 	}
 
 	if (node->dirty) {
@@ -1428,9 +1427,9 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		 * different node buckets and we don't want to do juggle locks
 		 * right now.
 		 *
-		 * Since prune_tree() also calls dns__rbtdb_decref(), check the
-		 * value of the 'pruning' parameter (which is only set to
-		 * 'true' in the dns__rbtdb_decref() call present in
+		 * Since prune_tree() also calls dns__rbtnode_release(), check
+		 * the value of the 'pruning' parameter (which is only set to
+		 * 'true' in the dns__rbtnode_release() call present in
 		 * prune_tree()) to prevent an infinite loop and to allow a
 		 * node sent to prune_tree() to be deleted by the delete_node()
 		 * call in the code branch below.
@@ -1469,7 +1468,7 @@ restore_locks:
 /*
  * Prune the RBTDB tree of trees.  Start by attempting to delete a node that is
  * the only one left on its RBTDB level (see the send_to_prune_tree() call in
- * dns__rbtdb_decref()).  Then, if the node has a parent (which can either
+ * dns__rbtnode_release()).  Then, if the node has a parent (which can either
  * exist on the same RBTDB level or on an upper RBTDB level), check whether the
  * latter is an interior node (i.e. a node with a non-NULL 'down' pointer).  If
  * the parent node is not an interior node, attempt deleting the parent node as
@@ -1505,12 +1504,12 @@ prune_tree(void *arg) {
 	NODE_WRLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
 	do {
 		parent = node->parent;
-		dns__rbtdb_decref(rbtdb, node, 0, &nlocktype, &tlocktype, true,
-				  true DNS__DB_FILELINE);
+		dns__rbtnode_release(rbtdb, node, 0, &nlocktype, &tlocktype,
+				     true, true DNS__DB_FILELINE);
 
 		/*
 		 * Check whether the parent is an interior node.  Note that it
-		 * might have been one before the dns__rbtdb_decref() call on
+		 * might have been one before the dns__rbtnode_release() call on
 		 * the previous line, but decrementing the reference count for
 		 * 'node' could have caused 'node->parent->down' to become
 		 * NULL.
@@ -1532,8 +1531,8 @@ prune_tree(void *arg) {
 			 * We need to gain a reference to the parent node
 			 * before decrementing it in the next iteration.
 			 */
-			dns__rbtdb_newref(rbtdb, parent,
-					  nlocktype DNS__DB_FLARG_PASS);
+			dns__rbtnode_acquire(rbtdb, parent,
+					     nlocktype DNS__DB_FLARG_PASS);
 		} else {
 			parent = NULL;
 		}
@@ -1968,9 +1967,9 @@ dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 				rbtdb, RBTDB_HEADERNODE(header)->locknum,
 				header);
 		}
-		dns__rbtdb_decref(rbtdb, RBTDB_HEADERNODE(header), least_serial,
-				  &nlocktype, &tlocktype, true,
-				  false DNS__DB_FLARG_PASS);
+		dns__rbtnode_release(rbtdb, RBTDB_HEADERNODE(header),
+				     least_serial, &nlocktype, &tlocktype, true,
+				     false DNS__DB_FLARG_PASS);
 		NODE_UNLOCK(lock, &nlocktype);
 		INSIST(tlocktype == isc_rwlocktype_none);
 	}
@@ -1982,7 +1981,7 @@ dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 			/*
 			 * We acquire a tree write lock here in order to make
 			 * sure that stale nodes will be removed in
-			 * dns__rbtdb_decref().  If we didn't have the lock,
+			 * dns__rbtnode_release().  If we didn't have the lock,
 			 * those nodes could miss the chance to be removed
 			 * until the server stops.  The write lock is
 			 * expensive, but this should be rare enough
@@ -2015,9 +2014,9 @@ dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 			if (rollback) {
 				rollback_node(rbtnode, serial);
 			}
-			dns__rbtdb_decref(rbtdb, rbtnode, least_serial,
-					  &nlocktype, &tlocktype, true,
-					  false DNS__DB_FILELINE);
+			dns__rbtnode_release(rbtdb, rbtnode, least_serial,
+					     &nlocktype, &tlocktype, true,
+					     false DNS__DB_FILELINE);
 
 			NODE_UNLOCK(lock, &nlocktype);
 
@@ -2135,7 +2134,7 @@ dns__rbtdb_bindrdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		return;
 	}
 
-	dns__rbtdb_newref(rbtdb, node, locktype DNS__DB_FLARG_PASS);
+	dns__rbtnode_acquire(rbtdb, node, locktype DNS__DB_FLARG_PASS);
 
 	INSIST(rdataset->methods == NULL); /* We must be disassociated. */
 
@@ -2266,8 +2265,8 @@ dns__rbtdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 
 	NODE_RDLOCK(&nodelock->lock, &nlocktype);
 
-	if (dns__rbtdb_decref(rbtdb, node, 0, &nlocktype, &tlocktype, true,
-			      false DNS__DB_FLARG_PASS))
+	if (dns__rbtnode_release(rbtdb, node, 0, &nlocktype, &tlocktype, true,
+				 false DNS__DB_FLARG_PASS))
 	{
 		if (isc_refcount_current(&nodelock->references) == 0 &&
 		    nodelock->exiting)
@@ -3836,8 +3835,8 @@ dns__rbtdb_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	/* Note that the access to origin_node doesn't require a DB lock */
 	onode = (dns_rbtnode_t *)rbtdb->origin_node;
 	if (onode != NULL) {
-		dns__rbtdb_newref(rbtdb, onode,
-				  isc_rwlocktype_none DNS__DB_FLARG_PASS);
+		dns__rbtnode_acquire(rbtdb, onode,
+				     isc_rwlocktype_none DNS__DB_FLARG_PASS);
 		*nodep = rbtdb->origin_node;
 	} else {
 		INSIST(IS_CACHE(rbtdb));
@@ -4348,8 +4347,9 @@ dereference_iter_node(rbtdb_dbiterator_t *rbtdbiter DNS__DB_FLARG) {
 
 	lock = &rbtdb->node_locks[node->locknum].lock;
 	NODE_RDLOCK(lock, &nlocktype);
-	dns__rbtdb_decref(rbtdb, node, 0, &nlocktype, &rbtdbiter->tree_locked,
-			  false, false DNS__DB_FLARG_PASS);
+	dns__rbtnode_release(rbtdb, node, 0, &nlocktype,
+			     &rbtdbiter->tree_locked, false,
+			     false DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(lock, &nlocktype);
 
 	INSIST(rbtdbiter->tree_locked == tlocktype);
@@ -4820,7 +4820,8 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		result = ISC_R_SUCCESS;
 	}
 
-	dns__rbtdb_newref(rbtdb, node, isc_rwlocktype_none DNS__DB_FLARG_PASS);
+	dns__rbtnode_acquire(rbtdb, node,
+			     isc_rwlocktype_none DNS__DB_FLARG_PASS);
 
 	*nodep = rbtdbiter->node;
 
