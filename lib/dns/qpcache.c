@@ -2087,45 +2087,35 @@ qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
+		bool ns = (header->type == dns_rdatatype_ns ||
+			   header->type == DNS_SIGTYPE(dns_rdatatype_ns));
 		if (check_stale_header(node, header, &nlocktype, nlock, &search,
 				       &header_prev))
 		{
-			/*
-			 * The function dns_qp_lookup found us a matching
-			 * node for 'name' and stored the result in 'dcname'.
-			 * This is the deepest known zonecut in our database.
-			 * However, this node may be stale and if serve-stale
-			 * is not enabled (in other words 'stale-answer-enable'
-			 * is set to no), this node may not be used as a
-			 * zonecut we know about. If so, find the deepest
-			 * zonecut from this node up and return that instead.
-			 */
-			NODE_UNLOCK(nlock, &nlocktype);
-			result = find_deepest_zonecut(
-				&search, node, nodep, foundname, rdataset,
-				sigrdataset DNS__DB_FLARG_PASS);
-			dns_name_copy(foundname, dcname);
-			goto tree_exit;
-		} else if (EXISTS(header) && !ANCIENT(header)) {
-			/*
-			 * If we found a type we were looking for, remember
-			 * it.
-			 */
-			if (header->type == dns_rdatatype_ns) {
+			if (ns) {
 				/*
-				 * Remember a NS rdataset even if we're
-				 * not specifically looking for it, because
-				 * we might need it later.
+				 * We found a cached NS, but was either
+				 * ancient or it was stale and serve-stale
+				 * is disabled, so this node can't be used
+				 * as a zone cut we know about. Instead we
+				 * bail out and call find_deepest_zonecut()
+				 * below.
 				 */
+				break;
+			}
+		} else if (EXISTS(header) && !ANCIENT(header)) {
+			if (header->type == dns_rdatatype_ns) {
 				found = header;
+				if (foundsig != NULL) {
+					break;
+				}
 			} else if (header->type ==
 				   DNS_SIGTYPE(dns_rdatatype_ns))
 			{
-				/*
-				 * If we need the NS rdataset, we'll also
-				 * need its signature.
-				 */
 				foundsig = header;
+				if (found != NULL) {
+					break;
+				}
 			}
 			header_prev = header;
 		} else {
@@ -2135,12 +2125,14 @@ qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 
 	if (found == NULL) {
 		/*
-		 * No NS records here.
+		 * No active NS records found. Call find_deepest_zonecut()
+		 * to look for them in nodes above this one.
 		 */
 		NODE_UNLOCK(nlock, &nlocktype);
 		result = find_deepest_zonecut(&search, node, nodep, foundname,
 					      rdataset,
 					      sigrdataset DNS__DB_FLARG_PASS);
+		dns_name_copy(foundname, dcname);
 		goto tree_exit;
 	}
 
