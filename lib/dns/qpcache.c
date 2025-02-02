@@ -383,8 +383,7 @@ qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 }
 
 static void
-qp_triename(void *uctx, char *buf, size_t size) {
-	UNUSED(uctx);
+qp_triename(void *uctx ISC_ATTR_UNUSED, char *buf, size_t size) {
 	snprintf(buf, size, "qpdb-lite");
 }
 
@@ -1631,8 +1630,6 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		.now = __now ? __now : isc_stdtime_now(),
 	};
 
-	UNUSED(version);
-
 	REQUIRE(VALID_QPDB((qpcache_t *)db));
 	REQUIRE(version == NULL);
 
@@ -2149,9 +2146,8 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	};
 
 	REQUIRE(VALID_QPDB(qpdb));
+	REQUIRE(version == NULL);
 	REQUIRE(type != dns_rdatatype_any);
-
-	UNUSED(version);
 
 	result = ISC_R_SUCCESS;
 
@@ -2677,8 +2673,7 @@ qpcache_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	qpc_rditer_t *iterator = NULL;
 
 	REQUIRE(VALID_QPDB(qpdb));
-
-	UNUSED(version);
+	REQUIRE(version == NULL);
 
 	iterator = isc_mem_get(qpdb->common.mctx, sizeof(*iterator));
 	*iterator = (qpc_rditer_t){
