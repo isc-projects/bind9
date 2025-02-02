@@ -1316,6 +1316,36 @@ check_stale_header(qpcnode_t *node, dns_slabheader_t *header,
 }
 
 static bool
+related_headers(dns_slabheader_t *header, dns_typepair_t type,
+		dns_typepair_t sigtype, dns_typepair_t negtype,
+		dns_slabheader_t **foundp, dns_slabheader_t **foundsigp) {
+	if (!EXISTS(header) || ANCIENT(header)) {
+		return false;
+	}
+
+	if (header->type == type) {
+		*foundp = header;
+		if (*foundsigp != NULL) {
+			return true;
+		}
+	} else if (header->type == sigtype) {
+		*foundsigp = header;
+		if (*foundp != NULL) {
+			return true;
+		}
+
+	} else if (header->type == RDATATYPE_NCACHEANY ||
+		   header->type == negtype)
+	{
+		*foundp = header;
+		*foundsigp = NULL;
+		return true;
+	}
+
+	return false;
+}
+
+static bool
 both_headers(dns_slabheader_t *header, dns_rdatatype_t type,
 	     dns_slabheader_t **foundp, dns_slabheader_t **foundsigp) {
 	dns_typepair_t matchtype = DNS_TYPEPAIR_VALUE(type, 0);
@@ -2119,12 +2149,14 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *qpnode = (qpcnode_t *)node;
-	dns_slabheader_t *header = NULL, *header_next = NULL;
+	dns_slabheader_t *header = NULL;
+	dns_slabheader_t *header_prev = NULL, *header_next = NULL;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
 	dns_typepair_t matchtype, sigmatchtype, negtype;
 	isc_result_t result;
 	isc_rwlock_t *nlock = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
+	qpc_search_t search;
 
 	REQUIRE(VALID_QPDB(qpdb));
 	REQUIRE(type != dns_rdatatype_any);
@@ -2136,6 +2168,11 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (now == 0) {
 		now = isc_stdtime_now();
 	}
+
+	search = (qpc_search_t){
+		.qpdb = (qpcache_t *)db,
+		.now = now,
+	};
 
 	nlock = &qpdb->buckets[qpnode->locknum].lock;
 	NODE_RDLOCK(nlock, &nlocktype);
@@ -2150,35 +2187,17 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	for (header = qpnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (!ACTIVE(header, now)) {
-			if ((header->expire + STALE_TTL(header, qpdb) <
-			     now - QPDB_VIRTUAL) &&
-			    (nlocktype == isc_rwlocktype_write ||
-			     NODE_TRYUPGRADE(nlock, &nlocktype) ==
-				     ISC_R_SUCCESS))
-			{
-				/*
-				 * We update the node's status only when we
-				 * can get write access.
-				 *
-				 * We don't check if refcurrent(qpnode) == 0
-				 * and try to free like we do in find(),
-				 * because refcurrent(qpnode) must be
-				 * non-zero.  This is so because 'node' is an
-				 * argument to the function.
-				 */
-				mark_ancient(header);
-			}
-		} else if (EXISTS(header) && !ANCIENT(header)) {
-			if (header->type == matchtype) {
-				found = header;
-			} else if (header->type == RDATATYPE_NCACHEANY ||
-				   header->type == negtype)
-			{
-				found = header;
-			} else if (header->type == sigmatchtype) {
-				foundsig = header;
-			}
+
+		if (check_stale_header(qpnode, header, &nlocktype, nlock,
+				       &search, &header_prev))
+		{
+			continue;
+		}
+
+		if (related_headers(header, matchtype, sigmatchtype, negtype,
+				    &found, &foundsig))
+		{
+			break;
 		}
 	}
 	if (found != NULL) {
