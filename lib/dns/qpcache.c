@@ -1315,6 +1315,31 @@ check_stale_header(qpcnode_t *node, dns_slabheader_t *header,
 	return true;
 }
 
+static bool
+both_headers(dns_slabheader_t *header, dns_rdatatype_t type,
+	     dns_slabheader_t **foundp, dns_slabheader_t **foundsigp) {
+	dns_typepair_t matchtype = DNS_TYPEPAIR_VALUE(type, 0);
+	dns_typepair_t sigmatchtype = DNS_SIGTYPE(type);
+
+	if (!EXISTS(header) || ANCIENT(header)) {
+		return false;
+	}
+
+	if (header->type == matchtype) {
+		*foundp = header;
+		if (*foundsigp != NULL) {
+			return true;
+		}
+	} else if (header->type == sigmatchtype) {
+		*foundsigp = header;
+		if (*foundp != NULL) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static isc_result_t
 check_zonecut(qpcnode_t *node, void *arg DNS__DB_FLARG) {
 	qpc_search_t *search = arg;
@@ -1341,14 +1366,10 @@ check_zonecut(qpcnode_t *node, void *arg DNS__DB_FLARG) {
 			continue;
 		}
 
-		if (header->type == dns_rdatatype_dname && EXISTS(header) &&
-		    !ANCIENT(header))
+		if (both_headers(header, dns_rdatatype_dname, &dname_header,
+				 &sigdname_header))
 		{
-			dname_header = header;
-		} else if (header->type == DNS_SIGTYPE(dns_rdatatype_dname) &&
-			   EXISTS(header) && !ANCIENT(header))
-		{
-			sigdname_header = header;
+			break;
 		}
 	}
 
@@ -1414,24 +1435,10 @@ find_deepest_zonecut(qpc_search_t *search, qpcnode_t *node,
 				continue;
 			}
 
-			if (EXISTS(header) && !ANCIENT(header)) {
-				/*
-				 * We've found an extant rdataset.  See if
-				 * we're interested in it.
-				 */
-				if (header->type == dns_rdatatype_ns) {
-					found = header;
-					if (foundsig != NULL) {
-						break;
-					}
-				} else if (header->type ==
-					   DNS_SIGTYPE(dns_rdatatype_ns))
-				{
-					foundsig = header;
-					if (found != NULL) {
-						break;
-					}
-				}
+			if (both_headers(header, dns_rdatatype_ns, &found,
+					 &foundsig))
+			{
+				break;
 			}
 		}
 
@@ -1487,7 +1494,6 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 	isc_result_t result;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	isc_rwlock_t *nlock = NULL;
-	dns_typepair_t matchtype, sigmatchtype;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
 	dns_slabheader_t *header = NULL;
 	dns_slabheader_t *header_next = NULL, *header_prev = NULL;
@@ -1503,8 +1509,6 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 
 	fname = dns_fixedname_initname(&fixed);
 	predecessor = dns_fixedname_initname(&fpredecessor);
-	matchtype = DNS_TYPEPAIR_VALUE(dns_rdatatype_nsec, 0);
-	sigmatchtype = DNS_SIGTYPE(dns_rdatatype_nsec);
 
 	/*
 	 * Extract predecessor from iterator.
@@ -1535,19 +1539,13 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 			continue;
 		}
 
-		if (!EXISTS(header) || DNS_TYPEPAIR_TYPE(header->type) == 0) {
+		if (DNS_TYPEPAIR_TYPE(header->type) == 0) {
 			continue;
 		}
-		if (header->type == matchtype) {
-			found = header;
-			if (foundsig != NULL) {
-				break;
-			}
-		} else if (header->type == sigmatchtype) {
-			foundsig = header;
-			if (found != NULL) {
-				break;
-			}
+
+		if (both_headers(header, dns_rdatatype_nsec, &found, &foundsig))
+		{
+			break;
 		}
 	}
 	if (found != NULL) {
@@ -2071,20 +2069,8 @@ qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 			continue;
 		}
 
-		if (EXISTS(header) && !ANCIENT(header)) {
-			if (header->type == dns_rdatatype_ns) {
-				found = header;
-				if (foundsig != NULL) {
-					break;
-				}
-			} else if (header->type ==
-				   DNS_SIGTYPE(dns_rdatatype_ns))
-			{
-				foundsig = header;
-				if (found != NULL) {
-					break;
-				}
-			}
+		if (both_headers(header, dns_rdatatype_ns, &found, &foundsig)) {
+			break;
 		}
 	}
 
@@ -3024,11 +3010,11 @@ find_header:
 		newheader->heap = qpdb->buckets[idx].heap;
 		if (ZEROTTL(newheader)) {
 			newheader->last_used = qpdb->last_used + 1;
-			ISC_LIST_APPEND(qpdb->buckets[idx].lru,
-					newheader, link);
+			ISC_LIST_APPEND(qpdb->buckets[idx].lru, newheader,
+					link);
 		} else {
-			ISC_LIST_PREPEND(qpdb->buckets[idx].lru,
-					 newheader, link);
+			ISC_LIST_PREPEND(qpdb->buckets[idx].lru, newheader,
+					 link);
 		}
 		if (topheader_prev != NULL) {
 			topheader_prev->next = newheader;
