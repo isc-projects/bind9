@@ -2150,7 +2150,7 @@ dns__rbtdb_bindrdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		 * (these records should not be cached anyway).
 		 */
 
-		if (KEEPSTALE(rbtdb) && stale_ttl > now) {
+		if (!ZEROTTL(header) && KEEPSTALE(rbtdb) && stale_ttl > now) {
 			stale = true;
 		} else {
 			/*
@@ -2165,7 +2165,7 @@ dns__rbtdb_bindrdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rdataset->rdclass = rbtdb->common.rdclass;
 	rdataset->type = DNS_TYPEPAIR_TYPE(header->type);
 	rdataset->covers = DNS_TYPEPAIR_COVERS(header->type);
-	rdataset->ttl = header->ttl - now;
+	rdataset->ttl = !ZEROTTL(header) ? header->ttl - now : 0;
 	rdataset->trust = header->trust;
 
 	if (NEGATIVE(header)) {
