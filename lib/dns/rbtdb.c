@@ -857,8 +857,8 @@ dns__rbtdb_mark(dns_slabheader_t *header, uint_least16_t flag) {
 	}
 }
 
-static void
-mark_ancient(dns_slabheader_t *header) {
+void
+dns__rbtdb_mark_ancient(dns_slabheader_t *header) {
 	dns__rbtdb_setttl(header, 0);
 	dns__rbtdb_mark(header, DNS_SLABHEADERATTR_ANCIENT);
 	RBTDB_HEADERNODE(header)->dirty = 1;
@@ -2604,7 +2604,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 				     topheader != NULL;
 				     topheader = topheader->next)
 				{
-					mark_ancient(topheader);
+					dns__rbtdb_mark_ancient(topheader);
 				}
 				goto find_header;
 			}
@@ -2667,7 +2667,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 				 * The new rdataset is better.  Expire the
 				 * ncache entry.
 				 */
-				mark_ancient(topheader);
+				dns__rbtdb_mark_ancient(topheader);
 				topheader = NULL;
 				goto find_header;
 			}
@@ -3013,9 +3013,9 @@ find_header:
 				changed->dirty = true;
 			}
 			if (rbtversion == NULL) {
-				mark_ancient(header);
+				dns__rbtdb_mark_ancient(header);
 				if (sigheader != NULL) {
-					mark_ancient(sigheader);
+					dns__rbtdb_mark_ancient(sigheader);
 				}
 			}
 			if (rbtversion != NULL && !header_nx) {
@@ -3119,7 +3119,7 @@ find_header:
 					expireheader = newheader;
 				}
 
-				mark_ancient(expireheader);
+				dns__rbtdb_mark_ancient(expireheader);
 				/*
 				 * FIXME: In theory, we should mark the RRSIG
 				 * and the header at the same time, but there is

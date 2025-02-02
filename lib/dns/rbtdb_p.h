@@ -486,6 +486,8 @@ dns__zonerbt_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name,
  * Cache-specific functions that are called from rbtdb.c
  */
 void
+dns__rbtdb_mark_ancient(dns_slabheader_t *header);
+void
 dns__cacherbt_expireheader(dns_slabheader_t *header,
 			   isc_rwlocktype_t *tlocktypep,
 			   dns_expire_t reason DNS__DB_FLARG);
