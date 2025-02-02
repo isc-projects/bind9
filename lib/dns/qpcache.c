@@ -1057,7 +1057,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 		 * (these records should not be cached anyway).
 		 */
 
-		if (KEEPSTALE(qpdb) && stale_ttl > now) {
+		if (!ZEROTTL(header) && KEEPSTALE(qpdb) && stale_ttl > now) {
 			stale = true;
 		} else {
 			/*
@@ -1072,7 +1072,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	rdataset->rdclass = qpdb->common.rdclass;
 	rdataset->type = DNS_TYPEPAIR_TYPE(header->type);
 	rdataset->covers = DNS_TYPEPAIR_COVERS(header->type);
-	rdataset->ttl = header->expire - now;
+	rdataset->ttl = !ZEROTTL(header) ? header->expire - now : 0;
 	rdataset->trust = header->trust;
 	rdataset->resign = 0;
 
