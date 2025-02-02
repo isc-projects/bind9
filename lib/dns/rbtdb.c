@@ -3181,7 +3181,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
 	} else if (IS_CACHE(rbtdb) && !ACTIVE(header, now)) {
 		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
-		rdataset->ttl = header->rdh_ttl;
+		rdataset->ttl = 0;
 	}
 
 	rdataset->private1 = rbtdb;
