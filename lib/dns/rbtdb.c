@@ -5519,43 +5519,33 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
+		bool ns = (header->type == dns_rdatatype_ns ||
+			   header->type == RBTDB_RDATATYPE_SIGNS);
 		if (check_stale_header(node, header, &locktype, lock, &search,
 				       &header_prev))
 		{
-			/*
-			 * The function dns_rbt_findnode found us the a matching
-			 * node for 'name' and stored the result in 'dcname'.
-			 * This is the deepest known zonecut in our database.
-			 * However, this node may be stale and if serve-stale
-			 * is not enabled (in other words 'stale-answer-enable'
-			 * is set to no), this node may not be used as a
-			 * zonecut we know about. If so, find the deepest
-			 * zonecut from this node up and return that instead.
-			 */
-			NODE_UNLOCK(lock, locktype);
-			result = find_deepest_zonecut(&search, node, nodep,
-						      foundname, rdataset,
-						      sigrdataset);
-			dns_name_copy(foundname, dcname);
-			goto tree_exit;
+			if (ns) {
+				/*
+				 * We found a cached NS, but it was either
+				 * ancient or it was stale and serve-stale
+				 * is disabled, so this node can't be used
+				 * as a zone cut we know about. Instead we
+				 * bail out and call find_deepest_zonecut()
+				 * below.
+				 */
+				break;
+			}
 		} else if (EXISTS(header) && !ANCIENT(header)) {
-			/*
-			 * If we found a type we were looking for, remember
-			 * it.
-			 */
 			if (header->type == dns_rdatatype_ns) {
-				/*
-				 * Remember a NS rdataset even if we're
-				 * not specifically looking for it, because
-				 * we might need it later.
-				 */
 				found = header;
+				if (foundsig != NULL) {
+					break;
+				}
 			} else if (header->type == RBTDB_RDATATYPE_SIGNS) {
-				/*
-				 * If we need the NS rdataset, we'll also
-				 * need its signature.
-				 */
 				foundsig = header;
+				if (found != NULL) {
+					break;
+				}
 			}
 			header_prev = header;
 		} else {
@@ -5565,11 +5555,13 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 
 	if (found == NULL) {
 		/*
-		 * No NS records here.
+		 * No active NS records found. Call find_deepest_zonecut()
+		 * to look for them in nodes above this one.
 		 */
 		NODE_UNLOCK(lock, locktype);
 		result = find_deepest_zonecut(&search, node, nodep, foundname,
 					      rdataset, sigrdataset);
+		dns_name_copy(foundname, dcname);
 		goto tree_exit;
 	}
 
