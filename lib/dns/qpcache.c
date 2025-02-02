@@ -1196,97 +1196,92 @@ static bool
 check_stale_header(qpcnode_t *node, dns_slabheader_t *header,
 		   isc_rwlocktype_t *nlocktypep, isc_rwlock_t *nlock,
 		   qpc_search_t *search, dns_slabheader_t **header_prev) {
-	if (!ACTIVE(header, search->now)) {
-		dns_ttl_t stale = header->expire +
-				  STALE_TTL(header, search->qpdb);
-		/*
-		 * If this data is in the stale window keep it and if
-		 * DNS_DBFIND_STALEOK is not set we tell the caller to
-		 * skip this record.  We skip the records with ZEROTTL
-		 * (these records should not be cached anyway).
-		 */
-
-		DNS_SLABHEADER_CLRATTR(header, DNS_SLABHEADERATTR_STALE_WINDOW);
-		if (!ZEROTTL(header) && KEEPSTALE(search->qpdb) &&
-		    stale > search->now)
-		{
-			mark(header, DNS_SLABHEADERATTR_STALE);
-			*header_prev = header;
-			/*
-			 * If DNS_DBFIND_STALESTART is set then it means we
-			 * failed to resolve the name during recursion, in
-			 * this case we mark the time in which the refresh
-			 * failed.
-			 */
-			if ((search->options & DNS_DBFIND_STALESTART) != 0) {
-				atomic_store_release(
-					&header->last_refresh_fail_ts,
-					search->now);
-			} else if ((search->options &
-				    DNS_DBFIND_STALEENABLED) != 0 &&
-				   search->now <
-					   (atomic_load_acquire(
-						    &header->last_refresh_fail_ts) +
-					    search->qpdb->serve_stale_refresh))
-			{
-				/*
-				 * If we are within interval between last
-				 * refresh failure time + 'stale-refresh-time',
-				 * then don't skip this stale entry but use it
-				 * instead.
-				 */
-				DNS_SLABHEADER_SETATTR(
-					header,
-					DNS_SLABHEADERATTR_STALE_WINDOW);
-				return false;
-			} else if ((search->options &
-				    DNS_DBFIND_STALETIMEOUT) != 0)
-			{
-				/*
-				 * We want stale RRset due to timeout, so we
-				 * don't skip it.
-				 */
-				return false;
-			}
-			return (search->options & DNS_DBFIND_STALEOK) == 0;
-		}
-
-		/*
-		 * This rdataset is stale.  If no one else is using the
-		 * node, we can clean it up right now, otherwise we mark
-		 * it as ancient, and the node as dirty, so it will get
-		 * cleaned up later.
-		 */
-		if ((header->expire < search->now - QPDB_VIRTUAL) &&
-		    (*nlocktypep == isc_rwlocktype_write ||
-		     NODE_TRYUPGRADE(nlock, nlocktypep) == ISC_R_SUCCESS))
-		{
-			/*
-			 * We update the node's status only when we can
-			 * get write access; otherwise, we leave others
-			 * to this work.  Periodical cleaning will
-			 * eventually take the job as the last resort.
-			 * We won't downgrade the lock, since other
-			 * rdatasets are probably stale, too.
-			 */
-			if (isc_refcount_current(&node->references) == 0) {
-				clean_stale_headers(header);
-				if (*header_prev != NULL) {
-					(*header_prev)->next = header->next;
-				} else {
-					node->data = header->next;
-				}
-				dns_slabheader_destroy(&header);
-			} else {
-				mark_ancient(header);
-				*header_prev = header;
-			}
-		} else {
-			*header_prev = header;
-		}
-		return true;
+	if (ACTIVE(header, search->now)) {
+		*header_prev = header;
+		return false;
 	}
-	return false;
+
+	isc_stdtime_t stale = header->expire + STALE_TTL(header, search->qpdb);
+	/*
+	 * If this data is in the stale window keep it and if
+	 * DNS_DBFIND_STALEOK is not set we tell the caller to
+	 * skip this record.  We skip the records with ZEROTTL
+	 * (these records should not be cached anyway).
+	 */
+
+	DNS_SLABHEADER_CLRATTR(header, DNS_SLABHEADERATTR_STALE_WINDOW);
+	if (!ZEROTTL(header) && KEEPSTALE(search->qpdb) && stale > search->now)
+	{
+		mark(header, DNS_SLABHEADERATTR_STALE);
+		*header_prev = header;
+		/*
+		 * If DNS_DBFIND_STALESTART is set then it means we
+		 * failed to resolve the name during recursion, in
+		 * this case we mark the time in which the refresh
+		 * failed.
+		 */
+		if ((search->options & DNS_DBFIND_STALESTART) != 0) {
+			atomic_store_release(&header->last_refresh_fail_ts,
+					     search->now);
+		} else if ((search->options & DNS_DBFIND_STALEENABLED) != 0 &&
+			   search->now <
+				   (atomic_load_acquire(
+					    &header->last_refresh_fail_ts) +
+				    search->qpdb->serve_stale_refresh))
+		{
+			/*
+			 * If we are within interval between last
+			 * refresh failure time + 'stale-refresh-time',
+			 * then don't skip this stale entry but use it
+			 * instead.
+			 */
+			DNS_SLABHEADER_SETATTR(header,
+					       DNS_SLABHEADERATTR_STALE_WINDOW);
+			return false;
+		} else if ((search->options & DNS_DBFIND_STALETIMEOUT) != 0) {
+			/*
+			 * We want stale RRset due to timeout, so we
+			 * don't skip it.
+			 */
+			return false;
+		}
+		return (search->options & DNS_DBFIND_STALEOK) == 0;
+	}
+
+	/*
+	 * This rdataset is stale.  If no one else is using the
+	 * node, we can clean it up right now, otherwise we mark
+	 * it as ancient, and the node as dirty, so it will get
+	 * cleaned up later.
+	 */
+	if ((header->expire < search->now - QPDB_VIRTUAL) &&
+	    (*nlocktypep == isc_rwlocktype_write ||
+	     NODE_TRYUPGRADE(nlock, nlocktypep) == ISC_R_SUCCESS))
+	{
+		/*
+		 * We update the node's status only when we can
+		 * get write access; otherwise, we leave others
+		 * to this work.  Periodical cleaning will
+		 * eventually take the job as the last resort.
+		 * We won't downgrade the lock, since other
+		 * rdatasets are probably stale, too.
+		 */
+		if (isc_refcount_current(&node->references) == 0) {
+			clean_stale_headers(header);
+			if (*header_prev != NULL) {
+				(*header_prev)->next = header->next;
+			} else {
+				node->data = header->next;
+			}
+			dns_slabheader_destroy(&header);
+		} else {
+			mark_ancient(header);
+			*header_prev = header;
+		}
+	} else {
+		*header_prev = header;
+	}
+	return true;
 }
 
 static isc_result_t
@@ -1312,19 +1307,17 @@ check_zonecut(qpcnode_t *node, void *arg DNS__DB_FLARG) {
 		if (check_stale_header(node, header, &nlocktype, nlock, search,
 				       &header_prev))
 		{
-			/* Do nothing. */
-		} else if (header->type == dns_rdatatype_dname &&
-			   EXISTS(header) && !ANCIENT(header))
+			continue;
+		}
+
+		if (header->type == dns_rdatatype_dname && EXISTS(header) &&
+		    !ANCIENT(header))
 		{
 			dname_header = header;
-			header_prev = header;
 		} else if (header->type == DNS_SIGTYPE(dns_rdatatype_dname) &&
 			   EXISTS(header) && !ANCIENT(header))
 		{
 			sigdname_header = header;
-			header_prev = header;
-		} else {
-			header_prev = header;
 		}
 	}
 
@@ -1387,8 +1380,10 @@ find_deepest_zonecut(qpc_search_t *search, qpcnode_t *node,
 			if (check_stale_header(node, header, &nlocktype, nlock,
 					       search, &header_prev))
 			{
-				/* Do nothing. */
-			} else if (EXISTS(header) && !ANCIENT(header)) {
+				continue;
+			}
+
+			if (EXISTS(header) && !ANCIENT(header)) {
 				/*
 				 * We've found an extant rdataset.  See if
 				 * we're interested in it.
@@ -1406,9 +1401,6 @@ find_deepest_zonecut(qpc_search_t *search, qpcnode_t *node,
 						break;
 					}
 				}
-				header_prev = header;
-			} else {
-				header_prev = header;
 			}
 		}
 
@@ -1533,8 +1525,8 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 		{
 			continue;
 		}
+
 		if (!EXISTS(header) || DNS_TYPEPAIR_TYPE(header->type) == 0) {
-			header_prev = header;
 			continue;
 		}
 		if (header->type == matchtype) {
@@ -1548,7 +1540,6 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 				break;
 			}
 		}
-		header_prev = header;
 	}
 	if (found != NULL) {
 		bindrdataset(search->qpdb, node, found, search->now, nlocktype,
@@ -1724,8 +1715,10 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		if (check_stale_header(node, header, &nlocktype, nlock, &search,
 				       &header_prev))
 		{
-			/* Do nothing. */
-		} else if (EXISTS(header) && !ANCIENT(header)) {
+			continue;
+		}
+
+		if (EXISTS(header) && !ANCIENT(header)) {
 			/*
 			 * We now know that there is at least one active
 			 * non-stale rdataset at this node.
@@ -1811,9 +1804,6 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				 */
 				cnamesig = header;
 			}
-			header_prev = header;
-		} else {
-			header_prev = header;
 		}
 	}
 
@@ -2110,7 +2100,10 @@ qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 				 */
 				break;
 			}
-		} else if (EXISTS(header) && !ANCIENT(header)) {
+			continue;
+		}
+
+		if (EXISTS(header) && !ANCIENT(header)) {
 			if (header->type == dns_rdatatype_ns) {
 				found = header;
 				if (foundsig != NULL) {
@@ -2124,9 +2117,6 @@ qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 					break;
 				}
 			}
-			header_prev = header;
-		} else {
-			header_prev = header;
 		}
 	}
 
