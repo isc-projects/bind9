@@ -1606,13 +1606,12 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 
 static isc_result_t
 qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t __now,
 	     dns_dbnode_t **nodep, dns_name_t *foundname,
 	     dns_rdataset_t *rdataset,
 	     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	qpcnode_t *node = NULL;
 	isc_result_t result;
-	qpc_search_t search;
 	bool cname_ok = true;
 	bool found_noqname = false;
 	bool all_negative = true;
@@ -1626,21 +1625,16 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	dns_slabheader_t *foundsig = NULL, *nssig = NULL, *cnamesig = NULL;
 	dns_slabheader_t *nsecheader = NULL, *nsecsig = NULL;
 	dns_typepair_t sigtype, negtype;
+	qpc_search_t search = (qpc_search_t){
+		.qpdb = (qpcache_t *)db,
+		.options = options,
+		.now = __now ? __now : isc_stdtime_now(),
+	};
 
 	UNUSED(version);
 
 	REQUIRE(VALID_QPDB((qpcache_t *)db));
 	REQUIRE(version == NULL);
-
-	if (now == 0) {
-		now = isc_stdtime_now();
-	}
-
-	search = (qpc_search_t){
-		.qpdb = (qpcache_t *)db,
-		.options = options,
-		.now = now,
-	};
 
 	TREE_RDLOCK(&search.qpdb->tree_lock, &tlocktype);
 
@@ -2005,32 +1999,26 @@ tree_exit:
 
 static isc_result_t
 qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-		    isc_stdtime_t now, dns_dbnode_t **nodep,
+		    isc_stdtime_t __now, dns_dbnode_t **nodep,
 		    dns_name_t *foundname, dns_name_t *dcname,
 		    dns_rdataset_t *rdataset,
 		    dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	qpcnode_t *node = NULL;
 	isc_rwlock_t *nlock = NULL;
 	isc_result_t result;
-	qpc_search_t search;
 	dns_slabheader_t *header = NULL;
 	dns_slabheader_t *header_prev = NULL, *header_next = NULL;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	bool dcnull = (dcname == NULL);
-
-	REQUIRE(VALID_QPDB((qpcache_t *)db));
-
-	if (now == 0) {
-		now = isc_stdtime_now();
-	}
-
-	search = (qpc_search_t){
+	qpc_search_t search = (qpc_search_t){
 		.qpdb = (qpcache_t *)db,
 		.options = options,
-		.now = now,
+		.now = __now ? __now : isc_stdtime_now(),
 	};
+
+	REQUIRE(VALID_QPDB((qpcache_t *)db));
 
 	if (dcnull) {
 		dcname = foundname;
@@ -2144,7 +2132,7 @@ tree_exit:
 static isc_result_t
 qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		     dns_rdatatype_t type, dns_rdatatype_t covers,
-		     isc_stdtime_t now, dns_rdataset_t *rdataset,
+		     isc_stdtime_t __now, dns_rdataset_t *rdataset,
 		     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *qpnode = (qpcnode_t *)node;
@@ -2155,7 +2143,10 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_result_t result;
 	isc_rwlock_t *nlock = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-	qpc_search_t search;
+	qpc_search_t search = (qpc_search_t){
+		.qpdb = (qpcache_t *)db,
+		.now = __now ? __now : isc_stdtime_now(),
+	};
 
 	REQUIRE(VALID_QPDB(qpdb));
 	REQUIRE(type != dns_rdatatype_any);
@@ -2163,15 +2154,6 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	UNUSED(version);
 
 	result = ISC_R_SUCCESS;
-
-	if (now == 0) {
-		now = isc_stdtime_now();
-	}
-
-	search = (qpc_search_t){
-		.qpdb = (qpcache_t *)db,
-		.now = now,
-	};
 
 	nlock = &qpdb->buckets[qpnode->locknum].lock;
 	NODE_RDLOCK(nlock, &nlocktype);
@@ -2200,11 +2182,11 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		}
 	}
 	if (found != NULL) {
-		bindrdatasets(qpdb, qpnode, found, foundsig, now, nlocktype,
-			      isc_rwlocktype_none, rdataset,
+		bindrdatasets(qpdb, qpnode, found, foundsig, search.now,
+			      nlocktype, isc_rwlocktype_none, rdataset,
 			      sigrdataset DNS__DB_FLARG_PASS);
 		maybe_update_headers(qpdb, found, foundsig, nlock, &nlocktype,
-				     now);
+				     search.now);
 	}
 
 	NODE_UNLOCK(nlock, &nlocktype);
@@ -2688,7 +2670,7 @@ qpcache_createiterator(dns_db_t *db, unsigned int options ISC_ATTR_UNUSED,
 
 static isc_result_t
 qpcache_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		     unsigned int options, isc_stdtime_t now,
+		     unsigned int options, isc_stdtime_t __now,
 		     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *qpnode = (qpcnode_t *)node;
@@ -2699,19 +2681,14 @@ qpcache_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	UNUSED(version);
 
 	iterator = isc_mem_get(qpdb->common.mctx, sizeof(*iterator));
-
-	if (now == 0) {
-		now = isc_stdtime_now();
-	}
-
-	iterator->common.magic = DNS_RDATASETITER_MAGIC;
-	iterator->common.methods = &rdatasetiter_methods;
-	iterator->common.db = db;
-	iterator->common.node = node;
-	iterator->common.version = NULL;
-	iterator->common.options = options;
-	iterator->common.now = now;
-	iterator->current = NULL;
+	*iterator = (qpc_rditer_t){
+		.common.magic = DNS_RDATASETITER_MAGIC,
+		.common.methods = &rdatasetiter_methods,
+		.common.db = db,
+		.common.node = node,
+		.common.options = options,
+		.common.now = __now ? __now : isc_stdtime_now(),
+	};
 
 	qpcnode_acquire(qpdb, qpnode, isc_rwlocktype_none,
 			isc_rwlocktype_none DNS__DB_FLARG_PASS);
@@ -3197,7 +3174,7 @@ expire_ttl_headers(qpcache_t *qpdb, unsigned int locknum,
 
 static isc_result_t
 qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    isc_stdtime_t now, dns_rdataset_t *rdataset,
+		    isc_stdtime_t __now, dns_rdataset_t *rdataset,
 		    unsigned int options,
 		    dns_rdataset_t *addedrdataset DNS__DB_FLARG) {
 	qpcache_t *qpdb = (qpcache_t *)db;
@@ -3213,13 +3190,10 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	bool cache_is_overmem = false;
 	dns_fixedname_t fixed;
 	dns_name_t *name = NULL;
+	isc_stdtime_t now = __now ? __now : isc_stdtime_now();
 
 	REQUIRE(VALID_QPDB(qpdb));
 	REQUIRE(version == NULL);
-
-	if (now == 0) {
-		now = isc_stdtime_now();
-	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
 					    &region, sizeof(dns_slabheader_t),
