@@ -1473,8 +1473,8 @@ find_deepest_zonecut(qpc_search_t *search, qpcnode_t *node,
  */
 static isc_result_t
 find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
-		  dns_dbnode_t **nodep, isc_stdtime_t now,
-		  dns_name_t *foundname, dns_rdataset_t *rdataset,
+		  dns_dbnode_t **nodep, dns_name_t *foundname,
+		  dns_rdataset_t *rdataset,
 		  dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	dns_fixedname_t fpredecessor, fixed;
 	dns_name_t *predecessor = NULL, *fname = NULL;
@@ -1549,10 +1549,10 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 		header_prev = header;
 	}
 	if (found != NULL) {
-		bindrdataset(search->qpdb, node, found, now, nlocktype,
+		bindrdataset(search->qpdb, node, found, search->now, nlocktype,
 			     isc_rwlocktype_none, rdataset DNS__DB_FLARG_PASS);
 		if (foundsig != NULL) {
-			bindrdataset(search->qpdb, node, foundsig, now,
+			bindrdataset(search->qpdb, node, foundsig, search->now,
 				     nlocktype, isc_rwlocktype_none,
 				     sigrdataset DNS__DB_FLARG_PASS);
 		}
@@ -1662,7 +1662,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		     search.zonecut_header->type != dns_rdatatype_dname))
 		{
 			result = find_coveringnsec(
-				&search, name, nodep, now, foundname, rdataset,
+				&search, name, nodep, foundname, rdataset,
 				sigrdataset DNS__DB_FLARG_PASS);
 			if (result == DNS_R_COVERINGNSEC) {
 				goto tree_exit;
@@ -1824,7 +1824,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		NODE_UNLOCK(nlock, &nlocktype);
 		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0) {
 			result = find_coveringnsec(
-				&search, name, nodep, now, foundname, rdataset,
+				&search, name, nodep, foundname, rdataset,
 				sigrdataset DNS__DB_FLARG_PASS);
 			if (result == DNS_R_COVERINGNSEC) {
 				goto tree_exit;
@@ -1881,7 +1881,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		{
 			NODE_UNLOCK(nlock, &nlocktype);
 			result = find_coveringnsec(
-				&search, name, nodep, now, foundname, rdataset,
+				&search, name, nodep, foundname, rdataset,
 				sigrdataset DNS__DB_FLARG_PASS);
 			if (result == DNS_R_COVERINGNSEC) {
 				goto tree_exit;
