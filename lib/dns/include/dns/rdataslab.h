@@ -72,7 +72,7 @@ struct dns_slabheader {
 	 */
 	dns_trust_t    trust;
 	uint32_t       serial;
-	dns_ttl_t      ttl;
+	isc_stdtime_t  expire;
 	dns_typepair_t type;
 
 	_Atomic(uint16_t) count;

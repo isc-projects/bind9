@@ -985,7 +985,7 @@ bindrdataset(qpzonedb_t *qpdb, qpznode_t *node, dns_slabheader_t *header,
 	rdataset->rdclass = qpdb->common.rdclass;
 	rdataset->type = DNS_TYPEPAIR_TYPE(header->type);
 	rdataset->covers = DNS_TYPEPAIR_COVERS(header->type);
-	rdataset->ttl = header->ttl - now;
+	rdataset->ttl = header->expire - now;
 	rdataset->trust = header->trust;
 
 	if (OPTOUT(header)) {
@@ -1890,10 +1890,10 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 				flags |= DNS_RDATASLAB_EXACT;
 			}
 			if ((options & DNS_DBADD_EXACTTTL) != 0 &&
-			    newheader->ttl != header->ttl)
+			    newheader->expire != header->expire)
 			{
 				result = DNS_R_NOTEXACT;
-			} else if (newheader->ttl != header->ttl) {
+			} else if (newheader->expire != header->expire) {
 				flags |= DNS_RDATASLAB_FORCE;
 			}
 			if (result == ISC_R_SUCCESS) {
@@ -2181,7 +2181,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	newheader = (dns_slabheader_t *)region.base;
 	*newheader = (dns_slabheader_t){
 		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
-		.ttl = rdataset->ttl + loadctx->now,
+		.expire = rdataset->ttl + loadctx->now,
 		.trust = rdataset->trust,
 		.node = (dns_dbnode_t *)node,
 		.serial = 1,
@@ -4687,7 +4687,7 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	};
 
 	dns_slabheader_reset(newheader, db, (dns_dbnode_t *)node);
-	newheader->ttl = rdataset->ttl;
+	newheader->expire = rdataset->ttl;
 	if (rdataset->ttl == 0U) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_ZEROTTL);
 	}
@@ -4802,7 +4802,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 
 	newheader = (dns_slabheader_t *)region.base;
 	dns_slabheader_reset(newheader, db, (dns_dbnode_t *)node);
-	newheader->ttl = rdataset->ttl;
+	newheader->expire = rdataset->ttl;
 	newheader->type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers);
 	atomic_init(&newheader->attributes, 0);
 	newheader->serial = version->serial;
@@ -4852,7 +4852,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 		result = ISC_R_SUCCESS;
 		if ((options & DNS_DBSUB_EXACT) != 0) {
 			flags |= DNS_RDATASLAB_EXACT;
-			if (newheader->ttl != header->ttl) {
+			if (newheader->expire != header->expire) {
 				result = DNS_R_NOTEXACT;
 			}
 		}
@@ -4899,7 +4899,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 			dns_slabheader_destroy(&newheader);
 			newheader = dns_slabheader_new((dns_db_t *)qpdb,
 						       (dns_dbnode_t *)node);
-			newheader->ttl = 0;
+			newheader->expire = 0;
 			newheader->type = topheader->type;
 			atomic_init(&newheader->attributes,
 				    DNS_SLABHEADERATTR_NONEXISTENT);
@@ -4983,7 +4983,7 @@ qpzone_deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 
 	newheader = dns_slabheader_new(db, (dns_dbnode_t *)node);
 	newheader->type = DNS_TYPEPAIR_VALUE(type, covers);
-	newheader->ttl = 0;
+	newheader->expire = 0;
 	atomic_init(&newheader->attributes, DNS_SLABHEADERATTR_NONEXISTENT);
 	newheader->serial = version->serial;
 

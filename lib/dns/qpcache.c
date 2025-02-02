@@ -108,8 +108,9 @@
 #define STALE_TTL(header, qpdb) \
 	(NXDOMAIN(header) ? 0 : qpdb->common.serve_stale_ttl)
 
-#define ACTIVE(header, now) \
-	(((header)->ttl > (now)) || ((header)->ttl == (now) && ZEROTTL(header)))
+#define ACTIVE(header, now)            \
+	(((header)->expire > (now)) || \
+	 ((header)->expire == (now) && ZEROTTL(header)))
 
 #define EXPIREDOK(iterator) \
 	(((iterator)->common.options & DNS_DB_EXPIREDOK) != 0)
@@ -925,10 +926,10 @@ mark(dns_slabheader_t *header, uint_least16_t flag) {
 }
 
 static void
-setttl(dns_slabheader_t *header, dns_ttl_t newttl) {
-	dns_ttl_t oldttl = header->ttl;
+setttl(dns_slabheader_t *header, isc_stdtime_t newts) {
+	isc_stdtime_t oldts = header->expire;
 
-	header->ttl = newttl;
+	header->expire = newts;
 
 	if (header->db == NULL || !dns_db_iscache(header->db)) {
 		return;
@@ -937,18 +938,17 @@ setttl(dns_slabheader_t *header, dns_ttl_t newttl) {
 	/*
 	 * This is a cache. Adjust the heaps if necessary.
 	 */
-	if (header->heap == NULL || header->heap_index == 0 || newttl == oldttl)
-	{
+	if (header->heap == NULL || header->heap_index == 0 || newts == oldts) {
 		return;
 	}
 
-	if (newttl < oldttl) {
+	if (newts < oldts) {
 		isc_heap_increased(header->heap, header->heap_index);
 	} else {
 		isc_heap_decreased(header->heap, header->heap_index);
 	}
 
-	if (newttl == 0) {
+	if (newts == 0) {
 		isc_heap_delete(header->heap, header->heap_index);
 	}
 }
@@ -1049,7 +1049,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	 * Mark header stale or ancient if the RRset is no longer active.
 	 */
 	if (!ACTIVE(header, now)) {
-		dns_ttl_t stale_ttl = header->ttl + STALE_TTL(header, qpdb);
+		dns_ttl_t stale_ttl = header->expire + STALE_TTL(header, qpdb);
 		/*
 		 * If this data is in the stale window keep it and if
 		 * DNS_DBFIND_STALEOK is not set we tell the caller to
@@ -1072,7 +1072,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	rdataset->rdclass = qpdb->common.rdclass;
 	rdataset->type = DNS_TYPEPAIR_TYPE(header->type);
 	rdataset->covers = DNS_TYPEPAIR_COVERS(header->type);
-	rdataset->ttl = header->ttl - now;
+	rdataset->ttl = header->expire - now;
 	rdataset->trust = header->trust;
 	rdataset->resign = 0;
 
@@ -1090,7 +1090,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	}
 
 	if (stale && !ancient) {
-		dns_ttl_t stale_ttl = header->ttl + STALE_TTL(header, qpdb);
+		dns_ttl_t stale_ttl = header->expire + STALE_TTL(header, qpdb);
 		if (stale_ttl > now) {
 			rdataset->ttl = stale_ttl - now;
 		} else {
@@ -1180,7 +1180,8 @@ check_stale_header(qpcnode_t *node, dns_slabheader_t *header,
 		   isc_rwlocktype_t *nlocktypep, isc_rwlock_t *nlock,
 		   qpc_search_t *search, dns_slabheader_t **header_prev) {
 	if (!ACTIVE(header, search->now)) {
-		dns_ttl_t stale = header->ttl + STALE_TTL(header, search->qpdb);
+		dns_ttl_t stale = header->expire +
+				  STALE_TTL(header, search->qpdb);
 		/*
 		 * If this data is in the stale window keep it and if
 		 * DNS_DBFIND_STALEOK is not set we tell the caller to
@@ -1239,7 +1240,7 @@ check_stale_header(qpcnode_t *node, dns_slabheader_t *header,
 		 * it as ancient, and the node as dirty, so it will get
 		 * cleaned up later.
 		 */
-		if ((header->ttl < search->now - QPDB_VIRTUAL) &&
+		if ((header->expire < search->now - QPDB_VIRTUAL) &&
 		    (*nlocktypep == isc_rwlocktype_write ||
 		     NODE_TRYUPGRADE(nlock, nlocktypep) == ISC_R_SUCCESS))
 		{
@@ -2218,7 +2219,7 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	for (header = qpnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
 		if (!ACTIVE(header, now)) {
-			if ((header->ttl + STALE_TTL(header, qpdb) <
+			if ((header->expire + STALE_TTL(header, qpdb) <
 			     now - QPDB_VIRTUAL) &&
 			    (nlocktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(nlock, &nlocktype) ==
@@ -2476,7 +2477,7 @@ ttl_sooner(void *v1, void *v2) {
 	dns_slabheader_t *h1 = v1;
 	dns_slabheader_t *h2 = v2;
 
-	return h1->ttl < h2->ttl;
+	return h1->expire < h2->expire;
 }
 
 /*%
@@ -3019,8 +3020,8 @@ find_header:
 			 * Honour the new ttl if it is less than the
 			 * older one.
 			 */
-			if (header->ttl > newheader->ttl) {
-				setttl(header, newheader->ttl);
+			if (header->expire > newheader->expire) {
+				setttl(header, newheader->expire);
 			}
 			if (header->last_used != now) {
 				ISC_LIST_UNLINK(
@@ -3061,8 +3062,8 @@ find_header:
 		    !header_nx && !newheader_nx &&
 		    header->trust <= newheader->trust)
 		{
-			if (newheader->ttl > header->ttl) {
-				newheader->ttl = header->ttl;
+			if (newheader->expire > header->expire) {
+				newheader->expire = header->expire;
 			}
 		}
 		if (ACTIVE(header, now) &&
@@ -3081,8 +3082,8 @@ find_header:
 			 * Honour the new ttl if it is less than the
 			 * older one.
 			 */
-			if (header->ttl > newheader->ttl) {
-				setttl(header, newheader->ttl);
+			if (header->expire > newheader->expire) {
+				setttl(header, newheader->expire);
 			}
 			if (header->last_used != now) {
 				ISC_LIST_UNLINK(
@@ -3726,7 +3727,7 @@ rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 static bool
 iterator_active(qpcache_t *qpdb, qpc_rditer_t *iterator,
 		dns_slabheader_t *header) {
-	dns_ttl_t stale_ttl = header->ttl + STALE_TTL(header, qpdb);
+	dns_ttl_t stale_ttl = header->expire + STALE_TTL(header, qpdb);
 
 	/*
 	 * Is this a "this rdataset doesn't exist" record?
@@ -4283,7 +4284,7 @@ expire_ttl_headers(qpcache_t *qpdb, unsigned int locknum,
 			return;
 		}
 
-		dns_ttl_t ttl = header->ttl;
+		dns_ttl_t ttl = header->expire;
 
 		if (!cache_is_overmem) {
 			/* Only account for stale TTL if cache is not overmem */
