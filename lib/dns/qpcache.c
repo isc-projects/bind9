@@ -1142,6 +1142,20 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	}
 }
 
+static void
+bindrdatasets(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *found,
+	      dns_slabheader_t *foundsig, isc_stdtime_t now,
+	      isc_rwlocktype_t nlocktype, isc_rwlocktype_t tlocktype,
+	      dns_rdataset_t *rdataset,
+	      dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
+	bindrdataset(qpdb, qpnode, found, now, nlocktype, tlocktype,
+		     rdataset DNS__DB_FLARG_PASS);
+	if (!NEGATIVE(found) && foundsig != NULL) {
+		bindrdataset(qpdb, qpnode, foundsig, now, nlocktype, tlocktype,
+			     sigrdataset DNS__DB_FLARG_PASS);
+	}
+}
+
 static isc_result_t
 setup_delegation(qpc_search_t *search, dns_dbnode_t **nodep,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
@@ -1174,15 +1188,10 @@ setup_delegation(qpc_search_t *search, dns_dbnode_t **nodep,
 		isc_rwlock_t *nlock =
 			&search->qpdb->buckets[node->locknum].lock;
 		NODE_RDLOCK(nlock, &nlocktype);
-		bindrdataset(search->qpdb, node, search->zonecut_header,
-			     search->now, nlocktype, tlocktype,
-			     rdataset DNS__DB_FLARG_PASS);
-		if (sigrdataset != NULL && search->zonecut_sigheader != NULL) {
-			bindrdataset(search->qpdb, node,
-				     search->zonecut_sigheader, search->now,
-				     nlocktype, tlocktype,
-				     sigrdataset DNS__DB_FLARG_PASS);
-		}
+		bindrdatasets(search->qpdb, node, search->zonecut_header,
+			      search->zonecut_sigheader, search->now, nlocktype,
+			      tlocktype, rdataset,
+			      sigrdataset DNS__DB_FLARG_PASS);
 		NODE_UNLOCK(nlock, &nlocktype);
 	}
 
@@ -1419,15 +1428,10 @@ find_deepest_zonecut(qpc_search_t *search, qpcnode_t *node,
 					isc_rwlocktype_none DNS__DB_FLARG_PASS);
 				*nodep = (dns_dbnode_t *)node;
 			}
-			bindrdataset(search->qpdb, node, found, search->now,
-				     nlocktype, isc_rwlocktype_none,
-				     rdataset DNS__DB_FLARG_PASS);
-			if (foundsig != NULL) {
-				bindrdataset(search->qpdb, node, foundsig,
-					     search->now, nlocktype,
-					     isc_rwlocktype_none,
-					     sigrdataset DNS__DB_FLARG_PASS);
-			}
+			bindrdatasets(search->qpdb, node, found, foundsig,
+				      search->now, nlocktype,
+				      isc_rwlocktype_none, rdataset,
+				      sigrdataset DNS__DB_FLARG_PASS);
 			if (need_headerupdate(found, search->now) ||
 			    (foundsig != NULL &&
 			     need_headerupdate(foundsig, search->now)))
@@ -1542,13 +1546,9 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 		}
 	}
 	if (found != NULL) {
-		bindrdataset(search->qpdb, node, found, search->now, nlocktype,
-			     isc_rwlocktype_none, rdataset DNS__DB_FLARG_PASS);
-		if (foundsig != NULL) {
-			bindrdataset(search->qpdb, node, foundsig, search->now,
-				     nlocktype, isc_rwlocktype_none,
-				     sigrdataset DNS__DB_FLARG_PASS);
-		}
+		bindrdatasets(search->qpdb, node, found, foundsig, search->now,
+			      nlocktype, isc_rwlocktype_none, rdataset,
+			      sigrdataset DNS__DB_FLARG_PASS);
 		qpcnode_acquire(search->qpdb, node, nlocktype,
 				isc_rwlocktype_none DNS__DB_FLARG_PASS);
 
@@ -1847,19 +1847,16 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 						tlocktype DNS__DB_FLARG_PASS);
 				*nodep = (dns_dbnode_t *)node;
 			}
-			bindrdataset(search.qpdb, node, nsecheader, search.now,
-				     nlocktype, tlocktype,
-				     rdataset DNS__DB_FLARG_PASS);
+			bindrdatasets(search.qpdb, node, nsecheader, nsecsig,
+				      search.now, nlocktype, tlocktype,
+				      rdataset, sigrdataset DNS__DB_FLARG_PASS);
 			if (need_headerupdate(nsecheader, search.now)) {
 				update = nsecheader;
 			}
-			if (nsecsig != NULL) {
-				bindrdataset(search.qpdb, node, nsecsig,
-					     search.now, nlocktype, tlocktype,
-					     sigrdataset DNS__DB_FLARG_PASS);
-				if (need_headerupdate(nsecsig, search.now)) {
-					updatesig = nsecsig;
-				}
+			if (nsecsig != NULL &&
+			    need_headerupdate(nsecsig, search.now))
+			{
+				updatesig = nsecsig;
 			}
 			result = DNS_R_COVERINGNSEC;
 			goto node_exit;
@@ -1891,19 +1888,16 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 						tlocktype DNS__DB_FLARG_PASS);
 				*nodep = (dns_dbnode_t *)node;
 			}
-			bindrdataset(search.qpdb, node, nsheader, search.now,
-				     nlocktype, tlocktype,
-				     rdataset DNS__DB_FLARG_PASS);
+			bindrdatasets(search.qpdb, node, nsheader, nssig,
+				      search.now, nlocktype, tlocktype,
+				      rdataset, sigrdataset DNS__DB_FLARG_PASS);
 			if (need_headerupdate(nsheader, search.now)) {
 				update = nsheader;
 			}
-			if (nssig != NULL) {
-				bindrdataset(search.qpdb, node, nssig,
-					     search.now, nlocktype, tlocktype,
-					     sigrdataset DNS__DB_FLARG_PASS);
-				if (need_headerupdate(nssig, search.now)) {
-					updatesig = nssig;
-				}
+			if (nssig != NULL &&
+			    need_headerupdate(nssig, search.now))
+			{
+				updatesig = nssig;
 			}
 			result = DNS_R_DELEGATION;
 			goto node_exit;
@@ -1954,18 +1948,15 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	if (type != dns_rdatatype_any || result == DNS_R_NCACHENXDOMAIN ||
 	    result == DNS_R_NCACHENXRRSET)
 	{
-		bindrdataset(search.qpdb, node, found, search.now, nlocktype,
-			     tlocktype, rdataset DNS__DB_FLARG_PASS);
+		bindrdatasets(search.qpdb, node, found, foundsig, search.now,
+			      nlocktype, tlocktype, rdataset,
+			      sigrdataset DNS__DB_FLARG_PASS);
 		if (need_headerupdate(found, search.now)) {
 			update = found;
 		}
-		if (!NEGATIVE(found) && foundsig != NULL) {
-			bindrdataset(search.qpdb, node, foundsig, search.now,
-				     nlocktype, tlocktype,
-				     sigrdataset DNS__DB_FLARG_PASS);
-			if (need_headerupdate(foundsig, search.now)) {
-				updatesig = foundsig;
-			}
+		if (foundsig != NULL && need_headerupdate(foundsig, search.now))
+		{
+			updatesig = foundsig;
 		}
 	}
 
@@ -2139,12 +2130,8 @@ qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		*nodep = (dns_dbnode_t *)node;
 	}
 
-	bindrdataset(search.qpdb, node, found, search.now, nlocktype, tlocktype,
-		     rdataset DNS__DB_FLARG_PASS);
-	if (foundsig != NULL) {
-		bindrdataset(search.qpdb, node, foundsig, search.now, nlocktype,
-			     tlocktype, sigrdataset DNS__DB_FLARG_PASS);
-	}
+	bindrdatasets(search.qpdb, node, found, foundsig, search.now, nlocktype,
+		      tlocktype, rdataset, sigrdataset DNS__DB_FLARG_PASS);
 
 	if (need_headerupdate(found, search.now) ||
 	    (foundsig != NULL && need_headerupdate(foundsig, search.now)))
@@ -2246,13 +2233,9 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		}
 	}
 	if (found != NULL) {
-		bindrdataset(qpdb, qpnode, found, now, nlocktype,
-			     isc_rwlocktype_none, rdataset DNS__DB_FLARG_PASS);
-		if (!NEGATIVE(found) && foundsig != NULL) {
-			bindrdataset(qpdb, qpnode, foundsig, now, nlocktype,
-				     isc_rwlocktype_none,
-				     sigrdataset DNS__DB_FLARG_PASS);
-		}
+		bindrdatasets(qpdb, qpnode, found, foundsig, now, nlocktype,
+			      isc_rwlocktype_none, rdataset,
+			      sigrdataset DNS__DB_FLARG_PASS);
 	}
 
 	NODE_UNLOCK(nlock, &nlocktype);
