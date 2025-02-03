@@ -1157,15 +1157,7 @@ again:
 			if (STALE(rds)) {
 				fprintf(f, "; stale\n");
 			} else if (ANCIENT(rds)) {
-				isc_buffer_t b;
-				char buf[sizeof("YYYYMMDDHHMMSS")];
-				memset(buf, 0, sizeof(buf));
-				isc_buffer_init(&b, buf, sizeof(buf) - 1);
-				dns_time64_totext((uint64_t)rds->ttl, &b);
-				fprintf(f,
-					"; expired since %s "
-					"(awaiting cleanup)\n",
-					buf);
+				fprintf(f, "; expired (awaiting cleanup)\n");
 			}
 			result = dump_rdataset(mctx, name, rds, ctx, buffer, f);
 			if (result != ISC_R_SUCCESS) {
