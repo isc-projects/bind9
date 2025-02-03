@@ -1160,7 +1160,12 @@ again:
 		} else {
 			isc_result_t result;
 			if (STALE(rds)) {
-				fprintf(f, "; stale\n");
+				isc_buffer_t b;
+				char buf[sizeof("YYYYMMDDHHMMSS")];
+				memset(buf, 0, sizeof(buf));
+				isc_buffer_init(&b, buf, sizeof(buf) - 1);
+				dns_time64_totext((uint64_t)rds->expire, &b);
+				fprintf(f, "; stale since %s\n", buf);
 			} else if (ANCIENT(rds)) {
 				fprintf(f, "; expired (awaiting cleanup)\n");
 			}
