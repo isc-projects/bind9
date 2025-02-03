@@ -3266,6 +3266,13 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	}
 
 	/*
+	 * Pass through NOVALIDATE to any lookups ADB makes.
+	 */
+	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
+		options |= DNS_ADBFIND_NOVALIDATE;
+	}
+
+	/*
 	 * See what we know about this address.
 	 */
 	INSIST(!SHUTTINGDOWN(fctx));

@@ -184,6 +184,26 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking recovery from spoofed server addresses ($n)"
+ret=0
+# prime cache with spoofed address records
+dig_with_opts +cd target.peer-ns-spoof @10.53.0.4 a >dig.out.prime.ns4.test$n || ret=1
+grep "status: SERVFAIL" dig.out.prime.ns4.test$n >/dev/null || ret=1
+rndccmd 10.53.0.4 dumpdb | sed 's/^/ns4 /' | cat_i
+mv ns4/named_dump.db ns4/named_dump.db.test$n >/dev/null || ret=1
+grep "10.53.0.100" ns4/named_dump.db.test$n || ret=1
+# reload server with properly signed zone
+cp ns2/peer.peer-ns-spoof.db.next ns2/peer.peer-ns-spoof.db.signed
+nextpart ns2/named.run >/dev/null
+rndccmd 10.53.0.2 reload peer.peer-ns-spoof | sed 's/^/ns2 /' | cat_i
+wait_for_log 5 "zone peer.peer-ns-spoof/IN: loaded serial 2000042408" ns2/named.run || ret=1
+dig_with_opts +noauth test.target.peer-ns-spoof @10.53.0.4 txt >dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n >/dev/null || ret=1
+grep "flags: qr rd ra ad;" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking that 'example/DS' from the referral was used in previous validation ($n)"
 ret=0
 grep "query 'example/DS/IN' approved" ns1/named.run >/dev/null && ret=1

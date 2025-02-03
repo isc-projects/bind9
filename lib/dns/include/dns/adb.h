@@ -193,6 +193,7 @@ struct dns_adbfind {
  *	Only look for glue record for static stub.
  */
 #define DNS_ADBFIND_STATICSTUB 0x00001000
+#define DNS_ADBFIND_NOVALIDATE 0x00002000
 
 /*%
  * The answers to queries come back as a list of these.

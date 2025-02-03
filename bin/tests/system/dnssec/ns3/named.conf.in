@@ -423,6 +423,11 @@ zone "rsasha1-1024.example" {
 	file "rsasha1-1024.example.db";
 };
 
+zone "target.peer-ns-spoof" {
+	type primary;
+	file "target.peer-ns-spoof.db.signed";
+};
+
 dnssec-policy "siginterval1" {
 	keys {
 		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;

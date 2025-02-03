@@ -37,3 +37,5 @@ inprogress.		NS	ns10.inprogress.
 ns10.inprogress.	A	10.53.0.10
 too-many-iterations.	NS	ns2.too-many-iterations.
 ns2.too-many-iterations.	A	10.53.0.2
+peer-ns-spoof		NS	ns2.peer-ns-spoof.
+ns2.peer-ns-spoof.	A	10.53.0.2
