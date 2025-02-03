@@ -146,7 +146,10 @@ struct dns_rdataset {
 	 * This RRSIG RRset should be re-generated around this time.
 	 * Only valid if DNS_RDATASETATTR_RESIGN is set in attributes.
 	 */
-	isc_stdtime_t resign;
+	union {
+		isc_stdtime_t resign;
+		isc_stdtime_t expire;
+	};
 
 	/*%
 	 * Extra fields used by various rdataset implementations, that is, by
