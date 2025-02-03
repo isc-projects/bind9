@@ -845,13 +845,6 @@ system:gcc:focal:amd64:
     - job: gcc:focal:amd64
       artifacts: true
 
-unit:gcc:focal:amd64:
-  <<: *ubuntu_focal_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:focal:amd64
-      artifacts: true
-
 # Jobs for regular GCC builds on Ubuntu 22.04 Jammy Jellyfish (amd64)
 
 gcc:jammy:amd64:
