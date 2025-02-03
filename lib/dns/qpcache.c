@@ -954,15 +954,20 @@ setttl(dns_slabheader_t *header, dns_ttl_t newttl) {
 	}
 }
 
+static void
+mark_ancient(dns_slabheader_t *header) {
+	setttl(header, 0);
+	mark(header, DNS_SLABHEADERATTR_ANCIENT);
+	HEADERNODE(header)->dirty = 1;
+}
+
 /*
  * Caller must hold the node (write) lock.
  */
 static void
 expireheader(dns_slabheader_t *header, isc_rwlocktype_t *nlocktypep,
 	     isc_rwlocktype_t *tlocktypep, dns_expire_t reason DNS__DB_FLARG) {
-	setttl(header, 0);
-	mark(header, DNS_SLABHEADERATTR_ANCIENT);
-	HEADERNODE(header)->dirty = 1;
+	mark_ancient(header);
 
 	if (isc_refcount_current(&HEADERNODE(header)->erefs) == 0) {
 		qpcache_t *qpdb = (qpcache_t *)header->db;
@@ -1058,7 +1063,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 		 * (these records should not be cached anyway).
 		 */
 
-		if (KEEPSTALE(qpdb) && stale_ttl > now) {
+		if (!ZEROTTL(header) && KEEPSTALE(qpdb) && stale_ttl > now) {
 			stale = true;
 		} else {
 			/*
@@ -1073,6 +1078,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	rdataset->rdclass = qpdb->common.rdclass;
 	rdataset->type = DNS_TYPEPAIR_TYPE(header->type);
 	rdataset->covers = DNS_TYPEPAIR_COVERS(header->type);
+	rdataset->ttl = !ZEROTTL(header) ? header->ttl - now : 0;
 	rdataset->ttl = header->ttl - now;
 	rdataset->trust = header->trust;
 	rdataset->resign = 0;
@@ -1103,7 +1109,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
 	} else if (!ACTIVE(header, now)) {
 		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
-		rdataset->ttl = header->ttl;
+		rdataset->ttl = 0;
 	}
 
 	rdataset->count = atomic_fetch_add_relaxed(&header->count, 1);
@@ -1270,8 +1276,7 @@ check_stale_header(qpcnode_t *node, dns_slabheader_t *header,
 				}
 				dns_slabheader_destroy(&header);
 			} else {
-				mark(header, DNS_SLABHEADERATTR_ANCIENT);
-				HEADERNODE(header)->dirty = 1;
+				mark_ancient(header);
 				*header_prev = header;
 			}
 		} else {
@@ -2233,8 +2238,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				 * non-zero.  This is so because 'node' is an
 				 * argument to the function.
 				 */
-				mark(header, DNS_SLABHEADERATTR_ANCIENT);
-				HEADERNODE(header)->dirty = 1;
+				mark_ancient(header);
 			}
 		} else if (EXISTS(header) && !ANCIENT(header)) {
 			if (header->type == matchtype) {
@@ -2583,13 +2587,6 @@ qpdb_destroy(dns_db_t *arg) {
 	qpcache_t *qpdb = (qpcache_t *)arg;
 
 	qpcache_detach(&qpdb);
-}
-
-static void
-mark_ancient(dns_slabheader_t *header) {
-	setttl(header, 0);
-	mark(header, DNS_SLABHEADERATTR_ANCIENT);
-	HEADERNODE(header)->dirty = 1;
 }
 
 /*%
@@ -3162,7 +3159,6 @@ find_header:
 			newheader->next = topheader->next;
 			newheader->down = topheader;
 			topheader->next = newheader;
-			qpnode->dirty = 1;
 			mark_ancient(header);
 			if (sigheader != NULL) {
 				mark_ancient(sigheader);

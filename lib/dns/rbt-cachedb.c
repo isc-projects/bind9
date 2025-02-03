@@ -417,9 +417,7 @@ check_stale_header(dns_rbtnode_t *node, dns_slabheader_t *header,
 				}
 				dns_slabheader_destroy(&header);
 			} else {
-				dns__rbtdb_mark(header,
-						DNS_SLABHEADERATTR_ANCIENT);
-				RBTDB_HEADERNODE(header)->dirty = 1;
+				dns__rbtdb_mark_ancient(header);
 				*header_prev = header;
 			}
 		} else {
@@ -1401,9 +1399,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				 * non-zero.  This is so because 'node' is an
 				 * argument to the function.
 				 */
-				dns__rbtdb_mark(header,
-						DNS_SLABHEADERATTR_ANCIENT);
-				RBTDB_HEADERNODE(header)->dirty = 1;
+				dns__rbtdb_mark_ancient(header);
 			}
 		} else if (EXISTS(header) && !ANCIENT(header)) {
 			if (header->type == matchtype) {
@@ -1589,9 +1585,7 @@ void
 dns__cacherbt_expireheader(dns_slabheader_t *header,
 			   isc_rwlocktype_t *tlocktypep,
 			   dns_expire_t reason DNS__DB_FLARG) {
-	dns__rbtdb_setttl(header, 0);
-	dns__rbtdb_mark(header, DNS_SLABHEADERATTR_ANCIENT);
-	RBTDB_HEADERNODE(header)->dirty = 1;
+	dns__rbtdb_mark_ancient(header);
 
 	if (isc_refcount_current(&RBTDB_HEADERNODE(header)->references) == 0) {
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_write;
