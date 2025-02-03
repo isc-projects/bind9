@@ -4690,6 +4690,7 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 				}
 				free_rdataset(search->rbtdb, mctx, header);
 			} else {
+				set_ttl(search->rbtdb, header, 0);
 				mark_header_ancient(search->rbtdb, header);
 				*header_prev = header;
 			}
@@ -5744,6 +5745,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 			 * refcurrent(rbtnode) must be non-zero.  This is so
 			 * because 'node' is an argument to the function.
 			 */
+			set_ttl(rbtdb, header, 0);
 			mark_header_ancient(rbtdb, header);
 			if (log) {
 				isc_log_write(dns_lctx, category, module, level,
@@ -6035,6 +6037,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				 * non-zero.  This is so because 'node' is an
 				 * argument to the function.
 				 */
+				set_ttl(rbtdb, header, 0);
 				mark_header_ancient(rbtdb, header);
 			}
 		} else if (EXISTS(header) && !ANCIENT(header)) {
