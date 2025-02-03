@@ -20,9 +20,11 @@ STATIC_ASSERT(sizeof(struct __cds_wfcq_head) <= ISC_OS_CACHELINE_SIZE,
 
 typedef struct isc_queue {
 	struct __cds_wfcq_head head;
-	uint8_t		       __padding[ISC_OS_CACHELINE_SIZE -
-				 sizeof(struct __cds_wfcq_head)];
+	uint8_t		       __padding_head[ISC_OS_CACHELINE_SIZE -
+				      sizeof(struct __cds_wfcq_head)];
 	struct cds_wfcq_tail   tail;
+	uint8_t		       __padding_tail[ISC_OS_CACHELINE_SIZE -
+				      sizeof(struct __cds_wfcq_head)];
 } isc_queue_t;
 
 typedef struct cds_wfcq_node isc_queue_node_t;
