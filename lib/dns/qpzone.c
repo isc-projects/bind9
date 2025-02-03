@@ -265,7 +265,6 @@ typedef struct {
 	dns_slabheader_t *zonecut_header;
 	dns_slabheader_t *zonecut_sigheader;
 	dns_fixedname_t zonecut_name;
-	isc_stdtime_t now;
 } qpz_search_t;
 
 /*%
@@ -273,7 +272,6 @@ typedef struct {
  */
 typedef struct {
 	dns_db_t *db;
-	isc_stdtime_t now;
 	dns_qp_t *tree;
 	dns_qp_t *nsec;
 	dns_qp_t *nsec3;
@@ -972,7 +970,7 @@ unref:
 
 static void
 bindrdataset(qpzonedb_t *qpdb, qpznode_t *node, dns_slabheader_t *header,
-	     isc_stdtime_t now, dns_rdataset_t *rdataset DNS__DB_FLARG) {
+	     dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	if (rdataset == NULL) {
 		return;
 	}
@@ -985,7 +983,7 @@ bindrdataset(qpzonedb_t *qpdb, qpznode_t *node, dns_slabheader_t *header,
 	rdataset->rdclass = qpdb->common.rdclass;
 	rdataset->type = DNS_TYPEPAIR_TYPE(header->type);
 	rdataset->covers = DNS_TYPEPAIR_COVERS(header->type);
-	rdataset->ttl = header->ttl - now;
+	rdataset->ttl = header->ttl;
 	rdataset->trust = header->trust;
 
 	if (OPTOUT(header)) {
@@ -1622,9 +1620,9 @@ qpzone_findrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 		}
 	}
 	if (found != NULL) {
-		bindrdataset(qpdb, node, found, 0, rdataset DNS__DB_FLARG_PASS);
+		bindrdataset(qpdb, node, found, rdataset DNS__DB_FLARG_PASS);
 		if (foundsig != NULL) {
-			bindrdataset(qpdb, node, foundsig, 0,
+			bindrdataset(qpdb, node, foundsig,
 				     sigrdataset DNS__DB_FLARG_PASS);
 		}
 	}
@@ -1827,7 +1825,7 @@ static isc_result_t
 add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
     qpz_version_t *version, dns_slabheader_t *newheader, unsigned int options,
     bool loading, dns_rdataset_t *addedrdataset,
-    isc_stdtime_t now DNS__DB_FLARG) {
+    isc_stdtime_t now ISC_ATTR_UNUSED DNS__DB_FLARG) {
 	qpz_changed_t *changed = NULL;
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *prioheader = NULL;
@@ -2064,7 +2062,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 	}
 
 	if (addedrdataset != NULL) {
-		bindrdataset(qpdb, node, newheader, now,
+		bindrdataset(qpdb, node, newheader,
 			     addedrdataset DNS__DB_FLARG_PASS);
 	}
 
@@ -2181,7 +2179,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	newheader = (dns_slabheader_t *)region.base;
 	*newheader = (dns_slabheader_t){
 		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
-		.ttl = rdataset->ttl + loadctx->now,
+		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
 		.node = (dns_dbnode_t *)node,
 		.serial = 1,
@@ -2667,10 +2665,10 @@ qpzone_setup_delegation(qpz_search_t *search, dns_dbnode_t **nodep,
 		isc_rwlock_t *nlock = &search->qpdb->node_locks[node->locknum];
 		NODE_RDLOCK(nlock, &nlocktype);
 		bindrdataset(search->qpdb, node, search->zonecut_header,
-			     search->now, rdataset DNS__DB_FLARG_PASS);
+			     rdataset DNS__DB_FLARG_PASS);
 		if (sigrdataset != NULL && search->zonecut_sigheader != NULL) {
 			bindrdataset(search->qpdb, node,
-				     search->zonecut_sigheader, search->now,
+				     search->zonecut_sigheader,
 				     sigrdataset DNS__DB_FLARG_PASS);
 		}
 		NODE_UNLOCK(nlock, &nlocktype);
@@ -3155,12 +3153,12 @@ again:
 					*nodep = (dns_dbnode_t *)node;
 				}
 				bindrdataset(search->qpdb, node, found,
-					     search->now,
+
 					     rdataset DNS__DB_FLARG_PASS);
 				if (foundsig != NULL) {
 					bindrdataset(
 						search->qpdb, node, foundsig,
-						search->now,
+
 						sigrdataset DNS__DB_FLARG_PASS);
 				}
 			} else if (found == NULL && foundsig == NULL) {
@@ -3758,10 +3756,10 @@ found:
 			*nodep = (dns_dbnode_t *)node;
 		}
 		if (search.version->secure && !search.version->havensec3) {
-			bindrdataset(search.qpdb, node, nsecheader, 0,
+			bindrdataset(search.qpdb, node, nsecheader,
 				     rdataset DNS__DB_FLARG_PASS);
 			if (nsecsig != NULL) {
-				bindrdataset(search.qpdb, node, nsecsig, 0,
+				bindrdataset(search.qpdb, node, nsecsig,
 					     sigrdataset DNS__DB_FLARG_PASS);
 			}
 		}
@@ -3826,10 +3824,10 @@ found:
 	}
 
 	if (type != dns_rdatatype_any) {
-		bindrdataset(search.qpdb, node, found, 0,
+		bindrdataset(search.qpdb, node, found,
 			     rdataset DNS__DB_FLARG_PASS);
 		if (foundsig != NULL) {
-			bindrdataset(search.qpdb, node, foundsig, 0,
+			bindrdataset(search.qpdb, node, foundsig,
 				     sigrdataset DNS__DB_FLARG_PASS);
 		}
 	}
@@ -4186,8 +4184,7 @@ rdatasetiter_current(dns_rdatasetiter_t *iterator,
 
 	NODE_RDLOCK(nlock, &nlocktype);
 
-	bindrdataset(qpdb, node, header, qrditer->common.now,
-		     rdataset DNS__DB_FLARG_PASS);
+	bindrdataset(qpdb, node, header, rdataset DNS__DB_FLARG_PASS);
 
 	NODE_UNLOCK(nlock, &nlocktype);
 }
@@ -4941,14 +4938,14 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	}
 
 	if (result == ISC_R_SUCCESS && newrdataset != NULL) {
-		bindrdataset(qpdb, node, newheader, 0,
+		bindrdataset(qpdb, node, newheader,
 			     newrdataset DNS__DB_FLARG_PASS);
 	}
 
 	if (result == DNS_R_NXRRSET && newrdataset != NULL &&
 	    (options & DNS_DBSUB_WANTOLD) != 0)
 	{
-		bindrdataset(qpdb, node, header, 0,
+		bindrdataset(qpdb, node, header,
 			     newrdataset DNS__DB_FLARG_PASS);
 	}
 

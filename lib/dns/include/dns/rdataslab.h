@@ -70,9 +70,12 @@ struct dns_slabheader {
 	/*%
 	 * Locked by the owning node's lock.
 	 */
-	dns_trust_t    trust;
-	uint32_t       serial;
-	dns_ttl_t      ttl;
+	dns_trust_t trust;
+	uint32_t    serial;
+	union {
+		isc_stdtime_t expire;
+		dns_ttl_t     ttl;
+	};
 	dns_typepair_t type;
 
 	_Atomic(uint16_t) count;
