@@ -28,7 +28,7 @@
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/once.h>
+#include <isc/os.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
@@ -3939,17 +3939,15 @@ detachnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	nlock = &qpdb->buckets[node->locknum].lock;
 
 	/*
-	 * We can't destroy qpzonedb while holding a nodelock, so
-	 * we need to reference it before acquiring the lock
-	 * and release it afterward.
+	 * qpzone_destroy() uses call_rcu() API to destroy the node locks,
+	 * so it is safe to call it in the middle of NODE_LOCK.
 	 */
-	qpzonedb_ref(qpdb);
 
+	rcu_read_lock();
 	NODE_RDLOCK(nlock, &nlocktype);
 	qpznode_release(qpdb, node, 0, &nlocktype DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(nlock, &nlocktype);
-
-	qpzonedb_detach(&qpdb);
+	rcu_read_unlock();
 }
 
 static unsigned int
