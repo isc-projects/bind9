@@ -195,13 +195,8 @@ sub reply_handler {
 	}
 	$rcode = "NOERROR";
     } elsif ($qname eq "shortttl.cname.example") {
-	if ($qtype eq "A") {
-	    my $rr = new Net::DNS::RR($SHORTCNAME);
-	    push @ans, $rr;
-	} else {
-	    my $rr = new Net::DNS::RR($negSOA);
-	    push @auth, $rr;
-	}
+	my $rr = new Net::DNS::RR($SHORTCNAME);
+	push @ans, $rr;
 	$rcode = "NOERROR";
     } elsif ($qname eq "longttl.target.example") {
 	if ($slow_response) {
