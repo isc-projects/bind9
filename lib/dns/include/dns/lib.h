@@ -13,18 +13,28 @@
 
 #pragma once
 
-/*! \file */
+#include <stdlib.h>
 
-#include <pthread.h>
+#include <isc/lib.h>
+#include <isc/util.h>
 
-#include <isc/result.h>
+void
+dns__lib_initialize(void);
+void
+dns__lib_shutdown(void);
 
-typedef pthread_once_t isc_once_t;
+void
+dns_lib_initialize(void) __attribute__((__constructor__));
+void
+dns_lib_shutdown(void) __attribute__((__destructor__));
 
-#define ISC_ONCE_INITIALIZER PTHREAD_ONCE_INIT
-
-#define isc_once_do(op, f)                                  \
-	{                                                   \
-		int _ret = pthread_once((op), (f));         \
-		PTHREADS_RUNTIME_CHECK(pthread_once, _ret); \
-	}
+void
+dns_lib_initialize(void) {
+	isc__lib_initialize();
+	dns__lib_initialize();
+}
+void
+dns_lib_shutdown(void) {
+	dns__lib_shutdown();
+	isc__lib_shutdown();
+}

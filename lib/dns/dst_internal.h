@@ -224,4 +224,12 @@ dst_key_close(char *tmpname, FILE *fp, char *filename);
 isc_result_t
 dst_key_cleanup(char *tmpname, FILE *fp);
 
+/*%
+ * Library constructor and destructor.
+ */
+void
+dst__lib_initialize(void);
+void
+dst__lib_shutdown(void);
+
 /*! \file */

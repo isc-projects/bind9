@@ -26,11 +26,13 @@
 #include <maxminddb.h>
 
 #include <isc/dir.h>
+#include <isc/lib.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/geoip.h>
+#include <dns/lib.h>
 
 #include "geoip2.c"
 

@@ -11,13 +11,10 @@
  * information regarding copyright ownership.
  */
 
-#include <string.h>
-
 #include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/once.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/types.h>
@@ -28,6 +25,8 @@
 #include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>
+
+#include "dyndb_p.h"
 
 #define CHECK(op)                            \
 	do {                                 \
@@ -57,12 +56,16 @@ static LIST(dyndb_implementation_t) dyndb_implementations;
 
 /* Locks dyndb_implementations. */
 static isc_mutex_t dyndb_lock;
-static isc_once_t once = ISC_ONCE_INIT;
 
-static void
-dyndb_initialize(void) {
+void
+dns__dyndb_initialize(void) {
 	isc_mutex_init(&dyndb_lock);
 	INIT_LIST(dyndb_implementations);
+}
+
+void
+dns__dyndb_shutdown(void) {
+	isc_mutex_destroy(&dyndb_lock);
 }
 
 static dyndb_implementation_t *
@@ -211,8 +214,6 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
 	REQUIRE(DNS_DYNDBCTX_VALID(dctx));
 	REQUIRE(name != NULL);
 
-	isc_once_do(&once, dyndb_initialize);
-
 	LOCK(&dyndb_lock);
 
 	/* duplicate instance names are not allowed */
@@ -239,11 +240,9 @@ cleanup:
 }
 
 void
-dns_dyndb_cleanup(bool exiting) {
+dns_dyndb_cleanup(void) {
 	dyndb_implementation_t *elem;
 	dyndb_implementation_t *prev;
-
-	isc_once_do(&once, dyndb_initialize);
 
 	LOCK(&dyndb_lock);
 	elem = TAIL(dyndb_implementations);
@@ -259,10 +258,6 @@ dns_dyndb_cleanup(bool exiting) {
 		elem = prev;
 	}
 	UNLOCK(&dyndb_lock);
-
-	if (exiting) {
-		isc_mutex_destroy(&dyndb_lock);
-	}
 }
 
 void

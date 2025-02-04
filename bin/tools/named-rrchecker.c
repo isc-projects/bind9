@@ -19,12 +19,14 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/lex.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>

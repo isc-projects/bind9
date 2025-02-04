@@ -24,6 +24,7 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/list.h>
 #include <isc/region.h>
 #include <isc/result.h>
@@ -35,6 +36,7 @@
 #include <dns/diff.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>

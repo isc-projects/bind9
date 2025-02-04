@@ -33,10 +33,13 @@
 #include <isc/file.h>
 #include <isc/fips.h>
 #include <isc/hex.h>
+#include <isc/lib.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#include <dns/lib.h>
 
 #include <dst/dst.h>
 

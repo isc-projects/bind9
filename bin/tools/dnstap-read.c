@@ -40,6 +40,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/hex.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -47,6 +48,7 @@
 
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>

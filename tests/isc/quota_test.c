@@ -25,6 +25,7 @@
 #include <cmocka.h>
 
 #include <isc/job.h>
+#include <isc/lib.h>
 #include <isc/quota.h>
 #include <isc/result.h>
 #include <isc/thread.h>

@@ -20,6 +20,7 @@
 #include <isc/commandline.h>
 #include <isc/fips.h>
 #include <isc/lex.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 
 #include <dns/callbacks.h>
@@ -27,6 +28,7 @@
 #include <dns/fixedname.h>
 #include <dns/keymgr.h>
 #include <dns/keyvalues.h>
+#include <dns/lib.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>

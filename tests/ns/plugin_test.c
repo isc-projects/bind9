@@ -26,10 +26,13 @@
 
 #include <isc/attributes.h>
 #include <isc/dir.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>
+
+#include <dns/lib.h>
 
 #include <ns/hooks.h>
 

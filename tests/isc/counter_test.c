@@ -23,6 +23,7 @@
 #include <cmocka.h>
 
 #include <isc/counter.h>
+#include <isc/lib.h>
 #include <isc/result.h>
 #include <isc/util.h>
 

@@ -26,6 +26,7 @@
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/types.h>

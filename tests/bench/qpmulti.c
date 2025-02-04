@@ -19,6 +19,7 @@
 
 #include <isc/async.h>
 #include <isc/barrier.h>
+#include <isc/lib.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/loop.h>
@@ -37,6 +38,7 @@
 #include <isc/util.h>
 #include <isc/uv.h>
 
+#include <dns/lib.h>
 #include <dns/qp.h>
 #include <dns/types.h>
 

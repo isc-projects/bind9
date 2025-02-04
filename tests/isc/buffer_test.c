@@ -27,6 +27,7 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/types.h>

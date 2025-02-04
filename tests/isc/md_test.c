@@ -27,6 +27,7 @@
 #include <isc/buffer.h>
 #include <isc/fips.h>
 #include <isc/hex.h>
+#include <isc/lib.h>
 #include <isc/md.h>
 #include <isc/region.h>
 #include <isc/result.h>

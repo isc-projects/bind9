@@ -25,6 +25,7 @@
 
 #include <isc/atomic.h>
 #include <isc/file.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/os.h>

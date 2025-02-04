@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 
+#include <isc/lib.h>
 #include <isc/net.h>
 
 #define UNUSED(x) (void)(x)

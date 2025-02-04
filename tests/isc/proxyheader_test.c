@@ -21,6 +21,7 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/proxy2.h>

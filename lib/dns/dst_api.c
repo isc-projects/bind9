@@ -190,12 +190,7 @@ addsuffix(char *filename, int len, const char *dirname, const char *ofilename,
 static isc_mem_t *dst__mctx = NULL;
 
 void
-dst__lib_init(void) ISC_CONSTRUCTOR;
-void
-dst__lib_destroy(void) ISC_DESTRUCTOR;
-
-void
-dst__lib_init(void) {
+dst__lib_initialize(void) {
 	isc_mem_create(&dst__mctx);
 
 	dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]);
@@ -224,7 +219,7 @@ dst__lib_init(void) {
 }
 
 void
-dst__lib_destroy(void) {
+dst__lib_shutdown(void) {
 	for (size_t i = 0; i < DST_MAX_ALGS; i++) {
 		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL) {
 			dst_t_func[i]->cleanup();

@@ -21,6 +21,7 @@
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/region.h>
@@ -31,6 +32,7 @@
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/secalg.h>

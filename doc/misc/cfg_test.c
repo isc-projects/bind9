@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/string.h>

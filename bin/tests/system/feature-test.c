@@ -24,12 +24,14 @@
 #endif
 
 #include <isc/fips.h>
+#include <isc/lib.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/util.h>
 
 #include <dns/edns.h>
+#include <dns/lib.h>
 
 #include <dst/dst.h>
 

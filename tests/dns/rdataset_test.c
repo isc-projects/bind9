@@ -23,8 +23,10 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/util.h>
 
+#include <dns/lib.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 

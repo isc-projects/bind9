@@ -25,6 +25,7 @@
 #include <cmocka.h>
 
 #include <isc/heap.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/util.h>
 

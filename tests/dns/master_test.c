@@ -25,12 +25,14 @@
 #include <cmocka.h>
 
 #include <isc/dir.h>
+#include <isc/lib.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/cache.h>
 #include <dns/callbacks.h>
 #include <dns/db.h>
+#include <dns/lib.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/name.h>

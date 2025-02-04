@@ -25,6 +25,8 @@
 #include <dns/acl.h>
 #include <dns/iptable.h>
 
+#include "acl_p.h"
+
 #define DNS_ACLENV_MAGIC ISC_MAGIC('a', 'c', 'n', 'v')
 #define VALID_ACLENV(a)	 ISC_MAGIC_VALID(a, DNS_ACLENV_MAGIC)
 
@@ -507,13 +509,17 @@ ISC_REFCOUNT_TRACE_IMPL(dns_acl, dns__acl_destroy);
 ISC_REFCOUNT_IMPL(dns_acl, dns__acl_destroy);
 #endif
 
-static isc_once_t insecure_prefix_once = ISC_ONCE_INIT;
 static isc_mutex_t insecure_prefix_lock;
 static bool insecure_prefix_found;
 
-static void
-initialize_action(void) {
+void
+dns__acl_initialize(void) {
 	isc_mutex_init(&insecure_prefix_lock);
+}
+
+void
+dns__acl_shutdown(void) {
+	isc_mutex_destroy(&insecure_prefix_lock);
 }
 
 /*
@@ -565,8 +571,6 @@ bool
 dns_acl_isinsecure(const dns_acl_t *a) {
 	unsigned int i;
 	bool insecure;
-
-	isc_once_do(&insecure_prefix_once, initialize_action);
 
 	/*
 	 * Walk radix tree to find out if there are any non-negated,

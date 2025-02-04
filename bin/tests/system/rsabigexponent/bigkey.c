@@ -15,11 +15,14 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#include <dns/lib.h>
 
 #define DST_KEY_INTERNAL
 

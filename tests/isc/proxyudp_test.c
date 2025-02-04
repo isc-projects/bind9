@@ -31,6 +31,7 @@
 
 #include <isc/async.h>
 #include <isc/job.h>
+#include <isc/lib.h>
 #include <isc/nonce.h>
 #include <isc/os.h>
 #include <isc/quota.h>

@@ -17,8 +17,11 @@
 #include <string.h>
 
 #include <isc/ascii.h>
+#include <isc/lib.h>
 #include <isc/random.h>
 #include <isc/time.h>
+
+#include <dns/lib.h>
 
 #define SIZE (1024 * 1024)
 

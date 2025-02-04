@@ -23,10 +23,12 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/quota.h>
 #include <isc/util.h>
 
 #include <dns/badcache.h>
+#include <dns/lib.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 

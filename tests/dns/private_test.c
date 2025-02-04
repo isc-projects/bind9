@@ -24,8 +24,10 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/util.h>
 
+#include <dns/lib.h>
 #include <dns/nsec3.h>
 #include <dns/private.h>
 #include <dns/rdataclass.h>

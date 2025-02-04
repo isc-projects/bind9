@@ -23,6 +23,8 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
+
 #ifdef HAVE_PTHREAD_SPIN_INIT
 #define HAD_PTHREAD_SPIN_INIT 1
 #undef HAVE_PTHREAD_SPIN_INIT

@@ -23,6 +23,7 @@
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/iterated_hash.h>
+#include <isc/lib.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/tls.h>
@@ -30,6 +31,7 @@
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/nsec3.h>
 #include <dns/types.h>

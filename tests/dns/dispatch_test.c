@@ -25,6 +25,7 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/managers.h>
 #include <isc/refcount.h>
 #include <isc/tls.h>
@@ -32,6 +33,7 @@
 #include <isc/uv.h>
 
 #include <dns/dispatch.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/view.h>
 

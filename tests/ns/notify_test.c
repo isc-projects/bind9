@@ -24,10 +24,12 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
+#include <dns/lib.h>
 #include <dns/rcode.h>
 #include <dns/view.h>
 

@@ -19,6 +19,7 @@
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/os.h>
+#include <isc/refcount.h>
 #include <isc/tls.h>
 #include <isc/urcu.h>
 #include <isc/util.h>
@@ -29,21 +30,24 @@
 #include "mutex_p.h"
 #include "os_p.h"
 
-#ifndef ISC_CONSTRUCTOR
-#error Either __attribute__((constructor|destructor))__ or DllMain support needed to compile BIND 9.
-#endif
-
 /***
  *** Functions
  ***/
 
-void
-isc__initialize(void) ISC_CONSTRUCTOR;
-void
-isc__shutdown(void) ISC_DESTRUCTOR;
+static isc_refcount_t isc__lib_references = 0;
 
 void
-isc__initialize(void) {
+isc__lib_initialize(void);
+void
+isc__lib_shutdown(void);
+
+void
+isc__lib_initialize(void) {
+	if (isc_refcount_increment0(&isc__lib_references) > 0) {
+		return;
+	}
+
+	rcu_register_thread();
 	isc__os_initialize();
 	isc__mutex_initialize();
 	isc__mem_initialize();
@@ -54,11 +58,14 @@ isc__initialize(void) {
 	isc__hash_initialize();
 	isc__iterated_hash_initialize();
 	(void)isc_os_ncpus();
-	rcu_register_thread();
 }
 
 void
-isc__shutdown(void) {
+isc__lib_shutdown(void) {
+	if (isc_refcount_decrement(&isc__lib_references) > 1) {
+		return;
+	}
+
 	isc__iterated_hash_shutdown();
 	isc__xml_shutdown();
 	isc__uv_shutdown();

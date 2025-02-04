@@ -21,6 +21,7 @@
 
 #include <isc/attributes.h>
 #include <isc/commandline.h>
+#include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/string.h>
@@ -28,6 +29,7 @@
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>

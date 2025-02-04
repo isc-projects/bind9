@@ -13,18 +13,24 @@
 
 #pragma once
 
-/*! \file */
+#include <isc/util.h>
 
-#include <pthread.h>
+void
+isc__lib_initialize(void);
+void
+isc__lib_shutdown(void);
 
-#include <isc/result.h>
+void
+isc_lib_initialize(void) __attribute__((__constructor__));
+void
+isc_lib_shutdown(void) __attribute__((__destructor__));
 
-typedef pthread_once_t isc_once_t;
+void
+isc_lib_initialize(void) {
+	isc__lib_initialize();
+}
 
-#define ISC_ONCE_INITIALIZER PTHREAD_ONCE_INIT
-
-#define isc_once_do(op, f)                                  \
-	{                                                   \
-		int _ret = pthread_once((op), (f));         \
-		PTHREADS_RUNTIME_CHECK(pthread_once, _ret); \
-	}
+void
+isc_lib_shutdown(void) {
+	isc__lib_shutdown();
+}

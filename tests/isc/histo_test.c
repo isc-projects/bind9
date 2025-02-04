@@ -26,6 +26,7 @@
 #include <cmocka.h>
 
 #include <isc/histo.h>
+#include <isc/lib.h>
 #include <isc/result.h>
 #include <isc/time.h>
 

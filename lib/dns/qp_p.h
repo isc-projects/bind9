@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <dns/qp.h>
+
 /***********************************************************************
  *
  *  interior node basics
@@ -925,3 +927,8 @@ extern uint16_t dns_qp_bits_for_byte[];
 extern uint8_t dns_qp_byte_for_bit[];
 
 /**********************************************************************/
+
+void
+dns__qp_initialize(void);
+void
+dns__qp_shutdown(void);

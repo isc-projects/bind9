@@ -24,9 +24,11 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/view.h>
 #include <dns/zone.h>

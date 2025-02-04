@@ -30,6 +30,7 @@
 #include <isc/getaddresses.h>
 #include <isc/hash.h>
 #include <isc/lex.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/managers.h>
@@ -52,6 +53,7 @@
 #include <dns/dispatch.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>

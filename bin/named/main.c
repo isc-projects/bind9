@@ -33,6 +33,7 @@
 #include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/httpd.h>
+#include <isc/lib.h>
 #include <isc/managers.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
@@ -47,6 +48,7 @@
 
 #include <dns/dispatch.h>
 #include <dns/dyndb.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/resolver.h>
 #include <dns/view.h>

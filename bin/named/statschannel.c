@@ -97,7 +97,7 @@ typedef struct stats_dumparg {
 	isc_result_t result;
 } stats_dumparg_t;
 
-static isc_once_t once = ISC_ONCE_INIT;
+static isc_once_t once = ISC_ONCE_INITIALIZER;
 
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 #define EXTENDED_STATS

@@ -15,16 +15,7 @@
 
 /*! \file */
 
-#include <pthread.h>
-
-#include <isc/result.h>
-
-typedef pthread_once_t isc_once_t;
-
-#define ISC_ONCE_INITIALIZER PTHREAD_ONCE_INIT
-
-#define isc_once_do(op, f)                                  \
-	{                                                   \
-		int _ret = pthread_once((op), (f));         \
-		PTHREADS_RUNTIME_CHECK(pthread_once, _ret); \
-	}
+void
+dns__acl_initialize(void);
+void
+dns__acl_shutdown(void);
