@@ -527,10 +527,11 @@ new_qpznode(qpzonedb_t *qpdb, const dns_name_t *name) {
 	*newdata = (qpznode_t){
 		.name = DNS_NAME_INITEMPTY,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.locknum = isc_random_uniform(qpdb->buckets_count),
 	};
-	newdata->locknum = dns_name_hash(name) % qpdb->buckets_count;
-	dns_name_dupwithoffsets(name, qpdb->common.mctx, &newdata->name);
+
 	isc_mem_attach(qpdb->common.mctx, &newdata->mctx);
+	dns_name_dupwithoffsets(name, qpdb->common.mctx, &newdata->name);
 
 #if DNS_DB_NODETRACE
 	fprintf(stderr, "new_qpznode:%s:%s:%d:%p->references = 1\n", __func__,
