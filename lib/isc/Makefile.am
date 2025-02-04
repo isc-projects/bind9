@@ -194,6 +194,7 @@ libisc_la_SOURCES =		\
 	symtab.c		\
 	syslog.c		\
 	thread.c		\
+	thread_p.h		\
 	tid.c			\
 	time.c			\
 	timer.c			\
