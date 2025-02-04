@@ -11603,7 +11603,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
-	char onbuf[ISC_NETADDR_FORMATSIZE];
+	char sabuf[ISC_SOCKADDR_FORMATSIZE];
 	char ecsbuf[NS_CLIENT_ECS_FORMATSIZE] = { 0 };
 	char flagsbuf[NS_CLIENT_FLAGS_FORMATSIZE] = { 0 };
 	dns_rdataset_t *rdataset;
@@ -11618,7 +11618,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
 	dns_rdataclass_format(rdataset->rdclass, classbuf, sizeof(classbuf));
 	dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
-	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
+	isc_sockaddr_format(&client->destsockaddr, sabuf, sizeof(sabuf));
 
 	if (HAVEECS(client)) {
 		ns_client_log_ecs(client, ecsbuf, sizeof(ecsbuf));
@@ -11628,7 +11628,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY, level,
 		      "query: %s %s %s %s (%s)%s", namebuf, classbuf, typebuf,
-		      flagsbuf, onbuf, ecsbuf);
+		      flagsbuf, sabuf, ecsbuf);
 }
 
 static void
