@@ -28,7 +28,7 @@
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/once.h>
+#include <isc/os.h>
 #include <isc/queue.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
