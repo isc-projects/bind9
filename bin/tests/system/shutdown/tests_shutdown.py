@@ -170,7 +170,7 @@ def test_named_shutdown(kill_method):
     cfg_dir = "resolver"
 
     named_cmdline = isctest.run.get_named_cmdline(cfg_dir)
-    instance = isctest.run.get_custom_named_instance("ns3")
+    instance = isctest.instance.NamedInstance("resolver", num=3)
 
     with open(os.path.join(cfg_dir, "named.run"), "ab") as named_log:
         with subprocess.Popen(

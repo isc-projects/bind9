@@ -10,9 +10,10 @@
 # information regarding copyright ownership.
 
 import os
+from pathlib import Path
 import subprocess
 import time
-from typing import Optional
+from typing import List, Optional
 
 import isctest.log
 from isctest.compat import dns_rcode
@@ -65,6 +66,51 @@ def cmd(
         return exc
 
 
+def _run_script(
+    interpreter: str,
+    script: str,
+    args: Optional[List[str]] = None,
+):
+    if args is None:
+        args = []
+    path = Path(script)
+    script = str(path)
+    cwd = os.getcwd()
+    if not path.exists():
+        raise FileNotFoundError(f"script {script} not found in {cwd}")
+    isctest.log.debug("running script: %s %s %s", interpreter, script, " ".join(args))
+    isctest.log.debug("  workdir: %s", cwd)
+    returncode = 1
+
+    command = [interpreter, script] + args
+    with subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        bufsize=1,
+        universal_newlines=True,
+        errors="backslashreplace",
+    ) as proc:
+        if proc.stdout:
+            for line in proc.stdout:
+                isctest.log.info("    %s", line.rstrip("\n"))
+        proc.communicate()
+        returncode = proc.returncode
+        if returncode:
+            raise subprocess.CalledProcessError(returncode, command)
+        isctest.log.debug("  exited with %d", returncode)
+
+
+def shell(script: str, args: Optional[List[str]] = None) -> None:
+    """Run a given script with system's shell interpreter."""
+    _run_script(os.environ["SHELL"], script, args)
+
+
+def perl(script: str, args: Optional[List[str]] = None) -> None:
+    """Run a given script with system's perl interpreter."""
+    _run_script(os.environ["PERL"], script, args)
+
+
 def retry_with_timeout(func, timeout, delay=1, msg=None):
     start_time = time.time()
     while time.time() < start_time + timeout:
@@ -89,18 +135,6 @@ def get_named_cmdline(cfg_dir, cfg_file="named.conf"):
     named_cmdline = [named, "-c", cfg_file, "-d", "99", "-g"]
 
     return named_cmdline
-
-
-def get_custom_named_instance(assumed_ns):
-    # This test launches and monitors a named instance itself rather than using
-    # bin/tests/system/start.pl, so manually defining a NamedInstance here is
-    # necessary for sending RNDC commands to that instance. If this "custom"
-    # instance listens on 10.53.0.3, use "ns3" as the identifier passed to
-    # the NamedInstance constructor.
-    named_ports = isctest.instance.NamedPorts.from_env()
-    instance = isctest.instance.NamedInstance(assumed_ns, named_ports)
-
-    return instance
 
 
 def assert_custom_named_is_alive(named_proc, resolver_ip):

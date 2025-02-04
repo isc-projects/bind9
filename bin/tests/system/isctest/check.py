@@ -102,6 +102,10 @@ def is_executable(cmd: str, errmsg: str) -> None:
     assert executable is not None, errmsg
 
 
+def notauth(message: dns.message.Message) -> None:
+    rcode(message, dns.rcode.NOTAUTH)
+
+
 def nxdomain(message: dns.message.Message) -> None:
     rcode(message, dns.rcode.NXDOMAIN)
 
