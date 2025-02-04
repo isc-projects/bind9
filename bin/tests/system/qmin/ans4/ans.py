@@ -98,17 +98,16 @@ def create_response(msg):
         ip6req = True
     elif endswith(lqname, "b.stale."):
         if lqname == "a.b.stale.":
+            r.flags |= dns.flags.AA
             if rrtype == TXT:
                 # Direct query.
                 r.answer.append(dns.rrset.from_text(lqname, 1, IN, TXT, "hooray"))
-                r.flags |= dns.flags.AA
             elif rrtype == NS:
                 # NS a.b.
                 r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.a.b.stale."))
                 r.additional.append(
                     dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3")
                 )
-                r.flags |= dns.flags.AA
             elif rrtype == SOA:
                 # SOA a.b.
                 r.answer.append(
@@ -116,7 +115,19 @@ def create_response(msg):
                         lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"
                     )
                 )
-                r.flags |= dns.flags.AA
+            else:
+                # NODATA.
+                r.authority.append(
+                    dns.rrset.from_text(
+                        lqname, 1, IN, SOA, "a.b.stale. hostmaster.a.b.stale. 1 2 3 4 5"
+                    )
+                )
+        elif lqname == "ns.a.b.stale.":
+            r.flags |= dns.flags.AA
+            if rrtype == A:
+                r.answer.append(
+                    dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.3")
+                )
             else:
                 # NODATA.
                 r.authority.append(
@@ -125,13 +136,13 @@ def create_response(msg):
                     )
                 )
         elif lqname == "b.stale.":
+            r.flags |= dns.flags.AA
             if rrtype == NS:
                 # NS b.
                 r.answer.append(dns.rrset.from_text(lqname, 1, IN, NS, "ns.b.stale."))
                 r.additional.append(
                     dns.rrset.from_text("ns.b.stale.", 1, IN, A, "10.53.0.4")
                 )
-                r.flags |= dns.flags.AA
             elif rrtype == SOA:
                 # SOA b.
                 r.answer.append(
@@ -139,7 +150,20 @@ def create_response(msg):
                         lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"
                     )
                 )
-                r.flags |= dns.flags.AA
+            else:
+                # NODATA.
+                r.authority.append(
+                    dns.rrset.from_text(
+                        lqname, 1, IN, SOA, "b.stale. hostmaster.b.stale. 1 2 3 4 5"
+                    )
+                )
+        elif lqname == "ns.b.stale.":
+            r.flags |= dns.flags.AA
+            if rrtype == A:
+                # SOA a.b.
+                r.answer.append(
+                    dns.rrset.from_text("ns.a.b.stale.", 1, IN, A, "10.53.0.4")
+                )
             else:
                 # NODATA.
                 r.authority.append(
