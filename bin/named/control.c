@@ -229,6 +229,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		   command_compare(command, NAMED_COMMAND_SIGN))
 	{
 		result = named_server_rekey(named_g_server, lex, text);
+	} else if (command_compare(command, NAMED_COMMAND_MEMPROF)) {
+		result = named_server_togglememprof(lex);
 	} else if (command_compare(command, NAMED_COMMAND_MKEYS)) {
 		result = named_server_mkeys(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_NOTIFY)) {

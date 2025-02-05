@@ -143,6 +143,10 @@ command is one of the following:\n\
 		Display RFC 5011 managed keys information\n\
   managed-keys sync [class [view]]\n\
 		Write RFC 5011 managed keys to disk\n\
+  memprof [ on | off | dump ]\n\
+		Enable / disable memory profiling or dump the profile.\n\
+		Requires named to built with jemalloc and run with the relevant\n\
+		MALLOC_CONF environment variables.\n\
   modzone zone [class [view]] { zone-options }\n\
 		Modify a zone's configuration.\n\
 		Requires allow-new-zones option.\n\

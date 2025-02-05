@@ -142,6 +142,15 @@
 #include <named/smf_globals.h>
 #endif /* ifdef HAVE_LIBSCF */
 
+/* On DragonFly BSD the header does not provide jemalloc API */
+#if defined(HAVE_MALLOC_NP_H) && !defined(__DragonFly__)
+#include <malloc_np.h>
+#define JEMALLOC_API_SUPPORTED 1
+#elif defined(HAVE_JEMALLOC)
+#include <jemalloc/jemalloc.h>
+#define JEMALLOC_API_SUPPORTED 1
+#endif
+
 #ifdef HAVE_LMDB
 #include <lmdb.h>
 #define configure_newzones configure_newzones_db
@@ -359,6 +368,22 @@ typedef struct {
 	isc_buffer_t **text;
 	isc_result_t result;
 } ns_dzarg_t;
+
+typedef enum {
+	MEMPROF_UNSUPPORTED = 0x00,
+	MEMPROF_INACTIVE = 0x01,
+	MEMPROF_FAILING = 0x02,
+	MEMPROF_OFF = 0x03,
+	MEMPROF_ON = 0x04,
+} memprof_status;
+
+static const char *memprof_status_text[] = {
+	[MEMPROF_UNSUPPORTED] = "UNSUPPORTED",
+	[MEMPROF_INACTIVE] = "INACTIVE",
+	[MEMPROF_FAILING] = "FAILING",
+	[MEMPROF_OFF] = "OFF",
+	[MEMPROF_ON] = "ON",
+};
 
 /*
  * These zones should not leak onto the Internet.
@@ -10715,6 +10740,39 @@ named_server_reloadwanted(void *arg, int signum) {
 	isc_async_run(named_g_mainloop, named_server_reload, server);
 }
 
+#ifdef JEMALLOC_API_SUPPORTED
+static isc_result_t
+memprof_toggle(bool active) {
+	if (mallctl("prof.active", NULL, NULL, &active, sizeof(active)) != 0) {
+		return ISC_R_FAILURE;
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+memprof_dump(void) {
+	if (mallctl("prof.dump", NULL, NULL, NULL, 0) != 0) {
+		return ISC_R_FAILURE;
+	}
+
+	return ISC_R_SUCCESS;
+}
+#else
+static isc_result_t
+memprof_toggle(bool active) {
+	UNUSED(active);
+
+	return ISC_R_NOTIMPLEMENTED;
+}
+
+static isc_result_t
+memprof_dump(void) {
+	return ISC_R_NOTIMPLEMENTED;
+}
+
+#endif /* JEMALLOC_API_SUPPORTED */
+
 void
 named_server_scan_interfaces(named_server_t *server) {
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -12596,6 +12654,10 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		 ns_server_getoption(server->sctx, NS_SERVER_LOGRESPONSES)
 			 ? "ON"
 			 : "OFF");
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "memory profiling is %s\n",
+		 named_server_getmemprof());
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "recursive clients: %u/%u/%u\n",
@@ -16821,3 +16883,114 @@ cleanup:
 
 	return result;
 }
+
+isc_result_t
+named_server_togglememprof(isc_lex_t *lex) {
+	isc_result_t result = ISC_R_FAILURE;
+	bool active;
+	char *ptr;
+
+	/* Skip the command name. */
+	ptr = next_token(lex, NULL);
+	if (ptr == NULL) {
+		return ISC_R_UNEXPECTEDEND;
+	}
+
+	ptr = next_token(lex, NULL);
+	if (ptr == NULL) {
+		return ISC_R_UNEXPECTEDEND;
+	} else if (!strcasecmp(ptr, "dump")) {
+		result = memprof_dump();
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "failed to dump memory profile");
+
+		} else {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "memory profile dumped");
+		}
+
+		goto done;
+	} else if (!strcasecmp(ptr, "on") || !strcasecmp(ptr, "yes") ||
+		   !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true"))
+	{
+		active = true;
+	} else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
+		   !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false"))
+	{
+		active = false;
+	} else {
+		return DNS_R_SYNTAX;
+	}
+
+	result = memprof_toggle(active);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "failed to toggle memory profiling");
+	} else {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "memory profiling %s",
+			      active ? "enabled" : "disabled");
+	}
+
+done:
+	return result;
+}
+
+#ifdef JEMALLOC_API_SUPPORTED
+const char *
+named_server_getmemprof(void) {
+	memprof_status status = MEMPROF_ON;
+	bool is_enabled;
+	size_t len = sizeof(is_enabled);
+
+	if (mallctl("config.prof", &is_enabled, &len, NULL, 0) != 0) {
+		status = MEMPROF_FAILING;
+		goto done;
+	}
+
+	INSIST(len == sizeof(is_enabled));
+
+	if (!is_enabled) {
+		status = MEMPROF_UNSUPPORTED;
+		goto done;
+	}
+
+	if (mallctl("opt.prof", &is_enabled, &len, NULL, 0) != 0) {
+		status = MEMPROF_FAILING;
+		goto done;
+	}
+
+	INSIST(len == sizeof(is_enabled));
+
+	if (!is_enabled) {
+		status = MEMPROF_INACTIVE;
+		goto done;
+	}
+
+	len = sizeof(is_enabled);
+	if (mallctl("prof.active", &is_enabled, &len, NULL, 0) != 0) {
+		status = MEMPROF_FAILING;
+		goto done;
+	}
+
+	INSIST(len == sizeof(is_enabled));
+
+	if (!is_enabled) {
+		status = MEMPROF_OFF;
+	}
+
+done:
+	return memprof_status_text[status];
+}
+
+#else  /* JEMALLOC_API_SUPPORTED */
+const char *
+named_server_getmemprof(void) {
+	return memprof_status_text[MEMPROF_UNSUPPORTED];
+}
+#endif /* JEMALLOC_API_SUPPORTED */
