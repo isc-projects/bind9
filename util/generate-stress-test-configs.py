@@ -22,8 +22,6 @@ with open(".gitlab-ci.yml", encoding="utf-8") as gitlab_ci_yml:
 
 # Mandatory environment variables
 ci_pipeline_source = os.environ["CI_PIPELINE_SOURCE"]
-install_path = os.environ["INSTALL_PATH"]
-project_directory = os.environ["CI_PROJECT_DIR"]
 
 # Optional environment variables
 all_bind_stress_tests = os.getenv("ALL_BIND_STRESS_TESTS")
@@ -61,6 +59,18 @@ else:
     modes = ALL_MODES
     protocols = ALL_PROTOCOLS
     platforms = ALL_PLATFORMS
+
+# The binaries built during each "stress" test job should be included in its
+# artifacts archive.  However, the value of the INSTALL_PATH variable set for
+# the job running this script depends on the value of the CI_PROJECT_DIR
+# variable, which varies across runners (it is based on the specific runner's
+# $build_dir variable).  Therefore, the value of the INSTALL_PATH variable is
+# not taken from the environment here, when the child pipeline job definitions
+# are generated, but rather evaluated by the runners executing the "stress"
+# test jobs in the child pipeline.  This is achieved by using the "raw" form of
+# the variable (as found in .gitlab-ci.yml, e.g. "$CI_PROJECT_DIR/.local")
+# here, so that it only gets expanded by Bash in the child pipeline.
+install_path = anchors["variables"]["INSTALL_PATH"]
 
 jobs = {}
 
@@ -113,7 +123,7 @@ for mode, protocol, platform in itertools.product(modes, protocols, platforms):
             "cd bind9-qa/stress",
             f'export LD_LIBRARY_PATH="{install_path}/usr/local/lib"',
             f'export BIND_INSTALL_PATH="{install_path}/usr/local"',
-            f'export WORKSPACE="{project_directory}"',
+            'export WORKSPACE="${CI_PROJECT_DIR}"',
             "bash stress.sh",
         ],
         "rules": [{"if": '$CI_PIPELINE_SOURCE == "parent_pipeline"'}],
