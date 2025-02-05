@@ -6765,14 +6765,13 @@ query_resume(query_ctx_t *qctx) {
 		/*
 		 * Has response policy changed out from under us?
 		 */
-		if (qctx->rpz_st->rpz_ver != qctx->view->rpzs->rpz_ver) {
+		if (qctx->view->rpzs == NULL ||
+		    qctx->rpz_st->rpz_ver != qctx->view->rpzs->rpz_ver)
+		{
 			ns_client_log(qctx->client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, DNS_RPZ_INFO_LEVEL,
-				      "query_resume: RPZ settings "
-				      "out of date "
-				      "(rpz_ver %d, expected %d)",
-				      qctx->view->rpzs->rpz_ver,
-				      qctx->rpz_st->rpz_ver);
+				      "query_resume: RPZ settings out of date "
+				      "after of a reconfiguration");
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 			return ns_query_done(qctx);
 		}
