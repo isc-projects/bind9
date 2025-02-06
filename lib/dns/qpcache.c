@@ -2884,9 +2884,7 @@ find_header:
 		if (ACTIVE(header, now) && header->type == dns_rdatatype_ns &&
 		    EXISTS(header) && EXISTS(newheader) &&
 		    header->trust >= newheader->trust &&
-		    dns_rdataslab_equalx((unsigned char *)header,
-					 (unsigned char *)newheader,
-					 (unsigned int)(sizeof(*newheader)),
+		    dns_rdataslab_equalx(header, newheader,
 					 qpdb->common.rdclass,
 					 (dns_rdatatype_t)header->type))
 		{
@@ -2950,9 +2948,7 @@ find_header:
 		     header->type == DNS_SIGTYPE(dns_rdatatype_ds)) &&
 		    EXISTS(header) && EXISTS(newheader) &&
 		    header->trust >= newheader->trust &&
-		    dns_rdataslab_equal((unsigned char *)header,
-					(unsigned char *)newheader,
-					(unsigned int)(sizeof(*newheader))))
+		    dns_rdataslab_equal(header, newheader))
 		{
 			/*
 			 * Honour the new ttl if it is less than the

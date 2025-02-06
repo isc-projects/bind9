@@ -714,20 +714,21 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 }
 
 bool
-dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
-		    unsigned int reservelen) {
+dns_rdataslab_equal(dns_slabheader_t *slab1, dns_slabheader_t *slab2) {
 	unsigned char *current1 = NULL, *current2 = NULL;
 	unsigned int count1, count2;
 	unsigned int length1, length2;
 
-	current1 = slab1 + reservelen;
+	current1 = (unsigned char *)slab1 + sizeof(dns_slabheader_t);
 	count1 = get_uint16(current1);
 
-	current2 = slab2 + reservelen;
+	current2 = (unsigned char *)slab2 + sizeof(dns_slabheader_t);
 	count2 = get_uint16(current2);
 
 	if (count1 != count2) {
 		return false;
+	} else if (count1 == 0) {
+		return true;
 	}
 
 	while (count1-- > 0) {
@@ -747,22 +748,23 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 }
 
 bool
-dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
-		     unsigned int reservelen, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type) {
+dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
+		     dns_rdataclass_t rdclass, dns_rdatatype_t type) {
 	unsigned char *current1 = NULL, *current2 = NULL;
 	unsigned int count1, count2;
 	dns_rdata_t rdata1 = DNS_RDATA_INIT;
 	dns_rdata_t rdata2 = DNS_RDATA_INIT;
 
-	current1 = slab1 + reservelen;
+	current1 = (unsigned char *)slab1 + sizeof(dns_slabheader_t);
 	count1 = get_uint16(current1);
 
-	current2 = slab2 + reservelen;
+	current2 = (unsigned char *)slab2 + sizeof(dns_slabheader_t);
 	count2 = get_uint16(current2);
 
 	if (count1 != count2) {
 		return false;
+	} else if (count1 == 0) {
+		return true;
 	}
 
 	while (count1-- > 0) {

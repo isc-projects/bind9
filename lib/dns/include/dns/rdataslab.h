@@ -251,8 +251,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
  */
 
 bool
-dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
-		    unsigned int reservelen);
+dns_rdataslab_equal(dns_slabheader_t *slab1, dns_slabheader_t *slab2);
 /*%<
  * Compare two rdataslabs for equality.  This does _not_ do a full
  * DNSSEC comparison.
@@ -264,9 +263,8 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
  *\li	true if the slabs are equal, false otherwise.
  */
 bool
-dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
-		     unsigned int reservelen, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type);
+dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
+		     dns_rdataclass_t rdclass, dns_rdatatype_t type);
 /*%<
  * Compare two rdataslabs for DNSSEC equality.
  *
