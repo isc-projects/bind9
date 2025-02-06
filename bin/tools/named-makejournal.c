@@ -37,7 +37,7 @@ static isc_result_t
 loadzone(dns_db_t **db, const char *origin, const char *filename) {
 	isc_result_t result;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 
 	name = dns_fixedname_initname(&fixed);
 
@@ -62,7 +62,7 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
-	char *origin, *file1, *file2, *journal;
+	char *origin = NULL, *file1 = NULL, *file2 = NULL, *journal = NULL;
 	dns_db_t *olddb = NULL, *newdb = NULL;
 	isc_logconfig_t *logconfig = NULL;
 

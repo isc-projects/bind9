@@ -32,6 +32,7 @@ BASIC_VARS = {
     "KEYFRLAB": f"{BUILD_VARS['TOP_BUILDDIR']}/dnssec-keyfromlabel",
     "KEYGEN": f"{BUILD_VARS['TOP_BUILDDIR']}/dnssec-keygen",
     "KSR": f"{BUILD_VARS['TOP_BUILDDIR']}/dnssec-ksr",
+    "MAKEJOURNAL": f"{BUILD_VARS['TOP_BUILDDIR']}/named-makejournal",
     "MDIG": f"{BUILD_VARS['TOP_BUILDDIR']}/mdig",
     "NAMED": f"{BUILD_VARS['TOP_BUILDDIR']}/named",
     "NSEC3HASH": f"{BUILD_VARS['TOP_BUILDDIR']}/nsec3hash",
@@ -49,7 +50,6 @@ BASIC_VARS = {
     "WIRETEST": f"{BUILD_VARS['TOP_BUILDDIR']}/wire-test",
     "BIGKEY": f"{BUILD_VARS['TOP_BUILDDIR']}/bigkey",
     "GENCHECK": f"{BUILD_VARS['TOP_BUILDDIR']}/gencheck",
-    "MAKEJOURNAL": f"{BUILD_VARS['TOP_BUILDDIR']}/makejournal",
     "PIPEQUERIES": f"{BUILD_VARS['TOP_BUILDDIR']}/pipequeries",
     "TMPDIR": os.getenv("TMPDIR", "/tmp"),
     "KRB5_CONFIG": "/dev/null",  # we don't want a KRB5_CONFIG setting breaking the tests

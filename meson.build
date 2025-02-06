@@ -912,6 +912,7 @@ mdig_src = []
 named_checkconf_src = []
 named_checkzone_src = []
 named_journalprint_src = []
+named_makejournal_src = []
 named_nzd2nzf_src = []
 named_rrchecker_src = []
 nsec3hash_src = []
@@ -1335,6 +1336,19 @@ executable(
 executable(
     'named-journalprint',
     named_journalprint_src,
+    export_dynamic: true,
+    implicit_include_directories: false,
+    install: true,
+    install_rpath: libdir,
+    dependencies: [
+        libdns_dep,
+        libisc_dep,
+    ],
+)
+
+executable(
+    'named-makejournal',
+    named_makejournal_src,
     export_dynamic: true,
     implicit_include_directories: false,
     install: true,
