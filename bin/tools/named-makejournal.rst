@@ -40,10 +40,12 @@ If the optional argument ``journal`` is not specified, then the journal
 file name will be formed by appending the extension ``.jnl`` to the
 zone file name specified as ``oldfile``.
 
-If the journal file already exists, a new transaction will be appended
-onto the end of it. (Note, however, that the most recent serial number in
-the existing journal file must match the serial number in ``oldfile``.
-This will be corrected later.)
+If the journal file already exists, then it will be applied to ``oldfile``
+immediately after loading. The difference between the resulting zone and
+the one in ``newfile`` will then be appended onto the end of the journal.
+This allows creation of journal files with multiple transactions, by
+running ``named-makejournal`` multiple times, updating ``newfile`` each
+time.
 
 Options
 ~~~~~~~
