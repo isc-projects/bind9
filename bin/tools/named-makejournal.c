@@ -32,6 +32,14 @@
 #include <dns/types.h>
 
 isc_mem_t *mctx = NULL;
+char jbuf[PATH_MAX];
+
+static void
+usage(int ret) {
+	fprintf(stderr, "usage: %s [-hm] origin oldfile newfile [journal]\n",
+		isc_commandline_progname);
+	exit(ret);
+}
 
 static isc_result_t
 loadzone(dns_db_t **db, const char *origin, const char *filename) {
@@ -62,23 +70,44 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
-	char *origin = NULL, *file1 = NULL, *file2 = NULL, *journal = NULL;
+	const char *origin = NULL;
+	const char *file1 = NULL, *file2 = NULL;
+	const char *journal = NULL;
 	dns_db_t *olddb = NULL, *newdb = NULL;
 	isc_logconfig_t *logconfig = NULL;
+	int ch;
 
 	isc_commandline_init(argc, argv);
 
-	if (argc != 5) {
-		printf("usage: %s origin file1 file2 journal\n", argv[0]);
-		return 1;
+	while ((ch = isc_commandline_parse(argc, argv, "hm")) != -1) {
+		switch (ch) {
+		case 'h':
+			usage(0);
+			break;
+		case 'm':
+			isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+			break;
+		default:
+			usage(1);
+		}
+	}
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
+	if (argc < 3 || argc > 4) {
+		usage(1);
 	}
 
-	origin = argv[1];
-	file1 = argv[2];
-	file2 = argv[3];
-	journal = argv[4];
+	origin = argv[0];
+	file1 = argv[1];
+	file2 = argv[2];
 
-	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+	if (argc == 4) {
+		journal = argv[3];
+	} else {
+		snprintf(jbuf, sizeof(jbuf), "%s.jnl", file1);
+		journal = (const char *)jbuf;
+	}
+
 	isc_mem_create(isc_commandline_progname, &mctx);
 
 	logconfig = isc_logconfig_get();
@@ -89,23 +118,43 @@ main(int argc, char **argv) {
 
 	result = loadzone(&olddb, origin, file1);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "Couldn't load %s: ", file1);
+		fprintf(stderr, "Unable to load %s: %s\n", file1,
+			isc_result_totext(result));
 		goto cleanup;
 	}
 
 	result = loadzone(&newdb, origin, file2);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "Couldn't load %s: ", file2);
+		fprintf(stderr, "Unable to load %s: %s\n", file1,
+			isc_result_totext(result));
+		goto cleanup;
+	}
+
+	uint32_t s1, s2;
+	result = dns_db_getsoaserial(olddb, NULL, &s1);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "Error: no SOA found in %s\n", file1);
+		goto cleanup;
+	}
+	result = dns_db_getsoaserial(newdb, NULL, &s2);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "Error: no SOA found in %s\n", file2);
+		goto cleanup;
+	}
+	if (s1 == s2) {
+		fprintf(stderr,
+			"Error: SOA serial (%u) unchanged between files\n", s1);
+		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
 
 	result = dns_db_diff(mctx, newdb, NULL, olddb, NULL, journal);
-
-cleanup:
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s\n", isc_result_totext(result));
+		fprintf(stderr, "Comparison failed: %s\n",
+			isc_result_totext(result));
 	}
 
+cleanup:
 	if (newdb != NULL) {
 		dns_db_detach(&newdb);
 	}

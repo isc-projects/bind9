@@ -21,16 +21,40 @@ named-makejournal - create a journal from zone files
 Synopsis
 ~~~~~~~~
 
-:program:`named-makejournal` {origin} {oldfile} {newfile} {journal}
+:program:`named-makejournal` [-hm] {origin} {oldfile} {newfile} [journal]
 
 Description
 ~~~~~~~~~~~
 
 :program:`named-makejournal` scans the contents of two zone files for
-the same domain, compares them, and writes the differences into a
-journal file. The resulting journal file could then be used by a
-:iscman:`named` server to load the zone and provide incremental
+the domain specified by ``origin``, compares them, and writes the
+differences into a journal file.  The resulting journal file could
+then be used by :iscman:`named` to load the zone and provide incremental
 zone transfers.
+
+Both ``oldfile`` and ``newfile`` must be successfully loadable as zone
+databases, and ``newfile`` must have a higher SOA serial number than
+``oldfile``.
+
+If the optional argument ``journal`` is not specified, then the journal
+file name will be formed by appending the extension ``.jnl`` to the
+zone file name specified as ``oldfile``.
+
+If the journal file already exists, a new transaction will be appended
+onto the end of it. (Note, however, that the most recent serial number in
+the existing journal file must match the serial number in ``oldfile``.
+This will be corrected later.)
+
+Options
+~~~~~~~
+
+.. option:: -h
+
+   Print a usage summary.
+
+.. option:: -m
+
+   Enables memory usage debugging.
 
 See Also
 ~~~~~~~~
