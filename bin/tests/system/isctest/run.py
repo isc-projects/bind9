@@ -98,6 +98,18 @@ def _run_script(
         isctest.log.debug("  exited with %d", returncode)
 
 
+class Dig:
+    def __init__(self, base_params: str = ""):
+        self.base_params = base_params
+
+    def __call__(self, params: str) -> str:
+        """Run the dig command with the given parameters and return the decoded output."""
+        return cmd(
+            [os.environ.get("DIG")] + f"{self.base_params} {params}".split(),
+            log_stdout=True,
+        ).stdout.decode("utf-8")
+
+
 def shell(script: str, args: Optional[List[str]] = None) -> None:
     """Run a given script with system's shell interpreter."""
     _run_script(os.environ["SHELL"], script, args)
