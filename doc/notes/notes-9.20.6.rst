@@ -17,65 +17,69 @@ New Features
 
 - Adds support for EDE code 1 and 2.
 
-  Add support for EDE codes 1 & 2 which might occurs during DNSSEC
-  validation in case of unsupported RRSIG algorithm or DNSKEY digest.
+  Support was added for EDE codes 1 and 2, which might occur during DNSSEC
+  validation in the case of an unsupported RRSIG algorithm or DNSKEY digest.
   :gl:`#2715`
 
-- Add a rndc command to toggle jemalloc profiling.
+- Add an :iscman:`rndc` command to toggle jemalloc profiling.
 
-  The new command is `rndc memprof`. The memory profiling status is also
-  reported inside `rndc status`. The status also shows whether named can
-  toggle memory profiling or not and if the server is built with
-  jemalloc. :gl:`#4759`
+  The new command is :option:`rndc memprof`; the memory profiling status is also
+  reported inside :option:`rndc status`. The status shows whether
+  :iscman:`named` can toggle memory profiling, and whether the server is built
+  with jemalloc. :gl:`#4759`
 
 - Add support for multiple extended DNS errors.
 
-  Extended DNS error mechanism (EDE) may have several errors raised
-  during a DNS resolution. `named` is now able to add up to three EDE
-  codes in a DNS response. In the case of duplicate error codes, only
-  the first one will be part of the DNS response. :gl:`#5085`
+  The Extended DNS Error (EDE) mechanism may raise errors
+  during a DNS resolution. :iscman:`named` is now able to add up to three EDE
+  codes in a DNS response. If there are duplicate error codes, only
+  the first one is part of the DNS response. :gl:`#5085`
 
-- Print the expiration time of the stale records.
+- Print the expiration time of stale records.
 
-  Print the expiration time of the stale RRsets in the cache dump.
+  BIND now prints the expiration time of any stale RRsets in the cache dump.
 
 Bug Fixes
 ~~~~~~~~~
 
-- Recently expired records could be returned with timestamp in future.
+- Recently expired records could be returned with a timestamp in future.
 
-  Under rare circumstances, the RRSet that expired at the time of the
-  query could be returned with TTL far in the future.  This has been
+  Under rare circumstances, an RRSet that expired at the time of the
+  query could be returned with a TTL in the future. This has been
   fixed.
 
-  As a side-effect, the expiration time of expired RRSets are no longer
-  printed out in the cache dump. :gl:`#5094`
+  As a side effect, the expiration time of expired RRSets is no longer
+  returned in a cache dump. :gl:`#5094`
 
-- Yaml string not terminated in negative response in delv.
+- YAML string not terminated in negative response in delv.
 
   :gl:`#5098`
 
-- Fix a bug in dnssec-signzone related to keys being offline.
+- Fix a bug in :iscman:`dnssec-signzone` related to keys being offline.
 
-  In the case when `dnssec-signzone` is called on an already signed
-  zone, and the private key file is unavailable, a signature that needs
-  to be refreshed may be dropped without being able to generate a
+  When :iscman:`dnssec-signzone` was called on an already-signed
+  zone and the private key file was unavailable, a signature that needed
+  to be refreshed was dropped without being able to generate a
   replacement. This has been fixed. :gl:`#5126`
 
 - Apply the memory limit only to ADB database items.
 
-  Resolver under heavy-load could exhaust the memory available for
-  storing the information in the Address Database (ADB) effectively
-  evicting already stored information in the ADB.  The memory used to
-  retrieve and provide information from the ADB is now not a subject of
-  the same memory limits that are applied for storing the information in
+  Under heavy load, a resolver could exhaust the memory available for
+  storing the information in the Address Database (ADB), effectively
+  discarding previously stored information in the ADB. The memory used to
+  retrieve and provide information from the ADB is no longer subject to
+  the same memory limits that are applied to
   the Address Database. :gl:`#5127`
 
 - Avoid unnecessary locking in the zone/cache database.
 
-  Prevent lock contention among many worker threads referring to the
-  same database node at the same time. This would improve zone and cache
-  database performance for the heavily contended database nodes.
+  Lock contention among many worker threads referring to the
+  same database node at the same time is now prevented. This improves zone and
+  cache database performance for any heavily contended database nodes.
   :gl:`#5130`
 
+- Fix reporting of Extended DNS Error 22 (No Reachable Authority).
+
+  This error code was previously not reported in some applicable
+  situations.  This has been fixed. :gl:`#5137`
 
