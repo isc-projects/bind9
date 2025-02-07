@@ -30,51 +30,51 @@ Removed Features
 Bug Fixes
 ~~~~~~~~~
 
-- Fix :iscman:`rndc flushname` for longer name server names.
+- Fix :option:`rndc flushname` for longer name server names.
 
   :option:`rndc flushname` did not work for name server names longer
   than 16 bytes. This has been fixed. :gl:`#3885`
 
-- Recently expired records could be returned with timestamp in future.
+- Recently expired records could be returned with a timestamp in future.
 
-  Under rare circumstances, the RRSet that expired at the time of the
-  query could be returned with TTL far in the future.  This has been
-  fixed.
+  Under rare circumstances, an RRSet that expired at the time of the
+  query could be returned with a TTL in the future. This has been fixed.
 
-  As a side-effect, the expiration time of expired RRSets are no longer
-  printed out in the cache dump. :gl:`#5094`
+  As a side effect, the expiration time of expired RRSets is no longer
+  returned in a cache dump. :gl:`#5094`
 
-- Yaml string not terminated in negative response in delv.
+- YAML string not terminated in negative response in delv.
 
   :gl:`#5098`
 
 - Apply the memory limit only to ADB database items.
 
-  The resolver under heavy-load could exhaust the memory available for
-  storing the information in the Address Database (ADB) effectively
-  evicting already stored information in the ADB.  The memory used to
-  retrieve and provide information from the ADB is now not a subject of
-  the same memory limits that are applied for storing the information in
+  Under heavy load, a resolver could exhaust the memory available for
+  storing the information in the Address Database (ADB), effectively
+  discarding previously stored information in the ADB. The memory used to
+  retrieve and provide information from the ADB is no longer subject to
+  the same memory limits that are applied to
+
+
   the Address Database. :gl:`#5127`
 
 - Avoid unnecessary locking in the zone/cache database.
 
-  Prevent lock contention among many worker threads referring to the
-  same database node at the same time. This improves zone and cache
-  database performance for the heavily contended database nodes.
+  Lock contention among many worker threads referring to the
+  same database node at the same time is now prevented. This improves zone and
+  cache database performance for any heavily contended database nodes.
   :gl:`#5130`
 
 - Improve the resolver performance under attack.
 
-  A remote client can force the DNS resolver component to consume the
-  memory faster than cleaning up the resources for the canceled resolver
-  fetches due to `recursive-clients` limit. If the such traffic pattern
-  is sustained for a long period of time, the DNS server might
+  Previously, a remote client could force the DNS resolver component to consume
+  memory faster than resources were cleaned up for the canceled resolver
+  fetches, due to the `recursive-clients` limit. If such a traffic pattern
+  was sustained for a long period of time, the DNS server might
   eventually run out of the available memory. This has been fixed.
 
-  It should be noted that when under such heavy attack for a BIND 9
-  version both with and without the fix, no outgoing DNS queries will be
-  successful as the generated traffic pattern will consume all the
+  It should be noted that, under such a heavy attack, no outgoing DNS queries will be successful in BIND 9
+  versions both with and without the fix, as the generated traffic pattern will consume all the
   available slots for the recursive clients.
 
 

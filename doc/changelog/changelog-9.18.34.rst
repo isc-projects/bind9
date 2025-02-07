@@ -33,8 +33,8 @@ Feature Changes
 
 - Reduce memory sizes of common structures. ``008e5201098``
 
-  * Reduce `sizeof(isc_sockaddr_t)` from 152 to 48 bytes * Reduce
-  `sizeof(struct isc__nm_uvreq)` from 1560 to 560 bytes
+  * Reduce `sizeof(isc_sockaddr_t)` from 152 to 48 bytes
+  * Reduce `sizeof(struct isc__nm_uvreq)` from 1560 to 560 bytes
 
   Partial backport of !8299 :gl:`!9953`
 
