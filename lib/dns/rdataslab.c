@@ -47,7 +47,7 @@
  * The rdataslab structure allows iteration to occur in both load order
  * and DNSSEC order.  The structure is as follows:
  *
- *	header		(reservelen bytes)
+ *	header		(dns_slabheader_t)
  *	record count	(2 bytes)
  *	offset table	(4 x record count bytes in load order)
  *	data records
@@ -55,6 +55,8 @@
  *		order		(2 bytes)
  *		meta data	(1 byte for RRSIG's)
  *		data		(data length bytes)
+ *
+ * A "raw" rdataslab is the same but without the header.
  *
  * DNSSEC order traversal is performed by walking the data records.
  *
@@ -118,10 +120,9 @@ compare_rdata(const void *p1, const void *p2) {
 	return dns_rdata_compare(p1, p2);
 }
 
-isc_result_t
-dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			   isc_region_t *region, unsigned int reservelen,
-			   uint32_t maxrrperset) {
+static isc_result_t
+makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
+	 uint32_t maxrrperset, bool raw) {
 	/*
 	 * Use &removed as a sentinel pointer for duplicate
 	 * rdata as rdata.data == NULL is valid.
@@ -129,6 +130,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	static unsigned char removed;
 	dns_rdata_t *rdata = NULL;
 	unsigned char *rawbuf = NULL;
+	unsigned int headerlen = raw ? 0 : sizeof(dns_slabheader_t);
 	unsigned int buflen;
 	isc_result_t result;
 	unsigned int nitems;
@@ -136,7 +138,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	unsigned int length;
 	unsigned int i;
 
-	buflen = reservelen + 2;
+	buflen = headerlen + 2;
 
 	nitems = dns_rdataset_count(rdataset);
 
@@ -151,7 +153,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		rawbuf = isc_mem_get(mctx, buflen);
 		region->base = rawbuf;
 		region->length = buflen;
-		rawbuf += reservelen;
+		rawbuf += headerlen;
 		*rawbuf++ = 0;
 		*rawbuf = 0;
 		return ISC_R_SUCCESS;
@@ -231,6 +233,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	 * Don't forget the last item!
 	 */
 	buflen += (2 + rdata[i - 1].length);
+
 	/*
 	 * Provide space to store the per RR meta data.
 	 */
@@ -259,7 +262,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	region->base = rawbuf;
 	region->length = buflen;
 
-	rawbuf += reservelen;
+	rawbuf += headerlen;
 
 	put_uint16(rawbuf, nitems);
 
@@ -272,6 +275,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			length++;
 		}
 		INSIST(length <= 0xffff);
+
 		put_uint16(rawbuf, length);
 
 		/*
@@ -293,6 +297,18 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 free_rdatas:
 	isc_mem_cput(mctx, rdata, nalloc, sizeof(rdata[0]));
 	return result;
+}
+
+isc_result_t
+dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
+			   isc_region_t *region, uint32_t maxrrperset) {
+	return makeslab(rdataset, mctx, region, maxrrperset, false);
+}
+
+isc_result_t
+dns_rdataslab_raw_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
+			       isc_region_t *region, uint32_t maxrrperset) {
+	return makeslab(rdataset, mctx, region, maxrrperset, true);
 }
 
 unsigned int

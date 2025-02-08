@@ -2241,8 +2241,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 
 	loading_addnode(loadctx, name, rdataset->type, rdataset->covers, &node);
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t),
-					    qpdb->maxrrperset);
+					    &region, qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_TOOMANYRECORDS) {
 			dns__db_logtoomanyrecords((dns_db_t *)qpdb, name,
@@ -4724,8 +4723,7 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 		 rdataset->covers != dns_rdatatype_nsec3));
 
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t),
-					    qpdb->maxrrperset);
+					    &region, qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_TOOMANYRECORDS) {
 			dns__db_logtoomanyrecords((dns_db_t *)qpdb, &node->name,
@@ -4854,8 +4852,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 
 	dns_name_copy(&node->name, nodename);
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t),
-					    0);
+					    &region, 0);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

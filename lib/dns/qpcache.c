@@ -3090,12 +3090,13 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
+	result = dns_rdataslab_raw_fromrdataset(&neg, mctx, &r1, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
+	result = dns_rdataslab_raw_fromrdataset(&negsig, mctx, &r2,
+						maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3129,12 +3130,13 @@ addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
+	result = dns_rdataslab_raw_fromrdataset(&neg, mctx, &r1, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
+	result = dns_rdataslab_raw_fromrdataset(&negsig, mctx, &r2,
+						maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3184,8 +3186,7 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(version == NULL);
 
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t),
-					    qpdb->maxrrperset);
+					    &region, qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_TOOMANYRECORDS) {
 			dns__db_logtoomanyrecords((dns_db_t *)qpdb,

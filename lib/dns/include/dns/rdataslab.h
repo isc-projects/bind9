@@ -173,11 +173,17 @@ extern dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods;
 
 isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			   isc_region_t *region, unsigned int reservelen,
-			   uint32_t limit);
+			   isc_region_t *region, uint32_t limit);
+isc_result_t
+dns_rdataslab_raw_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
+			       isc_region_t *region, uint32_t limit);
 /*%<
- * Slabify a rdataset.  The slab area will be allocated and returned
- * in 'region'.
+ * Allocate space for a slab to hold the data in rdataset, and copy the
+ * data into it.  The resulting slab will be returned in 'region'.
+ *
+ * The dns_rdataslab_raw_fromrdataset() function allocates and fills only
+ * the memory needed for a raw slab. dns_rdataslab_fromrdataset() also
+ * allocates space for a dns_slabheader object.
  *
  * Requires:
  *\li	'rdataset' is valid.
