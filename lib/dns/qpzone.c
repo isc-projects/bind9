@@ -2476,7 +2476,7 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 	REQUIRE(rdataset != NULL);
 	REQUIRE(rdataset->methods == &dns_rdataslab_rdatasetmethods);
 
-	header = dns_slabheader_fromrdataset(rdataset);
+	header = dns_rdataset_getheader(rdataset);
 
 	nlock = &qpdb->buckets[HEADERNODE(header)->locknum].lock;
 	NODE_WRLOCK(nlock, &nlocktype);
@@ -5293,7 +5293,7 @@ addglue_to_message(dns_glue_t *ge, dns_message_t *msg) {
 static dns_gluelist_t *
 create_gluelist(qpzonedb_t *qpdb, qpz_version_t *version, qpznode_t *node,
 		dns_rdataset_t *rdataset) {
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 	dns_glue_additionaldata_ctx_t ctx = {
 		.db = (dns_db_t *)qpdb,
 		.version = (dns_dbversion_t *)version,
@@ -5322,7 +5322,7 @@ addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpz_version_t *version = (qpz_version_t *)dbversion;
 	qpznode_t *node = (qpznode_t *)rdataset->slab.node;
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 	dns_glue_t *glue = NULL;
 	isc_statscounter_t counter = dns_gluecachestatscounter_hits_absent;
 

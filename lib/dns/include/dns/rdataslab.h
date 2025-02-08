@@ -288,12 +288,6 @@ dns_rdataslab_equalx(dns_slabheader_t *header1, dns_slabheader_t *header2,
  *\li	true if the slabs are equal, #false otherwise.
  */
 
-dns_slabheader_t *
-dns_slabheader_fromrdataset(const dns_rdataset_t *rdataset);
-/*%
- * Returns the address of the slab header for a slab-type rdataset.
- */
-
 void *
 dns_slabheader_raw(dns_slabheader_t *header);
 /*%

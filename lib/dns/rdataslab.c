@@ -113,6 +113,8 @@ static void
 rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name);
 static void
 rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
+static dns_slabheader_t *
+rdataset_getheader(const dns_rdataset_t *rdataset);
 
 /*% Note: the "const void *" are just to make qsort happy.  */
 static int
@@ -815,12 +817,6 @@ dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
 	return true;
 }
 
-dns_slabheader_t *
-dns_slabheader_fromrdataset(const dns_rdataset_t *rdataset) {
-	dns_slabheader_t *header = (dns_slabheader_t *)rdataset->slab.raw;
-	return header - 1;
-}
-
 void *
 dns_slabheader_raw(dns_slabheader_t *header) {
 	return header + 1;
@@ -926,6 +922,33 @@ dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proof) {
 	*proof = NULL;
 }
 
+dns_slabheader_t *
+dns_slabheader_top(dns_slabheader_t *header) {
+	dns_typepair_t type, negtype;
+	dns_rdatatype_t rdtype, covers;
+
+	type = header->type;
+	rdtype = DNS_TYPEPAIR_TYPE(header->type);
+	if (NEGATIVE(header)) {
+		covers = DNS_TYPEPAIR_COVERS(header->type);
+		negtype = DNS_TYPEPAIR_VALUE(covers, 0);
+	} else {
+		negtype = DNS_TYPEPAIR_VALUE(0, rdtype);
+	}
+
+	/*
+	 * Find the start of the header chain for the next type
+	 * by walking back up the list.
+	 */
+	while (header->up != NULL &&
+	       (header->up->type == type || header->up->type == negtype))
+	{
+		header = header->up;
+	}
+
+	return header;
+}
+
 dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.disassociate = rdataset_disassociate,
 	.first = rdataset_first,
@@ -940,6 +963,7 @@ dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.clearprefetch = rdataset_clearprefetch,
 	.setownercase = rdataset_setownercase,
 	.getownercase = rdataset_getownercase,
+	.getheader = rdataset_getheader,
 };
 
 /* Fixed RRSet helper macros */
@@ -1066,9 +1090,10 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	 * Usually, rdataset->slab.raw refers the data following a
 	 * dns_slabheader, but in this case it points to a bare
 	 * rdataslab belonging to the dns_slabheader's `noqname` field.
-	 * The DNS_RDATASETATTR_KEEPCASE attribute is set to prevent
-	 * setownercase and getownercase methods from affecting the
-	 * case of NSEC/NSEC3 owner names.
+	 * The DNS_RDATASETATTR_NOHEADER attribute is set so that
+	 * dns_rdataset_getheader() will return NULL, and the _KEEPCASE
+	 * attribute is set to prevent setownercase and getownercase
+	 * methods from affecting the case of NSEC/NSEC3 owner names.
 	 */
 	dns__db_attachnode(db, node,
 			   &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
@@ -1083,7 +1108,8 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = noqname->neg,
 		.link = nsec->link,
 		.count = nsec->count,
-		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
+		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE |
+			      DNS_RDATASETATTR_NOHEADER,
 		.magic = nsec->magic,
 	};
 
@@ -1101,7 +1127,8 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = noqname->negsig,
 		.link = nsecsig->link,
 		.count = nsecsig->count,
-		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
+		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE |
+			      DNS_RDATASETATTR_NOHEADER,
 		.magic = nsecsig->magic,
 	};
 
@@ -1136,7 +1163,8 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = closest->neg,
 		.link = nsec->link,
 		.count = nsec->count,
-		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
+		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE |
+			      DNS_RDATASETATTR_NOHEADER,
 		.magic = nsec->magic,
 	};
 
@@ -1154,7 +1182,8 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = closest->negsig,
 		.link = nsecsig->link,
 		.count = nsecsig->count,
-		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
+		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE |
+			      DNS_RDATASETATTR_NOHEADER,
 		.magic = nsecsig->magic,
 	};
 
@@ -1165,7 +1194,7 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 
 static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 
 	dns_db_locknode(header->db, header->node, isc_rwlocktype_write);
 	header->trust = rdataset->trust = trust;
@@ -1174,14 +1203,14 @@ rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
 
 static void
 rdataset_expire(dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 
 	dns_db_expiredata(header->db, header->node, header);
 }
 
 static void
 rdataset_clearprefetch(dns_rdataset_t *rdataset) {
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 
 	dns_db_locknode(header->db, header->node, isc_rwlocktype_write);
 	DNS_SLABHEADER_CLRATTR(header, DNS_SLABHEADERATTR_PREFETCH);
@@ -1190,7 +1219,7 @@ rdataset_clearprefetch(dns_rdataset_t *rdataset) {
 
 static void
 rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 
 	dns_db_locknode(header->db, header->node, isc_rwlocktype_write);
 	dns_slabheader_setownercase(header, name);
@@ -1199,7 +1228,7 @@ rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 
 static void
 rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 	uint8_t mask = (1 << 7);
 	uint8_t bits = 0;
 
@@ -1229,29 +1258,8 @@ unlock:
 	dns_db_unlocknode(header->db, header->node, isc_rwlocktype_read);
 }
 
-dns_slabheader_t *
-dns_slabheader_top(dns_slabheader_t *header) {
-	dns_typepair_t type, negtype;
-	dns_rdatatype_t rdtype, covers;
-
-	type = header->type;
-	rdtype = DNS_TYPEPAIR_TYPE(header->type);
-	if (NEGATIVE(header)) {
-		covers = DNS_TYPEPAIR_COVERS(header->type);
-		negtype = DNS_TYPEPAIR_VALUE(covers, 0);
-	} else {
-		negtype = DNS_TYPEPAIR_VALUE(0, rdtype);
-	}
-
-	/*
-	 * Find the start of the header chain for the next type
-	 * by walking back up the list.
-	 */
-	while (header->up != NULL &&
-	       (header->up->type == type || header->up->type == negtype))
-	{
-		header = header->up;
-	}
-
-	return header;
+static dns_slabheader_t *
+rdataset_getheader(const dns_rdataset_t *rdataset) {
+	dns_slabheader_t *header = (dns_slabheader_t *)rdataset->slab.raw;
+	return header - 1;
 }
