@@ -3201,18 +3201,20 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdataset_getownercase(rdataset, name);
 
 	newheader = (dns_slabheader_t *)region.base;
-	*newheader = (dns_slabheader_t){
-		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
-		.trust = rdataset->trust,
-		.last_used = now,
-		.node = (dns_dbnode_t *)qpnode,
-	};
-
 	dns_slabheader_reset(newheader, db, node);
+
+	newheader->last_used = now;
+
+	/*
+	 * By default, dns_rdataslab_fromrdataset() sets newheader->ttl
+	 * to the rdataset TTL. In the case of the cache, that's wrong;
+	 * we need it to be set to the expire time instead.
+	 */
 	setttl(newheader, rdataset->ttl + now);
 	if (rdataset->ttl == 0U) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_ZEROTTL);
 	}
+
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 	if ((rdataset->attributes & DNS_RDATASETATTR_PREFETCH) != 0) {

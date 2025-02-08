@@ -302,7 +302,22 @@ free_rdatas:
 isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			   isc_region_t *region, uint32_t maxrrperset) {
-	return makeslab(rdataset, mctx, region, maxrrperset, false);
+	isc_result_t result;
+
+	result = makeslab(rdataset, mctx, region, maxrrperset, false);
+	if (result == ISC_R_SUCCESS) {
+		dns_slabheader_t *new = (dns_slabheader_t *)region->base;
+
+		*new = (dns_slabheader_t){
+			.type = DNS_TYPEPAIR_VALUE(rdataset->type,
+						   rdataset->covers),
+			.trust = rdataset->trust,
+			.ttl = rdataset->ttl,
+			.link = ISC_LINK_INITIALIZER,
+		};
+	}
+
+	return result;
 }
 
 isc_result_t

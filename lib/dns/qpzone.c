@@ -2252,16 +2252,13 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	}
 
 	newheader = (dns_slabheader_t *)region.base;
-	*newheader = (dns_slabheader_t){
-		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
-		.ttl = rdataset->ttl,
-		.trust = rdataset->trust,
-		.node = (dns_dbnode_t *)node,
-		.serial = 1,
-		.count = 1,
-	};
-
 	dns_slabheader_reset(newheader, (dns_db_t *)qpdb, (dns_dbnode_t *)node);
+
+	newheader->ttl = rdataset->ttl;
+	newheader->trust = rdataset->trust;
+	newheader->serial = 1;
+	newheader->count = 1;
+
 	dns_slabheader_setownercase(newheader, name);
 
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
@@ -4737,17 +4734,12 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	dns_rdataset_getownercase(rdataset, name);
 
 	newheader = (dns_slabheader_t *)region.base;
-	*newheader = (dns_slabheader_t){
-		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
-		.trust = rdataset->trust,
-		.node = (dns_dbnode_t *)node,
-	};
-
 	dns_slabheader_reset(newheader, db, (dns_dbnode_t *)node);
 	newheader->ttl = rdataset->ttl;
 	if (rdataset->ttl == 0U) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_ZEROTTL);
 	}
+
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 
@@ -4860,26 +4852,16 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	newheader = (dns_slabheader_t *)region.base;
 	dns_slabheader_reset(newheader, db, (dns_dbnode_t *)node);
 	newheader->ttl = rdataset->ttl;
-	newheader->type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers);
 	atomic_init(&newheader->attributes, 0);
 	newheader->serial = version->serial;
-	newheader->trust = 0;
-	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
-	newheader->last_used = 0;
-	newheader->node = (dns_dbnode_t *)node;
-	newheader->db = (dns_db_t *)qpdb;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_RESIGN);
 		newheader->resign =
 			(isc_stdtime_t)(dns_time64_from32(rdataset->resign) >>
 					1);
 		newheader->resign_lsb = rdataset->resign & 0x1;
-	} else {
-		newheader->resign = 0;
-		newheader->resign_lsb = 0;
 	}
 
 	nlock = &qpdb->buckets[node->locknum].lock;
