@@ -1877,28 +1877,23 @@ add_changed(dns_slabheader_t *header, qpz_version_t *version DNS__DB_FLARG) {
 
 static uint64_t
 recordsize(dns_slabheader_t *header, unsigned int namelen) {
-	return dns_rdataslab_rdatasize((unsigned char *)header,
-				       sizeof(*header)) +
-	       sizeof(dns_ttl_t) + sizeof(dns_rdatatype_t) +
-	       sizeof(dns_rdataclass_t) + namelen;
+	return dns_rdataslab_size(header) + sizeof(dns_ttl_t) +
+	       sizeof(dns_rdatatype_t) + sizeof(dns_rdataclass_t) + namelen;
 }
 
 static void
 maybe_update_recordsandsize(bool add, qpz_version_t *version,
 			    dns_slabheader_t *header, unsigned int namelen) {
-	unsigned char *hdr = (unsigned char *)header;
-	size_t hdrsize = sizeof(*header);
-
 	if (NONEXISTENT(header)) {
 		return;
 	}
 
 	RWLOCK(&version->rwlock, isc_rwlocktype_write);
 	if (add) {
-		version->records += dns_rdataslab_count(hdr, hdrsize);
+		version->records += dns_rdataslab_count(header);
 		version->xfrsize += recordsize(header, namelen);
 	} else {
-		version->records -= dns_rdataslab_count(hdr, hdrsize);
+		version->records -= dns_rdataslab_count(header);
 		version->xfrsize -= recordsize(header, namelen);
 	}
 	RWUNLOCK(&version->rwlock, isc_rwlocktype_write);
@@ -1913,7 +1908,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *prioheader = NULL;
 	dns_slabheader_t *header = NULL;
-	unsigned char *merged = NULL;
+	dns_slabheader_t *merged = NULL;
 	isc_result_t result;
 	bool merge = false;
 	uint32_t ntypes;
@@ -1979,10 +1974,8 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			}
 			if (result == ISC_R_SUCCESS) {
 				result = dns_rdataslab_merge(
-					(unsigned char *)header,
-					(unsigned char *)newheader,
-					(unsigned int)(sizeof(*newheader)),
-					qpdb->common.mctx, qpdb->common.rdclass,
+					header, newheader, qpdb->common.mctx,
+					qpdb->common.rdclass,
 					(dns_rdatatype_t)header->type, flags,
 					qpdb->maxrrperset, &merged);
 			}
@@ -1996,7 +1989,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 				 * clean_zone_node() runs.
 				 */
 				dns_slabheader_destroy(&newheader);
-				newheader = (dns_slabheader_t *)merged;
+				newheader = merged;
 				dns_slabheader_reset(newheader,
 						     (dns_db_t *)qpdb,
 						     (dns_dbnode_t *)node);
@@ -4842,7 +4835,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *header = NULL, *newheader = NULL;
-	unsigned char *subresult = NULL;
+	dns_slabheader_t *subresult = NULL;
 	isc_region_t region;
 	isc_result_t result;
 	qpz_changed_t *changed = NULL;
@@ -4925,16 +4918,14 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 		}
 		if (result == ISC_R_SUCCESS) {
 			result = dns_rdataslab_subtract(
-				(unsigned char *)header,
-				(unsigned char *)newheader,
-				(unsigned int)(sizeof(*newheader)),
-				qpdb->common.mctx, qpdb->common.rdclass,
+				header, newheader, qpdb->common.mctx,
+				qpdb->common.rdclass,
 				(dns_rdatatype_t)header->type, flags,
 				&subresult);
 		}
 		if (result == ISC_R_SUCCESS) {
 			dns_slabheader_destroy(&newheader);
-			newheader = (dns_slabheader_t *)subresult;
+			newheader = subresult;
 			dns_slabheader_reset(newheader, db,
 					     (dns_dbnode_t *)node);
 			dns_slabheader_copycase(newheader, header);

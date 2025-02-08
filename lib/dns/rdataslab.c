@@ -292,10 +292,10 @@ free_rdatas:
 }
 
 unsigned int
-dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
+dns_rdataslab_sizeraw(unsigned char *slab) {
 	REQUIRE(slab != NULL);
 
-	unsigned char *current = slab + reservelen;
+	unsigned char *current = slab;
 	uint16_t count = get_uint16(current);
 
 	while (count-- > 0) {
@@ -307,27 +307,18 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
 }
 
 unsigned int
-dns_rdataslab_rdatasize(unsigned char *slab, unsigned int reservelen) {
-	REQUIRE(slab != NULL);
+dns_rdataslab_size(dns_slabheader_t *header) {
+	REQUIRE(header != NULL);
 
-	uint16_t rdatalen = 0;
-	unsigned char *current = slab + reservelen;
-	uint16_t count = get_uint16(current);
-
-	while (count-- > 0) {
-		uint16_t length = get_uint16(current);
-		rdatalen += length;
-		current += length;
-	}
-
-	return rdatalen;
+	unsigned char *s = (unsigned char *)header + sizeof(dns_slabheader_t);
+	return dns_rdataslab_sizeraw(s) + sizeof(dns_slabheader_t);
 }
 
 unsigned int
-dns_rdataslab_count(unsigned char *slab, unsigned int reservelen) {
-	REQUIRE(slab != NULL);
+dns_rdataslab_count(dns_slabheader_t *header) {
+	REQUIRE(header != NULL);
 
-	unsigned char *current = slab + reservelen;
+	unsigned char *current = (unsigned char *)header + sizeof(*header);
 	uint16_t count = get_uint16(current);
 
 	return count;
@@ -394,11 +385,12 @@ rdata_in_slab(unsigned char *slab, unsigned int reservelen,
 }
 
 isc_result_t
-dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
-		    unsigned int reservelen, isc_mem_t *mctx,
-		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    unsigned int flags, uint32_t maxrrperset,
-		    unsigned char **tslabp) {
+dns_rdataslab_merge(dns_slabheader_t *oheader, dns_slabheader_t *nheader,
+		    isc_mem_t *mctx, dns_rdataclass_t rdclass,
+		    dns_rdatatype_t type, unsigned int flags,
+		    uint32_t maxrrperset, dns_slabheader_t **theaderp) {
+	unsigned char *oslab = (unsigned char *)oheader;
+	unsigned char *nslab = (unsigned char *)nheader;
 	unsigned char *ocurrent = NULL, *ostart = NULL, *ncurrent = NULL;
 	unsigned char *tstart = NULL, *tcurrent = NULL, *data = NULL;
 	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
@@ -414,13 +406,13 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	 * or perhaps another merge routine for this purpose.
 	 */
 
-	REQUIRE(tslabp != NULL && *tslabp == NULL);
+	REQUIRE(theaderp != NULL && *theaderp == NULL);
 	REQUIRE(oslab != NULL && nslab != NULL);
 
-	ocurrent = oslab + reservelen;
+	ocurrent = oslab + sizeof(dns_slabheader_t);
 	ocount = get_uint16(ocurrent);
 	ostart = ocurrent;
-	ncurrent = nslab + reservelen;
+	ncurrent = nslab + sizeof(dns_slabheader_t);
 	ncount = get_uint16(ncurrent);
 	INSIST(ocount > 0 && ncount > 0);
 
@@ -445,7 +437,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	/*
 	 * Start figuring out the target length and count.
 	 */
-	tlength = reservelen + 2 + olength;
+	tlength = sizeof(dns_slabheader_t) + 2 + olength;
 	tcount = ocount;
 
 	/*
@@ -455,7 +447,9 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	do {
 		dns_rdata_init(&nrdata);
 		rdata_from_slab(&ncurrent, rdclass, type, &nrdata);
-		if (!rdata_in_slab(oslab, reservelen, rdclass, type, &nrdata)) {
+		if (!rdata_in_slab(oslab, sizeof(dns_slabheader_t), rdclass,
+				   type, &nrdata))
+		{
 			/*
 			 * This rdata isn't in the old slab.
 			 */
@@ -499,8 +493,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	 * Copy the reserved area from the new slab.
 	 */
 	tstart = isc_mem_get(mctx, tlength);
-	memmove(tstart, nslab, reservelen);
-	tcurrent = tstart + reservelen;
+	memmove(tstart, nslab, sizeof(dns_slabheader_t));
+	tcurrent = tstart + sizeof(dns_slabheader_t);
 
 	/*
 	 * Write the new count.
@@ -515,14 +509,14 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	INSIST(ocount != 0);
 	rdata_from_slab(&ocurrent, rdclass, type, &ordata);
 
-	ncurrent = nslab + reservelen + 2;
+	ncurrent = nslab + sizeof(dns_slabheader_t) + 2;
 
 	if (ncount > 0) {
 		do {
 			dns_rdata_reset(&nrdata);
 			rdata_from_slab(&ncurrent, rdclass, type, &nrdata);
-		} while (rdata_in_slab(oslab, reservelen, rdclass, type,
-				       &nrdata));
+		} while (rdata_in_slab(oslab, sizeof(dns_slabheader_t), rdclass,
+				       type, &nrdata));
 	}
 
 	while (oadded < ocount || nadded < ncount) {
@@ -568,7 +562,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 					dns_rdata_reset(&nrdata);
 					rdata_from_slab(&ncurrent, rdclass,
 							type, &nrdata);
-				} while (rdata_in_slab(oslab, reservelen,
+				} while (rdata_in_slab(oslab,
+						       sizeof(dns_slabheader_t),
 						       rdclass, type, &nrdata));
 			}
 		}
@@ -576,28 +571,30 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 
 	INSIST(tcurrent == tstart + tlength);
 
-	*tslabp = tstart;
+	*theaderp = (dns_slabheader_t *)tstart;
 
 	return ISC_R_SUCCESS;
 }
 
 isc_result_t
-dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
-		       unsigned int reservelen, isc_mem_t *mctx,
-		       dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		       unsigned int flags, unsigned char **tslabp) {
+dns_rdataslab_subtract(dns_slabheader_t *mheader, dns_slabheader_t *sheader,
+		       isc_mem_t *mctx, dns_rdataclass_t rdclass,
+		       dns_rdatatype_t type, unsigned int flags,
+		       dns_slabheader_t **theaderp) {
+	unsigned char *mslab = (unsigned char *)mheader;
+	unsigned char *sslab = (unsigned char *)sheader;
 	unsigned char *mcurrent = NULL, *sstart = NULL, *scurrent = NULL;
 	unsigned char *tstart = NULL, *tcurrent = NULL;
 	unsigned int mcount, scount, rcount, count, tlength, tcount, i;
 	dns_rdata_t srdata = DNS_RDATA_INIT;
 	dns_rdata_t mrdata = DNS_RDATA_INIT;
 
-	REQUIRE(tslabp != NULL && *tslabp == NULL);
+	REQUIRE(theaderp != NULL && *theaderp == NULL);
 	REQUIRE(mslab != NULL && sslab != NULL);
 
-	mcurrent = mslab + reservelen;
+	mcurrent = mslab + sizeof(dns_slabheader_t);
 	mcount = get_uint16(mcurrent);
-	scurrent = sslab + reservelen;
+	scurrent = sslab + sizeof(dns_slabheader_t);
 	scount = get_uint16(scurrent);
 	INSIST(mcount > 0 && scount > 0);
 
@@ -608,7 +605,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	/*
 	 * Start figuring out the target length and count.
 	 */
-	tlength = reservelen + 2;
+	tlength = sizeof(dns_slabheader_t) + 2;
 	tcount = 0;
 	rcount = 0;
 
@@ -668,8 +665,8 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	 * Copy the reserved area from the mslab.
 	 */
 	tstart = isc_mem_get(mctx, tlength);
-	memmove(tstart, mslab, reservelen);
-	tcurrent = tstart + reservelen;
+	memmove(tstart, mslab, sizeof(dns_slabheader_t));
+	tcurrent = tstart + sizeof(dns_slabheader_t);
 
 	/*
 	 * Write the new count.
@@ -680,7 +677,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	/*
 	 * Copy the parts of mslab not in sslab.
 	 */
-	mcurrent = mslab + reservelen;
+	mcurrent = mslab + sizeof(dns_slabheader_t);
 	mcount = get_uint16(mcurrent);
 	for (i = 0; i < mcount; i++) {
 		unsigned char *mrdatabegin = mcurrent;
@@ -708,7 +705,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 
 	INSIST(tcurrent == tstart + tlength);
 
-	*tslabp = tstart;
+	*theaderp = (dns_slabheader_t *)tstart;
 
 	return ISC_R_SUCCESS;
 }
@@ -717,7 +714,6 @@ bool
 dns_rdataslab_equal(dns_slabheader_t *slab1, dns_slabheader_t *slab2) {
 	unsigned char *current1 = NULL, *current2 = NULL;
 	unsigned int count1, count2;
-	unsigned int length1, length2;
 
 	current1 = (unsigned char *)slab1 + sizeof(dns_slabheader_t);
 	count1 = get_uint16(current1);
@@ -732,8 +728,8 @@ dns_rdataslab_equal(dns_slabheader_t *slab1, dns_slabheader_t *slab2) {
 	}
 
 	while (count1-- > 0) {
-		length1 = get_uint16(current1);
-		length2 = get_uint16(current2);
+		unsigned int length1 = get_uint16(current1);
+		unsigned int length2 = get_uint16(current2);
 
 		if (length1 != length2 ||
 		    memcmp(current1, current2, length1) != 0)
@@ -752,8 +748,6 @@ dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
 		     dns_rdataclass_t rdclass, dns_rdatatype_t type) {
 	unsigned char *current1 = NULL, *current2 = NULL;
 	unsigned int count1, count2;
-	dns_rdata_t rdata1 = DNS_RDATA_INIT;
-	dns_rdata_t rdata2 = DNS_RDATA_INIT;
 
 	current1 = (unsigned char *)slab1 + sizeof(dns_slabheader_t);
 	count1 = get_uint16(current1);
@@ -768,13 +762,14 @@ dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
 	}
 
 	while (count1-- > 0) {
+		dns_rdata_t rdata1 = DNS_RDATA_INIT;
+		dns_rdata_t rdata2 = DNS_RDATA_INIT;
+
 		rdata_from_slab(&current1, rdclass, type, &rdata1);
 		rdata_from_slab(&current2, rdclass, type, &rdata2);
 		if (dns_rdata_compare(&rdata1, &rdata2) != 0) {
 			return false;
 		}
-		dns_rdata_reset(&rdata1);
-		dns_rdata_reset(&rdata2);
 	}
 	return true;
 }
@@ -867,8 +862,7 @@ dns_slabheader_destroy(dns_slabheader_t **headerp) {
 	if (NONEXISTENT(header)) {
 		size = sizeof(*header);
 	} else {
-		size = dns_rdataslab_size((unsigned char *)header,
-					  sizeof(*header));
+		size = dns_rdataslab_size(header);
 	}
 
 	isc_mem_put(mctx, header, size);
@@ -881,11 +875,11 @@ dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proof) {
 	}
 	if ((*proof)->neg != NULL) {
 		isc_mem_put(mctx, (*proof)->neg,
-			    dns_rdataslab_size((*proof)->neg, 0));
+			    dns_rdataslab_sizeraw((*proof)->neg));
 	}
 	if ((*proof)->negsig != NULL) {
 		isc_mem_put(mctx, (*proof)->negsig,
-			    dns_rdataslab_size((*proof)->negsig, 0));
+			    dns_rdataslab_sizeraw((*proof)->negsig));
 	}
 	isc_mem_put(mctx, *proof, sizeof(**proof));
 	*proof = NULL;

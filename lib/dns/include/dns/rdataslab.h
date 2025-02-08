@@ -195,81 +195,84 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
  */
 
 unsigned int
-dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
+dns_rdataslab_size(dns_slabheader_t *header);
 /*%<
- * Return the total size of an rdataslab.
+ * Return the total size of the rdataslab following 'header'.
  *
  * Requires:
- *\li	'slab' points to a slab.
+ *\li	'header' points to a slabheader with an rdataslab following it.
  *
  * Returns:
- *\li	The number of bytes in the slab, including the reservelen.
+ *\li	The number of bytes in the slab, plus the header.
  */
 
 unsigned int
-dns_rdataslab_rdatasize(unsigned char *slab, unsigned int reservelen);
+dns_rdataslab_sizeraw(unsigned char *slab);
 /*%<
- * Return the size of the rdata in an rdataslab.
+ * Return the total size of the raw rdataslab 'slab'.
  *
  * Requires:
- *\li	'slab' points to a slab.
+ *\li	'slab' points to a raw slab.
+ *
+ * Returns:
+ *\li	The number of bytes in the slab.
  */
 
 unsigned int
-dns_rdataslab_count(unsigned char *slab, unsigned int reservelen);
+dns_rdataslab_count(dns_slabheader_t *header);
 /*%<
- * Return the number of records in the rdataslab
+ * Return the number of records in the rdataslab following 'header'.
  *
  * Requires:
- *\li	'slab' points to a slab.
+ *\li	'header' points to a slabheader with an rdataslab following it.
  *
  * Returns:
  *\li	The number of records in the slab.
  */
 
 isc_result_t
-dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
-		    unsigned int reservelen, isc_mem_t *mctx,
-		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    unsigned int flags, uint32_t maxrrperset,
-		    unsigned char **tslabp);
+dns_rdataslab_merge(dns_slabheader_t *oheader, dns_slabheader_t *nheader,
+		    isc_mem_t *mctx, dns_rdataclass_t rdclass,
+		    dns_rdatatype_t type, unsigned int flags,
+		    uint32_t maxrrperset, dns_slabheader_t **theaderp);
 /*%<
- * Merge 'oslab' and 'nslab'.
+ * Merge the slabs following 'oheader' and 'nheader'.
  */
 
 isc_result_t
-dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
-		       unsigned int reservelen, isc_mem_t *mctx,
-		       dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		       unsigned int flags, unsigned char **tslabp);
+dns_rdataslab_subtract(dns_slabheader_t *mheader, dns_slabheader_t *sheader,
+		       isc_mem_t *mctx, dns_rdataclass_t rdclass,
+		       dns_rdatatype_t type, unsigned int flags,
+		       dns_slabheader_t **theaderp);
 /*%<
- * Subtract 'sslab' from 'mslab'.  If 'exact' is true then all elements
- * of 'sslab' must exist in 'mslab'.
+ * Subtract the slab following 'sheader' from the one following 'mheader'.
+ * If 'exact' is true then all elements from the 'sheader' slab must exist
+ * in the 'mheader' slab.
  *
  * XXX
  * valid flags are DNS_RDATASLAB_EXACT
  */
 
 bool
-dns_rdataslab_equal(dns_slabheader_t *slab1, dns_slabheader_t *slab2);
+dns_rdataslab_equal(dns_slabheader_t *header1, dns_slabheader_t *header2);
 /*%<
  * Compare two rdataslabs for equality.  This does _not_ do a full
  * DNSSEC comparison.
  *
  * Requires:
- *\li	'slab1' and 'slab2' point to slabs.
+ *\li	'header1' and 'header1' point to slab headers followed by slabs.
  *
  * Returns:
  *\li	true if the slabs are equal, false otherwise.
  */
 bool
-dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
+dns_rdataslab_equalx(dns_slabheader_t *header1, dns_slabheader_t *header2,
 		     dns_rdataclass_t rdclass, dns_rdatatype_t type);
 /*%<
  * Compare two rdataslabs for DNSSEC equality.
  *
  * Requires:
- *\li	'slab1' and 'slab2' point to slabs.
+ *\li	'header1' and 'header2' point to slab headers followed by slabs.
  *
  * Returns:
  *\li	true if the slabs are equal, #false otherwise.

@@ -2286,8 +2286,7 @@ expiredata(dns_db_t *db, dns_dbnode_t *node, void *data) {
 static size_t
 rdataset_size(dns_slabheader_t *header) {
 	if (EXISTS(header)) {
-		return dns_rdataslab_size((unsigned char *)header,
-					  sizeof(*header));
+		return dns_rdataslab_size(header);
 	}
 
 	return sizeof(*header);
