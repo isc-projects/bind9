@@ -695,6 +695,7 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 		}
 		switch (encoding) {
 		case sbpr_text:
+		case sbpr_dohpath:
 			RETERR(multitxt_totext(&r, target));
 			break;
 		case sbpr_port:
