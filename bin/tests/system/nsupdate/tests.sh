@@ -2366,7 +2366,7 @@ check-svcb no
 update add _dns.ns.relaxed 0 in SVCB 1 ns.relaxed dohpath=/{?dns}
 send
 END
-$DIG $DIGOPTS +tcp @10.53.0.3 _dns.ns.relaxed SVCB >dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +tcp +svcparamkeycompat @10.53.0.3 _dns.ns.relaxed SVCB >dig.out.ns3.test$n || ret=1
 grep '1 ns.relaxed. key7="/{?dns}"' dig.out.ns3.test$n >/dev/null || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
