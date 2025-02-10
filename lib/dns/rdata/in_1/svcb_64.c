@@ -377,12 +377,12 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 
 static const char *
 svcparamkey(unsigned short value, enum encoding *encoding, char *buf,
-	    size_t len) {
+	    size_t len, bool compat) {
 	size_t i;
 	int n;
 
 	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
-		if (sbpr[i].value == value && sbpr[i].initial) {
+		if (sbpr[i].value == value && (sbpr[i].initial || !compat)) {
 			*encoding = sbpr[i].encoding;
 			return sbpr[i].name;
 		}
@@ -639,6 +639,7 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255")];
 	unsigned short num;
 	int n;
+	bool compat = (tctx->flags & DNS_STYLEFLAG_SVCPARAMKEYCOMPAT) != 0;
 
 	REQUIRE(rdata->length != 0);
 
@@ -674,8 +675,9 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 		INSIST(region.length >= 2);
 		num = uint16_fromregion(&region);
 		isc_region_consume(&region, 2);
-		RETERR(str_totext(svcparamkey(num, &encoding, buf, sizeof(buf)),
-				  target));
+		RETERR(str_totext(
+			svcparamkey(num, &encoding, buf, sizeof(buf), compat),
+			target));
 
 		INSIST(region.length >= 2);
 		num = uint16_fromregion(&region);
@@ -747,7 +749,8 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 				num = uint16_fromregion(&r);
 				isc_region_consume(&r, 2);
 				RETERR(str_totext(svcparamkey(num, &encoding,
-							      buf, sizeof(buf)),
+							      buf, sizeof(buf),
+							      compat),
 						  target));
 				if (r.length != 0) {
 					RETERR(str_totext(",", target));
