@@ -595,95 +595,113 @@ cleanup:
 }
 
 isc_result_t
-dns_rdataslab_subtract(dns_slabheader_t *mheader, dns_slabheader_t *sheader,
+dns_rdataslab_subtract(dns_slabheader_t *oheader, dns_slabheader_t *sheader,
 		       isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		       dns_rdatatype_t type, unsigned int flags,
 		       dns_slabheader_t **theaderp) {
-	unsigned char *mstart = NULL, *mcurrent = NULL;
-	unsigned char *sstart = NULL, *scurrent = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned char *ocurrent = NULL, *scurrent = NULL;
 	unsigned char *tstart = NULL, *tcurrent = NULL;
-	unsigned int mcount, scount, count, tlength;
+	unsigned int ocount, scount, tlength;
 	unsigned int tcount = 0, rcount = 0;
+	slabinfo_t *oinfo = NULL, *sinfo = NULL;
 
 	REQUIRE(theaderp != NULL && *theaderp == NULL);
-	REQUIRE(mheader != NULL && sheader != NULL);
+	REQUIRE(oheader != NULL && sheader != NULL);
 
-	mcurrent = (unsigned char *)mheader + sizeof(dns_slabheader_t);
-	mcount = get_uint16(mcurrent);
-	mstart = mcurrent; /* start of the first slab item (after the count) */
+	ocurrent = (unsigned char *)oheader + sizeof(dns_slabheader_t);
+	ocount = get_uint16(ocurrent);
 
 	scurrent = (unsigned char *)sheader + sizeof(dns_slabheader_t);
 	scount = get_uint16(scurrent);
-	sstart = scurrent;
 
-	INSIST(mcount > 0 && scount > 0);
+	INSIST(ocount > 0 && scount > 0);
+
+	/* Get info about the rdatas being subtracted */
+	sinfo = isc_mem_cget(mctx, scount, sizeof(struct slabinfo));
+	for (size_t i = 0; i < scount; i++) {
+		sinfo[i].pos = scurrent;
+		dns_rdata_init(&sinfo[i].rdata);
+		rdata_from_slabitem(&scurrent, rdclass, type, &sinfo[i].rdata);
+	}
 
 	/*
-	 * Yes, this is inefficient!
-	 */
-
-	/*
-	 * Start figuring out the target length and count.
+	 * Figure out the target length. Start with the header,
+	 * plus 2 octets for the count.
 	 */
 	tlength = sizeof(dns_slabheader_t) + 2;
 
 	/*
-	 * Add in the length of rdata in the mheader slab that aren't in
-	 * the sheader slab.
+	 * Add the length of the rdatas in the old slab that
+	 * aren't being subtracted.
 	 */
-	for (size_t i = 0; i < mcount; i++) {
-		dns_rdata_t mrdata = DNS_RDATA_INIT;
-		unsigned char *mrdatabegin = mcurrent;
+	oinfo = isc_mem_cget(mctx, ocount, sizeof(struct slabinfo));
+	for (size_t i = 0; i < ocount; i++) {
+		bool matched = false;
 
-		rdata_from_slabitem(&mcurrent, rdclass, type, &mrdata);
-		for (count = 0; count < scount; count++) {
-			dns_rdata_t srdata = DNS_RDATA_INIT;
-			rdata_from_slabitem(&scurrent, rdclass, type, &srdata);
-			if (dns_rdata_compare(&mrdata, &srdata) == 0) {
+		oinfo[i].pos = ocurrent;
+		dns_rdata_init(&oinfo[i].rdata);
+		rdata_from_slabitem(&ocurrent, rdclass, type, &oinfo[i].rdata);
+
+		for (size_t j = 0; j < scount; j++) {
+			if (sinfo[j].dup) {
+				continue;
+			} else if (dns_rdata_compare(&oinfo[i].rdata,
+						     &sinfo[j].rdata) == 0)
+			{
+				matched = true;
+				oinfo[i].dup = sinfo[j].dup = true;
 				break;
 			}
 		}
-		scurrent = sstart;
-		if (count == scount) {
-			/*
-			 * This rdata isn't in the sheader slab, and thus
-			 * isn't being subtracted.
-			 */
-			tlength += (unsigned int)(mcurrent - mrdatabegin);
-			tcount++;
-		} else {
+
+		if (matched) {
+			/* This item will be subtracted. */
 			rcount++;
+		} else {
+			/*
+			 * This rdata wasn't in the slab to be subtracted,
+			 * so copy it to the target.  Add its length to
+			 * tlength and increment tcount.
+			 */
+			tlength += ocurrent - oinfo[i].pos;
+			tcount++;
 		}
 	}
-	mcurrent = mstart;
 
 	/*
-	 * Check that all the records originally existed.  The numeric
-	 * check only works as rdataslabs do not contain duplicates.
+	 * If the EXACT flag wasn't set, check that all the records that
+	 * were to be subtracted actually did exist in the original slab.
+	 * (The numeric check works here because rdataslabs do not contain
+	 * duplicates.)
 	 */
-	if (((flags & DNS_RDATASLAB_EXACT) != 0) && (rcount != scount)) {
-		return DNS_R_NOTEXACT;
+	if ((flags & DNS_RDATASLAB_EXACT) != 0 && rcount != scount) {
+		result = DNS_R_NOTEXACT;
+		goto cleanup;
 	}
 
 	/*
-	 * Don't continue if the new rdataslab would be empty.
+	 * If the resulting rdataslab would be empty, don't bother to
+	 * create a new buffer, just return.
 	 */
 	if (tcount == 0) {
-		return DNS_R_NXRRSET;
+		result = DNS_R_NXRRSET;
+		goto cleanup;
 	}
 
 	/*
-	 * If nothing is going to change, we can stop.
+	 * If nothing is going to change, stop.
 	 */
 	if (rcount == 0) {
-		return DNS_R_UNCHANGED;
+		result = DNS_R_UNCHANGED;
+		goto cleanup;
 	}
 
 	/*
-	 * Copy the reserved area from the mheader slab.
+	 * Allocate the target buffer and copy the old slab's header.
 	 */
 	tstart = isc_mem_get(mctx, tlength);
-	memmove(tstart, mheader, sizeof(dns_slabheader_t));
+	memmove(tstart, oheader, sizeof(dns_slabheader_t));
 	tcurrent = tstart + sizeof(dns_slabheader_t);
 
 	/*
@@ -692,31 +710,11 @@ dns_rdataslab_subtract(dns_slabheader_t *mheader, dns_slabheader_t *sheader,
 	put_uint16(tcurrent, tcount);
 
 	/*
-	 * Copy the parts of the mheader slab not in sheader.
+	 * Copy the parts of the old slab that didn't have duplicates.
 	 */
-	for (size_t i = 0; i < mcount; i++) {
-		dns_rdata_t mrdata = DNS_RDATA_INIT;
-		unsigned char *mrdatabegin = mcurrent;
-
-		rdata_from_slabitem(&mcurrent, rdclass, type, &mrdata);
-		for (count = 0; count < scount; count++) {
-			dns_rdata_t srdata = DNS_RDATA_INIT;
-			rdata_from_slabitem(&scurrent, rdclass, type, &srdata);
-			if (dns_rdata_compare(&mrdata, &srdata) == 0) {
-				break;
-			}
-		}
-		scurrent = sstart;
-		if (count == scount) {
-			/*
-			 * We didn't find this item in the sheader slab, so
-			 * it isn't being removed: copy it to the target
-			 * slab.
-			 */
-			unsigned int length =
-				(unsigned int)(mcurrent - mrdatabegin);
-			memmove(tcurrent, mrdatabegin, length);
-			tcurrent += length;
+	for (size_t i = 0; i < ocount; i++) {
+		if (!oinfo[i].dup) {
+			rdata_to_slabitem(&tcurrent, type, &oinfo[i].rdata);
 		}
 	}
 
@@ -724,7 +722,11 @@ dns_rdataslab_subtract(dns_slabheader_t *mheader, dns_slabheader_t *sheader,
 
 	*theaderp = (dns_slabheader_t *)tstart;
 
-	return ISC_R_SUCCESS;
+cleanup:
+	isc_mem_cput(mctx, oinfo, ocount, sizeof(struct slabinfo));
+	isc_mem_cput(mctx, sinfo, scount, sizeof(struct slabinfo));
+
+	return result;
 }
 
 bool
