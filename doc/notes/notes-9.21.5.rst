@@ -93,12 +93,8 @@ Bug Fixes
   cache database performance for any heavily contended database nodes.
   :gl:`#5130`
 
-- Fix EDE 22 timeout detection
+- Fix reporting of Extended DNS Error 22 (No Reachable Authority).
 
-  Previously, Extended DNS Error 22 (No Reachable Authority) was detected
-  when `fctx_expired` fired; a resolver would return `SERVFAIL` without
-  `EDE 22` enabled. Since this function is used as a
-  "safety net," the timeout detection should be caught earlier. This is now fixed.
-  :gl:`#5137`
-
+  This error code was previously not reported in some applicable
+  situations.  This has been fixed. :gl:`#5137`
 
