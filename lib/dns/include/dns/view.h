@@ -524,6 +524,12 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone);
  *\li	'view' is a valid, unfrozen view.
  *
  *\li	'zone' is a valid zone.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS			Success
+ *\li	#ISC_R_SHUTTINGDOWN		Shutting down
+ *\li	Other values returned by dns_zt_mount()
  */
 
 void
