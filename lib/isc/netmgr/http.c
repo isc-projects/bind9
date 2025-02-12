@@ -1367,6 +1367,22 @@ move_pending_send_callbacks(isc_nm_http_session_t *session,
 	ISC_LIST_INIT(session->pending_write_callbacks);
 }
 
+static inline void
+http_append_pending_send_request(isc_nm_http_session_t *session,
+				 isc_nmhandle_t *httphandle, isc_nm_cb_t cb,
+				 void *cbarg) {
+	REQUIRE(VALID_HTTP2_SESSION(session));
+	REQUIRE(VALID_NMHANDLE(httphandle));
+	REQUIRE(cb != NULL);
+
+	isc__nm_uvreq_t *newcb = isc__nm_uvreq_get(httphandle->sock);
+
+	newcb->cb.send = cb;
+	newcb->cbarg = cbarg;
+	isc_nmhandle_attach(httphandle, &newcb->handle);
+	ISC_LIST_APPEND(session->pending_write_callbacks, newcb, link);
+}
+
 static bool
 http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		   isc_nm_cb_t cb, void *cbarg) {
@@ -1378,10 +1394,25 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	size_t max_total_write_size = 0;
 #endif /* ENABLE_HTTP_WRITE_BUFFERING */
 
-	if (!http_session_active(session) ||
-	    (!nghttp2_session_want_write(session->ngsession) &&
-	     session->pending_write_data == NULL))
+	if (!http_session_active(session)) {
+		if (cb != NULL) {
+			isc__nm_uvreq_t *req =
+				isc__nm_uvreq_get(httphandle->sock);
+
+			req->cb.send = cb;
+			req->cbarg = cbarg;
+			isc_nmhandle_attach(httphandle, &req->handle);
+			isc__nm_sendcb(httphandle->sock, req, ISC_R_CANCELED,
+				       true);
+		}
+		return false;
+	} else if (!nghttp2_session_want_write(session->ngsession) &&
+		   session->pending_write_data == NULL)
 	{
+		if (cb != NULL) {
+			http_append_pending_send_request(session, httphandle,
+							 cb, cbarg);
+		}
 		return false;
 	}
 
@@ -1448,16 +1479,8 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		 * will flush the buffer.
 		 */
 		if (cb != NULL) {
-			isc__nm_uvreq_t *newcb = NULL;
-
-			INSIST(VALID_NMHANDLE(httphandle));
-
-			newcb = isc__nm_uvreq_get(httphandle->sock);
-			newcb->cb.send = cb;
-			newcb->cbarg = cbarg;
-			isc_nmhandle_attach(httphandle, &newcb->handle);
-			ISC_LIST_APPEND(session->pending_write_callbacks, newcb,
-					link);
+			http_append_pending_send_request(session, httphandle,
+							 cb, cbarg);
 		}
 		goto nothing_to_send;
 	} else if (session->sending == 0 && total == 0 &&
@@ -1499,6 +1522,10 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 
 	if (total == 0) {
 		/* No data returned */
+		if (cb != NULL) {
+			http_append_pending_send_request(session, httphandle,
+							 cb, cbarg);
+		}
 		goto nothing_to_send;
 	}
 
