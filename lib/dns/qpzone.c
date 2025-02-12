@@ -635,14 +635,9 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	dns_qpmulti_write(qpdb->tree, &qp);
 	qpdb->origin = new_qpznode(qpdb, &qpdb->common.origin);
 	result = dns_qp_insert(qp, qpdb->origin, 0);
+	INSIST(result == ISC_R_SUCCESS);
 	qpdb->origin->nsec = DNS_DB_NSEC_NORMAL;
 	dns_qpmulti_commit(qpdb->tree, &qp);
-
-	if (result != ISC_R_SUCCESS) {
-		INSIST(result != ISC_R_EXISTS);
-		qpzonedb_detach(&qpdb);
-		return result;
-	}
 
 	/*
 	 * Add an apex node to the NSEC3 tree so that NSEC3 searches
@@ -653,13 +648,8 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	qpdb->nsec3_origin = new_qpznode(qpdb, &qpdb->common.origin);
 	qpdb->nsec3_origin->nsec = DNS_DB_NSEC_NSEC3;
 	result = dns_qp_insert(qp, qpdb->nsec3_origin, 0);
+	INSIST(result == ISC_R_SUCCESS);
 	dns_qpmulti_commit(qpdb->nsec3, &qp);
-
-	if (result != ISC_R_SUCCESS) {
-		INSIST(result != ISC_R_EXISTS);
-		qpzonedb_detach(&qpdb);
-		return result;
-	}
 
 	/*
 	 * Keep the current version in the open list so that list operation
@@ -1630,13 +1620,14 @@ loading_addnode(qpz_load_t *loadctx, const dns_name_t *name,
 	 * We're adding an NSEC record, so create a node in the nsec tree
 	 * too. This tree speeds searches for closest NSECs that would
 	 * otherwise need to examine many irrelevant nodes in large TLDs.
+	 * If dns_qp_insert() fails, it means there's already an NSEC
+	 * node there, so we can just detach the new one we created and
+	 * move on.
 	 */
-	nsecnode = new_qpznode(qpdb, name);
-	result = dns_qp_insert(loadctx->nsec, nsecnode, 0);
 	node->nsec = DNS_DB_NSEC_HAS_NSEC;
-	if (result == ISC_R_SUCCESS) {
-		nsecnode->nsec = DNS_DB_NSEC_NSEC;
-	}
+	nsecnode = new_qpznode(qpdb, name);
+	nsecnode->nsec = DNS_DB_NSEC_NSEC;
+	(void)dns_qp_insert(loadctx->nsec, nsecnode, 0);
 	qpznode_detach(&nsecnode);
 
 done:
@@ -2467,21 +2458,20 @@ findnodeintree(qpzonedb_t *qpdb, const dns_name_t *name, bool create,
 
 		node = new_qpznode(qpdb, name);
 		result = dns_qp_insert(qp, node, 0);
+		INSIST(result == ISC_R_SUCCESS);
 		qpznode_unref(node);
 
-		if (result == ISC_R_SUCCESS) {
-			if (nsec3) {
-				node->nsec = DNS_DB_NSEC_NSEC3;
-			} else {
-				addwildcards(qpdb, qp, name);
-				if (dns_name_iswildcard(name)) {
-					wildcardmagic(qpdb, qp, name);
-				}
+		if (nsec3) {
+			node->nsec = DNS_DB_NSEC_NSEC3;
+		} else {
+			addwildcards(qpdb, qp, name);
+			if (dns_name_iswildcard(name)) {
+				wildcardmagic(qpdb, qp, name);
 			}
 		}
-
-		INSIST(node->nsec == DNS_DB_NSEC_NSEC3 || !nsec3);
 	}
+
+	INSIST(node->nsec == DNS_DB_NSEC_NSEC3 || !nsec3);
 
 	qpznode_acquire(qpdb, node DNS__DB_FLARG_PASS);
 
@@ -4654,15 +4644,16 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 
 	result = ISC_R_SUCCESS;
 	if (nsec != NULL) {
+		node->nsec = DNS_DB_NSEC_HAS_NSEC;
+
+		/*
+		 * If it fails, there was already an NSEC node,
+		 * so we can detach the new one we created and
+		 * move on.
+		 */
 		qpznode_t *nsecnode = new_qpznode(qpdb, name);
-		result = dns_qp_insert(nsec, nsecnode, 0);
-		if (result == ISC_R_SUCCESS) {
-			nsecnode->nsec = DNS_DB_NSEC_NSEC;
-			node->nsec = DNS_DB_NSEC_HAS_NSEC;
-		} else if (result == ISC_R_EXISTS) {
-			node->nsec = DNS_DB_NSEC_HAS_NSEC;
-			result = ISC_R_SUCCESS;
-		}
+		nsecnode->nsec = DNS_DB_NSEC_NSEC;
+		(void)dns_qp_insert(nsec, nsecnode, 0);
 		qpznode_detach(&nsecnode);
 	}
 
