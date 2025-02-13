@@ -1517,8 +1517,20 @@ nothing_to_send:
 static inline bool
 http_too_many_active_streams(isc_nm_http_session_t *session) {
 	const uint64_t active_streams = session->received - session->processed;
-	const uint64_t max_active_streams = ISC_MIN(
-		STREAM_CLIENTS_PER_CONN, session->max_concurrent_streams);
+	/*
+	 * The motivation behind capping the maximum active streams number
+	 * to a third of maximum streams is to allow the value to scale
+	 * with the max number of streams.
+	 *
+	 * We do not want to have too many active streams at once as every
+	 * stream is processed as a separate virtual connection by the
+	 * higher level code. If a client sends a bulk of requests without
+	 * waiting for the previous ones to complete we might want to
+	 * throttle it as it might be not a friend knocking at the
+	 * door. We already have some job to do for it.
+	 */
+	const uint64_t max_active_streams = ISC_MAX(
+		STREAM_CLIENTS_PER_CONN, session->max_concurrent_streams / 3);
 
 	if (session->client) {
 		return false;
