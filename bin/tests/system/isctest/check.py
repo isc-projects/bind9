@@ -102,6 +102,12 @@ def is_executable(cmd: str, errmsg: str) -> None:
     assert executable is not None, errmsg
 
 
+def named_alive(named_proc, resolver_ip):
+    assert named_proc.poll() is None, "named isn't running"
+    msg = dns.message.make_query("version.bind", "TXT", "CH")
+    isctest.query.tcp(msg, resolver_ip, expected_rcode=dns_rcode.NOERROR)
+
+
 def notauth(message: dns.message.Message) -> None:
     rcode(message, dns.rcode.NOTAUTH)
 
