@@ -188,6 +188,8 @@ struct isc_nm_http_session {
 	isc__nm_http_pending_callbacks_t pending_write_callbacks;
 	isc_buffer_t *pending_write_data;
 
+	size_t data_in_flight;
+
 	/*
 	 * The statistical values below are for usage on server-side
 	 * only. They are meant to detect clients that are taking too many
@@ -1045,6 +1047,19 @@ client_submit_request(isc_nm_http_session_t *session, http_cstream_t *stream) {
 	return ISC_R_SUCCESS;
 }
 
+static inline size_t
+http_in_flight_data_size(isc_nm_http_session_t *session) {
+	size_t in_flight = 0;
+
+	if (session->pending_write_data != NULL) {
+		in_flight += isc_buffer_usedlength(session->pending_write_data);
+	}
+
+	in_flight += session->data_in_flight;
+
+	return in_flight;
+}
+
 static ssize_t
 http_process_input_data(isc_nm_http_session_t *session,
 			isc_buffer_t *input_data) {
@@ -1096,13 +1111,14 @@ http_process_input_data(isc_nm_http_session_t *session,
 			(session->received - session->processed);
 
 		/*
-		 * If there are non completed send requests in flight -let's
-		 * not process any incoming data, as it could lead to piling
-		 * up too much send data in send buffers. With many clients
+		 * If there is too much outgoing data in flight - let's not
+		 * process any incoming data, as it could lead to piling up
+		 * too much send data in send buffers. With many clients
 		 * connected it can lead to excessive memory consumption on
 		 * the server instance.
 		 */
-		if (session->sending > 0) {
+		const size_t in_flight = http_in_flight_data_size(session);
+		if (in_flight >= ISC_NETMGR_TCP_SENDBUF_SIZE) {
 			break;
 		}
 
@@ -1314,6 +1330,8 @@ http_writecb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		isc_nmhandle_detach(&req->httphandle);
 	}
 
+	session->data_in_flight -=
+		isc_buffer_usedlength(req->pending_write_data);
 	isc_buffer_free(&req->pending_write_data);
 	session->processed += req->submitted;
 	isc_mem_put(session->mctx, req, sizeof(*req));
@@ -1488,6 +1506,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 
 	session->sending++;
 	isc_buffer_usedregion(send->pending_write_data, &send_data);
+	session->data_in_flight += send_data.length;
 	isc_nm_send(transphandle, &send_data, http_writecb, send);
 	return true;
 nothing_to_send:
