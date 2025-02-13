@@ -19,18 +19,21 @@ with open(".gitlab-ci.yml", encoding="utf-8") as gitlab_ci_yml:
     anchors = yaml.load(gitlab_ci_yml, Loader=yaml.Loader)
 
 for tsan_job in "gcc:tsan", "clang:tsan":
-    tsan_stress_test_job = anchors[f"system:{tsan_job}"]
-    tsan_stress_test_job["stage"] = "test"
-    tsan_stress_test_job["rules"] = [{"if": '$CI_PIPELINE_SOURCE == "parent_pipeline"'}]
-    tsan_stress_test_job["parallel"] = NUMBER_OF_TESTS_PER_TSAN_JOB
-    tsan_stress_test_job["needs"] = [
-        {"pipeline": "$PARENT_PIPELINE_ID", "job": tsan_job}
-    ]
-    del tsan_stress_test_job["only"]
+    for test_type in "unit", "system":
+        tsan_stress_test_job = anchors[f"{test_type}:{tsan_job}"]
+        tsan_stress_test_job["stage"] = "test"
+        tsan_stress_test_job["rules"] = [
+            {"if": '$CI_PIPELINE_SOURCE == "parent_pipeline"'}
+        ]
+        tsan_stress_test_job["parallel"] = NUMBER_OF_TESTS_PER_TSAN_JOB
+        tsan_stress_test_job["needs"] = [
+            {"pipeline": "$PARENT_PIPELINE_ID", "job": tsan_job}
+        ]
+        del tsan_stress_test_job["only"]
 
-    print(
-        yaml.dump(
-            {f"system:{tsan_job}:stress": tsan_stress_test_job},
-            Dumper=yaml.Dumper,
+        print(
+            yaml.dump(
+                {f"{test_type}:{tsan_job}:stress": tsan_stress_test_job},
+                Dumper=yaml.Dumper,
+            )
         )
-    )
