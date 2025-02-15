@@ -250,6 +250,46 @@ echo_i "check that journal is applied to zone with keydata placeholder record"
 ret=0
 grep 'managed-keys-zone: journal rollforward completed successfully: up to date' ns2/named.run >/dev/null 2>&1 || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "check named-makejournal with multiple transactions ($n)"
+ret=0
+# fail if there's no delta to journal
+$MAKEJOURNAL example zones/example.db zones/example.db >makejournal.out.test$n 2>&1 && ret=1
+grep -q "Error: SOA serial (1) unchanged between files" makejournal.out.test$n || ret=1
+# add first delta to journal
+$MAKEJOURNAL example zones/example.db zones/example2.db >/dev/null 2>&1 || ret=1
+# warn if the new transaction doesn't update the serial
+$MAKEJOURNAL example zones/example.db zones/example2.db >makejournal.out.test$n 2>&1 || ret=1
+grep -q "Journal zones/example.db.jnl already has serial 2" makejournal.out.test$n || ret=1
+# now add a second delta and count the transactions
+$MAKEJOURNAL example zones/example.db zones/example3.db >/dev/null 2>&1 || ret=1
+$JOURNALPRINT zones/example.db.jnl >journalprint.out.test$n
+soas=$(awk '$5 == "SOA" {print}' journalprint.out.test$n | wc -l)
+[ "$soas" -eq 4 ] || ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "check named-makejournal with bad serial numbers ($n)"
+ret=0
+# fail if the serial number goes backwards
+rm -f zones/example.db.jnl zones/example3.db.jnl
+$MAKEJOURNAL example zones/example3.db zones/example.db >makejournal.out.test$n 2>&1 && ret=1
+grep -q "malformed transaction: serial number did not increase" makejournal.out.test$n || ret=1
+# fail if the old serial number is missing from the journal
+$MAKEJOURNAL example zones/example.db zones/example3.db >makejournal.out.test$n 2>&1 || ret=1
+# rename the 1->3 journal so it will be used for 2->3.
+mv zones/example.db.jnl zones/example2.db.jnl
+$MAKEJOURNAL example zones/example2.db zones/example3.db >makejournal.out.test$n 2>&1 && ret=1
+grep -q "journal zones/example2.db.jnl out of sync with zone" makejournal.out.test$n || ret=1
+# increase serial number by exactly 0x80000000
+rm -f zones/example3.db.jnl
+$MAKEJOURNAL example zones/example3.db zones/example-hi.db >makejournal.out.test$n 2>&1 && ret=1
+grep -q "malformed transaction: serial number did not increase" makejournal.out.test$n || ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
