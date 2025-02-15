@@ -2635,13 +2635,25 @@ step(qpz_search_t *search, dns_qpiter_t *it, direction_t direction,
 	while (result == ISC_R_SUCCESS) {
 		isc_rwlock_t *nlock = &qpdb->buckets[node->locknum].lock;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
+		dns_slabheader_t *header_next = NULL;
 
 		NODE_RDLOCK(nlock, &nlocktype);
-		for (header = node->data; header != NULL; header = header->next)
+		for (header = node->data; header != NULL; header = header_next)
 		{
-			if (header->serial <= search->serial &&
-			    !IGNORE(header) && !NONEXISTENT(header))
-			{
+			header_next = header->next;
+			while (header != NULL) {
+				if (header->serial <= search->serial &&
+				    !IGNORE(header))
+				{
+					if (NONEXISTENT(header)) {
+						header = NULL;
+					}
+					break;
+				} else {
+					header = header->down;
+				}
+			}
+			if (header != NULL) {
 				break;
 			}
 		}
