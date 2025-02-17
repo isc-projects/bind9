@@ -642,6 +642,14 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
    prefix-length of zero, which signals a resolver that the client's
    address information must *not* be used when resolving this query.
 
+.. option:: +svcparamkeycompat, +nosvcparamkeycompat
+
+   This option sets [or does not set] the backward-compatible representation of
+   the Service Parameter Keys (SvcParamKeys) for SVCB records, in which case
+   the keys, which were not defined initially in :rfc:`9460` are represented
+   in their opaque "keyN"-like format, where "N" is their numerical value. The
+   default is ``+nosvcparamkeycompat``.
+
 .. option:: +tcflag, +notcflag
 
    This option sets [or does not set] the TC (TrunCation) bit in the query. The default is

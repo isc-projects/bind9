@@ -173,6 +173,9 @@ struct dns_rdata {
 /*% Print AAAA record fully expanded */
 #define DNS_STYLEFLAG_EXPANDAAAA 0x00000020ULL
 
+/*% Print non-initial Service Parameter Keys in backward-compatible format */
+#define DNS_STYLEFLAG_SVCPARAMKEYCOMPAT 0x00000040ULL
+
 #define DNS_RDATA_DOWNCASE	 DNS_NAME_DOWNCASE
 #define DNS_RDATA_CHECKNAMES	 DNS_NAME_CHECKNAMES
 #define DNS_RDATA_CHECKNAMESFAIL DNS_NAME_CHECKNAMESFAIL

@@ -303,6 +303,8 @@ help(void) {
 	       "statistics)\n"
 	       "                 +subnet=addr        (Set edns-client-subnet "
 	       "option)\n"
+	       "                 +[no]svcparamkeycompat (Display backward-"
+	       "compatible SvcParamKey names (keyN) for non-initial entries)\n"
 	       "                 +[no]tcflag         (Set TC flag in query "
 	       "(+[no]tcflag))\n"
 	       "                 +[no]tcp            (TCP mode (+[no]vc))\n"
@@ -502,6 +504,9 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	if (query->lookup->expandaaaa) {
 		styleflags |= DNS_STYLEFLAG_EXPANDAAAA;
 	}
+	if (query->lookup->svcparamkeycompat) {
+		styleflags |= DNS_STYLEFLAG_SVCPARAMKEYCOMPAT;
+	}
 	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0, splitwidth,
 				     " ", buf);
 	if (result == ISC_R_NOSPACE) {
@@ -694,6 +699,9 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		}
 		if (query->lookup->expandaaaa) {
 			styleflags |= DNS_STYLEFLAG_EXPANDAAAA;
+		}
+		if (query->lookup->svcparamkeycompat) {
+			styleflags |= DNS_STYLEFLAG_SVCPARAMKEYCOMPAT;
 		}
 		if (query->lookup->multiline) {
 			styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
@@ -2393,6 +2401,10 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				warn("Couldn't parse client");
 				goto exit_or_usage;
 			}
+			break;
+		case 'v': /* svcparamkeycompat */
+			FULLCHECK("svcparamkeycompat");
+			lookup->svcparamkeycompat = state;
 			break;
 		default:
 			goto invalid_option;

@@ -758,6 +758,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->nocrypto = lookold->nocrypto;
 	looknew->ttlunits = lookold->ttlunits;
 	looknew->expandaaaa = lookold->expandaaaa;
+	looknew->svcparamkeycompat = lookold->svcparamkeycompat;
 	looknew->qr = lookold->qr;
 	looknew->idnin = lookold->idnin;
 	looknew->idnout = lookold->idnout;
