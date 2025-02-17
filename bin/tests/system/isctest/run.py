@@ -28,6 +28,7 @@ def cmd(
     log_stderr=True,
     input_text: Optional[bytes] = None,
     raise_on_exception=True,
+    env: Optional[dict] = None,
 ):
     """Execute a command with given args as subprocess."""
     isctest.log.debug(f"command: {' '.join(args)}")
@@ -43,6 +44,9 @@ def cmd(
                     f"~~~ cmd stderr ~~~\n{procdata.stderr.decode('utf-8')}\n~~~~~~~~~~~~~~~~~~"
                 )
 
+    if env is None:
+        env = dict(os.environ)
+
     try:
         proc = subprocess.run(
             args,
@@ -52,6 +56,7 @@ def cmd(
             check=True,
             cwd=cwd,
             timeout=timeout,
+            env=env,
         )
         print_debug_logs(proc)
         return proc
