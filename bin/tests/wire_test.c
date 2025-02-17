@@ -63,7 +63,7 @@ fromhex(char c) {
 static void
 usage(void) {
 	fprintf(stderr, "wire_test [-b] [-d] [-p] [-r] [-s]\n");
-	fprintf(stderr, "          [-m {usage|trace|record|size|mctx}]\n");
+	fprintf(stderr, "          [-m {usage|trace|record}]\n");
 	fprintf(stderr, "          [filename]\n\n");
 	fprintf(stderr, "\t-b\tBest-effort parsing (ignore some errors)\n");
 	fprintf(stderr, "\t-d\tRead input as raw binary data\n");
