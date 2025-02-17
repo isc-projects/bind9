@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <isc/ascii.h>
 #include <isc/async.h>
@@ -359,6 +360,8 @@ struct fetchctx {
 	fetchstate_t state;
 	bool cloned;
 	bool spilled;
+	uint_fast32_t allowed;
+	uint_fast32_t dropped;
 	ISC_LINK(struct fetchctx) link;
 	ISC_LIST(dns_fetchresponse_t) resps;
 
@@ -10559,6 +10562,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			}
 			if (fctx->spilled) {
 				inc_stats(res, dns_resstatscounter_clientquota);
+				fctx->dropped++;
 				result = DNS_R_DROP;
 				goto unlock;
 			}
@@ -10577,6 +10581,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	if (fctx->depth > depth) {
 		fctx->depth = depth;
 	}
+
+	fctx->allowed++;
 
 	fctx_join(fctx, loop, client, id, cb, arg, edectx, rdataset,
 		  sigrdataset, fetch);
@@ -10964,22 +10970,68 @@ dns_resolver_dumpfetches(dns_resolver_t *res, isc_statsformat_t format,
 	REQUIRE(fp != NULL);
 	REQUIRE(format == isc_statsformat_file);
 
-	RWLOCK(&res->counters_lock, isc_rwlocktype_read);
-	isc_hashmap_iter_create(res->counters, &it);
+	LOCK(&res->lock);
+	fprintf(fp, "clients-per-query: %u/%u/%u\n", res->spillatmin,
+		res->spillat, res->spillatmax);
+	UNLOCK(&res->lock);
+
+	RWLOCK(&res->fctxs_lock, isc_rwlocktype_read);
+	isc_hashmap_iter_create(res->fctxs, &it);
 	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_hashmap_iter_next(it))
 	{
-		fctxcount_t *counter = NULL;
-		isc_hashmap_iter_current(it, (void **)&counter);
+		char typebuf[DNS_RDATATYPE_FORMATSIZE];
+		char timebuf[1024];
+		fetchctx_t *fctx = NULL;
+		dns_fetchresponse_t *resp = NULL;
+		resquery_t *query = NULL;
+		unsigned int resp_count = 0, query_count = 0;
 
-		dns_name_print(counter->domain, fp);
+		isc_hashmap_iter_current(it, (void **)&fctx);
+
+		LOCK(&fctx->lock);
+		dns_name_print(fctx->name, fp);
+
+		isc_time_formatISO8601ms(&fctx->start, timebuf,
+					 sizeof(timebuf));
+
+		dns_rdatatype_format(fctx->type, typebuf, sizeof(typebuf));
+
+		fprintf(fp, "/%s (%s): started %s, ", typebuf,
+			fctx->state == fetchstate_active ? "active" : "done",
+			timebuf);
+
+		for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL;
+		     resp = ISC_LIST_NEXT(resp, link))
+		{
+			resp_count++;
+		}
+
+		for (query = ISC_LIST_HEAD(fctx->queries); query != NULL;
+		     query = ISC_LIST_NEXT(query, link))
+		{
+			query_count++;
+		}
+
+		if (isc_timer_running(fctx->timer)) {
+			strlcpy(timebuf, "expires ", sizeof(timebuf));
+			isc_time_formatISO8601ms(&fctx->expires, timebuf + 8,
+						 sizeof(timebuf) - 8);
+		} else {
+			strlcpy(timebuf, "not running", sizeof(timebuf));
+		}
+
 		fprintf(fp,
-			": %" PRIuFAST32 " active (%" PRIuFAST32
-			" spilled, %" PRIuFAST32 " allowed)\n",
-			counter->count, counter->dropped, counter->allowed);
+			"fetches: %u active (%" PRIuFAST32
+			" allowed, %" PRIuFAST32
+			" dropped%s), queries: %u, timer %s\n",
+			resp_count, fctx->allowed, fctx->dropped,
+			fctx->spilled ? ", spilled" : "", query_count, timebuf);
+
+		UNLOCK(&fctx->lock);
 	}
-	RWUNLOCK(&res->counters_lock, isc_rwlocktype_read);
 	isc_hashmap_iter_destroy(&it);
+	RWUNLOCK(&res->fctxs_lock, isc_rwlocktype_read);
 }
 
 isc_result_t
