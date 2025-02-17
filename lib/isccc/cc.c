@@ -40,12 +40,12 @@
 #include <isc/hmac.h>
 #include <isc/result.h>
 #include <isc/safe.h>
+#include <isc/symtab.h>
 
 #include <isccc/alist.h>
 #include <isccc/base64.h>
 #include <isccc/cc.h>
 #include <isccc/sexpr.h>
-#include <isccc/symtab.h>
 #include <isccc/symtype.h>
 #include <isccc/util.h>
 
@@ -938,8 +938,7 @@ isccc_cc_lookupuint32(isccc_sexpr_t *alist, const char *key, uint32_t *uintp) {
 }
 
 static void
-symtab_undefine(char *key, unsigned int type, isccc_symvalue_t value,
-		void *arg) {
+symtab_undefine(char *key, unsigned int type, isc_symvalue_t value, void *arg) {
 	UNUSED(type);
 	UNUSED(value);
 	UNUSED(arg);
@@ -948,7 +947,7 @@ symtab_undefine(char *key, unsigned int type, isccc_symvalue_t value,
 }
 
 static bool
-symtab_clean(char *key, unsigned int type, isccc_symvalue_t value, void *arg) {
+symtab_clean(char *key, unsigned int type, isc_symvalue_t value, void *arg) {
 	isccc_time_t *now;
 
 	UNUSED(key);
@@ -965,15 +964,14 @@ symtab_clean(char *key, unsigned int type, isccc_symvalue_t value, void *arg) {
 	return true;
 }
 
-isc_result_t
-isccc_cc_createsymtab(isccc_symtab_t **symtabp) {
-	return isccc_symtab_create(11897, symtab_undefine, NULL, false,
-				   symtabp);
+void
+isccc_cc_createsymtab(isc_mem_t *mctx, isc_symtab_t **symtabp) {
+	isc_symtab_create(mctx, symtab_undefine, NULL, false, symtabp);
 }
 
 void
-isccc_cc_cleansymtab(isccc_symtab_t *symtab, isccc_time_t now) {
-	isccc_symtab_foreach(symtab, symtab_clean, &now);
+isccc_cc_cleansymtab(isc_symtab_t *symtab, isccc_time_t now) {
+	isc_symtab_foreach(symtab, symtab_clean, &now);
 }
 
 static bool
@@ -992,7 +990,7 @@ has_whitespace(const char *str) {
 }
 
 isc_result_t
-isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
+isccc_cc_checkdup(isc_symtab_t *symtab, isccc_sexpr_t *message,
 		  isccc_time_t now) {
 	const char *_frm;
 	const char *_to;
@@ -1000,7 +998,7 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 	isc_result_t result;
 	char *key;
 	size_t len;
-	isccc_symvalue_t value;
+	isc_symvalue_t value;
 	isccc_sexpr_t *_ctrl;
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
@@ -1047,8 +1045,8 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 	}
 	snprintf(key, len, "%s;%s;%s;%s", _frm, _to, _ser, _tim);
 	value.as_uinteger = now;
-	result = isccc_symtab_define(symtab, key, ISCCC_SYMTYPE_CCDUP, value,
-				     isccc_symexists_reject);
+	result = isc_symtab_define(symtab, key, ISCCC_SYMTYPE_CCDUP, value,
+				   isc_symexists_reject);
 	if (result != ISC_R_SUCCESS) {
 		free(key);
 		return result;

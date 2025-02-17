@@ -112,8 +112,7 @@ add(char *key, int value) {
 	}
 
 	if (symtab == NULL) {
-		isc_symtab_create(sym_mctx, 100, freekey, sym_mctx, false,
-				  &symtab);
+		isc_symtab_create(sym_mctx, freekey, sym_mctx, false, &symtab);
 	}
 
 	key = isc_mem_strdup(sym_mctx, key);

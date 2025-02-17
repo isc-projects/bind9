@@ -31,13 +31,13 @@
 #include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
+#include <isc/symtab.h>
 #include <isc/util.h>
 
 #include <isccc/alist.h>
 #include <isccc/cc.h>
 #include <isccc/ccmsg.h>
 #include <isccc/sexpr.h>
-#include <isccc/symtab.h>
 #include <isccc/util.h>
 
 #include <isccfg/check.h>
@@ -108,7 +108,7 @@ struct named_controls {
 	controllistenerlist_t listeners;
 	bool shuttingdown;
 	isc_mutex_t symtab_lock;
-	isccc_symtab_t *symtab;
+	isc_symtab_t *symtab;
 };
 
 static isc_result_t
@@ -1336,7 +1336,6 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 isc_result_t
 named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
 	isc_mem_t *mctx = server->mctx;
-	isc_result_t result;
 	named_controls_t *controls = isc_mem_get(mctx, sizeof(*controls));
 
 	*controls = (named_controls_t){
@@ -1347,14 +1346,9 @@ named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
 
 	isc_mutex_init(&controls->symtab_lock);
 	LOCK(&controls->symtab_lock);
-	result = isccc_cc_createsymtab(&controls->symtab);
+	isccc_cc_createsymtab(mctx, &controls->symtab);
 	UNLOCK(&controls->symtab_lock);
 
-	if (result != ISC_R_SUCCESS) {
-		isc_mutex_destroy(&controls->symtab_lock);
-		isc_mem_put(server->mctx, controls, sizeof(*controls));
-		return result;
-	}
 	*ctrlsp = controls;
 	return ISC_R_SUCCESS;
 }
@@ -1368,7 +1362,7 @@ named_controls_destroy(named_controls_t **ctrlsp) {
 	REQUIRE(ISC_LIST_EMPTY(controls->listeners));
 
 	LOCK(&controls->symtab_lock);
-	isccc_symtab_destroy(&controls->symtab);
+	isc_symtab_destroy(&controls->symtab);
 	UNLOCK(&controls->symtab_lock);
 	isc_mutex_destroy(&controls->symtab_lock);
 	isc_mem_put(controls->server->mctx, controls, sizeof(*controls));
