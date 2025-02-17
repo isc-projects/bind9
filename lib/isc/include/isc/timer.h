@@ -156,4 +156,14 @@ isc_timer_destroy(isc_timer_t **timerp);
  *\li	*timerp is NULL.
  */
 
+bool
+isc_timer_running(isc_timer_t *timer);
+/*%<
+ * Return true if the timer has been started.
+ *
+ * Requires:
+ *
+ *\li	'timer' is a valid timer*
+ */
+
 ISC_LANG_ENDDECLS
