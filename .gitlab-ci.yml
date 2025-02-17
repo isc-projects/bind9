@@ -117,16 +117,55 @@ stages:
     - runner-manager
     - aarch64
 
-# Autoscaling GitLab Runner on AWS EC2 (FreeBSD)
-
-.freebsd-stress-amd64: &freebsd_stress_amd64
+.freebsd-autoscaler-13-amd64-tags: &freebsd_autoscaler_13_amd64_tags
   tags:
-    - bsd-stress-test
-    - aws
+    - amd64
     - autoscaler
+    - aws
+    - bsd-stress-test-1
     - shell
     - stress-test
+
+.freebsd-autoscaler-14-amd64-tags: &freebsd_autoscaler_14_amd64_tags
+  tags:
     - amd64
+    - autoscaler
+    - aws
+    - bsd-stress-test-2
+    - shell
+    - stress-test
+
+.freebsd-autoscaler-amd64: &freebsd_autoscaler_amd64
+  variables:
+    CC: clang
+    CFLAGS: "${CFLAGS_COMMON} -Og"
+    # Even though there's only one job per runtime environment, the GitLab
+    # "instance" executor insists on cloning the Git repository to a path that
+    # contains a variable number from zero to the "maximum concurrent instances
+    # count" allowed on the GitLab Runner. See the "0" directory in this
+    # example path: /home/ec2-user/builds/t1_4FZzvz/0/isc-projects/bind9/.git/.
+    #
+    # This is not a problem for isolated jobs like "stress" tests that depend
+    # on no other jobs. However, it is a problem for jobs that need other jobs'
+    # artifacts. For example, a system test job that has its Git repo cloned to
+    # the "/1/" sub-path will fail if it downloads build job artifacts that
+    # have ./configure output files with "/0/" in its sub-path recorded.
+    GIT_CLONE_PATH: "/home/ec2-user/builds/${CI_PROJECT_PATH}/"
+    # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
+    # incompatibility; see https://bugs.freebsd.org/275241.
+    EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE} --with-gssapi=/usr/local/bin/krb5-config"
+
+# Autoscaling GitLab Runner on AWS EC2 (FreeBSD 13)
+
+.freebsd-autoscaler-13-amd64: &freebsd_autoscaler_13_amd64
+  <<: *freebsd_autoscaler_amd64
+  <<: *freebsd_autoscaler_13_amd64_tags
+
+# Autoscaling GitLab Runner on AWS EC2 (FreeBSD 14)
+
+.freebsd-autoscaler-14-amd64: &freebsd_autoscaler_14_amd64
+  <<: *freebsd_autoscaler_amd64
+  <<: *freebsd_autoscaler_14_amd64_tags
 
 ### Docker Image Templates
 
@@ -213,14 +252,6 @@ stages:
   <<: *debian_bookworm_amd64_image
 
 ### QCOW2 Image Templates
-
-.freebsd-13-amd64: &freebsd_13_amd64_image
-  image: "freebsd-13.4-x86_64"
-  <<: *libvirt_amd64
-
-.freebsd-14-amd64: &freebsd_14_amd64_image
-  image: "freebsd-14.2-x86_64"
-  <<: *libvirt_amd64
 
 .openbsd-amd64: &openbsd_amd64_image
   image: "openbsd-7.6-x86_64"
@@ -1427,27 +1458,19 @@ unit:clang:bookworm:amd64:
 # Jobs for Clang builds on FreeBSD 13 (amd64)
 
 clang:freebsd13:amd64:
-  variables:
-    CFLAGS: "${CFLAGS_COMMON}"
-    # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
-    # incompatibility; see https://bugs.freebsd.org/275241.
-    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT} --with-gssapi=/usr/local/bin/krb5-config"
-    USER: gitlab-runner
-  <<: *freebsd_13_amd64_image
   <<: *build_job
+  <<: *freebsd_autoscaler_13_amd64
 
 system:clang:freebsd13:amd64:
-  <<: *freebsd_13_amd64_image
   <<: *system_test_job
-  variables:
-    USER: gitlab-runner
+  <<: *freebsd_autoscaler_13_amd64
   needs:
     - job: clang:freebsd13:amd64
       artifacts: true
 
 unit:clang:freebsd13:amd64:
-  <<: *freebsd_13_amd64_image
   <<: *unit_test_job
+  <<: *freebsd_autoscaler_13_amd64
   needs:
     - job: clang:freebsd13:amd64
       artifacts: true
@@ -1455,27 +1478,19 @@ unit:clang:freebsd13:amd64:
 # Jobs for Clang builds on FreeBSD 14 (amd64)
 
 clang:freebsd14:amd64:
-  variables:
-    CFLAGS: "${CFLAGS_COMMON}"
-    # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
-    # incompatibility; see https://bugs.freebsd.org/275241.
-    EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE} --with-gssapi=/usr/local/bin/krb5-config"
-    USER: gitlab-runner
-  <<: *freebsd_14_amd64_image
   <<: *build_job
+  <<: *freebsd_autoscaler_14_amd64
 
 system:clang:freebsd14:amd64:
-  <<: *freebsd_14_amd64_image
   <<: *system_test_job
-  variables:
-    USER: gitlab-runner
+  <<: *freebsd_autoscaler_14_amd64
   needs:
     - job: clang:freebsd14:amd64
       artifacts: true
 
 unit:clang:freebsd14:amd64:
-  <<: *freebsd_14_amd64_image
   <<: *unit_test_job
+  <<: *freebsd_autoscaler_14_amd64
   needs:
     - job: clang:freebsd14:amd64
       artifacts: true
