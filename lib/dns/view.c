@@ -1010,13 +1010,22 @@ dns_view_thaw(dns_view_t *view) {
 
 isc_result_t
 dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SHUTTINGDOWN;
+	dns_zt_t *zt = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
-	REQUIRE(view->zonetable != NULL);
 
-	result = dns_zt_mount(view->zonetable, zone);
+	LOCK(&view->lock);
+	if (view->zonetable != NULL) {
+		dns_zt_attach(view->zonetable, &zt);
+	}
+	UNLOCK(&view->lock);
+
+	if (zt != NULL) {
+		result = dns_zt_mount(zt, zone);
+		dns_zt_detach(&zt);
+	}
 
 	return result;
 }
