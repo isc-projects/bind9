@@ -529,6 +529,8 @@ misc:
     - if git grep SYSTEMTESTTOP -- ':!.gitlab-ci.yml'; then echo 'Please use relative paths instead of $SYSTEMTESTTOP.'; exit 1; fi
     - bash util/unused-headers.sh
     - bash util/xmllint-html.sh
+    # Check dangling symlinks in the repository
+    - if find . -xtype l | grep .; then exit 1; fi
   needs: []
   artifacts:
     paths:
