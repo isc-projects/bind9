@@ -21826,7 +21826,7 @@ do_nsfetch(void *arg) {
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(&nsfetch->pname, namebuf, sizeof(namebuf));
-		dnssec_log(zone, ISC_LOG_WARNING,
+		dnssec_log(zone, ISC_LOG_DEBUG(3),
 			   "Create fetch for '%s' NS request", namebuf);
 	}
 
