@@ -12619,7 +12619,7 @@ notify_send_toaddr(void *arg) {
 	dns_tsigkey_t *key = NULL;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t src;
-	unsigned int options, connect_timeout, timeout, udptimeout;
+	unsigned int options;
 	bool have_notifysource = false;
 	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
 
@@ -12729,14 +12729,14 @@ notify_send_toaddr(void *arg) {
 		goto cleanup_key;
 	}
 
-	udptimeout = 5;
-	connect_timeout = timeout = 3 * udptimeout + 1;
+	uint32_t initial_timeout;
+	isc_nm_gettimeouts(notify->zone->zmgr->netmgr, &initial_timeout, NULL,
+			   NULL, NULL, NULL);
+	const unsigned int connect_timeout = initial_timeout / MS_PER_SEC;
 
 again:
 	if ((notify->flags & DNS_NOTIFY_TCP) != 0) {
 		options |= DNS_REQUESTOPT_TCP;
-		udptimeout = 0;
-		timeout = 15;
 	}
 
 	zmgr_tlsctx_attach(notify->zone->zmgr, &zmgr_tlsctx_cache);
@@ -12744,8 +12744,9 @@ again:
 	result = dns_request_create(
 		notify->zone->view->requestmgr, message, &src, &notify->dst,
 		notify->transport, zmgr_tlsctx_cache, options, key,
-		connect_timeout, timeout, udptimeout, 2, notify->zone->loop,
-		notify_done, notify, &notify->request);
+		connect_timeout, TCP_REQUEST_TIMEOUT, UDP_REQUEST_TIMEOUT,
+		UDP_REQUEST_RETRIES, notify->zone->loop, notify_done, notify,
+		&notify->request);
 
 	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 
