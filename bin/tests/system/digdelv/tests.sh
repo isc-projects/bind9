@@ -1483,6 +1483,7 @@ if [ -x "$DELV" ]; then
 
   n=$((n + 1))
   echo_i "check that delv handles REFUSED when chasing DS records ($n)"
+  ret=0
   delv_with_opts @10.53.0.2 +root xxx.example.tld A >delv.out.test$n 2>&1 || ret=1
   grep ";; resolution failed: broken trust chain" delv.out.test$n >/dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1490,9 +1491,11 @@ if [ -x "$DELV" ]; then
 
   n=$((n + 1))
   echo_i "check NS output from delv +ns ($n)"
+  ret=0
   delv_with_opts -i +ns +nortrace +nostrace +nomtrace +novtrace +hint=../_common/root.hint ns example >delv.out.test$n || ret=1
   lines=$(awk '$1 == "example." && $4 == "NS" {print}' delv.out.test$n | wc -l)
   [ $lines -eq 2 ] || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
   n=$((n + 1))
