@@ -1181,57 +1181,6 @@ update(dns_section_t section, dns_rdataclass_t rdclass) {
 	return false;
 }
 
-/*
- * Check to confirm that all DNSSEC records (DS, NSEC, NSEC3) have
- * covering RRSIGs.
- */
-static bool
-auth_signed(dns_namelist_t *section) {
-	dns_name_t *name = NULL;
-
-	ISC_LIST_FOREACH (*section, name, link) {
-		int auth_dnssec = 0, auth_rrsig = 0;
-		dns_rdataset_t *rds = NULL;
-		ISC_LIST_FOREACH (name->list, rds, link) {
-			switch (rds->type) {
-			case dns_rdatatype_ds:
-				auth_dnssec |= 0x1;
-				break;
-			case dns_rdatatype_nsec:
-				auth_dnssec |= 0x2;
-				break;
-			case dns_rdatatype_nsec3:
-				auth_dnssec |= 0x4;
-				break;
-			case dns_rdatatype_rrsig:
-				break;
-			default:
-				continue;
-			}
-
-			switch (rds->covers) {
-			case dns_rdatatype_ds:
-				auth_rrsig |= 0x1;
-				break;
-			case dns_rdatatype_nsec:
-				auth_rrsig |= 0x2;
-				break;
-			case dns_rdatatype_nsec3:
-				auth_rrsig |= 0x4;
-				break;
-			default:
-				break;
-			}
-		}
-
-		if (auth_dnssec != auth_rrsig) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
 static isc_result_t
 getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	   dns_section_t sectionid, unsigned int options) {
@@ -1701,21 +1650,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			free_name = false;
 		}
 		INSIST(!free_name);
-	}
-
-	/*
-	 * If any of DS, NSEC or NSEC3 appeared in the
-	 * authority section of a query response without
-	 * a covering RRSIG, FORMERR
-	 */
-	if (sectionid == DNS_SECTION_AUTHORITY &&
-	    msg->opcode == dns_opcode_query &&
-	    ((msg->flags & DNS_MESSAGEFLAG_QR) != 0) &&
-	    ((msg->flags & DNS_MESSAGEFLAG_TC) == 0) && !preserve_order &&
-	    !auth_signed(section))
-	{
-		/* XXX test coverage */
-		DO_ERROR(DNS_R_FORMERR);
 	}
 
 	if (seen_problem) {
