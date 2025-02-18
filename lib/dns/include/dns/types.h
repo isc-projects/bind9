@@ -167,6 +167,7 @@ typedef struct dns_tsigkeyring	  dns_tsigkeyring_t;
 typedef struct dns_tsigkey	  dns_tsigkey_t;
 typedef uint32_t		  dns_ttl_t;
 typedef uint32_t		  dns_typepair_t;
+typedef struct dns_unreachcache	  dns_unreachcache_t;
 typedef struct dns_update_state	  dns_update_state_t;
 typedef struct dns_validator	  dns_validator_t;
 typedef struct dns_view		  dns_view_t;

@@ -1954,44 +1954,6 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_firstrefresh,
  */
 
 void
-dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
-			   isc_sockaddr_t *local, isc_time_t *now);
-/*%<
- *	Add the pair of addresses to the unreachable cache.
- *
- * Requires:
- *\li	'zmgr' to be a valid zone manager.
- *\li	'remote' to be a valid sockaddr.
- *\li	'local' to be a valid sockaddr.
- */
-
-bool
-dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
-			isc_sockaddr_t *local, isc_time_t *now);
-/*%<
- *	Returns true if the given local/remote address pair
- *	is found in the zone maanger's unreachable cache.
- *
- * Requires:
- *\li	'zmgr' to be a valid zone manager.
- *\li	'remote' to be a valid sockaddr.
- *\li	'local' to be a valid sockaddr.
- *\li	'now' != NULL
- */
-
-void
-dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
-			   isc_sockaddr_t *local);
-/*%<
- *	Remove the pair of addresses from the unreachable cache.
- *
- * Requires:
- *\li	'zmgr' to be a valid zone manager.
- *\li	'remote' to be a valid sockaddr.
- *\li	'local' to be a valid sockaddr.
- */
-
-void
 dns_zonemgr_set_tlsctx_cache(dns_zonemgr_t	*zmgr,
 			     isc_tlsctx_cache_t *tlsctx_cache);
 /*%<

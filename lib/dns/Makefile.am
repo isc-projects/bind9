@@ -131,6 +131,7 @@ libdns_la_HEADERS =			\
 	include/dns/tsig.h		\
 	include/dns/ttl.h		\
 	include/dns/types.h		\
+	include/dns/unreachcache.h	\
 	include/dns/update.h		\
 	include/dns/validator.h		\
 	include/dns/view.h		\
@@ -247,6 +248,7 @@ libdns_la_SOURCES =			\
 	tsig.c				\
 	tsig_p.h			\
 	ttl.c				\
+	unreachcache.c			\
 	update.c			\
 	validator.c			\
 	view.c				\
