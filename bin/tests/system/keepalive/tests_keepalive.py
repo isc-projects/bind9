@@ -53,11 +53,12 @@ def test_dig_tcp_keepalive_handling(named_port, servers):
     )
 
     isctest.log.info("check a re-configured keepalive value")
-    response = servers["ns2"].rndc("tcp-timeouts 300 300 300 200", log=False)
+    response = servers["ns2"].rndc("tcp-timeouts 300 300 300 200 100", log=False)
     assert "tcp-initial-timeout=300" in response
     assert "tcp-idle-timeout=300" in response
     assert "tcp-keepalive-timeout=300" in response
     assert "tcp-advertised-timeout=200" in response
+    assert "tcp-primaries-timeout=100" in response
     assert "; TCP-KEEPALIVE: 20.0 secs" in dig(
         "+tcp +keepalive foo.example. @10.53.0.2"
     )

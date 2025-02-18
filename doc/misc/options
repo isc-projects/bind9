@@ -297,6 +297,7 @@ options {
 	tcp-initial-timeout <integer>;
 	tcp-keepalive-timeout <integer>;
 	tcp-listen-queue <integer>;
+	tcp-primaries-timeout <integer>;
 	tcp-receive-buffer <integer>;
 	tcp-send-buffer <integer>;
 	tkey-domain <quoted_string>;

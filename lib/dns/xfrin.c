@@ -1300,7 +1300,7 @@ static isc_result_t
 xfrin_start(dns_xfrin_t *xfr) {
 	isc_result_t result = ISC_R_FAILURE;
 	isc_interval_t interval;
-	uint32_t initial;
+	uint32_t primaries_timeout;
 
 	dns_xfrin_ref(xfr);
 
@@ -1313,8 +1313,8 @@ xfrin_start(dns_xfrin_t *xfr) {
 		goto failure;
 	}
 
-	isc_nm_gettimeouts(dns_dispatchmgr_getnetmgr(dispmgr), &initial, NULL,
-			   NULL, NULL);
+	isc_nm_gettimeouts(dns_dispatchmgr_getnetmgr(dispmgr), NULL, NULL, NULL,
+			   NULL, &primaries_timeout);
 	result = dns_dispatch_createtcp(dispmgr, &xfr->sourceaddr,
 					&xfr->primaryaddr, xfr->transport,
 					DNS_DISPATCHOPT_UNSHARED, &xfr->disp);
@@ -1344,15 +1344,13 @@ xfrin_start(dns_xfrin_t *xfr) {
 	}
 
 	/*
-	 * Before a configuration option for the primary servers' TCP timeout
-	 * is implemented, use initial TCP timeout as the connect timeout.
-	 * The receive timeout timer is disabled on the dispatch level because
+	 * The read timeout timer is disabled on the dispatch level because
 	 * the xfr module has its own timeouts.
 	 */
-	const unsigned int connect_timeout = initial, timeout = 0;
+	const unsigned int read_timeout = 0;
 
-	CHECK(dns_dispatch_add(xfr->disp, xfr->loop, 0, connect_timeout,
-			       timeout, &xfr->primaryaddr, xfr->transport,
+	CHECK(dns_dispatch_add(xfr->disp, xfr->loop, 0, primaries_timeout,
+			       read_timeout, &xfr->primaryaddr, xfr->transport,
 			       xfr->tlsctx_cache, xfrin_connect_done,
 			       xfrin_send_done, xfrin_recv_done, xfr, &xfr->id,
 			       &xfr->dispentry));

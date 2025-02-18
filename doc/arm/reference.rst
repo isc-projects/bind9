@@ -3926,6 +3926,27 @@ system.
    value as :any:`tcp-keepalive-timeout`. This value can be updated at
    runtime by using :option:`rndc tcp-timeouts`.
 
+.. namedconf:statement:: tcp-primaries-timeout
+   :tags: server, query
+   :short: Sets the amount of time (in milliseconds) that the server waits for a successful TCP connection when connecting to a primary server.
+
+   This sets the amount of time, in units of 100 milliseconds, that the server
+   waits when connecting to a primary server. The default is 150 (15 seconds),
+   the minimum is 25 (2.5 seconds), and the maximum is 1200 (two minutes).
+   This value can be updated at runtime by using :option:`rndc tcp-timeouts`.
+
+.. note::
+
+   This value works the same way as :any:`tcp-initial-timeout`, but applies
+   only to the connections to primary servers in order to provide a way to tune
+   it separately if, for example, it is required to try the next server faster.
+
+.. note::
+
+   Depending on the operating system's networking settings, the timeout may
+   occur earlier than the defined value in cases when the system's maximum wait
+   time for a TCP connection is smaller than the defined value.
+
 .. namedconf:statement:: update-quota
    :tags: server
    :short: Specifies the maximum number of concurrent DNS UPDATE messages that can be processed by the server.

@@ -178,13 +178,13 @@ setup_netmgr_test(void **state) {
 	setup_loopmgr(state);
 	isc_netmgr_create(mctx, loopmgr, &listen_nm);
 	assert_non_null(listen_nm);
-	isc_nm_settimeouts(listen_nm, T_INIT, T_IDLE, T_KEEPALIVE,
-			   T_ADVERTISED);
+	isc_nm_settimeouts(listen_nm, T_INIT, T_IDLE, T_KEEPALIVE, T_ADVERTISED,
+			   T_PRIMARIES);
 
 	isc_netmgr_create(mctx, loopmgr, &connect_nm);
 	assert_non_null(connect_nm);
 	isc_nm_settimeouts(connect_nm, T_INIT, T_IDLE, T_KEEPALIVE,
-			   T_ADVERTISED);
+			   T_ADVERTISED, T_PRIMARIES);
 
 	isc_quota_init(&listener_quota, 0);
 	atomic_store(&check_listener_quota, false);
@@ -1026,7 +1026,7 @@ stream_timeout_recovery(void **state ISC_ATTR_UNUSED) {
 	/*
 	 * Shorten all the client timeouts to 0.05 seconds.
 	 */
-	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
+	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	connect_readcb = timeout_retry_cb;
 	stream_connect(connect_connect_cb, NULL, T_CONNECT);
 }

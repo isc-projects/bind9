@@ -349,14 +349,15 @@ struct isc_nm {
 	/*
 	 * Timeout values for TCP connections, corresponding to
 	 * tcp-intiial-timeout, tcp-idle-timeout, tcp-keepalive-timeout,
-	 * and tcp-advertised-timeout. Note that these are stored in
-	 * milliseconds so they can be used directly with the libuv timer,
-	 * but they are configured in tenths of seconds.
+	 * tcp-advertised-timeout, and tcp-primaries-timeout. Note that these
+	 * are stored in milliseconds so they can be used directly with the
+	 * libuv timer, but they are configured in tenths of seconds.
 	 */
 	atomic_uint_fast32_t init;
 	atomic_uint_fast32_t idle;
 	atomic_uint_fast32_t keepalive;
 	atomic_uint_fast32_t advertised;
+	atomic_uint_fast32_t primaries;
 
 	/*
 	 * Socket SO_RCVBUF and SO_SNDBUF values

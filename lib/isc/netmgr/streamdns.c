@@ -272,7 +272,8 @@ streamdns_sock_new(isc__networker_t *worker, const isc_nmsocket_type_t type,
 	sock->result = ISC_R_UNSET;
 	if (type == isc_nm_streamdnssocket) {
 		uint32_t initial = 0;
-		isc_nm_gettimeouts(worker->netmgr, &initial, NULL, NULL, NULL);
+		isc_nm_gettimeouts(worker->netmgr, &initial, NULL, NULL, NULL,
+				   NULL);
 		sock->read_timeout = initial;
 		sock->client = !is_server;
 		sock->connecting = !is_server;
@@ -726,7 +727,7 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	nsock->peer = isc_nmhandle_peeraddr(handle);
 	nsock->tid = tid;
 	isc_nm_gettimeouts(handle->sock->worker->netmgr, &initial, NULL, NULL,
-			   NULL);
+			   NULL, NULL);
 	nsock->read_timeout = initial;
 	nsock->accepting = true;
 	nsock->active = true;
@@ -751,7 +752,8 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	nsock->closehandle_cb = streamdns_resume_processing;
 	isc__nmhandle_set_manual_timer(nsock->outerhandle, true);
-	isc_nm_gettimeouts(nsock->worker->netmgr, &initial, NULL, NULL, NULL);
+	isc_nm_gettimeouts(nsock->worker->netmgr, &initial, NULL, NULL, NULL,
+			   NULL);
 	/* settimeout restarts the timer */
 	isc_nmhandle_settimeout(nsock->outerhandle, initial);
 	(void)isc_nmhandle_set_tcp_nodelay(nsock->outerhandle, true);

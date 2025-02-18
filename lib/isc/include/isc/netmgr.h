@@ -537,12 +537,12 @@ isc_nm_proxyheader_info_init_complete(isc_nm_proxyheader_info_t *restrict info,
 
 void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
-		   uint32_t keepalive, uint32_t advertised);
+		   uint32_t keepalive, uint32_t advertised, uint32_t primaries);
 /*%<
- * Sets the initial, idle, and keepalive timeout values (in milliseconds) to use
- * for TCP connections, and the timeout value to advertise in responses using
- * the EDNS TCP Keepalive option (which should ordinarily be the same
- * as 'keepalive'), in milliseconds.
+ * Sets the initial, idle, keepalive, advertised, and primaries timeout values
+ * (in milliseconds) to use for TCP connections, and the timeout value to
+ * advertise in responses using the EDNS TCP Keepalive option (which should
+ * ordinarily be the same as 'keepalive'), in milliseconds.
  *
  * Requires:
  * \li	'mgr' is a valid netmgr.
@@ -572,9 +572,10 @@ isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled);
 
 void
 isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
-		   uint32_t *keepalive, uint32_t *advertised);
+		   uint32_t *keepalive, uint32_t *advertised,
+		   uint32_t *primaries);
 /*%<
- * Gets the initial, idle, keepalive, or advertised timeout values,
+ * Gets the initial, idle, keepalive, advertised, or primaries timeout values,
  * in milliseconds.
  *
  * Any integer pointer parameter not set to NULL will be updated to

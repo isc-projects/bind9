@@ -1183,7 +1183,7 @@ no_nsid:
 		INSIST(count < DNS_EDNSOPTIONS);
 
 		isc_nm_gettimeouts(isc_nmhandle_netmgr(client->handle), NULL,
-				   NULL, NULL, &adv);
+				   NULL, NULL, &adv, NULL);
 		adv /= 100; /* units of 100 milliseconds */
 		isc_buffer_init(&buf, advtimo, sizeof(advtimo));
 		isc_buffer_putuint16(&buf, (uint16_t)adv);

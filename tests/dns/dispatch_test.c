@@ -44,11 +44,13 @@
 #define T_SERVER_IDLE	    (120 * 1000)
 #define T_SERVER_KEEPALIVE  (120 * 1000)
 #define T_SERVER_ADVERTISED (120 * 1000)
+#define T_SERVER_PRIMARIES  (120 * 1000)
 
 #define T_CLIENT_INIT	    (60 * 1000)
 #define T_CLIENT_IDLE	    (60 * 1000)
 #define T_CLIENT_KEEPALIVE  (60 * 1000)
 #define T_CLIENT_ADVERTISED (60 * 1000)
+#define T_CLIENT_PRIMARIES  (60 * 1000)
 
 #define T_CLIENT_CONNECT (30 * 1000)
 
@@ -194,14 +196,16 @@ setup_test(void **state) {
 	close(socket);
 
 	isc_nm_settimeouts(netmgr, T_SERVER_INIT, T_SERVER_IDLE,
-			   T_SERVER_KEEPALIVE, T_SERVER_ADVERTISED);
+			   T_SERVER_KEEPALIVE, T_SERVER_ADVERTISED,
+			   T_SERVER_PRIMARIES);
 
 	/*
 	 * Use shorter client-side timeouts, to ensure that clients
 	 * time out before the server.
 	 */
 	isc_nm_settimeouts(connect_nm, T_CLIENT_INIT, T_CLIENT_IDLE,
-			   T_CLIENT_KEEPALIVE, T_CLIENT_ADVERTISED);
+			   T_CLIENT_KEEPALIVE, T_CLIENT_ADVERTISED,
+			   T_CLIENT_PRIMARIES);
 
 	memset(testdata.rbuf, 0, sizeof(testdata.rbuf));
 	testdata.region.base = testdata.rbuf;

@@ -153,6 +153,7 @@ extern isc_nm_recv_cb_t connect_readcb;
 #define T_IDLE	     120 * 1000
 #define T_KEEPALIVE  120 * 1000
 #define T_ADVERTISED 120 * 1000
+#define T_PRIMARIES  120 * 1000
 #define T_CONNECT    30 * 1000
 
 /* Wait for 1 second (1000 milliseconds) */
@@ -450,12 +451,8 @@ stop_listening(void *arg ISC_ATTR_UNUSED);
 /* Timeout for soft-timeout tests (0.05 seconds) */
 #define UDP_T_SOFT 50
 
-/* Timeouts in miliseconds */
-#define UDP_T_INIT	 120 * 1000
-#define UDP_T_IDLE	 120 * 1000
-#define UDP_T_KEEPALIVE	 120 * 1000
-#define UDP_T_ADVERTISED 120 * 1000
-#define UDP_T_CONNECT	 30 * 1000
+/* Timeout in miliseconds */
+#define UDP_T_CONNECT 30 * 1000
 
 int
 setup_udp_test(void **state);

@@ -1329,6 +1329,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "tcp-initial-timeout", &cfg_type_uint32, 0 },
 	{ "tcp-keepalive-timeout", &cfg_type_uint32, 0 },
 	{ "tcp-listen-queue", &cfg_type_uint32, 0 },
+	{ "tcp-primaries-timeout", &cfg_type_uint32, 0 },
 	{ "tcp-receive-buffer", &cfg_type_uint32, 0 },
 	{ "tcp-send-buffer", &cfg_type_uint32, 0 },
 	{ "tkey-dhkey", NULL, CFG_CLAUSEFLAG_ANCIENT },

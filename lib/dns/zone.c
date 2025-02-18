@@ -27,6 +27,7 @@
 #include <isc/loop.h>
 #include <isc/md.h>
 #include <isc/mutex.h>
+#include <isc/netmgr.h>
 #include <isc/overflow.h>
 #include <isc/random.h>
 #include <isc/ratelimiter.h>
@@ -158,6 +159,10 @@
 #define DNS_DEFAULT_IDLEOUT 3600       /*%< 1 hour */
 #define MAX_XFER_TIME	    (2 * 3600) /*%< Documented default is 2 hours */
 #define RESIGN_DELAY	    3600       /*%< 1 hour */
+#define UDP_REQUEST_TIMEOUT 5	       /*%< 5 seconds */
+#define UDP_REQUEST_RETRIES 2
+#define TCP_REQUEST_TIMEOUT \
+	(UDP_REQUEST_TIMEOUT * (UDP_REQUEST_RETRIES + 1) + 1)
 
 #ifndef DNS_MAX_EXPIRE
 #define DNS_MAX_EXPIRE 14515200 /*%< 24 weeks */
@@ -1083,7 +1088,8 @@ struct stub_cb_args {
 	dns_stub_t *stub;
 	dns_tsigkey_t *tsig_key;
 	uint16_t udpsize;
-	int timeout;
+	unsigned int connect_timeout;
+	unsigned int timeout;
 	bool reqnsid;
 };
 
@@ -12722,8 +12728,10 @@ notify_send_toaddr(void *arg) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup_key;
 	}
+
 	udptimeout = 5;
 	connect_timeout = timeout = 3 * udptimeout + 1;
+
 again:
 	if ((notify->flags & DNS_NOTIFY_TCP) != 0) {
 		options |= DNS_REQUESTOPT_TCP;
@@ -13481,8 +13489,9 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
 		NULL, NULL, DNS_REQUESTOPT_TCP, args->tsig_key,
-		args->timeout * 3 + 1, args->timeout * 3 + 1, args->timeout, 2,
-		zone->loop, stub_glue_response, sgr, &sgr->request);
+		args->connect_timeout, args->timeout, UDP_REQUEST_TIMEOUT,
+		UDP_REQUEST_RETRIES, zone->loop, stub_glue_response, sgr,
+		&sgr->request);
 
 	if (result != ISC_R_SUCCESS) {
 		uint_fast32_t pr;
@@ -14631,13 +14640,17 @@ again:
 		}
 	}
 
-	zone_iattach(zone, &(dns_zone_t *){ NULL });
+	uint32_t primaries_timeout;
+	isc_nm_gettimeouts(zone->zmgr->netmgr, NULL, NULL, NULL, NULL,
+			   &primaries_timeout);
+	const unsigned int connect_timeout = primaries_timeout / MS_PER_SEC;
 
-	const unsigned int timeout = 5;
+	zone_iattach(zone, &(dns_zone_t *){ NULL });
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, options, key, timeout * 3 + 1, timeout * 3 + 1,
-		timeout, 2, zone->loop, refresh_callback, zone, &zone->request);
+		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
+		UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES, zone->loop,
+		refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&(dns_zone_t *){ zone });
 		zone_debuglogc(zone, DNS_LOGCATEGORY_XFER_IN, __func__, 1,
@@ -14898,6 +14911,11 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		goto cleanup;
 	}
 
+	uint32_t primaries_timeout;
+	isc_nm_gettimeouts(zone->zmgr->netmgr, NULL, NULL, NULL, NULL,
+			   &primaries_timeout);
+	const unsigned int connect_timeout = primaries_timeout / MS_PER_SEC;
+
 	/*
 	 * Save request parameters so we can reuse them later on
 	 * for resolving missing glue A/AAAA records.
@@ -14906,15 +14924,15 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args->stub = stub;
 	cb_args->tsig_key = key;
 	cb_args->udpsize = udpsize;
-	cb_args->timeout = 15;
+	cb_args->connect_timeout = connect_timeout;
+	cb_args->timeout = TCP_REQUEST_TIMEOUT;
 	cb_args->reqnsid = reqnsid;
 
-	const unsigned int timeout = 5;
-	result = dns_request_create(zone->view->requestmgr, message,
-				    &zone->sourceaddr, &curraddr, NULL, NULL,
-				    DNS_REQUESTOPT_TCP, key, timeout * 3 + 1,
-				    timeout * 3 + 1, timeout, 2, zone->loop,
-				    stub_callback, cb_args, &zone->request);
+	result = dns_request_create(
+		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
+		NULL, NULL, DNS_REQUESTOPT_TCP, key, connect_timeout,
+		TCP_REQUEST_TIMEOUT, UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES,
+		zone->loop, stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_debuglog(zone, __func__, 1,
 			      "dns_request_create() failed: %s",
@@ -18718,10 +18736,7 @@ next:
 	}
 
 	/*
-	 * Always use TCP regardless of whether the original update
-	 * used TCP.
-	 * XXX The timeout may but a bit small if we are far down a
-	 * transfer graph and have to try several primaries.
+	 * Always use TCP regardless of whether the original update used TCP.
 	 */
 	switch (isc_sockaddr_pf(&forward->addr)) {
 	case PF_INET:
@@ -18763,13 +18778,19 @@ next:
 		}
 	}
 
+	uint32_t primaries_timeout;
+	isc_nm_gettimeouts(zone->zmgr->netmgr, NULL, NULL, NULL, NULL,
+			   &primaries_timeout);
+	const unsigned int connect_timeout = primaries_timeout / MS_PER_SEC;
+
 	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
 
 	result = dns_request_createraw(
 		forward->zone->view->requestmgr, forward->msgbuf, &src,
 		&forward->addr, forward->transport, zmgr_tlsctx_cache,
-		forward->options, 15, 15 /* XXX */, 0, 0, forward->zone->loop,
-		forward_callback, forward, &forward->request);
+		forward->options, connect_timeout, TCP_REQUEST_TIMEOUT, 0, 0,
+		forward->zone->loop, forward_callback, forward,
+		&forward->request);
 
 	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 

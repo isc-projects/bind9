@@ -214,7 +214,8 @@ proxyudp_sock_new(isc__networker_t *worker, const isc_nmsocket_type_t type,
 	sock->result = ISC_R_UNSET;
 	if (type == isc_nm_proxyudpsocket) {
 		uint32_t initial = 0;
-		isc_nm_gettimeouts(worker->netmgr, &initial, NULL, NULL, NULL);
+		isc_nm_gettimeouts(worker->netmgr, &initial, NULL, NULL, NULL,
+				   NULL);
 		sock->read_timeout = initial;
 		sock->client = !is_server;
 		sock->connecting = !is_server;

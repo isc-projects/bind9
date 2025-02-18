@@ -199,6 +199,7 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 	atomic_init(&netmgr->idle, 30000);
 	atomic_init(&netmgr->keepalive, 30000);
 	atomic_init(&netmgr->advertised, 30000);
+	atomic_init(&netmgr->primaries, 30000);
 
 	netmgr->workers = isc_mem_cget(mctx, netmgr->nloops,
 				       sizeof(netmgr->workers[0]));
@@ -338,13 +339,15 @@ isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
 
 void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
-		   uint32_t keepalive, uint32_t advertised) {
+		   uint32_t keepalive, uint32_t advertised,
+		   uint32_t primaries) {
 	REQUIRE(VALID_NM(mgr));
 
 	atomic_store_relaxed(&mgr->init, init);
 	atomic_store_relaxed(&mgr->idle, idle);
 	atomic_store_relaxed(&mgr->keepalive, keepalive);
 	atomic_store_relaxed(&mgr->advertised, advertised);
+	atomic_store_relaxed(&mgr->primaries, primaries);
 }
 
 void
@@ -376,7 +379,8 @@ isc_nm_setloadbalancesockets(isc_nm_t *mgr, ISC_ATTR_UNUSED bool enabled) {
 
 void
 isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
-		   uint32_t *keepalive, uint32_t *advertised) {
+		   uint32_t *keepalive, uint32_t *advertised,
+		   uint32_t *primaries) {
 	REQUIRE(VALID_NM(mgr));
 
 	SET_IF_NOT_NULL(initial, atomic_load_relaxed(&mgr->init));
@@ -386,6 +390,8 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 	SET_IF_NOT_NULL(keepalive, atomic_load_relaxed(&mgr->keepalive));
 
 	SET_IF_NOT_NULL(advertised, atomic_load_relaxed(&mgr->advertised));
+
+	SET_IF_NOT_NULL(primaries, atomic_load_relaxed(&mgr->primaries));
 }
 
 bool

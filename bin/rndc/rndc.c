@@ -221,7 +221,7 @@ command is one of the following:\n\
 		Dump a single zone's changes to disk, and optionally\n\
 		remove its journal file.\n\
   tcp-timeouts	Display the tcp-*-timeout option values\n\
-  tcp-timeouts initial idle keepalive advertised\n\
+  tcp-timeouts initial idle keepalive advertised primaries\n\
 		Update the tcp-*-timeout option values\n\
   thaw		Enable updates to all dynamic zones and reload them.\n\
   thaw zone [class [view]]\n\
@@ -966,7 +966,7 @@ main(int argc, char **argv) {
 	isc_managers_create(&rndc_mctx, 1, &loopmgr, &netmgr);
 	isc_loopmgr_setup(loopmgr, rndc_start, NULL);
 
-	isc_nm_settimeouts(netmgr, timeout, timeout, timeout, 0);
+	isc_nm_settimeouts(netmgr, timeout, timeout, timeout, 0, timeout);
 
 	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, progname);

@@ -3532,7 +3532,8 @@ main(int argc, char **argv) {
 
 	/* Set the network manager timeouts in milliseconds. */
 	timeoutms = timeout * 1000;
-	isc_nm_settimeouts(netmgr, timeoutms, timeoutms, timeoutms, timeoutms);
+	isc_nm_settimeouts(netmgr, timeoutms, timeoutms, timeoutms, timeoutms,
+			   timeoutms);
 
 	isc_loopmgr_setup(loopmgr, setup_system, NULL);
 	isc_loopmgr_setup(loopmgr, getinput, NULL);

@@ -2097,7 +2097,7 @@ sendquery(void *arg) {
 	dns_view_attach(view, &(dns_view_t *){ NULL });
 
 	uint32_t initial;
-	isc_nm_gettimeouts(netmgr, &initial, NULL, NULL, NULL);
+	isc_nm_gettimeouts(netmgr, &initial, NULL, NULL, NULL, NULL);
 	const unsigned int connect_timeout = initial, timeout = initial;
 
 	CHECK(dns_request_create(requestmgr, message, NULL, &peer, NULL, NULL,
