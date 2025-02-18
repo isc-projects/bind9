@@ -21442,13 +21442,17 @@ checkds_send_toaddr(void *arg) {
 	dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 		     "checkds: create request for DS query to %s", addrbuf);
 
-	const unsigned int timeout = 5;
+	uint32_t initial_timeout;
+	isc_nm_gettimeouts(checkds->zone->zmgr->netmgr, &initial_timeout, NULL,
+			   NULL, NULL, NULL);
+	const unsigned int connect_timeout = initial_timeout / MS_PER_SEC;
+
 	options |= DNS_REQUESTOPT_TCP;
-	result = dns_request_create(checkds->zone->view->requestmgr, message,
-				    &src, &checkds->dst, NULL, NULL, options,
-				    key, timeout * 3 + 1, timeout * 3 + 1,
-				    timeout, 2, checkds->zone->loop,
-				    checkds_done, checkds, &checkds->request);
+	result = dns_request_create(
+		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
+		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
+		UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES, checkds->zone->loop,
+		checkds_done, checkds, &checkds->request);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 			     "checkds: dns_request_create() to %s failed: %s",
