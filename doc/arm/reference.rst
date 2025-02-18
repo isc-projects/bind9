@@ -4417,7 +4417,7 @@ Tuning
    :any:`stale-answer-enable` option or by calling :option:`rndc serve-stale on <rndc serve-stale>`.
 
    When :any:`stale-cache-enable` is set to ``no``, setting the :any:`max-stale-ttl`
-   has no effect, the value of :any:`max-cache-ttl` will be ``0`` in such case.
+   has no effect; the value of :any:`max-stale-ttl` will be ``0`` in such case.
 
 .. namedconf:statement:: resolver-nonbackoff-tries
    :tags: deprecated.
