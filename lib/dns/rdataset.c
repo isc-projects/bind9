@@ -653,9 +653,7 @@ dns_slabheader_t *
 dns_rdataset_getheader(const dns_rdataset_t *rdataset) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
-	if (rdataset->methods->getheader != NULL &&
-	    (rdataset->attributes & DNS_RDATASETATTR_NOHEADER) == 0)
-	{
+	if (rdataset->methods->getheader != NULL) {
 		return (rdataset->methods->getheader)(rdataset);
 	}
 

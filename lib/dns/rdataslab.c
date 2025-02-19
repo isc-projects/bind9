@@ -124,7 +124,7 @@ compare_rdata(const void *p1, const void *p2) {
 
 static isc_result_t
 makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
-	 uint32_t maxrrperset, bool raw) {
+	 uint32_t maxrrperset) {
 	/*
 	 * Use &removed as a sentinel pointer for duplicate
 	 * rdata as rdata.data == NULL is valid.
@@ -132,13 +132,14 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	static unsigned char removed;
 	dns_rdata_t *rdata = NULL;
 	unsigned char *rawbuf = NULL;
-	unsigned int headerlen = raw ? 0 : sizeof(dns_slabheader_t);
+	unsigned int headerlen = sizeof(dns_slabheader_t);
 	unsigned int buflen;
 	isc_result_t result;
 	unsigned int nitems;
 	unsigned int nalloc;
 	unsigned int length;
-	unsigned int i;
+	size_t i;
+	size_t rdatasize;
 
 	buflen = headerlen + 2;
 
@@ -173,7 +174,9 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 * Remember the original number of items.
 	 */
 	nalloc = nitems;
-	rdata = isc_mem_cget(mctx, nalloc, sizeof(rdata[0]));
+
+	RUNTIME_CHECK(!ISC_OVERFLOW_MUL(nalloc, sizeof(rdata[0]), &rdatasize));
+	rdata = isc_mem_get(mctx, rdatasize);
 
 	/*
 	 * Save all of the rdata members into an array.
@@ -259,7 +262,7 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 * Allocate the memory, set up a buffer, start copying in
 	 * data.
 	 */
-	rawbuf = isc_mem_cget(mctx, 1, buflen);
+	rawbuf = isc_mem_get(mctx, buflen);
 
 	region->base = rawbuf;
 	region->length = buflen;
@@ -297,7 +300,7 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	result = ISC_R_SUCCESS;
 
 free_rdatas:
-	isc_mem_cput(mctx, rdata, nalloc, sizeof(rdata[0]));
+	isc_mem_put(mctx, rdata, rdatasize);
 	return result;
 }
 
@@ -306,7 +309,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			   isc_region_t *region, uint32_t maxrrperset) {
 	isc_result_t result;
 
-	result = makeslab(rdataset, mctx, region, maxrrperset, false);
+	result = makeslab(rdataset, mctx, region, maxrrperset);
 	if (result == ISC_R_SUCCESS) {
 		dns_slabheader_t *new = (dns_slabheader_t *)region->base;
 
@@ -322,15 +325,13 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	return result;
 }
 
-isc_result_t
-dns_rdataslab_raw_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			       isc_region_t *region, uint32_t maxrrperset) {
-	return makeslab(rdataset, mctx, region, maxrrperset, true);
-}
-
 unsigned int
-dns_rdataslab_sizeraw(unsigned char *slab) {
-	REQUIRE(slab != NULL);
+dns_rdataslab_size(dns_slabheader_t *header) {
+	REQUIRE(header != NULL);
+
+	unsigned char *slab = (unsigned char *)header +
+			      sizeof(dns_slabheader_t);
+	INSIST(slab != NULL);
 
 	unsigned char *current = slab;
 	uint16_t count = get_uint16(current);
@@ -340,15 +341,7 @@ dns_rdataslab_sizeraw(unsigned char *slab) {
 		current += length;
 	}
 
-	return (unsigned int)(current - slab);
-}
-
-unsigned int
-dns_rdataslab_size(dns_slabheader_t *header) {
-	REQUIRE(header != NULL);
-
-	unsigned char *s = (unsigned char *)header + sizeof(dns_slabheader_t);
-	return dns_rdataslab_sizeraw(s) + sizeof(dns_slabheader_t);
+	return (unsigned int)(current - slab) + sizeof(dns_slabheader_t);
 }
 
 unsigned int
@@ -882,20 +875,30 @@ dns_slabheader_destroy(dns_slabheader_t **headerp) {
 }
 
 void
-dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proof) {
-	if (dns_name_dynamic(&(*proof)->name)) {
-		dns_name_free(&(*proof)->name, mctx);
+dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proofp) {
+	unsigned int buflen;
+	uint8_t *rawbuf;
+	dns_slabheader_proof_t *proof = *proofp;
+	*proofp = NULL;
+
+	if (dns_name_dynamic(&proof->name)) {
+		dns_name_free(&proof->name, mctx);
 	}
-	if ((*proof)->neg != NULL) {
-		isc_mem_put(mctx, (*proof)->neg,
-			    dns_rdataslab_sizeraw((*proof)->neg));
+	if (proof->neg != NULL) {
+		rawbuf = proof->neg;
+		rawbuf -= sizeof(dns_slabheader_t);
+		buflen = dns_rdataslab_size((dns_slabheader_t *)rawbuf);
+
+		isc_mem_put(mctx, rawbuf, buflen);
 	}
-	if ((*proof)->negsig != NULL) {
-		isc_mem_put(mctx, (*proof)->negsig,
-			    dns_rdataslab_sizeraw((*proof)->negsig));
+	if (proof->negsig != NULL) {
+		rawbuf = proof->negsig;
+		rawbuf -= sizeof(dns_slabheader_t);
+		buflen = dns_rdataslab_size((dns_slabheader_t *)rawbuf);
+
+		isc_mem_put(mctx, rawbuf, buflen);
 	}
-	isc_mem_put(mctx, *proof, sizeof(**proof));
-	*proof = NULL;
+	isc_mem_put(mctx, proof, sizeof(*proof));
 }
 
 dns_slabheader_t *
@@ -1063,13 +1066,9 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	const dns_slabheader_proof_t *noqname = rdataset->slab.noqname;
 
 	/*
-	 * Usually, rdataset->slab.raw refers the data following a
-	 * dns_slabheader, but in this case it points to a bare
-	 * rdataslab belonging to the dns_slabheader's `noqname` field.
-	 * The DNS_RDATASETATTR_NOHEADER attribute is set so that
-	 * dns_rdataset_getheader() will return NULL, and the _KEEPCASE
-	 * attribute is set to prevent setownercase and getownercase
-	 * methods from affecting the case of NSEC/NSEC3 owner names.
+	 * The _KEEPCASE attribute is set to prevent setownercase and
+	 * getownercase methods from affecting the case of NSEC/NSEC3
+	 * owner names.
 	 */
 	dns__db_attachnode(db, node,
 			   &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
@@ -1084,8 +1083,7 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = noqname->neg,
 		.link = nsec->link,
 		.count = nsec->count,
-		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE |
-			      DNS_RDATASETATTR_NOHEADER,
+		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
 		.magic = nsec->magic,
 	};
 
@@ -1103,8 +1101,7 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = noqname->negsig,
 		.link = nsecsig->link,
 		.count = nsecsig->count,
-		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE |
-			      DNS_RDATASETATTR_NOHEADER,
+		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
 		.magic = nsecsig->magic,
 	};
 
@@ -1139,8 +1136,7 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = closest->neg,
 		.link = nsec->link,
 		.count = nsec->count,
-		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE |
-			      DNS_RDATASETATTR_NOHEADER,
+		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
 		.magic = nsec->magic,
 	};
 
@@ -1158,8 +1154,7 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = closest->negsig,
 		.link = nsecsig->link,
 		.count = nsecsig->count,
-		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE |
-			      DNS_RDATASETATTR_NOHEADER,
+		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
 		.magic = nsecsig->magic,
 	};
 

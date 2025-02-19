@@ -3090,21 +3090,20 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_raw_fromrdataset(&neg, mctx, &r1, maxrrperset);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_raw_fromrdataset(&negsig, mctx, &r2,
-						maxrrperset);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
 	noqname = isc_mem_get(mctx, sizeof(*noqname));
 	*noqname = (dns_slabheader_proof_t){
-		.neg = r1.base,
-		.negsig = r2.base,
+		.neg = dns_slabheader_raw((dns_slabheader_t *)r1.base),
+		.negsig = dns_slabheader_raw((dns_slabheader_t *)r2.base),
 		.type = neg.type,
 		.name = DNS_NAME_INITEMPTY,
 	};
@@ -3130,21 +3129,20 @@ addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_raw_fromrdataset(&neg, mctx, &r1, maxrrperset);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_raw_fromrdataset(&negsig, mctx, &r2,
-						maxrrperset);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
 	closest = isc_mem_get(mctx, sizeof(*closest));
 	*closest = (dns_slabheader_proof_t){
-		.neg = r1.base,
-		.negsig = r2.base,
+		.neg = dns_slabheader_raw((dns_slabheader_t *)r1.base),
+		.negsig = dns_slabheader_raw((dns_slabheader_t *)r2.base),
 		.name = DNS_NAME_INITEMPTY,
 		.type = neg.type,
 	};
