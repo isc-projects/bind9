@@ -648,3 +648,14 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 	rdataset->ttl = ttl;
 	sigrdataset->ttl = ttl;
 }
+
+dns_slabheader_t *
+dns_rdataset_getheader(const dns_rdataset_t *rdataset) {
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+
+	if (rdataset->methods->getheader != NULL) {
+		return (rdataset->methods->getheader)(rdataset);
+	}
+
+	return NULL;
+}

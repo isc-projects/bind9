@@ -53,6 +53,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns5/rpz-switch",
         "ns6/bl.tld2s.db",
         "ns6/empty.db",
+        "ns6/empty.db.jnl",
         "ns6/named.stats",
         "ns7/policy2.db",
         "ns8/manual-update-rpz.db",

@@ -765,7 +765,7 @@ qpznode_acquire(qpzonedb_t *qpdb, qpznode_t *node DNS__DB_FLARG) {
 static void
 clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 	dns_slabheader_t *current = NULL, *dcurrent = NULL;
-	dns_slabheader_t *down_next = NULL, *dparent = NULL;
+	dns_slabheader_t *dcurrent_down = NULL, *dparent = NULL;
 	dns_slabheader_t *top_prev = NULL, *top_next = NULL;
 	bool still_dirty = false;
 
@@ -784,17 +784,17 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		 */
 		dparent = current;
 		for (dcurrent = current->down; dcurrent != NULL;
-		     dcurrent = down_next)
+		     dcurrent = dcurrent_down)
 		{
-			down_next = dcurrent->down;
+			dcurrent_down = dcurrent->down;
 			INSIST(dcurrent->serial <= dparent->serial);
 			if (dcurrent->serial == dparent->serial ||
 			    IGNORE(dcurrent))
 			{
-				if (down_next != NULL) {
-					down_next->next = dparent;
+				if (dcurrent_down != NULL) {
+					dcurrent_down->up = dparent;
 				}
-				dparent->down = down_next;
+				dparent->down = dcurrent_down;
 				dns_slabheader_destroy(&dcurrent);
 			} else {
 				dparent = dcurrent;
@@ -805,9 +805,10 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		 * We've now eliminated all IGNORE datasets with the possible
 		 * exception of current, which we now check.
 		 */
-		if (IGNORE(current)) {
-			down_next = current->down;
-			if (down_next == NULL) {
+		dcurrent = current;
+		if (IGNORE(dcurrent)) {
+			dcurrent_down = current->down;
+			if (dcurrent_down == NULL) {
 				if (top_prev != NULL) {
 					top_prev->next = current->next;
 				} else {
@@ -825,13 +826,13 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 				 * current.
 				 */
 				if (top_prev != NULL) {
-					top_prev->next = down_next;
+					top_prev->next = dcurrent_down;
 				} else {
-					node->data = down_next;
+					node->data = dcurrent_down;
 				}
-				down_next->next = top_next;
+				dcurrent_down->next = top_next;
 				dns_slabheader_destroy(&current);
-				current = down_next;
+				current = dcurrent_down;
 			}
 		}
 
@@ -841,9 +842,9 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		 */
 		dparent = current;
 		for (dcurrent = current->down; dcurrent != NULL;
-		     dcurrent = down_next)
+		     dcurrent = dcurrent_down)
 		{
-			down_next = dcurrent->down;
+			dcurrent_down = dcurrent->down;
 			if (dcurrent->serial < least_serial) {
 				break;
 			}
@@ -856,10 +857,10 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		 */
 		if (dcurrent != NULL) {
 			do {
-				down_next = dcurrent->down;
+				dcurrent_down = dcurrent->down;
 				INSIST(dcurrent->serial <= least_serial);
 				dns_slabheader_destroy(&dcurrent);
-				dcurrent = down_next;
+				dcurrent = dcurrent_down;
 			} while (dcurrent != NULL);
 			dparent->down = NULL;
 		}
@@ -1876,28 +1877,23 @@ add_changed(dns_slabheader_t *header, qpz_version_t *version DNS__DB_FLARG) {
 
 static uint64_t
 recordsize(dns_slabheader_t *header, unsigned int namelen) {
-	return dns_rdataslab_rdatasize((unsigned char *)header,
-				       sizeof(*header)) +
-	       sizeof(dns_ttl_t) + sizeof(dns_rdatatype_t) +
-	       sizeof(dns_rdataclass_t) + namelen;
+	return dns_rdataslab_size(header) + sizeof(dns_ttl_t) +
+	       sizeof(dns_rdatatype_t) + sizeof(dns_rdataclass_t) + namelen;
 }
 
 static void
 maybe_update_recordsandsize(bool add, qpz_version_t *version,
 			    dns_slabheader_t *header, unsigned int namelen) {
-	unsigned char *hdr = (unsigned char *)header;
-	size_t hdrsize = sizeof(*header);
-
 	if (NONEXISTENT(header)) {
 		return;
 	}
 
 	RWLOCK(&version->rwlock, isc_rwlocktype_write);
 	if (add) {
-		version->records += dns_rdataslab_count(hdr, hdrsize);
+		version->records += dns_rdataslab_count(header);
 		version->xfrsize += recordsize(header, namelen);
 	} else {
-		version->records -= dns_rdataslab_count(hdr, hdrsize);
+		version->records -= dns_rdataslab_count(header);
 		version->xfrsize -= recordsize(header, namelen);
 	}
 	RWUNLOCK(&version->rwlock, isc_rwlocktype_write);
@@ -1912,7 +1908,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *prioheader = NULL;
 	dns_slabheader_t *header = NULL;
-	unsigned char *merged = NULL;
+	dns_slabheader_t *merged = NULL;
 	isc_result_t result;
 	bool merge = false;
 	uint32_t ntypes;
@@ -1978,10 +1974,8 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			}
 			if (result == ISC_R_SUCCESS) {
 				result = dns_rdataslab_merge(
-					(unsigned char *)header,
-					(unsigned char *)newheader,
-					(unsigned int)(sizeof(*newheader)),
-					qpdb->common.mctx, qpdb->common.rdclass,
+					header, newheader, qpdb->common.mctx,
+					qpdb->common.rdclass,
 					(dns_rdatatype_t)header->type, flags,
 					qpdb->maxrrperset, &merged);
 			}
@@ -1995,7 +1989,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 				 * clean_zone_node() runs.
 				 */
 				dns_slabheader_destroy(&newheader);
-				newheader = (dns_slabheader_t *)merged;
+				newheader = merged;
 				dns_slabheader_reset(newheader,
 						     (dns_db_t *)qpdb,
 						     (dns_dbnode_t *)node);
@@ -2056,7 +2050,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			}
 			newheader->next = topheader->next;
 			newheader->down = topheader;
-			topheader->next = newheader;
+			topheader->up = newheader;
 			node->dirty = true;
 			if (changed != NULL) {
 				changed->dirty = true;
@@ -2099,7 +2093,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 			}
 			newheader->next = topheader->next;
 			newheader->down = topheader;
-			topheader->next = newheader;
+			topheader->up = newheader;
 			if (changed != NULL) {
 				changed->dirty = true;
 			}
@@ -2247,8 +2241,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 
 	loading_addnode(loadctx, name, rdataset->type, rdataset->covers, &node);
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t),
-					    qpdb->maxrrperset);
+					    &region, qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_TOOMANYRECORDS) {
 			dns__db_logtoomanyrecords((dns_db_t *)qpdb, name,
@@ -2259,16 +2252,13 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	}
 
 	newheader = (dns_slabheader_t *)region.base;
-	*newheader = (dns_slabheader_t){
-		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
-		.ttl = rdataset->ttl,
-		.trust = rdataset->trust,
-		.node = (dns_dbnode_t *)node,
-		.serial = 1,
-		.count = 1,
-	};
-
 	dns_slabheader_reset(newheader, (dns_db_t *)qpdb, (dns_dbnode_t *)node);
+
+	newheader->ttl = rdataset->ttl;
+	newheader->trust = rdataset->trust;
+	newheader->serial = 1;
+	newheader->count = 1;
+
 	dns_slabheader_setownercase(newheader, name);
 
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
@@ -2486,7 +2476,7 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 	REQUIRE(rdataset != NULL);
 	REQUIRE(rdataset->methods == &dns_rdataslab_rdatasetmethods);
 
-	header = dns_slabheader_fromrdataset(rdataset);
+	header = dns_rdataset_getheader(rdataset);
 
 	nlock = &qpdb->buckets[HEADERNODE(header)->locknum].lock;
 	NODE_WRLOCK(nlock, &nlocktype);
@@ -4184,9 +4174,8 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)(qrditer->common.db);
 	qpznode_t *node = (qpznode_t *)qrditer->common.node;
 	qpz_version_t *version = (qpz_version_t *)qrditer->common.version;
-	dns_slabheader_t *header = NULL, *top_next = NULL;
-	dns_typepair_t type, negtype;
-	dns_rdatatype_t rdtype;
+	dns_slabheader_t *header = NULL;
+	dns_slabheader_t *topheader, *topheader_next = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	isc_rwlock_t *nlock = &qpdb->buckets[node->locknum].lock;
 
@@ -4197,22 +4186,14 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 
 	NODE_RDLOCK(nlock, &nlocktype);
 
-	type = header->type;
-	rdtype = DNS_TYPEPAIR_TYPE(header->type);
-	negtype = DNS_TYPEPAIR_VALUE(0, rdtype);
-
 	/*
-	 * Find the start of the header chain for the next type
-	 * by walking back up the list.
+	 * Find the start of the header chain for the next type.
 	 */
-	top_next = header->next;
-	while (top_next != NULL &&
-	       (top_next->type == type || top_next->type == negtype))
+	topheader = dns_slabheader_top(header);
+
+	for (header = topheader->next; header != NULL; header = topheader_next)
 	{
-		top_next = top_next->next;
-	}
-	for (header = top_next; header != NULL; header = top_next) {
-		top_next = header->next;
+		topheader_next = header->next;
 		do {
 			if (header->serial <= version->serial &&
 			    !IGNORE(header))
@@ -4228,15 +4209,11 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 		if (header != NULL) {
 			break;
 		}
+
 		/*
-		 * Find the start of the header chain for the next type
-		 * by walking back up the list.
+		 * Find the start of the header chain for the next type.
 		 */
-		while (top_next != NULL &&
-		       (top_next->type == type || top_next->type == negtype))
-		{
-			top_next = top_next->next;
-		}
+		topheader = topheader->next;
 	}
 
 	NODE_UNLOCK(nlock, &nlocktype);
@@ -4743,8 +4720,7 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 		 rdataset->covers != dns_rdatatype_nsec3));
 
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t),
-					    qpdb->maxrrperset);
+					    &region, qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_TOOMANYRECORDS) {
 			dns__db_logtoomanyrecords((dns_db_t *)qpdb, &node->name,
@@ -4758,17 +4734,12 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	dns_rdataset_getownercase(rdataset, name);
 
 	newheader = (dns_slabheader_t *)region.base;
-	*newheader = (dns_slabheader_t){
-		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
-		.trust = rdataset->trust,
-		.node = (dns_dbnode_t *)node,
-	};
-
 	dns_slabheader_reset(newheader, db, (dns_dbnode_t *)node);
 	newheader->ttl = rdataset->ttl;
 	if (rdataset->ttl == 0U) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_ZEROTTL);
 	}
+
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 
@@ -4854,7 +4825,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	dns_name_t *nodename = dns_fixedname_initname(&fname);
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *header = NULL, *newheader = NULL;
-	unsigned char *subresult = NULL;
+	dns_slabheader_t *subresult = NULL;
 	isc_region_t region;
 	isc_result_t result;
 	qpz_changed_t *changed = NULL;
@@ -4873,8 +4844,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 
 	dns_name_copy(&node->name, nodename);
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t),
-					    0);
+					    &region, 0);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -4882,26 +4852,16 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	newheader = (dns_slabheader_t *)region.base;
 	dns_slabheader_reset(newheader, db, (dns_dbnode_t *)node);
 	newheader->ttl = rdataset->ttl;
-	newheader->type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers);
 	atomic_init(&newheader->attributes, 0);
 	newheader->serial = version->serial;
-	newheader->trust = 0;
-	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
-	newheader->last_used = 0;
-	newheader->node = (dns_dbnode_t *)node;
-	newheader->db = (dns_db_t *)qpdb;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_RESIGN);
 		newheader->resign =
 			(isc_stdtime_t)(dns_time64_from32(rdataset->resign) >>
 					1);
 		newheader->resign_lsb = rdataset->resign & 0x1;
-	} else {
-		newheader->resign = 0;
-		newheader->resign_lsb = 0;
 	}
 
 	nlock = &qpdb->buckets[node->locknum].lock;
@@ -4937,16 +4897,14 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 		}
 		if (result == ISC_R_SUCCESS) {
 			result = dns_rdataslab_subtract(
-				(unsigned char *)header,
-				(unsigned char *)newheader,
-				(unsigned int)(sizeof(*newheader)),
-				qpdb->common.mctx, qpdb->common.rdclass,
+				header, newheader, qpdb->common.mctx,
+				qpdb->common.rdclass,
 				(dns_rdatatype_t)header->type, flags,
 				&subresult);
 		}
 		if (result == ISC_R_SUCCESS) {
 			dns_slabheader_destroy(&newheader);
-			newheader = (dns_slabheader_t *)subresult;
+			newheader = subresult;
 			dns_slabheader_reset(newheader, db,
 					     (dns_dbnode_t *)node);
 			dns_slabheader_copycase(newheader, header);
@@ -5335,7 +5293,7 @@ addglue_to_message(dns_glue_t *ge, dns_message_t *msg) {
 static dns_gluelist_t *
 create_gluelist(qpzonedb_t *qpdb, qpz_version_t *version, qpznode_t *node,
 		dns_rdataset_t *rdataset) {
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 	dns_glue_additionaldata_ctx_t ctx = {
 		.db = (dns_db_t *)qpdb,
 		.version = (dns_dbversion_t *)version,
@@ -5364,7 +5322,7 @@ addglue(dns_db_t *db, dns_dbversion_t *dbversion, dns_rdataset_t *rdataset,
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpz_version_t *version = (qpz_version_t *)dbversion;
 	qpznode_t *node = (qpznode_t *)rdataset->slab.node;
-	dns_slabheader_t *header = dns_slabheader_fromrdataset(rdataset);
+	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 	dns_glue_t *glue = NULL;
 	isc_statscounter_t counter = dns_gluecachestatscounter_hits_absent;
 

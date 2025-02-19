@@ -50,6 +50,7 @@
 #include <isc/magic.h>
 #include <isc/stdtime.h>
 
+#include <dns/rdataslab.h>
 #include <dns/rdatastruct.h>
 #include <dns/types.h>
 
@@ -73,7 +74,7 @@ typedef enum {
 	dns_rdatasetadditional_fromglue
 } dns_rdatasetadditional_t;
 
-typedef struct dns_rdatasetmethods {
+struct dns_rdatasetmethods {
 	void (*disassociate)(dns_rdataset_t *rdataset DNS__DB_FLARG);
 	isc_result_t (*first)(dns_rdataset_t *rdataset);
 	isc_result_t (*next)(dns_rdataset_t *rdataset);
@@ -98,7 +99,8 @@ typedef struct dns_rdatasetmethods {
 	void (*getownercase)(const dns_rdataset_t *rdataset, dns_name_t *name);
 	isc_result_t (*addglue)(dns_rdataset_t	*rdataset,
 				dns_dbversion_t *version, dns_message_t *msg);
-} dns_rdatasetmethods_t;
+	dns_slabheader_t *(*getheader)(const dns_rdataset_t *rdataset);
+};
 
 #define DNS_RDATASET_MAGIC	ISC_MAGIC('D', 'N', 'S', 'R')
 #define DNS_RDATASET_VALID(set) ISC_MAGIC_VALID(set, DNS_RDATASET_MAGIC)
@@ -153,7 +155,7 @@ struct dns_rdataset {
 	 * the code referred to in the rdataset methods table. The names of
 	 * the structures roughly correspond to the file containing the
 	 * implementation, except that `rdlist` is used by `rdatalist.c`,
-	 * `sdb.c`, and `sdlz.c`.
+	 * and `sdlz.c`, and `slab` by `rdataslab.c`.
 	 *
 	 * Pointers in these structs use incomplete structure types,
 	 * because the structure definitions and corresponding typedef
@@ -179,11 +181,11 @@ struct dns_rdataset {
 
 		/*
 		 * A slab rdataset provides access to an rdataslab. In
-		 * an rbtdb database, 'raw' will generally point to the
+		 * a QP database, 'raw' will generally point to the
 		 * memory immediately following a slabheader. (There
 		 * is an exception in the case of rdatasets returned by
 		 * the `getnoqname` and `getclosest` methods; see
-		 * comments in rbtdb.c for details.)
+		 * comments in rdataslab.c for details.)
 		 */
 		struct {
 			struct dns_db	       *db;
@@ -662,4 +664,15 @@ const char *
 dns_trust_totext(dns_trust_t trust);
 /*%<
  * Display trust in textual form.
+ */
+
+dns_slabheader_t *
+dns_rdataset_getheader(const dns_rdataset_t *rdataset);
+/*%<
+ * Return a pointer to the slabheader for a slab rdataset. If 'rdataset'
+ * is not a slab rdataset or if the slab is raw (lacking a header), return
+ * NULL.
+ *
+ * Requires:
+ * \li	'rdataset' is a valid rdataset.
  */

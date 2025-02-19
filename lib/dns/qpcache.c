@@ -2286,8 +2286,7 @@ expiredata(dns_db_t *db, dns_dbnode_t *node, void *data) {
 static size_t
 rdataset_size(dns_slabheader_t *header) {
 	if (EXISTS(header)) {
-		return dns_rdataslab_size((unsigned char *)header,
-					  sizeof(*header));
+		return dns_rdataslab_size(header);
 	}
 
 	return sizeof(*header);
@@ -2884,9 +2883,7 @@ find_header:
 		if (ACTIVE(header, now) && header->type == dns_rdatatype_ns &&
 		    EXISTS(header) && EXISTS(newheader) &&
 		    header->trust >= newheader->trust &&
-		    dns_rdataslab_equalx((unsigned char *)header,
-					 (unsigned char *)newheader,
-					 (unsigned int)(sizeof(*newheader)),
+		    dns_rdataslab_equalx(header, newheader,
 					 qpdb->common.rdclass,
 					 (dns_rdatatype_t)header->type))
 		{
@@ -2950,9 +2947,7 @@ find_header:
 		     header->type == DNS_SIGTYPE(dns_rdatatype_ds)) &&
 		    EXISTS(header) && EXISTS(newheader) &&
 		    header->trust >= newheader->trust &&
-		    dns_rdataslab_equal((unsigned char *)header,
-					(unsigned char *)newheader,
-					(unsigned int)(sizeof(*newheader))))
+		    dns_rdataslab_equal(header, newheader))
 		{
 			/*
 			 * Honour the new ttl if it is less than the
@@ -3095,20 +3090,20 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
 	noqname = isc_mem_get(mctx, sizeof(*noqname));
 	*noqname = (dns_slabheader_proof_t){
-		.neg = r1.base,
-		.negsig = r2.base,
+		.neg = dns_slabheader_raw((dns_slabheader_t *)r1.base),
+		.negsig = dns_slabheader_raw((dns_slabheader_t *)r2.base),
 		.type = neg.type,
 		.name = DNS_NAME_INITEMPTY,
 	};
@@ -3134,20 +3129,20 @@ addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
 	closest = isc_mem_get(mctx, sizeof(*closest));
 	*closest = (dns_slabheader_proof_t){
-		.neg = r1.base,
-		.negsig = r2.base,
+		.neg = dns_slabheader_raw((dns_slabheader_t *)r1.base),
+		.negsig = dns_slabheader_raw((dns_slabheader_t *)r2.base),
 		.name = DNS_NAME_INITEMPTY,
 		.type = neg.type,
 	};
@@ -3189,8 +3184,7 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(version == NULL);
 
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t),
-					    qpdb->maxrrperset);
+					    &region, qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_TOOMANYRECORDS) {
 			dns__db_logtoomanyrecords((dns_db_t *)qpdb,
@@ -3205,18 +3199,20 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdataset_getownercase(rdataset, name);
 
 	newheader = (dns_slabheader_t *)region.base;
-	*newheader = (dns_slabheader_t){
-		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
-		.trust = rdataset->trust,
-		.last_used = now,
-		.node = (dns_dbnode_t *)qpnode,
-	};
-
 	dns_slabheader_reset(newheader, db, node);
+
+	newheader->last_used = now;
+
+	/*
+	 * By default, dns_rdataslab_fromrdataset() sets newheader->ttl
+	 * to the rdataset TTL. In the case of the cache, that's wrong;
+	 * we need it to be set to the expire time instead.
+	 */
 	setttl(newheader, rdataset->ttl + now);
 	if (rdataset->ttl == 0U) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_ZEROTTL);
 	}
+
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 	if ((rdataset->attributes & DNS_RDATASETATTR_PREFETCH) != 0) {
