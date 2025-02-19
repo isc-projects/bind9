@@ -79,13 +79,15 @@ def get_postproc_job(project, pipeline_id):
 
 
 def evaluate_postproc_job(job):
-    if job.status != "success":
-        raise RuntimeError("error: 'postproc' job didn't succeed")
+    print(f"postproc job URL: {job.web_url}")
     index_url = (
         "https://isc-projects.gitlab-pages.isc.org/-/"
         f"bind9-shotgun-ci/-/jobs/{job.id}/artifacts/index.html"
     )
-    print(f"Result ready for manual inspection: {index_url}")
+    if job.status in ["success", "failed"]:
+        print(f"result for manual inspection: {index_url}")
+    if job.status != "success":
+        raise RuntimeError("error: 'postproc' job didn't succeed")
 
 
 def main():
