@@ -56,6 +56,16 @@ variables:
   # Some jobs may clean up the build artifacts unless this is set to 0.
   CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 1
 
+  # DNS Shotgun performance testing defaults
+  SHOTGUN_ROUNDS: 1
+  SHOTGUN_DURATION: 120
+  # allow unlimited improvements against baseline
+  SHOTGUN_EVAL_THRESHOLD_CPU_MIN: '-inf'
+  SHOTGUN_EVAL_THRESHOLD_MEMORY_MIN: '-inf'
+  SHOTGUN_EVAL_THRESHOLD_RCODE_MAX: '+inf'
+  SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MIN: '-inf'
+  SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_DRIFT_MIN: '-inf'
+
 default:
   # Allow all running CI jobs to be automatically canceled when a new
   # version of a branch is pushed.
@@ -343,18 +353,38 @@ stages:
 
 .shotgun: &shotgun_job
   <<: *base_image
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   stage: performance
+  rules:
+    - &shotgun_rule_mr
+      if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+      variables:
+        BASELINE: '$CI_MERGE_REQUEST_DIFF_BASE_SHA'
+    - &shotgun_rule_tag
+      if: '$CI_COMMIT_TAG != null'
+      variables:
+        SHOTGUN_ROUNDS: 3
+    - &shotgun_rule_other
+      if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
   script:
-    - if [ -z "$CI_COMMIT_TAG" ]; then export SHOTGUN_ROUNDS=1; else export SHOTGUN_ROUNDS=3; fi
+    - if [ -z "$BASELINE" ]; then export BASELINE=$BIND_BASELINE_VERSION; fi  # this dotenv variable can't be set in the rules section, because rules are evaluated before any jobs run
     - PIPELINE_ID=$(curl -s -X POST --fail
         -F "token=$CI_JOB_TOKEN"
         -F ref=main
-        -F "variables[SHOTGUN_TEST_VERSION]=['$CI_COMMIT_REF_NAME', '$BIND_BASELINE_VERSION']"
+        -F "variables[SHOTGUN_TEST_VERSION]=['$CI_COMMIT_REF_NAME', '$BASELINE']"
         -F "variables[SHOTGUN_DURATION]=300"
         -F "variables[SHOTGUN_ROUNDS]=$SHOTGUN_ROUNDS"
         -F "variables[SHOTGUN_TRAFFIC_MULTIPLIER]=$SHOTGUN_TRAFFIC_MULTIPLIER"
         -F "variables[SHOTGUN_SCENARIO]=$SHOTGUN_SCENARIO"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_CPU_MIN]=$SHOTGUN_EVAL_THRESHOLD_CPU_MIN"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_CPU_MAX]=$SHOTGUN_EVAL_THRESHOLD_CPU_MAX"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_MEMORY_MIN]=$SHOTGUN_EVAL_THRESHOLD_MEMORY_MIN"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_MEMORY_MAX]=$SHOTGUN_EVAL_THRESHOLD_MEMORY_MAX"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_RCODE_MIN]=$SHOTGUN_EVAL_THRESHOLD_RCODE_MIN"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_RCODE_MAX]=$SHOTGUN_EVAL_THRESHOLD_RCODE_MAX"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MIN]=$SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MIN"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MAX]=$SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MAX"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_DRIFT_MIN]=$SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_DRIFT_MIN"
+        -F "variables[SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_DRIFT_MAX]=$SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_DRIFT_MAX"
         https://gitlab.isc.org/api/v4/projects/188/trigger/pipeline | jq .id)
     - util/ci-wait-shotgun.py $PIPELINE_ID
   needs:
@@ -1670,24 +1700,28 @@ shotgun:tcp:
   variables:
     SHOTGUN_SCENARIO: tcp
     SHOTGUN_TRAFFIC_MULTIPLIER: 13
-  when: delayed
-  start_in: 5 minutes
 
 shotgun:dot:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: dot
     SHOTGUN_TRAFFIC_MULTIPLIER: 6
-  when: delayed
-  start_in: 5 minutes
+  rules: &shotgun_rules_manual_mr
+    - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+      variables:
+        BASELINE: '$CI_MERGE_REQUEST_DIFF_BASE_SHA'
+      when: manual  # don't run on each MR unless requested
+      allow_failure: true
+    - *shotgun_rule_tag
+    - *shotgun_rule_other
 
 shotgun:doh-get:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: doh-get
     SHOTGUN_TRAFFIC_MULTIPLIER: 3
-  when: delayed
-  start_in: 5 minutes
+    SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MAX: 0.3  # bump from the default due to increased tail-end jitter
+  rules: *shotgun_rules_manual_mr
 
 .stress-test: &stress_test
   stage: performance
