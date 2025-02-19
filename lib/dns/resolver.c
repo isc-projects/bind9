@@ -357,7 +357,6 @@ struct fetchctx {
 	/*% Locked by lock. */
 	isc_mutex_t lock;
 	fetchstate_t state;
-	bool hashed;
 	bool cloned;
 	bool spilled;
 	ISC_LINK(struct fetchctx) link;
@@ -599,9 +598,6 @@ struct dns_resolver {
 	/* Locked by primelock. */
 	dns_fetch_t *primefetch;
 
-	/* Atomic. */
-	atomic_uint_fast32_t nfctx;
-
 	uint32_t nloops;
 
 	isc_mempool_t **namepools;
@@ -717,8 +713,6 @@ get_attached_fctx(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		  dns_rdataset_t *nameservers, const isc_sockaddr_t *client,
 		  unsigned int options, unsigned int depth, isc_counter_t *qc,
 		  isc_counter_t *gqc, fetchctx_t **fctxp, bool *new_fctx);
-static void
-release_fctx(fetchctx_t *fctx);
 
 /*%
  * The structure and functions defined below implement the resolver
@@ -1656,6 +1650,25 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	}
 }
 
+static uint32_t
+fctx_hash(fetchctx_t *fctx) {
+	isc_hash32_t hash32;
+	isc_hash32_init(&hash32);
+	isc_hash32_hash(&hash32, fctx->name->ndata, fctx->name->length, false);
+	isc_hash32_hash(&hash32, &fctx->options, sizeof(fctx->options), true);
+	isc_hash32_hash(&hash32, &fctx->type, sizeof(fctx->type), true);
+	return isc_hash32_finalize(&hash32);
+}
+
+static bool
+fctx_match(void *node, const void *key) {
+	const fetchctx_t *fctx0 = node;
+	const fetchctx_t *fctx1 = key;
+
+	return fctx0->options == fctx1->options && fctx0->type == fctx1->type &&
+	       dns_name_equal(fctx0->name, fctx1->name);
+}
+
 static bool
 fctx__done(fetchctx_t *fctx, isc_result_t result, const char *func,
 	   const char *file, unsigned int line) {
@@ -1683,10 +1696,14 @@ fctx__done(fetchctx_t *fctx, isc_result_t result, const char *func,
 		return false;
 	}
 	fctx->state = fetchstate_done;
-	release_fctx(fctx);
-
 	FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
 	UNLOCK(&fctx->lock);
+
+	/* The fctx will get deleted either here or in get_attached_fctx() */
+	RWLOCK(&fctx->res->fctxs_lock, isc_rwlocktype_write);
+	(void)isc_hashmap_delete(fctx->res->fctxs, fctx_hash(fctx), match_ptr,
+				 fctx);
+	RWUNLOCK(&fctx->res->fctxs_lock, isc_rwlocktype_write);
 
 	if (result == ISC_R_SUCCESS) {
 		if (fctx->qmin_warning != ISC_R_SUCCESS) {
@@ -4330,7 +4347,6 @@ fctx_destroy(fetchctx_t *fctx) {
 	dns_resolver_t *res = NULL;
 	isc_sockaddr_t *sa = NULL, *next_sa = NULL;
 	struct tried *tried = NULL;
-	uint_fast32_t nfctx;
 
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(ISC_LIST_EMPTY(fctx->resps));
@@ -4348,9 +4364,6 @@ fctx_destroy(fetchctx_t *fctx) {
 	res = fctx->res;
 
 	dec_stats(res, dns_resstatscounter_nfetch);
-
-	nfctx = atomic_fetch_sub_release(&res->nfctx, 1);
-	INSIST(nfctx > 0);
 
 	/* Free bad */
 	for (sa = ISC_LIST_HEAD(fctx->bad); sa != NULL; sa = next_sa) {
@@ -4539,7 +4552,6 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	isc_interval_t interval;
 	unsigned int findoptions = 0;
 	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 1];
-	uint_fast32_t nfctx;
 	isc_mem_t *mctx = isc_loop_getmctx(loop);
 	size_t p;
 
@@ -4795,9 +4807,6 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 				    dns_name_issubdomain(fctx->name, &ip6_arpa);
 		fctx_minimize_qname(fctx);
 	}
-
-	nfctx = atomic_fetch_add_relaxed(&res->nfctx, 1);
-	INSIST(nfctx < UINT32_MAX);
 
 	inc_stats(res, dns_resstatscounter_nfetch);
 
@@ -7036,43 +7045,6 @@ ISC_REFCOUNT_TRACE_IMPL(fetchctx, fctx_destroy);
 #else
 ISC_REFCOUNT_IMPL(fetchctx, fctx_destroy);
 #endif
-
-static uint32_t
-fctx_hash(fetchctx_t *fctx) {
-	isc_hash32_t hash32;
-	isc_hash32_init(&hash32);
-	isc_hash32_hash(&hash32, fctx->name->ndata, fctx->name->length, false);
-	isc_hash32_hash(&hash32, &fctx->options, sizeof(fctx->options), true);
-	isc_hash32_hash(&hash32, &fctx->type, sizeof(fctx->type), true);
-	return isc_hash32_finalize(&hash32);
-}
-
-static bool
-fctx_match(void *node, const void *key) {
-	const fetchctx_t *fctx0 = node;
-	const fetchctx_t *fctx1 = key;
-
-	return fctx0->options == fctx1->options && fctx0->type == fctx1->type &&
-	       dns_name_equal(fctx0->name, fctx1->name);
-}
-
-/* Must be fctx locked */
-static void
-release_fctx(fetchctx_t *fctx) {
-	isc_result_t result;
-	dns_resolver_t *res = fctx->res;
-
-	if (!fctx->hashed) {
-		return;
-	}
-
-	RWLOCK(&res->fctxs_lock, isc_rwlocktype_write);
-	result = isc_hashmap_delete(res->fctxs, fctx_hash(fctx), match_ptr,
-				    fctx);
-	INSIST(result == ISC_R_SUCCESS);
-	fctx->hashed = false;
-	RWUNLOCK(&res->fctxs_lock, isc_rwlocktype_write);
-}
 
 static void
 resume_dslookup(void *arg) {
@@ -9952,8 +9924,6 @@ dns_resolver__destroy(dns_resolver_t *res) {
 
 	RTRACE("destroy");
 
-	REQUIRE(atomic_load_acquire(&res->nfctx) == 0);
-
 	res->magic = 0;
 
 	dns_nametree_detach(&res->algorithms);
@@ -10433,7 +10403,8 @@ again:
 		result = fctx_create(res, loop, name, type, domain, nameservers,
 				     client, options, depth, qc, gqc, &fctx);
 		if (result != ISC_R_SUCCESS) {
-			goto unlock;
+			RWUNLOCK(&res->fctxs_lock, locktype);
+			return result;
 		}
 
 		UPGRADELOCK(&res->fctxs_lock, locktype);
@@ -10443,38 +10414,56 @@ again:
 					 fctx, &found);
 		if (result == ISC_R_SUCCESS) {
 			*new_fctx = true;
-			fctx->hashed = true;
 		} else {
-			fctx_done_detach(&fctx, result);
+			/*
+			 * The fctx_done() tries to acquire the fctxs_lock.
+			 * Destroy the newly created fetchctx directly.
+			 */
+			fctx->state = fetchstate_done;
+			isc_timer_destroy(&fctx->timer);
+
+			fetchctx_detach(&fctx);
 			fctx = found;
 			result = ISC_R_SUCCESS;
 		}
-		INSIST(result == ISC_R_SUCCESS);
 		break;
 	default:
 		UNREACHABLE();
 	}
+	INSIST(result == ISC_R_SUCCESS);
 	fetchctx_ref(fctx);
-unlock:
-	RWUNLOCK(&res->fctxs_lock, locktype);
-	if (result == ISC_R_SUCCESS) {
-		LOCK(&fctx->lock);
-		if (SHUTTINGDOWN(fctx) || fctx->cloned) {
-			/*
-			 * This is the single place where fctx might get
-			 * accesses from a different thread, so we need to
-			 * double check whether fctxs is done (or cloned) and
-			 * help with the release if the fctx has been cloned.
-			 */
-			release_fctx(fctx);
-			UNLOCK(&fctx->lock);
-			fetchctx_detach(&fctx);
-			goto again;
-		}
 
-		INSIST(!SHUTTINGDOWN(fctx));
-		*fctxp = fctx;
+	/*
+	 * We need to lock the fetch context before unlocking the hash table to
+	 * prevent other threads from looking up this thread before it has been
+	 * properly initialized and started.
+	 */
+	LOCK(&fctx->lock);
+	RWUNLOCK(&res->fctxs_lock, locktype);
+
+	if (SHUTTINGDOWN(fctx) || fctx->cloned) {
+		/*
+		 * This is the single place where fctx might get
+		 * accesses from a different thread, so we need to
+		 * double check whether fctxs is done (or cloned) and
+		 * help with the release if the fctx has been cloned.
+		 */
+		UNLOCK(&fctx->lock);
+
+		/* The fctx will get deleted either here or in fctx__done() */
+		RWLOCK(&res->fctxs_lock, isc_rwlocktype_write);
+		(void)isc_hashmap_delete(res->fctxs, fctx_hash(fctx), match_ptr,
+					 fctx);
+		RWUNLOCK(&res->fctxs_lock, isc_rwlocktype_write);
+
+		fetchctx_detach(&fctx);
+		goto again;
 	}
+
+	/*
+	 * The function returns a locked fetch context,
+	 */
+	*fctxp = fctx;
 
 	return result;
 }
@@ -10578,7 +10567,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 		result = fctx_create(res, loop, name, type, domain, nameservers,
 				     client, options, depth, qc, gqc, &fctx);
 		if (result != ISC_R_SUCCESS) {
-			goto unlock;
+			goto fail;
 		}
 		new_fctx = true;
 	}
