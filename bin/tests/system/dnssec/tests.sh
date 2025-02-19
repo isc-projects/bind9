@@ -4553,5 +4553,21 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "checking that a insecure negative response where there is a NSEC without a RRSIG succeeds ($n)"
+ret=0
+# check server preconditions
+dig_with_opts +notcp @10.53.0.10 nsec-rrsigs-stripped. TXT +dnssec >dig.out.ns10.test$n
+grep "status: NOERROR" dig.out.ns10.test$n >/dev/null || ret=1
+grep "QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1" dig.out.ns10.test$n >/dev/null || ret=1
+grep "IN.RRSIG.NSEC" dig.out.ns10.test$n >/dev/null && ret=1
+# check resolver succeeds
+dig_with_opts @10.53.0.4 nsec-rrsigs-stripped. TXT +dnssec >dig.out.ns4.test$n
+grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
+grep "QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1" dig.out.ns4.test$n >/dev/null || ret=1
+grep "IN.RRSIG.NSEC" dig.out.ns4.test$n >/dev/null && ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
