@@ -232,7 +232,7 @@ typedef struct isc_http_send_req {
 #define HTTP_HANDLER_MAGIC    ISC_MAGIC('H', 'T', 'H', 'L')
 #define VALID_HTTP_HANDLER(t) ISC_MAGIC_VALID(t, HTTP_HANDLER_MAGIC)
 
-static bool
+static void
 http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		   isc_nm_cb_t cb, void *cbarg);
 
@@ -1378,7 +1378,7 @@ http_append_pending_send_request(isc_nm_http_session_t *session,
 	ISC_LIST_APPEND(session->pending_write_callbacks, newcb, link);
 }
 
-static bool
+static void
 http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		   isc_nm_cb_t cb, void *cbarg) {
 	isc_http_send_req_t *send = NULL;
@@ -1400,7 +1400,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 			isc__nm_sendcb(httphandle->sock, req, ISC_R_CANCELED,
 				       true);
 		}
-		return false;
+		return;
 	} else if (!nghttp2_session_want_write(session->ngsession) &&
 		   session->pending_write_data == NULL)
 	{
@@ -1408,7 +1408,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 			http_append_pending_send_request(session, httphandle,
 							 cb, cbarg);
 		}
-		return false;
+		return;
 	}
 
 	/* We need to attach to the session->handle earlier because as an
@@ -1537,10 +1537,9 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	isc_buffer_usedregion(send->pending_write_data, &send_data);
 	session->data_in_flight += send_data.length;
 	isc_nm_send(transphandle, &send_data, http_writecb, send);
-	return true;
+	return;
 nothing_to_send:
 	isc_nmhandle_detach(&transphandle);
-	return false;
 }
 
 static inline bool
@@ -1595,8 +1594,8 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 
 	if (send_cb != NULL) {
 		INSIST(VALID_NMHANDLE(send_httphandle));
-		(void)http_send_outgoing(session, send_httphandle, send_cb,
-					 send_cbarg);
+		http_send_outgoing(session, send_httphandle, send_cb,
+				   send_cbarg);
 		return;
 	}
 
@@ -1605,7 +1604,7 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 	INSIST(send_cbarg == NULL);
 
 	if (session->pending_write_data != NULL && session->sending == 0) {
-		(void)http_send_outgoing(session, NULL, NULL, NULL);
+		http_send_outgoing(session, NULL, NULL, NULL);
 		return;
 	}
 
@@ -1660,8 +1659,7 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 				 */
 				http_do_bio_async(session);
 			} else {
-				(void)http_send_outgoing(session, NULL, NULL,
-							 NULL);
+				http_send_outgoing(session, NULL, NULL, NULL);
 			}
 
 			isc__nm_httpsession_detach(&tmpsess);
@@ -1677,7 +1675,7 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 	}
 
 	/* we might have some data to send after processing */
-	(void)http_send_outgoing(session, NULL, NULL, NULL);
+	http_send_outgoing(session, NULL, NULL, NULL);
 
 	if (nghttp2_session_want_read(session->ngsession) == 0 &&
 	    nghttp2_session_want_write(session->ngsession) == 0 &&
