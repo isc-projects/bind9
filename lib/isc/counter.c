@@ -34,30 +34,26 @@ struct isc_counter {
 	atomic_uint_fast32_t used;
 };
 
-isc_result_t
+void
 isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
-	isc_counter_t *counter;
-
 	REQUIRE(counterp != NULL && *counterp == NULL);
 
-	counter = isc_mem_get(mctx, sizeof(*counter));
+	isc_counter_t *counter = isc_mem_get(mctx, sizeof(*counter));
+	*counter = (isc_counter_t){
+		.magic = COUNTER_MAGIC,
+		.references = 1,
+		.limit = limit,
+	};
 
-	counter->mctx = NULL;
 	isc_mem_attach(mctx, &counter->mctx);
 
-	isc_refcount_init(&counter->references, 1);
-	atomic_init(&counter->limit, limit);
-	atomic_init(&counter->used, 0);
-
-	counter->magic = COUNTER_MAGIC;
 	*counterp = counter;
-	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 isc_counter_increment(isc_counter_t *counter) {
-	uint32_t used = atomic_fetch_add_relaxed(&counter->used, 1) + 1;
-	uint32_t limit = atomic_load_acquire(&counter->limit);
+	uint_fast32_t used = atomic_fetch_add_relaxed(&counter->used, 1) + 1;
+	uint_fast32_t limit = atomic_load_acquire(&counter->limit);
 
 	if (limit != 0 && used >= limit) {
 		return ISC_R_QUOTA;
@@ -70,14 +66,14 @@ unsigned int
 isc_counter_used(isc_counter_t *counter) {
 	REQUIRE(VALID_COUNTER(counter));
 
-	return atomic_load_acquire(&counter->used);
+	return atomic_load_relaxed(&counter->used);
 }
 
 void
 isc_counter_setlimit(isc_counter_t *counter, int limit) {
 	REQUIRE(VALID_COUNTER(counter));
 
-	atomic_store(&counter->limit, limit);
+	atomic_store_release(&counter->limit, limit);
 }
 
 unsigned int
@@ -87,33 +83,13 @@ isc_counter_getlimit(isc_counter_t *counter) {
 	return atomic_load_acquire(&counter->limit);
 }
 
-void
-isc_counter_attach(isc_counter_t *source, isc_counter_t **targetp) {
-	REQUIRE(VALID_COUNTER(source));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	isc_refcount_increment(&source->references);
-
-	*targetp = source;
-}
-
 static void
-destroy(isc_counter_t *counter) {
+isc__counter_destroy(isc_counter_t *counter) {
+	REQUIRE(VALID_COUNTER(counter));
+
 	isc_refcount_destroy(&counter->references);
 	counter->magic = 0;
 	isc_mem_putanddetach(&counter->mctx, counter, sizeof(*counter));
 }
 
-void
-isc_counter_detach(isc_counter_t **counterp) {
-	isc_counter_t *counter;
-
-	REQUIRE(counterp != NULL && *counterp != NULL);
-	counter = *counterp;
-	*counterp = NULL;
-	REQUIRE(VALID_COUNTER(counter));
-
-	if (isc_refcount_decrement(&counter->references) == 1) {
-		destroy(counter);
-	}
-}
+ISC_REFCOUNT_IMPL(isc_counter, isc__counter_destroy);

@@ -11969,13 +11969,8 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	/*
 	 * Start global outgoing query count.
 	 */
-	result = isc_counter_create(client->manager->mctx,
-				    client->view->max_queries,
-				    &client->query.qc);
-	if (result != ISC_R_SUCCESS) {
-		query_next(client, result);
-		return;
-	}
+	isc_counter_create(client->manager->mctx, client->view->max_queries,
+			   &client->query.qc);
 
 	query_setup(client, qtype);
 }

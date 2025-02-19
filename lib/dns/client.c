@@ -939,10 +939,7 @@ startresolve(dns_client_t *client, const dns_name_t *name,
 	rctx->magic = RCTX_MAGIC;
 	isc_refcount_increment(&client->references);
 
-	result = isc_counter_create(mctx, client->max_queries, &rctx->qc);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_counter_create(mctx, client->max_queries, &rctx->qc);
 
 	ISC_LIST_APPEND(client->resctxs, rctx, link);
 
