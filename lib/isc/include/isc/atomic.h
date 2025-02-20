@@ -60,6 +60,8 @@
 	atomic_exchange_explicit((o), (v), memory_order_acquire)
 #define atomic_exchange_acq_rel(o, v) \
 	atomic_exchange_explicit((o), (v), memory_order_acq_rel)
+#define atomic_fetch_add_acq_rel(o, v) \
+	atomic_fetch_add_explicit((o), (v), memory_order_acq_rel)
 #define atomic_fetch_sub_acq_rel(o, v) \
 	atomic_fetch_sub_explicit((o), (v), memory_order_acq_rel)
 #define atomic_compare_exchange_weak_acq_rel(o, e, d) \
