@@ -284,6 +284,8 @@ options {
 	sig-validity-interval <integer> [ <integer> ]; // obsolete
 	sig0checks-quota <integer>; // experimental
 	sig0checks-quota-exempt { <address_match_element>; ... }; // experimental
+	sig0key-checks-limit <integer>;
+	sig0message-checks-limit <integer>;
 	sortlist { <address_match_element>; ... }; // deprecated
 	stale-answer-client-timeout ( disabled | off | <integer> );
 	stale-answer-enable <boolean>;
@@ -582,6 +584,8 @@ view <string> [ <class> ] {
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ]; // obsolete
+	sig0key-checks-limit <integer>;
+	sig0message-checks-limit <integer>;
 	sortlist { <address_match_element>; ... }; // deprecated
 	stale-answer-client-timeout ( disabled | off | <integer> );
 	stale-answer-enable <boolean>;

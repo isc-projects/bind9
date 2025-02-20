@@ -2276,6 +2276,8 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "send-cookie", &cfg_type_boolean, 0 },
 	{ "servfail-ttl", &cfg_type_duration, 0 },
+	{ "sig0key-checks-limit", &cfg_type_uint32, 0 },
+	{ "sig0message-checks-limit", &cfg_type_uint32, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "stale-answer-enable", &cfg_type_boolean, 0 },
 	{ "stale-answer-client-timeout", &cfg_type_staleanswerclienttimeout,

@@ -4074,6 +4074,26 @@ system.
            2001:db8::100;
        };
 
+.. namedconf:statement:: sig0key-checks-limit
+   :tags: server
+   :short: Specifies the maximum number of SIG(0) keys to consider when trying to verify a message.
+
+   This is the maximum number of keys to consider for a SIG(0)-signed message
+   when trying to verify it. :iscman:`named` will parse the candidate keys and
+   check whether their key tag and algorithm matches with the expected one
+   before trying to verify the signature. If the limit is reached the message
+   verification fails. The value of ``0`` disables the limitation. The default
+   is ``16``.
+
+.. namedconf:statement:: sig0message-checks-limit
+   :tags: server
+   :short: Specifies the maximum number of matching SIG(0) keys to try to verify a message.
+
+   This is the maximum number of keys which (when correctly parsed and matched
+   against the expected key tag and algorithm) :iscman:`named` uses to verify
+   a SIG(0)-signed message. If the limit is reached the message verification
+   fails. The value of ``0`` disables the limitation. The default is ``2``.
+
 .. _intervals:
 
 Periodic Task Intervals
