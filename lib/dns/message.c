@@ -3279,12 +3279,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		dns_rdata_sig_t sig;
 		dns_rdataset_t keyset;
 		isc_result_t result;
-		/*
-		 * In order to protect from a possible DoS attack, we are
-		 * going to check at most two KEY RRs.
-		 */
-		const size_t max_keys = 2;
-		size_t n;
+		uint32_t key_checks, message_checks;
 
 		result = dns_rdataset_first(msg->sig0);
 		INSIST(result == ISC_R_SUCCESS);
@@ -3325,8 +3320,25 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		result = dns_rdataset_first(&keyset);
 		INSIST(result == ISC_R_SUCCESS);
 
-		for (n = 0; result == ISC_R_SUCCESS && n < max_keys;
-		     n++, result = dns_rdataset_next(&keyset))
+		/*
+		 * In order to protect from a possible DoS attack, this function
+		 * supports limitations on how many keyid checks and how many
+		 * key checks (message verifications using a matched key) are
+		 * going to be allowed.
+		 */
+		const uint32_t max_key_checks =
+			view->sig0key_checks_limit > 0
+				? view->sig0key_checks_limit
+				: UINT32_MAX;
+		const uint32_t max_message_checks =
+			view->sig0message_checks_limit > 0
+				? view->sig0message_checks_limit
+				: UINT32_MAX;
+
+		for (key_checks = 0, message_checks = 0;
+		     result == ISC_R_SUCCESS && key_checks < max_key_checks &&
+		     message_checks < max_message_checks;
+		     key_checks++, result = dns_rdataset_next(&keyset))
 		{
 			dst_key_t *key = NULL;
 
@@ -3353,8 +3365,21 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			if (result == ISC_R_SUCCESS) {
 				break;
 			}
+			message_checks++;
 		}
-		if (result == ISC_R_NOMORE || n == max_keys) {
+		if (result == ISC_R_NOMORE) {
+			result = DNS_R_KEYUNAUTHORIZED;
+		} else if (key_checks == max_key_checks) {
+			isc_log_write(ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MESSAGE, ISC_LOG_DEBUG(3),
+				      "sig0key-checks-limit reached when "
+				      "trying to check a message signature");
+			result = DNS_R_KEYUNAUTHORIZED;
+		} else if (message_checks == max_message_checks) {
+			isc_log_write(ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MESSAGE, ISC_LOG_DEBUG(3),
+				      "sig0message-checks-limit reached when "
+				      "trying to check a message signature");
 			result = DNS_R_KEYUNAUTHORIZED;
 		}
 

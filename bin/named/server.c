@@ -4704,6 +4704,19 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_transport_list_detach(&transports);
 
 	/*
+	 * Configure SIG(0) check limits when matching a DNS message to a view.
+	 */
+	obj = NULL;
+	result = named_config_get(maps, "sig0key-checks-limit", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->sig0key_checks_limit = cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "sig0message-checks-limit", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->sig0message_checks_limit = cfg_obj_asuint32(obj);
+
+	/*
 	 * Configure the view's TSIG keys.
 	 */
 	CHECK(named_tsigkeyring_fromconfig(config, vconfig, view->mctx, &ring));
