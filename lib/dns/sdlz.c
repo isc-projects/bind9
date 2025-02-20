@@ -1451,7 +1451,8 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	NULL, /* clearprefetch */
 	NULL, /* setownercase */
 	NULL, /* getownercase */
-	NULL  /* addglue */
+	NULL, /* addglue */
+	NULL, /* equals */
 };
 
 static void
