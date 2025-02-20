@@ -86,6 +86,8 @@ typedef struct dns_rdatasetmethods {
 	void (*getownercase)(const dns_rdataset_t *rdataset, dns_name_t *name);
 	isc_result_t (*addglue)(dns_rdataset_t	*rdataset,
 				dns_dbversion_t *version, dns_message_t *msg);
+	bool (*equals)(const dns_rdataset_t *rdataset1,
+		       const dns_rdataset_t *rdataset2);
 } dns_rdatasetmethods_t;
 
 #define DNS_RDATASET_MAGIC	ISC_MAGIC('D', 'N', 'S', 'R')
@@ -629,4 +631,14 @@ dns_trust_totext(dns_trust_t trust);
  * Display trust in textual form.
  */
 
+bool
+dns_rdataset_equals(const dns_rdataset_t *rdataset1,
+		    const dns_rdataset_t *rdataset2);
+/*%<
+ * Returns true if the rdata in the rdataset is equal.
+ *
+ * Requires:
+ * \li	'rdataset1' is a valid rdataset.
+ * \li	'rdataset2' is a valid rdataset.
+ */
 ISC_LANG_ENDDECLS

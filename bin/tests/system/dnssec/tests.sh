@@ -4537,5 +4537,21 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "checking validator behavior with mismatching NS ($n)"
+ret=0
+rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
+$DIG +tcp +cd -p "$PORT" -t ns inconsistent @10.53.0.4 >dig.out.ns4.test$n.1 || ret=1
+grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 2" dig.out.ns4.test$n.1 >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n.1 >/dev/null && ret=1
+$DIG +tcp +cd +dnssec -p "$PORT" -t ns inconsistent @10.53.0.4 >dig.out.ns4.test$n.2 || ret=1
+grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 2" dig.out.ns4.test$n.2 >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n.2 >/dev/null && ret=1
+$DIG +tcp +dnssec -p "$PORT" -t ns inconsistent @10.53.0.4 >dig.out.ns4.test$n.3 || ret=1
+grep "ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1" dig.out.ns4.test$n.3 >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n.3 >/dev/null || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
