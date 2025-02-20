@@ -676,3 +676,18 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 	rdataset->ttl = ttl;
 	sigrdataset->ttl = ttl;
 }
+
+bool
+dns_rdataset_equals(const dns_rdataset_t *rdataset1,
+		    const dns_rdataset_t *rdataset2) {
+	REQUIRE(DNS_RDATASET_VALID(rdataset1));
+	REQUIRE(DNS_RDATASET_VALID(rdataset2));
+
+	if (rdataset1->methods->equals != NULL &&
+	    rdataset1->methods->equals == rdataset2->methods->equals)
+	{
+		return (rdataset1->methods->equals)(rdataset1, rdataset2);
+	}
+
+	return false;
+}

@@ -125,6 +125,9 @@ static void
 rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name);
 static void
 rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
+static bool
+rdataset_equals(const dns_rdataset_t *rdataset1,
+		const dns_rdataset_t *rdataset2);
 
 /*% Note: the "const void *" are just to make qsort happy.  */
 static int
@@ -1156,6 +1159,7 @@ dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.clearprefetch = rdataset_clearprefetch,
 	.setownercase = rdataset_setownercase,
 	.getownercase = rdataset_getownercase,
+	.equals = rdataset_equals,
 };
 
 /* Fixed RRSet helper macros */
@@ -1473,4 +1477,19 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 
 unlock:
 	dns_db_unlocknode(header->db, header->node, isc_rwlocktype_read);
+}
+
+static bool
+rdataset_equals(const dns_rdataset_t *rdataset1,
+		const dns_rdataset_t *rdataset2) {
+	if (rdataset1->rdclass != rdataset2->rdclass ||
+	    rdataset1->type != rdataset2->type)
+	{
+		return false;
+	}
+
+	unsigned char *header1 = rdataset1->slab.raw - sizeof(dns_slabheader_t);
+	unsigned char *header2 = rdataset2->slab.raw - sizeof(dns_slabheader_t);
+	return dns_rdataslab_equalx(header1, header2, sizeof(dns_slabheader_t),
+				    rdataset1->rdclass, rdataset2->type);
 }
