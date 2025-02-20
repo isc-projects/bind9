@@ -414,3 +414,14 @@ cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
   | awk '$4 == "SOA" { $7 = $7 + 1; print; next } { print }' >"$zonefile.next"
 "$SIGNER" -g -o "$zone" -f "$zonefile.next" "$zonefile.next" >/dev/null 2>&1
 cp "$zonefile.stripped" "$zonefile.signed"
+
+#
+# Inconsistent NS RRset between parent and child
+#
+zone=inconsistent
+infile=inconsistent.db.in
+zonefile=inconsistent.db
+key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+cat "$infile" "$key1.key" "$key2.key" >"$zonefile"
+"$SIGNER" -3 - -g -o "$zone" "$zonefile" >/dev/null 2>&1

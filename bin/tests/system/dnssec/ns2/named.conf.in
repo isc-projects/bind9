@@ -209,6 +209,11 @@ zone "too-many-iterations" {
 	file "too-many-iterations.db.signed";
 };
 
+zone "inconsistent" {
+	type primary;
+	file "inconsistent.db.signed";
+};
+
 zone "lazy-ksk" {
 	type primary;
 	file "lazy-ksk.db";
