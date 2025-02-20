@@ -1234,6 +1234,36 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
  */
 
 void
+dns_zone_setminxfrratein(dns_zone_t *zone, uint32_t bytes, uint32_t seconds);
+/*%<
+ * Set the minumum traffic rate (in bytes per seconds) that a zone transfer in
+ * (AXFR/IXFR) of this zone will use before being aborted.
+ *
+ * Requires:
+ * \li	'zone' to be valid initialised zone.
+ */
+
+uint32_t
+dns_zone_getminxfrratebytesin(dns_zone_t *zone);
+/*%<
+ * Returns the 'bytes' portion of the minimum traffic rate for the transfer in
+ * for this zone.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ */
+
+uint32_t
+dns_zone_getminxfrratesecondsin(dns_zone_t *zone);
+/*%<
+ * Returns the 'seconds' portion of the minimum traffic rate for the transfer in
+ * for this zone.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ */
+
+void
 dns_zone_setmaxxfrin(dns_zone_t *zone, uint32_t maxxfrin);
 /*%<
  * Set the maximum time (in seconds) that a zone transfer in (AXFR/IXFR)

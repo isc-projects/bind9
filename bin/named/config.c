@@ -232,6 +232,7 @@ options {\n\
 	max-transfer-time-out 120;\n\
 	min-refresh-time 300;\n\
 	min-retry-time 500;\n\
+	min-transfer-rate-in 10240 5;\n\
 	multi-master no;\n\
 	notify yes;\n\
 	notify-delay 5;\n\

@@ -2211,6 +2211,20 @@ static cfg_clausedef_t dnssecpolicy_clauses[] = {
 	{ NULL, NULL, 0 }
 };
 
+/*
+ * For min-transfer-rate-in.
+ */
+static cfg_tuplefielddef_t min_transfer_rate_fields[] = {
+	{ "traffic_bytes", &cfg_type_uint32, 0 },
+	{ "time_minutes", &cfg_type_uint32, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_min_transfer_rate_in = {
+	"min-transfer-rate-in", cfg_parse_tuple, cfg_print_tuple,
+	cfg_doc_tuple,		&cfg_rep_tuple,	 min_transfer_rate_fields
+};
+
 /*%
  * Clauses that can be found in a 'zone' statement,
  * with defaults in the 'view' or 'options' statement.
@@ -2303,6 +2317,8 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "max-refresh-time", &cfg_type_uint32,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB },
 	{ "max-retry-time", &cfg_type_uint32,
+	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB },
+	{ "min-transfer-rate-in", &cfg_type_min_transfer_rate_in,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB },
 	{ "max-transfer-idle-in", &cfg_type_uint32,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB },
