@@ -1293,7 +1293,10 @@ http_readcb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		}
 		isc_buffer_putmem(session->buf, region->base + readlen,
 				  unread_size);
-		isc_nm_read_stop(session->handle);
+		if (session->handle != NULL) {
+			INSIST(VALID_NMHANDLE(session->handle));
+			isc_nm_read_stop(session->handle);
+		}
 		http_do_bio_async(session);
 	} else {
 		/* We might have something to receive or send, do IO */
@@ -1599,10 +1602,12 @@ http_too_many_active_streams(isc_nm_http_session_t *session) {
 static void
 http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 	    isc_nm_cb_t send_cb, void *send_cbarg) {
+	isc__nm_uvreq_t *req = NULL;
+	size_t remaining = 0;
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
 	if (session->closed) {
-		return;
+		goto cancel;
 	} else if (session->closing) {
 		/*
 		 * There might be leftover callbacks waiting to be received
@@ -1610,23 +1615,24 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 		if (session->sending == 0) {
 			finish_http_session(session);
 		}
-		return;
+		goto cancel;
+	} else if (nghttp2_session_want_read(session->ngsession) == 0 &&
+		   nghttp2_session_want_write(session->ngsession) == 0 &&
+		   session->pending_write_data == NULL)
+	{
+		session->closing = true;
+		if (session->handle != NULL) {
+			isc_nm_read_stop(session->handle);
+		}
+		if (session->sending == 0) {
+			finish_http_session(session);
+		}
+		goto cancel;
 	}
 
-	if (send_cb != NULL) {
-		INSIST(VALID_NMHANDLE(send_httphandle));
-		http_send_outgoing(session, send_httphandle, send_cb,
-				   send_cbarg);
-		return;
-	}
-
-	INSIST(send_httphandle == NULL);
-	INSIST(send_cb == NULL);
-	INSIST(send_cbarg == NULL);
-
-	if (session->pending_write_data != NULL && session->sending == 0) {
-		http_send_outgoing(session, NULL, NULL, NULL);
-		return;
+	else if (session->buf != NULL)
+	{
+		remaining = isc_buffer_remaininglength(session->buf);
 	}
 
 	if (nghttp2_session_want_read(session->ngsession) != 0) {
@@ -1635,9 +1641,7 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 			isc__nmsocket_timer_start(session->handle->sock);
 			isc_nm_read(session->handle, http_readcb, session);
 			session->reading = true;
-		} else if (session->buf != NULL) {
-			size_t remaining =
-				isc_buffer_remaininglength(session->buf);
+		} else if (session->buf != NULL && remaining > 0) {
 			/* Leftover data in the buffer, use it */
 			size_t remaining_after = 0;
 			ssize_t readlen = 0;
@@ -1661,8 +1665,12 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 				http_log_flooding_peer(session);
 				failed_read_cb(ISC_R_RANGE, session);
 			} else if ((size_t)readlen == remaining) {
-				isc_buffer_free(&session->buf);
-				http_do_bio(session, NULL, NULL, NULL);
+				isc_buffer_clear(session->buf);
+				isc_buffer_compact(session->buf);
+				http_do_bio(session, send_httphandle, send_cb,
+					    send_cbarg);
+				isc__nm_httpsession_detach(&tmpsess);
+				return;
 			} else if (remaining_after > 0 &&
 				   remaining_after < remaining)
 			{
@@ -1679,39 +1687,36 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 				 * it and that could overwhelm the server.
 				 */
 				http_do_bio_async(session);
-			} else {
-				http_send_outgoing(session, NULL, NULL, NULL);
 			}
-
 			isc__nm_httpsession_detach(&tmpsess);
-			return;
-		} else {
+		} else if (session->handle != NULL) {
+			INSIST(VALID_NMHANDLE(session->handle));
 			/*
 			 * Resume reading, it's idempotent, wait for more
 			 */
 			isc__nmsocket_timer_start(session->handle->sock);
 			isc_nm_read(session->handle, http_readcb, session);
 		}
-	} else {
+	} else if (session->handle != NULL) {
+		INSIST(VALID_NMHANDLE(session->handle));
 		/* We don't want more data, stop reading for now */
 		isc_nm_read_stop(session->handle);
 	}
 
 	/* we might have some data to send after processing */
-	http_send_outgoing(session, NULL, NULL, NULL);
-
-	if (nghttp2_session_want_read(session->ngsession) == 0 &&
-	    nghttp2_session_want_write(session->ngsession) == 0 &&
-	    session->pending_write_data == NULL)
-	{
-		session->closing = true;
-		isc_nm_read_stop(session->handle);
-		if (session->sending == 0) {
-			finish_http_session(session);
-		}
-	}
+	http_send_outgoing(session, send_httphandle, send_cb, send_cbarg);
 
 	return;
+cancel:
+	if (send_cb == NULL) {
+		return;
+	}
+	req = isc__nm_uvreq_get(send_httphandle->sock);
+
+	req->cb.send = send_cb;
+	req->cbarg = send_cbarg;
+	isc_nmhandle_attach(send_httphandle, &req->handle);
+	isc__nm_sendcb(send_httphandle->sock, req, ISC_R_CANCELED, true);
 }
 
 static void
