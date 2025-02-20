@@ -33,6 +33,7 @@ cp "../ns2/dsset-lazy-ksk." .
 cp "../ns2/dsset-peer-ns-spoof." .
 cp "../ns2/dsset-dnskey-rrsigs-stripped." .
 cp "../ns2/dsset-ds-rrsigs-stripped." .
+cp "../ns2/dsset-inconsistent." .
 
 grep "$DEFAULT_ALGORITHM_NUMBER [12] " "../ns2/dsset-algroll." >"dsset-algroll."
 cp "../ns6/dsset-optout-tld." .
