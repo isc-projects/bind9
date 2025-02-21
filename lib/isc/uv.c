@@ -132,8 +132,7 @@ void
 isc__uv_initialize(void) {
 #if UV_VERSION_HEX >= UV_VERSION(1, 38, 0)
 	int r;
-	isc_mem_create(&isc__uv_mctx);
-	isc_mem_setname(isc__uv_mctx, "uv");
+	isc_mem_create("uv", &isc__uv_mctx);
 	isc_mem_setdestroycheck(isc__uv_mctx, false);
 
 	r = uv_replace_allocator(isc__uv_malloc, isc__uv_realloc,

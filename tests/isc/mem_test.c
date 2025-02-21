@@ -183,7 +183,7 @@ ISC_RUN_TEST_IMPL(isc_mem_inuse) {
 	void *ptr;
 
 	mctx2 = NULL;
-	isc_mem_create(&mctx2);
+	isc_mem_create("test", &mctx2);
 
 	before = isc_mem_inuse(mctx2);
 	ptr = isc_mem_allocate(mctx2, 1024000);
@@ -291,7 +291,7 @@ ISC_RUN_TEST_IMPL(isc_mem_reallocate) {
 
 ISC_RUN_TEST_IMPL(isc_mem_overmem) {
 	isc_mem_t *omctx = NULL;
-	isc_mem_create(&omctx);
+	isc_mem_create("test", &omctx);
 	assert_non_null(omctx);
 
 	isc_mem_setwater(omctx, 1024, 512);
@@ -337,7 +337,7 @@ ISC_RUN_TEST_IMPL(isc_mem_noflags) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_mem_debugging = 0;
-	isc_mem_create(&mctx2);
+	isc_mem_create("test", &mctx2);
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx2, f);
@@ -373,7 +373,7 @@ ISC_RUN_TEST_IMPL(isc_mem_recordflag) {
 	result = isc_stdio_open("mem.output", "w", &f);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_mem_create(&mctx2);
+	isc_mem_create("test", &mctx2);
 
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
@@ -437,7 +437,7 @@ ISC_RUN_TEST_IMPL(isc_mem_traceflag) {
 	assert_non_null(f);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD | ISC_MEM_DEBUGTRACE;
-	isc_mem_create(&mctx2);
+	isc_mem_create("test", &mctx2);
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx2, f);

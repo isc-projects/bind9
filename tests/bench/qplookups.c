@@ -197,7 +197,7 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create(&mctx);
+	isc_mem_create("test", &mctx);
 
 	dns_qp_create(mctx, &methods, NULL, &qp);
 

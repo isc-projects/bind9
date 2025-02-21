@@ -61,7 +61,7 @@ main(int argc, char **argv) {
 	unsigned int zonetype = 0;
 	unsigned int pflags = 0;
 
-	isc_mem_create(&mctx);
+	isc_mem_create("misc", &mctx);
 
 	setup_logging();
 

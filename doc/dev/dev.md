@@ -449,7 +449,7 @@ memory has not been freed when BIND shuts down.
 To create a basic memory context, use:
 
         isc_mem_t *mctx = NULL;
-        isc_mem_create(&mctx);
+        isc_mem_create("name", &mctx);
 
 When holding a persistent reference to a memory context it is advisable to
 increment its reference counter using `isc_mem_attach()`.  Do not just

@@ -122,7 +122,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	TRACE("------------------------------------------------");
 
 	isc_mem_t *mctx = NULL;
-	isc_mem_create(&mctx);
+	isc_mem_create("fuzz", &mctx);
 	isc_mem_setdestroycheck(mctx, true);
 
 	dns_qp_t *qp = NULL;

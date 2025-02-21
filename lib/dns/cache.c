@@ -100,8 +100,7 @@ cache_create_db(dns_cache_t *cache, dns_db_t **dbp, isc_mem_t **tmctxp,
 	 * This will be the cache memory context, which is subject
 	 * to cleaning when the configured memory limits are exceeded.
 	 */
-	isc_mem_create(&tmctx);
-	isc_mem_setname(tmctx, "cache");
+	isc_mem_create("cache", &tmctx);
 
 	/*
 	 * This will be passed to RBTDB to use for heaps. This is separate
@@ -109,8 +108,7 @@ cache_create_db(dns_cache_t *cache, dns_db_t **dbp, isc_mem_t **tmctxp,
 	 * heavy load and could otherwise cause the cache to be cleaned too
 	 * aggressively.
 	 */
-	isc_mem_create(&hmctx);
-	isc_mem_setname(hmctx, "cache_heap");
+	isc_mem_create("cache_heap", &hmctx);
 
 	/*
 	 * For databases of type "qpcache" or "rbt" (which are the

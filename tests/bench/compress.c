@@ -43,7 +43,7 @@ main(void) {
 	isc_buffer_t buf;
 
 	isc_mem_t *mctx = NULL;
-	isc_mem_create(&mctx);
+	isc_mem_create("test", &mctx);
 
 	static dns_fixedname_t fixedname[65536];
 	unsigned int count = 0;

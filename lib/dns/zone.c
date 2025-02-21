@@ -19052,8 +19052,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
 	zmgr->mctxpool = isc_mem_cget(zmgr->mctx, zmgr->workers,
 				      sizeof(zmgr->mctxpool[0]));
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		isc_mem_create(&zmgr->mctxpool[i]);
-		isc_mem_setname(zmgr->mctxpool[i], "zonemgr-mctxpool");
+		isc_mem_create("zonemgr-mctxpool", &zmgr->mctxpool[i]);
 	}
 
 	/* Key file I/O locks. */

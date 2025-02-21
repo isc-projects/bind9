@@ -1326,7 +1326,7 @@ main(int argc, char *argv[]) {
 		.now = isc_stdtime_now(),
 	};
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 
 	isc_commandline_errprint = false;
 

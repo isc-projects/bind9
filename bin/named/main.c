@@ -608,7 +608,7 @@ printversion(bool verbose) {
 #if defined(HAVE_GEOIP2)
 #define RTC(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
 	isc_mem_t *mctx = NULL;
-	isc_mem_create(&mctx);
+	isc_mem_create("geoip", &mctx);
 	RTC(cfg_parser_create(mctx, &parser));
 	RTC(named_config_parsedefaults(parser, &config));
 	RTC(cfg_map_get(config, "options", &defaults));
@@ -1453,7 +1453,6 @@ main(int argc, char *argv[]) {
 	}
 
 	setup();
-	isc_mem_setname(named_g_mctx, "main");
 	INSIST(named_g_server != NULL);
 
 	/*

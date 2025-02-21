@@ -36,7 +36,7 @@ static uint8_t render_buf[64 * 1024 - 1];
 
 int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
-	isc_mem_create(&mctx);
+	isc_mem_create("fuzz", &mctx);
 	output = isc_mem_get(mctx, output_len);
 
 	return 0;

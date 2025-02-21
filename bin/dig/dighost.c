@@ -1352,7 +1352,6 @@ setup_libs(void) {
 				    ISC_LOGMODULE_DEFAULT);
 	isc_log_setdebuglevel(0);
 
-	isc_mem_setname(mctx, "dig");
 	mainloop = isc_loop_main(loopmgr);
 }
 

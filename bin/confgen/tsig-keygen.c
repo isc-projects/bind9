@@ -212,7 +212,7 @@ main(int argc, char **argv) {
 	/* Use canonical algorithm name */
 	algname = dst_hmac_algorithm_totext(alg);
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 
 	if (keyname == NULL) {
 		const char *suffix = NULL;

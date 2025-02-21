@@ -1080,7 +1080,7 @@ main(int argc, char *argv[]) {
 
 	setfatalcallback(cleanup);
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 
 	isc_commandline_errprint = false;
 

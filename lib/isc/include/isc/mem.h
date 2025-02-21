@@ -200,17 +200,17 @@ mallocx(size_t size, int flags);
 
 extern volatile void *isc__mem_malloc;
 
-#define isc_mem_create(cp)                                            \
+#define isc_mem_create(name, cp)                                      \
 	{                                                             \
-		isc__mem_create((cp)_ISC_MEM_FILELINE);               \
+		isc__mem_create((name), (cp)_ISC_MEM_FILELINE);       \
 		isc__mem_malloc = mallocx;                            \
 		ISC_INSIST(CMM_ACCESS_ONCE(isc__mem_malloc) != NULL); \
 	}
 #else
-#define isc_mem_create(cp) isc__mem_create((cp)_ISC_MEM_FILELINE)
+#define isc_mem_create(name, cp) isc__mem_create((name), (cp)_ISC_MEM_FILELINE)
 #endif
 void
-isc__mem_create(isc_mem_t **_ISC_MEM_FLARG);
+isc__mem_create(const char *name, isc_mem_t **_ISC_MEM_FLARG);
 
 /*!<
  * \brief Create a memory context.
@@ -219,9 +219,10 @@ isc__mem_create(isc_mem_t **_ISC_MEM_FLARG);
  * mctxp != NULL && *mctxp == NULL */
 /*@}*/
 
-#define isc_mem_create_arena(cp) isc__mem_create_arena((cp)_ISC_MEM_FILELINE)
+#define isc_mem_create_arena(name, cp) \
+	isc__mem_create_arena((name), (cp)_ISC_MEM_FILELINE)
 void
-isc__mem_create_arena(isc_mem_t **_ISC_MEM_FLARG);
+isc__mem_create_arena(const char *name, isc_mem_t **_ISC_MEM_FLARG);
 /*!<
  * \brief Create a memory context that routs all its operations to a
  * dedicated jemalloc arena (when available). When jemalloc is not
@@ -323,20 +324,6 @@ unsigned int
 isc_mem_references(isc_mem_t *ctx);
 /*%<
  * Return the current reference count.
- */
-
-void
-isc_mem_setname(isc_mem_t *ctx, const char *name);
-/*%<
- * Name 'ctx'.
- *
- * Notes:
- *
- *\li	Only the first 15 characters of 'name' will be copied.
- *
- * Requires:
- *
- *\li	'ctx' is a valid ctx.
  */
 
 const char *

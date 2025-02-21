@@ -2645,8 +2645,7 @@ ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
 	ns_clientmgr_t *manager = NULL;
 	isc_mem_t *mctx = NULL;
 
-	isc_mem_create(&mctx);
-	isc_mem_setname(mctx, "clientmgr");
+	isc_mem_create("clientmgr", &mctx);
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	*manager = (ns_clientmgr_t){

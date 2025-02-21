@@ -161,7 +161,7 @@ main(int argc, char *argv[]) {
 		exit(EXIT_SUCCESS);
 	}
 
-	isc_mem_create(&mctx);
+	isc_mem_create("test", &mctx);
 
 	filename = argv[0];
 	result = isc_file_getsize(filename, &fileoff);
