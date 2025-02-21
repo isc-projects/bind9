@@ -571,7 +571,7 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname);
  ***/
 
 uint8_t
-dns_name_offsets(const dns_name_t *name, uint8_t *offsets);
+dns_name_offsets(const dns_name_t *name, dns_offsets_t offsets);
 /*%<
  * Returns the number of the labels in the DNS name and optionally fills their
  * offsets into the table.

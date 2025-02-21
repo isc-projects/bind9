@@ -46,17 +46,6 @@ typedef enum {
 	ft_at
 } ft_state;
 
-#define INIT_OFFSETS(name, var, default_offsets) \
-	{                                        \
-		(var) = (default_offsets);       \
-	}
-
-#define SETUP_OFFSETS(name, var, default_offsets) \
-	({                                        \
-		(var) = (default_offsets);        \
-		set_offsets(name, var, NULL);     \
-	})
-
 /*%
  * Note:  If additional attributes are added that should not be set for
  *	  empty names, MAKE_EMPTY() must be changed so it clears them.
@@ -88,7 +77,7 @@ const dns_name_t *dns_wildcardname = &wild;
 static thread_local dns_name_totextfilter_t *totext_filter_proc = NULL;
 
 static uint8_t
-set_offsets(const dns_name_t *name, unsigned char *offsets,
+set_offsets(const dns_name_t *name, dns_offsets_t offsets,
 	    dns_name_t *set_name);
 
 bool
@@ -338,8 +327,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	unsigned int l1, l2, l, count1, count2, count, nlabels;
 	int cdiff, ldiff, diff;
 	unsigned char *label1, *label2;
-	unsigned char *offsets1, *offsets2;
-	dns_offsets_t odata1, odata2;
+	dns_offsets_t offsets1, offsets2;
 	dns_namereln_t namereln = dns_namereln_none;
 
 	/*
@@ -369,8 +357,8 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 		return dns_namereln_equal;
 	}
 
-	l1 = SETUP_OFFSETS(name1, offsets1, odata1);
-	l2 = SETUP_OFFSETS(name2, offsets2, odata2);
+	l1 = dns_name_offsets(name1, offsets1);
+	l2 = dns_name_offsets(name2, offsets2);
 
 	nlabels = 0;
 	if (l2 > l1) {
@@ -381,14 +369,11 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 		ldiff = l1 - l2;
 	}
 
-	offsets1 += l1;
-	offsets2 += l2;
-
 	while (l-- > 0) {
-		offsets1--;
-		offsets2--;
-		label1 = &name1->ndata[*offsets1];
-		label2 = &name2->ndata[*offsets2];
+		l1--;
+		l2--;
+		label1 = &name1->ndata[offsets1[l1]];
+		label2 = &name2->ndata[offsets2[l2]];
 		count1 = *label1++;
 		count2 = *label2++;
 
@@ -582,8 +567,7 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname) {
 
 void
 dns_name_getlabel(const dns_name_t *name, unsigned int n, dns_label_t *label) {
-	unsigned char *offsets;
-	dns_offsets_t odata;
+	dns_offsets_t offsets;
 
 	/*
 	 * Make 'label' refer to the 'n'th least significant label of 'name'.
@@ -592,7 +576,7 @@ dns_name_getlabel(const dns_name_t *name, unsigned int n, dns_label_t *label) {
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(label != NULL);
 
-	uint8_t labels = SETUP_OFFSETS(name, offsets, odata);
+	uint8_t labels = dns_name_offsets(name, offsets);
 
 	REQUIRE(labels > 0);
 	REQUIRE(n < labels);
@@ -674,8 +658,7 @@ dns_name_clone(const dns_name_t *source, dns_name_t *target) {
 
 void
 dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
-	unsigned char *offsets;
-	dns_offsets_t odata;
+	dns_offsets_t offsets;
 	unsigned int len;
 	isc_region_t r2 = { .base = NULL, .length = 0 };
 
@@ -686,8 +669,6 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(r != NULL);
 	REQUIRE(DNS_NAME_BINDABLE(name));
-
-	INIT_OFFSETS(name, offsets, odata);
 
 	name->ndata = r->base;
 	if (name->buffer != NULL) {
@@ -736,8 +717,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	unsigned int n1 = 0, n2 = 0;
 	unsigned int tlen, nrem, nused, digits = 0, labels, tused;
 	bool done;
-	unsigned char *offsets;
-	dns_offsets_t odata;
 	bool downcase;
 
 	/*
@@ -763,9 +742,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	}
 
 	REQUIRE(DNS_NAME_BINDABLE(name));
-
-	INIT_OFFSETS(name, offsets, odata);
-	offsets[0] = 0;
 
 	/*
 	 * Make 'name' empty in case of failure.
@@ -838,7 +814,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				*label = count;
 				labels++;
 				INSIST(labels < DNS_NAME_MAXLABELS);
-				offsets[labels] = nused;
 				if (tlen == 0) {
 					labels++;
 					*ndata++ = 0;
@@ -935,7 +910,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			*label = count;
 			labels++;
 			INSIST(labels < DNS_NAME_MAXLABELS);
-			offsets[labels] = nused;
 		}
 		if (origin != NULL) {
 			if (nrem < origin->length) {
@@ -962,7 +936,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				labels++;
 				if (n1 > 0) {
 					INSIST(labels < DNS_NAME_MAXLABELS);
-					offsets[labels] = nused;
 				}
 			}
 			if (origin->attributes.absolute) {
@@ -1321,7 +1294,7 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 }
 
 static uint8_t
-set_offsets(const dns_name_t *name, unsigned char *offsets,
+set_offsets(const dns_name_t *name, dns_offsets_t offsets,
 	    dns_name_t *set_name) {
 	unsigned int offset, count, length, nlabels;
 	unsigned char *ndata;
@@ -1429,11 +1402,6 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 	uint32_t name_len = 0;
 	MAKE_EMPTY(name); /* in case of failure */
 
-	dns_offsets_t odata;
-	uint8_t *offsets = NULL;
-	uint32_t labels = 0;
-	INIT_OFFSETS(name, offsets, odata);
-
 	/*
 	 * After chasing a compression pointer, these variables refer to the
 	 * source buffer as follows:
@@ -1470,7 +1438,6 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 			 * the offsets array. Don't touch any source bytes yet!
 			 * The source bounds check will happen when we loop.
 			 */
-			offsets[labels++] = name_len;
 			/* and then a step to the ri-i-i-i-i-ight */
 			cursor += label_len;
 			name_len += label_len + 1;
@@ -2212,7 +2179,7 @@ dns_name_israd(const dns_name_t *name, const dns_name_t *rad) {
 }
 
 uint8_t
-dns_name_offsets(const dns_name_t *name, uint8_t *offsets) {
+dns_name_offsets(const dns_name_t *name, dns_offsets_t offsets) {
 	REQUIRE(DNS_NAME_VALID(name));
 	return set_offsets(name, offsets, NULL);
 }
