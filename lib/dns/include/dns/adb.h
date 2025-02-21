@@ -278,9 +278,8 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 		   const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype, unsigned int options,
-		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
-		   unsigned int depth, isc_counter_t *qc, isc_counter_t *gqc,
-		   dns_adbfind_t **find);
+		   isc_stdtime_t now, in_port_t port, unsigned int depth,
+		   isc_counter_t *qc, isc_counter_t *gqc, dns_adbfind_t **find);
 /*%<
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
@@ -313,10 +312,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
  * the running database.  If specified as zero, the current time will
  * be retrieved and used.
  *
- * If 'target' is not NULL and 'name' is an alias (i.e. the name is
- * CNAME'd or DNAME'd to another name), then 'target' will be updated with
- * the domain name that 'name' is aliased to.
- *
  * All addresses returned will have the sockaddr's port set to 'port.'
  * The caller may change them directly in the dns_adbaddrinfo_t since
  * they are copies of the internal address only.
@@ -331,8 +326,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
  *\li	*name is a valid dns_name_t.
  *
  *\li	qname != NULL and *qname be a valid dns_name_t.
- *
- *\li	target == NULL or target is a valid name with a buffer.
  *
  *\li	find != NULL && *find == NULL.
  *
