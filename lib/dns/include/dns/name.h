@@ -151,24 +151,24 @@ extern const dns_name_t *dns_wildcardname;
  *
  * Typical usage:
  *	unsigned char data[] = "\005value";
- *	dns_name_t value = DNS_NAME_INITNONABSOLUTE(data, 1);
+ *	dns_name_t value = DNS_NAME_INITNONABSOLUTE(data);
  *
  *	unsigned char data[] = "\005value";
- *	dns_name_t value = DNS_NAME_INITABSOLUTE(data, 1);
+ *	dns_name_t value = DNS_NAME_INITABSOLUTE(data);
  */
-#define DNS_NAME_INITNONABSOLUTE(__ndata, __labels)             \
-	{                                                       \
-		.magic = 0 ? sizeof(__labels) : DNS_NAME_MAGIC, \
-		.ndata = (__ndata),                             \
-		.length = (sizeof(__ndata) - 1),                \
-		.attributes = { .readonly = true },             \
-		.link = ISC_LINK_INITIALIZER,                   \
-		.list = ISC_LIST_INITIALIZER,                   \
+#define DNS_NAME_INITNONABSOLUTE(__ndata)           \
+	{                                           \
+		.magic = DNS_NAME_MAGIC,            \
+		.ndata = (__ndata),                 \
+		.length = (sizeof(__ndata) - 1),    \
+		.attributes = { .readonly = true }, \
+		.link = ISC_LINK_INITIALIZER,       \
+		.list = ISC_LIST_INITIALIZER,       \
 	}
 
-#define DNS_NAME_INITABSOLUTE(__ndata, __labels)                      \
+#define DNS_NAME_INITABSOLUTE(__ndata)                                \
 	{                                                             \
-		.magic = 0 ? sizeof(__labels) : DNS_NAME_MAGIC,       \
+		.magic = DNS_NAME_MAGIC,                              \
 		.ndata = (__ndata),                                   \
 		.length = sizeof(__ndata),                            \
 		.attributes = { .readonly = true, .absolute = true }, \

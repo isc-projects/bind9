@@ -635,9 +635,7 @@ static bool
 isdotlocal(dns_message_t *msg) {
 	isc_result_t result;
 	static unsigned char local_ndata[] = { "\005local" };
-	static unsigned char local_offsets[] = { 0, 6 };
-	static dns_name_t local = DNS_NAME_INITABSOLUTE(local_ndata,
-							local_offsets);
+	static dns_name_t local = DNS_NAME_INITABSOLUTE(local_ndata);
 
 	for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
 	     result == ISC_R_SUCCESS;

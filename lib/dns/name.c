@@ -74,12 +74,12 @@ typedef enum {
  * the const attribute of a string.
  */
 static unsigned char root_ndata[] = { "" };
-static dns_name_t root = DNS_NAME_INITABSOLUTE(root_ndata, NULL);
+static dns_name_t root = DNS_NAME_INITABSOLUTE(root_ndata);
 const dns_name_t *dns_rootname = &root;
 
 static unsigned char wild_ndata[] = { "\001*" };
 
-static dns_name_t const wild = DNS_NAME_INITNONABSOLUTE(wild_ndata, NULL);
+static dns_name_t const wild = DNS_NAME_INITNONABSOLUTE(wild_ndata);
 const dns_name_t *dns_wildcardname = &wild;
 
 /*
@@ -1952,11 +1952,11 @@ static unsigned char dr_dns_sd_udp_data[] = "\002dr\007_dns-sd\004_udp";
 static unsigned char lb_dns_sd_udp_data[] = "\002lb\007_dns-sd\004_udp";
 
 static dns_name_t const dns_sd[] = {
-	DNS_NAME_INITNONABSOLUTE(b_dns_sd_udp_data, NULL),
-	DNS_NAME_INITNONABSOLUTE(db_dns_sd_udp_data, NULL),
-	DNS_NAME_INITNONABSOLUTE(r_dns_sd_udp_data, NULL),
-	DNS_NAME_INITNONABSOLUTE(dr_dns_sd_udp_data, NULL),
-	DNS_NAME_INITNONABSOLUTE(lb_dns_sd_udp_data, NULL)
+	DNS_NAME_INITNONABSOLUTE(b_dns_sd_udp_data),
+	DNS_NAME_INITNONABSOLUTE(db_dns_sd_udp_data),
+	DNS_NAME_INITNONABSOLUTE(r_dns_sd_udp_data),
+	DNS_NAME_INITNONABSOLUTE(dr_dns_sd_udp_data),
+	DNS_NAME_INITNONABSOLUTE(lb_dns_sd_udp_data)
 };
 
 bool
@@ -1999,24 +1999,15 @@ static unsigned char inaddr31172[] = "\00231\003172\007IN-ADDR\004ARPA";
 static unsigned char inaddr168192[] = "\003168\003192\007IN-ADDR\004ARPA";
 
 static dns_name_t const rfc1918names[] = {
-	DNS_NAME_INITABSOLUTE(inaddr10, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr16172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr17172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr18172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr19172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr20172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr21172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr22172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr23172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr24172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr25172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr26172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr27172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr28172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr29172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr30172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr31172, NULL),
-	DNS_NAME_INITABSOLUTE(inaddr168192, NULL)
+	DNS_NAME_INITABSOLUTE(inaddr10),    DNS_NAME_INITABSOLUTE(inaddr16172),
+	DNS_NAME_INITABSOLUTE(inaddr17172), DNS_NAME_INITABSOLUTE(inaddr18172),
+	DNS_NAME_INITABSOLUTE(inaddr19172), DNS_NAME_INITABSOLUTE(inaddr20172),
+	DNS_NAME_INITABSOLUTE(inaddr21172), DNS_NAME_INITABSOLUTE(inaddr22172),
+	DNS_NAME_INITABSOLUTE(inaddr23172), DNS_NAME_INITABSOLUTE(inaddr24172),
+	DNS_NAME_INITABSOLUTE(inaddr25172), DNS_NAME_INITABSOLUTE(inaddr26172),
+	DNS_NAME_INITABSOLUTE(inaddr27172), DNS_NAME_INITABSOLUTE(inaddr28172),
+	DNS_NAME_INITABSOLUTE(inaddr29172), DNS_NAME_INITABSOLUTE(inaddr30172),
+	DNS_NAME_INITABSOLUTE(inaddr31172), DNS_NAME_INITABSOLUTE(inaddr168192)
 };
 
 bool
@@ -2031,14 +2022,11 @@ dns_name_isrfc1918(const dns_name_t *name) {
 	return false;
 }
 
-static unsigned char
-	__attribute((__unused__)) ulaoffsets[] = { 0, 2, 4, 8, 13 };
 static unsigned char ip6fc[] = "\001c\001f\003ip6\004ARPA";
 static unsigned char ip6fd[] = "\001d\001f\003ip6\004ARPA";
 
-static dns_name_t const ulanames[] = { DNS_NAME_INITABSOLUTE(ip6fc, ulaoffsets),
-				       DNS_NAME_INITABSOLUTE(ip6fd,
-							     ulaoffsets) };
+static dns_name_t const ulanames[] = { DNS_NAME_INITABSOLUTE(ip6fc),
+				       DNS_NAME_INITABSOLUTE(ip6fd) };
 
 bool
 dns_name_isula(const dns_name_t *name) {

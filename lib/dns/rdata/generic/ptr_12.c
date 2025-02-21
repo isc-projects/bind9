@@ -225,14 +225,13 @@ checkowner_ptr(ARGS_CHECKOWNER) {
 }
 
 static unsigned char ip6_arpa_data[] = "\003IP6\004ARPA";
-static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data, NULL);
+static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data);
 
 static unsigned char ip6_int_data[] = "\003IP6\003INT";
-static const dns_name_t ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data, NULL);
+static const dns_name_t ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data);
 
 static unsigned char in_addr_arpa_data[] = "\007IN-ADDR\004ARPA";
-static const dns_name_t in_addr_arpa = DNS_NAME_INITABSOLUTE(in_addr_arpa_data,
-							     NULL);
+static const dns_name_t in_addr_arpa = DNS_NAME_INITABSOLUTE(in_addr_arpa_data);
 
 static bool
 checknames_ptr(ARGS_CHECKNAMES) {

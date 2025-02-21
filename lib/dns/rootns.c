@@ -89,12 +89,12 @@ static struct upcoming {
 	dns_rdatatype_t type;
 	isc_stdtime_t time;
 } upcoming[] = { {
-			 .name = DNS_NAME_INITABSOLUTE(b_data, NULL),
+			 .name = DNS_NAME_INITABSOLUTE(b_data),
 			 .type = dns_rdatatype_a,
 			 .time = 1701086400 /* November 27 2023, 12:00 UTC */
 		 },
 		 {
-			 .name = DNS_NAME_INITABSOLUTE(b_data, NULL),
+			 .name = DNS_NAME_INITABSOLUTE(b_data),
 			 .type = dns_rdatatype_aaaa,
 			 .time = 1701086400 /* November 27 2023, 12:00 UTC */
 		 } };

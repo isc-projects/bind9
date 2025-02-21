@@ -261,7 +261,7 @@ freestruct_mx(ARGS_FREESTRUCT) {
 }
 
 static unsigned char port25_ndata[] = "\003_25\004_tcp";
-static dns_name_t port25 = DNS_NAME_INITNONABSOLUTE(port25_ndata, NULL);
+static dns_name_t port25 = DNS_NAME_INITNONABSOLUTE(port25_ndata);
 
 static isc_result_t
 additionaldata_mx(ARGS_ADDLDATA) {

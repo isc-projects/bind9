@@ -4424,33 +4424,24 @@ static unsigned char inaddr31172[] = "\00231\003172\007IN-ADDR\004ARPA";
 
 static unsigned char inaddr168192[] = "\003168\003192\007IN-ADDR\004ARPA";
 
-static dns_name_t rfc1918names[] = { DNS_NAME_INITABSOLUTE(inaddr10, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr16172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr17172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr18172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr19172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr20172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr21172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr22172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr23172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr24172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr25172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr26172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr27172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr28172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr29172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr30172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr31172, NULL),
-				     DNS_NAME_INITABSOLUTE(inaddr168192,
-							   NULL) };
+static dns_name_t rfc1918names[] = {
+	DNS_NAME_INITABSOLUTE(inaddr10),    DNS_NAME_INITABSOLUTE(inaddr16172),
+	DNS_NAME_INITABSOLUTE(inaddr17172), DNS_NAME_INITABSOLUTE(inaddr18172),
+	DNS_NAME_INITABSOLUTE(inaddr19172), DNS_NAME_INITABSOLUTE(inaddr20172),
+	DNS_NAME_INITABSOLUTE(inaddr21172), DNS_NAME_INITABSOLUTE(inaddr22172),
+	DNS_NAME_INITABSOLUTE(inaddr23172), DNS_NAME_INITABSOLUTE(inaddr24172),
+	DNS_NAME_INITABSOLUTE(inaddr25172), DNS_NAME_INITABSOLUTE(inaddr26172),
+	DNS_NAME_INITABSOLUTE(inaddr27172), DNS_NAME_INITABSOLUTE(inaddr28172),
+	DNS_NAME_INITABSOLUTE(inaddr29172), DNS_NAME_INITABSOLUTE(inaddr30172),
+	DNS_NAME_INITABSOLUTE(inaddr31172), DNS_NAME_INITABSOLUTE(inaddr168192)
+};
 
 static unsigned char prisoner_data[] = "\010prisoner\004iana\003org";
 static unsigned char hostmaster_data[] = "\012hostmaster\014root-"
 					 "servers\003org";
 
-static dns_name_t const prisoner = DNS_NAME_INITABSOLUTE(prisoner_data, NULL);
-static dns_name_t const hostmaster = DNS_NAME_INITABSOLUTE(hostmaster_data,
-							   NULL);
+static dns_name_t const prisoner = DNS_NAME_INITABSOLUTE(prisoner_data);
+static dns_name_t const hostmaster = DNS_NAME_INITABSOLUTE(hostmaster_data);
 
 static void
 warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {

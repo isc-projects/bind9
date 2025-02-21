@@ -32,19 +32,19 @@
 #include <tests/dns.h>
 
 unsigned char data_1[] = "\006name_1";
-dns_name_t name_1 = DNS_NAME_INITABSOLUTE(data_1, NULL);
+dns_name_t name_1 = DNS_NAME_INITABSOLUTE(data_1);
 
 unsigned char data_2[] = "\006name_2";
-dns_name_t name_2 = DNS_NAME_INITABSOLUTE(data_2, NULL);
+dns_name_t name_2 = DNS_NAME_INITABSOLUTE(data_2);
 
 unsigned char data_3[] = "\006name_3";
-dns_name_t name_3 = DNS_NAME_INITABSOLUTE(data_3, NULL);
+dns_name_t name_3 = DNS_NAME_INITABSOLUTE(data_3);
 
 unsigned char data_dup[] = "\006name_1";
-dns_name_t name_dup = DNS_NAME_INITABSOLUTE(data_dup, NULL);
+dns_name_t name_dup = DNS_NAME_INITABSOLUTE(data_dup);
 
 unsigned char data_nodup[] = "\006name_1";
-dns_name_t name_nodup = DNS_NAME_INITABSOLUTE(data_nodup, NULL);
+dns_name_t name_nodup = DNS_NAME_INITABSOLUTE(data_nodup);
 
 static size_t
 count_elements(const dns_diff_t *diff) {

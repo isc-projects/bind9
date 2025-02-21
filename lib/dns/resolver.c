@@ -632,7 +632,7 @@ dns_resolver_setfuzzing(void) {
 #endif /* ifdef ENABLE_AFL */
 
 static unsigned char ip6_arpa_data[] = "\003IP6\004ARPA";
-static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data, NULL);
+static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data);
 
 static void
 dns_resolver__destroy(dns_resolver_t *res);
