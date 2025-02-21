@@ -1250,7 +1250,7 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 	if (reln == dns_namereln_commonancestor ||
 	    reln == dns_namereln_contains)
 	{
-		dns_name_init(&suffix, NULL);
+		dns_name_init(&suffix);
 		for (i = labels + 1; i < nlabels; i++) {
 			dns_name_getlabelsequence(name, nlabels - i, i,
 						  &suffix);

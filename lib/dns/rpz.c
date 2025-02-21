@@ -886,7 +886,7 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		badname(log_level, src_name, "; too short", "");
 		return ISC_R_FAILURE;
 	}
-	dns_name_init(&ip_name, NULL);
+	dns_name_init(&ip_name);
 	dns_name_getlabelsequence(src_name, 0, ip_labels, &ip_name);
 
 	/*
@@ -1062,7 +1062,7 @@ name2data(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		memset(&new_data->wild, 0, sizeof(new_data->wild));
 	}
 
-	dns_name_init(&tmp_name, NULL);
+	dns_name_init(&tmp_name);
 	n = dns_name_countlabels(src_name);
 	n -= prefix_len;
 	if (rpz_type == DNS_RPZ_TYPE_QNAME) {
@@ -1551,15 +1551,15 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 
 	isc_ht_init(&rpz->nodes, rpzs->mctx, 1, ISC_HT_CASE_SENSITIVE);
 
-	dns_name_init(&rpz->origin, NULL);
-	dns_name_init(&rpz->client_ip, NULL);
-	dns_name_init(&rpz->ip, NULL);
-	dns_name_init(&rpz->nsdname, NULL);
-	dns_name_init(&rpz->nsip, NULL);
-	dns_name_init(&rpz->passthru, NULL);
-	dns_name_init(&rpz->drop, NULL);
-	dns_name_init(&rpz->tcp_only, NULL);
-	dns_name_init(&rpz->cname, NULL);
+	dns_name_init(&rpz->origin);
+	dns_name_init(&rpz->client_ip);
+	dns_name_init(&rpz->ip);
+	dns_name_init(&rpz->nsdname);
+	dns_name_init(&rpz->nsip);
+	dns_name_init(&rpz->passthru);
+	dns_name_init(&rpz->drop);
+	dns_name_init(&rpz->tcp_only);
+	dns_name_init(&rpz->cname);
 
 	isc_time_settoepoch(&rpz->lastupdated);
 

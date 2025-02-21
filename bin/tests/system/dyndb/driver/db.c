@@ -518,7 +518,7 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 	ns.common.rdtype = dns_rdatatype_ns;
 	ns.common.rdclass = dns_db_class(db);
 	ns.mctx = NULL;
-	dns_name_init(&ns.name, NULL);
+	dns_name_init(&ns.name);
 	dns_name_clone(nsname, &ns.name);
 	CHECK(dns_rdata_fromstruct(&rdata, dns_db_class(db), dns_rdatatype_ns,
 				   &ns, &b));
@@ -608,7 +608,7 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	};
 
 	isc_mem_attach(mctx, &sampledb->common.mctx);
-	dns_name_init(&sampledb->common.origin, NULL);
+	dns_name_init(&sampledb->common.origin);
 
 	dns_name_dup(origin, mctx, &sampledb->common.origin);
 

@@ -366,8 +366,8 @@ Typical use:
                 dns_name_t name, prefix;
                 bool sub;
 
-                dns_name_init(&name, NULL);
-                dns_name_init(&prefix, NULL);
+                dns_name_init(&name);
+                dns_name_init(&prefix);
                 dns_rdata_toregion(rdata, &region);
                 dns_name_fromregion(&name, &region);
                 sub = name_prefix(&name, origin, &prefix);

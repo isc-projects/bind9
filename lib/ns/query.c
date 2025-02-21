@@ -3175,7 +3175,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 	 * Start with relative version of the full trigger name,
 	 * and trim enough allow the addition of the suffix.
 	 */
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&prefix);
 	labels = dns_name_countlabels(trig_name);
 	first = 0;
 	for (;;) {
@@ -4520,7 +4520,7 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		return;
 	}
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_clone(qname, &name);
 	labels = dns_name_countlabels(&name);
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
@@ -4906,7 +4906,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	if (labels > 1U) {
 		dns_name_t prefix;
 
-		dns_name_init(&prefix, NULL);
+		dns_name_init(&prefix);
 		dns_name_getlabelsequence(client->query.qname, 0, labels - 1,
 					  &prefix);
 		result = dns_name_concatenate(&prefix,
@@ -9848,7 +9848,7 @@ query_coveringnsec(query_ctx_t *qctx) {
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_coveringnsec");
 
-	dns_name_init(&qname, NULL);
+	dns_name_init(&qname);
 	dns_rdataset_init(&rdataset);
 	dns_rdataset_init(&sigrdataset);
 	namespace = dns_fixedname_initname(&fnamespace);
@@ -10780,7 +10780,7 @@ query_addbestns(query_ctx_t *qctx) {
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
 
-	dns_name_init(&qname, NULL);
+	dns_name_init(&qname);
 	dns_name_clone(client->query.qname, &qname);
 
 	/*

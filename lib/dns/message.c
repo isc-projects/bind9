@@ -3297,7 +3297,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		ADD_STRING(target, " SECTION:\n");
 	}
 
-	dns_name_init(&empty_name, NULL);
+	dns_name_init(&empty_name);
 	result = dns_message_firstname(msg, section);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -4834,7 +4834,7 @@ rdataset_soa_min(dns_rdataset_t *rds, dns_ttl_t *ttlp) {
 			 * whether it's an SOA.
 			 */
 			dns_rdata_toregion(&rdata, &r);
-			dns_name_init(&tmp, NULL);
+			dns_name_init(&tmp);
 			dns_name_fromregion(&tmp, &r);
 			isc_region_consume(&r, tmp.length);
 			if (r.length < 2) {

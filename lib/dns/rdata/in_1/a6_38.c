@@ -77,7 +77,7 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -137,8 +137,8 @@ totext_in_a6(ARGS_TOTEXT) {
 	}
 
 	RETERR(str_totext(" ", target));
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 	dns_name_fromregion(&name, &sr);
 	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
 							 : 0;
@@ -196,7 +196,7 @@ fromwire_in_a6(ARGS_FROMWIRE) {
 		return ISC_R_SUCCESS;
 	}
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
@@ -224,7 +224,7 @@ towire_in_a6(ARGS_TOWIRE) {
 		return ISC_R_SUCCESS;
 	}
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &sr);
 	return dns_name_towire(&name, cctx, target, NULL);
 }
@@ -279,8 +279,8 @@ compare_in_a6(ARGS_COMPARE) {
 		isc_region_consume(&region2, octets);
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 	return dns_name_rdatacompare(&name1, &name2);
@@ -369,9 +369,9 @@ tostruct_in_a6(ARGS_TOSTRUCT) {
 	/*
 	 * Prefix.
 	 */
-	dns_name_init(&a6->prefix, NULL);
+	dns_name_init(&a6->prefix);
 	if (a6->prefixlen != 0) {
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		dns_name_fromregion(&name, &r);
 		name_duporclone(&name, mctx, &a6->prefix);
 	}
@@ -435,7 +435,7 @@ digest_in_a6(ARGS_DIGEST) {
 	}
 
 	isc_region_consume(&r2, octets);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r2);
 	return dns_name_digest(&name, digest, arg);
 }
@@ -468,7 +468,7 @@ checknames_in_a6(ARGS_CHECKNAMES) {
 		return true;
 	}
 	isc_region_consume(&region, 1 + 16 - prefixlen / 8);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
 		if (bad != NULL) {

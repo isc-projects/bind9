@@ -441,7 +441,7 @@ repopulate_buffer:
 			answerstyleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
 		}
 
-		dns_name_init(&empty_name, NULL);
+		dns_name_init(&empty_name);
 		result = dns_message_firstname(response, DNS_SECTION_ANSWER);
 		if (result != ISC_R_NOMORE) {
 			CHECK("dns_message_firstname", result);

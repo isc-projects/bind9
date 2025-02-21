@@ -41,7 +41,7 @@ fromtext_nsec(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -61,7 +61,7 @@ totext_nsec(ARGS_TOTEXT) {
 
 	UNUSED(tctx);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
@@ -87,7 +87,7 @@ fromwire_nsec(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	isc_buffer_activeregion(source, &sr);
@@ -106,7 +106,7 @@ towire_nsec(ARGS_TOWIRE) {
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
@@ -168,11 +168,11 @@ tostruct_nsec(ARGS_TOSTRUCT) {
 	nsec->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&nsec->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	dns_name_init(&nsec->next, NULL);
+	dns_name_init(&nsec->next);
 	name_duporclone(&name, mctx, &nsec->next);
 
 	nsec->len = region.length;
@@ -258,8 +258,8 @@ casecompare_nsec(ARGS_COMPARE) {
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);

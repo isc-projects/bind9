@@ -570,7 +570,7 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname) {
 	REQUIRE(labels > 0);
 	REQUIRE(dns_name_iswildcard(wname));
 
-	dns_name_init(&tname, NULL);
+	dns_name_init(&tname);
 	dns_name_getlabelsequence(wname, 1, labels - 1, &tname);
 	if (dns_name_fullcompare(name, &tname, &order, &nlabels) ==
 	    dns_namereln_subdomain)
@@ -1632,7 +1632,7 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
 		REQUIRE(!copy_suffix);
 	}
 	if (name == NULL) {
-		dns_name_init(&tmp_name, NULL);
+		dns_name_init(&tmp_name);
 		name = &tmp_name;
 	}
 	if (target == NULL) {
@@ -1765,7 +1765,7 @@ dns_name_digest(const dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(digest != NULL);
 
-	dns_name_init(&downname, NULL);
+	dns_name_init(&downname);
 
 	isc_buffer_init(&buffer, data, sizeof(data));
 
@@ -1965,7 +1965,7 @@ dns_name_isdnssd(const dns_name_t *name) {
 	dns_name_t prefix;
 
 	if (dns_name_countlabels(name) > 3U) {
-		dns_name_init(&prefix, NULL);
+		dns_name_init(&prefix);
 		dns_name_getlabelsequence(name, 0, 3, &prefix);
 		for (i = 0; i < (sizeof(dns_sd) / sizeof(dns_sd[0])); i++) {
 			if (dns_name_equal(&prefix, &dns_sd[i])) {
@@ -2175,7 +2175,7 @@ dns_name_israd(const dns_name_t *name, const dns_name_t *rad) {
 		return false;
 	}
 
-	dns_name_init(&suffix, NULL);
+	dns_name_init(&suffix);
 	dns_name_split(name, rad_labels + 1, NULL, &suffix);
 
 	if (suffix.ndata[0] != 3 || suffix.ndata[1] != '_' ||

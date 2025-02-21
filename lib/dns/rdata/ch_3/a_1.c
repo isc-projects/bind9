@@ -37,7 +37,7 @@ fromtext_ch_a(ARGS_FROMTEXT) {
 				      false));
 
 	/* get domain name */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -77,8 +77,8 @@ totext_ch_a(ARGS_TOTEXT) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_ch); /* 3 */
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
@@ -108,7 +108,7 @@ fromwire_ch_a(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, true);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
@@ -140,7 +140,7 @@ towire_ch_a(ARGS_TOWIRE) {
 
 	dns_compress_setpermitted(cctx, true);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	dns_rdata_toregion(rdata, &sregion);
 
@@ -173,8 +173,8 @@ compare_ch_a(ARGS_COMPARE) {
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -231,11 +231,11 @@ tostruct_ch_a(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &region);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 
-	dns_name_init(&a->ch_addr_dom, NULL);
+	dns_name_init(&a->ch_addr_dom);
 	name_duporclone(&name, mctx, &a->ch_addr_dom);
 	a->ch_addr = htons(uint16_fromregion(&region));
 	a->mctx = mctx;
@@ -279,7 +279,7 @@ digest_ch_a(ARGS_DIGEST) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_ch);
 
 	dns_rdata_toregion(rdata, &r);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
 	isc_region_consume(&r, name_length(&name));
 	RETERR(dns_name_digest(&name, digest, arg));
@@ -307,7 +307,7 @@ checknames_ch_a(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 
 	dns_rdata_toregion(rdata, &region);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
 		if (bad != NULL) {

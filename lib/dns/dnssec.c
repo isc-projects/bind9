@@ -228,7 +228,7 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	/*
 	 * Downcase signer.
 	 */
-	dns_name_init(&sig.signer, NULL);
+	dns_name_init(&sig.signer);
 	dns_fixedname_init(&fsigner);
 	RUNTIME_CHECK(dns_name_downcase(dst_key_name(key),
 					dns_fixedname_name(&fsigner),
@@ -803,7 +803,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	sig.keyid = dst_key_id(key);
 
-	dns_name_init(&sig.signer, NULL);
+	dns_name_init(&sig.signer);
 	dns_name_clone(dst_key_name(key), &sig.signer);
 
 	sig.siglen = 0;

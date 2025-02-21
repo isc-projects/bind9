@@ -1534,7 +1534,7 @@ get_key_struct(const dns_name_t *name, unsigned int alg, unsigned int flags,
 		.func = dst_t_func[alg],
 	};
 
-	dns_name_init(key->key_name, NULL);
+	dns_name_init(key->key_name);
 	dns_name_dup(name, mctx, key->key_name);
 
 	isc_refcount_init(&key->refs, 1);

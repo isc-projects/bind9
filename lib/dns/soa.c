@@ -77,9 +77,9 @@ dns_soa_buildrdata(const dns_name_t *origin, const dns_name_t *contact,
 	soa.retry = retry;
 	soa.expire = expire;
 	soa.minimum = minimum;
-	dns_name_init(&soa.origin, NULL);
+	dns_name_init(&soa.origin);
 	dns_name_clone(origin, &soa.origin);
-	dns_name_init(&soa.contact, NULL);
+	dns_name_init(&soa.contact);
 	dns_name_clone(contact, &soa.contact);
 
 	return dns_rdata_fromstruct(rdata, rdclass, dns_rdatatype_soa, &soa,

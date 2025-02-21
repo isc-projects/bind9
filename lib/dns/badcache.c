@@ -170,7 +170,7 @@ bcentry_new(isc_loop_t *loop, const dns_name_t *name,
 		.lru_head = CDS_LIST_HEAD_INIT(bad->lru_head),
 	};
 
-	dns_name_init(&bad->name, NULL);
+	dns_name_init(&bad->name);
 	dns_name_dup(name, mctx, &bad->name);
 
 	return bad;

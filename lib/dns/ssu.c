@@ -213,9 +213,9 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		.magic = SSURULEMAGIC,
 	};
 
-	dns_name_init(rule->identity, NULL);
+	dns_name_init(rule->identity);
 	dns_name_dup(identity, mctx, rule->identity);
-	dns_name_init(rule->name, NULL);
+	dns_name_init(rule->name);
 	dns_name_dup(name, mctx, rule->name);
 
 	if (ntypes > 0) {

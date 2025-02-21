@@ -298,7 +298,7 @@ trynsec3:
 	 * Iterate over the ncache entry.
 	 */
 	found = false;
-	dns_name_init(&nsec3name, NULL);
+	dns_name_init(&nsec3name);
 	dns_fixedname_init(&fixed);
 	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
 	name = dns_fixedname_name(&fixed);
@@ -2350,7 +2350,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t *rdataset, trdataset;
 
-	dns_name_init(&tname, NULL);
+	dns_name_init(&tname);
 	dns_rdataset_init(&trdataset);
 	wild = dns_fixedname_name(&val->wild);
 
@@ -2459,7 +2459,7 @@ findnsec3proofs(dns_validator_t *val) {
 	dns_name_t **proofs = val->proofs;
 	dns_rdataset_t *rdataset, trdataset;
 
-	dns_name_init(&tname, NULL);
+	dns_name_init(&tname);
 	dns_rdataset_init(&trdataset);
 	closest = dns_fixedname_initname(&fclosest);
 	nearest = dns_fixedname_initname(&fnearest);

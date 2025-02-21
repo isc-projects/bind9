@@ -30,7 +30,7 @@
 #define create_name(id, name)                                      \
 	isc_buffer_t namesrc, namebuf;                             \
 	char namedata[DNS_NAME_FORMATSIZE + 1];                    \
-	dns_name_init(name, NULL);                                 \
+	dns_name_init(name);                                       \
 	isc_buffer_constinit(&namesrc, id, strlen(id));            \
 	isc_buffer_add(&namesrc, strlen(id));                      \
 	isc_buffer_init(&namebuf, namedata, sizeof(namedata));     \

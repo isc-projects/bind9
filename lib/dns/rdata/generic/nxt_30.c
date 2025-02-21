@@ -45,7 +45,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -98,8 +98,8 @@ totext_nxt(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
@@ -146,7 +146,7 @@ fromwire_nxt(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	isc_buffer_activeregion(source, &sr);
@@ -169,7 +169,7 @@ towire_nxt(ARGS_TOWIRE) {
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
@@ -192,8 +192,8 @@ compare_nxt(ARGS_COMPARE) {
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
 	dns_name_fromregion(&name1, &r1);
@@ -247,11 +247,11 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 	nxt->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&nxt->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	dns_name_init(&nxt->next, NULL);
+	dns_name_init(&nxt->next);
 	name_duporclone(&name, mctx, &nxt->next);
 
 	nxt->len = region.length;
@@ -299,7 +299,7 @@ digest_nxt(ARGS_DIGEST) {
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
 
 	dns_rdata_toregion(rdata, &r);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
 	result = dns_name_digest(&name, digest, arg);
 	if (result != ISC_R_SUCCESS) {

@@ -2246,7 +2246,7 @@ ns_client_request_continue(void *arg) {
 	 * debugging.
 	 */
 	client->signer = NULL;
-	dns_name_init(&client->signername, NULL);
+	dns_name_init(&client->signername);
 	result = dns_message_signer(client->message, &client->signername);
 	if (result != ISC_R_NOTFOUND) {
 		signame = NULL;
@@ -2532,8 +2532,8 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	client->state = NS_CLIENTSTATE_INACTIVE;
 	client->udpsize = 512;
 	client->ednsversion = -1;
-	dns_name_init(&client->signername, NULL);
-	dns_name_init(&client->rad, NULL);
+	dns_name_init(&client->signername);
+	dns_name_init(&client->rad);
 	dns_ecs_init(&client->ecs);
 	isc_sockaddr_any(&client->formerrcache.addr);
 	client->formerrcache.time = 0;

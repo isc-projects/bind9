@@ -203,7 +203,7 @@ typedef isc_result_t(dns_name_totextfilter_t)(isc_buffer_t *target,
  ***/
 
 static inline void
-dns_name_init(dns_name_t *name, unsigned char *offsets ISC_ATTR_UNUSED) {
+dns_name_init(dns_name_t *name) {
 	*name = (dns_name_t){
 		.magic = DNS_NAME_MAGIC,
 		.link = ISC_LINK_INITIALIZER,

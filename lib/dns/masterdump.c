@@ -511,7 +511,7 @@ ncache_summary(dns_rdataset_t *rdataset, bool omit_final_dot,
 	char *start = NULL;
 
 	dns_rdataset_init(&rds);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	do {
 		dns_ncache_current(rdataset, &name, &rds);

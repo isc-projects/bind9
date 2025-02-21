@@ -39,7 +39,7 @@ fromtext_soa(ARGS_FROMTEXT) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, false));
 
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		RETTOK(dns_name_fromtext(&name, &buffer, origin, options,
 					 target));
@@ -100,9 +100,9 @@ totext_soa(ARGS_TOTEXT) {
 		comm = false;
 	}
 
-	dns_name_init(&mname, NULL);
-	dns_name_init(&rname, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&mname);
+	dns_name_init(&rname);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &dregion);
 
@@ -171,8 +171,8 @@ fromwire_soa(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, true);
 
-	dns_name_init(&mname, NULL);
-	dns_name_init(&rname, NULL);
+	dns_name_init(&mname);
+	dns_name_init(&rname);
 
 	RETERR(dns_name_fromwire(&mname, source, dctx, target));
 	RETERR(dns_name_fromwire(&rname, source, dctx, target));
@@ -206,8 +206,8 @@ towire_soa(ARGS_TOWIRE) {
 
 	dns_compress_setpermitted(cctx, true);
 
-	dns_name_init(&mname, NULL);
-	dns_name_init(&rname, NULL);
+	dns_name_init(&mname);
+	dns_name_init(&rname);
 
 	dns_rdata_toregion(rdata, &sregion);
 
@@ -243,8 +243,8 @@ compare_soa(ARGS_COMPARE) {
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -260,8 +260,8 @@ compare_soa(ARGS_COMPARE) {
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
@@ -317,15 +317,15 @@ tostruct_soa(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &region);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	dns_name_init(&soa->origin, NULL);
+	dns_name_init(&soa->origin);
 	name_duporclone(&name, mctx, &soa->origin);
 
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	dns_name_init(&soa->contact, NULL);
+	dns_name_init(&soa->contact);
 	name_duporclone(&name, mctx, &soa->contact);
 
 	soa->serial = uint32_fromregion(&region);
@@ -383,12 +383,12 @@ digest_soa(ARGS_DIGEST) {
 
 	dns_rdata_toregion(rdata, &r);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
 	RETERR(dns_name_digest(&name, digest, arg));
 	isc_region_consume(&r, name_length(&name));
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
 	RETERR(dns_name_digest(&name, digest, arg));
 	isc_region_consume(&r, name_length(&name));
@@ -418,7 +418,7 @@ checknames_soa(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 
 	dns_rdata_toregion(rdata, &region);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
 		if (bad != NULL) {

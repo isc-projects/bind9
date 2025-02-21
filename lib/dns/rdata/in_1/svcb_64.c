@@ -579,7 +579,7 @@ generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -643,8 +643,8 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -786,7 +786,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	/*
 	 * SvcPriority.
@@ -938,7 +938,7 @@ generic_towire_in_svcb(ARGS_TOWIRE) {
 	/*
 	 * TargetName.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	RETERR(dns_name_towire(&name, cctx, target, NULL));
 	isc_region_consume(&region, name_length(&name));
@@ -1025,8 +1025,8 @@ generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 	svcb->priority = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 
-	dns_name_init(&svcb->svcdomain, NULL);
-	dns_name_init(&name, NULL);
+	dns_name_init(&svcb->svcdomain);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 
@@ -1087,7 +1087,7 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	isc_region_t region;
 	unsigned int cnames = 0;
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	alias = uint16_fromregion(&region) == 0;
 	isc_region_consume(&region, 2);
@@ -1207,7 +1207,7 @@ generic_checknames_in_svcb(ARGS_CHECKNAMES) {
 	INSIST(region.length > 1);
 	alias = uint16_fromregion(&region) == 0;
 	isc_region_consume(&region, 2);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	if (!alias && !dns_name_ishostname(&name, false)) {
 		if (bad != NULL) {

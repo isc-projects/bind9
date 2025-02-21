@@ -232,8 +232,8 @@ checkowner_in_aaaa(ARGS_CHECKOWNER) {
 	 * Handle Active Directory gc._msdcs.<forest> name.
 	 */
 	if (dns_name_countlabels(name) > 2U) {
-		dns_name_init(&prefix, NULL);
-		dns_name_init(&suffix, NULL);
+		dns_name_init(&prefix);
+		dns_name_init(&suffix);
 		dns_name_split(name, dns_name_countlabels(name) - 2, &prefix,
 			       &suffix);
 		if (dns_name_equal(&gc_msdcs, &prefix) &&

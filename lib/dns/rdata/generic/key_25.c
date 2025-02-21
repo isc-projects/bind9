@@ -158,7 +158,7 @@ generic_totext_key(ARGS_TOTEXT) {
 	    algorithm == DNS_KEYALG_PRIVATEDNS)
 	{
 		dns_name_t name;
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		dns_name_fromregion(&name, &sr);
 		dns_name_format(&name, algbuf, sizeof(algbuf));
 	} else if ((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0 &&

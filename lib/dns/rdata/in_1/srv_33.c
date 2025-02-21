@@ -67,7 +67,7 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -99,8 +99,8 @@ totext_in_srv(ARGS_TOTEXT) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	/*
 	 * Priority.
@@ -152,7 +152,7 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	/*
 	 * Priority, weight, port.
@@ -189,7 +189,7 @@ towire_in_srv(ARGS_TOWIRE) {
 	/*
 	 * Target.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &sr);
 	return dns_name_towire(&name, cctx, target, NULL);
 }
@@ -220,8 +220,8 @@ compare_in_srv(ARGS_COMPARE) {
 	/*
 	 * Target.
 	 */
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -271,7 +271,7 @@ tostruct_in_srv(ARGS_TOSTRUCT) {
 	srv->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&srv->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	srv->priority = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
@@ -280,7 +280,7 @@ tostruct_in_srv(ARGS_TOSTRUCT) {
 	srv->port = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
-	dns_name_init(&srv->target, NULL);
+	dns_name_init(&srv->target);
 	name_duporclone(&name, mctx, &srv->target);
 	srv->mctx = mctx;
 	return ISC_R_SUCCESS;
@@ -316,7 +316,7 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 4);
 	port = uint16_fromregion(&region);
@@ -363,7 +363,7 @@ digest_in_srv(ARGS_DIGEST) {
 	isc_region_consume(&r2, 6);
 	r1.length = 6;
 	RETERR((digest)(arg, &r1));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r2);
 	return dns_name_digest(&name, digest, arg);
 }
@@ -393,7 +393,7 @@ checknames_in_srv(ARGS_CHECKNAMES) {
 
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 6);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
 		if (bad != NULL) {

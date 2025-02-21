@@ -252,7 +252,7 @@ catz_coo_new(isc_mem_t *mctx, const dns_name_t *domain) {
 	*ncoo = (dns_catz_coo_t){
 		.magic = DNS_CATZ_COO_MAGIC,
 	};
-	dns_name_init(&ncoo->name, NULL);
+	dns_name_init(&ncoo->name);
 	dns_name_dup(domain, mctx, &ncoo->name);
 	isc_refcount_init(&ncoo->references, 1);
 
@@ -307,7 +307,7 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain) {
 		.magic = DNS_CATZ_ENTRY_MAGIC,
 	};
 
-	dns_name_init(&nentry->name, NULL);
+	dns_name_init(&nentry->name);
 	if (domain != NULL) {
 		dns_name_dup(domain, mctx, &nentry->name);
 	}
@@ -842,7 +842,7 @@ dns_catz_zone_new(dns_catz_zones_t *catzs, const dns_name_t *name) {
 	isc_time_settoepoch(&catz->lastupdated);
 	dns_catz_options_init(&catz->defoptions);
 	dns_catz_options_init(&catz->zoneoptions);
-	dns_name_init(&catz->name, NULL);
+	dns_name_init(&catz->name);
 	dns_name_dup(name, catzs->mctx, &catz->name);
 
 	return catz;
@@ -1168,7 +1168,7 @@ catz_process_zones(dns_catz_zone_t *catz, dns_rdataset_t *value,
 	if (labels == 1) {
 		return catz_process_zones_entry(catz, value, &mhash);
 	} else {
-		dns_name_init(&opt, NULL);
+		dns_name_init(&opt);
 		dns_name_split(name, 1, &opt, NULL);
 		return catz_process_zones_suboption(catz, value, &mhash, &opt);
 	}
@@ -1460,7 +1460,7 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 
 			/* rdatastr.length < DNS_NAME_MAXTEXT */
 			keyname = isc_mem_get(mctx, sizeof(*keyname));
-			dns_name_init(keyname, NULL);
+			dns_name_init(keyname);
 			memmove(keycbuf, rdatastr.data, rdatastr.length);
 			keycbuf[rdatastr.length] = 0;
 			dns_rdata_freestruct(&rdata_txt);
@@ -1501,7 +1501,7 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 
 			ipkl->labels[i] = isc_mem_get(mctx,
 						      sizeof(*ipkl->labels[0]));
-			dns_name_init(ipkl->labels[i], NULL);
+			dns_name_init(ipkl->labels[i]);
 			dns_name_dup(name, mctx, ipkl->labels[i]);
 
 			if (value->type == dns_rdatatype_txt) {
@@ -1683,7 +1683,7 @@ catz_process_zones_suboption(dns_catz_zone_t *catz, dns_rdataset_t *value,
 	}
 	INSIST(result == ISC_R_SUCCESS);
 
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&prefix);
 	dns_name_split(name, suffix_labels, &prefix, NULL);
 	switch (opt) {
 	case CATZ_OPT_COO:
@@ -1762,7 +1762,7 @@ catz_process_value(dns_catz_zone_t *catz, dns_name_t *name,
 		opt = catz_get_option(&option);
 	}
 
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&prefix);
 	dns_name_split(name, suffix_labels, &prefix, NULL);
 
 	switch (opt) {
@@ -1851,7 +1851,7 @@ dns__catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
 	}
 
 	uint8_t labels = dns_name_countlabels(&catz->name);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&prefix);
 	dns_name_split(src_name, labels, &prefix, NULL);
 	result = catz_process_value(catz, &prefix, rdataset);
 

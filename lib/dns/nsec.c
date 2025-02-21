@@ -473,7 +473,7 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	}
 	if (wild != NULL) {
 		dns_name_t common;
-		dns_name_init(&common, NULL);
+		dns_name_init(&common);
 		if (olabels > nlabels) {
 			labels = dns_name_countlabels(nsecname);
 			dns_name_getlabelsequence(nsecname, labels - olabels,

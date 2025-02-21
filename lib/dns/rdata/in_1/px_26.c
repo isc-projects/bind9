@@ -50,7 +50,7 @@ fromtext_in_px(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 
@@ -59,7 +59,7 @@ fromtext_in_px(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return ISC_R_SUCCESS;
@@ -78,8 +78,8 @@ totext_in_px(ARGS_TOTEXT) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	/*
 	 * Preference.
@@ -123,7 +123,7 @@ fromwire_in_px(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	/*
 	 * Preference.
@@ -166,7 +166,7 @@ towire_in_px(ARGS_TOWIRE) {
 	/*
 	 * MAP822.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	RETERR(dns_name_towire(&name, cctx, target, NULL));
 	isc_region_consume(&region, name_length(&name));
@@ -174,7 +174,7 @@ towire_in_px(ARGS_TOWIRE) {
 	/*
 	 * MAPX400.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	return dns_name_towire(&name, cctx, target, NULL);
 }
@@ -199,8 +199,8 @@ compare_in_px(ARGS_COMPARE) {
 		return order < 0 ? -1 : 1;
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -261,7 +261,7 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 	px->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&px->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 
 	px->preference = uint16_fromregion(&region);
@@ -269,11 +269,11 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 
 	dns_name_fromregion(&name, &region);
 
-	dns_name_init(&px->map822, NULL);
+	dns_name_init(&px->map822);
 	name_duporclone(&name, mctx, &px->map822);
 	isc_region_consume(&region, name_length(&px->map822));
 
-	dns_name_init(&px->mapx400, NULL);
+	dns_name_init(&px->mapx400);
 	name_duporclone(&name, mctx, &px->mapx400);
 
 	px->mctx = mctx;
@@ -327,14 +327,14 @@ digest_in_px(ARGS_DIGEST) {
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r2);
 	result = dns_name_digest(&name, digest, arg);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
 	isc_region_consume(&r2, name_length(&name));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r2);
 
 	return dns_name_digest(&name, digest, arg);

@@ -789,7 +789,7 @@ static isc_result_t
 create_name(const char *str, char *namedata, size_t len, dns_name_t *name) {
 	isc_buffer_t namesrc, namebuf;
 
-	dns_name_init(name, NULL);
+	dns_name_init(name);
 	isc_buffer_constinit(&namesrc, str, strlen(str));
 	isc_buffer_add(&namesrc, strlen(str));
 	isc_buffer_init(&namebuf, namedata, len);
@@ -2614,8 +2614,8 @@ done:
 	if (usegsstsig) {
 		dns_name_free(&tmpzonename, gmctx);
 		dns_name_free(&restart_primary, gmctx);
-		dns_name_init(&tmpzonename, NULL);
-		dns_name_init(&restart_primary, NULL);
+		dns_name_init(&tmpzonename);
+		dns_name_init(&restart_primary);
 	}
 	done_update();
 }
@@ -2881,7 +2881,7 @@ lookforsoa:
 	result = dns_rdata_tostruct(&soarr, &soa, NULL);
 	check_result(result, "dns_rdata_tostruct");
 
-	dns_name_init(&primary, NULL);
+	dns_name_init(&primary);
 	dns_name_clone(&soa.origin, &primary);
 
 	if (userzone != NULL) {
@@ -2937,9 +2937,9 @@ lookforsoa:
 
 #if HAVE_GSSAPI
 	if (usegsstsig) {
-		dns_name_init(&tmpzonename, NULL);
+		dns_name_init(&tmpzonename);
 		dns_name_dup(zname, gmctx, &tmpzonename);
-		dns_name_init(&restart_primary, NULL);
+		dns_name_init(&restart_primary);
 		dns_name_dup(&primary, gmctx, &restart_primary);
 		start_gssrequest(&primary);
 	} else {
@@ -2968,7 +2968,7 @@ droplabel:
 	if (nlabels == 1) {
 		fatal("could not find enclosing zone");
 	}
-	dns_name_init(&tname, NULL);
+	dns_name_init(&tname);
 	dns_name_getlabelsequence(name, 1, nlabels - 1, &tname);
 	dns_name_clone(&tname, name);
 	dns_request_destroy(&request);
@@ -3075,8 +3075,8 @@ failed_gssrequest(void) {
 
 	dns_name_free(&tmpzonename, gmctx);
 	dns_name_free(&restart_primary, gmctx);
-	dns_name_init(&tmpzonename, NULL);
-	dns_name_init(&restart_primary, NULL);
+	dns_name_init(&tmpzonename);
+	dns_name_init(&restart_primary);
 
 	done_update();
 }

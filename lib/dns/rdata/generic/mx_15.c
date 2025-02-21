@@ -77,7 +77,7 @@ fromtext_mx(ARGS_FROMTEXT) {
 		warn_badmx(&token, lexer, callbacks);
 	}
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -108,8 +108,8 @@ totext_mx(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_mx);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 	num = uint16_fromregion(&region);
@@ -137,7 +137,7 @@ fromwire_mx(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, true);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length < 2) {
@@ -162,7 +162,7 @@ towire_mx(ARGS_TOWIRE) {
 	RETERR(mem_tobuffer(target, region.base, 2));
 	isc_region_consume(&region, 2);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 
 	return dns_name_towire(&name, cctx, target, NULL);
@@ -187,8 +187,8 @@ compare_mx(ARGS_COMPARE) {
 		return order < 0 ? -1 : 1;
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -234,12 +234,12 @@ tostruct_mx(ARGS_TOSTRUCT) {
 	mx->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&mx->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	mx->pref = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
-	dns_name_init(&mx->mx, NULL);
+	dns_name_init(&mx->mx);
 	name_duporclone(&name, mctx, &mx->mx);
 	mx->mctx = mctx;
 	return ISC_R_SUCCESS;
@@ -274,7 +274,7 @@ additionaldata_mx(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
@@ -311,7 +311,7 @@ digest_mx(ARGS_DIGEST) {
 	isc_region_consume(&r2, 2);
 	r1.length = 2;
 	RETERR((digest)(arg, &r1));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r2);
 	return dns_name_digest(&name, digest, arg);
 }
@@ -337,7 +337,7 @@ checknames_mx(ARGS_CHECKNAMES) {
 
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
 		if (bad != NULL) {

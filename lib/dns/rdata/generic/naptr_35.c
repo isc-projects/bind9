@@ -230,7 +230,7 @@ fromtext_naptr(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -251,8 +251,8 @@ totext_naptr(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_naptr);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -314,7 +314,7 @@ fromwire_naptr(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	/*
 	 * Order, preference.
@@ -386,7 +386,7 @@ towire_naptr(ARGS_TOWIRE) {
 	/*
 	 * Replacement.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &sr);
 	return dns_name_towire(&name, cctx, target, NULL);
 }
@@ -454,8 +454,8 @@ compare_naptr(ARGS_COMPARE) {
 	/*
 	 * Replacement.
 	 */
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
@@ -535,9 +535,9 @@ tostruct_naptr(ARGS_TOSTRUCT) {
 	naptr->regexp = mem_maybedup(mctx, r.base, naptr->regexp_len);
 	isc_region_consume(&r, naptr->regexp_len);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
-	dns_name_init(&naptr->replacement, NULL);
+	dns_name_init(&naptr->replacement);
 	name_duporclone(&name, mctx, &naptr->replacement);
 	naptr->mctx = mctx;
 	return ISC_R_SUCCESS;
@@ -616,7 +616,7 @@ additionaldata_naptr(ARGS_ADDLDATA) {
 	/*
 	 * Replacement.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &sr);
 
 	if (atype != 0) {
@@ -679,7 +679,7 @@ digest_naptr(ARGS_DIGEST) {
 	 * Replacement.
 	 */
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r2);
 
 	return dns_name_digest(&name, digest, arg);

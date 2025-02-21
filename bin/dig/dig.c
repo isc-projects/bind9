@@ -593,7 +593,7 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 
 	UNUSED(flags);
 
-	dns_name_init(&empty_name, NULL);
+	dns_name_init(&empty_name);
 	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	if (result == ISC_R_NOMORE) {
 		return ISC_R_SUCCESS;

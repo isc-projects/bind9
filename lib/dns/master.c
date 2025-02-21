@@ -2964,7 +2964,7 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 
 	rdata = ISC_LIST_HEAD(this->rdata);
 	while (rdata != NULL) {
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		dns_rdata_toregion(rdata, &region);
 		dns_name_fromregion(&name, &region);
 		if (dns_name_equal(&name, owner)) {

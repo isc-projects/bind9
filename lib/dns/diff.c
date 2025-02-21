@@ -71,7 +71,7 @@ dns_difftuple_create(isc_mem_t *mctx, dns_diffop_t op, const dns_name_t *name,
 	datap = (unsigned char *)(t + 1);
 
 	memmove(datap, name->ndata, name->length);
-	dns_name_init(&t->name, NULL);
+	dns_name_init(&t->name);
 	dns_name_clone(name, &t->name);
 	t->name.ndata = datap;
 	datap += name->length;

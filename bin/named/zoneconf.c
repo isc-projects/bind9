@@ -633,7 +633,7 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	 */
 	CHECK(dns_db_newversion(db, &dbversion));
 
-	dns_name_init(&apexname, NULL);
+	dns_name_init(&apexname);
 	dns_name_clone(dns_zone_getorigin(zone), &apexname);
 	CHECK(dns_db_findnode(db, &apexname, false, &apexnode));
 

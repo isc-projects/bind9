@@ -108,7 +108,7 @@ fromtext_amtrelay(ARGS_FROMTEXT) {
 		return ISC_R_SUCCESS;
 
 	case 3:
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		if (origin == NULL) {
 			origin = dns_rootname;
@@ -172,7 +172,7 @@ totext_amtrelay(ARGS_TOTEXT) {
 		return inet_totext(AF_INET6, tctx->flags, &region, target);
 
 	case 3:
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		dns_name_fromregion(&name, &region);
 		return dns_name_totext(&name, 0, target);
 
@@ -224,7 +224,7 @@ fromwire_amtrelay(ARGS_FROMWIRE) {
 	case 3:
 		RETERR(mem_tobuffer(target, region.base, 2));
 		isc_buffer_forward(source, 2);
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		return dns_name_fromwire(&name, source, dctx, target);
 
 	default:
@@ -318,10 +318,10 @@ tostruct_amtrelay(ARGS_TOSTRUCT) {
 	amtrelay->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&amtrelay->common, link);
 
-	dns_name_init(&amtrelay->gateway, NULL);
+	dns_name_init(&amtrelay->gateway);
 	amtrelay->data = NULL;
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 
 	amtrelay->precedence = uint8_fromregion(&region);
@@ -453,8 +453,8 @@ casecompare_amtrelay(ARGS_COMPARE) {
 		return isc_region_compare(&region1, &region2);
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	isc_region_consume(&region1, 2);
 	isc_region_consume(&region2, 2);

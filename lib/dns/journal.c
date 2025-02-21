@@ -723,7 +723,7 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 	/*
 	 * Initialize the iterator.
 	 */
-	dns_name_init(&j->it.name, NULL);
+	dns_name_init(&j->it.name);
 	dns_rdata_init(&j->it.rdata);
 
 	/*

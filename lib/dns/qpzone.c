@@ -2156,7 +2156,7 @@ wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 	unsigned int n;
 	qpznode_t *node = NULL;
 
-	dns_name_init(&foundname, NULL);
+	dns_name_init(&foundname);
 	n = dns_name_countlabels(name);
 	INSIST(n >= 2);
 	n--;
@@ -2180,7 +2180,7 @@ addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 	dns_name_t foundname;
 	unsigned int n, l, i;
 
-	dns_name_init(&foundname, NULL);
+	dns_name_init(&foundname);
 	n = dns_name_countlabels(name);
 	l = dns_name_countlabels(&qpdb->common.origin);
 	i = l + 1;
@@ -2848,9 +2848,9 @@ wildcard_blocked(qpz_search_t *search, const dns_name_t *qname,
 	bool check_prev = false;
 	unsigned int n;
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&tname, NULL);
-	dns_name_init(&rname, NULL);
+	dns_name_init(&name);
+	dns_name_init(&tname);
+	dns_name_init(&rname);
 	next = dns_fixedname_initname(&fnext);
 	prev = dns_fixedname_initname(&fprev);
 

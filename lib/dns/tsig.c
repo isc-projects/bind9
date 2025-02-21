@@ -255,7 +255,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 
 	if (creator != NULL) {
 		tkey->creator = isc_mem_get(mctx, sizeof(dns_name_t));
-		dns_name_init(tkey->creator, NULL);
+		dns_name_init(tkey->creator);
 		dns_name_dup(creator, mctx, tkey->creator);
 	}
 
@@ -608,7 +608,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		.error = response ? msg->querytsigstatus : dns_rcode_noerror,
 	};
 
-	dns_name_init(&tsig.algorithm, NULL);
+	dns_name_init(&tsig.algorithm);
 	dns_name_clone(key->algorithm, &tsig.algorithm);
 
 	isc_buffer_init(&databuf, data, sizeof(data));

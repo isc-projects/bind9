@@ -322,7 +322,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 		dns_rdataset_current(rdataset, &rdata);
 		isc_buffer_init(&source, rdata.data, rdata.length);
 		isc_buffer_add(&source, rdata.length);
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		isc_buffer_remainingregion(&source, &remaining);
 		dns_name_fromregion(&name, &remaining);
 		INSIST(remaining.length >= name.length);
@@ -545,7 +545,7 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		dns_rdataset_current(&rclone, &rdata);
 		isc_buffer_init(&source, rdata.data, rdata.length);
 		isc_buffer_add(&source, rdata.length);
-		dns_name_init(&tname, NULL);
+		dns_name_init(&tname);
 		isc_buffer_remainingregion(&source, &remaining);
 		dns_name_fromregion(&tname, &remaining);
 		INSIST(remaining.length >= tname.length);
@@ -615,7 +615,7 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		dns_rdataset_current(&rclone, &rdata);
 		isc_buffer_init(&source, rdata.data, rdata.length);
 		isc_buffer_add(&source, rdata.length);
-		dns_name_init(&tname, NULL);
+		dns_name_init(&tname);
 		isc_buffer_remainingregion(&source, &remaining);
 		dns_name_fromregion(&tname, &remaining);
 		INSIST(remaining.length >= tname.length);
@@ -704,7 +704,7 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 	isc_buffer_init(&source, rdata.data, rdata.length);
 	isc_buffer_add(&source, rdata.length);
 
-	dns_name_init(&tname, NULL);
+	dns_name_init(&tname);
 	isc_buffer_remainingregion(&source, &remaining);
 	dns_name_fromregion(found, &remaining);
 	INSIST(remaining.length >= found->length);

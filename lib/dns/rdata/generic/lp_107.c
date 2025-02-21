@@ -42,7 +42,7 @@ fromtext_lp(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -62,8 +62,8 @@ totext_lp(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_lp);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 	num = uint16_fromregion(&region);
@@ -91,7 +91,7 @@ fromwire_lp(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, true);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length < 2) {
@@ -161,12 +161,12 @@ tostruct_lp(ARGS_TOSTRUCT) {
 	lp->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&lp->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	lp->pref = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
-	dns_name_init(&lp->lp, NULL);
+	dns_name_init(&lp->lp);
 	name_duporclone(&name, mctx, &lp->lp);
 	lp->mctx = mctx;
 	return ISC_R_SUCCESS;
@@ -197,7 +197,7 @@ additionaldata_lp(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
@@ -260,8 +260,8 @@ casecompare_lp(ARGS_COMPARE) {
 		return order < 0 ? -1 : 1;
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);

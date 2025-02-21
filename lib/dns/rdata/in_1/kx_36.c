@@ -40,7 +40,7 @@ fromtext_in_kx(ARGS_FROMTEXT) {
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -62,8 +62,8 @@ totext_in_kx(ARGS_TOTEXT) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 	num = uint16_fromregion(&region);
@@ -92,7 +92,7 @@ fromwire_in_kx(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length < 2) {
@@ -117,7 +117,7 @@ towire_in_kx(ARGS_TOWIRE) {
 	RETERR(mem_tobuffer(target, region.base, 2));
 	isc_region_consume(&region, 2);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 
 	return dns_name_towire(&name, cctx, target, NULL);
@@ -143,8 +143,8 @@ compare_in_kx(ARGS_COMPARE) {
 		return order < 0 ? -1 : 1;
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -192,14 +192,14 @@ tostruct_in_kx(ARGS_TOSTRUCT) {
 	kx->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&kx->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 
 	kx->preference = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 
 	dns_name_fromregion(&name, &region);
-	dns_name_init(&kx->exchange, NULL);
+	dns_name_init(&kx->exchange);
 	name_duporclone(&name, mctx, &kx->exchange);
 	kx->mctx = mctx;
 	return ISC_R_SUCCESS;
@@ -231,7 +231,7 @@ additionaldata_in_kx(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
@@ -252,7 +252,7 @@ digest_in_kx(ARGS_DIGEST) {
 	isc_region_consume(&r2, 2);
 	r1.length = 2;
 	RETERR((digest)(arg, &r1));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r2);
 	return dns_name_digest(&name, digest, arg);
 }
