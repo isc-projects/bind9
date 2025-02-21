@@ -3181,7 +3181,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 	for (;;) {
 		dns_name_getlabelsequence(trig_name, first, labels - first - 1,
 					  &prefix);
-		result = dns_name_concatenate(&prefix, suffix, p_name, NULL);
+		result = dns_name_concatenate(&prefix, suffix, p_name);
 		if (result == ISC_R_SUCCESS) {
 			break;
 		}
@@ -4900,9 +4900,8 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_name_init(&prefix);
 		dns_name_getlabelsequence(client->query.qname, 0, labels - 1,
 					  &prefix);
-		result = dns_name_concatenate(&prefix,
-					      client->view->redirectzone,
-					      redirectname, NULL);
+		result = dns_name_concatenate(
+			&prefix, client->view->redirectzone, redirectname);
 		if (result != ISC_R_SUCCESS) {
 			return ISC_R_NOTFOUND;
 		}
@@ -4980,7 +4979,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	/*
 	 * Make the name absolute.
 	 */
-	result = dns_name_concatenate(found, dns_rootname, found, NULL);
+	result = dns_name_concatenate(found, dns_rootname, found);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	dns_name_copy(found, name);
@@ -7269,7 +7268,7 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 			       dns_fixedname_name(&suffix));
 		result = dns_name_concatenate(dns_fixedname_name(&prefix),
 					      dns_fixedname_name(&suffix),
-					      qctx->fname, NULL);
+					      qctx->fname);
 		if (result == DNS_R_NAMETOOLONG) {
 			client->message->rcode = dns_rcode_yxdomain;
 		} else if (result != ISC_R_SUCCESS) {
@@ -9271,8 +9270,8 @@ query_addnxrrsetnsec(query_ctx_t *qctx) {
 
 	dns_name_split(qctx->fname, sig.labels + 1, NULL, fname);
 	/* This will succeed, since we've stripped labels. */
-	RUNTIME_CHECK(dns_name_concatenate(dns_wildcardname, fname, fname,
-					   NULL) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_name_concatenate(dns_wildcardname, fname, fname) ==
+		      ISC_R_SUCCESS);
 	query_addrrset(qctx, &fname, &qctx->rdataset, &qctx->sigrdataset, dbuf,
 		       DNS_SECTION_AUTHORITY);
 }
@@ -10385,7 +10384,7 @@ query_dname(query_ctx_t *qctx) {
 	INSIST(qctx->fname == NULL);
 	qctx->dbuf = ns_client_getnamebuf(qctx->client);
 	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-	result = dns_name_concatenate(prefix, tname, qctx->fname, NULL);
+	result = dns_name_concatenate(prefix, tname, qctx->fname);
 	dns_message_puttempname(qctx->client->message, &tname);
 
 	/*
@@ -11190,8 +11189,7 @@ again:
 		/*
 		 * Add the no wildcard proof.
 		 */
-		result = dns_name_concatenate(dns_wildcardname, cname, wname,
-					      NULL);
+		result = dns_name_concatenate(dns_wildcardname, cname, wname);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -11232,7 +11230,7 @@ again:
 				dns_name_split(name, nlabels, NULL, wname);
 			}
 			result = dns_name_concatenate(dns_wildcardname, wname,
-						      wname, NULL);
+						      wname);
 			if (result == ISC_R_SUCCESS) {
 				have_wname = true;
 			}

@@ -652,7 +652,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 			prefix = dns_fixedname_initname(&fixed);
 			dns_name_split(name, nlabels, prefix, NULL);
 			tresult = dns_name_concatenate(prefix, &dname.dname,
-						       name, NULL);
+						       name);
 			dns_rdata_freestruct(&dname);
 			if (tresult == ISC_R_SUCCESS) {
 				want_restart = true;

@@ -2277,7 +2277,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				if (!dns_name_isabsolute(name)) {
 					result = dns_name_concatenate(
 						name, lookup->oname,
-						lookup->name, NULL);
+						lookup->name);
 				} else {
 					dns_name_copy(name, lookup->name);
 				}

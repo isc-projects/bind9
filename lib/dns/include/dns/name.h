@@ -302,9 +302,10 @@ dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer) {
  * Dedicate a buffer for use with 'name'.
  *
  * Notes:
- * \li	Specification of a target buffer in dns_name_fromwire(),
- *	dns_name_fromtext(), and dns_name_concatenate() is optional if
- *	'name' has a dedicated buffer.
+ * \li	Specification of a target buffer in dns_name_fromwire() and
+ *	dns_name_fromtext() is optional if 'name' has a dedicated buffer.
+ *	The target name in dns_name_concatenate() must have a dedicated
+ *	buffer.
  *
  * \li	The caller must not write to buffer until the name has been
  *	invalidated or is otherwise known not to be in use.
@@ -959,9 +960,11 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name);
 
 isc_result_t
 dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
-		     dns_name_t *name, isc_buffer_t *target);
+		     dns_name_t *name);
 /*%<
- *	Concatenate 'prefix' and 'suffix'.
+ *	Concatenate 'prefix' and 'suffix' and place the result in 'name'.
+ *	(Note that 'name' may be the same as 'prefix', in which case
+ *	'suffix' will be appended to it.)
  *
  * Requires:
  *
@@ -969,19 +972,9 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
  *
  *\li	'suffix' is a valid name or NULL.
  *
- *\li	'name' is a valid name or NULL.
- *
- *\li	'target' is a valid buffer or 'target' is NULL and 'name' has
- *	a dedicated buffer.
+ *\li	'name' is a valid name with a dedicated buffer.
  *
  *\li	If 'prefix' is absolute, 'suffix' must be NULL or the empty name.
- *
- * Ensures:
- *
- *\li	On success,
- *	 	If 'target' is not NULL and 'name' is not NULL, then 'name'
- *		is attached to it.
- *		The used space in target is updated.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS

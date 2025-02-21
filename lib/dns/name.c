@@ -1511,13 +1511,14 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 isc_result_t
 dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
-		     dns_name_t *name, isc_buffer_t *target) {
-	unsigned char *ndata;
+		     dns_name_t *name) {
+	unsigned char *ndata = NULL;
 	unsigned int nrem, prefix_length, length;
 	bool copy_prefix = true;
 	bool copy_suffix = true;
 	bool absolute = false;
 	dns_name_t tmp_name;
+	isc_buffer_t *target = NULL;
 
 	/*
 	 * Concatenate 'prefix' and 'suffix'.
@@ -1525,10 +1526,9 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
 
 	REQUIRE(prefix == NULL || DNS_NAME_VALID(prefix));
 	REQUIRE(suffix == NULL || DNS_NAME_VALID(suffix));
-	REQUIRE(name == NULL || DNS_NAME_VALID(name));
-	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
-		(target == NULL && name != NULL &&
-		 ISC_BUFFER_VALID(name->buffer)));
+	REQUIRE(DNS_NAME_VALID(name) && ISC_BUFFER_VALID(name->buffer));
+	REQUIRE(DNS_NAME_BINDABLE(name));
+
 	if (prefix == NULL || prefix->length == 0) {
 		copy_prefix = false;
 	}
@@ -1543,13 +1543,9 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
 		dns_name_init(&tmp_name);
 		name = &tmp_name;
 	}
-	if (target == NULL) {
-		INSIST(name->buffer != NULL);
-		target = name->buffer;
-		isc_buffer_clear(name->buffer);
-	}
 
-	REQUIRE(DNS_NAME_BINDABLE(name));
+	target = name->buffer;
+	isc_buffer_clear(target);
 
 	/*
 	 * Set up.
@@ -1583,8 +1579,7 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
 	}
 
 	/*
-	 * If 'prefix' and 'name' are the same object, and the object has
-	 * a dedicated buffer, and we're using it, then we don't have to
+	 * If 'prefix' and 'name' are the same object, we don't have to
 	 * copy anything.
 	 */
 	if (copy_prefix && (prefix != name || prefix->buffer != target)) {

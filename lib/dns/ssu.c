@@ -631,7 +631,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 		case dns_ssumatchtype_selfwild:
 			wildcard = dns_fixedname_initname(&fixed);
 			result = dns_name_concatenate(dns_wildcardname, signer,
-						      wildcard, NULL);
+						      wildcard);
 			if (result != ISC_R_SUCCESS) {
 				if (logit) {
 					isc_log_write(

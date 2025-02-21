@@ -592,7 +592,7 @@ cleanup_struct:
 			RUNTIME_CHECK(dns_name_concatenate(
 					      dns_wildcardname,
 					      dns_fixedname_name(&fnewname),
-					      wild, NULL) == ISC_R_SUCCESS);
+					      wild) == ISC_R_SUCCESS);
 		}
 		inc_stat(dns_dnssecstats_wildcard);
 		ret = DNS_R_FROMWILDCARD;

@@ -549,8 +549,8 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 				fname = dns_fixedname_name(&fixed);
 				dns_name_getlabelsequence(
 					name, i + 1, dlabels - i - 1, fname);
-				result = dns_name_concatenate(
-					dns_wildcardname, fname, fname, NULL);
+				result = dns_name_concatenate(dns_wildcardname,
+							      fname, fname);
 				if (result != ISC_R_SUCCESS) {
 					MAYBE_UNLOCK(sdlz->dlzimp);
 					return result;

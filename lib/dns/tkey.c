@@ -475,8 +475,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 			RETERR(isc_hex_totext(&r, 2, "", &b));
 			RETERR(dns_name_fromtext(keyname, &b, NULL, 0, NULL));
 		}
-		RETERR(dns_name_concatenate(keyname, dns_rootname, keyname,
-					    NULL));
+		RETERR(dns_name_concatenate(keyname, dns_rootname, keyname));
 
 		result = dns_tsigkey_find(&tsigkey, keyname, NULL, ring);
 		if (result == ISC_R_SUCCESS) {

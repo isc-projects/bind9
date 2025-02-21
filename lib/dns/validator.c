@@ -2610,8 +2610,7 @@ findnsec3proofs(dns_validator_t *val) {
 	{
 		val->attributes |= VALATTR_FOUNDCLOSEST;
 		result = dns_name_concatenate(dns_wildcardname, closest,
-					      dns_fixedname_name(&val->wild),
-					      NULL);
+					      dns_fixedname_name(&val->wild));
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	} else {
 		val->attributes &= ~VALATTR_FOUNDNOQNAME;

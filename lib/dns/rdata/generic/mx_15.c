@@ -290,7 +290,7 @@ additionaldata_mx(ARGS_ADDLDATA) {
 
 	dns_fixedname_init(&fixed);
 	result = dns_name_concatenate(&port25, &name,
-				      dns_fixedname_name(&fixed), NULL);
+				      dns_fixedname_name(&fixed));
 	if (result != ISC_R_SUCCESS) {
 		return ISC_R_SUCCESS;
 	}

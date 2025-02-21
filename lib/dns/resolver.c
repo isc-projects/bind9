@@ -6929,8 +6929,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		tname = dns_fixedname_initname(&fixed);
 		nlabels = dns_name_countlabels(rname);
 		dns_name_split(qname, nlabels, &prefix, NULL);
-		result = dns_name_concatenate(&prefix, &dname.dname, tname,
-					      NULL);
+		result = dns_name_concatenate(&prefix, &dname.dname, tname);
 		if (result == DNS_R_NAMETOOLONG) {
 			SET_IF_NOT_NULL(chainingp, true);
 			return true;

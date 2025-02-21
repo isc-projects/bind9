@@ -341,7 +341,7 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 	}
 
 	result = dns_name_concatenate(dns_fixedname_name(&fixed), &name,
-				      dns_fixedname_name(&fixed), NULL);
+				      dns_fixedname_name(&fixed));
 	if (result != ISC_R_SUCCESS) {
 		return ISC_R_SUCCESS;
 	}

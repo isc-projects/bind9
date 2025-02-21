@@ -959,7 +959,7 @@ addnowildcardhash(hashlist_t *l,
 
 	wild = dns_fixedname_initname(&fixed);
 
-	result = dns_name_concatenate(dns_wildcardname, name, wild, NULL);
+	result = dns_name_concatenate(dns_wildcardname, name, wild);
 	if (result == ISC_R_NOSPACE) {
 		return;
 	}
