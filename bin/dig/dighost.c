@@ -2206,11 +2206,6 @@ setup_lookup(dig_lookup_t *lookup) {
 	}
 	dns_message_gettempname(lookup->sendmsg, &lookup->name);
 
-	isc_buffer_init(&lookup->namebuf, lookup->name_space,
-			sizeof(lookup->name_space));
-	isc_buffer_init(&lookup->onamebuf, lookup->oname_space,
-			sizeof(lookup->oname_space));
-
 	/*
 	 * We cannot convert `textname' and `origin' separately.
 	 * `textname' doesn't contain TLD, but local mapping needs
@@ -2259,7 +2254,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		isc_buffer_init(&b, origin, len);
 		isc_buffer_add(&b, len);
 		result = dns_name_fromtext(lookup->oname, &b, dns_rootname, 0,
-					   &lookup->onamebuf);
+					   NULL);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg, &lookup->name);
 			dns_message_puttempname(lookup->sendmsg,
@@ -2282,7 +2277,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				if (!dns_name_isabsolute(name)) {
 					result = dns_name_concatenate(
 						name, lookup->oname,
-						lookup->name, &lookup->namebuf);
+						lookup->name, NULL);
 				} else {
 					dns_name_copy(name, lookup->name);
 				}
@@ -2310,8 +2305,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(lookup->name, &b,
-						   dns_rootname, 0,
-						   &lookup->namebuf);
+						   dns_rootname, 0, NULL);
 			if (result != ISC_R_SUCCESS) {
 				dns_message_puttempname(lookup->sendmsg,
 							&lookup->name);

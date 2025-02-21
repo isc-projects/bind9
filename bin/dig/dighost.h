@@ -131,8 +131,6 @@ struct dig_lookup {
 	bool rdclassset;
 	char name_space[BUFSIZE];
 	char oname_space[BUFSIZE];
-	isc_buffer_t namebuf;
-	isc_buffer_t onamebuf;
 	isc_buffer_t renderbuf;
 	char *sendspace;
 	dns_name_t *name;
