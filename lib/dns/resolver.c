@@ -4595,11 +4595,7 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 			      "fctx %p(%s): attached to counter %p (%d)", fctx,
 			      fctx->info, fctx->qc, isc_counter_used(fctx->qc));
 	} else {
-		result = isc_counter_create(fctx->mctx, res->maxqueries,
-					    &fctx->qc);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_fetch;
-		}
+		isc_counter_create(fctx->mctx, res->maxqueries, &fctx->qc);
 		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
 			      ISC_LOG_DEBUG(9),
 			      "fctx %p(%s): created counter %p", fctx,
@@ -4827,7 +4823,6 @@ cleanup_nameservers:
 		isc_counter_detach(&fctx->gqc);
 	}
 
-cleanup_fetch:
 	dns_resolver_detach(&fctx->res);
 	isc_mem_putanddetach(&fctx->mctx, fctx, sizeof(*fctx));
 

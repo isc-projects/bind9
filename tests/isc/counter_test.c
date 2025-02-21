@@ -32,29 +32,32 @@
 ISC_RUN_TEST_IMPL(isc_counter) {
 	isc_result_t result;
 	isc_counter_t *counter = NULL;
-	int i;
 
-	UNUSED(state);
+	isc_counter_create(mctx, 0, &counter);
 
-	result = isc_counter_create(mctx, 0, &counter);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	for (i = 0; i < 10; i++) {
+	for (size_t i = 0; i < 10; i++) {
 		result = isc_counter_increment(counter);
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
 	assert_int_equal(isc_counter_used(counter), 10);
 
-	isc_counter_setlimit(counter, 15);
-	for (i = 0; i < 10; i++) {
+	isc_counter_setlimit(counter, 10);
+
+	for (size_t i = 0; i < 5; i++) {
+		result = isc_counter_increment(counter);
+		assert_int_equal(result, ISC_R_QUOTA);
+	}
+
+	isc_counter_setlimit(counter, 20);
+	for (size_t i = 0; i < 10; i++) {
 		result = isc_counter_increment(counter);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
 	}
 
-	assert_int_equal(isc_counter_used(counter), 15);
+	assert_int_equal(isc_counter_used(counter), 20);
 
 	isc_counter_detach(&counter);
 }
