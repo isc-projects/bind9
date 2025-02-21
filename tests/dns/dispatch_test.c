@@ -65,7 +65,6 @@ static isc_sockaddr_t tls_connect_addr;
 
 static isc_tlsctx_cache_t *tls_tlsctx_client_cache = NULL;
 static isc_tlsctx_t *tls_listen_tlsctx = NULL;
-static dns_name_t tls_name;
 static const char *tls_name_str = "ephemeral";
 static dns_transport_t *tls_transport = NULL;
 static dns_transport_list_t *transport_list = NULL;
@@ -150,8 +149,9 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 
 static int
 setup_test(void **state) {
-	isc_buffer_t namesrc, namebuf;
-	char namedata[DNS_NAME_FORMATSIZE + 1];
+	isc_buffer_t namesrc;
+	dns_fixedname_t ft;
+	dns_name_t *tls_name = dns_fixedname_initname(&ft);
 
 	uv_os_sock_t socket = -1;
 
@@ -216,17 +216,15 @@ setup_test(void **state) {
 		return -1;
 	}
 
-	dns_name_init(&tls_name);
 	isc_buffer_constinit(&namesrc, tls_name_str, strlen(tls_name_str));
 	isc_buffer_add(&namesrc, strlen(tls_name_str));
-	isc_buffer_init(&namebuf, namedata, sizeof(namedata));
-	if (dns_name_fromtext(&tls_name, &namesrc, dns_rootname,
-			      DNS_NAME_DOWNCASE, &namebuf) != ISC_R_SUCCESS)
+	if (dns_name_fromtext(tls_name, &namesrc, dns_rootname,
+			      DNS_NAME_DOWNCASE, NULL) != ISC_R_SUCCESS)
 	{
 		return -1;
 	}
 	transport_list = dns_transport_list_new(mctx);
-	tls_transport = dns_transport_new(&tls_name, DNS_TRANSPORT_TLS,
+	tls_transport = dns_transport_new(tls_name, DNS_TRANSPORT_TLS,
 					  transport_list);
 	dns_transport_set_tlsname(tls_transport, tls_name_str);
 

@@ -858,14 +858,14 @@ requeue_lookup(dig_lookup_t *lookold, bool servers) {
 void
 setup_text_key(void) {
 	isc_result_t result;
-	dns_name_t keyname;
+	dns_fixedname_t fkey;
+	dns_name_t *keyname = dns_fixedname_initname(&fkey);
 	isc_buffer_t secretbuf;
 	unsigned int secretsize;
 	unsigned char *secretstore;
 
 	debug("setup_text_key()");
 	isc_buffer_allocate(mctx, &namebuf, MXNAME);
-	dns_name_init(&keyname);
 	isc_buffer_putstr(namebuf, keynametext);
 	secretsize = (unsigned int)strlen(keysecret) * 3 / 4;
 	secretstore = isc_mem_allocate(mctx, secretsize);
@@ -882,12 +882,12 @@ setup_text_key(void) {
 		goto failure;
 	}
 
-	result = dns_name_fromtext(&keyname, namebuf, dns_rootname, 0, namebuf);
+	result = dns_name_fromtext(keyname, namebuf, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
 
-	result = dns_tsigkey_create(&keyname, hmac_alg, secretstore,
+	result = dns_tsigkey_create(keyname, hmac_alg, secretstore,
 				    (int)secretsize, mctx, &tsigkey);
 failure:
 	if (result != ISC_R_SUCCESS) {
@@ -898,7 +898,6 @@ failure:
 	}
 
 	isc_mem_free(mctx, secretstore);
-	dns_name_invalidate(&keyname);
 	isc_buffer_free(&namebuf);
 }
 

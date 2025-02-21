@@ -46,11 +46,11 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 	{
 		const cfg_obj_t *algobj = NULL;
 		const cfg_obj_t *secretobj = NULL;
-		dns_name_t keyname;
+		dns_fixedname_t fkey;
+		dns_name_t *keyname = dns_fixedname_initname(&fkey);
 		dst_algorithm_t alg = DST_ALG_UNKNOWN;
 		const char *algstr = NULL;
-		char keynamedata[1024];
-		isc_buffer_t keynamesrc, keynamebuf;
+		isc_buffer_t keynamesrc;
 		const char *secretstr = NULL;
 		isc_buffer_t secretbuf;
 		int secretlen = 0;
@@ -68,12 +68,10 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		/*
 		 * Create the key name.
 		 */
-		dns_name_init(&keyname);
 		isc_buffer_constinit(&keynamesrc, keyid, strlen(keyid));
 		isc_buffer_add(&keynamesrc, strlen(keyid));
-		isc_buffer_init(&keynamebuf, keynamedata, sizeof(keynamedata));
-		ret = dns_name_fromtext(&keyname, &keynamesrc, dns_rootname,
-					DNS_NAME_DOWNCASE, &keynamebuf);
+		ret = dns_name_fromtext(keyname, &keynamesrc, dns_rootname,
+					DNS_NAME_DOWNCASE, NULL);
 		if (ret != ISC_R_SUCCESS) {
 			goto failure;
 		}
@@ -103,7 +101,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		}
 		secretlen = isc_buffer_usedlength(&secretbuf);
 
-		ret = dns_tsigkey_create(&keyname, alg, secret, secretlen, mctx,
+		ret = dns_tsigkey_create(keyname, alg, secret, secretlen, mctx,
 					 &tsigkey);
 		isc_mem_put(mctx, secret, secretalloc);
 		secret = NULL;

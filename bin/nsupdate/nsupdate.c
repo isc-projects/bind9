@@ -786,16 +786,14 @@ set_source_ports(dns_dispatchmgr_t *manager) {
 }
 
 static isc_result_t
-create_name(const char *str, char *namedata, size_t len, dns_name_t *name) {
-	isc_buffer_t namesrc, namebuf;
+create_name(const char *str, dns_name_t *name) {
+	isc_buffer_t namesrc;
 
-	dns_name_init(name);
 	isc_buffer_constinit(&namesrc, str, strlen(str));
 	isc_buffer_add(&namesrc, strlen(str));
-	isc_buffer_init(&namebuf, namedata, len);
 
 	return dns_name_fromtext(name, &namesrc, dns_rootname,
-				 DNS_NAME_DOWNCASE, &namebuf);
+				 DNS_NAME_DOWNCASE, NULL);
 }
 
 static void
@@ -805,8 +803,8 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 	isc_sockaddrlist_t *nslist;
 	isc_logconfig_t *logconfig = NULL;
 	irs_resconf_t *resconf = NULL;
-	dns_name_t tlsname;
-	char namedata[DNS_NAME_FORMATSIZE + 1];
+	dns_fixedname_t ftls;
+	dns_name_t *tlsname = dns_fixedname_initname(&ftls);
 
 	ddebug("setup_system()");
 
@@ -940,17 +938,15 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 	isc_tlsctx_cache_create(gmctx, &tls_ctx_cache);
 
 	if (tls_client_key_file == NULL) {
-		result = create_name("tls-non-auth-client", namedata,
-				     sizeof(namedata), &tlsname);
+		result = create_name("tls-non-auth-client", tlsname);
 		check_result(result, "create_name (tls-non-auth-client)");
-		transport = dns_transport_new(&tlsname, DNS_TRANSPORT_TLS,
+		transport = dns_transport_new(tlsname, DNS_TRANSPORT_TLS,
 					      transport_list);
 		dns_transport_set_tlsname(transport, "tls-non-auth-client");
 	} else {
-		result = create_name("tls-auth-client", namedata,
-				     sizeof(namedata), &tlsname);
+		result = create_name("tls-auth-client", tlsname);
 		check_result(result, "create_name (tls-auth-client)");
-		transport = dns_transport_new(&tlsname, DNS_TRANSPORT_TLS,
+		transport = dns_transport_new(tlsname, DNS_TRANSPORT_TLS,
 					      transport_list);
 		dns_transport_set_tlsname(transport, "tls-auth-client");
 		dns_transport_set_keyfile(transport, tls_client_key_file);
