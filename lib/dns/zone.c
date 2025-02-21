@@ -4858,9 +4858,8 @@ process_zone_setnsec3param(dns_zone_t *zone) {
 	}
 }
 
-static unsigned char er_offset[] = { 0, 1 };
 static unsigned char er_ndata[] = "\001*\003_er";
-static dns_name_t er = DNS_NAME_INITNONABSOLUTE(er_ndata, er_offset);
+static dns_name_t er = DNS_NAME_INITNONABSOLUTE(er_ndata, NULL);
 
 static isc_result_t
 check_reportchannel(dns_zone_t *zone, dns_db_t *db) {

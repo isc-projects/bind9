@@ -83,19 +83,18 @@ static char root_ns[] =
 	"M.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:DC3::35\n";
 
 static unsigned char b_data[] = "\001b\014root-servers\003net";
-static unsigned char b_offsets[] = { 0, 2, 15, 19 };
 
 static struct upcoming {
 	const dns_name_t name;
 	dns_rdatatype_t type;
 	isc_stdtime_t time;
 } upcoming[] = { {
-			 .name = DNS_NAME_INITABSOLUTE(b_data, b_offsets),
+			 .name = DNS_NAME_INITABSOLUTE(b_data, NULL),
 			 .type = dns_rdatatype_a,
 			 .time = 1701086400 /* November 27 2023, 12:00 UTC */
 		 },
 		 {
-			 .name = DNS_NAME_INITABSOLUTE(b_data, b_offsets),
+			 .name = DNS_NAME_INITABSOLUTE(b_data, NULL),
 			 .type = dns_rdatatype_aaaa,
 			 .time = 1701086400 /* November 27 2023, 12:00 UTC */
 		 } };

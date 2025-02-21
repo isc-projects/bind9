@@ -117,15 +117,13 @@ towire_rp(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
-	dns_offsets_t roffsets;
-	dns_offsets_t eoffsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
-	dns_name_init(&rmail, roffsets);
-	dns_name_init(&email, eoffsets);
+	dns_name_init(&rmail, NULL);
+	dns_name_init(&email, NULL);
 
 	dns_rdata_toregion(rdata, &region);
 

@@ -79,7 +79,6 @@ fromwire_md(ARGS_FROMWIRE) {
 static isc_result_t
 towire_md(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_md);
@@ -87,7 +86,7 @@ towire_md(ARGS_TOWIRE) {
 
 	dns_compress_setpermitted(cctx, true);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
@@ -177,14 +176,13 @@ freestruct_md(ARGS_FREESTRUCT) {
 static isc_result_t
 additionaldata_md(ARGS_ADDLDATA) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_md);
 
 	UNUSED(owner);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

@@ -324,19 +324,14 @@ loadctx_destroy(dns_loadctx_t *lctx);
 			    source, line, isc_result_totext(result))
 
 static unsigned char in_addr_arpa_data[] = "\007IN-ADDR\004ARPA";
-static unsigned char in_addr_arpa_offsets[] = { 0, 8, 13 };
-static dns_name_t const in_addr_arpa =
-	DNS_NAME_INITABSOLUTE(in_addr_arpa_data, in_addr_arpa_offsets);
+static dns_name_t const in_addr_arpa = DNS_NAME_INITABSOLUTE(in_addr_arpa_data,
+							     NULL);
 
 static unsigned char ip6_int_data[] = "\003IP6\003INT";
-static unsigned char ip6_int_offsets[] = { 0, 4, 8 };
-static dns_name_t const ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data,
-							ip6_int_offsets);
+static dns_name_t const ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data, NULL);
 
 static unsigned char ip6_arpa_data[] = "\003IP6\004ARPA";
-static unsigned char ip6_arpa_offsets[] = { 0, 4, 9 };
-static dns_name_t const ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
-							 ip6_arpa_offsets);
+static dns_name_t const ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data, NULL);
 
 static bool
 dns_master_isprimary(dns_loadctx_t *lctx) {

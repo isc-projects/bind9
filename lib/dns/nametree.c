@@ -126,7 +126,7 @@ newnode(isc_mem_t *mctx, const dns_name_t *name) {
 	isc_mem_attach(mctx, &node->mctx);
 	isc_refcount_init(&node->references, 1);
 
-	dns_name_dupwithoffsets(name, mctx, &node->name);
+	dns_name_dup(name, mctx, &node->name);
 
 	return node;
 }

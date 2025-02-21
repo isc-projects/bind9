@@ -353,7 +353,6 @@ static isc_result_t
 towire_rrsig(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
-	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);
 	REQUIRE(rdata->length != 0);
@@ -375,7 +374,7 @@ towire_rrsig(ARGS_TOWIRE) {
 	/*
 	 * Signer.
 	 */
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
 	RETERR(dns_name_towire(&name, cctx, target, NULL));

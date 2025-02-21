@@ -922,7 +922,6 @@ fromwire_in_svcb(ARGS_FROMWIRE) {
 static isc_result_t
 generic_towire_in_svcb(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->length != 0);
@@ -939,7 +938,7 @@ generic_towire_in_svcb(ARGS_TOWIRE) {
 	/*
 	 * TargetName.
 	 */
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 	RETERR(dns_name_towire(&name, cctx, target, NULL));
 	isc_region_consume(&region, name_length(&name));
@@ -1084,12 +1083,11 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	bool alias, done = false;
 	dns_fixedname_t fixed;
 	dns_name_t name, *fname = NULL;
-	dns_offsets_t offsets;
 	dns_rdataset_t rdataset;
 	isc_region_t region;
 	unsigned int cnames = 0;
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	alias = uint16_fromregion(&region) == 0;
 	isc_region_consume(&region, 2);

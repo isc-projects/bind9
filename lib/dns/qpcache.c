@@ -2553,7 +2553,7 @@ new_qpcnode(qpcache_t *qpdb, const dns_name_t *name) {
 	};
 
 	isc_mem_attach(qpdb->common.mctx, &newdata->mctx);
-	dns_name_dupwithoffsets(name, newdata->mctx, &newdata->name);
+	dns_name_dup(name, newdata->mctx, &newdata->name);
 
 #ifdef DNS_DB_NODETRACE
 	fprintf(stderr, "new_qpcnode:%s:%s:%d:%p->references = 1\n", __func__,
@@ -3493,7 +3493,7 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 	/*
 	 * Make a copy of the origin name.
 	 */
-	dns_name_dupwithoffsets(origin, mctx, &qpdb->common.origin);
+	dns_name_dup(origin, mctx, &qpdb->common.origin);
 
 	/*
 	 * Make the qp tries.

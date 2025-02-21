@@ -106,7 +106,6 @@ fromwire_in_kx(ARGS_FROMWIRE) {
 static isc_result_t
 towire_in_kx(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_kx);
@@ -118,7 +117,7 @@ towire_in_kx(ARGS_TOWIRE) {
 	RETERR(mem_tobuffer(target, region.base, 2));
 	isc_region_consume(&region, 2);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 
 	return dns_name_towire(&name, cctx, target, NULL);
@@ -225,7 +224,6 @@ freestruct_in_kx(ARGS_FREESTRUCT) {
 static isc_result_t
 additionaldata_in_kx(ARGS_ADDLDATA) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_kx);
@@ -233,7 +231,7 @@ additionaldata_in_kx(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);

@@ -31,6 +31,7 @@
 #include <dns/qp.h>
 #include <dns/types.h>
 
+#include "dns/name.h"
 #include "qp_p.h"
 
 #include <tests/dns.h>
@@ -475,7 +476,7 @@ main(int argc, char *argv[]) {
 		FILE_CHECK(result == ISC_R_SUCCESS, isc_result_totext(result));
 
 		wirebytes += name->length;
-		labels += name->labels;
+		labels += dns_name_countlabels(name);
 		lines++;
 	}
 

@@ -2614,8 +2614,8 @@ done:
 	if (usegsstsig) {
 		dns_name_free(&tmpzonename, gmctx);
 		dns_name_free(&restart_primary, gmctx);
-		dns_name_init(&tmpzonename, 0);
-		dns_name_init(&restart_primary, 0);
+		dns_name_init(&tmpzonename, NULL);
+		dns_name_init(&restart_primary, NULL);
 	}
 	done_update();
 }

@@ -131,7 +131,6 @@ fromwire_ch_a(ARGS_FROMWIRE) {
 static isc_result_t
 towire_ch_a(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t sregion;
 	isc_region_t tregion;
 
@@ -141,7 +140,7 @@ towire_ch_a(ARGS_TOWIRE) {
 
 	dns_compress_setpermitted(cctx, true);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 
 	dns_rdata_toregion(rdata, &sregion);
 

@@ -109,7 +109,9 @@ ISC_RUN_TEST_IMPL(fullcompare) {
 		relation = dns_name_fullcompare(name1, name1, &order, &nlabels);
 		assert_int_equal(relation, dns_namereln_equal);
 		assert_int_equal(order, 0);
-		assert_int_equal(nlabels, name1->labels);
+
+		uint8_t labels = dns_name_countlabels(name1);
+		assert_int_equal(nlabels, labels);
 
 		/* Some random initializer */
 		order = 3001;
@@ -390,11 +392,10 @@ ISC_RUN_TEST_IMPL(collision) {
 	uint8_t msgbuf[65536];
 	dns_name_t name;
 	char namebuf[256];
-	uint8_t offsets[128];
 
 	dns_compress_init(&cctx, mctx, DNS_COMPRESS_LARGE);
 	isc_buffer_init(&message, msgbuf, sizeof(msgbuf));
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 
 	/*
 	 * compression offsets are not allowed to be zero so our
@@ -565,26 +566,21 @@ ISC_RUN_TEST_IMPL(istat) {
 static bool
 name_attr_zero(struct dns_name_attrs attributes) {
 	return !(attributes.absolute | attributes.readonly |
-		 attributes.dynamic | attributes.dynoffsets |
-		 attributes.nocompress | attributes.cache | attributes.answer |
-		 attributes.ncache | attributes.chaining | attributes.chase |
-		 attributes.wildcard | attributes.prerequisite |
-		 attributes.update | attributes.hasupdaterec);
+		 attributes.dynamic | attributes.nocompress | attributes.cache |
+		 attributes.answer | attributes.ncache | attributes.chaining |
+		 attributes.chase | attributes.wildcard |
+		 attributes.prerequisite | attributes.update |
+		 attributes.hasupdaterec);
 }
 
 /* dns_name_init */
 ISC_RUN_TEST_IMPL(init) {
 	dns_name_t name;
-	unsigned char offsets[1];
 
-	UNUSED(state);
-
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 
 	assert_null(name.ndata);
 	assert_int_equal(name.length, 0);
-	assert_int_equal(name.labels, 0);
-	assert_ptr_equal(name.offsets, offsets);
 	assert_null(name.buffer);
 	assert_true(name_attr_zero(name.attributes));
 }
@@ -592,17 +588,12 @@ ISC_RUN_TEST_IMPL(init) {
 /* dns_name_invalidate */
 ISC_RUN_TEST_IMPL(invalidate) {
 	dns_name_t name;
-	unsigned char offsets[1];
 
-	UNUSED(state);
-
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_invalidate(&name);
 
 	assert_null(name.ndata);
 	assert_int_equal(name.length, 0);
-	assert_int_equal(name.labels, 0);
-	assert_null(name.offsets);
 	assert_null(name.buffer);
 	assert_true(name_attr_zero(name.attributes));
 }

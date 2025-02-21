@@ -190,7 +190,6 @@ freestruct_lp(ARGS_FREESTRUCT) {
 static isc_result_t
 additionaldata_lp(ARGS_ADDLDATA) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 	isc_result_t result;
 
@@ -198,7 +197,7 @@ additionaldata_lp(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);

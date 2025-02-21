@@ -599,7 +599,7 @@ new_qpznode(qpzonedb_t *qpdb, const dns_name_t *name) {
 	};
 
 	isc_mem_attach(qpdb->common.mctx, &newdata->mctx);
-	dns_name_dupwithoffsets(name, qpdb->common.mctx, &newdata->name);
+	dns_name_dup(name, qpdb->common.mctx, &newdata->name);
 
 #if DNS_DB_NODETRACE
 	fprintf(stderr, "new_qpznode:%s:%s:%d:%p->references = 1\n", __func__,
@@ -676,7 +676,7 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Make a copy of the origin name.
 	 */
-	dns_name_dupwithoffsets(origin, mctx, &qpdb->common.origin);
+	dns_name_dup(origin, mctx, &qpdb->common.origin);
 
 	dns_qpmulti_create(mctx, &qpmethods, qpdb, &qpdb->tree);
 	dns_qpmulti_create(mctx, &qpmethods, qpdb, &qpdb->nsec);
@@ -2153,11 +2153,10 @@ static void
 wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 	isc_result_t result;
 	dns_name_t foundname;
-	dns_offsets_t offsets;
 	unsigned int n;
 	qpznode_t *node = NULL;
 
-	dns_name_init(&foundname, offsets);
+	dns_name_init(&foundname, NULL);
 	n = dns_name_countlabels(name);
 	INSIST(n >= 2);
 	n--;
@@ -2179,10 +2178,9 @@ wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 static void
 addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 	dns_name_t foundname;
-	dns_offsets_t offsets;
 	unsigned int n, l, i;
 
-	dns_name_init(&foundname, offsets);
+	dns_name_init(&foundname, NULL);
 	n = dns_name_countlabels(name);
 	l = dns_name_countlabels(&qpdb->common.origin);
 	i = l + 1;

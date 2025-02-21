@@ -861,7 +861,6 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	   const dns_name_t *src_name, dns_rpz_cidr_key_t *tgt_ip,
 	   dns_rpz_prefix_t *tgt_prefix, dns_rpz_addr_zbits_t *new_set) {
 	char ip_str[DNS_NAME_FORMATSIZE];
-	dns_offsets_t ip_name_offsets;
 	dns_fixedname_t ip_name2f;
 	dns_name_t ip_name;
 	const char *prefix_str = NULL, *cp = NULL, *end = NULL;
@@ -887,7 +886,7 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		badname(log_level, src_name, "; too short", "");
 		return ISC_R_FAILURE;
 	}
-	dns_name_init(&ip_name, ip_name_offsets);
+	dns_name_init(&ip_name, NULL);
 	dns_name_getlabelsequence(src_name, 0, ip_labels, &ip_name);
 
 	/*
@@ -1042,7 +1041,6 @@ static void
 name2data(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	  const dns_name_t *src_name, dns_name_t *trig_name,
 	  nmdata_t *new_data) {
-	dns_offsets_t tmp_name_offsets;
 	dns_name_t tmp_name;
 	unsigned int prefix_len, n;
 
@@ -1064,7 +1062,7 @@ name2data(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		memset(&new_data->wild, 0, sizeof(new_data->wild));
 	}
 
-	dns_name_init(&tmp_name, tmp_name_offsets);
+	dns_name_init(&tmp_name, NULL);
 	n = dns_name_countlabels(src_name);
 	n -= prefix_len;
 	if (rpz_type == DNS_RPZ_TYPE_QNAME) {
@@ -1406,7 +1404,7 @@ new_nmdata(isc_mem_t *mctx, const dns_name_t *name, const nmdata_t *data) {
 		.name = DNS_NAME_INITEMPTY,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 	};
-	dns_name_dupwithoffsets(name, mctx, &newdata->name);
+	dns_name_dup(name, mctx, &newdata->name);
 	isc_mem_attach(mctx, &newdata->mctx);
 
 #ifdef DNS_RPZ_TRACE

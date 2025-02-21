@@ -104,16 +104,14 @@ towire_talink(ARGS_TOWIRE) {
 	isc_region_t sregion;
 	dns_name_t prev;
 	dns_name_t next;
-	dns_offsets_t moffsets;
-	dns_offsets_t roffsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_talink);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
 
-	dns_name_init(&prev, moffsets);
-	dns_name_init(&next, roffsets);
+	dns_name_init(&prev, NULL);
+	dns_name_init(&next, NULL);
 
 	dns_rdata_toregion(rdata, &sregion);
 

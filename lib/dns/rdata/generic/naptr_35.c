@@ -352,7 +352,6 @@ fromwire_naptr(ARGS_FROMWIRE) {
 static isc_result_t
 towire_naptr(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_naptr);
@@ -387,7 +386,7 @@ towire_naptr(ARGS_TOWIRE) {
 	/*
 	 * Replacement.
 	 */
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
 	return dns_name_towire(&name, cctx, target, NULL);
 }
@@ -571,7 +570,6 @@ freestruct_naptr(ARGS_FREESTRUCT) {
 static isc_result_t
 additionaldata_naptr(ARGS_ADDLDATA) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t sr;
 	dns_rdatatype_t atype;
 	unsigned int i, flagslen;
@@ -618,7 +616,7 @@ additionaldata_naptr(ARGS_ADDLDATA) {
 	/*
 	 * Replacement.
 	 */
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
 
 	if (atype != 0) {

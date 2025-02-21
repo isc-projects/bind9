@@ -119,7 +119,6 @@ fromwire_rt(ARGS_FROMWIRE) {
 static isc_result_t
 towire_rt(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 	isc_region_t tr;
 
@@ -136,7 +135,7 @@ towire_rt(ARGS_TOWIRE) {
 	isc_region_consume(&region, 2);
 	isc_buffer_add(target, 2);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 
 	return dns_name_towire(&name, cctx, target, NULL);
@@ -238,7 +237,6 @@ freestruct_rt(ARGS_FREESTRUCT) {
 static isc_result_t
 additionaldata_rt(ARGS_ADDLDATA) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 	isc_result_t result;
 
@@ -246,7 +244,7 @@ additionaldata_rt(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);

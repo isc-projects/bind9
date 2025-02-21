@@ -164,13 +164,12 @@ static isc_result_t
 towire_nxt(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
-	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));

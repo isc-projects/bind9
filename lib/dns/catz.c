@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/async.h>
 #include <isc/hex.h>
@@ -33,6 +34,8 @@
 #include <dns/rdatasetiter.h>
 #include <dns/view.h>
 #include <dns/zone.h>
+
+#include "dns/name.h"
 
 #define DNS_CATZ_ZONE_MAGIC  ISC_MAGIC('c', 'a', 't', 'z')
 #define DNS_CATZ_ZONES_MAGIC ISC_MAGIC('c', 'a', 't', 's')
@@ -557,7 +560,7 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 		 * record, removed.
 		 * xxxwpk: make it a separate verification phase?
 		 */
-		if (dns_name_countlabels(&nentry->name) == 0) {
+		if (nentry->name.length == 0) {
 			dns_catz_entry_detach(newcatz, &nentry);
 			delcur = true;
 			continue;
@@ -1154,13 +1157,15 @@ catz_process_zones(dns_catz_zone_t *catz, dns_rdataset_t *value,
 	REQUIRE(DNS_RDATASET_VALID(value));
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
-	if (name->labels == 0) {
+	uint8_t labels = dns_name_countlabels(name);
+
+	if (labels == 0) {
 		return ISC_R_FAILURE;
 	}
 
-	dns_name_getlabel(name, name->labels - 1, &mhash);
+	dns_name_getlabel(name, labels - 1, &mhash);
 
-	if (name->labels == 1) {
+	if (labels == 1) {
 		return catz_process_zones_entry(catz, value, &mhash);
 	} else {
 		dns_name_init(&opt, NULL);
@@ -1405,7 +1410,7 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 	 * - label and IN A/IN AAAA
 	 * - label and IN TXT - TSIG key name
 	 */
-	if (name->labels > 0) {
+	if (name->length != 0) {
 		isc_sockaddr_t sockaddr;
 		size_t i;
 
@@ -1455,7 +1460,7 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 
 			/* rdatastr.length < DNS_NAME_MAXTEXT */
 			keyname = isc_mem_get(mctx, sizeof(*keyname));
-			dns_name_init(keyname, 0);
+			dns_name_init(keyname, NULL);
 			memmove(keycbuf, rdatastr.data, rdatastr.length);
 			keycbuf[rdatastr.length] = 0;
 			dns_rdata_freestruct(&rdata_txt);
@@ -1644,10 +1649,12 @@ catz_process_zones_suboption(dns_catz_zone_t *catz, dns_rdataset_t *value,
 	REQUIRE(DNS_RDATASET_VALID(value));
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
-	if (name->labels < 1) {
+	uint8_t labels = dns_name_countlabels(name);
+
+	if (labels < 1) {
 		return ISC_R_FAILURE;
 	}
-	dns_name_getlabel(name, name->labels - 1, &option);
+	dns_name_getlabel(name, labels - 1, &option);
 	opt = catz_get_option(&option);
 
 	/*
@@ -1655,11 +1662,11 @@ catz_process_zones_suboption(dns_catz_zone_t *catz, dns_rdataset_t *value,
 	 * "ext" label.
 	 */
 	if (catz->version >= 2 && opt >= CATZ_OPT_CUSTOM_START) {
-		if (opt != CATZ_OPT_EXT || name->labels < 2) {
+		if (opt != CATZ_OPT_EXT || labels < 2) {
 			return ISC_R_FAILURE;
 		}
 		suffix_labels++;
-		dns_name_getlabel(name, name->labels - 2, &option);
+		dns_name_getlabel(name, labels - 2, &option);
 		opt = catz_get_option(&option);
 	}
 
@@ -1684,13 +1691,13 @@ catz_process_zones_suboption(dns_catz_zone_t *catz, dns_rdataset_t *value,
 	case CATZ_OPT_PRIMARIES:
 		return catz_process_primaries(catz, &entry->opts.masters, value,
 					      &prefix);
-	case CATZ_OPT_ALLOW_QUERY:
-		if (prefix.labels != 0) {
+	case CATZ_OPT_ALLOW_QUERY:;
+		if (prefix.length != 0) {
 			return ISC_R_FAILURE;
 		}
 		return catz_process_apl(catz, &entry->opts.allow_query, value);
 	case CATZ_OPT_ALLOW_TRANSFER:
-		if (prefix.labels != 0) {
+		if (prefix.length != 0) {
 			return ISC_R_FAILURE;
 		}
 		return catz_process_apl(catz, &entry->opts.allow_transfer,
@@ -1734,10 +1741,12 @@ catz_process_value(dns_catz_zone_t *catz, dns_name_t *name,
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
-	if (name->labels < 1) {
+	uint8_t labels = dns_name_countlabels(name);
+
+	if (labels < 1) {
 		return ISC_R_FAILURE;
 	}
-	dns_name_getlabel(name, name->labels - 1, &option);
+	dns_name_getlabel(name, labels - 1, &option);
 	opt = catz_get_option(&option);
 
 	/*
@@ -1745,11 +1754,11 @@ catz_process_value(dns_catz_zone_t *catz, dns_name_t *name,
 	 * "ext" label.
 	 */
 	if (catz->version >= 2 && opt >= CATZ_OPT_CUSTOM_START) {
-		if (opt != CATZ_OPT_EXT || name->labels < 2) {
+		if (opt != CATZ_OPT_EXT || labels < 2) {
 			return ISC_R_FAILURE;
 		}
 		suffix_labels++;
-		dns_name_getlabel(name, name->labels - 2, &option);
+		dns_name_getlabel(name, labels - 2, &option);
 		opt = catz_get_option(&option);
 	}
 
@@ -1763,19 +1772,19 @@ catz_process_value(dns_catz_zone_t *catz, dns_name_t *name,
 		return catz_process_primaries(catz, &catz->zoneoptions.masters,
 					      rdataset, &prefix);
 	case CATZ_OPT_ALLOW_QUERY:
-		if (prefix.labels != 0) {
+		if (prefix.length != 0) {
 			return ISC_R_FAILURE;
 		}
 		return catz_process_apl(catz, &catz->zoneoptions.allow_query,
 					rdataset);
 	case CATZ_OPT_ALLOW_TRANSFER:
-		if (prefix.labels != 0) {
+		if (prefix.length != 0) {
 			return ISC_R_FAILURE;
 		}
 		return catz_process_apl(catz, &catz->zoneoptions.allow_transfer,
 					rdataset);
 	case CATZ_OPT_VERSION:
-		if (prefix.labels != 0) {
+		if (prefix.length != 0) {
 			return ISC_R_FAILURE;
 		}
 		return catz_process_version(catz, rdataset);
@@ -1841,8 +1850,9 @@ dns__catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
 		return ISC_R_UNEXPECTED;
 	}
 
+	uint8_t labels = dns_name_countlabels(&catz->name);
 	dns_name_init(&prefix, NULL);
-	dns_name_split(src_name, catz->name.labels, &prefix, NULL);
+	dns_name_split(src_name, labels, &prefix, NULL);
 	result = catz_process_value(catz, &prefix, rdataset);
 
 	return result;

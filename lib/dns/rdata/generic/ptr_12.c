@@ -92,7 +92,6 @@ fromwire_ptr(ARGS_FROMWIRE) {
 static isc_result_t
 towire_ptr(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_ptr);
@@ -100,7 +99,7 @@ towire_ptr(ARGS_TOWIRE) {
 
 	dns_compress_setpermitted(cctx, true);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
@@ -226,19 +225,14 @@ checkowner_ptr(ARGS_CHECKOWNER) {
 }
 
 static unsigned char ip6_arpa_data[] = "\003IP6\004ARPA";
-static unsigned char ip6_arpa_offsets[] = { 0, 4, 9 };
-static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
-							 ip6_arpa_offsets);
+static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data, NULL);
 
 static unsigned char ip6_int_data[] = "\003IP6\003INT";
-static unsigned char ip6_int_offsets[] = { 0, 4, 8 };
-static const dns_name_t ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data,
-							ip6_int_offsets);
+static const dns_name_t ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data, NULL);
 
 static unsigned char in_addr_arpa_data[] = "\007IN-ADDR\004ARPA";
-static unsigned char in_addr_arpa_offsets[] = { 0, 8, 13 };
-static const dns_name_t in_addr_arpa =
-	DNS_NAME_INITABSOLUTE(in_addr_arpa_data, in_addr_arpa_offsets);
+static const dns_name_t in_addr_arpa = DNS_NAME_INITABSOLUTE(in_addr_arpa_data,
+							     NULL);
 
 static bool
 checknames_ptr(ARGS_CHECKNAMES) {

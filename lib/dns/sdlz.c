@@ -1375,7 +1375,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 
 	/* initialize and set origin */
 	dns_name_init(&sdlzdb->common.origin, NULL);
-	dns_name_dupwithoffsets(name, mctx, &sdlzdb->common.origin);
+	dns_name_dup(name, mctx, &sdlzdb->common.origin);
 
 	isc_refcount_init(&sdlzdb->common.references, 1);
 

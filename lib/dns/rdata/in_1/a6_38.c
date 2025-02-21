@@ -204,7 +204,6 @@ static isc_result_t
 towire_in_a6(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
-	dns_offsets_t offsets;
 	unsigned char prefixlen;
 	unsigned char octets;
 
@@ -225,7 +224,7 @@ towire_in_a6(ARGS_TOWIRE) {
 		return ISC_R_SUCCESS;
 	}
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
 	return dns_name_towire(&name, cctx, target, NULL);
 }

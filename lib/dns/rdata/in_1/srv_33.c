@@ -173,7 +173,6 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 static isc_result_t
 towire_in_srv(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_srv);
@@ -190,7 +189,7 @@ towire_in_srv(ARGS_TOWIRE) {
 	/*
 	 * Target.
 	 */
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
 	return dns_name_towire(&name, cctx, target, NULL);
 }
@@ -308,7 +307,6 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 	char buf[sizeof("_65000._tcp")];
 	dns_fixedname_t fixed;
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 	uint16_t port;
 	isc_result_t result;
@@ -318,7 +316,7 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 4);
 	port = uint16_fromregion(&region);

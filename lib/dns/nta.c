@@ -289,7 +289,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 
 	isc_refcount_init(&nta->references, 1);
 
-	dns_name_dupwithoffsets(name, nta->mctx, &nta->name);
+	dns_name_dup(name, nta->mctx, &nta->name);
 
 	*target = nta;
 }

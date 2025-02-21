@@ -27,19 +27,15 @@
 #include <dns/qp.h>
 #include <dns/types.h>
 
+#include "dns/name.h"
+
 #include <tests/dns.h>
 #include <tests/qp.h>
 
 static inline size_t
 smallname_length(void *pval, uint32_t ival) {
 	UNUSED(pval);
-	return ival & 0xff;
-}
-
-static inline size_t
-smallname_labels(void *pval, uint32_t ival) {
-	UNUSED(pval);
-	return ival >> 8;
+	return ival;
 }
 
 static inline isc_refcount_t *
@@ -53,25 +49,19 @@ smallname_ndata(void *pval, uint32_t ival) {
 	return (uint8_t *)(smallname_refcount(pval, ival) + 1);
 }
 
-static inline uint8_t *
-smallname_offsets(void *pval, uint32_t ival) {
-	return smallname_ndata(pval, ival) + smallname_length(pval, ival);
-}
-
 static void
 smallname_from_name(const dns_name_t *name, void **valp, uint32_t *ctxp) {
-	size_t size = sizeof(isc_refcount_t) + name->length + name->labels;
+	size_t size = sizeof(isc_refcount_t) + name->length;
 	*valp = isc_mem_get(mctx, size);
-	*ctxp = name->labels << 8 | name->length;
+	*ctxp = name->length;
 	isc_refcount_init(smallname_refcount(*valp, *ctxp), 0);
 	memmove(smallname_ndata(*valp, *ctxp), name->ndata, name->length);
-	memmove(smallname_offsets(*valp, *ctxp), name->offsets, name->labels);
 }
 
 static void
 smallname_free(void *pval, uint32_t ival) {
 	size_t size = sizeof(isc_refcount_t);
-	size += smallname_length(pval, ival) + smallname_labels(pval, ival);
+	size += smallname_length(pval, ival);
 	isc_mem_put(mctx, pval, size);
 }
 
@@ -80,10 +70,8 @@ name_from_smallname(dns_name_t *name, void *pval, uint32_t ival) {
 	dns_name_reset(name);
 	name->ndata = smallname_ndata(pval, ival);
 	name->length = smallname_length(pval, ival);
-	name->labels = smallname_labels(pval, ival);
-	name->offsets = smallname_offsets(pval, ival);
 	name->attributes.readonly = true;
-	if (name->ndata[name->offsets[name->labels - 1]] == '\0') {
+	if (name->ndata[name->length - 1] == '\0') {
 		name->attributes.absolute = true;
 	}
 }

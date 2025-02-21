@@ -215,26 +215,20 @@ dns__qp_shutdown(void) {
  */
 size_t
 dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name) {
-	size_t len, label;
-	dns_fixedname_t fixed;
-
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
-	if (name->labels == 0) {
+	dns_offsets_t offsets;
+	size_t labels = dns_name_offsets(name, offsets);
+
+	if (labels == 0) {
 		key[0] = SHIFT_NOBYTE;
 		return 0;
 	}
 
-	if (name->offsets == NULL) {
-		dns_name_t *clone = dns_fixedname_initname(&fixed);
-		dns_name_clone(name, clone);
-		name = clone;
-	}
-
-	len = 0;
-	label = name->labels;
+	size_t len = 0;
+	size_t label = labels;
 	while (label-- > 0) {
-		const uint8_t *ldata = name->ndata + name->offsets[label];
+		const uint8_t *ldata = name->ndata + offsets[label];
 		size_t label_len = *ldata++;
 		while (label_len-- > 0) {
 			uint16_t bits = dns_qp_bits_for_byte[*ldata++];
@@ -255,12 +249,11 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name) {
 void
 dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name) {
 	size_t locs[DNS_NAME_MAXLABELS];
-	size_t loc = 0, opos = 0;
+	size_t loc = 0;
 	size_t offset;
 
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 	REQUIRE(name->buffer != NULL);
-	REQUIRE(name->offsets != NULL);
 
 	dns_name_reset(name);
 
@@ -293,14 +286,15 @@ scanned:
 	 * we step backward through the label boundaries, then forward
 	 * through the labels, to create the DNS wire format data.
 	 */
-	name->labels = loc;
 	while (loc-- > 0) {
 		uint8_t len = 0, *lenp = NULL;
 
-		/* Add a length byte to the name data and set an offset */
+		/* Store the location of the length byte */
 		lenp = isc_buffer_used(name->buffer);
+
+		/* Add a length byte to the name data */
 		isc_buffer_putuint8(name->buffer, 0);
-		name->offsets[opos++] = name->length++;
+		name->length++;
 
 		/* Convert from escaped byte ranges to ASCII */
 		for (offset = locs[loc]; offset < locs[loc + 1] - 1; offset++) {
@@ -316,6 +310,8 @@ scanned:
 		}
 
 		name->length += len;
+
+		/* Write the final label length to the length byte */
 		*lenp = len;
 	}
 
@@ -323,8 +319,7 @@ scanned:
 	if (key[0] == SHIFT_NOBYTE) {
 		name->attributes.absolute = true;
 		isc_buffer_putuint8(name->buffer, 0);
-		name->offsets[opos++] = name->length++;
-		name->labels++;
+		name->length++;
 	}
 
 	name->ndata = isc_buffer_base(name->buffer);

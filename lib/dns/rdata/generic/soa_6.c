@@ -200,16 +200,14 @@ towire_soa(ARGS_TOWIRE) {
 	isc_region_t tregion;
 	dns_name_t mname;
 	dns_name_t rname;
-	dns_offsets_t moffsets;
-	dns_offsets_t roffsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_soa);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, true);
 
-	dns_name_init(&mname, moffsets);
-	dns_name_init(&rname, roffsets);
+	dns_name_init(&mname, NULL);
+	dns_name_init(&rname, NULL);
 
 	dns_rdata_toregion(rdata, &sregion);
 

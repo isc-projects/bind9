@@ -149,7 +149,6 @@ fromwire_in_px(ARGS_FROMWIRE) {
 static isc_result_t
 towire_in_px(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_px);
@@ -167,7 +166,7 @@ towire_in_px(ARGS_TOWIRE) {
 	/*
 	 * MAP822.
 	 */
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 	RETERR(dns_name_towire(&name, cctx, target, NULL));
 	isc_region_consume(&region, name_length(&name));
@@ -175,7 +174,7 @@ towire_in_px(ARGS_TOWIRE) {
 	/*
 	 * MAPX400.
 	 */
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 	return dns_name_towire(&name, cctx, target, NULL);
 }

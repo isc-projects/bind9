@@ -81,14 +81,13 @@ fromwire_dname(ARGS_FROMWIRE) {
 static isc_result_t
 towire_dname(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_dname);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

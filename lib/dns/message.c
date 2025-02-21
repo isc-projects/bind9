@@ -366,24 +366,6 @@ out:
 	return rdatalist;
 }
 
-static dns_offsets_t *
-newoffsets(dns_message_t *msg) {
-	dns_msgblock_t *msgblock;
-	dns_offsets_t *offsets;
-
-	msgblock = ISC_LIST_TAIL(msg->offsets);
-	offsets = msgblock_get(msgblock, dns_offsets_t);
-	if (offsets == NULL) {
-		msgblock = msgblock_allocate(msg->mctx, sizeof(dns_offsets_t),
-					     OFFSET_COUNT);
-		ISC_LIST_APPEND(msg->offsets, msgblock, link);
-
-		offsets = msgblock_get(msgblock, dns_offsets_t);
-	}
-
-	return offsets;
-}
-
 static void
 msginitheader(dns_message_t *m) {
 	m->id = 0;
@@ -608,18 +590,6 @@ msgreset(dns_message_t *msg, bool everything) {
 		msgblock = next_msgblock;
 	}
 
-	msgblock = ISC_LIST_HEAD(msg->offsets);
-	if (!everything && msgblock != NULL) {
-		msgblock_reset(msgblock);
-		msgblock = ISC_LIST_NEXT(msgblock, link);
-	}
-	while (msgblock != NULL) {
-		next_msgblock = ISC_LIST_NEXT(msgblock, link);
-		ISC_LIST_UNLINK(msg->offsets, msgblock, link);
-		msgblock_free(msg->mctx, msgblock, sizeof(dns_offsets_t));
-		msgblock = next_msgblock;
-	}
-
 	if (msg->tsigkey != NULL) {
 		dns_tsigkey_detach(&msg->tsigkey);
 		msg->tsigkey = NULL;
@@ -726,7 +696,6 @@ dns_message_create(isc_mem_t *mctx, isc_mempool_t *namepool,
 		.cleanup = ISC_LIST_INITIALIZER,
 		.rdatas = ISC_LIST_INITIALIZER,
 		.rdatalists = ISC_LIST_INITIALIZER,
-		.offsets = ISC_LIST_INITIALIZER,
 		.freerdata = ISC_LIST_INITIALIZER,
 		.freerdatalist = ISC_LIST_INITIALIZER,
 		.magic = DNS_MESSAGE_MAGIC,
@@ -981,7 +950,6 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	for (count = 0; count < msg->counts[DNS_SECTION_QUESTION]; count++) {
 		name = NULL;
 		dns_message_gettempname(msg, &name);
-		name->offsets = (unsigned char *)newoffsets(msg);
 		free_name = true;
 
 		/*
@@ -1121,7 +1089,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 
 		name = NULL;
 		dns_message_gettempname(msg, &name);
-		name->offsets = (unsigned char *)newoffsets(msg);
 		free_name = true;
 
 		/*

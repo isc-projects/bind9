@@ -151,7 +151,6 @@ fromwire_mx(ARGS_FROMWIRE) {
 static isc_result_t
 towire_mx(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_mx);
@@ -163,7 +162,7 @@ towire_mx(ARGS_TOWIRE) {
 	RETERR(mem_tobuffer(target, region.base, 2));
 	isc_region_consume(&region, 2);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 
 	return dns_name_towire(&name, cctx, target, NULL);
@@ -261,24 +260,21 @@ freestruct_mx(ARGS_FREESTRUCT) {
 	mx->mctx = NULL;
 }
 
-static unsigned char port25_offset[] = { 0, 3 };
 static unsigned char port25_ndata[] = "\003_25\004_tcp";
-static dns_name_t port25 = DNS_NAME_INITNONABSOLUTE(port25_ndata,
-						    port25_offset);
+static dns_name_t port25 = DNS_NAME_INITNONABSOLUTE(port25_ndata, NULL);
 
 static isc_result_t
 additionaldata_mx(ARGS_ADDLDATA) {
 	isc_result_t result;
 	dns_fixedname_t fixed;
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_mx);
 
 	UNUSED(owner);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);

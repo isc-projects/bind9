@@ -3139,7 +3139,6 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 static isc_result_t
 rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 	       dns_rpz_type_t rpz_type, dns_name_t *trig_name) {
-	dns_offsets_t prefix_offsets;
 	dns_name_t prefix, *suffix;
 	unsigned int first, labels;
 	isc_result_t result;
@@ -3176,7 +3175,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name, dns_rpz_zone_t *rpz,
 	 * Start with relative version of the full trigger name,
 	 * and trim enough allow the addition of the suffix.
 	 */
-	dns_name_init(&prefix, prefix_offsets);
+	dns_name_init(&prefix, NULL);
 	labels = dns_name_countlabels(trig_name);
 	first = 0;
 	for (;;) {
@@ -4404,10 +4403,6 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	return true;
 }
 
-static unsigned char inaddr10_offsets[] = { 0, 3, 11, 16 };
-static unsigned char inaddr172_offsets[] = { 0, 3, 7, 15, 20 };
-static unsigned char inaddr192_offsets[] = { 0, 4, 8, 16, 21 };
-
 static unsigned char inaddr10[] = "\00210\007IN-ADDR\004ARPA";
 
 static unsigned char inaddr16172[] = "\00216\003172\007IN-ADDR\004ARPA";
@@ -4429,38 +4424,33 @@ static unsigned char inaddr31172[] = "\00231\003172\007IN-ADDR\004ARPA";
 
 static unsigned char inaddr168192[] = "\003168\003192\007IN-ADDR\004ARPA";
 
-static dns_name_t rfc1918names[] = {
-	DNS_NAME_INITABSOLUTE(inaddr10, inaddr10_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr16172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr17172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr18172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr19172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr20172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr21172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr22172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr23172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr24172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr25172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr26172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr27172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr28172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr29172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr30172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr31172, inaddr172_offsets),
-	DNS_NAME_INITABSOLUTE(inaddr168192, inaddr192_offsets)
-};
+static dns_name_t rfc1918names[] = { DNS_NAME_INITABSOLUTE(inaddr10, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr16172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr17172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr18172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr19172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr20172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr21172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr22172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr23172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr24172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr25172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr26172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr27172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr28172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr29172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr30172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr31172, NULL),
+				     DNS_NAME_INITABSOLUTE(inaddr168192,
+							   NULL) };
 
 static unsigned char prisoner_data[] = "\010prisoner\004iana\003org";
 static unsigned char hostmaster_data[] = "\012hostmaster\014root-"
 					 "servers\003org";
 
-static unsigned char prisoner_offsets[] = { 0, 9, 14, 18 };
-static unsigned char hostmaster_offsets[] = { 0, 11, 24, 28 };
-
-static dns_name_t const prisoner = DNS_NAME_INITABSOLUTE(prisoner_data,
-							 prisoner_offsets);
+static dns_name_t const prisoner = DNS_NAME_INITABSOLUTE(prisoner_data, NULL);
 static dns_name_t const hostmaster = DNS_NAME_INITABSOLUTE(hostmaster_data,
-							   hostmaster_offsets);
+							   NULL);
 
 static void
 warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {

@@ -67,6 +67,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/hashmap.h>
 #include <isc/magic.h>
@@ -95,12 +96,10 @@
 struct dns_name {
 	unsigned int magic;
 	uint8_t	     length;
-	uint8_t	     labels;
 	struct dns_name_attrs {
 		bool absolute	  : 1; /*%< Used by name.c */
 		bool readonly	  : 1; /*%< Used by name.c */
 		bool dynamic	  : 1; /*%< Used by name.c */
-		bool dynoffsets	  : 1; /*%< Used by name.c */
 		bool nocompress	  : 1; /*%< Used by name.c */
 		bool cache	  : 1; /*%< Used by resolver. */
 		bool answer	  : 1; /*%< Used by resolver. */
@@ -113,7 +112,6 @@ struct dns_name {
 		bool hasupdaterec : 1; /*%< Used by client. */
 	} attributes;
 	unsigned char *ndata;
-	unsigned char *offsets;
 	isc_buffer_t  *buffer;
 	ISC_LINK(dns_name_t) link;
 	ISC_LIST(dns_rdataset_t) list;
@@ -151,38 +149,29 @@ extern const dns_name_t *dns_wildcardname;
  * and sizeof(A) in DNS_NAME_INITABSOLUTE to allow C strings to be used
  * to initialize 'ndata'.
  *
- * Note[2]: The final value of offsets for DNS_NAME_INITABSOLUTE should
- * match (sizeof(A) - 1) which is the offset of the root label.
- *
  * Typical usage:
  *	unsigned char data[] = "\005value";
- *	unsigned char offsets[] = { 0 };
- *	dns_name_t value = DNS_NAME_INITNONABSOLUTE(data, offsets);
+ *	dns_name_t value = DNS_NAME_INITNONABSOLUTE(data, 1);
  *
  *	unsigned char data[] = "\005value";
- *	unsigned char offsets[] = { 0, 6 };
- *	dns_name_t value = DNS_NAME_INITABSOLUTE(data, offsets);
+ *	dns_name_t value = DNS_NAME_INITABSOLUTE(data, 1);
  */
-#define DNS_NAME_INITNONABSOLUTE(A, B)              \
-	{                                           \
-		.magic = DNS_NAME_MAGIC,            \
-		.ndata = A,                         \
-		.length = (sizeof(A) - 1),          \
-		.labels = sizeof(B),                \
-		.attributes = { .readonly = true }, \
-		.offsets = B,                       \
-		.link = ISC_LINK_INITIALIZER,       \
-		.list = ISC_LIST_INITIALIZER,       \
+#define DNS_NAME_INITNONABSOLUTE(__ndata, __labels)             \
+	{                                                       \
+		.magic = 0 ? sizeof(__labels) : DNS_NAME_MAGIC, \
+		.ndata = (__ndata),                             \
+		.length = (sizeof(__ndata) - 1),                \
+		.attributes = { .readonly = true },             \
+		.link = ISC_LINK_INITIALIZER,                   \
+		.list = ISC_LIST_INITIALIZER,                   \
 	}
 
-#define DNS_NAME_INITABSOLUTE(A, B)                                   \
+#define DNS_NAME_INITABSOLUTE(__ndata, __labels)                      \
 	{                                                             \
-		.magic = DNS_NAME_MAGIC,                              \
-		.ndata = A,                                           \
-		.length = sizeof(A),                                  \
-		.labels = sizeof(B),                                  \
+		.magic = 0 ? sizeof(__labels) : DNS_NAME_MAGIC,       \
+		.ndata = (__ndata),                                   \
+		.length = sizeof(__ndata),                            \
 		.attributes = { .readonly = true, .absolute = true }, \
-		.offsets = B,                                         \
 		.link = ISC_LINK_INITIALIZER,                         \
 		.list = ISC_LIST_INITIALIZER,                         \
 	}
@@ -199,7 +188,7 @@ extern const dns_name_t *dns_wildcardname;
 #define DNS_NAME_MAXLABELS 128
 #define DNS_NAME_LABELLEN  63
 
-typedef unsigned char dns_offsets_t[DNS_NAME_MAXLABELS];
+typedef uint8_t dns_offsets_t[DNS_NAME_MAXLABELS];
 
 /*
  * Text output filter procedure.
@@ -214,10 +203,9 @@ typedef isc_result_t(dns_name_totextfilter_t)(isc_buffer_t *target,
  ***/
 
 static inline void
-dns_name_init(dns_name_t *name, unsigned char *offsets) {
+dns_name_init(dns_name_t *name, unsigned char *offsets ISC_ATTR_UNUSED) {
 	*name = (dns_name_t){
 		.magic = DNS_NAME_MAGIC,
-		.offsets = (offsets),
 		.link = ISC_LINK_INITIALIZER,
 		.list = ISC_LIST_INITIALIZER,
 	};
@@ -225,15 +213,8 @@ dns_name_init(dns_name_t *name, unsigned char *offsets) {
 /*%<
  * Initialize 'name'.
  *
- * Notes:
- * \li	'offsets' is never required to be non-NULL, but specifying a
- *	dns_offsets_t for 'offsets' will improve the performance of most
- *	name operations if the name is used more than once.
- *
  * Requires:
  * \li	'name' is not NULL and points to a struct dns_name.
- *
- * \li	offsets == NULL or offsets is a dns_offsets_t.
  *
  * Ensures:
  * \li	'name' is a valid name.
@@ -248,7 +229,6 @@ dns_name_reset(dns_name_t *name) {
 
 	name->ndata = NULL;
 	name->length = 0;
-	name->labels = 0;
 	name->attributes.absolute = false;
 	if (name->buffer != NULL) {
 		isc_buffer_clear(name->buffer);
@@ -284,9 +264,7 @@ dns_name_invalidate(dns_name_t *name) {
 	name->magic = 0;
 	name->ndata = NULL;
 	name->length = 0;
-	name->labels = 0;
 	name->attributes = (struct dns_name_attrs){};
-	name->offsets = NULL;
 	name->buffer = NULL;
 	ISC_LINK_INIT(name, link);
 }
@@ -485,8 +463,6 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2);
  * \li	Because it only needs to test for equality, dns_name_equal() can be
  *	significantly faster than dns_name_fullcompare() or dns_name_compare().
  *
- * \li	Offsets tables are not used in the comparison.
- *
  * \li	It makes no sense for one of the names to be relative and the
  *	other absolute.  If both names are relative, then to be meaningfully
  * 	compared the caller must ensure that they are both relative to the
@@ -594,12 +570,28 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname);
  *** Labels
  ***/
 
-static inline unsigned int
+uint8_t
+dns_name_offsets(const dns_name_t *name, uint8_t *offsets);
+/*%<
+ * Returns the number of the labels in the DNS name and optionally fills their
+ * offsets into the table.
+ *
+ * Requires:
+ *\li	'name' is a valid DNS name
+ *
+ * Returns:
+ *\li	number of labels in the DNS name
+ *
+ * Note:
+ *\li	if the 'offsets' is non-NULL, it will fill the offsets of
+ *	individual labels in the name
+ */
+
+static inline uint8_t
 dns_name_countlabels(const dns_name_t *name) {
 	REQUIRE(DNS_NAME_VALID(name));
-	REQUIRE(name->labels <= DNS_NAME_MAXLABELS);
 
-	return name->labels;
+	return dns_name_offsets(name, NULL);
 }
 /*%<
  * How many labels does 'name' have?
@@ -792,8 +784,6 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
  * \li	dns_name_isabsolute(name) == TRUE
  *
  * \li	target is a valid buffer.
- *
- * \li	Any offsets in the compression table are valid for buffer.
  *
  * Ensures:
  *
@@ -1007,19 +997,21 @@ dns_name_split(const dns_name_t *name, unsigned int suffixlabels,
 	       dns_name_t *prefix, dns_name_t *suffix) {
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(suffixlabels > 0);
-	REQUIRE(suffixlabels <= name->labels);
 	REQUIRE(prefix != NULL || suffix != NULL);
 	REQUIRE(prefix == NULL ||
 		(DNS_NAME_VALID(prefix) && DNS_NAME_BINDABLE(prefix)));
 	REQUIRE(suffix == NULL ||
 		(DNS_NAME_VALID(suffix) && DNS_NAME_BINDABLE(suffix)));
 
+	uint8_t labels = dns_name_countlabels(name);
+	INSIST(suffixlabels <= labels);
+
 	if (prefix != NULL) {
-		dns_name_getlabelsequence(name, 0, name->labels - suffixlabels,
+		dns_name_getlabelsequence(name, 0, labels - suffixlabels,
 					  prefix);
 	}
 	if (suffix != NULL) {
-		dns_name_getlabelsequence(name, name->labels - suffixlabels,
+		dns_name_getlabelsequence(name, labels - suffixlabels,
 					  suffixlabels, suffix);
 	}
 }
@@ -1077,24 +1069,6 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target);
  *\li	'source' is a valid non-empty name.
  *
  *\li	'target' is a valid name that is not read-only.
- *
- *\li	'mctx' is a valid memory context.
- */
-
-void
-dns_name_dupwithoffsets(const dns_name_t *source, isc_mem_t *mctx,
-			dns_name_t *target);
-/*%<
- * Make 'target' a read-only dynamically allocated copy of 'source'.
- * 'target' will also have a dynamically allocated offsets table.
- *
- * Requires:
- *
- *\li	'source' is a valid non-empty name.
- *
- *\li	'target' is a valid name that is not read-only.
- *
- *\li	'target' has no offsets table.
  *
  *\li	'mctx' is a valid memory context.
  */

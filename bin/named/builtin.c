@@ -459,7 +459,7 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name, bdbnode_t *node) {
 
 static isc_result_t
 builtin_lookup(bdb_t *bdb, const dns_name_t *name, bdbnode_t *node) {
-	if (name->labels == 0 && name->length == 0) {
+	if (name->length == 0) {
 		return bdb->lookup(node);
 	} else if ((node->bdb->implementation->flags & BDB_DNS64) != 0) {
 		return dns64_cname(&bdb->common.origin, name, node);
@@ -1198,7 +1198,7 @@ create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	isc_refcount_init(&bdb->common.references, 1);
 	isc_mem_attach(mctx, &bdb->common.mctx);
 	dns_name_init(&bdb->common.origin, NULL);
-	dns_name_dupwithoffsets(origin, mctx, &bdb->common.origin);
+	dns_name_dup(origin, mctx, &bdb->common.origin);
 
 	INSIST(argc >= 1);
 	if (strcmp(argv[0], "authors") == 0) {

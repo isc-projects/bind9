@@ -650,10 +650,8 @@ There are three methods for copying name objects:
   a buffer.
 
 - `dns_name_dup()` copies a name into a new name object, dynamically
-  allocating buffer space as needed. `dns_name_dupwithoffsets()` does
-  the same, but also dynamically allocates space for the copied offset
-  table.  Targets created by these functions must be freed by calling
-  `dns_name_free()`.
+  allocating buffer space as needed.  Target created by this function
+  must be freed by calling `dns_name_free()`.
 
 ##### Wire format
 

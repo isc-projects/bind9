@@ -124,7 +124,6 @@ towire_afsdb(ARGS_TOWIRE) {
 	isc_region_t tr;
 	isc_region_t sr;
 	dns_name_t name;
-	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
 	REQUIRE(rdata->length != 0);
@@ -139,7 +138,7 @@ towire_afsdb(ARGS_TOWIRE) {
 	isc_region_consume(&sr, 2);
 	isc_buffer_add(target, 2);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
 
 	return dns_name_towire(&name, cctx, target, NULL);
@@ -244,14 +243,13 @@ freestruct_afsdb(ARGS_FREESTRUCT) {
 static isc_result_t
 additionaldata_afsdb(ARGS_ADDLDATA) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
 
 	UNUSED(owner);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
