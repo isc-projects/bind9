@@ -592,7 +592,7 @@ sendquery(struct query *query) {
 	isc_buffer_init(&buf, query->textname, strlen(query->textname));
 	isc_buffer_add(&buf, strlen(query->textname));
 	result = dns_name_fromtext(dns_fixedname_name(&queryname), &buf,
-				   dns_rootname, 0, NULL);
+				   dns_rootname, 0);
 	CHECK("dns_name_fromtext", result);
 
 	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,

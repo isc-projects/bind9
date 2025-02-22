@@ -835,8 +835,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		isc_buffer_init(&buffer, lhsbuf, strlen(lhsbuf));
 		isc_buffer_add(&buffer, strlen(lhsbuf));
 		isc_buffer_setactive(&buffer, strlen(lhsbuf));
-		result = dns_name_fromtext(owner, &buffer, ictx->origin, 0,
-					   NULL);
+		result = dns_name_fromtext(owner, &buffer, ictx->origin, 0);
 		if (result != ISC_R_SUCCESS) {
 			goto error_cleanup;
 		}
@@ -1388,7 +1387,7 @@ load_text(dns_loadctx_t *lctx) {
 			isc_buffer_setactive(&buffer,
 					     token.value.as_region.length);
 			result = dns_name_fromtext(new_name, &buffer,
-						   ictx->origin, 0, NULL);
+						   ictx->origin, 0);
 			if (MANYERRS(lctx, result)) {
 				SETRESULT(lctx, result);
 				LOGIT(result);

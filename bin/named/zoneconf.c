@@ -253,7 +253,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		result = dns_name_fromtext(dns_fixedname_name(&fident), &b,
-					   dns_rootname, 0, NULL);
+					   dns_rootname, 0);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(identity, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
@@ -283,7 +283,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			isc_buffer_constinit(&b, str, strlen(str));
 			isc_buffer_add(&b, strlen(str));
 			result = dns_name_fromtext(dns_fixedname_name(&fname),
-						   &b, dns_rootname, 0, NULL);
+						   &b, dns_rootname, 0);
 			if (result != ISC_R_SUCCESS) {
 				cfg_obj_log(identity, ISC_LOG_ERROR,
 					    "'%s' is not a valid name", str);
@@ -518,7 +518,7 @@ configure_staticstub_servernames(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
-		result = dns_name_fromtext(nsname, &b, dns_rootname, 0, NULL);
+		result = dns_name_fromtext(nsname, &b, dns_rootname, 0);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "server-name '%s' is not a valid "

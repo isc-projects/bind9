@@ -42,7 +42,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_setactive(&buf, size);
 
 	result = dns_name_fromtext(dns_fixedname_name(&origin), &buf,
-				   dns_rootname, 0, NULL);
+				   dns_rootname, 0);
 	if (debug) {
 		fprintf(stderr, "dns_name_fromtext: %s\n",
 			isc_result_totext(result));

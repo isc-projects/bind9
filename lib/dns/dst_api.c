@@ -1618,8 +1618,7 @@ dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 	dns_fixedname_init(&name);
 	isc_buffer_init(&b, DST_AS_STR(token), strlen(DST_AS_STR(token)));
 	isc_buffer_add(&b, strlen(DST_AS_STR(token)));
-	ret = dns_name_fromtext(dns_fixedname_name(&name), &b, dns_rootname, 0,
-				NULL);
+	ret = dns_name_fromtext(dns_fixedname_name(&name), &b, dns_rootname, 0);
 	if (ret != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

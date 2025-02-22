@@ -100,7 +100,7 @@ setup_master(void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 	isc_buffer_setactive(&source, len);
 	dns_master_initrawheader(&header);
 
-	result = dns_name_fromtext(dns_origin, &source, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(dns_origin, &source, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

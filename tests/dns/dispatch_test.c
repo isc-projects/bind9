@@ -219,7 +219,7 @@ setup_test(void **state) {
 	isc_buffer_constinit(&namesrc, tls_name_str, strlen(tls_name_str));
 	isc_buffer_add(&namesrc, strlen(tls_name_str));
 	if (dns_name_fromtext(tls_name, &namesrc, dns_rootname,
-			      DNS_NAME_DOWNCASE, NULL) != ISC_R_SUCCESS)
+			      DNS_NAME_DOWNCASE) != ISC_R_SUCCESS)
 	{
 		return -1;
 	}

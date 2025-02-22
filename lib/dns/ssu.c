@@ -278,7 +278,7 @@ reverse_from_address(dns_name_t *tcpself, const isc_netaddr_t *tcpaddr) {
 	}
 	isc_buffer_init(&b, buf, strlen(buf));
 	isc_buffer_add(&b, strlen(buf));
-	result = dns_name_fromtext(tcpself, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(tcpself, &b, dns_rootname, 0);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
 
@@ -318,7 +318,7 @@ stf_from_address(dns_name_t *stfself, const isc_netaddr_t *tcpaddr) {
 	}
 	isc_buffer_init(&b, buf, strlen(buf));
 	isc_buffer_add(&b, strlen(buf));
-	result = dns_name_fromtext(stfself, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(stfself, &b, dns_rootname, 0);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
 

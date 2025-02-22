@@ -23,7 +23,6 @@
 static isc_result_t
 fromtext_lp(ARGS_FROMTEXT) {
 	isc_token_t token;
-	dns_name_t name;
 	isc_buffer_t buffer;
 
 	REQUIRE(type == dns_rdatatype_lp);
@@ -42,12 +41,11 @@ fromtext_lp(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
-	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
 	}
-	return dns_name_fromtext(&name, &buffer, origin, options, target);
+	return dns_name_wirefromtext(&buffer, origin, options, target);
 }
 
 static isc_result_t

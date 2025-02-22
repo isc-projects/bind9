@@ -71,7 +71,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		isc_buffer_constinit(&keynamesrc, keyid, strlen(keyid));
 		isc_buffer_add(&keynamesrc, strlen(keyid));
 		ret = dns_name_fromtext(keyname, &keynamesrc, dns_rootname,
-					DNS_NAME_DOWNCASE, NULL);
+					DNS_NAME_DOWNCASE);
 		if (ret != ISC_R_SUCCESS) {
 			goto failure;
 		}

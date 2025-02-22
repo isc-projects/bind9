@@ -2071,8 +2071,7 @@ dns_view_loadnta(dns_view_t *view) {
 
 			isc_buffer_init(&b, name, (unsigned int)len);
 			isc_buffer_add(&b, (unsigned int)len);
-			CHECK(dns_name_fromtext(fname, &b, dns_rootname, 0,
-						NULL));
+			CHECK(dns_name_fromtext(fname, &b, dns_rootname, 0));
 			ntaname = fname;
 		}
 

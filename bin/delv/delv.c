@@ -597,7 +597,7 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 	isc_buffer_add(&b, len);
 	n = dns_fixedname_initname(fn);
 
-	result = dns_name_fromtext(n, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(n, &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "failed to convert name %s: %s", text,
 			 isc_result_totext(result));

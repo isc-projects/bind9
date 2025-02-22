@@ -80,5 +80,5 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, dns_name_t *name) {
 	len = (unsigned int)strlen(textname);
 	isc_buffer_init(&buffer, textname, len);
 	isc_buffer_add(&buffer, len);
-	return dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL);
+	return dns_name_fromtext(name, &buffer, dns_rootname, 0);
 }

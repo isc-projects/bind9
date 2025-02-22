@@ -882,7 +882,7 @@ setup_text_key(void) {
 		goto failure;
 	}
 
-	result = dns_name_fromtext(keyname, namebuf, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(keyname, namebuf, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
@@ -2252,8 +2252,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		len = (unsigned int)strlen(origin);
 		isc_buffer_init(&b, origin, len);
 		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(lookup->oname, &b, dns_rootname, 0,
-					   NULL);
+		result = dns_name_fromtext(lookup->oname, &b, dns_rootname, 0);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg, &lookup->name);
 			dns_message_puttempname(lookup->sendmsg,
@@ -2271,7 +2270,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			len = (unsigned int)strlen(textname);
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);
-			result = dns_name_fromtext(name, &b, NULL, 0, NULL);
+			result = dns_name_fromtext(name, &b, NULL, 0);
 			if (result == ISC_R_SUCCESS) {
 				if (!dns_name_isabsolute(name)) {
 					result = dns_name_concatenate(
@@ -2304,7 +2303,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(lookup->name, &b,
-						   dns_rootname, 0, NULL);
+						   dns_rootname, 0);
 			if (result != ISC_R_SUCCESS) {
 				dns_message_puttempname(lookup->sendmsg,
 							&lookup->name);

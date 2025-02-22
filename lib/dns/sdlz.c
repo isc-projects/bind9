@@ -1798,7 +1798,7 @@ dns_sdlz_putnamedrr(dns_sdlzallnodes_t *allnodes, const char *name,
 	isc_buffer_constinit(&b, name, strlen(name));
 	isc_buffer_add(&b, strlen(name));
 
-	result = dns_name_fromtext(newname, &b, origin, 0, NULL);
+	result = dns_name_fromtext(newname, &b, origin, 0);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

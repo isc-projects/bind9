@@ -523,8 +523,7 @@ setup_keystr(void) {
 	isc_buffer_add(&keynamesrc, (unsigned int)(n - name));
 
 	debug("namefromtext");
-	result = dns_name_fromtext(mykeyname, &keynamesrc, dns_rootname, 0,
-				   NULL);
+	result = dns_name_fromtext(mykeyname, &keynamesrc, dns_rootname, 0);
 	check_result(result, "dns_name_fromtext");
 
 	secretlen = strlen(secretstr) * 3 / 4;
@@ -793,7 +792,7 @@ create_name(const char *str, dns_name_t *name) {
 	isc_buffer_add(&namesrc, strlen(str));
 
 	return dns_name_fromtext(name, &namesrc, dns_rootname,
-				 DNS_NAME_DOWNCASE, NULL);
+				 DNS_NAME_DOWNCASE);
 }
 
 static void
@@ -1305,7 +1304,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	dns_message_gettempname(msg, namep);
 	isc_buffer_init(&source, word, strlen(word));
 	isc_buffer_add(&source, strlen(word));
-	result = dns_name_fromtext(*namep, &source, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(*namep, &source, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		error("invalid owner name: %s", isc_result_totext(result));
 		isc_buffer_invalidate(&source);
@@ -1731,7 +1730,7 @@ evaluate_key(char *cmdline) {
 
 	isc_buffer_init(&b, namestr, strlen(namestr));
 	isc_buffer_add(&b, strlen(namestr));
-	result = dns_name_fromtext(mykeyname, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(mykeyname, &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not parse key name\n");
 		return STATUS_SYNTAX;
@@ -1785,7 +1784,7 @@ evaluate_zone(char *cmdline) {
 	userzone = dns_fixedname_initname(&fuserzone);
 	isc_buffer_init(&b, word, strlen(word));
 	isc_buffer_add(&b, strlen(word));
-	result = dns_name_fromtext(userzone, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(userzone, &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		userzone = NULL; /* Lest it point to an invalid name */
 		fprintf(stderr, "could not parse zone name\n");
@@ -3119,7 +3118,7 @@ start_gssrequest(dns_name_t *primary) {
 	RUNTIME_CHECK(result < sizeof(servicename));
 	isc_buffer_init(&buf, servicename, strlen(servicename));
 	isc_buffer_add(&buf, strlen(servicename));
-	result = dns_name_fromtext(servname, &buf, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(servname, &buf, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		fatal("dns_name_fromtext(servname) failed: %s",
 		      isc_result_totext(result));
@@ -3136,7 +3135,7 @@ start_gssrequest(dns_name_t *primary) {
 	isc_buffer_init(&buf, mykeystr, strlen(mykeystr));
 	isc_buffer_add(&buf, strlen(mykeystr));
 
-	result = dns_name_fromtext(keyname, &buf, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(keyname, &buf, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		fatal("dns_name_fromtext(keyname) failed: %s",
 		      isc_result_totext(result));
@@ -3295,7 +3294,7 @@ recvgss(void *arg) {
 	servname = dns_fixedname_initname(&fname);
 	isc_buffer_init(&buf, servicename, strlen(servicename));
 	isc_buffer_add(&buf, strlen(servicename));
-	result = dns_name_fromtext(servname, &buf, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(servname, &buf, dns_rootname, 0);
 	check_result(result, "dns_name_fromtext");
 
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname, &context,

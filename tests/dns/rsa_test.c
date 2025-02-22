@@ -133,7 +133,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&buf, "rsa.", 4);
 	isc_buffer_add(&buf, 4);
-	ret = dns_name_fromtext(name, &buf, NULL, 0, NULL);
+	ret = dns_name_fromtext(name, &buf, NULL, 0);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	ret = dst_key_fromfile(name, 29238, DST_ALG_RSASHA256, DST_TYPE_PUBLIC,

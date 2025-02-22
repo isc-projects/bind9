@@ -180,7 +180,7 @@ ISC_LOOP_TEST_IMPL(dns_dt_send) {
 	zname = dns_fixedname_initname(&zfname);
 	isc_buffer_constinit(&zb, "example.com.", 12);
 	isc_buffer_add(&zb, 12);
-	result = dns_name_fromtext(zname, &zb, NULL, 0, NULL);
+	result = dns_name_fromtext(zname, &zb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	memset(&zr, 0, sizeof(zr));

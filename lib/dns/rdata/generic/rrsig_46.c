@@ -28,7 +28,6 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	dns_rdatatype_t covered;
 	char *e;
 	isc_result_t result;
-	dns_name_t name;
 	isc_buffer_t buffer;
 	uint32_t time_signed, time_expire;
 	unsigned int used;
@@ -145,12 +144,11 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
 	}
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+	RETTOK(dns_name_wirefromtext(&buffer, origin, options, target));
 
 	/*
 	 * Sig.

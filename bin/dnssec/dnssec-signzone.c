@@ -2579,7 +2579,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	isc_buffer_add(&b, len);
 
 	name = dns_fixedname_initname(&fname);
-	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name, &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		fatal("failed converting name '%s' to dns format: %s", origin,
 		      isc_result_totext(result));

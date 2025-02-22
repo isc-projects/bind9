@@ -134,12 +134,12 @@ ownercase_test_one(const char *str1, const char *str2) {
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
-	result = dns_name_fromtext(name1, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name1, &b, dns_rootname, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_constinit(&b, str2, strlen(str2));
 	isc_buffer_add(&b, strlen(str2));
-	result = dns_name_fromtext(name2, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name2, &b, dns_rootname, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Store the case from name1 */
@@ -206,12 +206,12 @@ ISC_RUN_TEST_IMPL(setownercase) {
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
-	result = dns_name_fromtext(name1, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name1, &b, dns_rootname, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
-	result = dns_name_fromtext(name2, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name2, &b, dns_rootname, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_false(CASESET(&header));

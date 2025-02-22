@@ -34,7 +34,7 @@
 	isc_buffer_constinit(&namesrc, id, strlen(id));           \
 	isc_buffer_add(&namesrc, strlen(id));                     \
 	result = (dns_name_fromtext(name, &namesrc, dns_rootname, \
-				    DNS_NAME_DOWNCASE, NULL));    \
+				    DNS_NAME_DOWNCASE));          \
 	if (result != ISC_R_SUCCESS) {                            \
 		goto failure;                                     \
 	}

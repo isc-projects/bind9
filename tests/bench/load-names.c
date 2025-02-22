@@ -471,8 +471,7 @@ main(int argc, char *argv[]) {
 		isc_buffer_t buffer;
 		isc_buffer_init(&buffer, domain, len);
 		isc_buffer_add(&buffer, len);
-		result = dns_name_fromtext(name, &buffer, dns_rootname, 0,
-					   NULL);
+		result = dns_name_fromtext(name, &buffer, dns_rootname, 0);
 		FILE_CHECK(result == ISC_R_SUCCESS, isc_result_totext(result));
 
 		wirebytes += name->length;

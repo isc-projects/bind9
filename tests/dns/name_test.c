@@ -640,7 +640,7 @@ ISC_RUN_TEST_IMPL(isabsolute) {
 		dns_name_init(&name);
 		isc_buffer_init(&nb, data, BUFSIZ);
 		dns_name_setbuffer(&name, &nb);
-		result = dns_name_fromtext(&name, &b, NULL, 0, NULL);
+		result = dns_name_fromtext(&name, &b, NULL, 0);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		assert_int_equal(dns_name_isabsolute(&name),

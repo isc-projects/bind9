@@ -62,7 +62,7 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 		isc_buffer_constinit(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
 		name = dns_fixedname_initname(&fname);
-		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
+		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0));
 		tctx->domain = isc_mem_get(mctx, sizeof(dns_name_t));
 		dns_name_init(tctx->domain);
 		dns_name_dup(name, mctx, tctx->domain);
@@ -76,7 +76,7 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 		isc_buffer_constinit(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
 		name = dns_fixedname_initname(&fname);
-		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
+		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0));
 		RETERR(dst_gssapi_acquirecred(name, false, &tctx->gsscred));
 	}
 

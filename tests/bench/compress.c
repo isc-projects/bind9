@@ -62,7 +62,7 @@ main(void) {
 			errx(1, "too many names");
 		}
 		dns_name_t *name = dns_fixedname_initname(&fixedname[count++]);
-		result = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
+		result = dns_name_fromtext(name, &buf, dns_rootname, 0);
 		CHECKRESULT(result, line);
 	}
 

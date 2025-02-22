@@ -181,7 +181,7 @@ convert_keyname(const cfg_obj_t *keyobj, isc_mem_t *mctx, dns_name_t *dnsname) {
 	isc_buffer_add(&buf, keylen);
 	dns_fixedname_init(&fixname);
 	result = dns_name_fromtext(dns_fixedname_name(&fixname), &buf,
-				   dns_rootname, 0, NULL);
+				   dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(keyobj, ISC_LOG_WARNING,
 			    "key name '%s' is not a valid domain name",

@@ -282,7 +282,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 	/* convert the hex to a domain name */
 	dns_fixedname_init(result);
 	return dns_name_fromtext(dns_fixedname_name(result), &namebuffer,
-				 origin, 0, NULL);
+				 origin, 0);
 }
 
 unsigned int

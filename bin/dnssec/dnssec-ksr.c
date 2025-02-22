@@ -1008,7 +1008,7 @@ parse_dnskey(isc_lex_t *lex, char *owner, isc_buffer_t *buf, dns_ttl_t *ttl) {
 	dname = dns_fixedname_initname(&dfname);
 	isc_buffer_init(&b, owner, strlen(owner));
 	isc_buffer_add(&b, strlen(owner));
-	ret = dns_name_fromtext(dname, &b, dns_rootname, 0, NULL);
+	ret = dns_name_fromtext(dname, &b, dns_rootname, 0);
 	if (ret != ISC_R_SUCCESS) {
 		return ret;
 	}
@@ -1455,7 +1455,7 @@ main(int argc, char *argv[]) {
 	name = dns_fixedname_initname(&fname);
 	isc_buffer_init(&buf, argv[1], strlen(argv[1]));
 	isc_buffer_add(&buf, strlen(argv[1]));
-	ret = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
+	ret = dns_name_fromtext(name, &buf, dns_rootname, 0);
 	if (ret != ISC_R_SUCCESS) {
 		fatal("invalid zone name %s: %s", argv[1],
 		      isc_result_totext(ret));

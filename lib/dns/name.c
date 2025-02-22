@@ -706,12 +706,11 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 	}
 }
 
-isc_result_t
-dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
-		  const dns_name_t *origin, unsigned int options,
-		  isc_buffer_t *target) {
-	unsigned char *ndata, *label = NULL;
-	char *tdata;
+static isc_result_t
+convert_text(isc_buffer_t *source, const dns_name_t *origin,
+	     unsigned int options, dns_name_t *name, isc_buffer_t *target) {
+	unsigned char *ndata = NULL, *label = NULL;
+	char *tdata = NULL;
 	char c;
 	ft_state state;
 	unsigned int value = 0, count = 0;
@@ -720,20 +719,9 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	bool done;
 	bool downcase;
 
-	/*
-	 * Convert the textual representation of a DNS name at source
-	 * into uncompressed wire form stored in target.
-	 *
-	 * Notes:
-	 *	Relative domain names will have 'origin' appended to them
-	 *	unless 'origin' is NULL, in which case relative domain names
-	 *	will remain relative.
-	 */
-
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(ISC_BUFFER_VALID(source));
-	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
-		(target == NULL && ISC_BUFFER_VALID(name->buffer)));
+	REQUIRE(ISC_BUFFER_VALID(target));
 
 	downcase = ((options & DNS_NAME_DOWNCASE) != 0);
 
@@ -949,6 +937,27 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	isc_buffer_add(target, name->length);
 
 	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_name_wirefromtext(isc_buffer_t *source, const dns_name_t *origin,
+		      unsigned int options, isc_buffer_t *target) {
+	dns_name_t name;
+
+	REQUIRE(ISC_BUFFER_VALID(target));
+
+	dns_name_init(&name);
+	return convert_text(source, origin, options, &name, target);
+}
+
+isc_result_t
+dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
+		  const dns_name_t *origin, unsigned int options) {
+	REQUIRE(DNS_NAME_VALID(name));
+	REQUIRE(ISC_BUFFER_VALID(name->buffer));
+
+	isc_buffer_clear(name->buffer);
+	return convert_text(source, origin, options, name, name->buffer);
 }
 
 isc_result_t
@@ -1787,7 +1796,7 @@ dns_name_fromstring(dns_name_t *target, const char *src,
 		name = dns_fixedname_initname(&fn);
 	}
 
-	result = dns_name_fromtext(name, &buf, origin, options, NULL);
+	result = dns_name_fromtext(name, &buf, origin, options);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

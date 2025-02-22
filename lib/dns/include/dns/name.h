@@ -799,10 +799,48 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 isc_result_t
 dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
-		  const dns_name_t *origin, unsigned int options,
-		  isc_buffer_t *target);
+		  const dns_name_t *origin, unsigned int options);
 /*%<
- * Convert the textual representation of a DNS name at source
+ * Convert the textual representation of a DNS name in 'source'
+ * and store it in 'name'.
+ *
+ * Notes:
+ * \li	Relative domain names will have 'origin' appended to them
+ *	unless 'origin' is NULL, in which case relative domain names
+ *	will remain relative.
+ *
+ * \li	If DNS_NAME_DOWNCASE is set in 'options', any uppercase letters
+ *	in 'source' will be downcased when they are copied into 'target'.
+ *
+ * Requires:
+ *
+ * \li	'name' is a valid name with a dedicated buffer.
+ *
+ * \li	'source' is a valid buffer.
+ *
+ * Ensures:
+ *
+ *	If result is success:
+ * \li		Uppercase letters are downcased in the copy iff
+ *		DNS_NAME_DOWNCASE is set in 'options'.
+ *
+ * \li		The current location in source is advanced.
+ *
+ * Result:
+ *\li	#ISC_R_SUCCESS
+ *\li	#DNS_R_EMPTYLABEL
+ *\li	#DNS_R_LABELTOOLONG
+ *\li	#DNS_R_BADESCAPE
+ *\li	#DNS_R_BADDOTTEDQUAD
+ *\li	#ISC_R_NOSPACE
+ *\li	#ISC_R_UNEXPECTEDEND
+ */
+
+isc_result_t
+dns_name_wirefromtext(isc_buffer_t *source, const dns_name_t *origin,
+		      unsigned int options, isc_buffer_t *target);
+/*%<
+ * Convert the textual representation of a DNS name in 'source'
  * into uncompressed wire form stored in target.
  *
  * Notes:
@@ -815,18 +853,13 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *
  * Requires:
  *
- * \li	'name' is a valid name.
- *
  * \li	'source' is a valid buffer.
  *
- * \li	'target' is a valid buffer or 'target' is NULL and 'name' has
- *	a dedicated buffer.
+ * \li	'target' is a valid buffer.
  *
  * Ensures:
  *
  *	If result is success:
- * \li	 	If 'target' is not NULL, 'name' is attached to it.
- *
  * \li		Uppercase letters are downcased in the copy iff
  *		DNS_NAME_DOWNCASE is set in 'options'.
  *

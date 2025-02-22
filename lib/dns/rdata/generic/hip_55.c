@@ -20,7 +20,6 @@
 static isc_result_t
 fromtext_hip(ARGS_FROMTEXT) {
 	isc_token_t token;
-	dns_name_t name;
 	isc_buffer_t buffer;
 	isc_buffer_t hit_len;
 	isc_buffer_t key_len;
@@ -96,7 +95,6 @@ fromtext_hip(ARGS_FROMTEXT) {
 	/*
 	 * Rendezvous Servers.
 	 */
-	dns_name_init(&name);
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, true));
@@ -104,8 +102,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 			break;
 		}
 		buffer_fromregion(&buffer, &token.value.as_region);
-		RETTOK(dns_name_fromtext(&name, &buffer, origin, options,
-					 target));
+		RETTOK(dns_name_wirefromtext(&buffer, origin, options, target));
 	} while (1);
 
 	/*
