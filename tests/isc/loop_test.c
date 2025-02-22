@@ -25,6 +25,7 @@
 #include <cmocka.h>
 
 #include <isc/atomic.h>
+#include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/os.h>
 #include <isc/result.h>

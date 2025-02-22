@@ -16,12 +16,14 @@
 #include <stdlib.h>
 
 #include <isc/commandline.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/journal.h>
+#include <dns/lib.h>
 #include <dns/types.h>
 
 const char *progname = NULL;

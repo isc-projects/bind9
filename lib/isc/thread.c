@@ -38,9 +38,13 @@
 #include <isc/urcu.h>
 #include <isc/util.h>
 
+#include "thread_p.h"
+
 #ifndef THREAD_MINSTACKSIZE
 #define THREAD_MINSTACKSIZE (1024U * 1024)
 #endif /* ifndef THREAD_MINSTACKSIZE */
+
+static struct call_rcu_data *isc__thread_call_rcu_data = NULL;
 
 /*
  * We can't use isc_mem API here, because it's called too early and the
@@ -97,11 +101,15 @@ thread_run(void *wrap) {
 
 	rcu_register_thread();
 
+	set_thread_call_rcu_data(isc__thread_call_rcu_data);
+
 	void *ret = thread_body(wrap);
 
-	isc__iterated_hash_shutdown();
+	set_thread_call_rcu_data(NULL);
 
 	rcu_unregister_thread();
+
+	isc__iterated_hash_shutdown();
 
 	return ret;
 }
@@ -178,4 +186,16 @@ isc_thread_yield(void) {
 #elif defined(HAVE_PTHREAD_YIELD_NP)
 	pthread_yield_np();
 #endif /* if defined(HAVE_SCHED_YIELD) */
+}
+
+void
+isc__thread_initialize(void) {
+	isc__thread_call_rcu_data = create_call_rcu_data(0, -1);
+	set_thread_call_rcu_data(isc__thread_call_rcu_data);
+}
+
+void
+isc__thread_shutdown(void) {
+	set_thread_call_rcu_data(NULL);
+	call_rcu_data_free(isc__thread_call_rcu_data);
 }

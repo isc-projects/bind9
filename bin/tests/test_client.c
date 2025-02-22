@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>

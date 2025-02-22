@@ -26,12 +26,14 @@
 
 #include <isc/atomic.h>
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/timer.h>
 #include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/view.h>
 #include <dns/zone.h>

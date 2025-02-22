@@ -22,6 +22,7 @@
 #include <isc/commandline.h>
 #include <isc/file.h>
 #include <isc/getaddresses.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/managers.h>
@@ -36,6 +37,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include <dns/lib.h>
 #include <dns/name.h>
 
 #include <isccc/alist.h>

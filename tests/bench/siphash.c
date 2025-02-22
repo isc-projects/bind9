@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include <isc/ascii.h>
+#include <isc/lib.h>
 #include <isc/random.h>
 #include <isc/siphash.h>
 #include <isc/time.h>

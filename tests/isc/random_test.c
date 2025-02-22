@@ -31,6 +31,7 @@
 #include <cmocka.h>
 
 #include <isc/commandline.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/nonce.h>
 #include <isc/random.h>

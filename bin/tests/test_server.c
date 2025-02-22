@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <strings.h>
 
+#include <isc/lib.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>

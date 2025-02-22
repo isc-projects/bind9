@@ -30,10 +30,12 @@
 #include <isc/commandline.h>
 #include <isc/hex.h>
 #include <isc/lex.h>
+#include <isc/lib.h>
 #include <isc/stdio.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <dns/lib.h>
 #include <dns/rdata.h>
 
 #include "../isc/openssl_shim.c"

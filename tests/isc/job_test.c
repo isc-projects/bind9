@@ -26,6 +26,7 @@
 
 #include <isc/atomic.h>
 #include <isc/job.h>
+#include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/os.h>
 #include <isc/result.h>

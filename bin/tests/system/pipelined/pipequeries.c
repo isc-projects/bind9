@@ -20,6 +20,7 @@
 #include <isc/base64.h>
 #include <isc/commandline.h>
 #include <isc/hash.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/managers.h>
@@ -33,6 +34,7 @@
 
 #include <dns/dispatch.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>

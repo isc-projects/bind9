@@ -135,8 +135,6 @@ uint8_t dns_qp_byte_for_bit[SHIFT_OFFSET] = { 0 };
  * Fill in the lookup tables at program startup. (It doesn't matter
  * when this is initialized relative to other startup code.)
  */
-static void
-initialize_bits_for_byte(void) ISC_CONSTRUCTOR;
 
 /*
  * The bit positions for bytes inside labels have to be between
@@ -153,8 +151,8 @@ initialize_bits_for_byte(void) ISC_CONSTRUCTOR;
  * After filling the table we ensure that the bit positions for
  * hostname characters and escape characters all fit.
  */
-static void
-initialize_bits_for_byte(void) {
+void
+dns__qp_initialize(void) {
 	/* zero common character marker not a valid shift position */
 	INSIST(0 < SHIFT_BITMAP);
 	/* first bit is common byte or escape byte */
@@ -191,6 +189,11 @@ initialize_bits_for_byte(void) {
 		}
 	}
 	ENSURE(bit_one < SHIFT_OFFSET);
+}
+
+void
+dns__qp_shutdown(void) {
+	/* Nothing */
 }
 
 /*

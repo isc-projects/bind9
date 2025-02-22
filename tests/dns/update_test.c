@@ -24,10 +24,12 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/serial.h>
 #include <isc/stdtime.h>
 #include <isc/util.h>
 
+#include <dns/lib.h>
 #include <dns/update.h>
 #define KEEP_BEFORE
 

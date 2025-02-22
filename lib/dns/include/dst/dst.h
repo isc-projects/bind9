@@ -1226,7 +1226,7 @@ dst_key_setdirectory(dst_key_t *key, const char *dir);
 
 const char *
 dst_hmac_algorithm_totext(dst_algorithm_t alg);
-/*$<
+/*%<
  * Return the name associtated with the HMAC algorithm 'alg'
  * or return "unknown".
  */

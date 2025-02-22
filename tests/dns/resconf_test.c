@@ -24,8 +24,11 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/util.h>
+
+#include <dns/lib.h>
 
 #include <irs/resconf.h>
 

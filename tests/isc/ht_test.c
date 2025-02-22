@@ -25,6 +25,7 @@
 
 #include <isc/hash.h>
 #include <isc/ht.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>

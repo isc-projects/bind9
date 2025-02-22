@@ -22,9 +22,12 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
+
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/journal.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/rdatalist.h>
 

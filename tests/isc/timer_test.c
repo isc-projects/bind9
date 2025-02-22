@@ -27,6 +27,7 @@
 #include <isc/commandline.h>
 #include <isc/condition.h>
 #include <isc/job.h>
+#include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/os.h>

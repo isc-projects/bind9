@@ -23,6 +23,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
@@ -30,6 +31,7 @@
 #include <isc/urcu.h>
 #include <isc/util.h>
 
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/qp.h>
 

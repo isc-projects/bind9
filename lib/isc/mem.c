@@ -24,7 +24,6 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/once.h>
 #include <isc/os.h>
 #include <isc/overflow.h>
 #include <isc/refcount.h>
@@ -112,8 +111,6 @@ struct element {
 
 static ISC_LIST(isc_mem_t) contexts;
 
-static isc_once_t init_once = ISC_ONCE_INIT;
-static isc_once_t shut_once = ISC_ONCE_INIT;
 static isc_mutex_t contextslock;
 
 struct isc_mem {
@@ -413,8 +410,8 @@ mem_jemalloc_arena_destroy(unsigned int arenano) {
 #endif /* JEMALLOC_API_SUPPORTED */
 }
 
-static void
-mem_initialize(void) {
+void
+isc__mem_initialize(void) {
 /*
  * Check if the values copied from jemalloc still match
  */
@@ -427,12 +424,7 @@ mem_initialize(void) {
 }
 
 void
-isc__mem_initialize(void) {
-	isc_once_do(&init_once, mem_initialize);
-}
-
-static void
-mem_shutdown(void) {
+isc__mem_shutdown(void) {
 	bool empty;
 
 	isc__mem_checkdestroyed();
@@ -444,11 +436,6 @@ mem_shutdown(void) {
 	if (empty) {
 		isc_mutex_destroy(&contextslock);
 	}
-}
-
-void
-isc__mem_shutdown(void) {
-	isc_once_do(&shut_once, mem_shutdown);
 }
 
 static void

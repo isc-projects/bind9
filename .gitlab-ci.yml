@@ -1268,6 +1268,8 @@ clang:asan:
   <<: *build_job
 
 system:clang:asan:
+  variables:
+    LSAN_OPTIONS: "suppressions=$CI_PROJECT_DIR/suppr-lsan.txt"
   <<: *base_image
   <<: *system_test_job
   needs:

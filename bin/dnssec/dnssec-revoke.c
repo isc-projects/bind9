@@ -23,12 +23,14 @@
 #include <isc/commandline.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
+#include <dns/lib.h>
 
 #include <dst/dst.h>
 

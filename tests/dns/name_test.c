@@ -26,6 +26,7 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/thread.h>
@@ -33,6 +34,7 @@
 
 #include <dns/compress.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 
 #include <tests/dns.h>

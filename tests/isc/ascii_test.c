@@ -22,6 +22,7 @@
 #include <cmocka.h>
 
 #include <isc/ascii.h>
+#include <isc/lib.h>
 
 #include <tests/isc.h>
 

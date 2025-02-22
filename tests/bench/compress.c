@@ -18,6 +18,7 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/time.h>
@@ -25,6 +26,7 @@
 
 #include <dns/compress.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 
 static void

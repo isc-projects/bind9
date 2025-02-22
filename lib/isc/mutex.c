@@ -28,10 +28,9 @@
 #include "mutex_p.h"
 
 pthread_mutexattr_t isc__mutex_init_attr;
-static isc_once_t init_once = ISC_ONCE_INIT;
 
-static void
-mutex_initialize(void) {
+void
+isc__mutex_initialize(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&isc__mutex_init_attr) == 0);
 #if ISC_MUTEX_ERROR_CHECK
 	RUNTIME_CHECK(pthread_mutexattr_settype(&isc__mutex_init_attr,
@@ -41,11 +40,6 @@ mutex_initialize(void) {
 						PTHREAD_MUTEX_ADAPTIVE_NP) ==
 		      0);
 #endif
-}
-
-void
-isc__mutex_initialize(void) {
-	isc_once_do(&init_once, mutex_initialize);
 }
 
 void

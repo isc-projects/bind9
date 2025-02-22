@@ -22,6 +22,7 @@
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/hash.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -30,6 +31,7 @@
 
 #include <dns/db.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/rootns.h>

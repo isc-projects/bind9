@@ -24,6 +24,7 @@
 #include <cmocka.h>
 
 #include <isc/file.h>
+#include <isc/lib.h>
 #include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stdtime.h>
@@ -31,6 +32,7 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/lib.h>
 #include <dns/nsec3.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>

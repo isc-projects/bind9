@@ -21,7 +21,7 @@
 
 typedef pthread_once_t isc_once_t;
 
-#define ISC_ONCE_INIT PTHREAD_ONCE_INIT
+#define ISC_ONCE_INITIALIZER PTHREAD_ONCE_INIT
 
 #define isc_once_do(op, f)                                  \
 	{                                                   \

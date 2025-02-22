@@ -19,6 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <isc/lib.h>
+
+/* Included just to get DNS_LMDB_FLAGS definition */
 #include <dns/view.h>
 
 int

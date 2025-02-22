@@ -60,7 +60,6 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
-#include <isc/once.h>
 #include <isc/random.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
@@ -73,18 +72,24 @@
 #include <dns/ssu.h>
 #include <dns/zone.h>
 
+#include "dlz_p.h"
+
 /***
  *** Supported DLZ DB Implementations Registry
  ***/
 
 static ISC_LIST(dns_dlzimplementation_t) dlz_implementations;
 static isc_rwlock_t dlz_implock;
-static isc_once_t once = ISC_ONCE_INIT;
 
-static void
-dlz_initialize(void) {
+void
+dns__dlz_initialize(void) {
 	isc_rwlock_init(&dlz_implock);
 	ISC_LIST_INIT(dlz_implementations);
+}
+
+void
+dns__dlz_shutdown(void) {
+	isc_rwlock_destroy(&dlz_implock);
 }
 
 /*%
@@ -161,12 +166,6 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 	dns_dlzimplementation_t *impinfo;
 	isc_result_t result;
 	dns_dlzdb_t *db = NULL;
-
-	/*
-	 * initialize the dlz_implementations list, this is guaranteed
-	 * to only really happen once.
-	 */
-	isc_once_do(&once, dlz_initialize);
 
 	/*
 	 * Performs checks to make sure data is as we expect it to be.
@@ -291,12 +290,6 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 	REQUIRE(mctx != NULL);
 	REQUIRE(dlzimp != NULL && *dlzimp == NULL);
 
-	/*
-	 * initialize the dlz_implementations list, this is guaranteed
-	 * to only really happen once.
-	 */
-	isc_once_do(&once, dlz_initialize);
-
 	/* lock the dlz_implementations list so we can modify it. */
 	RWLOCK(&dlz_implock, isc_rwlocktype_write);
 
@@ -371,12 +364,6 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
 	 * Performs checks to make sure data is as we expect it to be.
 	 */
 	REQUIRE(dlzimp != NULL && *dlzimp != NULL);
-
-	/*
-	 * initialize the dlz_implementations list, this is guaranteed
-	 * to only really happen once.
-	 */
-	isc_once_do(&once, dlz_initialize);
 
 	dlz_imp = *dlzimp;
 

@@ -23,6 +23,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/result.h>
 #include <isc/time.h>
 #include <isc/util.h>

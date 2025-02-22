@@ -26,6 +26,7 @@
 
 #include <isc/buffer.h>
 #include <isc/dnsstream.h>
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/random.h>

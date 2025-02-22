@@ -17,6 +17,7 @@
 #include <stdlib.h>
 
 #include <isc/hash.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -25,6 +26,7 @@
 #include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/journal.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/types.h>
 

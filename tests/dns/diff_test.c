@@ -24,7 +24,10 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
+
 #include <dns/diff.h>
+#include <dns/lib.h>
 
 #include <tests/dns.h>
 

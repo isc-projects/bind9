@@ -117,12 +117,9 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
  */
 
 void
-dns_dyndb_cleanup(bool exiting);
+dns_dyndb_cleanup(void);
 /*%
  * Shut down and destroy all running dyndb modules.
- *
- * 'exiting' indicates whether the server is shutting down,
- * as opposed to merely being reconfigured.
  */
 
 void

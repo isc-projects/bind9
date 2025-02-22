@@ -24,6 +24,7 @@
 #include <cmocka.h>
 
 #include <isc/job.h>
+#include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/ratelimiter.h>
 #include <isc/time.h>

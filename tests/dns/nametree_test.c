@@ -26,10 +26,12 @@
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/md.h>
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/nametree.h>
 

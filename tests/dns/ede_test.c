@@ -24,9 +24,11 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/list.h>
 
 #include <dns/ede.h>
+#include <dns/lib.h>
 
 #include "../../lib/dns/ede.c"
 

@@ -29,6 +29,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/nonce.h>
 #include <isc/os.h>

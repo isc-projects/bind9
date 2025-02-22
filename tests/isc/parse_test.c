@@ -26,6 +26,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/parseint.h>
 #include <isc/util.h>
 

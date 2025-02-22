@@ -58,7 +58,7 @@ mygetservbyname(const char *name, const char *proto, long *port) {
 
 static isc_result_t
 fromtext_in_wks(ARGS_FROMTEXT) {
-	static isc_once_t once = ISC_ONCE_INIT;
+	static isc_once_t once = ISC_ONCE_INITIALIZER;
 	isc_token_t token;
 	isc_region_t region;
 	struct in_addr addr;

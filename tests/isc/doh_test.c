@@ -35,6 +35,7 @@
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
+#include <isc/lib.h>
 #include <isc/mutex.h>
 #include <isc/netmgr.h>
 #include <isc/nonce.h>

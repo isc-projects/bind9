@@ -28,11 +28,13 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/lib.h>
 #include <isc/stdio.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/dnstap.h>
+#include <dns/lib.h>
 #include <dns/view.h>
 
 #include <tests/dns.h>

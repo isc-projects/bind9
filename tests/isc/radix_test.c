@@ -22,6 +22,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/radix.h>

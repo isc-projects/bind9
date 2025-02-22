@@ -17,12 +17,14 @@
 
 #include <isc/ascii.h>
 #include <isc/buffer.h>
+#include <isc/lib.h>
 #include <isc/random.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/compress.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/name.h>
 
 #include "old.h"

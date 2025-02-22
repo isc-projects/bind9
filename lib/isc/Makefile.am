@@ -42,6 +42,7 @@ libisc_la_HEADERS =			\
 	include/isc/iterated_hash.h	\
 	include/isc/job.h		\
 	include/isc/lex.h		\
+	include/isc/lib.h		\
 	include/isc/list.h		\
 	include/isc/log.h		\
 	include/isc/loop.h		\
@@ -193,6 +194,7 @@ libisc_la_SOURCES =		\
 	symtab.c		\
 	syslog.c		\
 	thread.c		\
+	thread_p.h		\
 	tid.c			\
 	time.c			\
 	timer.c			\

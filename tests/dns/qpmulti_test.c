@@ -23,6 +23,7 @@
 #include <cmocka.h>
 
 #include <isc/assertions.h>
+#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
@@ -33,6 +34,7 @@
 #include <isc/urcu.h>
 #include <isc/util.h>
 
+#include <dns/lib.h>
 #include <dns/qp.h>
 #include <dns/types.h>
 

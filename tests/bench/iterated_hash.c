@@ -17,9 +17,11 @@
 #include <string.h>
 
 #include <isc/iterated_hash.h>
+#include <isc/lib.h>
 #include <isc/random.h>
 #include <isc/time.h>
 
+#include <dns/lib.h>
 #include <dns/name.h>
 
 static void

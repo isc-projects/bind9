@@ -24,11 +24,13 @@
 #include <cmocka.h>
 
 #include <isc/hex.h>
+#include <isc/lib.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/lib.h>
 #include <dns/nsec3.h>
 
 #include "zone_p.h"

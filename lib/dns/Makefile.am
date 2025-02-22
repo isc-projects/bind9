@@ -86,6 +86,7 @@ libdns_la_HEADERS =			\
 	include/dns/keystore.h		\
 	include/dns/keytable.h		\
 	include/dns/keyvalues.h		\
+	include/dns/lib.h		\
 	include/dns/master.h		\
 	include/dns/masterdump.h	\
 	include/dns/message.h		\
@@ -153,6 +154,7 @@ libdns_la_SOURCES =			\
 	$(dst_HEADERS)			\
 	$(irs_HEADERS)			\
 	acl.c				\
+	acl_p.h				\
 	adb.c				\
 	badcache.c			\
 	byaddr.c			\
@@ -168,6 +170,7 @@ libdns_la_SOURCES =			\
 	diff.c				\
 	dispatch.c			\
 	dlz.c				\
+	dlz_p.h				\
 	dns64.c				\
 	dnssec.c			\
 	ds.c				\
@@ -177,6 +180,7 @@ libdns_la_SOURCES =			\
 	dst_parse.c			\
 	dst_parse.h			\
 	dyndb.c				\
+	dyndb_p.h			\
 	ecs.c				\
 	ede.c				\
 	fixedname.c			\
@@ -192,6 +196,7 @@ libdns_la_SOURCES =			\
 	keymgr.c			\
 	keystore.c			\
 	keytable.c			\
+	lib.c				\
 	master.c			\
 	masterdump.c			\
 	message.c			\

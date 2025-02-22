@@ -20,6 +20,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <isc/lib.h>
+
+#include <dns/lib.h>
+
 #include "fuzz.h"
 
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
