@@ -158,17 +158,23 @@ compress_test(const dns_name_t *name1, const dns_name_t *name2,
 				 ISC_R_SUCCESS);
 	} else {
 		/* Owner name compression */
-		dns_compress_setmultiuse(cctx, true);
+		if (cctx != NULL) {
+			dns_compress_setmultiuse(cctx, true);
+		}
 		assert_int_equal(dns_name_towire(name1, cctx, &source),
 				 ISC_R_SUCCESS);
 
-		dns_compress_setmultiuse(cctx, true);
+		if (cctx != NULL) {
+			dns_compress_setmultiuse(cctx, true);
+		}
 		assert_int_equal(dns_name_towire(name2, cctx, &source),
 				 ISC_R_SUCCESS);
 		assert_int_equal(dns_name_towire(name2, cctx, &source),
 				 ISC_R_SUCCESS);
 
-		dns_compress_setmultiuse(cctx, true);
+		if (cctx != NULL) {
+			dns_compress_setmultiuse(cctx, true);
+		}
 		assert_int_equal(dns_name_towire(name3, cctx, &source),
 				 ISC_R_SUCCESS);
 	}
@@ -253,6 +259,12 @@ ISC_RUN_TEST_IMPL(compression) {
 	r.base = plain4;
 	r.length = sizeof(plain3);
 	dns_name_fromregion(&name4, &r);
+
+	/* Test 0: no compression context */
+	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
+		      sizeof(plain), NULL, DNS_DECOMPRESS_NEVER, true);
+	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
+		      sizeof(plain), NULL, DNS_DECOMPRESS_NEVER, false);
 
 	/* Test 1: off, rdata */
 	permitted = false;

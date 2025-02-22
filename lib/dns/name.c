@@ -1453,12 +1453,21 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 	/*
 	 * Convert 'name' into wire format, compressing it as specified by the
-	 * compression context 'cctx', and storing the result in 'target'.
+	 * compression context 'cctx' (or without compressing if 'cctx'
+	 * is NULL), and storing the result in 'target'.
 	 */
 
 	REQUIRE(DNS_NAME_VALID(name));
-	REQUIRE(cctx != NULL);
 	REQUIRE(ISC_BUFFER_VALID(target));
+
+	if (cctx == NULL) {
+		if (isc_buffer_availablelength(target) < name->length) {
+			return ISC_R_NOSPACE;
+		}
+		memmove(isc_buffer_used(target), name->ndata, name->length);
+		isc_buffer_add(target, name->length);
+		return ISC_R_SUCCESS;
+	}
 
 	compress = !name->attributes.nocompress &&
 		   dns_compress_getpermitted(cctx);

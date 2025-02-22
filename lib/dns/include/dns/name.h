@@ -772,7 +772,8 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 		isc_buffer_t *target);
 /*%<
  * Convert 'name' into wire format, compressing it as specified by the
- * compression context 'cctx', and storing the result in 'target'.
+ * compression context 'cctx' (or leaving it uncompressed if 'cctx' is
+ * NULL), and storing the result in 'target'.
  *
  * Notes:
  * \li	If compression is permitted, then the cctx table may be updated.
