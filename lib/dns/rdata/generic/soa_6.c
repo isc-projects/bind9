@@ -213,11 +213,11 @@ towire_soa(ARGS_TOWIRE) {
 
 	dns_name_fromregion(&mname, &sregion);
 	isc_region_consume(&sregion, name_length(&mname));
-	RETERR(dns_name_towire(&mname, cctx, target, NULL));
+	RETERR(dns_name_towire(&mname, cctx, target));
 
 	dns_name_fromregion(&rname, &sregion);
 	isc_region_consume(&sregion, name_length(&rname));
-	RETERR(dns_name_towire(&rname, cctx, target, NULL));
+	RETERR(dns_name_towire(&rname, cctx, target));
 
 	isc_buffer_availableregion(target, &tregion);
 	if (tregion.length < 20) {

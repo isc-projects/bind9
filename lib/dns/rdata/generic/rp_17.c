@@ -130,12 +130,12 @@ towire_rp(ARGS_TOWIRE) {
 	dns_name_fromregion(&rmail, &region);
 	isc_region_consume(&region, rmail.length);
 
-	RETERR(dns_name_towire(&rmail, cctx, target, NULL));
+	RETERR(dns_name_towire(&rmail, cctx, target));
 
 	dns_name_fromregion(&rmail, &region);
 	isc_region_consume(&region, rmail.length);
 
-	return dns_name_towire(&rmail, cctx, target, NULL);
+	return dns_name_towire(&rmail, cctx, target);
 }
 
 static int

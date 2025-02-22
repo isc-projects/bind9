@@ -335,7 +335,7 @@ towire_any_tsig(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_init(&name);
 	dns_name_fromregion(&name, &sr);
-	RETERR(dns_name_towire(&name, cctx, target, NULL));
+	RETERR(dns_name_towire(&name, cctx, target));
 	isc_region_consume(&sr, name_length(&name));
 	return mem_tobuffer(target, sr.base, sr.length);
 }

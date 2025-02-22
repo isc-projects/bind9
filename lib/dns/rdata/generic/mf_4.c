@@ -90,7 +90,7 @@ towire_mf(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	return dns_name_towire(&name, cctx, target, NULL);
+	return dns_name_towire(&name, cctx, target);
 }
 
 static int

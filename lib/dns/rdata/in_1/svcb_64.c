@@ -940,7 +940,7 @@ generic_towire_in_svcb(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
-	RETERR(dns_name_towire(&name, cctx, target, NULL));
+	RETERR(dns_name_towire(&name, cctx, target));
 	isc_region_consume(&region, name_length(&name));
 
 	/*

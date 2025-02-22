@@ -148,28 +148,28 @@ compress_test(const dns_name_t *name1, const dns_name_t *name2,
 
 	if (rdata) {
 		/* RDATA compression */
-		assert_int_equal(dns_name_towire(name1, cctx, &source, NULL),
+		assert_int_equal(dns_name_towire(name1, cctx, &source),
 				 ISC_R_SUCCESS);
-		assert_int_equal(dns_name_towire(name2, cctx, &source, NULL),
+		assert_int_equal(dns_name_towire(name2, cctx, &source),
 				 ISC_R_SUCCESS);
-		assert_int_equal(dns_name_towire(name2, cctx, &source, NULL),
+		assert_int_equal(dns_name_towire(name2, cctx, &source),
 				 ISC_R_SUCCESS);
-		assert_int_equal(dns_name_towire(name3, cctx, &source, NULL),
+		assert_int_equal(dns_name_towire(name3, cctx, &source),
 				 ISC_R_SUCCESS);
 	} else {
 		/* Owner name compression */
-		uint16_t offset = 0xffff;
-		assert_int_equal(dns_name_towire(name1, cctx, &source, &offset),
+		dns_compress_setmultiuse(cctx, true);
+		assert_int_equal(dns_name_towire(name1, cctx, &source),
 				 ISC_R_SUCCESS);
 
-		offset = 0xffff;
-		assert_int_equal(dns_name_towire(name2, cctx, &source, &offset),
+		dns_compress_setmultiuse(cctx, true);
+		assert_int_equal(dns_name_towire(name2, cctx, &source),
 				 ISC_R_SUCCESS);
-		assert_int_equal(dns_name_towire(name2, cctx, &source, &offset),
+		assert_int_equal(dns_name_towire(name2, cctx, &source),
 				 ISC_R_SUCCESS);
 
-		offset = 0xffff;
-		assert_int_equal(dns_name_towire(name3, cctx, &source, &offset),
+		dns_compress_setmultiuse(cctx, true);
+		assert_int_equal(dns_name_towire(name3, cctx, &source),
 				 ISC_R_SUCCESS);
 	}
 	assert_int_equal(source.used, compressed_length);
@@ -433,7 +433,8 @@ ISC_RUN_TEST_IMPL(collision) {
 		}
 		dns_compress_rollback(&cctx, coff);
 
-		result = dns_name_towire(&name, &cctx, &message, NULL);
+		dns_compress_setmultiuse(&cctx, true);
+		result = dns_name_towire(&name, &cctx, &message);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		/* we must be able to find the name we just added */

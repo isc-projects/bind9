@@ -191,7 +191,7 @@ towire_in_srv(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name);
 	dns_name_fromregion(&name, &sr);
-	return dns_name_towire(&name, cctx, target, NULL);
+	return dns_name_towire(&name, cctx, target);
 }
 
 static int

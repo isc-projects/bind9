@@ -80,7 +80,7 @@ main(void) {
 
 		for (unsigned int i = 0; i < count; i++) {
 			dns_name_t *name = dns_fixedname_name(&fixedname[i]);
-			result = dns_name_towire(name, &cctx, &buf, NULL);
+			result = dns_name_towire(name, &cctx, &buf);
 			if (result == ISC_R_NOSPACE) {
 				dns_compress_invalidate(&cctx);
 				dns_compress_init(&cctx, mctx, 0);

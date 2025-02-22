@@ -1436,8 +1436,8 @@ root_label:;
 
 isc_result_t
 dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
-		isc_buffer_t *target, uint16_t *name_coff) {
-	bool compress;
+		isc_buffer_t *target) {
+	bool compress, multi;
 	unsigned int here;
 	unsigned int prefix_length;
 	unsigned int suffix_coff;
@@ -1453,16 +1453,17 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 	compress = !name->attributes.nocompress &&
 		   dns_compress_getpermitted(cctx);
+	multi = compress && dns_compress_getmultiuse(cctx);
 
 	/*
 	 * Write a compression pointer directly if the caller passed us
 	 * a pointer to this name's offset that we saved previously.
 	 */
-	if (compress && name_coff != NULL && *name_coff < 0x4000) {
+	if (multi && cctx->coff < 0x4000) {
 		if (isc_buffer_availablelength(target) < 2) {
 			return ISC_R_NOSPACE;
 		}
-		isc_buffer_putuint16(target, *name_coff | 0xc000);
+		isc_buffer_putuint16(target, cctx->coff | 0xc000);
 		return ISC_R_SUCCESS;
 	}
 
@@ -1483,8 +1484,8 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 	 * it isn't too short for compression to help (i.e. it's the root)
 	 */
 	here = isc_buffer_usedlength(target);
-	if (name_coff != NULL && here < 0x4000 && prefix_length > 1) {
-		*name_coff = (uint16_t)here;
+	if (multi && here < 0x4000 && prefix_length > 1) {
+		cctx->coff = (uint16_t)here;
 	}
 
 	if (prefix_length > 0) {
@@ -1496,8 +1497,8 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 	}
 
 	if (suffix_coff > 0) {
-		if (name_coff != NULL && prefix_length == 0) {
-			*name_coff = suffix_coff;
+		if (multi && prefix_length == 0) {
+			cctx->coff = suffix_coff;
 		}
 		if (isc_buffer_availablelength(target) < 2) {
 			return ISC_R_NOSPACE;
