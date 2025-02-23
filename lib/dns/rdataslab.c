@@ -865,6 +865,7 @@ dns_slabheader_reset(dns_slabheader_t *h, dns_db_t *db, dns_dbnode_t *node) {
 	h->heap = NULL;
 	h->db = db;
 	h->node = node;
+	h->visited = false;
 
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
