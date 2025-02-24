@@ -47,17 +47,6 @@ typedef enum {
 } ft_state;
 
 /*%
- * Note:  If additional attributes are added that should not be set for
- *	  empty names, MAKE_EMPTY() must be changed so it clears them.
- */
-#define MAKE_EMPTY(name)                           \
-	{                                          \
-		name->ndata = NULL;                \
-		name->length = 0;                  \
-		name->attributes.absolute = false; \
-	}
-
-/*%
  * Note that the name data must be a char array, not a string
  * literal, to avoid compiler warnings about discarding
  * the const attribute of a string.
@@ -744,11 +733,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	REQUIRE(DNS_NAME_BINDABLE(name));
 
 	/*
-	 * Make 'name' empty in case of failure.
-	 */
-	MAKE_EMPTY(name);
-
-	/*
 	 * Set up the state machine.
 	 */
 	tdata = (char *)source->base + source->current;
@@ -1256,6 +1240,7 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 
 	REQUIRE(DNS_NAME_VALID(source));
 	REQUIRE(DNS_NAME_VALID(name));
+
 	if (source == name) {
 		REQUIRE(!name->attributes.readonly);
 		isc_buffer_init(&buffer, source->ndata, source->length);
@@ -1266,16 +1251,16 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 		REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
 			(target == NULL && ISC_BUFFER_VALID(name->buffer)));
 		if (target == NULL) {
+			if (source->length > name->buffer->length) {
+				return ISC_R_NOSPACE;
+			}
 			target = name->buffer;
 			isc_buffer_clear(name->buffer);
+		} else if (source->length > target->length - target->used) {
+			return ISC_R_NOSPACE;
 		}
 		ndata = (unsigned char *)target->base + target->used;
 		name->ndata = ndata;
-	}
-
-	if (source->length > (target->length - target->used)) {
-		MAKE_EMPTY(name);
-		return ISC_R_NOSPACE;
 	}
 
 	/* label lengths are < 64 so tolower() does not affect them */
@@ -1400,7 +1385,6 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 	const uint32_t name_max = ISC_MIN(DNS_NAME_MAXWIRE,
 					  isc_buffer_availablelength(target));
 	uint32_t name_len = 0;
-	MAKE_EMPTY(name); /* in case of failure */
 
 	/*
 	 * After chasing a compression pointer, these variables refer to the
@@ -1628,11 +1612,9 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
 		length += suffix->length;
 	}
 	if (length > DNS_NAME_MAXWIRE) {
-		MAKE_EMPTY(name);
 		return DNS_R_NAMETOOLONG;
 	}
 	if (length > nrem) {
-		MAKE_EMPTY(name);
 		return ISC_R_NOSPACE;
 	}
 
@@ -1671,11 +1653,6 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	REQUIRE(source->length > 0);
 	REQUIRE(DNS_NAME_VALID(target));
 	REQUIRE(DNS_NAME_BINDABLE(target));
-
-	/*
-	 * Make 'target' empty in case of failure.
-	 */
-	MAKE_EMPTY(target);
 
 	target->ndata = isc_mem_get(mctx, source->length);
 
