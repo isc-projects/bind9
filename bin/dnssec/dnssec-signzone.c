@@ -2034,7 +2034,7 @@ addnsec3(dns_name_t *name, dns_dbnode_t *node, const unsigned char *salt,
 	dns_fixedname_init(&hashname);
 	dns_rdataset_init(&rdataset);
 
-	dns_name_downcase(name, name, NULL);
+	dns_name_downcase(name, name);
 	result = dns_nsec3_hashname(&hashname, hash, &hash_len, name, gorigin,
 				    dns_hash_sha1, iterations, salt, salt_len);
 	check_result(result, "addnsec3: dns_nsec3_hashname()");
@@ -2402,7 +2402,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			fatal("iterating through the database failed: %s",
 			      isc_result_totext(result));
 		}
-		dns_name_downcase(name, name, NULL);
+		dns_name_downcase(name, name);
 		hashlist_add_dns_name(hashlist, name, hashalg, iterations, salt,
 				      salt_len, false);
 		dns_db_detachnode(gdb, &node);
@@ -2412,7 +2412,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 		 * node for another <name,nextname> span so we don't add
 		 * it here.  Empty labels on nextname are within the span.
 		 */
-		dns_name_downcase(nextname, nextname, NULL);
+		dns_name_downcase(nextname, nextname);
 		dns_name_fullcompare(name, nextname, &order, &nlabels);
 		addnowildcardhash(hashlist, name, hashalg, iterations, salt,
 				  salt_len);

@@ -300,7 +300,7 @@ trynsec3:
 	found = false;
 	dns_name_init(&nsec3name);
 	dns_fixedname_init(&fixed);
-	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
+	dns_name_downcase(name, dns_fixedname_name(&fixed));
 	name = dns_fixedname_name(&fixed);
 	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))

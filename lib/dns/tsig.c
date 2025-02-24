@@ -235,7 +235,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 
 	tkey->name = dns_fixedname_initname(&tkey->fn);
 	dns_name_copy(name, tkey->name);
-	(void)dns_name_downcase(tkey->name, tkey->name, NULL);
+	(void)dns_name_downcase(tkey->name, tkey->name);
 
 	if (algorithm != DST_ALG_UNKNOWN) {
 		if (dstkey != NULL && dst_key_alg(dstkey) != algorithm) {

@@ -261,7 +261,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 	memset(rethash, 0, NSEC3_MAX_HASH_LENGTH);
 
 	downcased = dns_fixedname_initname(&fixed);
-	dns_name_downcase(name, downcased, NULL);
+	dns_name_downcase(name, downcased);
 
 	/* hash the node name */
 	len = isc_iterated_hash(rethash, hashalg, iterations, salt,
@@ -2022,7 +2022,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	 * Prepare to compute all the hashes.
 	 */
 	qname = dns_fixedname_initname(&qfixed);
-	dns_name_downcase(name, qname, NULL);
+	dns_name_downcase(name, qname);
 	qlabels = dns_name_countlabels(qname);
 	first = true;
 

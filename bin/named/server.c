@@ -12541,7 +12541,7 @@ nzd_setkey(MDB_val *key, dns_name_t *name, char *namebuf, size_t buflen) {
 	dns_fixedname_t fixed;
 
 	dns_fixedname_init(&fixed);
-	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
+	dns_name_downcase(name, dns_fixedname_name(&fixed));
 	dns_name_format(dns_fixedname_name(&fixed), namebuf, buflen);
 
 	key->mv_data = namebuf;

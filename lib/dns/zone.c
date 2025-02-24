@@ -19093,7 +19093,7 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 	REQUIRE(added != NULL && *added == NULL);
 
 	name = dns_fixedname_initname(&fname);
-	dns_name_downcase(&zone->origin, name, NULL);
+	dns_name_downcase(&zone->origin, name);
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 

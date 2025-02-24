@@ -167,8 +167,8 @@ digest_sig(dst_context_t *ctx, bool downcase, dns_rdata_t *sigrdata,
 		dns_fixedname_init(&fname);
 
 		RUNTIME_CHECK(dns_name_downcase(&rrsig->signer,
-						dns_fixedname_name(&fname),
-						NULL) == ISC_R_SUCCESS);
+						dns_fixedname_name(&fname)) ==
+			      ISC_R_SUCCESS);
 		dns_name_toregion(dns_fixedname_name(&fname), &r);
 	} else {
 		dns_name_toregion(&rrsig->signer, &r);
@@ -231,8 +231,8 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dns_name_init(&sig.signer);
 	dns_fixedname_init(&fsigner);
 	RUNTIME_CHECK(dns_name_downcase(dst_key_name(key),
-					dns_fixedname_name(&fsigner),
-					NULL) == ISC_R_SUCCESS);
+					dns_fixedname_name(&fsigner)) ==
+		      ISC_R_SUCCESS);
 	dns_name_clone(dns_fixedname_name(&fsigner), &sig.signer);
 
 	sig.covered = set->type;
@@ -280,8 +280,8 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 
 	dns_fixedname_init(&fnewname);
-	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname),
-					NULL) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname)) ==
+		      ISC_R_SUCCESS);
 	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
 
 	/*
@@ -479,8 +479,8 @@ again:
 	 */
 	dns_fixedname_init(&fnewname);
 	labels = dns_name_countlabels(name) - 1;
-	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname),
-					NULL) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname)) ==
+		      ISC_R_SUCCESS);
 	if (labels - sig.labels > 0) {
 		dns_name_split(dns_fixedname_name(&fnewname), sig.labels + 1,
 			       NULL, dns_fixedname_name(&fnewname));

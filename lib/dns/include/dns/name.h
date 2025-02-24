@@ -937,8 +937,7 @@ dns_name_tofilenametext(const dns_name_t *name, bool omit_final_dot,
  */
 
 isc_result_t
-dns_name_downcase(const dns_name_t *source, dns_name_t *name,
-		  isc_buffer_t *target);
+dns_name_downcase(const dns_name_t *source, dns_name_t *name);
 /*%<
  * Downcase 'source'.
  *
@@ -949,9 +948,7 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
  *\li	If source == name, then
  *		'source' must not be read-only
  *
- *\li	Otherwise,
- *		'target' is a valid buffer or 'target' is NULL and
- *		'name' has a dedicated buffer.
+ *\li	'name' has a dedicated buffer.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS

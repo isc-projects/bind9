@@ -125,7 +125,7 @@ nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,
 	result = dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext() failed");
 
-	dns_name_downcase(name, name, NULL);
+	dns_name_downcase(name, name);
 	length = isc_iterated_hash(hash, hash_alg, iterations, salt,
 				   salt_length, name->ndata, name->length);
 	if (length == 0) {

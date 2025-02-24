@@ -1229,11 +1229,7 @@ dns_name_tofilenametext(const dns_name_t *name, bool omit_final_dot,
 }
 
 isc_result_t
-dns_name_downcase(const dns_name_t *source, dns_name_t *name,
-		  isc_buffer_t *target) {
-	unsigned char *ndata;
-	isc_buffer_t buffer;
-
+dns_name_downcase(const dns_name_t *source, dns_name_t *name) {
 	/*
 	 * Downcase 'source'.
 	 */
@@ -1243,37 +1239,24 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 
 	if (source == name) {
 		REQUIRE(!name->attributes.readonly);
-		isc_buffer_init(&buffer, source->ndata, source->length);
-		target = &buffer;
-		ndata = source->ndata;
-	} else {
-		REQUIRE(DNS_NAME_BINDABLE(name));
-		REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
-			(target == NULL && ISC_BUFFER_VALID(name->buffer)));
-		if (target == NULL) {
-			if (source->length > name->buffer->length) {
-				return ISC_R_NOSPACE;
-			}
-			target = name->buffer;
-			isc_buffer_clear(name->buffer);
-		} else if (source->length > target->length - target->used) {
-			return ISC_R_NOSPACE;
-		}
-		ndata = (unsigned char *)target->base + target->used;
-		name->ndata = ndata;
+		isc_ascii_lowercopy(name->ndata, source->ndata, source->length);
+		return ISC_R_SUCCESS;
 	}
+
+	REQUIRE(DNS_NAME_BINDABLE(name));
+	REQUIRE(ISC_BUFFER_VALID(name->buffer));
+
+	isc_buffer_clear(name->buffer);
+	name->ndata = (uint8_t *)name->buffer->base + name->buffer->used;
 
 	/* label lengths are < 64 so tolower() does not affect them */
-	isc_ascii_lowercopy(ndata, source->ndata, source->length);
+	isc_ascii_lowercopy(name->ndata, source->ndata, source->length);
 
-	if (source != name) {
-		name->length = source->length;
-		name->attributes = (struct dns_name_attrs){
-			.absolute = source->attributes.absolute
-		};
-	}
-
-	isc_buffer_add(target, name->length);
+	name->length = source->length;
+	name->attributes = (struct dns_name_attrs){
+		.absolute = source->attributes.absolute
+	};
+	isc_buffer_add(name->buffer, name->length);
 
 	return ISC_R_SUCCESS;
 }
@@ -1696,12 +1679,6 @@ dns_name_size(const dns_name_t *name) {
 
 isc_result_t
 dns_name_digest(const dns_name_t *name, dns_digestfunc_t digest, void *arg) {
-	dns_name_t downname;
-	unsigned char data[256];
-	isc_buffer_t buffer;
-	isc_result_t result;
-	isc_region_t r;
-
 	/*
 	 * Send 'name' in DNSSEC canonical form to 'digest'.
 	 */
@@ -1709,17 +1686,13 @@ dns_name_digest(const dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(digest != NULL);
 
-	dns_name_init(&downname);
+	unsigned char ndata[DNS_NAME_MAXWIRE];
+	isc_ascii_lowercopy(ndata, name->ndata, name->length);
 
-	isc_buffer_init(&buffer, data, sizeof(data));
-
-	result = dns_name_downcase(name, &downname, &buffer);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
-
-	isc_buffer_usedregion(&buffer, &r);
-
+	isc_region_t r = {
+		.base = ndata,
+		.length = name->length,
+	};
 	return (digest)(arg, &r);
 }
 

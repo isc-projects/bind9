@@ -1797,7 +1797,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 			goto next;
 		}
 
-		dns_name_downcase(name, name, NULL);
+		dns_name_downcase(name, name);
 
 		/* Add entry to the new nodes table */
 		result = isc_ht_add(newnodes, name->ndata, name->length, rpz);
