@@ -856,9 +856,9 @@ def _check_dnskeys(dnskeys, keys, cdnskey=False):
         delete_md = f"Sync{delete_md}"
 
     for key in keys:
-        publish = key.get_timing(publish_md)
+        publish = key.get_timing(publish_md, must_exist=False)
         delete = key.get_timing(delete_md, must_exist=False)
-        published = now >= publish
+        published = publish is not None and now >= publish
         removed = delete is not None and delete <= now
 
         if not published or removed:
