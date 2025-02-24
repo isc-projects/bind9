@@ -190,6 +190,8 @@ struct isc_nm_http_session {
 
 	size_t data_in_flight;
 
+	bool async_queued;
+
 	/*
 	 * The statistical values below are for usage on server-side
 	 * only. They are meant to detect clients that are taking too many
@@ -1704,6 +1706,8 @@ http_do_bio_async_cb(void *arg) {
 
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
+	session->async_queued = false;
+
 	if (session->handle != NULL &&
 	    !isc__nmsocket_closing(session->handle->sock))
 	{
@@ -1720,10 +1724,12 @@ http_do_bio_async(isc_nm_http_session_t *session) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
 	if (session->handle == NULL ||
-	    isc__nmsocket_closing(session->handle->sock))
+	    isc__nmsocket_closing(session->handle->sock) ||
+	    session->async_queued)
 	{
 		return;
 	}
+	session->async_queued = true;
 	isc__nm_httpsession_attach(session, &tmpsess);
 	isc__nm_async_run(
 		&session->handle->sock->mgr->workers[session->handle->sock->tid],
