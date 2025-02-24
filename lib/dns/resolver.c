@@ -6103,7 +6103,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 				if (result == DNS_R_UNCHANGED) {
 					result = ISC_R_SUCCESS;
 					if (!need_validation &&
-					    ardataset != NULL)
+					    ardataset != NULL &&
+					    NEGATIVE(ardataset))
 					{
 						/*
 						 * The answer in the
@@ -6117,12 +6118,17 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 						if (NXDOMAIN(ardataset)) {
 							eresult =
 								DNS_R_NCACHENXDOMAIN;
-						} else if (NEGATIVE(ardataset))
-						{
+						} else {
 							eresult =
 								DNS_R_NCACHENXRRSET;
 						}
-
+						continue;
+					} else if (!need_validation &&
+						   ardataset != NULL &&
+						   sigrdataset != NULL &&
+						   !dns_rdataset_equals(
+							   rdataset, ardataset))
+					{
 						/*
 						 * The cache wasn't updated
 						 * because something was
@@ -6130,16 +6136,11 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 						 * data was the same as what
 						 * we were trying to add,
 						 * then sigrdataset might
-						 * still be useful. If
-						 * not, move on.
+						 * still be useful, and we
+						 * should carry on caching
+						 * it. Otherwise, move on.
 						 */
-						if (sigrdataset != NULL &&
-						    !dns_rdataset_equals(
-							    rdataset,
-							    addedrdataset))
-						{
-							continue;
-						}
+						continue;
 					}
 				}
 				if (result != ISC_R_SUCCESS) {
