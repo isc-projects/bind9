@@ -123,23 +123,14 @@ stages:
 ### Job Templates
 
 .api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
-  only:
-    - api
-    - pipelines
-    - schedules
-    - tags
-    - triggers
-    - web
+  rules:
+    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
+    - if: '$CI_COMMIT_TAG != null'
 
 .default-triggering-rules: &default_triggering_rules
-  only:
-    - api
-    - merge_requests
-    - pipelines
-    - tags
-    - triggers
-    - web
-    - schedules
+  rules:
+    - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
+    - if: '$CI_COMMIT_TAG != null'
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
@@ -290,8 +281,6 @@ misc:
 
 changes:
   <<: *precheck_job
-  except:
-    - pipelines
   script:
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
@@ -313,9 +302,8 @@ danger:
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
     - hazard
-  only:
-    refs:
-      - merge_requests
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 tarball-create:
   stage: precheck
@@ -658,8 +646,8 @@ release:
   needs:
     - job: tarball-create
       artifacts: true
-  only:
-    - tags
+  rules:
+    - if: '$CI_COMMIT_TAG != null'
   artifacts:
     paths:
       - "*.tar.gz"
@@ -761,9 +749,8 @@ abi-check:
       - "*-lib*.txt"
       - "abi-*.dump"
     expire_in: "1 week"
-  only:
-    - main@isc-projects/bind9
-    - /^v9_[1-9][0-9]$/@isc-projects/bind9
+  rules:
+    - when: never
   needs: []
 
 .post_merge_template: &post_merge
