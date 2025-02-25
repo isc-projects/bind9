@@ -865,7 +865,7 @@ setup_text_key(void) {
 
 	debug("setup_text_key()");
 	isc_buffer_allocate(mctx, &namebuf, MXNAME);
-	dns_name_init(&keyname, NULL);
+	dns_name_init(&keyname);
 	isc_buffer_putstr(namebuf, keynametext);
 	secretsize = (unsigned int)strlen(keysecret) * 3 / 4;
 	secretstore = isc_mem_allocate(mctx, secretsize);
@@ -2082,8 +2082,8 @@ insert_soa(dig_lookup_t *lookup) {
 	soa.common.rdclass = lookup->rdclass;
 	soa.common.rdtype = dns_rdatatype_soa;
 
-	dns_name_init(&soa.origin, NULL);
-	dns_name_init(&soa.contact, NULL);
+	dns_name_init(&soa.origin);
+	dns_name_init(&soa.contact);
 
 	dns_name_clone(dns_rootname, &soa.origin);
 	dns_name_clone(dns_rootname, &soa.contact);

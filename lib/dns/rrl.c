@@ -416,7 +416,7 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 		key->s.qclass = qclass & 0xff;
 	}
 
-	if (qname != NULL && qname->labels != 0) {
+	if (qname != NULL && qname->length != 0) {
 		dns_name_t *origin = NULL;
 
 		if (qname->attributes.wildcard && zone != NULL &&

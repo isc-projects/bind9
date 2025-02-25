@@ -99,7 +99,7 @@ setup_master(void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 	isc_buffer_add(&source, len);
 	isc_buffer_setactive(&source, len);
 	isc_buffer_init(&target, name_buf, BUFLEN);
-	dns_name_init(&dns_origin, NULL);
+	dns_name_init(&dns_origin);
 	dns_master_initrawheader(&header);
 
 	result = dns_name_fromtext(&dns_origin, &source, dns_rootname, 0,
@@ -469,7 +469,7 @@ ISC_RUN_TEST_IMPL(dumpraw) {
 	isc_buffer_add(&source, len);
 	isc_buffer_setactive(&source, len);
 	isc_buffer_init(&target, namebuf, BUFLEN);
-	dns_name_init(&dnsorigin, NULL);
+	dns_name_init(&dnsorigin);
 	result = dns_name_fromtext(&dnsorigin, &source, dns_rootname, 0,
 				   &target);
 	assert_int_equal(result, ISC_R_SUCCESS);

@@ -37,7 +37,7 @@ fromtext_minfo(ARGS_FROMTEXT) {
 	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, false));
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		RETTOK(dns_name_fromtext(&name, &buffer, origin, options,
 					 target));
@@ -66,9 +66,9 @@ totext_minfo(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_minfo);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&rmail, NULL);
-	dns_name_init(&email, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&rmail);
+	dns_name_init(&email);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -103,8 +103,8 @@ fromwire_minfo(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, true);
 
-	dns_name_init(&rmail, NULL);
-	dns_name_init(&email, NULL);
+	dns_name_init(&rmail);
+	dns_name_init(&email);
 
 	RETERR(dns_name_fromwire(&rmail, source, dctx, target));
 	return dns_name_fromwire(&email, source, dctx, target);
@@ -115,16 +115,14 @@ towire_minfo(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
-	dns_offsets_t roffsets;
-	dns_offsets_t eoffsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_minfo);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, true);
 
-	dns_name_init(&rmail, roffsets);
-	dns_name_init(&email, eoffsets);
+	dns_name_init(&rmail);
+	dns_name_init(&email);
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -153,8 +151,8 @@ compare_minfo(ARGS_COMPARE) {
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -170,8 +168,8 @@ compare_minfo(ARGS_COMPARE) {
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
@@ -213,15 +211,15 @@ tostruct_minfo(ARGS_TOSTRUCT) {
 	minfo->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&minfo->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
-	dns_name_init(&minfo->rmailbox, NULL);
+	dns_name_init(&minfo->rmailbox);
 	name_duporclone(&name, mctx, &minfo->rmailbox);
 	isc_region_consume(&region, name_length(&name));
 
 	dns_name_fromregion(&name, &region);
-	dns_name_init(&minfo->emailbox, NULL);
+	dns_name_init(&minfo->emailbox);
 	name_duporclone(&name, mctx, &minfo->emailbox);
 	minfo->mctx = mctx;
 	return ISC_R_SUCCESS;
@@ -264,14 +262,14 @@ digest_minfo(ARGS_DIGEST) {
 	REQUIRE(rdata->type == dns_rdatatype_minfo);
 
 	dns_rdata_toregion(rdata, &r);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
 	result = dns_name_digest(&name, digest, arg);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
 	isc_region_consume(&r, name_length(&name));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
 
 	return dns_name_digest(&name, digest, arg);
@@ -299,7 +297,7 @@ checknames_minfo(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 
 	dns_rdata_toregion(rdata, &region);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ismailbox(&name)) {
 		if (bad != NULL) {

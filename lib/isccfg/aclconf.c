@@ -852,7 +852,7 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 			INSIST(dacl->length < dacl->alloc);
 			de->type = dns_aclelementtype_keyname;
 			de->negative = neg;
-			dns_name_init(&de->keyname, NULL);
+			dns_name_init(&de->keyname);
 			result = convert_keyname(ce, mctx, &de->keyname);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;

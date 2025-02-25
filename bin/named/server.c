@@ -2745,7 +2745,7 @@ configure_catz_zone(dns_view_t *view, dns_view_t *pview,
 	dns_name_t origin;
 	dns_catz_options_t *opts;
 
-	dns_name_init(&origin, NULL);
+	dns_name_init(&origin);
 	catz_obj = cfg_listelt_value(element);
 
 	str = cfg_obj_asstring(cfg_tuple_get(catz_obj, "zone name"));
@@ -3088,7 +3088,7 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 	ns.common.rdtype = dns_rdatatype_ns;
 	ns.common.rdclass = dns_db_class(db);
 	ns.mctx = NULL;
-	dns_name_init(&ns.name, NULL);
+	dns_name_init(&ns.name);
 	dns_name_clone(nsname, &ns.name);
 	CHECK(dns_rdata_fromstruct(&rdata, dns_db_class(db), dns_rdatatype_ns,
 				   &ns, &b));
@@ -5932,7 +5932,7 @@ validate_tls(const cfg_obj_t *config, dns_view_t *view, const cfg_obj_t *obj,
 
 	if (name != NULL && *name == NULL) {
 		*name = isc_mem_get(view->mctx, sizeof(dns_name_t));
-		dns_name_init(*name, NULL);
+		dns_name_init(*name);
 		dns_name_dup(nm, view->mctx, *name);
 	}
 
@@ -7295,7 +7295,7 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 		INSIST(server->session_keybits == 0);
 
 		server->session_keyname = isc_mem_get(mctx, sizeof(dns_name_t));
-		dns_name_init(server->session_keyname, NULL);
+		dns_name_init(server->session_keyname);
 		dns_name_dup(keyname, mctx, server->session_keyname);
 
 		server->session_keyfile = isc_mem_strdup(mctx, keyfile);
@@ -12541,7 +12541,7 @@ nzd_setkey(MDB_val *key, dns_name_t *name, char *namebuf, size_t buflen) {
 	dns_fixedname_t fixed;
 
 	dns_fixedname_init(&fixed);
-	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
+	dns_name_downcase(name, dns_fixedname_name(&fixed));
 	dns_name_format(dns_fixedname_name(&fixed), namebuf, buflen);
 
 	key->mv_data = namebuf;

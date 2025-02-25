@@ -59,7 +59,6 @@
 
 struct dns_fixedname {
 	dns_name_t    name;
-	dns_offsets_t offsets;
 	isc_buffer_t  buffer;
 	unsigned char data[DNS_NAME_MAXWIRE];
 };

@@ -61,7 +61,7 @@
  *
  * The same applies to rdatasets.
  *
- * On the other hand, offsets, rdatalists and rdatas allocated using
+ * On the other hand, rdatalists and rdatas allocated using
  * dns_message_gettemp*() will always be freed automatically
  * when the message is reset or destroyed; calling dns_message_puttemp*()
  * on rdatalists and rdatas is optional and serves only to enable the item
@@ -275,7 +275,6 @@ struct dns_message {
 
 	ISC_LIST(dns_msgblock_t) rdatas;
 	ISC_LIST(dns_msgblock_t) rdatalists;
-	ISC_LIST(dns_msgblock_t) offsets;
 
 	ISC_LIST(dns_rdata_t) freerdata;
 	ISC_LIST(dns_rdatalist_t) freerdatalist;

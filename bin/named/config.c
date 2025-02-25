@@ -551,7 +551,7 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 	}
 
 	*namep = isc_mem_get(mctx, sizeof(**namep));
-	dns_name_init(*namep, NULL);
+	dns_name_init(*namep);
 
 	objstr = cfg_obj_asstring(obj);
 	isc_buffer_constinit(&b, objstr, strlen(objstr));

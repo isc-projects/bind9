@@ -324,7 +324,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 
 		/* Duplicate key name. */
 		if (source->elements[i].type == dns_aclelementtype_keyname) {
-			dns_name_init(&dest->elements[nelem + i].keyname, NULL);
+			dns_name_init(&dest->elements[nelem + i].keyname);
 			dns_name_dup(&source->elements[i].keyname, dest->mctx,
 				     &dest->elements[nelem + i].keyname);
 		}

@@ -110,7 +110,7 @@ name_to_gbuffer(const dns_name_t *name, isc_buffer_t *buffer,
 		namep = name;
 	} else {
 		unsigned int labels;
-		dns_name_init(&tname, NULL);
+		dns_name_init(&tname);
 		labels = dns_name_countlabels(name);
 		dns_name_getlabelsequence(name, 0, labels - 1, &tname);
 		namep = &tname;

@@ -39,7 +39,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -151,8 +151,8 @@ totext_any_tsig(ARGS_TOTEXT) {
 	/*
 	 * Algorithm Name.
 	 */
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 	dns_name_fromregion(&name, &sr);
 	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
 							 : 0;
@@ -270,7 +270,7 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	/*
 	 * Algorithm Name.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	isc_buffer_activeregion(source, &sr);
@@ -326,7 +326,6 @@ static isc_result_t
 towire_any_tsig(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
-	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_tsig);
 	REQUIRE(rdata->rdclass == dns_rdataclass_any);
@@ -334,7 +333,7 @@ towire_any_tsig(ARGS_TOWIRE) {
 
 	dns_compress_setpermitted(cctx, false);
 	dns_rdata_toregion(rdata, &sr);
-	dns_name_init(&name, offsets);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &sr);
 	RETERR(dns_name_towire(&name, cctx, target, NULL));
 	isc_region_consume(&sr, name_length(&name));
@@ -358,8 +357,8 @@ compare_any_tsig(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
 	order = dns_name_rdatacompare(&name1, &name2);
@@ -463,9 +462,9 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 	/*
 	 * Algorithm Name.
 	 */
-	dns_name_init(&alg, NULL);
+	dns_name_init(&alg);
 	dns_name_fromregion(&alg, &sr);
-	dns_name_init(&tsig->algorithm, NULL);
+	dns_name_init(&tsig->algorithm);
 	name_duporclone(&alg, mctx, &tsig->algorithm);
 
 	isc_region_consume(&sr, name_length(&tsig->algorithm));

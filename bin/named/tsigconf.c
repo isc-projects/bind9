@@ -68,7 +68,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		/*
 		 * Create the key name.
 		 */
-		dns_name_init(&keyname, NULL);
+		dns_name_init(&keyname);
 		isc_buffer_constinit(&keynamesrc, keyid, strlen(keyid));
 		isc_buffer_add(&keynamesrc, strlen(keyid));
 		isc_buffer_init(&keynamebuf, keynamedata, sizeof(keynamedata));

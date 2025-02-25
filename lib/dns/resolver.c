@@ -632,9 +632,7 @@ dns_resolver_setfuzzing(void) {
 #endif /* ifdef ENABLE_AFL */
 
 static unsigned char ip6_arpa_data[] = "\003IP6\004ARPA";
-static unsigned char ip6_arpa_offsets[] = { 0, 4, 9 };
-static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
-							 ip6_arpa_offsets);
+static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data);
 
 static void
 dns_resolver__destroy(dns_resolver_t *res);
@@ -2327,7 +2325,7 @@ issecuredomain(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	 */
 	labels = dns_name_countlabels(name);
 	if (dns_rdatatype_atparent(type) && labels > 1) {
-		dns_name_init(&suffix, NULL);
+		dns_name_init(&suffix);
 		dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
 		name = &suffix;
 	}
@@ -3512,7 +3510,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		    dns_name_countlabels(name) > 1)
 		{
 			unsigned int labels;
-			dns_name_init(&suffix, NULL);
+			dns_name_init(&suffix);
 			labels = dns_name_countlabels(name);
 			dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
 			name = &suffix;
@@ -4683,7 +4681,7 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		if (dns_rdatatype_atparent(fctx->type) &&
 		    dns_name_countlabels(name) > 1)
 		{
-			dns_name_init(&suffix, NULL);
+			dns_name_init(&suffix);
 			labels = dns_name_countlabels(name);
 			dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
 			fwdname = &suffix;
@@ -6670,7 +6668,7 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	 */
 	labels = dns_name_countlabels(name);
 	if (dns_rdatatype_atparent(type) && labels > 1U) {
-		dns_name_init(&suffix, NULL);
+		dns_name_init(&suffix);
 		dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
 		name = &suffix;
 	} else if (rel == dns_namereln_equal) {
@@ -6927,7 +6925,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		}
 		result = dns_rdata_tostruct(&rdata, &dname, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		dns_name_init(&prefix, NULL);
+		dns_name_init(&prefix);
 		tname = dns_fixedname_initname(&fixed);
 		nlabels = dns_name_countlabels(rname);
 		dns_name_split(qname, nlabels, &prefix, NULL);
@@ -10266,7 +10264,7 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 
 	REQUIRE(VALID_FCTX(fctx));
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	dlabels = dns_name_countlabels(fctx->qmindcname);
 	nlabels = dns_name_countlabels(fctx->name);
@@ -10742,7 +10740,7 @@ dns_resolver_addalternate(dns_resolver_t *res, const isc_sockaddr_t *alt,
 	} else {
 		a->isaddress = false;
 		a->_u._n.port = port;
-		dns_name_init(&a->_u._n.name, NULL);
+		dns_name_init(&a->_u._n.name);
 		dns_name_dup(name, res->mctx, &a->_u._n.name);
 	}
 	ISC_LINK_INIT(a, link);

@@ -34,17 +34,12 @@ typedef enum { fw_start = 0, fw_ordinary, fw_newcurrent } fw_state;
 
 #define VALID_NAME(n) ISC_MAGIC_VALID(n, DNS_NAME_MAGIC)
 
-#define INIT_OFFSETS(name, var, default_offsets) \
-	if ((name)->offsets != NULL)             \
-		var = (name)->offsets;           \
-	else                                     \
-		var = (default_offsets);
+#define INIT_OFFSETS(name, var, default_offsets) (var) = (default_offsets)
 
 #define MAKE_EMPTY(name)                           \
 	do {                                       \
 		name->ndata = NULL;                \
 		name->length = 0;                  \
-		name->labels = 0;                  \
 		name->attributes.absolute = false; \
 	} while (0)
 
@@ -197,7 +192,6 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 	}
 
 	name->ndata = (unsigned char *)target->base + target->used;
-	name->labels = labels;
 	name->length = nused;
 	name->attributes.absolute = true;
 

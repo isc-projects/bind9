@@ -81,7 +81,7 @@ new_forwarders(isc_mem_t *mctx, const dns_name_t *name,
 	isc_mem_attach(mctx, &forwarders->mctx);
 	isc_refcount_init(&forwarders->references, 1);
 
-	dns_name_dupwithoffsets(name, mctx, &forwarders->name);
+	dns_name_dup(name, mctx, &forwarders->name);
 
 	return forwarders;
 }
@@ -107,7 +107,7 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		if (fwd->tlsname != NULL) {
 			nfwd->tlsname = isc_mem_get(fwdtable->mctx,
 						    sizeof(*nfwd->tlsname));
-			dns_name_init(nfwd->tlsname, NULL);
+			dns_name_init(nfwd->tlsname);
 			dns_name_dup(fwd->tlsname, fwdtable->mctx,
 				     nfwd->tlsname);
 		}

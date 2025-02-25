@@ -319,7 +319,7 @@ new_keynode(const dns_name_t *name, dns_rdata_ds_t *ds,
 	isc_refcount_init(&knode->references, 1);
 	isc_rwlock_init(&knode->rwlock);
 
-	dns_name_dupwithoffsets(name, keytable->mctx, &knode->name);
+	dns_name_dup(name, keytable->mctx, &knode->name);
 
 	/*
 	 * If a DS was supplied, initialize an rdatalist.

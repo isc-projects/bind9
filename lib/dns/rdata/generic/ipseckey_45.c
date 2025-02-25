@@ -105,7 +105,7 @@ fromtext_ipseckey(ARGS_FROMTEXT) {
 		break;
 
 	case 3:
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		if (origin == NULL) {
 			origin = dns_rootname;
@@ -132,7 +132,7 @@ totext_ipseckey(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
 	REQUIRE(rdata->length >= 3);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	if (rdata->data[1] > 3U) {
 		return ISC_R_NOTIMPLEMENTED;
@@ -223,7 +223,7 @@ fromwire_ipseckey(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	isc_buffer_activeregion(source, &region);
 	if (region.length < 3) {
@@ -357,7 +357,7 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 	ipseckey->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&ipseckey->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 
 	ipseckey->precedence = uint8_fromregion(&region);
@@ -386,7 +386,7 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 		break;
 
 	case 3:
-		dns_name_init(&ipseckey->gateway, NULL);
+		dns_name_init(&ipseckey->gateway);
 		dns_name_fromregion(&name, &region);
 		name_duporclone(&name, mctx, &ipseckey->gateway);
 		isc_region_consume(&region, name_length(&name));
@@ -494,8 +494,8 @@ casecompare_ipseckey(ARGS_COMPARE) {
 		return isc_region_compare(&region1, &region2);
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	isc_region_consume(&region1, 3);
 	isc_region_consume(&region2, 3);

@@ -67,7 +67,7 @@ dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
 	}
 
 	name = dns_fixedname_initname(&fname);
-	(void)dns_name_downcase(owner, name, NULL);
+	(void)dns_name_downcase(owner, name);
 
 	md = isc_md_new();
 

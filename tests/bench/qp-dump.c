@@ -26,6 +26,8 @@
 #include <dns/qp.h>
 #include <dns/types.h>
 
+#include "dns/name.h"
+
 #include <tests/dns.h>
 #include <tests/qp.h>
 
@@ -52,19 +54,14 @@ smallname_ndata(void *pval, uint32_t ival) {
 	return (uint8_t *)(smallname_refcount(pval, ival) + 1);
 }
 
-static inline uint8_t *
-smallname_offsets(void *pval, uint32_t ival) {
-	return smallname_ndata(pval, ival) + smallname_length(pval, ival);
-}
-
 static void
 smallname_from_name(const dns_name_t *name, void **valp, uint32_t *ctxp) {
-	size_t size = sizeof(isc_refcount_t) + name->length + name->labels;
+	uint8_t labels = dns_name_countlabels(name);
+	size_t size = sizeof(isc_refcount_t) + name->length + labels;
 	*valp = isc_mem_get(mctx, size);
-	*ctxp = name->labels << 8 | name->length;
+	*ctxp = labels << 8 | name->length;
 	isc_refcount_init(smallname_refcount(*valp, *ctxp), 0);
 	memmove(smallname_ndata(*valp, *ctxp), name->ndata, name->length);
-	memmove(smallname_offsets(*valp, *ctxp), name->offsets, name->labels);
 }
 
 static void
@@ -79,10 +76,8 @@ name_from_smallname(dns_name_t *name, void *pval, uint32_t ival) {
 	dns_name_reset(name);
 	name->ndata = smallname_ndata(pval, ival);
 	name->length = smallname_length(pval, ival);
-	name->labels = smallname_labels(pval, ival);
-	name->offsets = smallname_offsets(pval, ival);
 	name->attributes.readonly = true;
-	if (name->ndata[name->offsets[name->labels - 1]] == '\0') {
+	if (name->ndata[name->length - 1] == '\0') {
 		name->attributes.absolute = true;
 	}
 }
@@ -225,7 +220,7 @@ main(int argc, char *argv[]) {
 		}
 
 		wirebytes += name->length;
-		labels += name->labels;
+		labels += dns_name_countlabels(name);
 		names += 1;
 	}
 	dns_qp_compact(qp, DNS_QPGC_ALL);

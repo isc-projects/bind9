@@ -37,7 +37,7 @@ fromtext_talink(ARGS_FROMTEXT) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, false));
 
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		RETTOK(dns_name_fromtext(&name, &buffer, origin, options,
 					 target));
@@ -57,9 +57,9 @@ totext_talink(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_talink);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&prev, NULL);
-	dns_name_init(&next, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&prev);
+	dns_name_init(&next);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &dregion);
 
@@ -92,8 +92,8 @@ fromwire_talink(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&prev, NULL);
-	dns_name_init(&next, NULL);
+	dns_name_init(&prev);
+	dns_name_init(&next);
 
 	RETERR(dns_name_fromwire(&prev, source, dctx, target));
 	return dns_name_fromwire(&next, source, dctx, target);
@@ -104,16 +104,14 @@ towire_talink(ARGS_TOWIRE) {
 	isc_region_t sregion;
 	dns_name_t prev;
 	dns_name_t next;
-	dns_offsets_t moffsets;
-	dns_offsets_t roffsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_talink);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
 
-	dns_name_init(&prev, moffsets);
-	dns_name_init(&next, roffsets);
+	dns_name_init(&prev);
+	dns_name_init(&next);
 
 	dns_rdata_toregion(rdata, &sregion);
 
@@ -177,15 +175,15 @@ tostruct_talink(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &region);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	dns_name_init(&talink->prev, NULL);
+	dns_name_init(&talink->prev);
 	name_duporclone(&name, mctx, &talink->prev);
 
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	dns_name_init(&talink->next, NULL);
+	dns_name_init(&talink->next);
 	name_duporclone(&name, mctx, &talink->next);
 
 	talink->mctx = mctx;

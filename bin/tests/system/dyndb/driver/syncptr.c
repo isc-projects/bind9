@@ -224,7 +224,7 @@ syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
 
 	dns_fixedname_init(&ptr_name);
 	DNS_RDATACOMMON_INIT(&ptr_struct, dns_rdatatype_ptr, dns_rdataclass_in);
-	dns_name_init(&ptr_struct.ptr, NULL);
+	dns_name_init(&ptr_struct.ptr);
 
 	syncptr = isc_mem_get(mctx, sizeof(*syncptr));
 	*syncptr = (syncptr_t){ 0 };

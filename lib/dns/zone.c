@@ -1171,8 +1171,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 
 	isc_refcount_init(&zone->references, 1);
 	isc_refcount_init(&zone->irefs, 0);
-	dns_name_init(&zone->origin, NULL);
-	dns_name_init(&zone->rad, NULL);
+	dns_name_init(&zone->origin);
+	dns_name_init(&zone->rad);
 	isc_sockaddr_any(&zone->notifysrc4);
 	isc_sockaddr_any6(&zone->notifysrc6);
 	isc_sockaddr_any(&zone->parentalsrc4);
@@ -1693,7 +1693,7 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 	INSIST(zone != zone->raw);
 	if (dns_name_dynamic(&zone->origin)) {
 		dns_name_free(&zone->origin, zone->mctx);
-		dns_name_init(&zone->origin, NULL);
+		dns_name_init(&zone->origin);
 	}
 	dns_name_dup(origin, zone->mctx, &zone->origin);
 
@@ -4858,9 +4858,8 @@ process_zone_setnsec3param(dns_zone_t *zone) {
 	}
 }
 
-static unsigned char er_offset[] = { 0, 1 };
 static unsigned char er_ndata[] = "\001*\003_er";
-static dns_name_t er = DNS_NAME_INITNONABSOLUTE(er_ndata, er_offset);
+static dns_name_t er = DNS_NAME_INITNONABSOLUTE(er_ndata);
 
 static isc_result_t
 check_reportchannel(dns_zone_t *zone, dns_db_t *db) {
@@ -12527,7 +12526,7 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 	isc_mem_attach(mctx, &notify->mctx);
 	isc_sockaddr_any(&notify->src);
 	isc_sockaddr_any(&notify->dst);
-	dns_name_init(&notify->ns, NULL);
+	dns_name_init(&notify->ns);
 	ISC_LINK_INIT(notify, link);
 	notify->magic = NOTIFY_MAGIC;
 	*notifyp = notify;
@@ -12951,7 +12950,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	/*
 	 * Find serial and primary server's name.
 	 */
-	dns_name_init(&primary, NULL);
+	dns_name_init(&primary);
 	result = dns_rdataset_first(&soardset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup3;
@@ -13630,7 +13629,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 			dns_name_t *tmp_name;
 			tmp_name = isc_mem_get(cb_args->stub->mctx,
 					       sizeof(*tmp_name));
-			dns_name_init(tmp_name, NULL);
+			dns_name_init(tmp_name);
 			dns_name_dup(&ns.name, cb_args->stub->mctx, tmp_name);
 			ISC_LIST_APPEND(ns_list, tmp_name, link);
 		}
@@ -19094,7 +19093,7 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 	REQUIRE(added != NULL && *added == NULL);
 
 	name = dns_fixedname_initname(&fname);
-	dns_name_downcase(&zone->origin, name, NULL);
+	dns_name_downcase(&zone->origin, name);
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
@@ -20204,7 +20203,7 @@ dns_zone_checknames(dns_zone_t *zone, const dns_name_t *name,
 		}
 	}
 
-	dns_name_init(&bad, NULL);
+	dns_name_init(&bad);
 	ok = dns_rdata_checknames(rdata, name, &bad);
 	if (!ok) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
@@ -21284,7 +21283,7 @@ checkds_create(isc_mem_t *mctx, unsigned int flags, dns_checkds_t **checkdsp) {
 
 	isc_mem_attach(mctx, &checkds->mctx);
 	isc_sockaddr_any(&checkds->dst);
-	dns_name_init(&checkds->ns, NULL);
+	dns_name_init(&checkds->ns);
 	ISC_LINK_INIT(checkds, link);
 	checkds->magic = CHECKDS_MAGIC;
 	*checkdsp = checkds;
@@ -21315,7 +21314,7 @@ checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	/*
 	 * Make question.
 	 */
-	dns_name_init(tempname, NULL);
+	dns_name_init(tempname);
 	dns_name_clone(&zone->origin, tempname);
 	dns_rdataset_makequestion(temprdataset, zone->rdclass,
 				  dns_rdatatype_ds);
@@ -22094,7 +22093,7 @@ zone_checkds(dns_zone_t *zone) {
 		zone->nsfetchcount++;
 		isc_refcount_increment0(&zone->irefs);
 		name = dns_fixedname_initname(&nsfetch->name);
-		dns_name_init(&nsfetch->pname, NULL);
+		dns_name_init(&nsfetch->pname);
 		dns_name_clone(&zone->origin, &nsfetch->pname);
 		dns_name_dup(&zone->origin, zone->mctx, name);
 		dns_rdataset_init(&nsfetch->nsrrset);

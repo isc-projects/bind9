@@ -41,7 +41,7 @@ fromtext_rt(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -72,8 +72,8 @@ totext_rt(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_rt);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 	num = uint16_fromregion(&region);
@@ -100,7 +100,7 @@ fromwire_rt(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
@@ -119,7 +119,6 @@ fromwire_rt(ARGS_FROMWIRE) {
 static isc_result_t
 towire_rt(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 	isc_region_t tr;
 
@@ -136,7 +135,7 @@ towire_rt(ARGS_TOWIRE) {
 	isc_region_consume(&region, 2);
 	isc_buffer_add(target, 2);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 
 	return dns_name_towire(&name, cctx, target, NULL);
@@ -161,8 +160,8 @@ compare_rt(ARGS_COMPARE) {
 		return order < 0 ? -1 : 1;
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -208,12 +207,12 @@ tostruct_rt(ARGS_TOSTRUCT) {
 	rt->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&rt->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	rt->preference = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
-	dns_name_init(&rt->host, NULL);
+	dns_name_init(&rt->host);
 	name_duporclone(&name, mctx, &rt->host);
 
 	rt->mctx = mctx;
@@ -238,7 +237,6 @@ freestruct_rt(ARGS_FREESTRUCT) {
 static isc_result_t
 additionaldata_rt(ARGS_ADDLDATA) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 	isc_result_t result;
 
@@ -246,7 +244,7 @@ additionaldata_rt(ARGS_ADDLDATA) {
 
 	UNUSED(owner);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
@@ -278,7 +276,7 @@ digest_rt(ARGS_DIGEST) {
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r2);
 	return dns_name_digest(&name, digest, arg);
 }
@@ -306,7 +304,7 @@ checknames_rt(ARGS_CHECKNAMES) {
 
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	if (!dns_name_ishostname(&name, false)) {
 		if (bad != NULL) {

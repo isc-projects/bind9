@@ -216,7 +216,7 @@ setup_test(void **state) {
 		return -1;
 	}
 
-	dns_name_init(&tls_name, NULL);
+	dns_name_init(&tls_name);
 	isc_buffer_constinit(&namesrc, tls_name_str, strlen(tls_name_str));
 	isc_buffer_add(&namesrc, strlen(tls_name_str));
 	isc_buffer_init(&namebuf, namedata, sizeof(namedata));

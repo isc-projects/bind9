@@ -569,7 +569,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 		dns_name_t *aname = dns_fixedname_name(&rctx->name);
 
 		ansname = isc_mem_get(mctx, sizeof(*ansname));
-		dns_name_init(ansname, NULL);
+		dns_name_init(ansname);
 
 		dns_name_dup(aname, mctx, ansname);
 

@@ -96,7 +96,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	/*
 	 * Rendezvous Servers.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, true));
@@ -173,7 +173,7 @@ totext_hip(ARGS_TOTEXT) {
 	/*
 	 * Rendezvous Servers.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	while (region.length > 0) {
 		dns_name_fromregion(&name, &region);
 
@@ -228,7 +228,7 @@ fromwire_hip(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, false);
 	while (isc_buffer_activelength(source) > 0) {
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		RETERR(dns_name_fromwire(&name, source, dctx, target));
 	}
 	return ISC_R_SUCCESS;
@@ -424,7 +424,7 @@ dns_rdata_hip_next(dns_rdata_hip_t *hip) {
 
 	region.base = hip->servers + hip->offset;
 	region.length = hip->servers_len - hip->offset;
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 	hip->offset += name.length;
 	INSIST(hip->offset <= hip->servers_len);
@@ -485,8 +485,8 @@ casecompare_hip(ARGS_COMPARE) {
 	isc_region_consume(&r1, hit_len + key_len);
 	isc_region_consume(&r2, hit_len + key_len);
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 	while (r1.length != 0 && r2.length != 0) {
 		dns_name_fromregion(&name1, &r1);
 		dns_name_fromregion(&name2, &r2);

@@ -610,19 +610,6 @@ both dynamically and statically allocated, relative and absolute,
 compressed and not, with straightforward conversions from text to
 wire format and vice versa.
 
-##### Initializing
-
-When a name object is initialized, a pointer to an "offset table"
-(`dns_offsets_t`) may optionally be supplied; this will improve
-performance of most name operations if the name is used more than
-once.
-
-        dns_name_t name1, name2;
-        dns_offsets_t offsets1;
-
-        dns_name_init(&name1, &offsets1);
-        dns_name_init(&name2, NULL);
-
 ##### Copying
 
 There are three methods for copying name objects:
@@ -641,7 +628,7 @@ There are three methods for copying name objects:
         isc_buffer_t buffer;
 
         isc_buffer_init(&buffer, namedata, sizeof(namedata));
-        dns_name_init(&target, NULL);
+        dns_name_init(&target);
         dns_name_setbuffer(target, &buffer);
         dns_name_copy(source, &target);
 
@@ -650,10 +637,8 @@ There are three methods for copying name objects:
   a buffer.
 
 - `dns_name_dup()` copies a name into a new name object, dynamically
-  allocating buffer space as needed. `dns_name_dupwithoffsets()` does
-  the same, but also dynamically allocates space for the copied offset
-  table.  Targets created by these functions must be freed by calling
-  `dns_name_free()`.
+  allocating buffer space as needed.  Target created by this function
+  must be freed by calling `dns_name_free()`.
 
 ##### Wire format
 
@@ -689,7 +674,7 @@ name.
         isc_buffer_t buf;
         dns_name_t name;
 
-        dns_name_init(&name, NULL);
+        dns_name_init(&name);
         isc_buffer_init(&buf, namedata, sizeof(namedata));
         isc_buffer_add(&buf, strlen(text));
         result = dns_name_fromtext(&name, &buf, dns_rootname, 0, NULL);

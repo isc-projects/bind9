@@ -1250,7 +1250,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_loop_t *loop,
 	isc_mem_attach(mctx, &xfr->mctx);
 	dns_zone_iattach(zone, &xfr->zone);
 	dns_view_weakattach(dns_zone_getview(zone), &xfr->view);
-	dns_name_init(&xfr->name, NULL);
+	dns_name_init(&xfr->name);
 
 	__cds_wfcq_init(&xfr->diff_head, &xfr->diff_tail);
 

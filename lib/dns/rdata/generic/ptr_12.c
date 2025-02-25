@@ -31,7 +31,7 @@ fromtext_ptr(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -63,8 +63,8 @@ totext_ptr(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_ptr);
 	REQUIRE(rdata->length != 0);
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
@@ -85,14 +85,13 @@ fromwire_ptr(ARGS_FROMWIRE) {
 
 	dctx = dns_decompress_setpermitted(dctx, true);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
 static isc_result_t
 towire_ptr(ARGS_TOWIRE) {
 	dns_name_t name;
-	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_ptr);
@@ -100,7 +99,7 @@ towire_ptr(ARGS_TOWIRE) {
 
 	dns_compress_setpermitted(cctx, true);
 
-	dns_name_init(&name, offsets);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
@@ -120,8 +119,8 @@ compare_ptr(ARGS_COMPARE) {
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -163,10 +162,10 @@ tostruct_ptr(ARGS_TOSTRUCT) {
 	ptr->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&ptr->common, link);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
-	dns_name_init(&ptr->ptr, NULL);
+	dns_name_init(&ptr->ptr);
 	name_duporclone(&name, mctx, &ptr->ptr);
 	ptr->mctx = mctx;
 	return ISC_R_SUCCESS;
@@ -207,7 +206,7 @@ digest_ptr(ARGS_DIGEST) {
 	REQUIRE(rdata->type == dns_rdatatype_ptr);
 
 	dns_rdata_toregion(rdata, &r);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
 
 	return dns_name_digest(&name, digest, arg);
@@ -226,19 +225,13 @@ checkowner_ptr(ARGS_CHECKOWNER) {
 }
 
 static unsigned char ip6_arpa_data[] = "\003IP6\004ARPA";
-static unsigned char ip6_arpa_offsets[] = { 0, 4, 9 };
-static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
-							 ip6_arpa_offsets);
+static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data);
 
 static unsigned char ip6_int_data[] = "\003IP6\003INT";
-static unsigned char ip6_int_offsets[] = { 0, 4, 8 };
-static const dns_name_t ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data,
-							ip6_int_offsets);
+static const dns_name_t ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data);
 
 static unsigned char in_addr_arpa_data[] = "\007IN-ADDR\004ARPA";
-static unsigned char in_addr_arpa_offsets[] = { 0, 8, 13 };
-static const dns_name_t in_addr_arpa =
-	DNS_NAME_INITABSOLUTE(in_addr_arpa_data, in_addr_arpa_offsets);
+static const dns_name_t in_addr_arpa = DNS_NAME_INITABSOLUTE(in_addr_arpa_data);
 
 static bool
 checknames_ptr(ARGS_CHECKNAMES) {
@@ -260,7 +253,7 @@ checknames_ptr(ARGS_CHECKNAMES) {
 	    dns_name_issubdomain(owner, &ip6_int))
 	{
 		dns_rdata_toregion(rdata, &region);
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		dns_name_fromregion(&name, &region);
 		if (!dns_name_ishostname(&name, false)) {
 			if (bad != NULL) {

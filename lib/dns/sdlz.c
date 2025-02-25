@@ -481,7 +481,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 
 		labels = dns_name_countlabels(name) -
 			 dns_name_countlabels(&sdlz->common.origin);
-		dns_name_init(&relname, NULL);
+		dns_name_init(&relname);
 		dns_name_getlabelsequence(name, 0, labels, &relname);
 		result = dns_name_totext(&relname, DNS_NAME_OMITFINALDOT, &b);
 		if (result != ISC_R_SUCCESS) {
@@ -603,7 +603,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 
 	if (node->name == NULL) {
 		node->name = isc_mem_get(sdlz->common.mctx, sizeof(dns_name_t));
-		dns_name_init(node->name, NULL);
+		dns_name_init(node->name);
 		dns_name_dup(name, sdlz->common.mctx, node->name);
 	}
 
@@ -1374,8 +1374,8 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 	};
 
 	/* initialize and set origin */
-	dns_name_init(&sdlzdb->common.origin, NULL);
-	dns_name_dupwithoffsets(name, mctx, &sdlzdb->common.origin);
+	dns_name_init(&sdlzdb->common.origin);
+	dns_name_dup(name, mctx, &sdlzdb->common.origin);
 
 	isc_refcount_init(&sdlzdb->common.references, 1);
 
@@ -1817,7 +1817,7 @@ dns_sdlz_putnamedrr(dns_sdlzallnodes_t *allnodes, const char *name,
 			return result;
 		}
 		sdlznode->name = isc_mem_get(mctx, sizeof(dns_name_t));
-		dns_name_init(sdlznode->name, NULL);
+		dns_name_init(sdlznode->name);
 		dns_name_dup(newname, mctx, sdlznode->name);
 		ISC_LIST_PREPEND(allnodes->nodelist, sdlznode, link);
 		if (allnodes->origin == NULL &&

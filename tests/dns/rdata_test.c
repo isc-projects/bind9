@@ -301,7 +301,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 		     result = dns_rdata_hip_next(hip))
 		{
 			dns_name_t name;
-			dns_name_init(&name, NULL);
+			dns_name_init(&name);
 			dns_rdata_hip_current(hip, &name);
 			assert_int_not_equal(dns_name_countlabels(&name), 0);
 			assert_true(dns_name_isabsolute(&name));

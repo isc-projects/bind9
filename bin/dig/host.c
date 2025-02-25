@@ -221,7 +221,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 		printf(";; %s SECTION:\n", section_name);
 	}
 
-	dns_name_init(&empty_name, NULL);
+	dns_name_init(&empty_name);
 
 	result = dns_message_firstname(msg, sectionid);
 	if (result == ISC_R_NOMORE) {

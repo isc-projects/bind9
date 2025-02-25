@@ -109,7 +109,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
@@ -231,8 +231,8 @@ totext_sig(ARGS_TOTEXT) {
 	/*
 	 * Signer.
 	 */
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
+	dns_name_init(&name);
+	dns_name_init(&prefix);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
 	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
@@ -291,7 +291,7 @@ fromwire_sig(ARGS_FROMWIRE) {
 	/*
 	 * Signer.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	/*
@@ -317,7 +317,6 @@ static isc_result_t
 towire_sig(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
-	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == dns_rdatatype_sig);
 	REQUIRE(rdata->length != 0);
@@ -339,7 +338,7 @@ towire_sig(ARGS_TOWIRE) {
 	/*
 	 * Signer.
 	 */
-	dns_name_init(&name, offsets);
+	dns_name_init(&name);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
 	RETERR(dns_name_towire(&name, cctx, target, NULL));
@@ -376,8 +375,8 @@ compare_sig(ARGS_COMPARE) {
 		return order;
 	}
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name1);
+	dns_name_init(&name2);
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
 	isc_region_consume(&r1, 18);
@@ -512,9 +511,9 @@ tostruct_sig(ARGS_TOSTRUCT) {
 	sig->keyid = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
-	dns_name_init(&signer, NULL);
+	dns_name_init(&signer);
 	dns_name_fromregion(&signer, &sr);
-	dns_name_init(&sig->signer, NULL);
+	dns_name_init(&sig->signer);
 	name_duporclone(&signer, mctx, &sig->signer);
 	isc_region_consume(&sr, name_length(&sig->signer));
 

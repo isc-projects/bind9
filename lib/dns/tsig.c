@@ -50,46 +50,32 @@
 #define BADTIMELEN 6
 
 static unsigned char hmacmd5_ndata[] = "\010hmac-md5\007sig-alg\003reg\003int";
-static unsigned char hmacmd5_offsets[] = { 0, 9, 17, 21, 25 };
 
-static dns_name_t const hmacmd5 = DNS_NAME_INITABSOLUTE(hmacmd5_ndata,
-							hmacmd5_offsets);
+static dns_name_t const hmacmd5 = DNS_NAME_INITABSOLUTE(hmacmd5_ndata);
 const dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
 
 static unsigned char gsstsig_ndata[] = "\010gss-tsig";
-static unsigned char gsstsig_offsets[] = { 0, 9 };
-static dns_name_t const gsstsig = DNS_NAME_INITABSOLUTE(gsstsig_ndata,
-							gsstsig_offsets);
+static dns_name_t const gsstsig = DNS_NAME_INITABSOLUTE(gsstsig_ndata);
 const dns_name_t *dns_tsig_gssapi_name = &gsstsig;
 
 static unsigned char hmacsha1_ndata[] = "\011hmac-sha1";
-static unsigned char hmacsha1_offsets[] = { 0, 10 };
-static dns_name_t const hmacsha1 = DNS_NAME_INITABSOLUTE(hmacsha1_ndata,
-							 hmacsha1_offsets);
+static dns_name_t const hmacsha1 = DNS_NAME_INITABSOLUTE(hmacsha1_ndata);
 const dns_name_t *dns_tsig_hmacsha1_name = &hmacsha1;
 
 static unsigned char hmacsha224_ndata[] = "\013hmac-sha224";
-static unsigned char hmacsha224_offsets[] = { 0, 12 };
-static dns_name_t const hmacsha224 = DNS_NAME_INITABSOLUTE(hmacsha224_ndata,
-							   hmacsha224_offsets);
+static dns_name_t const hmacsha224 = DNS_NAME_INITABSOLUTE(hmacsha224_ndata);
 const dns_name_t *dns_tsig_hmacsha224_name = &hmacsha224;
 
 static unsigned char hmacsha256_ndata[] = "\013hmac-sha256";
-static unsigned char hmacsha256_offsets[] = { 0, 12 };
-static dns_name_t const hmacsha256 = DNS_NAME_INITABSOLUTE(hmacsha256_ndata,
-							   hmacsha256_offsets);
+static dns_name_t const hmacsha256 = DNS_NAME_INITABSOLUTE(hmacsha256_ndata);
 const dns_name_t *dns_tsig_hmacsha256_name = &hmacsha256;
 
 static unsigned char hmacsha384_ndata[] = "\013hmac-sha384";
-static unsigned char hmacsha384_offsets[] = { 0, 12 };
-static dns_name_t const hmacsha384 = DNS_NAME_INITABSOLUTE(hmacsha384_ndata,
-							   hmacsha384_offsets);
+static dns_name_t const hmacsha384 = DNS_NAME_INITABSOLUTE(hmacsha384_ndata);
 const dns_name_t *dns_tsig_hmacsha384_name = &hmacsha384;
 
 static unsigned char hmacsha512_ndata[] = "\013hmac-sha512";
-static unsigned char hmacsha512_offsets[] = { 0, 12 };
-static dns_name_t const hmacsha512 = DNS_NAME_INITABSOLUTE(hmacsha512_ndata,
-							   hmacsha512_offsets);
+static dns_name_t const hmacsha512 = DNS_NAME_INITABSOLUTE(hmacsha512_ndata);
 const dns_name_t *dns_tsig_hmacsha512_name = &hmacsha512;
 
 static const struct {
@@ -249,7 +235,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 
 	tkey->name = dns_fixedname_initname(&tkey->fn);
 	dns_name_copy(name, tkey->name);
-	(void)dns_name_downcase(tkey->name, tkey->name, NULL);
+	(void)dns_name_downcase(tkey->name, tkey->name);
 
 	if (algorithm != DST_ALG_UNKNOWN) {
 		if (dstkey != NULL && dst_key_alg(dstkey) != algorithm) {
@@ -265,7 +251,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 
 	if (creator != NULL) {
 		tkey->creator = isc_mem_get(mctx, sizeof(dns_name_t));
-		dns_name_init(tkey->creator, NULL);
+		dns_name_init(tkey->creator);
 		dns_name_dup(creator, mctx, tkey->creator);
 	}
 
@@ -618,7 +604,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		.error = response ? msg->querytsigstatus : dns_rcode_noerror,
 	};
 
-	dns_name_init(&tsig.algorithm, NULL);
+	dns_name_init(&tsig.algorithm);
 	dns_name_clone(key->algorithm, &tsig.algorithm);
 
 	isc_buffer_init(&databuf, data, sizeof(data));

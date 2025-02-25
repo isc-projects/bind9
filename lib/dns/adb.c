@@ -815,7 +815,7 @@ static void
 clean_target(dns_adb_t *adb, dns_name_t *target) {
 	if (dns_name_countlabels(target) > 0) {
 		dns_name_free(target, adb->mctx);
-		dns_name_init(target, NULL);
+		dns_name_init(target);
 	}
 }
 
@@ -988,7 +988,7 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, unsigned int flags) {
 
 	name->name = dns_fixedname_initname(&name->fname);
 	dns_name_copy(dnsname, name->name);
-	dns_name_init(&name->target, NULL);
+	dns_name_init(&name->target);
 
 	inc_adbstats(adb, dns_adbstats_namescnt);
 	return name;

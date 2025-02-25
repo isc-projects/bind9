@@ -324,19 +324,13 @@ loadctx_destroy(dns_loadctx_t *lctx);
 			    source, line, isc_result_totext(result))
 
 static unsigned char in_addr_arpa_data[] = "\007IN-ADDR\004ARPA";
-static unsigned char in_addr_arpa_offsets[] = { 0, 8, 13 };
-static dns_name_t const in_addr_arpa =
-	DNS_NAME_INITABSOLUTE(in_addr_arpa_data, in_addr_arpa_offsets);
+static dns_name_t const in_addr_arpa = DNS_NAME_INITABSOLUTE(in_addr_arpa_data);
 
 static unsigned char ip6_int_data[] = "\003IP6\003INT";
-static unsigned char ip6_int_offsets[] = { 0, 4, 8 };
-static dns_name_t const ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data,
-							ip6_int_offsets);
+static dns_name_t const ip6_int = DNS_NAME_INITABSOLUTE(ip6_int_data);
 
 static unsigned char ip6_arpa_data[] = "\003IP6\004ARPA";
-static unsigned char ip6_arpa_offsets[] = { 0, 4, 9 };
-static dns_name_t const ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
-							 ip6_arpa_offsets);
+static dns_name_t const ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data);
 
 static bool
 dns_master_isprimary(dns_loadctx_t *lctx) {
@@ -2969,7 +2963,7 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 
 	rdata = ISC_LIST_HEAD(this->rdata);
 	while (rdata != NULL) {
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		dns_rdata_toregion(rdata, &region);
 		dns_name_fromregion(&name, &region);
 		if (dns_name_equal(&name, owner)) {

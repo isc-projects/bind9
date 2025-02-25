@@ -109,7 +109,9 @@ ISC_RUN_TEST_IMPL(fullcompare) {
 		relation = dns_name_fullcompare(name1, name1, &order, &nlabels);
 		assert_int_equal(relation, dns_namereln_equal);
 		assert_int_equal(order, 0);
-		assert_int_equal(nlabels, name1->labels);
+
+		uint8_t labels = dns_name_countlabels(name1);
+		assert_int_equal(nlabels, labels);
 
 		/* Some random initializer */
 		order = 3001;
@@ -175,7 +177,7 @@ compress_test(const dns_name_t *name1, const dns_name_t *name2,
 
 	isc_buffer_setactive(&source, source.used);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	RUNTIME_CHECK(isc_buffer_getuint16(&source) == 0xEAD);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, &target) ==
 		      ISC_R_SUCCESS);
@@ -232,22 +234,22 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	UNUSED(state);
 
-	dns_name_init(&name1, NULL);
+	dns_name_init(&name1);
 	r.base = plain1;
 	r.length = sizeof(plain1);
 	dns_name_fromregion(&name1, &r);
 
-	dns_name_init(&name2, NULL);
+	dns_name_init(&name2);
 	r.base = plain2;
 	r.length = sizeof(plain2);
 	dns_name_fromregion(&name2, &r);
 
-	dns_name_init(&name3, NULL);
+	dns_name_init(&name3);
 	r.base = plain3;
 	r.length = sizeof(plain3);
 	dns_name_fromregion(&name3, &r);
 
-	dns_name_init(&name4, NULL);
+	dns_name_init(&name4);
 	r.base = plain4;
 	r.length = sizeof(plain3);
 	dns_name_fromregion(&name4, &r);
@@ -390,11 +392,10 @@ ISC_RUN_TEST_IMPL(collision) {
 	uint8_t msgbuf[65536];
 	dns_name_t name;
 	char namebuf[256];
-	uint8_t offsets[128];
 
 	dns_compress_init(&cctx, mctx, DNS_COMPRESS_LARGE);
 	isc_buffer_init(&message, msgbuf, sizeof(msgbuf));
-	dns_name_init(&name, offsets);
+	dns_name_init(&name);
 
 	/*
 	 * compression offsets are not allowed to be zero so our
@@ -470,7 +471,7 @@ ISC_RUN_TEST_IMPL(fromregion) {
 	 * into 'name' where 'name.ndata' points to the buffer 'target'.
 	 */
 	isc_buffer_init(&b, target, sizeof(target));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_setbuffer(&name, &b);
 	r.base = source;
 	r.length = sizeof(source);
@@ -484,7 +485,7 @@ ISC_RUN_TEST_IMPL(fromregion) {
 	 * into 'name' where 'name.ndata' points to the source.
 	 */
 	isc_buffer_init(&b, target, sizeof(target));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	r.base = source;
 	r.length = sizeof(source);
 	dns_name_fromregion(&name, &r);
@@ -497,7 +498,7 @@ ISC_RUN_TEST_IMPL(fromregion) {
 	 * where 'name.ndata' points to the source.
 	 */
 	isc_buffer_init(&b, target, sizeof(target));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	r.base = source;
 	r.length = 8;
 	dns_name_fromregion(&name, &r);
@@ -509,7 +510,7 @@ ISC_RUN_TEST_IMPL(fromregion) {
 	 * Extract empty name in 'source' into 'name'.
 	 */
 	isc_buffer_init(&b, target, sizeof(target));
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	r.base = source;
 	r.length = 0;
 	dns_name_fromregion(&name, &r);
@@ -565,26 +566,21 @@ ISC_RUN_TEST_IMPL(istat) {
 static bool
 name_attr_zero(struct dns_name_attrs attributes) {
 	return !(attributes.absolute | attributes.readonly |
-		 attributes.dynamic | attributes.dynoffsets |
-		 attributes.nocompress | attributes.cache | attributes.answer |
-		 attributes.ncache | attributes.chaining | attributes.chase |
-		 attributes.wildcard | attributes.prerequisite |
-		 attributes.update | attributes.hasupdaterec);
+		 attributes.dynamic | attributes.nocompress | attributes.cache |
+		 attributes.answer | attributes.ncache | attributes.chaining |
+		 attributes.chase | attributes.wildcard |
+		 attributes.prerequisite | attributes.update |
+		 attributes.hasupdaterec);
 }
 
 /* dns_name_init */
 ISC_RUN_TEST_IMPL(init) {
 	dns_name_t name;
-	unsigned char offsets[1];
 
-	UNUSED(state);
-
-	dns_name_init(&name, offsets);
+	dns_name_init(&name);
 
 	assert_null(name.ndata);
 	assert_int_equal(name.length, 0);
-	assert_int_equal(name.labels, 0);
-	assert_ptr_equal(name.offsets, offsets);
 	assert_null(name.buffer);
 	assert_true(name_attr_zero(name.attributes));
 }
@@ -592,17 +588,12 @@ ISC_RUN_TEST_IMPL(init) {
 /* dns_name_invalidate */
 ISC_RUN_TEST_IMPL(invalidate) {
 	dns_name_t name;
-	unsigned char offsets[1];
 
-	UNUSED(state);
-
-	dns_name_init(&name, offsets);
+	dns_name_init(&name);
 	dns_name_invalidate(&name);
 
 	assert_null(name.ndata);
 	assert_int_equal(name.length, 0);
-	assert_int_equal(name.labels, 0);
-	assert_null(name.offsets);
 	assert_null(name.buffer);
 	assert_true(name_attr_zero(name.attributes));
 }
@@ -616,7 +607,7 @@ ISC_RUN_TEST_IMPL(buffer) {
 	UNUSED(state);
 
 	isc_buffer_init(&b, buf, BUFSIZ);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name);
 	dns_name_setbuffer(&name, &b);
 	assert_ptr_equal(name.buffer, &b);
 	assert_true(dns_name_hasbuffer(&name));
@@ -645,7 +636,7 @@ ISC_RUN_TEST_IMPL(isabsolute) {
 		isc_buffer_constinit(&b, testcases[i].namestr, len);
 		isc_buffer_add(&b, len);
 
-		dns_name_init(&name, NULL);
+		dns_name_init(&name);
 		isc_buffer_init(&nb, data, BUFSIZ);
 		dns_name_setbuffer(&name, &nb);
 		result = dns_name_fromtext(&name, &b, NULL, 0, NULL);
@@ -875,8 +866,8 @@ ISC_RUN_TEST_IMPL(getlabelsequence) {
 		dns_name_t *n1, *n2;
 
 		/* target names */
-		dns_name_init(&t1, NULL);
-		dns_name_init(&t2, NULL);
+		dns_name_init(&t1);
+		dns_name_init(&t2);
 
 		/* source names */
 		n1 = dns_fixedname_initname(&f1);

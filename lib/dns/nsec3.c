@@ -261,7 +261,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 	memset(rethash, 0, NSEC3_MAX_HASH_LENGTH);
 
 	downcased = dns_fixedname_initname(&fixed);
-	dns_name_downcase(name, downcased, NULL);
+	dns_name_downcase(name, downcased);
 
 	/* hash the node name */
 	len = isc_iterated_hash(rethash, hashalg, iterations, salt,
@@ -757,7 +757,7 @@ addnsec3:
 	/*
 	 * Add missing NSEC3 records for empty nodes
 	 */
-	dns_name_init(&empty, NULL);
+	dns_name_init(&empty);
 	dns_name_clone(name, &empty);
 	do {
 		labels = dns_name_countlabels(&empty) - 1;
@@ -1114,7 +1114,7 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 	dns_name_t *origin = dns_zone_getorigin(zone);
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 
-	dns_name_init(&next, NULL);
+	dns_name_init(&next);
 	dns_rdataset_init(&rdataset);
 
 	result = dns_db_getoriginnode(db, &node);
@@ -1536,7 +1536,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version,
 	 *  Delete NSEC3 records for now non active nodes.
 	 */
 cleanup_orphaned_ents:
-	dns_name_init(&empty, NULL);
+	dns_name_init(&empty);
 	dns_name_clone(name, &empty);
 	do {
 		labels = dns_name_countlabels(&empty) - 1;
@@ -2022,7 +2022,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	 * Prepare to compute all the hashes.
 	 */
 	qname = dns_fixedname_initname(&qfixed);
-	dns_name_downcase(name, qname, NULL);
+	dns_name_downcase(name, qname);
 	qlabels = dns_name_countlabels(qname);
 	first = true;
 
