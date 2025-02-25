@@ -229,31 +229,18 @@ stages:
 ### Job Templates
 
 .api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
-  only:
-    - api
-    - pipelines
-    - schedules
-    - tags
-    - triggers
-    - web
+  rules:
+    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
+    - if: '$CI_COMMIT_TAG != null'
 
 .api-pipelines-schedules-triggers-web-triggering-rules: &api_pipelines_schedules_triggers_web_triggering_rules
-  only:
-    - api
-    - pipelines
-    - schedules
-    - triggers
-    - web
+  rules:
+    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
 
 .default-triggering-rules: &default_triggering_rules
-  only:
-    - api
-    - merge_requests
-    - pipelines
-    - schedules
-    - tags
-    - triggers
-    - web
+  rules:
+    - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
+    - if: '$CI_COMMIT_TAG != null'
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
@@ -650,9 +637,8 @@ danger:
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
     - hazard
-  only:
-    refs:
-      - merge_requests
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 checkbashisms:
   <<: *precheck_job
@@ -1535,8 +1521,8 @@ release:
       artifacts: true
     - job: docs
       artifacts: true
-  only:
-    - tags
+  rules:
+    - if: '$CI_COMMIT_TAG != null'
   artifacts:
     paths:
       - "*-release"
@@ -1579,8 +1565,8 @@ sign:
   needs:
     - job: release
       artifacts: true
-  only:
-    - tags
+  rules:
+    - if: '$CI_COMMIT_TAG != null'
   when: manual
   allow_failure: false
 
@@ -1632,10 +1618,8 @@ coverity:
       - cov-int.tar.gz
     expire_in: "1 week"
     when: on_failure
-  only:
-    variables:
-      - $COVERITY_SCAN_PROJECT_NAME
-      - $COVERITY_SCAN_TOKEN
+  rules:
+    - if: '$COVERITY_SCAN_PROJECT_NAME != null && $COVERITY_SCAN_TOKEN != null'
 
 # Respdiff tests
 
@@ -1771,8 +1755,8 @@ fsck:
     - git clone https://gitlab.isc.org/isc-projects/bind9.git bind9-full-clone
     - cd bind9-full-clone/
     - git fsck
-  only:
-    - schedules
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
   needs: []
 
 gcov:
@@ -1824,9 +1808,8 @@ pairwise:
       - pairwise-model.txt
       - pairwise-output.*.txt
     when: on_failure
-  only:
-    variables:
-      - $PAIRWISE_TESTING
+  rules:
+    - if: '$PAIRWISE_TESTING != null'
 
 .post_merge_template: &post_merge
   <<: *base_image
