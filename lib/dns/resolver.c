@@ -11087,8 +11087,8 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 	}
 
 cleanup:
-	RWUNLOCK(&res->counters_lock, isc_rwlocktype_read);
 	isc_hashmap_iter_destroy(&it);
+	RWUNLOCK(&res->counters_lock, isc_rwlocktype_read);
 	return result;
 }
 
