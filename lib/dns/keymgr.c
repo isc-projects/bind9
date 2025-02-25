@@ -2023,6 +2023,20 @@ keymgr_purge_keyfile(dst_key_t *key, int type) {
 	}
 }
 
+static bool
+dst_key_doublematch(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
+	int matches = 0;
+
+	for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
+	     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
+	{
+		if (dns_kasp_key_match(kkey, key)) {
+			matches++;
+		}
+	}
+	return matches > 1;
+}
+
 /*
  * Examine 'keys' and match 'kasp' policy.
  *
@@ -2162,6 +2176,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					 * matches the kasp policy.
 					 */
 					if (!dst_key_is_unused(dkey->key) &&
+					    !dst_key_doublematch(dkey, kasp) &&
 					    (dst_key_goal(dkey->key) ==
 					     OMNIPRESENT) &&
 					    !keymgr_dep(dkey->key, keyring,
