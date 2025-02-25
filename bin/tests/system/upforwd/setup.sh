@@ -14,6 +14,7 @@
 . ../conf.sh
 
 cp -f ns1/example1.db ns1/example.db
+cp -f ns1/example3.db.in ns1/example3.db
 cp -f ns3/noprimary.db ns3/noprimary1.db
 
 copy_setports ns1/named.conf.in ns1/named.conf
