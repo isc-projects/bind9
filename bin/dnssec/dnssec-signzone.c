@@ -551,7 +551,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		future = isc_serial_lt(now, rrsig.timesigned);
 
 		key = keythatsigned(&rrsig);
-		offline = key->pubkey;
+		offline = (key != NULL) ? key->pubkey : false;
 		sig_format(&rrsig, sigstr, sizeof(sigstr));
 		expired = isc_serial_gt(now, rrsig.timeexpire);
 		refresh = isc_serial_gt(now + cycle, rrsig.timeexpire);
