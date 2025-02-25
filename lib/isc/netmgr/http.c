@@ -1562,8 +1562,9 @@ http_too_many_active_streams(isc_nm_http_session_t *session) {
 	 * throttle it as it might be not a friend knocking at the
 	 * door. We already have some job to do for it.
 	 */
-	const uint64_t max_active_streams = ISC_MAX(
-		STREAM_CLIENTS_PER_CONN, session->max_concurrent_streams / 3);
+	const uint64_t max_active_streams =
+		ISC_MAX(STREAM_CLIENTS_PER_CONN,
+			(session->max_concurrent_streams * 6) / 10); /* 60% */
 
 	if (session->client) {
 		return false;
