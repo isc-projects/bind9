@@ -6908,15 +6908,21 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 			}
 		} else {
 			/*
-			 * Either we don't care about the nature of the
-			 * cache rdataset (because no fetch is
-			 * interested in the outcome), or the cache
-			 * rdataset is not a negative cache entry.
-			 * Whichever case it is, we can return success.
-			 *
-			 * XXXRTH  There's a CNAME/DNAME problem here.
+			 * The attempt to add a negative cache entry
+			 * was rejected.  Set *eresultp to reflect
+			 * the type of the dataset being returned.
 			 */
-			*eresultp = ISC_R_SUCCESS;
+			switch (ardataset->type) {
+			case dns_rdatatype_cname:
+				*eresultp = DNS_R_CNAME;
+				break;
+			case dns_rdatatype_dname:
+				*eresultp = DNS_R_DNAME;
+				break;
+			default:
+				*eresultp = ISC_R_SUCCESS;
+				break;
+			}
 		}
 		result = ISC_R_SUCCESS;
 	}
