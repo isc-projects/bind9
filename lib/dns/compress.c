@@ -57,6 +57,7 @@ dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx,
 		.mctx = mctx,
 		.mask = mask,
 		.set = set,
+		.coff = 0xffff,
 	};
 }
 
@@ -70,6 +71,23 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 }
 
 void
+dns_compress_setmultiuse(dns_compress_t *cctx, bool multi) {
+	REQUIRE(CCTX_VALID(cctx));
+	if (multi) {
+		cctx->flags |= DNS_COMPRESS_MULTIUSE;
+	} else {
+		cctx->flags &= ~DNS_COMPRESS_MULTIUSE;
+	}
+	cctx->coff = 0xffff;
+}
+
+bool
+dns_compress_getmultiuse(dns_compress_t *cctx) {
+	REQUIRE(CCTX_VALID(cctx));
+	return (cctx->flags & DNS_COMPRESS_MULTIUSE) != 0;
+}
+
+void
 dns_compress_setpermitted(dns_compress_t *cctx, bool permitted) {
 	REQUIRE(CCTX_VALID(cctx));
 	if (permitted) {
@@ -77,6 +95,7 @@ dns_compress_setpermitted(dns_compress_t *cctx, bool permitted) {
 	} else {
 		cctx->flags &= ~DNS_COMPRESS_PERMITTED;
 	}
+	dns_compress_setmultiuse(cctx, false);
 }
 
 bool

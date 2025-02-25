@@ -75,6 +75,7 @@ enum dns_compress_flags {
 	DNS_COMPRESS_LARGE = 0x00000004U,
 	/* can toggle while rendering a message */
 	DNS_COMPRESS_PERMITTED = 0x00000008U,
+	DNS_COMPRESS_MULTIUSE = 0x00000010U,
 };
 
 /*
@@ -91,6 +92,7 @@ struct dns_compress {
 	dns_compress_flags_t flags;
 	uint16_t	     mask;
 	uint16_t	     count;
+	uint16_t	     coff;
 	isc_mem_t	    *mctx;
 	dns_compress_slot_t *set;
 	dns_compress_slot_t  smallset[1 << DNS_COMPRESS_SMALLBITS];
@@ -140,11 +142,36 @@ dns_compress_invalidate(dns_compress_t *cctx);
  */
 
 void
+dns_compress_setmultiuse(dns_compress_t *cctx, bool multi);
+/*%<
+ * 	Indicates this compression context is to be used for
+ * 	multiple calls to dns_name_towire(), for example when
+ * 	rendering the rdata in an rdataset. This causes the
+ * 	compression offset to be reusable across calls.
+ *
+ *	Requires:
+ *\li		'cctx' is not NULL.
+ */
+
+bool
+dns_compress_getmultiuse(dns_compress_t *cctx);
+
+/*%<
+ *	Find out whether multiuse is enabled.
+ *
+ *	Requires:
+ *\li		'cctx' to be initialized.
+ *
+ *	Returns:
+ *\li		allowed compression bitmap.
+ */
+void
 dns_compress_setpermitted(dns_compress_t *cctx, bool permitted);
 
 /*%<
  *	Sets whether compression is allowed, according to RFC 3597.
- *	This can vary depending on the rdata type.
+ *	This can vary depending on the rdata type. This will also
+ *	reset multiuse to false.
  *
  *	Requires:
  *\li		'cctx' to be initialized.

@@ -178,7 +178,7 @@ initname(char *setname) {
 
 	isc_buffer_init(&buf, setname, strlen(setname));
 	isc_buffer_add(&buf, strlen(setname));
-	result = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name, &buf, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize name %s", setname);
 	}

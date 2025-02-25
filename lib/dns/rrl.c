@@ -432,7 +432,7 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 			 */
 			wild = dns_fixedname_initname(&fixed);
 			result = dns_name_concatenate(dns_wildcardname, origin,
-						      wild, NULL);
+						      wild);
 			if (result != ISC_R_SUCCESS) {
 				/*
 				 * Fallback to use the zone's origin name

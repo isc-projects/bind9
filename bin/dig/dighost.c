@@ -858,14 +858,14 @@ requeue_lookup(dig_lookup_t *lookold, bool servers) {
 void
 setup_text_key(void) {
 	isc_result_t result;
-	dns_name_t keyname;
+	dns_fixedname_t fkey;
+	dns_name_t *keyname = dns_fixedname_initname(&fkey);
 	isc_buffer_t secretbuf;
 	unsigned int secretsize;
 	unsigned char *secretstore;
 
 	debug("setup_text_key()");
 	isc_buffer_allocate(mctx, &namebuf, MXNAME);
-	dns_name_init(&keyname);
 	isc_buffer_putstr(namebuf, keynametext);
 	secretsize = (unsigned int)strlen(keysecret) * 3 / 4;
 	secretstore = isc_mem_allocate(mctx, secretsize);
@@ -882,12 +882,12 @@ setup_text_key(void) {
 		goto failure;
 	}
 
-	result = dns_name_fromtext(&keyname, namebuf, dns_rootname, 0, namebuf);
+	result = dns_name_fromtext(keyname, namebuf, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
 
-	result = dns_tsigkey_create(&keyname, hmac_alg, secretstore,
+	result = dns_tsigkey_create(keyname, hmac_alg, secretstore,
 				    (int)secretsize, mctx, &tsigkey);
 failure:
 	if (result != ISC_R_SUCCESS) {
@@ -898,7 +898,6 @@ failure:
 	}
 
 	isc_mem_free(mctx, secretstore);
-	dns_name_invalidate(&keyname);
 	isc_buffer_free(&namebuf);
 }
 
@@ -2206,11 +2205,6 @@ setup_lookup(dig_lookup_t *lookup) {
 	}
 	dns_message_gettempname(lookup->sendmsg, &lookup->name);
 
-	isc_buffer_init(&lookup->namebuf, lookup->name_space,
-			sizeof(lookup->name_space));
-	isc_buffer_init(&lookup->onamebuf, lookup->oname_space,
-			sizeof(lookup->oname_space));
-
 	/*
 	 * We cannot convert `textname' and `origin' separately.
 	 * `textname' doesn't contain TLD, but local mapping needs
@@ -2258,8 +2252,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		len = (unsigned int)strlen(origin);
 		isc_buffer_init(&b, origin, len);
 		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(lookup->oname, &b, dns_rootname, 0,
-					   &lookup->onamebuf);
+		result = dns_name_fromtext(lookup->oname, &b, dns_rootname, 0);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg, &lookup->name);
 			dns_message_puttempname(lookup->sendmsg,
@@ -2277,12 +2270,12 @@ setup_lookup(dig_lookup_t *lookup) {
 			len = (unsigned int)strlen(textname);
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);
-			result = dns_name_fromtext(name, &b, NULL, 0, NULL);
+			result = dns_name_fromtext(name, &b, NULL, 0);
 			if (result == ISC_R_SUCCESS) {
 				if (!dns_name_isabsolute(name)) {
 					result = dns_name_concatenate(
 						name, lookup->oname,
-						lookup->name, &lookup->namebuf);
+						lookup->name);
 				} else {
 					dns_name_copy(name, lookup->name);
 				}
@@ -2310,8 +2303,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(lookup->name, &b,
-						   dns_rootname, 0,
-						   &lookup->namebuf);
+						   dns_rootname, 0);
 			if (result != ISC_R_SUCCESS) {
 				dns_message_puttempname(lookup->sendmsg,
 							&lookup->name);

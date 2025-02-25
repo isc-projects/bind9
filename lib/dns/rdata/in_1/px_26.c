@@ -21,7 +21,6 @@
 static isc_result_t
 fromtext_in_px(ARGS_FROMTEXT) {
 	isc_token_t token;
-	dns_name_t name;
 	isc_buffer_t buffer;
 
 	REQUIRE(type == dns_rdatatype_px);
@@ -50,18 +49,16 @@ fromtext_in_px(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+	RETTOK(dns_name_wirefromtext(&buffer, origin, options, target));
 
 	/*
 	 * MAPX400.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+	RETTOK(dns_name_wirefromtext(&buffer, origin, options, target));
 	return ISC_R_SUCCESS;
 }
 
@@ -168,7 +165,7 @@ towire_in_px(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
-	RETERR(dns_name_towire(&name, cctx, target, NULL));
+	RETERR(dns_name_towire(&name, cctx, target));
 	isc_region_consume(&region, name_length(&name));
 
 	/*
@@ -176,7 +173,7 @@ towire_in_px(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
-	return dns_name_towire(&name, cctx, target, NULL);
+	return dns_name_towire(&name, cctx, target);
 }
 
 static int

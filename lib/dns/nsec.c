@@ -483,8 +483,7 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			dns_name_getlabelsequence(&nsec.next, labels - nlabels,
 						  nlabels, &common);
 		}
-		result = dns_name_concatenate(dns_wildcardname, &common, wild,
-					      NULL);
+		result = dns_name_concatenate(dns_wildcardname, &common, wild);
 		if (result != ISC_R_SUCCESS) {
 			dns_rdata_freestruct(&nsec);
 			(*logit)(arg, ISC_LOG_DEBUG(3),

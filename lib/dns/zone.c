@@ -4881,7 +4881,7 @@ check_reportchannel(dns_zone_t *zone, dns_db_t *db) {
 	 * Otherwise, we need a '*._er' wildcard with a TXT rdataset.
 	 */
 	name = dns_fixedname_initname(&fixed);
-	CHECK(dns_name_concatenate(&er, &zone->origin, name, NULL));
+	CHECK(dns_name_concatenate(&er, &zone->origin, name));
 	CHECK(dns_db_findnode(db, name, false, &node));
 
 	dns_db_currentversion(db, &version);

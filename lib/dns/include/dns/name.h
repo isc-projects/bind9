@@ -302,9 +302,10 @@ dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer) {
  * Dedicate a buffer for use with 'name'.
  *
  * Notes:
- * \li	Specification of a target buffer in dns_name_fromwire(),
- *	dns_name_fromtext(), and dns_name_concatenate() is optional if
- *	'name' has a dedicated buffer.
+ * \li	Specification of a target buffer in dns_name_fromwire() and
+ *	dns_name_fromtext() is optional if 'name' has a dedicated buffer.
+ *	The target name in dns_name_concatenate() must have a dedicated
+ *	buffer.
  *
  * \li	The caller must not write to buffer until the name has been
  *	invalidated or is otherwise known not to be in use.
@@ -768,10 +769,11 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 
 isc_result_t
 dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
-		isc_buffer_t *target, uint16_t *comp_offsetp);
+		isc_buffer_t *target);
 /*%<
  * Convert 'name' into wire format, compressing it as specified by the
- * compression context 'cctx', and storing the result in 'target'.
+ * compression context 'cctx' (or leaving it uncompressed if 'cctx' is
+ * NULL), and storing the result in 'target'.
  *
  * Notes:
  * \li	If compression is permitted, then the cctx table may be updated.
@@ -798,10 +800,48 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 isc_result_t
 dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
-		  const dns_name_t *origin, unsigned int options,
-		  isc_buffer_t *target);
+		  const dns_name_t *origin, unsigned int options);
 /*%<
- * Convert the textual representation of a DNS name at source
+ * Convert the textual representation of a DNS name in 'source'
+ * and store it in 'name'.
+ *
+ * Notes:
+ * \li	Relative domain names will have 'origin' appended to them
+ *	unless 'origin' is NULL, in which case relative domain names
+ *	will remain relative.
+ *
+ * \li	If DNS_NAME_DOWNCASE is set in 'options', any uppercase letters
+ *	in 'source' will be downcased when they are copied into 'target'.
+ *
+ * Requires:
+ *
+ * \li	'name' is a valid name with a dedicated buffer.
+ *
+ * \li	'source' is a valid buffer.
+ *
+ * Ensures:
+ *
+ *	If result is success:
+ * \li		Uppercase letters are downcased in the copy iff
+ *		DNS_NAME_DOWNCASE is set in 'options'.
+ *
+ * \li		The current location in source is advanced.
+ *
+ * Result:
+ *\li	#ISC_R_SUCCESS
+ *\li	#DNS_R_EMPTYLABEL
+ *\li	#DNS_R_LABELTOOLONG
+ *\li	#DNS_R_BADESCAPE
+ *\li	#DNS_R_BADDOTTEDQUAD
+ *\li	#ISC_R_NOSPACE
+ *\li	#ISC_R_UNEXPECTEDEND
+ */
+
+isc_result_t
+dns_name_wirefromtext(isc_buffer_t *source, const dns_name_t *origin,
+		      unsigned int options, isc_buffer_t *target);
+/*%<
+ * Convert the textual representation of a DNS name in 'source'
  * into uncompressed wire form stored in target.
  *
  * Notes:
@@ -814,18 +854,13 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *
  * Requires:
  *
- * \li	'name' is a valid name.
- *
  * \li	'source' is a valid buffer.
  *
- * \li	'target' is a valid buffer or 'target' is NULL and 'name' has
- *	a dedicated buffer.
+ * \li	'target' is a valid buffer.
  *
  * Ensures:
  *
  *	If result is success:
- * \li	 	If 'target' is not NULL, 'name' is attached to it.
- *
  * \li		Uppercase letters are downcased in the copy iff
  *		DNS_NAME_DOWNCASE is set in 'options'.
  *
@@ -959,9 +994,11 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name);
 
 isc_result_t
 dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
-		     dns_name_t *name, isc_buffer_t *target);
+		     dns_name_t *name);
 /*%<
- *	Concatenate 'prefix' and 'suffix'.
+ *	Concatenate 'prefix' and 'suffix' and place the result in 'name'.
+ *	(Note that 'name' may be the same as 'prefix', in which case
+ *	'suffix' will be appended to it.)
  *
  * Requires:
  *
@@ -969,19 +1006,9 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
  *
  *\li	'suffix' is a valid name or NULL.
  *
- *\li	'name' is a valid name or NULL.
- *
- *\li	'target' is a valid buffer or 'target' is NULL and 'name' has
- *	a dedicated buffer.
+ *\li	'name' is a valid name with a dedicated buffer.
  *
  *\li	If 'prefix' is absolute, 'suffix' must be NULL or the empty name.
- *
- * Ensures:
- *
- *\li	On success,
- *	 	If 'target' is not NULL and 'name' is not NULL, then 'name'
- *		is attached to it.
- *		The used space in target is updated.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS

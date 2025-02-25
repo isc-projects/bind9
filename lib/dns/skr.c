@@ -72,7 +72,7 @@ parse_rr(isc_lex_t *lex, isc_mem_t *mctx, char *owner, dns_name_t *origin,
 	dname = dns_fixedname_initname(&dfname);
 	isc_buffer_init(&b, owner, strlen(owner));
 	isc_buffer_add(&b, strlen(owner));
-	ret = dns_name_fromtext(dname, &b, dns_rootname, 0, NULL);
+	ret = dns_name_fromtext(dname, &b, dns_rootname, 0);
 	if (ret != ISC_R_SUCCESS) {
 		return ret;
 	}

@@ -783,8 +783,7 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 		isc_buffer_init(&namebuf, r.base, r.length);
 		isc_buffer_add(&namebuf, r.length);
 
-		RETERR(dns_name_fromtext(principal, &namebuf, dns_rootname, 0,
-					 NULL));
+		RETERR(dns_name_fromtext(principal, &namebuf, dns_rootname, 0));
 
 		if (gnamebuf.length != 0U) {
 			gret = gss_release_buffer(&minor, &gnamebuf);

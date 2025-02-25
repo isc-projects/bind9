@@ -2960,7 +2960,7 @@ find_wildcard(qpz_search_t *search, qpznode_t **nodep,
 			 * Construct the wildcard name for this level.
 			 */
 			result = dns_name_concatenate(dns_wildcardname,
-						      &node->name, wname, NULL);
+						      &node->name, wname);
 			if (result != ISC_R_SUCCESS) {
 				break;
 			}

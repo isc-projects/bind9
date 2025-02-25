@@ -25,7 +25,6 @@
 static isc_result_t
 fromtext_nxt(ARGS_FROMTEXT) {
 	isc_token_t token;
-	dns_name_t name;
 	isc_buffer_t buffer;
 	char *e;
 	unsigned char bm[8 * 1024]; /* 64k bits */
@@ -45,12 +44,11 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
 	}
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+	RETTOK(dns_name_wirefromtext(&buffer, origin, options, target));
 
 	memset(bm, 0, sizeof(bm));
 	do {
@@ -173,7 +171,7 @@ towire_nxt(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target, NULL));
+	RETERR(dns_name_towire(&name, cctx, target));
 
 	return mem_tobuffer(target, sr.base, sr.length);
 }

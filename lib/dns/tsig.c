@@ -372,7 +372,7 @@ restore_key(dns_tsigkeyring_t *ring, isc_stdtime_t now, FILE *fp) {
 	name = dns_fixedname_initname(&fname);
 	isc_buffer_init(&b, namestr, strlen(namestr));
 	isc_buffer_add(&b, strlen(namestr));
-	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name, &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -380,7 +380,7 @@ restore_key(dns_tsigkeyring_t *ring, isc_stdtime_t now, FILE *fp) {
 	creator = dns_fixedname_initname(&fcreator);
 	isc_buffer_init(&b, creatorstr, strlen(creatorstr));
 	isc_buffer_add(&b, strlen(creatorstr));
-	result = dns_name_fromtext(creator, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(creator, &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -388,7 +388,7 @@ restore_key(dns_tsigkeyring_t *ring, isc_stdtime_t now, FILE *fp) {
 	algorithm = dns_fixedname_initname(&falgorithm);
 	isc_buffer_init(&b, algorithmstr, strlen(algorithmstr));
 	isc_buffer_add(&b, strlen(algorithmstr));
-	result = dns_name_fromtext(algorithm, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(algorithm, &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

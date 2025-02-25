@@ -818,7 +818,7 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 
 	isc_buffer_init(&buffer, str, sizeof(str));
 	isc_buffer_add(&buffer, len);
-	result = dns_name_fromtext(ip_name, &buffer, base_name, 0, NULL);
+	result = dns_name_fromtext(ip_name, &buffer, base_name, 0);
 	return result;
 }
 
@@ -1071,7 +1071,7 @@ name2data(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		n -= dns_name_countlabels(&rpz->nsdname);
 	}
 	dns_name_getlabelsequence(src_name, prefix_len, n, &tmp_name);
-	(void)dns_name_concatenate(&tmp_name, dns_rootname, trig_name, NULL);
+	(void)dns_name_concatenate(&tmp_name, dns_rootname, trig_name);
 }
 
 #ifndef HAVE_BUILTIN_CLZ

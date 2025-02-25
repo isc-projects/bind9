@@ -122,7 +122,7 @@ nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,
 	name = dns_fixedname_initname(&fixed);
 	isc_buffer_constinit(&buffer, domain, strlen(domain));
 	isc_buffer_add(&buffer, strlen(domain));
-	result = dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(name, &buffer, dns_rootname, 0);
 	check_result(result, "dns_name_fromtext() failed");
 
 	dns_name_downcase(name, name);

@@ -247,7 +247,6 @@ towire(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	struct towire_sort *out = out_fixed;
 	dns_fixedname_t fixed;
 	dns_name_t *name = NULL;
-	uint16_t offset;
 
 	/*
 	 * Convert 'rdataset' to wire format, compressing names as specified
@@ -357,7 +356,7 @@ towire(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	name = dns_fixedname_initname(&fixed);
 	dns_name_copy(owner_name, name);
 	dns_rdataset_getownercase(rdataset, name);
-	offset = 0xffff;
+	dns_compress_setmultiuse(cctx, true);
 
 	name->attributes.nocompress |= owner_name->attributes.nocompress;
 
@@ -368,15 +367,14 @@ towire(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 		rrbuffer = *target;
 		dns_compress_setpermitted(cctx, true);
-		result = dns_name_towire(name, cctx, target, &offset);
+		result = dns_name_towire(name, cctx, target);
 		if (result != ISC_R_SUCCESS) {
 			goto rollback;
 		}
 		headlen = sizeof(dns_rdataclass_t) + sizeof(dns_rdatatype_t);
 		if (!question) {
 			headlen += sizeof(dns_ttl_t) + 2;
-		} /* XXX 2 for rdata len
-		   */
+		} /* XXX 2 for rdata len */
 		isc_buffer_availableregion(target, &r);
 		if (r.length < headlen) {
 			result = ISC_R_NOSPACE;

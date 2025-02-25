@@ -136,7 +136,7 @@ check_orderent(const cfg_obj_t *ent) {
 		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, 0, NULL);
+					    dns_rootname, 0);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "rrset-order: invalid name '%s'", str);
@@ -243,8 +243,7 @@ check_dual_stack(const cfg_obj_t *options) {
 		isc_buffer_constinit(&buffer, str, strlen(str));
 		isc_buffer_add(&buffer, strlen(str));
 		name = dns_fixedname_initname(&fixed);
-		tresult = dns_name_fromtext(name, &buffer, dns_rootname, 0,
-					    NULL);
+		tresult = dns_name_fromtext(name, &buffer, dns_rootname, 0);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, ISC_LOG_ERROR, "bad name '%s'", str);
 			if (result == ISC_R_SUCCESS) {
@@ -365,7 +364,7 @@ disabled_algorithms(const cfg_obj_t *disabled) {
 	str = cfg_obj_asstring(obj);
 	isc_buffer_constinit(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
-	tresult = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
+	tresult = dns_name_fromtext(name, &b, dns_rootname, 0);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, ISC_LOG_ERROR, "bad domain name '%s'", str);
 		result = tresult;
@@ -408,7 +407,7 @@ disabled_ds_digests(const cfg_obj_t *disabled) {
 	str = cfg_obj_asstring(obj);
 	isc_buffer_constinit(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
-	tresult = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
+	tresult = dns_name_fromtext(name, &b, dns_rootname, 0);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, ISC_LOG_ERROR, "bad domain name '%s'", str);
 		result = tresult;
@@ -3130,7 +3129,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	isc_buffer_constinit(&b, znamestr, strlen(znamestr));
 	isc_buffer_add(&b, strlen(znamestr));
 	tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
-				    dns_rootname, DNS_NAME_DOWNCASE, NULL);
+				    dns_rootname, DNS_NAME_DOWNCASE);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", znamestr);
@@ -3718,8 +3717,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			isc_buffer_constinit(&b2, snamestr, strlen(snamestr));
 			isc_buffer_add(&b2, strlen(snamestr));
 			sname = dns_fixedname_initname(&fixed_sname);
-			tresult = dns_name_fromtext(sname, &b2, dns_rootname, 0,
-						    NULL);
+			tresult = dns_name_fromtext(sname, &b2, dns_rootname,
+						    0);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(zconfig, ISC_LOG_ERROR,
 					    "server-name '%s' is not a valid "
@@ -4153,7 +4152,7 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab, isc_mem_t *mctx) {
 
 		isc_buffer_constinit(&b, keyid, strlen(keyid));
 		isc_buffer_add(&b, strlen(keyid));
-		tresult = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
+		tresult = dns_name_fromtext(name, &b, dns_rootname, 0);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(key, ISC_LOG_ERROR,
 				    "key '%s': bad key name", keyid);
@@ -4393,7 +4392,7 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			isc_buffer_add(&b, strlen(keyval));
 			keyname = dns_fixedname_initname(&fname);
 			tresult = dns_name_fromtext(keyname, &b, dns_rootname,
-						    0, NULL);
+						    0);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(keys, ISC_LOG_ERROR,
 					    "bad key name '%s'", keyval);
@@ -4558,7 +4557,7 @@ check_trust_anchor(const cfg_obj_t *key, unsigned int *flagsp) {
 	keyname = dns_fixedname_initname(&fkeyname);
 	isc_buffer_constinit(&b, namestr, strlen(namestr));
 	isc_buffer_add(&b, strlen(namestr));
-	result = dns_name_fromtext(keyname, &b, dns_rootname, 0, NULL);
+	result = dns_name_fromtext(keyname, &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(key, ISC_LOG_WARNING, "bad key name: %s\n",
 			    isc_result_totext(result));

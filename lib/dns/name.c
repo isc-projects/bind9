@@ -706,12 +706,11 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 	}
 }
 
-isc_result_t
-dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
-		  const dns_name_t *origin, unsigned int options,
-		  isc_buffer_t *target) {
-	unsigned char *ndata, *label = NULL;
-	char *tdata;
+static isc_result_t
+convert_text(isc_buffer_t *source, const dns_name_t *origin,
+	     unsigned int options, dns_name_t *name, isc_buffer_t *target) {
+	unsigned char *ndata = NULL, *label = NULL;
+	char *tdata = NULL;
 	char c;
 	ft_state state;
 	unsigned int value = 0, count = 0;
@@ -720,20 +719,9 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	bool done;
 	bool downcase;
 
-	/*
-	 * Convert the textual representation of a DNS name at source
-	 * into uncompressed wire form stored in target.
-	 *
-	 * Notes:
-	 *	Relative domain names will have 'origin' appended to them
-	 *	unless 'origin' is NULL, in which case relative domain names
-	 *	will remain relative.
-	 */
-
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(ISC_BUFFER_VALID(source));
-	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
-		(target == NULL && ISC_BUFFER_VALID(name->buffer)));
+	REQUIRE(ISC_BUFFER_VALID(target));
 
 	downcase = ((options & DNS_NAME_DOWNCASE) != 0);
 
@@ -949,6 +937,27 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	isc_buffer_add(target, name->length);
 
 	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_name_wirefromtext(isc_buffer_t *source, const dns_name_t *origin,
+		      unsigned int options, isc_buffer_t *target) {
+	dns_name_t name;
+
+	REQUIRE(ISC_BUFFER_VALID(target));
+
+	dns_name_init(&name);
+	return convert_text(source, origin, options, &name, target);
+}
+
+isc_result_t
+dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
+		  const dns_name_t *origin, unsigned int options) {
+	REQUIRE(DNS_NAME_VALID(name));
+	REQUIRE(ISC_BUFFER_VALID(name->buffer));
+
+	isc_buffer_clear(name->buffer);
+	return convert_text(source, origin, options, name, name->buffer);
 }
 
 isc_result_t
@@ -1436,33 +1445,43 @@ root_label:;
 
 isc_result_t
 dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
-		isc_buffer_t *target, uint16_t *name_coff) {
-	bool compress;
+		isc_buffer_t *target) {
+	bool compress, multi;
 	unsigned int here;
 	unsigned int prefix_length;
 	unsigned int suffix_coff;
 
 	/*
 	 * Convert 'name' into wire format, compressing it as specified by the
-	 * compression context 'cctx', and storing the result in 'target'.
+	 * compression context 'cctx' (or without compressing if 'cctx'
+	 * is NULL), and storing the result in 'target'.
 	 */
 
 	REQUIRE(DNS_NAME_VALID(name));
-	REQUIRE(cctx != NULL);
 	REQUIRE(ISC_BUFFER_VALID(target));
+
+	if (cctx == NULL) {
+		if (isc_buffer_availablelength(target) < name->length) {
+			return ISC_R_NOSPACE;
+		}
+		memmove(isc_buffer_used(target), name->ndata, name->length);
+		isc_buffer_add(target, name->length);
+		return ISC_R_SUCCESS;
+	}
 
 	compress = !name->attributes.nocompress &&
 		   dns_compress_getpermitted(cctx);
+	multi = compress && dns_compress_getmultiuse(cctx);
 
 	/*
 	 * Write a compression pointer directly if the caller passed us
 	 * a pointer to this name's offset that we saved previously.
 	 */
-	if (compress && name_coff != NULL && *name_coff < 0x4000) {
+	if (multi && cctx->coff < 0x4000) {
 		if (isc_buffer_availablelength(target) < 2) {
 			return ISC_R_NOSPACE;
 		}
-		isc_buffer_putuint16(target, *name_coff | 0xc000);
+		isc_buffer_putuint16(target, cctx->coff | 0xc000);
 		return ISC_R_SUCCESS;
 	}
 
@@ -1483,8 +1502,8 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 	 * it isn't too short for compression to help (i.e. it's the root)
 	 */
 	here = isc_buffer_usedlength(target);
-	if (name_coff != NULL && here < 0x4000 && prefix_length > 1) {
-		*name_coff = (uint16_t)here;
+	if (multi && here < 0x4000 && prefix_length > 1) {
+		cctx->coff = (uint16_t)here;
 	}
 
 	if (prefix_length > 0) {
@@ -1496,8 +1515,8 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 	}
 
 	if (suffix_coff > 0) {
-		if (name_coff != NULL && prefix_length == 0) {
-			*name_coff = suffix_coff;
+		if (multi && prefix_length == 0) {
+			cctx->coff = suffix_coff;
 		}
 		if (isc_buffer_availablelength(target) < 2) {
 			return ISC_R_NOSPACE;
@@ -1510,13 +1529,14 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 isc_result_t
 dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
-		     dns_name_t *name, isc_buffer_t *target) {
-	unsigned char *ndata;
+		     dns_name_t *name) {
+	unsigned char *ndata = NULL;
 	unsigned int nrem, prefix_length, length;
 	bool copy_prefix = true;
 	bool copy_suffix = true;
 	bool absolute = false;
 	dns_name_t tmp_name;
+	isc_buffer_t *target = NULL;
 
 	/*
 	 * Concatenate 'prefix' and 'suffix'.
@@ -1524,10 +1544,9 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
 
 	REQUIRE(prefix == NULL || DNS_NAME_VALID(prefix));
 	REQUIRE(suffix == NULL || DNS_NAME_VALID(suffix));
-	REQUIRE(name == NULL || DNS_NAME_VALID(name));
-	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
-		(target == NULL && name != NULL &&
-		 ISC_BUFFER_VALID(name->buffer)));
+	REQUIRE(DNS_NAME_VALID(name) && ISC_BUFFER_VALID(name->buffer));
+	REQUIRE(DNS_NAME_BINDABLE(name));
+
 	if (prefix == NULL || prefix->length == 0) {
 		copy_prefix = false;
 	}
@@ -1542,13 +1561,9 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
 		dns_name_init(&tmp_name);
 		name = &tmp_name;
 	}
-	if (target == NULL) {
-		INSIST(name->buffer != NULL);
-		target = name->buffer;
-		isc_buffer_clear(name->buffer);
-	}
 
-	REQUIRE(DNS_NAME_BINDABLE(name));
+	target = name->buffer;
+	isc_buffer_clear(target);
 
 	/*
 	 * Set up.
@@ -1582,8 +1597,7 @@ dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
 	}
 
 	/*
-	 * If 'prefix' and 'name' are the same object, and the object has
-	 * a dedicated buffer, and we're using it, then we don't have to
+	 * If 'prefix' and 'name' are the same object, we don't have to
 	 * copy anything.
 	 */
 	if (copy_prefix && (prefix != name || prefix->buffer != target)) {
@@ -1791,7 +1805,7 @@ dns_name_fromstring(dns_name_t *target, const char *src,
 		name = dns_fixedname_initname(&fn);
 	}
 
-	result = dns_name_fromtext(name, &buf, origin, options, NULL);
+	result = dns_name_fromtext(name, &buf, origin, options);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

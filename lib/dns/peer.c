@@ -506,7 +506,7 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 	isc_buffer_constinit(&b, keyval, strlen(keyval));
 	isc_buffer_add(&b, strlen(keyval));
 	result = dns_name_fromtext(dns_fixedname_name(&fname), &b, dns_rootname,
-				   0, NULL);
+				   0);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

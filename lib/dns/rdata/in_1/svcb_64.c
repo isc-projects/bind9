@@ -552,11 +552,12 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 static isc_result_t
 generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 	isc_token_t token;
-	dns_name_t name;
 	isc_buffer_t buffer;
 	bool alias;
 	bool ok = true;
 	unsigned int used;
+	dns_fixedname_t fn;
+	dns_name_t *name = dns_fixedname_initname(&fn);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -579,20 +580,22 @@ generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      false));
-	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
 	}
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+
+	RETTOK(dns_name_fromtext(name, &buffer, origin, options));
+	RETTOK(dns_name_towire(name, NULL, target));
+
 	if (!alias && (options & DNS_RDATA_CHECKNAMES) != 0) {
-		ok = dns_name_ishostname(&name, false);
+		ok = dns_name_ishostname(name, false);
 	}
 	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0) {
 		RETTOK(DNS_R_BADNAME);
 	}
 	if (!ok && callbacks != NULL) {
-		warn_badname(&name, lexer, callbacks);
+		warn_badname(name, lexer, callbacks);
 	}
 
 	/*
@@ -940,7 +943,7 @@ generic_towire_in_svcb(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
-	RETERR(dns_name_towire(&name, cctx, target, NULL));
+	RETERR(dns_name_towire(&name, cctx, target));
 	isc_region_consume(&region, name_length(&name));
 
 	/*

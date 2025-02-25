@@ -277,7 +277,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		isc_buffer_init(&buf, argv[isc_commandline_index],
 				strlen(argv[isc_commandline_index]));
 		isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
-		ret = dns_name_fromtext(name, &buf, dns_rootname, 0, NULL);
+		ret = dns_name_fromtext(name, &buf, dns_rootname, 0);
 		if (ret != ISC_R_SUCCESS) {
 			fatal("invalid key name %s: %s",
 			      argv[isc_commandline_index],

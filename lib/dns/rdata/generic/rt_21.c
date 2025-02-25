@@ -21,8 +21,9 @@
 static isc_result_t
 fromtext_rt(ARGS_FROMTEXT) {
 	isc_token_t token;
-	dns_name_t name;
 	isc_buffer_t buffer;
+	dns_fixedname_t fn;
+	dns_name_t *name = dns_fixedname_initname(&fn);
 	bool ok;
 
 	REQUIRE(type == dns_rdatatype_rt);
@@ -41,21 +42,23 @@ fromtext_rt(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 
-	dns_name_init(&name);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL) {
 		origin = dns_rootname;
 	}
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+
+	RETTOK(dns_name_fromtext(name, &buffer, origin, options));
+	RETTOK(dns_name_towire(name, NULL, target));
+
 	ok = true;
 	if ((options & DNS_RDATA_CHECKNAMES) != 0) {
-		ok = dns_name_ishostname(&name, false);
+		ok = dns_name_ishostname(name, false);
 	}
 	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0) {
 		RETTOK(DNS_R_BADNAME);
 	}
 	if (!ok && callbacks != NULL) {
-		warn_badname(&name, lexer, callbacks);
+		warn_badname(name, lexer, callbacks);
 	}
 	return ISC_R_SUCCESS;
 }
@@ -138,7 +141,7 @@ towire_rt(ARGS_TOWIRE) {
 	dns_name_init(&name);
 	dns_name_fromregion(&name, &region);
 
-	return dns_name_towire(&name, cctx, target, NULL);
+	return dns_name_towire(&name, cctx, target);
 }
 
 static int

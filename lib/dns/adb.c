@@ -875,8 +875,7 @@ set_target(dns_adb_t *adb, const dns_name_t *name, const dns_name_t *fname,
 		prefix = dns_fixedname_initname(&fixed1);
 		new_target = dns_fixedname_initname(&fixed2);
 		dns_name_split(name, nlabels, prefix, NULL);
-		result = dns_name_concatenate(prefix, &dname.dname, new_target,
-					      NULL);
+		result = dns_name_concatenate(prefix, &dname.dname, new_target);
 		dns_rdata_freestruct(&dname);
 		if (result != ISC_R_SUCCESS) {
 			return result;

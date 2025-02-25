@@ -27,17 +27,16 @@
 #include <named/log.h>
 #include <named/transportconf.h>
 
-#define create_name(id, name)                                      \
-	isc_buffer_t namesrc, namebuf;                             \
-	char namedata[DNS_NAME_FORMATSIZE + 1];                    \
-	dns_name_init(name);                                       \
-	isc_buffer_constinit(&namesrc, id, strlen(id));            \
-	isc_buffer_add(&namesrc, strlen(id));                      \
-	isc_buffer_init(&namebuf, namedata, sizeof(namedata));     \
-	result = (dns_name_fromtext(name, &namesrc, dns_rootname,  \
-				    DNS_NAME_DOWNCASE, &namebuf)); \
-	if (result != ISC_R_SUCCESS) {                             \
-		goto failure;                                      \
+#define create_name(id, name)                                     \
+	isc_buffer_t namesrc;                                     \
+	dns_fixedname_t _fn;                                      \
+	name = dns_fixedname_initname(&_fn);                      \
+	isc_buffer_constinit(&namesrc, id, strlen(id));           \
+	isc_buffer_add(&namesrc, strlen(id));                     \
+	result = (dns_name_fromtext(name, &namesrc, dns_rootname, \
+				    DNS_NAME_DOWNCASE));          \
+	if (result != ISC_R_SUCCESS) {                            \
+		goto failure;                                     \
 	}
 
 #define parse_transport_option(map, transport, name, setter)      \
@@ -100,15 +99,15 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 	for (const cfg_listelt_t *element = cfg_list_first(transportlist);
 	     element != NULL; element = cfg_list_next(element))
 	{
-		dns_name_t dohname;
-		dns_transport_t *transport;
+		dns_name_t *dohname = NULL;
+		dns_transport_t *transport = NULL;
 
 		doh = cfg_listelt_value(element);
 		dohid = cfg_obj_asstring(cfg_map_getname(doh));
 
-		create_name(dohid, &dohname);
+		create_name(dohid, dohname);
 
-		transport = dns_transport_new(&dohname, DNS_TRANSPORT_HTTP,
+		transport = dns_transport_new(dohname, DNS_TRANSPORT_HTTP,
 					      list);
 
 		dns_transport_set_tlsname(transport, dohid);
@@ -148,8 +147,8 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 	for (const cfg_listelt_t *element = cfg_list_first(transportlist);
 	     element != NULL; element = cfg_list_next(element))
 	{
-		dns_name_t tlsname;
-		dns_transport_t *transport;
+		dns_name_t *tlsname = NULL;
+		dns_transport_t *transport = NULL;
 
 		tls = cfg_listelt_value(element);
 		tlsid = cfg_obj_asstring(cfg_map_getname(tls));
@@ -159,10 +158,9 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 			goto failure;
 		}
 
-		create_name(tlsid, &tlsname);
+		create_name(tlsid, tlsname);
 
-		transport = dns_transport_new(&tlsname, DNS_TRANSPORT_TLS,
-					      list);
+		transport = dns_transport_new(tlsname, DNS_TRANSPORT_TLS, list);
 
 		dns_transport_set_tlsname(transport, tlsid);
 		parse_transport_option(tls, transport, "key-file",
@@ -222,12 +220,12 @@ transport_list_fromconfig(const cfg_obj_t *config, dns_transport_list_t *list) {
 static void
 transport_list_add_ephemeral(dns_transport_list_t *list) {
 	isc_result_t result;
-	dns_name_t tlsname;
+	dns_name_t *tlsname = NULL;
 	dns_transport_t *transport;
 
-	create_name("ephemeral", &tlsname);
+	create_name("ephemeral", tlsname);
 
-	transport = dns_transport_new(&tlsname, DNS_TRANSPORT_TLS, list);
+	transport = dns_transport_new(tlsname, DNS_TRANSPORT_TLS, list);
 	dns_transport_set_tlsname(transport, "ephemeral");
 
 	return;

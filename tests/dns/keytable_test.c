@@ -97,9 +97,8 @@ str2name(const char *namestr) {
 	name = dns_fixedname_initname(&fname);
 	isc_buffer_init(&namebuf, UNCONST(namestr), strlen(namestr));
 	isc_buffer_add(&namebuf, strlen(namestr));
-	assert_int_equal(
-		dns_name_fromtext(name, &namebuf, dns_rootname, 0, NULL),
-		ISC_R_SUCCESS);
+	assert_int_equal(dns_name_fromtext(name, &namebuf, dns_rootname, 0),
+			 ISC_R_SUCCESS);
 
 	return name;
 }

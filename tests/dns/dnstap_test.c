@@ -180,14 +180,14 @@ ISC_LOOP_TEST_IMPL(dns_dt_send) {
 	zname = dns_fixedname_initname(&zfname);
 	isc_buffer_constinit(&zb, "example.com.", 12);
 	isc_buffer_add(&zb, 12);
-	result = dns_name_fromtext(zname, &zb, NULL, 0, NULL);
+	result = dns_name_fromtext(zname, &zb, NULL, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	memset(&zr, 0, sizeof(zr));
 	isc_buffer_init(&zb, zone, sizeof(zone));
 	dns_compress_init(&cctx, mctx, 0);
 	dns_compress_setpermitted(&cctx, false);
-	result = dns_name_towire(zname, &cctx, &zb, NULL);
+	result = dns_name_towire(zname, &cctx, &zb);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_compress_invalidate(&cctx);
 	isc_buffer_usedregion(&zb, &zr);

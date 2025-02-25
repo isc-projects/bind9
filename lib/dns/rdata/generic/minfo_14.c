@@ -19,7 +19,8 @@
 static isc_result_t
 fromtext_minfo(ARGS_FROMTEXT) {
 	isc_token_t token;
-	dns_name_t name;
+	dns_fixedname_t fn;
+	dns_name_t *name = dns_fixedname_initname(&fn);
 	isc_buffer_t buffer;
 	int i;
 	bool ok;
@@ -37,19 +38,18 @@ fromtext_minfo(ARGS_FROMTEXT) {
 	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, false));
-		dns_name_init(&name);
 		buffer_fromregion(&buffer, &token.value.as_region);
-		RETTOK(dns_name_fromtext(&name, &buffer, origin, options,
-					 target));
+		RETTOK(dns_name_fromtext(name, &buffer, origin, options));
+		RETTOK(dns_name_towire(name, NULL, target));
 		ok = true;
 		if ((options & DNS_RDATA_CHECKNAMES) != 0) {
-			ok = dns_name_ismailbox(&name);
+			ok = dns_name_ismailbox(name);
 		}
 		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0) {
 			RETTOK(DNS_R_BADNAME);
 		}
 		if (!ok && callbacks != NULL) {
-			warn_badname(&name, lexer, callbacks);
+			warn_badname(name, lexer, callbacks);
 		}
 	}
 	return ISC_R_SUCCESS;
@@ -129,12 +129,12 @@ towire_minfo(ARGS_TOWIRE) {
 	dns_name_fromregion(&rmail, &region);
 	isc_region_consume(&region, name_length(&rmail));
 
-	RETERR(dns_name_towire(&rmail, cctx, target, NULL));
+	RETERR(dns_name_towire(&rmail, cctx, target));
 
 	dns_name_fromregion(&rmail, &region);
 	isc_region_consume(&region, rmail.length);
 
-	return dns_name_towire(&rmail, cctx, target, NULL);
+	return dns_name_towire(&rmail, cctx, target);
 }
 
 static int

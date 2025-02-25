@@ -655,7 +655,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	isc_buffer_constinit(&buffer, zonename, strlen(zonename));
 	isc_buffer_add(&buffer, strlen(zonename));
 	origin = dns_fixedname_initname(&fixorigin);
-	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
+	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0));
 	dns_zone_setorigin(zone, origin);
 	dns_zone_setdbtype(zone, 1, (const char *const *)dbtype);
 	if (strcmp(filename, "-") == 0) {
