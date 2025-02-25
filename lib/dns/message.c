@@ -966,7 +966,6 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	isc_region_t r;
 	unsigned int count;
 	dns_name_t *name = NULL;
-	dns_name_t *found_name = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -976,12 +975,8 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	bool best_effort = ((options & DNS_MESSAGEPARSE_BESTEFFORT) != 0);
 	bool seen_problem = false;
 	bool free_name = false;
-	bool free_hashmaps = false;
-	isc_hashmap_t *name_map = NULL;
 
-	if (msg->counts[DNS_SECTION_QUESTION] > 1) {
-		isc_hashmap_create(msg->mctx, 1, &name_map);
-	}
+	REQUIRE(msg->counts[DNS_SECTION_QUESTION] <= 1 || best_effort);
 
 	for (count = 0; count < msg->counts[DNS_SECTION_QUESTION]; count++) {
 		name = NULL;
@@ -999,48 +994,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			goto cleanup;
 		}
 
-		/* If there is only one QNAME, skip the duplicity checks */
-		if (name_map == NULL) {
-			result = ISC_R_SUCCESS;
-			goto skip_name_check;
-		}
-
-		/*
-		 * Run through the section, looking to see if this name
-		 * is already there.  If it is found, put back the allocated
-		 * name since we no longer need it, and set our name pointer
-		 * to point to the name we found.
-		 */
-		result = isc_hashmap_add(name_map, dns_name_hash(name),
-					 name_match, name, name,
-					 (void **)&found_name);
-
-		/*
-		 * If it is the first name in the section, accept it.
-		 *
-		 * If it is not, but is not the same as the name already
-		 * in the question section, append to the section.  Note that
-		 * here in the question section this is illegal, so return
-		 * FORMERR.  In the future, check the opcode to see if
-		 * this should be legal or not.  In either case we no longer
-		 * need this name pointer.
-		 */
-	skip_name_check:
-		switch (result) {
-		case ISC_R_SUCCESS:
-			if (!ISC_LIST_EMPTY(*section)) {
-				DO_ERROR(DNS_R_FORMERR);
-			}
-			ISC_LIST_APPEND(*section, name, link);
-			break;
-		case ISC_R_EXISTS:
-			dns_message_puttempname(msg, &name);
-			name = found_name;
-			found_name = NULL;
-			break;
-		default:
-			UNREACHABLE();
-		}
+		ISC_LIST_APPEND(*section, name, link);
 
 		free_name = false;
 
@@ -1090,40 +1044,6 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 
 		rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
 
-		/*
-		 * Skip the duplicity check for first rdataset
-		 */
-		if (ISC_LIST_EMPTY(name->list)) {
-			result = ISC_R_SUCCESS;
-			goto skip_rds_check;
-		}
-
-		/*
-		 * Can't ask the same question twice.
-		 */
-		if (name->hashmap == NULL) {
-			isc_hashmap_create(msg->mctx, 1, &name->hashmap);
-			free_hashmaps = true;
-
-			INSIST(ISC_LIST_HEAD(name->list) ==
-			       ISC_LIST_TAIL(name->list));
-
-			dns_rdataset_t *old_rdataset =
-				ISC_LIST_HEAD(name->list);
-
-			result = isc_hashmap_add(
-				name->hashmap, rds_hash(old_rdataset),
-				rds_match, old_rdataset, old_rdataset, NULL);
-
-			INSIST(result == ISC_R_SUCCESS);
-		}
-		result = isc_hashmap_add(name->hashmap, rds_hash(rdataset),
-					 rds_match, rdataset, rdataset, NULL);
-		if (result == ISC_R_EXISTS) {
-			DO_ERROR(DNS_R_FORMERR);
-		}
-
-	skip_rds_check:
 		ISC_LIST_APPEND(name->list, rdataset, link);
 
 		rdataset = NULL;
@@ -1144,14 +1064,6 @@ cleanup:
 
 	if (free_name) {
 		dns_message_puttempname(msg, &name);
-	}
-
-	if (free_hashmaps) {
-		cleanup_name_hashmaps(section);
-	}
-
-	if (name_map != NULL) {
-		isc_hashmap_destroy(&name_map);
 	}
 
 	return result;
@@ -1663,6 +1575,38 @@ cleanup:
 	return result;
 }
 
+static isc_result_t
+early_sanity_check(dns_message_t *msg) {
+	bool is_unknown_opcode = msg->opcode >= dns_opcode_max;
+	bool is_query_response = (msg->flags & DNS_MESSAGEFLAG_QR) != 0;
+	bool no_questions = msg->counts[DNS_SECTION_QUESTION] == 0;
+	bool many_questions = msg->counts[DNS_SECTION_QUESTION] > 1;
+	bool has_answer = msg->counts[DNS_SECTION_ANSWER] > 0;
+	bool has_auth = msg->counts[DNS_SECTION_AUTHORITY] > 0;
+
+	if (is_unknown_opcode) {
+		return DNS_R_NOTIMP;
+	} else if (many_questions) {
+		return DNS_R_FORMERR;
+	} else if (no_questions && (msg->opcode != dns_opcode_query) &&
+		   (msg->opcode != dns_opcode_status))
+	{
+		/*
+		 * Per RFC9619, the two cases where qdcount == 0 is acceptable
+		 * are AXFR transfers and cookies, and both have opcode 0.
+		 *
+		 * RFC9619 also specifies that msg->opcode == dns_opcode_status
+		 * is unspecified, so we ignore it.
+		 */
+		return DNS_R_FORMERR;
+	} else if (msg->opcode == dns_opcode_notify &&
+		   ((is_query_response && has_answer) || has_auth))
+	{
+		return DNS_R_FORMERR;
+	}
+	return ISC_R_SUCCESS;
+}
+
 isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		  unsigned int options) {
@@ -1716,6 +1660,12 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->state = DNS_SECTION_QUESTION;
 
 	dctx = DNS_DECOMPRESS_ALWAYS;
+
+	bool strict_parse = ((options & DNS_MESSAGEPARSE_BESTEFFORT) == 0);
+	isc_result_t early_check_ret = early_sanity_check(msg);
+	if (strict_parse && (early_check_ret != ISC_R_SUCCESS)) {
+		return early_check_ret;
+	}
 
 	ret = getquestions(source, msg, dctx, options);
 

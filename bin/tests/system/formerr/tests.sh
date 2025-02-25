@@ -36,7 +36,7 @@ fi
 echo_i "two question types"
 $PERL formerr.pl -a 10.53.0.1 -p ${PORT} twoquestiontypes >twoquestiontypes.out
 ans=$(grep got: twoquestiontypes.out)
-if [ "${ans}" != "got: 0000800100020000000000000e41414141414141414141414141410000010001c00c00020001" ]; then
+if [ "${ans}" != "got: 000080010000000000000000" ]; then
   echo_i "failed"
   status=$((status + 1))
 fi
