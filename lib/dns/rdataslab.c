@@ -119,6 +119,24 @@ static bool
 rdataset_equals(const dns_rdataset_t *rdataset1,
 		const dns_rdataset_t *rdataset2);
 
+dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
+	.disassociate = rdataset_disassociate,
+	.first = rdataset_first,
+	.next = rdataset_next,
+	.current = rdataset_current,
+	.clone = rdataset_clone,
+	.count = rdataset_count,
+	.getnoqname = rdataset_getnoqname,
+	.getclosest = rdataset_getclosest,
+	.settrust = rdataset_settrust,
+	.expire = rdataset_expire,
+	.clearprefetch = rdataset_clearprefetch,
+	.setownercase = rdataset_setownercase,
+	.getownercase = rdataset_getownercase,
+	.getheader = rdataset_getheader,
+	.equals = rdataset_equals,
+};
+
 /*% Note: the "const void *" are just to make qsort happy.  */
 static int
 compare_rdata(const void *p1, const void *p2) {
@@ -136,7 +154,7 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	dns_rdata_t *rdata = NULL;
 	unsigned char *rawbuf = NULL;
 	unsigned int headerlen = sizeof(dns_slabheader_t);
-	unsigned int buflen;
+	unsigned int buflen = headerlen + 2;
 	isc_result_t result;
 	unsigned int nitems;
 	unsigned int nalloc;
@@ -144,14 +162,28 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	size_t i;
 	size_t rdatasize;
 
-	buflen = headerlen + 2;
+	/*
+	 * If the source rdataset is also a slab, we don't need
+	 * to do anything special, just copy the whole slab to a
+	 * new buffer.
+	 */
+	if (rdataset->methods == &dns_rdataslab_rdatasetmethods) {
+		dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
+		buflen = dns_rdataslab_size(header);
 
-	nitems = dns_rdataset_count(rdataset);
+		rawbuf = isc_mem_get(mctx, buflen);
+		region->base = rawbuf;
+		region->length = buflen;
+
+		memmove(rawbuf, header, buflen);
+		return ISC_R_SUCCESS;
+	}
 
 	/*
-	 * If there are no rdata then we can just need to allocate a header
-	 * with zero a record count.
+	 * If there are no rdata then we just need to allocate a header
+	 * with a zero record count.
 	 */
+	nitems = dns_rdataset_count(rdataset);
 	if (nitems == 0) {
 		if (rdataset->type != 0) {
 			return ISC_R_FAILURE;
@@ -160,8 +192,7 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		region->base = rawbuf;
 		region->length = buflen;
 		rawbuf += headerlen;
-		*rawbuf++ = 0;
-		*rawbuf = 0;
+		put_uint16(rawbuf, 0);
 		return ISC_R_SUCCESS;
 	}
 
@@ -269,9 +300,7 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 
 	region->base = rawbuf;
 	region->length = buflen;
-
 	rawbuf += headerlen;
-
 	put_uint16(rawbuf, nitems);
 
 	for (i = 0; i < nalloc; i++) {
@@ -930,24 +959,6 @@ dns_slabheader_top(dns_slabheader_t *header) {
 
 	return header;
 }
-
-dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
-	.disassociate = rdataset_disassociate,
-	.first = rdataset_first,
-	.next = rdataset_next,
-	.current = rdataset_current,
-	.clone = rdataset_clone,
-	.count = rdataset_count,
-	.getnoqname = rdataset_getnoqname,
-	.getclosest = rdataset_getclosest,
-	.settrust = rdataset_settrust,
-	.expire = rdataset_expire,
-	.clearprefetch = rdataset_clearprefetch,
-	.setownercase = rdataset_setownercase,
-	.getownercase = rdataset_getownercase,
-	.getheader = rdataset_getheader,
-	.equals = rdataset_equals,
-};
 
 /* Fixed RRSet helper macros */
 
