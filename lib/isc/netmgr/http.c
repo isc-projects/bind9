@@ -1583,7 +1583,7 @@ http_too_many_active_streams(isc_nm_http_session_t *session) {
 	 */
 	const uint64_t max_active_streams =
 		ISC_MAX(ISC_NETMGR_MAX_STREAM_CLIENTS_PER_CONN,
-			session->max_concurrent_streams / 3);
+			(session->max_concurrent_streams * 6) / 10); /* 60% */
 
 	if (session->client) {
 		return false;
