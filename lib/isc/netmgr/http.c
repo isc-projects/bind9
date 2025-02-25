@@ -1458,23 +1458,25 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	/* Here we are trying to flush the pending writes buffer earlier
 	 * to avoid hitting unnecessary limitations on a TLS record size
 	 * within some tools (e.g. flamethrower). */
-	if (max_total_write_size >= FLUSH_HTTP_WRITE_BUFFER_AFTER) {
+	if (cb != NULL) {
+		/*
+		 * Case 0: The callback is specified, that means that a DNS
+		 * message is ready. Let's flush the the buffer.
+		 */
+		total = max_total_write_size;
+	} else if (max_total_write_size >= FLUSH_HTTP_WRITE_BUFFER_AFTER) {
 		/* Case 1: We have equal or more than
 		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes to send. Let's flush it.
 		 */
 		total = max_total_write_size;
 	} else if (session->sending > 0 && total > 0) {
 		/* Case 2: There is one or more write requests in flight and
-		 * we have some new data form nghttp2 to send. Let's put the
-		 * write callback (if any) into the pending write callbacks
-		 * list. Then let's return from the function: as soon as the
+		 * we have some new data form nghttp2 to send.
+		 * Then let's return from the function: as soon as the
 		 * "in-flight" write callback get's called or we have reached
 		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes in the write buffer, we
 		 * will flush the buffer. */
-		if (cb != NULL) {
-			http_append_pending_send_request(session, httphandle,
-							 cb, cbarg);
-		}
+		INSIST(cb == NULL);
 		goto nothing_to_send;
 	} else if (session->sending == 0 && total == 0 &&
 		   session->pending_write_data != NULL)
