@@ -2932,13 +2932,17 @@ fctx_finddone(void *arg) {
 		} else {
 			fctx->findfail++;
 			if (atomic_load_acquire(&fctx->pending) == 0) {
-				/*
-				 * We've got nothing else to wait for
-				 * and don't know the answer.  There's
-				 * nothing to do but fail the fctx.
-				 */
 				FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
-				want_done = true;
+				if (!ISC_LIST_EMPTY(fctx->res->alternates)) {
+					want_try = true;
+				} else {
+					/*
+					 * We've got nothing else to wait for
+					 * and don't know the answer.  There's
+					 * nothing to do but fail the fctx.
+					 */
+					want_done = true;
+				}
 			}
 		}
 	}
