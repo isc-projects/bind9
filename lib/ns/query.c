@@ -5308,6 +5308,9 @@ qctx_clean(query_ctx_t *qctx) {
 	if (qctx->db != NULL && qctx->node != NULL) {
 		dns_db_detachnode(qctx->db, &qctx->node);
 	}
+	if (qctx->client != NULL && qctx->client->query.gluedb != NULL) {
+		dns_db_detach(&qctx->client->query.gluedb);
+	}
 }
 
 /*%
@@ -7036,6 +7039,9 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_and_detach_from_quota;
 	}
+
+	/* Record that an asynchronous copy of the qctx has been started */
+	qctx->async = true;
 
 	/*
 	 * Typically the runasync() function will trigger recursion, but
@@ -11972,10 +11978,6 @@ ns_query_done(query_ctx_t *qctx) {
 	qctx_clean(qctx);
 	qctx_freedata(qctx);
 
-	if (qctx->client->query.gluedb != NULL) {
-		dns_db_detach(&qctx->client->query.gluedb);
-	}
-
 	/*
 	 * Clear the AA bit if we're not authoritative.
 	 */
@@ -12112,6 +12114,17 @@ ns_query_done(query_ctx_t *qctx) {
 	return qctx->result;
 
 cleanup:
+	/*
+	 * We'd only get here if one of the hooks above
+	 * (NS_QUERY_DONE_BEGIN or NS_QUERY_DONE_SEND) returned
+	 * NS_HOOK_RETURN. Some housekeeping may be needed.
+	 */
+	qctx_clean(qctx);
+	qctx_freedata(qctx);
+	if (!qctx->async) {
+		qctx->detach_client = true;
+		query_error(qctx->client, DNS_R_SERVFAIL, __LINE__);
+	}
 	return result;
 }
 

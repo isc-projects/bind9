@@ -20,6 +20,10 @@ check_PROGRAMS =		\
 	plugin_test		\
 	query_test
 
+query_test_SOURCES =		\
+	query_test.c		\
+	netmgr_wrap.c
+
 EXTRA_DIST = testdata
 
 include $(top_srcdir)/Makefile.tests

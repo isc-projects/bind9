@@ -159,6 +159,7 @@ struct query_ctx {
 
 	ns_client_t *client;	    /* client object */
 	bool	     detach_client; /* client needs detaching */
+	bool	     async;	    /* asynchronous hook running */
 
 	dns_fetchevent_t *event; /* recursion event */
 
