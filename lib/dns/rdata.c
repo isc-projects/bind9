@@ -606,13 +606,6 @@ check_private(isc_buffer_t *source, dns_secalg_t alg) {
 
 		RETERR(dns_name_fromwire(dns_fixedname_initname(&fixed), source,
 					 DNS_DECOMPRESS_DEFAULT, NULL));
-		/*
-		 * There should be a public key or signature after the key name.
-		 */
-		isc_buffer_activeregion(source, &sr);
-		if (sr.length == 0) {
-			return ISC_R_UNEXPECTEDEND;
-		}
 	} else if (alg == DNS_KEYALG_PRIVATEOID) {
 		/*
 		 * Check that we can extract the OID from the start of the
@@ -629,10 +622,6 @@ check_private(isc_buffer_t *source, dns_secalg_t alg) {
 			RETERR(DNS_R_FORMERR);
 		}
 		ASN1_OBJECT_free(obj);
-		/* There should be a public key or signature after the OID. */
-		if (in >= sr.base + sr.length) {
-			return ISC_R_UNEXPECTEDEND;
-		}
 	}
 	return ISC_R_SUCCESS;
 }

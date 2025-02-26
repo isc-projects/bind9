@@ -2043,9 +2043,9 @@ ISC_RUN_TEST_IMPL(key) {
 		WIRE_INVALID(0xc0, 0x00, 0x00, 0x00, 0x00),
 		WIRE_INVALID(0x00, 0x00, 0x00, 0x00),
 		WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0x00),
-		/* PRIVATEDNS example. */
-		WIRE_INVALID(0x00, 0x00, 0x00, 253, 0x07, 'e', 'x', 'a', 'm',
-			     'p', 'l', 'e', 0x00),
+		/* PRIVATEDNS example. without key data */
+		WIRE_VALID(0x00, 0x00, 0x00, 253, 0x07, 'e', 'x', 'a', 'm', 'p',
+			   'l', 'e', 0x00),
 		/* PRIVATEDNS example. + keydata */
 		WIRE_VALID(0x00, 0x00, 0x00, 253, 0x07, 'e', 'x', 'a', 'm', 'p',
 			   'l', 'e', 0x00, 0x00),
@@ -2053,9 +2053,9 @@ ISC_RUN_TEST_IMPL(key) {
 		WIRE_INVALID(0x00, 0x00, 0x00, 253, 0xc0, 0x00, 0x00),
 		/* PRIVATEOID */
 		WIRE_INVALID(0x00, 0x00, 0x00, 254, 0x00),
-		/* PRIVATEOID 1.3.6.1.4.1.2495 */
-		WIRE_INVALID(0x00, 0x00, 0x00, 254, 0x06, 0x07, 0x2b, 0x06,
-			     0x01, 0x04, 0x01, 0x93, 0x3f),
+		/* PRIVATEOID 1.3.6.1.4.1.2495 without key data */
+		WIRE_VALID(0x00, 0x00, 0x00, 254, 0x06, 0x07, 0x2b, 0x06, 0x01,
+			   0x04, 0x01, 0x93, 0x3f),
 		/* PRIVATEOID 1.3.6.1.4.1.2495 + keydata */
 		WIRE_VALID(0x00, 0x00, 0x00, 254, 0x06, 0x07, 0x2b, 0x06, 0x01,
 			   0x04, 0x01, 0x93, 0x3f, 0x00),
@@ -2068,7 +2068,7 @@ ISC_RUN_TEST_IMPL(key) {
 		WIRE_SENTINEL()
 	};
 	text_ok_t text_ok[] = { /* PRIVATEDNS example. */
-				TEXT_INVALID("0 0 253 B2V4YW1wbGUA"),
+				TEXT_VALID("0 0 253 B2V4YW1wbGUA"),
 				/* PRIVATEDNS example. + keydata */
 				TEXT_VALID("0 0 253 B2V4YW1wbGUAAA=="),
 				/* PRIVATEDNS compression pointer. */
@@ -2076,7 +2076,7 @@ ISC_RUN_TEST_IMPL(key) {
 				/* PRIVATEOID */
 				TEXT_INVALID("0 0 254 AA=="),
 				/* PRIVATEOID 1.3.6.1.4.1.2495 */
-				TEXT_INVALID("0 0 254 BgcrBgEEAZM/"),
+				TEXT_VALID("0 0 254 BgcrBgEEAZM/"),
 				/* PRIVATEOID 1.3.6.1.4.1.2495 + keydata */
 				TEXT_VALID("0 0 254 BgcrBgEEAZM/AA=="),
 				/* PRIVATEOID malformed OID - high-bit set on
