@@ -8005,7 +8005,10 @@ query_respond_any(query_ctx_t *qctx) {
 			}
 
 			qctx->rpz_st = qctx->client->query.rpz_st;
-			if (qctx->rpz_st != NULL) {
+			if (qctx->rpz_st != NULL &&
+			    qctx->rpz_st->m.policy != DNS_RPZ_POLICY_MISS &&
+			    qctx->rpz_st->m.policy != DNS_RPZ_POLICY_PASSTHRU)
+			{
 				qctx->rdataset->ttl =
 					ISC_MIN(qctx->rdataset->ttl,
 						qctx->rpz_st->m.ttl);
