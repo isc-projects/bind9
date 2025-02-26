@@ -51,12 +51,6 @@ atomic_getuint8(isc_buffer_t *b) {
 }
 
 static isc_result_t
-addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
-	  dns_ttl_t maxttl, bool optout, bool secure,
-	  dns_rdataset_t *addedrdataset);
-
-static isc_result_t
 copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 	unsigned int count;
 	isc_region_t ar, r;
@@ -102,25 +96,8 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 isc_result_t
 dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	       dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
-	       dns_ttl_t maxttl, dns_rdataset_t *addedrdataset) {
-	return addoptout(message, cache, node, covers, now, minttl, maxttl,
-			 false, false, addedrdataset);
-}
-
-isc_result_t
-dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
-		     dns_dbnode_t *node, dns_rdatatype_t covers,
-		     isc_stdtime_t now, dns_ttl_t minttl, dns_ttl_t maxttl,
-		     bool optout, dns_rdataset_t *addedrdataset) {
-	return addoptout(message, cache, node, covers, now, minttl, maxttl,
-			 optout, true, addedrdataset);
-}
-
-static isc_result_t
-addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
-	  dns_ttl_t maxttl, bool optout, bool secure,
-	  dns_rdataset_t *addedrdataset) {
+	       dns_ttl_t maxttl, bool optout, bool secure,
+	       dns_rdataset_t *addedrdataset) {
 	isc_buffer_t buffer;
 	isc_region_t r;
 	dns_rdatatype_t type;
@@ -135,14 +112,17 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	/*
 	 * Convert the authority data from 'message' into a negative cache
 	 * rdataset, and store it in 'cache' at 'node'.
+	 *
+	 * We assume that all data in the authority section has been
+	 * validated by the caller.
 	 */
 
 	REQUIRE(message != NULL);
 
 	/*
-	 * We assume that all data in the authority section has been
-	 * validated by the caller.
+	 * If 'secure' is false, ignore 'optout'.
 	 */
+	optout = optout && secure;
 
 	/*
 	 * Initialize the list.

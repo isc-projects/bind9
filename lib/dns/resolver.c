@@ -6341,8 +6341,7 @@ cleanup:
 }
 
 /*
- * Do what dns_ncache_addoptout() does, and then compute an appropriate
- * eresult.
+ * Call dns_ncache_add() and then compute an appropriate eresult.
  */
 static isc_result_t
 ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
@@ -6356,14 +6355,9 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		dns_rdataset_init(&rdataset);
 		ardataset = &rdataset;
 	}
-	if (secure) {
-		result = dns_ncache_addoptout(message, cache, node, covers, now,
-					      minttl, maxttl, optout,
-					      ardataset);
-	} else {
-		result = dns_ncache_add(message, cache, node, covers, now,
-					minttl, maxttl, ardataset);
-	}
+
+	result = dns_ncache_add(message, cache, node, covers, now, minttl,
+				maxttl, optout, secure, ardataset);
 	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
 		 * If the cache now contains a negative entry and we
