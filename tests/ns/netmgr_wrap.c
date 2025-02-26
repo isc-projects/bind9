@@ -97,3 +97,9 @@ isc_nmhandle_detach(isc_nmhandle_t **handlep) {
 
 	return;
 }
+
+void
+ns_client_error(ns_client_t *client ISC_ATTR_UNUSED,
+		isc_result_t result ISC_ATTR_UNUSED) {
+	return;
+}
