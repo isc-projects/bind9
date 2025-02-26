@@ -1522,8 +1522,6 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		       (total == 0 && session->sending == 0) ||
 		       (total > 0 && session->sending == 0));
 	}
-#else
-	INSIST(ISC_LIST_EMPTY(session->pending_write_callbacks));
 #endif /* ENABLE_HTTP_WRITE_BUFFERING */
 
 	if (total == 0) {
