@@ -137,8 +137,6 @@ struct dns_adbname {
 	dns_name_t *name;
 	unsigned int partial_result;
 	unsigned int flags;
-	dns_name_t target;
-	isc_stdtime_t expire_target;
 	isc_stdtime_t expire_v4;
 	isc_stdtime_t expire_v6;
 	dns_adbnamehooklist_t v4;
@@ -314,8 +312,6 @@ print_fetch_list(FILE *, dns_adbname_t *);
 static void
 clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
 static void
-clean_target(dns_adb_t *, dns_name_t *);
-static void
 clean_finds_at_name(dns_adbname_t *, dns_adbstatus_t, unsigned int);
 static void
 maybe_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
@@ -369,8 +365,10 @@ enum {
  */
 enum {
 	NAME_IS_DEAD = 1 << 31,
+	NAME_IS_ALIAS = 1 << 30,
 };
-#define NAME_DEAD(n) (((n)->flags & NAME_IS_DEAD) != 0)
+#define NAME_DEAD(n)  (((n)->flags & NAME_IS_DEAD) != 0)
+#define NAME_ALIAS(n) (((n)->flags & NAME_IS_ALIAS) != 0)
 
 /*
  * Private flag(s) for adbentry objects.  Note that these will also
@@ -674,7 +672,6 @@ expire_name(dns_adbname_t *adbname, dns_adbstatus_t astat) {
 	clean_finds_at_name(adbname, astat, DNS_ADBFIND_ADDRESSMASK);
 	clean_namehooks(adb, &adbname->v4);
 	clean_namehooks(adb, &adbname->v6);
-	clean_target(adb, &adbname->target);
 
 	if (NAME_FETCH_A(adbname)) {
 		dns_resolver_cancelfetch(adbname->fetch_a->fetch);
@@ -732,14 +729,6 @@ maybe_expire_namehooks(dns_adbname_t *adbname, isc_stdtime_t now) {
 		}
 		adbname->expire_v6 = INT_MAX;
 		adbname->fetch6_err = FIND_ERR_UNEXPECTED;
-	}
-
-	/*
-	 * Check to see if we need to remove the alias target.
-	 */
-	if (EXPIRE_OK(adbname->expire_target, now)) {
-		clean_target(adb, &adbname->target);
-		adbname->expire_target = INT_MAX;
 	}
 }
 
@@ -809,81 +798,6 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
 
 		namehook = ISC_LIST_HEAD(*namehooks);
 	}
-}
-
-static void
-clean_target(dns_adb_t *adb, dns_name_t *target) {
-	if (dns_name_countlabels(target) > 0) {
-		dns_name_free(target, adb->mctx);
-		dns_name_init(target);
-	}
-}
-
-static isc_result_t
-set_target(dns_adb_t *adb, const dns_name_t *name, const dns_name_t *fname,
-	   dns_rdataset_t *rdataset, dns_name_t *target) {
-	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-
-	REQUIRE(dns_name_countlabels(target) == 0);
-
-	if (rdataset->type == dns_rdatatype_cname) {
-		dns_rdata_cname_t cname;
-
-		/*
-		 * Copy the CNAME's target into the target name.
-		 */
-		result = dns_rdataset_first(rdataset);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
-		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &cname, NULL);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
-		dns_name_dup(&cname.cname, adb->mctx, target);
-		dns_rdata_freestruct(&cname);
-	} else {
-		dns_fixedname_t fixed1, fixed2;
-		dns_name_t *prefix = NULL, *new_target = NULL;
-		dns_rdata_dname_t dname;
-		dns_namereln_t namereln;
-		unsigned int nlabels;
-		int order;
-
-		INSIST(rdataset->type == dns_rdatatype_dname);
-		namereln = dns_name_fullcompare(name, fname, &order, &nlabels);
-		INSIST(namereln == dns_namereln_subdomain);
-
-		/*
-		 * Get the target name of the DNAME.
-		 */
-		result = dns_rdataset_first(rdataset);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
-		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &dname, NULL);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
-
-		/*
-		 * Construct the new target name.
-		 */
-		prefix = dns_fixedname_initname(&fixed1);
-		new_target = dns_fixedname_initname(&fixed2);
-		dns_name_split(name, nlabels, prefix, NULL);
-		result = dns_name_concatenate(prefix, &dname.dname, new_target);
-		dns_rdata_freestruct(&dname);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
-		dns_name_dup(new_target, adb->mctx, target);
-	}
-
-	return ISC_R_SUCCESS;
 }
 
 /*
@@ -966,7 +880,6 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, unsigned int flags) {
 		.adb = dns_adb_ref(adb),
 		.expire_v4 = INT_MAX,
 		.expire_v6 = INT_MAX,
-		.expire_target = INT_MAX,
 		.fetch_err = FIND_ERR_UNEXPECTED,
 		.fetch6_err = FIND_ERR_UNEXPECTED,
 		.v4 = ISC_LIST_INITIALIZER,
@@ -987,7 +900,6 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, unsigned int flags) {
 
 	name->name = dns_fixedname_initname(&name->fname);
 	dns_name_copy(dnsname, name->name);
-	dns_name_init(&name->target);
 
 	inc_adbstats(adb, dns_adbstats_namescnt);
 	return name;
@@ -1544,8 +1456,7 @@ maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now) {
 
 	/* ... or is not yet expired. */
 	if (!EXPIRE_OK(adbname->expire_v4, now) ||
-	    !EXPIRE_OK(adbname->expire_v6, now) ||
-	    !EXPIRE_OK(adbname->expire_target, now))
+	    !EXPIRE_OK(adbname->expire_v6, now))
 	{
 		return false;
 	}
@@ -1926,8 +1837,8 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 		   const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype ISC_ATTR_UNUSED, unsigned int options,
-		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
-		   unsigned int depth, isc_counter_t *qc, isc_counter_t *gqc,
+		   isc_stdtime_t now, in_port_t port, unsigned int depth,
+		   isc_counter_t *qc, isc_counter_t *gqc,
 		   dns_adbfind_t **findp) {
 	isc_result_t result = ISC_R_UNEXPECTED;
 	dns_adbfind_t *find = NULL;
@@ -1948,7 +1859,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 	REQUIRE(name != NULL);
 	REQUIRE(qname != NULL);
 	REQUIRE(findp != NULL && *findp == NULL);
-	REQUIRE(target == NULL || dns_name_hasbuffer(target));
 
 	REQUIRE((options & DNS_ADBFIND_ADDRESSMASK) != 0);
 
@@ -2004,7 +1914,7 @@ again:
 	/*
 	 * Do we know that the name is an alias?
 	 */
-	if (!EXPIRE_OK(adbname->expire_target, now)) {
+	if (NAME_ALIAS(adbname) && !EXPIRE_OK(adbname->expire_v4, now)) {
 		/* Yes, it is. */
 		DP(DEF_LEVEL,
 		   "dns_adb_createfind: name %s (%p) is an alias (cached)",
@@ -2218,9 +2128,6 @@ post_copy:
 
 	find->partial_result |= (adbname->partial_result & wanted_addresses);
 	if (alias) {
-		if (target != NULL) {
-			dns_name_copy(&adbname->target, target);
-		}
 		result = DNS_R_ALIAS;
 	} else {
 		result = ISC_R_SUCCESS;
@@ -2408,14 +2315,9 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 		}
 		fprintf(f, "; ");
 		dns_name_print(name->name, f);
-		if (dns_name_countlabels(&name->target) > 0) {
-			fprintf(f, " alias ");
-			dns_name_print(&name->target, f);
-		}
 
 		dump_ttl(f, "v4", name->expire_v4, now);
 		dump_ttl(f, "v6", name->expire_v6, now);
-		dump_ttl(f, "target", name->expire_target, now);
 
 		fprintf(f, " [v4 %s] [v6 %s]", errnames[name->fetch_err],
 			errnames[name->fetch6_err]);
@@ -2762,18 +2664,17 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 		break;
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
+		/*
+		 * We found a CNAME or DNAME. Mark this as an
+		 * alias (not to be used) and mark the expiry
+		 * for both address families so we won't ask again
+		 * for a while.
+		 */
 		rdataset.ttl = ttlclamp(rdataset.ttl);
-		clean_target(adb, &adbname->target);
-		adbname->expire_target = INT_MAX;
-		result = set_target(adb, adbname->name, fname, &rdataset,
-				    &adbname->target);
-		if (result == ISC_R_SUCCESS) {
-			result = DNS_R_ALIAS;
-			DP(NCACHE_LEVEL, "adb name %p: caching alias target",
-			   adbname);
-			adbname->expire_target = ADJUSTED_EXPIRE(
-				adbname->expire_target, now, rdataset.ttl);
-		}
+		result = DNS_R_ALIAS;
+		adbname->flags |= NAME_IS_ALIAS;
+		adbname->expire_v4 = adbname->expire_v6 =
+			ADJUSTED_EXPIRE(INT_MAX, now, rdataset.ttl);
 		if (rdtype == dns_rdatatype_a) {
 			adbname->fetch_err = FIND_ERR_SUCCESS;
 		} else {
@@ -2888,16 +2789,10 @@ fetch_callback(void *arg) {
 	 */
 	if (resp->result == DNS_R_CNAME || resp->result == DNS_R_DNAME) {
 		resp->rdataset->ttl = ttlclamp(resp->rdataset->ttl);
-		clean_target(adb, &name->target);
-		name->expire_target = INT_MAX;
-		result = set_target(adb, name->name, resp->foundname,
-				    resp->rdataset, &name->target);
-		if (result == ISC_R_SUCCESS) {
-			DP(NCACHE_LEVEL,
-			   "adb fetch name %p: caching alias target", name);
-			name->expire_target = ADJUSTED_EXPIRE(
-				name->expire_target, now, resp->rdataset->ttl);
-		}
+		result = ISC_R_SUCCESS;
+		name->flags |= NAME_IS_ALIAS;
+		name->expire_v4 = name->expire_v6 =
+			ADJUSTED_EXPIRE(INT_MAX, now, resp->rdataset->ttl);
 		goto check_result;
 	}
 

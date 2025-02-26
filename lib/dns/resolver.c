@@ -3301,7 +3301,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	fetchctx_ref(fctx);
 	result = dns_adb_createfind(fctx->adb, fctx->loop, fctx_finddone, fctx,
 				    name, fctx->name, fctx->type, options, now,
-				    NULL, res->view->dstport, fctx->depth + 1,
+				    res->view->dstport, fctx->depth + 1,
 				    fctx->qc, fctx->gqc, &find);
 
 	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
