@@ -517,6 +517,8 @@ struct fetchctx {
 #define FCTX_ATTR_SET(f, a) atomic_fetch_or_release(&(f)->attributes, (a))
 #define FCTX_ATTR_CLR(f, a) atomic_fetch_and_release(&(f)->attributes, ~(a))
 
+#define CHECKNTA(f) (((f)->options & DNS_FETCHOPT_NONTA) == 0)
+
 typedef struct {
 	dns_adbaddrinfo_t *addrinfo;
 	fetchctx_t *fctx;
@@ -959,9 +961,10 @@ set_stats(dns_resolver_t *res, isc_statscounter_t counter, uint64_t val) {
 static isc_result_t
 valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	  dns_name_t *name, dns_rdatatype_t type, dns_rdataset_t *rdataset,
-	  dns_rdataset_t *sigrdataset, unsigned int valoptions) {
+	  dns_rdataset_t *sigrdataset) {
 	dns_validator_t *validator = NULL;
 	dns_valarg_t *valarg = NULL;
+	unsigned int valoptions = 0;
 	isc_result_t result;
 
 	valarg = isc_mem_get(fctx->mctx, sizeof(*valarg));
@@ -970,6 +973,15 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	};
 
 	fetchctx_attach(fctx, &valarg->fctx);
+
+	/* Set up validator options */
+	if ((fctx->options & DNS_FETCHOPT_NOCDFLAG) != 0) {
+		valoptions |= DNS_VALIDATOR_NOCDFLAG;
+	}
+
+	if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
+		valoptions |= DNS_VALIDATOR_NONTA;
+	}
 
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		valoptions |= DNS_VALIDATOR_DEFER;
@@ -5763,22 +5775,89 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 }
 
 static isc_result_t
+check_cacheable(dns_name_t *name, dns_rdataset_t *rdataset, bool fail) {
+	/* This rdataset isn't marked for caching */
+	if (!CACHE(rdataset)) {
+		return DNS_R_CONTINUE;
+	}
+
+	/* See if there are any name errors */
+	if (CHECKNAMES(rdataset)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		char typebuf[DNS_RDATATYPE_FORMATSIZE];
+		char classbuf[DNS_RDATATYPE_FORMATSIZE];
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
+		dns_rdataclass_format(rdataset->rdclass, classbuf,
+				      sizeof(classbuf));
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_NOTICE, "check-names %s %s/%s/%s",
+			      fail ? "failure" : "warning", namebuf, typebuf,
+			      classbuf);
+		if (fail) {
+			if (ANSWER(rdataset)) {
+				return DNS_R_BADNAME;
+			}
+
+			return DNS_R_CONTINUE;
+		}
+	}
+
+	/*
+	 * We do not attempt to cache or validate glue or out-of-bailiwick
+	 * data - even if there might be some performance benefit to doing
+	 * so - because it makes it simpler and safer.
+	 */
+	if (EXTERNAL(rdataset)) {
+		return DNS_R_CONTINUE;
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+static void
+fixttls(dns_view_t *view, dns_rdataset_t *rdataset,
+	dns_rdataset_t *sigrdataset) {
+	/*
+	 * Enforce the configured maximum and minimum cache TTL.
+	 */
+	if (rdataset->ttl > view->maxcachettl) {
+		rdataset->ttl = view->maxcachettl;
+	}
+
+	if (rdataset->ttl < view->mincachettl) {
+		rdataset->ttl = view->mincachettl;
+	}
+
+	/*
+	 * Mark the rdataset as being prefetch eligible.
+	 */
+	if (rdataset->ttl >= view->prefetch_eligible) {
+		rdataset->attributes.prefetch = true;
+	}
+
+	/*
+	 * Normalize the rdataset and sigrdataset TTLs.
+	 */
+	if (sigrdataset != NULL) {
+		rdataset->ttl = ISC_MIN(rdataset->ttl, sigrdataset->ttl);
+		sigrdataset->ttl = rdataset->ttl;
+	}
+}
+
+static isc_result_t
 cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	   dns_adbaddrinfo_t *addrinfo, isc_stdtime_t now) {
-	dns_rdataset_t *addedrdataset = NULL;
+	dns_rdataset_t *added = NULL;
+	dns_rdataset_t *sigrdataset = NULL;
 	dns_rdataset_t *ardataset = NULL, *asigrdataset = NULL;
 	dns_rdataset_t *valrdataset = NULL, *valsigrdataset = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_resolver_t *res = fctx->res;
-	bool need_validation = false;
-	bool secure_domain = false;
 	bool have_answer = false;
 	isc_result_t result, eresult = ISC_R_SUCCESS;
 	dns_fetchresponse_t *resp = NULL;
-	unsigned int options;
-	bool fail;
-	unsigned int valoptions = 0;
-	bool checknta = true;
 
 	FCTXTRACE("cache_name");
 
@@ -5789,23 +5868,11 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
-		valoptions |= DNS_VALIDATOR_NONTA;
-		checknta = false;
-	}
-
-	secure_domain = issecuredomain(res->view, name, fctx->type, now,
-				       checknta, NULL);
-
-	if ((fctx->options & DNS_FETCHOPT_NOCDFLAG) != 0) {
-		valoptions |= DNS_VALIDATOR_NOCDFLAG;
-	}
-
-	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
-		need_validation = false;
-	} else {
-		need_validation = secure_domain;
-	}
+	bool checknta = ((fctx->options & DNS_FETCHOPT_NONTA) == 0);
+	bool secure_domain = issecuredomain(res->view, name, fctx->type, now,
+					    checknta, NULL);
+	bool need_validation = secure_domain &&
+			       ((fctx->options & DNS_FETCHOPT_NOVALIDATE) == 0);
 
 	if (name->attributes.answer && !need_validation) {
 		have_answer = true;
@@ -5839,56 +5906,16 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	/*
 	 * Cache or validate each cacheable rdataset.
 	 */
-	fail = ((fctx->res->options & DNS_RESOLVER_CHECKNAMESFAIL) != 0);
+	bool fail = ((fctx->res->options & DNS_RESOLVER_CHECKNAMESFAIL) != 0);
 	ISC_LIST_FOREACH (name->list, rdataset, link) {
-		dns_rdataset_t *sigrdataset = NULL;
+		unsigned int options = 0;
 
-		if (!CACHE(rdataset)) {
+		result = check_cacheable(name, rdataset, fail);
+		if (result == DNS_R_CONTINUE) {
+			result = ISC_R_SUCCESS;
 			continue;
-		}
-		if (CHECKNAMES(rdataset)) {
-			char namebuf[DNS_NAME_FORMATSIZE];
-			char typebuf[DNS_RDATATYPE_FORMATSIZE];
-			char classbuf[DNS_RDATATYPE_FORMATSIZE];
-
-			dns_name_format(name, namebuf, sizeof(namebuf));
-			dns_rdatatype_format(rdataset->type, typebuf,
-					     sizeof(typebuf));
-			dns_rdataclass_format(rdataset->rdclass, classbuf,
-					      sizeof(classbuf));
-			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-				      "check-names %s %s/%s/%s",
-				      fail ? "failure" : "warning", namebuf,
-				      typebuf, classbuf);
-			if (fail) {
-				if (ANSWER(rdataset)) {
-					dns_db_detachnode(fctx->cache, &node);
-					return DNS_R_BADNAME;
-				}
-				continue;
-			}
-		}
-
-		/*
-		 * Enforce the configured maximum cache TTL.
-		 */
-		if (rdataset->ttl > res->view->maxcachettl) {
-			rdataset->ttl = res->view->maxcachettl;
-		}
-
-		/*
-		 * Enforce configured minimum cache TTL.
-		 */
-		if (rdataset->ttl < res->view->mincachettl) {
-			rdataset->ttl = res->view->mincachettl;
-		}
-
-		/*
-		 * Mark the rdataset as being prefetch eligible.
-		 */
-		if (rdataset->ttl >= fctx->res->view->prefetch_eligible) {
-			rdataset->attributes.prefetch = true;
+		} else if (result != ISC_R_SUCCESS) {
+			goto cleanup;
 		}
 
 		/*
@@ -5902,20 +5929,23 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		}
 
 		/*
-		 * If this RRset is in a secure domain, is in bailiwick,
-		 * and is not glue, attempt DNSSEC validation.	(We do
-		 * not attempt to validate glue or out-of-bailiwick
-		 * data--even though there might be some performance
-		 * benefit to doing so--because it makes it simpler and
-		 * safer to ensure that records from a secure domain are
-		 * only cached if validated within the context of a
-		 * query to the domain that owns them.)
+		 * Make the TTLs consistent with the configured
+		 * maximum and minimum and with each other.
 		 */
-		if (secure_domain && rdataset->trust != dns_trust_glue &&
-		    !EXTERNAL(rdataset))
-		{
-			dns_trust_t trust;
+		fixttls(res->view, rdataset, sigrdataset);
 
+		/*
+		 * If this RRset is in a secure domain, is in bailiwick,
+		 * and is not glue, attempt DNSSEC validation.
+		 *
+		 * We do not attempt to validate glue or out-of-bailiwick
+		 * data - even though there might be some performance
+		 * benefit to doing so - because it makes it simpler and
+		 * safer to ensure that records from a secure domain are
+		 * only cached if validated within the context of a query
+		 * to the domain that owns them.
+		 */
+		if (secure_domain && rdataset->trust != dns_trust_glue) {
 			/*
 			 * RRSIGs are validated as part of validating
 			 * the type they cover.
@@ -5958,107 +5988,13 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			 * query, additional should be cached as glue.
 			 */
 			if (rdataset->trust == dns_trust_additional) {
-				trust = dns_trust_pending_additional;
+				rdataset->trust = dns_trust_pending_additional;
 			} else {
-				trust = dns_trust_pending_answer;
+				rdataset->trust = dns_trust_pending_answer;
 			}
 
-			rdataset->trust = trust;
 			if (sigrdataset != NULL) {
-				sigrdataset->trust = trust;
-			}
-			if (!need_validation || !ANSWER(rdataset)) {
-				options = 0;
-				if (ANSWER(rdataset) &&
-				    rdataset->type != dns_rdatatype_rrsig)
-				{
-					isc_result_t tresult;
-					dns_name_t *noqname = NULL;
-					tresult = findnoqname(
-						fctx, message, name,
-						rdataset->type, &noqname);
-					if (tresult == ISC_R_SUCCESS &&
-					    noqname != NULL)
-					{
-						(void)dns_rdataset_addnoqname(
-							rdataset, noqname);
-					}
-				}
-				if ((fctx->options & DNS_FETCHOPT_PREFETCH) !=
-				    0)
-				{
-					options = DNS_DBADD_PREFETCH;
-				}
-				if ((fctx->options & DNS_FETCHOPT_NOCACHED) !=
-				    0)
-				{
-					options |= DNS_DBADD_FORCE;
-				}
-				addedrdataset = ardataset;
-				result = dns_db_addrdataset(
-					fctx->cache, node, NULL, now, rdataset,
-					options, addedrdataset);
-				if (result == DNS_R_UNCHANGED) {
-					result = ISC_R_SUCCESS;
-					if (!need_validation &&
-					    ardataset != NULL &&
-					    NEGATIVE(ardataset))
-					{
-						/*
-						 * The answer in the
-						 * cache is better than
-						 * the answer we found.
-						 * If it's a negative
-						 * cache entry, we
-						 * must set eresult
-						 * appropriately.
-						 */
-						if (NXDOMAIN(ardataset)) {
-							eresult =
-								DNS_R_NCACHENXDOMAIN;
-						} else {
-							eresult =
-								DNS_R_NCACHENXRRSET;
-						}
-						continue;
-					} else if (!need_validation &&
-						   ardataset != NULL &&
-						   sigrdataset != NULL &&
-						   !dns_rdataset_equals(
-							   rdataset, ardataset))
-					{
-						/*
-						 * The cache wasn't updated
-						 * because something was
-						 * already there. If the
-						 * data was the same as what
-						 * we were trying to add,
-						 * then sigrdataset might
-						 * still be useful, and we
-						 * should carry on caching
-						 * it. Otherwise, move on.
-						 */
-						continue;
-					}
-				}
-				if (result != ISC_R_SUCCESS) {
-					break;
-				}
-				if (sigrdataset != NULL) {
-					addedrdataset = asigrdataset;
-					result = dns_db_addrdataset(
-						fctx->cache, node, NULL, now,
-						sigrdataset, options,
-						addedrdataset);
-					if (result == DNS_R_UNCHANGED) {
-						result = ISC_R_SUCCESS;
-					}
-					if (result != ISC_R_SUCCESS) {
-						break;
-					}
-				} else if (!ANSWER(rdataset)) {
-					continue;
-				}
+				sigrdataset->trust = rdataset->trust;
 			}
 
 			if (ANSWER(rdataset) && need_validation) {
@@ -6088,36 +6024,120 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 					result = valcreate(
 						fctx, message, addrinfo, name,
 						rdataset->type, rdataset,
-						sigrdataset, valoptions);
+						sigrdataset);
 				}
-			} else if (CHAINING(rdataset)) {
-				if (rdataset->type == dns_rdatatype_cname) {
-					eresult = DNS_R_CNAME;
-				} else {
-					INSIST(rdataset->type ==
-					       dns_rdatatype_dname);
-					eresult = DNS_R_DNAME;
+			} else {
+				if (ANSWER(rdataset) &&
+				    rdataset->type != dns_rdatatype_rrsig)
+				{
+					isc_result_t tresult;
+					dns_name_t *noqname = NULL;
+					tresult = findnoqname(
+						fctx, message, name,
+						rdataset->type, &noqname);
+					if (tresult == ISC_R_SUCCESS &&
+					    noqname != NULL)
+					{
+						(void)dns_rdataset_addnoqname(
+							rdataset, noqname);
+					}
+				}
+				if ((fctx->options & DNS_FETCHOPT_PREFETCH) !=
+				    0)
+				{
+					options = DNS_DBADD_PREFETCH;
+				}
+				if ((fctx->options & DNS_FETCHOPT_NOCACHED) !=
+				    0)
+				{
+					options |= DNS_DBADD_FORCE;
+				}
+				added = ardataset;
+				result = dns_db_addrdataset(fctx->cache, node,
+							    NULL, now, rdataset,
+							    options, added);
+				if (result == DNS_R_UNCHANGED) {
+					result = ISC_R_SUCCESS;
+					if (!need_validation && added != NULL &&
+					    NEGATIVE(added))
+					{
+						/*
+						 * The answer in the
+						 * cache is better than
+						 * the answer we found.
+						 * If it's a negative
+						 * cache entry, we
+						 * must set eresult
+						 * appropriately.
+						 */
+						if (NXDOMAIN(added)) {
+							eresult =
+								DNS_R_NCACHENXDOMAIN;
+						} else {
+							eresult =
+								DNS_R_NCACHENXRRSET;
+						}
+						continue;
+					} else if (!need_validation &&
+						   added != NULL &&
+						   sigrdataset != NULL &&
+						   !dns_rdataset_equals(
+							   rdataset, added))
+					{
+						/*
+						 * The cache wasn't updated
+						 * because something was
+						 * already there. If the
+						 * data was the same as what
+						 * we were trying to add,
+						 * then sigrdataset might
+						 * still be useful, and we
+						 * should carry on caching
+						 * it. Otherwise, move on.
+						 */
+						continue;
+					}
+				}
+				if (result != ISC_R_SUCCESS) {
+					break;
+				}
+				if (sigrdataset != NULL) {
+					added = asigrdataset;
+					result = dns_db_addrdataset(
+						fctx->cache, node, NULL, now,
+						sigrdataset, options, added);
+					if (result == DNS_R_UNCHANGED) {
+						result = ISC_R_SUCCESS;
+					}
+					if (result != ISC_R_SUCCESS) {
+						break;
+					}
+				} else if (!ANSWER(rdataset)) {
+					continue;
+				}
+
+				if (CHAINING(rdataset)) {
+					if (rdataset->type ==
+					    dns_rdatatype_cname)
+					{
+						eresult = DNS_R_CNAME;
+					} else {
+						INSIST(rdataset->type ==
+						       dns_rdatatype_dname);
+						eresult = DNS_R_DNAME;
+					}
 				}
 			}
-		} else if (!EXTERNAL(rdataset)) {
+		} else {
 			/*
 			 * It's OK to cache this rdataset now.
 			 */
 			if (ANSWER(rdataset)) {
-				addedrdataset = ardataset;
+				added = ardataset;
 			} else if (ANSWERSIG(rdataset)) {
-				addedrdataset = asigrdataset;
+				added = asigrdataset;
 			} else {
-				addedrdataset = NULL;
-			}
-			if (CHAINING(rdataset)) {
-				if (rdataset->type == dns_rdatatype_cname) {
-					eresult = DNS_R_CNAME;
-				} else {
-					INSIST(rdataset->type ==
-					       dns_rdatatype_dname);
-					eresult = DNS_R_DNAME;
-				}
+				added = NULL;
 			}
 			if (rdataset->trust == dns_trust_glue &&
 			    dns_rdataset_matchestype(rdataset,
@@ -6135,8 +6155,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			} else if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0)
 			{
 				options = DNS_DBADD_PREFETCH;
-			} else {
-				options = 0;
 			}
 
 			if (ANSWER(rdataset) &&
@@ -6158,11 +6176,11 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			 */
 			result = dns_db_addrdataset(fctx->cache, node, NULL,
 						    now, rdataset, options,
-						    addedrdataset);
+						    added);
 
 			if (result == DNS_R_UNCHANGED) {
-				if (ANSWER(rdataset) && ardataset != NULL &&
-				    NEGATIVE(ardataset))
+				if (ANSWER(rdataset) && added != NULL &&
+				    NEGATIVE(added))
 				{
 					/*
 					 * The answer in the cache is
@@ -6171,7 +6189,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 					 * cache entry, so we must set
 					 * eresult appropriately.
 					 */
-					if (NXDOMAIN(ardataset)) {
+					if (NXDOMAIN(added)) {
 						eresult = DNS_R_NCACHENXDOMAIN;
 					} else {
 						eresult = DNS_R_NCACHENXRRSET;
@@ -6195,7 +6213,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		}
 
 		result = valcreate(fctx, message, addrinfo, name, vtype,
-				   valrdataset, valsigrdataset, valoptions);
+				   valrdataset, valsigrdataset);
 	}
 
 	if (result == ISC_R_SUCCESS && have_answer) {
@@ -6225,6 +6243,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 					}
 				}
 			}
+
 			resp->result = eresult;
 			dns_name_copy(name, resp->foundname);
 			dns_db_attach(fctx->cache, &resp->db);
@@ -6233,6 +6252,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		}
 	}
 
+cleanup:
 	if (node != NULL) {
 		dns_db_detachnode(fctx->cache, &node);
 	}
@@ -6366,17 +6386,12 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 	dns_name_t *name = fctx->name;
 	dns_resolver_t *res = fctx->res;
 	dns_dbnode_t *node = NULL;
-	bool need_validation = false, secure_domain = false;
 	dns_fetchresponse_t *resp = NULL;
-	unsigned int valoptions = 0;
-	bool checknta = true;
 	dns_rdataset_t *added = NULL;
 
 	FCTXTRACE("ncache_message");
 
 	FCTX_ATTR_CLR(fctx, FCTX_ATTR_WANTNCACHE);
-
-	POST(need_validation);
 
 	/*
 	 * XXXMPA remove when we follow cnames and adjust the setting
@@ -6387,23 +6402,11 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
-		valoptions |= DNS_VALIDATOR_NONTA;
-		checknta = false;
-	}
-
-	secure_domain = issecuredomain(res->view, name, fctx->type, now,
-				       checknta, NULL);
-
-	if ((fctx->options & DNS_FETCHOPT_NOCDFLAG) != 0) {
-		valoptions |= DNS_VALIDATOR_NOCDFLAG;
-	}
-
-	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
-		need_validation = false;
-	} else {
-		need_validation = secure_domain;
-	}
+	bool checknta = ((fctx->options & DNS_FETCHOPT_NONTA) == 0);
+	bool secure_domain = issecuredomain(res->view, name, fctx->type, now,
+					    checknta, NULL);
+	bool need_validation = secure_domain &&
+			       ((fctx->options & DNS_FETCHOPT_NOVALIDATE) == 0);
 
 	if (secure_domain) {
 		/*
@@ -6421,7 +6424,7 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 		 * Do negative response validation.
 		 */
 		result = valcreate(fctx, message, addrinfo, name, fctx->type,
-				   NULL, NULL, valoptions);
+				   NULL, NULL);
 		/*
 		 * If validation is necessary, return now.  Otherwise
 		 * continue to process the message, letting the
