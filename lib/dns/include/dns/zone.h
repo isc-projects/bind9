@@ -1539,14 +1539,19 @@ dns_zone_getsourceaddr(dns_zone_t *zone);
  * \li	'zone' has a non-empty primaries list.
  */
 
-isc_sockaddr_t
-dns_zone_getprimaryaddr(dns_zone_t *zone);
+isc_result_t
+dns_zone_getprimaryaddr(dns_zone_t *zone, isc_sockaddr_t *dest);
 /*%<
- * Get the zone's current primary server.
+ * Get the zone's current primary server into '*dest'.
  *
  * Requires:
  * \li	'zone' to be a valid zone.
  * \li	'zone' has a non-empty primaries list.
+ * \li	'dest' != NULL.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS if the current primary server was found
+ *\li	#ISC_R_NOMORE if all the primaries were already iterated over
  */
 
 isc_time_t
