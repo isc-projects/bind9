@@ -45,22 +45,22 @@ isc_quota_destroy(isc_quota_t *quota) {
 	INSIST(atomic_load(&quota->used) == 0);
 	INSIST(atomic_load(&quota->waiting) == 0);
 	INSIST(ISC_LIST_EMPTY(quota->cbs));
-	atomic_store_release(&quota->max, 0);
+	atomic_store_relaxed(&quota->max, 0);
 	atomic_store_release(&quota->used, 0);
-	atomic_store_release(&quota->soft, 0);
+	atomic_store_relaxed(&quota->soft, 0);
 	isc_mutex_destroy(&quota->cblock);
 }
 
 void
 isc_quota_soft(isc_quota_t *quota, unsigned int soft) {
 	REQUIRE(VALID_QUOTA(quota));
-	atomic_store_release(&quota->soft, soft);
+	atomic_store_relaxed(&quota->soft, soft);
 }
 
 void
 isc_quota_max(isc_quota_t *quota, unsigned int max) {
 	REQUIRE(VALID_QUOTA(quota));
-	atomic_store_release(&quota->max, max);
+	atomic_store_relaxed(&quota->max, max);
 }
 
 unsigned int
@@ -84,8 +84,8 @@ isc_quota_getused(isc_quota_t *quota) {
 static isc_result_t
 quota_reserve(isc_quota_t *quota) {
 	isc_result_t result;
-	uint_fast32_t max = atomic_load_acquire(&quota->max);
-	uint_fast32_t soft = atomic_load_acquire(&quota->soft);
+	uint_fast32_t max = atomic_load_relaxed(&quota->max);
+	uint_fast32_t soft = atomic_load_relaxed(&quota->soft);
 	uint_fast32_t used = atomic_load_acquire(&quota->used);
 	do {
 		if (max != 0 && used >= max) {
