@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/ascii.h>
+#include <isc/fxhash.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
 #include <isc/magic.h>
@@ -31,9 +32,9 @@ typedef struct elt {
 	isc_symvalue_t value;
 } elt_t;
 
-/* 7 bits means 128 entries at creation, which matches the common use of
+/* 4 bits means 16 entries at creation, which matches the common use of
  * symtab */
-#define ISC_SYMTAB_INIT_HASH_BITS 7
+#define ISC_SYMTAB_INIT_HASH_BITS 4
 #define SYMTAB_MAGIC		  ISC_MAGIC('S', 'y', 'm', 'T')
 #define VALID_SYMTAB(st)	  ISC_MAGIC_VALID(st, SYMTAB_MAGIC)
 
@@ -122,7 +123,7 @@ elt__match(void *node, const void *key0, bool case_sensitive) {
 	if (case_sensitive) {
 		return memcmp(elt->key, key->key, key->size) == 0;
 	} else {
-		return isc_ascii_lowercmp(elt->key, key->key, key->size) == 0;
+		return isc_ascii_lowerequal(elt->key, key->key, key->size);
 	}
 }
 
@@ -136,14 +137,11 @@ elt_match_nocase(void *node, const void *key) {
 	return elt__match(node, key, false);
 }
 
-static uint32_t
-elt_hash(elt_t *elt, bool case_sensitive) {
-	isc_hash32_t hash;
-
-	isc_hash32_init(&hash);
-	isc_hash32_hash(&hash, elt->key, elt->size, case_sensitive);
-	isc_hash32_hash(&hash, &elt->type, sizeof(elt->type), false);
-	return isc_hash32_finalize(&hash);
+static inline uint32_t
+elt_hash(elt_t *restrict elt, bool case_sensitive) {
+	const uint8_t *ptr = elt->key;
+	size_t len = elt->size;
+	return fx_hash_bytes(0, ptr, len, case_sensitive);
 }
 
 isc_result_t

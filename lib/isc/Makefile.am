@@ -26,6 +26,7 @@ libisc_la_HEADERS =			\
 	include/isc/file.h		\
 	include/isc/formatcheck.h	\
 	include/isc/fuzz.h		\
+	include/isc/fxhash.h		\
 	include/isc/getaddresses.h	\
 	include/isc/hash.h		\
 	include/isc/hashmap.h		\
