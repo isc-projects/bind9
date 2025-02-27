@@ -524,13 +524,14 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
 	return result;
 }
 
-isc_result_t
+bool
 dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
-			    dns_name_t *foundname, bool *wantdnssecp) {
+			    dns_name_t *foundname) {
 	isc_result_t result;
 	dns_qpread_t qpr;
 	dns_keynode_t *keynode = NULL;
 	void *pval = NULL;
+	bool secure = false;
 
 	/*
 	 * Is 'name' at or beneath a trusted key?
@@ -538,7 +539,6 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
 
 	REQUIRE(VALID_KEYTABLE(keytable));
 	REQUIRE(dns_name_isabsolute(name));
-	REQUIRE(wantdnssecp != NULL);
 
 	dns_qpmulti_query(keytable->table, &qpr);
 	result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL,
@@ -548,16 +548,12 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
 		if (foundname != NULL) {
 			dns_name_copy(&keynode->name, foundname);
 		}
-		*wantdnssecp = true;
-		result = ISC_R_SUCCESS;
-	} else if (result == ISC_R_NOTFOUND) {
-		*wantdnssecp = false;
-		result = ISC_R_SUCCESS;
+		secure = true;
 	}
 
 	dns_qpread_destroy(keytable->table, &qpr);
 
-	return result;
+	return secure;
 }
 
 static isc_result_t

@@ -544,7 +544,6 @@ ISC_LOOP_TEST_IMPL(find) {
 
 /* check issecuredomain() */
 ISC_LOOP_TEST_IMPL(issecuredomain) {
-	bool issecure;
 	const char **n;
 	const char *names[] = { "example.com", "sub.example.com",
 				"null.example", "sub.null.example", NULL };
@@ -559,22 +558,16 @@ ISC_LOOP_TEST_IMPL(issecuredomain) {
 	 * of installing a null key).
 	 */
 	for (n = names; *n != NULL; n++) {
-		assert_int_equal(dns_keytable_issecuredomain(keytable,
-							     str2name(*n), NULL,
-							     &issecure),
-				 ISC_R_SUCCESS);
-		assert_true(issecure);
+		assert_true(dns_keytable_issecuredomain(keytable, str2name(*n),
+							NULL));
 	}
 
 	/*
 	 * If the key table has no entry (not even a null one) for a domain or
 	 * any of its ancestors, that domain is considered insecure.
 	 */
-	assert_int_equal(dns_keytable_issecuredomain(keytable,
-						     str2name("example.org"),
-						     NULL, &issecure),
-			 ISC_R_SUCCESS);
-	assert_false(issecure);
+	assert_false(dns_keytable_issecuredomain(
+		keytable, str2name("example.org"), NULL));
 
 	destroy_tables();
 
@@ -604,7 +597,7 @@ ISC_LOOP_TEST_IMPL(dump) {
 /* check negative trust anchors */
 ISC_LOOP_TEST_IMPL(nta) {
 	isc_result_t result;
-	bool issecure, covered;
+	bool covered;
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
 	unsigned char digest[DNS_DS_BUFFERSIZE];
@@ -636,20 +629,15 @@ ISC_LOOP_TEST_IMPL(nta) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Should be secure */
-	result = dns_view_issecuredomain(myview,
-					 str2name("test.secure.example"), now,
-					 true, &covered, &issecure);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_view_issecuredomain(
+		myview, str2name("test.secure.example"), now, true, &covered));
 	assert_false(covered);
-	assert_true(issecure);
 
 	/* Should not be secure */
-	result = dns_view_issecuredomain(myview,
-					 str2name("test.insecure.example"), now,
-					 true, &covered, &issecure);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(dns_view_issecuredomain(myview,
+					     str2name("test.insecure.example"),
+					     now, true, &covered));
 	assert_true(covered);
-	assert_false(issecure);
 
 	/* NTA covered */
 	covered = dns_view_ntacovers(myview, now, str2name("insecure.example"),
@@ -662,38 +650,30 @@ ISC_LOOP_TEST_IMPL(nta) {
 	assert_false(covered);
 
 	/* As of now + 2, the NTA should be clear */
-	result = dns_view_issecuredomain(myview,
-					 str2name("test.insecure.example"),
-					 now + 2, true, &covered, &issecure);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_view_issecuredomain(myview,
+					    str2name("test.insecure.example"),
+					    now + 2, true, &covered));
 	assert_false(covered);
-	assert_true(issecure);
 
 	/* Now check deletion */
-	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
-					 now, true, &covered, &issecure);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_view_issecuredomain(
+		myview, str2name("test.new.example"), now, true, &covered));
 	assert_false(covered);
-	assert_true(issecure);
 
 	result = dns_ntatable_add(ntatable, str2name("new.example"), false, now,
 				  3600);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
-					 now, true, &covered, &issecure);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(dns_view_issecuredomain(
+		myview, str2name("test.new.example"), now, true, &covered));
 	assert_true(covered);
-	assert_false(issecure);
 
 	result = dns_ntatable_delete(ntatable, str2name("new.example"));
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
-					 now, true, &covered, &issecure);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_view_issecuredomain(
+		myview, str2name("test.new.example"), now, true, &covered));
 	assert_false(covered);
-	assert_true(issecure);
 
 	isc_loopmgr_shutdown();
 

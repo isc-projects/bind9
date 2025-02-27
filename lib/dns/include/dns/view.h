@@ -985,13 +985,12 @@ dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp);
  *\li	ISC_R_NOTFOUND
  */
 
-isc_result_t
+bool
 dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
-			isc_stdtime_t now, bool checknta, bool *ntap,
-			bool *secure_domain);
+			isc_stdtime_t now, bool checknta, bool *ntap);
 /*%<
  * Is 'name' at or beneath a trusted key, and not covered by a valid
- * negative trust anchor?  Put answer in '*secure_domain'.
+ * negative trust anchor, and DNSSEC validation is enabled?
  *
  * If 'checknta' is false, ignore the NTA table in determining
  * whether this is a secure domain. If 'checknta' is not false, and if
@@ -1000,10 +999,6 @@ dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
  *
  * Requires:
  * \li	'view' is valid.
- *
- * Returns:
- *\li	ISC_R_SUCCESS
- *\li	Any other value indicates failure
  */
 
 bool

@@ -2236,9 +2236,9 @@ compute_cc(const resquery_t *query, uint8_t *cookie, const size_t len) {
 	memmove(cookie, digest, CLIENT_COOKIE_SIZE);
 }
 
-static isc_result_t
+static bool
 issecuredomain(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	       isc_stdtime_t now, bool checknta, bool *ntap, bool *issecure) {
+	       isc_stdtime_t now, bool checknta, bool *ntap) {
 	dns_name_t suffix;
 	unsigned int labels;
 
@@ -2255,8 +2255,7 @@ issecuredomain(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 		name = &suffix;
 	}
 
-	return dns_view_issecuredomain(view, name, now, checknta, ntap,
-				       issecure);
+	return dns_view_issecuredomain(view, name, now, checknta, ntap);
 }
 
 static isc_result_t
@@ -5846,13 +5845,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		checknta = false;
 	}
 
-	if (res->view->enablevalidation) {
-		result = issecuredomain(res->view, name, fctx->type, now,
-					checknta, NULL, &secure_domain);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
-	}
+	secure_domain = issecuredomain(res->view, name, fctx->type, now,
+				       checknta, NULL);
 
 	if ((fctx->options & DNS_FETCHOPT_NOCDFLAG) != 0) {
 		valoptions |= DNS_VALIDATOR_NOCDFLAG;
@@ -6436,13 +6430,8 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 		checknta = false;
 	}
 
-	if (fctx->res->view->enablevalidation) {
-		result = issecuredomain(res->view, name, fctx->type, now,
-					checknta, NULL, &secure_domain);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
-	}
+	secure_domain = issecuredomain(res->view, name, fctx->type, now,
+				       checknta, NULL);
 
 	if ((fctx->options & DNS_FETCHOPT_NOCDFLAG) != 0) {
 		valoptions |= DNS_VALIDATOR_NOCDFLAG;
@@ -9029,7 +9018,6 @@ rctx_ncache(respctx_t *rctx) {
  */
 static isc_result_t
 rctx_authority_dnssec(respctx_t *rctx) {
-	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
 
 	dns_message_t *msg = rctx->query->rmessage;
@@ -9112,15 +9100,9 @@ rctx_authority_dnssec(respctx_t *rctx) {
 				if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
 					checknta = false;
 				}
-				if (fctx->res->view->enablevalidation) {
-					result = issecuredomain(
-						fctx->res->view, name,
-						dns_rdatatype_ds, fctx->now,
-						checknta, NULL, &secure_domain);
-					if (result != ISC_R_SUCCESS) {
-						return result;
-					}
-				}
+				secure_domain = issecuredomain(
+					fctx->res->view, name, dns_rdatatype_ds,
+					fctx->now, checknta, NULL);
 				if (secure_domain) {
 					rdataset->trust =
 						dns_trust_pending_answer;

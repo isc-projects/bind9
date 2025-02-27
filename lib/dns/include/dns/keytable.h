@@ -205,9 +205,9 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
  *\li	Any other result indicates an error.
  */
 
-isc_result_t
+bool
 dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
-			    dns_name_t *foundname, bool *wantdnssecp);
+			    dns_name_t *foundname);
 /*%<
  * Is 'name' at or beneath a trusted key?
  *
@@ -219,20 +219,11 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
  *
  *\li	'foundanme' is NULL or is a pointer to an initialized dns_name_t
  *
- *\li	'*wantsdnssecp' is a valid bool.
- *
  * Ensures:
  *
- *\li	On success, *wantsdnssecp will be true if and only if 'name'
- *	is at or beneath a trusted key.  If 'foundname' is not NULL, then
- *	it will be updated to contain the name of the closest enclosing
- *	trust anchor.
- *
- * Returns:
- *
- *\li	ISC_R_SUCCESS
- *
- *\li	Any other result is an error.
+ *\li	Returns true if and only if 'name' is at or beneath a trusted key.
+ *	If 'foundname' is not NULL, then it will be updated to contain
+ *	the name of the closest enclosing trust anchor.
  */
 
 isc_result_t
