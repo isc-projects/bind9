@@ -5933,7 +5933,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		}
 
 		/*
-		 * Enforce the configure maximum cache TTL.
+		 * Enforce the configured maximum cache TTL.
 		 */
 		if (rdataset->ttl > res->view->maxcachettl) {
 			rdataset->ttl = res->view->maxcachettl;
@@ -5954,7 +5954,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		}
 
 		/*
-		 * Find the SIG for this rdataset, if we have it.
+		 * Find the RRSIG for this rdataset, if we have it.
 		 */
 		ISC_LIST_FOREACH (name->list, sig, link) {
 			if (sig->type == dns_rdatatype_rrsig &&
@@ -7525,6 +7525,83 @@ cleanup:
 	isc_mem_putanddetach(&rctx->mctx, rctx, sizeof(*rctx));
 }
 
+static isc_result_t
+rctx_cookiecheck(respctx_t *rctx) {
+	fetchctx_t *fctx = rctx->fctx;
+	resquery_t *query = rctx->query;
+
+	/*
+	 * If TSIG signed, sent via TCP, or cookie present,
+	 * no need to continue.
+	 */
+	if (dns_message_gettsig(query->rmessage, NULL) != NULL ||
+	    query->rmessage->cc_ok || query->rmessage->cc_bad ||
+	    (rctx->retryopts & DNS_FETCHOPT_TCP) != 0)
+	{
+		return ISC_R_SUCCESS;
+	}
+
+	/*
+	 * If we've had a cookie from the same server previously,
+	 * retry with TCP. This may be a misconfigured anycast server
+	 * or an attempt to send a spoofed response.
+	 */
+	if (dns_adb_getcookie(query->addrinfo, NULL, 0) > CLIENT_COOKIE_SIZE) {
+		if (isc_log_wouldlog(ISC_LOG_INFO)) {
+			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
+					    sizeof(addrbuf));
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+				      "missing expected cookie "
+				      "from %s",
+				      addrbuf);
+		}
+		rctx->retryopts |= DNS_FETCHOPT_TCP;
+		rctx->resend = true;
+		rctx_done(rctx, ISC_R_SUCCESS);
+		return ISC_R_COMPLETE;
+	}
+
+	/*
+	 * Retry over TCP if require-cookie is true.
+	 */
+	if (fctx->res->view->peers != NULL) {
+		isc_result_t result;
+		dns_peer_t *peer = NULL;
+		bool required = false;
+		isc_netaddr_t netaddr;
+
+		isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
+		result = dns_peerlist_peerbyaddr(fctx->res->view->peers,
+						 &netaddr, &peer);
+		if (result == ISC_R_SUCCESS) {
+			dns_peer_getrequirecookie(peer, &required);
+		}
+		if (!required) {
+			return ISC_R_SUCCESS;
+		}
+
+		if (isc_log_wouldlog(ISC_LOG_INFO)) {
+			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
+					    sizeof(addrbuf));
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+				      "missing required "
+				      "cookie from %s",
+				      addrbuf);
+		}
+
+		rctx->retryopts |= DNS_FETCHOPT_TCP;
+		rctx->resend = true;
+		rctx_done(rctx, ISC_R_SUCCESS);
+		return ISC_R_COMPLETE;
+	}
+
+	return ISC_R_SUCCESS;
+}
+
 static void
 resquery_response_continue(void *arg, isc_result_t result) {
 	respctx_t *rctx = arg;
@@ -7551,72 +7628,16 @@ resquery_response_continue(void *arg, isc_result_t result) {
 	INSIST((query->rmessage->flags & DNS_MESSAGEFLAG_QR) != 0);
 
 	/*
-	 * If we have had a server cookie and don't get one retry over
-	 * TCP. This may be a misconfigured anycast server or an attempt
-	 * to send a spoofed response.  Additionally retry over TCP if
-	 * require-cookie is true and we don't have a got client cookie.
-	 * Skip if we have a valid TSIG.
+	 * Check for cookie issues.
 	 */
-	if (dns_message_gettsig(query->rmessage, NULL) == NULL &&
-	    !query->rmessage->cc_ok && !query->rmessage->cc_bad &&
-	    (rctx->retryopts & DNS_FETCHOPT_TCP) == 0)
-	{
-		if (dns_adb_getcookie(query->addrinfo, NULL, 0) >
-		    CLIENT_COOKIE_SIZE)
-		{
-			if (isc_log_wouldlog(ISC_LOG_INFO)) {
-				char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-				isc_sockaddr_format(&query->addrinfo->sockaddr,
-						    addrbuf, sizeof(addrbuf));
-				isc_log_write(DNS_LOGCATEGORY_RESOLVER,
-					      DNS_LOGMODULE_RESOLVER,
-					      ISC_LOG_INFO,
-					      "missing expected cookie "
-					      "from %s",
-					      addrbuf);
-			}
-			rctx->retryopts |= DNS_FETCHOPT_TCP;
-			rctx->resend = true;
-			rctx_done(rctx, result);
-			goto cleanup;
-		} else if (fctx->res->view->peers != NULL) {
-			dns_peer_t *peer = NULL;
-			isc_netaddr_t netaddr;
-			isc_netaddr_fromsockaddr(&netaddr,
-						 &query->addrinfo->sockaddr);
-			result = dns_peerlist_peerbyaddr(fctx->res->view->peers,
-							 &netaddr, &peer);
-			if (result == ISC_R_SUCCESS) {
-				bool required = false;
-				result = dns_peer_getrequirecookie(peer,
-								   &required);
-				if (result == ISC_R_SUCCESS && required) {
-					if (isc_log_wouldlog(ISC_LOG_INFO)) {
-						char addrbuf
-							[ISC_SOCKADDR_FORMATSIZE];
-						isc_sockaddr_format(
-							&query->addrinfo
-								 ->sockaddr,
-							addrbuf,
-							sizeof(addrbuf));
-						isc_log_write(
-							DNS_LOGCATEGORY_RESOLVER,
-							DNS_LOGMODULE_RESOLVER,
-							ISC_LOG_INFO,
-							"missing required "
-							"cookie "
-							"from %s",
-							addrbuf);
-					}
-					rctx->retryopts |= DNS_FETCHOPT_TCP;
-					rctx->resend = true;
-					rctx_done(rctx, result);
-					goto cleanup;
-				}
-			}
-		}
+	result = rctx_cookiecheck(rctx);
+	if (result == ISC_R_COMPLETE) {
+		goto cleanup;
 	}
 
+	/*
+	 * Check for EDNS issues.
+	 */
 	rctx_edns(rctx);
 
 	/*
