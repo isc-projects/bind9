@@ -38,7 +38,7 @@
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/fips.h>
+#include <isc/crypto.h>
 #include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -57,11 +57,6 @@
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-#include <openssl/err.h>
-#include <openssl/provider.h>
-#endif
 
 #include "dnssectool.h"
 
@@ -151,7 +146,7 @@ usage(void) {
 	fprintf(stderr, "    -l <file>: configuration file with dnssec-policy "
 			"statement\n");
 	fprintf(stderr, "    -a <algorithm>:\n");
-	if (!isc_fips_mode()) {
+	if (!isc_crypto_fips_mode()) {
 		fprintf(stderr, "        RSASHA1 | NSEC3RSASHA1 |\n");
 	}
 	fprintf(stderr, "        RSASHA256 | RSASHA512 |\n");
@@ -159,7 +154,7 @@ usage(void) {
 	fprintf(stderr, "        ED25519 | ED448\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -b <key size in bits>:\n");
-	if (!isc_fips_mode()) {
+	if (!isc_crypto_fips_mode()) {
 		fprintf(stderr, "        RSASHA1:\t[%d..%d]\n", min_rsa,
 			MAX_RSA);
 		fprintf(stderr, "        NSEC3RSASHA1:\t[%d..%d]\n", min_rsa,
@@ -288,7 +283,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			fatal("unsupported algorithm: %s", algstr);
 		}
 
-		if (isc_fips_mode()) {
+		if (isc_crypto_fips_mode()) {
 			/* verify only in FIPS mode */
 			switch (ctx->alg) {
 			case DST_ALG_RSASHA1:
@@ -341,7 +336,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			switch (ctx->alg) {
 			case DST_ALG_RSASHA1:
 			case DST_ALG_NSEC3RSASHA1:
-				if (isc_fips_mode()) {
+				if (isc_crypto_fips_mode()) {
 					fatal("key size not specified (-b "
 					      "option)");
 				}
@@ -501,7 +496,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	switch (ctx->alg) {
 	case DNS_KEYALG_RSASHA1:
 	case DNS_KEYALG_NSEC3RSASHA1:
-		if (isc_fips_mode()) {
+		if (isc_crypto_fips_mode()) {
 			fatal("SHA1 based keys not supported in FIPS mode");
 		}
 		FALLTHROUGH;
@@ -847,10 +842,6 @@ main(int argc, char **argv) {
 	isc_textregion_t r;
 	unsigned char c;
 	int ch;
-	bool set_fips_mode = false;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	OSSL_PROVIDER *fips = NULL, *base = NULL;
-#endif
 
 	keygen_ctx_t ctx = {
 		.options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC,
@@ -1109,7 +1100,9 @@ main(int argc, char **argv) {
 			ctx.prepub = strtottl(isc_commandline_argument);
 			break;
 		case 'F':
-			set_fips_mode = true;
+			if (isc_crypto_fips_enable() != ISC_R_SUCCESS) {
+				fatal("setting FIPS mode failed");
+			}
 			break;
 		case '?':
 			if (isc_commandline_option != '?') {
@@ -1136,32 +1129,11 @@ main(int argc, char **argv) {
 		ctx.quiet = true;
 	}
 
-	if (set_fips_mode) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-		fips = OSSL_PROVIDER_load(NULL, "fips");
-		if (fips == NULL) {
-			ERR_clear_error();
-			fatal("Failed to load FIPS provider");
-		}
-		base = OSSL_PROVIDER_load(NULL, "base");
-		if (base == NULL) {
-			OSSL_PROVIDER_unload(fips);
-			ERR_clear_error();
-			fatal("Failed to load base provider");
-		}
-#endif
-		if (!isc_fips_mode()) {
-			if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
-				fatal("setting FIPS mode failed");
-			}
-		}
-	}
-
 	/*
 	 * The DST subsystem will set FIPS mode if requested at build time.
 	 * The minimum sizes are both raised to 2048.
 	 */
-	if (isc_fips_mode()) {
+	if (isc_crypto_fips_mode()) {
 		min_rsa = min_dh = 2048;
 	}
 
@@ -1310,14 +1282,6 @@ main(int argc, char **argv) {
 	}
 	isc_mem_destroy(&mctx);
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	if (base != NULL) {
-		OSSL_PROVIDER_unload(base);
-	}
-	if (fips != NULL) {
-		OSSL_PROVIDER_unload(fips);
-	}
-#endif
 	if (freeit != NULL) {
 		free(freeit);
 	}

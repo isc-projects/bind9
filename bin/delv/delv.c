@@ -26,16 +26,12 @@
 #include <unistd.h>
 
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-#include <openssl/err.h>
-#include <openssl/provider.h>
-#endif
 
 #include <isc/async.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
-#include <isc/fips.h>
+#include <isc/crypto.h>
 #include <isc/hex.h>
 #include <isc/lib.h>
 #include <isc/log.h>
@@ -166,10 +162,6 @@ static dns_fixedname_t qfn;
 
 /* Default trust anchors */
 static char anchortext[] = TRUST_ANCHORS;
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-static OSSL_PROVIDER *fips = NULL, *base = NULL;
-#endif
 
 /*
  * Static function prototypes
@@ -1619,24 +1611,7 @@ preparse_args(int argc, char **argv) {
 		while (strpbrk(option, single_dash_opts) == &option[0]) {
 			switch (option[0]) {
 			case 'F':
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-				fips = OSSL_PROVIDER_load(NULL, "fips");
-				if (fips == NULL) {
-					ERR_clear_error();
-					fatal("Failed to load FIPS provider");
-				}
-				base = OSSL_PROVIDER_load(NULL, "base");
-				if (base == NULL) {
-					OSSL_PROVIDER_unload(fips);
-					ERR_clear_error();
-					fatal("Failed to load base provider");
-				}
-#endif
-				/* Already in FIPS mode?  */
-				if (isc_fips_mode()) {
-					break;
-				}
-				if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+				if (isc_crypto_fips_enable() != ISC_R_SUCCESS) {
 					fatal("setting FIPS mode failed");
 				}
 				break;
@@ -2308,15 +2283,6 @@ cleanup:
 	}
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	if (base != NULL) {
-		OSSL_PROVIDER_unload(base);
-	}
-	if (fips != NULL) {
-		OSSL_PROVIDER_unload(fips);
-	}
-#endif
 
 	return 0;
 }

@@ -35,7 +35,6 @@
 
 #include <isc/atomic.h>
 #include <isc/crypto.h>
-#include <isc/fips.h>
 #include <isc/ht.h>
 #include <isc/log.h>
 #include <isc/magic.h>

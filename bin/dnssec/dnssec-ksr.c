@@ -18,7 +18,7 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/fips.h>
+#include <isc/crypto.h>
 #include <isc/lex.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
@@ -362,7 +362,7 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 	switch (ksr->alg) {
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
-		if (isc_fips_mode()) {
+		if (isc_crypto_fips_mode()) {
 			/* verify-only in FIPS mode */
 			fatal("unsupported algorithm: %s", algstr);
 		}
@@ -1348,10 +1348,6 @@ main(int argc, char *argv[]) {
 	isc_buffer_t buf;
 	int ch;
 	char *endp;
-	bool set_fips_mode = false;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	OSSL_PROVIDER *fips = NULL, *base = NULL;
-#endif
 	ksr_ctx_t ksr = {
 		.now = isc_stdtime_now(),
 	};
@@ -1371,7 +1367,9 @@ main(int argc, char *argv[]) {
 					    ksr.now, &ksr.setend);
 			break;
 		case 'F':
-			set_fips_mode = true;
+			if (isc_crypto_fips_enable() != ISC_R_SUCCESS) {
+				fatal("setting FIPS mode failed");
+			}
 			break;
 		case 'f':
 			ksr.file = isc_commandline_argument;
@@ -1425,30 +1423,11 @@ main(int argc, char *argv[]) {
 	 * The DST subsystem will set FIPS mode if requested at build time.
 	 * The minimum sizes are both raised to 2048.
 	 */
-	if (isc_fips_mode()) {
+	if (isc_crypto_fips_mode()) {
 		min_rsa = min_dh = 2048;
 	}
 
 	setup_logging();
-
-	if (set_fips_mode) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-		fips = OSSL_PROVIDER_load(NULL, "fips");
-		if (fips == NULL) {
-			fatal("Failed to load FIPS provider");
-		}
-		base = OSSL_PROVIDER_load(NULL, "base");
-		if (base == NULL) {
-			OSSL_PROVIDER_unload(fips);
-			fatal("Failed to load base provider");
-		}
-#endif
-		if (!isc_fips_mode()) {
-			if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
-				fatal("setting FIPS mode failed");
-			}
-		}
-	}
 
 	/* zone */
 	namestr = argv[1];

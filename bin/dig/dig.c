@@ -20,8 +20,8 @@
 #include <time.h>
 
 #include <isc/attributes.h>
+#include <isc/crypto.h>
 #include <isc/dir.h>
-#include <isc/fips.h>
 #include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/netaddr.h>
@@ -73,14 +73,6 @@ static bool short_form = false, printcmd = true, plusquest = false,
 static uint32_t splitwidth = 0xffffffff;
 
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-#include <openssl/err.h>
-#include <openssl/provider.h>
-#endif
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-static OSSL_PROVIDER *fips = NULL, *base = NULL;
-#endif
 
 /*% opcode text */
 static const char *const opcodetext[] = {
@@ -2931,24 +2923,7 @@ preparse_args(int argc, char **argv) {
 				debugging = true;
 				break;
 			case 'F':
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-				fips = OSSL_PROVIDER_load(NULL, "fips");
-				if (fips == NULL) {
-					ERR_clear_error();
-					fatal("Failed to load FIPS provider");
-				}
-				base = OSSL_PROVIDER_load(NULL, "base");
-				if (base == NULL) {
-					OSSL_PROVIDER_unload(fips);
-					ERR_clear_error();
-					fatal("Failed to load base provider");
-				}
-#endif
-				/* Already in FIPS mode?  */
-				if (isc_fips_mode()) {
-					break;
-				}
-				if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+				if (isc_crypto_fips_enable() != ISC_R_SUCCESS) {
 					fatal("setting FIPS mode failed");
 				}
 				break;
@@ -3475,15 +3450,6 @@ main(int argc, char **argv) {
 	dig_query_setup(false, false, argc, argv);
 	dig_startup();
 	dig_shutdown();
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	if (base != NULL) {
-		OSSL_PROVIDER_unload(base);
-	}
-	if (fips != NULL) {
-		OSSL_PROVIDER_unload(fips);
-	}
-#endif
 
 	return exitcode;
 }

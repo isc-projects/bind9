@@ -25,7 +25,7 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
-#include <isc/fips.h>
+#include <isc/crypto.h>
 #include <isc/hex.h>
 #include <isc/lib.h>
 #include <isc/md.h>
@@ -120,7 +120,10 @@ ISC_RUN_TEST_IMPL(isc_md_init) {
 
 	assert_int_equal(isc_md_init(md, NULL), ISC_R_NOTIMPLEMENTED);
 
-	if (!isc_fips_mode()) {
+	if (isc_crypto_fips_mode()) {
+		assert_int_equal(isc_md_init(md, ISC_MD_MD5),
+				 ISC_R_NOTIMPLEMENTED);
+	} else {
 		assert_int_equal(isc_md_init(md, ISC_MD_MD5), ISC_R_SUCCESS);
 		assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
 	}
@@ -199,7 +202,7 @@ ISC_RUN_TEST_IMPL(isc_md_final) {
 ISC_RUN_TEST_IMPL(isc_md_md5) {
 	isc_md_t *md = *state;
 
-	if (isc_fips_mode()) {
+	if (isc_crypto_fips_mode()) {
 		skip();
 		return;
 	}

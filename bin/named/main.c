@@ -30,7 +30,6 @@
 #include <isc/crypto.h>
 #include <isc/dir.h>
 #include <isc/file.h>
-#include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/httpd.h>
 #include <isc/lib.h>
@@ -91,10 +90,6 @@
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-#include <openssl/err.h>
-#include <openssl/provider.h>
-#endif
 #ifdef HAVE_LIBXML2
 #include <libxml/parser.h>
 #include <libxml/xmlversion.h>
@@ -154,10 +149,6 @@ static bool transferstuck = false;
  */
 static bool disable6 = false;
 static bool disable4 = false;
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-static OSSL_PROVIDER *fips = NULL, *base = NULL;
-#endif
 
 void
 named_main_earlywarning(const char *format, ...) {
@@ -952,25 +943,7 @@ parse_command_line(int argc, char *argv[]) {
 			named_main_earlyfatal("option '-X' has been removed");
 			break;
 		case 'F':
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			fips = OSSL_PROVIDER_load(NULL, "fips");
-			if (fips == NULL) {
-				ERR_clear_error();
-				named_main_earlyfatal(
-					"Failed to load FIPS provider");
-			}
-			base = OSSL_PROVIDER_load(NULL, "base");
-			if (base == NULL) {
-				OSSL_PROVIDER_unload(fips);
-				ERR_clear_error();
-				named_main_earlyfatal(
-					"Failed to load base provider");
-			}
-#endif
-			if (isc_fips_mode()) { /* Already in FIPS mode. */
-				break;
-			}
-			if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+			if (isc_crypto_fips_enable() != ISC_R_SUCCESS) {
 				named_main_earlyfatal(
 					"setting FIPS mode failed");
 			}
@@ -1573,15 +1546,6 @@ main(int argc, char *argv[]) {
 	named_os_closedevnull();
 
 	named_os_shutdown();
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	if (base != NULL) {
-		OSSL_PROVIDER_unload(base);
-	}
-	if (fips != NULL) {
-		OSSL_PROVIDER_unload(fips);
-	}
-#endif
 
 #ifdef HAVE_GPERFTOOLS_PROFILER
 	ProfilerStop();

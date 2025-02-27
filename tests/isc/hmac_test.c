@@ -32,7 +32,7 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
-#include <isc/fips.h>
+#include <isc/crypto.h>
 #include <isc/hex.h>
 #include <isc/hmac.h>
 #include <isc/lib.h>
@@ -134,7 +134,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_init) {
 	assert_int_equal(isc_hmac_init(hmac_st, "", 0, NULL),
 			 ISC_R_NOTIMPLEMENTED);
 
-	if (!isc_fips_mode()) {
+	if (!isc_crypto_fips_mode()) {
 		expect_assert_failure(isc_hmac_init(NULL, "", 0, ISC_MD_MD5));
 
 		expect_assert_failure(
@@ -229,7 +229,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_final) {
 ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 	isc_hmac_t *hmac_st = *state;
 
-	if (isc_fips_mode()) {
+	if (isc_crypto_fips_mode()) {
 		skip();
 		return;
 	}

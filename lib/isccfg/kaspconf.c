@@ -15,7 +15,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <isc/fips.h>
+#include <isc/crypto.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/region.h>
@@ -227,7 +227,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			goto cleanup;
 		}
 
-		if (check_algorithms && isc_fips_mode() &&
+		if (check_algorithms && isc_crypto_fips_mode() &&
 		    (key->algorithm == DNS_KEYALG_RSASHA1 ||
 		     key->algorithm == DNS_KEYALG_NSEC3RSASHA1))
 		{
@@ -259,7 +259,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			case DNS_KEYALG_NSEC3RSASHA1:
 			case DNS_KEYALG_RSASHA256:
 			case DNS_KEYALG_RSASHA512:
-				if (isc_fips_mode()) {
+				if (isc_crypto_fips_mode()) {
 					min = 2048;
 				} else {
 					min = DNS_KEYALG_RSASHA512 ? 1024 : 512;

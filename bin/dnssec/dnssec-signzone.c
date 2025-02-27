@@ -42,7 +42,6 @@
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/file.h>
-#include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/lib.h>
@@ -90,10 +89,6 @@
 #include <dns/zoneverify.h>
 
 #include <dst/dst.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-#include <openssl/err.h>
-#include <openssl/provider.h>
-#endif
 
 #include "dnssectool.h"
 
@@ -3380,10 +3375,6 @@ main(int argc, char *argv[]) {
 	bool set_optout = false;
 	bool set_iter = false;
 	bool nonsecify = false;
-	bool set_fips_mode = false;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	OSSL_PROVIDER *fips = NULL, *base = NULL;
-#endif
 
 	atomic_init(&shuttingdown, false);
 	atomic_init(&finished, false);
@@ -3672,7 +3663,9 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'F':
-			set_fips_mode = true;
+			if (isc_crypto_fips_enable() != ISC_R_SUCCESS) {
+				fatal("setting FIPS mode failed");
+			}
 			break;
 
 		case '?':
@@ -3742,27 +3735,6 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_managers_create(&mctx, nloops, &loopmgr, &netmgr);
-
-	if (set_fips_mode) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-		fips = OSSL_PROVIDER_load(NULL, "fips");
-		if (fips == NULL) {
-			ERR_clear_error();
-			fatal("Failed to load FIPS provider");
-		}
-		base = OSSL_PROVIDER_load(NULL, "base");
-		if (base == NULL) {
-			OSSL_PROVIDER_unload(fips);
-			ERR_clear_error();
-			fatal("Failed to load base provider");
-		}
-#endif
-		if (!isc_fips_mode()) {
-			if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
-				fatal("setting FIPS mode failed");
-			}
-		}
-	}
 
 	setup_logging();
 
@@ -4134,15 +4106,6 @@ main(int argc, char *argv[]) {
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}
-
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	if (base != NULL) {
-		OSSL_PROVIDER_unload(base);
-	}
-	if (fips != NULL) {
-		OSSL_PROVIDER_unload(fips);
-	}
-#endif
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 

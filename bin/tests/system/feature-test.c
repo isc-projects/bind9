@@ -23,7 +23,7 @@
 #include <openssl/provider.h>
 #endif
 
-#include <isc/fips.h>
+#include <isc/crypto.h>
 #include <isc/lib.h>
 #include <isc/md.h>
 #include <isc/mem.h>
@@ -134,7 +134,7 @@ main(int argc, char **argv) {
 		return 1;
 #endif
 #else
-		if (isc_fips_mode()) {
+		if (isc_crypto_fips_mode()) {
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 			return 0;
 #else
@@ -149,7 +149,7 @@ main(int argc, char **argv) {
 #if defined(ENABLE_FIPS_MODE)
 		return 0;
 #else
-		return isc_fips_mode() ? 0 : 1;
+		return isc_crypto_fips_mode() ? 0 : 1;
 #endif
 	}
 
