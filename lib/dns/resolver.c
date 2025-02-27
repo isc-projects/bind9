@@ -661,10 +661,9 @@ fctx_minimize_qname(fetchctx_t *fctx);
 static void
 fctx_destroy(fetchctx_t *fctx);
 static isc_result_t
-ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
-		  dns_ttl_t maxttl, bool optout, bool secure,
-		  dns_rdataset_t *ardataset, isc_result_t *eresultp);
+negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
+	 isc_stdtime_t now, bool optout, bool secure, dns_rdataset_t *added,
+	 dns_dbnode_t **nodep, isc_result_t *eresultp);
 static void
 validated(void *arg);
 static void
@@ -5006,15 +5005,14 @@ static void
 clone_results(fetchctx_t *fctx) {
 	dns_fetchresponse_t *hresp = NULL;
 
-	FCTXTRACE("clone_results");
+	REQUIRE(!ISC_LIST_EMPTY(fctx->resps));
 
 	/*
 	 * Set up any other resps to have the same data as the first.
-	 *
 	 * Caller must be holding the appropriate lock.
 	 */
 
-	fctx->cloned = true;
+	FCTXTRACE("clone_results");
 
 	ISC_LIST_FOREACH (fctx->resps, resp, link) {
 		/* This is the head resp; keep a pointer and move on */
@@ -5030,22 +5028,21 @@ clone_results(fetchctx_t *fctx) {
 		dns_db_attach(hresp->db, &resp->db);
 		dns_db_attachnode(hresp->db, hresp->node, &resp->node);
 
-		INSIST(hresp->rdataset != NULL);
-		INSIST(resp->rdataset != NULL);
+		INSIST(hresp->rdataset != NULL && resp->rdataset != NULL);
 		if (dns_rdataset_isassociated(hresp->rdataset)) {
 			dns_rdataset_clone(hresp->rdataset, resp->rdataset);
 		}
 
-		INSIST(!(hresp->sigrdataset == NULL &&
-			 resp->sigrdataset != NULL));
-		if (hresp->sigrdataset != NULL &&
-		    dns_rdataset_isassociated(hresp->sigrdataset) &&
-		    resp->sigrdataset != NULL)
+		INSIST(hresp->sigrdataset != NULL || resp->sigrdataset == NULL);
+		if (resp->sigrdataset != NULL && hresp->sigrdataset != NULL &&
+		    dns_rdataset_isassociated(hresp->sigrdataset))
 		{
 			dns_rdataset_clone(hresp->sigrdataset,
 					   resp->sigrdataset);
 		}
 	}
+
+	fctx->cloned = true;
 }
 
 #define CACHE(r)      (((r)->attributes.cache))
@@ -5187,7 +5184,6 @@ validated(void *arg) {
 	isc_result_t eresult = ISC_R_SUCCESS;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t now;
-	uint32_t ttl;
 	unsigned int options;
 	dns_fixedname_t fwild;
 	dns_name_t *wild = NULL;
@@ -5355,57 +5351,12 @@ validated(void *arg) {
 	}
 
 	if (negative) {
-		dns_rdatatype_t covers;
 		FCTXTRACE("nonexistence validation OK");
 
 		inc_stats(res, dns_resstatscounter_valnegsuccess);
 
-		/*
-		 * Cache DS NXDOMAIN separately to other types.
-		 */
-		if (message->rcode == dns_rcode_nxdomain &&
-		    fctx->type != dns_rdatatype_ds)
-		{
-			covers = dns_rdatatype_any;
-		} else {
-			covers = fctx->type;
-		}
-
-		/*
-		 * Don't report qname minimisation NXDOMAIN errors
-		 * when the result is NXDOMAIN except we have already
-		 * confirmed a higher error.
-		 */
-		if (!fctx->force_qmin_warning &&
-		    message->rcode == dns_rcode_nxdomain &&
-		    (fctx->qmin_warning == DNS_R_NXDOMAIN ||
-		     fctx->qmin_warning == DNS_R_NCACHENXDOMAIN))
-		{
-			fctx->qmin_warning = ISC_R_SUCCESS;
-		}
-
-		result = dns_db_findnode(fctx->cache, val->name, true, &node);
-		if (result != ISC_R_SUCCESS) {
-			/* fctx->lock unlocked in noanswer_response */
-			goto noanswer_response;
-		}
-
-		/*
-		 * If we are asking for a SOA record set the cache time
-		 * to zero to facilitate locating the containing zone of
-		 * a arbitrary zone.
-		 */
-		ttl = res->view->maxncachettl;
-		if (fctx->type == dns_rdatatype_soa &&
-		    covers == dns_rdatatype_any && res->zero_no_soa_ttl)
-		{
-			ttl = 0;
-		}
-
-		result = ncache_adderesult(message, fctx->cache, node, covers,
-					   now, fctx->res->view->minncachettl,
-					   ttl, val->optout, val->secure,
-					   ardataset, &eresult);
+		result = negcache(message, fctx, val->name, now, val->optout,
+				  val->secure, ardataset, &node, &eresult);
 		if (result != ISC_R_SUCCESS) {
 			goto noanswer_response;
 		}
@@ -5818,8 +5769,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	dns_rdataset_t *addedrdataset = NULL;
 	dns_rdataset_t *ardataset = NULL, *asigrdataset = NULL;
 	dns_rdataset_t *valrdataset = NULL, *valsigrdataset = NULL;
-	dns_dbnode_t *node = NULL, **anodep = NULL;
-	dns_db_t **adbp = NULL;
+	dns_dbnode_t *node = NULL;
 	dns_resolver_t *res = fctx->res;
 	bool need_validation = false;
 	bool secure_domain = false;
@@ -5861,12 +5811,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	if (name->attributes.answer && !need_validation) {
 		have_answer = true;
 		resp = ISC_LIST_HEAD(fctx->resps);
-
 		if (resp != NULL) {
-			adbp = &resp->db;
-			dns_name_copy(name, resp->foundname);
-			anodep = &resp->node;
-
 			/*
 			 * If this is an ANY, SIG or RRSIG query, we're
 			 * not going to return any rdatasets, unless we
@@ -6286,14 +6231,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 				}
 			}
 			resp->result = eresult;
-			if (adbp != NULL && *adbp != NULL) {
-				if (anodep != NULL && *anodep != NULL) {
-					dns_db_detachnode(*adbp, anodep);
-				}
-				dns_db_detach(adbp);
-			}
-			dns_db_attach(fctx->cache, adbp);
-			dns_db_transfernode(fctx->cache, &node, anodep);
+			dns_name_copy(name, resp->foundname);
+			dns_db_attach(fctx->cache, &resp->db);
+			dns_db_transfernode(fctx->cache, &node, &resp->node);
 			clone_results(fctx);
 		}
 	}
@@ -6338,77 +6278,104 @@ cleanup:
  * Call dns_ncache_add() and then compute an appropriate eresult.
  */
 static isc_result_t
-ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
-		  dns_ttl_t maxttl, bool optout, bool secure,
-		  dns_rdataset_t *ardataset, isc_result_t *eresultp) {
+negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
+	 isc_stdtime_t now, bool optout, bool secure, dns_rdataset_t *added,
+	 dns_dbnode_t **nodep, isc_result_t *eresultp) {
 	isc_result_t result;
-	dns_rdataset_t rdataset;
+	dns_ttl_t minttl = fctx->res->view->minncachettl;
+	dns_ttl_t maxttl = fctx->res->view->maxncachettl;
+	dns_rdatatype_t covers = fctx->type;
+	dns_db_t *cache = fctx->cache;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 
-	if (ardataset == NULL) {
-		dns_rdataset_init(&rdataset);
-		ardataset = &rdataset;
+	/* Set up a placeholder in case added was NULL */
+	if (added == NULL) {
+		added = &rdataset;
+	}
+
+	/*
+	 * Cache DS NXDOMAIN separately to other types.
+	 */
+	if (message->rcode == dns_rcode_nxdomain &&
+	    fctx->type != dns_rdatatype_ds)
+	{
+		covers = dns_rdatatype_any;
+	}
+
+	/*
+	 * If the request was for an SOA record, set the cache time
+	 * to zero to facilitate locating the containing zone of
+	 * an arbitrary zone.
+	 */
+	if (fctx->type == dns_rdatatype_soa && covers == dns_rdatatype_any &&
+	    fctx->res->zero_no_soa_ttl)
+	{
+		maxttl = 0;
+	}
+
+	/*
+	 * Don't warn about QNAME minimization NXDOMAIN errors
+	 * if the final result is NXDOMAIN anyway.
+	 */
+	if (!fctx->force_qmin_warning && message->rcode == dns_rcode_nxdomain &&
+	    (fctx->qmin_warning == DNS_R_NXDOMAIN ||
+	     fctx->qmin_warning == DNS_R_NCACHENXDOMAIN))
+	{
+		fctx->qmin_warning = ISC_R_SUCCESS;
+	}
+
+	/*
+	 * Cache the negative entry.
+	 */
+	result = dns_db_findnode(fctx->cache, name, true, &node);
+	if (result != ISC_R_SUCCESS) {
+		return result;
 	}
 
 	result = dns_ncache_add(message, cache, node, covers, now, minttl,
-				maxttl, optout, secure, ardataset);
+				maxttl, optout, secure, added);
 	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
-		 * If the cache now contains a negative entry and we
-		 * care about whether it is DNS_R_NCACHENXDOMAIN or
-		 * DNS_R_NCACHENXRRSET then extract it.
+		 * The cache now either contains the negative entry we
+		 * were adding, or a pre-existing entry (positive or
+		 * negative) that was left alone. Set the event result
+		 * accordingly.
 		 */
-		if (NEGATIVE(ardataset)) {
-			/*
-			 * The cache data is a negative cache entry.
-			 */
-			if (NXDOMAIN(ardataset)) {
-				*eresultp = DNS_R_NCACHENXDOMAIN;
-			} else {
-				*eresultp = DNS_R_NCACHENXRRSET;
-			}
+		if (NXDOMAIN(added)) {
+			*eresultp = DNS_R_NCACHENXDOMAIN;
+		} else if (NEGATIVE(added)) {
+			*eresultp = DNS_R_NCACHENXRRSET;
+		} else if (added->type == dns_rdatatype_cname) {
+			*eresultp = DNS_R_CNAME;
+		} else if (added->type == dns_rdatatype_dname) {
+			*eresultp = DNS_R_DNAME;
 		} else {
-			/*
-			 * The attempt to add a negative cache entry
-			 * was rejected.  Set *eresultp to reflect
-			 * the type of the dataset being returned.
-			 */
-			switch (ardataset->type) {
-			case dns_rdatatype_cname:
-				*eresultp = DNS_R_CNAME;
-				break;
-			case dns_rdatatype_dname:
-				*eresultp = DNS_R_DNAME;
-				break;
-			default:
-				*eresultp = ISC_R_SUCCESS;
-				break;
-			}
+			*eresultp = ISC_R_SUCCESS;
 		}
 		result = ISC_R_SUCCESS;
 	}
-	if (ardataset == &rdataset && dns_rdataset_isassociated(ardataset)) {
-		dns_rdataset_disassociate(ardataset);
+
+	if (added == &rdataset && dns_rdataset_isassociated(added)) {
+		dns_rdataset_disassociate(added);
 	}
 
+	*nodep = node;
 	return result;
 }
 
 static isc_result_t
 ncache_message(fetchctx_t *fctx, dns_message_t *message,
-	       dns_adbaddrinfo_t *addrinfo, dns_rdatatype_t covers,
-	       isc_stdtime_t now) {
+	       dns_adbaddrinfo_t *addrinfo, isc_stdtime_t now) {
 	isc_result_t result, eresult = ISC_R_SUCCESS;
 	dns_name_t *name = fctx->name;
 	dns_resolver_t *res = fctx->res;
-	dns_db_t **adbp = NULL;
-	dns_dbnode_t *node = NULL, **anodep = NULL;
-	dns_rdataset_t *ardataset = NULL;
+	dns_dbnode_t *node = NULL;
 	bool need_validation = false, secure_domain = false;
 	dns_fetchresponse_t *resp = NULL;
-	uint32_t ttl;
 	unsigned int valoptions = 0;
 	bool checknta = true;
+	dns_rdataset_t *added = NULL;
 
 	FCTXTRACE("ncache_message");
 
@@ -6473,63 +6440,26 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 	if (!HAVE_ANSWER(fctx)) {
 		resp = ISC_LIST_HEAD(fctx->resps);
 		if (resp != NULL) {
-			adbp = &resp->db;
-			dns_name_copy(name, resp->foundname);
-			anodep = &resp->node;
-			ardataset = resp->rdataset;
+			added = resp->rdataset;
 		}
 	}
 
-	result = dns_db_findnode(fctx->cache, name, true, &node);
-	if (result != ISC_R_SUCCESS) {
-		goto unlock;
-	}
-
-	/*
-	 * Don't report qname minimisation NXDOMAIN errors
-	 * when the result is NXDOMAIN except we have already
-	 * confirmed a higher error.
-	 */
-	if (!fctx->force_qmin_warning && message->rcode == dns_rcode_nxdomain &&
-	    (fctx->qmin_warning == DNS_R_NXDOMAIN ||
-	     fctx->qmin_warning == DNS_R_NCACHENXDOMAIN))
-	{
-		fctx->qmin_warning = ISC_R_SUCCESS;
-	}
-
-	/*
-	 * If we are asking for a SOA record set the cache time
-	 * to zero to facilitate locating the containing zone of
-	 * a arbitrary zone.
-	 */
-	ttl = fctx->res->view->maxncachettl;
-	if (fctx->type == dns_rdatatype_soa && covers == dns_rdatatype_any &&
-	    fctx->res->zero_no_soa_ttl)
-	{
-		ttl = 0;
-	}
-
-	result = ncache_adderesult(message, fctx->cache, node, covers, now,
-				   fctx->res->view->minncachettl, ttl, false,
-				   false, ardataset, &eresult);
+	result = negcache(message, fctx, name, now, false, false, added, &node,
+			  &eresult);
 	if (result != ISC_R_SUCCESS) {
 		goto unlock;
 	}
 
 	if (!HAVE_ANSWER(fctx)) {
 		FCTX_ATTR_SET(fctx, FCTX_ATTR_HAVEANSWER);
-		if (resp != NULL) {
-			resp->result = eresult;
-			if (adbp != NULL && *adbp != NULL) {
-				if (anodep != NULL && *anodep != NULL) {
-					dns_db_detachnode(*adbp, anodep);
-				}
-				dns_db_detach(adbp);
-			}
-			dns_db_attach(fctx->cache, adbp);
-			dns_db_transfernode(fctx->cache, &node, anodep);
-			clone_results(fctx);
-		}
+	}
+
+	if (resp != NULL) {
+		resp->result = eresult;
+		dns_name_copy(name, resp->foundname);
+		dns_db_attach(fctx->cache, &resp->db);
+		dns_db_transfernode(fctx->cache, &node, &resp->node);
+		clone_results(fctx);
 	}
 
 unlock:
@@ -8982,7 +8912,6 @@ rctx_authority_negative(respctx_t *rctx) {
 static void
 rctx_ncache(respctx_t *rctx) {
 	isc_result_t result;
-	dns_rdatatype_t covers;
 	fetchctx_t *fctx = rctx->fctx;
 
 	if (!WANTNCACHE(fctx)) {
@@ -8990,21 +8919,10 @@ rctx_ncache(respctx_t *rctx) {
 	}
 
 	/*
-	 * Cache DS NXDOMAIN separately to other types.
-	 */
-	if (rctx->query->rmessage->rcode == dns_rcode_nxdomain &&
-	    fctx->type != dns_rdatatype_ds)
-	{
-		covers = dns_rdatatype_any;
-	} else {
-		covers = fctx->type;
-	}
-
-	/*
 	 * Cache any negative cache entries in the message.
 	 */
 	result = ncache_message(fctx, rctx->query->rmessage,
-				rctx->query->addrinfo, covers, rctx->now);
+				rctx->query->addrinfo, rctx->now);
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("ncache_message complete", result);
 	}
