@@ -1312,7 +1312,7 @@ gcc:tsan:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Wno-stringop-overread -ggdb -O2 -fsanitize=thread"
-    LDFLAGS: "-fsanitize=thread"
+    LDFLAGS: "-fsanitize=thread -Wl,--disable-new-dtags"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
   <<: *tsan_fedora_41_amd64_image
   <<: *build_job
@@ -1341,7 +1341,8 @@ clang:tsan:
   variables:
     CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON} -ggdb -O2 -fsanitize=thread"
-    LDFLAGS: "-fsanitize=thread"
+    # -Wl,--disable-new-dtags ensures that Clang creates valid TSAN reports
+    LDFLAGS: "-fsanitize=thread -Wl,--disable-new-dtags"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
 
 system:clang:tsan:
