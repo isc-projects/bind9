@@ -223,24 +223,6 @@
  */
 #include <isc/list.h> /* Contractual promise. */
 
-#define LIST(type)		       ISC_LIST(type)
-#define INIT_LIST(type)		       ISC_LIST_INIT(type)
-#define LINK(type)		       ISC_LINK(type)
-#define INIT_LINK(elt, link)	       ISC_LINK_INIT(elt, link)
-#define HEAD(list)		       ISC_LIST_HEAD(list)
-#define TAIL(list)		       ISC_LIST_TAIL(list)
-#define EMPTY(list)		       ISC_LIST_EMPTY(list)
-#define PREV(elt, link)		       ISC_LIST_PREV(elt, link)
-#define NEXT(elt, link)		       ISC_LIST_NEXT(elt, link)
-#define APPEND(list, elt, link)	       ISC_LIST_APPEND(list, elt, link)
-#define PREPEND(list, elt, link)       ISC_LIST_PREPEND(list, elt, link)
-#define UNLINK(list, elt, link)	       ISC_LIST_UNLINK(list, elt, link)
-#define ENQUEUE(list, elt, link)       ISC_LIST_APPEND(list, elt, link)
-#define DEQUEUE(list, elt, link)       ISC_LIST_UNLINK(list, elt, link)
-#define INSERTBEFORE(li, b, e, ln)     ISC_LIST_INSERTBEFORE(li, b, e, ln)
-#define INSERTAFTER(li, a, e, ln)      ISC_LIST_INSERTAFTER(li, a, e, ln)
-#define APPENDLIST(list1, list2, link) ISC_LIST_APPENDLIST(list1, list2, link)
-
 /*%
  * Performance
  */

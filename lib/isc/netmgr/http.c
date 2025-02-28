@@ -150,7 +150,7 @@ typedef struct http_cstream {
 
 	isc_nm_http_response_status_t response_status;
 	isc_nmsocket_t *httpsock;
-	LINK(struct http_cstream) link;
+	ISC_LINK(struct http_cstream) link;
 } http_cstream_t;
 
 #define HTTP2_SESSION_MAGIC    ISC_MAGIC('H', '2', 'S', 'S')

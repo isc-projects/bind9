@@ -544,7 +544,7 @@ qpzone_destroy(qpzonedb_t *qpdb) {
 	isc_refcount_decrementz(&qpdb->current_version->references);
 
 	isc_refcount_destroy(&qpdb->current_version->references);
-	UNLINK(qpdb->open_versions, qpdb->current_version, link);
+	ISC_LIST_UNLINK(qpdb->open_versions, qpdb->current_version, link);
 	cds_wfs_destroy(&qpdb->current_version->glue_stack);
 	isc_rwlock_destroy(&qpdb->current_version->rwlock);
 	isc_mem_put(qpdb->common.mctx, qpdb->current_version,
@@ -723,7 +723,7 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 * Keep the current version in the open list so that list operation
 	 * won't happen in normal lookup operations.
 	 */
-	PREPEND(qpdb->open_versions, qpdb->current_version, link);
+	ISC_LIST_PREPEND(qpdb->open_versions, qpdb->current_version, link);
 
 	qpdb->common.magic = DNS_DB_MAGIC;
 	qpdb->common.impmagic = QPZONE_DB_MAGIC;
@@ -1125,13 +1125,13 @@ cleanup_nondirty(qpz_version_t *version, qpz_changedlist_t *cleanup_list) {
 	 *
 	 * The caller must be holding the database lock.
 	 */
-	for (changed = HEAD(version->changed_list); changed != NULL;
+	for (changed = ISC_LIST_HEAD(version->changed_list); changed != NULL;
 	     changed = next_changed)
 	{
-		next_changed = NEXT(changed, link);
+		next_changed = ISC_LIST_NEXT(changed, link);
 		if (!changed->dirty) {
-			UNLINK(version->changed_list, changed, link);
-			APPEND(*cleanup_list, changed, link);
+			ISC_LIST_UNLINK(version->changed_list, changed, link);
+			ISC_LIST_APPEND(*cleanup_list, changed, link);
 		}
 	}
 }
@@ -1378,12 +1378,13 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 				(void)isc_refcount_current(
 					&cur_version->references);
 				if (cur_version->serial == qpdb->least_serial) {
-					INSIST(EMPTY(
+					INSIST(ISC_LIST_EMPTY(
 						cur_version->changed_list));
 				}
-				UNLINK(qpdb->open_versions, cur_version, link);
+				ISC_LIST_UNLINK(qpdb->open_versions,
+						cur_version, link);
 			}
-			if (EMPTY(qpdb->open_versions)) {
+			if (ISC_LIST_EMPTY(qpdb->open_versions)) {
 				/*
 				 * We're going to become the least open
 				 * version.
@@ -1413,8 +1414,9 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 			 */
 			if (cur_ref == 1) {
 				cleanup_version = cur_version;
-				APPENDLIST(version->changed_list,
-					   cleanup_version->changed_list, link);
+				ISC_LIST_APPENDLIST(
+					version->changed_list,
+					cleanup_version->changed_list, link);
 			}
 			/*
 			 * Become the current version.
@@ -1433,8 +1435,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 			 */
 			INSIST(isc_refcount_increment0(&version->references) ==
 			       0);
-			PREPEND(qpdb->open_versions, qpdb->current_version,
-				link);
+			ISC_LIST_PREPEND(qpdb->open_versions,
+					 qpdb->current_version, link);
 			resigned_list = version->resigned_list;
 			ISC_LIST_INIT(version->resigned_list);
 		} else {
@@ -1461,7 +1463,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 			 * Find the version with the least serial
 			 * number greater than ours.
 			 */
-			least_greater = PREV(version, link);
+			least_greater = ISC_LIST_PREV(version, link);
 			if (least_greater == NULL) {
 				least_greater = qpdb->current_version;
 			}
@@ -1482,20 +1484,21 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 				 * Add any unexecuted cleanups to
 				 * those of the least greater version.
 				 */
-				APPENDLIST(least_greater->changed_list,
-					   version->changed_list, link);
+				ISC_LIST_APPENDLIST(least_greater->changed_list,
+						    version->changed_list,
+						    link);
 			}
 		} else if (version->serial == qpdb->least_serial) {
-			INSIST(EMPTY(version->changed_list));
+			INSIST(ISC_LIST_EMPTY(version->changed_list));
 		}
-		UNLINK(qpdb->open_versions, version, link);
+		ISC_LIST_UNLINK(qpdb->open_versions, version, link);
 	}
 	least_serial = qpdb->least_serial;
 	RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
 
 	if (cleanup_version != NULL) {
 		isc_refcount_destroy(&cleanup_version->references);
-		INSIST(EMPTY(cleanup_version->changed_list));
+		INSIST(ISC_LIST_EMPTY(cleanup_version->changed_list));
 		cleanup_gluelists(&cleanup_version->glue_stack);
 		cds_wfs_destroy(&cleanup_version->glue_stack);
 		isc_rwlock_destroy(&cleanup_version->rwlock);
@@ -1506,8 +1509,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	/*
 	 * Commit/rollback re-signed headers.
 	 */
-	for (header = HEAD(resigned_list); header != NULL;
-	     header = HEAD(resigned_list))
+	for (header = ISC_LIST_HEAD(resigned_list); header != NULL;
+	     header = ISC_LIST_HEAD(resigned_list))
 	{
 		isc_rwlock_t *nlock = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -1527,13 +1530,13 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	dns_qp_t *tree = NULL, *nsec = NULL, *nsec3 = NULL;
 	bool need_tree = false, need_nsec = false, need_nsec3 = false;
 
-	for (changed = HEAD(cleanup_list); changed != NULL;
+	for (changed = ISC_LIST_HEAD(cleanup_list); changed != NULL;
 	     changed = next_changed)
 	{
 		isc_rwlock_t *nlock = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
-		next_changed = NEXT(changed, link);
+		next_changed = ISC_LIST_NEXT(changed, link);
 		node = changed->node;
 		nlock = &qpdb->buckets[node->locknum].lock;
 
