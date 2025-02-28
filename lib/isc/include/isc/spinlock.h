@@ -21,6 +21,21 @@
 #include <isc/atomic.h>
 #include <isc/util.h>
 
+#define SPINLOCK(sp)                                                           \
+	{                                                                      \
+		ISC_UTIL_TRACE(fprintf(stderr, "SPINLOCKING %p %s %d\n", (sp), \
+				       __FILE__, __LINE__));                   \
+		isc_spinlock_lock((sp));                                       \
+		ISC_UTIL_TRACE(fprintf(stderr, "SPINLOCKED %p %s %d\n", (sp),  \
+				       __FILE__, __LINE__));                   \
+	}
+#define SPINUNLOCK(sp)                                                    \
+	{                                                                 \
+		isc_spinlock_unlock((sp));                                \
+		ISC_UTIL_TRACE(fprintf(stderr, "SPINUNLOCKED %p %s %d\n", \
+				       (sp), __FILE__, __LINE__));        \
+	}
+
 /*
  * We use macros instead of static inline functions so that the exact code
  * location can be reported when PTHREADS_RUNTIME_CHECK() fails or when mutrace

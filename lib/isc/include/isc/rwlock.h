@@ -26,6 +26,40 @@ typedef enum {
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
+#define RWLOCK(lp, t)                                                         \
+	{                                                                     \
+		ISC_UTIL_TRACE(fprintf(stderr, "RWLOCK %p, %d %s %d\n", (lp), \
+				       (t), __FILE__, __LINE__));             \
+		isc_rwlock_lock((lp), (t));                                   \
+		ISC_UTIL_TRACE(fprintf(stderr, "RWLOCKED %p, %d %s %d\n",     \
+				       (lp), (t), __FILE__, __LINE__));       \
+	}
+#define RWUNLOCK(lp, t)                                                   \
+	{                                                                 \
+		ISC_UTIL_TRACE(fprintf(stderr, "RWUNLOCK %p, %d %s %d\n", \
+				       (lp), (t), __FILE__, __LINE__));   \
+		isc_rwlock_unlock((lp), (t));                             \
+	}
+
+#define RDLOCK(lp)   RWLOCK(lp, isc_rwlocktype_read)
+#define RDUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_read)
+#define WRLOCK(lp)   RWLOCK(lp, isc_rwlocktype_write)
+#define WRUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_write)
+
+#define UPGRADELOCK(lock, locktype)                                         \
+	{                                                                   \
+		if (locktype == isc_rwlocktype_read) {                      \
+			if (isc_rwlock_tryupgrade(lock) == ISC_R_SUCCESS) { \
+				locktype = isc_rwlocktype_write;            \
+			} else {                                            \
+				RWUNLOCK(lock, locktype);                   \
+				locktype = isc_rwlocktype_write;            \
+				RWLOCK(lock, locktype);                     \
+			}                                                   \
+		}                                                           \
+		INSIST(locktype == isc_rwlocktype_write);                   \
+	}
+
 #if USE_PTHREAD_RWLOCK
 #include <errno.h>
 #include <pthread.h>

@@ -108,111 +108,12 @@
  */
 #define EMPTY_TRANSLATION_UNIT extern int isc__empty;
 
-/*%
- * We use macros instead of calling the routines directly because
- * the capital letters make the locking stand out.
- */
-
 #ifdef ISC_UTIL_TRACEON
 #define ISC_UTIL_TRACE(a) a
 #include <stdio.h> /* Required for fprintf/stderr when tracing. */
 #else		   /* ifdef ISC_UTIL_TRACEON */
 #define ISC_UTIL_TRACE(a)
 #endif /* ifdef ISC_UTIL_TRACEON */
-
-#define SPINLOCK(sp)                                                           \
-	{                                                                      \
-		ISC_UTIL_TRACE(fprintf(stderr, "SPINLOCKING %p %s %d\n", (sp), \
-				       __FILE__, __LINE__));                   \
-		isc_spinlock_lock((sp));                                       \
-		ISC_UTIL_TRACE(fprintf(stderr, "SPINLOCKED %p %s %d\n", (sp),  \
-				       __FILE__, __LINE__));                   \
-	}
-#define SPINUNLOCK(sp)                                                    \
-	{                                                                 \
-		isc_spinlock_unlock((sp));                                \
-		ISC_UTIL_TRACE(fprintf(stderr, "SPINUNLOCKED %p %s %d\n", \
-				       (sp), __FILE__, __LINE__));        \
-	}
-
-#define LOCK(lp)                                                           \
-	{                                                                  \
-		ISC_UTIL_TRACE(fprintf(stderr, "LOCKING %p %s %d\n", (lp), \
-				       __FILE__, __LINE__));               \
-		isc_mutex_lock((lp));                                      \
-		ISC_UTIL_TRACE(fprintf(stderr, "LOCKED %p %s %d\n", (lp),  \
-				       __FILE__, __LINE__));               \
-	}
-#define UNLOCK(lp)                                                          \
-	{                                                                   \
-		isc_mutex_unlock((lp));                                     \
-		ISC_UTIL_TRACE(fprintf(stderr, "UNLOCKED %p %s %d\n", (lp), \
-				       __FILE__, __LINE__));                \
-	}
-
-#define BROADCAST(cvp)                                                        \
-	{                                                                     \
-		ISC_UTIL_TRACE(fprintf(stderr, "BROADCAST %p %s %d\n", (cvp), \
-				       __FILE__, __LINE__));                  \
-		isc_condition_broadcast((cvp));                               \
-	}
-#define SIGNAL(cvp)                                                        \
-	{                                                                  \
-		ISC_UTIL_TRACE(fprintf(stderr, "SIGNAL %p %s %d\n", (cvp), \
-				       __FILE__, __LINE__));               \
-		isc_condition_signal((cvp));                               \
-	}
-#define WAIT(cvp, lp)                                                         \
-	{                                                                     \
-		ISC_UTIL_TRACE(fprintf(stderr, "WAIT %p LOCK %p %s %d\n",     \
-				       (cvp), (lp), __FILE__, __LINE__));     \
-		isc_condition_wait((cvp), (lp));                              \
-		ISC_UTIL_TRACE(fprintf(stderr, "WAITED %p LOCKED %p %s %d\n", \
-				       (cvp), (lp), __FILE__, __LINE__));     \
-	}
-
-/*
- * isc_condition_waituntil can return ISC_R_TIMEDOUT, so we
- * don't RUNTIME_CHECK the result.
- *
- *  XXX Also, can't really debug this then...
- */
-
-#define WAITUNTIL(cvp, lp, tp) isc_condition_waituntil((cvp), (lp), (tp))
-
-#define RWLOCK(lp, t)                                                         \
-	{                                                                     \
-		ISC_UTIL_TRACE(fprintf(stderr, "RWLOCK %p, %d %s %d\n", (lp), \
-				       (t), __FILE__, __LINE__));             \
-		isc_rwlock_lock((lp), (t));                                   \
-		ISC_UTIL_TRACE(fprintf(stderr, "RWLOCKED %p, %d %s %d\n",     \
-				       (lp), (t), __FILE__, __LINE__));       \
-	}
-#define RWUNLOCK(lp, t)                                                   \
-	{                                                                 \
-		ISC_UTIL_TRACE(fprintf(stderr, "RWUNLOCK %p, %d %s %d\n", \
-				       (lp), (t), __FILE__, __LINE__));   \
-		isc_rwlock_unlock((lp), (t));                             \
-	}
-
-#define RDLOCK(lp)   RWLOCK(lp, isc_rwlocktype_read)
-#define RDUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_read)
-#define WRLOCK(lp)   RWLOCK(lp, isc_rwlocktype_write)
-#define WRUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_write)
-
-#define UPGRADELOCK(lock, locktype)                                         \
-	{                                                                   \
-		if (locktype == isc_rwlocktype_read) {                      \
-			if (isc_rwlock_tryupgrade(lock) == ISC_R_SUCCESS) { \
-				locktype = isc_rwlocktype_write;            \
-			} else {                                            \
-				RWUNLOCK(lock, locktype);                   \
-				locktype = isc_rwlocktype_write;            \
-				RWLOCK(lock, locktype);                     \
-			}                                                   \
-		}                                                           \
-		INSIST(locktype == isc_rwlocktype_write);                   \
-	}
 
 /*%
  * Performance

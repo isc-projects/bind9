@@ -22,6 +22,21 @@
 #include <isc/result.h> /* for ISC_R_ codes */
 #include <isc/util.h>
 
+#define LOCK(lp)                                                           \
+	{                                                                  \
+		ISC_UTIL_TRACE(fprintf(stderr, "LOCKING %p %s %d\n", (lp), \
+				       __FILE__, __LINE__));               \
+		isc_mutex_lock((lp));                                      \
+		ISC_UTIL_TRACE(fprintf(stderr, "LOCKED %p %s %d\n", (lp),  \
+				       __FILE__, __LINE__));               \
+	}
+#define UNLOCK(lp)                                                          \
+	{                                                                   \
+		isc_mutex_unlock((lp));                                     \
+		ISC_UTIL_TRACE(fprintf(stderr, "UNLOCKED %p %s %d\n", (lp), \
+				       __FILE__, __LINE__));                \
+	}
+
 /*
  * We use macros instead of static inline functions so that the exact code
  * location can be reported when PTHREADS_RUNTIME_CHECK() fails or when mutrace
