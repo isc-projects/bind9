@@ -29,7 +29,6 @@ for tsan_job in "gcc:tsan", "clang:tsan":
         tsan_stress_test_job["needs"] = [
             {"pipeline": "$PARENT_PIPELINE_ID", "job": tsan_job}
         ]
-        del tsan_stress_test_job["only"]
 
         print(
             yaml.dump(
