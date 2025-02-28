@@ -18,7 +18,6 @@
 #include <isc/atomic.h>
 #include <isc/barrier.h>
 #include <isc/buffer.h>
-#include <isc/condition.h>
 #include <isc/errno.h>
 #include <isc/log.h>
 #include <isc/magic.h>

@@ -17,7 +17,6 @@
 
 #include <isc/async.h>
 #include <isc/atomic.h>
-#include <isc/condition.h>
 #include <isc/heap.h>
 #include <isc/job.h>
 #include <isc/log.h>

@@ -21,7 +21,6 @@
 #include <isc/atomic.h>
 #include <isc/barrier.h>
 #include <isc/buffer.h>
-#include <isc/condition.h>
 #include <isc/dnsstream.h>
 #include <isc/magic.h>
 #include <isc/mem.h>

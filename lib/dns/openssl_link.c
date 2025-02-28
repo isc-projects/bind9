@@ -30,7 +30,6 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/mutexblock.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/thread.h>

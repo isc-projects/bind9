@@ -20,7 +20,6 @@
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/condition.h>
 #include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/netaddr.h>

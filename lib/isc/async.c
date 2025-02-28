@@ -18,7 +18,6 @@
 #include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/barrier.h>
-#include <isc/condition.h>
 #include <isc/job.h>
 #include <isc/loop.h>
 #include <isc/magic.h>

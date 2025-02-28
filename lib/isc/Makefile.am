@@ -15,7 +15,6 @@ libisc_la_HEADERS =			\
 	include/isc/base64.h		\
 	include/isc/buffer.h		\
 	include/isc/commandline.h	\
-	include/isc/condition.h		\
 	include/isc/counter.h		\
 	include/isc/crypto.h		\
 	include/isc/dir.h		\
@@ -51,7 +50,6 @@ libisc_la_HEADERS =			\
 	include/isc/mem.h		\
 	include/isc/meminfo.h		\
 	include/isc/mutex.h		\
-	include/isc/mutexblock.h	\
 	include/isc/net.h		\
 	include/isc/netaddr.h		\
 	include/isc/netmgr.h		\
@@ -122,7 +120,6 @@ libisc_la_SOURCES =		\
 	base32.c		\
 	base64.c		\
 	commandline.c		\
-	condition.c		\
 	counter.c		\
 	crypto.c		\
 	dir.c			\
@@ -159,7 +156,6 @@ libisc_la_SOURCES =		\
 	meminfo.c		\
 	mutex.c			\
 	mutex_p.h		\
-	mutexblock.c		\
 	net.c			\
 	netaddr.c		\
 	netscope.c		\
