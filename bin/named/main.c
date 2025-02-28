@@ -155,15 +155,8 @@ named_main_earlywarning(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	if (named_g_logging) {
-		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			       ISC_LOG_WARNING, format, args);
-	} else {
-		fprintf(stderr, "%s: ", program_name);
-		vfprintf(stderr, format, args);
-		fprintf(stderr, "\n");
-		fflush(stderr);
-	}
+	isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		       ISC_LOG_WARNING, format, args);
 	va_end(args);
 }
 
@@ -172,18 +165,10 @@ named_main_earlyfatal(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	if (named_g_logging) {
-		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			       ISC_LOG_CRITICAL, format, args);
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			      ISC_LOG_CRITICAL,
-			      "exiting (due to early fatal error)");
-	} else {
-		fprintf(stderr, "%s: ", program_name);
-		vfprintf(stderr, format, args);
-		fprintf(stderr, "\n");
-		fflush(stderr);
-	}
+	isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		       ISC_LOG_CRITICAL, format, args);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_CRITICAL, "exiting (due to early fatal error)");
 	va_end(args);
 
 	_exit(EXIT_FAILURE);
@@ -200,26 +185,19 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	 * Handle assertion failures.
 	 */
 
-	if (named_g_logging) {
-		/*
-		 * Reset the assertion callback in case it is the log
-		 * routines causing the assertion.
-		 */
-		isc_assertion_setcallback(NULL);
+	/*
+	 * Reset the assertion callback in case it is the log
+	 * routines causing the assertion.
+	 */
+	isc_assertion_setcallback(NULL);
 
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			      ISC_LOG_CRITICAL, "%s:%d: %s(%s) failed", file,
-			      line, isc_assertion_typetotext(type), cond);
-		isc_backtrace_log(NAMED_LOGCATEGORY_GENERAL,
-				  NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL);
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			      ISC_LOG_CRITICAL,
-			      "exiting (due to assertion failure)");
-	} else {
-		fprintf(stderr, "%s:%d: %s(%s) failed\n", file, line,
-			isc_assertion_typetotext(type), cond);
-		fflush(stderr);
-	}
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_CRITICAL, "%s:%d: %s(%s) failed", file, line,
+		      isc_assertion_typetotext(type), cond);
+	isc_backtrace_log(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+			  ISC_LOG_CRITICAL);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_CRITICAL, "exiting (due to assertion failure)");
 
 	if (named_g_coreok) {
 		abort();
@@ -238,27 +216,20 @@ library_fatal_error(const char *file, int line, const char *func,
 	 * Handle isc_error_fatal() calls from our libraries.
 	 */
 
-	if (named_g_logging) {
-		/*
-		 * Reset the error callback in case it is the log
-		 * routines causing the assertion.
-		 */
-		isc_error_setfatal(NULL);
+	/*
+	 * Reset the error callback in case it is the log
+	 * routines causing the assertion.
+	 */
+	isc_error_setfatal(NULL);
 
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			      ISC_LOG_CRITICAL,
-			      "%s:%d:%s(): fatal error: ", file, line, func);
-		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			       ISC_LOG_CRITICAL, format, args);
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			      ISC_LOG_CRITICAL,
-			      "exiting (due to fatal error in library)");
-	} else {
-		fprintf(stderr, "%s:%d:%s(): fatal error: ", file, line, func);
-		vfprintf(stderr, format, args);
-		fprintf(stderr, "\n");
-		fflush(stderr);
-	}
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_CRITICAL, "%s:%d:%s(): fatal error: ", file, line,
+		      func);
+	isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		       ISC_LOG_CRITICAL, format, args);
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_CRITICAL,
+		      "exiting (due to fatal error in library)");
 
 	if (named_g_coreok) {
 		abort();
@@ -278,19 +249,11 @@ library_unexpected_error(const char *file, int line, const char *func,
 	 * Handle isc_error_unexpected() calls from our libraries.
 	 */
 
-	if (named_g_logging) {
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			      ISC_LOG_ERROR,
-			      "%s:%d:%s(): unexpected error: ", file, line,
-			      func);
-		isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-			       ISC_LOG_ERROR, format, args);
-	} else {
-		fprintf(stderr, "%s:%d:%s(): fatal error: ", file, line, func);
-		vfprintf(stderr, format, args);
-		fprintf(stderr, "\n");
-		fflush(stderr);
-	}
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		      ISC_LOG_ERROR, "%s:%d:%s(): unexpected error: ", file,
+		      line, func);
+	isc_log_vwrite(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
+		       ISC_LOG_ERROR, format, args);
 }
 
 static void
