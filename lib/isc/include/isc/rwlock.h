@@ -14,7 +14,6 @@
 #pragma once
 
 #include <inttypes.h>
-#include <stdlib.h>
 
 /*! \file isc/rwlock.h */
 
@@ -28,6 +27,7 @@ typedef enum {
 } isc_rwlocktype_t;
 
 #if USE_PTHREAD_RWLOCK
+#include <errno.h>
 #include <pthread.h>
 
 /*
@@ -37,6 +37,8 @@ typedef enum {
  */
 
 #if ISC_TRACK_PTHREADS_OBJECTS
+
+#include <stdlib.h>
 
 typedef pthread_rwlock_t *isc_rwlock_t;
 typedef pthread_rwlock_t  isc__rwlock_t;

@@ -27,8 +27,6 @@
  * ISC_ or isc_ to the name.
  */
 
-#include <isc/attributes.h>
-
 /***
  *** Clang Compatibility Macros
  ***/
@@ -121,8 +119,6 @@
 #else		   /* ifdef ISC_UTIL_TRACEON */
 #define ISC_UTIL_TRACE(a)
 #endif /* ifdef ISC_UTIL_TRACEON */
-
-#include <isc/result.h> /* Contractual promise. */
 
 #define SPINLOCK(sp)                                                           \
 	{                                                                      \
@@ -217,11 +213,6 @@
 		}                                                           \
 		INSIST(locktype == isc_rwlocktype_write);                   \
 	}
-
-/*
- * List Macros.
- */
-#include <isc/list.h> /* Contractual promise. */
 
 /*%
  * Performance
@@ -318,8 +309,6 @@ mock_assert(const int result, const char *const expression,
 /*
  * Errors
  */
-#include <errno.h> /* for errno */
-
 #include <isc/error.h>	/* Contractual promise. */
 #include <isc/strerr.h> /* for ISC_STRERRORSIZE */
 
