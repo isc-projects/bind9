@@ -50,7 +50,7 @@ for zn in default dnssec-keygen some-keys legacy-keys pregenerated \
   rumoured rsasha256 rsasha512 ecdsa256 ecdsa384 \
   dynamic dynamic-inline-signing inline-signing \
   checkds-ksk checkds-doubleksk checkds-csk inherit unlimited \
-  manual-rollover multisigner-model2 keystore; do
+  multisigner-model2 keystore; do
   setup "${zn}.kasp"
   cp template.db.in "$zonefile"
 done
@@ -159,21 +159,6 @@ $SETTIME -s -g $O -k $R $Tpub -z $R $Tpub "$ZSK2" >settime.out.$zone.2 2>&1
 #
 # Set up zones that are already signed.
 #
-
-# Zone to test manual rollover.
-setup manual-rollover.kasp
-T="now-1d"
-ksktimes="-P $T -A $T -P sync $T"
-zsktimes="-P $T -A $T"
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 $zsktimes $zone 2>keygen.out.$zone.2)
-$SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
-$SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
-cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
-private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >>"$infile"
-private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >>"$infile"
-cp $infile $zonefile
-$SIGNER -PS -x -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
 
 # We are signing the raw version of the zone here. This is unusual and not
 # common operation, but want to make sure that in such a case BIND 9 does not

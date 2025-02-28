@@ -89,13 +89,6 @@ zone "unlimited.kasp" {
 	dnssec-policy "unlimited";
 };
 
-/* Manual rollover. */
-zone "manual-rollover.kasp" {
-	type primary;
-	file "manual-rollover.kasp.db";
-	dnssec-policy "manual-rollover";
-};
-
 /* A zone that inherits dnssec-policy. */
 zone "inherit.kasp" {
 	type primary;
