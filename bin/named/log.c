@@ -52,8 +52,6 @@ named_log_init(bool safe) {
 	named_log_setdefaultsslkeylogfile(lcfg);
 	rcu_read_unlock();
 
-	named_g_logging = true;
-
 	return ISC_R_SUCCESS;
 
 cleanup:

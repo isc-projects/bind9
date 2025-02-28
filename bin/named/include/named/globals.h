@@ -86,7 +86,6 @@ EXTERN named_server_t *named_g_server INIT(NULL);
 /*
  * Logging.
  */
-EXTERN bool named_g_logging	       INIT(false);
 EXTERN unsigned int named_g_debuglevel INIT(0);
 
 /*
