@@ -5473,13 +5473,14 @@ answer_response:
 			}
 
 			ISC_LIST_FOREACH (name->list, s, link) {
-				if (s->type == dns_rdatatype_rrsig &&
-				    s->covers == rdataset->type)
+				if (dns_rdataset_issigtype(sigrdataset,
+							   rdataset->type))
 				{
 					sigrdataset = s;
 					break;
 				}
 			}
+
 			if (sigrdataset == NULL ||
 			    sigrdataset->trust != dns_trust_secure)
 			{
@@ -5674,7 +5675,7 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 	 * Find the SIG for this rdataset, if we have it.
 	 */
 	ISC_LIST_FOREACH (name->list, sig, link) {
-		if (sig->type == dns_rdatatype_rrsig && sig->covers == type) {
+		if (dns_rdataset_issigtype(sig, type)) {
 			sigrdataset = sig;
 			break;
 		}
@@ -5751,9 +5752,7 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 
 	if (noqname != NULL) {
 		ISC_LIST_FOREACH (noqname->list, sig, link) {
-			if (sig->type == dns_rdatatype_rrsig &&
-			    sig->covers == found)
-			{
+			if (dns_rdataset_issigtype(sig, found)) {
 				*noqnamep = noqname;
 				break;
 			}
@@ -5896,9 +5895,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		 * Find the RRSIG for this rdataset, if we have it.
 		 */
 		ISC_LIST_FOREACH (name->list, sig, link) {
-			if (sig->type == dns_rdatatype_rrsig &&
-			    sig->covers == rdataset->type)
-			{
+			if (dns_rdataset_issigtype(sig, rdataset->type)) {
 				sigrdataset = sig;
 				break;
 			}
@@ -5927,14 +5924,13 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 				continue;
 			}
 
+			/*
+			 * Ignore unrelated non-answer rdatasets that are
+			 * missing signatures.
+			 */
 			if (sigrdataset == NULL && need_validation &&
 			    !ANSWER(rdataset))
 			{
-				/*
-				 * Ignore unrelated non-answer
-				 * rdatasets that are missing
-				 * signatures.
-				 */
 				continue;
 			}
 
@@ -6124,9 +6120,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 				}
 			}
 			if (rdataset->trust == dns_trust_glue &&
-			    (rdataset->type == dns_rdatatype_ns ||
-			     (rdataset->type == dns_rdatatype_rrsig &&
-			      rdataset->covers == dns_rdatatype_ns)))
+			    dns_rdataset_matchestype(rdataset,
+						     dns_rdatatype_ns))
 			{
 				/*
 				 * If the trust level is
@@ -8474,9 +8469,7 @@ rctx_answer_match(respctx_t *rctx) {
 			return ISC_R_COMPLETE;
 		}
 
-		if (sigrdataset->type != dns_rdatatype_rrsig ||
-		    sigrdataset->covers != rctx->type)
-		{
+		if (!dns_rdataset_issigtype(sigrdataset, rctx->type)) {
 			continue;
 		}
 
@@ -8622,9 +8615,8 @@ rctx_authority_positive(respctx_t *rctx) {
 			 * nothing else.
 			 */
 			ISC_LIST_FOREACH (name->list, rdataset, link) {
-				if (rdataset->type == dns_rdatatype_ns ||
-				    (rdataset->type == dns_rdatatype_rrsig &&
-				     rdataset->covers == dns_rdatatype_ns))
+				if (dns_rdataset_matchestype(rdataset,
+							     dns_rdatatype_ns))
 				{
 					name->attributes.cache = true;
 					rdataset->attributes.cache = true;
