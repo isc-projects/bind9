@@ -8416,7 +8416,11 @@ rctx_answer_any(respctx_t *rctx) {
 
 		rctx->aname->attributes.cache = true;
 		rctx->aname->attributes.answer = true;
-		rdataset->attributes.answer = true;
+		if (dns_rdatatype_issig(rdataset->type)) {
+			rdataset->attributes.answersig = true;
+		} else {
+			rdataset->attributes.answer = true;
+		}
 		rdataset->attributes.cache = true;
 		rdataset->trust = rctx->trust;
 	}
