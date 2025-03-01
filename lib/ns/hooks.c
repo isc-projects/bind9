@@ -48,7 +48,7 @@ struct ns_plugin {
 	ns_plugin_check_t *check_func;
 	ns_plugin_register_t *register_func;
 	ns_plugin_destroy_t *destroy_func;
-	LINK(ns_plugin_t) link;
+	ISC_LINK(ns_plugin_t) link;
 };
 
 static ns_hooklist_t default_hooktable[NS_HOOKPOINTS_COUNT];

@@ -21,7 +21,6 @@
 #include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/buffer.h>
-#include <isc/condition.h>
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>

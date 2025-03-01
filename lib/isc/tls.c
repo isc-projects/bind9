@@ -40,7 +40,6 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/mutexblock.h>
 #include <isc/once.h>
 #include <isc/random.h>
 #include <isc/refcount.h>

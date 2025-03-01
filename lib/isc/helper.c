@@ -17,7 +17,6 @@
 
 #include <isc/atomic.h>
 #include <isc/barrier.h>
-#include <isc/condition.h>
 #include <isc/helper.h>
 #include <isc/job.h>
 #include <isc/loop.h>

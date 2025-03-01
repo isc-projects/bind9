@@ -231,7 +231,7 @@ isc__ratelimiter_tick(void *arg) {
 	REQUIRE(rl->timer != NULL);
 
 	if (rl->state == isc_ratelimiter_shuttingdown) {
-		INSIST(EMPTY(rl->pending));
+		INSIST(ISC_LIST_EMPTY(rl->pending));
 		goto unlock;
 	}
 
@@ -277,7 +277,7 @@ isc__ratelimiter_doshutdown(void *arg) {
 
 	LOCK(&rl->lock);
 	INSIST(rl->state == isc_ratelimiter_shuttingdown);
-	INSIST(EMPTY(rl->pending));
+	INSIST(ISC_LIST_EMPTY(rl->pending));
 
 	isc_timer_stop(rl->timer);
 	isc_timer_destroy(&rl->timer);

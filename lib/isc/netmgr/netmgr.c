@@ -20,7 +20,6 @@
 #include <isc/backtrace.h>
 #include <isc/barrier.h>
 #include <isc/buffer.h>
-#include <isc/condition.h>
 #include <isc/errno.h>
 #include <isc/job.h>
 #include <isc/list.h>

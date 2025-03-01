@@ -21,7 +21,6 @@
 #include <isc/atomic.h>
 #include <isc/barrier.h>
 #include <isc/buffer.h>
-#include <isc/condition.h>
 #include <isc/dnsstream.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -271,8 +270,8 @@ struct isc_nmhandle {
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
 #endif
-	LINK(isc_nmhandle_t) active_link;
-	LINK(isc_nmhandle_t) inactive_link;
+	ISC_LINK(isc_nmhandle_t) active_link;
+	ISC_LINK(isc_nmhandle_t) inactive_link;
 
 	void *opaque;
 
@@ -423,7 +422,7 @@ typedef struct isc_nm_httphandler {
 	char *path;
 	isc_nm_recv_cb_t cb;
 	void *cbarg;
-	LINK(struct isc_nm_httphandler) link;
+	ISC_LINK(struct isc_nm_httphandler) link;
 } isc_nm_httphandler_t;
 
 struct isc_nm_http_endpoints {
@@ -467,7 +466,7 @@ typedef struct isc_nmsocket_h2 {
 
 	isc_nm_recv_cb_t cb;
 	void *cbarg;
-	LINK(struct isc_nmsocket_h2) link;
+	ISC_LINK(struct isc_nmsocket_h2) link;
 
 	isc_nm_http_endpoints_t **listener_endpoints;
 	size_t n_listener_endpoints;
@@ -713,7 +712,7 @@ struct isc_nmsocket {
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
 #endif
-	LINK(isc_nmsocket_t) active_link;
+	ISC_LINK(isc_nmsocket_t) active_link;
 
 	isc_job_t job;
 };

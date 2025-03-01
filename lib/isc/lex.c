@@ -61,7 +61,7 @@ struct isc_lex {
 	unsigned int paren_count;
 	unsigned int saved_paren_count;
 	isc_lexspecials_t specials;
-	LIST(struct inputsource) sources;
+	ISC_LIST(struct inputsource) sources;
 };
 
 static void
@@ -104,7 +104,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	lex->paren_count = 0;
 	lex->saved_paren_count = 0;
 	memset(lex->specials, 0, 256);
-	INIT_LIST(lex->sources);
+	ISC_LIST_INIT(lex->sources);
 	lex->magic = LEX_MAGIC;
 
 	*lexp = lex;
@@ -123,7 +123,7 @@ isc_lex_destroy(isc_lex_t **lexp) {
 	*lexp = NULL;
 	REQUIRE(VALID_LEX(lex));
 
-	while (!EMPTY(lex->sources)) {
+	while (!ISC_LIST_EMPTY(lex->sources)) {
 		RUNTIME_CHECK(isc_lex_close(lex) == ISC_R_SUCCESS);
 	}
 	if (lex->data != NULL) {
@@ -259,7 +259,7 @@ isc_lex_close(isc_lex_t *lex) {
 
 	REQUIRE(VALID_LEX(lex));
 
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 	if (source == NULL) {
 		return ISC_R_NOMORE;
 	}
@@ -352,7 +352,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	 */
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 	REQUIRE(tokenp != NULL);
 
 	if (source == NULL) {
@@ -999,7 +999,7 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	 */
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 	REQUIRE(source != NULL);
 	REQUIRE(tokenp != NULL);
 	REQUIRE(isc_buffer_consumedlength(source->pushback) != 0 ||
@@ -1018,7 +1018,7 @@ isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r) {
 	inputsource *source;
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 	REQUIRE(source != NULL);
 	REQUIRE(tokenp != NULL);
 	REQUIRE(isc_buffer_consumedlength(source->pushback) != 0 ||
@@ -1038,7 +1038,7 @@ isc_lex_getsourcename(isc_lex_t *lex) {
 	inputsource *source;
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 
 	if (source == NULL) {
 		return NULL;
@@ -1052,7 +1052,7 @@ isc_lex_getsourceline(isc_lex_t *lex) {
 	inputsource *source;
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 
 	if (source == NULL) {
 		return 0;
@@ -1067,7 +1067,7 @@ isc_lex_setsourcename(isc_lex_t *lex, const char *name) {
 	char *newname;
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 
 	if (source == NULL) {
 		return ISC_R_NOTFOUND;
@@ -1083,7 +1083,7 @@ isc_lex_setsourceline(isc_lex_t *lex, unsigned long line) {
 	inputsource *source;
 
 	REQUIRE(VALID_LEX(lex));
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 
 	if (source == NULL) {
 		return ISC_R_NOTFOUND;
@@ -1099,7 +1099,7 @@ isc_lex_isfile(isc_lex_t *lex) {
 
 	REQUIRE(VALID_LEX(lex));
 
-	source = HEAD(lex->sources);
+	source = ISC_LIST_HEAD(lex->sources);
 
 	if (source == NULL) {
 		return false;

@@ -25,7 +25,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <isc/condition.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mutex.h>

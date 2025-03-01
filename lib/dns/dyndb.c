@@ -43,7 +43,7 @@ struct dyndb_implementation {
 	dns_dyndb_destroy_t *destroy_func;
 	char *name;
 	void *inst;
-	LINK(dyndb_implementation_t) link;
+	ISC_LINK(dyndb_implementation_t) link;
 };
 
 /*
@@ -52,7 +52,7 @@ struct dyndb_implementation {
  * These are stored here so they can be cleaned up on shutdown.
  * (The order in which they are stored is not important.)
  */
-static LIST(dyndb_implementation_t) dyndb_implementations;
+static ISC_LIST(dyndb_implementation_t) dyndb_implementations;
 
 /* Locks dyndb_implementations. */
 static isc_mutex_t dyndb_lock;
@@ -60,7 +60,7 @@ static isc_mutex_t dyndb_lock;
 void
 dns__dyndb_initialize(void) {
 	isc_mutex_init(&dyndb_lock);
-	INIT_LIST(dyndb_implementations);
+	ISC_LIST_INIT(dyndb_implementations);
 }
 
 void
@@ -135,7 +135,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 
 	isc_mem_attach(mctx, &imp->mctx);
 
-	INIT_LINK(imp, link);
+	ISC_LINK_INIT(imp, link);
 
 	r = uv_dlopen(filename, &imp->handle);
 	if (r != 0) {
@@ -225,7 +225,7 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
 	CHECK(implementation->register_func(mctx, name, parameters, file, line,
 					    dctx, &implementation->inst));
 
-	APPEND(dyndb_implementations, implementation, link);
+	ISC_LIST_APPEND(dyndb_implementations, implementation, link);
 	result = ISC_R_SUCCESS;
 
 cleanup:
@@ -245,10 +245,10 @@ dns_dyndb_cleanup(void) {
 	dyndb_implementation_t *prev;
 
 	LOCK(&dyndb_lock);
-	elem = TAIL(dyndb_implementations);
+	elem = ISC_LIST_TAIL(dyndb_implementations);
 	while (elem != NULL) {
-		prev = PREV(elem, link);
-		UNLINK(dyndb_implementations, elem, link);
+		prev = ISC_LIST_PREV(elem, link);
+		ISC_LIST_UNLINK(dyndb_implementations, elem, link);
 		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DYNDB,
 			      ISC_LOG_INFO, "unloading DynDB instance '%s'",
 			      elem->name);

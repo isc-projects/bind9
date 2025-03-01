@@ -27,8 +27,6 @@
  * ISC_ or isc_ to the name.
  */
 
-#include <isc/attributes.h>
-
 /***
  *** Clang Compatibility Macros
  ***/
@@ -110,136 +108,12 @@
  */
 #define EMPTY_TRANSLATION_UNIT extern int isc__empty;
 
-/*%
- * We use macros instead of calling the routines directly because
- * the capital letters make the locking stand out.
- */
-
 #ifdef ISC_UTIL_TRACEON
 #define ISC_UTIL_TRACE(a) a
 #include <stdio.h> /* Required for fprintf/stderr when tracing. */
 #else		   /* ifdef ISC_UTIL_TRACEON */
 #define ISC_UTIL_TRACE(a)
 #endif /* ifdef ISC_UTIL_TRACEON */
-
-#include <isc/result.h> /* Contractual promise. */
-
-#define SPINLOCK(sp)                                                           \
-	{                                                                      \
-		ISC_UTIL_TRACE(fprintf(stderr, "SPINLOCKING %p %s %d\n", (sp), \
-				       __FILE__, __LINE__));                   \
-		isc_spinlock_lock((sp));                                       \
-		ISC_UTIL_TRACE(fprintf(stderr, "SPINLOCKED %p %s %d\n", (sp),  \
-				       __FILE__, __LINE__));                   \
-	}
-#define SPINUNLOCK(sp)                                                    \
-	{                                                                 \
-		isc_spinlock_unlock((sp));                                \
-		ISC_UTIL_TRACE(fprintf(stderr, "SPINUNLOCKED %p %s %d\n", \
-				       (sp), __FILE__, __LINE__));        \
-	}
-
-#define LOCK(lp)                                                           \
-	{                                                                  \
-		ISC_UTIL_TRACE(fprintf(stderr, "LOCKING %p %s %d\n", (lp), \
-				       __FILE__, __LINE__));               \
-		isc_mutex_lock((lp));                                      \
-		ISC_UTIL_TRACE(fprintf(stderr, "LOCKED %p %s %d\n", (lp),  \
-				       __FILE__, __LINE__));               \
-	}
-#define UNLOCK(lp)                                                          \
-	{                                                                   \
-		isc_mutex_unlock((lp));                                     \
-		ISC_UTIL_TRACE(fprintf(stderr, "UNLOCKED %p %s %d\n", (lp), \
-				       __FILE__, __LINE__));                \
-	}
-
-#define BROADCAST(cvp)                                                        \
-	{                                                                     \
-		ISC_UTIL_TRACE(fprintf(stderr, "BROADCAST %p %s %d\n", (cvp), \
-				       __FILE__, __LINE__));                  \
-		isc_condition_broadcast((cvp));                               \
-	}
-#define SIGNAL(cvp)                                                        \
-	{                                                                  \
-		ISC_UTIL_TRACE(fprintf(stderr, "SIGNAL %p %s %d\n", (cvp), \
-				       __FILE__, __LINE__));               \
-		isc_condition_signal((cvp));                               \
-	}
-#define WAIT(cvp, lp)                                                         \
-	{                                                                     \
-		ISC_UTIL_TRACE(fprintf(stderr, "WAIT %p LOCK %p %s %d\n",     \
-				       (cvp), (lp), __FILE__, __LINE__));     \
-		isc_condition_wait((cvp), (lp));                              \
-		ISC_UTIL_TRACE(fprintf(stderr, "WAITED %p LOCKED %p %s %d\n", \
-				       (cvp), (lp), __FILE__, __LINE__));     \
-	}
-
-/*
- * isc_condition_waituntil can return ISC_R_TIMEDOUT, so we
- * don't RUNTIME_CHECK the result.
- *
- *  XXX Also, can't really debug this then...
- */
-
-#define WAITUNTIL(cvp, lp, tp) isc_condition_waituntil((cvp), (lp), (tp))
-
-#define RWLOCK(lp, t)                                                         \
-	{                                                                     \
-		ISC_UTIL_TRACE(fprintf(stderr, "RWLOCK %p, %d %s %d\n", (lp), \
-				       (t), __FILE__, __LINE__));             \
-		isc_rwlock_lock((lp), (t));                                   \
-		ISC_UTIL_TRACE(fprintf(stderr, "RWLOCKED %p, %d %s %d\n",     \
-				       (lp), (t), __FILE__, __LINE__));       \
-	}
-#define RWUNLOCK(lp, t)                                                   \
-	{                                                                 \
-		ISC_UTIL_TRACE(fprintf(stderr, "RWUNLOCK %p, %d %s %d\n", \
-				       (lp), (t), __FILE__, __LINE__));   \
-		isc_rwlock_unlock((lp), (t));                             \
-	}
-
-#define RDLOCK(lp)   RWLOCK(lp, isc_rwlocktype_read)
-#define RDUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_read)
-#define WRLOCK(lp)   RWLOCK(lp, isc_rwlocktype_write)
-#define WRUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_write)
-
-#define UPGRADELOCK(lock, locktype)                                         \
-	{                                                                   \
-		if (locktype == isc_rwlocktype_read) {                      \
-			if (isc_rwlock_tryupgrade(lock) == ISC_R_SUCCESS) { \
-				locktype = isc_rwlocktype_write;            \
-			} else {                                            \
-				RWUNLOCK(lock, locktype);                   \
-				locktype = isc_rwlocktype_write;            \
-				RWLOCK(lock, locktype);                     \
-			}                                                   \
-		}                                                           \
-		INSIST(locktype == isc_rwlocktype_write);                   \
-	}
-
-/*
- * List Macros.
- */
-#include <isc/list.h> /* Contractual promise. */
-
-#define LIST(type)		       ISC_LIST(type)
-#define INIT_LIST(type)		       ISC_LIST_INIT(type)
-#define LINK(type)		       ISC_LINK(type)
-#define INIT_LINK(elt, link)	       ISC_LINK_INIT(elt, link)
-#define HEAD(list)		       ISC_LIST_HEAD(list)
-#define TAIL(list)		       ISC_LIST_TAIL(list)
-#define EMPTY(list)		       ISC_LIST_EMPTY(list)
-#define PREV(elt, link)		       ISC_LIST_PREV(elt, link)
-#define NEXT(elt, link)		       ISC_LIST_NEXT(elt, link)
-#define APPEND(list, elt, link)	       ISC_LIST_APPEND(list, elt, link)
-#define PREPEND(list, elt, link)       ISC_LIST_PREPEND(list, elt, link)
-#define UNLINK(list, elt, link)	       ISC_LIST_UNLINK(list, elt, link)
-#define ENQUEUE(list, elt, link)       ISC_LIST_APPEND(list, elt, link)
-#define DEQUEUE(list, elt, link)       ISC_LIST_UNLINK(list, elt, link)
-#define INSERTBEFORE(li, b, e, ln)     ISC_LIST_INSERTBEFORE(li, b, e, ln)
-#define INSERTAFTER(li, a, e, ln)      ISC_LIST_INSERTAFTER(li, a, e, ln)
-#define APPENDLIST(list1, list2, link) ISC_LIST_APPENDLIST(list1, list2, link)
 
 /*%
  * Performance
@@ -266,18 +140,7 @@
 #define ISC_NO_SANITIZE_THREAD
 #endif /* if __SANITIZE_THREAD__ */
 
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6)
 #define STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
-#elif __has_feature(c_static_assert)
-#define STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
-#else /* if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6) */
-
-/* Courtesy of Joseph Quinsey: https://godbolt.org/z/K9RvWS */
-#define TOKENPASTE(a, b)	a##b /* "##" is the "Token Pasting Operator" */
-#define EXPAND_THEN_PASTE(a, b) TOKENPASTE(a, b) /* expand then paste */
-#define STATIC_ASSERT(x, msg) \
-	enum { EXPAND_THEN_PASTE(ASSERT_line_, __LINE__) = 1 / ((msg) && (x)) }
-#endif /* if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6) */
 
 #ifdef UNIT_TESTING
 extern void
@@ -336,8 +199,6 @@ mock_assert(const int result, const char *const expression,
 /*
  * Errors
  */
-#include <errno.h> /* for errno */
-
 #include <isc/error.h>	/* Contractual promise. */
 #include <isc/strerr.h> /* for ISC_STRERRORSIZE */
 
