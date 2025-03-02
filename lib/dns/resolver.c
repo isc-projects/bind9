@@ -5844,10 +5844,9 @@ fixttls(dns_view_t *view, dns_rdataset_t *rdataset,
 }
 
 static isc_result_t
-rctx_cacherdataset(respctx_t *rctx, dns_message_t *message, dns_name_t *name,
-		   dns_dbnode_t *node, dns_rdataset_t *rdataset,
-		   dns_rdataset_t *sigrdataset, bool secure_domain,
-		   bool need_validation) {
+rctx_cache_secure(respctx_t *rctx, dns_message_t *message, dns_name_t *name,
+		  dns_dbnode_t *node, dns_rdataset_t *rdataset,
+		  dns_rdataset_t *sigrdataset, bool need_validation) {
 	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
 	resquery_t *query = rctx->query;
@@ -5855,141 +5854,135 @@ rctx_cacherdataset(respctx_t *rctx, dns_message_t *message, dns_name_t *name,
 	dns_fetchresponse_t *resp = ISC_LIST_HEAD(fctx->resps);
 	unsigned int options = 0;
 
-	if (secure_domain && rdataset->trust != dns_trust_glue) {
-		/*
-		 * RRSIGs are validated as part of validating
-		 * the type they cover.
-		 */
-		if (rdataset->type == dns_rdatatype_rrsig) {
-			return ISC_R_SUCCESS;
-		}
-
-		/*
-		 * Ignore unrelated non-answer rdatasets that are
-		 * missing signatures.
-		 */
-		if (sigrdataset == NULL && need_validation && !ANSWER(rdataset))
-		{
-			return ISC_R_SUCCESS;
-		}
-
-		/*
-		 * Mark this rdataset/sigrdataset pair as pending data.
-		 * Track whether it was additional or not.
-		 */
-		if (rdataset->trust == dns_trust_additional) {
-			rdataset->trust = dns_trust_pending_additional;
-		} else {
-			rdataset->trust = dns_trust_pending_answer;
-		}
-
-		if (sigrdataset != NULL) {
-			sigrdataset->trust = rdataset->trust;
-		}
-
-		if (ANSWER(rdataset) && need_validation) {
-			if (!dns_rdatatype_ismulti(fctx->type)) {
-				/*
-				 * This is The Answer.  We will validate
-				 * it, but first we cache the rest of the
-				 * response - it may contain useful keys.
-				 */
-				INSIST(rctx->vrdataset == NULL &&
-				       rctx->vsigrdataset == NULL);
-				rctx->vrdataset = rdataset;
-				rctx->vsigrdataset = sigrdataset;
-			} else {
-				/*
-				 * This is one of (potentially) multiple
-				 * answers to an ANY query.  To keep things
-				 * simple, we just start the validator
-				 * right away rather than caching first and
-				 * having to remember which rdatasets
-				 * needed validation.
-				 */
-				valcreate(fctx, message, query->addrinfo, name,
-					  rdataset->type, rdataset,
-					  sigrdataset);
-			}
-		} else {
-			if (ANSWER(rdataset)) {
-				/*
-				 * We're not validating, but the client might
-				 * be, so look for the NOQNAME proof.
-				 */
-				findnoqname(fctx, message, name, rdataset);
-
-				/*
-				 * If this was not an ANY/RRSIG/SIG query,
-				 * or if it was but we got a CNAME/DNAME,
-				 * then we need to set up rdatasets to
-				 * send back to the caller.
-				 */
-				if (!dns_rdatatype_ismulti(fctx->type) ||
-				    CHAINING(rdataset))
-				{
-					ardataset = resp->rdataset;
-					asigset = resp->sigrdataset;
-				}
-			}
-
-			if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0) {
-				options = DNS_DBADD_PREFETCH;
-			}
-			if ((fctx->options & DNS_FETCHOPT_NOCACHED) != 0) {
-				options |= DNS_DBADD_FORCE;
-			}
-
-			result = dns_db_addrdataset(fctx->cache, node, NULL,
-						    rctx->now, rdataset,
-						    options, ardataset);
-			if (result != DNS_R_UNCHANGED &&
-			    result != ISC_R_SUCCESS)
-			{
-				return result;
-			}
-
-			if (sigrdataset == NULL) {
-				return ISC_R_SUCCESS;
-			}
-
-			if (result == DNS_R_UNCHANGED && !need_validation &&
-			    ardataset != NULL &&
-			    !dns_rdataset_equals(rdataset, ardataset))
-			{
-				/*
-				 * The cache wasn't updated because
-				 * something was already there. If the data
-				 * was the same as what we were trying to
-				 * add, then sigrdataset might still be
-				 * useful, and we should carry on caching
-				 * it. Otherwise, move on.
-				 */
-				return ISC_R_SUCCESS;
-			}
-
-			result = dns_db_addrdataset(fctx->cache, node, NULL,
-						    rctx->now, sigrdataset,
-						    options, asigset);
-			if (result != DNS_R_UNCHANGED &&
-			    result != ISC_R_SUCCESS)
-			{
-				return result;
-			}
-		}
-
+	/*
+	 * RRSIGs are validated as part of validating the type they cover.
+	 */
+	if (dns_rdatatype_issig(rdataset->type)) {
 		return ISC_R_SUCCESS;
 	}
 
 	/*
-	 * We're not in a secure domain, or this is glue,
-	 * so we can cache right away.
-	 *
-	 * If this wasn't an ANY/RRSIG/SIG query then send
-	 * an answer back to the caller.
+	 * Ignore unrelated non-answer rdatasets that are missing
+	 * signatures.
 	 */
+	if (sigrdataset == NULL && need_validation && !ANSWER(rdataset)) {
+		return ISC_R_SUCCESS;
+	}
+
+	/*
+	 * Mark this rdataset/sigrdataset pair as "pending".
+	 */
+	if (rdataset->trust == dns_trust_additional) {
+		rdataset->trust = dns_trust_pending_additional;
+	} else {
+		rdataset->trust = dns_trust_pending_answer;
+	}
+
+	if (sigrdataset != NULL) {
+		sigrdataset->trust = rdataset->trust;
+	}
+
+	if (ANSWER(rdataset) && need_validation) {
+		if (!dns_rdatatype_ismulti(fctx->type)) {
+			/*
+			 * This is The Answer.  We will validate it,
+			 * but first we finish caching the rest of the
+			 * response; it may contain useful keys.
+			 */
+			INSIST(rctx->vrdataset == NULL &&
+			       rctx->vsigrdataset == NULL);
+			rctx->vrdataset = rdataset;
+			rctx->vsigrdataset = sigrdataset;
+		} else {
+			/*
+			 * This is one of (potentially) multiple answers to
+			 * an ANY query.  To keep things simple, we just
+			 * start the validator right away rather than
+			 * caching first and having to remember which
+			 * rdatasets needed validation.
+			 */
+			valcreate(fctx, message, query->addrinfo, name,
+				  rdataset->type, rdataset, sigrdataset);
+		}
+	} else {
+		if (ANSWER(rdataset)) {
+			/*
+			 * We're not validating, but the client might
+			 * be, so look for the NOQNAME proof.
+			 */
+			findnoqname(fctx, message, name, rdataset);
+
+			/*
+			 * If this was not an ANY query - or if it was,
+			 * but we got a CNAME/DNAME - then we need to
+			 * set up rdatasets to send back to the caller.
+			 */
+			if (resp != NULL &&
+			    (!dns_rdatatype_ismulti(fctx->type) ||
+			     CHAINING(rdataset)))
+			{
+				ardataset = resp->rdataset;
+				asigset = resp->sigrdataset;
+			}
+		}
+
+		if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0) {
+			options = DNS_DBADD_PREFETCH;
+		}
+		if ((fctx->options & DNS_FETCHOPT_NOCACHED) != 0) {
+			options |= DNS_DBADD_FORCE;
+		}
+
+		result = dns_db_addrdataset(fctx->cache, node, NULL, rctx->now,
+					    rdataset, options, ardataset);
+		if (result != DNS_R_UNCHANGED && result != ISC_R_SUCCESS) {
+			return result;
+		}
+
+		if (sigrdataset == NULL) {
+			return ISC_R_SUCCESS;
+		}
+
+		if (result == DNS_R_UNCHANGED && !need_validation &&
+		    ardataset != NULL &&
+		    !dns_rdataset_equals(rdataset, ardataset))
+		{
+			/*
+			 * The cache wasn't updated because something was
+			 * already there. If the data was the same as what
+			 * we were trying to add, then sigrdataset might
+			 * still be useful, and we should carry on caching
+			 * it. Otherwise, move on.
+			 */
+			return ISC_R_SUCCESS;
+		}
+
+		result = dns_db_addrdataset(fctx->cache, node, NULL, rctx->now,
+					    sigrdataset, options, asigset);
+		if (result != DNS_R_UNCHANGED && result != ISC_R_SUCCESS) {
+			return result;
+		}
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+rctx_cache_insecure(respctx_t *rctx, dns_message_t *message, dns_name_t *name,
+		    dns_dbnode_t *node, dns_rdataset_t *rdataset) {
+	isc_result_t result;
+	fetchctx_t *fctx = rctx->fctx;
+	dns_fetchresponse_t *resp = ISC_LIST_HEAD(fctx->resps);
 	dns_rdataset_t *added = NULL;
-	if (!dns_rdatatype_ismulti(fctx->type)) {
+
+	/*
+	 * If this was not an ANY query - or if it was, but we got a
+	 * CNAME/DNAME - then we need to set up an rdataset to send
+	 * back to the caller.
+	 */
+	if (resp != NULL &&
+	    (!dns_rdatatype_ismulti(fctx->type) || CHAINING(rdataset)))
+	{
 		if (ANSWER(rdataset)) {
 			added = resp->rdataset;
 		} else if (ANSWERSIG(rdataset)) {
@@ -5997,15 +5990,16 @@ rctx_cacherdataset(respctx_t *rctx, dns_message_t *message, dns_name_t *name,
 		}
 	}
 
+	/*
+	 * If the trust level is glue, then we are adding data from a
+	 * referral we got while executing the search algorithm.  New
+	 * referral data always takes precedence over the existing cache
+	 * contents.
+	 */
+	unsigned int options = 0;
 	if (rdataset->trust == dns_trust_glue &&
 	    dns_rdataset_matchestype(rdataset, dns_rdatatype_ns))
 	{
-		/*
-		 * If the trust level is glue, then we are adding data from
-		 * a referral we got while executing the search algorithm.
-		 * New referral data always takes precedence over the
-		 * existing cache contents.
-		 */
 		options = DNS_DBADD_FORCE;
 	} else if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0) {
 		options = DNS_DBADD_PREFETCH;
@@ -6019,7 +6013,7 @@ rctx_cacherdataset(respctx_t *rctx, dns_message_t *message, dns_name_t *name,
 	}
 
 	/*
-	 * Now we can add the rdataset.
+	 * Cache the rdataset.
 	 */
 	result = dns_db_addrdataset(fctx->cache, node, NULL, rctx->now,
 				    rdataset, options, added);
@@ -6091,10 +6085,19 @@ rctx_cachename(respctx_t *rctx, dns_message_t *message, dns_name_t *name) {
 		 */
 		fixttls(res->view, rdataset, sigrdataset);
 
-		/* Try to cache the rdataset */
-		result = rctx_cacherdataset(rctx, message, name, node, rdataset,
-					    sigrdataset, secure_domain,
-					    need_validation);
+		/*
+		 * If this is a secure domain and we're not caching
+		 * glue, start validators as needed. Otherwise, cache
+		 * cache now.
+		 */
+		if (secure_domain && rdataset->trust != dns_trust_glue) {
+			result = rctx_cache_secure(rctx, message, name, node,
+						   rdataset, sigrdataset,
+						   need_validation);
+		} else {
+			result = rctx_cache_insecure(rctx, message, name, node,
+						     rdataset);
+		}
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
