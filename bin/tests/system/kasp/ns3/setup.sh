@@ -350,10 +350,9 @@ setup step2.enable-dnssec.autosign
 TpubN="now-900s"
 # RRSIG TTL:              12 hour (43200 seconds)
 # zone-propagation-delay: 5 minutes (300 seconds)
-# retire-safety:          20 minutes (1200 seconds)
 # Already passed time:    -900 seconds
-# Total:                  43800 seconds
-TsbmN="now+43800s"
+# Total:                  42600 seconds
+TsbmN="now+42600s"
 keytimes="-P ${TpubN} -P sync ${TsbmN} -A ${TpubN}"
 CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $keytimes $zone 2>keygen.out.$zone.1)
 $SETTIME -s -g $O -k $R $TpubN -r $R $TpubN -d $H $TpubN -z $R $TpubN "$CSK" >settime.out.$zone.1 2>&1
@@ -365,10 +364,10 @@ $SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $i
 # Step 3:
 # The zone signatures have been published long enough to become OMNIPRESENT.
 setup step3.enable-dnssec.autosign
-# Passed time since publications: 43800 + 900 = 44700 seconds.
-TpubN="now-44700s"
+# Passed time since publications: 42600 + 900 = 43500 seconds.
+TpubN="now-43500s"
 # The key is secure for using in chain of trust when the DNSKEY is OMNIPRESENT.
-TcotN="now-43800s"
+TcotN="now-42600s"
 # We can submit the DS now.
 TsbmN="now"
 keytimes="-P ${TpubN} -P sync ${TsbmN} -A ${TpubN}"

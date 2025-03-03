@@ -190,8 +190,7 @@ dns_keymgr_settime_syncpublish(dst_key_t *key, dns_kasp_t *kasp, bool first) {
 		isc_stdtime_t zrrsig_present;
 		dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp, true);
 		zrrsig_present = published + ttlsig +
-				 dns_kasp_zonepropagationdelay(kasp) +
-				 dns_kasp_publishsafety(kasp);
+				 dns_kasp_zonepropagationdelay(kasp);
 		if (zrrsig_present > syncpublish) {
 			syncpublish = zrrsig_present;
 		}
@@ -273,7 +272,6 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 				dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp,
 								       true);
 				syncpub2 = pub + ttlsig +
-					   dns_kasp_publishsafety(kasp) +
 					   dns_kasp_zonepropagationdelay(kasp);
 			}
 
@@ -1287,6 +1285,7 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 	isc_result_t ret;
 	isc_stdtime_t lastchange, dstime, nexttime = now;
 	dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp, true);
+	uint32_t dsstate;
 
 	/*
 	 * No need to wait if we move things into an uncertain state.
@@ -1356,15 +1355,12 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 			 * records.  This translates to:
 			 *
 			 *     Dsgn + zone-propagation-delay + max-zone-ttl.
-			 *
-			 * We will also add the retire-safety interval.
 			 */
 			nexttime = lastchange + ttlsig +
-				   dns_kasp_zonepropagationdelay(kasp) +
-				   dns_kasp_retiresafety(kasp);
+				   dns_kasp_zonepropagationdelay(kasp);
 			/*
-			 * Only add the sign delay Dsgn if there is an actual
-			 * predecessor or successor key.
+			 * Only add the sign delay Dsgn and retire-safety if
+			 * there is an actual predecessor or successor key.
 			 */
 			uint32_t tag;
 			ret = dst_key_getnum(key->key, DST_NUM_PREDECESSOR,
@@ -1374,7 +1370,8 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 						     DST_NUM_SUCCESSOR, &tag);
 			}
 			if (ret == ISC_R_SUCCESS) {
-				nexttime += dns_kasp_signdelay(kasp);
+				nexttime += dns_kasp_signdelay(kasp) +
+					    dns_kasp_retiresafety(kasp);
 			}
 			break;
 		default:
@@ -1400,35 +1397,36 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 		 * This translates to:
 		 *
 		 *      parent-propagation-delay + parent-ds-ttl.
-		 *
-		 * We will also add the retire-safety interval.
 		 */
 		case OMNIPRESENT:
-			/* Make sure DS has been seen in the parent. */
-			ret = dst_key_gettime(key->key, DST_TIME_DSPUBLISH,
-					      &dstime);
-			if (ret != ISC_R_SUCCESS || dstime > now) {
-				/* Not yet, try again in an hour. */
-				nexttime = now + 3600;
-			} else {
-				nexttime =
-					dstime + dns_kasp_dsttl(kasp) +
-					dns_kasp_parentpropagationdelay(kasp) +
-					dns_kasp_retiresafety(kasp);
-			}
-			break;
 		case HIDDEN:
-			/* Make sure DS has been withdrawn from the parent. */
-			ret = dst_key_gettime(key->key, DST_TIME_DSDELETE,
-					      &dstime);
+			/* Make sure DS has been seen in/withdrawn from the
+			 * parent. */
+			dsstate = next_state == HIDDEN ? DST_TIME_DSDELETE
+						       : DST_TIME_DSPUBLISH;
+			ret = dst_key_gettime(key->key, dsstate, &dstime);
 			if (ret != ISC_R_SUCCESS || dstime > now) {
 				/* Not yet, try again in an hour. */
 				nexttime = now + 3600;
 			} else {
 				nexttime =
 					dstime + dns_kasp_dsttl(kasp) +
-					dns_kasp_parentpropagationdelay(kasp) +
-					dns_kasp_retiresafety(kasp);
+					dns_kasp_parentpropagationdelay(kasp);
+				/*
+				 * Only add the retire-safety if there is an
+				 * actual predecessor or successor key.
+				 */
+				uint32_t tag;
+				ret = dst_key_getnum(key->key,
+						     DST_NUM_PREDECESSOR, &tag);
+				if (ret != ISC_R_SUCCESS) {
+					ret = dst_key_getnum(key->key,
+							     DST_NUM_SUCCESSOR,
+							     &tag);
+				}
+				if (ret == ISC_R_SUCCESS) {
+					nexttime += dns_kasp_retiresafety(kasp);
+				}
 			}
 			break;
 		default:

@@ -275,9 +275,8 @@ set_keytimes_csk_policy() {
   set_keytime "KEY1" "ACTIVE" "${created}"
   # The DS can be published if the DNSKEY and RRSIG records are
   # OMNIPRESENT.  This happens after max-zone-ttl (1d) plus
-  # publish-safety (1h) plus zone-propagation-delay (300s) =
-  # 86400 + 3600 + 300 = 90300.
-  set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" 90300
+  # zone-propagation-delay (300s) = 86400 + 300 = 86700.
+  set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" 86700
   # Key lifetime is unlimited, so not setting RETIRED and REMOVED.
 }
 
@@ -769,9 +768,8 @@ set_keytimes_algorithm_policy() {
 
   # The DS can be published if the DNSKEY and RRSIG records are
   # OMNIPRESENT.  This happens after max-zone-ttl (1d) plus
-  # publish-safety (1h) plus zone-propagation-delay (300s) =
-  # 86400 + 3600 + 300 = 90300.
-  set_addkeytime "KEY1" "SYNCPUBLISH" "${published}" 90300
+  # zone-propagation-delay (300s) = 86400 + 300 = 86700.
+  set_addkeytime "KEY1" "SYNCPUBLISH" "${published}" 86700
   # Key lifetime is 10 years, 315360000 seconds.
   set_addkeytime "KEY1" "RETIRED" "${published}" 315360000
   # The key is removed after the retire time plus DS TTL (1d),
@@ -1720,10 +1718,10 @@ published=$(awk '{print $3}' <published.test${n}.key1)
 set_keytime "KEY1" "PUBLISHED" "${published}"
 set_keytime "KEY1" "ACTIVE" "${published}"
 published=$(key_get KEY1 PUBLISHED)
-# The DS can be published if the DNSKEY and RRSIG records are OMNIPRESENT.
-#  This happens after max-zone-ttl (1d) plus publish-safety (1h) plus
-# zone-propagation-delay (300s) = 86400 + 3600 + 300 = 90300.
-set_addkeytime "KEY1" "SYNCPUBLISH" "${published}" 90300
+# The DS can be published if the zone is fully signed.
+# This happens after max-zone-ttl (1d) plus
+# zone-propagation-delay (300s) = 86400 + 300 = 86700.
+set_addkeytime "KEY1" "SYNCPUBLISH" "${published}" 86700
 # Key lifetime is 6 months, 315360000 seconds.
 set_addkeytime "KEY1" "RETIRED" "${published}" 16070400
 # The key is removed after the retire time plus DS TTL (1d), parent
@@ -2486,9 +2484,9 @@ set_keytime "KEY1" "PUBLISHED" "${created}"
 set_keytime "KEY1" "ACTIVE" "${created}"
 # - The DS can be published if the DNSKEY and RRSIG records are
 #   OMNIPRESENT.  This happens after max-zone-ttl (12h) plus
-#   publish-safety (5m) plus zone-propagation-delay (5m) =
-#   43200 + 300 + 300 = 43800.
-set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" 43800
+#   plus zone-propagation-delay (5m) =
+#   43200 + 300 = 43500.
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" 43500
 # - Key lifetime is unlimited, so not setting RETIRED and REMOVED.
 
 # Various signing policy checks.
@@ -2556,7 +2554,7 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 created=$(key_get KEY1 CREATED)
 set_addkeytime "KEY1" "PUBLISHED" "${created}" -900
 set_addkeytime "KEY1" "ACTIVE" "${created}" -900
-set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" 43800
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" 42600
 
 # Continue signing policy checks.
 check_keytimes
@@ -2566,8 +2564,8 @@ dnssec_verify
 
 # Next key event is when the zone signatures become OMNIPRESENT: max-zone-ttl
 # plus zone propagation delay plus retire safety minus the already elapsed
-# 900 seconds: 12h + 300s + 20m - 900 = 44700 - 900 = 43800 seconds
-check_next_key_event 43800
+# 900 seconds: 12h + 300s + 20m - 900 = 43500 - 900 = 42600 seconds
+check_next_key_event 42600
 
 #
 # Zone: step3.enable-dnssec.autosign.
@@ -2584,10 +2582,10 @@ check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # Set expected key times:
-# - The key was published and activated 44700 seconds ago (with settime).
+# - The key was published and activated 43500 seconds ago (with settime).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "PUBLISHED" "${created}" -44700
-set_addkeytime "KEY1" "ACTIVE" "${created}" -44700
+set_addkeytime "KEY1" "PUBLISHED" "${created}" -43500
+set_addkeytime "KEY1" "ACTIVE" "${created}" -43500
 set_keytime "KEY1" "SYNCPUBLISH" "${created}"
 
 # Continue signing policy checks.
@@ -2603,8 +2601,8 @@ check_cdslog "$DIR" "$ZONE" KEY1
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "published" "$ZONE"
 # Next key event is when the DS can move to the OMNIPRESENT state.  This occurs
 # when the parent propagation delay have passed, plus the DS TTL and retire
-# safety delay:  1h + 2h + 20m = 3h20m = 12000 seconds
-check_next_key_event 12000
+# safety delay:  1h + 2h = 3h = 10800 seconds
+check_next_key_event 10800
 
 #
 # Zone: step4.enable-dnssec.autosign.
@@ -4388,9 +4386,9 @@ check_subdomain
 dnssec_verify
 
 # Next key event is when the DS becomes HIDDEN. This happens after the
-# parent propagation delay, retire safety delay, and DS TTL:
-# 1h + 1h + 1d = 26h = 93600 seconds.
-check_next_key_event 93600
+# parent propagation delay, and DS TTL:
+# 1h + 1d = 25h = 90000 seconds.
+check_next_key_event 90000
 
 #
 # Zone: step2.going-insecure.kasp
@@ -4456,8 +4454,8 @@ dnssec_verify
 
 # Next key event is when the DS becomes HIDDEN. This happens after the
 # parent propagation delay, retire safety delay, and DS TTL:
-# 1h + 1h + 1d = 26h = 93600 seconds.
-check_next_key_event 93600
+# 1h + 1d = 25h = 90000 seconds.
+check_next_key_event 90000
 
 #
 # Zone: step2.going-insecure-dynamic.kasp
@@ -4651,12 +4649,11 @@ set_addkeytime "KEY2" "REMOVED" "${retired}" "${IretZSK}"
 created=$(key_get KEY3 CREATED)
 set_keytime "KEY3" "PUBLISHED" "${created}"
 set_keytime "KEY3" "ACTIVE" "${created}"
-# - It takes TTLsig + Dprp + publish-safety hours to propagate the zone.
+# - It takes TTLsig + Dprp to propagate the zone.
 #   TTLsig:         6h (39600 seconds)
 #   Dprp:           1h (3600 seconds)
-#   publish-safety: 1h (3600 seconds)
-#   Ipub:           8h (28800 seconds)
-Ipub=28800
+#   Ipub:           7h (25200 seconds)
+Ipub=25200
 set_addkeytime "KEY3" "SYNCPUBLISH" "${created}" "${Ipub}"
 # - The new ZSK is published and activated.
 created=$(key_get KEY4 CREATED)
@@ -4725,12 +4722,12 @@ dnssec_verify
 
 # Next key event is when all zone signatures are signed with the new
 # algorithm.  This is the max-zone-ttl plus zone propagation delay
-# plus retire safety: 6h + 1h + 2h.  But three hours have already passed
-# (the time it took to make the DNSKEY omnipresent), so the next event
-# should be scheduled in 6 hour: 21600 seconds.  Prevent intermittent
+# 6h + 1h.  But three hours have already passed (the time it took to
+# make the DNSKEY omnipresent), so the next event should be scheduled
+# in 4 hour: 14400 seconds.  Prevent intermittent
 # false positives on slow platforms by subtracting the number of seconds
 # which passed between key creation and invoking 'rndc reconfig'.
-next_time=$((21600 - time_passed))
+next_time=$((14400 - time_passed))
 check_next_key_event $next_time
 
 #
@@ -4753,28 +4750,28 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 check_cdslog "$DIR" "$ZONE" KEY3
 
 # Set expected key times:
-# - The old keys were activated 9 hours ago (32400 seconds).
-rollover_predecessor_keytimes -32400
-# - And retired 6 hours ago (21600 seconds).
+# - The old keys were activated 7 hours ago (25200 seconds).
+rollover_predecessor_keytimes -25200
+# - And retired 3 hours ago (10800 seconds).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "RETIRED" "${created}" -21600
+set_addkeytime "KEY1" "RETIRED" "${created}" -10800
 retired=$(key_get KEY1 RETIRED)
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
 
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "RETIRED" "${created}" -21600
+set_addkeytime "KEY2" "RETIRED" "${created}" -10800
 retired=$(key_get KEY2 RETIRED)
 set_addkeytime "KEY2" "REMOVED" "${retired}" "${IretZSK}"
-# - The new keys are published 9 hours ago.
+# - The new keys are published 7 hours ago.
 created=$(key_get KEY3 CREATED)
-set_addkeytime "KEY3" "PUBLISHED" "${created}" -32400
-set_addkeytime "KEY3" "ACTIVE" "${created}" -32400
+set_addkeytime "KEY3" "PUBLISHED" "${created}" -25200
+set_addkeytime "KEY3" "ACTIVE" "${created}" -25200
 published=$(key_get KEY3 PUBLISHED)
 set_addkeytime "KEY3" "SYNCPUBLISH" "${published}" ${Ipub}
 
 created=$(key_get KEY4 CREATED)
-set_addkeytime "KEY4" "PUBLISHED" "${created}" -32400
-set_addkeytime "KEY4" "ACTIVE" "${created}" -32400
+set_addkeytime "KEY4" "PUBLISHED" "${created}" -25200
+set_addkeytime "KEY4" "ACTIVE" "${created}" -25200
 
 # Continue signing policy checks.
 check_keytimes
@@ -4787,9 +4784,9 @@ dnssec_verify
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
 rndc_checkds "$SERVER" "$DIR" KEY3 "now" "published" "$ZONE"
 # Next key event is when the DS becomes OMNIPRESENT. This happens after the
-# parent propagation delay, retire safety delay, and DS TTL:
-# 1h + 2h + 2h = 5h = 18000 seconds.
-check_next_key_event 18000
+# parent propagation delay, and DS TTL:
+# 1h + 2h = 3h = 10800 seconds.
+check_next_key_event 10800
 
 #
 # Zone: step4.algorithm-roll.kasp
@@ -4816,29 +4813,29 @@ wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # Set expected key times:
-# - The old keys were activated 38 hours ago (136800 seconds).
-rollover_predecessor_keytimes -136800
-# - And retired 35 hours ago (126000 seconds).
+# - The old keys were activated 36 hours ago (129600 seconds).
+rollover_predecessor_keytimes -129600
+# - And retired 33 hours ago (118800 seconds).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "RETIRED" "${created}" -126000
+set_addkeytime "KEY1" "RETIRED" "${created}" -118800
 retired=$(key_get KEY1 RETIRED)
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
 
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "RETIRED" "${created}" -126000
+set_addkeytime "KEY2" "RETIRED" "${created}" -118800
 retired=$(key_get KEY2 RETIRED)
 set_addkeytime "KEY2" "REMOVED" "${retired}" "${IretZSK}"
 
-# - The new keys are published 38 hours ago.
+# - The new keys are published 36 hours ago.
 created=$(key_get KEY3 CREATED)
-set_addkeytime "KEY3" "PUBLISHED" "${created}" -136800
-set_addkeytime "KEY3" "ACTIVE" "${created}" -136800
+set_addkeytime "KEY3" "PUBLISHED" "${created}" -129600
+set_addkeytime "KEY3" "ACTIVE" "${created}" -129600
 published=$(key_get KEY3 PUBLISHED)
 set_addkeytime "KEY3" "SYNCPUBLISH" "${published}" ${Ipub}
 
 created=$(key_get KEY4 CREATED)
-set_addkeytime "KEY4" "PUBLISHED" "${created}" -136800
-set_addkeytime "KEY4" "ACTIVE" "${created}" -136800
+set_addkeytime "KEY4" "PUBLISHED" "${created}" -129600
+set_addkeytime "KEY4" "ACTIVE" "${created}" -129600
 
 # Continue signing policy checks.
 check_keytimes
@@ -4867,29 +4864,29 @@ wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # Set expected key times:
-# - The old keys were activated 40 hours ago (144000 seconds)
-rollover_predecessor_keytimes -144000
-# - And retired 37 hours ago (133200 seconds).
+# - The old keys were activated 38 hours ago (136800 seconds)
+rollover_predecessor_keytimes -136800
+# - And retired 35 hours ago (126000 seconds).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "RETIRED" "${created}" -133200
+set_addkeytime "KEY1" "RETIRED" "${created}" -126000
 retired=$(key_get KEY1 RETIRED)
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
 
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "RETIRED" "${created}" -133200
+set_addkeytime "KEY2" "RETIRED" "${created}" -126000
 retired=$(key_get KEY2 RETIRED)
 set_addkeytime "KEY2" "REMOVED" "${retired}" "${IretZSK}"
 
 # The new keys are published 40 hours ago.
 created=$(key_get KEY3 CREATED)
-set_addkeytime "KEY3" "PUBLISHED" "${created}" -144000
-set_addkeytime "KEY3" "ACTIVE" "${created}" -144000
+set_addkeytime "KEY3" "PUBLISHED" "${created}" -136800
+set_addkeytime "KEY3" "ACTIVE" "${created}" -136800
 published=$(key_get KEY3 PUBLISHED)
 set_addkeytime "KEY3" "SYNCPUBLISH" "${published}" ${Ipub}
 
 created=$(key_get KEY4 CREATED)
-set_addkeytime "KEY4" "PUBLISHED" "${created}" -144000
-set_addkeytime "KEY4" "ACTIVE" "${created}" -144000
+set_addkeytime "KEY4" "PUBLISHED" "${created}" -136800
+set_addkeytime "KEY4" "ACTIVE" "${created}" -136800
 
 # Continue signing policy checks.
 check_keytimes
@@ -4898,12 +4895,12 @@ check_subdomain
 dnssec_verify
 
 # Next key event is when the RSASHA1 signatures become HIDDEN.  This happens
-# after the max-zone-ttl plus zone propagation delay plus retire safety
-# (6h + 1h + 2h) minus the time already passed since the UNRETENTIVE state has
-# been reached (2h): 9h - 2h = 7h = 25200 seconds. Prevent intermittent
+# after the max-zone-ttl plus zone propagation delay (6h + 1h)
+# minus the time already passed since the UNRETENTIVE state has
+# been reached (2h): 7h - 2h = 5h = 18000 seconds. Prevent intermittent
 # false positives on slow platforms by subtracting the number of seconds
 # which passed between key creation and invoking 'rndc reconfig'.
-next_time=$((25200 - time_passed))
+next_time=$((18000 - time_passed))
 check_next_key_event $next_time
 
 #
@@ -4921,29 +4918,29 @@ wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # Set expected key times:
-# - The old keys were activated 47 hours ago (169200 seconds)
-rollover_predecessor_keytimes -169200
-# - And retired 44 hours ago (158400 seconds).
+# - The old keys were activated 45 hours ago (162000 seconds)
+rollover_predecessor_keytimes -162000
+# - And retired 42 hours ago (151200 seconds).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "RETIRED" "${created}" -158400
+set_addkeytime "KEY1" "RETIRED" "${created}" -151200
 retired=$(key_get KEY1 RETIRED)
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
 
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "RETIRED" "${created}" -158400
+set_addkeytime "KEY2" "RETIRED" "${created}" -151200
 retired=$(key_get KEY2 RETIRED)
 set_addkeytime "KEY2" "REMOVED" "${retired}" "${IretZSK}"
 
 # The new keys are published 47 hours ago.
 created=$(key_get KEY3 CREATED)
-set_addkeytime "KEY3" "PUBLISHED" "${created}" -169200
-set_addkeytime "KEY3" "ACTIVE" "${created}" -169200
+set_addkeytime "KEY3" "PUBLISHED" "${created}" -162000
+set_addkeytime "KEY3" "ACTIVE" "${created}" -162000
 published=$(key_get KEY3 PUBLISHED)
 set_addkeytime "KEY3" "SYNCPUBLISH" "${published}" ${Ipub}
 
 created=$(key_get KEY4 CREATED)
-set_addkeytime "KEY4" "PUBLISHED" "${created}" -169200
-set_addkeytime "KEY4" "ACTIVE" "${created}" -169200
+set_addkeytime "KEY4" "PUBLISHED" "${created}" -162000
+set_addkeytime "KEY4" "ACTIVE" "${created}" -162000
 
 # Continue signing policy checks.
 check_keytimes
@@ -5026,9 +5023,8 @@ set_keytime "KEY2" "ACTIVE" "${created}"
 # - It takes TTLsig + Dprp + publish-safety hours to propagate the zone.
 #   TTLsig:         6h (39600 seconds)
 #   Dprp:           1h (3600 seconds)
-#   publish-safety: 1h (3600 seconds)
-#   Ipub:           8h (28800 seconds)
-Ipub=28800
+#   Ipub:           7h (25200 seconds)
+Ipub=25200
 set_addkeytime "KEY2" "SYNCPUBLISH" "${created}" "${Ipub}"
 
 # Continue signing policy checks.
@@ -5082,14 +5078,13 @@ check_apex
 check_subdomain
 dnssec_verify
 
-# Next key event is when all zone signatures are signed with the new
-# algorithm.  This is the max-zone-ttl plus zone propagation delay
-# plus retire safety: 6h + 1h + 2h.  But three hours have already passed
-# (the time it took to make the DNSKEY omnipresent), so the next event
-# should be scheduled in 6 hour: 21600 seconds.  Prevent intermittent
-# false positives on slow platforms by subtracting the number of seconds
-# which passed between key creation and invoking 'rndc reconfig'.
-next_time=$((21600 - time_passed))
+# Next key event is when all zone signatures are signed with the new algorithm.
+# This is the max-zone-ttl plus zone propagation delay: 6h + 1h.  But three
+# hours have already passed (the time it took to make the DNSKEY omnipresent),
+# so the next event should be scheduled in 4 hour: 14400 seconds.  Prevent
+# intermittent false positives on slow platforms by subtracting the number of
+# seconds which passed between key creation and invoking 'rndc reconfig'.
+next_time=$((14400 - time_passed))
 check_next_key_event $next_time
 
 #
@@ -5114,17 +5109,17 @@ check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 check_cdslog "$DIR" "$ZONE" KEY2
 
 # Set expected key times:
-# - The old key was activated 9 hours ago (32400 seconds).
-csk_rollover_predecessor_keytimes -32400
-# - And was retired 6 hours ago (21600 seconds).
+# - The old key was activated 7 hours ago (25200 seconds).
+csk_rollover_predecessor_keytimes -25200
+# - And was retired 3 hours ago (10800 seconds).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "RETIRED" "${created}" -21600
+set_addkeytime "KEY1" "RETIRED" "${created}" -10800
 retired=$(key_get KEY1 RETIRED)
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretCSK}"
 # - The new key was published 9 hours ago.
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "PUBLISHED" "${created}" -32400
-set_addkeytime "KEY2" "ACTIVE" "${created}" -32400
+set_addkeytime "KEY2" "PUBLISHED" "${created}" -25200
+set_addkeytime "KEY2" "ACTIVE" "${created}" -25200
 published=$(key_get KEY2 PUBLISHED)
 set_addkeytime "KEY2" "SYNCPUBLISH" "${published}" "${Ipub}"
 
@@ -5138,9 +5133,9 @@ dnssec_verify
 rndc_checkds "$SERVER" "$DIR" KEY1 "now" "withdrawn" "$ZONE"
 rndc_checkds "$SERVER" "$DIR" KEY2 "now" "published" "$ZONE"
 # Next key event is when the DS becomes OMNIPRESENT. This happens after the
-# parent propagation delay, retire safety delay, and DS TTL:
-# 1h + 2h + 2h = 5h = 18000 seconds.
-check_next_key_event 18000
+# parent propagation delay, and DS TTL:
+# 1h + 2h = 3h = 10800 seconds.
+check_next_key_event 10800
 
 #
 # Zone: step4.csk-algorithm-roll.kasp
@@ -5164,17 +5159,17 @@ wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # Set expected key times:
-# - The old key was activated 38 hours ago (136800 seconds)
-csk_rollover_predecessor_keytimes -136800
-# - And retired 35 hours ago (126000 seconds).
+# - The old keys were activated 36 hours ago (129600 seconds).
+csk_rollover_predecessor_keytimes -129600
+# - And retired 33 hours ago (118800 seconds).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "RETIRED" "${created}" -126000
+set_addkeytime "KEY1" "RETIRED" "${created}" -118800
 retired=$(key_get KEY1 RETIRED)
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretCSK}"
-# - The new key was published 38 hours ago.
+# - The new key was published 36 hours ago.
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "PUBLISHED" "${created}" -136800
-set_addkeytime "KEY2" "ACTIVE" "${created}" -136800
+set_addkeytime "KEY2" "PUBLISHED" "${created}" -129600
+set_addkeytime "KEY2" "ACTIVE" "${created}" -129600
 published=$(key_get KEY2 PUBLISHED)
 set_addkeytime "KEY2" "SYNCPUBLISH" "${published}" ${Ipub}
 
@@ -5204,17 +5199,17 @@ wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # Set expected key times:
-# - The old key was activated 40 hours ago (144000 seconds)
-csk_rollover_predecessor_keytimes -144000
-# - And retired 37 hours ago (133200 seconds).
+# - The old key was activated 38 hours ago (136800 seconds)
+csk_rollover_predecessor_keytimes -136800
+# - And retired 35 hours ago (126000 seconds).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "RETIRED" "${created}" -133200
+set_addkeytime "KEY1" "RETIRED" "${created}" -126000
 retired=$(key_get KEY1 RETIRED)
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretCSK}"
-# - The new key was published 40 hours ago.
+# - The new key was published 38 hours ago.
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "PUBLISHED" "${created}" -144000
-set_addkeytime "KEY2" "ACTIVE" "${created}" -144000
+set_addkeytime "KEY2" "PUBLISHED" "${created}" -136800
+set_addkeytime "KEY2" "ACTIVE" "${created}" -136800
 published=$(key_get KEY2 PUBLISHED)
 set_addkeytime "KEY2" "SYNCPUBLISH" "${published}" ${Ipub}
 
@@ -5225,12 +5220,12 @@ check_subdomain
 dnssec_verify
 
 # Next key event is when the RSASHA1 signatures become HIDDEN.  This happens
-# after the max-zone-ttl plus zone propagation delay plus retire safety
-# (6h + 1h + 2h) minus the time already passed since the UNRETENTIVE state has
-# been reached (2h): 9h - 2h = 7h = 25200 seconds.  Prevent intermittent
-# false positives on slow platforms by subtracting the number of seconds
-# which passed between key creation and invoking 'rndc reconfig'.
-next_time=$((25200 - time_passed))
+# after the max-zone-ttl plus zone propagation delay (6h + 1h) minus the
+# time already passed since the UNRETENTIVE state has been reached (2h):
+# 7h - 2h = 5h = 18000 seconds.  Prevent intermittent false positives on slow
+# platforms by subtracting the number of seconds which passed between key
+# creation and invoking 'rndc reconfig'.
+next_time=$((18000 - time_passed))
 check_next_key_event $next_time
 
 #
@@ -5248,17 +5243,17 @@ wait_for_done_signing
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
 
 # Set expected key times:
-# - The old keys were activated 47 hours ago (169200 seconds)
-csk_rollover_predecessor_keytimes -169200
-# - And retired 44 hours ago (158400 seconds).
+# - The old keys were activated 45 hours ago (162000 seconds)
+csk_rollover_predecessor_keytimes -162000
+# - And retired 42 hours ago (151200 seconds).
 created=$(key_get KEY1 CREATED)
-set_addkeytime "KEY1" "RETIRED" "${created}" -158400
+set_addkeytime "KEY1" "RETIRED" "${created}" -151200
 retired=$(key_get KEY1 RETIRED)
 set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretCSK}"
 # - The new key was published 47 hours ago.
 created=$(key_get KEY2 CREATED)
-set_addkeytime "KEY2" "PUBLISHED" "${created}" -169200
-set_addkeytime "KEY2" "ACTIVE" "${created}" -169200
+set_addkeytime "KEY2" "PUBLISHED" "${created}" -162000
+set_addkeytime "KEY2" "ACTIVE" "${created}" -162000
 published=$(key_get KEY2 PUBLISHED)
 set_addkeytime "KEY2" "SYNCPUBLISH" "${published}" ${Ipub}
 
