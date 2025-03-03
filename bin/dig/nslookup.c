@@ -24,6 +24,7 @@
 #include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
+#include <isc/readline.h>
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/work.h>
@@ -40,7 +41,6 @@
 #include <dns/rdatatype.h>
 
 #include "dighost.h"
-#include "readline.h"
 
 static char cmdlinebuf[COMMSIZE];
 static char *cmdline = NULL;

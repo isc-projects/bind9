@@ -6,6 +6,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISCCFG_CFLAGS)	\
 	$(LIBIDN2_CFLAGS)	\
 	$(OPENSSL_CFLAGS)	\
+	$(LIBEDIT_CFLAGS)	\
 	$(LIBUV_CFLAGS)		\
 	$(OPENSSL_CFLAGS)
 
@@ -15,6 +16,7 @@ LDADD +=			\
 	$(LIBDNS_LIBS)		\
 	$(LIBISCCFG_LIBS)	\
 	$(OPENSSL_LIBS)		\
+	$(LIBEDIT_LIBS)		\
 	$(LIBIDN2_LIBS)
 
 noinst_LTLIBRARIES = libdighost.la
@@ -24,16 +26,3 @@ libdighost_la_SOURCES =		\
 	dighost.c
 
 bin_PROGRAMS = dig host nslookup
-
-nslookup_CPPFLAGS =		\
-	$(AM_CPPFLAGS)
-
-nslookup_LDADD =		\
-	$(LDADD)
-
-if HAVE_READLINE
-nslookup_CPPFLAGS +=		\
-	$(READLINE_CFLAGS)
-nslookup_LDADD +=		\
-	$(READLINE_LIBS)
-endif HAVE_READLINE

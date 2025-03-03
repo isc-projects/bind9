@@ -6,7 +6,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISCCFG_CFLAGS)	\
 	$(GSSAPI_CFLAGS)	\
 	$(KRB5_CFLAGS)		\
-	$(READLINE_CFLAGS)
+	$(LIBEDIT_CFLAGS)
 
 AM_CPPFLAGS +=			\
 	-DSESSION_KEYFILE=\"${localstatedir}/run/named/session.key\"
@@ -16,15 +16,7 @@ LDADD +=			\
 	$(LIBDNS_LIBS)		\
 	$(LIBISCCFG_LIBS)	\
 	$(GSSAPI_LIBS)		\
-	$(KRB5_LIBS)
-
-if HAVE_READLINE
-LDADD +=			\
-	$(READLINE_LIBS)
-endif
+	$(KRB5_LIBS)		\
+	$(LIBEDIT_LIBS)
 
 bin_PROGRAMS = nsupdate
-
-nsupdate_SOURCES =		\
-	nsupdate.c		\
-	../dig/readline.h
