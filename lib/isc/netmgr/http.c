@@ -190,6 +190,8 @@ struct isc_nm_http_session {
 
 	size_t data_in_flight;
 
+	bool async_queued;
+
 	/*
 	 * The statistical values below are for usage on server-side
 	 * only. They are meant to detect clients that are taking too many
@@ -1287,7 +1289,10 @@ http_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		}
 		isc_buffer_putmem(session->buf, region->base + readlen,
 				  unread_size);
-		isc_nm_pauseread(session->handle);
+		if (session->handle != NULL) {
+			INSIST(VALID_NMHANDLE(session->handle));
+			isc_nm_pauseread(session->handle);
+		}
 		http_do_bio_async(session);
 	} else {
 		/* We might have something to receive or send, do IO */
@@ -1453,23 +1458,25 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 	/* Here we are trying to flush the pending writes buffer earlier
 	 * to avoid hitting unnecessary limitations on a TLS record size
 	 * within some tools (e.g. flamethrower). */
-	if (max_total_write_size >= FLUSH_HTTP_WRITE_BUFFER_AFTER) {
+	if (cb != NULL) {
+		/*
+		 * Case 0: The callback is specified, that means that a DNS
+		 * message is ready. Let's flush the the buffer.
+		 */
+		total = max_total_write_size;
+	} else if (max_total_write_size >= FLUSH_HTTP_WRITE_BUFFER_AFTER) {
 		/* Case 1: We have equal or more than
 		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes to send. Let's flush it.
 		 */
 		total = max_total_write_size;
 	} else if (session->sending > 0 && total > 0) {
 		/* Case 2: There is one or more write requests in flight and
-		 * we have some new data form nghttp2 to send. Let's put the
-		 * write callback (if any) into the pending write callbacks
-		 * list. Then let's return from the function: as soon as the
+		 * we have some new data form nghttp2 to send.
+		 * Then let's return from the function: as soon as the
 		 * "in-flight" write callback get's called or we have reached
 		 * FLUSH_HTTP_WRITE_BUFFER_AFTER bytes in the write buffer, we
 		 * will flush the buffer. */
-		if (cb != NULL) {
-			http_append_pending_send_request(session, httphandle,
-							 cb, cbarg);
-		}
+		INSIST(cb == NULL);
 		goto nothing_to_send;
 	} else if (session->sending == 0 && total == 0 &&
 		   session->pending_write_data != NULL)
@@ -1499,8 +1506,6 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 		       (total == 0 && session->sending == 0) ||
 		       (total > 0 && session->sending == 0));
 	}
-#else
-	INSIST(ISC_LIST_EMPTY(session->pending_write_callbacks));
 #endif /* ENABLE_HTTP_WRITE_BUFFERING */
 
 	if (total == 0) {
@@ -1557,8 +1562,9 @@ http_too_many_active_streams(isc_nm_http_session_t *session) {
 	 * throttle it as it might be not a friend knocking at the
 	 * door. We already have some job to do for it.
 	 */
-	const uint64_t max_active_streams = ISC_MAX(
-		STREAM_CLIENTS_PER_CONN, session->max_concurrent_streams / 3);
+	const uint64_t max_active_streams =
+		ISC_MAX(STREAM_CLIENTS_PER_CONN,
+			(session->max_concurrent_streams * 6) / 10); /* 60% */
 
 	if (session->client) {
 		return false;
@@ -1578,10 +1584,12 @@ http_too_many_active_streams(isc_nm_http_session_t *session) {
 static void
 http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 	    isc_nm_cb_t send_cb, void *send_cbarg) {
+	isc__nm_uvreq_t *req = NULL;
+	size_t remaining = 0;
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
 	if (session->closed) {
-		return;
+		goto cancel;
 	} else if (session->closing) {
 		/*
 		 * There might be leftover callbacks waiting to be received
@@ -1589,23 +1597,24 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 		if (session->sending == 0) {
 			finish_http_session(session);
 		}
-		return;
+		goto cancel;
+	} else if (nghttp2_session_want_read(session->ngsession) == 0 &&
+		   nghttp2_session_want_write(session->ngsession) == 0 &&
+		   session->pending_write_data == NULL)
+	{
+		session->closing = true;
+		if (session->handle != NULL) {
+			isc_nm_pauseread(session->handle);
+		}
+		if (session->sending == 0) {
+			finish_http_session(session);
+		}
+		goto cancel;
 	}
 
-	if (send_cb != NULL) {
-		INSIST(VALID_NMHANDLE(send_httphandle));
-		http_send_outgoing(session, send_httphandle, send_cb,
-				   send_cbarg);
-		return;
-	}
-
-	INSIST(send_httphandle == NULL);
-	INSIST(send_cb == NULL);
-	INSIST(send_cbarg == NULL);
-
-	if (session->pending_write_data != NULL && session->sending == 0) {
-		http_send_outgoing(session, NULL, NULL, NULL);
-		return;
+	else if (session->buf != NULL)
+	{
+		remaining = isc_buffer_remaininglength(session->buf);
 	}
 
 	if (nghttp2_session_want_read(session->ngsession) != 0) {
@@ -1614,9 +1623,7 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 			isc__nmsocket_timer_start(session->handle->sock);
 			isc_nm_read(session->handle, http_readcb, session);
 			session->reading = true;
-		} else if (session->buf != NULL) {
-			size_t remaining =
-				isc_buffer_remaininglength(session->buf);
+		} else if (session->buf != NULL && remaining > 0) {
 			/* Leftover data in the buffer, use it */
 			size_t remaining_after = 0;
 			ssize_t readlen = 0;
@@ -1640,8 +1647,12 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 				http_log_flooding_peer(session);
 				failed_read_cb(ISC_R_RANGE, session);
 			} else if ((size_t)readlen == remaining) {
-				isc_buffer_free(&session->buf);
-				http_do_bio(session, NULL, NULL, NULL);
+				isc_buffer_clear(session->buf);
+				isc_buffer_compact(session->buf);
+				http_do_bio(session, send_httphandle, send_cb,
+					    send_cbarg);
+				isc__nm_httpsession_detach(&tmpsess);
+				return;
 			} else if (remaining_after > 0 &&
 				   remaining_after < remaining)
 			{
@@ -1658,37 +1669,36 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 				 * it and that could overwhelm the server.
 				 */
 				http_do_bio_async(session);
-			} else {
-				http_send_outgoing(session, NULL, NULL, NULL);
 			}
-
 			isc__nm_httpsession_detach(&tmpsess);
-			return;
-		} else {
+		} else if (session->handle != NULL) {
+			INSIST(VALID_NMHANDLE(session->handle));
 			/* Resume reading, it's idempotent, wait for more */
 			isc_nm_resumeread(session->handle);
 			isc__nmsocket_timer_start(session->handle->sock);
 		}
-	} else {
+	} else if (session->handle != NULL) {
+		INSIST(VALID_NMHANDLE(session->handle));
 		/* We don't want more data, stop reading for now */
 		isc_nm_pauseread(session->handle);
 	}
 
 	/* we might have some data to send after processing */
-	http_send_outgoing(session, NULL, NULL, NULL);
-
-	if (nghttp2_session_want_read(session->ngsession) == 0 &&
-	    nghttp2_session_want_write(session->ngsession) == 0 &&
-	    session->pending_write_data == NULL)
-	{
-		session->closing = true;
-		isc_nm_pauseread(session->handle);
-		if (session->sending == 0) {
-			finish_http_session(session);
-		}
-	}
+	http_send_outgoing(session, send_httphandle, send_cb, send_cbarg);
 
 	return;
+
+cancel:
+	if (send_cb == NULL) {
+		return;
+	}
+	req = isc__nm_uvreq_get(send_httphandle->sock->mgr,
+				send_httphandle->sock);
+
+	req->cb.send = send_cb;
+	req->cbarg = send_cbarg;
+	isc_nmhandle_attach(send_httphandle, &req->handle);
+	isc__nm_sendcb(send_httphandle->sock, req, ISC_R_CANCELED, true);
 }
 
 static void
@@ -1696,6 +1706,8 @@ http_do_bio_async_cb(void *arg) {
 	isc_nm_http_session_t *session = arg;
 
 	REQUIRE(VALID_HTTP2_SESSION(session));
+
+	session->async_queued = false;
 
 	if (session->handle != NULL &&
 	    !isc__nmsocket_closing(session->handle->sock))
@@ -1713,10 +1725,12 @@ http_do_bio_async(isc_nm_http_session_t *session) {
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
 	if (session->handle == NULL ||
-	    isc__nmsocket_closing(session->handle->sock))
+	    isc__nmsocket_closing(session->handle->sock) ||
+	    session->async_queued)
 	{
 		return;
 	}
+	session->async_queued = true;
 	isc__nm_httpsession_attach(session, &tmpsess);
 	isc__nm_async_run(
 		&session->handle->sock->mgr->workers[session->handle->sock->tid],
