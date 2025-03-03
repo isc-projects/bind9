@@ -887,31 +887,6 @@ AC_CHECK_HEADERS([execinfo.h],
 				 [AC_CHECK_FUNCS([backtrace_symbols])])])
 
 #
-# We do the IPv6 compilation checking after libtool so that we can put
-# the right suffix on the files.
-#
-AC_MSG_CHECKING([for IPv6 structures])
-AC_COMPILE_IFELSE(
-  [AC_LANG_PROGRAM(
-     [[
-       #include <sys/types.h>
-       #include <sys/socket.h>
-       #include <netinet/in.h>
-     ]],
-     [[
-       struct sockaddr_in6 sin6;
-       struct in6_addr in6;
-       struct in6_pktinfo in6_pi;
-       struct sockaddr_storage storage;
-       in6 = in6addr_any;
-       in6 = in6addr_loopback;
-       sin6.sin6_scope_id = 0;
-       return (0);
-     ]])],
-  [AC_MSG_RESULT([yes])],
-  [AC_MSG_FAILURE([IPv6 support is mandatory])])
-
-#
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
 # comment in lib/isc/socket.c).
