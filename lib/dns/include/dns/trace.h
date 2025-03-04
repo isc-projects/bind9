@@ -13,7 +13,7 @@
 
 #pragma once
 
-#undef DNS_DB_NODETRACE
+/* Add -DDNS_DB_NODETRACE=1 to CFLAGS for detailed node reference tracing */
 
 #if DNS_DB_NODETRACE
 

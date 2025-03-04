@@ -64,6 +64,14 @@ struct dns_slabheader_proof {
 	dns_rdatatype_t type;
 };
 
+typedef struct dns_slabheader_list {
+	isc_mem_t	    *mctx;
+	struct cds_list_head nnode;
+	struct cds_list_head versions;
+	struct rcu_head	     rcu_head;
+	dns_typepair_t	     type;
+} dns_slabheader_list_t;
+
 struct dns_slabheader {
 	_Atomic(uint16_t) attributes;
 
@@ -115,12 +123,14 @@ struct dns_slabheader {
 	 */
 
 	struct dns_slabheader *down;
+	struct cds_list_head   dnode;
 	/*%<
 	 * Points to the header for the next older version of
 	 * this rdataset.
 	 */
 
 	dns_db_t     *db;
+	isc_mem_t    *mctx; /* FIXME: Experiment */
 	dns_dbnode_t *node;
 	/*%<
 	 * The database and database node objects containing
@@ -139,6 +149,8 @@ struct dns_slabheader {
 	isc_heap_t *heap;
 
 	dns_gluelist_t *gluelist;
+
+	struct rcu_head rcu_head;
 };
 
 enum {
@@ -307,7 +319,7 @@ dns_slabheader_new(dns_db_t *db, dns_dbnode_t *node);
 void
 dns_slabheader_destroy(dns_slabheader_t **headerp);
 /*%<
- * Free all memory associated with '*headerp'.
+ * Free all memory associated with '*headerp', either directly or with RCU.
  */
 
 void
@@ -321,3 +333,9 @@ dns_slabheader_top(dns_slabheader_t *header);
 /*%<
  * Return the top header for the type or the negtype
  */
+
+void
+dns_slabheader_createlist(isc_mem_t *mctx, dns_slabheader_list_t **headp);
+
+void
+dns_slabheader_destroylist(dns_slabheader_list_t **headp);

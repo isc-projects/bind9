@@ -103,14 +103,13 @@ const char *ownercase_vectors[12][2] = {
 static bool
 ownercase_test_one(const char *str1, const char *str2) {
 	isc_result_t result;
-	uint8_t qpdb_s[sizeof(qpzonedb_t) + sizeof(qpzone_bucket_t)];
-	qpzonedb_t *qpdb = (qpzonedb_t *)&qpdb_s;
+	qpzonedb_t qpdb_s;
+	qpzonedb_t *qpdb = &qpdb_s;
 	*qpdb = (qpzonedb_t){
 		.common.methods = &qpdb_zonemethods,
 		.common.mctx = mctx,
-		.buckets_count = 1,
 	};
-	qpznode_t node = { .locknum = 0 };
+	qpznode_t node = { 0 };
 	dns_slabheader_t header = {
 		.node = (dns_dbnode_t *)&node,
 		.db = (dns_db_t *)qpdb,
@@ -130,7 +129,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 	dns_name_t *name2 = dns_fixedname_initname(&fname2);
 
 	/* Minimal initialization of the mock objects */
-	NODE_INITLOCK(&qpdb->buckets[0].lock);
+	isc_spinlock_init(&node.spinlock);
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
@@ -150,7 +149,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 	/* Retrieve the case to name2 */
 	dns_rdataset_getownercase(&rdataset, name2);
 
-	NODE_DESTROYLOCK(&qpdb->buckets[0].lock);
+	isc_spinlock_destroy(&node.spinlock);
 
 	return dns_name_caseequal(name1, name2);
 }
@@ -171,14 +170,13 @@ ISC_RUN_TEST_IMPL(ownercase) {
 
 ISC_RUN_TEST_IMPL(setownercase) {
 	isc_result_t result;
-	uint8_t qpdb_s[sizeof(qpzonedb_t) + sizeof(qpzone_bucket_t)];
+	qpzonedb_t qpdb_s;
 	qpzonedb_t *qpdb = (qpzonedb_t *)&qpdb_s;
 	*qpdb = (qpzonedb_t){
 		.common.methods = &qpdb_zonemethods,
 		.common.mctx = mctx,
-		.buckets_count = 1,
 	};
-	qpznode_t node = { .locknum = 0 };
+	qpznode_t node = { 0 };
 	dns_slabheader_t header = {
 		.node = (dns_dbnode_t *)&node,
 		.db = (dns_db_t *)qpdb,
@@ -202,7 +200,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	UNUSED(state);
 
 	/* Minimal initialization of the mock objects */
-	NODE_INITLOCK(&qpdb->buckets[0].lock);
+	isc_spinlock_init(&node.spinlock);
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
@@ -219,7 +217,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	/* Retrieve the case to name2 */
 	dns_rdataset_getownercase(&rdataset, name2);
 
-	NODE_DESTROYLOCK(&qpdb->buckets[0].lock);
+	isc_spinlock_destroy(&node.spinlock);
 
 	assert_true(dns_name_caseequal(name1, name2));
 }

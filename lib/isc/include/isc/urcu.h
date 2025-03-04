@@ -139,3 +139,8 @@
 
 #endif /* !defined(caa_container_of_check_null) */
 /* clang-format on */
+
+static inline int
+cds_list_empty_rcu(const struct cds_list_head *head) {
+	return head == rcu_dereference(head->next);
+}

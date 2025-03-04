@@ -78,6 +78,6 @@ PenaltyBreakString: 80
 PenaltyExcessCharacter: 100
 Standard: Cpp11
 ContinuationIndentWidth: 8
-ForEachMacros: [ 'cds_lfs_for_each', 'cds_lfs_for_each_safe', 'cds_list_for_each_entry_safe', 'ISC_LIST_FOREACH', 'ISC_LIST_FOREACH_SAFE', 'ISC_LIST_FOREACH_REV', 'ISC_LIST_FOREACH_REV_SAFE' ]
+ForEachMacros: [ 'cds_lfs_for_each', 'cds_lfs_for_each_safe', 'cds_list_for_each_entry_safe', 'cds_list_for_each_entry_rcu', 'ISC_LIST_FOREACH', 'ISC_LIST_FOREACH_SAFE', 'ISC_LIST_FOREACH_REV', 'ISC_LIST_FOREACH_REV_SAFE' ]
 RemoveParentheses: ReturnStatement
 RemoveSemicolon: true
