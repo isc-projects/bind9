@@ -1914,7 +1914,7 @@ load_text(dns_loadctx_t *lctx) {
 			}
 		}
 
-		if (type == dns_rdatatype_rrsig || type == dns_rdatatype_sig) {
+		if (dns_rdatatype_issig(type)) {
 			covers = dns_rdata_covers(&rdata[rdcount]);
 		} else {
 			covers = 0;

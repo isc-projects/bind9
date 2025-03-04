@@ -1165,9 +1165,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 					   *    this name and type */
 
 			*typep = type = t->rdata.type;
-			if (type == dns_rdatatype_rrsig ||
-			    type == dns_rdatatype_sig)
-			{
+			if (dns_rdatatype_issig(type)) {
 				covers = dns_rdata_covers(&t->rdata);
 			} else if (type == dns_rdatatype_any) {
 				dns_db_detachnode(db, &node);

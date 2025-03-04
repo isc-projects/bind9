@@ -3318,9 +3318,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 			}
 			dns_db_detachnode(*dbp, nodep);
 
-			if (qtype == dns_rdatatype_rrsig ||
-			    qtype == dns_rdatatype_sig)
-			{
+			if (dns_rdatatype_issig(qtype)) {
 				result = DNS_R_NXRRSET;
 			} else {
 				result = dns_db_findext(*dbp, p_name, *versionp,
@@ -5044,9 +5042,7 @@ qctx_init(ns_client_t *client, dns_fetchresponse_t **frespp,
 	/*
 	 * If it's an RRSIG or SIG query, we'll iterate the node.
 	 */
-	if (qctx->qtype == dns_rdatatype_rrsig ||
-	    qctx->qtype == dns_rdatatype_sig)
-	{
+	if (dns_rdatatype_issig(qctx->qtype)) {
 		qctx->type = dns_rdatatype_any;
 	}
 
@@ -5439,8 +5435,7 @@ ns__query_start(query_ctx_t *qctx) {
 	 */
 	if (qctx->view->root_key_sentinel &&
 	    qctx->client->query.restarts == 0 &&
-	    (qctx->qtype == dns_rdatatype_a ||
-	     qctx->qtype == dns_rdatatype_aaaa) &&
+	    (dns_rdatatype_isaddr(qctx->qtype)) &&
 	    (qctx->client->message->flags & DNS_MESSAGEFLAG_CD) == 0)
 	{
 		root_key_sentinel_detect(qctx);
@@ -6495,9 +6490,7 @@ query_resume(query_ctx_t *qctx) {
 	}
 	INSIST(qctx->rdataset != NULL);
 
-	if (qctx->qtype == dns_rdatatype_rrsig ||
-	    qctx->qtype == dns_rdatatype_sig)
-	{
+	if (dns_rdatatype_issig(qctx->qtype)) {
 		qctx->type = dns_rdatatype_any;
 	} else {
 		qctx->type = qctx->qtype;
@@ -7735,8 +7728,7 @@ query_respond_any(query_ctx_t *qctx) {
 		} else if (qctx->view->minimal_any && !TCP(qctx->client) &&
 			   !WANTDNSSEC(qctx->client) &&
 			   qctx->qtype == dns_rdatatype_any &&
-			   (qctx->rdataset->type == dns_rdatatype_sig ||
-			    qctx->rdataset->type == dns_rdatatype_rrsig))
+			   (dns_rdatatype_issig(qctx->rdataset->type)))
 		{
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
 						  "minimal-any skip signature");
@@ -7781,9 +7773,7 @@ query_respond_any(query_ctx_t *qctx) {
 			 * Remember the first RRtype we find so we
 			 * can skip others with minimal-any.
 			 */
-			if (qctx->rdataset->type == dns_rdatatype_sig ||
-			    qctx->rdataset->type == dns_rdatatype_rrsig)
-			{
+			if (dns_rdatatype_issig(qctx->rdataset->type)) {
 				onetype = qctx->rdataset->covers;
 			} else {
 				onetype = qctx->rdataset->type;
@@ -7847,9 +7837,7 @@ query_respond_any(query_ctx_t *qctx) {
 		 * At least one matching rdataset was found
 		 */
 		query_addauth(qctx);
-	} else if (qctx->qtype == dns_rdatatype_rrsig ||
-		   qctx->qtype == dns_rdatatype_sig)
-	{
+	} else if (dns_rdatatype_issig(qctx->qtype)) {
 		/*
 		 * No matching rdatasets were found, but we got
 		 * here on a search for RRSIG/SIG, so that's okay.
@@ -9918,8 +9906,7 @@ query_coveringnsec(query_ctx_t *qctx) {
 			goto cleanup;
 		}
 		if (!ISC_LIST_EMPTY(qctx->view->dns64) &&
-		    (qctx->type == dns_rdatatype_a ||
-		     qctx->type == dns_rdatatype_aaaa)) /* XXX not yet */
+		    dns_rdatatype_isaddr(qctx->type)) /* XXX not yet */
 		{
 			goto cleanup;
 		}
@@ -9978,8 +9965,7 @@ query_coveringnsec(query_ctx_t *qctx) {
 			goto cleanup;
 		}
 		if (!ISC_LIST_EMPTY(qctx->view->dns64) &&
-		    (qctx->type == dns_rdatatype_a ||
-		     qctx->type == dns_rdatatype_aaaa)) /* XXX not yet */
+		    dns_rdatatype_isaddr(qctx->type)) /* XXX not yet */
 		{
 			goto cleanup;
 		}
@@ -11329,8 +11315,7 @@ query_glueanswer(query_ctx_t *qctx) {
 
 	if (!ISC_LIST_EMPTY(secs[DNS_SECTION_ANSWER]) ||
 	    qctx->client->message->rcode != dns_rcode_noerror ||
-	    (qctx->qtype != dns_rdatatype_a &&
-	     qctx->qtype != dns_rdatatype_aaaa))
+	    !dns_rdatatype_isaddr(qctx->qtype))
 	{
 		return;
 	}

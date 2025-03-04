@@ -246,8 +246,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 			       (list_type == dns_rdatatype_any ||
 				rdataset->type == list_type)) ||
 			      (list_addresses &&
-			       (rdataset->type == dns_rdatatype_a ||
-				rdataset->type == dns_rdatatype_aaaa ||
+			       (dns_rdatatype_isaddr(rdataset->type) ||
 				rdataset->type == dns_rdatatype_ns ||
 				rdataset->type == dns_rdatatype_ptr))))
 			{

@@ -232,9 +232,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_fixedname_init(&name);
 	CHECK(dns__db_addrdataset(sampledb->db, node, version, now, rdataset,
 				  options, addedrdataset DNS__DB_FLARG_PASS));
-	if (rdataset->type == dns_rdatatype_a ||
-	    rdataset->type == dns_rdatatype_aaaa)
-	{
+	if (dns_rdatatype_isaddr(rdataset->type)) {
 		CHECK(dns_db_nodefullname(sampledb->db, node,
 					  dns_fixedname_name(&name)));
 		CHECK(syncptrs(sampledb->inst, dns_fixedname_name(&name),
@@ -263,9 +261,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		goto cleanup;
 	}
 
-	if (rdataset->type == dns_rdatatype_a ||
-	    rdataset->type == dns_rdatatype_aaaa)
-	{
+	if (dns_rdatatype_isaddr(rdataset->type)) {
 		CHECK(dns_db_nodefullname(sampledb->db, node,
 					  dns_fixedname_name(&name)));
 		CHECK(syncptrs(sampledb->inst, dns_fixedname_name(&name),

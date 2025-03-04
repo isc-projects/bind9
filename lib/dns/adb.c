@@ -567,7 +567,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		rdataset->ttl = ttlclamp(rdataset->ttl);
 	}
 
-	REQUIRE(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
+	REQUIRE(dns_rdatatype_isaddr(rdtype));
 
 	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
@@ -2557,7 +2557,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	adb = adbname->adb;
 
 	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
+	REQUIRE(dns_rdatatype_isaddr(rdtype));
 
 	fname = dns_fixedname_initname(&foundname);
 	dns_rdataset_init(&rdataset);
