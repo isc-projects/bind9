@@ -1778,7 +1778,9 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		if (prepub == 0 || prepub > now) {
 			/* No need to start rollover now. */
 			if (*nexttime == 0 || prepub < *nexttime) {
-				*nexttime = prepub;
+				if (prepub > 0) {
+					*nexttime = prepub;
+				}
 			}
 			return ISC_R_SUCCESS;
 		}
