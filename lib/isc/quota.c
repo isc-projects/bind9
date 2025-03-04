@@ -42,25 +42,24 @@ isc_quota_destroy(isc_quota_t *quota) {
 	REQUIRE(VALID_QUOTA(quota));
 	quota->magic = 0;
 
-	INSIST(atomic_load(&quota->used) == 0);
-	INSIST(atomic_load(&quota->waiting) == 0);
+	INSIST(atomic_load_acquire(&quota->used) == 0);
+	INSIST(atomic_load_acquire(&quota->waiting) == 0);
 	INSIST(ISC_LIST_EMPTY(quota->cbs));
-	atomic_store_release(&quota->max, 0);
-	atomic_store_release(&quota->used, 0);
-	atomic_store_release(&quota->soft, 0);
+	atomic_store_relaxed(&quota->max, 0);
+	atomic_store_relaxed(&quota->soft, 0);
 	isc_mutex_destroy(&quota->cblock);
 }
 
 void
 isc_quota_soft(isc_quota_t *quota, unsigned int soft) {
 	REQUIRE(VALID_QUOTA(quota));
-	atomic_store_release(&quota->soft, soft);
+	atomic_store_relaxed(&quota->soft, soft);
 }
 
 void
 isc_quota_max(isc_quota_t *quota, unsigned int max) {
 	REQUIRE(VALID_QUOTA(quota));
-	atomic_store_release(&quota->max, max);
+	atomic_store_relaxed(&quota->max, max);
 }
 
 unsigned int
@@ -78,14 +77,14 @@ isc_quota_getsoft(isc_quota_t *quota) {
 unsigned int
 isc_quota_getused(isc_quota_t *quota) {
 	REQUIRE(VALID_QUOTA(quota));
-	return atomic_load_relaxed(&quota->used);
+	return atomic_load_acquire(&quota->used);
 }
 
 static isc_result_t
 quota_reserve(isc_quota_t *quota) {
 	isc_result_t result;
-	uint_fast32_t max = atomic_load_acquire(&quota->max);
-	uint_fast32_t soft = atomic_load_acquire(&quota->soft);
+	uint_fast32_t max = atomic_load_relaxed(&quota->max);
+	uint_fast32_t soft = atomic_load_relaxed(&quota->soft);
 	uint_fast32_t used = atomic_load_acquire(&quota->used);
 	do {
 		if (max != 0 && used >= max) {
@@ -106,6 +105,7 @@ static void
 enqueue(isc_quota_t *quota, isc_quota_cb_t *cb) {
 	REQUIRE(cb != NULL);
 	ISC_LIST_ENQUEUE(quota->cbs, cb, link);
+	/* No need for acquire; the lock protects from other writers. */
 	atomic_fetch_add_release(&quota->waiting, 1);
 }
 
@@ -115,7 +115,8 @@ dequeue(isc_quota_t *quota) {
 	isc_quota_cb_t *cb = ISC_LIST_HEAD(quota->cbs);
 	INSIST(cb != NULL);
 	ISC_LIST_DEQUEUE(quota->cbs, cb, link);
-	atomic_fetch_sub_relaxed(&quota->waiting, 1);
+	/* No need for acquire; the lock protects from other writers. */
+	atomic_fetch_sub_release(&quota->waiting, 1);
 	return cb;
 }
 
@@ -133,6 +134,7 @@ quota_release(isc_quota_t *quota) {
 	if (atomic_load_acquire(&quota->waiting) > 0) {
 		isc_quota_cb_t *cb = NULL;
 		LOCK(&quota->cblock);
+		/* No need for acquire; the lock protects from other writers. */
 		if (atomic_load_relaxed(&quota->waiting) > 0) {
 			cb = dequeue(quota);
 		}
@@ -143,7 +145,7 @@ quota_release(isc_quota_t *quota) {
 		}
 	}
 
-	used = atomic_fetch_sub_release(&quota->used, 1);
+	used = atomic_fetch_sub_acq_rel(&quota->used, 1);
 	INSIST(used > 0);
 }
 
