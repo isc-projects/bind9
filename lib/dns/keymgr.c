@@ -195,6 +195,13 @@ dns_keymgr_settime_syncpublish(dst_key_t *key, dns_kasp_t *kasp, bool first) {
 		}
 	}
 	dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncpublish);
+
+	uint32_t lifetime = 0;
+	ret = dst_key_getnum(key, DST_NUM_LIFETIME, &lifetime);
+	if (ret == ISC_R_SUCCESS && lifetime > 0) {
+		dst_key_settime(key, DST_TIME_SYNCDELETE,
+				(syncpublish + lifetime));
+	}
 }
 
 /*
@@ -243,6 +250,17 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 	}
 
 	/*
+	 * To calculate phase out times ("Retired", "Removed", ...),
+	 * the key lifetime is required.
+	 */
+	uint32_t klifetime = 0;
+	ret = dst_key_getnum(key->key, DST_NUM_LIFETIME, &klifetime);
+	if (ret != ISC_R_SUCCESS) {
+		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
+		klifetime = lifetime;
+	}
+
+	/*
 	 * Calculate prepublication time.
 	 */
 	prepub = dst_key_getttl(key->key) + dns_kasp_publishsafety(kasp) +
@@ -277,6 +295,10 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			syncpub = ISC_MAX(syncpub1, syncpub2);
 			dst_key_settime(key->key, DST_TIME_SYNCPUBLISH,
 					syncpub);
+			if (klifetime > 0) {
+				dst_key_settime(key->key, DST_TIME_SYNCDELETE,
+						(syncpub + klifetime));
+			}
 		}
 	}
 
@@ -289,13 +311,6 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 
 	ret = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
 	if (ret != ISC_R_SUCCESS) {
-		uint32_t klifetime = 0;
-
-		ret = dst_key_getnum(key->key, DST_NUM_LIFETIME, &klifetime);
-		if (ret != ISC_R_SUCCESS) {
-			dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
-			klifetime = lifetime;
-		}
 		if (klifetime == 0) {
 			/*
 			 * No inactive time and no lifetime,
@@ -418,6 +433,7 @@ keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 		} else {
 			dst_key_unsettime(key->key, DST_TIME_INACTIVE);
 			dst_key_unsettime(key->key, DST_TIME_DELETE);
+			dst_key_unsettime(key->key, DST_TIME_SYNCDELETE);
 		}
 	}
 }
