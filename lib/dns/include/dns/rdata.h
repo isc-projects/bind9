@@ -594,6 +594,31 @@ dns_rdatatype_isknown(dns_rdatatype_t type);
  *
  */
 
+bool
+dns_rdatatype_ismulti(dns_rdatatype_t type);
+/*%<
+ * Return true iff a query for the rdata type can have multiple
+ * unrelated answers in a response: ANY, RRSIG, or SIG.
+ */
+
+bool
+dns_rdatatype_issig(dns_rdatatype_t type);
+/*%<
+ * Return true iff the rdata type is a signature: either RRSIG or SIG.
+ */
+
+bool
+dns_rdatatype_isaddr(dns_rdatatype_t type);
+/*%<
+ * Return true iff the rdata type is an address: either A or AAAA.
+ */
+
+bool
+dns_rdatatype_isalias(dns_rdatatype_t type);
+/*%<
+ * Return true iff the rdata type is an alias: either CNAME or DNAME.
+ */
+
 isc_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, const dns_name_t *owner,
 			 dns_additionaldatafunc_t add, void *arg);

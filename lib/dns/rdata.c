@@ -2461,6 +2461,27 @@ dns_rdatatype_isknown(dns_rdatatype_t type) {
 	return false;
 }
 
+bool
+dns_rdatatype_ismulti(dns_rdatatype_t type) {
+	return type == dns_rdatatype_any || type == dns_rdatatype_rrsig ||
+	       type == dns_rdatatype_sig;
+}
+
+bool
+dns_rdatatype_issig(dns_rdatatype_t type) {
+	return type == dns_rdatatype_rrsig || type == dns_rdatatype_sig;
+}
+
+bool
+dns_rdatatype_isaddr(dns_rdatatype_t type) {
+	return type == dns_rdatatype_a || type == dns_rdatatype_aaaa;
+}
+
+bool
+dns_rdatatype_isalias(dns_rdatatype_t type) {
+	return type == dns_rdatatype_cname || type == dns_rdatatype_dname;
+}
+
 void
 dns_rdata_exists(dns_rdata_t *rdata, dns_rdatatype_t type) {
 	REQUIRE(rdata != NULL);
