@@ -124,7 +124,7 @@ typedef struct dns_nametree	   dns_nametree_t;
 typedef ISC_LIST(dns_name_t) dns_namelist_t;
 typedef struct dns_ntatable	    dns_ntatable_t;
 typedef struct dns_ntnode	    dns_ntnode_t;
-typedef uint16_t		    dns_opcode_t;
+typedef enum dns_opcode		    dns_opcode_t;
 typedef struct dns_order	    dns_order_t;
 typedef struct dns_peer		    dns_peer_t;
 typedef struct dns_peerlist	    dns_peerlist_t;
@@ -308,20 +308,18 @@ enum {
 /*%
  * Opcodes.
  */
-enum {
+enum dns_opcode {
 	dns_opcode_query = 0,
-#define dns_opcode_query ((dns_opcode_t)dns_opcode_query)
 	dns_opcode_iquery = 1,
-#define dns_opcode_iquery ((dns_opcode_t)dns_opcode_iquery)
 	dns_opcode_status = 2,
-#define dns_opcode_status ((dns_opcode_t)dns_opcode_status)
 	dns_opcode_notify = 4,
-#define dns_opcode_notify ((dns_opcode_t)dns_opcode_notify)
 	dns_opcode_update = 5, /* dynamic update */
-#define dns_opcode_update ((dns_opcode_t)dns_opcode_update)
 	dns_opcode_max = 6,
-#define dns_opcode_max ((dns_opcode_t)dns_opcode_max)
-};
+	dns__opcode_expand = UINT16_MAX,
+} __attribute__((__packed__));
+/* Absent attribute packed, the enum will be sized as an int */
+STATIC_ASSERT(sizeof(uint16_t) == sizeof(dns_opcode_t),
+	      "sizeof(dns_opecode)t) is not 16-bit");
 
 /*%
  * Trust levels.  Must be kept in sync with trustnames[] in masterdump.c.

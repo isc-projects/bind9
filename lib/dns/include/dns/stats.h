@@ -399,7 +399,7 @@ dns_opcodestats_increment(dns_stats_t *stats, dns_opcode_t code);
  */
 
 void
-dns_rcodestats_increment(dns_stats_t *stats, dns_opcode_t code);
+dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code);
 /*%<
  * Increment the statistics counter for 'code'.
  *
