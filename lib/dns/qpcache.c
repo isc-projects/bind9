@@ -202,9 +202,10 @@ struct qpcnode {
 	uint8_t	      : 0;
 
 	/*%
-	 * Used for dead node cleaning. The deadnodes queue is used
-	 * for nodes that have no data any longer, but we can't unlink
-	 * yet because we don't have a tree lock.
+	 * Used for dead nodes cleaning.  This linked list is used to mark nodes
+	 * which have no data any longer, but we cannot unlink at that exact
+	 * moment because we did not or could not obtain a write lock on the
+	 * tree.
 	 */
 	isc_queue_node_t deadlink;
 };
@@ -215,8 +216,9 @@ struct qpcnode {
  * to reduce contention between threads.
  */
 typedef struct qpcache_bucket {
-	/*
-	 * Temporary storage for cache nodes that need to be deleted.
+	/*%
+	 * Temporary storage for stale cache nodes and dynamically
+	 * deleted nodes that await being cleaned up.
 	 */
 	isc_queue_t deadnodes;
 
