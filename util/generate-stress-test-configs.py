@@ -46,7 +46,11 @@ else:
 
 ALL_MODES = "recursive", "authoritative", "rpz"
 ALL_PROTOCOLS = "tcp", "doh", "dot"
-ALL_PLATFORMS = ".fedora-41-amd64", ".fedora-41-arm64", ".freebsd-stress-amd64"
+ALL_PLATFORMS = (
+    ".fedora-41-amd64",
+    ".fedora-41-arm64",
+    ".freebsd-autoscaler-13-amd64-tags",
+)
 
 # If ALL_BIND_STRESS_TESTS and CI_COMMIT_TAG environmental variables are unset,
 # pick only two of three items from "modes", "protocols", and "machines" to make
@@ -139,6 +143,14 @@ for mode, protocol, platform in itertools.product(modes, protocols, platforms):
             ],
         },
     }
+
+    # It is not strictly necessary to set GIT_CLONE_PATH in "stress" tests, but
+    # let's keep this consistent with build, unit, and system test jobs.
+    if "freebsd" in platform:
+        git_clone_path = anchors[".freebsd-autoscaler-amd64"]["variables"][
+            "GIT_CLONE_PATH"
+        ]
+        job_definition["variables"]["GIT_CLONE_PATH"] = git_clone_path
 
     job_definition |= anchors[platform]
 
