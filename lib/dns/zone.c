@@ -18461,7 +18461,9 @@ get_request_transport_type(dns_zone_t *zone) {
 					 : DNS_TRANSPORT_UDP;
 
 		/* Check if the peer is forced to always use TCP. */
-		if (transport_type != DNS_TRANSPORT_TCP) {
+		if (transport_type != DNS_TRANSPORT_TCP &&
+		    !dns_remote_done(&zone->primaries))
+		{
 			isc_result_t result;
 			isc_sockaddr_t primaryaddr;
 			isc_netaddr_t primaryip;
