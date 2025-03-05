@@ -113,6 +113,36 @@ struct dns_rdata {
 	ISC_LINK(dns_rdata_t) link;
 };
 
+/*%
+ * Rdatatype attributes.
+ */
+enum {
+	/*% only one may exist for a name */
+	DNS_RDATATYPEATTR_SINGLETON = 1 << 0,
+	/*% requires no other data be present */
+	DNS_RDATATYPEATTR_EXCLUSIVE = 1 << 1,
+	/*% Is a meta type */
+	DNS_RDATATYPEATTR_META = 1 << 2,
+	/*% Is a DNSSEC type, like RRSIG or NSEC */
+	DNS_RDATATYPEATTR_DNSSEC = 1 << 3,
+	/*% Is a zone cut authority type */
+	DNS_RDATATYPEATTR_ZONECUTAUTH = 1 << 4,
+	/*% Is reserved (unusable) */
+	DNS_RDATATYPEATTR_RESERVED = 1 << 5,
+	/*% Is an unknown type */
+	DNS_RDATATYPEATTR_UNKNOWN = 1 << 6,
+	/*% Is META, and can only be in a question section */
+	DNS_RDATATYPEATTR_QUESTIONONLY = 1 << 7,
+	/*% Is META, and can NOT be in a question section */
+	DNS_RDATATYPEATTR_NOTQUESTION = 1 << 8,
+	/*% Is present at zone cuts in the parent, not the child */
+	DNS_RDATATYPEATTR_ATPARENT = 1 << 9,
+	/*% Can exist along side a CNAME */
+	DNS_RDATATYPEATTR_ATCNAME = 1 << 10,
+	/*% Follow additional */
+	DNS_RDATATYPEATTR_FOLLOWADDITIONAL = 1 << 11,
+};
+
 #define DNS_RDATA_INIT                        \
 	{                                     \
 		.data = NULL,                 \
@@ -530,16 +560,28 @@ dns_rdata_freestruct(void *source);
  *	dns_rdata_tostruct().
  */
 
-bool
-dns_rdatatype_ismeta(dns_rdatatype_t type);
+unsigned int
+dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 /*%<
+ * Return attributes for the given type.
+ *
+ * Requires:
+ *\li	'rdtype' are known.
+ *
+ * Returns:
+ *\li	a bitmask of the rdatatype attribute flags, defined above.
+ */
+
+/*%
  * Return true iff the rdata type 'type' is a meta-type
  * like ANY or AXFR.
  */
+static inline bool
+dns_rdatatype_ismeta(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_META) != 0;
+}
 
-bool
-dns_rdatatype_issingleton(dns_rdatatype_t type);
-/*%<
+/*%
  * Return true iff the rdata type 'type' is a singleton type,
  * like CNAME or SOA.
  *
@@ -547,34 +589,108 @@ dns_rdatatype_issingleton(dns_rdatatype_t type);
  * \li	'type' is a valid rdata type.
  *
  */
+static inline bool
+dns_rdatatype_issingleton(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_SINGLETON) !=
+	       0;
+}
 
-bool
-dns_rdataclass_ismeta(dns_rdataclass_t rdclass);
-/*%<
- * Return true iff the rdata class 'rdclass' is a meta-class
- * like ANY or NONE.
+/*%
+ * Return true iff rdata of type 'type' can not appear in the question
+ * section of a properly formatted message.
+ *
+ * Requires:
+ * \li	'type' is a valid rdata type.
+ *
  */
+static inline bool
+dns_rdatatype_notquestion(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) &
+		DNS_RDATATYPEATTR_NOTQUESTION) != 0;
+}
 
-bool
-dns_rdatatype_isdnssec(dns_rdatatype_t type);
-/*%<
+/*%
+ * Return true iff rdata of type 'type' can only appear in the question
+ * section of a properly formatted message.
+ *
+ * Requires:
+ * \li	'type' is a valid rdata type.
+ *
+ */
+static inline bool
+dns_rdatatype_questiononly(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) &
+		DNS_RDATATYPEATTR_QUESTIONONLY) != 0;
+}
+
+/*%
+ * Return true iff rdata of type 'type' can appear beside a cname.
+ *
+ * Requires:
+ * \li	'type' is a valid rdata type.
+ *
+ */
+static inline bool
+dns_rdatatype_atcname(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATCNAME) !=
+	       0;
+}
+
+/*%
+ * Return true iff rdata of type 'type' should appear at the parent of
+ * a zone cut.
+ *
+ * Requires:
+ * \li	'type' is a valid rdata type.
+ *
+ */
+static inline bool
+dns_rdatatype_atparent(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATPARENT) !=
+	       0;
+}
+
+/*%
+ * Return true if adding a record of type 'type' to the ADDITIONAL section
+ * of a message can itself trigger the addition of still more data to the
+ * additional section.
+ *
+ * (For example: adding SRV to the ADDITIONAL section may trigger
+ * the addition of address records associated with that SRV.)
+ *
+ * Requires:
+ * \li	'type' is a valid rdata type.
+ *
+ */
+static inline bool
+dns_rdatatype_followadditional(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) &
+		DNS_RDATATYPEATTR_FOLLOWADDITIONAL) != 0;
+}
+
+/*%
  * Return true iff 'type' is one of the DNSSEC
  * rdata types that may exist alongside a CNAME record.
  *
  * Requires:
  * \li	'type' is a valid rdata type.
  */
+static inline bool
+dns_rdatatype_isdnssec(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_DNSSEC) != 0;
+}
 
-bool
-dns_rdatatype_iskeymaterial(dns_rdatatype_t type);
-/*%<
+/*%
  * Return true iff the rdata type 'type' is a DNSSEC key
  * related type, like DNSKEY, CDNSKEY, or CDS.
  */
+static inline bool
+dns_rdatatype_iskeymaterial(dns_rdatatype_t type) {
+	return type == dns_rdatatype_dnskey || type == dns_rdatatype_cdnskey ||
+	       type == dns_rdatatype_cds;
+}
 
-bool
-dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
-/*%<
+/*%
  * Return true iff rdata of type 'type' is considered authoritative
  * data (not glue) in the NSEC chain when it occurs in the parent zone
  * at a zone cut.
@@ -583,41 +699,68 @@ dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
  * \li	'type' is a valid rdata type.
  *
  */
+static inline bool
+dns_rdatatype_iszonecutauth(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) &
+		DNS_RDATATYPEATTR_ZONECUTAUTH) != 0;
+}
 
-bool
-dns_rdatatype_isknown(dns_rdatatype_t type);
-/*%<
+/*%
  * Return true iff the rdata type 'type' is known.
  *
  * Requires:
  * \li	'type' is a valid rdata type.
  *
  */
+static inline bool
+dns_rdatatype_isknown(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_UNKNOWN) ==
+	       0;
+}
 
-bool
-dns_rdatatype_ismulti(dns_rdatatype_t type);
-/*%<
+/*%
  * Return true iff a query for the rdata type can have multiple
  * unrelated answers in a response: ANY, RRSIG, or SIG.
  */
+static inline bool
+dns_rdatatype_ismulti(dns_rdatatype_t type) {
+	return type == dns_rdatatype_any || type == dns_rdatatype_rrsig ||
+	       type == dns_rdatatype_sig;
+}
 
-bool
-dns_rdatatype_issig(dns_rdatatype_t type);
-/*%<
+/*%
  * Return true iff the rdata type is a signature: either RRSIG or SIG.
  */
+static inline bool
+dns_rdatatype_issig(dns_rdatatype_t type) {
+	return type == dns_rdatatype_rrsig || type == dns_rdatatype_sig;
+}
 
-bool
-dns_rdatatype_isaddr(dns_rdatatype_t type);
-/*%<
+/*%
  * Return true iff the rdata type is an address: either A or AAAA.
  */
+static inline bool
+dns_rdatatype_isaddr(dns_rdatatype_t type) {
+	return type == dns_rdatatype_a || type == dns_rdatatype_aaaa;
+}
 
-bool
-dns_rdatatype_isalias(dns_rdatatype_t type);
-/*%<
+/*%
  * Return true iff the rdata type is an alias: either CNAME or DNAME.
  */
+static inline bool
+dns_rdatatype_isalias(dns_rdatatype_t type) {
+	return type == dns_rdatatype_cname || type == dns_rdatatype_dname;
+}
+
+/*%
+ * Return true iff the rdata class 'rdclass' is a meta-class
+ * like ANY or NONE.
+ */
+static inline bool
+dns_rdataclass_ismeta(dns_rdataclass_t rdclass) {
+	return rdclass == dns_rdataclass_reserved0 ||
+	       rdclass == dns_rdataclass_none || rdclass == dns_rdataclass_any;
+}
 
 isc_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, const dns_name_t *owner,
@@ -677,101 +820,6 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg);
  *
  *\li	Many other results are possible if not successful.
  */
-
-bool
-dns_rdatatype_questiononly(dns_rdatatype_t type);
-/*%<
- * Return true iff rdata of type 'type' can only appear in the question
- * section of a properly formatted message.
- *
- * Requires:
- * \li	'type' is a valid rdata type.
- *
- */
-
-bool
-dns_rdatatype_notquestion(dns_rdatatype_t type);
-/*%<
- * Return true iff rdata of type 'type' can not appear in the question
- * section of a properly formatted message.
- *
- * Requires:
- * \li	'type' is a valid rdata type.
- *
- */
-
-bool
-dns_rdatatype_atparent(dns_rdatatype_t type);
-/*%<
- * Return true iff rdata of type 'type' should appear at the parent of
- * a zone cut.
- *
- * Requires:
- * \li	'type' is a valid rdata type.
- *
- */
-
-bool
-dns_rdatatype_atcname(dns_rdatatype_t type);
-/*%<
- * Return true iff rdata of type 'type' can appear beside a cname.
- *
- * Requires:
- * \li	'type' is a valid rdata type.
- *
- */
-
-bool
-dns_rdatatype_followadditional(dns_rdatatype_t type);
-/*%<
- * Return true if adding a record of type 'type' to the ADDITIONAL section
- * of a message can itself trigger the addition of still more data to the
- * additional section.
- *
- * (For example: adding SRV to the ADDITIONAL section may trigger
- * the addition of address records associated with that SRV.)
- *
- * Requires:
- * \li	'type' is a valid rdata type.
- *
- */
-
-unsigned int
-dns_rdatatype_attributes(dns_rdatatype_t rdtype);
-/*%<
- * Return attributes for the given type.
- *
- * Requires:
- *\li	'rdtype' are known.
- *
- * Returns:
- *\li	a bitmask consisting of the following flags.
- */
-
-/*% only one may exist for a name */
-#define DNS_RDATATYPEATTR_SINGLETON 0x00000001U
-/*% requires no other data be present */
-#define DNS_RDATATYPEATTR_EXCLUSIVE 0x00000002U
-/*% Is a meta type */
-#define DNS_RDATATYPEATTR_META 0x00000004U
-/*% Is a DNSSEC type, like RRSIG or NSEC */
-#define DNS_RDATATYPEATTR_DNSSEC 0x00000008U
-/*% Is a zone cut authority type */
-#define DNS_RDATATYPEATTR_ZONECUTAUTH 0x00000010U
-/*% Is reserved (unusable) */
-#define DNS_RDATATYPEATTR_RESERVED 0x00000020U
-/*% Is an unknown type */
-#define DNS_RDATATYPEATTR_UNKNOWN 0x00000040U
-/*% Is META, and can only be in a question section */
-#define DNS_RDATATYPEATTR_QUESTIONONLY 0x00000080U
-/*% Is META, and can NOT be in a question section */
-#define DNS_RDATATYPEATTR_NOTQUESTION 0x00000100U
-/*% Is present at zone cuts in the parent, not the child */
-#define DNS_RDATATYPEATTR_ATPARENT 0x00000200U
-/*% Can exist along side a CNAME */
-#define DNS_RDATATYPEATTR_ATCNAME 0x00000400U
-/*% Follow additional */
-#define DNS_RDATATYPEATTR_FOLLOWADDITIONAL 0x00000800U
 
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata);
