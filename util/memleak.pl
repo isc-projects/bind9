@@ -17,8 +17,8 @@
 $mem_stats = '';
 
 while (<>) {
-    $gets{$1.$2} = $_ if (/add (?:0x)?([0-9a-f]+) size (?:0x)?([0-9]+) file/);
-    delete $gets{$1.$2} if /del (?:0x)?([0-9a-f]+) size (?:0x)?([0-9]+) file/;
+    $gets{$1.$2} = $_ if (/add (?:0x)?([0-9a-f]+) size (?:0x)?([0-9]+) func/);
+    delete $gets{$1.$2} if /del (?:0x)?([0-9a-f]+) size (?:0x)?([0-9]+) func/;
     $mem_stats .= $_ if /\d+ gets, +(\d+) rem/ && $1 > 0;
 }
 print join('', values %gets);

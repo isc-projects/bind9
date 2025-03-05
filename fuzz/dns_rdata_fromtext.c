@@ -145,6 +145,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 cleanup:
 	isc_lex_close(lex);
 	isc_lex_destroy(&lex);
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 	return 0;
 }

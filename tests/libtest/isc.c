@@ -79,7 +79,7 @@ setup_mctx(void **state ISC_ATTR_UNUSED) {
 
 int
 teardown_mctx(void **state ISC_ATTR_UNUSED) {
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 
 	return 0;
 }

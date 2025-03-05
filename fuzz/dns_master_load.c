@@ -74,6 +74,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
 end:
 	dns_db_detach(&db);
-	isc_mem_destroy(&mctx);
+	isc_mem_detach(&mctx);
 	return 0;
 }

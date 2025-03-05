@@ -61,7 +61,7 @@ cleanup(void) {
 		isc_lex_destroy(&lex);
 	}
 	if (mctx != NULL) {
-		isc_mem_destroy(&mctx);
+		isc_mem_detach(&mctx);
 	}
 }
 

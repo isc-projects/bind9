@@ -146,7 +146,7 @@ void
 isc__uv_shutdown(void) {
 #if UV_VERSION_HEX >= UV_VERSION(1, 38, 0)
 	uv_library_shutdown();
-	isc_mem_destroy(&isc__uv_mctx);
+	isc_mem_detach(&isc__uv_mctx);
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 38, 0) */
 }
 
