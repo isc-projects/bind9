@@ -806,7 +806,6 @@ clean_zone_node(qpznode_t *node, uint32_t least_serial) {
 		}
 		top_prev = current;
 	}
-
 	if (!still_dirty) {
 		node->dirty = false;
 	}
@@ -1450,8 +1449,10 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		NODE_UNLOCK(nlock, &nlocktype);
 	}
 
-	dns_qp_t *tree = NULL, *nsec = NULL, *nsec3 = NULL;
-	bool need_tree = false, need_nsec = false, need_nsec3 = false;
+	if (ISC_LIST_EMPTY(cleanup_list)) {
+		*versionp = NULL;
+		return;
+	}
 
 	for (changed = HEAD(cleanup_list); changed != NULL;
 	     changed = next_changed)
@@ -1467,98 +1468,12 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		if (rollback) {
 			rollback_node(node, serial);
 		}
-
-		qpznode_ref(node);
 		qpznode_release(qpdb, node, least_serial,
 				&nlocktype DNS__DB_FILELINE);
 
-		/* If the node is now empty, we can delete it. */
-		if (commit && node->data == NULL) {
-			switch ((int)node->nsec) {
-			case DNS_DB_NSEC_HAS_NSEC:
-				/*
-				 * Delete the matching node from the NSEC tree
-				 * first, then fall through to the main tree.
-				 */
-				if (nsec == NULL) {
-					need_nsec = true;
-					next_changed = changed;
-				} else {
-					dns_qp_deletename(nsec, &node->name,
-							  NULL, NULL);
-				}
-				FALLTHROUGH;
-			case DNS_DB_NSEC_NORMAL:
-				if (tree == NULL) {
-					need_tree = true;
-					next_changed = changed;
-				} else {
-					dns_qp_deletename(tree, &node->name,
-							  NULL, NULL);
-				}
-				break;
-			case DNS_DB_NSEC_NSEC:
-				if (nsec == NULL) {
-					need_nsec = true;
-					next_changed = changed;
-				} else {
-					dns_qp_deletename(nsec, &node->name,
-							  NULL, NULL);
-				}
-				break;
-			case DNS_DB_NSEC_NSEC3:
-				if (nsec3 == NULL) {
-					need_nsec3 = true;
-					next_changed = changed;
-				} else {
-					dns_qp_deletename(nsec3, &node->name,
-							  NULL, NULL);
-				}
-				break;
-			default:
-				UNREACHABLE();
-			}
-		}
-
-		qpznode_detach(&node);
-
 		NODE_UNLOCK(nlock, &nlocktype);
 
-		if (next_changed == changed) {
-			/*
-			 * We found a node to delete but didn't have a
-			 * QP writer open, so we open one now, then go
-			 * back to delete the node. If there's a next
-			 * time, we'll already have the writer open,
-			 * so we won't need this extra step.
-			 */
-			if (need_tree && tree == NULL) {
-				dns_qpmulti_write(qpdb->tree, &tree);
-			}
-			if (need_nsec && nsec == NULL) {
-				dns_qpmulti_write(qpdb->nsec, &nsec);
-			}
-			if (need_nsec3 && nsec3 == NULL) {
-				dns_qpmulti_write(qpdb->nsec3, &nsec3);
-			}
-
-			continue;
-		}
-
 		isc_mem_put(qpdb->common.mctx, changed, sizeof(*changed));
-	}
-
-	if (tree != NULL) {
-		dns_qp_compact(tree, DNS_QPGC_MAYBE);
-		dns_qpmulti_commit(qpdb->tree, &tree);
-	}
-	if (nsec != NULL) {
-		dns_qp_compact(nsec, DNS_QPGC_MAYBE);
-		dns_qpmulti_commit(qpdb->nsec, &nsec);
-	}
-	if (nsec3 != NULL) {
-		dns_qp_compact(nsec3, DNS_QPGC_MAYBE);
-		dns_qpmulti_commit(qpdb->nsec3, &nsec3);
 	}
 
 	*versionp = NULL;
