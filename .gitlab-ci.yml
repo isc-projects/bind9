@@ -1563,9 +1563,9 @@ respdiff:tsan:
   <<: *default_triggering_rules
   <<: *tsan_debian_bookworm_amd64_image
   variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
-    LDFLAGS: "-fsanitize=thread"
+    CC: "${CLANG}"
+    CFLAGS: "${CFLAGS_COMMON} -ggdb -O2 -fsanitize=thread"
+    LDFLAGS: "-fsanitize=thread -Wl,--disable-new-dtags"
     OPENSSL_CFLAGS: -I/opt/tsan/include
     OPENSSL_LIBS: -L/opt/tsan/lib -lssl -lcrypto
     EXTRA_CONFIGURE: "--disable-dnsrps --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
