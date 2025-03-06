@@ -4419,7 +4419,7 @@ Tuning
    :any:`stale-answer-enable` option or by calling :option:`rndc serve-stale on <rndc serve-stale>`.
 
    When :any:`stale-cache-enable` is set to ``no``, setting the :any:`max-stale-ttl`
-   has no effect; the value of :any:`max-cache-ttl` is ``0`` in such a case.
+   has no effect; the value of :any:`max-stale-ttl` is ``0`` in such a case.
 
 .. namedconf:statement:: sig-validity-interval
    :tags: obsolete
