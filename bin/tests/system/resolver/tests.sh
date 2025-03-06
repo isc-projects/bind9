@@ -43,6 +43,12 @@ grep "status: NOERROR" dig.out.ns1.test${n} >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+rndccmd 10.53.0.1 stats || ret=1 # Get the responses, RTT and timeout statistics before the following timeout tests
+grep -F 'responses received' ns1/named.stats >ns1/named.stats.responses-before || true
+grep -F 'queries with RTT' ns1/named.stats >ns1/named.stats.rtt-before || true
+grep -F 'query timeouts' ns1/named.stats >ns1/named.stats.timeouts-before || true
+mv ns1/named.stats ns1/named.stats-before
+
 # 'resolver-query-timeout' is set to 5 seconds in ns1, so dig with a lower
 # timeout value should give up earlier than that.
 n=$((n + 1))
@@ -63,6 +69,20 @@ ret=0
 dig_with_opts +tcp +tries=1 +timeout=7 noresponse.example.net @10.53.0.1 a >dig.out.ns1.test${n} || ret=1
 grep -F "status: SERVFAIL" dig.out.ns1.test${n} >/dev/null || ret=1
 grep -F "EDE: 22 (No Reachable Authority)" dig.out.ns1.test${n} >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that the timeout didn't skew the resolver responses counters and did update the timeout counter ($n)"
+ret=0
+rndccmd 10.53.0.1 stats || ret=1
+grep -F 'responses received' ns1/named.stats >ns1/named.stats.responses-after || true
+grep -F 'queries with RTT' ns1/named.stats >ns1/named.stats.rtt-after || true
+grep -F 'query timeouts' ns1/named.stats >ns1/named.stats.timeouts-after || true
+mv ns1/named.stats ns1/named.stats-after
+diff ns1/named.stats.responses-before ns1/named.stats.responses-after >/dev/null || ret=1
+diff ns1/named.stats.rtt-before ns1/named.stats.rtt-after >/dev/null || ret=1
+diff ns1/named.stats.timeouts-before ns1/named.stats.timeouts-after >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
