@@ -315,7 +315,7 @@ struct qpcache {
 
 #ifdef DNS_DB_NODETRACE
 #define qpcache_ref(ptr)   qpcache__ref(ptr, __func__, __FILE__, __LINE__)
-#define qpcache_unref(ptr) qpcache_unref(ptr, __func__, __FILE__, __LINE__)
+#define qpcache_unref(ptr) qpcache__unref(ptr, __func__, __FILE__, __LINE__)
 #define qpcache_attach(ptr, ptrp) \
 	qpcache__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
 #define qpcache_detach(ptrp) qpcache__detach(ptrp, __func__, __FILE__, __LINE__)
@@ -787,6 +787,10 @@ qpcnode_release(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
 		 * acquired a reference in the meantime, so we increment
 		 * erefs (but NOT references!), upgrade the node lock,
 		 * decrement erefs again, and see if it's still zero.
+		 *
+		 * We can't really assume anything about the result code of
+		 * erefs_increment.  If another thread acquires reference it
+		 * will be larger than 0, if it doesn't it is going to be 0.
 		 */
 		isc_rwlock_t *nlock = &qpdb->buckets[node->locknum].lock;
 		qpcnode_erefs_increment(qpdb, node, *nlocktypep,
@@ -2609,7 +2613,8 @@ cleanup_deadnodes(void *arg) {
 	RUNTIME_CHECK(isc_queue_splice(&deadnodes,
 				       &qpdb->buckets[locknum].deadnodes));
 	isc_queue_for_each_entry_safe(&deadnodes, qpnode, qpnext, deadlink) {
-		qpcnode_release(qpdb, qpnode, &nlocktype, &tlocktype, false);
+		qpcnode_release(qpdb, qpnode, &nlocktype, &tlocktype,
+				false DNS__DB_FILELINE);
 	}
 
 	NODE_UNLOCK(nlock, &nlocktype);
@@ -2722,16 +2727,19 @@ detachnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	nlock = &qpdb->buckets[node->locknum].lock;
 
 	/*
-	 * We can't destroy qpcache while holding a nodelock, so
-	 * we need to reference it before acquiring the lock
-	 * and release it afterward.
+	 * We can't destroy qpcache while holding a nodelock, so we need to
+	 * reference it before acquiring the lock and release it afterward.
+	 * Additionally, we must ensure that we don't destroy the database while
+	 * the NODE_LOCK is locked.
 	 */
 	qpcache_ref(qpdb);
 
+	rcu_read_lock();
 	NODE_RDLOCK(nlock, &nlocktype);
 	qpcnode_release(qpdb, node, &nlocktype, &tlocktype,
 			true DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(nlock, &nlocktype);
+	rcu_read_unlock();
 
 	qpcache_detach(&qpdb);
 }

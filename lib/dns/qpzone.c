@@ -186,7 +186,7 @@ struct qpznode {
 	void *data;
 };
 
-typedef struct qpcache_bucket {
+typedef struct qpzone_bucket {
 	/* Per-bucket lock. */
 	isc_rwlock_t lock;
 
@@ -246,7 +246,7 @@ struct qpzonedb {
 
 #ifdef DNS_DB_NODETRACE
 #define qpzonedb_ref(ptr)   qpzonedb__ref(ptr, __func__, __FILE__, __LINE__)
-#define qpzonedb_unref(ptr) qpzonedb_unref(ptr, __func__, __FILE__, __LINE__)
+#define qpzonedb_unref(ptr) qpzonedb__unref(ptr, __func__, __FILE__, __LINE__)
 #define qpzonedb_attach(ptr, ptrp) \
 	qpzonedb__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
 #define qpzonedb_detach(ptrp) \
@@ -870,6 +870,10 @@ qpznode_release(qpzonedb_t *qpdb, qpznode_t *node, uint32_t least_serial,
 		 * acquired a reference in the meantime, so we increment
 		 * erefs (but NOT references!), upgrade the node lock,
 		 * decrement erefs again, and see if it's still zero.
+		 *
+		 * We can't really assume anything about the result code of
+		 * erefs_increment.  If another thread acquires reference it
+		 * will be larger than 0, if it doesn't it is going to be 0.
 		 */
 		isc_rwlock_t *nlock = &qpdb->buckets[node->locknum].lock;
 		qpznode_erefs_increment(qpdb, node DNS__DB_FLARG_PASS);
@@ -3853,15 +3857,21 @@ detachnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	nlock = &qpdb->buckets[node->locknum].lock;
 
 	/*
-	 * qpzone_destroy() uses call_rcu() API to destroy the node locks,
-	 * so it is safe to call it in the middle of NODE_LOCK.
+	 * qpzone_destroy() uses call_rcu() API to destroy the node locks, so it
+	 * is safe to call it in the middle of NODE_LOCK, but we need to acquire
+	 * the database reference to prevent destroying the database while the
+	 * NODE_LOCK is locked.
 	 */
+
+	qpzonedb_ref(qpdb);
 
 	rcu_read_lock();
 	NODE_RDLOCK(nlock, &nlocktype);
 	qpznode_release(qpdb, node, 0, &nlocktype DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(nlock, &nlocktype);
 	rcu_read_unlock();
+
+	qpzonedb_unref(qpdb);
 }
 
 static unsigned int
