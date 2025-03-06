@@ -7351,10 +7351,12 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 
 	QTRACE("response");
 
-	if (isc_sockaddr_pf(&query->addrinfo->sockaddr) == PF_INET) {
-		inc_stats(fctx->res, dns_resstatscounter_responsev4);
-	} else {
-		inc_stats(fctx->res, dns_resstatscounter_responsev6);
+	if (eresult == ISC_R_SUCCESS) {
+		if (isc_sockaddr_pf(&query->addrinfo->sockaddr) == PF_INET) {
+			inc_stats(fctx->res, dns_resstatscounter_responsev4);
+		} else {
+			inc_stats(fctx->res, dns_resstatscounter_responsev6);
+		}
 	}
 
 	rctx = isc_mem_get(fctx->mctx, sizeof(*rctx));
