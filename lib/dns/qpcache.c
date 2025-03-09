@@ -519,7 +519,7 @@ qpcache_miss(qpcache_t *qpdb, dns_slabheader_t *newheader,
 		size_t purgesize =
 			2 * (sizeof(qpcnode_t) +
 			     dns_name_size(&HEADERNODE(newheader)->name)) +
-			rdataset_size(newheader) + 12288;
+			rdataset_size(newheader) + QP_SAFETY_MARGIN;
 
 		expire_lru_headers(qpdb, idx, purgesize, nlocktypep,
 				   tlocktypep DNS__DB_FLARG_PASS);
