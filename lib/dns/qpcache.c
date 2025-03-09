@@ -2460,7 +2460,7 @@ overmem(qpcache_t *qpdb, dns_slabheader_t *newheader,
 	 */
 	purgesize = 2 * (sizeof(qpcnode_t) +
 			 dns_name_size(&HEADERNODE(newheader)->name)) +
-		    rdataset_size(newheader) + 12288;
+		    rdataset_size(newheader) + QP_SAFETY_MARGIN;
 again:
 	do {
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;

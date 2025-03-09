@@ -79,6 +79,8 @@
 
 #define ISC_CLAMP(v, x, y) ((v) < (x) ? (x) : ((v) > (y) ? (y) : (v)))
 
+#define ISC_MAX3(a, b, c) ISC_MAX(ISC_MAX((a), (b)), (c))
+
 /*%
  * The UNCONST() macro can be used to omit warnings produced by certain
  * compilers when operating with pointers declared with the const type qual-

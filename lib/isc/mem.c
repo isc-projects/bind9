@@ -446,6 +446,8 @@ static void
 mem_shutdown(void) {
 	bool empty;
 
+	rcu_barrier();
+
 	isc__mem_checkdestroyed();
 
 	LOCK(&contextslock);

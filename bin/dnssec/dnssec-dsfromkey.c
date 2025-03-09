@@ -25,6 +25,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -559,6 +560,8 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stdout);
 	}
 	isc_mem_destroy(&mctx);
+
+	rcu_barrier();
 
 	fflush(stdout);
 	if (ferror(stdout)) {
