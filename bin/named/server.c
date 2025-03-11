@@ -8244,8 +8244,11 @@ load_configuration(const char *filename, named_server_t *server,
 		primaries = MIN_PRIMARIES_TIMEOUT;
 	}
 
-	isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive, advertised,
-			   primaries);
+	isc_nm_setinitialtimeout(named_g_netmgr, initial);
+	isc_nm_setprimariestimeout(named_g_netmgr, primaries);
+	isc_nm_setidletimeout(named_g_netmgr, idle);
+	isc_nm_setkeepalivetimeout(named_g_netmgr, keepalive);
+	isc_nm_setadvertisedtimeout(named_g_netmgr, advertised);
 
 #define CAP_IF_NOT_ZERO(v, min, max) \
 	if (v > 0 && v < min) {      \
@@ -15769,8 +15772,11 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 		return ISC_R_UNEXPECTEDEND;
 	}
 
-	isc_nm_gettimeouts(named_g_netmgr, &initial, &idle, &keepalive,
-			   &advertised, &primaries);
+	initial = isc_nm_getinitialtimeout(named_g_netmgr);
+	primaries = isc_nm_getprimariestimeout(named_g_netmgr);
+	idle = isc_nm_getidletimeout(named_g_netmgr);
+	keepalive = isc_nm_getkeepalivetimeout(named_g_netmgr);
+	advertised = isc_nm_getadvertisedtimeout(named_g_netmgr);
 
 	/* Look for optional arguments. */
 	ptr = next_token(lex, NULL);
@@ -15833,8 +15839,11 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 			CHECK(ISC_R_RANGE);
 		}
 
-		isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
-				   advertised, primaries);
+		isc_nm_setinitialtimeout(named_g_netmgr, initial);
+		isc_nm_setprimariestimeout(named_g_netmgr, primaries);
+		isc_nm_setidletimeout(named_g_netmgr, idle);
+		isc_nm_setkeepalivetimeout(named_g_netmgr, keepalive);
+		isc_nm_setadvertisedtimeout(named_g_netmgr, advertised);
 	}
 
 	snprintf(msg, sizeof(msg), "tcp-initial-timeout=%u\n", initial / 100);

@@ -105,7 +105,12 @@ ISC_LOOP_TEST_IMPL(tlsdns_timeout_recovery) {
 	 * timeout_retry_cb() will give up after five timeouts.
 	 */
 	connect_readcb = timeout_retry_cb;
-	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
+	isc_nm_setinitialtimeout(connect_nm, T_SOFT);
+	isc_nm_setprimariestimeout(connect_nm, T_SOFT);
+	isc_nm_setidletimeout(connect_nm, T_SOFT);
+	isc_nm_setkeepalivetimeout(connect_nm, T_SOFT);
+	isc_nm_setadvertisedtimeout(connect_nm, T_SOFT);
+
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_streamdnsconnect(
 		connect_nm, &tcp_connect_addr, &tcp_listen_addr,

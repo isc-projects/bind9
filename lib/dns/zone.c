@@ -12729,11 +12729,6 @@ notify_send_toaddr(void *arg) {
 		goto cleanup_key;
 	}
 
-	uint32_t initial_timeout;
-	isc_nm_gettimeouts(notify->zone->zmgr->netmgr, &initial_timeout, NULL,
-			   NULL, NULL, NULL);
-	const unsigned int connect_timeout = initial_timeout / MS_PER_SEC;
-
 again:
 	if ((notify->flags & DNS_NOTIFY_TCP) != 0) {
 		options |= DNS_REQUESTOPT_TCP;
@@ -12741,6 +12736,9 @@ again:
 
 	zmgr_tlsctx_attach(notify->zone->zmgr, &zmgr_tlsctx_cache);
 
+	const unsigned int connect_timeout =
+		isc_nm_getinitialtimeout(notify->zone->zmgr->netmgr) /
+		MS_PER_SEC;
 	result = dns_request_create(
 		notify->zone->view->requestmgr, message, &src, &notify->dst,
 		notify->transport, zmgr_tlsctx_cache, options, key,
@@ -14641,12 +14639,9 @@ again:
 		}
 	}
 
-	uint32_t primaries_timeout;
-	isc_nm_gettimeouts(zone->zmgr->netmgr, NULL, NULL, NULL, NULL,
-			   &primaries_timeout);
-	const unsigned int connect_timeout = primaries_timeout / MS_PER_SEC;
-
 	zone_iattach(zone, &(dns_zone_t *){ NULL });
+	const unsigned int connect_timeout =
+		isc_nm_getprimariestimeout(zone->zmgr->netmgr) / MS_PER_SEC;
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
 		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
@@ -14912,11 +14907,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		goto cleanup;
 	}
 
-	uint32_t primaries_timeout;
-	isc_nm_gettimeouts(zone->zmgr->netmgr, NULL, NULL, NULL, NULL,
-			   &primaries_timeout);
-	const unsigned int connect_timeout = primaries_timeout / MS_PER_SEC;
-
 	/*
 	 * Save request parameters so we can reuse them later on
 	 * for resolving missing glue A/AAAA records.
@@ -14925,14 +14915,15 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args->stub = stub;
 	cb_args->tsig_key = key;
 	cb_args->udpsize = udpsize;
-	cb_args->connect_timeout = connect_timeout;
+	cb_args->connect_timeout =
+		isc_nm_getprimariestimeout(zone->zmgr->netmgr) / MS_PER_SEC;
 	cb_args->timeout = TCP_REQUEST_TIMEOUT;
 	cb_args->reqnsid = reqnsid;
 
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, DNS_REQUESTOPT_TCP, key, connect_timeout,
-		TCP_REQUEST_TIMEOUT, UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES,
+		NULL, NULL, DNS_REQUESTOPT_TCP, key, cb_args->connect_timeout,
+		cb_args->timeout, UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES,
 		zone->loop, stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_debuglog(zone, __func__, 1,
@@ -18779,13 +18770,9 @@ next:
 		}
 	}
 
-	uint32_t primaries_timeout;
-	isc_nm_gettimeouts(zone->zmgr->netmgr, NULL, NULL, NULL, NULL,
-			   &primaries_timeout);
-	const unsigned int connect_timeout = primaries_timeout / MS_PER_SEC;
-
 	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
-
+	const unsigned int connect_timeout =
+		isc_nm_getprimariestimeout(zone->zmgr->netmgr) / MS_PER_SEC;
 	result = dns_request_createraw(
 		forward->zone->view->requestmgr, forward->msgbuf, &src,
 		&forward->addr, forward->transport, zmgr_tlsctx_cache,
@@ -21442,12 +21429,10 @@ checkds_send_toaddr(void *arg) {
 	dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 		     "checkds: create request for DS query to %s", addrbuf);
 
-	uint32_t initial_timeout;
-	isc_nm_gettimeouts(checkds->zone->zmgr->netmgr, &initial_timeout, NULL,
-			   NULL, NULL, NULL);
-	const unsigned int connect_timeout = initial_timeout / MS_PER_SEC;
-
 	options |= DNS_REQUESTOPT_TCP;
+	const unsigned int connect_timeout =
+		isc_nm_getinitialtimeout(checkds->zone->zmgr->netmgr) /
+		MS_PER_SEC;
 	result = dns_request_create(
 		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
 		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,

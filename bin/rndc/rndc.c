@@ -966,7 +966,10 @@ main(int argc, char **argv) {
 	isc_managers_create(&rndc_mctx, 1, &loopmgr, &netmgr);
 	isc_loopmgr_setup(loopmgr, rndc_start, NULL);
 
-	isc_nm_settimeouts(netmgr, timeout, timeout, timeout, 0, timeout);
+	isc_nm_setinitialtimeout(netmgr, timeout);
+	isc_nm_setprimariestimeout(netmgr, timeout);
+	isc_nm_setidletimeout(netmgr, timeout);
+	isc_nm_setkeepalivetimeout(netmgr, timeout);
 
 	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, progname);

@@ -1178,15 +1178,14 @@ no_nsid:
 	}
 	if (TCP_CLIENT(client) && USEKEEPALIVE(client)) {
 		isc_buffer_t buf;
-		uint32_t adv;
+		uint32_t advertised_timeout = isc_nm_getadvertisedtimeout(
+			isc_nmhandle_netmgr(client->handle));
 
 		INSIST(count < DNS_EDNSOPTIONS);
 
-		isc_nm_gettimeouts(isc_nmhandle_netmgr(client->handle), NULL,
-				   NULL, NULL, &adv, NULL);
-		adv /= 100; /* units of 100 milliseconds */
+		advertised_timeout /= 100; /* units of 100 milliseconds */
 		isc_buffer_init(&buf, advtimo, sizeof(advtimo));
-		isc_buffer_putuint16(&buf, (uint16_t)adv);
+		isc_buffer_putuint16(&buf, (uint16_t)advertised_timeout);
 		ednsopts[count].code = DNS_OPT_TCP_KEEPALIVE;
 		ednsopts[count].length = 2;
 		ednsopts[count].value = advtimo;

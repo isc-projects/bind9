@@ -338,16 +338,38 @@ isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
 }
 
 void
-isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
-		   uint32_t keepalive, uint32_t advertised,
-		   uint32_t primaries) {
+isc_nm_setinitialtimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
 	REQUIRE(VALID_NM(mgr));
 
-	atomic_store_relaxed(&mgr->init, init);
-	atomic_store_relaxed(&mgr->idle, idle);
-	atomic_store_relaxed(&mgr->keepalive, keepalive);
-	atomic_store_relaxed(&mgr->advertised, advertised);
-	atomic_store_relaxed(&mgr->primaries, primaries);
+	atomic_store_relaxed(&mgr->init, timeout_ms);
+}
+
+void
+isc_nm_setprimariestimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(mgr));
+
+	atomic_store_relaxed(&mgr->primaries, timeout_ms);
+}
+
+void
+isc_nm_setidletimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(mgr));
+
+	atomic_store_relaxed(&mgr->idle, timeout_ms);
+}
+
+void
+isc_nm_setkeepalivetimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(mgr));
+
+	atomic_store_relaxed(&mgr->keepalive, timeout_ms);
+}
+
+void
+isc_nm_setadvertisedtimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(mgr));
+
+	atomic_store_relaxed(&mgr->advertised, timeout_ms);
 }
 
 void
@@ -377,21 +399,39 @@ isc_nm_setloadbalancesockets(isc_nm_t *mgr, ISC_ATTR_UNUSED bool enabled) {
 #endif
 }
 
-void
-isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
-		   uint32_t *keepalive, uint32_t *advertised,
-		   uint32_t *primaries) {
+uint32_t
+isc_nm_getinitialtimeout(isc_nm_t *mgr) {
 	REQUIRE(VALID_NM(mgr));
 
-	SET_IF_NOT_NULL(initial, atomic_load_relaxed(&mgr->init));
+	return atomic_load_relaxed(&mgr->init);
+}
 
-	SET_IF_NOT_NULL(idle, atomic_load_relaxed(&mgr->idle));
+uint32_t
+isc_nm_getprimariestimeout(isc_nm_t *mgr) {
+	REQUIRE(VALID_NM(mgr));
 
-	SET_IF_NOT_NULL(keepalive, atomic_load_relaxed(&mgr->keepalive));
+	return atomic_load_relaxed(&mgr->primaries);
+}
 
-	SET_IF_NOT_NULL(advertised, atomic_load_relaxed(&mgr->advertised));
+uint32_t
+isc_nm_getidletimeout(isc_nm_t *mgr) {
+	REQUIRE(VALID_NM(mgr));
 
-	SET_IF_NOT_NULL(primaries, atomic_load_relaxed(&mgr->primaries));
+	return atomic_load_relaxed(&mgr->idle);
+}
+
+uint32_t
+isc_nm_getkeepalivetimeout(isc_nm_t *mgr) {
+	REQUIRE(VALID_NM(mgr));
+
+	return atomic_load_relaxed(&mgr->keepalive);
+}
+
+uint32_t
+isc_nm_getadvertisedtimeout(isc_nm_t *mgr) {
+	REQUIRE(VALID_NM(mgr));
+
+	return atomic_load_relaxed(&mgr->advertised);
 }
 
 bool

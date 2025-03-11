@@ -536,13 +536,46 @@ isc_nm_proxyheader_info_init_complete(isc_nm_proxyheader_info_t *restrict info,
  */
 
 void
-isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
-		   uint32_t keepalive, uint32_t advertised, uint32_t primaries);
+isc_nm_setinitialtimeout(isc_nm_t *mgr, uint32_t timeout_ms);
 /*%<
- * Sets the initial, idle, keepalive, advertised, and primaries timeout values
- * (in milliseconds) to use for TCP connections, and the timeout value to
- * advertise in responses using the EDNS TCP Keepalive option (which should
- * ordinarily be the same as 'keepalive'), in milliseconds.
+ * Sets the initial TCP timeout value (in milliseconds).
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+void
+isc_nm_setprimariestimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+/*%<
+ * Sets the primary servers connect TCP timeout value (in milliseconds).
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+void
+isc_nm_setidletimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+/*%<
+ * Sets the idle TCP timeout value (in milliseconds).
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+void
+isc_nm_setkeepalivetimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+/*%<
+ * Sets the keepalive TCP timeout value (in milliseconds), and the timeout value
+ * to advertise in responses using the EDNS TCP Keepalive option.
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+void
+isc_nm_setadvertisedtimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+/*%<
+ * Sets the advertised TCP timeout value (in milliseconds).
  *
  * Requires:
  * \li	'mgr' is a valid netmgr.
@@ -570,16 +603,46 @@ isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled);
  * \li	'mgr' is a valid netmgr.
  */
 
-void
-isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
-		   uint32_t *keepalive, uint32_t *advertised,
-		   uint32_t *primaries);
+uint32_t
+isc_nm_getinitialtimeout(isc_nm_t *mgr);
 /*%<
- * Gets the initial, idle, keepalive, advertised, or primaries timeout values,
- * in milliseconds.
+ * Gets the initial TCP timeout value in milliseconds.
  *
- * Any integer pointer parameter not set to NULL will be updated to
- * contain the corresponding timeout value.
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+uint32_t
+isc_nm_getprimariestimeout(isc_nm_t *mgr);
+/*%<
+ * Gets the primary servers connect TCP timeout value in milliseconds.
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+uint32_t
+isc_nm_getidletimeout(isc_nm_t *mgr);
+/*%<
+ * Gets the idle TCP timeout value in milliseconds.
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+uint32_t
+isc_nm_getkeepalivetimeout(isc_nm_t *mgr);
+/*%<
+ * Gets the keepalive TCP timeout value in milliseconds.
+ *
+ * Requires:
+ * \li	'mgr' is a valid netmgr.
+ */
+
+uint32_t
+isc_nm_getadvertisedtimeout(isc_nm_t *mgr);
+/*%<
+ * Gets the advertised TCP timeout value in milliseconds.
  *
  * Requires:
  * \li	'mgr' is a valid netmgr.
