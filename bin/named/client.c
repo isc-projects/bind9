@@ -2185,6 +2185,9 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	 * Only accept COOKIE if we have talked to the client in the last hour.
 	 */
 	isc_stdtime_get(&now);
+	if (ns_g_cookiealwaysvalid) {
+		now = when;
+	}
 	if (isc_serial_gt(when, (now + 300)) ||		/* In the future. */
 	    isc_serial_lt(when, (now - 3600))) {	/* In the past. */
 		isc_stats_increment(ns_g_server->nsstats,
@@ -2195,7 +2198,8 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	isc_buffer_init(&db, dbuf, sizeof(dbuf));
 	compute_cookie(client, when, nonce, ns_g_server->secret, &db);
 
-	if (isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
+	if (isc_safe_memequal(old, dbuf, COOKIE_SIZE) || ns_g_cookiealwaysvalid)
+	{
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_cookiematch);
 		client->attributes |= NS_CLIENTATTR_HAVECOOKIE;

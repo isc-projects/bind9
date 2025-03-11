@@ -163,6 +163,7 @@ EXTERN isc_time_t		ns_g_boottime;
 EXTERN isc_time_t		ns_g_configtime;
 EXTERN bool			ns_g_memstatistics	INIT(false);
 EXTERN bool			ns_g_clienttest		INIT(false);
+EXTERN bool			ns_g_cookiealwaysvalid	INIT(false);
 EXTERN bool			ns_g_dropedns		INIT(false);
 EXTERN bool			ns_g_ednsformerr	INIT(false);
 EXTERN bool			ns_g_ednsnotimp		INIT(false);
