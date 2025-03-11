@@ -141,6 +141,7 @@ static int maxudp = 0;
 /*
  * -T options:
  */
+static bool cookiealwaysvalid = false;
 static bool dropedns = false;
 static bool ednsformerr = false;
 static bool ednsnotimp = false;
@@ -781,7 +782,9 @@ parse_T_opt(char *option) {
 	 * dscp=x:     check that dscp values are as
 	 * 	       expected and assert otherwise.
 	 */
-	if (!strcmp(option, "dropedns")) {
+	if (!strcmp(option, "cookiealwaysvalid")) {
+		cookiealwaysvalid = true;
+	} else if (!strcmp(option, "dropedns")) {
 		dropedns = true;
 	} else if (!strncmp(option, "dscp=", 5)) {
 		isc_dscp_check_value = atoi(option + 5);
@@ -1442,6 +1445,9 @@ setup(void) {
 	/*
 	 * Modify server context according to command line options
 	 */
+	if (cookiealwaysvalid) {
+		ns_server_setoption(sctx, NS_SERVER_COOKIEALWAYSVALID, true);
+	}
 	if (disable4) {
 		ns_server_setoption(sctx, NS_SERVER_DISABLE4, true);
 	}
