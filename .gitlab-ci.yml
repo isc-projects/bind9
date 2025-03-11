@@ -66,11 +66,6 @@ stages:
 
 ### Runner Tag Templates
 
-.libvirt-amd64: &libvirt_amd64
-  tags:
-    - libvirt
-    - amd64
-
 # Autoscaling GitLab Runner on AWS EC2 (amd64)
 
 .linux-amd64: &linux_amd64
