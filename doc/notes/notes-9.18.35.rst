@@ -18,22 +18,22 @@ Bug Fixes
 - Fix deferred validation of unsigned DS and DNSKEY records.
 
   When processing a query with the "checking disabled" bit set (CD=1),
-  `named` stores the unvalidated result in the cache, marked "pending".
-  When the same query is sent with CD=0, the cached data is validated,
+  :iscman:`named` stores the invalidated result in the cache, marked "pending".
+  When the same query is sent with CD=0, the cached data is validated
   and either accepted as an answer, or ejected from the cache as
   invalid. This deferred validation was not attempted for DS and DNSKEY
   records if they had no cached signatures, causing spurious validation
-  failures. We now complete the deferred validation in this scenario.
+  failures. The deferred validation is now completed in this scenario.
 
-  Also, if deferred validation fails, we now re-query the data to find
+  Also, if deferred validation fails, the data is now re-queried to find
   out whether the zone has been corrected since the invalid data was
   cached. :gl:`#5066`
 
 - Fix RPZ race condition during a reconfiguration.
 
-  With RPZ in use, `named` could terminate unexpectedly because of a
+  With RPZ in use, :iscman:`named` could terminate unexpectedly because of a
   race condition when a reconfiguration command was received using
-  `rndc`. This has been fixed. :gl:`#5146`
+  :iscman:`rndc`. This has been fixed. :gl:`#5146`
 
 - "CNAME and other data check" not applied to all types.
 
@@ -41,9 +41,9 @@ Bug Fixes
   be detected if certain types were at the same node as a CNAME.  This
   has been fixed. :gl:`#5150`
 
-- Remove NSEC/DS/NSEC3 RRSIG check from dns_message_parse.
+- Remove NSEC/DS/NSEC3 RRSIG check from ``dns_message_parse()``.
 
-  Previously, when parsing responses, named incorrectly rejected
+  Previously, when parsing responses, :iscman:`named` incorrectly rejected
   responses without matching RRSIG records for NSEC/DS/NSEC3 records in
   the authority section. This rejection, if appropriate, should have
   been left for the validator to determine and has been fixed.
