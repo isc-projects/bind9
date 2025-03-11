@@ -2096,7 +2096,8 @@ sendquery(void *arg) {
 
 	dns_view_attach(view, &(dns_view_t *){ NULL });
 
-	const unsigned int timeout = isc_nm_getinitialtimeout(netmgr);
+	const unsigned int timeout = isc_nm_getinitialtimeout(netmgr) /
+				     MS_PER_SEC;
 	CHECK(dns_request_create(requestmgr, message, NULL, &peer, NULL, NULL,
 				 DNS_REQUESTOPT_TCP, NULL, timeout, timeout, 0,
 				 0, isc_loop(), recvresponse, message,
