@@ -16,6 +16,7 @@ rm -f dig.out.*
 rm -f named.run.*
 rm -f rndc.out.*
 rm -f ns1/named_dump.db*
+rm -f ns4/named.cookiealwaysvalid
 rm -f ns*/named.memstats
 rm -f ns*/named.run
 rm -f ns*/named.lock
