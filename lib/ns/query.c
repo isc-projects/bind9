@@ -5855,6 +5855,9 @@ ns__query_start(query_ctx_t *qctx) {
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_REFUSED) {
 			if (WANTRECURSION(qctx->client)) {
+				dns_ede_add(&qctx->client->edectx,
+					    DNS_EDE_NOTAUTH,
+					    "recursion disabled");
 				inc_stats(qctx->client,
 					  ns_statscounter_recurserej);
 			} else {
