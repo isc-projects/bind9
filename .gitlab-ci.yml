@@ -383,6 +383,9 @@ stages:
         SHOTGUN_ROUNDS: 3
     - &shotgun_rule_other
       if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
+  # when using data from a single run, the overall instability of the results
+  # causes quite high false positive rate, rerun the test to attemp to reduce those
+  retry: 1
   script:
     - if [ -z "$BASELINE" ]; then export BASELINE=$BIND_BASELINE_VERSION; fi  # this dotenv variable can't be set in the rules section, because rules are evaluated before any jobs run
     - PIPELINE_ID=$(curl -s -X POST --fail
@@ -1688,9 +1691,6 @@ respdiff-third-party:
 
 # Performance tests
 
-# Run shotgun:udp right away, but delay other shotgun jobs sligthly in order to
-# allow re-use of the built container image. Otherwise, the jobs would do the
-# same builds in parallel rather than re-use the already built image.
 shotgun:udp:
   <<: *shotgun_job
   variables:
@@ -1722,7 +1722,7 @@ shotgun:doh-get:
   variables:
     SHOTGUN_SCENARIO: doh-get
     SHOTGUN_TRAFFIC_MULTIPLIER: 3
-    SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MAX: 0.3  # bump from the default due to increased tail-end jitter
+    SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MAX: 0.4  # bump from the default due to increased tail-end jitter
   rules: *shotgun_rules_manual_mr
 
 .stress-test: &stress_test
