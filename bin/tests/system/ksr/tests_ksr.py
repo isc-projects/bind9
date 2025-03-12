@@ -597,6 +597,10 @@ def test_ksr_common(servers):
             selected += 1
         if "Generating" in output:
             generated += 1
+        # Subtract if there was a key collision.
+        if "collide" in output:
+            generated -= 1
+
     assert selected == 2
     assert generated == 2
     for index, key in enumerate(overlapping_zsks):
