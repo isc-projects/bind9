@@ -1712,7 +1712,7 @@ shotgun:tcp:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: tcp
-    SHOTGUN_TRAFFIC_MULTIPLIER: 13
+    SHOTGUN_TRAFFIC_MULTIPLIER: 12
 
 shotgun:dot:
   <<: *shotgun_job
