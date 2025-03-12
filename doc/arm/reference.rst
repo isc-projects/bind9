@@ -3804,9 +3804,13 @@ system.
    after 20 minutes if it has remained unchanged.
 
    If :any:`max-clients-per-query` is set to zero, there is no upper bound, other
-   than that imposed by :any:`recursive-clients`. If :any:`clients-per-query` is
-   set to zero, :any:`max-clients-per-query` no longer applies and there is no
-   upper bound, other than that imposed by :any:`recursive-clients`.
+   than that imposed by :any:`recursive-clients`. If the option is set to a
+   lower value than :any:`clients-per-query`, the value is adjusted to
+   :any:`clients-per-query`.
+
+   If :any:`clients-per-query` is set to zero, :any:`max-clients-per-query` no
+   longer applies and there is no upper bound, other than that imposed by
+   :any:`recursive-clients`.
 
 .. namedconf:statement:: max-validations-per-fetch
    :tags: server
