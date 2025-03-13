@@ -21,7 +21,7 @@ dnssec-keyfromlabel - DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keyfromlabel` {**-l** label} [**-3**] [**-a** algorithm] [**-A** date/offset] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-f** flag] [**-G**] [**-I** date/offset] [**-i** interval] [**-k**] [**-K** directory] [**-L** ttl] [**-M** tag_min:tag_max] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-R** date/offset] [**-S** key] [**-t** type] [**-v** level] [**-V**] [**-y**] {name}
+:program:`dnssec-keyfromlabel` {**-l** label} [**-3**] [**-a** algorithm] [**-A** date/offset] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-f** flag] [**-G**] [**-I** date/offset] [**-i** interval] [**-k**] [**-K** directory] [**-L** ttl] [**-M** tag_min:tag_max] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-R** date/offset] [**-S** key] [**-v** level] [**-V**] [**-y**] {name}
 
 Description
 ~~~~~~~~~~~
@@ -149,13 +149,6 @@ Options
    inactivation date of the existing one. The publication date is
    set to the activation date minus the prepublication interval, which
    defaults to 30 days.
-
-.. option:: -t type
-
-   This option indicates the type of the key. ``type`` must be one of AUTHCONF,
-   NOAUTHCONF, NOAUTH, or NOCONF. The default is AUTHCONF. AUTH refers
-   to the ability to authenticate data, and CONF to the ability to encrypt
-   data.
 
 .. option:: -v level
 

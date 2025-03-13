@@ -83,7 +83,6 @@ struct keygen_ctx {
 	dns_keystore_t *keystore;
 	char *algname;
 	char *nametype;
-	char *type;
 	int protocol;
 	int size;
 	uint16_t tag_min;
@@ -182,9 +181,6 @@ usage(void) {
 			"records with (default: 0)\n");
 	fprintf(stderr, "    -T <rrtype>: DNSKEY | KEY (default: DNSKEY; "
 			"use KEY for SIG(0))\n");
-	fprintf(stderr, "    -t <type>: "
-			"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
-			"(default: AUTHCONF)\n");
 	fprintf(stderr, "    -h: print usage and exit\n");
 	fprintf(stderr, "    -m <memory debugging mode>:\n");
 	fprintf(stderr, "       usage | trace | record\n");
@@ -314,24 +310,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			}
 		}
 
-		if (ctx->type != NULL && (ctx->options & DST_TYPE_KEY) != 0) {
-			if (strcasecmp(ctx->type, "NOAUTH") == 0) {
-				flags |= DNS_KEYTYPE_NOAUTH;
-			} else if (strcasecmp(ctx->type, "NOCONF") == 0) {
-				flags |= DNS_KEYTYPE_NOCONF;
-			} else if (strcasecmp(ctx->type, "NOAUTHCONF") == 0) {
-				flags |= (DNS_KEYTYPE_NOAUTH |
-					  DNS_KEYTYPE_NOCONF);
-				if (ctx->size < 0) {
-					ctx->size = 0;
-				}
-			} else if (strcasecmp(ctx->type, "AUTHCONF") == 0) {
-				/* nothing */
-			} else {
-				fatal("invalid type %s", ctx->type);
-			}
-		}
-
 		if (ctx->size < 0) {
 			switch (ctx->alg) {
 			case DST_ALG_RSASHA1:
@@ -405,9 +383,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		}
 		if (ctx->nametype != NULL) {
 			fatal("-S and -n cannot be used together");
-		}
-		if (ctx->type != NULL) {
-			fatal("-S and -t cannot be used together");
 		}
 		if (ctx->setpub || ctx->unsetpub) {
 			fatal("-S and -P cannot be used together");
@@ -564,12 +539,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		   ctx->protocol != DNS_KEYPROTO_DNSSEC)
 	{
 		fatal("invalid DNSKEY protocol: %d", ctx->protocol);
-	}
-
-	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
-		if (ctx->size > 0) {
-			fatal("specified null key with non-zero size");
-		}
 	}
 
 	switch (ctx->alg) {
@@ -997,8 +966,7 @@ main(int argc, char **argv) {
 			if (strcasecmp(isc_commandline_argument, "KEY") == 0) {
 				ctx.options |= DST_TYPE_KEY;
 			} else if (strcasecmp(isc_commandline_argument,
-					      "DNSKE"
-					      "Y") == 0)
+					      "DNSKEY") == 0)
 			{
 				/* default behavior */
 			} else {
@@ -1007,7 +975,7 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 't':
-			ctx.type = isc_commandline_argument;
+			fatal("The -t option has been deprecated.");
 			break;
 		case 'v':
 			endp = NULL;

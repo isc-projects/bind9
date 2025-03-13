@@ -77,9 +77,6 @@ usage(void) {
 			"OTHER\n");
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
 	fprintf(stderr, "    -p protocol: default: 3 [dnssec]\n");
-	fprintf(stderr, "    -t type: "
-			"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
-			"(default: AUTHCONF)\n");
 	fprintf(stderr, "    -y: permit keys that might collide\n");
 	fprintf(stderr, "    -v verbose level\n");
 	fprintf(stderr, "    -V: print version information\n");
@@ -111,7 +108,7 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	char *algname = NULL, *freeit = NULL;
-	char *nametype = NULL, *type = NULL;
+	char *nametype = NULL;
 	const char *directory = NULL;
 	const char *predecessor = NULL;
 	dst_key_t *prevkey = NULL;
@@ -233,7 +230,7 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 't':
-			type = isc_commandline_argument;
+			fatal("The -t option has been deprecated.");
 			break;
 		case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);
@@ -416,21 +413,6 @@ main(int argc, char **argv) {
 			}
 		}
 
-		if (type != NULL && (options & DST_TYPE_KEY) != 0) {
-			if (strcasecmp(type, "NOAUTH") == 0) {
-				flags |= DNS_KEYTYPE_NOAUTH;
-			} else if (strcasecmp(type, "NOCONF") == 0) {
-				flags |= DNS_KEYTYPE_NOCONF;
-			} else if (strcasecmp(type, "NOAUTHCONF") == 0) {
-				flags |= (DNS_KEYTYPE_NOAUTH |
-					  DNS_KEYTYPE_NOCONF);
-			} else if (strcasecmp(type, "AUTHCONF") == 0) {
-				/* nothing */
-			} else {
-				fatal("invalid type %s", type);
-			}
-		}
-
 		if (!oldstyle && prepub > 0) {
 			if (setpub && setact && (activate - prepub) < publish) {
 				fatal("Activation and publication dates "
@@ -469,9 +451,6 @@ main(int argc, char **argv) {
 		}
 		if (nametype != NULL) {
 			fatal("-S and -n cannot be used together");
-		}
-		if (type != NULL) {
-			fatal("-S and -t cannot be used together");
 		}
 		if (setpub || unsetpub) {
 			fatal("-S and -P cannot be used together");

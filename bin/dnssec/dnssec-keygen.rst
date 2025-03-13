@@ -21,7 +21,7 @@ dnssec-keygen: DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-M** tag_min:tag_max] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-t** type] [**-V**] [**-v** level] {name}
+:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-M** tag_min:tag_max] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-V**] [**-v** level] {name}
 
 Description
 ~~~~~~~~~~~
@@ -209,13 +209,6 @@ Options
    must be either DNSKEY or KEY. The default is DNSKEY when using a
    DNSSEC algorithm, but it can be overridden to KEY for use with
    SIG(0).
-
-.. option:: -t type
-
-   This option indicates the type of the key for use with :option:`-T KEY <-T>`. ``type``
-   must be one of AUTHCONF, NOAUTHCONF, NOAUTH, or NOCONF. The default
-   is AUTHCONF. AUTH refers to the ability to authenticate data, and
-   CONF to the ability to encrypt data.
 
 .. option:: -V
 
