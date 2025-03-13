@@ -182,6 +182,9 @@ expire_rdatasets(dns_validator_t *val) {
 static void
 validate_extendederror(dns_validator_t *val);
 
+static void
+validator_addede(dns_validator_t *val, uint16_t code, const char *extra);
+
 /*%
  * Ensure the validator's rdatasets are disassociated.
  */
@@ -1474,6 +1477,11 @@ again:
 		 * Temporal errors don't count towards max validations nor max
 		 * fails.
 		 */
+		validator_addede(val,
+				 result == DNS_R_SIGEXPIRED
+					 ? DNS_EDE_SIGNATUREEXPIRED
+					 : DNS_EDE_SIGNATURENOTYETVALID,
+				 NULL);
 		break;
 	case ISC_R_SUCCESS:
 		consume_validation(val);
@@ -3627,44 +3635,54 @@ validator_logcreate(dns_validator_t *val, dns_name_t *name,
 }
 
 static void
-validate_extendederror(dns_validator_t *val) {
+validator_addede(dns_validator_t *val, uint16_t code, const char *extra) {
 	REQUIRE(VALID_VALIDATOR(val));
 
-	char extra[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE +
+	char bdata[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE +
 		   DNS_EDE_EXTRATEXT_LEN];
 	isc_buffer_t b;
+
+	isc_buffer_init(&b, bdata, sizeof(bdata));
+
+	if (extra != NULL) {
+		isc_buffer_putstr(&b, extra);
+		isc_buffer_putuint8(&b, ' ');
+	}
+
+	dns_name_totext(val->name, DNS_NAME_OMITFINALDOT, &b);
+	isc_buffer_putuint8(&b, '/');
+	dns_rdatatype_totext(val->type, &b);
+	isc_buffer_putuint8(&b, '\0');
+
+	dns_ede_add(val->edectx, code, bdata);
+}
+
+static void
+validate_extendederror(dns_validator_t *val) {
 	dns_validator_t *edeval = val;
+	char bdata[DNS_EDE_EXTRATEXT_LEN];
+	isc_buffer_t b;
+
+	REQUIRE(VALID_VALIDATOR(edeval));
+
+	isc_buffer_init(&b, bdata, sizeof(bdata));
 
 	while (edeval->parent != NULL) {
 		edeval = edeval->parent;
 	}
 
 	if (val->unsupported_algorithm != 0) {
-		isc_buffer_init(&b, extra, sizeof(extra));
+		isc_buffer_clear(&b);
 		dns_secalg_totext(val->unsupported_algorithm, &b);
-
-		isc_buffer_putuint8(&b, ' ');
-		dns_name_totext(val->name, DNS_NAME_OMITFINALDOT, &b);
-		isc_buffer_putuint8(&b, '/');
-		dns_rdatatype_totext(val->type, &b);
 		isc_buffer_putuint8(&b, '\0');
-
-		dns_ede_add(val->edectx, DNS_EDE_DNSKEYALG, extra);
+		validator_addede(val, DNS_EDE_DNSKEYALG, bdata);
 	}
 
 	if (val->unsupported_digest != 0) {
-		isc_buffer_init(&b, extra, sizeof(extra));
-
+		isc_buffer_clear(&b);
 		dns_dsdigest_totext(val->unsupported_digest, &b);
-		isc_buffer_putuint8(&b, ' ');
-		dns_name_totext(val->name, DNS_NAME_OMITFINALDOT, &b);
-		isc_buffer_putuint8(&b, '/');
-		dns_rdatatype_totext(val->type, &b);
 		isc_buffer_putuint8(&b, '\0');
-
-		dns_ede_add(val->edectx, DNS_EDE_DSDIGESTTYPE, extra);
-
-		isc_buffer_invalidate(&b);
+		validator_addede(val, DNS_EDE_DSDIGESTTYPE, bdata);
 	}
 }
 

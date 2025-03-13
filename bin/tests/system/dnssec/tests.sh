@@ -2859,6 +2859,19 @@ dig_with_opts +noauth expired.example. +dnssec @10.53.0.4 soa >dig.out.ns4.test$
 grep "SERVFAIL" dig.out.ns4.test$n >/dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
 grep "expired.example/.*: RRSIG has expired" ns4/named.run >/dev/null || ret=1
+grep "; EDE: 7 (Signature Expired): (expired.example/DNSKEY)" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+status=$((status + ret))
+echo_i "checking signatures in the future do not validate ($n)"
+ret=0
+dig_with_opts +noauth future.example. +dnssec @10.53.0.4 soa >dig.out.ns4.test$n || ret=1
+grep "SERVFAIL" dig.out.ns4.test$n >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
+grep "future.example/.*: RRSIG validity period has not begun" ns4/named.run >/dev/null || ret=1
+grep "; EDE: 8 (Signature Not Yet Valid): (future.example/DNSKEY)" dig.out.ns4.test$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
