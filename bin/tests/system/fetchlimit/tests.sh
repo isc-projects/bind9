@@ -328,5 +328,14 @@ echo_i "$zspill clients spilled (expected $expected)"
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "checking a warning is logged if max-clients-per-query < clients-per-query ($n)"
+ret=0
+copy_setports ns5/named3.conf.in ns5/named.conf
+rndc_reconfig ns5 10.53.0.5
+wait_for_message ns5/named.run "configured clients-per-query (10) exceeds max-clients-per-query (5); automatically adjusting max-clients-per-query to (10)" || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
