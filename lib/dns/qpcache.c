@@ -55,7 +55,6 @@
 #include <dns/stats.h>
 #include <dns/time.h>
 #include <dns/view.h>
-#include <dns/zonekey.h>
 
 #include "db_p.h"
 #include "qpcache_p.h"
