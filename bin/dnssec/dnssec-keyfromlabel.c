@@ -563,7 +563,7 @@ main(int argc, char **argv) {
 		{
 			flags |= DNS_KEYOWNER_ENTITY;
 		} else if (strcasecmp(nametype, "user") == 0) {
-			flags |= DNS_KEYOWNER_USER;
+			/* no owner flags */
 		} else {
 			fatal("invalid KEY nametype %s", nametype);
 		}
@@ -590,19 +590,6 @@ main(int argc, char **argv) {
 		   protocol != DNS_KEYPROTO_DNSSEC)
 	{
 		fatal("invalid DNSKEY protocol: %d", protocol);
-	}
-
-	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
-		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0) {
-			fatal("specified null key with signing authority");
-		}
-	}
-
-	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
-	    alg == DNS_KEYALG_DH)
-	{
-		fatal("a key with algorithm '%s' cannot be a zone key",
-		      algname);
 	}
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);

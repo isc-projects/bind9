@@ -572,7 +572,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		{
 			flags |= DNS_KEYOWNER_ENTITY;
 		} else if (strcasecmp(ctx->nametype, "user") == 0) {
-			flags |= DNS_KEYOWNER_USER;
+			/* no owner flags */
 		} else {
 			fatal("invalid KEY nametype %s", ctx->nametype);
 		}
@@ -602,9 +602,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
 		if (ctx->size > 0) {
 			fatal("specified null key with non-zero size");
-		}
-		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0) {
-			fatal("specified null key with signing authority");
 		}
 	}
 
