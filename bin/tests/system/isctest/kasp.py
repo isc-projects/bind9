@@ -15,7 +15,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from datetime import datetime, timedelta, timezone
 
@@ -577,3 +577,7 @@ def check_subdomain(server, zone, ksks, zsks):
 
     assert len(rrsigs) > 0
     check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
+
+
+def keystr_to_keylist(keystr: str, keydir: Optional[str] = None) -> List[Key]:
+    return [Key(name, keydir) for name in keystr.split()]

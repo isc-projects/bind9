@@ -10,19 +10,14 @@
 # information regarding copyright ownership.
 
 from datetime import timedelta
-import difflib
 import os
 import shutil
 import time
-from typing import List, Optional
 
 import pytest
 
 import isctest
-from isctest.kasp import (
-    Key,
-    KeyTimingMetadata,
-)
+from isctest.kasp import KeyTimingMetadata
 
 pytestmark = pytest.mark.extra_artifacts(
     [
@@ -87,31 +82,6 @@ def between(value, start, end):
         return False
 
     return start < value < end
-
-
-def check_file_contents_equal(file1, file2):
-    def normalize_line(line):
-        # remove trailing&leading whitespace and replace multiple whitespaces
-        return " ".join(line.split())
-
-    def read_lines(file_path):
-        with open(file_path, "r", encoding="utf-8") as file:
-            return [normalize_line(line) for line in file.readlines()]
-
-    lines1 = read_lines(file1)
-    lines2 = read_lines(file2)
-
-    differ = difflib.Differ()
-    diff = differ.compare(lines1, lines2)
-
-    for line in diff:
-        assert not line.startswith("+ ") and not line.startswith(
-            "- "
-        ), f'file contents of "{file1}" and "{file2}" differ'
-
-
-def keystr_to_keylist(keystr: str, keydir: Optional[str] = None) -> List[Key]:
-    return [Key(name, keydir) for name in keystr.split()]
 
 
 def ksr(zone, policy, action, options="", raise_on_exception=True):
@@ -515,14 +485,14 @@ def test_ksr_common(servers):
     # create ksk
     kskdir = "ns1/offline"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i now -e +1y -o")
-    ksks = keystr_to_keylist(out, kskdir)
+    ksks = isctest.kasp.keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     check_keys(ksks, None)
 
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     out, _ = ksr(zone, policy, "keygen", options="-i now -e +1y")
-    zsks = keystr_to_keylist(out)
+    zsks = isctest.kasp.keystr_to_keylist(out)
     assert len(zsks) == 2
 
     lifetime = timedelta(days=31 * 6)
@@ -532,7 +502,7 @@ def test_ksr_common(servers):
     # in the given key directory
     zskdir = "ns1"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +1y")
-    zsks = keystr_to_keylist(out, zskdir)
+    zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(zsks) == 2
 
     lifetime = timedelta(days=31 * 6)
@@ -575,18 +545,22 @@ def test_ksr_common(servers):
     # check that 'dnssec-ksr keygen' selects pregenerated keys for
     # the same time bundle
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {now} -e +1y")
-    selected_zsks = keystr_to_keylist(out, zskdir)
+    selected_zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(selected_zsks) == 2
     for index, key in enumerate(selected_zsks):
         assert zsks[index] == key
-        check_file_contents_equal(f"{key.path}.private", f"{key.path}.private.backup")
-        check_file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
-        check_file_contents_equal(f"{key.path}.state", f"{key.path}.state.backup")
+        isctest.check.file_contents_equal(
+            f"{key.path}.private", f"{key.path}.private.backup"
+        )
+        isctest.check.file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
+        isctest.check.file_contents_equal(
+            f"{key.path}.state", f"{key.path}.state.backup"
+        )
 
     # check that 'dnssec-ksr keygen' generates only necessary keys for
     # overlapping time bundle
     out, err = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {now} -e +2y -v 1")
-    overlapping_zsks = keystr_to_keylist(out, zskdir)
+    overlapping_zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(overlapping_zsks) == 4
 
     verbose = err.split()
@@ -606,15 +580,19 @@ def test_ksr_common(servers):
     for index, key in enumerate(overlapping_zsks):
         if index < 2:
             assert zsks[index] == key
-            check_file_contents_equal(
+            isctest.check.file_contents_equal(
                 f"{key.path}.private", f"{key.path}.private.backup"
             )
-            check_file_contents_equal(f"{key.path}.key", f"{key.path}.key.backup")
-            check_file_contents_equal(f"{key.path}.state", f"{key.path}.state.backup")
+            isctest.check.file_contents_equal(
+                f"{key.path}.key", f"{key.path}.key.backup"
+            )
+            isctest.check.file_contents_equal(
+                f"{key.path}.state", f"{key.path}.state.backup"
+            )
 
     # run 'dnssec-ksr keygen' again with verbosity 0
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {now} -e +2y")
-    overlapping_zsks2 = keystr_to_keylist(out, zskdir)
+    overlapping_zsks2 = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(overlapping_zsks2) == 4
     check_keys(overlapping_zsks2, lifetime)
     for index, key in enumerate(overlapping_zsks2):
@@ -709,7 +687,7 @@ def test_ksr_lastbundle(servers):
     kskdir = "ns1/offline"
     offset = -timedelta(days=365)
     out, _ = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i -1y -e +1d -o")
-    ksks = keystr_to_keylist(out, kskdir)
+    ksks = isctest.kasp.keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     check_keys(ksks, None, offset=offset)
@@ -717,7 +695,7 @@ def test_ksr_lastbundle(servers):
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     zskdir = "ns1"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i -1y -e +1d")
-    zsks = keystr_to_keylist(out, zskdir)
+    zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(zsks) == 2
 
     lifetime = timedelta(days=31 * 6)
@@ -788,7 +766,7 @@ def test_ksr_inthemiddle(servers):
     kskdir = "ns1/offline"
     offset = -timedelta(days=365)
     out, _ = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i -1y -e +1y -o")
-    ksks = keystr_to_keylist(out, kskdir)
+    ksks = isctest.kasp.keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     check_keys(ksks, None, offset=offset)
@@ -796,7 +774,7 @@ def test_ksr_inthemiddle(servers):
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     zskdir = "ns1"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i -1y -e +1y")
-    zsks = keystr_to_keylist(out, zskdir)
+    zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(zsks) == 4
 
     lifetime = timedelta(days=31 * 6)
@@ -868,13 +846,13 @@ def check_ksr_rekey_logs_error(server, zone, policy, offset, end):
     then = now + offset
     until = now + end
     out, _ = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i {then} -e {until} -o")
-    ksks = keystr_to_keylist(out, kskdir)
+    ksks = isctest.kasp.keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     # key generation
     zskdir = "ns1"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i {then} -e {until}")
-    zsks = keystr_to_keylist(out, zskdir)
+    zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(zsks) == 2
 
     # create request
@@ -941,7 +919,7 @@ def test_ksr_unlimited(servers):
     # create ksk
     kskdir = "ns1/offline"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i now -e +2y -o")
-    ksks = keystr_to_keylist(out, kskdir)
+    ksks = isctest.kasp.keystr_to_keylist(out, kskdir)
     assert len(ksks) == 1
 
     check_keys(ksks, None)
@@ -949,7 +927,7 @@ def test_ksr_unlimited(servers):
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     zskdir = "ns1"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +2y")
-    zsks = keystr_to_keylist(out, zskdir)
+    zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(zsks) == 1
 
     lifetime = None
@@ -1058,7 +1036,7 @@ def test_ksr_twotone(servers):
     # create ksk
     kskdir = "ns1/offline"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i now -e +1y -o")
-    ksks = keystr_to_keylist(out, kskdir)
+    ksks = isctest.kasp.keystr_to_keylist(out, kskdir)
     assert len(ksks) == 2
 
     ksks_defalg = []
@@ -1082,7 +1060,7 @@ def test_ksr_twotone(servers):
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     zskdir = "ns1"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +1y")
-    zsks = keystr_to_keylist(out, zskdir)
+    zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     # First algorithm keys have a lifetime of 3 months, so there should
     # be 4 created keys. Second algorithm keys have a lifetime of 5
     # months, so there should be 3 created keys.  While only two time
@@ -1176,7 +1154,7 @@ def test_ksr_kskroll(servers):
     # create ksk
     kskdir = "ns1/offline"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i now -e +1y -o")
-    ksks = keystr_to_keylist(out, kskdir)
+    ksks = isctest.kasp.keystr_to_keylist(out, kskdir)
     assert len(ksks) == 2
 
     lifetime = timedelta(days=31 * 6)
@@ -1185,7 +1163,7 @@ def test_ksr_kskroll(servers):
     # check that 'dnssec-ksr keygen' pregenerates right amount of keys
     zskdir = "ns1"
     out, _ = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +1y")
-    zsks = keystr_to_keylist(out, zskdir)
+    zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(zsks) == 1
 
     check_keys(zsks, None)
