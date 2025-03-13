@@ -736,7 +736,6 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		key->secret.length = 0;
 		ISC_LINK_INIT(key, link);
 		ISC_LIST_APPEND(*keyids, key, link);
-		newstr = NULL;
 	}
 }
 
