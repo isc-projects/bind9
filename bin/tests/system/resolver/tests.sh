@@ -1016,5 +1016,14 @@ ttl=$(awk '{print $2}' dig.ns1.out.${n})
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "client requests recursion but it is disabled - expect EDE 20 code with REFUSED($n)"
+ret=0
+dig_with_opts +recurse www.isc.org @10.53.0.11 a >dig.out.ns11.test${n} || ret=1
+grep "status: REFUSED" dig.out.ns11.test${n} >/dev/null || ret=1
+grep -F "EDE: 20 (Not Authoritative)" dig.out.ns11.test${n} >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
