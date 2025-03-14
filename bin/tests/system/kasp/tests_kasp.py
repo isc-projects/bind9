@@ -338,6 +338,52 @@ def test_kasp_dynamic(servers):
     assert f"zone_resigninc: zone {zone}/IN (unsigned): enter" not in "ns3/named.run"
 
 
+def test_kasp_special_characters(servers):
+    server = servers["ns3"]
+
+    # A zone with special characters.
+    isctest.log.info("check special characters")
+
+    zone = r'i-am.":\;?&[]\@!\$*+,|=\.\(\)special.kasp'
+    # It is non-trivial to adapt the tests to deal with all possible different
+    # escaping characters, so we will just try to verify the zone.
+    isctest.kasp.check_dnssec_verify(server, zone)
+
+
+def test_kasp_insecure(servers):
+    server = servers["ns3"]
+
+    # Insecure zones.
+    isctest.log.info("check insecure zones")
+
+    zone = "insecure.kasp"
+    expected = []
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    isctest.kasp.check_keys(zone, keys, expected)
+    isctest.kasp.check_dnssecstatus(server, zone, keys, policy="insecure")
+    isctest.kasp.check_apex(server, zone, keys, [])
+    isctest.kasp.check_subdomain(server, zone, keys, [])
+
+    zone = "unsigned.kasp"
+    expected = []
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    isctest.kasp.check_keys(zone, keys, expected)
+    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=None)
+    isctest.kasp.check_apex(server, zone, keys, [])
+    isctest.kasp.check_subdomain(server, zone, keys, [])
+    # Make sure the zone file is untouched.
+    isctest.check.file_contents_equal(f"ns3/{zone}.db.infile", f"ns3/{zone}.db")
+
+
+def test_kasp_bad_maxzonettl(servers):
+    server = servers["ns3"]
+
+    # check that max-zone-ttl rejects zones with too high TTL.
+    isctest.log.info("check max-zone-ttl rejects zones with too high TTL")
+    zone = "max-zone-ttl.kasp"
+    assert f"loading from master file {zone}.db failed: out of range" in server.log
+
+
 def test_kasp_dnssec_keygen():
     def keygen(zone, policy, keydir=None):
         if keydir is None:

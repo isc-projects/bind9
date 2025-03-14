@@ -971,16 +971,13 @@ def check_apex(server, zone, ksks, zsks, tsig=None):
 
     # test dnskey query
     dnskeys, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.DNSKEY, tsig=tsig)
-    assert len(dnskeys) > 0
     check_dnskeys(dnskeys, ksks, zsks)
-    assert len(rrsigs) > 0
     check_signatures(rrsigs, dns.rdatatype.DNSKEY, fqdn, ksks, zsks)
 
     # test soa query
     soa, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.SOA, tsig=tsig)
     assert len(soa) == 1
     assert f"{zone}. {DEFAULT_TTL} IN SOA" in soa[0].to_text()
-    assert len(rrsigs) > 0
     check_signatures(rrsigs, dns.rdatatype.SOA, fqdn, ksks, zsks)
 
     # test cdnskey query
@@ -1016,7 +1013,6 @@ def check_subdomain(server, zone, ksks, zsks, tsig=None):
         else:
             assert match in rrset.to_text()
 
-    assert len(rrsigs) > 0
     check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
 
 
