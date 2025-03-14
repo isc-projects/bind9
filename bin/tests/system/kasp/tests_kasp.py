@@ -174,6 +174,9 @@ def test_kasp_cases(servers):
         zone = test["zone"]
         policy = test["policy"]
         ttl = int(test["config"]["dnskey-ttl"].total_seconds())
+        pregenerated = False
+        if test.get("pregenerated"):
+            pregenerated = test["pregenerated"]
 
         isctest.log.info(f"check test case zone {zone} policy {policy}")
 
@@ -182,7 +185,9 @@ def test_kasp_cases(servers):
             ttl=ttl, keys=test["key-properties"]
         )
         # Key files.
-        keys = isctest.kasp.keydir_to_keylist(zone, test["config"]["key-directory"])
+        keys = isctest.kasp.keydir_to_keylist(
+            zone, test["config"]["key-directory"], in_use=pregenerated
+        )
         ksks = [k for k in keys if k.is_ksk()]
         zsks = [k for k in keys if not k.is_ksk()]
 
@@ -192,7 +197,9 @@ def test_kasp_cases(servers):
         offset = test["offset"] if "offset" in test else None
 
         for kp in expected:
-            kp.set_expected_keytimes(test["config"], offset=offset)
+            kp.set_expected_keytimes(
+                test["config"], offset=offset, pregenerated=pregenerated
+            )
 
         isctest.kasp.check_keytimes(keys, expected)
 
@@ -249,6 +256,13 @@ def test_kasp_cases(servers):
             "key-properties": fips_properties(8),
         },
         {
+            "zone": "pregenerated.kasp",
+            "policy": "rsasha256",
+            "config": kasp_config,
+            "pregenerated": True,
+            "key-properties": fips_properties(8),
+        },
+        {
             "zone": "rsasha256.kasp",
             "policy": "rsasha256",
             "config": kasp_config,
@@ -259,6 +273,13 @@ def test_kasp_cases(servers):
             "policy": "rsasha512",
             "config": kasp_config,
             "key-properties": fips_properties(10),
+        },
+        {
+            "zone": "some-keys.kasp",
+            "policy": "rsasha256",
+            "config": kasp_config,
+            "pregenerated": True,
+            "key-properties": fips_properties(8),
         },
         {
             "zone": "unlimited.kasp",
