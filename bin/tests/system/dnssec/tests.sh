@@ -1544,6 +1544,18 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_ic "revoked KSK ID collides with ZSK ($n)"
+ret=0
+# signing should fail, but should not coredump
+(
+  cd signer/general || exit 0
+  rm -f signed.zone
+  $SIGNER -S -f signed.zone -o . test12.zone >signer.out.$n
+) && ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_ic "check that dnssec-signzone rejects excessive NSEC3 iterations ($n)"
 ret=0
 (
