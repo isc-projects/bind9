@@ -11,10 +11,12 @@
 
 import os
 import shutil
+import time
 
 from datetime import timedelta
 
 import dns
+import dns.update
 import pytest
 
 import isctest
@@ -179,6 +181,161 @@ def test_kasp_default(servers):
     isctest.kasp.check_keys(zone, keys, expected)
     isctest.kasp.check_keytimes(keys, expected)
     check_all(server, zone, policy, keys, [])
+
+    # A zone that uses inline-signing.
+    isctest.log.info("check an inline-signed zone with the default policy is signed")
+    zone = "inline-signing.kasp"
+    # Key properties.
+    key1 = KeyProperties.default()
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    expected = [key1]
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    set_keytimes_default_policy(key1)
+    isctest.kasp.check_keytimes(keys, expected)
+    check_all(server, zone, policy, keys, [])
+
+
+def test_kasp_dynamic(servers):
+    # Dynamic update test cases.
+    server = servers["ns3"]
+
+    # Standard dynamic zone.
+    isctest.log.info("check dynamic zone is updated and signed after update")
+    zone = "dynamic.kasp"
+    policy = "default"
+    # Key properties.
+    key1 = KeyProperties.default()
+    expected = [key1]
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    set_keytimes_default_policy(key1)
+    expected = [key1]
+    isctest.kasp.check_keytimes(keys, expected)
+    check_all(server, zone, policy, keys, [])
+
+    # Update zone with nsupdate.
+    def nsupdate(updates):
+        message = dns.update.UpdateMessage(zone)
+        for update in updates:
+            if update[0] == "del":
+                message.delete(update[1], update[2], update[3])
+            else:
+                assert update[0] == "add"
+                message.add(update[1], update[2], update[3], update[4])
+
+        try:
+            response = isctest.query.udp(
+                message, server.ip, server.ports.dns, timeout=3
+            )
+            assert response.rcode() == dns.rcode.NOERROR
+        except dns.exception.Timeout:
+            assert False, f"update timeout for {zone}"
+
+        isctest.log.debug(f"update of zone {zone} to server {server.ip} successful")
+
+    def update_is_signed():
+        parts = update.split()
+        qname = parts[0]
+        qtype = dns.rdatatype.from_text(parts[1])
+        rdata = parts[2]
+        return isctest.kasp.verify_update_is_signed(
+            server, zone, qname, qtype, rdata, keys, []
+        )
+
+    updates = [
+        ["del", f"a.{zone}.", "A", "10.0.0.1"],
+        ["add", f"a.{zone}.", 300, "A", "10.0.0.101"],
+        ["add", f"d.{zone}.", 300, "A", "10.0.0.4"],
+    ]
+    nsupdate(updates)
+
+    expected_updates = [f"a.{zone}. A 10.0.0.101", f"d.{zone}. A 10.0.0.4"]
+    for update in expected_updates:
+        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+
+    # Update zone with nsupdate (reverting the above change).
+    updates = [
+        ["add", f"a.{zone}.", 300, "A", "10.0.0.1"],
+        ["del", f"a.{zone}.", "A", "10.0.0.101"],
+        ["del", f"d.{zone}.", "A", "10.0.0.4"],
+    ]
+    nsupdate(updates)
+
+    update = f"a.{zone}. A 10.0.0.1"
+    isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+
+    # Update zone with freeze/thaw.
+    isctest.log.info("check dynamic zone is updated and signed after freeze and thaw")
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"freeze {zone}", log=False)
+        watcher.wait_for_line(f"freezing zone '{zone}/IN': success")
+
+    time.sleep(1)
+    with open(f"ns3/{zone}.db", "a", encoding="utf-8") as zonefile:
+        zonefile.write(f"d.{zone}. 300 A 10.0.0.44\n")
+    time.sleep(1)
+
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"thaw {zone}", log=False)
+        watcher.wait_for_line(f"thawing zone '{zone}/IN': success")
+
+    expected_updates = [f"a.{zone}. A 10.0.0.1", f"d.{zone}. A 10.0.0.44"]
+
+    for update in expected_updates:
+        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+
+    # Dynamic, and inline-signing.
+    zone = "dynamic-inline-signing.kasp"
+    # Key properties.
+    key1 = KeyProperties.default()
+    expected = [key1]
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    set_keytimes_default_policy(key1)
+    expected = [key1]
+    isctest.kasp.check_keytimes(keys, expected)
+    check_all(server, zone, policy, keys, [])
+
+    # Update zone with freeze/thaw.
+    isctest.log.info(
+        "check dynamic inline-signed zone is updated and signed after freeze and thaw"
+    )
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"freeze {zone}", log=False)
+        watcher.wait_for_line(f"freezing zone '{zone}/IN': success")
+
+    time.sleep(1)
+    shutil.copyfile("ns3/template2.db.in", f"ns3/{zone}.db")
+    time.sleep(1)
+
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"thaw {zone}", log=False)
+        watcher.wait_for_line(f"thawing zone '{zone}/IN': success")
+
+    expected_updates = [f"a.{zone}. A 10.0.0.11", f"d.{zone}. A 10.0.0.44"]
+    for update in expected_updates:
+        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+
+    # Dynamic, signed, and inline-signing.
+    isctest.log.info("check dynamic signed, and inline-signed zone")
+    zone = "dynamic-signed-inline-signing.kasp"
+    # Key properties.
+    key1 = KeyProperties.default()
+    # The ns3/setup.sh script sets all states to omnipresent.
+    key1.metadata["DNSKEYState"] = "omnipresent"
+    key1.metadata["KRRSIGState"] = "omnipresent"
+    key1.metadata["ZRRSIGState"] = "omnipresent"
+    key1.metadata["DSState"] = "omnipresent"
+    expected = [key1]
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3/keys")
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    check_all(server, zone, policy, keys, [])
+    # Ensure no zone_resigninc for the unsigned version of the zone is triggered.
+    assert f"zone_resigninc: zone {zone}/IN (unsigned): enter" not in "ns3/named.run"
 
 
 def test_kasp_dnssec_keygen():
