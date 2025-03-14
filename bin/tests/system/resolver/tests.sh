@@ -729,10 +729,10 @@ if ${FEATURETEST} --enable-querytrace; then
   grep "status: SERVFAIL" dig.ns5.out.${n} >/dev/null || ret=1
   check_namedrun() {
     nextpartpeek ns5/named.run >nextpart.out.${n}
-    grep 'resolving tcpalso.no-questions/A for [^:]*: empty question section, accepting it anyway as TC=1' nextpart.out.${n} >/dev/null || return 1
-    grep '(tcpalso.no-questions/A): connecting via TCP' nextpart.out.${n} >/dev/null || return 1
-    grep 'resolving tcpalso.no-questions/A for [^:]*: empty question section$' nextpart.out.${n} >/dev/null || return 1
-    grep '(tcpalso.no-questions/A): nextitem' nextpart.out.${n} >/dev/null || return 1
+    grep 'resolving tcpalso.no-questions/NS for [^:]*: empty question section, accepting it anyway as TC=1' nextpart.out.${n} >/dev/null || return 1
+    grep '(tcpalso.no-questions/NS): connecting via TCP' nextpart.out.${n} >/dev/null || return 1
+    grep 'resolving tcpalso.no-questions/NS for [^:]*: empty question section$' nextpart.out.${n} >/dev/null || return 1
+    grep '(tcpalso.no-questions/NS): nextitem' nextpart.out.${n} >/dev/null || return 1
     return 0
   }
   retry_quiet 12 check_namedrun || ret=1

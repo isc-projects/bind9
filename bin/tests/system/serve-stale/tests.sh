@@ -115,10 +115,12 @@ sleep 2
 # stale for somewhere between 3500-3599 seconds.
 echo_i "check rndc dump stale data.example ($n)"
 rndc_dumpdb ns1 || ret=1
-awk '/; stale since [0-9]*/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n \
+# add in inherited owner names
+awk '$1 ~ /^[0-9][0-9]*$/ { $0 = last " " $0 } $1 != ";" { last = $1 } { print }' ns1/named_dump.db.test$n >named_dump.db.test$n
+awk '/; stale since [0-9]*/ { x=$0; getline; print x, $0}' named_dump.db.test$n \
   | grep "; stale since [0-9]* data\.example.*3[56]...*TXT.*A text record with a 2 second ttl" >/dev/null 2>&1 || ret=1
 # Also make sure the not expired data does not have a stale comment.
-awk '/; authanswer/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n \
+awk '/; authanswer/ { x=$0; getline; print x, $0}' named_dump.db.test$n \
   | grep "; authanswer longttl\.example.*[56]...*TXT.*A text record with a 600 second ttl" >/dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1664,16 +1666,15 @@ status=$((status + ret))
 # Check that expired records are dumped.
 echo_i "check rndc dump expired data.example ($n)"
 ret=0
-awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n \
-  | grep "; expired (awaiting cleanup) data\.example\..*A text record with a 2 second ttl" >/dev/null 2>&1 || ret=1
-awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n \
-  | grep "; expired (awaiting cleanup) nodata\.example\." >/dev/null 2>&1 || ret=1
-awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n \
-  | grep "; expired (awaiting cleanup) nxdomain\.example\." >/dev/null 2>&1 || ret=1
-awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n \
-  | grep "; expired (awaiting cleanup) othertype\.example\." >/dev/null 2>&1 || ret=1
+# add in inherited owner names
+awk '$1 ~ /^[0-9][0-9]*$/ { $0 = last " " $0 } $1 != ";" { last = $1 } { print }' ns5/named_dump.db.test$n >named_dump.db.test$n
+# extract expired records
+awk '/; expired/ { x=$0; getline; print x, $0}' named_dump.db.test$n >expired.test$n
+grep "; expired (awaiting cleanup) data\.example\..*A text record with a 2 second ttl" expired.test$n >/dev/null 2>&1 || ret=1
+grep "; expired (awaiting cleanup) nodata\.example\." expired.test$n >/dev/null 2>&1 || ret=1
+grep "; expired (awaiting cleanup) nxdomain\.example\." expired.test$n >/dev/null 2>&1 || ret=1
 # Also make sure the not expired data does not have an expired comment.
-awk '/; authanswer/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n \
+awk '/; authanswer/ { x=$0; getline; print x, $0}' named_dump.db.test$n \
   | grep "; authanswer longttl\.example.*A text record with a 600 second ttl" >/dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

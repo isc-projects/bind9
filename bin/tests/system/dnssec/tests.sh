@@ -2179,7 +2179,7 @@ echo_i "checking RRSIG query from cache ($n)"
 ret=0
 dig_with_opts normalthenrrsig.secure.example. @10.53.0.4 a >/dev/null || ret=1
 ans=$(dig_with_opts +short normalthenrrsig.secure.example. @10.53.0.4 rrsig) || ret=1
-expect=$(dig_with_opts +short normalthenrrsig.secure.example. @10.53.0.3 rrsig | grep '^A') || ret=1
+expect=$(dig_with_opts +short normalthenrrsig.secure.example. @10.53.0.3 rrsig | grep '^\(A\|NSEC\)') || ret=1
 test "$ans" = "$expect" || ret=1
 # also check that RA is set
 dig_with_opts normalthenrrsig.secure.example. @10.53.0.4 rrsig >dig.out.ns4.test$n || ret=1
@@ -3768,7 +3768,7 @@ status=$((status + ret))
 echo_i "checking EDE code 1 for bad alg mnemonic ($n)"
 ret=0
 dig_with_opts @10.53.0.4 badalg.secure.example >dig.out.ns4.test$n || ret=1
-grep "; EDE: 1 (Unsupported DNSKEY Algorithm): (ECDSAP256SHA256 badalg.secure.example/A)" dig.out.ns4.test$n >/dev/null || ret=1
+grep "; EDE: 1 (Unsupported DNSKEY Algorithm): (ECDSAP256SHA256 badalg.secure.example/NSEC)" dig.out.ns4.test$n >/dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"

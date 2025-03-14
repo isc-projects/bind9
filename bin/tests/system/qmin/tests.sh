@@ -127,12 +127,14 @@ ADDR a.bit.longer.ns.name.good.
 ADDR ns2.good.
 ADDR ns3.good.
 ADDR ns3.good.
+NS a.bit.longer.ns.name.good.
 NS bit.longer.ns.name.good.
 NS boing.good.
 NS good.
 NS longer.ns.name.good.
 NS name.good.
 NS ns.name.good.
+NS ns3.good.
 NS zoop.boing.good.
 __EOF
 cat <<__EOF | diff ans3/query.log - >/dev/null || ret=1
@@ -165,11 +167,13 @@ ADDR a.bit.longer.ns.name.good.
 ADDR ns2.good.
 ADDR ns3.good.
 ADDR ns3.good.
+NS a.bit.longer.ns.name.good.
 NS bit.longer.ns.name.good.
 NS boing.good.
 NS longer.ns.name.good.
 NS name.good.
 NS ns.name.good.
+NS ns3.good.
 NS zoop.boing.good.
 __EOF
 cat <<__EOF | diff ans3/query.log - >/dev/null || ret=1
@@ -221,6 +225,7 @@ ADDR ns3.bad.
 ADDR ns3.bad.
 NS boing.bad.
 NS name.bad.
+NS ns3.bad.
 __EOF
 cat <<__EOF | diff ans3/query.log - >/dev/null || ret=1
 ADDR icky.icky.icky.ptang.zoop.boing.bad.
@@ -271,6 +276,7 @@ ADDR ns3.ugly.
 NS boing.ugly.
 NS name.ugly.
 NS name.ugly.
+NS ns3.ugly.
 __EOF
 echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans3/query.log - >/dev/null || ret=1
 echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans4/query.log - >/dev/null || ret=1
@@ -302,11 +308,13 @@ ADDR a.bit.longer.ns.name.slow.
 ADDR ns2.slow.
 ADDR ns3.slow.
 ADDR ns3.slow.
+NS a.bit.longer.ns.name.slow.
 NS bit.longer.ns.name.slow.
 NS boing.slow.
 NS longer.ns.name.slow.
 NS name.slow.
 NS ns.name.slow.
+NS ns3.slow.
 NS slow.
 NS zoop.boing.slow.
 __EOF
@@ -340,6 +348,7 @@ NS 8.f.4.0.1.0.0.2.ip6.arpa.
 NS 0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
 NS 0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
 NS 0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
+NS 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
 PTR 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
@@ -362,12 +371,14 @@ ADDR a.bit.longer.ns.name.good.
 ADDR ns2.good.
 ADDR ns3.good.
 ADDR ns3.good.
+NS a.bit.longer.ns.name.good.
 NS bit.longer.ns.name.good.
 NS boing.good.
 NS good.
 NS longer.ns.name.good.
 NS name.good.
 NS ns.name.good.
+NS ns3.good.
 NS zoop.boing.good.
 __EOF
 cat <<__EOF | diff ans3/query.log - >/dev/null || ret=1
@@ -449,6 +460,7 @@ grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n >/dev/null || ret=1
 sleep 1
 sort ans2/query.log >ans2/query.log.sorted
 cat <<__EOF | diff ans2/query.log.sorted - >/dev/null || ret=1
+ADDR ns.a.b.stale.
 ADDR ns.b.stale.
 ADDR ns2.stale.
 NS b.stale.
@@ -457,7 +469,9 @@ __EOF
 test -f ans3/query.log && ret=1
 sort ans4/query.log >ans4/query.log.sorted
 cat <<__EOF | diff ans4/query.log.sorted - >/dev/null || ret=1
+ADDR ns.a.b.stale.
 ADDR ns.b.stale.
+NS a.b.stale.
 NS b.stale.
 TXT a.b.stale.
 __EOF
@@ -476,6 +490,7 @@ grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n >/dev/null || ret=1
 sleep 1
 sort ans2/query.log >ans2/query.log.sorted
 cat <<__EOF | diff ans2/query.log.sorted - >/dev/null || ret=1
+ADDR ns.a.b.stale.
 ADDR ns.b.stale.
 ADDR ns2.stale.
 NS b.stale.
@@ -483,7 +498,9 @@ __EOF
 test -f ans3/query.log && ret=1
 sort ans4/query.log >ans4/query.log.sorted
 cat <<__EOF | diff ans4/query.log.sorted - >/dev/null || ret=1
+ADDR ns.a.b.stale.
 ADDR ns.b.stale.
+NS a.b.stale.
 TXT a.b.stale.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
@@ -519,6 +536,7 @@ grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n >/dev/null || ret=1
 sleep 1
 sort ans2/query.log >ans2/query.log.sorted
 cat <<__EOF | diff ans2/query.log.sorted - >/dev/null || ret=1
+ADDR ns.a.b.stale.
 ADDR ns.b.stale.
 ADDR ns2.stale.
 NS b.stale.
@@ -527,7 +545,9 @@ __EOF
 test -f ans3/query.log && ret=1
 sort ans4/query.log >ans4/query.log.sorted
 cat <<__EOF | diff ans4/query.log.sorted - >/dev/null || ret=1
+ADDR ns.a.b.stale.
 ADDR ns.b.stale.
+NS a.b.stale.
 NS b.stale.
 TXT a.b.stale.
 __EOF
@@ -546,6 +566,7 @@ grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n >/dev/null || ret=1
 sleep 1
 sort ans2/query.log >ans2/query.log.sorted
 cat <<__EOF | diff ans2/query.log.sorted - >/dev/null || ret=1
+ADDR ns.a.b.stale.
 ADDR ns.b.stale.
 ADDR ns2.stale.
 NS b.stale.
@@ -553,7 +574,9 @@ __EOF
 test -f ans3/query.log && ret=1
 sort ans4/query.log >ans4/query.log.sorted
 cat <<__EOF | diff ans4/query.log.sorted - >/dev/null || ret=1
+ADDR ns.a.b.stale.
 ADDR ns.b.stale.
+NS a.b.stale.
 TXT a.b.stale.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
