@@ -41,5 +41,5 @@ think you have found a bug in any ISC software, we encourage you to
 in our Release Notes.
 
 [1]: https://kb.isc.org/docs/aa-00861
-[2]: https://gitlab.isc.org/isc-projects/bind9/-/issues/new?description_template=Security_issue
+[2]: https://gitlab.isc.org/isc-projects/bind9/-/issues/new?issue[confidential]=true&issuable_template=Security_issue
 [3]: https://kb.isc.org/docs/aa-00340
