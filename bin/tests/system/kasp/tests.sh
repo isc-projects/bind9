@@ -85,15 +85,6 @@ retry_quiet 30 _wait_for_done_apexnsec || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-# Test max-zone-ttl rejects zones with too high TTL.
-n=$((n + 1))
-echo_i "check that max-zone-ttl rejects zones with too high TTL ($n)"
-ret=0
-set_zone "max-zone-ttl.kasp"
-grep "loading from master file ${ZONE}.db failed: out of range" "ns3/named.run" >/dev/null || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 set_keytimes_csk_policy() {
   # The first key is immediately published and activated.
   created=$(key_get KEY1 CREATED)
@@ -118,16 +109,6 @@ set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
 set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
 set_keystate "KEY1" "STATE_DS" "hidden"
-
-#
-# A zone with special characters.
-#
-set_zone "i-am.\":\;?&[]\@!\$*+,|=\.\(\)special.kasp."
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
-# It is non-trivial to adapt the tests to deal with all possible different
-# escaping characters, so we will just try to verify the zone.
-dnssec_verify
 
 #
 # Zone: checkds-ksk.kasp.
@@ -475,52 +456,15 @@ if [ $RSASHA1_SUPPORTED = 1 ]; then
 fi
 
 #
-# Zone: unsigned.kasp.
-#
-set_zone "unsigned.kasp"
-set_policy "none" "0" "0"
-set_server "ns3" "10.53.0.3"
-
-key_clear "KEY1"
-key_clear "KEY2"
-key_clear "KEY3"
-key_clear "KEY4"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-check_apex
-check_subdomain
-# Make sure the zone file is untouched.
-n=$((n + 1))
-echo_i "Make sure the zonefile for zone ${ZONE} is not edited ($n)"
-ret=0
-diff "${DIR}/${ZONE}.db.infile" "${DIR}/${ZONE}.db" || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-#
-# Zone: insecure.kasp.
-#
-set_zone "insecure.kasp"
-set_policy "insecure" "0" "0"
-set_server "ns3" "10.53.0.3"
-
-key_clear "KEY1"
-key_clear "KEY2"
-key_clear "KEY3"
-key_clear "KEY4"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-check_apex
-check_subdomain
-
-#
 # Zone: unlimited.kasp.
 #
 set_zone "unlimited.kasp"
 set_policy "unlimited" "1" "1234"
 set_server "ns3" "10.53.0.3"
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
 # Key properties.
 set_keyrole "KEY1" "csk"
 set_keylifetime "KEY1" "0"
