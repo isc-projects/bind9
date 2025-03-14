@@ -16,6 +16,6 @@
 
 set -e
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone ".")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" ".")
 
 keyfile_to_static_ds "$keyname" >trusted.conf

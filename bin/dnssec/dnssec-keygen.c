@@ -82,7 +82,6 @@ struct keygen_ctx {
 	const char *directory;
 	dns_keystore_t *keystore;
 	char *algname;
-	char *nametype;
 	int protocol;
 	int size;
 	uint16_t tag_min;
@@ -167,9 +166,6 @@ usage(void) {
 	fprintf(stderr, "        ED448:\tignored\n");
 	fprintf(stderr, "        (key size defaults are set according to\n"
 			"        algorithm and usage (ZSK or KSK)\n");
-	fprintf(stderr, "    -n <nametype>: ZONE | HOST | ENTITY | "
-			"USER | OTHER\n");
-	fprintf(stderr, "        (DNSKEY generation defaults to ZONE)\n");
 	fprintf(stderr, "    -c <class>: (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
 	fprintf(stderr, "    -f <keyflag>: ZSK | KSK | REVOKE\n");
@@ -381,9 +377,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		if (ctx->size >= 0) {
 			fatal("-S and -b cannot be used together");
 		}
-		if (ctx->nametype != NULL) {
-			fatal("-S and -n cannot be used together");
-		}
 		if (ctx->setpub || ctx->unsetpub) {
 			fatal("-S and -P cannot be used together");
 		}
@@ -497,25 +490,10 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		break;
 	}
 
-	if (ctx->nametype == NULL) {
-		if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
-			fatal("no nametype specified");
-		}
-		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY */
-	} else if (strcasecmp(ctx->nametype, "zone") == 0) {
-		flags |= DNS_KEYOWNER_ZONE;
-	} else if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
-		if (strcasecmp(ctx->nametype, "host") == 0 ||
-		    strcasecmp(ctx->nametype, "entity") == 0)
-		{
-			flags |= DNS_KEYOWNER_ENTITY;
-		} else if (strcasecmp(ctx->nametype, "user") == 0) {
-			/* no owner flags */
-		} else {
-			fatal("invalid KEY nametype %s", ctx->nametype);
-		}
-	} else if (strcasecmp(ctx->nametype, "other") != 0) { /* DNSKEY */
-		fatal("invalid DNSKEY nametype %s", ctx->nametype);
+	if ((ctx->options & DST_TYPE_KEY) == 0) {
+		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY: name type ZONE */
+	} else {
+		flags |= DNS_KEYOWNER_ENTITY; /* KEY: name type HOST */
 	}
 
 	if (ctx->directory == NULL) {
@@ -916,7 +894,7 @@ main(int argc, char **argv) {
 			ctx.configfile = isc_commandline_argument;
 			break;
 		case 'n':
-			ctx.nametype = isc_commandline_argument;
+			fatal("The -n option has been deprecated.");
 			break;
 		case 'M': {
 			unsigned long ul;
@@ -1137,9 +1115,6 @@ main(int argc, char **argv) {
 	}
 
 	if (ctx.policy != NULL) {
-		if (ctx.nametype != NULL) {
-			fatal("-k and -n cannot be used together");
-		}
 		if (ctx.predecessor != NULL) {
 			fatal("-k and -S cannot be used together");
 		}
@@ -1158,7 +1133,7 @@ main(int argc, char **argv) {
 		if (ctx.wantrev) {
 			fatal("-k and -fR cannot be used together");
 		}
-		if (ctx.options & DST_TYPE_KEY) {
+		if ((ctx.options & DST_TYPE_KEY) != 0) {
 			fatal("-k and -T KEY cannot be used together");
 		}
 		if (ctx.use_nsec3) {

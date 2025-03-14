@@ -20,10 +20,10 @@ zone2=bad
 infile2=bad.db.in
 zonefile2=bad.db
 
-keyname11=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone1)
-keyname12=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone -f KSK $zone1)
-keyname21=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone2)
-keyname22=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone -f KSK $zone2)
+keyname11=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone1)
+keyname12=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK $zone1)
+keyname21=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone2)
+keyname22=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK $zone2)
 
 cat $infile1 $keyname11.key $keyname12.key >$zonefile1
 cat $infile2 $keyname21.key $keyname22.key >$zonefile2

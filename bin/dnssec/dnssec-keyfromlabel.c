@@ -73,8 +73,6 @@ usage(void) {
 	fprintf(stderr, "    -k: generate a TYPE=KEY key\n");
 	fprintf(stderr, "    -L ttl: default key TTL\n");
 	fprintf(stderr, "    -M <min>:<max>: allowed Key ID range\n");
-	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | "
-			"OTHER\n");
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
 	fprintf(stderr, "    -p protocol: default: 3 [dnssec]\n");
 	fprintf(stderr, "    -y: permit keys that might collide\n");
@@ -108,7 +106,6 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	char *algname = NULL, *freeit = NULL;
-	char *nametype = NULL;
 	const char *directory = NULL;
 	const char *predecessor = NULL;
 	dst_key_t *prevkey = NULL;
@@ -122,7 +119,7 @@ main(int argc, char **argv) {
 	bool oldstyle = false;
 	isc_mem_t *mctx = NULL;
 	int ch;
-	int protocol = -1, signatory = 0;
+	int protocol = -1;
 	isc_result_t ret;
 	isc_textregion_t r;
 	char filename[255];
@@ -220,7 +217,7 @@ main(int argc, char **argv) {
 			break;
 		}
 		case 'n':
-			nametype = isc_commandline_argument;
+			fatal("The -n option has been deprecated.");
 			break;
 		case 'p':
 			protocol = strtol(isc_commandline_argument, &endp, 10);
@@ -449,9 +446,6 @@ main(int argc, char **argv) {
 		if (algname != NULL) {
 			fatal("-S and -a cannot be used together");
 		}
-		if (nametype != NULL) {
-			fatal("-S and -n cannot be used together");
-		}
 		if (setpub || unsetpub) {
 			fatal("-S and -P cannot be used together");
 		}
@@ -533,38 +527,18 @@ main(int argc, char **argv) {
 		setpub = setact = true;
 	}
 
-	if (nametype == NULL) {
-		if ((options & DST_TYPE_KEY) != 0) { /* KEY */
-			fatal("no nametype specified");
-		}
-		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY */
-	} else if (strcasecmp(nametype, "zone") == 0) {
-		flags |= DNS_KEYOWNER_ZONE;
-	} else if ((options & DST_TYPE_KEY) != 0) { /* KEY */
-		if (strcasecmp(nametype, "host") == 0 ||
-		    strcasecmp(nametype, "entity") == 0)
-		{
-			flags |= DNS_KEYOWNER_ENTITY;
-		} else if (strcasecmp(nametype, "user") == 0) {
-			/* no owner flags */
-		} else {
-			fatal("invalid KEY nametype %s", nametype);
-		}
-	} else if (strcasecmp(nametype, "other") != 0) { /* DNSKEY */
-		fatal("invalid DNSKEY nametype %s", nametype);
-	}
-
 	rdclass = strtoclass(classname);
 
 	if (directory == NULL) {
 		directory = ".";
 	}
 
-	if ((options & DST_TYPE_KEY) != 0) { /* KEY */
-		flags |= signatory;
-	} else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
+	if ((options & DST_TYPE_KEY) == 0) {
+		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY: name type ZONE */
 		flags |= kskflag;
 		flags |= revflag;
+	} else {
+		flags |= DNS_KEYOWNER_ENTITY; /* KEY: name type HOST */
 	}
 
 	if (protocol == -1) {

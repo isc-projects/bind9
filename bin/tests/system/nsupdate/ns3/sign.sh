@@ -17,8 +17,8 @@ zone=nsec3param.test.
 infile=nsec3param.test.db.in
 zonefile=nsec3param.test.db
 
-keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone -f KSK $zone)
-keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
+keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK $zone)
+keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -28,8 +28,8 @@ zone=dnskey.test.
 infile=dnskey.test.db.in
 zonefile=dnskey.test.db
 
-keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone -f KSK $zone)
-keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
+keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK $zone)
+keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 

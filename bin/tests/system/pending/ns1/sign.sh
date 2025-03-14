@@ -22,8 +22,8 @@ zonefile=root.db
 cp ../ns2/dsset-example. .
 cp ../ns2/dsset-example.com. .
 
-keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
-keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK -n zone $zone)
+keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
+keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK $zone)
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -g -o $zone $zonefile >/dev/null

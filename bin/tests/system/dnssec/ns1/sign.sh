@@ -38,8 +38,8 @@ cp "../ns2/dsset-inconsistent." .
 grep "$DEFAULT_ALGORITHM_NUMBER [12] " "../ns2/dsset-algroll." >"dsset-algroll."
 cp "../ns6/dsset-optout-tld." .
 
-ksk=$("$KEYGEN" -q -fk -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
-zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+ksk=$("$KEYGEN" -q -fk -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
 

@@ -17,7 +17,7 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
-keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
+keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
 keyid=$(expr ${keyname} : 'K.+[0-9][0-9][0-9]+\(.*\)')
 
 (cd ../ns2 && $SHELL sign.sh ${keyid:-00000})

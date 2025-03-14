@@ -18,7 +18,7 @@ zone=example
 infile=example.db.in
 zonefile=example.db
 
-keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
+keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
 cat "$infile" "$keyname.key" >"$zonefile"
 echo insecure NS ns1.insecure >>"$zonefile"
 echo ns1.insecure A 10.53.0.1 >>"$zonefile"
@@ -29,7 +29,7 @@ zone=insecure.example
 infile=example.db.in
 zonefile=insecure.example.db
 
-keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
+keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
 cat "$infile" "$keyname.key" >"$zonefile"
 
 $SIGNER -P -o $zone $zonefile >/dev/null
@@ -38,7 +38,7 @@ zone=dnamed
 infile=dnamed.db.in
 zonefile=dnamed.db
 
-keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
+keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
 cat "$infile" "$keyname.key" >"$zonefile"
 
 $SIGNER -P -o $zone $zonefile >/dev/null
@@ -47,7 +47,7 @@ zone=minimal
 infile=minimal.db.in
 zonefile=minimal.db
 
-keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
+keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
 cat "$infile" "$keyname.key" >"$zonefile"
 
 # do not regenerate NSEC chain as there in a minimal NSEC record present
@@ -57,7 +57,7 @@ zone=soa-without-dnskey
 infile=soa-without-dnskey.db.in
 zonefile=soa-without-dnskey.db
 
-keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
+keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
 cat "$infile" "$keyname.key" >"$zonefile"
 
 # do not regenerate NSEC chain as there in a minimal NSEC record present
@@ -67,7 +67,7 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
-keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -n zone $zone)
+keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} $zone)
 cat "$infile" "$keyname.key" >"$zonefile"
 
 $SIGNER -P -g -o $zone $zonefile >/dev/null

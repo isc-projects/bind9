@@ -21,7 +21,7 @@ dnssec-keygen: DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-M** tag_min:tag_max] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-V**] [**-v** level] {name}
+:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-M** tag_min:tag_max] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-V**] [**-v** level] {name}
 
 Description
 ~~~~~~~~~~~
@@ -162,14 +162,6 @@ Options
    for ``tag_min`` and ``tag_max`` are [0..65535].  The default allows all
    key tag values to be produced.  This option is ignored when ``-k policy``
    is specified.
-
-.. option:: -n nametype
-
-   This option specifies the owner type of the key. The value of ``nametype`` must
-   either be ZONE (for a DNSSEC zone key (KEY/DNSKEY)), HOST or ENTITY
-   (for a key associated with a host (KEY)), USER (for a key associated
-   with a user (KEY)), or OTHER (DNSKEY). These values are
-   case-insensitive. The default is ZONE for DNSKEY generation.
 
 .. option:: -p protocol
 

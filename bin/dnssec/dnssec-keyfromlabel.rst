@@ -21,7 +21,7 @@ dnssec-keyfromlabel - DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keyfromlabel` {**-l** label} [**-3**] [**-a** algorithm] [**-A** date/offset] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-f** flag] [**-G**] [**-I** date/offset] [**-i** interval] [**-k**] [**-K** directory] [**-L** ttl] [**-M** tag_min:tag_max] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-R** date/offset] [**-S** key] [**-v** level] [**-V**] [**-y**] {name}
+:program:`dnssec-keyfromlabel` {**-l** label} [**-3**] [**-a** algorithm] [**-A** date/offset] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-f** flag] [**-G**] [**-I** date/offset] [**-i** interval] [**-k**] [**-K** directory] [**-L** ttl] [**-M** tag_min:tag_max] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-R** date/offset] [**-S** key] [**-v** level] [**-V**] [**-y**] {name}
 
 Description
 ~~~~~~~~~~~
@@ -69,14 +69,6 @@ Options
 
    When BIND 9 is built with OpenSSL-based PKCS#11 support, the label is
    an arbitrary string that identifies a particular key.
-
-.. option:: -n nametype
-
-   This option specifies the owner type of the key. The value of ``nametype`` must
-   either be ZONE (for a DNSSEC zone key (KEY/DNSKEY)), HOST or ENTITY
-   (for a key associated with a host (KEY)), USER (for a key associated
-   with a user (KEY)), or OTHER (DNSKEY). These values are
-   case-insensitive.
 
 .. option:: -C
 

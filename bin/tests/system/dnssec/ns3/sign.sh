@@ -24,7 +24,7 @@ for tld in managed trusted; do
   zone=secure.${tld}
   zonefile=${zone}.db
 
-  keyname1=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+  keyname1=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
   cat "$infile" "$keyname1.key" >"$zonefile"
   "$SIGNER" -z -P -3 - -o "$zone" -O full -f ${zonefile}.signed "$zonefile" >/dev/null
 
@@ -32,7 +32,7 @@ for tld in managed trusted; do
   zone=disabled.${tld}
   zonefile=${zone}.db
 
-  keyname2=$("$KEYGEN" -f KSK -q -a "$DISABLED_ALGORITHM" -b "$DISABLED_BITS" -n zone "$zone")
+  keyname2=$("$KEYGEN" -f KSK -q -a "$DISABLED_ALGORITHM" -b "$DISABLED_BITS" "$zone")
   cat "$infile" "$keyname2.key" >"$zonefile"
   "$SIGNER" -z -P -3 - -o "$zone" -O full -f ${zonefile}.signed "$zonefile" >/dev/null
 
@@ -40,7 +40,7 @@ for tld in managed trusted; do
   zone=enabled.${tld}
   zonefile=${zone}.db
 
-  keyname3=$("$KEYGEN" -f KSK -q -a "$DISABLED_ALGORITHM" -b "$DISABLED_BITS" -n zone "$zone")
+  keyname3=$("$KEYGEN" -f KSK -q -a "$DISABLED_ALGORITHM" -b "$DISABLED_BITS" "$zone")
   cat "$infile" "$keyname3.key" >"$zonefile"
   "$SIGNER" -z -P -3 - -o "$zone" -O full -f ${zonefile}.signed "$zonefile" >/dev/null
 
@@ -48,7 +48,7 @@ for tld in managed trusted; do
   zone=unsupported.${tld}
   zonefile=${zone}.db
 
-  keyname4=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+  keyname4=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
   cat "$infile" "$keyname4.key" >"$zonefile"
   "$SIGNER" -z -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" >/dev/null
   awk '$4 == "DNSKEY" { $7 = 255 } $4 == "RRSIG" { $6 = 255 } { print }' ${zonefile}.tmp >${zonefile}.signed
@@ -61,7 +61,7 @@ for tld in managed trusted; do
   zone=revoked.${tld}
   zonefile=${zone}.db
 
-  keyname5=$("$KEYGEN" -f KSK -f REVOKE -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+  keyname5=$("$KEYGEN" -f KSK -f REVOKE -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
   cat "$infile" "$keyname5.key" >"$zonefile"
   "$SIGNER" -z -P -3 - -o "$zone" -O full -f ${zonefile}.signed "$zonefile" >/dev/null
 
@@ -81,9 +81,9 @@ zone=secure.example.
 infile=secure.example.db.in
 zonefile=secure.example.db
 
-cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "cnameandkey.$zone")
-dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "dnameandkey.$zone")
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "cnameandkey.$zone")
+dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "dnameandkey.$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" >"$zonefile"
 
@@ -95,7 +95,7 @@ zone=bogus.example.
 infile=bogus.example.db.in
 zonefile=bogus.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -105,8 +105,8 @@ zone=dynamic.example.
 infile=dynamic.example.db.in
 zonefile=dynamic.example.db
 
-keyname1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
-keyname2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+keyname1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
+keyname2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 
 cat "$infile" "$keyname1.key" "$keyname2.key" >"$zonefile"
 
@@ -116,7 +116,7 @@ zone=keyless.example.
 infile=generic.example.db.in
 zonefile=keyless.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -137,7 +137,7 @@ zone=secure.nsec3.example.
 infile=secure.nsec3.example.db.in
 zonefile=secure.nsec3.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -150,7 +150,7 @@ zone=nsec3.nsec3.example.
 infile=nsec3.nsec3.example.db.in
 zonefile=nsec3.nsec3.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -163,7 +163,7 @@ zone=optout.nsec3.example.
 infile=optout.nsec3.example.db.in
 zonefile=optout.nsec3.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -176,7 +176,7 @@ zone=nsec3.example.
 infile=nsec3.example.db.in
 zonefile=nsec3.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -189,7 +189,7 @@ zone=secure.optout.example.
 infile=secure.optout.example.db.in
 zonefile=secure.optout.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -202,7 +202,7 @@ zone=nsec3.optout.example.
 infile=nsec3.optout.example.db.in
 zonefile=nsec3.optout.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -215,7 +215,7 @@ zone=optout.optout.example.
 infile=optout.optout.example.db.in
 zonefile=optout.optout.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -228,7 +228,7 @@ zone=optout.example.
 infile=optout.example.db.in
 zonefile=optout.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -241,7 +241,7 @@ zone=nsec3-unknown.example.
 infile=nsec3-unknown.example.db.in
 zonefile=nsec3-unknown.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -254,7 +254,7 @@ zone=optout-unknown.example.
 infile=optout-unknown.example.db.in
 zonefile=optout-unknown.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -268,7 +268,7 @@ zone=dnskey-unknown.example
 infile=dnskey-unknown.example.db.in
 zonefile=dnskey-unknown.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -287,7 +287,7 @@ zone=dnskey-unsupported.example
 infile=dnskey-unsupported.example.db.in
 zonefile=dnskey-unsupported.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -306,10 +306,10 @@ zone=digest-alg-unsupported.example.
 infile=digest-alg-unsupported.example.db.in
 zonefile=digest-alg-unsupported.example.db
 
-cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "cnameandkey.$zone")
-dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "dnameandkey.$zone")
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
-keyname2=$("$KEYGEN" -q -a ECDSAP384SHA384 -b "$DEFAULT_BITS" -n zone "$zone")
+cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "cnameandkey.$zone")
+dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "dnameandkey.$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
+keyname2=$("$KEYGEN" -q -a ECDSAP384SHA384 -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" "$keyname2.key" >"$zonefile"
 
@@ -330,9 +330,9 @@ zone=ds-unsupported.example.
 infile=ds-unsupported.example.db.in
 zonefile=ds-unsupported.example.db
 
-cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "cnameandkey.$zone")
-dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "dnameandkey.$zone")
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "cnameandkey.$zone")
+dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "dnameandkey.$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" >"$zonefile"
 
@@ -348,8 +348,8 @@ zone=dnskey-unsupported-2.example
 infile=dnskey-unsupported-2.example.db.in
 zonefile=dnskey-unsupported-2.example.db
 
-ksk=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
-zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+ksk=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$ksk.key" "$zsk.key" unsupported-algorithm.key >"$zonefile"
 
@@ -363,7 +363,7 @@ zone=dnskey-nsec3-unknown.example
 infile=dnskey-nsec3-unknown.example.db.in
 zonefile=dnskey-nsec3-unknown.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -381,7 +381,7 @@ zone=multiple.example.
 infile=multiple.example.db.in
 zonefile=multiple.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -405,7 +405,7 @@ zone=rsasha256.example.
 infile=rsasha256.example.db.in
 zonefile=rsasha256.example.db
 
-keyname=$("$KEYGEN" -q -a RSASHA256 -n zone "$zone")
+keyname=$("$KEYGEN" -q -a RSASHA256 "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -418,7 +418,7 @@ zone=rsasha512.example.
 infile=rsasha512.example.db.in
 zonefile=rsasha512.example.db
 
-keyname=$("$KEYGEN" -q -a RSASHA512 -n zone "$zone")
+keyname=$("$KEYGEN" -q -a RSASHA512 "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -497,7 +497,7 @@ cat "$infile" "$kskname.key" "$zskname.key" >"$zonefile"
 zone=secure.below-cname.example.
 infile=secure.below-cname.example.db.in
 zonefile=secure.below-cname.example.db
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 cat "$infile" "$keyname.key" >"$zonefile"
 "$SIGNER" -P -o "$zone" "$zonefile" >/dev/null
 
@@ -510,7 +510,7 @@ zonefile=ttlpatch.example.db
 signedfile=ttlpatch.example.db.signed
 patchedfile=ttlpatch.example.db.patched
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 cat "$infile" "$keyname.key" >"$zonefile"
 
 "$SIGNER" -P -f $signedfile -o "$zone" "$zonefile" >/dev/null
@@ -525,7 +525,7 @@ infile=split-dnssec.example.db.in
 zonefile=split-dnssec.example.db
 signedfile=split-dnssec.example.db.signed
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 cat "$infile" "$keyname.key" >"$zonefile"
 echo "\$INCLUDE \"$signedfile\"" >>"$zonefile"
 : >"$signedfile"
@@ -539,7 +539,7 @@ infile=split-smart.example.db.in
 zonefile=split-smart.example.db
 signedfile=split-smart.example.db.signed
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 cp "$infile" "$zonefile"
 # shellcheck disable=SC2016
 echo "\$INCLUDE \"$signedfile\"" >>"$zonefile"
@@ -613,7 +613,7 @@ zone=badds.example.
 infile=bogus.example.db.in
 zonefile=badds.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
@@ -694,7 +694,7 @@ zonefile=occluded.example.db
 kskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -fk "$zone")
 zskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" "$zone")
 dnskeyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -fk "delegation.$zone")
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -n HOST -T KEY "delegation.$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -T KEY "delegation.$zone")
 $DSFROMKEY "$dnskeyname.key" >"dsset-delegation.${zone}."
 cat "$infile" "${kskname}.key" "${zskname}.key" "${keyname}.key" \
   "${dnskeyname}.key" "dsset-delegation.${zone}." >"$zonefile"
@@ -723,7 +723,7 @@ awk '$4 == "DNSKEY" && $5 == 257 { print }' "$zonefile" \
 zone=target.peer-ns-spoof
 infile=target.peer-ns-spoof.db.in
 zonefile=target.peer-ns-spoof.db
-ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
-zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
 "$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1

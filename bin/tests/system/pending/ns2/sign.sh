@@ -18,8 +18,8 @@ for domain in example example.com; do
   infile=${domain}.db.in
   zonefile=${domain}.db
 
-  keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
-  keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK -n zone $zone)
+  keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
+  keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK $zone)
 
   cat $infile $keyname1.key $keyname2.key >$zonefile
 

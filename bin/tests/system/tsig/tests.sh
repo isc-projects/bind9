@@ -245,7 +245,7 @@ fi
 
 echo_i "check that dnssec-keygen won't generate TSIG keys"
 ret=0
-$KEYGEN -a hmac-sha256 -b 128 -n host example.net >keygen.out3 2>&1 && ret=1
+$KEYGEN -a hmac-sha256 -b 128 example.net >keygen.out3 2>&1 && ret=1
 grep "unknown algorithm" keygen.out3 >/dev/null || ret=1
 
 echo_i "check that a 'BADTIME' response with 'QR=0' is handled as a request"
