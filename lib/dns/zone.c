@@ -6216,9 +6216,7 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		RETERR(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
 		dst_key_setttl(pubkey, rdataset.ttl);
 
-		if (!is_zone_key(pubkey) ||
-		    (dst_key_flags(pubkey) & DNS_KEYTYPE_NOAUTH) != 0)
-		{
+		if (!is_zone_key(pubkey)) {
 			goto next;
 		}
 		/* Corrupted .key file? */
@@ -6312,12 +6310,6 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		 * been, the rdataset TTL takes priority.
 		 */
 		dst_key_setttl(keys[count], rdataset.ttl);
-
-		if ((dst_key_flags(keys[count]) & DNS_KEYTYPE_NOAUTH) != 0) {
-			/* We should never get here. */
-			dst_key_free(&keys[count]);
-			goto next;
-		}
 		count++;
 	next:
 		if (pubkey != NULL) {
@@ -20467,8 +20459,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 		result = dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if ((dnskey.flags & (DNS_KEYFLAG_OWNERMASK |
-				     DNS_KEYTYPE_NOAUTH)) != DNS_KEYOWNER_ZONE)
+		if ((dnskey.flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
 		{
 			ISC_LIST_UNLINK(diff->tuples, tuple, link);
 			ISC_LIST_APPEND(tuples, tuple, link);
