@@ -191,7 +191,6 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	isc_result_t ret;
 	isc_buffer_t *databuf = NULL;
 	char data[256 + 8];
-	uint32_t flags;
 	unsigned int sigsize;
 	dns_fixedname_t fnewname;
 	dns_fixedname_t fsigner;
@@ -207,17 +206,6 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 	if (*inception >= *expire) {
 		return DNS_R_INVALIDTIME;
-	}
-
-	/*
-	 * Is the key allowed to sign data?
-	 */
-	flags = dst_key_flags(key);
-	if ((flags & DNS_KEYTYPE_NOAUTH) != 0) {
-		return DNS_R_KEYUNAUTHORIZED;
-	}
-	if ((flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
-		return DNS_R_KEYUNAUTHORIZED;
 	}
 
 	sig.mctx = mctx;
@@ -381,7 +369,6 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	unsigned char data[300];
 	dst_context_t *ctx = NULL;
 	int labels = 0;
-	uint32_t flags;
 	bool downcase = false;
 
 	REQUIRE(name != NULL);
@@ -444,19 +431,6 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			return DNS_R_SIGINVALID;
 		}
 		break;
-	}
-
-	/*
-	 * Is the key allowed to sign data?
-	 */
-	flags = dst_key_flags(key);
-	if ((flags & DNS_KEYTYPE_NOAUTH) != 0) {
-		inc_stat(dns_dnssecstats_fail);
-		return DNS_R_KEYUNAUTHORIZED;
-	}
-	if ((flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
-		inc_stat(dns_dnssecstats_fail);
-		return DNS_R_KEYUNAUTHORIZED;
 	}
 
 again:
@@ -1104,7 +1078,6 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 bool
 dns_dnssec_iszonekey(dns_rdata_dnskey_t *key) {
 	return (key->flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
-	       (key->flags & DNS_KEYTYPE_NOAUTH) == 0 &&
 	       (key->protocol == DNS_KEYPROTO_DNSSEC ||
 		key->protocol == DNS_KEYPROTO_ANY);
 }
@@ -1615,9 +1588,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 		RETERR(dns_dnssec_keyfromrdata(origin, &rdata, mctx, &dnskey));
 		dst_key_setttl(dnskey, keys.ttl);
 
-		if (!is_zone_key(dnskey) ||
-		    (dst_key_flags(dnskey) & DNS_KEYTYPE_NOAUTH) != 0)
-		{
+		if (!is_zone_key(dnskey)) {
 			goto skip;
 		}
 
@@ -1722,11 +1693,6 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 			goto skip;
 		}
 		RETERR(result);
-
-		/* This should never happen. */
-		if ((dst_key_flags(privkey) & DNS_KEYTYPE_NOAUTH) != 0) {
-			goto skip;
-		}
 
 		/*
 		 * Whatever the key's default TTL may have
