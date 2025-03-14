@@ -488,40 +488,6 @@ set_keystate "KEY3" "STATE_ZRRSIG" "rumoured"
 key_clear "KEY4"
 
 #
-# Zone: some-keys.kasp.
-#
-set_zone "some-keys.kasp"
-set_policy "rsasha256" "3" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties, timings and states same as above.
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy "pregenerated"
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
-# Zone: pregenerated.kasp.
-#
-# There are more pregenerated keys than needed, hence the number of keys is
-# six, not three.
-set_zone "pregenerated.kasp"
-set_policy "rsasha256" "6" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties, timings and states same as above.
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy "pregenerated"
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
 # Zone: rumoured.kasp.
 #
 # There are three keys in rumoured state.
