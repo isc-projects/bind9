@@ -64,6 +64,7 @@ next_key_event_threshold=100
 # infinite loops if there is an error.
 n=$((n + 1))
 echo_i "waiting for kasp signing changes to take effect ($n)"
+ret=0
 
 _wait_for_done_apexnsec() {
   while read -r zone; do
@@ -93,9 +94,6 @@ grep "loading from master file ${ZONE}.db failed: out of range" "ns3/named.run" 
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-#
-# Zone: default.kasp.
-#
 set_keytimes_csk_policy() {
   # The first key is immediately published and activated.
   created=$(key_get KEY1 CREATED)
@@ -108,10 +106,6 @@ set_keytimes_csk_policy() {
   # Key lifetime is unlimited, so not setting RETIRED and REMOVED.
 }
 
-# Check the zone with default kasp policy has loaded and is signed.
-set_zone "default.kasp"
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
 # Key properties.
 set_keyrole "KEY1" "csk"
 set_keylifetime "KEY1" "0"
@@ -124,59 +118,6 @@ set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
 set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
 set_keystate "KEY1" "STATE_DS" "hidden"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_csk_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-# Trigger a keymgr run. Make sure the key files are not touched if there are
-# no modifications to the key metadata.
-n=$((n + 1))
-echo_i "make sure key files are untouched if metadata does not change ($n)"
-ret=0
-basefile=$(key_get KEY1 BASEFILE)
-privkey_stat=$(key_get KEY1 PRIVKEY_STAT)
-pubkey_stat=$(key_get KEY1 PUBKEY_STAT)
-state_stat=$(key_get KEY1 STATE_STAT)
-
-nextpart $DIR/named.run >/dev/null
-rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
-privkey_stat2=$(key_stat "${basefile}.private")
-pubkey_stat2=$(key_stat "${basefile}.key")
-state_stat2=$(key_stat "${basefile}.state")
-test "$privkey_stat" = "$privkey_stat2" || log_error "wrong private key file stat (expected $privkey_stat got $privkey_stat2)"
-test "$pubkey_stat" = "$pubkey_stat2" || log_error "wrong public key file stat (expected $pubkey_stat got $pubkey_stat2)"
-test "$state_stat" = "$state_stat2" || log_error "wrong state file stat (expected $state_stat got $state_stat2)"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-n=$((n + 1))
-echo_i "again ($n)"
-ret=0
-
-nextpart $DIR/named.run >/dev/null
-rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
-privkey_stat2=$(key_stat "${basefile}.private")
-pubkey_stat2=$(key_stat "${basefile}.key")
-state_stat2=$(key_stat "${basefile}.state")
-test "$privkey_stat" = "$privkey_stat2" || log_error "wrong private key file stat (expected $privkey_stat got $privkey_stat2)"
-test "$pubkey_stat" = "$pubkey_stat2" || log_error "wrong public key file stat (expected $pubkey_stat got $pubkey_stat2)"
-test "$state_stat" = "$state_stat2" || log_error "wrong state file stat (expected $state_stat got $state_stat2)"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-# Update zone.
-n=$((n + 1))
-echo_i "modify unsigned zone file and check that new record is signed for zone ${ZONE} ($n)"
-ret=0
-cp "${DIR}/template2.db.in" "${DIR}/${ZONE}.db"
-rndccmd 10.53.0.3 reload "$ZONE" >/dev/null || log_error "rndc reload zone ${ZONE} failed"
 
 update_is_signed() {
   ip_a=$1
@@ -200,31 +141,6 @@ update_is_signed() {
     get_keys_which_signed A 0 "dig.out.$DIR.test$n".d | grep "^${KEY_ID}$" >/dev/null || return 1
   fi
 }
-
-retry_quiet 10 update_is_signed "10.0.0.11" "10.0.0.44" || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-# Move the private key file, a rekey event should not introduce replacement
-# keys.
-ret=0
-echo_i "test that if private key files are inaccessible this doesn't trigger a rollover ($n)"
-basefile=$(key_get KEY1 BASEFILE)
-mv "${basefile}.private" "${basefile}.offline"
-rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run || ret=1
-mv "${basefile}.offline" "${basefile}.private"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-# Nothing has changed.
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_csk_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
 
 #
 # A zone with special characters.

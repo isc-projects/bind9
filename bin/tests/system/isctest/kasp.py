@@ -1020,6 +1020,35 @@ def check_subdomain(server, zone, ksks, zsks, tsig=None):
     check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
 
 
+def verify_update_is_signed(server, fqdn, qname, qtype, rdata, ksks, zsks, tsig=None):
+    """
+    Test an RRset below the apex and verify it is updated and signed correctly.
+    """
+    response = _query(server, qname, qtype, tsig=tsig)
+
+    if response.rcode() != dns.rcode.NOERROR:
+        return False
+
+    rrtype = dns.rdatatype.to_text(qtype)
+    match = f"{qname} {DEFAULT_TTL} IN {rrtype} {rdata}"
+    rrsigs = []
+    for rrset in response.answer:
+        if rrset.match(
+            dns.name.from_text(qname), dns.rdataclass.IN, dns.rdatatype.RRSIG, qtype
+        ):
+            rrsigs.append(rrset)
+        elif not match in rrset.to_text():
+            return False
+
+    if len(rrsigs) == 0:
+        return False
+
+    # Zone is updated, ready to verify the signatures.
+    check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
+
+    return True
+
+
 def next_key_event_equals(server, zone, next_event):
     if next_event is None:
         # No next key event check.

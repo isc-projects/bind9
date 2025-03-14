@@ -14,6 +14,7 @@ import shutil
 
 from datetime import timedelta
 
+import dns
 import pytest
 
 import isctest
@@ -29,6 +30,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "K*.cmp",
         "K*.key",
         "K*.state",
+        "*.axfr",
         "*.created",
         "dig.out*",
         "keyevent.out.*",
@@ -44,14 +46,18 @@ pytestmark = pytest.mark.extra_artifacts(
         "unused.key-*",
         "verify.out.*",
         "zone.out.*",
-        "ns*/K*.private",
         "ns*/K*.key",
+        "ns*/K*.offline",
+        "ns*/K*.private",
         "ns*/K*.state",
         "ns*/*.db",
         "ns*/*.db.infile",
         "ns*/*.db.signed",
+        "ns*/*.db.signed.tmp",
         "ns*/*.jbk",
         "ns*/*.jnl",
+        "ns*/*.zsk1",
+        "ns*/*.zsk2",
         "ns*/dsset-*",
         "ns*/keygen.out.*",
         "ns*/keys",
@@ -65,12 +71,114 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns*/signer.out.*",
         "ns*/zones",
         "ns*/policies/*.conf",
-        "ns*/*.zsk1",
-        "ns*/*.zsk2",
         "ns3/legacy-keys.*",
         "ns3/dynamic-signed-inline-signing.kasp.db.signed.signed",
     ]
 )
+
+
+def check_all(server, zone, policy, ksks, zsks, tsig=None):
+    isctest.kasp.check_dnssecstatus(server, zone, ksks + zsks, policy=policy)
+    isctest.kasp.check_apex(server, zone, ksks, zsks, tsig=tsig)
+    isctest.kasp.check_subdomain(server, zone, ksks, zsks, tsig=tsig)
+    isctest.kasp.check_dnssec_verify(server, zone)
+
+
+def set_keytimes_default_policy(kp):
+    # The first key is immediately published and activated.
+    kp.timing["Generated"] = kp.key.get_timing("Created")
+    kp.timing["Published"] = kp.timing["Generated"]
+    kp.timing["Active"] = kp.timing["Generated"]
+    # The DS can be published if the DNSKEY and RRSIG records are
+    # OMNIPRESENT.  This happens after max-zone-ttl (1d) plus
+    # plus zone-propagation-delay (300s).
+    kp.timing["PublishCDS"] = kp.timing["Published"] + timedelta(days=1, seconds=300)
+    # Key lifetime is unlimited, so not setting 'Retired' nor 'Removed'.
+    kp.timing["DNSKEYChange"] = kp.timing["Published"]
+    kp.timing["DSChange"] = kp.timing["Published"]
+    kp.timing["KRRSIGChange"] = kp.timing["Active"]
+    kp.timing["ZRRSIGChange"] = kp.timing["Active"]
+
+
+def test_kasp_default(servers):
+    server = servers["ns3"]
+
+    # check the zone with default kasp policy has loaded and is signed.
+    isctest.log.info("check a zone with the default policy is signed")
+    zone = "default.kasp"
+    policy = "default"
+
+    # Key properties.
+    # DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
+    keyprops = [
+        "csk 0 13 256 goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl=3600, keys=keyprops)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    set_keytimes_default_policy(expected[0])
+    isctest.kasp.check_keytimes(keys, expected)
+    check_all(server, zone, policy, keys, [])
+
+    # Trigger a keymgr run. Make sure the key files are not touched if there
+    # are no modifications to the key metadata.
+    isctest.log.info(
+        "check that key files are untouched if there are no metadata changes"
+    )
+    key = keys[0]
+    privkey_stat = os.stat(key.privatefile)
+    pubkey_stat = os.stat(key.keyfile)
+    state_stat = os.stat(key.statefile)
+
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"loadkeys {zone}", log=False)
+        watcher.wait_for_line(f"keymgr: {zone} done")
+
+    assert privkey_stat.st_mtime == os.stat(key.privatefile).st_mtime
+    assert pubkey_stat.st_mtime == os.stat(key.keyfile).st_mtime
+    assert state_stat.st_mtime == os.stat(key.statefile).st_mtime
+
+    # again
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"loadkeys {zone}", log=False)
+        watcher.wait_for_line(f"keymgr: {zone} done")
+
+    assert privkey_stat.st_mtime == os.stat(key.privatefile).st_mtime
+    assert pubkey_stat.st_mtime == os.stat(key.keyfile).st_mtime
+    assert state_stat.st_mtime == os.stat(key.statefile).st_mtime
+
+    # modify unsigned zone file and check that new record is signed.
+    isctest.log.info("check that an updated zone signs the new record")
+    shutil.copyfile("ns3/template2.db.in", f"ns3/{zone}.db")
+    server.rndc(f"reload {zone}", log=False)
+
+    def update_is_signed():
+        parts = update.split()
+        qname = parts[0]
+        qtype = dns.rdatatype.from_text(parts[1])
+        rdata = parts[2]
+        return isctest.kasp.verify_update_is_signed(
+            server, zone, qname, qtype, rdata, keys, []
+        )
+
+    expected_updates = [f"a.{zone}. A 10.0.0.11", f"d.{zone}. A 10.0.0.44"]
+    for update in expected_updates:
+        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+
+    # Move the private key file, a rekey event should not introduce
+    # replacement keys.
+    isctest.log.info("check that missing private key doesn't trigger rollover")
+    shutil.move(f"{key.privatefile}", f"{key.path}.offline")
+    expectmsg = "zone_rekey:zone_verifykeys failed: some key files are missing"
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"loadkeys {zone}", log=False)
+        watcher.wait_for_line(f"zone {zone}/IN (signed): {expectmsg}")
+    # Nothing has changed.
+    expected[0].properties["private"] = False
+    isctest.kasp.check_keys(zone, keys, expected)
+    isctest.kasp.check_keytimes(keys, expected)
+    check_all(server, zone, policy, keys, [])
 
 
 def test_kasp_dnssec_keygen():
@@ -95,7 +203,7 @@ def test_kasp_dnssec_keygen():
     lifetime = {
         "P1Y": int(timedelta(days=365).total_seconds()),
         "P30D": int(timedelta(days=30).total_seconds()),
-        "P6M": int(timedelta(days=31*6).total_seconds()),
+        "P6M": int(timedelta(days=31 * 6).total_seconds()),
     }
     keyprops = [
         f"csk {lifetime['P1Y']} 13 256",
@@ -103,7 +211,7 @@ def test_kasp_dnssec_keygen():
         f"zsk {lifetime['P30D']} 8 2048",
         f"zsk {lifetime['P6M']} 8 3072",
     ]
-    keydir="keys"
+    keydir = "keys"
     out = keygen("kasp", "kasp", keydir)
     keys = isctest.kasp.keystr_to_keylist(out, keydir)
     expected = isctest.kasp.policy_to_properties(ttl=200, keys=keyprops)
