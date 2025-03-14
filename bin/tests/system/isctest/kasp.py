@@ -276,6 +276,7 @@ class Key:
         else:
             self.keydir = Path(keydir)
         self.path = str(self.keydir / name)
+        self.privatefile = f"{self.path}.private"
         self.keyfile = f"{self.path}.key"
         self.statefile = f"{self.path}.state"
         self.tag = int(self.name[-5:])
@@ -298,20 +299,42 @@ class Key:
             )
         return None
 
-    def get_metadata(self, metadata: str, must_exist=True) -> str:
+    def get_metadata(
+        self, metadata: str, file=None, comment=False, must_exist=True
+    ) -> str:
+        if file is None:
+            file = self.statefile
         value = "undefined"
-        regex = rf"{metadata}:\s+(.*)"
-        with open(self.statefile, "r", encoding="utf-8") as file:
-            for line in file:
+        regex = rf"{metadata}:\s+(\S+).*"
+        if comment:
+            # The expected metadata is prefixed with a ';'.
+            regex = rf";\s+{metadata}:\s+(\S+).*"
+        with open(file, "r", encoding="utf-8") as fp:
+            for line in fp:
                 match = re.match(regex, line)
                 if match is not None:
                     value = match.group(1)
                     break
         if must_exist and value == "undefined":
             raise ValueError(
-                'state metadata "{metadata}" for key "{self.name}" undefined'
+                f'metadata "{metadata}" for key "{self.name}" in file "{file}" undefined'
             )
         return value
+
+    def ttl(self) -> int:
+        with open(self.keyfile, "r", encoding="utf-8") as file:
+            for line in file:
+                if line.startswith(";"):
+                    continue
+                return int(line.split()[1])
+        return 0
+
+    def dnskey(self):
+        with open(self.keyfile, "r", encoding="utf-8") as file:
+            for line in file:
+                if "DNSKEY" in line:
+                    return line.strip()
+        return "undefined"
 
     def is_ksk(self) -> bool:
         return self.get_metadata("KSK") == "yes"
@@ -346,7 +369,7 @@ class Key:
         dsfromkey_command = [
             os.environ.get("DSFROMKEY"),
             "-T",
-            "3600",
+            str(self.ttl()),
             "-a",
             alg,
             "-C",
