@@ -1428,29 +1428,35 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
 
 	if (key != NULL) {
 		/*
-		 * Found a match.  If the old key was only public and the
-		 * new key is private, replace the old one; otherwise
-		 * leave it.  But either way, mark the key as having
-		 * been found in the zone.
+		 * Found a match. If we already had a private key, then
+		 * the new key can't be an improvement. If the existing
+		 * key was public-only but the new key is too, then it's
+		 * still not an improvement. Mark the old key as having
+		 * been found in the zone and stop.
 		 */
-		if (dst_key_isprivate(key->key)) {
-			dst_key_free(newkey);
-		} else if (dst_key_isprivate(*newkey)) {
-			dst_key_free(&key->key);
-			key->key = *newkey;
+		if (dst_key_isprivate(key->key) || !dst_key_isprivate(*newkey))
+		{
+			key->source = dns_keysource_zoneapex;
+			return;
 		}
 
-		key->source = dns_keysource_zoneapex;
-		return;
+		/*
+		 * However, if the old key was public-only, and the new key
+		 * is private, then we're throwing away the old key.
+		 */
+		dst_key_free(&key->key);
+		ISC_LIST_UNLINK(*keylist, key, link);
+		dns_dnsseckey_destroy(mctx, &key);
 	}
 
+	/* Store the new key. */
 	dns_dnsseckey_create(mctx, newkey, &key);
+	key->source = dns_keysource_zoneapex;
 	key->pubkey = pubkey_only;
 	if (key->legacy || savekeys) {
 		key->force_publish = true;
 		key->force_sign = dst_key_isprivate(key->key);
 	}
-	key->source = dns_keysource_zoneapex;
 	ISC_LIST_APPEND(*keylist, key, link);
 	*newkey = NULL;
 }
