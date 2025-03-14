@@ -1256,7 +1256,10 @@ compute_keytag(dns_rdata_t *rdata) {
 
 static bool
 over_max_validations(dns_validator_t *val) {
-	if (val->nvalidations == NULL || (*val->nvalidations) > 0) {
+	if (val->nvalidations == NULL ||
+	    isc_counter_used(val->nvalidations) <
+		    isc_counter_getlimit(val->nvalidations))
+	{
 		return false;
 	}
 
@@ -1270,14 +1273,14 @@ consume_validation(dns_validator_t *val) {
 	if (val->nvalidations == NULL) {
 		return;
 	}
-	INSIST((*val->nvalidations) > 0);
-
-	(*val->nvalidations)--;
+	(void)isc_counter_increment(val->nvalidations);
 }
 
 static bool
 over_max_fails(dns_validator_t *val) {
-	if (val->nfails == NULL || (*val->nfails) > 0) {
+	if (val->nfails == NULL ||
+	    isc_counter_used(val->nfails) < isc_counter_getlimit(val->nfails))
+	{
 		return false;
 	}
 
@@ -1291,9 +1294,7 @@ consume_validation_fail(dns_validator_t *val) {
 	if (val->nfails == NULL) {
 		return;
 	}
-	INSIST((*val->nfails) > 0);
-
-	(*val->nfails)--;
+	(void)isc_counter_increment(val->nfails);
 }
 
 /*%
@@ -3413,7 +3414,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
 		     isc_loop_t *loop, isc_job_cb cb, void *arg,
-		     uint32_t *nvalidations, uint32_t *nfails,
+		     isc_counter_t *nvalidations, isc_counter_t *nfails,
 		     isc_counter_t *qc, isc_counter_t *gqc,
 		     dns_edectx_t *edectx, dns_validator_t **validatorp) {
 	isc_result_t result = ISC_R_FAILURE;
@@ -3445,8 +3446,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		.cb = cb,
 		.arg = arg,
 		.rdata = DNS_RDATA_INIT,
-		.nvalidations = nvalidations,
-		.nfails = nfails,
 		.edectx = edectx,
 	};
 
@@ -3454,6 +3453,14 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_view_attach(view, &val->view);
 	if (message != NULL) {
 		dns_message_attach(message, &val->message);
+	}
+
+	if (nfails != NULL) {
+		isc_counter_attach(nfails, &val->nfails);
+	}
+
+	if (nvalidations != NULL) {
+		isc_counter_attach(nvalidations, &val->nvalidations);
 	}
 
 	if (qc != NULL) {
@@ -3548,6 +3555,12 @@ destroy_validator(dns_validator_t *val) {
 	}
 	if (val->message != NULL) {
 		dns_message_detach(&val->message);
+	}
+	if (val->nfails != NULL) {
+		isc_counter_detach(&val->nfails);
+	}
+	if (val->nvalidations != NULL) {
+		isc_counter_detach(&val->nvalidations);
 	}
 	if (val->qc != NULL) {
 		isc_counter_detach(&val->qc);
