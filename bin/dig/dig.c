@@ -284,6 +284,7 @@ help(void) {
 	       "                                      form of answers - global "
 	       "option)\n"
 	       "                 +[no]showbadcookie  (Show BADCOOKIE message)\n"
+	       "                 +[no]showbadvers    (Show BADVERS message)\n"
 	       "                 +[no]showsearch     (Search with intermediate "
 	       "results)\n"
 	       "                 +[no]split=##       (Split hex/base64 fields "
@@ -1761,6 +1762,8 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 						FULLCHECK("edns");
 						if (!state) {
 							lookup->edns = -1;
+							lookup->original_edns =
+								-1;
 							break;
 						}
 						if (value == NULL) {
@@ -1777,6 +1780,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 							goto exit_or_usage;
 						}
 						lookup->edns = num;
+						lookup->original_edns = num;
 						break;
 					case 'f':
 						FULLCHECK("ednsflags");
@@ -2295,8 +2299,18 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			case 'w': /* showsearch */
 				switch (cmd[4]) {
 				case 'b':
-					FULLCHECK("showbadcookie");
-					lookup->showbadcookie = state;
+					switch (cmd[7]) {
+					case 'c':
+						FULLCHECK("showbadcookie");
+						lookup->showbadcookie = state;
+						break;
+					case 'v':
+						FULLCHECK("showbadvers");
+						lookup->showbadvers = state;
+						break;
+					default:
+						goto invalid_option;
+					}
 					break;
 				case 's':
 					FULLCHECK("showsearch");

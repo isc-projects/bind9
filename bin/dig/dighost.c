@@ -608,6 +608,7 @@ make_empty_lookup(void) {
 		.idnout = idnout,
 		.udpsize = -1,
 		.edns = -1,
+		.original_edns = -1,
 		.recurse = true,
 		.retries = tries,
 		.comments = true,
@@ -741,6 +742,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	}
 
 	looknew->showbadcookie = lookold->showbadcookie;
+	looknew->showbadvers = lookold->showbadvers;
 	looknew->sendcookie = lookold->sendcookie;
 	looknew->seenbadcookie = lookold->seenbadcookie;
 	looknew->badcookie = lookold->badcookie;
@@ -766,6 +768,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->idnout = lookold->idnout;
 	looknew->udpsize = lookold->udpsize;
 	looknew->edns = lookold->edns;
+	looknew->original_edns = lookold->original_edns;
 	looknew->recurse = lookold->recurse;
 	looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
@@ -1945,6 +1948,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 				}
 				domain = dns_fixedname_name(&lookup->fdomain);
 				dns_name_copy(name, domain);
+				lookup->edns = lookup->original_edns;
 			}
 			debug("adding server %s", namestr);
 			num = getaddresses(lookup, namestr, &lresult);
@@ -2470,7 +2474,8 @@ setup_lookup(dig_lookup_t *lookup) {
 			lookup->udpsize = DEFAULT_EDNS_BUFSIZE;
 		}
 		if (lookup->edns < 0) {
-			lookup->edns = DEFAULT_EDNS_VERSION;
+			lookup->original_edns = lookup->edns =
+				DEFAULT_EDNS_VERSION;
 		}
 
 		if (lookup->nsid) {
@@ -4314,6 +4319,11 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	if (msg->rcode == dns_rcode_badvers && msg->opt != NULL &&
 	    (newedns = ednsvers(msg->opt)) < l->edns && l->ednsneg)
 	{
+		if (l->showbadvers) {
+			dighost_printmessage(query, &b, msg, true);
+			dighost_received(isc_buffer_usedlength(&b), &peer,
+					 query);
+		}
 		/*
 		 * Add minimum EDNS version required checks here if needed.
 		 */

@@ -1135,6 +1135,16 @@ if [ -x "$DIG" ]; then
   grep "; EDNS: version: 0, flags:; udp: 1232" dig.out.test$n >/dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
+
+  n=$((n + 1))
+  echo_i "check that dig +showbadvers works ($n)"
+  dig_with_opts @10.53.0.3 +edns=1 +qr +showbadvers a.example >dig.out.test$n 2>&1 || ret=1
+  grep "; EDNS: version: 1, flags:; udp: 1232" dig.out.test$n >/dev/null || ret=1
+  grep "; EDNS: version: 0, flags:; udp: 1232" dig.out.test$n >/dev/null || ret=1
+  grep -F "status: BADVERS" dig.out.test$n >/dev/null || ret=1
+  grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi
