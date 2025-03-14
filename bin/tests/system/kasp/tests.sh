@@ -401,92 +401,6 @@ set_keytimes_algorithm_policy() {
 }
 
 #
-# Zone: rsasha1.kasp.
-#
-if [ $RSASHA1_SUPPORTED = 1 ]; then
-  set_zone "rsasha1.kasp"
-  set_policy "rsasha1" "3" "1234"
-  set_server "ns3" "10.53.0.3"
-  # Key properties.
-  key_clear "KEY1"
-  set_keyrole "KEY1" "ksk"
-  set_keylifetime "KEY1" "315360000"
-  set_keyalgorithm "KEY1" "5" "RSASHA1" "2048"
-  set_keysigning "KEY1" "yes"
-  set_zonesigning "KEY1" "no"
-
-  key_clear "KEY2"
-  set_keyrole "KEY2" "zsk"
-  set_keylifetime "KEY2" "157680000"
-  set_keyalgorithm "KEY2" "5" "RSASHA1" "2048"
-  set_keysigning "KEY2" "no"
-  set_zonesigning "KEY2" "yes"
-
-  key_clear "KEY3"
-  set_keyrole "KEY3" "zsk"
-  set_keylifetime "KEY3" "31536000"
-  set_keyalgorithm "KEY3" "5" "RSASHA1" "2000"
-  set_keysigning "KEY3" "no"
-  set_zonesigning "KEY3" "yes"
-
-  # KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
-  # ZSK: DNSKEY, RRSIG (zsk) published.
-  set_keystate "KEY1" "GOAL" "omnipresent"
-  set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
-  set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
-  set_keystate "KEY1" "STATE_DS" "hidden"
-
-  set_keystate "KEY2" "GOAL" "omnipresent"
-  set_keystate "KEY2" "STATE_DNSKEY" "rumoured"
-  set_keystate "KEY2" "STATE_ZRRSIG" "rumoured"
-
-  set_keystate "KEY3" "GOAL" "omnipresent"
-  set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
-  set_keystate "KEY3" "STATE_ZRRSIG" "rumoured"
-  # Three keys only.
-  key_clear "KEY4"
-
-  check_keys
-  check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-  set_keytimes_algorithm_policy
-  check_keytimes
-  check_apex
-  check_subdomain
-  dnssec_verify
-fi
-
-#
-# Zone: unlimited.kasp.
-#
-set_zone "unlimited.kasp"
-set_policy "unlimited" "1" "1234"
-set_server "ns3" "10.53.0.3"
-key_clear "KEY1"
-key_clear "KEY2"
-key_clear "KEY3"
-key_clear "KEY4"
-# Key properties.
-set_keyrole "KEY1" "csk"
-set_keylifetime "KEY1" "0"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
-set_keysigning "KEY1" "yes"
-set_zonesigning "KEY1" "yes"
-# DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
-set_keystate "KEY1" "GOAL" "omnipresent"
-set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
-set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
-set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
-set_keystate "KEY1" "STATE_DS" "hidden"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_csk_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
 # Zone: keystore.kasp.
 #
 set_zone "keystore.kasp"
@@ -535,14 +449,7 @@ check_apex
 check_subdomain
 dnssec_verify
 
-#
-# Zone: inherit.kasp.
-#
-set_zone "inherit.kasp"
-set_policy "rsasha256" "3" "1234"
-set_server "ns3" "10.53.0.3"
-
-# Key properties.
+# Key properties for tests below.
 key_clear "KEY1"
 set_keyrole "KEY1" "ksk"
 set_keylifetime "KEY1" "315360000"
@@ -579,30 +486,6 @@ set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY3" "STATE_ZRRSIG" "rumoured"
 # Three keys only.
 key_clear "KEY4"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
-# Zone: dnssec-keygen.kasp.
-#
-set_zone "dnssec-keygen.kasp"
-set_policy "rsasha256" "3" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties, timings and states same as above.
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
 
 #
 # Zone: some-keys.kasp.
@@ -709,152 +592,6 @@ status=$((status + ret))
 # TODO: we might want to test:
 # - configuring a zone with too many active keys (should trigger retire).
 # - configuring a zone with keys not matching the policy.
-
-#
-# Zone: rsasha1-nsec3.kasp.
-#
-if [ $RSASHA1_SUPPORTED = 1 ]; then
-  set_zone "rsasha1-nsec3.kasp"
-  set_policy "rsasha1-nsec3" "3" "1234"
-  set_server "ns3" "10.53.0.3"
-  # Key properties.
-  set_keyalgorithm "KEY1" "7" "NSEC3RSASHA1" "2048"
-  set_keyalgorithm "KEY2" "7" "NSEC3RSASHA1" "2048"
-  set_keyalgorithm "KEY3" "7" "NSEC3RSASHA1" "2000"
-  # Key timings and states same as above.
-
-  check_keys
-  check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-  set_keytimes_algorithm_policy
-  check_keytimes
-  check_apex
-  check_subdomain
-  dnssec_verify
-fi
-
-#
-# Zone: rsasha256.kasp.
-#
-set_zone "rsasha256.kasp"
-set_policy "rsasha256" "3" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties.
-set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
-set_keyalgorithm "KEY2" "8" "RSASHA256" "2048"
-set_keyalgorithm "KEY3" "8" "RSASHA256" "3072"
-# Key timings and states same as above.
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
-# Zone: rsasha512.kasp.
-#
-set_zone "rsasha512.kasp"
-set_policy "rsasha512" "3" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties.
-set_keyalgorithm "KEY1" "10" "RSASHA512" "2048"
-set_keyalgorithm "KEY2" "10" "RSASHA512" "2048"
-set_keyalgorithm "KEY3" "10" "RSASHA512" "3072"
-# Key timings and states same as above.
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
-# Zone: ecdsa256.kasp.
-#
-set_zone "ecdsa256.kasp"
-set_policy "ecdsa256" "3" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties.
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
-set_keyalgorithm "KEY2" "13" "ECDSAP256SHA256" "256"
-set_keyalgorithm "KEY3" "13" "ECDSAP256SHA256" "256"
-# Key timings and states same as above.
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
-# Zone: ecdsa512.kasp.
-#
-set_zone "ecdsa384.kasp"
-set_policy "ecdsa384" "3" "1234"
-set_server "ns3" "10.53.0.3"
-# Key properties.
-set_keyalgorithm "KEY1" "14" "ECDSAP384SHA384" "384"
-set_keyalgorithm "KEY2" "14" "ECDSAP384SHA384" "384"
-set_keyalgorithm "KEY3" "14" "ECDSAP384SHA384" "384"
-# Key timings and states same as above.
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_algorithm_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
-# Zone: ed25519.kasp.
-#
-if [ $ED25519_SUPPORTED = 1 ]; then
-  set_zone "ed25519.kasp"
-  set_policy "ed25519" "3" "1234"
-  set_server "ns3" "10.53.0.3"
-  # Key properties.
-  set_keyalgorithm "KEY1" "15" "ED25519" "256"
-  set_keyalgorithm "KEY2" "15" "ED25519" "256"
-  set_keyalgorithm "KEY3" "15" "ED25519" "256"
-  # Key timings and states same as above.
-
-  check_keys
-  check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-  set_keytimes_algorithm_policy
-  check_keytimes
-  check_apex
-  check_subdomain
-  dnssec_verify
-fi
-
-#
-# Zone: ed448.kasp.
-#
-if [ $ED448_SUPPORTED = 1 ]; then
-  set_zone "ed448.kasp"
-  set_policy "ed448" "3" "1234"
-  set_server "ns3" "10.53.0.3"
-  # Key properties.
-  set_keyalgorithm "KEY1" "16" "ED448" "456"
-  set_keyalgorithm "KEY2" "16" "ED448" "456"
-  set_keyalgorithm "KEY3" "16" "ED448" "456"
-  # Key timings and states same as above.
-
-  check_keys
-  check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-  set_keytimes_algorithm_policy
-  check_keytimes
-  check_apex
-  check_subdomain
-  dnssec_verify
-fi
 
 # Set key times for 'autosign' policy.
 set_keytimes_autosign_policy() {
@@ -969,48 +706,6 @@ check_rrsig_refresh() {
 }
 
 check_rrsig_refresh
-
-#
-# Zone: dnskey-ttl-mismatch.autosign
-#
-set_zone "dnskey-ttl-mismatch.autosign"
-set_policy "autosign" "2" "300"
-set_server "ns3" "10.53.0.3"
-# Key properties.
-key_clear "KEY1"
-set_keyrole "KEY1" "ksk"
-set_keylifetime "KEY1" "63072000"
-set_keyalgorithm "KEY1" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
-set_keysigning "KEY1" "yes"
-set_zonesigning "KEY1" "no"
-
-key_clear "KEY2"
-set_keyrole "KEY2" "zsk"
-set_keylifetime "KEY2" "31536000"
-set_keyalgorithm "KEY2" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
-set_keysigning "KEY2" "no"
-set_zonesigning "KEY2" "yes"
-
-# Both KSK and ZSK stay OMNIPRESENT.
-set_keystate "KEY1" "GOAL" "omnipresent"
-set_keystate "KEY1" "STATE_DNSKEY" "omnipresent"
-set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
-set_keystate "KEY1" "STATE_DS" "omnipresent"
-
-set_keystate "KEY2" "GOAL" "omnipresent"
-set_keystate "KEY2" "STATE_DNSKEY" "omnipresent"
-set_keystate "KEY2" "STATE_ZRRSIG" "omnipresent"
-# Expect only two keys.
-key_clear "KEY3"
-key_clear "KEY4"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_autosign_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
 
 #
 # Zone: fresh-sigs.autosign.

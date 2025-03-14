@@ -217,8 +217,12 @@ $SIGNER -PS -x -s now-2mo -e now-1mo -o $zone -O raw -f "${zonefile}.signed" $in
 
 # The DNSKEY's TTLs do not match the policy.
 setup dnskey-ttl-mismatch.autosign
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 30 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 30 $zsktimes $zone 2>keygen.out.$zone.2)
+T="now-6mo"
+keytimes="-P $T -A $T"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 30 -f KSK $keytimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 30 $keytimes $zone 2>keygen.out.$zone.2)
+$SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $T -z $O $T "$ZSK      " >settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
 cp $infile $zonefile
 $SIGNER -PS -x -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1

@@ -84,7 +84,7 @@ def check_all(server, zone, policy, ksks, zsks, tsig=None):
     isctest.kasp.check_dnssecstatus(server, zone, ksks + zsks, policy=policy)
     isctest.kasp.check_apex(server, zone, ksks, zsks, tsig=tsig)
     isctest.kasp.check_subdomain(server, zone, ksks, zsks, tsig=tsig)
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone, tsig=tsig)
 
 
 def set_keytimes_default_policy(kp):
@@ -101,6 +101,198 @@ def set_keytimes_default_policy(kp):
     kp.timing["DSChange"] = kp.timing["Published"]
     kp.timing["KRRSIGChange"] = kp.timing["Active"]
     kp.timing["ZRRSIGChange"] = kp.timing["Active"]
+
+
+def test_kasp_cases(servers):
+    # Test many different configurations and expected keys and states after
+    # initial startup.
+    server = servers["ns3"]
+    keydir = server.identifier
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+
+    kasp_config = {
+        "dnskey-ttl": timedelta(seconds=1234),
+        "ds-ttl": timedelta(days=1),
+        "key-directory": keydir,
+        "max-zone-ttl": timedelta(days=1),
+        "parent-propagation-delay": timedelta(hours=1),
+        "publish-safety": timedelta(hours=1),
+        "retire-safety": timedelta(hours=1),
+        "signatures-refresh": timedelta(days=5),
+        "signatures-validity": timedelta(days=14),
+        "zone-propagation-delay": timedelta(minutes=5),
+    }
+
+    autosign_config = {
+        "dnskey-ttl": timedelta(seconds=300),
+        "ds-ttl": timedelta(days=1),
+        "key-directory": keydir,
+        "max-zone-ttl": timedelta(days=1),
+        "parent-propagation-delay": timedelta(hours=1),
+        "publish-safety": timedelta(hours=1),
+        "retire-safety": timedelta(hours=1),
+        "signatures-refresh": timedelta(days=7),
+        "signatures-validity": timedelta(days=14),
+        "zone-propagation-delay": timedelta(minutes=5),
+    }
+
+    lifetime = {
+        "P10Y": int(timedelta(days=10 * 365).total_seconds()),
+        "P5Y": int(timedelta(days=5 * 365).total_seconds()),
+        "P2Y": int(timedelta(days=2 * 365).total_seconds()),
+        "P1Y": int(timedelta(days=365).total_seconds()),
+        "P30D": int(timedelta(days=30).total_seconds()),
+        "P6M": int(timedelta(days=31 * 6).total_seconds()),
+    }
+
+    autosign_properties = [
+        f"ksk {lifetime['P2Y']} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+        f"zsk {lifetime['P1Y']} {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
+    ]
+
+    def rsa1_properties(alg):
+        return [
+            f"ksk {lifetime['P10Y']} {alg} 2048 goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+            f"zsk {lifetime['P5Y']} {alg} 2048 goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+            f"zsk {lifetime['P1Y']} {alg} 2000 goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+        ]
+
+    def fips_properties(alg, bits=None):
+        sizes = [2048, 2048, 3072]
+        if bits is not None:
+            sizes = [bits, bits, bits]
+
+        return [
+            f"ksk {lifetime['P10Y']} {alg} {sizes[0]} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+            f"zsk {lifetime['P5Y']} {alg} {sizes[1]} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+            f"zsk {lifetime['P1Y']} {alg} {sizes[2]} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+        ]
+
+    # Test case function.
+    def test_case():
+        zone = test["zone"]
+        policy = test["policy"]
+        ttl = int(test["config"]["dnskey-ttl"].total_seconds())
+
+        isctest.log.info(f"check test case zone {zone} policy {policy}")
+
+        # Key properties.
+        expected = isctest.kasp.policy_to_properties(
+            ttl=ttl, keys=test["key-properties"]
+        )
+        # Key files.
+        keys = isctest.kasp.keydir_to_keylist(zone, test["config"]["key-directory"])
+        ksks = [k for k in keys if k.is_ksk()]
+        zsks = [k for k in keys if not k.is_ksk()]
+
+        isctest.kasp.check_zone_is_signed(server, zone)
+        isctest.kasp.check_keys(zone, keys, expected)
+
+        offset = test["offset"] if "offset" in test else None
+
+        for kp in expected:
+            kp.set_expected_keytimes(test["config"], offset=offset)
+
+        isctest.kasp.check_keytimes(keys, expected)
+
+        check_all(server, zone, policy, ksks, zsks)
+
+    # Test cases.
+    rsa_cases = []
+    if os.environ["RSASHA1_SUPPORTED"] == 1:
+        rsa_cases = [
+            {
+                "zone": "rsasha1.kasp",
+                "policy": "rsasha1",
+                "config": kasp_config,
+                "key-properties": rsa1_properties(5),
+            },
+            {
+                "zone": "rsasha1-nsec3.kasp",
+                "policy": "rsasha1",
+                "config": kasp_config,
+                "key-properties": rsa1_properties(7),
+            },
+        ]
+
+    fips_cases = [
+        {
+            "zone": "dnskey-ttl-mismatch.autosign",
+            "policy": "autosign",
+            "config": autosign_config,
+            "offset": -timedelta(days=30 * 6),
+            "key-properties": autosign_properties,
+        },
+        {
+            "zone": "dnssec-keygen.kasp",
+            "policy": "rsasha256",
+            "config": kasp_config,
+            "key-properties": fips_properties(8),
+        },
+        {
+            "zone": "ecdsa256.kasp",
+            "policy": "ecdsa256",
+            "config": kasp_config,
+            "key-properties": fips_properties(13, bits=256),
+        },
+        {
+            "zone": "ecdsa384.kasp",
+            "policy": "ecdsa384",
+            "config": kasp_config,
+            "key-properties": fips_properties(14, bits=384),
+        },
+        {
+            "zone": "inherit.kasp",
+            "policy": "rsasha256",
+            "config": kasp_config,
+            "key-properties": fips_properties(8),
+        },
+        {
+            "zone": "rsasha256.kasp",
+            "policy": "rsasha256",
+            "config": kasp_config,
+            "key-properties": fips_properties(8),
+        },
+        {
+            "zone": "rsasha512.kasp",
+            "policy": "rsasha512",
+            "config": kasp_config,
+            "key-properties": fips_properties(10),
+        },
+        {
+            "zone": "unlimited.kasp",
+            "policy": "unlimited",
+            "config": kasp_config,
+            "key-properties": [
+                f"csk 0 {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            ],
+        },
+    ]
+
+    if os.environ["ED25519_SUPPORTED"] == 1:
+        fips_cases.append(
+            {
+                "zone": "ed25519.kasp",
+                "policy": "ed25519",
+                "config": kasp_config,
+                "key-properties": fips_properties(15, bits=256),
+            }
+        )
+
+    if os.environ["ED448_SUPPORTED"] == 1:
+        fips_cases.append(
+            {
+                "zone": "ed448.kasp",
+                "policy": "ed448",
+                "config": kasp_config,
+                "key-properties": fips_properties(16, bits=456),
+            }
+        )
+
+    test_cases = rsa_cases + fips_cases
+    for test in test_cases:
+        test_case()
 
 
 def test_kasp_default(servers):
