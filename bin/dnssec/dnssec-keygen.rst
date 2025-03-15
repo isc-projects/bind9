@@ -183,11 +183,6 @@ Options
    set to the activation date minus the prepublication interval,
    which defaults to 30 days.
 
-.. option:: -s strength
-
-   This option specifies the strength value of the key. The strength is a number
-   between 0 and 15, and currently has no defined purpose in DNSSEC.
-
 .. option:: -T rrtype
 
    This option specifies the resource record type to use for the key. ``rrtype``

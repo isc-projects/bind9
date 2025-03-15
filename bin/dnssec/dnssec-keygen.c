@@ -85,7 +85,6 @@ struct keygen_ctx {
 	int size;
 	uint16_t tag_min;
 	uint16_t tag_max;
-	int signatory;
 	dns_rdataclass_t rdclass;
 	int options;
 	int dbits;
@@ -171,8 +170,6 @@ usage(void) {
 	fprintf(stderr, "    -F: FIPS mode\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
 	fprintf(stderr, "    -M <min>:<max>: allowed Key ID range\n");
-	fprintf(stderr, "    -s <strength>: strength value this key signs DNS "
-			"records with (default: 0)\n");
 	fprintf(stderr, "    -T <rrtype>: DNSKEY | KEY (default: DNSKEY; "
 			"use KEY for SIG(0))\n");
 	fprintf(stderr, "    -h: print usage and exit\n");
@@ -498,9 +495,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		ctx->directory = ".";
 	}
 
-	if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
-		flags |= ctx->signatory;
-	} else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
+	if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
 		if (ctx->ksk || ctx->wantksk) {
 			flags |= DNS_KEYFLAG_KSK;
 		}
@@ -913,14 +908,7 @@ main(int argc, char **argv) {
 			      "System random data is always used.\n");
 			break;
 		case 's':
-			ctx.signatory = strtol(isc_commandline_argument, &endp,
-					       10);
-			if (*endp != '\0' || ctx.signatory < 0 ||
-			    ctx.signatory > 15)
-			{
-				fatal("-s must be followed by a number "
-				      "[0..15]");
-			}
+			fatal("The -s option has been deprecated.");
 			break;
 		case 'T':
 			if (strcasecmp(isc_commandline_argument, "KEY") == 0) {
