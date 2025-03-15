@@ -513,8 +513,7 @@ need_headerupdate(dns_slabheader_t *header, isc_stdtime_t now) {
 #if DNS_QPDB_LIMITLRUUPDATE
 	if (header->type == dns_rdatatype_ns ||
 	    (header->trust == dns_trust_glue &&
-	     (header->type == dns_rdatatype_a ||
-	      header->type == dns_rdatatype_aaaa)))
+	     dns_rdatatype_isaddr(header->type)))
 	{
 		/*
 		 * Glue records are updated if at least DNS_QPDB_LRUUPDATE_GLUE

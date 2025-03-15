@@ -1516,8 +1516,7 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 	}
 	/* else - 'simple' case - without labels */
 
-	if (value->type != dns_rdatatype_a && value->type != dns_rdatatype_aaaa)
-	{
+	if (!dns_rdatatype_isaddr(value->type)) {
 		return ISC_R_FAILURE;
 	}
 

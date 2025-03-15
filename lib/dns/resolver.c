@@ -1569,9 +1569,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 
 		INSIST(resp->result != ISC_R_SUCCESS ||
 		       dns_rdataset_isassociated(resp->rdataset) ||
-		       fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig ||
-		       fctx->type == dns_rdatatype_sig);
+		       dns_rdatatype_ismulti(fctx->type));
 
 		/*
 		 * Negative results must be indicated in resp->result.
@@ -5400,10 +5398,7 @@ validated(void *arg) {
 
 	hresp = ISC_LIST_HEAD(fctx->resps);
 	if (hresp != NULL) {
-		if (!negative && !chaining &&
-		    (fctx->type == dns_rdatatype_any ||
-		     fctx->type == dns_rdatatype_rrsig ||
-		     fctx->type == dns_rdatatype_sig))
+		if (!negative && !chaining && dns_rdatatype_ismulti(fctx->type))
 		{
 			/*
 			 * Don't bind rdatasets; the caller
@@ -5625,9 +5620,7 @@ validated(void *arg) {
 
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		INSIST(!negative);
-		INSIST(fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig ||
-		       fctx->type == dns_rdatatype_sig);
+		INSIST(dns_rdatatype_ismulti(fctx->type));
 		/*
 		 * Don't send a response yet - we have
 		 * more rdatasets that still need to
@@ -6044,9 +6037,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			 * DNS_R_CNAME or DNS_R_DNAME and we must set up
 			 * the rdatasets.
 			 */
-			if ((fctx->type != dns_rdatatype_any &&
-			     fctx->type != dns_rdatatype_rrsig &&
-			     fctx->type != dns_rdatatype_sig) ||
+			if (!dns_rdatatype_ismulti(fctx->type) ||
 			    name->attributes.chaining)
 			{
 				ardataset = resp->rdataset;
@@ -6295,10 +6286,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			}
 
 			if (ANSWER(rdataset) && need_validation) {
-				if (fctx->type != dns_rdatatype_any &&
-				    fctx->type != dns_rdatatype_rrsig &&
-				    fctx->type != dns_rdatatype_sig)
-				{
+				if (!dns_rdatatype_ismulti(fctx->type)) {
 					/*
 					 * This is The Answer.  We will
 					 * validate it, but first we
@@ -6913,14 +6901,12 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link))
 			{
-				if (rdataset->type == dns_rdatatype_rrsig) {
+				if (dns_rdatatype_issig(rdataset->type)) {
 					rtype = rdataset->covers;
 				} else {
 					rtype = rdataset->type;
 				}
-				if (rtype == dns_rdatatype_a ||
-				    rtype == dns_rdatatype_aaaa)
-				{
+				if (dns_rdatatype_isaddr(rtype)) {
 					mark_related(name, rdataset, external,
 						     gluing);
 				}
@@ -7050,8 +7036,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	int order;
 
 	REQUIRE(rdataset != NULL);
-	REQUIRE(rdataset->type == dns_rdatatype_cname ||
-		rdataset->type == dns_rdatatype_dname);
+	REQUIRE(dns_rdatatype_isalias(rdataset->type));
 
 	/*
 	 * By default, we allow any target name.
@@ -7981,9 +7966,7 @@ rctx_answer_init(respctx_t *rctx) {
 	 * we treat these types as a subset of ANY.
 	 */
 	rctx->type = fctx->type;
-	if (rctx->type == dns_rdatatype_rrsig ||
-	    rctx->type == dns_rdatatype_sig)
-	{
+	if (dns_rdatatype_issig(fctx->type)) {
 		rctx->type = dns_rdatatype_any;
 	}
 
@@ -8676,15 +8659,13 @@ rctx_answer_any(respctx_t *rctx) {
 			return ISC_R_COMPLETE;
 		}
 
-		if ((fctx->type == dns_rdatatype_sig ||
-		     fctx->type == dns_rdatatype_rrsig) &&
+		if (dns_rdatatype_issig(fctx->type) &&
 		    rdataset->type != fctx->type)
 		{
 			continue;
 		}
 
-		if ((rdataset->type == dns_rdatatype_a ||
-		     rdataset->type == dns_rdatatype_aaaa) &&
+		if (dns_rdatatype_isaddr(rdataset->type) &&
 		    !is_answeraddress_allowed(fctx->res->view, rctx->aname,
 					      rdataset))
 		{
@@ -8692,8 +8673,7 @@ rctx_answer_any(respctx_t *rctx) {
 			return ISC_R_COMPLETE;
 		}
 
-		if ((rdataset->type == dns_rdatatype_cname ||
-		     rdataset->type == dns_rdatatype_dname) &&
+		if (dns_rdatatype_isalias(rdataset->type) &&
 		    !is_answertarget_allowed(fctx, fctx->name, rctx->aname,
 					     rdataset, NULL))
 		{
@@ -8728,16 +8708,14 @@ rctx_answer_match(respctx_t *rctx) {
 		return ISC_R_COMPLETE;
 	}
 
-	if ((rctx->ardataset->type == dns_rdatatype_a ||
-	     rctx->ardataset->type == dns_rdatatype_aaaa) &&
+	if (dns_rdatatype_isaddr(rctx->ardataset->type) &&
 	    !is_answeraddress_allowed(fctx->res->view, rctx->aname,
 				      rctx->ardataset))
 	{
 		rctx->result = DNS_R_SERVFAIL;
 		return ISC_R_COMPLETE;
 	}
-	if ((rctx->ardataset->type == dns_rdatatype_cname ||
-	     rctx->ardataset->type == dns_rdatatype_dname) &&
+	if (dns_rdatatype_isalias(rctx->ardataset->type) &&
 	    rctx->type != rctx->ardataset->type &&
 	    rctx->type != dns_rdatatype_any &&
 	    !is_answertarget_allowed(fctx, fctx->name, rctx->aname,
@@ -9158,7 +9136,7 @@ rctx_authority_negative(respctx_t *rctx) {
 		     rdataset = ISC_LIST_NEXT(rdataset, link))
 		{
 			dns_rdatatype_t type = rdataset->type;
-			if (type == dns_rdatatype_rrsig) {
+			if (dns_rdatatype_issig(rdataset->type)) {
 				type = rdataset->covers;
 			}
 			if ((type == dns_rdatatype_ns ||
@@ -9329,7 +9307,7 @@ rctx_authority_dnssec(respctx_t *rctx) {
 			bool secure_domain = false;
 			dns_rdatatype_t type = rdataset->type;
 
-			if (type == dns_rdatatype_rrsig) {
+			if (dns_rdatatype_issig(type)) {
 				type = rdataset->covers;
 			}
 
@@ -9482,9 +9460,7 @@ rctx_referral(respctx_t *rctx) {
 	 * additional section that are in the answer section or if
 	 * the record gets dropped due to message size constraints.
 	 */
-	if (rctx->glue_in_answer &&
-	    (fctx->type == dns_rdatatype_aaaa || fctx->type == dns_rdatatype_a))
-	{
+	if (rctx->glue_in_answer && dns_rdatatype_isaddr(fctx->type)) {
 		(void)dns_rdataset_additionaldata(
 			rctx->ns_rdataset, rctx->ns_name, check_answer, fctx);
 	}

@@ -752,7 +752,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	UNUSED(now);
 	UNUSED(sigrdataset);
 
-	if (type == dns_rdatatype_sig || type == dns_rdatatype_rrsig) {
+	if (dns_rdatatype_issig(type)) {
 		return ISC_R_NOTIMPLEMENTED;
 	}
 
