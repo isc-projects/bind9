@@ -74,7 +74,6 @@ usage(void) {
 	fprintf(stderr, "    -L ttl: default key TTL\n");
 	fprintf(stderr, "    -M <min>:<max>: allowed Key ID range\n");
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE\n");
-	fprintf(stderr, "    -p protocol: default: 3 [dnssec]\n");
 	fprintf(stderr, "    -y: permit keys that might collide\n");
 	fprintf(stderr, "    -v verbose level\n");
 	fprintf(stderr, "    -V: print version information\n");
@@ -119,7 +118,6 @@ main(int argc, char **argv) {
 	bool oldstyle = false;
 	isc_mem_t *mctx = NULL;
 	int ch;
-	int protocol = -1;
 	isc_result_t ret;
 	isc_textregion_t r;
 	char filename[255];
@@ -220,11 +218,7 @@ main(int argc, char **argv) {
 			fatal("The -n option has been deprecated.");
 			break;
 		case 'p':
-			protocol = strtol(isc_commandline_argument, &endp, 10);
-			if (*endp != '\0' || protocol < 0 || protocol > 255) {
-				fatal("-p must be followed by a number "
-				      "[0..255]");
-			}
+			fatal("The -p option has been deprecated.");
 			break;
 		case 't':
 			fatal("The -t option has been deprecated.");
@@ -541,19 +535,11 @@ main(int argc, char **argv) {
 		flags |= DNS_KEYOWNER_ENTITY; /* KEY: name type HOST */
 	}
 
-	if (protocol == -1) {
-		protocol = DNS_KEYPROTO_DNSSEC;
-	} else if ((options & DST_TYPE_KEY) == 0 &&
-		   protocol != DNS_KEYPROTO_DNSSEC)
-	{
-		fatal("invalid DNSKEY protocol: %d", protocol);
-	}
-
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
 	/* associate the key */
-	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass, label,
-				NULL, mctx, &key);
+	ret = dst_key_fromlabel(name, alg, flags, DNS_KEYPROTO_DNSSEC, rdclass,
+				label, NULL, mctx, &key);
 
 	if (ret != ISC_R_SUCCESS) {
 		char namestr[DNS_NAME_FORMATSIZE];

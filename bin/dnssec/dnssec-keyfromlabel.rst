@@ -127,12 +127,6 @@ Options
    values for ``tag_min`` and ``tag_max`` are [0..65535].  The
    default allows all key tag values to be accepted.
 
-.. option:: -p protocol
-
-   This option sets the protocol value for the key. The protocol is a number between
-   0 and 255. The default is 3 (DNSSEC). Other possible values for this
-   argument are listed in :rfc:`2535` and its successors.
-
 .. option:: -S key
 
    This option generates a key as an explicit successor to an existing key. The name,

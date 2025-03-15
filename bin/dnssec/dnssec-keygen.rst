@@ -163,13 +163,6 @@ Options
    key tag values to be produced.  This option is ignored when ``-k policy``
    is specified.
 
-.. option:: -p protocol
-
-   This option sets the protocol value for the generated key, for use with
-   :option:`-T KEY <-T>`. The protocol is a number between 0 and 255. The default
-   is 3 (DNSSEC). Other possible values for this argument are listed in
-   :rfc:`2535` and its successors.
-
 .. option:: -q
 
    This option sets quiet mode, which suppresses unnecessary output, including progress

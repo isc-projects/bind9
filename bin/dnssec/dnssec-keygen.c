@@ -82,7 +82,6 @@ struct keygen_ctx {
 	const char *directory;
 	dns_keystore_t *keystore;
 	char *algname;
-	int protocol;
 	int size;
 	uint16_t tag_min;
 	uint16_t tag_max;
@@ -172,7 +171,6 @@ usage(void) {
 	fprintf(stderr, "    -F: FIPS mode\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
 	fprintf(stderr, "    -M <min>:<max>: allowed Key ID range\n");
-	fprintf(stderr, "    -p <protocol>: (default: 3 [dnssec])\n");
 	fprintf(stderr, "    -s <strength>: strength value this key signs DNS "
 			"records with (default: 0)\n");
 	fprintf(stderr, "    -T <rrtype>: DNSKEY | KEY (default: DNSKEY; "
@@ -511,14 +509,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		}
 	}
 
-	if (ctx->protocol == -1) {
-		ctx->protocol = DNS_KEYPROTO_DNSSEC;
-	} else if ((ctx->options & DST_TYPE_KEY) == 0 &&
-		   ctx->protocol != DNS_KEYPROTO_DNSSEC)
-	{
-		fatal("invalid DNSKEY protocol: %d", ctx->protocol);
-	}
-
 	switch (ctx->alg) {
 	case DNS_KEYALG_RSASHA1:
 	case DNS_KEYALG_NSEC3RSASHA1:
@@ -556,12 +546,12 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 				mctx, ctx->alg, ctx->size, flags, &key);
 		} else if (!ctx->quiet && show_progress) {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, 0,
-					       flags, ctx->protocol,
+					       flags, DNS_KEYPROTO_DNSSEC,
 					       ctx->rdclass, NULL, mctx, &key,
 					       &progress);
 		} else {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, 0,
-					       flags, ctx->protocol,
+					       flags, DNS_KEYPROTO_DNSSEC,
 					       ctx->rdclass, NULL, mctx, &key,
 					       NULL);
 		}
@@ -792,7 +782,6 @@ main(int argc, char **argv) {
 	keygen_ctx_t ctx = {
 		.options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC,
 		.prepub = -1,
-		.protocol = -1,
 		.size = -1,
 		.now = isc_stdtime_now(),
 	};
@@ -914,14 +903,7 @@ main(int argc, char **argv) {
 		case 'm':
 			break;
 		case 'p':
-			ctx.protocol = strtol(isc_commandline_argument, &endp,
-					      10);
-			if (*endp != '\0' || ctx.protocol < 0 ||
-			    ctx.protocol > 255)
-			{
-				fatal("-p must be followed by a number "
-				      "[0..255]");
-			}
+			fatal("The -p option has been deprecated.");
 			break;
 		case 'q':
 			ctx.quiet = true;
