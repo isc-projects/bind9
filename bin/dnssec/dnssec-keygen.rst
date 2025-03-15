@@ -21,7 +21,7 @@ dnssec-keygen: DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-d** bits] [**-D** sync date/offset] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-M** tag_min:tag_max] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-V**] [**-v** level] {name}
+:program:`dnssec-keygen` [**-3**] [**-A** date/offset] [**-a** algorithm] [**-b** keysize] [**-C**] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-f** flag] [**-F**] [**-G**] [**-h**] [**-I** date/offset] [**-i** interval] [**-K** directory] [**-k** policy] [**-L** ttl] [**-l** file] [**-M** tag_min:tag_max] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-q**] [**-R** date/offset] [**-S** key] [**-s** strength] [**-T** rrtype] [**-V**] [**-v** level] {name}
 
 Description
 ~~~~~~~~~~~
@@ -86,13 +86,6 @@ Options
 
    This option indicates that the DNS record containing the key should have the
    specified class. If not specified, class IN is used.
-
-.. option:: -d bits
-
-   This option specifies the key size in bits. For the algorithms RSASHA1, NSEC3RSASA1, RSASHA256, and
-   RSASHA512 the key size must be between 1024 and 4096 bits; DH size is between 128
-   and 4096 bits. This option is ignored for algorithms ECDSAP256SHA256,
-   ECDSAP384SHA384, ED25519, and ED448.
 
 .. option:: -f flag
 

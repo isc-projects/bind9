@@ -87,7 +87,6 @@ struct keygen_ctx {
 	uint16_t tag_max;
 	dns_rdataclass_t rdclass;
 	int options;
-	int dbits;
 	dns_ttl_t ttl;
 	bool wantzsk;
 	bool wantksk;
@@ -563,8 +562,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			      algstr, isc_result_totext(ret));
 		}
 
-		dst_key_setbits(key, ctx->dbits);
-
 		/*
 		 * Set key timing metadata (unless using -C)
 		 *
@@ -838,10 +835,7 @@ main(int argc, char **argv) {
 			classname = isc_commandline_argument;
 			break;
 		case 'd':
-			ctx.dbits = strtol(isc_commandline_argument, &endp, 10);
-			if (*endp != '\0' || ctx.dbits < 0) {
-				fatal("-d requires a non-negative number");
-			}
+			fatal("The -d option has been deprecated.");
 			break;
 		case 'E':
 			fatal("%s", isc_result_totext(DST_R_NOENGINE));
