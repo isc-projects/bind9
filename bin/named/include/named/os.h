@@ -18,6 +18,7 @@
 #include <pwd.h>
 #include <stdbool.h>
 
+#include <isc/formatcheck.h>
 #include <isc/types.h>
 
 void
@@ -73,3 +74,15 @@ named_os_started(void);
 
 const char *
 named_os_uname(void);
+
+#ifdef __linux__
+void
+named_os_notify_systemd(const char *restrict format, ...)
+	ISC_FORMAT_PRINTF(1, 2);
+
+void
+named_os_notify_close(void);
+#else /* __linux__ */
+#define named_os_notify_systemd(...)
+#define named_os_notify_close(...)
+#endif /* __linux__ */
