@@ -849,7 +849,7 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, uint32_t val);
  *	val > 0.
  */
 
-isc_result_t
+void
 dns_zone_setxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
 /*%<
  * 	Set the source address to be used in IPv4 zone transfers.
@@ -857,22 +857,20 @@ dns_zone_setxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'xfrsource' to contain the address.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
-isc_sockaddr_t *
-dns_zone_getxfrsource4(dns_zone_t *zone);
+void
+dns_zone_getxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
 /*%<
  *	Returns the source address set by a previous dns_zone_setxfrsource4
  *	call, or the default of inaddr_any, port 0.
  *
  * Require:
  *\li	'zone' to be a valid zone.
+ *\li	'xfrsource' to not be NULL
  */
 
-isc_result_t
+void
 dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
 /*%<
  * 	Set the source address to be used in IPv6 zone transfers.
@@ -880,22 +878,20 @@ dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'xfrsource' to contain the address.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
-isc_sockaddr_t *
-dns_zone_getxfrsource6(dns_zone_t *zone);
+void
+dns_zone_getxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
 /*%<
  *	Returns the source address set by a previous dns_zone_setxfrsource6
  *	call, or the default of in6addr_any, port 0.
  *
  * Require:
  *\li	'zone' to be a valid zone.
+ *\li	'xfrsource' to not be NULL
  */
 
-isc_result_t
+void
 dns_zone_setparentalsrc4(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
 /*%<
  * 	Set the source address to be used with IPv4 parental DS queries.
@@ -903,22 +899,20 @@ dns_zone_setparentalsrc4(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'parentalsrc' to contain the address.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
-isc_sockaddr_t *
-dns_zone_getparentalsrc4(dns_zone_t *zone);
+void
+dns_zone_getparentalsrc4(dns_zone_t *zone, isc_sockaddr_t *parentalsrc);
 /*%<
  *	Returns the source address set by a previous dns_zone_setparentalsrc4
  *	call, or the default of inaddr_any, port 0.
  *
  * Require:
  *\li	'zone' to be a valid zone.
+ *\li	'parentalsrc' to be non NULL.
  */
 
-isc_result_t
+void
 dns_zone_setparentalsrc6(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
 /*%<
  * 	Set the source address to be used with IPv6 parental DS queries.
@@ -926,22 +920,20 @@ dns_zone_setparentalsrc6(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'parentalsrc' to contain the address.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
-isc_sockaddr_t *
-dns_zone_getparentalsrc6(dns_zone_t *zone);
+void
+dns_zone_getparentalsrc6(dns_zone_t *zone, isc_sockaddr_t *parentalsrc);
 /*%<
  *	Returns the source address set by a previous dns_zone_setparentalsrc6
  *	call, or the default of in6addr_any, port 0.
  *
  * Require:
  *\li	'zone' to be a valid zone.
+ *\li	'parentalsrc' to be non NULL.
  */
 
-isc_result_t
+void
 dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
 /*%<
  * 	Set the source address to be used with IPv4 NOTIFY messages.
@@ -949,22 +941,20 @@ dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'notifysrc' to contain the address.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
-isc_sockaddr_t *
-dns_zone_getnotifysrc4(dns_zone_t *zone);
+void
+dns_zone_getnotifysrc4(dns_zone_t *zone, isc_sockaddr_t *notifysrc);
 /*%<
  *	Returns the source address set by a previous dns_zone_setnotifysrc4
  *	call, or the default of inaddr_any, port 0.
  *
  * Require:
  *\li	'zone' to be a valid zone.
+ *\li	'notifysrc' to be non NULL.
  */
 
-isc_result_t
+void
 dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
 /*%<
  * 	Set the source address to be used with IPv6 NOTIFY messages.
@@ -972,19 +962,17 @@ dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'notifysrc' to contain the address.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
-isc_sockaddr_t *
-dns_zone_getnotifysrc6(dns_zone_t *zone);
+void
+dns_zone_getnotifysrc6(dns_zone_t *zone, isc_sockaddr_t *notifysrc);
 /*%<
  *	Returns the source address set by a previous dns_zone_setnotifysrc6
  *	call, or the default of in6addr_any, port 0.
  *
  * Require:
  *\li	'zone' to be a valid zone.
+ *\li	'notifysrc' to be non NULL.
  */
 
 void
@@ -1563,8 +1551,8 @@ dns_zone_getsigresigninginterval(dns_zone_t *zone);
  * \li	'zone' to be a valid zone.
  */
 
-isc_sockaddr_t
-dns_zone_getsourceaddr(dns_zone_t *zone);
+void
+dns_zone_getsourceaddr(dns_zone_t *zone, isc_sockaddr_t *sourceaddr);
 /*%<
  * Get the zone's source address from which it has last contacted the current
  * primary server.
@@ -1572,17 +1560,18 @@ dns_zone_getsourceaddr(dns_zone_t *zone);
  * Requires:
  * \li	'zone' to be a valid zone.
  * \li	'zone' has a non-empty primaries list.
+ * \li	'sourceaddr' to be non-NULL.
  */
 
 isc_result_t
-dns_zone_getprimaryaddr(dns_zone_t *zone, isc_sockaddr_t *dest);
+dns_zone_getprimaryaddr(dns_zone_t *zone, isc_sockaddr_t *primaryaddr);
 /*%<
- * Get the zone's current primary server into '*dest'.
+ * Get the zone's current primary server into '*primaryaddr'.
  *
  * Requires:
  * \li	'zone' to be a valid zone.
  * \li	'zone' has a non-empty primaries list.
- * \li	'dest' != NULL.
+ * \li	'primaryaddr' to be non-NULL.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS if the current primary server was found
