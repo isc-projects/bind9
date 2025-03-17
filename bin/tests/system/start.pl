@@ -264,7 +264,8 @@ sub construct_ns_command {
 
 		foreach my $t_option(
 			"dropedns", "ednsformerr", "ednsnotimp", "ednsrefused",
-			"noaa", "noedns", "nosoa", "maxudp512", "maxudp1460",
+			"cookiealwaysvalid", "noaa", "noedns", "nosoa",
+			"maxudp512", "maxudp1460",
 		    ) {
 			if (-e "$testdir/$server/named.$t_option") {
 				$command .= "-T $t_option "
