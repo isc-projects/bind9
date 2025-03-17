@@ -218,6 +218,7 @@ latex_logo = "isc-logo.pdf"
 linkcheck_timeout = 10
 linkcheck_ignore = [
     "http://127.0.0.1",
+    "https://dl.acm.org",
     "https://gitlab.isc.org",
     "https://kb.isc.org",
     "https://simpleicon.com/",
