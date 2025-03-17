@@ -673,9 +673,9 @@ def test_ksr_common(servers):
     # - check keys
     check_keys(overlapping_zsks, lifetime, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, overlapping_zsks)
+    isctest.kasp.check_apex(ns1, zone, ksks, overlapping_zsks, offline_ksk=True)
     # - check subdomain
-    isctest.kasp.check_subdomain(ns1, zone, ksks, overlapping_zsks)
+    isctest.kasp.check_subdomain(ns1, zone, ksks, overlapping_zsks, offline_ksk=True)
 
 
 def test_ksr_lastbundle(servers):
@@ -748,9 +748,9 @@ def test_ksr_lastbundle(servers):
     # - check keys
     check_keys(zsks, lifetime, offset=offset, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks, offline_ksk=True)
     # - check subdomain
-    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks, offline_ksk=True)
 
     # check that last bundle warning is logged
     warning = "last bundle in skr, please import new skr file"
@@ -828,9 +828,9 @@ def test_ksr_inthemiddle(servers):
     # - check keys
     check_keys(zsks, lifetime, offset=offset, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks, offline_ksk=True)
     # - check subdomain
-    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks, offline_ksk=True)
 
     # check that no last bundle warning is logged
     warning = "last bundle in skr, please import new skr file"
@@ -1023,9 +1023,9 @@ def test_ksr_unlimited(servers):
     # - check keys
     check_keys(zsks, lifetime, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks, offline_ksk=True)
     # - check subdomain
-    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks, offline_ksk=True)
 
 
 def test_ksr_twotone(servers):
@@ -1141,9 +1141,9 @@ def test_ksr_twotone(servers):
     lifetime = timedelta(days=31 * 5)
     check_keys(zsks_altalg, lifetime, alg, size, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks, offline_ksk=True)
     # - check subdomain
-    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks, offline_ksk=True)
 
 
 def test_ksr_kskroll(servers):
@@ -1215,6 +1215,6 @@ def test_ksr_kskroll(servers):
     # - check keys
     check_keys(zsks, None, with_state=True)
     # - check apex
-    isctest.kasp.check_apex(ns1, zone, ksks, zsks)
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks, offline_ksk=True)
     # - check subdomain
-    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks, offline_ksk=True)
