@@ -310,11 +310,18 @@ def test_kasp_cases(servers):
             ttl=ttl, keys=test["key-properties"]
         )
         # Key files.
-        keys = isctest.kasp.keydir_to_keylist(
-            zone, test["config"]["key-directory"], in_use=pregenerated
-        )
-        ksks = [k for k in keys if k.is_ksk()]
-        zsks = [k for k in keys if not k.is_ksk()]
+        if "key-directories" in test:
+            kdir = test["key-directories"][0]
+            ksks = isctest.kasp.keydir_to_keylist(zone, kdir, in_use=pregenerated)
+            kdir = test["key-directories"][1]
+            zsks = isctest.kasp.keydir_to_keylist(zone, kdir, in_use=pregenerated)
+            keys = ksks + zsks
+        else:
+            keys = isctest.kasp.keydir_to_keylist(
+                zone, test["config"]["key-directory"], in_use=pregenerated
+            )
+            ksks = [k for k in keys if k.is_ksk()]
+            zsks = [k for k in keys if not k.is_ksk()]
 
         isctest.kasp.check_zone_is_signed(server, zone)
         isctest.kasp.check_keys(zone, keys, expected)
@@ -326,7 +333,8 @@ def test_kasp_cases(servers):
                 test["config"], offset=offset, pregenerated=pregenerated
             )
 
-        isctest.kasp.check_keytimes(keys, expected)
+        if "rumoured" not in test:
+            isctest.kasp.check_keytimes(keys, expected)
 
         check_all(server, zone, policy, ksks, zsks, zsk_missing=zsk_missing)
 
@@ -459,6 +467,27 @@ def test_kasp_cases(servers):
             "key-properties": fips_properties(8),
         },
         {
+            "zone": "keystore.kasp",
+            "policy": "keystore",
+            "config": {
+                "dnskey-ttl": timedelta(seconds=303),
+                "ds-ttl": timedelta(days=1),
+                "key-directory": keydir,
+                "max-zone-ttl": timedelta(days=1),
+                "parent-propagation-delay": timedelta(hours=1),
+                "publish-safety": timedelta(hours=1),
+                "retire-safety": timedelta(hours=1),
+                "signatures-refresh": timedelta(days=5),
+                "signatures-validity": timedelta(days=14),
+                "zone-propagation-delay": timedelta(minutes=5),
+            },
+            "key-directories": [f"{keydir}/ksk", f"{keydir}/zsk"],
+            "key-properties": [
+                f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+                f"zsk unlimited {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+            ],
+        },
+        {
             "zone": "legacy-keys.kasp",
             "policy": "migrate-to-dnssec-policy",
             "config": kasp_config,
@@ -492,6 +521,13 @@ def test_kasp_cases(servers):
             "policy": "rsasha512",
             "config": kasp_config,
             "key-properties": fips_properties(10),
+        },
+        {
+            "zone": "rumoured.kasp",
+            "policy": "rsasha256",
+            "config": kasp_config,
+            "rumoured": True,
+            "key-properties": fips_properties(8),
         },
         {
             "zone": "secondary.kasp",
