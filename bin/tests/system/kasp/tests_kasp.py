@@ -1151,3 +1151,138 @@ def test_kasp_dnssec_keygen():
     out = isctest.run.cmd(settime, log_stdout=True).stdout.decode("utf-8")
     isctest.kasp.check_keys("kasp", keys, expected)
     isctest.kasp.check_keytimes(keys, expected)
+
+
+def test_kasp_zsk_retired(servers):
+    server = servers["ns3"]
+
+    config = {
+        "dnskey-ttl": timedelta(seconds=300),
+        "ds-ttl": timedelta(days=1),
+        "max-zone-ttl": timedelta(days=1),
+        "parent-propagation-delay": timedelta(hours=1),
+        "publish-safety": timedelta(hours=1),
+        "retire-safety": timedelta(hours=1),
+        "signatures-refresh": timedelta(days=7),
+        "signatures-validity": timedelta(days=14),
+        "zone-propagation-delay": timedelta(minutes=5),
+    }
+
+    zone = "zsk-retired.autosign"
+    policy = "autosign"
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    key_properties = [
+        f"ksk 63072000 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+        # zsk predecessor
+        f"zsk 31536000 {alg} {size} goal:hidden dnskey:omnipresent zrrsig:omnipresent",
+        # zsk successor
+        f"zsk 31536000 {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:hidden",
+    ]
+    expected = isctest.kasp.policy_to_properties(300, key_properties)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if not k.is_ksk()]
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    offset = -timedelta(days=30 * 6)
+    sign_delay = config["signatures-validity"] - config["signatures-refresh"]
+
+    def sumvars(variables):
+        result = timedelta(0)
+        for var in variables:
+            result = result + config[var]
+        return result
+
+    # KSK Key Timings:
+    # IpubC = DprpC + TTLkey
+    # Note: Also need to wait until the signatures are omnipresent.
+    # That's why we use max-zone-ttl instead of dnskey-ttl here.
+    Ipub_KSK = sumvars(["zone-propagation-delay", "max-zone-ttl"])
+    # Iret = DprpP + TTLds
+    Iret_KSK = sumvars(["parent-propagation-delay", "retire-safety", "ds-ttl"])
+
+    # ZSK Key Timings:
+    # Ipub = Dprp + TTLkey
+    Ipub_ZSK = sumvars(["zone-propagation-delay", "publish-safety", "dnskey-ttl"])
+    # Iret = Dsgn + Dprp + TTLsig
+    Iret_ZSK = sumvars(["zone-propagation-delay", "retire-safety", "max-zone-ttl"])
+    Iret_ZSK = Iret_ZSK + sign_delay
+
+    # KSK
+    expected[0].timing["Generated"] = expected[0].key.get_timing("Created")
+    expected[0].timing["Published"] = expected[0].timing["Generated"]
+    expected[0].timing["Published"] = expected[0].timing["Published"] + offset
+    expected[0].timing["Active"] = expected[0].timing["Published"]
+    expected[0].timing["Retired"] = expected[0].timing["Published"] + int(
+        expected[0].metadata["Lifetime"]
+    )
+    # Trdy(N) = Tpub(N) + IpubC
+    expected[0].timing["PublishCDS"] = expected[0].timing["Published"] + Ipub_KSK
+    # Tdea(N) = Tret(N) + Iret
+    expected[0].timing["Removed"] = expected[0].timing["Retired"] + Iret_KSK
+    expected[0].timing["DNSKEYChange"] = None
+    expected[0].timing["DSChange"] = None
+    expected[0].timing["KRRSIGChange"] = None
+
+    # ZSK (predecessor)
+    expected[1].timing["Generated"] = expected[1].key.get_timing("Created")
+    expected[1].timing["Published"] = expected[1].timing["Generated"] + offset
+    expected[1].timing["Active"] = expected[1].timing["Published"]
+    expected[1].timing["Retired"] = expected[1].timing["Generated"]
+    # Tdea(N) = Tret(N) + Iret
+    expected[1].timing["Removed"] = expected[1].timing["Retired"] + Iret_ZSK
+    expected[1].timing["DNSKEYChange"] = None
+    expected[1].timing["ZRRSIGChange"] = None
+
+    # ZSK (successor)
+    expected[2].timing["Generated"] = expected[2].key.get_timing("Created")
+    expected[2].timing["Published"] = expected[2].timing["Generated"]
+    # Trdy(N) = Tpub(N) + Ipub
+    expected[2].timing["Active"] = expected[2].timing["Published"] + Ipub_ZSK
+    # Tret(N) = Tact(N) + Lzsk
+    expected[2].timing["Retired"] = expected[2].timing["Active"] + int(
+        expected[2].metadata["Lifetime"]
+    )
+    # Tdea(N) = Tret(N) + Iret
+    expected[2].timing["Removed"] = expected[2].timing["Retired"] + Iret_ZSK
+    expected[2].timing["DNSKEYChange"] = None
+    expected[2].timing["ZRRSIGChange"] = None
+
+    isctest.kasp.check_keytimes(keys, expected)
+    check_all(server, zone, policy, ksks, zsks)
+
+    queries = [
+        f"{zone} DNSKEY",
+        f"{zone} SOA",
+        f"{zone} NS",
+        f"{zone} NSEC",
+        f"a.{zone} A",
+        f"a.{zone} NSEC",
+        f"b.{zone} A",
+        f"b.{zone} NSEC",
+        f"c.{zone} A",
+        f"c.{zone} NSEC",
+        f"ns3.{zone} A",
+        f"ns3.{zone} NSEC",
+    ]
+
+    def rrsig_is_refreshed():
+        parts = query.split()
+        qname = parts[0]
+        qtype = dns.rdatatype.from_text(parts[1])
+        return isctest.kasp.verify_rrsig_is_refreshed(
+            server, zone, f"ns3/{zone}.db.signed", qname, qtype, ksks, zsks
+        )
+
+    for query in queries:
+        isctest.run.retry_with_timeout(rrsig_is_refreshed, timeout=5)
+
+    # Load again, make sure the purged key is not an issue when verifying keys.
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"loadkeys {zone}", log=False)
+        watcher.wait_for_line(f"keymgr: {zone} done")
+
+    msg = f"zone {zone}/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
+    server.log.prohibit(msg)
