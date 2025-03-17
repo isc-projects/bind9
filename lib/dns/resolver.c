@@ -7412,15 +7412,6 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query, int level,
 }
 
 static bool
-iscname(dns_message_t *message, dns_name_t *name) {
-	isc_result_t result;
-
-	result = dns_message_findname(message, DNS_SECTION_ANSWER, name,
-				      dns_rdatatype_cname, 0, NULL, NULL);
-	return result == ISC_R_SUCCESS ? true : false;
-}
-
-static bool
 betterreferral(respctx_t *rctx) {
 	isc_result_t result;
 	dns_name_t *name;
@@ -8340,20 +8331,6 @@ rctx_answer(respctx_t *rctx) {
 		result = rctx_answer_positive(rctx);
 		if (result != ISC_R_SUCCESS) {
 			FCTXTRACE3("rctx_answer_positive (AA/fwd)", result);
-		}
-	} else if (iscname(query->rmessage, fctx->name) &&
-		   fctx->type != dns_rdatatype_any &&
-		   fctx->type != dns_rdatatype_cname)
-	{
-		/*
-		 * A BIND8 server could return a non-authoritative
-		 * answer when a CNAME is followed.  We should treat
-		 * it as a valid answer.
-		 */
-		result = rctx_answer_positive(rctx);
-		if (result != ISC_R_SUCCESS) {
-			FCTXTRACE3("rctx_answer_positive (!ANY/!CNAME)",
-				   result);
 		}
 	} else if (fctx->type != dns_rdatatype_ns && !betterreferral(rctx)) {
 		result = rctx_answer_positive(rctx);
