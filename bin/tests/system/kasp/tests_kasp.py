@@ -1446,3 +1446,62 @@ def test_kasp_zsk_retired(servers):
 
     msg = f"zone {zone}/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
     server.log.prohibit(msg)
+
+
+def test_kasp_reload_restart(servers):
+    server = servers["ns6"]
+    zone = "example"
+
+    def query_soa(qname):
+        fqdn = dns.name.from_text(qname)
+        qtype = dns.rdatatype.SOA
+        query = dns.message.make_query(fqdn, qtype, use_edns=True, want_dnssec=True)
+        try:
+            response = isctest.query.tcp(query, server.ip, server.ports.dns, timeout=3)
+        except dns.exception.Timeout:
+            isctest.log.debug(f"query timeout for query {qname} SOA to {server.ip}")
+            return 0, 0
+
+        assert response.rcode() == dns.rcode.NOERROR
+
+        for rr in response.answer:
+            if rr.match(fqdn, dns.rdataclass.IN, dns.rdatatype.RRSIG, qtype):
+                continue
+
+            assert rr.match(fqdn, dns.rdataclass.IN, qtype, dns.rdatatype.NONE)
+            assert len(rr) == 1
+            return rr[0].serial, rr.ttl
+
+        return 0, 0
+
+    def check_soa_ttl():
+        soa2, ttl2 = query_soa(zone)
+        return soa1 < soa2 and ttl2 == newttl
+
+    # Check that the SOA SERIAL increases and check the TTLs (should be 300 as
+    # defined in ns6/example2.db.in).
+    soa1, ttl1 = query_soa(zone)
+    assert ttl1 == 300
+
+    shutil.copyfile(f"ns6/{zone}2.db.in", f"ns6/{zone}.db")
+    with server.watch_log_from_here() as watcher:
+        server.rndc("reload", log=False)
+        watcher.wait_for_line("all zones loaded")
+
+    newttl = 300
+    isctest.run.retry_with_timeout(check_soa_ttl, timeout=10)
+
+    # Check that the SOA SERIAL increases and check the TTLs (should be changed
+    # from 300 to 400 as defined in ns6/example3.db.in).
+    soa1, ttl1 = query_soa(zone)
+    assert ttl1 == 300
+
+    server.stop()
+    shutil.copyfile(f"ns6/{zone}3.db.in", f"ns6/{zone}.db")
+    os.unlink(f"ns6/{zone}.db.jnl")
+    with server.watch_log_from_here() as watcher:
+        server.start(["--noclean", "--restart", "--port", os.environ["PORT"]])
+        watcher.wait_for_line("all zones loaded")
+
+    newttl = 400
+    isctest.run.retry_with_timeout(check_soa_ttl, timeout=10)
