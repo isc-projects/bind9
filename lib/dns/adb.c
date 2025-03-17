@@ -1076,10 +1076,10 @@ new_adbfetch(dns_adb_t *adb) {
 	dns_adbfetch_t *fetch = NULL;
 
 	fetch = isc_mem_get(adb->hmctx, sizeof(*fetch));
-	*fetch = (dns_adbfetch_t){ 0 };
+	*fetch = (dns_adbfetch_t){
+		.magic = DNS_ADBFETCH_MAGIC,
+	};
 	dns_rdataset_init(&fetch->rdataset);
-
-	fetch->magic = DNS_ADBFETCH_MAGIC;
 
 	return fetch;
 }
