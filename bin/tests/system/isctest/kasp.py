@@ -1108,6 +1108,98 @@ def verify_update_is_signed(server, fqdn, qname, qtype, rdata, ksks, zsks, tsig=
     return True
 
 
+def verify_rrsig_is_refreshed(
+    server, fqdn, zonefile, qname, qtype, ksks, zsks, tsig=None
+):
+    """
+    Verify signature for RRset has been refreshed.
+    """
+    response = _query(server, qname, qtype, tsig=tsig)
+
+    if response.rcode() != dns.rcode.NOERROR:
+        return False
+
+    rrtype = dns.rdatatype.to_text(qtype)
+    match = f"{qname}. {DEFAULT_TTL} IN {rrtype}"
+    rrsigs = []
+    for rrset in response.answer:
+        if rrset.match(
+            dns.name.from_text(qname), dns.rdataclass.IN, dns.rdatatype.RRSIG, qtype
+        ):
+            rrsigs.append(rrset)
+        elif not match in rrset.to_text():
+            return False
+
+    if len(rrsigs) == 0:
+        return False
+
+    tmp_zonefile = f"{zonefile}.tmp"
+    isctest.run.cmd(
+        [
+            os.environ["CHECKZONE"],
+            "-D",
+            "-q",
+            "-o",
+            tmp_zonefile,
+            "-f",
+            "raw",
+            fqdn,
+            zonefile,
+        ],
+    )
+
+    zone = dns.zone.from_file(tmp_zonefile, fqdn)
+    for rrsig in rrsigs:
+        if isctest.util.zone_contains(zone, rrsig):
+            return False
+
+    # Zone is updated, ready to verify the signatures.
+    check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
+
+    return True
+
+
+def verify_rrsig_is_reused(server, fqdn, zonefile, qname, qtype, ksks, zsks, tsig=None):
+    """
+    Verify signature for RRset has been reused.
+    """
+    response = _query(server, qname, qtype, tsig=tsig)
+
+    assert response.rcode() == dns.rcode.NOERROR
+
+    rrtype = dns.rdatatype.to_text(qtype)
+    match = f"{qname}. {DEFAULT_TTL} IN {rrtype}"
+    rrsigs = []
+    for rrset in response.answer:
+        if rrset.match(
+            dns.name.from_text(qname), dns.rdataclass.IN, dns.rdatatype.RRSIG, qtype
+        ):
+            rrsigs.append(rrset)
+        else:
+            assert match in rrset.to_text()
+
+    tmp_zonefile = f"{zonefile}.tmp"
+    isctest.run.cmd(
+        [
+            os.environ["CHECKZONE"],
+            "-D",
+            "-q",
+            "-o",
+            tmp_zonefile,
+            "-f",
+            "raw",
+            fqdn,
+            zonefile,
+        ],
+    )
+
+    zone = dns.zone.from_file(tmp_zonefile, dns.name.from_text(fqdn), relativize=False)
+    for rrsig in rrsigs:
+        assert isctest.util.zone_contains(zone, rrsig)
+
+    check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
+
+
 def next_key_event_equals(server, zone, next_event):
     if next_event is None:
         # No next key event check.
@@ -1202,6 +1294,7 @@ def policy_to_properties(ttl, keys: List[str]) -> List[KeyProperties]:
     Then, optional data for specific tests may follow:
     - "goal", "dnskey", "krrsig", "zrrsig", "ds", followed by a value,
       sets the given state to the specific value
+    - "missing", set if the private key file for this key is not available.
     - "offset", an offset for testing key rollover timings
     """
     proplist = []
@@ -1252,6 +1345,8 @@ def policy_to_properties(ttl, keys: List[str]) -> List[KeyProperties]:
             elif line[i].startswith("offset:"):
                 keyval = line[i].split(":")
                 keyprop.properties["offset"] = timedelta(seconds=int(keyval[1]))
+            elif line[i] == "missing":
+                keyprop.properties["private"] = False
             else:
                 assert False, f"undefined optional data {line[i]}"
 
