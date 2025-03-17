@@ -921,6 +921,166 @@ def test_kasp_dynamic(servers):
     assert f"zone_resigninc: zone {zone}/IN (unsigned): enter" not in "ns3/named.run"
 
 
+def test_kasp_checkds(servers):
+    server = servers["ns3"]
+
+    def wait_for_metadata():
+        return isctest.util.file_contents_contain(ksk.statefile, metadata)
+
+    # Zone: checkds-ksk.kasp.
+    zone = "checkds-ksk.kasp"
+    policy = "checkds-ksk"
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    policy_keys = [
+        f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"zsk unlimited {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if k.is_zsk()]
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    check_all(server, zone, policy, ksks, zsks)
+
+    now = KeyTimingMetadata.now()
+    ksk = ksks[0]
+
+    isctest.log.info("check if checkds -publish correctly sets DSPublish")
+    server.rndc(f"dnssec -checkds -when {now} published {zone}", log=False)
+    metadata = f"DSPublish: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "rumoured"
+    expected[0].timing["DSPublish"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    isctest.log.info("check if checkds -withdrawn correctly sets DSRemoved")
+    server.rndc(f"dnssec -checkds -when {now} withdrawn {zone}", log=False)
+    metadata = f"DSRemoved: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "unretentive"
+    expected[0].timing["DSRemoved"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+
+def test_kasp_checkds_doubleksk(servers):
+    server = servers["ns3"]
+
+    def wait_for_metadata():
+        return isctest.util.file_contents_contain(ksk.statefile, metadata)
+
+    # Zone: checkds-doubleksk.kasp.
+    zone = "checkds-doubleksk.kasp"
+    policy = "checkds-doubleksk"
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    policy_keys = [
+        f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"zsk unlimited {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if k.is_zsk()]
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    check_all(server, zone, policy, ksks, zsks)
+
+    now = KeyTimingMetadata.now()
+    ksk = ksks[0]
+
+    badalg = os.environ["ALTERNATIVE_ALGORITHM_NUMBER"]
+    isctest.log.info("check invalid checkds commands")
+
+    def check_error():
+        response = server.rndc(test["command"], log=False)
+        assert test["error"] in response
+
+    test_cases = [
+        {
+            "command": f"dnssec -checkds -when {now} published {zone}",
+            "error": "multiple possible keys found, retry command with -key id",
+        },
+        {
+            "command": f"dnssec -checkds -when {now} withdrawn {zone}",
+            "error": "multiple possible keys found, retry command with -key id",
+        },
+        {
+            "command": f"dnssec -checkds -when {now} -key {ksks[0].tag} -alg {badalg} published {zone}",
+            "error": "Error executing checkds command: no matching key found",
+        },
+        {
+            "command": f"dnssec -checkds -when {now} -key {ksks[0].tag} -alg {badalg} withdrawn {zone}",
+            "error": "Error executing checkds command: no matching key found",
+        },
+    ]
+    for test in test_cases:
+        check_error()
+
+    isctest.log.info("check if checkds -publish -key correctly sets DSPublish")
+    server.rndc(
+        f"dnssec -checkds -when {now} -key {ksk.tag} published {zone}", log=False
+    )
+    metadata = f"DSPublish: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "rumoured"
+    expected[0].timing["DSPublish"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    isctest.log.info("check if checkds -withdrawn -key correctly sets DSRemoved")
+    ksk = ksks[1]
+    server.rndc(
+        f"dnssec -checkds -when {now} -key {ksk.tag} withdrawn {zone}", log=False
+    )
+    metadata = f"DSRemoved: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[1].metadata["DSState"] = "unretentive"
+    expected[1].timing["DSRemoved"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+
+def test_kasp_checkds_csk(servers):
+    server = servers["ns3"]
+
+    def wait_for_metadata():
+        return isctest.util.file_contents_contain(ksk.statefile, metadata)
+
+    # Zone: checkds-csk.kasp.
+    zone = "checkds-csk.kasp"
+    policy = "checkds-csk"
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    policy_keys = [
+        f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    check_all(server, zone, policy, keys, [])
+
+    now = KeyTimingMetadata.now()
+    ksk = keys[0]
+
+    isctest.log.info("check if checkds -publish csk correctly sets DSPublish")
+    server.rndc(f"dnssec -checkds -when {now} published {zone}", log=False)
+    metadata = f"DSPublish: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "rumoured"
+    expected[0].timing["DSPublish"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    isctest.log.info("check if checkds -withdrawn csk correctly sets DSRemoved")
+    server.rndc(f"dnssec -checkds -when {now} withdrawn {zone}", log=False)
+    metadata = f"DSRemoved: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "unretentive"
+    expected[0].timing["DSRemoved"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+
 def test_kasp_special_characters(servers):
     server = servers["ns3"]
 
