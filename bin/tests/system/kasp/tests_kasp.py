@@ -80,9 +80,11 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-def check_all(server, zone, policy, ksks, zsks, tsig=None):
+def check_all(server, zone, policy, ksks, zsks, zsk_missing=False, tsig=None):
     isctest.kasp.check_dnssecstatus(server, zone, ksks + zsks, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks, tsig=tsig)
+    isctest.kasp.check_apex(
+        server, zone, ksks, zsks, zsk_missing=zsk_missing, tsig=tsig
+    )
     isctest.kasp.check_subdomain(server, zone, ksks, zsks, tsig=tsig)
     isctest.kasp.check_dnssec_verify(server, zone, tsig=tsig)
 
@@ -169,6 +171,128 @@ def test_kasp_cases(servers):
             f"zsk {lifetime['P1Y']} {alg} {sizes[2]} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
         ]
 
+    # Additional test functions.
+    def test_ixfr_is_signed(
+        expected_updates, zone=None, policy=None, ksks=None, zsks=None
+    ):
+        isctest.log.info(f"check that the zone {zone} is correctly signed after ixfr")
+        isctest.log.debug(
+            f"expected updates {expected_updates} policy {policy} ksks {ksks} zsks {zsks}"
+        )
+
+        shutil.copyfile(f"ns2/{zone}.db.in2", f"ns2/{zone}.db")
+        servers["ns2"].rndc(f"reload {zone}", log=False)
+
+        def update_is_signed():
+            parts = update.split()
+            qname = parts[0]
+            qtype = dns.rdatatype.from_text(parts[1])
+            rdata = parts[2]
+            return isctest.kasp.verify_update_is_signed(
+                server, zone, qname, qtype, rdata, ksks, zsks
+            )
+
+        for update in expected_updates:
+            isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+
+    def test_rrsig_refresh(zone=None, policy=None, ksks=None, zsks=None):
+        # pylint: disable=unused-argument
+        isctest.log.info(f"check that the zone {zone} refreshes expired signatures")
+
+        def rrsig_is_refreshed():
+            parts = query.split()
+            qname = parts[0]
+            qtype = dns.rdatatype.from_text(parts[1])
+            return isctest.kasp.check_rrsig_is_refreshed(
+                server, zone, f"ns3/{zone}.db.signed", qname, qtype, ksks, zsks
+            )
+
+        queries = [
+            f"{zone} DNSKEY",
+            f"{zone} SOA",
+            f"{zone} NS",
+            f"{zone} NSEC",
+            f"a.{zone} A",
+            f"a.{zone} NSEC",
+            f"b.{zone} A",
+            f"b.{zone} NSEC",
+            f"c.{zone} A",
+            f"c.{zone} NSEC",
+            f"ns3.{zone} A",
+            f"ns3.{zone} NSEC",
+        ]
+
+        for query in queries:
+            isctest.run.retry_with_timeout(rrsig_is_refreshed, timeout=5)
+
+    def test_rrsig_reuse(zone=None, policy=None, ksks=None, zsks=None):
+        # pylint: disable=unused-argument
+        isctest.log.info(f"check that the zone {zone} reuses fresh signatures")
+
+        def rrsig_is_reused():
+            parts = query.split()
+            qname = parts[0]
+            qtype = dns.rdatatype.from_text(parts[1])
+            return isctest.kasp.check_rrsig_is_reused(
+                server, zone, f"{keydir}/{zone}.db.signed", qname, qtype, ksks, zsks
+            )
+
+        queries = [
+            f"{zone} NS",
+            f"{zone} NSEC",
+            f"a.{zone} A",
+            f"a.{zone} NSEC",
+            f"b.{zone} A",
+            f"b.{zone} NSEC",
+            f"c.{zone} A",
+            f"c.{zone} NSEC",
+            f"ns3.{zone} A",
+            f"ns3.{zone} NSEC",
+        ]
+
+        for query in queries:
+            rrsig_is_reused()
+
+    def test_legacy_keys(zone=None, policy=None, ksks=None, zsks=None):
+        # pylint: disable=unused-argument
+        isctest.log.info(f"check that the zone {zone} uses correct legacy keys")
+
+        assert len(ksks) == 1
+        assert len(zsks) == 1
+
+        # This assumes the zone has a policy that dictates one KSK and one ZSK.
+        # The right keys to be used are stored in "{zone}.ksk" and "{zone}.zsk".
+        with open(f"{keydir}/{zone}.ksk", "r", encoding="utf-8") as file:
+            kskfile = file.read()
+        with open(f"{keydir}/{zone}.zsk", "r", encoding="utf-8") as file:
+            zskfile = file.read()
+
+        assert f"{keydir}/{kskfile}".strip() == ksks[0].path
+        assert f"{keydir}/{zskfile}".strip() == zsks[0].path
+
+    def test_remove_keyfiles(zone=None, policy=None, ksks=None, zsks=None):
+        # pylint: disable=unused-argument
+        isctest.log.info(
+            "check that removing key files does not create new keys to be generated"
+        )
+
+        for k in ksks + zsks:
+            os.remove(k.keyfile)
+            os.remove(k.privatefile)
+            os.remove(k.statefile)
+
+        with server.watch_log_from_here() as watcher:
+            server.rndc(f"loadkeys {zone}", log=False)
+            watcher.wait_for_line(
+                f"zone {zone}/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
+            )
+
+        # Check keys again, make sure no new keys are created.
+        keys = isctest.kasp.keydir_to_keylist(zone, keydir)
+        isctest.kasp.check_keys(zone, keys, [])
+        # Zone is still signed correctly.
+        isctest.kasp.check_dnssec_verify(server, zone)
+
     # Test case function.
     def test_case():
         zone = test["zone"]
@@ -177,6 +301,7 @@ def test_kasp_cases(servers):
         pregenerated = False
         if test.get("pregenerated"):
             pregenerated = test["pregenerated"]
+        zsk_missing = zone == "zsk-missing.autosign"
 
         isctest.log.info(f"check test case zone {zone} policy {policy}")
 
@@ -203,7 +328,13 @@ def test_kasp_cases(servers):
 
         isctest.kasp.check_keytimes(keys, expected)
 
-        check_all(server, zone, policy, ksks, zsks)
+        check_all(server, zone, policy, ksks, zsks, zsk_missing=zsk_missing)
+
+        if "additional-tests" in test:
+            for additional_test in test["additional-tests"]:
+                callback = additional_test["callback"]
+                arguments = additional_test["arguments"]
+                callback(*arguments, zone=zone, policy=policy, ksks=ksks, zsks=zsks)
 
     # Test cases.
     rsa_cases = []
@@ -232,6 +363,78 @@ def test_kasp_cases(servers):
             "key-properties": autosign_properties,
         },
         {
+            "zone": "expired-sigs.autosign",
+            "policy": "autosign",
+            "config": autosign_config,
+            "offset": -timedelta(days=30 * 6),
+            "key-properties": autosign_properties,
+            "additional-tests": [
+                {
+                    "callback": test_rrsig_refresh,
+                    "arguments": [],
+                },
+            ],
+        },
+        {
+            "zone": "fresh-sigs.autosign",
+            "policy": "autosign",
+            "config": autosign_config,
+            "offset": -timedelta(days=30 * 6),
+            "key-properties": autosign_properties,
+            "additional-tests": [
+                {
+                    "callback": test_rrsig_reuse,
+                    "arguments": [],
+                },
+            ],
+        },
+        {
+            "zone": "unfresh-sigs.autosign",
+            "policy": "autosign",
+            "config": autosign_config,
+            "offset": -timedelta(days=30 * 6),
+            "key-properties": autosign_properties,
+            "additional-tests": [
+                {
+                    "callback": test_rrsig_refresh,
+                    "arguments": [],
+                },
+            ],
+        },
+        {
+            "zone": "keyfiles-missing.autosign",
+            "policy": "autosign",
+            "config": autosign_config,
+            "offset": -timedelta(days=30 * 6),
+            "key-properties": autosign_properties,
+            "additional-tests": [
+                {
+                    "callback": test_remove_keyfiles,
+                    "arguments": [],
+                },
+            ],
+        },
+        {
+            "zone": "ksk-missing.autosign",
+            "policy": "autosign",
+            "config": autosign_config,
+            "offset": -timedelta(days=30 * 6),
+            "key-properties": [
+                f"ksk 63072000 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent missing",
+                f"zsk 31536000 {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
+            ],
+        },
+        {
+            "zone": "zsk-missing.autosign",
+            "policy": "autosign",
+            "config": autosign_config,
+            "offset": -timedelta(days=30 * 6),
+            "key-properties": [
+                f"ksk 63072000 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+                f"zsk 31536000 {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent missing",
+            ],
+        },
+        {
             "zone": "dnssec-keygen.kasp",
             "policy": "rsasha256",
             "config": kasp_config,
@@ -256,6 +459,22 @@ def test_kasp_cases(servers):
             "key-properties": fips_properties(8),
         },
         {
+            "zone": "legacy-keys.kasp",
+            "policy": "migrate-to-dnssec-policy",
+            "config": kasp_config,
+            "pregenerated": True,
+            "key-properties": [
+                "ksk 16070400 8 2048 goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+                "zsk 16070400 8 2048 goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+            ],
+            "additional-tests": [
+                {
+                    "callback": test_legacy_keys,
+                    "arguments": [],
+                },
+            ],
+        },
+        {
             "zone": "pregenerated.kasp",
             "policy": "rsasha256",
             "config": kasp_config,
@@ -273,6 +492,23 @@ def test_kasp_cases(servers):
             "policy": "rsasha512",
             "config": kasp_config,
             "key-properties": fips_properties(10),
+        },
+        {
+            "zone": "secondary.kasp",
+            "policy": "rsasha256",
+            "config": kasp_config,
+            "key-properties": fips_properties(8),
+            "additional-tests": [
+                {
+                    "callback": test_ixfr_is_signed,
+                    "arguments": [
+                        [
+                            "a.secondary.kasp. A 10.0.0.11",
+                            "d.secondary.kasp. A 10.0.0.4",
+                        ],
+                    ],
+                },
+            ],
         },
         {
             "zone": "some-keys.kasp",
