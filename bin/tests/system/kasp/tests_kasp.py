@@ -26,6 +26,7 @@ from isctest.kasp import (
     KeyProperties,
     KeyTimingMetadata,
 )
+from isctest.vars.algorithms import ECDSAP256SHA256, ECDSAP384SHA384
 
 pytestmark = pytest.mark.extra_artifacts(
     [
@@ -115,6 +116,21 @@ lifetime = {
     "P30D": int(timedelta(days=30).total_seconds()),
     "P6M": int(timedelta(days=31 * 6).total_seconds()),
 }
+
+KASP_INHERIT_TSIG_SECRET = {
+    "sha1": "FrSt77yPTFx6hTs4i2tKLB9LmE0=",
+    "sha224": "hXfwwwiag2QGqblopofai9NuW28q/1rH4CaTnA==",
+    "sha256": "R16NojROxtxH/xbDl//ehDsHm5DjWTQ2YXV+hGC2iBY=",
+    "view1": "YPfMoAk6h+3iN8MDRQC004iSNHY=",
+    "view2": "4xILSZQnuO1UKubXHkYUsvBRPu8=",
+    "view3": "C1Azf+gGPMmxrUg/WQINP6eV9Y0=",
+}
+
+
+def param(*args, **kwargs):
+    if "id" not in kwargs:
+        kwargs["id"] = args[0]  # use first argument  as test ID
+    return pytest.param(*args, **kwargs)
 
 
 def autosign_properties(alg, size):
@@ -683,6 +699,129 @@ def test_kasp_case(servers, params):
             callback = additional_test["callback"]
             arguments = additional_test["arguments"]
             callback(*arguments, params=params, ksks=ksks, zsks=zsks)
+
+
+@pytest.mark.parametrize(
+    "zone, server_id, tsig_kind",
+    [
+        param("unsigned.tld", "ns2", None),
+        param("none.inherit.signed", "ns4", "sha1"),
+        param("none.override.signed", "ns4", "sha224"),
+        param("inherit.none.signed", "ns4", "sha256"),
+        param("none.none.signed", "ns4", "sha256"),
+        param("inherit.inherit.unsigned", "ns5", "sha1"),
+        param("none.inherit.unsigned", "ns5", "sha1"),
+        param("none.override.unsigned", "ns5", "sha224"),
+        param("inherit.none.unsigned", "ns5", "sha256"),
+        param("none.none.unsigned", "ns5", "sha256"),
+    ],
+)
+def test_kasp_inherit_unsigned(zone, server_id, tsig_kind, servers):
+    server = servers[server_id]
+    tsig = (
+        f"hmac-{tsig_kind}:{tsig_kind}:{KASP_INHERIT_TSIG_SECRET[tsig_kind]}"
+        if tsig_kind
+        else None
+    )
+
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    isctest.kasp.check_keys(zone, keys, [])
+    isctest.kasp.check_dnssecstatus(server, zone, [])
+    isctest.kasp.check_apex(server, zone, [], [], tsig=tsig)
+    isctest.kasp.check_subdomain(server, zone, [], [], tsig=tsig)
+
+
+@pytest.mark.parametrize(
+    "zone, policy, server_id, alg, tsig_kind",
+    [
+        param("signed.tld", "default", "ns2", ECDSAP256SHA256, None),
+        param("override.inherit.signed", "default", "ns4", ECDSAP256SHA256, "sha1"),
+        param("inherit.override.signed", "default", "ns4", ECDSAP256SHA256, "sha224"),
+        param("override.inherit.unsigned", "default", "ns5", ECDSAP256SHA256, "sha1"),
+        param("inherit.override.unsigned", "default", "ns5", ECDSAP256SHA256, "sha224"),
+        param("inherit.inherit.signed", "test", "ns4", ECDSAP384SHA384, "sha1"),
+        param("override.override.signed", "test", "ns4", ECDSAP384SHA384, "sha224"),
+        param("override.none.signed", "test", "ns4", ECDSAP384SHA384, "sha256"),
+        param("override.override.unsigned", "test", "ns5", ECDSAP384SHA384, "sha224"),
+        param("override.none.unsigned", "test", "ns5", ECDSAP384SHA384, "sha256"),
+    ],
+)
+def test_kasp_inherit_signed(zone, policy, server_id, alg, tsig_kind, servers):
+    server = servers[server_id]
+    tsig = (
+        f"hmac-{tsig_kind}:{tsig_kind}:{KASP_INHERIT_TSIG_SECRET[tsig_kind]}"
+        if tsig_kind
+        else None
+    )
+
+    key1 = KeyProperties.default()
+    key1.metadata["Algorithm"] = alg.number
+    key1.metadata["Length"] = alg.bits
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+
+    isctest.kasp.check_zone_is_signed(server, zone, tsig=tsig)
+    isctest.kasp.check_keys(zone, keys, [key1])
+    set_keytimes_default_policy(key1)
+    isctest.kasp.check_keytimes(keys, [key1])
+    check_all(server, zone, policy, keys, [], tsig=tsig)
+
+
+@pytest.mark.parametrize(
+    "number, dynamic, inline_signing, txt_rdata",
+    [
+        param("1", "yes", "no", "view1"),
+        param("2", "no", "yes", "view2"),
+        param("3", "no", "yes", "view2"),
+    ],
+)
+def test_kasp_inherit_view(number, dynamic, inline_signing, txt_rdata, servers):
+    zone = "example.net"
+    policy = "test"
+    server = servers["ns4"]
+    view = f"example{number}"
+    tsig = f"{os.environ['DEFAULT_HMAC']}:keyforview{number}:{KASP_INHERIT_TSIG_SECRET[f'view{number}']}"
+
+    key1 = KeyProperties.default()
+    key1.metadata["Algorithm"] = ECDSAP384SHA384.number
+    key1.metadata["Length"] = ECDSAP384SHA384.bits
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+
+    isctest.kasp.check_zone_is_signed(server, zone, tsig=tsig)
+    isctest.kasp.check_keys(zone, keys, [key1])
+    set_keytimes_default_policy(key1)
+    isctest.kasp.check_keytimes(keys, [key1])
+    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy, view=view)
+    isctest.kasp.check_apex(server, zone, keys, [], tsig=tsig)
+    # check zonestatus
+    response = server.rndc(f"zonestatus {zone} in {view}", log=False)
+    assert f"dynamic: {dynamic}" in response
+    assert f"inline signing: {inline_signing}" in response
+    # check subdomain
+    fqdn = f"{zone}."
+    qname = f"view.{zone}."
+    qtype = dns.rdatatype.TXT
+    rdata = txt_rdata
+    query = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
+    tsigkey = tsig.split(":")
+    keyring = dns.tsig.Key(tsigkey[1], tsigkey[2], tsigkey[0])
+    query.use_tsig(keyring)
+    try:
+        response = isctest.query.tcp(query, server.ip, server.ports.dns, timeout=3)
+    except dns.exception.Timeout:
+        isctest.log.debug(f"query timeout for query {qname} {qtype} to {server.ip}")
+        response = None
+    assert response.rcode() == dns.rcode.NOERROR
+    match = f'{qname} 300 IN TXT "{rdata}"'
+    rrsigs = []
+    for rrset in response.answer:
+        if rrset.match(
+            dns.name.from_text(qname), dns.rdataclass.IN, dns.rdatatype.RRSIG, qtype
+        ):
+            rrsigs.append(rrset)
+        else:
+            assert match in rrset.to_text()
+    assert len(rrsigs) > 0
+    isctest.kasp.check_signatures(rrsigs, qtype, fqdn, keys, [])
 
 
 def test_kasp_default(servers):
