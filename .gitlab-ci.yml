@@ -21,7 +21,6 @@ variables:
   CONFIGURE: ./configure
   CLANG_VERSION: 20
   CLANG: "clang-${CLANG_VERSION}"
-  SCAN_BUILD: "scan-build-${CLANG_VERSION}"
   LLVM_SYMBOLIZER: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
   ASAN_SYMBOLIZER_PATH: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
 
@@ -659,33 +658,6 @@ gcc:bookworm:amd64cross32:
     EXTRA_CONFIGURE: "--build=x86_64-linux-gnu --host=i686-linux-gnu --with-libidn2"
   <<: *debian_bookworm_amd64cross32_image
   <<: *build_job
-
-# Jobs for scan-build builds on Debian 12 "bookworm" (amd64)
-
-.scan_build: &scan_build
-  - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
-                  --keep-cc
-                  --status-bugs
-                  --keep-going
-                  -o scan-build.reports make -j${BUILD_PARALLEL_JOBS:-1} all V=1
-
-scan-build:
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  variables:
-    CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON}"
-    CONFIGURE: "${SCAN_BUILD} ./configure"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  script:
-    - *configure
-    - *scan_build
-  artifacts:
-    paths:
-      - scan-build.reports/
-    when: on_failure
-  needs: []
 
 # Jobs for regular GCC builds on Debian "sid" (amd64)
 # Also tests configration option: --without-lmdb.
