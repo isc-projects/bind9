@@ -306,9 +306,8 @@ $SIGNER -S -x -s now-1w -e now+1w -o $zone -O raw -f "${zonefile}.signed" $infil
 
 # These signatures are already expired, and the private ZSK is retired.
 setup zsk-retired.autosign
-ksktimes="-P $T -A $T -P sync $T"
-zsktimes="-P $T -A $T -I now"
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
+zsktimes="$keytimes -I now"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $keytimes $zone 2>keygen.out.$zone.1)
 ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
 $SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
