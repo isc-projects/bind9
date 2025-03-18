@@ -335,7 +335,7 @@ class Key:
         return value
 
     def get_signing_state(
-        self, offline_ksk=False, zsk_missing=False
+        self, offline_ksk=False, zsk_missing=False, smooth=False
     ) -> Tuple[bool, bool]:
         """
         This returns the signing state derived from the key states, KRRSIGState
@@ -348,6 +348,11 @@ class Key:
         If 'zsk_missing' is set to True, it means the ZSK private key file is
         missing, and the KSK should take over signing the RRset, and the
         expected zone signing state (zsigning) is reversed.
+
+        If 'smooth' is set to True, it means a smooth ZSK rollover is
+        initiated. Signatures are being replaced gradually during a ZSK
+        rollover, so the existing signatures of the predecessor ZSK are still
+        being used, thus the predecessor is expected to be signing.
         """
         # Fetch key timing metadata.
         now = KeyTimingMetadata.now()
@@ -364,6 +369,8 @@ class Key:
         ksigning = krrsigstate in ["rumoured", "omnipresent"]
         zrrsigstate = self.get_metadata("ZRRSIGState", must_exist=False)
         zsigning = zrrsigstate in ["rumoured", "omnipresent"]
+        if smooth:
+            zsigning = zrrsigstate in ["unretentive", "omnipresent"]
 
         if ksigning:
             assert self.is_ksk()
@@ -787,7 +794,7 @@ def check_dnssecstatus(server, zone, keys, policy=None, view=None):
 
 
 def _check_signatures(
-    signatures, covers, fqdn, keys, offline_ksk=False, zsk_missing=False
+    signatures, covers, fqdn, keys, offline_ksk=False, zsk_missing=False, smooth=False
 ):
     numsigs = 0
     zrrsig = True
@@ -800,7 +807,7 @@ def _check_signatures(
             continue
 
         ksigning, zsigning = key.get_signing_state(
-            offline_ksk=offline_ksk, zsk_missing=zsk_missing
+            offline_ksk=offline_ksk, zsk_missing=zsk_missing, smooth=smooth
         )
 
         alg = key.get_metadata("Algorithm")
@@ -838,7 +845,7 @@ def _check_signatures(
 
 
 def check_signatures(
-    rrset, covers, fqdn, ksks, zsks, offline_ksk=False, zsk_missing=False
+    rrset, covers, fqdn, ksks, zsks, offline_ksk=False, zsk_missing=False, smooth=False
 ):
     # Check if signatures with covering type are signed with the right keys.
     # The right keys are the ones that expect a signature and have the
@@ -854,10 +861,22 @@ def check_signatures(
             signatures.append(rrsig)
 
     numsigs += _check_signatures(
-        signatures, covers, fqdn, ksks, offline_ksk=offline_ksk, zsk_missing=zsk_missing
+        signatures,
+        covers,
+        fqdn,
+        ksks,
+        offline_ksk=offline_ksk,
+        zsk_missing=zsk_missing,
+        smooth=smooth,
     )
     numsigs += _check_signatures(
-        signatures, covers, fqdn, zsks, offline_ksk=offline_ksk, zsk_missing=zsk_missing
+        signatures,
+        covers,
+        fqdn,
+        zsks,
+        offline_ksk=offline_ksk,
+        zsk_missing=zsk_missing,
+        smooth=smooth,
     )
 
     assert numsigs == len(signatures)
@@ -1042,7 +1061,9 @@ def check_apex(
         )
 
 
-def check_subdomain(server, zone, ksks, zsks, offline_ksk=False, tsig=None):
+def check_subdomain(
+    server, zone, ksks, zsks, offline_ksk=False, smooth=False, tsig=None
+):
     # Test an RRset below the apex and verify it is signed correctly.
     fqdn = f"{zone}."
     qname = f"a.{zone}."
@@ -1060,7 +1081,9 @@ def check_subdomain(server, zone, ksks, zsks, offline_ksk=False, tsig=None):
         else:
             assert match in rrset.to_text()
 
-    check_signatures(rrsigs, qtype, fqdn, ksks, zsks, offline_ksk=offline_ksk)
+    check_signatures(
+        rrsigs, qtype, fqdn, ksks, zsks, offline_ksk=offline_ksk, smooth=smooth
+    )
 
 
 def verify_update_is_signed(server, fqdn, qname, qtype, rdata, ksks, zsks, tsig=None):
