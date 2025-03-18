@@ -125,3 +125,37 @@ zone "step6.zsk-prepub.autosign" {
 	file "step6.zsk-prepub.autosign.db";
 	dnssec-policy "zsk-prepub";
 };
+
+/*
+ * Zones for testing KSK Double-KSK steps.
+ */
+zone "step1.ksk-doubleksk.autosign" {
+	type primary;
+	file "step1.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step2.ksk-doubleksk.autosign" {
+	type primary;
+	file "step2.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step3.ksk-doubleksk.autosign" {
+	type primary;
+	file "step3.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step4.ksk-doubleksk.autosign" {
+	type primary;
+	file "step4.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step5.ksk-doubleksk.autosign" {
+	type primary;
+	file "step5.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step6.ksk-doubleksk.autosign" {
+	type primary;
+	file "step6.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
