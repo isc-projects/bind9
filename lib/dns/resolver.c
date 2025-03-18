@@ -802,10 +802,6 @@ typedef struct respctx {
 			       * listening for the correct one */
 	bool truncated;	      /* response was truncated */
 	bool no_response;     /* no response was received */
-	bool glue_in_answer;  /* glue may be in the answer
-			       * section */
-	bool ns_in_answer;    /* NS may be in the answer
-			       * section */
 	bool negative;	      /* is this a negative response? */
 
 	isc_stdtime_t now; /* time info */
@@ -7416,15 +7412,6 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query, int level,
 }
 
 static bool
-iscname(dns_message_t *message, dns_name_t *name) {
-	isc_result_t result;
-
-	result = dns_message_findname(message, DNS_SECTION_ANSWER, name,
-				      dns_rdatatype_cname, 0, NULL, NULL);
-	return result == ISC_R_SUCCESS ? true : false;
-}
-
-static bool
 betterreferral(respctx_t *rctx) {
 	isc_result_t result;
 	dns_name_t *name;
@@ -8345,20 +8332,6 @@ rctx_answer(respctx_t *rctx) {
 		if (result != ISC_R_SUCCESS) {
 			FCTXTRACE3("rctx_answer_positive (AA/fwd)", result);
 		}
-	} else if (iscname(query->rmessage, fctx->name) &&
-		   fctx->type != dns_rdatatype_any &&
-		   fctx->type != dns_rdatatype_cname)
-	{
-		/*
-		 * A BIND8 server could return a non-authoritative
-		 * answer when a CNAME is followed.  We should treat
-		 * it as a valid answer.
-		 */
-		result = rctx_answer_positive(rctx);
-		if (result != ISC_R_SUCCESS) {
-			FCTXTRACE3("rctx_answer_positive (!ANY/!CNAME)",
-				   result);
-		}
 	} else if (fctx->type != dns_rdatatype_ns && !betterreferral(rctx)) {
 		result = rctx_answer_positive(rctx);
 		if (result != ISC_R_SUCCESS) {
@@ -8366,41 +8339,12 @@ rctx_answer(respctx_t *rctx) {
 		}
 	} else {
 		/*
-		 * This may be a delegation. First let's check for
+		 * This may be a delegation.
 		 */
 
-		if (fctx->type == dns_rdatatype_ns) {
-			/*
-			 * A BIND 8 server could incorrectly return a
-			 * non-authoritative answer to an NS query
-			 * instead of a referral. Since this answer
-			 * lacks the SIGs necessary to do DNSSEC
-			 * validation, we must invoke the following
-			 * special kludge to treat it as a referral.
-			 */
-			rctx->ns_in_answer = true;
-			result = rctx_answer_none(rctx);
-			if (result != ISC_R_SUCCESS) {
-				FCTXTRACE3("rctx_answer_none (NS)", result);
-			}
-		} else {
-			/*
-			 * Some other servers may still somehow include
-			 * an answer when it should return a referral
-			 * with an empty answer.  Check to see if we can
-			 * treat this as a referral by ignoring the
-			 * answer.  Further more, there may be an
-			 * implementation that moves A/AAAA glue records
-			 * to the answer section for that type of
-			 * delegation when the query is for that glue
-			 * record. glue_in_answer will handle
-			 * such a corner case.
-			 */
-			rctx->glue_in_answer = true;
-			result = rctx_answer_none(rctx);
-			if (result != ISC_R_SUCCESS) {
-				FCTXTRACE3("rctx_answer_none", result);
-			}
+		result = rctx_answer_none(rctx);
+		if (result != ISC_R_SUCCESS) {
+			FCTXTRACE3("rctx_answer_none", result);
 		}
 
 		if (result == DNS_R_DELEGATION) {
@@ -9006,14 +8950,12 @@ rctx_answer_none(respctx_t *rctx) {
 		rctx->negative = true;
 	}
 
-	if (!rctx->ns_in_answer && !rctx->glue_in_answer) {
-		/*
-		 * Process DNSSEC records in the authority section.
-		 */
-		result = rctx_authority_dnssec(rctx);
-		if (result == ISC_R_COMPLETE) {
-			return rctx->result;
-		}
+	/*
+	 * Process DNSSEC records in the authority section.
+	 */
+	result = rctx_authority_dnssec(rctx);
+	if (result == ISC_R_COMPLETE) {
+		return rctx->result;
 	}
 
 	/*
@@ -9107,12 +9049,7 @@ rctx_authority_negative(respctx_t *rctx) {
 	dns_rdataset_t *rdataset = NULL;
 	bool finished = false;
 
-	if (rctx->ns_in_answer) {
-		INSIST(fctx->type == dns_rdatatype_ns);
-		section = DNS_SECTION_ANSWER;
-	} else {
-		section = DNS_SECTION_AUTHORITY;
-	}
+	section = DNS_SECTION_AUTHORITY;
 
 	result = dns_message_firstname(rctx->query->rmessage, section);
 	if (result != ISC_R_SUCCESS) {
@@ -9270,8 +9207,6 @@ rctx_authority_dnssec(respctx_t *rctx) {
 	fetchctx_t *fctx = rctx->fctx;
 	dns_rdataset_t *rdataset = NULL;
 	bool finished = false;
-
-	REQUIRE(!rctx->ns_in_answer && !rctx->glue_in_answer);
 
 	result = dns_message_firstname(rctx->query->rmessage,
 				       DNS_SECTION_AUTHORITY);
