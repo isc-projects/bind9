@@ -7462,10 +7462,12 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 
 	QTRACE("response");
 
-	if (isc_sockaddr_pf(&query->addrinfo->sockaddr) == PF_INET) {
-		inc_stats(fctx->res, dns_resstatscounter_responsev4);
-	} else {
-		inc_stats(fctx->res, dns_resstatscounter_responsev6);
+	if (eresult == ISC_R_SUCCESS) {
+		if (isc_sockaddr_pf(&query->addrinfo->sockaddr) == PF_INET) {
+			inc_stats(fctx->res, dns_resstatscounter_responsev4);
+		} else {
+			inc_stats(fctx->res, dns_resstatscounter_responsev6);
+		}
 	}
 
 	rctx = isc_mem_get(fctx->mctx, sizeof(*rctx));
@@ -8047,6 +8049,9 @@ rctx_timedout(respctx_t *rctx) {
 		fctx->timeout = true;
 		fctx->timeouts++;
 
+		rctx->no_response = true;
+		rctx->finish = NULL;
+
 		now = isc_time_now();
 		/* netmgr timeouts are accurate to the millisecond */
 		if (isc_time_microdiff(&fctx->expires, &now) < US_PER_MS) {
@@ -8057,8 +8062,6 @@ rctx_timedout(respctx_t *rctx) {
 		} else {
 			FCTXTRACE("query timed out; trying next server");
 			/* try next server */
-			rctx->no_response = true;
-			rctx->finish = NULL;
 			rctx->next_server = true;
 		}
 
