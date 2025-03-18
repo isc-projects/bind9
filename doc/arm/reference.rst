@@ -4117,15 +4117,18 @@ Periodic Task Intervals
    :tags: server
    :short: Sets the interval at which the server scans the network interface list.
 
-   The server scans the network interface list every :any:`interface-interval`
-   minutes. The default is 60 minutes; the maximum value is 28 days (40320
-   minutes). If set to 0, interface scanning only occurs when the configuration
+   The server scans the network interface list on every interval as specified by
+   :any:`interface-interval`.
+
+   If set to 0, interface scanning only occurs when the configuration
    file is loaded, or when :any:`automatic-interface-scan` is enabled and supported
    by the operating system. After the scan, the server begins listening for
    queries on any newly discovered interfaces (provided they are allowed by the
    :any:`listen-on` configuration), and stops listening on interfaces that have
    gone away. For convenience, TTL-style time-unit suffixes may be used to
    specify the value. It also accepts ISO 8601 duration formats.
+
+   The default is 60 minutes (1 hour); the maximum value is 28 days.
 
 The :any:`sortlist` Statement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
