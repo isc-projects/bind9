@@ -19,6 +19,7 @@ import dns
 import dns.update
 import pytest
 
+pytest.importorskip("dns", minversion="2.0.0")
 import isctest
 from isctest.kasp import (
     KeyProperties,
