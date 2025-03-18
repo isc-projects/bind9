@@ -540,10 +540,11 @@ class AsyncDnsServer(AsyncServer):
     ) -> None:
         peer_info = writer.get_extra_info("peername")
         peer = Peer(peer_info[0], peer_info[1])
+        logging.debug("Accepted TCP connection from %s", peer)
 
         for _ in range(0, 1):
             try:
-                wire = await self._read_tcp_query(reader)
+                wire = await self._read_tcp_query(reader, peer)
                 if not wire:
                     break
                 await self._send_tcp_response(writer, peer, wire)
@@ -551,19 +552,24 @@ class AsyncDnsServer(AsyncServer):
                 logging.error("TCP connection from %s reset by peer", peer)
                 return
 
+        logging.debug("Closing TCP connection from %s", peer)
         writer.close()
         await writer.wait_closed()
 
-    async def _read_tcp_query(self, reader: asyncio.StreamReader) -> Optional[bytes]:
-        wire_length = await self._read_tcp_query_wire_length(reader)
+    async def _read_tcp_query(
+        self, reader: asyncio.StreamReader, peer: Peer
+    ) -> Optional[bytes]:
+        wire_length = await self._read_tcp_query_wire_length(reader, peer)
         if not wire_length:
             return None
 
-        return await self._read_tcp_query_wire(reader, wire_length)
+        return await self._read_tcp_query_wire(reader, peer, wire_length)
 
     async def _read_tcp_query_wire_length(
-        self, reader: asyncio.StreamReader
+        self, reader: asyncio.StreamReader, peer: Peer
     ) -> Optional[int]:
+        logging.debug("Receiving TCP message length from %s...", peer)
+
         wire_length_bytes = await reader.read(2)
         if len(wire_length_bytes) < 2:
             return None
@@ -573,15 +579,15 @@ class AsyncDnsServer(AsyncServer):
         return wire_length
 
     async def _read_tcp_query_wire(
-        self, reader: asyncio.StreamReader, wire_length: int
+        self, reader: asyncio.StreamReader, peer: Peer, wire_length: int
     ) -> Optional[bytes]:
-        logging.debug("Receiving TCP message (%d octets)...", wire_length)
+        logging.debug("Receiving TCP message (%d octets) from %s...", wire_length, peer)
 
         wire = await reader.read(wire_length)
         if len(wire) < wire_length:
             return None
 
-        logging.debug("Received complete TCP message: %s", wire.hex())
+        logging.debug("Received complete TCP message from %s: %s", peer, wire.hex())
 
         return wire
 
