@@ -542,10 +542,14 @@ class AsyncDnsServer(AsyncServer):
         peer = Peer(peer_info[0], peer_info[1])
 
         wire_length_bytes = await reader.read(2)
+        if len(wire_length_bytes) < 2:
+            return
         (wire_length,) = struct.unpack("!H", wire_length_bytes)
         logging.debug("Receiving TCP message (%d octets)...", wire_length)
 
         wire = await reader.read(wire_length)
+        if len(wire) < wire_length:
+            return
         full_message = wire_length_bytes + wire
         logging.debug("Received complete TCP message: %s", full_message.hex())
 
