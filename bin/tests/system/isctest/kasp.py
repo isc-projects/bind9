@@ -909,8 +909,9 @@ def _check_dnskeys(dnskeys, keys, cdnskey=False):
                 has_dnskey = True
                 break
 
-        if not cdnskey:
-            assert has_dnskey
+        if not published or removed:
+            if not cdnskey:
+                assert has_dnskey
 
         if has_dnskey:
             numkeys += 1
@@ -940,21 +941,12 @@ def check_dnskeys(rrset, ksks, zsks, cdnskey=False):
     assert numkeys == len(dnskeys)
 
 
-def check_cds(rrset, keys):
+def check_cds(cdss, keys, alg):
     # Check if the correct CDS records are published. If the current time
     # is between the timing metadata 'publish' and 'delete', the key must have
-    # a DNSKEY record published. If 'cdnskey' is True, check against CDNSKEY
-    # records instead.
+    # a CDS record published.
     now = KeyTimingMetadata.now()
     numcds = 0
-
-    cdss = []
-    for rr in rrset:
-        for rdata in rr:
-            rdclass = dns.rdataclass.to_text(rr.rdclass)
-            rdtype = dns.rdatatype.to_text(rr.rdtype)
-            cds = f"{rr.name} {rr.ttl} {rdclass} {rdtype} {rdata}"
-            cdss.append(cds)
 
     for key in keys:
         assert key.is_ksk()
@@ -965,19 +957,31 @@ def check_cds(rrset, keys):
         removed = delete is not None and delete <= now
         if not published or removed:
             for cds in cdss:
-                assert not key.cds_equals(cds, "SHA-256")
+                assert not key.cds_equals(cds, alg)
             continue
 
         has_cds = False
         for cds in cdss:
-            if key.cds_equals(cds, "SHA-256"):
+            if key.cds_equals(cds, alg):
                 has_cds = True
                 break
 
-        assert has_cds
-        numcds += 1
+        if not published or removed:
+            assert has_cds
 
-    assert numcds == len(cdss)
+        if has_cds:
+            numcds += 1
+
+    return numcds
+
+
+def check_cds_prohibit(cdss, keys, alg):
+    # Check if the CDS records are not published. This does not take into
+    # account the timing metadata, just making sure that the given algorithm
+    # does not get published.
+    for key in keys:
+        for cds in cdss:
+            assert not key.cds_equals(cds, alg)
 
 
 def check_cdslog(server, zone, key, substr):
@@ -1015,11 +1019,14 @@ def _query_rrset(server, fqdn, qtype, tsig=None):
 
 
 def check_apex(
-    server, zone, ksks, zsks, offline_ksk=False, zsk_missing=False, tsig=None
+    server, zone, ksks, zsks, cdss=None, offline_ksk=False, zsk_missing=False, tsig=None
 ):
     # Test the apex of a zone. This checks that the SOA and DNSKEY RRsets
     # are signed correctly and with the appropriate keys.
     fqdn = f"{zone}."
+
+    if cdss is None:
+        cdss = ["CDNSKEY", "CDS (SHA-256)"]
 
     # test dnskey query
     dnskeys, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.DNSKEY, tsig=tsig)
@@ -1044,7 +1051,12 @@ def check_apex(
 
     # test cdnskey query
     cdnskeys, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.CDNSKEY, tsig=tsig)
-    check_dnskeys(cdnskeys, ksks, zsks, cdnskey=True)
+
+    if "CDNSKEY" in cdss:
+        check_dnskeys(cdnskeys, ksks, zsks, cdnskey=True)
+    else:
+        assert len(cdnskeys) == 0
+
     if len(cdnskeys) > 0:
         assert len(rrsigs) > 0
         check_signatures(
@@ -1053,12 +1065,29 @@ def check_apex(
 
     # test cds query
     cds, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.CDS, tsig=tsig)
-    check_cds(cds, ksks)
+    cdsrrs = []
+    for rr in cds:
+        for rdata in rr:
+            rdclass = dns.rdataclass.to_text(rr.rdclass)
+            rdtype = dns.rdatatype.to_text(rr.rdtype)
+            cds = f"{rr.name} {rr.ttl} {rdclass} {rdtype} {rdata}"
+            cdsrrs.append(cds)
+
+    numcds = 0
+
+    for alg in ["SHA-256", "SHA-384"]:
+        if f"CDS ({alg})" in cdss:
+            numcds += check_cds(cdsrrs, ksks, alg)
+        else:
+            check_cds_prohibit(cdsrrs, ksks, alg)
+
     if len(cds) > 0:
         assert len(rrsigs) > 0
         check_signatures(
             rrsigs, dns.rdatatype.CDS, fqdn, ksks, zsks, offline_ksk=offline_ksk
         )
+
+    assert numcds == len(cdsrrs)
 
 
 def check_subdomain(

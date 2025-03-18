@@ -388,6 +388,9 @@ def check_rollover_step(server, config, policy, step):
     zone = step["zone"]
     keyprops = step["keyprops"]
     nextev = step["nextev"]
+    cdss = []
+    if step.get("cdss"):
+        cdss = step["cdss"]
     keyrelationships = None
     if step.get("keyrelationships"):
         keyrelationships = step["keyrelationships"]
@@ -423,9 +426,13 @@ def check_rollover_step(server, config, policy, step):
         key = kp.key
 
         if kp.metadata["DSState"] == "rumoured":
-            isctest.kasp.check_cdslog(server, zone, key, "CDS (SHA-256)")
-            isctest.kasp.check_cdslog(server, zone, key, "CDNSKEY")
-            isctest.kasp.check_cdslog_prohibit(server, zone, key, "CDS (SHA-384)")
+            assert cdss is not None
+
+            for algstr in ["CDNSKEY", "CDS (SHA-256)", "CDS (SHA-384)"]:
+                if algstr in cdss:
+                    isctest.kasp.check_cdslog(server, zone, key, algstr)
+                else:
+                    isctest.kasp.check_cdslog_prohibit(server, zone, key, algstr)
 
             # The DS can be introduced. We ignore any parent registration delay,
             # so set the DS publish time to now.
@@ -451,6 +458,7 @@ def check_rollover_step(server, config, policy, step):
 def test_rollover_enable_dnssec(servers):
     server = servers["ns3"]
     policy = "enable-dnssec"
+    cdss = ["CDNSKEY", "CDS (SHA-256)"]
     config = {
         "dnskey-ttl": timedelta(seconds=300),
         "ds-ttl": timedelta(hours=2),
@@ -480,6 +488,7 @@ def test_rollover_enable_dnssec(servers):
         {
             # Step 1.
             "zone": "step1.enable-dnssec.autosign",
+            "cdss": cdss,
             "keyprops": [
                 f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden offset:{offsets['step1']}",
             ],
@@ -490,6 +499,7 @@ def test_rollover_enable_dnssec(servers):
         {
             # Step 2.
             "zone": "step2.enable-dnssec.autosign",
+            "cdss": cdss,
             # The DNSKEY is omnipresent, but the zone signatures not yet.
             # Thus, the DS remains hidden.
             # dnskey: rumoured -> omnipresent
@@ -504,6 +514,7 @@ def test_rollover_enable_dnssec(servers):
         {
             # Step 3.
             "zone": "step3.enable-dnssec.autosign",
+            "cdss": cdss,
             # All signatures should be omnipresent, so the DS can be submitted.
             # zrrsig: rumoured -> omnipresent
             # ds: hidden -> rumoured
@@ -517,6 +528,7 @@ def test_rollover_enable_dnssec(servers):
         {
             # Step 4.
             "zone": "step4.enable-dnssec.autosign",
+            "cdss": cdss,
             # DS has been published long enough.
             # ds: rumoured -> omnipresent
             "keyprops": [
@@ -662,6 +674,156 @@ def test_rollover_zsk_prepublication(servers):
             "keyprops": [
                 f"ksk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{offsets['step6-p']}",
                 f"zsk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offsets['step6-s']}",
+            ],
+            "nextev": None,
+        },
+    ]
+
+    for step in steps:
+        check_rollover_step(server, config, policy, step)
+
+
+def test_rollover_ksk_doubleksk(servers):
+    server = servers["ns3"]
+    policy = "ksk-doubleksk"
+    cdss = ["CDS (SHA-256)"]
+    config = {
+        "dnskey-ttl": timedelta(hours=2),
+        "ds-ttl": timedelta(seconds=3600),
+        "max-zone-ttl": timedelta(days=1),
+        "parent-propagation-delay": timedelta(hours=1),
+        "publish-safety": timedelta(days=1),
+        "purge-keys": timedelta(hours=1),
+        "retire-safety": timedelta(days=2),
+        "signatures-refresh": timedelta(days=7),
+        "signatures-validity": timedelta(days=14),
+        "zone-propagation-delay": timedelta(hours=1),
+    }
+    ttl = int(config["dnskey-ttl"].total_seconds())
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    ksk_lifetime = timedelta(days=60)
+    lifetime_policy = int(ksk_lifetime.total_seconds())
+
+    ipub = Ipub(config)
+    ipubc = IpubC(config)
+    iret = Iret(config, zsk=False, ksk=True)
+    keyttlprop = config["dnskey-ttl"] + config["zone-propagation-delay"]
+    offsets = {}
+    offsets["step1-p"] = -int(timedelta(days=7).total_seconds())
+    offsets["step2-p"] = -int(ksk_lifetime.total_seconds() - ipubc.total_seconds())
+    offsets["step2-s"] = 0
+    offsets["step3-p"] = -int(ksk_lifetime.total_seconds())
+    offsets["step3-s"] = -int(ipubc.total_seconds())
+    offsets["step4-p"] = offsets["step3-p"] - int(iret.total_seconds())
+    offsets["step4-s"] = offsets["step3-s"] - int(iret.total_seconds())
+    offsets["step5-p"] = offsets["step4-p"] - int(keyttlprop.total_seconds())
+    offsets["step5-s"] = offsets["step4-s"] - int(keyttlprop.total_seconds())
+    offsets["step6-p"] = offsets["step5-p"] - int(config["purge-keys"].total_seconds())
+    offsets["step6-s"] = offsets["step5-s"] - int(config["purge-keys"].total_seconds())
+
+    steps = [
+        {
+            # Step 1.
+            # Introduce the first key. This will immediately be active.
+            "zone": "step1.ksk-doubleksk.autosign",
+            "cdss": cdss,
+            "keyprops": [
+                f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offsets['step1-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{offsets['step1-p']}",
+            ],
+            # Next key event is when the successor KSK needs to be published.
+            # That is the KSK lifetime - prepublication time (minus time
+            # already passed).
+            "nextev": ksk_lifetime - ipub - timedelta(days=7),
+        },
+        {
+            # Step 2.
+            # Successor KSK is prepublished (and signs DNSKEY RRset).
+            # KSK1 goal: omnipresent -> hidden
+            # KSK2 goal: hidden -> omnipresent
+            # KSK2 dnskey: hidden -> rumoured
+            # KSK2 krrsig: hidden -> rumoured
+            "zone": "step2.ksk-doubleksk.autosign",
+            "cdss": cdss,
+            "keyprops": [
+                f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offsets['step2-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{offsets['step2-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden offset:{offsets['step2-s']}",
+            ],
+            "keyrelationships": [1, 2],
+            # Next key event is when the successor KSK becomes OMNIPRESENT.
+            "nextev": ipub,
+        },
+        {
+            # Step 3.
+            # The successor DNSKEY RRset has become omnipresent.  The
+            # predecessor DS  can be withdrawn and the successor DS can be
+            # introduced.
+            # KSK1 ds: omnipresent -> unretentive
+            # KSK2 dnskey: rumoured -> omnipresent
+            # KSK2 krrsig: rumoured -> omnipresent
+            # KSK2 ds: hidden -> rumoured
+            "zone": "step3.ksk-doubleksk.autosign",
+            "cdss": cdss,
+            "keyprops": [
+                f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offsets['step3-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{offsets['step3-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{offsets['step3-s']}",
+            ],
+            "keyrelationships": [1, 2],
+            # Next key event is when the predecessor DS has been replaced with
+            # the successor DS and enough time has passed such that the all
+            # validators that have this DS RRset cached only know about the
+            # successor DS.  This is the the retire interval.
+            "nextev": iret,
+        },
+        {
+            # Step 4.
+            # The predecessor DNSKEY may be removed, the successor DS is
+            # omnipresent.
+            # KSK1 dnskey: omnipresent -> unretentive
+            # KSK1 krrsig: omnipresent -> unretentive
+            # KSK1 ds: unretentive -> hidden
+            # KSK2 ds: rumoured -> omnipresent
+            "zone": "step4.ksk-doubleksk.autosign",
+            "cdss": cdss,
+            "keyprops": [
+                f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offsets['step4-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{offsets['step4-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{offsets['step4-s']}",
+            ],
+            "keyrelationships": [1, 2],
+            # Next key event is when the DNSKEY enters the HIDDEN state.
+            # This is the DNSKEY TTL plus zone propagation delay.
+            "nextev": keyttlprop,
+        },
+        {
+            # Step 5.
+            # The predecessor DNSKEY is long enough removed from the zone it
+            # has become hidden.
+            # KSK1 dnskey: unretentive -> hidden
+            # KSK1 krrsig: unretentive -> hidden
+            "zone": "step5.ksk-doubleksk.autosign",
+            "cdss": cdss,
+            "keyprops": [
+                f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offsets['step5-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:hidden dnskey:hidden krrsig:hidden ds:hidden offset:{offsets['step5-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{offsets['step5-s']}",
+            ],
+            "keyrelationships": [1, 2],
+            # Next key event is when the new successor needs to be published.
+            # This is the KSK lifetime minus Ipub minus Iret minus time elapsed.
+            "nextev": ksk_lifetime - ipub - iret - keyttlprop,
+        },
+        {
+            # Step 6.
+            # Predecessor KSK is now purged.
+            "zone": "step6.ksk-doubleksk.autosign",
+            "cdss": cdss,
+            "keyprops": [
+                f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offsets['step6-p']}",
+                f"ksk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{offsets['step6-s']}",
             ],
             "nextev": None,
         },
