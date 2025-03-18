@@ -542,7 +542,7 @@ class AsyncDnsServer(AsyncServer):
         peer = Peer(peer_info[0], peer_info[1])
         logging.debug("Accepted TCP connection from %s", peer)
 
-        for _ in range(0, 1):
+        while True:
             try:
                 wire = await self._read_tcp_query(reader, peer)
                 if not wire:
