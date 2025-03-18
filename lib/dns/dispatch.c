@@ -1966,6 +1966,25 @@ udp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			  udp_connected, resp, resp->timeout);
 }
 
+static inline const char *
+get_tls_sni_hostname(dns_dispentry_t *resp) {
+	char *hostname = NULL;
+
+	if (resp->transport != NULL) {
+		hostname = dns_transport_get_remote_hostname(resp->transport);
+	}
+
+	if (hostname == NULL) {
+		return NULL;
+	}
+
+	if (isc_tls_valid_sni_hostname(hostname)) {
+		return hostname;
+	}
+
+	return NULL;
+}
+
 static isc_result_t
 tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_transport_type_t transport_type = DNS_TRANSPORT_TCP;
@@ -2013,11 +2032,7 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			      "connecting from %s to %s, timeout %u", localbuf,
 			      peerbuf, resp->connect_timeout);
 
-		char *hostname = NULL;
-		if (resp->transport != NULL) {
-			hostname = dns_transport_get_remote_hostname(
-				resp->transport);
-		}
+		const char *hostname = get_tls_sni_hostname(resp);
 
 		isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
 					&disp->peer, tcp_connected, disp,
