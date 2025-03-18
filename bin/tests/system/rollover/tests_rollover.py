@@ -388,7 +388,7 @@ def check_rollover_step(server, config, policy, step):
     zone = step["zone"]
     keyprops = step["keyprops"]
     nextev = step["nextev"]
-    cdss = []
+    cdss = None
     if step.get("cdss"):
         cdss = step["cdss"]
     keyrelationships = None
@@ -445,7 +445,7 @@ def check_rollover_step(server, config, policy, step):
 
     isctest.kasp.check_keytimes(keys, expected)
     isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks)
+    isctest.kasp.check_apex(server, zone, ksks, zsks, cdss=cdss)
     isctest.kasp.check_subdomain(server, zone, ksks, zsks, smooth=smooth)
     isctest.kasp.check_dnssec_verify(server, zone)
 
@@ -831,3 +831,65 @@ def test_rollover_ksk_doubleksk(servers):
 
     for step in steps:
         check_rollover_step(server, config, policy, step)
+
+    # Test #2375: Scheduled rollovers are happening faster than they can finish.
+    zone = "three-is-a-crowd.kasp"
+    isctest.log.info(
+        "check that fast rollovers do not remove dependent keys from zone (#2375)"
+    )
+    offset1 = -int(timedelta(days=60).total_seconds())
+    offset2 = -int(timedelta(hours=27).total_seconds())
+    keyprops = [
+        f"ksk {lifetime_policy} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{offset1}",
+        f"ksk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{offset2}",
+        f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offset1}",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl, keyprops)
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if not k.is_ksk()]
+    isctest.kasp.check_keys(zone, keys, expected)
+    expected[0].metadata["Successor"] = expected[1].key.tag
+    expected[1].metadata["Predecessor"] = expected[0].key.tag
+    isctest.kasp.check_keyrelationships(keys, expected)
+    for kp in expected:
+        kp.set_expected_keytimes(config, offset=None)
+    isctest.kasp.check_keytimes(keys, expected)
+    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
+    isctest.kasp.check_apex(server, zone, ksks, zsks, cdss=cdss)
+    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_dnssec_verify(server, zone)
+    # Rollover successor KSK (with DS in rumoured state).
+    key = expected[1].key
+    now = KeyTimingMetadata.now()
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"dnssec -rollover -key {key.tag} -when {now} {zone}")
+        watcher.wait_for_line(f"keymgr: {zone} done")
+    # We now expect four keys (3x KSK, 1x ZSK).
+    keyprops = [
+        f"ksk {lifetime_policy} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{offset1}",
+        f"ksk {lifetime_policy} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{offset2}",
+        f"ksk {lifetime_policy} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden offset:0",
+        f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offset1}",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl, keyprops)
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if not k.is_ksk()]
+    isctest.kasp.check_keys(zone, keys, expected)
+    expected[0].metadata["Successor"] = expected[1].key.tag
+    expected[1].metadata["Predecessor"] = expected[0].key.tag
+    # Three is a crowd scenario.
+    expected[1].metadata["Successor"] = expected[2].key.tag
+    expected[2].metadata["Predecessor"] = expected[1].key.tag
+    isctest.kasp.check_keyrelationships(keys, expected)
+    for kp in expected:
+        kp.set_expected_keytimes(config, offset=None)
+    # The first successor KSK is already being retired.
+    expected[1].timing["Retired"] = now + ipub
+    expected[1].timing["Removed"] = now + ipub + iret
+    isctest.kasp.check_keytimes(keys, expected)
+    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
+    isctest.kasp.check_apex(server, zone, ksks, zsks, cdss=cdss)
+    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_dnssec_verify(server, zone)
