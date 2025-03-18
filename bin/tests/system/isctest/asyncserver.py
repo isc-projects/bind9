@@ -542,10 +542,14 @@ class AsyncDnsServer(AsyncServer):
         peer = Peer(peer_info[0], peer_info[1])
 
         for _ in range(0, 1):
-            wire = await self._read_tcp_query(reader)
-            if not wire:
-                break
-            await self._send_tcp_response(writer, peer, wire)
+            try:
+                wire = await self._read_tcp_query(reader)
+                if not wire:
+                    break
+                await self._send_tcp_response(writer, peer, wire)
+            except ConnectionResetError:
+                logging.error("TCP connection from %s reset by peer", peer)
+                return
 
         writer.close()
         await writer.wait_closed()
@@ -587,11 +591,7 @@ class AsyncDnsServer(AsyncServer):
         responses = self._handle_query(wire, peer, DnsProtocol.TCP)
         async for response in responses:
             writer.write(response)
-            try:
-                await writer.drain()
-            except ConnectionResetError:
-                logging.error("TCP connection from %s reset by peer", peer)
-                return
+            await writer.drain()
 
     def _log_query(self, qctx: QueryContext, peer: Peer, protocol: DnsProtocol) -> None:
         logging.info(
