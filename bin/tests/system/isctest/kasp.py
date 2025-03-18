@@ -25,6 +25,7 @@ import dns.tsig
 import isctest.log
 import isctest.query
 import isctest.util
+from isctest.vars.algorithms import Algorithm, ALL_ALGORITHMS_BY_NUM
 
 DEFAULT_TTL = 300
 
@@ -402,6 +403,11 @@ class Key:
 
     def is_zsk(self) -> bool:
         return self.get_metadata("ZSK") == "yes"
+
+    @property
+    def algorithm(self) -> Algorithm:
+        num = int(self.get_metadata("Algorithm"))
+        return ALL_ALGORITHMS_BY_NUM[num]
 
     def dnskey_equals(self, value, cdnskey=False):
         dnskey = value.split()
@@ -953,6 +959,19 @@ def check_cds(rrset, keys):
         numcds += 1
 
     assert numcds == len(cdss)
+
+
+def check_cdslog(server, zone, key, substr):
+    with server.watch_log_from_start() as watcher:
+        watcher.wait_for_line(
+            f"{substr} for key {zone}/{key.algorithm.name}/{key.tag} is now published"
+        )
+
+
+def check_cdslog_prohibit(server, zone, key, substr):
+    server.log.prohibit(
+        f"{substr} for key {zone}/{key.algorithm.name}/{key.tag} is now published"
+    )
 
 
 def _query_rrset(server, fqdn, qtype, tsig=None):
