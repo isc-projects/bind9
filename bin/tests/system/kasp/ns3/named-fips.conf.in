@@ -325,40 +325,6 @@ zone "zsk-retired.autosign" {
 };
 
 /*
- * Zones for testing ZSK Pre-Publication steps.
- */
-zone "step1.zsk-prepub.autosign" {
-	type primary;
-	file "step1.zsk-prepub.autosign.db";
-	dnssec-policy "zsk-prepub";
-};
-zone "step2.zsk-prepub.autosign" {
-	type primary;
-	file "step2.zsk-prepub.autosign.db";
-	dnssec-policy "zsk-prepub";
-};
-zone "step3.zsk-prepub.autosign" {
-	type primary;
-	file "step3.zsk-prepub.autosign.db";
-	dnssec-policy "zsk-prepub";
-};
-zone "step4.zsk-prepub.autosign" {
-	type primary;
-	file "step4.zsk-prepub.autosign.db";
-	dnssec-policy "zsk-prepub";
-};
-zone "step5.zsk-prepub.autosign" {
-	type primary;
-	file "step5.zsk-prepub.autosign.db";
-	dnssec-policy "zsk-prepub";
-};
-zone "step6.zsk-prepub.autosign" {
-	type primary;
-	file "step6.zsk-prepub.autosign.db";
-	dnssec-policy "zsk-prepub";
-};
-
-/*
  * Zones for testing KSK Double-KSK steps.
  */
 zone "step1.ksk-doubleksk.autosign" {
