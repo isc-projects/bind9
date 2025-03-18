@@ -412,7 +412,7 @@ keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 	/* Initialize lifetime. */
 	if (r != ISC_R_SUCCESS) {
 		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
-		return;
+		l = lifetime - 1;
 	}
 	/* Skip keys that are still hidden or already retiring. */
 	if (g != OMNIPRESENT) {
