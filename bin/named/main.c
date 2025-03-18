@@ -596,6 +596,8 @@ parse_T_opt(char *option) {
 	 */
 	if (!strcmp(option, "clienttest")) {
 		ns_g_clienttest = true;
+	} else if (!strcmp(option, "cookiealwaysvalid")) {
+		ns_g_cookiealwaysvalid = true;
 	} else if (!strncmp(option, "delay=", 6)) {
 		ns_g_delay = atoi(option + 6);
 	} else if (!strcmp(option, "dropedns")) {
