@@ -291,6 +291,7 @@ class Key:
         self.keyfile = f"{self.path}.key"
         self.statefile = f"{self.path}.state"
         self.tag = int(self.name[-5:])
+        self.external = False
 
     def get_timing(
         self, metadata: str, must_exist: bool = True
@@ -572,6 +573,14 @@ class Key:
             if not self.is_metadata_consistent(key, properties.metadata):
                 return False
 
+        # Check tag range.
+        if "keytag-min" in properties.properties:
+            if self.tag < properties.properties["keytag-min"]:
+                return False
+        if "keytag-max" in properties.properties:
+            if self.tag > properties.properties["keytag-max"]:
+                return False
+
         # A match is found.
         return True
 
@@ -767,7 +776,8 @@ def check_dnssecstatus(server, zone, keys, policy=None, view=None):
     assert f"dnssec-policy: {policy}" in response
 
     for key in keys:
-        assert f"key: {key.tag}" in response
+        if not key.external:
+            assert f"key: {key.tag}" in response
 
 
 def _check_signatures(
@@ -780,6 +790,9 @@ def _check_signatures(
     krrsig = not zrrsig
 
     for key in keys:
+        if key.external:
+            continue
+
         ksigning, zsigning = key.get_signing_state(
             offline_ksk=offline_ksk, zsk_missing=zsk_missing
         )
@@ -1248,6 +1261,7 @@ def policy_to_properties(ttl, keys: List[str]) -> List[KeyProperties]:
       sets the given state to the specific value
     - "missing", set if the private key file for this key is not available.
     - "offset", an offset for testing key rollover timings
+    - "tag-range", followed by <min>-<max> to test key tag ranges
     """
     proplist = []
     count = 0
@@ -1297,6 +1311,11 @@ def policy_to_properties(ttl, keys: List[str]) -> List[KeyProperties]:
             elif line[i].startswith("offset:"):
                 keyval = line[i].split(":")
                 keyprop.properties["offset"] = timedelta(seconds=int(keyval[1]))
+            elif line[i].startswith("tag-range:"):
+                keyval = line[i].split(":")
+                tagrange = keyval[1].split("-")
+                keyprop.properties["keytag-min"] = int(tagrange[0])
+                keyprop.properties["keytag-max"] = int(tagrange[1])
             elif line[i] == "missing":
                 keyprop.properties["private"] = False
             else:
