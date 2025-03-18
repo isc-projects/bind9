@@ -382,3 +382,134 @@ def test_rollover_multisigner(servers):
     isctest.kasp.check_apex(server, zone, ksks, zsks)
     isctest.kasp.check_subdomain(server, zone, ksks, zsks)
     isctest.kasp.check_dnssec_verify(server, zone)
+
+
+def check_rollover_step(server, zone, config, policy, keyprops, nextev):
+    ttl = int(config["dnskey-ttl"].total_seconds())
+    expected = isctest.kasp.policy_to_properties(ttl, keyprops)
+    isctest.kasp.check_zone_is_signed(server, zone)
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if not k.is_ksk()]
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    for kp in expected:
+        kp.set_expected_keytimes(config)
+
+        # Check that CDS publication/withdrawal is logged.
+        if "KSK" not in kp.metadata:
+            continue
+        if kp.metadata["KSK"] == "no":
+            continue
+        key = kp.key
+
+        if kp.metadata["DSState"] == "rumoured":
+            isctest.kasp.check_cdslog(server, zone, key, "CDS (SHA-256)")
+            isctest.kasp.check_cdslog(server, zone, key, "CDNSKEY")
+            isctest.kasp.check_cdslog_prohibit(server, zone, key, "CDS (SHA-384)")
+
+            # The DS can be introduced. We ignore any parent registration delay,
+            # so set the DS publish time to now.
+            server.rndc(f"dnssec -checkds -key {key.tag} published {zone}")
+
+        if kp.metadata["DSState"] == "unretentive":
+            # The DS can be withdrawn. We ignore any parent registration
+            # delay, so set the DS withdraw time to now.
+            server.rndc(f"dnssec -checkds -key {key.tag} withdrawn {zone}")
+
+    isctest.kasp.check_keytimes(keys, expected)
+    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
+    isctest.kasp.check_apex(server, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_dnssec_verify(server, zone)
+
+    def check_next_key_event():
+        return isctest.kasp.next_key_event_equals(server, zone, nextev)
+
+    isctest.run.retry_with_timeout(check_next_key_event, timeout=5)
+
+
+def test_rollover_enable_dnssec(servers):
+    server = servers["ns3"]
+    policy = "enable-dnssec"
+    config = {
+        "dnskey-ttl": timedelta(seconds=300),
+        "ds-ttl": timedelta(hours=2),
+        "max-zone-ttl": timedelta(hours=12),
+        "parent-propagation-delay": timedelta(hours=1),
+        "publish-safety": timedelta(minutes=5),
+        "retire-safety": timedelta(minutes=20),
+        "signatures-refresh": timedelta(days=7),
+        "signatures-validity": timedelta(days=14),
+        "zone-propagation-delay": timedelta(minutes=5),
+    }
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+
+    ipub = Ipub(config)
+    ipubC = IpubC(config, rollover=False)
+    iretZSK = Iret(config, rollover=False)
+    iretKSK = Iret(config, zsk=False, ksk=True, rollover=False)
+    offsets = {
+        "step1": 0,
+        "step2": -int(ipub.total_seconds()),
+        "step3": -int(iretZSK.total_seconds()),
+        "step4": -int(ipubC.total_seconds() + iretKSK.total_seconds()),
+    }
+
+    steps = [
+        {
+            # Step 1.
+            "zone": "step1.enable-dnssec.autosign",
+            "keyprops": [
+                f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden offset:{offsets['step1']}",
+            ],
+            # Next key event is when the DNSKEY RRset becomes OMNIPRESENT,
+            # after the publication interval.
+            "nextev": ipub,
+        },
+        {
+            # Step 2.
+            "zone": "step2.enable-dnssec.autosign",
+            # The DNSKEY is omnipresent, but the zone signatures not yet.
+            # Thus, the DS remains hidden.
+            # dnskey: rumoured -> omnipresent
+            # krrsig: rumoured -> omnipresent
+            "keyprops": [
+                f"csk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:rumoured ds:hidden offset:{offsets['step2']}",
+            ],
+            # Next key event is when the zone signatures become OMNIPRESENT,
+            # Minus the time already elapsed.
+            "nextev": iretZSK - ipub,
+        },
+        {
+            # Step 3.
+            "zone": "step3.enable-dnssec.autosign",
+            # All signatures should be omnipresent, so the DS can be submitted.
+            # zrrsig: rumoured -> omnipresent
+            # ds: hidden -> rumoured
+            "keyprops": [
+                f"csk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:rumoured offset:{offsets['step3']}",
+            ],
+            # Next key event is when the DS can move to the OMNIPRESENT state.
+            # This is after the retire interval.
+            "nextev": iretKSK,
+        },
+        {
+            # Step 4.
+            "zone": "step4.enable-dnssec.autosign",
+            # DS has been published long enough.
+            # ds: rumoured -> omnipresent
+            "keyprops": [
+                f"csk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{offsets['step4']}",
+            ],
+            # Next key event is never, the zone dnssec-policy has been
+            # established. So we fall back to the default loadkeys interval.
+            "nextev": timedelta(hours=1),
+        },
+    ]
+
+    for step in steps:
+        check_rollover_step(
+            server, step["zone"], config, policy, step["keyprops"], step["nextev"]
+        )
