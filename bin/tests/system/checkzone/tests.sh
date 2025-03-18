@@ -131,11 +131,13 @@ status=$((status + ret))
 echo_i "checking that log-report-channel zones fail if '*._er/TXT' is missing ($n)"
 ret=0
 $CHECKZONE -R fail example zones/er.db >test.out2.$n 2>&1 || ret=1
-grep -F "no '*._er/TXT' wildcard found" test.out4.$n >/dev/null && ret=1
+grep -F "no '*._er/TXT' wildcard found" test.out2.$n >/dev/null && ret=1
 $CHECKZONE example zones/er-missing.db >test.out3.$n 2>&1 || ret=1
-grep -F "no '*._er/TXT' wildcard found" test.out4.$n >/dev/null && ret=1
+grep -F "no '*._er/TXT' wildcard found" test.out3.$n >/dev/null && ret=1
 $CHECKZONE -R fail example zones/er-missing.db >test.out4.$n 2>&1 && ret=1
 grep -F "no '*._er/TXT' wildcard found" test.out4.$n >/dev/null || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 echo_i "checking that raw zone with bad class is handled ($n)"
