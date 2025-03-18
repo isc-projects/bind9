@@ -1626,7 +1626,7 @@ shotgun:dot:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: dot
-    SHOTGUN_TRAFFIC_MULTIPLIER: 2
+    SHOTGUN_TRAFFIC_MULTIPLIER: 4
   rules: &shotgun_rules_manual_mr
     - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       variables:
