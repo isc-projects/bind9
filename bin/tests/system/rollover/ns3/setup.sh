@@ -52,3 +52,30 @@ private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >>"$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >>"$infile"
 cp $infile $zonefile
 $SIGNER -PS -x -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
+
+# Multi-signer zones.
+setup "multisigner-model2.kasp"
+cp template.db.in "$zonefile"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -f KSK -L 3600 -M 32768:65535 $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -M 32768:65535 $zone 2>keygen.out.$zone.2)
+cat "${KSK}.key" | grep -v ";.*" >>"${zone}.db"
+cat "${ZSK}.key" | grep -v ";.*" >>"${zone}.db"
+# Import a ZSK of another provider into the DNSKEY RRset.
+ZSK1=$($KEYGEN -K ../ -a $DEFAULT_ALGORITHM -L 3600 -M 0:32767 $zone 2>keygen.out.$zone.3)
+cat "../${ZSK1}.key" | grep -v ";.*" >>"${zone}.db"
+
+# We are changing an existing single-signed zone to multi-signed
+# zone where the key tags do not match the dnssec-policy key tag range
+setup single-to-multisigner.kasp
+T="now-7d"
+S="now-8635mi" # T - 1d5m
+keytimes="-P $T -A $T"
+cdstimes="-P sync $S"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -M 0:32767 -L 3600 -f KSK $keytimes $cdstimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -M 0:32767 -L 3600 $keytimes $zone 2>keygen.out.$zone.2)
+$SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
+cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
+$SIGNER -PS -z -x -s now-2w -e now-1mi -o $zone -f "${zonefile}" $infile >signer.out.$zone.1 2>&1
+echo "Lifetime: 0" >>"${KSK}".state
+echo "Lifetime: 0" >>"${ZSK}".state
