@@ -12,15 +12,25 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. ../conf.sh
+. ../../conf.sh
 
-set -e
+echo_i "ns6/setup.sh"
 
-(
-  cd ns3
-  $SHELL setup.sh
-)
-(
-  cd ns6
-  $SHELL setup.sh
-)
+setup() {
+  zone="$1"
+  echo_i "setting up zone: $zone"
+  zonefile="${zone}.db"
+  infile="${zone}.db.infile"
+}
+
+# Make lines shorter by storing key states in environment variables.
+H="HIDDEN"
+R="RUMOURED"
+O="OMNIPRESENT"
+U="UNRETENTIVE"
+
+for zn in dynamic2inline.kasp shorter-lifetime longer-lifetime limit-lifetime \
+  unlimit-lifetime; do
+  setup $zn
+  cp template.db.in $zonefile
+done

@@ -29,11 +29,6 @@ R="RUMOURED"
 O="OMNIPRESENT"
 U="UNRETENTIVE"
 
-for zn in shorter-lifetime longer-lifetime limit-lifetime unlimit-lifetime; do
-  setup $zn
-  cp template.db.in $zonefile
-done
-
 # The child zones (step1, step2) beneath these zones represent the various
 # steps of unsigning a zone.
 for zn in going-insecure.kasp going-insecure-dynamic.kasp; do
@@ -420,6 +415,3 @@ $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $in
 #
 echo "example" >>zones
 cp example.db.in example.db
-
-setup "dynamic2inline.kasp"
-cp template.db.in $zonefile

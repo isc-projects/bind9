@@ -10,6 +10,7 @@
 # information regarding copyright ownership.
 
 import os
+import shutil
 
 from datetime import timedelta
 
@@ -1256,3 +1257,133 @@ def test_rollover_csk_roll2(servers):
 
     for step in steps:
         check_rollover_step(server, config, policy, step)
+
+
+def test_rollover_policy_changes(servers):
+    server = servers["ns6"]
+    cdss = ["CDNSKEY", "CDS (SHA-256)"]
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+
+    default_config = {
+        "dnskey-ttl": timedelta(hours=1),
+        "ds-ttl": timedelta(days=1),
+        "max-zone-ttl": timedelta(days=1),
+        "parent-propagation-delay": timedelta(hours=1),
+        "publish-safety": timedelta(hours=1),
+        "purge-keys": timedelta(days=90),
+        "retire-safety": timedelta(hours=1),
+        "signatures-refresh": timedelta(days=5),
+        "signatures-validity": timedelta(days=14),
+        "zone-propagation-delay": timedelta(seconds=300),
+    }
+
+    start_time = KeyTimingMetadata.now()
+
+    # Test dynamic zones that switch to inline-signing.
+    isctest.log.info("check dynamic zone that switches to inline-signing")
+    d2i = {
+        "zone": "dynamic2inline.kasp",
+        "cdss": cdss,
+        "config": default_config,
+        "policy": "default",
+        "keyprops": [
+            f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+        ],
+        "nextev": None,
+    }
+    steps = [d2i]
+
+    # Test key lifetime changes.
+    isctest.log.info("check key lifetime changes are updated correctly")
+    lifetime = {
+        "P1Y": int(timedelta(days=365).total_seconds()),
+        "P6M": int(timedelta(days=31 * 6).total_seconds()),
+    }
+    lifetime_update_tests = [
+        {
+            "zone": "shorter-lifetime",
+            "policy": "long-lifetime",
+            "lifetime": lifetime["P1Y"],
+        },
+        {
+            "zone": "longer-lifetime",
+            "policy": "short-lifetime",
+            "lifetime": lifetime["P6M"],
+        },
+        {
+            "zone": "limit-lifetime",
+            "policy": "unlimited-lifetime",
+            "lifetime": 0,
+        },
+        {
+            "zone": "unlimit-lifetime",
+            "policy": "short-lifetime",
+            "lifetime": lifetime["P6M"],
+        },
+    ]
+    for lut in lifetime_update_tests:
+        step = {
+            "zone": lut["zone"],
+            "cdss": cdss,
+            "config": default_config,
+            "policy": lut["policy"],
+            "keyprops": [
+                f"csk {lut['lifetime']} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            ],
+            "nextev": None,
+        }
+        steps.append(step)
+
+    for step in steps:
+        check_rollover_step(server, step["config"], step["policy"], step)
+
+    # Reconfigure, changing DNSSEC policies and other configuration options,
+    # triggering algorithm rollovers and other dnssec-policy changes.
+    shutil.copyfile("ns6/named2.conf", "ns6/named.conf")
+    server.rndc("reconfig")
+    # Calculate time passed to correctly check for next key events.
+    now = KeyTimingMetadata.now()
+    time_passed = now.value - start_time.value
+
+    # Test dynamic zones that switch to inline-signing (after reconfig).
+    steps = [d2i]
+
+    # Test key lifetime changes (after reconfig).
+    lifetime_update_tests = [
+        {
+            "zone": "shorter-lifetime",
+            "policy": "short-lifetime",
+            "lifetime": lifetime["P6M"],
+        },
+        {
+            "zone": "longer-lifetime",
+            "policy": "long-lifetime",
+            "lifetime": lifetime["P1Y"],
+        },
+        {
+            "zone": "limit-lifetime",
+            "policy": "short-lifetime",
+            "lifetime": lifetime["P6M"],
+        },
+        {
+            "zone": "unlimit-lifetime",
+            "policy": "unlimited-lifetime",
+            "lifetime": 0,
+        },
+    ]
+    for lut in lifetime_update_tests:
+        step = {
+            "zone": lut["zone"],
+            "cdss": cdss,
+            "config": default_config,
+            "policy": lut["policy"],
+            "keyprops": [
+                f"csk {lut['lifetime']} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            ],
+            "nextev": None,
+        }
+        steps.append(step)
+
+    for step in steps:
+        check_rollover_step(server, step["config"], step["policy"], step)
