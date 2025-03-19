@@ -13,8 +13,8 @@
 
 // NS6
 
-include "policies/kasp.conf";
-include "policies/csk1.conf";
+include "kasp.conf";
+include "csk1.conf";
 
 options {
 	query-source address 10.53.0.6;
@@ -44,50 +44,35 @@ zone "." {
 	file "../../_common/root.hint.blackhole";
 };
 
-/* These zones are going insecure. */
-zone "step1.going-insecure.kasp" {
+/* This zone switch from dynamic to inline-signing. */
+zone "dynamic2inline.kasp" {
 	type primary;
-	file "step1.going-insecure.kasp.db";
-	dnssec-policy "unsigning";
-};
-
-zone "step1.going-insecure-dynamic.kasp" {
-	type primary;
-	file "step1.going-insecure-dynamic.kasp.db";
-	dnssec-policy "unsigning";
-	inline-signing no;
+	file "dynamic2inline.kasp.db";
 	allow-update { any; };
-};
-
-zone "step1.going-straight-to-none.kasp" {
-	type primary;
-	file "step1.going-straight-to-none.kasp.db";
 	dnssec-policy "default";
 };
 
-zone "step1.going-straight-to-none-dynamic.kasp" {
+/* Lifetime changes. */
+zone longer-lifetime {
 	type primary;
-	file "step1.going-straight-to-none-dynamic.kasp.db.signed";
-	inline-signing no;
-	dnssec-policy "default";
-	allow-update { any; };
+	file "longer-lifetime.db";
+	dnssec-policy short-lifetime;
 };
 
-/* These are alorithm rollover test zones. */
-zone "step1.algorithm-roll.kasp" {
+zone shorter-lifetime {
 	type primary;
-	file "step1.algorithm-roll.kasp.db";
-	dnssec-policy "rsasha256";
+	file "shorter-lifetime.db";
+	dnssec-policy long-lifetime;
 };
 
-zone "step1.csk-algorithm-roll.kasp" {
+zone limit-lifetime {
 	type primary;
-	file "step1.csk-algorithm-roll.kasp.db";
-	dnssec-policy "csk-algoroll";
+	file "limit-lifetime.db";
+	dnssec-policy unlimited-lifetime;
 };
 
-zone example {
+zone unlimit-lifetime {
 	type primary;
-	file "example.db";
-	dnssec-policy modified;
+	file "unlimit-lifetime.db";
+	dnssec-policy short-lifetime;
 };
