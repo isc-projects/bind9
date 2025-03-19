@@ -1835,8 +1835,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 	dig_server_t *srv = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_name_t *name = NULL;
-	isc_result_t result;
+	isc_result_t result = ISC_R_NOMORE;
 	bool success = false;
 	int numLookups = 0;
 	int num;
@@ -1851,13 +1850,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 
 	addresses_result = ISC_R_SUCCESS;
 	bad_namestr[0] = '\0';
-	for (result = dns_message_firstname(msg, section);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(msg, section))
-	{
-		name = NULL;
-		dns_message_currentname(msg, section, &name);
 
+	MSG_SECTION_FOREACH (msg, section, name) {
 		if (section == DNS_SECTION_AUTHORITY) {
 			rdataset = NULL;
 			result = dns_message_findtype(name, dns_rdatatype_soa,
@@ -3716,18 +3710,13 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 
 	query->msg_count++;
 	query->byte_count += len;
-	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
-	if (result != ISC_R_SUCCESS) {
+
+	if (ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
 		puts("; Transfer failed.");
 		return true;
 	}
-	do {
-		dns_name_t *name;
-		name = NULL;
-		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+	MSG_SECTION_FOREACH (msg, DNS_SECTION_ANSWER, name) {
+		ISC_LIST_FOREACH (name->list, rdataset, link) {
 			result = dns_rdataset_first(rdataset);
 			if (result != ISC_R_SUCCESS) {
 				continue;
@@ -3820,8 +3809,8 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 				result = dns_rdataset_next(rdataset);
 			} while (result == ISC_R_SUCCESS);
 		}
-		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
-	} while (result == ISC_R_SUCCESS);
+	}
+
 	isc_nmhandle_detach(&query->readhandle);
 	launch_next_query(query);
 	query_detach(&query);
@@ -4254,19 +4243,9 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		}
 	} else {
 		match = true;
-		for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
-		     result == ISC_R_SUCCESS && match;
-		     result = dns_message_nextname(msg, DNS_SECTION_QUESTION))
-		{
-			dns_name_t *name = NULL;
+		MSG_SECTION_FOREACH (msg, DNS_SECTION_QUESTION, name) {
 			dns_rdataset_t *rdataset;
-
-			dns_message_currentname(msg, DNS_SECTION_QUESTION,
-						&name);
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-			{
+			ISC_LIST_FOREACH (name->list, rdataset, link) {
 				if (l->rdtype != rdataset->type ||
 				    l->rdclass != rdataset->rdclass ||
 				    !dns_name_equal(l->name, name))
@@ -4290,22 +4269,23 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 					match = false;
 				}
 			}
-		}
 
-		if (!match) {
-			if (l->tcp_mode) {
-				goto cancel_lookup;
+			/* Break out of the loop on mismatch */
+			if (!match) {
+				if (l->tcp_mode) {
+					goto cancel_lookup;
+				}
+
+				/*
+				 * We are still attached to query and the
+				 * query->readhandle is also attached
+				 */
+				isc_refcount_increment0(&recvcount);
+				debug("recvcount=%" PRIuFAST32,
+				      isc_refcount_current(&recvcount));
+				isc_nm_read(handle, recv_done, query);
+				goto keep_query;
 			}
-
-			/*
-			 * We are still attached to query and the
-			 * query->readhandle is also attached
-			 */
-			isc_refcount_increment0(&recvcount);
-			debug("recvcount=%" PRIuFAST32,
-			      isc_refcount_current(&recvcount));
-			isc_nm_read(handle, recv_done, query);
-			goto keep_query;
 		}
 	}
 

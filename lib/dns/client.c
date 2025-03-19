@@ -824,7 +824,8 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 	} while (want_restart);
 
 	if (send_event) {
-		while ((name = ISC_LIST_HEAD(rctx->namelist)) != NULL) {
+		dns_name_t *next_name;
+		ISC_LIST_FOREACH_SAFE (rctx->namelist, name, link, next_name) {
 			ISC_LIST_UNLINK(rctx->namelist, name, link);
 			ISC_LIST_APPEND(rctx->rev->answerlist, name, link);
 		}
@@ -844,7 +845,9 @@ resolve_done(void *arg) {
 
 	resarg->result = rev->result;
 	resarg->vresult = rev->vresult;
-	while ((name = ISC_LIST_HEAD(rev->answerlist)) != NULL) {
+
+	dns_name_t *new_name;
+	ISC_LIST_FOREACH_SAFE (rev->answerlist, name, link, new_name) {
 		ISC_LIST_UNLINK(rev->answerlist, name, link);
 		ISC_LIST_APPEND(*resarg->namelist, name, link);
 	}
@@ -1000,15 +1003,17 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 
 void
 dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist) {
-	dns_name_t *name;
-	dns_rdataset_t *rdataset;
+	dns_name_t *name, *new_name;
+	dns_rdataset_t *rdataset, *new_rdataset;
 
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(namelist != NULL);
 
-	while ((name = ISC_LIST_HEAD(*namelist)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (*namelist, name, link, new_name) {
 		ISC_LIST_UNLINK(*namelist, name, link);
-		while ((rdataset = ISC_LIST_HEAD(name->list)) != NULL) {
+
+		ISC_LIST_FOREACH_SAFE (name->list, rdataset, link, new_rdataset)
+		{
 			ISC_LIST_UNLINK(name->list, rdataset, link);
 			putrdataset(client->mctx, &rdataset);
 		}

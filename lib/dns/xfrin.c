@@ -1794,7 +1794,6 @@ static void
 xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	dns_xfrin_t *xfr = (dns_xfrin_t *)arg;
 	dns_message_t *msg = NULL;
-	dns_name_t *name = NULL;
 	const dns_name_t *tsigowner = NULL;
 	isc_buffer_t buffer;
 
@@ -1917,16 +1916,11 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		goto failure;
 	}
 
-	for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(msg, DNS_SECTION_QUESTION))
-	{
+	MSG_SECTION_FOREACH (msg, DNS_SECTION_QUESTION, name) {
 		dns_rdataset_t *rds = NULL;
 
 		LIBDNS_XFRIN_RECV_QUESTION(xfr, xfr->info, msg);
 
-		name = NULL;
-		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
 		if (!dns_name_equal(name, &xfr->name)) {
 			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "question name mismatch");
@@ -1947,9 +1941,6 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 			result = DNS_R_FORMERR;
 			goto failure;
 		}
-	}
-	if (result != ISC_R_NOMORE) {
-		goto failure;
 	}
 
 	/*
@@ -1981,22 +1972,15 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		goto failure;
 	}
 
-	for (result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(msg, DNS_SECTION_ANSWER))
-	{
+	MSG_SECTION_FOREACH (msg, DNS_SECTION_ANSWER, name) {
 		dns_rdataset_t *rds = NULL;
 
 		LIBDNS_XFRIN_RECV_ANSWER(xfr, xfr->info, msg);
 
-		name = NULL;
-		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
-		for (rds = ISC_LIST_HEAD(name->list); rds != NULL;
-		     rds = ISC_LIST_NEXT(rds, link))
-		{
-			for (result = dns_rdataset_first(rds);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(rds))
+		ISC_LIST_FOREACH (name->list, rds, link) {
+			for (isc_result_t iter = dns_rdataset_first(rds);
+			     iter == ISC_R_SUCCESS;
+			     iter = dns_rdataset_next(rds))
 			{
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rds, &rdata);
@@ -2016,9 +2000,6 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 				}
 			}
 		}
-	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 	CHECK(result);
 

@@ -154,12 +154,13 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 
 static void
 free_namelist(dns_message_t *msg, dns_namelist_t *namelist) {
-	dns_name_t *name = NULL;
+	dns_name_t *name = NULL, *new_name = NULL;
 
-	while ((name = ISC_LIST_HEAD(*namelist)) != NULL) {
-		dns_rdataset_t *set = NULL;
+	ISC_LIST_FOREACH_SAFE (*namelist, name, link, new_name) {
+		dns_rdataset_t *set = NULL, *new_set = NULL;
 		ISC_LIST_UNLINK(*namelist, name, link);
-		while ((set = ISC_LIST_HEAD(name->list)) != NULL) {
+
+		ISC_LIST_FOREACH_SAFE (name->list, set, link, new_set) {
 			ISC_LIST_UNLINK(name->list, set, link);
 			if (dns_rdataset_isassociated(set)) {
 				dns_rdataset_disassociate(set);
@@ -371,12 +372,11 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	/*
 	 * Interpret the question section.
 	 */
-	result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
-	if (result != ISC_R_SUCCESS) {
+	if (ISC_LIST_EMPTY(msg->sections[DNS_SECTION_QUESTION])) {
 		return DNS_R_FORMERR;
 	}
 
-	dns_message_currentname(msg, DNS_SECTION_QUESTION, &qname);
+	qname = ISC_LIST_HEAD(msg->sections[DNS_SECTION_QUESTION]);
 
 	/*
 	 * Look for a TKEY record that matches the question.
@@ -508,7 +508,9 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 
 	RETERR(dns_message_reply(msg, true));
 	add_rdata_to_list(msg, keyname, &rdata, 0, &namelist);
-	while ((name = ISC_LIST_HEAD(namelist)) != NULL) {
+
+	dns_name_t *new_name;
+	ISC_LIST_FOREACH_SAFE (namelist, name, link, new_name) {
 		ISC_LIST_UNLINK(namelist, name, link);
 		dns_message_addname(msg, name, DNS_SECTION_ANSWER);
 	}
@@ -617,30 +619,23 @@ find_tkey(dns_message_t *msg, dns_name_t **name, dns_rdata_t *rdata,
 	  int section) {
 	isc_result_t result;
 
-	result = dns_message_firstname(msg, section);
-	while (result == ISC_R_SUCCESS) {
+	MSG_SECTION_FOREACH (msg, section, cur) {
 		dns_rdataset_t *tkeyset = NULL;
-		dns_name_t *cur = NULL;
-
-		dns_message_currentname(msg, section, &cur);
 		result = dns_message_findtype(cur, dns_rdatatype_tkey, 0,
 					      &tkeyset);
 		if (result == ISC_R_SUCCESS) {
 			result = dns_rdataset_first(tkeyset);
 			if (result != ISC_R_SUCCESS) {
-				break;
+				return result;
 			}
 
 			dns_rdataset_current(tkeyset, rdata);
 			*name = cur;
 			return ISC_R_SUCCESS;
 		}
-		result = dns_message_nextname(msg, section);
 	}
-	if (result == ISC_R_NOMORE) {
-		return ISC_R_NOTFOUND;
-	}
-	return result;
+
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t

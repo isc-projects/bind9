@@ -126,12 +126,10 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
 	  dns_ttl_t maxttl, bool optout, bool secure,
 	  dns_rdataset_t *addedrdataset) {
-	isc_result_t result;
 	isc_buffer_t buffer;
 	isc_region_t r;
 	dns_rdataset_t *rdataset;
 	dns_rdatatype_t type;
-	dns_name_t *name;
 	dns_ttl_t ttl;
 	dns_trust_t trust;
 	dns_rdata_t rdata[DNS_NCACHE_RDATA];
@@ -166,19 +164,12 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	ttl = maxttl;
 	trust = 0xffff;
 	isc_buffer_init(&buffer, data, sizeof(data));
-	if (message->counts[DNS_SECTION_AUTHORITY]) {
-		result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
-	} else {
-		result = ISC_R_NOMORE;
-	}
-	while (result == ISC_R_SUCCESS) {
-		name = NULL;
-		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+
+	MSG_SECTION_FOREACH (message, DNS_SECTION_AUTHORITY, name) {
+		isc_result_t result = ISC_R_SUCCESS;
+
 		if (name->attributes.ncache) {
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-			{
+			ISC_LIST_FOREACH (name->list, rdataset, link) {
 				if ((rdataset->attributes &
 				     DNS_RDATASETATTR_NCACHE) == 0)
 				{
@@ -249,10 +240,6 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 				}
 			}
 		}
-		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
-	}
-	if (result != ISC_R_NOMORE) {
-		return result;
 	}
 
 	if (trust == 0xffff) {

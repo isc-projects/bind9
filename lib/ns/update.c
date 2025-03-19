@@ -1517,14 +1517,12 @@ add_rr_prepare_action(void *data, rr_t *rr) {
  * 'rdata', and 'ttl', respectively.
  */
 static void
-get_current_rr(dns_message_t *msg, dns_section_t section,
-	       dns_rdataclass_t zoneclass, dns_name_t **name,
-	       dns_rdata_t *rdata, dns_rdatatype_t *covers, dns_ttl_t *ttl,
+get_current_rr(dns_rdataclass_t zoneclass, dns_name_t *name, dns_rdata_t *rdata,
+	       dns_rdatatype_t *covers, dns_ttl_t *ttl,
 	       dns_rdataclass_t *update_class) {
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
-	dns_message_currentname(msg, section, name);
-	rdataset = ISC_LIST_HEAD((*name)->list);
+	rdataset = ISC_LIST_HEAD(name->list);
 	INSIST(rdataset != NULL);
 	INSIST(ISC_LIST_NEXT(rdataset, link) == NULL);
 	*covers = rdataset->covers;
@@ -1688,20 +1686,15 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 					 sizeof(*maxbytype));
 	}
 
-	for (update = 0,
-	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
-	     result == ISC_R_SUCCESS; update++,
-	    result = dns_message_nextname(request, DNS_SECTION_UPDATE))
-	{
-		dns_name_t *name = NULL;
+	update = 0;
+	MSG_SECTION_FOREACH (request, DNS_SECTION_UPDATE, name) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
 
 		INSIST(ssutable == NULL || update < maxbytypelen);
-
-		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass, &name,
-			       &rdata, &covers, &ttl, &update_class);
+		get_current_rr(zoneclass, name, &rdata, &covers, &ttl,
+			       &update_class);
 
 		if (!dns_name_issubdomain(name, zonename)) {
 			FAILC(DNS_R_NOTZONE, "update RR is outside zone");
@@ -1859,9 +1852,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 				}
 			}
 		}
-	}
-	if (result != ISC_R_NOMORE) {
-		FAIL(result);
+		update++;
 	}
 
 	update_log(client, zone, LOGLEVEL_DEBUG, "update section prescan OK");
@@ -1944,8 +1935,8 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 	/*
 	 * Interpret the zone section.
 	 */
-	result = dns_message_firstname(request, DNS_SECTION_ZONE);
-	if (result != ISC_R_SUCCESS) {
+
+	if (ISC_LIST_EMPTY(request->sections[DNS_SECTION_ZONE])) {
 		FAILC(DNS_R_FORMERR, "update zone section empty");
 	}
 
@@ -1953,8 +1944,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 	 * The zone section must contain exactly one "question", and
 	 * it must be of type SOA.
 	 */
-	zonename = NULL;
-	dns_message_currentname(request, DNS_SECTION_ZONE, &zonename);
+	zonename = ISC_LIST_HEAD(request->sections[DNS_SECTION_ZONE]);
 	zone_rdataset = ISC_LIST_HEAD(zonename->list);
 	if (zone_rdataset->type != dns_rdatatype_soa) {
 		FAILC(DNS_R_FORMERR, "update zone section contains non-SOA");
@@ -1965,8 +1955,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 	}
 
 	/* The zone section must have exactly one name. */
-	result = dns_message_nextname(request, DNS_SECTION_ZONE);
-	if (result != ISC_R_NOMORE) {
+	if (ISC_LIST_NEXT(zonename, link) != NULL) {
 		FAILC(DNS_R_FORMERR,
 		      "update zone section contains multiple RRs");
 	}
@@ -2775,18 +2764,14 @@ update_action(void *arg) {
 	 * Check prerequisites.
 	 */
 
-	for (result = dns_message_firstname(request, DNS_SECTION_PREREQUISITE);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(request, DNS_SECTION_PREREQUISITE))
-	{
-		dns_name_t *name = NULL;
+	MSG_SECTION_FOREACH (request, DNS_SECTION_PREREQUISITE, name) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
 		bool flag;
 
-		get_current_rr(request, DNS_SECTION_PREREQUISITE, zoneclass,
-			       &name, &rdata, &covers, &ttl, &update_class);
+		get_current_rr(zoneclass, name, &rdata, &covers, &ttl,
+			       &update_class);
 
 		if (ttl != 0) {
 			PREREQFAILC(DNS_R_FORMERR,
@@ -2856,9 +2841,6 @@ update_action(void *arg) {
 			PREREQFAILC(DNS_R_FORMERR, "malformed prerequisite");
 		}
 	}
-	if (result != ISC_R_NOMORE) {
-		FAIL(result);
-	}
 
 	/*
 	 * Perform the final check of the "rrset exists (value dependent)"
@@ -2892,12 +2874,9 @@ update_action(void *arg) {
 	 * Process the Update Section.
 	 */
 	INSIST(ssutable == NULL || maxbytype != NULL);
-	for (update = 0,
-	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
-	     result == ISC_R_SUCCESS; update++,
-	    result = dns_message_nextname(request, DNS_SECTION_UPDATE))
-	{
-		dns_name_t *name = NULL;
+
+	update = 0;
+	MSG_SECTION_FOREACH (request, DNS_SECTION_UPDATE, name) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
@@ -2905,8 +2884,8 @@ update_action(void *arg) {
 
 		INSIST(ssutable == NULL || update < maxbytypelen);
 
-		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass, &name,
-			       &rdata, &covers, &ttl, &update_class);
+		get_current_rr(zoneclass, name, &rdata, &covers, &ttl,
+			       &update_class);
 
 		if (update_class == zoneclass) {
 			/*
@@ -3254,9 +3233,8 @@ update_action(void *arg) {
 			CHECK(delete_if(rr_equal_p, db, ver, name, rdata.type,
 					covers, &rdata, &diff));
 		}
-	}
-	if (result != ISC_R_NOMORE) {
-		FAIL(result);
+
+		++update;
 	}
 
 	/*

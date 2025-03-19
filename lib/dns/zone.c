@@ -13703,9 +13703,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 	 * for each NS entry found in the answer.
 	 */
 	if (!has_glue) {
-		for (ns_name = ISC_LIST_HEAD(ns_list); ns_name != NULL;
-		     ns_name = ISC_LIST_NEXT(ns_name, link))
-		{
+		ISC_LIST_FOREACH (ns_list, ns_name, link) {
 			/*
 			 * Resolve NS IPv4 address/A.
 			 */
@@ -13727,8 +13725,9 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 
 	result = ISC_R_SUCCESS;
 
+	dns_name_t *new_ns_name;
 done:
-	while ((ns_name = ISC_LIST_HEAD(ns_list)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (ns_list, ns_name, link, new_ns_name) {
 		ISC_LIST_UNLINK(ns_list, ns_name, link);
 		dns_name_free(ns_name, cb_args->stub->mctx);
 		isc_mem_put(cb_args->stub->mctx, ns_name, sizeof(*ns_name));
@@ -16190,24 +16189,15 @@ dnssec_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 
 static int
 message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type) {
-	isc_result_t result;
-	dns_name_t *name;
 	dns_rdataset_t *curr;
 	int count = 0;
 
-	result = dns_message_firstname(msg, section);
-	while (result == ISC_R_SUCCESS) {
-		name = NULL;
-		dns_message_currentname(msg, section, &name);
-
-		for (curr = ISC_LIST_TAIL(name->list); curr != NULL;
-		     curr = ISC_LIST_PREV(curr, link))
-		{
+	MSG_SECTION_FOREACH (msg, section, name) {
+		ISC_LIST_FOREACH_REV (name->list, curr, link) {
 			if (curr->type == type) {
 				count++;
 			}
 		}
-		result = dns_message_nextname(msg, section);
 	}
 
 	return count;
@@ -21142,19 +21132,14 @@ checkds_done(void *arg) {
 	}
 
 	/* Lookup DS RRset. */
-	result = dns_message_firstname(message, DNS_SECTION_ANSWER);
-	while (result == ISC_R_SUCCESS) {
-		dns_name_t *name = NULL;
-		dns_rdataset_t *rdataset;
 
-		dns_message_currentname(message, DNS_SECTION_ANSWER, &name);
+	MSG_SECTION_FOREACH (message, DNS_SECTION_ANSWER, name) {
+		dns_rdataset_t *rdataset;
 		if (dns_name_compare(&zone->origin, name) != 0) {
-			goto next;
+			continue;
 		}
 
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+		ISC_LIST_FOREACH (name->list, rdataset, link) {
 			if (rdataset->type != dns_rdatatype_ds) {
 				goto next;
 			}
@@ -21167,8 +21152,7 @@ checkds_done(void *arg) {
 			break;
 		}
 
-	next:
-		result = dns_message_nextname(message, DNS_SECTION_ANSWER);
+	next:;
 	}
 
 	if (ds_rrset == NULL) {

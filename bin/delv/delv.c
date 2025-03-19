@@ -1855,10 +1855,8 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 		printf("records:\n");
 	}
 
-	for (dns_name_t *response_name = ISC_LIST_HEAD(*namelist);
-	     response_name != NULL;
-	     response_name = ISC_LIST_NEXT(response_name, link))
-	{
+	dns_name_t *response_name;
+	ISC_LIST_FOREACH (*namelist, response_name, link) {
 		for (rdataset = ISC_LIST_HEAD(response_name->list);
 		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
 		{
@@ -1986,19 +1984,11 @@ recvresponse(void *arg) {
 		goto cleanup;
 	}
 
-	for (result = dns_message_firstname(response, DNS_SECTION_ANSWER);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(response, DNS_SECTION_ANSWER))
-	{
-		dns_name_t *name = NULL;
+	MSG_SECTION_FOREACH (response, DNS_SECTION_ANSWER, name) {
 		dns_rdataset_t *rdataset = NULL;
 		dns_rdatatype_t prevtype = 0;
 
-		dns_message_currentname(response, DNS_SECTION_ANSWER, &name);
-
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+		ISC_LIST_FOREACH (name->list, rdataset, link) {
 			dns_rdataset_t rds, sigs;
 			int options = 0;
 
