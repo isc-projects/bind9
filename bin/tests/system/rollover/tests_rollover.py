@@ -387,18 +387,25 @@ def check_rollover_step(server, config, policy, step):
     keyrelationships = step.get("keyrelationships", None)
     smooth = step.get("smooth", False)
     ds_swap = step.get("ds-swap", True)
+    cds_delete = step.get("cds-delete", False)
+    check_keytimes = step.get("check-keytimes", True)
+    zone_signed = step.get("zone-signed", True)
 
     isctest.log.info(f"check rollover step {zone}")
 
+    if zone_signed:
+        isctest.kasp.check_dnssec_verify(server, zone)
+
     ttl = int(config["dnskey-ttl"].total_seconds())
     expected = isctest.kasp.policy_to_properties(ttl, keyprops)
-    isctest.kasp.check_dnssec_verify(server, zone)
     keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
     ksks = [k for k in keys if k.is_ksk()]
     zsks = [k for k in keys if not k.is_ksk()]
     isctest.kasp.check_keys(zone, keys, expected)
 
     for kp in expected:
+        key = kp.key
+
         # Set expected key timing metadata.
         kp.set_expected_keytimes(config)
 
@@ -410,12 +417,19 @@ def check_rollover_step(server, config, policy, step):
             expected[suc].metadata["Predecessor"] = expected[prd].key.tag
             isctest.kasp.check_keyrelationships(keys, expected)
 
+        # Policy changes may retire keys, set expected timing metadata.
+        if kp.metadata["GoalState"] == "hidden" and "Retired" not in kp.timing:
+            retired = kp.key.get_timing("Inactive")
+            kp.timing["Retired"] = retired
+            kp.timing["Removed"] = retired + Iret(
+                config, zsk=key.is_zsk(), ksk=key.is_ksk()
+            )
+
         # Check that CDS publication/withdrawal is logged.
         if "KSK" not in kp.metadata:
             continue
         if kp.metadata["KSK"] == "no":
             continue
-        key = kp.key
 
         if ds_swap and kp.metadata["DSState"] == "rumoured":
             assert cdss is not None
@@ -434,9 +448,11 @@ def check_rollover_step(server, config, policy, step):
             # delay, so set the DS withdraw time to now.
             server.rndc(f"dnssec -checkds -key {key.tag} withdrawn {zone}")
 
-    isctest.kasp.check_keytimes(keys, expected)
+    if check_keytimes:
+        isctest.kasp.check_keytimes(keys, expected)
+
     isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks, cdss=cdss)
+    isctest.kasp.check_apex(server, zone, ksks, zsks, cdss=cdss, cds_delete=cds_delete)
     isctest.kasp.check_subdomain(server, zone, ksks, zsks, smooth=smooth)
 
     def check_next_key_event():
@@ -1278,6 +1294,9 @@ def test_rollover_policy_changes(servers):
         "zone-propagation-delay": timedelta(seconds=300),
     }
 
+    unsigning_config = default_config.copy()
+    unsigning_config["dnskey-ttl"] = timedelta(seconds=7200)
+
     start_time = KeyTimingMetadata.now()
 
     # Test dynamic zones that switch to inline-signing.
@@ -1299,6 +1318,7 @@ def test_rollover_policy_changes(servers):
     lifetime = {
         "P1Y": int(timedelta(days=365).total_seconds()),
         "P6M": int(timedelta(days=31 * 6).total_seconds()),
+        "P60D": int(timedelta(days=60).total_seconds()),
     }
     lifetime_update_tests = [
         {
@@ -1330,6 +1350,47 @@ def test_rollover_policy_changes(servers):
             "policy": lut["policy"],
             "keyprops": [
                 f"csk {lut['lifetime']} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            ],
+            "nextev": None,
+        }
+        steps.append(step)
+
+    # Test going insecure.
+    isctest.log.info("check going insecure")
+    offset = -timedelta(days=10)
+    offval = int(offset.total_seconds())
+    zones = [
+        "step1.going-insecure.kasp",
+        "step1.going-insecure-dynamic.kasp",
+    ]
+    for zone in zones:
+        step = {
+            "zone": zone,
+            "cdss": cdss,
+            "config": unsigning_config,
+            "policy": "unsigning",
+            "keyprops": [
+                f"ksk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{offval}",
+                f"zsk {lifetime['P60D']} {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offval}",
+            ],
+            "nextev": None,
+        }
+        steps.append(step)
+
+    # Test going straight to none.
+    isctest.log.info("check going straight to none")
+    zones = [
+        "step1.going-straight-to-none.kasp",
+        "step1.going-straight-to-none-dynamic.kasp",
+    ]
+    for zone in zones:
+        step = {
+            "zone": zone,
+            "cdss": cdss,
+            "config": default_config,
+            "policy": "default",
+            "keyprops": [
+                f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{offval}",
             ],
             "nextev": None,
         }
@@ -1380,6 +1441,78 @@ def test_rollover_policy_changes(servers):
             "policy": lut["policy"],
             "keyprops": [
                 f"csk {lut['lifetime']} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            ],
+            "nextev": None,
+        }
+        steps.append(step)
+
+    # Test going insecure (after reconfig).
+    isctest.log.info("check going insecure (after reconfig)")
+    oldttl = unsigning_config["dnskey-ttl"]
+    offset = -timedelta(days=10)
+    offval = int(offset.total_seconds())
+    zones = ["going-insecure.kasp", "going-insecure-dynamic.kasp"]
+    for parent in zones:
+        # Step 1.
+        # Key goal states should be HIDDEN.
+        # The DS may be removed if we are going insecure.
+        step = {
+            "zone": f"step1.{parent}",
+            "cdss": cdss,
+            "config": default_config,
+            "policy": "insecure",
+            "keyprops": [
+                f"ksk 0 {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{offval}",
+                f"zsk {lifetime['P60D']} {alg} {size} goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{offval}",
+            ],
+            # Next key event is when the DS becomes HIDDEN. This
+            # happens after the# parent propagation delay plus DS TTL.
+            "nextev": default_config["ds-ttl"]
+            + default_config["parent-propagation-delay"],
+            # Going insecure, check for CDS/CDNSKEY DELETE, and skip key timing checks.
+            "cds-delete": True,
+            "check-keytimes": False,
+        }
+        steps.append(step)
+
+        # Step 2.
+        # The DS is long enough removed from the zone to be considered
+        # HIDDEN.  This means the DNSKEY and the KSK signatures can be
+        # removed.
+        step = {
+            "zone": f"step2.{parent}",
+            "cdss": cdss,
+            "config": default_config,
+            "policy": "insecure",
+            "keyprops": [
+                f"ksk 0 {alg} {size} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{offval}",
+                f"zsk {lifetime['P60D']} {alg} {size} goal:hidden dnskey:unretentive zrrsig:unretentive offset:{offval}",
+            ],
+            # Next key event is when the DNSKEY becomes HIDDEN.
+            # This happens after the propagation delay, plus DNSKEY TTL.
+            "nextev": oldttl + default_config["zone-propagation-delay"],
+            # Zone is no longer signed.
+            "zone-signed": False,
+            "check-keytimes": False,
+        }
+        steps.append(step)
+
+    # Test going straight to none.
+    isctest.log.info("check going straight to none (after reconfig)")
+    zones = [
+        "step1.going-straight-to-none.kasp",
+        "step1.going-straight-to-none-dynamic.kasp",
+    ]
+    for zone in zones:
+        step = {
+            "zone": zone,
+            "cdss": cdss,
+            "config": default_config,
+            "policy": None,
+            # These zones will go bogus after signatures expire, but
+            # remain validly signed for now.
+            "keyprops": [
+                f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{offval}",
             ],
             "nextev": None,
         }
