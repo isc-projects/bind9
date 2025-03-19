@@ -1086,20 +1086,8 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 	if (sock->tls.state == TLS_STATE_IO) {
 		size_t len;
 
+		/* 1. Decrypt the incoming data */
 		for (;;) {
-			/*
-			 * There is a similar branch in
-			 * isc__nm_process_sock_buffer() which is sufficient to
-			 * stop excessive processing in TCP. However, as we wrap
-			 * this call in a loop, we need to have it here in order
-			 * to limit the number of loop iterations (and,
-			 * consequently, the number of messages processed).
-			 */
-			if (atomic_load(&sock->ah) >= STREAM_CLIENTS_PER_CONN) {
-				isc__nm_stop_reading(sock);
-				break;
-			}
-
 			(void)SSL_peek(sock->tls.tls, &(char){ '\0' }, 0);
 
 			int pending = SSL_pending(sock->tls.tls);
@@ -1120,33 +1108,21 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 						 sock->buf_size - sock->buf_len,
 						 &len);
 				if (rv != 1) {
-					/*
-					 * Process what's in the buffer so far
-					 */
-					result = isc__nm_process_sock_buffer(
-						sock);
-					if (result != ISC_R_SUCCESS) {
-						goto failure;
-					}
-					/*
-					 * FIXME: Should we call
-					 * isc__nm_failed_read_cb()?
-					 */
 					break;
 				}
 
 				INSIST((size_t)pending == len);
 
 				sock->buf_len += len;
-			}
-			result = isc__nm_process_sock_buffer(sock);
-			if (result != ISC_R_SUCCESS) {
-				goto failure;
-			}
-
-			if (pending == 0) {
+			} else {
 				break;
 			}
+		}
+
+		/* 2. Process the incoming data */
+		result = isc__nm_process_sock_buffer(sock);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
 		}
 	} else if (!SSL_is_init_finished(sock->tls.tls)) {
 		if (SSL_is_server(sock->tls.tls)) {
