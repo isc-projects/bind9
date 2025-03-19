@@ -44,19 +44,6 @@ zone "." {
 	file "../../_common/root.hint.blackhole";
 };
 
-/* These are alorithm rollover test zones. */
-zone "step1.algorithm-roll.kasp" {
-	type primary;
-	file "step1.algorithm-roll.kasp.db";
-	dnssec-policy "rsasha256";
-};
-
-zone "step1.csk-algorithm-roll.kasp" {
-	type primary;
-	file "step1.csk-algorithm-roll.kasp.db";
-	dnssec-policy "csk-algoroll";
-};
-
 zone example {
 	type primary;
 	file "example.db";
