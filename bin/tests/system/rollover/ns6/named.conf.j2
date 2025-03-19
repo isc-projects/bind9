@@ -105,3 +105,16 @@ zone "step1.going-straight-to-none-dynamic.kasp" {
 	dnssec-policy "default";
 	allow-update { any; };
 };
+
+/* These are alorithm rollover test zones. */
+zone "step1.algorithm-roll.kasp" {
+	type primary;
+	file "step1.algorithm-roll.kasp.db";
+	dnssec-policy "rsasha256";
+};
+
+zone "step1.csk-algorithm-roll.kasp" {
+	type primary;
+	file "step1.csk-algorithm-roll.kasp.db";
+	dnssec-policy "csk-algoroll";
+};
