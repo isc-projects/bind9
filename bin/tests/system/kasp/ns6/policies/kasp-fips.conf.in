@@ -11,15 +11,6 @@
  * information regarding copyright ownership.
  */
 
-dnssec-policy "unsigning" {
-	dnskey-ttl 7200;
-
-	keys {
-		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-		zsk key-directory lifetime P60D algorithm @DEFAULT_ALGORITHM@;
-	};
-};
-
 dnssec-policy "nsec3" {
 	nsec3param iterations 0 optout no salt-length 0;
 };
