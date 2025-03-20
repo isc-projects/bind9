@@ -471,8 +471,8 @@ struct fetchctx {
 	unsigned int depth;
 	char clientstr[ISC_SOCKADDR_FORMATSIZE];
 
-	uint32_t nvalidations;
-	uint32_t nfails;
+	isc_counter_t *nvalidations;
+	isc_counter_t *nfails;
 };
 
 #define FCTX_MAGIC	 ISC_MAGIC('F', '!', '!', '!')
@@ -973,8 +973,8 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 
 	result = dns_validator_create(
 		fctx->res->view, name, type, rdataset, sigrdataset, message,
-		valoptions, fctx->loop, validated, valarg, &fctx->nvalidations,
-		&fctx->nfails, fctx->qc, fctx->gqc, &fctx->edectx, &validator);
+		valoptions, fctx->loop, validated, valarg, fctx->nvalidations,
+		fctx->nfails, fctx->qc, fctx->gqc, &fctx->edectx, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	inc_stats(fctx->res, dns_resstatscounter_val);
 	ISC_LIST_APPEND(fctx->validators, validator, link);
@@ -4500,6 +4500,12 @@ fctx_destroy(fetchctx_t *fctx) {
 		isc_mem_put(fctx->mctx, sa, sizeof(*sa));
 	}
 
+	if (fctx->nfails != NULL) {
+		isc_counter_detach(&fctx->nfails);
+	}
+	if (fctx->nvalidations != NULL) {
+		isc_counter_detach(&fctx->nvalidations);
+	}
 	isc_counter_detach(&fctx->qc);
 	if (fctx->gqc != NULL) {
 		isc_counter_detach(&fctx->gqc);
@@ -4669,6 +4675,8 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 1];
 	isc_mem_t *mctx = isc_loop_getmctx(loop);
 	size_t p;
+	uint32_t nvalidations = atomic_load_relaxed(&res->maxvalidations);
+	uint32_t nfails = atomic_load_relaxed(&res->maxvalidationfails);
 
 	/*
 	 * Caller must be holding the lock for 'bucket'
@@ -4687,8 +4695,6 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		.fwdpolicy = dns_fwdpolicy_none,
 		.result = ISC_R_FAILURE,
 		.loop = loop,
-		.nvalidations = atomic_load_relaxed(&res->maxvalidations),
-		.nfails = atomic_load_relaxed(&res->maxvalidationfails),
 	};
 
 	isc_mem_attach(mctx, &fctx->mctx);
@@ -4709,6 +4715,14 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	fctx->info = isc_mem_strdup(fctx->mctx, buf);
 
 	FCTXTRACE("create");
+
+	if (nfails > 0) {
+		isc_counter_create(mctx, nfails, &fctx->nfails);
+	}
+
+	if (nvalidations > 0) {
+		isc_counter_create(mctx, nvalidations, &fctx->nvalidations);
+	}
 
 	if (qc != NULL) {
 		isc_counter_attach(qc, &fctx->qc);
@@ -4942,6 +4956,12 @@ cleanup_nameservers:
 		dns_rdataset_disassociate(&fctx->nameservers);
 	}
 	isc_mem_free(fctx->mctx, fctx->info);
+	if (fctx->nfails != NULL) {
+		isc_counter_detach(&fctx->nfails);
+	}
+	if (fctx->nvalidations != NULL) {
+		isc_counter_detach(&fctx->nvalidations);
+	}
 	isc_counter_detach(&fctx->qc);
 	if (fctx->gqc != NULL) {
 		isc_counter_detach(&fctx->gqc);
