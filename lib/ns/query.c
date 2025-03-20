@@ -2420,25 +2420,33 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 	for (; result == ISC_R_SUCCESS; result = dns_rdataset_next(keyrdataset))
 	{
 		dns_rdata_t rdata = DNS_RDATA_INIT;
-		isc_buffer_t b;
+		dns_rdata_dnskey_t key;
+		isc_region_t r;
 
 		dns_rdataset_current(keyrdataset, &rdata);
-		isc_buffer_init(&b, rdata.data, rdata.length);
-		isc_buffer_add(&b, rdata.length);
-		result = dst_key_fromdns(&rrsig->signer, rdata.rdclass, &b,
-					 client->manager->mctx, keyp);
-		if (result != ISC_R_SUCCESS) {
+		dns_rdata_tostruct(&rdata, &key, NULL); /* can't fail */
+
+		if (rrsig->algorithm != key.algorithm ||
+		    !dns_dnssec_iszonekey(&key))
+		{
 			continue;
 		}
-		if (rrsig->algorithm == (dns_secalg_t)dst_key_alg(*keyp) &&
-		    rrsig->keyid == (dns_keytag_t)dst_key_id(*keyp) &&
-		    dst_key_iszonekey(*keyp))
-		{
+
+		dns_rdata_toregion(&rdata, &r);
+		if (dst_region_computeid(&r) != rrsig->keyid) {
+			continue;
+		}
+
+		result = dns_dnssec_keyfromrdata(&rrsig->signer, &rdata,
+						 client->manager->mctx, keyp);
+		if (result == ISC_R_SUCCESS) {
 			secure = true;
 			break;
 		}
+
 		dst_key_free(keyp);
 	}
+
 	return secure;
 }
 

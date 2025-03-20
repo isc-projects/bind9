@@ -43,6 +43,7 @@
 #include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/masterdump.h>
 #include <dns/name.h>
@@ -58,7 +59,6 @@
 #include <dns/time.h>
 #include <dns/view.h>
 #include <dns/zone.h>
-#include <dns/zonekey.h>
 
 #include "db_p.h"
 #include "qpzone_p.h"
@@ -1143,25 +1143,17 @@ setsecure(dns_db_t *db, qpz_version_t *version, dns_dbnode_t *origin) {
 	bool hasnsec = false;
 	isc_result_t result;
 
+	version->secure = false;
+	version->havensec3 = false;
+
 	dns_rdataset_init(&keyset);
 	result = dns_db_findrdataset(db, origin, (dns_dbversion_t *)version,
 				     dns_rdatatype_dnskey, 0, 0, &keyset, NULL);
 	if (result == ISC_R_SUCCESS) {
-		result = dns_rdataset_first(&keyset);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdata_t keyrdata = DNS_RDATA_INIT;
-			dns_rdataset_current(&keyset, &keyrdata);
-			if (dns_zonekey_iszonekey(&keyrdata)) {
-				haszonekey = true;
-				break;
-			}
-			result = dns_rdataset_next(&keyset);
-		}
+		haszonekey = dns_dnssec_haszonekey(&keyset);
 		dns_rdataset_disassociate(&keyset);
 	}
 	if (!haszonekey) {
-		version->secure = false;
-		version->havensec3 = false;
 		return;
 	}
 
@@ -1181,12 +1173,11 @@ setsecure(dns_db_t *db, qpz_version_t *version, dns_dbnode_t *origin) {
 	setnsec3parameters(db, version);
 
 	/*
-	 * Do we have a valid NSEC/NSEC3 chain?
+	 * If we don't have a valid NSEC/NSEC3 chain,
+	 * clear the secure flag.
 	 */
 	if (version->havensec3 || hasnsec) {
 		version->secure = true;
-	} else {
-		version->secure = false;
 	}
 }
 

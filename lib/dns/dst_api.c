@@ -162,8 +162,7 @@ computeid(dst_key_t *key);
 static isc_result_t
 frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	   unsigned int protocol, dns_rdataclass_t rdclass,
-	   isc_buffer_t *source, isc_mem_t *mctx, bool no_rdata,
-	   dst_key_t **keyp);
+	   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp);
 
 static isc_result_t
 algorithm_status(unsigned int alg);
@@ -721,13 +720,6 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 isc_result_t
 dst_key_fromdns(const dns_name_t *name, dns_rdataclass_t rdclass,
 		isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp) {
-	return dst_key_fromdns_ex(name, rdclass, source, mctx, false, keyp);
-}
-
-isc_result_t
-dst_key_fromdns_ex(const dns_name_t *name, dns_rdataclass_t rdclass,
-		   isc_buffer_t *source, isc_mem_t *mctx, bool no_rdata,
-		   dst_key_t **keyp) {
 	uint8_t alg, proto;
 	uint32_t flags, extflags;
 	dst_key_t *key = NULL;
@@ -756,7 +748,7 @@ dst_key_fromdns_ex(const dns_name_t *name, dns_rdataclass_t rdclass,
 	}
 
 	result = frombuffer(name, alg, flags, proto, rdclass, source, mctx,
-			    no_rdata, &key);
+			    &key);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -775,7 +767,7 @@ dst_key_frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	isc_result_t result;
 
 	result = frombuffer(name, alg, flags, protocol, rdclass, source, mctx,
-			    false, &key);
+			    &key);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -2267,8 +2259,7 @@ computeid(dst_key_t *key) {
 static isc_result_t
 frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	   unsigned int protocol, dns_rdataclass_t rdclass,
-	   isc_buffer_t *source, isc_mem_t *mctx, bool no_rdata,
-	   dst_key_t **keyp) {
+	   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp) {
 	dst_key_t *key;
 	isc_result_t ret;
 
@@ -2290,12 +2281,10 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 			return DST_R_UNSUPPORTEDALG;
 		}
 
-		if (!no_rdata) {
-			ret = key->func->fromdns(key, source);
-			if (ret != ISC_R_SUCCESS) {
-				dst_key_free(&key);
-				return ret;
-			}
+		ret = key->func->fromdns(key, source);
+		if (ret != ISC_R_SUCCESS) {
+			dst_key_free(&key);
+			return ret;
 		}
 	}
 

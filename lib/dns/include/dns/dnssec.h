@@ -242,6 +242,24 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
  * rrset.  dns_dnssec_signs() works on any rrset.
  */
 
+bool
+dns_dnssec_iszonekey(dns_rdata_dnskey_t *key);
+/*%<
+ * Verify that 'key' is a DNSSEC key with the DNS_KEYOWNER_ZONE flag set.
+ *
+ * Requires:
+ *\li		'key' is not NULL.
+ */
+
+bool
+dns_dnssec_haszonekey(dns_rdataset_t *keyset);
+/*%<
+ * Verify that 'keyset' includes at least one zone key.
+ *
+ * Requires:
+ *\li		'keyset' is not NULL.
+ */
+
 void
 dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 		     dns_dnsseckey_t **dkp);

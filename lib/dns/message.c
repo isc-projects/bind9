@@ -3105,7 +3105,7 @@ dns_message_checksig_async(dns_message_t *msg, dns_view_t *view,
 
 isc_result_t
 dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
-	isc_buffer_t b, msgb;
+	isc_buffer_t msgb;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
@@ -3126,7 +3126,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			return dns_tsig_verify(&msgb, msg, NULL, NULL);
 		}
 	} else {
-		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_t sigrdata = DNS_RDATA_INIT;
 		dns_rdata_sig_t sig;
 		dns_rdataset_t keyset;
 		isc_result_t result;
@@ -3134,7 +3134,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 		result = dns_rdataset_first(msg->sig0);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_rdataset_current(msg->sig0, &rdata);
+		dns_rdataset_current(msg->sig0, &sigrdata);
 
 		/*
 		 * This can occur when the message is a dynamic update, since
@@ -3143,11 +3143,11 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		 * looked for in the additional section, and the dynamic update
 		 * meta-records are in the prerequisite and update sections.
 		 */
-		if (rdata.length == 0) {
+		if (sigrdata.length == 0) {
 			return ISC_R_UNEXPECTEDEND;
 		}
 
-		result = dns_rdata_tostruct(&rdata, &sig, NULL);
+		result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
@@ -3191,26 +3191,32 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		     message_checks < max_message_checks;
 		     key_checks++, result = dns_rdataset_next(&keyset))
 		{
+			dns_rdata_t keyrdata = DNS_RDATA_INIT;
+			dns_rdata_key_t ks;
 			dst_key_t *key = NULL;
+			isc_region_t r;
 
-			dns_rdata_reset(&rdata);
-			dns_rdataset_current(&keyset, &rdata);
-			isc_buffer_init(&b, rdata.data, rdata.length);
-			isc_buffer_add(&b, rdata.length);
+			dns_rdataset_current(&keyset, &keyrdata);
+			dns_rdata_tostruct(&keyrdata, &ks, NULL);
 
-			result = dst_key_fromdns(&sig.signer, rdata.rdclass, &b,
-						 view->mctx, &key);
+			if (sig.algorithm != ks.algorithm ||
+			    (ks.protocol != DNS_KEYPROTO_DNSSEC &&
+			     ks.protocol != DNS_KEYPROTO_ANY))
+			{
+				continue;
+			}
+
+			dns_rdata_toregion(&keyrdata, &r);
+			if (dst_region_computeid(&r) != sig.keyid) {
+				continue;
+			}
+
+			result = dns_dnssec_keyfromrdata(&sig.signer, &keyrdata,
+							 view->mctx, &key);
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}
-			if (dst_key_alg(key) != sig.algorithm ||
-			    dst_key_id(key) != sig.keyid ||
-			    !(dst_key_proto(key) == DNS_KEYPROTO_DNSSEC ||
-			      dst_key_proto(key) == DNS_KEYPROTO_ANY))
-			{
-				dst_key_free(&key);
-				continue;
-			}
+
 			result = dns_dnssec_verifymessage(&msgb, msg, key);
 			dst_key_free(&key);
 			if (result == ISC_R_SUCCESS) {

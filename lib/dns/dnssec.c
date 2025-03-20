@@ -1101,6 +1101,41 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 	return false;
 }
 
+bool
+dns_dnssec_iszonekey(dns_rdata_dnskey_t *key) {
+	return (key->flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
+	       (key->flags & DNS_KEYTYPE_NOAUTH) == 0 &&
+	       (key->protocol == DNS_KEYPROTO_DNSSEC ||
+		key->protocol == DNS_KEYPROTO_ANY);
+}
+
+bool
+dns_dnssec_haszonekey(dns_rdataset_t *keyset) {
+	isc_result_t result;
+
+	REQUIRE(keyset != NULL);
+
+	if (keyset->type != dns_rdatatype_dnskey) {
+		return false;
+	}
+
+	for (result = dns_rdataset_first(keyset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(keyset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_dnskey_t key;
+
+		dns_rdataset_current(keyset, &rdata);
+		dns_rdata_tostruct(&rdata, &key, NULL); /* can't fail */
+
+		if (dns_dnssec_iszonekey(&key)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void
 dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 		     dns_dnsseckey_t **dkp) {
