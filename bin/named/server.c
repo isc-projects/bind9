@@ -4191,7 +4191,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	uint32_t maxbits;
 	unsigned int resopts = 0;
 	dns_zone_t *zone = NULL;
-	uint32_t max_clients_per_query;
+	uint32_t clients_per_query, max_clients_per_query;
 	bool empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
 	isc_stats_t *resstats = NULL;
@@ -5622,14 +5622,25 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	view->v6bias = cfg_obj_asuint32(obj) * 1000;
 
 	obj = NULL;
+	result = named_config_get(maps, "clients-per-query", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	clients_per_query = cfg_obj_asuint32(obj);
+
+	obj = NULL;
 	result = named_config_get(maps, "max-clients-per-query", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	max_clients_per_query = cfg_obj_asuint32(obj);
 
-	obj = NULL;
-	result = named_config_get(maps, "clients-per-query", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	dns_resolver_setclientsperquery(view->resolver, cfg_obj_asuint32(obj),
+	if (max_clients_per_query < clients_per_query) {
+		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
+			    "configured clients-per-query (%u) exceeds "
+			    "max-clients-per-query (%u); automatically "
+			    "adjusting max-clients-per-query to (%u)",
+			    clients_per_query, max_clients_per_query,
+			    clients_per_query);
+		max_clients_per_query = clients_per_query;
+	}
+	dns_resolver_setclientsperquery(view->resolver, clients_per_query,
 					max_clients_per_query);
 
 	/*
