@@ -190,13 +190,19 @@ dns_keymgr_settime_syncpublish(dst_key_t *key, dns_kasp_t *kasp, bool first) {
 		isc_stdtime_t zrrsig_present;
 		dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp, true);
 		zrrsig_present = published + ttlsig +
-				 dns_kasp_zonepropagationdelay(kasp) +
-				 dns_kasp_publishsafety(kasp);
+				 dns_kasp_zonepropagationdelay(kasp);
 		if (zrrsig_present > syncpublish) {
 			syncpublish = zrrsig_present;
 		}
 	}
 	dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncpublish);
+
+	uint32_t lifetime = 0;
+	ret = dst_key_getnum(key, DST_NUM_LIFETIME, &lifetime);
+	if (ret == ISC_R_SUCCESS && lifetime > 0) {
+		dst_key_settime(key, DST_TIME_SYNCDELETE,
+				(syncpublish + lifetime));
+	}
 }
 
 /*
@@ -245,6 +251,17 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 	}
 
 	/*
+	 * To calculate phase out times ("Retired", "Removed", ...),
+	 * the key lifetime is required.
+	 */
+	uint32_t klifetime = 0;
+	ret = dst_key_getnum(key->key, DST_NUM_LIFETIME, &klifetime);
+	if (ret != ISC_R_SUCCESS) {
+		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
+		klifetime = lifetime;
+	}
+
+	/*
 	 * Calculate prepublication time.
 	 */
 	prepub = dst_key_getttl(key->key) + dns_kasp_publishsafety(kasp) +
@@ -273,13 +290,16 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 				dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp,
 								       true);
 				syncpub2 = pub + ttlsig +
-					   dns_kasp_publishsafety(kasp) +
 					   dns_kasp_zonepropagationdelay(kasp);
 			}
 
 			syncpub = ISC_MAX(syncpub1, syncpub2);
 			dst_key_settime(key->key, DST_TIME_SYNCPUBLISH,
 					syncpub);
+			if (klifetime > 0) {
+				dst_key_settime(key->key, DST_TIME_SYNCDELETE,
+						(syncpub + klifetime));
+			}
 		}
 	}
 
@@ -292,13 +312,6 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 
 	ret = dst_key_gettime(key->key, DST_TIME_INACTIVE, &retire);
 	if (ret != ISC_R_SUCCESS) {
-		uint32_t klifetime = 0;
-
-		ret = dst_key_getnum(key->key, DST_NUM_LIFETIME, &klifetime);
-		if (ret != ISC_R_SUCCESS) {
-			dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
-			klifetime = lifetime;
-		}
 		if (klifetime == 0) {
 			/*
 			 * No inactive time and no lifetime,
@@ -399,7 +412,7 @@ keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 	/* Initialize lifetime. */
 	if (r != ISC_R_SUCCESS) {
 		dst_key_setnum(key->key, DST_NUM_LIFETIME, lifetime);
-		return;
+		l = lifetime - 1;
 	}
 	/* Skip keys that are still hidden or already retiring. */
 	if (g != OMNIPRESENT) {
@@ -421,6 +434,7 @@ keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 		} else {
 			dst_key_unsettime(key->key, DST_TIME_INACTIVE);
 			dst_key_unsettime(key->key, DST_TIME_DELETE);
+			dst_key_unsettime(key->key, DST_TIME_SYNCDELETE);
 		}
 	}
 }
@@ -1287,6 +1301,7 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 	isc_result_t ret;
 	isc_stdtime_t lastchange, dstime, nexttime = now;
 	dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp, true);
+	uint32_t dsstate;
 
 	/*
 	 * No need to wait if we move things into an uncertain state.
@@ -1356,15 +1371,12 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 			 * records.  This translates to:
 			 *
 			 *     Dsgn + zone-propagation-delay + max-zone-ttl.
-			 *
-			 * We will also add the retire-safety interval.
 			 */
 			nexttime = lastchange + ttlsig +
-				   dns_kasp_zonepropagationdelay(kasp) +
-				   dns_kasp_retiresafety(kasp);
+				   dns_kasp_zonepropagationdelay(kasp);
 			/*
-			 * Only add the sign delay Dsgn if there is an actual
-			 * predecessor or successor key.
+			 * Only add the sign delay Dsgn and retire-safety if
+			 * there is an actual predecessor or successor key.
 			 */
 			uint32_t tag;
 			ret = dst_key_getnum(key->key, DST_NUM_PREDECESSOR,
@@ -1374,7 +1386,8 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 						     DST_NUM_SUCCESSOR, &tag);
 			}
 			if (ret == ISC_R_SUCCESS) {
-				nexttime += dns_kasp_signdelay(kasp);
+				nexttime += dns_kasp_signdelay(kasp) +
+					    dns_kasp_retiresafety(kasp);
 			}
 			break;
 		default:
@@ -1400,35 +1413,36 @@ keymgr_transition_time(dns_dnsseckey_t *key, int type,
 		 * This translates to:
 		 *
 		 *      parent-propagation-delay + parent-ds-ttl.
-		 *
-		 * We will also add the retire-safety interval.
 		 */
 		case OMNIPRESENT:
-			/* Make sure DS has been seen in the parent. */
-			ret = dst_key_gettime(key->key, DST_TIME_DSPUBLISH,
-					      &dstime);
-			if (ret != ISC_R_SUCCESS || dstime > now) {
-				/* Not yet, try again in an hour. */
-				nexttime = now + 3600;
-			} else {
-				nexttime =
-					dstime + dns_kasp_dsttl(kasp) +
-					dns_kasp_parentpropagationdelay(kasp) +
-					dns_kasp_retiresafety(kasp);
-			}
-			break;
 		case HIDDEN:
-			/* Make sure DS has been withdrawn from the parent. */
-			ret = dst_key_gettime(key->key, DST_TIME_DSDELETE,
-					      &dstime);
+			/* Make sure DS has been seen in/withdrawn from the
+			 * parent. */
+			dsstate = next_state == HIDDEN ? DST_TIME_DSDELETE
+						       : DST_TIME_DSPUBLISH;
+			ret = dst_key_gettime(key->key, dsstate, &dstime);
 			if (ret != ISC_R_SUCCESS || dstime > now) {
 				/* Not yet, try again in an hour. */
 				nexttime = now + 3600;
 			} else {
 				nexttime =
 					dstime + dns_kasp_dsttl(kasp) +
-					dns_kasp_parentpropagationdelay(kasp) +
-					dns_kasp_retiresafety(kasp);
+					dns_kasp_parentpropagationdelay(kasp);
+				/*
+				 * Only add the retire-safety if there is an
+				 * actual predecessor or successor key.
+				 */
+				uint32_t tag;
+				ret = dst_key_getnum(key->key,
+						     DST_NUM_PREDECESSOR, &tag);
+				if (ret != ISC_R_SUCCESS) {
+					ret = dst_key_getnum(key->key,
+							     DST_NUM_SUCCESSOR,
+							     &tag);
+				}
+				if (ret == ISC_R_SUCCESS) {
+					nexttime += dns_kasp_retiresafety(kasp);
+				}
 			}
 			break;
 		default:
@@ -1764,7 +1778,9 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		if (prepub == 0 || prepub > now) {
 			/* No need to start rollover now. */
 			if (*nexttime == 0 || prepub < *nexttime) {
-				*nexttime = prepub;
+				if (prepub > 0) {
+					*nexttime = prepub;
+				}
 			}
 			return ISC_R_SUCCESS;
 		}
@@ -2023,6 +2039,20 @@ keymgr_purge_keyfile(dst_key_t *key, int type) {
 	}
 }
 
+static bool
+dst_key_doublematch(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
+	int matches = 0;
+
+	for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
+	     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
+	{
+		if (dns_kasp_key_match(kkey, key)) {
+			matches++;
+		}
+	}
+	return matches > 1;
+}
+
 /*
  * Examine 'keys' and match 'kasp' policy.
  *
@@ -2162,6 +2192,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 					 * matches the kasp policy.
 					 */
 					if (!dst_key_is_unused(dkey->key) &&
+					    !dst_key_doublematch(dkey, kasp) &&
 					    (dst_key_goal(dkey->key) ==
 					     OMNIPRESENT) &&
 					    !keymgr_dep(dkey->key, keyring,
