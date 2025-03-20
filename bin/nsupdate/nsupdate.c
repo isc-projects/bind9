@@ -2181,17 +2181,16 @@ evaluate_checksvcb(char *cmdline) {
 
 static void
 setzone(dns_name_t *zonename) {
-	dns_name_t *name = NULL;
-	dns_rdataset_t *rdataset = NULL, *next_rds = NULL;
-
 	dns_namelist_t *secs = updatemsg->sections;
+	dns_name_t *name = NULL;
+
 	if (!ISC_LIST_EMPTY(secs[DNS_SECTION_ZONE])) {
 		INSIST(updatemsg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
 
 		name = ISC_LIST_HEAD(secs[DNS_SECTION_ZONE]);
 		ISC_LIST_UNLINK(secs[DNS_SECTION_ZONE], name, link);
 
-		ISC_LIST_FOREACH_SAFE (name->list, rdataset, link, next_rds) {
+		ISC_LIST_FOREACH_SAFE (name->list, rdataset, link) {
 			ISC_LIST_UNLINK(name->list, rdataset, link);
 			dns_rdataset_disassociate(rdataset);
 			dns_message_puttemprdataset(updatemsg, &rdataset);
@@ -2200,6 +2199,8 @@ setzone(dns_name_t *zonename) {
 	}
 
 	if (zonename != NULL) {
+		dns_rdataset_t *rdataset = NULL;
+
 		dns_message_gettempname(updatemsg, &name);
 		dns_name_clone(zonename, name);
 		dns_message_gettemprdataset(updatemsg, &rdataset);
@@ -2824,20 +2825,21 @@ lookforsoa:
 		goto lookforsoa;
 	}
 
-	ISC_LIST_FOREACH (rcvmsg->sections[section], name, link) {
+	ISC_LIST_FOREACH (rcvmsg->sections[section], n, link) {
 		soaset = NULL;
-		result = dns_message_findtype(name, dns_rdatatype_soa, 0,
-					      &soaset);
+		result = dns_message_findtype(n, dns_rdatatype_soa, 0, &soaset);
 		if (result == ISC_R_SUCCESS) {
+			name = n;
 			break;
 		}
 		if (section == DNS_SECTION_ANSWER) {
 			dns_rdataset_t *tset = NULL;
-			if (dns_message_findtype(name, dns_rdatatype_cname, 0,
+			if (dns_message_findtype(n, dns_rdatatype_cname, 0,
 						 &tset) == ISC_R_SUCCESS ||
-			    dns_message_findtype(name, dns_rdatatype_dname, 0,
+			    dns_message_findtype(n, dns_rdatatype_dname, 0,
 						 &tset) == ISC_R_SUCCESS)
 			{
+				name = n;
 				seencname = true;
 				break;
 			}

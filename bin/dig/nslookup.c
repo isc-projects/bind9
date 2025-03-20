@@ -198,7 +198,6 @@ printrdata(dns_rdata_t *rdata) {
 static isc_result_t
 printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	     dns_section_t section) {
-	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
 
@@ -248,7 +247,6 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 static isc_result_t
 detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	      dns_section_t section) {
-	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
 

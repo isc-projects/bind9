@@ -128,7 +128,6 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	  dns_rdataset_t *addedrdataset) {
 	isc_buffer_t buffer;
 	isc_region_t r;
-	dns_rdataset_t *rdataset;
 	dns_rdatatype_t type;
 	dns_ttl_t ttl;
 	dns_trust_t trust;

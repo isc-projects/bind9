@@ -6032,9 +6032,7 @@ message_clearrdataset(dns_message_t *msg, unsigned int attr) {
 	 * Clean up name lists by calling the rdataset disassociate function.
 	 */
 	for (i = DNS_SECTION_ANSWER; i < DNS_SECTION_MAX; i++) {
-		dns_name_t *name, *next_name;
-		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link, next_name)
-		{
+		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link) {
 			rds = ISC_LIST_HEAD(name->list);
 			while (rds != NULL) {
 				next_rds = ISC_LIST_NEXT(rds, link);
@@ -11240,7 +11238,6 @@ query_glueanswer(query_ctx_t *qctx) {
 	const dns_namelist_t *secs = qctx->client->message->sections;
 	const dns_section_t section = DNS_SECTION_ADDITIONAL;
 	dns_message_t *msg;
-	dns_rdataset_t *rdataset = NULL;
 
 	if (!ISC_LIST_EMPTY(secs[DNS_SECTION_ANSWER]) ||
 	    qctx->client->message->rcode != dns_rcode_noerror ||

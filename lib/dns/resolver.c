@@ -4984,8 +4984,6 @@ cleanup_nameservers:
  */
 static bool
 is_lame(fetchctx_t *fctx, dns_message_t *message) {
-	dns_rdataset_t *rdataset;
-
 	if (message->rcode != dns_rcode_noerror &&
 	    message->rcode != dns_rcode_yxdomain &&
 	    message->rcode != dns_rcode_nxdomain)
@@ -5314,8 +5312,6 @@ validated(void *arg) {
 	dns_fetchresponse_t *hresp = NULL;
 	dns_rdataset_t *ardataset = NULL;
 	dns_rdataset_t *asigrdataset = NULL;
-	dns_rdataset_t *rdataset = NULL;
-	dns_rdataset_t *sigrdataset = NULL;
 	dns_resolver_t *res = NULL;
 	dns_valarg_t *valarg = NULL;
 	fetchctx_t *fctx = NULL;
@@ -5649,6 +5645,8 @@ answer_response:
 	 */
 	MSG_SECTION_FOREACH (message, DNS_SECTION_AUTHORITY, name) {
 		ISC_LIST_FOREACH (name->list, rdataset, link) {
+			dns_rdataset_t *sigrdataset = NULL;
+
 			if ((rdataset->type != dns_rdatatype_ns &&
 			     rdataset->type != dns_rdatatype_soa &&
 			     rdataset->type != dns_rdatatype_nsec) ||
@@ -5657,13 +5655,13 @@ answer_response:
 				continue;
 			}
 
-			ISC_LIST_FOREACH (name->list, sigrdataset, link) {
-				if (sigrdataset->type != dns_rdatatype_rrsig ||
-				    sigrdataset->covers != rdataset->type)
+			ISC_LIST_FOREACH (name->list, s, link) {
+				if (s->type == dns_rdatatype_rrsig &&
+				    s->covers == rdataset->type)
 				{
-					continue;
+					sigrdataset = s;
+					break;
 				}
-				break;
 			}
 			if (sigrdataset == NULL ||
 			    sigrdataset->trust != dns_trust_secure)
@@ -5838,7 +5836,7 @@ fctx_log(void *arg, int level, const char *fmt, ...) {
 static isc_result_t
 findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 	    dns_rdatatype_t type, dns_name_t **noqnamep) {
-	dns_rdataset_t *nrdataset, *sigrdataset;
+	dns_rdataset_t *sigrdataset = NULL;
 	dns_rdata_rrsig_t rrsig;
 	isc_result_t result;
 	unsigned int labels;
@@ -5858,12 +5856,9 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 	/*
 	 * Find the SIG for this rdataset, if we have it.
 	 */
-	for (sigrdataset = ISC_LIST_HEAD(name->list); sigrdataset != NULL;
-	     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
-	{
-		if (sigrdataset->type == dns_rdatatype_rrsig &&
-		    sigrdataset->covers == type)
-		{
+	ISC_LIST_FOREACH (name->list, sig, link) {
+		if (sig->type == dns_rdatatype_rrsig && sig->covers == type) {
+			sigrdataset = sig;
 			break;
 		}
 	}
@@ -6614,7 +6609,6 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 		 * Mark all rdatasets as pending.
 		 */
 		MSG_SECTION_FOREACH (message, DNS_SECTION_AUTHORITY, tname) {
-			dns_rdataset_t *trdataset = NULL;
 			ISC_LIST_FOREACH (tname->list, trdataset, link) {
 				trdataset->trust = dns_trust_pending_answer;
 			}
@@ -7296,16 +7290,13 @@ cleanup:
 
 static void
 checknamessection(dns_message_t *message, dns_section_t section) {
-	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdataset_t *rdataset;
-
 	MSG_SECTION_FOREACH (message, section, name) {
 		ISC_LIST_FOREACH (name->list, rdataset, link) {
-			for (result = dns_rdataset_first(rdataset);
+			for (isc_result_t result = dns_rdataset_first(rdataset);
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(rdataset))
 			{
+				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rdataset, &rdata);
 				if (!dns_rdata_checkowner(name, rdata.rdclass,
 							  rdata.type, false) ||
@@ -7314,7 +7305,6 @@ checknamessection(dns_message_t *message, dns_section_t section) {
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CHECKNAMES;
 				}
-				dns_rdata_reset(&rdata);
 			}
 		}
 	}
@@ -7486,9 +7476,8 @@ log_zoneversion(unsigned char *version, size_t version_len, unsigned char *nsid,
 
 static bool
 betterreferral(respctx_t *rctx) {
-	dns_rdataset_t *rdataset;
-
 	dns_message_t *msg = rctx->query->rmessage;
+
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_AUTHORITY, name) {
 		if (!isstrictsubdomain(name, rctx->fctx->domain)) {
 			continue;
@@ -8572,9 +8561,8 @@ rctx_answer_positive(respctx_t *rctx) {
 static void
 rctx_answer_scan(respctx_t *rctx) {
 	fetchctx_t *fctx = rctx->fctx;
-	dns_rdataset_t *rdataset = NULL;
-
 	dns_message_t *msg = rctx->query->rmessage;
+
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_ANSWER, name) {
 		int order;
 		unsigned int nlabels;
@@ -8913,8 +8901,6 @@ rctx_authority_positive(respctx_t *rctx) {
 	dns_message_t *msg = rctx->query->rmessage;
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_AUTHORITY, name) {
 		if (!name_external(name, dns_rdatatype_ns, fctx)) {
-			dns_rdataset_t *rdataset = NULL;
-
 			/*
 			 * We expect to find NS or SIG NS rdatasets, and
 			 * nothing else.
@@ -9106,7 +9092,6 @@ static isc_result_t
 rctx_authority_negative(respctx_t *rctx) {
 	fetchctx_t *fctx = rctx->fctx;
 	dns_section_t section;
-	dns_rdataset_t *rdataset = NULL;
 
 	section = DNS_SECTION_AUTHORITY;
 
@@ -9250,7 +9235,6 @@ static isc_result_t
 rctx_authority_dnssec(respctx_t *rctx) {
 	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
-	dns_rdataset_t *rdataset = NULL;
 
 	dns_message_t *msg = rctx->query->rmessage;
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_AUTHORITY, name) {
@@ -9509,7 +9493,6 @@ again:
 
 	dns_message_t *msg = rctx->query->rmessage;
 	MSG_SECTION_FOREACH (msg, section, name) {
-		dns_rdataset_t *rdataset;
 		if (!name->attributes.chase) {
 			continue;
 		}

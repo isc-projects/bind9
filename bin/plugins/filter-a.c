@@ -540,14 +540,14 @@ process_name(query_ctx_t *qctx, filter_a_t mode, const dns_name_t *name,
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
 	isc_result_t result;
 	bool modified = false;
+	dns_name_t *n = UNCONST(name);
 
 	if (only_if_aaaa_exists) {
-		CHECK(dns_message_findtype(name, dns_rdatatype_aaaa, 0, NULL));
+		CHECK(dns_message_findtype(n, dns_rdatatype_aaaa, 0, NULL));
 	}
 
-	(void)dns_message_findtype(name, type, 0, &rdataset);
-	(void)dns_message_findtype(name, dns_rdatatype_rrsig, type,
-				   &sigrdataset);
+	(void)dns_message_findtype(n, type, 0, &rdataset);
+	(void)dns_message_findtype(n, dns_rdatatype_rrsig, type, &sigrdataset);
 
 	if (rdataset != NULL &&
 	    (sigrdataset == NULL || !WANTDNSSEC(qctx->client) ||

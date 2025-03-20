@@ -437,9 +437,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	}
 
 	for (size_t i = 0; i < ARRAY_SIZE(lcfg->channellists); i++) {
-		isc_logchannellist_t *item = NULL, *next = NULL;
-		ISC_LIST_FOREACH_SAFE (lcfg->channellists[i], item, link, next)
-		{
+		ISC_LIST_FOREACH_SAFE (lcfg->channellists[i], item, link) {
 			ISC_LIST_UNLINK(lcfg->channellists[i], item, link);
 			isc_mem_put(mctx, item, sizeof(*item));
 		}

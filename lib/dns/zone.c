@@ -13597,7 +13597,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	bool has_glue = false;
-	dns_name_t *ns_name;
+
 	/*
 	 * List of NS entries in answer, keep names that will be used
 	 * to resolve missing A/AAAA glue for each entry.
@@ -13725,9 +13725,8 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 
 	result = ISC_R_SUCCESS;
 
-	dns_name_t *new_ns_name;
 done:
-	ISC_LIST_FOREACH_SAFE (ns_list, ns_name, link, new_ns_name) {
+	ISC_LIST_FOREACH_SAFE (ns_list, ns_name, link) {
 		ISC_LIST_UNLINK(ns_list, ns_name, link);
 		dns_name_free(ns_name, cb_args->stub->mctx);
 		isc_mem_put(cb_args->stub->mctx, ns_name, sizeof(*ns_name));
@@ -16189,7 +16188,6 @@ dnssec_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 
 static int
 message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type) {
-	dns_rdataset_t *curr;
 	int count = 0;
 
 	MSG_SECTION_FOREACH (msg, section, name) {
@@ -21134,7 +21132,6 @@ checkds_done(void *arg) {
 	/* Lookup DS RRset. */
 
 	MSG_SECTION_FOREACH (message, DNS_SECTION_ANSWER, name) {
-		dns_rdataset_t *rdataset;
 		if (dns_name_compare(&zone->origin, name) != 0) {
 			continue;
 		}

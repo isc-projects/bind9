@@ -824,10 +824,9 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 	} while (want_restart);
 
 	if (send_event) {
-		dns_name_t *next_name;
-		ISC_LIST_FOREACH_SAFE (rctx->namelist, name, link, next_name) {
-			ISC_LIST_UNLINK(rctx->namelist, name, link);
-			ISC_LIST_APPEND(rctx->rev->answerlist, name, link);
+		ISC_LIST_FOREACH_SAFE (rctx->namelist, n, link) {
+			ISC_LIST_UNLINK(rctx->namelist, n, link);
+			ISC_LIST_APPEND(rctx->rev->answerlist, n, link);
 		}
 
 		rctx->rev->result = result;
@@ -840,14 +839,12 @@ static void
 resolve_done(void *arg) {
 	dns_clientresume_t *rev = (dns_clientresume_t *)arg;
 	resarg_t *resarg = rev->arg;
-	dns_name_t *name = NULL;
 	isc_result_t result;
 
 	resarg->result = rev->result;
 	resarg->vresult = rev->vresult;
 
-	dns_name_t *new_name;
-	ISC_LIST_FOREACH_SAFE (rev->answerlist, name, link, new_name) {
+	ISC_LIST_FOREACH_SAFE (rev->answerlist, name, link) {
 		ISC_LIST_UNLINK(rev->answerlist, name, link);
 		ISC_LIST_APPEND(*resarg->namelist, name, link);
 	}
@@ -1003,20 +1000,17 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 
 void
 dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist) {
-	dns_name_t *name, *new_name;
-	dns_rdataset_t *rdataset, *new_rdataset;
-
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(namelist != NULL);
 
-	ISC_LIST_FOREACH_SAFE (*namelist, name, link, new_name) {
+	ISC_LIST_FOREACH_SAFE (*namelist, name, link) {
 		ISC_LIST_UNLINK(*namelist, name, link);
 
-		ISC_LIST_FOREACH_SAFE (name->list, rdataset, link, new_rdataset)
-		{
+		ISC_LIST_FOREACH_SAFE (name->list, rdataset, link) {
 			ISC_LIST_UNLINK(name->list, rdataset, link);
 			putrdataset(client->mctx, &rdataset);
 		}
+
 		dns_name_free(name, client->mctx);
 		isc_mem_put(client->mctx, name, sizeof(*name));
 	}

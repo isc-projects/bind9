@@ -1840,7 +1840,6 @@ static void
 resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 	   dns_namelist_t *namelist, isc_result_t result) {
 	char namestr[DNS_NAME_FORMATSIZE];
-	dns_rdataset_t *rdataset;
 
 	if (result != ISC_R_SUCCESS && !yaml) {
 		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
@@ -1855,9 +1854,9 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 		printf("records:\n");
 	}
 
-	dns_name_t *response_name;
 	ISC_LIST_FOREACH (*namelist, response_name, link) {
-		for (rdataset = ISC_LIST_HEAD(response_name->list);
+		for (dns_rdataset_t *rdataset =
+			     ISC_LIST_HEAD(response_name->list);
 		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
 		{
 			printdata(rdataset, response_name);
@@ -1985,7 +1984,6 @@ recvresponse(void *arg) {
 	}
 
 	MSG_SECTION_FOREACH (response, DNS_SECTION_ANSWER, name) {
-		dns_rdataset_t *rdataset = NULL;
 		dns_rdatatype_t prevtype = 0;
 
 		ISC_LIST_FOREACH (name->list, rdataset, link) {

@@ -3696,7 +3696,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 static bool
 check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 		    dns_message_t *msg, isc_sockaddr_t *peer, int len) {
-	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	uint32_t ixfr_serial = lookup->ixfr_serial, serial;
@@ -4255,7 +4254,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	} else {
 		match = true;
 		MSG_SECTION_FOREACH (msg, DNS_SECTION_QUESTION, name) {
-			dns_rdataset_t *rdataset;
 			ISC_LIST_FOREACH (name->list, rdataset, link) {
 				if (l->rdtype != rdataset->type ||
 				    l->rdclass != rdataset->rdclass ||

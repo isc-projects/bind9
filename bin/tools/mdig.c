@@ -427,7 +427,6 @@ repopulate_buffer:
 		}
 		CHECK("dns_message_sectiontotext", result);
 	} else if (display_answer) {
-		dns_rdataset_t *rdataset;
 		isc_result_t loopresult;
 		dns_name_t empty_name;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
