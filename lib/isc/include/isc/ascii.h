@@ -131,18 +131,28 @@ isc__ascii_load8(const uint8_t *ptr) {
  * Compare `len` bytes at `a` and `b` for case-insensitive equality
  */
 static inline bool
-isc_ascii_lowerequal(const uint8_t *a, const uint8_t *b, unsigned int len) {
+isc_ascii_lowerequal(const uint8_t *restrict a, const uint8_t *restrict b,
+		     unsigned int len) {
 	uint64_t a8 = 0, b8 = 0;
-	while (len >= 8) {
-		a8 = isc_ascii_tolower8(isc__ascii_load8(a));
-		b8 = isc_ascii_tolower8(isc__ascii_load8(b));
-		if (a8 != b8) {
-			return false;
+	if (len >= 8) {
+		const uint8_t *a_tail = a + len - 8;
+		const uint8_t *b_tail = b + len - 8;
+		while (len >= 8) {
+			a8 = isc_ascii_tolower8(isc__ascii_load8(a));
+			b8 = isc_ascii_tolower8(isc__ascii_load8(b));
+			if (a8 != b8) {
+				return false;
+			}
+			len -= 8;
+			a += 8;
+			b += 8;
 		}
-		len -= 8;
-		a += 8;
-		b += 8;
+
+		a8 = isc_ascii_tolower8(isc__ascii_load8(a_tail));
+		b8 = isc_ascii_tolower8(isc__ascii_load8(b_tail));
+		return a8 == b8;
 	}
+
 	while (len-- > 0) {
 		if (isc_ascii_tolower(*a++) != isc_ascii_tolower(*b++)) {
 			return false;
