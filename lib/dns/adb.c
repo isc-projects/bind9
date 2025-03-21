@@ -3009,6 +3009,7 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	 * createfetch to find deepest cached name when we're providing
 	 * domain and nameservers.
 	 */
+	dns_adbname_ref(adbname);
 	result = dns_resolver_createfetch(
 		adb->res, adbname->name, type, name, nameservers, NULL, NULL, 0,
 		options, depth, qc, gqc, isc_loop(), fetch_callback, adbname,
@@ -3016,10 +3017,9 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL, "fetch_name: createfetch failed with %s",
 		   isc_result_totext(result));
+		dns_adbname_unref(adbname);
 		goto cleanup;
 	}
-
-	dns_adbname_ref(adbname);
 
 	if (type == dns_rdatatype_a) {
 		adbname->fetch_a = fetch;
