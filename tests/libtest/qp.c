@@ -167,9 +167,8 @@ qp_test_dumpmulti(dns_qpmulti_t *multi) {
 	       qpr.base);
 	printf("qpmulti->reader %p whence %p\n", reader, whence);
 	unsigned int snapshots = 0;
-	for (dns_qpsnap_t *snap = ISC_LIST_HEAD(multi->snapshots); //
-	     snap != NULL; snap = ISC_LIST_NEXT(snap, link), snapshots++)
-	{
+	ISC_LIST_FOREACH (multi->snapshots, snap, link) {
+		snapshots++;
 	}
 	printf("qpmulti %p snapshots %u\n", multi, snapshots);
 	fflush(stdout);

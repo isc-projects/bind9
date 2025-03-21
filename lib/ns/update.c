@@ -2033,14 +2033,11 @@ static isc_result_t
 remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 	isc_result_t result;
 	bool ns_exists;
-	dns_difftuple_t *tuple;
 	dns_diff_t temp_diff;
 
 	dns_diff_init(diff->mctx, &temp_diff);
 
-	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link))
-	{
+	ISC_LIST_FOREACH (diff->tuples, tuple, link) {
 		if (!((tuple->op == DNS_DIFFOP_DEL &&
 		       tuple->rdata.type == dns_rdatatype_ns) ||
 		      (tuple->op == DNS_DIFFOP_ADD &&
@@ -2061,9 +2058,7 @@ remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 	result = ISC_R_SUCCESS;
 
 failure:
-	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = ISC_LIST_HEAD(temp_diff.tuples))
-	{
+	ISC_LIST_FOREACH_SAFE (temp_diff.tuples, tuple, link) {
 		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
 		dns_diff_appendminimal(diff, &tuple);
 	}
@@ -2080,9 +2075,8 @@ check_mx(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	char ownerbuf[DNS_NAME_FORMATSIZE];
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char altbuf[DNS_NAME_FORMATSIZE];
-	dns_difftuple_t *t;
 	dns_fixedname_t fixed;
-	dns_name_t *foundname;
+	dns_name_t *foundname = NULL;
 	dns_rdata_mx_t mx;
 	dns_rdata_t rdata;
 	bool ok = true;
@@ -2096,9 +2090,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_rdata_init(&rdata);
 	options = dns_zone_getoptions(zone);
 
-	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
-	     t = ISC_LIST_NEXT(t, link))
-	{
+	ISC_LIST_FOREACH (diff->tuples, t, link) {
 		if (t->op != DNS_DIFFOP_ADD ||
 		    t->rdata.type != dns_rdatatype_mx)
 		{
@@ -2369,7 +2361,7 @@ static isc_result_t
 add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		       dns_dbversion_t *ver, dns_diff_t *diff) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_difftuple_t *tuple, *newtuple = NULL, *next;
+	dns_difftuple_t *newtuple = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE + 1];
 	dns_diff_t temp_diff;
@@ -2388,9 +2380,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	/*
 	 * Extract NSEC3PARAM tuples from list.
 	 */
-	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL; tuple = next) {
-		next = ISC_LIST_NEXT(tuple, link);
-
+	ISC_LIST_FOREACH_SAFE (diff->tuples, tuple, link) {
 		if (tuple->rdata.type != dns_rdatatype_nsec3param ||
 		    !dns_name_equal(name, &tuple->name))
 		{
@@ -2404,8 +2394,9 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 * Extract TTL changes pairs, we don't need to convert these to
 	 * delayed changes.
 	 */
-	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next)
+	for (dns_difftuple_t *tuple = ISC_LIST_HEAD(temp_diff.tuples),
+			     *next = NULL;
+	     tuple != NULL; tuple = next)
 	{
 		if (tuple->op == DNS_DIFFOP_ADD) {
 			if (!ttl_good) {
@@ -2464,10 +2455,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 * in managing and should not be touched so revert such changes
 	 * taking into account any TTL change of the NSEC3PARAM RRset.
 	 */
-	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next)
-	{
-		next = ISC_LIST_NEXT(tuple, link);
+	ISC_LIST_FOREACH_SAFE (temp_diff.tuples, tuple, link) {
 		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
 			/*
 			 * If we haven't had any adds then the tuple->ttl must
@@ -2493,8 +2481,9 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 * Convert the adds to delayed adds and the deletions into delayed
 	 * deletions.
 	 */
-	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next)
+	for (dns_difftuple_t *tuple = ISC_LIST_HEAD(temp_diff.tuples),
+			     *next = NULL;
+	     tuple != NULL; tuple = next)
 	{
 		/*
 		 * If we haven't had any adds then the tuple->ttl must be the
@@ -2598,8 +2587,9 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		}
 	}
 
-	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next)
+	for (dns_difftuple_t *tuple = ISC_LIST_HEAD(temp_diff.tuples),
+			     *next = NULL;
+	     tuple != NULL; tuple = next)
 	{
 		INSIST(ttl_good);
 
@@ -2642,7 +2632,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 		 dns_dbversion_t *ver, dns_diff_t *diff) {
 	dns_diff_t temp_diff;
 	dns_diffop_t op;
-	dns_difftuple_t *tuple, *newtuple = NULL, *next;
+	dns_difftuple_t *newtuple = NULL;
 	dns_name_t *name = dns_db_origin(db);
 	isc_mem_t *mctx = diff->mctx;
 	isc_result_t result;
@@ -2656,9 +2646,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 	/*
 	 * Extract the changes to be rolled back.
 	 */
-	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL; tuple = next) {
-		next = ISC_LIST_NEXT(tuple, link);
-
+	ISC_LIST_FOREACH_SAFE (diff->tuples, tuple, link) {
 		if (tuple->rdata.type != privatetype ||
 		    !dns_name_equal(name, &tuple->name))
 		{
@@ -2682,7 +2670,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 	/*
 	 * Rollback the changes.
 	 */
-	while ((tuple = ISC_LIST_HEAD(temp_diff.tuples)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (temp_diff.tuples, tuple, link) {
 		op = (tuple->op == DNS_DIFFOP_DEL) ? DNS_DIFFOP_ADD
 						   : DNS_DIFFOP_DEL;
 		dns_difftuple_create(mctx, op, name, tuple->ttl, &tuple->rdata,

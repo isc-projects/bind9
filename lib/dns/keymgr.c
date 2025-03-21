@@ -452,9 +452,7 @@ keymgr_keyid_conflict(dst_key_t *newkey, uint16_t min, uint16_t max,
 		return true;
 	}
 
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keys); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keys, dkey, link) {
 		if (dst_key_alg(dkey->key) != alg) {
 			continue;
 		}
@@ -659,9 +657,7 @@ keymgr_direct_dep(dst_key_t *d, dst_key_t *k) {
  */
 static bool
 keymgr_dep(dst_key_t *k, dns_dnsseckeylist_t *keyring, uint32_t *dep) {
-	for (dns_dnsseckey_t *d = ISC_LIST_HEAD(*keyring); d != NULL;
-	     d = ISC_LIST_NEXT(d, link))
-	{
+	ISC_LIST_FOREACH (*keyring, d, link) {
 		/*
 		 * Check if k is a direct successor of d, e.g. d depends on k.
 		 */
@@ -736,9 +732,7 @@ keymgr_key_is_successor(dst_key_t *x, dst_key_t *z, dst_key_t *key, int type,
 		zst[i] = state;
 	}
 
-	for (dns_dnsseckey_t *y = ISC_LIST_HEAD(*keyring); y != NULL;
-	     y = ISC_LIST_NEXT(y, link))
-	{
+	ISC_LIST_FOREACH (*keyring, y, link) {
 		if (dst_key_id(y->key) == dst_key_id(z)) {
 			continue;
 		}
@@ -781,9 +775,7 @@ keymgr_key_exists_with_state(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 			     dst_key_state_t states[NUM_KEYSTATES],
 			     dst_key_state_t states2[NUM_KEYSTATES],
 			     bool check_successor, bool match_algorithms) {
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		if (match_algorithms &&
 		    (dst_key_alg(dkey->key) != dst_key_alg(key->key)))
 		{
@@ -805,9 +797,7 @@ keymgr_key_exists_with_state(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 		 * We have to make sure that the key we are checking, also
 		 * has a successor relationship with another key.
 		 */
-		for (dns_dnsseckey_t *skey = ISC_LIST_HEAD(*keyring);
-		     skey != NULL; skey = ISC_LIST_NEXT(skey, link))
-		{
+		ISC_LIST_FOREACH (*keyring, skey, link) {
 			if (skey == dkey) {
 				continue;
 			}
@@ -839,9 +829,7 @@ keymgr_key_exists_with_state(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 static bool
 keymgr_key_has_successor(dns_dnsseckey_t *predecessor,
 			 dns_dnsseckeylist_t *keyring) {
-	for (dns_dnsseckey_t *successor = ISC_LIST_HEAD(*keyring);
-	     successor != NULL; successor = ISC_LIST_NEXT(successor, link))
-	{
+	ISC_LIST_FOREACH (*keyring, successor, link) {
 		if (keymgr_direct_dep(predecessor->key, successor->key)) {
 			return true;
 		}
@@ -869,9 +857,7 @@ keymgr_ds_hidden_or_chained(dns_dnsseckeylist_t *keyring, dns_dnsseckey_t *key,
 	/* successor n/a */
 	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		if (match_algorithms &&
 		    (dst_key_alg(dkey->key) != dst_key_alg(key->key)))
 		{
@@ -938,9 +924,7 @@ keymgr_dnskey_hidden_or_chained(dns_dnsseckeylist_t *keyring,
 	/* successor n/a */
 	dst_key_state_t na[NUM_KEYSTATES] = { NA, NA, NA, NA };
 
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		if (match_algorithms &&
 		    (dst_key_alg(dkey->key) != dst_key_alg(key->key)))
 		{
@@ -1472,9 +1456,7 @@ transition:
 	changed = false;
 
 	/* For all keys in the zone. */
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		char keystr[DST_KEY_FORMATSIZE];
 		dst_key_format(dkey->key, keystr, sizeof(keystr));
 
@@ -1739,8 +1721,8 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 	char keystr[DST_KEY_FORMATSIZE];
 	isc_stdtime_t retire = 0, active = 0, prepub = 0;
 	dns_dnsseckey_t *new_key = NULL;
-	dns_dnsseckey_t *candidate = NULL;
 	dst_key_t *dst_key = NULL;
+	bool keycreated = false;
 
 	/* Do we need to create a successor for the active key? */
 	if (active_key != NULL) {
@@ -1838,18 +1820,17 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 	 * Check if there is a key available in pool because keys
 	 * may have been pregenerated with dnssec-keygen.
 	 */
-	for (candidate = ISC_LIST_HEAD(*keyring); candidate != NULL;
-	     candidate = ISC_LIST_NEXT(candidate, link))
-	{
+	ISC_LIST_FOREACH (*keyring, candidate, link) {
 		if (dns_kasp_key_match(kaspkey, candidate) &&
 		    dst_key_is_unused(candidate->key))
 		{
 			/* Found a candidate in keyring. */
+			new_key = candidate;
 			break;
 		}
 	}
 
-	if (candidate == NULL) {
+	if (new_key == NULL) {
 		/* No key available in keyring, create a new one. */
 		bool csk = (dns_kasp_key_ksk(kaspkey) &&
 			    dns_kasp_key_zsk(kaspkey));
@@ -1864,8 +1845,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		dst_key_settime(dst_key, DST_TIME_CREATED, now);
 		dns_dnsseckey_create(mctx, &dst_key, &new_key);
 		keymgr_key_init(new_key, kasp, now, csk);
-	} else {
-		new_key = candidate;
+		keycreated = true;
 	}
 	dst_key_setnum(new_key->key, DST_NUM_LIFETIME, lifetime);
 
@@ -1936,7 +1916,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 	dns_dnssec_get_hints(new_key, now);
 	new_key->source = dns_keysource_repository;
 	INSIST(!new_key->legacy);
-	if (candidate == NULL) {
+	if (keycreated) {
 		ISC_LIST_APPEND(*newkeys, new_key, link);
 	}
 
@@ -1945,7 +1925,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 	isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
 		      ISC_LOG_INFO, "keymgr: DNSKEY %s (%s) %s for policy %s",
 		      keystr, keymgr_keyrole(new_key->key),
-		      (candidate != NULL) ? "selected" : "created",
+		      keycreated ? "created" : "selected",
 		      dns_kasp_getname(kasp));
 	return ISC_R_SUCCESS;
 }
@@ -2042,9 +2022,7 @@ static bool
 dst_key_doublematch(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
 	int matches = 0;
 
-	for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
-	     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
-	{
+	ISC_LIST_FOREACH (dns_kasp_keys(kasp), kkey, link) {
 		if (dns_kasp_key_match(kkey, key)) {
 			matches++;
 		}
@@ -2063,7 +2041,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	       dns_kasp_t *kasp, isc_stdtime_t now, isc_stdtime_t *nexttime) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dnsseckeylist_t newkeys;
-	dns_kasp_key_t *kkey;
 	dns_dnsseckey_t *newkey = NULL;
 	bool secure_to_insecure = false;
 	int numkeys = 0;
@@ -2091,18 +2068,14 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 				      namebuf, dns_kasp_getname(kasp));
 		}
 
-		for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring);
-		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
-		{
+		ISC_LIST_FOREACH (*keyring, dkey, link) {
 			dst_key_format(dkey->key, keystr, sizeof(keystr));
 			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
 				      "keymgr: keyring: %s (policy %s)", keystr,
 				      dns_kasp_getname(kasp));
 		}
-		for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*dnskeys);
-		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
-		{
+		ISC_LIST_FOREACH (*dnskeys, dkey, link) {
 			dst_key_format(dkey->key, keystr, sizeof(keystr));
 			isc_log_write(DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_DEBUG(1),
@@ -2111,23 +2084,17 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 		}
 	}
 
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*dnskeys); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*dnskeys, dkey, link) {
 		numkeys++;
 	}
 
 	/* Do we need to remove keys? */
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		bool found_match = false;
 
 		keymgr_key_init(dkey, kasp, now, (numkeys == 1));
 
-		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
-		     kkey = ISC_LIST_NEXT(kkey, link))
-		{
+		ISC_LIST_FOREACH (dns_kasp_keys(kasp), kkey, link) {
 			if (dns_kasp_key_match(kkey, dkey)) {
 				found_match = true;
 				break;
@@ -2159,17 +2126,13 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	}
 
 	/* Create keys according to the policy, if come in short. */
-	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
-	     kkey = ISC_LIST_NEXT(kkey, link))
-	{
+	ISC_LIST_FOREACH (dns_kasp_keys(kasp), kkey, link) {
 		uint32_t lifetime = dns_kasp_key_lifetime(kkey);
 		dns_dnsseckey_t *active_key = NULL;
 		bool rollover_allowed = true;
 
 		/* Do we have keys available for this kasp key? */
-		for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring);
-		     dkey != NULL; dkey = ISC_LIST_NEXT(dkey, link))
-		{
+		ISC_LIST_FOREACH (*keyring, dkey, link) {
 			if (dns_kasp_key_match(kkey, dkey)) {
 				/* Found a match. */
 				dst_key_format(dkey->key, keystr,
@@ -2229,10 +2192,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 			 * a successor key. Check if we have an appropriate
 			 * state file.
 			 */
-			for (dns_dnsseckey_t *dnskey = ISC_LIST_HEAD(*dnskeys);
-			     dnskey != NULL;
-			     dnskey = ISC_LIST_NEXT(dnskey, link))
-			{
+			ISC_LIST_FOREACH (*dnskeys, dnskey, link) {
 				if (dns_kasp_key_match(kkey, dnskey)) {
 					/* Found a match. */
 					dst_key_format(dnskey->key, keystr,
@@ -2275,9 +2235,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	keymgr_update(keyring, kasp, now, nexttime, secure_to_insecure);
 
 	/* Store key states and update hints. */
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		bool modified = dst_key_ismodified(dkey->key);
 		if (dst_key_getttl(dkey->key) != dns_kasp_dnskeyttl(kasp)) {
 			dst_key_setttl(dkey->key, dns_kasp_dnskeyttl(kasp));
@@ -2340,9 +2298,7 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(keyring != NULL);
 
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		isc_result_t ret;
 		bool ksk = false;
 
@@ -2589,9 +2545,7 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	isc_stdtime_tostring(now, timestr, sizeof(timestr));
 	RETERR(isc_buffer_printf(&buf, "%s\n", timestr));
 
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		char algstr[DNS_NAME_FORMATSIZE];
 		bool ksk = false, zsk = false;
 
@@ -2659,9 +2613,7 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(keyring != NULL);
 
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		if (dst_key_id(dkey->key) != id) {
 			continue;
 		}
@@ -2734,9 +2686,7 @@ dns_keymgr_offline(const dns_name_t *origin, dns_dnsseckeylist_t *keyring,
 	*nexttime = 0;
 
 	/* Store key states and update hints. */
-	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
-	     dkey = ISC_LIST_NEXT(dkey, link))
-	{
+	ISC_LIST_FOREACH (*keyring, dkey, link) {
 		bool modified;
 		bool ksk = false, zsk = false;
 		isc_stdtime_t active = 0, published = 0, inactive = 0,

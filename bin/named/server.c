@@ -1738,9 +1738,7 @@ setquerystats(dns_zone_t *zone, isc_mem_t *mctx, dns_zonestat_level_t level) {
 static named_cache_t *
 cachelist_find(named_cachelist_t *cachelist, const char *cachename,
 	       dns_rdataclass_t rdclass) {
-	for (named_cache_t *nsc = ISC_LIST_HEAD(*cachelist); nsc != NULL;
-	     nsc = ISC_LIST_NEXT(nsc, link))
-	{
+	ISC_LIST_FOREACH (*cachelist, nsc, link) {
 		if (nsc->rdclass == rdclass &&
 		    strcmp(dns_cache_getname(nsc->cache), cachename) == 0)
 		{
@@ -7045,12 +7043,9 @@ tat_timer_tick(void *arg) {
 	isc_result_t result;
 	named_server_t *server = (named_server_t *)arg;
 	struct dotat_arg dotat_arg = { 0 };
-	dns_view_t *view = NULL;
 	dns_keytable_t *secroots = NULL;
 
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if (!view->trust_anchor_telemetry || !view->enablevalidation) {
 			continue;
 		}
@@ -7866,15 +7861,10 @@ load_configuration(const char *filename, named_server_t *server,
 	const cfg_obj_t *options;
 	const cfg_obj_t *kasps;
 	const cfg_obj_t *keystores;
-	dns_kasp_t *kasp = NULL;
-	dns_kasp_t *kasp_next = NULL;
 	dns_kasp_t *default_kasp = NULL;
 	dns_kasplist_t tmpkasplist, kasplist;
-	dns_keystore_t *keystore = NULL;
-	dns_keystore_t *keystore_next = NULL;
 	dns_keystorelist_t tmpkeystorelist, keystorelist;
 	const cfg_obj_t *views = NULL;
-	dns_view_t *view_next = NULL;
 	dns_viewlist_t tmpviewlist;
 	dns_viewlist_t viewlist, builtin_viewlist;
 	in_port_t listen_port, udpport_low, udpport_high;
@@ -8594,7 +8584,7 @@ load_configuration(const char *filename, named_server_t *server,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
-		keystore = NULL;
+
 		result = cfg_keystore_fromconfig(kconfig, named_g_mctx,
 						 &keystorelist, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -8611,8 +8601,8 @@ load_configuration(const char *filename, named_server_t *server,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
+		dns_kasp_t *kasp = NULL;
 
-		kasp = NULL;
 		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, &keystorelist,
 					     &kasplist, &kasp);
@@ -8641,7 +8631,8 @@ load_configuration(const char *filename, named_server_t *server,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
-		kasp = NULL;
+		dns_kasp_t *kasp = NULL;
+
 		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, &keystorelist,
 					     &kasplist, &kasp);
@@ -8807,9 +8798,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Commit any dns_zone_setview() calls on all zones in the new
 	 * view.
 	 */
-	for (dns_view_t *view = ISC_LIST_HEAD(viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (viewlist, view, link) {
 		dns_view_setviewcommit(view);
 	}
 
@@ -8819,9 +8808,7 @@ load_configuration(const char *filename, named_server_t *server,
 	viewlist = tmpviewlist;
 
 	/* Make the view list available to each of the views */
-	for (dns_view_t *view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		view->viewlist = &server->viewlist;
 	}
 
@@ -8857,9 +8844,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * after relinquishing privileges them.
 	 */
 	if (first_time) {
-		for (dns_view_t *view = ISC_LIST_HEAD(server->viewlist);
-		     view != NULL; view = ISC_LIST_NEXT(view, link))
-		{
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			nzd_env_close(view);
 		}
 	}
@@ -8890,9 +8875,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Reopen NZD databases.
 	 */
 	if (first_time) {
-		for (dns_view_t *view = ISC_LIST_HEAD(server->viewlist);
-		     view != NULL; view = ISC_LIST_NEXT(view, link))
-		{
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			nzd_env_reopen(view);
 		}
 	}
@@ -9271,10 +9254,7 @@ cleanup_cachelist:
 	ISC_LIST_APPENDLIST(viewlist, builtin_viewlist, link);
 
 cleanup_viewlist:
-	for (dns_view_t *view = ISC_LIST_HEAD(viewlist); view != NULL;
-	     view = view_next)
-	{
-		view_next = ISC_LIST_NEXT(view, link);
+	ISC_LIST_FOREACH_SAFE (viewlist, view, link) {
 		ISC_LIST_UNLINK(viewlist, view, link);
 		if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0)
 		{
@@ -9285,17 +9265,13 @@ cleanup_viewlist:
 	}
 
 cleanup_kasplist:
-	for (kasp = ISC_LIST_HEAD(kasplist); kasp != NULL; kasp = kasp_next) {
-		kasp_next = ISC_LIST_NEXT(kasp, link);
+	ISC_LIST_FOREACH_SAFE (kasplist, kasp, link) {
 		ISC_LIST_UNLINK(kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
 	}
 
 cleanup_keystorelist:
-	for (keystore = ISC_LIST_HEAD(keystorelist); keystore != NULL;
-	     keystore = keystore_next)
-	{
-		keystore_next = ISC_LIST_NEXT(keystore, link);
+	ISC_LIST_FOREACH_SAFE (keystorelist, keystore, link) {
 		ISC_LIST_UNLINK(keystorelist, keystore, link);
 		dns_keystore_detach(&keystore);
 	}
@@ -9347,7 +9323,6 @@ view_loaded(void *arg) {
 	if (isc_refcount_decrement(&zl->refs) == 1) {
 		named_server_t *server = zl->server;
 		bool reconfig = zl->reconfig;
-		dns_view_t *view = NULL;
 
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
@@ -9368,9 +9343,7 @@ view_loaded(void *arg) {
 				      "all zones loaded");
 		}
 
-		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-		     view = ISC_LIST_NEXT(view, link))
-		{
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			if (view->managed_keys != NULL) {
 				result = dns_zone_synckeyzone(
 					view->managed_keys);
@@ -9416,7 +9389,6 @@ static isc_result_t
 load_zones(named_server_t *server, bool reconfig) {
 	isc_result_t result = ISC_R_SUCCESS;
 	ns_zoneload_t *zl = NULL;
-	dns_view_t *view = NULL;
 
 	zl = isc_mem_get(server->mctx, sizeof(*zl));
 	zl->server = server;
@@ -9429,9 +9401,7 @@ load_zones(named_server_t *server, bool reconfig) {
 	/*
 	 * Schedule zones to be loaded from disk.
 	 */
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if (view->managed_keys != NULL) {
 			result = dns_zone_load(view->managed_keys, false);
 			if (result != ISC_R_SUCCESS &&
@@ -9534,9 +9504,6 @@ named_server_flushonshutdown(named_server_t *server, bool flush) {
 static void
 shutdown_server(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
-	dns_view_t *view = NULL, *view_next = NULL;
-	dns_kasp_t *kasp = NULL, *kasp_next = NULL;
-	dns_keystore_t *keystore = NULL, *keystore_next = NULL;
 	bool flush = server->flushonshutdown;
 	named_cache_t *nsc = NULL;
 
@@ -9577,25 +9544,17 @@ shutdown_server(void *arg) {
 
 	(void)named_server_saventa(server);
 
-	for (kasp = ISC_LIST_HEAD(server->kasplist); kasp != NULL;
-	     kasp = kasp_next)
-	{
-		kasp_next = ISC_LIST_NEXT(kasp, link);
+	ISC_LIST_FOREACH_SAFE (server->kasplist, kasp, link) {
 		ISC_LIST_UNLINK(server->kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
 	}
 
-	for (keystore = ISC_LIST_HEAD(server->keystorelist); keystore != NULL;
-	     keystore = keystore_next)
-	{
-		keystore_next = ISC_LIST_NEXT(keystore, link);
+	ISC_LIST_FOREACH_SAFE (server->keystorelist, keystore, link) {
 		ISC_LIST_UNLINK(server->keystorelist, keystore, link);
 		dns_keystore_detach(&keystore);
 	}
 
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = view_next)
-	{
+	ISC_LIST_FOREACH_SAFE (server->viewlist, view, link) {
 		view_next = ISC_LIST_NEXT(view, link);
 		ISC_LIST_UNLINK(server->viewlist, view, link);
 		dns_view_flushonshutdown(view, flush);
@@ -9636,8 +9595,6 @@ static isc_result_t
 get_matching_view_sync(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 		       dns_message_t *message, dns_aclenv_t *env,
 		       isc_result_t *sigresult, dns_view_t **viewp) {
-	dns_view_t *view;
-
 	/*
 	 * We should not be running synchronous view matching if signature
 	 * checking involves SIG(0). TSIG has priority of SIG(0), so if TSIG
@@ -9646,9 +9603,7 @@ get_matching_view_sync(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	INSIST(message->tsigkey != NULL || message->tsig != NULL ||
 	       message->sig0 == NULL);
 
-	for (view = ISC_LIST_HEAD(named_g_server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (named_g_server->viewlist, view, link) {
 		if (message->rdclass == view->rdclass ||
 		    message->rdclass == dns_rdataclass_any)
 		{
@@ -11118,21 +11073,18 @@ add_zone_tolist(dns_zone_t *zone, void *uap) {
 
 static isc_result_t
 add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
-	struct viewlistentry *vle;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	/*
 	 * Prevent duplicate views.
 	 */
-	for (vle = ISC_LIST_HEAD(dctx->viewlist); vle != NULL;
-	     vle = ISC_LIST_NEXT(vle, link))
-	{
+	ISC_LIST_FOREACH (dctx->viewlist, vle, link) {
 		if (vle->view == view) {
 			return ISC_R_SUCCESS;
 		}
 	}
 
-	vle = isc_mem_get(dctx->mctx, sizeof *vle);
+	struct viewlistentry *vle = isc_mem_get(dctx->mctx, sizeof *vle);
 	vle->view = NULL;
 	dns_view_attach(view, &vle->view);
 	ISC_LINK_INIT(vle, link);
@@ -11332,10 +11284,9 @@ isc_result_t
 named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 		    isc_buffer_t **text) {
 	struct dumpcontext *dctx = NULL;
-	dns_view_t *view;
 	isc_result_t result;
-	char *ptr;
-	const char *sep;
+	char *ptr = NULL;
+	const char *sep = NULL;
 	bool found;
 
 	REQUIRE(text != NULL);
@@ -11402,9 +11353,7 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 
 nextview:
 	found = false;
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if (ptr != NULL && strcmp(view->name, ptr) != 0) {
 			continue;
 		}
@@ -11437,11 +11386,10 @@ cleanup:
 isc_result_t
 named_server_dumpsecroots(named_server_t *server, isc_lex_t *lex,
 			  isc_buffer_t **text) {
-	dns_view_t *view;
 	dns_keytable_t *secroots = NULL;
 	dns_ntatable_t *ntatable = NULL;
 	isc_result_t result;
-	char *ptr;
+	char *ptr = NULL;
 	FILE *fp = NULL;
 	isc_time_t now;
 	char tbuf[64];
@@ -11478,9 +11426,7 @@ named_server_dumpsecroots(named_server_t *server, isc_lex_t *lex,
 	used = isc_buffer_usedlength(*text);
 
 	do {
-		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-		     view = ISC_LIST_NEXT(view, link))
-		{
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			if (ptr != NULL && strcmp(view->name, ptr) != 0) {
 				continue;
 			}
@@ -11557,7 +11503,6 @@ cleanup:
 isc_result_t
 named_server_dumprecursing(named_server_t *server) {
 	FILE *fp = NULL;
-	dns_view_t *view;
 	isc_result_t result;
 
 	CHECKMF(isc_stdio_open(server->recfile, "w", &fp),
@@ -11565,9 +11510,7 @@ named_server_dumprecursing(named_server_t *server) {
 	fprintf(fp, ";\n; Recursing Queries\n;\n");
 	ns_interfacemgr_dumprecursing(fp, server->interfacemgr);
 
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		fprintf(fp, ";\n; Active fetch domains [view: %s]\n;\n",
 			view->name);
 		dns_resolver_dumpfetches(view->resolver, isc_statsformat_file,
@@ -11628,8 +11571,7 @@ named_server_setdebuglevel(named_server_t *server, isc_lex_t *lex) {
 isc_result_t
 named_server_validation(named_server_t *server, isc_lex_t *lex,
 			isc_buffer_t **text) {
-	char *ptr;
-	dns_view_t *view;
+	char *ptr = NULL;
 	bool changed = false;
 	isc_result_t result;
 	bool enable = true, set = true, first = true;
@@ -11666,9 +11608,7 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 	ptr = next_token(lex, text);
 
 	isc_loopmgr_pause(named_g_loopmgr);
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if ((ptr != NULL && strcasecmp(ptr, view->name) != 0) ||
 		    strcasecmp("_bind", view->name) == 0)
 		{
@@ -11709,12 +11649,10 @@ cleanup:
 
 isc_result_t
 named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
-	char *ptr;
-	dns_view_t *view;
+	char *ptr = NULL;
 	bool flushed;
 	bool found;
 	isc_result_t result;
-	named_cache_t *nsc;
 
 	/* Skip the command name. */
 	ptr = next_token(lex, NULL);
@@ -11742,31 +11680,25 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 		 * much more lightweight because only a few (most typically just
 		 * one) views will match.
 		 */
-		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-		     view = ISC_LIST_NEXT(view, link))
-		{
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			if (strcasecmp(ptr, view->name) != 0) {
 				continue;
 			}
+
 			found = true;
-			for (nsc = ISC_LIST_HEAD(server->cachelist);
-			     nsc != NULL; nsc = ISC_LIST_NEXT(nsc, link))
-			{
+			ISC_LIST_FOREACH (server->cachelist, nsc, link) {
 				if (nsc->cache == view->cache) {
+					nsc->needflush = true;
 					break;
 				}
 			}
-			INSIST(nsc != NULL);
-			nsc->needflush = true;
 		}
 	} else {
 		found = true;
 	}
 
 	/* Perform flush */
-	for (nsc = ISC_LIST_HEAD(server->cachelist); nsc != NULL;
-	     nsc = ISC_LIST_NEXT(nsc, link))
-	{
+	ISC_LIST_FOREACH (server->cachelist, nsc, link) {
 		if (ptr != NULL && !nsc->needflush) {
 			continue;
 		}
@@ -11791,15 +11723,12 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 	 * A worst case is that we have n views and n/2 caches, each shared by
 	 * two views.  Then this will be a O(n^2/4) operation.
 	 */
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if (!dns_view_iscacheshared(view)) {
 			continue;
 		}
-		for (nsc = ISC_LIST_HEAD(server->cachelist); nsc != NULL;
-		     nsc = ISC_LIST_NEXT(nsc, link))
-		{
+
+		ISC_LIST_FOREACH (server->cachelist, nsc, link) {
 			if (!nsc->needflush || nsc->cache != view->cache) {
 				continue;
 			}
@@ -11817,9 +11746,7 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 	}
 
 	/* Cleanup the cache list. */
-	for (nsc = ISC_LIST_HEAD(server->cachelist); nsc != NULL;
-	     nsc = ISC_LIST_NEXT(nsc, link))
-	{
+	ISC_LIST_FOREACH (server->cachelist, nsc, link) {
 		nsc->needflush = false;
 	}
 
@@ -11855,13 +11782,12 @@ isc_result_t
 named_server_flushnode(named_server_t *server, isc_lex_t *lex, bool tree) {
 	char *ptr, *viewname;
 	char target[DNS_NAME_FORMATSIZE];
-	dns_view_t *view;
 	bool flushed;
 	bool found;
 	isc_result_t result;
 	isc_buffer_t b;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 
 	/* Skip the command name. */
 	ptr = next_token(lex, NULL);
@@ -11890,9 +11816,7 @@ named_server_flushnode(named_server_t *server, isc_lex_t *lex, bool tree) {
 	isc_loopmgr_pause(named_g_loopmgr);
 	flushed = true;
 	found = false;
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if (viewname != NULL && strcasecmp(viewname, view->name) != 0) {
 			continue;
 		}
@@ -12213,7 +12137,6 @@ synczone(dns_zone_t *zone, void *uap) {
 isc_result_t
 named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	isc_result_t result, tresult;
-	dns_view_t *view = NULL;
 	dns_zone_t *zone = NULL;
 	char classstr[DNS_RDATACLASS_FORMATSIZE];
 	char zonename[DNS_NAME_FORMATSIZE];
@@ -12242,9 +12165,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	if (zone == NULL) {
 		isc_loopmgr_pause(named_g_loopmgr);
 		tresult = ISC_R_SUCCESS;
-		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-		     view = ISC_LIST_NEXT(view, link))
-		{
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			result = dns_view_apply(view, false, NULL, synczone,
 						&cleanup);
 			if (result != ISC_R_SUCCESS && tresult == ISC_R_SUCCESS)
@@ -12264,7 +12185,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	result = synczone(zone, &cleanup);
 	isc_loopmgr_resume(named_g_loopmgr);
 
-	view = dns_zone_getview(zone);
+	dns_view_t *view = dns_zone_getview(zone);
 	if (strcmp(view->name, "_default") == 0 ||
 	    strcmp(view->name, "_bind") == 0)
 	{
@@ -12297,8 +12218,7 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 	dns_zonetype_t type;
 	char classstr[DNS_RDATACLASS_FORMATSIZE];
 	char zonename[DNS_NAME_FORMATSIZE];
-	dns_view_t *view;
-	const char *vname, *sep;
+	const char *vname = NULL, *sep = NULL;
 	bool frozen;
 	const char *msg = NULL;
 
@@ -12311,9 +12231,7 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 	if (mayberaw == NULL) {
 		isc_loopmgr_pause(named_g_loopmgr);
 		tresult = ISC_R_SUCCESS;
-		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-		     view = ISC_LIST_NEXT(view, link))
-		{
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			result = dns_view_freezezones(view, freeze);
 			if (result != ISC_R_SUCCESS && tresult == ISC_R_SUCCESS)
 			{
@@ -12390,7 +12308,7 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 		(void)putnull(text);
 	}
 
-	view = dns_zone_getview(mayberaw);
+	dns_view_t *view = dns_zone_getview(mayberaw);
 	if (strcmp(view->name, "_default") == 0 ||
 	    strcmp(view->name, "_bind") == 0)
 	{
@@ -12505,8 +12423,6 @@ static isc_result_t
 nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
 	const cfg_obj_t *zl = NULL;
 	cfg_list_t *list;
-	const cfg_listelt_t *elt;
-
 	FILE *fp = NULL;
 	char tmp[1024];
 	isc_result_t result;
@@ -12529,9 +12445,7 @@ nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
 
 	CHECK(add_comment(fp, view->name)); /* force a comment */
 
-	for (elt = ISC_LIST_HEAD(*list); elt != NULL;
-	     elt = ISC_LIST_NEXT(elt, link))
-	{
+	ISC_LIST_FOREACH (*list, elt, link) {
 		const cfg_obj_t *zconfig = cfg_listelt_value(elt);
 
 		CHECK(isc_stdio_write("zone ", 5, 1, fp, NULL));
@@ -13190,11 +13104,7 @@ static isc_result_t
 delete_zoneconf(dns_view_t *view, cfg_parser_t *pctx, const cfg_obj_t *config,
 		const dns_name_t *zname, nzfwriter_t nzfwriter) {
 	isc_result_t result = ISC_R_NOTFOUND;
-	const cfg_listelt_t *elt = NULL;
 	const cfg_obj_t *zl = NULL;
-	cfg_list_t *list;
-	dns_fixedname_t myfixed;
-	dns_name_t *myname;
 
 	REQUIRE(view != NULL);
 	REQUIRE(pctx != NULL);
@@ -13209,16 +13119,13 @@ delete_zoneconf(dns_view_t *view, cfg_parser_t *pctx, const cfg_obj_t *config,
 		CHECK(ISC_R_FAILURE);
 	}
 
-	list = UNCONST(&zl->value.list);
-
-	myname = dns_fixedname_initname(&myfixed);
-
-	for (elt = ISC_LIST_HEAD(*list); elt != NULL;
-	     elt = ISC_LIST_NEXT(elt, link))
-	{
+	cfg_list_t *list = UNCONST(&zl->value.list);
+	ISC_LIST_FOREACH (*list, elt, link) {
+		dns_fixedname_t myfixed;
+		dns_name_t *myname = dns_fixedname_initname(&myfixed);
 		const cfg_obj_t *zconf = cfg_listelt_value(elt);
-		const char *zn;
-		cfg_listelt_t *e;
+		const char *zn = NULL;
+		cfg_listelt_t *e = NULL;
 
 		zn = cfg_obj_asstring(cfg_tuple_get(zconf, "name"));
 		result = dns_name_fromstring(myname, zn, dns_rootname, 0, NULL);
@@ -15114,7 +15021,6 @@ cleanup:
 isc_result_t
 named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 		 isc_buffer_t **text) {
-	dns_view_t *view;
 	dns_ntatable_t *ntatable = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	char *ptr, *nametext = NULL, *viewname;
@@ -15215,9 +15121,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 	if (dump) {
 		size_t last = 0;
 
-		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-		     view = ISC_LIST_NEXT(view, link))
-		{
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			if (ntatable != NULL) {
 				dns_ntatable_detach(&ntatable);
 			}
@@ -15282,9 +15186,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 	now = isc_stdtime_now();
 
 	isc_loopmgr_pause(named_g_loopmgr);
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if (viewname != NULL && strcmp(view->name, viewname) != 0) {
 			continue;
 		}
@@ -15410,11 +15312,7 @@ cleanup:
 
 isc_result_t
 named_server_saventa(named_server_t *server) {
-	dns_view_t *view;
-
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		isc_result_t result = dns_view_saventa(view);
 
 		if (result != ISC_R_SUCCESS) {
@@ -15431,11 +15329,7 @@ named_server_saventa(named_server_t *server) {
 
 isc_result_t
 named_server_loadnta(named_server_t *server) {
-	dns_view_t *view;
-
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		isc_result_t result = dns_view_loadnta(view);
 
 		if ((result != ISC_R_SUCCESS) &&
@@ -15679,7 +15573,6 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 		   isc_buffer_t **text) {
 	char *cmd, *classtxt, *viewtxt = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_view_t *view = NULL;
 	dns_rdataclass_t rdclass;
 	char msg[DNS_NAME_FORMATSIZE + 500] = "";
 	enum { NONE, STAT, REFRESH, SYNC, DESTROY } opt = NONE;
@@ -15731,9 +15624,7 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 		viewtxt = next_token(lex, text);
 	}
 
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if (viewtxt != NULL && (rdclass != view->rdclass ||
 					strcmp(view->name, viewtxt) != 0))
 		{
@@ -15950,7 +15841,6 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 	char *ptr, *classtxt, *viewtxt = NULL;
 	char msg[128];
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
-	dns_view_t *view;
 	bool found = false;
 	dns_stale_answer_t staleanswersok = dns_stale_answer_conf;
 	bool wantstatus = false;
@@ -16014,9 +15904,7 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 
 	isc_loopmgr_pause(named_g_loopmgr);
 
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		dns_ttl_t stale_ttl = 0;
 		uint32_t stale_refresh = 0;
 		dns_db_t *db = NULL;
@@ -16114,7 +16002,6 @@ isc_result_t
 named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 			isc_buffer_t **text) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_view_t *view = NULL;
 	char *ptr = NULL, *viewname = NULL;
 	bool first = true;
 	dns_adb_t *adb = NULL;
@@ -16129,9 +16016,7 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 
 	/* Look for the view name. */
 	viewname = next_token(lex, text);
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		char tbuf[100];
 		unsigned int used;
 		uint32_t val;

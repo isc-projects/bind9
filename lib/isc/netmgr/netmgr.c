@@ -2944,8 +2944,6 @@ nmhandle_dump(isc_nmhandle_t *handle) {
 
 static void
 nmsocket_dump(isc_nmsocket_t *sock) {
-	isc_nmhandle_t *handle = NULL;
-
 	fprintf(stderr, "\n=================\n");
 	fprintf(stderr, "Active %s socket %p, type %s, refs %" PRIuFAST32 "\n",
 		sock->client ? "client" : "server", sock,
@@ -2965,9 +2963,7 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 				 STDERR_FILENO);
 	fprintf(stderr, "\n");
 
-	for (handle = ISC_LIST_HEAD(sock->active_handles); handle != NULL;
-	     handle = ISC_LIST_NEXT(handle, active_link))
-	{
+	ISC_LIST_FOREACH (sock->active_handles, handle, active_link) {
 		static bool first = true;
 		if (first) {
 			fprintf(stderr, "Active handles:\n");
@@ -2981,12 +2977,9 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 
 void
 isc__nm_dump_active(isc__networker_t *worker) {
-	isc_nmsocket_t *sock = NULL;
 	bool first = true;
 
-	for (sock = ISC_LIST_HEAD(worker->active_sockets); sock != NULL;
-	     sock = ISC_LIST_NEXT(sock, active_link))
-	{
+	ISC_LIST_FOREACH (worker->active_sockets, sock, active_link) {
 		if (first) {
 			fprintf(stderr, "Outstanding sockets\n");
 			first = false;

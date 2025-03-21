@@ -332,7 +332,6 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 	dns_name_t *stfself;
 	dns_name_t *tcpself;
 	dns_name_t *wildcard;
-	dns_ssurule_t *rule;
 	const dns_name_t *tname;
 	int match;
 	isc_result_t result;
@@ -375,9 +374,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 		return false;
 	}
 
-	for (rule = ISC_LIST_HEAD(table->rules); rule != NULL;
-	     rule = ISC_LIST_NEXT(rule, link))
-	{
+	ISC_LIST_FOREACH (table->rules, rule, link) {
 		if (logit) {
 			isc_log_write(DNS_LOGCATEGORY_UPDATE_POLICY,
 				      DNS_LOGMODULE_SSU, ISC_LOG_DEBUG(99),

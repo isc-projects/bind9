@@ -263,14 +263,12 @@ static void
 free_old_hash(dns_rrl_t *rrl) {
 	dns_rrl_hash_t *old_hash;
 	dns_rrl_bin_t *old_bin;
-	dns_rrl_entry_t *e, *e_next;
 
 	old_hash = rrl->old_hash;
 	for (old_bin = &old_hash->bins[0];
 	     old_bin < &old_hash->bins[old_hash->length]; ++old_bin)
 	{
-		for (e = ISC_LIST_HEAD(*old_bin); e != NULL; e = e_next) {
-			e_next = ISC_LIST_NEXT(e, hlink);
+		ISC_LIST_FOREACH_SAFE (*old_bin, e, hlink) {
 			ISC_LINK_INIT(e, hlink);
 		}
 	}

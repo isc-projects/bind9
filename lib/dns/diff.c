@@ -170,8 +170,6 @@ dns_diff_size(const dns_diff_t *diff) {
 
 void
 dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep) {
-	dns_difftuple_t *ot, *next_ot;
-
 	REQUIRE(DNS_DIFF_VALID(diff));
 	REQUIRE(DNS_DIFFTUPLE_VALID(*tuplep));
 
@@ -187,8 +185,7 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep) {
 	 * the one we are doing, there must be a programming
 	 * error.  We report it but try to continue anyway.
 	 */
-	for (ot = ISC_LIST_HEAD(diff->tuples); ot != NULL; ot = next_ot) {
-		next_ot = ISC_LIST_NEXT(ot, link);
+	ISC_LIST_FOREACH_SAFE (diff->tuples, ot, link) {
 		if (dns_name_caseequal(&ot->name, &(*tuplep)->name) &&
 		    dns_rdata_compare(&ot->rdata, &(*tuplep)->rdata) == 0 &&
 		    ot->ttl == (*tuplep)->ttl)
@@ -619,13 +616,10 @@ isc_result_t
 dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
 	unsigned int length = 0;
 	unsigned int i;
-	dns_difftuple_t **v;
-	dns_difftuple_t *p;
+	dns_difftuple_t **v = NULL;
 	REQUIRE(DNS_DIFF_VALID(diff));
 
-	for (p = ISC_LIST_HEAD(diff->tuples); p != NULL;
-	     p = ISC_LIST_NEXT(p, link))
-	{
+	ISC_LIST_FOREACH (diff->tuples, p, link) {
 		length++;
 	}
 	if (length == 0) {
@@ -633,7 +627,7 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
 	}
 	v = isc_mem_cget(diff->mctx, length, sizeof(dns_difftuple_t *));
 	for (i = 0; i < length; i++) {
-		p = ISC_LIST_HEAD(diff->tuples);
+		dns_difftuple_t *p = ISC_LIST_HEAD(diff->tuples);
 		v[i] = p;
 		ISC_LIST_UNLINK(diff->tuples, p, link);
 	}
@@ -671,9 +665,8 @@ diff_tuple_tordataset(dns_difftuple_t *t, dns_rdata_t *rdata,
 }
 
 isc_result_t
-dns_diff_print(const dns_diff_t *diff, FILE *file) {
+dns_diff_print(dns_diff_t *diff, FILE *file) {
 	isc_result_t result;
-	dns_difftuple_t *t;
 	char *mem = NULL;
 	unsigned int size = 2048;
 	const char *op = NULL;
@@ -682,9 +675,7 @@ dns_diff_print(const dns_diff_t *diff, FILE *file) {
 
 	mem = isc_mem_get(diff->mctx, size);
 
-	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
-	     t = ISC_LIST_NEXT(t, link))
-	{
+	ISC_LIST_FOREACH (diff->tuples, t, link) {
 		isc_buffer_t buf;
 		isc_region_t r;
 

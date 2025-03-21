@@ -3757,15 +3757,14 @@ update_listener(named_server_t *server, named_statschannel_t **listenerp,
 		const cfg_obj_t *listen_params, const cfg_obj_t *config,
 		isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 		const char *socktext) {
-	named_statschannel_t *listener;
+	named_statschannel_t *listener = NULL;
 	const cfg_obj_t *allow = NULL;
 	dns_acl_t *new_acl = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	for (listener = ISC_LIST_HEAD(server->statschannels); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link))
-	{
-		if (isc_sockaddr_equal(addr, &listener->address)) {
+	ISC_LIST_FOREACH (server->statschannels, l, link) {
+		if (isc_sockaddr_equal(addr, &l->address)) {
+			listener = l;
 			break;
 		}
 	}
@@ -3807,7 +3806,6 @@ update_listener(named_server_t *server, named_statschannel_t **listenerp,
 isc_result_t
 named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 			      cfg_aclconfctx_t *aclconfctx) {
-	named_statschannel_t *listener, *listener_next;
 	named_statschannellist_t new_listeners;
 	const cfg_obj_t *statschannellist = NULL;
 	const cfg_listelt_t *element, *element2;
@@ -3867,8 +3865,9 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 			     element2 != NULL;
 			     element2 = cfg_list_next(element2))
 			{
-				const cfg_obj_t *listen_params;
-				const cfg_obj_t *obj;
+				named_statschannel_t *listener = NULL;
+				const cfg_obj_t *listen_params = NULL;
+				const cfg_obj_t *obj = NULL;
 				isc_sockaddr_t addr;
 
 				listen_params = cfg_listelt_value(element2);
@@ -3932,10 +3931,7 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 		}
 	}
 
-	for (listener = ISC_LIST_HEAD(server->statschannels); listener != NULL;
-	     listener = listener_next)
-	{
-		listener_next = ISC_LIST_NEXT(listener, link);
+	ISC_LIST_FOREACH_SAFE (server->statschannels, listener, link) {
 		ISC_LIST_UNLINK(server->statschannels, listener, link);
 		shutdown_listener(listener);
 	}
@@ -3946,9 +3942,7 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 
 void
 named_statschannels_shutdown(named_server_t *server) {
-	named_statschannel_t *listener;
-
-	while ((listener = ISC_LIST_HEAD(server->statschannels)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (server->statschannels, listener, link) {
 		ISC_LIST_UNLINK(server->statschannels, listener, link);
 		shutdown_listener(listener);
 	}
@@ -3957,7 +3951,6 @@ named_statschannels_shutdown(named_server_t *server) {
 isc_result_t
 named_stats_dump(named_server_t *server, FILE *fp) {
 	isc_result_t result;
-	dns_view_t *view;
 	dns_zone_t *zone, *next;
 	stats_dumparg_t dumparg;
 	uint64_t nsstat_values[ns_statscounter_max];
@@ -3989,9 +3982,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 			    0);
 
 	fprintf(fp, "++ Outgoing Queries ++\n");
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		dns_stats_t *dstats = NULL;
 		dns_resolver_getquerystats(view->resolver, &dstats);
 		if (dstats == NULL) {
@@ -4021,9 +4012,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	(void)dump_stats(server->resolverstats, isc_statsformat_file, fp, NULL,
 			 resstats_desc, dns_resstatscounter_max, resstats_index,
 			 resstat_values, 0);
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		isc_stats_t *istats = NULL;
 		dns_resolver_getstats(view->resolver, &istats);
 		if (istats == NULL) {
@@ -4041,9 +4030,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	}
 
 	fprintf(fp, "++ Cache Statistics ++\n");
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		if (strcmp(view->name, "_default") == 0) {
 			fprintf(fp, "[View: default]\n");
 		} else {
@@ -4060,9 +4047,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	}
 
 	fprintf(fp, "++ Cache DB RRsets ++\n");
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		dns_stats_t *cacherrstats;
 
 		cacherrstats = dns_db_getrrsetstats(view->cachedb);
@@ -4087,9 +4072,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	}
 
 	fprintf(fp, "++ ADB stats ++\n");
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		dns_adb_t *adb = NULL;
 		isc_stats_t *adbstats = NULL;
 
@@ -4125,8 +4108,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
 		if (zonestats != NULL) {
 			char zonename[DNS_NAME_FORMATSIZE];
-
-			view = dns_zone_getview(zone);
+			dns_view_t *view = dns_zone_getview(zone);
 			if (view == NULL) {
 				continue;
 			}
@@ -4155,8 +4137,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 		isc_stats_t *gluecachestats = dns_zone_getgluecachestats(zone);
 		if (gluecachestats != NULL) {
 			char zonename[DNS_NAME_FORMATSIZE];
-
-			view = dns_zone_getview(zone);
+			dns_view_t *view = dns_zone_getview(zone);
 			if (view == NULL) {
 				continue;
 			}

@@ -448,7 +448,6 @@ static void
 show_settings(bool full, bool serv_only) {
 	dig_server_t *srv;
 	isc_sockaddr_t sockaddr;
-	dig_searchlist_t *listent;
 	isc_result_t result;
 
 	srv = ISC_LIST_HEAD(server_list);
@@ -479,9 +478,7 @@ show_settings(bool full, bool serv_only) {
 	       tries, port, ndots);
 	printf("  querytype = %-8s\tclass = %s\n", deftype, defclass);
 	printf("  srchlist = ");
-	for (listent = ISC_LIST_HEAD(search_list); listent != NULL;
-	     listent = ISC_LIST_NEXT(listent, link))
-	{
+	ISC_LIST_FOREACH (search_list, listent, link) {
 		printf("%s", listent->origin);
 		if (ISC_LIST_NEXT(listent, link) != NULL) {
 			printf("/");

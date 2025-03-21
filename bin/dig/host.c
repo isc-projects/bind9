@@ -207,7 +207,6 @@ static isc_result_t
 printsection(dns_message_t *msg, dns_section_t sectionid,
 	     const char *section_name, bool headers, dig_query_t *query) {
 	dns_name_t *print_name;
-	dns_rdataset_t *rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_buffer_t target;
 	isc_result_t result, loopresult;
@@ -228,9 +227,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 		first = true;
 		print_name = name;
 
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+		ISC_LIST_FOREACH (name->list, rdataset, link) {
 			if (query->lookup->rdtype == dns_rdatatype_axfr &&
 			    !((!list_addresses &&
 			       (list_type == dns_rdatatype_any ||

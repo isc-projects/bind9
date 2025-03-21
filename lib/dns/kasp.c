@@ -67,22 +67,15 @@ dns_kasp_attach(dns_kasp_t *source, dns_kasp_t **targetp) {
 
 static void
 destroy(dns_kasp_t *kasp) {
-	dns_kasp_key_t *key, *key_next;
-	dns_kasp_digest_t *digest, *digest_next;
-
 	REQUIRE(!ISC_LINK_LINKED(kasp, link));
 
-	for (key = ISC_LIST_HEAD(kasp->keys); key != NULL; key = key_next) {
-		key_next = ISC_LIST_NEXT(key, link);
+	ISC_LIST_FOREACH_SAFE (kasp->keys, key, link) {
 		ISC_LIST_UNLINK(kasp->keys, key, link);
 		dns_kasp_key_destroy(key);
 	}
 	INSIST(ISC_LIST_EMPTY(kasp->keys));
 
-	for (digest = ISC_LIST_HEAD(kasp->digests); digest != NULL;
-	     digest = digest_next)
-	{
-		digest_next = ISC_LIST_NEXT(digest, link);
+	ISC_LIST_FOREACH_SAFE (kasp->digests, digest, link) {
 		ISC_LIST_UNLINK(kasp->digests, digest, link);
 		isc_mem_put(kasp->mctx, digest, sizeof(*digest));
 	}
@@ -349,28 +342,20 @@ dns_kasp_setparentpropagationdelay(dns_kasp_t *kasp, uint32_t value) {
 
 isc_result_t
 dns_kasplist_find(dns_kasplist_t *list, const char *name, dns_kasp_t **kaspp) {
-	dns_kasp_t *kasp = NULL;
-
 	REQUIRE(kaspp != NULL && *kaspp == NULL);
 
 	if (list == NULL) {
 		return ISC_R_NOTFOUND;
 	}
 
-	for (kasp = ISC_LIST_HEAD(*list); kasp != NULL;
-	     kasp = ISC_LIST_NEXT(kasp, link))
-	{
+	ISC_LIST_FOREACH (*list, kasp, link) {
 		if (strcmp(kasp->name, name) == 0) {
-			break;
+			dns_kasp_attach(kasp, kaspp);
+			return ISC_R_SUCCESS;
 		}
 	}
 
-	if (kasp == NULL) {
-		return ISC_R_NOTFOUND;
-	}
-
-	dns_kasp_attach(kasp, kaspp);
-	return ISC_R_SUCCESS;
+	return ISC_R_NOTFOUND;
 }
 
 dns_kasp_keylist_t
@@ -667,9 +652,7 @@ dns_kasp_adddigest(dns_kasp_t *kasp, dns_dsdigest_t alg) {
 	}
 
 	/* Suppress duplicates */
-	for (dns_kasp_digest_t *d = ISC_LIST_HEAD(kasp->digests); d != NULL;
-	     d = ISC_LIST_NEXT(d, link))
-	{
+	ISC_LIST_FOREACH (kasp->digests, d, link) {
 		if (d->digest == alg) {
 			return;
 		}

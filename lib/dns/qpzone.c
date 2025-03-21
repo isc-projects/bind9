@@ -1111,8 +1111,6 @@ unlock:
 
 static void
 cleanup_nondirty(qpz_version_t *version, qpz_changedlist_t *cleanup_list) {
-	qpz_changed_t *changed = NULL, *next_changed = NULL;
-
 	/*
 	 * If the changed record is dirty, then an update created multiple
 	 * versions of a given rdataset.  We keep this list until we're the
@@ -1124,10 +1122,7 @@ cleanup_nondirty(qpz_version_t *version, qpz_changedlist_t *cleanup_list) {
 	 *
 	 * The caller must be holding the database lock.
 	 */
-	for (changed = ISC_LIST_HEAD(version->changed_list); changed != NULL;
-	     changed = next_changed)
-	{
-		next_changed = ISC_LIST_NEXT(changed, link);
+	ISC_LIST_FOREACH_SAFE (version->changed_list, changed, link) {
 		if (!changed->dirty) {
 			ISC_LIST_UNLINK(version->changed_list, changed, link);
 			ISC_LIST_APPEND(*cleanup_list, changed, link);
@@ -1322,10 +1317,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	qpz_version_t *least_greater = NULL;
 	qpznode_t *node = NULL;
 	bool rollback = false;
-	qpz_changed_t *changed = NULL, *next_changed = NULL;
 	qpz_changedlist_t cleanup_list;
 	dns_slabheaderlist_t resigned_list;
-	dns_slabheader_t *header = NULL;
 	uint32_t serial, least_serial;
 
 	REQUIRE(VALID_QPZONE(qpdb));
@@ -1499,9 +1492,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	/*
 	 * Commit/rollback re-signed headers.
 	 */
-	for (header = ISC_LIST_HEAD(resigned_list); header != NULL;
-	     header = ISC_LIST_HEAD(resigned_list))
-	{
+	ISC_LIST_FOREACH_SAFE (resigned_list, header, link) {
 		isc_rwlock_t *nlock = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
@@ -1522,13 +1513,10 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		return;
 	}
 
-	for (changed = ISC_LIST_HEAD(cleanup_list); changed != NULL;
-	     changed = next_changed)
-	{
+	ISC_LIST_FOREACH_SAFE (cleanup_list, changed, link) {
 		isc_rwlock_t *nlock = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
-		next_changed = ISC_LIST_NEXT(changed, link);
 		node = changed->node;
 		nlock = &qpdb->buckets[node->locknum].lock;
 

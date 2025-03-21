@@ -1521,9 +1521,8 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 dns_diff_t *diff, uint32_t sigvalidityinterval,
 			 dns_update_state_t **statep) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_update_state_t mystate, *state;
-
-	dns_difftuple_t *t, *next;
+	dns_update_state_t mystate, *state = NULL;
+	dns_difftuple_t *tuple = NULL;
 	bool flag, build_nsec;
 	unsigned int i;
 	dns_rdata_soa_t soa;
@@ -1612,19 +1611,22 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 next_state:
 	switch (state->state) {
 	case sign_updates:
-		t = ISC_LIST_HEAD(diff->tuples);
-		while (t != NULL) {
-			dns_name_t *name = &t->name;
+		tuple = ISC_LIST_HEAD(diff->tuples);
+		while (tuple != NULL) {
+			dns_name_t *name = &tuple->name;
+			dns_difftuple_t *next = NULL;
+
 			/*
 			 * Now "name" is a new, unique name affected by the
 			 * update.
 			 */
-
 			namelist_append_name(&state->diffnames, name);
 
-			while (t != NULL && dns_name_equal(&t->name, name)) {
+			while (tuple != NULL &&
+			       dns_name_equal(&tuple->name, name))
+			{
 				dns_rdatatype_t type;
-				type = t->rdata.type;
+				type = tuple->rdata.type;
 
 				/*
 				 * Now "name" and "type" denote a new unique
@@ -1682,15 +1684,16 @@ next_state:
 				}
 			skip:
 				/* Skip any other updates to the same RRset. */
-				while (t != NULL &&
-				       dns_name_equal(&t->name, name) &&
-				       t->rdata.type == type)
+				while (tuple != NULL &&
+				       dns_name_equal(&tuple->name, name) &&
+				       tuple->rdata.type == type)
 				{
-					next = ISC_LIST_NEXT(t, link);
-					ISC_LIST_UNLINK(diff->tuples, t, link);
-					ISC_LIST_APPEND(state->work.tuples, t,
+					next = ISC_LIST_NEXT(tuple, link);
+					ISC_LIST_UNLINK(diff->tuples, tuple,
 							link);
-					t = next;
+					ISC_LIST_APPEND(state->work.tuples,
+							tuple, link);
+					tuple = next;
 				}
 			}
 			if (state != &mystate && sigs > maxsigs) {
@@ -1706,9 +1709,7 @@ next_state:
 		state->state = remove_orphaned;
 
 		/* Remove orphaned NSECs and RRSIG NSECs. */
-		for (t = ISC_LIST_HEAD(state->diffnames.tuples); t != NULL;
-		     t = ISC_LIST_NEXT(t, link))
-		{
+		ISC_LIST_FOREACH (state->diffnames.tuples, t, link) {
 			CHECK(non_nsec_rrset_exists(db, newver, &t->name,
 						    &flag));
 			if (!flag) {
@@ -1740,9 +1741,7 @@ next_state:
 		 * When a name is created or deleted, its predecessor needs to
 		 * have its NSEC updated.
 		 */
-		for (t = ISC_LIST_HEAD(state->diffnames.tuples); t != NULL;
-		     t = ISC_LIST_NEXT(t, link))
-		{
+		ISC_LIST_FOREACH (state->diffnames.tuples, t, link) {
 			bool existed, exists;
 			dns_fixedname_t fixedname;
 			dns_name_t *prevname;
@@ -1781,9 +1780,7 @@ next_state:
 		 * (obscured by adding an NS or DNAME, or unobscured by
 		 * removing one).
 		 */
-		for (t = ISC_LIST_HEAD(state->diffnames.tuples); t != NULL;
-		     t = ISC_LIST_NEXT(t, link))
-		{
+		ISC_LIST_FOREACH (state->diffnames.tuples, t, link) {
 			bool ns_existed, dname_existed;
 			bool ns_exists, dname_exists;
 
@@ -1835,7 +1832,7 @@ next_state:
 		 * contents to indicate that their respective owner names
 		 * should be part of the NSEC chain.
 		 */
-		while ((t = ISC_LIST_HEAD(state->affected.tuples)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (state->affected.tuples, t, link) {
 			bool exists;
 			dns_name_t *name = &t->name;
 
@@ -1896,9 +1893,7 @@ next_state:
 		 * Now we know which names are part of the NSEC chain.
 		 * Make them all point at their correct targets.
 		 */
-		for (t = ISC_LIST_HEAD(state->affected.tuples); t != NULL;
-		     t = ISC_LIST_NEXT(t, link))
-		{
+		ISC_LIST_FOREACH (state->affected.tuples, t, link) {
 			CHECK(rrset_exists(db, newver, &t->name,
 					   dns_rdatatype_nsec, 0, &flag));
 			if (flag) {
@@ -1932,7 +1927,7 @@ next_state:
 		 * have to regenerate the RRSIG NSECs for NSECs that were
 		 * replaced with identical ones.
 		 */
-		while ((t = ISC_LIST_HEAD(state->nsec_diff.tuples)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (state->nsec_diff.tuples, t, link) {
 			ISC_LIST_UNLINK(state->nsec_diff.tuples, t, link);
 			dns_diff_appendminimal(&state->nsec_mindiff, &t);
 		}
@@ -1944,8 +1939,7 @@ next_state:
 	case sign_nsec:
 		state->state = sign_nsec;
 		/* Update RRSIG NSECs. */
-		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
-		{
+		ISC_LIST_FOREACH_SAFE (state->nsec_mindiff.tuples, t, link) {
 			if (t->op == DNS_DIFFOP_DEL) {
 				CHECK(delete_if(true_p, db, newver, &t->name,
 						dns_rdatatype_rrsig,
@@ -1975,12 +1969,11 @@ next_state:
 		state->state = update_nsec3;
 
 		/* Record our changes for the journal. */
-		while ((t = ISC_LIST_HEAD(state->sig_diff.tuples)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (state->sig_diff.tuples, t, link) {
 			ISC_LIST_UNLINK(state->sig_diff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}
-		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
-		{
+		ISC_LIST_FOREACH_SAFE (state->nsec_mindiff.tuples, t, link) {
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}
@@ -2008,18 +2001,18 @@ next_state:
 		 * (obscured by adding an NS or DNAME, or unobscured by
 		 * removing one).
 		 */
-		t = ISC_LIST_HEAD(diff->tuples);
-		while (t != NULL) {
-			dns_name_t *name = &t->name;
+		tuple = ISC_LIST_HEAD(diff->tuples);
+		while (tuple != NULL) {
+			dns_name_t *name = &tuple->name;
 
 			bool ns_existed, dname_existed;
 			bool ns_exists, dname_exists;
 			bool exists, existed;
 
-			if (t->rdata.type == dns_rdatatype_nsec ||
-			    t->rdata.type == dns_rdatatype_rrsig)
+			if (tuple->rdata.type == dns_rdatatype_nsec ||
+			    tuple->rdata.type == dns_rdatatype_rrsig)
 			{
-				t = ISC_LIST_NEXT(t, link);
+				tuple = ISC_LIST_NEXT(tuple, link);
 				continue;
 			}
 
@@ -2052,21 +2045,23 @@ next_state:
 			}
 			/*
 			 * There was a delegation change.  Mark all subdomains
-			 * of t->name as potentially needing a NSEC3 update.
+			 * of tuple->name as potentially needing a NSEC3 update.
 			 */
 			CHECK(namelist_append_subdomain(db, name,
 							&state->affected));
 
 		nextname:
-			while (t != NULL && dns_name_equal(&t->name, name)) {
-				t = ISC_LIST_NEXT(t, link);
+			while (tuple != NULL &&
+			       dns_name_equal(&tuple->name, name))
+			{
+				tuple = ISC_LIST_NEXT(tuple, link);
 			}
 		}
 
 		FALLTHROUGH;
 	case process_nsec3:
 		state->state = process_nsec3;
-		while ((t = ISC_LIST_HEAD(state->affected.tuples)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (state->affected.tuples, t, link) {
 			dns_name_t *name = &t->name;
 
 			unsecure = false; /* Silence compiler warning. */
@@ -2106,7 +2101,7 @@ next_state:
 		 * have to regenerate the RRSIG NSEC3s for NSEC3s that were
 		 * replaced with identical ones.
 		 */
-		while ((t = ISC_LIST_HEAD(state->nsec_diff.tuples)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (state->nsec_diff.tuples, t, link) {
 			ISC_LIST_UNLINK(state->nsec_diff.tuples, t, link);
 			dns_diff_appendminimal(&state->nsec_mindiff, &t);
 		}
@@ -2118,8 +2113,7 @@ next_state:
 	case sign_nsec3:
 		state->state = sign_nsec3;
 		/* Update RRSIG NSEC3s. */
-		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
-		{
+		ISC_LIST_FOREACH_SAFE (state->nsec_mindiff.tuples, t, link) {
 			if (t->op == DNS_DIFFOP_DEL) {
 				CHECK(delete_if(true_p, db, newver, &t->name,
 						dns_rdatatype_rrsig,
@@ -2146,12 +2140,11 @@ next_state:
 				    state->work.tuples, link);
 
 		/* Record our changes for the journal. */
-		while ((t = ISC_LIST_HEAD(state->sig_diff.tuples)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (state->sig_diff.tuples, t, link) {
 			ISC_LIST_UNLINK(state->sig_diff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}
-		while ((t = ISC_LIST_HEAD(state->nsec_mindiff.tuples)) != NULL)
-		{
+		ISC_LIST_FOREACH_SAFE (state->nsec_mindiff.tuples, t, link) {
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			dns_diff_appendminimal(diff, &t);
 		}

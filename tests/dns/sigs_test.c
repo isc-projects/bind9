@@ -175,8 +175,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	size_t tuples_expected, tuples_found, index;
 	dns_dbversion_t *version = NULL;
 	dns_diff_t raw_diff, zone_diff;
-	const zonediff_t *expected;
-	dns_difftuple_t *found;
+	const zonediff_t *expected = NULL;
 	isc_result_t result;
 
 	dns__zonediff_t zonediff = {
@@ -235,9 +234,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	}
 
 	tuples_found = 0;
-	for (found = ISC_LIST_HEAD(zone_diff.tuples); found != NULL;
-	     found = ISC_LIST_NEXT(found, link))
-	{
+	ISC_LIST_FOREACH (zone_diff.tuples, found, link) {
 		tuples_found++;
 	}
 
@@ -248,9 +245,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	 */
 	expected = test->zonediff;
 	index = 1;
-	for (found = ISC_LIST_HEAD(zone_diff.tuples); found != NULL;
-	     found = ISC_LIST_NEXT(found, link))
-	{
+	ISC_LIST_FOREACH (zone_diff.tuples, found, link) {
 		compare_tuples(expected, found, index);
 		expected++;
 		index++;

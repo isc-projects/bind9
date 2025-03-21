@@ -852,7 +852,6 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 					    dnsport);
 		}
 	} else {
-		isc_sockaddr_t *sa;
 		int i;
 
 		/*
@@ -861,9 +860,7 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 		 * the servers array.
 		 */
 		ns_total = 0;
-		for (sa = ISC_LIST_HEAD(*nslist); sa != NULL;
-		     sa = ISC_LIST_NEXT(sa, link))
-		{
+		ISC_LIST_FOREACH (*nslist, sa, link) {
 			switch (sa->type.sa.sa_family) {
 			case AF_INET:
 				if (have_ipv4) {
@@ -884,9 +881,7 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 		servers = isc_mem_cget(gmctx, ns_alloc, sizeof(isc_sockaddr_t));
 
 		i = 0;
-		for (sa = ISC_LIST_HEAD(*nslist); sa != NULL;
-		     sa = ISC_LIST_NEXT(sa, link))
-		{
+		ISC_LIST_FOREACH (*nslist, sa, link) {
 			switch (sa->type.sa.sa_family) {
 			case AF_INET:
 				if (have_ipv4) {

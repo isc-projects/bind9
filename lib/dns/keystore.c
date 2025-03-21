@@ -255,26 +255,18 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 isc_result_t
 dns_keystorelist_find(dns_keystorelist_t *list, const char *name,
 		      dns_keystore_t **kspp) {
-	dns_keystore_t *keystore = NULL;
-
 	REQUIRE(kspp != NULL && *kspp == NULL);
 
 	if (list == NULL) {
 		return ISC_R_NOTFOUND;
 	}
 
-	for (keystore = ISC_LIST_HEAD(*list); keystore != NULL;
-	     keystore = ISC_LIST_NEXT(keystore, link))
-	{
+	ISC_LIST_FOREACH (*list, keystore, link) {
 		if (strcmp(keystore->name, name) == 0) {
-			break;
+			dns_keystore_attach(keystore, kspp);
+			return ISC_R_SUCCESS;
 		}
 	}
 
-	if (keystore == NULL) {
-		return ISC_R_NOTFOUND;
-	}
-
-	dns_keystore_attach(keystore, kspp);
-	return ISC_R_SUCCESS;
+	return ISC_R_NOTFOUND;
 }

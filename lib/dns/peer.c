@@ -182,26 +182,18 @@ peerlist_delete(dns_peerlist_t **list) {
 
 void
 dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer) {
-	dns_peer_t *p = NULL;
-
-	dns_peer_attach(peer, &p);
-
 	/*
 	 * More specifics to front of list.
 	 */
-	for (p = ISC_LIST_HEAD(peers->elements); p != NULL;
-	     p = ISC_LIST_NEXT(p, next))
-	{
+	dns_peer_attach(peer, &(dns_peer_t *){ NULL });
+	ISC_LIST_FOREACH (peers->elements, p, next) {
 		if (p->prefixlen < peer->prefixlen) {
-			break;
+			ISC_LIST_INSERTBEFORE(peers->elements, p, peer, next);
+			return;
 		}
 	}
 
-	if (p != NULL) {
-		ISC_LIST_INSERTBEFORE(peers->elements, p, peer, next);
-	} else {
-		ISC_LIST_APPEND(peers->elements, peer, next);
-	}
+	ISC_LIST_APPEND(peers->elements, peer, next);
 }
 
 isc_result_t

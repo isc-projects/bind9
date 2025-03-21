@@ -100,12 +100,9 @@ match(const dns_name_t *name1, const dns_name_t *name2) {
 unsigned int
 dns_order_find(dns_order_t *order, const dns_name_t *name,
 	       dns_rdatatype_t rdtype, dns_rdataclass_t rdclass) {
-	dns_order_ent_t *ent;
 	REQUIRE(DNS_ORDER_VALID(order));
 
-	for (ent = ISC_LIST_HEAD(order->ents); ent != NULL;
-	     ent = ISC_LIST_NEXT(ent, link))
-	{
+	ISC_LIST_FOREACH (order->ents, ent, link) {
 		if (ent->rdtype != rdtype && ent->rdtype != dns_rdatatype_any) {
 			continue;
 		}

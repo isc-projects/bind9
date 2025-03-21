@@ -788,7 +788,6 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
        const isc_sockaddr_t *dstaddr, dns_rdataclass_t rdclass,
        void *arg ISC_ATTR_UNUSED) {
 	dns_aclenv_t *env = NULL;
-	dns_view_t *view = NULL;
 	dns_tsigkey_t *key = NULL;
 	isc_netaddr_t netsrc;
 	isc_netaddr_t netdst;
@@ -807,9 +806,7 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
 	isc_netaddr_fromsockaddr(&netdst, dstaddr);
 	env = ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 
-	for (view = ISC_LIST_HEAD(named_g_server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (named_g_server->viewlist, view, link) {
 		const dns_name_t *tsig = NULL;
 
 		if (view->matchrecursiveonly) {
@@ -840,10 +837,11 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
 		    dns_acl_allowed(&netdst, tsig, view->matchdestinations,
 				    env))
 		{
-			break;
+			return view == myview;
 		}
 	}
-	return view == myview;
+
+	return false;
 }
 
 /*%

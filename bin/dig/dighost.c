@@ -463,19 +463,14 @@ make_server(const char *servname, const char *userarg) {
  */
 static void
 get_server_list(irs_resconf_t *resconf) {
-	isc_sockaddrlist_t *servers;
-	isc_sockaddr_t *sa;
-	dig_server_t *newsrv;
-	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255") +
-		 sizeof("%4000000000")];
 	debug("get_server_list()");
-	servers = irs_resconf_getnameservers(resconf);
-	for (sa = ISC_LIST_HEAD(*servers); sa != NULL;
-	     sa = ISC_LIST_NEXT(sa, link))
-	{
+
+	isc_sockaddrlist_t *servers = irs_resconf_getnameservers(resconf);
+	ISC_LIST_FOREACH (*servers, sa, link) {
 		int pf = isc_sockaddr_pf(sa);
-		isc_netaddr_t na;
+		char tmp[ISC_NETADDR_FORMATSIZE];
 		isc_result_t result;
+		isc_netaddr_t na;
 		isc_buffer_t b;
 
 		if (pf == AF_INET && !have_ipv4) {
@@ -497,7 +492,8 @@ get_server_list(irs_resconf_t *resconf) {
 			snprintf(buf, sizeof(buf), "%%%u", na.zone);
 			strlcat(tmp, buf, sizeof(tmp));
 		}
-		newsrv = make_server(tmp, tmp);
+
+		dig_server_t *newsrv = make_server(tmp, tmp);
 		ISC_LINK_INIT(newsrv, link);
 		ISC_LIST_APPEND(server_list, newsrv, link);
 	}
@@ -1221,18 +1217,12 @@ clear_searchlist(void) {
 
 static void
 create_search_list(irs_resconf_t *resconf) {
-	irs_resconf_searchlist_t *list;
-	irs_resconf_search_t *entry;
-	dig_searchlist_t *search;
-
 	debug("create_search_list()");
 	clear_searchlist();
 
-	list = irs_resconf_getsearchlist(resconf);
-	for (entry = ISC_LIST_HEAD(*list); entry != NULL;
-	     entry = ISC_LIST_NEXT(entry, link))
-	{
-		search = make_searchlist_entry(entry->domain);
+	irs_resconf_searchlist_t *list = irs_resconf_getsearchlist(resconf);
+	ISC_LIST_FOREACH (*list, entry, link) {
+		dig_searchlist_t *search = make_searchlist_entry(entry->domain);
 		ISC_LIST_APPEND(search_list, search, link);
 	}
 }
@@ -2168,8 +2158,6 @@ bool
 setup_lookup(dig_lookup_t *lookup) {
 	isc_result_t result;
 	unsigned int len;
-	dig_server_t *serv;
-	dig_query_t *query;
 	isc_buffer_t b;
 	dns_compress_t cctx;
 	char store[MXNAME];
@@ -2644,10 +2632,9 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	lookup->pending = false;
 
-	for (serv = ISC_LIST_HEAD(lookup->my_server_list); serv != NULL;
-	     serv = ISC_LIST_NEXT(serv, link))
-	{
-		query = new_query(lookup, serv->servername, serv->userarg);
+	ISC_LIST_FOREACH (lookup->my_server_list, serv, link) {
+		dig_query_t *query = new_query(lookup, serv->servername,
+					       serv->userarg);
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
 	}
 
@@ -4672,7 +4659,6 @@ run_loop(void *arg) {
 void
 cancel_all(void) {
 	dig_lookup_t *l, *n;
-	dig_query_t *q, *nq;
 
 	debug("cancel_all()");
 
@@ -4683,8 +4669,7 @@ cancel_all(void) {
 	cancel_now = true;
 
 	while (current_lookup != NULL) {
-		for (q = ISC_LIST_HEAD(current_lookup->q); q != NULL; q = nq) {
-			nq = ISC_LIST_NEXT(q, link);
+		ISC_LIST_FOREACH_SAFE (current_lookup->q, q, link) {
 			debug("canceling pending query %p, belonging to %p", q,
 			      current_lookup);
 			q->canceled = true;

@@ -731,13 +731,10 @@ tcp_recv_add(dns_displist_t *resps, dns_dispentry_t *resp,
 static void
 tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps,
 		  isc_result_t result) {
-	dns_dispentry_t *resp = NULL, *next = NULL;
-
 	/*
 	 * If there are any active responses, shut them all down.
 	 */
-	for (resp = ISC_LIST_HEAD(disp->active); resp != NULL; resp = next) {
-		next = ISC_LIST_NEXT(resp, alink);
+	ISC_LIST_FOREACH_SAFE (disp->active, resp, alink) {
 		tcp_recv_add(resps, resp, result);
 	}
 	disp->state = DNS_DISPATCHSTATE_CANCELED;
@@ -745,10 +742,7 @@ tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps,
 
 static void
 tcp_recv_processall(dns_displist_t *resps, isc_region_t *region) {
-	dns_dispentry_t *resp = NULL, *next = NULL;
-
-	for (resp = ISC_LIST_HEAD(*resps); resp != NULL; resp = next) {
-		next = ISC_LIST_NEXT(resp, rlink);
+	ISC_LIST_FOREACH_SAFE (*resps, resp, rlink) {
 		ISC_LIST_UNLINK(*resps, resp, rlink);
 
 		dispentry_log(resp, ISC_LOG_DEBUG(90), "read callback: %s",
@@ -1819,8 +1813,6 @@ resp_connected(void *arg) {
 static void
 tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dns_dispatch_t *disp = (dns_dispatch_t *)arg;
-	dns_dispentry_t *resp = NULL;
-	dns_dispentry_t *next = NULL;
 	dns_displist_t resps = ISC_LIST_INITIALIZER;
 
 	if (isc_log_wouldlog(90)) {
@@ -1853,8 +1845,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	 * If there are pending responses, call the connect
 	 * callbacks for all of them.
 	 */
-	for (resp = ISC_LIST_HEAD(disp->pending); resp != NULL; resp = next) {
-		next = ISC_LIST_NEXT(resp, plink);
+	ISC_LIST_FOREACH_SAFE (disp->pending, resp, plink) {
 		ISC_LIST_UNLINK(disp->pending, resp, plink);
 		ISC_LIST_APPEND(resps, resp, rlink);
 		resp->result = eresult;
@@ -1872,24 +1863,23 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 	/* Take the oldest active response. */
-	resp = ISC_LIST_HEAD(disp->active);
-	if (resp == NULL) {
+	dns_dispentry_t *oldest = ISC_LIST_HEAD(disp->active);
+	if (oldest == NULL) {
 		/* All responses have been canceled */
 		disp->state = DNS_DISPATCHSTATE_CANCELED;
 	} else if (eresult == ISC_R_SUCCESS) {
 		disp->state = DNS_DISPATCHSTATE_CONNECTED;
 		isc_nmhandle_attach(handle, &disp->handle);
 		isc_nmhandle_cleartimeout(disp->handle);
-		if (resp->timeout != 0) {
-			isc_nmhandle_settimeout(disp->handle, resp->timeout);
+		if (oldest->timeout != 0) {
+			isc_nmhandle_settimeout(disp->handle, oldest->timeout);
 		}
-		tcp_startrecv(disp, resp);
+		tcp_startrecv(disp, oldest);
 	} else {
 		disp->state = DNS_DISPATCHSTATE_NONE;
 	}
 
-	for (resp = ISC_LIST_HEAD(resps); resp != NULL; resp = next) {
-		next = ISC_LIST_NEXT(resp, rlink);
+	ISC_LIST_FOREACH_SAFE (resps, resp, rlink) {
 		ISC_LIST_UNLINK(resps, resp, rlink);
 
 		resp_connected(resp);

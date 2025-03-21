@@ -294,7 +294,7 @@ server_call_cb(isc_nmsocket_t *socket, const isc_result_t result,
 
 static isc_nm_httphandler_t *
 http_endpoints_find(const char *request_path,
-		    const isc_nm_http_endpoints_t *restrict eps);
+		    isc_nm_http_endpoints_t *restrict eps);
 
 static void
 http_init_listener_endpoints(isc_nmsocket_t *listener,
@@ -424,28 +424,27 @@ isc__nm_httpsession_handle(isc_nm_http_session_t *session) {
 
 static http_cstream_t *
 find_http_cstream(int32_t stream_id, isc_nm_http_session_t *session) {
-	http_cstream_t *cstream = NULL;
 	REQUIRE(VALID_HTTP2_SESSION(session));
 
 	if (ISC_LIST_EMPTY(session->cstreams)) {
 		return NULL;
 	}
 
-	for (cstream = ISC_LIST_HEAD(session->cstreams); cstream != NULL;
-	     cstream = ISC_LIST_NEXT(cstream, link))
-	{
+	ISC_LIST_FOREACH (session->cstreams, cstream, link) {
 		if (cstream->stream_id == stream_id) {
-			break;
+			/* LRU-like behaviour */
+			if (ISC_LIST_HEAD(session->cstreams) != cstream) {
+				ISC_LIST_UNLINK(session->cstreams, cstream,
+						link);
+				ISC_LIST_PREPEND(session->cstreams, cstream,
+						 link);
+			}
+
+			return cstream;
 		}
 	}
 
-	/* LRU-like behaviour */
-	if (cstream && ISC_LIST_HEAD(session->cstreams) != cstream) {
-		ISC_LIST_UNLINK(session->cstreams, cstream, link);
-		ISC_LIST_PREPEND(session->cstreams, cstream, link);
-	}
-
-	return cstream;
+	return NULL;
 }
 
 static isc_result_t
@@ -3087,26 +3086,22 @@ isc_nm_http_endpoints_attach(isc_nm_http_endpoints_t *source,
 
 static isc_nm_httphandler_t *
 http_endpoints_find(const char *request_path,
-		    const isc_nm_http_endpoints_t *restrict eps) {
-	isc_nm_httphandler_t *handler = NULL;
-
+		    isc_nm_http_endpoints_t *restrict eps) {
 	REQUIRE(VALID_HTTP_ENDPOINTS(eps));
 
 	if (request_path == NULL || *request_path == '\0') {
 		return NULL;
 	}
 
-	for (handler = ISC_LIST_HEAD(eps->handlers); handler != NULL;
-	     handler = ISC_LIST_NEXT(handler, link))
-	{
+	ISC_LIST_FOREACH (eps->handlers, handler, link) {
 		if (!strcmp(request_path, handler->path)) {
 			INSIST(VALID_HTTP_HANDLER(handler));
 			INSIST(handler->cb != NULL);
-			break;
+			return handler;
 		}
 	}
 
-	return handler;
+	return NULL;
 }
 
 isc_result_t
@@ -3266,27 +3261,20 @@ client_call_failed_read_cb(isc_result_t result,
 static void
 server_call_failed_read_cb(isc_result_t result,
 			   isc_nm_http_session_t *session) {
-	isc_nmsocket_h2_t *h2data = NULL; /* stream socket */
-
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(result != ISC_R_SUCCESS);
 
-	for (h2data = ISC_LIST_HEAD(session->sstreams); h2data != NULL;
-	     h2data = ISC_LIST_NEXT(h2data, link))
-	{
+	ISC_LIST_FOREACH (session->sstreams, h2data, link) {
 		failed_httpstream_read_cb(h2data->psock, result, session);
 	}
 
-	h2data = ISC_LIST_HEAD(session->sstreams);
-	while (h2data != NULL) {
-		isc_nmsocket_h2_t *next = ISC_LIST_NEXT(h2data, link);
+	ISC_LIST_FOREACH_SAFE (session->sstreams, h2data, link) {
 		ISC_LIST_DEQUEUE(session->sstreams, h2data, link);
+
 		/* Cleanup socket in place */
 		h2data->psock->active = false;
 		h2data->psock->closed = true;
 		isc__nmsocket_detach(&h2data->psock);
-
-		h2data = next;
 	}
 }
 

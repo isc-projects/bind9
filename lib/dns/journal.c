@@ -1189,7 +1189,6 @@ failure:
 
 isc_result_t
 dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
-	dns_difftuple_t *t;
 	isc_buffer_t buffer;
 	void *mem = NULL;
 	uint64_t size = 0;
@@ -1208,9 +1207,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	 * Pass 1: determine the buffer size needed, and
 	 * keep track of SOA serial numbers.
 	 */
-	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
-	     t = ISC_LIST_NEXT(t, link))
-	{
+	ISC_LIST_FOREACH (diff->tuples, t, link) {
 		if (t->rdata.type == dns_rdatatype_soa) {
 			if (j->x.n_soa < 2) {
 				j->x.pos[j->x.n_soa].serial =
@@ -1240,9 +1237,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	/*
 	 * Pass 2.  Write RRs to buffer.
 	 */
-	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
-	     t = ISC_LIST_NEXT(t, link))
-	{
+	ISC_LIST_FOREACH (diff->tuples, t, link) {
 		/*
 		 * Write the RR header.
 		 */

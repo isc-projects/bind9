@@ -97,11 +97,7 @@ dns__dlz_shutdown(void) {
  */
 static dns_dlzimplementation_t *
 dlz_impfind(const char *name) {
-	dns_dlzimplementation_t *imp;
-
-	for (imp = ISC_LIST_HEAD(dlz_implementations); imp != NULL;
-	     imp = ISC_LIST_NEXT(imp, link))
-	{
+	ISC_LIST_FOREACH (dlz_implementations, imp, link) {
 		if (strcasecmp(name, imp->name) == 0) {
 			return imp;
 		}
@@ -118,7 +114,6 @@ dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
 		    const isc_sockaddr_t *clientaddr, dns_db_t **dbp) {
 	isc_result_t result = ISC_R_NOTFOUND;
 	dns_dlzallowzonexfr_t allowzonexfr;
-	dns_dlzdb_t *dlzdb;
 
 	/*
 	 * Performs checks to make sure data is as we expect it to be.
@@ -129,9 +124,7 @@ dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
 	/*
 	 * Find a driver in which the zone exists and transfer is supported
 	 */
-	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched); dlzdb != NULL;
-	     dlzdb = ISC_LIST_NEXT(dlzdb, link))
-	{
+	ISC_LIST_FOREACH (view->dlz_searched, dlzdb, link) {
 		REQUIRE(DNS_DLZ_VALID(dlzdb));
 
 		allowzonexfr = dlzdb->implementation->methods->allowzonexfr;

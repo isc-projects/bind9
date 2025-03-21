@@ -790,9 +790,7 @@ marksweep_chunks(dns_qpmulti_t *multi) {
 
 	dns_qp_t *qpw = &multi->writer;
 
-	for (dns_qpsnap_t *qps = ISC_LIST_HEAD(multi->snapshots); qps != NULL;
-	     qps = ISC_LIST_NEXT(qps, link))
-	{
+	ISC_LIST_FOREACH (multi->snapshots, qps, link) {
 		for (dns_qpchunk_t chunk = 0; chunk < qps->chunk_max; chunk++) {
 			if (qps->base->ptr[chunk] != NULL) {
 				INSIST(qps->base->ptr[chunk] ==

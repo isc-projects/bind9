@@ -526,11 +526,8 @@ mem_destroy(isc_mem_t *ctx) {
 
 #if ISC_MEM_TRACKLINES
 	if (ctx->debuglist != NULL) {
-		debuglink_t *dl;
 		for (size_t i = 0; i < DEBUG_TABLE_COUNT; i++) {
-			for (dl = ISC_LIST_HEAD(ctx->debuglist[i]); dl != NULL;
-			     dl = ISC_LIST_HEAD(ctx->debuglist[i]))
-			{
+			ISC_LIST_FOREACH_SAFE (ctx->debuglist[i], dl, link) {
 				if (ctx->checkfree && dl->ptr != NULL) {
 					print_active(ctx, stderr);
 				}
@@ -1185,11 +1182,7 @@ isc_mempool_getfillcount(isc_mempool_t *restrict mpctx) {
 #if ISC_MEM_TRACKLINES
 static void
 print_contexts(FILE *file) {
-	isc_mem_t *ctx;
-
-	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link))
-	{
+	ISC_LIST_FOREACH (contexts, ctx, link) {
 		fprintf(file, "context: %p (%s): %" PRIuFAST32 " references\n",
 			ctx, ctx->name[0] == 0 ? "<unknown>" : ctx->name,
 			isc_refcount_current(&ctx->references));
@@ -1301,7 +1294,6 @@ error:
 
 int
 isc_mem_renderxml(void *writer0) {
-	isc_mem_t *ctx;
 	size_t inuse = 0;
 	int xmlrc;
 	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
@@ -1309,9 +1301,7 @@ isc_mem_renderxml(void *writer0) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "contexts"));
 
 	LOCK(&contextslock);
-	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link))
-	{
+	ISC_LIST_FOREACH (contexts, ctx, link) {
 		xmlrc = xml_renderctx(ctx, &inuse, writer);
 		if (xmlrc < 0) {
 			UNLOCK(&contextslock);
@@ -1402,7 +1392,6 @@ json_renderctx(isc_mem_t *ctx, size_t *inuse, json_object *array) {
 isc_result_t
 isc_mem_renderjson(void *memobj0) {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_mem_t *ctx;
 	size_t inuse = 0;
 	json_object *ctxarray, *obj;
 	json_object *memobj = (json_object *)memobj0;
@@ -1411,9 +1400,7 @@ isc_mem_renderjson(void *memobj0) {
 	CHECKMEM(ctxarray);
 
 	LOCK(&contextslock);
-	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link))
-	{
+	ISC_LIST_FOREACH (contexts, ctx, link) {
 		result = json_renderctx(ctx, &inuse, ctxarray);
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK(&contextslock);

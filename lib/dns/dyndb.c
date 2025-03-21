@@ -70,11 +70,7 @@ dns__dyndb_shutdown(void) {
 
 static dyndb_implementation_t *
 impfind(const char *name) {
-	dyndb_implementation_t *imp;
-
-	for (imp = ISC_LIST_HEAD(dyndb_implementations); imp != NULL;
-	     imp = ISC_LIST_NEXT(imp, link))
-	{
+	ISC_LIST_FOREACH (dyndb_implementations, imp, link) {
 		if (strcasecmp(name, imp->name) == 0) {
 			return imp;
 		}

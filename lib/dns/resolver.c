@@ -1083,8 +1083,6 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 		 bool age_untried) {
 	resquery_t *query = NULL;
 	fetchctx_t *fctx = NULL;
-	dns_adbfind_t *find = NULL;
-	dns_adbaddrinfo_t *addrinfo;
 	isc_stdtime_t now = isc_stdtime_now();
 
 	REQUIRE(queryp != NULL);
@@ -1213,10 +1211,7 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 	 * Age RTTs of servers not tried.
 	 */
 	if (finish != NULL || age_untried) {
-		for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
-		     addrinfo != NULL;
-		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-		{
+		ISC_LIST_FOREACH (fctx->forwaddrs, addrinfo, publink) {
 			if (UNMARKED(addrinfo)) {
 				dns_adb_agesrtt(fctx->adb, addrinfo, now);
 			}
@@ -1224,13 +1219,8 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 	}
 
 	if ((finish != NULL || age_untried) && TRIEDFIND(fctx)) {
-		for (find = ISC_LIST_HEAD(fctx->finds); find != NULL;
-		     find = ISC_LIST_NEXT(find, publink))
-		{
-			for (addrinfo = ISC_LIST_HEAD(find->list);
-			     addrinfo != NULL;
-			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-			{
+		ISC_LIST_FOREACH (fctx->finds, find, publink) {
+			ISC_LIST_FOREACH (find->list, addrinfo, publink) {
 				if (UNMARKED(addrinfo)) {
 					dns_adb_agesrtt(fctx->adb, addrinfo,
 							now);
@@ -1240,20 +1230,13 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 	}
 
 	if ((finish != NULL || age_untried) && TRIEDALT(fctx)) {
-		for (addrinfo = ISC_LIST_HEAD(fctx->altaddrs); addrinfo != NULL;
-		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-		{
+		ISC_LIST_FOREACH (fctx->altaddrs, addrinfo, publink) {
 			if (UNMARKED(addrinfo)) {
 				dns_adb_agesrtt(fctx->adb, addrinfo, now);
 			}
 		}
-		for (find = ISC_LIST_HEAD(fctx->altfinds); find != NULL;
-		     find = ISC_LIST_NEXT(find, publink))
-		{
-			for (addrinfo = ISC_LIST_HEAD(find->list);
-			     addrinfo != NULL;
-			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-			{
+		ISC_LIST_FOREACH (fctx->altfinds, find, publink) {
+			ISC_LIST_FOREACH (find->list, addrinfo, publink) {
 				if (UNMARKED(addrinfo)) {
 					dns_adb_agesrtt(fctx->adb, addrinfo,
 							now);
@@ -1281,42 +1264,28 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 
 static void
 fctx_cleanup(fetchctx_t *fctx) {
-	dns_adbfind_t *find = NULL, *next_find = NULL;
-	dns_adbaddrinfo_t *addr = NULL, *next_addr = NULL;
-
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 
-	for (find = ISC_LIST_HEAD(fctx->finds); find != NULL; find = next_find)
-	{
-		next_find = ISC_LIST_NEXT(find, publink);
+	ISC_LIST_FOREACH_SAFE (fctx->finds, find, publink) {
 		ISC_LIST_UNLINK(fctx->finds, find, publink);
 		dns_adb_destroyfind(&find);
 		fetchctx_unref(fctx);
 	}
 	fctx->find = NULL;
 
-	for (find = ISC_LIST_HEAD(fctx->altfinds); find != NULL;
-	     find = next_find)
-	{
-		next_find = ISC_LIST_NEXT(find, publink);
+	ISC_LIST_FOREACH_SAFE (fctx->altfinds, find, publink) {
 		ISC_LIST_UNLINK(fctx->altfinds, find, publink);
 		dns_adb_destroyfind(&find);
 		fetchctx_unref(fctx);
 	}
 	fctx->altfind = NULL;
 
-	for (addr = ISC_LIST_HEAD(fctx->forwaddrs); addr != NULL;
-	     addr = next_addr)
-	{
-		next_addr = ISC_LIST_NEXT(addr, publink);
+	ISC_LIST_FOREACH_SAFE (fctx->forwaddrs, addr, publink) {
 		ISC_LIST_UNLINK(fctx->forwaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
 	}
 
-	for (addr = ISC_LIST_HEAD(fctx->altaddrs); addr != NULL;
-	     addr = next_addr)
-	{
-		next_addr = ISC_LIST_NEXT(addr, publink);
+	ISC_LIST_FOREACH_SAFE (fctx->altaddrs, addr, publink) {
 		ISC_LIST_UNLINK(fctx->altaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
 	}
@@ -1324,7 +1293,6 @@ fctx_cleanup(fetchctx_t *fctx) {
 
 static void
 fctx_cancelqueries(fetchctx_t *fctx, bool no_response, bool age_untried) {
-	resquery_t *query = NULL, *next_query = NULL;
 	ISC_LIST(resquery_t) queries;
 
 	FCTXTRACE("cancelqueries");
@@ -1339,10 +1307,7 @@ fctx_cancelqueries(fetchctx_t *fctx, bool no_response, bool age_untried) {
 	ISC_LIST_MOVE(queries, fctx->queries);
 	UNLOCK(&fctx->lock);
 
-	for (query = ISC_LIST_HEAD(queries); query != NULL; query = next_query)
-	{
-		next_query = ISC_LIST_NEXT(query, link);
-
+	ISC_LIST_FOREACH_SAFE (queries, query, link) {
 		/*
 		 * Note that we have to unlink the query here,
 		 * because if it's still linked in fctx_cancelquery(),
@@ -1532,7 +1497,6 @@ spillattimer_countdown(void *arg);
 
 static void
 fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
-	dns_fetchresponse_t *resp = NULL, *next = NULL;
 	unsigned int count = 0;
 	bool logit = false;
 	isc_time_t now;
@@ -1553,8 +1517,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	now = isc_time_now();
 	fctx->duration = isc_time_microdiff(&now, &fctx->start);
 
-	for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL; resp = next) {
-		next = ISC_LIST_NEXT(resp, link);
+	ISC_LIST_FOREACH_SAFE (fctx->resps, resp, link) {
 		ISC_LIST_UNLINK(fctx->resps, resp, link);
 
 		count++;
@@ -2196,11 +2159,7 @@ cleanup_query:
 
 static bool
 bad_edns(fetchctx_t *fctx, isc_sockaddr_t *address) {
-	isc_sockaddr_t *sa;
-
-	for (sa = ISC_LIST_HEAD(fctx->bad_edns); sa != NULL;
-	     sa = ISC_LIST_NEXT(sa, link))
-	{
+	ISC_LIST_FOREACH (fctx->bad_edns, sa, link) {
 		if (isc_sockaddr_equal(sa, address)) {
 			return true;
 		}
@@ -2211,8 +2170,6 @@ bad_edns(fetchctx_t *fctx, isc_sockaddr_t *address) {
 
 static void
 add_bad_edns(fetchctx_t *fctx, isc_sockaddr_t *address) {
-	isc_sockaddr_t *sa;
-
 #ifdef ENABLE_AFL
 	if (dns_fuzzing_resolver) {
 		return;
@@ -2222,19 +2179,14 @@ add_bad_edns(fetchctx_t *fctx, isc_sockaddr_t *address) {
 		return;
 	}
 
-	sa = isc_mem_get(fctx->mctx, sizeof(*sa));
-
+	isc_sockaddr_t *sa = isc_mem_get(fctx->mctx, sizeof(*sa));
 	*sa = *address;
 	ISC_LIST_INITANDAPPEND(fctx->bad_edns, sa, link);
 }
 
 static struct tried *
 triededns(fetchctx_t *fctx, isc_sockaddr_t *address) {
-	struct tried *tried;
-
-	for (tried = ISC_LIST_HEAD(fctx->edns); tried != NULL;
-	     tried = ISC_LIST_NEXT(tried, link))
-	{
+	ISC_LIST_FOREACH (fctx->edns, tried, link) {
 		if (isc_sockaddr_equal(&tried->addr, address)) {
 			return tried;
 		}
@@ -2245,16 +2197,13 @@ triededns(fetchctx_t *fctx, isc_sockaddr_t *address) {
 
 static void
 add_triededns(fetchctx_t *fctx, isc_sockaddr_t *address) {
-	struct tried *tried;
-
-	tried = triededns(fctx, address);
+	struct tried *tried = triededns(fctx, address);
 	if (tried != NULL) {
 		tried->count++;
 		return;
 	}
 
 	tried = isc_mem_get(fctx->mctx, sizeof(*tried));
-
 	tried->addr = *address;
 	tried->count = 1;
 	ISC_LIST_INITANDAPPEND(fctx->edns, tried, link);
@@ -2967,11 +2916,7 @@ fctx_finddone(void *arg) {
 
 static bool
 bad_server(fetchctx_t *fctx, isc_sockaddr_t *address) {
-	isc_sockaddr_t *sa;
-
-	for (sa = ISC_LIST_HEAD(fctx->bad); sa != NULL;
-	     sa = ISC_LIST_NEXT(sa, link))
-	{
+	ISC_LIST_FOREACH (fctx->bad, sa, link) {
 		if (isc_sockaddr_equal(sa, address)) {
 			return true;
 		}
@@ -2982,8 +2927,6 @@ bad_server(fetchctx_t *fctx, isc_sockaddr_t *address) {
 
 static bool
 mark_bad(fetchctx_t *fctx) {
-	dns_adbfind_t *curr;
-	dns_adbaddrinfo_t *addrinfo;
 	bool all_bad = true;
 
 #ifdef ENABLE_AFL
@@ -3000,12 +2943,8 @@ mark_bad(fetchctx_t *fctx) {
 	/*
 	 * Mark any bad nameservers.
 	 */
-	for (curr = ISC_LIST_HEAD(fctx->finds); curr != NULL;
-	     curr = ISC_LIST_NEXT(curr, publink))
-	{
-		for (addrinfo = ISC_LIST_HEAD(curr->list); addrinfo != NULL;
-		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-		{
+	ISC_LIST_FOREACH (fctx->finds, curr, publink) {
+		ISC_LIST_FOREACH (curr->list, addrinfo, publink) {
 			if (bad_server(fctx, &addrinfo->sockaddr)) {
 				addrinfo->flags |= FCTX_ADDRINFO_MARK;
 			} else {
@@ -3017,9 +2956,7 @@ mark_bad(fetchctx_t *fctx) {
 	/*
 	 * Mark any bad forwarders.
 	 */
-	for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs); addrinfo != NULL;
-	     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-	{
+	ISC_LIST_FOREACH (fctx->forwaddrs, addrinfo, publink) {
 		if (bad_server(fctx, &addrinfo->sockaddr)) {
 			addrinfo->flags |= FCTX_ADDRINFO_MARK;
 		} else {
@@ -3030,12 +2967,8 @@ mark_bad(fetchctx_t *fctx) {
 	/*
 	 * Mark any bad alternates.
 	 */
-	for (curr = ISC_LIST_HEAD(fctx->altfinds); curr != NULL;
-	     curr = ISC_LIST_NEXT(curr, publink))
-	{
-		for (addrinfo = ISC_LIST_HEAD(curr->list); addrinfo != NULL;
-		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-		{
+	ISC_LIST_FOREACH (fctx->altfinds, curr, publink) {
+		ISC_LIST_FOREACH (curr->list, addrinfo, publink) {
 			if (bad_server(fctx, &addrinfo->sockaddr)) {
 				addrinfo->flags |= FCTX_ADDRINFO_MARK;
 			} else {
@@ -3044,9 +2977,7 @@ mark_bad(fetchctx_t *fctx) {
 		}
 	}
 
-	for (addrinfo = ISC_LIST_HEAD(fctx->altaddrs); addrinfo != NULL;
-	     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-	{
+	ISC_LIST_FOREACH (fctx->altaddrs, addrinfo, publink) {
 		if (bad_server(fctx, &addrinfo->sockaddr)) {
 			addrinfo->flags |= FCTX_ADDRINFO_MARK;
 		} else {
@@ -3183,21 +3114,21 @@ sort_adbfind(dns_adbfind_t *find, unsigned int bias) {
  */
 static void
 sort_finds(dns_adbfindlist_t *findlist, unsigned int bias) {
-	dns_adbfind_t *best, *curr;
+	dns_adbfind_t *best = NULL;
 	dns_adbfindlist_t sorted;
 	dns_adbaddrinfo_t *addrinfo, *bestaddrinfo;
 
 	/* Sort each find's addrinfo list by SRTT. */
-	for (curr = ISC_LIST_HEAD(*findlist); curr != NULL;
-	     curr = ISC_LIST_NEXT(curr, publink))
-	{
+	ISC_LIST_FOREACH (*findlist, curr, publink) {
 		sort_adbfind(curr, bias);
 	}
 
 	/* Lame N^2 bubble sort. */
 	ISC_LIST_INIT(sorted);
 	while (!ISC_LIST_EMPTY(*findlist)) {
+		dns_adbfind_t *curr = NULL;
 		unsigned int best_srtt;
+
 		best = ISC_LIST_HEAD(*findlist);
 		bestaddrinfo = ISC_LIST_HEAD(best->list);
 		INSIST(bestaddrinfo != NULL);
@@ -3263,7 +3194,6 @@ static void
 findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	 unsigned int options, unsigned int flags, isc_stdtime_t now,
 	 bool *overquota, bool *need_alternate, unsigned int *no_addresses) {
-	dns_adbaddrinfo_t *ai = NULL;
 	dns_adbfind_t *find = NULL;
 	dns_resolver_t *res = fctx->res;
 	bool unshared = ((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
@@ -3338,9 +3268,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 		 */
 		INSIST((find->options & DNS_ADBFIND_WANTEVENT) == 0);
 		if (flags != 0 || port != 0) {
-			for (ai = ISC_LIST_HEAD(find->list); ai != NULL;
-			     ai = ISC_LIST_NEXT(ai, publink))
-			{
+			ISC_LIST_FOREACH (find->list, ai, publink) {
 				ai->flags |= flags;
 				if (port != 0) {
 					isc_sockaddr_setport(&ai->sockaddr,
@@ -3677,11 +3605,8 @@ normal_nses:
 	 */
 	if (need_alternate) {
 		int family;
-		alternate_t *a;
 		family = (res->dispatches6 != NULL) ? AF_INET6 : AF_INET;
-		for (a = ISC_LIST_HEAD(res->alternates); a != NULL;
-		     a = ISC_LIST_NEXT(a, link))
-		{
+		ISC_LIST_FOREACH (res->alternates, a, link) {
 			if (!a->isaddress) {
 				findname(fctx, &a->_u._n.name, a->_u._n.port,
 					 stdoptions, FCTX_ADDRINFO_DUALSTACK,
@@ -3843,9 +3768,8 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 
 static dns_adbaddrinfo_t *
 fctx_nextaddress(fetchctx_t *fctx) {
-	dns_adbfind_t *find, *start;
-	dns_adbaddrinfo_t *addrinfo;
-	dns_adbaddrinfo_t *faddrinfo;
+	dns_adbfind_t *find = NULL, *start = NULL;
+	dns_adbaddrinfo_t *addrinfo = NULL, *faddrinfo = NULL;
 
 	/*
 	 * Return the next untried address, if any.
@@ -3854,15 +3778,13 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	/*
 	 * Find the first unmarked forwarder (if any).
 	 */
-	for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs); addrinfo != NULL;
-	     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-	{
-		if (!UNMARKED(addrinfo)) {
+	ISC_LIST_FOREACH (fctx->forwaddrs, ai, publink) {
+		if (!UNMARKED(ai)) {
 			continue;
 		}
-		possibly_mark(fctx, addrinfo);
-		if (UNMARKED(addrinfo)) {
-			addrinfo->flags |= FCTX_ADDRINFO_MARK;
+		possibly_mark(fctx, ai);
+		if (UNMARKED(ai)) {
+			ai->flags |= FCTX_ADDRINFO_MARK;
 			fctx->find = NULL;
 			fctx->forwarding = true;
 
@@ -3874,7 +3796,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 			 * state.
 			 */
 			fctx->minimized = false;
-			return addrinfo;
+			return ai;
 		}
 	}
 
@@ -3897,24 +3819,21 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	/*
 	 * Find the first unmarked addrinfo.
 	 */
-	addrinfo = NULL;
 	if (find != NULL) {
 		start = find;
 		do {
-			for (addrinfo = ISC_LIST_HEAD(find->list);
-			     addrinfo != NULL;
-			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-			{
-				if (!UNMARKED(addrinfo)) {
+			ISC_LIST_FOREACH (find->list, ai, publink) {
+				if (!UNMARKED(ai)) {
 					continue;
 				}
-				possibly_mark(fctx, addrinfo);
-				if (UNMARKED(addrinfo)) {
-					addrinfo->flags |= FCTX_ADDRINFO_MARK;
+				possibly_mark(fctx, ai);
+				if (UNMARKED(ai)) {
+					ai->flags |= FCTX_ADDRINFO_MARK;
+					faddrinfo = ai;
 					break;
 				}
 			}
-			if (addrinfo != NULL) {
+			if (faddrinfo != NULL) {
 				break;
 			}
 			find = ISC_LIST_NEXT(find, publink);
@@ -3925,8 +3844,8 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	}
 
 	fctx->find = find;
-	if (addrinfo != NULL) {
-		return addrinfo;
+	if (faddrinfo != NULL) {
+		return faddrinfo;
 	}
 
 	/*
@@ -3948,24 +3867,21 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	/*
 	 * Find the first unmarked addrinfo.
 	 */
-	addrinfo = NULL;
 	if (find != NULL) {
 		start = find;
 		do {
-			for (addrinfo = ISC_LIST_HEAD(find->list);
-			     addrinfo != NULL;
-			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-			{
-				if (!UNMARKED(addrinfo)) {
+			ISC_LIST_FOREACH (find->list, ai, publink) {
+				if (!UNMARKED(ai)) {
 					continue;
 				}
-				possibly_mark(fctx, addrinfo);
-				if (UNMARKED(addrinfo)) {
-					addrinfo->flags |= FCTX_ADDRINFO_MARK;
+				possibly_mark(fctx, ai);
+				if (UNMARKED(ai)) {
+					ai->flags |= FCTX_ADDRINFO_MARK;
+					faddrinfo = ai;
 					break;
 				}
 			}
-			if (addrinfo != NULL) {
+			if (faddrinfo != NULL) {
 				break;
 			}
 			find = ISC_LIST_NEXT(find, publink);
@@ -3975,26 +3891,22 @@ fctx_nextaddress(fetchctx_t *fctx) {
 		} while (find != start);
 	}
 
-	faddrinfo = addrinfo;
-
 	/*
 	 * See if we have a better alternate server by address.
 	 */
-
-	for (addrinfo = ISC_LIST_HEAD(fctx->altaddrs); addrinfo != NULL;
-	     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
-	{
-		if (!UNMARKED(addrinfo)) {
+	ISC_LIST_FOREACH (fctx->altaddrs, ai, publink) {
+		if (!UNMARKED(ai)) {
 			continue;
 		}
-		possibly_mark(fctx, addrinfo);
-		if (UNMARKED(addrinfo) &&
-		    (faddrinfo == NULL || addrinfo->srtt < faddrinfo->srtt))
+		possibly_mark(fctx, ai);
+		if (UNMARKED(ai) &&
+		    (faddrinfo == NULL || ai->srtt < faddrinfo->srtt))
 		{
 			if (faddrinfo != NULL) {
 				faddrinfo->flags &= ~FCTX_ADDRINFO_MARK;
 			}
-			addrinfo->flags |= FCTX_ADDRINFO_MARK;
+			ai->flags |= FCTX_ADDRINFO_MARK;
+			addrinfo = ai;
 			break;
 		}
 	}
@@ -4466,8 +4378,6 @@ cleanup:
 static void
 fctx_destroy(fetchctx_t *fctx) {
 	dns_resolver_t *res = NULL;
-	isc_sockaddr_t *sa = NULL, *next_sa = NULL;
-	struct tried *tried = NULL;
 
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(ISC_LIST_EMPTY(fctx->resps));
@@ -4487,21 +4397,17 @@ fctx_destroy(fetchctx_t *fctx) {
 	dec_stats(res, dns_resstatscounter_nfetch);
 
 	/* Free bad */
-	for (sa = ISC_LIST_HEAD(fctx->bad); sa != NULL; sa = next_sa) {
-		next_sa = ISC_LIST_NEXT(sa, link);
+	ISC_LIST_FOREACH_SAFE (fctx->bad, sa, link) {
 		ISC_LIST_UNLINK(fctx->bad, sa, link);
 		isc_mem_put(fctx->mctx, sa, sizeof(*sa));
 	}
 
-	for (tried = ISC_LIST_HEAD(fctx->edns); tried != NULL;
-	     tried = ISC_LIST_HEAD(fctx->edns))
-	{
+	ISC_LIST_FOREACH_SAFE (fctx->edns, tried, link) {
 		ISC_LIST_UNLINK(fctx->edns, tried, link);
 		isc_mem_put(fctx->mctx, tried, sizeof(*tried));
 	}
 
-	for (sa = ISC_LIST_HEAD(fctx->bad_edns); sa != NULL; sa = next_sa) {
-		next_sa = ISC_LIST_NEXT(sa, link);
+	ISC_LIST_FOREACH_SAFE (fctx->bad_edns, sa, link) {
 		ISC_LIST_UNLINK(fctx->bad_edns, sa, link);
 		isc_mem_put(fctx->mctx, sa, sizeof(*sa));
 	}
@@ -5127,7 +5033,7 @@ same_question(fetchctx_t *fctx, dns_message_t *message) {
 
 static void
 clone_results(fetchctx_t *fctx) {
-	dns_fetchresponse_t *resp = NULL, *hresp = NULL;
+	dns_fetchresponse_t *hresp = NULL;
 
 	FCTXTRACE("clone_results");
 
@@ -5139,9 +5045,7 @@ clone_results(fetchctx_t *fctx) {
 
 	fctx->cloned = true;
 
-	for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL;
-	     resp = ISC_LIST_NEXT(resp, link))
-	{
+	ISC_LIST_FOREACH (fctx->resps, resp, link) {
 		/* This is the head resp; keep a pointer and move on */
 		if (hresp == NULL) {
 			hresp = ISC_LIST_HEAD(fctx->resps);
@@ -5196,9 +5100,7 @@ maybe_cancel_validators(fetchctx_t *fctx) {
 	}
 
 	REQUIRE(SHUTTINGDOWN(fctx));
-	for (dns_validator_t *validator = ISC_LIST_HEAD(fctx->validators);
-	     validator != NULL; validator = ISC_LIST_NEXT(validator, link))
-	{
+	ISC_LIST_FOREACH (fctx->validators, validator, link) {
 		dns_validator_cancel(validator);
 	}
 }
@@ -5936,27 +5838,22 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 	}
 
 	if (noqname != NULL) {
-		for (sigrdataset = ISC_LIST_HEAD(noqname->list);
-		     sigrdataset != NULL;
-		     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
-		{
-			if (sigrdataset->type == dns_rdatatype_rrsig &&
-			    sigrdataset->covers == found)
+		ISC_LIST_FOREACH (noqname->list, sig, link) {
+			if (sig->type == dns_rdatatype_rrsig &&
+			    sig->covers == found)
 			{
+				*noqnamep = noqname;
 				break;
 			}
 		}
-		if (sigrdataset != NULL) {
-			*noqnamep = noqname;
-		}
 	}
+
 	return result;
 }
 
 static isc_result_t
 cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	   dns_adbaddrinfo_t *addrinfo, isc_stdtime_t now) {
-	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
 	dns_rdataset_t *addedrdataset = NULL;
 	dns_rdataset_t *ardataset = NULL, *asigrdataset = NULL;
 	dns_rdataset_t *valrdataset = NULL, *valsigrdataset = NULL;
@@ -6043,9 +5940,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	 * Cache or validate each cacheable rdataset.
 	 */
 	fail = ((fctx->res->options & DNS_RESOLVER_CHECKNAMESFAIL) != 0);
-	for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-	     rdataset = ISC_LIST_NEXT(rdataset, link))
-	{
+	ISC_LIST_FOREACH (name->list, rdataset, link) {
+		dns_rdataset_t *sigrdataset = NULL;
+
 		if (!CACHE(rdataset)) {
 			continue;
 		}
@@ -6097,13 +5994,11 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		/*
 		 * Find the SIG for this rdataset, if we have it.
 		 */
-		for (sigrdataset = ISC_LIST_HEAD(name->list);
-		     sigrdataset != NULL;
-		     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
-		{
-			if (sigrdataset->type == dns_rdatatype_rrsig &&
-			    sigrdataset->covers == rdataset->type)
+		ISC_LIST_FOREACH (name->list, sig, link) {
+			if (sig->type == dns_rdatatype_rrsig &&
+			    sig->covers == rdataset->type)
 			{
+				sigrdataset = sig;
 				break;
 			}
 		}
@@ -6834,7 +6729,6 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	fetchctx_t *fctx = rctx->fctx;
 	isc_result_t result;
 	dns_name_t *name = NULL;
-	dns_rdataset_t *rdataset = NULL;
 	bool external;
 	dns_rdatatype_t rtype;
 	bool gluing;
@@ -6855,10 +6749,7 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	if (result == ISC_R_SUCCESS) {
 		external = name_external(name, type, fctx);
 		if (type == dns_rdatatype_a) {
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-			{
+			ISC_LIST_FOREACH (name->list, rdataset, link) {
 				if (dns_rdatatype_issig(rdataset->type)) {
 					rtype = rdataset->covers;
 				} else {
@@ -6870,6 +6761,7 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 				}
 			}
 		} else {
+			dns_rdataset_t *rdataset = NULL;
 			result = dns_message_findtype(name, type, 0, &rdataset);
 			if (result == ISC_R_SUCCESS) {
 				mark_related(name, rdataset, external, gluing);
@@ -8655,12 +8547,9 @@ rctx_answer_scan(respctx_t *rctx) {
  */
 static isc_result_t
 rctx_answer_any(respctx_t *rctx) {
-	dns_rdataset_t *rdataset = NULL;
 	fetchctx_t *fctx = rctx->fctx;
 
-	for (rdataset = ISC_LIST_HEAD(rctx->aname->list); rdataset != NULL;
-	     rdataset = ISC_LIST_NEXT(rdataset, link))
-	{
+	ISC_LIST_FOREACH (rctx->aname->list, rdataset, link) {
 		if (!validinanswer(rdataset, fctx)) {
 			rctx->result = DNS_R_FORMERR;
 			return ISC_R_COMPLETE;
@@ -8707,7 +8596,6 @@ rctx_answer_any(respctx_t *rctx) {
  */
 static isc_result_t
 rctx_answer_match(respctx_t *rctx) {
-	dns_rdataset_t *sigrdataset = NULL;
 	fetchctx_t *fctx = rctx->fctx;
 
 	if (!validinanswer(rctx->ardataset, fctx)) {
@@ -8741,10 +8629,7 @@ rctx_answer_match(respctx_t *rctx) {
 					  check_related, rctx,
 					  DNS_RDATASET_MAXADDITIONAL);
 
-	for (sigrdataset = ISC_LIST_HEAD(rctx->aname->list);
-	     sigrdataset != NULL;
-	     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
-	{
+	ISC_LIST_FOREACH (rctx->aname->list, sigrdataset, link) {
 		if (!validinanswer(sigrdataset, fctx)) {
 			rctx->result = DNS_R_FORMERR;
 			return ISC_R_COMPLETE;
@@ -8772,7 +8657,6 @@ rctx_answer_match(respctx_t *rctx) {
  */
 static isc_result_t
 rctx_answer_cname(respctx_t *rctx) {
-	dns_rdataset_t *sigrdataset = NULL;
 	fetchctx_t *fctx = rctx->fctx;
 
 	if (!validinanswer(rctx->crdataset, fctx)) {
@@ -8805,10 +8689,7 @@ rctx_answer_cname(respctx_t *rctx) {
 	rctx->crdataset->attributes |= DNS_RDATASETATTR_CHAINING;
 	rctx->crdataset->trust = rctx->trust;
 
-	for (sigrdataset = ISC_LIST_HEAD(rctx->cname->list);
-	     sigrdataset != NULL;
-	     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
-	{
+	ISC_LIST_FOREACH (rctx->cname->list, sigrdataset, link) {
 		if (!validinanswer(sigrdataset, fctx)) {
 			rctx->result = DNS_R_FORMERR;
 			return ISC_R_COMPLETE;
@@ -8836,7 +8717,6 @@ rctx_answer_cname(respctx_t *rctx) {
  */
 static isc_result_t
 rctx_answer_dname(respctx_t *rctx) {
-	dns_rdataset_t *sigrdataset = NULL;
 	fetchctx_t *fctx = rctx->fctx;
 
 	if (!validinanswer(rctx->drdataset, fctx)) {
@@ -8859,10 +8739,7 @@ rctx_answer_dname(respctx_t *rctx) {
 	rctx->drdataset->attributes |= DNS_RDATASETATTR_CHAINING;
 	rctx->drdataset->trust = rctx->trust;
 
-	for (sigrdataset = ISC_LIST_HEAD(rctx->dname->list);
-	     sigrdataset != NULL;
-	     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
-	{
+	ISC_LIST_FOREACH (rctx->dname->list, sigrdataset, link) {
 		if (!validinanswer(sigrdataset, fctx)) {
 			rctx->result = DNS_R_FORMERR;
 			return ISC_R_COMPLETE;
@@ -10608,10 +10485,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 		/* Is this a duplicate? */
 		if (client != NULL) {
-			dns_fetchresponse_t *resp = NULL;
-			for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL;
-			     resp = ISC_LIST_NEXT(resp, link))
-			{
+			ISC_LIST_FOREACH (fctx->resps, resp, link) {
 				if (resp->client != NULL && resp->id == id &&
 				    isc_sockaddr_equal(resp->client, client))
 				{
@@ -10696,12 +10570,7 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 	 * the callback asynchronously with a ISC_R_CANCELED result.
 	 */
 	if (fctx->state != fetchstate_done) {
-		dns_fetchresponse_t *next = NULL;
-		for (dns_fetchresponse_t *resp = ISC_LIST_HEAD(fctx->resps);
-		     resp != NULL; resp = next)
-		{
-			next = ISC_LIST_NEXT(resp, link);
-
+		ISC_LIST_FOREACH_SAFE (fctx->resps, resp, link) {
 			if (resp->fetch == fetch) {
 				resp->result = ISC_R_CANCELED;
 				ISC_LIST_UNLINK(fctx->resps, resp, link);
@@ -10746,11 +10615,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 	 * trying to destroy the fetch.
 	 */
 	if (fctx->state != fetchstate_done) {
-		dns_fetchresponse_t *resp = NULL, *next = NULL;
-		for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL;
-		     resp = next)
-		{
-			next = ISC_LIST_NEXT(resp, link);
+		ISC_LIST_FOREACH_SAFE (fctx->resps, resp, link) {
 			RUNTIME_CHECK(resp->fetch != fetch);
 		}
 	}
@@ -11030,8 +10895,6 @@ dns_resolver_dumpfetches(dns_resolver_t *res, isc_statsformat_t format,
 		char typebuf[DNS_RDATATYPE_FORMATSIZE];
 		char timebuf[1024];
 		fetchctx_t *fctx = NULL;
-		dns_fetchresponse_t *resp = NULL;
-		resquery_t *query = NULL;
 		unsigned int resp_count = 0, query_count = 0;
 
 		isc_hashmap_iter_current(it, (void **)&fctx);
@@ -11048,15 +10911,11 @@ dns_resolver_dumpfetches(dns_resolver_t *res, isc_statsformat_t format,
 			fctx->state == fetchstate_active ? "active" : "done",
 			timebuf);
 
-		for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL;
-		     resp = ISC_LIST_NEXT(resp, link))
-		{
+		ISC_LIST_FOREACH (fctx->resps, resp, link) {
 			resp_count++;
 		}
 
-		for (query = ISC_LIST_HEAD(fctx->queries); query != NULL;
-		     query = ISC_LIST_NEXT(query, link))
-		{
+		ISC_LIST_FOREACH (fctx->queries, query, link) {
 			query_count++;
 		}
 

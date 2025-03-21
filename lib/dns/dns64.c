@@ -496,9 +496,7 @@ dns_dns64_apply(isc_mem_t *mctx, dns_dns64list_t dns64s, unsigned int count,
 	for (result = dns_rdataset_first(a); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(a))
 	{
-		for (dns_dns64_t *dns64 = ISC_LIST_HEAD(dns64s); dns64 != NULL;
-		     dns64 = ISC_LIST_NEXT(dns64, link))
-		{
+		ISC_LIST_FOREACH (dns64s, dns64, link) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdata_t *dns64_rdata = NULL;
 			isc_region_t r;
@@ -534,9 +532,7 @@ dns_dns64_apply(isc_mem_t *mctx, dns_dns64list_t dns64s, unsigned int count,
 
 	/* No applicable dns64; free the resources */
 	isc_buffer_free(&buffer);
-	for (dns_rdata_t *rdata = ISC_LIST_HEAD(aaaalist->rdata); rdata != NULL;
-	     rdata = ISC_LIST_HEAD(aaaalist->rdata))
-	{
+	ISC_LIST_FOREACH_SAFE (aaaalist->rdata, rdata, link) {
 		ISC_LIST_UNLINK(aaaalist->rdata, rdata, link);
 		dns_message_puttemprdata(message, &rdata);
 	}

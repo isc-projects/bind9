@@ -588,6 +588,12 @@ Several macros are provided for this purpose, including `ISC_LIST_PREPEND`,
 
 More macros are provided for iterating the list:
 
+        ISC_LIST_FOREACH (foolist, foo, link) {
+                /* do things */
+        }
+
+... which is equivalent to:
+
         isc_foo_t *foo;
         for (foo = ISC_LIST_HEAD(foolist);
              foo != NULL;

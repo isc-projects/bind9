@@ -334,7 +334,6 @@ cleanup:
 
 static isc_result_t
 cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
-	dns_kasp_key_t *kkey;
 	unsigned int min_keysize = 4096;
 	const cfg_obj_t *obj = NULL;
 	uint32_t iter = DEFAULT_NSEC3PARAM_ITER;
@@ -348,9 +347,7 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
 		iter = cfg_obj_asuint32(obj);
 	}
 	dns_kasp_freeze(kasp);
-	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
-	     kkey = ISC_LIST_NEXT(kkey, link))
-	{
+	ISC_LIST_FOREACH (dns_kasp_keys(kasp), kkey, link) {
 		unsigned int keysize = dns_kasp_key_size(kkey);
 		uint32_t keyalg = dns_kasp_key_algorithm(kkey);
 
@@ -632,7 +629,6 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	if (keys != NULL) {
 		char role[256] = { 0 };
 		bool warn[256][2] = { { false } };
-		dns_kasp_key_t *kkey = NULL;
 
 		for (element = cfg_list_first(keys); element != NULL;
 		     element = cfg_list_next(element))
@@ -651,9 +647,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 			}
 		}
 		dns_kasp_freeze(kasp);
-		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
-		     kkey = ISC_LIST_NEXT(kkey, link))
-		{
+		ISC_LIST_FOREACH (dns_kasp_keys(kasp), kkey, link) {
 			uint32_t keyalg = dns_kasp_key_algorithm(kkey);
 			INSIST(keyalg < ARRAY_SIZE(role));
 
@@ -704,17 +698,15 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 			goto cleanup;
 		}
 	} else if (default_kasp) {
-		dns_kasp_key_t *key, *new_key;
 		/*
 		 * If there are no specific keys configured in the policy,
 		 * inherit from the default policy (except for the built-in
 		 * "insecure" policy).
 		 */
-		for (key = ISC_LIST_HEAD(dns_kasp_keys(default_kasp));
-		     key != NULL; key = ISC_LIST_NEXT(key, link))
-		{
+		ISC_LIST_FOREACH (dns_kasp_keys(default_kasp), key, link) {
+			dns_kasp_key_t *new_key = NULL;
+
 			/* Create a new key reference. */
-			new_key = NULL;
 			dns_kasp_key_create(kasp, &new_key);
 			if (dns_kasp_key_ksk(key)) {
 				new_key->role |= DNS_KASP_KEY_ROLE_KSK;

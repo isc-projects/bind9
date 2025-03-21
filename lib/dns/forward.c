@@ -91,17 +91,15 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		    dns_forwarderlist_t *fwdrs, dns_fwdpolicy_t fwdpolicy) {
 	isc_result_t result;
 	dns_forwarders_t *forwarders = NULL;
-	dns_forwarder_t *fwd = NULL, *nfwd = NULL;
 	dns_qp_t *qp = NULL;
 
 	REQUIRE(VALID_FWDTABLE(fwdtable));
 
 	forwarders = new_forwarders(fwdtable->mctx, name, fwdpolicy);
 
-	for (fwd = ISC_LIST_HEAD(*fwdrs); fwd != NULL;
-	     fwd = ISC_LIST_NEXT(fwd, link))
-	{
-		nfwd = isc_mem_get(fwdtable->mctx, sizeof(*nfwd));
+	ISC_LIST_FOREACH (*fwdrs, fwd, link) {
+		dns_forwarder_t *nfwd = isc_mem_get(fwdtable->mctx,
+						    sizeof(*nfwd));
 		*nfwd = *fwd;
 
 		if (fwd->tlsname != NULL) {
@@ -131,18 +129,15 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		 isc_sockaddrlist_t *addrs, dns_fwdpolicy_t fwdpolicy) {
 	isc_result_t result;
 	dns_forwarders_t *forwarders = NULL;
-	dns_forwarder_t *fwd = NULL;
-	isc_sockaddr_t *sa = NULL;
 	dns_qp_t *qp = NULL;
 
 	REQUIRE(VALID_FWDTABLE(fwdtable));
 
 	forwarders = new_forwarders(fwdtable->mctx, name, fwdpolicy);
 
-	for (sa = ISC_LIST_HEAD(*addrs); sa != NULL;
-	     sa = ISC_LIST_NEXT(sa, link))
-	{
-		fwd = isc_mem_get(fwdtable->mctx, sizeof(*fwd));
+	ISC_LIST_FOREACH (*addrs, sa, link) {
+		dns_forwarder_t *fwd = isc_mem_get(fwdtable->mctx,
+						   sizeof(*fwd));
 		*fwd = (dns_forwarder_t){ .addr = *sa,
 					  .link = ISC_LINK_INITIALIZER };
 		ISC_LIST_APPEND(forwarders->fwdrs, fwd, link);

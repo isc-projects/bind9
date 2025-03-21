@@ -101,13 +101,9 @@ static dns_rdatasetmethods_t methods = {
 
 static void
 destroy_keynode(dns_keynode_t *knode) {
-	dns_rdata_t *rdata = NULL;
-
 	isc_rwlock_destroy(&knode->rwlock);
 	if (knode->dslist != NULL) {
-		for (rdata = ISC_LIST_HEAD(knode->dslist->rdata); rdata != NULL;
-		     rdata = ISC_LIST_HEAD(knode->dslist->rdata))
-		{
+		ISC_LIST_FOREACH_SAFE (knode->dslist->rdata, rdata, link) {
 			ISC_LIST_UNLINK(knode->dslist->rdata, rdata, link);
 			isc_mem_put(knode->mctx, rdata->data,
 				    DNS_DS_BUFFERSIZE);
@@ -171,7 +167,7 @@ ISC_REFCOUNT_IMPL(dns_keytable, destroy_keytable);
 static void
 add_ds(dns_keynode_t *knode, dns_rdata_ds_t *ds, isc_mem_t *mctx) {
 	isc_result_t result;
-	dns_rdata_t *dsrdata = NULL, *rdata = NULL;
+	dns_rdata_t *dsrdata = NULL;
 	void *data = NULL;
 	bool exists = false;
 	isc_buffer_t b;
@@ -205,9 +201,7 @@ add_ds(dns_keynode_t *knode, dns_rdata_ds_t *ds, isc_mem_t *mctx) {
 		knode->dsset.trust = dns_trust_ultimate;
 	}
 
-	for (rdata = ISC_LIST_HEAD(knode->dslist->rdata); rdata != NULL;
-	     rdata = ISC_LIST_NEXT(rdata, link))
-	{
+	ISC_LIST_FOREACH (knode->dslist->rdata, rdata, link) {
 		if (dns_rdata_compare(rdata, dsrdata) == 0) {
 			exists = true;
 			break;
@@ -229,7 +223,6 @@ delete_ds(dns_qp_t *qp, dns_keytable_t *keytable, dns_keynode_t *knode,
 	  dns_rdata_ds_t *ds) {
 	isc_result_t result;
 	dns_rdata_t dsrdata = DNS_RDATA_INIT;
-	dns_rdata_t *rdata = NULL;
 	dns_keynode_t *newnode = NULL;
 	unsigned char data[DNS_DS_BUFFERSIZE];
 	bool found = false;
@@ -251,9 +244,7 @@ delete_ds(dns_qp_t *qp, dns_keytable_t *keytable, dns_keynode_t *knode,
 		return result;
 	}
 
-	for (rdata = ISC_LIST_HEAD(knode->dslist->rdata); rdata != NULL;
-	     rdata = ISC_LIST_NEXT(rdata, link))
-	{
+	ISC_LIST_FOREACH (knode->dslist->rdata, rdata, link) {
 		if (dns_rdata_compare(rdata, &dsrdata) == 0) {
 			found = true;
 			break;
@@ -274,9 +265,7 @@ delete_ds(dns_qp_t *qp, dns_keytable_t *keytable, dns_keynode_t *knode,
 	 */
 	newnode = new_keynode(&knode->name, NULL, keytable, knode->managed,
 			      knode->initial);
-	for (rdata = ISC_LIST_HEAD(knode->dslist->rdata); rdata != NULL;
-	     rdata = ISC_LIST_NEXT(rdata, link))
-	{
+	ISC_LIST_FOREACH (knode->dslist->rdata, rdata, link) {
 		if (dns_rdata_compare(rdata, &dsrdata) != 0) {
 			dns_rdata_ds_t ds0;
 			result = dns_rdata_tostruct(rdata, &ds0, NULL);

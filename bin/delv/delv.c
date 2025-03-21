@@ -974,8 +974,7 @@ static isc_result_t
 findserver(dns_client_t *client) {
 	isc_result_t result;
 	irs_resconf_t *resconf = NULL;
-	isc_sockaddrlist_t *nameservers;
-	isc_sockaddr_t *sa = NULL, *next = NULL;
+	isc_sockaddrlist_t *nameservers = NULL;
 
 	result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
@@ -986,9 +985,7 @@ findserver(dns_client_t *client) {
 
 	/* Get nameservers from resolv.conf */
 	nameservers = irs_resconf_getnameservers(resconf);
-	for (sa = ISC_LIST_HEAD(*nameservers); sa != NULL; sa = next) {
-		next = ISC_LIST_NEXT(sa, link);
-
+	ISC_LIST_FOREACH_SAFE (*nameservers, sa, link) {
 		/* Set destination port */
 		if (sa->type.sa.sa_family == AF_INET && use_ipv4) {
 			sa->type.sin.sin_port = htons(destport);
@@ -1009,7 +1006,7 @@ findserver(dns_client_t *client) {
 		if (use_ipv4) {
 			struct in_addr localhost;
 			localhost.s_addr = htonl(INADDR_LOOPBACK);
-			sa = isc_mem_get(mctx, sizeof(*sa));
+			isc_sockaddr_t *sa = isc_mem_get(mctx, sizeof(*sa));
 			isc_sockaddr_fromin(sa, &localhost, destport);
 
 			ISC_LINK_INIT(sa, link);
@@ -1017,7 +1014,7 @@ findserver(dns_client_t *client) {
 		}
 
 		if (use_ipv6) {
-			sa = isc_mem_get(mctx, sizeof(*sa));
+			isc_sockaddr_t *sa = isc_mem_get(mctx, sizeof(*sa));
 			isc_sockaddr_fromin6(sa, &in6addr_loopback, destport);
 
 			ISC_LINK_INIT(sa, link);
@@ -1855,10 +1852,7 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 	}
 
 	ISC_LIST_FOREACH (*namelist, response_name, link) {
-		for (dns_rdataset_t *rdataset =
-			     ISC_LIST_HEAD(response_name->list);
-		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+		ISC_LIST_FOREACH (response_name->list, rdataset, link) {
 			printdata(rdataset, response_name);
 		}
 	}

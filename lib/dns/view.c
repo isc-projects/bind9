@@ -165,8 +165,7 @@ dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 
 static void
 destroy(dns_view_t *view) {
-	dns_dns64_t *dns64;
-	dns_dlzdb_t *dlzdb;
+	dns_dns64_t *dns64 = NULL;
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
 
@@ -233,15 +232,11 @@ destroy(dns_view_t *view) {
 		dns_catz_zones_shutdown(view->catzs);
 		dns_catz_zones_detach(&view->catzs);
 	}
-	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched); dlzdb != NULL;
-	     dlzdb = ISC_LIST_HEAD(view->dlz_searched))
-	{
+	ISC_LIST_FOREACH_SAFE (view->dlz_searched, dlzdb, link) {
 		ISC_LIST_UNLINK(view->dlz_searched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
 	}
-	for (dlzdb = ISC_LIST_HEAD(view->dlz_unsearched); dlzdb != NULL;
-	     dlzdb = ISC_LIST_HEAD(view->dlz_unsearched))
-	{
+	ISC_LIST_FOREACH_SAFE (view->dlz_unsearched, dlzdb, link) {
 		ISC_LIST_UNLINK(view->dlz_unsearched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
 	}
@@ -1227,40 +1222,29 @@ cleanup:
 isc_result_t
 dns_viewlist_find(dns_viewlist_t *list, const char *name,
 		  dns_rdataclass_t rdclass, dns_view_t **viewp) {
-	dns_view_t *view;
-
 	REQUIRE(list != NULL);
 
-	for (view = ISC_LIST_HEAD(*list); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (*list, view, link) {
 		if (strcmp(view->name, name) == 0 && view->rdclass == rdclass) {
-			break;
+			dns_view_attach(view, viewp);
+			return ISC_R_SUCCESS;
 		}
 	}
-	if (view == NULL) {
-		return ISC_R_NOTFOUND;
-	}
 
-	dns_view_attach(view, viewp);
-
-	return ISC_R_SUCCESS;
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t
 dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 		      bool allclasses, dns_rdataclass_t rdclass,
 		      dns_zone_t **zonep) {
-	dns_view_t *view;
 	isc_result_t result;
 	dns_zone_t *zone1 = NULL, *zone2 = NULL;
 
 	REQUIRE(list != NULL);
 	REQUIRE(zonep != NULL && *zonep == NULL);
 
-	for (view = ISC_LIST_HEAD(*list); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (*list, view, link) {
 		dns_zt_t *zonetable = NULL;
 		if (!allclasses && view->rdclass != rdclass) {
 			continue;
@@ -1883,7 +1867,6 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 	unsigned int i;
 	isc_result_t result;
 	dns_dlzfindzone_t findzone;
-	dns_dlzdb_t *dlzdb;
 	dns_db_t *db, *best = NULL;
 
 	/*
@@ -1899,9 +1882,7 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 	/* count the number of labels in the name */
 	namelabels = dns_name_countlabels(name);
 
-	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched); dlzdb != NULL;
-	     dlzdb = ISC_LIST_NEXT(dlzdb, link))
-	{
+	ISC_LIST_FOREACH (view->dlz_searched, dlzdb, link) {
 		REQUIRE(DNS_DLZ_VALID(dlzdb));
 
 		/*
