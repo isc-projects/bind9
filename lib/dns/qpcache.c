@@ -238,8 +238,8 @@ typedef struct qpcache_bucket {
 
 	/* Padding to prevent false sharing between locks. */
 	uint8_t __padding[ISC_OS_CACHELINE_SIZE -
-			  (sizeof(dns_slabheaderlist_t) + sizeof(isc_heap_t *) +
-			   sizeof(isc_rwlock_t)) %
+			  (sizeof(isc_queue_t) + sizeof(isc_rwlock_t) +
+			   sizeof(dns_slabheaderlist_t) + sizeof(isc_heap_t *)) %
 				  ISC_OS_CACHELINE_SIZE];
 
 } qpcache_bucket_t;
