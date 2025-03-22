@@ -3085,7 +3085,6 @@ static bool
 zone_rrset_check_dup(dns_zone_t *zone, dns_name_t *owner,
 		     dns_rdataset_t *rdataset) {
 	dns_rdataset_t tmprdataset;
-	isc_result_t result;
 	bool answer = true;
 	bool format = true;
 	int level = ISC_LOG_WARNING;
@@ -3098,19 +3097,14 @@ zone_rrset_check_dup(dns_zone_t *zone, dns_name_t *owner,
 	}
 
 	dns_rdataset_init(&tmprdataset);
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		dns_rdata_t rdata1 = DNS_RDATA_INIT;
 		unsigned int count2 = 0;
 
 		count1++;
 		dns_rdataset_current(rdataset, &rdata1);
 		dns_rdataset_clone(rdataset, &tmprdataset);
-		for (result = dns_rdataset_first(&tmprdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&tmprdataset))
-		{
+		DNS_RDATASET_FOREACH (&tmprdataset) {
 			dns_rdata_t rdata2 = DNS_RDATA_INIT;
 			count2++;
 			if (count1 >= count2) {
@@ -3279,7 +3273,6 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	dns_rdata_mx_t mx;
 	dns_rdata_ns_t ns;
 	dns_rdata_in_srv_t srv;
-	dns_rdata_t rdata;
 	dns_name_t *name;
 	dns_name_t *bottom;
 	isc_result_t result;
@@ -3292,7 +3285,6 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	name = dns_fixedname_initname(&fixed);
 	bottom = dns_fixedname_initname(&fixedbottom);
 	dns_rdataset_init(&rdataset);
-	dns_rdata_init(&rdata);
 
 	result = dns_db_createiterator(db, 0, &dbiterator);
 	if (result != ISC_R_SUCCESS) {
@@ -3335,9 +3327,10 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		 */
 		dns_name_copy(name, bottom);
 
-		result = dns_rdataset_first(&rdataset);
-		while (result == ISC_R_SUCCESS) {
+		DNS_RDATASET_FOREACH (&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
+
 			result = dns_rdata_tostruct(&rdata, &ns, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (!zone_check_glue(zone, db, &has_a, &has_aaaa,
@@ -3345,8 +3338,6 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			{
 				ok = false;
 			}
-			dns_rdata_reset(&rdata);
-			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
 		goto next;
@@ -3386,16 +3377,15 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		if (result != ISC_R_SUCCESS) {
 			goto checksrv;
 		}
-		result = dns_rdataset_first(&rdataset);
-		while (result == ISC_R_SUCCESS) {
+		DNS_RDATASET_FOREACH (&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
+
 			result = dns_rdata_tostruct(&rdata, &mx, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (!zone_check_mx(zone, db, &mx.mx, name)) {
 				ok = false;
 			}
-			dns_rdata_reset(&rdata);
-			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
 
@@ -3408,16 +3398,15 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		if (result != ISC_R_SUCCESS) {
 			goto checkforaaaa;
 		}
-		result = dns_rdataset_first(&rdataset);
-		while (result == ISC_R_SUCCESS) {
+		DNS_RDATASET_FOREACH (&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
+
 			result = dns_rdata_tostruct(&rdata, &srv, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (!zone_check_srv(zone, db, &srv.target, name)) {
 				ok = false;
 			}
-			dns_rdata_reset(&rdata);
-			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
 
@@ -3466,15 +3455,14 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		if (result != ISC_R_SUCCESS) {
 			goto notxt;
 		}
-		result = dns_rdataset_first(&rdataset);
-		while (result == ISC_R_SUCCESS) {
+		DNS_RDATASET_FOREACH (&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
+
 			have_txt = isspf(&rdata);
-			dns_rdata_reset(&rdata);
 			if (have_txt) {
 				break;
 			}
-			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
 
@@ -3503,19 +3491,19 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			}
 			goto cleanup;
 		}
-		result = dns_rdataset_first(&rdataset);
-		while (result == ISC_R_SUCCESS) {
+
+		DNS_RDATASET_FOREACH (&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
+
 			result = dns_rdata_tostruct(&rdata, &ns, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			dns_rdata_reset(&rdata);
 			if (zone_is_served_by(zone, db, dns_rdatatype_a,
 					      &ns.name))
 			{
 				has_a = true;
 				break;
 			}
-			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
 		if (!has_a) {
@@ -3535,19 +3523,19 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			}
 			goto cleanup;
 		}
-		result = dns_rdataset_first(&rdataset);
-		while (result == ISC_R_SUCCESS) {
+
+		DNS_RDATASET_FOREACH (&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
+
 			result = dns_rdata_tostruct(&rdata, &ns, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			dns_rdata_reset(&rdata);
 			if (zone_is_served_by(zone, db, dns_rdatatype_aaaa,
 					      &ns.name))
 			{
 				has_aaaa = true;
 				break;
 			}
-			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
 		if (!has_aaaa) {
@@ -3576,7 +3564,6 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_rdata_dnskey_t dnskey;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
 
@@ -3593,9 +3580,8 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 		goto cleanup;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
 		INSIST(result == ISC_R_SUCCESS);
@@ -3637,7 +3623,6 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 				   algorithm, dnskey.algorithm,
 				   dst_region_computeid(&r));
 		}
-		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&rdataset);
 
@@ -3654,7 +3639,6 @@ static void
 resume_signingwithkey(dns_zone_t *zone) {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -3682,14 +3666,12 @@ resume_signingwithkey(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		if (rdata.length != 5 || rdata.data[0] == 0 ||
 		    rdata.data[4] != 0)
 		{
-			dns_rdata_reset(&rdata);
 			continue;
 		}
 
@@ -3701,7 +3683,6 @@ resume_signingwithkey(dns_zone_t *zone) {
 				   "zone_signwithkey failed: %s",
 				   isc_result_totext(result));
 		}
-		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&rdataset);
 
@@ -3956,9 +3937,7 @@ resume_addnsec3chain(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t private = DNS_RDATA_INIT;
@@ -4092,9 +4071,7 @@ check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
 		goto cleanup;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
@@ -4144,9 +4121,6 @@ check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
 				   nsec3param.iterations,
 				   dns_nsec3_maxiterations());
 		}
-	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 
 	if (!ok) {
@@ -4263,13 +4237,10 @@ failure:
 static isc_result_t
 delete_keydata(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	       dns_name_t *name, dns_rdataset_t *rdataset) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_result_t result, uresult;
+	isc_result_t uresult;
 
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
-		dns_rdata_reset(&rdata);
+	DNS_RDATASET_FOREACH (rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &rdata);
 		uresult = update_one_rr(db, ver, diff, DNS_DIFFOP_DEL, name, 0,
 					&rdata);
@@ -4277,10 +4248,8 @@ delete_keydata(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 			return uresult;
 		}
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
-	return result;
+
+	return ISC_R_SUCCESS;
 }
 
 /*
@@ -4384,7 +4353,6 @@ fail_secure(dns_zone_t *zone, dns_name_t *keyname) {
 static void
 load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_keydata_t keydata;
 	dns_rdata_dnskey_t dnskey;
 	int trusted = 0, revoked = 0, pending = 0;
@@ -4398,10 +4366,8 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 	}
 
 	/* Now insert all the accepted trust anchors from this keydata set. */
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
-		dns_rdata_reset(&rdata);
+	DNS_RDATASET_FOREACH (rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &rdata);
 
 		/* Convert rdata to keydata. */
@@ -4725,7 +4691,6 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	     result = dns_rriterator_nextrrset(&rrit))
 	{
 		dns_rdataset_t *rdataset = NULL;
-		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_keydata_t keydata;
 		isc_stdtime_t now = isc_stdtime_now();
 		bool load = true;
@@ -4747,13 +4712,10 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		 * legitimate data, in which case we will not use it, and we
 		 * will try to refresh it.
 		 */
-		for (result = dns_rdataset_first(rdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(rdataset))
-		{
+		DNS_RDATASET_FOREACH (rdataset) {
 			isc_result_t iresult;
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 
-			dns_rdata_reset(&rdata);
 			dns_rdataset_current(rdataset, &rdata);
 
 			iresult = dns_rdata_tostruct(&rdata, &keydata, NULL);
@@ -5653,7 +5615,6 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 	unsigned int count = 0;
 	unsigned int ecount = 0;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
 	dns_rdata_ns_t ns;
 
 	dns_rdataset_init(&rdataset);
@@ -5668,15 +5629,15 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		goto invalidate_rdataset;
 	}
 
-	result = dns_rdataset_first(&rdataset);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASET_FOREACH (&rdataset) {
 		if (errors != NULL && zone->rdclass == dns_rdataclass_in &&
 		    (zone->type == dns_zone_primary ||
 		     zone->type == dns_zone_secondary ||
 		     zone->type == dns_zone_mirror))
 		{
-			dns_rdata_init(&rdata);
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
+
 			result = dns_rdata_tostruct(&rdata, &ns, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (dns_name_issubdomain(&ns.name, &zone->origin) &&
@@ -5686,7 +5647,6 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 			}
 		}
 		count++;
-		result = dns_rdataset_next(&rdataset);
 	}
 	dns_rdataset_disassociate(&rdataset);
 
@@ -5726,7 +5686,6 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_result_t result;
 	unsigned int count = 0;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_soa,
@@ -5741,10 +5700,10 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		goto invalidate_rdataset;
 	}
 
-	result = dns_rdataset_first(&rdataset);
-	while (result == ISC_R_SUCCESS) {
-		dns_rdata_init(&rdata);
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
+
 		count++;
 		if (count == 1) {
 			dns_rdata_soa_t soa;
@@ -5753,9 +5712,6 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				       soa.retry, soa.expire, soa.minimum);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		}
-
-		result = dns_rdataset_next(&rdataset);
-		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&rdataset);
 
@@ -6869,9 +6825,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		goto failure;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
@@ -7005,9 +6959,6 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	}
 
 	dns_rdataset_disassociate(&rdataset);
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
 	if (timewarn > 0) {
 		isc_stdtime_t stdwarn = (isc_stdtime_t)timewarn;
 		if (timewarn == stdwarn) {
@@ -7542,7 +7493,6 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		     dst_key_t *key) {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t rrsig;
 	int count = 0;
 	dns_kasp_t *kasp = zone->kasp;
@@ -7554,9 +7504,8 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		INSIST(!dns_rdataset_isassociated(&rdataset));
 		return false;
 	}
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		INSIST(result == ISC_R_SUCCESS);
@@ -7569,7 +7518,6 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		if (rrsig.algorithm == dst_key_alg(key)) {
 			count++;
 		}
-		dns_rdata_reset(&rdata);
 	}
 
 	if (zone->kasp != NULL) {
@@ -7894,8 +7842,6 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char data[5];
 	bool seen_done = false;
 	bool have_rr = false;
 
@@ -7917,9 +7863,8 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 		INSIST(!dns_rdataset_isassociated(&rdataset));
 		goto failure;
 	}
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		/*
 		 * If we don't match the algorithm or keyid skip the record.
@@ -7951,26 +7896,28 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 					    DNS_DIFFOP_DEL, &zone->origin,
 					    rdataset.ttl, &rdata));
 		}
-		dns_rdata_reset(&rdata);
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
+
 	if (!signing->deleteit && !seen_done) {
 		/*
 		 * If we were signing then we need to indicate that we have
 		 * finished signing the zone with this key.  If it is already
 		 * there we don't need to add it a second time.
 		 */
-		data[0] = signing->algorithm;
-		data[1] = (signing->keyid >> 8) & 0xff;
-		data[2] = signing->keyid & 0xff;
-		data[3] = 0;
-		data[4] = 1;
-		rdata.length = sizeof(data);
-		rdata.data = data;
-		rdata.type = zone->privatetype;
-		rdata.rdclass = dns_db_class(signing->db);
+		unsigned char data[5] = {
+			signing->algorithm,
+			(signing->keyid >> 8) & 0xff,
+			signing->keyid & 0xff,
+			0,
+			1,
+		};
+		dns_rdata_t rdata = (dns_rdata_t){
+			.length = sizeof(data),
+			.data = data,
+			.type = zone->privatetype,
+			.rdclass = dns_db_class(signing->db),
+			.link = ISC_LINK_INITIALIZER,
+		};
 		CHECK(update_one_rr(signing->db, version, diff, DNS_DIFFOP_ADD,
 				    &zone->origin, rdataset.ttl, &rdata));
 	} else if (!have_rr) {
@@ -8067,9 +8014,7 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 	/*
 	 * Delete all NSEC3PARAM records which match that in nsec3chain.
 	 */
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdataset_current(&rdataset, &rdata);
 		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
 
@@ -8098,18 +8043,12 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 				    rdataset.ttl, &rdata));
 		dns_rdata_reset(&rdata);
 	}
-	if (result != ISC_R_NOMORE) {
-		goto failure;
-	}
 
 	/*
 	 * Restore any NSEC3PARAM records that we deleted to change the TTL.
 	 */
 	if (rdataset.ttl != ttl) {
-		for (result = dns_rdataset_first(&rdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset))
-		{
+		DNS_RDATASET_FOREACH (&rdataset) {
 			dns_rdataset_current(&rdataset, &rdata);
 			CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
 
@@ -8153,9 +8092,7 @@ try_private:
 		goto failure;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t private = DNS_RDATA_INIT;
 		unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
 
@@ -8166,6 +8103,7 @@ try_private:
 			continue;
 		}
 		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		dns_rdata_reset(&rdata);
 
 		if ((!nsec3ok &&
 		     (nsec3param.flags & DNS_NSEC3FLAG_INITIAL) != 0) ||
@@ -8175,16 +8113,11 @@ try_private:
 		    memcmp(nsec3param.salt, chain->nsec3param.salt,
 			   nsec3param.salt_length))
 		{
-			dns_rdata_reset(&rdata);
 			continue;
 		}
 
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_DEL, name,
 				    rdataset.ttl, &private));
-		dns_rdata_reset(&rdata);
-	}
-	if (result != ISC_R_NOMORE) {
-		goto failure;
 	}
 
 add:
@@ -8231,18 +8164,15 @@ delete_nsec(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_DEL, name,
 				    rdataset.ttl, &rdata));
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
+
 failure:
 	dns_rdataset_disassociate(&rdataset);
 	return result;
@@ -8266,9 +8196,7 @@ deletematchingnsec3(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 		return result;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
@@ -8283,9 +8211,7 @@ deletematchingnsec3(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_DEL, name,
 				    rdataset.ttl, &rdata));
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
+
 failure:
 	dns_rdataset_disassociate(&rdataset);
 	return result;
@@ -8295,7 +8221,6 @@ static isc_result_t
 need_nsec_chain(dns_db_t *db, dns_dbversion_t *ver,
 		const dns_rdata_nsec3param_t *param, bool *answer) {
 	dns_dbnode_t *node = NULL;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nsec3param_t myparam;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
@@ -8331,12 +8256,12 @@ need_nsec_chain(dns_db_t *db, dns_dbversion_t *ver,
 		return result;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	bool active = false;
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		CHECK(dns_rdata_tostruct(&rdata, &myparam, NULL));
-		dns_rdata_reset(&rdata);
+
 		/*
 		 * Ignore any NSEC3PARAM removals.
 		 */
@@ -8353,15 +8278,15 @@ need_nsec_chain(dns_db_t *db, dns_dbversion_t *ver,
 		{
 			continue;
 		}
+
 		/*
 		 * Found an active NSEC3 chain.
 		 */
+		active = true;
 		break;
 	}
-	if (result == ISC_R_NOMORE) {
-		*answer = true;
-		result = ISC_R_SUCCESS;
-	}
+
+	*answer = !active;
 
 failure:
 	if (dns_rdataset_isassociated(&rdataset)) {
@@ -9356,18 +9281,12 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		bool has_alg = false;
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (nkeys == 0 && rdataset.type == dns_rdatatype_nsec) {
-			for (result = dns_rdataset_first(&rdataset);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(&rdataset))
-			{
+			DNS_RDATASET_FOREACH (&rdataset) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(&rdataset, &rdata);
 				CHECK(update_one_rr(db, version, diff,
 						    DNS_DIFFOP_DEL, name,
 						    rdataset.ttl, &rdata));
-			}
-			if (result != ISC_R_NOMORE) {
-				goto failure;
 			}
 			dns_rdataset_disassociate(&rdataset);
 			continue;
@@ -9376,10 +9295,7 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 			dns_rdataset_disassociate(&rdataset);
 			continue;
 		}
-		for (result = dns_rdataset_first(&rdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset))
-		{
+		DNS_RDATASET_FOREACH (&rdataset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			CHECK(dns_rdata_tostruct(&rdata, &rrsig, NULL));
@@ -9396,9 +9312,6 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 					    rdataset.ttl, &rdata));
 		}
 		dns_rdataset_disassociate(&rdataset);
-		if (result != ISC_R_NOMORE) {
-			break;
-		}
 
 		/*
 		 * After deleting, if there's still a signature for
@@ -10126,23 +10039,20 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target, unsigned char *data,
 
 static bool
 matchkey(dns_rdataset_t *rdset, dns_rdata_t *rr) {
-	unsigned char data1[4096], data2[4096];
-	dns_rdata_t rdata, rdata1, rdata2;
+	unsigned char data1[4096];
+	dns_rdata_t rdata1 = DNS_RDATA_INIT;
 	isc_result_t result;
-
-	dns_rdata_init(&rdata);
-	dns_rdata_init(&rdata1);
-	dns_rdata_init(&rdata2);
 
 	result = normalize_key(rr, &rdata1, data1, sizeof(data1));
 	if (result != ISC_R_SUCCESS) {
 		return false;
 	}
 
-	for (result = dns_rdataset_first(rdset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdset))
-	{
-		dns_rdata_reset(&rdata);
+	DNS_RDATASET_FOREACH (rdset) {
+		unsigned char data2[4096];
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_t rdata2 = DNS_RDATA_INIT;
+
 		dns_rdataset_current(rdset, &rdata);
 		result = normalize_key(&rdata, &rdata2, data2, sizeof(data2));
 		if (result != ISC_R_SUCCESS) {
@@ -10240,7 +10150,6 @@ minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff) {
 	isc_result_t result;
 	isc_buffer_t keyb;
 	unsigned char key_buf[4096];
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_keydata_t keydata;
 	dns_name_t *name;
 	dns_zone_t *zone = kfetch->zone;
@@ -10248,11 +10157,8 @@ minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff) {
 
 	name = dns_fixedname_name(&kfetch->name);
 
-	for (result = dns_rdataset_first(&kfetch->keydataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->keydataset))
-	{
-		dns_rdata_reset(&rdata);
+	DNS_RDATASET_FOREACH (&kfetch->keydataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&kfetch->keydataset, &rdata);
 
 		/* Delete old version */
@@ -10293,7 +10199,6 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 	isc_result_t result;
 	dns_name_t *keyname;
 	isc_mem_t *mctx;
-	dns_rdata_t sigrr = DNS_RDATA_INIT;
 	dns_rdata_t rr = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
 	dns_rdata_dnskey_t dnskey;
@@ -10319,14 +10224,11 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 	}
 
 	/* See if that key generated any of the signatures */
-	for (result = dns_rdataset_first(&kfetch->dnskeysigset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->dnskeysigset))
-	{
+	DNS_RDATASET_FOREACH (&kfetch->dnskeysigset) {
+		dns_rdata_t sigrr = DNS_RDATA_INIT;
 		dns_fixedname_t fixed;
 		dns_fixedname_init(&fixed);
 
-		dns_rdata_reset(&sigrr);
 		dns_rdataset_current(&kfetch->dnskeysigset, &sigrr);
 		result = dns_rdata_tostruct(&sigrr, &sig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -10371,8 +10273,6 @@ keyfetch_done(void *arg) {
 	bool alldone = false;
 	bool commit = false;
 	dns_name_t *keyname = NULL;
-	dns_rdata_t sigrr = DNS_RDATA_INIT;
-	dns_rdata_t dnskeyrr = DNS_RDATA_INIT;
 	dns_rdata_t keydatarr = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
 	dns_rdata_dnskey_t dnskey;
@@ -10476,30 +10376,21 @@ keyfetch_done(void *arg) {
 	 */
 	dns_rdataset_init(&dsset);
 	if (dns_keynode_dsset(keynode, &dsset)) {
-		for (result = dns_rdataset_first(dnskeysigs);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(dnskeysigs))
-		{
-			isc_result_t tresult;
+		DNS_RDATASET_FOREACH (dnskeysigs) {
+			isc_result_t tresult = ISC_R_NOTFOUND;
 			dns_rdata_t keyrdata = DNS_RDATA_INIT;
+			dns_rdata_t sigrr = DNS_RDATA_INIT;
 
-			dns_rdata_reset(&sigrr);
 			dns_rdataset_current(dnskeysigs, &sigrr);
-			result = dns_rdata_tostruct(&sigrr, &sig, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			dns_rdata_tostruct(&sigrr, &sig, NULL);
 
-			for (tresult = dns_rdataset_first(&dsset);
-			     tresult == ISC_R_SUCCESS;
-			     tresult = dns_rdataset_next(&dsset))
-			{
+			DNS_RDATASET_FOREACH (&dsset) {
 				dns_rdata_t dsrdata = DNS_RDATA_INIT;
 				dns_rdata_ds_t ds;
 
 				dns_rdata_reset(&dsrdata);
 				dns_rdataset_current(&dsset, &dsrdata);
-				tresult = dns_rdata_tostruct(&dsrdata, &ds,
-							     NULL);
-				RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
+				dns_rdata_tostruct(&dsrdata, &ds, NULL);
 
 				if (ds.key_tag != sig.keyid ||
 				    ds.algorithm != sig.algorithm)
@@ -10507,14 +10398,14 @@ keyfetch_done(void *arg) {
 					continue;
 				}
 
-				result = dns_dnssec_matchdskey(
+				tresult = dns_dnssec_matchdskey(
 					keyname, &dsrdata, dnskeys, &keyrdata);
-				if (result == ISC_R_SUCCESS) {
+				if (tresult == ISC_R_SUCCESS) {
 					break;
 				}
 			}
 
-			if (tresult == ISC_R_NOMORE) {
+			if (tresult == ISC_R_NOTFOUND) {
 				continue;
 			}
 
@@ -10576,9 +10467,7 @@ anchors_done:
 	 *     updated
 	 */
 	initializing = true;
-	for (result = dns_rdataset_first(keydataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(keydataset))
-	{
+	DNS_RDATASET_FOREACH (keydataset) {
 		dns_keytag_t keytag;
 
 		dns_rdata_reset(&keydatarr);
@@ -10694,9 +10583,8 @@ anchors_done:
 	 *   - All keys not being removed have their refresh
 	 *     timers updated
 	 */
-	for (result = dns_rdataset_first(dnskeys); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(dnskeys))
-	{
+	DNS_RDATASET_FOREACH (dnskeys) {
+		dns_rdata_t dnskeyrr = DNS_RDATA_INIT;
 		bool revoked = false;
 		bool newkey = false;
 		bool updatekey = false;
@@ -10704,7 +10592,6 @@ anchors_done:
 		bool trustkey = false;
 		dns_keytag_t keytag;
 
-		dns_rdata_reset(&dnskeyrr);
 		dns_rdataset_current(dnskeys, &dnskeyrr);
 		result = dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -11117,7 +11004,6 @@ zone_refreshkeys(dns_zone_t *zone) {
 	dns_db_t *db = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_keydata_t kd;
 	isc_stdtime_t now = isc_stdtime_now();
 	bool commit = false;
@@ -11164,10 +11050,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 		 * Scan the stored keys looking for ones that need
 		 * removal or refreshing
 		 */
-		for (result = dns_rdataset_first(kdset);
-		     result == ISC_R_SUCCESS; result = dns_rdataset_next(kdset))
-		{
-			dns_rdata_reset(&rdata);
+		DNS_RDATASET_FOREACH (kdset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(kdset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &kd, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -12906,8 +12790,8 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	dns_name_t primary;
 	dns_rdata_ns_t ns;
 	dns_rdata_soa_t soa;
+	dns_rdata_t soardata = DNS_RDATA_INIT;
 	uint32_t serial;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t nsrdset;
 	dns_rdataset_t soardset;
 	isc_result_t result;
@@ -12988,10 +12872,9 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup3;
 	}
-	dns_rdataset_current(&soardset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &soa, NULL);
+	dns_rdataset_current(&soardset, &soardata);
+	result = dns_rdata_tostruct(&soardata, &soa, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	dns_rdata_reset(&rdata);
 	dns_name_dup(&soa.origin, zone->mctx, &primary);
 	serial = soa.serial;
 	dns_rdataset_disassociate(&soardset);
@@ -13113,14 +12996,15 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		goto cleanup3;
 	}
 
-	result = dns_rdataset_first(&nsrdset);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASET_FOREACH (&nsrdset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(&nsrdset, &rdata);
+
 		dns_notify_t *notify = NULL;
 
-		dns_rdataset_current(&nsrdset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		dns_rdata_reset(&rdata);
+
 		/*
 		 * Don't notify the primary server unless explicitly
 		 * configured to do so.
@@ -13128,7 +13012,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYTOSOA) &&
 		    dns_name_compare(&primary, &ns.name) == 0)
 		{
-			result = dns_rdataset_next(&nsrdset);
 			continue;
 		}
 
@@ -13143,7 +13026,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 					   NULL);
 		UNLOCK_ZONE(zone);
 		if (isqueued) {
-			result = dns_rdataset_next(&nsrdset);
 			continue;
 		}
 		result = notify_create(zone->mctx, flags, &notify);
@@ -13156,7 +13038,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		UNLOCK_ZONE(zone);
 		notify_find_address(notify);
-		result = dns_rdataset_next(&nsrdset);
 	}
 	dns_rdataset_disassociate(&nsrdset);
 
@@ -13570,7 +13451,6 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 	dns_dbnode_t *node = NULL;
 	dns_rdata_ns_t ns;
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	bool has_glue = false;
 
 	/*
@@ -13605,13 +13485,11 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 	/*
 	 * Add glue rdatasets.
 	 */
-	for (result = dns_rdataset_first(nsrdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(nsrdataset))
-	{
+	DNS_RDATASET_FOREACH (nsrdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(nsrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		dns_rdata_reset(&rdata);
 
 		if (!dns_name_issubdomain(&ns.name, name)) {
 			continue;
@@ -13667,10 +13545,6 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 			dns_name_dup(&ns.name, cb_args->stub->mctx, tmp_name);
 			ISC_LIST_APPEND(ns_list, tmp_name, link);
 		}
-	}
-
-	if (result != ISC_R_NOMORE) {
-		goto done;
 	}
 
 	/*
@@ -17293,9 +17167,7 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 	 * is why we use an nsec3list, even though we will usually only
 	 * have one).
 	 */
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t private = DNS_RDATA_INIT;
 
@@ -17329,9 +17201,7 @@ getprivate:
 	 * using dns_nsec3param_fromprivate(), do the right thing based on
 	 * CREATE and REMOVE flags
 	 */
-	for (result = dns_rdataset_first(&prdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&prdataset))
-	{
+	DNS_RDATASET_FOREACH (&prdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t private = DNS_RDATA_INIT;
 
@@ -17387,7 +17257,7 @@ getprivate:
 	}
 
 done:
-	if (result == ISC_R_NOMORE || result == ISC_R_NOTFOUND) {
+	if (result == ISC_R_NOTFOUND) {
 		result = ISC_R_SUCCESS;
 	}
 
@@ -20459,22 +20329,17 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		goto failure;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	bool matched = false;
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t myrdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &myrdata);
-		if (!dns_rdata_compare(&myrdata, rdata)) {
+		if (dns_rdata_compare(&myrdata, rdata) == 0) {
+			matched = true;
 			break;
 		}
 	}
 	dns_rdataset_disassociate(&rdataset);
-	if (result == ISC_R_SUCCESS) {
-		*flag = true;
-	} else if (result == ISC_R_NOMORE) {
-		*flag = false;
-		result = ISC_R_SUCCESS;
-	}
+	*flag = matched;
 
 failure:
 	if (node != NULL) {
@@ -20771,22 +20636,17 @@ failure:
  */
 static bool
 signed_with_alg(dns_rdataset_t *rdataset, dns_secalg_t alg) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_rrsig_t rrsig;
-	isc_result_t result;
-
 	REQUIRE(rdataset == NULL || rdataset->type == dns_rdatatype_rrsig);
 	if (rdataset == NULL || !dns_rdataset_isassociated(rdataset)) {
 		return false;
 	}
 
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_rrsig_t rrsig;
+
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		dns_rdata_reset(&rdata);
+		dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		if (rrsig.algorithm == alg) {
 			return true;
 		}
@@ -21087,7 +20947,6 @@ checkds_done(void *arg) {
 		bool checkdspub = false, checkdsdel = false, ksk = false;
 		dst_key_state_t ds_state = DST_KEY_STATE_NA;
 		isc_stdtime_t published = 0, withdrawn = 0;
-		isc_result_t ret = ISC_R_SUCCESS;
 
 		/* Is this key have the KSK role? */
 		(void)dst_key_role(key->key, &ksk, NULL);
@@ -21116,8 +20975,7 @@ checkds_done(void *arg) {
 		}
 
 		/* Find the appropriate DS record. */
-		ret = dns_rdataset_first(ds_rrset);
-		while (ret == ISC_R_SUCCESS) {
+		DNS_RDATASET_FOREACH (ds_rrset) {
 			dns_rdata_ds_t ds;
 			dns_rdata_t dnskey = DNS_RDATA_INIT;
 			dns_rdata_t dsrdata = DNS_RDATA_INIT;
@@ -21129,21 +20987,21 @@ checkds_done(void *arg) {
 			dns_rdataset_current(ds_rrset, &rdata);
 			r = dns_rdata_tostruct(&rdata, &ds, NULL);
 			if (r != ISC_R_SUCCESS) {
-				goto nextds;
+				continue;
 			}
 			/* Check key tag and algorithm. */
 			if (dst_key_id(key->key) != ds.key_tag) {
-				goto nextds;
+				continue;
 			}
 			if (dst_key_alg(key->key) != ds.algorithm) {
-				goto nextds;
+				continue;
 			}
 			/* Derive DS from DNSKEY, see if the rdata is equal. */
 			make_dnskey(key->key, keybuf, sizeof(keybuf), &dnskey);
 			r = dns_ds_buildrdata(&zone->origin, &dnskey,
 					      ds.digest_type, dsbuf, &dsrdata);
 			if (r != ISC_R_SUCCESS) {
-				goto nextds;
+				continue;
 			}
 			if (dns_rdata_compare(&rdata, &dsrdata) == 0) {
 				found = true;
@@ -21156,9 +21014,6 @@ checkds_done(void *arg) {
 					}
 				}
 			}
-
-		nextds:
-			ret = dns_rdataset_next(ds_rrset);
 		}
 
 	dswithdrawn:
@@ -21696,7 +21551,7 @@ checkds_send(dns_zone_t *zone) {
 static void
 nsfetch_done(void *arg) {
 	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
-	isc_result_t result, eresult;
+	isc_result_t result = ISC_R_NOMORE, eresult;
 	dns_nsfetch_t *nsfetch = NULL;
 	dns_zone_t *zone = NULL;
 	isc_mem_t *mctx = NULL;
@@ -21787,9 +21642,7 @@ nsfetch_done(void *arg) {
 	UNLOCK_ZONE(zone);
 
 	/* Look up the addresses for the found parental name servers. */
-	for (result = dns_rdataset_first(nsrrset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(nsrrset))
-	{
+	DNS_RDATASET_FOREACH (nsrrset) {
 		dns_checkds_t *checkds = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_ns_t ns;
@@ -21830,9 +21683,6 @@ nsfetch_done(void *arg) {
 		UNLOCK_ZONE(zone);
 
 		checkds_find_address(checkds);
-	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 
 	LOCK_ZONE(zone);
@@ -22057,17 +21907,13 @@ zone_checkds(dns_zone_t *zone) {
 #endif /* ifdef ENABLE_AFL */
 }
 
-static isc_result_t
+static void
 update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 	   dns_diff_t *diff) {
-	isc_result_t result;
-
 	/*
 	 * Delete everything using the existing TTL.
 	 */
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		dns_difftuple_t *tuple = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
@@ -22076,16 +21922,11 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 				     rdataset->ttl, &rdata, &tuple);
 		dns_diff_appendminimal(diff, &tuple);
 	}
-	if (result != ISC_R_NOMORE) {
-		return result;
-	}
 
 	/*
 	 * Add everything using the new TTL.
 	 */
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		dns_difftuple_t *tuple = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
@@ -22094,10 +21935,6 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 				     &rdata, &tuple);
 		dns_diff_appendminimal(diff, &tuple);
 	}
-	if (result != ISC_R_NOMORE) {
-		return result;
-	}
-	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -22142,9 +21979,7 @@ remove_rdataset(dns_zone_t *zone, dns_diff_t *diff, dns_rdataset_t *rdataset) {
 		return;
 	}
 
-	for (isc_result_t result = dns_rdataset_first(rdataset);
-	     result == ISC_R_SUCCESS; result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_difftuple_t *tuple = NULL;
 
@@ -22275,15 +22110,7 @@ zone_rekey(dns_zone_t *zone) {
 		if (kasp == NULL) {
 			ttl = keyset.ttl;
 		} else if (ttl != keyset.ttl && !offlineksk) {
-			result = update_ttl(&keyset, &zone->origin, ttl, &diff);
-			if (result != ISC_R_SUCCESS) {
-				dnssec_log(zone, ISC_LOG_ERROR,
-					   "Updating DNSKEY TTL from %u to %u "
-					   "failed: %s",
-					   keyset.ttl, ttl,
-					   isc_result_totext(result));
-				goto failure;
-			}
+			update_ttl(&keyset, &zone->origin, ttl, &diff);
 			dnssec_log(zone, ISC_LOG_INFO,
 				   "Updating DNSKEY TTL from %u to %u",
 				   keyset.ttl, ttl);
@@ -22313,13 +22140,7 @@ zone_rekey(dns_zone_t *zone) {
 	} else if (result == ISC_R_SUCCESS && kasp != NULL &&
 		   ttl != cdsset.ttl && !offlineksk)
 	{
-		result = update_ttl(&cdsset, &zone->origin, ttl, &diff);
-		if (result != ISC_R_SUCCESS) {
-			dnssec_log(zone, ISC_LOG_ERROR,
-				   "Updating CDS TTL from %u to %u failed: %s",
-				   cdsset.ttl, ttl, isc_result_totext(result));
-			goto failure;
-		}
+		update_ttl(&cdsset, &zone->origin, ttl, &diff);
 		dnssec_log(zone, ISC_LOG_INFO, "Updating CDS TTL from %u to %u",
 			   cdsset.ttl, ttl);
 		cdsset.ttl = ttl;
@@ -22333,14 +22154,7 @@ zone_rekey(dns_zone_t *zone) {
 	} else if (result == ISC_R_SUCCESS && kasp != NULL &&
 		   ttl != cdnskeyset.ttl && !offlineksk)
 	{
-		result = update_ttl(&cdnskeyset, &zone->origin, ttl, &diff);
-		if (result != ISC_R_SUCCESS) {
-			dnssec_log(
-				zone, ISC_LOG_ERROR,
-				"Updating CDNSKEY TTL from %u to %u failed: %s",
-				cdnskeyset.ttl, ttl, isc_result_totext(result));
-			goto failure;
-		}
+		update_ttl(&cdnskeyset, &zone->origin, ttl, &diff);
 		dnssec_log(zone, ISC_LOG_INFO,
 			   "Updating CDNSKEY TTL from %u to %u", cdnskeyset.ttl,
 			   ttl);
@@ -22536,10 +22350,7 @@ zone_rekey(dns_zone_t *zone) {
 		} else {
 			/* Check if there is a CDS DELETE record. */
 			if (dns_rdataset_isassociated(&cdsset)) {
-				for (result = dns_rdataset_first(&cdsset);
-				     result == ISC_R_SUCCESS;
-				     result = dns_rdataset_next(&cdsset))
-				{
+				DNS_RDATASET_FOREACH (&cdsset) {
 					dns_rdata_t crdata = DNS_RDATA_INIT;
 					dns_rdataset_current(&cdsset, &crdata);
 					/*
@@ -22560,10 +22371,7 @@ zone_rekey(dns_zone_t *zone) {
 
 			/* Check if there is a CDNSKEY DELETE record. */
 			if (dns_rdataset_isassociated(&cdnskeyset)) {
-				for (result = dns_rdataset_first(&cdnskeyset);
-				     result == ISC_R_SUCCESS;
-				     result = dns_rdataset_next(&cdnskeyset))
-				{
+				DNS_RDATASET_FOREACH (&cdnskeyset) {
 					dns_rdata_t crdata = DNS_RDATA_INIT;
 					dns_rdataset_current(&cdnskeyset,
 							     &crdata);
@@ -23076,9 +22884,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	if (dns_rdataset_isassociated(&cds)) {
 		bool delete = false;
 		memset(algorithms, notexpected, sizeof(algorithms));
-		for (result = dns_rdataset_first(&cds); result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&cds))
-		{
+		DNS_RDATASET_FOREACH (&cds) {
 			dns_rdata_t crdata = DNS_RDATA_INIT;
 			dns_rdata_cds_t structcds;
 
@@ -23104,25 +22910,18 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			if (algorithms[structcds.algorithm] == 0) {
 				algorithms[structcds.algorithm] = expected;
 			}
-			for (result = dns_rdataset_first(&dnskey);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(&dnskey))
-			{
+			DNS_RDATASET_FOREACH (&dnskey) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdata_dnskey_t structdnskey;
 
 				dns_rdataset_current(&dnskey, &rdata);
-				CHECK(dns_rdata_tostruct(&rdata, &structdnskey,
-							 NULL));
+				dns_rdata_tostruct(&rdata, &structdnskey, NULL);
 
 				if (structdnskey.algorithm ==
 				    structcds.algorithm)
 				{
 					algorithms[structcds.algorithm] = found;
 				}
-			}
-			if (result != ISC_R_NOMORE) {
-				goto failure;
 			}
 		}
 		for (i = 0; i < sizeof(algorithms); i++) {
@@ -23146,10 +22945,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	if (dns_rdataset_isassociated(&cdnskey)) {
 		bool delete = false;
 		memset(algorithms, notexpected, sizeof(algorithms));
-		for (result = dns_rdataset_first(&cdnskey);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&cdnskey))
-		{
+		DNS_RDATASET_FOREACH (&cdnskey) {
 			dns_rdata_t crdata = DNS_RDATA_INIT;
 			dns_rdata_cdnskey_t structcdnskey;
 
@@ -23177,10 +22973,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			if (algorithms[structcdnskey.algorithm] == 0) {
 				algorithms[structcdnskey.algorithm] = expected;
 			}
-			for (result = dns_rdataset_first(&dnskey);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(&dnskey))
-			{
+			DNS_RDATASET_FOREACH (&dnskey) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdata_dnskey_t structdnskey;
 
@@ -23194,9 +22987,6 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 					algorithms[structcdnskey.algorithm] =
 						found;
 				}
-			}
-			if (result != ISC_R_NOMORE) {
-				goto failure;
 			}
 		}
 		for (i = 0; i < sizeof(algorithms); i++) {
@@ -23459,7 +23249,6 @@ static void
 keydone(void *arg) {
 	bool commit = false;
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
@@ -23511,9 +23300,8 @@ keydone(void *arg) {
 		goto failure;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		bool found = false;
 
 		dns_rdataset_current(&rdataset, &rdata);
@@ -23540,7 +23328,6 @@ keydone(void *arg) {
 					    &zone->origin, rdataset.ttl,
 					    &rdata));
 		}
-		dns_rdata_reset(&rdata);
 	}
 
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
@@ -23735,7 +23522,6 @@ rss_post(void *arg) {
 	dns_rdataset_t prdataset, nrdataset;
 	dns_diff_t diff;
 	dns_update_log_t log = { update_log_cb, NULL };
-	dns_rdata_t rdata;
 	bool nseconly;
 	bool exists = false;
 
@@ -23818,11 +23604,8 @@ rss_post(void *arg) {
 	result = dns_db_findrdataset(db, node, newver, zone->privatetype,
 				     dns_rdatatype_none, 0, &prdataset, NULL);
 	if (result == ISC_R_SUCCESS) {
-		for (result = dns_rdataset_first(&prdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&prdataset))
-		{
-			dns_rdata_init(&rdata);
+		DNS_RDATASET_FOREACH (&prdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&prdataset, &rdata);
 
 			if (np->length == rdata.length &&
@@ -23843,11 +23626,8 @@ rss_post(void *arg) {
 	result = dns_db_findrdataset(db, node, newver, dns_rdatatype_nsec3param,
 				     dns_rdatatype_none, 0, &nrdataset, NULL);
 	if (result == ISC_R_SUCCESS) {
-		for (result = dns_rdataset_first(&nrdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&nrdataset))
-		{
-			dns_rdata_init(&rdata);
+		DNS_RDATASET_FOREACH (&nrdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&nrdataset, &rdata);
 
 			if (np->length == ((unsigned int)rdata.length + 1) &&
@@ -23884,7 +23664,7 @@ rss_post(void *arg) {
 		 * algorithm), add the INITIAL flag, so these parameters can be
 		 * used later when NSEC3 becomes available.
 		 */
-		dns_rdata_init(&rdata);
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		np->data[2] |= DNS_NSEC3FLAG_CREATE;
 		result = dns_nsec_nseconly(db, newver, NULL, &nseconly);
@@ -23974,7 +23754,6 @@ dns__zone_lookup_nsec3param(dns_zone_t *zone, dns_rdata_nsec3param_t *lookup,
 	dns_dbversion_t *version = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_nsec3param_t nsec3param;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -24015,13 +23794,11 @@ dns__zone_lookup_nsec3param(dns_zone_t *zone, dns_rdata_nsec3param_t *lookup,
 		goto setparam;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	result = ISC_R_NOTFOUND;
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
-		INSIST(result == ISC_R_SUCCESS);
-		dns_rdata_reset(&rdata);
+		dns_rdata_tostruct(&rdata, &nsec3param, NULL);
 
 		/* Check parameters. */
 		if (nsec3param.hash != lookup->hash) {
@@ -24048,10 +23825,6 @@ dns__zone_lookup_nsec3param(dns_zone_t *zone, dns_rdata_nsec3param_t *lookup,
 		param->salt_length = nsec3param.salt_length;
 		param->salt = nsec3param.salt;
 		break;
-	}
-
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_NOTFOUND;
 	}
 
 setparam:

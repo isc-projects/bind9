@@ -568,9 +568,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 	REQUIRE(dns_rdatatype_isaddr(rdtype));
 
-	for (isc_result_t result = dns_rdataset_first(rdataset);
-	     result == ISC_R_SUCCESS; result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		/* FIXME: Move to a separate function */
 		dns_adbnamehooklist_t *hookhead = NULL;
 		dns_adbentry_t *entry = NULL;

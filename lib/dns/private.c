@@ -60,11 +60,7 @@
 
 static bool
 ignore(dns_rdata_t *param, dns_rdataset_t *privateset) {
-	isc_result_t result;
-
-	for (result = dns_rdataset_first(privateset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(privateset))
-	{
+	DNS_RDATASET_FOREACH (privateset) {
 		unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
 		dns_rdata_t private = DNS_RDATA_INIT;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -161,10 +157,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		if (!dns_rdataset_isassociated(&privateset)) {
 			goto success;
 		}
-		for (result = dns_rdataset_first(&privateset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&privateset))
-		{
+		DNS_RDATASET_FOREACH (&privateset) {
 			dns_rdata_t private = DNS_RDATA_INIT;
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
@@ -195,10 +188,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		 * If we are in the process of building a new NSEC3 chain
 		 * then we don't need to build a NSEC chain.
 		 */
-		for (result = dns_rdataset_first(&privateset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&privateset))
-		{
+		DNS_RDATASET_FOREACH (&privateset) {
 			dns_rdata_t private = DNS_RDATA_INIT;
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
@@ -218,10 +208,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		 * the changes queued complete.
 		 */
 		count = 0;
-		for (result = dns_rdataset_first(&nsec3paramset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&nsec3paramset))
-		{
+		DNS_RDATASET_FOREACH (&nsec3paramset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 
 			/*
@@ -261,9 +248,7 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 	signing = false;
 	nsec3chain = false;
 
-	for (result = dns_rdataset_first(&privateset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&privateset))
-	{
+	DNS_RDATASET_FOREACH (&privateset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t private = DNS_RDATA_INIT;
 

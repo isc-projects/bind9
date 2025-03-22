@@ -1649,15 +1649,13 @@ dns_view_istrusted(dns_view_t *view, const dns_name_t *keyname,
 				goto finish;
 			}
 
-			result = dns_rdataset_first(&dsset);
-			while (result == ISC_R_SUCCESS) {
+			DNS_RDATASET_FOREACH (&dsset) {
 				dns_rdata_t this = DNS_RDATA_INIT;
 				dns_rdataset_current(&dsset, &this);
 				if (dns_rdata_compare(&rdata, &this) == 0) {
 					answer = true;
 					break;
 				}
-				result = dns_rdataset_next(&dsset);
 			}
 		}
 	}

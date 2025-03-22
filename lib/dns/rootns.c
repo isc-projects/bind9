@@ -102,15 +102,14 @@ static struct upcoming {
 static isc_result_t
 in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_ns_t ns;
 
 	if (!dns_rdataset_isassociated(rootns)) {
 		return ISC_R_NOTFOUND;
 	}
 
-	result = dns_rdataset_first(rootns);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASET_FOREACH (rootns) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rootns, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -119,13 +118,8 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 		if (dns_name_compare(name, &ns.name) == 0) {
 			return ISC_R_SUCCESS;
 		}
-		result = dns_rdataset_next(rootns);
-		dns_rdata_reset(&rdata);
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_NOTFOUND;
-	}
-	return result;
+	return ISC_R_NOTFOUND;
 }
 
 static isc_result_t
@@ -339,17 +333,12 @@ report(dns_view_t *view, dns_name_t *name, bool missing, dns_rdata_t *rdata) {
 
 static bool
 inrrset(dns_rdataset_t *rrset, dns_rdata_t *rdata) {
-	isc_result_t result;
-	dns_rdata_t current = DNS_RDATA_INIT;
-
-	result = dns_rdataset_first(rrset);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASET_FOREACH (rrset) {
+		dns_rdata_t current = DNS_RDATA_INIT;
 		dns_rdataset_current(rrset, &current);
 		if (dns_rdata_compare(rdata, &current) == 0) {
 			return true;
 		}
-		dns_rdata_reset(&current);
-		result = dns_rdataset_next(rrset);
 	}
 	return false;
 }
@@ -375,9 +364,8 @@ changing(const dns_name_t *name, dns_rdatatype_t type, isc_stdtime_t now) {
 static void
 check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 		      dns_name_t *name, isc_stdtime_t now) {
-	isc_result_t hresult, rresult, result;
+	isc_result_t hresult, rresult;
 	dns_rdataset_t hintrrset, rootrrset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_name_t *foundname;
 	dns_fixedname_t fixed;
 
@@ -393,38 +381,32 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 	if (hresult == ISC_R_SUCCESS &&
 	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE))
 	{
-		result = dns_rdataset_first(&rootrrset);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdata_reset(&rdata);
+		DNS_RDATASET_FOREACH (&rootrrset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rootrrset, &rdata);
 			if (!inrrset(&hintrrset, &rdata) &&
 			    !changing(name, dns_rdatatype_a, now))
 			{
 				report(view, name, true, &rdata);
 			}
-			result = dns_rdataset_next(&rootrrset);
 		}
-		result = dns_rdataset_first(&hintrrset);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdata_reset(&rdata);
+		DNS_RDATASET_FOREACH (&hintrrset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&hintrrset, &rdata);
 			if (!inrrset(&rootrrset, &rdata) &&
 			    !changing(name, dns_rdatatype_a, now))
 			{
 				report(view, name, false, &rdata);
 			}
-			result = dns_rdataset_next(&hintrrset);
 		}
 	}
 	if (hresult == ISC_R_NOTFOUND &&
 	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE))
 	{
-		result = dns_rdataset_first(&rootrrset);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdata_reset(&rdata);
+		DNS_RDATASET_FOREACH (&rootrrset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rootrrset, &rdata);
 			report(view, name, true, &rdata);
-			result = dns_rdataset_next(&rootrrset);
 		}
 	}
 	if (dns_rdataset_isassociated(&rootrrset)) {
@@ -445,41 +427,32 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 	if (hresult == ISC_R_SUCCESS &&
 	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE))
 	{
-		result = dns_rdataset_first(&rootrrset);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdata_reset(&rdata);
+		DNS_RDATASET_FOREACH (&rootrrset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rootrrset, &rdata);
 			if (!inrrset(&hintrrset, &rdata) &&
 			    !changing(name, dns_rdatatype_aaaa, now))
 			{
 				report(view, name, true, &rdata);
 			}
-			dns_rdata_reset(&rdata);
-			result = dns_rdataset_next(&rootrrset);
 		}
-		result = dns_rdataset_first(&hintrrset);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdata_reset(&rdata);
+		DNS_RDATASET_FOREACH (&hintrrset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&hintrrset, &rdata);
 			if (!inrrset(&rootrrset, &rdata) &&
 			    !changing(name, dns_rdatatype_aaaa, now))
 			{
 				report(view, name, false, &rdata);
 			}
-			dns_rdata_reset(&rdata);
-			result = dns_rdataset_next(&hintrrset);
 		}
 	}
 	if (hresult == ISC_R_NOTFOUND &&
 	    (rresult == ISC_R_SUCCESS || rresult == DNS_R_GLUE))
 	{
-		result = dns_rdataset_first(&rootrrset);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdata_reset(&rdata);
+		DNS_RDATASET_FOREACH (&rootrrset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rootrrset, &rdata);
 			report(view, name, true, &rdata);
-			dns_rdata_reset(&rdata);
-			result = dns_rdataset_next(&rootrrset);
 		}
 	}
 	if (dns_rdataset_isassociated(&rootrrset)) {
@@ -493,7 +466,6 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 void
 dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_ns_t ns;
 	dns_rdataset_t hintns, rootns;
 	const char *viewname = "", *sep = "";
@@ -541,8 +513,8 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 	/*
 	 * Look for missing root NS names.
 	 */
-	result = dns_rdataset_first(&rootns);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASET_FOREACH (&rootns) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rootns, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -559,18 +531,13 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 		} else {
 			check_address_records(view, hints, db, &ns.name, now);
 		}
-		dns_rdata_reset(&rdata);
-		result = dns_rdataset_next(&rootns);
-	}
-	if (result != ISC_R_NOMORE) {
-		goto cleanup;
 	}
 
 	/*
 	 * Look for extra root NS names.
 	 */
-	result = dns_rdataset_first(&hintns);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASET_FOREACH (&hintns) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&hintns, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -584,11 +551,6 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 				      "checkhints%s%s: extra NS '%s' in hints",
 				      sep, viewname, namebuf);
 		}
-		dns_rdata_reset(&rdata);
-		result = dns_rdataset_next(&hintns);
-	}
-	if (result != ISC_R_NOMORE) {
-		goto cleanup;
 	}
 
 cleanup:

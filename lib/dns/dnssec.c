@@ -1036,7 +1036,6 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 	dns_keytag_t keytag;
 	dns_rdata_dnskey_t key;
 	dns_rdata_rrsig_t sig;
-	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	isc_result_t result;
 
 	INSIST(sigrdataset->type == dns_rdatatype_rrsig);
@@ -1052,10 +1051,8 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	keytag = dst_key_id(dstkey);
-	for (result = dns_rdataset_first(sigrdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(sigrdataset))
-	{
-		dns_rdata_reset(&sigrdata);
+	DNS_RDATASET_FOREACH (sigrdataset) {
+		dns_rdata_t sigrdata = DNS_RDATA_INIT;
 		dns_rdataset_current(sigrdataset, &sigrdata);
 		result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -1083,17 +1080,13 @@ dns_dnssec_iszonekey(dns_rdata_dnskey_t *key) {
 
 bool
 dns_dnssec_haszonekey(dns_rdataset_t *keyset) {
-	isc_result_t result;
-
 	REQUIRE(keyset != NULL);
 
 	if (keyset->type != dns_rdatatype_dnskey) {
 		return false;
 	}
 
-	for (result = dns_rdataset_first(keyset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(keyset))
-	{
+	DNS_RDATASET_FOREACH (keyset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_dnskey_t key;
 
@@ -1480,9 +1473,7 @@ mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs) {
 		keyid = dst_key_id(key->key);
 		keyalg = dst_key_alg(key->key);
 
-		for (result = dns_rdataset_first(&sigs);
-		     result == ISC_R_SUCCESS; result = dns_rdataset_next(&sigs))
-		{
+		DNS_RDATASET_FOREACH (&sigs) {
 			dns_rdata_rrsig_t sig;
 
 			dns_rdata_reset(&rdata);
@@ -1496,10 +1487,6 @@ mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs) {
 				break;
 			}
 		}
-	}
-
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 
 	if (dns_rdataset_isassociated(&sigs)) {
@@ -1547,7 +1534,6 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 			       dns_rdataset_t *soasigs, bool savekeys,
 			       bool publickey, dns_dnsseckeylist_t *keylist) {
 	dns_rdataset_t keys;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dst_key_t *dnskey = NULL, *pubkey = NULL, *privkey = NULL;
 	isc_result_t result;
 
@@ -1556,10 +1542,8 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 	dns_rdataset_init(&keys);
 
 	dns_rdataset_clone(keyset, &keys);
-	for (result = dns_rdataset_first(&keys); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&keys))
-	{
-		dns_rdata_reset(&rdata);
+	DNS_RDATASET_FOREACH (&keys) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&keys, &rdata);
 
 		REQUIRE(rdata.type == dns_rdatatype_key ||
@@ -1699,10 +1683,6 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 		}
 	}
 
-	if (result != ISC_R_NOMORE) {
-		RETERR(result);
-	}
-
 	if (keysigs != NULL && dns_rdataset_isassociated(keysigs)) {
 		RETERR(mark_active_keys(keylist, keysigs));
 	}
@@ -1826,14 +1806,10 @@ failure:
 
 static bool
 exists(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
-	isc_result_t result;
-	dns_rdataset_t trdataset;
-
-	dns_rdataset_init(&trdataset);
+	dns_rdataset_t trdataset = DNS_RDATASET_INIT;
 	dns_rdataset_clone(rdataset, &trdataset);
-	for (result = dns_rdataset_first(&trdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&trdataset))
-	{
+
+	DNS_RDATASET_FOREACH (&trdataset) {
 		dns_rdata_t current = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&trdataset, &current);
@@ -2361,9 +2337,7 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
 	result = dns_rdata_tostruct(dsrdata, &ds, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	for (result = dns_rdataset_first(keyset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(keyset))
-	{
+	DNS_RDATASET_FOREACH (keyset) {
 		dns_rdata_t newdsrdata = DNS_RDATA_INIT;
 
 		dns_rdata_reset(keyrdata);
@@ -2386,12 +2360,9 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
 		}
 
 		if (dns_rdata_compare(dsrdata, &newdsrdata) == 0) {
-			break;
+			return ISC_R_SUCCESS;
 		}
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_NOTFOUND;
-	}
 
-	return result;
+	return ISC_R_NOTFOUND;
 }

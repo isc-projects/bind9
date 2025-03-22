@@ -2143,15 +2143,11 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter))
 	{
-		dns_rdataset_t rdataset;
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 
-		dns_rdataset_init(&rdataset);
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 
-		for (result = dns_rdataset_first(&rdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset))
-		{
+		DNS_RDATASET_FOREACH (&rdataset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			dns_difftuple_create(diff->mctx, op, name, rdataset.ttl,
@@ -2159,9 +2155,6 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 			dns_diff_append(diff, &tuple);
 		}
 		dns_rdataset_disassociate(&rdataset);
-		if (result != ISC_R_NOMORE) {
-			goto cleanup_iterator;
-		}
 	}
 	if (result != ISC_R_NOMORE) {
 		goto cleanup_iterator;

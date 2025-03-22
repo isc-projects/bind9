@@ -427,9 +427,7 @@ repopulate_buffer:
 		}
 		CHECK("dns_message_sectiontotext", result);
 	} else if (display_answer) {
-		isc_result_t loopresult;
 		dns_name_t empty_name;
-		dns_rdata_t rdata = DNS_RDATA_INIT;
 		unsigned int answerstyleflags = 0;
 
 		if (!display_crypto) {
@@ -443,8 +441,8 @@ repopulate_buffer:
 
 		MSG_SECTION_FOREACH (response, DNS_SECTION_ANSWER, name) {
 			ISC_LIST_FOREACH (name->list, rdataset, link) {
-				loopresult = dns_rdataset_first(rdataset);
-				while (loopresult == ISC_R_SUCCESS) {
+				DNS_RDATASET_FOREACH (rdataset) {
+					dns_rdata_t rdata = DNS_RDATA_INIT;
 					dns_rdataset_current(rdataset, &rdata);
 					result = dns_rdata_tofmttext(
 						&rdata, NULL, answerstyleflags,
@@ -452,10 +450,8 @@ repopulate_buffer:
 					if (result == ISC_R_NOSPACE) {
 						goto buftoosmall;
 					}
+
 					CHECK("dns_rdata_tofmttext", result);
-					loopresult =
-						dns_rdataset_next(rdataset);
-					dns_rdata_reset(&rdata);
 					if (strlen("\n") >=
 					    isc_buffer_availablelength(buf))
 					{

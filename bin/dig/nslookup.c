@@ -198,7 +198,6 @@ printrdata(dns_rdata_t *rdata) {
 static isc_result_t
 printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	     dns_section_t section) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
 
 	UNUSED(query);
@@ -208,8 +207,8 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 
 	MSG_SECTION_FOREACH (msg, section, name) {
 		ISC_LIST_FOREACH (name->list, rdataset, link) {
-			isc_result_t loopresult = dns_rdataset_first(rdataset);
-			while (loopresult == ISC_R_SUCCESS) {
+			DNS_RDATASET_FOREACH (rdataset) {
+				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rdataset, &rdata);
 				switch (rdata.type) {
 				case dns_rdatatype_a:
@@ -236,8 +235,6 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 					printrdata(&rdata);
 					break;
 				}
-				dns_rdata_reset(&rdata);
-				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
 	}
@@ -247,7 +244,6 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 static isc_result_t
 detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	      dns_section_t section) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
 
 	UNUSED(query);
@@ -283,8 +279,8 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 						      namebuf, sizeof(namebuf));
 				printf("class = %s\n", namebuf);
 			}
-			isc_result_t loopresult = dns_rdataset_first(rdataset);
-			while (loopresult == ISC_R_SUCCESS) {
+			DNS_RDATASET_FOREACH (rdataset) {
+				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rdataset, &rdata);
 
 				dns_name_format(name, namebuf, sizeof(namebuf));
@@ -298,9 +294,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 					printf("\t");
 					printrdata(&rdata);
 				}
-				dns_rdata_reset(&rdata);
 				printf("\tttl = %u\n", rdataset->ttl);
-				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
 	}

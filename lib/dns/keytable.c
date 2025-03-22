@@ -609,9 +609,7 @@ keynode_dslist_totext(dns_keynode_t *keynode, isc_buffer_t **text) {
 
 	dns_name_format(&keynode->name, namebuf, sizeof(namebuf));
 
-	for (result = dns_rdataset_first(&dsset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&dsset))
-	{
+	DNS_RDATASET_FOREACH (&dsset) {
 		char algbuf[DNS_SECALG_FORMATSIZE];
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_ds_t ds;

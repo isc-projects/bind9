@@ -207,9 +207,8 @@ static isc_result_t
 printsection(dns_message_t *msg, dns_section_t sectionid,
 	     const char *section_name, bool headers, dig_query_t *query) {
 	dns_name_t *print_name;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_buffer_t target;
-	isc_result_t result, loopresult;
+	isc_result_t result;
 	isc_region_t r;
 	dns_name_t empty_name;
 	char tbuf[4096] = { 0 };
@@ -262,8 +261,8 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 				UNUSED(first); /* Shut up compiler. */
 #endif /* ifdef USEINITALWS */
 			} else {
-				loopresult = dns_rdataset_first(rdataset);
-				while (loopresult == ISC_R_SUCCESS) {
+				DNS_RDATASET_FOREACH (rdataset) {
+					dns_rdata_t rdata = DNS_RDATA_INIT;
 					struct rtype *t;
 					const char *rtt;
 					char typebuf[DNS_RDATATYPE_FORMATSIZE];
@@ -287,9 +286,6 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 				found:
 					say_message(print_name, rtt, &rdata,
 						    query);
-					dns_rdata_reset(&rdata);
-					loopresult =
-						dns_rdataset_next(rdataset);
 				}
 			}
 		}

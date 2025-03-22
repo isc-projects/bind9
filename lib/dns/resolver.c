@@ -3342,7 +3342,6 @@ isstrictsubdomain(const dns_name_t *name1, const dns_name_t *name2) {
 
 static isc_result_t
 fctx_getaddresses(fetchctx_t *fctx) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	dns_resolver_t *res;
 	isc_stdtime_t now;
@@ -3526,10 +3525,8 @@ normal_nses:
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
 	INSIST(ISC_LIST_EMPTY(fctx->altfinds));
 
-	for (result = dns_rdataset_first(&fctx->nameservers);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&fctx->nameservers))
-	{
+	DNS_RDATASET_FOREACH (&fctx->nameservers) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		bool overquota = false;
 		unsigned int static_stub = 0;
 
@@ -3564,12 +3561,8 @@ normal_nses:
 		dns_rdata_freestruct(&ns);
 
 		if (++ns_processed >= NS_PROCESSING_LIMIT) {
-			result = ISC_R_NOMORE;
 			break;
 		}
-	}
-	if (result != ISC_R_NOMORE) {
-		return result;
 	}
 
 	/*
@@ -5087,20 +5080,19 @@ static const unsigned char minimal_typemap[] = { 0, 6, 0, 0, 0, 0, 0, 0x03 };
 
 static bool
 is_minimal_nsec(dns_rdataset_t *nsecset) {
-	dns_rdataset_t rdataset;
-	isc_result_t result;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 
-	dns_rdataset_init(&rdataset);
 	dns_rdataset_clone(nsecset, &rdataset);
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
+		isc_result_t result;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_nsec_t nsec;
+
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
 		if (nsec.len == sizeof(minimal_typemap) &&
 		    memcmp(nsec.typebits, minimal_typemap, nsec.len) == 0)
 		{
@@ -5117,15 +5109,11 @@ is_minimal_nsec(dns_rdataset_t *nsecset) {
  */
 static bool
 check_soa_and_dnskey(dns_rdataset_t *nsecset) {
-	dns_rdataset_t rdataset;
-	isc_result_t result;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 
-	dns_rdataset_init(&rdataset);
 	dns_rdataset_clone(nsecset, &rdataset);
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		if (dns_nsec_typepresent(&rdata, dns_rdatatype_soa) &&
@@ -5145,15 +5133,11 @@ check_soa_and_dnskey(dns_rdataset_t *nsecset) {
  */
 static bool
 has_000_label(dns_rdataset_t *nsecset) {
-	dns_rdataset_t rdataset;
-	isc_result_t result;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 
-	dns_rdataset_init(&rdataset);
 	dns_rdataset_clone(nsecset, &rdataset);
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		if (rdata.length > 1 && rdata.data[0] == 1 &&
@@ -5708,11 +5692,11 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 	dns_rdata_rrsig_t rrsig;
 	isc_result_t result;
 	unsigned int labels;
-	dns_name_t *zonename;
+	dns_name_t *zonename = NULL;
 	dns_fixedname_t fzonename;
-	dns_name_t *closest;
+	dns_name_t *closest = NULL;
 	dns_fixedname_t fclosest;
-	dns_name_t *nearest;
+	dns_name_t *nearest = NULL;
 	dns_fixedname_t fnearest;
 	dns_rdatatype_t found = dns_rdatatype_none;
 	dns_name_t *noqname = NULL;
@@ -5737,9 +5721,8 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 
 	labels = dns_name_countlabels(name);
 
-	for (result = dns_rdataset_first(sigrdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(sigrdataset))
-	{
+	result = ISC_R_NOTFOUND;
+	DNS_RDATASET_FOREACH (sigrdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
@@ -5748,12 +5731,10 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 		if (rrsig.labels + 1U >= labels) {
 			continue;
 		}
+		result = ISC_R_SUCCESS;
 		break;
 	}
 
-	if (result == ISC_R_NOMORE) {
-		return ISC_R_NOTFOUND;
-	}
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -6802,9 +6783,7 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 	 * address record.  If a match is found, the address should be
 	 * filtered, so should the entire answer.
 	 */
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
 		if (rdataset->type == dns_rdatatype_a) {
@@ -7150,10 +7129,7 @@ static void
 checknamessection(dns_message_t *message, dns_section_t section) {
 	MSG_SECTION_FOREACH (message, section, name) {
 		ISC_LIST_FOREACH (name->list, rdataset, link) {
-			for (isc_result_t result = dns_rdataset_first(rdataset);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(rdataset))
-			{
+			DNS_RDATASET_FOREACH (rdataset) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rdataset, &rdata);
 				if (!dns_rdata_checkowner(name, rdata.rdclass,

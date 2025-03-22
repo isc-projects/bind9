@@ -174,28 +174,24 @@ dns__rdataset_clone(dns_rdataset_t *source,
 
 isc_result_t
 dns_rdataset_first(dns_rdataset_t *rdataset) {
-	/*
-	 * Move the rdata cursor to the first rdata in the rdataset (if any).
-	 */
-
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	REQUIRE(rdataset->methods->first != NULL);
 
-	return (rdataset->methods->first)(rdataset);
+	isc_result_t result = rdataset->methods->first(rdataset);
+	ENSURE(result == ISC_R_SUCCESS || result == ISC_R_NOMORE);
+	return result;
 }
 
 isc_result_t
 dns_rdataset_next(dns_rdataset_t *rdataset) {
-	/*
-	 * Move the rdata cursor to the next rdata in the rdataset (if any).
-	 */
-
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	REQUIRE(rdataset->methods->next != NULL);
 
-	return (rdataset->methods->next)(rdataset);
+	isc_result_t result = rdataset->methods->next(rdataset);
+	ENSURE(result == ISC_R_SUCCESS || result == ISC_R_NOMORE);
+	return result;
 }
 
 void
@@ -479,9 +475,6 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 			    const dns_name_t *owner_name,
 			    dns_additionaldatafunc_t add, void *arg,
 			    size_t limit) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_result_t result;
-
 	/*
 	 * For each rdata in rdataset, call 'add' for each name and type in the
 	 * rdata which is subject to additional section processing.
@@ -494,22 +487,14 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 		return DNS_R_TOOMANYRECORDS;
 	}
 
-	result = dns_rdataset_first(rdataset);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
-
-	do {
+	DNS_RDATASET_FOREACH (rdataset) {
+		isc_result_t result;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_additionaldata(&rdata, owner_name, add, arg);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_rdataset_next(rdataset);
+		if (result != ISC_R_SUCCESS) {
+			return result;
 		}
-		dns_rdata_reset(&rdata);
-	} while (result == ISC_R_SUCCESS);
-
-	if (result != ISC_R_NOMORE) {
-		return result;
 	}
 
 	return ISC_R_SUCCESS;

@@ -270,9 +270,8 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	bool matched = false;
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
@@ -303,19 +302,14 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			}
 
 			if (!deleted) {
+				matched = true;
 				break;
 			}
 		}
 	}
 	dns_rdataset_disassociate(&rdataset);
-	if (result == ISC_R_SUCCESS) {
-		*answer = true;
-	}
-	if (result == ISC_R_NOMORE) {
-		*answer = false;
-		result = ISC_R_SUCCESS;
-	}
-	return result;
+	*answer = matched;
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -495,19 +489,15 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 
 bool
 dns_nsec_requiredtypespresent(dns_rdataset_t *nsecset) {
-	dns_rdataset_t rdataset;
-	isc_result_t result;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 	bool found = false;
 
 	REQUIRE(DNS_RDATASET_VALID(nsecset));
 	REQUIRE(nsecset->type == dns_rdatatype_nsec);
 
-	dns_rdataset_init(&rdataset);
 	dns_rdataset_clone(nsecset, &rdataset);
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		if (!dns_nsec_typepresent(&rdata, dns_rdatatype_nsec) ||

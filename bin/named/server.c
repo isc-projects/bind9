@@ -6852,10 +6852,7 @@ get_tat_qname(dns_name_t *target, dns_name_t *keyname, dns_keynode_t *keynode) {
 	if (dns_keynode_dsset(keynode, &dsset)) {
 		isc_result_t result;
 
-		for (result = dns_rdataset_first(&dsset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&dsset))
-		{
+		DNS_RDATASET_FOREACH (&dsset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdata_ds_t ds;
 
@@ -14329,10 +14326,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 			goto cleanup;
 		}
 
-		for (result = dns_rdataset_first(&privset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&privset))
-		{
+		DNS_RDATASET_FOREACH (&privset) {
 			dns_rdata_t priv = DNS_RDATA_INIT;
 			/*
 			 * In theory, the output buffer could hold a full RDATA
@@ -14354,10 +14348,6 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		}
 		if (!first) {
 			CHECK(putnull(text));
-		}
-
-		if (result == ISC_R_NOMORE) {
-			result = ISC_R_SUCCESS;
 		}
 	} else if (kasp) {
 		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
@@ -15438,7 +15428,6 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 		char buf[DNS_NAME_FORMATSIZE + 500];
 		dns_name_t *name = NULL;
 		dns_rdataset_t *kdset = NULL;
-		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_keydata_t kd;
 		uint32_t ttl;
 
@@ -15456,11 +15445,10 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 			CHECK(putstr(text, buf));
 		}
 
-		for (result = dns_rdataset_first(kdset);
-		     result == ISC_R_SUCCESS; result = dns_rdataset_next(kdset))
-		{
+		DNS_RDATASET_FOREACH (kdset) {
 			char alg[DNS_SECALG_FORMATSIZE];
 			char tbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_keytag_t keyid;
 			isc_region_t r;
 			isc_time_t t;

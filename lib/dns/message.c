@@ -4967,11 +4967,8 @@ dns_message_clonebuffer(dns_message_t *msg) {
 
 static isc_result_t
 rdataset_soa_min(dns_rdataset_t *rds, dns_ttl_t *ttlp) {
-	isc_result_t result;
 	/* loop over the rdatas */
-	for (result = dns_rdataset_first(rds); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rds))
-	{
+	DNS_RDATASET_FOREACH (rds) {
 		dns_name_t tmp;
 		isc_region_t r = { 0 };
 		dns_rdata_t rdata = DNS_RDATA_INIT;

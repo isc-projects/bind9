@@ -371,9 +371,6 @@ main(int argc, char **argv) {
 	bool showall = false;
 	isc_result_t result;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
-
-	dns_rdata_init(&rdata);
 
 	if (argc == 1) {
 		usage();
@@ -516,11 +513,8 @@ main(int argc, char **argv) {
 			      isc_result_totext(result));
 		}
 
-		for (result = dns_rdataset_first(&rdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset))
-		{
-			dns_rdata_init(&rdata);
+		DNS_RDATASET_FOREACH (&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 
 			if (verbose > 2) {
@@ -531,6 +525,7 @@ main(int argc, char **argv) {
 		}
 	} else {
 		unsigned char key_buf[DST_KEY_MAXSIZE];
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		loadkey(arg1, key_buf, DST_KEY_MAXSIZE, &rdata);
 

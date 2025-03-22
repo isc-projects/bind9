@@ -1800,7 +1800,6 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 	dig_lookup_t *lookup = NULL;
 	dig_server_t *srv = NULL;
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result = ISC_R_NOMORE;
 	bool success = false;
 	int numLookups = 0;
@@ -1858,10 +1857,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 			}
 		}
 
-		for (result = dns_rdataset_first(rdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(rdataset))
-		{
+		DNS_RDATASET_FOREACH (rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			char namestr[DNS_NAME_FORMATSIZE];
 			dns_rdata_ns_t ns;
 
@@ -1916,7 +1913,6 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 				}
 			}
 			numLookups += num;
-			dns_rdata_reset(&rdata);
 		}
 	}
 	if (numLookups == 0 && addresses_result != ISC_R_SUCCESS) {
@@ -3654,7 +3650,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 static bool
 check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 		    dns_message_t *msg, isc_sockaddr_t *peer, int len) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	uint32_t ixfr_serial = lookup->ixfr_serial, serial;
 	isc_result_t result;
@@ -3685,14 +3680,11 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 	}
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_ANSWER, name) {
 		ISC_LIST_FOREACH (name->list, rdataset, link) {
-			result = dns_rdataset_first(rdataset);
-			if (result != ISC_R_SUCCESS) {
-				continue;
-			}
-			do {
-				query->rr_count++;
-				dns_rdata_reset(&rdata);
+			DNS_RDATASET_FOREACH (rdataset) {
+				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rdataset, &rdata);
+
+				query->rr_count++;
 				/*
 				 * If this is the first rr, make sure
 				 * it's an SOA
@@ -3711,7 +3703,7 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 					query->second_rr_serial = 0;
 					debug("got the second rr as nonsoa");
 					axfr = query->ixfr_axfr = true;
-					goto next_rdata;
+					continue;
 				}
 
 				/*
@@ -3719,7 +3711,7 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 				 * now, just continue on...
 				 */
 				if (rdata.type != dns_rdatatype_soa) {
-					goto next_rdata;
+					continue;
 				}
 
 				/* Now we have an SOA.  Work with it. */
@@ -3740,7 +3732,7 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 						      "response");
 						goto doexit;
 					}
-					goto next_rdata;
+					continue;
 				}
 				if (axfr) {
 					debug("doing axfr, got second SOA");
@@ -3756,7 +3748,7 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 					      serial);
 					query->second_rr_rcvd = true;
 					query->second_rr_serial = serial;
-					goto next_rdata;
+					continue;
 				}
 				/*
 				 * If we get to this point, we're doing an
@@ -3767,15 +3759,13 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 					debug("got a match for ixfr");
 					if (!query->first_repeat_rcvd) {
 						query->first_repeat_rcvd = true;
-						goto next_rdata;
+						continue;
 					}
 					debug("done with ixfr");
 					goto doexit;
 				}
 				debug("meaningless soa %u", serial);
-			next_rdata:
-				result = dns_rdataset_next(rdataset);
-			} while (result == ISC_R_SUCCESS);
+			}
 		}
 	}
 
