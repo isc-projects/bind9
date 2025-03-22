@@ -1311,12 +1311,9 @@ done:
 static void
 call_pending_callbacks(isc__nm_http_pending_callbacks_t pending_callbacks,
 		       isc_result_t result) {
-	isc__nm_uvreq_t *cbreq = ISC_LIST_HEAD(pending_callbacks);
-	while (cbreq != NULL) {
-		isc__nm_uvreq_t *next = ISC_LIST_NEXT(cbreq, link);
+	ISC_LIST_FOREACH_SAFE (pending_callbacks, cbreq, link) {
 		ISC_LIST_UNLINK(pending_callbacks, cbreq, link);
 		isc__nm_sendcb(cbreq->handle->sock, cbreq, result, true);
-		cbreq = next;
 	}
 }
 
@@ -3041,7 +3038,6 @@ void
 isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp) {
 	isc_nm_http_endpoints_t *restrict eps;
 	isc_mem_t *mctx;
-	isc_nm_httphandler_t *handler = NULL;
 
 	REQUIRE(epsp != NULL);
 	eps = *epsp;
@@ -3055,16 +3051,11 @@ isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp) {
 	mctx = eps->mctx;
 
 	/* Delete all handlers */
-	handler = ISC_LIST_HEAD(eps->handlers);
-	while (handler != NULL) {
-		isc_nm_httphandler_t *next = NULL;
-
-		next = ISC_LIST_NEXT(handler, link);
+	ISC_LIST_FOREACH_SAFE (eps->handlers, handler, link) {
 		ISC_LIST_DEQUEUE(eps->handlers, handler, link);
 		isc_mem_free(mctx, handler->path);
 		handler->magic = 0;
 		isc_mem_put(mctx, handler, sizeof(*handler));
-		handler = next;
 	}
 
 	eps->magic = 0;
@@ -3224,15 +3215,10 @@ failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 static void
 client_call_failed_read_cb(isc_result_t result,
 			   isc_nm_http_session_t *session) {
-	http_cstream_t *cstream = NULL;
-
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(result != ISC_R_SUCCESS);
 
-	cstream = ISC_LIST_HEAD(session->cstreams);
-	while (cstream != NULL) {
-		http_cstream_t *next = ISC_LIST_NEXT(cstream, link);
-
+	ISC_LIST_FOREACH_SAFE (session->cstreams, cstream, link) {
 		/*
 		 * read_cb could be NULL if cstream was allocated and added
 		 * to the tracking list, but was not properly initialized due
@@ -3253,8 +3239,6 @@ client_call_failed_read_cb(isc_result_t result,
 			ISC_LIST_DEQUEUE(session->cstreams, cstream, link);
 			put_http_cstream(session->mctx, cstream);
 		}
-
-		cstream = next;
 	}
 }
 

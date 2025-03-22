@@ -1199,9 +1199,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 
 static void
 clear_keylist(dns_dnsseckeylist_t *list, isc_mem_t *mctx) {
-	dns_dnsseckey_t *key;
-	while (!ISC_LIST_EMPTY(*list)) {
-		key = ISC_LIST_HEAD(*list);
+	ISC_LIST_FOREACH_SAFE (*list, key, link) {
 		ISC_LIST_UNLINK(*list, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
@@ -4881,8 +4879,7 @@ zone_unchanged(dns_db_t *db1, dns_db_t *db2, isc_mem_t *mctx) {
 
 static void
 process_zone_setnsec3param(dns_zone_t *zone) {
-	struct np3 *npe = NULL;
-	while ((npe = ISC_LIST_HEAD(zone->setnsec3param_queue)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (zone->setnsec3param_queue, npe, link) {
 		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
 		zone_iattach(zone, &npe->zone);
 		isc_async_run(zone->loop, setnsec3param, npe);
@@ -6648,8 +6645,7 @@ failure:
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
 	}
-	while (!ISC_LIST_EMPTY(dnskeys)) {
-		dns_dnsseckey_t *key = ISC_LIST_HEAD(dnskeys);
+	ISC_LIST_FOREACH_SAFE (dnskeys, key, link) {
 		ISC_LIST_UNLINK(dnskeys, key, link);
 		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
 	}
@@ -16455,7 +16451,6 @@ cds_inuse(dns_zone_t *zone, dns_rdata_t *rdata, dns_dnsseckeylist_t *keylist,
 isc_result_t
 dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
 	dns_dnsseckeylist_t keylist;
-	dns_dnsseckey_t *key = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_mem_t *mctx;
@@ -16505,8 +16500,7 @@ dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
 		break;
 	}
 
-	while (!ISC_LIST_EMPTY(keylist)) {
-		key = ISC_LIST_HEAD(keylist);
+	ISC_LIST_FOREACH_SAFE (keylist, key, link) {
 		ISC_LIST_UNLINK(keylist, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
@@ -22129,8 +22123,7 @@ zone_apply_skrbundle(dns_zone_t *zone, dns_skrbundle_t *bundle,
 	remove_rdataset(zone, diff, cdnskeyset);
 
 	/* Add the records from the bundle. */
-	dns_difftuple_t *tuple = ISC_LIST_HEAD(bundle->diff.tuples);
-	while (tuple != NULL) {
+	ISC_LIST_FOREACH (bundle->diff.tuples, tuple, link) {
 		switch (tuple->rdata.type) {
 		case dns_rdatatype_dnskey:
 			add_tuple(diff, tuple);
@@ -22145,8 +22138,6 @@ zone_apply_skrbundle(dns_zone_t *zone, dns_skrbundle_t *bundle,
 		default:
 			INSIST(0);
 		}
-
-		tuple = ISC_LIST_NEXT(tuple, link);
 	}
 }
 

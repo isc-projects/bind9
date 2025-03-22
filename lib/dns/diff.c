@@ -129,9 +129,8 @@ dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff) {
 
 void
 dns_diff_clear(dns_diff_t *diff) {
-	dns_difftuple_t *t;
 	REQUIRE(DNS_DIFF_VALID(diff));
-	while ((t = ISC_LIST_HEAD(diff->tuples)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (diff->tuples, t, link) {
 		ISC_LIST_UNLINK(diff->tuples, t, link);
 		dns_difftuple_free(&t);
 	}

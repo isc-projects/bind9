@@ -170,8 +170,7 @@ free_controlkey(controlkey_t *key, isc_mem_t *mctx) {
 
 static void
 free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx) {
-	while (!ISC_LIST_EMPTY(*keylist)) {
-		controlkey_t *key = ISC_LIST_HEAD(*keylist);
+	ISC_LIST_FOREACH_SAFE (*keylist, key, link) {
 		ISC_LIST_UNLINK(*keylist, key, link);
 		free_controlkey(key, mctx);
 	}

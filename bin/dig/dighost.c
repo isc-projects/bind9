@@ -501,15 +501,10 @@ get_server_list(irs_resconf_t *resconf) {
 
 void
 flush_server_list(void) {
-	dig_server_t *s, *ps;
-
 	debug("flush_server_list()");
-	s = ISC_LIST_HEAD(server_list);
-	while (s != NULL) {
-		ps = s;
-		s = ISC_LIST_NEXT(s, link);
-		ISC_LIST_DEQUEUE(server_list, ps, link);
-		isc_mem_free(mctx, ps);
+	ISC_LIST_FOREACH_SAFE (server_list, s, link) {
+		ISC_LIST_DEQUEUE(server_list, s, link);
+		isc_mem_free(mctx, s);
 	}
 }
 
@@ -553,15 +548,12 @@ set_nameserver(char *opt) {
  */
 void
 clone_server_list(dig_serverlist_t src, dig_serverlist_t *dest) {
-	dig_server_t *srv, *newsrv;
-
 	debug("clone_server_list()");
-	srv = ISC_LIST_HEAD(src);
-	while (srv != NULL) {
-		newsrv = make_server(srv->servername, srv->userarg);
+	ISC_LIST_FOREACH_SAFE (src, srv, link) {
+		dig_server_t *newsrv = make_server(srv->servername,
+						   srv->userarg);
 		ISC_LINK_INIT(newsrv, link);
 		ISC_LIST_ENQUEUE(*dest, newsrv, link);
-		srv = ISC_LIST_NEXT(srv, link);
 	}
 }
 
@@ -1208,8 +1200,7 @@ make_searchlist_entry(char *domain) {
 
 static void
 clear_searchlist(void) {
-	dig_searchlist_t *search;
-	while ((search = ISC_LIST_HEAD(search_list)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (search_list, search, link) {
 		ISC_LIST_UNLINK(search_list, search, link);
 		isc_mem_free(mctx, search);
 	}
@@ -1496,17 +1487,11 @@ add_question(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
  */
 static void
 check_if_done(void) {
-	dig_lookup_t *lookup = NULL;
-
 	debug("check_if_done()");
 	debug("list %s", ISC_LIST_EMPTY(lookup_list) ? "empty" : "full");
 
-	lookup = ISC_LIST_HEAD(lookup_list);
-	while (lookup != NULL) {
-		dig_lookup_t *next = NULL;
+	ISC_LIST_FOREACH (lookup_list, lookup, link) {
 		debug("pending lookup %p", lookup);
-		next = ISC_LIST_NEXT(lookup, link);
-		lookup = next;
 	}
 
 	if (ISC_LIST_EMPTY(lookup_list) && current_lookup == NULL &&
@@ -1529,18 +1514,15 @@ check_if_done(void) {
  */
 static bool
 check_if_queries_done(dig_lookup_t *l, dig_query_t *except_q) {
-	dig_query_t *q = ISC_LIST_HEAD(l->q);
-
 	debug("check_if_queries_done(%p)", l);
 
-	while (q != NULL) {
+	ISC_LIST_FOREACH (l->q, q, link) {
 		if (!q->started || isc_refcount_current(&q->references) > 1) {
 			if (!q->canceled && q != except_q) {
 				debug("there is a pending query %p", q);
 				return false;
 			}
 		}
-		q = ISC_LIST_NEXT(q, link);
 	}
 
 	return true;
@@ -1548,9 +1530,6 @@ check_if_queries_done(dig_lookup_t *l, dig_query_t *except_q) {
 
 static void
 _destroy_lookup(dig_lookup_t *lookup) {
-	dig_server_t *s;
-	void *ptr;
-
 	REQUIRE(lookup != NULL);
 	REQUIRE(ISC_LIST_EMPTY(lookup->q));
 
@@ -1558,14 +1537,10 @@ _destroy_lookup(dig_lookup_t *lookup) {
 
 	isc_refcount_destroy(&lookup->references);
 
-	s = ISC_LIST_HEAD(lookup->my_server_list);
-	while (s != NULL) {
+	ISC_LIST_FOREACH_SAFE (lookup->my_server_list, s, link) {
 		debug("freeing server %p belonging to %p", s, lookup);
-		ptr = s;
-		s = ISC_LIST_NEXT(s, link);
-		ISC_LIST_DEQUEUE(lookup->my_server_list, (dig_server_t *)ptr,
-				 link);
-		isc_mem_free(mctx, ptr);
+		ISC_LIST_DEQUEUE(lookup->my_server_list, s, link);
+		isc_mem_free(mctx, s);
 	}
 	if (lookup->sendmsg != NULL) {
 		dns_message_detach(&lookup->sendmsg);
@@ -2741,13 +2716,9 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 static void
 _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
-	dig_query_t *query, *next;
-
 	debug("%s:%u:%s()", file, line, __func__);
-	query = ISC_LIST_HEAD(lookup->q);
-	while (query != NULL) {
+	ISC_LIST_FOREACH_SAFE (lookup->q, query, link) {
 		REQUIRE(DIG_VALID_QUERY(query));
-		next = ISC_LIST_NEXT(query, link);
 		ISC_LIST_DEQUEUE(lookup->q, query, link);
 		debug("canceling pending query %p, belonging to %p", query,
 		      query->lookup);
@@ -2758,7 +2729,6 @@ _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 			isc_nm_cancelread(query->readhandle);
 		}
 		query_detach(&query);
-		query = next;
 	}
 	lookup->pending = false;
 	lookup->retries = 0;
@@ -4658,8 +4628,6 @@ run_loop(void *arg) {
  */
 void
 cancel_all(void) {
-	dig_lookup_t *l, *n;
-
 	debug("cancel_all()");
 
 	if (free_now) {
@@ -4688,12 +4656,9 @@ cancel_all(void) {
 			lookup_detach(&current_lookup);
 		}
 	}
-	l = ISC_LIST_HEAD(lookup_list);
-	while (l != NULL) {
-		n = ISC_LIST_NEXT(l, link);
+	ISC_LIST_FOREACH_SAFE (lookup_list, l, link) {
 		ISC_LIST_DEQUEUE(lookup_list, l, link);
 		lookup_detach(&l);
-		l = n;
 	}
 }
 

@@ -956,10 +956,9 @@ addserver(dns_client_t *client) {
 	CHECK(dns_client_setservers(client, dns_rdataclass_in, name, &servers));
 
 cleanup:
-	while (!ISC_LIST_EMPTY(servers)) {
-		sa = ISC_LIST_HEAD(servers);
-		ISC_LIST_UNLINK(servers, sa, link);
-		isc_mem_put(mctx, sa, sizeof(*sa));
+	ISC_LIST_FOREACH_SAFE (servers, s, link) {
+		ISC_LIST_UNLINK(servers, s, link);
+		isc_mem_put(mctx, s, sizeof(*s));
 	}
 
 	if (result != ISC_R_SUCCESS) {

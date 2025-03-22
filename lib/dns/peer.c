@@ -157,8 +157,7 @@ dns_peerlist_detach(dns_peerlist_t **list) {
 
 static void
 peerlist_delete(dns_peerlist_t **list) {
-	dns_peerlist_t *l;
-	dns_peer_t *server, *stmp;
+	dns_peerlist_t *l = NULL;
 
 	REQUIRE(list != NULL);
 	REQUIRE(DNS_PEERLIST_VALID(*list));
@@ -168,12 +167,9 @@ peerlist_delete(dns_peerlist_t **list) {
 
 	isc_refcount_destroy(&l->refs);
 
-	server = ISC_LIST_HEAD(l->elements);
-	while (server != NULL) {
-		stmp = ISC_LIST_NEXT(server, next);
+	ISC_LIST_FOREACH_SAFE (l->elements, server, next) {
 		ISC_LIST_UNLINK(l->elements, server, next);
 		dns_peer_detach(&server);
-		server = stmp;
 	}
 
 	l->magic = 0;
@@ -199,31 +195,19 @@ dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer) {
 isc_result_t
 dns_peerlist_peerbyaddr(dns_peerlist_t *servers, const isc_netaddr_t *addr,
 			dns_peer_t **retval) {
-	dns_peer_t *server;
-	isc_result_t res;
-
 	REQUIRE(retval != NULL);
 	REQUIRE(DNS_PEERLIST_VALID(servers));
 
-	server = ISC_LIST_HEAD(servers->elements);
-	while (server != NULL) {
+	ISC_LIST_FOREACH (servers->elements, server, next) {
 		if (isc_netaddr_eqprefix(addr, &server->address,
 					 server->prefixlen))
 		{
-			break;
+			*retval = server;
+			return ISC_R_SUCCESS;
 		}
-
-		server = ISC_LIST_NEXT(server, next);
 	}
 
-	if (server != NULL) {
-		*retval = server;
-		res = ISC_R_SUCCESS;
-	} else {
-		res = ISC_R_NOTFOUND;
-	}
-
-	return res;
+	return ISC_R_NOTFOUND;
 }
 
 isc_result_t

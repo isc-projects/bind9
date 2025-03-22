@@ -810,21 +810,17 @@ name_order(const void *av, const void *bv) {
 static isc_result_t
 uniqify_name_list(dns_diff_t *list) {
 	isc_result_t result;
-	dns_difftuple_t *p, *q;
 
 	CHECK(dns_diff_sort(list, name_order));
 
-	p = ISC_LIST_HEAD(list->tuples);
-	while (p != NULL) {
-		do {
-			q = ISC_LIST_NEXT(p, link);
-			if (q == NULL || !dns_name_equal(&p->name, &q->name)) {
-				break;
-			}
-			ISC_LIST_UNLINK(list->tuples, q, link);
-			dns_difftuple_free(&q);
-		} while (1);
-		p = ISC_LIST_NEXT(p, link);
+	dns_name_t *curr_name = NULL;
+	ISC_LIST_FOREACH_SAFE (list->tuples, p, link) {
+		if (curr_name == NULL || !dns_name_equal(curr_name, &p->name)) {
+			curr_name = &(p->name);
+		} else {
+			ISC_LIST_UNLINK(list->tuples, p, link);
+			dns_difftuple_free(&p);
+		}
 	}
 failure:
 	return result;
@@ -1044,7 +1040,6 @@ static isc_result_t
 find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 	       dst_key_t **keys, unsigned int *nkeys) {
 	dns_dnsseckeylist_t keylist;
-	dns_dnsseckey_t *k = NULL;
 	unsigned int count = 0;
 	isc_result_t result;
 	isc_stdtime_t now = isc_stdtime_now();
@@ -1070,10 +1065,12 @@ find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 	}
 
 	/* Add new 'dnskeys' to 'keys' */
-	while ((k = ISC_LIST_HEAD(keylist)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (keylist, k, link) {
 		if (count >= maxkeys) {
+			ISC_LIST_UNLINK(keylist, k, link);
+			dns_dnsseckey_destroy(mctx, &k);
 			result = ISC_R_NOSPACE;
-			goto next;
+			break;
 		}
 
 		/* Detect inactive keys */
@@ -1085,7 +1082,6 @@ find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 		k->key = NULL;
 		count++;
 
-	next:
 		ISC_LIST_UNLINK(keylist, k, link);
 		dns_dnsseckey_destroy(mctx, &k);
 	}

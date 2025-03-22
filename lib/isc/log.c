@@ -392,10 +392,9 @@ isc_logconfig_set(isc_logconfig_t *lcfg) {
 
 void
 isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
-	isc_logconfig_t *lcfg;
-	isc_mem_t *mctx;
-	isc_logchannel_t *channel;
-	char *filename;
+	isc_logconfig_t *lcfg = NULL;
+	isc_mem_t *mctx = NULL;
+	char *filename = NULL;
 
 	REQUIRE(lcfgp != NULL && VALID_CONFIG(*lcfgp));
 
@@ -414,9 +413,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 
 	mctx = lcfg->lctx->mctx;
 
-	while ((channel = ISC_LIST_HEAD(lcfg->channels)) != NULL) {
-		ISC_LIST_UNLINK(lcfg->channels, channel, link);
-
+	ISC_LIST_FOREACH_SAFE (lcfg->channels, channel, link) {
 		if (channel->type == ISC_LOG_TOFILE) {
 			/*
 			 * The filename for the channel may have ultimately
@@ -647,11 +644,7 @@ isc_log_setdebuglevel(unsigned int level) {
 		isc_logconfig_t *lcfg = rcu_dereference(isc__lctx->logconfig);
 		if (lcfg != NULL) {
 			LOCK(&isc__lctx->lock);
-			for (isc_logchannel_t *channel =
-				     ISC_LIST_HEAD(lcfg->channels);
-			     channel != NULL;
-			     channel = ISC_LIST_NEXT(channel, link))
-			{
+			ISC_LIST_FOREACH (lcfg->channels, channel, link) {
 				if (channel->type == ISC_LOG_TOFILE &&
 				    (channel->flags & ISC_LOG_DEBUGONLY) != 0 &&
 				    FILE_STREAM(channel) != NULL)

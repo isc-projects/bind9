@@ -914,20 +914,15 @@ unlock:
 
 static void
 clearlistenon(ns_interfacemgr_t *mgr) {
-	ISC_LIST(isc_sockaddr_t) listenon;
-	isc_sockaddr_t *old;
-
-	ISC_LIST_INIT(listenon);
+	ISC_LIST(isc_sockaddr_t) listenon = ISC_LIST_INITIALIZER;
 
 	LOCK(&mgr->lock);
 	ISC_LIST_MOVE(listenon, mgr->listenon);
 	UNLOCK(&mgr->lock);
 
-	old = ISC_LIST_HEAD(listenon);
-	while (old != NULL) {
+	ISC_LIST_FOREACH_SAFE (listenon, old, link) {
 		ISC_LIST_UNLINK(listenon, old, link);
 		isc_mem_put(mgr->mctx, old, sizeof(*old));
-		old = ISC_LIST_HEAD(listenon);
 	}
 }
 

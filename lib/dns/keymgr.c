@@ -2041,7 +2041,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	       dns_kasp_t *kasp, isc_stdtime_t now, isc_stdtime_t *nexttime) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dnsseckeylist_t newkeys;
-	dns_dnsseckey_t *newkey = NULL;
 	bool secure_to_insecure = false;
 	int numkeys = 0;
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
@@ -2269,7 +2268,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 
 failure:
 	if (result != ISC_R_SUCCESS) {
-		while ((newkey = ISC_LIST_HEAD(newkeys)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (newkeys, newkey, link) {
 			ISC_LIST_UNLINK(newkeys, newkey, link);
 			INSIST(newkey->key != NULL);
 			dst_key_free(&newkey->key);

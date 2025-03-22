@@ -2813,7 +2813,6 @@ cleanup:
 static isc_result_t
 generatejson(named_server_t *server, size_t *msglen, const char **msg,
 	     json_object **rootp, uint32_t flags) {
-	dns_view_t *view;
 	isc_result_t result = ISC_R_SUCCESS;
 	json_object *bindstats, *viewlist, *counters, *obj;
 	json_object *traffic = NULL;
@@ -3036,8 +3035,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 
 		json_object_object_add(bindstats, "views", viewlist);
 
-		view = ISC_LIST_HEAD(server->viewlist);
-		while (view != NULL) {
+		ISC_LIST_FOREACH (server->viewlist, view, link) {
 			json_object *za, *xa, *v = json_object_new_object();
 			dns_adb_t *adb = NULL;
 
@@ -3185,8 +3183,6 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 							       counters);
 				}
 			}
-
-			view = ISC_LIST_NEXT(view, link);
 		}
 	}
 

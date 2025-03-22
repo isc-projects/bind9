@@ -348,9 +348,7 @@ resconf_parsedomain(irs_resconf_t *conf, FILE *fp) {
 
 static void
 free_search(irs_resconf_t *conf) {
-	irs_resconf_search_t *searchentry;
-
-	while ((searchentry = ISC_LIST_HEAD(conf->searchlist)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (conf->searchlist, searchentry, link) {
 		ISC_LIST_UNLINK(conf->searchlist, searchentry, link);
 		isc_mem_free(conf->mctx, searchentry->domain);
 		isc_mem_put(conf->mctx, searchentry, sizeof(*searchentry));
@@ -636,8 +634,7 @@ error:
 
 void
 irs_resconf_destroy(irs_resconf_t **confp) {
-	irs_resconf_t *conf;
-	isc_sockaddr_t *address;
+	irs_resconf_t *conf = NULL;
 
 	REQUIRE(confp != NULL);
 	conf = *confp;
@@ -646,7 +643,7 @@ irs_resconf_destroy(irs_resconf_t **confp) {
 
 	free_search(conf);
 
-	while ((address = ISC_LIST_HEAD(conf->nameservers)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (conf->nameservers, address, link) {
 		ISC_LIST_UNLINK(conf->nameservers, address, link);
 		isc_mem_put(conf->mctx, address, sizeof(*address));
 	}

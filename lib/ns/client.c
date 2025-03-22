@@ -2883,7 +2883,6 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 
 void
 ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
-	ns_client_t *client;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char original[DNS_NAME_FORMATSIZE];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -2897,8 +2896,7 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 	REQUIRE(VALID_MANAGER(manager));
 
 	LOCK(&manager->reclock);
-	client = ISC_LIST_HEAD(manager->recursing);
-	while (client != NULL) {
+	ISC_LIST_FOREACH (manager->recursing, client, rlink) {
 		INSIST(client->state == NS_CLIENTSTATE_RECURSING);
 
 		ns_client_name(client, peerbuf, sizeof(peerbuf));
@@ -2948,7 +2946,6 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 			sep, name, client->message->id, namebuf, typebuf,
 			classbuf, origfor, original,
 			isc_time_seconds(&client->requesttime));
-		client = ISC_LIST_NEXT(client, rlink);
 	}
 	UNLOCK(&manager->reclock);
 }

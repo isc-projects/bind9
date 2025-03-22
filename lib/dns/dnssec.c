@@ -1416,14 +1416,12 @@ addkey(dns_dnsseckeylist_t *keylist, dst_key_t **newkey, bool savekeys,
 	dns_dnsseckey_t *key = NULL;
 
 	/* Skip duplicates */
-	for (key = ISC_LIST_HEAD(*keylist); key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-	{
-		if (dst_key_id(key->key) == dst_key_id(*newkey) &&
-		    dst_key_alg(key->key) == dst_key_alg(*newkey) &&
-		    dns_name_equal(dst_key_name(key->key),
-				   dst_key_name(*newkey)))
+	ISC_LIST_FOREACH (*keylist, k, link) {
+		if (dst_key_id(k->key) == dst_key_id(*newkey) &&
+		    dst_key_alg(k->key) == dst_key_alg(*newkey) &&
+		    dns_name_equal(dst_key_name(k->key), dst_key_name(*newkey)))
 		{
+			key = k;
 			break;
 		}
 	}
@@ -2189,23 +2187,21 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		char keystr2[DST_KEY_FORMATSIZE];
 		dns_dnsseckey_t *key2 = NULL;
 
-		for (key2 = ISC_LIST_HEAD(*keys); key2 != NULL;
-		     key2 = ISC_LIST_NEXT(key2, link))
-		{
+		ISC_LIST_FOREACH (*keys, k2, link) {
 			int f1 = dst_key_flags(key1->key);
-			int f2 = dst_key_flags(key2->key);
+			int f2 = dst_key_flags(k2->key);
 			int nr1 = f1 & ~DNS_KEYFLAG_REVOKE;
 			int nr2 = f2 & ~DNS_KEYFLAG_REVOKE;
 			if (nr1 == nr2 &&
-			    dst_key_alg(key1->key) == dst_key_alg(key2->key) &&
-			    dst_key_pubcompare(key1->key, key2->key, true))
+			    dst_key_alg(key1->key) == dst_key_alg(k2->key) &&
+			    dst_key_pubcompare(key1->key, k2->key, true))
 			{
-				int r1, r2;
-				r1 = dst_key_flags(key1->key) &
-				     DNS_KEYFLAG_REVOKE;
-				r2 = dst_key_flags(key2->key) &
-				     DNS_KEYFLAG_REVOKE;
+				int r1 = dst_key_flags(key1->key) &
+					 DNS_KEYFLAG_REVOKE;
+				int r2 = dst_key_flags(k2->key) &
+					 DNS_KEYFLAG_REVOKE;
 				key_revoked = (r1 != r2);
+				key2 = k2;
 				break;
 			}
 		}

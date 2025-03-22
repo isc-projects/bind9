@@ -566,7 +566,6 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	dns_rdatalist_t rdatalist_ns, rdatalist_a, rdatalist_aaaa;
 	dns_rdatalist_t *rdatalists[] = { &rdatalist_ns, &rdatalist_a,
 					  &rdatalist_aaaa, NULL };
-	dns_rdata_t *rdata;
 	isc_region_t region;
 
 	/* Create the DB beforehand */
@@ -678,7 +677,7 @@ cleanup:
 		dns_db_detach(&db);
 	}
 	for (i = 0; rdatalists[i] != NULL; i++) {
-		while ((rdata = ISC_LIST_HEAD(rdatalists[i]->rdata)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (rdatalists[i]->rdata, rdata, link) {
 			ISC_LIST_UNLINK(rdatalists[i]->rdata, rdata, link);
 			dns_rdata_toregion(rdata, &region);
 			isc_mem_put(mctx, rdata,

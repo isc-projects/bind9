@@ -248,7 +248,6 @@ unlock:
 
 static void
 delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
-	debuglink_t *dl = NULL;
 	uint32_t hash;
 	uint32_t idx;
 
@@ -275,14 +274,12 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
 #endif
 	idx = hash % DEBUG_TABLE_COUNT;
 
-	dl = ISC_LIST_HEAD(mctx->debuglist[idx]);
-	while (dl != NULL) {
+	ISC_LIST_FOREACH (mctx->debuglist[idx], dl, link) {
 		if (dl->ptr == ptr) {
 			ISC_LIST_UNLINK(mctx->debuglist[idx], dl, link);
 			sdallocx(dl, dl->dlsize, mctx->jemalloc_flags);
 			goto unlock;
 		}
-		dl = ISC_LIST_NEXT(dl, link);
 	}
 
 	/*
@@ -619,7 +616,6 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size, int flags FLARG) {
 static void
 print_active(isc_mem_t *mctx, FILE *out) {
 	if (mctx->debuglist != NULL) {
-		debuglink_t *dl;
 		unsigned int i;
 		bool found;
 
@@ -627,13 +623,8 @@ print_active(isc_mem_t *mctx, FILE *out) {
 			     "allocations:\n");
 		found = false;
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
-			dl = ISC_LIST_HEAD(mctx->debuglist[i]);
-
-			if (dl != NULL) {
+			ISC_LIST_FOREACH (mctx->debuglist[i], dl, link) {
 				found = true;
-			}
-
-			while (dl != NULL) {
 				if (dl->ptr != NULL) {
 					fprintf(out,
 						"\tptr %p size %zu "
@@ -642,7 +633,6 @@ print_active(isc_mem_t *mctx, FILE *out) {
 						dl->ptr, dl->size, dl->file,
 						dl->line);
 				}
-				dl = ISC_LIST_NEXT(dl, link);
 			}
 		}
 
@@ -658,8 +648,6 @@ print_active(isc_mem_t *mctx, FILE *out) {
  */
 void
 isc_mem_stats(isc_mem_t *ctx, FILE *out) {
-	isc_mempool_t *pool = NULL;
-
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	MCTXLOCK(ctx);
@@ -671,20 +659,18 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	 * isc_mem_t's lock, however, so walking this list and
 	 * extracting integers from stats fields is always safe.
 	 */
-	pool = ISC_LIST_HEAD(ctx->pools);
-	if (pool != NULL) {
+	if (!ISC_LIST_EMPTY(ctx->pools)) {
 		fprintf(out, "[Pool statistics]\n");
 		fprintf(out, "%15s %10s %10s %10s %10s %10s %10s %1s\n", "name",
 			"size", "allocated", "freecount", "freemax",
 			"fillcount", "gets", "L");
 	}
-	while (pool != NULL) {
+	ISC_LIST_FOREACH (ctx->pools, pool, link) {
 		fprintf(out,
 			"%15s %10zu %10zu %10zu %10zu %10zu %10zu %10zu %s\n",
 			pool->name, pool->size, (size_t)0, pool->allocated,
 			pool->freecount, pool->freemax, pool->fillcount,
 			pool->gets, "N");
-		pool = ISC_LIST_NEXT(pool, link);
 	}
 
 #if ISC_MEM_TRACKLINES

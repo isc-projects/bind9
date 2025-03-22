@@ -792,19 +792,14 @@ createnode(bdb_t *bdb, bdbnode_t **nodep) {
 
 static void
 destroynode(bdbnode_t *node) {
-	dns_rdatalist_t *list = NULL;
-	dns_rdata_t *rdata = NULL;
-	isc_buffer_t *b = NULL;
 	bdb_t *bdb = NULL;
 	isc_mem_t *mctx = NULL;
 
 	bdb = node->bdb;
 	mctx = bdb->common.mctx;
 
-	while (!ISC_LIST_EMPTY(node->lists)) {
-		list = ISC_LIST_HEAD(node->lists);
-		while (!ISC_LIST_EMPTY(list->rdata)) {
-			rdata = ISC_LIST_HEAD(list->rdata);
+	ISC_LIST_FOREACH_SAFE (node->lists, list, link) {
+		ISC_LIST_FOREACH_SAFE (list->rdata, rdata, link) {
 			ISC_LIST_UNLINK(list->rdata, rdata, link);
 			isc_mem_put(mctx, rdata, sizeof(dns_rdata_t));
 		}
@@ -812,8 +807,7 @@ destroynode(bdbnode_t *node) {
 		isc_mem_put(mctx, list, sizeof(dns_rdatalist_t));
 	}
 
-	while (!ISC_LIST_EMPTY(node->buffers)) {
-		b = ISC_LIST_HEAD(node->buffers);
+	ISC_LIST_FOREACH_SAFE (node->buffers, b, link) {
 		ISC_LIST_UNLINK(node->buffers, b, link);
 		isc_buffer_free(&b);
 	}
@@ -1107,7 +1101,6 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     dns_rdataset_t *rdataset,
 	     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	bdbnode_t *bdbnode = (bdbnode_t *)node;
-	dns_rdatalist_t *list = NULL;
 
 	REQUIRE(VALID_BDBNODE(bdbnode));
 
@@ -1120,20 +1113,14 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		return ISC_R_NOTIMPLEMENTED;
 	}
 
-	list = ISC_LIST_HEAD(bdbnode->lists);
-	while (list != NULL) {
+	ISC_LIST_FOREACH (bdbnode->lists, list, link) {
 		if (list->type == type) {
-			break;
+			new_rdataset(list, db, node, rdataset);
+			return ISC_R_SUCCESS;
 		}
-		list = ISC_LIST_NEXT(list, link);
-	}
-	if (list == NULL) {
-		return ISC_R_NOTFOUND;
 	}
 
-	new_rdataset(list, db, node, rdataset);
-
-	return ISC_R_SUCCESS;
+	return ISC_R_NOTFOUND;
 }
 
 static isc_result_t

@@ -1338,7 +1338,6 @@ void
 isc_tlsctx_client_session_cache_detach(
 	isc_tlsctx_client_session_cache_t **cachep) {
 	isc_tlsctx_client_session_cache_t *cache = NULL;
-	client_session_cache_entry_t *entry = NULL, *next = NULL;
 
 	REQUIRE(cachep != NULL);
 
@@ -1355,11 +1354,8 @@ isc_tlsctx_client_session_cache_detach(
 
 	isc_refcount_destroy(&cache->references);
 
-	entry = ISC_LIST_HEAD(cache->lru_entries);
-	while (entry != NULL) {
-		next = ISC_LIST_NEXT(entry, cache_link);
+	ISC_LIST_FOREACH_SAFE (cache->lru_entries, entry, cache_link) {
 		client_cache_entry_delete(cache, entry);
-		entry = next;
 	}
 
 	RUNTIME_CHECK(isc_ht_count(cache->buckets) == 0);

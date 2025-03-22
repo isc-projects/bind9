@@ -509,9 +509,8 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr, dns_zone_t *zone,
 	  bool create, char *log_buf, unsigned int log_buf_len) {
 	dns_rrl_key_t key;
 	uint32_t hval;
-	dns_rrl_entry_t *e;
-	dns_rrl_hash_t *hash;
-	dns_rrl_bin_t *new_bin, *old_bin;
+	dns_rrl_hash_t *hash = NULL;
+	dns_rrl_bin_t *new_bin = NULL, *old_bin = NULL;
 	int probes, age;
 
 	make_key(rrl, &key, client_addr, zone, qtype, qname, qclass, rtype);
@@ -522,14 +521,12 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr, dns_zone_t *zone,
 	 */
 	new_bin = get_bin(rrl->hash, hval);
 	probes = 1;
-	e = ISC_LIST_HEAD(*new_bin);
-	while (e != NULL) {
+	ISC_LIST_FOREACH (*new_bin, e, hlink) {
 		if (key_cmp(&e->key, &key)) {
 			ref_entry(rrl, e, probes, now);
 			return e;
 		}
 		++probes;
-		e = ISC_LIST_NEXT(e, hlink);
 	}
 
 	/*
@@ -537,8 +534,7 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr, dns_zone_t *zone,
 	 */
 	if (rrl->old_hash != NULL) {
 		old_bin = get_bin(rrl->old_hash, hval);
-		e = ISC_LIST_HEAD(*old_bin);
-		while (e != NULL) {
+		ISC_LIST_FOREACH (*old_bin, e, hlink) {
 			if (key_cmp(&e->key, &key)) {
 				ISC_LIST_UNLINK(*old_bin, e, hlink);
 				ISC_LIST_PREPEND(*new_bin, e, hlink);
@@ -546,7 +542,6 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr, dns_zone_t *zone,
 				ref_entry(rrl, e, probes, now);
 				return e;
 			}
-			e = ISC_LIST_NEXT(e, hlink);
 		}
 
 		/*
@@ -568,42 +563,44 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr, dns_zone_t *zone,
 	 * Try to make more entries if none are idle.
 	 * Steal the oldest entry if we cannot create more.
 	 */
-	for (e = ISC_LIST_TAIL(rrl->lru); e != NULL; e = ISC_LIST_PREV(e, lru))
-	{
+	dns_rrl_entry_t *entry = NULL;
+	ISC_LIST_FOREACH_REV (rrl->lru, e, lru) {
+		entry = e;
 		if (!ISC_LINK_LINKED(e, hlink)) {
 			break;
 		}
 		age = get_age(rrl, e, now);
 		if (age <= 1) {
-			e = NULL;
+			entry = NULL;
 			break;
 		}
 		if (!e->logged && response_balance(rrl, e, age) > 0) {
 			break;
 		}
 	}
-	if (e == NULL) {
+
+	if (entry == NULL) {
 		expand_entries(rrl, ISC_MIN((rrl->num_entries + 1) / 2, 1000));
-		e = ISC_LIST_TAIL(rrl->lru);
+		entry = ISC_LIST_TAIL(rrl->lru);
 	}
-	if (e->logged) {
-		log_end(rrl, e, true, log_buf, log_buf_len);
+	if (entry->logged) {
+		log_end(rrl, entry, true, log_buf, log_buf_len);
 	}
-	if (ISC_LINK_LINKED(e, hlink)) {
-		if (e->hash_gen == rrl->hash_gen) {
+	if (ISC_LINK_LINKED(entry, hlink)) {
+		if (entry->hash_gen == rrl->hash_gen) {
 			hash = rrl->hash;
 		} else {
 			hash = rrl->old_hash;
 		}
-		old_bin = get_bin(hash, hash_key(&e->key));
-		ISC_LIST_UNLINK(*old_bin, e, hlink);
+		old_bin = get_bin(hash, hash_key(&entry->key));
+		ISC_LIST_UNLINK(*old_bin, entry, hlink);
 	}
-	ISC_LIST_PREPEND(*new_bin, e, hlink);
-	e->hash_gen = rrl->hash_gen;
-	e->key = key;
-	e->ts_valid = false;
-	ref_entry(rrl, e, probes, now);
-	return e;
+	ISC_LIST_PREPEND(*new_bin, entry, hlink);
+	entry->hash_gen = rrl->hash_gen;
+	entry->key = key;
+	entry->ts_valid = false;
+	ref_entry(rrl, entry, probes, now);
+	return entry;
 }
 
 static void
@@ -1252,9 +1249,8 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 
 void
 dns_rrl_view_destroy(dns_view_t *view) {
-	dns_rrl_t *rrl;
-	dns_rrl_block_t *b;
-	dns_rrl_hash_t *h;
+	dns_rrl_t *rrl = NULL;
+	dns_rrl_hash_t *h = NULL;
 	char log_buf[DNS_RRL_LOG_BUF_LEN];
 	int i;
 
@@ -1285,8 +1281,7 @@ dns_rrl_view_destroy(dns_view_t *view) {
 
 	isc_mutex_destroy(&rrl->lock);
 
-	while (!ISC_LIST_EMPTY(rrl->blocks)) {
-		b = ISC_LIST_HEAD(rrl->blocks);
+	ISC_LIST_FOREACH_SAFE (rrl->blocks, b, link) {
 		ISC_LIST_UNLINK(rrl->blocks, b, link);
 		isc_mem_put(rrl->mctx, b, b->size);
 	}

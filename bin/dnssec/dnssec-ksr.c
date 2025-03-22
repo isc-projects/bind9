@@ -236,8 +236,7 @@ get_dnskeys(ksr_ctx_t *ksr, dns_dnsseckeylist_t *keys) {
 		keys_sorted[i++] = dk;
 	}
 	qsort(keys_sorted, n, sizeof(dns_dnsseckey_t *), keyalgtag_cmp);
-	while (!ISC_LIST_EMPTY(keys_read)) {
-		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys_read);
+	ISC_LIST_FOREACH_SAFE (keys_read, key, link) {
 		ISC_LIST_UNLINK(keys_read, key, link);
 	}
 	/* Save sorted list in 'keys' */
@@ -264,20 +263,16 @@ setcontext(ksr_ctx_t *ksr, dns_kasp_t *kasp) {
 
 static void
 cleanup(dns_dnsseckeylist_t *keys, dns_kasp_t *kasp) {
-	while (!ISC_LIST_EMPTY(*keys)) {
-		dns_dnsseckey_t *key = ISC_LIST_HEAD(*keys);
+	ISC_LIST_FOREACH_SAFE (*keys, key, link) {
 		ISC_LIST_UNLINK(*keys, key, link);
 		dst_key_free(&key->key);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
 	dns_kasp_detach(&kasp);
 
-	isc_buffer_t *cbuf = ISC_LIST_HEAD(cleanup_list);
-	while (cbuf != NULL) {
-		isc_buffer_t *nbuf = ISC_LIST_NEXT(cbuf, link);
+	ISC_LIST_FOREACH_SAFE (cleanup_list, cbuf, link) {
 		ISC_LIST_UNLINK(cleanup_list, cbuf, link);
 		isc_buffer_free(&cbuf);
-		cbuf = nbuf;
 	}
 }
 

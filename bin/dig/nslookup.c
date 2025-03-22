@@ -446,13 +446,10 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 static void
 show_settings(bool full, bool serv_only) {
-	dig_server_t *srv;
 	isc_sockaddr_t sockaddr;
 	isc_result_t result;
 
-	srv = ISC_LIST_HEAD(server_list);
-
-	while (srv != NULL) {
+	ISC_LIST_FOREACH (server_list, srv, link) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
 		result = get_address(srv->servername, port, &sockaddr);
@@ -464,7 +461,6 @@ show_settings(bool full, bool serv_only) {
 		if (!full) {
 			return;
 		}
-		srv = ISC_LIST_NEXT(srv, link);
 	}
 	if (serv_only) {
 		return;

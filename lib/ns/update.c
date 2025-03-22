@@ -484,8 +484,7 @@ static isc_result_t
 do_diff(dns_diff_t *updates, dns_db_t *db, dns_dbversion_t *ver,
 	dns_diff_t *diff) {
 	isc_result_t result;
-	while (!ISC_LIST_EMPTY(updates->tuples)) {
-		dns_difftuple_t *t = ISC_LIST_HEAD(updates->tuples);
+	ISC_LIST_FOREACH_SAFE (updates->tuples, t, link) {
 		ISC_LIST_UNLINK(updates->tuples, t, link);
 		CHECK(do_one_tuple(&t, db, ver, diff));
 	}

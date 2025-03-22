@@ -428,7 +428,6 @@ nmsocket_cleanup(void *arg) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(!isc__nmsocket_active(sock));
 
-	isc_nmhandle_t *handle = NULL;
 	isc__networker_t *worker = sock->worker;
 
 	isc_refcount_destroy(&sock->references);
@@ -467,7 +466,7 @@ nmsocket_cleanup(void *arg) {
 		isc__nmsocket_detach(&sock->outer);
 	}
 
-	while ((handle = ISC_LIST_HEAD(sock->inactive_handles)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (sock->inactive_handles, handle, inactive_link) {
 		ISC_LIST_DEQUEUE(sock->inactive_handles, handle, inactive_link);
 		nmhandle_free(sock, handle);
 	}

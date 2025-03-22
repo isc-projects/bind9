@@ -5966,7 +5966,6 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 	const cfg_listelt_t *element = NULL;
 	dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 	dns_forwarderlist_t fwdlist;
-	dns_forwarder_t *fwd = NULL;
 	isc_result_t result;
 	in_port_t port;
 	in_port_t tls_port;
@@ -6021,7 +6020,8 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 		const cfg_obj_t *forwarder = cfg_listelt_value(element);
 		const char *cur_tls = NULL;
 
-		fwd = isc_mem_get(view->mctx, sizeof(dns_forwarder_t));
+		dns_forwarder_t *fwd = isc_mem_get(view->mctx,
+						   sizeof(dns_forwarder_t));
 		fwd->tlsname = NULL;
 		cur_tls = cfg_obj_getsockaddrtls(forwarder);
 		if (cur_tls == NULL) {
@@ -6086,8 +6086,7 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 
 cleanup:
 
-	while (!ISC_LIST_EMPTY(fwdlist)) {
-		fwd = ISC_LIST_HEAD(fwdlist);
+	ISC_LIST_FOREACH_SAFE (fwdlist, fwd, link) {
 		ISC_LIST_UNLINK(fwdlist, fwd, link);
 		if (fwd->tlsname != NULL) {
 			dns_name_free(fwd->tlsname, view->mctx);
@@ -7854,13 +7853,13 @@ load_configuration(const char *filename, named_server_t *server,
 		   bool first_time) {
 	cfg_obj_t *config = NULL, *bindkeys = NULL;
 	cfg_parser_t *conf_parser = NULL, *bindkeys_parser = NULL;
-	const cfg_listelt_t *element;
-	const cfg_obj_t *builtin_views;
+	const cfg_listelt_t *element = NULL;
+	const cfg_obj_t *builtin_views = NULL;
 	const cfg_obj_t *maps[3];
-	const cfg_obj_t *obj;
-	const cfg_obj_t *options;
-	const cfg_obj_t *kasps;
-	const cfg_obj_t *keystores;
+	const cfg_obj_t *obj = NULL;
+	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *kasps = NULL;
+	const cfg_obj_t *keystores = NULL;
 	dns_kasp_t *default_kasp = NULL;
 	dns_kasplist_t tmpkasplist, kasplist;
 	dns_keystorelist_t tmpkeystorelist, keystorelist;
@@ -7881,9 +7880,8 @@ load_configuration(const char *filename, named_server_t *server,
 	uint32_t send_tcp_buffer_size;
 	uint32_t recv_udp_buffer_size;
 	uint32_t send_udp_buffer_size;
-	named_cache_t *nsc = NULL;
 	named_cachelist_t cachelist, tmpcachelist;
-	ns_altsecret_t *altsecret;
+	ns_altsecret_t *altsecret = NULL;
 	ns_altsecretlist_t altsecrets, tmpaltsecrets;
 	uint32_t softquota = 0;
 	uint32_t max;
@@ -9234,9 +9232,9 @@ load_configuration(const char *filename, named_server_t *server,
 	 * were swapped above or not.
 	 */
 cleanup_altsecrets:
-	while ((altsecret = ISC_LIST_HEAD(altsecrets)) != NULL) {
-		ISC_LIST_UNLINK(altsecrets, altsecret, link);
-		isc_mem_put(server->sctx->mctx, altsecret, sizeof(*altsecret));
+	ISC_LIST_FOREACH_SAFE (altsecrets, as, link) {
+		ISC_LIST_UNLINK(altsecrets, as, link);
+		isc_mem_put(server->sctx->mctx, as, sizeof(*as));
 	}
 
 cleanup_logc:
@@ -9245,7 +9243,7 @@ cleanup_logc:
 	}
 
 cleanup_cachelist:
-	while ((nsc = ISC_LIST_HEAD(cachelist)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (cachelist, nsc, link) {
 		ISC_LIST_UNLINK(cachelist, nsc, link);
 		dns_cache_detach(&nsc->cache);
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
@@ -9505,7 +9503,6 @@ static void
 shutdown_server(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
 	bool flush = server->flushonshutdown;
-	named_cache_t *nsc = NULL;
 
 	named_os_notify_systemd("STOPPING=1\n");
 	named_os_notify_close();
@@ -9566,7 +9563,7 @@ shutdown_server(void *arg) {
 	 */
 	dns_dyndb_cleanup();
 
-	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (server->cachelist, nsc, link) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);
 		dns_cache_detach(&nsc->cache);
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
@@ -11099,22 +11096,15 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 
 static void
 dumpcontext_destroy(struct dumpcontext *dctx) {
-	struct viewlistentry *vle;
-	struct zonelistentry *zle;
-
-	vle = ISC_LIST_HEAD(dctx->viewlist);
-	while (vle != NULL) {
+	ISC_LIST_FOREACH_SAFE (dctx->viewlist, vle, link) {
 		ISC_LIST_UNLINK(dctx->viewlist, vle, link);
-		zle = ISC_LIST_HEAD(vle->zonelist);
-		while (zle != NULL) {
+		ISC_LIST_FOREACH_SAFE (vle->zonelist, zle, link) {
 			ISC_LIST_UNLINK(vle->zonelist, zle, link);
 			dns_zone_detach(&zle->zone);
 			isc_mem_put(dctx->mctx, zle, sizeof *zle);
-			zle = ISC_LIST_HEAD(vle->zonelist);
 		}
 		dns_view_detach(&vle->view);
 		isc_mem_put(dctx->mctx, vle, sizeof *vle);
-		vle = ISC_LIST_HEAD(dctx->viewlist);
 	}
 	if (dctx->version != NULL) {
 		dns_db_closeversion(dctx->db, &dctx->version, false);
@@ -14412,7 +14402,6 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	dns_zone_t *zone = NULL;
 	dns_kasp_t *kasp = NULL;
 	dns_dnsseckeylist_t keys;
-	dns_dnsseckey_t *key;
 	char *ptr, *zonetext = NULL;
 	const char *msg = NULL;
 	/* variables for -checkds */
@@ -14704,8 +14693,7 @@ cleanup:
 		dns_db_detach(&db);
 	}
 
-	while (!ISC_LIST_EMPTY(keys)) {
-		key = ISC_LIST_HEAD(keys);
+	ISC_LIST_FOREACH_SAFE (keys, key, link) {
 		ISC_LIST_UNLINK(keys, key, link);
 		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
 	}

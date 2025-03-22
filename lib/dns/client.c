@@ -771,11 +771,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 		 * Free temporary resources
 		 */
 		if (ansname != NULL) {
-			dns_rdataset_t *rdataset;
-
-			while ((rdataset = ISC_LIST_HEAD(ansname->list)) !=
-			       NULL)
-			{
+			ISC_LIST_FOREACH_SAFE (ansname->list, rdataset, link) {
 				ISC_LIST_UNLINK(ansname->list, rdataset, link);
 				putrdataset(mctx, &rdataset);
 			}

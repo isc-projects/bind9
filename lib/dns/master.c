@@ -1015,7 +1015,6 @@ load_text(dns_loadctx_t *lctx) {
 	isc_result_t result = ISC_R_UNEXPECTED;
 	rdatalist_head_t glue_list;
 	rdatalist_head_t current_list;
-	dns_rdatalist_t *this = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdatalist_t *new_rdatalist = NULL;
 	int rdlcount = 0;
@@ -1082,6 +1081,8 @@ load_text(dns_loadctx_t *lctx) {
 	}
 	source = isc_lex_getsourcename(lctx->lex);
 	while (true) {
+		dns_rdatalist_t *this = NULL;
+
 		if (atomic_load_acquire(&lctx->canceled)) {
 			result = ISC_R_CANCELED;
 			goto log_and_cleanup;
@@ -2115,10 +2116,10 @@ cleanup:
 		callbacks->commit(callbacks->add_private);
 	}
 
-	while ((this = ISC_LIST_HEAD(current_list)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (current_list, this, link) {
 		ISC_LIST_UNLINK(current_list, this, link);
 	}
-	while ((this = ISC_LIST_HEAD(glue_list)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (glue_list, this, link) {
 		ISC_LIST_UNLINK(glue_list, this, link);
 	}
 	if (rdatalist != NULL) {
@@ -2752,16 +2753,15 @@ grow_rdatalist(int new_len, dns_rdatalist_t *oldlist, int old_len,
 	dns_rdatalist_t *newlist;
 	int rdlcount = 0;
 	ISC_LIST(dns_rdatalist_t) save;
-	dns_rdatalist_t *this;
 
 	newlist = isc_mem_cget(mctx, new_len, sizeof(newlist[0]));
 
 	ISC_LIST_INIT(save);
-	while ((this = ISC_LIST_HEAD(*current)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (*current, this, link) {
 		ISC_LIST_UNLINK(*current, this, link);
 		ISC_LIST_APPEND(save, this, link);
 	}
-	while ((this = ISC_LIST_HEAD(save)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (save, this, link) {
 		ISC_LIST_UNLINK(save, this, link);
 		INSIST(rdlcount < new_len);
 		newlist[rdlcount] = *this;
@@ -2770,11 +2770,11 @@ grow_rdatalist(int new_len, dns_rdatalist_t *oldlist, int old_len,
 	}
 
 	ISC_LIST_INIT(save);
-	while ((this = ISC_LIST_HEAD(*glue)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (*glue, this, link) {
 		ISC_LIST_UNLINK(*glue, this, link);
 		ISC_LIST_APPEND(save, this, link);
 	}
-	while ((this = ISC_LIST_HEAD(save)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (save, this, link) {
 		ISC_LIST_UNLINK(save, this, link);
 		INSIST(rdlcount < new_len);
 		newlist[rdlcount] = *this;
@@ -2799,49 +2799,43 @@ grow_rdata(int new_len, dns_rdata_t *oldlist, int old_len,
 	dns_rdata_t *newlist;
 	int rdcount = 0;
 	ISC_LIST(dns_rdata_t) save;
-	dns_rdatalist_t *this;
-	dns_rdata_t *rdata;
 
 	newlist = isc_mem_cget(mctx, new_len, sizeof(*newlist));
 
 	/*
 	 * Copy current relinking.
 	 */
-	this = ISC_LIST_HEAD(*current);
-	while (this != NULL) {
+	ISC_LIST_FOREACH (*current, this, link) {
 		ISC_LIST_INIT(save);
-		while ((rdata = ISC_LIST_HEAD(this->rdata)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (this->rdata, rdata, link) {
 			ISC_LIST_UNLINK(this->rdata, rdata, link);
 			ISC_LIST_APPEND(save, rdata, link);
 		}
-		while ((rdata = ISC_LIST_HEAD(save)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (save, rdata, link) {
 			ISC_LIST_UNLINK(save, rdata, link);
 			INSIST(rdcount < new_len);
 			newlist[rdcount] = *rdata;
 			ISC_LIST_APPEND(this->rdata, &newlist[rdcount], link);
 			rdcount++;
 		}
-		this = ISC_LIST_NEXT(this, link);
 	}
 
 	/*
 	 * Copy glue relinking.
 	 */
-	this = ISC_LIST_HEAD(*glue);
-	while (this != NULL) {
+	ISC_LIST_FOREACH (*glue, this, link) {
 		ISC_LIST_INIT(save);
-		while ((rdata = ISC_LIST_HEAD(this->rdata)) != NULL) {
+		ISC_LIST_FOREACH (this->rdata, rdata, link) {
 			ISC_LIST_UNLINK(this->rdata, rdata, link);
 			ISC_LIST_APPEND(save, rdata, link);
 		}
-		while ((rdata = ISC_LIST_HEAD(save)) != NULL) {
+		ISC_LIST_FOREACH (save, rdata, link) {
 			ISC_LIST_UNLINK(save, rdata, link);
 			INSIST(rdcount < new_len);
 			newlist[rdcount] = *rdata;
 			ISC_LIST_APPEND(this->rdata, &newlist[rdcount], link);
 			rdcount++;
 		}
-		this = ISC_LIST_NEXT(this, link);
 	}
 	INSIST(rdcount == old_len || rdcount == 0);
 	if (oldlist != NULL) {
@@ -2887,16 +2881,14 @@ static isc_result_t
 commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
        rdatalist_head_t *head, dns_name_t *owner, const char *source,
        unsigned int line) {
-	dns_rdatalist_t *this;
 	dns_rdataset_t dataset;
 	isc_result_t result = ISC_R_SUCCESS;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	void (*error)(struct dns_rdatacallbacks *, const char *, ...);
 
-	this = ISC_LIST_HEAD(*head);
 	error = callbacks->error;
 
-	while (this != NULL) {
+	ISC_LIST_FOREACH_SAFE (*head, this, link) {
 		dns_rdataset_init(&dataset);
 		dns_rdatalist_tordataset(this, &dataset);
 		dataset.trust = dns_trust_ultimate;
@@ -2929,7 +2921,6 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 			break;
 		}
 		ISC_LIST_UNLINK(*head, this, link);
-		this = ISC_LIST_HEAD(*head);
 	}
 
 	return result;
@@ -2941,34 +2932,30 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 
 static bool
 is_glue(rdatalist_head_t *head, dns_name_t *owner) {
-	dns_rdatalist_t *this;
-	dns_rdata_t *rdata;
+	dns_rdatalist_t *nslist = NULL;
 	isc_region_t region;
 	dns_name_t name;
 
 	/*
 	 * Find NS rrset.
 	 */
-	this = ISC_LIST_HEAD(*head);
-	while (this != NULL) {
+	ISC_LIST_FOREACH (*head, this, link) {
 		if (this->type == dns_rdatatype_ns) {
+			nslist = this;
 			break;
 		}
-		this = ISC_LIST_NEXT(this, link);
 	}
-	if (this == NULL) {
+	if (nslist == NULL) {
 		return false;
 	}
 
-	rdata = ISC_LIST_HEAD(this->rdata);
-	while (rdata != NULL) {
+	ISC_LIST_FOREACH (nslist->rdata, rdata, link) {
 		dns_name_init(&name);
 		dns_rdata_toregion(rdata, &region);
 		dns_name_fromregion(&name, &region);
 		if (dns_name_equal(&name, owner)) {
 			return true;
 		}
-		rdata = ISC_LIST_NEXT(rdata, link);
 	}
 	return false;
 }

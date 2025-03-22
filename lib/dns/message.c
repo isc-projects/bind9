@@ -516,8 +516,6 @@ static void
 msgreset(dns_message_t *msg, bool everything) {
 	dns_msgblock_t *msgblock = NULL, *next_msgblock = NULL;
 	isc_buffer_t *dynbuf = NULL, *next_dynbuf = NULL;
-	dns_rdata_t *rdata = NULL;
-	dns_rdatalist_t *rdatalist = NULL;
 
 	msgresetnames(msg, 0);
 	msgresetopt(msg);
@@ -532,15 +530,11 @@ msgreset(dns_message_t *msg, bool everything) {
 	 * The memory isn't lost since these are part of message blocks we
 	 * have allocated.
 	 */
-	rdata = ISC_LIST_HEAD(msg->freerdata);
-	while (rdata != NULL) {
+	ISC_LIST_FOREACH_SAFE (msg->freerdata, rdata, link) {
 		ISC_LIST_UNLINK(msg->freerdata, rdata, link);
-		rdata = ISC_LIST_HEAD(msg->freerdata);
 	}
-	rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
-	while (rdatalist != NULL) {
+	ISC_LIST_FOREACH_SAFE (msg->freerdatalist, rdatalist, link) {
 		ISC_LIST_UNLINK(msg->freerdatalist, rdatalist, link);
-		rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
 	}
 
 	dynbuf = ISC_LIST_HEAD(msg->scratchpad);

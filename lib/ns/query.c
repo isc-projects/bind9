@@ -6013,25 +6013,20 @@ cleanup:
 static void
 message_clearrdataset(dns_message_t *msg, unsigned int attr) {
 	unsigned int i;
-	dns_rdataset_t *rds, *next_rds;
 
 	/*
 	 * Clean up name lists by calling the rdataset disassociate function.
 	 */
 	for (i = DNS_SECTION_ANSWER; i < DNS_SECTION_MAX; i++) {
 		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link) {
-			rds = ISC_LIST_HEAD(name->list);
-			while (rds != NULL) {
-				next_rds = ISC_LIST_NEXT(rds, link);
+			ISC_LIST_FOREACH_SAFE (name->list, rds, link) {
 				if ((rds->attributes & attr) != attr) {
-					rds = next_rds;
 					continue;
 				}
 				ISC_LIST_UNLINK(name->list, rds, link);
 				INSIST(dns_rdataset_isassociated(rds));
 				dns_rdataset_disassociate(rds);
 				isc_mempool_put(msg->rdspool, rds);
-				rds = next_rds;
 			}
 
 			if (ISC_LIST_EMPTY(name->list)) {
