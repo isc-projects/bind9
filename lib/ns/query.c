@@ -8182,22 +8182,14 @@ cleanup:
 
 static isc_result_t
 query_dns64(query_ctx_t *qctx) {
-	ns_client_t *client = qctx->client;
-	dns_aclenv_t *env = client->manager->aclenv;
-	dns_name_t *name, *mname;
-	dns_rdata_t *dns64_rdata;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdatalist_t *dns64_rdatalist;
-	dns_rdataset_t *dns64_rdataset;
-	dns_rdataset_t *mrdataset;
-	isc_buffer_t *buffer;
-	isc_region_t r;
 	isc_result_t result;
+	ns_client_t *client = qctx->client;
+	dns_name_t *name = NULL, *mname = NULL;
+	dns_rdataset_t *mrdataset = NULL;
+	dns_rdataset_t *dns64_rdataset = NULL;
 	dns_view_t *view = client->view;
-	isc_netaddr_t netaddr;
-	dns_dns64_t *dns64;
-	unsigned int flags = 0;
 	const dns_section_t section = DNS_SECTION_ANSWER;
+	unsigned int flags = 0;
 
 	/*%
 	 * To the current response for 'qctx->client', add the answer RRset
@@ -8215,12 +8207,6 @@ query_dns64(query_ctx_t *qctx) {
 	qctx->qtype = qctx->type = dns_rdatatype_aaaa;
 
 	name = qctx->fname;
-	mname = NULL;
-	mrdataset = NULL;
-	buffer = NULL;
-	dns64_rdata = NULL;
-	dns64_rdataset = NULL;
-	dns64_rdatalist = NULL;
 	result = dns_message_findname(
 		client->message, section, name, dns_rdatatype_aaaa,
 		qctx->rdataset->covers, &mname, &mrdataset);
@@ -8256,27 +8242,6 @@ query_dns64(query_ctx_t *qctx) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 	}
 
-	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-
-	isc_buffer_allocate(client->manager->mctx, &buffer,
-			    view->dns64cnt * 16 *
-				    dns_rdataset_count(qctx->rdataset));
-	dns_message_gettemprdataset(client->message, &dns64_rdataset);
-	dns_message_gettemprdatalist(client->message, &dns64_rdatalist);
-
-	dns64_rdatalist->rdclass = dns_rdataclass_in;
-	dns64_rdatalist->type = dns_rdatatype_aaaa;
-	if (client->query.dns64_ttl != UINT32_MAX) {
-		dns64_rdatalist->ttl = ISC_MIN(qctx->rdataset->ttl,
-					       client->query.dns64_ttl);
-	} else {
-		dns64_rdatalist->ttl = ISC_MIN(qctx->rdataset->ttl, 600);
-	}
-
-	if (RECURSIONOK(client)) {
-		flags |= DNS_DNS64_RECURSIVE;
-	}
-
 	/*
 	 * We use the signatures from the A lookup to set DNS_DNS64_DNSSEC
 	 * as this provides a easy way to see if the answer was signed.
@@ -8287,77 +8252,35 @@ query_dns64(query_ctx_t *qctx) {
 		flags |= DNS_DNS64_DNSSEC;
 	}
 
-	for (result = dns_rdataset_first(qctx->rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(qctx->rdataset))
-	{
-		for (dns64 = ISC_LIST_HEAD(client->view->dns64); dns64 != NULL;
-		     dns64 = dns_dns64_next(dns64))
-		{
-			dns_rdataset_current(qctx->rdataset, &rdata);
-			isc_buffer_availableregion(buffer, &r);
-			INSIST(r.length >= 16);
-			result = dns_dns64_aaaafroma(dns64, &netaddr,
-						     client->signer, env, flags,
-						     rdata.data, r.base);
-			if (result != ISC_R_SUCCESS) {
-				dns_rdata_reset(&rdata);
-				continue;
-			}
-			isc_buffer_add(buffer, 16);
-			isc_buffer_remainingregion(buffer, &r);
-			isc_buffer_forward(buffer, 16);
-			dns_message_gettemprdata(client->message, &dns64_rdata);
-			dns_rdata_fromregion(dns64_rdata, dns_rdataclass_in,
-					     dns_rdatatype_aaaa, &r);
-			ISC_LIST_APPEND(dns64_rdatalist->rdata, dns64_rdata,
-					link);
-			dns64_rdata = NULL;
-			dns_rdata_reset(&rdata);
-		}
+	if (RECURSIONOK(client)) {
+		flags |= DNS_DNS64_RECURSIVE;
 	}
-	if (result != ISC_R_NOMORE) {
+
+	result = dns_dns64_apply(
+		client->manager->mctx, view->dns64, view->dns64cnt,
+		client->message, client->manager->aclenv, &client->peeraddr,
+		client->signer, flags, qctx->rdataset, &dns64_rdataset);
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	if (ISC_LIST_EMPTY(dns64_rdatalist->rdata)) {
-		goto cleanup;
-	}
-
-	dns_rdatalist_tordataset(dns64_rdatalist, dns64_rdataset);
 	dns_rdataset_setownercase(dns64_rdataset, mname);
 	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
-	dns64_rdataset->trust = qctx->rdataset->trust;
+
+	if (client->query.dns64_ttl != UINT32_MAX) {
+		dns64_rdataset->ttl = ISC_MIN(qctx->rdataset->ttl,
+					      client->query.dns64_ttl);
+	} else {
+		dns64_rdataset->ttl = ISC_MIN(qctx->rdataset->ttl, 600);
+	}
 
 	query_addtoname(mname, dns64_rdataset);
 	query_setorder(qctx, mname, dns64_rdataset);
 
-	dns64_rdataset = NULL;
-	dns64_rdatalist = NULL;
-	dns_message_takebuffer(client->message, &buffer);
 	inc_stats(client, ns_statscounter_dns64);
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	if (buffer != NULL) {
-		isc_buffer_free(&buffer);
-	}
-
-	if (dns64_rdataset != NULL) {
-		dns_message_puttemprdataset(client->message, &dns64_rdataset);
-	}
-
-	if (dns64_rdatalist != NULL) {
-		for (dns64_rdata = ISC_LIST_HEAD(dns64_rdatalist->rdata);
-		     dns64_rdata != NULL;
-		     dns64_rdata = ISC_LIST_HEAD(dns64_rdatalist->rdata))
-		{
-			ISC_LIST_UNLINK(dns64_rdatalist->rdata, dns64_rdata,
-					link);
-			dns_message_puttemprdata(client->message, &dns64_rdata);
-		}
-		dns_message_puttemprdatalist(client->message, &dns64_rdatalist);
-	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_dns64: done");
 	return result;
@@ -8366,13 +8289,10 @@ cleanup:
 static void
 query_filter64(query_ctx_t *qctx) {
 	ns_client_t *client = qctx->client;
-	dns_name_t *name, *mname;
-	dns_rdata_t *myrdata;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdatalist_t *myrdatalist;
-	dns_rdataset_t *myrdataset;
-	isc_buffer_t *buffer;
-	isc_region_t r;
+	dns_name_t *name = NULL, *mname = NULL;
+	dns_rdatalist_t *myrdatalist = NULL;
+	dns_rdataset_t *myrdataset = NULL;
+	isc_buffer_t *buffer = NULL;
 	isc_result_t result;
 	unsigned int i;
 	const dns_section_t section = DNS_SECTION_ANSWER;
@@ -8384,11 +8304,6 @@ query_filter64(query_ctx_t *qctx) {
 	       dns_rdataset_count(qctx->rdataset));
 
 	name = qctx->fname;
-	mname = NULL;
-	buffer = NULL;
-	myrdata = NULL;
-	myrdataset = NULL;
-	myrdatalist = NULL;
 	result = dns_message_findname(
 		client->message, section, name, dns_rdatatype_aaaa,
 		qctx->rdataset->covers, &mname, &myrdataset);
@@ -8432,6 +8347,10 @@ query_filter64(query_ctx_t *qctx) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(qctx->rdataset))
 	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_t *myrdata = NULL;
+		isc_region_t r;
+
 		if (!client->query.dns64_aaaaok[i++]) {
 			continue;
 		}
@@ -8441,15 +8360,9 @@ query_filter64(query_ctx_t *qctx) {
 		isc_buffer_remainingregion(buffer, &r);
 		isc_buffer_forward(buffer, rdata.length);
 		dns_message_gettemprdata(client->message, &myrdata);
-		dns_rdata_init(myrdata);
 		dns_rdata_fromregion(myrdata, dns_rdataclass_in,
 				     dns_rdatatype_aaaa, &r);
 		ISC_LIST_APPEND(myrdatalist->rdata, myrdata, link);
-		myrdata = NULL;
-		dns_rdata_reset(&rdata);
-	}
-	if (result != ISC_R_NOMORE) {
-		goto cleanup;
 	}
 
 	dns_rdatalist_tordataset(myrdatalist, myrdataset);
@@ -8467,28 +8380,9 @@ query_filter64(query_ctx_t *qctx) {
 	query_addtoname(mname, myrdataset);
 	query_setorder(qctx, mname, myrdataset);
 
-	myrdataset = NULL;
-	myrdatalist = NULL;
 	dns_message_takebuffer(client->message, &buffer);
-
-cleanup:
 	if (buffer != NULL) {
 		isc_buffer_free(&buffer);
-	}
-
-	if (myrdataset != NULL) {
-		dns_message_puttemprdataset(client->message, &myrdataset);
-	}
-
-	if (myrdatalist != NULL) {
-		for (myrdata = ISC_LIST_HEAD(myrdatalist->rdata);
-		     myrdata != NULL;
-		     myrdata = ISC_LIST_HEAD(myrdatalist->rdata))
-		{
-			ISC_LIST_UNLINK(myrdatalist->rdata, myrdata, link);
-			dns_message_puttemprdata(client->message, &myrdata);
-		}
-		dns_message_puttemprdatalist(client->message, &myrdatalist);
 	}
 
 	if (qctx->dbuf != NULL) {

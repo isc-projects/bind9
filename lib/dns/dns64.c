@@ -24,6 +24,7 @@
 #include <dns/acl.h>
 #include <dns/dns64.h>
 #include <dns/rdata.h>
+#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 
 struct dns_dns64 {
@@ -103,7 +104,7 @@ dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 }
 
 void
-dns_dns64_destroy(dns_dns64_t **dns64p) {
+dns_dns64_destroy(dns_dns64list_t *list, dns_dns64_t **dns64p) {
 	dns_dns64_t *dns64;
 
 	REQUIRE(dns64p != NULL && *dns64p != NULL);
@@ -111,7 +112,7 @@ dns_dns64_destroy(dns_dns64_t **dns64p) {
 	dns64 = *dns64p;
 	*dns64p = NULL;
 
-	REQUIRE(!ISC_LINK_LINKED(dns64, link));
+	ISC_LIST_UNLINK(*list, dns64, link);
 
 	if (dns64->clients != NULL) {
 		dns_acl_detach(&dns64->clients);
@@ -193,20 +194,9 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 	return ISC_R_SUCCESS;
 }
 
-dns_dns64_t *
-dns_dns64_next(dns_dns64_t *dns64) {
-	dns64 = ISC_LIST_NEXT(dns64, link);
-	return dns64;
-}
-
 void
 dns_dns64_append(dns_dns64list_t *list, dns_dns64_t *dns64) {
 	ISC_LIST_APPEND(*list, dns64, link);
-}
-
-void
-dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64) {
-	ISC_LIST_UNLINK(*list, dns64, link);
 }
 
 bool
@@ -480,4 +470,77 @@ dns_dns64_findprefix(dns_rdataset_t *rdataset, isc_netprefix_t *prefix,
 	}
 	*len = count;
 	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_dns64_apply(isc_mem_t *mctx, dns_dns64list_t dns64s, unsigned int count,
+		dns_message_t *message, dns_aclenv_t *env, isc_sockaddr_t *peer,
+		dns_name_t *reqsigner, unsigned int flags, dns_rdataset_t *a,
+		dns_rdataset_t **aaaap) {
+	isc_result_t result;
+	dns_rdatalist_t *aaaalist = NULL;
+	isc_buffer_t *buffer = NULL;
+	isc_netaddr_t netaddr;
+
+	REQUIRE(aaaap != NULL && *aaaap == NULL);
+	REQUIRE(a->type == dns_rdatatype_a);
+
+	isc_netaddr_fromsockaddr(&netaddr, peer);
+
+	isc_buffer_allocate(mctx, &buffer, count * 16 * dns_rdataset_count(a));
+
+	dns_message_gettemprdatalist(message, &aaaalist);
+	aaaalist->rdclass = dns_rdataclass_in;
+	aaaalist->type = dns_rdatatype_aaaa;
+
+	for (result = dns_rdataset_first(a); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(a))
+	{
+		for (dns_dns64_t *dns64 = ISC_LIST_HEAD(dns64s); dns64 != NULL;
+		     dns64 = ISC_LIST_NEXT(dns64, link))
+		{
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdata_t *dns64_rdata = NULL;
+			isc_region_t r;
+
+			dns_rdataset_current(a, &rdata);
+			isc_buffer_availableregion(buffer, &r);
+			INSIST(r.length >= 16);
+			result = dns_dns64_aaaafroma(dns64, &netaddr, reqsigner,
+						     env, flags, rdata.data,
+						     r.base);
+			if (result != ISC_R_SUCCESS) {
+				continue;
+			}
+			isc_buffer_add(buffer, 16);
+			isc_buffer_remainingregion(buffer, &r);
+			isc_buffer_forward(buffer, 16);
+			dns_message_gettemprdata(message, &dns64_rdata);
+			dns_rdata_fromregion(dns64_rdata, dns_rdataclass_in,
+					     dns_rdatatype_aaaa, &r);
+			ISC_LIST_APPEND(aaaalist->rdata, dns64_rdata, link);
+		}
+	}
+
+	if (!ISC_LIST_EMPTY(aaaalist->rdata)) {
+		dns_rdataset_t *aaaa = NULL;
+		dns_message_gettemprdataset(message, &aaaa);
+		dns_rdatalist_tordataset(aaaalist, aaaa);
+		dns_message_takebuffer(message, &buffer);
+		aaaa->trust = a->trust;
+		*aaaap = aaaa;
+		return ISC_R_SUCCESS;
+	}
+
+	/* No applicable dns64; free the resources */
+	isc_buffer_free(&buffer);
+	for (dns_rdata_t *rdata = ISC_LIST_HEAD(aaaalist->rdata); rdata != NULL;
+	     rdata = ISC_LIST_HEAD(aaaalist->rdata))
+	{
+		ISC_LIST_UNLINK(aaaalist->rdata, rdata, link);
+		dns_message_puttemprdata(message, &rdata);
+	}
+	dns_message_puttemprdatalist(message, &aaaalist);
+
+	return ISC_R_NOMORE;
 }
