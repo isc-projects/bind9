@@ -2101,11 +2101,9 @@ insert_soa(dig_lookup_t *lookup) {
 				      &soa, &lookup->rdatabuf);
 	check_result(result, "isc_rdata_fromstruct");
 
-	dns_message_gettemprdatalist(lookup->sendmsg, &rdatalist);
-
 	dns_message_gettemprdataset(lookup->sendmsg, &rdataset);
 
-	dns_rdatalist_init(rdatalist);
+	dns_message_gettemprdatalist(lookup->sendmsg, &rdatalist);
 	rdatalist->type = dns_rdatatype_soa;
 	rdatalist->rdclass = lookup->rdclass;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);

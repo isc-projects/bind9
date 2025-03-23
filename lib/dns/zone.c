@@ -15476,7 +15476,6 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	isc_buffer_allocate(zone->mctx, &b, r.length);
 	isc_buffer_putmem(b, r.base, r.length);
 	isc_buffer_usedregion(b, &r);
-	dns_rdata_init(temprdata);
 	dns_rdata_fromregion(temprdata, rdata.rdclass, rdata.type, &r);
 	dns_message_takebuffer(message, &b);
 	result = dns_rdataset_next(&rdataset);

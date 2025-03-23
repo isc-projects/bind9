@@ -8264,7 +8264,6 @@ query_dns64(query_ctx_t *qctx) {
 	dns_message_gettemprdataset(client->message, &dns64_rdataset);
 	dns_message_gettemprdatalist(client->message, &dns64_rdatalist);
 
-	dns_rdatalist_init(dns64_rdatalist);
 	dns64_rdatalist->rdclass = dns_rdataclass_in;
 	dns64_rdatalist->type = dns_rdatatype_aaaa;
 	if (client->query.dns64_ttl != UINT32_MAX) {
@@ -8309,7 +8308,6 @@ query_dns64(query_ctx_t *qctx) {
 			isc_buffer_remainingregion(buffer, &r);
 			isc_buffer_forward(buffer, 16);
 			dns_message_gettemprdata(client->message, &dns64_rdata);
-			dns_rdata_init(dns64_rdata);
 			dns_rdata_fromregion(dns64_rdata, dns_rdataclass_in,
 					     dns_rdatatype_aaaa, &r);
 			ISC_LIST_APPEND(dns64_rdatalist->rdata, dns64_rdata,
@@ -8425,7 +8423,6 @@ query_filter64(query_ctx_t *qctx) {
 	dns_message_gettemprdataset(client->message, &myrdataset);
 	dns_message_gettemprdatalist(client->message, &myrdatalist);
 
-	dns_rdatalist_init(myrdatalist);
 	myrdatalist->rdclass = dns_rdataclass_in;
 	myrdatalist->type = dns_rdatatype_aaaa;
 	myrdatalist->ttl = qctx->rdataset->ttl;

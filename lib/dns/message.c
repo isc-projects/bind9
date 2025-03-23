@@ -319,6 +319,7 @@ newrdata(dns_message_t *msg) {
 	rdata = ISC_LIST_HEAD(msg->freerdata);
 	if (rdata != NULL) {
 		ISC_LIST_UNLINK(msg->freerdata, rdata, link);
+		dns_rdata_reset(rdata);
 		return rdata;
 	}
 
@@ -349,6 +350,7 @@ newrdatalist(dns_message_t *msg) {
 	rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
 	if (rdatalist != NULL) {
 		ISC_LIST_UNLINK(msg->freerdatalist, rdatalist, link);
+		dns_rdatalist_init(rdatalist);
 		goto out;
 	}
 
@@ -2790,7 +2792,6 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 	isc_buffer_allocate(msg->mctx, &buf, r.length);
 	isc_buffer_putmem(buf, r.base, r.length);
 	isc_buffer_usedregion(buf, &r);
-	dns_rdata_init(rdata);
 	dns_rdata_fromregion(rdata, dns_rdataclass_any, dns_rdatatype_tsig, &r);
 	dns_message_takebuffer(msg, &buf);
 	ISC_LIST_APPEND(list->rdata, rdata, link);
