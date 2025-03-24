@@ -2443,8 +2443,6 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 			secure = true;
 			break;
 		}
-
-		dst_key_free(keyp);
 	}
 
 	return secure;
