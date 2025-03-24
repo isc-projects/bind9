@@ -57,6 +57,7 @@ struct dns_peer {
 	bool request_ixfr;
 	bool support_edns;
 	bool request_nsid;
+	bool request_zoneversion;
 	bool send_cookie;
 	bool require_cookie;
 	bool request_expire;
@@ -98,7 +99,8 @@ enum {
 	SERVER_PADDING_BIT,
 	REQUEST_TCP_KEEPALIVE_BIT,
 	REQUIRE_COOKIE_BIT,
-	DNS_PEER_FLAGS_COUNT
+	DNS_PEER_FLAGS_COUNT,
+	REQUEST_ZONEVERSION
 };
 
 STATIC_ASSERT(DNS_PEER_FLAGS_COUNT <= CHAR_BIT * sizeof(uint32_t),
@@ -382,6 +384,8 @@ ACCESS_OPTION(requestixfr, REQUEST_IXFR_BIT, bool, request_ixfr)
 ACCESS_OPTION(requestixfrmaxdiffs, REQUEST_IXFRMAXDIFFS_BIT, uint32_t,
 	      request_ixfr_maxdiffs)
 ACCESS_OPTION(requestnsid, REQUEST_NSID_BIT, bool, request_nsid)
+ACCESS_OPTION(requestzoneversion, REQUEST_ZONEVERSION, bool,
+	      request_zoneversion)
 ACCESS_OPTION(requirecookie, REQUIRE_COOKIE_BIT, bool, require_cookie)
 ACCESS_OPTION(sendcookie, SEND_COOKIE_BIT, bool, send_cookie)
 ACCESS_OPTION(supportedns, SUPPORT_EDNS_BIT, bool, support_edns)

@@ -1497,6 +1497,56 @@ dns_zone_getserial(dns_zone_t *zone, uint32_t *serialp) {
 	return result;
 }
 
+isc_result_t
+dns_zone_getzoneversion(dns_zone_t *zone, isc_buffer_t *b) {
+	isc_result_t result = DNS_R_NOTLOADED;
+	unsigned int soacount;
+	uint32_t serial;
+	dns_zone_t *mayberaw = zone;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(b != NULL);
+
+	LOCK_ZONE(zone);
+	if (zone->raw != NULL) {
+		LOCK_ZONE(zone->raw);
+		mayberaw = zone->raw;
+	}
+	ZONEDB_LOCK(&mayberaw->dblock, isc_rwlocktype_read);
+	if (DNS_ZONE_OPTION(mayberaw, DNS_ZONEOPT_ZONEVERSION) &&
+	    mayberaw->db != NULL)
+	{
+		result = dns_db_getzoneversion(mayberaw->db, b);
+		if (result == ISC_R_NOTIMPLEMENTED) {
+			result = zone_get_from_db(mayberaw, mayberaw->db, NULL,
+						  &soacount, NULL, &serial,
+						  NULL, NULL, NULL, NULL, NULL);
+			if (result == ISC_R_SUCCESS && soacount == 0) {
+				result = ISC_R_FAILURE;
+			}
+			if (result == ISC_R_SUCCESS) {
+				if (isc_buffer_availablelength(b) >= 6) {
+					isc_buffer_putuint8(
+						b, dns_name_countlabels(
+							   &mayberaw->origin) -
+							   1);
+					isc_buffer_putuint8(b, 0);
+					isc_buffer_putuint32(b, serial);
+				} else {
+					result = ISC_R_NOSPACE;
+				}
+			}
+		}
+	}
+	ZONEDB_UNLOCK(&mayberaw->dblock, isc_rwlocktype_read);
+	if (zone->raw != NULL) {
+		UNLOCK_ZONE(zone->raw);
+	}
+	UNLOCK_ZONE(zone);
+
+	return result;
+}
+
 /*
  *	Single shot.
  */

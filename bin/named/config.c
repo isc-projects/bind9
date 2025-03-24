@@ -99,6 +99,7 @@ options {\n\
 	recursing-file \"named.recursing\";\n\
 	recursive-clients 1000;\n\
 	request-nsid false;\n\
+	request-zoneversion false;\n\
 	resolver-query-timeout 10;\n\
 #	responselog <boolean>;\n\
 	rrset-order { order random; };\n\
@@ -239,6 +240,7 @@ options {\n\
 	notify yes;\n\
 	notify-delay 5;\n\
 	notify-to-soa no;\n\
+	provide-zoneversion yes;\n\
 	send-report-channel .;\n\
 	serial-update-method increment;\n\
 	sig-signing-nodes 100;\n\
@@ -260,6 +262,7 @@ view \"_bind\" chaos {\n\
 	notify no;\n\
 	allow-new-zones no;\n\
 	max-cache-size 2M;\n\
+	provide-zoneversion no;\n\
 \n\
 	# Prevent use of this zone in DNS amplified reflection DoS attacks\n\
 	rate-limit {\n\

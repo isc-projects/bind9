@@ -358,6 +358,8 @@ init_desc(void) {
 	SET_NSSTATDESC(expireopt, "Expire option received", "ExpireOpt");
 	SET_NSSTATDESC(keepaliveopt, "EDNS TCP keepalive option received",
 		       "KeepAliveOpt");
+	SET_NSSTATDESC(zoneversionopt, "ZONEVERSION option received",
+		       "ZoneVersionOpt");
 	SET_NSSTATDESC(padopt, "EDNS padding option received", "PadOpt");
 	SET_NSSTATDESC(otheropt, "Other EDNS option received", "OtherOpt");
 	SET_NSSTATDESC(cookiein, "COOKIE option received", "CookieIn");

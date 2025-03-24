@@ -26,6 +26,15 @@ options {
 	querylog yes;
 	prefetch 4 10;
 	responselog yes;
+	request-nsid yes;
+	request-zoneversion yes;
+};
+
+// Don't break tests which depend on ans10 by requesting
+// zoneversion or nsid
+server 10.53.0.10 {
+	request-nsid no;
+	request-zoneversion no;
 };
 
 include "trusted.conf";

@@ -20,6 +20,8 @@ use IO::Socket;
 use Net::DNS;
 use Net::DNS::Packet;
 
+print "Using Net::DNS $Net::DNS::VERSION\n";
+
 my $localport = int($ENV{'PORT'});
 if (!$localport) { $localport = 5300; }
 
@@ -169,6 +171,15 @@ for (;;) {
 		} else {
 			$packet->push("authority",
 				      new Net::DNS::RR($qname . " 300 SOA . . 0 0 0 0 0"));
+		}
+	} elsif ($qname eq "zoneversion") {
+		$packet->push("authority", new Net::DNS::RR(". 300 SOA . . 0 0 0 0 0"));
+		if ($Net::DNS::VERSION >= 1.49) {
+			$packet->edns->option('ZONEVERSION' => [0, 1, '01022304'] )
+		} elsif ($Net::DNS::VERSION >= 1.35) {
+			$packet->edns->option('19' => {'BASE16' => '000101022304'} )
+		} else {
+			$packet->edns->option('19' => pack 'H*', '000101022304')
 		}
 	} else {
 		# Data for the "bogus referrals" test

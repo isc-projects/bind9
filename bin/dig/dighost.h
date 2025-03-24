@@ -121,7 +121,7 @@ struct dig_lookup {
 		tcp_mode, tcp_mode_set, tls_mode, /*% connect using TLS */
 		trace,				  /*% dig +trace */
 		trace_root, /*% initial query for either +trace or +nssearch */
-		ttlunits, use_usec, waiting_connect, zflag;
+		ttlunits, use_usec, waiting_connect, zflag, zoneversion;
 	char textname[MXNAME]; /*% Name we're going to be looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;

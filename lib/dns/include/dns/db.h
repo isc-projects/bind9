@@ -182,6 +182,7 @@ typedef struct dns_dbmethods {
 				     dns_name_t *name);
 	void (*setmaxrrperset)(dns_db_t *db, uint32_t value);
 	void (*setmaxtypepername)(dns_db_t *db, uint32_t value);
+	isc_result_t (*getzoneversion)(dns_db_t *db, isc_buffer_t *b);
 } dns_dbmethods_t;
 
 typedef isc_result_t (*dns_dbcreatefunc_t)(isc_mem_t	    *mctx,
@@ -1804,4 +1805,22 @@ dns_db_setmaxtypepername(dns_db_t *db, uint32_t value);
  * If 'value' is nonzero, and if there are already 'value' RR types
  * stored at a given node, then any subsequent attempt to add an rdataset
  * with a new RR type will return ISC_R_TOOMANYRECORDS.
+ */
+
+isc_result_t
+dns_db_getzoneversion(dns_db_t *db, isc_buffer_t *b);
+/*%<
+ * Provides a database specific EDNS ZONEVERSION option.
+ *
+ * Requires:
+ * \li 'db' is a valid database
+ * \li 'b' is a valid buffer
+ *
+ * Returns:
+ * \li ISC_R_SUCCESS when it has populated the buffer with the ZONEVERSION
+ *     response (maybe empty implying no ZONEVERSION to be returned).
+ * \li ISC_R_NOSPACE if the buffer is too small.
+ * \li ISC_R_NOTIMPLEMENTED if there is not a database specific
+ *     ZONEVERSION
+ * \li ISC_R_FAILURE other failures
  */

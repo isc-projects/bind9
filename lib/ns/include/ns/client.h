@@ -224,6 +224,8 @@ struct ns_client {
 	ISC_LINK(ns_client_t) rlink;
 	unsigned char  cookie[8];
 	uint32_t       expire;
+	unsigned char *zoneversion;
+	uint32_t       zoneversionlength;
 	unsigned char *keytag;
 	uint16_t       keytag_len;
 
@@ -241,26 +243,28 @@ struct ns_client {
 #define NS_CLIENT_MAGIC	   ISC_MAGIC('N', 'S', 'C', 'c')
 #define NS_CLIENT_VALID(c) ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
 
-#define NS_CLIENTATTR_TCP	 0x00001
-#define NS_CLIENTATTR_RA	 0x00002 /*%< Client gets recursive service */
-#define NS_CLIENTATTR_PKTINFO	 0x00004 /*%< pktinfo is valid */
-#define NS_CLIENTATTR_MULTICAST	 0x00008 /*%< recv'd from multicast */
-#define NS_CLIENTATTR_WANTDNSSEC 0x00010 /*%< include dnssec records */
-#define NS_CLIENTATTR_WANTNSID	 0x00020 /*%< include nameserver ID */
+#define NS_CLIENTATTR_TCP	 0x000001
+#define NS_CLIENTATTR_RA	 0x000002 /*%< Client gets recursive service */
+#define NS_CLIENTATTR_PKTINFO	 0x000004 /*%< pktinfo is valid */
+#define NS_CLIENTATTR_MULTICAST	 0x000008 /*%< recv'd from multicast */
+#define NS_CLIENTATTR_WANTDNSSEC 0x000010 /*%< include dnssec records */
+#define NS_CLIENTATTR_WANTNSID	 0x000020 /*%< include nameserver ID */
 #define NS_CLIENTATTR_BADCOOKIE \
-	0x00040 /*%< Presented cookie is bad/out-of-date */
-#define NS_CLIENTATTR_WANTRC	   0x00080 /*%< include Report-Channel */
-#define NS_CLIENTATTR_WANTAD	   0x00100 /*%< want AD in response if possible */
-#define NS_CLIENTATTR_WANTCOOKIE   0x00200 /*%< return a COOKIE */
-#define NS_CLIENTATTR_HAVECOOKIE   0x00400 /*%< has a valid COOKIE */
-#define NS_CLIENTATTR_WANTEXPIRE   0x00800 /*%< return seconds to expire */
-#define NS_CLIENTATTR_HAVEEXPIRE   0x01000 /*%< return seconds to expire */
-#define NS_CLIENTATTR_WANTOPT	   0x02000 /*%< add opt to reply */
-#define NS_CLIENTATTR_HAVEECS	   0x04000 /*%< received an ECS option */
-#define NS_CLIENTATTR_WANTPAD	   0x08000 /*%< pad reply */
-#define NS_CLIENTATTR_USEKEEPALIVE 0x10000 /*%< use TCP keepalive */
-#define NS_CLIENTATTR_NOSETFC	   0x20000 /*%< don't set servfail cache */
-#define NS_CLIENTATTR_NEEDTCP	   0x40000 /*%< send TC=1 */
+	0x000040 /*%< Presented cookie is bad/out-of-date */
+#define NS_CLIENTATTR_WANTRC	      0x000080 /*%< include Report-Channel */
+#define NS_CLIENTATTR_WANTAD	      0x000100 /*%< want AD in response if possible */
+#define NS_CLIENTATTR_WANTCOOKIE      0x000200 /*%< return a COOKIE */
+#define NS_CLIENTATTR_HAVECOOKIE      0x000400 /*%< has a valid COOKIE */
+#define NS_CLIENTATTR_WANTEXPIRE      0x000800 /*%< return seconds to expire */
+#define NS_CLIENTATTR_HAVEEXPIRE      0x001000 /*%< return seconds to expire */
+#define NS_CLIENTATTR_WANTOPT	      0x002000 /*%< add opt to reply */
+#define NS_CLIENTATTR_HAVEECS	      0x004000 /*%< received an ECS option */
+#define NS_CLIENTATTR_WANTPAD	      0x008000 /*%< pad reply */
+#define NS_CLIENTATTR_USEKEEPALIVE    0x010000 /*%< use TCP keepalive */
+#define NS_CLIENTATTR_NOSETFC	      0x020000 /*%< don't set servfail cache */
+#define NS_CLIENTATTR_NEEDTCP	      0x040000 /*%< send TC=1 */
+#define NS_CLIENTATTR_WANTZONEVERSION 0x100000 /*%< return zoneversion */
+#define NS_CLIENTATTR_HAVEZONEVERSION 0x200000 /*%< return zoneversion */
 
 /*
  * Flag to use with the SERVFAIL cache to indicate

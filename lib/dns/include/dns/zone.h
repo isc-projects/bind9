@@ -102,6 +102,7 @@ typedef enum {
 	DNS_ZONEOPT_CHECKTTL = 1 << 28,	      /*%< check max-zone-ttl */
 	DNS_ZONEOPT_AUTOEMPTY = 1 << 29,      /*%< automatic empty zone */
 	DNS_ZONEOPT_CHECKSVCB = 1 << 30,      /*%< check SVBC records */
+	DNS_ZONEOPT_ZONEVERSION = 1U << 31,   /*%< enable zoneversion */
 	DNS_ZONEOPT___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneopt_t;
 
@@ -2783,6 +2784,24 @@ dns_zone_getrad(dns_zone_t *zone, dns_name_t *name);
  * Requires:
  * \li	'zone' to be a valid zone.
  * \li	'name' is a valid name with a buffer.
+ */
+
+isc_result_t
+dns_zone_getzoneversion(dns_zone_t *zone, isc_buffer_t *b);
+/**<
+ * Return the EDNS ZONEVERSION for this zone.
+ *
+ * Note: For type SERIAL a buffer of at least 6 octets is required.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'b' to be a valid buffer.
+ *
+ * Returns
+ * \li	ISC_R_SUCCESS if the zone is loaded and supports ZONEVERSION.
+ * \li	ISC_R_NOSPACE if the buffer is too small.
+ * \li	DNS_R_NOTLOADED if the database is not loaded.
+ * \li	ISC_R_FAILURE other failure.
  */
 
 #if DNS_ZONE_TRACE

@@ -226,6 +226,7 @@ options {
 	preferred-glue <string>;
 	prefetch <integer> [ <integer> ];
 	provide-ixfr <boolean>;
+	provide-zoneversion <boolean>;
 	qname-minimization ( strict | relaxed | disabled | off );
 	query-source [ address ] ( <ipv4_address> | * | none );
 	query-source-v6 [ address ] ( <ipv6_address> | * | none );
@@ -254,6 +255,7 @@ options {
 	request-ixfr <boolean>;
 	request-ixfr-max-diffs <integer>;
 	request-nsid <boolean>;
+	request-zoneversion <boolean>;
 	require-server-cookie <boolean>;
 	resolver-query-timeout <integer>;
 	resolver-use-dns64 <boolean>;
@@ -343,6 +345,7 @@ server <netprefix> {
 	request-ixfr <boolean>;
 	request-ixfr-max-diffs <integer>;
 	request-nsid <boolean>;
+	request-zoneversion <boolean>;
 	require-cookie <boolean>;
 	send-cookie <boolean>;
 	tcp-keepalive <boolean>;
@@ -509,6 +512,7 @@ view <string> [ <class> ] {
 	preferred-glue <string>;
 	prefetch <integer> [ <integer> ];
 	provide-ixfr <boolean>;
+	provide-zoneversion <boolean>;
 	qname-minimization ( strict | relaxed | disabled | off );
 	query-source [ address ] ( <ipv4_address> | * | none );
 	query-source-v6 [ address ] ( <ipv6_address> | * | none );
@@ -534,6 +538,7 @@ view <string> [ <class> ] {
 	request-ixfr <boolean>;
 	request-ixfr-max-diffs <integer>;
 	request-nsid <boolean>;
+	request-zoneversion <boolean>;
 	require-server-cookie <boolean>;
 	resolver-query-timeout <integer>;
 	resolver-use-dns64 <boolean>;
@@ -561,6 +566,7 @@ view <string> [ <class> ] {
 		request-ixfr <boolean>;
 		request-ixfr-max-diffs <integer>;
 		request-nsid <boolean>;
+		request-zoneversion <boolean>;
 		require-cookie <boolean>;
 		send-cookie <boolean>;
 		tcp-keepalive <boolean>;

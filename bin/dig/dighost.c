@@ -705,6 +705,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->opcode = lookold->opcode;
 	looknew->expire = lookold->expire;
 	looknew->nsid = lookold->nsid;
+	looknew->zoneversion = lookold->zoneversion;
 	looknew->tcp_keepalive = lookold->tcp_keepalive;
 	looknew->header_only = lookold->header_only;
 	looknew->https_mode = lookold->https_mode;
@@ -2586,6 +2587,14 @@ setup_lookup(dig_lookup_t *lookup) {
 		if (lookup->tcp_keepalive) {
 			INSIST(i < MAXOPTS);
 			opts[i].code = DNS_OPT_TCP_KEEPALIVE;
+			opts[i].length = 0;
+			opts[i].value = NULL;
+			i++;
+		}
+
+		if (lookup->zoneversion) {
+			INSIST(i < MAXOPTS);
+			opts[i].code = DNS_OPT_ZONEVERSION;
 			opts[i].length = 0;
 			opts[i].value = NULL;
 			i++;

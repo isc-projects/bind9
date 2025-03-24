@@ -1392,6 +1392,13 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
+	(void)cfg_map_get(cpeer, "request-zoneversion", &obj);
+	if (obj != NULL) {
+		CHECK(dns_peer_setrequestzoneversion(peer,
+						     cfg_obj_asboolean(obj)));
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(cpeer, "send-cookie", &obj);
 	if (obj != NULL) {
 		CHECK(dns_peer_setsendcookie(peer, cfg_obj_asboolean(obj)));
@@ -3246,6 +3253,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 
 	dns_zone_setoption(zone, ~DNS_ZONEOPT_NOCHECKNS, false);
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
+	dns_zone_setoption(zone, DNS_ZONEOPT_ZONEVERSION, false);
 	dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
 	dns_zone_setautomatic(zone, true);
@@ -5131,6 +5139,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	result = named_config_get(maps, "request-nsid", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->requestnsid = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "request-zoneversion", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->requestzoneversion = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	result = named_config_get(maps, "send-cookie", &obj);

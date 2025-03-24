@@ -2165,6 +2165,14 @@ Boolean Options
    ultimate primary should be set to still send NOTIFY messages to all the name servers
    listed in the NS RRset.
 
+.. namedconf:statement:: provide-zoneversion
+   :tags: transfer
+   :short: Controls the return EDNS ZONEVERSION answers.
+
+   If ``yes`` EDNS ZONEVERSION answers will be returned otherwise
+   not for primary, secondary and mirror zones.  The default is
+   ``yes``.
+
 .. namedconf:statement:: recursion
    :tags: query
    :short: Defines whether recursion and caching are allowed.
@@ -2187,6 +2195,18 @@ Boolean Options
    iterative resolution. If the authoritative server returns an NSID
    option in its response, then its contents are logged in the ``nsid``
    category at level ``info``. The default is ``no``.
+
+.. namedconf:statement:: request-zoneversion
+   :tags: query
+   :short: Controls whether an empty EDNS(0) ZONEVERSION option is sent with all queries to authoritative name servers during iterative resolution.
+
+   If ``yes``, then an empty EDNS(0) ZONEVERSION option is sent
+   with all queries to authoritative name servers during iterative
+   resolution. If the authoritative server returns an ZONEVERSION
+   option in its response, then its contents are logged in the
+   ``zoneversion`` category at level ``info``.  If the NSID has
+   also been requested and it is returned then that is appended to
+   the log message.  The default is ``no``.
 
 .. namedconf:statement:: require-cookie
    :tags: query
@@ -5601,11 +5621,13 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`notify-source-v6`
    - :namedconf:ref:`notify-source`
    - :namedconf:ref:`provide-ixfr`
+   - :namedconf:ref:`provide-zoneversion`
    - :namedconf:ref:`query-source-v6`
    - :namedconf:ref:`query-source`
    - :namedconf:ref:`request-expire`
    - :namedconf:ref:`request-ixfr`
    - :namedconf:ref:`request-nsid`
+   - :namedconf:ref:`request-zoneversion`
    - :namedconf:ref:`require-cookie`
    - :namedconf:ref:`send-cookie`
    - :namedconf:ref:`transfer-format`
