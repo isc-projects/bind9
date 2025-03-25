@@ -761,6 +761,11 @@ cleanup:
 		dst_lib_destroy();
 	}
 
+	/*
+	 * Wait for memory reclamation in dns_qp to finish.
+	 */
+	rcu_barrier();
+
 	if (logc != NULL) {
 		isc_log_destroy(&logc);
 	}
