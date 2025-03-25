@@ -360,10 +360,13 @@ class ResponseHandler(abc.ABC):
     method.
     """
 
-    @abc.abstractmethod
+    # pylint: disable=unused-argument
     def match(self, qctx: QueryContext) -> bool:
         """
-        Matching logic - query is handled when it returns True.
+        Matching logic - the first handler whose `match()` method returns True
+        is used for handling the query.
+
+        The default for each handler is to handle all queries.
         """
         return True
 
