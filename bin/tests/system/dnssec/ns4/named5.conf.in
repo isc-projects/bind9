@@ -11,22 +11,27 @@
  * information regarding copyright ownership.
  */
 
-// NS9
+// NS4
 
 options {
-	query-source address 10.53.0.9;
-	notify-source 10.53.0.9;
-	transfer-source 10.53.0.9;
+	query-source address 10.53.0.4;
+	notify-source 10.53.0.4;
+	transfer-source 10.53.0.4;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.9; };
+	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
 	recursion yes;
 	dnssec-validation yes;
-	forward only;
-	forwarders { 10.53.0.4; };
-	servfail-ttl 0;
+	minimal-responses no;
+
 };
+
+# Note: This is deliberately wrong! The bind.keys file contains
+# the real DNS root key, so it won't work with the local toy
+# root zones used in the tests. This is to test a forwarder
+# talking to a resolver with a misconfigured trust anchor.
+include "../../../../../bind.keys";
 
 key rndc_key {
 	secret "1234abcd8765";
@@ -34,8 +39,15 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.9 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.4 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-include "trusted.conf";
-include "trusted-localkey.conf";
+zone "." {
+	type hint;
+	file "../../_common/root.hint";
+};
+
+zone "corp" {
+	type static-stub;
+	server-addresses { 10.53.0.2; };
+};

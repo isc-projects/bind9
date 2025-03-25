@@ -2345,7 +2345,6 @@ resquery_send(resquery_t *query) {
 	dns_peer_t *peer = NULL;
 	dns_compress_t cctx;
 	bool useedns;
-	bool secure_domain;
 	bool tcp = ((query->options & DNS_FETCHOPT_TCP) != 0);
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned int ednsopt = 0;
@@ -2396,24 +2395,14 @@ resquery_send(resquery_t *query) {
 	 */
 	if ((query->options & DNS_FETCHOPT_NOCDFLAG) != 0) {
 		/* Do nothing */
-	} else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
+	} else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0 ||
+		   (query->options & DNS_FETCHOPT_TRYCD) != 0)
+	{
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 	} else if (res->view->enablevalidation &&
 		   ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0))
 	{
-		bool checknta = ((query->options & DNS_FETCHOPT_NONTA) == 0);
-		bool ntacovered = false;
-		result = issecuredomain(res->view, fctx->name, fctx->type,
-					isc_time_seconds(&query->start),
-					checknta, &ntacovered, &secure_domain);
-		if (result != ISC_R_SUCCESS) {
-			secure_domain = false;
-		}
-		if (secure_domain ||
-		    (ISFORWARDER(query->addrinfo) && ntacovered))
-		{
-			fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
-		}
+		query->options |= DNS_FETCHOPT_TRYCD;
 	}
 
 	/*
@@ -7788,6 +7777,8 @@ resquery_response_continue(void *arg, isc_result_t result) {
 	fetchctx_t *fctx = rctx->fctx;
 	resquery_t *query = rctx->query;
 
+	QTRACE("response_continue");
+
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("signature check failed", result);
 		if (result == DNS_R_UNEXPECTEDTSIG ||
@@ -10006,6 +9997,8 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 	char code[64];
 	dns_rcode_t rcode = rctx->query->rmessage->rcode;
 
+	QTRACE("rctx_badserver");
+
 	if (rcode == dns_rcode_noerror || rcode == dns_rcode_yxdomain ||
 	    rcode == dns_rcode_nxdomain)
 	{
@@ -10099,6 +10092,16 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 			rctx->retryopts |= DNS_FETCHOPT_TCP;
 		}
 		query->addrinfo->flags |= FCTX_ADDRINFO_BADCOOKIE;
+		rctx->resend = true;
+	} else if (ISFORWARDER(query->addrinfo) &&
+		   query->rmessage->rcode == dns_rcode_servfail &&
+		   (query->options & DNS_FETCHOPT_TRYCD) != 0)
+	{
+		/*
+		 * We got a SERVFAIL from a forwarder with
+		 * CD=0; try again with CD=1.
+		 */
+		rctx->retryopts |= DNS_FETCHOPT_TRYCD;
 		rctx->resend = true;
 	} else {
 		rctx->broken_server = DNS_R_UNEXPECTEDRCODE;

@@ -131,6 +131,11 @@ enum {
 						 * possible. */
 	DNS_FETCHOPT_QMINFETCH = 1 << 16,	/*%< Qmin fetch */
 	DNS_FETCHOPT_WANTZONEVERSION = 1 << 17, /*%< Request ZONEVERSION */
+	DNS_FETCHOPT_TRYCD = 1 << 18,		/*%< Send the first query
+						 * to a forwader with
+						 * CD=0, but retry with CD=1
+						 * if it returns SERVFAIL.
+						 */
 
 	/*% EDNS version bits: */
 	DNS_FETCHOPT_EDNSVERSIONSET = 1 << 23,

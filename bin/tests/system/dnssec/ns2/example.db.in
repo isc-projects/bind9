@@ -67,6 +67,10 @@ ns.bogus		A	10.53.0.3
 badds			NS	ns.badds
 ns.badds		A	10.53.0.3
 
+; A subdomain with a corrupt DS, but locally trusted by the forwarder
+localkey		NS	ns.localkey
+ns.localkey		A	10.53.0.3
+
 ; A dynamic secure subdomain
 dynamic			NS	dynamic
 dynamic			A	10.53.0.3
