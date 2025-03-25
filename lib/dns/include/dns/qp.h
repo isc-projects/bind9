@@ -742,23 +742,6 @@ dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t *qpr);
  */
 
 void
-dns_qpmulti_lockedread(dns_qpmulti_t *multi, dns_qpread_t *qpr);
-/*%<
- * Start a read-only transaction that takes the `dns_qpmulti_t` mutex.
- *
- * The `dns_qpmulti_lockedread()` function must NOT be called from an
- * isc_loop thread. We keep query and read transactions separate to
- * avoid accidentally taking or failing to take the mutex.
- *
- * Requires:
- * \li  `multi` is a pointer to a valid multi-threaded qp-trie
- * \li  `qpr != NULL`
- *
- * Returns:
- * \li  `qpr` is a valid read-only qp-trie handle
- */
-
-void
 dns_qpread_destroy(dns_qpmulti_t *multi, dns_qpread_t *qpr);
 /*%<
  * End a lightweight query or read transaction.
