@@ -21,7 +21,7 @@ dnssec-keyfromlabel - DNSSEC key generation tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-keyfromlabel` {**-l** label} [**-3**] [**-a** algorithm] [**-A** date/offset] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-f** flag] [**-G**] [**-I** date/offset] [**-i** interval] [**-k**] [**-K** directory] [**-L** ttl] [**-M** tag_min:tag_max] [**-n** nametype] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-R** date/offset] [**-S** key] [**-t** type] [**-v** level] [**-V**] [**-y**] {name}
+:program:`dnssec-keyfromlabel` {**-l** label} [**-3**] [**-a** algorithm] [**-A** date/offset] [**-c** class] [**-D** date/offset] [**-D** sync date/offset] [**-f** flag] [**-G**] [**-I** date/offset] [**-i** interval] [**-k**] [**-K** directory] [**-L** ttl] [**-M** tag_min:tag_max] [**-P** date/offset] [**-P** sync date/offset] [**-p** protocol] [**-R** date/offset] [**-S** key] [**-v** level] [**-V**] [**-y**] {name}
 
 Description
 ~~~~~~~~~~~
@@ -69,14 +69,6 @@ Options
 
    When BIND 9 is built with OpenSSL-based PKCS#11 support, the label is
    an arbitrary string that identifies a particular key.
-
-.. option:: -n nametype
-
-   This option specifies the owner type of the key. The value of ``nametype`` must
-   either be ZONE (for a DNSSEC zone key (KEY/DNSKEY)), HOST or ENTITY
-   (for a key associated with a host (KEY)), USER (for a key associated
-   with a user (KEY)), or OTHER (DNSKEY). These values are
-   case-insensitive.
 
 .. option:: -C
 
@@ -135,12 +127,6 @@ Options
    values for ``tag_min`` and ``tag_max`` are [0..65535].  The
    default allows all key tag values to be accepted.
 
-.. option:: -p protocol
-
-   This option sets the protocol value for the key. The protocol is a number between
-   0 and 255. The default is 3 (DNSSEC). Other possible values for this
-   argument are listed in :rfc:`2535` and its successors.
-
 .. option:: -S key
 
    This option generates a key as an explicit successor to an existing key. The name,
@@ -149,13 +135,6 @@ Options
    inactivation date of the existing one. The publication date is
    set to the activation date minus the prepublication interval, which
    defaults to 30 days.
-
-.. option:: -t type
-
-   This option indicates the type of the key. ``type`` must be one of AUTHCONF,
-   NOAUTHCONF, NOAUTH, or NOCONF. The default is AUTHCONF. AUTH refers
-   to the ability to authenticate data, and CONF to the ability to encrypt
-   data.
 
 .. option:: -v level
 

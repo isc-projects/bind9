@@ -1633,9 +1633,9 @@ echo_i "check dnssec-signzone doesn't sign with prepublished zsk ($n)"
 ret=0
 zone=prepub
 # Generate keys.
-ksk=$("$KEYGEN" -K signer -f KSK -q -a $DEFAULT_ALGORITHM -n zone "$zone")
-zsk1=$("$KEYGEN" -K signer -q -a $DEFAULT_ALGORITHM -n zone "$zone")
-zsk2=$("$KEYGEN" -K signer -q -a $DEFAULT_ALGORITHM -n zone "$zone")
+ksk=$("$KEYGEN" -K signer -f KSK -q -a $DEFAULT_ALGORITHM "$zone")
+zsk1=$("$KEYGEN" -K signer -q -a $DEFAULT_ALGORITHM "$zone")
+zsk2=$("$KEYGEN" -K signer -q -a $DEFAULT_ALGORITHM "$zone")
 zskid1=$(keyfile_to_key_id "$zsk1")
 zskid2=$(keyfile_to_key_id "$zsk2")
 (
@@ -1714,7 +1714,7 @@ echo_i "checking that a DS record cannot be generated for a key using an unsuppo
 ret=0
 zone=example
 # Fake an unsupported algorithm key
-unsupportedkey=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+unsupportedkey=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 awk '$3 == "DNSKEY" { $6 = 255 } { print }' ${unsupportedkey}.key >${unsupportedkey}.tmp
 mv ${unsupportedkey}.tmp ${unsupportedkey}.key
 # If dnssec-dsfromkey fails, the test script will exit immediately.  Prevent
@@ -1742,8 +1742,8 @@ status=$((status + ret))
 echo_i "checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM $zone)
 (
   cd signer || exit 1
   cat example.db.in "$key1.key" "$key2.key" >example.db
@@ -1756,8 +1756,8 @@ status=$((status + ret))
 echo_i "checking that we can sign a zone (NSEC3) with out-of-zone records ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM $zone)
 (
   cd signer || exit 1
   cat example.db.in "$key1.key" "$key2.key" >example.db
@@ -1781,8 +1781,8 @@ status=$((status + ret))
 echo_i "checking NSEC3 signing with empty nonterminals above a delegation ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM $zone)
 (
   cd signer || exit 1
   cat example.db.in "$key1.key" "$key2.key" >example3.db
@@ -1807,8 +1807,8 @@ status=$((status + ret))
 echo_i "checking that dnssec-signzone updates originalttl on ttl changes ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM $zone)
 (
   cd signer || exit 1
   cat example.db.in "$key1.key" "$key2.key" >example.db
@@ -1824,10 +1824,10 @@ status=$((status + ret))
 echo_i "checking dnssec-signzone keeps valid signatures from removed keys ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
-key2=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
+key1=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM $zone)
+key2=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
 keyid2=$(keyfile_to_key_id "$key2")
-key3=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
+key3=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
 keyid3=$(keyfile_to_key_id "$key3")
 (
   cd signer || exit 1
@@ -3491,13 +3491,13 @@ until test $alg -eq 256; do
       continue
       ;;
     1 | 5 | 7 | 8 | 10) # RSA algorithms
-      key1=$($KEYGEN -a "$alg" -b "2048" -n zone "$zone" 2>"keygen-$alg.err" || true)
+      key1=$($KEYGEN -a "$alg" -b "2048" "$zone" 2>"keygen-$alg.err" || true)
       ;;
     15 | 16)
-      key1=$($KEYGEN -a "$alg" -n zone "$zone" 2>"keygen-$alg.err" || true)
+      key1=$($KEYGEN -a "$alg" "$zone" 2>"keygen-$alg.err" || true)
       ;;
     *)
-      key1=$($KEYGEN -a "$alg" -n zone "$zone" 2>"keygen-$alg.err" || true)
+      key1=$($KEYGEN -a "$alg" "$zone" 2>"keygen-$alg.err" || true)
       ;;
   esac
   if grep "unsupported algorithm" "keygen-$alg.err" >/dev/null; then
@@ -4264,7 +4264,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
 # Roll the ZSK.
-zsk2=$("$KEYGEN" -q -P none -A none -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
+zsk2=$("$KEYGEN" -q -P none -A none -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 "$zone")
 keyfile_to_key_id "$zsk2" >ns2/$zone.zsk.id2
 ZSK_ID2=$(cat ns2/$zone.zsk.id2)
 ret=0
@@ -4360,7 +4360,7 @@ mv ns2/$KSK.key.bak ns2/$KSK.key
 mv ns2/$KSK.private.bak ns2/$KSK.private
 
 # Roll the ZSK again.
-zsk3=$("$KEYGEN" -q -P none -A none -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
+zsk3=$("$KEYGEN" -q -P none -A none -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 "$zone")
 ret=0
 keyfile_to_key_id "$zsk3" >ns2/$zone.zsk.id3
 ZSK_ID3=$(cat ns2/$zone.zsk.id3)
@@ -4616,8 +4616,8 @@ status=$((status + ret))
 echo_i "check that dnssec-keygen honours key tag ranges ($n)"
 ret=0
 zone=settagrange
-ksk=$("$KEYGEN" -f KSK -q -a $DEFAULT_ALGORITHM -n zone -M 0:32767 "$zone")
-zsk=$("$KEYGEN" -q -a $DEFAULT_ALGORITHM -n zone -M 32768:65535 "$zone")
+ksk=$("$KEYGEN" -f KSK -q -a $DEFAULT_ALGORITHM -M 0:32767 "$zone")
+zsk=$("$KEYGEN" -q -a $DEFAULT_ALGORITHM -M 32768:65535 "$zone")
 kid=$(keyfile_to_key_id "$ksk")
 zid=$(keyfile_to_key_id "$zsk")
 [ $kid -ge 0 -a $kid -le 32767 ] || ret=1

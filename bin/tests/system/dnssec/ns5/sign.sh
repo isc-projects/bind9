@@ -34,6 +34,6 @@ keyfile_to_initial_ds "$keyname" >revoked.conf
 "$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK $zone >/dev/null
 "$SIGNER" -S -o "$zone" -f "$zonefile" "$infile" >/dev/null 2>&1
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone ".")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" ".")
 
 keyfile_to_static_ds "$keyname" >trusted.conf

@@ -445,7 +445,7 @@ grep "mx03.update.nil/MX:.*MX is an address" ns1/named.run >/dev/null 2>&1 || re
 
 ret=0
 echo_i "check SIG(0) key is accepted"
-key=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -T KEY -n ENTITY xxx)
+key=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -T KEY xxx)
 echo "" | $NSUPDATE -k ${key}.private >/dev/null 2>&1 || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"

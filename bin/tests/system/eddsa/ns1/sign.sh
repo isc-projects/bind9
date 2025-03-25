@@ -24,15 +24,15 @@ echo_i "ns1/sign.sh"
 cp $infile $zonefile
 
 if [ $ED25519_SUPPORTED = 1 ]; then
-  zsk25519=$($KEYGEN -q -a ED25519 -n zone "$zone")
-  ksk25519=$($KEYGEN -q -a ED25519 -n zone -f KSK "$zone")
+  zsk25519=$($KEYGEN -q -a ED25519 "$zone")
+  ksk25519=$($KEYGEN -q -a ED25519 -f KSK "$zone")
   cat "$ksk25519.key" "$zsk25519.key" >>"$zonefile"
   $DSFROMKEY -a sha-256 "$ksk25519.key" >>dsset-256
 fi
 
 if [ $ED448_SUPPORTED = 1 ]; then
-  zsk448=$($KEYGEN -q -a ED448 -n zone "$zone")
-  ksk448=$($KEYGEN -q -a ED448 -n zone -f KSK "$zone")
+  zsk448=$($KEYGEN -q -a ED448 "$zone")
+  ksk448=$($KEYGEN -q -a ED448 -f KSK "$zone")
   cat "$ksk448.key" "$zsk448.key" >>"$zonefile"
   $DSFROMKEY -a sha-256 "$ksk448.key" >>dsset-256
 fi

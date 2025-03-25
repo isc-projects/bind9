@@ -20,7 +20,7 @@ set -e
 
 cp "../ns2/dsset-example." .
 
-ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone .)
+ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" .)
 
 cp root.db.in root.db
 

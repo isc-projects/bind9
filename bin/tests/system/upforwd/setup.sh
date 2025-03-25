@@ -35,7 +35,7 @@ fi
 #
 # SIG(0) requires cryptographic support which may not be configured.
 #
-keyname=$($KEYGEN -q -n HOST -a ${DEFAULT_ALGORITHM} -T KEY sig0.example2 2>keyname.err)
+keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -T KEY sig0.example2 2>keyname.err)
 if test -n "$keyname"; then
   cat ns1/example1.db $keyname.key >ns1/example2.db
   echo $keyname >keyname
@@ -46,7 +46,7 @@ cat_i <keyname.err
 
 cat ns1/example1.db >ns1/example2-toomanykeys.db
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17; do
-  keyname=$($KEYGEN -q -n HOST -a ${DEFAULT_ALGORITHM} -T KEY sig0.example2-toomanykeys 2>/dev/null)
+  keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -T KEY sig0.example2-toomanykeys 2>/dev/null)
   if test -n "$keyname"; then
     cat $keyname.key >>ns1/example2-toomanykeys.db
     echo $keyname >keyname$i

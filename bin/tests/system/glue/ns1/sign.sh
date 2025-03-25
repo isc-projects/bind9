@@ -21,7 +21,7 @@ zonefile=tc-test-signed.db
 # been carefully chosen to ensure that the signed referral response checked in
 # the test will be around 512 bytes in size with glue records excluded.  Please
 # keep this in mind when updating signing algorithms used in system tests.
-keyname=$($KEYGEN -q -a RSASHA256 -b 2048 -n zone $zone)
+keyname=$($KEYGEN -q -a RSASHA256 -b 2048 $zone)
 cat "$infile" "$keyname.key" >"$zonefile"
 
 $SIGNER -P -o $zone $zonefile >/dev/null

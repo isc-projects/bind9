@@ -24,7 +24,7 @@ zonefile=root.db
 
 cp "../ns2/dsset-example." .
 
-keyname=$($KEYGEN -q -a "${DEFAULT_ALGORITHM}" -b "${DEFAULT_BITS}" -n zone $zone)
+keyname=$($KEYGEN -q -a "${DEFAULT_ALGORITHM}" -b "${DEFAULT_BITS}" $zone)
 
 cat "$infile" "$keyname.key" >"$zonefile"
 

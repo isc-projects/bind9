@@ -82,16 +82,11 @@ struct keygen_ctx {
 	const char *directory;
 	dns_keystore_t *keystore;
 	char *algname;
-	char *nametype;
-	char *type;
-	int protocol;
 	int size;
 	uint16_t tag_min;
 	uint16_t tag_max;
-	int signatory;
 	dns_rdataclass_t rdclass;
 	int options;
-	int dbits;
 	dns_ttl_t ttl;
 	bool wantzsk;
 	bool wantksk;
@@ -168,23 +163,14 @@ usage(void) {
 	fprintf(stderr, "        ED448:\tignored\n");
 	fprintf(stderr, "        (key size defaults are set according to\n"
 			"        algorithm and usage (ZSK or KSK)\n");
-	fprintf(stderr, "    -n <nametype>: ZONE | HOST | ENTITY | "
-			"USER | OTHER\n");
-	fprintf(stderr, "        (DNSKEY generation defaults to ZONE)\n");
 	fprintf(stderr, "    -c <class>: (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
 	fprintf(stderr, "    -f <keyflag>: ZSK | KSK | REVOKE\n");
 	fprintf(stderr, "    -F: FIPS mode\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
 	fprintf(stderr, "    -M <min>:<max>: allowed Key ID range\n");
-	fprintf(stderr, "    -p <protocol>: (default: 3 [dnssec])\n");
-	fprintf(stderr, "    -s <strength>: strength value this key signs DNS "
-			"records with (default: 0)\n");
 	fprintf(stderr, "    -T <rrtype>: DNSKEY | KEY (default: DNSKEY; "
 			"use KEY for SIG(0))\n");
-	fprintf(stderr, "    -t <type>: "
-			"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
-			"(default: AUTHCONF)\n");
 	fprintf(stderr, "    -h: print usage and exit\n");
 	fprintf(stderr, "    -m <memory debugging mode>:\n");
 	fprintf(stderr, "       usage | trace | record\n");
@@ -314,24 +300,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			}
 		}
 
-		if (ctx->type != NULL && (ctx->options & DST_TYPE_KEY) != 0) {
-			if (strcasecmp(ctx->type, "NOAUTH") == 0) {
-				flags |= DNS_KEYTYPE_NOAUTH;
-			} else if (strcasecmp(ctx->type, "NOCONF") == 0) {
-				flags |= DNS_KEYTYPE_NOCONF;
-			} else if (strcasecmp(ctx->type, "NOAUTHCONF") == 0) {
-				flags |= (DNS_KEYTYPE_NOAUTH |
-					  DNS_KEYTYPE_NOCONF);
-				if (ctx->size < 0) {
-					ctx->size = 0;
-				}
-			} else if (strcasecmp(ctx->type, "AUTHCONF") == 0) {
-				/* nothing */
-			} else {
-				fatal("invalid type %s", ctx->type);
-			}
-		}
-
 		if (ctx->size < 0) {
 			switch (ctx->alg) {
 			case DST_ALG_RSASHA1:
@@ -402,12 +370,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		}
 		if (ctx->size >= 0) {
 			fatal("-S and -b cannot be used together");
-		}
-		if (ctx->nametype != NULL) {
-			fatal("-S and -n cannot be used together");
-		}
-		if (ctx->type != NULL) {
-			fatal("-S and -t cannot be used together");
 		}
 		if (ctx->setpub || ctx->unsetpub) {
 			fatal("-S and -P cannot be used together");
@@ -522,53 +484,22 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		break;
 	}
 
-	if (ctx->nametype == NULL) {
-		if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
-			fatal("no nametype specified");
-		}
-		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY */
-	} else if (strcasecmp(ctx->nametype, "zone") == 0) {
-		flags |= DNS_KEYOWNER_ZONE;
-	} else if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
-		if (strcasecmp(ctx->nametype, "host") == 0 ||
-		    strcasecmp(ctx->nametype, "entity") == 0)
-		{
-			flags |= DNS_KEYOWNER_ENTITY;
-		} else if (strcasecmp(ctx->nametype, "user") == 0) {
-			/* no owner flags */
-		} else {
-			fatal("invalid KEY nametype %s", ctx->nametype);
-		}
-	} else if (strcasecmp(ctx->nametype, "other") != 0) { /* DNSKEY */
-		fatal("invalid DNSKEY nametype %s", ctx->nametype);
+	if ((ctx->options & DST_TYPE_KEY) == 0) {
+		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY: name type ZONE */
+	} else {
+		flags |= DNS_KEYOWNER_ENTITY; /* KEY: name type HOST */
 	}
 
 	if (ctx->directory == NULL) {
 		ctx->directory = ".";
 	}
 
-	if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
-		flags |= ctx->signatory;
-	} else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
+	if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
 		if (ctx->ksk || ctx->wantksk) {
 			flags |= DNS_KEYFLAG_KSK;
 		}
 		if (ctx->wantrev) {
 			flags |= DNS_KEYFLAG_REVOKE;
-		}
-	}
-
-	if (ctx->protocol == -1) {
-		ctx->protocol = DNS_KEYPROTO_DNSSEC;
-	} else if ((ctx->options & DST_TYPE_KEY) == 0 &&
-		   ctx->protocol != DNS_KEYPROTO_DNSSEC)
-	{
-		fatal("invalid DNSKEY protocol: %d", ctx->protocol);
-	}
-
-	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
-		if (ctx->size > 0) {
-			fatal("specified null key with non-zero size");
 		}
 	}
 
@@ -609,12 +540,12 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 				mctx, ctx->alg, ctx->size, flags, &key);
 		} else if (!ctx->quiet && show_progress) {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, 0,
-					       flags, ctx->protocol,
+					       flags, DNS_KEYPROTO_DNSSEC,
 					       ctx->rdclass, NULL, mctx, &key,
 					       &progress);
 		} else {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, 0,
-					       flags, ctx->protocol,
+					       flags, DNS_KEYPROTO_DNSSEC,
 					       ctx->rdclass, NULL, mctx, &key,
 					       NULL);
 		}
@@ -630,8 +561,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			fatal("failed to generate key %s/%s: %s\n", namestr,
 			      algstr, isc_result_totext(ret));
 		}
-
-		dst_key_setbits(key, ctx->dbits);
 
 		/*
 		 * Set key timing metadata (unless using -C)
@@ -845,7 +774,6 @@ main(int argc, char **argv) {
 	keygen_ctx_t ctx = {
 		.options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC,
 		.prepub = -1,
-		.protocol = -1,
 		.size = -1,
 		.now = isc_stdtime_now(),
 	};
@@ -907,10 +835,7 @@ main(int argc, char **argv) {
 			classname = isc_commandline_argument;
 			break;
 		case 'd':
-			ctx.dbits = strtol(isc_commandline_argument, &endp, 10);
-			if (*endp != '\0' || ctx.dbits < 0) {
-				fatal("-d requires a non-negative number");
-			}
+			fatal("The -d option has been deprecated.");
 			break;
 		case 'E':
 			fatal("%s", isc_result_totext(DST_R_NOENGINE));
@@ -947,7 +872,7 @@ main(int argc, char **argv) {
 			ctx.configfile = isc_commandline_argument;
 			break;
 		case 'n':
-			ctx.nametype = isc_commandline_argument;
+			fatal("The -n option has been deprecated.");
 			break;
 		case 'M': {
 			unsigned long ul;
@@ -967,14 +892,7 @@ main(int argc, char **argv) {
 		case 'm':
 			break;
 		case 'p':
-			ctx.protocol = strtol(isc_commandline_argument, &endp,
-					      10);
-			if (*endp != '\0' || ctx.protocol < 0 ||
-			    ctx.protocol > 255)
-			{
-				fatal("-p must be followed by a number "
-				      "[0..255]");
-			}
+			fatal("The -p option has been deprecated.");
 			break;
 		case 'q':
 			ctx.quiet = true;
@@ -984,21 +902,13 @@ main(int argc, char **argv) {
 			      "System random data is always used.\n");
 			break;
 		case 's':
-			ctx.signatory = strtol(isc_commandline_argument, &endp,
-					       10);
-			if (*endp != '\0' || ctx.signatory < 0 ||
-			    ctx.signatory > 15)
-			{
-				fatal("-s must be followed by a number "
-				      "[0..15]");
-			}
+			fatal("The -s option has been deprecated.");
 			break;
 		case 'T':
 			if (strcasecmp(isc_commandline_argument, "KEY") == 0) {
 				ctx.options |= DST_TYPE_KEY;
 			} else if (strcasecmp(isc_commandline_argument,
-					      "DNSKE"
-					      "Y") == 0)
+					      "DNSKEY") == 0)
 			{
 				/* default behavior */
 			} else {
@@ -1007,7 +917,7 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 't':
-			ctx.type = isc_commandline_argument;
+			fatal("The -t option has been deprecated.");
 			break;
 		case 'v':
 			endp = NULL;
@@ -1169,9 +1079,6 @@ main(int argc, char **argv) {
 	}
 
 	if (ctx.policy != NULL) {
-		if (ctx.nametype != NULL) {
-			fatal("-k and -n cannot be used together");
-		}
 		if (ctx.predecessor != NULL) {
 			fatal("-k and -S cannot be used together");
 		}
@@ -1190,7 +1097,7 @@ main(int argc, char **argv) {
 		if (ctx.wantrev) {
 			fatal("-k and -fR cannot be used together");
 		}
-		if (ctx.options & DST_TYPE_KEY) {
+		if ((ctx.options & DST_TYPE_KEY) != 0) {
 			fatal("-k and -T KEY cannot be used together");
 		}
 		if (ctx.use_nsec3) {
