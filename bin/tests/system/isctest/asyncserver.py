@@ -383,6 +383,17 @@ class ResponseHandler(abc.ABC):
         yield DnsResponseSend(qctx.response)
 
 
+class IgnoreAllQueries(ResponseHandler):
+    """
+    Do not respond to any queries sent to the server.
+    """
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[ResponseAction, None]:
+        yield ResponseDrop()
+
+
 class DomainHandler(ResponseHandler):
     """
     Base class used for deriving custom domain handlers.
