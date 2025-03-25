@@ -370,14 +370,30 @@ ISC_RUN_TEST_IMPL(isc_mem_recordflag) {
 	char buf[4096], *p;
 	FILE *f;
 	void *ptr;
+	void *ptr2;
+	char dummyfilename[2] = "a";
 
 	result = isc_stdio_open("mem.output", "w", &f);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_mem_create(&mctx2);
+
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
+
+	/*
+	 * This strange allocation verifies that the file name (dummyfilename,
+	 * instead of __FILE__) actually gets copied instead of simply putting
+	 * its pointers in the debuglink struct. This avoids named to crash on
+	 * shutdown if a plugin leaked memory, because the plugin would be
+	 * unloaded, and __FILE__ pointer passed at this time would be dangling.
+	 */
+	ptr2 = isc__mem_get(mctx2, 1024, 0, __func__, dummyfilename, __LINE__);
+	assert_non_null(ptr2);
+	dummyfilename[0] = 'b';
+
 	isc__mem_printactive(mctx2, f);
+	isc_mem_put(mctx2, ptr2, 1024);
 	isc_mem_put(mctx2, ptr, 2048);
 	isc_mem_detach(&mctx2);
 	isc_stdio_close(f);
@@ -392,13 +408,20 @@ ISC_RUN_TEST_IMPL(isc_mem_recordflag) {
 
 	buf[sizeof(buf) - 1] = 0;
 
-	p = strchr(buf, '\n');
+	/*
+	 * Find the allocation of ptr2 and make sure it contains
+	 * "[...] 1024 file a line [...]" and _not_ "[...] 1024 file b [...]",
+	 * which prove the copy
+	 */
+	p = strstr(buf, "1024 file a line");
 	assert_non_null(p);
-	assert_in_range(p, 0, buf + sizeof(buf) - 3);
-	assert_memory_equal(p + 2, "ptr ", 4);
-	p = strchr(p + 1, '\n');
+
+	/*
+	 * Find the allocation of ptr and make sure it contains "[...] 2048 file
+	 * mem_test.c line [...]"
+	 */
+	p = strstr(buf, "2048 file mem_test.c line");
 	assert_non_null(p);
-	assert_int_equal(strlen(p), 1);
 }
 
 /* test mem with trace flag */
