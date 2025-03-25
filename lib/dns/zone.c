@@ -20851,8 +20851,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 		result = dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if ((dnskey.flags & (DNS_KEYFLAG_OWNERMASK |
-				     DNS_KEYTYPE_NOAUTH)) != DNS_KEYOWNER_ZONE)
+		if ((dnskey.flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
 		{
 			ISC_LIST_UNLINK(diff->tuples, tuple, link);
 			ISC_LIST_APPEND(tuples, tuple, link);
