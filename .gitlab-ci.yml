@@ -211,16 +211,16 @@ stages:
 
 # Fedora
 
-.tsan-fedora-41-amd64: &tsan_fedora_41_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tsan-fedora-41-amd64"
+.tsan-fedora-42-amd64: &tsan_fedora_42_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tsan-fedora-42-amd64"
   <<: *linux_amd64
 
-.fedora-41-amd64: &fedora_41_amd64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-41-amd64"
+.fedora-42-amd64: &fedora_42_amd64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-42-amd64"
   <<: *linux_amd64
 
-.fedora-41-arm64: &fedora_41_arm64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-41-arm64"
+.fedora-42-arm64: &fedora_42_arm64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-42-arm64"
   <<: *linux_arm64
 
 # Ubuntu
@@ -1191,7 +1191,7 @@ unit:gcc:noble:amd64:
     - job: gcc:noble:amd64
       artifacts: true
 
-# Jobs for ASAN builds on Fedora 41 (amd64)
+# Jobs for ASAN builds on Fedora 42 (amd64)
 
 gcc:asan:
   variables:
@@ -1199,20 +1199,20 @@ gcc:asan:
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2 --without-jemalloc"
-  <<: *fedora_41_amd64_image
+  <<: *fedora_42_amd64_image
   <<: *build_job
 
 system:gcc:asan:
   variables:
     LSAN_OPTIONS: "suppressions=$CI_PROJECT_DIR/suppr-lsan.txt"
-  <<: *fedora_41_amd64_image
+  <<: *fedora_42_amd64_image
   <<: *system_test_job
   needs:
     - job: gcc:asan
       artifacts: true
 
 unit:gcc:asan:
-  <<: *fedora_41_amd64_image
+  <<: *fedora_42_amd64_image
   <<: *unit_test_job
   needs:
     - job: gcc:asan
@@ -1241,7 +1241,7 @@ unit:clang:asan:
     - job: clang:asan
       artifacts: true
 
-# Jobs for TSAN builds on Fedora 41 (amd64)
+# Jobs for TSAN builds on Fedora 42 (amd64)
 
 gcc:tsan:
   variables:
@@ -1251,13 +1251,13 @@ gcc:tsan:
     OPENSSL_CFLAGS: -I/opt/tsan/include
     OPENSSL_LIBS: -L/opt/tsan/lib -lssl -lcrypto
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --without-jemalloc PKG_CONFIG_PATH=/opt/tsan/lib/pkgconfig"
-  <<: *tsan_fedora_41_amd64_image
+  <<: *tsan_fedora_42_amd64_image
   <<: *build_job
 
 system:gcc:tsan:
   variables:
     TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
-  <<: *tsan_fedora_41_amd64_image
+  <<: *tsan_fedora_42_amd64_image
   <<: *system_test_tsan_job
   needs:
     - job: gcc:tsan
@@ -1266,7 +1266,7 @@ system:gcc:tsan:
 unit:gcc:tsan:
   variables:
     TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
-  <<: *tsan_fedora_41_amd64_image
+  <<: *tsan_fedora_42_amd64_image
   <<: *unit_test_tsan_job
   needs:
     - job: gcc:tsan
