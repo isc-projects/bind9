@@ -360,10 +360,13 @@ class ResponseHandler(abc.ABC):
     method.
     """
 
-    @abc.abstractmethod
+    # pylint: disable=unused-argument
     def match(self, qctx: QueryContext) -> bool:
         """
-        Matching logic - query is handled when it returns True.
+        Matching logic - the first handler whose `match()` method returns True
+        is used for handling the query.
+
+        The default for each handler is to handle all queries.
         """
         return True
 
@@ -378,6 +381,17 @@ class ResponseHandler(abc.ABC):
         qctx.response.
         """
         yield DnsResponseSend(qctx.response)
+
+
+class IgnoreAllQueries(ResponseHandler):
+    """
+    Do not respond to any queries sent to the server.
+    """
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[ResponseAction, None]:
+        yield ResponseDrop()
 
 
 class DomainHandler(ResponseHandler):
