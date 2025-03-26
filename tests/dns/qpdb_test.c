@@ -112,6 +112,16 @@ overmempurge_addrdataset(dns_db_t *db, isc_stdtime_t now, int idx,
 	dns_db_detachnode(db, &node);
 }
 
+static void
+cleanup_all_deadnodes(dns_db_t *db) {
+	qpcache_t *qpdb = (qpcache_t *)db;
+	qpcache_ref(qpdb);
+	for (uint16_t locknum = 0; locknum < qpdb->buckets_count; locknum++) {
+		cleanup_deadnodes(qpdb, locknum);
+	}
+	qpcache_unref(qpdb);
+}
+
 ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	size_t maxcache = 2097152U; /* 2MB - same as DNS_CACHE_MINSIZE */
 	size_t hiwater = maxcache - (maxcache >> 3); /* borrowed from cache.c */
@@ -150,6 +160,7 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	 */
 	while (i-- > 0) {
 		overmempurge_addrdataset(db, now, i, 50054, 65535, false);
+		cleanup_all_deadnodes(db);
 		if (verbose) {
 			print_message("# inuse: %zd max: %zd\n",
 				      isc_mem_inuse(mctx2), maxcache);
@@ -200,6 +211,7 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	 */
 	while (i-- > 0) {
 		overmempurge_addrdataset(db, now, i, 50054, 0, true);
+		cleanup_all_deadnodes(db);
 		if (verbose) {
 			print_message("# inuse: %zd max: %zd\n",
 				      isc_mem_inuse(mctx2), maxcache);

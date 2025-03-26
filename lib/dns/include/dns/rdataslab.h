@@ -85,14 +85,13 @@ struct dns_slabheader {
 	 * when the "cyclic" rrset-order is required.
 	 */
 
-	unsigned int  resign_lsb : 1;
+	/* resigning (zone) and TTL-cleaning (cache) */
+	uint16_t      resign_lsb : 1;
 	isc_stdtime_t resign;
+	isc_heap_t   *heap;
 	unsigned int  heap_index;
-	/*%<
-	 * Used for TTL-based cache cleaning.
-	 */
 
-	isc_stdtime_t	  last_used;
+	/* Used for stale refresh */
 	_Atomic(uint32_t) last_refresh_fail_ts;
 
 	dns_slabheader_proof_t *noqname;
@@ -127,7 +126,12 @@ struct dns_slabheader {
 	 * this rdataset, if any.
 	 */
 
+	dns_gluelist_t *gluelist;
+
+	/*% Used for SIEVE-LRU (cache) and changed_list (zone) */
 	ISC_LINK(struct dns_slabheader) link;
+	/*% Used for SIEVE-LRU */
+	bool visited;
 
 	/*%
 	 * Case vector.  If the bit is set then the corresponding
@@ -135,10 +139,6 @@ struct dns_slabheader {
 	 * rendering that character upper case.
 	 */
 	unsigned char upper[32];
-
-	isc_heap_t *heap;
-
-	dns_gluelist_t *gluelist;
 };
 
 enum {

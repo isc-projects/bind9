@@ -75,6 +75,7 @@ libisc_la_HEADERS =			\
 	include/isc/rwlock.h		\
 	include/isc/safe.h		\
 	include/isc/serial.h		\
+	include/isc/sieve.h		\
 	include/isc/signal.h		\
 	include/isc/siphash.h		\
 	include/isc/sockaddr.h		\
