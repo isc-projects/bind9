@@ -627,7 +627,7 @@ zone=localkey.example.
 infile=bogus.example.db.in
 zonefile=localkey.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$keyname.key" >"$zonefile"
 
