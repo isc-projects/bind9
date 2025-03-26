@@ -819,6 +819,11 @@ cross-version-config-tests:
     untracked: true
     expire_in: "1 day"
     when: always
+    # The !10262 merge request introduced a backward incompatible change by
+    # removing several dnssec-keygen and dnssec-keyfromlabel options that are
+    # still in use in the base system test (9.21.6). The "allow_failure: true"
+    # should be removed after 9.21.7 is released.
+  allow_failure: true
 
 # Jobs for regular GCC builds on Alpine Linux 3.21 (amd64)
 
