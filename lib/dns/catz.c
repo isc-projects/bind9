@@ -2384,8 +2384,7 @@ dns__catz_update_cb(void *data) {
 		}
 
 		dns_rdataset_init(&rdataset);
-		result = dns_rdatasetiter_first(rdsiter);
-		while (result == ISC_R_SUCCESS) {
+		DNS_RDATASETITER_FOREACH (rdsiter) {
 			dns_rdatasetiter_current(rdsiter, &rdataset);
 
 			/*
@@ -2395,7 +2394,8 @@ dns__catz_update_cb(void *data) {
 			 * and produce an unnecessary warning message.
 			 */
 			if (!catz_rdatatype_is_processable(rdataset.type)) {
-				goto next;
+				dns_rdataset_disassociate(&rdataset);
+				continue;
 			}
 
 			/*
@@ -2427,9 +2427,8 @@ dns__catz_update_cb(void *data) {
 					      cname, classbuf, typebuf,
 					      isc_result_totext(result));
 			}
-		next:
+
 			dns_rdataset_disassociate(&rdataset);
-			result = dns_rdatasetiter_next(rdsiter);
 		}
 
 		dns_rdatasetiter_destroy(&rdsiter);

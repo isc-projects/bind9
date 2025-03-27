@@ -125,41 +125,27 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 static isc_result_t
 check_node(dns_rdataset_t *rootns, dns_name_t *name,
 	   dns_rdatasetiter_t *rdsiter) {
-	isc_result_t result;
-	dns_rdataset_t rdataset;
-
-	dns_rdataset_init(&rdataset);
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASETITER_FOREACH (rdsiter) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 		dns_rdatasetiter_current(rdsiter, &rdataset);
-		switch (rdataset.type) {
+		dns_rdatatype_t type = rdataset.type;
+		dns_rdataset_disassociate(&rdataset);
+
+		switch (type) {
 		case dns_rdatatype_a:
 		case dns_rdatatype_aaaa:
-			result = in_rootns(rootns, name);
-			if (result != ISC_R_SUCCESS) {
-				goto cleanup;
-			}
-			break;
+			return in_rootns(rootns, name);
 		case dns_rdatatype_ns:
 			if (dns_name_compare(name, dns_rootname) == 0) {
-				break;
+				return ISC_R_SUCCESS;
 			}
 			FALLTHROUGH;
 		default:
-			result = ISC_R_FAILURE;
-			goto cleanup;
+			return ISC_R_FAILURE;
 		}
-		dns_rdataset_disassociate(&rdataset);
-		result = dns_rdatasetiter_next(rdsiter);
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
-cleanup:
-	if (dns_rdataset_isassociated(&rdataset)) {
-		dns_rdataset_disassociate(&rdataset);
-	}
-	return result;
+
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -182,8 +168,7 @@ check_hints(dns_db_t *db) {
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-	result = dns_dbiterator_first(dbiter);
-	while (result == ISC_R_SUCCESS) {
+	DNS_DBITERATOR_FOREACH (dbiter) {
 		result = dns_dbiterator_current(dbiter, &node, name);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
@@ -198,10 +183,6 @@ check_hints(dns_db_t *db) {
 		}
 		dns_rdatasetiter_destroy(&rdsiter);
 		dns_db_detachnode(db, &node);
-		result = dns_dbiterator_next(dbiter);
-	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 
 cleanup:

@@ -99,6 +99,22 @@ struct dns_dbiterator {
 	bool			 relative_names;
 };
 
+/* clang-format off */
+/*
+ * This is a hack to build a unique variable name to
+ * replace 'res' below. (Two layers of macro indirection are
+ * needed to make the line number be part of the variable
+ * name; otherwise it would just be "x__LINE__".)
+ */
+#define DNS__DBITERATOR_CONNECT(x,y) x##y
+#define DNS__DBITERATOR_CONCAT(x,y) DNS__DBITERATOR_CONNECT(x,y)
+#define DNS_DBITERATOR_FOREACH_RES(rds, res)                         \
+	for (isc_result_t res = dns_dbiterator_first((rds));       \
+	     res == ISC_R_SUCCESS; res = dns_dbiterator_next((rds)))
+#define DNS_DBITERATOR_FOREACH(rds)               \
+	DNS_DBITERATOR_FOREACH_RES(rds, DNS__DBITERATOR_CONCAT(x, __LINE__))
+/* clang-format on */
+
 #define dns_dbiterator_destroy(iteratorp) \
 	dns__dbiterator_destroy(iteratorp DNS__DB_FILELINE)
 void

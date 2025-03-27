@@ -2140,11 +2140,8 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 		goto cleanup_node;
 	}
 
-	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(rdsiter))
-	{
+	DNS_RDATASETITER_FOREACH (rdsiter) {
 		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
-
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 
 		DNS_RDATASET_FOREACH (&rdataset) {
@@ -2156,14 +2153,9 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
-	if (result != ISC_R_NOMORE) {
-		goto cleanup_iterator;
-	}
+	dns_rdatasetiter_destroy(&rdsiter);
 
 	result = ISC_R_SUCCESS;
-
-cleanup_iterator:
-	dns_rdatasetiter_destroy(&rdsiter);
 
 cleanup_node:
 	dns_db_detachnode(db, &node);

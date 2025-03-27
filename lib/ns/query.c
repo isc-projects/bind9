@@ -3251,9 +3251,9 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 	 * Choose the best rdataset if we found something.
 	 */
 	if (result == ISC_R_SUCCESS) {
-		dns_rdatasetiter_t *rdsiter;
+		dns_rdatasetiter_t *rdsiter = NULL;
+		bool match = false;
 
-		rdsiter = NULL;
 		result = dns_db_allrdatasets(*dbp, *nodep, *versionp, 0, 0,
 					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
@@ -3266,10 +3266,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 		if (qtype == dns_rdatatype_aaaa &&
 		    !ISC_LIST_EMPTY(client->view->dns64))
 		{
-			for (result = dns_rdatasetiter_first(rdsiter);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdatasetiter_next(rdsiter))
-			{
+			DNS_RDATASETITER_FOREACH (rdsiter) {
 				dns_rdatasetiter_current(rdsiter, *rdatasetp);
 				if ((*rdatasetp)->type == dns_rdatatype_a) {
 					found_a = true;
@@ -3277,28 +3274,18 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 				dns_rdataset_disassociate(*rdatasetp);
 			}
 		}
-		for (result = dns_rdatasetiter_first(rdsiter);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(rdsiter))
-		{
+		DNS_RDATASETITER_FOREACH (rdsiter) {
 			dns_rdatasetiter_current(rdsiter, *rdatasetp);
 			if ((*rdatasetp)->type == dns_rdatatype_cname ||
 			    (*rdatasetp)->type == qtype)
 			{
+				match = true;
 				break;
 			}
 			dns_rdataset_disassociate(*rdatasetp);
 		}
 		dns_rdatasetiter_destroy(&rdsiter);
-		if (result != ISC_R_SUCCESS) {
-			if (result != ISC_R_NOMORE) {
-				rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL,
-					     p_name, rpz_type, "rdatasetiter",
-					     result);
-				CTRACE(ISC_LOG_ERROR, "rpz_find_p: "
-						      "rdatasetiter failed");
-				return DNS_R_SERVFAIL;
-			}
+		if (!match) {
 			/*
 			 * Ask again to get the right DNS_R_DNAME/NXRRSET/...
 			 * result if there is neither a CNAME nor target type.
@@ -7660,8 +7647,7 @@ query_respond_any(query_ctx_t *qctx) {
 	ns_client_keepname(qctx->client, qctx->fname, qctx->dbuf);
 	qctx->tname = qctx->fname;
 
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASETITER_FOREACH (rdsiter) {
 		dns_rdatasetiter_current(rdsiter, qctx->rdataset);
 
 		/*
@@ -7770,18 +7756,9 @@ query_respond_any(query_ctx_t *qctx) {
 			 */
 			dns_rdataset_disassociate(qctx->rdataset);
 		}
-
-		result = dns_rdatasetiter_next(rdsiter);
 	}
 
 	dns_rdatasetiter_destroy(&rdsiter);
-
-	if (result != ISC_R_NOMORE) {
-		CCTRACE(ISC_LOG_ERROR, "query_respond_any: rdataset iterator "
-				       "failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-		return ns_query_done(qctx);
-	}
 
 	if (found) {
 		/*

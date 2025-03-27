@@ -3143,23 +3143,17 @@ zone_check_dup(dns_zone_t *zone, dns_db_t *db) {
 	dns_dbiterator_t *dbiterator = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
-	dns_rdataset_t rdataset;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
 	dns_rdatasetiter_t *rdsit = NULL;
 	bool ok = true;
 	isc_result_t result;
-
-	name = dns_fixedname_initname(&fixed);
-	dns_rdataset_init(&rdataset);
 
 	result = dns_db_createiterator(db, 0, &dbiterator);
 	if (result != ISC_R_SUCCESS) {
 		return true;
 	}
 
-	for (result = dns_dbiterator_first(dbiterator); result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(dbiterator))
-	{
+	DNS_DBITERATOR_FOREACH (dbiterator) {
 		result = dns_dbiterator_current(dbiterator, &node, name);
 		if (result != ISC_R_SUCCESS) {
 			continue;
@@ -3170,10 +3164,8 @@ zone_check_dup(dns_zone_t *zone, dns_db_t *db) {
 			continue;
 		}
 
-		for (result = dns_rdatasetiter_first(rdsit);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(rdsit))
-		{
+		DNS_RDATASETITER_FOREACH (rdsit) {
+			dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 			dns_rdatasetiter_current(rdsit, &rdataset);
 			if (!zone_rrset_check_dup(zone, name, &rdataset)) {
 				ok = false;
@@ -3291,8 +3283,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		return true;
 	}
 
-	result = dns_dbiterator_first(dbiterator);
-	while (result == ISC_R_SUCCESS) {
+	DNS_DBITERATOR_FOREACH (dbiterator) {
 		result = dns_dbiterator_current(dbiterator, &node, name);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
@@ -3478,7 +3469,6 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 
 	next:
 		dns_db_detachnode(db, &node);
-		result = dns_dbiterator_next(dbiterator);
 	}
 
 	if (has_a) {
@@ -7579,7 +7569,6 @@ check_if_bottom_of_zone(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, bool *is_bottom_of_zone) {
 	isc_result_t result;
 	dns_rdatasetiter_t *iterator = NULL;
-	dns_rdataset_t rdataset;
 	bool seen_soa = false, seen_ns = false, seen_dname = false;
 
 	REQUIRE(is_bottom_of_zone != NULL);
@@ -7592,10 +7581,8 @@ check_if_bottom_of_zone(dns_db_t *db, dns_dbnode_t *node,
 		return result;
 	}
 
-	dns_rdataset_init(&rdataset);
-	for (result = dns_rdatasetiter_first(iterator); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iterator))
-	{
+	DNS_RDATASETITER_FOREACH (iterator) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 		dns_rdatasetiter_current(iterator, &rdataset);
 		switch (rdataset.type) {
 		case dns_rdatatype_soa:
@@ -7610,18 +7597,13 @@ check_if_bottom_of_zone(dns_db_t *db, dns_dbnode_t *node,
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
-	if (result != ISC_R_NOMORE) {
-		goto failure;
-	}
+
 	if ((seen_ns && !seen_soa) || seen_dname) {
 		*is_bottom_of_zone = true;
 	}
-	result = ISC_R_SUCCESS;
 
-failure:
 	dns_rdatasetiter_destroy(&iterator);
-
-	return result;
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -7633,7 +7615,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	    dns_diff_t *diff, int32_t *signatures, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_rdatasetiter_t *iterator = NULL;
-	dns_rdataset_t rdataset;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_stats_t *dnssecsignstats;
 	bool offlineksk = false;
@@ -7653,12 +7635,9 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		return result;
 	}
 
-	dns_rdataset_init(&rdataset);
 	isc_buffer_init(&buffer, data, sizeof(data));
 	seen_rr = seen_soa = seen_ns = seen_nsec = seen_nsec3 = seen_ds = false;
-	for (result = dns_rdatasetiter_first(iterator); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iterator))
-	{
+	DNS_RDATASETITER_FOREACH (iterator) {
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (rdataset.type == dns_rdatatype_soa) {
 			seen_soa = true;
@@ -7676,9 +7655,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
-	if (result != ISC_R_NOMORE) {
-		goto failure;
-	}
+
 	/*
 	 * Going from insecure to NSEC3.
 	 * Don't generate NSEC3 records for NSEC3 records.
@@ -7704,15 +7681,19 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 			(*signatures)--;
 		}
 	}
-	result = dns_rdatasetiter_first(iterator);
-	while (result == ISC_R_SUCCESS) {
+
+	DNS_RDATASETITER_FOREACH (iterator) {
 		isc_stdtime_t when;
+
+		if (dns_rdataset_isassociated(&rdataset)) {
+			dns_rdataset_disassociate(&rdataset);
+		}
 
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (rdataset.type == dns_rdatatype_soa ||
 		    rdataset.type == dns_rdatatype_rrsig)
 		{
-			goto next_rdataset;
+			continue;
 		}
 		if (dns_rdatatype_iskeymaterial(rdataset.type)) {
 			/*
@@ -7722,28 +7703,28 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 			 * which would only include KSK's.)
 			 */
 			if (!is_ksk && both) {
-				goto next_rdataset;
+				continue;
 			}
 		} else if (!is_zsk && both) {
-			goto next_rdataset;
+			continue;
 		} else if (is_zsk &&
 			   !dst_key_is_signing(key, DST_BOOL_ZSK, now, &when))
 		{
 			/* Only applies to dnssec-policy. */
 			if (zone->kasp != NULL) {
-				goto next_rdataset;
+				continue;
 			}
 		}
 
 		if (seen_ns && !seen_soa && rdataset.type != dns_rdatatype_ds &&
 		    rdataset.type != dns_rdatatype_nsec)
 		{
-			goto next_rdataset;
+			continue;
 		}
 		if (signed_with_good_key(zone, db, node, version, rdataset.type,
 					 key))
 		{
-			goto next_rdataset;
+			continue;
 		}
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
@@ -7781,13 +7762,8 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		}
 
 		(*signatures)--;
-	next_rdataset:
-		dns_rdataset_disassociate(&rdataset);
-		result = dns_rdatasetiter_next(iterator);
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
+
 failure:
 	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
@@ -8401,7 +8377,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 	dns_fixedname_t fixed;
 	dns_fixedname_t nextfixed;
 	dns_name_t *name = NULL, *nextname = NULL;
-	dns_rdataset_t rdataset;
 	dns_nsec3chain_t *nsec3chain = NULL;
 	dns_nsec3chainlist_t cleanup;
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
@@ -8423,7 +8398,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 	ENTER;
 
-	dns_rdataset_init(&rdataset);
 	name = dns_fixedname_initname(&fixed);
 	nextname = dns_fixedname_initname(&nextfixed);
 	dns_diff_init(zone->mctx, &param_diff);
@@ -8596,10 +8570,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 		}
 
 		seen_soa = seen_ns = seen_dname = seen_ds = seen_nsec = false;
-		for (result = dns_rdatasetiter_first(iterator);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(iterator))
-		{
+		DNS_RDATASETITER_FOREACH (iterator) {
+			dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 			dns_rdatasetiter_current(iterator, &rdataset);
 			INSIST(rdataset.type != dns_rdatatype_nsec3);
 			if (rdataset.type == dns_rdatatype_soa) {
@@ -8862,10 +8834,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 		seen_soa = seen_ns = seen_dname = seen_nsec3 = seen_nsec =
 			seen_rr = false;
-		for (result = dns_rdatasetiter_first(iterator);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(iterator))
-		{
+		DNS_RDATASETITER_FOREACH (iterator) {
+			dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 			dns_rdatasetiter_current(iterator, &rdataset);
 			if (rdataset.type == dns_rdatatype_soa) {
 				seen_soa = true;
@@ -8980,10 +8950,8 @@ skip_removals:
 				   isc_result_totext(result));
 			goto failure;
 		}
-		for (result = dns_rdatasetiter_first(iterator);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(iterator))
-		{
+		DNS_RDATASETITER_FOREACH (iterator) {
+			dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 			dns_rdatasetiter_current(iterator, &rdataset);
 			if (rdataset.type == dns_rdatatype_nsec) {
 				rebuild_nsec = true;
@@ -9275,9 +9243,7 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	}
 
 	dns_rdataset_init(&rdataset);
-	for (result = dns_rdatasetiter_first(iterator); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iterator))
-	{
+	DNS_RDATASETITER_FOREACH (iterator) {
 		bool has_alg = false;
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (nkeys == 0 && rdataset.type == dns_rdatatype_nsec) {
@@ -9322,9 +9288,6 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		} else {
 			alg_missed = true;
 		}
-	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 
 	/*
@@ -17324,7 +17287,6 @@ copy_non_dnssec_records(dns_db_t *db, dns_dbversion_t *version, dns_db_t *rawdb,
 	dns_dbnode_t *rawnode = NULL, *node = NULL;
 	dns_fixedname_t fixed;
 	dns_name_t *name = dns_fixedname_initname(&fixed);
-	dns_rdataset_t rdataset;
 	dns_rdatasetiter_t *rdsit = NULL;
 	isc_result_t result;
 
@@ -17345,11 +17307,8 @@ copy_non_dnssec_records(dns_db_t *db, dns_dbversion_t *version, dns_db_t *rawdb,
 		goto cleanup;
 	}
 
-	dns_rdataset_init(&rdataset);
-
-	for (result = dns_rdatasetiter_first(rdsit); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(rdsit))
-	{
+	DNS_RDATASETITER_FOREACH (rdsit) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 		dns_rdatasetiter_current(rdsit, &rdataset);
 		if (rdataset.type == dns_rdatatype_nsec ||
 		    rdataset.type == dns_rdatatype_rrsig ||
@@ -17374,11 +17333,8 @@ copy_non_dnssec_records(dns_db_t *db, dns_dbversion_t *version, dns_db_t *rawdb,
 		}
 		dns_rdataset_disassociate(&rdataset);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
+			break;
 		}
-	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 
 cleanup:
@@ -17456,9 +17412,7 @@ receive_secure_db(void *arg) {
 		goto failure;
 	}
 
-	for (result = dns_dbiterator_first(dbiterator); result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(dbiterator))
-	{
+	DNS_DBITERATOR_FOREACH (dbiterator) {
 		result = copy_non_dnssec_records(db, version, rawdb, dbiterator,
 						 oldserialp);
 		if (result != ISC_R_SUCCESS) {
@@ -17466,9 +17420,6 @@ receive_secure_db(void *arg) {
 		}
 	}
 	dns_dbiterator_destroy(&dbiterator);
-	if (result != ISC_R_NOMORE) {
-		goto failure;
-	}
 
 	/*
 	 * Call restore_nsec3param() to create private-type records from

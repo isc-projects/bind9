@@ -96,10 +96,8 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		    const dns_name_t *target, unsigned char *buffer,
 		    dns_rdata_t *rdata) {
 	isc_result_t result;
-	dns_rdataset_t rdataset;
 	isc_region_t r;
 	unsigned int i;
-
 	unsigned char *nsec_bits, *bm;
 	unsigned int max_type;
 	dns_rdatasetiter_t *rdsiter;
@@ -119,15 +117,13 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_nsec_setbit(bm, dns_rdatatype_rrsig, 1);
 	dns_nsec_setbit(bm, dns_rdatatype_nsec, 1);
 	max_type = dns_rdatatype_nsec;
-	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(db, node, version, 0, 0, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(rdsiter))
-	{
+	DNS_RDATASETITER_FOREACH (rdsiter) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 		if (rdataset.type != dns_rdatatype_nsec &&
 		    rdataset.type != dns_rdatatype_nsec3 &&
@@ -140,6 +136,7 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
+	dns_rdatasetiter_destroy(&rdsiter);
 
 	/*
 	 * At zone cuts, deny the existence of glue in the parent zone.
@@ -154,11 +151,6 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				dns_nsec_setbit(bm, i, 0);
 			}
 		}
-	}
-
-	dns_rdatasetiter_destroy(&rdsiter);
-	if (result != ISC_R_NOMORE) {
-		return result;
 	}
 
 	nsec_bits += dns_nsec_compressbitmap(nsec_bits, bm, max_type);

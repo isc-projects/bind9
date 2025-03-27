@@ -93,9 +93,7 @@ test_walk(const char *filename, int flags, int nodes) {
 	result = dns_db_createiterator(db, flags, &iter);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	for (result = dns_dbiterator_first(iter); result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(iter))
-	{
+	DNS_DBITERATOR_FOREACH (iter) {
 		result = dns_dbiterator_current(iter, &node, name);
 		assert_int_equal(result, ISC_R_SUCCESS);
 		dns_db_detachnode(db, &node);

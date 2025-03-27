@@ -61,13 +61,11 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		     size_t hash_length, unsigned char *buffer,
 		     dns_rdata_t *rdata) {
 	isc_result_t result;
-	dns_rdataset_t rdataset;
 	isc_region_t r;
 	unsigned int i;
 	bool found;
 	bool found_ns;
 	bool need_rrsig;
-
 	unsigned char *nsec_bits, *bm;
 	unsigned int max_type;
 	dns_rdatasetiter_t *rdsiter;
@@ -116,16 +114,14 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	if (node == NULL) {
 		goto collapse_bitmap;
 	}
-	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(db, node, version, 0, 0, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
 	found = found_ns = need_rrsig = false;
-	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(rdsiter))
-	{
+	DNS_RDATASETITER_FOREACH (rdsiter) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 		if (rdataset.type != dns_rdatatype_nsec &&
 		    rdataset.type != dns_rdatatype_nsec3 &&
@@ -156,6 +152,8 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
+	dns_rdatasetiter_destroy(&rdsiter);
+
 	if ((found && !found_ns) || need_rrsig) {
 		if (dns_rdatatype_rrsig > max_type) {
 			max_type = dns_rdatatype_rrsig;
@@ -176,11 +174,6 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				dns_nsec_setbit(bm, i, 0);
 			}
 		}
-	}
-
-	dns_rdatasetiter_destroy(&rdsiter);
-	if (result != ISC_R_NOMORE) {
-		return result;
 	}
 
 collapse_bitmap:

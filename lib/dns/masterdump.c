@@ -1312,17 +1312,13 @@ static isc_result_t
 dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 		   dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
 		   isc_buffer_t *buffer, FILE *f) {
-	isc_result_t result;
-	dns_rdataset_t rdataset;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
 
-	name = dns_fixedname_initname(&fixed);
 	dns_name_copy(owner_name, name);
-	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(rdsiter))
-	{
-		dns_rdataset_init(&rdataset);
+	DNS_RDATASETITER_FOREACH (rdsiter) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 
 		dns_rdataset_getownercase(&rdataset, name);
@@ -1339,10 +1335,6 @@ dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
-	}
-
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 
 	return result;
@@ -1716,12 +1708,7 @@ dumptostream(dns_dumpctx_t *dctx) {
 
 	CHECK(writeheader(dctx));
 
-	result = dns_dbiterator_first(dctx->dbiter);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
-		goto cleanup;
-	}
-
-	while (result == ISC_R_SUCCESS) {
+	DNS_DBITERATOR_FOREACH (dctx->dbiter) {
 		dns_rdatasetiter_t *rdsiter = NULL;
 		dns_dbnode_t *node = NULL;
 
@@ -1759,7 +1746,6 @@ dumptostream(dns_dumpctx_t *dctx) {
 			goto cleanup;
 		}
 		dns_db_detachnode(dctx->db, &node);
-		result = dns_dbiterator_next(dctx->dbiter);
 	}
 
 	if (result == ISC_R_NOMORE) {

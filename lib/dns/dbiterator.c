@@ -22,10 +22,6 @@
 
 void
 dns__dbiterator_destroy(dns_dbiterator_t **iteratorp DNS__DB_FLARG) {
-	/*
-	 * Destroy '*iteratorp'.
-	 */
-
 	REQUIRE(iteratorp != NULL);
 	REQUIRE(DNS_DBITERATOR_VALID(*iteratorp));
 
@@ -36,33 +32,27 @@ dns__dbiterator_destroy(dns_dbiterator_t **iteratorp DNS__DB_FLARG) {
 
 isc_result_t
 dns__dbiterator_first(dns_dbiterator_t *iterator DNS__DB_FLARG) {
-	/*
-	 * Move the node cursor to the first node in the database (if any).
-	 */
-
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return iterator->methods->first(iterator DNS__DB_FLARG_PASS);
+	isc_result_t result =
+		iterator->methods->first(iterator DNS__DB_FLARG_PASS);
+	ENSURE(result == ISC_R_SUCCESS || result == ISC_R_NOMORE);
+	return result;
 }
 
 isc_result_t
 dns__dbiterator_last(dns_dbiterator_t *iterator DNS__DB_FLARG) {
-	/*
-	 * Move the node cursor to the first node in the database (if any).
-	 */
-
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return iterator->methods->last(iterator DNS__DB_FLARG_PASS);
+	isc_result_t result =
+		iterator->methods->last(iterator DNS__DB_FLARG_PASS);
+	ENSURE(result == ISC_R_SUCCESS || result == ISC_R_NOMORE);
+	return result;
 }
 
 isc_result_t
 dns__dbiterator_seek(dns_dbiterator_t *iterator,
 		     const dns_name_t *name DNS__DB_FLARG) {
-	/*
-	 * Move the node cursor to the node with name 'name'.
-	 */
-
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
 	return iterator->methods->seek(iterator, name DNS__DB_FLARG_PASS);
@@ -70,33 +60,27 @@ dns__dbiterator_seek(dns_dbiterator_t *iterator,
 
 isc_result_t
 dns__dbiterator_prev(dns_dbiterator_t *iterator DNS__DB_FLARG) {
-	/*
-	 * Move the node cursor to the previous node in the database (if any).
-	 */
-
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return iterator->methods->prev(iterator DNS__DB_FLARG_PASS);
+	isc_result_t result =
+		iterator->methods->prev(iterator DNS__DB_FLARG_PASS);
+	ENSURE(result == ISC_R_SUCCESS || result == ISC_R_NOMORE);
+	return result;
 }
 
 isc_result_t
 dns__dbiterator_next(dns_dbiterator_t *iterator DNS__DB_FLARG) {
-	/*
-	 * Move the node cursor to the next node in the database (if any).
-	 */
-
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
-	return iterator->methods->next(iterator DNS__DB_FLARG_PASS);
+	isc_result_t result =
+		iterator->methods->next(iterator DNS__DB_FLARG_PASS);
+	ENSURE(result == ISC_R_SUCCESS || result == ISC_R_NOMORE);
+	return result;
 }
 
 isc_result_t
 dns__dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 			dns_name_t *name DNS__DB_FLARG) {
-	/*
-	 * Return the current node.
-	 */
-
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 	REQUIRE(name == NULL || dns_name_hasbuffer(name));
@@ -107,10 +91,6 @@ dns__dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 
 isc_result_t
 dns_dbiterator_pause(dns_dbiterator_t *iterator) {
-	/*
-	 * Pause iteration.
-	 */
-
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
 	return iterator->methods->pause(iterator);
@@ -118,10 +98,6 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator) {
 
 isc_result_t
 dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
-	/*
-	 * Return the origin to which returned node names are relative.
-	 */
-
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 	REQUIRE(iterator->relative_names);
 	REQUIRE(dns_name_hasbuffer(name));
