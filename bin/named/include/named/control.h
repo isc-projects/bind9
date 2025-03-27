@@ -55,6 +55,7 @@
 #define NAMED_COMMAND_RECURSING	   "recursing"
 #define NAMED_COMMAND_REFRESH	   "refresh"
 #define NAMED_COMMAND_RELOAD	   "reload"
+#define NAMED_COMMAND_RESETSTATS   "reset-stats"
 #define NAMED_COMMAND_RESPONSELOG  "responselog"
 #define NAMED_COMMAND_RETRANSFER   "retransfer"
 #define NAMED_COMMAND_SCAN	   "scan"
