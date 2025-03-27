@@ -28,10 +28,6 @@
 #include <fstrm.h>
 #endif
 
-#ifdef HAVE_LIBSYSTEMD
-#include <systemd/sd-daemon.h>
-#endif
-
 #include <isc/async.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
@@ -9402,13 +9398,10 @@ view_loaded(void *arg) {
 			      ISC_LOG_NOTICE, "FIPS mode is %s",
 			      isc_crypto_fips_mode() ? "enabled" : "disabled");
 
-#if HAVE_LIBSYSTEMD
-		sd_notifyf(0,
-			   "READY=1\n"
-			   "STATUS=running\n"
-			   "MAINPID=%" PRId64 "\n",
-			   (int64_t)getpid());
-#endif /* HAVE_LIBSYSTEMD */
+		named_os_notify_systemd("READY=1\n"
+					"STATUS=running\n"
+					"MAINPID=%" PRId64 "\n",
+					(int64_t)getpid());
 
 		atomic_store(&server->reload_status, NAMED_RELOAD_DONE);
 
@@ -9547,9 +9540,8 @@ shutdown_server(void *arg) {
 	bool flush = server->flushonshutdown;
 	named_cache_t *nsc = NULL;
 
-#if HAVE_LIBSYSTEMD
-	sd_notify(0, "STOPPING=1\n");
-#endif /* HAVE_LIBSYSTEMD */
+	named_os_notify_systemd("STOPPING=1\n");
+	named_os_notify_close();
 
 	isc_signal_stop(server->sighup);
 	isc_signal_destroy(&server->sighup);
@@ -10041,17 +10033,11 @@ reload(named_server_t *server) {
 	isc_result_t result;
 
 	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
-#if HAVE_LIBSYSTEMD
-	char buf[512];
-	int n = snprintf(buf, sizeof(buf),
-			 "RELOADING=1\n"
-			 "MONOTONIC_USEC=%" PRIu64 "\n"
-			 "STATUS=reload command received\n",
-			 (uint64_t)isc_time_monotonic() / NS_PER_US);
-	if (n > 0 && (size_t)n < sizeof(buf)) {
-		sd_notify(0, buf);
-	}
-#endif /* HAVE_LIBSYSTEMD */
+
+	named_os_notify_systemd("RELOADING=1\n"
+				"MONOTONIC_USEC=%" PRIu64 "\n"
+				"STATUS=reload command received\n",
+				(uint64_t)isc_time_monotonic() / NS_PER_US);
 
 	CHECK(loadconfig(server));
 
@@ -10066,12 +10052,10 @@ reload(named_server_t *server) {
 		atomic_store(&server->reload_status, NAMED_RELOAD_FAILED);
 	}
 cleanup:
-#if HAVE_LIBSYSTEMD
-	sd_notifyf(0,
-		   "READY=1\n"
-		   "STATUS=reload command finished: %s\n",
-		   isc_result_totext(result));
-#endif /* HAVE_LIBSYSTEMD */
+	named_os_notify_systemd("READY=1\n"
+				"STATUS=reload command finished: %s\n",
+				isc_result_totext(result));
+
 	return result;
 }
 
@@ -10542,17 +10526,11 @@ isc_result_t
 named_server_reconfigcommand(named_server_t *server) {
 	isc_result_t result;
 	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
-#if HAVE_LIBSYSTEMD
-	char buf[512];
-	int n = snprintf(buf, sizeof(buf),
-			 "RELOADING=1\n"
-			 "MONOTONIC_USEC=%" PRIu64 "\n"
-			 "STATUS=reconfig command received\n",
-			 (uint64_t)isc_time_monotonic() / NS_PER_US);
-	if (n > 0 && (size_t)n < sizeof(buf)) {
-		sd_notify(0, buf);
-	}
-#endif /* HAVE_LIBSYSTEMD */
+
+	named_os_notify_systemd("RELOADING=1\n"
+				"MONOTONIC_USEC=%" PRIu64 "\n"
+				"STATUS=reconfig command received\n",
+				(uint64_t)isc_time_monotonic() / NS_PER_US);
 
 	CHECK(loadconfig(server));
 
@@ -10567,12 +10545,10 @@ named_server_reconfigcommand(named_server_t *server) {
 		atomic_store(&server->reload_status, NAMED_RELOAD_FAILED);
 	}
 cleanup:
-#if HAVE_LIBSYSTEMD
-	sd_notifyf(0,
-		   "READY=1\n"
-		   "STATUS=reconfig command finished: %s\n",
-		   isc_result_totext(result));
-#endif /* HAVE_LIBSYSTEMD */
+	named_os_notify_systemd("READY=1\n"
+				"STATUS=reconfig command finished: %s\n",
+				isc_result_totext(result));
+
 	return result;
 }
 
