@@ -11135,6 +11135,54 @@ named_server_reloadcommand(named_server_t *server, isc_lex_t *lex,
 }
 
 /*
+ * Act on a "reset-stats" command from the command channel.
+ */
+isc_result_t
+named_server_resetstatscommand(named_server_t *server, isc_lex_t *lex,
+			       isc_buffer_t **text) {
+	const char *arg = NULL;
+	bool recursive_high_water = false;
+	bool tcp_high_water = false;
+
+	REQUIRE(text != NULL);
+
+	/* Skip the command name. */
+	(void)next_token(lex, text);
+
+	arg = next_token(lex, text);
+	if (arg == NULL) {
+		(void)putstr(text, "reset-stats: argument expected");
+		(void)putnull(text);
+		return ISC_R_UNEXPECTEDEND;
+	}
+	while (arg != NULL) {
+		if (strcmp(arg, "recursive-high-water") == 0) {
+			recursive_high_water = true;
+		} else if (strcmp(arg, "tcp-high-water") == 0) {
+			tcp_high_water = true;
+		} else {
+			(void)putstr(text, "reset-stats: "
+					   "unrecognized argument: ");
+			(void)putstr(text, arg);
+			(void)putnull(text);
+			return ISC_R_FAILURE;
+		}
+		arg = next_token(lex, text);
+	}
+
+	if (recursive_high_water) {
+		isc_stats_set(ns_stats_get(server->sctx->nsstats), 0,
+			      ns_statscounter_recurshighwater);
+	}
+	if (tcp_high_water) {
+		isc_stats_set(ns_stats_get(server->sctx->nsstats), 0,
+			      ns_statscounter_tcphighwater);
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+/*
  * Act on a "reconfig" command from the command channel.
  */
 isc_result_t
