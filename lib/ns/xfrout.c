@@ -1544,7 +1544,6 @@ sendstream(xfrout_ctx_t *xfr) {
 		isc_buffer_availableregion(&xfr->buf, &r);
 		r.length = rdata->length;
 		isc_buffer_putmem(&xfr->buf, rdata->data, rdata->length);
-		dns_rdata_init(msgrdata);
 		dns_rdata_fromregion(msgrdata, rdata->rdclass, rdata->type, &r);
 
 		dns_message_gettemprdatalist(msg, &msgrdl);

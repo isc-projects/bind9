@@ -1436,8 +1436,6 @@ make_prereq(char *cmdline, bool ispositive, bool isrrset) {
 
 	dns_message_gettemprdata(updatemsg, &rdata);
 
-	dns_rdata_init(rdata);
-
 	if (isrrset && ispositive) {
 		retval = parse_rdata(&cmdline, rdataclass, rdatatype, updatemsg,
 				     rdata);
@@ -1916,8 +1914,6 @@ update_addordelete(char *cmdline, bool isdelete) {
 	}
 
 	dns_message_gettemprdata(updatemsg, &rdata);
-
-	dns_rdata_init(rdata);
 
 	/*
 	 * If this is an add, read the TTL and verify that it's in range.

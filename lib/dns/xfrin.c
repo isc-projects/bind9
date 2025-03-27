@@ -1517,11 +1517,9 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target) {
 	REQUIRE(target != NULL && *target == NULL);
 
 	dns_message_gettemprdata(msg, &rdata);
-	dns_rdata_init(rdata);
 	dns_rdata_clone(&tuple->rdata, rdata);
 
 	dns_message_gettemprdatalist(msg, &rdl);
-	dns_rdatalist_init(rdl);
 	rdl->type = tuple->rdata.type;
 	rdl->rdclass = tuple->rdata.rdclass;
 	rdl->ttl = tuple->ttl;

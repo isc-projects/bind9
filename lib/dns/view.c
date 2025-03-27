@@ -326,8 +326,7 @@ destroy(dns_view_t *view) {
 	for (dns64 = ISC_LIST_HEAD(view->dns64); dns64 != NULL;
 	     dns64 = ISC_LIST_HEAD(view->dns64))
 	{
-		dns_dns64_unlink(&view->dns64, dns64);
-		dns_dns64_destroy(&dns64);
+		dns_dns64_destroy(&view->dns64, &dns64);
 	}
 	if (view->managed_keys != NULL) {
 		dns_zone_detach(&view->managed_keys);
