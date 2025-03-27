@@ -676,39 +676,30 @@ named_controls_shutdown(named_controls_t *controls) {
 static isc_result_t
 cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
 		const cfg_obj_t **objp) {
-	const cfg_listelt_t *element = NULL;
 	const char *str = NULL;
 	const cfg_obj_t *obj = NULL;
 
-	for (element = cfg_list_first(keylist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (keylist, element) {
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(cfg_map_getname(obj));
 		if (strcasecmp(str, keyname) == 0) {
-			break;
+			*objp = obj;
+			return ISC_R_SUCCESS;
 		}
 	}
-	if (element == NULL) {
-		return ISC_R_NOTFOUND;
-	}
-	obj = cfg_listelt_value(element);
-	*objp = obj;
-	return ISC_R_SUCCESS;
+
+	return ISC_R_NOTFOUND;
 }
 
 static void
 controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		       controlkeylist_t *keyids) {
-	const cfg_listelt_t *element = NULL;
 	char *newstr = NULL;
 	const char *str = NULL;
 	const cfg_obj_t *obj = NULL;
 	controlkey_t *key = NULL;
 
-	for (element = cfg_list_first(keylist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (keylist, element) {
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(obj);
 		newstr = isc_mem_strdup(mctx, str);
@@ -1147,7 +1138,6 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 	controllistener_t *listener = NULL;
 	controllistenerlist_t new_listeners;
 	const cfg_obj_t *controlslist = NULL;
-	const cfg_listelt_t *element, *element2;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
 	ISC_LIST_INIT(new_listeners);
@@ -1166,9 +1156,7 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 	 * address-in-use error.
 	 */
 	if (controlslist != NULL) {
-		for (element = cfg_list_first(controlslist); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (controlslist, element) {
 			const cfg_obj_t *controls = NULL;
 			const cfg_obj_t *inetcontrols = NULL;
 			const cfg_obj_t *unixcontrols = NULL;
@@ -1188,10 +1176,7 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 				continue;
 			}
 
-			for (element2 = cfg_list_first(inetcontrols);
-			     element2 != NULL;
-			     element2 = cfg_list_next(element2))
-			{
+			CFG_LIST_FOREACH (inetcontrols, element2) {
 				const cfg_obj_t *control = NULL;
 				const cfg_obj_t *obj = NULL;
 				isc_sockaddr_t addr;

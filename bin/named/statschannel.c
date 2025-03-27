@@ -3804,7 +3804,6 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 			      cfg_aclconfctx_t *aclconfctx) {
 	named_statschannellist_t new_listeners;
 	const cfg_obj_t *statschannellist = NULL;
-	const cfg_listelt_t *element, *element2;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_once_do(&once, init_desc);
@@ -3845,10 +3844,8 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 #endif /* !HAVE_JSON_C */
 #endif /* EXTENDED_STATS */
 
-		for (element = cfg_list_first(statschannellist);
-		     element != NULL; element = cfg_list_next(element))
-		{
-			const cfg_obj_t *statschannel;
+		CFG_LIST_FOREACH (statschannellist, element) {
+			const cfg_obj_t *statschannel = NULL;
 			const cfg_obj_t *listenercfg = NULL;
 
 			statschannel = cfg_listelt_value(element);
@@ -3857,10 +3854,7 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 				continue;
 			}
 
-			for (element2 = cfg_list_first(listenercfg);
-			     element2 != NULL;
-			     element2 = cfg_list_next(element2))
-			{
+			CFG_LIST_FOREACH (listenercfg, element2) {
 				named_statschannel_t *listener = NULL;
 				const cfg_obj_t *listen_params = NULL;
 				const cfg_obj_t *obj = NULL;

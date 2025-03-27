@@ -3947,14 +3947,11 @@ isc_result_t
 cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
 		       pluginlist_cb_t *callback, void *callback_data) {
 	isc_result_t result = ISC_R_SUCCESS;
-	const cfg_listelt_t *element;
 
 	REQUIRE(config != NULL);
 	REQUIRE(callback != NULL);
 
-	for (element = cfg_list_first(list); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (list, element) {
 		const cfg_obj_t *plugin = cfg_listelt_value(element);
 		const cfg_obj_t *obj;
 		const char *type, *library;

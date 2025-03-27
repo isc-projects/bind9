@@ -92,14 +92,12 @@ static isc_result_t
 get_acl_def(const cfg_obj_t *cctx, const char *name, const cfg_obj_t **ret) {
 	isc_result_t result;
 	const cfg_obj_t *acls = NULL;
-	const cfg_listelt_t *elt;
 
 	result = cfg_map_get(cctx, "acl", &acls);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	for (elt = cfg_list_first(acls); elt != NULL; elt = cfg_list_next(elt))
-	{
+	CFG_LIST_FOREACH (acls, elt) {
 		const cfg_obj_t *acl = cfg_listelt_value(elt);
 		const char *aclname =
 			cfg_obj_asstring(cfg_tuple_get(acl, "name"));
@@ -197,7 +195,6 @@ static isc_result_t
 count_acl_elements(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 		   cfg_aclconfctx_t *ctx, isc_mem_t *mctx, uint32_t *count,
 		   bool *has_negative) {
-	const cfg_listelt_t *elt;
 	isc_result_t result;
 	uint32_t n = 0;
 
@@ -205,8 +202,7 @@ count_acl_elements(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 
 	SET_IF_NOT_NULL(has_negative, false);
 
-	for (elt = cfg_list_first(caml); elt != NULL; elt = cfg_list_next(elt))
-	{
+	CFG_LIST_FOREACH (caml, elt) {
 		const cfg_obj_t *ce = cfg_listelt_value(elt);
 
 		/* might be a negated element, in which case get the value. */
@@ -615,9 +611,8 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 		   unsigned int nest_level, dns_acl_t **target) {
 	isc_result_t result;
 	dns_acl_t *dacl = NULL, *inneracl = NULL;
-	dns_aclelement_t *de;
-	const cfg_listelt_t *elt;
-	dns_iptable_t *iptab;
+	dns_aclelement_t *de = NULL;
+	dns_iptable_t *iptab = NULL;
 	int new_nest_level = 0;
 	bool setpos;
 	const cfg_obj_t *caml = NULL;
@@ -735,8 +730,7 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 	}
 
 	de = dacl->elements;
-	for (elt = cfg_list_first(caml); elt != NULL; elt = cfg_list_next(elt))
-	{
+	CFG_LIST_FOREACH (caml, elt) {
 		const cfg_obj_t *ce = cfg_listelt_value(elt);
 		bool neg = false;
 

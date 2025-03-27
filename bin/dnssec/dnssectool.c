@@ -591,7 +591,6 @@ void
 kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 	       const char *keydir, dns_kasp_t **kaspp) {
 	isc_result_t result = ISC_R_NOTFOUND;
-	const cfg_listelt_t *element = NULL;
 	const cfg_obj_t *kasps = NULL;
 	dns_kasplist_t kasplist;
 	const cfg_obj_t *keystores = NULL;
@@ -602,9 +601,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 	ISC_LIST_INIT(kslist);
 
 	(void)cfg_map_get(config, "key-store", &keystores);
-	for (element = cfg_list_first(keystores); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (keystores, element) {
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		result = cfg_keystore_fromconfig(kconfig, mctx, &kslist, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -623,9 +620,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 	dns_keystore_detach(&keystore);
 
 	(void)cfg_map_get(config, "dnssec-policy", &kasps);
-	for (element = cfg_list_first(kasps); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (kasps, element) {
 		dns_kasp_t *kasp = NULL;
 
 		cfg_obj_t *kconfig = cfg_listelt_value(element);

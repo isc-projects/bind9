@@ -613,7 +613,6 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *obj = NULL;
-	const cfg_listelt_t *element = NULL;
 	int i = 0;
 	dns_fixedname_t fixed;
 	dns_name_t *name = NULL;
@@ -654,9 +653,7 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	}
 
 	name = dns_fixedname_initname(&fixed);
-	for (element = cfg_list_first(obj); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (obj, element) {
 		nameobj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(nameobj);
 		isc_buffer_constinit(&b, str, strlen(str));
@@ -984,20 +981,16 @@ done:
 static isc_result_t
 load_view_keys(const cfg_obj_t *keys, dns_view_t *view, bool managed,
 	       const dns_name_t *keyname) {
-	const cfg_listelt_t *elt, *elt2;
-	const cfg_obj_t *keylist;
 	isc_result_t result;
+	const cfg_obj_t *keylist = NULL;
 	dns_keytable_t *secroots = NULL;
 
 	CHECK(dns_view_getsecroots(view, &secroots));
 
-	for (elt = cfg_list_first(keys); elt != NULL; elt = cfg_list_next(elt))
-	{
+	CFG_LIST_FOREACH (keys, elt) {
 		keylist = cfg_listelt_value(elt);
 
-		for (elt2 = cfg_list_first(keylist); elt2 != NULL;
-		     elt2 = cfg_list_next(elt2))
-		{
+		CFG_LIST_FOREACH (keylist, elt2) {
 			CHECK(process_key(cfg_listelt_value(elt2), secroots,
 					  keyname, view, managed));
 		}
@@ -1584,11 +1577,10 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 static isc_result_t
 disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	isc_result_t result;
-	const cfg_obj_t *algorithms;
-	const cfg_listelt_t *element;
-	const char *str;
+	const cfg_obj_t *algorithms = NULL;
+	const char *str = NULL;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 	isc_buffer_t b;
 
 	name = dns_fixedname_initname(&fixed);
@@ -1598,9 +1590,7 @@ disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0));
 
 	algorithms = cfg_tuple_get(disabled, "algorithms");
-	for (element = cfg_list_first(algorithms); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (algorithms, element) {
 		isc_textregion_t r;
 		dns_secalg_t alg;
 
@@ -1627,11 +1617,10 @@ cleanup:
 static isc_result_t
 disable_ds_digests(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	isc_result_t result;
-	const cfg_obj_t *digests;
-	const cfg_listelt_t *element;
-	const char *str;
+	const cfg_obj_t *digests = NULL;
+	const char *str = NULL;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 	isc_buffer_t b;
 
 	name = dns_fixedname_initname(&fixed);
@@ -1641,9 +1630,7 @@ disable_ds_digests(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0));
 
 	digests = cfg_tuple_get(disabled, "digests");
-	for (element = cfg_list_first(digests); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (digests, element) {
 		isc_textregion_t r;
 		dns_dsdigest_t digest;
 
@@ -1665,19 +1652,16 @@ cleanup:
 
 static bool
 on_disable_list(const cfg_obj_t *disablelist, dns_name_t *zonename) {
-	const cfg_listelt_t *element;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 	isc_result_t result;
-	const cfg_obj_t *value;
-	const char *str;
+	const cfg_obj_t *value = NULL;
+	const char *str = NULL;
 	isc_buffer_t b;
 
 	name = dns_fixedname_initname(&fixed);
 
-	for (element = cfg_list_first(disablelist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (disablelist, element) {
 		value = cfg_listelt_value(element);
 		str = cfg_obj_asstring(value);
 		isc_buffer_constinit(&b, str, strlen(str));
@@ -2105,24 +2089,23 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 static isc_result_t
 configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *rpz_obj,
 	      bool *old_rpz_okp) {
-	const cfg_listelt_t *zone_element;
-	const cfg_obj_t *sub_obj;
+	const cfg_obj_t *zonelist = NULL;
+	const cfg_obj_t *sub_obj = NULL;
 	bool recursive_only_default, add_soa_default;
 	bool nsip_enabled, nsdname_enabled;
 	dns_rpz_zbits_t nsip_on, nsdname_on;
 	dns_ttl_t ttl_default;
 	uint32_t minupdateinterval_default;
-	dns_rpz_zones_t *zones;
-	const dns_rpz_zones_t *old;
+	dns_rpz_zones_t *zones = NULL;
+	const dns_rpz_zones_t *old = NULL;
 	bool pview_must_detach = false;
-	const dns_rpz_zone_t *old_zone;
+	const dns_rpz_zone_t *old_zone = NULL;
 	isc_result_t result;
-	int i;
 
 	*old_rpz_okp = false;
 
-	zone_element = cfg_list_first(cfg_tuple_get(rpz_obj, "zone list"));
-	if (zone_element == NULL) {
+	zonelist = cfg_tuple_get(rpz_obj, "zone list");
+	if (cfg_list_length(zonelist, false) == 0) {
 		return ISC_R_SUCCESS;
 	}
 
@@ -2232,9 +2215,8 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *rpz_obj,
 		*old_rpz_okp = true;
 	}
 
-	for (i = 0; zone_element != NULL;
-	     ++i, zone_element = cfg_list_next(zone_element))
-	{
+	int i = 0;
+	CFG_LIST_FOREACH (zonelist, zone_element) {
 		INSIST(!*old_rpz_okp || old != NULL);
 		if (*old_rpz_okp && i < old->p.num_zones) {
 			old_zone = old->zones[i];
@@ -2242,6 +2224,7 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *rpz_obj,
 			*old_rpz_okp = false;
 			old_zone = NULL;
 		}
+		i++;
 		result = configure_rpz_zone(
 			view, zone_element, recursive_only_default,
 			add_soa_default, ttl_default, minupdateinterval_default,
@@ -2833,7 +2816,7 @@ static dns_catz_zonemodmethods_t ns_catz_zonemodmethods = {
 static isc_result_t
 configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	       const cfg_obj_t *catz_obj) {
-	const cfg_listelt_t *zone_element = NULL;
+	const cfg_obj_t *zones = NULL;
 	const dns_catz_zones_t *old = NULL;
 	bool pview_must_detach = false;
 	isc_result_t result;
@@ -2841,8 +2824,8 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	/* xxxwpk TODO do it cleaner, once, somewhere */
 	ns_catz_cbdata.server = named_g_server;
 
-	zone_element = cfg_list_first(cfg_tuple_get(catz_obj, "zone list"));
-	if (zone_element == NULL) {
+	zones = cfg_tuple_get(catz_obj, "zone list");
+	if (cfg_list_length(zones, false) == 0) {
 		return ISC_R_SUCCESS;
 	}
 
@@ -2866,9 +2849,8 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 						 &ns_catz_zonemodmethods);
 	}
 
-	while (zone_element != NULL) {
+	CFG_LIST_FOREACH (zones, zone_element) {
 		CHECK(configure_catz_zone(view, pview, config, zone_element));
-		zone_element = cfg_list_next(zone_element);
 	}
 
 	if (old != NULL) {
@@ -3118,22 +3100,21 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 		  const cfg_obj_t *zonelist, const char **empty_dbtype,
 		  int empty_dbtypec, dns_zonestat_level_t statlevel) {
 	char namebuf[DNS_NAME_FORMATSIZE];
-	const cfg_listelt_t *element;
-	const cfg_obj_t *obj;
-	const cfg_obj_t *zconfig;
-	const cfg_obj_t *zoptions;
+	const cfg_obj_t *obj = NULL;
+	const cfg_obj_t *zconfig = NULL;
+	const cfg_obj_t *zoptions = NULL;
 	const char *default_dbtype[4] = { ZONEDB_DEFAULT };
 	const char *sep = ": view ";
-	const char *str;
+	const char *str = NULL;
 	const char *viewname = view->name;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_fixedname_t cfixed;
 	dns_fixedname_t fixed;
 	dns_fixedname_t nsfixed;
-	dns_name_t *contact;
-	dns_name_t *ns;
-	dns_name_t *zname;
+	dns_name_t *contact = NULL;
+	dns_name_t *ns = NULL;
+	dns_name_t *zname = NULL;
 	dns_zone_t *zone = NULL;
 	int default_dbtypec = 1;
 	isc_result_t result;
@@ -3149,9 +3130,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	 * Look for forward "zones" beneath this empty zone and if so
 	 * create a custom db for the empty zone.
 	 */
-	for (element = cfg_list_first(zonelist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (zonelist, element) {
 		zconfig = cfg_listelt_value(element);
 		str = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 		CHECK(dns_name_fromstring(zname, str, dns_rootname, 0, NULL));
@@ -3385,9 +3364,8 @@ cleanup:
 static isc_result_t
 configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 	isc_result_t result;
-	const cfg_obj_t *obj, *obj2;
-	const cfg_listelt_t *element;
-	const char *dpath;
+	const cfg_obj_t *obj = NULL, *obj2 = NULL;
+	const char *dpath = NULL;
 	const cfg_obj_t *dlist = NULL;
 	dns_dtmsgtype_t dttypes = 0;
 	unsigned int i;
@@ -3398,10 +3376,8 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 		return ISC_R_SUCCESS;
 	}
 
-	for (element = cfg_list_first(dlist); element != NULL;
-	     element = cfg_list_next(element))
-	{
-		const char *str;
+	CFG_LIST_FOREACH (dlist, element) {
+		const char *str = NULL;
 		dns_dtmsgtype_t dt = 0;
 
 		obj = cfg_listelt_value(element);
@@ -3726,20 +3702,19 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	const cfg_obj_t *optionmaps[3];
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *voptions = NULL;
-	const cfg_obj_t *forwardtype;
-	const cfg_obj_t *forwarders;
-	const cfg_obj_t *alternates;
-	const cfg_obj_t *zonelist;
-	const cfg_obj_t *dlzlist;
-	const cfg_obj_t *dlz;
-	const cfg_obj_t *prefetch_trigger;
-	const cfg_obj_t *prefetch_eligible;
+	const cfg_obj_t *forwardtype = NULL;
+	const cfg_obj_t *forwarders = NULL;
+	const cfg_obj_t *alternates = NULL;
+	const cfg_obj_t *zonelist = NULL;
+	const cfg_obj_t *dlzlist = NULL;
+	const cfg_obj_t *dlz = NULL;
+	const cfg_obj_t *prefetch_trigger = NULL;
+	const cfg_obj_t *prefetch_eligible = NULL;
 	unsigned int dlzargc;
-	char **dlzargv;
-	const cfg_obj_t *dyndb_list, *plugin_list;
-	const cfg_obj_t *disabled;
-	const cfg_obj_t *obj, *obj2;
-	const cfg_listelt_t *element = NULL;
+	char **dlzargv = NULL;
+	const cfg_obj_t *dyndb_list = NULL, *plugin_list = NULL;
+	const cfg_obj_t *disabled = NULL;
+	const cfg_obj_t *obj = NULL, *obj2 = NULL;
 	const cfg_listelt_t *zone_element_latest = NULL;
 	in_port_t port;
 	dns_cache_t *cache = NULL;
@@ -3759,7 +3734,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	bool catz_configured = false;
 	bool shared_cache = false;
 	int i = 0, j = 0, k = 0;
-	const char *str;
+	const char *str = NULL;
 	const char *cachename = NULL;
 	dns_order_t *order = NULL;
 	uint32_t udpsize;
@@ -3860,9 +3835,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Load zone configuration
 	 */
-	for (element = cfg_list_first(zonelist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (zonelist, element) {
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, view, viewlist,
 				     kasplist, keystores, actx, false,
@@ -3913,9 +3886,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		(void)cfg_map_get(config, "dlz", &dlzlist);
 	}
 
-	for (element = cfg_list_first(dlzlist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (dlzlist, element) {
 		dlz = cfg_listelt_value(element);
 
 		obj = NULL;
@@ -4085,9 +4056,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			contact = NULL;
 		}
 
-		for (element = cfg_list_first(obj); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (obj, element) {
 			const cfg_obj_t *map = cfg_listelt_value(element);
 			dns_dns64_t *dns64 = NULL;
 			unsigned int dns64options = 0;
@@ -4608,9 +4577,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	disabled = NULL;
 	(void)named_config_get(maps, "disable-algorithms", &disabled);
 	if (disabled != NULL) {
-		for (element = cfg_list_first(disabled); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (disabled, element) {
 			CHECK(disable_algorithms(cfg_listelt_value(element),
 						 view->resolver));
 		}
@@ -4622,9 +4589,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	disabled = NULL;
 	(void)named_config_get(maps, "disable-ds-digests", &disabled);
 	if (disabled != NULL) {
-		for (element = cfg_list_first(disabled); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (disabled, element) {
 			CHECK(disable_ds_digests(cfg_listelt_value(element),
 						 view->resolver));
 		}
@@ -4751,9 +4716,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 		(void)named_config_get(cfgmaps, "server", &peers);
 		dns_peerlist_new(mctx, &newpeers);
-		for (element = cfg_list_first(peers); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (peers, element) {
 			const cfg_obj_t *cpeer = cfg_listelt_value(element);
 			dns_peer_t *peer;
 
@@ -4773,9 +4736,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 		(void)named_config_get(maps, "rrset-order", &rrsetorder);
 		dns_order_create(mctx, &order);
-		for (element = cfg_list_first(rrsetorder); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (rrsetorder, element) {
 			const cfg_obj_t *ent = cfg_listelt_value(element);
 
 			CHECK(configure_order(order, ent));
@@ -5327,9 +5288,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		(void)cfg_map_get(config, "dyndb", &dyndb_list);
 	}
 
-	for (element = cfg_list_first(dyndb_list); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (dyndb_list, element) {
 		const cfg_obj_t *dyndb = cfg_listelt_value(element);
 
 		if (dctx == NULL) {
@@ -5658,9 +5617,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		result = dns_view_getntatable(view, &ntatable);
 	}
 	if (result == ISC_R_SUCCESS) {
-		for (element = cfg_list_first(obj); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (obj, element) {
 			dns_fixedname_t fntaname;
 			dns_name_t *ntaname;
 
@@ -5754,9 +5711,7 @@ cleanup:
 		}
 
 		if (zone_element_latest != NULL) {
-			for (element = cfg_list_first(zonelist);
-			     element != NULL; element = cfg_list_next(element))
-			{
+			CFG_LIST_FOREACH (zonelist, element) {
 				const cfg_obj_t *zconfig =
 					cfg_listelt_value(element);
 				configure_zone_setviewcommit(result, zconfig,
@@ -5833,10 +5788,9 @@ configure_hints(dns_view_t *view, const char *filename) {
 static isc_result_t
 configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		     const cfg_obj_t *alternates) {
-	const cfg_obj_t *portobj;
-	const cfg_obj_t *addresses;
-	const cfg_listelt_t *element;
 	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_obj_t *portobj = NULL;
+	const cfg_obj_t *addresses = NULL;
 	in_port_t port;
 
 	/*
@@ -5862,9 +5816,7 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		addresses = cfg_tuple_get(alternates, "addresses");
 	}
 
-	for (element = cfg_list_first(addresses); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (addresses, element) {
 		const cfg_obj_t *alternate = cfg_listelt_value(element);
 		isc_sockaddr_t sa;
 
@@ -5949,7 +5901,6 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 	const cfg_obj_t *portobj = NULL;
 	const cfg_obj_t *tlspobj = NULL;
 	const cfg_obj_t *faddresses = NULL;
-	const cfg_listelt_t *element = NULL;
 	dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 	dns_forwarderlist_t fwdlist;
 	isc_result_t result;
@@ -6000,9 +5951,7 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 		faddresses = cfg_tuple_get(forwarders, "addresses");
 	}
 
-	for (element = cfg_list_first(faddresses); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (faddresses, element) {
 		const cfg_obj_t *forwarder = cfg_listelt_value(element);
 		const char *cur_tls = NULL;
 
@@ -7491,9 +7440,8 @@ static isc_result_t
 configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		   cfg_aclconfctx_t *actx) {
 	isc_result_t result;
-	ns_cfgctx_t *nzctx;
-	const cfg_obj_t *zonelist;
-	const cfg_listelt_t *element;
+	ns_cfgctx_t *nzctx = NULL;
+	const cfg_obj_t *zonelist = NULL;
 
 	nzctx = view->new_zone_config;
 	if (nzctx == NULL || nzctx->nzf_config == NULL) {
@@ -7507,9 +7455,7 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	zonelist = NULL;
 	cfg_map_get(nzctx->nzf_config, "zone", &zonelist);
 
-	for (element = cfg_list_first(zonelist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (zonelist, element) {
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, view,
 				     &named_g_server->viewlist,
@@ -7521,9 +7467,7 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	for (element = cfg_list_first(zonelist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (zonelist, element) {
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		configure_zone_setviewcommit(result, zconfig, view);
 	}
@@ -7836,7 +7780,6 @@ load_configuration(const char *filename, named_server_t *server,
 		   bool first_time) {
 	cfg_obj_t *config = NULL, *bindkeys = NULL;
 	cfg_parser_t *conf_parser = NULL, *bindkeys_parser = NULL;
-	const cfg_listelt_t *element = NULL;
 	const cfg_obj_t *builtin_views = NULL;
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *obj = NULL;
@@ -8582,9 +8525,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 */
 	keystores = NULL;
 	(void)cfg_map_get(config, "key-store", &keystores);
-	for (element = cfg_list_first(keystores); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (keystores, element) {
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 
 		result = cfg_keystore_fromconfig(kconfig, named_g_mctx,
@@ -8599,9 +8540,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 */
 	kasps = NULL;
 	(void)cfg_map_get(named_g_config, "dnssec-policy", &kasps);
-	for (element = cfg_list_first(kasps); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (kasps, element) {
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		dns_kasp_t *kasp = NULL;
 
@@ -8629,9 +8568,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 */
 	kasps = NULL;
 	(void)cfg_map_get(config, "dnssec-policy", &kasps);
-	for (element = cfg_list_first(kasps); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (kasps, element) {
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		dns_kasp_t *kasp = NULL;
 
@@ -8667,9 +8604,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Create the views.
 	 */
-	for (element = cfg_list_first(views); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (views, element) {
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 		dns_view_t *view = NULL;
 
@@ -8715,9 +8650,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * views that have zones were already created at parsing
 	 * time, but views with no zones must be created here.
 	 */
-	for (element = cfg_list_first(views); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (views, element) {
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 		dns_view_t *view = NULL;
 
@@ -8769,9 +8702,7 @@ load_configuration(const char *filename, named_server_t *server,
 	builtin_views = NULL;
 	RUNTIME_CHECK(cfg_map_get(named_g_config, "view", &builtin_views) ==
 		      ISC_R_SUCCESS);
-	for (element = cfg_list_first(builtin_views); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (builtin_views, element) {
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 		dns_view_t *view = NULL;
 
@@ -8984,10 +8915,7 @@ load_configuration(const char *filename, named_server_t *server,
 						  &categories);
 			}
 			if (categories != NULL) {
-				for (element = cfg_list_first(categories);
-				     element != NULL;
-				     element = cfg_list_next(element))
-				{
+				CFG_LIST_FOREACH (categories, element) {
 					const cfg_obj_t *catobj;
 					const char *str;
 
@@ -9117,9 +9045,7 @@ load_configuration(const char *filename, named_server_t *server,
 		unsigned int usedlength;
 		unsigned int expectedlength;
 
-		for (element = cfg_list_first(obj); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (obj, element) {
 			obj = cfg_listelt_value(element);
 			str = cfg_obj_asstring(obj);
 
@@ -10629,7 +10555,6 @@ listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 		      isc_tlsctx_cache_t *tlsctx_cache,
 		      ns_listenlist_t **target) {
 	isc_result_t result;
-	const cfg_listelt_t *element;
 	ns_listenlist_t *dlist = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
@@ -10639,9 +10564,7 @@ listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 		return result;
 	}
 
-	for (element = cfg_list_first(listenlist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (listenlist, element) {
 		ns_listenelt_t *delt = NULL;
 		const cfg_obj_t *listener = cfg_listelt_value(element);
 		result = listenelt_fromconfig(listener, config, actx, mctx,
@@ -10663,7 +10586,6 @@ static const cfg_obj_t *
 find_maplist(const cfg_obj_t *config, const char *listname, const char *name) {
 	isc_result_t result;
 	const cfg_obj_t *maplist = NULL;
-	const cfg_listelt_t *elt = NULL;
 
 	REQUIRE(config != NULL);
 	REQUIRE(name != NULL);
@@ -10673,9 +10595,7 @@ find_maplist(const cfg_obj_t *config, const char *listname, const char *name) {
 		return NULL;
 	}
 
-	for (elt = cfg_list_first(maplist); elt != NULL;
-	     elt = cfg_list_next(elt))
-	{
+	CFG_LIST_FOREACH (maplist, elt) {
 		const cfg_obj_t *map = cfg_listelt_value(elt);
 		if (strcasecmp(cfg_obj_asstring(cfg_map_getname(map)), name) ==
 		    0)
@@ -10763,11 +10683,8 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			if (cfg_map_get(tlsmap, "protocols", &tls_proto_list) ==
 			    ISC_R_SUCCESS)
 			{
-				const cfg_listelt_t *proto = NULL;
 				INSIST(tls_proto_list != NULL);
-				for (proto = cfg_list_first(tls_proto_list);
-				     proto != 0; proto = cfg_list_next(proto))
-				{
+				CFG_LIST_FOREACH (tls_proto_list, proto) {
 					const cfg_obj_t *tls_proto_obj =
 						cfg_listelt_value(proto);
 					const char *tls_sver =
@@ -10956,7 +10873,6 @@ listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 	ns_listenelt_t *delt = NULL;
 	char **endpoints = NULL;
 	const cfg_obj_t *eplist = NULL;
-	const cfg_listelt_t *elt = NULL;
 	size_t len = 1, i = 0;
 	uint32_t max_clients = named_g_http_listener_clients;
 	uint32_t max_streams = named_g_http_streams_per_conn;
@@ -11003,9 +10919,7 @@ listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 	endpoints = isc_mem_allocate(mctx, sizeof(endpoints[0]) * len);
 
 	if (http != NULL && eplist != NULL) {
-		for (elt = cfg_list_first(eplist); elt != NULL;
-		     elt = cfg_list_next(elt))
-		{
+		CFG_LIST_FOREACH (eplist, elt) {
 			const cfg_obj_t *ep = cfg_listelt_value(elt);
 			const char *path = cfg_obj_asstring(ep);
 			endpoints[i++] = isc_mem_strdup(mctx, path);
@@ -12823,8 +12737,7 @@ load_nzf(dns_view_t *view, ns_cfgctx_t *nzcfg) {
 	int status;
 	isc_buffer_t *text = NULL;
 	bool commit = false;
-	const cfg_obj_t *zonelist;
-	const cfg_listelt_t *element;
+	const cfg_obj_t *zonelist = NULL;
 	char tempname[PATH_MAX];
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
@@ -12873,9 +12786,7 @@ load_nzf(dns_view_t *view, ns_cfgctx_t *nzcfg) {
 
 	isc_buffer_allocate(view->mctx, &text, 256);
 
-	for (element = cfg_list_first(zonelist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (zonelist, element) {
 		const cfg_obj_t *zconfig;
 		const cfg_obj_t *zoptions;
 		char zname[DNS_NAME_FORMATSIZE];
@@ -13957,7 +13868,6 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 			   const char *map_key_for_list, const char *name,
 			   bool redirect) {
 	const cfg_obj_t *list = NULL;
-	const cfg_listelt_t *element;
 	const cfg_obj_t *obj = NULL;
 	dns_fixedname_t fixed1, fixed2;
 	dns_name_t *name1 = NULL, *name2 = NULL;
@@ -13972,10 +13882,8 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 	}
 
 	cfg_map_get(config, map_key_for_list, &list);
-	for (element = cfg_list_first(list); element != NULL;
-	     element = cfg_list_next(element))
-	{
-		const char *vname;
+	CFG_LIST_FOREACH (list, element) {
+		const char *vname = NULL;
 
 		obj = cfg_listelt_value(element);
 		INSIST(obj != NULL);
