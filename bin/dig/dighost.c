@@ -4341,6 +4341,12 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		dighost_comments(l, "BADVERS, retrying with EDNS version %u.",
 				 (unsigned int)newedns);
 		l->edns = newedns;
+		/*
+		 * Extract the server cookie so it can be sent in the retry.
+		 */
+		if (l->cookie == NULL && l->sendcookie) {
+			process_opt(l, msg);
+		}
 		n = requeue_lookup(l, true);
 		if (l->trace && l->trace_root) {
 			n->rdtype = l->qrdtype;
