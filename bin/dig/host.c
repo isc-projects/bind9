@@ -206,7 +206,7 @@ retry:
 static isc_result_t
 printsection(dns_message_t *msg, dns_section_t sectionid,
 	     const char *section_name, bool headers, dig_query_t *query) {
-	dns_name_t *name, *print_name;
+	dns_name_t *print_name;
 	dns_rdataset_t *rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_buffer_t target;
@@ -223,17 +223,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 
 	dns_name_init(&empty_name);
 
-	result = dns_message_firstname(msg, sectionid);
-	if (result == ISC_R_NOMORE) {
-		return ISC_R_SUCCESS;
-	} else if (result != ISC_R_SUCCESS) {
-		return result;
-	}
-
-	for (;;) {
-		name = NULL;
-		dns_message_currentname(msg, sectionid, &name);
-
+	MSG_SECTION_FOREACH (msg, sectionid, name) {
 		isc_buffer_init(&target, tbuf, sizeof(tbuf));
 		first = true;
 		print_name = name;
@@ -313,13 +303,6 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 			} else {
 				printf("%.*s", (int)r.length, (char *)r.base);
 			}
-		}
-
-		result = dns_message_nextname(msg, sectionid);
-		if (result == ISC_R_NOMORE) {
-			break;
-		} else if (result != ISC_R_SUCCESS) {
-			return result;
 		}
 	}
 

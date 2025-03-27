@@ -208,6 +208,13 @@ typedef enum dns_message_intent {
 		*   additional section. */
 /* Obsolete: DNS_MESSAGERENDER_FILTER_AAAA	0x0020	*/
 
+/* clang-format off */
+#define MSG_SECTION_FOREACH(msg, section, elt)                            \
+        for (dns_name_t *elt = ISC_LIST_HEAD((msg)->sections[(section)]); \
+             elt != NULL;                                                 \
+             elt = ISC_LIST_NEXT(elt, link))
+/* clang-format on */
+
 typedef struct dns_msgblock dns_msgblock_t;
 
 typedef struct dns_minttl {

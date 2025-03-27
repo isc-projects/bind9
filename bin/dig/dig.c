@@ -579,7 +579,6 @@ dns64prefix_answer(dns_message_t *msg, isc_buffer_t *buf) {
 static isc_result_t
 short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 	     dig_query_t *query) {
-	dns_name_t *name;
 	dns_rdataset_t *rdataset;
 	isc_result_t result, loopresult;
 	dns_name_t empty_name;
@@ -588,20 +587,8 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 	UNUSED(flags);
 
 	dns_name_init(&empty_name);
-	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
-	if (result == ISC_R_NOMORE) {
-		return ISC_R_SUCCESS;
-	} else if (result != ISC_R_SUCCESS) {
-		return result;
-	}
-
-	for (;;) {
-		name = NULL;
-		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
-
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+	MSG_SECTION_FOREACH (msg, DNS_SECTION_ANSWER, name) {
+		ISC_LIST_FOREACH (name->list, rdataset, link) {
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
@@ -614,12 +601,6 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 				dns_rdata_reset(&rdata);
 			}
 		}
-		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
-		if (result == ISC_R_NOMORE) {
-			break;
-		} else if (result != ISC_R_SUCCESS) {
-			return result;
-		}
 	}
 
 	return ISC_R_SUCCESS;
@@ -627,16 +608,10 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 
 static bool
 isdotlocal(dns_message_t *msg) {
-	isc_result_t result;
 	static unsigned char local_ndata[] = { "\005local" };
 	static dns_name_t local = DNS_NAME_INITABSOLUTE(local_ndata);
 
-	for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(msg, DNS_SECTION_QUESTION))
-	{
-		dns_name_t *name = NULL;
-		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
+	MSG_SECTION_FOREACH (msg, DNS_SECTION_QUESTION, name) {
 		if (dns_name_issubdomain(name, &local)) {
 			return true;
 		}

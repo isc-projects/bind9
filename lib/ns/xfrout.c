@@ -15,6 +15,7 @@
 #include <stdbool.h>
 
 #include <isc/formatcheck.h>
+#include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -731,7 +732,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	rrstream_t *data_stream = NULL;
 	rrstream_t *stream = NULL;
 	dns_difftuple_t *current_soa_tuple = NULL;
-	dns_name_t *soa_name;
 	dns_rdataset_t *soa_rdataset;
 	dns_rdata_t soa_rdata = DNS_RDATA_INIT;
 	bool have_soa = false;
@@ -779,23 +779,21 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Interpret the question section.
 	 */
-	result = dns_message_firstname(request, DNS_SECTION_QUESTION);
-	INSIST(result == ISC_R_SUCCESS);
+	INSIST(!ISC_LIST_EMPTY(request->sections[DNS_SECTION_QUESTION]));
 
 	/*
 	 * The question section must contain exactly one question, and
 	 * it must be for AXFR/IXFR as appropriate.
 	 */
-	question_name = NULL;
-	dns_message_currentname(request, DNS_SECTION_QUESTION, &question_name);
+	question_name = ISC_LIST_HEAD(request->sections[DNS_SECTION_QUESTION]);
 	question_rdataset = ISC_LIST_HEAD(question_name->list);
 	question_class = question_rdataset->rdclass;
 	INSIST(question_rdataset->type == reqtype);
 	if (ISC_LIST_NEXT(question_rdataset, link) != NULL) {
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	}
-	result = dns_message_nextname(request, DNS_SECTION_QUESTION);
-	if (result != ISC_R_NOMORE) {
+
+	if (ISC_LIST_NEXT(question_name, link) != NULL) {
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	}
 
@@ -870,14 +868,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 * Check the authority section.  Look for a SOA record with
 	 * the same name and class as the question.
 	 */
-	for (result = dns_message_firstname(request, DNS_SECTION_AUTHORITY);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(request, DNS_SECTION_AUTHORITY))
-	{
-		soa_name = NULL;
-		dns_message_currentname(request, DNS_SECTION_AUTHORITY,
-					&soa_name);
-
+	MSG_SECTION_FOREACH (request, DNS_SECTION_AUTHORITY, soa_name) {
 		/*
 		 * Ignore data whose owner name is not the zone apex.
 		 */
@@ -885,10 +876,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			continue;
 		}
 
-		for (soa_rdataset = ISC_LIST_HEAD(soa_name->list);
-		     soa_rdataset != NULL;
-		     soa_rdataset = ISC_LIST_NEXT(soa_rdataset, link))
-		{
+		ISC_LIST_FOREACH (soa_name->list, soa_rdataset, link) {
 			/*
 			 * Ignore non-SOA data.
 			 */

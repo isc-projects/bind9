@@ -1989,9 +1989,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			return ISC_R_SUCCESS;
 		}
 
-		while (name != NULL) {
-			next_name = ISC_LIST_NEXT(name, link);
-
+		ISC_LIST_FOREACH_SAFE (*section, name, link, next_name) {
 			rdataset = ISC_LIST_HEAD(name->list);
 			while (rdataset != NULL) {
 				next_rdataset = ISC_LIST_NEXT(rdataset, link);
@@ -2080,8 +2078,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			next:
 				rdataset = next_rdataset;
 			}
-
-			name = next_name;
 		}
 	} while (--pass != 0);
 
@@ -2306,11 +2302,9 @@ dns_message_renderreset(dns_message_t *msg) {
 	msg->buffer = NULL;
 
 	for (size_t i = 0; i < DNS_SECTION_MAX; i++) {
-		dns_name_t *name = NULL;
-
 		msg->cursors[i] = NULL;
 		msg->counts[i] = 0;
-		ISC_LIST_FOREACH (msg->sections[i], name, link) {
+		MSG_SECTION_FOREACH (msg, i, name) {
 			dns_rdataset_t *rds = NULL;
 			ISC_LIST_FOREACH (name->list, rds, link) {
 				rds->attributes &= ~DNS_RDATASETATTR_RENDERED;
@@ -3305,17 +3299,13 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	}
 
 	dns_name_init(&empty_name);
-	result = dns_message_firstname(msg, section);
-	if (result != ISC_R_SUCCESS) {
+	if (ISC_LIST_EMPTY(msg->sections[section])) {
 		goto cleanup;
 	}
-	if ((sflags & DNS_STYLEFLAG_YAML) != 0) {
-		msg->indent.count++;
-	}
-	do {
-		dns_name_t *name = NULL;
-		dns_message_currentname(msg, section, &name);
+	bool has_yaml = (sflags & DNS_STYLEFLAG_YAML) != 0;
+	msg->indent.count += has_yaml;
 
+	MSG_SECTION_FOREACH (msg, section, name) {
 		dns_rdataset_t *rds = NULL;
 		ISC_LIST_FOREACH (name->list, rds, link) {
 			if (section == DNS_SECTION_ANSWER &&
@@ -3347,11 +3337,9 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 				goto cleanup;
 			}
 		}
-		result = dns_message_nextname(msg, section);
-	} while (result == ISC_R_SUCCESS);
-	if ((sflags & DNS_STYLEFLAG_YAML) != 0) {
-		msg->indent.count--;
 	}
+	msg->indent.count -= has_yaml;
+
 	if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 	    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0 &&
 	    (sflags & DNS_STYLEFLAG_YAML) == 0)
@@ -5011,13 +4999,7 @@ message_authority_soa_min(dns_message_t *msg, dns_ttl_t *ttlp) {
 		return ISC_R_NOTFOUND;
 	}
 
-	for (result = dns_message_firstname(msg, DNS_SECTION_AUTHORITY);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(msg, DNS_SECTION_AUTHORITY))
-	{
-		dns_name_t *name = NULL;
-		dns_message_currentname(msg, DNS_SECTION_AUTHORITY, &name);
-
+	MSG_SECTION_FOREACH (msg, DNS_SECTION_AUTHORITY, name) {
 		dns_rdataset_t *rds = NULL;
 		ISC_LIST_FOREACH (name->list, rds, link) {
 			if ((rds->attributes & DNS_RDATASETATTR_RENDERED) == 0)

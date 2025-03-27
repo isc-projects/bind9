@@ -22,6 +22,7 @@
 #include <isc/async.h>
 #include <isc/counter.h>
 #include <isc/hex.h>
+#include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -6025,17 +6026,15 @@ cleanup:
 static void
 message_clearrdataset(dns_message_t *msg, unsigned int attr) {
 	unsigned int i;
-	dns_name_t *name, *next_name;
 	dns_rdataset_t *rds, *next_rds;
 
 	/*
 	 * Clean up name lists by calling the rdataset disassociate function.
 	 */
 	for (i = DNS_SECTION_ANSWER; i < DNS_SECTION_MAX; i++) {
-		name = ISC_LIST_HEAD(msg->sections[i]);
-		while (name != NULL) {
-			next_name = ISC_LIST_NEXT(name, link);
-
+		dns_name_t *name, *next_name;
+		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link, next_name)
+		{
 			rds = ISC_LIST_HEAD(name->list);
 			while (rds != NULL) {
 				next_rds = ISC_LIST_NEXT(rds, link);
@@ -6057,8 +6056,6 @@ message_clearrdataset(dns_message_t *msg, unsigned int attr) {
 				}
 				isc_mempool_put(msg->namepool, name);
 			}
-
-			name = next_name;
 		}
 	}
 }
@@ -8795,7 +8792,6 @@ query_addds(query_ctx_t *qctx) {
 	ns_client_t *client = qctx->client;
 	dns_fixedname_t fixed;
 	dns_name_t *fname = NULL;
-	dns_name_t *rname = NULL;
 	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
 	isc_buffer_t *dbuf, b;
@@ -8841,40 +8837,23 @@ query_addds(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * We've already added the NS record, so if the name's not there,
-	 * we have other problems.
-	 */
-	result = dns_message_firstname(client->message, DNS_SECTION_AUTHORITY);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	/*
 	 * Find the delegation in the response message - it is not necessarily
 	 * the first name in the AUTHORITY section when wildcard processing is
 	 * involved.
 	 */
-	while (result == ISC_R_SUCCESS) {
-		rname = NULL;
-		dns_message_currentname(client->message, DNS_SECTION_AUTHORITY,
-					&rname);
+	MSG_SECTION_FOREACH (client->message, DNS_SECTION_AUTHORITY, rname) {
 		result = dns_message_findtype(rname, dns_rdatatype_ns, 0, NULL);
 		if (result == ISC_R_SUCCESS) {
+			/*
+			 * Add the relevant RRset (DS or NSEC) to the
+			 * delegation.
+			 */
+			query_addrrset(qctx, &rname, &rdataset, &sigrdataset,
+				       NULL, DNS_SECTION_AUTHORITY);
 			break;
 		}
-		result = dns_message_nextname(client->message,
-					      DNS_SECTION_AUTHORITY);
 	}
 
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	/*
-	 * Add the relevant RRset (DS or NSEC) to the delegation.
-	 */
-	query_addrrset(qctx, &rname, &rdataset, &sigrdataset, NULL,
-		       DNS_SECTION_AUTHORITY);
 	goto cleanup;
 
 addnsec3:
@@ -11260,7 +11239,6 @@ static void
 query_glueanswer(query_ctx_t *qctx) {
 	const dns_namelist_t *secs = qctx->client->message->sections;
 	const dns_section_t section = DNS_SECTION_ADDITIONAL;
-	dns_name_t *name;
 	dns_message_t *msg;
 	dns_rdataset_t *rdataset = NULL;
 
@@ -11272,27 +11250,25 @@ query_glueanswer(query_ctx_t *qctx) {
 	}
 
 	msg = qctx->client->message;
-	for (name = ISC_LIST_HEAD(msg->sections[section]); name != NULL;
-	     name = ISC_LIST_NEXT(name, link))
-	{
+	MSG_SECTION_FOREACH (msg, section, name) {
 		if (dns_name_equal(name, qctx->client->query.qname)) {
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-			{
+			ISC_LIST_FOREACH (name->list, rdataset, link) {
 				if (rdataset->type == qctx->qtype) {
+					ISC_LIST_UNLINK(msg->sections[section],
+							name, link);
+					ISC_LIST_PREPEND(msg->sections[section],
+							 name, link);
+					ISC_LIST_UNLINK(name->list, rdataset,
+							link);
+					ISC_LIST_PREPEND(name->list, rdataset,
+							 link);
+					rdataset->attributes |=
+						DNS_RDATASETATTR_REQUIRED;
 					break;
 				}
 			}
 			break;
 		}
-	}
-	if (rdataset != NULL) {
-		ISC_LIST_UNLINK(msg->sections[section], name, link);
-		ISC_LIST_PREPEND(msg->sections[section], name, link);
-		ISC_LIST_UNLINK(name->list, rdataset, link);
-		ISC_LIST_PREPEND(name->list, rdataset, link);
-		rdataset->attributes |= DNS_RDATASETATTR_REQUIRED;
 	}
 }
 
@@ -11691,25 +11667,21 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	/*
 	 * Get the question name.
 	 */
-	result = dns_message_firstname(message, DNS_SECTION_QUESTION);
-	if (result != ISC_R_SUCCESS) {
-		query_error(client, result, __LINE__);
+	if (ISC_LIST_EMPTY(message->sections[DNS_SECTION_QUESTION])) {
+		query_error(client, ISC_R_NOMORE, __LINE__);
 		return;
 	}
-	dns_message_currentname(message, DNS_SECTION_QUESTION,
-				&client->query.qname);
+
+	client->query.qname =
+		ISC_LIST_HEAD(message->sections[DNS_SECTION_QUESTION]);
 	client->query.origqname = client->query.qname;
-	result = dns_message_nextname(message, DNS_SECTION_QUESTION);
-	if (result != ISC_R_NOMORE) {
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * There's more than one QNAME in the question
-			 * section.
-			 */
-			query_error(client, DNS_R_FORMERR, __LINE__);
-		} else {
-			query_error(client, result, __LINE__);
-		}
+
+	if (ISC_LIST_NEXT(client->query.qname, link) != NULL) {
+		/*
+		 * There's more than one QNAME in the question
+		 * section.
+		 */
+		query_error(client, DNS_R_FORMERR, __LINE__);
 		return;
 	}
 

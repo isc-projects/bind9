@@ -427,7 +427,6 @@ repopulate_buffer:
 		}
 		CHECK("dns_message_sectiontotext", result);
 	} else if (display_answer) {
-		dns_name_t *name;
 		dns_rdataset_t *rdataset;
 		isc_result_t loopresult;
 		dns_name_t empty_name;
@@ -442,24 +441,9 @@ repopulate_buffer:
 		}
 
 		dns_name_init(&empty_name);
-		result = dns_message_firstname(response, DNS_SECTION_ANSWER);
-		if (result != ISC_R_NOMORE) {
-			CHECK("dns_message_firstname", result);
-		}
 
-		for (;;) {
-			if (result == ISC_R_NOMORE) {
-				break;
-			}
-			CHECK("dns_message_nextname", result);
-			name = NULL;
-			dns_message_currentname(response, DNS_SECTION_ANSWER,
-						&name);
-
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-			{
+		MSG_SECTION_FOREACH (response, DNS_SECTION_ANSWER, name) {
+			ISC_LIST_FOREACH (name->list, rdataset, link) {
 				loopresult = dns_rdataset_first(rdataset);
 				while (loopresult == ISC_R_SUCCESS) {
 					dns_rdataset_current(rdataset, &rdata);
@@ -481,8 +465,6 @@ repopulate_buffer:
 					isc_buffer_putstr(buf, "\n");
 				}
 			}
-			result = dns_message_nextname(response,
-						      DNS_SECTION_ANSWER);
 		}
 	}
 

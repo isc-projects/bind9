@@ -2182,17 +2182,17 @@ evaluate_checksvcb(char *cmdline) {
 
 static void
 setzone(dns_name_t *zonename) {
-	isc_result_t result;
 	dns_name_t *name = NULL;
-	dns_rdataset_t *rdataset = NULL;
+	dns_rdataset_t *rdataset = NULL, *next_rds = NULL;
 
-	result = dns_message_firstname(updatemsg, DNS_SECTION_ZONE);
-	if (result == ISC_R_SUCCESS) {
-		dns_message_currentname(updatemsg, DNS_SECTION_ZONE, &name);
-		dns_message_removename(updatemsg, name, DNS_SECTION_ZONE);
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_HEAD(name->list))
-		{
+	dns_namelist_t *secs = updatemsg->sections;
+	if (!ISC_LIST_EMPTY(secs[DNS_SECTION_ZONE])) {
+		INSIST(updatemsg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
+
+		name = ISC_LIST_HEAD(secs[DNS_SECTION_ZONE]);
+		ISC_LIST_UNLINK(secs[DNS_SECTION_ZONE], name, link);
+
+		ISC_LIST_FOREACH_SAFE (name->list, rdataset, link, next_rds) {
 			ISC_LIST_UNLINK(name->list, rdataset, link);
 			dns_rdataset_disassociate(rdataset);
 			dns_message_puttemprdataset(updatemsg, &rdataset);
@@ -2820,14 +2820,12 @@ lookforsoa:
 		goto droplabel;
 	}
 
-	result = dns_message_firstname(rcvmsg, section);
-	if (result != ISC_R_SUCCESS) {
+	if (ISC_LIST_EMPTY(rcvmsg->sections[section])) {
 		pass++;
 		goto lookforsoa;
 	}
-	while (result == ISC_R_SUCCESS) {
-		name = NULL;
-		dns_message_currentname(rcvmsg, section, &name);
+
+	ISC_LIST_FOREACH (rcvmsg->sections[section], name, link) {
 		soaset = NULL;
 		result = dns_message_findtype(name, dns_rdatatype_soa, 0,
 					      &soaset);
@@ -2845,8 +2843,6 @@ lookforsoa:
 				break;
 			}
 		}
-
-		result = dns_message_nextname(rcvmsg, section);
 	}
 
 	if (soaset == NULL && !seencname) {
@@ -2951,10 +2947,8 @@ out:
 	return;
 
 droplabel:
-	result = dns_message_firstname(soaquery, DNS_SECTION_QUESTION);
-	INSIST(result == ISC_R_SUCCESS);
-	name = NULL;
-	dns_message_currentname(soaquery, DNS_SECTION_QUESTION, &name);
+	INSIST(!ISC_LIST_EMPTY(soaquery->sections[DNS_SECTION_QUESTION]));
+	name = ISC_LIST_HEAD(soaquery->sections[DNS_SECTION_QUESTION]);
 	nlabels = dns_name_countlabels(name);
 	if (nlabels == 1) {
 		fatal("could not find enclosing zone");
@@ -3340,13 +3334,10 @@ recvgss(void *arg) {
 
 static void
 start_update(void) {
-	isc_result_t result;
 	dns_rdataset_t *rdataset = NULL;
 	dns_name_t *name = NULL;
 	dns_request_t *request = NULL;
 	dns_message_t *soaquery = NULL;
-	dns_name_t *firstname;
-	dns_section_t section = DNS_SECTION_UPDATE;
 
 	ddebug("start_update()");
 
@@ -3385,12 +3376,17 @@ start_update(void) {
 		dns_name_clone(userzone, name);
 	} else {
 		dns_rdataset_t *tmprdataset;
-		result = dns_message_firstname(updatemsg, section);
-		if (result == ISC_R_NOMORE) {
+
+		dns_namelist_t *msg_sections = updatemsg->sections;
+		dns_section_t section;
+
+		if (!ISC_LIST_EMPTY(msg_sections[DNS_SECTION_UPDATE])) {
+			section = DNS_SECTION_UPDATE;
+		} else if (!ISC_LIST_EMPTY(
+				   msg_sections[DNS_SECTION_PREREQUISITE]))
+		{
 			section = DNS_SECTION_PREREQUISITE;
-			result = dns_message_firstname(updatemsg, section);
-		}
-		if (result != ISC_R_SUCCESS) {
+		} else {
 			dns_message_puttempname(soaquery, &name);
 			dns_rdataset_disassociate(rdataset);
 			dns_message_puttemprdataset(soaquery, &rdataset);
@@ -3398,9 +3394,11 @@ start_update(void) {
 			done_update();
 			return;
 		}
-		firstname = NULL;
-		dns_message_currentname(updatemsg, section, &firstname);
+
+		dns_name_t *firstname =
+			ISC_LIST_HEAD(updatemsg->sections[section]);
 		dns_name_clone(firstname, name);
+
 		/*
 		 * Looks to see if the first name references a DS record
 		 * and if that name is not the root remove a label as DS

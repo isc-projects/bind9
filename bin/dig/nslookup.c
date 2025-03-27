@@ -198,8 +198,6 @@ printrdata(dns_rdata_t *rdata) {
 static isc_result_t
 printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	     dns_section_t section) {
-	isc_result_t result, loopresult;
-	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -209,19 +207,9 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 
 	debug("printsection()");
 
-	result = dns_message_firstname(msg, section);
-	if (result == ISC_R_NOMORE) {
-		return ISC_R_SUCCESS;
-	} else if (result != ISC_R_SUCCESS) {
-		return result;
-	}
-	for (;;) {
-		name = NULL;
-		dns_message_currentname(msg, section, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
-			loopresult = dns_rdataset_first(rdataset);
+	MSG_SECTION_FOREACH (msg, section, name) {
+		ISC_LIST_FOREACH (name->list, rdataset, link) {
+			isc_result_t loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
 				switch (rdata.type) {
@@ -253,12 +241,6 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
-		result = dns_message_nextname(msg, section);
-		if (result == ISC_R_NOMORE) {
-			break;
-		} else if (result != ISC_R_SUCCESS) {
-			return result;
-		}
 	}
 	return ISC_R_SUCCESS;
 }
@@ -266,8 +248,6 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 static isc_result_t
 detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	      dns_section_t section) {
-	isc_result_t result, loopresult;
-	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -293,18 +273,8 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 		}
 	}
 
-	result = dns_message_firstname(msg, section);
-	if (result == ISC_R_NOMORE) {
-		return ISC_R_SUCCESS;
-	} else if (result != ISC_R_SUCCESS) {
-		return result;
-	}
-	for (;;) {
-		name = NULL;
-		dns_message_currentname(msg, section, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+	MSG_SECTION_FOREACH (msg, section, name) {
+		ISC_LIST_FOREACH (name->list, rdataset, link) {
 			if (section == DNS_SECTION_QUESTION) {
 				dns_name_format(name, namebuf, sizeof(namebuf));
 				printf("\t%s, ", namebuf);
@@ -315,7 +285,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 						      namebuf, sizeof(namebuf));
 				printf("class = %s\n", namebuf);
 			}
-			loopresult = dns_rdataset_first(rdataset);
+			isc_result_t loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
 
@@ -334,12 +304,6 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 				printf("\tttl = %u\n", rdataset->ttl);
 				loopresult = dns_rdataset_next(rdataset);
 			}
-		}
-		result = dns_message_nextname(msg, section);
-		if (result == ISC_R_NOMORE) {
-			break;
-		} else if (result != ISC_R_SUCCESS) {
-			return result;
 		}
 	}
 	return ISC_R_SUCCESS;

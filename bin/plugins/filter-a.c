@@ -591,14 +591,8 @@ process_section(const section_filter_t *filter) {
 	bool only_if_aaaa_exists = filter->only_if_aaaa_exists;
 
 	dns_message_t *message = qctx->client->message;
-	isc_result_t result;
 
-	for (result = dns_message_firstname(message, section);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(message, section))
-	{
-		dns_name_t *cur = NULL;
-		dns_message_currentname(message, section, &cur);
+	MSG_SECTION_FOREACH (message, section, cur) {
 		if (name != NULL && !dns_name_equal(name, cur)) {
 			/*
 			 * We only want to process 'name' and this is not it.
