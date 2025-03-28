@@ -146,7 +146,8 @@ static isc_result_t
 validate_nx(dns_validator_t *val, bool resume);
 
 static isc_result_t
-proveunsecure(dns_validator_t *val, bool have_ds, bool resume);
+proveunsecure(dns_validator_t *val, bool have_ds, bool have_dnskey,
+	      bool resume);
 
 static void
 validator_logv(dns_validator_t *val, isc_logcategory_t category,
@@ -397,6 +398,13 @@ fetch_callback_dnskey(void *arg) {
 	dns_rdataset_t *rdataset = &val->frdataset;
 	isc_result_t eresult = resp->result;
 	isc_result_t result;
+	bool trustchain;
+
+	/*
+	 * Set 'trustchain' to true if we're walking a chain of
+	 * trust; false if we're attempting to prove insecurity.
+	 */
+	trustchain = ((val->attributes & VALATTR_INSECURITY) == 0);
 
 	/* Free resources which are not of interest. */
 	if (resp->node != NULL) {
@@ -418,34 +426,55 @@ fetch_callback_dnskey(void *arg) {
 		goto cleanup;
 	}
 
-	switch (eresult) {
-	case ISC_R_SUCCESS:
-	case DNS_R_NCACHENXRRSET:
-		/*
-		 * We have an answer to our DNSKEY query.  Either the DNSKEY
-		 * RRset or a NODATA response.
-		 */
-		validator_log(val, ISC_LOG_DEBUG(3), "%s with trust %s",
-			      eresult == ISC_R_SUCCESS ? "keyset"
-						       : "NCACHENXRRSET",
-			      dns_trust_totext(rdataset->trust));
-		/*
-		 * Only extract the dst key if the keyset exists and is secure.
-		 */
-		if (eresult == ISC_R_SUCCESS &&
-		    rdataset->trust >= dns_trust_secure)
-		{
-			result = validate_helper_run(val,
-						     resume_answer_with_key);
-		} else {
-			result = validate_async_run(val, resume_answer);
+	if (trustchain) {
+		switch (eresult) {
+		case ISC_R_SUCCESS:
+		case DNS_R_NCACHENXRRSET:
+			/*
+			 * We have an answer to our DNSKEY query.  Either the
+			 * DNSKEY RRset or a NODATA response.
+			 */
+			validator_log(val, ISC_LOG_DEBUG(3), "%s with trust %s",
+				      eresult == ISC_R_SUCCESS
+					      ? "keyset"
+					      : "NCACHENXRRSET",
+				      dns_trust_totext(rdataset->trust));
+			/*
+			 * Only extract the dst key if the keyset exists and is
+			 * secure.
+			 */
+			if (eresult == ISC_R_SUCCESS &&
+			    rdataset->trust >= dns_trust_secure)
+			{
+				result = validate_helper_run(
+					val, resume_answer_with_key);
+			} else {
+				result = validate_async_run(val, resume_answer);
+			}
+			break;
+		default:
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "fetch_callback_dnskey: got %s",
+				      isc_result_totext(eresult));
+			result = DNS_R_BROKENCHAIN;
+			break;
 		}
-		break;
-	default:
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "fetch_callback_dnskey: got %s",
-			      isc_result_totext(eresult));
-		result = DNS_R_BROKENCHAIN;
+	} else {
+		switch (eresult) {
+		case ISC_R_SUCCESS:
+			/*
+			 * We have a DS (val->dsrdataset) and
+			 * DNSKEY (val->fdataset).
+			 */
+			result = proveunsecure(val, false, true, true);
+			break;
+		default:
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "fetch_callback_dnskey: got %s",
+				      isc_result_totext(eresult));
+			result = DNS_R_BROKENCHAIN;
+			break;
+		}
 	}
 
 cleanup:
@@ -518,7 +547,7 @@ fetch_callback_ds(void *arg) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "falling back to insecurity proof (%s)",
 				      isc_result_totext(eresult));
-			result = proveunsecure(val, false, false);
+			result = proveunsecure(val, false, false, false);
 			break;
 		default:
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -537,7 +566,7 @@ fetch_callback_ds(void *arg) {
 			 * trust.
 			 */
 
-			result = proveunsecure(val, false, true);
+			result = proveunsecure(val, false, false, true);
 			break;
 		case ISC_R_SUCCESS:
 			/*
@@ -546,7 +575,7 @@ fetch_callback_ds(void *arg) {
 			 * so keep looking for the break in the chain
 			 * of trust.
 			 */
-			result = proveunsecure(val, true, true);
+			result = proveunsecure(val, true, false, true);
 			break;
 		case DNS_R_NXRRSET:
 		case DNS_R_NCACHENXRRSET:
@@ -567,13 +596,14 @@ fetch_callback_ds(void *arg) {
 			 * Not a zone cut, so we have to keep looking for
 			 * the break point in the chain of trust.
 			 */
-			result = proveunsecure(val, false, true);
+			result = proveunsecure(val, false, false, true);
 			break;
 		default:
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "fetch_callback_ds: got %s",
 				      isc_result_totext(eresult));
 			result = DNS_R_BROKENCHAIN;
+			break;
 		}
 	}
 
@@ -673,7 +703,7 @@ validator_callback_ds(void *arg) {
 		{
 			result = markanswer(val, "validator_callback_ds");
 		} else if ((val->attributes & VALATTR_INSECURITY) != 0) {
-			result = proveunsecure(val, have_dsset, true);
+			result = proveunsecure(val, have_dsset, false, true);
 		} else {
 			result = validate_async_run(val, validate_dnskey);
 		}
@@ -724,7 +754,7 @@ validator_callback_cname(void *arg) {
 	if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3), "cname with trust %s",
 			      dns_trust_totext(val->frdataset.trust));
-		result = proveunsecure(val, false, true);
+		result = proveunsecure(val, false, false, true);
 	} else {
 		if (eresult != DNS_R_BROKENCHAIN) {
 			expire_rdatasets(val);
@@ -832,6 +862,7 @@ validator_callback_nsec(void *arg) {
 			FALLTHROUGH;
 		default:
 			result = validate_nx(val, true);
+			break;
 		}
 	}
 
@@ -1364,6 +1395,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 						return ISC_R_QUOTA;
 					}
 					consume_validation_fail(val);
+					break;
 				}
 			} else if (rdataset->trust >= dns_trust_secure) {
 				/*
@@ -1469,6 +1501,7 @@ again:
 			break;
 		}
 		consume_validation_fail(val);
+		break;
 	}
 	return result;
 }
@@ -1815,7 +1848,7 @@ validate_async_done(dns_validator_t *val, isc_result_t result) {
 		isc_result_t saved_result = result;
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "falling back to insecurity proof");
-		result = proveunsecure(val, false, false);
+		result = proveunsecure(val, false, false, false);
 		if (result == DNS_R_NOTINSECURE) {
 			result = saved_result;
 		}
@@ -1976,6 +2009,7 @@ validate_dnskey_dsset_done(dns_validator_t *val, isc_result_t result) {
 		validator_log(val, ISC_LOG_INFO,
 			      "no valid signature found (DS)");
 		result = DNS_R_NOVALIDSIG;
+		break;
 	}
 
 	if (val->dsset == &val->fdsset) {
@@ -1992,6 +2026,7 @@ validate_dnskey_dsset(dns_validator_t *val) {
 	dns_rdata_t keyrdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	dns_rdata_ds_t ds;
+	dns_rdata_dnskey_t key;
 
 	dns_rdata_reset(&dsrdata);
 	dns_rdataset_current(val->dsset, &dsrdata);
@@ -2011,13 +2046,18 @@ validate_dnskey_dsset(dns_validator_t *val) {
 		return DNS_R_BADALG;
 	}
 
-	if (!dns_resolver_algorithm_supported(val->view->resolver, val->name,
-					      ds.algorithm, NULL, 0))
+	if (ds.algorithm != DNS_KEYALG_PRIVATEDNS &&
+	    ds.algorithm != DNS_KEYALG_PRIVATEOID)
 	{
-		if (val->unsupported_algorithm == 0) {
-			val->unsupported_algorithm = ds.algorithm;
+		if (!dns_resolver_algorithm_supported(val->view->resolver,
+						      val->name, ds.algorithm,
+						      NULL, 0))
+		{
+			if (val->unsupported_algorithm == 0) {
+				val->unsupported_algorithm = ds.algorithm;
+			}
+			return DNS_R_BADALG;
 		}
-		return DNS_R_BADALG;
 	}
 
 	/*
@@ -2028,6 +2068,25 @@ validate_dnskey_dsset(dns_validator_t *val) {
 	if (result != ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3), "no DNSKEY matching DS");
 		return DNS_R_NOKEYMATCH;
+	}
+
+	/*
+	 * Figure out if the private algorithm is supported now that we have
+	 * found a matching dnskey.
+	 */
+	dns_rdata_tostruct(&keyrdata, &key, NULL);
+	if (ds.algorithm == DNS_KEYALG_PRIVATEDNS ||
+	    ds.algorithm == DNS_KEYALG_PRIVATEOID)
+	{
+		if (!dns_resolver_algorithm_supported(val->view->resolver,
+						      val->name, key.algorithm,
+						      key.data, key.datalen))
+		{
+			if (val->unsupported_algorithm == 0) {
+				val->unsupported_algorithm = key.algorithm;
+			}
+			return DNS_R_BADALG;
+		}
 	}
 
 	/*
@@ -2896,7 +2955,31 @@ validate_nx(dns_validator_t *val, bool resume) {
 		return DNS_R_BROKENCHAIN;
 	}
 
-	return proveunsecure(val, false, false);
+	return proveunsecure(val, false, false, false);
+}
+
+/*
+ * Check if any of the DS records has a private DNSSEC algorithm.
+ */
+static bool
+check_ds_private(dns_rdataset_t *rdataset) {
+	dns_rdata_ds_t ds;
+	isc_result_t result;
+
+	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(rdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &ds, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (ds.algorithm == DNS_KEYALG_PRIVATEDNS ||
+		    ds.algorithm == DNS_KEYALG_PRIVATEOID)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /*%
@@ -2905,20 +2988,65 @@ validate_nx(dns_validator_t *val, bool resume) {
  */
 static bool
 check_ds_algs(dns_validator_t *val, dns_name_t *name,
-	      dns_rdataset_t *rdataset) {
+	      dns_rdataset_t *dsrdataset, dns_rdataset_t *dnskeyset) {
 	dns_rdata_ds_t ds;
+	dns_rdata_dnskey_t key;
+	bool seen_private = false;
+	uint16_t key_tag = 0;
+	uint8_t algorithm = 0;
 
-	DNS_RDATASET_FOREACH (rdataset) {
+	DNS_RDATASET_FOREACH (dsrdataset) {
 		isc_result_t result;
 		dns_rdata_t dsrdata = DNS_RDATA_INIT;
-		dns_rdataset_current(rdataset, &dsrdata);
+		dns_rdata_t keyrdata = DNS_RDATA_INIT;
+		unsigned char *data = NULL;
+		size_t datalen = 0;
+
+		dns_rdataset_current(dsrdataset, &dsrdata);
 		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		/*
+		 * Look for a matching DNSKEY to find the PRIVATE
+		 * DNSSEC algorithm.
+		 */
+		if (ds.algorithm == DNS_KEYALG_PRIVATEOID ||
+		    ds.algorithm == DNS_KEYALG_PRIVATEDNS)
+		{
+			switch (ds.digest_type) {
+			case DNS_DSDIGEST_SHA1:
+			case DNS_DSDIGEST_SHA256:
+			case DNS_DSDIGEST_SHA384:
+				if (dnskeyset == NULL) {
+					algorithm = ds.algorithm;
+					key_tag = ds.key_tag;
+					seen_private = true;
+					continue;
+				}
+				result = dns_dnssec_matchdskey(
+					name, &dsrdata, dnskeyset, &keyrdata);
+				if (result != ISC_R_SUCCESS) {
+					algorithm = ds.algorithm;
+					key_tag = ds.key_tag;
+					seen_private = true;
+					continue;
+				}
+				result = dns_rdata_tostruct(&keyrdata, &key,
+							    NULL);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				data = key.data;
+				datalen = key.datalen;
+				break;
+			default:
+				break;
+			}
+		}
 
 		if (dns_resolver_ds_digest_supported(val->view->resolver, name,
 						     ds.digest_type) &&
 		    dns_resolver_algorithm_supported(val->view->resolver, name,
-						     ds.algorithm, NULL, 0))
+						     ds.algorithm, data,
+						     datalen))
 		{
 			return true;
 		}
@@ -2929,8 +3057,25 @@ check_ds_algs(dns_validator_t *val, dns_name_t *name,
 	 * unsecure flow always runs after a validate/validatenx flow. So if an
 	 * unsupported alg/digest was found while building the chain of trust,
 	 * it would be raised already.
+	 *
+	 * If we have seen a private algorithm for which we couldn't find a
+	 * DNSKEY we must assume the child zone is secure. With PRIVATEDNS and
+	 * PRIVATEOID we can only make that determination if we match a DNSKEY
+	 * for every DS with these algorithms. Since we don't know whether the
+	 * private algorithm is unsupported or not, we are required to treat it
+	 * as supported.
 	 */
-	return false;
+	if (seen_private) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		validator_log(val, ISC_LOG_INFO,
+			      "No DNSKEY for %s/DS with %s algorithm, tag %u",
+			      namebuf,
+			      algorithm == DNS_KEYALG_PRIVATEDNS ? "PRIVATEDNS"
+								 : "PRIVATEOID",
+			      key_tag);
+	}
+	return seen_private;
 }
 
 /*%
@@ -2973,7 +3118,49 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		 * validated, continue walking down labels.
 		 */
 		if (val->frdataset.trust >= dns_trust_secure) {
-			if (!check_ds_algs(val, tname, &val->frdataset)) {
+			dns_rdataset_t *dssetp = &val->frdataset,
+				       *keysetp = NULL;
+
+			if (check_ds_private(&val->frdataset)) {
+				if (dns_rdataset_isassociated(&val->dsrdataset))
+				{
+					dns_rdataset_disassociate(
+						&val->dsrdataset);
+				}
+				dns_rdataset_clone(&val->frdataset,
+						   &val->dsrdataset);
+				dssetp = &val->dsrdataset;
+				dns_rdataset_disassociate(&val->frdataset);
+				result = view_find(val, tname,
+						   dns_rdatatype_dnskey);
+				switch (result) {
+				case ISC_R_SUCCESS:
+					keysetp = &val->frdataset;
+					break;
+				case ISC_R_NOTFOUND:
+					/*
+					 * We don't know anything about the
+					 * DNSKEY.  Find it.
+					 */
+					*resp = DNS_R_WAIT;
+					result = create_fetch(
+						val, tname,
+						dns_rdatatype_dnskey,
+						fetch_callback_dnskey,
+						"seek_ds");
+					if (result != ISC_R_SUCCESS) {
+						*resp = result;
+					}
+					return ISC_R_COMPLETE;
+					break;
+				default:
+					validator_log(val, ISC_LOG_DEBUG(3),
+						      "no DNSKEY found (%s/DS)",
+						      namebuf);
+					break;
+				}
+			}
+			if (!check_ds_algs(val, tname, dssetp, keysetp)) {
 				validator_log(
 					val, ISC_LOG_DEBUG(3),
 					"no supported algorithm/digest (%s/DS)",
@@ -3162,12 +3349,15 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
  * \li	DNS_R_BROKENCHAIN
  */
 static isc_result_t
-proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
+proveunsecure(dns_validator_t *val, bool have_ds, bool have_dnskey,
+	      bool resume) {
 	isc_result_t result;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t fixedsecroot;
 	dns_name_t *secroot = dns_fixedname_initname(&fixedsecroot);
 	unsigned int labels;
+
+	INSIST(!(have_ds && have_dnskey));
 
 	/*
 	 * We're attempting to prove insecurity.
@@ -3208,17 +3398,65 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 		 * it has a supported algorithm combination.  If not, this is
 		 * an insecure delegation as far as this resolver is concerned.
 		 */
-		if (have_ds && val->frdataset.trust >= dns_trust_secure &&
-		    !check_ds_algs(val, dns_fixedname_name(&val->fname),
-				   &val->frdataset))
+		if (have_dnskey ||
+		    (have_ds && val->frdataset.trust >= dns_trust_secure))
 		{
-			dns_name_format(dns_fixedname_name(&val->fname),
-					namebuf, sizeof(namebuf));
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "no supported algorithm/digest (%s/DS)",
-				      namebuf);
-			result = markanswer(val, "proveunsecure (2)");
-			goto out;
+			dns_rdataset_t *dssetp = NULL, *keysetp = NULL;
+			dns_name_t *fname = dns_fixedname_name(&val->fname);
+			if (have_dnskey) {
+				dssetp = &val->dsrdataset;
+				keysetp = &val->frdataset;
+			} else {
+				dssetp = &val->frdataset;
+			}
+
+			if (!have_dnskey && check_ds_private(&val->frdataset)) {
+				if (dns_rdataset_isassociated(&val->dsrdataset))
+				{
+					dns_rdataset_disassociate(
+						&val->dsrdataset);
+				}
+				dns_rdataset_clone(&val->frdataset,
+						   &val->dsrdataset);
+				dssetp = &val->dsrdataset;
+				dns_rdataset_disassociate(&val->frdataset);
+				result = view_find(val, fname,
+						   dns_rdatatype_dnskey);
+				switch (result) {
+				case ISC_R_SUCCESS:
+					keysetp = &val->frdataset;
+					break;
+				case ISC_R_NOTFOUND:
+					/*
+					 * We don't know anything about the
+					 * DNSKEY.  Find it.
+					 */
+					result = create_fetch(
+						val, fname,
+						dns_rdatatype_dnskey,
+						fetch_callback_dnskey,
+						"seek_ds");
+					if (result == ISC_R_SUCCESS) {
+						result = DNS_R_WAIT;
+					}
+					goto out;
+				default:
+					validator_log(val, ISC_LOG_DEBUG(3),
+						      "no DNSKEY found (%s/DS)",
+						      namebuf);
+					break;
+				}
+			}
+			if (!check_ds_algs(val, fname, dssetp, keysetp)) {
+				dns_name_format(fname, namebuf,
+						sizeof(namebuf));
+				validator_log(
+					val, ISC_LOG_DEBUG(3),
+					"no supported algorithm/digest (%s/DS)",
+					namebuf);
+				result = markanswer(val, "proveunsecure (2)");
+				goto out;
+			}
 		}
 		val->labels++;
 	}
@@ -3309,7 +3547,7 @@ validator_start(void *arg) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "attempting insecurity proof");
 
-		result = proveunsecure(val, false, false);
+		result = proveunsecure(val, false, false, false);
 		if (result == DNS_R_NOTINSECURE) {
 			validator_log(val, ISC_LOG_INFO,
 				      "got insecure response; "
@@ -3422,6 +3660,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_rdataset_init(&val->fdsset);
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);
+	dns_rdataset_init(&val->dsrdataset);
 	dns_fixedname_init(&val->wild);
 	dns_fixedname_init(&val->closest);
 	val->start = isc_stdtime_now();
@@ -3497,6 +3736,9 @@ destroy_validator(dns_validator_t *val) {
 		dns_keytable_detach(&val->keytable);
 	}
 	disassociate_rdatasets(val);
+	if (dns_rdataset_isassociated(&val->dsrdataset)) {
+		dns_rdataset_disassociate(&val->dsrdataset);
+	}
 	mctx = val->view->mctx;
 	if (val->siginfo != NULL) {
 		isc_mem_put(mctx, val->siginfo, sizeof(*val->siginfo));
