@@ -417,9 +417,12 @@ ISC_RUN_TEST_IMPL(isc_mem_recordflag) {
 
 	/*
 	 * Find the allocation of ptr and make sure it contains "[...] 2048 file
-	 * mem_test.c line [...]"
+	 * [...]" (the "grep" is done in 2 phases because the prefix of the path
+	 * of mem_test.c will change if test is built out-of-tree)
 	 */
-	p = strstr(buf, "2048 file mem_test.c line");
+	p = strstr(buf, "2048 file ");
+	assert_non_null(p);
+	p = strstr(p, "mem_test.c line");
 	assert_non_null(p);
 }
 
