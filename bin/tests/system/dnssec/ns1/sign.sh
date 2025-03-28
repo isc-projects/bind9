@@ -65,3 +65,9 @@ cp managed.conf ../ns4/managed.conf
 #
 
 keyfile_to_key_id "$ksk" >managed.key.id
+
+#
+# Also generate a broken trusted-keys file for the dnssec test.
+#
+broken=$("$KEYGEN" -q -fk -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" .)
+keyfile_to_static_ds "$broken" >../ns4/broken.conf

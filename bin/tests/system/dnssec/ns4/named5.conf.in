@@ -27,11 +27,12 @@ options {
 
 };
 
-# Note: This is deliberately wrong! The bind.keys file contains
-# the real DNS root key, so it won't work with the local toy
-# root zones used in the tests. This is to test a forwarder
-# talking to a resolver with a misconfigured trust anchor.
-include "../../../../../bind.keys";
+# Note: This contains a deliberately incorrect key,
+# so it won't work with the root zones used in the tests;
+# all signed data should SERVFAIL. This is to test the case
+# of a validating forwarder talking to a resolver that has
+# a misconfigured trust anchor.
+include "broken.conf";
 
 key rndc_key {
 	secret "1234abcd8765";
