@@ -607,6 +607,14 @@ isc_tlsctx_set_random_session_id_context(isc_tlsctx_t *ctx);
  *\li   'ctx' - a valid non-NULL pointer;
  */
 
+bool
+isc_tls_valid_sni_hostname(const char *hostname);
+/*%<
+ * Checks if a 'hostname' is not a valid IPv4 or IPv6 address
+ * string. Returns 'true' if the hostname is likely a domain name, and
+ * 'false' if it represents an IP address.
+ */
+
 void
 isc__tls_initialize(void);
 
