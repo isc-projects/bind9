@@ -3347,9 +3347,6 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		INDENT(style);
 		ADD_STRING(target, "\n");
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
 
 cleanup:
 	msg->indent.count = saved_count;
