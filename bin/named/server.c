@@ -1597,17 +1597,11 @@ disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	algorithms = cfg_tuple_get(disabled, "algorithms");
 	CFG_LIST_FOREACH (algorithms, element) {
 		isc_textregion_t r;
-		dns_secalg_t alg;
+		dst_algorithm_t alg;
 
 		r.base = UNCONST(cfg_obj_asstring(cfg_listelt_value(element)));
 		r.length = strlen(r.base);
-
-		result = dns_secalg_fromtext(&alg, &r);
-		if (result != ISC_R_SUCCESS) {
-			uint8_t ui;
-			result = isc_parse_uint8(&ui, r.base, 10);
-			alg = ui;
-		}
+		result = dst_algorithm_fromtext(&alg, &r);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(cfg_listelt_value(element), ISC_LOG_ERROR,
 				    "invalid algorithm");
@@ -14363,7 +14357,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	/* variables for -key */
 	bool use_keyid = false;
 	dns_keytag_t keyid = 0;
-	uint8_t algorithm = 0;
+	dst_algorithm_t algorithm = 0;
 	/* variables for -status */
 	bool status = false;
 	char output[4096];
@@ -14419,7 +14413,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 				}
 				alg.base = ptr;
 				alg.length = strlen(alg.base);
-				result = dns_secalg_fromtext(
+				result = dst_algorithm_fromtext(
 					&algorithm, (isc_textregion_t *)&alg);
 				if (result != ISC_R_SUCCESS) {
 					msg = "Bad algorithm";

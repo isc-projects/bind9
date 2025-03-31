@@ -426,11 +426,11 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 
 	switch (key->algorithm) {
-	case DNS_KEYALG_RSASHA1:
-	case DNS_KEYALG_NSEC3RSASHA1:
-	case DNS_KEYALG_RSASHA256:
-	case DNS_KEYALG_RSASHA512:
-		min = (key->algorithm == DNS_KEYALG_RSASHA512) ? 1024 : 512;
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA512:
+		min = (key->algorithm == DST_ALG_RSASHA512) ? 1024 : 512;
 		if (key->length > -1) {
 			size = (unsigned int)key->length;
 			if (size < min) {
@@ -443,16 +443,16 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 			size = 2048;
 		}
 		break;
-	case DNS_KEYALG_ECDSA256:
+	case DST_ALG_ECDSA256:
 		size = 256;
 		break;
-	case DNS_KEYALG_ECDSA384:
+	case DST_ALG_ECDSA384:
 		size = 384;
 		break;
-	case DNS_KEYALG_ED25519:
+	case DST_ALG_ED25519:
 		size = 256;
 		break;
-	case DNS_KEYALG_ED448:
+	case DST_ALG_ED448:
 		size = 456;
 		break;
 	default:

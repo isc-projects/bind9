@@ -52,7 +52,7 @@ struct dns_kasp_key {
 	/* Configuration */
 	dns_keystore_t *keystore;
 	uint32_t	lifetime;
-	uint8_t		algorithm;
+	dst_algorithm_t algorithm;
 	int		length;
 	uint8_t		role;
 	uint16_t	tag_min;

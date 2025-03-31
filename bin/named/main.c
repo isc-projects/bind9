@@ -424,7 +424,7 @@ list_dnssec_algorithms(isc_buffer_t *b) {
 		}
 		if (dst_algorithm_supported(i)) {
 			isc_buffer_putstr(b, " ");
-			(void)dns_secalg_totext(i, b);
+			dst_algorithm_totext(i, b);
 		}
 	}
 }

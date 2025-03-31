@@ -645,7 +645,8 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	}
 	isc_buffer_putuint16(target, (uint16_t)(key->key_flags & 0xffff));
 	isc_buffer_putuint8(target, (uint8_t)key->key_proto);
-	isc_buffer_putuint8(target, (uint8_t)key->key_alg);
+	isc_buffer_putuint8(target,
+			    (uint8_t)dst_algorithm_tosecalg(key->key_alg));
 
 	if ((key->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
 		if (isc_buffer_availablelength(target) < 2) {
@@ -1357,10 +1358,10 @@ void
 dst_key_format(const dst_key_t *key, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
+	dst_algorithm_t algorithm = dst_key_alg(key);
 
 	dns_name_format(dst_key_name(key), namestr, sizeof(namestr));
-	dns_secalg_format((dns_secalg_t)dst_key_alg(key), algstr,
-			  sizeof(algstr));
+	dst_algorithm_format(algorithm, algstr, sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
 }
 

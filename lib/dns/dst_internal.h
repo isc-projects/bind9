@@ -193,7 +193,7 @@ dst__hmacsha384_init(struct dst_func **funcp);
 void
 dst__hmacsha512_init(struct dst_func **funcp);
 void
-dst__opensslrsa_init(struct dst_func **funcp, unsigned char algorithm);
+dst__opensslrsa_init(struct dst_func **funcp, unsigned short algorithm);
 void
 dst__opensslecdsa_init(struct dst_func **funcp);
 void

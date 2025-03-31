@@ -31,6 +31,8 @@
 #include <dns/secalg.h>
 #include <dns/ttl.h>
 
+#include <dst/dst.h>
+
 #include <isccfg/cfg.h>
 #include <isccfg/duration.h>
 #include <isccfg/kaspconf.h>
@@ -127,7 +129,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		INSIST(!offline_ksk);
 		key->role |= DNS_KASP_KEY_ROLE_KSK | DNS_KASP_KEY_ROLE_ZSK;
 		key->lifetime = 0; /* unlimited */
-		key->algorithm = DNS_KEYALG_ECDSA256;
+		key->algorithm = DST_ALG_ECDSA256;
 		key->length = -1;
 		result = dns_keystorelist_find(keystorelist,
 					       DNS_KEYSTORE_KEYDIRECTORY,
@@ -217,8 +219,8 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		obj = cfg_tuple_get(config, "algorithm");
 		alg.base = cfg_obj_asstring(obj);
 		alg.length = strlen(alg.base);
-		result = dns_secalg_fromtext(&key->algorithm,
-					     (isc_textregion_t *)&alg);
+		result = dst_algorithm_fromtext(&key->algorithm,
+						(isc_textregion_t *)&alg);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "dnssec-policy: bad algorithm %s",
@@ -226,10 +228,9 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			result = DNS_R_BADALG;
 			goto cleanup;
 		}
-
 		if (check_algorithms && isc_crypto_fips_mode() &&
-		    (key->algorithm == DNS_KEYALG_RSASHA1 ||
-		     key->algorithm == DNS_KEYALG_NSEC3RSASHA1))
+		    (key->algorithm == DST_ALG_RSASHA1 ||
+		     key->algorithm == DST_ALG_NSEC3RSASHA1))
 		{
 			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "dnssec-policy: algorithm %s not supported "
@@ -255,14 +256,14 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			size = cfg_obj_asuint32(obj);
 
 			switch (key->algorithm) {
-			case DNS_KEYALG_RSASHA1:
-			case DNS_KEYALG_NSEC3RSASHA1:
-			case DNS_KEYALG_RSASHA256:
-			case DNS_KEYALG_RSASHA512:
+			case DST_ALG_RSASHA1:
+			case DST_ALG_NSEC3RSASHA1:
+			case DST_ALG_RSASHA256:
+			case DST_ALG_RSASHA512:
 				if (isc_crypto_fips_mode()) {
 					min = 2048;
 				} else {
-					min = DNS_KEYALG_RSASHA512 ? 1024 : 512;
+					min = DST_ALG_RSASHA512 ? 1024 : 512;
 				}
 				if (size < min || size > 4096) {
 					cfg_obj_log(obj, ISC_LOG_ERROR,
@@ -274,10 +275,10 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 					goto cleanup;
 				}
 				break;
-			case DNS_KEYALG_ECDSA256:
-			case DNS_KEYALG_ECDSA384:
-			case DNS_KEYALG_ED25519:
-			case DNS_KEYALG_ED448:
+			case DST_ALG_ECDSA256:
+			case DST_ALG_ECDSA384:
+			case DST_ALG_ED25519:
+			case DST_ALG_ED448:
 				cfg_obj_log(obj, ISC_LOG_WARNING,
 					    "dnssec-policy: key algorithm %s "
 					    "has predefined length; ignoring "
@@ -356,8 +357,8 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp) {
 		}
 
 		/* NSEC3 cannot be used with certain key algorithms. */
-		if (keyalg == DNS_KEYALG_RSAMD5 || keyalg == DNS_KEYALG_DSA ||
-		    keyalg == DNS_KEYALG_RSASHA1)
+		if (keyalg == DST_ALG_RSAMD5 || keyalg == DST_ALG_DSA ||
+		    keyalg == DST_ALG_RSASHA1)
 		{
 			badalg = keyalg;
 		}

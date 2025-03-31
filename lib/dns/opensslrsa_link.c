@@ -264,6 +264,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	unsigned int siglen = 0;
 	EVP_MD_CTX *evp_md_ctx = NULL;
 	EVP_PKEY *pkey = NULL;
+	unsigned int len = 0;
 
 	REQUIRE(dctx != NULL && dctx->key != NULL);
 	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
@@ -272,17 +273,28 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	pkey = key->keydata.pkeypair.priv;
 
+	/*
+	 * Account to the space the OIDs and DNS names consume.
+	 */
+	switch (key->key_alg) {
+	}
+
 	isc_buffer_availableregion(sig, &r);
 
-	if (r.length < (unsigned int)EVP_PKEY_size(pkey)) {
+	if (r.length < (unsigned int)EVP_PKEY_size(pkey) + len) {
 		return ISC_R_NOSPACE;
+	}
+
+	/*
+	 * Add OID and DNS names to start of signature.
+	 */
+	switch (key->key_alg) {
 	}
 
 	if (!EVP_SignFinal(evp_md_ctx, r.base, &siglen, pkey)) {
 		return dst__openssl_toresult3(dctx->category, "EVP_SignFinal",
 					      ISC_R_FAILURE);
 	}
-
 	isc_buffer_add(sig, siglen);
 
 	return ISC_R_SUCCESS;
@@ -317,6 +329,8 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	int status = 0;
 	EVP_MD_CTX *evp_md_ctx = NULL;
 	EVP_PKEY *pkey = NULL;
+	const unsigned char *base = sig->base;
+	unsigned int length = sig->length;
 
 	REQUIRE(dctx != NULL && dctx->key != NULL);
 	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
@@ -330,7 +344,13 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return DST_R_VERIFYFAILURE;
 	}
 
-	status = EVP_VerifyFinal(evp_md_ctx, sig->base, sig->length, pkey);
+	/*
+	 * Check identifying OID in front of public key material.
+	 */
+	switch (key->key_alg) {
+	}
+
+	status = EVP_VerifyFinal(evp_md_ctx, base, length, pkey);
 	switch (status) {
 	case 1:
 		return ISC_R_SUCCESS;
@@ -740,6 +760,12 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_availableregion(data, &r);
 
+	/*
+	 * Add identifying OID and DNS names to front of public key material.
+	 */
+	switch (key->key_alg) {
+	}
+
 	ret = opensslrsa_components_get(key, &c, false);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
@@ -794,6 +820,13 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (r.length == 0) {
 		DST_RET(ISC_R_SUCCESS);
 	}
+
+	/*
+	 * Check identifying OID in front of public key material.
+	 */
+	switch (key->key_alg) {
+	}
+
 	length = r.length;
 	if (r.length < 1) {
 		DST_RET(DST_R_INVALIDPUBLICKEY);
@@ -1214,7 +1247,7 @@ static const unsigned char sha512_sig[] =
 	"\xf1";
 
 static isc_result_t
-check_algorithm(unsigned char algorithm) {
+check_algorithm(unsigned short algorithm) {
 	rsa_components_t c = { .bnfree = true };
 	EVP_MD_CTX *evp_md_ctx = EVP_MD_CTX_create();
 	EVP_PKEY *pkey = NULL;
@@ -1272,7 +1305,7 @@ err:
 }
 
 void
-dst__opensslrsa_init(dst_func_t **funcp, unsigned char algorithm) {
+dst__opensslrsa_init(dst_func_t **funcp, unsigned short algorithm) {
 	REQUIRE(funcp != NULL);
 
 	if (*funcp == NULL) {

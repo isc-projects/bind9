@@ -64,7 +64,7 @@ struct ksr_ctx {
 	/* keygen */
 	bool ksk;
 	dns_ttl_t ttl;
-	dns_secalg_t alg;
+	dst_algorithm_t alg;
 	int size;
 	time_t lifetime;
 	time_t parentpropagation;
@@ -341,7 +341,7 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 	}
 
 	/* Check algorithm and size. */
-	dns_secalg_format(ksr->alg, algstr, sizeof(algstr));
+	dst_algorithm_format(ksr->alg, algstr, sizeof(algstr));
 	if (!dst_algorithm_supported(ksr->alg)) {
 		fatal("unsupported algorithm: %s", algstr);
 	}

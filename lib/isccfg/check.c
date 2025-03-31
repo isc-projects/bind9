@@ -365,12 +365,12 @@ disabled_algorithms(const cfg_obj_t *disabled) {
 
 	CFG_LIST_FOREACH (obj, element) {
 		isc_textregion_t r;
-		dns_secalg_t alg;
+		dst_algorithm_t alg;
 
 		r.base = UNCONST(cfg_obj_asstring(cfg_listelt_value(element)));
 		r.length = strlen(r.base);
 
-		tresult = dns_secalg_fromtext(&alg, &r);
+		tresult = dst_algorithm_fromtext(&alg, &r);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(cfg_listelt_value(element), ISC_LOG_ERROR,
 				    "invalid algorithm '%s'", r.base);

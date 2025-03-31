@@ -113,7 +113,7 @@ main(int argc, char **argv) {
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	uint16_t flags = 0, kskflag = 0, revflag = 0;
-	dns_secalg_t alg;
+	dst_algorithm_t alg;
 	bool oldstyle = false;
 	isc_mem_t *mctx = NULL;
 	int ch;
@@ -382,7 +382,7 @@ main(int argc, char **argv) {
 
 		r.base = algname;
 		r.length = strlen(algname);
-		ret = dns_secalg_fromtext(&alg, &r);
+		ret = dst_algorithm_fromtext(&alg, &r);
 		if (ret != ISC_R_SUCCESS) {
 			fatal("unknown algorithm %s", algname);
 		}

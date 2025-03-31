@@ -120,9 +120,11 @@ void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
+	dst_algorithm_t algorithm = dst_algorithm_fromdata(
+		sig->algorithm, sig->signature, sig->siglen);
 
 	dns_name_format(&sig->signer, namestr, sizeof(namestr));
-	dns_secalg_format(sig->algorithm, algstr, sizeof(algstr));
+	dst_algorithm_format(algorithm, algstr, sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, sig->keyid);
 }
 

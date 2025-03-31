@@ -348,9 +348,12 @@ iszsk(dns_dnsseckey_t *key) {
  */
 static dns_dnsseckey_t *
 keythatsigned_unlocked(dns_rdata_rrsig_t *rrsig) {
+	dst_algorithm_t algorithm = dst_algorithm_fromdata(
+		rrsig->algorithm, rrsig->signature, rrsig->siglen);
+
 	ISC_LIST_FOREACH (keylist, key, link) {
 		if (rrsig->keyid == dst_key_id(key->key) &&
-		    rrsig->algorithm == dst_key_alg(key->key) &&
+		    algorithm == dst_key_alg(key->key) &&
 		    dns_name_equal(&rrsig->signer, dst_key_name(key->key)))
 		{
 			return key;

@@ -139,6 +139,7 @@
 #define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
 #define ID(x)	  dst_key_id(x)
 #define ALG(x)	  dst_key_alg(x)
+#define DNSALG(x) dst_algorithm_tosecalg(dst_key_alg(x))
 
 /*%
  * KASP flags
@@ -6806,6 +6807,10 @@ delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys,
 	isc_result_t ret;
 	bool have_ksk = false, have_zsk = false;
 	bool have_pksk = false, have_pzsk = false;
+	dst_algorithm_t algorithm;
+
+	algorithm = dst_algorithm_fromdata(
+		rrsig_ptr->algorithm, rrsig_ptr->signature, rrsig_ptr->siglen);
 
 	for (i = 0; i < nkeys; i++) {
 		bool ksk, zsk;
@@ -6814,7 +6819,7 @@ delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys,
 			break;
 		}
 
-		if (rrsig_ptr->algorithm != dst_key_alg(keys[i])) {
+		if (algorithm != dst_key_alg(keys[i])) {
 			continue;
 		}
 
@@ -6873,7 +6878,7 @@ delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys,
 	 * if the associated public key is still in the DNSKEY RRset
 	 */
 	for (i = 0; i < nkeys; i++) {
-		if ((rrsig_ptr->algorithm == dst_key_alg(keys[i])) &&
+		if ((algorithm == dst_key_alg(keys[i])) &&
 		    (rrsig_ptr->keyid == dst_key_id(keys[i])))
 		{
 			return false;
@@ -6936,10 +6941,13 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dst_algorithm_t algorithm;
 
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		algorithm = dst_algorithm_fromdata(
+			rrsig.algorithm, rrsig.signature, rrsig.siglen);
 
 		if (!dns_rdatatype_iskeymaterial(type)) {
 			bool warn = false, deleted = false;
@@ -6983,9 +6991,8 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 					char algbuf[DNS_NAME_FORMATSIZE];
 					dns_name_format(&zone->origin, origin,
 							sizeof(origin));
-					dns_secalg_format(rrsig.algorithm,
-							  algbuf,
-							  sizeof(algbuf));
+					dst_algorithm_format(algorithm, algbuf,
+							     sizeof(algbuf));
 					dns_zone_log(zone, ISC_LOG_WARNING,
 						     "Key %s/%s/%d "
 						     "missing or inactive "
@@ -7005,7 +7012,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		 */
 		found = false;
 		for (i = 0; i < nkeys; i++) {
-			if (rrsig.algorithm == dst_key_alg(keys[i]) &&
+			if (algorithm == dst_key_alg(keys[i]) &&
 			    rrsig.keyid == dst_key_id(keys[i]))
 			{
 				found = true;
@@ -7618,13 +7625,16 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		INSIST(result == ISC_R_SUCCESS);
-		if (rrsig.algorithm == dst_key_alg(key) &&
+		dst_algorithm_t algorithm;
+		algorithm = dst_algorithm_fromdata(
+			rrsig.algorithm, rrsig.signature, rrsig.siglen);
+		if (algorithm == dst_key_alg(key) &&
 		    rrsig.keyid == dst_key_id(key))
 		{
 			dns_rdataset_disassociate(&rdataset);
 			return true;
 		}
-		if (rrsig.algorithm == dst_key_alg(key)) {
+		if (algorithm == dst_key_alg(key)) {
 			count++;
 		}
 	}
@@ -9677,7 +9687,8 @@ zone_sign(dns_zone_t *zone) {
 				/*
 				 * Find the key we want to remove.
 				 */
-				if (ALG(zone_keys[i]) == signing->algorithm &&
+				if (DNSALG(zone_keys[i]) ==
+					    signing->algorithm &&
 				    dst_key_id(zone_keys[i]) == signing->keyid)
 				{
 					dst_key_free(&zone_keys[i]);
@@ -9752,7 +9763,7 @@ zone_sign(dns_zone_t *zone) {
 			 * When adding look for the specific key.
 			 */
 			if (!signing->deleteit &&
-			    (dst_key_alg(zone_keys[i]) != signing->algorithm ||
+			    (DNSALG(zone_keys[i]) != signing->algorithm ||
 			     dst_key_id(zone_keys[i]) != signing->keyid))
 			{
 				continue;
@@ -9763,7 +9774,7 @@ zone_sign(dns_zone_t *zone) {
 			 * with the algorithm that was being removed.
 			 */
 			if (signing->deleteit &&
-			    ALG(zone_keys[i]) != signing->algorithm)
+			    DNSALG(zone_keys[i]) != signing->algorithm)
 			{
 				continue;
 			}
@@ -10288,6 +10299,7 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 	unsigned char key_buf[4096];
 	isc_buffer_t keyb;
 	bool answer = false;
+	dst_algorithm_t algorithm;
 
 	REQUIRE(kfetch != NULL && keydata != NULL);
 	REQUIRE(dns_rdataset_isassociated(&kfetch->dnskeysigset));
@@ -10315,7 +10327,9 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 		result = dns_rdata_tostruct(&sigrr, &sig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		if (dst_key_alg(dstkey) == sig.algorithm &&
+		algorithm = dst_algorithm_fromdata(sig.algorithm, sig.signature,
+						   sig.siglen);
+		if (dst_key_alg(dstkey) == algorithm &&
 		    dst_key_rid(dstkey) == sig.keyid)
 		{
 			result = dns_dnssec_verify(keyname, &kfetch->dnskeyset,
@@ -16440,7 +16454,8 @@ cds_inuse(dns_zone_t *zone, dns_rdata_t *rdata, dns_dnsseckeylist_t *keylist,
 		unsigned char cdsbuf[DNS_DS_BUFFERSIZE];
 
 		if (dst_key_id(k->key) != cds.key_tag ||
-		    dst_key_alg(k->key) != cds.algorithm)
+		    dst_algorithm_tosecalg(dst_key_alg(k->key)) !=
+			    cds.algorithm)
 		{
 			continue;
 		}
@@ -20609,7 +20624,9 @@ failure:
  * are any signatures using that algorithm.
  */
 static bool
-signed_with_alg(dns_rdataset_t *rdataset, dns_secalg_t alg) {
+signed_with_alg(dns_rdataset_t *rdataset, dst_algorithm_t alg) {
+	dst_algorithm_t sigalg;
+
 	REQUIRE(rdataset == NULL || rdataset->type == dns_rdatatype_rrsig);
 	if (rdataset == NULL || !dns_rdataset_isassociated(rdataset)) {
 		return false;
@@ -20621,7 +20638,9 @@ signed_with_alg(dns_rdataset_t *rdataset, dns_secalg_t alg) {
 
 		dns_rdataset_current(rdataset, &rdata);
 		dns_rdata_tostruct(&rdata, &rrsig, NULL);
-		if (rrsig.algorithm == alg) {
+		sigalg = dst_algorithm_fromdata(rrsig.algorithm,
+						rrsig.signature, rrsig.siglen);
+		if (sigalg == alg) {
 			return true;
 		}
 	}
@@ -20967,7 +20986,9 @@ checkds_done(void *arg) {
 			if (dst_key_id(key->key) != ds.key_tag) {
 				continue;
 			}
-			if (dst_key_alg(key->key) != ds.algorithm) {
+			if (dst_algorithm_tosecalg(dst_key_alg(key->key)) !=
+			    ds.algorithm)
+			{
 				continue;
 			}
 			/* Derive DS from DNSKEY, see if the rdata is equal. */
