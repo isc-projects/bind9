@@ -212,6 +212,10 @@ private_type_record() {
   _algorithm=$2
   _keyfile=$3
   _secalg=$2
+  case $_secalg in
+    256) _secalg=254 ;; # RSASHA256OID
+    257) _secalg=254 ;; # RSASHA512OID
+  esac
 
   _id=$(keyfile_to_key_id "$_keyfile")
 

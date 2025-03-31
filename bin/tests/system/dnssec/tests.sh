@@ -3481,7 +3481,7 @@ status=$((status + ret))
 echo_i "check that 'dnssec-keygen -S' works for all supported algorithms ($n)"
 ret=0
 alg=1
-until test $alg -eq 256; do
+until test $alg -eq 258; do
   zone="keygen-$alg."
   case $alg in
     2) # Diffie Helman
@@ -3498,10 +3498,20 @@ until test $alg -eq 256; do
     15 | 16)
       key1=$($KEYGEN -a "$alg" "$zone" 2>"keygen-$alg.err" || true)
       ;;
+    256)
+      key1=$($KEYGEN -a "RSASHA256OID" "$zone" 2>"keygen-$alg.err" || true)
+      ;;
+    257)
+      key1=$($KEYGEN -a "RSASHA512OID" "$zone" 2>"keygen-$alg.err" || true)
+      ;;
     *)
       key1=$($KEYGEN -a "$alg" "$zone" 2>"keygen-$alg.err" || true)
       ;;
   esac
+  if grep "unknown algorithm" "keygen-$alg.err" >/dev/null; then
+    alg=$((alg + 1))
+    continue
+  fi
   if grep "unsupported algorithm" "keygen-$alg.err" >/dev/null; then
     alg=$((alg + 1))
     continue

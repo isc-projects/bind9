@@ -116,7 +116,9 @@ typedef enum dst_algorithm {
 	/*
 	 * Put PRIVATE DNS and PRIVATE OID identifiers here.
 	 */
-	DST_MAX_ALGS = 256,
+	DST_ALG_RSASHA256PRIVATEOID = 256, /* 1.2.840.113549.1.1.11 */
+	DST_ALG_RSASHA512PRIVATEOID = 257, /* 1.2.840.113549.1.1.13 */
+	DST_MAX_ALGS = 258,
 } dst_algorithm_t;
 
 /*% A buffer of this size is large enough to hold any key */

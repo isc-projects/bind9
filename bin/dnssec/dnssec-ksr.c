@@ -356,6 +356,8 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 		FALLTHROUGH;
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA256PRIVATEOID:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		if (ksr->size != 0 &&
 		    (ksr->size < min_rsa || ksr->size > MAX_RSA))
 		{

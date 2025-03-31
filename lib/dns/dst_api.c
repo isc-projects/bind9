@@ -140,6 +140,14 @@ static const char *keystates[KEYSTATES_NVALUES] = {
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS] = { 0 };
 
+/* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
+static unsigned char oid_rsasha256[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
+					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b };
+
+/* length byte + 1.2.840.113549.1.1.13 BER encoded RFC 4055 */
+static unsigned char oid_rsasha512[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
+					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0d };
+
 void
 gss_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
@@ -215,6 +223,18 @@ dst__lib_initialize(void) {
 #if HAVE_GSSAPI
 	dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]);
 #endif /* HAVE_GSSAPI */
+	/*
+	 * RSASHA256 using assigned OID 1.2.840.113549.1.1.11 as
+	 * a private OID example.
+	 */
+	dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA256PRIVATEOID],
+			     DST_ALG_RSASHA256PRIVATEOID);
+	/*
+	 * RSASHA512 using assigned OID 1.2.840.113549.1.1.13 as
+	 * a private OID example.
+	 */
+	dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512PRIVATEOID],
+			     DST_ALG_RSASHA512PRIVATEOID);
 }
 
 void
@@ -1310,6 +1330,12 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
 		*n = (key->key_size + 7) / 8;
+		break;
+	case DST_ALG_RSASHA256PRIVATEOID:
+		*n = (key->key_size + 7) / 8 + sizeof(oid_rsasha256);
+		break;
+	case DST_ALG_RSASHA512PRIVATEOID:
+		*n = (key->key_size + 7) / 8 + sizeof(oid_rsasha512);
 		break;
 	case DST_ALG_ECDSA256:
 		*n = DNS_SIG_ECDSA256SIZE;
@@ -2664,7 +2690,10 @@ dst_hmac_algorithm_totext(dst_algorithm_t alg) {
 
 dns_secalg_t
 dst_algorithm_tosecalg(dst_algorithm_t dst_alg) {
-	static dns_secalg_t dns_alg[DST_MAX_ALGS] = { 0 };
+	static dns_secalg_t dns_alg[DST_MAX_ALGS] = {
+		[DST_ALG_RSASHA256PRIVATEOID] = DNS_KEYALG_PRIVATEOID,
+		[DST_ALG_RSASHA512PRIVATEOID] = DNS_KEYALG_PRIVATEOID,
+	};
 
 	if (dst_alg < 256) {
 		return dst_alg;
@@ -2703,8 +2732,19 @@ dst_algorithm_fromprivateoid(isc_buffer_t *buffer) {
 	 * length byte followed by the OID of that length.
 	 */
 	if (r.length > 0 && ((unsigned int)r.base[0] + 1) <= r.length) {
-		return 0;
+		if (r.base[0] + 1 == sizeof(oid_rsasha256) &&
+		    memcmp(oid_rsasha256, r.base, sizeof(oid_rsasha256)) == 0)
+		{
+			return DST_ALG_RSASHA256PRIVATEOID;
+		}
+
+		if (r.base[0] + 1 == sizeof(oid_rsasha512) &&
+		    memcmp(oid_rsasha512, r.base, sizeof(oid_rsasha512)) == 0)
+		{
+			return DST_ALG_RSASHA512PRIVATEOID;
+		}
 	}
+
 	return 0;
 }
 

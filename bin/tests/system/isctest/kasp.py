@@ -392,6 +392,10 @@ class Key:
 
     def get_dnsalg(self) -> int:
         alg = int(self.get_metadata("Algorithm"))
+        if alg == isctest.vars.algorithms.RSASHA256OID.dst:
+            return isctest.vars.algorithms.RSASHA256OID.number
+        if alg == isctest.vars.algorithms.RSASHA512OID.dst:
+            return isctest.vars.algorithms.RSASHA512OID.number
         return alg
 
     def ttl(self) -> int:

@@ -260,6 +260,8 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			case DST_ALG_NSEC3RSASHA1:
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
+			case DST_ALG_RSASHA256PRIVATEOID:
+			case DST_ALG_RSASHA512PRIVATEOID:
 				if (isc_crypto_fips_mode()) {
 					min = 2048;
 				} else {

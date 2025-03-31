@@ -125,7 +125,9 @@
 /*
  * PRIVATEOID subtypes we support.
  */
-#define PRIVATEOIDS /* currently empty */
+#define PRIVATEOIDS                                         \
+	{ DST_ALG_RSASHA256PRIVATEOID, "RSASHA256OID", 0 }, \
+		{ DST_ALG_RSASHA512PRIVATEOID, "RSASHA512OID", 0 },
 
 /* RFC2535 section 7.1 */
 

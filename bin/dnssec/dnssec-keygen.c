@@ -286,6 +286,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			case DST_ALG_NSEC3RSASHA1:
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
+			case DST_ALG_RSASHA256PRIVATEOID:
+			case DST_ALG_RSASHA512PRIVATEOID:
 			case DST_ALG_ECDSA256:
 			case DST_ALG_ECDSA384:
 			case DST_ALG_ED25519:
@@ -309,6 +311,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 				FALLTHROUGH;
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
+			case DST_ALG_RSASHA256PRIVATEOID:
+			case DST_ALG_RSASHA512PRIVATEOID:
 				ctx->size = 2048;
 				if (verbose > 0) {
 					fprintf(stderr,
@@ -462,6 +466,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		FALLTHROUGH;
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA256PRIVATEOID:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		if (ctx->size != 0 &&
 		    (ctx->size < min_rsa || ctx->size > MAX_RSA))
 		{
