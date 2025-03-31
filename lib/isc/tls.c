@@ -1807,3 +1807,26 @@ isc_tlsctx_set_random_session_id_context(isc_tlsctx_t *ctx) {
 	RUNTIME_CHECK(
 		SSL_CTX_set_session_id_context(ctx, session_id_ctx, len) == 1);
 }
+
+bool
+isc_tls_valid_sni_hostname(const char *hostname) {
+	struct sockaddr_in sa_v4 = { 0 };
+	struct sockaddr_in6 sa_v6 = { 0 };
+	int ret = 0;
+
+	if (hostname == NULL) {
+		return false;
+	}
+
+	ret = inet_pton(AF_INET, hostname, &sa_v4.sin_addr);
+	if (ret == 1) {
+		return false;
+	}
+
+	ret = inet_pton(AF_INET6, hostname, &sa_v6.sin6_addr);
+	if (ret == 1) {
+		return false;
+	}
+
+	return true;
+}

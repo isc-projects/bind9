@@ -2793,8 +2793,19 @@ _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 
 static inline const char *
 get_tls_sni_hostname(dig_query_t *query) {
-	return query->lookup->tls_hostname_set ? query->lookup->tls_hostname
-					       : query->userarg;
+	const char *hostname = query->lookup->tls_hostname_set
+				       ? query->lookup->tls_hostname
+				       : query->userarg;
+
+	if (query->lookup->tls_hostname_set) {
+		return query->lookup->tls_hostname;
+	}
+
+	if (isc_tls_valid_sni_hostname(hostname)) {
+		return hostname;
+	}
+
+	return NULL;
 }
 
 static isc_tlsctx_t *
