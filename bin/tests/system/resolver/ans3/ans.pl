@@ -74,6 +74,10 @@ sub handleQuery {
 		$packet->push("answer", new Net::DNS::RR($qname . " 300 A 10.53.0.3"));
 	} elsif ($qname eq "nodata.example.net") {
 		# Do not add a SOA RRset.
+	} elsif ($qname eq "noresponse.example.net") {
+		# Do not response.
+		print "RESPONSE:\n";
+		return "";
 	} elsif ($qname eq "nxdomain.example.net") {
 		# Do not add a SOA RRset.
 		$packet->header->rcode(NXDOMAIN);
@@ -185,8 +189,12 @@ for (;;) {
 			print "TCP request\n";
 			my $result = handleQuery($buf);
 			$len = length($result);
-			$conn->syswrite(pack("n", $len), 2);
-			$n = $conn->syswrite($result, $len);
+			if ($len != 0) {
+				$conn->syswrite(pack("n", $len), 2);
+				$n = $conn->syswrite($result, $len);
+			} else {
+				$n = 0;
+			}
 			print "    Sent: $n chars via TCP\n";
 		}
 		$conn->close;
