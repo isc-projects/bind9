@@ -14,26 +14,15 @@
 #pragma once
 
 /*
- * A little wrapper around readline(), add_history() and free() to make using
+ * A little wrapper around readline(), and add_history() to make using
  * the readline code simpler.
  */
 
-#if defined(HAVE_READLINE_LIBEDIT)
-#include <editline/readline.h>
-#elif defined(HAVE_READLINE_EDITLINE)
-#include <editline.h>
-#elif defined(HAVE_READLINE_READLINE)
-/* Prevent deprecated functions being declared. */
-#define _FUNCTION_DEF 1
-/* Ensure rl_message() gets prototype. */
-#define USE_VARARGS   1
-#define PREFER_STDARG 1
-#include <readline/history.h>
-#include <readline/readline.h>
-#endif
+#ifdef HAVE_LIBEDIT
 
-#if !defined(HAVE_READLINE_LIBEDIT) && !defined(HAVE_READLINE_EDITLINE) && \
-	!defined(HAVE_READLINE_READLINE)
+#include <editline/readline.h>
+
+#else /* HAVE_LIBEDIT */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,4 +44,4 @@ readline(const char *prompt) {
 
 #define add_history(line)
 
-#endif
+#endif /* HAVE_LIBEDIT */

@@ -40,6 +40,7 @@
 #include <isc/parseint.h>
 #include <isc/portset.h>
 #include <isc/random.h>
+#include <isc/readline.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
@@ -92,8 +93,6 @@
 #endif
 
 #endif /* HAVE_GSSAPI */
-
-#include "../dig/readline.h"
 
 #define MAXCMD	 (128 * 1024)
 #define MAXWIRE	 (64 * 1024)

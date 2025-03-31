@@ -139,12 +139,10 @@ To support internationalized domain names in :iscman:`dig`, ``libidn2``
 library is installed in a nonstandard location, specify the prefix using
 ``--with-libidn2=/prefix`` or adjust ``PKG_CONFIG_PATH``.
 
-For line editing in :iscman:`nsupdate` and :iscman:`nslookup`, either the
-``readline`` (https://tiswww.case.edu/php/chet/readline/rltop.html) or
+For line editing in :iscman:`nsupdate` and :iscman:`nslookup`,
 the ``libedit`` library (https://www.thrysoee.dk/editline/) must be
 installed. If these are installed at a nonstandard location, adjust
-``PKG_CONFIG_PATH``. ``readline`` is used by default, and ``libedit``
-can be explicitly requested using ``--with-readline=libedit``.
+``PKG_CONFIG_PATH``.
 
 On some platforms it is necessary to explicitly request large file
 support to handle files bigger than 2GB. This can be done by using

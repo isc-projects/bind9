@@ -36,11 +36,8 @@ variables:
 
   AM_COLOR_TESTS: always
 
-  WITHOUT_READLINE: "--without-readline"
-  WITH_READLINE: "--with-readline"
-  WITH_READLINE_EDITLINE: "--with-readline=editline"
-  WITH_READLINE_LIBEDIT: "--with-readline=libedit"
-  WITH_READLINE_READLINE: "--with-readline=readline"
+  WITHOUT_LIBEDIT: "--without-libedit"
+  WITH_LIBEDIT: "--with-libedit"
 
   INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
 
@@ -153,7 +150,7 @@ stages:
     GIT_CLONE_PATH: "/home/ec2-user/builds/${CI_PROJECT_PATH}/"
     # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
     # incompatibility; see https://bugs.freebsd.org/275241.
-    EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE} --with-gssapi=/usr/local/bin/krb5-config"
+    EXTRA_CONFIGURE: "${WITH_LIBEDIT} --with-gssapi=/usr/local/bin/krb5-config"
 
 # Autoscaling GitLab Runner on AWS EC2 (FreeBSD 13)
 
@@ -313,18 +310,10 @@ stages:
     - find -name 'tsan.*' -exec "$PYTHON" util/parse_tsan.py {} \;
 
 .check_readline_setup: &check_readline_setup
-    - if [[ -n "${WITHOUT_READLINE}" ]]; then
-        ! grep "^#define HAVE_READLINE" config.h;
-      elif [[ -n "${WITH_READLINE}" ]]; then
-        grep -e "^#define HAVE_READLINE_READLINE"
-             -e "^#define HAVE_READLINE_LIBEDIT"
-             -e "^#define HAVE_READLINE_EDITLINE" config.h;
-      elif [[ -n "${WITH_READLINE_EDITLINE}" ]]; then
-        grep "^#define HAVE_READLINE_EDITLINE" config.h;
-      elif [[ -n "${WITH_READLINE_LIBEDIT}" ]]; then
-        grep "^#define HAVE_READLINE_LIBEDIT" config.h;
-      elif [[ -n "${WITH_READLINE_READLINE}" ]]; then
-        grep "^#define HAVE_READLINE_READLINE" config.h;
+    - if [[ -n "${WITHOUT_LIBEDIT}" ]]; then
+        ! grep "^#define HAVE_LIBEDIT" config.h;
+      elif [[ -n "${WITH_LIBEDIT}" ]]; then
+        grep -e "^#define HAVE_LIBEDIT" config.h;
       fi
 
 # Unpack release tarball and continue work in the extracted directory.
@@ -831,7 +820,7 @@ gcc:alpine3.21:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "${WITHOUT_READLINE}"
+    EXTRA_CONFIGURE: "${WITHOUT_LIBEDIT}"
   <<: *alpine_3_21_amd64_image
   <<: *build_job
 
@@ -971,7 +960,7 @@ gcc:bookworm:amd64:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
     # Tracing needs to be disabled otherwise gcovr fails
-    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_LIBEDIT} --disable-tracing"
+    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_LIBEDIT} --disable-tracing"
     RUN_MAKE_INSTALL: 1
   <<: *debian_bookworm_amd64_image
   <<: *build_job
@@ -1028,7 +1017,7 @@ gcc:bookworm:amd64cross32:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
     CROSS_COMPILATION: 1
-    EXTRA_CONFIGURE: "--build=x86_64-linux-gnu --host=i686-linux-gnu --with-libidn2 ${WITH_READLINE_LIBEDIT}"
+    EXTRA_CONFIGURE: "--build=x86_64-linux-gnu --host=i686-linux-gnu --with-libidn2 ${WITH_LIBEDIT}"
   <<: *debian_bookworm_amd64cross32_image
   <<: *build_job
 
@@ -1099,7 +1088,7 @@ gcc:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O3"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb ${WITH_READLINE}"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb ${WITH_LIBEDIT}"
     RUN_MAKE_INSTALL: 1
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -1198,7 +1187,7 @@ gcc:tumbleweed:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
-    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_READLINE}"
+    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_LIBEDIT}"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
 

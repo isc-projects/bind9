@@ -886,45 +886,26 @@ AS_IF([test "$enable_tcp_fastopen" = "yes"],
 AC_CHECK_FUNCS([strlcpy strlcat strnstr])
 
 #
-# Check for readline support
+# Check for libedit support
 #
+# [pairwise: --with-libedit=auto, --with-libedit=yes, --without-libedit]
+AC_ARG_WITH([libedit],
+	    [AS_HELP_STRING([--with-libedit=auto|yes|no],
+			    [specify libedit library [default auto]])],
+	    [], [with_libedit="auto"])
 
-# editline is not included in pairwise testing as the library
-# is not present in the relevant Docker image.
-#
-# GNU Readline is not included in pairwise testing as the library
-# in the relevant Docker image does not support pkg-config.
-#
-# [pairwise: --with-readline=auto, --with-readline=yes, --with-readline=libedit, --without-readline]
-AC_ARG_WITH([readline],
-	    [AS_HELP_STRING([--with-readline=yes|no|libedit|readline],
-			    [specify readline library [default auto]])],
-	    [], [with_readline="auto"])
+AS_CASE([$with_libedit],
+	[no],   [],
+	[auto], [PKG_CHECK_MODULES([LIBEDIT], [libedit],
+				   [AC_DEFINE([HAVE_LIBEDIT], [1], [Build with libedit support])],
+				   [:])],
 
-AS_CASE([$with_readline],
-	[no],[],
-	[auto|yes],
-	[PKG_CHECK_MODULES([READLINE], [libedit],
-			   [AC_DEFINE([HAVE_READLINE_LIBEDIT], [1], [Build with libedit support])],
-			   [PKG_CHECK_MODULES([READLINE], [libeditline],
-					      [AC_DEFINE([HAVE_READLINE_EDITLINE], [1], [Build with editline support.])],
-					      [PKG_CHECK_MODULES([READLINE], [readline],
-								 [AC_DEFINE([HAVE_READLINE_READLINE], [1], [Build with readline support.])],
-								 [AS_IF([test "$with_readline" = "yes"],
-									[AC_MSG_ERROR([readline support requested, but none of the libraries have been found.])])])])])],
-	[libedit],
-	[PKG_CHECK_MODULES([READLINE], [libedit],
-			   [AC_DEFINE([HAVE_READLINE_LIBEDIT], [1], [Build with libedit support])])],
-	[editline],
-	[PKG_CHECK_MODULES([READLINE], [libeditline],
-			   [AC_DEFINE([HAVE_READLINE_EDITLINE], [1], [Build with editline support])])],
-	[readline],
-	[PKG_CHECK_MODULES([READLINE], [readline],
-			   [AC_DEFINE([HAVE_READLINE_READLINE], [1], [Build with readline support])])],
-	[AC_MSG_ERROR([Unknown readline '$with_readline' library requested.])])
-AM_CONDITIONAL([HAVE_READLINE], [test -n "$READLINE_LIBS"])
-AC_SUBST([READLINE_CFLAGS])
-AC_SUBST([READLINE_LIBS])
+	[yes],  [PKG_CHECK_MODULES([LIBEDIT], [libedit],
+				   [AC_DEFINE([HAVE_LIBEDIT], [1], [Build with libedit support])])],
+	[AC_MSG_ERROR([Specifying libedit installation path is not supported, adjust PKG_CONFIG_PATH instead])])
+AM_CONDITIONAL([HAVE_LIBEDIT], [test -n "$LIBEDIT_LIBS"])
+AC_SUBST([LIBEDIT_CFLAGS])
+AC_SUBST([LIBEDIT_LIBS])
 
 #
 # Security Stuff
