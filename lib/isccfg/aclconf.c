@@ -70,16 +70,14 @@ cfg_aclconfctx_attach(cfg_aclconfctx_t *src, cfg_aclconfctx_t **dest) {
 void
 cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
 	REQUIRE(actxp != NULL && *actxp != NULL);
+
 	cfg_aclconfctx_t *actx = *actxp;
 	*actxp = NULL;
 
 	if (isc_refcount_decrement(&actx->references) == 1) {
-		dns_acl_t *dacl, *next;
 		isc_refcount_destroy(&actx->references);
-		for (dacl = ISC_LIST_HEAD(actx->named_acl_cache); dacl != NULL;
-		     dacl = next)
+		ISC_LIST_FOREACH_SAFE (actx->named_acl_cache, dacl, nextincache)
 		{
-			next = ISC_LIST_NEXT(dacl, nextincache);
 			ISC_LIST_UNLINK(actx->named_acl_cache, dacl,
 					nextincache);
 			dns_acl_detach(&dacl);
@@ -122,14 +120,11 @@ convert_named_acl(const cfg_obj_t *nameobj, const cfg_obj_t *cctx,
 		  unsigned int nest_level, dns_acl_t **target) {
 	isc_result_t result;
 	const cfg_obj_t *cacl = NULL;
-	dns_acl_t *dacl;
-	dns_acl_t loop;
+	dns_acl_t loop, *acl = NULL;
 	const char *aclname = cfg_obj_asstring(nameobj);
 
 	/* Look for an already-converted version. */
-	for (dacl = ISC_LIST_HEAD(ctx->named_acl_cache); dacl != NULL;
-	     dacl = ISC_LIST_NEXT(dacl, nextincache))
-	{
+	ISC_LIST_FOREACH (ctx->named_acl_cache, dacl, nextincache) {
 		if (strcasecmp(aclname, dacl->name) == 0) {
 			if (ISC_MAGIC_VALID(dacl, LOOP_MAGIC)) {
 				cfg_obj_log(nameobj, ISC_LOG_ERROR,
@@ -155,16 +150,16 @@ convert_named_acl(const cfg_obj_t *nameobj, const cfg_obj_t *cctx,
 	loop.name = UNCONST(aclname);
 	loop.magic = LOOP_MAGIC;
 	ISC_LIST_APPEND(ctx->named_acl_cache, &loop, nextincache);
-	result = cfg_acl_fromconfig(cacl, cctx, ctx, mctx, nest_level, &dacl);
+	result = cfg_acl_fromconfig(cacl, cctx, ctx, mctx, nest_level, &acl);
 	ISC_LIST_UNLINK(ctx->named_acl_cache, &loop, nextincache);
 	loop.magic = 0;
 	loop.name = NULL;
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	dacl->name = isc_mem_strdup(dacl->mctx, aclname);
-	ISC_LIST_APPEND(ctx->named_acl_cache, dacl, nextincache);
-	dns_acl_attach(dacl, target);
+	acl->name = isc_mem_strdup(acl->mctx, aclname);
+	ISC_LIST_APPEND(ctx->named_acl_cache, acl, nextincache);
+	dns_acl_attach(acl, target);
 	return ISC_R_SUCCESS;
 }
 

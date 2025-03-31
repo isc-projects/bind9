@@ -956,10 +956,9 @@ addserver(dns_client_t *client) {
 	CHECK(dns_client_setservers(client, dns_rdataclass_in, name, &servers));
 
 cleanup:
-	while (!ISC_LIST_EMPTY(servers)) {
-		sa = ISC_LIST_HEAD(servers);
-		ISC_LIST_UNLINK(servers, sa, link);
-		isc_mem_put(mctx, sa, sizeof(*sa));
+	ISC_LIST_FOREACH_SAFE (servers, s, link) {
+		ISC_LIST_UNLINK(servers, s, link);
+		isc_mem_put(mctx, s, sizeof(*s));
 	}
 
 	if (result != ISC_R_SUCCESS) {
@@ -974,8 +973,7 @@ static isc_result_t
 findserver(dns_client_t *client) {
 	isc_result_t result;
 	irs_resconf_t *resconf = NULL;
-	isc_sockaddrlist_t *nameservers;
-	isc_sockaddr_t *sa = NULL, *next = NULL;
+	isc_sockaddrlist_t *nameservers = NULL;
 
 	result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
@@ -986,9 +984,7 @@ findserver(dns_client_t *client) {
 
 	/* Get nameservers from resolv.conf */
 	nameservers = irs_resconf_getnameservers(resconf);
-	for (sa = ISC_LIST_HEAD(*nameservers); sa != NULL; sa = next) {
-		next = ISC_LIST_NEXT(sa, link);
-
+	ISC_LIST_FOREACH_SAFE (*nameservers, sa, link) {
 		/* Set destination port */
 		if (sa->type.sa.sa_family == AF_INET && use_ipv4) {
 			sa->type.sin.sin_port = htons(destport);
@@ -1009,7 +1005,7 @@ findserver(dns_client_t *client) {
 		if (use_ipv4) {
 			struct in_addr localhost;
 			localhost.s_addr = htonl(INADDR_LOOPBACK);
-			sa = isc_mem_get(mctx, sizeof(*sa));
+			isc_sockaddr_t *sa = isc_mem_get(mctx, sizeof(*sa));
 			isc_sockaddr_fromin(sa, &localhost, destport);
 
 			ISC_LINK_INIT(sa, link);
@@ -1017,7 +1013,7 @@ findserver(dns_client_t *client) {
 		}
 
 		if (use_ipv6) {
-			sa = isc_mem_get(mctx, sizeof(*sa));
+			isc_sockaddr_t *sa = isc_mem_get(mctx, sizeof(*sa));
 			isc_sockaddr_fromin6(sa, &in6addr_loopback, destport);
 
 			ISC_LINK_INIT(sa, link);
@@ -1840,7 +1836,6 @@ static void
 resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 	   dns_namelist_t *namelist, isc_result_t result) {
 	char namestr[DNS_NAME_FORMATSIZE];
-	dns_rdataset_t *rdataset;
 
 	if (result != ISC_R_SUCCESS && !yaml) {
 		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
@@ -1855,11 +1850,8 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 		printf("records:\n");
 	}
 
-	dns_name_t *response_name;
 	ISC_LIST_FOREACH (*namelist, response_name, link) {
-		for (rdataset = ISC_LIST_HEAD(response_name->list);
-		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+		ISC_LIST_FOREACH (response_name->list, rdataset, link) {
 			printdata(rdataset, response_name);
 		}
 	}
@@ -1985,7 +1977,6 @@ recvresponse(void *arg) {
 	}
 
 	MSG_SECTION_FOREACH (response, DNS_SECTION_ANSWER, name) {
-		dns_rdataset_t *rdataset = NULL;
 		dns_rdatatype_t prevtype = 0;
 
 		ISC_LIST_FOREACH (name->list, rdataset, link) {

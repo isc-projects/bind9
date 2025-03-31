@@ -170,8 +170,7 @@ free_controlkey(controlkey_t *key, isc_mem_t *mctx) {
 
 static void
 free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx) {
-	while (!ISC_LIST_EMPTY(*keylist)) {
-		controlkey_t *key = ISC_LIST_HEAD(*keylist);
+	ISC_LIST_FOREACH_SAFE (*keylist, key, link) {
 		ISC_LIST_UNLINK(*keylist, key, link);
 		free_controlkey(key, mctx);
 	}
@@ -202,22 +201,13 @@ ISC_REFCOUNT_IMPL(controlconnection, conn_free);
 
 static void
 shutdown_listener(controllistener_t *listener) {
-	controlconnection_t *conn = NULL;
-	controlconnection_t *next = NULL;
-
 	/* Don't shutdown the same listener twice */
 	if (listener->shuttingdown) {
 		return;
 	}
 	listener->shuttingdown = true;
 
-	for (conn = ISC_LIST_HEAD(listener->connections); conn != NULL;
-	     conn = next)
-	{
-		/*
-		 * 'conn' is likely to be freed by the conn_shutdown() call.
-		 */
-		next = ISC_LIST_NEXT(conn, link);
+	ISC_LIST_FOREACH_SAFE (listener->connections, conn, link) {
 		conn_shutdown(conn);
 	}
 
@@ -433,7 +423,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		    void *arg) {
 	controlconnection_t *conn = (controlconnection_t *)arg;
 	controllistener_t *listener = conn->listener;
-	controlkey_t *key = NULL;
+	bool match = false;
 	isccc_time_t sent;
 	isccc_time_t exp;
 	uint32_t nonce;
@@ -442,9 +432,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		goto cleanup;
 	}
 
-	for (key = ISC_LIST_HEAD(listener->keys); key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-	{
+	ISC_LIST_FOREACH (listener->keys, key, link) {
 		isccc_region_t ccregion;
 
 		isccc_ccmsg_toregion(&conn->ccmsg, &ccregion);
@@ -457,13 +445,14 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		result = isccc_cc_fromwire(&ccregion, &conn->request, conn->alg,
 					   &conn->secret);
 		if (result == ISC_R_SUCCESS) {
+			match = true;
 			break;
 		}
 		isc_mem_put(listener->mctx, conn->secret.rstart,
 			    REGION_SIZE(conn->secret));
 	}
 
-	if (key == NULL) {
+	if (!match) {
 		result = ISCCC_R_BADAUTH;
 		goto cleanup;
 	}
@@ -658,16 +647,10 @@ control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 static void
 controls_shutdown(named_controls_t *controls) {
-	controllistener_t *listener = NULL;
-	controllistener_t *next = NULL;
-
-	for (listener = ISC_LIST_HEAD(controls->listeners); listener != NULL;
-	     listener = next)
-	{
+	ISC_LIST_FOREACH_SAFE (controls->listeners, listener, link) {
 		/*
 		 * As listeners shut down, they will call their callbacks.
 		 */
-		next = ISC_LIST_NEXT(listener, link);
 		shutdown_listener(listener);
 	}
 }
@@ -742,7 +725,6 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 static void
 register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	      controlkeylist_t *keyids, isc_mem_t *mctx, const char *socktext) {
-	controlkey_t *keyid = NULL, *next = NULL;
 	const cfg_obj_t *keydef = NULL;
 	char secret[1024];
 	isc_buffer_t b;
@@ -751,9 +733,7 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	/*
 	 * Find the keys corresponding to the keyids used by this listener.
 	 */
-	for (keyid = ISC_LIST_HEAD(*keyids); keyid != NULL; keyid = next) {
-		next = ISC_LIST_NEXT(keyid, link);
-
+	ISC_LIST_FOREACH_SAFE (*keyids, keyid, link) {
 		result = cfgkeylist_find(keylist, keyid->keyname, &keydef);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(control, ISC_LOG_WARNING,
@@ -940,10 +920,9 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 	controlkeylist_t keys;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	for (listener = ISC_LIST_HEAD(cp->listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link))
-	{
-		if (isc_sockaddr_equal(addr, &listener->address)) {
+	ISC_LIST_FOREACH (cp->listeners, l, link) {
+		if (isc_sockaddr_equal(addr, &l->address)) {
+			listener = l;
 			break;
 		}
 	}

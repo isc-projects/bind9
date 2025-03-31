@@ -280,7 +280,6 @@ ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep) {
 void
 ns_hooktable_free(isc_mem_t *mctx, void **tablep) {
 	ns_hooktable_t *table = NULL;
-	ns_hook_t *hook = NULL, *next = NULL;
 	int i = 0;
 
 	REQUIRE(tablep != NULL && *tablep != NULL);
@@ -289,10 +288,7 @@ ns_hooktable_free(isc_mem_t *mctx, void **tablep) {
 	*tablep = NULL;
 
 	for (i = 0; i < NS_HOOKPOINTS_COUNT; i++) {
-		for (hook = ISC_LIST_HEAD((*table)[i]); hook != NULL;
-		     hook = next)
-		{
-			next = ISC_LIST_NEXT(hook, link);
+		ISC_LIST_FOREACH_SAFE ((*table)[i], hook, link) {
 			ISC_LIST_UNLINK((*table)[i], hook, link);
 			if (hook->mctx != NULL) {
 				isc_mem_putanddetach(&hook->mctx, hook,
@@ -341,15 +337,13 @@ ns_plugins_create(isc_mem_t *mctx, ns_plugins_t **listp) {
 void
 ns_plugins_free(isc_mem_t *mctx, void **listp) {
 	ns_plugins_t *list = NULL;
-	ns_plugin_t *plugin = NULL, *next = NULL;
 
 	REQUIRE(listp != NULL && *listp != NULL);
 
 	list = *listp;
 	*listp = NULL;
 
-	for (plugin = ISC_LIST_HEAD(*list); plugin != NULL; plugin = next) {
-		next = ISC_LIST_NEXT(plugin, link);
+	ISC_LIST_FOREACH_SAFE (*list, plugin, link) {
 		ISC_LIST_UNLINK(*list, plugin, link);
 		unload_plugin(&plugin);
 	}

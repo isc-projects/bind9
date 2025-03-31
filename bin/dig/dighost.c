@@ -463,19 +463,14 @@ make_server(const char *servname, const char *userarg) {
  */
 static void
 get_server_list(irs_resconf_t *resconf) {
-	isc_sockaddrlist_t *servers;
-	isc_sockaddr_t *sa;
-	dig_server_t *newsrv;
-	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255") +
-		 sizeof("%4000000000")];
 	debug("get_server_list()");
-	servers = irs_resconf_getnameservers(resconf);
-	for (sa = ISC_LIST_HEAD(*servers); sa != NULL;
-	     sa = ISC_LIST_NEXT(sa, link))
-	{
+
+	isc_sockaddrlist_t *servers = irs_resconf_getnameservers(resconf);
+	ISC_LIST_FOREACH (*servers, sa, link) {
 		int pf = isc_sockaddr_pf(sa);
-		isc_netaddr_t na;
+		char tmp[ISC_NETADDR_FORMATSIZE];
 		isc_result_t result;
+		isc_netaddr_t na;
 		isc_buffer_t b;
 
 		if (pf == AF_INET && !have_ipv4) {
@@ -497,7 +492,8 @@ get_server_list(irs_resconf_t *resconf) {
 			snprintf(buf, sizeof(buf), "%%%u", na.zone);
 			strlcat(tmp, buf, sizeof(tmp));
 		}
-		newsrv = make_server(tmp, tmp);
+
+		dig_server_t *newsrv = make_server(tmp, tmp);
 		ISC_LINK_INIT(newsrv, link);
 		ISC_LIST_APPEND(server_list, newsrv, link);
 	}
@@ -505,15 +501,10 @@ get_server_list(irs_resconf_t *resconf) {
 
 void
 flush_server_list(void) {
-	dig_server_t *s, *ps;
-
 	debug("flush_server_list()");
-	s = ISC_LIST_HEAD(server_list);
-	while (s != NULL) {
-		ps = s;
-		s = ISC_LIST_NEXT(s, link);
-		ISC_LIST_DEQUEUE(server_list, ps, link);
-		isc_mem_free(mctx, ps);
+	ISC_LIST_FOREACH_SAFE (server_list, s, link) {
+		ISC_LIST_DEQUEUE(server_list, s, link);
+		isc_mem_free(mctx, s);
 	}
 }
 
@@ -557,15 +548,12 @@ set_nameserver(char *opt) {
  */
 void
 clone_server_list(dig_serverlist_t src, dig_serverlist_t *dest) {
-	dig_server_t *srv, *newsrv;
-
 	debug("clone_server_list()");
-	srv = ISC_LIST_HEAD(src);
-	while (srv != NULL) {
-		newsrv = make_server(srv->servername, srv->userarg);
+	ISC_LIST_FOREACH_SAFE (src, srv, link) {
+		dig_server_t *newsrv = make_server(srv->servername,
+						   srv->userarg);
 		ISC_LINK_INIT(newsrv, link);
 		ISC_LIST_ENQUEUE(*dest, newsrv, link);
-		srv = ISC_LIST_NEXT(srv, link);
 	}
 }
 
@@ -1212,8 +1200,7 @@ make_searchlist_entry(char *domain) {
 
 static void
 clear_searchlist(void) {
-	dig_searchlist_t *search;
-	while ((search = ISC_LIST_HEAD(search_list)) != NULL) {
+	ISC_LIST_FOREACH_SAFE (search_list, search, link) {
 		ISC_LIST_UNLINK(search_list, search, link);
 		isc_mem_free(mctx, search);
 	}
@@ -1221,18 +1208,12 @@ clear_searchlist(void) {
 
 static void
 create_search_list(irs_resconf_t *resconf) {
-	irs_resconf_searchlist_t *list;
-	irs_resconf_search_t *entry;
-	dig_searchlist_t *search;
-
 	debug("create_search_list()");
 	clear_searchlist();
 
-	list = irs_resconf_getsearchlist(resconf);
-	for (entry = ISC_LIST_HEAD(*list); entry != NULL;
-	     entry = ISC_LIST_NEXT(entry, link))
-	{
-		search = make_searchlist_entry(entry->domain);
+	irs_resconf_searchlist_t *list = irs_resconf_getsearchlist(resconf);
+	ISC_LIST_FOREACH (*list, entry, link) {
+		dig_searchlist_t *search = make_searchlist_entry(entry->domain);
 		ISC_LIST_APPEND(search_list, search, link);
 	}
 }
@@ -1506,17 +1487,11 @@ add_question(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
  */
 static void
 check_if_done(void) {
-	dig_lookup_t *lookup = NULL;
-
 	debug("check_if_done()");
 	debug("list %s", ISC_LIST_EMPTY(lookup_list) ? "empty" : "full");
 
-	lookup = ISC_LIST_HEAD(lookup_list);
-	while (lookup != NULL) {
-		dig_lookup_t *next = NULL;
+	ISC_LIST_FOREACH (lookup_list, lookup, link) {
 		debug("pending lookup %p", lookup);
-		next = ISC_LIST_NEXT(lookup, link);
-		lookup = next;
 	}
 
 	if (ISC_LIST_EMPTY(lookup_list) && current_lookup == NULL &&
@@ -1539,18 +1514,15 @@ check_if_done(void) {
  */
 static bool
 check_if_queries_done(dig_lookup_t *l, dig_query_t *except_q) {
-	dig_query_t *q = ISC_LIST_HEAD(l->q);
-
 	debug("check_if_queries_done(%p)", l);
 
-	while (q != NULL) {
+	ISC_LIST_FOREACH (l->q, q, link) {
 		if (!q->started || isc_refcount_current(&q->references) > 1) {
 			if (!q->canceled && q != except_q) {
 				debug("there is a pending query %p", q);
 				return false;
 			}
 		}
-		q = ISC_LIST_NEXT(q, link);
 	}
 
 	return true;
@@ -1558,9 +1530,6 @@ check_if_queries_done(dig_lookup_t *l, dig_query_t *except_q) {
 
 static void
 _destroy_lookup(dig_lookup_t *lookup) {
-	dig_server_t *s;
-	void *ptr;
-
 	REQUIRE(lookup != NULL);
 	REQUIRE(ISC_LIST_EMPTY(lookup->q));
 
@@ -1568,14 +1537,10 @@ _destroy_lookup(dig_lookup_t *lookup) {
 
 	isc_refcount_destroy(&lookup->references);
 
-	s = ISC_LIST_HEAD(lookup->my_server_list);
-	while (s != NULL) {
+	ISC_LIST_FOREACH_SAFE (lookup->my_server_list, s, link) {
 		debug("freeing server %p belonging to %p", s, lookup);
-		ptr = s;
-		s = ISC_LIST_NEXT(s, link);
-		ISC_LIST_DEQUEUE(lookup->my_server_list, (dig_server_t *)ptr,
-				 link);
-		isc_mem_free(mctx, ptr);
+		ISC_LIST_DEQUEUE(lookup->my_server_list, s, link);
+		isc_mem_free(mctx, s);
 	}
 	if (lookup->sendmsg != NULL) {
 		dns_message_detach(&lookup->sendmsg);
@@ -2168,8 +2133,6 @@ bool
 setup_lookup(dig_lookup_t *lookup) {
 	isc_result_t result;
 	unsigned int len;
-	dig_server_t *serv;
-	dig_query_t *query;
 	isc_buffer_t b;
 	dns_compress_t cctx;
 	char store[MXNAME];
@@ -2644,10 +2607,9 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	lookup->pending = false;
 
-	for (serv = ISC_LIST_HEAD(lookup->my_server_list); serv != NULL;
-	     serv = ISC_LIST_NEXT(serv, link))
-	{
-		query = new_query(lookup, serv->servername, serv->userarg);
+	ISC_LIST_FOREACH (lookup->my_server_list, serv, link) {
+		dig_query_t *query = new_query(lookup, serv->servername,
+					       serv->userarg);
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
 	}
 
@@ -2754,13 +2716,9 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 static void
 _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
-	dig_query_t *query, *next;
-
 	debug("%s:%u:%s()", file, line, __func__);
-	query = ISC_LIST_HEAD(lookup->q);
-	while (query != NULL) {
+	ISC_LIST_FOREACH_SAFE (lookup->q, query, link) {
 		REQUIRE(DIG_VALID_QUERY(query));
-		next = ISC_LIST_NEXT(query, link);
 		ISC_LIST_DEQUEUE(lookup->q, query, link);
 		debug("canceling pending query %p, belonging to %p", query,
 		      query->lookup);
@@ -2771,7 +2729,6 @@ _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 			isc_nm_cancelread(query->readhandle);
 		}
 		query_detach(&query);
-		query = next;
 	}
 	lookup->pending = false;
 	lookup->retries = 0;
@@ -3696,7 +3653,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 static bool
 check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 		    dns_message_t *msg, isc_sockaddr_t *peer, int len) {
-	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	uint32_t ixfr_serial = lookup->ixfr_serial, serial;
@@ -4255,7 +4211,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	} else {
 		match = true;
 		MSG_SECTION_FOREACH (msg, DNS_SECTION_QUESTION, name) {
-			dns_rdataset_t *rdataset;
 			ISC_LIST_FOREACH (name->list, rdataset, link) {
 				if (l->rdtype != rdataset->type ||
 				    l->rdclass != rdataset->rdclass ||
@@ -4673,9 +4628,6 @@ run_loop(void *arg) {
  */
 void
 cancel_all(void) {
-	dig_lookup_t *l, *n;
-	dig_query_t *q, *nq;
-
 	debug("cancel_all()");
 
 	if (free_now) {
@@ -4685,8 +4637,7 @@ cancel_all(void) {
 	cancel_now = true;
 
 	while (current_lookup != NULL) {
-		for (q = ISC_LIST_HEAD(current_lookup->q); q != NULL; q = nq) {
-			nq = ISC_LIST_NEXT(q, link);
+		ISC_LIST_FOREACH_SAFE (current_lookup->q, q, link) {
 			debug("canceling pending query %p, belonging to %p", q,
 			      current_lookup);
 			q->canceled = true;
@@ -4705,12 +4656,9 @@ cancel_all(void) {
 			lookup_detach(&current_lookup);
 		}
 	}
-	l = ISC_LIST_HEAD(lookup_list);
-	while (l != NULL) {
-		n = ISC_LIST_NEXT(l, link);
+	ISC_LIST_FOREACH_SAFE (lookup_list, l, link) {
 		ISC_LIST_DEQUEUE(lookup_list, l, link);
 		lookup_detach(&l);
-		l = n;
 	}
 }
 

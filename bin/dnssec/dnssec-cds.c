@@ -209,8 +209,7 @@ freeset(dns_rdataset_t *rdataset) {
 
 static void
 freelist(dns_rdataset_t *rdataset) {
-	dns_rdatalist_t *rdlist;
-	dns_rdata_t *rdata;
+	dns_rdatalist_t *rdlist = NULL;
 
 	if (!dns_rdataset_isassociated(rdataset)) {
 		return;
@@ -218,9 +217,7 @@ freelist(dns_rdataset_t *rdataset) {
 
 	dns_rdatalist_fromrdataset(rdataset, &rdlist);
 
-	for (rdata = ISC_LIST_HEAD(rdlist->rdata); rdata != NULL;
-	     rdata = ISC_LIST_HEAD(rdlist->rdata))
-	{
+	ISC_LIST_FOREACH_SAFE (rdlist->rdata, rdata, link) {
 		ISC_LIST_UNLINK(rdlist->rdata, rdata, link);
 		isc_mem_put(mctx, rdata, sizeof(*rdata));
 	}

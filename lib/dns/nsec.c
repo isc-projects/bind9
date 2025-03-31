@@ -285,11 +285,7 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 		{
 			bool deleted = false;
 			if (diff != NULL) {
-				for (dns_difftuple_t *tuple =
-					     ISC_LIST_HEAD(diff->tuples);
-				     tuple != NULL;
-				     tuple = ISC_LIST_NEXT(tuple, link))
-				{
+				ISC_LIST_FOREACH (diff->tuples, tuple, link) {
 					if (tuple->rdata.type !=
 						    dns_rdatatype_dnskey ||
 					    tuple->op != DNS_DIFFOP_DEL)

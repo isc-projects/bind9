@@ -101,11 +101,7 @@ dns__db_shutdown(void) {
 
 static dns_dbimplementation_t *
 impfind(const char *name) {
-	dns_dbimplementation_t *imp;
-
-	for (imp = ISC_LIST_HEAD(implementations); imp != NULL;
-	     imp = ISC_LIST_NEXT(imp, link))
-	{
+	ISC_LIST_FOREACH (implementations, imp, link) {
 		if (strcasecmp(name, imp->name) == 0) {
 			return imp;
 		}

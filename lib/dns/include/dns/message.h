@@ -804,7 +804,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  */
 
 isc_result_t
-dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
+dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_rdataset_t **rdataset);
 /*%<
  * Search the name for the specified type.  If it is found, *rdataset is

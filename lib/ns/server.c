@@ -127,10 +127,7 @@ ns_server_detach(ns_server_t **sctxp) {
 	*sctxp = NULL;
 
 	if (isc_refcount_decrement(&sctx->references) == 1) {
-		ns_altsecret_t *altsecret;
-		isc_quota_t *http_quota;
-
-		while ((altsecret = ISC_LIST_HEAD(sctx->altsecrets)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (sctx->altsecrets, altsecret, link) {
 			ISC_LIST_UNLINK(sctx->altsecrets, altsecret, link);
 			isc_mem_put(sctx->mctx, altsecret, sizeof(*altsecret));
 		}
@@ -145,16 +142,11 @@ ns_server_detach(ns_server_t **sctxp) {
 		isc_quota_destroy(&sctx->tcpquota);
 		isc_quota_destroy(&sctx->xfroutquota);
 
-		http_quota = ISC_LIST_HEAD(sctx->http_quotas);
-		while (http_quota != NULL) {
-			isc_quota_t *next = NULL;
-
-			next = ISC_LIST_NEXT(http_quota, link);
+		ISC_LIST_FOREACH_SAFE (sctx->http_quotas, http_quota, link) {
 			ISC_LIST_DEQUEUE(sctx->http_quotas, http_quota, link);
 			isc_quota_destroy(http_quota);
 			isc_mem_put(sctx->mctx, http_quota,
 				    sizeof(*http_quota));
-			http_quota = next;
 		}
 		isc_mutex_destroy(&sctx->http_quotas_lock);
 

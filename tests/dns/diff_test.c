@@ -47,13 +47,10 @@ unsigned char data_nodup[] = "\006name_1";
 dns_name_t name_nodup = DNS_NAME_INITABSOLUTE(data_nodup);
 
 static size_t
-count_elements(const dns_diff_t *diff) {
-	dns_difftuple_t *ot = NULL;
+count_elements(dns_diff_t *diff) {
 	size_t count = 0;
 
-	for (ot = ISC_LIST_HEAD(diff->tuples); ot != NULL;
-	     ot = ISC_LIST_NEXT(ot, link))
-	{
+	ISC_LIST_FOREACH (diff->tuples, ot, link) {
 		++count;
 	}
 

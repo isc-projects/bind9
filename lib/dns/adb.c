@@ -575,7 +575,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		/* FIXME: Move to a separate function */
 		dns_adbnamehooklist_t *hookhead = NULL;
 		dns_adbentry_t *entry = NULL;
-		dns_adbnamehook_t *nh = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		isc_sockaddr_t sockaddr;
 		struct in_addr ina;
@@ -602,16 +601,14 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		entry = get_attached_and_locked_entry(adb, now, &sockaddr);
 		INSIST(!ENTRY_DEAD(entry));
 
-		dns_adbnamehook_t *anh = NULL;
-		for (anh = ISC_LIST_HEAD(*hookhead); anh != NULL;
-		     anh = ISC_LIST_NEXT(anh, name_link))
-		{
+		bool found = false;
+		ISC_LIST_FOREACH (*hookhead, anh, name_link) {
 			if (anh->entry == entry) {
-				break;
+				found = true;
 			}
 		}
-		if (anh == NULL) {
-			nh = new_adbnamehook(adb);
+		if (!found) {
+			dns_adbnamehook_t *nh = new_adbnamehook(adb);
 			dns_adbentry_attach(entry, &nh->entry);
 			ISC_LIST_APPEND(*hookhead, nh, name_link);
 			ISC_LIST_APPEND(entry->nhs, nh, entry_link);
@@ -734,13 +731,8 @@ maybe_expire_namehooks(dns_adbname_t *adbname, isc_stdtime_t now) {
 
 static void
 shutdown_names(dns_adb_t *adb) {
-	dns_adbname_t *next = NULL;
-
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
-	for (dns_adbname_t *name = ISC_LIST_HEAD(adb->names_lru); name != NULL;
-	     name = next)
-	{
-		next = ISC_LIST_NEXT(name, link);
+	ISC_LIST_FOREACH_SAFE (adb->names_lru, name, link) {
 		dns_adbname_ref(name);
 		LOCK(&name->lock);
 		/*
@@ -758,12 +750,8 @@ shutdown_names(dns_adb_t *adb) {
 
 static void
 shutdown_entries(dns_adb_t *adb) {
-	dns_adbentry_t *next = NULL;
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
-	for (dns_adbentry_t *adbentry = ISC_LIST_HEAD(adb->entries_lru);
-	     adbentry != NULL; adbentry = next)
-	{
-		next = ISC_LIST_NEXT(adbentry, link);
+	ISC_LIST_FOREACH_SAFE (adb->entries_lru, adbentry, link) {
 		expire_entry(adbentry);
 	}
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_write);
@@ -774,10 +762,7 @@ shutdown_entries(dns_adb_t *adb) {
  */
 static void
 clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
-	dns_adbnamehook_t *namehook = NULL;
-
-	namehook = ISC_LIST_HEAD(*namehooks);
-	while (namehook != NULL) {
+	ISC_LIST_FOREACH_SAFE (*namehooks, namehook, name_link) {
 		INSIST(DNS_ADBNAMEHOOK_VALID(namehook));
 		INSIST(DNS_ADBENTRY_VALID(namehook->entry));
 
@@ -795,8 +780,6 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
 		dns_adbentry_detach(&adbentry);
 
 		free_adbnamehook(adb, &namehook);
-
-		namehook = ISC_LIST_HEAD(*namehooks);
 	}
 }
 
@@ -1385,12 +1368,10 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) {
 
 static void
 copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
-	dns_adbnamehook_t *namehook = NULL;
 	dns_adbentry_t *entry = NULL;
 
 	if ((find->options & DNS_ADBFIND_INET) != 0) {
-		namehook = ISC_LIST_HEAD(name->v4);
-		while (namehook != NULL) {
+		ISC_LIST_FOREACH (name->v4, namehook, name_link) {
 			dns_adbaddrinfo_t *addrinfo = NULL;
 			entry = namehook->entry;
 
@@ -1398,7 +1379,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 			    adbentry_overquota(entry))
 			{
 				find->options |= DNS_ADBFIND_OVERQUOTA;
-				goto nextv4;
+				continue;
 			}
 
 			addrinfo = new_adbaddrinfo(adb, entry, find->port);
@@ -1407,14 +1388,11 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 			 * Found a valid entry.  Add it to the find's list.
 			 */
 			ISC_LIST_APPEND(find->list, addrinfo, publink);
-		nextv4:
-			namehook = ISC_LIST_NEXT(namehook, name_link);
 		}
 	}
 
 	if ((find->options & DNS_ADBFIND_INET6) != 0) {
-		namehook = ISC_LIST_HEAD(name->v6);
-		while (namehook != NULL) {
+		ISC_LIST_FOREACH (name->v6, namehook, name_link) {
 			dns_adbaddrinfo_t *addrinfo = NULL;
 			entry = namehook->entry;
 
@@ -1422,7 +1400,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 			    adbentry_overquota(entry))
 			{
 				find->options |= DNS_ADBFIND_OVERQUOTA;
-				goto nextv6;
+				continue;
 			}
 
 			addrinfo = new_adbaddrinfo(adb, entry, find->port);
@@ -1431,8 +1409,6 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 			 * Found a valid entry.  Add it to the find's list.
 			 */
 			ISC_LIST_APPEND(find->list, addrinfo, publink);
-		nextv6:
-			namehook = ISC_LIST_NEXT(namehook, name_link);
 		}
 	}
 }
@@ -1591,14 +1567,8 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 
 static void
 cleanup_names(dns_adb_t *adb, isc_stdtime_t now) {
-	dns_adbname_t *next = NULL;
-
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
-	for (dns_adbname_t *adbname = ISC_LIST_HEAD(adb->names_lru);
-	     adbname != NULL; adbname = next)
-	{
-		next = ISC_LIST_NEXT(adbname, link);
-
+	ISC_LIST_FOREACH_SAFE (adb->names_lru, adbname, link) {
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		/*
@@ -1694,14 +1664,8 @@ purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
 
 static void
 cleanup_entries(dns_adb_t *adb, isc_stdtime_t now) {
-	dns_adbentry_t *next = NULL;
-
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
-	for (dns_adbentry_t *adbentry = ISC_LIST_HEAD(adb->entries_lru);
-	     adbentry != NULL; adbentry = next)
-	{
-		next = ISC_LIST_NEXT(adbentry, link);
-
+	ISC_LIST_FOREACH_SAFE (adb->entries_lru, adbentry, link) {
 		dns_adbentry_ref(adbentry);
 		LOCK(&adbentry->lock);
 		maybe_expire_entry(adbentry, now);
@@ -2158,7 +2122,6 @@ post_copy:
 void
 dns_adb_destroyfind(dns_adbfind_t **findp) {
 	dns_adbfind_t *find = NULL;
-	dns_adbaddrinfo_t *ai = NULL;
 	dns_adb_t *adb = NULL;
 
 	REQUIRE(findp != NULL && DNS_ADBFIND_VALID(*findp));
@@ -2179,11 +2142,9 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 	 * we also need to decrement the reference counter in the
 	 * associated adbentry every time we remove one from the list.
 	 */
-	ai = ISC_LIST_HEAD(find->list);
-	while (ai != NULL) {
+	ISC_LIST_FOREACH_SAFE (find->list, ai, publink) {
 		ISC_LIST_UNLINK(find->list, ai, publink);
 		free_adbaddrinfo(adb, &ai);
-		ai = ISC_LIST_HEAD(find->list);
 	}
 	UNLOCK(&find->lock);
 
@@ -2302,9 +2263,7 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 	 */
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
 
-	for (dns_adbname_t *name = ISC_LIST_HEAD(adb->names_lru); name != NULL;
-	     name = ISC_LIST_NEXT(name, link))
-	{
+	ISC_LIST_FOREACH (adb->names_lru, name, link) {
 		LOCK(&name->lock);
 		/*
 		 * Dump the names
@@ -2336,9 +2295,7 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
 	fprintf(f, ";\n; Unassociated entries\n;\n");
-	for (dns_adbentry_t *adbentry = ISC_LIST_HEAD(adb->entries_lru);
-	     adbentry != NULL; adbentry = ISC_LIST_NEXT(adbentry, link))
-	{
+	ISC_LIST_FOREACH (adb->entries_lru, adbentry, link) {
 		LOCK(&adbentry->lock);
 		if (ISC_LIST_EMPTY(adbentry->nhs)) {
 			dump_entry(f, adb, adbentry, debug, now);
@@ -2395,7 +2352,6 @@ static void
 dumpfind(dns_adbfind_t *find, FILE *f) {
 	char tmp[512];
 	const char *tmpp = NULL;
-	dns_adbaddrinfo_t *ai = NULL;
 	isc_sockaddr_t *sa = NULL;
 
 	/*
@@ -2411,11 +2367,10 @@ dumpfind(dns_adbfind_t *find, FILE *f) {
 		find->flags);
 	fprintf(f, ";\tname %p\n", find->adbname);
 
-	ai = ISC_LIST_HEAD(find->list);
-	if (ai != NULL) {
+	if (!ISC_LIST_EMPTY(find->list)) {
 		fprintf(f, "\tAddresses:\n");
 	}
-	while (ai != NULL) {
+	ISC_LIST_FOREACH (find->list, ai, publink) {
 		sa = &ai->sockaddr;
 		switch (sa->type.sa.sa_family) {
 		case AF_INET:
@@ -2438,8 +2393,6 @@ dumpfind(dns_adbfind_t *find, FILE *f) {
 			"\t\tentry %p, flags %08x"
 			" srtt %u addr %s\n",
 			ai->entry, ai->flags, ai->srtt, tmpp);
-
-		ai = ISC_LIST_NEXT(ai, publink);
 	}
 
 	UNLOCK(&find->lock);
@@ -2449,11 +2402,7 @@ static void
 print_namehook_list(FILE *f, const char *legend, dns_adb_t *adb,
 		    dns_adbnamehooklist_t *list, bool debug,
 		    isc_stdtime_t now) {
-	dns_adbnamehook_t *nh = NULL;
-
-	for (nh = ISC_LIST_HEAD(*list); nh != NULL;
-	     nh = ISC_LIST_NEXT(nh, name_link))
-	{
+	ISC_LIST_FOREACH (*list, nh, name_link) {
 		if (debug) {
 			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
 		}
@@ -2480,12 +2429,8 @@ print_fetch_list(FILE *f, dns_adbname_t *n) {
 
 static void
 print_find_list(FILE *f, dns_adbname_t *name) {
-	dns_adbfind_t *find = NULL;
-
-	find = ISC_LIST_HEAD(name->finds);
-	while (find != NULL) {
+	ISC_LIST_FOREACH (name->finds, find, plink) {
 		dumpfind(find, f);
-		find = ISC_LIST_NEXT(find, plink);
 	}
 }
 
@@ -3365,8 +3310,6 @@ again:
 
 void
 dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
-	dns_adbname_t *next = NULL;
-
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(name != NULL);
 
@@ -3375,10 +3318,7 @@ dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 	}
 
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
-	for (dns_adbname_t *adbname = ISC_LIST_HEAD(adb->names_lru);
-	     adbname != NULL; adbname = next)
-	{
-		next = ISC_LIST_NEXT(adbname, link);
+	ISC_LIST_FOREACH_SAFE (adb->names_lru, adbname, link) {
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		if (dns_name_issubdomain(adbname->name, name)) {

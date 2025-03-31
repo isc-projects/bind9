@@ -579,7 +579,6 @@ dns64prefix_answer(dns_message_t *msg, isc_buffer_t *buf) {
 static isc_result_t
 short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 	     dig_query_t *query) {
-	dns_rdataset_t *rdataset;
 	isc_result_t result, loopresult;
 	dns_name_t empty_name;
 	dns_rdata_t rdata = DNS_RDATA_INIT;

@@ -392,10 +392,9 @@ isc_logconfig_set(isc_logconfig_t *lcfg) {
 
 void
 isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
-	isc_logconfig_t *lcfg;
-	isc_mem_t *mctx;
-	isc_logchannel_t *channel;
-	char *filename;
+	isc_logconfig_t *lcfg = NULL;
+	isc_mem_t *mctx = NULL;
+	char *filename = NULL;
 
 	REQUIRE(lcfgp != NULL && VALID_CONFIG(*lcfgp));
 
@@ -414,9 +413,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 
 	mctx = lcfg->lctx->mctx;
 
-	while ((channel = ISC_LIST_HEAD(lcfg->channels)) != NULL) {
-		ISC_LIST_UNLINK(lcfg->channels, channel, link);
-
+	ISC_LIST_FOREACH_SAFE (lcfg->channels, channel, link) {
 		if (channel->type == ISC_LOG_TOFILE) {
 			/*
 			 * The filename for the channel may have ultimately
@@ -437,9 +434,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	}
 
 	for (size_t i = 0; i < ARRAY_SIZE(lcfg->channellists); i++) {
-		isc_logchannellist_t *item = NULL, *next = NULL;
-		ISC_LIST_FOREACH_SAFE (lcfg->channellists[i], item, link, next)
-		{
+		ISC_LIST_FOREACH_SAFE (lcfg->channellists[i], item, link) {
 			ISC_LIST_UNLINK(lcfg->channellists[i], item, link);
 			isc_mem_put(mctx, item, sizeof(*item));
 		}
@@ -556,17 +551,17 @@ isc_result_t
 isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		   const isc_logcategory_t category,
 		   const isc_logmodule_t module) {
+	isc_logchannel_t *channel = NULL;
+
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(name != NULL);
 	REQUIRE(category >= ISC_LOGCATEGORY_DEFAULT &&
 		category < ISC_LOGCATEGORY_MAX);
 	REQUIRE(module >= ISC_LOGMODULE_DEFAULT && module < ISC_LOGMODULE_MAX);
 
-	isc_logchannel_t *channel;
-	for (channel = ISC_LIST_HEAD(lcfg->channels); channel != NULL;
-	     channel = ISC_LIST_NEXT(channel, link))
-	{
-		if (strcmp(name, channel->name) == 0) {
+	ISC_LIST_FOREACH (lcfg->channels, c, link) {
+		if (strcmp(name, c->name) == 0) {
+			channel = c;
 			break;
 		}
 	}
@@ -649,11 +644,7 @@ isc_log_setdebuglevel(unsigned int level) {
 		isc_logconfig_t *lcfg = rcu_dereference(isc__lctx->logconfig);
 		if (lcfg != NULL) {
 			LOCK(&isc__lctx->lock);
-			for (isc_logchannel_t *channel =
-				     ISC_LIST_HEAD(lcfg->channels);
-			     channel != NULL;
-			     channel = ISC_LIST_NEXT(channel, link))
-			{
+			ISC_LIST_FOREACH (lcfg->channels, channel, link) {
 				if (channel->type == ISC_LOG_TOFILE &&
 				    (channel->flags & ISC_LOG_DEBUGONLY) != 0 &&
 				    FILE_STREAM(channel) != NULL)
@@ -713,9 +704,7 @@ isc_log_closefilelogs(void) {
 	isc_logconfig_t *lcfg = rcu_dereference(isc__lctx->logconfig);
 	if (lcfg != NULL) {
 		LOCK(&isc__lctx->lock);
-		for (isc_logchannel_t *channel = ISC_LIST_HEAD(lcfg->channels);
-		     channel != NULL; channel = ISC_LIST_NEXT(channel, link))
-		{
+		ISC_LIST_FOREACH (lcfg->channels, channel, link) {
 			if (channel->type == ISC_LOG_TOFILE &&
 			    FILE_STREAM(channel) != NULL)
 			{

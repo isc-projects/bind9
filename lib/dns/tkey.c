@@ -154,13 +154,9 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 
 static void
 free_namelist(dns_message_t *msg, dns_namelist_t *namelist) {
-	dns_name_t *name = NULL, *new_name = NULL;
-
-	ISC_LIST_FOREACH_SAFE (*namelist, name, link, new_name) {
-		dns_rdataset_t *set = NULL, *new_set = NULL;
+	ISC_LIST_FOREACH_SAFE (*namelist, name, link) {
 		ISC_LIST_UNLINK(*namelist, name, link);
-
-		ISC_LIST_FOREACH_SAFE (name->list, set, link, new_set) {
+		ISC_LIST_FOREACH_SAFE (name->list, set, link) {
 			ISC_LIST_UNLINK(name->list, set, link);
 			if (dns_rdataset_isassociated(set)) {
 				dns_rdataset_disassociate(set);
@@ -354,7 +350,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		      dns_tsigkeyring_t *ring) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_tkey_t tkeyin, tkeyout;
-	dns_name_t *qname = NULL, *name = NULL;
+	dns_name_t *qname = NULL;
 	dns_name_t *keyname = NULL, *signer = NULL;
 	dns_name_t tsigner = DNS_NAME_INITEMPTY;
 	dns_fixedname_t fkeyname;
@@ -378,11 +374,10 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 
 	qname = ISC_LIST_HEAD(msg->sections[DNS_SECTION_QUESTION]);
 
-	/*
-	 * Look for a TKEY record that matches the question.
+	/* * Look for a TKEY record that matches the question.
 	 */
 	result = dns_message_findname(msg, DNS_SECTION_ADDITIONAL, qname,
-				      dns_rdatatype_tkey, 0, &name, &tkeyset);
+				      dns_rdatatype_tkey, 0, NULL, &tkeyset);
 	if (result != ISC_R_SUCCESS) {
 		result = DNS_R_FORMERR;
 		tkey_log("dns_tkey_processquery: couldn't find a TKEY "
@@ -509,8 +504,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	RETERR(dns_message_reply(msg, true));
 	add_rdata_to_list(msg, keyname, &rdata, 0, &namelist);
 
-	dns_name_t *new_name;
-	ISC_LIST_FOREACH_SAFE (namelist, name, link, new_name) {
+	ISC_LIST_FOREACH_SAFE (namelist, name, link) {
 		ISC_LIST_UNLINK(namelist, name, link);
 		dns_message_addname(msg, name, DNS_SECTION_ANSWER);
 	}

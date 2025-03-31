@@ -272,7 +272,7 @@ dns_diff_load(const dns_diff_t *diff, dns_rdatacallbacks_t *callbacks);
  */
 
 isc_result_t
-dns_diff_print(const dns_diff_t *diff, FILE *file);
+dns_diff_print(dns_diff_t *diff, FILE *file);
 
 /*%<
  * Print the differences to 'file' or if 'file' is NULL via the

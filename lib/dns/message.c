@@ -442,11 +442,8 @@ msginit(dns_message_t *m) {
 
 static void
 msgresetname(dns_message_t *msg, dns_name_t *name) {
-	dns_rdataset_t *rds = NULL, *next_rds = NULL;
-
-	ISC_LIST_FOREACH_SAFE (name->list, rds, link, next_rds) {
+	ISC_LIST_FOREACH_SAFE (name->list, rds, link) {
 		ISC_LIST_UNLINK(name->list, rds, link);
-
 		dns__message_putassociatedrdataset(msg, &rds);
 	}
 }
@@ -455,14 +452,9 @@ static void
 msgresetnames(dns_message_t *msg, unsigned int first_section) {
 	/* Clean up name lists. */
 	for (size_t i = first_section; i < DNS_SECTION_MAX; i++) {
-		dns_name_t *name = NULL, *next_name = NULL;
-
-		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link, next_name)
-		{
+		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link) {
 			ISC_LIST_UNLINK(msg->sections[i], name, link);
-
 			msgresetname(msg, name);
-
 			dns_message_puttempname(msg, &name);
 		}
 	}
@@ -524,8 +516,6 @@ static void
 msgreset(dns_message_t *msg, bool everything) {
 	dns_msgblock_t *msgblock = NULL, *next_msgblock = NULL;
 	isc_buffer_t *dynbuf = NULL, *next_dynbuf = NULL;
-	dns_rdata_t *rdata = NULL;
-	dns_rdatalist_t *rdatalist = NULL;
 
 	msgresetnames(msg, 0);
 	msgresetopt(msg);
@@ -540,15 +530,11 @@ msgreset(dns_message_t *msg, bool everything) {
 	 * The memory isn't lost since these are part of message blocks we
 	 * have allocated.
 	 */
-	rdata = ISC_LIST_HEAD(msg->freerdata);
-	while (rdata != NULL) {
+	ISC_LIST_FOREACH_SAFE (msg->freerdata, rdata, link) {
 		ISC_LIST_UNLINK(msg->freerdata, rdata, link);
-		rdata = ISC_LIST_HEAD(msg->freerdata);
 	}
-	rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
-	while (rdatalist != NULL) {
+	ISC_LIST_FOREACH_SAFE (msg->freerdatalist, rdatalist, link) {
 		ISC_LIST_UNLINK(msg->freerdatalist, rdatalist, link);
-		rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
 	}
 
 	dynbuf = ISC_LIST_HEAD(msg->scratchpad);
@@ -765,8 +751,6 @@ name_match(void *node, const void *key) {
 static isc_result_t
 findname(dns_name_t **foundname, const dns_name_t *target,
 	 dns_namelist_t *section) {
-	dns_name_t *name = NULL;
-
 	ISC_LIST_FOREACH_REV (*section, name, link) {
 		if (dns_name_equal(name, target)) {
 			if (foundname != NULL) {
@@ -801,17 +785,14 @@ rds_match(void *node, const void *key0) {
 }
 
 isc_result_t
-dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
+dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_rdataset_t **rdatasetp) {
-	dns_rdataset_t *rds = NULL;
-
 	REQUIRE(name != NULL);
 	REQUIRE(rdatasetp == NULL || *rdatasetp == NULL);
 
 	ISC_LIST_FOREACH_REV (name->list, rds, link) {
 		if (rds->type == type && rds->covers == covers) {
 			SET_IF_NOT_NULL(rdatasetp, rds);
-
 			return ISC_R_SUCCESS;
 		}
 	}
@@ -923,7 +904,6 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 
 static void
 cleanup_name_hashmaps(dns_namelist_t *section) {
-	dns_name_t *name = NULL;
 	ISC_LIST_FOREACH (*section, name, link) {
 		if (name->hashmap != NULL) {
 			isc_hashmap_destroy(&name->hashmap);
@@ -1883,9 +1863,9 @@ update_min_section_ttl(dns_message_t *restrict msg,
 isc_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			  unsigned int options) {
-	dns_namelist_t *section;
-	dns_name_t *name, *next_name;
-	dns_rdataset_t *rdataset, *next_rdataset;
+	dns_namelist_t *section = NULL;
+	dns_name_t *name = NULL;
+	dns_rdataset_t *rdataset = NULL;
 	unsigned int count, total;
 	isc_result_t result;
 	isc_buffer_t st; /* for rollbacks */
@@ -1989,24 +1969,20 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			return ISC_R_SUCCESS;
 		}
 
-		ISC_LIST_FOREACH_SAFE (*section, name, link, next_name) {
-			rdataset = ISC_LIST_HEAD(name->list);
-			while (rdataset != NULL) {
-				next_rdataset = ISC_LIST_NEXT(rdataset, link);
-
-				if ((rdataset->attributes &
+		ISC_LIST_FOREACH_SAFE (*section, n, link) {
+			ISC_LIST_FOREACH_SAFE (n->list, rds, link) {
+				if ((rds->attributes &
 				     DNS_RDATASETATTR_RENDERED) != 0)
 				{
-					goto next;
+					continue;
 				}
 
 				if (((options & DNS_MESSAGERENDER_ORDERED) ==
 				     0) &&
 				    (sectionid == DNS_SECTION_ADDITIONAL) &&
-				    wrong_priority(rdataset, pass,
-						   preferred_glue))
+				    wrong_priority(rds, pass, preferred_glue))
 				{
-					goto next;
+					continue;
 				}
 
 				st = *(msg->buffer);
@@ -2014,14 +1990,12 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				count = 0;
 				if (partial) {
 					result = dns_rdataset_towirepartial(
-						rdataset, name, msg->cctx,
-						msg->buffer, rd_options, &count,
-						NULL);
+						rds, n, msg->cctx, msg->buffer,
+						rd_options, &count, NULL);
 				} else {
 					result = dns_rdataset_towire(
-						rdataset, name, msg->cctx,
-						msg->buffer, rd_options,
-						&count);
+						rds, n, msg->cctx, msg->buffer,
+						rd_options, &count);
 				}
 
 				total += count;
@@ -2059,24 +2033,19 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				 * If we have rendered non-validated data,
 				 * ensure that the AD bit is not set.
 				 */
-				if (rdataset->trust != dns_trust_secure &&
+				if (rds->trust != dns_trust_secure &&
 				    (sectionid == DNS_SECTION_ANSWER ||
 				     sectionid == DNS_SECTION_AUTHORITY))
 				{
 					msg->flags &= ~DNS_MESSAGEFLAG_AD;
 				}
-				if (OPTOUT(rdataset)) {
+				if (OPTOUT(rds)) {
 					msg->flags &= ~DNS_MESSAGEFLAG_AD;
 				}
 
-				update_min_section_ttl(msg, sectionid,
-						       rdataset);
+				update_min_section_ttl(msg, sectionid, rds);
 
-				rdataset->attributes |=
-					DNS_RDATASETATTR_RENDERED;
-
-			next:
-				rdataset = next_rdataset;
+				rds->attributes |= DNS_RDATASETATTR_RENDERED;
 			}
 		}
 	} while (--pass != 0);
@@ -2305,7 +2274,6 @@ dns_message_renderreset(dns_message_t *msg) {
 		msg->cursors[i] = NULL;
 		msg->counts[i] = 0;
 		MSG_SECTION_FOREACH (msg, i, name) {
-			dns_rdataset_t *rds = NULL;
 			ISC_LIST_FOREACH (name->list, rds, link) {
 				rds->attributes &= ~DNS_RDATASETATTR_RENDERED;
 			}
@@ -3306,7 +3274,6 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	msg->indent.count += has_yaml;
 
 	MSG_SECTION_FOREACH (msg, section, name) {
-		dns_rdataset_t *rds = NULL;
 		ISC_LIST_FOREACH (name->list, rds, link) {
 			if (section == DNS_SECTION_ANSWER &&
 			    rds->type == dns_rdatatype_soa)
@@ -4997,7 +4964,6 @@ message_authority_soa_min(dns_message_t *msg, dns_ttl_t *ttlp) {
 	}
 
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_AUTHORITY, name) {
-		dns_rdataset_t *rds = NULL;
 		ISC_LIST_FOREACH (name->list, rds, link) {
 			if ((rds->attributes & DNS_RDATASETATTR_RENDERED) == 0)
 			{

@@ -1949,9 +1949,7 @@ free_listelt(cfg_parser_t *pctx, cfg_listelt_t *elt) {
 
 static void
 free_list(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	cfg_listelt_t *elt, *next;
-	for (elt = ISC_LIST_HEAD(obj->value.list); elt != NULL; elt = next) {
-		next = ISC_LIST_NEXT(elt, link);
+	ISC_LIST_FOREACH_SAFE (obj->value.list, elt, link) {
 		free_listelt(pctx, elt);
 	}
 }
@@ -2022,12 +2020,9 @@ cleanup:
 
 static void
 print_list(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	const cfg_list_t *list = &obj->value.list;
-	const cfg_listelt_t *elt;
+	cfg_list_t *list = UNCONST(&obj->value.list);
 
-	for (elt = ISC_LIST_HEAD(*list); elt != NULL;
-	     elt = ISC_LIST_NEXT(elt, link))
-	{
+	ISC_LIST_FOREACH (*list, elt, link) {
 		if ((pctx->flags & CFG_PRINTER_ONELINE) != 0) {
 			cfg_print_obj(pctx, elt->obj);
 			cfg_print_cstr(pctx, "; ");
@@ -2117,17 +2112,14 @@ cleanup:
 
 void
 cfg_print_spacelist(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	const cfg_list_t *list = NULL;
-	const cfg_listelt_t *elt = NULL;
+	cfg_list_t *list = NULL;
 
 	REQUIRE(pctx != NULL);
 	REQUIRE(obj != NULL);
 
-	list = &obj->value.list;
+	list = UNCONST(&obj->value.list);
 
-	for (elt = ISC_LIST_HEAD(*list); elt != NULL;
-	     elt = ISC_LIST_NEXT(elt, link))
-	{
+	ISC_LIST_FOREACH (*list, elt, link) {
 		cfg_print_obj(pctx, elt->obj);
 		if (ISC_LIST_NEXT(elt, link) != NULL) {
 			cfg_print_cstr(pctx, " ");
@@ -2551,11 +2543,7 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 				if (symobj->type == &cfg_type_implicitlist) {
 					/* Multivalued. */
 					cfg_list_t *list = &symobj->value.list;
-					cfg_listelt_t *elt;
-					for (elt = ISC_LIST_HEAD(*list);
-					     elt != NULL;
-					     elt = ISC_LIST_NEXT(elt, link))
-					{
+					ISC_LIST_FOREACH (*list, elt, link) {
 						print_symval(pctx, clause->name,
 							     elt->obj);
 					}

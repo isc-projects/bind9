@@ -566,7 +566,6 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	dns_rdatalist_t rdatalist_ns, rdatalist_a, rdatalist_aaaa;
 	dns_rdatalist_t *rdatalists[] = { &rdatalist_ns, &rdatalist_a,
 					  &rdatalist_aaaa, NULL };
-	dns_rdata_t *rdata;
 	isc_region_t region;
 
 	/* Create the DB beforehand */
@@ -678,7 +677,7 @@ cleanup:
 		dns_db_detach(&db);
 	}
 	for (i = 0; rdatalists[i] != NULL; i++) {
-		while ((rdata = ISC_LIST_HEAD(rdatalists[i]->rdata)) != NULL) {
+		ISC_LIST_FOREACH_SAFE (rdatalists[i]->rdata, rdata, link) {
 			ISC_LIST_UNLINK(rdatalists[i]->rdata, rdata, link);
 			dns_rdata_toregion(rdata, &region);
 			isc_mem_put(mctx, rdata,
@@ -788,7 +787,6 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
        const isc_sockaddr_t *dstaddr, dns_rdataclass_t rdclass,
        void *arg ISC_ATTR_UNUSED) {
 	dns_aclenv_t *env = NULL;
-	dns_view_t *view = NULL;
 	dns_tsigkey_t *key = NULL;
 	isc_netaddr_t netsrc;
 	isc_netaddr_t netdst;
@@ -807,9 +805,7 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
 	isc_netaddr_fromsockaddr(&netdst, dstaddr);
 	env = ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 
-	for (view = ISC_LIST_HEAD(named_g_server->viewlist); view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
+	ISC_LIST_FOREACH (named_g_server->viewlist, view, link) {
 		const dns_name_t *tsig = NULL;
 
 		if (view->matchrecursiveonly) {
@@ -840,10 +836,11 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
 		    dns_acl_allowed(&netdst, tsig, view->matchdestinations,
 				    env))
 		{
-			break;
+			return view == myview;
 		}
 	}
-	return view == myview;
+
+	return false;
 }
 
 /*%

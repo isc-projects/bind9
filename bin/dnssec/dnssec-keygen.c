@@ -1123,7 +1123,6 @@ main(int argc, char **argv) {
 			cfg_parser_t *parser = NULL;
 			cfg_obj_t *config = NULL;
 			dns_kasp_t *kasp = NULL;
-			dns_kasp_key_t *kaspkey = NULL;
 
 			RUNTIME_CHECK(cfg_parser_create(mctx, &parser) ==
 				      ISC_R_SUCCESS);
@@ -1151,10 +1150,7 @@ main(int argc, char **argv) {
 			ctx.ttl = dns_kasp_dnskeyttl(kasp);
 			ctx.setttl = true;
 
-			for (kaspkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
-			     kaspkey != NULL;
-			     kaspkey = ISC_LIST_NEXT(kaspkey, link))
-			{
+			ISC_LIST_FOREACH (dns_kasp_keys(kasp), kaspkey, link) {
 				ctx.use_nsec3 = false;
 				ctx.alg = dns_kasp_key_algorithm(kaspkey);
 				ctx.size = dns_kasp_key_size(kaspkey);

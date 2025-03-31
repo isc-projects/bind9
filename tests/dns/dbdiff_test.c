@@ -76,7 +76,6 @@ ISC_RUN_TEST_IMPL(diffx_same) {
 /* dns_db_diffx of zone with record added */
 ISC_RUN_TEST_IMPL(diffx_add) {
 	dns_db_t *newdb = NULL, *olddb = NULL;
-	dns_difftuple_t *tuple;
 	isc_result_t result;
 	dns_diff_t diff;
 	int count = 0;
@@ -92,9 +91,7 @@ ISC_RUN_TEST_IMPL(diffx_add) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_false(ISC_LIST_EMPTY(diff.tuples));
-	for (tuple = ISC_LIST_HEAD(diff.tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link))
-	{
+	ISC_LIST_FOREACH (diff.tuples, tuple, link) {
 		assert_int_equal(tuple->op, DNS_DIFFOP_ADD);
 		count++;
 	}
@@ -108,7 +105,6 @@ ISC_RUN_TEST_IMPL(diffx_add) {
 /* dns_db_diffx of zone with record removed */
 ISC_RUN_TEST_IMPL(diffx_remove) {
 	dns_db_t *newdb = NULL, *olddb = NULL;
-	dns_difftuple_t *tuple;
 	isc_result_t result;
 	dns_diff_t diff;
 	int count = 0;
@@ -124,9 +120,7 @@ ISC_RUN_TEST_IMPL(diffx_remove) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_false(ISC_LIST_EMPTY(diff.tuples));
-	for (tuple = ISC_LIST_HEAD(diff.tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link))
-	{
+	ISC_LIST_FOREACH (diff.tuples, tuple, link) {
 		assert_int_equal(tuple->op, DNS_DIFFOP_DEL);
 		count++;
 	}

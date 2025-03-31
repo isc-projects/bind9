@@ -1193,7 +1193,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	isc_buffer_t b;
 	uint32_t lifetime = 3600;
 	dns_keystorelist_t kslist;
-	dns_keystore_t *ks = NULL, *ks_next = NULL;
 	const char *ccalg = "siphash24";
 	cfg_aclconfctx_t *actx = NULL;
 	static const char *sources[] = {
@@ -1428,7 +1427,7 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 			bad_kasp = true;
 		} else if (optlevel == optlevel_config) {
 			dns_kasplist_t list;
-			dns_kasp_t *kasp = NULL, *kasp_next = NULL;
+			dns_kasp_t *kasp = NULL;
 
 			ISC_LIST_INIT(list);
 
@@ -1465,12 +1464,9 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 				}
 			}
 
-			for (kasp = ISC_LIST_HEAD(list); kasp != NULL;
-			     kasp = kasp_next)
-			{
-				kasp_next = ISC_LIST_NEXT(kasp, link);
-				ISC_LIST_UNLINK(list, kasp, link);
-				dns_kasp_detach(&kasp);
+			ISC_LIST_FOREACH_SAFE (list, k, link) {
+				ISC_LIST_UNLINK(list, k, link);
+				dns_kasp_detach(&k);
 			}
 		}
 
@@ -1496,8 +1492,7 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	/*
 	 * Cleanup key-store.
 	 */
-	for (ks = ISC_LIST_HEAD(kslist); ks != NULL; ks = ks_next) {
-		ks_next = ISC_LIST_NEXT(ks, link);
+	ISC_LIST_FOREACH_SAFE (kslist, ks, link) {
 		ISC_LIST_UNLINK(kslist, ks, link);
 		dns_keystore_detach(&ks);
 	}
@@ -2888,13 +2883,10 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	bool do_cleanup = false;
 	bool done = false;
 	bool keystore = false;
-
 	const cfg_obj_t *kasps = NULL;
-	dns_kasp_t *kasp = NULL, *kasp_next = NULL;
+	dns_kasp_t *kasp = NULL;
 	dns_kasplist_t kasplist;
-
 	const cfg_obj_t *keystores = NULL;
-	dns_keystore_t *ks = NULL, *ks_next = NULL;
 	dns_keystorelist_t kslist;
 
 	/* If no dnssec-policy or key-store, use the dir (key-directory) */
@@ -2951,9 +2943,7 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 
 	/* Check key-stores of keys */
 	dns_kasp_freeze(kasp);
-	for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
-	     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
-	{
+	ISC_LIST_FOREACH (dns_kasp_keys(kasp), kkey, link) {
 		dns_keystore_t *kks = dns_kasp_key_keystore(kkey);
 		dir = dns_keystore_directory(kks, keydir);
 		keystore = (kks != NULL && strcmp(DNS_KEYSTORE_KEYDIRECTORY,
@@ -2983,15 +2973,11 @@ check:
 		if (kasp != NULL) {
 			dns_kasp_detach(&kasp);
 		}
-		for (kasp = ISC_LIST_HEAD(kasplist); kasp != NULL;
-		     kasp = kasp_next)
-		{
-			kasp_next = ISC_LIST_NEXT(kasp, link);
-			ISC_LIST_UNLINK(kasplist, kasp, link);
-			dns_kasp_detach(&kasp);
+		ISC_LIST_FOREACH_SAFE (kasplist, k, link) {
+			ISC_LIST_UNLINK(kasplist, k, link);
+			dns_kasp_detach(&k);
 		}
-		for (ks = ISC_LIST_HEAD(kslist); ks != NULL; ks = ks_next) {
-			ks_next = ISC_LIST_NEXT(ks, link);
+		ISC_LIST_FOREACH_SAFE (kslist, ks, link) {
 			ISC_LIST_UNLINK(kslist, ks, link);
 			dns_keystore_detach(&ks);
 		}

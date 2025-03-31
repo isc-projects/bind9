@@ -427,7 +427,6 @@ repopulate_buffer:
 		}
 		CHECK("dns_message_sectiontotext", result);
 	} else if (display_answer) {
-		dns_rdataset_t *rdataset;
 		isc_result_t loopresult;
 		dns_name_t empty_name;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -2086,7 +2085,6 @@ setup(void *arg ISC_ATTR_UNUSED) {
 /*% Main processing routine for mdig */
 int
 main(int argc, char *argv[]) {
-	struct query *query = NULL;
 	isc_result_t result;
 	unsigned int i;
 	int ns;
@@ -2131,9 +2129,8 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	query = ISC_LIST_HEAD(queries);
 	isc_loopmgr_setup(loopmgr, setup, NULL);
-	isc_loopmgr_setup(loopmgr, sendqueries, query);
+	isc_loopmgr_setup(loopmgr, sendqueries, ISC_LIST_HEAD(queries));
 	isc_loopmgr_teardown(loopmgr, teardown, NULL);
 
 	/*
@@ -2164,10 +2161,7 @@ main(int argc, char *argv[]) {
 
 	isc_loopmgr_run(loopmgr);
 
-	query = ISC_LIST_HEAD(queries);
-	while (query != NULL) {
-		struct query *next = ISC_LIST_NEXT(query, link);
-
+	ISC_LIST_FOREACH_SAFE (queries, query, link) {
 		if (query->ednsopts != NULL) {
 			for (i = 0; i < EDNSOPTS; i++) {
 				if (query->ednsopts[i].value != NULL) {
@@ -2182,7 +2176,6 @@ main(int argc, char *argv[]) {
 			query->ecs_addr = NULL;
 		}
 		isc_mem_free(mctx, query);
-		query = next;
 	}
 
 	if (default_query.ecs_addr != NULL) {

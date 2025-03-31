@@ -198,7 +198,6 @@ printrdata(dns_rdata_t *rdata) {
 static isc_result_t
 printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	     dns_section_t section) {
-	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
 
@@ -248,7 +247,6 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 static isc_result_t
 detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	      dns_section_t section) {
-	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
 
@@ -448,14 +446,10 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 static void
 show_settings(bool full, bool serv_only) {
-	dig_server_t *srv;
 	isc_sockaddr_t sockaddr;
-	dig_searchlist_t *listent;
 	isc_result_t result;
 
-	srv = ISC_LIST_HEAD(server_list);
-
-	while (srv != NULL) {
+	ISC_LIST_FOREACH (server_list, srv, link) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
 		result = get_address(srv->servername, port, &sockaddr);
@@ -467,7 +461,6 @@ show_settings(bool full, bool serv_only) {
 		if (!full) {
 			return;
 		}
-		srv = ISC_LIST_NEXT(srv, link);
 	}
 	if (serv_only) {
 		return;
@@ -481,9 +474,7 @@ show_settings(bool full, bool serv_only) {
 	       tries, port, ndots);
 	printf("  querytype = %-8s\tclass = %s\n", deftype, defclass);
 	printf("  srchlist = ");
-	for (listent = ISC_LIST_HEAD(search_list); listent != NULL;
-	     listent = ISC_LIST_NEXT(listent, link))
-	{
+	ISC_LIST_FOREACH (search_list, listent, link) {
 		printf("%s", listent->origin);
 		if (ISC_LIST_NEXT(listent, link) != NULL) {
 			printf("/");

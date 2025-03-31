@@ -354,11 +354,7 @@ iszsk(dns_dnsseckey_t *key) {
  */
 static dns_dnsseckey_t *
 keythatsigned_unlocked(dns_rdata_rrsig_t *rrsig) {
-	dns_dnsseckey_t *key;
-
-	for (key = ISC_LIST_HEAD(keylist); key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-	{
+	ISC_LIST_FOREACH (keylist, key, link) {
 		if (rrsig->keyid == dst_key_id(key->key) &&
 		    rrsig->algorithm == dst_key_alg(key->key) &&
 		    dns_name_equal(&rrsig->signer, dst_key_name(key->key)))
@@ -485,7 +481,6 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	dns_rdataset_t sigset;
 	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t rrsig;
-	dns_dnsseckey_t *key;
 	isc_result_t result;
 	bool nosigs = false;
 	bool *wassignedby, *nowsignedby;
@@ -536,6 +531,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	}
 
 	while (result == ISC_R_SUCCESS) {
+		dns_dnsseckey_t *key = NULL;
 		bool expired, refresh, future, offline;
 		bool keep = false, resign = false;
 
@@ -681,9 +677,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		dns_rdataset_disassociate(&sigset);
 	}
 
-	for (key = ISC_LIST_HEAD(keylist); key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-	{
+	ISC_LIST_FOREACH (keylist, key, link) {
 		if (REVOKE(key->key) && set->type != dns_rdatatype_dnskey) {
 			continue;
 		}
@@ -701,13 +695,9 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		     set->type == dns_rdatatype_dnskey) &&
 		    dns_name_equal(name, gorigin))
 		{
-			bool have_ksk;
-			dns_dnsseckey_t *curr;
+			bool have_ksk = isksk(key);
 
-			have_ksk = isksk(key);
-			for (curr = ISC_LIST_HEAD(keylist); curr != NULL;
-			     curr = ISC_LIST_NEXT(curr, link))
-			{
+			ISC_LIST_FOREACH (keylist, curr, link) {
 				if (dst_key_alg(key->key) !=
 				    dst_key_alg(curr->key))
 				{
@@ -732,7 +722,6 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			 * key that already signs this RRset.
 			 */
 			bool have_pre_sig = false;
-			dns_dnsseckey_t *curr;
 			uint32_t pre;
 			isc_result_t ret = dst_key_getnum(
 				key->key, DST_NUM_PREDECESSOR, &pre);
@@ -746,10 +735,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 				 * - Have key ID equal to the predecessor id.
 				 * - Have a successor that matches 'key' id.
 				 */
-				for (curr = ISC_LIST_HEAD(keylist);
-				     curr != NULL;
-				     curr = ISC_LIST_NEXT(curr, link))
-				{
+				ISC_LIST_FOREACH (keylist, curr, link) {
 					uint32_t suc;
 
 					if (dst_key_alg(key->key) !=
@@ -2695,12 +2681,11 @@ loadexplicitkeys(char *keyfiles[], int n, bool setksk) {
 		}
 
 		/* Skip any duplicates */
-		for (key = ISC_LIST_HEAD(keylist); key != NULL;
-		     key = ISC_LIST_NEXT(key, link))
-		{
-			if (dst_key_id(key->key) == dst_key_id(newkey) &&
-			    dst_key_alg(key->key) == dst_key_alg(newkey))
+		ISC_LIST_FOREACH (keylist, k, link) {
+			if (dst_key_id(k->key) == dst_key_id(newkey) &&
+			    dst_key_alg(k->key) == dst_key_alg(newkey))
 			{
+				key = k;
 				break;
 			}
 		}
@@ -2740,9 +2725,7 @@ report(const char *format, ...) {
 
 static void
 clear_keylist(dns_dnsseckeylist_t *list) {
-	dns_dnsseckey_t *key;
-	while (!ISC_LIST_EMPTY(*list)) {
-		key = ISC_LIST_HEAD(*list);
+	ISC_LIST_FOREACH_SAFE (*list, key, link) {
 		ISC_LIST_UNLINK(*list, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
@@ -2779,9 +2762,7 @@ add_digest(char *str, size_t dlen, dns_kasp_digestlist_t *digests,
 	}
 
 	/* Suppress duplicates */
-	for (dns_kasp_digest_t *d = ISC_LIST_HEAD(*digests); d != NULL;
-	     d = ISC_LIST_NEXT(d, link))
-	{
+	ISC_LIST_FOREACH (*digests, d, link) {
 		if (d->digest == alg) {
 			return;
 		}
@@ -2803,7 +2784,6 @@ build_final_keylist(void) {
 	char name[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t cdsset, cdnskeyset, soaset;
 	dns_kasp_digestlist_t digests;
-	dns_kasp_digest_t *d, *d_next;
 	bool cdnskey = false;
 
 	ISC_LIST_INIT(rmkeys);
@@ -2903,8 +2883,7 @@ findkeys:
 	clear_keylist(&rmkeys);
 	clear_keylist(&matchkeys);
 
-	for (d = ISC_LIST_HEAD(digests); d != NULL; d = d_next) {
-		d_next = ISC_LIST_NEXT(d, link);
+	ISC_LIST_FOREACH_SAFE (digests, d, link) {
 		ISC_LIST_UNLINK(digests, d, link);
 		isc_mem_put(mctx, d, sizeof(*d));
 	}
@@ -3086,7 +3065,6 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	isc_buffer_t namebuf;
 	isc_region_t r;
 	isc_result_t result;
-	dns_dnsseckey_t *key, *curr;
 	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
 	unsigned char keybuf[DST_KEY_MAXSIZE];
 	unsigned int filenamelen;
@@ -3115,9 +3093,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 
 	name = gorigin;
 
-	for (key = ISC_LIST_HEAD(keylist); key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-	{
+	ISC_LIST_FOREACH (keylist, key, link) {
 		if (REVOKE(key->key)) {
 			continue;
 		}
@@ -3128,9 +3104,8 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 			have_ksk = false;
 			have_non_ksk = true;
 		}
-		for (curr = ISC_LIST_HEAD(keylist); curr != NULL;
-		     curr = ISC_LIST_NEXT(curr, link))
-		{
+
+		ISC_LIST_FOREACH (keylist, curr, link) {
 			if (dst_key_alg(key->key) != dst_key_alg(curr->key)) {
 				continue;
 			}
@@ -3364,7 +3339,6 @@ main(int argc, char *argv[]) {
 	char *endp;
 	isc_time_t timer_start, timer_finish;
 	isc_time_t sign_start, sign_finish;
-	dns_dnsseckey_t *key;
 	isc_result_t result, vresult;
 	bool free_output = false;
 	int tempfilelen = 0;
@@ -3899,9 +3873,7 @@ main(int argc, char *argv[]) {
 	}
 
 	/* Now enumerate the key list */
-	for (key = ISC_LIST_HEAD(keylist); key != NULL;
-	     key = ISC_LIST_NEXT(key, link))
-	{
+	ISC_LIST_FOREACH (keylist, key, link) {
 		key->index = keycount++;
 	}
 
@@ -4087,8 +4059,7 @@ main(int argc, char *argv[]) {
 
 	hashlist_free(&hashlist);
 
-	while (!ISC_LIST_EMPTY(keylist)) {
-		key = ISC_LIST_HEAD(keylist);
+	ISC_LIST_FOREACH_SAFE (keylist, key, link) {
 		ISC_LIST_UNLINK(keylist, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}

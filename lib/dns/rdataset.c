@@ -540,7 +540,7 @@ dns__rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 }
 
 isc_result_t
-dns_rdataset_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
+dns_rdataset_addclosest(dns_rdataset_t *rdataset, dns_name_t *name) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	if (rdataset->methods->addclosest == NULL) {

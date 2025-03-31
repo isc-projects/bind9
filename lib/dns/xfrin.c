@@ -1973,8 +1973,6 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	}
 
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_ANSWER, name) {
-		dns_rdataset_t *rds = NULL;
-
 		LIBDNS_XFRIN_RECV_ANSWER(xfr, xfr->info, msg);
 
 		ISC_LIST_FOREACH (name->list, rds, link) {

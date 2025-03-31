@@ -166,12 +166,10 @@ dns_skrbundle_getsig(dns_skrbundle_t *bundle, dst_key_t *key,
 	REQUIRE(DNS_SKRBUNDLE_VALID(bundle));
 	REQUIRE(DNS_DIFF_VALID(&bundle->diff));
 
-	dns_difftuple_t *tuple = ISC_LIST_HEAD(bundle->diff.tuples);
-	while (tuple != NULL) {
+	ISC_LIST_FOREACH_SAFE (bundle->diff.tuples, tuple, link) {
 		dns_rdata_rrsig_t rrsig;
 
 		if (tuple->op != DNS_DIFFOP_ADDRESIGN) {
-			tuple = ISC_LIST_NEXT(tuple, link);
 			continue;
 		}
 		INSIST(tuple->rdata.type == dns_rdatatype_rrsig);
@@ -191,8 +189,6 @@ dns_skrbundle_getsig(dns_skrbundle_t *bundle, dst_key_t *key,
 			dns_rdata_clone(&tuple->rdata, sigrdata);
 			return ISC_R_SUCCESS;
 		}
-
-		tuple = ISC_LIST_NEXT(tuple, link);
 	}
 
 	return ISC_R_NOTFOUND;
@@ -393,20 +389,14 @@ failure:
 
 dns_skrbundle_t *
 dns_skr_lookup(dns_skr_t *skr, isc_stdtime_t time, uint32_t sigval) {
-	dns_skrbundle_t *b, *next;
-
 	REQUIRE(DNS_SKR_VALID(skr));
 
-	for (b = ISC_LIST_HEAD(skr->bundles); b != NULL; b = next) {
-		next = ISC_LIST_NEXT(b, link);
-		if (next == NULL) {
-			isc_stdtime_t expired = b->inception + sigval;
-			if (b->inception <= time && time < expired) {
-				return b;
-			}
-			return NULL;
-		}
-		if (b->inception <= time && time < next->inception) {
+	ISC_LIST_FOREACH (skr->bundles, b, link) {
+		dns_skrbundle_t *next = ISC_LIST_NEXT(b, link);
+		isc_stdtime_t expired = (next != NULL)
+						? next->inception
+						: (b->inception + sigval);
+		if (b->inception <= time && time < expired) {
 			return b;
 		}
 	}
@@ -437,12 +427,9 @@ dns_skr_detach(dns_skr_t **skrp) {
 
 void
 dns_skr_destroy(dns_skr_t *skr) {
-	dns_skrbundle_t *b, *next;
-
 	REQUIRE(DNS_SKR_VALID(skr));
 
-	for (b = ISC_LIST_HEAD(skr->bundles); b != NULL; b = next) {
-		next = ISC_LIST_NEXT(b, link);
+	ISC_LIST_FOREACH_SAFE (skr->bundles, b, link) {
 		ISC_LIST_UNLINK(skr->bundles, b, link);
 		dns_diff_clear(&b->diff);
 		isc_mem_put(skr->mctx, b, sizeof(*b));

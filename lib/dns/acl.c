@@ -226,36 +226,30 @@ dns_acl_match_port_transport(const isc_netaddr_t *reqaddr,
 			     const dns_acl_t *acl, dns_aclenv_t *env,
 			     int *match, const dns_aclelement_t **matchelt) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_acl_port_transports_t *next;
 
 	REQUIRE(reqaddr != NULL);
 	REQUIRE(DNS_ACL_VALID(acl));
 
-	if (!ISC_LIST_EMPTY(acl->ports_and_transports)) {
+	dns_acl_t *a = UNCONST(acl); /* for ISC_LIST_FOREACH */
+	ISC_LIST_FOREACH (a->ports_and_transports, next, link) {
+		bool match_port = true;
+		bool match_transport = true;
 		result = ISC_R_FAILURE;
-		for (next = ISC_LIST_HEAD(acl->ports_and_transports);
-		     next != NULL; next = ISC_LIST_NEXT(next, link))
-		{
-			bool match_port = true;
-			bool match_transport = true;
 
-			if (next->port != 0) {
-				/* Port is specified. */
-				match_port = (local_port == next->port);
-			}
-			if (next->transports != 0) {
-				/* Transport protocol is specified. */
-				match_transport =
-					((transport & next->transports) ==
-						 transport &&
-					 next->encrypted == encrypted);
-			}
+		if (next->port != 0) {
+			/* Port is specified. */
+			match_port = (local_port == next->port);
+		}
+		if (next->transports != 0) {
+			/* Transport protocol is specified. */
+			match_transport = ((transport & next->transports) ==
+						   transport &&
+					   next->encrypted == encrypted);
+		}
 
-			if (match_port && match_transport) {
-				result = next->negative ? ISC_R_FAILURE
-							: ISC_R_SUCCESS;
-				break;
-			}
+		if (match_port && match_transport) {
+			result = next->negative ? ISC_R_FAILURE : ISC_R_SUCCESS;
+			break;
 		}
 	}
 
@@ -462,11 +456,7 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 
 static void
 dns__acl_destroy_port_transports(dns_acl_t *acl) {
-	dns_acl_port_transports_t *port_proto = NULL;
-	dns_acl_port_transports_t *next = NULL;
-	ISC_LIST_FOREACH_SAFE (acl->ports_and_transports, port_proto, link,
-			       next)
-	{
+	ISC_LIST_FOREACH_SAFE (acl->ports_and_transports, port_proto, link) {
 		ISC_LIST_DEQUEUE(acl->ports_and_transports, port_proto, link);
 		isc_mem_put(acl->mctx, port_proto, sizeof(*port_proto));
 	}
@@ -770,8 +760,6 @@ dns_acl_add_port_transports(dns_acl_t *acl, const in_port_t port,
 
 void
 dns_acl_merge_ports_transports(dns_acl_t *dest, dns_acl_t *source, bool pos) {
-	dns_acl_port_transports_t *next;
-
 	REQUIRE(DNS_ACL_VALID(dest));
 	REQUIRE(DNS_ACL_VALID(source));
 
@@ -780,9 +768,7 @@ dns_acl_merge_ports_transports(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 	/*
 	 * Merge ports and transports
 	 */
-	for (next = ISC_LIST_HEAD(source->ports_and_transports); next != NULL;
-	     next = ISC_LIST_NEXT(next, link))
-	{
+	ISC_LIST_FOREACH (source->ports_and_transports, next, link) {
 		const bool next_positive = !next->negative;
 		bool add_negative;
 

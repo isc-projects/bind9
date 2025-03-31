@@ -732,7 +732,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	rrstream_t *data_stream = NULL;
 	rrstream_t *stream = NULL;
 	dns_difftuple_t *current_soa_tuple = NULL;
-	dns_rdataset_t *soa_rdataset;
 	dns_rdata_t soa_rdata = DNS_RDATA_INIT;
 	bool have_soa = false;
 	const char *mnemonic = NULL;

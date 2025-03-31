@@ -1305,7 +1305,6 @@ compute_cookie(ns_client_t *client, uint32_t when, const unsigned char *secret,
 
 static void
 process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
-	ns_altsecret_t *altsecret;
 	unsigned char dbuf[COOKIE_SIZE];
 	unsigned char *old;
 	isc_stdtime_t now;
@@ -1392,9 +1391,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		return;
 	}
 
-	for (altsecret = ISC_LIST_HEAD(client->manager->sctx->altsecrets);
-	     altsecret != NULL; altsecret = ISC_LIST_NEXT(altsecret, link))
-	{
+	ISC_LIST_FOREACH (client->manager->sctx->altsecrets, altsecret, link) {
 		isc_buffer_init(&db, dbuf, sizeof(dbuf));
 		compute_cookie(client, when, altsecret->secret, &db);
 		if (isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
@@ -2667,16 +2664,12 @@ ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
 
 void
 ns_clientmgr_shutdown(ns_clientmgr_t *manager) {
-	ns_client_t *client;
-
 	REQUIRE(VALID_MANAGER(manager));
 
 	MTRACE("destroy");
 
 	LOCK(&manager->reclock);
-	for (client = ISC_LIST_HEAD(manager->recursing); client != NULL;
-	     client = ISC_LIST_NEXT(client, rlink))
-	{
+	ISC_LIST_FOREACH (manager->recursing, client, rlink) {
 		ns_query_cancel(client);
 	}
 	UNLOCK(&manager->reclock);
@@ -2890,7 +2883,6 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 
 void
 ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
-	ns_client_t *client;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char original[DNS_NAME_FORMATSIZE];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -2904,8 +2896,7 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 	REQUIRE(VALID_MANAGER(manager));
 
 	LOCK(&manager->reclock);
-	client = ISC_LIST_HEAD(manager->recursing);
-	while (client != NULL) {
+	ISC_LIST_FOREACH (manager->recursing, client, rlink) {
 		INSIST(client->state == NS_CLIENTSTATE_RECURSING);
 
 		ns_client_name(client, peerbuf, sizeof(peerbuf));
@@ -2955,7 +2946,6 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 			sep, name, client->message->id, namebuf, typebuf,
 			classbuf, origfor, original,
 			isc_time_seconds(&client->requesttime));
-		client = ISC_LIST_NEXT(client, rlink);
 	}
 	UNLOCK(&manager->reclock);
 }
@@ -3139,28 +3129,21 @@ client_getdbversion(ns_client_t *client) {
 
 ns_dbversion_t *
 ns_client_findversion(ns_client_t *client, dns_db_t *db) {
-	ns_dbversion_t *dbversion;
-
-	for (dbversion = ISC_LIST_HEAD(client->query.activeversions);
-	     dbversion != NULL; dbversion = ISC_LIST_NEXT(dbversion, link))
-	{
+	ISC_LIST_FOREACH (client->query.activeversions, dbversion, link) {
 		if (dbversion->db == db) {
-			break;
+			return dbversion;
 		}
 	}
 
-	if (dbversion == NULL) {
-		/*
-		 * This is a new zone for this query.  Add it to
-		 * the active list.
-		 */
-		dbversion = client_getdbversion(client);
-		dns_db_attach(db, &dbversion->db);
-		dns_db_currentversion(db, &dbversion->version);
-		dbversion->acl_checked = false;
-		dbversion->queryok = false;
-		ISC_LIST_APPEND(client->query.activeversions, dbversion, link);
-	}
-
+	/*
+	 * This is a new zone for this query.  Add it to
+	 * the active list.
+	 */
+	ns_dbversion_t *dbversion = client_getdbversion(client);
+	dns_db_attach(db, &dbversion->db);
+	dns_db_currentversion(db, &dbversion->version);
+	dbversion->acl_checked = false;
+	dbversion->queryok = false;
+	ISC_LIST_APPEND(client->query.activeversions, dbversion, link);
 	return dbversion;
 }
