@@ -3,3 +3,6 @@ called_from_lib:libfstrm.so
 
 # FreeBSD false-positive, see GL#5267
 race:libexec/rtld-elf/rtld_malloc.c
+
+# FreeBSD false-positive, see GL#5266
+deadlock:add_trace_entry
