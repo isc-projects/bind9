@@ -1,3 +1,6 @@
 # Uninstrumented libraries
 called_from_lib:libfstrm.so
 race:dummyrpz
+
+# FreeBSD false-positive, see GL#5267
+race:libexec/rtld-elf/rtld_malloc.c
