@@ -137,6 +137,10 @@ dns_ede_copy(dns_edectx_t *edectx_to, const dns_edectx_t *edectx_from) {
 	REQUIRE(DNS_EDE_VALID(edectx_to));
 	REQUIRE(DNS_EDE_VALID(edectx_from));
 
+	if (edectx_to == edectx_from) {
+		return;
+	}
+
 	for (size_t pos = 0; pos < DNS_EDE_MAX_ERRORS; pos++) {
 		uint16_t fromcode;
 
