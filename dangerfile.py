@@ -44,7 +44,12 @@ def lines_containing(lines, string):
 
 changes_issue_or_mr_id_regex = re.compile(rb"\[(GL [#!]|RT #)[0-9]+\]")
 rdata_regex = re.compile(r"lib/dns/rdata/")
-mr_issue_link_regex = re.compile(r"^(Closes|Fixes):?\s*[^\n]*#[0-9]+", re.MULTILINE)
+
+# Source: https://docs.gitlab.com/user/project/issues/managing_issues/#default-closing-pattern
+ISSUE_CLOSING_REGEX = r"\b((?:[Cc]los(?:e[sd]?|ing)|\b[Ff]ix(?:e[sd]|ing)?|\b[Rr]esolv(?:e[sd]?|ing)|\b[Ii]mplement(?:s|ed|ing)?)(:?) +(?:(?:issues? +)?%{issue_ref}(?:(?: *,? +and +| *,? *)?)|([A-Z][A-Z0-9_]+-\d+))+)"
+ISSUE_REF = r"(?P<prefix>(isc-projects/bind9)?#|https://gitlab\.isc\.org/isc-projects/bind9/-/issues/)(?P<id>[0-9]+)"
+full_regex = ISSUE_CLOSING_REGEX.replace("%{issue_ref}", ISSUE_REF)
+mr_issue_link_regex = re.compile(full_regex, re.IGNORECASE | re.MULTILINE)
 
 modified_files = danger.git.modified_files
 affected_files = (
