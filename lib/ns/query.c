@@ -2804,8 +2804,8 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, qtype, NULL, NULL, NULL,
 		peeraddr, client->message->id, options, 0, NULL,
-		client->query.qc, client->manager->loop, cb, client,
-		&client->edectx, tmprdataset, NULL, fetchp);
+		client->query.qc, client->manager->loop, cb, client, NULL,
+		tmprdataset, NULL, fetchp);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_putrdataset(client, &tmprdataset);
 		isc_nmhandle_detach(handlep);
