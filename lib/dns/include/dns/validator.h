@@ -158,7 +158,9 @@ struct dns_validator {
 	isc_counter_t *qc;
 	isc_counter_t *gqc;
 
-	dns_edectx_t *edectx;
+	dns_edectx_t edectx;
+
+	dns_edectx_t *cb_edectx;
 };
 
 /*%
