@@ -609,19 +609,26 @@ check_private(isc_buffer_t *source, dns_secalg_t alg) {
 	} else if (alg == DNS_KEYALG_PRIVATEOID) {
 		/*
 		 * Check that we can extract the OID from the start of the
-		 * key data.
+		 * key data. We have a length byte followed by the OID BER
+		 * encoded.
 		 */
 		const unsigned char *in = NULL;
 		ASN1_OBJECT *obj = NULL;
 
 		isc_buffer_activeregion(source, &sr);
-		in = sr.base;
-		obj = d2i_ASN1_OBJECT(NULL, &in, sr.length);
+		if (sr.length < 1 || (unsigned int)*sr.base + 1 > sr.length) {
+			RETERR(DNS_R_FORMERR);
+		}
+		in = sr.base + 1;
+		obj = d2i_ASN1_OBJECT(NULL, &in, *sr.base);
 		if (obj == NULL) {
 			ERR_clear_error();
 			RETERR(DNS_R_FORMERR);
 		}
 		ASN1_OBJECT_free(obj);
+		if ((in - sr.base) != (*sr.base + 1)) {
+			RETERR(DNS_R_FORMERR);
+		}
 	}
 	return ISC_R_SUCCESS;
 }
