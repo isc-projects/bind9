@@ -102,6 +102,7 @@ command is one of the following:\n\
 \n\
   addzone zone [class [view]] { zone-options }\n\
 		Add zone to given view. Requires allow-new-zones option.\n\
+  closelogs     Close currently open log files.\n\
   delzone [-clean] zone [class [view]]\n\
 		Removes zone from given view.\n\
   dnssec -checkds [-key id [-alg algorithm]] [-when time] (published|withdrawn) zone [class [view]]\n\
@@ -122,6 +123,8 @@ command is one of the following:\n\
 		Close, rename and re-open the DNSTAP output file(s).\n\
   dumpdb [-all|-cache|-zones|-adb|-bad|-expired|-fail] [view ...]\n\
 		Dump cache(s) to the dump file (named_dump.db).\n\
+  fetchlimit [view]\n\
+		Show servers and domains currently rate-limited to fetch limits.\n\
   flush         Flushes all of the server's caches.\n\
   flush [view]	Flushes the server's cache for a view.\n\
   flushname name [view]\n\
@@ -176,6 +179,10 @@ command is one of the following:\n\
   reload	Reload configuration file and zones.\n\
   reload zone [class [view]]\n\
 		Reload a single zone.\n\
+  reset-stats <counter-name ...>\n\
+		Reset the requested statistics counter(s).\n\
+  responselog [ on | off ]\n\
+		Enable / disable response logging.\n\
   retransfer zone [class [view]]\n\
 		Retransfer a single zone without checking serial number.\n\
   scan		Scan available network interfaces for changes.\n\
