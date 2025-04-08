@@ -131,3 +131,10 @@ Bug Fixes
     properties is discouraged in all cases.
 
   :gl:`#5242`
+
+- Fix inconsistency in CNAME/DNAME handling during resolution.
+
+  Previously, in some cases, the resolver could return rdatasets of type
+  CNAME or DNAME without the result code being set to ``DNS_R_CNAME`` or
+  ``DNS_R_DNAME``. This could trigger an assertion failure. This has
+  been fixed. :gl:`#5201`
