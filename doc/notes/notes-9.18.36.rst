@@ -48,3 +48,10 @@ Bug Fixes
   the DNSKEY implementation was built on top of KEY, the ``_NOAUTH``
   flag prevented authentication in DNSKEYs as well. This has been
   corrected. :gl:`#5240`
+
+- Fix inconsistency in CNAME/DNAME handling during resolution.
+
+  Previously, in some cases, the resolver could return rdatasets of type
+  CNAME or DNAME without the result code being set to ``DNS_R_CNAME`` or
+  ``DNS_R_DNAME``. This could trigger an assertion failure. This has
+  been fixed. :gl:`#5201`
