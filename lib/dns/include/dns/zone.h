@@ -2187,8 +2187,8 @@ dns_zone_getsignatures(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
-		     bool deleteit);
+dns_zone_signwithkey(dns_zone_t *zone, dst_algorithm_t algorithm,
+		     uint16_t keyid, bool deleteit);
 /*%<
  * Initiate/resume signing of the entire zone with the zone DNSKEY(s)
  * that match the given algorithm and keyid.

@@ -1680,6 +1680,9 @@ validate_answer_process(void *arg) {
 	{
 		if (val->unsupported_algorithm == 0) {
 			val->unsupported_algorithm = val->siginfo->algorithm;
+			/*
+			 * XXXMPA save PRIVATEOID/PRIVATEDNS identifier here
+			 */
 		}
 		goto next_key;
 	}
@@ -2084,6 +2087,9 @@ validate_dnskey_dsset(dns_validator_t *val) {
 		{
 			if (val->unsupported_algorithm == 0) {
 				val->unsupported_algorithm = key.algorithm;
+				/*
+				 * XXXMPA Save PRIVATEOID / PRIVATEDNS here.
+				 */
 			}
 			return DNS_R_BADALG;
 		}

@@ -139,7 +139,6 @@
 #define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
 #define ID(x)	  dst_key_id(x)
 #define ALG(x)	  dst_key_alg(x)
-#define DNSALG(x) dst_algorithm_tosecalg(dst_key_alg(x))
 
 /*%
  * KASP flags
@@ -729,7 +728,7 @@ struct dns_signing {
 	unsigned int magic;
 	dns_db_t *db;
 	dns_dbiterator_t *dbiterator;
-	dns_secalg_t algorithm;
+	dst_algorithm_t algorithm;
 	uint16_t keyid;
 	bool deleteit;
 	bool done;
@@ -973,7 +972,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now);
 static void
 dump_done(void *arg, isc_result_t result);
 static isc_result_t
-zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
+zone_signwithkey(dns_zone_t *zone, dst_algorithm_t algorithm, uint16_t keyid,
 		 bool deleteit);
 static isc_result_t
 delete_nsec(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
@@ -3756,6 +3755,9 @@ cleanup:
 	}
 }
 
+#define OLD_SIGNING_RECORD_SIZE 5
+#define SIGNING_RECORD_SIZE	7
+
 static void
 resume_signingwithkey(dns_zone_t *zone) {
 	dns_dbnode_t *node = NULL;
@@ -3789,14 +3791,22 @@ resume_signingwithkey(dns_zone_t *zone) {
 
 	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dst_algorithm_t alg;
+
 		dns_rdataset_current(&rdataset, &rdata);
-		if (rdata.length != 5 || rdata.data[0] == 0 ||
-		    rdata.data[4] != 0)
+		/*
+		 * Old or New Forms
+		 */
+		if ((rdata.length != OLD_SIGNING_RECORD_SIZE &&
+		     rdata.length != SIGNING_RECORD_SIZE) ||
+		    rdata.data[0] == 0 || rdata.data[4] != 0)
 		{
 			continue;
 		}
-
-		result = zone_signwithkey(zone, rdata.data[0],
+		alg = (rdata.length == OLD_SIGNING_RECORD_SIZE)
+			      ? rdata.data[0]
+			      : ((rdata.data[5] << 8) | rdata.data[6]);
+		result = zone_signwithkey(zone, alg,
 					  (rdata.data[1] << 8) | rdata.data[2],
 					  rdata.data[3]);
 		if (result != ISC_R_SUCCESS) {
@@ -7968,18 +7978,25 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 		INSIST(!dns_rdataset_isassociated(&rdataset));
 		goto failure;
 	}
+
 	DNS_RDATASET_FOREACH (&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
+		unsigned char alg = dst_algorithm_tosecalg(signing->algorithm);
+
 		dns_rdataset_current(&rdataset, &rdata);
 		/*
 		 * If we don't match the algorithm or keyid skip the record.
 		 */
-		if (rdata.length != 5 || rdata.data[0] != signing->algorithm ||
+		if ((rdata.length != SIGNING_RECORD_SIZE &&
+		     rdata.length != OLD_SIGNING_RECORD_SIZE) ||
+		    rdata.data[0] == 0 || rdata.data[0] != alg ||
 		    rdata.data[1] != ((signing->keyid >> 8) & 0xff) ||
-		    rdata.data[2] != (signing->keyid & 0xff))
+		    rdata.data[2] != (signing->keyid & 0xff) ||
+		    (rdata.length == SIGNING_RECORD_SIZE &&
+		     (rdata.data[5] != (signing->algorithm >> 8 & 0xff) ||
+		      rdata.data[6] != (signing->algorithm & 0xff))))
 		{
 			have_rr = true;
-			dns_rdata_reset(&rdata);
 			continue;
 		}
 		/*
@@ -8009,20 +8026,32 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 		 * finished signing the zone with this key.  If it is already
 		 * there we don't need to add it a second time.
 		 */
-		unsigned char data[5] = {
-			signing->algorithm,
+		unsigned char data[SIGNING_RECORD_SIZE] = {
+			dst_algorithm_tosecalg(signing->algorithm),
 			(signing->keyid >> 8) & 0xff,
 			signing->keyid & 0xff,
 			0,
 			1,
+			(signing->algorithm >> 8) & 0xff,
+			signing->algorithm & 0xff,
 		};
 		dns_rdata_t rdata = (dns_rdata_t){
-			.length = sizeof(data),
+			.length = signing->algorithm < 256
+					  ? OLD_SIGNING_RECORD_SIZE
+					  : sizeof(data),
 			.data = data,
 			.type = zone->privatetype,
 			.rdclass = dns_db_class(signing->db),
 			.link = ISC_LINK_INITIALIZER,
 		};
+		/*
+		 * data[0] can't be 0 as that is used to signal that the
+		 * record is being used to for NSEC/NSEC3 chains generation.
+		 * Set it to 255 instead.
+		 */
+		if (data[0] == 0) {
+			data[0] = 255;
+		}
 		CHECK(update_one_rr(signing->db, version, diff, DNS_DIFFOP_ADD,
 				    &zone->origin, rdataset.ttl, &rdata));
 	} else if (!have_rr) {
@@ -9351,7 +9380,7 @@ failure:
  */
 static isc_result_t
 del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-	dns_dbnode_t *node, unsigned int nkeys, dns_secalg_t algorithm,
+	dns_dbnode_t *node, unsigned int nkeys, dst_algorithm_t algorithm,
 	uint16_t keyid, bool *has_algp, dns_diff_t *diff) {
 	dns_rdata_rrsig_t rrsig;
 	dns_rdataset_t rdataset;
@@ -9392,12 +9421,17 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		}
 		DNS_RDATASET_FOREACH (&rdataset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dst_algorithm_t sigalg;
+
 			dns_rdataset_current(&rdataset, &rdata);
 			CHECK(dns_rdata_tostruct(&rdata, &rrsig, NULL));
-			if (nkeys != 0 && (rrsig.algorithm != algorithm ||
-					   rrsig.keyid != keyid))
+
+			sigalg = dst_algorithm_fromdata(
+				rrsig.algorithm, rrsig.signature, rrsig.siglen);
+			if (nkeys != 0 &&
+			    (sigalg != algorithm || rrsig.keyid != keyid))
 			{
-				if (rrsig.algorithm == algorithm) {
+				if (sigalg == algorithm) {
 					has_alg = true;
 				}
 				continue;
@@ -9687,8 +9721,7 @@ zone_sign(dns_zone_t *zone) {
 				/*
 				 * Find the key we want to remove.
 				 */
-				if (DNSALG(zone_keys[i]) ==
-					    signing->algorithm &&
+				if (ALG(zone_keys[i]) == signing->algorithm &&
 				    dst_key_id(zone_keys[i]) == signing->keyid)
 				{
 					dst_key_free(&zone_keys[i]);
@@ -9763,7 +9796,7 @@ zone_sign(dns_zone_t *zone) {
 			 * When adding look for the specific key.
 			 */
 			if (!signing->deleteit &&
-			    (DNSALG(zone_keys[i]) != signing->algorithm ||
+			    (ALG(zone_keys[i]) != signing->algorithm ||
 			     dst_key_id(zone_keys[i]) != signing->keyid))
 			{
 				continue;
@@ -9774,7 +9807,7 @@ zone_sign(dns_zone_t *zone) {
 			 * with the algorithm that was being removed.
 			 */
 			if (signing->deleteit &&
-			    DNSALG(zone_keys[i]) != signing->algorithm)
+			    ALG(zone_keys[i]) != signing->algorithm)
 			{
 				continue;
 			}
@@ -20108,8 +20141,8 @@ dns_zone_setnotifydelay(dns_zone_t *zone, uint32_t delay) {
 }
 
 isc_result_t
-dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
-		     bool deleteit) {
+dns_zone_signwithkey(dns_zone_t *zone, dst_algorithm_t algorithm,
+		     uint16_t keyid, bool deleteit) {
 	isc_result_t result;
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -20193,7 +20226,7 @@ dns_zone_getprivatetype(dns_zone_t *zone) {
 }
 
 static isc_result_t
-zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
+zone_signwithkey(dns_zone_t *zone, dst_algorithm_t algorithm, uint16_t keyid,
 		 bool deleteit) {
 	dns_signing_t *signing = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -20350,7 +20383,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	isc_region_t r;
 	isc_result_t result = ISC_R_SUCCESS;
 	uint16_t keyid;
-	unsigned char buf[5];
+	unsigned char data[SIGNING_RECORD_SIZE];
 	dns_name_t *name = dns_db_origin(db);
 	dns_difftuplelist_t add = ISC_LIST_INITIALIZER;
 	dns_difftuplelist_t del = ISC_LIST_INITIALIZER;
@@ -20425,17 +20458,23 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	 * or added.
 	 */
 	ISC_LIST_FOREACH (tuples, tuple, link) {
+		dst_algorithm_t algorithm;
 		dns_rdata_toregion(&tuple->rdata, &r);
 
 		keyid = dst_region_computeid(&r);
 
-		buf[0] = dnskey.algorithm;
-		buf[1] = (keyid & 0xff00) >> 8;
-		buf[2] = (keyid & 0xff);
-		buf[3] = (tuple->op == DNS_DIFFOP_ADD) ? 0 : 1;
-		buf[4] = 0;
-		rdata.data = buf;
-		rdata.length = sizeof(buf);
+		algorithm = dst_algorithm_fromdata(dnskey.algorithm,
+						   dnskey.data, dnskey.datalen);
+		data[0] = dnskey.algorithm;
+		data[1] = (keyid & 0xff00) >> 8;
+		data[2] = (keyid & 0xff);
+		data[3] = (tuple->op == DNS_DIFFOP_ADD) ? 0 : 1;
+		data[4] = 0;
+		data[5] = (algorithm & 0xff00) >> 8;
+		data[6] = (algorithm & 0xff);
+		rdata.data = data;
+		rdata.length = algorithm < 256 ? OLD_SIGNING_RECORD_SIZE
+					       : sizeof(data);
 		rdata.type = privatetype;
 		rdata.rdclass = tuple->rdata.rdclass;
 
@@ -20455,7 +20494,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		 * Remove any record which says this operation has already
 		 * completed.
 		 */
-		buf[4] = 1;
+		data[4] = 1;
 		CHECK(rr_exists(db, ver, name, &rdata, &flag));
 		if (flag) {
 			dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
@@ -22900,21 +22939,49 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			}
 
 			CHECK(dns_rdata_tostruct(&crdata, &structcds, NULL));
-			if (algorithms[structcds.algorithm] == 0) {
-				algorithms[structcds.algorithm] = expected;
-			}
-			DNS_RDATASET_FOREACH (&dnskey) {
+			if (structcds.algorithm != DNS_KEYALG_PRIVATEDNS &&
+			    structcds.algorithm != DNS_KEYALG_PRIVATEOID)
+			{
+				if (algorithms[structcds.algorithm] == 0) {
+					algorithms[structcds.algorithm] =
+						expected;
+				}
+				DNS_RDATASET_FOREACH (&dnskey) {
+					dns_rdata_t rdata = DNS_RDATA_INIT;
+					dns_rdata_dnskey_t structdnskey;
+
+					dns_rdataset_current(&dnskey, &rdata);
+					dns_rdata_tostruct(&rdata,
+							   &structdnskey, NULL);
+
+					if (structdnskey.algorithm ==
+					    structcds.algorithm)
+					{
+						algorithms[structcds.algorithm] =
+							found;
+					}
+				}
+			} else {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdata_dnskey_t structdnskey;
+				dst_algorithm_t dnskeyalg;
 
-				dns_rdataset_current(&dnskey, &rdata);
-				dns_rdata_tostruct(&rdata, &structdnskey, NULL);
-
-				if (structdnskey.algorithm ==
-				    structcds.algorithm)
-				{
-					algorithms[structcds.algorithm] = found;
+				/* Convert CDS to DS */
+				crdata.type = dns_rdatatype_ds;
+				result = dns_dnssec_matchdskey(&zone->origin,
+							       &crdata, &dnskey,
+							       &rdata);
+				if (result != ISC_R_SUCCESS) {
+					result = DNS_R_BADCDS;
+					goto failure;
 				}
+				CHECK(dns_rdata_tostruct(&rdata, &structdnskey,
+							 NULL));
+				dnskeyalg = dst_algorithm_fromdata(
+					structdnskey.algorithm,
+					structdnskey.data,
+					structdnskey.datalen);
+				algorithms[dnskeyalg] = found;
 			}
 		}
 		for (i = 0; i < sizeof(algorithms); i++) {
@@ -22941,6 +23008,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 		DNS_RDATASET_FOREACH (&cdnskey) {
 			dns_rdata_t crdata = DNS_RDATA_INIT;
 			dns_rdata_cdnskey_t structcdnskey;
+			dst_algorithm_t cdnskeyalg;
 
 			dns_rdataset_current(&cdnskey, &crdata);
 			/*
@@ -22963,22 +23031,27 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 
 			CHECK(dns_rdata_tostruct(&crdata, &structcdnskey,
 						 NULL));
-			if (algorithms[structcdnskey.algorithm] == 0) {
-				algorithms[structcdnskey.algorithm] = expected;
+			cdnskeyalg = dst_algorithm_fromdata(
+				structcdnskey.algorithm, structcdnskey.data,
+				structcdnskey.datalen);
+			if (algorithms[cdnskeyalg] == 0) {
+				algorithms[cdnskeyalg] = expected;
 			}
 			DNS_RDATASET_FOREACH (&dnskey) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdata_dnskey_t structdnskey;
+				dst_algorithm_t dnskeyalg;
 
 				dns_rdataset_current(&dnskey, &rdata);
 				CHECK(dns_rdata_tostruct(&rdata, &structdnskey,
 							 NULL));
+				dnskeyalg = dst_algorithm_fromdata(
+					structdnskey.algorithm,
+					structdnskey.data,
+					structdnskey.datalen);
 
-				if (structdnskey.algorithm ==
-				    structcdnskey.algorithm)
-				{
-					algorithms[structcdnskey.algorithm] =
-						found;
+				if (dnskeyalg == cdnskeyalg) {
+					algorithms[cdnskeyalg] = found;
 				}
 			}
 		}
@@ -23232,7 +23305,7 @@ dns_zone_issecure(dns_zone_t *zone) {
 
 struct keydone {
 	bool all;
-	unsigned char data[5];
+	unsigned char data[SIGNING_RECORD_SIZE];
 	dns_zone_t *zone;
 };
 
@@ -23300,8 +23373,11 @@ keydone(void *arg) {
 		dns_rdataset_current(&rdataset, &rdata);
 
 		if (kd->all) {
-			if (rdata.length == 5 && rdata.data[0] != 0 &&
-			    rdata.data[3] == 0 && rdata.data[4] == 1)
+			/* Old (5) and new (7) forms */
+			if ((rdata.length == OLD_SIGNING_RECORD_SIZE ||
+			     rdata.length == SIGNING_RECORD_SIZE) &&
+			    rdata.data[0] != 0 && rdata.data[3] == 0 &&
+			    rdata.data[4] == 1)
 			{
 				found = true;
 			} else if (rdata.data[0] == 0 &&
@@ -23310,8 +23386,14 @@ keydone(void *arg) {
 				found = true;
 				clear_pending = true;
 			}
-		} else if (rdata.length == 5 &&
-			   memcmp(rdata.data, kd->data, 5) == 0)
+		} else if (rdata.length == OLD_SIGNING_RECORD_SIZE &&
+			   memcmp(rdata.data, kd->data,
+				  OLD_SIGNING_RECORD_SIZE) == 0)
+		{
+			found = true;
+		} else if (rdata.length == SIGNING_RECORD_SIZE &&
+			   memcmp(rdata.data, kd->data, SIGNING_RECORD_SIZE) ==
+				   0)
 		{
 			found = true;
 		}
@@ -23388,7 +23470,7 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		isc_textregion_t r;
 		const char *algstr = NULL;
 		dns_keytag_t keyid;
-		dns_secalg_t alg;
+		dst_algorithm_t alg;
 		size_t n;
 
 		n = sscanf(keystr, "%hu/", &keyid);
@@ -23403,20 +23485,20 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 			CHECK(ISC_R_FAILURE);
 		}
 
-		n = sscanf(algstr, "%hhu", &alg);
+		n = sscanf(algstr, "%u", &alg);
 		if (n == 0U) {
 			r.base = UNCONST(algstr);
 			r.length = strlen(algstr);
-			CHECK(dns_secalg_fromtext(&alg, &r));
+			CHECK(dst_algorithm_fromtext(&alg, &r));
 		}
 
 		/* construct a private-type rdata */
 		isc_buffer_init(&b, kd->data, sizeof(kd->data));
-		isc_buffer_putuint8(&b, alg);
-		isc_buffer_putuint8(&b, (keyid & 0xff00) >> 8);
-		isc_buffer_putuint8(&b, (keyid & 0xff));
+		isc_buffer_putuint8(&b, dst_algorithm_tosecalg(alg));
+		isc_buffer_putuint16(&b, keyid);
 		isc_buffer_putuint8(&b, 0);
 		isc_buffer_putuint8(&b, 1);
+		isc_buffer_putuint16(&b, alg);
 	}
 
 	zone_iattach(zone, &kd->zone);

@@ -211,10 +211,15 @@ private_type_record() {
   _zone=$1
   _algorithm=$2
   _keyfile=$3
+  _secalg=$2
 
   _id=$(keyfile_to_key_id "$_keyfile")
 
-  printf "%s. 0 IN TYPE65534 %s 5 %02x%04x0000\n" "$_zone" "\\#" "$_algorithm" "$_id"
+  if test "$_algorithm" -lt 256; then
+    printf "%s. 0 IN TYPE65534 %s 5 %02x%04x0000\n" "$_zone" "\\#" "$_secalg" "$_id"
+  else
+    printf "%s. 0 IN TYPE65534 %s 7 %02x%04x0000%04x\n" "$_zone" "\\#" "$_secalg" "$_id" "$_algorithm"
+  fi
 }
 
 # nextpart*() - functions for reading files incrementally

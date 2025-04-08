@@ -53,18 +53,20 @@ dnssec_loadkeys_on() {
 # convert private-type records to readable form
 showprivate() {
   echo "-- $* --"
-  dig_with_opts +nodnssec +short "@$2" -t type65534 "$1" | cut -f3 -d' ' \
-    | while read -r record; do
-      # shellcheck disable=SC2016
-      $PERL -e 'my $rdata = pack("H*", @ARGV[0]);
-                die "invalid record" unless length($rdata) == 5;
-                my ($alg, $key, $remove, $complete) = unpack("CnCC", $rdata);
-                my $action = "signing";
-                $action = "removing" if $remove;
-                my $state = " (incomplete)";
-                $state = " (complete)" if $complete;
-                print ("$action: alg: $alg, key: $key$state\n");' "$record"
-    done
+  dig_with_opts +nodnssec +short "@$2" -t type65534 "$1" >dig.out.$1.test$n
+  cut -f3 -d' ' <dig.out.$1.$n | while read -r record; do
+    # shellcheck disable=SC2016
+    $PERL -e 'my $rdata = pack("H*", @ARGV[0]);
+              die "invalid record" unless length($rdata) == 5 || length($rdata) == 7;
+              my ($dns, $key, $remove, $complete, $alg) = unpack("CnCCn", $rdata);
+              die "invalid record" unless $dns != 0;
+              my $action = "signing";
+              $action = "removing" if $remove;
+              my $state = " (incomplete)";
+              $state = " (complete)" if $complete;
+              $alg = $dns if ! defined($alg);
+              print ("$action: alg: $alg, key: $key$state\n");' "$record"
+  done
 }
 
 # check that signing records are marked as complete

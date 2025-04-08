@@ -31,12 +31,13 @@ showprivate() {
   $DIG $DIGOPTS +nodnssec +short @$2 -t ${4:-type65534} $1 | cut -f3 -d' ' \
     | while read record; do
       $PERL -e 'my $rdata = pack("H*", @ARGV[0]);
-                die "invalid record" unless length($rdata) == 5;
-                my ($alg, $key, $remove, $complete) = unpack("CnCC", $rdata);
+                die "invalid record" unless length($rdata) == 5 || length($rdata) == 7;
+                my ($dns, $key, $remove, $complete, $alg) = unpack("CnCCn", $rdata);
                 my $action = "signing";
                 $action = "removing" if $remove;
                 my $state = " (incomplete)";
                 $state = " (complete)" if $complete;
+                $alg = $dns if ! defined($alg);
                 print ("$action: alg: $alg, key: $key$state\n");' $record
     done
 }
