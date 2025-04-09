@@ -460,17 +460,14 @@ Currently supported commands are:
    If a zone is specified, this command reloads only the given zone.
    If no zone is specified, the reloading happens asynchronously.
 
-.. option:: reset-stats
+.. program:: rndc
+
+.. option:: reset-stats <counter-name ...>
 
    This command resets the requested statistics counters.
 
-   .. program:: rndc reset-stats
-   .. option:: counter-name ...
-
    At least one counter name must be provided. Currently the following counters
    are supported: ``recursive-high-water``, ``tcp-high-water``.
-
-.. program:: rndc
 
 .. option:: responselog [on | off]
 
