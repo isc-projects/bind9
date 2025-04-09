@@ -251,12 +251,6 @@ stages:
 .base: &base_image
   <<: *debian_bookworm_amd64_image
 
-### QCOW2 Image Templates
-
-.openbsd-amd64: &openbsd_amd64_image
-  image: "openbsd-7.6-x86_64"
-  <<: *libvirt_amd64
-
 ### Job Templates
 
 .api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
@@ -1498,25 +1492,6 @@ unit:clang:freebsd14:amd64:
     - job: clang:freebsd14:amd64
       artifacts: true
   retry: 1  # GL #4924
-
-# Jobs for Clang builds on OpenBSD (amd64)
-
-clang:openbsd:amd64:
-  variables:
-    CC: clang
-    USER: gitlab-runner
-    EXTRA_CONFIGURE: "--disable-dnstap"
-  <<: *openbsd_amd64_image
-  <<: *build_job
-
-unit:clang:openbsd:amd64:
-  <<: *openbsd_amd64_image
-  <<: *unit_test_job
-  variables:
-    USER: gitlab-runner
-  needs:
-    - job: clang:openbsd:amd64
-      artifacts: true
 
 # Job producing a release directory
 
