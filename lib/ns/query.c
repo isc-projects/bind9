@@ -5946,11 +5946,18 @@ query_lookup(query_ctx_t *qctx) {
 		}
 	} else if (stale_timeout) {
 		if (qctx->options.stalefirst) {
-			if (!stale_found && !answer_found) {
-				/*
-				 * We have nothing useful in cache to return
-				 * immediately.
-				 */
+			/*
+			 * If 'qctx->zdb' is set, this was a cache lookup after
+			 * an authoritative lookup returned a delegation (in
+			 * order to find a better answer). But we still can
+			 * return without getting any usable answer here, as
+			 * query_notfound() should handle it from here.
+			 * Otherwise, if nothing useful was found in cache then
+			 * recursively call query_lookup() again without the
+			 * 'stalefirst' option set.
+			 */
+			if (!stale_found && !answer_found && qctx->zdb == NULL)
+			{
 				qctx_clean(qctx);
 				qctx_freedata(qctx);
 				dns_db_attach(qctx->client->view->cachedb,
@@ -8604,7 +8611,25 @@ query_zone_delegation(query_ctx_t *qctx) {
 		dns_db_attach(qctx->view->cachedb, &qctx->db);
 		qctx->is_zone = false;
 
-		return query_lookup(qctx);
+		/*
+		 * Since 'qctx->is_zone' is now false, we should reconsider
+		 * setting the 'stalefirst' option, which is usually set in
+		 * the beginning in ns__query_start().
+		 */
+		if (qctx->view->staleanswerclienttimeout == 0 &&
+		    dns_view_staleanswerenabled(qctx->view))
+		{
+			qctx->options.stalefirst = true;
+		}
+
+		result = query_lookup(qctx);
+
+		/*
+		 * After fetch completes, this option is not expected to be set.
+		 */
+		qctx->options.stalefirst = false;
+
+		return result;
 	}
 
 	return query_prepare_delegation_response(qctx);
