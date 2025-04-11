@@ -83,7 +83,7 @@ class IckyPtangZoopBoingSlowHandler(DelayedResponseHandler):
     delay = 0.4
 
 
-if __name__ == "__main__":
+def main() -> None:
     server = AsyncDnsServer()
     server.install_response_handler(QueryLogger())
     server.install_response_handler(StaleHandler())
@@ -91,3 +91,7 @@ if __name__ == "__main__":
     server.install_response_handler(IckyPtangZoopBoingUglyHandler())
     server.install_response_handler(IckyPtangZoopBoingSlowHandler())
     server.run()
+
+
+if __name__ == "__main__":
+    main()
