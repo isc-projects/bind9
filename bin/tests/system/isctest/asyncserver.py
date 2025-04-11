@@ -394,6 +394,9 @@ class ResponseHandler(abc.ABC):
         """
         yield DnsResponseSend(qctx.response)
 
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
 
 class IgnoreAllQueries(ResponseHandler):
     """
@@ -778,6 +781,7 @@ class AsyncDnsServer(AsyncServer):
             response_handled = True
 
         if not response_handled:
+            logging.debug("Responding based on zone data")
             yield qctx.response
 
     def _prepare_response_from_zone_data(self, qctx: QueryContext) -> None:
@@ -911,6 +915,7 @@ class AsyncDnsServer(AsyncServer):
         """
         for handler in self._response_handlers:
             if handler.match(qctx):
+                logging.debug("Matched response handler: %s", handler)
                 async for response in handler.get_responses(qctx):
                     yield response
                 return
