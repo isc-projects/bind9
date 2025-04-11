@@ -532,15 +532,31 @@ class AsyncDnsServer(AsyncServer):
         if load_zones:
             self._load_zones()
 
-    def install_response_handler(self, handler: ResponseHandler) -> None:
+    def install_response_handler(
+        self, handler: ResponseHandler, prepend: bool = False
+    ) -> None:
         """
-        Add a response handler which will be used to handle matching queries.
+        Add a response handler that will be used to handle matching queries.
 
         Response handlers can modify, replace, or suppress the answers prepared
         from zone file contents.
+
+        The provided handler is installed at the end of the response handler
+        list unless `prepend` is set to True, in which case it is installed at
+        the beginning of the response handler list.
         """
         logging.info("Installing response handler: %s", handler)
-        self._response_handlers.append(handler)
+        if prepend:
+            self._response_handlers.insert(0, handler)
+        else:
+            self._response_handlers.append(handler)
+
+    def uninstall_response_handler(self, handler: ResponseHandler) -> None:
+        """
+        Remove the specified handler from the list of response handlers.
+        """
+        logging.info("Uninstalling response handler: %s", handler)
+        self._response_handlers.remove(handler)
 
     def _load_zones(self) -> None:
         for entry in os.scandir():
