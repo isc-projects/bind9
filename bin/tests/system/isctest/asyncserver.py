@@ -1069,3 +1069,42 @@ class ControlCommand(abc.ABC):
 
     def __str__(self) -> str:
         return self.__class__.__name__
+
+
+class ToggleResponsesCommand(ControlCommand):
+    """
+    Disable/enable sending responses from the server.
+    """
+
+    control_subdomain = "send-responses"
+
+    def __init__(self) -> None:
+        self._current_handler: Optional[IgnoreAllQueries] = None
+
+    def handle(
+        self, args: List[str], server: ControllableAsyncDnsServer, qctx: QueryContext
+    ) -> Optional[str]:
+        if len(args) != 1:
+            logging.error("Invalid %s query %s", self, qctx.qname)
+            qctx.response.set_rcode(dns.rcode.SERVFAIL)
+            return "invalid query; use exactly one of 'enable' or 'disable' in QNAME"
+
+        mode = args[0]
+
+        if mode == "disable":
+            if self._current_handler:
+                return "sending responses already disabled"
+            self._current_handler = IgnoreAllQueries()
+            server.install_response_handler(self._current_handler, prepend=True)
+            return "sending responses disabled"
+
+        if mode == "enable":
+            if not self._current_handler:
+                return "sending responses already enabled"
+            server.uninstall_response_handler(self._current_handler)
+            self._current_handler = None
+            return "sending responses enabled"
+
+        logging.error("Unrecognized response sending mode '%s'", mode)
+        qctx.response.set_rcode(dns.rcode.SERVFAIL)
+        return f"unrecognized response sending mode '{mode}'"
