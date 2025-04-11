@@ -580,7 +580,12 @@ class AsyncDnsServer(AsyncServer):
 
         logging.debug("Closing TCP connection from %s", peer)
         writer.close()
-        await writer.wait_closed()
+        try:
+            # Python >= 3.7
+            await writer.wait_closed()
+        except AttributeError:
+            # Python < 3.7
+            pass
 
     async def _read_tcp_query(
         self, reader: asyncio.StreamReader, peer: Peer
