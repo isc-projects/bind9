@@ -14,7 +14,11 @@ information regarding copyright ownership.
 from isctest.asyncserver import AsyncDnsServer, IgnoreAllQueries
 
 
-if __name__ == "__main__":
+def main() -> None:
     server = AsyncDnsServer()
     server.install_response_handler(IgnoreAllQueries())
     server.run()
+
+
+if __name__ == "__main__":
+    main()
