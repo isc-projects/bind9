@@ -24,6 +24,7 @@ import dns
 import dns.tsig
 import isctest.log
 import isctest.query
+import isctest.util
 
 DEFAULT_TTL = 300
 
@@ -612,7 +613,7 @@ def check_zone_is_signed(server, zone, tsig=None):
     assert signed
 
 
-def verify_keys(zone, keys, expected):
+def check_keys(zone, keys, expected):
     """
     Checks keys for a configured zone. This verifies:
     1. The expected number of keys exist in 'keys'.
