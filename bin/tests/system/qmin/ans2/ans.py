@@ -101,7 +101,7 @@ class StaleHandler(DomainHandler):
             yield send_delegation(qctx, b_stale, "10.53.0.4")
 
 
-if __name__ == "__main__":
+def main() -> None:
     server = AsyncDnsServer()
     server.install_response_handler(QueryLogger())
     server.install_response_handler(BadHandler())
@@ -109,3 +109,7 @@ if __name__ == "__main__":
     server.install_response_handler(SlowHandler())
     server.install_response_handler(StaleHandler())
     server.run()
+
+
+if __name__ == "__main__":
+    main()
