@@ -728,7 +728,11 @@ class AsyncDnsServer(AsyncServer):
         """
         Yield wire data to send as a response over the established transport.
         """
-        query = dns.message.from_wire(wire)
+        try:
+            query = dns.message.from_wire(wire)
+        except dns.exception.DNSException as exc:
+            logging.error("Invalid query from %s (%s): %s", peer, wire.hex(), exc)
+            return
         response_stub = dns.message.make_response(query)
         qctx = QueryContext(query, response_stub, peer, protocol)
         self._log_query(qctx, peer, protocol)
