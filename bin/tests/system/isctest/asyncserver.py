@@ -160,6 +160,7 @@ class AsyncServer:
             loop.run_until_complete(coroutine())
 
     async def _run(self) -> None:
+        self._setup_exception_handler()
         self._setup_signals()
         assert self._work_done
         await self._listen_udp()
@@ -177,9 +178,20 @@ class AsyncServer:
             loop = asyncio.get_event_loop()
         return loop
 
-    def _setup_signals(self) -> None:
+    def _setup_exception_handler(self) -> None:
         loop = self._get_asyncio_loop()
         self._work_done = loop.create_future()
+        loop.set_exception_handler(self._handle_exception)
+
+    def _handle_exception(
+        self, _: asyncio.AbstractEventLoop, context: Dict[str, Any]
+    ) -> None:
+        assert self._work_done
+        exception = context.get("exception", RuntimeError(context["message"]))
+        self._work_done.set_exception(exception)
+
+    def _setup_signals(self) -> None:
+        loop = self._get_asyncio_loop()
         loop.add_signal_handler(signal.SIGINT, functools.partial(self._signal_done))
         loop.add_signal_handler(signal.SIGTERM, functools.partial(self._signal_done))
 
