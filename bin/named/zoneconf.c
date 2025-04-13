@@ -878,6 +878,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *obj;
 	const char *filename = NULL;
+	const char *initial_file = NULL;
 	const char *kaspname = NULL;
 	const char *dupcheck;
 	dns_checkdstype_t checkdstype = dns_checkdstype_yes;
@@ -996,6 +997,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		filename = cfg_obj_asstring(obj);
 	}
 
+	obj = NULL;
+	result = cfg_map_get(zoptions, "initial-file", &obj);
+	if (result == ISC_R_SUCCESS) {
+		initial_file = cfg_obj_asstring(obj);
+	}
+
 	if (ztype == dns_zone_secondary || ztype == dns_zone_mirror) {
 		masterformat = dns_masterformat_raw;
 	} else {
@@ -1053,14 +1060,17 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		size_t signedlen = strlen(filename) + sizeof(SIGNED);
 		char *signedname;
 
-		dns_zone_setfile(raw, filename, masterformat, masterstyle);
+		dns_zone_setfile(raw, filename, initial_file, masterformat,
+				 masterstyle);
 		signedname = isc_mem_get(mctx, signedlen);
 
 		(void)snprintf(signedname, signedlen, "%s" SIGNED, filename);
-		dns_zone_setfile(zone, signedname, dns_masterformat_raw, NULL);
+		dns_zone_setfile(zone, signedname, NULL, dns_masterformat_raw,
+				 NULL);
 		isc_mem_put(mctx, signedname, signedlen);
 	} else {
-		dns_zone_setfile(zone, filename, masterformat, masterstyle);
+		dns_zone_setfile(zone, filename, initial_file, masterformat,
+				 masterstyle);
 	}
 
 	obj = NULL;

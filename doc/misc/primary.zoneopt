@@ -27,6 +27,7 @@ zone <string> [ <class> ] {
 	file <quoted_string>;
 	forward ( first | only );
 	forwarders [ port <integer> ] [ tls <string> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ tls <string> ]; ... };
+	initial-file <quoted_string>;
 	inline-signing <boolean>;
 	ixfr-from-differences <boolean>;
 	journal <quoted_string>;

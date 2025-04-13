@@ -43,3 +43,15 @@ zone "missing" {
 	type primary;
 	file "missing.db";
 };
+
+zone "initial" {
+	type primary;
+	file "copied.db";
+	initial-file "example.db";
+};
+
+zone "present" {
+	type primary;
+	file "present.db";
+	initial-file "example.db";
+};

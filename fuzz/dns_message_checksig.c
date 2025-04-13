@@ -212,7 +212,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	dns_zone_setclass(zone, view->rdclass);
 	dns_zone_settype(zone, dns_zone_primary);
 	dns_zone_setkeydirectory(zone, wd);
-	dns_zone_setfile(zone, pathbuf, dns_masterformat_text,
+	dns_zone_setfile(zone, pathbuf, NULL, dns_masterformat_text,
 			 &dns_master_style_default);
 
 	result = dns_zone_load(zone, false);

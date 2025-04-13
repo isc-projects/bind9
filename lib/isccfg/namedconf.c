@@ -2430,6 +2430,7 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_ZONE_STUB | CFG_ZONE_HINT | CFG_ZONE_REDIRECT },
 	{ "in-view", &cfg_type_astring, CFG_ZONE_INVIEW },
+	{ "initial-file", &cfg_type_qstring, CFG_ZONE_PRIMARY },
 	{ "inline-signing", &cfg_type_boolean,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
 	{ "ixfr-base", NULL, CFG_CLAUSEFLAG_ANCIENT },

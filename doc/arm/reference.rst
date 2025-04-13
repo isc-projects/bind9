@@ -7149,6 +7149,32 @@ Zone Options
    specified in a zone of type :any:`forward`, no forwarding is done for
    the zone and the global options are not used.
 
+.. namedconf:statement:: initial-file
+   :tags: zone
+   :short: Specifies a file with the initial contents of a newly created zone.
+
+   When a :any:`primary <type primary>` zone is loaded for the first time,
+   if the zone's :any:`file` does not exist but ``initial-file`` does, the
+   zone file is copied into place from the initial file before loading.
+   This can be used to simplify the process of adding new zones, removing
+   the need to create the zone file before configuring the zone. For example,
+   a template zonefile could be used by running:
+
+   ::
+
+      $ rndc addzone example.com \
+        '{ type primary; file "example.db"; initial-file "template.db"; };'
+
+    Using "@" to reference the zone origin name within ``template.db``
+    allows the same file to be used with multiple zones, as in:
+
+    ::
+
+        $TTL 300
+        @		IN SOA	ns hosmaster 1 1800 1800 86400 3600
+                        NS	ns
+        ns              A       192.0.2.1
+
 .. namedconf:statement:: journal
    :tags: zone
    :short: Allows the default journal's filename to be overridden.

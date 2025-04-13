@@ -11,6 +11,7 @@
 
 import difflib
 import shutil
+import os
 from typing import Optional
 
 import dns.rcode
@@ -150,3 +151,7 @@ def file_contents_equal(file1, file2):
         assert not line.startswith("+ ") and not line.startswith(
             "- "
         ), f'file contents of "{file1}" and "{file2}" differ'
+
+
+def file_empty(file):
+    assert os.path.getsize(file) == 0

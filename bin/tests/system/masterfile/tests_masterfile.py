@@ -15,6 +15,9 @@ import dns.message
 import dns.zone
 
 import isctest
+import pytest
+
+pytestmark = pytest.mark.extra_artifacts(["ns2/copied.db", "ns2/present.db"])
 
 
 def test_masterfile_include_semantics():
@@ -85,6 +88,24 @@ example.	300	IN	SOA	mname1. . 2010042407 20 20 1814400 3600
 """
     expected = dns.message.from_text(expected_soa_rr)
     isctest.check.rrsets_equal(res_soa.answer, expected.answer, compare_ttl=True)
+
+
+def test_masterfile_initial_file():
+    """Test zone configuration with initial template files"""
+    msg_soa = dns.message.make_query("initial.", "SOA")
+    res_soa = isctest.query.tcp(msg_soa, "10.53.0.2")
+    expected_soa_rr = """;ANSWER
+initial.	300	IN	SOA	mname1. . 2010042407 20 20 1814400 3600
+"""
+    expected = dns.message.from_text(expected_soa_rr)
+    isctest.check.rrsets_equal(res_soa.answer, expected.answer)
+    isctest.check.file_contents_equal("ns2/example.db", "ns2/copied.db")
+
+    # the 'present.db' file already existed and shouldn't load
+    msg_soa = dns.message.make_query("present.", "SOA")
+    res_soa = isctest.query.tcp(msg_soa, "10.53.0.2")
+    isctest.check.servfail(res_soa)
+    isctest.check.file_empty("ns2/present.db")
 
 
 def test_masterfile_missing_master_file_servfail():

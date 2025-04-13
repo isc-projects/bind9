@@ -168,7 +168,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	/*
 	 * Set path to the master file for the zone and then load it.
 	 */
-	dns_zone_setfile(served_zone, filename, dns_masterformat_text,
+	dns_zone_setfile(served_zone, filename, NULL, dns_masterformat_text,
 			 &dns_master_style_default);
 	result = dns_zone_load(served_zone, false);
 	if (result != ISC_R_SUCCESS) {

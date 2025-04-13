@@ -184,7 +184,7 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	fwrite(buf, 1, n, zonefile);
 	fflush(zonefile);
 
-	dns_zone_setfile(zone, "./zone.data", dns_masterformat_text,
+	dns_zone_setfile(zone, "./zone.data", NULL, dns_masterformat_text,
 			 &dns_master_style_default);
 
 	dns_zone_asyncload(zone, false, load_done_first, zone);
@@ -235,19 +235,19 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 
 	result = dns_test_makezone("foo", &zone1, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_zone_setfile(zone1, TESTS_DIR "/testdata/zt/zone1.db",
+	dns_zone_setfile(zone1, TESTS_DIR "/testdata/zt/zone1.db", NULL,
 			 dns_masterformat_text, &dns_master_style_default);
 	view = dns_zone_getview(zone1);
 
 	result = dns_test_makezone("bar", &zone2, view, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_zone_setfile(zone2, TESTS_DIR "/testdata/zt/zone1.db",
+	dns_zone_setfile(zone2, TESTS_DIR "/testdata/zt/zone1.db", NULL,
 			 dns_masterformat_text, &dns_master_style_default);
 
 	/* This one will fail to load */
 	result = dns_test_makezone("fake", &zone3, view, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_zone_setfile(zone3, TESTS_DIR "/testdata/zt/nonexistent.db",
+	dns_zone_setfile(zone3, TESTS_DIR "/testdata/zt/nonexistent.db", NULL,
 			 dns_masterformat_text, &dns_master_style_default);
 
 	rcu_read_lock();

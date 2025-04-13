@@ -6599,7 +6599,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	CHECK(isc_file_sanitize(
 		directory, defaultview ? "managed-keys" : view->name,
 		defaultview ? "bind" : "mkeys", filename, sizeof(filename)));
-	dns_zone_setfile(zone, filename, dns_masterformat_text,
+	dns_zone_setfile(zone, filename, NULL, dns_masterformat_text,
 			 &dns_master_style_default);
 
 	dns_zone_setview(zone, view);
