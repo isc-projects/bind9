@@ -305,7 +305,7 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 
 static isc_result_t
 isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	int32_t cntflag;
+	int_fast32_t cntflag;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -383,7 +383,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		 */
 		atomic_store_release(&rwl->write_granted, 0);
 	} else {
-		int32_t prev_writer;
+		int_fast32_t prev_writer;
 
 		/* enter the waiting queue, and wait for our turn */
 		prev_writer = atomic_fetch_add_release(&rwl->write_requests, 1);
@@ -427,9 +427,9 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	int32_t cnt = 0;
-	int32_t spins = atomic_load_acquire(&rwl->spins) * 2 + 10;
-	int32_t max_cnt = ISC_MAX(spins, RWLOCK_MAX_ADAPTIVE_COUNT);
+	int_fast32_t cnt = 0;
+	int_fast32_t spins = atomic_load_acquire(&rwl->spins) * 2 + 10;
+	int_fast32_t max_cnt = ISC_MAX(spins, RWLOCK_MAX_ADAPTIVE_COUNT);
 	isc_result_t result = ISC_R_SUCCESS;
 
 	do {
@@ -447,7 +447,7 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	int32_t cntflag;
+	int_fast32_t cntflag;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -544,7 +544,7 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 
 void
 isc_rwlock_downgrade(isc_rwlock_t *rwl) {
-	int32_t prev_readers;
+	int_fast32_t prev_readers;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -568,7 +568,7 @@ isc_rwlock_downgrade(isc_rwlock_t *rwl) {
 
 isc_result_t
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	int32_t prev_cnt;
+	int_fast32_t prev_cnt;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
