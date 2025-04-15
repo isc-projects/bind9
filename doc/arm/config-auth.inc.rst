@@ -87,6 +87,13 @@ The numbers in parentheses in the following text refer to the numbered items in 
    from the primary (as described in section 2 a. above). If the zone file has
    changed, propagation is practically immediate.
 
+.. Note:: When a primary server is unreachable, :iscman:`named` initially caches
+   that information for 10 seconds. After that initial period, :iscman:`named`
+   may try that server again; if the server remains unresponsive,
+   :iscman:`named` caches its unreachable status for up to 640 seconds using an
+   exponential backoff. During that time :iscman:`named` does not try to contact
+   the affected server. The cache can be cleared using :option:`rndc flush`.
+
 The authoritative samples all use NOTIFY but identify the statements used, so
 that they can be removed if not required.
 
