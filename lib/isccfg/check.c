@@ -2923,14 +2923,15 @@ check:
 }
 
 /*
- * Try to find a zone option in one of up to three levels of options:
- * for example, the zone, view, and global option blocks.
+ * Try to find a zone option in one of up to four levels of options:
+ * for example, the zone, template, view, and global option blocks.
  * (Fewer levels can be specified for options that aren't defined at
- * all three levels.)
+ * all four levels.)
  */
 static isc_result_t
 get_zoneopt(const cfg_obj_t *opts1, const cfg_obj_t *opts2,
-	    const cfg_obj_t *opts3, const char *name, const cfg_obj_t **objp) {
+	    const cfg_obj_t *opts3, const cfg_obj_t *opts4, const char *name,
+	    const cfg_obj_t **objp) {
 	isc_result_t result = ISC_R_NOTFOUND;
 
 	REQUIRE(*objp == NULL);
@@ -2943,6 +2944,9 @@ get_zoneopt(const cfg_obj_t *opts1, const cfg_obj_t *opts2,
 	}
 	if (*objp == NULL && opts3 != NULL) {
 		result = cfg_map_get(opts3, name, objp);
+	}
+	if (*objp == NULL && opts4 != NULL) {
+		result = cfg_map_get(opts4, name, objp);
 	}
 
 	return result;
@@ -2958,13 +2962,14 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	const char *znamestr = NULL;
 	const char *typestr = NULL;
 	const char *target = NULL;
+	const char *tmplname = NULL;
 	int ztype;
-	const cfg_obj_t *zoptions, *goptions = NULL;
+	const cfg_obj_t *zoptions = NULL, *toptions = NULL, *goptions = NULL;
 	const cfg_obj_t *obj = NULL, *kasp = NULL;
-	const cfg_obj_t *inviewobj = NULL;
+	const cfg_obj_t *templates = NULL, *inviewobj = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
-	unsigned int i;
+	unsigned int i = 0;
 	dns_rdataclass_t zclass;
 	dns_fixedname_t fixedname;
 	dns_name_t *zname = NULL; /* NULL if parsing of zone name fails. */
@@ -2976,6 +2981,7 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	bool ddns = false;
 	bool has_dnssecpolicy = false;
 	bool kasp_inlinesigning = false;
+	bool inline_signing = false;
 	const void *clauses = NULL;
 	const char *option = NULL;
 	const char *kaspname = NULL;
@@ -2995,14 +3001,37 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		cfg_map_get(config, "options", &goptions);
 	}
 
-	inviewobj = NULL;
+	/* If the zone specifies a template, find it too */
+	(void)cfg_map_get(config, "template", &templates);
+	(void)cfg_map_get(zoptions, "template", &obj);
+	if (obj != NULL) {
+		tmplname = cfg_obj_asstring(obj);
+
+		CFG_LIST_FOREACH (templates, e) {
+			const cfg_obj_t *t = cfg_tuple_get(cfg_listelt_value(e),
+							   "name");
+			if (strcasecmp(cfg_obj_asstring(t), tmplname) == 0) {
+				toptions = cfg_tuple_get(cfg_listelt_value(e),
+							 "options");
+				break;
+			}
+		}
+
+		if (toptions == NULL) {
+			cfg_obj_log(zconfig, ISC_LOG_ERROR,
+				    "zone '%s': template '%s' not found",
+				    znamestr, tmplname);
+			return ISC_R_FAILURE;
+		}
+	}
+
 	(void)cfg_map_get(zoptions, "in-view", &inviewobj);
 	if (inviewobj != NULL) {
 		target = cfg_obj_asstring(inviewobj);
 		ztype = CFG_ZONE_INVIEW;
 	} else {
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "type", &obj);
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL, "type", &obj);
 		if (obj == NULL) {
 			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "zone '%s': type not present", znamestr);
@@ -3195,7 +3224,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Check if a dnssec-policy is set.
 	 */
 	obj = NULL;
-	(void)get_zoneopt(zoptions, voptions, goptions, "dnssec-policy", &obj);
+	(void)get_zoneopt(zoptions, toptions, voptions, goptions,
+			  "dnssec-policy", &obj);
 	if (obj != NULL) {
 		kaspname = cfg_obj_asstring(obj);
 		if (strcmp(kaspname, "default") == 0) {
@@ -3258,8 +3288,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * */
 	if (has_dnssecpolicy) {
 		obj = NULL;
-		(void)get_zoneopt(zoptions, voptions, goptions, "max-zone-ttl",
-				  &obj);
+		(void)get_zoneopt(zoptions, toptions, voptions, goptions,
+				  "max-zone-ttl", &obj);
 		if (obj != NULL) {
 			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "zone '%s': option 'max-zone-ttl' "
@@ -3278,13 +3308,19 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	option = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &i);
 	while (option != NULL) {
 		obj = NULL;
-		if (cfg_map_get(zoptions, option, &obj) == ISC_R_SUCCESS &&
-		    obj != NULL && !cfg_clause_validforzone(option, ztype))
-		{
+		bool topt = false;
+		(void)cfg_map_get(zoptions, option, &obj);
+		if (obj == NULL && toptions != NULL) {
+			(void)cfg_map_get(toptions, option, &obj);
+			topt = true;
+		}
+		if (obj != NULL && !cfg_clause_validforzone(option, ztype)) {
 			cfg_obj_log(obj, ISC_LOG_WARNING,
 				    "option '%s' is not allowed "
-				    "in '%s' zone '%s'",
-				    option, typestr, znamestr);
+				    "in '%s' zone '%s'%s%s%s",
+				    option, typestr, znamestr,
+				    topt ? " (referencing template '" : "",
+				    topt ? tmplname : "", topt ? "')" : "");
 			result = ISC_R_FAILURE;
 		}
 		option = cfg_map_nextclause(&cfg_type_zoneopts, &clauses, &i);
@@ -3321,9 +3357,9 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		bool donotify = true;
 
 		obj = NULL;
-		tresult = get_zoneopt(zoptions, voptions, goptions, "notify",
-				      &obj);
-		if (tresult == ISC_R_SUCCESS) {
+		(void)get_zoneopt(zoptions, toptions, voptions, goptions,
+				  "notify", &obj);
+		if (obj != NULL) {
 			if (cfg_obj_isboolean(obj)) {
 				donotify = cfg_obj_asboolean(obj);
 			} else {
@@ -3338,18 +3374,19 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		obj = NULL;
-		tresult = cfg_map_get(zoptions, "also-notify", &obj);
-		if (tresult == ISC_R_SUCCESS && !donotify) {
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL, "also-notify",
+				  &obj);
+		if (obj != NULL && !donotify) {
 			cfg_obj_log(zoptions, ISC_LOG_WARNING,
 				    "zone '%s': 'also-notify' set but "
 				    "'notify' is disabled",
 				    znamestr);
 		}
-		if (tresult != ISC_R_SUCCESS) {
-			tresult = get_zoneopt(voptions, goptions, NULL,
-					      "also-notify", &obj);
+		if (obj == NULL) {
+			(void)get_zoneopt(voptions, goptions, NULL, NULL,
+					  "also-notify", &obj);
 		}
-		if (tresult == ISC_R_SUCCESS && donotify) {
+		if (obj != NULL && donotify) {
 			uint32_t count;
 			tresult = validate_remotes(obj, config, &count, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
@@ -3370,15 +3407,18 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	     !dns_name_equal(zname, dns_rootname)))
 	{
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "primaries", &obj);
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL, "primaries",
+				  &obj);
 		if (obj == NULL) {
 			/* If "primaries" was unset, check for "masters" */
-			(void)cfg_map_get(zoptions, "masters", &obj);
+			(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+					  "masters", &obj);
 		} else {
 			const cfg_obj_t *obj2 = NULL;
 
 			/* ...bug if it was set, "masters" must not be. */
-			(void)cfg_map_get(zoptions, "masters", &obj2);
+			(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+					  "masters", &obj2);
 			if (obj2 != NULL) {
 				cfg_obj_log(obj, ISC_LOG_ERROR,
 					    "'primaries' and 'masters' cannot "
@@ -3414,7 +3454,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY) {
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "parental-agents", &obj);
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+				  "parental-agents", &obj);
 		if (obj != NULL) {
 			uint32_t count;
 			tresult = validate_remotes(obj, config, &count, mctx);
@@ -3451,22 +3492,22 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY) {
 		bool signing = false;
-		isc_result_t res1, res2, res3;
-		const cfg_obj_t *au = NULL;
+		const cfg_obj_t *au = NULL, *up = NULL;
 
-		obj = NULL;
-		res1 = cfg_map_get(zoptions, "allow-update", &au);
-		obj = NULL;
-		res2 = cfg_map_get(zoptions, "update-policy", &obj);
-		if (res1 == ISC_R_SUCCESS && res2 == ISC_R_SUCCESS) {
-			cfg_obj_log(obj, ISC_LOG_ERROR,
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+				  "allow-update", &au);
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+				  "update-policy", &up);
+
+		if (au != NULL && up != NULL) {
+			cfg_obj_log(au, ISC_LOG_ERROR,
 				    "zone '%s': 'allow-update' is ignored "
 				    "when 'update-policy' is present",
 				    znamestr);
 			result = ISC_R_FAILURE;
-		} else if (res2 == ISC_R_SUCCESS) {
-			res3 = check_update_policy(obj);
-			if (res3 != ISC_R_SUCCESS) {
+		} else if (up != NULL) {
+			tresult = check_update_policy(up);
+			if (tresult != ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
 		}
@@ -3476,18 +3517,18 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		 * we should also check for allow-update at the
 		 * view and options levels.
 		 */
-		if (res1 != ISC_R_SUCCESS) {
-			res1 = get_zoneopt(voptions, goptions, NULL,
-					   "allow-update", &au);
+		if (au == NULL) {
+			(void)get_zoneopt(voptions, goptions, NULL, NULL,
+					  "allow-update", &au);
 		}
 
-		if (res2 == ISC_R_SUCCESS) {
+		if (up != NULL) {
 			ddns = true;
-		} else if (res1 == ISC_R_SUCCESS) {
+		} else if (au != NULL) {
 			dns_acl_t *acl = NULL;
-			res1 = cfg_acl_fromconfig(au, config, actx, mctx, 0,
-						  &acl);
-			if (res1 != ISC_R_SUCCESS) {
+			tresult = cfg_acl_fromconfig(au, config, actx, mctx, 0,
+						     &acl);
+			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(au, ISC_LOG_ERROR,
 					    "acl expansion failed: %s",
 					    isc_result_totext(result));
@@ -3501,9 +3542,10 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		obj = NULL;
-		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
-		if (res1 == ISC_R_SUCCESS) {
-			signing = cfg_obj_asboolean(obj);
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+				  "inline-signing", &obj);
+		if (obj != NULL) {
+			inline_signing = signing = cfg_obj_asboolean(obj);
 		} else if (has_dnssecpolicy) {
 			signing = kasp_inlinesigning;
 		}
@@ -3527,8 +3569,9 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		obj = NULL;
-		res1 = cfg_map_get(zoptions, "sig-signing-type", &obj);
-		if (res1 == ISC_R_SUCCESS) {
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+				  "sig-signing-type", &obj);
+		if (obj != NULL) {
 			uint32_t type = cfg_obj_asuint32(obj);
 			if (type < 0xff00U || type > 0xffffU) {
 				cfg_obj_log(obj, ISC_LOG_ERROR,
@@ -3540,10 +3583,9 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		obj = NULL;
-		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
-		    !signing)
-		{
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+				  "dnssec-loadkeys-interval", &obj);
+		if (obj != NULL && ztype == CFG_ZONE_SECONDARY && !signing) {
 			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "dnssec-loadkeys-interval: requires "
 				    "inline-signing when used in secondary "
@@ -3557,7 +3599,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	obj = NULL;
 	if (root) {
-		(void)get_zoneopt(voptions, goptions, NULL, "forwarders", &obj);
+		(void)get_zoneopt(voptions, goptions, NULL, NULL, "forwarders",
+				  &obj);
 	}
 	if (check_forward(config, zoptions, obj) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
@@ -3569,13 +3612,15 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	if (ztype == CFG_ZONE_FORWARD && (rfc1918 || ula)) {
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "forward", &obj);
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL, "forward",
+				  &obj);
 		if (obj == NULL) {
 			/*
-			 * Forward mode not explicitly configured.
+			 * Forward mode not explicitly configured
+			 * at the zone or template level.
 			 */
-			(void)get_zoneopt(voptions, goptions, NULL, "forward",
-					  &obj);
+			(void)get_zoneopt(voptions, goptions, NULL, NULL,
+					  "forward", &obj);
 			if (obj == NULL ||
 			    strcasecmp(cfg_obj_asstring(obj), "first") == 0)
 			{
@@ -3593,7 +3638,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Check validity of static stub server addresses.
 	 */
 	obj = NULL;
-	(void)cfg_map_get(zoptions, "server-addresses", &obj);
+	(void)get_zoneopt(zoptions, toptions, NULL, NULL, "server-addresses",
+			  &obj);
 	if (ztype == CFG_ZONE_STATICSTUB && obj != NULL) {
 		CFG_LIST_FOREACH (obj, element) {
 			isc_sockaddr_t sa;
@@ -3616,7 +3662,7 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Check validity of static stub server names.
 	 */
 	obj = NULL;
-	(void)cfg_map_get(zoptions, "server-names", &obj);
+	(void)get_zoneopt(zoptions, toptions, NULL, NULL, "server-names", &obj);
 	if (zname != NULL && ztype == CFG_ZONE_STATICSTUB && obj != NULL) {
 		CFG_LIST_FOREACH (obj, element) {
 			const char *snamestr = NULL;
@@ -3649,7 +3695,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	obj = NULL;
-	(void)cfg_map_get(zoptions, "send-report-channel", &obj);
+	(void)get_zoneopt(zoptions, toptions, NULL, NULL, "send-report-channel",
+			  &obj);
 	if (obj != NULL) {
 		const char *str = cfg_obj_asstring(obj);
 		dns_fixedname_t fad;
@@ -3677,7 +3724,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Warn if key-directory doesn't exist
 	 */
 	obj = NULL;
-	(void)get_zoneopt(zoptions, voptions, goptions, "key-directory", &obj);
+	(void)get_zoneopt(zoptions, toptions, voptions, goptions,
+			  "key-directory", &obj);
 	if (obj != NULL) {
 		dir = cfg_obj_asstring(obj);
 
@@ -3726,8 +3774,9 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	if (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_SECONDARY) {
 		obj = NULL;
-		tresult = cfg_map_get(zoptions, "log-report-channel", &obj);
-		if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(obj) &&
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL,
+				  "log-report-channel", &obj);
+		if (obj != NULL && cfg_obj_asboolean(obj) &&
 		    dns_name_equal(zname, dns_rootname))
 		{
 			cfg_obj_log(zconfig, ISC_LOG_ERROR,
@@ -3754,14 +3803,14 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	obj = NULL;
 	dlz = false;
-	tresult = cfg_map_get(zoptions, "dlz", &obj);
-	if (tresult == ISC_R_SUCCESS) {
+	(void)get_zoneopt(zoptions, toptions, NULL, NULL, "dlz", &obj);
+	if (obj != NULL) {
 		dlz = true;
 	}
 
 	obj = NULL;
-	tresult = cfg_map_get(zoptions, "database", &obj);
-	if (dlz && tresult == ISC_R_SUCCESS) {
+	(void)get_zoneopt(zoptions, toptions, NULL, NULL, "database", &obj);
+	if (dlz && obj != NULL) {
 		cfg_obj_log(zconfig, ISC_LOG_ERROR,
 			    "zone '%s': cannot specify both 'dlz' "
 			    "and 'database'",
@@ -3769,28 +3818,23 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
-	} else if (!dlz &&
-		   (tresult == ISC_R_NOTFOUND ||
-		    (tresult == ISC_R_SUCCESS &&
-		     strcmp(ZONEDB_DEFAULT, cfg_obj_asstring(obj)) == 0)))
+	} else if (!dlz && (obj == NULL ||
+			    strcmp(ZONEDB_DEFAULT, cfg_obj_asstring(obj)) == 0))
 	{
-		isc_result_t res1;
 		const cfg_obj_t *fileobj = NULL;
-		tresult = cfg_map_get(zoptions, "file", &fileobj);
-		obj = NULL;
-		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
-		if (tresult != ISC_R_SUCCESS &&
+		(void)get_zoneopt(zoptions, toptions, NULL, NULL, "file",
+				  &fileobj);
+		if (fileobj == NULL &&
 		    (ztype == CFG_ZONE_PRIMARY || ztype == CFG_ZONE_HINT ||
-		     (ztype == CFG_ZONE_SECONDARY && res1 == ISC_R_SUCCESS &&
-		      cfg_obj_asboolean(obj))))
+		     (ztype == CFG_ZONE_SECONDARY && inline_signing)))
 		{
 			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "zone '%s': missing 'file' entry",
 				    znamestr);
 			if (result == ISC_R_SUCCESS) {
-				result = tresult;
+				result = ISC_R_FAILURE;
 			}
-		} else if (tresult == ISC_R_SUCCESS && files != NULL &&
+		} else if (fileobj != NULL && files != NULL &&
 			   (ztype == CFG_ZONE_SECONDARY ||
 			    ztype == CFG_ZONE_MIRROR || ddns ||
 			    has_dnssecpolicy))
@@ -3800,7 +3844,7 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			{
 				result = tresult;
 			}
-		} else if (tresult == ISC_R_SUCCESS && files != NULL &&
+		} else if (fileobj != NULL && files != NULL &&
 			   (ztype == CFG_ZONE_PRIMARY ||
 			    ztype == CFG_ZONE_HINT))
 		{
@@ -3817,13 +3861,13 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * consistent.
 	 */
 	obj = NULL;
-	tresult = get_zoneopt(zoptions, voptions, goptions, "masterfile-format",
-			      &obj);
+	tresult = get_zoneopt(zoptions, toptions, voptions, goptions,
+			      "masterfile-format", &obj);
 	if (tresult == ISC_R_SUCCESS &&
 	    strcasecmp(cfg_obj_asstring(obj), "raw") == 0)
 	{
 		obj = NULL;
-		tresult = get_zoneopt(zoptions, voptions, goptions,
+		tresult = get_zoneopt(zoptions, toptions, voptions, goptions,
 				      "masterfile-style", &obj);
 		if (tresult == ISC_R_SUCCESS) {
 			cfg_obj_log(obj, ISC_LOG_ERROR,
@@ -3838,8 +3882,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	obj = NULL;
-	(void)get_zoneopt(zoptions, voptions, goptions, "max-journal-size",
-			  &obj);
+	(void)get_zoneopt(zoptions, toptions, voptions, goptions,
+			  "max-journal-size", &obj);
 	if (obj != NULL && cfg_obj_isuint64(obj)) {
 		uint64_t value = cfg_obj_asuint64(obj);
 		if (value > DNS_JOURNAL_SIZE_MAX) {
@@ -3854,8 +3898,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	obj = NULL;
-	(void)get_zoneopt(zoptions, voptions, goptions, "min-transfer-rate-in",
-			  &obj);
+	(void)get_zoneopt(zoptions, toptions, voptions, goptions,
+			  "min-transfer-rate-in", &obj);
 	if (obj != NULL) {
 		uint32_t traffic_bytes =
 			cfg_obj_asuint32(cfg_tuple_get(obj, "traffic_bytes"));

@@ -17,7 +17,9 @@ import dns.zone
 import isctest
 import pytest
 
-pytestmark = pytest.mark.extra_artifacts(["ns2/copied.db", "ns2/present.db"])
+pytestmark = pytest.mark.extra_artifacts(
+    ["ns2/copied.db", "ns2/present.db", "ns2/alternate.db"]
+)
 
 
 def test_masterfile_include_semantics():
@@ -91,7 +93,20 @@ example.	300	IN	SOA	mname1. . 2010042407 20 20 1814400 3600
 
 
 def test_masterfile_initial_file():
-    """Test zone configuration with initial template files"""
+    """Test zone configurations with initial template files"""
+    # example inherited its configuration from the template,
+    # make sure it works
+    msg_soa = dns.message.make_query("example.", "SOA")
+    res_soa = isctest.query.tcp(msg_soa, "10.53.0.2")
+    expected_soa_rr = """;ANSWER
+example.	300	IN	SOA	mname1. . 2010042407 20 20 1814400 3600
+"""
+    expected = dns.message.from_text(expected_soa_rr)
+    isctest.check.rrsets_equal(res_soa.answer, expected.answer)
+
+    # initial uses an initial-file option with the "file"
+    # option set to "copied.db". make sure it works and that
+    # copied.db has been populated.
     msg_soa = dns.message.make_query("initial.", "SOA")
     res_soa = isctest.query.tcp(msg_soa, "10.53.0.2")
     expected_soa_rr = """;ANSWER
@@ -101,11 +116,28 @@ initial.	300	IN	SOA	mname1. . 2010042407 20 20 1814400 3600
     isctest.check.rrsets_equal(res_soa.answer, expected.answer)
     isctest.check.file_contents_equal("ns2/example.db", "ns2/copied.db")
 
-    # the 'present.db' file already existed and shouldn't load
+    # present uses an initial-file option, but the file 'present.db'
+    # already exists and is empty, so the initial-file should not be
+    # copied into place and the zone should not load.
     msg_soa = dns.message.make_query("present.", "SOA")
     res_soa = isctest.query.tcp(msg_soa, "10.53.0.2")
     isctest.check.servfail(res_soa)
     isctest.check.file_empty("ns2/present.db")
+
+
+def test_masterfile_template_override():
+    """Test zone configurations with overridden template options"""
+    # different inherited configuration from the template, but
+    # overrides the "file" option to 'alternate.db'.
+    msg_soa = dns.message.make_query("different.", "SOA")
+    res_soa = isctest.query.tcp(msg_soa, "10.53.0.2")
+    expected_soa_rr = """;ANSWER
+different.	300	IN	SOA	mname1. . 2010042407 20 20 1814400 3600
+"""
+    expected = dns.message.from_text(expected_soa_rr)
+    isctest.check.rrsets_equal(res_soa.answer, expected.answer)
+    isctest.check.file_contents_equal("ns2/example.db", "ns2/alternate.db")
+    assert not os.path.exists("ns2/different.db")
 
 
 def test_masterfile_missing_master_file_servfail():

@@ -27,6 +27,12 @@ options {
 	dnssec-validation no;
 };
 
+template primary {
+	type primary;
+	file "$view-$name.db";
+	initial-file "added.db";
+};
+
 view internal {
 	match-clients { 10.53.0.2; };
 	allow-new-zones no;

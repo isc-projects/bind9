@@ -745,5 +745,29 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
+echo_i "checking addzone with zone template (primary) ($n)"
+ret=0
+$RNDCCMD 10.53.0.2 addzone 'template.example in external { template primary; };' 2>&1 | sed 's/^/I:ns2 /'
+$DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.template.example a >dig.out.ns2.int.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.int.$n >/dev/null || ret=1
+grep 'ANSWER: 0' dig.out.ns2.int.$n >/dev/null || ret=1
+$DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.4 a.template.example a >dig.out.ns2.ext.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.ext.$n >/dev/null || ret=1
+grep 'ANSWER: 1' dig.out.ns2.ext.$n >/dev/null || ret=1
+test -f ns2/external-template.example.db
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "checking addzone with nonexistent template ($n)"
+ret=0
+nextpart ns2/named.run >/dev/null
+$RNDCCMD 10.53.0.2 addzone 'wrong.example in external { template nope; };' 2>&1 | grep -qF "failure" || ret=1
+nextpart ns2/named.run | grep -qF "zone 'wrong.example': template 'nope' not found" || ret=1
+test -f ns2/wrong-template.example.db && ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -34,14 +34,23 @@ zone "." {
 	file "../../_common/root.hint";
 };
 
-zone "example" {
+template primary {
 	type primary;
 	file "$name.db";
 };
 
+zone "example" {
+	template primary;
+};
+
 zone "missing" {
-	type primary;
-	file "$name.db";
+	template primary;
+};
+
+zone "different" {
+	template primary;
+	initial-file "example.db";
+	file "alternate.db";
 };
 
 zone "initial" {

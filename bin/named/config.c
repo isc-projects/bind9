@@ -388,6 +388,23 @@ named_config_get(cfg_obj_t const *const *maps, const char *name,
 }
 
 isc_result_t
+named_config_findopt(const cfg_obj_t *opts1, const cfg_obj_t *opts2,
+		     const char *name, const cfg_obj_t **objp) {
+	isc_result_t result = ISC_R_NOTFOUND;
+
+	REQUIRE(*objp == NULL);
+
+	if (opts1 != NULL) {
+		result = cfg_map_get(opts1, name, objp);
+	}
+	if (*objp == NULL && opts2 != NULL) {
+		result = cfg_map_get(opts2, name, objp);
+	}
+
+	return result;
+}
+
+isc_result_t
 named_checknames_get(const cfg_obj_t **maps, const char *const names[],
 		     const cfg_obj_t **obj) {
 	const cfg_obj_t *checknames = NULL;

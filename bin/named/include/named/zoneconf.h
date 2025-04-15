@@ -63,7 +63,7 @@ named_zone_inlinesigning(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 isc_result_t
 named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
 				   dns_rdataclass_t rdclass, dns_name_t *name);
-/*%>
+/*%<
  * configure a DLZ zone, setting up the database methods and calling
  * postload to load the origin values
  *
@@ -72,4 +72,12 @@ named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
  * \li	'zone' to be initialized.
  * \li	'rdclass' to be a valid rdataclass
  * \li	'name' to be a valid zone origin name
+ */
+
+const cfg_obj_t *
+named_zone_templateopts(const cfg_obj_t *config, const cfg_obj_t *zoptions);
+/*%<
+ * If a zone with options `zoptions` specifies a zone template, look
+ * the template options and return them. If no such template is found,
+ * return NULL.
  */

@@ -7038,6 +7038,13 @@ mid-1970s. Zone data for it can be specified with the ``CHAOS`` class.
 Zone Options
 ^^^^^^^^^^^^
 
+.. namedconf:statement:: template
+   :tags: zone
+   :short: Specifies a template to use for zone configuration.
+
+   This specifies a zone template from which to import other zone options.
+   See :ref:`zone_templates` for details.
+
 :any:`allow-notify`
    See the description of :any:`allow-notify` in :ref:`access_control`.
 
@@ -7376,6 +7383,52 @@ Zone Options
 
 :any:`send-report-channel`
    See the description of :any:`send-report-channel` in :namedconf:ref:`options`.
+
+.. _zone_templates:
+
+Zone Templates
+^^^^^^^^^^^^^^
+
+To simplify the configuration of multiple similar zones, BIND 9
+supports a zone template mechanism. ``template`` blocks can be
+defined at the top level of the configuration; these blocks can
+contain any set of options that could be set in a :any:`zone`
+statement, with the exceptions of :any:`in-view` and :any:`template`.
+
+Once a template has been defined, it can be referenced in a
+:any:`zone` statement; the zone is then configured using the
+options specified in the :any:`template` as defaults.
+Options that are locally defined within the :any:`zone` statement
+override the template.
+
+For example, the following configuration would define two primary
+and two secondary zones:
+
+   ::
+
+     template primary {
+         type primary;
+         file "$type/$name.db";
+         initial-file "initial.db";
+     };
+
+     template secondary {
+         type secondary;
+         file "$type/$name.db";
+         primaries { 192.0.2.1; };
+     };
+
+     zone example.com { template primary; };
+     zone example.org { template primary; };
+     zone example.net { template secondary; };
+     zone example.edu { template secondary; };
+
+Templates can also be used for zones that are added using
+``rndc addzone`` (see :any:`allow-new-zones`):
+
+   ::
+
+      $ rndc addzone example.biz '{ template secondary; };'
 
 .. _dynamic_update_policies:
 

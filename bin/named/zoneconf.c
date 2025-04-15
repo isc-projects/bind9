@@ -77,12 +77,12 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 		   void (*setzacl)(dns_zone_t *, dns_acl_t *),
 		   void (*clearzacl)(dns_zone_t *)) {
 	isc_result_t result;
-	const cfg_obj_t *maps[5] = { NULL, NULL, NULL, NULL, NULL };
+	const cfg_obj_t *maps[6] = { 0 };
 	const cfg_obj_t *aclobj = NULL;
 	int i = 0;
 	dns_acl_t **aclp = NULL, *acl = NULL;
 	const char *aclname;
-	dns_view_t *view;
+	dns_view_t *view = NULL;
 
 	view = dns_zone_getview(zone);
 
@@ -129,11 +129,19 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 
 	/* First check to see if ACL is defined within the zone */
 	if (zconfig != NULL) {
-		maps[0] = cfg_tuple_get(zconfig, "options");
+		maps[i] = cfg_tuple_get(zconfig, "options");
 		(void)named_config_get(maps, aclname, &aclobj);
 		if (aclobj != NULL) {
 			aclp = NULL;
 			goto parse_acl;
+		}
+	}
+
+	if (config != NULL && maps[i] != NULL) {
+		const cfg_obj_t *toptions = named_zone_templateopts(config,
+								    maps[i]);
+		if (toptions != NULL) {
+			maps[i++] = toptions;
 		}
 	}
 
@@ -187,8 +195,8 @@ parse_acl:
  * Parse the zone update-policy statement.
  */
 static isc_result_t
-configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
-			const char *zname) {
+configure_zone_ssutable(const cfg_obj_t *zconfig, const cfg_obj_t *tconfig,
+			dns_zone_t *zone, const char *zname) {
 	const cfg_obj_t *updatepolicy = NULL;
 	dns_ssutable_t *table = NULL;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
@@ -200,8 +208,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	isc_buffer_init(&dbuf, debug, sizeof(debug));
 	isc_buffer_setmctx(&dbuf, mctx);
 
-	(void)cfg_map_get(zconfig, "update-policy", &updatepolicy);
-
+	(void)named_config_findopt(zconfig, tconfig, "update-policy",
+				   &updatepolicy);
 	if (updatepolicy == NULL) {
 		dns_zone_setssutable(zone, NULL);
 		return ISC_R_SUCCESS;
@@ -540,8 +548,8 @@ configure_staticstub_servernames(const cfg_obj_t *zconfig, dns_zone_t *zone,
  * Configure static-stub zone.
  */
 static isc_result_t
-configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
-		     const char *zname, const char *dbtype) {
+configure_staticstub(const cfg_obj_t *zconfig, const cfg_obj_t *tconfig,
+		     dns_zone_t *zone, const char *zname, const char *dbtype) {
 	int i = 0;
 	const cfg_obj_t *obj;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
@@ -583,18 +591,16 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 	/* Prepare zone RRs from the configuration */
 	obj = NULL;
-	result = cfg_map_get(zconfig, "server-addresses", &obj);
-	if (result == ISC_R_SUCCESS) {
-		INSIST(obj != NULL);
+	(void)named_config_findopt(zconfig, tconfig, "server-addresses", &obj);
+	if (obj != NULL) {
 		CHECK(configure_staticstub_serveraddrs(obj, zone, &rdatalist_ns,
 						       &rdatalist_a,
 						       &rdatalist_aaaa));
 	}
 
 	obj = NULL;
-	result = cfg_map_get(zconfig, "server-names", &obj);
-	if (result == ISC_R_SUCCESS) {
-		INSIST(obj != NULL);
+	(void)named_config_findopt(zconfig, tconfig, "server-names", &obj);
+	if (obj != NULL) {
 		CHECK(configure_staticstub_servernames(obj, zone, &rdatalist_ns,
 						       zname));
 	}
@@ -682,12 +688,11 @@ cleanup:
  * Convert a config file zone type into a server zone type.
  */
 static dns_zonetype_t
-zonetype_fromconfig(const cfg_obj_t *map) {
+zonetype_fromconfig(const cfg_obj_t *zmap, const cfg_obj_t *tmap) {
 	const cfg_obj_t *obj = NULL;
-	isc_result_t result;
 
-	result = cfg_map_get(map, "type", &obj);
-	INSIST(result == ISC_R_SUCCESS && obj != NULL);
+	(void)named_config_findopt(zmap, tmap, "type", &obj);
+	INSIST(obj != NULL);
 	return named_config_getzonetype(obj);
 }
 
@@ -872,11 +877,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const char *zname;
 	dns_rdataclass_t zclass;
 	dns_rdataclass_t vclass;
-	const cfg_obj_t *maps[5];
-	const cfg_obj_t *nodefault[4];
+	const cfg_obj_t *maps[6];
+	const cfg_obj_t *nodefault[5];
+	const cfg_obj_t *nooptions[3];
 	const cfg_obj_t *zoptions = NULL;
+	const cfg_obj_t *toptions = NULL;
 	const cfg_obj_t *options = NULL;
-	const cfg_obj_t *obj;
+	const cfg_obj_t *obj = NULL;
 	const char *filename = NULL;
 	const char *initial_file = NULL;
 	const char *kaspname = NULL;
@@ -910,23 +917,34 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	bool transferinsecs = ns_server_getoption(named_g_server->sctx,
 						  NS_SERVER_TRANSFERINSECS);
 
+	REQUIRE(config != NULL);
+	REQUIRE(zconfig != NULL);
+
 	i = 0;
-	if (zconfig != NULL) {
-		zoptions = cfg_tuple_get(zconfig, "options");
-		nodefault[i] = maps[i] = zoptions;
+
+	zoptions = cfg_tuple_get(zconfig, "options");
+	INSIST(zoptions != NULL);
+	nodefault[i] = nooptions[i] = maps[i] = zoptions;
+	i++;
+
+	toptions = named_zone_templateopts(config, zoptions);
+	if (toptions != NULL) {
+		nodefault[i] = nooptions[i] = maps[i] = toptions;
 		i++;
 	}
+
+	nooptions[i] = NULL;
 	if (vconfig != NULL) {
 		nodefault[i] = maps[i] = cfg_tuple_get(vconfig, "options");
 		i++;
 	}
-	if (config != NULL) {
-		(void)cfg_map_get(config, "options", &options);
-		if (options != NULL) {
-			nodefault[i] = maps[i] = options;
-			i++;
-		}
+
+	(void)cfg_map_get(config, "options", &options);
+	if (options != NULL) {
+		nodefault[i] = maps[i] = options;
+		i++;
 	}
+
 	nodefault[i] = NULL;
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
@@ -951,7 +969,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setclass(raw, zclass);
 	}
 
-	ztype = zonetype_fromconfig(zoptions);
+	ztype = zonetype_fromconfig(zoptions, toptions);
 	if (raw != NULL) {
 		dns_zone_settype(raw, ztype);
 		dns_zone_settype(zone, dns_zone_primary);
@@ -960,13 +978,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	obj = NULL;
-	result = cfg_map_get(zoptions, "database", &obj);
+	result = named_config_get(nooptions, "database", &obj);
 	if (result == ISC_R_SUCCESS) {
 		cpval = isc_mem_strdup(mctx, cfg_obj_asstring(obj));
 	}
 
 	obj = NULL;
-	result = cfg_map_get(zoptions, "dlz", &obj);
+	result = named_config_get(nooptions, "dlz", &obj);
 	if (result == ISC_R_SUCCESS) {
 		const char *dlzname = cfg_obj_asstring(obj);
 		size_t len = strlen(dlzname) + 5;
@@ -992,13 +1010,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	obj = NULL;
-	result = cfg_map_get(zoptions, "file", &obj);
+	result = named_config_get(nooptions, "file", &obj);
 	if (result == ISC_R_SUCCESS) {
 		filename = cfg_obj_asstring(obj);
 	}
 
 	obj = NULL;
-	result = cfg_map_get(zoptions, "initial-file", &obj);
+	result = named_config_get(nooptions, "initial-file", &obj);
 	if (result == ISC_R_SUCCESS) {
 		initial_file = cfg_obj_asstring(obj);
 	}
@@ -1074,7 +1092,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	obj = NULL;
-	result = cfg_map_get(zoptions, "journal", &obj);
+	result = named_config_get(nooptions, "journal", &obj);
 	if (result == ISC_R_SUCCESS) {
 		dns_zone_setjournal(mayberaw, cfg_obj_asstring(obj));
 	}
@@ -1433,7 +1451,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
-		result = cfg_map_get(zoptions, "log-report-channel", &obj);
+		result = named_config_get(nooptions, "log-report-channel",
+					  &obj);
 		if (result == ISC_R_SUCCESS) {
 			logreports = cfg_obj_asboolean(obj);
 			dns_zone_setoption(zone, DNS_ZONEOPT_LOGREPORTS,
@@ -1533,7 +1552,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				      zname);
 		}
 
-		CHECK(configure_zone_ssutable(zoptions, mayberaw, zname));
+		CHECK(configure_zone_ssutable(zoptions, toptions, mayberaw,
+					      zname));
 	}
 
 	/*
@@ -1618,7 +1638,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 */
 	if (ztype == dns_zone_primary || ztype == dns_zone_secondary) {
 		const cfg_obj_t *parentals = NULL;
-		(void)cfg_map_get(zoptions, "parental-agents", &parentals);
+		(void)named_config_get(nooptions, "parental-agents",
+				       &parentals);
 		if (parentals != NULL) {
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
@@ -1769,7 +1790,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		 * are explicitly enabled by zone configuration.
 		 */
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "allow-transfer", &obj);
+		(void)named_config_get(nooptions, "allow-transfer", &obj);
 		if (obj == NULL) {
 			dns_acl_t *none;
 			CHECK(dns_acl_none(mctx, &none));
@@ -1782,9 +1803,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	case dns_zone_redirect:
 		count = 0;
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "primaries", &obj);
+		(void)named_config_get(nooptions, "primaries", &obj);
 		if (obj == NULL) {
-			(void)cfg_map_get(zoptions, "masters", &obj);
+			(void)named_config_get(nooptions, "masters", &obj);
 		}
 
 		/*
@@ -1886,7 +1907,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		break;
 
 	case dns_zone_staticstub:
-		CHECK(configure_staticstub(zoptions, zone, zname,
+		CHECK(configure_staticstub(zoptions, toptions, zone, zname,
 					   default_dbtype));
 		break;
 
@@ -1927,20 +1948,22 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
 		    const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		    dns_kasplist_t *kasplist) {
 	const cfg_obj_t *zoptions = NULL;
+	const cfg_obj_t *toptions = NULL;
 	const cfg_obj_t *obj = NULL;
-	const char *cfilename;
-	const char *zfilename;
+	const char *cfilename = NULL;
+	const char *zfilename = NULL;
 	dns_zone_t *raw = NULL;
 	bool has_raw, inline_signing;
 	dns_zonetype_t ztype;
 
 	zoptions = cfg_tuple_get(zconfig, "options");
+	toptions = named_zone_templateopts(config, zoptions);
 
 	/*
 	 * We always reconfigure a static-stub zone for simplicity, assuming
 	 * the amount of data to be loaded is small.
 	 */
-	if (zonetype_fromconfig(zoptions) == dns_zone_staticstub) {
+	if (zonetype_fromconfig(zoptions, toptions) == dns_zone_staticstub) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: staticstub");
 		return false;
@@ -1971,14 +1994,14 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
 		return false;
 	}
 
-	if (zonetype_fromconfig(zoptions) != ztype) {
+	if (zonetype_fromconfig(zoptions, toptions) != ztype) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: type mismatch");
 		return false;
 	}
 
 	obj = NULL;
-	(void)cfg_map_get(zoptions, "file", &obj);
+	(void)named_config_findopt(zoptions, toptions, "file", &obj);
 	if (obj != NULL) {
 		cfilename = cfg_obj_asstring(obj);
 	} else {
@@ -1999,15 +2022,27 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
 bool
 named_zone_inlinesigning(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 			 const cfg_obj_t *config, dns_kasplist_t *kasplist) {
-	const cfg_obj_t *maps[4];
+	const cfg_obj_t *maps[5] = { 0 }, *noopts[3] = { 0 };
 	const cfg_obj_t *signing = NULL;
 	const cfg_obj_t *policy = NULL;
+	const cfg_obj_t *toptions = NULL;
 	dns_kasp_t *kasp = NULL;
 	isc_result_t res;
 	bool inline_signing = false;
 	int i = 0;
 
-	maps[i++] = cfg_tuple_get(zconfig, "options");
+	noopts[i] = maps[i] = cfg_tuple_get(zconfig, "options");
+	i++;
+
+	if (config != NULL) {
+		toptions = named_zone_templateopts(config, maps[0]);
+		if (toptions != NULL) {
+			noopts[i] = maps[i] = toptions;
+			i++;
+		}
+	}
+
+	noopts[i] = NULL;
 	if (vconfig != NULL) {
 		maps[i++] = cfg_tuple_get(vconfig, "options");
 	}
@@ -2041,13 +2076,35 @@ named_zone_inlinesigning(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 
 	/*
 	 * The zone option 'inline-signing' may override the value in
-	 * dnssec-policy. This is a zone-only option, so look in maps[0]
-	 * only.
+	 * dnssec-policy. This is a zone-only option, so look in the
+	 * zone and template blocks only.
 	 */
-	res = cfg_map_get(maps[0], "inline-signing", &signing);
+	res = named_config_get(noopts, "inline-signing", &signing);
 	if (res == ISC_R_SUCCESS && cfg_obj_isboolean(signing)) {
 		return cfg_obj_asboolean(signing);
 	}
 
 	return inline_signing;
+}
+
+const cfg_obj_t *
+named_zone_templateopts(const cfg_obj_t *config, const cfg_obj_t *zoptions) {
+	const cfg_obj_t *templates = NULL;
+	const cfg_obj_t *obj = NULL;
+
+	(void)cfg_map_get(config, "template", &templates);
+	(void)cfg_map_get(zoptions, "template", &obj);
+	if (obj != NULL && templates != NULL) {
+		const char *tmplname = cfg_obj_asstring(obj);
+		CFG_LIST_FOREACH (templates, e) {
+			const cfg_obj_t *t = cfg_tuple_get(cfg_listelt_value(e),
+							   "name");
+			if (strcasecmp(cfg_obj_asstring(t), tmplname) == 0) {
+				return cfg_tuple_get(cfg_listelt_value(e),
+						     "options");
+			}
+		}
+	}
+
+	return NULL;
 }

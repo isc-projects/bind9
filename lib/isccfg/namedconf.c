@@ -143,6 +143,8 @@ static cfg_type_t cfg_type_sizeval;
 static cfg_type_t cfg_type_sockaddr4wild;
 static cfg_type_t cfg_type_sockaddr6wild;
 static cfg_type_t cfg_type_statschannels;
+static cfg_type_t cfg_type_template;
+static cfg_type_t cfg_type_templateopts;
 static cfg_type_t cfg_type_tlsconf;
 static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
@@ -470,6 +472,18 @@ static cfg_tuplefielddef_t zone_fields[] = {
 static cfg_type_t cfg_type_zone = { "zone",	     cfg_parse_tuple,
 				    cfg_print_tuple, cfg_doc_tuple,
 				    &cfg_rep_tuple,  zone_fields };
+
+/*%
+ * A zone statement.
+ */
+static cfg_tuplefielddef_t template_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "options", &cfg_type_templateopts, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_template = { "template",	 cfg_parse_tuple,
+					cfg_print_tuple, cfg_doc_tuple,
+					&cfg_rep_tuple,	 template_fields };
 
 /*%
  * A dnssec-policy statement.
@@ -1155,6 +1169,7 @@ static cfg_clausedef_t namedconf_clauses[] = {
 	{ "statistics-channels", &cfg_type_statschannels,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
+	{ "template", &cfg_type_template, CFG_CLAUSEFLAG_MULTI },
 	{ "tls", &cfg_type_tlsconf, CFG_CLAUSEFLAG_MULTI },
 	{ "view", &cfg_type_view, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
@@ -2429,7 +2444,6 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	{ "file", &cfg_type_qstring,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_ZONE_STUB | CFG_ZONE_HINT | CFG_ZONE_REDIRECT },
-	{ "in-view", &cfg_type_astring, CFG_ZONE_INVIEW },
 	{ "initial-file", &cfg_type_qstring, CFG_ZONE_PRIMARY },
 	{ "inline-signing", &cfg_type_boolean,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
@@ -2454,6 +2468,15 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	  CFG_ZONE_STATICSTUB },
 	{ "server-names", &cfg_type_namelist, CFG_ZONE_STATICSTUB },
 	{ "update-policy", &cfg_type_updatepolicy, CFG_ZONE_PRIMARY },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_clausedef_t non_template_clauses[] = {
+	{ "in-view", &cfg_type_astring, CFG_ZONE_INVIEW },
+	{ "template", &cfg_type_astring,
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
+		  CFG_ZONE_STUB | CFG_ZONE_STATICSTUB | CFG_ZONE_DELEGATION |
+		  CFG_ZONE_HINT | CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD },
 	{ NULL, NULL, 0 }
 };
 
@@ -2493,10 +2516,23 @@ static cfg_type_t cfg_type_viewopts = { "view",	       cfg_parse_map,
 
 /*% The "zone" statement syntax. */
 
-static cfg_clausedef_t *zone_clausesets[] = { zone_only_clauses, zone_clauses,
+static cfg_clausedef_t *zone_clausesets[] = { non_template_clauses,
+					      zone_only_clauses, zone_clauses,
 					      NULL };
 cfg_type_t cfg_type_zoneopts = { "zoneopts",  cfg_parse_map, cfg_print_map,
 				 cfg_doc_map, &cfg_rep_map,  zone_clausesets };
+
+/*%
+ * The "template" statement syntax: any clause that "zone" can take,
+ * except that zones can have a "template" option and templates cannot.
+ */
+
+static cfg_clausedef_t *template_clausesets[] = { zone_only_clauses,
+						  zone_clauses, NULL };
+static cfg_type_t cfg_type_templateopts = {
+	"templateopts", cfg_parse_map, cfg_print_map,
+	cfg_doc_map,	&cfg_rep_map,  template_clausesets
+};
 
 /*% The "dnssec-policy" statement syntax. */
 static cfg_clausedef_t *dnssecpolicy_clausesets[] = { dnssecpolicy_clauses,
@@ -3845,6 +3881,14 @@ cfg_clause_validforzone(const char *name, unsigned int ztype) {
 		}
 		valid = true;
 	}
+	for (clause = non_template_clauses; clause->name != NULL; clause++) {
+		if ((clause->flags & ztype) == 0 ||
+		    strcmp(clause->name, name) != 0)
+		{
+			continue;
+		}
+		valid = true;
+	}
 
 	return valid;
 }
@@ -3853,23 +3897,25 @@ void
 cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		      void (*f)(void *closure, const char *text, int textlen),
 		      void *closure) {
-#define NCLAUSES                                               \
-	(((sizeof(zone_clauses) + sizeof(zone_only_clauses)) / \
-	  sizeof(clause[0])) -                                 \
-	 1)
+#define NCLAUSES                                                      \
+	ARRAY_SIZE(non_template_clauses) + ARRAY_SIZE(zone_clauses) + \
+		ARRAY_SIZE(zone_only_clauses) - 2
 
 	cfg_printer_t pctx;
-	cfg_clausedef_t *clause = NULL;
 	cfg_clausedef_t clauses[NCLAUSES];
+	cfg_clausedef_t *clause = clauses;
 
 	pctx.f = f;
 	pctx.closure = closure;
 	pctx.indent = 0;
 	pctx.flags = flags;
 
-	memmove(clauses, zone_clauses, sizeof(zone_clauses));
-	memmove(clauses + sizeof(zone_clauses) / sizeof(zone_clauses[0]) - 1,
-		zone_only_clauses, sizeof(zone_only_clauses));
+	memmove(clause, zone_clauses, sizeof(zone_clauses));
+	clause += ARRAY_SIZE(zone_clauses) - 1;
+	memmove(clause, zone_only_clauses, sizeof(zone_only_clauses));
+	clause += ARRAY_SIZE(zone_only_clauses) - 1;
+	memmove(clause, non_template_clauses, sizeof(non_template_clauses));
+
 	qsort(clauses, NCLAUSES - 1, sizeof(clause[0]), cmp_clause);
 
 	cfg_print_cstr(&pctx, "zone <string> [ <class> ] {\n");
