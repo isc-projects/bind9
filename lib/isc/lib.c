@@ -49,7 +49,6 @@ isc__lib_initialize(void) {
 	}
 
 	rcu_register_thread();
-	isc__thread_initialize();
 	isc__os_initialize();
 	isc__mutex_initialize();
 	isc__mem_initialize();
@@ -76,7 +75,6 @@ isc__lib_shutdown(void) {
 	isc__mem_shutdown();
 	isc__mutex_shutdown();
 	isc__os_shutdown();
-	isc__thread_shutdown();
 	/* should be after isc__mem_shutdown() which calls rcu_barrier() */
 	rcu_unregister_thread();
 }

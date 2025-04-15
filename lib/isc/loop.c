@@ -40,6 +40,7 @@
 #include "async_p.h"
 #include "job_p.h"
 #include "loop_p.h"
+#include "thread_p.h"
 
 /**
  * Private
@@ -497,6 +498,8 @@ isc_loopmgr_run(isc_loopmgr_t *loopmgr) {
 	 */
 	ignore_signal(SIGPIPE, SIG_IGN);
 
+	isc__thread_initialize();
+
 	/*
 	 * The thread 0 is this one.
 	 */
@@ -619,6 +622,8 @@ isc_loopmgr_destroy(isc_loopmgr_t **loopmgrp) {
 	isc_barrier_destroy(&loopmgr->pausing);
 
 	isc_mem_putanddetach(&loopmgr->mctx, loopmgr, sizeof(*loopmgr));
+
+	isc__thread_shutdown();
 }
 
 uint32_t
