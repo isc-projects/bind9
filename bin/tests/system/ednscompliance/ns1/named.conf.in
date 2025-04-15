@@ -21,6 +21,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	dnssec-validation no;
+	server-id "ns1";
 };
 
 zone "." {
