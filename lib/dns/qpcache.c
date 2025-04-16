@@ -122,10 +122,10 @@
 #define HEADERNODE(h) ((qpcnode_t *)((h)->node))
 
 /*
- * Allow clients with a virtual time of up to 5 minutes in the past to see
+ * Allow clients with a virtual time of up to 10 seconds in the past to see
  * records that would have otherwise have expired.
  */
-#define QPDB_VIRTUAL 300
+#define QPDB_VIRTUAL 10
 
 /*
  * This defines the number of headers that we try to expire each time the
