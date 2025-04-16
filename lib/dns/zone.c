@@ -1797,6 +1797,108 @@ setstring(dns_zone_t *zone, char **field, const char *value) {
 	*field = copy;
 }
 
+static int
+position_order(const void *a, const void *b) {
+	/* sort char pointers in order of which occurs first in memory */
+	return (char *)*(char **)a - (char *)*(char **)b;
+}
+
+static isc_result_t
+putmem(isc_buffer_t *b, const char *base, size_t length) {
+	size_t space = isc_buffer_availablelength(b) - 1;
+	if (space < length) {
+		isc_buffer_putmem(b, (const unsigned char *)base, space);
+		return ISC_R_NOSPACE;
+	}
+
+	isc_buffer_putmem(b, (const unsigned char *)base, length);
+	return ISC_R_SUCCESS;
+}
+
+/*
+ * Set the masterfile field, expanding $name to the zone name,
+ * $type to the zone type, and $view to the view name. Cap the
+ * length at PATH_MAX.
+ */
+static void
+setfilename(dns_zone_t *zone, char **field, const char *value) {
+	isc_result_t result;
+	char *t = NULL, *n = NULL, *v = NULL;
+	char *positions[3];
+	char filename[PATH_MAX];
+	isc_buffer_t b;
+	size_t tags = 0;
+
+	if (value == NULL) {
+		*field = NULL;
+		return;
+	}
+
+	t = strcasestr(value, "$type");
+	if (t != NULL) {
+		positions[tags++] = t;
+	}
+
+	n = strcasestr(value, "$name");
+	if (n != NULL) {
+		positions[tags++] = n;
+	}
+
+	v = strcasestr(value, "$view");
+	if (v != NULL) {
+		positions[tags++] = v;
+	}
+
+	if (tags == 0) {
+		setstring(zone, field, value);
+		return;
+	}
+
+	isc_buffer_init(&b, filename, sizeof(filename));
+
+	/* sort the tag offsets in order of occurrence */
+	qsort(positions, tags, sizeof(char *), position_order);
+
+	const char *p = value;
+	for (size_t i = 0; i < tags; i++) {
+		size_t tokenlen = 0;
+
+		CHECK(putmem(&b, p, (positions[i] - p)));
+
+		p = positions[i];
+		INSIST(p != NULL);
+		if (p == n) {
+			dns_fixedname_t fn;
+			dns_name_t *name = dns_fixedname_initname(&fn);
+			char namebuf[DNS_NAME_FORMATSIZE];
+
+			result = dns_name_downcase(&zone->origin, name);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			CHECK(putmem(&b, namebuf, strlen(namebuf)));
+			tokenlen = 5; /* "$name" */
+		} else if (p == t) {
+			const char *typename = dns_zonetype_name(zone->type);
+			CHECK(putmem(&b, typename, strlen(typename)));
+			tokenlen = 5; /* "$type" */
+		} else if (p == v) {
+			CHECK(putmem(&b, zone->view->name,
+				     strlen(zone->view->name)));
+			tokenlen = 5; /* "$view" */
+		}
+
+		/* Advance the input pointer past the token */
+		p += tokenlen;
+	}
+
+	const char *end = value + strlen(value);
+	putmem(&b, p, end - p);
+
+failure:
+	isc_buffer_putuint8(&b, 0);
+	setstring(zone, field, filename);
+}
+
 void
 dns_zone_setfile(dns_zone_t *zone, const char *file, const char *initial_file,
 		 dns_masterformat_t format, const dns_master_style_t *style) {
@@ -1804,7 +1906,7 @@ dns_zone_setfile(dns_zone_t *zone, const char *file, const char *initial_file,
 	REQUIRE(zone->stream == NULL);
 
 	LOCK_ZONE(zone);
-	setstring(zone, &zone->masterfile, file);
+	setfilename(zone, &zone->masterfile, file);
 	setstring(zone, &zone->initfile, initial_file);
 	zone->masterformat = format;
 	if (format == dns_masterformat_text) {

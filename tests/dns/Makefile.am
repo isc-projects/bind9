@@ -51,6 +51,7 @@ check_PROGRAMS =		\
 	transport_test		\
 	tsig_test		\
 	update_test		\
+	zonefile_test		\
 	zonemgr_test		\
 	zt_test
 

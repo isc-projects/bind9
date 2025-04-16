@@ -7132,12 +7132,20 @@ Zone Options
    :tags: zone
    :short: Specifies the zone's filename.
 
-   This sets the zone's filename. In :any:`primary <type primary>`, :any:`hint <type hint>`, and :any:`redirect <type redirect>`
+   This sets the zone's filename. In :any:`primary <type primary>`,
+   :any:`hint <type hint>`, and :any:`redirect <type redirect>`
    zones which do not have :any:`primaries` defined, zone data is loaded from
    this file. In :any:`secondary <type secondary>`, :any:`mirror <type mirror>`, :any:`stub <type stub>`, and :any:`redirect <type redirect>` zones
    which do have :any:`primaries` defined, zone data is retrieved from
    another server and saved in this file. This option is not applicable
    to other zone types.
+
+   The filename can be generated parametrically by including special
+   tokens in the string: the first instance of ``$name`` in the string
+   is replaced with the zone name in lower case; the first instance of
+   ``$type`` is replaced with the zone type -- i.e., ``primary``,
+   ``secondary``, etc); and the first instance of ``$view`` is replaced
+   with the view name. These tokens are case-insensitive.
 
 :any:`forward`
    This option is only meaningful if the zone has a forwarders list. The ``only`` value
@@ -7163,10 +7171,12 @@ Zone Options
    ::
 
       $ rndc addzone example.com \
-        '{ type primary; file "example.db"; initial-file "template.db"; };'
+        '{ type primary; file "$name.db"; initial-file "template.db"; };'
 
-    Using "@" to reference the zone origin name within ``template.db``
-    allows the same file to be used with multiple zones, as in:
+    This creates a zone ``example.com``, with filename ``example.com.db``.
+
+    Using "@" to reference the zone origin within the initial file
+    allows the same file to be used for multiple zones, as in:
 
     ::
 

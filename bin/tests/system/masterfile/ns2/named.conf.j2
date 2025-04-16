@@ -36,12 +36,12 @@ zone "." {
 
 zone "example" {
 	type primary;
-	file "example.db";
+	file "$name.db";
 };
 
 zone "missing" {
 	type primary;
-	file "missing.db";
+	file "$name.db";
 };
 
 zone "initial" {
