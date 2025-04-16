@@ -383,7 +383,6 @@ struct fetchctx {
 	dns_fwdpolicy_t fwdpolicy;
 	isc_sockaddrlist_t bad;
 	ISC_LIST(struct tried) edns;
-	isc_sockaddrlist_t bad_edns;
 	ISC_LIST(dns_validator_t) validators;
 	dns_db_t *cache;
 	dns_adb_t *adb;
@@ -2155,33 +2154,6 @@ cleanup_query:
 	isc_mem_put(fctx->mctx, query, sizeof(*query));
 
 	return result;
-}
-
-static bool
-bad_edns(fetchctx_t *fctx, isc_sockaddr_t *address) {
-	ISC_LIST_FOREACH (fctx->bad_edns, sa, link) {
-		if (isc_sockaddr_equal(sa, address)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-static void
-add_bad_edns(fetchctx_t *fctx, isc_sockaddr_t *address) {
-#ifdef ENABLE_AFL
-	if (dns_fuzzing_resolver) {
-		return;
-	}
-#endif /* ifdef ENABLE_AFL */
-	if (bad_edns(fctx, address)) {
-		return;
-	}
-
-	isc_sockaddr_t *sa = isc_mem_get(fctx->mctx, sizeof(*sa));
-	*sa = *address;
-	ISC_LIST_INITANDAPPEND(fctx->bad_edns, sa, link);
 }
 
 static struct tried *
@@ -4407,11 +4379,6 @@ fctx_destroy(fetchctx_t *fctx) {
 		isc_mem_put(fctx->mctx, tried, sizeof(*tried));
 	}
 
-	ISC_LIST_FOREACH_SAFE (fctx->bad_edns, sa, link) {
-		ISC_LIST_UNLINK(fctx->bad_edns, sa, link);
-		isc_mem_put(fctx->mctx, sa, sizeof(*sa));
-	}
-
 	if (fctx->nfails != NULL) {
 		isc_counter_detach(&fctx->nfails);
 	}
@@ -4673,7 +4640,6 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	ISC_LIST_INIT(fctx->forwarders);
 	ISC_LIST_INIT(fctx->bad);
 	ISC_LIST_INIT(fctx->edns);
-	ISC_LIST_INIT(fctx->bad_edns);
 	ISC_LIST_INIT(fctx->validators);
 
 	atomic_init(&fctx->attributes, 0);
@@ -8066,7 +8032,6 @@ rctx_parse(respctx_t *rctx) {
 			 */
 			rctx->retryopts |= DNS_FETCHOPT_NOEDNS0;
 			rctx->resend = true;
-			add_bad_edns(fctx, &query->addrinfo->sockaddr);
 			inc_stats(fctx->res, dns_resstatscounter_edns0fail);
 		} else {
 			rctx->broken_server = result;
@@ -8084,7 +8049,6 @@ rctx_parse(respctx_t *rctx) {
 			 */
 			rctx->retryopts |= DNS_FETCHOPT_NOEDNS0;
 			rctx->resend = true;
-			add_bad_edns(fctx, &query->addrinfo->sockaddr);
 			inc_stats(fctx->res, dns_resstatscounter_edns0fail);
 		} else {
 			rctx->broken_server = DNS_R_UNEXPECTEDRCODE;
@@ -8218,54 +8182,6 @@ static void
 rctx_edns(respctx_t *rctx) {
 	resquery_t *query = rctx->query;
 	fetchctx_t *fctx = rctx->fctx;
-
-	/*
-	 * We have an affirmative response to the query and we have
-	 * previously got a response from this server which indicated
-	 * EDNS may not be supported so we can now cache the lack of
-	 * EDNS support.
-	 */
-	if (rctx->opt == NULL && !EDNSOK(query->addrinfo) &&
-	    (query->rmessage->rcode == dns_rcode_noerror ||
-	     query->rmessage->rcode == dns_rcode_nxdomain ||
-	     query->rmessage->rcode == dns_rcode_refused ||
-	     query->rmessage->rcode == dns_rcode_yxdomain) &&
-	    bad_edns(fctx, &query->addrinfo->sockaddr))
-	{
-		dns_message_logpacketfrom(
-			query->rmessage, "received packet (bad edns)",
-			&query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
-			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), fctx->mctx);
-		dns_adb_changeflags(fctx->adb, query->addrinfo,
-				    FCTX_ADDRINFO_NOEDNS0,
-				    FCTX_ADDRINFO_NOEDNS0);
-	} else if (rctx->opt == NULL &&
-		   (query->rmessage->flags & DNS_MESSAGEFLAG_TC) == 0 &&
-		   !EDNSOK(query->addrinfo) &&
-		   (query->rmessage->rcode == dns_rcode_noerror ||
-		    query->rmessage->rcode == dns_rcode_nxdomain) &&
-		   (rctx->retryopts & DNS_FETCHOPT_NOEDNS0) == 0)
-	{
-		/*
-		 * We didn't get a OPT record in response to a EDNS
-		 * query.
-		 *
-		 * Old versions of named incorrectly drop the OPT record
-		 * when there is a signed, truncated response so we
-		 * check that TC is not set.
-		 *
-		 * Record that the server is not talking EDNS.  While
-		 * this should be safe to do for any rcode we limit it
-		 * to NOERROR and NXDOMAIN.
-		 */
-		dns_message_logpacketfrom(
-			query->rmessage, "received packet (no opt)",
-			&query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
-			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3), fctx->mctx);
-		dns_adb_changeflags(fctx->adb, query->addrinfo,
-				    FCTX_ADDRINFO_NOEDNS0,
-				    FCTX_ADDRINFO_NOEDNS0);
-	}
 
 	/*
 	 * If we get a non error EDNS response record the fact so we
@@ -9730,7 +9646,6 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		/*
 		 * Remember that they may not like EDNS0.
 		 */
-		add_bad_edns(fctx, &query->addrinfo->sockaddr);
 		inc_stats(fctx->res, dns_resstatscounter_edns0fail);
 	} else if (rcode == dns_rcode_formerr) {
 		if (query->rmessage->cc_echoed) {
