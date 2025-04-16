@@ -958,7 +958,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	 * warning, but do not prevent further keys from being processed.
 	 */
 	if (!dns_resolver_algorithm_supported(view->resolver, keyname,
-					      ds.algorithm))
+					      ds.algorithm, NULL, 0))
 	{
 		cfg_obj_log(key, ISC_LOG_WARNING,
 			    "ignoring %s for '%s': algorithm is disabled",

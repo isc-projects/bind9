@@ -434,12 +434,18 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 
 bool
 dns_resolver_algorithm_supported(dns_resolver_t	  *resolver,
-				 const dns_name_t *name, unsigned int alg);
+				 const dns_name_t *name, unsigned int alg,
+				 unsigned char *private, size_t	      len);
 /*%<
  * Check if the given algorithm is supported by this resolver.
  * This checks whether the algorithm has been disabled via
  * dns_resolver_disable_algorithm(), then checks the underlying
  * crypto libraries if it was not specifically disabled.
+ *
+ * The algorithm is specified with the value 'alg' or, if
+ * 'alg' is PRIVATEOID or PRIVATEDNS, then the algorithm is
+ * encoded as a DNS name or OID in the first 'len' bytes of
+ * 'private'.
  */
 
 bool

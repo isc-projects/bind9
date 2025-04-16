@@ -1641,8 +1641,9 @@ validate_answer_process(void *arg) {
 	 * At this point we could check that the signature algorithm
 	 * was known and "sufficiently good".
 	 */
-	if (!dns_resolver_algorithm_supported(val->view->resolver, val->name,
-					      val->siginfo->algorithm))
+	if (!dns_resolver_algorithm_supported(
+		    val->view->resolver, val->name, val->siginfo->algorithm,
+		    val->siginfo->signature, val->siginfo->siglen))
 	{
 		if (val->unsupported_algorithm == 0) {
 			val->unsupported_algorithm = val->siginfo->algorithm;
@@ -2011,7 +2012,7 @@ validate_dnskey_dsset(dns_validator_t *val) {
 	}
 
 	if (!dns_resolver_algorithm_supported(val->view->resolver, val->name,
-					      ds.algorithm))
+					      ds.algorithm, NULL, 0))
 	{
 		if (val->unsupported_algorithm == 0) {
 			val->unsupported_algorithm = ds.algorithm;
@@ -2213,7 +2214,8 @@ validate_dnskey(void *arg) {
 		}
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
-						      val->name, ds.algorithm))
+						      val->name, ds.algorithm,
+						      NULL, 0))
 		{
 			continue;
 		}
@@ -2916,7 +2918,7 @@ check_ds_algs(dns_validator_t *val, dns_name_t *name,
 		if (dns_resolver_ds_digest_supported(val->view->resolver, name,
 						     ds.digest_type) &&
 		    dns_resolver_algorithm_supported(val->view->resolver, name,
-						     ds.algorithm))
+						     ds.algorithm, NULL, 0))
 		{
 			return true;
 		}
