@@ -2107,6 +2107,8 @@ buildfilename(dns_name_t *name, dns_keytag_t id, unsigned int alg,
 	isc_result_t result;
 
 	REQUIRE(out != NULL);
+	REQUIRE(alg != 0 && alg != DST_ALG_PRIVATEOID &&
+		alg != DST_ALG_PRIVATEDNS);
 
 	if ((type & DST_TYPE_PRIVATE) != 0) {
 		suffix = ".private";
@@ -2171,6 +2173,22 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	REQUIRE(source != NULL);
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
+
+	if (alg == DNS_KEYALG_PRIVATEDNS) {
+		isc_buffer_t b = *source;
+		alg = dst_algorithm_fromprivatedns(&b);
+		if (alg == 0) {
+			return DST_R_UNSUPPORTEDALG;
+		}
+	}
+
+	if (alg == DNS_KEYALG_PRIVATEOID) {
+		isc_buffer_t b = *source;
+		alg = dst_algorithm_fromprivateoid(&b);
+		if (alg == 0) {
+			return DST_R_UNSUPPORTEDALG;
+		}
+	}
 
 	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, 0, mctx);
 
@@ -2634,5 +2652,69 @@ dst_hmac_algorithm_totext(dst_algorithm_t alg) {
 		return "hmac-sha512";
 	default:
 		return "unknown";
+	}
+}
+
+dns_secalg_t
+dst_algorithm_tosecalg(dst_algorithm_t dst_alg) {
+	static dns_secalg_t dns_alg[DST_MAX_ALGS] = { 0 };
+
+	if (dst_alg < 256) {
+		return dst_alg;
+	}
+	if (dst_alg < DST_MAX_ALGS) {
+		return dns_alg[dst_alg];
+	}
+	return 0;
+}
+
+dst_algorithm_t
+dst_algorithm_fromprivatedns(isc_buffer_t *buffer) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	isc_result_t result;
+
+	result = dns_name_fromwire(name, buffer, DNS_DECOMPRESS_DEFAULT, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return 0;
+	}
+
+	/*
+	 * Do name to dst_algorithm number mapping here.
+	 */
+	return 0;
+}
+
+dst_algorithm_t
+dst_algorithm_fromprivateoid(isc_buffer_t *buffer) {
+	isc_region_t r;
+
+	isc_buffer_remainingregion(buffer, &r);
+
+	/*
+	 * Do OID to dst_algorithm number mapping here.  There is a
+	 * length byte followed by the OID of that length.
+	 */
+	if (r.length > 0 && ((unsigned int)r.base[0] + 1) <= r.length) {
+		return 0;
+	}
+	return 0;
+}
+
+dst_algorithm_t
+dst_algorithm_fromdata(dns_secalg_t algorithm, unsigned char *data,
+		       unsigned int length) {
+	isc_buffer_t b;
+	switch (algorithm) {
+	case DNS_KEYALG_PRIVATEDNS:
+		isc_buffer_init(&b, data, length);
+		isc_buffer_add(&b, length);
+		return dst_algorithm_fromprivatedns(&b);
+	case DNS_KEYALG_PRIVATEOID:
+		isc_buffer_init(&b, data, length);
+		isc_buffer_add(&b, length);
+		return dst_algorithm_fromprivateoid(&b);
+	default:
+		return algorithm;
 	}
 }

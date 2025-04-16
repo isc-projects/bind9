@@ -10593,7 +10593,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 			       unsigned int alg) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (alg > 255) {
+	if (alg >= DST_MAX_ALGS) {
 		return ISC_R_RANGE;
 	}
 

@@ -36,6 +36,8 @@
 #include <dns/secalg.h>
 #include <dns/secproto.h>
 
+#include <dst/dst.h>
+
 #define RETERR(x)                        \
 	do {                             \
 		isc_result_t _r = (x);   \
@@ -115,6 +117,16 @@
 		{ DNS_KEYALG_PRIVATEDNS, "PRIVATEDNS", 0 },     \
 		{ DNS_KEYALG_PRIVATEOID, "PRIVATEOID", 0 }, SENTINEL
 
+/*
+ * PRIVATEDNS subtypes we support.
+ */
+#define PRIVATEDNSS /* currently empty */
+
+/*
+ * PRIVATEOID subtypes we support.
+ */
+#define PRIVATEOIDS /* currently empty */
+
 /* RFC2535 section 7.1 */
 
 #define SECPROTONAMES                                                     \
@@ -150,6 +162,9 @@ static struct tbl secalgs[] = { SECALGNAMES };
 static struct tbl secprotos[] = { SECPROTONAMES };
 static struct tbl hashalgs[] = { HASHALGNAMES };
 static struct tbl dsdigests[] = { DSDIGESTNAMES };
+static struct tbl privatednss[] = { PRIVATEDNSS SENTINEL };
+static struct tbl privateoids[] = { PRIVATEOIDS SENTINEL };
+static struct tbl dstalgorithms[] = { PRIVATEDNSS PRIVATEOIDS SECALGNAMES };
 
 static struct keyflag {
 	const char *name;
@@ -346,6 +361,64 @@ dns_secalg_format(dns_secalg_t alg, char *cp, unsigned int size) {
 	REQUIRE(cp != NULL && size > 0);
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_secalg_totext(alg, &b);
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	if (result != ISC_R_SUCCESS) {
+		r.base[0] = 0;
+	}
+}
+
+isc_result_t
+dst_privatedns_fromtext(dst_algorithm_t *dstalgp, isc_textregion_t *source) {
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, privatednss, 0));
+	*dstalgp = value;
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_privatedns_totext(dst_algorithm_t alg, isc_buffer_t *target) {
+	return dns_mnemonic_totext(alg, target, privatednss);
+}
+
+void
+dns_privatedns_format(dst_algorithm_t alg, char *cp, unsigned int size) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	REQUIRE(cp != NULL && size > 0);
+	isc_buffer_init(&b, cp, size - 1);
+	result = dns_privatedns_totext(alg, &b);
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	if (result != ISC_R_SUCCESS) {
+		r.base[0] = 0;
+	}
+}
+
+isc_result_t
+dst_privateoid_fromtext(dst_algorithm_t *dstalgp, isc_textregion_t *source) {
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, privateoids, 0));
+	*dstalgp = value;
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_privateoid_totext(dst_algorithm_t alg, isc_buffer_t *target) {
+	return dns_mnemonic_totext(alg, target, privateoids);
+}
+
+void
+dns_privateoid_format(dst_algorithm_t alg, char *cp, unsigned int size) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	REQUIRE(cp != NULL && size > 0);
+	isc_buffer_init(&b, cp, size - 1);
+	result = dns_privateoid_totext(alg, &b);
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	if (result != ISC_R_SUCCESS) {
@@ -577,5 +650,34 @@ dns_rdataclass_format(dns_rdataclass_t rdclass, char *array,
 	}
 	if (result != ISC_R_SUCCESS) {
 		strlcpy(array, "<unknown>", size);
+	}
+}
+
+isc_result_t
+dst_algorithm_fromtext(dst_algorithm_t *dstalgp, isc_textregion_t *source) {
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, dstalgorithms, 255));
+	*dstalgp = value;
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dst_algorithm_totext(dst_algorithm_t alg, isc_buffer_t *target) {
+	return dns_mnemonic_totext(alg, target, dstalgorithms);
+}
+
+void
+dst_algorithm_format(dst_algorithm_t alg, char *cp, unsigned int size) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	REQUIRE(cp != NULL && size > 0);
+	isc_buffer_init(&b, cp, size - 1);
+	result = dst_algorithm_totext(alg, &b);
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	if (result != ISC_R_SUCCESS) {
+		r.base[0] = 0;
 	}
 }

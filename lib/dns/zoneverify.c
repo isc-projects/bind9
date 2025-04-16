@@ -68,14 +68,14 @@ typedef struct vctx {
 	dns_rdataset_t nsecsigs;
 	dns_rdataset_t nsec3paramset;
 	dns_rdataset_t nsec3paramsigs;
-	unsigned char revoked_ksk[256];
-	unsigned char revoked_zsk[256];
-	unsigned char standby_ksk[256];
-	unsigned char standby_zsk[256];
-	unsigned char ksk_algorithms[256];
-	unsigned char zsk_algorithms[256];
-	unsigned char bad_algorithms[256];
-	unsigned char act_algorithms[256];
+	unsigned char revoked_ksk[DST_MAX_ALGS];
+	unsigned char revoked_zsk[DST_MAX_ALGS];
+	unsigned char standby_ksk[DST_MAX_ALGS];
+	unsigned char standby_zsk[DST_MAX_ALGS];
+	unsigned char ksk_algorithms[DST_MAX_ALGS];
+	unsigned char zsk_algorithms[DST_MAX_ALGS];
+	unsigned char bad_algorithms[DST_MAX_ALGS];
+	unsigned char act_algorithms[DST_MAX_ALGS];
 	isc_heap_t *expected_chains;
 	isc_heap_t *found_chains;
 } vctx_t;
@@ -792,7 +792,7 @@ verifynsec3s(const vctx_t *vctx, const dns_name_t *name,
 static isc_result_t
 verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	  dns_dbnode_t *node, dst_key_t **dstkeys, size_t nkeys) {
-	unsigned char set_algorithms[256] = { 0 };
+	unsigned char set_algorithms[DST_MAX_ALGS] = { 0 };
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];

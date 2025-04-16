@@ -624,8 +624,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 
 	(void)confget(maps, "keys", &keys);
 	if (keys != NULL) {
-		char role[256] = { 0 };
-		bool warn[256][2] = { { false } };
+		char role[DST_MAX_ALGS] = { 0 };
+		bool warn[DST_MAX_ALGS][2] = { { false } };
 
 		CFG_LIST_FOREACH (keys, element) {
 			cfg_obj_t *kobj = cfg_listelt_value(element);

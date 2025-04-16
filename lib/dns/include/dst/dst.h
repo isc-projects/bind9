@@ -110,7 +110,12 @@ typedef enum dst_algorithm {
 	DST_ALG_HMAC_LAST = DST_ALG_HMACSHA512,
 
 	DST_ALG_INDIRECT = 252,
-	DST_ALG_PRIVATE = 254,
+	DST_ALG_PRIVATEDNS = 253,
+	DST_ALG_PRIVATEOID = 254,
+	DST_ALG_RESERVED = 255,
+	/*
+	 * Put PRIVATE DNS and PRIVATE OID identifiers here.
+	 */
 	DST_MAX_ALGS = 256,
 } dst_algorithm_t;
 
@@ -204,6 +209,20 @@ dst_algorithm_supported(unsigned int alg);
  * Returns:
  * \li	true
  * \li	false
+ */
+
+dst_algorithm_t
+dst_algorithm_fromprivateoid(isc_buffer_t *buffer);
+/*
+ * Extract the dst algorithm identifier that matches
+ * the OID value found at the start of 'buffer'.
+ */
+
+dst_algorithm_t
+dst_algorithm_fromprivatedns(isc_buffer_t *buf);
+/*
+ * Extract the dst algorithm identifier that matches
+ * the DNS name found at the start of 'buffer'.
  */
 
 bool
@@ -1159,4 +1178,90 @@ dst_hmac_algorithm_totext(dst_algorithm_t alg);
 /*%<
  * Return the name associtated with the HMAC algorithm 'alg'
  * or return "unknown".
+ */
+
+isc_result_t
+dst_algorithm_fromtext(dst_algorithm_t *algp, isc_textregion_t *source);
+/*%<
+ * Convert the text 'source' refers to into a DST security algorithm value.
+ * The text may contain either a mnemonic algorithm name or a decimal algorithm
+ * number.  This supports more algorithms than 'dns_secalg_fromtext' as it
+ * supports private algorithms used with PRIVATEDNS and PRIVATEOID.
+ *
+ * Requires:
+ *\li   'algp' is a valid pointer.
+ *
+ *\li   'source' is a valid text region.
+ *
+ * Returns:
+ *\li   ISC_R_SUCCESS                   on success
+ *\li   ISC_R_RANGE                     numeric type is out of range
+ *\li   DNS_R_UNKNOWN                   mnemonic type is unknown
+ */
+
+isc_result_t
+dst_algorithm_totext(dst_algorithm_t alg, isc_buffer_t *target);
+/*%<
+ * Put a textual representation of DST security algorithm 'alg'
+ * into 'target'.  This supports a superset of dns_secalg_totext.
+ *
+ * Requires:
+ *\li   'alg' is a valid dst_algorithm_t.
+ *
+ *\li   'target' is a valid text buffer.
+ *
+ * Ensures,
+ *      if the result is success:
+ *\li           The used space in 'target' is updated.
+ *
+ * Returns:
+ *\li   ISC_R_SUCCESS                   on success
+ *\li   ISC_R_NOSPACE                   target buffer is too small
+ */
+
+#define DST_ALGORITHM_FORMATSIZE 20
+void
+dst_algorithm_format(dst_algorithm_t dst_alg, char *data, unsigned int length);
+/*%<
+ * Wrapper for dst_algorithm_totext(), writing text into 'cp'
+ */
+
+dns_secalg_t
+dst_algorithm_tosecalg(dst_algorithm_t dst_alg);
+/*%<
+ * Return the DNSSEC algorithm identifier that applies for the DST
+ * algorithm.  For PRIVATEDNS and PRIVATEOID based algorithms, this
+ * is PRIVATEDNS and PRIVATEOID respectively.
+ *
+ * Zero is returned when there is no mapping.
+ */
+
+isc_result_t
+dst_privatedns_fromtext(dst_algorithm_t *algp, isc_textregion_t *source);
+
+isc_result_t
+dns_privatedns_totext(dst_algorithm_t alg, isc_buffer_t *b);
+
+void
+dns_privatedns_format(dst_algorithm_t alg, char *buf, unsigned int size);
+
+isc_result_t
+dst_privateoid_fromtext(dst_algorithm_t *algp, isc_textregion_t *source);
+
+isc_result_t
+dns_privateoid_totext(dst_algorithm_t alg, isc_buffer_t *b);
+
+void
+dns_privateoid_format(dst_algorithm_t alg, char *buf, unsigned int size);
+
+dst_algorithm_t
+dst_algorithm_fromdata(dns_secalg_t algorithm, unsigned char *data,
+		       unsigned int length);
+/*%<
+ * If 'algorithm' is PRIVATEOID or PRIVATEDNS, extract the DNSSEC private
+ * algorithm encoded at the begining of data and return the DST algorithm
+ * number that corresponds to it; if the algorithm is unknown to DST,
+ * return 0.
+ *
+ * If 'algorithm' is any other value, return it directly.
  */

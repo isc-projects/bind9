@@ -22804,7 +22804,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t dnskey, cds, cdnskey;
-	unsigned char algorithms[256];
+	unsigned char algorithms[DST_MAX_ALGS];
 	unsigned int i;
 	bool empty = false;
 

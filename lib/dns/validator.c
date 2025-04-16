@@ -2910,7 +2910,6 @@ check_ds_algs(dns_validator_t *val, dns_name_t *name,
 		isc_result_t result;
 		dns_rdata_t dsrdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &dsrdata);
-
 		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
