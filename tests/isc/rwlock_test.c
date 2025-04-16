@@ -137,8 +137,17 @@ ISC_RUN_TEST_IMPL(isc_rwlock_tryupgrade) {
 	isc_result_t result;
 	isc_rwlock_lock(&rwlock, isc_rwlocktype_read);
 	result = isc_rwlock_tryupgrade(&rwlock);
+#if USE_PTHREAD_RWLOCK
+	/*
+	 * Our pthread-based rwlock implementation does not support tryupgrade,
+	 * and always returns ISC_R_LOCKBUSY.
+	 */
+	assert_int_equal(result, ISC_R_LOCKBUSY);
+	isc_rwlock_unlock(&rwlock, isc_rwlocktype_read);
+#else
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_rwlock_unlock(&rwlock, isc_rwlocktype_write);
+#endif /* USE_PTHREAD_RWLOCK */
 }
 
 static void *
