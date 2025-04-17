@@ -47,8 +47,8 @@ else:
 ALL_MODES = "recursive", "authoritative", "rpz"
 ALL_PROTOCOLS = "tcp", "doh", "dot"
 ALL_PLATFORMS = (
-    ".fedora-41-amd64",
-    ".fedora-41-arm64",
+    ".fedora-42-amd64",
+    ".fedora-42-arm64",
     ".freebsd-autoscaler-13-amd64-tags",
 )
 
