@@ -55,178 +55,6 @@ next_key_event_threshold=100
 ###############################################################################
 
 #
-# dnssec-keygen
-#
-set_zone "kasp"
-set_policy "kasp" "4" "200"
-set_server "keys" "10.53.0.1"
-
-n=$((n + 1))
-echo_i "check that 'dnssec-keygen -k' (configured policy) creates valid files ($n)"
-ret=0
-$KEYGEN -K keys -k "$POLICY" -l kasp.conf "$ZONE" >"keygen.out.$POLICY.test$n" 2>/dev/null || ret=1
-lines=$(wc -l <"keygen.out.$POLICY.test$n")
-test "$lines" -eq $NUM_KEYS || log_error "wrong number of keys created for policy kasp: $lines"
-# Temporarily don't log errors because we are searching multiple files.
-disable_logerror
-
-# Key properties.
-set_keyrole "KEY1" "csk"
-set_keylifetime "KEY1" "31536000"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
-set_keysigning "KEY1" "yes"
-set_zonesigning "KEY1" "yes"
-
-set_keyrole "KEY2" "ksk"
-set_keylifetime "KEY2" "31536000"
-set_keyalgorithm "KEY2" "8" "RSASHA256" "2048"
-set_keysigning "KEY2" "yes"
-set_zonesigning "KEY2" "no"
-
-set_keyrole "KEY3" "zsk"
-set_keylifetime "KEY3" "2592000"
-set_keyalgorithm "KEY3" "8" "RSASHA256" "2048"
-set_keysigning "KEY3" "no"
-set_zonesigning "KEY3" "yes"
-
-set_keyrole "KEY4" "zsk"
-set_keylifetime "KEY4" "16070400"
-set_keyalgorithm "KEY4" "8" "RSASHA256" "3072"
-set_keysigning "KEY4" "no"
-set_zonesigning "KEY4" "yes"
-
-lines=$(get_keyids "$DIR" "$ZONE" | wc -l)
-test "$lines" -eq $NUM_KEYS || log_error "bad number of key ids"
-status=$((status + ret))
-
-ids=$(get_keyids "$DIR" "$ZONE")
-for id in $ids; do
-  # There are four key files with the same algorithm.
-  # Check them until a match is found.
-  ret=0 && check_key "KEY1" "$id"
-  test "$ret" -eq 0 && continue
-
-  ret=0 && check_key "KEY2" "$id"
-  test "$ret" -eq 0 && continue
-
-  ret=0 && check_key "KEY3" "$id"
-  test "$ret" -eq 0 && continue
-
-  ret=0 && check_key "KEY4" "$id"
-
-  # If ret is still non-zero, non of the files matched.
-  test "$ret" -eq 0 || echo_i "failed"
-  status=$((status + ret))
-done
-# Turn error logs on again.
-enable_logerror
-
-n=$((n + 1))
-echo_i "check that 'dnssec-keygen -k' (default policy) creates valid files ($n)"
-ret=0
-set_zone "kasp"
-set_policy "default" "1" "3600"
-set_server "." "10.53.0.1"
-# Key properties.
-key_clear "KEY1"
-set_keyrole "KEY1" "csk"
-set_keylifetime "KEY1" "0"
-set_keyalgorithm "KEY1" "13" "ECDSAP256SHA256" "256"
-set_keysigning "KEY1" "yes"
-set_zonesigning "KEY1" "yes"
-
-key_clear "KEY2"
-key_clear "KEY3"
-key_clear "KEY4"
-
-$KEYGEN -G -k "$POLICY" "$ZONE" >"keygen.out.$POLICY.test$n" 2>/dev/null || ret=1
-lines=$(wc -l <"keygen.out.$POLICY.test$n")
-test "$lines" -eq $NUM_KEYS || log_error "wrong number of keys created for policy default: $lines"
-# Temporarily adjust max search depth for this test
-MAXDEPTH=1
-ids=$(get_keyids "$DIR" "$ZONE")
-MAXDEPTH=3
-echo_i "found in dir $DIR for zone $ZONE the following keytags: $ids"
-for id in $ids; do
-  check_key "KEY1" "$id"
-  test "$ret" -eq 0 && key_save KEY1
-  check_keytimes
-done
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-#
-# dnssec-settime
-#
-
-# These test builds upon the latest created key with dnssec-keygen and uses the
-# environment variables BASE_FILE, KEY_FILE, PRIVATE_FILE and STATE_FILE.
-CMP_FILE="${BASE_FILE}.cmp"
-n=$((n + 1))
-echo_i "check that 'dnssec-settime' by default does not edit key state file ($n)"
-ret=0
-cp "$STATE_FILE" "$CMP_FILE"
-$SETTIME -P +3600 "$BASE_FILE" >/dev/null || log_error "settime failed"
-grep "; Publish: " "$KEY_FILE" >/dev/null || log_error "mismatch published in $KEY_FILE"
-grep "Publish: " "$PRIVATE_FILE" >/dev/null || log_error "mismatch published in $PRIVATE_FILE"
-diff "$CMP_FILE" "$STATE_FILE" || log_error "unexpected file change in $STATE_FILE"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-n=$((n + 1))
-echo_i "check that 'dnssec-settime -s' also sets publish time metadata and states in key state file ($n)"
-ret=0
-cp "$STATE_FILE" "$CMP_FILE"
-now=$(date +%Y%m%d%H%M%S)
-$SETTIME -s -P "$now" -g "omnipresent" -k "rumoured" "$now" -z "omnipresent" "$now" -r "rumoured" "$now" -d "hidden" "$now" "$BASE_FILE" >/dev/null || log_error "settime failed"
-set_keystate "KEY1" "GOAL" "omnipresent"
-set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
-set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
-set_keystate "KEY1" "STATE_ZRRSIG" "omnipresent"
-set_keystate "KEY1" "STATE_DS" "hidden"
-check_key "KEY1" "$id"
-test "$ret" -eq 0 && key_save KEY1
-set_keytime "KEY1" "PUBLISHED" "${now}"
-check_keytimes
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-n=$((n + 1))
-echo_i "check that 'dnssec-settime -s' also unsets publish time metadata and states in key state file ($n)"
-ret=0
-cp "$STATE_FILE" "$CMP_FILE"
-$SETTIME -s -P "none" -g "none" -k "none" "$now" -z "none" "$now" -r "none" "$now" -d "none" "$now" "$BASE_FILE" >/dev/null || log_error "settime failed"
-set_keystate "KEY1" "GOAL" "none"
-set_keystate "KEY1" "STATE_DNSKEY" "none"
-set_keystate "KEY1" "STATE_KRRSIG" "none"
-set_keystate "KEY1" "STATE_ZRRSIG" "none"
-set_keystate "KEY1" "STATE_DS" "none"
-check_key "KEY1" "$id"
-test "$ret" -eq 0 && key_save KEY1
-set_keytime "KEY1" "PUBLISHED" "none"
-check_keytimes
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-n=$((n + 1))
-echo_i "check that 'dnssec-settime -s' also sets active time metadata and states in key state file (uppercase) ($n)"
-ret=0
-cp "$STATE_FILE" "$CMP_FILE"
-now=$(date +%Y%m%d%H%M%S)
-$SETTIME -s -A "$now" -g "HIDDEN" -k "UNRETENTIVE" "$now" -z "UNRETENTIVE" "$now" -r "OMNIPRESENT" "$now" -d "OMNIPRESENT" "$now" "$BASE_FILE" >/dev/null || log_error "settime failed"
-set_keystate "KEY1" "GOAL" "hidden"
-set_keystate "KEY1" "STATE_DNSKEY" "unretentive"
-set_keystate "KEY1" "STATE_KRRSIG" "omnipresent"
-set_keystate "KEY1" "STATE_ZRRSIG" "unretentive"
-set_keystate "KEY1" "STATE_DS" "omnipresent"
-check_key "KEY1" "$id"
-test "$ret" -eq 0 && key_save KEY1
-set_keytime "KEY1" "ACTIVE" "${now}"
-check_keytimes
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-#
 # named
 #
 
@@ -236,6 +64,7 @@ status=$((status + ret))
 # infinite loops if there is an error.
 n=$((n + 1))
 echo_i "waiting for kasp signing changes to take effect ($n)"
+ret=0
 
 _wait_for_done_apexnsec() {
   while read -r zone; do
@@ -256,18 +85,6 @@ retry_quiet 30 _wait_for_done_apexnsec || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-# Test max-zone-ttl rejects zones with too high TTL.
-n=$((n + 1))
-echo_i "check that max-zone-ttl rejects zones with too high TTL ($n)"
-ret=0
-set_zone "max-zone-ttl.kasp"
-grep "loading from master file ${ZONE}.db failed: out of range" "ns3/named.run" >/dev/null || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-#
-# Zone: default.kasp.
-#
 set_keytimes_csk_policy() {
   # The first key is immediately published and activated.
   created=$(key_get KEY1 CREATED)
@@ -280,10 +97,6 @@ set_keytimes_csk_policy() {
   # Key lifetime is unlimited, so not setting RETIRED and REMOVED.
 }
 
-# Check the zone with default kasp policy has loaded and is signed.
-set_zone "default.kasp"
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
 # Key properties.
 set_keyrole "KEY1" "csk"
 set_keylifetime "KEY1" "0"
@@ -296,240 +109,6 @@ set_keystate "KEY1" "STATE_DNSKEY" "rumoured"
 set_keystate "KEY1" "STATE_KRRSIG" "rumoured"
 set_keystate "KEY1" "STATE_ZRRSIG" "rumoured"
 set_keystate "KEY1" "STATE_DS" "hidden"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_csk_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-# Trigger a keymgr run. Make sure the key files are not touched if there are
-# no modifications to the key metadata.
-n=$((n + 1))
-echo_i "make sure key files are untouched if metadata does not change ($n)"
-ret=0
-basefile=$(key_get KEY1 BASEFILE)
-privkey_stat=$(key_get KEY1 PRIVKEY_STAT)
-pubkey_stat=$(key_get KEY1 PUBKEY_STAT)
-state_stat=$(key_get KEY1 STATE_STAT)
-
-nextpart $DIR/named.run >/dev/null
-rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
-privkey_stat2=$(key_stat "${basefile}.private")
-pubkey_stat2=$(key_stat "${basefile}.key")
-state_stat2=$(key_stat "${basefile}.state")
-test "$privkey_stat" = "$privkey_stat2" || log_error "wrong private key file stat (expected $privkey_stat got $privkey_stat2)"
-test "$pubkey_stat" = "$pubkey_stat2" || log_error "wrong public key file stat (expected $pubkey_stat got $pubkey_stat2)"
-test "$state_stat" = "$state_stat2" || log_error "wrong state file stat (expected $state_stat got $state_stat2)"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-n=$((n + 1))
-echo_i "again ($n)"
-ret=0
-
-nextpart $DIR/named.run >/dev/null
-rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run || ret=1
-privkey_stat2=$(key_stat "${basefile}.private")
-pubkey_stat2=$(key_stat "${basefile}.key")
-state_stat2=$(key_stat "${basefile}.state")
-test "$privkey_stat" = "$privkey_stat2" || log_error "wrong private key file stat (expected $privkey_stat got $privkey_stat2)"
-test "$pubkey_stat" = "$pubkey_stat2" || log_error "wrong public key file stat (expected $pubkey_stat got $pubkey_stat2)"
-test "$state_stat" = "$state_stat2" || log_error "wrong state file stat (expected $state_stat got $state_stat2)"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-# Update zone.
-n=$((n + 1))
-echo_i "modify unsigned zone file and check that new record is signed for zone ${ZONE} ($n)"
-ret=0
-cp "${DIR}/template2.db.in" "${DIR}/${ZONE}.db"
-rndccmd 10.53.0.3 reload "$ZONE" >/dev/null || log_error "rndc reload zone ${ZONE} failed"
-
-update_is_signed() {
-  ip_a=$1
-  ip_d=$2
-
-  if [ "$ip_a" != "-" ]; then
-    dig_with_opts "a.${ZONE}" "@${SERVER}" A >"dig.out.$DIR.test$n.a" || return 1
-    grep "status: NOERROR" "dig.out.$DIR.test$n.a" >/dev/null || return 1
-    grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*${ip_a}" "dig.out.$DIR.test$n.a" >/dev/null || return 1
-    lines=$(get_keys_which_signed A 0 "dig.out.$DIR.test$n.a" | wc -l)
-    test "$lines" -eq 1 || return 1
-    get_keys_which_signed A 0 "dig.out.$DIR.test$n.a" | grep "^${KEY_ID}$" >/dev/null || return 1
-  fi
-
-  if [ "$ip_d" != "-" ]; then
-    dig_with_opts "d.${ZONE}" "@${SERVER}" A >"dig.out.$DIR.test$n".d || return 1
-    grep "status: NOERROR" "dig.out.$DIR.test$n".d >/dev/null || return 1
-    grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*${ip_d}" "dig.out.$DIR.test$n".d >/dev/null || return 1
-    lines=$(get_keys_which_signed A 0 "dig.out.$DIR.test$n".d | wc -l)
-    test "$lines" -eq 1 || return 1
-    get_keys_which_signed A 0 "dig.out.$DIR.test$n".d | grep "^${KEY_ID}$" >/dev/null || return 1
-  fi
-}
-
-retry_quiet 10 update_is_signed "10.0.0.11" "10.0.0.44" || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-# Move the private key file, a rekey event should not introduce replacement
-# keys.
-ret=0
-echo_i "test that if private key files are inaccessible this doesn't trigger a rollover ($n)"
-basefile=$(key_get KEY1 BASEFILE)
-mv "${basefile}.private" "${basefile}.offline"
-rndccmd 10.53.0.3 loadkeys "$ZONE" >/dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "zone $ZONE/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing" $DIR/named.run || ret=1
-mv "${basefile}.offline" "${basefile}.private"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-# Nothing has changed.
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_csk_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-#
-# A zone with special characters.
-#
-set_zone "i-am.\":\;?&[]\@!\$*+,|=\.\(\)special.kasp."
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
-# It is non-trivial to adapt the tests to deal with all possible different
-# escaping characters, so we will just try to verify the zone.
-dnssec_verify
-
-#
-# Zone: dynamic.kasp
-#
-set_zone "dynamic.kasp"
-set_dynamic
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
-# Key properties, timings and states same as above.
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_csk_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-# Update zone with nsupdate.
-n=$((n + 1))
-echo_i "nsupdate zone and check that new record is signed for zone ${ZONE} ($n)"
-ret=0
-(
-  echo zone ${ZONE}
-  echo server 10.53.0.3 "$PORT"
-  echo update del "a.${ZONE}" 300 A 10.0.0.1
-  echo update add "a.${ZONE}" 300 A 10.0.0.101
-  echo update add "d.${ZONE}" 300 A 10.0.0.4
-  echo send
-) | $NSUPDATE
-
-retry_quiet 10 update_is_signed "10.0.0.101" "10.0.0.4" || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-# Update zone with nsupdate (reverting the above change).
-n=$((n + 1))
-echo_i "nsupdate zone and check that new record is signed for zone ${ZONE} ($n)"
-ret=0
-(
-  echo zone ${ZONE}
-  echo server 10.53.0.3 "$PORT"
-  echo update add "a.${ZONE}" 300 A 10.0.0.1
-  echo update del "a.${ZONE}" 300 A 10.0.0.101
-  echo update del "d.${ZONE}" 300 A 10.0.0.4
-  echo send
-) | $NSUPDATE
-
-retry_quiet 10 update_is_signed "10.0.0.1" "-" || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-# Update zone with freeze/thaw.
-n=$((n + 1))
-echo_i "modify zone file and check that new record is signed for zone ${ZONE} ($n)"
-ret=0
-rndccmd 10.53.0.3 freeze "$ZONE" >/dev/null || log_error "rndc freeze zone ${ZONE} failed"
-sleep 1
-echo "d.${ZONE}. 300 A 10.0.0.44" >>"${DIR}/${ZONE}.db"
-rndccmd 10.53.0.3 thaw "$ZONE" >/dev/null || log_error "rndc thaw zone ${ZONE} failed"
-
-retry_quiet 10 update_is_signed "10.0.0.1" "10.0.0.44" || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-#
-# Zone: dynamic-inline-signing.kasp
-#
-set_zone "dynamic-inline-signing.kasp"
-set_dynamic
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
-# Key properties, timings and states same as above.
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_csk_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
-
-# Update zone with freeze/thaw.
-n=$((n + 1))
-echo_i "modify unsigned zone file and check that new record is signed for zone ${ZONE} ($n)"
-ret=0
-rndccmd 10.53.0.3 freeze "$ZONE" >/dev/null || log_error "rndc freeze zone ${ZONE} failed"
-sleep 1
-cp "${DIR}/template2.db.in" "${DIR}/${ZONE}.db"
-rndccmd 10.53.0.3 thaw "$ZONE" >/dev/null || log_error "rndc thaw zone ${ZONE} failed"
-
-retry_quiet 10 update_is_signed || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-#
-# Zone: dynamic-signed-inline-signing.kasp
-#
-set_zone "dynamic-signed-inline-signing.kasp"
-set_dynamic
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
-dnssec_verify
-# Ensure no zone_resigninc for the unsigned version of the zone is triggered.
-n=$((n + 1))
-echo_i "check if resigning the raw version of the zone is prevented for zone ${ZONE} ($n)"
-ret=0
-grep "zone_resigninc: zone $ZONE/IN (unsigned): enter" $DIR/named.run && ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-#
-# Zone: inline-signing.kasp
-#
-set_zone "inline-signing.kasp"
-set_policy "default" "1" "3600"
-set_server "ns3" "10.53.0.3"
-# Key properties, timings and states same as above.
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-set_keytimes_csk_policy
-check_keytimes
-check_apex
-check_subdomain
-dnssec_verify
 
 #
 # Zone: checkds-ksk.kasp.
@@ -877,52 +456,15 @@ if [ $RSASHA1_SUPPORTED = 1 ]; then
 fi
 
 #
-# Zone: unsigned.kasp.
-#
-set_zone "unsigned.kasp"
-set_policy "none" "0" "0"
-set_server "ns3" "10.53.0.3"
-
-key_clear "KEY1"
-key_clear "KEY2"
-key_clear "KEY3"
-key_clear "KEY4"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-check_apex
-check_subdomain
-# Make sure the zone file is untouched.
-n=$((n + 1))
-echo_i "Make sure the zonefile for zone ${ZONE} is not edited ($n)"
-ret=0
-diff "${DIR}/${ZONE}.db.infile" "${DIR}/${ZONE}.db" || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-#
-# Zone: insecure.kasp.
-#
-set_zone "insecure.kasp"
-set_policy "insecure" "0" "0"
-set_server "ns3" "10.53.0.3"
-
-key_clear "KEY1"
-key_clear "KEY2"
-key_clear "KEY3"
-key_clear "KEY4"
-
-check_keys
-check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-check_apex
-check_subdomain
-
-#
 # Zone: unlimited.kasp.
 #
 set_zone "unlimited.kasp"
 set_policy "unlimited" "1" "1234"
 set_server "ns3" "10.53.0.3"
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
 # Key properties.
 set_keyrole "KEY1" "csk"
 set_keylifetime "KEY1" "0"
