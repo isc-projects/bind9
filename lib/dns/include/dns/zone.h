@@ -2236,7 +2236,7 @@ dns_zone_setcheckns(dns_zone_t *zone, dns_checknsfunc_t checkns);
 void
 dns_zone_setnotifydelay(dns_zone_t *zone, uint32_t delay);
 /*%<
- * Set the minimum delay between sets of notify messages.
+ * Set the minimum delay (in seconds) between sets of notify messages.
  *
  * Requires:
  *	'zone' to be valid.
