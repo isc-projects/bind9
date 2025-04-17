@@ -20195,13 +20195,6 @@ dns_zone_setnotifydelay(dns_zone_t *zone, uint32_t delay) {
 	UNLOCK_ZONE(zone);
 }
 
-uint32_t
-dns_zone_getnotifydelay(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return zone->notifydelay;
-}
-
 isc_result_t
 dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
 		     bool deleteit) {

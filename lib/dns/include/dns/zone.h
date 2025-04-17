@@ -2193,15 +2193,6 @@ dns_zone_setnotifydelay(dns_zone_t *zone, uint32_t delay);
  *	'zone' to be valid.
  */
 
-uint32_t
-dns_zone_getnotifydelay(dns_zone_t *zone);
-/*%<
- * Get the minimum delay between sets of notify messages.
- *
- * Requires:
- *	'zone' to be valid.
- */
-
 void
 dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
 /*%<
