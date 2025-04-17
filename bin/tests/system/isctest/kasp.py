@@ -24,6 +24,7 @@ import dns
 import dns.tsig
 import isctest.log
 import isctest.query
+import isctest.util
 
 DEFAULT_TTL = 300
 
@@ -612,7 +613,7 @@ def check_zone_is_signed(server, zone, tsig=None):
     assert signed
 
 
-def verify_keys(zone, keys, expected):
+def check_keys(zone, keys, expected):
     """
     Checks keys for a configured zone. This verifies:
     1. The expected number of keys exist in 'keys'.
@@ -971,16 +972,13 @@ def check_apex(server, zone, ksks, zsks, tsig=None):
 
     # test dnskey query
     dnskeys, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.DNSKEY, tsig=tsig)
-    assert len(dnskeys) > 0
     check_dnskeys(dnskeys, ksks, zsks)
-    assert len(rrsigs) > 0
     check_signatures(rrsigs, dns.rdatatype.DNSKEY, fqdn, ksks, zsks)
 
     # test soa query
     soa, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.SOA, tsig=tsig)
     assert len(soa) == 1
     assert f"{zone}. {DEFAULT_TTL} IN SOA" in soa[0].to_text()
-    assert len(rrsigs) > 0
     check_signatures(rrsigs, dns.rdatatype.SOA, fqdn, ksks, zsks)
 
     # test cdnskey query
@@ -1016,8 +1014,36 @@ def check_subdomain(server, zone, ksks, zsks, tsig=None):
         else:
             assert match in rrset.to_text()
 
-    assert len(rrsigs) > 0
     check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
+
+
+def verify_update_is_signed(server, fqdn, qname, qtype, rdata, ksks, zsks, tsig=None):
+    """
+    Test an RRset below the apex and verify it is updated and signed correctly.
+    """
+    response = _query(server, qname, qtype, tsig=tsig)
+
+    if response.rcode() != dns.rcode.NOERROR:
+        return False
+
+    rrtype = dns.rdatatype.to_text(qtype)
+    match = f"{qname} {DEFAULT_TTL} IN {rrtype} {rdata}"
+    rrsigs = []
+    for rrset in response.answer:
+        if rrset.match(
+            dns.name.from_text(qname), dns.rdataclass.IN, dns.rdatatype.RRSIG, qtype
+        ):
+            rrsigs.append(rrset)
+        elif not match in rrset.to_text():
+            return False
+
+    if len(rrsigs) == 0:
+        return False
+
+    # Zone is updated, ready to verify the signatures.
+    check_signatures(rrsigs, qtype, fqdn, ksks, zsks)
+
+    return True
 
 
 def next_key_event_equals(server, zone, next_event):
@@ -1101,3 +1127,72 @@ def keydir_to_keylist(
 
 def keystr_to_keylist(keystr: str, keydir: Optional[str] = None) -> List[Key]:
     return [Key(name, keydir) for name in keystr.split()]
+
+
+def policy_to_properties(ttl, keys: List[str]) -> List[KeyProperties]:
+    """
+    Get the policies from a list of specially formatted strings.
+    The splitted line should result in the following items:
+    line[0]: Role
+    line[1]: Lifetime
+    line[2]: Algorithm
+    line[3]: Length
+    Then, optional data for specific tests may follow:
+    - "goal", "dnskey", "krrsig", "zrrsig", "ds", followed by a value,
+      sets the given state to the specific value
+    - "offset", an offset for testing key rollover timings
+    """
+    proplist = []
+    count = 0
+    for key in keys:
+        count += 1
+        line = key.split()
+        keyprop = KeyProperties(f"KEY{count}", {}, {}, {})
+        keyprop.properties["expect"] = True
+        keyprop.properties["private"] = True
+        keyprop.properties["legacy"] = False
+        keyprop.properties["offset"] = timedelta(0)
+        keyprop.properties["role"] = line[0]
+        if line[0] == "zsk":
+            keyprop.properties["role_full"] = "zone-signing"
+            keyprop.properties["flags"] = 256
+            keyprop.metadata["ZSK"] = "yes"
+            keyprop.metadata["KSK"] = "no"
+        else:
+            keyprop.properties["role_full"] = "key-signing"
+            keyprop.properties["flags"] = 257
+            keyprop.metadata["ZSK"] = "yes" if line[0] == "csk" else "no"
+            keyprop.metadata["KSK"] = "yes"
+
+        keyprop.properties["dnskey_ttl"] = ttl
+        keyprop.metadata["Algorithm"] = line[2]
+        keyprop.metadata["Length"] = line[3]
+        keyprop.metadata["Lifetime"] = 0
+        if line[1] != "unlimited":
+            keyprop.metadata["Lifetime"] = int(line[1])
+
+        for i in range(4, len(line)):
+            if line[i].startswith("goal:"):
+                keyval = line[i].split(":")
+                keyprop.metadata["GoalState"] = keyval[1]
+            elif line[i].startswith("dnskey:"):
+                keyval = line[i].split(":")
+                keyprop.metadata["DNSKEYState"] = keyval[1]
+            elif line[i].startswith("krrsig:"):
+                keyval = line[i].split(":")
+                keyprop.metadata["KRRSIGState"] = keyval[1]
+            elif line[i].startswith("zrrsig:"):
+                keyval = line[i].split(":")
+                keyprop.metadata["ZRRSIGState"] = keyval[1]
+            elif line[i].startswith("ds:"):
+                keyval = line[i].split(":")
+                keyprop.metadata["DSState"] = keyval[1]
+            elif line[i].startswith("offset:"):
+                keyval = line[i].split(":")
+                keyprop.properties["offset"] = timedelta(seconds=int(keyval[1]))
+            else:
+                assert False, f"undefined optional data {line[i]}"
+
+        proplist.append(keyprop)
+
+    return proplist
