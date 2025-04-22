@@ -219,7 +219,7 @@ load_zone(dns_zone_t *zone) {
 	dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", serial);
 
 	if (zone_dynamic) {
-		dns_zone_notify(zone);
+		dns_zone_notify(zone, false);
 	}
 
 cleanup:

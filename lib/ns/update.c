@@ -3431,7 +3431,7 @@ update_action(void *arg) {
 		/*
 		 * Notify secondaries of the change we just made.
 		 */
-		dns_zone_notify(zone);
+		dns_zone_notify(zone, false);
 	} else {
 		update_log(client, zone, LOGLEVEL_DEBUG, "redundant request");
 		dns_db_closeversion(db, &ver, true);
