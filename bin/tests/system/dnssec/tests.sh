@@ -4612,6 +4612,57 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "checking NSEC3 nxdomain response closest encloser with 0 ENT ($n)"
+ret=0
+dig_with_opts @10.53.0.4 b.b.b.b.b.a.nsec3.example. >dig.out.ns4.test$n
+grep "status: NXDOMAIN" dig.out.ns4.test$n >/dev/null || ret=1
+# closest encloser (a.nsec3.example)
+pat1="^6OVDUHTN094ML2PV8AN90U0DPU823GH2\.nsec3\.example\..*NSEC3 1 0 0 - 7AT0S0RIDCJRFF2M5H5AAV22CSFJBUL4 A RRSIG\$"
+grep "$pat1" dig.out.ns4.test$n >/dev/null || ret=1
+# no QNAME proof (b.a.nsec3.example / DSPF4R9UKOEPJ9O34E1H4539LSOTL14E)
+pat2="^CG2DVCNE20EKU1PDRLMI2L4DGC2FO1H3\.nsec3\.example\..*NSEC3 1 0 0 - EF2S05SGK1IR2K5SKMFIRERGQCLMR18M A RRSIG\$"
+grep "$pat2" dig.out.ns4.test$n >/dev/null || ret=1
+# no WILDCARD proof (*.a.nsec3.example / TFGQ60S97BS31IT1EBEDO63ETM0T5JFA)
+pat3="^R8EVDMNIGNOKME4LH2H90OSP2PRSNJ1Q\.nsec3\.example\..*NSEC3 1 0 0 - VH656EQUD4J02OFVSO4GKOK5D02MS1TL NS DS RRSIG\$"
+grep "$pat3" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "checking NSEC3 nxdomain response closest encloser with 1 ENTs ($n)"
+ret=0
+dig_with_opts @10.53.0.4 b.b.b.b.b.a.a.nsec3.example. >dig.out.ns4.test$n
+grep "status: NXDOMAIN" dig.out.ns4.test$n >/dev/null || ret=1
+# closest encloser (a.a.nsec3.example)
+pat1="^NGCJFSOLJUUE27PFNQNJIME4TQ0OU2DH\.nsec3\.example\..*NSEC3 1 0 0 - R8EVDMNIGNOKME4LH2H90OSP2PRSNJ1Q\$"
+grep "$pat1" dig.out.ns4.test$n >/dev/null || ret=1
+# no QNAME proof (b.a.a.nsec3.example / V8I8SAIIVC3HOVMOVENSDRA6ATDCEMJI)
+pat2="^R8EVDMNIGNOKME4LH2H90OSP2PRSNJ1Q\.nsec3\.example\..*NSEC3 1 0 0 - VH656EQUD4J02OFVSO4GKOK5D02MS1TL NS DS RRSIG\$"
+grep "$pat2" dig.out.ns4.test$n >/dev/null || ret=1
+# no WILDCARD proof (*.a.a.nsec3.example / V7JNNDJ4NLRIU195FRB7DLUCSLU4LLFM)
+pat3="^R8EVDMNIGNOKME4LH2H90OSP2PRSNJ1Q\.nsec3\.example\..*NSEC3 1 0 0 - VH656EQUD4J02OFVSO4GKOK5D02MS1TL NS DS RRSIG\$"
+grep "$pat3" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "checking NSEC3 nxdomain response closest encloser with 2 ENTs ($n)"
+ret=0
+dig_with_opts @10.53.0.4 b.b.b.b.b.a.a.a.nsec3.example. >dig.out.ns4.test$n
+grep "status: NXDOMAIN" dig.out.ns4.test$n >/dev/null || ret=1
+# closest encloser (a.a.a.nsec3.example)
+pat1="^H7RHPDCHSVVRAND332F878C8AB6IBJQV\.nsec3\.example\..*NSEC3 1 0 0 - K8IG76R2UPQ13IKFO49L7IB9JRVB6QJI\$"
+grep "$pat1" dig.out.ns4.test$n >/dev/null || ret=1
+# no QNAME proof (b.a.a.a.nsec3.example / 18Q8D89RM8GGRSSOPFRB05QS6VEGB1P4)
+pat2="^VH656EQUD4J02OFVSO4GKOK5D02MS1TL\.nsec3\.example\..*NSEC3 1 0 0 - 1HARMGSKJH0EBU2EI2OJIKTDPIQA6KBI NS DS RRSIG\$"
+grep "$pat2" dig.out.ns4.test$n >/dev/null || ret=1
+# no WILDCARD proof (*.a.a.a.nsec3.example / 8113LDMSEFPUAG4VGFF1C8KLOUT4Q6PH)
+pat3="^7AT0S0RIDCJRFF2M5H5AAV22CSFJBUL4\.nsec3\.example\..*NSEC3 1 0 0 - BEJ5GMQA872JF4DAGQ0R3O5Q7A2O5S9L A RRSIG\$"
+grep "$pat3" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "checking that records other than DNSKEY are not signed by a revoked key by dnssec-signzone ($n)"
 ret=0
 (
