@@ -1779,7 +1779,7 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	isc_result_t result;
 
 	isc_time_formatISO8601ms(&named_g_boottime, boottime, sizeof boottime);
-	isc_time_formatISO8601ms(&named_g_configtime, configtime,
+	isc_time_formatISO8601ms(&named_g_defaultconfigtime, configtime,
 				 sizeof configtime);
 	isc_time_formatISO8601ms(&now, nowstr, sizeof nowstr);
 
@@ -2856,7 +2856,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 
 	now = isc_time_now();
 	isc_time_formatISO8601ms(&named_g_boottime, boottime, sizeof(boottime));
-	isc_time_formatISO8601ms(&named_g_configtime, configtime,
+	isc_time_formatISO8601ms(&named_g_defaultconfigtime, configtime,
 				 sizeof configtime);
 	isc_time_formatISO8601ms(&now, nowstr, sizeof(nowstr));
 

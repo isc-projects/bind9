@@ -890,7 +890,7 @@ named_config_getport(const cfg_obj_t *config, const char *type,
 	if (options != NULL) {
 		maps[i++] = options;
 	}
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 	result = named_config_get(maps, type, &portobj);

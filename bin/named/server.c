@@ -1131,7 +1131,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		}
 	}
 
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 	dns_view_initsecroots(view);
@@ -1142,7 +1142,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 
 		/*
 		 * If bind.keys exists and is populated, it overrides
-		 * the trust-anchors clause hard-coded in named_g_config.
+		 * the trust-anchors clause hard-coded in named_g_defaultconfig.
 		 */
 		if (bindkeys != NULL) {
 			isc_log_write(DNS_LOGCATEGORY_SECURITY,
@@ -1170,8 +1170,8 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 				      "using built-in root key for view %s",
 				      view->name);
 
-			(void)cfg_map_get(named_g_config, "trust-anchors",
-					  &builtin_keys);
+			(void)cfg_map_get(named_g_defaultconfig,
+					  "trust-anchors", &builtin_keys);
 		}
 
 		if (builtin_keys != NULL) {
@@ -3839,7 +3839,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		optionmaps[j++] = options;
 	}
 
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 	optionmaps[j] = NULL;
 	if (config != NULL) {
@@ -4211,13 +4211,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	view->acceptexpired = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	/* 'optionmaps', not 'maps': don't check named_g_defaults yet */
+	/* 'optionmaps', not 'maps': don't check named_g_defaultoptions yet */
 	(void)named_config_get(optionmaps, "dnssec-validation", &obj);
 	if (obj == NULL) {
 		/*
 		 * Default to VALIDATION_DEFAULT as set in config.c.
 		 */
-		(void)cfg_map_get(named_g_defaults, "dnssec-validation", &obj);
+		(void)cfg_map_get(named_g_defaultoptions, "dnssec-validation",
+				  &obj);
 		INSIST(obj != NULL);
 	}
 	if (obj != NULL) {
@@ -4936,14 +4937,15 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	CHECK(configure_view_acl(vconfig, config, NULL, "allow-query-cache-on",
 				 NULL, actx, named_g_mctx, &view->cacheonacl));
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 				 "allow-query-on", NULL, actx, named_g_mctx,
 				 &view->queryonacl));
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config, "allow-proxy",
-				 NULL, actx, named_g_mctx, &view->proxyacl));
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
+				 "allow-proxy", NULL, actx, named_g_mctx,
+				 &view->proxyacl));
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 				 "allow-proxy-on", NULL, actx, named_g_mctx,
 				 &view->proxyonacl));
 
@@ -5018,28 +5020,30 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		if (view->recursionacl == NULL) {
 			/* global default only */
 			CHECK(configure_view_acl(
-				NULL, NULL, named_g_config, "allow-recursion",
-				NULL, actx, named_g_mctx, &view->recursionacl));
+				NULL, NULL, named_g_defaultconfig,
+				"allow-recursion", NULL, actx, named_g_mctx,
+				&view->recursionacl));
 		}
 		if (view->recursiononacl == NULL) {
 			/* global default only */
-			CHECK(configure_view_acl(NULL, NULL, named_g_config,
-						 "allow-recursion-on", NULL,
-						 actx, named_g_mctx,
-						 &view->recursiononacl));
+			CHECK(configure_view_acl(
+				NULL, NULL, named_g_defaultconfig,
+				"allow-recursion-on", NULL, actx, named_g_mctx,
+				&view->recursiononacl));
 		}
 		if (view->cacheacl == NULL) {
 			/* global default only */
 			CHECK(configure_view_acl(
-				NULL, NULL, named_g_config, "allow-query-cache",
-				NULL, actx, named_g_mctx, &view->cacheacl));
+				NULL, NULL, named_g_defaultconfig,
+				"allow-query-cache", NULL, actx, named_g_mctx,
+				&view->cacheacl));
 		}
 		if (view->cacheonacl == NULL) {
 			/* global default only */
-			CHECK(configure_view_acl(NULL, NULL, named_g_config,
-						 "allow-query-cache-on", NULL,
-						 actx, named_g_mctx,
-						 &view->cacheonacl));
+			CHECK(configure_view_acl(
+				NULL, NULL, named_g_defaultconfig,
+				"allow-query-cache-on", NULL, actx,
+				named_g_mctx, &view->cacheonacl));
 		}
 	} else {
 		/*
@@ -5060,7 +5064,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 */
 	if (view->queryacl == NULL) {
 		/* global default only */
-		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+		CHECK(configure_view_acl(NULL, NULL, named_g_defaultconfig,
 					 "allow-query", NULL, actx,
 					 named_g_mctx, &view->queryacl));
 	}
@@ -5070,7 +5074,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * clients. This causes case not always to be preserved,
 	 * and is needed by some broken clients.
 	 */
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 				 "no-case-compress", NULL, actx, named_g_mctx,
 				 &view->nocasecompress));
 
@@ -5086,7 +5090,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Filter setting on addresses in the answer section.
 	 */
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 				 "deny-answer-addresses", "acl", actx,
 				 named_g_mctx, &view->denyansweracl));
 	CHECK(configure_view_nametable(vconfig, config, "deny-answer-addresses",
@@ -5110,12 +5114,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * read from there in zoneconf.c:configure_zone_acl() later.)
 	 */
 	if (view->updateacl == NULL) {
-		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+		CHECK(configure_view_acl(NULL, NULL, named_g_defaultconfig,
 					 "allow-update", NULL, actx,
 					 named_g_mctx, &view->updateacl));
 	}
 	if (view->upfwdacl == NULL) {
-		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+		CHECK(configure_view_acl(NULL, NULL, named_g_defaultconfig,
 					 "allow-update-forwarding", NULL, actx,
 					 named_g_mctx, &view->upfwdacl));
 	}
@@ -5125,12 +5129,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * can be inherited by zones.
 	 */
 	if (view->transferacl == NULL) {
-		CHECK(configure_view_acl(vconfig, config, named_g_config,
+		CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 					 "allow-transfer", NULL, actx,
 					 named_g_mctx, &view->transferacl));
 	}
 	if (view->notifyacl == NULL) {
-		CHECK(configure_view_acl(vconfig, config, named_g_config,
+		CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 					 "allow-notify", NULL, actx,
 					 named_g_mctx, &view->notifyacl));
 	}
@@ -7357,7 +7361,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (result == ISC_R_SUCCESS) {
 		maps[i++] = options;
 	}
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 	result = named_config_get(maps, "allow-new-zones", &nz);
@@ -7921,14 +7925,15 @@ load_configuration(const char *filename, named_server_t *server,
 	 */
 	if (first_time) {
 		result = named_config_parsedefaults(named_g_parser,
-						    &named_g_config);
+						    &named_g_defaultconfig);
 		if (result != ISC_R_SUCCESS) {
 			named_main_earlyfatal("unable to load "
 					      "internal defaults: %s",
 					      isc_result_totext(result));
 		}
-		RUNTIME_CHECK(cfg_map_get(named_g_config, "options",
-					  &named_g_defaults) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(cfg_map_get(named_g_defaultconfig, "options",
+					  &named_g_defaultoptions) ==
+			      ISC_R_SUCCESS);
 	}
 
 	/*
@@ -8001,7 +8006,7 @@ load_configuration(const char *filename, named_server_t *server,
 	if (result == ISC_R_SUCCESS) {
 		maps[i++] = options;
 	}
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 #if HAVE_LIBNGHTTP2
@@ -8609,7 +8614,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Create the built-in kasp policies ("default", "insecure").
 	 */
 	kasps = NULL;
-	(void)cfg_map_get(named_g_config, "dnssec-policy", &kasps);
+	(void)cfg_map_get(named_g_defaultconfig, "dnssec-policy", &kasps);
 	CFG_LIST_FOREACH (kasps, element) {
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		dns_kasp_t *kasp = NULL;
@@ -8770,8 +8775,8 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Create (or recreate) the built-in views.
 	 */
 	builtin_views = NULL;
-	RUNTIME_CHECK(cfg_map_get(named_g_config, "view", &builtin_views) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(cfg_map_get(named_g_defaultconfig, "view",
+				  &builtin_views) == ISC_R_SUCCESS);
 	CFG_LIST_FOREACH (builtin_views, element) {
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 		dns_view_t *view = NULL;
@@ -9184,7 +9189,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Record the time of most recent configuration
 	 */
-	named_g_configtime = isc_time_now();
+	named_g_defaultconfigtime = isc_time_now();
 
 	isc_loopmgr_resume(named_g_loopmgr);
 	exclusive = false;
@@ -9535,7 +9540,7 @@ shutdown_server(void *arg) {
 		cfg_aclconfctx_detach(&named_g_aclconfctx);
 	}
 
-	cfg_obj_destroy(named_g_parser, &named_g_config);
+	cfg_obj_destroy(named_g_parser, &named_g_defaultconfig);
 	cfg_parser_destroy(&named_g_parser);
 	cfg_parser_destroy(&named_g_addparser);
 
@@ -11880,7 +11885,7 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 
 	isc_time_formathttptimestamp(&named_g_boottime, boottime,
 				     sizeof(boottime));
-	isc_time_formathttptimestamp(&named_g_configtime, configtime,
+	isc_time_formathttptimestamp(&named_g_defaultconfigtime, configtime,
 				     sizeof(configtime));
 
 	snprintf(line, sizeof(line), "version: %s (%s) <id:%s>%s%s%s\n",
@@ -13623,7 +13628,7 @@ named_server_changezone(named_server_t *server, char *command,
 		      addzone ? NAMED_COMMAND_ADDZONE : NAMED_COMMAND_MODZONE);
 
 	/* Changing a zone counts as reconfiguration */
-	named_g_configtime = isc_time_now();
+	named_g_defaultconfigtime = isc_time_now();
 
 cleanup:
 	if (isc_buffer_usedlength(*text) > 0) {
@@ -13934,7 +13939,7 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 		      zonename);
 
 	/* Removing a zone counts as reconfiguration */
-	named_g_configtime = isc_time_now();
+	named_g_defaultconfigtime = isc_time_now();
 
 	result = ISC_R_SUCCESS;
 
