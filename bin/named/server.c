@@ -9924,8 +9924,16 @@ loadconfig(named_server_t *server) {
 static isc_result_t
 reload(named_server_t *server) {
 	isc_result_t result;
+	int reloadstatus = atomic_exchange(&server->reload_status,
+					   NAMED_RELOAD_IN_PROGRESS);
 
-	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+	if (reloadstatus == NAMED_RELOAD_IN_PROGRESS) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING,
+			      "reload request ignored: already running");
+		result = ISC_R_ALREADYRUNNING;
+		goto cleanup;
+	}
 
 	named_os_notify_systemd("RELOADING=1\n"
 				"MONOTONIC_USEC=%" PRIu64 "\n"
@@ -10325,8 +10333,16 @@ named_server_reloadcommand(named_server_t *server, isc_lex_t *lex,
 	}
 	if (zone == NULL) {
 		result = reload(server);
-		if (result == ISC_R_SUCCESS) {
+		switch (result) {
+		case ISC_R_SUCCESS:
 			msg = "server reload successful";
+			break;
+		case ISC_R_ALREADYRUNNING:
+			msg = "reload request ignored as the server is "
+			      "currently being reloaded or reconfigured";
+			break;
+		default:
+			break;
 		}
 	} else {
 		type = dns_zone_gettype(zone);
@@ -10416,9 +10432,21 @@ named_server_resetstatscommand(named_server_t *server, isc_lex_t *lex,
  * Act on a "reconfig" command from the command channel.
  */
 isc_result_t
-named_server_reconfigcommand(named_server_t *server) {
+named_server_reconfigcommand(named_server_t *server, isc_buffer_t *text) {
 	isc_result_t result;
-	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+	int reloadstatus = atomic_exchange(&server->reload_status,
+					   NAMED_RELOAD_IN_PROGRESS);
+
+	if (reloadstatus == NAMED_RELOAD_IN_PROGRESS) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING,
+			      "reconfig request ignored: already running");
+		result = ISC_R_ALREADYRUNNING;
+		isc_buffer_printf(text,
+				  "reconfig request ignored as the server is "
+				  "currently being reloaded or reconfigured");
+		goto cleanup;
+	}
 
 	named_os_notify_systemd("RELOADING=1\n"
 				"MONOTONIC_USEC=%" PRIu64 "\n"
