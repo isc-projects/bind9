@@ -239,6 +239,7 @@ options {\n\
 	min-transfer-rate-in 10240 5;\n\
 	multi-master no;\n\
 	notify yes;\n\
+	notify-defer 0;\n\
 	notify-delay 5;\n\
 	notify-to-soa no;\n\
 	provide-zoneversion yes;\n\

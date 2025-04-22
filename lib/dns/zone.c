@@ -408,6 +408,7 @@ struct dns_zone {
 	dns_stats_t *rcvquerystats;
 	dns_stats_t *dnssecsignstats;
 	uint32_t notifydelay;
+	uint32_t notifydefer;
 	dns_isselffunc_t isself;
 	void *isselfarg;
 
@@ -573,7 +574,12 @@ typedef enum {
 						      * notify due to the zone
 						      * just being loaded for
 						      * the first time. */
-	DNS_ZONEFLG_FIRSTREFRESH = 0x100000000U, /*%< First refresh pending */
+	DNS_ZONEFLG_NOTIFYNODEFER = 0x100000000U,    /*%< ignore the
+						      * notify-defer option. */
+	DNS_ZONEFLG_NOTIFYDEFERRED = 0x200000000U,   /*%< notify was deferred
+						      * according to the
+						      * notify-defer option. */
+	DNS_ZONEFLG_FIRSTREFRESH = 0x400000000U, /*%< First refresh pending */
 	DNS_ZONEFLG___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneflg_t;
 
@@ -1057,6 +1063,19 @@ static const char *dbargv_default[] = { ZONEDB_DEFAULT };
 				     #b);                                    \
 			isc_interval_set(&_i, (b) / 2, 0);                   \
 			(void)isc_time_add((a), &_i, (c));                   \
+		}                                                            \
+	} while (0)
+
+#define DNS_ZONE_TIME_SUBTRACT(a, b, c)                                      \
+	do {                                                                 \
+		isc_interval_t _i;                                           \
+		isc_interval_set(&_i, (b), 0);                               \
+		if (isc_time_subtract((a), &_i, (c)) != ISC_R_SUCCESS) {     \
+			dns_zone_log(zone, ISC_LOG_WARNING,                  \
+				     "epoch approaching: upgrade required: " \
+				     "isc_time_subtract() failed");          \
+			isc_interval_set(&_i, (b) / 2, 0);                   \
+			(void)isc_time_subtract((a), &_i, (c));              \
 		}                                                            \
 	} while (0)
 
@@ -11336,6 +11355,17 @@ zone_maintenance(dns_zone_t *zone) {
 	 * primaries after.
 	 */
 	LOCK_ZONE(zone);
+	if (zone->notifydefer != 0 &&
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYNODEFER) &&
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYDEFERRED))
+	{
+		if (isc_time_compare(&now, &zone->notifytime) > 0) {
+			zone->notifytime = now;
+		}
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYDEFERRED);
+		DNS_ZONE_TIME_ADD(&zone->notifytime, zone->notifydefer,
+				  &zone->notifytime);
+	}
 	notify = (zone->type == dns_zone_secondary ||
 		  zone->type == dns_zone_mirror) &&
 		 (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
@@ -12842,14 +12872,27 @@ cleanup:
 }
 
 void
-dns_zone_notify(dns_zone_t *zone) {
+dns_zone_notify(dns_zone_t *zone, bool nodefer) {
 	isc_time_t now;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-
+	if (nodefer) {
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYDEFERRED)) {
+			/*
+			 * We have previously deferred the notify, but we have a
+			 * new request not to defer it. Reverse the deferring
+			 * operation.
+			 */
+			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOTIFYDEFERRED);
+			DNS_ZONE_TIME_SUBTRACT(&zone->notifytime,
+					       zone->notifydefer,
+					       &zone->notifytime);
+		}
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYNODEFER);
+	}
 	now = isc_time_now();
 	zone_settimer(zone, &now);
 	UNLOCK_ZONE(zone);
@@ -12881,8 +12924,10 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 
 	LOCK_ZONE(zone);
 	startup = !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY |
+				       DNS_ZONEFLG_NEEDSTARTUPNOTIFY |
+				       DNS_ZONEFLG_NOTIFYNODEFER |
+				       DNS_ZONEFLG_NOTIFYDEFERRED);
 	notifytype = zone->notifytype;
 	DNS_ZONE_TIME_ADD(now, zone->notifydelay, &zone->notifytime);
 	UNLOCK_ZONE(zone);
@@ -20183,6 +20228,15 @@ dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg) {
 	LOCK_ZONE(zone);
 	zone->isself = isself;
 	zone->isselfarg = arg;
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setnotifydefer(dns_zone_t *zone, uint32_t defer) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->notifydefer = defer;
 	UNLOCK_ZONE(zone);
 }
 

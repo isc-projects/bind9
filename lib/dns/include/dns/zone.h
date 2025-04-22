@@ -1341,9 +1341,10 @@ dns_zone_getredirecttype(dns_zone_t *zone);
  */
 
 void
-dns_zone_notify(dns_zone_t *zone);
+dns_zone_notify(dns_zone_t *zone, bool nodefer);
 /*%<
- * Generate notify events for this zone.
+ * Generate notify events for this zone. If 'nodefer' is true, the
+ * 'notify-defer' configuration option is ingored.
  *
  * Requires:
  *\li	'zone' to be a valid zone.
@@ -2182,6 +2183,16 @@ dns_zone_setcheckisservedby(dns_zone_t		     *zone,
  *
  * Require:
  *	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setnotifydefer(dns_zone_t *zone, uint32_t defer);
+/*%<
+ * Set the wait/defer time (in seconds) before notify messages are sent when
+ * they are ready.
+ *
+ * Requires:
+ *	'zone' to be valid.
  */
 
 void
