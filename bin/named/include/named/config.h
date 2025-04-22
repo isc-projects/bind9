@@ -27,6 +27,9 @@
 isc_result_t
 named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf);
 
+isc_result_t
+named_config_parsefile(cfg_parser_t *parser, cfg_obj_t **conf);
+
 const char *
 named_config_getdefault(void);
 

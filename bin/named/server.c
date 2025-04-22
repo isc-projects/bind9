@@ -1142,7 +1142,8 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 
 		/*
 		 * If bind.keys exists and is populated, it overrides
-		 * the trust-anchors clause hard-coded in named_g_defaultconfig.
+		 * the trust-anchors clause hard-coded in
+		 * named_g_defaultconfig.
 		 */
 		if (bindkeys != NULL) {
 			isc_log_write(DNS_LOGCATEGORY_SECURITY,
@@ -6733,56 +6734,6 @@ configure_server_quota(const cfg_obj_t **maps, const char *name,
 }
 
 /*
- * This function is called as soon as the 'directory' statement has been
- * parsed.  This can be extended to support other options if necessary.
- */
-static isc_result_t
-directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
-	isc_result_t result;
-	const char *directory;
-
-	REQUIRE(strcasecmp("directory", clausename) == 0);
-
-	UNUSED(arg);
-	UNUSED(clausename);
-
-	/*
-	 * Change directory.
-	 */
-	directory = cfg_obj_asstring(obj);
-
-	if (!isc_file_ischdiridempotent(directory)) {
-		cfg_obj_log(obj, ISC_LOG_WARNING,
-			    "option 'directory' contains relative path '%s'",
-			    directory);
-	}
-
-	if (!isc_file_isdirwritable(directory)) {
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_ERROR, "directory '%s' is not writable",
-			      directory);
-		return ISC_R_NOPERM;
-	}
-
-	result = isc_dir_chdir(directory);
-	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, ISC_LOG_ERROR,
-			    "change directory to '%s' failed: %s", directory,
-			    isc_result_totext(result));
-		return result;
-	}
-
-	char cwd[PATH_MAX];
-	if (getcwd(cwd, sizeof(cwd)) == cwd) {
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_INFO, "the working directory is now '%s'",
-			      cwd);
-	}
-
-	return ISC_R_SUCCESS;
-}
-
-/*
  * This event callback is invoked to do periodic network interface
  * scanning.
  */
@@ -7336,7 +7287,7 @@ cleanup:
 
 static isc_result_t
 setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
-	       cfg_parser_t *conf_parser, cfg_aclconfctx_t *actx) {
+	       cfg_parser_t *config_parser, cfg_aclconfctx_t *actx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	bool allow = false;
 	ns_cfgctx_t *nzcfg = NULL;
@@ -7439,12 +7390,11 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	*nzcfg = (ns_cfgctx_t){ 0 };
 
 	/*
-	 * We attach the parser that was used for config as well
-	 * as the one that will be used for added zones, to avoid
+	 * We attach the parser that will be used for added zones to avoid
 	 * a shutdown race later.
 	 */
 	isc_mem_attach(view->mctx, &nzcfg->mctx);
-	cfg_parser_attach(conf_parser, &nzcfg->conf_parser);
+	cfg_parser_attach(config_parser, &nzcfg->conf_parser);
 	cfg_parser_attach(named_g_addparser, &nzcfg->add_parser);
 	cfg_aclconfctx_attach(actx, &nzcfg->actx);
 
@@ -7452,8 +7402,8 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				      mapsize);
 	if (result != ISC_R_SUCCESS) {
 		cfg_aclconfctx_detach(&nzcfg->actx);
-		cfg_parser_destroy(&nzcfg->add_parser);
 		cfg_parser_destroy(&nzcfg->conf_parser);
+		cfg_parser_destroy(&nzcfg->add_parser);
 		isc_mem_putanddetach(&nzcfg->mctx, nzcfg, sizeof(*nzcfg));
 		dns_view_setnewzones(view, false, NULL, NULL, 0ULL);
 		return result;
@@ -7850,10 +7800,10 @@ cleanup:
 #endif /* HAVE_LMDB */
 
 static isc_result_t
-load_configuration(const char *filename, named_server_t *server,
-		   bool first_time) {
-	cfg_obj_t *config = NULL, *bindkeys = NULL;
-	cfg_parser_t *conf_parser = NULL, *bindkeys_parser = NULL;
+apply_configuration(cfg_parser_t *configparser, cfg_obj_t *config,
+		    named_server_t *server, bool first_time) {
+	cfg_obj_t *bindkeys = NULL;
+	cfg_parser_t *bindkeys_parser = NULL;
 	const cfg_obj_t *builtin_views = NULL;
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *obj = NULL;
@@ -7891,6 +7841,9 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_DEBUG(1), "apply_configuration");
+
 	/*
 	 * Require the reconfiguration to happen always on the main loop
 	 */
@@ -7921,22 +7874,6 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_dyndb_cleanup();
 
 	/*
-	 * Parse the global default pseudo-config file.
-	 */
-	if (first_time) {
-		result = named_config_parsedefaults(named_g_parser,
-						    &named_g_defaultconfig);
-		if (result != ISC_R_SUCCESS) {
-			named_main_earlyfatal("unable to load "
-					      "internal defaults: %s",
-					      isc_result_totext(result));
-		}
-		RUNTIME_CHECK(cfg_map_get(named_g_defaultconfig, "options",
-					  &named_g_defaultoptions) ==
-			      ISC_R_SUCCESS);
-	}
-
-	/*
 	 * Log the current working directory.
 	 */
 	if (first_time) {
@@ -7947,38 +7884,6 @@ load_configuration(const char *filename, named_server_t *server,
 				      "the initial working directory is '%s'",
 				      cwd);
 		}
-	}
-
-	/*
-	 * Parse the configuration file using the new config code.
-	 */
-	config = NULL;
-	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "loading configuration from '%s'",
-		      filename);
-	result = cfg_parser_create(named_g_mctx, &conf_parser);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_exclusive;
-	}
-
-	cfg_parser_setcallback(conf_parser, directory_callback, NULL);
-	result = cfg_parse_file(conf_parser, filename, &cfg_type_namedconf,
-				&config);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_conf_parser;
-	}
-
-	/*
-	 * Check the validity of the configuration.
-	 *
-	 * (Ignore plugin parameters for now; they will be
-	 * checked later when the modules are actually loaded and
-	 * registered.)
-	 */
-	result = isccfg_check_namedconf(config, BIND_CHECK_ALGORITHMS,
-					named_g_mctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_config;
 	}
 
 	/* Let's recreate the TLS context cache */
@@ -8052,7 +7957,7 @@ load_configuration(const char *filename, named_server_t *server,
 			result = cfg_parser_create(named_g_mctx,
 						   &bindkeys_parser);
 			if (result != ISC_R_SUCCESS) {
-				goto cleanup_config;
+				goto cleanup_bindkeys_parser;
 			}
 
 			result = cfg_parse_file(bindkeys_parser,
@@ -8689,7 +8594,7 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 		INSIST(view != NULL);
 
-		result = setup_newzones(view, config, vconfig, conf_parser,
+		result = setup_newzones(view, config, vconfig, configparser,
 					named_g_aclconfctx);
 		dns_view_detach(&view);
 
@@ -8711,7 +8616,7 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 		INSIST(view != NULL);
 
-		result = setup_newzones(view, config, NULL, conf_parser,
+		result = setup_newzones(view, config, NULL, configparser,
 					named_g_aclconfctx);
 
 		dns_view_detach(&view);
@@ -9284,7 +9189,6 @@ cleanup_portsets:
 	isc_portset_destroy(named_g_mctx, &v4portset);
 
 cleanup_bindkeys_parser:
-
 	if (bindkeys_parser != NULL) {
 		if (bindkeys != NULL) {
 			cfg_obj_destroy(bindkeys_parser, &bindkeys);
@@ -9292,21 +9196,46 @@ cleanup_bindkeys_parser:
 		cfg_parser_destroy(&bindkeys_parser);
 	}
 
-cleanup_config:
-	cfg_obj_destroy(conf_parser, &config);
-
-cleanup_conf_parser:
-	cfg_parser_destroy(&conf_parser);
-
 cleanup_exclusive:
 	if (exclusive) {
 		isc_loopmgr_resume(named_g_loopmgr);
 	}
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-		      ISC_LOG_DEBUG(1), "load_configuration: %s",
+		      ISC_LOG_DEBUG(1), "apply_configuration: %s",
 		      isc_result_totext(result));
 
+	return result;
+}
+
+static isc_result_t
+load_configuration(named_server_t *server, bool first_time) {
+	isc_result_t result;
+	cfg_parser_t *parser = NULL;
+	cfg_obj_t *config = NULL;
+
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_DEBUG(1), "load_configuration");
+
+	result = cfg_parser_create(named_g_mctx, &parser);
+	if (result != ISC_R_SUCCESS) {
+		goto out;
+	}
+
+	result = named_config_parsefile(parser, &config);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	result = apply_configuration(parser, config, server, first_time);
+
+cleanup:
+	if (config) {
+		cfg_obj_destroy(parser, &config);
+	}
+	cfg_parser_destroy(&parser);
+
+out:
 	return result;
 }
 
@@ -9485,11 +9414,18 @@ run_server(void *arg) {
 	CHECKFATAL(cfg_parser_create(named_g_mctx, &named_g_parser),
 		   "creating default configuration parser");
 
+	CHECKFATAL(named_config_parsedefaults(named_g_parser,
+					      &named_g_defaultconfig),
+		   "unable to parse defaults config");
+
+	CHECKFATAL(cfg_map_get(named_g_defaultconfig, "options",
+			       &named_g_defaultoptions),
+		   "missing 'options' in default config");
+
 	CHECKFATAL(cfg_parser_create(named_g_mctx, &named_g_addparser),
 		   "creating additional configuration parser");
 
-	CHECKFATAL(load_configuration(named_g_conffile, server, true),
-		   "loading configuration");
+	CHECKFATAL(load_configuration(server, true), "loading configuration");
 
 	CHECKFATAL(load_zones(server, false), "loading zones");
 #ifdef ENABLE_AFL
@@ -9969,7 +9905,7 @@ fatal(const char *msg, isc_result_t result) {
 static isc_result_t
 loadconfig(named_server_t *server) {
 	isc_result_t result;
-	result = load_configuration(named_g_conffile, server, false);
+	result = load_configuration(server, false);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_INFO,
