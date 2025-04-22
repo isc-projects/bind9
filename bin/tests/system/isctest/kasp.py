@@ -16,7 +16,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from datetime import datetime, timedelta, timezone
 
@@ -332,7 +332,9 @@ class Key:
             )
         return value
 
-    def get_signing_state(self, offline_ksk=False, zsk_missing=False) -> (bool, bool):
+    def get_signing_state(
+        self, offline_ksk=False, zsk_missing=False
+    ) -> Tuple[bool, bool]:
         """
         This returns the signing state derived from the key states, KRRSIGState
         and ZRRSIGState.
@@ -348,6 +350,7 @@ class Key:
         # Fetch key timing metadata.
         now = KeyTimingMetadata.now()
         activate = self.get_timing("Activate")
+        assert activate is not None  # to silence mypy - its implied by line above
         inactive = self.get_timing("Inactive", must_exist=False)
 
         active = now >= activate
