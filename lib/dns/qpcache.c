@@ -2916,7 +2916,7 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_slabheader_t *newheader = NULL;
 	isc_result_t result;
 	bool delegating = false;
-	bool newnsec;
+	bool newnsec = false;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	isc_rwlock_t *nlock = NULL;
@@ -2986,6 +2986,8 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		}
 	}
 
+	nlock = &qpdb->buckets[qpnode->locknum].lock;
+
 	/*
 	 * If we're adding a delegation type (which would be an NS or DNAME
 	 * for a zone, but only DNAME counts for a cache), we need to set
@@ -2998,8 +3000,13 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	/*
 	 * Add to the auxiliary NSEC tree if we're adding an NSEC record.
 	 */
-	newnsec = (qpnode->nsec != DNS_DB_NSEC_HAS_NSEC &&
-		   rdataset->type == dns_rdatatype_nsec);
+	if (rdataset->type == dns_rdatatype_nsec) {
+		NODE_RDLOCK(nlock, &nlocktype);
+		if (qpnode->nsec != DNS_DB_NSEC_HAS_NSEC) {
+			newnsec = true;
+		}
+		NODE_UNLOCK(nlock, &nlocktype);
+	}
 
 	/*
 	 * If we're adding a delegation type or adding to the auxiliary
@@ -3008,8 +3015,6 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (delegating || newnsec) {
 		TREE_WRLOCK(&qpdb->tree_lock, &tlocktype);
 	}
-
-	nlock = &qpdb->buckets[qpnode->locknum].lock;
 
 	NODE_WRLOCK(nlock, &nlocktype);
 
@@ -3023,7 +3028,7 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	expire_ttl_headers(qpdb, qpnode->locknum, &nlocktype, &tlocktype,
 			   now DNS__DB_FLARG_PASS);
 
-	if (newnsec) {
+	if (newnsec && qpnode->nsec != DNS_DB_NSEC_HAS_NSEC) {
 		qpcnode_t *nsecnode = NULL;
 
 		result = dns_qp_getname(qpdb->nsec, name, (void **)&nsecnode,
