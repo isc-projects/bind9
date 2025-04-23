@@ -56,6 +56,12 @@ def with_tsan(*args):  # pylint: disable=unused-argument
     return feature_test("--tsan")
 
 
+def with_algorithm(name: str):
+    key = f"{name}_SUPPORTED"
+    assert key in os.environ, f"{key} env variable undefined"
+    return pytest.mark.skipif(os.getenv(key) != "1", reason=f"{name} is not supported")
+
+
 without_fips = pytest.mark.skipif(
     feature_test("--have-fips-mode"), reason="FIPS support enabled in the build"
 )

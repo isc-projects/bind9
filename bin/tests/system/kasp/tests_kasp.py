@@ -21,6 +21,7 @@ import pytest
 
 pytest.importorskip("dns", minversion="2.0.0")
 import isctest
+import isctest.mark
 from isctest.kasp import (
     KeyProperties,
     KeyTimingMetadata,
@@ -80,11 +81,76 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-def check_all(server, zone, policy, ksks, zsks, tsig=None):
+kasp_config = {
+    "dnskey-ttl": timedelta(seconds=1234),
+    "ds-ttl": timedelta(days=1),
+    "key-directory": "{keydir}",
+    "max-zone-ttl": timedelta(days=1),
+    "parent-propagation-delay": timedelta(hours=1),
+    "publish-safety": timedelta(hours=1),
+    "retire-safety": timedelta(hours=1),
+    "signatures-refresh": timedelta(days=5),
+    "signatures-validity": timedelta(days=14),
+    "zone-propagation-delay": timedelta(minutes=5),
+}
+
+autosign_config = {
+    "dnskey-ttl": timedelta(seconds=300),
+    "ds-ttl": timedelta(days=1),
+    "key-directory": "{keydir}",
+    "max-zone-ttl": timedelta(days=1),
+    "parent-propagation-delay": timedelta(hours=1),
+    "publish-safety": timedelta(hours=1),
+    "retire-safety": timedelta(hours=1),
+    "signatures-refresh": timedelta(days=7),
+    "signatures-validity": timedelta(days=14),
+    "zone-propagation-delay": timedelta(minutes=5),
+}
+
+lifetime = {
+    "P10Y": int(timedelta(days=10 * 365).total_seconds()),
+    "P5Y": int(timedelta(days=5 * 365).total_seconds()),
+    "P2Y": int(timedelta(days=2 * 365).total_seconds()),
+    "P1Y": int(timedelta(days=365).total_seconds()),
+    "P30D": int(timedelta(days=30).total_seconds()),
+    "P6M": int(timedelta(days=31 * 6).total_seconds()),
+}
+
+
+def autosign_properties(alg, size):
+    return [
+        f"ksk {lifetime['P2Y']} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+        f"zsk {lifetime['P1Y']} {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
+    ]
+
+
+def rsa1_properties(alg):
+    return [
+        f"ksk {lifetime['P10Y']} {alg} 2048 goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"zsk {lifetime['P5Y']} {alg} 2048 goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+        f"zsk {lifetime['P1Y']} {alg} 2000 goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+    ]
+
+
+def fips_properties(alg, bits=None):
+    sizes = [2048, 2048, 3072]
+    if bits is not None:
+        sizes = [bits, bits, bits]
+
+    return [
+        f"ksk {lifetime['P10Y']} {alg} {sizes[0]} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"zsk {lifetime['P5Y']} {alg} {sizes[1]} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+        f"zsk {lifetime['P1Y']} {alg} {sizes[2]} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+    ]
+
+
+def check_all(server, zone, policy, ksks, zsks, zsk_missing=False, tsig=None):
     isctest.kasp.check_dnssecstatus(server, zone, ksks + zsks, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks, tsig=tsig)
+    isctest.kasp.check_apex(
+        server, zone, ksks, zsks, zsk_missing=zsk_missing, tsig=tsig
+    )
     isctest.kasp.check_subdomain(server, zone, ksks, zsks, tsig=tsig)
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone, tsig=tsig)
 
 
 def set_keytimes_default_policy(kp):
@@ -101,6 +167,522 @@ def set_keytimes_default_policy(kp):
     kp.timing["DSChange"] = kp.timing["Published"]
     kp.timing["KRRSIGChange"] = kp.timing["Active"]
     kp.timing["ZRRSIGChange"] = kp.timing["Active"]
+
+
+def cb_ixfr_is_signed(expected_updates, params, ksks=None, zsks=None):
+    zone = params["zone"]
+    policy = params["policy"]
+    servers = params["servers"]
+
+    isctest.log.info(f"check that the zone {zone} is correctly signed after ixfr")
+    isctest.log.debug(
+        f"expected updates {expected_updates} policy {policy} ksks {ksks} zsks {zsks}"
+    )
+    shutil.copyfile(f"ns2/{zone}.db.in2", f"ns2/{zone}.db")
+    servers["ns2"].rndc(f"reload {zone}", log=False)
+
+    def update_is_signed():
+        parts = update.split()
+        qname = parts[0]
+        qtype = dns.rdatatype.from_text(parts[1])
+        rdata = parts[2]
+        return isctest.kasp.verify_update_is_signed(
+            servers["ns3"], zone, qname, qtype, rdata, ksks, zsks
+        )
+
+    for update in expected_updates:
+        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+
+
+def cb_rrsig_refresh(params, ksks=None, zsks=None):
+    zone = params["zone"]
+    servers = params["servers"]
+
+    isctest.log.info(f"check that the zone {zone} refreshes expired signatures")
+
+    def rrsig_is_refreshed():
+        parts = query.split()
+        qname = parts[0]
+        qtype = dns.rdatatype.from_text(parts[1])
+        return isctest.kasp.verify_rrsig_is_refreshed(
+            servers["ns3"], zone, f"ns3/{zone}.db.signed", qname, qtype, ksks, zsks
+        )
+
+    queries = [
+        f"{zone} DNSKEY",
+        f"{zone} SOA",
+        f"{zone} NS",
+        f"{zone} NSEC",
+        f"a.{zone} A",
+        f"a.{zone} NSEC",
+        f"b.{zone} A",
+        f"b.{zone} NSEC",
+        f"c.{zone} A",
+        f"c.{zone} NSEC",
+        f"ns3.{zone} A",
+        f"ns3.{zone} NSEC",
+    ]
+
+    for query in queries:
+        isctest.run.retry_with_timeout(rrsig_is_refreshed, timeout=5)
+
+
+def cb_rrsig_reuse(params, ksks=None, zsks=None):
+    zone = params["zone"]
+    servers = params["servers"]
+
+    isctest.log.info(f"check that the zone {zone} reuses fresh signatures")
+
+    def rrsig_is_reused():
+        parts = query.split()
+        qname = parts[0]
+        qtype = dns.rdatatype.from_text(parts[1])
+        return isctest.kasp.verify_rrsig_is_reused(
+            servers["ns3"], zone, f"ns3/{zone}.db.signed", qname, qtype, ksks, zsks
+        )
+
+    queries = [
+        f"{zone} NS",
+        f"{zone} NSEC",
+        f"a.{zone} A",
+        f"a.{zone} NSEC",
+        f"b.{zone} A",
+        f"b.{zone} NSEC",
+        f"c.{zone} A",
+        f"c.{zone} NSEC",
+        f"ns3.{zone} A",
+        f"ns3.{zone} NSEC",
+    ]
+
+    for query in queries:
+        rrsig_is_reused()
+
+
+def cb_legacy_keys(params, ksks=None, zsks=None):
+    zone = params["zone"]
+    keydir = params["config"]["key-directory"]
+
+    isctest.log.info(f"check that the zone {zone} uses correct legacy keys")
+
+    assert len(ksks) == 1
+    assert len(zsks) == 1
+
+    # This assumes the zone has a policy that dictates one KSK and one ZSK.
+    # The right keys to be used are stored in "{zone}.ksk" and "{zone}.zsk".
+    with open(f"{keydir}/{zone}.ksk", "r", encoding="utf-8") as file:
+        kskfile = file.read()
+    with open(f"{keydir}/{zone}.zsk", "r", encoding="utf-8") as file:
+        zskfile = file.read()
+
+    assert f"{keydir}/{kskfile}".strip() == ksks[0].path
+    assert f"{keydir}/{zskfile}".strip() == zsks[0].path
+
+
+def cb_remove_keyfiles(params, ksks=None, zsks=None):
+    zone = params["zone"]
+    servers = params["servers"]
+    keydir = params["config"]["key-directory"]
+
+    isctest.log.info(
+        "check that removing key files does not create new keys to be generated"
+    )
+
+    for k in ksks + zsks:
+        os.remove(k.keyfile)
+        os.remove(k.privatefile)
+        os.remove(k.statefile)
+
+    with servers["ns3"].watch_log_from_here() as watcher:
+        servers["ns3"].rndc(f"loadkeys {zone}", log=False)
+        watcher.wait_for_line(
+            f"zone {zone}/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
+        )
+
+    # Check keys again, make sure no new keys are created.
+    keys = isctest.kasp.keydir_to_keylist(zone, keydir)
+    isctest.kasp.check_keys(zone, keys, [])
+    # Zone is still signed correctly.
+    isctest.kasp.check_dnssec_verify(servers["ns3"], zone)
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        pytest.param(
+            {
+                "zone": "rsasha1.kasp",
+                "policy": "rsasha1",
+                "config": kasp_config,
+                "key-properties": rsa1_properties(5),
+            },
+            id="rsasha1.kasp",
+            marks=isctest.mark.with_algorithm("RSASHA1"),
+        ),
+        pytest.param(
+            {
+                "zone": "rsasha1-nsec3.kasp",
+                "policy": "rsasha1",
+                "config": kasp_config,
+                "key-properties": rsa1_properties(7),
+            },
+            id="rsasha1-nsec3.kasp",
+            marks=isctest.mark.with_algorithm("RSASHA1"),
+        ),
+        pytest.param(
+            {
+                "zone": "dnskey-ttl-mismatch.autosign",
+                "policy": "autosign",
+                "config": autosign_config,
+                "offset": -timedelta(days=30 * 6),
+                "key-properties": autosign_properties(
+                    os.environ["DEFAULT_ALGORITHM_NUMBER"], os.environ["DEFAULT_BITS"]
+                ),
+            },
+            id="dnskey-ttl-mismatch.autosign",
+        ),
+        pytest.param(
+            {
+                "zone": "expired-sigs.autosign",
+                "policy": "autosign",
+                "config": autosign_config,
+                "offset": -timedelta(days=30 * 6),
+                "key-properties": autosign_properties(
+                    os.environ["DEFAULT_ALGORITHM_NUMBER"], os.environ["DEFAULT_BITS"]
+                ),
+                "additional-tests": [
+                    {
+                        "callback": cb_rrsig_refresh,
+                        "arguments": [],
+                    },
+                ],
+            },
+            id="expired-sigs.autosign",
+        ),
+        pytest.param(
+            {
+                "zone": "fresh-sigs.autosign",
+                "policy": "autosign",
+                "config": autosign_config,
+                "offset": -timedelta(days=30 * 6),
+                "key-properties": autosign_properties(
+                    os.environ["DEFAULT_ALGORITHM_NUMBER"], os.environ["DEFAULT_BITS"]
+                ),
+                "additional-tests": [
+                    {
+                        "callback": cb_rrsig_reuse,
+                        "arguments": [],
+                    },
+                ],
+            },
+            id="fresh-sigs.autosign",
+        ),
+        pytest.param(
+            {
+                "zone": "unfresh-sigs.autosign",
+                "policy": "autosign",
+                "config": autosign_config,
+                "offset": -timedelta(days=30 * 6),
+                "key-properties": autosign_properties(
+                    os.environ["DEFAULT_ALGORITHM_NUMBER"], os.environ["DEFAULT_BITS"]
+                ),
+                "additional-tests": [
+                    {
+                        "callback": cb_rrsig_refresh,
+                        "arguments": [],
+                    },
+                ],
+            },
+            id="unfresh-sigs.autosign",
+        ),
+        pytest.param(
+            {
+                "zone": "keyfiles-missing.autosign",
+                "policy": "autosign",
+                "config": autosign_config,
+                "offset": -timedelta(days=30 * 6),
+                "key-properties": autosign_properties(
+                    os.environ["DEFAULT_ALGORITHM_NUMBER"], os.environ["DEFAULT_BITS"]
+                ),
+                "additional-tests": [
+                    {
+                        "callback": cb_remove_keyfiles,
+                        "arguments": [],
+                    },
+                ],
+            },
+            id="keyfiles-missing.autosign",
+        ),
+        pytest.param(
+            {
+                "zone": "ksk-missing.autosign",
+                "policy": "autosign",
+                "config": autosign_config,
+                "offset": -timedelta(days=30 * 6),
+                "key-properties": [
+                    f"ksk 63072000 {os.environ['DEFAULT_ALGORITHM_NUMBER']} {os.environ['DEFAULT_BITS']} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent missing",
+                    f"zsk 31536000 {os.environ['DEFAULT_ALGORITHM_NUMBER']} {os.environ['DEFAULT_BITS']} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
+                ],
+            },
+            id="ksk-missing.autosign",
+        ),
+        pytest.param(
+            {
+                "zone": "zsk-missing.autosign",
+                "policy": "autosign",
+                "config": autosign_config,
+                "offset": -timedelta(days=30 * 6),
+                "key-properties": [
+                    f"ksk 63072000 {os.environ['DEFAULT_ALGORITHM_NUMBER']} {os.environ['DEFAULT_BITS']} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+                    f"zsk 31536000 {os.environ['DEFAULT_ALGORITHM_NUMBER']} {os.environ['DEFAULT_BITS']} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent missing",
+                ],
+            },
+            id="zsk-missing.autosign",
+        ),
+        pytest.param(
+            {
+                "zone": "dnssec-keygen.kasp",
+                "policy": "rsasha256",
+                "config": kasp_config,
+                "key-properties": fips_properties(8),
+            },
+            id="dnssec-keygen.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "ecdsa256.kasp",
+                "policy": "ecdsa256",
+                "config": kasp_config,
+                "key-properties": fips_properties(13, bits=256),
+            },
+            id="ecdsa256.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "ecdsa384.kasp",
+                "policy": "ecdsa384",
+                "config": kasp_config,
+                "key-properties": fips_properties(14, bits=384),
+            },
+            id="ecdsa384.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "inherit.kasp",
+                "policy": "rsasha256",
+                "config": kasp_config,
+                "key-properties": fips_properties(8),
+            },
+            id="inherit.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "keystore.kasp",
+                "policy": "keystore",
+                "config": {
+                    "dnskey-ttl": timedelta(seconds=303),
+                    "ds-ttl": timedelta(days=1),
+                    "key-directory": "{keydir}",
+                    "max-zone-ttl": timedelta(days=1),
+                    "parent-propagation-delay": timedelta(hours=1),
+                    "publish-safety": timedelta(hours=1),
+                    "retire-safety": timedelta(hours=1),
+                    "signatures-refresh": timedelta(days=5),
+                    "signatures-validity": timedelta(days=14),
+                    "zone-propagation-delay": timedelta(minutes=5),
+                },
+                "key-directories": ["{keydir}/ksk", "{keydir}/zsk"],
+                "key-properties": [
+                    f"ksk unlimited {os.environ['DEFAULT_ALGORITHM_NUMBER']} {os.environ['DEFAULT_BITS']} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+                    f"zsk unlimited {os.environ['DEFAULT_ALGORITHM_NUMBER']} {os.environ['DEFAULT_BITS']} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+                ],
+            },
+            id="keystore.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "legacy-keys.kasp",
+                "policy": "migrate-to-dnssec-policy",
+                "config": kasp_config,
+                "pregenerated": True,
+                "key-properties": [
+                    "ksk 16070400 8 2048 goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+                    "zsk 16070400 8 2048 goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+                ],
+                "additional-tests": [
+                    {
+                        "callback": cb_legacy_keys,
+                        "arguments": [],
+                    },
+                ],
+            },
+            id="legacy-keys.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "pregenerated.kasp",
+                "policy": "rsasha256",
+                "config": kasp_config,
+                "pregenerated": True,
+                "key-properties": fips_properties(8),
+            },
+            id="pregenerated.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "rsasha256.kasp",
+                "policy": "rsasha256",
+                "config": kasp_config,
+                "key-properties": fips_properties(8),
+            },
+            id="rsasha256.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "rsasha512.kasp",
+                "policy": "rsasha512",
+                "config": kasp_config,
+                "key-properties": fips_properties(10),
+            },
+            id="rsasha512.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "rumoured.kasp",
+                "policy": "rsasha256",
+                "config": kasp_config,
+                "rumoured": True,
+                "key-properties": fips_properties(8),
+            },
+            id="rumoured.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "secondary.kasp",
+                "policy": "rsasha256",
+                "config": kasp_config,
+                "key-properties": fips_properties(8),
+                "additional-tests": [
+                    {
+                        "callback": cb_ixfr_is_signed,
+                        "arguments": [
+                            [
+                                "a.secondary.kasp. A 10.0.0.11",
+                                "d.secondary.kasp. A 10.0.0.4",
+                            ],
+                        ],
+                    },
+                ],
+            },
+            id="secondary.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "some-keys.kasp",
+                "policy": "rsasha256",
+                "config": kasp_config,
+                "pregenerated": True,
+                "key-properties": fips_properties(8),
+            },
+            id="some-keys.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "unlimited.kasp",
+                "policy": "unlimited",
+                "config": kasp_config,
+                "key-properties": [
+                    f"csk 0 {os.environ['DEFAULT_ALGORITHM_NUMBER']} {os.environ['DEFAULT_BITS']} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+                ],
+            },
+            id="unlimited.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "ed25519.kasp",
+                "policy": "ed25519",
+                "config": kasp_config,
+                "key-properties": fips_properties(15, bits=256),
+            },
+            id="ed25519.kasp",
+            marks=isctest.mark.with_algorithm("ED25519"),
+        ),
+        pytest.param(
+            {
+                "zone": "ed448.kasp",
+                "policy": "ed448",
+                "config": kasp_config,
+                "key-properties": fips_properties(16, bits=456),
+            },
+            id="ed448.kasp",
+            marks=isctest.mark.with_algorithm("ED448"),
+        ),
+    ],
+)
+def test_kasp_case(servers, params):
+    # Test many different configurations and expected keys and states after
+    # initial startup.
+    server = servers["ns3"]
+    keydir = server.identifier
+
+    # Get test parameters.
+    zone = params["zone"]
+    policy = params["policy"]
+
+    params["config"]["key-directory"] = params["config"]["key-directory"].replace(
+        "{keydir}", keydir
+    )
+    if "key-directories" in params:
+        for i, val in enumerate(params["key-directories"]):
+            params["key-directories"][i] = val.replace("{keydir}", keydir)
+
+    ttl = int(params["config"]["dnskey-ttl"].total_seconds())
+    pregenerated = False
+    if params.get("pregenerated"):
+        pregenerated = params["pregenerated"]
+    zsk_missing = zone == "zsk-missing.autosign"
+
+    # Test case.
+    isctest.log.info(f"check test case zone {zone} policy {policy}")
+
+    # First make sure the zone is signed.
+    isctest.kasp.check_zone_is_signed(server, zone)
+
+    # Key properties.
+    expected = isctest.kasp.policy_to_properties(ttl=ttl, keys=params["key-properties"])
+    # Key files.
+    if "key-directories" in params:
+        kdir = params["key-directories"][0]
+        ksks = isctest.kasp.keydir_to_keylist(zone, kdir, in_use=pregenerated)
+        kdir = params["key-directories"][1]
+        zsks = isctest.kasp.keydir_to_keylist(zone, kdir, in_use=pregenerated)
+        keys = ksks + zsks
+    else:
+        keys = isctest.kasp.keydir_to_keylist(
+            zone, params["config"]["key-directory"], in_use=pregenerated
+        )
+        ksks = [k for k in keys if k.is_ksk()]
+        zsks = [k for k in keys if not k.is_ksk()]
+
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    offset = params["offset"] if "offset" in params else None
+
+    for kp in expected:
+        kp.set_expected_keytimes(
+            params["config"], offset=offset, pregenerated=pregenerated
+        )
+
+    if "rumoured" not in params:
+        isctest.kasp.check_keytimes(keys, expected)
+
+    check_all(server, zone, policy, ksks, zsks, zsk_missing=zsk_missing)
+
+    if "additional-tests" in params:
+        params["servers"] = servers
+        for additional_test in params["additional-tests"]:
+            callback = additional_test["callback"]
+            arguments = additional_test["arguments"]
+            callback(*arguments, params=params, ksks=ksks, zsks=zsks)
 
 
 def test_kasp_default(servers):
@@ -404,11 +986,6 @@ def test_kasp_dnssec_keygen():
         return isctest.run.cmd(keygen_command, log_stdout=True).stdout.decode("utf-8")
 
     # check that 'dnssec-keygen -k' (configured policy) creates valid files.
-    lifetime = {
-        "P1Y": int(timedelta(days=365).total_seconds()),
-        "P30D": int(timedelta(days=30).total_seconds()),
-        "P6M": int(timedelta(days=31 * 6).total_seconds()),
-    }
     keyprops = [
         f"csk {lifetime['P1Y']} 13 256",
         f"ksk {lifetime['P1Y']} 8 2048",
