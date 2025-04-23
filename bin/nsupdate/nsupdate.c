@@ -3506,7 +3506,7 @@ getinput(void *arg) {
 
 int
 main(int argc, char **argv) {
-	uint32_t timeoutms;
+	const uint32_t timeoutms = timeout * MS_PER_SEC;
 
 	style = &dns_master_style_debug;
 
@@ -3531,8 +3531,11 @@ main(int argc, char **argv) {
 	parse_args(argc, argv);
 
 	/* Set the network manager timeouts in milliseconds. */
-	timeoutms = timeout * 1000;
-	isc_nm_settimeouts(netmgr, timeoutms, timeoutms, timeoutms, timeoutms);
+	isc_nm_setinitialtimeout(netmgr, timeoutms);
+	isc_nm_setprimariestimeout(netmgr, timeoutms);
+	isc_nm_setidletimeout(netmgr, timeoutms);
+	isc_nm_setkeepalivetimeout(netmgr, timeoutms);
+	isc_nm_setadvertisedtimeout(netmgr, timeoutms);
 
 	isc_loopmgr_setup(loopmgr, setup_system, NULL);
 	isc_loopmgr_setup(loopmgr, getinput, NULL);

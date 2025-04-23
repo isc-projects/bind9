@@ -44,11 +44,13 @@
 #define T_SERVER_IDLE	    (120 * 1000)
 #define T_SERVER_KEEPALIVE  (120 * 1000)
 #define T_SERVER_ADVERTISED (120 * 1000)
+#define T_SERVER_PRIMARIES  (120 * 1000)
 
 #define T_CLIENT_INIT	    (60 * 1000)
 #define T_CLIENT_IDLE	    (60 * 1000)
 #define T_CLIENT_KEEPALIVE  (60 * 1000)
 #define T_CLIENT_ADVERTISED (60 * 1000)
+#define T_CLIENT_PRIMARIES  (60 * 1000)
 
 #define T_CLIENT_CONNECT (30 * 1000)
 
@@ -193,15 +195,21 @@ setup_test(void **state) {
 	}
 	close(socket);
 
-	isc_nm_settimeouts(netmgr, T_SERVER_INIT, T_SERVER_IDLE,
-			   T_SERVER_KEEPALIVE, T_SERVER_ADVERTISED);
+	isc_nm_setinitialtimeout(netmgr, T_SERVER_INIT);
+	isc_nm_setprimariestimeout(netmgr, T_SERVER_PRIMARIES);
+	isc_nm_setidletimeout(netmgr, T_SERVER_IDLE);
+	isc_nm_setkeepalivetimeout(netmgr, T_SERVER_KEEPALIVE);
+	isc_nm_setadvertisedtimeout(netmgr, T_SERVER_ADVERTISED);
 
 	/*
 	 * Use shorter client-side timeouts, to ensure that clients
 	 * time out before the server.
 	 */
-	isc_nm_settimeouts(connect_nm, T_CLIENT_INIT, T_CLIENT_IDLE,
-			   T_CLIENT_KEEPALIVE, T_CLIENT_ADVERTISED);
+	isc_nm_setinitialtimeout(connect_nm, T_CLIENT_INIT);
+	isc_nm_setprimariestimeout(connect_nm, T_CLIENT_PRIMARIES);
+	isc_nm_setidletimeout(connect_nm, T_CLIENT_IDLE);
+	isc_nm_setkeepalivetimeout(connect_nm, T_CLIENT_KEEPALIVE);
+	isc_nm_setadvertisedtimeout(connect_nm, T_CLIENT_ADVERTISED);
 
 	memset(testdata.rbuf, 0, sizeof(testdata.rbuf));
 	testdata.region.base = testdata.rbuf;

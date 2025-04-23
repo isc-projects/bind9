@@ -693,7 +693,11 @@ doh_timeout_recovery(void *arg ISC_ATTR_UNUSED) {
 	 * Shorten all the TCP client timeouts to 0.05 seconds.
 	 * timeout_retry_cb() will give up after five timeouts.
 	 */
-	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
+	isc_nm_setinitialtimeout(connect_nm, T_SOFT);
+	isc_nm_setprimariestimeout(connect_nm, T_SOFT);
+	isc_nm_setidletimeout(connect_nm, T_SOFT);
+	isc_nm_setkeepalivetimeout(connect_nm, T_SOFT);
+	isc_nm_setadvertisedtimeout(connect_nm, T_SOFT);
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			ISC_NM_HTTP_DEFAULT_PATH);
 	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,

@@ -121,6 +121,7 @@ options {\n\
 	tcp-initial-timeout 300;\n\
 	tcp-keepalive-timeout 300;\n\
 	tcp-listen-queue 10;\n\
+	tcp-primaries-timeout 150;\n\
 	tcp-receive-buffer 0;\n\
 	tcp-send-buffer 0;\n\
 #	tkey-domain <none>\n\

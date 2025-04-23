@@ -25,6 +25,8 @@ options {
 	recursion yes;
 	notify yes;
 	dnssec-validation no;
+
+	tcp-initial-timeout 150; # 15 seconds
 };
 
 zone "." {

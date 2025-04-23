@@ -173,6 +173,8 @@
 #define MAX_KEEPALIVE_TIMEOUT  UINT32_C(UINT16_MAX * 100)
 #define MIN_ADVERTISED_TIMEOUT UINT32_C(0) /* No minimum */
 #define MAX_ADVERTISED_TIMEOUT UINT32_C(UINT16_MAX * 100)
+#define MIN_PRIMARIES_TIMEOUT  UINT32_C(2500)	/* 2.5 seconds */
+#define MAX_PRIMARIES_TIMEOUT  UINT32_C(120000) /* 2 minutes */
 
 /*%
  * Check an operation for failure.  Assumes that the function
@@ -7885,7 +7887,7 @@ load_configuration(const char *filename, named_server_t *server,
 	ns_altsecretlist_t altsecrets, tmpaltsecrets;
 	uint32_t softquota = 0;
 	uint32_t max;
-	uint64_t initial, idle, keepalive, advertised;
+	uint64_t initial, idle, keepalive, advertised, primaries;
 	bool loadbalancesockets;
 	bool exclusive = true;
 	dns_aclenv_t *env =
@@ -8224,8 +8226,29 @@ load_configuration(const char *filename, named_server_t *server,
 		advertised = MAX_ADVERTISED_TIMEOUT;
 	}
 
-	isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
-			   advertised);
+	obj = NULL;
+	result = named_config_get(maps, "tcp-primaries-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	primaries = cfg_obj_asuint32(obj) * 100;
+	if (primaries > MAX_PRIMARIES_TIMEOUT) {
+		cfg_obj_log(obj, ISC_LOG_WARNING,
+			    "tcp-primaries-timeout value is out of range: "
+			    "lowering to %" PRIu32,
+			    MAX_PRIMARIES_TIMEOUT / 100);
+		primaries = MAX_PRIMARIES_TIMEOUT;
+	} else if (primaries < MIN_PRIMARIES_TIMEOUT) {
+		cfg_obj_log(obj, ISC_LOG_WARNING,
+			    "tcp-primaries-timeout value is out of range: "
+			    "raising to %" PRIu32,
+			    MIN_PRIMARIES_TIMEOUT / 100);
+		primaries = MIN_PRIMARIES_TIMEOUT;
+	}
+
+	isc_nm_setinitialtimeout(named_g_netmgr, initial);
+	isc_nm_setprimariestimeout(named_g_netmgr, primaries);
+	isc_nm_setidletimeout(named_g_netmgr, idle);
+	isc_nm_setkeepalivetimeout(named_g_netmgr, keepalive);
+	isc_nm_setadvertisedtimeout(named_g_netmgr, advertised);
 
 #define CAP_IF_NOT_ZERO(v, min, max) \
 	if (v > 0 && v < min) {      \
@@ -15740,7 +15763,7 @@ isc_result_t
 named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 	char *ptr;
 	isc_result_t result = ISC_R_SUCCESS;
-	uint32_t initial, idle, keepalive, advertised;
+	uint32_t initial, idle, keepalive, advertised, primaries;
 	char msg[128];
 
 	/* Skip the command name. */
@@ -15749,8 +15772,11 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 		return ISC_R_UNEXPECTEDEND;
 	}
 
-	isc_nm_gettimeouts(named_g_netmgr, &initial, &idle, &keepalive,
-			   &advertised);
+	initial = isc_nm_getinitialtimeout(named_g_netmgr);
+	primaries = isc_nm_getprimariestimeout(named_g_netmgr);
+	idle = isc_nm_getidletimeout(named_g_netmgr);
+	keepalive = isc_nm_getkeepalivetimeout(named_g_netmgr);
+	advertised = isc_nm_getadvertisedtimeout(named_g_netmgr);
 
 	/* Look for optional arguments. */
 	ptr = next_token(lex, NULL);
@@ -15800,8 +15826,24 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 			CHECK(ISC_R_RANGE);
 		}
 
-		isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
-				   advertised);
+		ptr = next_token(lex, text);
+		if (ptr == NULL) {
+			return ISC_R_UNEXPECTEDEND;
+		}
+		CHECK(isc_parse_uint32(&primaries, ptr, 10));
+		primaries *= 100;
+		if (primaries > MAX_PRIMARIES_TIMEOUT) {
+			CHECK(ISC_R_RANGE);
+		}
+		if (primaries < MIN_PRIMARIES_TIMEOUT) {
+			CHECK(ISC_R_RANGE);
+		}
+
+		isc_nm_setinitialtimeout(named_g_netmgr, initial);
+		isc_nm_setprimariestimeout(named_g_netmgr, primaries);
+		isc_nm_setidletimeout(named_g_netmgr, idle);
+		isc_nm_setkeepalivetimeout(named_g_netmgr, keepalive);
+		isc_nm_setadvertisedtimeout(named_g_netmgr, advertised);
 	}
 
 	snprintf(msg, sizeof(msg), "tcp-initial-timeout=%u\n", initial / 100);
@@ -15811,8 +15853,10 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 	snprintf(msg, sizeof(msg), "tcp-keepalive-timeout=%u\n",
 		 keepalive / 100);
 	CHECK(putstr(text, msg));
-	snprintf(msg, sizeof(msg), "tcp-advertised-timeout=%u",
+	snprintf(msg, sizeof(msg), "tcp-advertised-timeout=%u\n",
 		 advertised / 100);
+	CHECK(putstr(text, msg));
+	snprintf(msg, sizeof(msg), "tcp-primaries-timeout=%u", primaries / 100);
 	CHECK(putstr(text, msg));
 
 cleanup:
