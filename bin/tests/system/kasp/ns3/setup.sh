@@ -200,13 +200,14 @@ $SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
 $SIGNER -PS -z -x -s now-2w -e now-1mi -o $zone -f "${zonefile}" $infile >signer.out.$zone.1 2>&1
 
+# Treat the next zones as if they were signed six months ago.
+T="now-6mo"
+keytimes="-P $T -A $T"
+
 # These signatures are set to expire long in the past, update immediately.
 setup expired-sigs.autosign
-T="now-6mo"
-ksktimes="-P $T -A $T -P sync $T"
-zsktimes="-P $T -A $T"
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $keytimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $keytimes $zone 2>keygen.out.$zone.2)
 $SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
@@ -217,19 +218,18 @@ $SIGNER -PS -x -s now-2mo -e now-1mo -o $zone -O raw -f "${zonefile}.signed" $in
 
 # The DNSKEY's TTLs do not match the policy.
 setup dnskey-ttl-mismatch.autosign
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 30 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 30 $zsktimes $zone 2>keygen.out.$zone.2)
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 30 -f KSK $keytimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 30 $keytimes $zone 2>keygen.out.$zone.2)
+$SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
+$SETTIME -s -g $O -k $O $T -z $O $T "$ZSK      " >settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
 cp $infile $zonefile
 $SIGNER -PS -x -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
 
 # These signatures are still good, and can be reused.
 setup fresh-sigs.autosign
-T="now-6mo"
-ksktimes="-P $T -A $T -P sync $T"
-zsktimes="-P $T -A $T"
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $keytimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $keytimes $zone 2>keygen.out.$zone.2)
 $SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
@@ -240,11 +240,8 @@ $SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infil
 
 # These signatures are still good, but not fresh enough, update immediately.
 setup unfresh-sigs.autosign
-T="now-6mo"
-ksktimes="-P $T -A $T -P sync $T"
-zsktimes="-P $T -A $T"
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $keytimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $keytimes $zone 2>keygen.out.$zone.2)
 $SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
@@ -255,11 +252,13 @@ $SIGNER -S -x -s now-1w -e now+1w -o $zone -O raw -f "${zonefile}.signed" $infil
 
 # These signatures are still good, but the private KSK is missing.
 setup ksk-missing.autosign
-T="now-6mo"
-ksktimes="-P $T -A $T -P sync $T"
-zsktimes="-P $T -A $T"
+# KSK file will be gone missing, so we set expected times during setup.
+TI="now+550d"     # Lifetime of 2 years minus 6 months equals 550 days
+TD="now+13226h"   # 550 days plus retire time of 1 day 2 hours equals 13226 hours
+TS="now-257755mi" # 6 months minus 1 day, 5 minutes equals 257695 minutes
+ksktimes="$keytimes -P sync $TS -I $TI -D $TD"
 KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $keytimes $zone 2>keygen.out.$zone.2)
 $SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
@@ -274,10 +273,11 @@ rm -f "${KSK}".private
 
 # These signatures are still good, but the private ZSK is missing.
 setup zsk-missing.autosign
-T="now-6mo"
-ksktimes="-P $T -A $T -P sync $T"
-zsktimes="-P $T -A $T"
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
+# ZSK file will be gone missing, so we set expected times during setup.
+TI="now+185d"     # Lifetime of 1 year minus 6 months equals 185 days
+TD="now+277985mi" # 185 days plus retire time (sign delay, retire safety, propagation, zone TTL)
+zsktimes="$keytimes -I $TI -D $TD"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $keytimes $zone 2>keygen.out.$zone.1)
 ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
 $SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
@@ -294,11 +294,8 @@ rm -f "${ZSK}".private
 # These signatures are still good, but the key files will be removed
 # before a second run of reconfiguring keys.
 setup keyfiles-missing.autosign
-T="now-6mo"
-ksktimes="-P $T -A $T -P sync $T"
-zsktimes="-P $T -A $T"
-KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
-ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $zsktimes $zone 2>keygen.out.$zone.2)
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $keytimes $zone 2>keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 $keytimes $zone 2>keygen.out.$zone.2)
 $SETTIME -s -g $O -d $O $T -k $O $T -r $O $T "$KSK" >settime.out.$zone.1 2>&1
 $SETTIME -s -g $O -k $O $T -z $O $T "$ZSK" >settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" >"$infile"
@@ -309,7 +306,6 @@ $SIGNER -S -x -s now-1w -e now+1w -o $zone -O raw -f "${zonefile}.signed" $infil
 
 # These signatures are already expired, and the private ZSK is retired.
 setup zsk-retired.autosign
-T="now-6mo"
 ksktimes="-P $T -A $T -P sync $T"
 zsktimes="-P $T -A $T -I now"
 KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2>keygen.out.$zone.1)
