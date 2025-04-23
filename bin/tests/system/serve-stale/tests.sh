@@ -2506,5 +2506,33 @@ grep "2001:aaaa" dig.out.2.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "check serve-stale (stale-answer-client-timeout 0) with a delegation ($n)"
+ret=0
+# configure ns3 with stale-answer-client-timeout 0 and a delegated zone
+copy_setports ns3/named9.conf.in ns3/named.conf
+rndc_reload ns3 10.53.0.3
+# flush cache, enable ans2 responses, make sure serve-stale is on
+$RNDCCMD 10.53.0.3 flush >rndc.out.test$n.1 2>&1 || ret=1
+$DIG -p ${PORT} @10.53.0.2 txt enable >/dev/null || ret=1
+$RNDCCMD 10.53.0.3 serve-stale on >rndc.out.test$n.2 2>&1 || ret=1
+# prime the cache with the A response
+$DIG -p ${PORT} @10.53.0.3 www.delegated.serve.stale >dig.out.1.test$n || ret=1
+grep -F "status: NOERROR" dig.out.1.test$n >/dev/null || ret=1
+grep -F "10.53.0.99" dig.out.1.test$n >/dev/null || ret=1
+# disable responses from the auth server
+$DIG -p ${PORT} @10.53.0.2 txt disable >/dev/null || ret=1
+# wait two seconds for the previous answer to become stale
+sleep 2
+# resend the query; we should immediately get a stale answer
+$DIG -p ${PORT} @10.53.0.3 www.delegated.serve.stale >dig.out.2.test$n || ret=1
+grep -F "status: NOERROR" dig.out.2.test$n >/dev/null || ret=1
+grep -F "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.2.test$n >/dev/null || ret=1
+grep -F "10.53.0.99" dig.out.2.test$n >/dev/null || ret=1
+# re-enable responses
+$DIG -p ${PORT} @10.53.0.2 txt enable >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
