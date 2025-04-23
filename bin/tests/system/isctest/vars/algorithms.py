@@ -30,17 +30,20 @@ ALG_VARS = {
     "ALGORITHM_SET": "none",
     "DEFAULT_ALGORITHM": "",
     "DEFAULT_ALGORITHM_NUMBER": "",
+    "DEFAULT_ALGORITHM_DST_NUMBER": "",
     "DEFAULT_BITS": "",
     # Alternative algorithm for test cases that require more than one algorithm
     # (for example algorithm rollover). Must be different from
     # DEFAULT_ALGORITHM.
     "ALTERNATIVE_ALGORITHM": "",
     "ALTERNATIVE_ALGORITHM_NUMBER": "",
+    "ALTERNATIVE_ALGORITHM_DST_NUMBER": "",
     "ALTERNATIVE_BITS": "",
     # Algorithm that is used for tests against the "disable-algorithms"
     # configuration option. Must be different from above algorithms.
     "DISABLED_ALGORITHM": "",
     "DISABLED_ALGORITHM_NUMBER": "",
+    "DISABLED_ALGORITHM_DST_NUMBER": "",
     "DISABLED_BITS": "",
     # Default HMAC algorithm. Must match the rndc configuration in
     # bin/tests/system/_common (rndc.conf, rndc.key)
@@ -54,6 +57,7 @@ STABLE_PERIOD = 3600 * 3
 class Algorithm(NamedTuple):
     name: str
     number: int
+    dst: int
     bits: int
 
 
@@ -72,13 +76,13 @@ class AlgorithmSet(NamedTuple):
     "disable-algorithms" configuration option."""
 
 
-RSASHA1 = Algorithm("RSASHA1", 5, 2048)
-RSASHA256 = Algorithm("RSASHA256", 8, 2048)
-RSASHA512 = Algorithm("RSASHA512", 10, 2048)
-ECDSAP256SHA256 = Algorithm("ECDSAP256SHA256", 13, 256)
-ECDSAP384SHA384 = Algorithm("ECDSAP384SHA384", 14, 384)
-ED25519 = Algorithm("ED25519", 15, 256)
-ED448 = Algorithm("ED448", 16, 456)
+RSASHA1 = Algorithm("RSASHA1", 5, 5, 2048)
+RSASHA256 = Algorithm("RSASHA256", 8, 8, 2048)
+RSASHA512 = Algorithm("RSASHA512", 10, 10, 2048)
+ECDSAP256SHA256 = Algorithm("ECDSAP256SHA256", 13, 13, 256)
+ECDSAP384SHA384 = Algorithm("ECDSAP384SHA384", 14, 14, 384)
+ED25519 = Algorithm("ED25519", 15, 15, 256)
+ED448 = Algorithm("ED448", 16, 16, 456)
 
 ALL_ALGORITHMS = [
     RSASHA1,
@@ -250,6 +254,7 @@ def _algorithms_env(algs: AlgorithmSet, name: str) -> Dict[str, str]:
     def set_alg_env(alg: Algorithm, prefix):
         algs_env[f"{prefix}_ALGORITHM"] = alg.name
         algs_env[f"{prefix}_ALGORITHM_NUMBER"] = str(alg.number)
+        algs_env[f"{prefix}_ALGORITHM_DST_NUMBER"] = str(alg.dst)
         algs_env[f"{prefix}_BITS"] = str(alg.bits)
 
     assert isinstance(algs.default, Algorithm)

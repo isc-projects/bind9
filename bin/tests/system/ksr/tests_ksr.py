@@ -105,7 +105,7 @@ def ksr(zone, policy, action, options="", raise_on_exception=True):
 def check_keys(
     keys,
     lifetime,
-    alg=os.environ["DEFAULT_ALGORITHM_NUMBER"],
+    alg=os.environ["DEFAULT_ALGORITHM_DST_NUMBER"],
     size=os.environ["DEFAULT_BITS"],
     offset=0,
     with_state=False,
@@ -246,7 +246,7 @@ def check_rrsig_bundle(bundle_keys, bundle_lines, zone, rrtype, sigend, sigstart
     count = 0
     for key in bundle_keys:
         found = False
-        alg = key.get_metadata("Algorithm")
+        alg = key.get_dnsalg()
         expect = f"{zone}. 3600 IN RRSIG {rrtype} {alg} 2 3600 {sigend} {sigstart} {key.tag} {zone}."
         # there must be a signature of this ksk
         for line in bundle_lines:
@@ -1125,9 +1125,9 @@ def test_ksr_twotone(servers):
     ksks_altalg = []
     for ksk in ksks:
         alg = ksk.get_metadata("Algorithm")
-        if alg == os.environ.get("DEFAULT_ALGORITHM_NUMBER"):
+        if alg == os.environ.get("DEFAULT_ALGORITHM_DST_NUMBER"):
             ksks_defalg.append(ksk)
-        elif alg == os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER"):
+        elif alg == os.environ.get("ALTERNATIVE_ALGORITHM_DST_NUMBER"):
             ksks_altalg.append(ksk)
 
     assert len(ksks_defalg) == 1
@@ -1135,7 +1135,7 @@ def test_ksr_twotone(servers):
 
     check_keys(ksks_defalg, None)
 
-    alg = os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER")
+    alg = os.environ.get("ALTERNATIVE_ALGORITHM_DST_NUMBER")
     size = os.environ.get("ALTERNATIVE_BITS")
     check_keys(ksks_altalg, None, alg, size)
 
@@ -1154,9 +1154,9 @@ def test_ksr_twotone(servers):
     zsks_altalg = []
     for zsk in zsks:
         alg = zsk.get_metadata("Algorithm")
-        if alg == os.environ.get("DEFAULT_ALGORITHM_NUMBER"):
+        if alg == os.environ.get("DEFAULT_ALGORITHM_DST_NUMBER"):
             zsks_defalg.append(zsk)
-        elif alg == os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER"):
+        elif alg == os.environ.get("ALTERNATIVE_ALGORITHM_DST_NUMBER"):
             zsks_altalg.append(zsk)
 
     assert len(zsks_defalg) == 4
@@ -1165,7 +1165,7 @@ def test_ksr_twotone(servers):
     lifetime = timedelta(days=31 * 3)
     check_keys(zsks_defalg, lifetime)
 
-    alg = os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER")
+    alg = os.environ.get("ALTERNATIVE_ALGORITHM_DST_NUMBER")
     size = os.environ.get("ALTERNATIVE_BITS")
     lifetime = timedelta(days=31 * 5)
     check_keys(zsks_altalg, lifetime, alg, size)
@@ -1216,7 +1216,7 @@ def test_ksr_twotone(servers):
     lifetime = timedelta(days=31 * 3)
     check_keys(zsks_defalg, lifetime, with_state=True)
 
-    alg = os.environ.get("ALTERNATIVE_ALGORITHM_NUMBER")
+    alg = os.environ.get("ALTERNATIVE_ALGORITHM_DST_NUMBER")
     size = os.environ.get("ALTERNATIVE_BITS")
     lifetime = timedelta(days=31 * 5)
     check_keys(zsks_altalg, lifetime, alg, size, with_state=True)

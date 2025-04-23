@@ -87,7 +87,7 @@ zonefiletmp=$(mktemp "$zonefile.XXXXXX") || exit 1
   | awk '
 tolower($1) == "bad-cname.example." && $4 == "RRSIG" && $5 == "CNAME" {
 	for (i = 1; i <= NF; i++ ) {
-		if (i <= 12) {
+		if (i <= 13) {
 			printf("%s ", $i);
 			continue;
 		}
@@ -106,7 +106,7 @@ tolower($1) == "bad-cname.example." && $4 == "RRSIG" && $5 == "CNAME" {
 
 tolower($1) == "bad-dname.example." && $4 == "RRSIG" && $5 == "DNAME" {
 	for (i = 1; i <= NF; i++ ) {
-		if (i <= 12) {
+		if (i <= 13) {
 			printf("%s ", $i);
 			continue;
 		}
