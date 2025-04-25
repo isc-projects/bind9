@@ -233,7 +233,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns_forwarders_t *fwd = pval;
-	return dns_qpkey_fromname(key, &fwd->name);
+	return dns_qpkey_fromname(key, &fwd->name, 0);
 }
 
 static void

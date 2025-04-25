@@ -45,56 +45,78 @@ bool verbose = false;
 ISC_RUN_TEST_IMPL(qpkey_name) {
 	struct {
 		const char *namestr;
+		uint8_t denial;
 		uint8_t key[512];
 		size_t len;
 	} testcases[] = {
 		{
 			.namestr = "",
-			.key = { 0x02 },
-			.len = 0,
-		},
-		{
-			.namestr = ".",
-			.key = { 0x02, 0x02 },
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x02 },
 			.len = 1,
 		},
 		{
+			.namestr = ".",
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x02, 0x02 },
+			.len = 2,
+		},
+		{
 			.namestr = "\\000",
-			.key = { 0x03, 0x03, 0x02 },
-			.len = 3,
-		},
-		{
-			.namestr = "\\000\\009",
-			.key = { 0x03, 0x03, 0x03, 0x0c, 0x02 },
-			.len = 5,
-		},
-		{
-			.namestr = "com",
-			.key = { 0x16, 0x22, 0x20, 0x02 },
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x03, 0x03, 0x02 },
 			.len = 4,
 		},
 		{
-			.namestr = "com.",
-			.key = { 0x02, 0x16, 0x22, 0x20, 0x02 },
+			.namestr = "\\000\\009",
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x03, 0x03, 0x03, 0x0c, 0x02 },
+			.len = 6,
+		},
+		{
+			.namestr = "com",
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x16, 0x22, 0x20, 0x02 },
 			.len = 5,
 		},
 		{
+			.namestr = "com.",
+			.denial = DNS_DB_NSEC_NSEC,
+			.key = { 0x02, 0x02, 0x16, 0x22, 0x20, 0x02 },
+			.len = 6,
+		},
+		{
+			.namestr = "com.",
+			.denial = DNS_DB_NSEC_NSEC3,
+			.key = { 0x03, 0x02, 0x16, 0x22, 0x20, 0x02 },
+			.len = 6,
+		},
+		{
+			.namestr = "com.",
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x02, 0x16, 0x22, 0x20, 0x02 },
+			.len = 6,
+		},
+		{
 			.namestr = "example.com.",
-			.key = { 0x02, 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b, 0x14,
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x02, 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b,
+				 0x14, 0x20, 0x23, 0x1f, 0x18, 0x02 },
+			.len = 14,
+		},
+		{
+			.namestr = "example.com",
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b, 0x14,
 				 0x20, 0x23, 0x1f, 0x18, 0x02 },
 			.len = 13,
 		},
 		{
-			.namestr = "example.com",
-			.key = { 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b, 0x14, 0x20,
-				 0x23, 0x1f, 0x18, 0x02 },
-			.len = 12,
-		},
-		{
 			.namestr = "EXAMPLE.COM",
-			.key = { 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b, 0x14, 0x20,
-				 0x23, 0x1f, 0x18, 0x02 },
-			.len = 12,
+			.denial = DNS_DB_NSEC_NORMAL,
+			.key = { 0x00, 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b, 0x14,
+				 0x20, 0x23, 0x1f, 0x18, 0x02 },
+			.len = 13,
 		},
 	};
 
@@ -104,28 +126,26 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 		dns_fixedname_t fn1, fn2;
 		dns_name_t *in = NULL, *out = NULL;
 		char namebuf[DNS_NAME_FORMATSIZE];
+		uint8_t denial;
 
 		in = dns_fixedname_initname(&fn1);
-		if (testcases[i].len != 0) {
+		if (testcases[i].len > 1) {
 			dns_test_namefromstring(testcases[i].namestr, &fn1);
 		}
-		len = dns_qpkey_fromname(key, in);
+		len = dns_qpkey_fromname(key, in, testcases[i].denial);
 		if (verbose) {
 			qp_test_printkey(key, len);
 		}
 
 		assert_int_equal(testcases[i].len, len);
 		assert_memory_equal(testcases[i].key, key, len);
-		/* also check key correctness for empty name */
-		if (len == 0) {
-			assert_int_equal(testcases[i].key[0], ((char *)key)[0]);
-		}
 
 		out = dns_fixedname_initname(&fn2);
-		dns_qpkey_toname(key, len, out);
+		dns_qpkey_toname(key, len, out, &denial);
 		assert_true(dns_name_equal(in, out));
+		assert_int_equal(denial, testcases[i].denial);
 		/* check that 'out' is properly reset by dns_qpkey_toname */
-		dns_qpkey_toname(key, len, out);
+		dns_qpkey_toname(key, len, out, NULL);
 		dns_name_format(out, namebuf, sizeof(namebuf));
 	}
 }
@@ -156,7 +176,7 @@ ISC_RUN_TEST_IMPL(qpkey_sort) {
 					&testcases[i].fixed);
 		testcases[i].name = dns_fixedname_name(&testcases[i].fixed);
 		testcases[i].len = dns_qpkey_fromname(testcases[i].key,
-						      testcases[i].name);
+						      testcases[i].name, 0);
 	}
 
 	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
@@ -358,7 +378,7 @@ qpkey_fromstring(dns_qpkey_t key, void *uctx, void *pval, uint32_t ival) {
 		return 0;
 	}
 	dns_test_namefromstring(pval, &fixed);
-	return dns_qpkey_fromname(key, dns_fixedname_name(&fixed));
+	return dns_qpkey_fromname(key, dns_fixedname_name(&fixed), 0);
 }
 
 const dns_qpmethods_t string_methods = {
@@ -493,21 +513,12 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 	 * what if entries in the trie are relative to the zone apex
 	 * and there's no root node?
 	 */
-	dns_qpkey_t rootkey = { SHIFT_NOBYTE };
+	dns_qpkey_t rootkey = { 0x00, SHIFT_NOBYTE };
 	result = dns_qp_deletekey(qp, rootkey, 1, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	check_partialmatch(qp, (struct check_partialmatch[]){
 				       { "bar", ISC_R_NOTFOUND, NULL },
 				       { "bar.", ISC_R_NOTFOUND, NULL },
-				       { NULL, 0, NULL },
-			       });
-
-	/* what if there's a root node with an empty key? */
-	INSIST(insert[i][0] == '\0');
-	insert_str(qp, insert[i++]);
-	check_partialmatch(qp, (struct check_partialmatch[]){
-				       { "bar", DNS_R_PARTIALMATCH, "" },
-				       { "bar.", DNS_R_PARTIALMATCH, "" },
 				       { NULL, 0, NULL },
 			       });
 

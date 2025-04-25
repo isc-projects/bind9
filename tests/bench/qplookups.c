@@ -81,7 +81,7 @@ qpkey_from_smallname(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	dns_name_t name = DNS_NAME_INITEMPTY;
 	name_from_smallname(&name, pval, ival);
-	return dns_qpkey_fromname(key, &name);
+	return dns_qpkey_fromname(key, &name, 0);
 }
 
 static void
@@ -228,7 +228,7 @@ main(int argc, char **argv) {
 	start = isc_time_monotonic();
 	for (i = 0; i < n; i++) {
 		name = dns_fixedname_name(&items[i]);
-		dns_qp_getname(qp, name, NULL, NULL);
+		dns_qp_getname(qp, name, 0, NULL, NULL);
 	}
 	stop = isc_time_monotonic();
 

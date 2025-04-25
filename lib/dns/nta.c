@@ -316,7 +316,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 	result = dns_qp_insert(qp, nta, 0);
 	switch (result) {
 	case ISC_R_EXISTS:
-		result = dns_qp_getname(qp, &nta->name, &pval, NULL);
+		result = dns_qp_getname(qp, &nta->name, 0, &pval, NULL);
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * an NTA already existed: throw away the
@@ -355,7 +355,7 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	REQUIRE(name != NULL);
 
 	dns_qpmulti_write(ntatable->table, &qp);
-	result = dns_qp_deletename(qp, name, &pval, NULL);
+	result = dns_qp_deletename(qp, name, 0, &pval, NULL);
 	if (result == ISC_R_SUCCESS) {
 		dns__nta_t *n = pval;
 		dns__nta_shutdown(n);
@@ -379,7 +379,7 @@ delete_expired(void *arg) {
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 	dns_qpmulti_write(ntatable->table, &qp);
-	result = dns_qp_getname(qp, &nta->name, &pval, NULL);
+	result = dns_qp_getname(qp, &nta->name, 0, &pval, NULL);
 	if (result == ISC_R_SUCCESS &&
 	    ((dns__nta_t *)pval)->expiry == nta->expiry && !nta->shuttingdown)
 	{
@@ -387,7 +387,7 @@ delete_expired(void *arg) {
 		dns_name_format(&nta->name, nb, sizeof(nb));
 		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_NTA,
 			      ISC_LOG_INFO, "deleting expired NTA at %s", nb);
-		dns_qp_deletename(qp, &nta->name, NULL, NULL);
+		dns_qp_deletename(qp, &nta->name, 0, NULL, NULL);
 		dns__nta_shutdown(nta);
 		dns__nta_unref(nta);
 	}
@@ -649,7 +649,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns__nta_t *nta = pval;
-	return dns_qpkey_fromname(key, &nta->name);
+	return dns_qpkey_fromname(key, &nta->name, 0);
 }
 
 static void

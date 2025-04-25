@@ -137,8 +137,9 @@ init_items(isc_mem_t *mctx) {
 	for (size_t i = 0; i < ITEM_COUNT; i++) {
 		do {
 			size_t len = isc_random_uniform(16) + 4;
-			item[i].len = len;
-			for (size_t off = 0; off < len; off++) {
+			item[i].len = len + 1;
+			item[i].key[0] = 0;
+			for (size_t off = 1; off < len; off++) {
 				item[i].key[off] = random_byte();
 			}
 			item[i].key[len] = SHIFT_NOBYTE;

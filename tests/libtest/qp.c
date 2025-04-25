@@ -23,6 +23,7 @@
 #include <isc/urcu.h>
 #include <isc/util.h>
 
+#include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/qp.h>
@@ -55,7 +56,7 @@ qp_test_bittoascii(dns_qpshift_t bit) {
 
 const char *
 qp_test_keytoascii(dns_qpkey_t key, size_t len) {
-	for (size_t offset = 0; offset < len; offset++) {
+	for (size_t offset = 1; offset < len; offset++) {
 		key[offset] = qp_test_bittoascii(key[offset]);
 	}
 	key[len] = '\0';
@@ -342,11 +343,15 @@ void
 qp_test_printkey(const dns_qpkey_t key, size_t keylen) {
 	dns_fixedname_t fn;
 	dns_name_t *n = dns_fixedname_initname(&fn);
+	uint8_t d;
 	char txt[DNS_NAME_FORMATSIZE];
 
-	dns_qpkey_toname(key, keylen, n);
+	dns_qpkey_toname(key, keylen, n, &d);
 	dns_name_format(n, txt, sizeof(txt));
-	printf("%s%s\n", txt, dns_name_isabsolute(n) ? "." : "");
+	printf("%s%s%s\n", txt,
+	       d == DNS_DB_NSEC_NSEC3 ? "NSEC3:"
+				      : (d == DNS_DB_NSEC_NSEC ? "NSEC" : ""),
+	       dns_name_isabsolute(n) ? "." : "");
 }
 
 /**********************************************************************/

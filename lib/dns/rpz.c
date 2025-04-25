@@ -1422,7 +1422,7 @@ add_nm(dns_rpz_zones_t *rpzs, dns_name_t *trig_name, const nmdata_t *new_data) {
 	dns_qp_t *qp = NULL;
 
 	dns_qpmulti_write(rpzs->table, &qp);
-	result = dns_qp_getname(qp, trig_name, (void **)&data, NULL);
+	result = dns_qp_getname(qp, trig_name, 0, (void **)&data, NULL);
 	if (result != ISC_R_SUCCESS) {
 		INSIST(data == NULL);
 		data = new_nmdata(rpzs->mctx, trig_name, new_data);
@@ -2291,7 +2291,7 @@ del_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	trig_name = dns_fixedname_initname(&trig_namef);
 	name2data(rpz, rpz_type, src_name, trig_name, &del_data);
 
-	result = dns_qp_getname(qp, trig_name, (void **)&data, NULL);
+	result = dns_qp_getname(qp, trig_name, 0, (void **)&data, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
@@ -2314,7 +2314,7 @@ del_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	if (data->set.qname == 0 && data->set.ns == 0 &&
 	    data->wild.qname == 0 && data->wild.ns == 0)
 	{
-		result = dns_qp_deletename(qp, trig_name, NULL, NULL);
+		result = dns_qp_deletename(qp, trig_name, 0, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * bin/tests/system/rpz/tests.sh looks for
@@ -2667,7 +2667,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	nmdata_t *data = pval;
-	return dns_qpkey_fromname(key, &data->name);
+	return dns_qpkey_fromname(key, &data->name, 0);
 }
 
 static void

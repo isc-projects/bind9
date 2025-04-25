@@ -164,14 +164,14 @@ dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name,
 	case DNS_NAMETREE_COUNT:
 		new = newnode(nametree->mctx, name);
 		new->set = true;
-		result = dns_qp_deletename(qp, name, (void **)&old, &count);
+		result = dns_qp_deletename(qp, name, 0, (void **)&old, &count);
 		if (result == ISC_R_SUCCESS) {
 			count += 1;
 		}
 		break;
 
 	case DNS_NAMETREE_BITS:
-		result = dns_qp_getname(qp, name, (void **)&old, NULL);
+		result = dns_qp_getname(qp, name, 0, (void **)&old, NULL);
 		if (result == ISC_R_SUCCESS && matchbit(old->bits, value)) {
 			goto out;
 		}
@@ -187,7 +187,7 @@ dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name,
 		new->bits = isc_mem_cget(nametree->mctx, size, sizeof(char));
 		if (result == ISC_R_SUCCESS) {
 			memmove(new->bits, old->bits, old->bits[0]);
-			result = dns_qp_deletename(qp, name, NULL, NULL);
+			result = dns_qp_deletename(qp, name, 0, NULL, NULL);
 			INSIST(result == ISC_R_SUCCESS);
 		}
 
@@ -222,7 +222,7 @@ dns_nametree_delete(dns_nametree_t *nametree, const dns_name_t *name) {
 	REQUIRE(name != NULL);
 
 	dns_qpmulti_write(nametree->table, &qp);
-	result = dns_qp_deletename(qp, name, (void **)&old, &count);
+	result = dns_qp_deletename(qp, name, 0, (void **)&old, &count);
 	switch (nametree->type) {
 	case DNS_NAMETREE_BOOL:
 	case DNS_NAMETREE_BITS:
@@ -258,7 +258,7 @@ dns_nametree_find(dns_nametree_t *nametree, const dns_name_t *name,
 	REQUIRE(ntnodep != NULL && *ntnodep == NULL);
 
 	dns_qpmulti_query(nametree->table, &qpr);
-	result = dns_qp_getname(&qpr, name, (void **)&node, NULL);
+	result = dns_qp_getname(&qpr, name, 0, (void **)&node, NULL);
 	if (result == ISC_R_SUCCESS) {
 		dns_ntnode_attach(node, ntnodep);
 	}
@@ -319,7 +319,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns_ntnode_t *ntnode = pval;
-	return dns_qpkey_fromname(key, &ntnode->name);
+	return dns_qpkey_fromname(key, &ntnode->name, 0);
 }
 
 static void

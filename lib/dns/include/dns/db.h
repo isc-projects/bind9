@@ -237,10 +237,9 @@ struct dns_dbonupdatelistener {
  * exists in a specal tree for NSEC or NSEC3.
  */
 enum {
-	DNS_DB_NSEC_NORMAL = 0,	  /* in main tree */
-	DNS_DB_NSEC_HAS_NSEC = 1, /* also has node in nsec tree */
-	DNS_DB_NSEC_NSEC = 2,	  /* in nsec tree */
-	DNS_DB_NSEC_NSEC3 = 3	  /* in nsec3 tree */
+	DNS_DB_NSEC_NORMAL = 0, /* in main tree */
+	DNS_DB_NSEC_NSEC = 2,	/* in nsec tree */
+	DNS_DB_NSEC_NSEC3 = 3	/* in nsec3 tree */
 };
 
 /*@{*/

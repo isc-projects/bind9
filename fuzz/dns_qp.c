@@ -104,12 +104,13 @@ LLVMFuzzerInitialize(int *argc, char ***argv) {
 
 	for (size_t i = 0; i < ARRAY_SIZE(item); i++) {
 		size_t len = isc_random_uniform(100) + 16;
-		item[i].len = len;
-		for (size_t off = 0; off < len; off++) {
+		item[i].len = len + 1;
+		item[i].key[0] = 0;
+		for (size_t off = 1; off < len; off++) {
 			item[i].key[off] = random_byte();
 		}
-		memmove(item[i].ascii, item[i].key, len);
-		qp_test_keytoascii(item[i].ascii, len);
+		memmove(item[i].ascii, item[i].key, item[i].len);
+		qp_test_keytoascii(item[i].ascii, item[i].len);
 	}
 
 	return 0;

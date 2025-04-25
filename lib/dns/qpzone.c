@@ -201,6 +201,7 @@ struct qpznode {
 
 	uint16_t locknum;
 	atomic_uint_fast8_t nsec;
+	atomic_bool havensec;
 	atomic_bool wild;
 	atomic_bool delegating;
 	atomic_bool dirty;
@@ -772,9 +773,9 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	dns_qpmulti_write(qpdb->tree, &qp);
 	qpdb->origin = new_qpznode(qpdb, &qpdb->common.origin);
+	qpdb->origin->nsec = DNS_DB_NSEC_NORMAL;
 	result = dns_qp_insert(qp, qpdb->origin, 0);
 	INSIST(result == ISC_R_SUCCESS);
-	qpdb->origin->nsec = DNS_DB_NSEC_NORMAL;
 	dns_qpmulti_commit(qpdb->tree, &qp);
 
 	/*
@@ -1708,31 +1709,31 @@ loading_addnode(qpz_load_t *loadctx, const dns_name_t *name,
 	qpznode_t *node = NULL, *nsecnode = NULL;
 
 	if (type == dns_rdatatype_nsec3 || covers == dns_rdatatype_nsec3) {
-		result = dns_qp_getname(loadctx->nsec3, name, (void **)&node,
-					NULL);
+		result = dns_qp_getname(loadctx->nsec3, name, DNS_DB_NSEC_NSEC3,
+					(void **)&node, NULL);
 		if (result == ISC_R_SUCCESS) {
 			*nodep = node;
 		} else {
 			node = new_qpznode(qpdb, name);
+			node->nsec = DNS_DB_NSEC_NSEC3;
 			result = dns_qp_insert(loadctx->nsec3, node, 0);
 			INSIST(result == ISC_R_SUCCESS);
-			node->nsec = DNS_DB_NSEC_NSEC3;
 			*nodep = node;
 			qpznode_detach(&node);
 		}
 		return;
 	}
 
-	result = dns_qp_getname(loadctx->tree, name, (void **)&node, NULL);
+	result = dns_qp_getname(loadctx->tree, name, DNS_DB_NSEC_NORMAL,
+				(void **)&node, NULL);
 	if (result == ISC_R_SUCCESS) {
-		if (type == dns_rdatatype_nsec &&
-		    node->nsec == DNS_DB_NSEC_HAS_NSEC)
-		{
+		if (type == dns_rdatatype_nsec && node->havensec) {
 			goto done;
 		}
 	} else {
 		INSIST(node == NULL);
 		node = new_qpznode(qpdb, name);
+		node->nsec = DNS_DB_NSEC_NORMAL;
 		result = dns_qp_insert(loadctx->tree, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		qpznode_unref(node);
@@ -1749,7 +1750,7 @@ loading_addnode(qpz_load_t *loadctx, const dns_name_t *name,
 	 * node there, so we can just detach the new one we created and
 	 * move on.
 	 */
-	node->nsec = DNS_DB_NSEC_HAS_NSEC;
+	node->havensec = true;
 	nsecnode = new_qpznode(qpdb, name);
 	nsecnode->nsec = DNS_DB_NSEC_NSEC;
 	(void)dns_qp_insert(loadctx->nsec, nsecnode, 0);
@@ -2115,7 +2116,8 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 }
 
 static void
-wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
+wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
+	      uint8_t denial) {
 	isc_result_t result;
 	dns_name_t foundname;
 	unsigned int n;
@@ -2128,10 +2130,11 @@ wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 	dns_name_getlabelsequence(name, 1, n, &foundname);
 
 	/* insert an empty node, if needed, to hold the wildcard bit */
-	result = dns_qp_getname(qp, &foundname, (void **)&node, NULL);
+	result = dns_qp_getname(qp, &foundname, denial, (void **)&node, NULL);
 	if (result != ISC_R_SUCCESS) {
 		INSIST(node == NULL);
 		node = new_qpznode(qpdb, &foundname);
+		node->nsec = denial;
 		result = dns_qp_insert(qp, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		qpznode_unref(node);
@@ -2141,7 +2144,8 @@ wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 }
 
 static void
-addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
+addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
+	     uint8_t denial) {
 	dns_name_t foundname;
 	unsigned int n, l, i;
 
@@ -2152,7 +2156,7 @@ addwildcards(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name) {
 	while (i < n) {
 		dns_name_getlabelsequence(name, n - i, i, &foundname);
 		if (dns_name_iswildcard(&foundname)) {
-			wildcardmagic(qpdb, qp, &foundname);
+			wildcardmagic(qpdb, qp, &foundname, denial);
 		}
 
 		i++;
@@ -2185,7 +2189,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	if (rdataset->type != dns_rdatatype_nsec3 &&
 	    rdataset->covers != dns_rdatatype_nsec3)
 	{
-		addwildcards(qpdb, loadctx->tree, name);
+		addwildcards(qpdb, loadctx->tree, name, DNS_DB_NSEC_NORMAL);
 	}
 
 	if (dns_name_iswildcard(name)) {
@@ -2203,7 +2207,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 			return DNS_R_INVALIDNSEC3;
 		}
 
-		wildcardmagic(qpdb, loadctx->tree, name);
+		wildcardmagic(qpdb, loadctx->tree, name, DNS_DB_NSEC_NORMAL);
 	}
 
 	loading_addnode(loadctx, name, rdataset->type, rdataset->covers, &node);
@@ -2551,6 +2555,7 @@ findnodeintree(qpzonedb_t *qpdb, const dns_name_t *name, bool create,
 	       bool nsec3, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	isc_result_t result;
 	qpznode_t *node = NULL;
+	uint8_t denial = nsec3 ? DNS_DB_NSEC_NSEC3 : DNS_DB_NSEC_NORMAL;
 	dns_qpmulti_t *dbtree = nsec3 ? qpdb->nsec3 : qpdb->tree;
 	dns_qpread_t qpr = { 0 };
 	dns_qp_t *qp = NULL;
@@ -2562,7 +2567,7 @@ findnodeintree(qpzonedb_t *qpdb, const dns_name_t *name, bool create,
 		qp = (dns_qp_t *)&qpr;
 	}
 
-	result = dns_qp_getname(qp, name, (void **)&node, NULL);
+	result = dns_qp_getname(qp, name, denial, (void **)&node, NULL);
 	if (result != ISC_R_SUCCESS) {
 		if (!create) {
 			dns_qpread_destroy(dbtree, &qpr);
@@ -2570,16 +2575,15 @@ findnodeintree(qpzonedb_t *qpdb, const dns_name_t *name, bool create,
 		}
 
 		node = new_qpznode(qpdb, name);
+		node->nsec = denial;
 		result = dns_qp_insert(qp, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		qpznode_unref(node);
 
-		if (nsec3) {
-			node->nsec = DNS_DB_NSEC_NSEC3;
-		} else {
-			addwildcards(qpdb, qp, name);
+		if (!nsec3) {
+			addwildcards(qpdb, qp, name, denial);
 			if (dns_name_iswildcard(name)) {
-				wildcardmagic(qpdb, qp, name);
+				wildcardmagic(qpdb, qp, name, denial);
 			}
 		}
 	}
@@ -2880,8 +2884,8 @@ wildcard_blocked(qpz_search_t *search, const dns_name_t *qname,
 }
 
 static isc_result_t
-find_wildcard(qpz_search_t *search, qpznode_t **nodep,
-	      const dns_name_t *qname) {
+find_wildcard(qpz_search_t *search, qpznode_t **nodep, const dns_name_t *qname,
+	      uint8_t denial) {
 	dns_slabheader_t *header = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
 
@@ -2938,8 +2942,9 @@ find_wildcard(qpz_search_t *search, qpznode_t **nodep,
 				break;
 			}
 
-			result = dns_qp_lookup(&search->qpr, wname, NULL, &wit,
-					       NULL, (void **)&wnode, NULL);
+			result = dns_qp_lookup2(&search->qpr, wname, denial,
+						NULL, &wit, NULL,
+						(void **)&wnode, NULL);
 			if (result == ISC_R_SUCCESS) {
 				/*
 				 * We have found the wildcard node.  If it
@@ -3029,8 +3034,8 @@ previous_closest_nsec(dns_rdatatype_t type, qpz_search_t *search,
 			 * It is the first node sought in the NSEC tree.
 			 */
 			*firstp = false;
-			result = dns_qp_lookup(&qpr, name, NULL, nit, NULL,
-					       NULL, NULL);
+			result = dns_qp_lookup2(&qpr, name, DNS_DB_NSEC_NSEC,
+						NULL, nit, NULL, NULL, NULL);
 			INSIST(result != ISC_R_NOTFOUND);
 			if (result == ISC_R_SUCCESS) {
 				/*
@@ -3063,8 +3068,9 @@ previous_closest_nsec(dns_rdatatype_t type, qpz_search_t *search,
 		}
 
 		*nodep = NULL;
-		result = dns_qp_lookup(&search->qpr, name, NULL, &search->iter,
-				       &search->chain, (void **)nodep, NULL);
+		result = dns_qp_lookup2(&search->qpr, name, DNS_DB_NSEC_NORMAL,
+					NULL, &search->iter, &search->chain,
+					(void **)nodep, NULL);
 		if (result == ISC_R_SUCCESS) {
 			break;
 		}
@@ -3200,12 +3206,10 @@ again:
 					*nodep = (dns_dbnode_t *)node;
 				}
 				bindrdataset(search->qpdb, node, found,
-
 					     rdataset DNS__DB_FLARG_PASS);
 				if (foundsig != NULL) {
 					bindrdataset(
 						search->qpdb, node, foundsig,
-
 						sigrdataset DNS__DB_FLARG_PASS);
 				}
 			} else if (found == NULL && foundsig == NULL) {
@@ -3451,6 +3455,7 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		close_version = true;
 	}
 
+	uint8_t denial;
 	qpz_search_t search;
 	qpz_search_init(&search, (qpzonedb_t *)db, (qpz_version_t *)version,
 			options);
@@ -3458,15 +3463,17 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	if ((options & DNS_DBFIND_FORCENSEC3) != 0) {
 		dns_qpmulti_query(qpdb->nsec3, &search.qpr);
 		nsec3 = true;
+		denial = DNS_DB_NSEC_NSEC3;
 	} else {
 		dns_qpmulti_query(qpdb->tree, &search.qpr);
+		denial = DNS_DB_NSEC_NORMAL;
 	}
 
 	/*
 	 * Search down from the root of the tree.
 	 */
-	result = dns_qp_lookup(&search.qpr, name, NULL, &search.iter,
-			       &search.chain, (void **)&node, NULL);
+	result = dns_qp_lookup2(&search.qpr, name, denial, NULL, &search.iter,
+				&search.chain, (void **)&node, NULL);
 	if (result != ISC_R_NOTFOUND) {
 		dns_name_copy(&node->name, foundname);
 	}
@@ -3512,7 +3519,7 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			 * we must see if there's a matching wildcard active
 			 * in the current version.
 			 */
-			result = find_wildcard(&search, &node, name);
+			result = find_wildcard(&search, &node, name, denial);
 			if (result == ISC_R_SUCCESS) {
 				dns_name_copy(name, foundname);
 				wild = true;
@@ -4457,9 +4464,10 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 	switch (qpdbiter->nsec3mode) {
 	case nsec3only:
 		qpdbiter->current = &qpdbiter->nsec3iter;
-		result = dns_qp_lookup(qpdbiter->nsnap, name, NULL,
-				       qpdbiter->current, NULL,
-				       (void **)&qpdbiter->node, NULL);
+		result = dns_qp_lookup2(qpdbiter->nsnap, name,
+					DNS_DB_NSEC_NSEC3, NULL,
+					qpdbiter->current, NULL,
+					(void **)&qpdbiter->node, NULL);
 		break;
 	case nonsec3:
 		qpdbiter->current = &qpdbiter->mainiter;
@@ -4477,9 +4485,9 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 				       qpdbiter->current, NULL,
 				       (void **)&qpdbiter->node, NULL);
 		if (result == DNS_R_PARTIALMATCH) {
-			tresult = dns_qp_lookup(qpdbiter->nsnap, name, NULL,
-						&qpdbiter->nsec3iter, NULL,
-						NULL, NULL);
+			tresult = dns_qp_lookup2(
+				qpdbiter->nsnap, name, DNS_DB_NSEC_NSEC3, NULL,
+				&qpdbiter->nsec3iter, NULL, NULL, NULL);
 			if (tresult == ISC_R_SUCCESS) {
 				qpdbiter->current = &qpdbiter->nsec3iter;
 				result = tresult;
@@ -4756,9 +4764,7 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	/*
 	 * Add to the auxiliary NSEC tree if we're adding an NSEC record.
 	 */
-	if (node->nsec != DNS_DB_NSEC_HAS_NSEC &&
-	    rdataset->type == dns_rdatatype_nsec)
-	{
+	if (!node->havensec && rdataset->type == dns_rdatatype_nsec) {
 		dns_qpmulti_write(qpdb->nsec, &nsec);
 	}
 
@@ -4777,7 +4783,7 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 
 	result = ISC_R_SUCCESS;
 	if (nsec != NULL) {
-		node->nsec = DNS_DB_NSEC_HAS_NSEC;
+		node->havensec = true;
 
 		/*
 		 * If it fails, there was already an NSEC node,
@@ -5485,7 +5491,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	qpznode_t *data = pval;
-	return dns_qpkey_fromname(key, &data->name);
+	return dns_qpkey_fromname(key, &data->name, data->nsec);
 }
 
 static void
