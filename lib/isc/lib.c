@@ -67,6 +67,9 @@ isc__lib_shutdown(void) {
 		return;
 	}
 
+	rcu_barrier();
+	rcu_unregister_thread();
+
 	isc__iterated_hash_shutdown();
 	isc__xml_shutdown();
 	isc__uv_shutdown();
@@ -75,6 +78,4 @@ isc__lib_shutdown(void) {
 	isc__mem_shutdown();
 	isc__mutex_shutdown();
 	isc__os_shutdown();
-	/* should be after isc__mem_shutdown() which calls rcu_barrier() */
-	rcu_unregister_thread();
 }
