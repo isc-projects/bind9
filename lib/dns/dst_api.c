@@ -191,6 +191,7 @@ static isc_mem_t *dst__mctx = NULL;
 void
 dst__lib_initialize(void) {
 	isc_mem_create(&dst__mctx);
+	isc_mem_setname(dst__mctx, "dst");
 
 	dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]);
 	dst__hmacsha1_init(&dst_t_func[DST_ALG_HMACSHA1]);

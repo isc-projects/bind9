@@ -22,6 +22,7 @@ isc_managers_create(isc_mem_t **mctxp, uint32_t workers,
 	REQUIRE(mctxp != NULL && *mctxp == NULL);
 	isc_mem_create(mctxp);
 	INSIST(*mctxp != NULL);
+	isc_mem_setname(*mctxp, "managers");
 
 	REQUIRE(loopmgrp != NULL && *loopmgrp == NULL);
 	isc_loopmgr_create(*mctxp, workers, loopmgrp);
