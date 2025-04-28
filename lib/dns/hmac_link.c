@@ -69,7 +69,6 @@
 		return (hmac_sign(dctx, sig));                                 \
 	}                                                                      \
 	static isc_result_t hmac##alg##_verify(dst_context_t *dctx,            \
-					       int maxbits ISC_ATTR_UNUSED,    \
 					       const isc_region_t *sig) {      \
 		return (hmac_verify(dctx, sig));                               \
 	}                                                                      \

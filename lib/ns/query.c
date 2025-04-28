@@ -2447,8 +2447,7 @@ verify(dst_key_t *key, dns_name_t *name, dns_rdataset_t *rdataset,
 
 again:
 	result = dns_dnssec_verify(name, rdataset, key, ignore,
-				   client->view->maxbits, client->manager->mctx,
-				   rdata, NULL);
+				   client->manager->mctx, rdata, NULL);
 	if (result == DNS_R_SIGEXPIRED && client->view->acceptexpired) {
 		ignore = true;
 		goto again;

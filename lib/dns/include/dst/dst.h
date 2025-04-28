@@ -284,12 +284,9 @@ dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig);
  */
 
 isc_result_t
-dst_context_verify(dst_context_t *dctx, int maxbits, isc_region_t *sig);
+dst_context_verify(dst_context_t *dctx, isc_region_t *sig);
 /*%<
  * Verifies the signature using the data and key stored in the context.
- *
- * 'maxbits' specifies the maximum number of bits permitted in the RSA
- * exponent.
  *
  * Requires:
  * \li	"dctx" is a valid context.

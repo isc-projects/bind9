@@ -325,7 +325,7 @@ dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 }
 
 isc_result_t
-dst_context_verify(dst_context_t *dctx, int maxbits, isc_region_t *sig) {
+dst_context_verify(dst_context_t *dctx, isc_region_t *sig) {
 	REQUIRE(VALID_CTX(dctx));
 	REQUIRE(sig != NULL);
 
@@ -338,7 +338,7 @@ dst_context_verify(dst_context_t *dctx, int maxbits, isc_region_t *sig) {
 		return DST_R_NOTPUBLICKEY;
 	}
 
-	return dctx->key->func->verify(dctx, maxbits, sig);
+	return dctx->key->func->verify(dctx, sig);
 }
 
 isc_result_t

@@ -211,8 +211,7 @@ err:
 }
 
 static isc_result_t
-openssleddsa_verify(dst_context_t *dctx, int maxbits ISC_ATTR_UNUSED,
-		    const isc_region_t *sig) {
+openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	isc_result_t ret;
 	dst_key_t *key = dctx->key;
 	int status;

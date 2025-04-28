@@ -43,6 +43,8 @@
 		goto err; \
 	}
 
+#define OPENSSLRSA_MAX_MODULUS_BITS 4096
+
 typedef struct rsa_components {
 	bool bnfree;
 	const BIGNUM *e, *n, *d, *p, *q, *dmp1, *dmq1, *iqmp;
@@ -289,12 +291,12 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 static bool
 opensslrsa_check_exponent_bits(EVP_PKEY *pkey, int maxbits) {
 	/* Always use the new API first with OpenSSL 3.x. */
+	int bits = INT_MAX;
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	BIGNUM *e = NULL;
 	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) == 1) {
-		int bits = BN_num_bits(e);
+		bits = BN_num_bits(e);
 		BN_free(e);
-		return bits < maxbits;
 	}
 #else
 	const RSA *rsa = EVP_PKEY_get0_RSA(pkey);
@@ -302,15 +304,15 @@ opensslrsa_check_exponent_bits(EVP_PKEY *pkey, int maxbits) {
 		const BIGNUM *ce = NULL;
 		RSA_get0_key(rsa, NULL, &ce, NULL);
 		if (ce != NULL) {
-			return BN_num_bits(ce) < maxbits;
+			bits = BN_num_bits(ce);
 		}
 	}
 #endif
-	return false;
+	return bits <= maxbits;
 }
 
 static isc_result_t
-opensslrsa_verify(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
+opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	dst_key_t *key = NULL;
 	int status = 0;
 	EVP_MD_CTX *evp_md_ctx = NULL;
@@ -323,7 +325,8 @@ opensslrsa_verify(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	pkey = key->keydata.pkeypair.pub;
 
-	if (maxbits != 0 && !opensslrsa_check_exponent_bits(pkey, maxbits)) {
+	if (!opensslrsa_check_exponent_bits(pkey, OPENSSLRSA_MAX_MODULUS_BITS))
+	{
 		return DST_R_VERIFYFAILURE;
 	}
 

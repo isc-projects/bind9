@@ -193,7 +193,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 
 	result = dst_context_adddata(ctx, &datareg);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dst_context_verify(ctx, 0, &sigreg);
+	result = dst_context_verify(ctx, &sigreg);
 
 	/*
 	 * Compute the expected signature and emit it

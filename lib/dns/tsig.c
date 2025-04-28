@@ -1117,7 +1117,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			}
 		}
 
-		result = dst_context_verify(ctx, 0, &sig_r);
+		result = dst_context_verify(ctx, &sig_r);
 		if (result == DST_R_VERIFYFAILURE) {
 			result = DNS_R_TSIGVERIFYFAILURE;
 			tsig_log(msg->tsigkey, 2,
@@ -1420,7 +1420,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			goto cleanup_context;
 		}
 
-		result = dst_context_verify(msg->tsigctx, 0, &sig_r);
+		result = dst_context_verify(msg->tsigctx, &sig_r);
 		if (result == DST_R_VERIFYFAILURE) {
 			tsig_log(msg->tsigkey, 2,
 				 "signature failed to verify(2)");

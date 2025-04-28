@@ -157,8 +157,7 @@ struct dst_func {
 	 * Key operations
 	 */
 	isc_result_t (*sign)(dst_context_t *dctx, isc_buffer_t *sig);
-	isc_result_t (*verify)(dst_context_t *dctx, int maxbits,
-			       const isc_region_t *sig);
+	isc_result_t (*verify)(dst_context_t *dctx, const isc_region_t *sig);
 	bool (*compare)(const dst_key_t *key1, const dst_key_t *key2);
 	isc_result_t (*generate)(dst_key_t *key, int parms,
 				 void (*callback)(int));

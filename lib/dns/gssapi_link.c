@@ -186,8 +186,7 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
  * Verify.
  */
 static isc_result_t
-gssapi_verify(dst_context_t *dctx, int maxbits ISC_ATTR_UNUSED,
-	      const isc_region_t *sig) {
+gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	dst_gssapi_signverifyctx_t *ctx = dctx->ctxdata.gssctx;
 	isc_region_t message;
 	gss_buffer_desc gmessage, gsig;

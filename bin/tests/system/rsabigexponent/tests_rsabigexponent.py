@@ -12,7 +12,6 @@
 import os
 import subprocess
 
-import dns.message
 import pytest
 
 import isctest
@@ -52,11 +51,3 @@ def test_rsa_big_exponent_keys_cant_load():
             "dnssec-signzone: fatal: cannot load dnskey Kexample.+008+52810.key: out of range"
             in file.read()
         )
-
-
-def test_rsa_big_exponent_keys_cant_validate():
-    msg = dns.message.make_query("a.example.", "A")
-    res2 = isctest.query.tcp(msg, "10.53.0.2")
-    isctest.check.noerror(res2)
-    res3 = isctest.query.tcp(msg, "10.53.0.3")
-    isctest.check.servfail(res3)

@@ -155,7 +155,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 
 		r.base = sigsha1;
 		r.length = 256;
-		ret = dst_context_verify(ctx, 0, &r);
+		ret = dst_context_verify(ctx, &r);
 		assert_int_equal(ret, ISC_R_SUCCESS);
 
 		dst_context_destroy(&ctx);
@@ -176,7 +176,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 
 	r.base = sigsha256;
 	r.length = 256;
-	ret = dst_context_verify(ctx, 0, &r);
+	ret = dst_context_verify(ctx, &r);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	dst_context_destroy(&ctx);
@@ -196,7 +196,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 
 	r.base = sigsha512;
 	r.length = 256;
-	ret = dst_context_verify(ctx, 0, &r);
+	ret = dst_context_verify(ctx, &r);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	dst_context_destroy(&ctx);

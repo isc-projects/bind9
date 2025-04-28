@@ -355,8 +355,8 @@ cleanup_databuf:
 
 isc_result_t
 dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		  bool ignoretime, unsigned int maxbits, isc_mem_t *mctx,
-		  dns_rdata_t *sigrdata, dns_name_t *wild) {
+		  bool ignoretime, isc_mem_t *mctx, dns_rdata_t *sigrdata,
+		  dns_name_t *wild) {
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
 	isc_region_t r;
@@ -527,7 +527,7 @@ again:
 
 	r.base = sig.signature;
 	r.length = sig.siglen;
-	ret = dst_context_verify(ctx, maxbits, &r);
+	ret = dst_context_verify(ctx, &r);
 	if (ret == ISC_R_SUCCESS && downcase) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(&sig.signer, namebuf, sizeof(namebuf));
@@ -982,7 +982,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 
 	sig_r.base = sig.signature;
 	sig_r.length = sig.siglen;
-	result = dst_context_verify(ctx, 0, &sig_r);
+	result = dst_context_verify(ctx, &sig_r);
 	if (result != ISC_R_SUCCESS) {
 		msg->sig0status = dns_tsigerror_badsig;
 		goto failure;
@@ -1062,8 +1062,8 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 
 		if (sig.algorithm == key.algorithm && sig.keyid == keytag) {
 			result = dns_dnssec_verify(name, rdataset, dstkey,
-						   ignoretime, 0, mctx,
-						   &sigrdata, NULL);
+						   ignoretime, mctx, &sigrdata,
+						   NULL);
 			if (result == ISC_R_SUCCESS) {
 				dst_key_free(&dstkey);
 				return true;
