@@ -852,6 +852,7 @@ gcc:oraclelinux8:amd64:
 system:gcc:oraclelinux8:amd64:
   <<: *oraclelinux_8_amd64_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:oraclelinux8:amd64
       artifacts: true
@@ -859,6 +860,7 @@ system:gcc:oraclelinux8:amd64:
 unit:gcc:oraclelinux8:amd64:
   <<: *oraclelinux_8_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:oraclelinux8:amd64
       artifacts: true
@@ -896,12 +898,10 @@ gcc:8fips:amd64:
     EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode --disable-tracing"
   <<: *oraclelinux_8fips_amd64_image
   <<: *build_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 system:gcc:8fips:amd64:
   <<: *oraclelinux_8fips_amd64_image
   <<: *system_test_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:8fips:amd64
       artifacts: true
@@ -909,7 +909,6 @@ system:gcc:8fips:amd64:
 unit:gcc:8fips:amd64:
   <<: *oraclelinux_8fips_amd64_image
   <<: *unit_test_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:8fips:amd64
       artifacts: true
@@ -921,7 +920,6 @@ gcc:9fips:amd64:
     EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode --disable-leak-detection --disable-tracing"
   <<: *oraclelinux_9fips_amd64_image
   <<: *build_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 system:gcc:9fips:amd64:
   <<: *oraclelinux_9fips_amd64_image
@@ -1097,7 +1095,7 @@ gcc:sid:amd64:
 system:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
-  <<: *system_test_make_check_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:sid:amd64
       artifacts: true
@@ -1105,6 +1103,7 @@ system:gcc:sid:amd64:
 unit:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:sid:amd64
       artifacts: true
@@ -1131,7 +1130,6 @@ system:gcc:out-of-tree:
       artifacts: true
   <<: *base_image
   <<: *system_test_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 unit:gcc:out-of-tree:
   variables:
@@ -1141,7 +1139,6 @@ unit:gcc:out-of-tree:
       artifacts: true
   <<: *base_image
   <<: *unit_test_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 # Jobs for tarball GCC builds on Debian 12 "bookworm" (amd64)
 
@@ -1161,7 +1158,6 @@ gcc:tarball:
 system:gcc:tarball:
   <<: *base_image
   <<: *system_test_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   before_script:
     - cd bind-*
     - *setup_interfaces
@@ -1175,7 +1171,6 @@ system:gcc:tarball:
 unit:gcc:tarball:
   <<: *base_image
   <<: *unit_test_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   before_script:
     - cd bind-*
   needs:
@@ -1203,6 +1198,7 @@ gcc:tumbleweed:amd64:
 system:gcc:tumbleweed:amd64:
   <<: *tumbleweed_latest_amd64_image
   <<: *system_test_job
+  <<: *system_test_make_check_job
   needs:
     - job: gcc:tumbleweed:amd64
       artifacts: true
@@ -1227,6 +1223,7 @@ gcc:focal:amd64:
 system:gcc:focal:amd64:
   <<: *ubuntu_focal_amd64_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:focal:amd64
       artifacts: true
@@ -1234,6 +1231,7 @@ system:gcc:focal:amd64:
 unit:gcc:focal:amd64:
   <<: *ubuntu_focal_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:focal:amd64
       artifacts: true
@@ -1251,6 +1249,7 @@ gcc:jammy:amd64:
 system:gcc:jammy:amd64:
   <<: *ubuntu_jammy_amd64_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:jammy:amd64
       artifacts: true
@@ -1258,6 +1257,7 @@ system:gcc:jammy:amd64:
 unit:gcc:jammy:amd64:
   <<: *ubuntu_jammy_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:jammy:amd64
       artifacts: true
@@ -1325,6 +1325,7 @@ clang:asan:
 system:clang:asan:
   <<: *base_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: clang:asan
       artifacts: true
@@ -1332,6 +1333,7 @@ system:clang:asan:
 unit:clang:asan:
   <<: *base_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: clang:asan
       artifacts: true
@@ -1352,6 +1354,7 @@ system:gcc:tsan:
     TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
   <<: *tsan_fedora_42_amd64_image
   <<: *system_test_tsan_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:tsan
       artifacts: true
@@ -1361,6 +1364,7 @@ unit:gcc:tsan:
     TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
   <<: *tsan_fedora_42_amd64_image
   <<: *unit_test_tsan_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:tsan
       artifacts: true
@@ -1441,6 +1445,7 @@ system:clang:bookworm:amd64:
     SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
   <<: *debian_bookworm_amd64_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: clang:bookworm:amd64
       artifacts: true
@@ -1448,6 +1453,7 @@ system:clang:bookworm:amd64:
 unit:clang:bookworm:amd64:
   <<: *debian_bookworm_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: clang:bookworm:amd64
       artifacts: true
@@ -1461,6 +1467,7 @@ clang:freebsd13:amd64:
 system:clang:freebsd13:amd64:
   <<: *system_test_job
   <<: *freebsd_autoscaler_13_amd64
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: clang:freebsd13:amd64
       artifacts: true
@@ -1468,6 +1475,7 @@ system:clang:freebsd13:amd64:
 unit:clang:freebsd13:amd64:
   <<: *unit_test_job
   <<: *freebsd_autoscaler_13_amd64
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: clang:freebsd13:amd64
       artifacts: true
