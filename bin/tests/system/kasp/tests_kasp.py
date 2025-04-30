@@ -26,6 +26,7 @@ from isctest.kasp import (
     KeyProperties,
     KeyTimingMetadata,
 )
+from isctest.vars.algorithms import ECDSAP256SHA256, ECDSAP384SHA384
 
 pytestmark = pytest.mark.extra_artifacts(
     [
@@ -115,6 +116,21 @@ lifetime = {
     "P30D": int(timedelta(days=30).total_seconds()),
     "P6M": int(timedelta(days=31 * 6).total_seconds()),
 }
+
+KASP_INHERIT_TSIG_SECRET = {
+    "sha1": "FrSt77yPTFx6hTs4i2tKLB9LmE0=",
+    "sha224": "hXfwwwiag2QGqblopofai9NuW28q/1rH4CaTnA==",
+    "sha256": "R16NojROxtxH/xbDl//ehDsHm5DjWTQ2YXV+hGC2iBY=",
+    "view1": "YPfMoAk6h+3iN8MDRQC004iSNHY=",
+    "view2": "4xILSZQnuO1UKubXHkYUsvBRPu8=",
+    "view3": "C1Azf+gGPMmxrUg/WQINP6eV9Y0=",
+}
+
+
+def param(*args, **kwargs):
+    if "id" not in kwargs:
+        kwargs["id"] = args[0]  # use first argument  as test ID
+    return pytest.param(*args, **kwargs)
 
 
 def autosign_properties(alg, size):
@@ -685,6 +701,129 @@ def test_kasp_case(servers, params):
             callback(*arguments, params=params, ksks=ksks, zsks=zsks)
 
 
+@pytest.mark.parametrize(
+    "zone, server_id, tsig_kind",
+    [
+        param("unsigned.tld", "ns2", None),
+        param("none.inherit.signed", "ns4", "sha1"),
+        param("none.override.signed", "ns4", "sha224"),
+        param("inherit.none.signed", "ns4", "sha256"),
+        param("none.none.signed", "ns4", "sha256"),
+        param("inherit.inherit.unsigned", "ns5", "sha1"),
+        param("none.inherit.unsigned", "ns5", "sha1"),
+        param("none.override.unsigned", "ns5", "sha224"),
+        param("inherit.none.unsigned", "ns5", "sha256"),
+        param("none.none.unsigned", "ns5", "sha256"),
+    ],
+)
+def test_kasp_inherit_unsigned(zone, server_id, tsig_kind, servers):
+    server = servers[server_id]
+    tsig = (
+        f"hmac-{tsig_kind}:{tsig_kind}:{KASP_INHERIT_TSIG_SECRET[tsig_kind]}"
+        if tsig_kind
+        else None
+    )
+
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    isctest.kasp.check_keys(zone, keys, [])
+    isctest.kasp.check_dnssecstatus(server, zone, [])
+    isctest.kasp.check_apex(server, zone, [], [], tsig=tsig)
+    isctest.kasp.check_subdomain(server, zone, [], [], tsig=tsig)
+
+
+@pytest.mark.parametrize(
+    "zone, policy, server_id, alg, tsig_kind",
+    [
+        param("signed.tld", "default", "ns2", ECDSAP256SHA256, None),
+        param("override.inherit.signed", "default", "ns4", ECDSAP256SHA256, "sha1"),
+        param("inherit.override.signed", "default", "ns4", ECDSAP256SHA256, "sha224"),
+        param("override.inherit.unsigned", "default", "ns5", ECDSAP256SHA256, "sha1"),
+        param("inherit.override.unsigned", "default", "ns5", ECDSAP256SHA256, "sha224"),
+        param("inherit.inherit.signed", "test", "ns4", ECDSAP384SHA384, "sha1"),
+        param("override.override.signed", "test", "ns4", ECDSAP384SHA384, "sha224"),
+        param("override.none.signed", "test", "ns4", ECDSAP384SHA384, "sha256"),
+        param("override.override.unsigned", "test", "ns5", ECDSAP384SHA384, "sha224"),
+        param("override.none.unsigned", "test", "ns5", ECDSAP384SHA384, "sha256"),
+    ],
+)
+def test_kasp_inherit_signed(zone, policy, server_id, alg, tsig_kind, servers):
+    server = servers[server_id]
+    tsig = (
+        f"hmac-{tsig_kind}:{tsig_kind}:{KASP_INHERIT_TSIG_SECRET[tsig_kind]}"
+        if tsig_kind
+        else None
+    )
+
+    key1 = KeyProperties.default()
+    key1.metadata["Algorithm"] = alg.number
+    key1.metadata["Length"] = alg.bits
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+
+    isctest.kasp.check_zone_is_signed(server, zone, tsig=tsig)
+    isctest.kasp.check_keys(zone, keys, [key1])
+    set_keytimes_default_policy(key1)
+    isctest.kasp.check_keytimes(keys, [key1])
+    check_all(server, zone, policy, keys, [], tsig=tsig)
+
+
+@pytest.mark.parametrize(
+    "number, dynamic, inline_signing, txt_rdata",
+    [
+        param("1", "yes", "no", "view1"),
+        param("2", "no", "yes", "view2"),
+        param("3", "no", "yes", "view2"),
+    ],
+)
+def test_kasp_inherit_view(number, dynamic, inline_signing, txt_rdata, servers):
+    zone = "example.net"
+    policy = "test"
+    server = servers["ns4"]
+    view = f"example{number}"
+    tsig = f"{os.environ['DEFAULT_HMAC']}:keyforview{number}:{KASP_INHERIT_TSIG_SECRET[f'view{number}']}"
+
+    key1 = KeyProperties.default()
+    key1.metadata["Algorithm"] = ECDSAP384SHA384.number
+    key1.metadata["Length"] = ECDSAP384SHA384.bits
+    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+
+    isctest.kasp.check_zone_is_signed(server, zone, tsig=tsig)
+    isctest.kasp.check_keys(zone, keys, [key1])
+    set_keytimes_default_policy(key1)
+    isctest.kasp.check_keytimes(keys, [key1])
+    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy, view=view)
+    isctest.kasp.check_apex(server, zone, keys, [], tsig=tsig)
+    # check zonestatus
+    response = server.rndc(f"zonestatus {zone} in {view}", log=False)
+    assert f"dynamic: {dynamic}" in response
+    assert f"inline signing: {inline_signing}" in response
+    # check subdomain
+    fqdn = f"{zone}."
+    qname = f"view.{zone}."
+    qtype = dns.rdatatype.TXT
+    rdata = txt_rdata
+    query = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
+    tsigkey = tsig.split(":")
+    keyring = dns.tsig.Key(tsigkey[1], tsigkey[2], tsigkey[0])
+    query.use_tsig(keyring)
+    try:
+        response = isctest.query.tcp(query, server.ip, server.ports.dns, timeout=3)
+    except dns.exception.Timeout:
+        isctest.log.debug(f"query timeout for query {qname} {qtype} to {server.ip}")
+        response = None
+    assert response.rcode() == dns.rcode.NOERROR
+    match = f'{qname} 300 IN TXT "{rdata}"'
+    rrsigs = []
+    for rrset in response.answer:
+        if rrset.match(
+            dns.name.from_text(qname), dns.rdataclass.IN, dns.rdatatype.RRSIG, qtype
+        ):
+            rrsigs.append(rrset)
+        else:
+            assert match in rrset.to_text()
+    assert len(rrsigs) > 0
+    isctest.kasp.check_signatures(rrsigs, qtype, fqdn, keys, [])
+
+
 def test_kasp_default(servers):
     server = servers["ns3"]
 
@@ -921,6 +1060,166 @@ def test_kasp_dynamic(servers):
     assert f"zone_resigninc: zone {zone}/IN (unsigned): enter" not in "ns3/named.run"
 
 
+def test_kasp_checkds(servers):
+    server = servers["ns3"]
+
+    def wait_for_metadata():
+        return isctest.util.file_contents_contain(ksk.statefile, metadata)
+
+    # Zone: checkds-ksk.kasp.
+    zone = "checkds-ksk.kasp"
+    policy = "checkds-ksk"
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    policy_keys = [
+        f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"zsk unlimited {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if k.is_zsk()]
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    check_all(server, zone, policy, ksks, zsks)
+
+    now = KeyTimingMetadata.now()
+    ksk = ksks[0]
+
+    isctest.log.info("check if checkds -publish correctly sets DSPublish")
+    server.rndc(f"dnssec -checkds -when {now} published {zone}", log=False)
+    metadata = f"DSPublish: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "rumoured"
+    expected[0].timing["DSPublish"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    isctest.log.info("check if checkds -withdrawn correctly sets DSRemoved")
+    server.rndc(f"dnssec -checkds -when {now} withdrawn {zone}", log=False)
+    metadata = f"DSRemoved: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "unretentive"
+    expected[0].timing["DSRemoved"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+
+def test_kasp_checkds_doubleksk(servers):
+    server = servers["ns3"]
+
+    def wait_for_metadata():
+        return isctest.util.file_contents_contain(ksk.statefile, metadata)
+
+    # Zone: checkds-doubleksk.kasp.
+    zone = "checkds-doubleksk.kasp"
+    policy = "checkds-doubleksk"
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    policy_keys = [
+        f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"zsk unlimited {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if k.is_zsk()]
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    check_all(server, zone, policy, ksks, zsks)
+
+    now = KeyTimingMetadata.now()
+    ksk = ksks[0]
+
+    badalg = os.environ["ALTERNATIVE_ALGORITHM_NUMBER"]
+    isctest.log.info("check invalid checkds commands")
+
+    def check_error():
+        response = server.rndc(test["command"], log=False)
+        assert test["error"] in response
+
+    test_cases = [
+        {
+            "command": f"dnssec -checkds -when {now} published {zone}",
+            "error": "multiple possible keys found, retry command with -key id",
+        },
+        {
+            "command": f"dnssec -checkds -when {now} withdrawn {zone}",
+            "error": "multiple possible keys found, retry command with -key id",
+        },
+        {
+            "command": f"dnssec -checkds -when {now} -key {ksks[0].tag} -alg {badalg} published {zone}",
+            "error": "Error executing checkds command: no matching key found",
+        },
+        {
+            "command": f"dnssec -checkds -when {now} -key {ksks[0].tag} -alg {badalg} withdrawn {zone}",
+            "error": "Error executing checkds command: no matching key found",
+        },
+    ]
+    for test in test_cases:
+        check_error()
+
+    isctest.log.info("check if checkds -publish -key correctly sets DSPublish")
+    server.rndc(
+        f"dnssec -checkds -when {now} -key {ksk.tag} published {zone}", log=False
+    )
+    metadata = f"DSPublish: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "rumoured"
+    expected[0].timing["DSPublish"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    isctest.log.info("check if checkds -withdrawn -key correctly sets DSRemoved")
+    ksk = ksks[1]
+    server.rndc(
+        f"dnssec -checkds -when {now} -key {ksk.tag} withdrawn {zone}", log=False
+    )
+    metadata = f"DSRemoved: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[1].metadata["DSState"] = "unretentive"
+    expected[1].timing["DSRemoved"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+
+def test_kasp_checkds_csk(servers):
+    server = servers["ns3"]
+
+    def wait_for_metadata():
+        return isctest.util.file_contents_contain(ksk.statefile, metadata)
+
+    # Zone: checkds-csk.kasp.
+    zone = "checkds-csk.kasp"
+    policy = "checkds-csk"
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    policy_keys = [
+        f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+    ]
+    expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+    check_all(server, zone, policy, keys, [])
+
+    now = KeyTimingMetadata.now()
+    ksk = keys[0]
+
+    isctest.log.info("check if checkds -publish csk correctly sets DSPublish")
+    server.rndc(f"dnssec -checkds -when {now} published {zone}", log=False)
+    metadata = f"DSPublish: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "rumoured"
+    expected[0].timing["DSPublish"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    isctest.log.info("check if checkds -withdrawn csk correctly sets DSRemoved")
+    server.rndc(f"dnssec -checkds -when {now} withdrawn {zone}", log=False)
+    metadata = f"DSRemoved: {now}"
+    isctest.run.retry_with_timeout(wait_for_metadata, timeout=3)
+    expected[0].metadata["DSState"] = "unretentive"
+    expected[0].timing["DSRemoved"] = now
+    isctest.kasp.check_keys(zone, keys, expected)
+
+
 def test_kasp_special_characters(servers):
     server = servers["ns3"]
 
@@ -1151,3 +1450,197 @@ def test_kasp_dnssec_keygen():
     out = isctest.run.cmd(settime, log_stdout=True).stdout.decode("utf-8")
     isctest.kasp.check_keys("kasp", keys, expected)
     isctest.kasp.check_keytimes(keys, expected)
+
+
+def test_kasp_zsk_retired(servers):
+    server = servers["ns3"]
+
+    config = {
+        "dnskey-ttl": timedelta(seconds=300),
+        "ds-ttl": timedelta(days=1),
+        "max-zone-ttl": timedelta(days=1),
+        "parent-propagation-delay": timedelta(hours=1),
+        "publish-safety": timedelta(hours=1),
+        "retire-safety": timedelta(hours=1),
+        "signatures-refresh": timedelta(days=7),
+        "signatures-validity": timedelta(days=14),
+        "zone-propagation-delay": timedelta(minutes=5),
+    }
+
+    zone = "zsk-retired.autosign"
+    policy = "autosign"
+    alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
+    size = os.environ["DEFAULT_BITS"]
+    key_properties = [
+        f"ksk 63072000 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+        # zsk predecessor
+        f"zsk 31536000 {alg} {size} goal:hidden dnskey:omnipresent zrrsig:omnipresent",
+        # zsk successor
+        f"zsk 31536000 {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:hidden",
+    ]
+    expected = isctest.kasp.policy_to_properties(300, key_properties)
+    keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
+    ksks = [k for k in keys if k.is_ksk()]
+    zsks = [k for k in keys if not k.is_ksk()]
+    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_keys(zone, keys, expected)
+
+    offset = -timedelta(days=30 * 6)
+    sign_delay = config["signatures-validity"] - config["signatures-refresh"]
+
+    def sumvars(variables):
+        result = timedelta(0)
+        for var in variables:
+            result = result + config[var]
+        return result
+
+    # KSK Key Timings:
+    # IpubC = DprpC + TTLkey
+    # Note: Also need to wait until the signatures are omnipresent.
+    # That's why we use max-zone-ttl instead of dnskey-ttl here.
+    Ipub_KSK = sumvars(["zone-propagation-delay", "max-zone-ttl"])
+    # Iret = DprpP + TTLds
+    Iret_KSK = sumvars(["parent-propagation-delay", "retire-safety", "ds-ttl"])
+
+    # ZSK Key Timings:
+    # Ipub = Dprp + TTLkey
+    Ipub_ZSK = sumvars(["zone-propagation-delay", "publish-safety", "dnskey-ttl"])
+    # Iret = Dsgn + Dprp + TTLsig
+    Iret_ZSK = sumvars(["zone-propagation-delay", "retire-safety", "max-zone-ttl"])
+    Iret_ZSK = Iret_ZSK + sign_delay
+
+    # KSK
+    expected[0].timing["Generated"] = expected[0].key.get_timing("Created")
+    expected[0].timing["Published"] = expected[0].timing["Generated"]
+    expected[0].timing["Published"] = expected[0].timing["Published"] + offset
+    expected[0].timing["Active"] = expected[0].timing["Published"]
+    expected[0].timing["Retired"] = expected[0].timing["Published"] + int(
+        expected[0].metadata["Lifetime"]
+    )
+    # Trdy(N) = Tpub(N) + IpubC
+    expected[0].timing["PublishCDS"] = expected[0].timing["Published"] + Ipub_KSK
+    # Tdea(N) = Tret(N) + Iret
+    expected[0].timing["Removed"] = expected[0].timing["Retired"] + Iret_KSK
+    expected[0].timing["DNSKEYChange"] = None
+    expected[0].timing["DSChange"] = None
+    expected[0].timing["KRRSIGChange"] = None
+
+    # ZSK (predecessor)
+    expected[1].timing["Generated"] = expected[1].key.get_timing("Created")
+    expected[1].timing["Published"] = expected[1].timing["Generated"] + offset
+    expected[1].timing["Active"] = expected[1].timing["Published"]
+    expected[1].timing["Retired"] = expected[1].timing["Generated"]
+    # Tdea(N) = Tret(N) + Iret
+    expected[1].timing["Removed"] = expected[1].timing["Retired"] + Iret_ZSK
+    expected[1].timing["DNSKEYChange"] = None
+    expected[1].timing["ZRRSIGChange"] = None
+
+    # ZSK (successor)
+    expected[2].timing["Generated"] = expected[2].key.get_timing("Created")
+    expected[2].timing["Published"] = expected[2].timing["Generated"]
+    # Trdy(N) = Tpub(N) + Ipub
+    expected[2].timing["Active"] = expected[2].timing["Published"] + Ipub_ZSK
+    # Tret(N) = Tact(N) + Lzsk
+    expected[2].timing["Retired"] = expected[2].timing["Active"] + int(
+        expected[2].metadata["Lifetime"]
+    )
+    # Tdea(N) = Tret(N) + Iret
+    expected[2].timing["Removed"] = expected[2].timing["Retired"] + Iret_ZSK
+    expected[2].timing["DNSKEYChange"] = None
+    expected[2].timing["ZRRSIGChange"] = None
+
+    isctest.kasp.check_keytimes(keys, expected)
+    check_all(server, zone, policy, ksks, zsks)
+
+    queries = [
+        f"{zone} DNSKEY",
+        f"{zone} SOA",
+        f"{zone} NS",
+        f"{zone} NSEC",
+        f"a.{zone} A",
+        f"a.{zone} NSEC",
+        f"b.{zone} A",
+        f"b.{zone} NSEC",
+        f"c.{zone} A",
+        f"c.{zone} NSEC",
+        f"ns3.{zone} A",
+        f"ns3.{zone} NSEC",
+    ]
+
+    def rrsig_is_refreshed():
+        parts = query.split()
+        qname = parts[0]
+        qtype = dns.rdatatype.from_text(parts[1])
+        return isctest.kasp.verify_rrsig_is_refreshed(
+            server, zone, f"ns3/{zone}.db.signed", qname, qtype, ksks, zsks
+        )
+
+    for query in queries:
+        isctest.run.retry_with_timeout(rrsig_is_refreshed, timeout=5)
+
+    # Load again, make sure the purged key is not an issue when verifying keys.
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"loadkeys {zone}", log=False)
+        watcher.wait_for_line(f"keymgr: {zone} done")
+
+    msg = f"zone {zone}/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
+    server.log.prohibit(msg)
+
+
+def test_kasp_reload_restart(servers):
+    server = servers["ns6"]
+    zone = "example"
+
+    def query_soa(qname):
+        fqdn = dns.name.from_text(qname)
+        qtype = dns.rdatatype.SOA
+        query = dns.message.make_query(fqdn, qtype, use_edns=True, want_dnssec=True)
+        try:
+            response = isctest.query.tcp(query, server.ip, server.ports.dns, timeout=3)
+        except dns.exception.Timeout:
+            isctest.log.debug(f"query timeout for query {qname} SOA to {server.ip}")
+            return 0, 0
+
+        assert response.rcode() == dns.rcode.NOERROR
+
+        for rr in response.answer:
+            if rr.match(fqdn, dns.rdataclass.IN, dns.rdatatype.RRSIG, qtype):
+                continue
+
+            assert rr.match(fqdn, dns.rdataclass.IN, qtype, dns.rdatatype.NONE)
+            assert len(rr) == 1
+            return rr[0].serial, rr.ttl
+
+        return 0, 0
+
+    def check_soa_ttl():
+        soa2, ttl2 = query_soa(zone)
+        return soa1 < soa2 and ttl2 == newttl
+
+    # Check that the SOA SERIAL increases and check the TTLs (should be 300 as
+    # defined in ns6/example2.db.in).
+    soa1, ttl1 = query_soa(zone)
+    assert ttl1 == 300
+
+    shutil.copyfile(f"ns6/{zone}2.db.in", f"ns6/{zone}.db")
+    with server.watch_log_from_here() as watcher:
+        server.rndc("reload", log=False)
+        watcher.wait_for_line("all zones loaded")
+
+    newttl = 300
+    isctest.run.retry_with_timeout(check_soa_ttl, timeout=10)
+
+    # Check that the SOA SERIAL increases and check the TTLs (should be changed
+    # from 300 to 400 as defined in ns6/example3.db.in).
+    soa1, ttl1 = query_soa(zone)
+    assert ttl1 == 300
+
+    server.stop()
+    shutil.copyfile(f"ns6/{zone}3.db.in", f"ns6/{zone}.db")
+    os.unlink(f"ns6/{zone}.db.jnl")
+    with server.watch_log_from_here() as watcher:
+        server.start(["--noclean", "--restart", "--port", os.environ["PORT"]])
+        watcher.wait_for_line("all zones loaded")
+
+    newttl = 400
+    isctest.run.retry_with_timeout(check_soa_ttl, timeout=10)
