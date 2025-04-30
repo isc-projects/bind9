@@ -319,6 +319,9 @@ stages:
   - rm -f bind-*.tar.xz
   - cd bind-*
 
+.fips-feature-test: &fips_feature_test
+    - if bin/tests/system/feature-test --have-fips-mode; then fips-mode-setup --check; fips-mode-setup --is-enabled; fi
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -337,6 +340,7 @@ stages:
     - test -z "${CROSS_COMPILATION}" || ( ! git ls-files -z --others --exclude lib/dns/gen | xargs -0 file | grep "ELF 64-bit LSB" )
     - if test -z "${OUT_OF_TREE_WORKSPACE}" && test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - bin/named/named -V
+    - *fips_feature_test
   needs:
     - job: autoreconf
       artifacts: true
@@ -406,6 +410,7 @@ stages:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cp -r bin/tests/system/* "${OUT_OF_TREE_WORKSPACE}/bin/tests/system/" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *setup_interfaces
   script:
+    - *fips_feature_test
     - *find_pytest
     - *find_python
     - ( if [ "${CI_DISPOSABLE_ENVIRONMENT}" = "true" ]; then sleep 3000; "$PYTHON" "${CI_PROJECT_DIR}/util/get-running-system-tests.py"; fi ) &
@@ -467,6 +472,7 @@ stages:
   before_script:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
   script:
+    - *fips_feature_test
     - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
     - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || make clean >/dev/null 2>&1
   after_script:
