@@ -103,6 +103,13 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 		} else                                            \
 			isc_buffer_putstr(b, s);                  \
 	}
+#define PUT_YAMLSTR(target, namebuf, len, utfok)                   \
+	{                                                          \
+		result = put_yamlstr(target, namebuf, len, utfok); \
+		if (result != ISC_R_SUCCESS) {                     \
+			goto cleanup;                              \
+		}                                                  \
+	}
 #define VALID_NAMED_PSEUDOSECTION(s) \
 	(((s) > DNS_PSEUDOSECTION_ANY) && ((s) < DNS_PSEUDOSECTION_MAX))
 #define VALID_PSEUDOSECTION(s) \
@@ -3641,11 +3648,8 @@ render_nameopt(isc_buffer_t *optbuf, bool yaml, isc_buffer_t *target) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		ADD_STRING(target, " \"");
 		if (yaml) {
-			result = put_yamlstr(target, (unsigned char *)namebuf,
-					     strlen(namebuf), false);
-			if (result != ISC_R_SUCCESS) {
-				goto cleanup;
-			}
+			PUT_YAMLSTR(target, (unsigned char *)namebuf,
+				    strlen(namebuf), false);
 		} else {
 			ADD_STRING(target, namebuf);
 		}
@@ -4059,7 +4063,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 				} else {
 					ADD_STRING(target, "\"");
 				}
-				put_yamlstr(target, optdata, optlen, utf8ok);
+				PUT_YAMLSTR(target, optdata, optlen, utf8ok);
 				if (!extra_text) {
 					ADD_STRING(target, "\")");
 				} else {
