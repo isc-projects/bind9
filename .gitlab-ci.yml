@@ -175,14 +175,14 @@ stages:
   image: "$CI_REGISTRY_IMAGE:alpine-3.21-amd64"
   <<: *linux_amd64
 
-# Oracle Linux
+# AlmaLinux
 
-.oraclelinux-8-amd64: &oraclelinux_8_amd64_image
-  image: "$CI_REGISTRY_IMAGE:oraclelinux-8-amd64"
+.almalinux-8-amd64: &almalinux_8_amd64_image
+  image: "$CI_REGISTRY_IMAGE:almalinux-8-amd64"
   <<: *linux_amd64
 
-.oraclelinux-9-amd64: &oraclelinux_9_amd64_image
-  image: "$CI_REGISTRY_IMAGE:oraclelinux-9-amd64"
+.almalinux-9-amd64: &almalinux_9_amd64_image
+  image: "$CI_REGISTRY_IMAGE:almalinux-9-amd64"
   <<: *linux_amd64
 
 # Debian
@@ -847,54 +847,54 @@ unit:gcc:alpine3.21:amd64:
     - job: gcc:alpine3.21:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Oracle Linux 8 (amd64)
+# Jobs for regular GCC builds on Alma Linux 8 (amd64)
 
-gcc:oraclelinux8:amd64:
+gcc:almalinux8:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *oraclelinux_8_amd64_image
+  <<: *almalinux_8_amd64_image
   <<: *build_job
 
-system:gcc:oraclelinux8:amd64:
-  <<: *oraclelinux_8_amd64_image
+system:gcc:almalinux8:amd64:
+  <<: *almalinux_8_amd64_image
   <<: *system_test_job
   <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
-    - job: gcc:oraclelinux8:amd64
+    - job: gcc:almalinux8:amd64
       artifacts: true
 
-unit:gcc:oraclelinux8:amd64:
-  <<: *oraclelinux_8_amd64_image
+unit:gcc:almalinux8:amd64:
+  <<: *almalinux_8_amd64_image
   <<: *unit_test_job
   <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
-    - job: gcc:oraclelinux8:amd64
+    - job: gcc:almalinux8:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Oracle Linux 9 (amd64)
+# Jobs for regular GCC builds on Alma Linux 9 (amd64)
 
-gcc:oraclelinux9:amd64:
+gcc:almalinux9:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2 --disable-developer"
-  <<: *oraclelinux_9_amd64_image
+  <<: *almalinux_9_amd64_image
   <<: *build_job
 
-system:gcc:oraclelinux9:amd64:
-  <<: *oraclelinux_9_amd64_image
+system:gcc:almalinux9:amd64:
+  <<: *almalinux_9_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:oraclelinux9:amd64
+    - job: gcc:almalinux9:amd64
       artifacts: true
 
-unit:gcc:oraclelinux9:amd64:
-  <<: *oraclelinux_9_amd64_image
+unit:gcc:almalinux9:amd64:
+  <<: *almalinux_9_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:oraclelinux9:amd64
+    - job: gcc:almalinux9:amd64
       artifacts: true
 
 gcc:tarball:nosphinx:
@@ -903,7 +903,7 @@ gcc:tarball:nosphinx:
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2 --disable-developer"
     RUN_MAKE_INSTALL: 1
-  <<: *oraclelinux_9_amd64_image
+  <<: *almalinux_9_amd64_image
   <<: *build_job
   before_script:
     - (! command -v sphinx-build >/dev/null)
