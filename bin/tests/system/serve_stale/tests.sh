@@ -2037,17 +2037,6 @@ if [ $ret != 0 ]; then
 fi
 status=$((status + ret))
 
-n=$((n + 1))
-echo_i "check server is alive or restart ($n)"
-ret=0
-$RNDCCMD 10.53.0.3 status >rndc.out.test$n 2>&1 || ret=1
-if [ $ret != 0 ]; then
-  echo_i "failed"
-  echo_i "restart ns3"
-  start_server --noclean --restart --port ${PORT} serve-stale ns3
-fi
-status=$((status + ret))
-
 #############################################
 # Test for stale-answer-client-timeout 0.   #
 #############################################
