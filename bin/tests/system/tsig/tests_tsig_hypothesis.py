@@ -17,15 +17,6 @@ import pytest
 
 pytest.importorskip("dns", minversion="2.7.0")  # TSIG parsing without validation
 
-# in FIPs mode md5 fails so we need 4.41.2 or later which does not use md5
-try:
-    import hashlib
-
-    hashlib.md5(b"1234")
-    pytest.importorskip("hypothesis")
-except ValueError:
-    pytest.importorskip("hypothesis", minversion="4.41.2")
-
 import dns.exception
 import dns.message
 import dns.name
@@ -35,11 +26,11 @@ import dns.rdtypes.ANY.TSIG
 import dns.rrset
 import dns.tsig
 
-from hypothesis import assume, example, given, HealthCheck, settings
-from hypothesis.strategies import binary, booleans, composite, just, sampled_from
-
 import isctest
 from isctest.hypothesis.strategies import dns_names, uint
+
+from hypothesis import assume, example, given, HealthCheck, settings
+from hypothesis.strategies import binary, booleans, composite, just, sampled_from
 
 
 pytestmark = pytest.mark.extra_artifacts(
