@@ -735,6 +735,10 @@ linkcheck:
   <<: *base_image
   stage: docs
   script:
+    # Some domains tested by linkchecker may think that we connect to them too
+    # often and will refuse connection or reply with and error code, which
+    # makes this job fail. Let's check links only on Wednesdays.
+    - if [ "$(date +%w)" != "3" ]; then exit 0; fi
     - pushd doc/arm/ > /dev/null && sphinx-build -b linkcheck . linkcheck_output/
   artifacts:
     paths:
