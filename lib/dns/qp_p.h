@@ -143,14 +143,14 @@ enum {
  * size to make the allocator work harder.
  */
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-#define QP_CHUNK_LOG_MIN 6
+#define QP_CHUNK_LOG_MIN 7
 #define QP_CHUNK_LOG_MAX 7
 #else
-#define QP_CHUNK_LOG_MIN 6
-#define QP_CHUNK_LOG_MAX 10
+#define QP_CHUNK_LOG_MIN 3
+#define QP_CHUNK_LOG_MAX 12
 #endif
 
-STATIC_ASSERT(6 <= QP_CHUNK_LOG_MIN && QP_CHUNK_LOG_MIN <= QP_CHUNK_LOG_MAX,
+STATIC_ASSERT(2 <= QP_CHUNK_LOG_MIN && QP_CHUNK_LOG_MIN <= QP_CHUNK_LOG_MAX,
 	      "qp-trie min chunk size is unreasonable");
 STATIC_ASSERT(6 <= QP_CHUNK_LOG_MAX && QP_CHUNK_LOG_MAX <= 20,
 	      "qp-trie max chunk size is unreasonable");

@@ -49,7 +49,7 @@
 #include "qp_p.h"
 
 #ifndef DNS_QP_LOG_STATS
-#define DNS_QP_LOG_STATS 1
+#define DNS_QP_LOG_STATS 0
 #endif
 #ifndef DNS_QP_TRACE
 #define DNS_QP_TRACE 0
@@ -1304,7 +1304,10 @@ dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp) {
  */
 void
 dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
-	unsigned int nfree = 0;
+	/*
+	 * nfree is only used when logging stats, hence the attribute.
+	 */
+	unsigned int nfree ISC_ATTR_UNUSED = 0;
 
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(multi->writer.transaction_mode == QP_UPDATE);
