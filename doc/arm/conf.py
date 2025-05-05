@@ -225,6 +225,7 @@ linkcheck_ignore = [
     "https://www.dnssec-or-not.com/",
     "https://www.flaticon.com/",
     "https://www.freepik.com/",
+    "https://www.gnu.org",
     "https://www.godaddy.com",
     "https://www.icann.org",
 ]
