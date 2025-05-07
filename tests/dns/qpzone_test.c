@@ -39,7 +39,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #undef CHECK
-#define DEFAULT_BUCKETS_COUNT 1
 #include "qpzone.c"
 #pragma GCC diagnostic pop
 
@@ -130,8 +129,6 @@ ownercase_test_one(const char *str1, const char *str2) {
 	dns_name_t *name2 = dns_fixedname_initname(&fname2);
 
 	/* Minimal initialization of the mock objects */
-	NODE_INITLOCK(&qpdb->buckets[0].lock);
-
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
 	result = dns_name_fromtext(name1, &b, dns_rootname, 0);
@@ -149,8 +146,6 @@ ownercase_test_one(const char *str1, const char *str2) {
 
 	/* Retrieve the case to name2 */
 	dns_rdataset_getownercase(&rdataset, name2);
-
-	NODE_DESTROYLOCK(&qpdb->buckets[0].lock);
 
 	return dns_name_caseequal(name1, name2);
 }
@@ -201,8 +196,6 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	UNUSED(state);
 
 	/* Minimal initialization of the mock objects */
-	NODE_INITLOCK(&qpdb->buckets[0].lock);
-
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
 	result = dns_name_fromtext(name1, &b, dns_rootname, 0);
@@ -217,8 +210,6 @@ ISC_RUN_TEST_IMPL(setownercase) {
 
 	/* Retrieve the case to name2 */
 	dns_rdataset_getownercase(&rdataset, name2);
-
-	NODE_DESTROYLOCK(&qpdb->buckets[0].lock);
 
 	assert_true(dns_name_caseequal(name1, name2));
 }
