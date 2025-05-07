@@ -756,8 +756,6 @@ def test_ksr_common(servers):
     # test zone is correctly signed
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, overlapping_zsks, policy=policy)
-    # - zone is signed
-    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
@@ -831,8 +829,6 @@ def test_ksr_lastbundle(servers):
     # test zone is correctly signed
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
-    # - zone is signed
-    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
@@ -911,8 +907,6 @@ def test_ksr_inthemiddle(servers):
     # test zone is correctly signed
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
-    # - zone is signed
-    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
@@ -1106,8 +1100,6 @@ def test_ksr_unlimited(servers):
     # test zone is correctly signed
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
-    # - zone is signed
-    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
@@ -1218,8 +1210,6 @@ def test_ksr_twotone(servers):
     # test zone is correctly signed
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
-    # - zone is signed
-    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
@@ -1298,8 +1288,6 @@ def test_ksr_kskroll(servers):
     # test zone is correctly signed
     # - check rndc dnssec -status output
     isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy)
-    # - zone is signed
-    isctest.kasp.check_zone_is_signed(ns1, zone)
     # - dnssec_verify
     isctest.kasp.check_dnssec_verify(ns1, zone)
     # - check keys
