@@ -11,13 +11,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import base64
 import os
 from pathlib import Path
 
 import pytest
 
-pytest.importorskip("dns", minversion="2.0.0")
+pytest.importorskip("dns", minversion="2.5.0")
 from dns.dnssectypes import NSEC3Hash
 import dns.dnssec
 import dns.message
@@ -104,23 +103,6 @@ def is_delegated(name, delegations):
     return False
 
 
-def get_next_name(rr: dns.rrset.RRset, origin: dns.name.Name) -> dns.name.Name:
-    """
-    Get the domain name of the next NSEC3, given the NSEC3 record 'rr'.
-    This fetches the value of the Next Hashed Owner Name field, and
-    creates the domain name by concatenating the decoded hash and the
-    origin.
-    """
-    # Conversion copied from dnspython.dnssec.nsec3_hash
-    b32_conversion = str.maketrans(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", "0123456789ABCDEFGHIJKLMNOPQRSTUV"
-    )
-    next_hashed = base64.b32encode(rr.next).decode("utf-8")
-    next_hashed = next_hashed.translate(b32_conversion)
-    next_name = dns.name.from_text(next_hashed, origin)
-    return next_name
-
-
 def nsec3_covers(rrset: dns.rrset.RRset, hashed_name: dns.name.Name) -> bool:
     """
     Test if 'hashed_name' is covered by an NSEC3 record in 'rrset'.
@@ -128,7 +110,7 @@ def nsec3_covers(rrset: dns.rrset.RRset, hashed_name: dns.name.Name) -> bool:
     prev_name = rrset.name
 
     for nsec3 in rrset:
-        next_name = get_next_name(nsec3, SUFFIX)
+        next_name = nsec3.next_name(SUFFIX)
 
         # Single name case.
         if prev_name == next_name:
