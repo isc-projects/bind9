@@ -287,18 +287,16 @@ struct dns_message {
 	ISC_LIST(dns_rdata_t) freerdata;
 	ISC_LIST(dns_rdatalist_t) freerdatalist;
 
-	dns_rcode_t tsigstatus;
-	dns_rcode_t querytsigstatus;
-	dns_name_t *tsigname; /* Owner name of TSIG, if any
-			       * */
+	dns_rcode_t	tsigstatus;
+	dns_rcode_t	querytsigstatus;
+	dns_name_t     *tsigname; /* Owner name of TSIG, if any */
 	dns_rdataset_t *querytsig;
 	dns_tsigkey_t  *tsigkey;
 	dst_context_t  *tsigctx;
 	int		sigstart;
 	int		timeadjust;
 
-	dns_name_t *sig0name; /* Owner name of SIG0, if any
-			       * */
+	dns_name_t  *sig0name; /* Owner name of SIG0, if any */
 	dst_key_t   *sig0key;
 	dns_rcode_t  sig0status;
 	isc_region_t query;
