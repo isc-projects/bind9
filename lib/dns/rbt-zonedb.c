@@ -1319,19 +1319,11 @@ found:
 		/*
 		 * We have an exact match for the name, but there are no
 		 * active rdatasets in the desired version.  That means that
-		 * this node doesn't exist in the desired version.
-		 * If there's a node above this one, reassign the
-		 * foundname to the parent and treat this as a partial
-		 * match.
+		 * this node doesn't exist in the desired version, and that
+		 * we really have a partial match.
 		 */
 		if (!wild) {
 			NODE_UNLOCK(lock, &nlocktype);
-			if (search.chain.level_count > 0) {
-				dns_dbnode_t *parent =
-					search.chain.levels
-						[search.chain.level_count - 1];
-				dns_rbt_fullnamefromnode(parent, foundname);
-			}
 			goto partial_match;
 		}
 	}
