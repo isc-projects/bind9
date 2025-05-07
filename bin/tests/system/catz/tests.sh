@@ -2445,8 +2445,8 @@ n=$((n + 1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
 wait_for_message ns2/named.run "catz: catz_delzone_cb: zone 'dom17.example' deleted" \
-  && wait_for_message ns2/named.run "catz: catz_delzone_cb: zone 'dom18.example' deleted" \
-  && if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  && wait_for_message ns2/named.run "catz: catz_delzone_cb: zone 'dom18.example' deleted" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
