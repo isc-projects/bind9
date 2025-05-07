@@ -158,6 +158,27 @@ def check_nsec3_covers(name: dns.name.Name, response: dns.message.Message) -> No
 # @given(name=just(dns.name.from_text(f"\000.\001.{SUFFIX}")))
 # @given(name=just(dns.name.from_text(f"a.wild.{SUFFIX}")))
 def test_dnssec_nsec3_nxdomain(server, name: dns.name.Name, named_port: int) -> None:
+    noqname_test(server, name, named_port)
+
+
+@strategies.composite
+def generate_subdomain_of_existing_name(draw):
+    existing = draw(strategies.sampled_from(sorted(KNOWN_NAMES)))
+    subdomain = draw(isctest.hypothesis.strategies.dns_names(suffix=existing))
+    return subdomain
+
+
+@pytest.mark.parametrize(
+    "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
+)
+@given(name=generate_subdomain_of_existing_name())
+def test_dnssec_nsec3_subdomain_nxdomain(
+    server, name: dns.name.Name, named_port: int
+) -> None:
+    noqname_test(server, name, named_port)
+
+
+def noqname_test(server, name: dns.name.Name, named_port: int) -> None:
     # Name must not exist.
     assume(name not in KNOWN_NAMES)
 
