@@ -11015,6 +11015,7 @@ again:
 		 */
 		unsigned int maxlabels = dns_name_countlabels(name);
 		unsigned int minlabels = dns_name_countlabels(fname);
+		unsigned int namelabels = maxlabels;
 		bool search = result == DNS_R_NXDOMAIN;
 		dns_name_copy(name, cname);
 		while (search) {
@@ -11072,7 +11073,7 @@ again:
 		 * Add no qname proof.
 		 */
 		labels = dns_name_countlabels(cname) + 1;
-		if (labels > maxlabels) {
+		if (labels > namelabels) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(cname, namebuf, sizeof(namebuf));
 			ns_client_log(qctx->client, DNS_LOGCATEGORY_DNSSEC,
@@ -11080,7 +11081,7 @@ again:
 				      "closest-encloser name too long: %s",
 				      namebuf);
 			dns_name_copy(name, wname);
-		} else if (labels == maxlabels) {
+		} else if (labels == namelabels) {
 			dns_name_copy(name, wname);
 		} else {
 			dns_name_split(name, labels, NULL, wname);
