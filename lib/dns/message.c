@@ -633,12 +633,11 @@ msgreset(dns_message_t *msg, bool everything) {
 
 static unsigned int
 spacefortsig(dns_tsigkey_t *key, int otherlen) {
-	isc_region_t r1, r2;
-	unsigned int x;
-	isc_result_t result;
+	isc_region_t r1 = { 0 }, r2 = { 0 };
+	unsigned int x = 0;
 
 	/*
-	 * The space required for an TSIG record is:
+	 * The space required for a TSIG record is:
 	 *
 	 *	n1 bytes for the name
 	 *	2 bytes for the type
@@ -659,11 +658,11 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 	 */
 
 	dns_name_toregion(key->name, &r1);
-	dns_name_toregion(key->algorithm, &r2);
-	if (key->key == NULL) {
-		x = 0;
-	} else {
-		result = dst_key_sigsize(key->key, &x);
+	if (key->alg != DST_ALG_UNKNOWN) {
+		dns_name_toregion(dns_tsigkey_algorithm(key), &r2);
+	}
+	if (key->key != NULL) {
+		isc_result_t result = dst_key_sigsize(key->key, &x);
 		if (result != ISC_R_SUCCESS) {
 			x = 0;
 		}
