@@ -36,12 +36,33 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- Return DNS COOKIE and NSID with BADVERS.
+
+  This change allows the client to identify a server that returns a
+  BADVERS response and to provide a DNS SERVER COOKIE to be included in
+  the resent request. :gl:`#5235`
+
+- Disable separate memory context for libxml2 memory allocations on
+  macOS.
+
+  As of macOS Sequoia 15.4, custom memory allocation functions are no
+  longer supported by the system-wide version of libxml2. This prevents
+  tracking libxml2 memory allocations in a separate :iscman:`named`
+  memory context, so the latter has been disabled on macOS; the system
+  allocator is now directly used for libxml2 memory allocations on that
+  operating system. :gl:`#5268`
+
 - Use Jinja2 templates in system tests.
 
   `python-jinja2` is now required to run system tests. :gl:`#4938`
 
 Bug Fixes
 ~~~~~~~~~
+
+- Return the correct NSEC3 records for NXDOMAIN responses.
+
+  The wrong NSEC3 records were sometimes returned as proof that the
+  QNAME did not exist. This has been fixed. :gl:`#5292`
 
 - Fix EDNS YAML output in :iscman:`dig`.
 
@@ -67,22 +88,6 @@ Bug Fixes
 
   :gl:`#5014`
 
-- Return DNS COOKIE and NSID with BADVERS.
-
-  This change allows the client to identify a server that returns a
-  BADVERS response and to provide a DNS SERVER COOKIE to be included in
-  the resent request. :gl:`#5235`
-
-- Disable separate memory context for libxml2 memory allocations on
-  macOS.
-
-  As of macOS Sequoia 15.4, custom memory allocation functions are no
-  longer supported by the system-wide version of libxml2. This prevents
-  tracking libxml2 memory allocations in a separate :iscman:`named`
-  memory context, so the latter has been disabled on macOS; the system
-  allocator is now directly used for libxml2 memory allocations on that
-  operating system. :gl:`#5268`
-
 - Fix RDATA checks for PRIVATEOID keys.
 
   In PRIVATEOID keys, the key data begins with a length byte followed by
@@ -98,8 +103,3 @@ Bug Fixes
   responses were not returned immediately for names in domains delegated
   from authoritative zones configured on the resolver. This has been
   fixed. :gl:`#5275`
-
-- Return the correct NSEC3 records for NXDOMAIN responses.
-
-  The wrong NSEC3 records were sometimes returned as proof that the
-  QNAME did not exist. This has been fixed. :gl:`#5292`
