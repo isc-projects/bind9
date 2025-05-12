@@ -6545,6 +6545,15 @@ failure:
 	return result;
 }
 
+void
+dns_zone_prepare_shutdown(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXITING);
+	UNLOCK_ZONE(zone);
+}
+
 /*%
  * Find DNSSEC keys used for signing zone with dnssec-policy. Load these keys
  * into 'keys'. Requires KASP to be locked.
