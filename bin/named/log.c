@@ -126,18 +126,20 @@ named_log_setsafechannels(isc_logconfig_t *lcfg) {
 		 * discarded a bit faster.
 		 */
 		isc_log_setdebuglevel(0);
-	} else if (named_g_logstderr && (named_g_logflags != 0)) {
+	} else if (named_g_logflags != 0) {
 		/*
-		 * If the option -g is given, but we also requested iso
-		 * timestamps, we'll still need to override the "default_debug"
-		 * logger with a new one.
+		 * The -g option sets logstderr, and also sets logflags
+		 * to print ISO timestamps. Since that isn't the default
+		 * behavior, we need to override the "default_debug"
+		 * channel with a new one.
 		 */
 		isc_log_createchannel(lcfg, "default_debug", ISC_LOG_TOFILEDESC,
 				      ISC_LOG_DYNAMIC,
 				      ISC_LOGDESTINATION_STDERR,
-				      ISC_LOG_PRINTTIME | named_g_logflags);
-	} else {
+				      named_g_logflags);
 		isc_log_setdebuglevel(named_g_debuglevel);
+	} else {
+		UNREACHABLE();
 	}
 
 	if (named_g_logfile != NULL) {
