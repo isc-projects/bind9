@@ -163,81 +163,87 @@ struct ns_clientmgr {
 
 /*% nameserver client structure */
 struct ns_client {
-	unsigned int	 magic;
-	ns_clientmgr_t	*manager;
-	ns_clientstate_t state;
-	bool		 async;
-	unsigned int	 attributes;
-	dns_view_t	*view;
-	dns_dispatch_t	*dispatch;
-	isc_nmhandle_t	*handle;       /* Permanent pointer to handle */
-	isc_nmhandle_t	*sendhandle;   /* Waiting for send callback */
-	isc_nmhandle_t	*reqhandle;    /* Waiting for request callback
-					  (query, update, notify) */
-	isc_nmhandle_t *updatehandle;  /* Waiting for update callback */
-	isc_nmhandle_t *restarthandle; /* Waiting for restart callback */
-	unsigned char  *tcpbuf;
-	size_t		tcpbuf_size;
+	unsigned int magic;
+	struct ns_client_inner {
+		ns_clientstate_t state;
+		bool		 async;
+		unsigned int	 attributes;
+		dns_view_t	*view;
+		dns_dispatch_t	*dispatch;
+		isc_nmhandle_t	*handle;       /* Permanent pointer to handle */
+		isc_nmhandle_t	*sendhandle;   /* Waiting for send callback */
+		isc_nmhandle_t	*reqhandle;    /* Waiting for request callback
+						  (query, update, notify) */
+		isc_nmhandle_t *updatehandle;  /* Waiting for update callback */
+		isc_nmhandle_t *restarthandle; /* Waiting for restart callback
+						*/
+		unsigned char  *tcpbuf;
+		size_t		tcpbuf_size;
+		dns_rdataset_t *opt;
+		uint16_t	udpsize;
+		uint16_t	extflags;
+		int16_t		ednsversion; /* -1 noedns */
+		uint16_t	additionaldepth;
+		void (*cleanup)(ns_client_t *);
+		isc_time_t    requesttime;
+		isc_stdtime_t now;
+		isc_time_t    tnow;
+		dns_name_t    signername; /*%< [T]SIG key name */
+		dns_name_t   *signer;	  /*%< NULL if not valid sig */
+		isc_result_t  sigresult;
+		isc_result_t  viewmatchresult;
+		isc_buffer_t *buffer;
+		isc_buffer_t  tbuffer;
+
+		dns_name_t rad; /* Zone rad domain */
+
+		isc_sockaddr_t peeraddr;
+		bool	       peeraddr_valid;
+		isc_netaddr_t  destaddr;
+		isc_sockaddr_t destsockaddr;
+
+		dns_ecs_t ecs; /*%< EDNS client subnet sent by client */
+
+		/*%
+		 * Information about recent FORMERR response(s), for
+		 * FORMERR loop avoidance.  This is separate for each
+		 * client object rather than global only to avoid
+		 * the need for locking.
+		 */
+		struct {
+			isc_sockaddr_t	addr;
+			isc_stdtime_t	time;
+			dns_messageid_t id;
+		} formerrcache;
+
+		/*% Callback function to send a response when unit testing */
+		void (*sendcb)(isc_buffer_t *buf);
+
+		ISC_LINK(ns_client_t) rlink;
+		unsigned char  cookie[8];
+		uint32_t       expire;
+		unsigned char *zoneversion;
+		uint32_t       zoneversionlength;
+		unsigned char *keytag;
+		uint16_t       keytag_len;
+
+		/*%
+		 * Used to override the DNS response code in ns_client_error().
+		 * If set to -1, the rcode is determined from the result code,
+		 * but if set to any other value, the least significant 12
+		 * bits will be used as the rcode in the response message.
+		 */
+		int32_t rcode_override;
+	} inner;
+
+	/*
+	 * Fields which will be preserved
+	 */
+	ns_clientmgr_t *manager;
 	dns_message_t  *message;
-	dns_rdataset_t *opt;
 	dns_edectx_t	edectx;
-	uint16_t	udpsize;
-	uint16_t	extflags;
-	int16_t		ednsversion; /* -1 noedns */
-	uint16_t	additionaldepth;
-	void (*cleanup)(ns_client_t *);
-	ns_query_t    query;
-	isc_time_t    requesttime;
-	isc_stdtime_t now;
-	isc_time_t    tnow;
-	dns_name_t    signername; /*%< [T]SIG key name */
-	dns_name_t   *signer;	  /*%< NULL if not valid sig */
-	isc_result_t  sigresult;
-	isc_result_t  viewmatchresult;
-	isc_buffer_t *buffer;
-	isc_buffer_t  tbuffer;
-
-	dns_name_t rad; /* Zone rad domain */
-
-	isc_sockaddr_t peeraddr;
-	bool	       peeraddr_valid;
-	isc_netaddr_t  destaddr;
-	isc_sockaddr_t destsockaddr;
-
-	dns_ecs_t ecs; /*%< EDNS client subnet sent by client */
-
-	/*%
-	 * Information about recent FORMERR response(s), for
-	 * FORMERR loop avoidance.  This is separate for each
-	 * client object rather than global only to avoid
-	 * the need for locking.
-	 */
-	struct {
-		isc_sockaddr_t	addr;
-		isc_stdtime_t	time;
-		dns_messageid_t id;
-	} formerrcache;
-
-	/*% Callback function to send a response when unit testing */
-	void (*sendcb)(isc_buffer_t *buf);
-
-	ISC_LINK(ns_client_t) rlink;
-	unsigned char  cookie[8];
-	uint32_t       expire;
-	unsigned char *zoneversion;
-	uint32_t       zoneversionlength;
-	unsigned char *keytag;
-	uint16_t       keytag_len;
-
-	/*%
-	 * Used to override the DNS response code in ns_client_error().
-	 * If set to -1, the rcode is determined from the result code,
-	 * but if set to any other value, the least significant 12
-	 * bits will be used as the rcode in the response message.
-	 */
-	int32_t rcode_override;
-
-	uint8_t sendbuf[NS_CLIENT_SEND_BUFFER_SIZE];
+	ns_query_t	query;
+	uint8_t		sendbuf[NS_CLIENT_SEND_BUFFER_SIZE];
 };
 
 #define NS_CLIENT_MAGIC	   ISC_MAGIC('N', 'S', 'C', 'c')

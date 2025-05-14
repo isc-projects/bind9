@@ -71,12 +71,12 @@ ISC_LOOP_TEST_IMPL(notify_start) {
 
 	ns_test_getclient(NULL, false, &client);
 
-	result = dns_test_makeview("view", false, false, &client->view);
+	result = dns_test_makeview("view", false, false, &client->inner.view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = ns_test_serve_zone("example.com",
 				    TESTS_DIR "/testdata/notify/zone1.db",
-				    client->view);
+				    client->inner.view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -104,16 +104,16 @@ ISC_LOOP_TEST_IMPL(notify_start) {
 	}
 	client->message = nmsg;
 	nmsg = NULL;
-	client->sendcb = check_response;
-	ns_notify_start(client, client->handle);
+	client->inner.sendcb = check_response;
+	ns_notify_start(client, client->inner.handle);
 
 	/*
 	 * Clean up
 	 */
 	ns_test_cleanup_zone();
 
-	handle = client->handle;
-	isc_nmhandle_detach(&client->handle);
+	handle = client->inner.handle;
+	isc_nmhandle_detach(&client->inner.handle);
 	isc_nmhandle_detach(&handle);
 
 	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
