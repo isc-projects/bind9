@@ -1083,6 +1083,7 @@ gcc:ossl3:sid:amd64:
     CFLAGS: "${CFLAGS_COMMON} -O3 -DOPENSSL_NO_DEPRECATED=1 -DOPENSSL_API_COMPAT=30000"
     # See https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
     EXTRA_CONFIGURE: "--without-jemalloc --disable-leak-detection"
+    GNUMAKEFLAGS: "--shuffle=reverse"
     RUN_MAKE_INSTALL: 1
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -1217,6 +1218,7 @@ gcc:tumbleweed:amd64:
     # Doing that requires a DNSRPS provider library to be present on the
     # test host.
     EXTRA_CONFIGURE: "--enable-dnsrps --enable-dnsrps-dl --with-libidn2 ${WITH_READLINE_READLINE}"
+    GNUMAKEFLAGS: "--shuffle=random"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
 
