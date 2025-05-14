@@ -2704,6 +2704,19 @@ dst_algorithm_tosecalg(dst_algorithm_t dst_alg) {
 	return 0;
 }
 
+#if TEST_PRIVATEDNS
+/*
+ * These are examples of specifying an algorithm using
+ * PRIVATEDNS. When creating such an algorithm, use your
+ * organisation's domain name instead of "example.org"
+ * so the identifier will be globally unique.
+ */
+static unsigned char rsasha256dns_data[] = "\011rsasha256\007example\003org";
+static dns_name_t const rsasha256dns = DNS_NAME_INITABSOLUTE(rsasha256dns_data);
+static unsigned char rsasha512dns_data[] = "\011rsasha512\007example\003org";
+static dns_name_t const rsasha512dns = DNS_NAME_INITABSOLUTE(rsasha512dns_data);
+#endif
+
 dst_algorithm_t
 dst_algorithm_fromprivatedns(isc_buffer_t *buffer) {
 	dns_fixedname_t fixed;
@@ -2718,6 +2731,27 @@ dst_algorithm_fromprivatedns(isc_buffer_t *buffer) {
 	/*
 	 * Do name to dst_algorithm number mapping here.
 	 */
+	switch (name->length) {
+#if TEST_PRIVATEDNS
+	case 23:
+		switch (name->ndata[7]) {
+		case '2':
+			if (dns_name_equal(name, &rsasha256dns)) {
+				return DST_ALG_RSASHA256PRIVATEDNS;
+			}
+			break;
+		case '5':
+			if (dns_name_equal(name, &rsasha512dns)) {
+				return DST_ALG_RSASHA512PRIVATEDNS;
+			}
+			break;
+		}
+		break;
+#endif
+	default:
+		break;
+	}
+
 	return 0;
 }
 
