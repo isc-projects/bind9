@@ -467,7 +467,7 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
  * 	";;" will be emitted indicating section name.
  *\li	If #DNS_MESSAGETEXTFLAG_NOHEADERS is cleared, header lines will be
  * 	emitted.
- *\li   If #DNS_MESSAGETEXTFLAG_ONESOA is set then only print the first
+ *\li	If #DNS_MESSAGETEXTFLAG_ONESOA is set then only print the first
  *	SOA record in the answer section.
  *\li	If *#DNS_MESSAGETEXTFLAG_OMITSOA is set don't print any SOA records
  *	in the answer section.
@@ -528,9 +528,9 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * 'preserve_order' setting.
  *
  * Requires:
- *\li	"msg" be valid.
+ *\li	"msg" be a valid message with parsing intent.
  *
- *\li	"buffer" be a wire format buffer.
+ *\li	"source" be a wire format buffer.
  *
  * Ensures:
  *\li	The buffer's data format is correct.
@@ -560,7 +560,9 @@ dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
  *
  * Requires:
  *
- *\li	'msg' be valid.
+ *\li	'msg' be a valid message with rendering intent.
+ *
+ *\li	dns_message_renderbegin() has not previously been called.
  *
  *\li	'cctx' be valid.
  *
@@ -610,8 +612,6 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space);
  *
  *\li	'msg' be valid.
  *
- *\li	dns_message_renderbegin() was called.
- *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- all is well.
  *\li	#ISC_R_NOSPACE		-- not enough free space in the buffer.
@@ -631,8 +631,6 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space);
  *
  *\li	'space' is less than or equal to the total amount of space reserved
  *	via prior calls to dns_message_renderreserve().
- *
- *\li	dns_message_renderbegin() was called.
  */
 
 isc_result_t
@@ -713,7 +711,7 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section);
  *
  * Requires:
  *
- *\li   	'msg' be valid.
+ *\li	'msg' be valid.
  *
  *\li	'section' be a valid section.
  *
@@ -730,7 +728,7 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section);
  *
  * Requires:
  *
- * \li  	'msg' be valid.
+ *\li	'msg' be valid.
  *
  *\li	'section' be a valid section.
  *
@@ -850,7 +848,7 @@ dns_message_removename(dns_message_t *msg, dns_name_t *name,
  *
  * Requires:
  *
- *\li	'msg' be valid, and be a renderable message.
+ *\li	'msg' be a valid message with rendering intent.
  *
  *\li	'name' be a valid absolute name.
  *
@@ -1013,7 +1011,7 @@ dns_message_reply(dns_message_t *msg, bool want_question_section);
  *
  * Requires:
  *
- *\li	'msg' is a valid message with parsing intent, and contains a query.
+ *\li	'msg' is a valid message which contains a query.
  *
  * Ensures:
  *
@@ -1061,7 +1059,7 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
  *\li	'msg' is a valid message with rendering intent
  *	and no sections have been rendered.
  *
- *\li	'opt' is a valid OPT record or NULL.
+ *\li	'opt' is a valid OPT rdataset or NULL.
  *
  * Ensures:
  *
@@ -1094,21 +1092,20 @@ dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner);
  *
  * Ensures:
  *
- * \li	If 'owner' is not NULL, it will point to the owner name.
+ *\li	If 'owner' is not NULL, it will point to the owner name.
  */
 
 isc_result_t
 dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key);
 /*%<
  * Set the tsig key for 'msg'.  This is only necessary for when rendering a
- * query or parsing a response.  The key (if non-NULL) is attached to, and
- * will be detached when the message is destroyed.
+ * query or parsing a response.  The key (if non-NULL) is attached to
+ * to the message, and will be detached when the message is destroyed.
  *
  * Requires:
  *
- *\li	'msg' is a valid message with rendering intent,
- *	dns_message_renderbegin() has been called, and no sections have been
- *	rendered.
+ *\li	'msg' is a valid message.
+ *
  *\li	'key' is a valid tsig key or NULL.
  *
  * Returns:
@@ -1125,7 +1122,8 @@ dns_message_gettsigkey(dns_message_t *msg);
  *
  * Requires:
  *
- *\li	'msg' is a valid message
+ *\li	'msg' is a valid message, and dns_message_settsigkey() has been
+ *	run previously.
  */
 
 void
@@ -1137,10 +1135,11 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig);
  *
  * Requires:
  *
- *\li	'querytsig' is a valid buffer as returned by dns_message_getquerytsig()
+ *\li	'querytsig' is a valid buffer as returned by dns_message_getquerytsig(),
  *	or NULL
  *
- *\li	'msg' is a valid message
+ *\li	'msg' is a valid message on which dns_message_setquerytsig() has
+ *	not previously been run.
  */
 
 isc_result_t
@@ -1183,7 +1182,7 @@ dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner);
  *
  * Ensures:
  *
- * \li	If 'owner' is not NULL, it will point to the owner name.
+ *\li	If 'owner' is not NULL, it will point to the owner name.
  */
 
 isc_result_t
@@ -1239,7 +1238,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer);
  *
  * Requires:
  *
- *\li	msg is a valid parsed message.
+ *\li	msg is a valid message with parsing intent.
  *\li	signer is a valid name
  *
  * Returns:
@@ -1373,13 +1372,13 @@ dns_message_logpacketfromto(dns_message_t *message, const char *description,
  * ('from') and the receiving socket ('to') must be provided.
  *
  * Requires:
- * \li   'message' be a valid DNS message.
- * \li   'description' to be non-NULL.
- * \li   'address' to be non-NULL (dns_message_logpacketfrom() only).
- * \li   'from' and 'to' be non-NULL (dns_message_logpacketfromto() only).
- * \li   'category' to be a valid logging category.
- * \li   'module' to be a valid logging module.
- * \li   'mctx' to be a valid memory context.
+ *\li	'message' be a valid DNS message.
+ *\li	'description' to be non-NULL.
+ *\li	'address' to be non-NULL (dns_message_logpacketfrom() only).
+ *\li	'from' and 'to' be non-NULL (dns_message_logpacketfromto() only).
+ *\li	'category' to be a valid logging category.
+ *\li	'module' to be a valid logging module.
+ *\li	'mctx' to be a valid memory context.
  */
 
 isc_result_t
@@ -1390,12 +1389,12 @@ dns_message_buildopt(dns_message_t *msg, dns_rdataset_t **opt,
  * Built a opt record.
  *
  * Requires:
- * \li   msg be a valid message.
- * \li   opt to be a non NULL and *opt to be NULL.
+ *\li	msg be a valid message.
+ *\li	opt to be a non NULL and *opt to be NULL.
  *
  * Returns:
- * \li	 ISC_R_SUCCESS
- * \li	 ISC_R_NOSPACE
+ *\li	 ISC_R_SUCCESS
+ *\li	 ISC_R_NOSPACE
  */
 
 void
@@ -1404,7 +1403,7 @@ dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass);
  * Set the expected class of records in the response.
  *
  * Requires:
- * \li   msg be a valid message with parsing intent.
+ *\li	msg be a valid message with parsing intent.
  */
 
 void
@@ -1414,7 +1413,7 @@ dns_message_setpadding(dns_message_t *msg, uint16_t padding);
  * 0 means no padding (default).
  *
  * Requires:
- * \li	msg be a valid message.
+ *\li	msg be a valid message.
  */
 
 void
@@ -1424,7 +1423,7 @@ dns_message_clonebuffer(dns_message_t *msg);
  * when parsing.
  *
  * Requires:
- * \li   msg be a valid message.
+ *\li	msg be a valid message.
  */
 
 isc_result_t
@@ -1435,8 +1434,8 @@ dns_message_minttl(dns_message_t *msg, const dns_section_t sectionid,
  * message.
  *
  * Requires:
- * \li   msg be a valid rendered message;
- * \li   'pttl != NULL'.
+ *\li	msg be a valid rendered message;
+ *\li	'pttl != NULL'.
  */
 
 isc_result_t
@@ -1447,8 +1446,8 @@ dns_message_response_minttl(dns_message_t *msg, dns_ttl_t *pttl);
  * section. If neither of these are set, return ISC_R_NOTFOUND.
  *
  * Requires:
- * \li   msg be a valid rendered message;
- * \li   'pttl != NULL'.
+ *\li	msg be a valid rendered message;
+ *\li	'pttl != NULL'.
  */
 
 void
