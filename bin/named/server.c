@@ -10547,7 +10547,7 @@ named_server_notifycommand(named_server_t *server, isc_lex_t *lex,
 		return ISC_R_UNEXPECTEDEND;
 	}
 
-	dns_zone_notify(zone);
+	dns_zone_notify(zone, true);
 	dns_zone_detach(&zone);
 	(void)putstr(text, msg);
 	(void)putnull(text);

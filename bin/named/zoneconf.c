@@ -1442,6 +1442,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setnotifydelay(zone, cfg_obj_asuint32(obj));
 
 		obj = NULL;
+		result = named_config_get(maps, "notify-defer", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		dns_zone_setnotifydefer(zone, cfg_obj_asuint32(obj));
+
+		obj = NULL;
 		result = named_config_get(maps, "check-sibling", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSIBLING,
