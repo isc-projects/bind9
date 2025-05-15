@@ -1603,6 +1603,416 @@ ISC_RUN_TEST_IMPL(fixiterator) {
 	dns_qp_destroy(&qp);
 }
 
+struct inserting {
+	/* Fixed size strings [32] should ensure leaf-compatible alignment. */
+	const char name[32];
+	uint8_t denial;
+	/* Padding */
+	uint8_t pad1;
+	uint16_t pad2;
+};
+
+struct check_delete {
+	const char *name;
+	uint8_t denial;
+	isc_result_t result;
+};
+
+static void
+check_delete(dns_qp_t *qp, struct check_delete check[]) {
+	for (int i = 0; check[i].name != NULL; i++) {
+		isc_result_t result;
+		dns_fixedname_t fn1;
+		dns_name_t *name = dns_fixedname_initname(&fn1);
+		dns_qpchain_t chain;
+
+		dns_qpchain_init(qp, &chain);
+		dns_test_namefromstring(check[i].name, &fn1);
+		result = dns_qp_deletename(qp, name, check[i].denial, NULL,
+					   NULL);
+#if 0
+		fprintf(stderr, "%s %u %s (expected %s)\n", check[i].name,
+			check[i].denial, isc_result_totext(result),
+			isc_result_totext(check[i].result));
+#endif
+		assert_int_equal(result, check[i].result);
+	}
+}
+
+ISC_RUN_TEST_IMPL(qpkey_delete) {
+	int i = 0;
+	dns_qp_t *qp = NULL;
+	static struct inserting insert1[] = {
+		{ "a.", DNS_DB_NSEC_NORMAL, 0, 0 },
+		{ "b.", DNS_DB_NSEC_NORMAL, 0, 0 },
+		{ "b.", DNS_DB_NSEC_NSEC, 0, 0 },
+		{ "b.", DNS_DB_NSEC_NSEC3, 0, 0 },
+		{ "b.a.", DNS_DB_NSEC_NORMAL, 0, 0 },
+		{ "b.a.", DNS_DB_NSEC_NSEC, 0, 0 },
+		{ "c.b.a.", DNS_DB_NSEC_NORMAL, 0, 0 },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NORMAL, 0, 0 },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NSEC, 0, 0 },
+		{ "c.b.b.", DNS_DB_NSEC_NSEC3, 0, 0 },
+		{ "c.d.", DNS_DB_NSEC_NSEC3, 0, 0 },
+		{ "a.b.c.d.", DNS_DB_NSEC_NORMAL, 0, 0 },
+		{ "a.b.c.d.e.", DNS_DB_NSEC_NORMAL, 0, 0 },
+		{ "", 0, 0, 0 },
+	};
+	/*
+	 * NORMAL:         a.
+	 * NORMAL:       b.a.
+	 * NORMAL:     c.b.a.
+	 * NORMAL: e.d.c.b.a.
+	 * NORMAL:         b.
+	 * NORMAL:   a.b.c.d.
+	 * NORMAL: a.b.c.d.e.
+	 *
+	 * NSEC:         b.a.
+	 * NSEC:   e.d.c.b.a.
+	 * NSEC:           b.
+	 *
+	 * NSEC3:          b.
+	 * NSEC3:      c.b.b.
+	 * NSEC3:        c.d.
+	 */
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+
+	while (insert1[i].name[0] != '\0') {
+		insert_name(qp, insert1[i].name, insert1[i].denial);
+		i++;
+	}
+
+	/* lookup checks before deleting */
+	static struct check_qpchain chain1[] = {
+		{ ".", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND, 0, { NULL } },
+		{ ".", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } },
+		{ ".", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "a.", DNS_DB_NSEC_NORMAL, ISC_R_SUCCESS, 1, { "a." } },
+		{ "a.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } }, /* b.a.
+									  */
+		{ "a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "b.", DNS_DB_NSEC_NORMAL, ISC_R_SUCCESS, 1, { "b." } },
+		{ "b.", DNS_DB_NSEC_NSEC, ISC_R_SUCCESS, 1, { "b." } },
+		{ "b.", DNS_DB_NSEC_NSEC3, ISC_R_SUCCESS, 1, { "b." } },
+
+		{ "b.a.",
+		  DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS,
+		  2,
+		  { "a.", "b.a." } },
+		{ "b.a.", DNS_DB_NSEC_NSEC, ISC_R_SUCCESS, 1, { "b.a." } },
+		{ "b.a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "c.b.a.",
+		  DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS,
+		  3,
+		  { "a.", "b.a.", "c.b.a." } },
+		{ "c.b.a.",
+		  DNS_DB_NSEC_NSEC,
+		  DNS_R_PARTIALMATCH,
+		  1,
+		  { "b.a." } },
+		{ "c.b.a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "c.", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "c.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "c.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "e.d.c.b.a.",
+		  DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS,
+		  4,
+		  { "a.", "b.a.", "c.b.a.", "e.d.c.b.a." } },
+		{ "e.d.c.b.a.",
+		  DNS_DB_NSEC_NSEC,
+		  ISC_R_SUCCESS,
+		  2,
+		  { "b.a.", "e.d.c.b.a." } },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "a.b.c.d.",
+		  DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS,
+		  1,
+		  { "a.b.c.d." } },
+		{ "a.b.c.d.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "a.b.c.d.",
+		  DNS_DB_NSEC_NSEC3,
+		  DNS_R_PARTIALMATCH,
+		  1,
+		  { "c.d." } },
+
+		{ "b.c.d.",
+		  DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND,
+		  0,
+		  { NULL } }, /* a.b.c.d. */
+		{ "b.c.d.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "b.c.d.",
+		  DNS_DB_NSEC_NSEC3,
+		  DNS_R_PARTIALMATCH,
+		  1,
+		  { "c.d." } },
+
+		{ "f.b.b.d.", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "f.b.b.d.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "f.b.b.d.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ NULL, 0, 0, 0, { NULL } },
+	};
+	check_qpchain(qp, chain1);
+
+	static struct check_predecessors pred1[] = {
+		{ ".", DNS_DB_NSEC_NORMAL, "c.d.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_NOTFOUND, 0 },
+		{ ".", DNS_DB_NSEC_NSEC, "a.b.c.d.e.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 6 },
+		{ ".", DNS_DB_NSEC_NSEC3, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+
+		{ "a.", DNS_DB_NSEC_NORMAL, "c.d.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_SUCCESS, 0 },
+		{ "a.", DNS_DB_NSEC_NSEC, "a.b.c.d.e.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 6 },
+		{ "a.", DNS_DB_NSEC_NSEC3, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+
+		{ "b.", DNS_DB_NSEC_NORMAL, "e.d.c.b.a.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS, 9 },
+		{ "b.", DNS_DB_NSEC_NSEC, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_SUCCESS, 4 },
+		{ "b.", DNS_DB_NSEC_NSEC3, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_SUCCESS, 3 },
+
+		{ "b.a.", DNS_DB_NSEC_NORMAL, "a.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS, 12 },
+		{ "b.a.", DNS_DB_NSEC_NSEC, "a.b.c.d.e.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS, 6 },
+		{ "b.a.", DNS_DB_NSEC_NSEC3, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+
+		{ "c.b.a.", DNS_DB_NSEC_NORMAL, "b.a.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS, 11 },
+		{ "c.b.a.", DNS_DB_NSEC_NSEC, "b.a.", DNS_DB_NSEC_NSEC,
+		  DNS_R_PARTIALMATCH, 5 },
+		{ "c.b.a.", DNS_DB_NSEC_NSEC3, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+
+		{ "c.", DNS_DB_NSEC_NORMAL, "b.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 8 },
+		{ "c.", DNS_DB_NSEC_NSEC, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+		{ "c.", DNS_DB_NSEC_NSEC3, "c.b.b.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_NOTFOUND, 1 },
+
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NORMAL, "c.b.a.",
+		  DNS_DB_NSEC_NORMAL, ISC_R_SUCCESS, 10 },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NSEC, "b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_SUCCESS, 5 },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NSEC3, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+
+		{ "a.b.c.d.", DNS_DB_NSEC_NORMAL, "b.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS, 8 },
+		{ "a.b.c.d.", DNS_DB_NSEC_NSEC, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+		{ "a.b.c.d.", DNS_DB_NSEC_NSEC3, "c.d.", DNS_DB_NSEC_NSEC3,
+		  DNS_R_PARTIALMATCH, 0 },
+
+		{ "b.c.d.", DNS_DB_NSEC_NORMAL, "b.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 8 },
+		{ "b.c.d.", DNS_DB_NSEC_NSEC, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+		{ "b.c.d.", DNS_DB_NSEC_NSEC3, "c.d.", DNS_DB_NSEC_NSEC3,
+		  DNS_R_PARTIALMATCH, 0 },
+
+		{ "f.b.b.d.", DNS_DB_NSEC_NORMAL, "b.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 8 },
+		{ "f.b.b.d.", DNS_DB_NSEC_NSEC, "b.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 3 },
+		{ "f.b.b.d.", DNS_DB_NSEC_NSEC3, "c.b.b.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_NOTFOUND, 1 },
+
+		{ NULL, 0, NULL, 0, 0, 0 },
+	};
+	check_predecessors(qp, pred1);
+
+	/* delete checks */
+	static struct check_delete del1[] = {
+		{ ".", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND },
+		{ "a.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND },
+		{ "a.", DNS_DB_NSEC_NORMAL, ISC_R_SUCCESS },
+		{ "b.", DNS_DB_NSEC_NORMAL, ISC_R_SUCCESS },
+		{ "b.", DNS_DB_NSEC_NSEC, ISC_R_SUCCESS },
+		{ "b.", DNS_DB_NSEC_NSEC3, ISC_R_SUCCESS },
+		{ "b.a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND },
+		{ "b.a.", DNS_DB_NSEC_NORMAL, ISC_R_SUCCESS },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NORMAL, ISC_R_SUCCESS },
+		{ NULL, 0, 0 },
+	};
+	check_delete(qp, del1);
+
+	/* again */
+	static struct check_delete del2[] = {
+		{ ".", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND },
+		{ "a.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND },
+		{ "a.", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND },
+		{ "b.", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND },
+		{ "b.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND },
+		{ "b.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND },
+		{ "b.a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND },
+		{ "b.a.", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND },
+		{ NULL, 0, 0 },
+	};
+	check_delete(qp, del2);
+
+	/* lookup checks after deleting */
+	static struct check_qpchain chain2[] = {
+		{ ".", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND, 0, { NULL } },
+		{ ".", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } },
+		{ ".", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "a.",
+		  DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND,
+		  0,
+		  { NULL } }, /* c.b.a.
+			       */
+		{ "a.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } }, /* b.a.
+									  */
+		{ "a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "b.", DNS_DB_NSEC_NORMAL, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "b.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "b.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "b.a.",
+		  DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND,
+		  0,
+		  { NULL } }, /* c.b.a. */
+		{ "b.a.", DNS_DB_NSEC_NSEC, ISC_R_SUCCESS, 1, { "b.a." } },
+		{ "b.a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "c.b.a.", DNS_DB_NSEC_NORMAL, ISC_R_SUCCESS, 1, { "c.b.a." } },
+		{ "c.b.a.",
+		  DNS_DB_NSEC_NSEC,
+		  DNS_R_PARTIALMATCH,
+		  1,
+		  { "b.a." } },
+		{ "c.b.a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "e.d.c.b.a.",
+		  DNS_DB_NSEC_NORMAL,
+		  DNS_R_PARTIALMATCH,
+		  1,
+		  { "c.b.a." } },
+		{ "e.d.c.b.a.",
+		  DNS_DB_NSEC_NSEC,
+		  ISC_R_SUCCESS,
+		  2,
+		  { "b.a.", "e.d.c.b.a." } },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NSEC3, ISC_R_NOTFOUND, 0, { NULL } },
+
+		{ "a.b.c.d.",
+		  DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS,
+		  1,
+		  { "a.b.c.d." } },
+		{ "a.b.c.d.", DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 0, { NULL } },
+		{ "a.b.c.d.",
+		  DNS_DB_NSEC_NSEC3,
+		  DNS_R_PARTIALMATCH,
+		  1,
+		  { "c.d." } },
+
+		{ NULL, 0, 0, 0, { NULL } },
+	};
+	check_qpchain(qp, chain2);
+
+	static struct check_predecessors pred2[] = {
+		{ ".", DNS_DB_NSEC_NORMAL, "c.d.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_NOTFOUND, 0 },
+		{ ".", DNS_DB_NSEC_NSEC, "a.b.c.d.e.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 4 },
+		{ ".", DNS_DB_NSEC_NSEC3, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+
+		{ "a.", DNS_DB_NSEC_NORMAL, "c.d.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_NOTFOUND, 0 },
+		{ "a.", DNS_DB_NSEC_NSEC, "a.b.c.d.e.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 4 },
+		{ "a.", DNS_DB_NSEC_NSEC3, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+
+		{ "b.", DNS_DB_NSEC_NORMAL, "c.b.a.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 6 },
+		{ "b.", DNS_DB_NSEC_NSEC, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+		{ "b.", DNS_DB_NSEC_NSEC3, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 }, /* c.b.b. */
+
+		{ "b.a.", DNS_DB_NSEC_NORMAL, "c.d.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_NOTFOUND, 0 }, /* c.b.a. */
+		{ "b.a.", DNS_DB_NSEC_NSEC, "a.b.c.d.e.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS, 4 },
+		{ "b.a.", DNS_DB_NSEC_NSEC3, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+
+		{ "c.b.a.", DNS_DB_NSEC_NORMAL, "c.d.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_SUCCESS, 0 },
+		{ "c.b.a.", DNS_DB_NSEC_NSEC, "b.a.", DNS_DB_NSEC_NSEC,
+		  DNS_R_PARTIALMATCH, 3 },
+		{ "c.b.a.", DNS_DB_NSEC_NSEC3, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+
+		{ "c.", DNS_DB_NSEC_NORMAL, "c.b.a.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 6 },
+		{ "c.", DNS_DB_NSEC_NSEC, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+		{ "c.", DNS_DB_NSEC_NSEC3, "c.b.b.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_NOTFOUND, 1 },
+
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NORMAL, "c.b.a.",
+		  DNS_DB_NSEC_NORMAL, DNS_R_PARTIALMATCH, 6 },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NSEC, "b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_SUCCESS, 3 },
+		{ "e.d.c.b.a.", DNS_DB_NSEC_NSEC3, "e.d.c.b.a.",
+		  DNS_DB_NSEC_NSEC, ISC_R_NOTFOUND, 2 },
+
+		{ "a.b.c.d.", DNS_DB_NSEC_NORMAL, "c.b.a.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_SUCCESS, 6 },
+		{ "a.b.c.d.", DNS_DB_NSEC_NSEC, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+		{ "a.b.c.d.", DNS_DB_NSEC_NSEC3, "c.d.", DNS_DB_NSEC_NSEC3,
+		  DNS_R_PARTIALMATCH, 0 },
+
+		{ "b.c.d.", DNS_DB_NSEC_NORMAL, "c.b.a.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 6 },
+		{ "b.c.d.", DNS_DB_NSEC_NSEC, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+		{ "b.c.d.", DNS_DB_NSEC_NSEC3, "c.d.", DNS_DB_NSEC_NSEC3,
+		  DNS_R_PARTIALMATCH, 0 },
+
+		{ "f.b.b.d.", DNS_DB_NSEC_NORMAL, "c.b.a.", DNS_DB_NSEC_NORMAL,
+		  ISC_R_NOTFOUND, 6 },
+		{ "f.b.b.d.", DNS_DB_NSEC_NSEC, "e.d.c.b.a.", DNS_DB_NSEC_NSEC,
+		  ISC_R_NOTFOUND, 2 },
+		{ "f.b.b.d.", DNS_DB_NSEC_NSEC3, "c.b.b.", DNS_DB_NSEC_NSEC3,
+		  ISC_R_NOTFOUND, 1 },
+
+		{ NULL, 0, NULL, 0, 0, 0 },
+	};
+	check_predecessors(qp, pred2);
+
+	dns_qp_destroy(&qp);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(qpkey_name)
 ISC_TEST_ENTRY(qpkey_sort)
@@ -1611,6 +2021,7 @@ ISC_TEST_ENTRY(partialmatch)
 ISC_TEST_ENTRY(qpchain)
 ISC_TEST_ENTRY(predecessors)
 ISC_TEST_ENTRY(fixiterator)
+ISC_TEST_ENTRY(qpkey_delete)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
