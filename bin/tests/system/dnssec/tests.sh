@@ -960,6 +960,66 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking positive validation with private algorithm works ($n)"
+ret=0
+dig_with_opts +noauth a.rsasha256oid.example. \
+  @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth a.rsasha256oid.example. \
+  @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+if [ -x "${DELV}" ]; then
+  ret=0
+  echo_i "checking positive validation NSEC3 using dns_client ($n)"
+  delv_with_opts @10.53.0.4 a a.nsec3.example >delv.out$n || ret=1
+  grep "a.nsec3.example..*10.0.0.1" delv.out$n >/dev/null || ret=1
+  grep "a.nsec3.example..*RRSIG.A [0-9][0-9]* 3 300.*" delv.out$n >/dev/null || ret=1
+  n=$((n + 1))
+  test "$ret" -eq 0 || echo_i "failed"
+  status=$((status + ret))
+fi
+
+echo_i "checking positive validation with unknown private algorithm works ($n)"
+ret=0
+dig_with_opts +noauth a.unknownoid.example. \
+  @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth a.unknownoid.example. \
+  @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking positive validation with extra ds for private algorithm ($n)"
+ret=0
+dig_with_opts +noauth a.extradsoid.example. \
+  @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth a.extradsoid.example. \
+  @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking positive validation with extra ds for unknown private algorithm fails ($n)"
+ret=0
+dig_with_opts +noauth a.extradsunknownoid.example. \
+  @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth a.extradsunknownoid.example. \
+  @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns3.test$n >/dev/null || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n >/dev/null || ret=1
+grep 'No DNSKEY for extradsunknownoid.example/DS with PRIVATEOID algorithm, tag [1-9][0-9]*$' ns4/named.run >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 # Check the bogus domain
 
 echo_i "checking failed validation ($n)"

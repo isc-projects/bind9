@@ -181,3 +181,18 @@ rsasha1-1024		NS	ns.rsasha1-1024
 ns.rsasha1-1024		A	10.53.0.3
 
 dname-at-apex-nsec3	NS	ns3
+
+rsasha256oid		NS	ns.rsasha256oid
+ns.rsasha256oid		A	10.53.0.3
+
+rsasha512oid		NS	ns.rsasha512oid
+ns.rsasha512oid		A	10.53.0.3
+
+unknownoid		NS	ns.unknownoid
+ns.unknownoid		A	10.53.0.3
+
+extradsoid		NS	ns.extradsoid
+ns.extradsoid		A	10.53.0.3
+
+extradsunknownoid	NS	ns.extradsunknownoid
+ns.extradsunknownoid	A	10.53.0.3
