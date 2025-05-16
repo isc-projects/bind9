@@ -853,7 +853,12 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 
 		ds->length = r.length;
 		ds->digest = digest;
+		INSIST(r.length <= ISC_MAX_MD_SIZE);
 		memmove(ds->digest, r.base, r.length);
+
+		if (!dst_algorithm_supported(ds->algorithm)) {
+			CHECK(DST_R_UNSUPPORTEDALG);
+		}
 
 		break;
 
