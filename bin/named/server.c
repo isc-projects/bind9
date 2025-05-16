@@ -154,11 +154,11 @@
 #endif /* HAVE_LMDB */
 
 #ifndef SIZE_MAX
-#define SIZE_MAX ((size_t)-1)
+#define SIZE_MAX ((size_t)(-1))
 #endif /* ifndef SIZE_MAX */
 
 #ifndef SIZE_AS_PERCENT
-#define SIZE_AS_PERCENT ((size_t)-2)
+#define SIZE_AS_PERCENT ((size_t)(-2))
 #endif /* ifndef SIZE_AS_PERCENT */
 
 /* RFC7828 defines timeout as 16-bit value specified in units of 100
@@ -699,6 +699,7 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		STATIC_DS,
 		TRUSTED
 	} anchortype;
+	dst_algorithm_t algorithm;
 
 	REQUIRE(namestrp != NULL && *namestrp == NULL);
 	REQUIRE(ds != NULL);
@@ -787,16 +788,18 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		keystruct.flags = (uint16_t)rdata1;
 		keystruct.protocol = (uint8_t)rdata2;
 		keystruct.algorithm = (uint8_t)rdata3;
-
-		if (!dst_algorithm_supported(keystruct.algorithm)) {
-			CHECK(DST_R_UNSUPPORTEDALG);
-		}
-
 		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
 		CHECK(isc_base64_decodestring(datastr, &databuf));
 		isc_buffer_usedregion(&databuf, &r);
 		keystruct.datalen = r.length;
 		keystruct.data = r.base;
+
+		algorithm = dst_algorithm_fromdata(
+			keystruct.algorithm, keystruct.data, keystruct.datalen);
+
+		if (!dst_algorithm_supported(algorithm)) {
+			CHECK(DST_R_UNSUPPORTEDALG);
+		}
 
 		CHECK(dns_rdata_fromstruct(&rdata, keystruct.common.rdclass,
 					   keystruct.common.rdtype, &keystruct,
