@@ -253,8 +253,7 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		goto cleanup_databuf;
 	}
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, true, 0,
-				 &ctx);
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, true, &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		goto cleanup_databuf;
 	}
@@ -356,8 +355,8 @@ cleanup_databuf:
 
 isc_result_t
 dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		  bool ignoretime, unsigned int maxbits, isc_mem_t *mctx,
-		  dns_rdata_t *sigrdata, dns_name_t *wild) {
+		  bool ignoretime, isc_mem_t *mctx, dns_rdata_t *sigrdata,
+		  dns_name_t *wild) {
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
 	isc_region_t r;
@@ -435,7 +434,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 again:
 	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
-				 maxbits, &ctx);
+				 &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		goto cleanup_struct;
 	}
@@ -528,7 +527,7 @@ again:
 
 	r.base = sig.signature;
 	r.length = sig.siglen;
-	ret = dst_context_verify2(ctx, maxbits, &r);
+	ret = dst_context_verify(ctx, &r);
 	if (ret == ISC_R_SUCCESS && downcase) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(&sig.signer, namebuf, sizeof(namebuf));
@@ -785,7 +784,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	isc_buffer_init(&databuf, data, sizeof(data));
 
-	RETERR(dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, true, 0,
+	RETERR(dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, true,
 				  &ctx));
 
 	/*
@@ -937,7 +936,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 		goto failure;
 	}
 
-	RETERR(dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
+	RETERR(dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
 				  &ctx));
 
 	/*
@@ -1063,8 +1062,8 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 
 		if (sig.algorithm == key.algorithm && sig.keyid == keytag) {
 			result = dns_dnssec_verify(name, rdataset, dstkey,
-						   ignoretime, 0, mctx,
-						   &sigrdata, NULL);
+						   ignoretime, mctx, &sigrdata,
+						   NULL);
 			if (result == ISC_R_SUCCESS) {
 				dst_key_free(&dstkey);
 				return true;

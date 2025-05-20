@@ -3763,7 +3763,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	const char *cachename = NULL;
 	dns_order_t *order = NULL;
 	uint32_t udpsize;
-	uint32_t maxbits;
 	unsigned int resopts = 0;
 	dns_zone_t *zone = NULL;
 	uint32_t clients_per_query, max_clients_per_query;
@@ -4602,21 +4601,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		udpsize = view->maxudp;
 	}
 	view->nocookieudp = udpsize;
-
-	/*
-	 * Set the maximum rsa exponent bits.
-	 */
-	obj = NULL;
-	result = named_config_get(maps, "max-rsa-exponent-size", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	maxbits = cfg_obj_asuint32(obj);
-	if (maxbits != 0 && maxbits < 35) {
-		maxbits = 35;
-	}
-	if (maxbits > 4096) {
-		maxbits = 4096;
-	}
-	view->maxbits = maxbits;
 
 	/*
 	 * Set supported DNSSEC algorithms.

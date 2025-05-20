@@ -330,27 +330,17 @@ gssapi_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
 }
 
 static dst_func_t gssapi_functions = {
-	gssapi_create_signverify_ctx,
-	NULL, /*%< createctx2 */
-	gssapi_destroy_signverify_ctx,
-	gssapi_adddata,
-	gssapi_sign,
-	gssapi_verify,
-	NULL, /*%< verify2 */
-	NULL, /*%< computesecret */
-	gssapi_compare,
-	NULL, /*%< paramcompare */
-	gssapi_generate,
-	gssapi_isprivate,
-	gssapi_destroy,
-	NULL, /*%< todns */
-	NULL, /*%< fromdns */
-	NULL, /*%< tofile */
-	NULL, /*%< parse */
-	NULL, /*%< cleanup */
-	NULL, /*%< fromlabel */
-	gssapi_dump,
-	gssapi_restore,
+	.createctx = gssapi_create_signverify_ctx,
+	.destroyctx = gssapi_destroy_signverify_ctx,
+	.adddata = gssapi_adddata,
+	.sign = gssapi_sign,
+	.verify = gssapi_verify,
+	.compare = gssapi_compare,
+	.generate = gssapi_generate,
+	.isprivate = gssapi_isprivate,
+	.destroy = gssapi_destroy,
+	.dump = gssapi_dump,
+	.restore = gssapi_restore,
 };
 
 void

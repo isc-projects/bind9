@@ -1349,10 +1349,9 @@ selfsigned_dnskey(dns_validator_t *val) {
 					dst_key_free(&dstkey);
 					return ISC_R_QUOTA;
 				}
-				result = dns_dnssec_verify(
-					name, rdataset, dstkey, true,
-					val->view->maxbits, mctx, &sigrdata,
-					NULL);
+				result = dns_dnssec_verify(name, rdataset,
+							   dstkey, true, mctx,
+							   &sigrdata, NULL);
 				switch (result) {
 				case DNS_R_SIGFUTURE:
 				case DNS_R_SIGEXPIRED:
@@ -1417,8 +1416,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 	}
 again:
 	result = dns_dnssec_verify(val->name, val->rdataset, key, ignore,
-				   val->view->maxbits, val->view->mctx, rdata,
-				   wild);
+				   val->view->mctx, rdata, wild);
 	if ((result == DNS_R_SIGEXPIRED || result == DNS_R_SIGFUTURE) &&
 	    val->view->acceptexpired)
 	{

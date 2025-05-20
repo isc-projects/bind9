@@ -169,7 +169,6 @@ struct dns_view {
 	uint16_t	      nocookieudp;
 	uint16_t	      padding;
 	dns_acl_t	     *pad_acl;
-	unsigned int	      maxbits;
 	dns_dns64list_t	      dns64;
 	unsigned int	      dns64cnt;
 	bool		      usedns64;

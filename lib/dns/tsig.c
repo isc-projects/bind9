@@ -631,8 +631,8 @@ dns_tsig_sign(dns_message_t *msg) {
 		 * has validated at this point. This is why we include a
 		 * MAC length > 0 in the reply.
 		 */
-		result = dst_context_create(
-			key->key, mctx, DNS_LOGCATEGORY_DNSSEC, true, 0, &ctx);
+		result = dst_context_create(key->key, mctx,
+					    DNS_LOGCATEGORY_DNSSEC, true, &ctx);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
@@ -1005,7 +1005,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		sig_r.length = tsig.siglen;
 
 		result = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-					    false, 0, &ctx);
+					    false, &ctx);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
@@ -1308,7 +1308,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 
 	if (msg->tsigctx == NULL) {
 		result = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-					    false, 0, &msg->tsigctx);
+					    false, &msg->tsigctx);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_querystruct;
 		}

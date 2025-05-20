@@ -145,7 +145,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 		key->key_alg = DST_ALG_RSASHA1;
 
 		ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-					 false, 0, &ctx);
+					 false, &ctx);
 		assert_int_equal(ret, ISC_R_SUCCESS);
 
 		r.base = d;
@@ -165,7 +165,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 
 	key->key_alg = DST_ALG_RSASHA256;
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
 				 &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
@@ -185,7 +185,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 
 	key->key_alg = DST_ALG_RSASHA512;
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
 				 &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
