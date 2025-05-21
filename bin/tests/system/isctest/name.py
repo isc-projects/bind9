@@ -9,7 +9,14 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from dns.name import Name
+from typing import Container, Iterable, FrozenSet
+
+import pytest
+
+pytest.importorskip("dns", minversion="2.1.0")  # NameRelation
+from dns.name import Name, NameRelation
+import dns.zone
+import dns.rdatatype
 
 
 def prepend_label(label: str, name: Name) -> Name:
@@ -18,3 +25,144 @@ def prepend_label(label: str, name: Name) -> Name:
 
 def len_wire_uncompressed(name: Name) -> int:
     return len(name) + sum(map(len, name.labels))
+
+
+def get_wildcard_names(names: Iterable[Name]) -> FrozenSet[Name]:
+    return frozenset(name for name in names if name.is_wild())
+
+
+class ZoneAnalyzer:
+    """
+    Categorize names in zone and provide list of ENTs:
+
+    - delegations - names with NS RR
+    - dnames - names with DNAME RR
+    - wildcards - names with leftmost label '*'
+    - reachable - non-empty authoritative nodes in zone
+      - have at least one auth RR set and are not occluded
+    - ents - reachable empty non-terminals
+    - occluded - names under a parent node which has DNAME or a non-apex NS
+    - reachable_delegations
+      - have NS RR on it, are not zone's apex, and are not occluded
+    - reachable_dnames - have DNAME RR on it and are not occluded
+    - reachable_wildcards - have leftmost label '*' and are not occluded
+
+    Warnings:
+    - Quadratic complexity ahead! Use only on small test zones.
+    - Zone must be constant.
+    """
+
+    @classmethod
+    def read_path(cls, zpath, origin):
+        with open(zpath, encoding="ascii") as zf:
+            zonedb = dns.zone.from_file(zf, origin, relativize=False)
+        return cls(zonedb)
+
+    def __init__(self, zone: dns.zone.Zone):
+        self.zone = zone
+        assert self.zone.origin  # mypy hack
+        # based on individual nodes but not relationship between nodes
+        self.delegations = self.get_names_with_type(dns.rdatatype.NS) - {
+            self.zone.origin
+        }
+        self.dnames = self.get_names_with_type(dns.rdatatype.DNAME)
+        self.wildcards = get_wildcard_names(self.zone)
+
+        # takes relationship between nodes into account
+        self._categorize_names()
+        self.ents = self.generate_ents()
+        self.reachable_dnames = self.dnames.intersection(self.reachable)
+        self.reachable_wildcards = self.wildcards.intersection(self.reachable)
+
+    def get_names_with_type(self, rdtype) -> FrozenSet[Name]:
+        return frozenset(
+            name for name in self.zone if self.zone.get_rdataset(name, rdtype)
+        )
+
+    def _categorize_names(
+        self,
+    ) -> None:
+        """
+        Split names defined in a zone into three sets:
+        Generally reachable, reachable delegations, and occluded.
+
+        Delegations are set aside because they are a weird hybrid with different
+        rules for different RR types (NS, DS, NSEC, everything else).
+        """
+        assert self.zone.origin  # mypy workaround
+        reachable = set(self.zone)
+        # assume everything is reachable until proven otherwise
+        reachable_delegations = set(self.delegations)
+        occluded = set()
+
+        def _mark_occluded(name: Name) -> None:
+            occluded.add(name)
+            if name in reachable:
+                reachable.remove(name)
+            if name in reachable_delegations:
+                reachable_delegations.remove(name)
+
+        # sanity check, should be impossible with dnspython 2.7.0 zone reader
+        for name in reachable:
+            relation, _, _ = name.fullcompare(self.zone.origin)
+            if relation in (
+                NameRelation.NONE,  # out of zone?
+                NameRelation.SUPERDOMAIN,  # parent of apex?!
+            ):
+                raise NotImplementedError
+
+        for maybe_occluded in reachable.copy():
+            for cut in self.delegations:
+                rel, _, _ = maybe_occluded.fullcompare(cut)
+                if rel == NameRelation.EQUAL:
+                    # data _on_ a parent-side of a zone cut are in limbo:
+                    # - are not really authoritative (except for DS)
+                    # - but NS is not really 'occluded'
+                    # We remove them from 'reachable' but do not add them to 'occluded' set,
+                    # i.e. leave them in 'reachable_delegations'.
+                    if maybe_occluded in reachable:
+                        reachable.remove(maybe_occluded)
+
+                if rel == NameRelation.SUBDOMAIN:
+                    _mark_occluded(maybe_occluded)
+                # do not break cycle - handle also nested NS and DNAME
+
+            # DNAME itself is authoritative but nothing under it is reachable
+            for dname in self.dnames:
+                rel, _, _ = maybe_occluded.fullcompare(dname)
+                if rel == NameRelation.SUBDOMAIN:
+                    _mark_occluded(maybe_occluded)
+                # do not break cycle - handle also nested NS and DNAME
+
+        self.reachable = frozenset(reachable)
+        self.reachable_delegations = frozenset(reachable_delegations)
+        self.occluded = frozenset(occluded)
+
+    def generate_ents(self) -> FrozenSet[Name]:
+        """
+        Generate reachable names of empty nodes "between" all reachable
+        names with a RR and the origin.
+        """
+        assert self.zone.origin
+        all_reachable_names = self.reachable.union(self.reachable_delegations)
+        ents = set()
+        for name in all_reachable_names:
+            _, super_name = name.split(len(name) - 1)
+            while len(super_name) > len(self.zone.origin):
+                if super_name not in all_reachable_names:
+                    ents.add(super_name)
+                _, super_name = super_name.split(len(super_name) - 1)
+
+        return frozenset(ents)
+
+
+def is_related_to_any(
+    test_name: Name,
+    acceptable_relations: Container[NameRelation],
+    candidates: Iterable[Name],
+) -> bool:
+    for maybe_parent in candidates:
+        relation, _, _ = test_name.fullcompare(maybe_parent)
+        if relation in acceptable_relations:
+            return True
+    return False
