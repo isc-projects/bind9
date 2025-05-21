@@ -9,12 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import dns.name
+from dns.name import Name
 
 
-def prepend_label(label: str, name: dns.name.Name) -> dns.name.Name:
-    return dns.name.Name((label,) + name.labels)
+def prepend_label(label: str, name: Name) -> Name:
+    return Name((label,) + name.labels)
 
 
-def len_wire_uncompressed(name: dns.name.Name) -> int:
+def len_wire_uncompressed(name: Name) -> int:
     return len(name) + sum(map(len, name.labels))
