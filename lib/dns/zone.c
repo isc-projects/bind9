@@ -13584,6 +13584,7 @@ stub_callback(void *arg) {
 	case ISC_R_SUCCESS:
 		break;
 	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_CANCELED:
 		goto exiting;
 	case ISC_R_TIMEDOUT:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
@@ -13928,6 +13929,7 @@ refresh_callback(void *arg) {
 	case ISC_R_SUCCESS:
 		break;
 	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_CANCELED:
 		goto exiting;
 	case ISC_R_TIMEDOUT:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {

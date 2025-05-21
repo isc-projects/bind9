@@ -777,7 +777,7 @@ sleep 1
 # Reconfigure named while zone transfer attempt is in progress.
 $RNDCCMD 10.53.0.6 reconfig 2>&1 | sed 's/^/ns6 /' | cat_i
 # Confirm that the ongoing SOA request was canceled, caused by the reconfiguratoin.
-retry_quiet 60 wait_for_message "refresh: request result: shutting down" || tmp=1
+retry_quiet 60 wait_for_message "refresh: request result: operation canceled" || tmp=1
 if test $tmp != 0; then echo_i "failed"; fi
 status=$((status + tmp))
 
