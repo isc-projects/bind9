@@ -14308,6 +14308,17 @@ next_primary:
 	goto detach;
 
 exiting:
+	/*
+	 * We can get here not only during shutdown, but also when the refresh
+	 * is canceled during reconfiguration. In that case, make sure to clear
+	 * the DNS_ZONEFLG_REFRESH flag so that future zone refreshes don't get
+	 * stuck, and make sure a new refresh attempt is made again soon after
+	 * the reconfiguration is complete.
+	 */
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
+	zone->refreshtime = now;
+	zone_settimer(zone, &now);
+
 	dns_request_destroy(&zone->request);
 	goto detach;
 
