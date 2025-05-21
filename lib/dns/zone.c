@@ -13919,6 +13919,7 @@ refresh_callback(void *arg) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	isc_result_t result;
+	const isc_result_t eresult = dns_request_getresult(request);
 	isc_sockaddr_t curraddr;
 	uint32_t serial, oldserial = 0;
 	bool do_queue_xfrin = false;
@@ -13926,6 +13927,12 @@ refresh_callback(void *arg) {
 	INSIST(DNS_ZONE_VALID(zone));
 
 	ENTER;
+
+	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_DEBUG(3),
+			      "refresh: request result: %s",
+			      isc_result_totext(eresult));
+	}
 
 	now = isc_time_now();
 
@@ -13942,7 +13949,7 @@ refresh_callback(void *arg) {
 	isc_sockaddr_format(&curraddr, primary, sizeof(primary));
 	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
 
-	switch (dns_request_getresult(request)) {
+	switch (eresult) {
 	case ISC_R_SUCCESS:
 		break;
 	case ISC_R_SHUTTINGDOWN:
@@ -13988,7 +13995,7 @@ refresh_callback(void *arg) {
 		}
 		FALLTHROUGH;
 	default:
-		result = dns_request_getresult(request);
+		result = eresult;
 		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
 			      "refresh: failure trying primary "
 			      "%s (source %s): %s",
