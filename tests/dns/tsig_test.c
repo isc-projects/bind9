@@ -96,7 +96,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target,
 	tsig.common.rdtype = dns_rdatatype_tsig;
 	ISC_LINK_INIT(&tsig.common, link);
 	dns_name_init(&tsig.algorithm);
-	dns_name_clone(key->algorithm, &tsig.algorithm);
+	dns_name_clone(dns_tsigkey_algorithm(key), &tsig.algorithm);
 
 	tsig.timesigned = now;
 	tsig.fudge = DNS_TSIG_FUDGE;
