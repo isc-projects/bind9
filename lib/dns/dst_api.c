@@ -233,7 +233,13 @@ dst_algorithm_supported(unsigned int alg) {
 bool
 dst_ds_digest_supported(unsigned int digest_type) {
 	return digest_type == DNS_DSDIGEST_SHA1 ||
+#if defined(DNS_DSDIGEST_SHA256PRIVATE)
+	       digest_type == DNS_DSDIGEST_SHA256PRIVATE ||
+#endif
 	       digest_type == DNS_DSDIGEST_SHA256 ||
+#if defined(DNS_DSDIGEST_SHA256PRIVATE)
+	       digest_type == DNS_DSDIGEST_SHA384PRIVATE ||
+#endif
 	       digest_type == DNS_DSDIGEST_SHA384;
 }
 

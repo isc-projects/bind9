@@ -1073,7 +1073,7 @@ loadds(dns_name_t *name, uint32_t ttl, dns_rdataset_t *dsset) {
 		dns_rdata_t ds = DNS_RDATA_INIT;
 		dns_rdataset_current(&keyset, &key);
 		result = dns_ds_buildrdata(name, &key, DNS_DSDIGEST_SHA256,
-					   dsbuf, &ds);
+					   dsbuf, sizeof(dsbuf), &ds);
 		check_result(result, "dns_ds_buildrdata");
 
 		dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name, ttl, &ds,
@@ -3055,7 +3055,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 		if (type != dns_rdatatype_dnskey) {
 			result = dns_ds_buildrdata(gorigin, &rdata,
 						   DNS_DSDIGEST_SHA256, dsbuf,
-						   &ds);
+						   sizeof(dsbuf), &ds);
 			check_result(result, "dns_ds_buildrdata");
 			dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name,
 					     0, &ds, &tuple);

@@ -851,7 +851,7 @@ get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 			dns_rdata_init(rdata2);
 
 			CHECK(dns_ds_buildrdata(name, rdata, alg->digest,
-						cdsbuf, &cds));
+						cdsbuf, sizeof(cdsbuf), &cds));
 			cds.type = dns_rdatatype_cds;
 			dns_rdata_toregion(&cds, &rcds);
 			isc_buffer_allocate(mctx, &newbuf2, rcds.length);

@@ -4433,7 +4433,7 @@ trust_key(dns_zone_t *zone, dns_name_t *keyname, dns_rdata_dnskey_t *dnskey,
 	  bool initial) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char data[4096], digest[ISC_MAX_MD_SIZE];
+	unsigned char data[4096], digest[DNS_DS_BUFFERSIZE];
 	isc_buffer_t buffer;
 	dns_keytable_t *sr = NULL;
 	dns_rdata_ds_t ds;
@@ -4448,7 +4448,7 @@ trust_key(dns_zone_t *zone, dns_name_t *keyname, dns_rdata_dnskey_t *dnskey,
 	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
 			     dns_rdatatype_dnskey, dnskey, &buffer);
 	CHECK(dns_ds_fromkeyrdata(keyname, &rdata, DNS_DSDIGEST_SHA256, digest,
-				  &ds));
+				  sizeof(digest), &ds));
 	CHECK(dns_keytable_add(sr, true, initial, keyname, &ds, sfd_add,
 			       zone->view));
 
@@ -16501,7 +16501,8 @@ cds_inuse(dns_zone_t *zone, dns_rdata_t *rdata, dns_dnsseckeylist_t *keylist,
 			return result;
 		}
 		result = dns_ds_buildrdata(dns_zone_getorigin(zone), &dnskey,
-					   cds.digest_type, cdsbuf, &cdsrdata);
+					   cds.digest_type, cdsbuf,
+					   sizeof(cdsbuf), &cdsrdata);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "dns_ds_buildrdata(keytag=%d, algo=%d, "
@@ -21033,7 +21034,8 @@ checkds_done(void *arg) {
 			/* Derive DS from DNSKEY, see if the rdata is equal. */
 			make_dnskey(key->key, keybuf, sizeof(keybuf), &dnskey);
 			r = dns_ds_buildrdata(&zone->origin, &dnskey,
-					      ds.digest_type, dsbuf, &dsrdata);
+					      ds.digest_type, dsbuf,
+					      sizeof(dsbuf), &dsrdata);
 			if (r != ISC_R_SUCCESS) {
 				continue;
 			}

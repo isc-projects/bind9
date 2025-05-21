@@ -138,6 +138,20 @@
 
 /* RFC3658, RFC4509, RFC5933, RFC6605, RFC9558, RFC9563 */
 
+#if defined(DNS_DSDIGEST_SHA256PRIVATE) &&     \
+	defined(DNS_DSDIGEST_SHA384PRIVATE) && \
+	defined(DNS_DSDIGEST_SM3PRIVATE)
+#define DSDIGESTPRIVATENAMES                                          \
+	{ DNS_DSDIGEST_SHA256PRIVATE, "SHA-256-PRIVATE", 0 },         \
+		{ DNS_DSDIGEST_SHA256PRIVATE, "SHA256PRIVATE", 0 },   \
+		{ DNS_DSDIGEST_SHA384PRIVATE, "SHA-384-PRIVATE", 0 }, \
+		{ DNS_DSDIGEST_SHA384PRIVATE, "SHA384PRIVATE", 0 },   \
+		{ DNS_DSDIGEST_SM3PRIVATE, "SM3-PRIVATE", 0 },        \
+		{ DNS_DSDIGEST_SM3PRIVATE, "SM3PRIVATE", 0 },
+#else
+#define DSDIGESTPRIVATENAMES
+#endif
+
 #define DSDIGESTNAMES                                                        \
 	{ DNS_DSDIGEST_SHA1, "SHA-1", 0 }, { DNS_DSDIGEST_SHA1, "SHA1", 0 }, \
 		{ DNS_DSDIGEST_SHA256, "SHA-256", 0 },                       \
@@ -147,7 +161,8 @@
 		{ DNS_DSDIGEST_SHA384, "SHA-384", 0 },                       \
 		{ DNS_DSDIGEST_SHA384, "SHA384", 0 },                        \
 		{ DNS_DSDIGEST_GOST2012, "GOST-2012", 0 },                   \
-		{ DNS_DSDIGEST_GOST2012, "GOST2012", 0 }, SENTINEL
+		{ DNS_DSDIGEST_GOST2012, "GOST2012", 0 },                    \
+		DSDIGESTPRIVATENAMES SENTINEL
 
 struct tbl {
 	unsigned int value;

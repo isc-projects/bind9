@@ -1521,7 +1521,7 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 
 			result = dns_ds_buildrdata(vctx->origin, keyrdata,
 						   ds.digest_type, buf,
-						   &newdsrdata);
+						   sizeof(buf), &newdsrdata);
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}

@@ -677,7 +677,7 @@ cleanup:
 
 static isc_result_t
 ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
-	      unsigned char *digest, dns_rdata_ds_t *ds) {
+	      unsigned char *digest, size_t digest_len, dns_rdata_ds_t *ds) {
 	isc_result_t result;
 	dns_rdata_dnskey_t keystruct;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -805,7 +805,7 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 					   keystruct.common.rdtype, &keystruct,
 					   &rrdatabuf));
 		CHECK(dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256,
-					  digest, ds));
+					  digest, digest_len, ds));
 		break;
 
 	case INIT_DS:
@@ -844,6 +844,20 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 				CHECK(ISC_R_UNEXPECTEDEND);
 			}
 			break;
+#if defined(DNS_DSDIGEST_SHA256PRIVATE)
+		case DNS_DSDIGEST_SHA256PRIVATE:
+			if (r.length < ISC_SHA256_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+#endif
+#if defined(DNS_DSDIGEST_SHA384PRIVATE)
+		case DNS_DSDIGEST_SHA384PRIVATE:
+			if (r.length < ISC_SHA384_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+#endif
 		default:
 			cfg_obj_log(key, ISC_LOG_ERROR,
 				    "key '%s': "
@@ -854,12 +868,46 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 			break;
 		}
 
+		if (r.length > digest_len) {
+			CHECK(ISC_R_NOSPACE);
+		}
 		ds->length = r.length;
 		ds->digest = digest;
-		INSIST(r.length <= ISC_MAX_MD_SIZE);
 		memmove(ds->digest, r.base, r.length);
 
-		if (!dst_algorithm_supported(ds->algorithm)) {
+		algorithm = ds->algorithm;
+
+#if defined(DNS_DSDIGEST_SHA256PRIVATE) && defined(DNS_DSDIGEST_SHA384PRIVATE)
+		/*
+		 * Extract the private algorithm from the start
+		 * of the hash field.
+		 */
+		switch (ds->digest_type) {
+		/*
+		 * Digest types that do not encode the private DNSSEC algorithm
+		 * at the start of the digest field.
+		 */
+		case DNS_DSDIGEST_SHA1:
+		case DNS_DSDIGEST_SHA256:
+		case DNS_DSDIGEST_SHA384:
+			break;
+		/*
+		 * Digest types that encode the private DNSSEC algorithm
+		 * at the start of the digest field.
+		 */
+		case DNS_DSDIGEST_SHA256PRIVATE:
+		case DNS_DSDIGEST_SHA384PRIVATE:
+			algorithm = dst_algorithm_fromdata(
+				ds->algorithm, ds->digest, ds->length);
+			break;
+		/*
+		 * Unknown digest types.
+		 */
+		default:
+			break;
+		}
+#endif
+		if (!dst_algorithm_supported(algorithm)) {
 			CHECK(DST_R_UNSUPPORTEDALG);
 		}
 
@@ -902,10 +950,11 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	dns_rdata_ds_t ds;
 	isc_result_t result;
 	bool initializing = managed;
-	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned char digest[DNS_DS_BUFFERSIZE];
 	isc_buffer_t b;
 
-	result = ta_fromconfig(key, &initializing, &namestr, digest, &ds);
+	result = ta_fromconfig(key, &initializing, &namestr, digest,
+			       sizeof(digest), &ds);
 
 	switch (result) {
 	case ISC_R_SUCCESS:

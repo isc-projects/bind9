@@ -30,6 +30,7 @@
 #include <isc/net.h>
 #include <isc/util.h>
 
+#include <dns/ds.h>
 #include <dns/edns.h>
 #include <dns/lib.h>
 
@@ -42,6 +43,7 @@ usage(void) {
 	fprintf(stderr, "\t--edns-version\n");
 	fprintf(stderr, "\t--enable-dnstap\n");
 	fprintf(stderr, "\t--enable-querytrace\n");
+	fprintf(stderr, "\t--extended-ds-digest\n");
 	fprintf(stderr, "\t--fips-provider\n");
 	fprintf(stderr, "\t--gethostname\n");
 	fprintf(stderr, "\t--gssapi\n");
@@ -91,6 +93,14 @@ main(int argc, char **argv) {
 #else  /* ifdef WANT_QUERYTRACE */
 		return 1;
 #endif /* ifdef WANT_QUERYTRACE */
+	}
+
+	if (strcasecmp(argv[1], "--extended-ds-digest") == 0) {
+#if defined(DNS_DSDIGEST_SHA256PRIVATE) && defined(DNS_DSDIGEST_SHA384PRIVATE)
+		return 0;
+#else
+		return 1;
+#endif
 	}
 
 	if (strcasecmp(argv[1], "--fips-provider") == 0) {

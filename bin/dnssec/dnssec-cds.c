@@ -482,7 +482,7 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness) {
 		}
 
 		result = dns_ds_buildrdata(name, &ki->rdata, ds.digest_type,
-					   dsbuf, &newdsrdata);
+					   dsbuf, sizeof(dsbuf), &newdsrdata);
 		if (result != ISC_R_SUCCESS) {
 			vbprintf(3,
 				 "dns_ds_buildrdata("
@@ -769,7 +769,7 @@ ds_from_cdnskey(isc_buffer_t *buf, dns_rdata_t *ds, dns_dsdigest_t dt,
 		return ISC_R_NOSPACE;
 	}
 
-	result = dns_ds_buildrdata(name, cdnskey, dt, r.base, ds);
+	result = dns_ds_buildrdata(name, cdnskey, dt, r.base, r.length, ds);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_add(buf, DNS_DS_BUFFERSIZE);
 	}

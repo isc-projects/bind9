@@ -1841,7 +1841,8 @@ add_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 	dns_rdata_t cdsrdata = DNS_RDATA_INIT;
 	dns_name_t *origin = dst_key_name(key->key);
 
-	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf, &cdsrdata);
+	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf,
+			      sizeof(dsbuf), &cdsrdata);
 	if (r != ISC_R_SUCCESS) {
 		char algbuf[DNS_DSDIGEST_FORMATSIZE];
 		dns_dsdigest_format(digesttype, algbuf,
@@ -1876,7 +1877,8 @@ delete_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 	dns_rdata_t cdsrdata = DNS_RDATA_INIT;
 	dns_name_t *origin = dst_key_name(key->key);
 
-	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf, &cdsrdata);
+	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf,
+			      sizeof(dsbuf), &cdsrdata);
 	if (r != ISC_R_SUCCESS) {
 		return r;
 	}
@@ -2364,7 +2366,7 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
 		}
 
 		result = dns_ds_buildrdata(name, keyrdata, ds.digest_type, buf,
-					   &newdsrdata);
+					   sizeof(buf), &newdsrdata);
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}

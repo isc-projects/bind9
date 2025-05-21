@@ -1648,9 +1648,9 @@ dns_view_istrusted(dns_view_t *view, const dns_name_t *keyname,
 				goto finish;
 			}
 
-			result = dns_ds_fromkeyrdata(keyname, &rdata,
-						     DNS_DSDIGEST_SHA256,
-						     digest, &ds);
+			result = dns_ds_fromkeyrdata(
+				keyname, &rdata, DNS_DSDIGEST_SHA256, digest,
+				sizeof(digest), &ds);
 			if (result != ISC_R_SUCCESS) {
 				goto finish;
 			}
@@ -2311,7 +2311,7 @@ dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
 	isc_result_t result;
 	dns_name_t *name = UNCONST(keyname);
 	char rdatabuf[DST_KEY_MAXSIZE];
-	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned char digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	dns_rdata_t rdata;
 	isc_buffer_t b;
@@ -2334,7 +2334,7 @@ dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
 		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));
 	} else {
 		CHECK(dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256,
-					  digest, &ds));
+					  digest, sizeof(digest), &ds));
 	}
 
 	CHECK(dns_keytable_add(view->secroots_priv, false, false, name, &ds,

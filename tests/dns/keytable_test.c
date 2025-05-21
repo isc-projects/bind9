@@ -130,7 +130,7 @@ create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg, const char *keystr,
 
 static void
 create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
-		const char *keystr, unsigned char *digest,
+		const char *keystr, unsigned char *digest, size_t digest_len,
 		dns_rdata_ds_t *dsstruct) {
 	isc_result_t result;
 	unsigned char rrdata[4096];
@@ -156,7 +156,7 @@ create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
 	 * Build DS rdata struct.
 	 */
 	result = dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256, digest,
-				     dsstruct);
+				     digest_len, dsstruct);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_rdata_freestruct(&dnskey);
@@ -165,7 +165,7 @@ create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
 /* Common setup: create a keytable and ntatable to test with a few keys */
 static void
 create_tables(void) {
-	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned char digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
@@ -179,14 +179,16 @@ create_tables(void) {
 
 	/* Add a normal key */
 	dns_test_namefromstring("example.com.", &fn);
-	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
+			&ds);
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
 
 	/* Add an initializing managed key */
 	dns_test_namefromstring("managed.com.", &fn);
-	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
+			&ds);
 	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
@@ -220,7 +222,7 @@ destroy_tables(void) {
 ISC_LOOP_TEST_IMPL(add) {
 	dns_keynode_t *keynode = NULL;
 	dns_keynode_t *null_keynode = NULL;
-	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned char digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
@@ -241,7 +243,8 @@ ISC_LOOP_TEST_IMPL(add) {
 	 * report success.
 	 */
 	dns_test_namefromstring("example.com.", &fn);
-	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
+			&ds);
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
@@ -252,7 +255,8 @@ ISC_LOOP_TEST_IMPL(add) {
 
 	/* Add another key (different keydata) */
 	dns_keynode_detach(&keynode);
-	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, sizeof(digest),
+			&ds);
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
@@ -280,7 +284,8 @@ ISC_LOOP_TEST_IMPL(add) {
 	 * node, the node should *not* be marked as initializing.
 	 */
 	dns_test_namefromstring("managed.com.", &fn);
-	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, sizeof(digest),
+			&ds);
 	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
@@ -310,7 +315,8 @@ ISC_LOOP_TEST_IMPL(add) {
 	 * initializing key.
 	 */
 	dns_test_namefromstring("two.com.", &fn);
-	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
+			&ds);
 	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
@@ -326,7 +332,8 @@ ISC_LOOP_TEST_IMPL(add) {
 	 * trust anchor for two.com and we haven't run dns_keynode_trust(),
 	 * the initialization status should not change.
 	 */
-	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, sizeof(digest),
+			&ds);
 	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
@@ -344,7 +351,8 @@ ISC_LOOP_TEST_IMPL(add) {
 					   &null_keynode),
 			 ISC_R_SUCCESS);
 	dns_test_namefromstring("null.example.", &fn);
-	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, sizeof(digest),
+			&ds);
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
@@ -598,7 +606,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	bool issecure, covered;
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
-	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned char digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	dns_view_t *myview = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
@@ -616,7 +624,8 @@ ISC_LOOP_TEST_IMPL(nta) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_test_namefromstring("example.", &fn);
-	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, &ds);
+	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
+			&ds);
 	result = dns_keytable_add(keytable, false, false, keyname, &ds, NULL,
 				  NULL),
 	assert_int_equal(result, ISC_R_SUCCESS);

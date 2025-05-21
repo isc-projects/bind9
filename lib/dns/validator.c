@@ -2030,6 +2030,8 @@ validate_dnskey_dsset(dns_validator_t *val) {
 	isc_result_t result;
 	dns_rdata_ds_t ds;
 	dns_rdata_dnskey_t key;
+	unsigned char *data = 0;
+	unsigned int datalen = 0;
 
 	dns_rdata_reset(&dsrdata);
 	dns_rdataset_current(val->dsset, &dsrdata);
@@ -2049,12 +2051,31 @@ validate_dnskey_dsset(dns_validator_t *val) {
 		return DNS_R_BADALG;
 	}
 
-	if (ds.algorithm != DNS_KEYALG_PRIVATEDNS &&
-	    ds.algorithm != DNS_KEYALG_PRIVATEOID)
+	switch (ds.algorithm) {
+	case DNS_KEYALG_PRIVATEDNS:
+	case DNS_KEYALG_PRIVATEOID:
+		switch (ds.digest_type) {
+#if defined(DNS_DSDIGEST_SHA256PRIVATE) && defined(DNS_DSDIGEST_SHA384PRIVATE)
+		case DNS_DSDIGEST_SHA256PRIVATE:
+		case DNS_DSDIGEST_SHA384PRIVATE:
+			data = ds.digest;
+			datalen = ds.length;
+			break;
+#endif
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+
+	if (data != NULL || (ds.algorithm != DNS_KEYALG_PRIVATEDNS &&
+			     ds.algorithm != DNS_KEYALG_PRIVATEOID))
 	{
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
 						      val->name, ds.algorithm,
-						      NULL, 0))
+						      data, datalen))
 		{
 			if (val->unsupported_algorithm == 0) {
 				val->unsupported_algorithm = ds.algorithm;
@@ -2078,8 +2099,8 @@ validate_dnskey_dsset(dns_validator_t *val) {
 	 * found a matching dnskey.
 	 */
 	dns_rdata_tostruct(&keyrdata, &key, NULL);
-	if (ds.algorithm == DNS_KEYALG_PRIVATEDNS ||
-	    ds.algorithm == DNS_KEYALG_PRIVATEOID)
+	if (data == NULL && (ds.algorithm == DNS_KEYALG_PRIVATEDNS ||
+			     ds.algorithm == DNS_KEYALG_PRIVATEOID))
 	{
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
 						      val->name, key.algorithm,
@@ -3020,6 +3041,13 @@ check_ds_algs(dns_validator_t *val, dns_name_t *name,
 		    ds.algorithm == DNS_KEYALG_PRIVATEDNS)
 		{
 			switch (ds.digest_type) {
+#if defined(DNS_DSDIGEST_SHA256PRIVATE) && defined(DNS_DSDIGEST_SHA384PRIVATE)
+			case DNS_DSDIGEST_SHA256PRIVATE:
+			case DNS_DSDIGEST_SHA384PRIVATE:
+				data = ds.digest;
+				datalen = ds.length;
+				break;
+#endif
 			case DNS_DSDIGEST_SHA1:
 			case DNS_DSDIGEST_SHA256:
 			case DNS_DSDIGEST_SHA384:
@@ -3065,11 +3093,12 @@ check_ds_algs(dns_validator_t *val, dns_name_t *name,
 	 * it would be raised already.
 	 *
 	 * If we have seen a private algorithm for which we couldn't find a
-	 * DNSKEY we must assume the child zone is secure. With PRIVATEDNS and
-	 * PRIVATEOID we can only make that determination if we match a DNSKEY
-	 * for every DS with these algorithms. Since we don't know whether the
-	 * private algorithm is unsupported or not, we are required to treat it
-	 * as supported.
+	 * DNSKEY nor extract it from the digest field we must assume the child
+	 * zone is secure. With PRIVATEDNS and PRIVATEOID we can make that
+	 * determination if we match a DNSKEY for every DS with these algorithms
+	 * or extract the algorithm from the digest field. Since we don't know
+	 * whether the private algorithm is unsupported or not, we are required
+	 * to treat it as supported.
 	 */
 	if (seen_private) {
 		char namebuf[DNS_NAME_FORMATSIZE];
