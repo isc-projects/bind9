@@ -78,7 +78,7 @@ confidential!
   - [ ] [:link:][step_merge_advisory]    **(First IM)** Merge the Security Advisory merge request
   - [ ] [:link:][step_embargo_end]       **(IM)** Inform original reporter (if external) that the security disclosure process is complete
   - [ ] [:link:][step_asn_clear]         **(Support)** Update the tickets in the ASN queues in RT that the embargo is lifted
-  - [ ] [:link:][step_customers]         **(Marketing)** Open a ticket in the appropriate announce queue in RT that the release is published
+  - [ ] [:link:][step_customers]         **(Marketing)** Ensure that a ticket has been sent in the appropriate announce queue in RT to notify customers that the release is published (as outlined in the release checklist)
 
 ### After Public Disclosure
 
@@ -123,7 +123,7 @@ confidential!
 [step_merge_advisory]:    https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#merge-the-security-advisory-merge-request
 [step_embargo_end]:       https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#inform-original-reporter-if-external-that-the-security-disclosure-process-is-complete
 [step_asn_clear]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#update-the-tickets-in-the-asn-queues-in-rt-that-the-embargo-is-lifted
-[step_customers]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#open-a-ticket-in-the-appropriate-announce-queue-in-rt-that-the-release-is-published
+[step_customers]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#ensure-that-a-ticket-has-been-sent-in-the-appropriate-announce-queue-in-rt-to-notify-customers-that-the-release-is-published-as-outlined-in-the-release-checklist
 [step_regression]:        https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#merge-a-regression-test-reproducing-the-bug-into-all-affected-and-still-maintained-branches
 
 /confidential
