@@ -31,76 +31,15 @@ from hypothesis import assume, given
 
 from isctest.hypothesis.strategies import dns_names
 import isctest
+import isctest.name
 
 SUFFIX = dns.name.from_text("nsec3.example.")
 AUTH = "10.53.0.3"
 RESOLVER = "10.53.0.4"
 TIMEOUT = 5
-
-
-def get_known_names_and_delegations():
-
-    # Read zone file
-    system_test_root = Path(os.environ["srcdir"])
-    with open(
-        f"{system_test_root}/dnssec/ns3/nsec3.example.db.in", encoding="utf-8"
-    ) as zf:
-        content = dns.zone.from_file(zf, origin=SUFFIX, relativize=False)
-    all_names = set(content)
-    known_names = sorted(all_names)
-
-    # Remove out of zone, obscured and glue names
-    for known_name in known_names:
-        relation, _, _ = known_name.fullcompare(SUFFIX)
-        if relation == dns.name.NameRelation.EQUAL:
-            continue
-        if relation in (dns.name.NameRelation.NONE, dns.name.NameRelation.SUPERDOMAIN):
-            known_names.remove(known_name)
-            continue
-        nsset = content.get_rdataset(known_name, rdtype=dns.rdatatype.NS)
-        dname = content.get_rdataset(known_name, rdtype=dns.rdatatype.DNAME)
-        if nsset is not None or dname is not None:
-            for glue in known_names:
-                relation, _, _ = glue.fullcompare(known_name)
-                if relation == dns.name.NameRelation.SUBDOMAIN:
-                    known_names.remove(glue)
-
-    # Add in possible ENT names
-    for known_name in known_names:
-        _, super_name = known_name.split(len(known_name.labels) - 1)
-        while len(super_name.labels) > len(SUFFIX.labels):
-            known_names.append(super_name)
-            _, super_name = super_name.split(len(super_name.labels) - 1)
-    known_names = set(known_names)
-
-    # Build list of delegation points and DNAMES
-    delegations = []
-    for known_name in known_names:
-        relation, _, _ = known_name.fullcompare(SUFFIX)
-        if relation == dns.name.NameRelation.EQUAL:
-            continue
-        nsset = content.get_rdataset(known_name, rdtype=dns.rdatatype.NS)
-        dname = content.get_rdataset(known_name, rdtype=dns.rdatatype.DNAME)
-        if nsset is not None or dname is not None:
-            delegations.append(known_name)
-
-    # build list of WILDCARD named
-    wildcards = []
-    for known_name in known_names:
-        if known_name.is_wild():
-            wildcards.append(known_name)
-    return known_names, delegations, wildcards
-
-
-KNOWN_NAMES, DELEGATIONS, WILDCARDS = get_known_names_and_delegations()
-
-
-def is_delegated(name, delegations):
-    for delegation in delegations:
-        relation, _, _ = name.fullcompare(delegation)
-        if relation in (dns.name.NameRelation.EQUAL, dns.name.NameRelation.SUBDOMAIN):
-            return True
-    return False
+ZONE = isctest.name.ZoneAnalyzer.read_path(
+    Path(os.environ["builddir"]) / "dnssec/ns3/nsec3.example.db.in", origin=SUFFIX
+)
 
 
 def nsec3_covers(rrset: dns.rrset.RRset, hashed_name: dns.name.Name) -> bool:
@@ -164,7 +103,7 @@ def test_dnssec_nsec3_nxdomain(server, name: dns.name.Name, named_port: int) -> 
 @pytest.mark.parametrize(
     "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
 )
-@given(name=dns_names(suffix=KNOWN_NAMES))
+@given(name=dns_names(suffix=ZONE.reachable.union(ZONE.ents)))
 def test_dnssec_nsec3_subdomain_nxdomain(
     server, name: dns.name.Name, named_port: int
 ) -> None:
@@ -173,10 +112,19 @@ def test_dnssec_nsec3_subdomain_nxdomain(
 
 def noqname_test(server, name: dns.name.Name, named_port: int) -> None:
     # Name must not exist.
-    assume(name not in KNOWN_NAMES)
+    all_existing_names = (
+        ZONE.reachable.union(ZONE.ents).union(ZONE.delegations).union(ZONE.dnames)
+    )
+    assume(name not in (all_existing_names))
 
     # Name must not be below a delegation or DNAME.
-    assume(not is_delegated(name, DELEGATIONS))
+    assume(
+        not isctest.name.is_related_to_any(
+            name,
+            (dns.name.NameRelation.EQUAL, dns.name.NameRelation.SUBDOMAIN),
+            ZONE.reachable_delegations.union(ZONE.reachable_dnames),
+        )
+    )
 
     query = dns.message.make_query(
         name, dns.rdatatype.A, use_edns=True, want_dnssec=True
@@ -208,7 +156,7 @@ def noqname_test(server, name: dns.name.Name, named_port: int) -> None:
         _, nce = name.split(ce_labels + 1)
     else:
         ce_labels = 0
-        for zname in KNOWN_NAMES:
+        for zname in all_existing_names:
             relation, _, nlabels = name.fullcompare(zname)
             if relation == dns.name.NameRelation.SUBDOMAIN:
                 if nlabels > ce_labels:
@@ -241,7 +189,7 @@ def noqname_test(server, name: dns.name.Name, named_port: int) -> None:
     if response.rcode() is dns.rcode.NOERROR:
         # only NOERRORs should be from wildcards
         found_wc = False
-        for wildcard in WILDCARDS:
+        for wildcard in ZONE.reachable_wildcards:
             if wildcard == wc:
                 found_wc = True
         assert found_wc
