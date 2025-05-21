@@ -161,17 +161,10 @@ def test_dnssec_nsec3_nxdomain(server, name: dns.name.Name, named_port: int) -> 
     noqname_test(server, name, named_port)
 
 
-@strategies.composite
-def generate_subdomain_of_existing_name(draw):
-    existing = draw(strategies.sampled_from(sorted(KNOWN_NAMES)))
-    subdomain = draw(isctest.hypothesis.strategies.dns_names(suffix=existing))
-    return subdomain
-
-
 @pytest.mark.parametrize(
     "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
 )
-@given(name=generate_subdomain_of_existing_name())
+@given(name=dns_names(suffix=KNOWN_NAMES))
 def test_dnssec_nsec3_subdomain_nxdomain(
     server, name: dns.name.Name, named_port: int
 ) -> None:
