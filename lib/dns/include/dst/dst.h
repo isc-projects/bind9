@@ -1154,7 +1154,7 @@ dst_key_haskasp(dst_key_t *key);
  */
 
 bool
-dst_key_is_unused(dst_key_t *key);
+dst_key_is_unused(const dst_key_t *key);
 /*%<
  * Check if this key is unused.
  *
@@ -1211,7 +1211,7 @@ dst_key_is_removed(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *remove);
  */
 
 dst_key_state_t
-dst_key_goal(dst_key_t *key);
+dst_key_goal(const dst_key_t *key);
 /*%<
  * Get the key goal. Should be OMNIPRESENT or HIDDEN.
  * This can be used to determine if the key is being introduced or
