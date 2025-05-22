@@ -56,11 +56,11 @@ confidential!
 ### At T-5
 
   - [ ] [:link:][step_asn_links]         **(Marketing)** (BIND 9 only) Update the BIND -S information document in the support portal with download links to the new versions
-  - [ ] [:link:][step_asn_send]          **(Support)** Notify eligible customers by adding a ticket to the 5 Day queue in RT with the text of the advisory (earliest, and T-5)
+  - [ ] [:link:][step_asn_send_t_5]      **(Support)** Notify eligible customers by adding a ticket to the 5-Day queue in RT with the text of the advisory (earliest, and T-5)
   - [ ] [:link:][step_preannouncement]   **(Marketing)** Send a pre-announcement email to the appropriate *-announce* mailing list to alert users that the upcoming release will include security fixes
 
 ### At T-3
-  - [ ] [:link:][step_asn_send]          **(Support)** Notify eligible customers by adding a ticket to the 3 Day queue in RT with the text of the advisory (T-3)
+  - [ ] [:link:][step_asn_send_t_3]      **(Support)** Notify eligible customers by adding a ticket to the 3-Day queue in RT with the text of the advisory (T-3)
 
 ### At T-1
 
@@ -109,9 +109,9 @@ confidential!
 [step_patches]:           https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#prepare-a-standalone-patch-for-the-last-stable-release-of-each-affected-and-still-maintained-product-branch
 [step_asn_releases]:      https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#prepare-asn-releases-as-outlined-in-the-release-checklist
 [step_asn_links]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#bind-9-only-update-the-bind-s-information-document-in-the-support-portal-with-download-links-to-the-new-versions
-[step_asn_send]:          https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#notify-eligible-customers-by-adding-a-ticket-to-the-5-day-queue-in-rt-with-the-text-of-the-advisory-earliest-and-t-5
+[step_asn_send_t_5]:      https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#notify-eligible-customers-by-adding-a-ticket-to-the-5-day-queue-in-rt-with-the-text-of-the-advisory-earliest-and-t-5
 [step_preannouncement]:   https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#send-a-pre-announcement-email-to-the-appropriate--announce-mailing-list-to-alert-users-that-the-upcoming-release-will-include-security-fixes
-[step_asn_send]:          https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#notify-eligible-customers-by-adding-a-ticket-to-the-3-day-queue-in-rt-with-the-text-of-the-advisory-t-3
+[step_asn_send_t_3]:      https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#notify-eligible-customers-by-adding-a-ticket-to-the-3-day-queue-in-rt-with-the-text-of-the-advisory-t-3
 [step_packager_emails]:   https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#send-notifications-to-os-packagers
 [step_clearance]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#grant-qa-marketing-clearance-to-proceed-with-public-release
 [step_matrix]:            https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#bind-9-only-add-the-new-cves-to-the-vulnerability-matrix-in-the-knowledge-base
