@@ -158,3 +158,16 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
  *\li		Printable status in 'out'.
  *
  */
+
+bool
+dns_keymgr_key_may_be_purged(const dst_key_t *key, uint32_t after,
+			     isc_stdtime_t now);
+/*%<
+ * Checks if the key files for 'key' may be removed from disk.
+ *
+ *     Requires:
+ *\li          'key' is a valid key.
+ *
+ *     Returns:
+ *\li          true if the key files may be purged, false otherwise.
+ */
