@@ -502,7 +502,7 @@ get_server_list(irs_resconf_t *resconf) {
 void
 flush_server_list(void) {
 	debug("flush_server_list()");
-	ISC_LIST_FOREACH_SAFE (server_list, s, link) {
+	ISC_LIST_FOREACH (server_list, s, link) {
 		ISC_LIST_DEQUEUE(server_list, s, link);
 		isc_mem_free(mctx, s);
 	}
@@ -549,7 +549,7 @@ set_nameserver(char *opt) {
 void
 clone_server_list(dig_serverlist_t src, dig_serverlist_t *dest) {
 	debug("clone_server_list()");
-	ISC_LIST_FOREACH_SAFE (src, srv, link) {
+	ISC_LIST_FOREACH (src, srv, link) {
 		dig_server_t *newsrv = make_server(srv->servername,
 						   srv->userarg);
 		ISC_LINK_INIT(newsrv, link);
@@ -1200,7 +1200,7 @@ make_searchlist_entry(char *domain) {
 
 static void
 clear_searchlist(void) {
-	ISC_LIST_FOREACH_SAFE (search_list, search, link) {
+	ISC_LIST_FOREACH (search_list, search, link) {
 		ISC_LIST_UNLINK(search_list, search, link);
 		isc_mem_free(mctx, search);
 	}
@@ -1538,7 +1538,7 @@ _destroy_lookup(dig_lookup_t *lookup) {
 
 	isc_refcount_destroy(&lookup->references);
 
-	ISC_LIST_FOREACH_SAFE (lookup->my_server_list, s, link) {
+	ISC_LIST_FOREACH (lookup->my_server_list, s, link) {
 		debug("freeing server %p belonging to %p", s, lookup);
 		ISC_LIST_DEQUEUE(lookup->my_server_list, s, link);
 		isc_mem_free(mctx, s);
@@ -2718,7 +2718,7 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 static void
 _cancel_lookup(dig_lookup_t *lookup, const char *file, unsigned int line) {
 	debug("%s:%u:%s()", file, line, __func__);
-	ISC_LIST_FOREACH_SAFE (lookup->q, query, link) {
+	ISC_LIST_FOREACH (lookup->q, query, link) {
 		REQUIRE(DIG_VALID_QUERY(query));
 		ISC_LIST_DEQUEUE(lookup->q, query, link);
 		debug("canceling pending query %p, belonging to %p", query,
@@ -4644,7 +4644,7 @@ cancel_all(void) {
 	cancel_now = true;
 
 	while (current_lookup != NULL) {
-		ISC_LIST_FOREACH_SAFE (current_lookup->q, q, link) {
+		ISC_LIST_FOREACH (current_lookup->q, q, link) {
 			debug("canceling pending query %p, belonging to %p", q,
 			      current_lookup);
 			q->canceled = true;
@@ -4663,7 +4663,7 @@ cancel_all(void) {
 			lookup_detach(&current_lookup);
 		}
 	}
-	ISC_LIST_FOREACH_SAFE (lookup_list, l, link) {
+	ISC_LIST_FOREACH (lookup_list, l, link) {
 		ISC_LIST_DEQUEUE(lookup_list, l, link);
 		lookup_detach(&l);
 	}

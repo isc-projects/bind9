@@ -1224,7 +1224,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 
 static void
 clear_keylist(dns_dnsseckeylist_t *list, isc_mem_t *mctx) {
-	ISC_LIST_FOREACH_SAFE (*list, key, link) {
+	ISC_LIST_FOREACH (*list, key, link) {
 		ISC_LIST_UNLINK(*list, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
@@ -1255,32 +1255,32 @@ zone_free(dns_zone_t *zone) {
 	INSIST(zone->prev_view == NULL);
 
 	/* Unmanaged objects */
-	ISC_LIST_FOREACH_SAFE (zone->setnsec3param_queue, npe, link) {
+	ISC_LIST_FOREACH (zone->setnsec3param_queue, npe, link) {
 		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
 		isc_mem_put(zone->mctx, npe, sizeof(*npe));
 	}
 
-	ISC_LIST_FOREACH_SAFE (zone->signing, signing, link) {
+	ISC_LIST_FOREACH (zone->signing, signing, link) {
 		ISC_LIST_UNLINK(zone->signing, signing, link);
 		dns_db_detach(&signing->db);
 		dns_dbiterator_destroy(&signing->dbiterator);
 		isc_mem_put(zone->mctx, signing, sizeof *signing);
 	}
 
-	ISC_LIST_FOREACH_SAFE (zone->nsec3chain, nsec3chain, link) {
+	ISC_LIST_FOREACH (zone->nsec3chain, nsec3chain, link) {
 		ISC_LIST_UNLINK(zone->nsec3chain, nsec3chain, link);
 		dns_db_detach(&nsec3chain->db);
 		dns_dbiterator_destroy(&nsec3chain->dbiterator);
 		isc_mem_put(zone->mctx, nsec3chain, sizeof *nsec3chain);
 	}
 
-	ISC_LIST_FOREACH_SAFE (zone->includes, include, link) {
+	ISC_LIST_FOREACH (zone->includes, include, link) {
 		ISC_LIST_UNLINK(zone->includes, include, link);
 		isc_mem_free(zone->mctx, include->name);
 		isc_mem_put(zone->mctx, include, sizeof *include);
 	}
 
-	ISC_LIST_FOREACH_SAFE (zone->newincludes, include, link) {
+	ISC_LIST_FOREACH (zone->newincludes, include, link) {
 		ISC_LIST_UNLINK(zone->newincludes, include, link);
 		isc_mem_free(zone->mctx, include->name);
 		isc_mem_put(zone->mctx, include, sizeof *include);
@@ -4904,7 +4904,7 @@ zone_unchanged(dns_db_t *db1, dns_db_t *db2, isc_mem_t *mctx) {
 
 static void
 process_zone_setnsec3param(dns_zone_t *zone) {
-	ISC_LIST_FOREACH_SAFE (zone->setnsec3param_queue, npe, link) {
+	ISC_LIST_FOREACH (zone->setnsec3param_queue, npe, link) {
 		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
 		zone_iattach(zone, &npe->zone);
 		isc_async_run(zone->loop, setnsec3param, npe);
@@ -5452,7 +5452,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	/*
 	 * Clear old include list.
 	 */
-	ISC_LIST_FOREACH_SAFE (zone->includes, inc, link) {
+	ISC_LIST_FOREACH (zone->includes, inc, link) {
 		ISC_LIST_UNLINK(zone->includes, inc, link);
 		isc_mem_free(zone->mctx, inc->name);
 		isc_mem_put(zone->mctx, inc, sizeof(*inc));
@@ -5462,7 +5462,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	/*
 	 * Transfer new include list.
 	 */
-	ISC_LIST_FOREACH_SAFE (zone->newincludes, inc, link) {
+	ISC_LIST_FOREACH (zone->newincludes, inc, link) {
 		ISC_LIST_UNLINK(zone->newincludes, inc, link);
 		ISC_LIST_APPEND(zone->includes, inc, link);
 		zone->nincludes++;
@@ -5488,7 +5488,7 @@ cleanup:
 		dns_zone_catz_disable_db(zone, db);
 	}
 
-	ISC_LIST_FOREACH_SAFE (zone->newincludes, inc, link) {
+	ISC_LIST_FOREACH (zone->newincludes, inc, link) {
 		ISC_LIST_UNLINK(zone->newincludes, inc, link);
 		isc_mem_free(zone->mctx, inc->name);
 		isc_mem_put(zone->mctx, inc, sizeof(*inc));
@@ -6646,7 +6646,7 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	}
 
 	/* Add new 'dnskeys' to 'keys'. */
-	ISC_LIST_FOREACH_SAFE (dnskeys, k1, link) {
+	ISC_LIST_FOREACH (dnskeys, k1, link) {
 		bool match = false;
 
 		ISC_LIST_FOREACH (*keys, k2, link) {
@@ -6670,7 +6670,7 @@ failure:
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
 	}
-	ISC_LIST_FOREACH_SAFE (dnskeys, key, link) {
+	ISC_LIST_FOREACH (dnskeys, key, link) {
 		ISC_LIST_UNLINK(dnskeys, key, link);
 		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
 	}
@@ -9222,7 +9222,7 @@ done:
 	/*
 	 * Everything succeeded so we can clean these up now.
 	 */
-	ISC_LIST_FOREACH_SAFE (cleanup, chain, link) {
+	ISC_LIST_FOREACH (cleanup, chain, link) {
 		ISC_LIST_UNLINK(cleanup, chain, link);
 		dns_db_detach(&chain->db);
 		dns_dbiterator_destroy(&chain->dbiterator);
@@ -9258,7 +9258,7 @@ failure:
 	/*
 	 * Rollback the cleanup list.
 	 */
-	ISC_LIST_FOREACH_REV_SAFE (cleanup, chain, link) {
+	ISC_LIST_FOREACH_REV (cleanup, chain, link) {
 		ISC_LIST_UNLINK(cleanup, chain, link);
 		if (chain->done) {
 			dns_db_detach(&chain->db);
@@ -10004,7 +10004,7 @@ pauseall:
 	/*
 	 * Everything succeeded so we can clean these up now.
 	 */
-	ISC_LIST_FOREACH_SAFE (cleanup, s, link) {
+	ISC_LIST_FOREACH (cleanup, s, link) {
 		ISC_LIST_UNLINK(cleanup, s, link);
 		dns_db_detach(&s->db);
 		dns_dbiterator_destroy(&s->dbiterator);
@@ -13701,7 +13701,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 	result = ISC_R_SUCCESS;
 
 done:
-	ISC_LIST_FOREACH_SAFE (ns_list, ns_name, link) {
+	ISC_LIST_FOREACH (ns_list, ns_name, link) {
 		ISC_LIST_UNLINK(ns_list, ns_name, link);
 		dns_name_free(ns_name, cb_args->stub->mctx);
 		isc_mem_put(cb_args->stub->mctx, ns_name, sizeof(*ns_name));
@@ -16554,7 +16554,7 @@ dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
 		break;
 	}
 
-	ISC_LIST_FOREACH_SAFE (keylist, key, link) {
+	ISC_LIST_FOREACH (keylist, key, link) {
 		ISC_LIST_UNLINK(keylist, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
@@ -16803,7 +16803,7 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		dns_db_detachnode(secdb, &node);
 	}
 
-	ISC_LIST_FOREACH_SAFE (diff->tuples, tuple, link) {
+	ISC_LIST_FOREACH (diff->tuples, tuple, link) {
 		dns_difftuplelist_t *al = &add, *dl = &del;
 
 		/*
@@ -17358,7 +17358,7 @@ getprivate:
 			 */
 			rdata.data[1] = 0;
 
-			ISC_LIST_FOREACH_SAFE (*nsec3list, nsec3p, link) {
+			ISC_LIST_FOREACH (*nsec3list, nsec3p, link) {
 				if (nsec3p->length ==
 					    (unsigned int)rdata.length + 1 &&
 				    memcmp(rdata.data, nsec3p->data + 1,
@@ -17430,7 +17430,7 @@ restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 	 * and CREATE flags, and the add the record to the apex of the tree
 	 * in db.
 	 */
-	ISC_LIST_FOREACH_SAFE (*nsec3list, nsec3p, link) {
+	ISC_LIST_FOREACH (*nsec3list, nsec3p, link) {
 		dns_rdata_init(&rdata);
 		nsec3p->data[2] = DNS_NSEC3FLAG_CREATE | DNS_NSEC3FLAG_INITIAL;
 		rdata.length = nsec3p->length;
@@ -19454,7 +19454,7 @@ dns_zonemgr_gettransfersperns(dns_zonemgr_t *zmgr) {
  */
 static void
 zmgr_resume_xfrs(dns_zonemgr_t *zmgr, bool multi) {
-	ISC_LIST_FOREACH_SAFE (zmgr->waiting_for_xfrin, zone, statelink) {
+	ISC_LIST_FOREACH (zmgr->waiting_for_xfrin, zone, statelink) {
 		isc_result_t result;
 		result = zmgr_start_xfrin_ifquota(zmgr, zone);
 		if (result == ISC_R_SUCCESS) {
@@ -20506,7 +20506,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	 * Move non DNSKEY and not DNSSEC DNSKEY records to tuples
 	 * and sort the remaining DNSKEY records to add and del.
 	 */
-	ISC_LIST_FOREACH_SAFE (diff->tuples, tuple, link) {
+	ISC_LIST_FOREACH (diff->tuples, tuple, link) {
 		if (tuple->rdata.type != dns_rdatatype_dnskey) {
 			ISC_LIST_UNLINK(diff->tuples, tuple, link);
 			ISC_LIST_APPEND(tuples, tuple, link);
@@ -20546,7 +20546,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	/*
 	 * Filter out DNSKEY TTL changes and put them back onto diff->tuples.
 	 */
-	ISC_LIST_FOREACH_SAFE (del, deltuple, link) {
+	ISC_LIST_FOREACH (del, deltuple, link) {
 		ISC_LIST_FOREACH (add, addtuple, link) {
 			int n = dns_rdata_compare(&deltuple->rdata,
 						  &addtuple->rdata);
@@ -21192,7 +21192,7 @@ failure:
 		dns_db_detach(&db);
 	}
 
-	ISC_LIST_FOREACH_SAFE (keys, key, link) {
+	ISC_LIST_FOREACH (keys, key, link) {
 		ISC_LIST_UNLINK(keys, key, link);
 		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
 	}
@@ -22105,7 +22105,7 @@ zone_verifykeys(dns_zone_t *zone, dns_dnsseckeylist_t *newkeys) {
 	/*
 	 * Make sure that the existing keys are also present in the new keylist.
 	 */
-	ISC_LIST_FOREACH_SAFE (zone->keyring, key1, link) {
+	ISC_LIST_FOREACH (zone->keyring, key1, link) {
 		bool found = false;
 
 		if (dst_key_is_unused(key1->key)) {
@@ -22910,7 +22910,7 @@ zone_rekey(dns_zone_t *zone) {
 		clear_keylist(&zone->keyring, zone->mctx);
 	}
 
-	ISC_LIST_FOREACH_SAFE (dnskeys, key, link) {
+	ISC_LIST_FOREACH (dnskeys, key, link) {
 		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			/* This debug log is used in the kasp system test */
 			char algbuf[DNS_SECALG_FORMATSIZE];

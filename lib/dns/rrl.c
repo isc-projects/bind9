@@ -268,7 +268,7 @@ free_old_hash(dns_rrl_t *rrl) {
 	for (old_bin = &old_hash->bins[0];
 	     old_bin < &old_hash->bins[old_hash->length]; ++old_bin)
 	{
-		ISC_LIST_FOREACH_SAFE (*old_bin, e, hlink) {
+		ISC_LIST_FOREACH (*old_bin, e, hlink) {
 			ISC_LINK_INIT(e, hlink);
 		}
 	}
@@ -1281,7 +1281,7 @@ dns_rrl_view_destroy(dns_view_t *view) {
 
 	isc_mutex_destroy(&rrl->lock);
 
-	ISC_LIST_FOREACH_SAFE (rrl->blocks, b, link) {
+	ISC_LIST_FOREACH (rrl->blocks, b, link) {
 		ISC_LIST_UNLINK(rrl->blocks, b, link);
 		isc_mem_put(rrl->mctx, b, b->size);
 	}

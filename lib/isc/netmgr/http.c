@@ -1311,7 +1311,7 @@ done:
 static void
 call_pending_callbacks(isc__nm_http_pending_callbacks_t pending_callbacks,
 		       isc_result_t result) {
-	ISC_LIST_FOREACH_SAFE (pending_callbacks, cbreq, link) {
+	ISC_LIST_FOREACH (pending_callbacks, cbreq, link) {
 		ISC_LIST_UNLINK(pending_callbacks, cbreq, link);
 		isc__nm_sendcb(cbreq->handle->sock, cbreq, result, true);
 	}
@@ -3051,7 +3051,7 @@ isc_nm_http_endpoints_detach(isc_nm_http_endpoints_t **restrict epsp) {
 	mctx = eps->mctx;
 
 	/* Delete all handlers */
-	ISC_LIST_FOREACH_SAFE (eps->handlers, handler, link) {
+	ISC_LIST_FOREACH (eps->handlers, handler, link) {
 		ISC_LIST_DEQUEUE(eps->handlers, handler, link);
 		isc_mem_free(mctx, handler->path);
 		handler->magic = 0;
@@ -3218,7 +3218,7 @@ client_call_failed_read_cb(isc_result_t result,
 	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(result != ISC_R_SUCCESS);
 
-	ISC_LIST_FOREACH_SAFE (session->cstreams, cstream, link) {
+	ISC_LIST_FOREACH (session->cstreams, cstream, link) {
 		/*
 		 * read_cb could be NULL if cstream was allocated and added
 		 * to the tracking list, but was not properly initialized due
@@ -3252,7 +3252,7 @@ server_call_failed_read_cb(isc_result_t result,
 		failed_httpstream_read_cb(h2data->psock, result, session);
 	}
 
-	ISC_LIST_FOREACH_SAFE (session->sstreams, h2data, link) {
+	ISC_LIST_FOREACH (session->sstreams, h2data, link) {
 		ISC_LIST_DEQUEUE(session->sstreams, h2data, link);
 
 		/* Cleanup socket in place */

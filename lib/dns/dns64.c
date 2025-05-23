@@ -532,7 +532,7 @@ dns_dns64_apply(isc_mem_t *mctx, dns_dns64list_t dns64s, unsigned int count,
 
 	/* No applicable dns64; free the resources */
 	isc_buffer_free(&buffer);
-	ISC_LIST_FOREACH_SAFE (aaaalist->rdata, rdata, link) {
+	ISC_LIST_FOREACH (aaaalist->rdata, rdata, link) {
 		ISC_LIST_UNLINK(aaaalist->rdata, rdata, link);
 		dns_message_puttemprdata(message, &rdata);
 	}

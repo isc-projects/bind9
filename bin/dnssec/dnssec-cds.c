@@ -217,7 +217,7 @@ freelist(dns_rdataset_t *rdataset) {
 
 	dns_rdatalist_fromrdataset(rdataset, &rdlist);
 
-	ISC_LIST_FOREACH_SAFE (rdlist->rdata, rdata, link) {
+	ISC_LIST_FOREACH (rdlist->rdata, rdata, link) {
 		ISC_LIST_UNLINK(rdlist->rdata, rdata, link);
 		isc_mem_put(mctx, rdata, sizeof(*rdata));
 	}

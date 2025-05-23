@@ -348,7 +348,7 @@ resconf_parsedomain(irs_resconf_t *conf, FILE *fp) {
 
 static void
 free_search(irs_resconf_t *conf) {
-	ISC_LIST_FOREACH_SAFE (conf->searchlist, searchentry, link) {
+	ISC_LIST_FOREACH (conf->searchlist, searchentry, link) {
 		ISC_LIST_UNLINK(conf->searchlist, searchentry, link);
 		isc_mem_free(conf->mctx, searchentry->domain);
 		isc_mem_put(conf->mctx, searchentry, sizeof(*searchentry));
@@ -643,7 +643,7 @@ irs_resconf_destroy(irs_resconf_t **confp) {
 
 	free_search(conf);
 
-	ISC_LIST_FOREACH_SAFE (conf->nameservers, address, link) {
+	ISC_LIST_FOREACH (conf->nameservers, address, link) {
 		ISC_LIST_UNLINK(conf->nameservers, address, link);
 		isc_mem_put(conf->mctx, address, sizeof(*address));
 	}

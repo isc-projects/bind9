@@ -232,11 +232,11 @@ destroy(dns_view_t *view) {
 		dns_catz_zones_shutdown(view->catzs);
 		dns_catz_zones_detach(&view->catzs);
 	}
-	ISC_LIST_FOREACH_SAFE (view->dlz_searched, dlzdb, link) {
+	ISC_LIST_FOREACH (view->dlz_searched, dlzdb, link) {
 		ISC_LIST_UNLINK(view->dlz_searched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
 	}
-	ISC_LIST_FOREACH_SAFE (view->dlz_unsearched, dlzdb, link) {
+	ISC_LIST_FOREACH (view->dlz_unsearched, dlzdb, link) {
 		ISC_LIST_UNLINK(view->dlz_unsearched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
 	}

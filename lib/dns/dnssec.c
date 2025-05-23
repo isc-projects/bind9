@@ -1393,7 +1393,7 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, dns_kasp_t *kasp,
 	}
 
 failure:
-	ISC_LIST_FOREACH_SAFE (list, key, link) {
+	ISC_LIST_FOREACH (list, key, link) {
 		ISC_LIST_UNLINK(list, key, link);
 		INSIST(key->key != NULL);
 		dst_key_free(&key->key);
@@ -2180,7 +2180,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 	 * Second, scan the list of newly found keys looking for matches
 	 * with known keys, and update accordingly.
 	 */
-	ISC_LIST_FOREACH_SAFE (*newkeys, key1, link) {
+	ISC_LIST_FOREACH (*newkeys, key1, link) {
 		bool key_revoked = false;
 		char keystr1[DST_KEY_FORMATSIZE];
 		char keystr2[DST_KEY_FORMATSIZE];
@@ -2337,7 +2337,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 	}
 
 	/* Free any leftover keys in newkeys */
-	ISC_LIST_FOREACH_SAFE (*newkeys, key1, link) {
+	ISC_LIST_FOREACH (*newkeys, key1, link) {
 		ISC_LIST_UNLINK(*newkeys, key1, link);
 		dns_dnsseckey_destroy(mctx, &key1);
 	}

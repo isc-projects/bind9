@@ -167,7 +167,7 @@ peerlist_delete(dns_peerlist_t **list) {
 
 	isc_refcount_destroy(&l->refs);
 
-	ISC_LIST_FOREACH_SAFE (l->elements, server, next) {
+	ISC_LIST_FOREACH (l->elements, server, next) {
 		ISC_LIST_UNLINK(l->elements, server, next);
 		dns_peer_detach(&server);
 	}

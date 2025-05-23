@@ -1464,7 +1464,7 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 				}
 			}
 
-			ISC_LIST_FOREACH_SAFE (list, k, link) {
+			ISC_LIST_FOREACH (list, k, link) {
 				ISC_LIST_UNLINK(list, k, link);
 				dns_kasp_detach(&k);
 			}
@@ -1492,7 +1492,7 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	/*
 	 * Cleanup key-store.
 	 */
-	ISC_LIST_FOREACH_SAFE (kslist, ks, link) {
+	ISC_LIST_FOREACH (kslist, ks, link) {
 		ISC_LIST_UNLINK(kslist, ks, link);
 		dns_keystore_detach(&ks);
 	}
@@ -2973,11 +2973,11 @@ check:
 		if (kasp != NULL) {
 			dns_kasp_detach(&kasp);
 		}
-		ISC_LIST_FOREACH_SAFE (kasplist, k, link) {
+		ISC_LIST_FOREACH (kasplist, k, link) {
 			ISC_LIST_UNLINK(kasplist, k, link);
 			dns_kasp_detach(&k);
 		}
-		ISC_LIST_FOREACH_SAFE (kslist, ks, link) {
+		ISC_LIST_FOREACH (kslist, ks, link) {
 			ISC_LIST_UNLINK(kslist, ks, link);
 			dns_keystore_detach(&ks);
 		}

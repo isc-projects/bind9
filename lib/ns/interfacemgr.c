@@ -818,7 +818,7 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 	ISC_LIST_INIT(interfaces);
 
 	LOCK(&mgr->lock);
-	ISC_LIST_FOREACH_SAFE (mgr->interfaces, ifp, link) {
+	ISC_LIST_FOREACH (mgr->interfaces, ifp, link) {
 		INSIST(NS_INTERFACE_VALID(ifp));
 		if (ifp->generation != mgr->generation) {
 			ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
@@ -827,7 +827,7 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 	}
 	UNLOCK(&mgr->lock);
 
-	ISC_LIST_FOREACH_SAFE (interfaces, ifp, link) {
+	ISC_LIST_FOREACH (interfaces, ifp, link) {
 		if (LISTENING(ifp)) {
 			log_interface_shutdown(ifp);
 			ns_interface_shutdown(ifp);
@@ -920,7 +920,7 @@ clearlistenon(ns_interfacemgr_t *mgr) {
 	ISC_LIST_MOVE(listenon, mgr->listenon);
 	UNLOCK(&mgr->lock);
 
-	ISC_LIST_FOREACH_SAFE (listenon, old, link) {
+	ISC_LIST_FOREACH (listenon, old, link) {
 		ISC_LIST_UNLINK(listenon, old, link);
 		isc_mem_put(mgr->mctx, old, sizeof(*old));
 	}

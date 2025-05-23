@@ -732,7 +732,7 @@ static void
 query_freefreeversions(ns_client_t *client, bool everything) {
 	unsigned int i = 0;
 
-	ISC_LIST_FOREACH_SAFE (client->query.freeversions, dbversion, link) {
+	ISC_LIST_FOREACH (client->query.freeversions, dbversion, link) {
 		/*
 		 * If we're not freeing everything, we keep the first three
 		 * dbversions structures around.
@@ -781,7 +781,7 @@ query_reset(ns_client_t *client, bool everything) {
 	/*
 	 * Cleanup any active versions.
 	 */
-	ISC_LIST_FOREACH_SAFE (client->query.activeversions, dbversion, link) {
+	ISC_LIST_FOREACH (client->query.activeversions, dbversion, link) {
 		dns_db_closeversion(dbversion->db, &dbversion->version, false);
 		dns_db_detach(&dbversion->db);
 		ISC_LIST_INITANDAPPEND(client->query.freeversions, dbversion,
@@ -824,7 +824,7 @@ query_reset(ns_client_t *client, bool everything) {
 
 	query_freefreeversions(client, everything);
 
-	ISC_LIST_FOREACH_SAFE (client->query.namebufs, dbuf, link) {
+	ISC_LIST_FOREACH (client->query.namebufs, dbuf, link) {
 		if (ISC_LIST_NEXT(dbuf, link) != NULL || everything) {
 			ISC_LIST_UNLINK(client->query.namebufs, dbuf, link);
 			isc_buffer_free(&dbuf);
@@ -6024,8 +6024,8 @@ message_clearrdataset(dns_message_t *msg, unsigned int attr) {
 	 * Clean up name lists by calling the rdataset disassociate function.
 	 */
 	for (i = DNS_SECTION_ANSWER; i < DNS_SECTION_MAX; i++) {
-		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link) {
-			ISC_LIST_FOREACH_SAFE (name->list, rds, link) {
+		ISC_LIST_FOREACH (msg->sections[i], name, link) {
+			ISC_LIST_FOREACH (name->list, rds, link) {
 				if ((rds->attributes & attr) != attr) {
 					continue;
 				}

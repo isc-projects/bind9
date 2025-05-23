@@ -677,7 +677,7 @@ cleanup:
 		dns_db_detach(&db);
 	}
 	for (i = 0; rdatalists[i] != NULL; i++) {
-		ISC_LIST_FOREACH_SAFE (rdatalists[i]->rdata, rdata, link) {
+		ISC_LIST_FOREACH (rdatalists[i]->rdata, rdata, link) {
 			ISC_LIST_UNLINK(rdatalists[i]->rdata, rdata, link);
 			dns_rdata_toregion(rdata, &region);
 			isc_mem_put(mctx, rdata,

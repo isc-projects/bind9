@@ -734,7 +734,7 @@ tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps,
 	/*
 	 * If there are any active responses, shut them all down.
 	 */
-	ISC_LIST_FOREACH_SAFE (disp->active, resp, alink) {
+	ISC_LIST_FOREACH (disp->active, resp, alink) {
 		tcp_recv_add(resps, resp, result);
 	}
 	disp->state = DNS_DISPATCHSTATE_CANCELED;
@@ -742,7 +742,7 @@ tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps,
 
 static void
 tcp_recv_processall(dns_displist_t *resps, isc_region_t *region) {
-	ISC_LIST_FOREACH_SAFE (*resps, resp, rlink) {
+	ISC_LIST_FOREACH (*resps, resp, rlink) {
 		ISC_LIST_UNLINK(*resps, resp, rlink);
 
 		dispentry_log(resp, ISC_LOG_DEBUG(90), "read callback: %s",
@@ -1845,7 +1845,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	 * If there are pending responses, call the connect
 	 * callbacks for all of them.
 	 */
-	ISC_LIST_FOREACH_SAFE (disp->pending, resp, plink) {
+	ISC_LIST_FOREACH (disp->pending, resp, plink) {
 		ISC_LIST_UNLINK(disp->pending, resp, plink);
 		ISC_LIST_APPEND(resps, resp, rlink);
 		resp->result = eresult;
@@ -1879,7 +1879,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		disp->state = DNS_DISPATCHSTATE_NONE;
 	}
 
-	ISC_LIST_FOREACH_SAFE (resps, resp, rlink) {
+	ISC_LIST_FOREACH (resps, resp, rlink) {
 		ISC_LIST_UNLINK(resps, resp, rlink);
 
 		resp_connected(resp);

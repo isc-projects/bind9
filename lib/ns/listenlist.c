@@ -297,7 +297,7 @@ ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target) {
 
 static void
 destroy(ns_listenlist_t *list) {
-	ISC_LIST_FOREACH_SAFE (list->elts, elt, link) {
+	ISC_LIST_FOREACH (list->elts, elt, link) {
 		ns_listenelt_destroy(elt);
 	}
 	isc_mem_put(list->mctx, list, sizeof(*list));

@@ -456,7 +456,7 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 
 static void
 dns__acl_destroy_port_transports(dns_acl_t *acl) {
-	ISC_LIST_FOREACH_SAFE (acl->ports_and_transports, port_proto, link) {
+	ISC_LIST_FOREACH (acl->ports_and_transports, port_proto, link) {
 		ISC_LIST_DEQUEUE(acl->ports_and_transports, port_proto, link);
 		isc_mem_put(acl->mctx, port_proto, sizeof(*port_proto));
 	}

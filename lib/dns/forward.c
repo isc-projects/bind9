@@ -195,7 +195,7 @@ dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep) {
 
 static void
 destroy_forwarders(dns_forwarders_t *forwarders) {
-	ISC_LIST_FOREACH_SAFE (forwarders->fwdrs, fwd, link) {
+	ISC_LIST_FOREACH (forwarders->fwdrs, fwd, link) {
 		ISC_LIST_UNLINK(forwarders->fwdrs, fwd, link);
 		if (fwd->tlsname != NULL) {
 			dns_name_free(fwd->tlsname, forwarders->mctx);

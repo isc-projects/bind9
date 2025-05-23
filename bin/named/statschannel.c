@@ -3927,7 +3927,7 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 		}
 	}
 
-	ISC_LIST_FOREACH_SAFE (server->statschannels, listener, link) {
+	ISC_LIST_FOREACH (server->statschannels, listener, link) {
 		ISC_LIST_UNLINK(server->statschannels, listener, link);
 		shutdown_listener(listener);
 	}
@@ -3938,7 +3938,7 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 
 void
 named_statschannels_shutdown(named_server_t *server) {
-	ISC_LIST_FOREACH_SAFE (server->statschannels, listener, link) {
+	ISC_LIST_FOREACH (server->statschannels, listener, link) {
 		ISC_LIST_UNLINK(server->statschannels, listener, link);
 		shutdown_listener(listener);
 	}
