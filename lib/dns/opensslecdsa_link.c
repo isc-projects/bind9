@@ -257,10 +257,10 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	unsigned char *cp = sig->base;
 	ECDSA_SIG *ecdsasig = NULL;
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-	size_t siglen, sigder_len = 0, sigder_alloced = 0;
-	unsigned char *sigder = NULL;
-	unsigned char *sigder_copy;
-	BIGNUM *r = NULL, *s = NULL;
+	size_t siglen, sigder_len = 0;
+	void *sigder = NULL;
+	BIGNUM *r = NULL;
+	BIGNUM *s = NULL;
 
 	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 	REQUIRE(dctx->use == DO_VERIFY);
@@ -283,27 +283,23 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	cp += siglen / 2;
 	s = BN_bin2bn(cp, siglen / 2, NULL);
 	/* cp += siglen / 2; */
-	ECDSA_SIG_set0(ecdsasig, r, s);
+	status = ECDSA_SIG_set0(ecdsasig, r, s);
+	if (status == 0) {
+		BN_free(r);
+		BN_free(s);
+		CLEANUP(dst__openssl_toresult3(dctx->category, "ECDSA_SIG_set0",
+					       DST_R_VERIFYFAILURE));
+	}
+	r = s = NULL;
 
-	status = i2d_ECDSA_SIG(ecdsasig, NULL);
-	if (status < 0) {
+	status = i2d_ECDSA_SIG(ecdsasig, (unsigned char **)&sigder);
+	if (status <= 0) {
 		CLEANUP(dst__openssl_toresult3(dctx->category, "i2d_ECDSA_SIG",
 					       DST_R_VERIFYFAILURE));
 	}
-
 	sigder_len = (size_t)status;
-	sigder = isc_mem_get(dctx->mctx, sigder_len);
-	sigder_alloced = sigder_len;
-
-	sigder_copy = sigder;
-	status = i2d_ECDSA_SIG(ecdsasig, &sigder_copy);
-	if (status < 0) {
-		CLEANUP(dst__openssl_toresult3(dctx->category, "i2d_ECDSA_SIG",
-					       DST_R_VERIFYFAILURE));
-	}
 
 	status = EVP_DigestVerifyFinal(evp_md_ctx, sigder, sigder_len);
-
 	switch (status) {
 	case 1:
 		result = ISC_R_SUCCESS;
@@ -318,14 +314,11 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		break;
 	}
 
+	OPENSSL_free(sigder);
 cleanup:
 	if (ecdsasig != NULL) {
 		ECDSA_SIG_free(ecdsasig);
 	}
-	if (sigder != NULL && sigder_alloced != 0) {
-		isc_mem_put(dctx->mctx, sigder, sigder_alloced);
-	}
-
 	return result;
 }
 
