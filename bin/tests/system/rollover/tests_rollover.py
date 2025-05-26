@@ -263,22 +263,6 @@ def test_rollover_multisigner(servers):
 
         return isctest.run.cmd(keygen_command, log_stdout=True).stdout.decode("utf-8")
 
-    def nsupdate(updates):
-        message = dns.update.UpdateMessage(zone)
-        for update in updates:
-            if update[0] == 0:
-                message.delete(update[1], update[2], update[3])
-            else:
-                message.add(update[1], update[2], update[3], update[4])
-
-        try:
-            response = isctest.query.udp(
-                message, server.ip, server.ports.dns, timeout=3
-            )
-            assert response.rcode() == dns.rcode.NOERROR
-        except dns.exception.Timeout:
-            isctest.log.info(f"error: update timeout for {zone}")
-
     zone = "multisigner-model2.kasp"
 
     isctest.kasp.check_dnssec_verify(server, zone)
@@ -322,8 +306,9 @@ def test_rollover_multisigner(servers):
     dnskey = newkeys[0].dnskey().split()
     rdata = " ".join(dnskey[4:])
 
-    updates = [[1, f"{dnskey[0]}", 3600, "DNSKEY", rdata]]
-    nsupdate(updates)
+    update_msg = dns.update.UpdateMessage(zone)
+    update_msg.add(f"{dnskey[0]}", 3600, "DNSKEY", rdata)
+    server.nsupdate(update_msg)
 
     isctest.kasp.check_dnssec_verify(server, zone)
 
@@ -336,11 +321,10 @@ def test_rollover_multisigner(servers):
     # Remove ZSKs from the other providers for zone.
     dnskey2 = extkeys[0].dnskey().split()
     rdata2 = " ".join(dnskey2[4:])
-    updates = [
-        [0, f"{dnskey[0]}", "DNSKEY", rdata],
-        [0, f"{dnskey2[0]}", "DNSKEY", rdata2],
-    ]
-    nsupdate(updates)
+    update_msg = dns.update.UpdateMessage(zone)
+    update_msg.delete(f"{dnskey[0]}", "DNSKEY", rdata)
+    update_msg.delete(f"{dnskey2[0]}", "DNSKEY", rdata2)
+    server.nsupdate(update_msg)
 
     isctest.kasp.check_dnssec_verify(server, zone)
 
