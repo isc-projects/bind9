@@ -41,7 +41,6 @@
 #include <isc/urcu.h>
 #include <isc/util.h>
 
-#include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/qp.h>
@@ -117,9 +116,14 @@ ISC_REFCOUNT_STATIC_DECL(dns_qpmulti);
  */
 
 /*
- * An offset for the denial value.
+ * Convert the namespace value. We map namespace values to numerical
+ * digits so they can be represented in a single byte in the QP key;
+ * thus namespace 0 becomes '0', etc.
  */
-#define DENIAL_OFFSET 48
+#define ENCODE_NAMESPACE(c) dns_qp_bits_for_byte[(c) + (uint8_t)'0']
+#define DECODE_NAMESPACE(c) dns_qp_byte_for_bit[(c)] - (uint8_t)'0'
+
+#define NAME_OFFSET 1
 
 /*
  * Number of distinct byte values, i.e. 256
@@ -234,16 +238,16 @@ dns__qp_shutdown(void) {
  * dot in a zone file).
  */
 size_t
-dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name, uint8_t denial) {
+dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name,
+		   dns_namespace_t space) {
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
-	REQUIRE(denial <= DNS_DB_NSEC_NSEC3);
 
 	dns_offsets_t offsets;
 	size_t labels = dns_name_offsets(name, offsets);
 	size_t len = 0;
 
-	/* denial? */
-	key[len++] = dns_qp_bits_for_byte[denial + DENIAL_OFFSET];
+	/* namespace */
+	key[len++] = ENCODE_NAMESPACE(space);
 	/* name */
 	if (labels == 0) {
 		key[len] = SHIFT_NOBYTE;
@@ -272,10 +276,10 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name, uint8_t denial) {
 
 void
 dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name,
-		 uint8_t *denial) {
+		 dns_namespace_t *space) {
 	size_t locs[DNS_NAME_MAXLABELS];
 	size_t loc = 0;
-	size_t offset;
+	size_t offset = 0;
 
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 	REQUIRE(name->buffer != NULL);
@@ -283,14 +287,14 @@ dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name,
 
 	dns_name_reset(name);
 
-	SET_IF_NOT_NULL(denial, dns_qp_byte_for_bit[key[0]] - DENIAL_OFFSET);
+	SET_IF_NOT_NULL(space, DECODE_NAMESPACE(key[offset++]));
 
-	if (keylen == 1) {
+	if (keylen == NAME_OFFSET) {
 		return;
 	}
 
 	/* Scan the key looking for label boundaries */
-	for (offset = 1; offset <= keylen; offset++) {
+	for (; offset <= keylen; offset++) {
 		INSIST(key[offset] >= SHIFT_NOBYTE &&
 		       key[offset] < SHIFT_OFFSET);
 		INSIST(loc < DNS_NAME_MAXLABELS);
@@ -301,7 +305,7 @@ dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name,
 				goto scanned;
 			}
 			locs[loc++] = offset + 1;
-		} else if (offset == 1) {
+		} else if (offset == NAME_OFFSET) {
 			/* This happens for a relative name */
 			locs[loc++] = offset;
 		}
@@ -344,7 +348,7 @@ scanned:
 	}
 
 	/* Add a root label for absolute names */
-	if (key[1] == SHIFT_NOBYTE) {
+	if (key[NAME_OFFSET] == SHIFT_NOBYTE) {
 		name->attributes.absolute = true;
 		isc_buffer_putuint8(name->buffer, 0);
 		name->length++;
@@ -1840,10 +1844,10 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 }
 
 isc_result_t
-dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name, uint8_t denial,
+dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name, dns_namespace_t space,
 		  void **pval_r, uint32_t *ival_r) {
 	dns_qpkey_t key;
-	size_t keylen = dns_qpkey_fromname(key, name, denial);
+	size_t keylen = dns_qpkey_fromname(key, name, space);
 	return dns_qp_deletekey(qp, key, keylen, pval_r, ival_r);
 }
 
@@ -2103,10 +2107,10 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 }
 
 isc_result_t
-dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, uint8_t denial,
-	       void **pval_r, uint32_t *ival_r) {
+dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name,
+	       dns_namespace_t space, void **pval_r, uint32_t *ival_r) {
 	dns_qpkey_t key;
-	size_t keylen = dns_qpkey_fromname(key, name, denial);
+	size_t keylen = dns_qpkey_fromname(key, name, space);
 	return dns_qp_getkey(qpr, key, keylen, pval_r, ival_r);
 }
 
@@ -2281,9 +2285,9 @@ fix_chain(dns_qpchain_t *chain, size_t offset) {
 }
 
 isc_result_t
-dns_qp_lookup2(dns_qpreadable_t qpr, const dns_name_t *name, uint8_t denial,
-	       dns_name_t *foundname, dns_qpiter_t *iter, dns_qpchain_t *chain,
-	       void **pval_r, uint32_t *ival_r) {
+dns_qp_lookup2(dns_qpreadable_t qpr, const dns_name_t *name,
+	       dns_namespace_t space, dns_name_t *foundname, dns_qpiter_t *iter,
+	       dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
@@ -2298,7 +2302,7 @@ dns_qp_lookup2(dns_qpreadable_t qpr, const dns_name_t *name, uint8_t denial,
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(foundname == NULL || ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
-	searchlen = dns_qpkey_fromname(search, name, denial);
+	searchlen = dns_qpkey_fromname(search, name, space);
 
 	if (chain == NULL) {
 		chain = &oc;

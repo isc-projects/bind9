@@ -86,6 +86,7 @@
 
 #include <isc/attributes.h>
 
+#include <dns/db.h>
 #include <dns/name.h>
 #include <dns/types.h>
 
@@ -183,7 +184,7 @@ typedef union dns_qpreadable {
  * common hostname character; otherwise unusual characters are escaped,
  * using two bytes in the key. Because the maximum label length is 63
  * characters, the actual max is (255 - 5) * 2 + 6 == 506. Then, we need
- * one more byte to prepend the denial of existence value.
+ * one more byte to prepend the namespace.
  *
  * Note: this gives us 5 bytes available space to store more data.
  */
@@ -473,13 +474,14 @@ dns_qpmulti_memusage(dns_qpmulti_t *multi);
  */
 
 size_t
-dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name, uint8_t denial);
+dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name,
+		   dns_namespace_t space);
 /*%<
  * Convert a DNS name into a trie lookup key.
  *
- * If 'denial' is DNS_DB_NSEC_NORMAL (0), convert the name for a NSEC lookup.
- * If 'denial' is DNS_DB_NSEC_NSEC, convert the name for a NSEC lookup.
- * If 'denial' is DNS_DB_NSEC_NSEC3, convert the name for a NSEC3 lookup.
+ * If 'space' is DNS_DB_NSEC_NORMAL (0), convert the name for a normal lookup.
+ * If 'space' is DNS_DB_NSEC_NSEC, convert the name for a NSEC lookup.
+ * If 'space' is DNS_DB_NSEC_NSEC3, convert the name for a NSEC3 lookup.
  *
  * Requires:
  * \li  `name` is a pointer to a valid `dns_name_t`
@@ -493,11 +495,11 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name, uint8_t denial);
 
 void
 dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name,
-		 uint8_t *denial);
+		 dns_namespace_t *space);
 /*%<
  * Convert a trie lookup key back into a DNS name.
  *
- * 'denial' stores whether the key is for a normal name, or denial of existence.
+ * 'space' stores whether the key is for a normal name, or denial of existence.
  *
  * Requires:
  * \li  `name` is a pointer to a valid `dns_name_t`
@@ -524,10 +526,10 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
  */
 
 isc_result_t
-dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, uint8_t denial,
-	       void **pval_r, uint32_t *ival_r);
+dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name,
+	       dns_namespace_t space, void **pval_r, uint32_t *ival_r);
 /*%<
- * Find a leaf in a qp-trie that matches the given DNS name, and denial value.
+ * Find a leaf in a qp-trie that matches the given DNS name, and namespace.
  *
  * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
  * are not null, unless the return value is ISC_R_NOTFOUND.
@@ -586,11 +588,11 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
  */
 
 isc_result_t
-dns_qp_lookup2(dns_qpreadable_t qpr, const dns_name_t *name, uint8_t denial,
-	       dns_name_t *foundname, dns_qpiter_t *iter, dns_qpchain_t *chain,
-	       void **pval_r, uint32_t *ival_r);
+dns_qp_lookup2(dns_qpreadable_t qpr, const dns_name_t *name,
+	       dns_namespace_t space, dns_name_t *foundname, dns_qpiter_t *iter,
+	       dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
 /*%<
- * The same as 'dns_qp_lookup', but with the possibility to set a denial value,
+ * The same as 'dns_qp_lookup', but with the possibility to set a namespace,
  * either DNS_DB_NSEC_NORMAL (or 0, which is the equivalent of 'dns_qp_lookup'),
  * DNS_DB_NSEC_NSEC, OR DNS_DB_NSEC3.
  */
@@ -629,11 +631,10 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t key, size_t keylen,
  */
 
 isc_result_t
-dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name, uint8_t denial,
+dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name, dns_namespace_t space,
 		  void **pval_r, uint32_t *ival_r);
 /*%<
- * Delete a leaf from a qp-trie that matches the given DNS name, and denial
- * value.
+ * Delete a leaf from a qp-trie that matches the given DNS name, and namespace.
  *
  * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
  * are not null, unless the return value is ISC_R_NOTFOUND.

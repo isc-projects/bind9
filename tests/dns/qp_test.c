@@ -45,75 +45,75 @@ bool verbose = false;
 ISC_RUN_TEST_IMPL(qpkey_name) {
 	struct {
 		const char *namestr;
-		uint8_t denial;
+		dns_namespace_t space;
 		uint8_t key[512];
 		size_t len;
 	} testcases[] = {
 		{
 			.namestr = "",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x02 },
 			.len = 1,
 		},
 		{
 			.namestr = ".",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x02, 0x02 },
 			.len = 2,
 		},
 		{
 			.namestr = "\\000",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x03, 0x03, 0x02 },
 			.len = 4,
 		},
 		{
 			.namestr = "\\000\\009",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x03, 0x03, 0x03, 0x0c, 0x02 },
 			.len = 6,
 		},
 		{
 			.namestr = "com",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x16, 0x22, 0x20, 0x02 },
 			.len = 5,
 		},
 		{
 			.namestr = "com.",
-			.denial = DNS_DB_NSEC_NSEC,
+			.space = DNS_DB_NSEC_NSEC,
+			.key = { 0x08, 0x02, 0x16, 0x22, 0x20, 0x02 },
+			.len = 6,
+		},
+		{
+			.namestr = "com.",
+			.space = DNS_DB_NSEC_NSEC3,
 			.key = { 0x09, 0x02, 0x16, 0x22, 0x20, 0x02 },
 			.len = 6,
 		},
 		{
 			.namestr = "com.",
-			.denial = DNS_DB_NSEC_NSEC3,
-			.key = { 0x0a, 0x02, 0x16, 0x22, 0x20, 0x02 },
-			.len = 6,
-		},
-		{
-			.namestr = "com.",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x02, 0x16, 0x22, 0x20, 0x02 },
 			.len = 6,
 		},
 		{
 			.namestr = "example.com.",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x02, 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b,
 				 0x14, 0x20, 0x23, 0x1f, 0x18, 0x02 },
 			.len = 14,
 		},
 		{
 			.namestr = "example.com",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b, 0x14,
 				 0x20, 0x23, 0x1f, 0x18, 0x02 },
 			.len = 13,
 		},
 		{
 			.namestr = "EXAMPLE.COM",
-			.denial = DNS_DB_NSEC_NORMAL,
+			.space = DNS_DB_NSEC_NORMAL,
 			.key = { 0x07, 0x16, 0x22, 0x20, 0x02, 0x18, 0x2b, 0x14,
 				 0x20, 0x23, 0x1f, 0x18, 0x02 },
 			.len = 13,
@@ -126,13 +126,13 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 		dns_fixedname_t fn1, fn2;
 		dns_name_t *in = NULL, *out = NULL;
 		char namebuf[DNS_NAME_FORMATSIZE];
-		uint8_t denial;
+		dns_namespace_t space;
 
 		in = dns_fixedname_initname(&fn1);
 		if (testcases[i].len > 1) {
 			dns_test_namefromstring(testcases[i].namestr, &fn1);
 		}
-		len = dns_qpkey_fromname(key, in, testcases[i].denial);
+		len = dns_qpkey_fromname(key, in, testcases[i].space);
 		if (verbose) {
 			qp_test_printkey(key, len);
 		}
@@ -141,9 +141,9 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 		assert_memory_equal(testcases[i].key, key, len);
 
 		out = dns_fixedname_initname(&fn2);
-		dns_qpkey_toname(key, len, out, &denial);
+		dns_qpkey_toname(key, len, out, &space);
 		assert_true(dns_name_equal(in, out));
-		assert_int_equal(denial, testcases[i].denial);
+		assert_int_equal(space, testcases[i].space);
 		/* check that 'out' is properly reset by dns_qpkey_toname */
 		dns_qpkey_toname(key, len, out, NULL);
 		dns_name_format(out, namebuf, sizeof(namebuf));
@@ -155,25 +155,25 @@ ISC_RUN_TEST_IMPL(qpkey_sort) {
 		const char *namestr;
 		dns_name_t *name;
 		dns_fixedname_t fixed;
-		uint8_t denial;
+		dns_namespace_t space;
 		size_t len;
 		dns_qpkey_t key;
 	} testcases[] = {
-		{ .namestr = ".", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "\\000.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "\\000.\\000.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "\\000\\009.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "\\007.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "example.com.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "EXAMPLE.COM.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "www.example.com.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "exam.com.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "exams.com.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "exam\\000.com.", .denial = DNS_DB_NSEC_NORMAL },
-		{ .namestr = "exam.com.", .denial = DNS_DB_NSEC_NSEC },
-		{ .namestr = "exams.com.", .denial = DNS_DB_NSEC_NSEC },
-		{ .namestr = "exam.com.", .denial = DNS_DB_NSEC_NSEC3 },
-		{ .namestr = "exams.com.", .denial = DNS_DB_NSEC_NSEC3 },
+		{ .namestr = ".", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "\\000.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "\\000.\\000.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "\\000\\009.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "\\007.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "example.com.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "EXAMPLE.COM.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "www.example.com.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "exam.com.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "exams.com.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "exam\\000.com.", .space = DNS_DB_NSEC_NORMAL },
+		{ .namestr = "exam.com.", .space = DNS_DB_NSEC_NSEC },
+		{ .namestr = "exams.com.", .space = DNS_DB_NSEC_NSEC },
+		{ .namestr = "exam.com.", .space = DNS_DB_NSEC_NSEC3 },
+		{ .namestr = "exams.com.", .space = DNS_DB_NSEC_NSEC3 },
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
@@ -182,7 +182,7 @@ ISC_RUN_TEST_IMPL(qpkey_sort) {
 		testcases[i].name = dns_fixedname_name(&testcases[i].fixed);
 		testcases[i].len = dns_qpkey_fromname(testcases[i].key,
 						      testcases[i].name,
-						      testcases[i].denial);
+						      testcases[i].space);
 	}
 
 	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
@@ -194,13 +194,13 @@ ISC_RUN_TEST_IMPL(qpkey_sort) {
 			/* include extra terminating NOBYTE */
 			int keycmp = memcmp(testcases[i].key, testcases[j].key,
 					    len + 1);
-			if (testcases[i].denial == testcases[j].denial) {
+			if (testcases[i].space == testcases[j].space) {
 				assert_true((namecmp < 0) == (keycmp < 0));
 				assert_true((namecmp == 0) == (keycmp == 0));
 				assert_true((namecmp > 0) == (keycmp > 0));
 			} else {
-				uint8_t di = testcases[i].denial;
-				uint8_t dj = testcases[j].denial;
+				uint8_t di = testcases[i].space;
+				uint8_t dj = testcases[j].space;
 				assert_true((di < dj) == (keycmp < 0));
 				assert_true((di > dj) == (keycmp > 0));
 			}
@@ -384,11 +384,11 @@ no_op(void *uctx, void *pval, uint32_t ival) {
 static size_t
 qpkey_fromstring(dns_qpkey_t key, void *uctx, void *pval, uint32_t ival) {
 	dns_fixedname_t fixed;
-	uint8_t denial = ival;
+	dns_namespace_t space = ival;
 
 	UNUSED(uctx);
 	dns_test_namefromstring(pval, &fixed);
-	return dns_qpkey_fromname(key, dns_fixedname_name(&fixed), denial);
+	return dns_qpkey_fromname(key, dns_fixedname_name(&fixed), space);
 }
 
 const dns_qpmethods_t string_methods = {
@@ -406,7 +406,7 @@ struct check_partialmatch {
 
 static void
 check_partialmatch(dns_qp_t *qp, struct check_partialmatch check[],
-		   uint8_t denial) {
+		   dns_namespace_t space) {
 	for (int i = 0; check[i].query != NULL; i++) {
 		isc_result_t result;
 		dns_fixedname_t fn1, fn2;
@@ -415,13 +415,13 @@ check_partialmatch(dns_qp_t *qp, struct check_partialmatch check[],
 		void *pval = NULL;
 
 		dns_test_namefromstring(check[i].query, &fn1);
-		result = dns_qp_lookup2(qp, name, denial, foundname, NULL, NULL,
+		result = dns_qp_lookup2(qp, name, space, foundname, NULL, NULL,
 					&pval, NULL);
 
 #if 0
 		fprintf(stderr, "%s%s %s (expected %s) "
 			"value \"%s\" (expected \"%s\")\n",
-			denial == DNS_DB_NSEC_NSEC3 ? "NSEC3:" : (denial == DNS_DB_NSEC_NSEC ? "NSEC:" : ""),
+			space == DNS_DB_NSEC_NSEC3 ? "NSEC3:" : (space == DNS_DB_NSEC_NSEC ? "NSEC:" : ""),
 			check[i].query,
 			isc_result_totext(result),
 			isc_result_totext(check[i].result), (char *)pval,
@@ -460,18 +460,18 @@ check_partialmatch(dns_qp_t *qp, struct check_partialmatch check[],
 }
 
 static void
-insert_name(dns_qp_t *qp, const char *str, uint8_t denial) {
+insert_name(dns_qp_t *qp, const char *str, dns_namespace_t space) {
 	isc_result_t result;
 	uintptr_t pval = (uintptr_t)str;
-	uint32_t ival = (uint32_t)denial;
+	uint32_t ival = (uint32_t)space;
 	INSIST((pval & 3) == 0);
 	result = dns_qp_insert(qp, (void *)pval, ival);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
 static void
-delete_rootkey(dns_qp_t *qp, uint8_t denial) {
-	uint8_t d = dns_qp_bits_for_byte[denial + 48];
+delete_rootkey(dns_qp_t *qp, dns_namespace_t space) {
+	uint8_t d = dns_qp_bits_for_byte[space + 48];
 	dns_qpkey_t rootkey = { d, SHIFT_NOBYTE };
 	isc_result_t result = dns_qp_deletekey(qp, rootkey, 1, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -561,7 +561,7 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 
 struct check_qpchain {
 	const char *query;
-	uint8_t denial;
+	dns_namespace_t space;
 	isc_result_t result;
 	unsigned int length;
 	const char *names[10];
@@ -578,7 +578,7 @@ check_qpchainiter(dns_qp_t *qp, struct check_qpchain check[],
 
 		dns_qpchain_init(qp, &chain);
 		dns_test_namefromstring(check[i].query, &fn1);
-		result = dns_qp_lookup2(qp, name, check[i].denial, NULL, iter,
+		result = dns_qp_lookup2(qp, name, check[i].space, NULL, iter,
 					&chain, NULL, NULL);
 #if 0
 		fprintf(stderr,
@@ -766,9 +766,9 @@ ISC_RUN_TEST_IMPL(qpchain) {
 
 struct check_predecessors {
 	const char *query;
-	uint8_t denial;
+	dns_namespace_t space;
 	const char *predecessor;
-	uint8_t pdenial;
+	dns_namespace_t pspace;
 	isc_result_t result;
 	int remaining;
 };
@@ -800,13 +800,13 @@ check_predecessors_withchain(dns_qp_t *qp, struct check_predecessors check[],
 		result = dns_name_tostring(expred, &predstr, mctx);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		result = dns_qp_lookup2(qp, name, check[i].denial, NULL, &it,
+		result = dns_qp_lookup2(qp, name, check[i].space, NULL, &it,
 					chain, NULL, NULL);
 #if 0
 		fprintf(stderr, "%s %s: expected %s got %s\n", check[i].query,
-			check[i].denial == DNS_DB_NSEC_NSEC3
+			check[i].space == DNS_DB_NSEC_NSEC3
 				? "NSEC3"
-				: (check[i].denial == DNS_DB_NSEC_NSEC
+				: (check[i].space == DNS_DB_NSEC_NSEC
 					   ? "NSEC"
 					   : "NORMAL"),
 			isc_result_totext(check[i].result),
@@ -836,11 +836,11 @@ check_predecessors_withchain(dns_qp_t *qp, struct check_predecessors check[],
 		result = dns_name_tostring(pred, &namestr, mctx);
 #if 0
 		fprintf(stderr, "... expected predecessor %s %u got %s %u\n",
-			predstr, check[i].pdenial, namestr, ival);
+			predstr, check[i].pspace, namestr, ival);
 #endif
 		assert_int_equal(result, ISC_R_SUCCESS);
 		assert_string_equal(namestr, predstr);
-		assert_int_equal(ival, check[i].pdenial);
+		assert_int_equal(ival, check[i].pspace);
 
 #if 0
 		fprintf(stderr, "%d: remaining names after %s:\n", i, namestr);
@@ -1606,7 +1606,7 @@ ISC_RUN_TEST_IMPL(fixiterator) {
 struct inserting {
 	/* Fixed size strings [32] should ensure leaf-compatible alignment. */
 	const char name[32];
-	uint8_t denial;
+	dns_namespace_t space;
 	/* Padding */
 	uint8_t pad1;
 	uint16_t pad2;
@@ -1614,7 +1614,7 @@ struct inserting {
 
 struct check_delete {
 	const char *name;
-	uint8_t denial;
+	dns_namespace_t space;
 	isc_result_t result;
 };
 
@@ -1628,11 +1628,11 @@ check_delete(dns_qp_t *qp, struct check_delete check[]) {
 
 		dns_qpchain_init(qp, &chain);
 		dns_test_namefromstring(check[i].name, &fn1);
-		result = dns_qp_deletename(qp, name, check[i].denial, NULL,
+		result = dns_qp_deletename(qp, name, check[i].space, NULL,
 					   NULL);
 #if 0
 		fprintf(stderr, "%s %u %s (expected %s)\n", check[i].name,
-			check[i].denial, isc_result_totext(result),
+			check[i].space, isc_result_totext(result),
 			isc_result_totext(check[i].result));
 #endif
 		assert_int_equal(result, check[i].result);
@@ -1679,7 +1679,7 @@ ISC_RUN_TEST_IMPL(qpkey_delete) {
 	dns_qp_create(mctx, &string_methods, NULL, &qp);
 
 	while (insert1[i].name[0] != '\0') {
-		insert_name(qp, insert1[i].name, insert1[i].denial);
+		insert_name(qp, insert1[i].name, insert1[i].space);
 		i++;
 	}
 

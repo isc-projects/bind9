@@ -343,14 +343,14 @@ void
 qp_test_printkey(const dns_qpkey_t key, size_t keylen) {
 	dns_fixedname_t fn;
 	dns_name_t *n = dns_fixedname_initname(&fn);
-	uint8_t d;
+	dns_namespace_t s;
 	char txt[DNS_NAME_FORMATSIZE];
 
-	dns_qpkey_toname(key, keylen, n, &d);
+	dns_qpkey_toname(key, keylen, n, &s);
 	dns_name_format(n, txt, sizeof(txt));
 	printf("%s%s%s\n", txt,
-	       d == DNS_DB_NSEC_NSEC3 ? "NSEC3:"
-				      : (d == DNS_DB_NSEC_NSEC ? "NSEC" : ""),
+	       s == DNS_DB_NSEC_NSEC3 ? "NSEC3:"
+				      : (s == DNS_DB_NSEC_NSEC ? "NSEC" : ""),
 	       dns_name_isabsolute(n) ? "." : "");
 }
 
