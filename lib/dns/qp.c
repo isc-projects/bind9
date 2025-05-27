@@ -2285,9 +2285,9 @@ fix_chain(dns_qpchain_t *chain, size_t offset) {
 }
 
 isc_result_t
-dns_qp_lookup2(dns_qpreadable_t qpr, const dns_name_t *name,
-	       dns_namespace_t space, dns_name_t *foundname, dns_qpiter_t *iter,
-	       dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r) {
+dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
+	      dns_namespace_t space, dns_name_t *foundname, dns_qpiter_t *iter,
+	      dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
@@ -2431,14 +2431,6 @@ dns_qp_lookup2(dns_qpreadable_t qpr, const dns_name_t *name,
 
 	/* nothing was found at all */
 	return ISC_R_NOTFOUND;
-}
-
-isc_result_t
-dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
-	      dns_name_t *foundname, dns_qpiter_t *iter, dns_qpchain_t *chain,
-	      void **pval_r, uint32_t *ival_r) {
-	return dns_qp_lookup2(qpr, name, 0, foundname, iter, chain, pval_r,
-			      ival_r);
 }
 
 /**********************************************************************/

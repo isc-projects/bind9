@@ -545,11 +545,12 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name,
 
 isc_result_t
 dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
-	      dns_name_t *foundname, dns_qpiter_t *iter, dns_qpchain_t *chain,
-	      void **pval_r, uint32_t *ival_r);
+	      dns_namespace_t space, dns_name_t *foundname, dns_qpiter_t *iter,
+	      dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
 /*%<
  * Look up a leaf in a qp-trie that is equal to, or an ancestor domain of,
- * 'name'.
+ * 'name' in the namespace 'space'. The namespace can either be
+ * DNS_DB_NSEC_NORMAL, DNS_DB_NSEC_NSEC, or DNS_DB_NSEC3.
  *
  * If 'foundname' is not NULL, it will be updated to contain the name
  * that was found (if any). The return code, ISC_R_SUCCESS or
@@ -585,16 +586,6 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
  * \li  ISC_R_SUCCESS if an exact match was found
  * \li  ISC_R_PARTIALMATCH if an ancestor domain was found
  * \li  ISC_R_NOTFOUND if no match was found
- */
-
-isc_result_t
-dns_qp_lookup2(dns_qpreadable_t qpr, const dns_name_t *name,
-	       dns_namespace_t space, dns_name_t *foundname, dns_qpiter_t *iter,
-	       dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
-/*%<
- * The same as 'dns_qp_lookup', but with the possibility to set a namespace,
- * either DNS_DB_NSEC_NORMAL (or 0, which is the equivalent of 'dns_qp_lookup'),
- * DNS_DB_NSEC_NSEC, OR DNS_DB_NSEC3.
  */
 
 isc_result_t

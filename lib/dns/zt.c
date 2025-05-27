@@ -181,7 +181,7 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 	if (exactopts == DNS_ZTFIND_EXACT) {
 		result = dns_qp_getname(&qpr, name, 0, &pval, NULL);
 	} else {
-		result = dns_qp_lookup(&qpr, name, NULL, NULL, &chain, &pval,
+		result = dns_qp_lookup(&qpr, name, 0, NULL, NULL, &chain, &pval,
 				       NULL);
 		if (exactopts == DNS_ZTFIND_NOEXACT && result == ISC_R_SUCCESS)
 		{

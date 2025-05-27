@@ -2516,7 +2516,7 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 	dns_qpmulti_query(rpzs->table, &qpr);
 	dns_qpchain_init(&qpr, &chain);
 
-	result = dns_qp_lookup(&qpr, trig_name, NULL, NULL, &chain,
+	result = dns_qp_lookup(&qpr, trig_name, 0, NULL, NULL, &chain,
 			       (void **)&data, NULL);
 	switch (result) {
 	case ISC_R_SUCCESS:
