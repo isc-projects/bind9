@@ -260,6 +260,14 @@ load_ec_secret_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 		CLEANUP(OSSL_WRAP_ERROR("EC_KEY_set_public_key"));
 	}
 
+	/*
+	 * EC_KEY_set_private_key() accepts a private key outside of the
+	 * [1, n-1] range, so the key pair needs to be checked explicitly.
+	 */
+	if (EC_KEY_check_key(eckey) != 1) {
+		CLEANUP(OSSL_WRAP_ERROR("EC_KEY_check_key"));
+	}
+
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
 		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_new"));
