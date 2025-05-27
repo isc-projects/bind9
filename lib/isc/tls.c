@@ -1354,7 +1354,7 @@ isc_tlsctx_client_session_cache_detach(
 
 	isc_refcount_destroy(&cache->references);
 
-	ISC_LIST_FOREACH_SAFE (cache->lru_entries, entry, cache_link) {
+	ISC_LIST_FOREACH (cache->lru_entries, entry, cache_link) {
 		client_cache_entry_delete(cache, entry);
 	}
 

@@ -174,7 +174,7 @@ requests_shutdown(void *arg) {
 	dns_requestmgr_t *requestmgr = arg;
 	uint32_t tid = isc_tid();
 
-	ISC_LIST_FOREACH_SAFE (requestmgr->requests[tid], request, link) {
+	ISC_LIST_FOREACH (requestmgr->requests[tid], request, link) {
 		req_log(ISC_LOG_DEBUG(3), "%s(%" PRIu32 ": request %p",
 			__func__, tid, request);
 		if (DNS_REQUEST_COMPLETE(request)) {

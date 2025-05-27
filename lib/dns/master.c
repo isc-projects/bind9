@@ -2116,10 +2116,10 @@ cleanup:
 		callbacks->commit(callbacks->add_private);
 	}
 
-	ISC_LIST_FOREACH_SAFE (current_list, this, link) {
+	ISC_LIST_FOREACH (current_list, this, link) {
 		ISC_LIST_UNLINK(current_list, this, link);
 	}
-	ISC_LIST_FOREACH_SAFE (glue_list, this, link) {
+	ISC_LIST_FOREACH (glue_list, this, link) {
 		ISC_LIST_UNLINK(glue_list, this, link);
 	}
 	if (rdatalist != NULL) {
@@ -2757,11 +2757,11 @@ grow_rdatalist(int new_len, dns_rdatalist_t *oldlist, int old_len,
 	newlist = isc_mem_cget(mctx, new_len, sizeof(newlist[0]));
 
 	ISC_LIST_INIT(save);
-	ISC_LIST_FOREACH_SAFE (*current, this, link) {
+	ISC_LIST_FOREACH (*current, this, link) {
 		ISC_LIST_UNLINK(*current, this, link);
 		ISC_LIST_APPEND(save, this, link);
 	}
-	ISC_LIST_FOREACH_SAFE (save, this, link) {
+	ISC_LIST_FOREACH (save, this, link) {
 		ISC_LIST_UNLINK(save, this, link);
 		INSIST(rdlcount < new_len);
 		newlist[rdlcount] = *this;
@@ -2770,11 +2770,11 @@ grow_rdatalist(int new_len, dns_rdatalist_t *oldlist, int old_len,
 	}
 
 	ISC_LIST_INIT(save);
-	ISC_LIST_FOREACH_SAFE (*glue, this, link) {
+	ISC_LIST_FOREACH (*glue, this, link) {
 		ISC_LIST_UNLINK(*glue, this, link);
 		ISC_LIST_APPEND(save, this, link);
 	}
-	ISC_LIST_FOREACH_SAFE (save, this, link) {
+	ISC_LIST_FOREACH (save, this, link) {
 		ISC_LIST_UNLINK(save, this, link);
 		INSIST(rdlcount < new_len);
 		newlist[rdlcount] = *this;
@@ -2807,11 +2807,11 @@ grow_rdata(int new_len, dns_rdata_t *oldlist, int old_len,
 	 */
 	ISC_LIST_FOREACH (*current, this, link) {
 		ISC_LIST_INIT(save);
-		ISC_LIST_FOREACH_SAFE (this->rdata, rdata, link) {
+		ISC_LIST_FOREACH (this->rdata, rdata, link) {
 			ISC_LIST_UNLINK(this->rdata, rdata, link);
 			ISC_LIST_APPEND(save, rdata, link);
 		}
-		ISC_LIST_FOREACH_SAFE (save, rdata, link) {
+		ISC_LIST_FOREACH (save, rdata, link) {
 			ISC_LIST_UNLINK(save, rdata, link);
 			INSIST(rdcount < new_len);
 			newlist[rdcount] = *rdata;
@@ -2888,7 +2888,7 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 
 	error = callbacks->error;
 
-	ISC_LIST_FOREACH_SAFE (*head, this, link) {
+	ISC_LIST_FOREACH (*head, this, link) {
 		dns_rdataset_init(&dataset);
 		dns_rdatalist_tordataset(this, &dataset);
 		dataset.trust = dns_trust_ultimate;

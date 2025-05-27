@@ -1122,7 +1122,7 @@ cleanup_nondirty(qpz_version_t *version, qpz_changedlist_t *cleanup_list) {
 	 *
 	 * The caller must be holding the database lock.
 	 */
-	ISC_LIST_FOREACH_SAFE (version->changed_list, changed, link) {
+	ISC_LIST_FOREACH (version->changed_list, changed, link) {
 		if (!changed->dirty) {
 			ISC_LIST_UNLINK(version->changed_list, changed, link);
 			ISC_LIST_APPEND(*cleanup_list, changed, link);
@@ -1492,7 +1492,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	/*
 	 * Commit/rollback re-signed headers.
 	 */
-	ISC_LIST_FOREACH_SAFE (resigned_list, header, link) {
+	ISC_LIST_FOREACH (resigned_list, header, link) {
 		isc_rwlock_t *nlock = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
@@ -1513,7 +1513,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		return;
 	}
 
-	ISC_LIST_FOREACH_SAFE (cleanup_list, changed, link) {
+	ISC_LIST_FOREACH (cleanup_list, changed, link) {
 		isc_rwlock_t *nlock = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 

@@ -798,8 +798,8 @@ destroynode(bdbnode_t *node) {
 	bdb = node->bdb;
 	mctx = bdb->common.mctx;
 
-	ISC_LIST_FOREACH_SAFE (node->lists, list, link) {
-		ISC_LIST_FOREACH_SAFE (list->rdata, rdata, link) {
+	ISC_LIST_FOREACH (node->lists, list, link) {
+		ISC_LIST_FOREACH (list->rdata, rdata, link) {
 			ISC_LIST_UNLINK(list->rdata, rdata, link);
 			isc_mem_put(mctx, rdata, sizeof(dns_rdata_t));
 		}
@@ -807,7 +807,7 @@ destroynode(bdbnode_t *node) {
 		isc_mem_put(mctx, list, sizeof(dns_rdatalist_t));
 	}
 
-	ISC_LIST_FOREACH_SAFE (node->buffers, b, link) {
+	ISC_LIST_FOREACH (node->buffers, b, link) {
 		ISC_LIST_UNLINK(node->buffers, b, link);
 		isc_buffer_free(&b);
 	}

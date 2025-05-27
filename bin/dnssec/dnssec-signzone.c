@@ -2725,7 +2725,7 @@ report(const char *format, ...) {
 
 static void
 clear_keylist(dns_dnsseckeylist_t *list) {
-	ISC_LIST_FOREACH_SAFE (*list, key, link) {
+	ISC_LIST_FOREACH (*list, key, link) {
 		ISC_LIST_UNLINK(*list, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
@@ -2883,7 +2883,7 @@ findkeys:
 	clear_keylist(&rmkeys);
 	clear_keylist(&matchkeys);
 
-	ISC_LIST_FOREACH_SAFE (digests, d, link) {
+	ISC_LIST_FOREACH (digests, d, link) {
 		ISC_LIST_UNLINK(digests, d, link);
 		isc_mem_put(mctx, d, sizeof(*d));
 	}
@@ -4059,7 +4059,7 @@ main(int argc, char *argv[]) {
 
 	hashlist_free(&hashlist);
 
-	ISC_LIST_FOREACH_SAFE (keylist, key, link) {
+	ISC_LIST_FOREACH (keylist, key, link) {
 		ISC_LIST_UNLINK(keylist, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}

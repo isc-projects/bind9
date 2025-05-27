@@ -524,7 +524,7 @@ mem_destroy(isc_mem_t *ctx) {
 #if ISC_MEM_TRACKLINES
 	if (ctx->debuglist != NULL) {
 		for (size_t i = 0; i < DEBUG_TABLE_COUNT; i++) {
-			ISC_LIST_FOREACH_SAFE (ctx->debuglist[i], dl, link) {
+			ISC_LIST_FOREACH (ctx->debuglist[i], dl, link) {
 				if (ctx->checkfree && dl->ptr != NULL) {
 					print_active(ctx, stderr);
 				}

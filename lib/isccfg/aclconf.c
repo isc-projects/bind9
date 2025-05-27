@@ -76,8 +76,7 @@ cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
 
 	if (isc_refcount_decrement(&actx->references) == 1) {
 		isc_refcount_destroy(&actx->references);
-		ISC_LIST_FOREACH_SAFE (actx->named_acl_cache, dacl, nextincache)
-		{
+		ISC_LIST_FOREACH (actx->named_acl_cache, dacl, nextincache) {
 			ISC_LIST_UNLINK(actx->named_acl_cache, dacl,
 					nextincache);
 			dns_acl_detach(&dacl);

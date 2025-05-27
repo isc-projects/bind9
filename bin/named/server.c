@@ -6072,7 +6072,7 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 
 cleanup:
 
-	ISC_LIST_FOREACH_SAFE (fwdlist, fwd, link) {
+	ISC_LIST_FOREACH (fwdlist, fwd, link) {
 		ISC_LIST_UNLINK(fwdlist, fwd, link);
 		if (fwd->tlsname != NULL) {
 			dns_name_free(fwd->tlsname, view->mctx);
@@ -9239,7 +9239,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * were swapped above or not.
 	 */
 cleanup_altsecrets:
-	ISC_LIST_FOREACH_SAFE (altsecrets, as, link) {
+	ISC_LIST_FOREACH (altsecrets, as, link) {
 		ISC_LIST_UNLINK(altsecrets, as, link);
 		isc_mem_put(server->sctx->mctx, as, sizeof(*as));
 	}
@@ -9250,7 +9250,7 @@ cleanup_logc:
 	}
 
 cleanup_cachelist:
-	ISC_LIST_FOREACH_SAFE (cachelist, nsc, link) {
+	ISC_LIST_FOREACH (cachelist, nsc, link) {
 		ISC_LIST_UNLINK(cachelist, nsc, link);
 		dns_cache_detach(&nsc->cache);
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
@@ -9259,7 +9259,7 @@ cleanup_cachelist:
 	ISC_LIST_APPENDLIST(viewlist, builtin_viewlist, link);
 
 cleanup_viewlist:
-	ISC_LIST_FOREACH_SAFE (viewlist, view, link) {
+	ISC_LIST_FOREACH (viewlist, view, link) {
 		ISC_LIST_UNLINK(viewlist, view, link);
 		if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0)
 		{
@@ -9270,13 +9270,13 @@ cleanup_viewlist:
 	}
 
 cleanup_kasplist:
-	ISC_LIST_FOREACH_SAFE (kasplist, kasp, link) {
+	ISC_LIST_FOREACH (kasplist, kasp, link) {
 		ISC_LIST_UNLINK(kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
 	}
 
 cleanup_keystorelist:
-	ISC_LIST_FOREACH_SAFE (keystorelist, keystore, link) {
+	ISC_LIST_FOREACH (keystorelist, keystore, link) {
 		ISC_LIST_UNLINK(keystorelist, keystore, link);
 		dns_keystore_detach(&keystore);
 	}
@@ -9548,17 +9548,17 @@ shutdown_server(void *arg) {
 
 	(void)named_server_saventa(server);
 
-	ISC_LIST_FOREACH_SAFE (server->kasplist, kasp, link) {
+	ISC_LIST_FOREACH (server->kasplist, kasp, link) {
 		ISC_LIST_UNLINK(server->kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
 	}
 
-	ISC_LIST_FOREACH_SAFE (server->keystorelist, keystore, link) {
+	ISC_LIST_FOREACH (server->keystorelist, keystore, link) {
 		ISC_LIST_UNLINK(server->keystorelist, keystore, link);
 		dns_keystore_detach(&keystore);
 	}
 
-	ISC_LIST_FOREACH_SAFE (server->viewlist, view, link) {
+	ISC_LIST_FOREACH (server->viewlist, view, link) {
 		view_next = ISC_LIST_NEXT(view, link);
 		ISC_LIST_UNLINK(server->viewlist, view, link);
 		dns_view_flushonshutdown(view, flush);
@@ -9570,7 +9570,7 @@ shutdown_server(void *arg) {
 	 */
 	dns_dyndb_cleanup();
 
-	ISC_LIST_FOREACH_SAFE (server->cachelist, nsc, link) {
+	ISC_LIST_FOREACH (server->cachelist, nsc, link) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);
 		dns_cache_detach(&nsc->cache);
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
@@ -11103,9 +11103,9 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 
 static void
 dumpcontext_destroy(struct dumpcontext *dctx) {
-	ISC_LIST_FOREACH_SAFE (dctx->viewlist, vle, link) {
+	ISC_LIST_FOREACH (dctx->viewlist, vle, link) {
 		ISC_LIST_UNLINK(dctx->viewlist, vle, link);
-		ISC_LIST_FOREACH_SAFE (vle->zonelist, zle, link) {
+		ISC_LIST_FOREACH (vle->zonelist, zle, link) {
 			ISC_LIST_UNLINK(vle->zonelist, zle, link);
 			dns_zone_detach(&zle->zone);
 			isc_mem_put(dctx->mctx, zle, sizeof *zle);
@@ -14700,7 +14700,7 @@ cleanup:
 		dns_db_detach(&db);
 	}
 
-	ISC_LIST_FOREACH_SAFE (keys, key, link) {
+	ISC_LIST_FOREACH (keys, key, link) {
 		ISC_LIST_UNLINK(keys, key, link);
 		dns_dnsseckey_destroy(dns_zone_getmctx(zone), &key);
 	}

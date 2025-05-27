@@ -652,7 +652,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 	/*
 	 * Cleanup kasp list.
 	 */
-	ISC_LIST_FOREACH_SAFE (kasplist, kasp, link) {
+	ISC_LIST_FOREACH (kasplist, kasp, link) {
 		ISC_LIST_UNLINK(kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
 	}
@@ -660,7 +660,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 	/*
 	 * Cleanup keystore list.
 	 */
-	ISC_LIST_FOREACH_SAFE (kslist, ks, link) {
+	ISC_LIST_FOREACH (kslist, ks, link) {
 		ISC_LIST_UNLINK(kslist, ks, link);
 		dns_keystore_detach(&ks);
 	}

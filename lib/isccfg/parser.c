@@ -1949,7 +1949,7 @@ free_listelt(cfg_parser_t *pctx, cfg_listelt_t *elt) {
 
 static void
 free_list(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	ISC_LIST_FOREACH_SAFE (obj->value.list, elt, link) {
+	ISC_LIST_FOREACH (obj->value.list, elt, link) {
 		free_listelt(pctx, elt);
 	}
 }

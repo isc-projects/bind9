@@ -262,7 +262,7 @@ isc__ratelimiter_tick(void *arg) {
 unlock:
 	UNLOCK(&rl->lock);
 
-	ISC_LIST_FOREACH_SAFE (pending, rle, link) {
+	ISC_LIST_FOREACH (pending, rle, link) {
 		ISC_LIST_UNLINK(pending, rle, link);
 		isc_async_run(rle->loop, rle->cb, rle->arg);
 	}
@@ -302,7 +302,7 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *restrict rl) {
 	}
 	UNLOCK(&rl->lock);
 
-	ISC_LIST_FOREACH_SAFE (pending, rle, link) {
+	ISC_LIST_FOREACH (pending, rle, link) {
 		ISC_LIST_UNLINK(pending, rle, link);
 		rle->canceled = true;
 		isc_async_run(rl->loop, rle->cb, rle->arg);

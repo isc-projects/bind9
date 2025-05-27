@@ -135,7 +135,7 @@ dns_order_detach(dns_order_t **orderp) {
 	if (isc_refcount_decrement(&order->references) == 1) {
 		isc_refcount_destroy(&order->references);
 		order->magic = 0;
-		ISC_LIST_FOREACH_SAFE (order->ents, ent, link) {
+		ISC_LIST_FOREACH (order->ents, ent, link) {
 			ISC_LIST_UNLINK(order->ents, ent, link);
 			isc_mem_put(order->mctx, ent, sizeof(*ent));
 		}

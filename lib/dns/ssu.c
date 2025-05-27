@@ -82,7 +82,7 @@ destroy(dns_ssutable_t *table) {
 	REQUIRE(VALID_SSUTABLE(table));
 
 	mctx = table->mctx;
-	ISC_LIST_FOREACH_SAFE (table->rules, rule, link) {
+	ISC_LIST_FOREACH (table->rules, rule, link) {
 		if (rule->identity != NULL) {
 			dns_name_free(rule->identity, mctx);
 			isc_mem_put(mctx, rule->identity,

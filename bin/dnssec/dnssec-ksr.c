@@ -236,7 +236,7 @@ get_dnskeys(ksr_ctx_t *ksr, dns_dnsseckeylist_t *keys) {
 		keys_sorted[i++] = dk;
 	}
 	qsort(keys_sorted, n, sizeof(dns_dnsseckey_t *), keyalgtag_cmp);
-	ISC_LIST_FOREACH_SAFE (keys_read, key, link) {
+	ISC_LIST_FOREACH (keys_read, key, link) {
 		ISC_LIST_UNLINK(keys_read, key, link);
 	}
 	/* Save sorted list in 'keys' */
@@ -263,14 +263,14 @@ setcontext(ksr_ctx_t *ksr, dns_kasp_t *kasp) {
 
 static void
 cleanup(dns_dnsseckeylist_t *keys, dns_kasp_t *kasp) {
-	ISC_LIST_FOREACH_SAFE (*keys, key, link) {
+	ISC_LIST_FOREACH (*keys, key, link) {
 		ISC_LIST_UNLINK(*keys, key, link);
 		dst_key_free(&key->key);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
 	dns_kasp_detach(&kasp);
 
-	ISC_LIST_FOREACH_SAFE (cleanup_list, cbuf, link) {
+	ISC_LIST_FOREACH (cleanup_list, cbuf, link) {
 		ISC_LIST_UNLINK(cleanup_list, cbuf, link);
 		isc_buffer_free(&cbuf);
 	}
@@ -309,7 +309,7 @@ freerrset(dns_rdataset_t *rdataset) {
 
 	dns_rdatalist_fromrdataset(rdataset, &rdlist);
 
-	ISC_LIST_FOREACH_SAFE (rdlist->rdata, rdata, link) {
+	ISC_LIST_FOREACH (rdlist->rdata, rdata, link) {
 		ISC_LIST_UNLINK(rdlist->rdata, rdata, link);
 		isc_mem_put(mctx, rdata, sizeof(*rdata));
 	}

@@ -956,7 +956,7 @@ addserver(dns_client_t *client) {
 	CHECK(dns_client_setservers(client, dns_rdataclass_in, name, &servers));
 
 cleanup:
-	ISC_LIST_FOREACH_SAFE (servers, s, link) {
+	ISC_LIST_FOREACH (servers, s, link) {
 		ISC_LIST_UNLINK(servers, s, link);
 		isc_mem_put(mctx, s, sizeof(*s));
 	}
@@ -984,7 +984,7 @@ findserver(dns_client_t *client) {
 
 	/* Get nameservers from resolv.conf */
 	nameservers = irs_resconf_getnameservers(resconf);
-	ISC_LIST_FOREACH_SAFE (*nameservers, sa, link) {
+	ISC_LIST_FOREACH (*nameservers, sa, link) {
 		/* Set destination port */
 		if (sa->type.sa.sa_family == AF_INET && use_ipv4) {
 			sa->type.sin.sin_port = htons(destport);

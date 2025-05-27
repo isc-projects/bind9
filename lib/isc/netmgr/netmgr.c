@@ -512,7 +512,7 @@ nmsocket_cleanup(void *arg) {
 		isc__nmsocket_detach(&sock->outer);
 	}
 
-	ISC_LIST_FOREACH_SAFE (sock->inactive_handles, handle, inactive_link) {
+	ISC_LIST_FOREACH (sock->inactive_handles, handle, inactive_link) {
 		ISC_LIST_DEQUEUE(sock->inactive_handles, handle, inactive_link);
 		nmhandle_free(sock, handle);
 	}

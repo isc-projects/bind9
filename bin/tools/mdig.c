@@ -2161,7 +2161,7 @@ main(int argc, char *argv[]) {
 
 	isc_loopmgr_run(loopmgr);
 
-	ISC_LIST_FOREACH_SAFE (queries, query, link) {
+	ISC_LIST_FOREACH (queries, query, link) {
 		if (query->ednsopts != NULL) {
 			for (i = 0; i < EDNSOPTS; i++) {
 				if (query->ednsopts[i].value != NULL) {

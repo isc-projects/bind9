@@ -69,13 +69,13 @@ static void
 destroy(dns_kasp_t *kasp) {
 	REQUIRE(!ISC_LINK_LINKED(kasp, link));
 
-	ISC_LIST_FOREACH_SAFE (kasp->keys, key, link) {
+	ISC_LIST_FOREACH (kasp->keys, key, link) {
 		ISC_LIST_UNLINK(kasp->keys, key, link);
 		dns_kasp_key_destroy(key);
 	}
 	INSIST(ISC_LIST_EMPTY(kasp->keys));
 
-	ISC_LIST_FOREACH_SAFE (kasp->digests, digest, link) {
+	ISC_LIST_FOREACH (kasp->digests, digest, link) {
 		ISC_LIST_UNLINK(kasp->digests, digest, link);
 		isc_mem_put(kasp->mctx, digest, sizeof(*digest));
 	}

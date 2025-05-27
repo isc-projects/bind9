@@ -449,7 +449,7 @@ msginit(dns_message_t *m) {
 
 static void
 msgresetname(dns_message_t *msg, dns_name_t *name) {
-	ISC_LIST_FOREACH_SAFE (name->list, rds, link) {
+	ISC_LIST_FOREACH (name->list, rds, link) {
 		ISC_LIST_UNLINK(name->list, rds, link);
 		dns__message_putassociatedrdataset(msg, &rds);
 	}
@@ -459,7 +459,7 @@ static void
 msgresetnames(dns_message_t *msg, unsigned int first_section) {
 	/* Clean up name lists. */
 	for (size_t i = first_section; i < DNS_SECTION_MAX; i++) {
-		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link) {
+		ISC_LIST_FOREACH (msg->sections[i], name, link) {
 			ISC_LIST_UNLINK(msg->sections[i], name, link);
 			msgresetname(msg, name);
 			dns_message_puttempname(msg, &name);
@@ -537,10 +537,10 @@ msgreset(dns_message_t *msg, bool everything) {
 	 * The memory isn't lost since these are part of message blocks we
 	 * have allocated.
 	 */
-	ISC_LIST_FOREACH_SAFE (msg->freerdata, rdata, link) {
+	ISC_LIST_FOREACH (msg->freerdata, rdata, link) {
 		ISC_LIST_UNLINK(msg->freerdata, rdata, link);
 	}
-	ISC_LIST_FOREACH_SAFE (msg->freerdatalist, rdatalist, link) {
+	ISC_LIST_FOREACH (msg->freerdatalist, rdatalist, link) {
 		ISC_LIST_UNLINK(msg->freerdatalist, rdatalist, link);
 	}
 
@@ -1975,8 +1975,8 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			return ISC_R_SUCCESS;
 		}
 
-		ISC_LIST_FOREACH_SAFE (*section, n, link) {
-			ISC_LIST_FOREACH_SAFE (n->list, rds, link) {
+		ISC_LIST_FOREACH (*section, n, link) {
+			ISC_LIST_FOREACH (n->list, rds, link) {
 				if ((rds->attributes &
 				     DNS_RDATASETATTR_RENDERED) != 0)
 				{

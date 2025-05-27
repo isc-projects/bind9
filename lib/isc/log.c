@@ -413,7 +413,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 
 	mctx = lcfg->lctx->mctx;
 
-	ISC_LIST_FOREACH_SAFE (lcfg->channels, channel, link) {
+	ISC_LIST_FOREACH (lcfg->channels, channel, link) {
 		if (channel->type == ISC_LOG_TOFILE) {
 			/*
 			 * The filename for the channel may have ultimately
@@ -434,7 +434,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	}
 
 	for (size_t i = 0; i < ARRAY_SIZE(lcfg->channellists); i++) {
-		ISC_LIST_FOREACH_SAFE (lcfg->channellists[i], item, link) {
+		ISC_LIST_FOREACH (lcfg->channellists[i], item, link) {
 			ISC_LIST_UNLINK(lcfg->channellists[i], item, link);
 			isc_mem_put(mctx, item, sizeof(*item));
 		}

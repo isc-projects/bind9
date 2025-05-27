@@ -484,7 +484,7 @@ static isc_result_t
 do_diff(dns_diff_t *updates, dns_db_t *db, dns_dbversion_t *ver,
 	dns_diff_t *diff) {
 	isc_result_t result;
-	ISC_LIST_FOREACH_SAFE (updates->tuples, t, link) {
+	ISC_LIST_FOREACH (updates->tuples, t, link) {
 		ISC_LIST_UNLINK(updates->tuples, t, link);
 		CHECK(do_one_tuple(&t, db, ver, diff));
 	}
@@ -2057,7 +2057,7 @@ remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 	result = ISC_R_SUCCESS;
 
 failure:
-	ISC_LIST_FOREACH_SAFE (temp_diff.tuples, tuple, link) {
+	ISC_LIST_FOREACH (temp_diff.tuples, tuple, link) {
 		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
 		dns_diff_appendminimal(diff, &tuple);
 	}
@@ -2379,7 +2379,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	/*
 	 * Extract NSEC3PARAM tuples from list.
 	 */
-	ISC_LIST_FOREACH_SAFE (diff->tuples, tuple, link) {
+	ISC_LIST_FOREACH (diff->tuples, tuple, link) {
 		if (tuple->rdata.type != dns_rdatatype_nsec3param ||
 		    !dns_name_equal(name, &tuple->name))
 		{
@@ -2454,7 +2454,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 * in managing and should not be touched so revert such changes
 	 * taking into account any TTL change of the NSEC3PARAM RRset.
 	 */
-	ISC_LIST_FOREACH_SAFE (temp_diff.tuples, tuple, link) {
+	ISC_LIST_FOREACH (temp_diff.tuples, tuple, link) {
 		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
 			/*
 			 * If we haven't had any adds then the tuple->ttl must
@@ -2645,7 +2645,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 	/*
 	 * Extract the changes to be rolled back.
 	 */
-	ISC_LIST_FOREACH_SAFE (diff->tuples, tuple, link) {
+	ISC_LIST_FOREACH (diff->tuples, tuple, link) {
 		if (tuple->rdata.type != privatetype ||
 		    !dns_name_equal(name, &tuple->name))
 		{
@@ -2669,7 +2669,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 	/*
 	 * Rollback the changes.
 	 */
-	ISC_LIST_FOREACH_SAFE (temp_diff.tuples, tuple, link) {
+	ISC_LIST_FOREACH (temp_diff.tuples, tuple, link) {
 		op = (tuple->op == DNS_DIFFOP_DEL) ? DNS_DIFFOP_ADD
 						   : DNS_DIFFOP_DEL;
 		dns_difftuple_create(mctx, op, name, tuple->ttl, &tuple->rdata,

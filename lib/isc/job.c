@@ -64,7 +64,7 @@ isc__job_cb(uv_idle_t *handle) {
 
 	ISC_LIST_MOVE(jobs, loop->run_jobs);
 
-	ISC_LIST_FOREACH_SAFE (jobs, job, link) {
+	ISC_LIST_FOREACH (jobs, job, link) {
 		isc_job_cb cb = job->cb;
 		void *cbarg = job->cbarg;
 		ISC_LIST_UNLINK(jobs, job, link);

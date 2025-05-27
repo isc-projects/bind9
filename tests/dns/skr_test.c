@@ -129,7 +129,7 @@ print_rdata(FILE *fp, dns_rdata_t *rdata) {
 	isc_buffer_usedregion(&target, &r);
 	fprintf(fp, "%.*s", (int)r.length, (char *)r.base);
 
-	ISC_LIST_FOREACH_SAFE (rdatalist->rdata, rd, link) {
+	ISC_LIST_FOREACH (rdatalist->rdata, rd, link) {
 		ISC_LIST_UNLINK(rdatalist->rdata, rdata, link);
 	}
 	isc_mem_put(mctx, rdatalist, sizeof(*rdatalist));
@@ -239,7 +239,7 @@ create_bundle(FILE *fp, isc_stdtime_t btime, int bnum) {
 	sign_rrset(fp, btime, (btime + LIFETIME), dnskeyset,
 		   test_bundles[bnum].rrsig1buf,
 		   &test_bundles[bnum].dnskey_rrsig);
-	ISC_LIST_FOREACH_SAFE (dnskeylist->rdata, rd, link) {
+	ISC_LIST_FOREACH (dnskeylist->rdata, rd, link) {
 		ISC_LIST_UNLINK(dnskeylist->rdata, rd, link);
 	}
 	isc_mem_put(mctx, dnskeylist, sizeof(*dnskeylist));
@@ -264,7 +264,7 @@ create_bundle(FILE *fp, isc_stdtime_t btime, int bnum) {
 	sign_rrset(fp, btime, (btime + LIFETIME), cdnskeyset,
 		   test_bundles[bnum].rrsig2buf,
 		   &test_bundles[bnum].cdnskey_rrsig);
-	ISC_LIST_FOREACH_SAFE (cdnskeylist->rdata, rd, link) {
+	ISC_LIST_FOREACH (cdnskeylist->rdata, rd, link) {
 		ISC_LIST_UNLINK(cdnskeylist->rdata, rd, link);
 	}
 	isc_mem_put(mctx, cdnskeylist, sizeof(*cdnskeylist));
@@ -287,7 +287,7 @@ create_bundle(FILE *fp, isc_stdtime_t btime, int bnum) {
 	dns_rdata_init(&test_bundles[bnum].cds_rrsig);
 	sign_rrset(fp, btime, (btime + LIFETIME), cdsset,
 		   test_bundles[bnum].rrsig3buf, &test_bundles[bnum].cds_rrsig);
-	ISC_LIST_FOREACH_SAFE (cdslist->rdata, rd, link) {
+	ISC_LIST_FOREACH (cdslist->rdata, rd, link) {
 		ISC_LIST_UNLINK(cdslist->rdata, rd, link);
 	}
 	isc_mem_put(mctx, cdslist, sizeof(*cdslist));

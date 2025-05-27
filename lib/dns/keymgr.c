@@ -2268,7 +2268,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 
 failure:
 	if (result != ISC_R_SUCCESS) {
-		ISC_LIST_FOREACH_SAFE (newkeys, newkey, link) {
+		ISC_LIST_FOREACH (newkeys, newkey, link) {
 			ISC_LIST_UNLINK(newkeys, newkey, link);
 			INSIST(newkey->key != NULL);
 			dst_key_free(&newkey->key);

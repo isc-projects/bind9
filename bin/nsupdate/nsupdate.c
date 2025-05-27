@@ -2185,7 +2185,7 @@ setzone(dns_name_t *zonename) {
 		name = ISC_LIST_HEAD(secs[DNS_SECTION_ZONE]);
 		ISC_LIST_UNLINK(secs[DNS_SECTION_ZONE], name, link);
 
-		ISC_LIST_FOREACH_SAFE (name->list, rdataset, link) {
+		ISC_LIST_FOREACH (name->list, rdataset, link) {
 			ISC_LIST_UNLINK(name->list, rdataset, link);
 			dns_rdataset_disassociate(rdataset);
 			dns_message_puttemprdataset(updatemsg, &rdataset);

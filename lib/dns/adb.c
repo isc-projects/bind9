@@ -732,7 +732,7 @@ maybe_expire_namehooks(dns_adbname_t *adbname, isc_stdtime_t now) {
 static void
 shutdown_names(dns_adb_t *adb) {
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
-	ISC_LIST_FOREACH_SAFE (adb->names_lru, name, link) {
+	ISC_LIST_FOREACH (adb->names_lru, name, link) {
 		dns_adbname_ref(name);
 		LOCK(&name->lock);
 		/*
@@ -751,7 +751,7 @@ shutdown_names(dns_adb_t *adb) {
 static void
 shutdown_entries(dns_adb_t *adb) {
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
-	ISC_LIST_FOREACH_SAFE (adb->entries_lru, adbentry, link) {
+	ISC_LIST_FOREACH (adb->entries_lru, adbentry, link) {
 		expire_entry(adbentry);
 	}
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_write);
@@ -762,7 +762,7 @@ shutdown_entries(dns_adb_t *adb) {
  */
 static void
 clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
-	ISC_LIST_FOREACH_SAFE (*namehooks, namehook, name_link) {
+	ISC_LIST_FOREACH (*namehooks, namehook, name_link) {
 		INSIST(DNS_ADBNAMEHOOK_VALID(namehook));
 		INSIST(DNS_ADBENTRY_VALID(namehook->entry));
 
@@ -1568,7 +1568,7 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 static void
 cleanup_names(dns_adb_t *adb, isc_stdtime_t now) {
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
-	ISC_LIST_FOREACH_SAFE (adb->names_lru, adbname, link) {
+	ISC_LIST_FOREACH (adb->names_lru, adbname, link) {
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		/*
@@ -1665,7 +1665,7 @@ purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
 static void
 cleanup_entries(dns_adb_t *adb, isc_stdtime_t now) {
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
-	ISC_LIST_FOREACH_SAFE (adb->entries_lru, adbentry, link) {
+	ISC_LIST_FOREACH (adb->entries_lru, adbentry, link) {
 		dns_adbentry_ref(adbentry);
 		LOCK(&adbentry->lock);
 		maybe_expire_entry(adbentry, now);
@@ -2142,7 +2142,7 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 	 * we also need to decrement the reference counter in the
 	 * associated adbentry every time we remove one from the list.
 	 */
-	ISC_LIST_FOREACH_SAFE (find->list, ai, publink) {
+	ISC_LIST_FOREACH (find->list, ai, publink) {
 		ISC_LIST_UNLINK(find->list, ai, publink);
 		free_adbaddrinfo(adb, &ai);
 	}
@@ -3318,7 +3318,7 @@ dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 	}
 
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
-	ISC_LIST_FOREACH_SAFE (adb->names_lru, adbname, link) {
+	ISC_LIST_FOREACH (adb->names_lru, adbname, link) {
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		if (dns_name_issubdomain(adbname->name, name)) {

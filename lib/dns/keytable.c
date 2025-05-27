@@ -103,7 +103,7 @@ static void
 destroy_keynode(dns_keynode_t *knode) {
 	isc_rwlock_destroy(&knode->rwlock);
 	if (knode->dslist != NULL) {
-		ISC_LIST_FOREACH_SAFE (knode->dslist->rdata, rdata, link) {
+		ISC_LIST_FOREACH (knode->dslist->rdata, rdata, link) {
 			ISC_LIST_UNLINK(knode->dslist->rdata, rdata, link);
 			isc_mem_put(knode->mctx, rdata->data,
 				    DNS_DS_BUFFERSIZE);

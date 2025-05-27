@@ -1265,26 +1265,26 @@ static void
 fctx_cleanup(fetchctx_t *fctx) {
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 
-	ISC_LIST_FOREACH_SAFE (fctx->finds, find, publink) {
+	ISC_LIST_FOREACH (fctx->finds, find, publink) {
 		ISC_LIST_UNLINK(fctx->finds, find, publink);
 		dns_adb_destroyfind(&find);
 		fetchctx_unref(fctx);
 	}
 	fctx->find = NULL;
 
-	ISC_LIST_FOREACH_SAFE (fctx->altfinds, find, publink) {
+	ISC_LIST_FOREACH (fctx->altfinds, find, publink) {
 		ISC_LIST_UNLINK(fctx->altfinds, find, publink);
 		dns_adb_destroyfind(&find);
 		fetchctx_unref(fctx);
 	}
 	fctx->altfind = NULL;
 
-	ISC_LIST_FOREACH_SAFE (fctx->forwaddrs, addr, publink) {
+	ISC_LIST_FOREACH (fctx->forwaddrs, addr, publink) {
 		ISC_LIST_UNLINK(fctx->forwaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
 	}
 
-	ISC_LIST_FOREACH_SAFE (fctx->altaddrs, addr, publink) {
+	ISC_LIST_FOREACH (fctx->altaddrs, addr, publink) {
 		ISC_LIST_UNLINK(fctx->altaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
 	}
@@ -1306,7 +1306,7 @@ fctx_cancelqueries(fetchctx_t *fctx, bool no_response, bool age_untried) {
 	ISC_LIST_MOVE(queries, fctx->queries);
 	UNLOCK(&fctx->lock);
 
-	ISC_LIST_FOREACH_SAFE (queries, query, link) {
+	ISC_LIST_FOREACH (queries, query, link) {
 		/*
 		 * Note that we have to unlink the query here,
 		 * because if it's still linked in fctx_cancelquery(),
@@ -1516,7 +1516,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	now = isc_time_now();
 	fctx->duration = isc_time_microdiff(&now, &fctx->start);
 
-	ISC_LIST_FOREACH_SAFE (fctx->resps, resp, link) {
+	ISC_LIST_FOREACH (fctx->resps, resp, link) {
 		ISC_LIST_UNLINK(fctx->resps, resp, link);
 
 		count++;
@@ -4369,12 +4369,12 @@ fctx_destroy(fetchctx_t *fctx) {
 	dec_stats(res, dns_resstatscounter_nfetch);
 
 	/* Free bad */
-	ISC_LIST_FOREACH_SAFE (fctx->bad, sa, link) {
+	ISC_LIST_FOREACH (fctx->bad, sa, link) {
 		ISC_LIST_UNLINK(fctx->bad, sa, link);
 		isc_mem_put(fctx->mctx, sa, sizeof(*sa));
 	}
 
-	ISC_LIST_FOREACH_SAFE (fctx->edns, tried, link) {
+	ISC_LIST_FOREACH (fctx->edns, tried, link) {
 		ISC_LIST_UNLINK(fctx->edns, tried, link);
 		isc_mem_put(fctx->mctx, tried, sizeof(*tried));
 	}
@@ -10485,7 +10485,7 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 	 * the callback asynchronously with a ISC_R_CANCELED result.
 	 */
 	if (fctx->state != fetchstate_done) {
-		ISC_LIST_FOREACH_SAFE (fctx->resps, resp, link) {
+		ISC_LIST_FOREACH (fctx->resps, resp, link) {
 			if (resp->fetch == fetch) {
 				resp->result = ISC_R_CANCELED;
 				ISC_LIST_UNLINK(fctx->resps, resp, link);
@@ -10530,7 +10530,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 	 * trying to destroy the fetch.
 	 */
 	if (fctx->state != fetchstate_done) {
-		ISC_LIST_FOREACH_SAFE (fctx->resps, resp, link) {
+		ISC_LIST_FOREACH (fctx->resps, resp, link) {
 			RUNTIME_CHECK(resp->fetch != fetch);
 		}
 	}

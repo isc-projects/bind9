@@ -170,7 +170,7 @@ free_controlkey(controlkey_t *key, isc_mem_t *mctx) {
 
 static void
 free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx) {
-	ISC_LIST_FOREACH_SAFE (*keylist, key, link) {
+	ISC_LIST_FOREACH (*keylist, key, link) {
 		ISC_LIST_UNLINK(*keylist, key, link);
 		free_controlkey(key, mctx);
 	}
@@ -207,7 +207,7 @@ shutdown_listener(controllistener_t *listener) {
 	}
 	listener->shuttingdown = true;
 
-	ISC_LIST_FOREACH_SAFE (listener->connections, conn, link) {
+	ISC_LIST_FOREACH (listener->connections, conn, link) {
 		conn_shutdown(conn);
 	}
 
@@ -647,7 +647,7 @@ control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 static void
 controls_shutdown(named_controls_t *controls) {
-	ISC_LIST_FOREACH_SAFE (controls->listeners, listener, link) {
+	ISC_LIST_FOREACH (controls->listeners, listener, link) {
 		/*
 		 * As listeners shut down, they will call their callbacks.
 		 */
@@ -733,7 +733,7 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	/*
 	 * Find the keys corresponding to the keyids used by this listener.
 	 */
-	ISC_LIST_FOREACH_SAFE (*keyids, keyid, link) {
+	ISC_LIST_FOREACH (*keyids, keyid, link) {
 		result = cfgkeylist_find(keylist, keyid->keyname, &keydef);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(control, ISC_LOG_WARNING,

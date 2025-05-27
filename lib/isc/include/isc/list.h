@@ -230,14 +230,7 @@
 	}
 
 /* clang-format off */
-#define ISC_LIST_FOREACH(list, elt, link)			      \
-	for (typeof((list).head) elt = ISC_LIST_HEAD(list);           \
-	     elt != NULL;					      \
-	     elt = ISC_LIST_NEXT(elt, link))
-/* clang-format on */
-
-/* clang-format off */
-#define ISC_LIST_FOREACH_SAFE(list, elt, link)                             \
+#define ISC_LIST_FOREACH(list, elt, link)                                  \
 	for (typeof((list).head) elt = ISC_LIST_HEAD(list),                \
 	     elt##_next = (elt != NULL) ? ISC_LIST_NEXT(elt, link) : NULL; \
 	     elt != NULL;                                                  \
@@ -246,14 +239,7 @@
 /* clang-format on */
 
 /* clang-format off */
-#define ISC_LIST_FOREACH_REV(list, elt, link)			      \
-	for (typeof((list).tail) elt = ISC_LIST_TAIL(list);           \
-	     elt != NULL;					      \
-	     elt = ISC_LIST_PREV(elt, link))
-/* clang-format on */
-
-/* clang-format off */
-#define ISC_LIST_FOREACH_REV_SAFE(list, elt, link)                         \
+#define ISC_LIST_FOREACH_REV(list, elt, link)                              \
 	for (typeof((list).tail) elt = ISC_LIST_TAIL(list),                \
 	     elt##_prev = (elt != NULL) ? ISC_LIST_PREV(elt, link) : NULL; \
 	     elt != NULL;                                                  \
