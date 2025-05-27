@@ -2068,6 +2068,7 @@ dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target) {
 	isc_region_t r;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(msg->buffer != NULL);
 	REQUIRE(target != NULL);
 
 	isc_buffer_availableregion(target, &r);
@@ -2394,7 +2395,7 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
 		    dns_section_t section) {
 	REQUIRE(msg != NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
-	REQUIRE(name != NULL);
+	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(VALID_NAMED_SECTION(section));
 
 	ISC_LIST_APPEND(msg->sections[section], name, link);
@@ -2405,7 +2406,7 @@ dns_message_removename(dns_message_t *msg, dns_name_t *name,
 		       dns_section_t section) {
 	REQUIRE(msg != NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
-	REQUIRE(name != NULL);
+	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(VALID_NAMED_SECTION(section));
 
 	ISC_LIST_UNLINK(msg->sections[section], name, link);
