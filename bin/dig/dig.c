@@ -196,6 +196,9 @@ help(void) {
 	       "                 +[no]cmd            (Control display of "
 	       "command line -\n"
 	       "                                      global option)\n"
+	       "                 +[no]coflag         (Set compact denial of "
+	       "existence ok flag)\n"
+	       "                                      in query)\n"
 	       "                 +[no]comments       (Control display of "
 	       "packet "
 	       "header\n"
@@ -1285,6 +1288,11 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			break;
 		case 'o': /* comments */
 			switch (cmd[2]) {
+			case 'f':
+			case '\0': /* +co is a synonym for +coflag */
+				FULLCHECK("coflag");
+				lookup->coflag = state;
+				break;
 			case 'm':
 				FULLCHECK("comments");
 				lookup->comments = state;
