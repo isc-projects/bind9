@@ -1589,6 +1589,9 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 		while (isc_buffer_remaininglength(&optbuf) >= 4) {
 			optcode = isc_buffer_getuint16(&optbuf);
 			optlen = isc_buffer_getuint16(&optbuf);
+
+			INSIST(isc_buffer_remaininglength(&optbuf) >= optlen);
+
 			/*
 			 * When returning BADVERSION, only process
 			 * DNS_OPT_NSID or DNS_OPT_COOKIE options.
