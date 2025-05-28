@@ -259,7 +259,6 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_label_t hashlabel;
 	dns_name_t nsec3name;
 	dns_rdata_nsec3_t nsec3;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t set;
 	int order;
 	int scope;
@@ -291,9 +290,9 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 	found = false;
 	result = dns_rdataset_first(&set);
 	if (result == ISC_R_SUCCESS) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&set, &rdata);
 		found = dns_nsec_typepresent(&rdata, dns_rdatatype_ns);
-		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&set);
 	return found;
@@ -307,9 +306,7 @@ trynsec3:
 	dns_fixedname_init(&fixed);
 	dns_name_downcase(name, dns_fixedname_name(&fixed));
 	name = dns_fixedname_name(&fixed);
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		dns_ncache_current(rdataset, &nsec3name, &set);
 		if (set.type != dns_rdatatype_nsec3) {
 			dns_rdataset_disassociate(&set);
@@ -323,10 +320,8 @@ trynsec3:
 			dns_rdataset_disassociate(&set);
 			continue;
 		}
-		for (result = dns_rdataset_first(&set); result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&set))
-		{
-			dns_rdata_reset(&rdata);
+		DNS_RDATASET_FOREACH (&set) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&set, &rdata);
 			(void)dns_rdata_tostruct(&rdata, &nsec3, NULL);
 			if (nsec3.hash != 1) {
@@ -1290,28 +1285,21 @@ selfsigned_dnskey(dns_validator_t *val) {
 		return DNS_R_NOKEYMATCH;
 	}
 
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		dns_rdata_t keyrdata = DNS_RDATA_INIT;
-		dns_rdata_t sigrdata = DNS_RDATA_INIT;
 		dns_rdata_dnskey_t key;
 		dns_rdata_rrsig_t sig;
 		dns_keytag_t keytag;
 
-		dns_rdata_reset(&keyrdata);
 		dns_rdataset_current(rdataset, &keyrdata);
 		result = dns_rdata_tostruct(&keyrdata, &key, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		keytag = compute_keytag(&keyrdata);
 
-		for (result = dns_rdataset_first(sigrdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(sigrdataset))
-		{
+		DNS_RDATASET_FOREACH (sigrdataset) {
+			dns_rdata_t sigrdata = DNS_RDATA_INIT;
 			dst_key_t *dstkey = NULL;
 
-			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(sigrdataset, &sigrdata);
 			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -1848,12 +1836,9 @@ check_signer(dns_validator_t *val, dns_rdata_t *keyrdata, uint16_t keyid,
 	     dns_secalg_t algorithm) {
 	dns_rdata_rrsig_t sig;
 	dst_key_t *dstkey = NULL;
-	isc_result_t result;
+	isc_result_t result = ISC_R_NOMORE;
 
-	for (result = dns_rdataset_first(val->sigrdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(val->sigrdataset))
-	{
+	DNS_RDATASET_FOREACH (val->sigrdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(val->sigrdataset, &rdata);
@@ -2215,11 +2200,8 @@ validate_dnskey(void *arg) {
 	 * DNS_DSDIGEST_SHA256 or DNS_DSDIGEST_SHA384 is present.
 	 */
 	val->digest_sha1 = true;
-	dns_rdata_t dsrdata = DNS_RDATA_INIT;
-	for (result = dns_rdataset_first(val->dsset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(val->dsset))
-	{
-		dns_rdata_reset(&dsrdata);
+	DNS_RDATASET_FOREACH (val->dsset) {
+		dns_rdata_t dsrdata = DNS_RDATA_INIT;
 		dns_rdataset_current(val->dsset, &dsrdata);
 		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -2922,14 +2904,13 @@ validate_nx(dns_validator_t *val, bool resume) {
 static bool
 check_ds_algs(dns_validator_t *val, dns_name_t *name,
 	      dns_rdataset_t *rdataset) {
-	dns_rdata_t dsrdata = DNS_RDATA_INIT;
 	dns_rdata_ds_t ds;
-	isc_result_t result;
 
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
+		isc_result_t result;
+		dns_rdata_t dsrdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &dsrdata);
+
 		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -2938,10 +2919,8 @@ check_ds_algs(dns_validator_t *val, dns_name_t *name,
 		    dns_resolver_algorithm_supported(val->view->resolver, name,
 						     ds.algorithm))
 		{
-			dns_rdata_reset(&dsrdata);
 			return true;
 		}
-		dns_rdata_reset(&dsrdata);
 	}
 
 	/*

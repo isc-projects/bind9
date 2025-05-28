@@ -221,6 +221,22 @@ struct dns_rdataset {
 	  .link = ISC_LINK_INITIALIZER, \
 	  .count = DNS_RDATASET_COUNT_UNDEFINED }
 
+/* clang-format off */
+/*
+ * This is a hack to build a unique variable name to
+ * replace 'res' below. (Two layers of macro indirection are
+ * needed to make the line number be part of the variable
+ * name; otherwise it would just be "x__LINE__".)
+ */
+#define DNS__RDATASET_CONNECT(x,y) x##y
+#define DNS__RDATASET_CONCAT(x,y) DNS__RDATASET_CONNECT(x,y)
+#define DNS_RDATASET_FOREACH_RES(rds, res)                         \
+	for (isc_result_t res = dns_rdataset_first((rds));       \
+	     res == ISC_R_SUCCESS; res = dns_rdataset_next((rds)))
+#define DNS_RDATASET_FOREACH(rds)               \
+	DNS_RDATASET_FOREACH_RES(rds, DNS__RDATASET_CONCAT(x, __LINE__))
+/* clang-format on */
+
 /*!
  * \def DNS_RDATASETATTR_RENDERED
  *	Used by message.c to indicate that the rdataset was rendered.
@@ -390,6 +406,9 @@ dns_rdataset_first(dns_rdataset_t *rdataset);
  * Returns:
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOMORE			There are no rdata in the set.
+ *
+ * Ensures:
+ *\li	No other value is returned.
  */
 
 isc_result_t
@@ -403,6 +422,9 @@ dns_rdataset_next(dns_rdataset_t *rdataset);
  * Returns:
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOMORE			There are no more rdata in the set.
+ *
+ * Ensures:
+ *\li	No other value is returned.
  */
 
 void

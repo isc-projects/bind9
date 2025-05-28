@@ -538,10 +538,9 @@ ttlclamp(dns_ttl_t ttl) {
  *
  * This code handles A and AAAA rdatasets only.
  */
-static isc_result_t
+static void
 import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		isc_stdtime_t now) {
-	isc_result_t result;
 	dns_adb_t *adb = NULL;
 	dns_rdatatype_t rdtype;
 
@@ -569,9 +568,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 	REQUIRE(dns_rdatatype_isaddr(rdtype));
 
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		/* FIXME: Move to a separate function */
 		dns_adbnamehooklist_t *hookhead = NULL;
 		dns_adbentry_t *entry = NULL;
@@ -616,10 +613,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		UNLOCK(&entry->lock);
 		dns_adbentry_detach(&entry);
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
-	INSIST(result == ISC_R_SUCCESS);
 
 	switch (rdtype) {
 	case dns_rdatatype_a:
@@ -637,8 +630,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	default:
 		UNREACHABLE();
 	}
-
-	return ISC_R_SUCCESS;
 }
 
 static bool
@@ -2532,6 +2523,8 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
+		result = ISC_R_SUCCESS;
+		FALLTHROUGH;
 	case ISC_R_SUCCESS:
 		/*
 		 * Found in the database.  Even if we can't copy out
@@ -2543,7 +2536,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 		} else {
 			adbname->fetch6_err = FIND_ERR_SUCCESS;
 		}
-		result = import_rdataset(adbname, &rdataset, now);
+		import_rdataset(adbname, &rdataset, now);
 		break;
 	case DNS_R_NXDOMAIN:
 	case DNS_R_NXRRSET:
@@ -2645,7 +2638,6 @@ fetch_callback(void *arg) {
 	dns_adbfetch_t *fetch = NULL;
 	dns_adbstatus_t astat = DNS_ADB_NOMOREADDRESSES;
 	isc_stdtime_t now;
-	isc_result_t result;
 	unsigned int address_type;
 
 	REQUIRE(DNS_ADBNAME_VALID(name));
@@ -2734,11 +2726,10 @@ fetch_callback(void *arg) {
 	 */
 	if (resp->result == DNS_R_CNAME || resp->result == DNS_R_DNAME) {
 		resp->rdataset->ttl = ttlclamp(resp->rdataset->ttl);
-		result = ISC_R_SUCCESS;
 		name->flags |= NAME_IS_ALIAS;
 		name->expire_v4 = name->expire_v6 =
 			ADJUSTED_EXPIRE(INT_MAX, now, resp->rdataset->ttl);
-		goto check_result;
+		goto moreaddrs;
 	}
 
 	/*
@@ -2775,16 +2766,14 @@ fetch_callback(void *arg) {
 	/*
 	 * We got something potentially useful.
 	 */
-	result = import_rdataset(name, &fetch->rdataset, now);
+	import_rdataset(name, &fetch->rdataset, now);
 
-check_result:
-	if (result == ISC_R_SUCCESS) {
-		astat = DNS_ADB_MOREADDRESSES;
-		if (address_type == DNS_ADBFIND_INET) {
-			name->fetch_err = FIND_ERR_SUCCESS;
-		} else {
-			name->fetch6_err = FIND_ERR_SUCCESS;
-		}
+moreaddrs:
+	astat = DNS_ADB_MOREADDRESSES;
+	if (address_type == DNS_ADBFIND_INET) {
+		name->fetch_err = FIND_ERR_SUCCESS;
+	} else {
+		name->fetch6_err = FIND_ERR_SUCCESS;
 	}
 
 out:

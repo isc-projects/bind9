@@ -222,8 +222,6 @@ static bool
 checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	dns_rdataset_t *a, dns_rdataset_t *aaaa) {
 	dns_rdataset_t *rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_result_t result;
 	struct addrinfo hints = {
 		.ai_flags = AI_CANONNAME,
 		.ai_family = PF_UNSPEC,
@@ -315,8 +313,9 @@ checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	if (!dns_rdataset_isassociated(a)) {
 		goto checkaaaa;
 	}
-	result = dns_rdataset_first(a);
-	while (result == ISC_R_SUCCESS) {
+
+	DNS_RDATASET_FOREACH (a) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(a, &rdata);
 		match = false;
 		for (cur = ai; cur != NULL; cur = cur->ai_next) {
@@ -340,16 +339,14 @@ checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 			/* XXX950 make fatal for 9.5.0 */
 			/* answer = false; */
 		}
-		dns_rdata_reset(&rdata);
-		result = dns_rdataset_next(a);
 	}
 
 checkaaaa:
 	if (!dns_rdataset_isassociated(aaaa)) {
 		goto checkmissing;
 	}
-	result = dns_rdataset_first(aaaa);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASET_FOREACH (aaaa) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(aaaa, &rdata);
 		match = false;
 		for (cur = ai; cur != NULL; cur = cur->ai_next) {
@@ -374,8 +371,6 @@ checkaaaa:
 			/* XXX950 make fatal for 9.5.0. */
 			/* answer = false; */
 		}
-		dns_rdata_reset(&rdata);
-		result = dns_rdataset_next(aaaa);
 	}
 
 checkmissing:
@@ -403,19 +398,18 @@ checkmissing:
 			}
 			match = false;
 			if (dns_rdataset_isassociated(rdataset)) {
-				result = dns_rdataset_first(rdataset);
-			} else {
-				result = ISC_R_FAILURE;
-			}
-			while (result == ISC_R_SUCCESS && !match) {
-				dns_rdataset_current(rdataset, &rdata);
-				if (memcmp(ptr, rdata.data, rdata.length) == 0)
-				{
-					match = true;
+				DNS_RDATASET_FOREACH (rdataset) {
+					dns_rdata_t rdata = DNS_RDATA_INIT;
+					dns_rdataset_current(rdataset, &rdata);
+					if (memcmp(ptr, rdata.data,
+						   rdata.length) == 0)
+					{
+						match = true;
+						break;
+					}
 				}
-				dns_rdata_reset(&rdata);
-				result = dns_rdataset_next(rdataset);
 			}
+
 			if (!match) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "%s/NS '%s' "

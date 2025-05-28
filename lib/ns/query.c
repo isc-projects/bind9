@@ -2465,7 +2465,6 @@ static bool
 validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 	 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	isc_result_t result;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t rrsig;
 	dst_key_t *key = NULL;
 	dns_rdataset_t keyrdataset;
@@ -2474,10 +2473,8 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 		return false;
 	}
 
-	for (result = dns_rdataset_first(sigrdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(sigrdataset))
-	{
-		dns_rdata_reset(&rdata);
+	DNS_RDATASET_FOREACH (sigrdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -3254,9 +3251,9 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 	 * Choose the best rdataset if we found something.
 	 */
 	if (result == ISC_R_SUCCESS) {
-		dns_rdatasetiter_t *rdsiter;
+		dns_rdatasetiter_t *rdsiter = NULL;
+		bool match = false;
 
-		rdsiter = NULL;
 		result = dns_db_allrdatasets(*dbp, *nodep, *versionp, 0, 0,
 					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
@@ -3269,10 +3266,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 		if (qtype == dns_rdatatype_aaaa &&
 		    !ISC_LIST_EMPTY(client->view->dns64))
 		{
-			for (result = dns_rdatasetiter_first(rdsiter);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdatasetiter_next(rdsiter))
-			{
+			DNS_RDATASETITER_FOREACH (rdsiter) {
 				dns_rdatasetiter_current(rdsiter, *rdatasetp);
 				if ((*rdatasetp)->type == dns_rdatatype_a) {
 					found_a = true;
@@ -3280,28 +3274,18 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 				dns_rdataset_disassociate(*rdatasetp);
 			}
 		}
-		for (result = dns_rdatasetiter_first(rdsiter);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(rdsiter))
-		{
+		DNS_RDATASETITER_FOREACH (rdsiter) {
 			dns_rdatasetiter_current(rdsiter, *rdatasetp);
 			if ((*rdatasetp)->type == dns_rdatatype_cname ||
 			    (*rdatasetp)->type == qtype)
 			{
+				match = true;
 				break;
 			}
 			dns_rdataset_disassociate(*rdatasetp);
 		}
 		dns_rdatasetiter_destroy(&rdsiter);
-		if (result != ISC_R_SUCCESS) {
-			if (result != ISC_R_NOMORE) {
-				rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL,
-					     p_name, rpz_type, "rdatasetiter",
-					     result);
-				CTRACE(ISC_LOG_ERROR, "rpz_find_p: "
-						      "rdatasetiter failed");
-				return DNS_R_SERVFAIL;
-			}
+		if (!match) {
 			/*
 			 * Ask again to get the right DNS_R_DNAME/NXRRSET/...
 			 * result if there is neither a CNAME nor target type.
@@ -3625,10 +3609,7 @@ rpz_rewrite_ip_rrset(ns_client_t *client, dns_name_t *name,
 		/*
 		 * Check all of the IP addresses in the rdataset.
 		 */
-		for (result = dns_rdataset_first(*ip_rdatasetp);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(*ip_rdatasetp))
-		{
+		DNS_RDATASET_FOREACH (*ip_rdatasetp) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(*ip_rdatasetp, &rdata);
 			switch (rdata.type) {
@@ -4329,10 +4310,9 @@ static bool
 rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	dns_fixedname_t fixed;
-	dns_name_t *found;
-	dns_rdataset_t trdataset;
+	dns_name_t *found = NULL;
+	dns_rdataset_t trdataset = DNS_RDATASET_INIT;
 	dns_rdatatype_t type;
-	isc_result_t result;
 
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_ck_dnssec");
 
@@ -4379,9 +4359,7 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	}
 	found = dns_fixedname_initname(&fixed);
 	dns_rdataset_init(&trdataset);
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		dns_ncache_current(rdataset, found, &trdataset);
 		type = trdataset.type;
 		dns_rdataset_disassociate(&trdataset);
@@ -4691,13 +4669,13 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fixed;
-	dns_name_t *found;
-	dns_rdataset_t trdataset;
+	dns_name_t *found = NULL;
+	dns_rdataset_t trdataset = DNS_RDATASET_INIT;
 	isc_result_t result;
 	dns_rdatatype_t type;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
-	ns_dbversion_t *dbversion;
+	ns_dbversion_t *dbversion = NULL;
 
 	CTRACE(ISC_LOG_DEBUG(3), "redirect");
 
@@ -4706,7 +4684,6 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	}
 
 	found = dns_fixedname_initname(&fixed);
-	dns_rdataset_init(&trdataset);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
@@ -4728,10 +4705,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 			return ISC_R_NOTFOUND;
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
-			for (result = dns_rdataset_first(rdataset);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(rdataset))
-			{
+			DNS_RDATASET_FOREACH (rdataset) {
 				dns_ncache_current(rdataset, found, &trdataset);
 				type = trdataset.type;
 				dns_rdataset_disassociate(&trdataset);
@@ -4822,8 +4796,8 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fixed;
 	dns_fixedname_t fixedredirect;
-	dns_name_t *found, *redirectname;
-	dns_rdataset_t trdataset;
+	dns_name_t *found = NULL, *redirectname = NULL;
+	dns_rdataset_t trdataset = DNS_RDATASET_INIT;
 	isc_result_t result;
 	dns_rdatatype_t type;
 	dns_clientinfomethods_t cm;
@@ -4844,7 +4818,6 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	}
 
 	found = dns_fixedname_initname(&fixed);
-	dns_rdataset_init(&trdataset);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
@@ -4866,10 +4839,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 			return ISC_R_NOTFOUND;
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
-			for (result = dns_rdataset_first(rdataset);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(rdataset))
-			{
+			DNS_RDATASET_FOREACH (rdataset) {
 				dns_ncache_current(rdataset, found, &trdataset);
 				type = trdataset.type;
 				dns_rdataset_disassociate(&trdataset);
@@ -6891,12 +6861,10 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 	     (qctx->client->query.rpz_st->state & DNS_RPZ_REWRITTEN) == 0) &&
 	    (qctx->client->query.attributes & NS_QUERYATTR_RRL_CHECKED) == 0)
 	{
-		dns_rdataset_t nc_rdataset;
 		bool wouldlog;
-		dns_fixedname_t fixed;
 		const dns_name_t *constname;
 		char log_buf[DNS_RRL_LOG_BUF_LEN];
-		isc_result_t nc_result, resp_result;
+		isc_result_t resp_result;
 		dns_rrl_result_t rrl_result;
 
 		qctx->client->query.attributes |= NS_QUERYATTR_RRL_CHECKED;
@@ -6920,18 +6888,15 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 			/*
 			 * Try to use owner name in the negative cache SOA.
 			 */
-			dns_fixedname_init(&fixed);
-			dns_rdataset_init(&nc_rdataset);
-			for (nc_result = dns_rdataset_first(qctx->rdataset);
-			     nc_result == ISC_R_SUCCESS;
-			     nc_result = dns_rdataset_next(qctx->rdataset))
-			{
-				dns_ncache_current(qctx->rdataset,
-						   dns_fixedname_name(&fixed),
+			dns_rdataset_t nc_rdataset = DNS_RDATASET_INIT;
+			dns_fixedname_t fixed;
+			dns_name_t *n = dns_fixedname_initname(&fixed);
+			DNS_RDATASET_FOREACH (qctx->rdataset) {
+				dns_ncache_current(qctx->rdataset, n,
 						   &nc_rdataset);
 				if (nc_rdataset.type == dns_rdatatype_soa) {
 					dns_rdataset_disassociate(&nc_rdataset);
-					constname = dns_fixedname_name(&fixed);
+					constname = n;
 					break;
 				}
 				dns_rdataset_disassociate(&nc_rdataset);
@@ -7319,10 +7284,7 @@ has_ta(query_ctx_t *qctx) {
 
 	dns_rdataset_init(&dsset);
 	if (dns_keynode_dsset(keynode, &dsset)) {
-		for (result = dns_rdataset_first(&dsset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&dsset))
-		{
+		DNS_RDATASET_FOREACH (&dsset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdata_ds_t ds;
 
@@ -7685,8 +7647,7 @@ query_respond_any(query_ctx_t *qctx) {
 	ns_client_keepname(qctx->client, qctx->fname, qctx->dbuf);
 	qctx->tname = qctx->fname;
 
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
+	DNS_RDATASETITER_FOREACH (rdsiter) {
 		dns_rdatasetiter_current(rdsiter, qctx->rdataset);
 
 		/*
@@ -7795,18 +7756,9 @@ query_respond_any(query_ctx_t *qctx) {
 			 */
 			dns_rdataset_disassociate(qctx->rdataset);
 		}
-
-		result = dns_rdatasetiter_next(rdsiter);
 	}
 
 	dns_rdatasetiter_destroy(&rdsiter);
-
-	if (result != ISC_R_NOMORE) {
-		CCTRACE(ISC_LOG_ERROR, "query_respond_any: rdataset iterator "
-				       "failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-		return ns_query_done(qctx);
-	}
 
 	if (found) {
 		/*
@@ -8326,10 +8278,7 @@ query_filter64(query_ctx_t *qctx) {
 	myrdatalist->ttl = qctx->rdataset->ttl;
 
 	i = 0;
-	for (result = dns_rdataset_first(qctx->rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(qctx->rdataset))
-	{
+	DNS_RDATASET_FOREACH (qctx->rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t *myrdata = NULL;
 		isc_region_t r;
@@ -9702,17 +9651,15 @@ query_synthnxdomainnodata(query_ctx_t *qctx, bool nodata, dns_name_t *nowild,
  */
 static isc_result_t
 checksignames(dns_name_t *signer, dns_rdataset_t *sigrdataset) {
-	isc_result_t result;
-
-	for (result = dns_rdataset_first(sigrdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(sigrdataset))
-	{
+	DNS_RDATASET_FOREACH (sigrdataset) {
+		isc_result_t result;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_rrsig_t rrsig;
 
 		dns_rdataset_current(sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
 		if (dns_name_countlabels(signer) == 0) {
 			dns_name_copy(&rrsig.signer, signer);
 		} else if (!dns_name_equal(signer, &rrsig.signer)) {

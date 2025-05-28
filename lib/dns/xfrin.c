@@ -1974,10 +1974,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		LIBDNS_XFRIN_RECV_ANSWER(xfr, xfr->info, msg);
 
 		ISC_LIST_FOREACH (name->list, rds, link) {
-			for (isc_result_t iter = dns_rdataset_first(rds);
-			     iter == ISC_R_SUCCESS;
-			     iter = dns_rdataset_next(rds))
-			{
+			DNS_RDATASET_FOREACH (rds) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rds, &rdata);
 				CHECK(xfr_rr(xfr, name, rds->ttl, &rdata));
@@ -1997,7 +1994,6 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 			}
 		}
 	}
-	CHECK(result);
 
 	if (dns_message_gettsig(msg, &tsigowner) != NULL) {
 		/*

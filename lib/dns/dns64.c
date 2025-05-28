@@ -270,10 +270,7 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 
 		i = 0;
 		ok = 0;
-		for (result = dns_rdataset_first(rdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(rdataset))
-		{
+		DNS_RDATASET_FOREACH (rdataset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			if (aaaaok == NULL || !aaaaok[i]) {
 				dns_rdataset_current(rdataset, &rdata);
@@ -407,7 +404,6 @@ dns_dns64_findprefix(dns_rdataset_t *rdataset, isc_netprefix_t *prefix,
 	unsigned int oplen, iplen;
 	size_t count = 0;
 	struct in6_addr ina6;
-	isc_result_t result;
 
 	REQUIRE(prefix != NULL && len != NULL && *len != 0U);
 	REQUIRE(rdataset != NULL && rdataset->type == dns_rdatatype_aaaa);
@@ -417,9 +413,7 @@ dns_dns64_findprefix(dns_rdataset_t *rdataset, isc_netprefix_t *prefix,
 	dns_rdataset_clone(rdataset, &outer);
 	dns_rdataset_clone(rdataset, &inner);
 
-	for (result = dns_rdataset_first(&outer); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&outer))
-	{
+	DNS_RDATASET_FOREACH (&outer) {
 		dns_rdata_t rd1 = DNS_RDATA_INIT;
 		dns_rdataset_current(&outer, &rd1);
 		oplen = 0;
@@ -431,33 +425,30 @@ dns_dns64_findprefix(dns_rdataset_t *rdataset, isc_netprefix_t *prefix,
 		}
 
 		/* Look for the 192.0.0.171 match. */
-		for (result = dns_rdataset_first(&inner);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&inner))
-		{
+		bool matched = false;
+		DNS_RDATASET_FOREACH (&inner) {
 			dns_rdata_t rd2 = DNS_RDATA_INIT;
 
 			dns_rdataset_current(&inner, &rd2);
 			iplen = search(&rd2, &rd1, oplen);
-			if (iplen == 0) {
-				continue;
-			}
-			INSIST(iplen == oplen);
-			if (count >= *len) {
-				count++;
-				break;
-			}
+			if (iplen != 0) {
+				matched = true;
+				INSIST(iplen == oplen);
+				if (count >= *len) {
+					count++;
+					break;
+				}
 
-			/* We have a prefix. */
-			memset(ina6.s6_addr, 0, sizeof(ina6.s6_addr));
-			memmove(ina6.s6_addr, rd1.data, oplen / 8);
-			isc_netaddr_fromin6(&prefix[count].addr, &ina6);
-			prefix[count].prefixlen = oplen;
-			count++;
-			break;
+				/* We have a prefix. */
+				memset(ina6.s6_addr, 0, sizeof(ina6.s6_addr));
+				memmove(ina6.s6_addr, rd1.data, oplen / 8);
+				isc_netaddr_fromin6(&prefix[count].addr, &ina6);
+				prefix[count].prefixlen = oplen;
+				count++;
+			}
 		}
 		/* Didn't find a match look for a different prefix length. */
-		if (result == ISC_R_NOMORE) {
+		if (!matched) {
 			goto resume;
 		}
 	}
@@ -493,15 +484,14 @@ dns_dns64_apply(isc_mem_t *mctx, dns_dns64list_t dns64s, unsigned int count,
 	aaaalist->rdclass = dns_rdataclass_in;
 	aaaalist->type = dns_rdatatype_aaaa;
 
-	for (result = dns_rdataset_first(a); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(a))
-	{
+	DNS_RDATASET_FOREACH (a) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(a, &rdata);
+
 		ISC_LIST_FOREACH (dns64s, dns64, link) {
-			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdata_t *dns64_rdata = NULL;
 			isc_region_t r;
 
-			dns_rdataset_current(a, &rdata);
 			isc_buffer_availableregion(buffer, &r);
 			INSIST(r.length >= 16);
 			result = dns_dns64_aaaafroma(dns64, &netaddr, reqsigner,

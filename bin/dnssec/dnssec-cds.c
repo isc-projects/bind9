@@ -469,9 +469,7 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness) {
 	isc_result_t result;
 	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
 
-	for (result = dns_rdataset_first(dsset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(dsset))
-	{
+	DNS_RDATASET_FOREACH (dsset) {
 		dns_rdata_ds_t ds;
 		dns_rdata_t dsrdata = DNS_RDATA_INIT;
 		dns_rdata_t newdsrdata = DNS_RDATA_INIT;
@@ -529,22 +527,20 @@ static keyinfo_t *
 match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 		   strictness_t strictness) {
 	isc_result_t result;
-	keyinfo_t *keytable, *ki;
-	int i;
+	keyinfo_t *keytable = NULL, *ki = NULL;
+	int i = 0;
 
 	nkey = dns_rdataset_count(keyset);
 
 	keytable = isc_mem_cget(mctx, nkey, sizeof(keytable[0]));
+	ki = keytable;
 
-	for (result = dns_rdataset_first(keyset), i = 0, ki = keytable;
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(keyset), i++, ki++)
-	{
+	DNS_RDATASET_FOREACH (keyset) {
 		dns_rdata_dnskey_t dnskey;
-		dns_rdata_t *keyrdata;
+		dns_rdata_t *keyrdata = NULL;
 		isc_region_t r;
 
-		INSIST(i < nkey);
+		INSIST(i++ < nkey);
 		keyrdata = &ki->rdata;
 
 		dns_rdata_init(keyrdata);
@@ -559,6 +555,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 
 		ki->dst = NULL;
 		if (!match_key_dsset(ki, dsset, strictness)) {
+			ki++;
 			continue;
 		}
 
@@ -570,6 +567,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 				 "keytag=%d, algo=%d): %s\n",
 				 ki->tag, ki->algo, isc_result_totext(result));
 		}
+		ki++;
 	}
 
 	return keytable;
@@ -606,16 +604,14 @@ static dns_secalg_t *
 matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 	      dns_rdataset_t *sigset) {
 	isc_result_t result;
-	dns_secalg_t *algo;
+	dns_secalg_t *algo = NULL;
 	int i;
 
 	REQUIRE(keytbl != NULL);
 
 	algo = isc_mem_cget(mctx, nkey, sizeof(algo[0]));
 
-	for (result = dns_rdataset_first(sigset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(sigset))
-	{
+	DNS_RDATASET_FOREACH (sigset) {
 		dns_rdata_t sigrdata = DNS_RDATA_INIT;
 		dns_rdata_rrsig_t sig;
 
@@ -709,9 +705,7 @@ signed_strict(dns_rdataset_t *dsset, dns_secalg_t *algo) {
 	isc_result_t result;
 	bool all_ok = true;
 
-	for (result = dns_rdataset_first(dsset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(dsset))
-	{
+	DNS_RDATASET_FOREACH (dsset) {
 		dns_rdata_t dsrdata = DNS_RDATA_INIT;
 		dns_rdata_ds_t ds;
 		bool ds_ok;
@@ -791,9 +785,7 @@ append_new_ds_set(ds_maker_func_t *ds_from_rdata, isc_buffer_t *buf,
 		  dns_rdataset_t *crdset) {
 	isc_result_t result;
 
-	for (result = dns_rdataset_first(crdset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(crdset))
-	{
+	DNS_RDATASET_FOREACH (crdset) {
 		dns_rdata_t crdata = DNS_RDATA_INIT;
 		dns_rdata_t *ds = NULL;
 
@@ -876,12 +868,12 @@ rdata_cmp(const void *rdata1, const void *rdata2) {
 static bool
 consistent_digests(dns_rdataset_t *dsset) {
 	isc_result_t result;
-	dns_rdata_t *arrdata;
-	dns_rdata_ds_t *ds;
+	dns_rdata_t *arrdata = NULL;
+	dns_rdata_ds_t *ds = NULL;
 	dns_keytag_t key_tag;
 	dns_secalg_t algorithm;
 	bool match;
-	int i, j, n, d;
+	int i = 0, j, n, d;
 
 	/*
 	 * First sort the dsset. DS rdata fields are tag, algorithm,
@@ -893,11 +885,10 @@ consistent_digests(dns_rdataset_t *dsset) {
 
 	arrdata = isc_mem_cget(mctx, n, sizeof(dns_rdata_t));
 
-	for (result = dns_rdataset_first(dsset), i = 0; result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(dsset), i++)
-	{
+	DNS_RDATASET_FOREACH (dsset) {
 		dns_rdata_init(&arrdata[i]);
 		dns_rdataset_current(dsset, &arrdata[i]);
+		i++;
 	}
 
 	qsort(arrdata, n, sizeof(dns_rdata_t), rdata_cmp);

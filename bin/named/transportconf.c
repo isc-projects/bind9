@@ -55,11 +55,8 @@
 		if (obj != NULL) {                                                \
 			{                                                         \
 				uint32_t tls_protos = 0;                          \
-				const cfg_listelt_t *proto = NULL;                \
 				INSIST(obj != NULL);                              \
-				for (proto = cfg_list_first(obj); proto != 0;     \
-				     proto = cfg_list_next(proto))                \
-				{                                                 \
+				CFG_LIST_FOREACH (obj, proto) {                   \
 					const cfg_obj_t *tls_proto_obj =          \
 						cfg_listelt_value(proto);         \
 					const char *tls_sver =                    \
@@ -96,9 +93,7 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 	const char *dohid = NULL;
 	isc_result_t result;
 
-	for (const cfg_listelt_t *element = cfg_list_first(transportlist);
-	     element != NULL; element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (transportlist, element) {
 		dns_name_t *dohname = NULL;
 		dns_transport_t *transport = NULL;
 
@@ -144,9 +139,7 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 	const char *tlsid = NULL;
 	isc_result_t result;
 
-	for (const cfg_listelt_t *element = cfg_list_first(transportlist);
-	     element != NULL; element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (transportlist, element) {
 		dns_name_t *tlsname = NULL;
 		dns_transport_t *transport = NULL;
 

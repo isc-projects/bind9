@@ -1381,7 +1381,6 @@ static isc_result_t
 catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 		       dns_rdataset_t *value, dns_name_t *name) {
 	isc_result_t result;
-	dns_rdata_t rdata;
 	dns_rdata_in_a_t rdata_a;
 	dns_rdata_in_aaaa_t rdata_aaaa;
 	dns_rdata_txt_t rdata_txt;
@@ -1411,6 +1410,7 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 	 * - label and IN TXT - TSIG key name
 	 */
 	if (name->length != 0) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		isc_sockaddr_t sockaddr;
 		size_t i;
 
@@ -1420,7 +1420,6 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 		 */
 		result = dns_rdataset_first(value);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		dns_rdata_init(&rdata);
 		dns_rdataset_current(value, &rdata);
 		switch (value->type) {
 		case dns_rdatatype_a:
@@ -1524,10 +1523,8 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 
 	dns_ipkeylist_resize(mctx, ipkl, rcount);
 
-	for (result = dns_rdataset_first(value); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(value))
-	{
-		dns_rdata_init(&rdata);
+	DNS_RDATASET_FOREACH (value) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(value, &rdata);
 		/*
 		 * port 0 == take the default
@@ -2387,8 +2384,7 @@ dns__catz_update_cb(void *data) {
 		}
 
 		dns_rdataset_init(&rdataset);
-		result = dns_rdatasetiter_first(rdsiter);
-		while (result == ISC_R_SUCCESS) {
+		DNS_RDATASETITER_FOREACH (rdsiter) {
 			dns_rdatasetiter_current(rdsiter, &rdataset);
 
 			/*
@@ -2398,7 +2394,8 @@ dns__catz_update_cb(void *data) {
 			 * and produce an unnecessary warning message.
 			 */
 			if (!catz_rdatatype_is_processable(rdataset.type)) {
-				goto next;
+				dns_rdataset_disassociate(&rdataset);
+				continue;
 			}
 
 			/*
@@ -2430,9 +2427,8 @@ dns__catz_update_cb(void *data) {
 					      cname, classbuf, typebuf,
 					      isc_result_totext(result));
 			}
-		next:
+
 			dns_rdataset_disassociate(&rdataset);
-			result = dns_rdatasetiter_next(rdsiter);
 		}
 
 		dns_rdatasetiter_destroy(&rdsiter);

@@ -73,6 +73,12 @@ typedef struct cfg_listelt cfg_listelt_t;
 typedef isc_result_t (*cfg_parsecallback_t)(const char	    *clausename,
 					    const cfg_obj_t *obj, void *arg);
 
+//* clang-format off */
+#define CFG_LIST_FOREACH(listobj, elt)                                        \
+	for (const cfg_listelt_t *elt = cfg_list_first(listobj); elt != NULL; \
+	     elt = cfg_list_next(elt))
+//* clang-format on */
+
 /***
  *** Functions
  ***/

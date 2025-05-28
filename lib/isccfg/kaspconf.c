@@ -443,7 +443,6 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	const cfg_obj_t *inlinesigning = NULL;
 	const cfg_obj_t *cds = NULL;
 	const cfg_obj_t *obj = NULL;
-	const cfg_listelt_t *element = NULL;
 	const char *kaspname = NULL;
 	dns_kasp_t *kasp = NULL;
 	size_t i = 0;
@@ -591,9 +590,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 
 	(void)confget(maps, "cds-digest-types", &cds);
 	if (cds != NULL) {
-		for (element = cfg_list_first(cds); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (cds, element) {
 			result = add_digest(kasp, cfg_listelt_value(element));
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
@@ -630,9 +627,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		char role[256] = { 0 };
 		bool warn[256][2] = { { false } };
 
-		for (element = cfg_list_first(keys); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (keys, element) {
 			cfg_obj_t *kobj = cfg_listelt_value(element);
 			result = cfg_kaspkey_fromconfig(
 				kobj, kasp, check_algorithms, offline_ksk,

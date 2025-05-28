@@ -106,10 +106,9 @@ get_maps(const cfg_obj_t **maps, const char *name, const cfg_obj_t **obj) {
 
 static bool
 get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
-	const cfg_listelt_t *element;
-	const cfg_obj_t *checknames;
-	const cfg_obj_t *type;
-	const cfg_obj_t *value;
+	const cfg_obj_t *checknames = NULL;
+	const cfg_obj_t *type = NULL;
+	const cfg_obj_t *value = NULL;
 	isc_result_t result;
 	int i;
 
@@ -126,9 +125,7 @@ get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
 			*obj = checknames;
 			return true;
 		}
-		for (element = cfg_list_first(checknames); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (checknames, element) {
 			value = cfg_listelt_value(element);
 			type = cfg_tuple_get(value, "type");
 			if ((strcasecmp(cfg_obj_asstring(type), "primary") !=
@@ -471,9 +468,8 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 static isc_result_t
 configure_view(const char *vclass, const char *view, const cfg_obj_t *config,
 	       const cfg_obj_t *vconfig, isc_mem_t *mctx, bool list) {
-	const cfg_listelt_t *element;
-	const cfg_obj_t *voptions;
-	const cfg_obj_t *zonelist;
+	const cfg_obj_t *voptions = NULL;
+	const cfg_obj_t *zonelist = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 
@@ -489,9 +485,7 @@ configure_view(const char *vclass, const char *view, const cfg_obj_t *config,
 		(void)cfg_map_get(config, "zone", &zonelist);
 	}
 
-	for (element = cfg_list_first(zonelist); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (zonelist, element) {
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		tresult = configure_zone(vclass, view, zconfig, vconfig, config,
 					 mctx, list);
@@ -520,18 +514,15 @@ config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 static isc_result_t
 load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 		      bool list_zones) {
-	const cfg_listelt_t *element;
-	const cfg_obj_t *views;
-	const cfg_obj_t *vconfig;
+	const cfg_obj_t *views = NULL;
+	const cfg_obj_t *vconfig = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 
 	views = NULL;
 
 	(void)cfg_map_get(config, "view", &views);
-	for (element = cfg_list_first(views); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (views, element) {
 		const cfg_obj_t *classobj;
 		dns_rdataclass_t viewclass;
 		const char *vname;

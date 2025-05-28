@@ -94,6 +94,22 @@ struct dns_rdatasetiter {
 	unsigned int		   options;
 };
 
+/* clang-format off */
+/*
+ * This is a hack to build a unique variable name to
+ * replace 'res' below. (Two layers of macro indirection are
+ * needed to make the line number be part of the variable
+ * name; otherwise it would just be "x__LINE__".)
+ */
+#define DNS__RDATASETITER_CONNECT(x,y) x##y
+#define DNS__RDATASETITER_CONCAT(x,y) DNS__RDATASETITER_CONNECT(x,y)
+#define DNS_RDATASETITER_FOREACH_RES(rds, res)                         \
+	for (isc_result_t res = dns_rdatasetiter_first((rds));       \
+	     res == ISC_R_SUCCESS; res = dns_rdatasetiter_next((rds)))
+#define DNS_RDATASETITER_FOREACH(rds)               \
+	DNS_RDATASETITER_FOREACH_RES(rds, DNS__RDATASETITER_CONCAT(x, __LINE__))
+/* clang-format on */
+
 #define dns_rdatasetiter_destroy(iteratorp) \
 	dns__rdatasetiter_destroy(iteratorp DNS__DB_FILELINE)
 void

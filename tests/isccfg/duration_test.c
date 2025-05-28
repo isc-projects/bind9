@@ -125,7 +125,6 @@ ISC_RUN_TEST_IMPL(duration) {
 	bool must_fail = false;
 
 	for (size_t i = 0; i < ARRAY_SIZE(durations); i++) {
-		const cfg_listelt_t *element;
 		const cfg_obj_t *kasps = NULL;
 		const char cfg_tpl[] =
 			"dnssec-policy \"dp\"\n"
@@ -159,9 +158,7 @@ ISC_RUN_TEST_IMPL(duration) {
 
 		(void)cfg_map_get(c1, "dnssec-policy", &kasps);
 		assert_non_null(kasps);
-		for (element = cfg_list_first(kasps); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (kasps, element) {
 			const cfg_listelt_t *key_element;
 			const cfg_obj_t *lifetime = NULL;
 			const cfg_obj_t *keys = NULL;

@@ -298,14 +298,11 @@ int
 main(int argc, char **argv) {
 	char *classname = NULL;
 	char *filename = NULL, *dir = NULL, *namestr;
-	char *endp;
+	char *endp = NULL;
 	int ch;
 	isc_result_t result;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
 	isc_stdtime_t now = isc_stdtime_now();
-
-	dns_rdata_init(&rdata);
 
 	if (argc == 1) {
 		usage();
@@ -433,16 +430,14 @@ main(int argc, char **argv) {
 			      isc_result_totext(result));
 		}
 
-		for (result = dns_rdataset_first(&rdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset))
-		{
-			dns_rdata_init(&rdata);
+		DNS_RDATASET_FOREACH (&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			emit(dir, &rdata);
 		}
 	} else {
 		unsigned char key_buf[DST_KEY_MAXSIZE];
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		loadkey(argv[isc_commandline_index], key_buf, DST_KEY_MAXSIZE,
 			&rdata);

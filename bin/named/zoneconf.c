@@ -191,7 +191,6 @@ static isc_result_t
 configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			const char *zname) {
 	const cfg_obj_t *updatepolicy = NULL;
-	const cfg_listelt_t *element, *element2;
 	dns_ssutable_t *table = NULL;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
 	bool autoddns = false;
@@ -218,9 +217,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 	dns_ssutable_create(mctx, &table);
 
-	for (element = cfg_list_first(updatepolicy); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (updatepolicy, element) {
 		const cfg_obj_t *stmt = cfg_listelt_value(element);
 		const cfg_obj_t *mode = cfg_tuple_get(stmt, "mode");
 		const cfg_obj_t *identity = cfg_tuple_get(stmt, "identity");
@@ -303,9 +300,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		}
 
 		i = 0;
-		for (element2 = cfg_list_first(typelist); element2 != NULL;
-		     element2 = cfg_list_next(element2))
-		{
+		CFG_LIST_FOREACH (typelist, element2) {
 			const cfg_obj_t *typeobj;
 			const char *bracket;
 			isc_textregion_t r;
@@ -411,15 +406,12 @@ configure_staticstub_serveraddrs(const cfg_obj_t *zconfig, dns_zone_t *zone,
 				 dns_rdatalist_t *rdatalist_ns,
 				 dns_rdatalist_t *rdatalist_a,
 				 dns_rdatalist_t *rdatalist_aaaa) {
-	const cfg_listelt_t *element;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
 	isc_region_t region, sregion;
-	dns_rdata_t *rdata;
+	dns_rdata_t *rdata = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	for (element = cfg_list_first(zconfig); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (zconfig, element) {
 		const isc_sockaddr_t *sa;
 		isc_netaddr_t na;
 		const cfg_obj_t *address = cfg_listelt_value(element);
@@ -496,19 +488,16 @@ static isc_result_t
 configure_staticstub_servernames(const cfg_obj_t *zconfig, dns_zone_t *zone,
 				 dns_rdatalist_t *rdatalist,
 				 const char *zname) {
-	const cfg_listelt_t *element;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
-	dns_rdata_t *rdata;
+	dns_rdata_t *rdata = NULL;
 	isc_region_t sregion, region;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	for (element = cfg_list_first(zconfig); element != NULL;
-	     element = cfg_list_next(element))
-	{
-		const cfg_obj_t *obj;
-		const char *str;
+	CFG_LIST_FOREACH (zconfig, element) {
+		const cfg_obj_t *obj = NULL;
+		const char *str = NULL;
 		dns_fixedname_t fixed_name;
-		dns_name_t *nsname;
+		dns_name_t *nsname = NULL;
 		isc_buffer_t b;
 
 		obj = cfg_listelt_value(element);

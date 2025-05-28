@@ -316,9 +316,7 @@ static isc_result_t
 foreach_node_rr_action(void *data, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	foreach_node_rr_ctx_t *ctx = data;
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
+	DNS_RDATASET_FOREACH (rdataset) {
 		rr_t rr = { 0, DNS_RDATA_INIT };
 
 		dns_rdataset_current(rdataset, &rr.rdata);
@@ -328,9 +326,7 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset) {
 			return result;
 		}
 	}
-	if (result != ISC_R_NOMORE) {
-		return result;
-	}
+
 	return ISC_R_SUCCESS;
 }
 
@@ -345,10 +341,9 @@ static isc_result_t
 foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	      rrset_func *action, void *action_data) {
 	isc_result_t result;
-	dns_dbnode_t *node;
-	dns_rdatasetiter_t *iter;
+	dns_dbnode_t *node = NULL;
+	dns_rdatasetiter_t *iter = NULL;
 
-	node = NULL;
 	result = dns_db_findnode(db, name, false, &node);
 	if (result == ISC_R_NOTFOUND) {
 		return ISC_R_SUCCESS;
@@ -357,32 +352,23 @@ foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		return result;
 	}
 
-	iter = NULL;
 	result = dns_db_allrdatasets(db, node, ver, 0, (isc_stdtime_t)0, &iter);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_node;
 	}
 
-	for (result = dns_rdatasetiter_first(iter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iter))
-	{
-		dns_rdataset_t rdataset;
+	DNS_RDATASETITER_FOREACH (iter) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 
-		dns_rdataset_init(&rdataset);
 		dns_rdatasetiter_current(iter, &rdataset);
 
 		result = (*action)(action_data, &rdataset);
 
 		dns_rdataset_disassociate(&rdataset);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_iterator;
+			break;
 		}
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
-
-cleanup_iterator:
 	dns_rdatasetiter_destroy(&iter);
 
 cleanup_node:
@@ -456,9 +442,7 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		goto cleanup_node;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
 		rr_t rr = { 0, DNS_RDATA_INIT };
 		dns_rdataset_current(&rdataset, &rr.rdata);
 		rr.ttl = rdataset.ttl;
@@ -467,9 +451,7 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			goto cleanup_rdataset;
 		}
 	}
-	if (result != ISC_R_NOMORE) {
-		goto cleanup_rdataset;
-	}
+
 	result = ISC_R_SUCCESS;
 
 cleanup_rdataset:
@@ -1291,7 +1273,6 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
 	bool found;
@@ -1317,9 +1298,8 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		goto failure;
 	}
 
-	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&rdataset))
-	{
+	DNS_RDATASET_FOREACH (&rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -1356,9 +1336,7 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		}
 	}
 	dns_rdataset_disassociate(&rdataset);
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
+
 failure:
 	if (node != NULL) {
 		dns_db_detachnode(db, &node);
@@ -1391,14 +1369,11 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		goto cleanup_node;
 	}
 
-	for (result = dns_rdatasetiter_first(iter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iter))
-	{
-		dns_rdataset_t rdataset;
+	DNS_RDATASETITER_FOREACH (iter) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 		dns_rdatatype_t type;
 		bool flag;
 
-		dns_rdataset_init(&rdataset);
 		dns_rdatasetiter_current(iter, &rdataset);
 		type = rdataset.type;
 		dns_rdataset_disassociate(&rdataset);
@@ -1415,7 +1390,7 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		result = rrset_exists(db, ver, name, dns_rdatatype_rrsig, type,
 				      &flag);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_iterator;
+			break;
 		}
 		if (flag) {
 			continue;
@@ -1423,15 +1398,10 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		result = add_sigs(log, zone, db, ver, name, type, diff, keys,
 				  nkeys, now, inception, expire);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup_iterator;
+			break;
 		}
 		(*sigs)++;
 	}
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
-
-cleanup_iterator:
 	dns_rdatasetiter_destroy(&iter);
 
 cleanup_node:

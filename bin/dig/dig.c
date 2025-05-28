@@ -579,25 +579,23 @@ dns64prefix_answer(dns_message_t *msg, isc_buffer_t *buf) {
 static isc_result_t
 short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 	     dig_query_t *query) {
-	isc_result_t result, loopresult;
 	dns_name_t empty_name;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	UNUSED(flags);
 
 	dns_name_init(&empty_name);
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_ANSWER, name) {
 		ISC_LIST_FOREACH (name->list, rdataset, link) {
-			loopresult = dns_rdataset_first(rdataset);
-			while (loopresult == ISC_R_SUCCESS) {
+			DNS_RDATASET_FOREACH (rdataset) {
+				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rdataset, &rdata);
-				result = say_message(&rdata, query, buf);
+
+				isc_result_t result = say_message(&rdata, query,
+								  buf);
 				if (result == ISC_R_NOSPACE) {
 					return result;
 				}
 				check_result(result, "say_message");
-				loopresult = dns_rdataset_next(rdataset);
-				dns_rdata_reset(&rdata);
 			}
 		}
 	}
@@ -2770,7 +2768,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				printgreeting(argc, argv, *lookup);
 				*firstarg = false;
 			}
-			ISC_LIST_APPEND(lookup_list, (*lookup), link);
+			ISC_LIST_APPEND(lookup_list, *lookup, link);
 			debug("looking up %s", (*lookup)->textname);
 		}
 		return value_from_next;

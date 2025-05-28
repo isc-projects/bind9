@@ -377,11 +377,8 @@ clearnode(dns_db_t *db, dns_dbnode_t *node) {
 		return result;
 	}
 
-	for (result = dns_rdatasetiter_first(iter); result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iter))
-	{
-		dns_rdataset_t rdataset;
-		dns_rdataset_init(&rdataset);
+	DNS_RDATASETITER_FOREACH (iter) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 
 		dns_rdatasetiter_current(iter, &rdataset);
 		result = dns_db_deleterdataset(db, node, NULL, rdataset.type,
@@ -390,10 +387,6 @@ clearnode(dns_db_t *db, dns_dbnode_t *node) {
 		if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED) {
 			break;
 		}
-	}
-
-	if (result == ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
 	}
 
 	dns_rdatasetiter_destroy(&iter);

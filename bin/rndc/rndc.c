@@ -558,13 +558,11 @@ parse_config(isc_mem_t *mctx, const char *keyname, cfg_parser_t **pctxp,
 	const cfg_obj_t *algorithmobj = NULL;
 	cfg_obj_t *config = NULL;
 	const cfg_obj_t *address = NULL;
-	const cfg_listelt_t *elt;
 	const char *secretstr;
 	const char *algorithmstr;
 	static char secretarray[1024];
 	const cfg_type_t *conftype = &cfg_type_rndcconf;
 	bool key_only = false;
-	const cfg_listelt_t *element;
 
 	if (!isc_file_exists(conffile)) {
 		conffile = admin_keyfile;
@@ -617,9 +615,7 @@ parse_config(isc_mem_t *mctx, const char *keyname, cfg_parser_t **pctxp,
 	if (!key_only) {
 		(void)cfg_map_get(config, "server", &servers);
 		if (servers != NULL) {
-			for (elt = cfg_list_first(servers); elt != NULL;
-			     elt = cfg_list_next(elt))
-			{
+			CFG_LIST_FOREACH (servers, elt) {
 				const char *name = NULL;
 				server = cfg_listelt_value(elt);
 				name = cfg_obj_asstring(
@@ -655,18 +651,18 @@ parse_config(isc_mem_t *mctx, const char *keyname, cfg_parser_t **pctxp,
 		DO("get key", cfg_map_get(config, "key", &key));
 	} else {
 		DO("get config key list", cfg_map_get(config, "key", &keys));
-		for (elt = cfg_list_first(keys); elt != NULL;
-		     elt = cfg_list_next(elt))
-		{
+		bool match = false;
+		CFG_LIST_FOREACH (keys, elt) {
 			const char *name = NULL;
 
 			key = cfg_listelt_value(elt);
 			name = cfg_obj_asstring(cfg_map_getname(key));
 			if (strcasecmp(name, keyname) == 0) {
+				match = true;
 				break;
 			}
 		}
-		if (elt == NULL) {
+		if (!match) {
 			fatal("no key definition for name %s", keyname);
 		}
 	}
@@ -729,9 +725,7 @@ parse_config(isc_mem_t *mctx, const char *keyname, cfg_parser_t **pctxp,
 		result = ISC_R_NOTFOUND;
 	}
 	if (result == ISC_R_SUCCESS) {
-		for (element = cfg_list_first(addresses); element != NULL;
-		     element = cfg_list_next(element))
-		{
+		CFG_LIST_FOREACH (addresses, element) {
 			isc_sockaddr_t sa;
 
 			address = cfg_listelt_value(element);

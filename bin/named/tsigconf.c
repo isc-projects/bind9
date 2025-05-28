@@ -34,16 +34,13 @@ static isc_result_t
 add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		 isc_mem_t *mctx) {
 	dns_tsigkey_t *tsigkey = NULL;
-	const cfg_listelt_t *element;
 	const cfg_obj_t *key = NULL;
 	const char *keyid = NULL;
 	unsigned char *secret = NULL;
 	int secretalloc = 0;
 	isc_result_t ret;
 
-	for (element = cfg_list_first(list); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (list, element) {
 		const cfg_obj_t *algobj = NULL;
 		const cfg_obj_t *secretobj = NULL;
 		dns_fixedname_t fkey;

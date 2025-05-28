@@ -45,7 +45,6 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 	const char *catname;
 	isc_logcategory_t category;
 	const cfg_obj_t *destinations = NULL;
-	const cfg_listelt_t *element = NULL;
 
 	catname = cfg_obj_asstring(cfg_tuple_get(ccat, "name"));
 	category = isc_log_categorybyname(catname);
@@ -63,9 +62,7 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 	}
 
 	destinations = cfg_tuple_get(ccat, "destinations");
-	for (element = cfg_list_first(destinations); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (destinations, element) {
 		const cfg_obj_t *channel = cfg_listelt_value(element);
 		const char *channelname = cfg_obj_asstring(channel);
 
@@ -316,10 +313,9 @@ named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 	isc_result_t result;
 	const cfg_obj_t *channels = NULL;
 	const cfg_obj_t *categories = NULL;
-	const cfg_listelt_t *element;
 	bool default_set = false;
 	bool unmatched_set = false;
-	const cfg_obj_t *catname;
+	const cfg_obj_t *catname = NULL;
 
 	if (logconfig != NULL) {
 		named_log_setdefaultchannels(logconfig);
@@ -327,17 +323,13 @@ named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 	}
 
 	(void)cfg_map_get(logstmt, "channel", &channels);
-	for (element = cfg_list_first(channels); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (channels, element) {
 		const cfg_obj_t *channel = cfg_listelt_value(element);
 		CHECK(channel_fromconf(channel, logconfig));
 	}
 
 	(void)cfg_map_get(logstmt, "category", &categories);
-	for (element = cfg_list_first(categories); element != NULL;
-	     element = cfg_list_next(element))
-	{
+	CFG_LIST_FOREACH (categories, element) {
 		const cfg_obj_t *category = cfg_listelt_value(element);
 		CHECK(category_fromconf(category, logconfig));
 		if (!default_set) {

@@ -470,11 +470,9 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 
 		isc_buffer_init(&target, t, len);
 		if (short_form) {
-			dns_rdata_t rdata = DNS_RDATA_INIT;
-			for (result = dns_rdataset_first(rdataset);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(rdataset))
-			{
+			DNS_RDATASET_FOREACH (rdataset) {
+				dns_rdata_t rdata = DNS_RDATA_INIT;
+
 				if ((rdataset->attributes &
 				     DNS_RDATASETATTR_NEGATIVE) != 0)
 				{
@@ -495,8 +493,6 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 				}
 
 				isc_buffer_putstr(&target, "\n");
-
-				dns_rdata_reset(&rdata);
 			}
 		} else {
 			dns_indent_t indent = { "  ", 2 };
@@ -798,17 +794,12 @@ cleanup:
 
 static isc_result_t
 load_keys(const cfg_obj_t *keys, dns_client_t *client, dns_view_t *toview) {
-	const cfg_listelt_t *elt, *elt2;
-	const cfg_obj_t *key, *keylist;
+	const cfg_obj_t *key = NULL, *keylist = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	for (elt = cfg_list_first(keys); elt != NULL; elt = cfg_list_next(elt))
-	{
+	CFG_LIST_FOREACH (keys, elt) {
 		keylist = cfg_listelt_value(elt);
-
-		for (elt2 = cfg_list_first(keylist); elt2 != NULL;
-		     elt2 = cfg_list_next(elt2))
-		{
+		CFG_LIST_FOREACH (keylist, elt2) {
 			key = cfg_listelt_value(elt2);
 			CHECK(key_fromconfig(key, client, toview));
 		}
