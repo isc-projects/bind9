@@ -1,0 +1,80 @@
+@@
+expression e1, e2;
+@@
+
+isc_mem_free(e1, e2);
+- e2 = NULL;
+
+@@
+expression e1, e2;
+@@
+
+if (e2 != NULL) {
+isc_mem_free(e1, e2);
+}
+- e2 = NULL;
+
+@@
+expression e1, e2;
+@@
+
+isc_mempool_put(e1, e2);
+- e2 = NULL;
+
+@@
+expression e1, e2;
+@@
+
+if (e2 != NULL) {
+isc_mempool_put(e1, e2);
+}
+- e2 = NULL;
+
+@@
+expression e1, e2, e3;
+@@
+
+isc_mem_put(e1, e2, e3);
+- e2 = NULL;
+
+@@
+expression e1, e2, e3;
+@@
+
+if (e2 != NULL) {
+isc_mem_put(e1, e2, e3);
+}
+- e2 = NULL;
+
+@@
+expression e1, e2, e3;
+@@
+
+isc_mem_putanddetach(e1, e2, e3);
+- e2 = NULL;
+
+@@
+expression e1, e2, e3;
+@@
+
+if (e2 != NULL) {
+isc_mem_putanddetach(e1, e2, e3);
+}
+- e2 = NULL;
+
+@@
+expression e1, e2, e3, e4;
+@@
+
+isc_mem_cput(e1, e2, e3, e4);
+- e2 = NULL;
+
+@@
+expression e1, e2, e3, e4;
+@@
+
+if (e2 != NULL) {
+isc_mem_cput(e1, e2, e3, e4);
+}
+- e2 = NULL;
+
