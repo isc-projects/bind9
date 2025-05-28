@@ -711,6 +711,8 @@ dns_view_delzone(dns_view_t *view, dns_zone_t *zone) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
+	dns_zone_prepare_shutdown(zone);
+
 	rcu_read_lock();
 	zonetable = rcu_dereference(view->zonetable);
 	if (zonetable != NULL) {

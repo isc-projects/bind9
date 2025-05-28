@@ -1719,6 +1719,20 @@ dns_zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
  */
 
 void
+dns_zone_prepare_shutdown(dns_zone_t *zone);
+/*%<
+ * Prepare a zone for shutdown by setting the DNS_ZONEFLG_EXITING flag even
+ * before the final reference is detached. Useful, because the zone object can
+ * be kept around with a valid reference from the zonetable until qp garbage
+ * collector runs, and we don't want, for example, zone maintenance to happen
+ * while waiting for it. Note that the zone can not be used normally again after
+ * this function is called.
+ *
+ * Requires:
+ *\li	'zone' to be a valid initialised zone.
+ */
+
+void
 dns_zonemgr_create(isc_mem_t *mctx, isc_nm_t *netmgr, dns_zonemgr_t **zmgrp);
 /*%<
  * Create a zone manager.
