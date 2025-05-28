@@ -157,7 +157,7 @@ struct isc_mempool {
 	/*%< Stats only. */
 	size_t gets; /*%< # of requests to this pool */
 	/*%< Debugging only. */
-	char name[16]; /*%< printed name in stats reports */
+	char *name; /*%< printed name in stats reports */
 };
 
 /*
@@ -921,13 +921,14 @@ isc_mem_getname(isc_mem_t *ctx) {
 
 void
 isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
-		    isc_mempool_t **restrict mpctxp FLARG) {
+		    const char *name, isc_mempool_t **restrict mpctxp FLARG) {
 	isc_mempool_t *restrict mpctx = NULL;
 	size_t size = element_size;
 
 	REQUIRE(VALID_CONTEXT(mctx));
 	REQUIRE(size > 0U);
 	REQUIRE(mpctxp != NULL && *mpctxp == NULL);
+	REQUIRE(name != NULL);
 
 	/*
 	 * Mempools are stored as a linked list of element.
@@ -946,6 +947,7 @@ isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
 		.size = size,
 		.freemax = 1,
 		.fillcount = 1,
+		.name = strdup(name),
 	};
 
 #if ISC_MEM_TRACKLINES
@@ -965,14 +967,6 @@ isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
 	ISC_LIST_INITANDAPPEND(mctx->pools, mpctx, link);
 	mctx->poolcnt++;
 	MCTXUNLOCK(mctx);
-}
-
-void
-isc_mempool_setname(isc_mempool_t *restrict mpctx, const char *name) {
-	REQUIRE(VALID_MEMPOOL(mpctx));
-	REQUIRE(name != NULL);
-
-	strlcpy(mpctx->name, name, sizeof(mpctx->name));
 }
 
 void
@@ -1023,6 +1017,8 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 	ISC_LIST_UNLINK(mctx->pools, mpctx, link);
 	mctx->poolcnt--;
 	MCTXUNLOCK(mctx);
+
+	free(mpctx->name);
 
 	mpctx->magic = 0;
 

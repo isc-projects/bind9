@@ -360,11 +360,11 @@ isc_mem_renderjson(void *memobj0);
  * Memory pools
  */
 
-#define isc_mempool_create(c, s, mp) \
-	isc__mempool_create((c), (s), (mp)_ISC_MEM_FILELINE)
+#define isc_mempool_create(c, s, n, mp) \
+	isc__mempool_create((c), (s), (n), (mp)_ISC_MEM_FILELINE)
 void
 isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
-		    isc_mempool_t **mpctxp _ISC_MEM_FLARG);
+		    const char *name, isc_mempool_t **mpctxp _ISC_MEM_FLARG);
 /*%<
  * Create a memory pool.
  *
@@ -387,17 +387,6 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp _ISC_MEM_FLARG);
  * Requires:
  *\li	mpctxp != NULL && *mpctxp is a valid pool.
  *\li	The pool has no un"put" allocations outstanding
- */
-
-void
-isc_mempool_setname(isc_mempool_t *restrict mpctx, const char *name);
-/*%<
- * Associate a name with a memory pool.  At most 15 characters may be
- *used.
- *
- * Requires:
- *\li	mpctx is a valid pool.
- *\li	name != NULL;
  */
 
 /*

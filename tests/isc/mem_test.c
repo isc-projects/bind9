@@ -56,8 +56,8 @@ ISC_RUN_TEST_IMPL(isc_mem_get) {
 	unsigned int i, j;
 	int rval;
 
-	isc_mempool_create(mctx, 24, &mp1);
-	isc_mempool_create(mctx, 31, &mp2);
+	isc_mempool_create(mctx, 24, "mp1", &mp1);
+	isc_mempool_create(mctx, 31, "mp2", &mp2);
 
 	isc_mempool_setfreemax(mp1, MP1_FREEMAX);
 	isc_mempool_setfillcount(mp1, MP1_FILLCNT);
@@ -114,7 +114,7 @@ ISC_RUN_TEST_IMPL(isc_mem_get) {
 	isc_mempool_destroy(&mp1);
 	isc_mempool_destroy(&mp2);
 
-	isc_mempool_create(mctx, 2, &mp1);
+	isc_mempool_create(mctx, 2, "mp1", &mp1);
 
 	tmp = isc_mempool_get(mp1);
 	assert_non_null(tmp);
