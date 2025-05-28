@@ -196,3 +196,6 @@ ns.extradsoid		A	10.53.0.3
 
 extradsunknownoid	NS	ns.extradsunknownoid
 ns.extradsunknownoid	A	10.53.0.3
+
+extended-ds-unknown-oid	NS	ns.extended-ds-unknown-oid
+ns.extended-ds-unknown-oid A	10.53.0.3

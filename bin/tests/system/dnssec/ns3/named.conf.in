@@ -459,6 +459,11 @@ zone "extradsunknownoid.example" {
         file "extradsunknownoid.example.db.signed";
 };
 
+zone "extended-ds-unknown-oid.example" {
+        type primary;
+        file "extended-ds-unknown-oid.example.db.signed";
+};
+
 dnssec-policy "siginterval1" {
 	keys {
 		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;

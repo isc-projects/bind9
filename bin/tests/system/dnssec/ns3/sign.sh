@@ -529,6 +529,42 @@ keyname=$("$KEYGEN" -L 300 -q -a RSASHA512OID "$zone")
 sed 's/CwYJKoZIhvcN/CwYJKoZIhvcO/' <"$keyname.key" | "$DSFROMKEY" -2A -f - "$zone" >>"dsset-${zone}."
 
 #
+# A UNKNOWNOID with an extra DS zone.  Sign the zone using RSASHA512OID
+# then update the OID in the DNSKEY and RRSIGS to the unknown OID
+# 1.2.840.113549.1.1.14.  Add an additional DS with an extended digest
+# type that encoded the DNSKEY's private type identifier which does not
+# match the DNSKEY RRset with using this unknown OID.
+#
+zone=extended-ds-unknown-oid.example
+infile=extended-ds-unknown-oid.example.db.in
+zonefile=extended-ds-unknown-oid.example.db
+
+keyname=$("$KEYGEN" -q -a RSASHA512OID "$zone")
+
+cat "$infile" "$keyname.key" >"$zonefile"
+
+# Sign with known OID RSASHA512OID
+"$SIGNER" -z -o "$zone" -f "${zonefile}.stage1" "$zonefile" >/dev/null
+
+# Change OID from 1.2.840.113549.1.1.13 to 1.2.840.113549.1.1.14
+sed 's/CwYJKoZIhvcN/CwYJKoZIhvcO/' <"${zonefile}.stage1" >"${zonefile}.stage2"
+
+"$DSFROMKEY" -2A -f "${zonefile}.stage2" "$zone" >"dsset-${zone}."
+tag=$(awk '{print $4}' "dsset-${zone}.")
+
+# Update RRSIG tags
+sed "s/\(2[0-9]* 2[0-9]*\) [1-9][0-9]* ${zone}./\1 ${tag} ${zone}./" <"${zonefile}.stage2" >"${zonefile}.signed"
+
+if $FEATURETEST --extended-ds-digest; then
+  # add a DS for a second key with the same algorithm
+  keyname=$("$KEYGEN" -L 300 -q -a RSASHA512OID "$zone")
+
+  # Change OID from 1.2.840.113549.1.1.13 to 1.2.840.113549.1.1.14 and
+  # add the resulting DS using digest type SHA-256-PRIVATE to the dsset.
+  sed 's/CwYJKoZIhvcN/CwYJKoZIhvcO/' <"$keyname.key" | "$DSFROMKEY" -a SHA-256-PRIVATE -A -f - "$zone" >>"dsset-${zone}."
+fi
+
+#
 # A zone with the DNSKEY set only signed by the KSK
 #
 zone=kskonly.example.
