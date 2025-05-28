@@ -119,7 +119,6 @@ extern unsigned int dns_zone_mkey_day;
 extern unsigned int dns_zone_mkey_month;
 
 static bool want_stats = false;
-static char program_name[NAME_MAX] = "named";
 static char absolute_conffile[PATH_MAX];
 static char saved_command_line[4096] = { 0 };
 static char ellipsis[5] = { 0 };
@@ -1050,8 +1049,8 @@ setup(void) {
 		      ISC_LOG_NOTICE, "built with %s", PACKAGE_CONFIGARGS);
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "running as: %s%s%s", program_name,
-		      saved_command_line, ellipsis);
+		      ISC_LOG_NOTICE, "running as: %s%s%s",
+		      isc_commandline_progname, saved_command_line, ellipsis);
 #ifdef __clang__
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "compiled by CLANG %s", __VERSION__);
@@ -1412,16 +1411,14 @@ main(int argc, char *argv[]) {
 		"> (" __DATE__ ")",
 #endif
 		sizeof(version));
-	result = isc_file_progname(*argv, program_name, sizeof(program_name));
-	if (result != ISC_R_SUCCESS) {
-		named_main_earlyfatal("program name too long");
-	}
+
+	isc_commandline_init(argc, argv);
 
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
 	isc_error_setunexpected(library_unexpected_error);
 
-	named_os_init(program_name);
+	named_os_init(isc_commandline_progname);
 
 	parse_command_line(argc, argv);
 

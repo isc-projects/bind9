@@ -16,6 +16,7 @@
 /*! \file isc/commandline.h */
 
 #include <stdbool.h>
+#include <zconf.h>
 
 #include <isc/result.h>
 #include <isc/types.h>
@@ -27,11 +28,18 @@ extern int isc_commandline_option;
 /*% Argument associated with option. */
 extern char *isc_commandline_argument;
 /*% For printing error messages. */
-extern char *isc_commandline_progname;
+extern char isc_commandline_progname[NAME_MAX];
 /*% Print error message. */
 extern bool isc_commandline_errprint;
 /*% Reset getopt. */
 extern bool isc_commandline_reset;
+
+void
+isc_commandline_init(int argc, char *const *argv);
+/*%<
+ * Initialize isc_commandline unit internal and external variables.
+ * Currently, this only initializes isc_commandline_progname.
+ */
 
 int
 isc_commandline_parse(int argc, char *const *argv, const char *options);

@@ -36,8 +36,6 @@
 
 #include "dnssectool.h"
 
-const char *program = "dnssec-revoke";
-
 static isc_mem_t *mctx = NULL;
 
 ISC_NORETURN static void
@@ -46,7 +44,8 @@ usage(void);
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s [options] keyfile\n\n", program);
+	fprintf(stderr, "    %s [options] keyfile\n\n",
+		isc_commandline_progname);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "    -f:           force overwrite\n");
 	fprintf(stderr, "    -h:           help\n");
@@ -78,11 +77,13 @@ main(int argc, char **argv) {
 	bool removefile = false;
 	bool id = false;
 
+	isc_commandline_init(argc, argv);
+
 	if (argc == 1) {
 		usage();
 	}
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -116,7 +117,8 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 		case 'h':
@@ -125,10 +127,11 @@ main(int argc, char **argv) {
 
 		case 'V':
 			/* Does not return. */
-			version(program);
+			version(isc_commandline_progname);
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}
@@ -172,7 +175,7 @@ main(int argc, char **argv) {
 	dst_key_format(key, keystr, sizeof(keystr));
 
 	if (verbose > 2) {
-		fprintf(stderr, "%s: %s\n", program, keystr);
+		fprintf(stderr, "%s: %s\n", isc_commandline_progname, keystr);
 	}
 
 	if (force) {
@@ -190,7 +193,7 @@ main(int argc, char **argv) {
 				"%s: warning: Key is not flagged "
 				"as a KSK. Revoking a ZSK is "
 				"legal, but undefined.\n",
-				program);
+				isc_commandline_progname);
 		}
 
 		dst_key_settime(key, DST_TIME_REVOKE, now);

@@ -26,7 +26,6 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
-#include <isc/file.h>
 #include <isc/heap.h>
 #include <isc/list.h>
 #include <isc/log.h>
@@ -76,7 +75,7 @@ void
 fatal(const char *format, ...) {
 	va_list args;
 
-	fprintf(stderr, "%s: fatal: ", program);
+	fprintf(stderr, "%s: fatal: ", isc_commandline_progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -106,7 +105,7 @@ vbprintf(int level, const char *fmt, ...) {
 		return;
 	}
 	va_start(ap, fmt);
-	fprintf(stderr, "%s: ", program);
+	fprintf(stderr, "%s: ", isc_commandline_progname);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 }
@@ -153,7 +152,7 @@ setup_logging(void) {
 
 	logconfig = isc_logconfig_get();
 
-	isc_log_settag(logconfig, program);
+	isc_log_settag(logconfig, isc_commandline_progname);
 
 	/*
 	 * Set up a channel similar to default_stderr except:
@@ -537,7 +536,8 @@ isoptarg(const char *arg, char **argv, void (*usage)(void)) {
 	if (!strcasecmp(isc_commandline_argument, arg)) {
 		if (argv[isc_commandline_index] == NULL) {
 			fprintf(stderr, "%s: missing argument -%c %s\n",
-				program, isc_commandline_option,
+				isc_commandline_progname,
+				isc_commandline_option,
 				isc_commandline_argument);
 			usage();
 		}
@@ -556,8 +556,8 @@ loadjournal(isc_mem_t *mctx, dns_db_t *db, const char *file) {
 
 	result = dns_journal_open(mctx, file, DNS_JOURNAL_READ, &jnl);
 	if (result == ISC_R_NOTFOUND) {
-		fprintf(stderr, "%s: journal file %s not found\n", program,
-			file);
+		fprintf(stderr, "%s: journal file %s not found\n",
+			isc_commandline_progname, file);
 		goto cleanup;
 	} else if (result != ISC_R_SUCCESS) {
 		fatal("unable to open journal %s: %s\n", file,

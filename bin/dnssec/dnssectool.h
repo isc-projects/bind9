@@ -37,9 +37,6 @@
 extern int verbose;
 extern bool quiet;
 
-/*! program name, statically initialized in each program */
-extern const char *program;
-
 /*! journal file */
 extern const char *journal;
 

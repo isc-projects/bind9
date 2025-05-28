@@ -48,8 +48,6 @@
 
 #include "dnssectool.h"
 
-const char *program = "dnssec-dsfromkey";
-
 static dns_rdataclass_t rdclass;
 static dns_fixedname_t fixed;
 static dns_name_t *name = NULL;
@@ -201,7 +199,7 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 		char keystr[DST_KEY_FORMATSIZE];
 
 		dst_key_format(key, keystr, sizeof(keystr));
-		fprintf(stderr, "%s: %s\n", program, keystr);
+		fprintf(stderr, "%s: %s\n", isc_commandline_progname, keystr);
 	}
 
 	result = dst_key_todns(key, &keyb);
@@ -236,7 +234,7 @@ logkey(dns_rdata_t *rdata) {
 	}
 
 	dst_key_format(key, keystr, sizeof(keystr));
-	fprintf(stderr, "%s: %s\n", program, keystr);
+	fprintf(stderr, "%s: %s\n", isc_commandline_progname, keystr);
 
 	dst_key_free(&key);
 }
@@ -332,10 +330,13 @@ usage(void);
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s [options] keyfile\n\n", program);
-	fprintf(stderr, "    %s [options] -f zonefile [zonename]\n\n", program);
-	fprintf(stderr, "    %s [options] -s dnsname\n\n", program);
-	fprintf(stderr, "    %s [-h|-V]\n\n", program);
+	fprintf(stderr, "    %s [options] keyfile\n\n",
+		isc_commandline_progname);
+	fprintf(stderr, "    %s [options] -f zonefile [zonename]\n\n",
+		isc_commandline_progname);
+	fprintf(stderr, "    %s [options] -s dnsname\n\n",
+		isc_commandline_progname);
+	fprintf(stderr, "    %s [-h|-V]\n\n", isc_commandline_progname);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "Options:\n"
 			"    -1: digest algorithm SHA-1\n"
@@ -376,7 +377,9 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create(argv[0], &mctx);
+	isc_commandline_init(argc, argv);
+
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -405,7 +408,7 @@ main(int argc, char **argv) {
 			fprintf(stderr,
 				"%s: the -d option is deprecated; "
 				"use -K\n",
-				program);
+				isc_commandline_progname);
 		/* fall through */
 		case 'K':
 			dir = isc_commandline_argument;
@@ -438,7 +441,8 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 		case 'h':
@@ -447,10 +451,11 @@ main(int argc, char **argv) {
 
 		case 'V':
 			/* Does not return. */
-			version(program);
+			version(isc_commandline_progname);
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}

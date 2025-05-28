@@ -21,10 +21,10 @@
 
 #include <isc/tls.h>
 
+#include "isc/commandline.h"
 #include "util.h"
 
 extern bool verbose;
-extern const char *progname;
 
 void
 notify(const char *fmt, ...) {
@@ -42,7 +42,7 @@ void
 fatal(const char *format, ...) {
 	va_list args;
 
-	fprintf(stderr, "%s: ", progname);
+	fprintf(stderr, "%s: ", isc_commandline_progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);

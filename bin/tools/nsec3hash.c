@@ -20,7 +20,6 @@
 #include <isc/base32.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/iterated_hash.h>
 #include <isc/lib.h>
@@ -36,8 +35,6 @@
 #include <dns/nsec3.h>
 #include <dns/types.h>
 
-const char *program = "nsec3hash";
-
 ISC_NORETURN static void
 fatal(const char *format, ...);
 
@@ -45,7 +42,7 @@ static void
 fatal(const char *format, ...) {
 	va_list args;
 
-	fprintf(stderr, "%s: ", program);
+	fprintf(stderr, "%s: ", isc_commandline_progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -63,9 +60,9 @@ check_result(isc_result_t result, const char *message) {
 static void
 usage(void) {
 	fprintf(stderr, "Usage: %s salt algorithm iterations domain\n",
-		program);
+		isc_commandline_progname);
 	fprintf(stderr, "       %s -r algorithm flags iterations salt domain\n",
-		program);
+		isc_commandline_progname);
 	exit(EXIT_FAILURE);
 }
 
@@ -162,6 +159,8 @@ int
 main(int argc, char *argv[]) {
 	bool rdata_format = false;
 	int ch;
+
+	isc_commandline_init(argc, argv);
 
 	while ((ch = isc_commandline_parse(argc, argv, "-r")) != -1) {
 		switch (ch) {

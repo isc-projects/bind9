@@ -27,7 +27,6 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/file.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/net.h>
@@ -50,8 +49,6 @@
 #define KEYGEN_DEFAULT	"tsig-key"
 #define CONFGEN_DEFAULT "ddns-key"
 
-static char program[256];
-const char *progname;
 static enum { progmode_keygen, progmode_confgen } progmode;
 bool verbose = false; /* needed by util.c but not used here */
 
@@ -69,13 +66,13 @@ Usage:\n\
   -s name:       domain name to be updated using the created key\n\
   -z zone:       name of the zone as it will be used in named.conf\n\
   -q:            quiet mode: print the key, with no explanatory text\n",
-			progname);
+			isc_commandline_progname);
 	} else {
 		fprintf(stderr, "\
 Usage:\n\
  %s [-a alg] [keyname]\n\
   -a alg:        algorithm (default hmac-sha256)\n\n",
-			progname);
+			isc_commandline_progname);
 	}
 
 	exit(status);
@@ -83,7 +80,6 @@ Usage:\n\
 
 int
 main(int argc, char **argv) {
-	isc_result_t result = ISC_R_SUCCESS;
 	bool show_final_mem = false;
 	bool quiet = false;
 	isc_buffer_t key_txtbuffer;
@@ -99,27 +95,12 @@ main(int argc, char **argv) {
 	int len = 0;
 	int ch;
 
-	result = isc_file_progname(*argv, program, sizeof(program));
-	if (result != ISC_R_SUCCESS) {
-		memmove(program, "tsig-keygen", 11);
-	}
-	progname = program;
+	isc_commandline_init(argc, argv);
 
-	/*
-	 * Libtool doesn't preserve the program name prior to final
-	 * installation.  Remove the libtool prefix ("lt-").
-	 */
-	if (strncmp(progname, "lt-", 3) == 0) {
-		progname += 3;
-	}
-
-#define PROGCMP(X) \
-	(strcasecmp(progname, X) == 0 || strcasecmp(progname, X ".exe") == 0)
-
-	if (PROGCMP("tsig-keygen")) {
+	if (strcasecmp(isc_commandline_progname, "tsig-keygen") == 0) {
 		progmode = progmode_keygen;
 		quiet = true;
-	} else if (PROGCMP("ddns-confgen")) {
+	} else if (strcasecmp(isc_commandline_progname, "ddns-confgen") == 0) {
 		progmode = progmode_confgen;
 	} else {
 		UNREACHABLE();
@@ -182,14 +163,16 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 				usage(EXIT_FAILURE);
 			} else {
 				usage(EXIT_SUCCESS);
 			}
 			break;
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}
@@ -212,7 +195,7 @@ main(int argc, char **argv) {
 	/* Use canonical algorithm name */
 	algname = dst_hmac_algorithm_totext(alg);
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	if (keyname == NULL) {
 		const char *suffix = NULL;

@@ -40,8 +40,6 @@
 
 #include "dnssectool.h"
 
-const char *program = "dnssec-settime";
-
 static isc_mem_t *mctx = NULL;
 
 ISC_NORETURN static void
@@ -50,7 +48,8 @@ usage(void);
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s [options] keyfile\n\n", program);
+	fprintf(stderr, "    %s [options] keyfile\n\n",
+		isc_commandline_progname);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "General options:\n");
 	fprintf(stderr, "    -f:                 force update of old-style "
@@ -238,13 +237,15 @@ main(int argc, char **argv) {
 	bool printdsadd = false, printdsdel = false;
 	isc_stdtime_t now = isc_stdtime_now();
 
+	isc_commandline_init(argc, argv);
+
 	options = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE;
 
 	if (argc == 1) {
 		usage();
 	}
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	setup_logging();
 
@@ -336,7 +337,8 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 		case 'h':
@@ -513,7 +515,7 @@ main(int argc, char **argv) {
 			break;
 		case 'V':
 			/* Does not return. */
-			version(program);
+			version(isc_commandline_progname);
 		case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0') {
@@ -533,7 +535,8 @@ main(int argc, char **argv) {
 			break;
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}
@@ -626,14 +629,14 @@ main(int argc, char **argv) {
 				"removal date;\n\t"
 				"it will remain in the zone "
 				"indefinitely after rollover.\n",
-				program);
+				isc_commandline_progname);
 		} else if (prevdel < previnact) {
 			fprintf(stderr,
 				"%s: warning: Predecessor is "
 				"scheduled to be deleted\n\t"
 				"before it is scheduled to be "
 				"inactive.\n",
-				program);
+				isc_commandline_progname);
 		}
 
 		changed = setpub = setact = true;
@@ -718,7 +721,7 @@ main(int argc, char **argv) {
 			"%s: warning: Key is scheduled to "
 			"be deleted before it is\n\t"
 			"scheduled to be inactive.\n",
-			program);
+			isc_commandline_progname);
 	}
 
 	if (force) {
@@ -728,7 +731,7 @@ main(int argc, char **argv) {
 	}
 
 	if (verbose > 2) {
-		fprintf(stderr, "%s: %s\n", program, keystr);
+		fprintf(stderr, "%s: %s\n", isc_commandline_progname, keystr);
 	}
 
 	/*
@@ -752,14 +755,14 @@ main(int argc, char **argv) {
 				"%s: warning: Key %s is already "
 				"revoked; changing the revocation date "
 				"will not affect this.\n",
-				program, keystr);
+				isc_commandline_progname, keystr);
 		}
 		if ((dst_key_flags(key) & DNS_KEYFLAG_KSK) == 0) {
 			fprintf(stderr,
 				"%s: warning: Key %s is not flagged as "
 				"a KSK, but -R was used.  Revoking a "
 				"ZSK is legal, but undefined.\n",
-				program, keystr);
+				isc_commandline_progname, keystr);
 		}
 		dst_key_settime(key, DST_TIME_REVOKE, rev);
 	} else if (unsetrev) {
@@ -768,7 +771,7 @@ main(int argc, char **argv) {
 				"%s: warning: Key %s is already "
 				"revoked; removing the revocation date "
 				"will not affect this.\n",
-				program, keystr);
+				isc_commandline_progname, keystr);
 		}
 		dst_key_unsettime(key, DST_TIME_REVOKE);
 	}

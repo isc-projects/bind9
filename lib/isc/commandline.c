@@ -49,8 +49,10 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <zconf.h>
 
 #include <isc/commandline.h>
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -62,11 +64,17 @@ int isc_commandline_option;
 /*% Argument associated with option. */
 char *isc_commandline_argument;
 /*% For printing error messages. */
-char *isc_commandline_progname;
+char isc_commandline_progname[NAME_MAX];
 /*% Print error messages. */
 bool isc_commandline_errprint = true;
 /*% Reset processing. */
 bool isc_commandline_reset = true;
+
+void
+isc_commandline_init(int argc ISC_ATTR_UNUSED, char *const *argv) {
+	isc_file_progname(argv[0], isc_commandline_progname,
+			  sizeof(isc_commandline_progname));
+}
 
 static char endopt = '\0';
 
@@ -93,10 +101,6 @@ isc_commandline_parse(int argc, char *const *argv, const char *options) {
 		if (isc_commandline_reset) {
 			isc_commandline_index = 1;
 			isc_commandline_reset = false;
-		}
-
-		if (isc_commandline_progname == NULL) {
-			isc_commandline_progname = argv[0];
 		}
 
 		if (isc_commandline_index >= argc ||

@@ -31,6 +31,7 @@
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/commandline.h>
 #include <isc/crypto.h>
 #include <isc/hex.h>
 #include <isc/lib.h>
@@ -96,7 +97,6 @@
 #define MAX_RESTARTS 11
 
 /* Variables used internally by delv. */
-char *progname = NULL;
 static isc_mem_t *mctx = NULL;
 static dns_view_t *view = NULL;
 static ns_server_t *sctx = NULL;
@@ -267,7 +267,7 @@ fatal(const char *format, ...) {
 	va_list args;
 
 	fflush(stdout);
-	fprintf(stderr, "%s: ", progname);
+	fprintf(stderr, "%s: ", isc_commandline_progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -283,7 +283,7 @@ warn(const char *format, ...) {
 	va_list args;
 
 	fflush(stdout);
-	fprintf(stderr, "%s: warning: ", progname);
+	fprintf(stderr, "%s: warning: ", isc_commandline_progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -2200,7 +2200,8 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_loop_t *loop = NULL;
 
-	progname = argv[0];
+	isc_commandline_init(argc, argv);
+
 	logfp = stderr;
 
 	preparse_args(argc, argv);

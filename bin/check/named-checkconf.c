@@ -43,8 +43,6 @@
 
 #include "check-tool.h"
 
-static const char *program = "named-checkconf";
-
 #define CHECK(r)                             \
 	do {                                 \
 		result = (r);                \
@@ -61,7 +59,7 @@ usage(void) {
 	fprintf(stderr,
 		"usage: %s [-achijlvz] [-p [-x]] [-t directory] "
 		"[named.conf]\n",
-		program);
+		isc_commandline_progname);
 	exit(EXIT_SUCCESS);
 }
 
@@ -591,6 +589,8 @@ main(int argc, char **argv) {
 	unsigned int flags = 0;
 	unsigned int checkflags = BIND_CHECK_PLUGINS | BIND_CHECK_ALGORITHMS;
 
+	isc_commandline_init(argc, argv);
+
 	isc_commandline_errprint = false;
 
 	/*
@@ -619,7 +619,7 @@ main(int argc, char **argv) {
 	}
 	isc_commandline_reset = true;
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != EOF) {
 		switch (c) {
@@ -686,7 +686,8 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 		case 'h':
@@ -694,18 +695,21 @@ main(int argc, char **argv) {
 			usage();
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			CHECK(ISC_R_FAILURE);
 		}
 	}
 
 	if (((flags & CFG_PRINTER_XKEY) != 0) && !print) {
-		fprintf(stderr, "%s: -x cannot be used without -p\n", program);
+		fprintf(stderr, "%s: -x cannot be used without -p\n",
+			isc_commandline_progname);
 		CHECK(ISC_R_FAILURE);
 	}
 	if (print && list_zones) {
-		fprintf(stderr, "%s: -l cannot be used with -p\n", program);
+		fprintf(stderr, "%s: -l cannot be used with -p\n",
+			isc_commandline_progname);
 		CHECK(ISC_R_FAILURE);
 	}
 

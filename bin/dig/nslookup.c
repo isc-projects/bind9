@@ -898,8 +898,7 @@ main(int argc, char **argv) {
 	dighost_trying = trying;
 	dighost_shutdown = start_next_command;
 
-	setup_libs();
-	progname = argv[0];
+	setup_libs(argc, argv);
 
 	setup_system(false, false);
 	parse_args(argc, argv);

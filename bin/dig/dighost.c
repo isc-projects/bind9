@@ -36,6 +36,7 @@
 #endif /* HAVE_LIBIDN2 */
 
 #include <isc/base64.h>
+#include <isc/commandline.h>
 #include <isc/crypto.h>
 #include <isc/file.h>
 #include <isc/getaddresses.h>
@@ -145,7 +146,6 @@ bool validated = true;
 bool debugging = false;
 bool debugtiming = false;
 bool memdebugging = false;
-char *progname = NULL;
 dig_lookup_t *current_lookup = NULL;
 
 #define DIG_MAX_ADDRESSES 20
@@ -375,7 +375,7 @@ warn(const char *format, ...) {
 	va_list args;
 
 	fflush(stdout);
-	fprintf(stderr, "%s: ", progname);
+	fprintf(stderr, "%s: ", isc_commandline_progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -399,7 +399,7 @@ fatal(const char *format, ...) {
 	va_list args;
 
 	fflush(stdout);
-	fprintf(stderr, "%s: ", progname);
+	fprintf(stderr, "%s: ", isc_commandline_progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -1324,11 +1324,13 @@ set_search_domain(char *domain) {
  * Setup the ISC and DNS libraries for use by the system.
  */
 void
-setup_libs(void) {
+setup_libs(int argc, char **argv) {
 	isc_result_t result;
 	isc_logconfig_t *logconfig = NULL;
 
 	debug("setup_libs()");
+
+	isc_commandline_init(argc, argv);
 
 	result = isc_net_probeipv4();
 	if (result == ISC_R_SUCCESS) {

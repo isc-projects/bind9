@@ -62,16 +62,15 @@ bool hexmessage = false;
 bool yaml = false;
 bool timestampmillis = false;
 
-const char *program = "dnstap-read";
-
-#define CHECKM(op, msg)                                               \
-	do {                                                          \
-		result = (op);                                        \
-		if (result != ISC_R_SUCCESS) {                        \
-			fprintf(stderr, "%s: %s: %s\n", program, msg, \
-				isc_result_totext(result));           \
-			goto cleanup;                                 \
-		}                                                     \
+#define CHECKM(op, msg)                                        \
+	do {                                                   \
+		result = (op);                                 \
+		if (result != ISC_R_SUCCESS) {                 \
+			fprintf(stderr, "%s: %s: %s\n",        \
+				isc_commandline_progname, msg, \
+				isc_result_totext(result));    \
+			goto cleanup;                          \
+		}                                              \
 	} while (0)
 
 ISC_NORETURN static void
@@ -81,7 +80,7 @@ static void
 fatal(const char *format, ...) {
 	va_list args;
 
-	fprintf(stderr, "%s: fatal: ", program);
+	fprintf(stderr, "%s: fatal: ", isc_commandline_progname);
 	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -344,6 +343,8 @@ main(int argc, char *argv[]) {
 	dns_dthandle_t *handle = NULL;
 	int rv = 0, ch;
 
+	isc_commandline_init(argc, argv);
+
 	while ((ch = isc_commandline_parse(argc, argv, "mptxy")) != -1) {
 		switch (ch) {
 		case 'm':
@@ -375,7 +376,7 @@ main(int argc, char *argv[]) {
 		fatal("no file specified");
 	}
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, mctx, &handle),
 	       "dns_dt_openfile");

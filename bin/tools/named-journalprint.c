@@ -26,11 +26,9 @@
 #include <dns/lib.h>
 #include <dns/types.h>
 
-const char *progname = NULL;
-
 static void
 usage(void) {
-	fprintf(stderr, "Usage: %s [-dux] journal\n", progname);
+	fprintf(stderr, "Usage: %s [-dux] journal\n", isc_commandline_progname);
 	exit(EXIT_FAILURE);
 }
 
@@ -59,7 +57,8 @@ main(int argc, char **argv) {
 	unsigned int serial = 0;
 	char *endp = NULL;
 
-	progname = argv[0];
+	isc_commandline_init(argc, argv);
+
 	while ((ch = isc_commandline_parse(argc, argv, "c:dux")) != -1) {
 		switch (ch) {
 		case 'c':
@@ -93,7 +92,7 @@ main(int argc, char **argv) {
 	}
 	file = argv[0];
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 	setup_logging(stderr);
 
 	if (upgrade) {
