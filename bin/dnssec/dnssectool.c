@@ -361,7 +361,10 @@ strtodsdigest(const char *str) {
 	r.length = strlen(str);
 	result = dns_dsdigest_fromtext(&alg, &r);
 	if (result != ISC_R_SUCCESS) {
-		fatal("unknown DS algorithm %s", str);
+		fatal("unknown DS digest %s", str);
+	}
+	if (!dst_ds_digest_supported(alg)) {
+		fatal("unsupported DS digest %s", str);
 	}
 	return alg;
 }
