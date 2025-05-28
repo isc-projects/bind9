@@ -35,3 +35,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns7/test.db.jnl",
     ]
 )
+
+
+def test_rndc(run_tests_sh):
+    run_tests_sh()
