@@ -16,10 +16,12 @@
 #include <dns/rdatastruct.h>
 #include <dns/types.h>
 
-#define DNS_DSDIGEST_SHA1   (1)
-#define DNS_DSDIGEST_SHA256 (2)
-#define DNS_DSDIGEST_GOST   (3)
-#define DNS_DSDIGEST_SHA384 (4)
+#define DNS_DSDIGEST_SHA1     (1)
+#define DNS_DSDIGEST_SHA256   (2)
+#define DNS_DSDIGEST_GOST     (3)
+#define DNS_DSDIGEST_SHA384   (4)
+#define DNS_DSDIGEST_GOST2012 (5)
+#define DNS_DSDIGEST_SM3      (6)
 
 /*
  * Assuming SHA-384 digest type.

@@ -47,6 +47,10 @@
 
 #define TOTEXTONLY 0x01
 
+/* clang-format off */
+#define SENTINEL { 0, NULL, 0 }
+/* clang-format on */
+
 #define RCODENAMES                                     \
 	/* standard rcodes */                          \
 	{ dns_rcode_noerror, "NOERROR", 0 },           \
@@ -69,7 +73,7 @@
 #define ERCODENAMES                          \
 	/* extended rcodes */                \
 	{ dns_rcode_badvers, "BADVERS", 0 }, \
-		{ dns_rcode_badcookie, "BADCOOKIE", 0 }, { 0, NULL, 0 }
+		{ dns_rcode_badcookie, "BADCOOKIE", 0 }, SENTINEL
 
 #define TSIGRCODENAMES                                   \
 	/* extended rcodes */                            \
@@ -79,7 +83,7 @@
 		{ dns_tsigerror_badmode, "BADMODE", 0 }, \
 		{ dns_tsigerror_badname, "BADNAME", 0 }, \
 		{ dns_tsigerror_badalg, "BADALG", 0 },   \
-		{ dns_tsigerror_badtrunc, "BADTRUNC", 0 }, { 0, NULL, 0 }
+		{ dns_tsigerror_badtrunc, "BADTRUNC", 0 }, SENTINEL
 
 /* RFC4398 section 2.1 */
 
@@ -87,7 +91,7 @@
 	{ 1, "PKIX", 0 }, { 2, "SPKI", 0 }, { 3, "PGP", 0 },                \
 		{ 4, "IPKIX", 0 }, { 5, "ISPKI", 0 }, { 6, "IPGP", 0 },     \
 		{ 7, "ACPKIX", 0 }, { 8, "IACPKIX", 0 }, { 253, "URI", 0 }, \
-		{ 254, "OID", 0 }, { 0, NULL, 0 }
+		{ 254, "OID", 0 }, SENTINEL
 
 /* RFC2535 section 7, RFC3110 */
 
@@ -109,26 +113,29 @@
 		{ DNS_KEYALG_ED448, "ED448", 0 },               \
 		{ DNS_KEYALG_INDIRECT, "INDIRECT", 0 },         \
 		{ DNS_KEYALG_PRIVATEDNS, "PRIVATEDNS", 0 },     \
-		{ DNS_KEYALG_PRIVATEOID, "PRIVATEOID", 0 }, { 0, NULL, 0 }
+		{ DNS_KEYALG_PRIVATEOID, "PRIVATEOID", 0 }, SENTINEL
 
 /* RFC2535 section 7.1 */
 
 #define SECPROTONAMES                                                     \
 	{ 0, "NONE", 0 }, { 1, "TLS", 0 }, { 2, "EMAIL", 0 },             \
 		{ 3, "DNSSEC", 0 }, { 4, "IPSEC", 0 }, { 255, "ALL", 0 }, \
-		{ 0, NULL, 0 }
+		SENTINEL
 
-#define HASHALGNAMES { 1, "SHA-1", 0 }, { 0, NULL, 0 }
+#define HASHALGNAMES { 1, "SHA-1", 0 }, SENTINEL
 
-/* RFC3658, RFC4509, RFC5933, RFC6605 */
+/* RFC3658, RFC4509, RFC5933, RFC6605, RFC9558, RFC9563 */
 
 #define DSDIGESTNAMES                                                        \
 	{ DNS_DSDIGEST_SHA1, "SHA-1", 0 }, { DNS_DSDIGEST_SHA1, "SHA1", 0 }, \
 		{ DNS_DSDIGEST_SHA256, "SHA-256", 0 },                       \
 		{ DNS_DSDIGEST_SHA256, "SHA256", 0 },                        \
 		{ DNS_DSDIGEST_GOST, "GOST", 0 },                            \
+		{ DNS_DSDIGEST_SM3, "SM3", 0 },                              \
 		{ DNS_DSDIGEST_SHA384, "SHA-384", 0 },                       \
-		{ DNS_DSDIGEST_SHA384, "SHA384", 0 }, { 0, NULL, 0 }
+		{ DNS_DSDIGEST_SHA384, "SHA384", 0 },                        \
+		{ DNS_DSDIGEST_GOST2012, "GOST-2012", 0 },                   \
+		{ DNS_DSDIGEST_GOST2012, "GOST2012", 0 }, SENTINEL
 
 struct tbl {
 	unsigned int value;
