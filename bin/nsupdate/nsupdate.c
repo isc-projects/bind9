@@ -1795,7 +1795,6 @@ evaluate_realm(char *cmdline) {
 
 	if (realm != NULL) {
 		isc_mem_free(gmctx, realm);
-		realm = NULL;
 	}
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -2722,7 +2721,6 @@ recvsoa(void *arg) {
 	}
 
 	isc_mem_put(gmctx, reqinfo, sizeof(nsu_requestinfo_t));
-	reqinfo = NULL;
 
 	ddebug("About to create rcvmsg");
 	dns_message_create(gmctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
@@ -3455,11 +3453,9 @@ cleanup(void) {
 #ifdef HAVE_GSSAPI
 	if (kserver != NULL) {
 		isc_mem_put(gmctx, kserver, sizeof(isc_sockaddr_t));
-		kserver = NULL;
 	}
 	if (realm != NULL) {
 		isc_mem_free(gmctx, realm);
-		realm = NULL;
 	}
 	if (dns_name_dynamic(&tmpzonename)) {
 		dns_name_free(&tmpzonename, gmctx);

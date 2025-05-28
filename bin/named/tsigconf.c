@@ -101,7 +101,6 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		ret = dns_tsigkey_create(keyname, alg, secret, secretlen, mctx,
 					 &tsigkey);
 		isc_mem_put(mctx, secret, secretalloc);
-		secret = NULL;
 		if (ret == ISC_R_SUCCESS) {
 			ret = dns_tsigkeyring_add(ring, tsigkey);
 		}

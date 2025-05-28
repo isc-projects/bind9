@@ -805,7 +805,6 @@ query_reset(ns_client_t *client, bool everything) {
 	if (client->query.dns64_aaaaok != NULL) {
 		isc_mem_cput(client->manager->mctx, client->query.dns64_aaaaok,
 			     client->query.dns64_aaaaoklen, sizeof(bool));
-		client->query.dns64_aaaaok = NULL;
 		client->query.dns64_aaaaoklen = 0;
 	}
 
@@ -847,7 +846,6 @@ query_reset(ns_client_t *client, bool everything) {
 		if (everything) {
 			isc_mem_put(client->manager->mctx, client->query.rpz_st,
 				    sizeof(*client->query.rpz_st));
-			client->query.rpz_st = NULL;
 		}
 	}
 	if (client->query.qc != NULL) {

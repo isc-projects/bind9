@@ -227,7 +227,6 @@ client_zoneversion_reset(ns_client_t *client) {
 	}
 	isc_mem_put(client->manager->mctx, client->zoneversion,
 		    client->zoneversionlength);
-	client->zoneversion = NULL;
 	client->zoneversionlength = 0;
 }
 

@@ -76,7 +76,6 @@ ISC_RUN_TEST_IMPL(isc_mem_get) {
 	 */
 	for (i = 0; i < 11; i++) {
 		isc_mempool_put(mp1, items1[i]);
-		items1[i] = NULL;
 	}
 
 #if !__SANITIZE_ADDRESS__
@@ -102,7 +101,6 @@ ISC_RUN_TEST_IMPL(isc_mem_get) {
 		}
 		for (i = 0; i < 50; i++) {
 			isc_mempool_put(mp2, items2[i]);
-			items2[i] = NULL;
 		}
 	}
 
@@ -111,7 +109,6 @@ ISC_RUN_TEST_IMPL(isc_mem_get) {
 	 */
 	for (i = 11; i < MP1_MAXALLOC; i++) {
 		isc_mempool_put(mp1, items1[i]);
-		items1[i] = NULL;
 	}
 
 	isc_mempool_destroy(&mp1);

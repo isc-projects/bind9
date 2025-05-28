@@ -1487,7 +1487,6 @@ plus_option(char *option, struct query *query, bool global) {
 			if (!state) {
 				if (query->ecs_addr != NULL) {
 					isc_mem_free(mctx, query->ecs_addr);
-					query->ecs_addr = NULL;
 				}
 				break;
 			}
@@ -2169,7 +2168,6 @@ main(int argc, char *argv[]) {
 		}
 		if (query->ecs_addr != NULL) {
 			isc_mem_free(mctx, query->ecs_addr);
-			query->ecs_addr = NULL;
 		}
 		isc_mem_free(mctx, query);
 	}

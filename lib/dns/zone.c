@@ -1289,11 +1289,9 @@ zone_free(dns_zone_t *zone) {
 	if (zone->masterfile != NULL) {
 		isc_mem_free(zone->mctx, zone->masterfile);
 	}
-	zone->masterfile = NULL;
 	if (zone->keydirectory != NULL) {
 		isc_mem_free(zone->mctx, zone->keydirectory);
 	}
-	zone->keydirectory = NULL;
 	if (zone->kasp != NULL) {
 		dns_kasp_detach(&zone->kasp);
 	}
@@ -1315,7 +1313,6 @@ zone_free(dns_zone_t *zone) {
 	if (zone->journal != NULL) {
 		isc_mem_free(zone->mctx, zone->journal);
 	}
-	zone->journal = NULL;
 	if (zone->stats != NULL) {
 		isc_stats_detach(&zone->stats);
 	}
@@ -12012,7 +12009,6 @@ fail:
 	}
 	if (masterfile != NULL) {
 		isc_mem_free(zone->mctx, masterfile);
-		masterfile = NULL;
 	}
 
 	if (result == DNS_R_CONTINUE) {

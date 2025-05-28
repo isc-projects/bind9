@@ -498,7 +498,6 @@ nmsocket_cleanup(void *arg) {
 		 */
 		isc_mem_cput(sock->worker->mctx, sock->children,
 			     sock->nchildren, sizeof(*sock));
-		sock->children = NULL;
 		sock->nchildren = 0;
 	}
 

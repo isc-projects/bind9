@@ -531,7 +531,6 @@ put_http_cstream(isc_mem_t *mctx, http_cstream_t *stream) {
 	isc_mem_free(mctx, stream->uri);
 	if (stream->GET_path != NULL) {
 		isc_mem_free(mctx, stream->GET_path);
-		stream->GET_path = NULL;
 		stream->GET_path_len = 0;
 	}
 
@@ -2181,7 +2180,6 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 
 	if (!isc_nm_http_path_isvalid(socket->h2->request_path)) {
 		isc_mem_free(socket->worker->mctx, socket->h2->request_path);
-		socket->h2->request_path = NULL;
 		return ISC_HTTP_ERROR_BAD_REQUEST;
 	}
 
@@ -2192,7 +2190,6 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 		socket->h2->cbarg = handler->cbarg;
 	} else {
 		isc_mem_free(socket->worker->mctx, socket->h2->request_path);
-		socket->h2->request_path = NULL;
 		return ISC_HTTP_ERROR_NOT_FOUND;
 	}
 
@@ -3648,12 +3645,10 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 		if (sock->h2->request_path != NULL) {
 			isc_mem_free(sock->worker->mctx,
 				     sock->h2->request_path);
-			sock->h2->request_path = NULL;
 		}
 
 		if (sock->h2->query_data != NULL) {
 			isc_mem_free(sock->worker->mctx, sock->h2->query_data);
-			sock->h2->query_data = NULL;
 		}
 
 		INSIST(sock->h2->connect.cstream == NULL);
@@ -3673,7 +3668,6 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 				if (sock->h2->connect.uri != NULL) {
 					isc_mem_free(sock->worker->mctx,
 						     sock->h2->connect.uri);
-					sock->h2->connect.uri = NULL;
 				}
 				isc__nm_httpsession_detach(&sock->h2->session);
 			}

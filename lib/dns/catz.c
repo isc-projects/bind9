@@ -174,7 +174,6 @@ dns_catz_options_free(dns_catz_options_t *options, isc_mem_t *mctx) {
 	}
 	if (options->zonedir != NULL) {
 		isc_mem_free(mctx, options->zonedir);
-		options->zonedir = NULL;
 	}
 	if (options->allow_query != NULL) {
 		isc_buffer_free(&options->allow_query);
@@ -200,7 +199,6 @@ dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *src,
 
 	if (dst->zonedir != NULL) {
 		isc_mem_free(mctx, dst->zonedir);
-		dst->zonedir = NULL;
 	}
 
 	if (src->zonedir != NULL) {

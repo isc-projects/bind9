@@ -785,7 +785,6 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	if (tsig.signature != NULL) {
 		isc_mem_put(mctx, tsig.signature, sigsize);
-		tsig.signature = NULL;
 	}
 
 	dns_message_gettempname(msg, &owner);

@@ -155,7 +155,6 @@ main(int argc, char **argv) {
 		}
 		if (strcmp(dir, ".") == 0) {
 			isc_mem_free(mctx, dir);
-			dir = NULL;
 		}
 	}
 

@@ -444,7 +444,6 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	if (lcfg->tag != NULL) {
 		isc_mem_free(lcfg->lctx->mctx, lcfg->tag);
 	}
-	lcfg->tag = NULL;
 	lcfg->highest_level = 0;
 	lcfg->magic = 0;
 
@@ -679,7 +678,6 @@ isc_log_settag(isc_logconfig_t *lcfg, const char *tag) {
 		if (lcfg->tag != NULL) {
 			isc_mem_free(lcfg->lctx->mctx, lcfg->tag);
 		}
-		lcfg->tag = NULL;
 	}
 }
 

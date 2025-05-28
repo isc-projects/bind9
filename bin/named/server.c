@@ -7059,7 +7059,6 @@ cleanup_session_key(named_server_t *server, isc_mem_t *mctx) {
 	if (server->session_keyfile != NULL) {
 		isc_file_remove(server->session_keyfile);
 		isc_mem_free(mctx, server->session_keyfile);
-		server->session_keyfile = NULL;
 	}
 
 	if (server->session_keyname != NULL) {
@@ -7067,7 +7066,6 @@ cleanup_session_key(named_server_t *server, isc_mem_t *mctx) {
 			dns_name_free(server->session_keyname, mctx);
 		}
 		isc_mem_put(mctx, server->session_keyname, sizeof(dns_name_t));
-		server->session_keyname = NULL;
 	}
 
 	if (server->sessionkey != NULL) {

@@ -111,7 +111,6 @@ destroy_keynode(dns_keynode_t *knode) {
 		}
 
 		isc_mem_put(knode->mctx, knode->dslist, sizeof(*knode->dslist));
-		knode->dslist = NULL;
 	}
 
 	dns_name_free(&knode->name, knode->mctx);
