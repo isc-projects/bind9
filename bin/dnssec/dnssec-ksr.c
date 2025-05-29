@@ -37,8 +37,6 @@
 
 #include "dnssectool.h"
 
-const char *program = "dnssec-ksr";
-
 /*
  * Infrastructure
  */
@@ -121,7 +119,8 @@ isc_bufferlist_t cleanup_list = ISC_LIST_INITIALIZER;
 static void
 usage(int ret) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s options [options] <command> <zone>\n", program);
+	fprintf(stderr, "    %s options [options] <command> <zone>\n",
+		isc_commandline_progname);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "\n");
@@ -464,7 +463,8 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 						"might collide with another "
 						"key upon revokation.  "
 						"Generating a new key\n",
-						program, filename);
+						isc_commandline_progname,
+						filename);
 				}
 			}
 			dst_key_free(&key);
@@ -1326,7 +1326,9 @@ main(int argc, char *argv[]) {
 		.now = isc_stdtime_now(),
 	};
 
-	isc_mem_create(argv[0], &mctx);
+	isc_commandline_init(argc, argv);
+
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -1373,7 +1375,7 @@ main(int argc, char *argv[]) {
 			ksr.ksk = true;
 			break;
 		case 'V':
-			version(program);
+			version(isc_commandline_progname);
 			break;
 		case 'v':
 			verbose = strtoul(isc_commandline_argument, &endp, 0);

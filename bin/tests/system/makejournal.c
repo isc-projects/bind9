@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/commandline.h>
 #include <isc/hash.h>
 #include <isc/lib.h>
 #include <isc/log.h>
@@ -65,6 +66,8 @@ main(int argc, char **argv) {
 	dns_db_t *olddb = NULL, *newdb = NULL;
 	isc_logconfig_t *logconfig = NULL;
 
+	isc_commandline_init(argc, argv);
+
 	if (argc != 5) {
 		printf("usage: %s origin file1 file2 journal\n", argv[0]);
 		return 1;
@@ -76,7 +79,7 @@ main(int argc, char **argv) {
 	journal = argv[4];
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	logconfig = isc_logconfig_get();
 	isc_log_createandusechannel(

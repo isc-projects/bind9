@@ -31,7 +31,6 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/file.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/net.h>
@@ -54,9 +53,6 @@
 #define DEFAULT_KEYNAME "rndc-key"
 #define DEFAULT_SERVER	"127.0.0.1"
 #define DEFAULT_PORT	953
-
-static char program[256];
-const char *progname;
 
 bool verbose = false;
 
@@ -81,7 +77,7 @@ Usage:\n\
   -s addr:	 the address to which rndc should connect\n\
   -t chrootdir:	 write a keyfile in chrootdir as well (requires -a)\n\
   -u user:	 set the keyfile owner to \"user\" (requires -a)\n",
-		progname, keydef);
+		isc_commandline_progname, keydef);
 
 	exit(status);
 }
@@ -92,7 +88,6 @@ main(int argc, char **argv) {
 	isc_buffer_t key_txtbuffer;
 	char key_txtsecret[256];
 	isc_mem_t *mctx = NULL;
-	isc_result_t result = ISC_R_SUCCESS;
 	const char *keyname = NULL;
 	const char *serveraddr = NULL;
 	dns_secalg_t alg;
@@ -108,15 +103,10 @@ main(int argc, char **argv) {
 	bool keyonly = false;
 	bool quiet = false;
 	int len;
-	const char *name = argv[0];
 
 	keydef = keyfile = RNDC_KEYFILE;
 
-	result = isc_file_progname(*argv, program, sizeof(program));
-	if (result != ISC_R_SUCCESS) {
-		memmove(program, "rndc-confgen", 13);
-	}
-	progname = program;
+	isc_commandline_init(argc, argv);
 
 	keyname = DEFAULT_KEYNAME;
 	alg = DST_ALG_HMACSHA256;
@@ -195,14 +185,16 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 				usage(EXIT_FAILURE);
 			} else {
 				usage(EXIT_SUCCESS);
 			}
 			break;
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}
@@ -227,7 +219,7 @@ main(int argc, char **argv) {
 	}
 	algname = dst_hmac_algorithm_totext(alg);
 
-	isc_mem_create(name, &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
 	generate_key(mctx, alg, keysize, &key_txtbuffer);

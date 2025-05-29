@@ -55,7 +55,6 @@
 #define SERVERADDRS  10
 #define RNDC_TIMEOUT 60 * 1000
 
-const char *progname = NULL;
 bool verbose;
 
 static isc_nm_t *netmgr = NULL;
@@ -80,7 +79,6 @@ static bool c_flag = false;
 static isc_mem_t *rndc_mctx = NULL;
 static char *command = NULL;
 static char *args = NULL;
-static char program[256];
 static uint32_t serial;
 static bool quiet = false;
 static bool showresult = false;
@@ -234,7 +232,7 @@ command is one of the following:\n\
 		Display the current status of a zone.\n\
 \n\
 Version: %s\n",
-		progname, version);
+		isc_commandline_progname, version);
 
 	exit(status);
 }
@@ -333,11 +331,11 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	result = isccc_cc_lookupstring(data, "err", &errormsg);
 	if (result == ISC_R_SUCCESS) {
 		failed = true;
-		fprintf(stderr, "%s: '%s' failed: %s\n", progname, command,
-			errormsg);
+		fprintf(stderr, "%s: '%s' failed: %s\n",
+			isc_commandline_progname, command, errormsg);
 	} else if (result != ISC_R_NOTFOUND) {
-		fprintf(stderr, "%s: parsing response failed: %s\n", progname,
-			isc_result_totext(result));
+		fprintf(stderr, "%s: parsing response failed: %s\n",
+			isc_commandline_progname, isc_result_totext(result));
 	}
 
 	result = isccc_cc_lookupstring(data, "text", &textmsg);
@@ -346,8 +344,8 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 			fprintf(failed ? stderr : stdout, "%s\n", textmsg);
 		}
 	} else if (result != ISC_R_NOTFOUND) {
-		fprintf(stderr, "%s: parsing response failed: %s\n", progname,
-			isc_result_totext(result));
+		fprintf(stderr, "%s: parsing response failed: %s\n",
+			isc_commandline_progname, isc_result_totext(result));
 	}
 
 	if (showresult) {
@@ -814,7 +812,6 @@ parse_config(isc_mem_t *mctx, const char *keyname, cfg_parser_t **pctxp,
 
 int
 main(int argc, char **argv) {
-	isc_result_t result = ISC_R_SUCCESS;
 	bool show_final_mem = false;
 	isc_logconfig_t *logconfig = NULL;
 	cfg_parser_t *pctx = NULL;
@@ -827,11 +824,7 @@ main(int argc, char **argv) {
 	int ch;
 	int i;
 
-	result = isc_file_progname(*argv, program, sizeof(program));
-	if (result != ISC_R_SUCCESS) {
-		memmove(program, "rndc", 5);
-	}
-	progname = program;
+	isc_commandline_init(argc, argv);
 
 	admin_conffile = RNDC_CONFFILE;
 	admin_keyfile = RNDC_KEYFILE;
@@ -928,7 +921,8 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 				usage(1);
 			}
 			FALLTHROUGH;
@@ -936,7 +930,8 @@ main(int argc, char **argv) {
 			usage(0);
 			break;
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}
@@ -966,7 +961,7 @@ main(int argc, char **argv) {
 	isc_nm_setkeepalivetimeout(netmgr, timeout);
 
 	logconfig = isc_logconfig_get();
-	isc_log_settag(logconfig, progname);
+	isc_log_settag(logconfig, isc_commandline_progname);
 	isc_log_createandusechannel(
 		logconfig, "default_stderr", ISC_LOG_TOFILEDESC, ISC_LOG_INFO,
 		ISC_LOGDESTINATION_STDERR,

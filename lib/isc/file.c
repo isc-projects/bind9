@@ -516,7 +516,7 @@ isc_file_basename(const char *filename) {
 	return s + 1;
 }
 
-isc_result_t
+void
 isc_file_progname(const char *filename, char *buf, size_t buflen) {
 	const char *base;
 	size_t len;
@@ -525,14 +525,20 @@ isc_file_progname(const char *filename, char *buf, size_t buflen) {
 	REQUIRE(buf != NULL);
 
 	base = isc_file_basename(filename);
+
+	/*
+	 * Libtool doesn't preserve the program name prior to final
+	 * installation.  Remove the libtool prefix ("lt-").
+	 */
+	if (strncmp(base, "lt-", 3) == 0) {
+		base += 3;
+	}
+
 	len = strlen(base) + 1;
 
-	if (len > buflen) {
-		return ISC_R_NOSPACE;
-	}
-	memmove(buf, base, len);
+	RUNTIME_CHECK(len <= buflen);
 
-	return ISC_R_SUCCESS;
+	memmove(buf, base, len);
 }
 
 /*

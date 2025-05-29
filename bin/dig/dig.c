@@ -3405,10 +3405,9 @@ dig_setup(int argc, char **argv) {
 	dighost_warning = dig_warning;
 	dighost_comments = dig_comments;
 
-	progname = argv[0];
 	preparse_args(argc, argv);
 
-	setup_libs();
+	setup_libs(argc, argv);
 	setup_system(ipv4only, ipv6only);
 }
 

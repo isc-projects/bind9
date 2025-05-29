@@ -60,8 +60,6 @@
 
 #include "dnssectool.h"
 
-const char *program = "dnssec-keygen";
-
 /*
  * These are are set here for backwards compatibility.  They are
  * raised to 2048 in FIPS mode.
@@ -132,7 +130,7 @@ typedef struct keygen_ctx keygen_ctx_t;
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s [options] name\n\n", program);
+	fprintf(stderr, "    %s [options] name\n\n", isc_commandline_progname);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Options:\n");
@@ -449,7 +447,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 				"indefinitely after rollover.\n\t "
 				"You can use dnssec-settime -D to "
 				"change this.\n",
-				program, keystr);
+				isc_commandline_progname, keystr);
 		}
 
 		ctx->setpub = ctx->setact = true;
@@ -612,7 +610,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 						"not flagged as a KSK, but -R "
 						"was used. Revoking a ZSK is "
 						"legal, but undefined.\n",
-						program);
+						isc_commandline_progname);
 				}
 				dst_key_settime(key, DST_TIME_REVOKE,
 						ctx->revokekey);
@@ -632,7 +630,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 						"scheduled to be deleted "
 						"before it is scheduled to be "
 						"made inactive.\n",
-						program);
+						isc_commandline_progname);
 				}
 				dst_key_settime(key, DST_TIME_DELETE,
 						ctx->deltime);
@@ -700,7 +698,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 						"might collide with another "
 						"key upon revokation.  "
 						"Generating a new key\n",
-						program, filename);
+						isc_commandline_progname,
+						filename);
 				}
 			}
 
@@ -782,6 +781,8 @@ main(int argc, char **argv) {
 		usage();
 	}
 
+	isc_commandline_init(argc, argv);
+
 	isc_commandline_errprint = false;
 
 	/*
@@ -812,7 +813,7 @@ main(int argc, char **argv) {
 	}
 	isc_commandline_reset = true;
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -1016,7 +1017,8 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 		case 'h':
@@ -1025,10 +1027,11 @@ main(int argc, char **argv) {
 
 		case 'V':
 			/* Does not return. */
-			version(program);
+			version(isc_commandline_progname);
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}

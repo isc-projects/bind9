@@ -271,7 +271,6 @@ extern bool free_now;
 extern bool debugging, debugtiming, memdebugging;
 extern bool keep_open;
 
-extern char *progname;
 extern int tries;
 extern int fatalexit;
 extern bool verbose;
@@ -324,11 +323,8 @@ onrun_callback(void *arg);
 void
 run_loop(void *arg);
 
-int
-dhmain(int argc, char **argv);
-
 void
-setup_libs(void);
+setup_libs(int argc, char **argv);
 
 void
 setup_system(bool ipv4only, bool ipv6only);

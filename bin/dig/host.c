@@ -888,9 +888,8 @@ main(int argc, char **argv) {
 	dighost_shutdown = host_shutdown;
 
 	debug("main()");
-	progname = argv[0];
 	pre_parse_args(argc, argv);
-	setup_libs();
+	setup_libs(argc, argv);
 	setup_system(ipv4only, ipv6only);
 	parse_args(false, argc, argv);
 	if (keyfile[0] != 0) {

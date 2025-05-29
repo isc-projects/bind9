@@ -43,8 +43,6 @@
 
 #define MAX_RSA 4096 /* should be long enough... */
 
-const char *program = "dnssec-keyfromlabel";
-
 static uint16_t tag_min = 0, tag_max = 0xffff;
 
 ISC_NORETURN static void
@@ -53,7 +51,8 @@ usage(void);
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "    %s -l label [options] name\n\n", program);
+	fprintf(stderr, "    %s -l label [options] name\n\n",
+		isc_commandline_progname);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "Required options:\n");
 	fprintf(stderr, "    -l label: label of the key pair\n");
@@ -149,7 +148,9 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create(argv[0], &mctx);
+	isc_commandline_init(argc, argv);
+
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -320,7 +321,8 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 		case 'h':
@@ -329,10 +331,11 @@ main(int argc, char **argv) {
 
 		case 'V':
 			/* Does not return. */
-			version(program);
+			version(isc_commandline_progname);
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}
@@ -515,7 +518,7 @@ main(int argc, char **argv) {
 				"indefinitely after rollover.\n\t "
 				"You can use dnssec-settime -D to "
 				"change this.\n",
-				program, keystr);
+				isc_commandline_progname, keystr);
 		}
 
 		setpub = setact = true;
@@ -586,7 +589,7 @@ main(int argc, char **argv) {
 					"not flagged as a KSK, but -R "
 					"was used. Revoking a ZSK is "
 					"legal, but undefined.\n",
-					program);
+					isc_commandline_progname);
 			}
 			dst_key_settime(key, DST_TIME_REVOKE, revoke);
 		}
@@ -638,13 +641,14 @@ main(int argc, char **argv) {
 			      isc_result_totext(ret));
 		}
 		if (exact) {
-			fatal("%s: %s already exists\n", program, filename);
+			fatal("%s: %s already exists\n",
+			      isc_commandline_progname, filename);
 		}
 
 		if (avoid_collisions) {
 			fatal("%s: %s could collide with another key upon "
 			      "revokation\n",
-			      program, filename);
+			      isc_commandline_progname, filename);
 		}
 
 		fprintf(stderr,
@@ -652,7 +656,7 @@ main(int argc, char **argv) {
 			"another key upon revokation.  If you plan "
 			"to revoke keys, destroy this key and "
 			"generate a different one.\n",
-			program, filename);
+			isc_commandline_progname, filename);
 	}
 
 	ret = dst_key_tofile(key, options, directory);

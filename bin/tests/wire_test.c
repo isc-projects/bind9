@@ -17,7 +17,6 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/file.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/result.h>

@@ -15,7 +15,6 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
-#include <isc/file.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>

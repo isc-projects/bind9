@@ -60,8 +60,6 @@
 
 #include "dnssectool.h"
 
-const char *program = "dnssec-cds";
-
 /*
  * Infrastructure
  */
@@ -1025,7 +1023,7 @@ usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr,
 		"    %s options [options] -f <file> -d <path> <domain>\n",
-		program);
+		isc_commandline_progname);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "Options:\n"
 			"    -a <algorithm>     digest algorithm (SHA-1 / "
@@ -1080,7 +1078,9 @@ main(int argc, char *argv[]) {
 
 	setfatalcallback(cleanup);
 
-	isc_mem_create(argv[0], &mctx);
+	isc_commandline_init(argc, argv);
+
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -1131,7 +1131,7 @@ main(int argc, char *argv[]) {
 			break;
 		case 'V':
 			/* Does not return. */
-			version(program);
+			version(isc_commandline_progname);
 			break;
 		case 'v':
 			verbose = strtoul(isc_commandline_argument, &endp, 0);

@@ -92,8 +92,6 @@
 
 #include "dnssectool.h"
 
-const char *program = "dnssec-signzone";
-
 typedef struct hashlist hashlist_t;
 
 static int nsec_datatype = dns_rdatatype_nsec;
@@ -1417,7 +1415,7 @@ setsoaserial(uint32_t serial, dns_updatemethod_t method) {
 		fprintf(stderr,
 			"%s: warning: Serial number would not advance, "
 			"using increment method instead\n",
-			program);
+			isc_commandline_progname);
 	}
 
 	/* If the new serial is not likely to cause a zone transfer
@@ -1432,7 +1430,7 @@ setsoaserial(uint32_t serial, dns_updatemethod_t method) {
 		fprintf(stderr,
 			"%s: warning: Serial number not advanced, "
 			"zone may not transfer\n",
-			program);
+			isc_commandline_progname);
 	}
 
 	dns_soa_setserial(new_serial, &rdata);
@@ -2862,7 +2860,7 @@ warnifallksk(dns_db_t *db) {
 			fprintf(stderr,
 				"%s: warning: No non-KSK DNSKEY found; "
 				"supply a ZSK or use '-z'.\n",
-				program);
+				isc_commandline_progname);
 		} else {
 			fatal("No non-KSK DNSKEY found; "
 			      "supply a ZSK or use '-z'.");
@@ -3109,7 +3107,8 @@ print_version(FILE *fp) {
 		return;
 	}
 
-	fprintf(fp, "; %s version %s\n", program, PACKAGE_VERSION);
+	fprintf(fp, "; %s version %s\n", isc_commandline_progname,
+		PACKAGE_VERSION);
 }
 
 ISC_NORETURN static void
@@ -3118,7 +3117,8 @@ usage(void);
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\t%s [options] zonefile [keys]\n", program);
+	fprintf(stderr, "\t%s [options] zonefile [keys]\n",
+		isc_commandline_progname);
 
 	fprintf(stderr, "\n");
 
@@ -3275,6 +3275,8 @@ main(int argc, char *argv[]) {
 
 	atomic_init(&shuttingdown, false);
 	atomic_init(&finished, false);
+
+	isc_commandline_init(argc, argv);
 
 	/*
 	 * Unused letters: Bb G J l q Yy (and F is reserved).
@@ -3568,7 +3570,8 @@ main(int argc, char *argv[]) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 		case 'h':
@@ -3577,7 +3580,7 @@ main(int argc, char *argv[]) {
 
 		case 'V':
 			/* Does not return. */
-			version(program);
+			version(isc_commandline_progname);
 
 		case 'Z': /* Undocumented test options */
 			if (!strcmp(isc_commandline_argument, "nonsecify")) {
@@ -3586,7 +3589,8 @@ main(int argc, char *argv[]) {
 			break;
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}
@@ -3743,7 +3747,7 @@ main(int argc, char *argv[]) {
 		fprintf(stderr,
 			"%s: warning: Specified key TTL %u "
 			"exceeds maximum zone TTL; reducing to %u\n",
-			program, keyttl, maxttl);
+			isc_commandline_progname, keyttl, maxttl);
 		keyttl = maxttl;
 	}
 
@@ -3805,7 +3809,7 @@ main(int argc, char *argv[]) {
 			fprintf(stderr,
 				"%s: warning: No keys specified "
 				"or found\n",
-				program);
+				isc_commandline_progname);
 		} else {
 			fatal("No signing keys specified or found.");
 		}
@@ -3826,7 +3830,7 @@ main(int argc, char *argv[]) {
 			fprintf(stderr,
 				"%s: warning: NSEC3 generation "
 				"requested with no DNSKEY; ignoring\n",
-				program);
+				isc_commandline_progname);
 		} else if (result != ISC_R_SUCCESS) {
 			check_result(result, "dns_nsec_nseconly");
 		} else if (answer) {

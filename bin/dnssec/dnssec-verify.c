@@ -20,7 +20,6 @@
 #include <isc/attributes.h>
 #include <isc/base32.h>
 #include <isc/commandline.h>
-#include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/lib.h>
@@ -63,8 +62,6 @@
 #include <dst/dst.h>
 
 #include "dnssectool.h"
-
-const char *program = "dnssec-verify";
 
 static isc_stdtime_t now;
 static isc_mem_t *mctx = NULL;
@@ -144,7 +141,8 @@ usage(void);
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\t%s [options] zonefile [keys]\n", program);
+	fprintf(stderr, "\t%s [options] zonefile [keys]\n",
+		isc_commandline_progname);
 
 	fprintf(stderr, "\n");
 
@@ -175,6 +173,8 @@ main(int argc, char *argv[]) {
 	char *endp;
 	int ch;
 
+	isc_commandline_init(argc, argv);
+
 #define CMDLINE_FLAGS "c:E:hJ:m:o:I:qv:Vxz"
 
 	/*
@@ -202,7 +202,7 @@ main(int argc, char *argv[]) {
 	}
 	isc_commandline_reset = true;
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -254,7 +254,8 @@ main(int argc, char *argv[]) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 
@@ -264,10 +265,11 @@ main(int argc, char *argv[]) {
 
 		case 'V':
 			/* Does not return. */
-			version(program);
+			version(isc_commandline_progname);
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", program,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}

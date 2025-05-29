@@ -20,7 +20,6 @@
 #include <isc/attributes.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
-#include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lib.h>
 #include <isc/log.h>
@@ -49,7 +48,6 @@ dns_zone_t *zone = NULL;
 dns_zonetype_t zonetype = dns_zone_primary;
 static int dumpzone = 0;
 static const char *output_filename;
-static const char *prog_name = NULL;
 static const dns_master_style_t *outputstyle = NULL;
 static enum { progmode_check, progmode_compile } progmode;
 
@@ -78,7 +76,7 @@ usage(void) {
 		"[-M (ignore|warn|fail)] [-S (ignore|warn|fail)] "
 		"[-W (ignore|warn)] "
 		"%s zonename [ (filename|-) ]\n",
-		prog_name,
+		isc_commandline_progname,
 		progmode == progmode_check ? "[-o filename]" : "-o filename");
 	exit(EXIT_FAILURE);
 }
@@ -119,29 +117,13 @@ main(int argc, char **argv) {
 
 	outputstyle = &dns_master_style_full;
 
-	prog_name = strrchr(argv[0], '/');
-	if (prog_name == NULL) {
-		prog_name = strrchr(argv[0], '\\');
-	}
-	if (prog_name != NULL) {
-		prog_name++;
-	} else {
-		prog_name = argv[0];
-	}
-	/*
-	 * Libtool doesn't preserve the program name prior to final
-	 * installation.  Remove the libtool prefix ("lt-").
-	 */
-	if (strncmp(prog_name, "lt-", 3) == 0) {
-		prog_name += 3;
-	}
+	isc_commandline_init(argc, argv);
 
-#define PROGCMP(X) \
-	(strcasecmp(prog_name, X) == 0 || strcasecmp(prog_name, X ".exe") == 0)
-
-	if (PROGCMP("named-checkzone")) {
+	if (strcasecmp(isc_commandline_progname, "named-checkzone") == 0) {
 		progmode = progmode_check;
-	} else if (PROGCMP("named-compilezone")) {
+	} else if (strcasecmp(isc_commandline_progname, "named-compilezone") ==
+		   0)
+	{
 		progmode = progmode_compile;
 	} else {
 		UNREACHABLE();
@@ -441,14 +423,16 @@ main(int argc, char **argv) {
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
-					prog_name, isc_commandline_option);
+					isc_commandline_progname,
+					isc_commandline_option);
 			}
 			FALLTHROUGH;
 		case 'h':
 			usage();
 
 		default:
-			fprintf(stderr, "%s: unhandled option -%c\n", prog_name,
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				isc_commandline_progname,
 				isc_commandline_option);
 			exit(EXIT_FAILURE);
 		}
@@ -535,7 +519,7 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create(argv[0], &mctx);
+	isc_mem_create(isc_commandline_progname, &mctx);
 	if (!quiet) {
 		RUNTIME_CHECK(setup_logging(errout) == ISC_R_SUCCESS);
 	}
