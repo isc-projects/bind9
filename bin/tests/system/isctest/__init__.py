@@ -17,7 +17,10 @@ from . import rndc
 from . import run
 from . import template
 from . import log
-from . import hypothesis
+
+# isctest.hypothesis is intentionally NOT imported, because it detects proper
+# hypothesis support and instructs pytest to skip the tests otherwise. It
+# should be manually imported only in the modules that require hypothesis.
 
 # isctest.mark module is intentionally NOT imported, because it relies on
 # environment variables which might not be set at the time of import of the
