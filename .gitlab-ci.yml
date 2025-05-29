@@ -66,6 +66,19 @@ variables:
   SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MIN: '-inf'
   SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_DRIFT_MIN: '-inf'
 
+  # Even though there's only one job per runtime environment, the GitLab
+  # "instance" executor insists on cloning the Git repository to a path that
+  # contains a variable number from zero to the "maximum concurrent instances
+  # count" allowed on the GitLab Runner. See the "0" directory in this example
+  # path: /home/ec2-user/builds/t1_4FZzvz/0/isc-projects/bind9/.git/.
+  #
+  # This is not a problem for isolated jobs like "stress" tests that depend on
+  # no other jobs. However, it is a problem for jobs that need other jobs'
+  # artifacts. For example, a system test job that has its Git repo cloned to
+  # the "/1/" sub-path will fail if it downloads build job artifacts that have
+  # ./configure output files with "/0/" in its sub-path recorded.
+  GIT_CLONE_PATH_INSTANCE_EXECUTOR: "/home/ec2-user/builds/${CI_PROJECT_PATH}/"
+
 default:
   # Allow all running CI jobs to be automatically canceled when a new
   # version of a branch is pushed.
@@ -94,10 +107,23 @@ stages:
 
 ### Runner Tag Templates
 
-.libvirt-amd64: &libvirt_amd64
+# AlmaLinux autoscaling GitLab Runners on AWS EC2 (amd64)
+
+.almalinux-8fips-amd64-image: &almalinux_8fips_amd64_image
   tags:
-    - libvirt
+    - almalinux-8
     - amd64
+    - autoscaler
+    - aws
+    - shell
+
+.almalinux-9fips-amd64-image: &almalinux_9fips_amd64_image
+  tags:
+    - almalinux-9
+    - amd64
+    - autoscaler
+    - aws
+    - shell
 
 # Autoscaling GitLab Runner on AWS EC2 (amd64)
 
@@ -139,18 +165,7 @@ stages:
   variables:
     CC: clang
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    # Even though there's only one job per runtime environment, the GitLab
-    # "instance" executor insists on cloning the Git repository to a path that
-    # contains a variable number from zero to the "maximum concurrent instances
-    # count" allowed on the GitLab Runner. See the "0" directory in this
-    # example path: /home/ec2-user/builds/t1_4FZzvz/0/isc-projects/bind9/.git/.
-    #
-    # This is not a problem for isolated jobs like "stress" tests that depend
-    # on no other jobs. However, it is a problem for jobs that need other jobs'
-    # artifacts. For example, a system test job that has its Git repo cloned to
-    # the "/1/" sub-path will fail if it downloads build job artifacts that
-    # have ./configure output files with "/0/" in its sub-path recorded.
-    GIT_CLONE_PATH: "/home/ec2-user/builds/${CI_PROJECT_PATH}/"
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
     # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
     # incompatibility; see https://bugs.freebsd.org/275241.
     EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE} --with-gssapi=/usr/local/bin/krb5-config"
@@ -184,16 +199,6 @@ stages:
 .almalinux-9-amd64: &almalinux_9_amd64_image
   image: "$CI_REGISTRY_IMAGE:almalinux-9-amd64"
   <<: *linux_amd64
-
-# Oracle Linux
-
-.oraclelinux-8fips-amd64: &oraclelinux_8fips_amd64_image
-  image: "oraclelinux-8fips-x86_64"
-  <<: *libvirt_amd64
-
-.oraclelinux-9fips-amd64: &oraclelinux_9fips_amd64_image
-  image: "oraclelinux-9fips-x86_64"
-  <<: *libvirt_amd64
 
 # Debian
 
@@ -326,6 +331,9 @@ stages:
   - rm -f bind-*.tar.xz
   - cd bind-*
 
+.fips-feature-test: &fips_feature_test
+    - if bin/tests/system/feature-test --have-fips-mode; then fips-mode-setup --check; fips-mode-setup --is-enabled; fi
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -344,6 +352,7 @@ stages:
     - test -z "${CROSS_COMPILATION}" || ( ! git ls-files -z --others --exclude lib/dns/gen | xargs -0 file | grep "ELF 64-bit LSB" )
     - if test -z "${OUT_OF_TREE_WORKSPACE}" && test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - bin/named/named -V
+    - *fips_feature_test
   needs:
     - job: autoreconf
       artifacts: true
@@ -413,6 +422,7 @@ stages:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cp -r bin/tests/system/* "${OUT_OF_TREE_WORKSPACE}/bin/tests/system/" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *setup_interfaces
   script:
+    - *fips_feature_test
     - *find_pytest
     - *find_python
     - ( if [ "${CI_DISPOSABLE_ENVIRONMENT}" = "true" ]; then sleep 3000; "$PYTHON" "${CI_PROJECT_DIR}/util/get-running-system-tests.py"; fi ) &
@@ -474,6 +484,7 @@ stages:
   before_script:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
   script:
+    - *fips_feature_test
     - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
     - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || make clean >/dev/null 2>&1
   after_script:
@@ -890,27 +901,32 @@ unit:gcc:almalinux9:amd64:
   needs:
     - job: gcc:almalinux9:amd64
 
-# Jobs for scheduled GCC builds on Oracle Linux 8 & 9 FIPS-aware images with
-# FIPS mode in BIND 9 enabled
+# Jobs for scheduled GCC builds on AlmaLinux 8 & 9 FIPS-aware images with FIPS
+# mode in BIND 9 enabled
 
 gcc:8fips:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode --disable-tracing"
-  <<: *oraclelinux_8fips_amd64_image
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
+  <<: *almalinux_8fips_amd64_image
   <<: *build_job
 
 system:gcc:8fips:amd64:
-  <<: *oraclelinux_8fips_amd64_image
+  <<: *almalinux_8fips_amd64_image
   <<: *system_test_job
+  variables:
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
     - job: gcc:8fips:amd64
       artifacts: true
 
 unit:gcc:8fips:amd64:
-  <<: *oraclelinux_8fips_amd64_image
+  <<: *almalinux_8fips_amd64_image
   <<: *unit_test_job
+  variables:
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
     - job: gcc:8fips:amd64
       artifacts: true
@@ -920,21 +936,26 @@ gcc:9fips:amd64:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode --disable-leak-detection --disable-tracing"
-  <<: *oraclelinux_9fips_amd64_image
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
+  <<: *almalinux_9fips_amd64_image
   <<: *build_job
 
 system:gcc:9fips:amd64:
-  <<: *oraclelinux_9fips_amd64_image
+  <<: *almalinux_9fips_amd64_image
   <<: *system_test_job
   <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
+  variables:
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
     - job: gcc:9fips:amd64
       artifacts: true
 
 unit:gcc:9fips:amd64:
-  <<: *oraclelinux_9fips_amd64_image
+  <<: *almalinux_9fips_amd64_image
   <<: *unit_test_job
   <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
+  variables:
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
     - job: gcc:9fips:amd64
       artifacts: true
