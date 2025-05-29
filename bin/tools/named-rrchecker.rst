@@ -47,23 +47,30 @@ Options
 
 .. option:: -o origin
 
-   This option specifies the origin to be used when interpreting
-   the record.
+   This option specifies the origin to be used when interpreting names in the record:
+   it defaults to root (`.`). The specified origin is always taken as an absolute name.
 
 .. option:: -p
 
    This option prints out the resulting record in canonical form. If there
-   is no canonical form defined, the record is printed in unknown
+   is no canonical form defined, the record is printed in :rfc:`3597` unknown
    record format.
 
 .. option:: -u
 
-   This option prints out the resulting record in unknown record form.
+   This option prints out the resulting record in :rfc:`3597` unknown record
+   format.
 
 .. option:: -C, -T, -P
 
-   These options print out the known class, standard type,
-   and private type mnemonics, respectively.
+   These options do not read input. They print out known classes, standard types,
+   and private type mnemonics. Each item is printed on a separate line.
+   The resulting list of private types may be empty
+
+.. option:: -h
+
+   This option prints out the help menu.
+
 
 See Also
 ~~~~~~~~
