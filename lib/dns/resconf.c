@@ -386,7 +386,6 @@ resconf_parsesearch(irs_resconf_t *conf, FILE *fp) {
 		 * Search and domain are mutually exclusive.
 		 */
 		isc_mem_free(conf->mctx, conf->domainname);
-		conf->domainname = NULL;
 	}
 
 	/*

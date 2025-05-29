@@ -3137,7 +3137,6 @@ dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	    (cookie == NULL || len != entry->cookielen))
 	{
 		isc_mem_put(adb->mctx, entry->cookie, entry->cookielen);
-		entry->cookie = NULL;
 		entry->cookielen = 0;
 	}
 

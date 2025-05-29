@@ -213,7 +213,6 @@ ns_server_setserverid(ns_server_t *sctx, const char *serverid) {
 
 	if (sctx->server_id != NULL) {
 		isc_mem_free(sctx->mctx, sctx->server_id);
-		sctx->server_id = NULL;
 	}
 
 	if (serverid != NULL) {

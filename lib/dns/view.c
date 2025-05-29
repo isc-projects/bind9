@@ -337,11 +337,9 @@ destroy(dns_view_t *view) {
 	dns_view_setnewzones(view, false, NULL, NULL, 0ULL);
 	if (view->new_zone_file != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_file);
-		view->new_zone_file = NULL;
 	}
 	if (view->new_zone_dir != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_dir);
-		view->new_zone_dir = NULL;
 	}
 #ifdef HAVE_LMDB
 	if (view->new_zone_dbenv != NULL) {
@@ -350,7 +348,6 @@ destroy(dns_view_t *view) {
 	}
 	if (view->new_zone_db != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_db);
-		view->new_zone_db = NULL;
 	}
 #endif /* HAVE_LMDB */
 	dns_fwdtable_destroy(&view->fwdtable);
@@ -1741,7 +1738,6 @@ dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
 
 	if (view->new_zone_file != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_file);
-		view->new_zone_file = NULL;
 	}
 
 #ifdef HAVE_LMDB
@@ -1752,7 +1748,6 @@ dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
 
 	if (view->new_zone_db != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_db);
-		view->new_zone_db = NULL;
 	}
 #endif /* HAVE_LMDB */
 
@@ -1815,13 +1810,11 @@ cleanup:
 	if (result != ISC_R_SUCCESS) {
 		if (view->new_zone_file != NULL) {
 			isc_mem_free(view->mctx, view->new_zone_file);
-			view->new_zone_file = NULL;
 		}
 
 #ifdef HAVE_LMDB
 		if (view->new_zone_db != NULL) {
 			isc_mem_free(view->mctx, view->new_zone_db);
-			view->new_zone_db = NULL;
 		}
 		if (env != NULL) {
 			mdb_env_close(env);
@@ -1840,7 +1833,6 @@ dns_view_setnewzonedir(dns_view_t *view, const char *dir) {
 
 	if (view->new_zone_dir != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_dir);
-		view->new_zone_dir = NULL;
 	}
 
 	if (dir == NULL) {

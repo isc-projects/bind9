@@ -560,7 +560,6 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 				   0);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, *namep, sizeof(**namep));
-		*namep = NULL;
 		return result;
 	}
 	dns_name_dup(dns_fixedname_name(&fname), mctx, *namep);

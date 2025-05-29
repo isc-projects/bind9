@@ -200,19 +200,16 @@ dns_remote_clear(dns_remote_t *remote) {
 
 	if (remote->ok != NULL) {
 		isc_mem_cput(mctx, remote->ok, count, sizeof(bool));
-		remote->ok = NULL;
 	}
 
 	if (remote->addresses != NULL) {
 		isc_mem_cput(mctx, remote->addresses, count,
 			     sizeof(isc_sockaddr_t));
-		remote->addresses = NULL;
 	}
 
 	if (remote->sources != NULL) {
 		isc_mem_cput(mctx, remote->sources, count,
 			     sizeof(isc_sockaddr_t));
-		remote->sources = NULL;
 	}
 
 	if (remote->keynames != NULL) {
@@ -222,12 +219,10 @@ dns_remote_clear(dns_remote_t *remote) {
 				dns_name_free(remote->keynames[i], mctx);
 				isc_mem_put(mctx, remote->keynames[i],
 					    sizeof(dns_name_t));
-				remote->keynames[i] = NULL;
 			}
 		}
 		isc_mem_cput(mctx, remote->keynames, count,
 			     sizeof(dns_name_t *));
-		remote->keynames = NULL;
 	}
 
 	if (remote->tlsnames != NULL) {
@@ -237,12 +232,10 @@ dns_remote_clear(dns_remote_t *remote) {
 				dns_name_free(remote->tlsnames[i], mctx);
 				isc_mem_put(mctx, remote->tlsnames[i],
 					    sizeof(dns_name_t));
-				remote->tlsnames[i] = NULL;
 			}
 		}
 		isc_mem_cput(mctx, remote->tlsnames, count,
 			     sizeof(dns_name_t *));
-		remote->tlsnames = NULL;
 	}
 
 	remote->curraddr = 0;
