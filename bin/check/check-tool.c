@@ -108,7 +108,7 @@ add(char *key, int value) {
 	isc_symvalue_t symvalue;
 
 	if (sym_mctx == NULL) {
-		isc_mem_create(&sym_mctx);
+		isc_mem_create("check-tool", &sym_mctx);
 	}
 
 	if (symtab == NULL) {

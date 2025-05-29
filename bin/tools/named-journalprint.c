@@ -93,7 +93,7 @@ main(int argc, char **argv) {
 	}
 	file = argv[0];
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 	setup_logging(stderr);
 
 	if (upgrade) {

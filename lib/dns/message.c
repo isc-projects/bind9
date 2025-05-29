@@ -5070,15 +5070,15 @@ dns_message_createpools(isc_mem_t *mctx, isc_mempool_t **namepoolp,
 	REQUIRE(namepoolp != NULL && *namepoolp == NULL);
 	REQUIRE(rdspoolp != NULL && *rdspoolp == NULL);
 
-	isc_mempool_create(mctx, sizeof(dns_fixedname_t), namepoolp);
+	isc_mempool_create(mctx, sizeof(dns_fixedname_t), "dns_fixedname_pool",
+			   namepoolp);
 	isc_mempool_setfillcount(*namepoolp, NAME_FILLCOUNT);
 	isc_mempool_setfreemax(*namepoolp, NAME_FREEMAX);
-	isc_mempool_setname(*namepoolp, "dns_fixedname_pool");
 
-	isc_mempool_create(mctx, sizeof(dns_rdataset_t), rdspoolp);
+	isc_mempool_create(mctx, sizeof(dns_rdataset_t), "dns_rdataset_pool",
+			   rdspoolp);
 	isc_mempool_setfillcount(*rdspoolp, RDATASET_FILLCOUNT);
 	isc_mempool_setfreemax(*rdspoolp, RDATASET_FREEMAX);
-	isc_mempool_setname(*rdspoolp, "dns_rdataset_pool");
 }
 
 void

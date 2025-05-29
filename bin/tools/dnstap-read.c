@@ -375,7 +375,7 @@ main(int argc, char *argv[]) {
 		fatal("no file specified");
 	}
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 
 	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, mctx, &handle),
 	       "dns_dt_openfile");

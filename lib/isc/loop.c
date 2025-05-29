@@ -226,10 +226,7 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid,
 	UV_RUNTIME_CHECK(uv_prepare_init, r);
 	uv_handle_set_data(&loop->quiescent, loop);
 
-	char name[16];
-	snprintf(name, sizeof(name), "%s-%08" PRIx32, kind, tid);
-	isc_mem_create(&loop->mctx);
-	isc_mem_setname(loop->mctx, name);
+	isc_mem_create(kind, &loop->mctx);
 
 	isc_refcount_init(&loop->references, 1);
 

@@ -1732,8 +1732,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb) {
 	dns_resolver_attach(view->resolver, &adb->res);
 	isc_mem_attach(mem, &adb->mctx);
 
-	isc_mem_create(&adb->hmctx);
-	isc_mem_setname(adb->hmctx, "ADB_dynamic");
+	isc_mem_create("ADB_dynamic", &adb->hmctx);
 
 	isc_hashmap_create(adb->hmctx, ADB_HASH_BITS, &adb->names);
 	isc_rwlock_init(&adb->names_lock);

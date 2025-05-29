@@ -76,7 +76,7 @@ main(int argc, char **argv) {
 	journal = argv[4];
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 
 	logconfig = isc_logconfig_get();
 	isc_log_createandusechannel(

@@ -420,7 +420,7 @@ main(int argc, char *argv[]) {
 
 	isc_rwlock_init(&rwl);
 
-	isc_mem_create(&mctx);
+	isc_mem_create("test", &mctx);
 
 	if (argc != 2) {
 		fprintf(stderr,
@@ -494,7 +494,7 @@ main(int argc, char *argv[]) {
 			isc_mem_t *mem = NULL;
 			void *map = NULL;
 
-			isc_mem_create(&mem);
+			isc_mem_create("test", &mem);
 			map = fun->new(mem);
 
 			size_t nitems = lines / (nthreads + 1);

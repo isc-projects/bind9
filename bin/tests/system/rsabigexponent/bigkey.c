@@ -105,7 +105,7 @@ main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 
 	dns_log_init();
 

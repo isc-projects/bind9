@@ -108,6 +108,7 @@ main(int argc, char **argv) {
 	bool keyonly = false;
 	bool quiet = false;
 	int len;
+	const char *name = argv[0];
 
 	keydef = keyfile = RNDC_KEYFILE;
 
@@ -226,7 +227,7 @@ main(int argc, char **argv) {
 	}
 	algname = dst_hmac_algorithm_totext(alg);
 
-	isc_mem_create(&mctx);
+	isc_mem_create(name, &mctx);
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
 	generate_key(mctx, alg, keysize, &key_txtbuffer);

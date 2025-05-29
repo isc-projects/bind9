@@ -169,7 +169,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	fputs(c3, fd);
 	fclose(fd);
 
-	isc_mem_create(&mctx);
+	isc_mem_create("fuzz", &mctx);
 
 	isc_loopmgr_create(mctx, 1, &loopmgr);
 

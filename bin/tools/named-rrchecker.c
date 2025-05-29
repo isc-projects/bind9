@@ -170,7 +170,7 @@ main(int argc, char *argv[]) {
 		exit(EXIT_SUCCESS);
 	}
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 	isc_lex_create(mctx, 256, &lex);
 
 	/*

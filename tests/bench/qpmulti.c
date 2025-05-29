@@ -876,7 +876,7 @@ main(void) {
 	}
 	INSIST(nloops > 1);
 
-	isc_mem_create(&mctx);
+	isc_mem_create("test", &mctx);
 	isc_mem_setdestroycheck(mctx, true);
 	init_logging();
 	init_items(mctx);

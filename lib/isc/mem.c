@@ -123,7 +123,7 @@ struct isc_mem {
 	isc_mutex_t lock;
 	bool checkfree;
 	isc_refcount_t references;
-	char name[16];
+	char *name;
 	atomic_size_t inuse;
 	atomic_bool hi_called;
 	atomic_bool is_overmem;
@@ -157,7 +157,7 @@ struct isc_mempool {
 	/*%< Stats only. */
 	size_t gets; /*%< # of requests to this pool */
 	/*%< Debugging only. */
-	char name[16]; /*%< printed name in stats reports */
+	char *name; /*%< printed name in stats reports */
 };
 
 /*
@@ -450,11 +450,12 @@ isc__mem_shutdown(void) {
 }
 
 static void
-mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags,
-	   unsigned int jemalloc_flags) {
+mem_create(const char *name, isc_mem_t **ctxp, unsigned int debugging,
+	   unsigned int flags, unsigned int jemalloc_flags) {
 	isc_mem_t *ctx = NULL;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
+	REQUIRE(name != NULL);
 
 	ctx = mallocx(sizeof(*ctx), jemalloc_flags);
 	INSIST(ctx != NULL);
@@ -466,6 +467,7 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags,
 		.jemalloc_flags = jemalloc_flags,
 		.jemalloc_arena = ISC_MEM_ILLEGAL_ARENA,
 		.checkfree = true,
+		.name = strdup(name),
 	};
 
 	isc_mutex_init(&ctx->lock);
@@ -541,6 +543,8 @@ mem_destroy(isc_mem_t *ctx) {
 			ctx->jemalloc_flags);
 	}
 #endif /* if ISC_MEM_TRACKLINES */
+
+	free(ctx->name);
 
 	isc_mutex_destroy(&ctx->lock);
 
@@ -900,15 +904,6 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 	}
 }
 
-void
-isc_mem_setname(isc_mem_t *ctx, const char *name) {
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	LOCK(&ctx->lock);
-	strlcpy(ctx->name, name, sizeof(ctx->name));
-	UNLOCK(&ctx->lock);
-}
-
 const char *
 isc_mem_getname(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
@@ -926,13 +921,14 @@ isc_mem_getname(isc_mem_t *ctx) {
 
 void
 isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
-		    isc_mempool_t **restrict mpctxp FLARG) {
+		    const char *name, isc_mempool_t **restrict mpctxp FLARG) {
 	isc_mempool_t *restrict mpctx = NULL;
 	size_t size = element_size;
 
 	REQUIRE(VALID_CONTEXT(mctx));
 	REQUIRE(size > 0U);
 	REQUIRE(mpctxp != NULL && *mpctxp == NULL);
+	REQUIRE(name != NULL);
 
 	/*
 	 * Mempools are stored as a linked list of element.
@@ -951,6 +947,7 @@ isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
 		.size = size,
 		.freemax = 1,
 		.fillcount = 1,
+		.name = strdup(name),
 	};
 
 #if ISC_MEM_TRACKLINES
@@ -970,14 +967,6 @@ isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
 	ISC_LIST_INITANDAPPEND(mctx->pools, mpctx, link);
 	mctx->poolcnt++;
 	MCTXUNLOCK(mctx);
-}
-
-void
-isc_mempool_setname(isc_mempool_t *restrict mpctx, const char *name) {
-	REQUIRE(VALID_MEMPOOL(mpctx));
-	REQUIRE(name != NULL);
-
-	strlcpy(mpctx->name, name, sizeof(mpctx->name));
 }
 
 void
@@ -1028,6 +1017,8 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 	ISC_LIST_UNLINK(mctx->pools, mpctx, link);
 	mctx->poolcnt--;
 	MCTXUNLOCK(mctx);
+
+	free(mpctx->name);
 
 	mpctx->magic = 0;
 
@@ -1415,8 +1406,8 @@ error:
 #endif /* HAVE_JSON_C */
 
 void
-isc__mem_create(isc_mem_t **mctxp FLARG) {
-	mem_create(mctxp, isc_mem_debugging, isc_mem_defaultflags, 0);
+isc__mem_create(const char *name, isc_mem_t **mctxp FLARG) {
+	mem_create(name, mctxp, isc_mem_debugging, isc_mem_defaultflags, 0);
 #if ISC_MEM_TRACKLINES
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "create mctx %p func %s file %s line %u\n",
@@ -1426,7 +1417,7 @@ isc__mem_create(isc_mem_t **mctxp FLARG) {
 }
 
 void
-isc__mem_create_arena(isc_mem_t **mctxp FLARG) {
+isc__mem_create_arena(const char *name, isc_mem_t **mctxp FLARG) {
 	unsigned int arena_no = ISC_MEM_ILLEGAL_ARENA;
 
 	RUNTIME_CHECK(mem_jemalloc_arena_create(&arena_no));
@@ -1438,7 +1429,7 @@ isc__mem_create_arena(isc_mem_t **mctxp FLARG) {
 	 *
 	 * https://github.com/jemalloc/jemalloc/issues/2483#issuecomment-1698173849
 	 */
-	mem_create(mctxp, isc_mem_debugging, isc_mem_defaultflags,
+	mem_create(name, mctxp, isc_mem_debugging, isc_mem_defaultflags,
 		   arena_no == ISC_MEM_ILLEGAL_ARENA
 			   ? 0
 			   : MALLOCX_ARENA(arena_no) | MALLOCX_TCACHE_NONE);

@@ -202,7 +202,7 @@ main(int argc, char *argv[]) {
 	}
 	isc_commandline_reset = true;
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 
 	isc_commandline_errprint = false;
 

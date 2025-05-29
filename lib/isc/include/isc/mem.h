@@ -200,17 +200,17 @@ mallocx(size_t size, int flags);
 
 extern volatile void *isc__mem_malloc;
 
-#define isc_mem_create(cp)                                            \
+#define isc_mem_create(name, cp)                                      \
 	{                                                             \
-		isc__mem_create((cp)_ISC_MEM_FILELINE);               \
+		isc__mem_create((name), (cp)_ISC_MEM_FILELINE);       \
 		isc__mem_malloc = mallocx;                            \
 		ISC_INSIST(CMM_ACCESS_ONCE(isc__mem_malloc) != NULL); \
 	}
 #else
-#define isc_mem_create(cp) isc__mem_create((cp)_ISC_MEM_FILELINE)
+#define isc_mem_create(name, cp) isc__mem_create((name), (cp)_ISC_MEM_FILELINE)
 #endif
 void
-isc__mem_create(isc_mem_t **_ISC_MEM_FLARG);
+isc__mem_create(const char *name, isc_mem_t **_ISC_MEM_FLARG);
 
 /*!<
  * \brief Create a memory context.
@@ -219,9 +219,10 @@ isc__mem_create(isc_mem_t **_ISC_MEM_FLARG);
  * mctxp != NULL && *mctxp == NULL */
 /*@}*/
 
-#define isc_mem_create_arena(cp) isc__mem_create_arena((cp)_ISC_MEM_FILELINE)
+#define isc_mem_create_arena(name, cp) \
+	isc__mem_create_arena((name), (cp)_ISC_MEM_FILELINE)
 void
-isc__mem_create_arena(isc_mem_t **_ISC_MEM_FLARG);
+isc__mem_create_arena(const char *name, isc_mem_t **_ISC_MEM_FLARG);
 /*!<
  * \brief Create a memory context that routs all its operations to a
  * dedicated jemalloc arena (when available). When jemalloc is not
@@ -325,20 +326,6 @@ isc_mem_references(isc_mem_t *ctx);
  * Return the current reference count.
  */
 
-void
-isc_mem_setname(isc_mem_t *ctx, const char *name);
-/*%<
- * Name 'ctx'.
- *
- * Notes:
- *
- *\li	Only the first 15 characters of 'name' will be copied.
- *
- * Requires:
- *
- *\li	'ctx' is a valid ctx.
- */
-
 const char *
 isc_mem_getname(isc_mem_t *ctx);
 /*%<
@@ -373,11 +360,11 @@ isc_mem_renderjson(void *memobj0);
  * Memory pools
  */
 
-#define isc_mempool_create(c, s, mp) \
-	isc__mempool_create((c), (s), (mp)_ISC_MEM_FILELINE)
+#define isc_mempool_create(c, s, n, mp) \
+	isc__mempool_create((c), (s), (n), (mp)_ISC_MEM_FILELINE)
 void
 isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
-		    isc_mempool_t **mpctxp _ISC_MEM_FLARG);
+		    const char *name, isc_mempool_t **mpctxp _ISC_MEM_FLARG);
 /*%<
  * Create a memory pool.
  *
@@ -400,17 +387,6 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp _ISC_MEM_FLARG);
  * Requires:
  *\li	mpctxp != NULL && *mpctxp is a valid pool.
  *\li	The pool has no un"put" allocations outstanding
- */
-
-void
-isc_mempool_setname(isc_mempool_t *restrict mpctx, const char *name);
-/*%<
- * Associate a name with a memory pool.  At most 15 characters may be
- *used.
- *
- * Requires:
- *\li	mpctx is a valid pool.
- *\li	name != NULL;
  */
 
 /*

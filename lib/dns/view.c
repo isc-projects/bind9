@@ -536,8 +536,7 @@ dns_view_createresolver(dns_view_t *view, isc_nm_t *netmgr,
 		return result;
 	}
 
-	isc_mem_create(&mctx);
-	isc_mem_setname(mctx, "ADB");
+	isc_mem_create("ADB", &mctx);
 	dns_adb_create(mctx, view, &view->adb);
 	isc_mem_detach(&mctx);
 

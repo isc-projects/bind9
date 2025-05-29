@@ -535,7 +535,7 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create(&mctx);
+	isc_mem_create(argv[0], &mctx);
 	if (!quiet) {
 		RUNTIME_CHECK(setup_logging(errout) == ISC_R_SUCCESS);
 	}

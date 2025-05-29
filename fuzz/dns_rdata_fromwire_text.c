@@ -45,7 +45,7 @@ int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	isc_lexspecials_t specials;
 
-	isc_mem_create(&mctx);
+	isc_mem_create("fuzz", &mctx);
 	isc_lex_create(mctx, 64, &lex);
 
 	memset(specials, 0, sizeof(specials));

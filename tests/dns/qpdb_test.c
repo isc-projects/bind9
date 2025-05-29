@@ -132,7 +132,7 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	isc_stdtime_t now = isc_stdtime_now();
 	size_t i;
 
-	isc_mem_create(&mctx2);
+	isc_mem_create("test", &mctx2);
 
 	result = dns_db_create(mctx2, CACHEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
@@ -183,7 +183,7 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	isc_stdtime_t now = isc_stdtime_now();
 	size_t i;
 
-	isc_mem_create(&mctx2);
+	isc_mem_create("test", &mctx2);
 
 	result = dns_db_create(mctx2, CACHEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
