@@ -47,9 +47,9 @@
  * and format in the ISC coding style.
  */
 
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <zconf.h>
 
 #include <isc/commandline.h>
 #include <isc/file.h>
