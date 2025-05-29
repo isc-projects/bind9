@@ -79,7 +79,7 @@ stages:
   image: "$CI_REGISTRY_IMAGE:alpine-3.15-amd64"
   <<: *linux_amd64
 
-# Oracle Linux
+# AlmaLinux
 
 .centos-centos6-i386: &centos_centos6_i386_image
   image: "$CI_REGISTRY_IMAGE:centos-centos6-i386"
@@ -89,8 +89,8 @@ stages:
   image: "$CI_REGISTRY_IMAGE:centos-centos6-amd64"
   <<: *linux_amd64
 
-.oraclelinux-8-amd64: &oraclelinux_8_amd64_image
-  image: "$CI_REGISTRY_IMAGE:oraclelinux-8-amd64"
+.almalinux-8-amd64: &almalinux_8_amd64_image
+  image: "$CI_REGISTRY_IMAGE:almalinux-8-amd64"
   <<: *linux_amd64
 
 # Debian
@@ -444,28 +444,28 @@ unit:gcc:centos6:amd64:
     - job: gcc:centos6:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Oracle Linux 8 (amd64)
+# Jobs for regular GCC builds on Alma Linux 8 (amd64)
 
-gcc:oraclelinux8:amd64:
+gcc:almalinux8:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "--enable-buffer-useinline --with-libidn2"
-  <<: *oraclelinux_8_amd64_image
+  <<: *almalinux_8_amd64_image
   <<: *build_job
 
-system:gcc:oraclelinux8:amd64:
-  <<: *oraclelinux_8_amd64_image
+system:gcc:almalinux8:amd64:
+  <<: *almalinux_8_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:oraclelinux8:amd64
+    - job: gcc:almalinux8:amd64
       artifacts: true
 
-unit:gcc:oraclelinux8:amd64:
-  <<: *oraclelinux_8_amd64_image
+unit:gcc:almalinux8:amd64:
+  <<: *almalinux_8_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:oraclelinux8:amd64
+    - job: gcc:almalinux8:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Debian 9 Stretch (amd64)
