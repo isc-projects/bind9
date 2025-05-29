@@ -72,6 +72,18 @@ Options
    This option prints out the help menu.
 
 
+
+Return Codes
+~~~~~~~~~~~~
+
+0
+  The whole input was parsed as one syntactically valid resource record.
+
+1
+  The input is not a syntactically valid resource record, or the given type is not
+  supported, or either/both class and type are meta-values, which should not appear in zone files.
+
+
 See Also
 ~~~~~~~~
 
