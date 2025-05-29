@@ -15,8 +15,8 @@
 
 /*! \file isc/commandline.h */
 
+#include <limits.h>
 #include <stdbool.h>
-#include <zconf.h>
 
 #include <isc/result.h>
 #include <isc/types.h>
