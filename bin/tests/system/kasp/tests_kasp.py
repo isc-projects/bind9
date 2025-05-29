@@ -166,7 +166,6 @@ def check_all(server, zone, policy, ksks, zsks, zsk_missing=False, tsig=None):
         server, zone, ksks, zsks, zsk_missing=zsk_missing, tsig=tsig
     )
     isctest.kasp.check_subdomain(server, zone, ksks, zsks, tsig=tsig)
-    isctest.kasp.check_dnssec_verify(server, zone, tsig=tsig)
 
 
 def set_keytimes_default_policy(kp):
@@ -661,7 +660,7 @@ def test_kasp_case(servers, params):
     isctest.log.info(f"check test case zone {zone} policy {policy}")
 
     # First make sure the zone is signed.
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
 
     # Key properties.
     expected = isctest.kasp.policy_to_properties(ttl=ttl, keys=params["key-properties"])
@@ -679,6 +678,7 @@ def test_kasp_case(servers, params):
         ksks = [k for k in keys if k.is_ksk()]
         zsks = [k for k in keys if not k.is_ksk()]
 
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
 
     offset = params["offset"] if "offset" in params else None
@@ -759,7 +759,7 @@ def test_kasp_inherit_signed(zone, policy, server_id, alg, tsig_kind, servers):
     key1.metadata["Length"] = alg.bits
     keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
 
-    isctest.kasp.check_zone_is_signed(server, zone, tsig=tsig)
+    isctest.kasp.check_dnssec_verify(server, zone, tsig=tsig)
     isctest.kasp.check_keys(zone, keys, [key1])
     set_keytimes_default_policy(key1)
     isctest.kasp.check_keytimes(keys, [key1])
@@ -786,7 +786,7 @@ def test_kasp_inherit_view(number, dynamic, inline_signing, txt_rdata, servers):
     key1.metadata["Length"] = ECDSAP384SHA384.bits
     keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
 
-    isctest.kasp.check_zone_is_signed(server, zone, tsig=tsig)
+    isctest.kasp.check_dnssec_verify(server, zone, tsig=tsig)
     isctest.kasp.check_keys(zone, keys, [key1])
     set_keytimes_default_policy(key1)
     isctest.kasp.check_keytimes(keys, [key1])
@@ -839,7 +839,7 @@ def test_kasp_default(servers):
     ]
     expected = isctest.kasp.policy_to_properties(ttl=3600, keys=keyprops)
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     set_keytimes_default_policy(expected[0])
     isctest.kasp.check_keytimes(keys, expected)
@@ -900,6 +900,7 @@ def test_kasp_default(servers):
         watcher.wait_for_line(f"zone {zone}/IN (signed): {expectmsg}")
     # Nothing has changed.
     expected[0].properties["private"] = False
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     isctest.kasp.check_keytimes(keys, expected)
     check_all(server, zone, policy, keys, [])
@@ -911,7 +912,7 @@ def test_kasp_default(servers):
     key1 = KeyProperties.default()
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     expected = [key1]
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     set_keytimes_default_policy(key1)
     isctest.kasp.check_keytimes(keys, expected)
@@ -930,7 +931,7 @@ def test_kasp_dynamic(servers):
     key1 = KeyProperties.default()
     expected = [key1]
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     set_keytimes_default_policy(key1)
     expected = [key1]
@@ -1014,7 +1015,7 @@ def test_kasp_dynamic(servers):
     key1 = KeyProperties.default()
     expected = [key1]
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     set_keytimes_default_policy(key1)
     expected = [key1]
@@ -1053,7 +1054,7 @@ def test_kasp_dynamic(servers):
     key1.metadata["DSState"] = "omnipresent"
     expected = [key1]
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3/keys")
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     check_all(server, zone, policy, keys, [])
     # Ensure no zone_resigninc for the unsigned version of the zone is triggered.
@@ -1079,7 +1080,7 @@ def test_kasp_checkds(servers):
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     ksks = [k for k in keys if k.is_ksk()]
     zsks = [k for k in keys if k.is_zsk()]
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     check_all(server, zone, policy, ksks, zsks)
 
@@ -1123,7 +1124,7 @@ def test_kasp_checkds_doubleksk(servers):
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     ksks = [k for k in keys if k.is_ksk()]
     zsks = [k for k in keys if k.is_zsk()]
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     check_all(server, zone, policy, ksks, zsks)
 
@@ -1196,7 +1197,7 @@ def test_kasp_checkds_csk(servers):
     ]
     expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     check_all(server, zone, policy, keys, [])
 
@@ -1482,7 +1483,7 @@ def test_kasp_zsk_retired(servers):
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     ksks = [k for k in keys if k.is_ksk()]
     zsks = [k for k in keys if not k.is_ksk()]
-    isctest.kasp.check_zone_is_signed(server, zone)
+    isctest.kasp.check_dnssec_verify(server, zone)
     isctest.kasp.check_keys(zone, keys, expected)
 
     offset = -timedelta(days=30 * 6)

@@ -611,57 +611,6 @@ class Key:
         return self.path
 
 
-def check_zone_is_signed(server, zone, tsig=None):
-    addr = server.ip
-    fqdn = f"{zone}."
-
-    # wait until zone is fully signed
-    signed = False
-    for _ in range(10):
-        response = _query(server, fqdn, dns.rdatatype.NSEC, tsig=tsig)
-        if not isinstance(response, dns.message.Message):
-            isctest.log.debug(f"no response for {fqdn} NSEC from {addr}")
-        elif response.rcode() != dns.rcode.NOERROR:
-            rcode = dns.rcode.to_text(response.rcode())
-            isctest.log.debug(f"{rcode} response for {fqdn} NSEC from {addr}")
-        else:
-            has_nsec = False
-            has_rrsig = False
-            for rr in response.answer:
-                if not has_nsec:
-                    has_nsec = rr.match(
-                        dns.name.from_text(fqdn),
-                        dns.rdataclass.IN,
-                        dns.rdatatype.NSEC,
-                        dns.rdatatype.NONE,
-                    )
-                if not has_rrsig:
-                    has_rrsig = rr.match(
-                        dns.name.from_text(fqdn),
-                        dns.rdataclass.IN,
-                        dns.rdatatype.RRSIG,
-                        dns.rdatatype.NSEC,
-                    )
-
-            if not has_nsec:
-                isctest.log.debug(
-                    f"missing apex {fqdn} NSEC record in response from {addr}"
-                )
-            if not has_rrsig:
-                isctest.log.debug(
-                    f"missing {fqdn} NSEC signature in response from {addr}"
-                )
-
-            signed = has_nsec and has_rrsig
-
-        if signed:
-            break
-
-        time.sleep(1)
-
-    assert signed
-
-
 def check_keys(zone, keys, expected):
     """
     Checks keys for a configured zone. This verifies:
