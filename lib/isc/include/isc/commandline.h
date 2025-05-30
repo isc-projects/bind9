@@ -18,6 +18,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
+#include <isc/dir.h>
 #include <isc/result.h>
 #include <isc/types.h>
 
