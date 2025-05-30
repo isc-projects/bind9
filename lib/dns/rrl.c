@@ -205,7 +205,6 @@ set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now) {
 
 static isc_result_t
 expand_entries(dns_rrl_t *rrl, int newsize) {
-	unsigned int bsize;
 	dns_rrl_block_t *b;
 	dns_rrl_entry_t *e;
 	double rate;
@@ -237,10 +236,11 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 			      rrl->hash->length, rate);
 	}
 
-	bsize = sizeof(dns_rrl_block_t) +
-		ISC_CHECKED_MUL((newsize - 1), sizeof(dns_rrl_entry_t));
-	b = isc_mem_cget(rrl->mctx, 1, bsize);
-	b->size = bsize;
+	b = isc_mem_cget(rrl->mctx, 1, STRUCT_FLEX_SIZE(b, entries, newsize));
+	*b = (dns_rrl_block_t){
+		.link = ISC_LINK_INITIALIZER,
+		.count = newsize,
+	};
 
 	e = b->entries;
 	for (i = 0; i < newsize; ++i, ++e) {
@@ -274,16 +274,14 @@ free_old_hash(dns_rrl_t *rrl) {
 	}
 
 	isc_mem_put(rrl->mctx, old_hash,
-		    sizeof(*old_hash) +
-			    ISC_CHECKED_MUL((old_hash->length - 1),
-					    sizeof(old_hash->bins[0])));
+		    STRUCT_FLEX_SIZE(old_hash, bins, old_hash->length));
 	rrl->old_hash = NULL;
 }
 
 static isc_result_t
 expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 	dns_rrl_hash_t *hash;
-	int old_bins, new_bins, hsize;
+	int old_bins, new_bins;
 	double rate;
 
 	if (rrl->old_hash != NULL) {
@@ -301,12 +299,13 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 	}
 	new_bins = hash_divisor(new_bins);
 
-	hsize = sizeof(dns_rrl_hash_t) +
-		ISC_CHECKED_MUL((new_bins - 1), sizeof(hash->bins[0]));
-	hash = isc_mem_cget(rrl->mctx, 1, hsize);
-	hash->length = new_bins;
 	rrl->hash_gen ^= 1;
-	hash->gen = rrl->hash_gen;
+	hash = isc_mem_cget(rrl->mctx, 1,
+			    STRUCT_FLEX_SIZE(hash, bins, new_bins));
+	*hash = (dns_rrl_hash_t){
+		.length = new_bins,
+		.gen = rrl->hash_gen,
+	};
 
 	if (isc_log_wouldlog(DNS_RRL_LOG_DROP) && old_bins != 0) {
 		rate = rrl->probes;
@@ -1283,21 +1282,18 @@ dns_rrl_view_destroy(dns_view_t *view) {
 
 	ISC_LIST_FOREACH (rrl->blocks, b, link) {
 		ISC_LIST_UNLINK(rrl->blocks, b, link);
-		isc_mem_put(rrl->mctx, b, b->size);
+		isc_mem_put(rrl->mctx, b,
+			    STRUCT_FLEX_SIZE(b, entries, b->count));
 	}
 
 	h = rrl->hash;
 	if (h != NULL) {
-		isc_mem_put(rrl->mctx, h,
-			    sizeof(*h) + ISC_CHECKED_MUL((h->length - 1),
-							 sizeof(h->bins[0])));
+		isc_mem_put(rrl->mctx, h, STRUCT_FLEX_SIZE(h, bins, h->length));
 	}
 
 	h = rrl->old_hash;
 	if (h != NULL) {
-		isc_mem_put(rrl->mctx, h,
-			    sizeof(*h) + ISC_CHECKED_MUL((h->length - 1),
-							 sizeof(h->bins[0])));
+		isc_mem_put(rrl->mctx, h, STRUCT_FLEX_SIZE(h, bins, h->length));
 	}
 
 	isc_mem_putanddetach(&rrl->mctx, rrl, sizeof(*rrl));

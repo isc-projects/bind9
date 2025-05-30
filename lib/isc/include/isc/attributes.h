@@ -14,12 +14,16 @@
 #pragma once
 
 /***
- *** Clang Compatibility Macros
+ *** Attribute Compatibility Macros
  ***/
 
-#if !defined(__has_c_attribute)
+#ifndef __has_c_attribute
 #define __has_c_attribute(x) 0
-#endif /* if !defined(__has_c_attribute) */
+#endif /* __has_c_attribute */
+
+#ifndef __has_attribute
+#define __has_attribute(x) 0
+#endif /* __has_attribute */
 
 #if __has_c_attribute(noreturn) && __STDC_VERSION__ >= 202311L
 #define ISC_NORETURN [[noreturn]]
@@ -101,4 +105,10 @@
 #define ISC_ATTR_UNUSED [[maybe_unused]]
 #else
 #define ISC_ATTR_UNUSED __attribute__((__unused__))
+#endif
+
+#if __has_attribute(__counted_by__)
+#define ISC_ATTR_COUNTED_BY(x) __attribute__((__counted_by__(x)))
+#else
+#define ISC_ATTR_COUNTED_BY(x)
 #endif

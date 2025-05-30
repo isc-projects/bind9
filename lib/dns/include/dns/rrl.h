@@ -19,6 +19,9 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include <isc/attributes.h>
 
 #include <dns/fixedname.h>
 #include <dns/rdata.h>
@@ -157,7 +160,7 @@ struct dns_rrl_hash {
 	isc_stdtime_t check_time;
 	unsigned int  gen : DNS_RRL_HASH_GEN_BITS;
 	int	      length;
-	dns_rrl_bin_t bins[1];
+	dns_rrl_bin_t bins[] ISC_ATTR_COUNTED_BY(length);
 };
 
 /*
@@ -166,8 +169,8 @@ struct dns_rrl_hash {
 typedef struct dns_rrl_block dns_rrl_block_t;
 struct dns_rrl_block {
 	ISC_LINK(dns_rrl_block_t) link;
-	int		size;
-	dns_rrl_entry_t entries[1];
+	uint32_t	count;
+	dns_rrl_entry_t entries[] ISC_ATTR_COUNTED_BY(count);
 };
 
 /*
