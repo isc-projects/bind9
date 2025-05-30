@@ -10,7 +10,6 @@
 # information regarding copyright ownership.
 
 import os
-import shutil
 
 from datetime import timedelta
 
@@ -1275,7 +1274,7 @@ def test_rollover_csk_roll2(servers):
         check_rollover_step(server, config, policy, step)
 
 
-def test_rollover_policy_changes(servers):
+def test_rollover_policy_changes(servers, templates):
     server = servers["ns6"]
     cdss = ["CDNSKEY", "CDS (SHA-256)"]
     alg = os.environ["DEFAULT_ALGORITHM_NUMBER"]
@@ -1445,7 +1444,7 @@ def test_rollover_policy_changes(servers):
 
     # Reconfigure, changing DNSSEC policies and other configuration options,
     # triggering algorithm rollovers and other dnssec-policy changes.
-    shutil.copyfile("ns6/named2.conf", "ns6/named.conf")
+    templates.render("ns6/named.conf", {"csk_roll": True})
     server.rndc("reconfig")
     # Calculate time passed to correctly check for next key events.
     now = KeyTimingMetadata.now()
