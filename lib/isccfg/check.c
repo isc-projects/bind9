@@ -1531,7 +1531,7 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 
 	/*
 	 * Check send-report-channel. (Skip for zone level because we
-	 * have an additional check in check_zoneconf() for that.)
+	 * have an additional check in isccfg_check_zoneconf() for that.)
 	 */
 	if (optlevel != optlevel_zone) {
 		obj = NULL;
@@ -2921,12 +2921,13 @@ check:
 	return result;
 }
 
-static isc_result_t
-check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
-	       const cfg_obj_t *config, isc_symtab_t *symtab,
-	       isc_symtab_t *files, isc_symtab_t *keydirs, isc_symtab_t *inview,
-	       const char *viewname, dns_rdataclass_t defclass,
-	       cfg_aclconfctx_t *actx, isc_mem_t *mctx) {
+isc_result_t
+isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
+		      const cfg_obj_t *config, isc_symtab_t *symtab,
+		      isc_symtab_t *files, isc_symtab_t *keydirs,
+		      isc_symtab_t *inview, const char *viewname,
+		      dns_rdataclass_t defclass, cfg_aclconfctx_t *actx,
+		      isc_mem_t *mctx) {
 	const char *znamestr = NULL;
 	const char *typestr = NULL;
 	const char *target = NULL;
@@ -3054,7 +3055,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		cfg_obj_log(zconfig, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", znamestr);
 		result = ISC_R_FAILURE;
-	} else {
+	} else if (symtab != NULL && inview != NULL) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char classbuf[DNS_RDATACLASS_FORMATSIZE];
 		char *key = NULL;
@@ -3713,7 +3714,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Make sure there is no other zone with the same key directory (from
 	 * (key-directory or key-store/directory) and a different dnssec-policy.
 	 */
-	if (zname != NULL) {
+	if (zname != NULL && keydirs != NULL) {
 		if (has_dnssecpolicy) {
 			tresult = check_keydir(config, zconfig, zname, kaspname,
 					       dir, keydirs, mctx);
@@ -3789,7 +3790,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "zone '%s': missing 'file' entry",
 				    znamestr);
 			result = tresult;
-		} else if (tresult == ISC_R_SUCCESS &&
+		} else if (tresult == ISC_R_SUCCESS && files != NULL &&
 			   (ztype == CFG_ZONE_SECONDARY ||
 			    ztype == CFG_ZONE_MIRROR || ddns ||
 			    has_dnssecpolicy))
@@ -3798,7 +3799,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
 			}
-		} else if (tresult == ISC_R_SUCCESS &&
+		} else if (tresult == ISC_R_SUCCESS && files != NULL &&
 			   (ztype == CFG_ZONE_PRIMARY ||
 			    ztype == CFG_ZONE_HINT))
 		{
@@ -5197,9 +5198,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	CFG_LIST_FOREACH (zones, element) {
 		const cfg_obj_t *zone = cfg_listelt_value(element);
 
-		tresult = check_zoneconf(zone, voptions, config, symtab, files,
-					 keydirs, inview, viewname, vclass,
-					 actx, mctx);
+		tresult = isccfg_check_zoneconf(zone, voptions, config, symtab,
+						files, keydirs, inview,
+						viewname, vclass, actx, mctx);
 		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
