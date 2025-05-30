@@ -580,6 +580,7 @@ class AsyncDnsServer(AsyncServer):
         peer = Peer(addr[0], addr[1])
         responses = self._handle_query(wire, peer, DnsProtocol.UDP)
         async for response in responses:
+            logging.debug("Sending UDP message: %s", response.hex())
             transport.sendto(response, addr)
 
     async def _handle_tcp(
@@ -672,6 +673,7 @@ class AsyncDnsServer(AsyncServer):
     ) -> None:
         responses = self._handle_query(wire, peer, DnsProtocol.TCP)
         async for response in responses:
+            logging.debug("Sending TCP response: %s", response.hex())
             writer.write(response)
             await writer.drain()
 
