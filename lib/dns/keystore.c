@@ -17,6 +17,7 @@
 
 #include <isc/assertions.h>
 #include <isc/buffer.h>
+#include <isc/dir.h>
 #include <isc/mem.h>
 #include <isc/time.h>
 #include <isc/util.h>
