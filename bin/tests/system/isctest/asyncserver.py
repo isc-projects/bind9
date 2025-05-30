@@ -533,11 +533,12 @@ class AsyncDnsServer(AsyncServer):
     response from scratch, without using zone data at all.
     """
 
-    def __init__(self):
+    def __init__(self, acknowledge_manual_dname_handling: bool = False) -> None:
         super().__init__(self._handle_udp, self._handle_tcp, "ans.pid")
 
         self._zone_tree: _ZoneTree = _ZoneTree()
         self._response_handlers: List[ResponseHandler] = []
+        self._acknowledge_manual_dname_handling = acknowledge_manual_dname_handling
 
         self._load_zones()
 
@@ -572,10 +573,30 @@ class AsyncDnsServer(AsyncServer):
             entry_path = pathlib.Path(entry.path)
             if entry_path.suffix != ".db":
                 continue
-            origin = dns.name.from_text(entry_path.stem)
-            logging.info("Loading zone file %s", entry_path)
-            zone = dns.zone.from_file(entry.path, origin, relativize=False)
+            zone = self._load_zone(entry_path)
             self._zone_tree.add(zone)
+
+    def _load_zone(self, zone_file_path: pathlib.Path) -> dns.zone.Zone:
+        origin = dns.name.from_text(zone_file_path.stem)
+        logging.info("Loading zone file %s", zone_file_path)
+        with open(zone_file_path, encoding="utf-8") as zone_file:
+            zone = dns.zone.from_file(zone_file, origin, relativize=False)
+        self._abort_if_dname_found_unless_acknowledged(zone)
+        return zone
+
+    def _abort_if_dname_found_unless_acknowledged(self, zone: dns.zone.Zone) -> None:
+        if self._acknowledge_manual_dname_handling:
+            return
+
+        error = f'DNAME records found in zone "{zone.origin}"; '
+        error += "this server does not handle DNAME in a standards-compliant way; "
+        error += "pass `acknowledge_manual_dname_handling=True` to the "
+        error += "AsyncDnsServer constructor to acknowledge this and load zone anyway"
+
+        for node in zone.nodes.values():
+            for rdataset in node:
+                if rdataset.rdtype == dns.rdatatype.DNAME:
+                    raise ValueError(error)
 
     async def _handle_udp(
         self, wire: bytes, addr: Tuple[str, int], transport: asyncio.DatagramTransport
