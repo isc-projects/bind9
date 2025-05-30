@@ -533,14 +533,13 @@ class AsyncDnsServer(AsyncServer):
     response from scratch, without using zone data at all.
     """
 
-    def __init__(self, load_zones: bool = True):
+    def __init__(self):
         super().__init__(self._handle_udp, self._handle_tcp, "ans.pid")
 
         self._zone_tree: _ZoneTree = _ZoneTree()
         self._response_handlers: List[ResponseHandler] = []
 
-        if load_zones:
-            self._load_zones()
+        self._load_zones()
 
     def install_response_handler(
         self, handler: ResponseHandler, prepend: bool = False
