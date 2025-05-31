@@ -968,18 +968,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	result = cfg_map_get(zoptions, "dlz", &obj);
 	if (result == ISC_R_SUCCESS) {
 		const char *dlzname = cfg_obj_asstring(obj);
-		size_t len;
-
-		if (cpval != default_dbtype) {
-			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "zone '%s': both 'database' and 'dlz' "
-				      "specified",
-				      zname);
-			CHECK(ISC_R_FAILURE);
-		}
-
-		len = strlen(dlzname) + 5;
+		size_t len = strlen(dlzname) + 5;
 		cpval = isc_mem_allocate(mctx, len);
 		snprintf(cpval, len, "dlz %s", dlzname);
 	}
@@ -1007,19 +996,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		filename = cfg_obj_asstring(obj);
 	}
 
-	/*
-	 * Unless we're using some alternative database, a primary zone
-	 * will be needing a master file.
-	 */
-	if (ztype == dns_zone_primary && cpval == default_dbtype &&
-	    filename == NULL)
-	{
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_ERROR, "zone '%s': 'file' not specified",
-			      zname);
-		CHECK(ISC_R_FAILURE);
-	}
-
 	if (ztype == dns_zone_secondary || ztype == dns_zone_mirror) {
 		masterformat = dns_masterformat_raw;
 	} else {
@@ -1032,10 +1008,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 		if (strcasecmp(masterformatstr, "text") == 0) {
 			masterformat = dns_masterformat_text;
-		} else if (strcasecmp(masterformatstr, "raw") == 0) {
-			masterformat = dns_masterformat_raw;
 		} else {
-			UNREACHABLE();
+			masterformat = dns_masterformat_raw;
 		}
 	}
 
@@ -1043,22 +1017,10 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	result = named_config_get(maps, "masterfile-style", &obj);
 	if (result == ISC_R_SUCCESS) {
 		const char *masterstylestr = cfg_obj_asstring(obj);
-
-		if (masterformat != dns_masterformat_text) {
-			cfg_obj_log(obj, ISC_LOG_ERROR,
-				    "zone '%s': 'masterfile-style' "
-				    "can only be used with "
-				    "'masterfile-format text'",
-				    zname);
-			CHECK(ISC_R_FAILURE);
-		}
-
 		if (strcasecmp(masterstylestr, "full") == 0) {
 			masterstyle = &dns_master_style_full;
-		} else if (strcasecmp(masterstylestr, "relative") == 0) {
-			masterstyle = &dns_master_style_default;
 		} else {
-			UNREACHABLE();
+			masterstyle = &dns_master_style_default;
 		}
 	}
 
@@ -1329,16 +1291,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				journal_size = -1;
 			}
 		} else {
-			uint64_t value = cfg_obj_asuint64(obj);
-			if (value > DNS_JOURNAL_SIZE_MAX) {
-				cfg_obj_log(obj, ISC_LOG_ERROR,
-					    "'max-journal-size "
-					    "%" PRId64 "' "
-					    "is too large",
-					    value);
-				CHECK(ISC_R_RANGE);
-			}
-			journal_size = (uint32_t)value;
+			journal_size = (uint32_t)cfg_obj_asuint64(obj);
 		}
 		if (raw != NULL) {
 			dns_zone_setjournalsize(raw, journal_size);
@@ -1529,16 +1482,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				journal_size = -1;
 			}
 		} else {
-			uint64_t value = cfg_obj_asuint64(obj);
-			if (value > DNS_JOURNAL_SIZE_MAX) {
-				cfg_obj_log(obj, ISC_LOG_ERROR,
-					    "'max-journal-size "
-					    "%" PRId64 "' "
-					    "is too large",
-					    value);
-				CHECK(ISC_R_RANGE);
-			}
-			journal_size = (uint32_t)value;
+			journal_size = (uint32_t)cfg_obj_asuint64(obj);
 		}
 		dns_zone_setjournalsize(zone, journal_size);
 	}
@@ -1877,22 +1821,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			cfg_obj_asuint32(cfg_tuple_get(obj, "traffic_bytes"));
 		uint32_t time_minutes =
 			cfg_obj_asuint32(cfg_tuple_get(obj, "time_minutes"));
-		if (traffic_bytes == 0) {
-			cfg_obj_log(obj, ISC_LOG_ERROR,
-				    "zone '%s': 'min-transfer-rate-in' bytes"
-				    "value can not be '0'",
-				    zname);
-			CHECK(ISC_R_FAILURE);
-		}
-		/* Max. 28 days (in minutes). */
-		const unsigned int time_minutes_max = 28 * 24 * 60;
-		if (time_minutes < 1 || time_minutes > time_minutes_max) {
-			cfg_obj_log(obj, ISC_LOG_ERROR,
-				    "zone '%s': 'min-transfer-rate-in' minutes"
-				    "value is out of range (1..%u)",
-				    zname, time_minutes_max);
-			CHECK(ISC_R_FAILURE);
-		}
 		dns_zone_setminxfrratein(mayberaw, traffic_bytes,
 					 transferinsecs ? time_minutes
 							: time_minutes * 60);
