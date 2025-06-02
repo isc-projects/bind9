@@ -938,26 +938,6 @@ def test_kasp_dynamic(servers):
     isctest.kasp.check_keytimes(keys, expected)
     check_all(server, zone, policy, keys, [])
 
-    # Update zone with nsupdate.
-    def nsupdate(updates):
-        message = dns.update.UpdateMessage(zone)
-        for update in updates:
-            if update[0] == "del":
-                message.delete(update[1], update[2], update[3])
-            else:
-                assert update[0] == "add"
-                message.add(update[1], update[2], update[3], update[4])
-
-        try:
-            response = isctest.query.udp(
-                message, server.ip, server.ports.dns, timeout=3
-            )
-            assert response.rcode() == dns.rcode.NOERROR
-        except dns.exception.Timeout:
-            assert False, f"update timeout for {zone}"
-
-        isctest.log.debug(f"update of zone {zone} to server {server.ip} successful")
-
     def update_is_signed():
         parts = update.split()
         qname = parts[0]
@@ -967,24 +947,22 @@ def test_kasp_dynamic(servers):
             server, zone, qname, qtype, rdata, keys, []
         )
 
-    updates = [
-        ["del", f"a.{zone}.", "A", "10.0.0.1"],
-        ["add", f"a.{zone}.", 300, "A", "10.0.0.101"],
-        ["add", f"d.{zone}.", 300, "A", "10.0.0.4"],
-    ]
-    nsupdate(updates)
+    update_msg = dns.update.UpdateMessage(zone)
+    update_msg.delete(f"a.{zone}.", "A", "10.0.0.1")
+    update_msg.add(f"a.{zone}.", 300, "A", "10.0.0.101")
+    update_msg.add(f"d.{zone}.", 300, "A", "10.0.0.4")
+    server.nsupdate(update_msg)
 
     expected_updates = [f"a.{zone}. A 10.0.0.101", f"d.{zone}. A 10.0.0.4"]
     for update in expected_updates:
         isctest.run.retry_with_timeout(update_is_signed, timeout=5)
 
-    # Update zone with nsupdate (reverting the above change).
-    updates = [
-        ["add", f"a.{zone}.", 300, "A", "10.0.0.1"],
-        ["del", f"a.{zone}.", "A", "10.0.0.101"],
-        ["del", f"d.{zone}.", "A", "10.0.0.4"],
-    ]
-    nsupdate(updates)
+    # Update zone (reverting the above change).
+    update_msg = dns.update.UpdateMessage(zone)
+    update_msg.add(f"a.{zone}.", 300, "A", "10.0.0.1")
+    update_msg.delete(f"a.{zone}.", "A", "10.0.0.101")
+    update_msg.delete(f"d.{zone}.", "A", "10.0.0.4")
+    server.nsupdate(update_msg)
 
     update = f"a.{zone}. A 10.0.0.1"
     isctest.run.retry_with_timeout(update_is_signed, timeout=5)
