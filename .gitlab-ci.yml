@@ -186,8 +186,8 @@ stages:
 
 # Alpine Linux
 
-.alpine-3.21-amd64: &alpine_3_21_amd64_image
-  image: "$CI_REGISTRY_IMAGE:alpine-3.21-amd64"
+.alpine-3.22-amd64: &alpine_3_22_amd64_image
+  image: "$CI_REGISTRY_IMAGE:alpine-3.22-amd64"
   <<: *linux_amd64
 
 # AlmaLinux
@@ -828,28 +828,28 @@ cross-version-config-tests:
     expire_in: "1 day"
     when: always
 
-# Jobs for regular GCC builds on Alpine Linux 3.21 (amd64)
+# Jobs for regular GCC builds on Alpine Linux 3.22 (amd64)
 
-gcc:alpine3.21:amd64:
+gcc:alpine3.22:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "${WITHOUT_READLINE}"
-  <<: *alpine_3_21_amd64_image
+  <<: *alpine_3_22_amd64_image
   <<: *build_job
 
-system:gcc:alpine3.21:amd64:
-  <<: *alpine_3_21_amd64_image
+system:gcc:alpine3.22:amd64:
+  <<: *alpine_3_22_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:alpine3.21:amd64
+    - job: gcc:alpine3.22:amd64
       artifacts: true
 
-unit:gcc:alpine3.21:amd64:
-  <<: *alpine_3_21_amd64_image
+unit:gcc:alpine3.22:amd64:
+  <<: *alpine_3_22_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:alpine3.21:amd64
+    - job: gcc:alpine3.22:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Alma Linux 8 (amd64)
