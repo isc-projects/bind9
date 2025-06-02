@@ -368,6 +368,10 @@ danger:
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
     - hazard
+  after_script:
+    # insist on running danger job even if user canceled it while it was running
+    - test "$CI_JOB_STATUS" != "canceled" && exit 0
+    - !reference [danger, script]
   only:
     refs:
       - merge_requests
