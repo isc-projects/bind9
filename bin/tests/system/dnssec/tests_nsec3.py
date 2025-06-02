@@ -27,11 +27,11 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from hypothesis import assume, given
-
 from isctest.hypothesis.strategies import dns_names
 import isctest
 import isctest.name
+
+from hypothesis import assume, given
 
 SUFFIX = dns.name.from_text("nsec3.example.")
 AUTH = "10.53.0.3"
