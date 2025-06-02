@@ -141,7 +141,7 @@ Multi-token records
 echo -e 'IN TXT two words \\n' | named-rrchecker -p
   * Valid TXT RR with two unquoted words and trailing whitespace.
   * Output: ``IN	TXT	"two" "words"``
-  * Two unquoted words in the input are treated as two `<character-string>`s per :rfc:`1035#section-3.3.14`.
+  * Two unquoted words in the input are treated as two `<character-string>`\ s per :rfc:`1035#section-3.3.14`.
   * Trailing whitespace is omitted from the last `<character-string>`.
 
 echo -e 'IN TXT "two words" \\n' | named-rrchecker -p
