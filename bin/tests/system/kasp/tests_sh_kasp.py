@@ -58,6 +58,8 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns*/*.zsk2",
         "ns3/legacy-keys.*",
         "ns3/dynamic-signed-inline-signing.kasp.db.signed.signed",
+        "ns4/purgekeys.conf",
+        "ns4/purgekeys2.conf",
     ]
 )
 

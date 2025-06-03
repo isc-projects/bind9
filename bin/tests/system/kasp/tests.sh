@@ -2105,6 +2105,33 @@ check_signatures TXT "dig.out.$DIR.test$n.txt" "ZSK"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+#
+# Test purge-keys in combination with views [GL #5315].
+#
+set_zone "purgekeys.kasp"
+set_policy "purgekeys" "2" "3600"
+set_server "ns4" "10.53.0.4"
+
+TSIG="$DEFAULT_HMAC:keyforview1:$VIEW1"
+wait_for_nsec
+dnssec_verify
+
+TSIG="$DEFAULT_HMAC:keyforview2:$VIEW2"
+wait_for_nsec
+dnssec_verify
+
+# Reconfig, make sure the purged key is not an issue when verifying keys.
+cp ns4/purgekeys2.conf ns4/purgekeys.conf || ret=1
+nextpart ns4/named.run >/dev/null
+rndccmd 10.53.0.4 reconfig || ret=1
+wait_for_log 3 "keymgr: $ZONE done" ns4/named.run || ret=1
+
+grep "zone $ZONE/IN/example1 (signed): zone_rekey:zone_verifykeys failed: some key files are missing" ns4/named.run && ret=1
+grep "zone $ZONE/IN/example2 (signed): zone_rekey:zone_verifykeys failed: some key files are missing" ns4/named.run && ret=1
+
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 # Clear TSIG.
 TSIG=""
 
