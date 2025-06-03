@@ -78,6 +78,8 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns*/policies/*.conf",
         "ns3/legacy-keys.*",
         "ns3/dynamic-signed-inline-signing.kasp.db.signed.signed",
+        "ns4/purgekeys.conf",
+        "ns4/purgekeys2.conf",
     ]
 )
 
@@ -1563,6 +1565,33 @@ def test_kasp_zsk_retired(servers):
         watcher.wait_for_line(f"keymgr: {zone} done")
 
     msg = f"zone {zone}/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
+    server.log.prohibit(msg)
+
+
+def test_kasp_purge_keys(servers):
+    zone = "purgekeys.kasp"
+    server = servers["ns4"]
+
+    tsig1 = (
+        f"{os.environ['DEFAULT_HMAC']}:keyforview1:{KASP_INHERIT_TSIG_SECRET['view1']}"
+    )
+    tsig2 = (
+        f"{os.environ['DEFAULT_HMAC']}:keyforview2:{KASP_INHERIT_TSIG_SECRET['view2']}"
+    )
+
+    isctest.kasp.check_dnssec_verify(server, zone, tsig=tsig1)
+    isctest.kasp.check_dnssec_verify(server, zone, tsig=tsig2)
+
+    # Reconfig, make sure the purged key is not an issue when verifying keys.
+    shutil.copyfile("ns4/purgekeys2.conf", "ns4/purgekeys.conf")
+    with server.watch_log_from_here() as watcher:
+        server.rndc("reconfig", log=False)
+        watcher.wait_for_line(f"keymgr: {zone} done")
+
+    msg = f"zone {zone}/IN/example1 (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
+    server.log.prohibit(msg)
+
+    msg = f"zone {zone}/IN/example2 (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
     server.log.prohibit(msg)
 
 
