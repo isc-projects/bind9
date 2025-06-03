@@ -29,6 +29,7 @@ import isctest.name
 # set of properies present in the tested zone - read by tests_zone_analyzer.py
 CATEGORIES = frozenset(
     [
+        "all_existing_names",
         "delegations",
         "dnames",
         "ents",
@@ -37,6 +38,7 @@ CATEGORIES = frozenset(
         "reachable_delegations",
         "reachable_dnames",
         "reachable_wildcards",
+        "reachable_wildcard_parents",
         "wildcards",
     ]
 )
@@ -73,6 +75,7 @@ def name2tags(name):
         tags.add("occluded")
 
     if "occluded" not in tags:
+        tags.add("all_existing_names")
         if "delegations" in tags:
             # delegations are ambiguous and don't count as 'reachable'
             tags.add("reachable_delegations")
@@ -110,10 +113,23 @@ def add_ents(nodes):
             except ValueError:
                 break
             entname = Name(name[entidx:])
-            new_ents[entname] = {"ents"}
+            new_ents[entname] = {"all_existing_names", "ents"}
             entidx += 1
 
     return new_ents
+
+
+def tag_wildcard_parents(nodes):
+    """
+    Non-occluded nodes with '*' as a leftmost label tag their immediate parent
+    nodes as 'reachable_wildcard_parents'.
+    """
+    for name, tags in nodes.items():
+        if "occluded" in tags or not name.is_wild():
+            continue
+
+        parent_name = Name(name[1:])
+        nodes[parent_name].add("reachable_wildcard_parents")
 
 
 def is_non_ent(labels):
@@ -180,10 +196,11 @@ def generate_test_data():
         for labelseq in filter(is_non_ent, itertools.product(LABELS, repeat=length)):
             gen_node(nodes, labelseq)
 
-    nodes.update(add_ents(nodes))
-
     # special-case to make this look as a valid DNS zone - it needs zone origin node
-    nodes[Name([])] = {"reachable"}
+    nodes[Name([])] = {"all_existing_names", "reachable"}
+
+    nodes.update(add_ents(nodes))
+    tag_wildcard_parents(nodes)
 
     with open("analyzer.db", "w", encoding="ascii") as outf:
         outf.writelines(gen_zone(nodes))

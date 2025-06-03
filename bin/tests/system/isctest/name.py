@@ -46,6 +46,7 @@ class ZoneAnalyzer:
       - have NS RR on it, are not zone's apex, and are not occluded
     - reachable_dnames - have DNAME RR on it and are not occluded
     - reachable_wildcards - have leftmost label '*' and are not occluded
+    - reachable_wildcard_parents - reachable_wildcards with leftmost '*' stripped
 
     Warnings:
     - Quadratic complexity ahead! Use only on small test zones.
@@ -73,6 +74,16 @@ class ZoneAnalyzer:
         self.ents = self.generate_ents()
         self.reachable_dnames = self.dnames.intersection(self.reachable)
         self.reachable_wildcards = self.wildcards.intersection(self.reachable)
+        self.reachable_wildcard_parents = {
+            Name(wname[1:]) for wname in self.reachable_wildcards
+        }
+
+        # (except for wildcard expansions) all names in zone which result in NOERROR answers
+        self.all_existing_names = (
+            self.reachable.union(self.ents)
+            .union(self.reachable_delegations)
+            .union(self.reachable_dnames)
+        )
 
     def get_names_with_type(self, rdtype) -> FrozenSet[Name]:
         return frozenset(
@@ -154,6 +165,31 @@ class ZoneAnalyzer:
                 _, super_name = super_name.split(len(super_name) - 1)
 
         return frozenset(ents)
+
+    def closest_encloser(self, qname: Name):
+        """
+        Get (closest encloser, next closer name) for given qname.
+        """
+        ce = None  # Closest encloser, RFC 4592
+        nce = None  # Next closer name, RFC 5155
+        for zname in self.all_existing_names:
+            relation, _, common_labels = qname.fullcompare(zname)
+            if relation == NameRelation.SUBDOMAIN:
+                if not ce or common_labels > len(ce):
+                    # longest match so far
+                    ce = zname
+                    _, nce = qname.split(len(ce) + 1)
+        assert ce is not None
+        assert nce is not None
+        return ce, nce
+
+    def source_of_synthesis(self, qname: Name) -> Name:
+        """
+        Return source of synthesis according to RFC 4592 section 3.3.1.
+        Name is not guaranteed to exist or be reachable.
+        """
+        ce, _ = self.closest_encloser(qname)
+        return Name("*") + ce
 
 
 def is_related_to_any(
