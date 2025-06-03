@@ -392,7 +392,7 @@ chunk_size_raw(void) {
 }
 
 static void *
-chunk_get_raw(dns_qp_t *qp) {
+chunk_get_raw(dns_qp_t *qp, size_t len) {
 	if (qp->write_protect) {
 		size_t size = chunk_size_raw();
 		void *ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
@@ -400,7 +400,7 @@ chunk_get_raw(dns_qp_t *qp) {
 		RUNTIME_CHECK(ptr != MAP_FAILED);
 		return ptr;
 	} else {
-		return isc_mem_allocate(qp->mctx, QP_CHUNK_BYTES);
+		return isc_mem_allocate(qp->mctx, len);
 	}
 }
 
