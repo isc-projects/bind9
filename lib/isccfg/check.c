@@ -45,6 +45,7 @@
 #include <dns/acl.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
+#include <dns/journal.h>
 #include <dns/kasp.h>
 #include <dns/keystore.h>
 #include <dns/keyvalues.h>
@@ -1531,7 +1532,7 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 
 	/*
 	 * Check send-report-channel. (Skip for zone level because we
-	 * have an additional check in check_zoneconf() for that.)
+	 * have an additional check in isccfg_check_zoneconf() for that.)
 	 */
 	if (optlevel != optlevel_zone) {
 		obj = NULL;
@@ -2921,12 +2922,39 @@ check:
 	return result;
 }
 
+/*
+ * Try to find a zone option in one of up to three levels of options:
+ * for example, the zone, view, and global option blocks.
+ * (Fewer levels can be specified for options that aren't defined at
+ * all three levels.)
+ */
 static isc_result_t
-check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
-	       const cfg_obj_t *config, isc_symtab_t *symtab,
-	       isc_symtab_t *files, isc_symtab_t *keydirs, isc_symtab_t *inview,
-	       const char *viewname, dns_rdataclass_t defclass,
-	       cfg_aclconfctx_t *actx, isc_mem_t *mctx) {
+get_zoneopt(const cfg_obj_t *opts1, const cfg_obj_t *opts2,
+	    const cfg_obj_t *opts3, const char *name, const cfg_obj_t **objp) {
+	isc_result_t result = ISC_R_NOTFOUND;
+
+	REQUIRE(*objp == NULL);
+
+	if (opts1 != NULL) {
+		result = cfg_map_get(opts1, name, objp);
+	}
+	if (*objp == NULL && opts2 != NULL) {
+		result = cfg_map_get(opts2, name, objp);
+	}
+	if (*objp == NULL && opts3 != NULL) {
+		result = cfg_map_get(opts3, name, objp);
+	}
+
+	return result;
+}
+
+isc_result_t
+isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
+		      const cfg_obj_t *config, isc_symtab_t *symtab,
+		      isc_symtab_t *files, isc_symtab_t *keydirs,
+		      isc_symtab_t *inview, const char *viewname,
+		      dns_rdataclass_t defclass, cfg_aclconfctx_t *actx,
+		      isc_mem_t *mctx) {
 	const char *znamestr = NULL;
 	const char *typestr = NULL;
 	const char *target = NULL;
@@ -3054,7 +3082,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		cfg_obj_log(zconfig, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", znamestr);
 		result = ISC_R_FAILURE;
-	} else {
+	} else if (symtab != NULL && inview != NULL) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char classbuf[DNS_RDATACLASS_FORMATSIZE];
 		char *key = NULL;
@@ -3167,13 +3195,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Check if a dnssec-policy is set.
 	 */
 	obj = NULL;
-	(void)cfg_map_get(zoptions, "dnssec-policy", &obj);
-	if (obj == NULL && voptions != NULL) {
-		(void)cfg_map_get(voptions, "dnssec-policy", &obj);
-	}
-	if (obj == NULL && goptions != NULL) {
-		(void)cfg_map_get(goptions, "dnssec-policy", &obj);
-	}
+	(void)get_zoneopt(zoptions, voptions, goptions, "dnssec-policy", &obj);
 	if (obj != NULL) {
 		kaspname = cfg_obj_asstring(obj);
 		if (strcmp(kaspname, "default") == 0) {
@@ -3236,13 +3258,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * */
 	if (has_dnssecpolicy) {
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "max-zone-ttl", &obj);
-		if (obj == NULL && voptions != NULL) {
-			(void)cfg_map_get(voptions, "max-zone-ttl", &obj);
-		}
-		if (obj == NULL && goptions != NULL) {
-			(void)cfg_map_get(goptions, "max-zone-ttl", &obj);
-		}
+		(void)get_zoneopt(zoptions, voptions, goptions, "max-zone-ttl",
+				  &obj);
 		if (obj != NULL) {
 			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "zone '%s': option 'max-zone-ttl' "
@@ -3304,13 +3321,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		bool donotify = true;
 
 		obj = NULL;
-		tresult = cfg_map_get(zoptions, "notify", &obj);
-		if (tresult != ISC_R_SUCCESS && voptions != NULL) {
-			tresult = cfg_map_get(voptions, "notify", &obj);
-		}
-		if (tresult != ISC_R_SUCCESS && goptions != NULL) {
-			tresult = cfg_map_get(goptions, "notify", &obj);
-		}
+		tresult = get_zoneopt(zoptions, voptions, goptions, "notify",
+				      &obj);
 		if (tresult == ISC_R_SUCCESS) {
 			if (cfg_obj_isboolean(obj)) {
 				donotify = cfg_obj_asboolean(obj);
@@ -3333,11 +3345,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "'notify' is disabled",
 				    znamestr);
 		}
-		if (tresult != ISC_R_SUCCESS && voptions != NULL) {
-			tresult = cfg_map_get(voptions, "also-notify", &obj);
-		}
-		if (tresult != ISC_R_SUCCESS && goptions != NULL) {
-			tresult = cfg_map_get(goptions, "also-notify", &obj);
+		if (tresult != ISC_R_SUCCESS) {
+			tresult = get_zoneopt(voptions, goptions, NULL,
+					      "also-notify", &obj);
 		}
 		if (tresult == ISC_R_SUCCESS && donotify) {
 			uint32_t count;
@@ -3466,11 +3476,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		 * we should also check for allow-update at the
 		 * view and options levels.
 		 */
-		if (res1 != ISC_R_SUCCESS && voptions != NULL) {
-			res1 = cfg_map_get(voptions, "allow-update", &au);
-		}
-		if (res1 != ISC_R_SUCCESS && goptions != NULL) {
-			res1 = cfg_map_get(goptions, "allow-update", &au);
+		if (res1 != ISC_R_SUCCESS) {
+			res1 = get_zoneopt(voptions, goptions, NULL,
+					   "allow-update", &au);
 		}
 
 		if (res2 == ISC_R_SUCCESS) {
@@ -3549,12 +3557,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	obj = NULL;
 	if (root) {
-		if (voptions != NULL) {
-			(void)cfg_map_get(voptions, "forwarders", &obj);
-		}
-		if (obj == NULL && goptions != NULL) {
-			(void)cfg_map_get(goptions, "forwarders", &obj);
-		}
+		(void)get_zoneopt(voptions, goptions, NULL, "forwarders", &obj);
 	}
 	if (check_forward(config, zoptions, obj) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
@@ -3571,12 +3574,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			/*
 			 * Forward mode not explicitly configured.
 			 */
-			if (voptions != NULL) {
-				cfg_map_get(voptions, "forward", &obj);
-			}
-			if (obj == NULL && goptions != NULL) {
-				cfg_map_get(goptions, "forward", &obj);
-			}
+			(void)get_zoneopt(voptions, goptions, NULL, "forward",
+					  &obj);
 			if (obj == NULL ||
 			    strcasecmp(cfg_obj_asstring(obj), "first") == 0)
 			{
@@ -3678,13 +3677,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Warn if key-directory doesn't exist
 	 */
 	obj = NULL;
-	(void)cfg_map_get(zoptions, "key-directory", &obj);
-	if (obj == NULL && voptions != NULL) {
-		(void)cfg_map_get(voptions, "key-directory", &obj);
-	}
-	if (obj == NULL && goptions != NULL) {
-		(void)cfg_map_get(goptions, "key-directory", &obj);
-	}
+	(void)get_zoneopt(zoptions, voptions, goptions, "key-directory", &obj);
 	if (obj != NULL) {
 		dir = cfg_obj_asstring(obj);
 
@@ -3705,7 +3698,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			cfg_obj_log(obj, ISC_LOG_WARNING,
 				    "key-directory: '%s' %s", dir,
 				    isc_result_totext(tresult));
-			result = tresult;
+			if (result == ISC_R_SUCCESS) {
+				result = tresult;
+			}
 		}
 	}
 
@@ -3713,7 +3708,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Make sure there is no other zone with the same key directory (from
 	 * (key-directory or key-store/directory) and a different dnssec-policy.
 	 */
-	if (zname != NULL) {
+	if (zname != NULL && keydirs != NULL) {
 		if (has_dnssecpolicy) {
 			tresult = check_keydir(config, zconfig, zname, kaspname,
 					       dir, keydirs, mctx);
@@ -3721,7 +3716,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			tresult = keydirexist(zconfig, "key-directory", zname,
 					      dir, kaspname, keydirs, mctx);
 		}
-		if (tresult != ISC_R_SUCCESS) {
+		if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
 	}
@@ -3738,7 +3733,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "'log-report-channel' cannot be set in "
 				    "the root zone");
-			result = ISC_R_FAILURE;
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
 		}
 	}
 
@@ -3746,7 +3743,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Check various options.
 	 */
 	tresult = check_options(zoptions, config, false, mctx, optlevel_zone);
-	if (tresult != ISC_R_SUCCESS) {
+	if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS) {
 		result = tresult;
 	}
 
@@ -3769,7 +3766,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			    "zone '%s': cannot specify both 'dlz' "
 			    "and 'database'",
 			    znamestr);
-		result = ISC_R_FAILURE;
+		if (result == ISC_R_SUCCESS) {
+			result = ISC_R_FAILURE;
+		}
 	} else if (!dlz &&
 		   (tresult == ISC_R_NOTFOUND ||
 		    (tresult == ISC_R_SUCCESS &&
@@ -3788,23 +3787,98 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "zone '%s': missing 'file' entry",
 				    znamestr);
-			result = tresult;
-		} else if (tresult == ISC_R_SUCCESS &&
+			if (result == ISC_R_SUCCESS) {
+				result = tresult;
+			}
+		} else if (tresult == ISC_R_SUCCESS && files != NULL &&
 			   (ztype == CFG_ZONE_SECONDARY ||
 			    ztype == CFG_ZONE_MIRROR || ddns ||
 			    has_dnssecpolicy))
 		{
 			tresult = fileexist(fileobj, files, true);
-			if (tresult != ISC_R_SUCCESS) {
+			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
+			{
 				result = tresult;
 			}
-		} else if (tresult == ISC_R_SUCCESS &&
+		} else if (tresult == ISC_R_SUCCESS && files != NULL &&
 			   (ztype == CFG_ZONE_PRIMARY ||
 			    ztype == CFG_ZONE_HINT))
 		{
 			tresult = fileexist(fileobj, files, false);
-			if (tresult != ISC_R_SUCCESS) {
+			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
+			{
 				result = tresult;
+			}
+		}
+	}
+
+	/*
+	 * Check that masterfile-format and masterfile-style are
+	 * consistent.
+	 */
+	obj = NULL;
+	tresult = get_zoneopt(zoptions, voptions, goptions, "masterfile-format",
+			      &obj);
+	if (tresult == ISC_R_SUCCESS &&
+	    strcasecmp(cfg_obj_asstring(obj), "raw") == 0)
+	{
+		obj = NULL;
+		tresult = get_zoneopt(zoptions, voptions, goptions,
+				      "masterfile-style", &obj);
+		if (tresult == ISC_R_SUCCESS) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "zone '%s': 'masterfile-style' "
+				    "can only be used with "
+				    "'masterfile-format text'",
+				    znamestr);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+
+	obj = NULL;
+	(void)get_zoneopt(zoptions, voptions, goptions, "max-journal-size",
+			  &obj);
+	if (obj != NULL && cfg_obj_isuint64(obj)) {
+		uint64_t value = cfg_obj_asuint64(obj);
+		if (value > DNS_JOURNAL_SIZE_MAX) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "'max-journal-size %" PRId64 "' "
+				    "is too large",
+				    value);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_RANGE;
+			}
+		}
+	}
+
+	obj = NULL;
+	(void)get_zoneopt(zoptions, voptions, goptions, "min-transfer-rate-in",
+			  &obj);
+	if (obj != NULL) {
+		uint32_t traffic_bytes =
+			cfg_obj_asuint32(cfg_tuple_get(obj, "traffic_bytes"));
+		uint32_t time_minutes =
+			cfg_obj_asuint32(cfg_tuple_get(obj, "time_minutes"));
+		if (traffic_bytes == 0) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "zone '%s': 'min-transfer-rate-in' bytes "
+				    "value cannot be '0'",
+				    znamestr);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_RANGE;
+			}
+		}
+		/* Max. 28 days (in minutes). */
+		const unsigned int time_minutes_max = 28 * 24 * 60;
+		if (time_minutes < 1 || time_minutes > time_minutes_max) {
+			cfg_obj_log(obj, ISC_LOG_ERROR,
+				    "zone '%s': 'min-transfer-rate-in' minutes "
+				    "value is out of range (1..%u)",
+				    znamestr, time_minutes_max);
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_RANGE;
 			}
 		}
 	}
@@ -5197,9 +5271,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	CFG_LIST_FOREACH (zones, element) {
 		const cfg_obj_t *zone = cfg_listelt_value(element);
 
-		tresult = check_zoneconf(zone, voptions, config, symtab, files,
-					 keydirs, inview, viewname, vclass,
-					 actx, mctx);
+		tresult = isccfg_check_zoneconf(zone, voptions, config, symtab,
+						files, keydirs, inview,
+						viewname, vclass, actx, mctx);
 		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}

@@ -13062,6 +13062,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	   bool redirect, isc_buffer_t **text) {
 	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL;
+	const cfg_obj_t *voptions = NULL;
 #ifndef HAVE_LMDB
 	FILE *fp = NULL;
 	bool cleanup_config = false;
@@ -13119,6 +13120,18 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		goto cleanup;
 	}
 #endif /* HAVE_LMDB */
+
+	/* Check zone syntax */
+	if (cfg->vconfig != NULL) {
+		voptions = cfg_tuple_get(cfg->vconfig, "options");
+	}
+	result = isccfg_check_zoneconf(zoneobj, voptions, cfg->config, NULL,
+				       NULL, NULL, NULL, view->name,
+				       view->rdclass, cfg->actx, cfg->mctx);
+	if (result != ISC_R_SUCCESS) {
+		isc_loopmgr_resume(named_g_loopmgr);
+		goto cleanup;
+	}
 
 	/* Mark view unfrozen and configure zone */
 	dns_view_thaw(view);
@@ -13239,6 +13252,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	   bool redirect, isc_buffer_t **text) {
 	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL;
+	const cfg_obj_t *voptions = NULL;
 	bool added;
 #ifndef HAVE_LMDB
 	FILE *fp = NULL;
@@ -13305,6 +13319,18 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	}
 #endif /* HAVE_LMDB */
 
+	/* Check zone syntax */
+	if (cfg->vconfig != NULL) {
+		voptions = cfg_tuple_get(cfg->vconfig, "options");
+	}
+	result = isccfg_check_zoneconf(zoneobj, voptions, cfg->config, NULL,
+				       NULL, NULL, NULL, view->name,
+				       view->rdclass, cfg->actx, cfg->mctx);
+	if (result != ISC_R_SUCCESS) {
+		isc_loopmgr_resume(named_g_loopmgr);
+		goto cleanup;
+	}
+
 	/* Reconfigure the zone */
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, view,
@@ -13352,8 +13378,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 				view, cfg->conf_parser, cfg->config,
 				dns_zone_getorigin(zone), NULL);
 		} else {
-			const cfg_obj_t *voptions = cfg_tuple_get(cfg->vconfig,
-								  "options");
+			voptions = cfg_tuple_get(cfg->vconfig, "options");
 			result = delete_zoneconf(
 				view, cfg->conf_parser, voptions,
 				dns_zone_getorigin(zone), NULL);

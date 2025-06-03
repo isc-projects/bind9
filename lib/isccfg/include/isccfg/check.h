@@ -17,6 +17,7 @@
 
 #include <isc/types.h>
 
+#include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 
 #ifndef MAX_MIN_CACHE_TTL
@@ -65,4 +66,21 @@ isc_result_t
 isccfg_check_key(const cfg_obj_t *config);
 /*%<
  * Same as isccfg_check_namedconf(), but for a single 'key' statement.
+ */
+
+isc_result_t
+isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
+		      const cfg_obj_t *config, isc_symtab_t *symtab,
+		      isc_symtab_t *files, isc_symtab_t *keydirs,
+		      isc_symtab_t *inview, const char *viewname,
+		      dns_rdataclass_t defclass, cfg_aclconfctx_t *actx,
+		      isc_mem_t *mctx);
+/*%<
+ * Check the syntactic validity of a zone statement, either in a
+ * named.conf file or in an "rndc addzone" or "rndc modzone" command.
+ *
+ * The various isc_symtab_t parameters are used when parsing named.conf
+ * to ensure that names are not duplicated within the file. When
+ * checking syntax of an "rndc addzone" command, these are passed
+ * as NULL and the duplication checks are skipped.
  */
