@@ -290,16 +290,18 @@ dns_zone_getorigin(dns_zone_t *zone);
  */
 
 void
-dns_zone_setfile(dns_zone_t *zone, const char *file, dns_masterformat_t format,
-		 const dns_master_style_t *style);
+dns_zone_setfile(dns_zone_t *zone, const char *file, const char *initial_file,
+		 dns_masterformat_t format, const dns_master_style_t *style);
 /*%<
  *    Sets the name of the master file in the format of 'format' from which
  *    the zone loads its database to 'file'.
  *
  *    For zones that have no associated master file, 'file' will be NULL.
+ *    For some zone types, e.g. secondary zones, 'file' is optional, but
+ *    for primary zones it is mandatory. If the master file does not exist
+ *    during loading, then it will be copied into place from 'initial_file'.
  *
- *	For zones with persistent databases, the file name
- *	setting is ignored.
+ *    For zones with persistent databases, the file name setting is ignored.
  *
  * Require:
  *\li	'zone' to be a valid zone.

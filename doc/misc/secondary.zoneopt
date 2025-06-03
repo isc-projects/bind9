@@ -60,6 +60,7 @@ zone <string> [ <class> ] {
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ]; // obsolete
+	template <string>;
 	transfer-source ( <ipv4_address> | * );
 	transfer-source-v6 ( <ipv6_address> | * );
 	try-tcp-refresh <boolean>;

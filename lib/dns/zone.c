@@ -284,6 +284,7 @@ struct dns_zone {
 	dns_name_t origin;
 	dns_name_t rad;
 	char *masterfile;
+	char *initfile;
 	const FILE *stream;		     /* loading from a stream? */
 	ISC_LIST(dns_include_t) includes;    /* Include files */
 	ISC_LIST(dns_include_t) newincludes; /* Loading */
@@ -1289,9 +1290,13 @@ zone_free(dns_zone_t *zone) {
 	if (zone->masterfile != NULL) {
 		isc_mem_free(zone->mctx, zone->masterfile);
 	}
+	if (zone->initfile != NULL) {
+		isc_mem_free(zone->mctx, zone->initfile);
+	}
 	if (zone->keydirectory != NULL) {
 		isc_mem_free(zone->mctx, zone->keydirectory);
 	}
+
 	if (zone->kasp != NULL) {
 		dns_kasp_detach(&zone->kasp);
 	}
@@ -1792,14 +1797,117 @@ setstring(dns_zone_t *zone, char **field, const char *value) {
 	*field = copy;
 }
 
+static int
+position_order(const void *a, const void *b) {
+	/* sort char pointers in order of which occurs first in memory */
+	return (char *)*(char **)a - (char *)*(char **)b;
+}
+
+static isc_result_t
+putmem(isc_buffer_t *b, const char *base, size_t length) {
+	size_t space = isc_buffer_availablelength(b) - 1;
+	if (space < length) {
+		isc_buffer_putmem(b, (const unsigned char *)base, space);
+		return ISC_R_NOSPACE;
+	}
+
+	isc_buffer_putmem(b, (const unsigned char *)base, length);
+	return ISC_R_SUCCESS;
+}
+
+/*
+ * Set the masterfile field, expanding $name to the zone name,
+ * $type to the zone type, and $view to the view name. Cap the
+ * length at PATH_MAX.
+ */
+static void
+setfilename(dns_zone_t *zone, char **field, const char *value) {
+	isc_result_t result;
+	char *t = NULL, *n = NULL, *v = NULL;
+	char *positions[3];
+	char filename[PATH_MAX];
+	isc_buffer_t b;
+	size_t tags = 0;
+
+	if (value == NULL) {
+		*field = NULL;
+		return;
+	}
+
+	t = strcasestr(value, "$type");
+	if (t != NULL) {
+		positions[tags++] = t;
+	}
+
+	n = strcasestr(value, "$name");
+	if (n != NULL) {
+		positions[tags++] = n;
+	}
+
+	v = strcasestr(value, "$view");
+	if (v != NULL) {
+		positions[tags++] = v;
+	}
+
+	if (tags == 0) {
+		setstring(zone, field, value);
+		return;
+	}
+
+	isc_buffer_init(&b, filename, sizeof(filename));
+
+	/* sort the tag offsets in order of occurrence */
+	qsort(positions, tags, sizeof(char *), position_order);
+
+	const char *p = value;
+	for (size_t i = 0; i < tags; i++) {
+		size_t tokenlen = 0;
+
+		CHECK(putmem(&b, p, (positions[i] - p)));
+
+		p = positions[i];
+		INSIST(p != NULL);
+		if (p == n) {
+			dns_fixedname_t fn;
+			dns_name_t *name = dns_fixedname_initname(&fn);
+			char namebuf[DNS_NAME_FORMATSIZE];
+
+			result = dns_name_downcase(&zone->origin, name);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			CHECK(putmem(&b, namebuf, strlen(namebuf)));
+			tokenlen = 5; /* "$name" */
+		} else if (p == t) {
+			const char *typename = dns_zonetype_name(zone->type);
+			CHECK(putmem(&b, typename, strlen(typename)));
+			tokenlen = 5; /* "$type" */
+		} else if (p == v) {
+			CHECK(putmem(&b, zone->view->name,
+				     strlen(zone->view->name)));
+			tokenlen = 5; /* "$view" */
+		}
+
+		/* Advance the input pointer past the token */
+		p += tokenlen;
+	}
+
+	const char *end = value + strlen(value);
+	putmem(&b, p, end - p);
+
+failure:
+	isc_buffer_putuint8(&b, 0);
+	setstring(zone, field, filename);
+}
+
 void
-dns_zone_setfile(dns_zone_t *zone, const char *file, dns_masterformat_t format,
-		 const dns_master_style_t *style) {
+dns_zone_setfile(dns_zone_t *zone, const char *file, const char *initial_file,
+		 dns_masterformat_t format, const dns_master_style_t *style) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->stream == NULL);
 
 	LOCK_ZONE(zone);
-	setstring(zone, &zone->masterfile, file);
+	setfilename(zone, &zone->masterfile, file);
+	setstring(zone, &zone->initfile, initial_file);
 	zone->masterformat = format;
 	if (format == dns_masterformat_text) {
 		zone->masterstyle = style;
@@ -2105,6 +2213,42 @@ zone_touched(dns_zone_t *zone) {
 	return false;
 }
 
+static isc_result_t
+copy_initfile(dns_zone_t *zone) {
+	isc_result_t result;
+	FILE *input = NULL, *output = NULL;
+	size_t len;
+
+	CHECK(isc_stdio_open(zone->initfile, "r", &input));
+	CHECK(isc_stdio_open(zone->masterfile, "w", &output));
+
+	CHECK(isc_file_getsizefd(fileno(input), (off_t *)&len));
+
+	do {
+		char buf[BUFSIZ];
+		size_t rval;
+
+		result = isc_stdio_read(buf, 1, sizeof(buf), input, &rval);
+		if (result != ISC_R_SUCCESS && result != ISC_R_EOF) {
+			goto failure;
+		}
+		CHECK(isc_stdio_write(buf, rval, 1, output, NULL));
+		len -= rval;
+	} while (len > 0);
+
+failure:
+	if (input != NULL) {
+		isc_stdio_close(input);
+	}
+	if (output != NULL) {
+		if (result != ISC_R_SUCCESS) {
+			isc_file_remove(zone->masterfile);
+		}
+		isc_stdio_close(output);
+	}
+	return result;
+}
+
 /*
  * Note: when dealing with inline-signed zones, external callers will always
  * call zone_load() for the secure zone; zone_load() calls itself recursively
@@ -2344,6 +2488,22 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 			}
 			result = ISC_R_SUCCESS;
 			goto cleanup;
+		}
+	}
+
+	if (zone->type == dns_zone_primary && zone->masterfile != NULL &&
+	    !isc_file_exists(zone->masterfile) && zone->initfile != NULL)
+	{
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_INFO,
+			      "zone file %s not found; copying initial "
+			      "file %s",
+			      zone->masterfile, zone->initfile);
+		result = copy_initfile(zone);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_ERROR, "copy from %s failed: %s",
+				      zone->initfile,
+				      isc_result_totext(result));
 		}
 	}
 

@@ -28,6 +28,12 @@ controls {
 	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+template primary {
+	type primary;
+	file "$view-$name.db";
+	initial-file "added.db";
+};
+
 zone "." {
 	type hint;
 	file "../../_common/root.hint";

@@ -120,7 +120,8 @@ nsec3param_change_test(const nsec3param_change_test_params_t *test) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_zone_setfile(zone, TESTS_DIR "/testdata/nsec3param/nsec3.db.signed",
-			 dns_masterformat_text, &dns_master_style_default);
+			 NULL, dns_masterformat_text,
+			 &dns_master_style_default);
 
 	result = dns_zone_load(zone, false);
 	assert_int_equal(result, ISC_R_SUCCESS);

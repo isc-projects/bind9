@@ -67,3 +67,7 @@ named_config_getport(const cfg_obj_t *config, const char *type,
 isc_result_t
 named_config_getkeyalgorithm(const char *str, unsigned int *typep,
 			     uint16_t *digestbits);
+
+isc_result_t
+named_config_findopt(const cfg_obj_t *opts1, const cfg_obj_t *opts2,
+		     const char *name, const cfg_obj_t **objp);

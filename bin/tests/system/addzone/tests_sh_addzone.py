@@ -26,6 +26,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns2/K*.private",
         "ns2/K*.state",
         "ns2/external.nzd",
+        "ns2/external-template.example.db",
         "ns2/extra.nzd",
         "ns2/inline.db.jbk",
         "ns2/inline.db.signed",

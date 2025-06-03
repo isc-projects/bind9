@@ -3097,12 +3097,12 @@ cleanup:
 
 static isc_result_t
 create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
-		  const cfg_obj_t *zonelist, const char **empty_dbtype,
-		  int empty_dbtypec, dns_zonestat_level_t statlevel) {
+		  const cfg_obj_t *config, const cfg_obj_t *voptions,
+		  const char **empty_dbtype, int empty_dbtypec,
+		  dns_zonestat_level_t statlevel) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	const cfg_obj_t *obj = NULL;
-	const cfg_obj_t *zconfig = NULL;
-	const cfg_obj_t *zoptions = NULL;
+	const cfg_obj_t *zonelist = NULL;
 	const char *default_dbtype[4] = { ZONEDB_DEFAULT };
 	const char *sep = ": view ";
 	const char *str = NULL;
@@ -3126,12 +3126,20 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	ns = dns_fixedname_initname(&nsfixed);
 	contact = dns_fixedname_initname(&cfixed);
 
+	if (voptions != NULL) {
+		(void)cfg_map_get(voptions, "zone", &zonelist);
+	} else {
+		(void)cfg_map_get(config, "zone", &zonelist);
+	}
 	/*
 	 * Look for forward "zones" beneath this empty zone and if so
 	 * create a custom db for the empty zone.
 	 */
 	CFG_LIST_FOREACH (zonelist, element) {
-		zconfig = cfg_listelt_value(element);
+		const cfg_obj_t *zconfig = cfg_listelt_value(element);
+		const cfg_obj_t *zoptions = cfg_tuple_get(zconfig, "options");
+		const cfg_obj_t *toptions = NULL;
+
 		str = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 		CHECK(dns_name_fromstring(zname, str, dns_rootname, 0, NULL));
 		namereln = dns_name_fullcompare(zname, name, &order, &nlabels);
@@ -3139,15 +3147,16 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 			continue;
 		}
 
-		zoptions = cfg_tuple_get(zconfig, "options");
+		toptions = named_zone_templateopts(config, zoptions);
 
 		obj = NULL;
-		(void)cfg_map_get(zoptions, "type", &obj);
+		(void)named_config_findopt(zoptions, toptions, "type", &obj);
 		if (obj != NULL &&
 		    strcasecmp(cfg_obj_asstring(obj), "forward") == 0)
 		{
 			obj = NULL;
-			(void)cfg_map_get(zoptions, "forward", &obj);
+			(void)named_config_findopt(zoptions, toptions,
+						   "forward", &obj);
 			if (obj == NULL) {
 				continue;
 			}
@@ -5468,9 +5477,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 				dns_view_detach(&pview);
 			}
 
-			CHECK(create_empty_zone(zone, name, view, zonelist,
-						empty_dbtype, empty_dbtypec,
-						statlevel));
+			CHECK(create_empty_zone(zone, name, view, config,
+						voptions, empty_dbtype,
+						empty_dbtypec, statlevel));
 			if (zone != NULL) {
 				dns_zone_detach(&zone);
 			}
@@ -6151,6 +6160,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	dns_zone_t *dupzone = NULL;
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *zoptions = NULL;
+	const cfg_obj_t *toptions = NULL;
 	const cfg_obj_t *typeobj = NULL;
 	const cfg_obj_t *forwarders = NULL;
 	const cfg_obj_t *forwardtype = NULL;
@@ -6160,10 +6170,10 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	isc_result_t tresult;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
-	dns_name_t *origin;
-	const char *zname;
+	dns_name_t *origin = NULL;
+	const char *zname = NULL;
 	dns_rdataclass_t zclass;
-	const char *ztypestr;
+	const char *ztypestr = NULL;
 	dns_rpz_num_t rpz_num;
 	bool zone_is_catz = false;
 	bool zone_maybe_inline = false;
@@ -6174,6 +6184,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	(void)cfg_map_get(config, "options", &options);
 
 	zoptions = cfg_tuple_get(zconfig, "options");
+	toptions = named_zone_templateopts(config, zoptions);
 
 	/*
 	 * Get the zone origin as a dns_name_t.
@@ -6258,7 +6269,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		goto cleanup;
 	}
 
-	(void)cfg_map_get(zoptions, "type", &typeobj);
+	(void)named_config_findopt(zoptions, toptions, "type", &typeobj);
 	if (typeobj == NULL) {
 		cfg_obj_log(zconfig, ISC_LOG_ERROR,
 			    "zone '%s' 'type' not specified", zname);
@@ -6273,7 +6284,9 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 */
 	if (strcasecmp(ztypestr, "hint") == 0) {
 		const cfg_obj_t *fileobj = NULL;
-		if (cfg_map_get(zoptions, "file", &fileobj) != ISC_R_SUCCESS) {
+		(void)named_config_findopt(zoptions, toptions, "file",
+					   &fileobj);
+		if (fileobj == NULL) {
 			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "zone '%s': 'file' not specified", zname);
@@ -6303,8 +6316,10 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		forwardtype = NULL;
 		forwarders = NULL;
 
-		(void)cfg_map_get(zoptions, "forward", &forwardtype);
-		(void)cfg_map_get(zoptions, "forwarders", &forwarders);
+		(void)named_config_findopt(zoptions, toptions, "forward",
+					   &forwardtype);
+		(void)named_config_findopt(zoptions, toptions, "forwarders",
+					   &forwarders);
 		CHECK(configure_forward(config, view, origin, forwarders,
 					forwardtype));
 		goto cleanup;
@@ -6463,9 +6478,11 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * selective forwarding.
 	 */
 	forwarders = NULL;
-	if (cfg_map_get(zoptions, "forwarders", &forwarders) == ISC_R_SUCCESS) {
+	named_config_findopt(zoptions, toptions, "forwarders", &forwarders);
+	if (forwarders != NULL) {
 		forwardtype = NULL;
-		(void)cfg_map_get(zoptions, "forward", &forwardtype);
+		named_config_findopt(zoptions, toptions, "forward",
+				     &forwardtype);
 		CHECK(configure_forward(config, view, origin, forwarders,
 					forwardtype));
 	}
@@ -6497,9 +6514,9 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			dns_zone_setstats(raw, named_g_server->zonestats);
 			CHECK(dns_zone_link(zone, raw));
 		}
-		if (cfg_map_get(zoptions, "ixfr-from-differences",
-				&ixfrfromdiffs) == ISC_R_SUCCESS)
-		{
+		named_config_findopt(zoptions, toptions,
+				     "ixfr-from-differences", &ixfrfromdiffs);
+		if (ixfrfromdiffs != NULL) {
 			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 				      "zone '%s': 'ixfr-from-differences' is "
@@ -6599,7 +6616,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	CHECK(isc_file_sanitize(
 		directory, defaultview ? "managed-keys" : view->name,
 		defaultview ? "bind" : "mkeys", filename, sizeof(filename)));
-	dns_zone_setfile(zone, filename, dns_masterformat_text,
+	dns_zone_setfile(zone, filename, NULL, dns_masterformat_text,
 			 &dns_master_style_default);
 
 	dns_zone_setview(zone, view);
@@ -12459,11 +12476,9 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 		}
 	} else {
 		/* We're creating or overwriting the zone */
-		const cfg_obj_t *zoptions;
+		const cfg_obj_t *zoptions = cfg_tuple_get(zconfig, "options");
 
 		isc_buffer_allocate(view->mctx, &text, 256);
-
-		zoptions = cfg_tuple_get(zconfig, "options");
 		if (zoptions == NULL) {
 			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -12785,15 +12800,13 @@ load_nzf(dns_view_t *view, ns_cfgctx_t *nzcfg) {
 	isc_buffer_allocate(view->mctx, &text, 256);
 
 	CFG_LIST_FOREACH (zonelist, element) {
-		const cfg_obj_t *zconfig;
+		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		const cfg_obj_t *zoptions;
 		char zname[DNS_NAME_FORMATSIZE];
 		dns_fixedname_t fname;
-		dns_name_t *name;
-		const char *origin;
+		dns_name_t *name = NULL;
+		const char *origin = NULL;
 		isc_buffer_t b;
-
-		zconfig = cfg_listelt_value(element);
 
 		origin = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 		if (origin == NULL) {
@@ -12943,10 +12956,15 @@ newzone_parse(named_server_t *server, char *command, dns_view_t **viewp,
 		if (obj != NULL) {
 			(void)putstr(text, "'in-view' zones not supported by ");
 			(void)putstr(text, bn);
-		} else {
-			(void)putstr(text, "zone type not specified");
+			CHECK(ISC_R_FAILURE);
 		}
-		CHECK(ISC_R_FAILURE);
+
+		(void)cfg_map_get(zoptions, "template", &obj);
+		if (obj == NULL) {
+			(void)putstr(text, "no zone type or "
+					   "template specified");
+			CHECK(ISC_R_FAILURE);
+		}
 	}
 
 	if (strcasecmp(cfg_obj_asstring(obj), "hint") == 0 ||
@@ -13518,14 +13536,12 @@ named_server_changezone(named_server_t *server, char *command,
 		(void)putstr(text, "Not allowing new zones in view '");
 		(void)putstr(text, view->name);
 		(void)putstr(text, "'");
-		result = ISC_R_NOPERM;
-		goto cleanup;
+		CHECK(ISC_R_NOPERM);
 	}
 
 	cfg = (ns_cfgctx_t *)view->new_zone_config;
 	if (cfg == NULL) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
+		CHECK(ISC_R_FAILURE);
 	}
 
 	zonename = cfg_obj_asstring(cfg_tuple_get(zoneobj, "name"));
@@ -13922,12 +13938,16 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 			if (result == ISC_R_SUCCESS &&
 			    dns_name_equal(name1, name2))
 			{
-				const cfg_obj_t *zoptions;
+				const cfg_obj_t *zoptions =
+					cfg_tuple_get(obj, "options");
 				const cfg_obj_t *typeobj = NULL;
-				zoptions = cfg_tuple_get(obj, "options");
 
 				if (zoptions != NULL) {
-					cfg_map_get(zoptions, "type", &typeobj);
+					const cfg_obj_t *toptions =
+						named_zone_templateopts(
+							config, zoptions);
+					named_config_findopt(zoptions, toptions,
+							     "type", &typeobj);
 				}
 				if (redirect && typeobj != NULL &&
 				    strcasecmp(cfg_obj_asstring(typeobj),

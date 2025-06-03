@@ -38,6 +38,7 @@ zone <string> [ <class> ] {
 	request-expire <boolean>;
 	request-ixfr <boolean>;
 	request-ixfr-max-diffs <integer>;
+	template <string>;
 	transfer-source ( <ipv4_address> | * );
 	transfer-source-v6 ( <ipv6_address> | * );
 	try-tcp-refresh <boolean>;

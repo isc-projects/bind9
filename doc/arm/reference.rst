@@ -7038,6 +7038,13 @@ mid-1970s. Zone data for it can be specified with the ``CHAOS`` class.
 Zone Options
 ^^^^^^^^^^^^
 
+.. namedconf:statement:: template
+   :tags: zone
+   :short: Specifies a template to use for zone configuration.
+
+   This specifies a zone template from which to import other zone options.
+   See :ref:`zone_templates` for details.
+
 :any:`allow-notify`
    See the description of :any:`allow-notify` in :ref:`access_control`.
 
@@ -7132,12 +7139,20 @@ Zone Options
    :tags: zone
    :short: Specifies the zone's filename.
 
-   This sets the zone's filename. In :any:`primary <type primary>`, :any:`hint <type hint>`, and :any:`redirect <type redirect>`
+   This sets the zone's filename. In :any:`primary <type primary>`,
+   :any:`hint <type hint>`, and :any:`redirect <type redirect>`
    zones which do not have :any:`primaries` defined, zone data is loaded from
    this file. In :any:`secondary <type secondary>`, :any:`mirror <type mirror>`, :any:`stub <type stub>`, and :any:`redirect <type redirect>` zones
    which do have :any:`primaries` defined, zone data is retrieved from
    another server and saved in this file. This option is not applicable
    to other zone types.
+
+   The filename can be generated parametrically by including special
+   tokens in the string: the first instance of ``$name`` in the string
+   is replaced with the zone name in lower case; the first instance of
+   ``$type`` is replaced with the zone type -- i.e., ``primary``,
+   ``secondary``, etc); and the first instance of ``$view`` is replaced
+   with the view name. These tokens are case-insensitive.
 
 :any:`forward`
    This option is only meaningful if the zone has a forwarders list. The ``only`` value
@@ -7148,6 +7163,34 @@ Zone Options
    This is used to override the list of global forwarders. If it is not
    specified in a zone of type :any:`forward`, no forwarding is done for
    the zone and the global options are not used.
+
+.. namedconf:statement:: initial-file
+   :tags: zone
+   :short: Specifies a file with the initial contents of a newly created zone.
+
+   When a :any:`primary <type primary>` zone is loaded for the first time,
+   if the zone's :any:`file` does not exist but ``initial-file`` does, the
+   zone file is copied into place from the initial file before loading.
+   This can be used to simplify the process of adding new zones, removing
+   the need to create the zone file before configuring the zone. For example,
+   a template zonefile could be used by running:
+
+   ::
+
+      $ rndc addzone example.com \
+        '{ type primary; file "$name.db"; initial-file "template.db"; };'
+
+    This creates a zone ``example.com``, with filename ``example.com.db``.
+
+    Using "@" to reference the zone origin within the initial file
+    allows the same file to be used for multiple zones, as in:
+
+    ::
+
+        $TTL 300
+        @		IN SOA	ns hosmaster 1 1800 1800 86400 3600
+                        NS	ns
+        ns              A       192.0.2.1
 
 .. namedconf:statement:: journal
    :tags: zone
@@ -7340,6 +7383,52 @@ Zone Options
 
 :any:`send-report-channel`
    See the description of :any:`send-report-channel` in :namedconf:ref:`options`.
+
+.. _zone_templates:
+
+Zone Templates
+^^^^^^^^^^^^^^
+
+To simplify the configuration of multiple similar zones, BIND 9
+supports a zone template mechanism. ``template`` blocks can be
+defined at the top level of the configuration; these blocks can
+contain any set of options that could be set in a :any:`zone`
+statement, with the exceptions of :any:`in-view` and :any:`template`.
+
+Once a template has been defined, it can be referenced in a
+:any:`zone` statement; the zone is then configured using the
+options specified in the :any:`template` as defaults.
+Options that are locally defined within the :any:`zone` statement
+override the template.
+
+For example, the following configuration would define two primary
+and two secondary zones:
+
+   ::
+
+     template primary {
+         type primary;
+         file "$type/$name.db";
+         initial-file "initial.db";
+     };
+
+     template secondary {
+         type secondary;
+         file "$type/$name.db";
+         primaries { 192.0.2.1; };
+     };
+
+     zone example.com { template primary; };
+     zone example.org { template primary; };
+     zone example.net { template secondary; };
+     zone example.edu { template secondary; };
+
+Templates can also be used for zones that are added using
+``rndc addzone`` (see :any:`allow-new-zones`):
+
+   ::
+
+      $ rndc addzone example.biz '{ template secondary; };'
 
 .. _dynamic_update_policies:
 

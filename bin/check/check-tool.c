@@ -656,7 +656,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 		dns_zone_setstream(zone, stdin, fileformat,
 				   &dns_master_style_default);
 	} else {
-		dns_zone_setfile(zone, filename, fileformat,
+		dns_zone_setfile(zone, filename, NULL, fileformat,
 				 &dns_master_style_default);
 	}
 	if (journal != NULL) {

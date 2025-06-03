@@ -27,6 +27,7 @@ zone <string> [ <class> ] {
 	file <quoted_string>;
 	forward ( first | only );
 	forwarders [ port <integer> ] [ tls <string> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ tls <string> ]; ... };
+	initial-file <quoted_string>;
 	inline-signing <boolean>;
 	ixfr-from-differences <boolean>;
 	journal <quoted_string>;
@@ -59,6 +60,7 @@ zone <string> [ <class> ] {
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ]; // obsolete
+	template <string>;
 	update-check-ksk <boolean>; // obsolete
 	update-policy ( local | { ( deny | grant ) <string> ( 6to4-self | external | krb5-self | krb5-selfsub | krb5-subdomain | krb5-subdomain-self-rhs | ms-self | ms-selfsub | ms-subdomain | ms-subdomain-self-rhs | name | self | selfsub | selfwild | subdomain | tcp-self | wildcard | zonesub ) [ <string> ] <rrtypelist>; ... } );
 	zero-no-soa-ttl <boolean>;
