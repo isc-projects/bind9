@@ -111,13 +111,11 @@ def test_dnssec_nsec3_subdomain_nxdomain(
 
 
 def noqname_test(server, name: dns.name.Name, named_port: int) -> None:
-    # Name must not exist.
-    all_existing_names = (
-        ZONE.reachable.union(ZONE.ents).union(ZONE.delegations).union(ZONE.dnames)
-    )
-    assume(name not in (all_existing_names))
+    # randomly generated name must not exist
+    assume(name not in (ZONE.all_existing_names))
 
-    # Name must not be below a delegation or DNAME.
+    # name must not be under a delegation or DNAME:
+    # it would not work with resolver ns4
     assume(
         not isctest.name.is_related_to_any(
             name,
@@ -133,11 +131,16 @@ def noqname_test(server, name: dns.name.Name, named_port: int) -> None:
     isctest.check.is_response_to(response, query)
     assert response.rcode() in (dns.rcode.NOERROR, dns.rcode.NXDOMAIN)
 
-    # Retrieve closest encloser (ce) and next closest encloser (nce).
-    ce = None
-    nce = None
-    if response.rcode() is dns.rcode.NOERROR:
-        # this should only be a wild card response
+    ce, nce = ZONE.closest_encloser(name)
+    # Response has NSEC3 that covers the next closer name
+    check_nsec3_covers(nce, response)
+
+    wname = ZONE.source_of_synthesis(name)
+    if wname in ZONE.reachable_wildcards:
+        wname_parent = dns.name.Name(wname[1:])
+        assert name.is_subdomain(wname_parent)
+        # expecting wildcard response with a signed A RRset
+        assert response.rcode() is dns.rcode.NOERROR
         answer_sig = response.get_rrset(
             section="ANSWER",
             name=name,
@@ -147,26 +150,18 @@ def noqname_test(server, name: dns.name.Name, named_port: int) -> None:
         )
         assert answer_sig is not None
         assert len(answer_sig) == 1
-        # root label is not being counted in labels field, RFC 4034 section 3.1.3
-        ce_labels = answer_sig[0].labels + 1
-        # wildcard labels < QNAME labels
-        assert ce_labels < len(name.labels)
-        # ce is wildcard name w/o wildcard label
-        _, ce = name.split(ce_labels)
-        _, nce = name.split(ce_labels + 1)
+        # RRSIG labels field, RFC 4034 section 3.1.3 does not count:
+        # - root label
+        # - leftmost * label
+        wildcard_parent_labels = answer_sig[0].labels + 1  # add root but not leftmost *
+        assert wildcard_parent_labels < len(name)
+        # ce should be wildcard name w/o wildcard label, nce one label longer
+        assert ce == name.split(wildcard_parent_labels)[1]
+        assert nce == name.split(wildcard_parent_labels + 1)[1]
     else:
-        ce_labels = 0
-        for zname in all_existing_names:
-            relation, _, nlabels = name.fullcompare(zname)
-            if relation == dns.name.NameRelation.SUBDOMAIN:
-                if nlabels > ce_labels:
-                    ce_labels = nlabels
-                    ce = zname
-                    _, nce = name.split(ce_labels + 1)
-        assert ce is not None
-        assert nce is not None
-
-        # Response has closest encloser NSEC3.
+        # no wildcard synthesis -> NXDOMAIN
+        assert response.rcode() is dns.rcode.NXDOMAIN
+        # Response must have closest encloser NSEC3
         ce_hash = dns.dnssec.nsec3_hash(
             ce, salt=None, iterations=0, algorithm=NSEC3Hash.SHA1
         )
@@ -182,18 +177,5 @@ def noqname_test(server, name: dns.name.Name, named_port: int) -> None:
             ce_nsec3_match
         ), f"Expected matching NSEC3 for {ce} (hash={ce_hash}) not found:\n {response}"
 
-    # Response has NSEC3 that covers the next closer name.
-    check_nsec3_covers(nce, response)
-
-    wc = dns.name.from_text("*", ce)
-    if response.rcode() is dns.rcode.NOERROR:
-        # only NOERRORs should be from wildcards
-        found_wc = False
-        for wildcard in ZONE.reachable_wildcards:
-            if wildcard == wc:
-                found_wc = True
-        assert found_wc
-
-    if response.rcode() == dns.rcode.NXDOMAIN:
-        # Response has NSEC3 that covers the wildcard.
-        check_nsec3_covers(wc, response)
+        # Response has NSEC3 that covers the wildcard
+        check_nsec3_covers(wname, response)
