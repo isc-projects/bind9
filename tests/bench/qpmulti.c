@@ -771,6 +771,8 @@ collect(void *varg) {
 		stats[mut].compactions += tp->compactions;
 	}
 
+	INSIST(elapsed >= RUNTIME);
+
 	printf("%7.3f\t", RUNTIME / (double)NS_PER_SEC);
 	printf("%7.3f\t", elapsed / (double)NS_PER_SEC);
 	printf("%7.3f\t", load_time);
