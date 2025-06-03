@@ -180,7 +180,7 @@ main(int argc, char *argv[]) {
 	specials[')'] = 1;
 	specials['"'] = 1;
 	isc_lex_setspecials(lex, specials);
-	options = ISC_LEXOPT_EOL;
+	options = ISC_LEXOPT_EOL | ISC_LEXOPT_DNSMULTILINE;
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
 	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
