@@ -1,4 +1,5 @@
 @depends on !(file in "util/models.c") && !(file in "lib/dns/sdlz.c")@
+iterator name DNS_DBITERATOR_FOREACH, DNS_RDATASET_FOREACH, DNS_RDATASETITER_FOREACH;
 @@
 
 - unsigned
