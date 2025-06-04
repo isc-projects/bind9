@@ -50,6 +50,7 @@ check_PROGRAMS =		\
 	time_test		\
 	transport_test		\
 	tsig_test		\
+	unreachcache_test	\
 	update_test		\
 	zonefile_test		\
 	zonemgr_test		\

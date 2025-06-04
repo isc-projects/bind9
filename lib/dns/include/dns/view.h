@@ -178,6 +178,7 @@ struct dns_view {
 	dns_dlzdblist_t	      dlz_unsearched;
 	uint32_t	      fail_ttl;
 	dns_badcache_t	     *failcache;
+	dns_unreachcache_t   *unreachcache;
 	unsigned int	      udpsize;
 	uint32_t	      sig0key_checks_limit;
 	uint32_t	      sig0message_checks_limit;

@@ -60,6 +60,7 @@
 #include <dns/time.h>
 #include <dns/transport.h>
 #include <dns/tsig.h>
+#include <dns/unreachcache.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -83,6 +84,11 @@
  * Default EDNS0 buffer size
  */
 #define DEFAULT_EDNS_BUFSIZE 1232
+
+/* Exponental backoff from 10 seconds to 640 seconds */
+#define UNREACH_HOLD_TIME_INITIAL_SEC ((uint16_t)10)
+#define UNREACH_HOLD_TIME_MAX_SEC     (UNREACH_HOLD_TIME_INITIAL_SEC << 6)
+#define UNREACH_BACKOFF_ELIGIBLE_SEC  ((uint16_t)120)
 
 void
 dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
@@ -148,6 +154,10 @@ dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
 	view->failcache = dns_badcache_new(view->mctx, loopmgr);
+
+	view->unreachcache = dns_unreachcache_new(
+		view->mctx, loopmgr, UNREACH_HOLD_TIME_INITIAL_SEC,
+		UNREACH_HOLD_TIME_MAX_SEC, UNREACH_BACKOFF_ELIGIBLE_SEC);
 
 	isc_mutex_init(&view->new_zone_lock);
 
@@ -354,6 +364,9 @@ destroy(dns_view_t *view) {
 	dns_aclenv_detach(&view->aclenv);
 	if (view->failcache != NULL) {
 		dns_badcache_destroy(&view->failcache);
+	}
+	if (view->unreachcache != NULL) {
+		dns_unreachcache_destroy(&view->unreachcache);
 	}
 	isc_mutex_destroy(&view->new_zone_lock);
 	isc_mutex_destroy(&view->lock);
@@ -1390,6 +1403,9 @@ dns_view_flushcache(dns_view_t *view, bool fixuponly) {
 	dns_cache_attachdb(view->cache, &view->cachedb);
 	if (view->failcache != NULL) {
 		dns_badcache_flush(view->failcache);
+	}
+	if (view->unreachcache != NULL) {
+		dns_unreachcache_flush(view->unreachcache);
 	}
 
 	rcu_read_lock();

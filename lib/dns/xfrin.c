@@ -42,6 +42,7 @@
 #include <dns/trace.h>
 #include <dns/transport.h>
 #include <dns/tsig.h>
+#include <dns/unreachcache.h>
 #include <dns/view.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
@@ -1448,8 +1449,9 @@ xfrin_connect_done(isc_result_t result, isc_region_t *region ISC_ATTR_UNUSED,
 
 	zmgr = dns_zone_getmgr(xfr->zone);
 	if (zmgr != NULL) {
-		dns_zonemgr_unreachabledel(zmgr, &xfr->primaryaddr,
-					   &xfr->sourceaddr);
+		dns_view_t *view = dns_zone_getview(xfr->zone);
+		dns_unreachcache_remove(view->unreachcache, &xfr->primaryaddr,
+					&xfr->sourceaddr);
 	}
 
 	if (xfr->tsigkey != NULL && xfr->tsigkey->key != NULL) {
@@ -1480,16 +1482,16 @@ failure:
 	case ISC_R_CONNREFUSED:
 	case ISC_R_TIMEDOUT:
 		/*
-		 * Add the server to unreachable primaries table if
+		 * Add the server to unreachable primaries cache if
 		 * the server has a permanent networking error or
 		 * the connection attempt as timed out.
 		 */
 		zmgr = dns_zone_getmgr(xfr->zone);
 		if (zmgr != NULL) {
-			isc_time_t now = isc_time_now();
-
-			dns_zonemgr_unreachableadd(zmgr, &xfr->primaryaddr,
-						   &xfr->sourceaddr, &now);
+			dns_view_t *view = dns_zone_getview(xfr->zone);
+			dns_unreachcache_add(view->unreachcache,
+					     &xfr->primaryaddr,
+					     &xfr->sourceaddr);
 		}
 		break;
 	default:

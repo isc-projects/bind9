@@ -87,6 +87,7 @@
 #include <dns/time.h>
 #include <dns/tsig.h>
 #include <dns/ttl.h>
+#include <dns/unreachcache.h>
 #include <dns/update.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
@@ -600,23 +601,12 @@ typedef enum {
 						* load. */
 } dns_zoneloadflag_t;
 
-#define UNREACH_CACHE_SIZE 10U
-#define UNREACH_HOLD_TIME  600 /* 10 minutes */
-
 #define CHECK(op)                            \
 	do {                                 \
 		result = (op);               \
 		if (result != ISC_R_SUCCESS) \
 			goto failure;        \
 	} while (0)
-
-struct dns_unreachable {
-	isc_sockaddr_t remote;
-	isc_sockaddr_t local;
-	atomic_uint_fast32_t expire;
-	atomic_uint_fast32_t last;
-	uint32_t count;
-};
 
 struct dns_zonemgr {
 	unsigned int magic;
@@ -632,7 +622,6 @@ struct dns_zonemgr {
 	isc_ratelimiter_t *startupnotifyrl;
 	isc_ratelimiter_t *startuprefreshrl;
 	isc_rwlock_t rwlock;
-	isc_rwlock_t urlock;
 
 	/* Locked by rwlock. */
 	dns_zonelist_t zones;
@@ -647,10 +636,6 @@ struct dns_zonemgr {
 	unsigned int startupnotifyrate;
 	unsigned int serialqueryrate;
 	unsigned int startupserialqueryrate;
-
-	/* Locked by urlock. */
-	/* LRU cache */
-	struct dns_unreachable unreachable[UNREACH_CACHE_SIZE];
 
 	dns_keymgmt_t *keymgmt;
 
@@ -13309,7 +13294,6 @@ stub_glue_response(void *arg) {
 	uint32_t addr_count, cnamecnt;
 	isc_result_t result;
 	isc_sockaddr_t curraddr;
-	isc_time_t now;
 	dns_rdataset_t *addr_rdataset = NULL;
 	dns_dbnode_t *node = NULL;
 
@@ -13318,8 +13302,6 @@ stub_glue_response(void *arg) {
 	zone = stub->zone;
 
 	ENTER;
-
-	now = isc_time_now();
 
 	LOCK_ZONE(zone);
 
@@ -13333,8 +13315,8 @@ stub_glue_response(void *arg) {
 	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
 
 	if (dns_request_getresult(request) != ISC_R_SUCCESS) {
-		dns_zonemgr_unreachableadd(zone->zmgr, &curraddr,
-					   &zone->sourceaddr, &now);
+		dns_unreachcache_add(zone->view->unreachcache, &curraddr,
+				     &zone->sourceaddr);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "could not refresh stub from primary %s"
 			     " (source %s): %s",
@@ -13487,7 +13469,7 @@ cleanup:
 	/* If last request, release all related resources */
 	if (atomic_fetch_sub_release(&stub->pending_requests, 1) == 1) {
 		isc_mem_put(zone->mctx, cb_args, sizeof(*cb_args));
-		stub_finish_zone_update(stub, now);
+		stub_finish_zone_update(stub, isc_time_now());
 		UNLOCK_ZONE(zone);
 		stub->magic = 0;
 		dns_zone_idetach(&stub->zone);
@@ -13762,8 +13744,8 @@ stub_callback(void *arg) {
 		}
 		FALLTHROUGH;
 	default:
-		dns_zonemgr_unreachableadd(zone->zmgr, &curraddr,
-					   &zone->sourceaddr, &now);
+		dns_unreachcache_add(zone->view->unreachcache, &curraddr,
+				     &zone->sourceaddr);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "could not refresh stub from primary "
 			     "%s (source %s): %s",
@@ -14117,9 +14099,9 @@ refresh_callback(void *arg) {
 			     zone->type == dns_zone_redirect) &&
 			    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_TRYTCPREFRESH))
 			{
-				if (!dns_zonemgr_unreachable(
-					    zone->zmgr, &curraddr,
-					    &zone->sourceaddr, &now))
+				if (dns_unreachcache_find(
+					    zone->view->unreachcache, &curraddr,
+					    &zone->sourceaddr) != ISC_R_SUCCESS)
 				{
 					DNS_ZONE_SETFLAG(
 						zone,
@@ -14361,8 +14343,8 @@ refresh_callback(void *arg) {
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER) ||
 	    isc_serial_gt(serial, oldserial))
 	{
-		if (dns_zonemgr_unreachable(zone->zmgr, &curraddr,
-					    &zone->sourceaddr, &now))
+		if (dns_unreachcache_find(zone->view->unreachcache, &curraddr,
+					  &zone->sourceaddr) == ISC_R_SUCCESS)
 		{
 			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
 				      ISC_LOG_INFO,
@@ -15727,7 +15709,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	UNLOCK_ZONE(zone);
 
 	if (to != NULL) {
-		dns_zonemgr_unreachabledel(zone->zmgr, from, to);
+		dns_unreachcache_remove(zone->view->unreachcache, from, to);
 	}
 	dns_zone_refresh(zone);
 	return ISC_R_SUCCESS;
@@ -18521,7 +18503,6 @@ got_transfer_quota(void *arg) {
 	isc_netaddr_t primaryip;
 	isc_sockaddr_t primaryaddr;
 	isc_sockaddr_t sourceaddr;
-	isc_time_t now;
 	dns_transport_type_t soa_transport_type = DNS_TRANSPORT_NONE;
 	const char *soa_before = "";
 	bool loaded;
@@ -18533,12 +18514,10 @@ got_transfer_quota(void *arg) {
 		return;
 	}
 
-	now = isc_time_now();
-
 	primaryaddr = dns_remote_curraddr(&zone->primaries);
 	isc_sockaddr_format(&primaryaddr, primary, sizeof(primary));
-	if (dns_zonemgr_unreachable(zone->zmgr, &primaryaddr, &zone->sourceaddr,
-				    &now))
+	if (dns_unreachcache_find(zone->view->unreachcache, &primaryaddr,
+				  &zone->sourceaddr) == ISC_R_SUCCESS)
 	{
 		isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
 		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
@@ -19194,14 +19173,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
 	ISC_LIST_INIT(zmgr->zones);
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
-	memset(zmgr->unreachable, 0, sizeof(zmgr->unreachable));
-	for (size_t i = 0; i < UNREACH_CACHE_SIZE; i++) {
-		atomic_init(&zmgr->unreachable[i].expire, 0);
-	}
 	isc_rwlock_init(&zmgr->rwlock);
-
-	/* Unreachable lock. */
-	isc_rwlock_init(&zmgr->urlock);
 
 	isc_ratelimiter_create(loop, &zmgr->checkdsrl);
 	isc_ratelimiter_create(loop, &zmgr->notifyrl);
@@ -19410,7 +19382,6 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 	isc_mem_cput(zmgr->mctx, zmgr->mctxpool, zmgr->workers,
 		     sizeof(zmgr->mctxpool[0]));
 
-	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
 	isc_rwlock_destroy(&zmgr->tlsctx_cache_rwlock);
 
@@ -19699,106 +19670,6 @@ dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	return zmgr->serialqueryrate;
-}
-
-bool
-dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
-			isc_sockaddr_t *local, isc_time_t *now) {
-	unsigned int i;
-	uint32_t seconds = isc_time_seconds(now);
-	uint32_t count = 0;
-
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	RWLOCK(&zmgr->urlock, isc_rwlocktype_read);
-	for (i = 0; i < UNREACH_CACHE_SIZE; i++) {
-		if (atomic_load(&zmgr->unreachable[i].expire) >= seconds &&
-		    isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
-		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local))
-		{
-			atomic_store_relaxed(&zmgr->unreachable[i].last,
-					     seconds);
-			count = zmgr->unreachable[i].count;
-			break;
-		}
-	}
-	RWUNLOCK(&zmgr->urlock, isc_rwlocktype_read);
-	return i < UNREACH_CACHE_SIZE && count > 1U;
-}
-
-void
-dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
-			   isc_sockaddr_t *local) {
-	unsigned int i;
-
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	RWLOCK(&zmgr->urlock, isc_rwlocktype_read);
-	for (i = 0; i < UNREACH_CACHE_SIZE; i++) {
-		if (isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
-		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local))
-		{
-			atomic_store_relaxed(&zmgr->unreachable[i].expire, 0);
-			break;
-		}
-	}
-	RWUNLOCK(&zmgr->urlock, isc_rwlocktype_read);
-}
-
-void
-dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
-			   isc_sockaddr_t *local, isc_time_t *now) {
-	uint32_t seconds = isc_time_seconds(now);
-	uint32_t expire = 0, last = seconds;
-	unsigned int slot = UNREACH_CACHE_SIZE, oldest = 0;
-	bool update_entry = true;
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	RWLOCK(&zmgr->urlock, isc_rwlocktype_write);
-	for (unsigned int i = 0; i < UNREACH_CACHE_SIZE; i++) {
-		/* Existing entry? */
-		if (isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
-		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local))
-		{
-			update_entry = false;
-			slot = i;
-			expire = atomic_load_relaxed(
-				&zmgr->unreachable[i].expire);
-			break;
-		}
-		/* Pick first empty slot? */
-		if (atomic_load_relaxed(&zmgr->unreachable[i].expire) < seconds)
-		{
-			slot = i;
-			break;
-		}
-		/* The worst case, least recently used slot? */
-		if (atomic_load_relaxed(&zmgr->unreachable[i].last) < last) {
-			last = atomic_load_relaxed(&zmgr->unreachable[i].last);
-			oldest = i;
-		}
-	}
-
-	/* We haven't found any existing or free slots, use the oldest */
-	if (slot == UNREACH_CACHE_SIZE) {
-		slot = oldest;
-	}
-
-	if (expire < seconds) {
-		/* Expired or new entry, reset count to 1 */
-		zmgr->unreachable[slot].count = 1;
-	} else {
-		zmgr->unreachable[slot].count++;
-	}
-	atomic_store_relaxed(&zmgr->unreachable[slot].expire,
-			     seconds + UNREACH_HOLD_TIME);
-	atomic_store_relaxed(&zmgr->unreachable[slot].last, seconds);
-	if (update_entry) {
-		zmgr->unreachable[slot].remote = *remote;
-		zmgr->unreachable[slot].local = *local;
-	}
-
-	RWUNLOCK(&zmgr->urlock, isc_rwlocktype_write);
 }
 
 void
