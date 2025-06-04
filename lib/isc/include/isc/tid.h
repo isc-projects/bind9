@@ -23,6 +23,10 @@ typedef int32_t isc_tid_t;
 
 #define ISC_TID_UNKNOWN (isc_tid_t) - 1
 
+#ifndef ISC_TID_MAX
+#define ISC_TID_MAX 512
+#endif /* ISC_TID_MAX */
+
 isc_tid_t
 isc_tid_count(void);
 /*%<

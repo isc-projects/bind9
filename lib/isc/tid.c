@@ -37,12 +37,14 @@ static isc_tid_t tid_count = 0;
 void
 isc__tid_init(isc_tid_t tid) {
 	REQUIRE(isc__tid_local == ISC_TID_UNKNOWN || isc__tid_local == tid);
+	REQUIRE(tid < ISC_TID_MAX);
 	isc__tid_local = tid;
 }
 
 void
 isc__tid_initcount(isc_tid_t count) {
 	REQUIRE(tid_count == 0 || tid_count == count);
+	REQUIRE(tid_count < ISC_TID_MAX);
 	tid_count = count;
 }
 
