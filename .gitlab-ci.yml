@@ -404,7 +404,7 @@ stages:
       artifacts: true
   timeout: 2h
 
-.system_test_common: &system_test_common
+.system_test_common: &system_test_job
   <<: *default_triggering_rules
   stage: system
   before_script:
@@ -438,14 +438,8 @@ stages:
     reports:
       junit: junit.xml
 
-.system_test: &system_test_job
-  <<: *system_test_common
-
-.system_test_gcov: &system_test_gcov_job
-  <<: *system_test_common
-
 .system_test_tsan: &system_test_tsan_job
-  <<: *system_test_common
+  <<: *system_test_job
   after_script:
     - *display_pytest_failures
     - *parse_tsan
@@ -924,7 +918,7 @@ gcc:bookworm:amd64:
 
 system:gcc:bookworm:amd64:
   <<: *debian_bookworm_amd64_image
-  <<: *system_test_gcov_job
+  <<: *system_test_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
     CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 0
