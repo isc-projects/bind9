@@ -458,9 +458,6 @@ stages:
   after_script:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *display_pytest_failures
-
-.system_test: &system_test_job
-  <<: *system_test_common
   artifacts:
     untracked: true
     exclude:
@@ -469,21 +466,32 @@ stages:
     reports:
       junit: junit.xml
 
+.system_test: &system_test_job
+  <<: *system_test_common
+
 .system_test_make_check: &system_test_make_check_job
   <<: *system_test_common
+  # This script needs to: 1) fail if the system tests fail, 2) fail if
+  # the junit.xml file is broken, 3) produce the junit.xml file even if
+  # the system tests fail.  Therefore, $RET is used to "cache" the
+  # result of "make check" as interrupting the script immediately when
+  # system tests fail would prevent the junit.xml file from being
+  # produced.
   script:
     - cd bin/tests/system
-    - make -j${TEST_PARALLEL_JOBS:-1} check
+    - RET=0
+    - make -j${TEST_PARALLEL_JOBS:-1} check || RET=$?
+    - cd "$CI_PROJECT_DIR"
+    - *find_python
+    - >
+      "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
+    - *check_for_junit_xml
+    - (exit $RET)
   after_script:
     - cat bin/tests/system/test-suite.log || true
 
 .system_test_gcov: &system_test_gcov_job
   <<: *system_test_common
-  artifacts:
-    untracked: true
-    exclude:
-      - "**/__pycache__/**/*"
-    when: always
 
 .system_test_tsan: &system_test_tsan_job
   <<: *system_test_common
@@ -492,15 +500,6 @@ stages:
     - find bin/tests/system -name "*dig.*" | xargs grep "error" || true
     - *find_python
     - *parse_tsan
-    - >
-      "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
-  artifacts:
-    untracked: true
-    exclude:
-      - "**/__pycache__/**/*"
-    when: always
-    reports:
-      junit: junit.xml
 
 .unit_test_common: &unit_test_common
   <<: *default_triggering_rules
