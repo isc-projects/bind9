@@ -311,6 +311,21 @@ stages:
 .fips-feature-test: &fips_feature_test
     - if build/feature-test --have-fips-mode; then fips-mode-setup --check; fips-mode-setup --is-enabled; fi
 
+.check_for_junit_xml: &check_for_junit_xml
+    # test if junit.xml file exists and is longer 40 bytes
+    # (i.e., contains more than `<testsuites><testsuite /></testsuites>`)
+    - if [ -f "$CI_PROJECT_DIR"/junit.xml ]; then
+        if [ $(wc -c < "$CI_PROJECT_DIR"/junit.xml) -gt 40 ]; then
+          echo "junit.xml file exists and is longer than 40 bytes.";
+        else
+          echo "junit.xml file exists but is too short.";
+          exit 1;
+        fi
+      else
+        echo "junit.xml file does not exist.";
+        exit 1;
+      fi
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -394,14 +409,23 @@ stages:
   stage: system
   before_script:
     - *setup_interfaces
+  # This script needs to: 1) fail if the system tests fail, 2) fail if
+  # the junit.xml file is broken, 3) produce the junit.xml file even if
+  # the system tests fail.  Therefore, $RET is used to "cache" the
+  # result of running pytest as interrupting the script immediately when
+  # system tests fail would make checking the contents of the junit.xml
+  # file impossible (GitLab Runner uses "set -o pipefail").
   script:
     - *fips_feature_test
     - *find_pytest
     - *find_python
     - ( if [ "${CI_DISPOSABLE_ENVIRONMENT}" = "true" ]; then sleep 3000; "$PYTHON" "${CI_PROJECT_DIR}/util/get-running-system-tests.py"; fi ) &
     - cd bin/tests/system
+    - RET=0
     - >
-      "$PYTEST" --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "$TEST_PARALLEL_JOBS" | tee pytest.out.txt
+      ("$PYTEST" --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "$TEST_PARALLEL_JOBS" | tee pytest.out.txt) || RET=1
+    - *check_for_junit_xml
+    - (exit $RET)
     - '( ! grep -F "grep: warning:" pytest.out.txt )'
     - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || ( cd ../../.. && ninja -C build clean >/dev/null 2>&1 )
   after_script:
