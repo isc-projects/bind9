@@ -870,7 +870,7 @@ dns_slabheader_reset(dns_slabheader_t *h, dns_db_t *db, dns_dbnode_t *node) {
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
 
-	STATIC_ASSERT((sizeof(h->attributes) == 2),
+	STATIC_ASSERT(sizeof(h->attributes) == 2,
 		      "The .attributes field of dns_slabheader_t needs to be "
 		      "16-bit int type exactly.");
 }
@@ -1208,6 +1208,8 @@ static void
 rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	dns_slabheader_t *header = dns_rdataset_getheader(rdataset);
 
+	DNS_SLABHEADER_CLRATTR(header, DNS_SLABHEADERATTR_CASEFULLYLOWER);
+
 	dns_db_locknode(header->db, header->node, isc_rwlocktype_write);
 	dns_slabheader_setownercase(header, name);
 	dns_db_unlocknode(header->db, header->node, isc_rwlocktype_write);
@@ -1219,15 +1221,13 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	uint8_t mask = (1 << 7);
 	uint8_t bits = 0;
 
-	dns_db_locknode(header->db, header->node, isc_rwlocktype_read);
-
-	if (!CASESET(header)) {
-		goto unlock;
-	}
-
 	if (CASEFULLYLOWER(header)) {
 		isc_ascii_lowercopy(name->ndata, name->ndata, name->length);
-	} else {
+		return;
+	}
+
+	dns_db_locknode(header->db, header->node, isc_rwlocktype_read);
+	if (CASESET(header)) {
 		uint8_t *nd = name->ndata;
 		for (size_t i = 0; i < name->length; i++) {
 			if (mask == (1 << 7)) {
@@ -1240,8 +1240,6 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 					      : isc_ascii_tolower(nd[i]);
 		}
 	}
-
-unlock:
 	dns_db_unlocknode(header->db, header->node, isc_rwlocktype_read);
 }
 
