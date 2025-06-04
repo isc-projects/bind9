@@ -500,44 +500,38 @@ stages:
   stage: unit
   before_script:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
+  # This script needs to: 1) fail if the unit tests fail, 2) fail if the
+  # junit.xml file is broken, 3) produce the junit.xml file even if the
+  # unit tests fail.  Therefore, $RET is used to "cache" the result of
+  # "make unit" as interrupting the script immediately when unit tests
+  # fail would prevent the junit.xml file from being produced.
   script:
     - *fips_feature_test
-    - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1
-    - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || make clean >/dev/null 2>&1
-  after_script:
-    - test -d bind-* && cd bind-*
-    - REALSOURCEDIR="$PWD"
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
+    - RET=0
+    - make -j${TEST_PARALLEL_JOBS:-1} -k unit V=1 || RET=$?
     - *find_python
     - >
-      "$PYTHON" "$REALSOURCEDIR"/bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
-
-.unit_test: &unit_test_job
-  <<: *unit_test_common
+      "$PYTHON" "$CI_PROJECT_DIR"/bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
+    - *check_for_junit_xml
+    - (exit $RET)
+    - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || make clean >/dev/null 2>&1
   artifacts:
     untracked: true
     when: always
     reports:
       junit: junit.xml
 
+.unit_test: &unit_test_job
+  <<: *unit_test_common
+
 .unit_test_gcov: &unit_test_gcov_job
   <<: *unit_test_common
-  artifacts:
-    untracked: true
-    when: always
 
 .unit_test_tsan: &unit_test_tsan_job
   <<: *unit_test_common
   after_script:
     - *find_python
     - *parse_tsan
-    - >
-      "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
-  artifacts:
-    untracked: true
-    when: always
-    reports:
-      junit: junit.xml
 
 .docs: &docs_job
   variables:
