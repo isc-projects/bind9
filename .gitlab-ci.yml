@@ -430,7 +430,7 @@ stages:
       artifacts: true
   timeout: 2h
 
-.system_test_common: &system_test_common
+.system_test_common: &system_test_job
   <<: *default_triggering_rules
   stage: system
   before_script:
@@ -466,11 +466,8 @@ stages:
     reports:
       junit: junit.xml
 
-.system_test: &system_test_job
-  <<: *system_test_common
-
 .system_test_make_check: &system_test_make_check_job
-  <<: *system_test_common
+  <<: *system_test_job
   # This script needs to: 1) fail if the system tests fail, 2) fail if
   # the junit.xml file is broken, 3) produce the junit.xml file even if
   # the system tests fail.  Therefore, $RET is used to "cache" the
@@ -490,11 +487,8 @@ stages:
   after_script:
     - cat bin/tests/system/test-suite.log || true
 
-.system_test_gcov: &system_test_gcov_job
-  <<: *system_test_common
-
 .system_test_tsan: &system_test_tsan_job
-  <<: *system_test_common
+  <<: *system_test_job
   after_script:
     - *display_pytest_failures
     - find bin/tests/system -name "*dig.*" | xargs grep "error" || true
@@ -1014,7 +1008,7 @@ gcc:bookworm:amd64:
 
 system:gcc:bookworm:amd64:
   <<: *debian_bookworm_amd64_image
-  <<: *system_test_gcov_job
+  <<: *system_test_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
     CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 0
@@ -1247,7 +1241,6 @@ gcc:tumbleweed:amd64:
 
 system:gcc:tumbleweed:amd64:
   <<: *tumbleweed_latest_amd64_image
-  <<: *system_test_job
   <<: *system_test_make_check_job
   needs:
     - job: gcc:tumbleweed:amd64
