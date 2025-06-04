@@ -447,37 +447,37 @@ stages:
 .unit_test_common: &unit_test_common
   <<: *default_triggering_rules
   stage: unit
+  # This script needs to: 1) fail if the unit tests fail, 2) fail if the
+  # junit.xml file is broken, 3) produce the junit.xml file even if the
+  # unit tests fail.  Therefore, $RET is used to "cache" the result of
+  # running "meson test" as interrupting the script immediately when
+  # unit tests fail would make checking the contents of the junit.xml
+  # file impossible (GitLab Runner uses "set -o pipefail").
   script:
     - *fips_feature_test
-    - meson test -C build --no-rebuild
-  after_script:
+    - RET=0
+    - meson test -C build --no-rebuild || RET=1
     - cp build/meson-logs/testlog.junit.xml $CI_PROJECT_DIR/junit.xml
+    - *check_for_junit_xml
+    - (exit $RET)
     - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || ninja -C build clean >/dev/null 2>&1
-
-.unit_test: &unit_test_job
-  <<: *unit_test_common
   artifacts:
     untracked: true
     when: always
     reports:
       junit: junit.xml
 
+.unit_test: &unit_test_job
+  <<: *unit_test_common
+
 .unit_test_gcov: &unit_test_gcov_job
   <<: *unit_test_common
-  artifacts:
-    untracked: true
-    when: always
 
 .unit_test_tsan: &unit_test_tsan_job
   <<: *unit_test_common
   after_script:
     - *find_python
     - *parse_tsan
-  artifacts:
-    untracked: true
-    when: always
-    reports:
-      junit: junit.xml
 
 .docs: &docs_job
   stage: docs
