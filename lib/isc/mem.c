@@ -120,7 +120,6 @@ struct isc_mem {
 	isc_refcount_t references;
 	char *name;
 	atomic_size_t inuse;
-	atomic_bool hi_called;
 	atomic_bool is_overmem;
 	atomic_size_t hi_water;
 	atomic_size_t lo_water;
@@ -428,7 +427,6 @@ mem_create(const char *name, isc_mem_t **ctxp, unsigned int debugging,
 	atomic_init(&ctx->inuse, 0);
 	atomic_init(&ctx->hi_water, 0);
 	atomic_init(&ctx->lo_water, 0);
-	atomic_init(&ctx->hi_called, false);
 	atomic_init(&ctx->is_overmem, false);
 
 	ISC_LIST_INIT(ctx->pools);
