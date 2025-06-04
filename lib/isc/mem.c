@@ -17,9 +17,11 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <isc/atomic.h>
 #include <isc/hash.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -29,6 +31,7 @@
 #include <isc/refcount.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
+#include <isc/tid.h>
 #include <isc/types.h>
 #include <isc/urcu.h>
 #include <isc/util.h>
@@ -110,6 +113,14 @@ static ISC_LIST(isc_mem_t) contexts;
 
 static isc_mutex_t contextslock;
 
+typedef union {
+	struct {
+		atomic_int_fast64_t inuse;
+		atomic_bool is_overmem;
+	};
+	char padding[ISC_OS_CACHELINE_SIZE];
+} isc__mem_stat_t;
+
 struct isc_mem {
 	unsigned int magic;
 	unsigned int flags;
@@ -119,8 +130,6 @@ struct isc_mem {
 	bool checkfree;
 	isc_refcount_t references;
 	char *name;
-	atomic_size_t inuse;
-	atomic_bool is_overmem;
 	atomic_size_t hi_water;
 	atomic_size_t lo_water;
 	ISC_LIST(isc_mempool_t) pools;
@@ -132,6 +141,9 @@ struct isc_mem {
 #endif /* if ISC_MEM_TRACKLINES */
 
 	ISC_LINK(isc_mem_t) link;
+
+	isc__mem_stat_t *stat;
+	isc__mem_stat_t stat_s[ISC_TID_MAX + 1];
 };
 
 #define MEMPOOL_MAGIC	 ISC_MAGIC('M', 'E', 'M', 'p')
@@ -355,7 +367,7 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
  */
 static void
 mem_getstats(isc_mem_t *ctx, size_t size) {
-	atomic_fetch_add_relaxed(&ctx->inuse, size);
+	atomic_fetch_add_relaxed(&ctx->stat[isc_tid()].inuse, size);
 }
 
 /*!
@@ -363,8 +375,7 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
  */
 static void
 mem_putstats(isc_mem_t *ctx, size_t size) {
-	atomic_size_t s = atomic_fetch_sub_relaxed(&ctx->inuse, size);
-	INSIST(s >= size);
+	atomic_fetch_sub_relaxed(&ctx->stat[isc_tid()].inuse, size);
 }
 
 /*
@@ -424,10 +435,16 @@ mem_create(const char *name, isc_mem_t **ctxp, unsigned int debugging,
 	isc_mutex_init(&ctx->lock);
 	isc_refcount_init(&ctx->references, 1);
 
-	atomic_init(&ctx->inuse, 0);
+	for (size_t i = 0; i < ARRAY_SIZE(ctx->stat_s); i++) {
+		atomic_init(&ctx->stat_s[i].inuse, 0);
+		atomic_init(&ctx->stat_s[i].is_overmem, false);
+	}
+
+	/* Reserve the [-1] index for ISC_TID_UNKNOWN */
+	ctx->stat = &ctx->stat_s[1];
+
 	atomic_init(&ctx->hi_water, 0);
 	atomic_init(&ctx->lo_water, 0);
-	atomic_init(&ctx->is_overmem, false);
 
 	ISC_LIST_INIT(ctx->pools);
 
@@ -465,6 +482,10 @@ mem_destroy(isc_mem_t *ctx) {
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	UNLOCK(&contextslock);
 
+	if (ctx->checkfree) {
+		INSIST(isc_mem_inuse(ctx) == 0);
+	}
+
 	ctx->magic = 0;
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
@@ -494,9 +515,6 @@ mem_destroy(isc_mem_t *ctx) {
 
 	isc_mutex_destroy(&ctx->lock);
 
-	if (ctx->checkfree) {
-		INSIST(atomic_load(&ctx->inuse) == 0);
-	}
 	sdallocx(ctx, sizeof(*ctx), ctx->jemalloc_flags);
 }
 
@@ -779,7 +797,14 @@ size_t
 isc_mem_inuse(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return atomic_load_relaxed(&ctx->inuse);
+	int_fast64_t inuse = 0;
+
+	for (ssize_t i = -1; i < isc_tid_count(); i++) {
+		inuse += atomic_load_relaxed(&ctx->stat[i].inuse);
+	}
+	INSIST(inuse >= 0);
+
+	return (size_t)inuse;
 }
 
 void
@@ -802,7 +827,9 @@ bool
 isc_mem_isovermem(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	bool is_overmem = atomic_load_relaxed(&ctx->is_overmem);
+	int32_t tid = isc_tid();
+
+	bool is_overmem = atomic_load_relaxed(&ctx->stat[tid].is_overmem);
 
 	if (!is_overmem) {
 		/* We are not overmem, check whether we should be? */
@@ -811,7 +838,7 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 			return false;
 		}
 
-		size_t inuse = atomic_load_relaxed(&ctx->inuse);
+		size_t inuse = isc_mem_inuse(ctx);
 		if (inuse <= hiwater) {
 			return false;
 		}
@@ -822,7 +849,7 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 				inuse, hiwater);
 		}
 
-		atomic_store_relaxed(&ctx->is_overmem, true);
+		atomic_store_relaxed(&ctx->stat[tid].is_overmem, true);
 		return true;
 	} else {
 		/* We are overmem, check whether we should not be? */
@@ -831,7 +858,7 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 			return false;
 		}
 
-		size_t inuse = atomic_load_relaxed(&ctx->inuse);
+		size_t inuse = isc_mem_inuse(ctx);
 		if (inuse >= lowater) {
 			return true;
 		}
@@ -841,7 +868,7 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 				"overmem mctx %p inuse %zu lo_water %zu\n", ctx,
 				inuse, lowater);
 		}
-		atomic_store_relaxed(&ctx->is_overmem, false);
+		atomic_store_relaxed(&ctx->stat[tid].is_overmem, false);
 		return false;
 	}
 }
