@@ -488,7 +488,7 @@ stages:
     - *find_python
     - *parse_tsan
 
-.unit_test_common: &unit_test_common
+.unit_test_common: &unit_test_job
   <<: *default_triggering_rules
   stage: unit
   before_script:
@@ -513,14 +513,8 @@ stages:
     reports:
       junit: junit.xml
 
-.unit_test: &unit_test_job
-  <<: *unit_test_common
-
-.unit_test_gcov: &unit_test_gcov_job
-  <<: *unit_test_common
-
 .unit_test_tsan: &unit_test_tsan_job
-  <<: *unit_test_common
+  <<: *unit_test_job
   after_script:
     - *find_python
     - *parse_tsan
@@ -948,7 +942,7 @@ system:gcc:bookworm:amd64:
 
 unit:gcc:bookworm:amd64:
   <<: *debian_bookworm_amd64_image
-  <<: *unit_test_gcov_job
+  <<: *unit_test_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
     CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 0
