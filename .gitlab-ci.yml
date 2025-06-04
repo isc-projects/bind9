@@ -430,9 +430,6 @@ stages:
     - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || ( cd ../../.. && ninja -C build clean >/dev/null 2>&1 )
   after_script:
     - *display_pytest_failures
-
-.system_test: &system_test_job
-  <<: *system_test_common
   artifacts:
     untracked: true
     exclude:
@@ -441,26 +438,17 @@ stages:
     reports:
       junit: junit.xml
 
+.system_test: &system_test_job
+  <<: *system_test_common
+
 .system_test_gcov: &system_test_gcov_job
   <<: *system_test_common
-  artifacts:
-    untracked: true
-    exclude:
-      - "**/__pycache__/**/*"
-    when: always
 
 .system_test_tsan: &system_test_tsan_job
   <<: *system_test_common
   after_script:
     - *display_pytest_failures
     - *parse_tsan
-  artifacts:
-    untracked: true
-    exclude:
-      - "**/__pycache__/**/*"
-    when: always
-    reports:
-       junit: junit.xml
 
 .unit_test_common: &unit_test_common
   <<: *default_triggering_rules
