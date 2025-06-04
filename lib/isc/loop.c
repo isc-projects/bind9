@@ -187,7 +187,7 @@ shutdown_cb(uv_async_t *handle) {
 }
 
 static void
-loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid,
+loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, isc_tid_t tid,
 	  const char *kind) {
 	*loop = (isc_loop_t){
 		.tid = tid,
@@ -306,7 +306,7 @@ loop_thread(void *arg) {
 
 	/* Start the helper thread */
 	isc_thread_create(helper_thread, helper, &helper->thread);
-	snprintf(name, sizeof(name), "isc-helper-%04" PRIu32, loop->tid);
+	snprintf(name, sizeof(name), "isc-helper-%04" PRItid, loop->tid);
 	isc_thread_setname(helper->thread, name);
 
 	int r = uv_prepare_start(&loop->quiescent, quiescent_cb);
@@ -535,7 +535,7 @@ isc_loopmgr_pause(isc_loopmgr_t *loopmgr) {
 		isc_loop_t *loop = &loopmgr->loops[i];
 
 		/* Skip current loop */
-		if (i == isc_tid()) {
+		if (i == (size_t)isc_tid()) {
 			continue;
 		}
 
@@ -645,9 +645,9 @@ isc_loop_main(isc_loopmgr_t *loopmgr) {
 }
 
 isc_loop_t *
-isc_loop_get(isc_loopmgr_t *loopmgr, uint32_t tid) {
+isc_loop_get(isc_loopmgr_t *loopmgr, isc_tid_t tid) {
 	REQUIRE(VALID_LOOPMGR(loopmgr));
-	REQUIRE(tid < loopmgr->nloops);
+	REQUIRE((uint32_t)tid < loopmgr->nloops);
 
 	return LOOP(loopmgr, tid);
 }

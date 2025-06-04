@@ -45,7 +45,7 @@ work_cb(void *arg) {
 
 	atomic_fetch_add(&scheduled, 1);
 
-	assert_int_equal(isc_tid(), UINT32_MAX);
+	assert_int_equal(isc_tid(), ISC_TID_UNKNOWN);
 }
 
 static void
@@ -59,7 +59,7 @@ after_work_cb(void *arg) {
 static void
 work_enqueue_cb(void *arg) {
 	UNUSED(arg);
-	uint32_t tid = isc_loopmgr_nloops(loopmgr) - 1;
+	isc_tid_t tid = isc_loopmgr_nloops(loopmgr) - 1;
 
 	isc_loop_t *loop = isc_loop_get(loopmgr, tid);
 

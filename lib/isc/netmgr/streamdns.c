@@ -700,7 +700,7 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *listensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *nsock;
 	isc_sockaddr_t iface;
-	int tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));

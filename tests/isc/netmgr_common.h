@@ -211,13 +211,14 @@ extern isc_nm_recv_cb_t connect_readcb;
 	fprintf(stderr, "%s:%s:%d:%s = %" PRId64 "\n", __func__, __FILE__, \
 		__LINE__, #v, atomic_load(&v))
 #define P(v) fprintf(stderr, #v " = %" PRId64 "\n", v)
-#define F()                                                                 \
-	fprintf(stderr, "%u:%s(%p, %s, %p)\n", isc_tid(), __func__, handle, \
-		isc_result_totext(eresult), cbarg)
+#define F()                                                                  \
+	fprintf(stderr, "%" PRItid ":%s(%p, %s, %p)\n", isc_tid(), __func__, \
+		handle, isc_result_totext(eresult), cbarg)
 
 #define isc_loopmgr_shutdown(loopmgr)                                      \
 	{                                                                  \
-		fprintf(stderr, "%u:%s:%s:%d:isc_loopmgr_shutdown(%p)\n",  \
+		fprintf(stderr,                                            \
+			"%" PRItid ":%s:%s:%d:isc_loopmgr_shutdown(%p)\n", \
 			isc_tid(), __func__, __FILE__, __LINE__, loopmgr); \
 		isc_loopmgr_shutdown(loopmgr);                             \
 	}

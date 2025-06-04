@@ -155,7 +155,7 @@ isc_loop_main(isc_loopmgr_t *loopmgr);
  */
 
 isc_loop_t *
-isc_loop_get(isc_loopmgr_t *loopmgr, uint32_t tid);
+isc_loop_get(isc_loopmgr_t *loopmgr, isc_tid_t tid);
 /*%<
  * Return the loop object associated with the 'tid' threadid
  *

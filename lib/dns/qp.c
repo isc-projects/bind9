@@ -86,7 +86,8 @@ static atomic_uint_fast64_t rollback_time;
 		if (isc_log_wouldlog(ISC_LOG_DEBUG(7))) {                      \
 			isc_log_write(DNS_LOGCATEGORY_DATABASE,                \
 				      DNS_LOGMODULE_QP, ISC_LOG_DEBUG(7),      \
-				      "%s:%d:%s(qp %p uctx \"%s\"):t%u: " fmt, \
+				      "%s:%d:%s(qp %p uctx \"%s\"):t%" PRItid  \
+				      ": " fmt,                                \
 				      __FILE__, __LINE__, __func__, qp,        \
 				      qp ? TRIENAME(qp) : "(null)", isc_tid(), \
 				      ##__VA_ARGS__);                          \

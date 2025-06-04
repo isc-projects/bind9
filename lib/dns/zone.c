@@ -288,7 +288,7 @@ struct dns_zone {
 	isc_rwlock_t dblock;
 	dns_db_t *db; /* Locked by dblock */
 
-	unsigned int tid;
+	isc_tid_t tid;
 
 	/* Locked */
 	dns_zonemgr_t *zmgr;
@@ -1124,7 +1124,7 @@ inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
  ***/
 
 void
-dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
+dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, isc_tid_t tid) {
 	isc_time_t now;
 	dns_zone_t *zone = NULL;
 
@@ -19239,7 +19239,7 @@ isc_result_t
 dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 	isc_mem_t *mctx = NULL;
 	dns_zone_t *zone = NULL;
-	unsigned int tid;
+	isc_tid_t tid;
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 	REQUIRE(zonep != NULL && *zonep == NULL);

@@ -151,8 +151,8 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 #define gettid() (uint64_t)(pthread_self())
 #endif
 
-#define NETMGR_TRACE_LOG(format, ...)                                \
-	fprintf(stderr, "%" PRIu64 ":%d:%s:%u:%s:" format, gettid(), \
+#define NETMGR_TRACE_LOG(format, ...)                                         \
+	fprintf(stderr, "%" PRIu64 ":%" PRItid ":%s:%u:%s:" format, gettid(), \
 		isc_tid(), file, line, func, __VA_ARGS__)
 
 #define FLARG                                                                 \
@@ -496,7 +496,7 @@ typedef void (*isc_nm_closehandlecb_t)(void *arg);
 struct isc_nmsocket {
 	/*% Unlocked, RO */
 	int magic;
-	uint32_t tid;
+	isc_tid_t tid;
 	isc_refcount_t references;
 	isc_nmsocket_type type;
 	isc__networker_t *worker;
@@ -1008,7 +1008,7 @@ isc__nmhandle_tls_keepalive(isc_nmhandle_t *handle, bool value);
 
 void
 isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
-			     const int tid);
+			     const isc_tid_t tid);
 
 void
 isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,

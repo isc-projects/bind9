@@ -491,7 +491,7 @@ static void
 stop_proxyudp_child_job(void *arg) {
 	isc_nmsocket_t *listener = NULL;
 	isc_nmsocket_t *sock = arg;
-	uint32_t tid = 0;
+	isc_tid_t tid = 0;
 
 	if (sock == NULL) {
 		return;

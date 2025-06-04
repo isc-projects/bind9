@@ -67,7 +67,7 @@ struct dns_request {
 	int32_t flags;
 
 	isc_loop_t *loop;
-	unsigned int tid;
+	isc_tid_t tid;
 
 	isc_result_t result;
 	isc_job_cb cb;
@@ -172,10 +172,10 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 static void
 requests_cancel(void *arg) {
 	dns_requestmgr_t *requestmgr = arg;
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 
 	ISC_LIST_FOREACH (requestmgr->requests[tid], request, link) {
-		req_log(ISC_LOG_DEBUG(3), "%s(%" PRIu32 ": request %p",
+		req_log(ISC_LOG_DEBUG(3), "%s(%" PRItid ": request %p",
 			__func__, tid, request);
 		if (DNS_REQUEST_COMPLETE(request)) {
 			/* The callback has been already scheduled */
@@ -210,12 +210,12 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 	 */
 	synchronize_rcu();
 
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 	uint32_t nloops = isc_loopmgr_nloops(requestmgr->loopmgr);
 	for (size_t i = 0; i < nloops; i++) {
 		dns_requestmgr_ref(requestmgr);
 
-		if (i == tid) {
+		if (i == (uint32_t)tid) {
 			/* Run the current loop synchronously */
 			requests_cancel(requestmgr);
 			continue;

@@ -41,7 +41,7 @@ static atomic_uint scheduled = 0;
 
 static void
 async_cb(void *arg) {
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 
 	UNUSED(arg);
 
@@ -57,7 +57,7 @@ async_cb(void *arg) {
 
 static void
 async_setup_cb(void *arg) {
-	uint32_t tid = isc_loopmgr_nloops(loopmgr) - 1;
+	isc_tid_t tid = isc_loopmgr_nloops(loopmgr) - 1;
 	isc_loop_t *loop = isc_loop_get(loopmgr, tid);
 
 	UNUSED(arg);
