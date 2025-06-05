@@ -50,41 +50,6 @@ zone unlimit-lifetime {
 	dnssec-policy @_policy@;
 };
 
-/* Zones for testing going insecure. */
-{% set _policy = "unsigning" if not csk_roll else "insecure" %}
-zone "step1.going-insecure.kasp" {
-	type primary;
-	file "step1.going-insecure.kasp.db";
-	dnssec-policy @_policy@;
-};
-
-{% if csk_roll %}  // TODO maybe omit?
-zone "step2.going-insecure.kasp" {
-	type primary;
-	file "step2.going-insecure.kasp.db";
-	dnssec-policy "insecure";
-};
-{% endif %}
-
-{% set _policy = "unsigning" if not csk_roll else "insecure" %}
-zone "step1.going-insecure-dynamic.kasp" {
-	type primary;
-	file "step1.going-insecure-dynamic.kasp.db";
-	dnssec-policy @_policy@;
-	inline-signing no;
-	allow-update { any; };
-};
-
-{% if csk_roll %}  // TODO maybe omit?
-zone "step2.going-insecure-dynamic.kasp" {
-	type primary;
-	file "step2.going-insecure-dynamic.kasp.db";
-	dnssec-policy insecure;
-	inline-signing no;
-	allow-update { any; };
-};
-{% endif %}
-
 {% set _policy = "default" if not csk_roll else "none" %}
 zone "step1.going-straight-to-none.kasp" {
 	type primary;
