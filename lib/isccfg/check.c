@@ -3165,7 +3165,6 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		case CFG_ZONE_FORWARD:
 		case CFG_ZONE_REDIRECT:
-		case CFG_ZONE_DELEGATION:
 			break;
 
 		case CFG_ZONE_PRIMARY:

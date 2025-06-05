@@ -83,9 +83,8 @@ enum {
 	CFG_ZONE_FORWARD = 1 << 27,
 	CFG_ZONE_STATICSTUB = 1 << 26,
 	CFG_ZONE_REDIRECT = 1 << 25,
-	CFG_ZONE_DELEGATION = 1 << 24,
-	CFG_ZONE_INVIEW = 1 << 23,
-	CFG_ZONE_MIRROR = 1 << 22,
+	CFG_ZONE_INVIEW = 1 << 24,
+	CFG_ZONE_MIRROR = 1 << 23,
 };
 
 typedef struct cfg_clausedef	 cfg_clausedef_t;
