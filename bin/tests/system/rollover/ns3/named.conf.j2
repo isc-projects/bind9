@@ -15,32 +15,7 @@
 
 include "kasp.conf";
 
-options {
-        query-source address 10.53.0.3;
-        notify-source 10.53.0.3;
-        transfer-source 10.53.0.3;
-        port @PORT@;
-        pid-file "named.pid";
-        listen-on { 10.53.0.3; };
-        listen-on-v6 { none; };
-        allow-transfer { any; };
-        recursion no;
-        dnssec-validation no;
-};
-
-key rndc_key {
-        secret "1234abcd8765";
-        algorithm @DEFAULT_HMAC@;
-};
-
-controls {
-        inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
-};
-
-zone "." {
-        type hint;
-        file "../../_common/root.hint.blackhole";
-};
+include "named.common.conf";
 
 /* Manual rollover. */
 zone "manual-rollover.kasp" {
