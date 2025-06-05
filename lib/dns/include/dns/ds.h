@@ -33,6 +33,8 @@
 #define DNS_DSDIGEST_SM3PRIVATE	   (9)
 #endif
 
+#define DNS_DSDIGEST_MAX (255)
+
 /*
  * Assuming SHA-384 digest type + maximal PRIVATEDNS name.
  */

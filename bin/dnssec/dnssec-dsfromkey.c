@@ -318,6 +318,11 @@ emits(bool showall, bool cds, dns_rdata_t *rdata) {
 
 	n = sizeof(dtype) / sizeof(dtype[0]);
 	for (i = 0; i < n; i++) {
+		if (dtype[i] == DNS_DSDIGEST_SHA1) {
+			fprintf(stderr,
+				"WARNING: DS digest type %u is deprecated\n",
+				i);
+		}
 		if (dtype[i] != 0) {
 			emit(dtype[i], showall, cds, rdata);
 		}
@@ -339,10 +344,10 @@ usage(void) {
 	fprintf(stderr, "    %s [-h|-V]\n\n", isc_commandline_progname);
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "Options:\n"
-			"    -1: digest algorithm SHA-1\n"
+			"    -1: digest algorithm SHA-1 (deprecated)\n"
 			"    -2: digest algorithm SHA-256\n"
-			"    -a algorithm: digest algorithm (SHA-1, SHA-256 or "
-			"SHA-384)\n"
+			"    -a algorithm: digest algorithm (SHA-1 "
+			"(deprecated), SHA-256 or SHA-384)\n"
 			"    -A: include all keys in DS set, not just KSKs (-f "
 			"only)\n"
 			"    -c class: rdata class for DS set (default IN) (-f "

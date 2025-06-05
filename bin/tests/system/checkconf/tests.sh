@@ -606,7 +606,7 @@ if [ $RSASHA1_SUPPORTED = 0 ]; then
   expect=2
 else
   conf=kasp-bad-nsec3-iter.conf
-  expect=3
+  expect=5
 fi
 $CHECKCONF $conf >checkconf.out$n 2>&1 && ret=1
 grep "dnssec-policy: nsec3 iterations value 1 not allowed, must be zero" <checkconf.out$n >/dev/null || ret=1
