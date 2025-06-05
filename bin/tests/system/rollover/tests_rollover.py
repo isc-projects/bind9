@@ -1203,28 +1203,6 @@ def test_rollover_policy_changes(servers, templates):
         }
         steps.append(step)
 
-    # Test going insecure.
-    isctest.log.info("check going insecure")
-    offset = -timedelta(days=10)
-    offval = int(offset.total_seconds())
-    zones = [
-        "step1.going-insecure.kasp",
-        "step1.going-insecure-dynamic.kasp",
-    ]
-    for zone in zones:
-        step = {
-            "zone": zone,
-            "cdss": cdss,
-            "config": unsigning_config,
-            "policy": "unsigning",
-            "keyprops": [
-                f"ksk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{offval}",
-                f"zsk {lifetime['P60D']} {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{offval}",
-            ],
-            "nextev": None,
-        }
-        steps.append(step)
-
     # Test going straight to none.
     isctest.log.info("check going straight to none")
     zones = [
@@ -1319,57 +1297,6 @@ def test_rollover_policy_changes(servers, templates):
                 f"csk {lut['lifetime']} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
             ],
             "nextev": None,
-        }
-        steps.append(step)
-
-    # Test going insecure (after reconfig).
-    isctest.log.info("check going insecure (after reconfig)")
-    oldttl = unsigning_config["dnskey-ttl"]
-    offset = -timedelta(days=10)
-    offval = int(offset.total_seconds())
-    zones = ["going-insecure.kasp", "going-insecure-dynamic.kasp"]
-    for parent in zones:
-        # Step 1.
-        # Key goal states should be HIDDEN.
-        # The DS may be removed if we are going insecure.
-        step = {
-            "zone": f"step1.{parent}",
-            "cdss": cdss,
-            "config": default_config,
-            "policy": "insecure",
-            "keyprops": [
-                f"ksk 0 {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{offval}",
-                f"zsk {lifetime['P60D']} {alg} {size} goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{offval}",
-            ],
-            # Next key event is when the DS becomes HIDDEN. This
-            # happens after the# parent propagation delay plus DS TTL.
-            "nextev": default_config["ds-ttl"]
-            + default_config["parent-propagation-delay"],
-            # Going insecure, check for CDS/CDNSKEY DELETE, and skip key timing checks.
-            "cds-delete": True,
-            "check-keytimes": False,
-        }
-        steps.append(step)
-
-        # Step 2.
-        # The DS is long enough removed from the zone to be considered
-        # HIDDEN.  This means the DNSKEY and the KSK signatures can be
-        # removed.
-        step = {
-            "zone": f"step2.{parent}",
-            "cdss": cdss,
-            "config": default_config,
-            "policy": "insecure",
-            "keyprops": [
-                f"ksk 0 {alg} {size} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{offval}",
-                f"zsk {lifetime['P60D']} {alg} {size} goal:hidden dnskey:unretentive zrrsig:unretentive offset:{offval}",
-            ],
-            # Next key event is when the DNSKEY becomes HIDDEN.
-            # This happens after the propagation delay, plus DNSKEY TTL.
-            "nextev": oldttl + default_config["zone-propagation-delay"],
-            # Zone is no longer signed.
-            "zone-signed": False,
-            "check-keytimes": False,
         }
         steps.append(step)
 
