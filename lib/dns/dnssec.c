@@ -409,7 +409,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 
 	/*
-	 * NS, SOA and DNSSKEY records are signed by their owner.
+	 * NS, SOA and DNSKEY records are signed by their owner.
 	 * DS records are signed by the parent.
 	 */
 	switch (set->type) {

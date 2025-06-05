@@ -252,6 +252,18 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			goto cleanup;
 		}
 
+		switch (key->algorithm) {
+		case DST_ALG_RSASHA1:
+		case DST_ALG_NSEC3RSASHA1:
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "dnssec-policy: DNSSEC algorithm %s is "
+				    "deprecated",
+				    alg.base);
+			break;
+		default:
+			break;
+		}
+
 		obj = cfg_tuple_get(config, "length");
 		if (cfg_obj_isuint32(obj)) {
 			uint32_t min, size;
@@ -432,6 +444,12 @@ add_digest(dns_kasp_t *kasp, const cfg_obj_t *digest, isc_log_t *logctx) {
 			    str);
 		result = DST_R_UNSUPPORTEDALG;
 	} else {
+		if (alg == DNS_DSDIGEST_SHA1) {
+			cfg_obj_log(
+				digest, logctx, ISC_LOG_WARNING,
+				"dnssec-policy: deprecated CDS digest-type %s",
+				str);
+		}
 		dns_kasp_adddigest(kasp, alg);
 	}
 	return result;

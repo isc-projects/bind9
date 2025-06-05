@@ -3201,18 +3201,18 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	dns_rdata_mx_t mx;
 	dns_rdata_ns_t ns;
 	dns_rdata_in_srv_t srv;
-	dns_rdata_t rdata;
 	dns_name_t *name;
 	dns_name_t *bottom;
 	isc_result_t result;
 	bool ok = true, have_spf, have_txt;
 	int level;
 	char namebuf[DNS_NAME_FORMATSIZE];
+	bool logged_algorithm[DST_MAX_ALGS];
+	bool logged_digest_type[DNS_DSDIGEST_MAX + 1];
 
 	name = dns_fixedname_initname(&fixed);
 	bottom = dns_fixedname_initname(&fixedbottom);
 	dns_rdataset_init(&rdataset);
-	dns_rdata_init(&rdata);
 
 	result = dns_db_createiterator(db, 0, &dbiterator);
 	if (result != ISC_R_SUCCESS) {
@@ -3239,6 +3239,55 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		dns_dbiterator_pause(dbiterator);
 
 		/*
+		 * Check for deprecated KEY algorithms
+		 */
+		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_key,
+					     0, 0, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS) {
+			goto checkforns;
+		}
+
+		memset(logged_algorithm, 0, sizeof(logged_algorithm));
+		for (result = dns_rdataset_first(&rdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&rdataset))
+		{
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdata_key_t key;
+			dns_rdataset_current(&rdataset, &rdata);
+
+			result = dns_rdata_tostruct(&rdata, &key, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+			/*
+			 * If we ever deprecate a private algorithm use
+			 * dst_algorithm_fromdata() here.
+			 */
+			switch (key.algorithm) {
+			case DNS_KEYALG_RSASHA1:
+			case DNS_KEYALG_NSEC3RSASHA1:
+				if (!logged_algorithm[key.algorithm]) {
+					char algbuf[DNS_SECALG_FORMATSIZE];
+					dns_name_format(name, namebuf,
+							sizeof(namebuf));
+					dns_secalg_format(key.algorithm, algbuf,
+							  sizeof(algbuf));
+					dnssec_log(zone, ISC_LOG_WARNING,
+						   "%s/KEY deprecated "
+						   "algorithm %u (%s)",
+						   namebuf, key.algorithm,
+						   algbuf);
+					logged_algorithm[key.algorithm] = true;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		dns_rdataset_disassociate(&rdataset);
+
+	checkforns:
+		/*
 		 * Don't check the NS records at the origin.
 		 */
 		if (dns_name_equal(name, &zone->origin)) {
@@ -3250,6 +3299,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		if (result != ISC_R_SUCCESS) {
 			goto checkfords;
 		}
+
 		/*
 		 * Remember bottom of zone due to NS.
 		 */
@@ -3257,6 +3307,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 
 		result = dns_rdataset_first(&rdataset);
 		while (result == ISC_R_SUCCESS) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &ns, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -3267,6 +3318,73 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			result = dns_rdataset_next(&rdataset);
 		}
 		dns_rdataset_disassociate(&rdataset);
+
+		/*
+		 * Check for deprecated DS digest types.
+		 */
+		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ds,
+					     0, 0, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS) {
+			goto next;
+		}
+
+		memset(logged_algorithm, 0, sizeof(logged_algorithm));
+		memset(logged_digest_type, 0, sizeof(logged_digest_type));
+		for (result = dns_rdataset_first(&rdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&rdataset))
+		{
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdataset_current(&rdataset, &rdata);
+			dns_rdata_ds_t ds;
+
+			result = dns_rdata_tostruct(&rdata, &ds, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			switch (ds.digest_type) {
+			case DNS_DSDIGEST_SHA1:
+				if (!logged_digest_type[ds.digest_type]) {
+					char algbuf[DNS_DSDIGEST_FORMATSIZE];
+					dns_name_format(name, namebuf,
+							sizeof(namebuf));
+					dns_dsdigest_format(ds.digest_type,
+							    algbuf,
+							    sizeof(algbuf));
+					dnssec_log(zone, ISC_LOG_WARNING,
+						   "%s/DS deprecated digest "
+						   "type %u (%s)",
+						   namebuf, ds.digest_type,
+						   algbuf);
+					logged_digest_type[ds.digest_type] =
+						true;
+				}
+				break;
+			}
+
+			/*
+			 * If we ever deprecate a private algorithm use
+			 * dst_algorithm_fromdata() here.
+			 */
+			switch (ds.algorithm) {
+			case DNS_KEYALG_RSASHA1:
+			case DNS_KEYALG_NSEC3RSASHA1:
+				if (!logged_algorithm[ds.algorithm]) {
+					char algbuf[DNS_SECALG_FORMATSIZE];
+					dns_name_format(name, namebuf,
+							sizeof(namebuf));
+					dns_secalg_format(ds.algorithm, algbuf,
+							  sizeof(algbuf));
+					dnssec_log(zone, ISC_LOG_WARNING,
+						   "%s/DS deprecated algorithm "
+						   "%u (%s)",
+						   namebuf, ds.algorithm,
+						   algbuf);
+					logged_algorithm[ds.algorithm] = true;
+				}
+				break;
+			}
+		}
+		dns_rdataset_disassociate(&rdataset);
+
 		goto next;
 
 	checkfords:
@@ -3306,6 +3424,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		}
 		result = dns_rdataset_first(&rdataset);
 		while (result == ISC_R_SUCCESS) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &mx, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -3328,6 +3447,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		}
 		result = dns_rdataset_first(&rdataset);
 		while (result == ISC_R_SUCCESS) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &srv, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -3364,6 +3484,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		}
 		result = dns_rdataset_first(&rdataset);
 		while (result == ISC_R_SUCCESS) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			have_txt = isspf(&rdata);
 			dns_rdata_reset(&rdata);
@@ -3408,9 +3529,10 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_rdata_dnskey_t dnskey;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
+	bool logged_algorithm[DST_MAX_ALGS] = { 0 };
+	bool alldeprecated = true;
 
 	result = dns_db_findnode(db, &zone->origin, false, &node);
 	if (result != ISC_R_SUCCESS) {
@@ -3428,6 +3550,8 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset))
 	{
+		char algbuf[DNS_SECALG_FORMATSIZE];
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
 		INSIST(result == ISC_R_SUCCESS);
@@ -3469,9 +3593,35 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 				   algorithm, dnskey.algorithm,
 				   dst_region_computeid(&r));
 		}
-		dns_rdata_reset(&rdata);
+
+		switch (dnskey.algorithm) {
+		case DNS_KEYALG_RSAMD5:
+		case DNS_KEYALG_DSA:
+		case DNS_KEYALG_RSASHA1:
+		case DNS_KEYALG_NSEC3DSA:
+		case DNS_KEYALG_NSEC3RSASHA1:
+		case DNS_KEYALG_ECCGOST:
+			if (!logged_algorithm[dnskey.algorithm]) {
+				dns_secalg_format(dnskey.algorithm, algbuf,
+						  sizeof(algbuf));
+				dnssec_log(zone, ISC_LOG_WARNING,
+					   "deprecated DNSKEY algorithm found: "
+					   "%u (%s)\n",
+					   dnskey.algorithm, algbuf);
+				logged_algorithm[dnskey.algorithm] = true;
+			}
+			break;
+		default:
+			alldeprecated = false;
+			break;
+		}
 	}
 	dns_rdataset_disassociate(&rdataset);
+
+	if (alldeprecated) {
+		dnssec_log(zone, ISC_LOG_WARNING,
+			   "all DNSKEY algorithms found are deprecated");
+	}
 
 cleanup:
 	if (node != NULL) {
@@ -23155,6 +23305,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	 * record which must be by itself.
 	 */
 	if (dns_rdataset_isassociated(&cds)) {
+		bool logged_digest_type[DNS_DSDIGEST_MAX + 1] = { 0 };
 		bool delete = false;
 		memset(algorithms, notexpected, sizeof(algorithms));
 		for (result = dns_rdataset_first(&cds); result == ISC_R_SUCCESS;
@@ -23182,6 +23333,29 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			}
 
 			CHECK(dns_rdata_tostruct(&crdata, &structcds, NULL));
+
+			/*
+			 * Log deprecated CDS digest types.
+			 */
+			switch (structcds.digest_type) {
+			case DNS_DSDIGEST_SHA1:
+				if (!logged_digest_type[structcds.digest_type])
+				{
+					char algbuf[DNS_DSDIGEST_FORMATSIZE];
+					dns_dsdigest_format(
+						structcds.digest_type, algbuf,
+						sizeof(algbuf));
+					dnssec_log(zone, ISC_LOG_WARNING,
+						   "deprecated CDS digest type "
+						   "%u (%s)",
+						   structcds.digest_type,
+						   algbuf);
+					logged_digest_type[structcds.digest_type] =
+						true;
+				}
+				break;
+			}
+
 			if (algorithms[structcds.algorithm] == 0) {
 				algorithms[structcds.algorithm] = expected;
 			}

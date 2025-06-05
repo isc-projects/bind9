@@ -152,7 +152,8 @@ usage(void) {
 			"statement\n");
 	fprintf(stderr, "    -a <algorithm>:\n");
 	if (!isc_fips_mode()) {
-		fprintf(stderr, "        RSASHA1 | NSEC3RSASHA1 |\n");
+		fprintf(stderr, "        RSASHA1 (deprecated) | NSEC3RSASHA1 "
+				"(deprecated) |\n");
 	}
 	fprintf(stderr, "        RSASHA256 | RSASHA512 |\n");
 	fprintf(stderr, "        ECDSAP256SHA256 | ECDSAP384SHA384 |\n");
@@ -160,10 +161,11 @@ usage(void) {
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -b <key size in bits>:\n");
 	if (!isc_fips_mode()) {
-		fprintf(stderr, "        RSASHA1:\t[%d..%d]\n", min_rsa,
-			MAX_RSA);
-		fprintf(stderr, "        NSEC3RSASHA1:\t[%d..%d]\n", min_rsa,
-			MAX_RSA);
+		fprintf(stderr, "        RSASHA1 (deprecated) :\t[%d..%d]\n",
+			min_rsa, MAX_RSA);
+		fprintf(stderr,
+			"        NSEC3RSASHA1 (deprecated) :\t[%d..%d]\n",
+			min_rsa, MAX_RSA);
 	}
 	fprintf(stderr, "        RSASHA256:\t[%d..%d]\n", min_rsa, MAX_RSA);
 	fprintf(stderr, "        RSASHA512:\t[%d..%d]\n", min_rsa, MAX_RSA);
@@ -502,14 +504,27 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	}
 
 	switch (ctx->alg) {
-	case DNS_KEYALG_RSASHA1:
-	case DNS_KEYALG_NSEC3RSASHA1:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+		dns_secalg_format(ctx->alg, algstr, sizeof(algstr));
+		fprintf(stderr,
+			"WARNING: DNSKEY algorithm '%s' is deprecated. Please "
+			"migrate to another algorithm\n",
+			algstr);
+		break;
+	default:
+		break;
+	}
+
+	switch (ctx->alg) {
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
 		if (isc_fips_mode()) {
 			fatal("SHA1 based keys not supported in FIPS mode");
 		}
 		FALLTHROUGH;
-	case DNS_KEYALG_RSASHA256:
-	case DNS_KEYALG_RSASHA512:
+	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA512:
 		if (ctx->size != 0 &&
 		    (ctx->size < min_rsa || ctx->size > MAX_RSA))
 		{
