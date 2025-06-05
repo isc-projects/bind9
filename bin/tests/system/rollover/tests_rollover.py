@@ -21,29 +21,7 @@ import dns.update
 import isctest
 from isctest.kasp import KeyTimingMetadata, Ipub, IpubC, Iret
 
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "*.axfr*",
-        "dig.out*",
-        "K*.key*",
-        "K*.private*",
-        "ns*/*.db",
-        "ns*/*.db.infile",
-        "ns*/*.db.jnl",
-        "ns*/*.db.jbk",
-        "ns*/*.db.signed",
-        "ns*/*.db.signed.jnl",
-        "ns*/*.conf",
-        "ns*/dsset-*",
-        "ns*/K*.key",
-        "ns*/K*.private",
-        "ns*/K*.state",
-        "ns*/keygen.out.*",
-        "ns*/settime.out.*",
-        "ns*/signer.out.*",
-        "ns*/zones",
-    ]
-)
+from common import pytestmark
 
 
 def test_rollover_manual(servers):
