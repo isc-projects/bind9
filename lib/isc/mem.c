@@ -339,9 +339,9 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 	if ((flags & ISC__MEM_ZERO) == 0 &&
 	    (ctx->flags & ISC_MEMFLAG_FILL) != 0)
 	{
-		ssize_t diff_size = new_size - old_size;
-		void *diff_ptr = (uint8_t *)new_ptr + old_size;
-		if (diff_size > 0) {
+		if (new_size > old_size) {
+			size_t diff_size = new_size - old_size;
+			void *diff_ptr = (uint8_t *)new_ptr + old_size;
 			/* Mnemonic for "beef". */
 			memset(diff_ptr, 0xbe, diff_size);
 		}
