@@ -23,6 +23,8 @@
 #define DNS_DSDIGEST_GOST   (3)
 #define DNS_DSDIGEST_SHA384 (4)
 
+#define DNS_DSDIGEST_MAX (255)
+
 /*
  * Assuming SHA-384 digest type.
  */

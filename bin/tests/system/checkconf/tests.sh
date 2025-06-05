@@ -650,7 +650,7 @@ ret=0
 $CHECKCONF kasp-bad-nsec3-iter.conf >checkconf.out$n 2>&1 && ret=1
 grep "dnssec-policy: nsec3 iterations value 151 out of range" <checkconf.out$n >/dev/null || ret=1
 lines=$(wc -l <"checkconf.out$n")
-if [ $lines -ne 3 ]; then ret=1; fi
+if [ $lines -ne 5 ]; then ret=1; fi
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
