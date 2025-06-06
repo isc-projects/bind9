@@ -29,29 +29,6 @@ R="RUMOURED"
 O="OMNIPRESENT"
 U="UNRETENTIVE"
 
-# These zones are going straight to "none" policy. This is undefined behavior.
-T="now-10d"
-S="now-12955mi"
-csktimes="-P $T -A $T -P sync $S"
-
-setup step1.going-straight-to-none.kasp
-echo "$zone" >>zones
-CSK=$($KEYGEN -k default $csktimes $zone 2>keygen.out.$zone.1)
-$SETTIME -s -g $O -k $O $TactN -z $O $TactN -r $O $TactN -d $O $TactN "$CSK" >settime.out.$zone.1 2>&1
-cat template.db.in "${CSK}.key" >"$infile"
-private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >>"$infile"
-cp $infile $zonefile
-$SIGNER -S -z -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
-
-setup step1.going-straight-to-none-dynamic.kasp
-echo "$zone" >>zones
-CSK=$($KEYGEN -k default $csktimes $zone 2>keygen.out.$zone.1)
-$SETTIME -s -g $O -k $O $TactN -z $O $TactN -r $O $TactN -d $O $TactN "$CSK" >settime.out.$zone.1 2>&1
-cat template.db.in "${CSK}.key" >"$infile"
-private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >>"$infile"
-cp $infile $zonefile
-$SIGNER -S -z -x -s now-1h -e now+2w -o $zone -O full -f "${zonefile}.signed" $infile >signer.out.$zone.1 2>&1
-
 #
 # The zones at algorithm-roll.kasp represent the various steps of a ZSK/KSK
 # algorithm rollover.

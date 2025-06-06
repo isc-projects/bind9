@@ -21,22 +21,6 @@ include "@_csk_file@";
 
 include "named.common.conf";
 
-{% set _policy = "default" if not csk_roll else "none" %}
-zone "step1.going-straight-to-none.kasp" {
-	type primary;
-	file "step1.going-straight-to-none.kasp.db";
-	dnssec-policy @_policy@;
-};
-
-{% set _policy = "default" if not csk_roll else "none" %}
-zone "step1.going-straight-to-none-dynamic.kasp" {
-	type primary;
-	file "step1.going-straight-to-none-dynamic.kasp.db.signed";
-	inline-signing no;
-	dnssec-policy @_policy@;
-	allow-update { any; };
-};
-
 /* Zones for testing KSK/ZSK algorithm roll. */
 {% set _policy = "rsasha256" if not csk_roll else "ecdsa256" %}
 zone "step1.algorithm-roll.kasp" {
