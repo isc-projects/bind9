@@ -159,6 +159,7 @@ TESTS =				\
 	rollover		\
 	rollover-dynamic2inline	\
 	rollover-going-insecure	\
+	rollover-lifetime	\
 	rootkeysentinel		\
 	rpzextra		\
 	rrchecker		\

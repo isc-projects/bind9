@@ -1161,48 +1161,6 @@ def test_rollover_policy_changes(servers, templates):
 
     start_time = KeyTimingMetadata.now()
 
-    # Test key lifetime changes.
-    isctest.log.info("check key lifetime changes are updated correctly")
-    lifetime = {
-        "P1Y": int(timedelta(days=365).total_seconds()),
-        "P6M": int(timedelta(days=31 * 6).total_seconds()),
-        "P60D": int(timedelta(days=60).total_seconds()),
-    }
-    lifetime_update_tests = [
-        {
-            "zone": "shorter-lifetime",
-            "policy": "long-lifetime",
-            "lifetime": lifetime["P1Y"],
-        },
-        {
-            "zone": "longer-lifetime",
-            "policy": "short-lifetime",
-            "lifetime": lifetime["P6M"],
-        },
-        {
-            "zone": "limit-lifetime",
-            "policy": "unlimited-lifetime",
-            "lifetime": 0,
-        },
-        {
-            "zone": "unlimit-lifetime",
-            "policy": "short-lifetime",
-            "lifetime": lifetime["P6M"],
-        },
-    ]
-    for lut in lifetime_update_tests:
-        step = {
-            "zone": lut["zone"],
-            "cdss": cdss,
-            "config": default_config,
-            "policy": lut["policy"],
-            "keyprops": [
-                f"csk {lut['lifetime']} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
-            ],
-            "nextev": None,
-        }
-        steps.append(step)
-
     # Test going straight to none.
     isctest.log.info("check going straight to none")
     zones = [
@@ -1263,42 +1221,6 @@ def test_rollover_policy_changes(servers, templates):
     # Calculate time passed to correctly check for next key events.
     now = KeyTimingMetadata.now()
     time_passed = now.value - start_time.value
-
-    # Test key lifetime changes (after reconfig).
-    lifetime_update_tests = [
-        {
-            "zone": "shorter-lifetime",
-            "policy": "short-lifetime",
-            "lifetime": lifetime["P6M"],
-        },
-        {
-            "zone": "longer-lifetime",
-            "policy": "long-lifetime",
-            "lifetime": lifetime["P1Y"],
-        },
-        {
-            "zone": "limit-lifetime",
-            "policy": "short-lifetime",
-            "lifetime": lifetime["P6M"],
-        },
-        {
-            "zone": "unlimit-lifetime",
-            "policy": "unlimited-lifetime",
-            "lifetime": 0,
-        },
-    ]
-    for lut in lifetime_update_tests:
-        step = {
-            "zone": lut["zone"],
-            "cdss": cdss,
-            "config": default_config,
-            "policy": lut["policy"],
-            "keyprops": [
-                f"csk {lut['lifetime']} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
-            ],
-            "nextev": None,
-        }
-        steps.append(step)
 
     # Test going straight to none.
     isctest.log.info("check going straight to none (after reconfig)")
