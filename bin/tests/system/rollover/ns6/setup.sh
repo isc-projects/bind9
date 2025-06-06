@@ -29,12 +29,6 @@ R="RUMOURED"
 O="OMNIPRESENT"
 U="UNRETENTIVE"
 
-for zn in shorter-lifetime longer-lifetime limit-lifetime \
-  unlimit-lifetime; do
-  setup $zn
-  cp template.db.in $zonefile
-done
-
 # These zones are going straight to "none" policy. This is undefined behavior.
 T="now-10d"
 S="now-12955mi"

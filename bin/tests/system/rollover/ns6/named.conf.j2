@@ -21,35 +21,6 @@ include "@_csk_file@";
 
 include "named.common.conf";
 
-/* Lifetime changes. */
-{% set _policy = "short-lifetime" if not csk_roll else "long-lifetime" %}
-zone longer-lifetime {
-	type primary;
-	file "longer-lifetime.db";
-	dnssec-policy @_policy@;
-};
-
-{% set _policy = "long-lifetime" if not csk_roll else "short-lifetime" %}
-zone shorter-lifetime {
-	type primary;
-	file "shorter-lifetime.db";
-	dnssec-policy @_policy@;
-};
-
-{% set _policy = "unlimited-lifetime" if not csk_roll else "short-lifetime" %}
-zone limit-lifetime {
-	type primary;
-	file "limit-lifetime.db";
-	dnssec-policy @_policy@;
-};
-
-{% set _policy = "short-lifetime" if not csk_roll else "unlimited-lifetime" %}
-zone unlimit-lifetime {
-	type primary;
-	file "unlimit-lifetime.db";
-	dnssec-policy @_policy@;
-};
-
 {% set _policy = "default" if not csk_roll else "none" %}
 zone "step1.going-straight-to-none.kasp" {
 	type primary;
