@@ -651,7 +651,9 @@ def check_keys(zone, keys, expected):
     def _verify_keys():
         # check number of keys matches expected.
         if len(keys) != len(expected):
-            return False
+            assert (
+                False
+            ), f"check_keys(): mismatched number of keys, expected {len(expected)}, got {len(keys)}"
 
         if len(keys) == 0:
             return True
@@ -670,7 +672,7 @@ def check_keys(zone, keys, expected):
                         expected[i].key = key
                 i += 1
             if not found:
-                return False
+                assert False, f"check_keys(): key {key} not found"
 
         return True
 
