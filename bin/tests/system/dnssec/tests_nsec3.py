@@ -26,6 +26,7 @@ import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 import dns.rdtypes.ANY.RRSIG
+import dns.rdtypes.ANY.NSEC3
 import dns.rrset
 
 from isctest.hypothesis.strategies import dns_names
@@ -48,6 +49,7 @@ def do_test_query(qname, qtype, server, named_port) -> dns.message.Message:
     response = isctest.query.tcp(query, server, named_port, timeout=TIMEOUT)
     isctest.check.is_response_to(response, query)
     assert response.rcode() in (dns.rcode.NOERROR, dns.rcode.NXDOMAIN)
+    NSEC3Checker(response)
     return response
 
 
@@ -250,3 +252,58 @@ def check_wildcard_synthesis(server, named_port: int, qname: dns.name.Name) -> N
     assert nce == qname.split(wildcard_parent_labels + 1)[1]
     # nce must be proven to NOT exist
     check_nsec3_covers(nce, response)
+
+
+class NSEC3Checker:
+    def __init__(self, response: dns.message.Message):
+        for rrset in response.answer:
+            assert not rrset.match(
+                dns.rdataclass.IN, dns.rdatatype.NSEC3, dns.rdatatype.NONE
+            ), f"unexpected NSEC3 RR in ANSWER section:\n{response}"
+        for rrset in response.additional:
+            assert not rrset.match(
+                dns.rdataclass.IN, dns.rdatatype.NSEC3, dns.rdatatype.NONE
+            ), f"unexpected NSEC3 RR in ADDITIONAL section:\n{response}"
+
+        attrs_seen = {
+            "algorithm": None,
+            "flags": None,
+            "iterations": None,
+            "salt": None,
+        }
+        first = True
+        owners_seen = set()
+        for rrset in response.authority:
+            if not rrset.match(
+                dns.rdataclass.IN, dns.rdatatype.NSEC3, dns.rdatatype.NONE
+            ):
+                continue
+            assert (
+                rrset.name not in owners_seen
+            ), f"duplicate NSEC3 owner {rrset.name}:\n{response}"
+            owners_seen.add(rrset.name)
+
+            assert len(rrset) == 1
+            rr = rrset[0]
+            assert isinstance(rr, dns.rdtypes.ANY.NSEC3.NSEC3)
+
+            assert (
+                "NSEC3"
+                not in dns.rdtypes.ANY.NSEC3.Bitmap(rr.windows).to_text().split()
+            ), f"NSEC3 RRset with NSEC3 in type bitmap:\n{response}"
+
+            # NSEC3 parameters MUST be consistent across all NSEC3 RRs:
+            # RFC 5155 section 7.2, last paragraph
+            for attr_name, value_seen in attrs_seen.items():
+                current = getattr(rr, attr_name)
+                if first:
+                    attrs_seen[attr_name] = current
+                else:
+                    assert (
+                        current == value_seen
+                    ), f"inconsistent {attr_name}\n{response}"
+            first = False
+
+        assert attrs_seen["algorithm"] is not None, f"no NSEC3 found\n{response}"
+        self.attrs = attrs_seen
+        self.response = response
