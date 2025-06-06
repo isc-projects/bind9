@@ -14,6 +14,8 @@ import os
 
 import pytest
 
+from isctest.kasp import Ipub, IpubC, Iret
+
 pytestmark = pytest.mark.extra_artifacts(
     [
         "*.axfr*",
@@ -84,6 +86,26 @@ ALGOROLL_CONFIG = {
     "signatures-validity": TIMEDELTA["P30D"],
     "zone-propagation-delay": TIMEDELTA["PT1H"],
 }
+ALGOROLL_IPUB = Ipub(ALGOROLL_CONFIG)
+ALGOROLL_IPUBC = IpubC(ALGOROLL_CONFIG, rollover=False)
+ALGOROLL_IRET = Iret(ALGOROLL_CONFIG, rollover=False)
+ALGOROLL_IRETKSK = Iret(ALGOROLL_CONFIG, zsk=False, ksk=True, rollover=False)
+ALGOROLL_KEYTTLPROP = (
+    ALGOROLL_CONFIG["dnskey-ttl"] + ALGOROLL_CONFIG["zone-propagation-delay"]
+)
+ALGOROLL_OFFSETS = {}
+ALGOROLL_OFFSETS["step2"] = -int(ALGOROLL_IPUB.total_seconds())
+ALGOROLL_OFFSETS["step3"] = -int(ALGOROLL_IRET.total_seconds())
+ALGOROLL_OFFSETS["step4"] = ALGOROLL_OFFSETS["step3"] - int(
+    ALGOROLL_IRETKSK.total_seconds()
+)
+ALGOROLL_OFFSETS["step5"] = ALGOROLL_OFFSETS["step4"] - int(
+    ALGOROLL_KEYTTLPROP.total_seconds()
+)
+ALGOROLL_OFFSETS["step6"] = ALGOROLL_OFFSETS["step5"] - int(
+    ALGOROLL_IRET.total_seconds()
+)
+ALGOROLL_OFFVAL = -DURATION["P7D"]
 
 
 @pytest.fixture

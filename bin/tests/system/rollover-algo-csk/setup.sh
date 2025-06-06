@@ -12,9 +12,9 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. ../../conf.sh
+. ../conf.sh
 
-echo_i "ns6/setup.sh"
+cd "ns6"
 
 setup() {
   zone="$1"

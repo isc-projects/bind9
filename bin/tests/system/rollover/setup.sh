@@ -20,7 +20,3 @@ set -e
   cd ns3
   $SHELL setup.sh
 )
-(
-  cd ns6
-  $SHELL setup.sh
-)

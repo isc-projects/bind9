@@ -11,14 +11,10 @@
  * information regarding copyright ownership.
  */
 
-// NS6
-
 {% set csk_roll = csk_roll | default(False) %}
 {% set _csk_file = "csk1.conf" if not csk_roll else "csk2.conf" %}
 
-include "kasp.conf";
 include "@_csk_file@";
-
 include "named.common.conf";
 
 zone "step1.csk-algorithm-roll.kasp" {
