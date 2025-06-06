@@ -157,6 +157,7 @@ TESTS =				\
 	resolver		\
 	rndc			\
 	rollover		\
+	rollover-dynamic2inline	\
 	rootkeysentinel		\
 	rpzextra		\
 	rrchecker		\
