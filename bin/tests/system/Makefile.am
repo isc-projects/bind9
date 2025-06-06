@@ -157,6 +157,7 @@ TESTS =				\
 	resolver		\
 	rndc			\
 	rollover		\
+	rollover-algo-ksk-zsk	\
 	rollover-dynamic2inline	\
 	rollover-going-insecure	\
 	rollover-lifetime	\
