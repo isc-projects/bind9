@@ -44,10 +44,13 @@ TIMEDELTA = {
     "PT5M": timedelta(minutes=5),
     "PT1H": timedelta(hours=1),
     "PT2H": timedelta(hours=2),
+    "PT6H": timedelta(hours=6),
     "P1D": timedelta(days=1),
     "P5D": timedelta(days=5),
+    "P7D": timedelta(days=7),
     "P10D": timedelta(days=10),
     "P14D": timedelta(days=14),
+    "P30D": timedelta(days=30),
     "P60D": timedelta(days=60),
     "P90D": timedelta(days=90),
     "P6M": timedelta(days=31 * 6),
@@ -69,6 +72,18 @@ DEFAULT_CONFIG = {
 }
 UNSIGNING_CONFIG = DEFAULT_CONFIG.copy()
 UNSIGNING_CONFIG["dnskey-ttl"] = TIMEDELTA["PT2H"]
+ALGOROLL_CONFIG = {
+    "dnskey-ttl": TIMEDELTA["PT1H"],
+    "ds-ttl": TIMEDELTA["PT2H"],
+    "max-zone-ttl": TIMEDELTA["PT6H"],
+    "parent-propagation-delay": TIMEDELTA["PT1H"],
+    "publish-safety": TIMEDELTA["PT1H"],
+    "purge-keys": TIMEDELTA["P90D"],
+    "retire-safety": TIMEDELTA["PT2H"],
+    "signatures-refresh": TIMEDELTA["P5D"],
+    "signatures-validity": TIMEDELTA["P30D"],
+    "zone-propagation-delay": TIMEDELTA["PT1H"],
+}
 
 
 @pytest.fixture

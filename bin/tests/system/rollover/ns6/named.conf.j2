@@ -21,46 +21,6 @@ include "@_csk_file@";
 
 include "named.common.conf";
 
-/* Zones for testing KSK/ZSK algorithm roll. */
-{% set _policy = "rsasha256" if not csk_roll else "ecdsa256" %}
-zone "step1.algorithm-roll.kasp" {
-	type primary;
-	file "step1.algorithm-roll.kasp.db";
-	dnssec-policy @_policy@;
-};
-
-{% if csk_roll %}
-zone "step2.algorithm-roll.kasp" {
-	type primary;
-	file "step2.algorithm-roll.kasp.db";
-	dnssec-policy "ecdsa256";
-};
-
-zone "step3.algorithm-roll.kasp" {
-	type primary;
-	file "step3.algorithm-roll.kasp.db";
-	dnssec-policy "ecdsa256";
-};
-
-zone "step4.algorithm-roll.kasp" {
-	type primary;
-	file "step4.algorithm-roll.kasp.db";
-	dnssec-policy "ecdsa256";
-};
-
-zone "step5.algorithm-roll.kasp" {
-	type primary;
-	file "step5.algorithm-roll.kasp.db";
-	dnssec-policy "ecdsa256";
-};
-
-zone "step6.algorithm-roll.kasp" {
-	type primary;
-	file "step6.algorithm-roll.kasp.db";
-	dnssec-policy "ecdsa256";
-};
-{% endif %}
-
 zone "step1.csk-algorithm-roll.kasp" {
 	type primary;
 	file "step1.csk-algorithm-roll.kasp.db";
