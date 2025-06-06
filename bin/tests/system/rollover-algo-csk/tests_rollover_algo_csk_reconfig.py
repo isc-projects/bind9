@@ -32,7 +32,7 @@ from common import (
 )
 
 CONFIG = ALGOROLL_CONFIG
-POLICY = "ecdsa256"
+POLICY = "csk-algoroll"
 TIME_PASSED = 0  # set in reconfigure() fixture
 
 
@@ -41,24 +41,22 @@ def reconfigure(servers, templates):
     global TIME_PASSED  # pylint: disable=global-statement
     start_time = KeyTimingMetadata.now()
 
-    templates.render("ns6/named.conf", {"alg_roll": True})
+    templates.render("ns6/named.conf", {"csk_roll": True})
     servers["ns6"].reconfigure()
 
     # Calculate time passed to correctly check for next key events.
     TIME_PASSED = KeyTimingMetadata.now().value - start_time.value
 
 
-def test_algoroll_ksk_zsk_reconfig_step1(servers, alg, size):
+def test_algoroll_csk_reconfig_step1(servers, alg, size):
     step = {
-        "zone": "step1.algorithm-roll.kasp",
+        "zone": "step1.csk-algorithm-roll.kasp",
         "cdss": CDSS,
         "keyprops": [
             # The RSASHA keys are outroducing.
-            f"ksk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL}",
-            f"zsk 0 8 2048 goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{ALGOROLL_OFFVAL}",
+            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL}",
             # The ECDSAP256SHA256 keys are introducing.
-            f"ksk 0 {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
-            f"zsk 0 {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+            f"csk 0 {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
         ],
         # Next key event is when the ecdsa256 keys have been propagated.
         "nextev": ALGOROLL_IPUB,
@@ -66,59 +64,53 @@ def test_algoroll_ksk_zsk_reconfig_step1(servers, alg, size):
     isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
 
 
-def test_algoroll_ksk_zsk_reconfig_step2(servers, alg, size):
+def test_algoroll_csk_reconfig_step2(servers, alg, size):
     step = {
-        "zone": "step2.algorithm-roll.kasp",
+        "zone": "step2.csk-algorithm-roll.kasp",
         "cdss": CDSS,
         "keyprops": [
             # The RSASHA keys are outroducing, but need to stay present
             # until the new algorithm chain of trust has been established.
             # Thus the expected key states of these keys stay the same.
-            f"ksk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL}",
-            f"zsk 0 8 2048 goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{ALGOROLL_OFFVAL}",
+            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL}",
             # The ECDSAP256SHA256 keys are introducing. The DNSKEY RRset is
             # omnipresent, but the zone signatures are not.
-            f"ksk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:hidden offset:{ALGOROLL_OFFSETS['step2']}",
-            f"zsk 0 {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:rumoured offset:{ALGOROLL_OFFSETS['step2']}",
+            f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:rumoured ds:hidden offset:{ALGOROLL_OFFSETS['step2']}",
         ],
-        # Next key event is when all zone signatures are signed with the new
-        # algorithm.  This is the max-zone-ttl plus zone propagation delay.  But
-        # the publication interval has already passed. Also, prevent intermittent
-        # false positives on slow platforms by subtracting the time passed between
-        # key creation and invoking 'rndc reconfig'.
+        # Next key event is when all zone signatures are signed with the
+        # new algorithm.  This is the child publication interval, minus
+        # the publication interval has already passed. Also, prevent
+        # intermittent false positives on slow platforms by subtracting
+        # the time passed between key creation and invoking 'rndc reconfig'.
         "nextev": ALGOROLL_IPUBC - ALGOROLL_IPUB - TIME_PASSED,
     }
     isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
 
 
-def test_algoroll_ksk_zsk_reconfig_step3(servers, alg, size):
+def test_algoroll_csk_reconfig_step3(servers, alg, size):
     step = {
-        "zone": "step3.algorithm-roll.kasp",
+        "zone": "step3.csk-algorithm-roll.kasp",
         "cdss": CDSS,
         "keyprops": [
             # The DS can be swapped.
-            f"ksk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{ALGOROLL_OFFVAL}",
-            f"zsk 0 8 2048 goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{ALGOROLL_OFFVAL}",
-            f"ksk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{ALGOROLL_OFFSETS['step3']}",
-            f"zsk 0 {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{ALGOROLL_OFFSETS['step3']}",
+            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:unretentive offset:{ALGOROLL_OFFVAL}",
+            f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:rumoured offset:{ALGOROLL_OFFSETS['step3']}",
         ],
         # Next key event is when the DS becomes OMNIPRESENT. This happens
-        # after the retire interval.
+        # after the publication interval of the parent side.
         "nextev": ALGOROLL_IRETKSK - TIME_PASSED,
     }
     isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
 
 
-def test_algoroll_ksk_zsk_reconfig_step4(servers, alg, size):
+def test_algoroll_csk_reconfig_step4(servers, alg, size):
     step = {
-        "zone": "step4.algorithm-roll.kasp",
+        "zone": "step4.csk-algorithm-roll.kasp",
         "cdss": CDSS,
         "keyprops": [
             # The old DS is HIDDEN, we can remove the old algorithm records.
-            f"ksk 0 8 2048 goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{ALGOROLL_OFFVAL}",
-            f"zsk 0 8 2048 goal:hidden dnskey:unretentive zrrsig:unretentive offset:{ALGOROLL_OFFVAL}",
-            f"ksk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step4']}",
-            f"zsk 0 {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{ALGOROLL_OFFSETS['step4']}",
+            f"csk 0 8 2048 goal:hidden dnskey:unretentive krrsig:unretentive zrrsig:unretentive ds:hidden offset:{ALGOROLL_OFFVAL}",
+            f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step4']}",
         ],
         # Next key event is when the old DNSKEY becomes HIDDEN.
         # This happens after the DNSKEY TTL plus zone propagation delay.
@@ -127,16 +119,14 @@ def test_algoroll_ksk_zsk_reconfig_step4(servers, alg, size):
     isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
 
 
-def test_algoroll_ksk_zsk_reconfig_step5(servers, alg, size):
+def test_algoroll_csk_reconfig_step5(servers, alg, size):
     step = {
-        "zone": "step5.algorithm-roll.kasp",
+        "zone": "step5.csk-algorithm-roll.kasp",
         "cdss": CDSS,
         "keyprops": [
             # The DNSKEY becomes HIDDEN.
-            f"ksk 0 8 2048 goal:hidden dnskey:hidden krrsig:hidden ds:hidden offset:{ALGOROLL_OFFVAL}",
-            f"zsk 0 8 2048 goal:hidden dnskey:hidden zrrsig:unretentive offset:{ALGOROLL_OFFVAL}",
-            f"ksk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step5']}",
-            f"zsk 0 {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{ALGOROLL_OFFSETS['step5']}",
+            f"csk 0 8 2048 goal:hidden dnskey:hidden krrsig:hidden zrrsig:unretentive ds:hidden offset:{ALGOROLL_OFFVAL}",
+            f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step5']}",
         ],
         # Next key event is when the RSASHA signatures become HIDDEN.
         # This happens after the max-zone-ttl plus zone propagation delay
@@ -149,16 +139,14 @@ def test_algoroll_ksk_zsk_reconfig_step5(servers, alg, size):
     isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
 
 
-def test_algoroll_ksk_zsk_reconfig_step6(servers, alg, size):
+def test_algoroll_csk_reconfig_step6(servers, alg, size):
     step = {
-        "zone": "step6.algorithm-roll.kasp",
+        "zone": "step6.csk-algorithm-roll.kasp",
         "cdss": CDSS,
         "keyprops": [
             # The zone signatures are now HIDDEN.
-            f"ksk 0 8 2048 goal:hidden dnskey:hidden krrsig:hidden ds:hidden offset:{ALGOROLL_OFFVAL}",
-            f"zsk 0 8 2048 goal:hidden dnskey:hidden zrrsig:hidden offset:{ALGOROLL_OFFVAL}",
-            f"ksk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step6']}",
-            f"zsk 0 {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{ALGOROLL_OFFSETS['step6']}",
+            f"csk 0 8 2048 goal:hidden dnskey:hidden krrsig:hidden zrrsig:hidden ds:hidden offset:{ALGOROLL_OFFVAL}",
+            f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step6']}",
         ],
         # Next key event is never since we established the policy and the
         # keys have an unlimited lifetime.  Fallback to the default
