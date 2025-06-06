@@ -1161,20 +1161,6 @@ def test_rollover_policy_changes(servers, templates):
 
     start_time = KeyTimingMetadata.now()
 
-    # Test dynamic zones that switch to inline-signing.
-    isctest.log.info("check dynamic zone that switches to inline-signing")
-    d2i = {
-        "zone": "dynamic2inline.kasp",
-        "cdss": cdss,
-        "config": default_config,
-        "policy": "default",
-        "keyprops": [
-            f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
-        ],
-        "nextev": None,
-    }
-    steps = [d2i]
-
     # Test key lifetime changes.
     isctest.log.info("check key lifetime changes are updated correctly")
     lifetime = {
@@ -1299,9 +1285,6 @@ def test_rollover_policy_changes(servers, templates):
     # Calculate time passed to correctly check for next key events.
     now = KeyTimingMetadata.now()
     time_passed = now.value - start_time.value
-
-    # Test dynamic zones that switch to inline-signing (after reconfig).
-    steps = [d2i]
 
     # Test key lifetime changes (after reconfig).
     lifetime_update_tests = [

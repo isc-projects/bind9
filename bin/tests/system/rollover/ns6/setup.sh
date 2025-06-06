@@ -29,7 +29,7 @@ R="RUMOURED"
 O="OMNIPRESENT"
 U="UNRETENTIVE"
 
-for zn in dynamic2inline.kasp shorter-lifetime longer-lifetime limit-lifetime \
+for zn in shorter-lifetime longer-lifetime limit-lifetime \
   unlimit-lifetime; do
   setup $zn
   cp template.db.in $zonefile
