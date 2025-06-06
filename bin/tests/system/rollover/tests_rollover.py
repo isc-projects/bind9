@@ -1161,25 +1161,6 @@ def test_rollover_policy_changes(servers, templates):
 
     start_time = KeyTimingMetadata.now()
 
-    # Test going straight to none.
-    isctest.log.info("check going straight to none")
-    zones = [
-        "step1.going-straight-to-none.kasp",
-        "step1.going-straight-to-none-dynamic.kasp",
-    ]
-    for zone in zones:
-        step = {
-            "zone": zone,
-            "cdss": cdss,
-            "config": default_config,
-            "policy": "default",
-            "keyprops": [
-                f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{offval}",
-            ],
-            "nextev": None,
-        }
-        steps.append(step)
-
     # Test algorithm rollover (KSK/ZSK split).
     isctest.log.info("check algorithm rollover ksk/zsk split")
     offset = -timedelta(days=7)
@@ -1221,27 +1202,6 @@ def test_rollover_policy_changes(servers, templates):
     # Calculate time passed to correctly check for next key events.
     now = KeyTimingMetadata.now()
     time_passed = now.value - start_time.value
-
-    # Test going straight to none.
-    isctest.log.info("check going straight to none (after reconfig)")
-    zones = [
-        "step1.going-straight-to-none.kasp",
-        "step1.going-straight-to-none-dynamic.kasp",
-    ]
-    for zone in zones:
-        step = {
-            "zone": zone,
-            "cdss": cdss,
-            "config": default_config,
-            "policy": None,
-            # These zones will go bogus after signatures expire, but
-            # remain validly signed for now.
-            "keyprops": [
-                f"csk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{offval}",
-            ],
-            "nextev": None,
-        }
-        steps.append(step)
 
     # Test algorithm rollover (KSK/ZSK split) (after reconfig).
     isctest.log.info("check algorithm rollover ksk/zsk split (after reconfig)")
