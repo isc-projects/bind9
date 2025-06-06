@@ -26,6 +26,7 @@ from isctest.kasp import (
     KeyProperties,
     KeyTimingMetadata,
 )
+from isctest.util import param
 from isctest.vars.algorithms import ECDSAP256SHA256, ECDSAP384SHA384
 
 pytestmark = pytest.mark.extra_artifacts(
@@ -127,12 +128,6 @@ KASP_INHERIT_TSIG_SECRET = {
     "view2": "4xILSZQnuO1UKubXHkYUsvBRPu8=",
     "view3": "C1Azf+gGPMmxrUg/WQINP6eV9Y0=",
 }
-
-
-def param(*args, **kwargs):
-    if "id" not in kwargs:
-        kwargs["id"] = args[0]  # use first argument  as test ID
-    return pytest.param(*args, **kwargs)
 
 
 def autosign_properties(alg, size):
