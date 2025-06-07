@@ -1616,14 +1616,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		CHECK(dns_zone_setrefreshkeyinterval(zone,
 						     cfg_obj_asuint32(obj)));
-
-		if (kasp != NULL) {
-			bool s2i = (strcmp(dns_kasp_getname(kasp),
-					   "insecure") != 0);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, true);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, !s2i);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, true);
-		}
 	}
 
 	if (ztype == dns_zone_secondary || ztype == dns_zone_mirror) {

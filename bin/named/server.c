@@ -6559,7 +6559,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	/*
 	 * Ensure that zone keys are reloaded on reconfig
 	 */
-	if ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_MAINTAIN) != 0) {
+	if (dns_zone_getkasp(zone) != NULL) {
 		dns_zone_rekey(zone, fullsign);
 	}
 
@@ -11983,7 +11983,6 @@ named_server_rekey(named_server_t *server, isc_lex_t *lex,
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
-	uint16_t keyopts;
 	bool fullsign = false;
 	char *ptr;
 
@@ -12014,14 +12013,10 @@ named_server_rekey(named_server_t *server, isc_lex_t *lex,
 		return DNS_R_NOTPRIMARY;
 	}
 
-	keyopts = dns_zone_getkeyopts(zone);
-
 	/*
 	 * "rndc loadkeys" requires a "dnssec-policy".
 	 */
-	if ((keyopts & DNS_ZONEKEY_ALLOW) == 0) {
-		result = ISC_R_NOPERM;
-	} else if ((keyopts & DNS_ZONEKEY_MAINTAIN) == 0 && !fullsign) {
+	if (dns_zone_getkasp(zone) == NULL) {
 		result = ISC_R_NOPERM;
 	} else {
 		dns_zone_rekey(zone, fullsign);
@@ -14713,7 +14708,7 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	dns_zonetype_t zonetype;
 	bool dynamic = false, frozen = false;
 	bool hasraw = false;
-	bool secure, maintain, allow;
+	bool secure, maintain;
 	dns_db_t *db = NULL, *rawdb = NULL;
 	char **incfiles = NULL;
 	int nfiles = 0;
@@ -14770,8 +14765,7 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 	/* Security */
 	secure = dns_db_issecure(db);
-	allow = ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_ALLOW) != 0);
-	maintain = ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_MAINTAIN) != 0);
+	maintain = (dns_zone_getkasp(zone) != NULL);
 
 	/* Master files */
 	file = dns_zone_getfile(mayberaw);
@@ -14896,8 +14890,6 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 			CHECK(putstr(text, "\nnext key event: "));
 			CHECK(putstr(text, kbuf));
 		}
-	} else if (allow) {
-		CHECK(putstr(text, "\nkey maintenance: on command"));
 	} else if (secure || hasraw) {
 		CHECK(putstr(text, "\nkey maintenance: none"));
 	}
