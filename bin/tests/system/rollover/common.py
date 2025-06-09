@@ -49,6 +49,7 @@ TIMEDELTA = {
     "PT6H": timedelta(hours=6),
     "PT12H": timedelta(hours=12),
     "P1D": timedelta(days=1),
+    "P2D": timedelta(days=2),
     "P5D": timedelta(days=5),
     "P7D": timedelta(days=7),
     "P10D": timedelta(days=10),

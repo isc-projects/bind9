@@ -163,6 +163,7 @@ TESTS =				\
 	rollover-csk-roll2	\
 	rollover-dynamic2inline	\
 	rollover-going-insecure	\
+	rollover-ksk-doubleksk	\
 	rollover-lifetime	\
 	rollover-straight2none	\
 	rootkeysentinel		\
