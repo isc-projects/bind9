@@ -30,7 +30,7 @@ import dns.rdtypes.ANY.RRSIG
 import dns.rdtypes.ANY.NSEC3
 import dns.rrset
 
-from isctest.hypothesis.strategies import dns_names
+from isctest.hypothesis.strategies import dns_names, sampled_from
 import isctest
 import isctest.name
 
@@ -53,6 +53,19 @@ def do_test_query(
     isctest.check.is_response_to(response, query)
     assert response.rcode() in (dns.rcode.NOERROR, dns.rcode.NXDOMAIN)
     return response, NSEC3Checker(response)
+
+
+@pytest.mark.parametrize(
+    "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
+)
+@given(qname=sampled_from(sorted(ZONE.reachable)))
+def test_nodata(server, qname: dns.name.Name, named_port: int) -> None:
+    """An existing name, no wildcards, but a query type for RRset which does not exist"""
+    response, nsec3check = do_test_query(qname, dns.rdatatype.HINFO, server, named_port)
+    assert response.rcode() is dns.rcode.NOERROR
+
+    nsec3check.prove_name_exists(qname)
+    nsec3check.check_extraneous_rrs()
 
 
 def assume_nx_and_no_delegation(qname):
