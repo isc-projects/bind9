@@ -90,25 +90,3 @@ dnssec-policy "ksk-doubleksk" {
 	parent-ds-ttl 3600;
 	parent-propagation-delay PT1H;
 };
-
-dnssec-policy "csk-roll1" {
-	signatures-refresh P5D;
-	signatures-validity 30d;
-	signatures-validity-dnskey 30d;
-
-	dnskey-ttl 1h;
-	publish-safety PT1H;
-	retire-safety 2h;
-	purge-keys PT1H;
-
-	cds-digest-types { "sha-384"; }; // use a different digest type for testing purposes
-	keys {
-		csk key-directory lifetime P6M algorithm @DEFAULT_ALGORITHM@;
-	};
-
-	zone-propagation-delay 1h;
-	max-zone-ttl P1D;
-
-	parent-ds-ttl 1h;
-	parent-propagation-delay 1h;
-};

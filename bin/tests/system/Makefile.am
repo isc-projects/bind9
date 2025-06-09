@@ -159,6 +159,7 @@ TESTS =				\
 	rollover		\
 	rollover-algo-csk	\
 	rollover-algo-ksk-zsk	\
+	rollover-csk-roll1	\
 	rollover-csk-roll2	\
 	rollover-dynamic2inline	\
 	rollover-going-insecure	\
