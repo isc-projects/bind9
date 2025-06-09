@@ -135,6 +135,7 @@ def check_wildcard_nodata(server, named_port: int, qname: dns.name.Name) -> None
     wname = ZONE.source_of_synthesis(qname)
     # expecting proof that wildcard owner does not have rdatatype requested
     nsec3check.prove_name_exists(wname)
+    nsec3check.check_extraneous_rrs()
 
 
 def check_nxdomain(server, named_port: int, qname: dns.name.Name) -> None:
@@ -147,6 +148,7 @@ def check_nxdomain(server, named_port: int, qname: dns.name.Name) -> None:
 
     wname = ZONE.source_of_synthesis(qname)
     nsec3check.prove_name_does_not_exist(wname)
+    nsec3check.check_extraneous_rrs()
 
 
 def check_wildcard_synthesis(server, named_port: int, qname: dns.name.Name) -> None:
@@ -185,6 +187,7 @@ def check_wildcard_synthesis(server, named_port: int, qname: dns.name.Name) -> N
     # ce is proven to exist by the RRSIG
     assert nce == qname.split(wildcard_parent_labels + 1)[1]
     nsec3check.prove_name_does_not_exist(nce)
+    nsec3check.check_extraneous_rrs()
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -252,6 +255,8 @@ class NSEC3Checker:
         assert attrs_seen["algorithm"] is not None, f"no NSEC3 found\n{response}"
         self.params = NSEC3Params(**attrs_seen)  # type: NSEC3Params
         self.response = response  # type: dns.message.Message
+        self.owners_present = owners_seen
+        self.owners_used = set()
 
     @staticmethod
     def nsec3_covers(rrset: dns.rrset.RRset, hashed_name: dns.name.Name) -> bool:
@@ -300,6 +305,7 @@ class NSEC3Checker:
         for rrset in self.rrsets:
             name_is_covered = self.nsec3_covers(rrset, hashed_name)
             if name_is_covered:
+                self.owners_used.add(rrset.name)
                 return rrset
 
         assert (
@@ -313,7 +319,14 @@ class NSEC3Checker:
             if rrset.match(
                 nsec3_owner, dns.rdataclass.IN, dns.rdatatype.NSEC3, dns.rdatatype.NONE
             ):
+                self.owners_used.add(rrset.name)
                 return rrset
         assert (
             False
         ), f"Expected matching NSEC3 for {owner} (hash={nsec3_owner}) not found:\n{self.response}"
+
+    def check_extraneous_rrs(self):
+        """Check that all NSEC3 RRs present in the message were actually needed for proofs"""
+        assert (
+            self.owners_used == self.owners_present
+        ), f"extraneous NSEC3 RRs detected\n{self.response}"
