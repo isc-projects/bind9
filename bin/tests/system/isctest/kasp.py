@@ -1160,7 +1160,7 @@ def check_subdomain(
 def check_rollover_step(server, config, policy, step):
     zone = step["zone"]
     keyprops = step["keyprops"]
-    nextev = step["nextev"]
+    nextev = step.get("nextev", None)
     cdss = step.get("cdss", None)
     keyrelationships = step.get("keyrelationships", None)
     smooth = step.get("smooth", False)
@@ -1236,7 +1236,8 @@ def check_rollover_step(server, config, policy, step):
     def check_next_key_event():
         return next_key_event_equals(server, zone, nextev)
 
-    isctest.run.retry_with_timeout(check_next_key_event, timeout=5)
+    if nextev is not None:
+        isctest.run.retry_with_timeout(check_next_key_event, timeout=5)
 
 
 def verify_update_is_signed(server, fqdn, qname, qtype, rdata, ksks, zsks, tsig=None):
