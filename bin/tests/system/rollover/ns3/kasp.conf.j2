@@ -67,26 +67,3 @@ dnssec-policy "zsk-prepub" {
 	zone-propagation-delay PT1H;
 	max-zone-ttl 1d;
 };
-
-dnssec-policy "ksk-doubleksk" {
-	signatures-refresh P1W;
-	signatures-validity P2W;
-	signatures-validity-dnskey P2W;
-
-	dnskey-ttl 2h;
-	publish-safety P1D;
-	retire-safety P2D;
-	purge-keys PT1H;
-
-	cdnskey no;
-	keys {
-		ksk key-directory lifetime P60D algorithm @DEFAULT_ALGORITHM@;
-		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-	};
-
-	zone-propagation-delay PT1H;
-	max-zone-ttl 1d;
-
-	parent-ds-ttl 3600;
-	parent-propagation-delay PT1H;
-};

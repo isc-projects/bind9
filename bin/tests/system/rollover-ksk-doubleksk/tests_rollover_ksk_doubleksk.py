@@ -18,43 +18,31 @@ from common import (
     pytestmark,
     alg,
     size,
-    DEFAULT_CONFIG,
+    KSK_CONFIG,
+    KSK_LIFETIME,
+    KSK_LIFETIME_POLICY,
+    KSK_IPUB,
+    KSK_IPUBC,
+    KSK_IRET,
+    KSK_KEYTTLPROP,
     TIMEDELTA,
 )
 
 
 CDSS = ["CDS (SHA-256)"]
-CONFIG = {
-    "dnskey-ttl": TIMEDELTA["PT2H"],
-    "ds-ttl": TIMEDELTA["PT1H"],
-    "max-zone-ttl": TIMEDELTA["P1D"],
-    "parent-propagation-delay": TIMEDELTA["PT1H"],
-    "publish-safety": TIMEDELTA["P1D"],
-    "purge-keys": TIMEDELTA["PT1H"],
-    "retire-safety": TIMEDELTA["P2D"],
-    "signatures-refresh": TIMEDELTA["P7D"],
-    "signatures-validity": TIMEDELTA["P14D"],
-    "zone-propagation-delay": TIMEDELTA["PT1H"],
-}
 POLICY = "ksk-doubleksk"
-KSK_LIFETIME = TIMEDELTA["P60D"]
-LIFETIME_POLICY = int(KSK_LIFETIME.total_seconds())
-IPUB = Ipub(CONFIG)
-IPUBC = IpubC(CONFIG)
-IRET = Iret(CONFIG, zsk=False, ksk=True)
-KEYTTLPROP = CONFIG["dnskey-ttl"] + CONFIG["zone-propagation-delay"]
 OFFSETS = {}
 OFFSETS["step1-p"] = -int(TIMEDELTA["P7D"].total_seconds())
-OFFSETS["step2-p"] = -int(KSK_LIFETIME.total_seconds() - IPUBC.total_seconds())
+OFFSETS["step2-p"] = -int(KSK_LIFETIME.total_seconds() - KSK_IPUBC.total_seconds())
 OFFSETS["step2-s"] = 0
 OFFSETS["step3-p"] = -int(KSK_LIFETIME.total_seconds())
-OFFSETS["step3-s"] = -int(IPUBC.total_seconds())
-OFFSETS["step4-p"] = OFFSETS["step3-p"] - int(IRET.total_seconds())
-OFFSETS["step4-s"] = OFFSETS["step3-s"] - int(IRET.total_seconds())
-OFFSETS["step5-p"] = OFFSETS["step4-p"] - int(KEYTTLPROP.total_seconds())
-OFFSETS["step5-s"] = OFFSETS["step4-s"] - int(KEYTTLPROP.total_seconds())
-OFFSETS["step6-p"] = OFFSETS["step5-p"] - int(CONFIG["purge-keys"].total_seconds())
-OFFSETS["step6-s"] = OFFSETS["step5-s"] - int(CONFIG["purge-keys"].total_seconds())
+OFFSETS["step3-s"] = -int(KSK_IPUBC.total_seconds())
+OFFSETS["step4-p"] = OFFSETS["step3-p"] - int(KSK_IRET.total_seconds())
+OFFSETS["step4-s"] = OFFSETS["step3-s"] - int(KSK_IRET.total_seconds())
+OFFSETS["step5-p"] = OFFSETS["step4-p"] - int(KSK_KEYTTLPROP.total_seconds())
+OFFSETS["step5-s"] = OFFSETS["step4-s"] - int(KSK_KEYTTLPROP.total_seconds())
+OFFSETS["step6-p"] = OFFSETS["step5-p"] - int(KSK_CONFIG["purge-keys"].total_seconds())
+OFFSETS["step6-s"] = OFFSETS["step5-s"] - int(KSK_CONFIG["purge-keys"].total_seconds())
 
 
 def test_ksk_doubleksk_step1(alg, size, servers):
@@ -64,14 +52,14 @@ def test_ksk_doubleksk_step1(alg, size, servers):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step1-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']}",
         ],
         # Next key event is when the successor KSK needs to be published.
         # That is the KSK lifetime - prepublication time (minus time
         # already passed).
-        "nextev": KSK_LIFETIME - IPUB - timedelta(days=7),
+        "nextev": KSK_LIFETIME - KSK_IPUB - timedelta(days=7),
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
 
 
 def test_ksk_doubleksk_step2(alg, size, servers):
@@ -85,14 +73,14 @@ def test_ksk_doubleksk_step2(alg, size, servers):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step2-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden offset:{OFFSETS['step2-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden offset:{OFFSETS['step2-s']}",
         ],
         "keyrelationships": [1, 2],
         # Next key event is when the successor KSK becomes OMNIPRESENT.
-        "nextev": IPUB,
+        "nextev": KSK_IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
 
 
 def test_ksk_doubleksk_step3(alg, size, servers):
@@ -108,17 +96,17 @@ def test_ksk_doubleksk_step3(alg, size, servers):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step3-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{OFFSETS['step3-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{OFFSETS['step3-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{OFFSETS['step3-p']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{OFFSETS['step3-s']}",
         ],
         "keyrelationships": [1, 2],
         # Next key event is when the predecessor DS has been replaced with
         # the successor DS and enough time has passed such that the all
         # validators that have this DS RRset cached only know about the
         # successor DS.  This is the the retire interval.
-        "nextev": IRET,
+        "nextev": KSK_IRET,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
 
 
 def test_ksk_doubleksk_step4(alg, size, servers):
@@ -133,15 +121,15 @@ def test_ksk_doubleksk_step4(alg, size, servers):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step4-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{OFFSETS['step4-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{OFFSETS['step4-p']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-s']}",
         ],
         "keyrelationships": [1, 2],
         # Next key event is when the DNSKEY enters the HIDDEN state.
         # This is the DNSKEY TTL plus zone propagation delay.
-        "nextev": KEYTTLPROP,
+        "nextev": KSK_KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
 
 
 def test_ksk_doubleksk_step5(alg, size, servers):
@@ -154,15 +142,15 @@ def test_ksk_doubleksk_step5(alg, size, servers):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step5-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:hidden krrsig:hidden ds:hidden offset:{OFFSETS['step5-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step5-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:hidden krrsig:hidden ds:hidden offset:{OFFSETS['step5-p']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step5-s']}",
         ],
         "keyrelationships": [1, 2],
         # Next key event is when the new successor needs to be published.
         # This is the KSK lifetime minus Ipub minus Iret minus time elapsed.
-        "nextev": KSK_LIFETIME - IPUB - IRET - KEYTTLPROP,
+        "nextev": KSK_LIFETIME - KSK_IPUB - KSK_IRET - KSK_KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
 
 
 def test_ksk_doubleksk_step6(alg, size, servers):
@@ -172,8 +160,8 @@ def test_ksk_doubleksk_step6(alg, size, servers):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step6-p']}",
-            f"ksk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step6-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step6-s']}",
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
