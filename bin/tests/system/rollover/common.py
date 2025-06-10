@@ -108,6 +108,24 @@ ALGOROLL_OFFSETS["step6"] = ALGOROLL_OFFSETS["step5"] - int(
     ALGOROLL_IRET.total_seconds()
 )
 ALGOROLL_OFFVAL = -DURATION["P7D"]
+KSK_CONFIG = {
+    "dnskey-ttl": TIMEDELTA["PT2H"],
+    "ds-ttl": TIMEDELTA["PT1H"],
+    "max-zone-ttl": TIMEDELTA["P1D"],
+    "parent-propagation-delay": TIMEDELTA["PT1H"],
+    "publish-safety": TIMEDELTA["P1D"],
+    "purge-keys": TIMEDELTA["PT1H"],
+    "retire-safety": TIMEDELTA["P2D"],
+    "signatures-refresh": TIMEDELTA["P7D"],
+    "signatures-validity": TIMEDELTA["P14D"],
+    "zone-propagation-delay": TIMEDELTA["PT1H"],
+}
+KSK_LIFETIME = TIMEDELTA["P60D"]
+KSK_LIFETIME_POLICY = int(KSK_LIFETIME.total_seconds())
+KSK_IPUB = Ipub(KSK_CONFIG)
+KSK_IPUBC = IpubC(KSK_CONFIG)
+KSK_IRET = Iret(KSK_CONFIG, zsk=False, ksk=True)
+KSK_KEYTTLPROP = KSK_CONFIG["dnskey-ttl"] + KSK_CONFIG["zone-propagation-delay"]
 
 
 @pytest.fixture
