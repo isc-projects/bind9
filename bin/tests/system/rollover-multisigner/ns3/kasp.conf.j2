@@ -11,11 +11,12 @@
  * information regarding copyright ownership.
  */
 
-dnssec-policy "manual-rollover" {
+dnssec-policy "multisigner-model2" {
 	dnskey-ttl 3600;
+	inline-signing no;
 
 	keys {
-		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@ tag-range 32768 65535;
+		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@ tag-range 32768 65535;
 	};
 };

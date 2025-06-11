@@ -167,6 +167,7 @@ TESTS =				\
 	rollover-ksk-3crowd	\
 	rollover-ksk-doubleksk	\
 	rollover-lifetime	\
+	rollover-multisigner	\
 	rollover-straight2none	\
 	rollover-zsk-prepub	\
 	rootkeysentinel		\
