@@ -87,6 +87,7 @@ for mode, protocol, platform in itertools.product(modes, protocols, platforms):
         job_platform = "freebsd:amd64"
         compiler_binary = "clang"
         flame_binary = "/usr/local/bin/flame"
+        extra_configure = "--native-file ci/freebsd.ini"
     else:
         if "amd64" in platform:
             job_platform = "linux:amd64"
@@ -94,6 +95,7 @@ for mode, protocol, platform in itertools.product(modes, protocols, platforms):
             job_platform = "linux:arm64"
         compiler_binary = "gcc"
         flame_binary = "/usr/bin/flame"
+        extra_configure = ""
 
     if mode == "rpz":
         default_traffic_rate = 1500
@@ -109,7 +111,8 @@ for mode, protocol, platform in itertools.product(modes, protocols, platforms):
         "stage": "test",
         "variables": {
             "CC": compiler_binary,
-            "CFLAGS": f"{cflags_common} -Og",
+            "CFLAGS": f"{cflags_common}",
+            "EXTRA_CONFIGURE": f"{extra_configure}",
             "EXPECTED_TCP_RESPONSE_RATE": expected_tcp_response_rate,
             "FLAME": flame_binary,
             "MODE": mode,
@@ -118,11 +121,10 @@ for mode, protocol, platform in itertools.product(modes, protocols, platforms):
             "RUN_TIME": runtime,
         },
         "script": [
-            "autoreconf -fi",
             *anchors[".configure"],
             *anchors[".setup_interfaces"],
-            f"make -j{build_parallel_jobs} -k all V=1",
-            f'make DESTDIR="{install_path}" install',
+            "meson compile -C build",
+            f"meson install -C build --destdir={install_path}",
             "git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git",
             "cd bind9-qa/stress",
             f'export LD_LIBRARY_PATH="{install_path}/usr/local/lib"',

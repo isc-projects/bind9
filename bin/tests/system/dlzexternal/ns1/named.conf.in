@@ -38,34 +38,34 @@ controls {
 };
 
 dlz "example one" {
-	database "dlopen ../driver/.libs/dlzexternal.so example.nil";
+	database "dlopen @TOP_BUILDDIR@/testlib-driver-dlzexternal.so example.nil";
 };
 
 dlz "example two" {
-	database "dlopen ../driver/.libs/dlzexternal.so alternate.nil";
+	database "dlopen @TOP_BUILDDIR@/testlib-driver-dlzexternal.so alternate.nil";
 };
 
 dlz "example three" {
-	database "dlopen ../driver/.libs/dlzexternal.so example.org";
+	database "dlopen @TOP_BUILDDIR@/testlib-driver-dlzexternal.so example.org";
 };
 
 dlz "example four" {
 	// Long zone name to trigger ISC_R_NOSPACE in dns_sdlz_putrr.
-        database "dlopen ../driver/.libs/dlzexternal.so 123456789.123456789.123456789.123456789.123456789.example.foo";
+        database "dlopen @TOP_BUILDDIR@/testlib-driver-dlzexternal.so 123456789.123456789.123456789.123456789.123456789.example.foo";
 };
 
 dlz "unsearched1" {
-	database "dlopen ../driver/.libs/dlzexternal.so other.nil";
+	database "dlopen @TOP_BUILDDIR@/testlib-driver-dlzexternal.so other.nil";
 	search no;
 };
 
 dlz "unsearched2" {
-	database "dlopen ../driver/.libs/dlzexternal.so zone.nil";
+	database "dlopen @TOP_BUILDDIR@/testlib-driver-dlzexternal.so zone.nil";
 	search no;
 };
 
 dlz redzone {
-	database "dlopen ../driver/.libs/dlzexternal.so .";
+	database "dlopen @TOP_BUILDDIR@/testlib-driver-dlzexternal.so .";
 	search no;
 };
 

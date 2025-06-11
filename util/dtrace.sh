@@ -11,7 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-USAGE="# Usage: ${0} [-h | -G] -s File.d [-o <File>]"
+USAGE="# Usage: ${0} [-h] -s File.d [-o <File>]"
 
 mode=
 while getopts hGs:o: opt; do
@@ -19,7 +19,6 @@ while getopts hGs:o: opt; do
     h) mode=header ;;
     s) input=$OPTARG ;;
     o) output=$OPTARG ;;
-    G) mode=object ;;
     \?)
       echo $USAGE
       exit 1
@@ -43,11 +42,5 @@ case "${mode}" in
       echo "#define ${PROVIDER}_${PROBE}_ENABLED() 0"
       echo "#define ${PROVIDER}_${PROBE}(...)"
     done >"${output}"
-    ;;
-  object)
-    if test -z "${output}"; then
-      output="$(basename "${input}" .d).o"
-    fi
-    echo "extern int empty;" | gcc -xc -c - -fPIC -DPIC -o "${output}"
     ;;
 esac

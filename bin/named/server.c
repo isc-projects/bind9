@@ -11832,7 +11832,7 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	isc_time_formathttptimestamp(&named_g_configtime, configtime,
 				     sizeof(configtime));
 
-	snprintf(line, sizeof(line), "version: %s%s <id:%s>%s%s%s\n",
+	snprintf(line, sizeof(line), "version: %s (%s) <id:%s>%s%s%s\n",
 		 PACKAGE_STRING, PACKAGE_DESCRIPTION, PACKAGE_SRCID, ob, alt,
 		 cb);
 	CHECK(putstr(text, line));

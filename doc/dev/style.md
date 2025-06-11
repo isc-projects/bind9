@@ -14,9 +14,9 @@ information regarding copyright ownership.
 ## BIND 9 Coding Style
 
 BIND 9 is principally written in [C](#cstyle), with some additional code
-written in [Python](#pystyle), [Perl](#plstyle) and
-[Bourne shell](#shstyle).  Style guidelines for each of these are
-below.
+written in [Python](#pystyle), [Perl](#plstyle), [Bourne shell](#shstyle)
+and [Meson](#mesonstyle).
+Style guidelines for each of these are below.
 
 ### <a name="cstyle"></a>C
 
@@ -884,3 +884,11 @@ Bash should be avoided.  Some pitfalls to avoid:
 * Don't close stdout/stderr descriptors (`>&-`), but redirect them to /dev/null
   instead (`>/dev/null`) as the closed descriptor might get reused leading to
   unpredictable behaviour when using `fprintf(stderr, ...)`
+
+### <a name="mesonstyle"></a>Meson
+
+Dependencies are grouped with the following order:
+
+- Libraries created with BIND 9 (`libisc`, `libdns` etc.)
+- Required dependencies (OpenSSL, libuv etc.)
+- Optional dependencies (jemalloc, libxml2 etc.)

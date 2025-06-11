@@ -26,7 +26,7 @@ options {
 
 trust-anchors { };
 
-plugin query "../driver/.libs/test-async.so";
+plugin query "@TOP_BUILDDIR@/testlib-driver-async.so";
 
 key rndc_key {
 	secret "1234abcd8765";

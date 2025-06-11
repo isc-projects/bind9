@@ -21,8 +21,9 @@ named.run
 /start.sh
 /stop.sh
 /ifconfig.sh
-/isctest/vars/.ac_vars/*
-!/isctest/vars/.ac_vars/*.in
+/isctest/vars/.build_vars/*
+!/isctest/vars/.build_vars/*.in
+!/isctest/vars/.build_vars/meson.build
 
 # Ignore file names with underscore in their name except python or shell files.
 # This is done to ignore the temporary directories and symlinks created by the

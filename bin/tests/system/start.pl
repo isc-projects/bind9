@@ -85,7 +85,7 @@ if (!$test) {
 # Global variables
 my $builddir = $ENV{'builddir'};
 my $srcdir = $ENV{'srcdir'};
-my $testdir = "$builddir/$test";
+my $testdir = "$srcdir/$test";
 
 if (! -d $testdir) {
 	die "No test directory: \"$testdir\"\n";
@@ -234,7 +234,7 @@ sub construct_ns_command {
 		$command = "taskset $taskset $NAMED ";
 	} elsif ($ENV{'USE_RR'}) {
 		$ENV{'_RR_TRACE_DIR'} = ".";
-		$command = "$ENV{'TOP_BUILDDIR'}/libtool --mode=execute rr record --chaos $NAMED ";
+		$command = "rr record --chaos $NAMED ";
 	} else {
 		$command = "$NAMED ";
 	}
@@ -324,7 +324,7 @@ sub construct_ans_command {
 	}
 
 	if (-e "$testdir/$server/ans.py") {
-		$ENV{'PYTHONPATH'} = $testdir . ":" . $builddir;
+		$ENV{'PYTHONPATH'} = $testdir . ":" . $srcdir;
 		$command = "$PYTHON -u ans.py 10.53.0.$n $queryport";
 	} elsif (-e "$testdir/$server/ans.pl") {
 		$command = "$PERL ans.pl";

@@ -3,3 +3,7 @@ indent_style = space
 indent_size = 2
 binary_next_line   = true
 switch_case_indent = true
+
+[{meson.build, meson_options.txt}]
+indent_style = space
+indent_size = 4

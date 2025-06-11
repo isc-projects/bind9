@@ -45,26 +45,29 @@ if ! command -v timeout >/dev/null 2>&1; then
   exit 1
 fi
 
-grep -v -F "pairwise: skip" configure.ac | sed -n -E "s|.*# \[pairwise: (.*)\]|\1|p" \
-  | while read -r SWITCH; do
-    echo "${RANDOM}: ${SWITCH}"
-  done >pairwise-model.txt
+meson setup build-pairwise-default
+
+meson introspect build-pairwise-default --buildoptions | ./util/pairwise-construct.jq >pairwise-model.txt
 
 pict pairwise-model.txt | tr "\t" " " | sed "1d" >pairwise-commands.txt
+
+rm -rf build-pairwire-default
 
 while read -r -a configure_switches; do
   runid=${RANDOM}
   mkdir "pairwise-${runid}"
   cd "pairwise-${runid}"
   echo "Configuration:" "${configure_switches[@]}" | tee "../pairwise-output.${runid}.txt"
-  ../configure --enable-option-checking=fatal "${configure_switches[@]}" >>"../pairwise-output.${runid}.txt" 2>&1
+  meson setup build .. "${configure_switches[@]}" >>"../pairwise-output.${runid}.txt" 2>&1
+  # ../configure --enable-option-checking=fatal "${configure_switches[@]}" >>"../pairwise-output.${runid}.txt" 2>&1
   echo "Building..."
-  make "-j${BUILD_PARALLEL_JOBS:-1}" all >>"../pairwise-output.${runid}.txt" 2>&1
+  ninja -C build >>"../pairwise-output.${runid}.txt" 2>&1
+  # make "-j${BUILD_PARALLEL_JOBS:-1}" all >>"../pairwise-output.${runid}.txt" 2>&1
   echo "Running..."
   echo "${NAMED_CONF}" >named.conf
   echo "${ZONE_CONTENTS}" >zone.db
   ret=0
-  timeout --kill-after=5s 5s bin/named/named -c named.conf -g >>"../pairwise-output.${runid}.txt" 2>&1 || ret=$?
+  timeout --kill-after=5s 5s build/named -c named.conf -g >>"../pairwise-output.${runid}.txt" 2>&1 || ret=$?
   # "124" is the exit code "timeout" returns when it terminates
   # the command; in other words, the command-under-test times
   # out, i.e., was still running and didn't crash.
@@ -72,8 +75,8 @@ while read -r -a configure_switches; do
     echo "Unexpected exit code from the 'timeout' utility (${ret})"
     exit 1
   fi
+  rm -rf build
   # "timeout" is unable to report a crash on shutdown via its exit
   # code.
   cd ..
-  rm -rf "pairwise-${runid}" "pairwise-output.${runid}.txt"
 done <pairwise-commands.txt

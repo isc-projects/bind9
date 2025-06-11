@@ -58,7 +58,7 @@ if (!$test) {
 # Global variables
 my $builddir = $ENV{'builddir'};
 my $srcdir = $ENV{'srcdir'};
-my $testdir = "$builddir/$test";
+my $testdir = "$srcdir/$test";
 
 if (! -d $testdir) {
 	die "No test directory: \"$testdir\"\n";

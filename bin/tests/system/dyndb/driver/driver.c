@@ -67,7 +67,7 @@ dns_dyndb_version_t dyndb_version;
  * once during startup and then again on every reload.
  *
  * @code
- * dyndb example-name "sample.so" { param1 param2 };
+ * dyndb example-name "testlib-driver-sample.so" { param1 param2 };
  * @endcode
  *
  * @param[in] name        User-defined string from dyndb "name" {}; definition

@@ -6,5 +6,5 @@ $TTL 1000
 				604800		;expiration
 				3600 )		;minimum
 
-$INCLUDE "@TOP_SRCDIR@/testkeys/Kexample.+008+20386.key";
-$INCLUDE "@TOP_SRCDIR@/testkeys/Kexample.+008+37464.key";
+$INCLUDE "@TOP_SRCDIR@/tests/dns/testkeys/Kexample.+008+20386.key";
+$INCLUDE "@TOP_SRCDIR@/tests/dns/testkeys/Kexample.+008+37464.key";

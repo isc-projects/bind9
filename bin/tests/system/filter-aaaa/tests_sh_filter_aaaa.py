@@ -13,15 +13,16 @@ import pytest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
+        "conf/*.conf",
         "dig.out.*",
         "ns*/trusted.conf",
+        "ns1/*.signed",
         "ns1/K*",
         "ns1/dsset-*",
-        "ns1/*.signed",
         "ns1/signer.err",
+        "ns4/*.signed",
         "ns4/K*",
         "ns4/dsset-*",
-        "ns4/*.signed",
         "ns4/signer.err",
     ]
 )
