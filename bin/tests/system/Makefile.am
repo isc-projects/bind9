@@ -167,6 +167,7 @@ TESTS =				\
 	rollover-ksk-doubleksk	\
 	rollover-lifetime	\
 	rollover-straight2none	\
+	rollover-zsk-prepub	\
 	rootkeysentinel		\
 	rpzextra		\
 	rrchecker		\
