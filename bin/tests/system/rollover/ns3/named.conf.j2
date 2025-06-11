@@ -42,27 +42,3 @@ zone "single-to-multisigner.kasp" {
         dnssec-policy "multisigner-model2";
         allow-update { any; };
 };
-
-/*
- * Zones for testing enabling DNSSEC.
- */
-zone "step1.enable-dnssec.autosign" {
-	type primary;
-	file "step1.enable-dnssec.autosign.db";
-	dnssec-policy "enable-dnssec";
-};
-zone "step2.enable-dnssec.autosign" {
-	type primary;
-	file "step2.enable-dnssec.autosign.db";
-	dnssec-policy "enable-dnssec";
-};
-zone "step3.enable-dnssec.autosign" {
-	type primary;
-	file "step3.enable-dnssec.autosign.db";
-	dnssec-policy "enable-dnssec";
-};
-zone "step4.enable-dnssec.autosign" {
-	type primary;
-	file "step4.enable-dnssec.autosign.db";
-	dnssec-policy "enable-dnssec";
-};
