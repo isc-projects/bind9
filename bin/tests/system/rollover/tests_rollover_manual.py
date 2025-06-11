@@ -12,12 +12,10 @@
 from datetime import timedelta
 import os
 
-import pytest
-
 import isctest
-from isctest.kasp import KeyTimingMetadata, Ipub,  Iret
+from isctest.kasp import KeyTimingMetadata, Ipub, Iret
 
-from common import pytestmark
+from common import pytestmark  # pylint: disable=unused-import
 
 
 def test_rollover_manual(servers):
