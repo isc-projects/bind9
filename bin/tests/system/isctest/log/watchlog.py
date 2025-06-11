@@ -76,20 +76,26 @@ class WatchLog(abc.ABC):
         ...     print("Just print something without waiting for a log line")
         Traceback (most recent call last):
           ...
-        Exception: wait_for_*() was not called
+        isctest.log.watchlog.WatchLogException: wait_for_*() was not called
 
         >>> with WatchLogFromHere("/dev/null") as watcher:
         ...     try:
-        ...         watcher.wait_for_line("foo", timeout=0)
+        ...         watcher.wait_for_line("foo", timeout=0.1)
         ...     except TimeoutError:
         ...         pass
         ...     try:
-        ...         watcher.wait_for_lines({"bar": 42}, timeout=0)
+        ...         watcher.wait_for_lines({"bar": 42}, timeout=0.1)
         ...     except TimeoutError:
         ...         pass
         Traceback (most recent call last):
           ...
-        Exception: wait_for_*() was already called
+        isctest.log.watchlog.WatchLogException: wait_for_*() was already called
+
+        >>> with WatchLogFromHere("/dev/null") as watcher:
+        ...     watcher.wait_for_line("foo", timeout=0)
+        Traceback (most recent call last):
+          ...
+        AssertionError: Do not use this class unless you want to WAIT for something.
         """
         self._fd = None  # type: Optional[TextIO]
         self._path = path
