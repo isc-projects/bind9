@@ -162,6 +162,7 @@ TESTS =				\
 	rollover-csk-roll1	\
 	rollover-csk-roll2	\
 	rollover-dynamic2inline	\
+	rollover-enable-dnssec	\
 	rollover-going-insecure	\
 	rollover-ksk-3crowd	\
 	rollover-ksk-doubleksk	\

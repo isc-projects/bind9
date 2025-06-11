@@ -44,6 +44,7 @@ pytestmark = pytest.mark.extra_artifacts(
 TIMEDELTA = {
     0: timedelta(seconds=0),
     "PT5M": timedelta(minutes=5),
+    "PT20M": timedelta(minutes=20),
     "PT1H": timedelta(hours=1),
     "PT2H": timedelta(hours=2),
     "PT6H": timedelta(hours=6),
