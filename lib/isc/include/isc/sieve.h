@@ -164,3 +164,6 @@
 
 #define ISC_SIEVE_INSERT(sieve, entry, link) \
 	ISC_LIST_PREPEND((sieve).list, entry, link)
+
+#define ISC_SIEVE_FOREACH(sieve, entry, link) \
+	ISC_LIST_FOREACH((sieve).list, entry, link)
