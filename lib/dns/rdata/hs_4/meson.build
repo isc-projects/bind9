@@ -9,4 +9,4 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-dns_header_depfiles += files('a_1.c')
+dns_header_depfiles += files('a_1.c', 'a_1.h')
