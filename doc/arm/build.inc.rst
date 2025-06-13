@@ -31,7 +31,7 @@ before running ``meson setup``. The most significant ones are:
 |                    | figure out the right one for supported systems. |
 +--------------------+-------------------------------------------------+
 | ``CC_LD``          | The C linker to use.                            |
-+----------------------------------------------------------------------+
++--------------------+-------------------------------------------------+
 | ``CFLAGS``         | The C compiler flags. Defaults to an empty      |
 |                    | string.                                         |
 +--------------------+-------------------------------------------------+
@@ -100,7 +100,8 @@ location, adjust ``PKG_CONFIG_PATH`` or use the option ``--pkg-config-path``.
 To support compression on the HTTP statistics channel, the server must
 be linked against ``zlib`` (https://zlib.net/). If this is installed in
 a nonstandard location, adjust ``PKG_CONFIG_PATH`` or use the option
-``--pkg-config-path``.
+``--pkg-config-path``. Compression can be switched off with
+``-Dzlib=disabled``.
 
 To support storing configuration data for runtime-added zones in an LMDB
 database, the server must be linked with ``liblmdb``
@@ -121,10 +122,10 @@ BIND must be configured with ``-Ddnstap=enabled``.
 
 To support internationalized domain names in :iscman:`dig`, ``libidn2``
 (https://www.gnu.org/software/libidn/#libidn2) must be installed. If the
-library is installed in a nonstandard location, specify the prefix using
-``--with-libidn2=/prefix`` or adjust ``PKG_CONFIG_PATH``.
+library is installed in a nonstandard location, adjust ``PKG_CONFIG_PATH`` or
+use the option ``--pkg-config-path``. IDN support can be switched off with
+``-Didn=disabled``.
 
-<<<<<<< HEAD
 For line editing in :iscman:`nsupdate` and :iscman:`nslookup`,
 the ``libedit`` library (https://www.thrysoee.dk/editline/) must be
 installed. If these are installed at a nonstandard location, adjust
