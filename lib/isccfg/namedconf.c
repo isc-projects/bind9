@@ -2426,8 +2426,8 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	 */
 	{ "type", &cfg_type_zonetype,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
-		  CFG_ZONE_STUB | CFG_ZONE_STATICSTUB | CFG_ZONE_DELEGATION |
-		  CFG_ZONE_HINT | CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD },
+		  CFG_ZONE_STUB | CFG_ZONE_STATICSTUB | CFG_ZONE_HINT |
+		  CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD },
 	{ "check-names", &cfg_type_checkmode,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_ZONE_HINT | CFG_ZONE_STUB },
@@ -2475,8 +2475,8 @@ static cfg_clausedef_t non_template_clauses[] = {
 	{ "in-view", &cfg_type_astring, CFG_ZONE_INVIEW },
 	{ "template", &cfg_type_astring,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
-		  CFG_ZONE_STUB | CFG_ZONE_STATICSTUB | CFG_ZONE_DELEGATION |
-		  CFG_ZONE_HINT | CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD },
+		  CFG_ZONE_STUB | CFG_ZONE_STATICSTUB | CFG_ZONE_HINT |
+		  CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD },
 	{ NULL, NULL, 0 }
 };
 
