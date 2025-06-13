@@ -773,6 +773,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
+	looknew->coflag = lookold->coflag;
 	looknew->raflag = lookold->raflag;
 	looknew->tcflag = lookold->tcflag;
 	looknew->print_unknown_format = lookold->print_unknown_format;
@@ -2632,9 +2633,12 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 
 		flags = lookup->ednsflags;
-		flags &= ~DNS_MESSAGEEXTFLAG_DO;
+		flags &= ~(DNS_MESSAGEEXTFLAG_DO | DNS_MESSAGEEXTFLAG_CO);
 		if (lookup->dnssec) {
 			flags |= DNS_MESSAGEEXTFLAG_DO;
+		}
+		if (lookup->coflag) {
+			flags |= DNS_MESSAGEEXTFLAG_CO;
 		}
 		add_opt(lookup->sendmsg, lookup->udpsize, lookup->edns, flags,
 			opts, i);
