@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import os
 from pathlib import Path
 
 from docutils import nodes
@@ -19,18 +18,14 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.util.typing import ExtensionMetadata
 
 
-BIND_BUILD_ROOT = os.getenv("BIND_BUILD_ROOT")
-if BIND_BUILD_ROOT is None:
-    raise RuntimeError("running outside meson?")
-
-miscpath = Path(BIND_BUILD_ROOT) / "doc" / "misc"
+misc_path = Path(__file__).resolve().parent.parent.parent / "misc"
 
 
 class ConfigBlockDirective(SphinxDirective):
     required_arguments = 1
 
     def run(self) -> list[nodes.Node]:
-        target = miscpath / self.arguments[0]
+        target = misc_path / self.arguments[0]
 
         block = "{}" if not target.exists() else target.read_text()
 

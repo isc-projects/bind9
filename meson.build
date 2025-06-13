@@ -1619,6 +1619,8 @@ alias_target('system-test-dependencies', system_test_targets)
 
 ### Documentation
 
+alias_target('doc-misc', doc_misc_targets)
+
 if doc_opt.allowed()
     man_srcconf = man_srcset.apply(config, strict: false)
     foreach man : man_srcconf.sources()

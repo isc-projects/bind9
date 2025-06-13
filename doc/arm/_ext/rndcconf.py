@@ -15,7 +15,6 @@
 Sphinx domain "rndcconf". See iscconf.py for details.
 """
 
-import os
 from pathlib import Path
 
 from docutils import nodes
@@ -23,8 +22,7 @@ from docutils import nodes
 import iscconf
 import parsegrammar
 
-buildroot = os.getenv("BIND_BUILD_ROOT")
-grammar_path = Path(buildroot) / "doc" / "misc" / "rndc.grammar"
+grammar_path = Path(__file__).resolve().parent.parent.parent / "misc" / "rndc.grammar"
 
 
 class ToBeReplacedStatementList(nodes.General, nodes.Element):

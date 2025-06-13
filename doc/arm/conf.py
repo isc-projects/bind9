@@ -11,8 +11,8 @@
 # information regarding copyright ownership.
 ############################################################################
 
-import os
 import sys
+import re
 
 from pathlib import Path
 from typing import List, Tuple
@@ -151,7 +151,15 @@ project = "BIND 9"
 copyright = "2023, Internet Systems Consortium"
 author = "Internet Systems Consortium"
 
-version = os.getenv("BIND_PROJECT_VERSION")
+meson_path = Path(__file__).resolve().parent.parent.parent / "meson.build"
+with meson_path.open(encoding="utf-8") as meson_build:
+    pattern = re.compile(r"    version: '(?P<version>.*)',")
+    for line in meson_build:
+        match = pattern.match(line)
+        if match:
+            version = match.group("version")
+            assert version.startswith("9.")
+            break
 
 release = version
 
