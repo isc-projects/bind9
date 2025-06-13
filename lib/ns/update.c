@@ -2693,8 +2693,8 @@ update_action(void *arg) {
 	options = dns_zone_getoptions(zone);
 
 	is_inline = (!dns_zone_israw(zone) && dns_zone_issecure(zone));
-	is_maintain = ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_MAINTAIN) != 0);
-	is_signing = is_inline || (!is_inline && is_maintain);
+	is_maintain = (dns_zone_getkasp(zone) != NULL) && !dns_zone_israw(zone);
+	is_signing = is_inline || is_maintain;
 
 	/*
 	 * Get old and new versions now that queryacl has been checked.

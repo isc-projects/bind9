@@ -103,19 +103,9 @@ typedef enum {
 	DNS_ZONEOPT_AUTOEMPTY = 1 << 29,      /*%< automatic empty zone */
 	DNS_ZONEOPT_CHECKSVCB = 1 << 30,      /*%< check SVBC records */
 	DNS_ZONEOPT_ZONEVERSION = 1U << 31,   /*%< enable zoneversion */
+	DNS_ZONEOPT_FULLSIGN = 1ULL << 32,    /*%< fully sign zone */
 	DNS_ZONEOPT___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneopt_t;
-
-/*
- * Zone key maintenance options
- */
-typedef enum {
-	DNS_ZONEKEY_ALLOW = 0x00000001U,    /*%< fetch keys on command */
-	DNS_ZONEKEY_MAINTAIN = 0x00000002U, /*%< publish/sign on schedule */
-	DNS_ZONEKEY_CREATE = 0x00000004U,   /*%< make keys when needed */
-	DNS_ZONEKEY_FULLSIGN = 0x00000008U, /*%< roll to new keys immediately */
-	DNS_ZONEKEY___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
-} dns_zonekey_t;
 
 /*
  * Zone states
@@ -757,25 +747,6 @@ dns_zoneopt_t
 dns_zone_getoptions(dns_zone_t *zone);
 /*%<
  *	Returns the current zone options.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-void
-dns_zone_setkeyopt(dns_zone_t *zone, unsigned int option, bool value);
-/*%<
- *	Set key options on ('value' == true) or off ('value' ==
- *	#false).
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-unsigned int
-dns_zone_getkeyopts(dns_zone_t *zone);
-/*%<
- *	Returns the current zone key options.
  *
  * Require:
  *\li	'zone' to be a valid zone.

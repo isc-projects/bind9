@@ -440,11 +440,6 @@ struct dns_zone {
 	dns_rdatatype_t privatetype;
 
 	/*%
-	 * Autosigning/key-maintenance options
-	 */
-	atomic_uint_fast64_t keyopts;
-
-	/*%
 	 * True if added by "rndc addzone"
 	 */
 	bool added;
@@ -588,11 +583,6 @@ typedef enum {
 #define DNS_ZONE_OPTION(z, o)	 ((atomic_load_relaxed(&(z)->options) & (o)) != 0)
 #define DNS_ZONE_SETOPTION(z, o) atomic_fetch_or(&(z)->options, (o))
 #define DNS_ZONE_CLROPTION(z, o) atomic_fetch_and(&(z)->options, ~(o))
-
-#define DNS_ZONEKEY_OPTION(z, o) \
-	((atomic_load_relaxed(&(z)->keyopts) & (o)) != 0)
-#define DNS_ZONEKEY_SETOPTION(z, o) atomic_fetch_or(&(z)->keyopts, (o))
-#define DNS_ZONEKEY_CLROPTION(z, o) atomic_fetch_and(&(z)->keyopts, ~(o))
 
 /* Flags for zone_load() */
 typedef enum {
@@ -2629,10 +2619,8 @@ dns_zone_loadandthaw(dns_zone_t *zone) {
 		 * have been made. If we do DNSSEC maintenance on this
 		 * zone, schedule a full sign for this zone.
 		 */
-		if (zone->type == dns_zone_primary &&
-		    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
-		{
-			DNS_ZONEKEY_SETOPTION(zone, DNS_ZONEKEY_FULLSIGN);
+		if (zone->type == dns_zone_primary && zone->kasp != NULL) {
+			DNS_ZONE_SETOPTION(zone, DNS_ZONEOPT_FULLSIGN);
 		}
 		result = zone_load(zone, DNS_ZONELOADFLAG_THAW, false);
 	}
@@ -5444,9 +5432,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	/*
 	 * Schedule DNSSEC key refresh.
 	 */
-	if (zone->type == dns_zone_primary &&
-	    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
-	{
+	if (zone->type == dns_zone_primary && zone->kasp != NULL) {
 		zone->refreshkeytime = now;
 	}
 
@@ -6049,7 +6035,7 @@ dns_zone_setdefaultkasp(dns_zone_t *zone, dns_kasp_t *kasp) {
 
 dns_kasp_t *
 dns_zone_getkasp(dns_zone_t *zone) {
-	dns_kasp_t *kasp;
+	dns_kasp_t *kasp = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -6112,24 +6098,6 @@ dns_zone_getoptions(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return atomic_load_relaxed(&zone->options);
-}
-
-void
-dns_zone_setkeyopt(dns_zone_t *zone, unsigned int keyopt, bool value) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	if (value) {
-		DNS_ZONEKEY_SETOPTION(zone, keyopt);
-	} else {
-		DNS_ZONEKEY_CLROPTION(zone, keyopt);
-	}
-}
-
-unsigned int
-dns_zone_getkeyopts(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return atomic_load_relaxed(&zone->keyopts);
 }
 
 void
@@ -22171,7 +22139,7 @@ zone_rekey(dns_zone_t *zone) {
 	 * True when called from "rndc sign".  Indicates the zone should be
 	 * fully signed now.
 	 */
-	fullsign = DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_FULLSIGN);
+	fullsign = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_FULLSIGN);
 
 	if (offlineksk) {
 		/* Lookup the correct bundle in the SKR. */
@@ -22601,7 +22569,7 @@ zone_rekey(dns_zone_t *zone) {
 		 * Clear fullsign flag, if it was set, so we don't do
 		 * another full signing next time.
 		 */
-		DNS_ZONEKEY_CLROPTION(zone, DNS_ZONEKEY_FULLSIGN);
+		DNS_ZONE_CLROPTION(zone, DNS_ZONEOPT_FULLSIGN);
 
 		/*
 		 * Cause the zone to add/delete NSEC3 chains for the
@@ -22680,14 +22648,12 @@ zone_rekey(dns_zone_t *zone) {
 		dnssec_log(zone, ISC_LOG_DEBUG(3),
 			   "next key event in %u seconds", nexttime_seconds);
 		dnssec_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
-	}
-	/*
-	 * If we're doing key maintenance, set the key refresh timer to
-	 * the next scheduled key event or to 'dnssec-loadkeys-interval'
-	 * seconds in the future, whichever is sooner.
-	 */
-	else if (DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
-	{
+	} else {
+		/*
+		 * If we're doing key maintenance, set the key refresh timer to
+		 * the next scheduled key event or to 'dnssec-loadkeys-interval'
+		 * seconds in the future, whichever is sooner.
+		 */
 		isc_time_t timethen;
 		isc_stdtime_t then;
 
@@ -22804,7 +22770,7 @@ dns_zone_rekey(dns_zone_t *zone, bool fullsign) {
 		LOCK_ZONE(zone);
 
 		if (fullsign) {
-			DNS_ZONEKEY_SETOPTION(zone, DNS_ZONEKEY_FULLSIGN);
+			DNS_ZONE_SETOPTION(zone, DNS_ZONEOPT_FULLSIGN);
 		}
 
 		now = isc_time_now();
