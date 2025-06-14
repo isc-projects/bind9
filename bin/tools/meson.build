@@ -12,6 +12,7 @@
 arpaname_src += files('arpaname.c')
 dnstap_read_src += files('dnstap-read.c')
 mdig_src += files('mdig.c')
+named_makejournal_src += files('named-makejournal.c')
 named_journalprint_src += files('named-journalprint.c')
 named_nzd2nzf_src += files('named-nzd2nzf.c')
 named_rrchecker_src += files('named-rrchecker.c')
@@ -25,6 +26,7 @@ manrst_srcset.add(
         'dnstap-read.rst',
         'mdig.rst',
         'named-journalprint.rst',
+        'named-makejournal.rst',
         'named-nzd2nzf.rst',
         'named-rrchecker.rst',
         'nsec3hash.rst',

@@ -15,11 +15,13 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "journalprint.out.*",
+        "makejournal.out.*",
         "tmp.jnl",
         "ns*/*.db",
         "ns*/*.jnl",
         "ns1/managed-keys.bind",
         "ns2/managed-keys.bind",
+        "zones/*.jnl",
     ]
 )
 

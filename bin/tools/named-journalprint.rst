@@ -63,4 +63,4 @@ bug in that release.) Note that these options *must not* be used while
 See Also
 ~~~~~~~~
 
-:iscman:`named(8) <named>`, :iscman:`nsupdate(1) <nsupdate>`, BIND 9 Administrator Reference Manual.
+:iscman:`named(8) <named>`, :iscman:`nsupdate(1) <nsupdate>`, :iscman:`named-makejournal(1) <named-makejournal>`, BIND 9 Administrator Reference Manual.

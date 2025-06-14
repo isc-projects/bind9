@@ -176,6 +176,13 @@ man_pages = [
         1,
     ),
     (
+        "named-makejournal",
+        "named-makejournal",
+        "create a journal from zone files",
+        author,
+        1,
+    ),
+    (
         "named-nzd2nzf",
         "named-nzd2nzf",
         "convert an NZD database to NZF text format",

@@ -206,7 +206,7 @@ libraries.
     * `bind9/bin/confgen`: `rndc-confgen`, `ddns-confgen`, and
       `tsig-keygen` (BIND 9.9+)
     * `bind9/bin/tools`: assorted useful tools: `named-journalprint`,
-      `nsec3hash`, etc
+      `named-makejournal`, `nsec3hash`, etc
 * `bind9/lib`: libraries
     * `bind9/lib/isc`: implements basic functionality such as threads,
       tasks, timers, sockets, memory manager, buffers, and basic data types.
