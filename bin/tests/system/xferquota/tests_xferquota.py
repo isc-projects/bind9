@@ -75,9 +75,6 @@ def test_xferquota(named_port, servers):
         f"transfer of 'changing/IN' from 10.53.0.1#{named_port}: "
         f"Transfer completed: .*\\(serial 2\\)"
     )
-    with servers["ns2"].watch_log_from_start() as watcher:
-        watcher.wait_for_line(
-            pattern,
-            timeout=30,
-        )
+    with servers["ns2"].watch_log_from_start(timeout=30) as watcher:
+        watcher.wait_for_line(pattern)
     query_and_compare(a_msg)

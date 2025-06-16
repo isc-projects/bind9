@@ -65,9 +65,12 @@ class WatchLog(abc.ABC):
     by the `NamedInstance` class (see below for recommended usage patterns).
     """
 
-    def __init__(self, path: str) -> None:
+    DEFAULT_TIMEOUT = 10.0
+
+    def __init__(self, path: str, timeout: float = DEFAULT_TIMEOUT) -> None:
         """
         `path` is the path to the log file to watch.
+        `timeout` is the number of seconds (float) to wait for each wait call.
 
         Every instance of this class must call one of the `wait_for_*()`
         methods exactly once or else an `Exception` is thrown.
@@ -78,29 +81,32 @@ class WatchLog(abc.ABC):
           ...
         isctest.log.watchlog.WatchLogException: wait_for_*() was not called
 
-        >>> with WatchLogFromHere("/dev/null") as watcher:
+        >>> with WatchLogFromHere("/dev/null", timeout=0.1) as watcher:
         ...     try:
-        ...         watcher.wait_for_line("foo", timeout=0.1)
+        ...         watcher.wait_for_line("foo")
         ...     except TimeoutError:
         ...         pass
         ...     try:
-        ...         watcher.wait_for_lines({"bar": 42}, timeout=0.1)
+        ...         watcher.wait_for_lines({"bar": 42})
         ...     except TimeoutError:
         ...         pass
         Traceback (most recent call last):
           ...
         isctest.log.watchlog.WatchLogException: wait_for_*() was already called
 
-        >>> with WatchLogFromHere("/dev/null") as watcher:
-        ...     watcher.wait_for_line("foo", timeout=0)
+        >>> with WatchLogFromHere("/dev/null", timeout=0.0) as watcher:
+        ...     watcher.wait_for_line("foo")
         Traceback (most recent call last):
           ...
-        AssertionError: Do not use this class unless you want to WAIT for something.
+        isctest.log.watchlog.WatchLogException: timeout must be greater than 0
         """
         self._fd = None  # type: Optional[TextIO]
         self._path = path
         self._wait_function_called = False
         self._linebuf = ""
+        if timeout <= 0.0:
+            raise WatchLogException("timeout must be greater than 0")
+        self._timeout = timeout
 
     def _readline(self) -> Optional[str]:
         """
@@ -131,14 +137,14 @@ class WatchLog(abc.ABC):
                 return
             yield line
 
-    def wait_for_line(self, string: str, timeout: int = 10) -> None:
+    def wait_for_line(self, string: str) -> None:
         """
         Block execution until a line containing the provided `string` appears
         in the log file.  Return `None` once the line is found or raise a
-        `TimeoutError` after `timeout` seconds (default: 10) if `string` does
-        not appear in the log file (strings and regular expressions are
-        supported).  (Catching this exception is discouraged as it indicates
-        that the test code did not behave as expected.)
+        `TimeoutError` after timeout if `string` does not appear in the log
+        file (strings and regular expressions are supported).  (Catching this
+        exception is discouraged as it indicates that the test code did not
+        behave as expected.)
 
         Recommended use:
 
@@ -162,13 +168,13 @@ class WatchLog(abc.ABC):
         >>> with tempfile.NamedTemporaryFile("w") as file:
         ...     print("foo", file=file, flush=True)
         ...     with WatchLogFromStart(file.name) as watcher:
-        ...         retval = watcher.wait_for_line("foo", timeout=1)
+        ...         retval = watcher.wait_for_line("foo")
         >>> print(retval)
         None
         >>> with tempfile.NamedTemporaryFile("w") as file:
         ...     with WatchLogFromStart(file.name) as watcher:
         ...         print("foo", file=file, flush=True)
-        ...         retval = watcher.wait_for_line("foo", timeout=1)
+        ...         retval = watcher.wait_for_line("foo")
         >>> print(retval)
         None
 
@@ -178,8 +184,8 @@ class WatchLog(abc.ABC):
         >>> import tempfile
         >>> with tempfile.NamedTemporaryFile("w") as file:
         ...     print("foo", file=file, flush=True)
-        ...     with WatchLogFromHere(file.name) as watcher:
-        ...         watcher.wait_for_line("foo", timeout=1) #doctest: +ELLIPSIS
+        ...     with WatchLogFromHere(file.name, timeout=0.1) as watcher:
+        ...         watcher.wait_for_line("foo") #doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
         TimeoutError: Timeout reached watching ...
@@ -187,15 +193,13 @@ class WatchLog(abc.ABC):
         ...     print("foo", file=file, flush=True)
         ...     with WatchLogFromHere(file.name) as watcher:
         ...         print("foo", file=file, flush=True)
-        ...         retval = watcher.wait_for_line("foo", timeout=1)
+        ...         retval = watcher.wait_for_line("foo")
         >>> print(retval)
         None
         """
-        return self._wait_for({string: None}, timeout)
+        return self._wait_for({string: None})
 
-    def wait_for_lines(
-        self, strings: Dict[Union[str, Pattern], Any], timeout: int = 10
-    ) -> None:
+    def wait_for_lines(self, strings: Dict[Union[str, Pattern], Any]) -> None:
         """
         Block execution until a line of interest appears in the log file.  This
         function is a "multi-match" variant of `wait_for_line()` which is
@@ -205,10 +209,9 @@ class WatchLog(abc.ABC):
         `strings` is a `dict` associating each string to look for with the
         value this function should return when that string is found in the log
         file (strings and regular expressions are supported).  If none of the
-        `strings` being looked for appear in the log file after `timeout`
-        seconds, a `TimeoutError` is raised.  (Catching this exception is
-        discouraged as it indicates that the test code did not behave as
-        expected.)
+        `strings` being looked for appear in the log file after timeout, a
+        `TimeoutError` is raised.  (Catching this exception is discouraged as
+        it indicates that the test code did not behave as expected.)
 
         Since `strings` is a `dict` and preserves key order (in CPython 3.6 as
         implementation detail, since 3.7 by language design), each line is
@@ -241,28 +244,28 @@ class WatchLog(abc.ABC):
         >>> with tempfile.NamedTemporaryFile("w") as file:
         ...     print("foo", file=file, flush=True)
         ...     with WatchLogFromStart(file.name) as watcher:
-        ...         retval1 = watcher.wait_for_lines(triggers, timeout=1)
+        ...         retval1 = watcher.wait_for_lines(triggers)
         ...     with WatchLogFromHere(file.name) as watcher:
         ...         print("bar", file=file, flush=True)
-        ...         retval2 = watcher.wait_for_lines(triggers, timeout=1)
+        ...         retval2 = watcher.wait_for_lines(triggers)
         >>> print(retval1)
         42
         >>> print(retval2)
         1337
         """
-        return self._wait_for(strings, timeout)
+        return self._wait_for(strings)
 
-    def _wait_for(self, patterns: Dict[Union[str, Pattern], Any], timeout: int) -> Any:
+    def _wait_for(self, patterns: Dict[Union[str, Pattern], Any]) -> Any:
         """
         Block execution until one of the `strings` being looked for appears in
         the log file.  Raise a `TimeoutError` if none of the `strings` being
-        looked for are found in the log file for `timeout` seconds.
+        looked for are found in the log file after timeout.
         """
         if self._wait_function_called:
             raise WatchLogException("wait_for_*() was already called")
         self._wait_function_called = True
-        assert timeout, "Do not use this class unless you want to WAIT for something."
-        deadline = time.monotonic() + timeout
+
+        deadline = time.monotonic() + self._timeout
         while time.monotonic() < deadline:
             for line in self._readlines():
                 for string, retval in patterns.items():
