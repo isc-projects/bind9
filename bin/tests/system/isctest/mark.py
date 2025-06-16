@@ -31,7 +31,9 @@ live_internet_test = pytest.mark.skipif(
 
 
 def feature_test(feature):
-    feature_test_bin = os.environ["FEATURETEST"]
+    feature_test_bin = os.environ.get("FEATURETEST")
+    if not feature_test_bin:  # this can be the case when running doctest
+        return False
     try:
         subprocess.run([feature_test_bin, feature], check=True)
     except subprocess.CalledProcessError as exc:
