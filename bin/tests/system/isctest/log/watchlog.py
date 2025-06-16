@@ -9,11 +9,15 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from typing import Iterator, Optional, TextIO, Dict, Any, Union, Pattern
+from typing import Iterator, Optional, TextIO, Any, List, Union, Pattern, Match
 
 import abc
 import os
+import re
 import time
+
+
+FlexPattern = Union[str, Pattern]
 
 
 class WatchLogException(Exception):
@@ -137,14 +141,44 @@ class WatchLog(abc.ABC):
                 return
             yield line
 
-    def wait_for_line(self, string: str) -> None:
+    def _prepare_patterns(
+        self, strings: Union[FlexPattern, List[FlexPattern]]
+    ) -> List[Pattern]:
         """
-        Block execution until a line containing the provided `string` appears
-        in the log file.  Return `None` once the line is found or raise a
-        `TimeoutError` after timeout if `string` does not appear in the log
-        file (strings and regular expressions are supported).  (Catching this
-        exception is discouraged as it indicates that the test code did not
-        behave as expected.)
+        Convert a mix of string(s) and/or pattern(s) into a list of patterns.
+
+        Any strings are converted into regular expression patterns that match
+        the string verbatim.
+        """
+        patterns = []
+        if not isinstance(strings, list):
+            strings = [strings]
+        for string in strings:
+            if isinstance(string, Pattern):
+                patterns.append(string)
+            elif isinstance(string, str):
+                pattern = re.compile(re.escape(string))
+                patterns.append(pattern)
+            else:
+                raise WatchLogException(
+                    "only string and re.Pattern allowed for matching"
+                )
+        return patterns
+
+    def wait_for_line(self, patterns: Union[FlexPattern, List[FlexPattern]]) -> Match:
+        """
+        Block execution until any line of interest appears in the log file.
+
+        `patterns` accepts one value or a list of values, with each value being
+        either a regular expression pattern, or a string which should be
+        matched verbatim (without interpreting it as a regular expression).
+
+        If any of the patterns is found anywhere within a line in the log file,
+        return the match, allowing access to the matched line, the regex
+        groups, and the regex which matched. See re.Match for more.
+
+        A `TimeoutError` is raised if the function fails to find any of the
+        `patterns` in the allotted time.
 
         Recommended use:
 
@@ -152,13 +186,27 @@ class WatchLog(abc.ABC):
         import isctest
 
         def test_foo(servers):
+            with servers["ns1"].watch_log_from_start() as watcher:
+                watcher.wait_for_line("all zones loaded")
+
+            pattern = re.compile(r"next key event in ([0-9]+) seconds")
             with servers["ns1"].watch_log_from_here() as watcher:
                 # ... do stuff here ...
-                watcher.wait_for_line("foo bar")
+                match = watcher.wait_for_line(pattern)
+                seconds = int(match.groups(1))
+
+            strings = [
+                "freezing zone",
+                "thawing zone",
+            ]
+            with servers["ns1"].watch_log_from_here() as watcher:
+                # ... do stuff here ...
+                match = watcher.wait_for_line(strings)
+                line = match.string
         ```
 
-        One of `wait_for_line()` or `wait_for_lines()` must be called exactly
-        once for every `WatchLogFrom*` instance.
+        `wait_for_line()` must be called exactly once for every `WatchLog`
+        instance.
 
         >>> # For `WatchLogFromStart`, `wait_for_line()` returns without
         >>> # raising an exception as soon as the line being looked for appears
@@ -166,101 +214,55 @@ class WatchLog(abc.ABC):
         >>> # after the `with` statement is reached.
         >>> import tempfile
         >>> with tempfile.NamedTemporaryFile("w") as file:
-        ...     print("foo", file=file, flush=True)
+        ...     print("foo bar baz", file=file, flush=True)
         ...     with WatchLogFromStart(file.name) as watcher:
-        ...         retval = watcher.wait_for_line("foo")
-        >>> print(retval)
-        None
+        ...         match = watcher.wait_for_line("bar")
+        >>> print(match.string.strip())
+        foo bar baz
         >>> with tempfile.NamedTemporaryFile("w") as file:
         ...     with WatchLogFromStart(file.name) as watcher:
-        ...         print("foo", file=file, flush=True)
-        ...         retval = watcher.wait_for_line("foo")
-        >>> print(retval)
-        None
+        ...         print("foo bar baz", file=file, flush=True)
+        ...         match = watcher.wait_for_line("bar")
+        >>> print(match.group(0))
+        bar
 
         >>> # For `WatchLogFromHere`, `wait_for_line()` only returns without
         >>> # raising an exception if the string being looked for appears in
         >>> # the log file after the `with` statement is reached.
         >>> import tempfile
         >>> with tempfile.NamedTemporaryFile("w") as file:
-        ...     print("foo", file=file, flush=True)
+        ...     print("foo bar baz", file=file, flush=True)
         ...     with WatchLogFromHere(file.name, timeout=0.1) as watcher:
-        ...         watcher.wait_for_line("foo") #doctest: +ELLIPSIS
+        ...         watcher.wait_for_line("bar") #doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
         TimeoutError: Timeout reached watching ...
         >>> with tempfile.NamedTemporaryFile("w") as file:
-        ...     print("foo", file=file, flush=True)
+        ...     print("foo bar baz", file=file, flush=True)
         ...     with WatchLogFromHere(file.name) as watcher:
-        ...         print("foo", file=file, flush=True)
-        ...         retval = watcher.wait_for_line("foo")
-        >>> print(retval)
-        None
-        """
-        return self._wait_for({string: None})
-
-    def wait_for_lines(self, strings: Dict[Union[str, Pattern], Any]) -> None:
-        """
-        Block execution until a line of interest appears in the log file.  This
-        function is a "multi-match" variant of `wait_for_line()` which is
-        useful when some action may cause several different (mutually
-        exclusive) messages to appear in the log file.
-
-        `strings` is a `dict` associating each string to look for with the
-        value this function should return when that string is found in the log
-        file (strings and regular expressions are supported).  If none of the
-        `strings` being looked for appear in the log file after timeout, a
-        `TimeoutError` is raised.  (Catching this exception is discouraged as
-        it indicates that the test code did not behave as expected.)
-
-        Since `strings` is a `dict` and preserves key order (in CPython 3.6 as
-        implementation detail, since 3.7 by language design), each line is
-        checked against each key in order until the first match.  Values provided
-        in the `strings` dictionary (i.e. values which this function is expected
-        to return upon a successful match) can be of any type.
-
-        Recommended use:
-
-        ```python
-        import isctest
-
-        def test_foo(servers):
-            triggers = {
-                "message A": "value returned when message A is found",
-                "message B": "value returned when message B is found",
-            }
-            with servers["ns1"].watch_log_from_here() as watcher:
-                # ... do stuff here ...
-                retval = watcher.wait_for_lines(triggers)
-        ```
-
-        One of `wait_for_line()` or `wait_for_lines()` must be called exactly
-        once for every `WatchLogFromHere` instance.
+        ...         print("bar qux", file=file, flush=True)
+        ...         match = watcher.wait_for_line("bar")
+        >>> print(match.string.strip())
+        bar qux
 
         >>> # Different values must be returned depending on which line is
         >>> # found in the log file.
         >>> import tempfile
-        >>> triggers = {"foo": 42, "bar": 1337}
+        >>> patterns = [re.compile(r"bar ([0-9])"), "qux"]
         >>> with tempfile.NamedTemporaryFile("w") as file:
-        ...     print("foo", file=file, flush=True)
+        ...     print("foo bar 3", file=file, flush=True)
         ...     with WatchLogFromStart(file.name) as watcher:
-        ...         retval1 = watcher.wait_for_lines(triggers)
+        ...         match1 = watcher.wait_for_line(patterns)
         ...     with WatchLogFromHere(file.name) as watcher:
-        ...         print("bar", file=file, flush=True)
-        ...         retval2 = watcher.wait_for_lines(triggers)
-        >>> print(retval1)
-        42
-        >>> print(retval2)
-        1337
+        ...         print("baz qux", file=file, flush=True)
+        ...         match2 = watcher.wait_for_line(patterns)
+        >>> print(match1.group(1))
+        3
+        >>> print(match2.group(0))
+        qux
         """
-        return self._wait_for(strings)
+        regexes = self._prepare_patterns(patterns)
 
-    def _wait_for(self, patterns: Dict[Union[str, Pattern], Any]) -> Any:
-        """
-        Block execution until one of the `strings` being looked for appears in
-        the log file.  Raise a `TimeoutError` if none of the `strings` being
-        looked for are found in the log file after timeout.
-        """
         if self._wait_function_called:
             raise WatchLogException("wait_for_*() was already called")
         self._wait_function_called = True
@@ -268,17 +270,12 @@ class WatchLog(abc.ABC):
         deadline = time.monotonic() + self._timeout
         while time.monotonic() < deadline:
             for line in self._readlines():
-                for string, retval in patterns.items():
-                    if isinstance(string, Pattern) and string.search(line):
-                        return retval
-                    if isinstance(string, str) and string in line:
-                        return retval
+                for regex in regexes:
+                    match = regex.search(line)
+                    if match:
+                        return match
             time.sleep(0.1)
-        raise TimeoutError(
-            "Timeout reached watching {} for {}".format(
-                self._path, list(patterns.keys())
-            )
-        )
+        raise TimeoutError(f"Timeout reached watching {self._path} for {patterns}")
 
     def __enter__(self) -> Any:
         self._fd = open(self._path, encoding="utf-8")
