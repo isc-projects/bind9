@@ -120,10 +120,10 @@ Administrator Reference Manual.
 
 ### <a name="testing"/> Automated testing
 
-A system test suite can be run with `make check`. The system tests require
-you to configure a set of virtual IP addresses on your system (this allows
-multiple servers to run locally and communicate with each other). These
-IP addresses can be configured by running the command
+A system test suite can be run with `pytest bin/tests/system`. The system
+tests require you to configure a set of virtual IP addresses on your system
+(this allows multiple servers to run locally and communicate with each other).
+These IP addresses can be configured by running the command
 `bin/tests/system/ifconfig.sh up` as root.
 
 Some tests require Perl and the `Net::DNS` and/or `IO::Socket::IP` modules,
@@ -132,8 +132,8 @@ and the `dnspython` module and are skipped if these are not available.
 See bin/tests/system/README for further details.
 
 Unit tests are implemented using the CMocka unit testing framework. To build
-them, use `configure --with-cmocka`. Execution of tests is done by the automake
-parallel test driver; unit tests are also run by `make check`.
+them, use the option `-Dcmocka=enabled`. Execution of unit tests is done by the
+meson's test functionality; run by `meson test`.
 
 ### <a name="doc"/> Documentation
 
