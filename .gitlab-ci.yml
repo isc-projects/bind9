@@ -599,6 +599,17 @@ coccinelle:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
+doctest:
+  <<: *precheck_job
+  needs: []
+  script:
+    - *configure
+    - meson compile -C build system-test-init
+    - *find_pytest
+    - cd bin/tests/system/isctest
+    - >
+      "$PYTEST" --noconftest --doctest-modules
+
 pylint:
   <<: *default_triggering_rules
   <<: *debian_sid_amd64_image
