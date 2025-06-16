@@ -183,19 +183,23 @@ class NamedInstance:
         debug(f"update of zone {zone} to server {self.ip} successful")
         return response
 
-    def watch_log_from_start(self) -> WatchLogFromStart:
+    def watch_log_from_start(
+        self, timeout: float = WatchLogFromStart.DEFAULT_TIMEOUT
+    ) -> WatchLogFromStart:
         """
         Return an instance of the `WatchLogFromStart` context manager for this
         `named` instance's log file.
         """
-        return WatchLogFromStart(self.log.path)
+        return WatchLogFromStart(self.log.path, timeout)
 
-    def watch_log_from_here(self) -> WatchLogFromHere:
+    def watch_log_from_here(
+        self, timeout: float = WatchLogFromHere.DEFAULT_TIMEOUT
+    ) -> WatchLogFromHere:
         """
         Return an instance of the `WatchLogFromHere` context manager for this
         `named` instance's log file.
         """
-        return WatchLogFromHere(self.log.path)
+        return WatchLogFromHere(self.log.path, timeout)
 
     def reconfigure(self) -> None:
         """
