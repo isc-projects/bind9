@@ -100,6 +100,36 @@ class WatchLog(abc.ABC):
         self._fd = None  # type: Optional[TextIO]
         self._path = path
         self._wait_function_called = False
+        self._linebuf = ""
+
+    def _readline(self) -> Optional[str]:
+        """
+        Wrapper around io.readline() function to handle unfinished lines.
+
+        If a line ends with newline character, it's returned immediately.
+        If a line doesn't end with a newline character, the read contents are
+        buffered until the next call of this function and None is returned
+        instead.
+        """
+        if not self._fd:
+            raise WatchLogException("file to watch isn't open")
+        read = self._fd.readline()
+        if not read.endswith("\n"):
+            self._linebuf += read
+            return None
+        read = self._linebuf + read
+        self._linebuf = ""
+        return read
+
+    def _readlines(self) -> Iterator[str]:
+        """
+        Wrapper around io.readline() which only returns finished lines.
+        """
+        while True:
+            line = self._readline()
+            if line is None:
+                return
+            yield line
 
     def wait_for_line(self, string: str, timeout: int = 10) -> None:
         """
@@ -231,24 +261,15 @@ class WatchLog(abc.ABC):
         if self._wait_function_called:
             raise WatchLogException("wait_for_*() was already called")
         self._wait_function_called = True
-        if not self._fd:
-            raise WatchLogException("No file to watch")
-        leftover = ""
         assert timeout, "Do not use this class unless you want to WAIT for something."
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            for line in self._fd.readlines():
-                if line[-1] != "\n":
-                    # Line is not completely written yet, buffer and keep on waiting
-                    leftover += line
-                else:
-                    line = leftover + line
-                    leftover = ""
-                    for string, retval in patterns.items():
-                        if isinstance(string, Pattern) and string.search(line):
-                            return retval
-                        if isinstance(string, str) and string in line:
-                            return retval
+            for line in self._readlines():
+                for string, retval in patterns.items():
+                    if isinstance(string, Pattern) and string.search(line):
+                        return retval
+                    if isinstance(string, str) and string in line:
+                        return retval
             time.sleep(0.1)
         raise TimeoutError(
             "Timeout reached watching {} for {}".format(
