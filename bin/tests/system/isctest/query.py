@@ -31,26 +31,39 @@ def generic_query(
     timeout: int = QUERY_TIMEOUT,
     attempts: int = 10,
     expected_rcode: dns_rcode = None,
+    log_query: bool = False,
+    log_response: bool = False,
 ) -> Any:
     if port is None:
         port = int(os.environ["PORT"])
     res = None
     for attempt in range(attempts):
+        log_msg = (
+            f"isc.query.{query_func.__name__}(): ip={ip}, port={port}, source={source}, "
+            f"timeout={timeout}, attempts left={attempts-attempt}"
+        )
+        if log_query:
+            log_msg += f"\n{message.to_text()}"
+            log_query = False  # only log query on first attempt
+        isctest.log.debug(log_msg)
         try:
-            isctest.log.debug(
-                f"{query_func.__name__}(): ip={ip}, port={port}, source={source}, "
-                f"timeout={timeout}, attempts left={attempts-attempt}"
-            )
             res = query_func(message, ip, timeout, port=port, source=source)
+        except (dns.exception.Timeout, ConnectionRefusedError) as e:
+            isctest.log.debug(
+                f"isc.query.{query_func.__name__}(): the '{e}' exception raised"
+            )
+        else:
+            if log_response:
+                isctest.log.debug(
+                    f"isc.query.{query_func.__name__}(): response\n{res.to_text()}"
+                )
             if res.rcode() == expected_rcode or expected_rcode is None:
                 return res
-        except (dns.exception.Timeout, ConnectionRefusedError) as e:
-            isctest.log.debug(f"{query_func.__name__}(): the '{e}' exceptio raised")
         time.sleep(1)
     if expected_rcode is not None:
         last_rcode = dns_rcode.to_text(res.rcode()) if res else None
         isctest.log.debug(
-            f"{query_func.__name__}(): expected rcode={dns_rcode.to_text(expected_rcode)}, last rcode={last_rcode}"
+            f"isc.query.{query_func.__name__}(): expected rcode={dns_rcode.to_text(expected_rcode)}, last rcode={last_rcode}"
         )
     raise dns.exception.Timeout
 
