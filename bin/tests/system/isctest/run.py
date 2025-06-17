@@ -33,17 +33,17 @@ def cmd(
     env: Optional[dict] = None,
 ):
     """Execute a command with given args as subprocess."""
-    isctest.log.debug(f"command: {' '.join(args)}")
+    isctest.log.debug(f"isctest.run.cmd(): {' '.join(args)}")
 
     def print_debug_logs(procdata):
         if procdata:
             if log_stdout and procdata.stdout:
                 isctest.log.debug(
-                    f"~~~ cmd stdout ~~~\n{procdata.stdout.decode('utf-8')}\n~~~~~~~~~~~~~~~~~~"
+                    f"isctest.run.cmd(): (stdout)\n{procdata.stdout.decode('utf-8')}"
                 )
             if log_stderr and procdata.stderr:
                 isctest.log.debug(
-                    f"~~~ cmd stderr ~~~\n{procdata.stderr.decode('utf-8')}\n~~~~~~~~~~~~~~~~~~"
+                    f"isctest.run.cmd(): (stderr)\n{procdata.stderr.decode('utf-8')}"
                 )
 
     if env is None:
@@ -64,7 +64,7 @@ def cmd(
         return proc
     except subprocess.CalledProcessError as exc:
         print_debug_logs(exc)
-        isctest.log.debug(f"  return code: {exc.returncode}")
+        isctest.log.debug(f"isctest.run.cmd(): (return code) {exc.returncode}")
         if raise_on_exception:
             raise exc
         return exc
