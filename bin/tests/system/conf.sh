@@ -538,6 +538,7 @@ copy_setports() {
     -e "s/@DISABLED_ALGORITHM_NUMBER@/${DISABLED_ALGORITHM_NUMBER}/g" \
     -e "s/@DISABLED_ALGORITHM_NUMBER@/${DISABLED_ALGORITHM_DST_NUMBER}/g" \
     -e "s/@DISABLED_BITS@/${DISABLED_BITS}/g" \
+    -e "s/@DYLIB@/${DYLIB}/g" \
     $1 >$2
 }
 

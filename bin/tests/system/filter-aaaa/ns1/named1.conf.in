@@ -28,7 +28,7 @@ options {
 
 acl filterees { 10.53.0.1; };
 
-plugin query "@TOP_BUILDDIR@/filter-aaaa.so" {
+plugin query "@TOP_BUILDDIR@/filter-aaaa.@DYLIB@" {
 	filter-aaaa-on-v4 yes;
 	filter-aaaa { filterees; };
 };

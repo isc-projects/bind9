@@ -11,7 +11,7 @@
  * information regarding copyright ownership.
  */
 
-plugin query "@TOP_BUILDDIR@/filter-aaaa.so" {
+plugin query "@TOP_BUILDDIR@/filter-aaaa.@DYLIB@" {
 	/*
 	 * While this matches the defaults, it is not a good configuration
 	 * to have in named.conf as the two options contradict each other
