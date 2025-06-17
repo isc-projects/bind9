@@ -111,6 +111,9 @@ def test_rollover_manual(servers):
     size = os.environ["DEFAULT_BITS"]
     zone = "manual-rollover.kasp"
 
+    with server.watch_log_from_start() as watcher:
+        watcher.wait_for_line(f"keymgr: {zone} done")
+
     isctest.kasp.check_dnssec_verify(server, zone)
 
     key_properties = [
