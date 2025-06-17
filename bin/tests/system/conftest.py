@@ -365,7 +365,8 @@ def system_test_dir(request, system_test_name, expected_artifacts):
             isctest.log.debug("%s %s", result.outcome.upper(), node)
             messages.extend(result.messages.values())
         for message in messages:
-            isctest.log.debug("\n" + message)
+            if message:
+                isctest.log.debug("\n" + message)
         failed = any(res.outcome == "failed" for res in test_results.values())
         skipped = any(res.outcome == "skipped" for res in test_results.values())
         if failed:
