@@ -139,10 +139,9 @@ def setup(app):
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, make it absolute.
-#
+
 sys.path.append(str(Path(__file__).resolve().parent / "_ext"))
 sys.path.append(str(Path(__file__).resolve().parent.parent / "misc"))
-sys.path.append(str(Path(__file__).resolve().parent.parent / "ext"))
 
 # -- Project information -----------------------------------------------------
 
@@ -169,7 +168,7 @@ release = version
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["namedconf", "rndcconf", "configblock"]
+extensions = ["namedconf", "rndcconf"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

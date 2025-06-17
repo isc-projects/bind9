@@ -28,7 +28,6 @@ from pathlib import Path
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-sys.path.append(str(Path(__file__).resolve().parent.parent / "ext"))
 sys.path.append(str(Path(__file__).resolve().parent.parent / "misc"))
 
 # -- Project information -----------------------------------------------------
@@ -49,7 +48,7 @@ man_make_section_directory = True
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["configblock"]
+extensions = []
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["../arm/_templates"]
