@@ -1460,7 +1460,7 @@ init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
 
-	STATIC_ASSERT((sizeof(h->attributes) == 2),
+	STATIC_ASSERT(sizeof(h->attributes) == 2,
 		      "The .attributes field of rdatasetheader_t needs to be "
 		      "16-bit int type exactly.");
 
@@ -1478,7 +1478,7 @@ update_newheader(rdatasetheader_t *newh, rdatasetheader_t *old) {
 	if (CASESET(old)) {
 		uint_least16_t attr = RDATASET_ATTR_GET(
 			old,
-			(RDATASET_ATTR_CASESET | RDATASET_ATTR_CASEFULLYLOWER));
+			RDATASET_ATTR_CASESET | RDATASET_ATTR_CASEFULLYLOWER);
 		RDATASET_ATTR_SET(newh, attr);
 		memmove(newh->upper, old->upper, sizeof(old->upper));
 	}
@@ -10444,9 +10444,9 @@ rdataset_equals(const dns_rdataset_t *rdataset1,
  */
 static bool
 need_headerupdate(rdatasetheader_t *header, isc_stdtime_t now) {
-	if (RDATASET_ATTR_GET(header, (RDATASET_ATTR_NONEXISTENT |
-				       RDATASET_ATTR_ANCIENT |
-				       RDATASET_ATTR_ZEROTTL)) != 0)
+	if (RDATASET_ATTR_GET(header, RDATASET_ATTR_NONEXISTENT |
+					      RDATASET_ATTR_ANCIENT |
+					      RDATASET_ATTR_ZEROTTL) != 0)
 	{
 		return false;
 	}

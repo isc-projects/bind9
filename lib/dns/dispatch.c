@@ -582,7 +582,7 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 	dispentry_log(resp, LVL(92),
 		      "got valid DNS message header, /QR %c, id %u",
-		      (((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0'), id);
+		      ((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0', id);
 
 	/*
 	 * Look at the message flags.  If it's a query, ignore it.
@@ -681,7 +681,7 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region, dns_qid_t *qid,
 
 	dispatch_log(disp, LVL(92),
 		     "got valid DNS message header, /QR %c, id %u",
-		     (((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0'), id);
+		     ((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0', id);
 
 	/*
 	 * Look at the message flags.  If it's a query, ignore it and keep

@@ -159,9 +159,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	view->task = NULL;
 	isc_refcount_init(&view->references, 1);
 	isc_refcount_init(&view->weakrefs, 1);
-	atomic_init(&view->attributes,
-		    (DNS_VIEWATTR_RESSHUTDOWN | DNS_VIEWATTR_ADBSHUTDOWN |
-		     DNS_VIEWATTR_REQSHUTDOWN));
+	atomic_init(&view->attributes, DNS_VIEWATTR_RESSHUTDOWN |
+					       DNS_VIEWATTR_ADBSHUTDOWN |
+					       DNS_VIEWATTR_REQSHUTDOWN);
 	view->transports = NULL;
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;

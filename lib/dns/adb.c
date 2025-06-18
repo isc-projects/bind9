@@ -3743,12 +3743,11 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	 * any matching static-stub zone without looking into the cache to honor
 	 * the configuration on which server we should send queries to.
 	 */
-	result =
-		dns_view_find(adb->view, &adbname->name, rdtype, now,
-			      NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
-			      NAME_HINTOK(adbname),
-			      ((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0),
-			      NULL, NULL, fname, &rdataset, NULL);
+	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
+			       NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
+			       NAME_HINTOK(adbname),
+			       (adbname->flags & DNS_ADBFIND_STARTATZONE) != 0,
+			       NULL, NULL, fname, &rdataset, NULL);
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (result) {

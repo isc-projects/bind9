@@ -3621,9 +3621,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			algorithm = dnskey.algorithm;
 			keyid = dst_region_computeid(&r);
 
-			result = dns_zone_signwithkey(
-				zone, algorithm, keyid,
-				(tuple->op == DNS_DIFFOP_DEL));
+			result = dns_zone_signwithkey(zone, algorithm, keyid,
+						      tuple->op ==
+							      DNS_DIFFOP_DEL);
 			if (result != ISC_R_SUCCESS) {
 				update_log(client, zone, ISC_LOG_ERROR,
 					   "dns_zone_signwithkey failed: %s",

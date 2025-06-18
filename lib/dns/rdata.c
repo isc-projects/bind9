@@ -369,9 +369,9 @@ locator_pton(const char *src, unsigned char *dst) {
 	while ((ch = *src++) != '\0') {
 		const char *pch;
 
-		pch = strchr((xdigits = xdigits_l), ch);
+		pch = strchr(xdigits = xdigits_l, ch);
 		if (pch == NULL) {
-			pch = strchr((xdigits = xdigits_u), ch);
+			pch = strchr(xdigits = xdigits_u, ch);
 		}
 		if (pch != NULL) {
 			val <<= 4;

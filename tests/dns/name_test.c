@@ -508,7 +508,7 @@ ISC_RUN_TEST_IMPL(hash) {
 				      testcases[i].name2, h2);
 		}
 
-		assert_int_equal((h1 == h2), testcases[i].expect);
+		assert_int_equal(h1 == h2, testcases[i].expect);
 
 		/* Now case-sensitive */
 		h1 = dns_name_hash(n1, false);
@@ -521,7 +521,7 @@ ISC_RUN_TEST_IMPL(hash) {
 				      testcases[i].name2, h2);
 		}
 
-		assert_int_equal((h1 == h2), testcases[i].expect);
+		assert_int_equal(h1 == h2, testcases[i].expect);
 	}
 }
 

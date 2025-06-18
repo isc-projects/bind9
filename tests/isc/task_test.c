@@ -1436,7 +1436,7 @@ try_purgeevent(bool purgeable) {
 
 	isc_task_detach(&task);
 
-	assert_int_equal(eventcnt, (purgeable ? 0 : 1));
+	assert_int_equal(eventcnt, purgeable ? 0 : 1);
 }
 
 /*

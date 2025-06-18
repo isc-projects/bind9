@@ -1381,8 +1381,8 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	if (alwaysvalid) {
 		now = when;
 	}
-	if (isc_serial_gt(when, (now + 300)) /* In the future. */ ||
-	    isc_serial_lt(when, (now - 3600)) /* In the past. */)
+	if (isc_serial_gt(when, now + 300) /* In the future. */ ||
+	    isc_serial_lt(when, now - 3600) /* In the past. */)
 	{
 		ns_stats_increment(client->sctx->nsstats,
 				   ns_statscounter_cookiebadtime);

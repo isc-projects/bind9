@@ -2194,7 +2194,7 @@ resquery_timeout(resquery_t *query) {
 	 */
 	timeleft = isc_time_microdiff(&fctx->next_timeout, &now);
 	if (timeleft >= US_PER_MS) {
-		dns_dispatch_resume(query->dispentry, (timeleft / US_PER_MS));
+		dns_dispatch_resume(query->dispentry, timeleft / US_PER_MS);
 		return ISC_R_COMPLETE;
 	}
 
@@ -8197,7 +8197,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	/*
 	 * Clear cache bits.
 	 */
-	FCTX_ATTR_CLR(fctx, (FCTX_ATTR_WANTNCACHE | FCTX_ATTR_WANTCACHE));
+	FCTX_ATTR_CLR(fctx, FCTX_ATTR_WANTNCACHE | FCTX_ATTR_WANTCACHE);
 
 	/*
 	 * Did we get any answers?
@@ -10203,7 +10203,7 @@ rctx_logpacket(respctx_t *rctx) {
 
 	dns_dt_send(fctx->res->view, dtmsgtype, la,
 		    &rctx->query->addrinfo->sockaddr,
-		    ((rctx->query->options & DNS_FETCHOPT_TCP) != 0), &zr,
+		    (rctx->query->options & DNS_FETCHOPT_TCP) != 0, &zr,
 		    &rctx->query->start, NULL, &rctx->buffer);
 #endif /* HAVE_DNSTAP */
 }

@@ -398,7 +398,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		}
 		/* I know the better way, but for now. */
 		for (j = 0; j < 8; j++) {
-			if (BIT_TEST(r, (0x80 >> j))) {
+			if (BIT_TEST(r, 0x80 >> j)) {
 				break;
 			}
 		}

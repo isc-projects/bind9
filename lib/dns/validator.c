@@ -559,7 +559,7 @@ fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
 			 * so keep looking for the break in the chain
 			 * of trust.
 			 */
-			result = proveunsecure(val, (eresult == ISC_R_SUCCESS),
+			result = proveunsecure(val, eresult == ISC_R_SUCCESS,
 					       true);
 			if (result != DNS_R_WAIT) {
 				validator_done(val, result);

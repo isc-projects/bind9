@@ -4383,7 +4383,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 		/* Add to keytables. */
 		trusted++;
-		trust_key(zone, name, &dnskey, (keydata.addhd == 0));
+		trust_key(zone, name, &dnskey, keydata.addhd == 0);
 	}
 
 	if (trusted == 0 && pending != 0) {
@@ -4562,7 +4562,7 @@ add_soa(dns_zone_t *zone, dns_db_t *db) {
 failure:
 	dns_diff_clear(&diff);
 	if (ver != NULL) {
-		dns_db_closeversion(db, &ver, (result == ISC_R_SUCCESS));
+		dns_db_closeversion(db, &ver, result == ISC_R_SUCCESS);
 	}
 
 	INSIST(ver == NULL);
@@ -9840,7 +9840,7 @@ zone_sign(dns_zone_t *zone) {
 				db, zone, name, node, version, build_nsec3,
 				build_nsec, zone_keys[i], now, inception,
 				expire, zone_nsecttl(zone), is_ksk, is_zsk,
-				(both && keyset_kskonly), is_bottom_of_zone,
+				both && keyset_kskonly, is_bottom_of_zone,
 				zonediff.diff, &signatures, zone->mctx));
 			/*
 			 * If we are adding we are done.  Look for other keys
@@ -16116,8 +16116,8 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
 	}
 
 	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE, level,
-		      "%s%s%s%s: %s", (prefix != NULL ? prefix : ""),
-		      (prefix != NULL ? ": " : ""), zstr, zone->strnamerd,
+		      "%s%s%s%s: %s", prefix != NULL ? prefix : "",
+		      prefix != NULL ? ": " : "", zstr, zone->strnamerd,
 		      message);
 }
 
@@ -20346,9 +20346,9 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 	case dns_dialuptype_no:
 		break;
 	case dns_dialuptype_yes:
-		DNS_ZONE_SETFLAG(zone, (DNS_ZONEFLG_DIALNOTIFY |
-					DNS_ZONEFLG_DIALREFRESH |
-					DNS_ZONEFLG_NOREFRESH));
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DIALNOTIFY |
+					       DNS_ZONEFLG_DIALREFRESH |
+					       DNS_ZONEFLG_NOREFRESH);
 		break;
 	case dns_dialuptype_notify:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DIALNOTIFY);
@@ -22472,7 +22472,7 @@ zone_rekey(dns_zone_t *zone) {
 			CHECK(dns_diff_apply(&diff, db, ver));
 			CHECK(clean_nsec3param(zone, db, ver, &diff));
 			CHECK(add_signing_records(db, zone->privatetype, ver,
-						  &diff, (newalg || fullsign)));
+						  &diff, newalg || fullsign));
 			CHECK(update_soa_serial(zone, db, ver, &diff, mctx,
 						zone->updatemethod));
 			CHECK(add_chains(zone, db, ver, &diff));
@@ -23427,7 +23427,7 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		isc_buffer_init(&b, kd->data, sizeof(kd->data));
 		isc_buffer_putuint8(&b, alg);
 		isc_buffer_putuint8(&b, (keyid & 0xff00) >> 8);
-		isc_buffer_putuint8(&b, (keyid & 0xff));
+		isc_buffer_putuint8(&b, keyid & 0xff);
 		isc_buffer_putuint8(&b, 0);
 		isc_buffer_putuint8(&b, 1);
 	}
@@ -24206,7 +24206,7 @@ setserial(isc_task_t *task, isc_event_t *event) {
 				     "setserial: desired serial (%u) "
 				     "out of range (%u-%u)",
 				     desired, oldserial + 1,
-				     (oldserial + 0x7fffffff));
+				     oldserial + 0x7fffffff);
 		}
 		goto failure;
 	}
