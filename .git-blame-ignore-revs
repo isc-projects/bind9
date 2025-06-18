@@ -30,3 +30,5 @@ fe8d6023e05416ba5c030bb65878a24a57aa16cb
 b3d8f2796a2a060b35a5e77d808dd031db2a3a37
 # Remove redundant parentheses from the return statement
 c5bac96fd07493a13e791ea81de1d05697b983f6
+# Reformat sources with up-to-date clang-format-20
+a6dba44b6594117689d4c10cad73a80211175a51
