@@ -59,6 +59,7 @@ run_in_container "apt-get update &&			\
 		liburcu-dev				\
 		libuv1-dev				\
 		make					\
+		meson					\
 		pkg-config				\
 		pkgdiff					\
 		xz-utils				\
@@ -68,18 +69,26 @@ run_in_container "apt-get update &&			\
 docker cp "${BIND_TARBALL}" "${CONTAINER_ID}:/usr/src"
 
 BIND_VERSION=$(basename "${BIND_TARBALL}" | sed -E "s|bind-(.*)\.tar\.xz|\1|")
+BIND_MINOR_VERSION=$(echo "${BIND_VERSION}" | sed -E "s/^9\.(.*)\..*$/\1/")
 
 # Prepare a temporary "release" tarball from upstream BIND 9 project.
 run_in_container "git -c advice.detachedHead=false clone --branch v${BIND_VERSION} --depth 1 https://${GITLAB_USER}:${GITLAB_TOKEN}@gitlab.isc.org/isc-private/bind9.git && \
-	cd bind9 && \
 	apt-get -y install --no-install-recommends python3-pip && \
 	rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED && \
-	pip3 install -r https://gitlab.isc.org/isc-projects/bind9/-/raw/main/doc/arm/requirements.txt && \
-	autoreconf -fi && \
-	./configure --enable-umbrella && \
-	make -j && \
-	make dist; \
-	"
+	pip3 install -r https://gitlab.isc.org/isc-projects/bind9/-/raw/main/doc/arm/requirements.txt"
+
+if [ "${BIND_MINOR_VERSION}" -ge 21 ]; then
+  run_in_container "cd bind9 && \
+	  meson setup build && \
+	  meson dist -C build --no-tests && \
+	  mv -v build/meson-dist/bind-${BIND_VERSION}.tar.xz ."
+else
+  run_in_container "cd bind9 && \
+	  autoreconf -fi && \
+	  ./configure --enable-umbrella && \
+	  make -j && \
+	  make dist"
+fi
 
 # Compare release-ready and custom tarballs; they are expected to be the same.
 run_in_container "pkgdiff bind9/bind-${BIND_VERSION}.tar.xz bind-${BIND_VERSION}.tar.xz" || true
