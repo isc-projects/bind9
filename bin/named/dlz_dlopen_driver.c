@@ -267,13 +267,13 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	cd->dlz_allowzonexfr = (dlz_dlopen_allowzonexfr_t *)dl_load_symbol(
 		cd, "dlz_allowzonexfr", false);
 	cd->dlz_allnodes = (dlz_dlopen_allnodes_t *)dl_load_symbol(
-		cd, "dlz_allnodes", (cd->dlz_allowzonexfr != NULL));
+		cd, "dlz_allnodes", cd->dlz_allowzonexfr != NULL);
 	cd->dlz_authority = (dlz_dlopen_authority_t *)dl_load_symbol(
 		cd, "dlz_authority", false);
 	cd->dlz_newversion = (dlz_dlopen_newversion_t *)dl_load_symbol(
 		cd, "dlz_newversion", false);
 	cd->dlz_closeversion = (dlz_dlopen_closeversion_t *)dl_load_symbol(
-		cd, "dlz_closeversion", (cd->dlz_newversion != NULL));
+		cd, "dlz_closeversion", cd->dlz_newversion != NULL);
 	cd->dlz_configure = (dlz_dlopen_configure_t *)dl_load_symbol(
 		cd, "dlz_configure", false);
 	cd->dlz_ssumatch = (dlz_dlopen_ssumatch_t *)dl_load_symbol(

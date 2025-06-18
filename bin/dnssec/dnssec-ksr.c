@@ -482,11 +482,11 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 	dst_key_setbool(key, DST_BOOL_KSK, ksr->ksk);
 	dst_key_setbool(key, DST_BOOL_ZSK, !ksr->ksk);
 	dst_key_settime(key, DST_TIME_CREATED, ksr->now);
-	dst_key_settime(key, DST_TIME_PUBLISH, (active - prepub));
+	dst_key_settime(key, DST_TIME_PUBLISH, active - prepub);
 	dst_key_settime(key, DST_TIME_ACTIVATE, active);
 	if (ksr->ksk) {
 		dns_keymgr_settime_syncpublish(key, kasp,
-					       (inception == ksr->start));
+					       inception == ksr->start);
 	}
 
 	if (ksr->lifetime > 0) {
@@ -502,7 +502,7 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 				 ksr->retiresafety + ksr->signdelay;
 		}
 		dst_key_settime(key, DST_TIME_INACTIVE, inactive);
-		dst_key_settime(key, DST_TIME_DELETE, (inactive + remove));
+		dst_key_settime(key, DST_TIME_DELETE, inactive + remove);
 		*expiration = inactive;
 	} else {
 		*expiration = 0;

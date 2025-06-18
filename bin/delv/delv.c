@@ -371,7 +371,7 @@ print_status(dns_rdataset_t *rdataset) {
 
 	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
 		strlcat(buf, "negative response", sizeof(buf));
-		strlcat(buf, (yaml ? "_" : ", "), sizeof(buf));
+		strlcat(buf, yaml ? "_" : ", ", sizeof(buf));
 	}
 
 	switch (rdataset->trust) {

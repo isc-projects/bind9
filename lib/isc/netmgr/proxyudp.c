@@ -867,7 +867,7 @@ isc__nm_proxyudp_send(isc_nmhandle_t *handle, isc_region_t *region,
 	}
 
 	send_req = proxyudp_get_send_req(sock->worker->mctx, sock, handle,
-					 (sock->client ? region : NULL), cb,
+					 sock->client ? region : NULL, cb,
 					 cbarg);
 	if (sock->client) {
 		isc_region_t send_data = { 0 };

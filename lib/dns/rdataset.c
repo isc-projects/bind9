@@ -618,7 +618,7 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 	 * If we accept expired RRsets keep them for no more than 120 seconds.
 	 */
 	if (acceptexpired &&
-	    (isc_serial_le(rrsig->timeexpire, ((now + 120) & 0xffffffff)) ||
+	    (isc_serial_le(rrsig->timeexpire, (now + 120) & 0xffffffff) ||
 	     isc_serial_le(rrsig->timeexpire, now)))
 	{
 		ttl = 120;

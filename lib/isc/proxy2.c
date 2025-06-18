@@ -1336,7 +1336,7 @@ isc_proxy2_header_append_tlv(isc_buffer_t *restrict outbuf,
 	}
 
 	append_type_and_length(outbuf, (uint8_t)tlv_type,
-			       ((uint16_t)tlv_data->length), true);
+			       (uint16_t)tlv_data->length, true);
 
 	if (tlv_data->length > 0) {
 		isc_result_t result = isc_proxy2_header_append(outbuf,
@@ -1413,7 +1413,7 @@ isc_proxy2_append_tlv(isc_buffer_t *restrict outbuf, const uint8_t type,
 		return ISC_R_RANGE;
 	}
 
-	append_type_and_length(outbuf, (uint8_t)type, ((uint16_t)data->length),
+	append_type_and_length(outbuf, (uint8_t)type, (uint16_t)data->length,
 			       false);
 
 	if (data->length > 0) {
