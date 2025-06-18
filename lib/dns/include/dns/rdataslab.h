@@ -154,8 +154,10 @@ enum {
 	DNS_SLABHEADERATTR_STALE_WINDOW = 1 << 13,
 };
 
+/* clang-format off : RemoveParentheses */
 #define DNS_SLABHEADER_GETATTR(header, attribute) \
-	(atomic_load_acquire(&(header)->attributes) & attribute)
+	(atomic_load_acquire(&(header)->attributes) & (attribute))
+/* clang-format on */
 #define DNS_SLABHEADER_SETATTR(header, attribute) \
 	atomic_fetch_or_release(&(header)->attributes, attribute)
 #define DNS_SLABHEADER_CLRATTR(header, attribute) \
