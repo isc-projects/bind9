@@ -1548,3 +1548,5 @@ f2fa1b7d63100564dc55463a05bdeed893f83d86
 c22176c0f9a71217be9bfab00573f8f0265499af
 # Remove redundant parentheses from the return statement
 58a15d38c2c321fac75abef389a48ff82deaccf0
+# Reformat sources with up-to-date clang-format-20
+53738b0e5e0037b7ac8d06e146832d972e2e46d5
