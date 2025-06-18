@@ -1566,7 +1566,7 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 	REQUIRE(argv != NULL && *argv == NULL);
 
 	LOCK_ZONE(zone);
-	size = ISC_CHECKED_MUL((zone->db_argc + 1), sizeof(char *));
+	size = ISC_CHECKED_MUL(zone->db_argc + 1, sizeof(char *));
 	for (i = 0; i < zone->db_argc; i++) {
 		size += strlen(zone->db_argv[i]) + 1;
 	}
@@ -1575,7 +1575,7 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 		tmp = mem;
 		tmp2 = mem;
 		base = mem;
-		tmp2 += ISC_CHECKED_MUL((zone->db_argc + 1), sizeof(char *));
+		tmp2 += ISC_CHECKED_MUL(zone->db_argc + 1, sizeof(char *));
 		for (i = 0; i < zone->db_argc; i++) {
 			*tmp++ = tmp2;
 			strlcpy(tmp2, zone->db_argv[i], size - (tmp2 - base));
@@ -4268,7 +4268,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 		/* Add to keytables. */
 		trusted++;
-		trust_key(zone, name, &dnskey, (keydata.addhd == 0));
+		trust_key(zone, name, &dnskey, keydata.addhd == 0);
 	}
 
 	if (trusted == 0 && pending != 0) {
@@ -4446,7 +4446,7 @@ add_soa(dns_zone_t *zone, dns_db_t *db) {
 failure:
 	dns_diff_clear(&diff);
 	if (ver != NULL) {
-		dns_db_closeversion(db, &ver, (result == ISC_R_SUCCESS));
+		dns_db_closeversion(db, &ver, result == ISC_R_SUCCESS);
 	}
 
 	INSIST(ver == NULL);
@@ -6183,7 +6183,7 @@ keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 		result = dst_key_fromfile(
 			dst_key_name(pubkey), dst_key_id(pubkey),
 			dst_key_alg(pubkey),
-			(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE),
+			DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE,
 			directory, mctx, &foundkey);
 	} else {
 		for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
@@ -6196,8 +6196,8 @@ keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 			result = dst_key_fromfile(
 				dst_key_name(pubkey), dst_key_id(pubkey),
 				dst_key_alg(pubkey),
-				(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-				 DST_TYPE_STATE),
+				DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
+					DST_TYPE_STATE,
 				directory, mctx, &foundkey);
 			if (result == ISC_R_SUCCESS) {
 				break;
@@ -6279,8 +6279,8 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 			result2 = dst_key_getfilename(
 				dst_key_name(pubkey), dst_key_id(pubkey),
 				dst_key_alg(pubkey),
-				(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-				 DST_TYPE_STATE),
+				DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
+					DST_TYPE_STATE,
 				NULL, mctx, &buf);
 			if (result2 != ISC_R_SUCCESS) {
 				char namebuf[DNS_NAME_FORMATSIZE];
@@ -6696,8 +6696,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 		if (!dns_rdatatype_iskeymaterial(type)) {
 			bool warn = false, deleted = false;
-			if (delsig_ok(&rrsig, keys, nkeys, (kasp != NULL),
-				      &warn))
+			if (delsig_ok(&rrsig, keys, nkeys, kasp != NULL, &warn))
 			{
 				result = update_one_rr(db, ver, zonediff->diff,
 						       DNS_DIFFOP_DELRESIGN,
@@ -15999,8 +15998,8 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
 	}
 
 	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE, level,
-		      "%s%s%s%s: %s", (prefix != NULL ? prefix : ""),
-		      (prefix != NULL ? ": " : ""), zstr, zone->strnamerd,
+		      "%s%s%s%s: %s", prefix != NULL ? prefix : "",
+		      prefix != NULL ? ": " : "", zstr, zone->strnamerd,
 		      message);
 }
 
@@ -16267,7 +16266,7 @@ fail:
 			   addrbuf, isc_result_totext(result));
 		notify->flags |= DNS_NOTIFY_TCP;
 		dns_request_destroy(&notify->request);
-		notify_send_queue(notify, (notify->flags & DNS_NOTIFY_STARTUP));
+		notify_send_queue(notify, notify->flags & DNS_NOTIFY_STARTUP);
 		return;
 	} else if (result == ISC_R_TIMEDOUT) {
 		notify_log(notify->zone, ISC_LOG_WARNING,
@@ -19929,9 +19928,9 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 	case dns_dialuptype_no:
 		break;
 	case dns_dialuptype_yes:
-		DNS_ZONE_SETFLAG(zone, (DNS_ZONEFLG_DIALNOTIFY |
-					DNS_ZONEFLG_DIALREFRESH |
-					DNS_ZONEFLG_NOREFRESH));
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DIALNOTIFY |
+					       DNS_ZONEFLG_DIALREFRESH |
+					       DNS_ZONEFLG_NOREFRESH);
 		break;
 	case dns_dialuptype_notify:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DIALNOTIFY);
@@ -22755,7 +22754,7 @@ zone_rekey(dns_zone_t *zone) {
 			CHECK(dns_diff_apply(&diff, db, ver));
 			CHECK(clean_nsec3param(zone, db, ver, &diff));
 			CHECK(add_signing_records(db, zone->privatetype, ver,
-						  &diff, (newalg || fullsign)));
+						  &diff, newalg || fullsign));
 			CHECK(update_soa_serial(zone, db, ver, &diff, mctx,
 						zone->updatemethod));
 			CHECK(add_chains(zone, db, ver, &diff));
@@ -23704,7 +23703,7 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		isc_buffer_init(&b, kd->data, sizeof(kd->data));
 		isc_buffer_putuint8(&b, alg);
 		isc_buffer_putuint8(&b, (keyid & 0xff00) >> 8);
-		isc_buffer_putuint8(&b, (keyid & 0xff));
+		isc_buffer_putuint8(&b, keyid & 0xff);
 		isc_buffer_putuint8(&b, 0);
 		isc_buffer_putuint8(&b, 1);
 	}
@@ -24472,7 +24471,7 @@ setserial(void *arg) {
 				     "setserial: desired serial (%u) "
 				     "out of range (%u-%u)",
 				     desired, oldserial + 1,
-				     (oldserial + 0x7fffffff));
+				     oldserial + 0x7fffffff);
 		}
 		goto failure;
 	}

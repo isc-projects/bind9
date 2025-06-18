@@ -4653,7 +4653,7 @@ cleanup:
 #ifdef USE_DNSRPS
 	if (st->popt.dnsrps_enabled && st->m.policy != DNS_RPZ_POLICY_ERROR &&
 	    !dnsrps_set_p(&emsg, client, st, qtype, &rdataset,
-			  (qresult_type != qresult_type_recurse)))
+			  qresult_type != qresult_type_recurse))
 	{
 		rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, NULL,
 			     DNS_RPZ_TYPE_BAD, emsg.c, DNS_R_SERVFAIL);

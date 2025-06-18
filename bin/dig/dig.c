@@ -2787,7 +2787,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				printgreeting(argc, argv, *lookup);
 				*firstarg = false;
 			}
-			ISC_LIST_APPEND(lookup_list, (*lookup), link);
+			ISC_LIST_APPEND(lookup_list, *lookup, link);
 			debug("looking up %s", (*lookup)->textname);
 		}
 		return value_from_next;

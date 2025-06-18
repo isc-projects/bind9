@@ -55,7 +55,7 @@ _crc64(const char *buf, size_t buflen, const char *result, const int repeats) {
 	char hex[16 + 1];
 	snprintf(hex, sizeof(hex), "%016" PRIX64, crc);
 
-	assert_memory_equal(hex, result, (result ? strlen(result) : 0));
+	assert_memory_equal(hex, result, result ? strlen(result) : 0);
 }
 
 /* 64-bit cyclic redundancy check */

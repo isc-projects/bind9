@@ -4862,12 +4862,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Resolver.
 	 */
-	CHECK(get_view_querysource_dispatch(
-		maps, AF_INET, &dispatch4,
-		(ISC_LIST_PREV(view, link) == NULL)));
-	CHECK(get_view_querysource_dispatch(
-		maps, AF_INET6, &dispatch6,
-		(ISC_LIST_PREV(view, link) == NULL)));
+	CHECK(get_view_querysource_dispatch(maps, AF_INET, &dispatch4,
+					    ISC_LIST_PREV(view, link) == NULL));
+	CHECK(get_view_querysource_dispatch(maps, AF_INET6, &dispatch6,
+					    ISC_LIST_PREV(view, link) == NULL));
 	if (dispatch4 == NULL && dispatch6 == NULL) {
 		UNEXPECTED_ERROR("unable to obtain either an IPv4 or"
 				 " an IPv6 dispatch");

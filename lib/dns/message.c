@@ -68,7 +68,7 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 		} else if (cnt % 8 == 0) {
 			printf(" |");
 		}
-		printf(" %02x %c", *p, (isprint(*p) ? *p : ' '));
+		printf(" %02x %c", *p, isprint(*p) ? *p : ' ');
 		p++;
 		cnt++;
 
