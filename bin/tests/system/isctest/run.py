@@ -83,13 +83,23 @@ class Dig:
 
 
 def retry_with_timeout(func, timeout, delay=1, msg=None):
-    start_time = time.time()
-    while time.time() < start_time + timeout:
-        if func():
-            return
+    start_time = time.monotonic()
+    exc_msg = None
+    while time.monotonic() < start_time + timeout:
+        exc_msg = None
+        try:
+            if func():
+                return
+        except AssertionError as exc:
+            exc_msg = str(exc)
         time.sleep(delay)
+    if exc_msg is not None:
+        isctest.log.error(exc_msg)
     if msg is None:
-        msg = f"{func.__module__}.{func.__qualname__} timed out after {timeout} s"
+        if exc_msg is not None:
+            msg = exc_msg
+        else:
+            msg = f"{func.__module__}.{func.__qualname__} timed out after {timeout} s"
     assert False, msg
 
 
