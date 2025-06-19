@@ -122,15 +122,46 @@ stages:
 
 ### Job Templates
 
+.rule_mr_code: &rule_mr_code
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    changes:
+      - '**/*.c'
+      - '**/*.h'
+      - '**/meson.build'
+
+.rule_mr_manual: &rule_mr_manual
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    when: manual  # only run on MR if requested
+    allow_failure: true  # don't block the pipeline or the pipeline result
+
+.rule_tag: &rule_tag
+  - if: '$CI_COMMIT_TAG != null'
+
+.rule_source_other_than_mr: &rule_source_other_than_mr
+  - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
+
+.rule_source_all: &rule_source_all
+  - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
+
 .api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
   rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
-    - if: '$CI_COMMIT_TAG != null'
+    - *rule_tag
+    - *rule_source_other_than_mr
+
+.default-triggering-rules_list: &default_triggering_rules_list
+  - *rule_tag
+  - *rule_source_all
 
 .default-triggering-rules: &default_triggering_rules
   rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
-    - if: '$CI_COMMIT_TAG != null'
+    - *default_triggering_rules_list
+
+.code-triggering-rules: &code_triggering_rules
+  rules:
+    - *rule_mr_code
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
@@ -228,6 +259,7 @@ stages:
     when: on_failure
 
 .respdiff: &respdiff_job
+  <<: *code_triggering_rules
   stage: system
   before_script:
     - *configure
@@ -289,6 +321,15 @@ ci-orphaned-anchors:
 
 coccinelle:
   <<: *precheck_job
+  rules:
+    - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+      changes:
+        - '**/*.c'
+        - '**/*.h'
+        - 'cocci/**'
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
@@ -703,7 +744,6 @@ customer-git:tag:
 
 respdiff:
   <<: *respdiff_job
-  <<: *default_triggering_rules
   <<: *base_image
   variables:
     CC: gcc
@@ -714,7 +754,6 @@ respdiff:
 
 respdiff-third-party:
   <<: *respdiff_job
-  <<: *default_triggering_rules
   <<: *base_image
   variables:
     CC: gcc
