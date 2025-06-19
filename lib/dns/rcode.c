@@ -36,6 +36,8 @@
 #include <dns/secalg.h>
 #include <dns/secproto.h>
 
+#include <dst/dst.h>
+
 #define RETERR(x)                        \
 	do {                             \
 		isc_result_t _r = (x);   \
@@ -46,6 +48,10 @@
 #define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */
 
 #define TOTEXTONLY 0x01
+
+/* clang-format off */
+#define SENTINEL { 0, NULL, 0 }
+/* clang-format on */
 
 #define RCODENAMES                                     \
 	/* standard rcodes */                          \
@@ -69,7 +75,7 @@
 #define ERCODENAMES                          \
 	/* extended rcodes */                \
 	{ dns_rcode_badvers, "BADVERS", 0 }, \
-		{ dns_rcode_badcookie, "BADCOOKIE", 0 }, { 0, NULL, 0 }
+		{ dns_rcode_badcookie, "BADCOOKIE", 0 }, SENTINEL
 
 #define TSIGRCODENAMES                                   \
 	/* extended rcodes */                            \
@@ -79,7 +85,7 @@
 		{ dns_tsigerror_badmode, "BADMODE", 0 }, \
 		{ dns_tsigerror_badname, "BADNAME", 0 }, \
 		{ dns_tsigerror_badalg, "BADALG", 0 },   \
-		{ dns_tsigerror_badtrunc, "BADTRUNC", 0 }, { 0, NULL, 0 }
+		{ dns_tsigerror_badtrunc, "BADTRUNC", 0 }, SENTINEL
 
 /* RFC4398 section 2.1 */
 
@@ -87,7 +93,7 @@
 	{ 1, "PKIX", 0 }, { 2, "SPKI", 0 }, { 3, "PGP", 0 },                \
 		{ 4, "IPKIX", 0 }, { 5, "ISPKI", 0 }, { 6, "IPGP", 0 },     \
 		{ 7, "ACPKIX", 0 }, { 8, "IACPKIX", 0 }, { 253, "URI", 0 }, \
-		{ 254, "OID", 0 }, { 0, NULL, 0 }
+		{ 254, "OID", 0 }, SENTINEL
 
 /* RFC2535 section 7, RFC3110 */
 
@@ -109,26 +115,56 @@
 		{ DNS_KEYALG_ED448, "ED448", 0 },               \
 		{ DNS_KEYALG_INDIRECT, "INDIRECT", 0 },         \
 		{ DNS_KEYALG_PRIVATEDNS, "PRIVATEDNS", 0 },     \
-		{ DNS_KEYALG_PRIVATEOID, "PRIVATEOID", 0 }, { 0, NULL, 0 }
+		{ DNS_KEYALG_PRIVATEOID, "PRIVATEOID", 0 }, SENTINEL
+
+/*
+ * PRIVATEDNS subtypes we support.
+ */
+#define PRIVATEDNSS /* currently empty */
+
+/*
+ * PRIVATEOID subtypes we support.
+ */
+#define PRIVATEOIDS                                         \
+	{ DST_ALG_RSASHA256PRIVATEOID, "RSASHA256OID", 0 }, \
+		{ DST_ALG_RSASHA512PRIVATEOID, "RSASHA512OID", 0 },
 
 /* RFC2535 section 7.1 */
 
 #define SECPROTONAMES                                                     \
 	{ 0, "NONE", 0 }, { 1, "TLS", 0 }, { 2, "EMAIL", 0 },             \
 		{ 3, "DNSSEC", 0 }, { 4, "IPSEC", 0 }, { 255, "ALL", 0 }, \
-		{ 0, NULL, 0 }
+		SENTINEL
 
-#define HASHALGNAMES { 1, "SHA-1", 0 }, { 0, NULL, 0 }
+#define HASHALGNAMES { 1, "SHA-1", 0 }, SENTINEL
 
-/* RFC3658, RFC4509, RFC5933, RFC6605 */
+/* RFC3658, RFC4509, RFC5933, RFC6605, RFC9558, RFC9563 */
+
+#if defined(DNS_DSDIGEST_SHA256PRIVATE) &&     \
+	defined(DNS_DSDIGEST_SHA384PRIVATE) && \
+	defined(DNS_DSDIGEST_SM3PRIVATE)
+#define DSDIGESTPRIVATENAMES                                          \
+	{ DNS_DSDIGEST_SHA256PRIVATE, "SHA-256-PRIVATE", 0 },         \
+		{ DNS_DSDIGEST_SHA256PRIVATE, "SHA256PRIVATE", 0 },   \
+		{ DNS_DSDIGEST_SHA384PRIVATE, "SHA-384-PRIVATE", 0 }, \
+		{ DNS_DSDIGEST_SHA384PRIVATE, "SHA384PRIVATE", 0 },   \
+		{ DNS_DSDIGEST_SM3PRIVATE, "SM3-PRIVATE", 0 },        \
+		{ DNS_DSDIGEST_SM3PRIVATE, "SM3PRIVATE", 0 },
+#else
+#define DSDIGESTPRIVATENAMES
+#endif
 
 #define DSDIGESTNAMES                                                        \
 	{ DNS_DSDIGEST_SHA1, "SHA-1", 0 }, { DNS_DSDIGEST_SHA1, "SHA1", 0 }, \
 		{ DNS_DSDIGEST_SHA256, "SHA-256", 0 },                       \
 		{ DNS_DSDIGEST_SHA256, "SHA256", 0 },                        \
 		{ DNS_DSDIGEST_GOST, "GOST", 0 },                            \
+		{ DNS_DSDIGEST_SM3, "SM3", 0 },                              \
 		{ DNS_DSDIGEST_SHA384, "SHA-384", 0 },                       \
-		{ DNS_DSDIGEST_SHA384, "SHA384", 0 }, { 0, NULL, 0 }
+		{ DNS_DSDIGEST_SHA384, "SHA384", 0 },                        \
+		{ DNS_DSDIGEST_GOST2012, "GOST-2012", 0 },                   \
+		{ DNS_DSDIGEST_GOST2012, "GOST2012", 0 },                    \
+		DSDIGESTPRIVATENAMES SENTINEL
 
 struct tbl {
 	unsigned int value;
@@ -143,6 +179,9 @@ static struct tbl secalgs[] = { SECALGNAMES };
 static struct tbl secprotos[] = { SECPROTONAMES };
 static struct tbl hashalgs[] = { HASHALGNAMES };
 static struct tbl dsdigests[] = { DSDIGESTNAMES };
+static struct tbl privatednss[] = { PRIVATEDNSS SENTINEL };
+static struct tbl privateoids[] = { PRIVATEOIDS SENTINEL };
+static struct tbl dstalgorithms[] = { PRIVATEDNSS PRIVATEOIDS SECALGNAMES };
 
 static struct keyflag {
 	const char *name;
@@ -339,6 +378,64 @@ dns_secalg_format(dns_secalg_t alg, char *cp, unsigned int size) {
 	REQUIRE(cp != NULL && size > 0);
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_secalg_totext(alg, &b);
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	if (result != ISC_R_SUCCESS) {
+		r.base[0] = 0;
+	}
+}
+
+isc_result_t
+dst_privatedns_fromtext(dst_algorithm_t *dstalgp, isc_textregion_t *source) {
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, privatednss, 0));
+	*dstalgp = value;
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_privatedns_totext(dst_algorithm_t alg, isc_buffer_t *target) {
+	return dns_mnemonic_totext(alg, target, privatednss);
+}
+
+void
+dns_privatedns_format(dst_algorithm_t alg, char *cp, unsigned int size) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	REQUIRE(cp != NULL && size > 0);
+	isc_buffer_init(&b, cp, size - 1);
+	result = dns_privatedns_totext(alg, &b);
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	if (result != ISC_R_SUCCESS) {
+		r.base[0] = 0;
+	}
+}
+
+isc_result_t
+dst_privateoid_fromtext(dst_algorithm_t *dstalgp, isc_textregion_t *source) {
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, privateoids, 0));
+	*dstalgp = value;
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_privateoid_totext(dst_algorithm_t alg, isc_buffer_t *target) {
+	return dns_mnemonic_totext(alg, target, privateoids);
+}
+
+void
+dns_privateoid_format(dst_algorithm_t alg, char *cp, unsigned int size) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	REQUIRE(cp != NULL && size > 0);
+	isc_buffer_init(&b, cp, size - 1);
+	result = dns_privateoid_totext(alg, &b);
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	if (result != ISC_R_SUCCESS) {
@@ -570,5 +667,34 @@ dns_rdataclass_format(dns_rdataclass_t rdclass, char *array,
 	}
 	if (result != ISC_R_SUCCESS) {
 		strlcpy(array, "<unknown>", size);
+	}
+}
+
+isc_result_t
+dst_algorithm_fromtext(dst_algorithm_t *dstalgp, isc_textregion_t *source) {
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, dstalgorithms, 255));
+	*dstalgp = value;
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dst_algorithm_totext(dst_algorithm_t alg, isc_buffer_t *target) {
+	return dns_mnemonic_totext(alg, target, dstalgorithms);
+}
+
+void
+dst_algorithm_format(dst_algorithm_t alg, char *cp, unsigned int size) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	REQUIRE(cp != NULL && size > 0);
+	isc_buffer_init(&b, cp, size - 1);
+	result = dst_algorithm_totext(alg, &b);
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	if (result != ISC_R_SUCCESS) {
+		r.base[0] = 0;
 	}
 }

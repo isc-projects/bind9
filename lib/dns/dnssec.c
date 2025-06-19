@@ -224,7 +224,7 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dns_name_clone(dns_fixedname_name(&fsigner), &sig.signer);
 
 	sig.covered = set->type;
-	sig.algorithm = dst_key_alg(key);
+	sig.algorithm = dst_algorithm_tosecalg(dst_key_alg(key));
 	sig.labels = dns_name_countlabels(name) - 1;
 	if (dns_name_iswildcard(name)) {
 		sig.labels--;
@@ -762,7 +762,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	ISC_LINK_INIT(&sig.common, link);
 
 	sig.covered = 0;
-	sig.algorithm = dst_key_alg(key);
+	sig.algorithm = dst_algorithm_tosecalg(dst_key_alg(key));
 	sig.labels = 0; /* the root name */
 	sig.originalttl = 0;
 
@@ -1469,7 +1469,7 @@ mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs) {
 	dns_rdataset_clone(rrsigs, &sigs);
 	ISC_LIST_FOREACH (*keylist, key, link) {
 		uint16_t keyid, sigid;
-		dns_secalg_t keyalg, sigalg;
+		dst_algorithm_t keyalg, sigalg;
 		keyid = dst_key_id(key->key);
 		keyalg = dst_key_alg(key->key);
 
@@ -1480,7 +1480,8 @@ mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs) {
 			dns_rdataset_current(&sigs, &rdata);
 			result = dns_rdata_tostruct(&rdata, &sig, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			sigalg = sig.algorithm;
+			sigalg = dst_algorithm_fromdata(
+				sig.algorithm, sig.signature, sig.siglen);
 			sigid = sig.keyid;
 			if (keyid == sigid && keyalg == sigalg) {
 				key->is_active = true;
@@ -1544,14 +1545,23 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 	dns_rdataset_clone(keyset, &keys);
 	DNS_RDATASET_FOREACH (&keys) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dst_algorithm_t algorithm;
+		dns_rdata_dnskey_t keystruct;
+
 		dns_rdataset_current(&keys, &rdata);
 
 		REQUIRE(rdata.type == dns_rdatatype_key ||
 			rdata.type == dns_rdatatype_dnskey);
 		REQUIRE(rdata.length > 3);
 
+		result = dns_rdata_tostruct(&rdata, &keystruct, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		algorithm = dst_algorithm_fromdata(
+			keystruct.algorithm, keystruct.data, keystruct.datalen);
+
 		/* Skip unsupported algorithms */
-		if (!dst_algorithm_supported(rdata.data[3])) {
+		if (!dst_algorithm_supported(algorithm)) {
 			goto skip;
 		}
 
@@ -1831,7 +1841,8 @@ add_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 	dns_rdata_t cdsrdata = DNS_RDATA_INIT;
 	dns_name_t *origin = dst_key_name(key->key);
 
-	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf, &cdsrdata);
+	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf,
+			      sizeof(dsbuf), &cdsrdata);
 	if (r != ISC_R_SUCCESS) {
 		char algbuf[DNS_DSDIGEST_FORMATSIZE];
 		dns_dsdigest_format(digesttype, algbuf,
@@ -1866,7 +1877,8 @@ delete_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 	dns_rdata_t cdsrdata = DNS_RDATA_INIT;
 	dns_name_t *origin = dst_key_name(key->key);
 
-	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf, &cdsrdata);
+	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf,
+			      sizeof(dsbuf), &cdsrdata);
 	if (r != ISC_R_SUCCESS) {
 		return r;
 	}
@@ -2354,7 +2366,7 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
 		}
 
 		result = dns_ds_buildrdata(name, keyrdata, ds.digest_type, buf,
-					   &newdsrdata);
+					   sizeof(buf), &newdsrdata);
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}

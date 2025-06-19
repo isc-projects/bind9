@@ -68,14 +68,14 @@ typedef struct vctx {
 	dns_rdataset_t nsecsigs;
 	dns_rdataset_t nsec3paramset;
 	dns_rdataset_t nsec3paramsigs;
-	unsigned char revoked_ksk[256];
-	unsigned char revoked_zsk[256];
-	unsigned char standby_ksk[256];
-	unsigned char standby_zsk[256];
-	unsigned char ksk_algorithms[256];
-	unsigned char zsk_algorithms[256];
-	unsigned char bad_algorithms[256];
-	unsigned char act_algorithms[256];
+	unsigned char revoked_ksk[DST_MAX_ALGS];
+	unsigned char revoked_zsk[DST_MAX_ALGS];
+	unsigned char standby_ksk[DST_MAX_ALGS];
+	unsigned char standby_zsk[DST_MAX_ALGS];
+	unsigned char ksk_algorithms[DST_MAX_ALGS];
+	unsigned char zsk_algorithms[DST_MAX_ALGS];
+	unsigned char bad_algorithms[DST_MAX_ALGS];
+	unsigned char act_algorithms[DST_MAX_ALGS];
 	isc_heap_t *expected_chains;
 	isc_heap_t *found_chains;
 } vctx_t;
@@ -173,12 +173,16 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 	dst_key_t **dstkeys, size_t nkeys, dns_rdataset_t *rdataset) {
 	dns_rdata_rrsig_t sig;
 	isc_result_t result;
+	dst_algorithm_t algorithm;
 
 	result = dns_rdata_tostruct(sigrdata, &sig, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
+	algorithm = dst_algorithm_fromdata(sig.algorithm, sig.signature,
+					   sig.siglen);
+
 	for (size_t key = 0; key < nkeys; key++) {
-		if (sig.algorithm != dst_key_alg(dstkeys[key]) ||
+		if (algorithm != dst_key_alg(dstkeys[key]) ||
 		    sig.keyid != dst_key_id(dstkeys[key]) ||
 		    !dns_name_equal(&sig.signer, vctx->origin))
 		{
@@ -792,7 +796,7 @@ verifynsec3s(const vctx_t *vctx, const dns_name_t *name,
 static isc_result_t
 verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	  dns_dbnode_t *node, dst_key_t **dstkeys, size_t nkeys) {
-	unsigned char set_algorithms[256] = { 0 };
+	unsigned char set_algorithms[DST_MAX_ALGS] = { 0 };
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
@@ -835,6 +839,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	DNS_RDATASET_FOREACH (&sigrdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_rrsig_t sig;
+		dst_algorithm_t algorithm;
 
 		dns_rdataset_current(&sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &sig, NULL);
@@ -849,15 +854,17 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 					     namebuf, typebuf, sig.keyid);
 			continue;
 		}
-		if ((set_algorithms[sig.algorithm] != 0) ||
-		    (vctx->act_algorithms[sig.algorithm] == 0))
+		algorithm = dst_algorithm_fromdata(sig.algorithm, sig.signature,
+						   sig.siglen);
+		if ((set_algorithms[algorithm] != 0) ||
+		    (vctx->act_algorithms[algorithm] == 0))
 		{
 			continue;
 		}
 		if (goodsig(vctx, &rdata, name, dstkeys, nkeys, rdataset)) {
 			dns_rdataset_settrust(rdataset, dns_trust_secure);
 			dns_rdataset_settrust(&sigrdataset, dns_trust_secure);
-			set_algorithms[sig.algorithm] = 1;
+			set_algorithms[algorithm] = 1;
 		}
 	}
 	result = ISC_R_SUCCESS;
@@ -871,7 +878,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 			if ((vctx->act_algorithms[i] != 0) &&
 			    (set_algorithms[i] == 0))
 			{
-				dns_secalg_format(i, algbuf, sizeof(algbuf));
+				dst_algorithm_format(i, algbuf, sizeof(algbuf));
 				zoneverify_log_error(vctx,
 						     "No correct %s signature "
 						     "for %s %s",
@@ -1425,10 +1432,13 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 	dst_key_t *key = NULL;
 	isc_result_t result;
 	dns_rdataset_t dsset;
+	dst_algorithm_t algorithm;
 
 	active_keys = (is_ksk ? vctx->ksk_algorithms : vctx->zsk_algorithms);
 	standby_keys = (is_ksk ? vctx->standby_ksk : vctx->standby_zsk);
 	goodkey = (is_ksk ? &vctx->goodksk : &vctx->goodzsk);
+	algorithm = dst_algorithm_fromdata(dnskey->algorithm, dnskey->data,
+					   dnskey->datalen);
 
 	/*
 	 * First, does this key sign the DNSKEY rrset?
@@ -1440,19 +1450,19 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 		    dns_dnssec_signs(keyrdata, vctx->origin, &vctx->soaset,
 				     &vctx->soasigs, false, vctx->mctx))
 		{
-			if (active_keys[dnskey->algorithm] != DNS_KEYALG_MAX) {
-				active_keys[dnskey->algorithm]++;
+			if (active_keys[algorithm] != DNS_KEYALG_MAX) {
+				active_keys[algorithm]++;
 			}
 		} else {
-			if (standby_keys[dnskey->algorithm] != DNS_KEYALG_MAX) {
-				standby_keys[dnskey->algorithm]++;
+			if (standby_keys[algorithm] != DNS_KEYALG_MAX) {
+				standby_keys[algorithm]++;
 			}
 		}
 		return;
 	}
 
-	if (active_keys[dnskey->algorithm] != DNS_KEYALG_MAX) {
-		active_keys[dnskey->algorithm]++;
+	if (active_keys[algorithm] != DNS_KEYALG_MAX) {
+		active_keys[algorithm]++;
 	}
 
 	/*
@@ -1503,14 +1513,15 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 			if (ds.key_tag != dst_key_id(key) ||
-			    ds.algorithm != dst_key_alg(key))
+			    ds.algorithm !=
+				    dst_algorithm_tosecalg(dst_key_alg(key)))
 			{
 				continue;
 			}
 
 			result = dns_ds_buildrdata(vctx->origin, keyrdata,
 						   ds.digest_type, buf,
-						   &newdsrdata);
+						   sizeof(buf), &newdsrdata);
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}
@@ -1558,6 +1569,7 @@ check_dnskey(vctx_t *vctx) {
 		if ((dnskey.flags & DNS_KEYOWNER_ZONE) != 0 &&
 		    (dnskey.flags & DNS_KEYFLAG_REVOKE) != 0)
 		{
+			dst_algorithm_t algorithm;
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
 			    !dns_dnssec_selfsigns(&rdata, vctx->origin,
 						  &vctx->keyset, &vctx->keysigs,
@@ -1586,16 +1598,17 @@ check_dnskey(vctx_t *vctx) {
 					buffer);
 				return ISC_R_FAILURE;
 			}
+			algorithm = dst_algorithm_fromdata(
+				dnskey.algorithm, dnskey.data, dnskey.datalen);
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
-			    vctx->revoked_ksk[dnskey.algorithm] !=
-				    DNS_KEYALG_MAX)
+			    vctx->revoked_ksk[algorithm] != DNS_KEYALG_MAX)
 			{
-				vctx->revoked_ksk[dnskey.algorithm]++;
+				vctx->revoked_ksk[algorithm]++;
 			} else if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0 &&
-				   vctx->revoked_zsk[dnskey.algorithm] !=
+				   vctx->revoked_zsk[algorithm] !=
 					   DNS_KEYALG_MAX)
 			{
-				vctx->revoked_zsk[dnskey.algorithm]++;
+				vctx->revoked_zsk[algorithm]++;
 			}
 		} else {
 			check_dnskey_sigs(vctx, &dnskey, &rdata, is_ksk);
@@ -1627,7 +1640,7 @@ determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
 							  : 0;
 		}
 		if (vctx->act_algorithms[i] != 0) {
-			dns_secalg_format(i, algbuf, sizeof(algbuf));
+			dst_algorithm_format(i, algbuf, sizeof(algbuf));
 			report("- %s", algbuf);
 		}
 	}
@@ -1646,7 +1659,7 @@ determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
 		{
 			continue;
 		}
-		dns_secalg_format(i, algbuf, sizeof(algbuf));
+		dst_algorithm_format(i, algbuf, sizeof(algbuf));
 		zoneverify_log_error(vctx, "Missing %s for algorithm %s",
 				     (vctx->ksk_algorithms[i] != 0) ? "ZSK"
 								    : "self-"
@@ -1889,7 +1902,7 @@ check_bad_algorithms(const vctx_t *vctx, void (*report)(const char *, ...)) {
 			report("The zone is not fully signed "
 			       "for the following algorithms:");
 		}
-		dns_secalg_format(i, algbuf, sizeof(algbuf));
+		dst_algorithm_format(i, algbuf, sizeof(algbuf));
 		report(" %s", algbuf);
 		first = false;
 	}
@@ -1916,7 +1929,7 @@ print_summary(const vctx_t *vctx, bool keyset_kskonly,
 		{
 			continue;
 		}
-		dns_secalg_format(i, algbuf, sizeof(algbuf));
+		dst_algorithm_format(i, algbuf, sizeof(algbuf));
 		report("Algorithm: %s: KSKs: "
 		       "%u active, %u stand-by, %u revoked",
 		       algbuf, vctx->ksk_algorithms[i], vctx->standby_ksk[i],

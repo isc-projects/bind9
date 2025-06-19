@@ -348,9 +348,12 @@ iszsk(dns_dnsseckey_t *key) {
  */
 static dns_dnsseckey_t *
 keythatsigned_unlocked(dns_rdata_rrsig_t *rrsig) {
+	dst_algorithm_t algorithm = dst_algorithm_fromdata(
+		rrsig->algorithm, rrsig->signature, rrsig->siglen);
+
 	ISC_LIST_FOREACH (keylist, key, link) {
 		if (rrsig->keyid == dst_key_id(key->key) &&
-		    rrsig->algorithm == dst_key_alg(key->key) &&
+		    algorithm == dst_key_alg(key->key) &&
 		    dns_name_equal(&rrsig->signer, dst_key_name(key->key)))
 		{
 			return key;
@@ -1070,7 +1073,7 @@ loadds(dns_name_t *name, uint32_t ttl, dns_rdataset_t *dsset) {
 		dns_rdata_t ds = DNS_RDATA_INIT;
 		dns_rdataset_current(&keyset, &key);
 		result = dns_ds_buildrdata(name, &key, DNS_DSDIGEST_SHA256,
-					   dsbuf, &ds);
+					   dsbuf, sizeof(dsbuf), &ds);
 		check_result(result, "dns_ds_buildrdata");
 
 		dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name, ttl, &ds,
@@ -3052,7 +3055,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 		if (type != dns_rdatatype_dnskey) {
 			result = dns_ds_buildrdata(gorigin, &rdata,
 						   DNS_DSDIGEST_SHA256, dsbuf,
-						   &ds);
+						   sizeof(dsbuf), &ds);
 			check_result(result, "dns_ds_buildrdata");
 			dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name,
 					     0, &ds, &tuple);

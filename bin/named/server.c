@@ -154,11 +154,11 @@
 #endif /* HAVE_LMDB */
 
 #ifndef SIZE_MAX
-#define SIZE_MAX ((size_t)-1)
+#define SIZE_MAX ((size_t)(-1))
 #endif /* ifndef SIZE_MAX */
 
 #ifndef SIZE_AS_PERCENT
-#define SIZE_AS_PERCENT ((size_t)-2)
+#define SIZE_AS_PERCENT ((size_t)(-2))
 #endif /* ifndef SIZE_AS_PERCENT */
 
 /* RFC7828 defines timeout as 16-bit value specified in units of 100
@@ -677,7 +677,7 @@ cleanup:
 
 static isc_result_t
 ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
-	      unsigned char *digest, dns_rdata_ds_t *ds) {
+	      unsigned char *digest, size_t digest_len, dns_rdata_ds_t *ds) {
 	isc_result_t result;
 	dns_rdata_dnskey_t keystruct;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -699,6 +699,7 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		STATIC_DS,
 		TRUSTED
 	} anchortype;
+	dst_algorithm_t algorithm;
 
 	REQUIRE(namestrp != NULL && *namestrp == NULL);
 	REQUIRE(ds != NULL);
@@ -787,22 +788,24 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		keystruct.flags = (uint16_t)rdata1;
 		keystruct.protocol = (uint8_t)rdata2;
 		keystruct.algorithm = (uint8_t)rdata3;
-
-		if (!dst_algorithm_supported(keystruct.algorithm)) {
-			CHECK(DST_R_UNSUPPORTEDALG);
-		}
-
 		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
 		CHECK(isc_base64_decodestring(datastr, &databuf));
 		isc_buffer_usedregion(&databuf, &r);
 		keystruct.datalen = r.length;
 		keystruct.data = r.base;
 
+		algorithm = dst_algorithm_fromdata(
+			keystruct.algorithm, keystruct.data, keystruct.datalen);
+
+		if (!dst_algorithm_supported(algorithm)) {
+			CHECK(DST_R_UNSUPPORTEDALG);
+		}
+
 		CHECK(dns_rdata_fromstruct(&rdata, keystruct.common.rdclass,
 					   keystruct.common.rdtype, &keystruct,
 					   &rrdatabuf));
 		CHECK(dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256,
-					  digest, ds));
+					  digest, digest_len, ds));
 		break;
 
 	case INIT_DS:
@@ -841,6 +844,20 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 				CHECK(ISC_R_UNEXPECTEDEND);
 			}
 			break;
+#if defined(DNS_DSDIGEST_SHA256PRIVATE)
+		case DNS_DSDIGEST_SHA256PRIVATE:
+			if (r.length < ISC_SHA256_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+#endif
+#if defined(DNS_DSDIGEST_SHA384PRIVATE)
+		case DNS_DSDIGEST_SHA384PRIVATE:
+			if (r.length < ISC_SHA384_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+#endif
 		default:
 			cfg_obj_log(key, ISC_LOG_ERROR,
 				    "key '%s': "
@@ -851,9 +868,48 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 			break;
 		}
 
+		if (r.length > digest_len) {
+			CHECK(ISC_R_NOSPACE);
+		}
 		ds->length = r.length;
 		ds->digest = digest;
 		memmove(ds->digest, r.base, r.length);
+
+		algorithm = ds->algorithm;
+
+#if defined(DNS_DSDIGEST_SHA256PRIVATE) && defined(DNS_DSDIGEST_SHA384PRIVATE)
+		/*
+		 * Extract the private algorithm from the start
+		 * of the hash field.
+		 */
+		switch (ds->digest_type) {
+		/*
+		 * Digest types that do not encode the private DNSSEC algorithm
+		 * at the start of the digest field.
+		 */
+		case DNS_DSDIGEST_SHA1:
+		case DNS_DSDIGEST_SHA256:
+		case DNS_DSDIGEST_SHA384:
+			break;
+		/*
+		 * Digest types that encode the private DNSSEC algorithm
+		 * at the start of the digest field.
+		 */
+		case DNS_DSDIGEST_SHA256PRIVATE:
+		case DNS_DSDIGEST_SHA384PRIVATE:
+			algorithm = dst_algorithm_fromdata(
+				ds->algorithm, ds->digest, ds->length);
+			break;
+		/*
+		 * Unknown digest types.
+		 */
+		default:
+			break;
+		}
+#endif
+		if (!dst_algorithm_supported(algorithm)) {
+			CHECK(DST_R_UNSUPPORTEDALG);
+		}
 
 		break;
 
@@ -894,10 +950,11 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	dns_rdata_ds_t ds;
 	isc_result_t result;
 	bool initializing = managed;
-	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned char digest[DNS_DS_BUFFERSIZE];
 	isc_buffer_t b;
 
-	result = ta_fromconfig(key, &initializing, &namestr, digest, &ds);
+	result = ta_fromconfig(key, &initializing, &namestr, digest,
+			       sizeof(digest), &ds);
 
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -950,7 +1007,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	 * warning, but do not prevent further keys from being processed.
 	 */
 	if (!dns_resolver_algorithm_supported(view->resolver, keyname,
-					      ds.algorithm))
+					      ds.algorithm, NULL, 0))
 	{
 		cfg_obj_log(key, ISC_LOG_WARNING,
 			    "ignoring %s for '%s': algorithm is disabled",
@@ -1592,17 +1649,11 @@ disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	algorithms = cfg_tuple_get(disabled, "algorithms");
 	CFG_LIST_FOREACH (algorithms, element) {
 		isc_textregion_t r;
-		dns_secalg_t alg;
+		dst_algorithm_t alg;
 
 		r.base = UNCONST(cfg_obj_asstring(cfg_listelt_value(element)));
 		r.length = strlen(r.base);
-
-		result = dns_secalg_fromtext(&alg, &r);
-		if (result != ISC_R_SUCCESS) {
-			uint8_t ui;
-			result = isc_parse_uint8(&ui, r.base, 10);
-			alg = ui;
-		}
+		result = dst_algorithm_fromtext(&alg, &r);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(cfg_listelt_value(element), ISC_LOG_ERROR,
 				    "invalid algorithm");
@@ -14358,7 +14409,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	/* variables for -key */
 	bool use_keyid = false;
 	dns_keytag_t keyid = 0;
-	uint8_t algorithm = 0;
+	dst_algorithm_t algorithm = 0;
 	/* variables for -status */
 	bool status = false;
 	char output[4096];
@@ -14414,7 +14465,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 				}
 				alg.base = ptr;
 				alg.length = strlen(alg.base);
-				result = dns_secalg_fromtext(
+				result = dst_algorithm_fromtext(
 					&algorithm, (isc_textregion_t *)&alg);
 				if (result != ISC_R_SUCCESS) {
 					msg = "Bad algorithm";

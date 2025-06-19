@@ -120,9 +120,11 @@ void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
+	dst_algorithm_t algorithm = dst_algorithm_fromdata(
+		sig->algorithm, sig->signature, sig->siglen);
 
 	dns_name_format(&sig->signer, namestr, sizeof(namestr));
-	dns_secalg_format(sig->algorithm, algstr, sizeof(algstr));
+	dst_algorithm_format(algorithm, algstr, sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, sig->keyid);
 }
 
@@ -361,7 +363,10 @@ strtodsdigest(const char *str) {
 	r.length = strlen(str);
 	result = dns_dsdigest_fromtext(&alg, &r);
 	if (result != ISC_R_SUCCESS) {
-		fatal("unknown DS algorithm %s", str);
+		fatal("unknown DS digest %s", str);
+	}
+	if (!dst_ds_digest_supported(alg)) {
+		fatal("unsupported DS digest %s", str);
 	}
 	return alg;
 }

@@ -89,7 +89,7 @@ struct keygen_ctx {
 	bool wantzsk;
 	bool wantksk;
 	bool wantrev;
-	dns_secalg_t alg;
+	dst_algorithm_t alg;
 	/* timing data */
 	int prepub;
 	isc_stdtime_t now;
@@ -245,7 +245,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 
 	UNUSED(argc);
 
-	dns_secalg_format(ctx->alg, algstr, sizeof(algstr));
+	dst_algorithm_format(ctx->alg, algstr, sizeof(algstr));
 
 	if (ctx->predecessor == NULL) {
 		if (ctx->prepub == -1) {
@@ -286,6 +286,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			case DST_ALG_NSEC3RSASHA1:
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
+			case DST_ALG_RSASHA256PRIVATEOID:
+			case DST_ALG_RSASHA512PRIVATEOID:
 			case DST_ALG_ECDSA256:
 			case DST_ALG_ECDSA384:
 			case DST_ALG_ED25519:
@@ -309,6 +311,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 				FALLTHROUGH;
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
+			case DST_ALG_RSASHA256PRIVATEOID:
+			case DST_ALG_RSASHA512PRIVATEOID:
 				ctx->size = 2048;
 				if (verbose > 0) {
 					fprintf(stderr,
@@ -454,14 +458,16 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	}
 
 	switch (ctx->alg) {
-	case DNS_KEYALG_RSASHA1:
-	case DNS_KEYALG_NSEC3RSASHA1:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
 		if (isc_crypto_fips_mode()) {
 			fatal("SHA1 based keys not supported in FIPS mode");
 		}
 		FALLTHROUGH;
-	case DNS_KEYALG_RSASHA256:
-	case DNS_KEYALG_RSASHA512:
+	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA256PRIVATEOID:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		if (ctx->size != 0 &&
 		    (ctx->size < min_rsa || ctx->size > MAX_RSA))
 		{
@@ -480,6 +486,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	case DST_ALG_ED448:
 		ctx->size = 456;
 		break;
+	default:
+		fatal("not a dnskey algorithm %u\n", ctx->alg);
 	}
 
 	if ((ctx->options & DST_TYPE_KEY) == 0) {
@@ -502,10 +510,10 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	}
 
 	switch (ctx->alg) {
-	case DNS_KEYALG_RSASHA1:
-	case DNS_KEYALG_NSEC3RSASHA1:
-	case DNS_KEYALG_RSASHA256:
-	case DNS_KEYALG_RSASHA512:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA512:
 		show_progress = true;
 		break;
 
@@ -514,6 +522,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	case DST_ALG_ED25519:
 	case DST_ALG_ED448:
 		show_progress = true;
+		break;
+	default:
 		break;
 	}
 
@@ -1072,7 +1082,7 @@ main(int argc, char **argv) {
 		}
 		r.base = algname;
 		r.length = strlen(algname);
-		ret = dns_secalg_fromtext(&ctx.alg, &r);
+		ret = dst_algorithm_fromtext(&ctx.alg, &r);
 		if (ret != ISC_R_SUCCESS) {
 			fatal("unknown algorithm %s", algname);
 		}

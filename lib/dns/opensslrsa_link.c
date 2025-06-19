@@ -50,6 +50,14 @@ typedef struct rsa_components {
 	const BIGNUM *e, *n, *d, *p, *q, *dmp1, *dmq1, *iqmp;
 } rsa_components_t;
 
+/* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
+static unsigned char oid_rsasha256[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
+					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b };
+
+/* length byte + 1.2.840.113549.1.1.13 BER encoded RFC 4055 */
+static unsigned char oid_rsasha512[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
+					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0d };
+
 static isc_result_t
 opensslrsa_components_get(const dst_key_t *key, rsa_components_t *c,
 			  bool private) {
@@ -154,6 +162,8 @@ opensslrsa_valid_key_alg(unsigned int key_alg) {
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA256PRIVATEOID:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		return true;
 	default:
 		return false;
@@ -181,12 +191,14 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		}
 		break;
 	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA256PRIVATEOID:
 		/* From RFC 5702 */
 		if (dctx->key->key_size < 512 || dctx->key->key_size > 4096) {
 			return ISC_R_FAILURE;
 		}
 		break;
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		/* From RFC 5702 */
 		if (dctx->key->key_size < 1024 || dctx->key->key_size > 4096) {
 			return ISC_R_FAILURE;
@@ -207,9 +219,11 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		type = isc__crypto_sha1; /* SHA1 + RSA */
 		break;
 	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA256PRIVATEOID:
 		type = isc__crypto_sha256; /* SHA256 + RSA */
 		break;
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		type = isc__crypto_sha512;
 		break;
 	default:
@@ -264,6 +278,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	unsigned int siglen = 0;
 	EVP_MD_CTX *evp_md_ctx = NULL;
 	EVP_PKEY *pkey = NULL;
+	unsigned int len = 0;
 
 	REQUIRE(dctx != NULL && dctx->key != NULL);
 	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
@@ -272,17 +287,42 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	pkey = key->keydata.pkeypair.priv;
 
+	/*
+	 * Account to the space the OIDs and DNS names consume.
+	 */
+	switch (key->key_alg) {
+	case DST_ALG_RSASHA256PRIVATEOID:
+		len = sizeof(oid_rsasha256);
+		break;
+	case DST_ALG_RSASHA512PRIVATEOID:
+		len = sizeof(oid_rsasha512);
+		break;
+	}
+
 	isc_buffer_availableregion(sig, &r);
 
-	if (r.length < (unsigned int)EVP_PKEY_size(pkey)) {
+	if (r.length < (unsigned int)EVP_PKEY_size(pkey) + len) {
 		return ISC_R_NOSPACE;
+	}
+
+	/*
+	 * Add OID and DNS names to start of signature.
+	 */
+	switch (key->key_alg) {
+	case DST_ALG_RSASHA256PRIVATEOID:
+		isc_buffer_putmem(sig, oid_rsasha256, sizeof(oid_rsasha256));
+		isc_region_consume(&r, sizeof(oid_rsasha256));
+		break;
+	case DST_ALG_RSASHA512PRIVATEOID:
+		isc_buffer_putmem(sig, oid_rsasha512, sizeof(oid_rsasha512));
+		isc_region_consume(&r, sizeof(oid_rsasha512));
+		break;
 	}
 
 	if (!EVP_SignFinal(evp_md_ctx, r.base, &siglen, pkey)) {
 		return dst__openssl_toresult3(dctx->category, "EVP_SignFinal",
 					      ISC_R_FAILURE);
 	}
-
 	isc_buffer_add(sig, siglen);
 
 	return ISC_R_SUCCESS;
@@ -317,6 +357,8 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	int status = 0;
 	EVP_MD_CTX *evp_md_ctx = NULL;
 	EVP_PKEY *pkey = NULL;
+	const unsigned char *base = sig->base;
+	unsigned int length = sig->length;
 
 	REQUIRE(dctx != NULL && dctx->key != NULL);
 	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
@@ -330,7 +372,31 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return DST_R_VERIFYFAILURE;
 	}
 
-	status = EVP_VerifyFinal(evp_md_ctx, sig->base, sig->length, pkey);
+	/*
+	 * Check identifying OID in front of public key material.
+	 */
+	switch (key->key_alg) {
+	case DST_ALG_RSASHA256PRIVATEOID:
+		if (length < sizeof(oid_rsasha256) ||
+		    memcmp(base, oid_rsasha256, sizeof(oid_rsasha256)) != 0)
+		{
+			return DST_R_VERIFYFAILURE;
+		}
+		base += sizeof(oid_rsasha256);
+		length -= sizeof(oid_rsasha256);
+		break;
+	case DST_ALG_RSASHA512PRIVATEOID:
+		if (length < sizeof(oid_rsasha512) ||
+		    memcmp(base, oid_rsasha512, sizeof(oid_rsasha512)) != 0)
+		{
+			return DST_R_VERIFYFAILURE;
+		}
+		base += sizeof(oid_rsasha512);
+		length -= sizeof(oid_rsasha512);
+		break;
+	}
+
+	status = EVP_VerifyFinal(evp_md_ctx, base, length, pkey);
 	switch (status) {
 	case 1:
 		return ISC_R_SUCCESS;
@@ -692,12 +758,14 @@ opensslrsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		}
 		break;
 	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA256PRIVATEOID:
 		/* From RFC 5702 */
 		if (key->key_size < 512 || key->key_size > 4096) {
 			DST_RET(DST_R_INVALIDPARAM);
 		}
 		break;
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		/* From RFC 5702 */
 		if (key->key_size < 1024 || key->key_size > 4096) {
 			DST_RET(DST_R_INVALIDPARAM);
@@ -739,6 +807,26 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	REQUIRE(key->keydata.pkeypair.pub != NULL);
 
 	isc_buffer_availableregion(data, &r);
+
+	/*
+	 * Add identifying OID and DNS names to front of public key material.
+	 */
+	switch (key->key_alg) {
+	case DST_ALG_RSASHA256PRIVATEOID:
+		if (r.length < sizeof(oid_rsasha256)) {
+			DST_RET(ISC_R_NOSPACE);
+		}
+		isc_buffer_putmem(data, oid_rsasha256, sizeof(oid_rsasha256));
+		isc_region_consume(&r, sizeof(oid_rsasha256));
+		break;
+	case DST_ALG_RSASHA512PRIVATEOID:
+		if (r.length < sizeof(oid_rsasha512)) {
+			DST_RET(ISC_R_NOSPACE);
+		}
+		isc_buffer_putmem(data, oid_rsasha512, sizeof(oid_rsasha512));
+		isc_region_consume(&r, sizeof(oid_rsasha512));
+		break;
+	}
 
 	ret = opensslrsa_components_get(key, &c, false);
 	if (ret != ISC_R_SUCCESS) {
@@ -794,6 +882,31 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (r.length == 0) {
 		DST_RET(ISC_R_SUCCESS);
 	}
+
+	/*
+	 * Check identifying OID in front of public key material.
+	 */
+	switch (key->key_alg) {
+	case DST_ALG_RSASHA256PRIVATEOID:
+		if (r.length < sizeof(oid_rsasha256) ||
+		    memcmp(r.base, oid_rsasha256, sizeof(oid_rsasha256)) != 0)
+		{
+			DST_RET(DST_R_INVALIDPUBLICKEY);
+		}
+		isc_region_consume(&r, sizeof(oid_rsasha256));
+		isc_buffer_forward(data, sizeof(oid_rsasha256));
+		break;
+	case DST_ALG_RSASHA512PRIVATEOID:
+		if (r.length < sizeof(oid_rsasha512) ||
+		    memcmp(r.base, oid_rsasha512, sizeof(oid_rsasha512)) != 0)
+		{
+			DST_RET(DST_R_INVALIDPUBLICKEY);
+		}
+		isc_region_consume(&r, sizeof(oid_rsasha512));
+		isc_buffer_forward(data, sizeof(oid_rsasha512));
+		break;
+	}
+
 	length = r.length;
 	if (r.length < 1) {
 		DST_RET(DST_R_INVALIDPUBLICKEY);
@@ -1214,7 +1327,7 @@ static const unsigned char sha512_sig[] =
 	"\xf1";
 
 static isc_result_t
-check_algorithm(unsigned char algorithm) {
+check_algorithm(unsigned short algorithm) {
 	rsa_components_t c = { .bnfree = true };
 	EVP_MD_CTX *evp_md_ctx = EVP_MD_CTX_create();
 	EVP_PKEY *pkey = NULL;
@@ -1231,11 +1344,13 @@ check_algorithm(unsigned char algorithm) {
 		len = sizeof(sha1_sig) - 1;
 		break;
 	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA256PRIVATEOID:
 		type = isc__crypto_sha256; /* SHA256 + RSA */
 		sig = sha256_sig;
 		len = sizeof(sha256_sig) - 1;
 		break;
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		type = isc__crypto_sha512;
 		sig = sha512_sig;
 		len = sizeof(sha512_sig) - 1;
@@ -1272,7 +1387,7 @@ err:
 }
 
 void
-dst__opensslrsa_init(dst_func_t **funcp, unsigned char algorithm) {
+dst__opensslrsa_init(dst_func_t **funcp, unsigned short algorithm) {
 	REQUIRE(funcp != NULL);
 
 	if (*funcp == NULL) {

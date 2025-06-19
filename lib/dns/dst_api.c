@@ -140,6 +140,14 @@ static const char *keystates[KEYSTATES_NVALUES] = {
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS] = { 0 };
 
+/* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
+static unsigned char oid_rsasha256[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
+					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b };
+
+/* length byte + 1.2.840.113549.1.1.13 BER encoded RFC 4055 */
+static unsigned char oid_rsasha512[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
+					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0d };
+
 void
 gss_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
@@ -215,6 +223,18 @@ dst__lib_initialize(void) {
 #if HAVE_GSSAPI
 	dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]);
 #endif /* HAVE_GSSAPI */
+	/*
+	 * RSASHA256 using assigned OID 1.2.840.113549.1.1.11 as
+	 * a private OID example.
+	 */
+	dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA256PRIVATEOID],
+			     DST_ALG_RSASHA256PRIVATEOID);
+	/*
+	 * RSASHA512 using assigned OID 1.2.840.113549.1.1.13 as
+	 * a private OID example.
+	 */
+	dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512PRIVATEOID],
+			     DST_ALG_RSASHA512PRIVATEOID);
 }
 
 void
@@ -233,7 +253,13 @@ dst_algorithm_supported(unsigned int alg) {
 bool
 dst_ds_digest_supported(unsigned int digest_type) {
 	return digest_type == DNS_DSDIGEST_SHA1 ||
+#if defined(DNS_DSDIGEST_SHA256PRIVATE)
+	       digest_type == DNS_DSDIGEST_SHA256PRIVATE ||
+#endif
 	       digest_type == DNS_DSDIGEST_SHA256 ||
+#if defined(DNS_DSDIGEST_SHA256PRIVATE)
+	       digest_type == DNS_DSDIGEST_SHA384PRIVATE ||
+#endif
 	       digest_type == DNS_DSDIGEST_SHA384;
 }
 
@@ -645,7 +671,8 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	}
 	isc_buffer_putuint16(target, (uint16_t)(key->key_flags & 0xffff));
 	isc_buffer_putuint8(target, (uint8_t)key->key_proto);
-	isc_buffer_putuint8(target, (uint8_t)key->key_alg);
+	isc_buffer_putuint8(target,
+			    (uint8_t)dst_algorithm_tosecalg(key->key_alg));
 
 	if ((key->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
 		if (isc_buffer_availablelength(target) < 2) {
@@ -1304,6 +1331,12 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_RSASHA512:
 		*n = (key->key_size + 7) / 8;
 		break;
+	case DST_ALG_RSASHA256PRIVATEOID:
+		*n = (key->key_size + 7) / 8 + sizeof(oid_rsasha256);
+		break;
+	case DST_ALG_RSASHA512PRIVATEOID:
+		*n = (key->key_size + 7) / 8 + sizeof(oid_rsasha512);
+		break;
 	case DST_ALG_ECDSA256:
 		*n = DNS_SIG_ECDSA256SIZE;
 		break;
@@ -1357,10 +1390,10 @@ void
 dst_key_format(const dst_key_t *key, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
+	dst_algorithm_t algorithm = dst_key_alg(key);
 
 	dns_name_format(dst_key_name(key), namestr, sizeof(namestr));
-	dns_secalg_format((dns_secalg_t)dst_key_alg(key), algstr,
-			  sizeof(algstr));
+	dst_algorithm_format(algorithm, algstr, sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
 }
 
@@ -2107,6 +2140,8 @@ buildfilename(dns_name_t *name, dns_keytag_t id, unsigned int alg,
 	isc_result_t result;
 
 	REQUIRE(out != NULL);
+	REQUIRE(alg != 0 && alg != DST_ALG_PRIVATEOID &&
+		alg != DST_ALG_PRIVATEDNS);
 
 	if ((type & DST_TYPE_PRIVATE) != 0) {
 		suffix = ".private";
@@ -2171,6 +2206,22 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	REQUIRE(source != NULL);
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
+
+	if (alg == DNS_KEYALG_PRIVATEDNS) {
+		isc_buffer_t b = *source;
+		alg = dst_algorithm_fromprivatedns(&b);
+		if (alg == 0) {
+			return DST_R_UNSUPPORTEDALG;
+		}
+	}
+
+	if (alg == DNS_KEYALG_PRIVATEOID) {
+		isc_buffer_t b = *source;
+		alg = dst_algorithm_fromprivateoid(&b);
+		if (alg == 0) {
+			return DST_R_UNSUPPORTEDALG;
+		}
+	}
 
 	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, 0, mctx);
 
@@ -2634,5 +2685,117 @@ dst_hmac_algorithm_totext(dst_algorithm_t alg) {
 		return "hmac-sha512";
 	default:
 		return "unknown";
+	}
+}
+
+dns_secalg_t
+dst_algorithm_tosecalg(dst_algorithm_t dst_alg) {
+	static dns_secalg_t dns_alg[DST_MAX_ALGS] = {
+		[DST_ALG_RSASHA256PRIVATEOID] = DNS_KEYALG_PRIVATEOID,
+		[DST_ALG_RSASHA512PRIVATEOID] = DNS_KEYALG_PRIVATEOID,
+	};
+
+	if (dst_alg < 256) {
+		return dst_alg;
+	}
+	if (dst_alg < DST_MAX_ALGS) {
+		return dns_alg[dst_alg];
+	}
+	return 0;
+}
+
+#if TEST_PRIVATEDNS
+/*
+ * These are examples of specifying an algorithm using
+ * PRIVATEDNS. When creating such an algorithm, use your
+ * organisation's domain name instead of "example.org"
+ * so the identifier will be globally unique.
+ */
+static unsigned char rsasha256dns_data[] = "\011rsasha256\007example\003org";
+static dns_name_t const rsasha256dns = DNS_NAME_INITABSOLUTE(rsasha256dns_data);
+static unsigned char rsasha512dns_data[] = "\011rsasha512\007example\003org";
+static dns_name_t const rsasha512dns = DNS_NAME_INITABSOLUTE(rsasha512dns_data);
+#endif
+
+dst_algorithm_t
+dst_algorithm_fromprivatedns(isc_buffer_t *buffer) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	isc_result_t result;
+
+	result = dns_name_fromwire(name, buffer, DNS_DECOMPRESS_DEFAULT, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return 0;
+	}
+
+	/*
+	 * Do name to dst_algorithm number mapping here.
+	 */
+	switch (name->length) {
+#if TEST_PRIVATEDNS
+	case 23:
+		switch (name->ndata[7]) {
+		case '2':
+			if (dns_name_equal(name, &rsasha256dns)) {
+				return DST_ALG_RSASHA256PRIVATEDNS;
+			}
+			break;
+		case '5':
+			if (dns_name_equal(name, &rsasha512dns)) {
+				return DST_ALG_RSASHA512PRIVATEDNS;
+			}
+			break;
+		}
+		break;
+#endif
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+dst_algorithm_t
+dst_algorithm_fromprivateoid(isc_buffer_t *buffer) {
+	isc_region_t r;
+
+	isc_buffer_remainingregion(buffer, &r);
+
+	/*
+	 * Do OID to dst_algorithm number mapping here.  There is a
+	 * length byte followed by the OID of that length.
+	 */
+	if (r.length > 0 && ((unsigned int)r.base[0] + 1) <= r.length) {
+		if (r.base[0] + 1 == sizeof(oid_rsasha256) &&
+		    memcmp(oid_rsasha256, r.base, sizeof(oid_rsasha256)) == 0)
+		{
+			return DST_ALG_RSASHA256PRIVATEOID;
+		}
+
+		if (r.base[0] + 1 == sizeof(oid_rsasha512) &&
+		    memcmp(oid_rsasha512, r.base, sizeof(oid_rsasha512)) == 0)
+		{
+			return DST_ALG_RSASHA512PRIVATEOID;
+		}
+	}
+
+	return 0;
+}
+
+dst_algorithm_t
+dst_algorithm_fromdata(dns_secalg_t algorithm, unsigned char *data,
+		       unsigned int length) {
+	isc_buffer_t b;
+	switch (algorithm) {
+	case DNS_KEYALG_PRIVATEDNS:
+		isc_buffer_init(&b, data, length);
+		isc_buffer_add(&b, length);
+		return dst_algorithm_fromprivatedns(&b);
+	case DNS_KEYALG_PRIVATEOID:
+		isc_buffer_init(&b, data, length);
+		isc_buffer_add(&b, length);
+		return dst_algorithm_fromprivateoid(&b);
+	default:
+		return algorithm;
 	}
 }

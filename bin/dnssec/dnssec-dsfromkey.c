@@ -270,7 +270,7 @@ emit(dns_dsdigest_t dt, bool showall, bool cds, dns_rdata_t *rdata) {
 		return;
 	}
 
-	result = dns_ds_buildrdata(name, rdata, dt, buf, &ds);
+	result = dns_ds_buildrdata(name, rdata, dt, buf, sizeof(buf), &ds);
 	if (result != ISC_R_SUCCESS) {
 		fatal("can't build record");
 	}

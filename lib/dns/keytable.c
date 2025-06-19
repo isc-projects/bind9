@@ -453,7 +453,7 @@ dns_keytable_deletekey(dns_keytable_t *keytable, const dns_name_t *keyname,
 	}
 
 	result = dns_ds_fromkeyrdata(keyname, &rdata, DNS_DSDIGEST_SHA256,
-				     digest, &ds);
+				     digest, sizeof(digest), &ds);
 	if (result != ISC_R_SUCCESS) {
 		goto finish;
 	}

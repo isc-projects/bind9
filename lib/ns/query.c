@@ -2375,6 +2375,7 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 	bool secure = false;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
+	dst_algorithm_t sigalg, keyalg;
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
@@ -2403,6 +2404,9 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 		result = dns_rdataset_next(keyrdataset);
 	}
 
+	sigalg = dst_algorithm_fromdata(rrsig->algorithm, rrsig->signature,
+					rrsig->siglen);
+
 	for (; result == ISC_R_SUCCESS; result = dns_rdataset_next(keyrdataset))
 	{
 		dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -2411,10 +2415,10 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 
 		dns_rdataset_current(keyrdataset, &rdata);
 		dns_rdata_tostruct(&rdata, &key, NULL); /* can't fail */
+		keyalg = dst_algorithm_fromdata(key.algorithm, key.data,
+						key.datalen);
 
-		if (rrsig->algorithm != key.algorithm ||
-		    !dns_dnssec_iszonekey(&key))
-		{
+		if (sigalg != keyalg || !dns_dnssec_iszonekey(&key)) {
 			continue;
 		}
 
@@ -2476,14 +2480,18 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 		dns_rdataset_current(sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if (!dns_resolver_algorithm_supported(client->view->resolver,
-						      name, rrsig.algorithm))
+		if (!dns_resolver_algorithm_supported(
+			    client->view->resolver, name, rrsig.algorithm,
+			    rrsig.signature, rrsig.siglen))
 		{
 			char txt[DNS_NAME_FORMATSIZE + 32];
 			isc_buffer_t buffer;
+			dst_algorithm_t alg;
+			alg = dst_algorithm_fromdata(
+				rrsig.algorithm, rrsig.signature, rrsig.siglen);
 
 			isc_buffer_init(&buffer, txt, sizeof(txt));
-			dns_secalg_totext(rrsig.algorithm, &buffer);
+			dst_algorithm_totext(alg, &buffer);
 			isc_buffer_putstr(&buffer, " ");
 			dns_name_totext(name, DNS_NAME_OMITFINALDOT, &buffer);
 			isc_buffer_putstr(&buffer, " (cached)");

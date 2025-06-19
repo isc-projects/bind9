@@ -332,6 +332,8 @@ check_data(const dst_private_t *priv, const unsigned int alg, bool old,
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA256PRIVATEOID:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		return check_rsa(priv, external);
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
@@ -693,6 +695,12 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		break;
 	case DST_ALG_HMACSHA512:
 		fprintf(fp, "(HMAC_SHA512)\n");
+		break;
+	case DST_ALG_RSASHA256PRIVATEOID:
+		fprintf(fp, "(OID:RSASHA256)\n");
+		break;
+	case DST_ALG_RSASHA512PRIVATEOID:
+		fprintf(fp, "(OID:RSASHA512)\n");
 		break;
 	default:
 		fprintf(fp, "(?)\n");

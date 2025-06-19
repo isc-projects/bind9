@@ -390,6 +390,14 @@ class Key:
 
         return ksigning, zsigning
 
+    def get_dnsalg(self) -> int:
+        alg = int(self.get_metadata("Algorithm"))
+        if alg == isctest.vars.algorithms.RSASHA256OID.dst:
+            return isctest.vars.algorithms.RSASHA256OID.number
+        if alg == isctest.vars.algorithms.RSASHA512OID.dst:
+            return isctest.vars.algorithms.RSASHA512OID.number
+        return alg
+
     def ttl(self) -> int:
         with open(self.keyfile, "r", encoding="utf-8") as file:
             for line in file:
@@ -810,7 +818,7 @@ def _check_signatures(
             offline_ksk=offline_ksk, zsk_missing=zsk_missing, smooth=smooth
         )
 
-        alg = key.get_metadata("Algorithm")
+        alg = key.get_dnsalg()
         rtype = dns.rdatatype.to_text(covers)
 
         expect = rf"IN RRSIG {rtype} {alg} (\d) (\d+) (\d+) (\d+) {key.tag} {fqdn}"

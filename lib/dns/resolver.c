@@ -10593,7 +10593,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 			       unsigned int alg) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (alg > 255) {
+	if (alg >= DST_MAX_ALGS) {
 		return ISC_R_RANGE;
 	}
 
@@ -10614,13 +10614,37 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 
 bool
 dns_resolver_algorithm_supported(dns_resolver_t *resolver,
-				 const dns_name_t *name, unsigned int alg) {
+				 const dns_name_t *name, unsigned int alg,
+				 unsigned char *private, size_t len) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	if ((alg == DST_ALG_DH) || (alg == DST_ALG_INDIRECT)) {
 		return false;
 	}
 
+	/*
+	 * Look up the DST algorithm identifier for private-OID
+	 * and private-DNS keys.
+	 */
+	if (alg == DST_ALG_PRIVATEDNS && private != NULL) {
+		isc_buffer_t b;
+		isc_buffer_init(&b, private, len);
+		isc_buffer_add(&b, len);
+		alg = dst_algorithm_fromprivatedns(&b);
+		if (alg == 0) {
+			return false;
+		}
+	}
+
+	if (alg == DST_ALG_PRIVATEOID && private != NULL) {
+		isc_buffer_t b;
+		isc_buffer_init(&b, private, len);
+		isc_buffer_add(&b, len);
+		alg = dst_algorithm_fromprivateoid(&b);
+		if (alg == 0) {
+			return false;
+		}
+	}
 	if (dns_nametree_covered(resolver->algorithms, name, NULL, alg)) {
 		return false;
 	}

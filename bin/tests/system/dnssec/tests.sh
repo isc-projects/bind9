@@ -53,18 +53,20 @@ dnssec_loadkeys_on() {
 # convert private-type records to readable form
 showprivate() {
   echo "-- $* --"
-  dig_with_opts +nodnssec +short "@$2" -t type65534 "$1" | cut -f3 -d' ' \
-    | while read -r record; do
-      # shellcheck disable=SC2016
-      $PERL -e 'my $rdata = pack("H*", @ARGV[0]);
-                die "invalid record" unless length($rdata) == 5;
-                my ($alg, $key, $remove, $complete) = unpack("CnCC", $rdata);
-                my $action = "signing";
-                $action = "removing" if $remove;
-                my $state = " (incomplete)";
-                $state = " (complete)" if $complete;
-                print ("$action: alg: $alg, key: $key$state\n");' "$record"
-    done
+  dig_with_opts +nodnssec +short "@$2" -t type65534 "$1" >dig.out.$1.test$n
+  cut -f3 -d' ' <dig.out.$1.$n | while read -r record; do
+    # shellcheck disable=SC2016
+    $PERL -e 'my $rdata = pack("H*", @ARGV[0]);
+              die "invalid record" unless length($rdata) == 5 || length($rdata) == 7;
+              my ($dns, $key, $remove, $complete, $alg) = unpack("CnCCn", $rdata);
+              die "invalid record" unless $dns != 0;
+              my $action = "signing";
+              $action = "removing" if $remove;
+              my $state = " (incomplete)";
+              $state = " (complete)" if $complete;
+              $alg = $dns if ! defined($alg);
+              print ("$action: alg: $alg, key: $key$state\n");' "$record"
+  done
 }
 
 # check that signing records are marked as complete
@@ -957,6 +959,80 @@ grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
+
+echo_i "checking positive validation with private algorithm works ($n)"
+ret=0
+dig_with_opts +noauth a.rsasha256oid.example. \
+  @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth a.rsasha256oid.example. \
+  @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+if [ -x "${DELV}" ]; then
+  ret=0
+  echo_i "checking positive validation NSEC3 using dns_client ($n)"
+  delv_with_opts @10.53.0.4 a a.nsec3.example >delv.out$n || ret=1
+  grep "a.nsec3.example..*10.0.0.1" delv.out$n >/dev/null || ret=1
+  grep "a.nsec3.example..*RRSIG.A [0-9][0-9]* 3 300.*" delv.out$n >/dev/null || ret=1
+  n=$((n + 1))
+  test "$ret" -eq 0 || echo_i "failed"
+  status=$((status + ret))
+fi
+
+echo_i "checking positive validation with unknown private algorithm works ($n)"
+ret=0
+dig_with_opts +noauth a.unknownoid.example. \
+  @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth a.unknownoid.example. \
+  @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking positive validation with extra ds for private algorithm ($n)"
+ret=0
+dig_with_opts +noauth a.extradsoid.example. \
+  @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth a.extradsoid.example. \
+  @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking positive validation with extra ds for unknown private algorithm fails ($n)"
+ret=0
+dig_with_opts +noauth a.extradsunknownoid.example. \
+  @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+dig_with_opts +noauth a.extradsunknownoid.example. \
+  @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+grep "status: NOERROR" dig.out.ns3.test$n >/dev/null || ret=1
+grep "status: SERVFAIL" dig.out.ns4.test$n >/dev/null || ret=1
+grep 'No DNSKEY for extradsunknownoid.example/DS with PRIVATEOID algorithm, tag [1-9][0-9]*$' ns4/named.run >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+if $FEATURETEST --extended-ds-digest; then
+  echo_i "checking positive validation with extra ds using extended digest type for unknown private algorithm succeeds ($n)"
+  ret=0
+  dig_with_opts +noauth a.extended-ds-unknown-oid.example. \
+    @10.53.0.3 a >dig.out.ns3.test$n || ret=1
+  dig_with_opts +noauth a.extended-ds-unknown-oid.example. \
+    @10.53.0.4 a >dig.out.ns4.test$n || ret=1
+  digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+  grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
+  n=$((n + 1))
+  test "$ret" -eq 0 || echo_i "failed"
+  status=$((status + ret))
+fi
 
 # Check the bogus domain
 
@@ -3479,7 +3555,7 @@ status=$((status + ret))
 echo_i "check that 'dnssec-keygen -S' works for all supported algorithms ($n)"
 ret=0
 alg=1
-until test $alg -eq 256; do
+until test $alg -eq 258; do
   zone="keygen-$alg."
   case $alg in
     2) # Diffie Helman
@@ -3496,10 +3572,20 @@ until test $alg -eq 256; do
     15 | 16)
       key1=$($KEYGEN -a "$alg" "$zone" 2>"keygen-$alg.err" || true)
       ;;
+    256)
+      key1=$($KEYGEN -a "RSASHA256OID" "$zone" 2>"keygen-$alg.err" || true)
+      ;;
+    257)
+      key1=$($KEYGEN -a "RSASHA512OID" "$zone" 2>"keygen-$alg.err" || true)
+      ;;
     *)
       key1=$($KEYGEN -a "$alg" "$zone" 2>"keygen-$alg.err" || true)
       ;;
   esac
+  if grep "unknown algorithm" "keygen-$alg.err" >/dev/null; then
+    alg=$((alg + 1))
+    continue
+  fi
   if grep "unsupported algorithm" "keygen-$alg.err" >/dev/null; then
     alg=$((alg + 1))
     continue

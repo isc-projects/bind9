@@ -64,7 +64,7 @@ struct ksr_ctx {
 	/* keygen */
 	bool ksk;
 	dns_ttl_t ttl;
-	dns_secalg_t alg;
+	dst_algorithm_t alg;
 	int size;
 	time_t lifetime;
 	time_t parentpropagation;
@@ -341,7 +341,7 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 	}
 
 	/* Check algorithm and size. */
-	dns_secalg_format(ksr->alg, algstr, sizeof(algstr));
+	dst_algorithm_format(ksr->alg, algstr, sizeof(algstr));
 	if (!dst_algorithm_supported(ksr->alg)) {
 		fatal("unsupported algorithm: %s", algstr);
 	}
@@ -356,6 +356,8 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 		FALLTHROUGH;
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
+	case DST_ALG_RSASHA256PRIVATEOID:
+	case DST_ALG_RSASHA512PRIVATEOID:
 		if (ksr->size != 0 &&
 		    (ksr->size < min_rsa || ksr->size > MAX_RSA))
 		{
@@ -851,7 +853,7 @@ get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 			dns_rdata_init(rdata2);
 
 			CHECK(dns_ds_buildrdata(name, rdata, alg->digest,
-						cdsbuf, &cds));
+						cdsbuf, sizeof(cdsbuf), &cds));
 			cds.type = dns_rdatatype_cds;
 			dns_rdata_toregion(&cds, &rcds);
 			isc_buffer_allocate(mctx, &newbuf2, rcds.length);

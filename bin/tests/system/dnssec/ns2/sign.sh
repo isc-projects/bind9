@@ -65,7 +65,9 @@ for subdomain in digest-alg-unsupported ds-unsupported secure badds \
   ttlpatch split-dnssec split-smart expired expiring upper lower \
   dnskey-unknown dnskey-unsupported dnskey-unsupported-2 \
   dnskey-nsec3-unknown managed-future future revkey \
-  dname-at-apex-nsec3 occluded rsasha1 rsasha1-1024; do
+  dname-at-apex-nsec3 occluded rsasha1 rsasha1-1024 \
+  rsasha256oid rsasha512oid unknownoid extradsoid extradsunknownoid \
+  extended-ds-unknown-oid; do
   cp "../ns3/dsset-$subdomain.example." .
 done
 
@@ -87,7 +89,7 @@ zonefiletmp=$(mktemp "$zonefile.XXXXXX") || exit 1
   | awk '
 tolower($1) == "bad-cname.example." && $4 == "RRSIG" && $5 == "CNAME" {
 	for (i = 1; i <= NF; i++ ) {
-		if (i <= 12) {
+		if (i <= 13) {
 			printf("%s ", $i);
 			continue;
 		}
@@ -106,7 +108,7 @@ tolower($1) == "bad-cname.example." && $4 == "RRSIG" && $5 == "CNAME" {
 
 tolower($1) == "bad-dname.example." && $4 == "RRSIG" && $5 == "DNAME" {
 	for (i = 1; i <= NF; i++ ) {
-		if (i <= 12) {
+		if (i <= 13) {
 			printf("%s ", $i);
 			continue;
 		}
