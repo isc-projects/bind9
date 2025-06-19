@@ -70,7 +70,7 @@ def token_init_and_cleanup():
     isctest.run.cmd(
         token_cleanup_command,
         env=EMPTY_OPENSSL_CONF_ENV,
-        log_stderr=False,
+        log_stdout=True,
         raise_on_exception=False,
     )
 
@@ -82,7 +82,10 @@ def token_init_and_cleanup():
         yield
     finally:
         output = isctest.run.cmd(
-            token_cleanup_command, env=EMPTY_OPENSSL_CONF_ENV, log_stdout=True
+            token_cleanup_command,
+            env=EMPTY_OPENSSL_CONF_ENV,
+            log_stdout=True,
+            raise_on_exception=False,
         ).stdout.decode("utf-8")
         assert re.search("Found token (.*) with matching token label", output)
         assert re.search("The token (.*) has been deleted", output)
