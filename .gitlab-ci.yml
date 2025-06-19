@@ -131,15 +131,72 @@ stages:
 
 ### Job Templates
 
+.rule_mr_code: &rule_mr_code
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    changes:
+      - '**/*.c'
+      - '**/*.h'
+      - '**/meson.build'
+
+.rule_mr_shell: &rule_mr_shell
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    changes:
+      - '**/*.sh'
+      - '**/*.sh.in'
+      - 'bin/tests/system/org.isc.bind.system'
+
+.rule_mr_python: &rule_mr_python
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    changes:
+      - '**/*.py'
+
+.rule_mr_manual: &rule_mr_manual
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    when: manual  # only run on MR if requested
+    allow_failure: true  # don't block the pipeline or the pipeline result
+
+.rule_tag: &rule_tag
+  - if: '$CI_COMMIT_TAG != null'
+
+.rule_source_other_than_mr: &rule_source_other_than_mr
+  - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
+
+.rule_source_all: &rule_source_all
+  - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
+
 .api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
   rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
-    - if: '$CI_COMMIT_TAG != null'
+    - *rule_tag
+    - *rule_source_other_than_mr
+
+.default-triggering-rules_list: &default_triggering_rules_list
+  - *rule_tag
+  - *rule_source_all
 
 .default-triggering-rules: &default_triggering_rules
   rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
-    - if: '$CI_COMMIT_TAG != null'
+    - *default_triggering_rules_list
+
+.code-triggering-rules: &code_triggering_rules
+  rules:
+    - *rule_mr_code
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
+
+.shell-triggering-rules: &shell_triggering_rules
+  rules:
+    - *rule_mr_shell
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
+
+.python-triggering-rules: &python_triggering_rules
+  rules:
+    - *rule_mr_python
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
@@ -251,6 +308,7 @@ stages:
     when: always
 
 .respdiff: &respdiff_job
+  <<: *code_triggering_rules
   stage: system
   before_script:
     - *configure
@@ -297,6 +355,7 @@ changes:
 
 black:
   <<: *precheck_job
+  <<: *python_triggering_rules
   # Do not follow black updates in the base image so we don't have to change
   # Python script formatting.
   before_script:
@@ -324,6 +383,15 @@ ci-orphaned-anchors:
 
 coccinelle:
   <<: *precheck_job
+  rules:
+    - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+      changes:
+        - '**/*.c'
+        - '**/*.h'
+        - 'cocci/**'
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
@@ -338,6 +406,7 @@ reuse:
 
 shfmt:
   <<: *precheck_job
+  <<: *shell_triggering_rules
   needs: []
   script:
     - shfmt -w -i 2 -ci -bn bin/tests/system/ util/ $(find bin/tests/system/ -name "*.sh.in")
@@ -361,7 +430,7 @@ danger:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 pylint:
-  <<: *default_triggering_rules
+  <<: *python_triggering_rules
   <<: *base_image
   stage: postcheck
   script:
@@ -374,6 +443,7 @@ pylint:
 
 checkbashisms:
   <<: *precheck_job
+  <<: *shell_triggering_rules
   script:
     - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
 
@@ -931,7 +1001,6 @@ customer-git:tag:
 
 respdiff:
   <<: *respdiff_job
-  <<: *default_triggering_rules
   <<: *base_image
   variables:
     CC: gcc
@@ -942,7 +1011,6 @@ respdiff:
 
 respdiff:asan:
   <<: *respdiff_job
-  <<: *default_triggering_rules
   <<: *base_image
   variables:
     CC: gcc
@@ -954,7 +1022,6 @@ respdiff:asan:
 
 respdiff-third-party:
   <<: *respdiff_job
-  <<: *default_triggering_rules
   <<: *base_image
   variables:
     CC: gcc
