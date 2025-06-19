@@ -83,9 +83,9 @@ class Dig:
 
 
 def retry_with_timeout(func, timeout, delay=1, msg=None):
-    start_time = time.time()
+    start_time = time.monotonic()
     exc_msg = None
-    while time.time() < start_time + timeout:
+    while time.monotonic() < start_time + timeout:
         exc_msg = None
         try:
             if func():
