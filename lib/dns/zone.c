@@ -141,14 +141,14 @@
 /*%
  * KASP flags
  */
-#define KASP_LOCK(k)                  \
-	if ((k) != NULL) {            \
-		LOCK((&((k)->lock))); \
+#define KASP_LOCK(k)                \
+	if ((k) != NULL) {          \
+		LOCK(&((k)->lock)); \
 	}
 
-#define KASP_UNLOCK(k)                  \
-	if ((k) != NULL) {              \
-		UNLOCK((&((k)->lock))); \
+#define KASP_UNLOCK(k)                \
+	if ((k) != NULL) {            \
+		UNLOCK(&((k)->lock)); \
 	}
 
 /*
@@ -216,7 +216,7 @@ typedef struct dns_include dns_include_t;
 	} while (0)
 #endif /* ifdef DNS_ZONE_CHECKLOCK */
 
-#define ZONEDB_INITLOCK(l)    isc_rwlock_init((l))
+#define ZONEDB_INITLOCK(l)    isc_rwlock_init(l)
 #define ZONEDB_DESTROYLOCK(l) isc_rwlock_destroy(l)
 #define ZONEDB_LOCK(l, t)     RWLOCK((l), (t))
 #define ZONEDB_UNLOCK(l, t)   RWUNLOCK((l), (t))
@@ -22150,7 +22150,8 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 }
 
 static isc_result_t
-zone_verifykeys(dns_zone_t *zone, dns_dnsseckeylist_t *newkeys) {
+zone_verifykeys(dns_zone_t *zone, dns_dnsseckeylist_t *newkeys,
+		uint32_t purgeval, isc_stdtime_t now) {
 	dns_dnsseckey_t *key1, *key2, *next;
 
 	/*
@@ -22161,6 +22162,9 @@ zone_verifykeys(dns_zone_t *zone, dns_dnsseckeylist_t *newkeys) {
 		next = ISC_LIST_NEXT(key1, link);
 
 		if (dst_key_is_unused(key1->key)) {
+			continue;
+		}
+		if (dns_keymgr_key_may_be_purged(key1->key, purgeval, now)) {
 			continue;
 		}
 		if (key1->purge) {
@@ -22479,7 +22483,8 @@ zone_rekey(dns_zone_t *zone) {
 
 	if (kasp != NULL && !offlineksk) {
 		/* Verify new keys. */
-		isc_result_t ret = zone_verifykeys(zone, &keys);
+		isc_result_t ret = zone_verifykeys(
+			zone, &keys, dns_kasp_purgekeys(kasp), now);
 		if (ret != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:zone_verifykeys failed: "

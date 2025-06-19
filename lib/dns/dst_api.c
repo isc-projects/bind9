@@ -2408,7 +2408,7 @@ dst_key_tkeytoken(const dst_key_t *key) {
  *
  */
 bool
-dst_key_is_unused(dst_key_t *key) {
+dst_key_is_unused(const dst_key_t *key) {
 	isc_stdtime_t val;
 	dst_key_state_t st;
 	int state_type;
@@ -2710,7 +2710,7 @@ dst_key_is_removed(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *remove) {
 }
 
 dst_key_state_t
-dst_key_goal(dst_key_t *key) {
+dst_key_goal(const dst_key_t *key) {
 	dst_key_state_t state;
 	isc_result_t result;
 
