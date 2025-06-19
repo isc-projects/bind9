@@ -13,6 +13,8 @@
 
 // NS4
 
+include "purgekeys.conf";
+
 key rndc_key {
 	secret "1234abcd8765";
 	algorithm @DEFAULT_HMAC@;
@@ -157,6 +159,13 @@ view "example1" {
 		type primary;
 		file "example1.db";
 	};
+
+	zone "purgekeys.kasp" {
+		type primary;
+		file "purgekeys.kasp.example1.db";
+		dnssec-policy "purgekeys";
+		inline-signing yes;
+	};
 };
 
 view "example2" {
@@ -165,6 +174,13 @@ view "example2" {
 	zone "example.net" {
 		type primary;
 		file "example2.db";
+		inline-signing yes;
+	};
+
+	zone "purgekeys.kasp" {
+		type primary;
+		file "purgekeys.kasp.example2.db";
+		dnssec-policy "purgekeys";
 		inline-signing yes;
 	};
 };
