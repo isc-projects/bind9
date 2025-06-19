@@ -997,6 +997,15 @@ def check_cdslog_prohibit(server, zone, key, substr):
     )
 
 
+def check_cdsdelete(rrset, expected):
+    numrrs = 0
+    for rr in rrset:
+        for rdata in rr:
+            assert expected in f"{rdata}"
+            numrrs += 1
+    assert numrrs == 1
+
+
 def _query_rrset(server, fqdn, qtype, tsig=None):
     response = _query(server, fqdn, qtype, tsig=tsig)
     assert response.rcode() == dns.rcode.NOERROR
@@ -1019,7 +1028,15 @@ def _query_rrset(server, fqdn, qtype, tsig=None):
 
 
 def check_apex(
-    server, zone, ksks, zsks, cdss=None, offline_ksk=False, zsk_missing=False, tsig=None
+    server,
+    zone,
+    ksks,
+    zsks,
+    cdss=None,
+    cds_delete=False,
+    offline_ksk=False,
+    zsk_missing=False,
+    tsig=None,
 ):
     # Test the apex of a zone. This checks that the SOA and DNSKEY RRsets
     # are signed correctly and with the appropriate keys.
@@ -1052,10 +1069,13 @@ def check_apex(
     # test cdnskey query
     cdnskeys, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.CDNSKEY, tsig=tsig)
 
-    if "CDNSKEY" in cdss:
-        check_dnskeys(cdnskeys, ksks, zsks, cdnskey=True)
+    if cds_delete:
+        check_cdsdelete(cdnskeys, "0 3 0 AA==")
     else:
-        assert len(cdnskeys) == 0
+        if "CDNSKEY" in cdss:
+            check_dnskeys(cdnskeys, ksks, zsks, cdnskey=True)
+        else:
+            assert len(cdnskeys) == 0
 
     if len(cdnskeys) > 0:
         assert len(rrsigs) > 0
@@ -1065,29 +1085,33 @@ def check_apex(
 
     # test cds query
     cds, rrsigs = _query_rrset(server, fqdn, dns.rdatatype.CDS, tsig=tsig)
-    cdsrrs = []
-    for rr in cds:
-        for rdata in rr:
-            rdclass = dns.rdataclass.to_text(rr.rdclass)
-            rdtype = dns.rdatatype.to_text(rr.rdtype)
-            cds = f"{rr.name} {rr.ttl} {rdclass} {rdtype} {rdata}"
-            cdsrrs.append(cds)
 
-    numcds = 0
+    if cds_delete:
+        check_cdsdelete(cds, "0 0 0 00")
+    else:
+        cdsrrs = []
+        for rr in cds:
+            for rdata in rr:
+                rdclass = dns.rdataclass.to_text(rr.rdclass)
+                rdtype = dns.rdatatype.to_text(rr.rdtype)
+                cds = f"{rr.name} {rr.ttl} {rdclass} {rdtype} {rdata}"
+                cdsrrs.append(cds)
 
-    for alg in ["SHA-256", "SHA-384"]:
-        if f"CDS ({alg})" in cdss:
-            numcds += check_cds(cdsrrs, ksks, alg)
-        else:
-            check_cds_prohibit(cdsrrs, ksks, alg)
+        numcds = 0
 
-    if len(cds) > 0:
-        assert len(rrsigs) > 0
-        check_signatures(
-            rrsigs, dns.rdatatype.CDS, fqdn, ksks, zsks, offline_ksk=offline_ksk
-        )
+        for alg in ["SHA-256", "SHA-384"]:
+            if f"CDS ({alg})" in cdss:
+                numcds += check_cds(cdsrrs, ksks, alg)
+            else:
+                check_cds_prohibit(cdsrrs, ksks, alg)
 
-    assert numcds == len(cdsrrs)
+        if len(cds) > 0:
+            assert len(rrsigs) > 0
+            check_signatures(
+                rrsigs, dns.rdatatype.CDS, fqdn, ksks, zsks, offline_ksk=offline_ksk
+            )
+
+        assert numcds == len(cdsrrs)
 
 
 def check_subdomain(
