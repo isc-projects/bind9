@@ -59,6 +59,10 @@
 #include "db_p.h"
 #include "qpcache_p.h"
 
+#ifndef DNS_QPCACHE_LOG_STATS_LEVEL
+#define DNS_QPCACHE_LOG_STATS_LEVEL 3
+#endif
+
 #define CHECK(op)                            \
 	do {                                 \
 		result = (op);               \
@@ -589,11 +593,11 @@ static void
 delete_node(qpcache_t *qpdb, qpcnode_t *node) {
 	isc_result_t result = ISC_R_UNEXPECTED;
 
-	if (isc_log_wouldlog(ISC_LOG_DEBUG(1))) {
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(DNS_QPCACHE_LOG_STATS_LEVEL))) {
 		char printname[DNS_NAME_FORMATSIZE];
 		dns_name_format(&node->name, printname, sizeof(printname));
 		isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-			      ISC_LOG_DEBUG(1),
+			      ISC_LOG_DEBUG(DNS_QPCACHE_LOG_STATS_LEVEL),
 			      "delete_node(): %p %s (bucket %d)", node,
 			      printname, node->locknum);
 	}
@@ -2212,7 +2216,8 @@ qpcache__destroy(qpcache_t *qpdb) {
 		strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 	}
 	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_DEBUG(1), "done %s(%s)", __func__, buf);
+		      ISC_LOG_DEBUG(DNS_QPCACHE_LOG_STATS_LEVEL), "done %s(%s)",
+		      __func__, buf);
 
 	if (dns_name_dynamic(&qpdb->common.origin)) {
 		dns_name_free(&qpdb->common.origin, qpdb->common.mctx);
