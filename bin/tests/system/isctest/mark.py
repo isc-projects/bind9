@@ -23,6 +23,11 @@ long_test = pytest.mark.skipif(
     not os.environ.get("CI_ENABLE_LONG_TESTS"), reason="CI_ENABLE_LONG_TESTS not set"
 )
 
+live_internet_test = pytest.mark.skipif(
+    not os.environ.get("CI_ENABLE_LIVE_INTERNET_TESTS"),
+    reason="CI_ENABLE_LIVE_INTERNET_TESTS not set",
+)
+
 
 def feature_test(feature):
     feature_test_bin = os.environ["FEATURETEST"]
