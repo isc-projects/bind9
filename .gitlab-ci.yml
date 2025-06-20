@@ -634,7 +634,7 @@ system:gcc:trixie:amd64:
   <<: *debian_trixie_amd64_image
   <<: *system_test_gcov_job
   variables:
-    CI_ENABLE_ALL_TESTS: 1
+    CI_ENABLE_LONG_TESTS: 1
   needs:
     - job: unit:gcc:trixie:amd64
       artifacts: true
@@ -643,7 +643,7 @@ unit:gcc:trixie:amd64:
   <<: *debian_trixie_amd64_image
   <<: *unit_test_gcov_job
   variables:
-    CI_ENABLE_ALL_TESTS: 1
+    CI_ENABLE_LONG_TESTS: 1
   needs:
     - job: gcc:trixie:amd64
       artifacts: true
