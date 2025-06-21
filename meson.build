@@ -111,6 +111,7 @@ sphinx_build = find_program('sphinx-build', required: doc_opt)
 ### Install information
 prefix = get_option('prefix')
 
+bindir = prefix / get_option('bindir')
 datadir = prefix / get_option('datadir')
 libdir = prefix / get_option('libdir')
 localstatedir = prefix / get_option('localstatedir')
@@ -1331,6 +1332,12 @@ executable(
         libisccfg_dep,
         libns_dep,
     ],
+)
+
+install_symlink(
+    'named-compilezone',
+    pointing_to: 'named-checkzone',
+    install_dir: bindir,
 )
 
 executable(
