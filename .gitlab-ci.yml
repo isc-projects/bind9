@@ -1654,7 +1654,8 @@ generate-stress-test-configs:
   <<: *default_triggering_rules
   stage: precheck
   script:
-    - util/generate-stress-test-configs.py > stress-test-configs.yml
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - bind9-qa/stress/generate-stress-test-configs.py > stress-test-configs.yml
   artifacts:
     paths:
       - stress-test-configs.yml
