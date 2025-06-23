@@ -261,6 +261,20 @@ struct dns_keymgmt {
  */
 #define DNS_KEYMGMT_HASH_BITS 12
 
+typedef struct dns_rad {
+	isc_mem_t *mctx;
+	struct rcu_head rcu_head;
+	dns_fixedname_t fname;
+} dns_rad_t;
+
+static void
+free_rad_rcu(struct rcu_head *rcu_head) {
+	dns_rad_t *rad = caa_container_of(rcu_head, dns_rad_t, rcu_head);
+	dns_fixedname_invalidate(&rad->fname);
+
+	isc_mem_putanddetach(&rad->mctx, rad, sizeof(*rad));
+}
+
 struct dns_zone {
 	/* Unlocked */
 	unsigned int magic;
@@ -283,7 +297,7 @@ struct dns_zone {
 	isc_timer_t *timer;
 	isc_refcount_t irefs;
 	dns_name_t origin;
-	dns_name_t rad;
+	dns_rad_t *rad;
 	char *masterfile;
 	char *initfile;
 	const FILE *stream;		     /* loading from a stream? */
@@ -1173,7 +1187,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	isc_refcount_init(&zone->references, 1);
 	isc_refcount_init(&zone->irefs, 0);
 	dns_name_init(&zone->origin);
-	dns_name_init(&zone->rad);
 	isc_sockaddr_any(&zone->notifysrc4);
 	isc_sockaddr_any6(&zone->notifysrc6);
 	isc_sockaddr_any(&zone->parentalsrc4);
@@ -1344,9 +1357,9 @@ zone_free(dns_zone_t *zone) {
 	if (dns_name_dynamic(&zone->origin)) {
 		dns_name_free(&zone->origin, zone->mctx);
 	}
-	if (dns_name_dynamic(&zone->rad)) {
-		dns_name_free(&zone->rad, zone->mctx);
-	}
+
+	dns_zone_setrad(zone, NULL);
+
 	if (zone->strnamerd != NULL) {
 		isc_mem_free(zone->mctx, zone->strnamerd);
 	}
@@ -24520,12 +24533,15 @@ dns_zone_getrad(dns_zone_t *zone, dns_name_t *name) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(DNS_NAME_VALID(name));
 
-	LOCK_ZONE(zone);
-	if (dns_name_dynamic(&zone->rad)) {
-		dns_name_copy(&zone->rad, name);
+	rcu_read_lock();
+	dns_rad_t *rad = rcu_dereference(zone->rad);
+	if (rad != NULL) {
+		dns_name_t *inner = dns_fixedname_name(&rad->fname);
+		dns_name_copy(inner, name);
 		result = ISC_R_SUCCESS;
 	}
-	UNLOCK_ZONE(zone);
+	rcu_read_unlock();
+
 	return result;
 }
 
@@ -24534,12 +24550,20 @@ dns_zone_setrad(dns_zone_t *zone, dns_name_t *name) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(name == NULL || DNS_NAME_VALID(name));
 
-	LOCK_ZONE(zone);
-	if (dns_name_dynamic(&zone->rad)) {
-		dns_name_free(&zone->rad, zone->mctx);
-	}
+	rcu_read_lock();
+	dns_rad_t *new_rad = NULL;
 	if (name != NULL) {
-		dns_name_dup(name, zone->mctx, &zone->rad);
+		new_rad = isc_mem_get(zone->mctx, sizeof(*new_rad));
+		*new_rad = (dns_rad_t){};
+		dns_fixedname_init(&new_rad->fname);
+
+		isc_mem_attach(zone->mctx, &new_rad->mctx);
+		dns_name_copy(name, dns_fixedname_name(&new_rad->fname));
 	}
-	UNLOCK_ZONE(zone);
+	dns_rad_t *xchg_rad = rcu_xchg_pointer(&zone->rad, new_rad);
+
+	if (xchg_rad != NULL) {
+		call_rcu(&xchg_rad->rcu_head, free_rad_rcu);
+	}
+	rcu_read_unlock();
 }
