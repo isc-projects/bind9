@@ -20,6 +20,7 @@ dangerfile.py			 export-ignore
 /.mailmap			 export-ignore
 /.reuse/**			 export-ignore
 /ci				 export-ignore
+/cocci/**			 export-ignore
 /conftools			 export-ignore
 /doc/design			 export-ignore
 /doc/dev			 export-ignore
