@@ -11,6 +11,7 @@
 
 # Manpages can be build without sphinx
 subdir('man')
+subdir('misc')
 
 if not sphinx_build.found()
     subdir_done()
@@ -18,4 +19,3 @@ endif
 
 subdir('arm')
 subdir('dnssec-guide')
-subdir('misc')

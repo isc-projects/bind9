@@ -13,17 +13,13 @@
 
 # Depends on CWD - Sphinx plugin
 
-import os
 import json
 from pathlib import Path
 
 import parsegrammar
 
-buildroot = os.getenv("BIND_BUILD_ROOT")
-if buildroot is None:
-    raise RuntimeError("Running outside meson?")
 
-misc_path = Path(buildroot) / "doc" / "misc"
+misc_path = Path(__file__).resolve().parent.parent.parent / "misc"
 options_path = misc_path / "options"
 
 
@@ -47,7 +43,7 @@ def read_zone():
 
 
 def read_main():
-    with Path(options_path).open(encoding="ascii") as fp:
+    with options_path.open(encoding="ascii") as fp:
         optgrammar = parsegrammar.parse_mapbody(fp)
     return optgrammar
 
