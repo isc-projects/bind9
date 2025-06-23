@@ -1361,12 +1361,12 @@ release:
     # Prepare release tarball contents (tarballs + documentation)
     - mkdir -p "${BIND_DIRECTORY}-release/doc/arm"
     - pushd "${BIND_DIRECTORY}-release"
-    - mv "../${BIND_DIRECTORY}.tar.xz" .
+    - mv "../build/meson-dist/${BIND_DIRECTORY}.tar.xz" .
     - tar --extract --file="${BIND_DIRECTORY}.tar.xz"
     - mv "${BIND_DIRECTORY}"/{COPYRIGHT,LICENSE,README.md,srcid} .
     - rm -rf "${BIND_DIRECTORY}"
-    - mv "../doc/arm/_build/html" doc/arm/
-    - mv "../doc/arm/_build/epub/Bv9ARM.epub" doc/arm/
+    - mv ../build/arm/ doc/arm/html/
+    - mv ../build/arm-epub/Bv9ARM.epub doc/arm/
     - echo '<!DOCTYPE HTML><html lang="en"><meta http-equiv="refresh" content="0; url=doc/arm/html/notes.html"><title>Redirect</title></html>' > "RELEASE-NOTES-${BIND_DIRECTORY}.html"
     - echo '<!DOCTYPE HTML><html lang="en"><meta http-equiv="refresh" content="0; url=doc/arm/html/changelog.html"><title>Redirect</title></html>' > "CHANGELOG-${BIND_DIRECTORY}.html"
     - popd
