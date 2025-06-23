@@ -383,9 +383,9 @@ int main(void) {
 '''
 
 # meson_version (>=1.7.0) : new custom dependency for atomic
-if not cc.compiles(atomic_test, name: 'usage of atomics without -latomic')
+if not cc.links(atomic_test, name: 'usage of atomics without -latomic')
     atomic_dep = declare_dependency(link_args: '-latomic')
-    if not cc.compiles(
+    if not cc.links(
         atomic_test,
         dependencies: atomic_dep,
         name: 'usage of atomics with -latomic',
@@ -395,7 +395,7 @@ if not cc.compiles(atomic_test, name: 'usage of atomics without -latomic')
         )
     endif
 
-    add_project_dependencies(atomic_dep, language: 'c')
+    add_project_link_arguments('-latomic', language: 'c')
 endif
 
 ## OS
