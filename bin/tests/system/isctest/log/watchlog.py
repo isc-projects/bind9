@@ -24,6 +24,10 @@ class WatchLogException(Exception):
     pass
 
 
+class WatchLogTimeout(WatchLogException):
+    pass
+
+
 class LogFile:
     """
     Log file wrapper with a path and means to find a string in its contents.
@@ -165,7 +169,7 @@ class WatchLog(abc.ABC):
         return the match, allowing access to the matched line, the regex
         groups, and the regex which matched. See re.Match for more.
 
-        A `TimeoutError` is raised if the function fails to find any of the
+        A `WatchLogTimeout` is raised if the function fails to find any of the
         `patterns` in the allotted time.
 
         Recommended use:
@@ -224,7 +228,7 @@ class WatchLog(abc.ABC):
         ...         watcher.wait_for_line("bar") #doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
-        TimeoutError: Timeout reached watching ...
+        isctest.log.watchlog.WatchLogTimeout: ...
         >>> with tempfile.NamedTemporaryFile("w") as file:
         ...     print("foo bar baz", file=file, flush=True)
         ...     with WatchLogFromHere(file.name) as watcher:
@@ -268,7 +272,7 @@ class WatchLog(abc.ABC):
 
         All the matches are returned as a list.
 
-        A `TimeoutError` is raised if the function fails to find all of the
+        A `WatchLogTimeout` is raised if the function fails to find all of the
         `patterns` in the given order in the allotted time.
 
         >>> import tempfile
@@ -295,7 +299,7 @@ class WatchLog(abc.ABC):
         ...         ret = watcher.wait_for_sequence(seq)  #doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
-        TimeoutError: Timeout reached watching ...
+        isctest.log.watchlog.WatchLogTimeout: ...
 
         >>> import tempfile
         >>> seq = ['a', 'b', 'c']
@@ -307,7 +311,7 @@ class WatchLog(abc.ABC):
         ...         ret = watcher.wait_for_sequence(seq)  #doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
-        TimeoutError: Timeout reached watching ...
+        isctest.log.watchlog.WatchLogTimeout: ...
 
         >>> import tempfile
         >>> seq = ['a', 'b', 'c']
@@ -320,7 +324,7 @@ class WatchLog(abc.ABC):
         ...         ret = watcher.wait_for_sequence(seq)  #doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
-        TimeoutError: Timeout reached watching ...
+        isctest.log.watchlog.WatchLogTimeout: ...
         """
         regexes = self._prepare_patterns(patterns)
         self._wait_function_called = True
@@ -348,7 +352,7 @@ class WatchLog(abc.ABC):
         matches are included. To pair matches with the patterns, re.Match.re
         may be used.
 
-        A `TimeoutError` is raised if the function fails to find all of the
+        A `WatchLogTimeout` is raised if the function fails to find all of the
         `patterns` in the allotted time.
 
         >>> import tempfile
@@ -388,7 +392,7 @@ class WatchLog(abc.ABC):
         ...         ret = watcher.wait_for_all(patterns)  #doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
-        TimeoutError: Timeout reached watching ...
+        isctest.log.watchlog.WatchLogTimeout: ...
         """
         regexes = self._prepare_patterns(patterns)
         self._wait_function_called = True
@@ -411,7 +415,7 @@ class WatchLog(abc.ABC):
                     if match:
                         return match
             time.sleep(0.1)
-        raise TimeoutError(
+        raise WatchLogTimeout(
             f"Timeout reached watching {self._path} for "
             f"{' | '.join([regex.pattern for regex in regexes])}"
         )
