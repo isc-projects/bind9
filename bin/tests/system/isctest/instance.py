@@ -118,35 +118,28 @@ class NamedInstance:
         The RNDC command will be logged to `rndc.log` (along with the server's
         response) unless `log` is set to `False`.
 
-        >>> # Instances of the `NamedInstance` class are expected to be passed
-        >>> # to pytest tests as fixtures; here, some instances are created
-        >>> # directly (with a fake RNDC executor) so that doctest can work.
-        >>> import unittest.mock
-        >>> mock_rndc_executor = unittest.mock.Mock()
-        >>> ns1 = NamedInstance("ns1", rndc_executor=mock_rndc_executor)
-        >>> ns2 = NamedInstance("ns2", rndc_executor=mock_rndc_executor)
-        >>> ns3 = NamedInstance("ns3", rndc_executor=mock_rndc_executor)
-        >>> ns4 = NamedInstance("ns4", rndc_executor=mock_rndc_executor)
+        ```python
+        def test_foo(servers):
+            # Send the "status" command to ns1.  An `RNDCException` will be
+            # raised if the RNDC command fails.  This command will be logged.
+            response = servers["ns1"].rndc("status")
 
-        >>> # Send the "status" command to ns1.  An `RNDCException` will be
-        >>> # raised if the RNDC command fails.  This command will be logged.
-        >>> response = ns1.rndc("status")
+            # Send the "thaw foo" command to ns2.  No exception will be raised
+            # in case the RNDC command fails.  This command will be logged
+            # (even if it fails).
+            response = servers["ns2"].rndc("thaw foo", ignore_errors=True)
 
-        >>> # Send the "thaw foo" command to ns2.  No exception will be raised
-        >>> # in case the RNDC command fails.  This command will be logged
-        >>> # (even if it fails).
-        >>> response = ns2.rndc("thaw foo", ignore_errors=True)
+            # Send the "stop" command to ns3.  An `RNDCException` will be
+            # raised if the RNDC command fails, but this command will not be
+            # logged (the server's response will still be returned to the
+            # caller, though).
+            response = servers["ns3"].rndc("stop", log=False)
 
-        >>> # Send the "stop" command to ns3.  An `RNDCException` will be
-        >>> # raised if the RNDC command fails, but this command will not be
-        >>> # logged (the server's response will still be returned to the
-        >>> # caller, though).
-        >>> response = ns3.rndc("stop", log=False)
-
-        >>> # Send the "halt" command to ns4 in "fire & forget mode": no
-        >>> # exceptions will be raised and no logging will take place (the
-        >>> # server's response will still be returned to the caller, though).
-        >>> response = ns4.rndc("stop", ignore_errors=True, log=False)
+            # Send the "halt" command to ns4 in "fire & forget mode": no
+            # exceptions will be raised and no logging will take place (the
+            # server's response will still be returned to the caller, though).
+            response = servers["ns4"].rndc("stop", ignore_errors=True, log=False)
+        ```
         """
         try:
             response = self._rndc_executor.call(self.ip, self.ports.rndc, command)
