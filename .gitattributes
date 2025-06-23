@@ -18,8 +18,10 @@ dangerfile.py			 export-ignore
 /.github/**			 export-ignore
 /.gitlab/**			 export-ignore
 /.mailmap			 export-ignore
+/.reuse				 export-ignore
 /.reuse/**			 export-ignore
 /ci				 export-ignore
+/cocci				 export-ignore
 /cocci/**			 export-ignore
 /conftools			 export-ignore
 /doc/design			 export-ignore
