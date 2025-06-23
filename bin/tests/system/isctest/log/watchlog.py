@@ -98,6 +98,7 @@ class WatchLog(abc.ABC):
         if timeout <= 0.0:
             raise WatchLogException("timeout must be greater than 0")
         self._timeout = timeout
+        self._deadline = 0.0
 
     def _readline(self) -> Optional[str]:
         """
@@ -250,16 +251,22 @@ class WatchLog(abc.ABC):
         """
         regexes = self._prepare_patterns(patterns)
         self._wait_function_called = True
+        self._deadline = time.monotonic() + self._timeout
 
-        deadline = time.monotonic() + self._timeout
-        while time.monotonic() < deadline:
+        return self._wait_for_match(regexes)
+
+    def _wait_for_match(self, regexes: List[Pattern]) -> Match:
+        while time.monotonic() < self._deadline:
             for line in self._readlines():
                 for regex in regexes:
                     match = regex.search(line)
                     if match:
                         return match
             time.sleep(0.1)
-        raise TimeoutError(f"Timeout reached watching {self._path} for {patterns}")
+        raise TimeoutError(
+            f"Timeout reached watching {self._path} for "
+            f"{' | '.join([regex.pattern for regex in regexes])}"
+        )
 
     def __enter__(self) -> Any:
         self._fd = open(self._path, encoding="utf-8")
