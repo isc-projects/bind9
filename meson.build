@@ -395,7 +395,7 @@ if not cc.links(atomic_test, name: 'usage of atomics without -latomic')
         )
     endif
 
-    add_project_dependencies(atomic_dep, language: 'c')
+    add_project_link_arguments('-latomic', language: 'c')
 endif
 
 ## OS
