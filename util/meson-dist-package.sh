@@ -61,8 +61,8 @@ generate_man_pages() {
 }
 
 case $1 in
-  "source-id")
-    echo $2 >$MESON_DIST_ROOT/.source-id
+  "srcid")
+    echo $2 >$MESON_DIST_ROOT/srcid
     ;;
   "manual")
     generate_man_pages $2 $3
