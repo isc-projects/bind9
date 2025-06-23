@@ -77,26 +77,13 @@ class WatchLog(abc.ABC):
         `timeout` is the number of seconds (float) to wait for each wait call.
 
         Every instance of this class must call one of the `wait_for_*()`
-        methods exactly once or else an `Exception` is thrown.
+        methods at least once or else an `Exception` is thrown.
 
         >>> with WatchLogFromStart("/dev/null") as watcher:
         ...     print("Just print something without waiting for a log line")
         Traceback (most recent call last):
           ...
         isctest.log.watchlog.WatchLogException: wait_for_*() was not called
-
-        >>> with WatchLogFromHere("/dev/null", timeout=0.1) as watcher:
-        ...     try:
-        ...         watcher.wait_for_line("foo")
-        ...     except TimeoutError:
-        ...         pass
-        ...     try:
-        ...         watcher.wait_for_lines({"bar": 42})
-        ...     except TimeoutError:
-        ...         pass
-        Traceback (most recent call last):
-          ...
-        isctest.log.watchlog.WatchLogException: wait_for_*() was already called
 
         >>> with WatchLogFromHere("/dev/null", timeout=0.0) as watcher:
         ...     watcher.wait_for_line("foo")
@@ -262,9 +249,6 @@ class WatchLog(abc.ABC):
         qux
         """
         regexes = self._prepare_patterns(patterns)
-
-        if self._wait_function_called:
-            raise WatchLogException("wait_for_*() was already called")
         self._wait_function_called = True
 
         deadline = time.monotonic() + self._timeout
