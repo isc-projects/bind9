@@ -17,7 +17,9 @@ import isctest
 def test_emptyzones(servers, templates):
     # check that switching to automatic empty zones works
     ns1 = servers["ns1"]
-    ns1.rndc("reload")
+    with ns1.watch_log_from_here() as watcher:
+        ns1.rndc("reload")
+        watcher.wait_for_line("all zones loaded")
     templates.render("ns1/named.conf", {"automatic_empty_zones": True})
     ns1.rndc("reload")
     msg = dns.message.make_query("version.bind", "TXT", "CH")
