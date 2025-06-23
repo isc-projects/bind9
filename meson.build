@@ -257,7 +257,7 @@ config.set_quoted('PACKAGE_SRCID', src_id)
 config.set_quoted('PACKAGE_CONFIGARGS', build_options)
 
 if get_option('auto-validation').allowed()
-    config.set_quoted('VALIDATION_DEFAULT', 'yes')
+    config.set_quoted('VALIDATION_DEFAULT', 'auto')
 else
     config.set_quoted('VALIDATION_DEFAULT', 'no')
 endif
