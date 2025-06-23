@@ -1672,7 +1672,7 @@ if doc_opt.allowed()
             'man',
             depend_files: manrst_srcconf.sources(),
             depends: doc_misc_targets,
-            install: true,
+            install: man_srcconf.sources().length() == 0,
             install_dir: fs.parent(mandir),
             output: fs.name(mandir),
             env: env,
