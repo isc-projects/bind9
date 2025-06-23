@@ -255,6 +255,154 @@ class WatchLog(abc.ABC):
 
         return self._wait_for_match(regexes)
 
+    def wait_for_sequence(self, patterns: List[FlexPattern]) -> List[Match]:
+        """
+        Block execution until the specified pattern sequence is found in the
+        log file.
+
+        `patterns` is a list of values, with each value being either a regular
+        expression pattern, or a string which should be matched verbatim
+        (without interpreting it as a regular expression). Order of patterns is
+        important, as each pattern is looked for only after all the previous
+        patterns have matched.
+
+        All the matches are returned as a list.
+
+        A `TimeoutError` is raised if the function fails to find all of the
+        `patterns` in the given order in the allotted time.
+
+        >>> import tempfile
+        >>> seq = ['a', 'b', 'c']
+        >>> with tempfile.NamedTemporaryFile("w") as file:
+        ...     print("b", file=file, flush=True)
+        ...     print("a", file=file, flush=True)
+        ...     print("b", file=file, flush=True)
+        ...     print("z", file=file, flush=True)
+        ...     print("c", file=file, flush=True)
+        ...     with WatchLogFromStart(file.name) as watcher:
+        ...         ret = watcher.wait_for_sequence(seq)
+        >>> assert ret[0].group(0) == "a"
+        >>> assert ret[1].group(0) == "b"
+        >>> assert ret[2].group(0) == "c"
+
+        >>> import tempfile
+        >>> seq = ['a', 'b', 'c']
+        >>> with tempfile.NamedTemporaryFile("w") as file:
+        ...     print("b", file=file, flush=True)
+        ...     print("a", file=file, flush=True)
+        ...     print("c", file=file, flush=True)
+        ...     with WatchLogFromStart(file.name, timeout=0.1) as watcher:
+        ...         ret = watcher.wait_for_sequence(seq)  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+          ...
+        TimeoutError: Timeout reached watching ...
+
+        >>> import tempfile
+        >>> seq = ['a', 'b', 'c']
+        >>> with tempfile.NamedTemporaryFile("w") as file:
+        ...     print("b", file=file, flush=True)
+        ...     print("a", file=file, flush=True)
+        ...     print("b", file=file, flush=True)
+        ...     with WatchLogFromStart(file.name, timeout=0.1) as watcher:
+        ...         ret = watcher.wait_for_sequence(seq)  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+          ...
+        TimeoutError: Timeout reached watching ...
+
+        >>> import tempfile
+        >>> seq = ['a', 'b', 'c']
+        >>> with tempfile.NamedTemporaryFile("w") as file:
+        ...     print("b", file=file, flush=True)
+        ...     print("a", file=file, flush=True)
+        ...     print("c", file=file, flush=True)
+        ...     print("b", file=file, flush=True)
+        ...     with WatchLogFromStart(file.name, timeout=0.1) as watcher:
+        ...         ret = watcher.wait_for_sequence(seq)  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+          ...
+        TimeoutError: Timeout reached watching ...
+        """
+        regexes = self._prepare_patterns(patterns)
+        self._wait_function_called = True
+        self._deadline = time.monotonic() + self._timeout
+        matches = []
+
+        for regex in regexes:
+            match = self._wait_for_match([regex])
+            matches.append(match)
+
+        return matches
+
+    def wait_for_all(self, patterns: List[FlexPattern]) -> List[Match]:
+        """
+        Block execution until all the specified patterns are found in the
+        log file in any order.
+
+        `patterns` is a list of values, with each value being either a regular
+        expression pattern, or a string which should be matched verbatim
+        (without interpreting it as a regular expression). Order of patterns is
+        irrelevant and they may appear in any order.
+
+        All the matches are returned as a list. The matches are listed in the
+        order of appearance. Pattern may match more than once, and all the
+        matches are included. To pair matches with the patterns, re.Match.re
+        may be used.
+
+        A `TimeoutError` is raised if the function fails to find all of the
+        `patterns` in the allotted time.
+
+        >>> import tempfile
+        >>> patterns = ['foo', 'bar']
+        >>> with tempfile.NamedTemporaryFile("w") as file:
+        ...     print("bar", file=file, flush=True)
+        ...     print("foo", file=file, flush=True)
+        ...     with WatchLogFromStart(file.name) as watcher:
+        ...         ret = watcher.wait_for_all(patterns)
+        >>> assert ret[0].group(0) == "bar"
+        >>> assert ret[1].group(0) == "foo"
+
+        >>> import tempfile
+        >>> bar_pattern = re.compile('bar')
+        >>> patterns = ['foo', bar_pattern]
+        >>> with tempfile.NamedTemporaryFile("w") as file:
+        ...     print("bar", file=file, flush=True)
+        ...     print("baz", file=file, flush=True)
+        ...     print("bar", file=file, flush=True)
+        ...     print("foo", file=file, flush=True)
+        ...     with WatchLogFromStart(file.name) as watcher:
+        ...         ret = watcher.wait_for_all(patterns)
+        >>> assert len(ret) == 3
+        >>> assert ret[0].group(0) == "bar"
+        >>> assert ret[1].group(0) == "bar"
+        >>> assert ret[2].group(0) == "foo"
+        >>> assert ret[0].re == bar_pattern
+        >>> assert ret[1].re == bar_pattern
+        >>> assert ret[2].re.pattern == "foo"
+
+        >>> import tempfile
+        >>> patterns = ['foo', 'bar']
+        >>> with tempfile.NamedTemporaryFile("w") as file:
+        ...     print("foo", file=file, flush=True)
+        ...     print("quux", file=file, flush=True)
+        ...     with WatchLogFromStart(file.name, timeout=0.1) as watcher:
+        ...         ret = watcher.wait_for_all(patterns)  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+          ...
+        TimeoutError: Timeout reached watching ...
+        """
+        regexes = self._prepare_patterns(patterns)
+        self._wait_function_called = True
+        self._deadline = time.monotonic() + self._timeout
+        unmatched_regexes = set(regexes)
+        matches = []
+
+        while unmatched_regexes:
+            match = self._wait_for_match(regexes)
+            matches.append(match)
+            unmatched_regexes.discard(match.re)
+
+        return matches
+
     def _wait_for_match(self, regexes: List[Pattern]) -> Match:
         while time.monotonic() < self._deadline:
             for line in self._readlines():
