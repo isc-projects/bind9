@@ -670,7 +670,9 @@ changelog:
     - sed -i 's/^Draft:\s*//' commitmsg
     - echo -e "$CI_MERGE_REQUEST_DESCRIPTION" >> commitmsg
     - git commit --allow-empty -F commitmsg
-    - ./contrib/gitchangelog/gitchangelog.py HEAD^..HEAD >> $(ls doc/changelog/changelog-9.* | sort --version-sort | tail -n 1)
+    - export CHANGELOG=$(ls doc/changelog/changelog-9.* | sort --version-sort | tail -n 1)
+    - printf "\n" >> $CHANGELOG
+    - ./contrib/gitchangelog/gitchangelog.py HEAD^..HEAD >> $CHANGELOG
   after_script:
     - git diff
   needs: []
