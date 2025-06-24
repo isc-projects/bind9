@@ -26,7 +26,7 @@ confidential!
 
 [checklist_explanations]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations
 
-### Earlier Than T-5
+### Before Code Freeze
 
   - [ ] [:link:][step_deputy]            **(IM)** Pick a Deputy Incident Manager
   - [ ] [:link:][step_respond]           **(IM)** Respond to the bug reporter
@@ -49,6 +49,9 @@ confidential!
   - [ ] [:link:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory
   - [ ] [:link:][step_meta_issue]        **(QA)** Create (or update) the private issue containing links to fixes & reproducers for all CVEs fixed in a given release cycle
   - [ ] [:link:][step_coordinate_check]  **(SwEng)** Make sure other vendors are able to release on the date that was previously agreed upon
+
+### Earlier Than T-5
+
   - [ ] [:link:][step_merge_fixes]       **(QA)** Merge the CVE fixes in CVE identifier order
   - [ ] [:link:][step_patches]           **(QA)** Prepare a standalone patch for the last stable release of each affected (and still maintained) product branch
   - [ ] [:link:][step_asn_releases]      **(QA)** Prepare ASN releases (as outlined in the Release Checklist)
@@ -60,6 +63,7 @@ confidential!
   - [ ] [:link:][step_preannouncement]   **(Marketing)** Send a pre-announcement email to the appropriate *-announce* mailing list to alert users that the upcoming release will include security fixes
 
 ### At T-3
+
   - [ ] [:link:][step_asn_send_t_3]      **(Support)** Notify eligible customers by adding a ticket to the 3-Day queue in RT with the text of the advisory (T-3)
 
 ### At T-1
