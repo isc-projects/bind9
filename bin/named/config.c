@@ -18,6 +18,8 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/dir.h>
+#include <isc/file.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -38,6 +40,7 @@
 
 #include <dst/dst.h>
 
+#include <isccfg/check.h>
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
@@ -367,6 +370,98 @@ named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 				CFG_PCTX_NODEPRECATED | CFG_PCTX_NOOBSOLETE |
 					CFG_PCTX_NOEXPERIMENTAL,
 				conf);
+}
+
+/*
+ * This function is called as soon as the 'directory' statement has been
+ * parsed.  This can be extended to support other options if necessary.
+ */
+static isc_result_t
+directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
+	isc_result_t result;
+	const char *directory;
+
+	REQUIRE(strcasecmp("directory", clausename) == 0);
+
+	UNUSED(arg);
+	UNUSED(clausename);
+
+	/*
+	 * Change directory.
+	 */
+	directory = cfg_obj_asstring(obj);
+
+	if (!isc_file_ischdiridempotent(directory)) {
+		cfg_obj_log(obj, ISC_LOG_WARNING,
+			    "option 'directory' contains relative path '%s'",
+			    directory);
+	}
+
+	if (!isc_file_isdirwritable(directory)) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR, "directory '%s' is not writable",
+			      directory);
+		return ISC_R_NOPERM;
+	}
+
+	result = isc_dir_chdir(directory);
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, ISC_LOG_ERROR,
+			    "change directory to '%s' failed: %s", directory,
+			    isc_result_totext(result));
+		return result;
+	}
+
+	char cwd[PATH_MAX];
+	if (getcwd(cwd, sizeof(cwd)) == cwd) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_INFO, "the working directory is now '%s'",
+			      cwd);
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+named_config_parsefile(cfg_parser_t *parser, cfg_obj_t **conf) {
+	isc_result_t result;
+
+	REQUIRE(parser);
+	REQUIRE(conf && *conf == NULL);
+
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "parsing user configuration from '%s'",
+		      named_g_conffile);
+
+	cfg_parser_setcallback(parser, directory_callback, NULL);
+	result = cfg_parse_file(parser, named_g_conffile, &cfg_type_namedconf,
+				conf);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	/*
+	 * Check the validity of the configuration.
+	 *
+	 * (Ignore plugin parameters for now; they will be
+	 * checked later when the modules are actually loaded and
+	 * registered.)
+	 */
+	result = isccfg_check_namedconf(*conf, BIND_CHECK_ALGORITHMS,
+					named_g_mctx);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	goto out;
+
+cleanup:
+	if (*conf) {
+		cfg_obj_destroy(parser, conf);
+	}
+
+out:
+	return result;
 }
 
 const char *
@@ -890,7 +985,7 @@ named_config_getport(const cfg_obj_t *config, const char *type,
 	if (options != NULL) {
 		maps[i++] = options;
 	}
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 	result = named_config_get(maps, type, &portobj);

@@ -161,7 +161,7 @@ named_server_resetstatscommand(named_server_t *server, isc_lex_t *lex,
  */
 
 isc_result_t
-named_server_reconfigcommand(named_server_t *server);
+named_server_reconfigcommand(named_server_t *server, isc_buffer_t *text);
 /*%<
  * Act on a "reconfig" command from the command channel.
  */

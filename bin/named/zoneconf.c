@@ -165,7 +165,7 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 			maps[i++] = options;
 		}
 	}
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 	(void)named_config_get(maps, aclname, &aclobj);
@@ -946,7 +946,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	nodefault[i] = NULL;
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 	if (vconfig != NULL) {
@@ -1808,7 +1808,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		    dns_name_equal(dns_zone_getorigin(zone), dns_rootname))
 		{
 			result = named_config_getremotesdef(
-				named_g_config, "remote-servers",
+				named_g_defaultconfig, "remote-servers",
 				DEFAULT_IANA_ROOT_ZONE_PRIMARIES, &obj);
 			CHECK(result);
 		}

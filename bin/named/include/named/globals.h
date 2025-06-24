@@ -64,19 +64,19 @@ EXTERN bool named_g_run_done INIT(false);
  *         for really short timers, another for client timers, and one
  *         for zone timers.
  */
-EXTERN isc_nm_t *named_g_netmgr	       INIT(NULL);
-EXTERN cfg_parser_t *named_g_parser    INIT(NULL);
-EXTERN cfg_parser_t *named_g_addparser INIT(NULL);
-EXTERN const char *named_g_version     INIT(PACKAGE_VERSION);
-EXTERN const char *named_g_product     INIT(PACKAGE_NAME);
-EXTERN const char *named_g_description INIT(PACKAGE_DESCRIPTION);
-EXTERN const char *named_g_srcid       INIT(PACKAGE_SRCID);
-EXTERN const char *named_g_configargs  INIT(PACKAGE_CONFIGARGS);
-EXTERN const char *named_g_builder     INIT(PACKAGE_BUILDER);
-EXTERN in_port_t named_g_port	       INIT(0);
-EXTERN in_port_t named_g_tlsport       INIT(0);
-EXTERN in_port_t named_g_httpsport     INIT(0);
-EXTERN in_port_t named_g_httpport      INIT(0);
+EXTERN isc_nm_t *named_g_netmgr		     INIT(NULL);
+EXTERN cfg_parser_t *named_g_parser	     INIT(NULL);
+EXTERN cfg_parser_t *named_g_addparser	     INIT(NULL);
+EXTERN const char *named_g_version	     INIT(PACKAGE_VERSION);
+EXTERN const char *named_g_product	     INIT(PACKAGE_NAME);
+EXTERN const char *named_g_description	     INIT(PACKAGE_DESCRIPTION);
+EXTERN const char *named_g_srcid	     INIT(PACKAGE_SRCID);
+EXTERN const char *named_g_defaultconfigargs INIT(PACKAGE_CONFIGARGS);
+EXTERN const char *named_g_builder	     INIT(PACKAGE_BUILDER);
+EXTERN in_port_t named_g_port		     INIT(0);
+EXTERN in_port_t named_g_tlsport	     INIT(0);
+EXTERN in_port_t named_g_httpsport	     INIT(0);
+EXTERN in_port_t named_g_httpport	     INIT(0);
 
 EXTERN in_port_t named_g_http_listener_clients INIT(0);
 EXTERN in_port_t named_g_http_streams_per_conn INIT(0);
@@ -91,8 +91,8 @@ EXTERN unsigned int named_g_debuglevel INIT(0);
 /*
  * Current configuration information.
  */
-EXTERN cfg_obj_t *named_g_config	   INIT(NULL);
-EXTERN const cfg_obj_t *named_g_defaults   INIT(NULL);
+EXTERN cfg_obj_t *named_g_defaultconfig	       INIT(NULL);
+EXTERN const cfg_obj_t *named_g_defaultoptions INIT(NULL);
 EXTERN const char *named_g_conffile	   INIT(NAMED_SYSCONFDIR "/named.conf");
 EXTERN const char *named_g_defaultbindkeys INIT(NULL);
 EXTERN const char *named_g_keyfile	   INIT(NAMED_SYSCONFDIR "/rndc.key");
@@ -126,7 +126,7 @@ EXTERN const char *named_g_defaultpidfile INIT(NAMED_LOCALSTATEDIR "/run/"
 EXTERN const char *named_g_username INIT(NULL);
 
 EXTERN isc_time_t		  named_g_boottime;
-EXTERN isc_time_t		  named_g_configtime;
+EXTERN isc_time_t		  named_g_defaultconfigtime;
 EXTERN bool named_g_memstatistics INIT(false);
 EXTERN bool named_g_keepstderr	  INIT(false);
 

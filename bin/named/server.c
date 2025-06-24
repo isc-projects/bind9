@@ -1131,7 +1131,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		}
 	}
 
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 	dns_view_initsecroots(view);
@@ -1142,7 +1142,8 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 
 		/*
 		 * If bind.keys exists and is populated, it overrides
-		 * the trust-anchors clause hard-coded in named_g_config.
+		 * the trust-anchors clause hard-coded in
+		 * named_g_defaultconfig.
 		 */
 		if (bindkeys != NULL) {
 			isc_log_write(DNS_LOGCATEGORY_SECURITY,
@@ -1170,8 +1171,8 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 				      "using built-in root key for view %s",
 				      view->name);
 
-			(void)cfg_map_get(named_g_config, "trust-anchors",
-					  &builtin_keys);
+			(void)cfg_map_get(named_g_defaultconfig,
+					  "trust-anchors", &builtin_keys);
 		}
 
 		if (builtin_keys != NULL) {
@@ -3839,7 +3840,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		optionmaps[j++] = options;
 	}
 
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 	optionmaps[j] = NULL;
 	if (config != NULL) {
@@ -4211,13 +4212,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	view->acceptexpired = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	/* 'optionmaps', not 'maps': don't check named_g_defaults yet */
+	/* 'optionmaps', not 'maps': don't check named_g_defaultoptions yet */
 	(void)named_config_get(optionmaps, "dnssec-validation", &obj);
 	if (obj == NULL) {
 		/*
 		 * Default to VALIDATION_DEFAULT as set in config.c.
 		 */
-		(void)cfg_map_get(named_g_defaults, "dnssec-validation", &obj);
+		(void)cfg_map_get(named_g_defaultoptions, "dnssec-validation",
+				  &obj);
 		INSIST(obj != NULL);
 	}
 	if (obj != NULL) {
@@ -4936,14 +4938,15 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	CHECK(configure_view_acl(vconfig, config, NULL, "allow-query-cache-on",
 				 NULL, actx, named_g_mctx, &view->cacheonacl));
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 				 "allow-query-on", NULL, actx, named_g_mctx,
 				 &view->queryonacl));
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config, "allow-proxy",
-				 NULL, actx, named_g_mctx, &view->proxyacl));
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
+				 "allow-proxy", NULL, actx, named_g_mctx,
+				 &view->proxyacl));
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 				 "allow-proxy-on", NULL, actx, named_g_mctx,
 				 &view->proxyonacl));
 
@@ -5018,28 +5021,30 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		if (view->recursionacl == NULL) {
 			/* global default only */
 			CHECK(configure_view_acl(
-				NULL, NULL, named_g_config, "allow-recursion",
-				NULL, actx, named_g_mctx, &view->recursionacl));
+				NULL, NULL, named_g_defaultconfig,
+				"allow-recursion", NULL, actx, named_g_mctx,
+				&view->recursionacl));
 		}
 		if (view->recursiononacl == NULL) {
 			/* global default only */
-			CHECK(configure_view_acl(NULL, NULL, named_g_config,
-						 "allow-recursion-on", NULL,
-						 actx, named_g_mctx,
-						 &view->recursiononacl));
+			CHECK(configure_view_acl(
+				NULL, NULL, named_g_defaultconfig,
+				"allow-recursion-on", NULL, actx, named_g_mctx,
+				&view->recursiononacl));
 		}
 		if (view->cacheacl == NULL) {
 			/* global default only */
 			CHECK(configure_view_acl(
-				NULL, NULL, named_g_config, "allow-query-cache",
-				NULL, actx, named_g_mctx, &view->cacheacl));
+				NULL, NULL, named_g_defaultconfig,
+				"allow-query-cache", NULL, actx, named_g_mctx,
+				&view->cacheacl));
 		}
 		if (view->cacheonacl == NULL) {
 			/* global default only */
-			CHECK(configure_view_acl(NULL, NULL, named_g_config,
-						 "allow-query-cache-on", NULL,
-						 actx, named_g_mctx,
-						 &view->cacheonacl));
+			CHECK(configure_view_acl(
+				NULL, NULL, named_g_defaultconfig,
+				"allow-query-cache-on", NULL, actx,
+				named_g_mctx, &view->cacheonacl));
 		}
 	} else {
 		/*
@@ -5060,7 +5065,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 */
 	if (view->queryacl == NULL) {
 		/* global default only */
-		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+		CHECK(configure_view_acl(NULL, NULL, named_g_defaultconfig,
 					 "allow-query", NULL, actx,
 					 named_g_mctx, &view->queryacl));
 	}
@@ -5070,7 +5075,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * clients. This causes case not always to be preserved,
 	 * and is needed by some broken clients.
 	 */
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 				 "no-case-compress", NULL, actx, named_g_mctx,
 				 &view->nocasecompress));
 
@@ -5086,7 +5091,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Filter setting on addresses in the answer section.
 	 */
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 				 "deny-answer-addresses", "acl", actx,
 				 named_g_mctx, &view->denyansweracl));
 	CHECK(configure_view_nametable(vconfig, config, "deny-answer-addresses",
@@ -5110,12 +5115,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * read from there in zoneconf.c:configure_zone_acl() later.)
 	 */
 	if (view->updateacl == NULL) {
-		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+		CHECK(configure_view_acl(NULL, NULL, named_g_defaultconfig,
 					 "allow-update", NULL, actx,
 					 named_g_mctx, &view->updateacl));
 	}
 	if (view->upfwdacl == NULL) {
-		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+		CHECK(configure_view_acl(NULL, NULL, named_g_defaultconfig,
 					 "allow-update-forwarding", NULL, actx,
 					 named_g_mctx, &view->upfwdacl));
 	}
@@ -5125,12 +5130,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * can be inherited by zones.
 	 */
 	if (view->transferacl == NULL) {
-		CHECK(configure_view_acl(vconfig, config, named_g_config,
+		CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 					 "allow-transfer", NULL, actx,
 					 named_g_mctx, &view->transferacl));
 	}
 	if (view->notifyacl == NULL) {
-		CHECK(configure_view_acl(vconfig, config, named_g_config,
+		CHECK(configure_view_acl(vconfig, config, named_g_defaultconfig,
 					 "allow-notify", NULL, actx,
 					 named_g_mctx, &view->notifyacl));
 	}
@@ -6729,56 +6734,6 @@ configure_server_quota(const cfg_obj_t **maps, const char *name,
 }
 
 /*
- * This function is called as soon as the 'directory' statement has been
- * parsed.  This can be extended to support other options if necessary.
- */
-static isc_result_t
-directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
-	isc_result_t result;
-	const char *directory;
-
-	REQUIRE(strcasecmp("directory", clausename) == 0);
-
-	UNUSED(arg);
-	UNUSED(clausename);
-
-	/*
-	 * Change directory.
-	 */
-	directory = cfg_obj_asstring(obj);
-
-	if (!isc_file_ischdiridempotent(directory)) {
-		cfg_obj_log(obj, ISC_LOG_WARNING,
-			    "option 'directory' contains relative path '%s'",
-			    directory);
-	}
-
-	if (!isc_file_isdirwritable(directory)) {
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_ERROR, "directory '%s' is not writable",
-			      directory);
-		return ISC_R_NOPERM;
-	}
-
-	result = isc_dir_chdir(directory);
-	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, ISC_LOG_ERROR,
-			    "change directory to '%s' failed: %s", directory,
-			    isc_result_totext(result));
-		return result;
-	}
-
-	char cwd[PATH_MAX];
-	if (getcwd(cwd, sizeof(cwd)) == cwd) {
-		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-			      ISC_LOG_INFO, "the working directory is now '%s'",
-			      cwd);
-	}
-
-	return ISC_R_SUCCESS;
-}
-
-/*
  * This event callback is invoked to do periodic network interface
  * scanning.
  */
@@ -7332,7 +7287,7 @@ cleanup:
 
 static isc_result_t
 setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
-	       cfg_parser_t *conf_parser, cfg_aclconfctx_t *actx) {
+	       cfg_parser_t *config_parser, cfg_aclconfctx_t *actx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	bool allow = false;
 	ns_cfgctx_t *nzcfg = NULL;
@@ -7357,7 +7312,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (result == ISC_R_SUCCESS) {
 		maps[i++] = options;
 	}
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 	result = named_config_get(maps, "allow-new-zones", &nz);
@@ -7435,12 +7390,11 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	*nzcfg = (ns_cfgctx_t){ 0 };
 
 	/*
-	 * We attach the parser that was used for config as well
-	 * as the one that will be used for added zones, to avoid
+	 * We attach the parser that will be used for added zones to avoid
 	 * a shutdown race later.
 	 */
 	isc_mem_attach(view->mctx, &nzcfg->mctx);
-	cfg_parser_attach(conf_parser, &nzcfg->conf_parser);
+	cfg_parser_attach(config_parser, &nzcfg->conf_parser);
 	cfg_parser_attach(named_g_addparser, &nzcfg->add_parser);
 	cfg_aclconfctx_attach(actx, &nzcfg->actx);
 
@@ -7448,8 +7402,8 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				      mapsize);
 	if (result != ISC_R_SUCCESS) {
 		cfg_aclconfctx_detach(&nzcfg->actx);
-		cfg_parser_destroy(&nzcfg->add_parser);
 		cfg_parser_destroy(&nzcfg->conf_parser);
+		cfg_parser_destroy(&nzcfg->add_parser);
 		isc_mem_putanddetach(&nzcfg->mctx, nzcfg, sizeof(*nzcfg));
 		dns_view_setnewzones(view, false, NULL, NULL, 0ULL);
 		return result;
@@ -7846,10 +7800,10 @@ cleanup:
 #endif /* HAVE_LMDB */
 
 static isc_result_t
-load_configuration(const char *filename, named_server_t *server,
-		   bool first_time) {
-	cfg_obj_t *config = NULL, *bindkeys = NULL;
-	cfg_parser_t *conf_parser = NULL, *bindkeys_parser = NULL;
+apply_configuration(cfg_parser_t *configparser, cfg_obj_t *config,
+		    named_server_t *server, bool first_time) {
+	cfg_obj_t *bindkeys = NULL;
+	cfg_parser_t *bindkeys_parser = NULL;
 	const cfg_obj_t *builtin_views = NULL;
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *obj = NULL;
@@ -7887,6 +7841,9 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_DEBUG(1), "apply_configuration");
+
 	/*
 	 * Require the reconfiguration to happen always on the main loop
 	 */
@@ -7917,21 +7874,6 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_dyndb_cleanup();
 
 	/*
-	 * Parse the global default pseudo-config file.
-	 */
-	if (first_time) {
-		result = named_config_parsedefaults(named_g_parser,
-						    &named_g_config);
-		if (result != ISC_R_SUCCESS) {
-			named_main_earlyfatal("unable to load "
-					      "internal defaults: %s",
-					      isc_result_totext(result));
-		}
-		RUNTIME_CHECK(cfg_map_get(named_g_config, "options",
-					  &named_g_defaults) == ISC_R_SUCCESS);
-	}
-
-	/*
 	 * Log the current working directory.
 	 */
 	if (first_time) {
@@ -7942,38 +7884,6 @@ load_configuration(const char *filename, named_server_t *server,
 				      "the initial working directory is '%s'",
 				      cwd);
 		}
-	}
-
-	/*
-	 * Parse the configuration file using the new config code.
-	 */
-	config = NULL;
-	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "loading configuration from '%s'",
-		      filename);
-	result = cfg_parser_create(named_g_mctx, &conf_parser);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_exclusive;
-	}
-
-	cfg_parser_setcallback(conf_parser, directory_callback, NULL);
-	result = cfg_parse_file(conf_parser, filename, &cfg_type_namedconf,
-				&config);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_conf_parser;
-	}
-
-	/*
-	 * Check the validity of the configuration.
-	 *
-	 * (Ignore plugin parameters for now; they will be
-	 * checked later when the modules are actually loaded and
-	 * registered.)
-	 */
-	result = isccfg_check_namedconf(config, BIND_CHECK_ALGORITHMS,
-					named_g_mctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_config;
 	}
 
 	/* Let's recreate the TLS context cache */
@@ -8001,7 +7911,7 @@ load_configuration(const char *filename, named_server_t *server,
 	if (result == ISC_R_SUCCESS) {
 		maps[i++] = options;
 	}
-	maps[i++] = named_g_defaults;
+	maps[i++] = named_g_defaultoptions;
 	maps[i] = NULL;
 
 #if HAVE_LIBNGHTTP2
@@ -8047,7 +7957,7 @@ load_configuration(const char *filename, named_server_t *server,
 			result = cfg_parser_create(named_g_mctx,
 						   &bindkeys_parser);
 			if (result != ISC_R_SUCCESS) {
-				goto cleanup_config;
+				goto cleanup_bindkeys_parser;
 			}
 
 			result = cfg_parse_file(bindkeys_parser,
@@ -8609,7 +8519,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Create the built-in kasp policies ("default", "insecure").
 	 */
 	kasps = NULL;
-	(void)cfg_map_get(named_g_config, "dnssec-policy", &kasps);
+	(void)cfg_map_get(named_g_defaultconfig, "dnssec-policy", &kasps);
 	CFG_LIST_FOREACH (kasps, element) {
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		dns_kasp_t *kasp = NULL;
@@ -8684,7 +8594,7 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 		INSIST(view != NULL);
 
-		result = setup_newzones(view, config, vconfig, conf_parser,
+		result = setup_newzones(view, config, vconfig, configparser,
 					named_g_aclconfctx);
 		dns_view_detach(&view);
 
@@ -8706,7 +8616,7 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 		INSIST(view != NULL);
 
-		result = setup_newzones(view, config, NULL, conf_parser,
+		result = setup_newzones(view, config, NULL, configparser,
 					named_g_aclconfctx);
 
 		dns_view_detach(&view);
@@ -8770,8 +8680,8 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Create (or recreate) the built-in views.
 	 */
 	builtin_views = NULL;
-	RUNTIME_CHECK(cfg_map_get(named_g_config, "view", &builtin_views) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(cfg_map_get(named_g_defaultconfig, "view",
+				  &builtin_views) == ISC_R_SUCCESS);
 	CFG_LIST_FOREACH (builtin_views, element) {
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 		dns_view_t *view = NULL;
@@ -9184,7 +9094,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Record the time of most recent configuration
 	 */
-	named_g_configtime = isc_time_now();
+	named_g_defaultconfigtime = isc_time_now();
 
 	isc_loopmgr_resume(named_g_loopmgr);
 	exclusive = false;
@@ -9279,7 +9189,6 @@ cleanup_portsets:
 	isc_portset_destroy(named_g_mctx, &v4portset);
 
 cleanup_bindkeys_parser:
-
 	if (bindkeys_parser != NULL) {
 		if (bindkeys != NULL) {
 			cfg_obj_destroy(bindkeys_parser, &bindkeys);
@@ -9287,21 +9196,46 @@ cleanup_bindkeys_parser:
 		cfg_parser_destroy(&bindkeys_parser);
 	}
 
-cleanup_config:
-	cfg_obj_destroy(conf_parser, &config);
-
-cleanup_conf_parser:
-	cfg_parser_destroy(&conf_parser);
-
 cleanup_exclusive:
 	if (exclusive) {
 		isc_loopmgr_resume(named_g_loopmgr);
 	}
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-		      ISC_LOG_DEBUG(1), "load_configuration: %s",
+		      ISC_LOG_DEBUG(1), "apply_configuration: %s",
 		      isc_result_totext(result));
 
+	return result;
+}
+
+static isc_result_t
+load_configuration(named_server_t *server, bool first_time) {
+	isc_result_t result;
+	cfg_parser_t *parser = NULL;
+	cfg_obj_t *config = NULL;
+
+	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+		      ISC_LOG_DEBUG(1), "load_configuration");
+
+	result = cfg_parser_create(named_g_mctx, &parser);
+	if (result != ISC_R_SUCCESS) {
+		goto out;
+	}
+
+	result = named_config_parsefile(parser, &config);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	result = apply_configuration(parser, config, server, first_time);
+
+cleanup:
+	if (config) {
+		cfg_obj_destroy(parser, &config);
+	}
+	cfg_parser_destroy(&parser);
+
+out:
 	return result;
 }
 
@@ -9480,11 +9414,18 @@ run_server(void *arg) {
 	CHECKFATAL(cfg_parser_create(named_g_mctx, &named_g_parser),
 		   "creating default configuration parser");
 
+	CHECKFATAL(named_config_parsedefaults(named_g_parser,
+					      &named_g_defaultconfig),
+		   "unable to parse defaults config");
+
+	CHECKFATAL(cfg_map_get(named_g_defaultconfig, "options",
+			       &named_g_defaultoptions),
+		   "missing 'options' in default config");
+
 	CHECKFATAL(cfg_parser_create(named_g_mctx, &named_g_addparser),
 		   "creating additional configuration parser");
 
-	CHECKFATAL(load_configuration(named_g_conffile, server, true),
-		   "loading configuration");
+	CHECKFATAL(load_configuration(server, true), "loading configuration");
 
 	CHECKFATAL(load_zones(server, false), "loading zones");
 #ifdef ENABLE_AFL
@@ -9535,7 +9476,7 @@ shutdown_server(void *arg) {
 		cfg_aclconfctx_detach(&named_g_aclconfctx);
 	}
 
-	cfg_obj_destroy(named_g_parser, &named_g_config);
+	cfg_obj_destroy(named_g_parser, &named_g_defaultconfig);
 	cfg_parser_destroy(&named_g_parser);
 	cfg_parser_destroy(&named_g_addparser);
 
@@ -9964,7 +9905,7 @@ fatal(const char *msg, isc_result_t result) {
 static isc_result_t
 loadconfig(named_server_t *server) {
 	isc_result_t result;
-	result = load_configuration(named_g_conffile, server, false);
+	result = load_configuration(server, false);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_INFO,
@@ -9983,8 +9924,16 @@ loadconfig(named_server_t *server) {
 static isc_result_t
 reload(named_server_t *server) {
 	isc_result_t result;
+	int reloadstatus = atomic_exchange(&server->reload_status,
+					   NAMED_RELOAD_IN_PROGRESS);
 
-	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+	if (reloadstatus == NAMED_RELOAD_IN_PROGRESS) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING,
+			      "reload request ignored: already running");
+		result = ISC_R_ALREADYRUNNING;
+		goto cleanup;
+	}
 
 	named_os_notify_systemd("RELOADING=1\n"
 				"MONOTONIC_USEC=%" PRIu64 "\n"
@@ -10384,8 +10333,16 @@ named_server_reloadcommand(named_server_t *server, isc_lex_t *lex,
 	}
 	if (zone == NULL) {
 		result = reload(server);
-		if (result == ISC_R_SUCCESS) {
+		switch (result) {
+		case ISC_R_SUCCESS:
 			msg = "server reload successful";
+			break;
+		case ISC_R_ALREADYRUNNING:
+			msg = "reload request ignored as the server is "
+			      "currently being reloaded or reconfigured";
+			break;
+		default:
+			break;
 		}
 	} else {
 		type = dns_zone_gettype(zone);
@@ -10475,9 +10432,21 @@ named_server_resetstatscommand(named_server_t *server, isc_lex_t *lex,
  * Act on a "reconfig" command from the command channel.
  */
 isc_result_t
-named_server_reconfigcommand(named_server_t *server) {
+named_server_reconfigcommand(named_server_t *server, isc_buffer_t *text) {
 	isc_result_t result;
-	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+	int reloadstatus = atomic_exchange(&server->reload_status,
+					   NAMED_RELOAD_IN_PROGRESS);
+
+	if (reloadstatus == NAMED_RELOAD_IN_PROGRESS) {
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING,
+			      "reconfig request ignored: already running");
+		result = ISC_R_ALREADYRUNNING;
+		isc_buffer_printf(text,
+				  "reconfig request ignored as the server is "
+				  "currently being reloaded or reconfigured");
+		goto cleanup;
+	}
 
 	named_os_notify_systemd("RELOADING=1\n"
 				"MONOTONIC_USEC=%" PRIu64 "\n"
@@ -11880,7 +11849,7 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 
 	isc_time_formathttptimestamp(&named_g_boottime, boottime,
 				     sizeof(boottime));
-	isc_time_formathttptimestamp(&named_g_configtime, configtime,
+	isc_time_formathttptimestamp(&named_g_defaultconfigtime, configtime,
 				     sizeof(configtime));
 
 	snprintf(line, sizeof(line), "version: %s (%s) <id:%s>%s%s%s\n",
@@ -13623,7 +13592,7 @@ named_server_changezone(named_server_t *server, char *command,
 		      addzone ? NAMED_COMMAND_ADDZONE : NAMED_COMMAND_MODZONE);
 
 	/* Changing a zone counts as reconfiguration */
-	named_g_configtime = isc_time_now();
+	named_g_defaultconfigtime = isc_time_now();
 
 cleanup:
 	if (isc_buffer_usedlength(*text) > 0) {
@@ -13934,7 +13903,7 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 		      zonename);
 
 	/* Removing a zone counts as reconfiguration */
-	named_g_configtime = isc_time_now();
+	named_g_defaultconfigtime = isc_time_now();
 
 	result = ISC_R_SUCCESS;
 
