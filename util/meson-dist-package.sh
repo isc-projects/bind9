@@ -18,9 +18,6 @@ if [ -z "$MESON_DIST_ROOT" ] || [ -z "$MESON_SOURCE_ROOT" ]; then
   exit 1
 fi
 
-export BIND_BUILD_ROOT=${MESON_BUILD_ROOT}
-export BIND_SOURCE_ROOT=${MESON_SOURCE_ROOT}
-
 generate_man_pages() {
   export MESON_PROJECT_VERSION=$1
 

@@ -1670,6 +1670,7 @@ if doc_opt.allowed()
 
         custom_target(
             'man',
+            build_always_stale: true,
             depend_files: manrst_srcconf.sources(),
             depends: doc_misc_targets,
             install: man_srcconf.sources().length() == 0,
