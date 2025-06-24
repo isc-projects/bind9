@@ -381,7 +381,7 @@ def expected_artifacts(request):
     if test_specific_artifacts:
         return common_artifacts + test_specific_artifacts.args[0]
 
-    return common_artifacts
+    return None
 
 
 @pytest.fixture(scope="module")
