@@ -121,11 +121,11 @@ sbindir = prefix / get_option('sbindir')
 sysconfdir = prefix / get_option('sysconfdir')
 
 src_id = ''
-if fs.is_file('.source-id')
-    src_id = fs.read('.source-id', encoding: 'utf-8').strip()
+if fs.is_file('srcid')
+    src_id = fs.read('srcid', encoding: 'utf-8').strip()
 elif git.found()
     src_id = run_command(git, 'rev-parse', '--short', 'HEAD', check: true).stdout().substring(0, 7)
-    meson.add_dist_script('util' / 'meson-dist-package.sh', 'source-id', src_id)
+    meson.add_dist_script('util' / 'meson-dist-package.sh', 'srcid', src_id)
 endif
 
 ### Compiler
