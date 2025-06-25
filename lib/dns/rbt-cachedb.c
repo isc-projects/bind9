@@ -140,9 +140,10 @@
  */
 static bool
 need_headerupdate(dns_slabheader_t *header, isc_stdtime_t now) {
-	if (DNS_SLABHEADER_GETATTR(header, (DNS_SLABHEADERATTR_NONEXISTENT |
-					    DNS_SLABHEADERATTR_ANCIENT |
-					    DNS_SLABHEADERATTR_ZEROTTL)) != 0)
+	if (DNS_SLABHEADER_GETATTR(header,
+				   DNS_SLABHEADERATTR_NONEXISTENT |
+					   DNS_SLABHEADERATTR_ANCIENT |
+					   DNS_SLABHEADERATTR_ZEROTTL) != 0)
 	{
 		return false;
 	}

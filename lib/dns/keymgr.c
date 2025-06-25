@@ -201,7 +201,7 @@ dns_keymgr_settime_syncpublish(dst_key_t *key, dns_kasp_t *kasp, bool first) {
 	ret = dst_key_getnum(key, DST_NUM_LIFETIME, &lifetime);
 	if (ret == ISC_R_SUCCESS && lifetime > 0) {
 		dst_key_settime(key, DST_TIME_SYNCDELETE,
-				(syncpublish + lifetime));
+				syncpublish + lifetime);
 	}
 }
 
@@ -298,7 +298,7 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 					syncpub);
 			if (klifetime > 0) {
 				dst_key_settime(key->key, DST_TIME_SYNCDELETE,
-						(syncpub + klifetime));
+						syncpub + klifetime);
 			}
 		}
 	}
@@ -1640,12 +1640,12 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now,
 	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
 	if (ret != ISC_R_SUCCESS) {
 		ksk = ((dst_key_flags(key->key) & DNS_KEYFLAG_KSK) != 0);
-		dst_key_setbool(key->key, DST_BOOL_KSK, (ksk || csk));
+		dst_key_setbool(key->key, DST_BOOL_KSK, ksk || csk);
 	}
 	ret = dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
 	if (ret != ISC_R_SUCCESS) {
 		zsk = ((dst_key_flags(key->key) & DNS_KEYFLAG_KSK) == 0);
-		dst_key_setbool(key->key, DST_BOOL_ZSK, (zsk || csk));
+		dst_key_setbool(key->key, DST_BOOL_ZSK, zsk || csk);
 	}
 
 	/* Get time metadata. */
@@ -1772,7 +1772,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 					"DNSKEY %s (%s) (policy %s) in %u "
 					"seconds",
 					keystr, keymgr_keyrole(active_key->key),
-					dns_kasp_getname(kasp), (prepub - now));
+					dns_kasp_getname(kasp), prepub - now);
 			}
 		}
 		if (prepub == 0 || prepub > now) {
@@ -2125,7 +2125,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	{
 		bool found_match = false;
 
-		keymgr_key_init(dkey, kasp, now, (numkeys == 1));
+		keymgr_key_init(dkey, kasp, now, numkeys == 1);
 
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
@@ -2520,8 +2520,7 @@ rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 						     "scheduled on "));
 					retire_time = keymgr_prepublication_time(
 						dkey, kasp,
-						(retire_time - active_time),
-						now);
+						retire_time - active_time, now);
 				} else {
 					RETERR(isc_buffer_printf(
 						buf, "  Key will retire on "));

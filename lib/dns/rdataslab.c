@@ -668,7 +668,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	 */
 	tcurrent += (tcount * 4);
 
-	offsettable = isc_mem_cget(mctx, (ocount + oncount),
+	offsettable = isc_mem_cget(mctx, ocount + oncount,
 				   sizeof(unsigned int));
 #endif /* if DNS_RDATASET_FIXED */
 
@@ -773,8 +773,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 #if DNS_RDATASET_FIXED
 	fillin_offsets(offsetbase, offsettable, ocount + oncount);
 
-	isc_mem_cput(mctx, offsettable, (ocount + oncount),
-		     sizeof(unsigned int));
+	isc_mem_cput(mctx, offsettable, ocount + oncount, sizeof(unsigned int));
 #endif /* if DNS_RDATASET_FIXED */
 
 	INSIST(tcurrent == tstart + tlength);
@@ -1072,8 +1071,8 @@ void
 dns_slabheader_copycase(dns_slabheader_t *dest, dns_slabheader_t *src) {
 	if (CASESET(src)) {
 		uint_least16_t attr = DNS_SLABHEADER_GETATTR(
-			src, (DNS_SLABHEADERATTR_CASESET |
-			      DNS_SLABHEADERATTR_CASEFULLYLOWER));
+			src, DNS_SLABHEADERATTR_CASESET |
+				     DNS_SLABHEADERATTR_CASEFULLYLOWER);
 		DNS_SLABHEADER_SETATTR(dest, attr);
 		memmove(dest->upper, src->upper, sizeof(src->upper));
 	}
@@ -1090,7 +1089,7 @@ dns_slabheader_reset(dns_slabheader_t *h, dns_db_t *db, dns_dbnode_t *node) {
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
 
-	STATIC_ASSERT((sizeof(h->attributes) == 2),
+	STATIC_ASSERT(sizeof(h->attributes) == 2,
 		      "The .attributes field of dns_slabheader_t needs to be "
 		      "16-bit int type exactly.");
 }

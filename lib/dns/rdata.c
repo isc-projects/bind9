@@ -2601,7 +2601,7 @@ svcb_hashttp(isc_textregion_t *alpn) {
 				s = alpn->base;
 			}
 		}
-		if (svcb_ishttp(s, (alpn->base - s))) {
+		if (svcb_ishttp(s, alpn->base - s)) {
 			return true;
 		}
 	}

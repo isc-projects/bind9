@@ -169,7 +169,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 				*errp = str_printf(
 					"invalid rpz IP address \"%s\"; "
 					"invalid prefix length of %u",
-					(optname ? optname : astr), prefix);
+					optname ? optname : astr, prefix);
 			}
 
 			return -1;
@@ -187,7 +187,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 				*errp = str_printf(
 					"invalid rpz IP address \"%s\"; "
 					"invalid prefix length of %u",
-					(optname ? optname : astr), prefix);
+					optname ? optname : astr, prefix);
 			}
 
 			return -1;
@@ -358,7 +358,7 @@ apply_update_to_set(trpz_result_t **results, size_t *pnresults,
 	/* No match. Instead, append. */
 	(*pnresults)++;
 
-	*results = realloc(*results, (*pnresults * sizeof(**results)));
+	*results = realloc(*results, *pnresults * sizeof(**results));
 	if (*results == NULL) {
 		perror("realloc");
 		return NULL;
@@ -507,7 +507,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 
 	node->nrrs++;
 
-	node->rrs = realloc(node->rrs, (node->nrrs * sizeof(*(node->rrs))));
+	node->rrs = realloc(node->rrs, node->nrrs * sizeof(*(node->rrs)));
 	if (node->rrs == NULL) {
 		perror("realloc");
 		exit(EXIT_FAILURE);
@@ -544,11 +544,11 @@ reverse_labels(const char *str, char *pbuf) {
 		}
 
 		if (sptr == str) {
-			strncat(pbuf, sptr, (end - sptr));
+			strncat(pbuf, sptr, end - sptr);
 			break;
 		}
 
-		strncat(pbuf, sptr + 1, (end - (sptr + 1)));
+		strncat(pbuf, sptr + 1, end - (sptr + 1));
 		strcat(pbuf, ".");
 		end = sptr--;
 	}
@@ -800,7 +800,7 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 
 		(*pnzones)++;
 
-		*pzones = realloc(*pzones, (*pnzones * sizeof(**pzones)));
+		*pzones = realloc(*pzones, *pnzones * sizeof(**pzones));
 		if (*pzones == NULL) {
 			perror("realloc");
 			exit(EXIT_FAILURE);
@@ -1009,7 +1009,7 @@ apply_update(const char *updstr, trpz_result_t **presults, size_t *pnresults,
 		/* A special case of PASSTHRU (with trailing characters) */
 		if (nend != NULL &&
 		    (strlen(databuf) == (size_t)(nend - nodebuf)) &&
-		    !strncmp(databuf, nodebuf, (nend - nodebuf)))
+		    !strncmp(databuf, nodebuf, nend - nodebuf))
 		{
 			policy = LIBRPZ_POLICY_PASSTHRU;
 		}
