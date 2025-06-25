@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #include <isc/util.h>
 
 /*

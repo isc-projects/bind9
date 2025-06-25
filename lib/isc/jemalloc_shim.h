@@ -16,8 +16,10 @@
 #if !defined(HAVE_JEMALLOC)
 
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include <isc/overflow.h>
 #include <isc/util.h>
 
 const char *malloc_conf = NULL;
@@ -25,8 +27,6 @@ const char *malloc_conf = NULL;
 #define MALLOCX_ZERO	    ((int)0x40)
 #define MALLOCX_TCACHE_NONE (0)
 #define MALLOCX_ARENA(a)    (0)
-
-#include <stdlib.h>
 
 typedef union {
 	size_t size;
