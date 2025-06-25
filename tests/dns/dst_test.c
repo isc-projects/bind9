@@ -63,7 +63,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 	result = isc_file_getsizefd(fileno(fp), &size);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	data = isc_mem_get(mctx, (size + 1));
+	data = isc_mem_get(mctx, size + 1);
 	assert_non_null(data);
 
 	len = (size_t)size;
@@ -144,7 +144,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	result = isc_file_getsizefd(fileno(fp), &size);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	data = isc_mem_get(mctx, (size + 1));
+	data = isc_mem_get(mctx, size + 1);
 	assert_non_null(data);
 
 	p = data;

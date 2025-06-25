@@ -747,7 +747,7 @@ collect(void *varg) {
 	nloops = zipf ? bctx->nloops : bctx->readers + bctx->mutate;
 	for (uint32_t t = 0; t < nloops; t++) {
 		struct thread_args *tp = &thread[t];
-		elapsed = ISC_MAX(elapsed, (tp->stop - tp->start));
+		elapsed = ISC_MAX(elapsed, tp->stop - tp->start);
 		bool mut = t < bctx->mutate;
 
 		stats[mut].worked += tp->worked;

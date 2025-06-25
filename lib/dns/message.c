@@ -67,7 +67,7 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 		} else if (cnt % 8 == 0) {
 			printf(" |");
 		}
-		printf(" %02x %c", *p, (isprint(*p) ? *p : ' '));
+		printf(" %02x %c", *p, isprint(*p) ? *p : ' ');
 		p++;
 		cnt++;
 
@@ -4826,8 +4826,8 @@ logfmtpacket(dns_message_t *message, const char *description,
 		} else if (result == ISC_R_SUCCESS) {
 			isc_log_write(category, module, level,
 				      "%s%s%s%s%s\n%.*s", description,
-				      (from != NULL ? " from " : ""), frombuf,
-				      (to != NULL ? " to " : ""), tobuf,
+				      from != NULL ? " from " : "", frombuf,
+				      to != NULL ? " to " : "", tobuf,
 				      (int)isc_buffer_usedlength(&buffer), buf);
 		}
 	} while (result == ISC_R_NOSPACE);

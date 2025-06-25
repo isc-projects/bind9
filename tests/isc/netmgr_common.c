@@ -395,9 +395,9 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		do_cconnects_shutdown(loopmgr);
 	} else if (do_send) {
 		isc_async_current(stream_recv_send_connect,
-				  (cbarg == NULL
-					   ? get_stream_connect_function()
-					   : (stream_connect_function)cbarg));
+				  cbarg == NULL
+					  ? get_stream_connect_function()
+					  : (stream_connect_function)cbarg);
 	}
 
 	isc_refcount_increment0(&active_creads);

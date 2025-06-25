@@ -851,8 +851,8 @@ void
 dns_slabheader_copycase(dns_slabheader_t *dest, dns_slabheader_t *src) {
 	if (CASESET(src)) {
 		uint_least16_t attr = DNS_SLABHEADER_GETATTR(
-			src, (DNS_SLABHEADERATTR_CASESET |
-			      DNS_SLABHEADERATTR_CASEFULLYLOWER));
+			src, DNS_SLABHEADERATTR_CASESET |
+				     DNS_SLABHEADERATTR_CASEFULLYLOWER);
 		DNS_SLABHEADER_SETATTR(dest, attr);
 		memmove(dest->upper, src->upper, sizeof(src->upper));
 	}

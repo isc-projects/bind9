@@ -108,7 +108,7 @@ isc_md_test(isc_md_t *md, const isc_md_type_t *type, const char *buf,
 
 	assert_return_code(res, ISC_R_SUCCESS);
 
-	assert_memory_equal(hexdigest, result, (result ? strlen(result) : 0));
+	assert_memory_equal(hexdigest, result, result ? strlen(result) : 0);
 	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
 }
 
