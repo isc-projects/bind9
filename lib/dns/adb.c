@@ -338,6 +338,8 @@ check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
 static bool
 check_expire_entry(dns_adb_t *, dns_adbentry_t **, isc_stdtime_t);
 static void
+check_overmem_entries(dns_adb_t *adb, int bucket);
+static void
 cancel_fetches_at_name(dns_adbname_t *);
 static isc_result_t
 dbfind_name(dns_adbname_t *, isc_stdtime_t, dns_rdatatype_t);
@@ -1195,25 +1197,8 @@ unlink_name(dns_adb_t *adb, dns_adbname_t *name) {
  */
 static void
 link_entry(dns_adb_t *adb, int bucket, dns_adbentry_t *entry) {
-	int i;
-	dns_adbentry_t *e;
-
 	if (isc_mem_isovermem(adb->mctx)) {
-		for (i = 0; i < 2; i++) {
-			e = ISC_LIST_TAIL(adb->entries[bucket]);
-			if (e == NULL) {
-				break;
-			}
-			if (e->refcnt == 0) {
-				unlink_entry(adb, e);
-				free_adbentry(adb, &e);
-				continue;
-			}
-			INSIST((e->flags & ENTRY_IS_DEAD) == 0);
-			e->flags |= ENTRY_IS_DEAD;
-			ISC_LIST_UNLINK(adb->entries[bucket], e, plink);
-			ISC_LIST_PREPEND(adb->deadentries[bucket], e, plink);
-		}
+		check_overmem_entries(adb, bucket);
 	}
 
 	ISC_LIST_PREPEND(adb->entries[bucket], entry, plink);
@@ -2365,14 +2350,9 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now) {
  */
 static void
 check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
-	int victims, max_victims;
-	dns_adbname_t *victim, *next_victim;
-	bool overmem = isc_mem_isovermem(adb->mctx);
-	int scans = 0;
+	dns_adbname_t *victim;
 
 	INSIST(bucket != DNS_ADB_INVALIDBUCKET);
-
-	max_victims = overmem ? 2 : 1;
 
 	/*
 	 * We limit the number of scanned entries to 10 (arbitrary choice)
@@ -2381,16 +2361,46 @@ check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 	 * happen).
 	 */
 	victim = ISC_LIST_TAIL(adb->names[bucket]);
-	for (victims = 0; victim != NULL && victims < max_victims && scans < 10;
+	if (victim == NULL) {
+		return;
+	}
+
+	(void)check_expire_name(&victim, now);
+	if (victim == NULL) {
+		return;
+	}
+
+	/*
+	 * Make sure that we are not purging ADB names that has been
+	 * just created.
+	 */
+	if (victim->last_used + ADB_CACHE_MINIMUM >= now) {
+		return;
+	}
+
+	if (!NAME_FETCH(victim) && victim->last_used + ADB_STALE_MARGIN <= now)
+	{
+		RUNTIME_CHECK(!kill_name(&victim, DNS_EVENT_ADBCANCELED));
+	}
+}
+
+static void
+check_overmem_names(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
+	int victims, max_victims = 2;
+	dns_adbname_t *victim, *next_victim;
+
+	INSIST(bucket != DNS_ADB_INVALIDBUCKET);
+
+	victim = ISC_LIST_TAIL(adb->names[bucket]);
+	for (victims = 0; victim != NULL && victims < max_victims;
 	     victim = next_victim)
 	{
 		INSIST(!NAME_DEAD(victim));
-		scans++;
 		next_victim = ISC_LIST_PREV(victim, plink);
 		(void)check_expire_name(&victim, now);
 		if (victim == NULL) {
 			victims++;
-			goto next;
+			continue;
 		}
 
 		/*
@@ -2402,16 +2412,36 @@ check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 		}
 
 		if (!NAME_FETCH(victim) &&
-		    (overmem || victim->last_used + ADB_STALE_MARGIN <= now))
+		    victim->last_used + ADB_STALE_MARGIN <= now)
 		{
 			RUNTIME_CHECK(
 				!kill_name(&victim, DNS_EVENT_ADBCANCELED));
 			victims++;
 		}
+	}
+}
 
-	next:
-		if (!overmem) {
-			break;
+static void
+check_overmem_entries(dns_adb_t *adb, int bucket) {
+	int victims, max_victims = 2;
+	dns_adbentry_t *victim, *next_victim;
+
+	victim = ISC_LIST_TAIL(adb->entries[bucket]);
+	for (victims = 0; victim != NULL && victims < max_victims;
+	     victim = next_victim)
+	{
+		next_victim = ISC_LIST_PREV(victim, plink);
+
+		if (victim->refcnt == 0) {
+			unlink_entry(adb, victim);
+			free_adbentry(adb, &victim);
+			victims++;
+		} else {
+			INSIST((victim->flags & ENTRY_IS_DEAD) == 0);
+			victim->flags |= ENTRY_IS_DEAD;
+			ISC_LIST_UNLINK(adb->entries[bucket], victim, plink);
+			ISC_LIST_PREPEND(adb->deadentries[bucket], victim,
+					 plink);
 		}
 	}
 }
@@ -3011,7 +3041,11 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * See if there is any stale name at the end of list, and purge
 		 * it if so.
 		 */
-		check_stale_name(adb, bucket, now);
+		if (isc_mem_isovermem(adb->mctx)) {
+			check_overmem_names(adb, bucket, now);
+		} else {
+			check_stale_name(adb, bucket, now);
+		}
 
 		adbname = new_adbname(adb, name);
 		link_name(adb, bucket, adbname);
