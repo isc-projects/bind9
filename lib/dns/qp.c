@@ -48,8 +48,8 @@
 
 #include "qp_p.h"
 
-#ifndef DNS_QP_LOG_STATS
-#define DNS_QP_LOG_STATS 1
+#ifndef DNS_QP_LOG_STATS_LEVEL
+#define DNS_QP_LOG_STATS_LEVEL 3
 #endif
 #ifndef DNS_QP_TRACE
 #define DNS_QP_TRACE 0
@@ -68,10 +68,10 @@ static atomic_uint_fast64_t rollback_time;
 /* for LOG_STATS() format strings */
 #define PRItime " %" PRIu64 " ns "
 
-#if DNS_QP_LOG_STATS
+#if DNS_QP_LOG_STATS_LEVEL
 #define LOG_STATS(...)                                            \
 	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
-		      ISC_LOG_DEBUG(1), __VA_ARGS__)
+		      ISC_LOG_DEBUG(DNS_QP_LOG_STATS_LEVEL), __VA_ARGS__)
 #else
 #define LOG_STATS(...)
 #endif
