@@ -439,7 +439,7 @@ keymgr_key_update_lifetime(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 			uint32_t a = now;
 			(void)dst_key_gettime(key->key, DST_TIME_ACTIVATE, &a);
 			dst_key_settime(key->key, DST_TIME_INACTIVE,
-					(a + lifetime));
+					a + lifetime);
 			keymgr_settime_remove(key, kasp);
 		} else {
 			dst_key_unsettime(key->key, DST_TIME_INACTIVE);
@@ -1626,12 +1626,12 @@ keymgr_key_init(dns_dnsseckey_t *key, dns_kasp_t *kasp, isc_stdtime_t now,
 	ret = dst_key_getbool(key->key, DST_BOOL_KSK, &ksk);
 	if (ret != ISC_R_SUCCESS) {
 		ksk = ((dst_key_flags(key->key) & DNS_KEYFLAG_KSK) != 0);
-		dst_key_setbool(key->key, DST_BOOL_KSK, (ksk || csk));
+		dst_key_setbool(key->key, DST_BOOL_KSK, ksk || csk);
 	}
 	ret = dst_key_getbool(key->key, DST_BOOL_ZSK, &zsk);
 	if (ret != ISC_R_SUCCESS) {
 		zsk = ((dst_key_flags(key->key) & DNS_KEYFLAG_KSK) == 0);
-		dst_key_setbool(key->key, DST_BOOL_ZSK, (zsk || csk));
+		dst_key_setbool(key->key, DST_BOOL_ZSK, zsk || csk);
 	}
 
 	/* Get time metadata. */
@@ -1758,7 +1758,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 					"DNSKEY %s (%s) (policy %s) in %u "
 					"seconds",
 					keystr, keymgr_keyrole(active_key->key),
-					dns_kasp_getname(kasp), (prepub - now));
+					dns_kasp_getname(kasp), prepub - now);
 			}
 		}
 		if (prepub == 0 || prepub > now) {
@@ -1911,7 +1911,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 	/* Do we need to set retire time? */
 	if (lifetime > 0) {
 		dst_key_settime(new_key->key, DST_TIME_INACTIVE,
-				(active + lifetime));
+				active + lifetime);
 		keymgr_settime_remove(new_key, kasp);
 	}
 
@@ -2101,7 +2101,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	{
 		bool found_match = false;
 
-		keymgr_key_init(dkey, kasp, now, (numkeys == 1));
+		keymgr_key_init(dkey, kasp, now, numkeys == 1);
 
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
@@ -2493,8 +2493,7 @@ rollover_status(dns_dnsseckey_t *dkey, dns_kasp_t *kasp, isc_stdtime_t now,
 							  "scheduled on ");
 					retire_time = keymgr_prepublication_time(
 						dkey, kasp,
-						(retire_time - active_time),
-						now);
+						retire_time - active_time, now);
 				} else {
 					isc_buffer_printf(
 						buf, "  Key will retire on ");

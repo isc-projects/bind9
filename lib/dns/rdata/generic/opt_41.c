@@ -44,7 +44,7 @@ fromtext_opt(ARGS_FROMTEXT) {
 static isc_result_t
 totext_opt(ARGS_TOTEXT) {
 	isc_region_t r;
-	isc_region_t or ;
+	isc_region_t or;
 	uint16_t option;
 	uint16_t length;
 	char buf[sizeof("64000 64000")];

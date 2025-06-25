@@ -815,8 +815,8 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 			result2 = dst_key_getfilename(
 				dst_key_name(pubkey), dst_key_id(pubkey),
 				dst_key_alg(pubkey),
-				(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-				 DST_TYPE_STATE),
+				DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
+					DST_TYPE_STATE,
 				directory, mctx, &buf);
 			if (result2 != ISC_R_SUCCESS) {
 				char namebuf[DNS_NAME_FORMATSIZE];
@@ -1678,7 +1678,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 		/* Try to read the public key. */
 		result = dst_key_fromfile(
 			dst_key_name(dnskey), dst_key_id(dnskey),
-			dst_key_alg(dnskey), (DST_TYPE_PUBLIC | DST_TYPE_STATE),
+			dst_key_alg(dnskey), DST_TYPE_PUBLIC | DST_TYPE_STATE,
 			directory, mctx, &pubkey);
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
 			result = ISC_R_SUCCESS;
@@ -1689,7 +1689,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 		result = dst_key_fromfile(
 			dst_key_name(dnskey), dst_key_id(dnskey),
 			dst_key_alg(dnskey),
-			(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE),
+			DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE,
 			directory, mctx, &privkey);
 
 		/*
@@ -1706,8 +1706,8 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 				result = dst_key_fromfile(
 					dst_key_name(dnskey),
 					dst_key_id(dnskey), dst_key_alg(dnskey),
-					(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-					 DST_TYPE_STATE),
+					DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
+						DST_TYPE_STATE,
 					directory, mctx, &privkey);
 				if (result == ISC_R_SUCCESS &&
 				    dst_key_pubcompare(dnskey, privkey, false))
@@ -1729,8 +1729,8 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 			result2 = dst_key_getfilename(
 				dst_key_name(dnskey), dst_key_id(dnskey),
 				dst_key_alg(dnskey),
-				(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-				 DST_TYPE_STATE),
+				DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
+					DST_TYPE_STATE,
 				directory, mctx, &buf);
 			if (result2 != ISC_R_SUCCESS) {
 				char namebuf[DNS_NAME_FORMATSIZE];

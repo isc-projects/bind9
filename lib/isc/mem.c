@@ -547,7 +547,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags, unsigned int jemalloc_flags) {
 		unsigned int i;
 
 		ctx->debuglist =
-			mallocx((DEBUG_TABLE_COUNT * sizeof(debuglist_t)),
+			mallocx(DEBUG_TABLE_COUNT * sizeof(debuglist_t),
 				ctx->jemalloc_flags);
 		INSIST(ctx->debuglist != NULL);
 
@@ -606,7 +606,7 @@ destroy(isc_mem_t *ctx) {
 		}
 
 		sdallocx(ctx->debuglist,
-			 (DEBUG_TABLE_COUNT * sizeof(debuglist_t)),
+			 DEBUG_TABLE_COUNT * sizeof(debuglist_t),
 			 ctx->jemalloc_flags);
 		decrement_malloced(ctx,
 				   DEBUG_TABLE_COUNT * sizeof(debuglist_t));

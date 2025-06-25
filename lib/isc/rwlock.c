@@ -182,7 +182,7 @@ print_lock(const char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		"cnt_and_flag=0x%x, readers_waiting=%u, "
 		"write_granted=%u, write_quota=%u\n",
 		rwl, isc_thread_self(), operation,
-		(type == isc_rwlocktype_read ? "read" : "write"),
+		type == isc_rwlocktype_read ? "read" : "write",
 		atomic_load_acquire(&rwl->write_requests),
 		atomic_load_acquire(&rwl->write_completions),
 		atomic_load_acquire(&rwl->cnt_and_flag), rwl->readers_waiting,

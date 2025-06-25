@@ -299,8 +299,10 @@ typedef ISC_LIST(dns_rbtnode_t) rbtnodelist_t;
 	  RDATASET_ATTR_STATCOUNT) != 0)
 #define STALE_TTL(header, rbtdb) (NXDOMAIN(header) ? 0 : rbtdb->serve_stale_ttl)
 
+/* clang-format off : RemoveParentheses */
 #define RDATASET_ATTR_GET(header, attribute) \
-	(atomic_load_acquire(&(header)->attributes) & attribute)
+	(atomic_load_acquire(&(header)->attributes) & (attribute))
+/* clang-format on */
 #define RDATASET_ATTR_SET(header, attribute) \
 	atomic_fetch_or_release(&(header)->attributes, attribute)
 #define RDATASET_ATTR_CLR(header, attribute) \
@@ -1458,7 +1460,7 @@ init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
 
-	STATIC_ASSERT((sizeof(h->attributes) == 2),
+	STATIC_ASSERT(sizeof(h->attributes) == 2,
 		      "The .attributes field of rdatasetheader_t needs to be "
 		      "16-bit int type exactly.");
 
@@ -1476,7 +1478,7 @@ update_newheader(rdatasetheader_t *newh, rdatasetheader_t *old) {
 	if (CASESET(old)) {
 		uint_least16_t attr = RDATASET_ATTR_GET(
 			old,
-			(RDATASET_ATTR_CASESET | RDATASET_ATTR_CASEFULLYLOWER));
+			RDATASET_ATTR_CASESET | RDATASET_ATTR_CASEFULLYLOWER);
 		RDATASET_ATTR_SET(newh, attr);
 		memmove(newh->upper, old->upper, sizeof(old->upper));
 	}
@@ -10442,9 +10444,9 @@ rdataset_equals(const dns_rdataset_t *rdataset1,
  */
 static bool
 need_headerupdate(rdatasetheader_t *header, isc_stdtime_t now) {
-	if (RDATASET_ATTR_GET(header, (RDATASET_ATTR_NONEXISTENT |
-				       RDATASET_ATTR_ANCIENT |
-				       RDATASET_ATTR_ZEROTTL)) != 0)
+	if (RDATASET_ATTR_GET(header, RDATASET_ATTR_NONEXISTENT |
+					      RDATASET_ATTR_ANCIENT |
+					      RDATASET_ATTR_ZEROTTL) != 0)
 	{
 		return false;
 	}

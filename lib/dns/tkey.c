@@ -1583,10 +1583,9 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	 */
 
 	RETERR(dns_tsigkey_createfromkey(
-		tkeyname,
-		(win2k ? DNS_TSIG_GSSAPIMS_NAME : DNS_TSIG_GSSAPI_NAME), dstkey,
-		true, NULL, rtkey.inception, rtkey.expire, ring->mctx, ring,
-		outkey));
+		tkeyname, win2k ? DNS_TSIG_GSSAPIMS_NAME : DNS_TSIG_GSSAPI_NAME,
+		dstkey, true, NULL, rtkey.inception, rtkey.expire, ring->mctx,
+		ring, outkey));
 	dst_key_free(&dstkey);
 	dns_rdata_freestruct(&rtkey);
 	return result;
