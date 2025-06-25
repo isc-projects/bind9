@@ -299,8 +299,10 @@ typedef ISC_LIST(dns_rbtnode_t) rbtnodelist_t;
 	  RDATASET_ATTR_STATCOUNT) != 0)
 #define STALE_TTL(header, rbtdb) (NXDOMAIN(header) ? 0 : rbtdb->serve_stale_ttl)
 
+/* clang-format off : RemoveParentheses */
 #define RDATASET_ATTR_GET(header, attribute) \
-	(atomic_load_acquire(&(header)->attributes) & attribute)
+	(atomic_load_acquire(&(header)->attributes) & (attribute))
+/* clang-format on */
 #define RDATASET_ATTR_SET(header, attribute) \
 	atomic_fetch_or_release(&(header)->attributes, attribute)
 #define RDATASET_ATTR_CLR(header, attribute) \
