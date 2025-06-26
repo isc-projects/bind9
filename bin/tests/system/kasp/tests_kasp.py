@@ -1258,7 +1258,7 @@ def test_kasp_dnssec_keygen():
             zone,
         ]
 
-        return isctest.run.cmd(keygen_command, log_stdout=True).stdout.decode("utf-8")
+        return isctest.run.cmd(keygen_command).stdout.decode("utf-8")
 
     # check that 'dnssec-keygen -k' (configured policy) creates valid files.
     keyprops = [
@@ -1294,7 +1294,7 @@ def test_kasp_dnssec_keygen():
         str(publish),
         key.path,
     ]
-    out = isctest.run.cmd(settime, log_stdout=True).stdout.decode("utf-8")
+    out = isctest.run.cmd(settime).stdout.decode("utf-8")
 
     isctest.check.file_contents_equal(f"{key.statefile}", f"{key.statefile}.backup")
     assert key.get_metadata("Publish", file=key.privatefile) == str(publish)
@@ -1343,7 +1343,7 @@ def test_kasp_dnssec_keygen():
         str(now),
         key.path,
     ]
-    out = isctest.run.cmd(settime, log_stdout=True).stdout.decode("utf-8")
+    out = isctest.run.cmd(settime).stdout.decode("utf-8")
     isctest.kasp.check_keys("kasp", keys, expected)
     isctest.kasp.check_keytimes(keys, expected)
 
@@ -1378,7 +1378,7 @@ def test_kasp_dnssec_keygen():
         str(now),
         key.path,
     ]
-    out = isctest.run.cmd(settime, log_stdout=True).stdout.decode("utf-8")
+    out = isctest.run.cmd(settime).stdout.decode("utf-8")
     isctest.kasp.check_keys("kasp", keys, expected)
     isctest.kasp.check_keytimes(keys, expected)
 
@@ -1423,7 +1423,7 @@ def test_kasp_dnssec_keygen():
         str(soon),
         key.path,
     ]
-    out = isctest.run.cmd(settime, log_stdout=True).stdout.decode("utf-8")
+    out = isctest.run.cmd(settime).stdout.decode("utf-8")
     isctest.kasp.check_keys("kasp", keys, expected)
     isctest.kasp.check_keytimes(keys, expected)
 

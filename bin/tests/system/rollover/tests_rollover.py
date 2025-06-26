@@ -265,7 +265,7 @@ def test_rollover_multisigner(servers):
             zone,
         ]
 
-        return isctest.run.cmd(keygen_command, log_stdout=True).stdout.decode("utf-8")
+        return isctest.run.cmd(keygen_command).stdout.decode("utf-8")
 
     zone = "multisigner-model2.kasp"
 
