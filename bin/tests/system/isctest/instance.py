@@ -137,13 +137,13 @@ class NamedInstance:
         """
         return WatchLogFromHere(self.log.path, timeout)
 
-    def reconfigure(self) -> None:
+    def reconfigure(self, **kwargs) -> None:
         """
         Reconfigure this named `instance` and wait until reconfiguration is
         finished.  Raise an `RNDCException` if reconfiguration fails.
         """
         with self.watch_log_from_here() as watcher:
-            self.rndc("reconfig")
+            self.rndc("reconfig", **kwargs)
             watcher.wait_for_line("any newly configured zones are now loaded")
 
     def _rndc_log(self, command: str, response: str) -> None:
