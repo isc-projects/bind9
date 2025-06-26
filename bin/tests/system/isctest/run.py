@@ -26,7 +26,7 @@ def cmd(
     timeout=60,
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
-    log_stdout=False,
+    log_stdout=True,
     log_stderr=True,
     input_text: Optional[bytes] = None,
     raise_on_exception=True,
@@ -78,7 +78,6 @@ class Dig:
         """Run the dig command with the given parameters and return the decoded output."""
         return cmd(
             [os.environ.get("DIG")] + f"{self.base_params} {params}".split(),
-            log_stdout=True,
         ).stdout.decode("utf-8")
 
 
