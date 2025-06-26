@@ -1039,8 +1039,8 @@ setup(void) {
 	}
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "starting %s%s <id:%s>", PACKAGE_STRING,
-		      PACKAGE_DESCRIPTION, PACKAGE_SRCID);
+		      ISC_LOG_NOTICE, "starting %s (%s) <id:%s>",
+		      PACKAGE_STRING, PACKAGE_DESCRIPTION, PACKAGE_SRCID);
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "running on %s", named_os_uname());
