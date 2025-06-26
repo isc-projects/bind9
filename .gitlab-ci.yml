@@ -594,7 +594,6 @@ vulture:
     - vulture --exclude "*/ans*/ans.py,conftest.py,get_algorithms.py,isctest" --ignore-names "pytestmark" bin/tests/system/
 
 ci-variables:
-  stage: precheck
   <<: *precheck_job
   script:
     - export BIND_BASELINE_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
