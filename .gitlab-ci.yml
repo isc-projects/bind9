@@ -75,15 +75,6 @@ stages:
     - runner-manager
     - amd64
 
-# Autoscaling GitLab Runner on AWS EC2 (arm64)
-
-.linux-arm64: &linux_arm64
-  tags:
-    - linux
-    - aws
-    - runner-manager
-    - aarch64
-
 ### Docker Image Templates
 
 # Alpine Linux
@@ -122,10 +113,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:fedora-40-amd64"
   <<: *linux_amd64
 
-.fedora-40-arm64: &fedora_40_arm64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-40-arm64"
-  <<: *linux_arm64
-
 # Ubuntu
 
 .ubuntu-jammy-amd64: &ubuntu_jammy_amd64_image
@@ -148,10 +135,6 @@ stages:
   rules:
     - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
     - if: '$CI_COMMIT_TAG != null'
-
-.api-pipelines-schedules-triggers-web-triggering-rules: &api_pipelines_schedules_triggers_web_triggering_rules
-  rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
 
 .default-triggering-rules: &default_triggering_rules
   rules:
