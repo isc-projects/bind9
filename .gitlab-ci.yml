@@ -559,6 +559,16 @@ ci-variables:
     reports:
       dotenv: ci_vars.env
 
+ci-orphaned-anchors:
+  <<: *precheck_job
+  script:
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - bind9-qa/ci-orphaned-anchors/check-orphaned-anchors-ci.py .gitlab-ci.yml
+  needs: []
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+
 clang-format:
   <<: *precheck_job
   needs: []
