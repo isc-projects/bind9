@@ -31,8 +31,8 @@ def generic_query(
     timeout: int = QUERY_TIMEOUT,
     attempts: int = 10,
     expected_rcode: dns_rcode = None,
-    log_query: bool = False,
-    log_response: bool = False,
+    log_query: bool = True,
+    log_response: bool = True,
 ) -> Any:
     if port is None:
         port = int(os.environ["PORT"])
