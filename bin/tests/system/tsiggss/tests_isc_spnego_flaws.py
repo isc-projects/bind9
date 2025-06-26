@@ -177,9 +177,7 @@ def send_crafted_tkey_query(opts: argparse.Namespace) -> None:
 
     query = CraftedTKEYQuery(opts).msg
 
-    isctest.query.tcp(
-        query, opts.server_ip, timeout=2, log_query=True, log_response=True
-    )
+    isctest.query.tcp(query, opts.server_ip, timeout=2)
 
 
 def test_cve_2020_8625():

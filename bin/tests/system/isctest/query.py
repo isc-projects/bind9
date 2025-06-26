@@ -32,8 +32,8 @@ def generic_query(
     attempts: int = 10,
     expected_rcode: dns_rcode = None,
     verify: bool = False,
-    log_query: bool = False,
-    log_response: bool = False,
+    log_query: bool = True,
+    log_response: bool = True,
 ) -> Any:
     if port is None:
         if query_func.__name__ == "tls":
