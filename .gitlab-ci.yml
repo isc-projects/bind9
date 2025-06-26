@@ -94,11 +94,6 @@ stages:
 
 ### Runner Tag Templates
 
-.libvirt-amd64: &libvirt_amd64
-  tags:
-    - libvirt
-    - amd64
-
 # Autoscaling GitLab Runner on AWS EC2 (amd64)
 
 .linux-amd64: &linux_amd64
@@ -246,10 +241,6 @@ stages:
     - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
     - if: '$CI_COMMIT_TAG != null'
 
-.api-pipelines-schedules-triggers-web-triggering-rules: &api_pipelines_schedules_triggers_web_triggering_rules
-  rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
-
 .default-triggering-rules_list: &default_triggering_rules_list
   - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
   - if: '$CI_COMMIT_TAG != null'
@@ -372,8 +363,7 @@ stages:
   <<: *base_image
   stage: performance
   rules:
-    - &shotgun_rule_mr
-      if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       variables:
         BASELINE: '$CI_MERGE_REQUEST_DIFF_BASE_SHA'
     - &shotgun_rule_tag
@@ -446,21 +436,6 @@ stages:
     when: always
     reports:
       junit: junit.xml
-
-.system_test_legacy: &system_test_legacy
-  script:
-    - cd bin/tests/system
-    - find . -maxdepth 2 -mindepth 2 -type f -name "tests.sh" | cut -d/ -f2 | xargs -n 1 -P ${TEST_PARALLEL_JOBS:-1} sh legacy.run.sh
-    - if git rev-parse > /dev/null 2>&1; then ( ! grep "^I:.*:file.*not removed$" *.log ); fi
-    - '( ! grep -F "grep: warning:" *.log )'
-  after_script:
-    - test -d bind-* && cd bind-*
-    - REALSOURCEDIR="$PWD"
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
-    - find bin/tests/system -name "*dig.*" | xargs grep "error" || true
-    - *find_python
-    - >
-      "$PYTHON" "$REALSOURCEDIR"/bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
 
 .system_test_make_check: &system_test_make_check_job
   <<: *system_test_job
@@ -1670,9 +1645,6 @@ shotgun:doh-get:
     SHOTGUN_TRAFFIC_MULTIPLIER: 3
     SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MAX: 0.4  # bump from the default due to increased tail-end jitter
   rules: *shotgun_rules_manual_mr
-
-.stress-test: &stress_test
-  stage: performance
 
 generate-stress-test-configs:
   <<: *base_image
