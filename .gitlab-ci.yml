@@ -328,6 +328,16 @@ black:
     expire_in: "1 week"
     when: on_failure
 
+ci-orphaned-anchors:
+  <<: *precheck_job
+  script:
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
+  needs: []
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+
 coccinelle:
   <<: *precheck_job
   script:
