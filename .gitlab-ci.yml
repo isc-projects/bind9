@@ -336,7 +336,7 @@ stages:
     - *check_readline_setup
     - meson compile -C build
     - meson compile -C build system-test-dependencies
-    - test -z "${BUILD_TEST_PREREQ}" || ninja -C build meson-test-prereq
+    - test -z "${NO_BUILD_TEST_PREREQ}" && ninja -C build meson-test-prereq
     - test -z "${RUN_MESON_INSTALL}" || meson install -C build --destdir=$INSTALL_PATH
     - test -z "${RUN_MESON_INSTALL}" || DESTDIR="${INSTALL_PATH}" sh build/util/check-make-install
     #- test -z "${CROSS_COMPILATION}" || grep -F -A 1 "checking whether we are cross compiling" config.log | grep -q "result.*yes"
@@ -753,7 +753,6 @@ docs:tarball:
 
 gcc:alpine3.22:amd64:
   variables:
-    BUILD_TEST_PREREQ: 1
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "${WITHOUT_LIBEDIT}"
@@ -828,7 +827,6 @@ unit:gcc:almalinux9:amd64:
 
 gcc:8fips:amd64:
   variables:
-    BUILD_TEST_PREREQ: 1
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "-Didn=enabled -Dfips=enabled -Dtracing=disabled"
@@ -975,7 +973,6 @@ gcc:ossl3:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
   variables:
-    BUILD_TEST_PREREQ: 1
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DOPENSSL_NO_DEPRECATED=1 -DOPENSSL_API_COMPAT=30000"
     # See https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
@@ -1011,7 +1008,6 @@ gcc:sid:amd64:
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "-Doptimization=3 -Didn=enabled -Dlmdb=disabled ${WITH_LIBEDIT}"
     RUN_MESON_INSTALL: 1
-    BUILD_TEST_PREREQ: 1
 
 system:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -1075,7 +1071,6 @@ gcc:tumbleweed:amd64:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
     EXTRA_CONFIGURE: "-Didn=enabled -Dgssapi=disabled ${WITH_LIBEDIT}"
-    BUILD_TEST_PREREQ: 1
 
 system:gcc:tumbleweed:amd64:
   <<: *tumbleweed_latest_amd64_image
@@ -1098,6 +1093,7 @@ gcc:jammy:amd64:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "-Dgeoip=disabled -Didn=enabled -Ddoh=disabled -Dcmocka=disabled -Ddnstap=disabled -Dgssapi=disabled"
+    NO_BUILD_TEST_PREREQ: 1  # remove this variable after removing this particular distro
   <<: *ubuntu_jammy_amd64_image
   <<: *build_job
 
@@ -1148,7 +1144,6 @@ gcc:asan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "-Db_sanitize=address,undefined -Didn=enabled -Djemalloc=disabled -Dtracing=disabled"
-    BUILD_TEST_PREREQ: 1
   <<: *fedora_42_amd64_image
   <<: *build_job
 
@@ -1202,7 +1197,6 @@ gcc:tsan:
     CFLAGS: "${CFLAGS_COMMON} -Wno-stringop-overread"
     LDFLAGS: "-Wl,--disable-new-dtags"
     EXTRA_CONFIGURE: "${TSAN_CONFIGURE_FLAGS_COMMON}"
-    BUILD_TEST_PREREQ: 1
   <<: *tsan_fedora_42_amd64_image
   <<: *build_job
 
