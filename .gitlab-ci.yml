@@ -548,7 +548,6 @@ vulture:
     - vulture --exclude "*ans.py,conftest.py,isctest" --ignore-names "pytestmark" bin/tests/system/
 
 ci-variables:
-  stage: precheck
   <<: *precheck_job
   script:
     # When testing a .0 release, compare it against the previous development
