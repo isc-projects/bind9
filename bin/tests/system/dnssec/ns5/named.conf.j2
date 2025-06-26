@@ -61,11 +61,6 @@ controls {
 		file "../../_common/root.hint";
 	};
 
-	zone "corp" {
-		type static-stub;
-		server-addresses { 10.53.0.2; };
-	};
-
 	include "broken.conf";
 {% else %}
 	zone "." {

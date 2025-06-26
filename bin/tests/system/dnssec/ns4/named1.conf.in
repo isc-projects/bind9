@@ -24,10 +24,6 @@ options {
 	recursion yes;
 	minimal-responses no;
 
-	nta-lifetime 12s;
-	nta-recheck 9s;
-	validate-except { corp; };
-
 	# Note: We only reference the bind.keys file here to confirm that it
 	# is *not* being used.  It contains the real root key, and we're
 	# using a local toy root zone for the tests, so it wouldn't work.
@@ -51,9 +47,4 @@ controls {
 zone "." {
 	type hint;
 	file "../../_common/root.hint";
-};
-
-zone "corp" {
-	type static-stub;
-	server-addresses { 10.53.0.2; };
 };

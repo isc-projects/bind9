@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/bin/sh -e
 
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -11,14 +11,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-use strict;
-use Time::Piece;
-use Time::Seconds;
+# shellcheck source=conf.sh
+. ../conf.sh
 
-exit 1 if (scalar(@ARGV) != 2);
+set -e
 
-my $actual = Time::Piece->strptime($ARGV[0], '%d-%b-%Y %H:%M:%S.000 %z');
-my $expected = Time::Piece->strptime($ARGV[1], '%s') + ONE_WEEK;
-my $diff = abs($actual - $expected);
-
-print($diff . "\n");
+(
+  cd ns1
+  $SHELL sign.sh
+)

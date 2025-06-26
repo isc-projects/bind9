@@ -24,12 +24,14 @@ options {
 	recursion yes;
 	minimal-responses no;
 
-	dnssec-accept-expired yes;
-	servfail-ttl 0;
+	nta-lifetime 12s;
+	nta-recheck 9s;
+	validate-except { corp; };
 
-	dnssec-validation auto;
-	bindkeys-file "managed.conf";
+	dnssec-validation yes;
 };
+
+include "trusted.conf";
 
 key rndc_key {
 	secret "1234abcd8765";
@@ -43,4 +45,9 @@ controls {
 zone "." {
 	type hint;
 	file "../../_common/root.hint";
+};
+
+zone "corp" {
+	type static-stub;
+	server-addresses { 10.53.0.2; };
 };

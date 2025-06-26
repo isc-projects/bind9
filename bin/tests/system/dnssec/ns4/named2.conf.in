@@ -24,10 +24,6 @@ options {
 	recursion yes;
 	minimal-responses no;
 
-	nta-lifetime 12s;
-	nta-recheck 9s;
-	validate-except { corp; };
-
 	dnssec-validation auto;
 	bindkeys-file "managed.conf";
 };
@@ -44,9 +40,4 @@ controls {
 zone "." {
 	type hint;
 	file "../../_common/root.hint";
-};
-
-zone "corp" {
-	type static-stub;
-	server-addresses { 10.53.0.2; };
 };
