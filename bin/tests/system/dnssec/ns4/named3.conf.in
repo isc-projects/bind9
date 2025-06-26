@@ -22,16 +22,17 @@ options {
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
 	recursion yes;
-	dnssec-validation auto;
-	bindkeys-file "managed.conf";
-	dnssec-accept-expired yes;
 	minimal-responses no;
+
+	nta-lifetime 12s;
+	nta-recheck 9s;
+	validate-except { corp; };
+
+	dnssec-accept-expired yes;
 	servfail-ttl 0;
 
-	disable-algorithms "digest-alg-unsupported.example." { ECDSAP384SHA384; };
-	disable-ds-digests "digest-alg-unsupported.example." { "SHA384"; "SHA-384";};
-	disable-ds-digests "ds-unsupported.example." { "SHA256"; "SHA-256"; "SHA384"; "SHA-384"; };
-	disable-algorithms "badalg.secure.example." { ECDSAP256SHA256; };
+	dnssec-validation auto;
+	bindkeys-file "managed.conf";
 };
 
 key rndc_key {
@@ -46,4 +47,9 @@ controls {
 zone "." {
 	type hint;
 	file "../../_common/root.hint";
+};
+
+zone "corp" {
+	type static-stub;
+	server-addresses { 10.53.0.2; };
 };

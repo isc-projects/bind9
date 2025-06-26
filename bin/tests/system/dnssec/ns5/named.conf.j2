@@ -19,10 +19,9 @@ options {
 	transfer-source 10.53.0.5;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.5; };
+	listen-on { 10.53.0.5; 127.0.0.1; };
 	listen-on-v6 { none; };
 	recursion yes;
-	dnssec-validation yes;
 };
 
 key rndc_key {
@@ -34,10 +33,45 @@ controls {
 	inet 10.53.0.5 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+{% set revoked_key = revoked_key | default(False) %}
+{% set broken_key = broken_key | default(False) %}
+{% if revoked_key %}
+	view root {
+		match-destinations { 127.0.0.1; };
+		dnssec-validation no;
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+		zone "." {
+			type primary;
+			file "root.db.signed";
+		};
+	};
 
-include "trusted.conf";
+	view other {
+		dnssec-validation yes;
+		include "revoked.conf";
+
+		zone "." {
+			type static-stub;
+			server-addresses { 127.0.0.1; };
+		};
+	};
+{% elif broken_key %}
+	zone "." {
+		type hint;
+		file "../../_common/root.hint";
+	};
+
+	zone "corp" {
+		type static-stub;
+		server-addresses { 10.53.0.2; };
+	};
+
+	include "broken.conf";
+{% else %}
+	zone "." {
+		type hint;
+		file "../../_common/root.hint";
+	};
+
+	include "trusted.conf";
+{% endif %}

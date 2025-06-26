@@ -24,7 +24,12 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	forward only;
+{% set forward_badkey = forward_badkey | default(False) %}
+{% if forward_badkey %}
+	forwarders { 10.53.0.5; };
+{% else %}
 	forwarders { 10.53.0.4; };
+{% endif %}
 	servfail-ttl 0;
 };
 

@@ -1054,33 +1054,6 @@ if [ -x "${DELV}" ]; then
   status=$((status + ret))
 fi
 
-# Try validating with a bad trusted key.
-# This should fail.
-
-echo_i "checking that validation fails with a misconfigured trusted key ($n)"
-ret=0
-dig_with_opts example. soa @10.53.0.5 >dig.out.ns5.test$n || ret=1
-grep "SERVFAIL" dig.out.ns5.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking that negative validation fails with a misconfigured trusted key ($n)"
-ret=0
-dig_with_opts example. ptr @10.53.0.5 >dig.out.ns5.test$n || ret=1
-grep "SERVFAIL" dig.out.ns5.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking that insecurity proofs fail with a misconfigured trusted key ($n)"
-ret=0
-dig_with_opts a.insecure.example. a @10.53.0.5 >dig.out.ns5.test$n || ret=1
-grep "SERVFAIL" dig.out.ns5.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 echo_i "checking that validation fails when key record is missing ($n)"
 ret=0
 dig_with_opts a.b.keyless.example. a @10.53.0.4 >dig.out.ns4.test$n || ret=1
@@ -1210,34 +1183,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-# Check that the setting the cd bit works
-
-echo_i "checking cd bit on a positive answer ($n)"
-ret=0
-dig_with_opts +noauth example. soa @10.53.0.4 \
-  >dig.out.ns4.test$n || ret=1
-dig_with_opts +noauth +cdflag example. soa @10.53.0.5 \
-  >dig.out.ns5.test$n || ret=1
-digcomp dig.out.ns4.test$n dig.out.ns5.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
-# Note - this is looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns5.test$n >/dev/null && ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking cd bit on a negative answer ($n)"
-ret=0
-dig_with_opts q.example. soa @10.53.0.4 >dig.out.ns4.test$n || ret=1
-dig_with_opts +cdflag q.example. soa @10.53.0.5 >dig.out.ns5.test$n || ret=1
-digcomp dig.out.ns4.test$n dig.out.ns5.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
-# Note - this is looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns5.test$n >/dev/null && ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 echo_i "checking insecurity proof works using negative cache ($n)"
 ret=0
 rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
@@ -1310,50 +1255,6 @@ dig_with_opts +noauth a.kskonly.example. @10.53.0.3 a >dig.out.ns3.test$n || ret
 dig_with_opts +noauth a.kskonly.example. @10.53.0.4 a >dig.out.ns4.test$n || ret=1
 digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking cd bit on a query that should fail ($n)"
-ret=0
-dig_with_opts a.bogus.example. soa @10.53.0.4 \
-  >dig.out.ns4.test$n || ret=1
-dig_with_opts +cdflag a.bogus.example. soa @10.53.0.5 \
-  >dig.out.ns5.test$n || ret=1
-digcomp dig.out.ns4.test$n dig.out.ns5.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
-# Note - this is looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns5.test$n >/dev/null && ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking cd bit on an insecurity proof ($n)"
-ret=0
-dig_with_opts +noauth a.insecure.example. soa @10.53.0.4 \
-  >dig.out.ns4.test$n || ret=1
-dig_with_opts +noauth +cdflag a.insecure.example. soa @10.53.0.5 \
-  >dig.out.ns5.test$n || ret=1
-digcomp dig.out.ns4.test$n dig.out.ns5.test$n || ret=1
-grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
-# Note - these are looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns5.test$n >/dev/null && ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking cd bit on a negative insecurity proof ($n)"
-ret=0
-dig_with_opts q.insecure.example. a @10.53.0.4 \
-  >dig.out.ns4.test$n || ret=1
-dig_with_opts +cdflag q.insecure.example. a @10.53.0.5 \
-  >dig.out.ns5.test$n || ret=1
-digcomp dig.out.ns4.test$n dig.out.ns5.test$n || ret=1
-grep "status: NXDOMAIN" dig.out.ns4.test$n >/dev/null || ret=1
-# Note - these are looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns5.test$n >/dev/null && ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
@@ -3961,17 +3862,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking initialization with a revoked managed key ($n)"
-ret=0
-copy_setports ns5/named2.conf.in ns5/named.conf
-rndccmd 10.53.0.5 reconfig 2>&1 | sed 's/^/ns5 /' | cat_i
-sleep 3
-dig_with_opts +dnssec @10.53.0.5 SOA . >dig.out.ns5.test$n
-grep "status: SERVFAIL" dig.out.ns5.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 echo_i "check that a non matching CDNSKEY record is accepted with a matching CDNSKEY record ($n)"
 ret=0
 (
@@ -4855,25 +4745,6 @@ grep "status: SERVFAIL" dig.out.ns4.test$n >/dev/null || ret=1
 # check that lookup using forwarder succeeds and that SERVFAIL was received
 nextpart ns9/named.run >/dev/null
 $DIG +tcp +dnssec -p "$PORT" @10.53.0.9 localkey.example soa >dig.out.ns9.test$n || ret=1
-grep "status: NOERROR" dig.out.ns9.test$n >/dev/null || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns9.test$n >/dev/null || ret=1
-nextpart ns9/named.run | grep 'status: SERVFAIL' >/dev/null || ret=1
-n=$((n + 1))
-if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-copy_setports ns4/named5.conf.in ns4/named.conf
-rndccmd 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
-sleep 3
-
-echo_i "checking forwarder CD behavior (forward server with bad trust anchor) ($n)"
-ret=0
-# confirm invalid trust anchor produces SERVFAIL in resolver
-$DIG +tcp +dnssec -p "$PORT" @10.53.0.4 a.secure.example >dig.out.ns4.test$n || ret=1
-grep "status: SERVFAIL" dig.out.ns4.test$n >/dev/null || ret=1
-# check that lookup using forwarder succeeds and that SERVFAIL was received
-nextpart ns9/named.run >/dev/null
-$DIG +tcp +dnssec -p "$PORT" @10.53.0.9 a.secure.example soa >dig.out.ns9.test$n || ret=1
 grep "status: NOERROR" dig.out.ns9.test$n >/dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns9.test$n >/dev/null || ret=1
 nextpart ns9/named.run | grep 'status: SERVFAIL' >/dev/null || ret=1
