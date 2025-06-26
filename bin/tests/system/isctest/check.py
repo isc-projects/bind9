@@ -13,6 +13,7 @@ import difflib
 import shutil
 from typing import Optional
 
+import dns.flags
 import dns.rcode
 import dns.message
 import dns.zone
@@ -39,6 +40,53 @@ def refused(message: dns.message.Message) -> None:
 
 def servfail(message: dns.message.Message) -> None:
     rcode(message, dns_rcode.SERVFAIL)
+
+
+def adflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.AD) != 0, str(message)
+
+
+def noadflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.AD) == 0, str(message)
+
+
+def rdflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.RD) != 0, str(message)
+
+
+def nordflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.RD) == 0, str(message)
+
+
+def section_equal(sec1: list, sec2: list) -> None:
+    # convert an RRset to a normalized string (lower case, TTL=0)
+    # so it can be used as a set member.
+    def normalized(rrset):
+        ttl = rrset.ttl
+        rrset.ttl = 0
+        s = str(rrset).lower()
+        rrset.ttl = ttl
+        return s
+
+    # convert the section contents to sets before comparison,
+    # in case they aren't in the same sort order.
+    set1 = {normalized(item) for item in sec1}
+    set2 = {normalized(item) for item in sec2}
+    assert set1 == set2
+
+
+def same_data(res1: dns.message.Message, res2: dns.message.Message):
+    assert res1.question == res2.question
+    section_equal(res1.answer, res2.answer)
+    section_equal(res1.authority, res2.authority)
+    section_equal(res1.additional, res2.additional)
+    assert res1.rcode() == res2.rcode()
+
+
+def same_answer(res1: dns.message.Message, res2: dns.message.Message):
+    assert res1.question == res2.question
+    section_equal(res1.answer, res2.answer)
+    assert res1.rcode() == res2.rcode()
 
 
 def rrsets_equal(
@@ -123,6 +171,30 @@ def single_question(message: dns.message.Message) -> None:
 
 def empty_answer(message: dns.message.Message) -> None:
     assert not message.answer, str(message)
+
+
+def answer_count_eq(m: dns.message.Message, expected: int):
+    count = sum(max(1, len(rrs)) for rrs in m.answer)
+    assert count == expected, str(m)
+
+
+def authority_count_eq(m: dns.message.Message, expected: int):
+    count = sum(max(1, len(rrs)) for rrs in m.authority)
+    assert count == expected, str(m)
+
+
+def additional_count_eq(m: dns.message.Message, expected: int):
+    count = sum(max(1, len(rrs)) for rrs in m.additional)
+
+    # add one for the OPT?
+    opt = bool(m.opt) if hasattr(m, "opt") else bool(m.edns >= 0)
+    count += 1 if opt else 0
+
+    # add one for the TSIG?
+    tsig = bool(m.tsig) if hasattr(m, "tsig") else m.had_tsig
+    count += 1 if tsig else 0
+
+    assert count == expected, str(m)
 
 
 def is_response_to(response: dns.message.Message, query: dns.message.Message) -> None:

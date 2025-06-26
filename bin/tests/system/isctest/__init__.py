@@ -10,6 +10,7 @@
 # information regarding copyright ownership.
 
 from . import check
+from . import dnssec
 from . import instance
 from . import query
 from . import kasp
