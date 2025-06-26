@@ -360,13 +360,13 @@ def system_test_dir(request, system_test_name, expected_artifacts):
             if node.nodeid in all_test_results
         }
         assert len(test_results)
-        messages = []
         for node, result in test_results.items():
-            isctest.log.debug("%s %s", result.outcome.upper(), node)
-            messages.extend(result.messages.values())
-        for message in messages:
-            if message:
-                isctest.log.debug("\n" + message)
+            message = f"{result.outcome.upper()} {node}"
+            nonempty_extra = [msg for msg in result.messages.values() if msg.strip()]
+            if nonempty_extra:
+                message += "\n"
+                message += "\n\n".join(nonempty_extra)
+            isctest.log.debug(message)
         failed = any(res.outcome == "failed" for res in test_results.values())
         skipped = any(res.outcome == "skipped" for res in test_results.values())
         if failed:
