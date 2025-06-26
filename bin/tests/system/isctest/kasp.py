@@ -459,7 +459,7 @@ class Key:
             str(self.keyfile),
         ]
 
-        out = isctest.run.cmd(dsfromkey_command, log_stdout=True)
+        out = isctest.run.cmd(dsfromkey_command)
         dsfromkey = out.stdout.decode("utf-8").split()
 
         rdata_fromfile = " ".join(dsfromkey[:7])

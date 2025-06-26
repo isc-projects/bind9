@@ -96,9 +96,7 @@ def ksr(zone, policy, action, options="", raise_on_exception=True):
         zone,
     ]
 
-    out = isctest.run.cmd(
-        ksr_command, log_stdout=True, raise_on_exception=raise_on_exception
-    )
+    out = isctest.run.cmd(ksr_command, raise_on_exception=raise_on_exception)
     return out.stdout.decode("utf-8"), out.stderr.decode("utf-8")
 
 
