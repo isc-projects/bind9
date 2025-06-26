@@ -1074,7 +1074,7 @@ gcc:tumbleweed:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
-    EXTRA_CONFIGURE: "-Didn=enabled ${WITH_LIBEDIT}"
+    EXTRA_CONFIGURE: "-Didn=enabled -Dgssapi=disabled ${WITH_LIBEDIT}"
     BUILD_TEST_PREREQ: 1
 
 system:gcc:tumbleweed:amd64:
