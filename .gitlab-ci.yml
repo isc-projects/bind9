@@ -204,12 +204,6 @@ stages:
     untracked: true
     when: on_failure
 
-.system_test_gcov: &system_test_gcov_job
-  <<: *system_test_common
-  artifacts:
-    untracked: true
-    when: always
-
 .kyua_report: &kyua_report_html
   - kyua --logfile /dev/null report-html
          --force
@@ -232,12 +226,6 @@ stages:
   artifacts:
     untracked: true
     when: on_failure
-
-.unit_test_gcov: &unit_test_gcov_job
-  <<: *unit_test_common
-  artifacts:
-    untracked: true
-    when: always
 
 .respdiff: &respdiff_job
   stage: system
