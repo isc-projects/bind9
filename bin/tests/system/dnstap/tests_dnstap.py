@@ -44,7 +44,7 @@ def run_rndc(server, rndc_command):
     cmdline = [rndc, "-c", "../_common/rndc.conf", "-p", port, "-s", server]
     cmdline.extend(rndc_command)
 
-    isctest.run.cmd(cmdline, log_stdout=True)
+    isctest.run.cmd(cmdline)
 
 
 def test_dnstap_dispatch_socket_addresses():
@@ -64,7 +64,6 @@ def test_dnstap_dispatch_socket_addresses():
     # Read the contents of the dnstap file using dnstap-read.
     run = isctest.run.cmd(
         [isctest.vars.ALL["DNSTAPREAD"], "dnstap.out.resolver_addresses"],
-        log_stdout=True,
     )
 
     # Check whether all frames contain the expected addresses.
