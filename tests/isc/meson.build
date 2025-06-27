@@ -57,6 +57,11 @@ isc_test = [
     'work',
 ]
 
+flaky_isc_test = [
+    'proxystream',
+    'random',
+]
+
 if config.has('HAVE_NGHTTP2')
     isc_test += 'doh'
 endif
@@ -84,10 +89,14 @@ foreach unit : isc_test
         ],
     )
 
+    suites = ['isc']
+    if unit in flaky_isc_test
+        suites += 'flaky'
+    endif
     test(
         unit,
         test_bin,
-        suite: 'isc',
+        suite: suites,
         timeout: 300,
         workdir: meson.current_source_dir(),
     )
