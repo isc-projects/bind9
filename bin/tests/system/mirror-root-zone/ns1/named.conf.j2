@@ -17,12 +17,12 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.4 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 options {
 	pid-file "named.pid";
-	listen-on port @PORT@ {10.53.0.4;};
+	listen-on port @PORT@ {10.53.0.1;};
 };
 
 zone "." { type mirror; };

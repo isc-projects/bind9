@@ -21,7 +21,7 @@ def test_mirror_root_zone(servers: Dict[str, NamedInstance]):
     This test pulls the root zone from the Internet, so let's only run
     it when CI_ENABLE_LIVE_INTERNET_TESTS is set.
     """
-    ns4 = servers["ns4"]
-    with ns4.watch_log_from_start() as watch_log:
+    ns1 = servers["ns1"]
+    with ns1.watch_log_from_start() as watch_log:
         # TimeoutError is raised if the line is not found and the test will fail.
         watch_log.wait_for_line("Transfer status: success")
