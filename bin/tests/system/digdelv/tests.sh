@@ -1430,6 +1430,18 @@ if [ -x "$DIG" ]; then
   grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
+
+  n=$((n + 1))
+  echo_i "check dig's +nocrypto flag ($n)"
+  ret=0
+  dig_with_opts +dnssec +norec +nocrypto DNSKEY . @10.53.0.1 >dig.out.dnskey.test$n || ret=1
+  grep -E "256 [0-9]+ $DEFAULT_ALGORITHM_NUMBER \\[key id = [1-9][0-9]*]" dig.out.dnskey.test$n >/dev/null || ret=1
+  grep -E "RRSIG.* \\[omitted]" dig.out.dnskey.test$n >/dev/null || ret=1
+  dig_with_opts +norec +nocrypto DS example \
+    @10.53.0.1 >dig.out.ds.test$n || ret=1
+  grep -E "DS.* [0-9]+ [12] \[omitted]" dig.out.ds.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi

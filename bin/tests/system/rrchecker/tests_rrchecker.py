@@ -193,3 +193,11 @@ def test_rrchecker_conversions(option):
         assert rr_class_orig == rr_class
         assert rr_type_orig == rr_type
         assert rr_rest_orig == " ".join(rr_rest)
+
+
+def test_rrchecker_seconds():
+    # check the acceptance of seconds as RRSIG inception and expiration
+    intext = "NSEC 8 0 86400 1390003200 1389394800 33655 .  NYWjZYBV1b+h4j0yu/SmPOOylR8P4IXKDzHX3NwEmU1SUp27aJ91dP+i+UBcnPmBib0hck4DrFVvpflCEpCnVQd2DexcN0GX+3PM7XobxhtDlmnU X1L47zJlbdHNwTqHuPaMM6Xy9HGMXps7O5JVyfggVhTz2C+G5OVxBdb2rOo="
+    expected = "NSEC 8 0 86400 20140118000000 20140110230000 33655 . NYWjZYBV1b+h4j0yu/SmPOOylR8P4IXKDzHX3NwEmU1SUp27aJ91dP+i +UBcnPmBib0hck4DrFVvpflCEpCnVQd2DexcN0GX+3PM7XobxhtDlmnU X1L47zJlbdHNwTqHuPaMM6Xy9HGMXps7O5JVyfggVhTz2C+G5OVxBdb2 rOo="
+    _, _, *rr_rest = run_rrchecker("-p", "IN", "RRSIG", intext)
+    assert " ".join(rr_rest) == expected
