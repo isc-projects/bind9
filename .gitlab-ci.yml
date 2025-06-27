@@ -261,10 +261,6 @@ stages:
     - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
     - if: '$CI_COMMIT_TAG != null'
 
-.api-pipelines-schedules-triggers-web-triggering-rules: &api_pipelines_schedules_triggers_web_triggering_rules
-  rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
-
 .default-triggering-rules_list: &default_triggering_rules_list
   - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
   - if: '$CI_COMMIT_TAG != null'
@@ -393,8 +389,7 @@ stages:
   <<: *base_image
   stage: performance
   rules:
-    - &shotgun_rule_mr
-      if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       variables:
         BASELINE: '$CI_MERGE_REQUEST_DIFF_BASE_SHA'
     - &shotgun_rule_tag
@@ -602,7 +597,6 @@ vulture:
     - vulture --exclude "*ans.py,conftest.py,isctest" --ignore-names "pytestmark" bin/tests/system/
 
 ci-variables:
-  stage: precheck
   <<: *precheck_job
   script:
     - export BIND_BASELINE_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
@@ -617,6 +611,16 @@ ci-variables:
   artifacts:
     reports:
       dotenv: ci_vars.env
+
+ci-orphaned-anchors:
+  <<: *precheck_job
+  script:
+    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - bind9-qa/ci-orphaned-anchors/check-orphaned-anchors-ci.py .gitlab-ci.yml
+  needs: []
+  rules:
+    - changes:
+        - .gitlab-ci.yml
 
 clang-format:
   <<: *precheck_job
@@ -1772,9 +1776,6 @@ shotgun:doh-get:
     SHOTGUN_TRAFFIC_MULTIPLIER: 3
     SHOTGUN_EVAL_THRESHOLD_LATENCY_PCTL_MAX: 0.4  # bump from the default due to increased tail-end jitter
   rules: *shotgun_rules_manual_mr
-
-.stress-test: &stress_test
-  stage: performance
 
 generate-stress-test-configs:
   <<: *base_image
