@@ -263,10 +263,13 @@ stages:
   rules:
     - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
 
+.default-triggering-rules_list: &default_triggering_rules_list
+  - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
+  - if: '$CI_COMMIT_TAG != null'
+
 .default-triggering-rules: &default_triggering_rules
   rules:
-    - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
-    - if: '$CI_COMMIT_TAG != null'
+    - *default_triggering_rules_list
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
@@ -912,18 +915,23 @@ system:gcc:bookworm:amd64:
   <<: *debian_bookworm_amd64_image
   <<: *system_test_job
   variables:
-    CI_ENABLE_ALL_TESTS: 1
+    CI_ENABLE_LONG_TESTS: 1
     CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 0
     TZ: Australia/Sydney
   needs:  # using artifacts from unit test job is required for gcov
     - job: unit:gcc:bookworm:amd64
       artifacts: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      variables:
+        CI_ENABLE_LIVE_INTERENT_TESTS: 1
+    - *default_triggering_rules_list
 
 unit:gcc:bookworm:amd64:
   <<: *debian_bookworm_amd64_image
   <<: *unit_test_job
   variables:
-    CI_ENABLE_ALL_TESTS: 1
+    CI_ENABLE_LONG_TESTS: 1
     CLEAN_BUILD_ARTIFACTS_ON_SUCCESS: 0
   needs:
     - job: gcc:bookworm:amd64
