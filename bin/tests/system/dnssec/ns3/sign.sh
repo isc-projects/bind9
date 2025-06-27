@@ -53,7 +53,7 @@ for tld in managed trusted; do
   "$SIGNER" -z -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" >/dev/null
   awk '$4 == "DNSKEY" { $7 = 255 } $4 == "RRSIG" { $6 = 255 } { print }' ${zonefile}.tmp >${zonefile}.signed
 
-  # Make trusted-keys and managed keys conf sections for ns8.
+  # Make trusted-keys and managed keys conf sections for ns5/many_anchors.
   mv ${keyname4}.key ${keyname4}.tmp
   awk '$1 == "unsupported.'"${tld}"'." { $6 = 255 } { print }' ${keyname4}.tmp >${keyname4}.key
 
@@ -67,10 +67,10 @@ for tld in managed trusted; do
 
   case $tld in
     "managed")
-      keyfile_to_initial_keys $keyname1 $keyname2 $keyname3 $keyname4 $keyname5 >../ns8/managed.conf
+      keyfile_to_initial_keys $keyname1 $keyname2 $keyname3 $keyname4 $keyname5 >../ns5/many-managed.conf
       ;;
     "trusted")
-      keyfile_to_static_keys $keyname1 $keyname2 $keyname3 $keyname4 $keyname5 >../ns8/trusted.conf
+      keyfile_to_static_keys $keyname1 $keyname2 $keyname3 $keyname4 $keyname5 >../ns5/many-trusted.conf
       ;;
   esac
 done
@@ -324,7 +324,7 @@ $DSFROMKEY -2 -A -f ${zonefile}.signed "$zone" | tail -1 >>"$DSFILE"
 
 #
 # A zone which is fine by itself (supported algorithm) but that is used
-# to mimic unsupported DS digest (see ns8).
+# to mimic unsupported DS digest (see ns5/many_anchors).
 #
 zone=ds-unsupported.example.
 infile=ds-unsupported.example.db.in

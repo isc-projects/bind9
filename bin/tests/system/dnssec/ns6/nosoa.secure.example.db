@@ -18,5 +18,5 @@ $TTL 300        ; 5 minutes
                                 3600       ; minimum (1 hour)
                                 )
 @                       IN NS   ns
-ns			IN A	10.53.0.7
+ns			IN A	10.53.0.6
 a			IN A	1.2.3.4

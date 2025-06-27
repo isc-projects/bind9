@@ -22,7 +22,6 @@ zonefile=root.db
 
 (cd ../ns2 && $SHELL sign.sh)
 (cd ../ns6 && $SHELL sign.sh)
-(cd ../ns7 && $SHELL sign.sh)
 
 echo_i "ns1/sign.sh"
 
@@ -51,7 +50,6 @@ cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
 cp trusted.conf ../ns6/trusted.conf
-cp trusted.conf ../ns7/trusted.conf
 cp trusted.conf ../ns9/trusted.conf
 
 keyfile_to_static_keys "$ksk" >trusted.keys

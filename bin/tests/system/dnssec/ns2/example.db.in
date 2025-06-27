@@ -9,7 +9,7 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-$TTL 300	; 5 minutes
+$TTL 3600	; 1 hour
 @			IN SOA	mname1. . (
 				2000042407 ; serial
 				20         ; refresh (20 seconds)
@@ -105,6 +105,9 @@ ns.dnskey-unknown	A	10.53.0.3
 
 dnskey-unsupported	NS	ns.dnskey-unsupported
 ns.dnskey-unsupported	A	10.53.0.3
+
+dnskey-unsupported-2	NS	ns.dnskey-unsupported
+ns.dnskey-unsupported-2	A	10.53.0.3
 
 ds-unsupported	NS	ns.ds-unsupported
 ns.ds-unsupported	A	10.53.0.3

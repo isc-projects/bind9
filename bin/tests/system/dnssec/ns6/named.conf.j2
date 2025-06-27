@@ -37,4 +37,15 @@ zone "optout-tld" {
 	file "optout-tld.db.signed";
 };
 
+zone "nosoa.secure.example" {
+	type primary;
+	file "nosoa.secure.example.db";
+};
+
+zone "split-rrsig" {
+	type primary;
+	file "split-rrsig.db.signed";
+	allow-update { any; };
+};
+
 include "trusted.conf";

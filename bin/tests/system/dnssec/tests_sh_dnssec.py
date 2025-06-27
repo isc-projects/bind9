@@ -165,9 +165,11 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns4/named_dump.db.*",
         "ns5/broken.conf",
         "ns5/revoked.conf",
+        "ns5/many-trusted.conf",
+        "ns5/many-managed.conf",
         "ns6/optout-tld.db",
-        "ns7/split-rrsig.db",
-        "ns7/split-rrsig.db.unsplit",
+        "ns6/split-rrsig.db",
+        "ns6/split-rrsig.db.unsplit",
         "ns9/trusted-localkey.conf",
     ]
 )

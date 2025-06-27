@@ -16,8 +16,6 @@
 
 set -e
 
-copy_setports ns4/named1.conf.in ns4/named.conf
-
 (
   cd ns1
   $SHELL sign.sh

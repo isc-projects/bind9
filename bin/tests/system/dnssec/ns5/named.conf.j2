@@ -13,6 +13,9 @@
 
 // NS5
 
+{% set revoked_key = revoked_key | default(False) %}
+{% set broken_key = broken_key | default(False) %}
+{% set many_anchors = many_anchors | default(False) %}
 options {
 	query-source address 10.53.0.5;
 	notify-source 10.53.0.5;
@@ -22,6 +25,14 @@ options {
 	listen-on { 10.53.0.5; 127.0.0.1; };
 	listen-on-v6 { none; };
 	recursion yes;
+	minimal-responses no;
+	servfail-ttl 0;
+
+{% if many_anchors %}
+	dnssec-validation yes;
+	disable-algorithms "disabled.managed." { @DISABLED_ALGORITHM@; };
+	disable-algorithms "disabled.trusted." { @DISABLED_ALGORITHM@; };
+{% endif %}
 };
 
 key rndc_key {
@@ -33,8 +44,6 @@ controls {
 	inet 10.53.0.5 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-{% set revoked_key = revoked_key | default(False) %}
-{% set broken_key = broken_key | default(False) %}
 {% if revoked_key %}
 	view root {
 		match-destinations { 127.0.0.1; };
@@ -62,6 +71,14 @@ controls {
 	};
 
 	include "broken.conf";
+{% elif many_anchors %}
+	zone "." {
+		type hint;
+		file "../../_common/root.hint";
+	};
+
+	include "many-managed.conf";
+	include "many-trusted.conf";
 {% else %}
 	zone "." {
 		type hint;

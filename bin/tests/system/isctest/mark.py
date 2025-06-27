@@ -42,6 +42,15 @@ def feature_test(feature):
     return True
 
 
+rsasha1 = pytest.mark.skipif(not feature_test("--rsasha1"), reason="RSASHA1 disabled")
+
+
+extended_ds_digest = pytest.mark.skipif(
+    not feature_test("--extended-ds-digest"),
+    reason="extended DS digest algorithms disabled",
+)
+
+
 def is_host_freebsd_13(*_):
     return platform.system() == "FreeBSD" and platform.release().startswith("13")
 
