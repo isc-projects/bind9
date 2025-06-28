@@ -591,7 +591,8 @@ ci-orphaned-anchors:
     - bind9-qa/ci-orphaned-anchors/check-orphaned-anchors-ci.py .gitlab-ci.yml
   needs: []
   rules:
-    - changes:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
         - .gitlab-ci.yml
 
 clang-format:
