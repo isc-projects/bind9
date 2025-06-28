@@ -29,11 +29,6 @@ copy_setports ns4/named1.conf.in ns4/named.conf
 )
 
 (
-  cd ns3
-  cp -f siginterval1.conf siginterval.conf
-)
-
-(
   cd ns5
   $SHELL sign.sh
 )

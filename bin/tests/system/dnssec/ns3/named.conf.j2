@@ -13,6 +13,8 @@
 
 // NS3
 
+{% set long_sigs = long_sigs  | default(False) %}
+
 options {
 	query-source address 10.53.0.3;
 	notify-source 10.53.0.3;
@@ -464,28 +466,27 @@ zone "extended-ds-unknown-oid.example" {
         file "extended-ds-unknown-oid.example.db.signed";
 };
 
-dnssec-policy "siginterval1" {
+dnssec-policy "siginterval" {
 	keys {
 		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 
-	signatures-validity 1d;
-	signatures-refresh 21h;
+	{% if long_sigs  %}
+		signatures-validity 35d;
+		signatures-refresh 28d;
+	{% else %}
+		signatures-validity 1d;
+		signatures-refresh 21h;
+	{% endif %}
 	signatures-validity-dnskey 90d;
 };
 
-dnssec-policy "siginterval2" {
-	keys {
-		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-	};
-
-	signatures-validity 35d;
-	signatures-refresh 28d;
-	signatures-validity-dnskey 90d;
+zone "siginterval.example" {
+	type primary;
+	allow-update { any; };
+	dnssec-policy siginterval;
+	file "siginterval.example.db";
 };
-
-include "siginterval.conf";
 
 include "trusted.conf";

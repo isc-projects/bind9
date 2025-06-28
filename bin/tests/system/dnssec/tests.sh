@@ -25,10 +25,6 @@ dig_with_opts() {
   "$DIG" +tcp +noadd +nosea +nostat +nocmd +dnssec -p "$PORT" "$@"
 }
 
-dig_with_additionalopts() {
-  "$DIG" +noall +additional +dnssec -p "$PORT" "$@"
-}
-
 dig_with_answeropts() {
   "$DIG" +noall +answer +dnssec -p "$PORT" "$@"
 }
@@ -77,11 +73,6 @@ checkprivate() {
   done
   echo_d "$1 signing incomplete"
   return 1
-}
-
-# strip NS and RRSIG NS from input
-stripns() {
-  awk '($4 == "NS") || ($4 == "RRSIG" && $5 == "NS") { next} { print }' "$1"
 }
 
 #
@@ -1616,26 +1607,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that the NSEC record is properly generated when DNSKEY are added by dnssec-policy ($n)"
-ret=0
-dig_with_opts +dnssec a auto-nsec.example. @10.53.0.4 >dig.out.ns4.test$n || ret=1
-grep "NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
-grep "flags:.* ad[ ;]" dig.out.ns4.test$n >/dev/null || ret=1
-grep "IN.NSEC[^3].* DNSKEY" dig.out.ns4.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking that the NSEC3 record is properly generated when DNSKEY are added by dnssec-policy ($n)"
-ret=0
-dig_with_opts +dnssec a auto-nsec3.example. @10.53.0.4 >dig.out.ns4.test$n || ret=1
-grep "NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
-grep "flags:.* ad[ ;]" dig.out.ns4.test$n >/dev/null || ret=1
-grep "IN.NSEC3 .* DNSKEY" dig.out.ns4.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 echo_i "checking that signing records have been marked as complete ($n)"
 ret=0
 checkprivate dynamic.example 10.53.0.3 || ret=1
@@ -2059,53 +2030,6 @@ done
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
-
-echo_i "check that increasing the signatures-validity resigning triggers re-signing ($n)"
-ret=0
-before=$($DIG axfr siginterval.example -p "$PORT" @10.53.0.3 | grep RRSIG.SOA)
-cp ns3/siginterval2.conf ns3/siginterval.conf
-rndccmd 10.53.0.3 reconfig 2>&1 | sed 's/^/ns3 /' | cat_i
-i=10
-while [ "$i" -ge 0 ]; do
-  after=$($DIG axfr siginterval.example -p "$PORT" @10.53.0.3 | grep RRSIG.SOA)
-  test "$before" != "$after" && break
-  sleep 1
-  i=$((i - 1))
-done
-n=$((n + 1))
-if test "$before" = "$after"; then
-  echo_i "failed"
-  ret=1
-fi
-status=$((status + ret))
-
-if [ -x "$PYTHON" ]; then
-  echo_i "check signatures-validity-dnskey sets longer expiry for DNSKEY ($n)"
-  ret=0
-  rndccmd 10.53.0.3 sign siginterval.example 2>&1 | sed 's/^/ns3 /' | cat_i
-  # convert expiry date to a comma-separated list of integers python can
-  # use as input to date(). strip leading 0s in months and days so
-  # python3 will recognize them as integers.
-  $DIG +dnssec +short -p "$PORT" @10.53.0.3 soa siginterval.example >dig.out.soa.test$n || ret=1
-  soaexpire=$(awk '$1 ~ /SOA/ { print $5 }' dig.out.soa.test$n \
-    | sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/' \
-    | sed 's/ 0/ /g')
-  $DIG +dnssec +short -p "$PORT" @10.53.0.3 dnskey siginterval.example >dig.out.dnskey.test$n || ret=1
-  dnskeyexpire=$(awk '$1 ~ /DNSKEY/ { print $5; exit 0 }' dig.out.dnskey.test$n \
-    | sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/' \
-    | sed 's/ 0/ /g')
-  $PYTHON >python.out.$n <<EOF
-from datetime import date;
-ke=date($dnskeyexpire)
-se=date($soaexpire)
-print((ke-se).days);
-EOF
-  diff=$(cat python.out.$n)
-  [ "$diff" -ge 55 ] || ret=1
-  n=$((n + 1))
-  test "$ret" -eq 0 || echo_i "failed"
-  status=$((status + ret))
-fi
 
 copy_setports ns4/named4.conf.in ns4/named.conf
 rndccmd 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
@@ -3005,17 +2929,6 @@ ret=0
 rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 cp ns4/named.secroots named.secroots.test$n
 check_secroots_layout named.secroots.test$n || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking signatures-validity second field hours vs days ($n)"
-ret=0
-# zone configured with 'signatures-validity 500d; signatures-refresh 1d'
-# 499 days in the future w/ a 20 minute runtime to now allowance
-min=$(TZ=UTC $PERL -e '@lt=localtime(time() + 499*3600*24 - 20*60); printf "%.4d%0.2d%0.2d%0.2d%0.2d%0.2d\n",$lt[5]+1900,$lt[4]+1,$lt[3],$lt[2],$lt[1],$lt[0];')
-dig_with_opts @10.53.0.2 hours-vs-days AXFR >dig.out.ns2.test$n
-awk -v min=$min '$4 == "RRSIG" { if ($9 < min) { exit(1); } }' dig.out.ns2.test$n || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
