@@ -946,6 +946,8 @@ parse_command_line(int argc, char *argv[]) {
 
 static isc_result_t
 create_managers(void) {
+	bool capped = false;
+
 	/*
 	 * Set the default named_g_cpus if it was not set from the command line
 	 */
@@ -954,11 +956,19 @@ create_managers(void) {
 		named_g_cpus = named_g_cpus_detected;
 	}
 
-	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
-		      named_g_cpus_detected,
-		      named_g_cpus_detected == 1 ? "" : "s", named_g_cpus,
-		      named_g_cpus == 1 ? "" : "s");
+	if (named_g_cpus > ISC_TID_MAX) {
+		capped = true;
+		named_g_cpus = ISC_TID_MAX;
+	}
+
+	isc_log_write(
+		NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+		"found %u CPU%s, using %u worker thread%s%s",
+		named_g_cpus_detected, named_g_cpus_detected == 1 ? "" : "s",
+		named_g_cpus, named_g_cpus == 1 ? "" : "s",
+		capped ? " (recompile with -DISC_TID_MAX=<n> to raise the "
+			 "thread count limit)"
+		       : "");
 
 	isc_managers_create(&named_g_mctx, named_g_cpus, &named_g_loopmgr,
 			    &named_g_netmgr);

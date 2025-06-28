@@ -77,7 +77,7 @@ isc__uverr2result(int uverr, bool dolog, const char *file, unsigned int line,
 #define uv_idle_init(loop, idle)                                          \
 	({                                                                \
 		int __r = uv_idle_init(loop, idle);                       \
-		fprintf(stderr, "%" PRIu32 ":%s_:uv_idle_init(%p, %p)\n", \
+		fprintf(stderr, "%" PRItid ":%s_:uv_idle_init(%p, %p)\n", \
 			isc_tid(), __func__, loop, idle);                 \
 		__r;                                                      \
 	})
@@ -85,7 +85,7 @@ isc__uverr2result(int uverr, bool dolog, const char *file, unsigned int line,
 #define uv_timer_init(loop, timer)                                         \
 	({                                                                 \
 		int __r = uv_timer_init(loop, timer);                      \
-		fprintf(stderr, "%" PRIu32 ":%s_:uv_timer_init(%p, %p)\n", \
+		fprintf(stderr, "%" PRItid ":%s_:uv_timer_init(%p, %p)\n", \
 			isc_tid(), __func__, loop, timer);                 \
 		__r;                                                       \
 	})
@@ -93,7 +93,7 @@ isc__uverr2result(int uverr, bool dolog, const char *file, unsigned int line,
 #define uv_async_init(loop, async, async_cb)                                   \
 	({                                                                     \
 		int __r = uv_async_init(loop, async, async_cb);                \
-		fprintf(stderr, "%" PRIu32 ":%s_:uv_timer_init(%p, %p, %p)\n", \
+		fprintf(stderr, "%" PRItid ":%s_:uv_timer_init(%p, %p, %p)\n", \
 			isc_tid(), __func__, loop, async, async_cb);           \
 		__r;                                                           \
 	})
@@ -101,7 +101,7 @@ isc__uverr2result(int uverr, bool dolog, const char *file, unsigned int line,
 #define uv_close(handle, close_cb)                                    \
 	({                                                            \
 		uv_close(handle, close_cb);                           \
-		fprintf(stderr, "%" PRIu32 ":%s_:uv_close(%p, %p)\n", \
+		fprintf(stderr, "%" PRItid ":%s_:uv_close(%p, %p)\n", \
 			isc_tid(), __func__, handle, close_cb);       \
 	})
 

@@ -150,7 +150,7 @@ typedef struct dns_qpreader {
  */
 typedef struct dns_qpread {
 	DNS_QPREADER_FIELDS;
-	uint32_t tid;
+	isc_tid_t tid;
 } dns_qpread_t;
 
 /*%

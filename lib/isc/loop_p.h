@@ -46,7 +46,7 @@ struct isc_loop {
 	isc_loopmgr_t *loopmgr;
 
 	uv_loop_t loop;
-	uint32_t tid;
+	isc_tid_t tid;
 
 	isc_mem_t *mctx;
 

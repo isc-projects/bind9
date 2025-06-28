@@ -55,10 +55,10 @@
 #define ZIPF	0
 
 #if VERBOSE
-#define TRACE(fmt, ...)                                                   \
-	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP,         \
-		      ISC_LOG_DEBUG(7), "%s:%d:%s():t%d: " fmt, __FILE__, \
-		      __LINE__, __func__, isc_tid(), ##__VA_ARGS__)
+#define TRACE(fmt, ...)                                                  \
+	isc_log_write(DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP,        \
+		      ISC_LOG_DEBUG(7), "%s:%d:%s():t%" PRItid ": " fmt, \
+		      __FILE__, __LINE__, __func__, isc_tid(), ##__VA_ARGS__)
 #else
 #define TRACE(...)
 #endif

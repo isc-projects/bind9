@@ -76,7 +76,7 @@ struct dns_validator {
 	unsigned int   magic;
 	dns_view_t    *view;
 	isc_loop_t    *loop;
-	uint32_t       tid;
+	isc_tid_t      tid;
 	isc_refcount_t references;
 
 	/* Name and type of the response to be validated. */

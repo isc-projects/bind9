@@ -304,7 +304,7 @@ static void
 http_cleanup_listener_endpoints(isc_nmsocket_t *listener);
 
 static isc_nm_http_endpoints_t *
-http_get_listener_endpoints(isc_nmsocket_t *listener, const int tid);
+http_get_listener_endpoints(isc_nmsocket_t *listener, const isc_tid_t tid);
 
 static void
 http_initsocket(isc_nmsocket_t *sock);
@@ -3385,7 +3385,7 @@ typedef struct http_endpoints_data {
 static void
 http_set_endpoints_cb(void *arg) {
 	http_endpoints_data_t *data = arg;
-	const int tid = isc_tid();
+	const isc_tid_t tid = isc_tid();
 	isc_nmsocket_t *listener = data->listener;
 	isc_nm_http_endpoints_t *endpoints = data->endpoints;
 	isc__networker_t *worker = &listener->worker->netmgr->workers[tid];
@@ -3470,7 +3470,7 @@ http_cleanup_listener_endpoints(isc_nmsocket_t *listener) {
 }
 
 static isc_nm_http_endpoints_t *
-http_get_listener_endpoints(isc_nmsocket_t *listener, const int tid) {
+http_get_listener_endpoints(isc_nmsocket_t *listener, const isc_tid_t tid) {
 	isc_nm_http_endpoints_t *eps;
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(tid >= 0);

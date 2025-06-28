@@ -1358,11 +1358,10 @@ ns_interfacemgr_getserver(ns_interfacemgr_t *mgr) {
 
 ns_clientmgr_t *
 ns_interfacemgr_getclientmgr(ns_interfacemgr_t *mgr) {
-	int tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
-	REQUIRE(tid >= 0);
-	REQUIRE((uint32_t)tid < mgr->ncpus);
+	REQUIRE(tid >= 0 && (uint32_t)tid < mgr->ncpus);
 
 	return mgr->clientmgrs[tid];
 }

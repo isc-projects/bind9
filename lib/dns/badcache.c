@@ -254,7 +254,7 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 	REQUIRE(name != NULL);
 
 	isc_loop_t *loop = isc_loop();
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 	struct cds_list_head *lru = &bc->lru[tid];
 
 	isc_stdtime_t now = isc_stdtime_now();
@@ -320,7 +320,7 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		}
 	}
 
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 	struct cds_list_head *lru = &bc->lru[tid];
 	bcentry_purge(ht, lru, now);
 

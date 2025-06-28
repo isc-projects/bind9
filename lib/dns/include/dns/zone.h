@@ -145,7 +145,7 @@ typedef enum {
  ***/
 
 void
-dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid);
+dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, isc_tid_t tid);
 /*%<
  *	Creates a new empty zone and attach '*zonep' to it.
  *

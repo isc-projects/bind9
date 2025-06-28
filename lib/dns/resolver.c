@@ -342,7 +342,7 @@ struct fetchctx {
 	isc_stdtime_t now;
 
 	isc_loop_t *loop;
-	unsigned int tid;
+	isc_tid_t tid;
 
 	dns_edectx_t edectx;
 

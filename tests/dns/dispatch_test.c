@@ -303,7 +303,7 @@ ISC_LOOP_TEST_IMPL(dispatchset_get) {
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatchset_t *dset = NULL;
 	dns_dispatch_t *d1, *d2, *d3, *d4, *d5;
-	uint32_t tid_saved;
+	isc_tid_t tid_saved;
 
 	UNUSED(arg);
 

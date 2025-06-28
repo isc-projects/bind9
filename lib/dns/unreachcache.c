@@ -291,7 +291,7 @@ dns_unreachcache_add(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 	REQUIRE(local != NULL);
 
 	isc_loop_t *loop = isc_loop();
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 	struct cds_list_head *lru = &uc->lru[tid];
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_stdtime_t expire = now + uc->expire_min_s;
@@ -377,7 +377,7 @@ dns_unreachcache_find(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 		result = ISC_R_SUCCESS;
 	}
 
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 	struct cds_list_head *lru = &uc->lru[tid];
 	ucentry_purge(ht, lru, now);
 
@@ -410,7 +410,7 @@ dns_unreachcache_remove(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 		ucentry_evict(ht, found);
 	}
 
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 	struct cds_list_head *lru = &uc->lru[tid];
 	ucentry_purge(ht, lru, now);
 

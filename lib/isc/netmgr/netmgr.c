@@ -118,9 +118,10 @@ networker_teardown(void *arg) {
 
 	worker->shuttingdown = true;
 
-	isc__netmgr_log(worker->netmgr, ISC_LOG_DEBUG(1),
-			"Shutting down network manager worker on loop %p(%d)",
-			loop, isc_tid());
+	isc__netmgr_log(
+		worker->netmgr, ISC_LOG_DEBUG(1),
+		"Shutting down network manager worker on loop %p(%" PRItid ")",
+		loop, isc_tid());
 
 	uv_walk(&loop->loop, shutdown_walk_cb, NULL);
 
@@ -2558,7 +2559,7 @@ typedef struct settlsctx_data {
 static void
 settlsctx_cb(void *arg) {
 	settlsctx_data_t *data = arg;
-	const uint32_t tid = isc_tid();
+	const isc_tid_t tid = isc_tid();
 	isc_nmsocket_t *listener = data->listener;
 	isc_tlsctx_t *tlsctx = data->tlsctx;
 	isc__networker_t *worker = &listener->worker->netmgr->workers[tid];
@@ -2666,7 +2667,8 @@ isc__networker_destroy(isc__networker_t *worker) {
 	worker->netmgr = NULL;
 
 	isc__netmgr_log(netmgr, ISC_LOG_DEBUG(1),
-			"Destroying network manager worker on loop %p(%d)",
+			"Destroying network manager worker on loop %p(%" PRItid
+			")",
 			worker->loop, isc_tid());
 
 	isc_loop_detach(&worker->loop);

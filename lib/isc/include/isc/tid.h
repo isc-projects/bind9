@@ -17,17 +17,25 @@
 
 #include <isc/thread.h>
 
-#define ISC_TID_UNKNOWN UINT32_MAX
+typedef int32_t isc_tid_t;
 
-uint32_t
+#define PRItid PRId32
+
+#define ISC_TID_UNKNOWN (isc_tid_t) - 1
+
+#ifndef ISC_TID_MAX
+#define ISC_TID_MAX 512
+#endif /* ISC_TID_MAX */
+
+isc_tid_t
 isc_tid_count(void);
 /*%<
  * Returns the number of threads.
  */
 
-extern thread_local uint32_t isc__tid_local;
+extern thread_local isc_tid_t isc__tid_local;
 
-static inline uint32_t
+static inline isc_tid_t
 isc_tid(void) {
 	return isc__tid_local;
 }
@@ -38,7 +46,7 @@ isc_tid(void) {
 /* Private */
 
 void
-isc__tid_init(uint32_t tid);
+isc__tid_init(isc_tid_t tid);
 
 void
-isc__tid_initcount(uint32_t count);
+isc__tid_initcount(isc_tid_t count);

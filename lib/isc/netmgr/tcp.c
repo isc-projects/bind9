@@ -442,7 +442,7 @@ done_result:
 
 static void
 start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
-		uv_os_sock_t fd, int tid) {
+		uv_os_sock_t fd, isc_tid_t tid) {
 	isc_nmsocket_t *csock = &sock->children[tid];
 	isc__networker_t *worker = &mgr->workers[tid];
 

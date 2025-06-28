@@ -917,7 +917,7 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
  */
 
 void
-isc__nm_force_tid(int tid);
+isc__nm_force_tid(isc_tid_t tid);
 /*%<
  * Force the thread ID to 'tid'. This is STRICTLY for use in unit
  * tests and should not be used in any production code.

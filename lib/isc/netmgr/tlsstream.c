@@ -126,7 +126,7 @@ static void
 tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener);
 
 static isc_tlsctx_t *
-tls_get_listener_tlsctx(isc_nmsocket_t *listener, const int tid);
+tls_get_listener_tlsctx(isc_nmsocket_t *listener, const isc_tid_t tid);
 
 static void
 tls_keep_client_tls_session(isc_nmsocket_t *sock);
@@ -1548,7 +1548,7 @@ tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener) {
 }
 
 static isc_tlsctx_t *
-tls_get_listener_tlsctx(isc_nmsocket_t *listener, const int tid) {
+tls_get_listener_tlsctx(isc_nmsocket_t *listener, const isc_tid_t tid) {
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(tid >= 0);
 
@@ -1561,7 +1561,7 @@ tls_get_listener_tlsctx(isc_nmsocket_t *listener, const int tid) {
 
 void
 isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
-			     const int tid) {
+			     const isc_tid_t tid) {
 	REQUIRE(tid >= 0);
 
 	isc_tlsctx_free(&listener->tlsstream.listener_tls_ctx[tid]);

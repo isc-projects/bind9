@@ -110,7 +110,7 @@ struct dns_dispentry {
 struct dns_dispatch {
 	/* Unlocked. */
 	unsigned int magic; /*%< magic */
-	uint32_t tid;
+	isc_tid_t tid;
 	isc_socktype_t socktype;
 	isc_refcount_t references;
 	isc_mem_t *mctx;
@@ -186,7 +186,7 @@ static void
 dispentry_cancel(dns_dispentry_t *resp, isc_result_t result);
 static isc_result_t
 dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		   uint32_t tid, dns_dispatch_t **dispp);
+		   isc_tid_t tid, dns_dispatch_t **dispp);
 static void
 udp_startrecv(isc_nmhandle_t *handle, dns_dispentry_t *resp);
 static void
@@ -1102,7 +1102,7 @@ dns_dispatchmgr_getnetmgr(dns_dispatchmgr_t *mgr) {
  * Allocate and set important limits.
  */
 static void
-dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type, uint32_t tid,
+dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type, isc_tid_t tid,
 		  dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp = NULL;
 
@@ -1168,7 +1168,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		       dns_transport_t *transport, dns_dispatchopt_t options,
 		       dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp = NULL;
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(destaddr != NULL);
@@ -1229,7 +1229,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 	dns_dispatch_t *disp_connected = NULL;
 	dns_dispatch_t *disp_fallback = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(destaddr != NULL);
@@ -1326,7 +1326,7 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 static isc_result_t
 dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		   uint32_t tid, dns_dispatch_t **dispp) {
+		   isc_tid_t tid, dns_dispatch_t **dispp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dispatch_t *disp = NULL;
 	isc_sockaddr_t sa_any;
@@ -1379,7 +1379,7 @@ dispatch_destroy_rcu(struct rcu_head *rcu_head) {
 static void
 dispatch_destroy(dns_dispatch_t *disp) {
 	dns_dispatchmgr_t *mgr = disp->mgr;
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 
 	disp->magic = 0;
 
@@ -2237,14 +2237,14 @@ dns_dispentry_getlocaladdress(dns_dispentry_t *resp, isc_sockaddr_t *addrp) {
 
 dns_dispatch_t *
 dns_dispatchset_get(dns_dispatchset_t *dset) {
-	uint32_t tid = isc_tid();
+	isc_tid_t tid = isc_tid();
 
 	/* check that dispatch set is configured */
 	if (dset == NULL || dset->ndisp == 0) {
 		return NULL;
 	}
 
-	INSIST(tid < dset->ndisp);
+	INSIST((uint32_t)tid < dset->ndisp);
 
 	return dset->dispatches[tid];
 }
