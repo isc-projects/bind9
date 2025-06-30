@@ -11,6 +11,8 @@
 # information regarding copyright ownership.
 ############################################################################
 
+import json
+import os
 import sys
 
 from pathlib import Path
@@ -124,13 +126,6 @@ man_pages = [
     ("dnssec-signzone", "dnssec-signzone", "DNSSEC zone signing tool", author, 1),
     ("dnssec-verify", "dnssec-verify", "DNSSEC zone verification tool", author, 1),
     (
-        "dnstap-read",
-        "dnstap-read",
-        "print dnstap data in human-readable form",
-        author,
-        1,
-    ),
-    (
         "filter-aaaa",
         "filter-aaaa",
         "filter AAAA in DNS responses when A is present",
@@ -182,13 +177,6 @@ man_pages = [
         1,
     ),
     (
-        "named-nzd2nzf",
-        "named-nzd2nzf",
-        "convert an NZD database to NZF text format",
-        author,
-        1,
-    ),
-    (
         "named-rrchecker",
         "named-rrchecker",
         "syntax checker for individual DNS resource records",
@@ -205,6 +193,53 @@ man_pages = [
     ("rndc", "rndc", "name server control utility", author, 8),
     ("tsig-keygen", "tsig-keygen", "TSIG key generation tool", author, 8),
 ]
+
+bind_optional_pages = {
+    "dnstap-read": (
+        "dnstap-read",
+        "dnstap-read",
+        "print dnstap data in human-readable form",
+        author,
+        1,
+    ),
+    "named-nzd2nzf": (
+        "named-nzd2nzf",
+        "named-nzd2nzf",
+        "convert an NZD database to NZF text format",
+        author,
+        1,
+    ),
+}
+
+bind_build_root = os.getenv("BIND_BUILD_ROOT")
+if bind_build_root is None:
+    man_pages.extend(bind_optional_pages.values())
+else:
+    bind_build_path = Path(bind_build_root).resolve()
+    with open(
+        bind_build_path / "meson-info" / "intro-targets.json", encoding="utf-8"
+    ) as f:
+        for target in json.load(f):
+            if target["name"] in bind_optional_pages:
+                page = bind_optional_pages.pop(target["name"])
+                man_pages.append(page)
+
+    # Delete artifacts if an optional binary is no longer built.
+    # This happens when the build directory is reconfigured to exclude
+    # dnstap etc.
+    #
+    # Meson can't handle this because:
+    # - "man.p" is under our control
+    # - Meson just expects an entire folder as an output, this is just how sphinx works.
+    for unused in bind_optional_pages.values():
+        doctree = bind_build_path / "man.p" / f"{unused[0]}.doctree"
+        if doctree.exists():
+            doctree.unlink()
+
+        page = bind_build_path / "man" / f"man{unused[4]}" / f"{unused[0]}.{unused[4]}"
+        if page.exists():
+            page.unlink()
+
 
 #
 # The rst_epilog will be completely overwritten from meson
