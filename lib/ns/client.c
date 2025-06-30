@@ -916,10 +916,10 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 				     sizeof(log_buf));
 		if (rrl_result != DNS_RRL_RESULT_OK) {
 			/*
-			 * Log dropped errors in the query category
+			 * Log dropped errors in the query-errors category
 			 * so that they are not lost in silence.
 			 * Starts of rate-limited bursts are logged in
-			 * NS_LOGCATEGORY_RRL.
+			 * DNS_LOGCATEGORY_RRL.
 			 */
 			if (wouldlog) {
 				ns_client_log(client,
