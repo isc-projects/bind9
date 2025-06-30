@@ -206,7 +206,7 @@ if optimization != 'plain'
     )
 endif
 
-if host_machine.system() == 'x86'
+if host_machine.cpu_family() == 'x86'
     add_project_arguments(
         cc.get_supported_arguments(
             '-Wno-psabi',
