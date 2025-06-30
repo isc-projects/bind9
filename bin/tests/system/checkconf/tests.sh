@@ -686,6 +686,20 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking named-checkconf kasp deprecated algorithms and digests ($n)"
+ret=0
+if [ $RSASHA1_SUPPORTED = 0 ]; then
+  $CHECKCONF kasp-deprecated-fips.conf >checkconf.out$n 2>&1 || ret=1
+else
+  $CHECKCONF kasp-deprecated.conf >checkconf.out$n 2>&1 || ret=1
+  grep "dnssec-policy: DNSSEC algorithm rsasha1 is deprecated" checkconf.out$n >/dev/null || ret=1
+  grep "dnssec-policy: DNSSEC algorithm nsec3rsasha1 is deprecated" checkconf.out$n >/dev/null || ret=1
+fi
+grep "dnssec-policy: deprecated CDS digest-type sha1" checkconf.out$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "check that a good 'kasp' configuration is accepted ($n)"
 ret=0
 $CHECKCONF good-kasp.conf >checkconf.out$n 2>/dev/null || ret=1
