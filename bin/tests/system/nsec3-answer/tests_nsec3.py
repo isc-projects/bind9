@@ -36,12 +36,12 @@ import isctest.name
 
 from hypothesis import assume, given
 
-SUFFIX = dns.name.from_text("nsec3.example.")
-AUTH = "10.53.0.3"
-RESOLVER = "10.53.0.4"
+SUFFIX = dns.name.from_text(".")
+AUTH = "10.53.0.1"
+RESOLVER = "10.53.0.2"
 TIMEOUT = 5
 ZONE = isctest.name.ZoneAnalyzer.read_path(
-    Path(os.environ["builddir"]) / "dnssec/ns3/nsec3.example.db.in", origin=SUFFIX
+    Path(os.environ["srcdir"]) / "nsec3-answer/ns1/root.db.in", origin=SUFFIX
 )
 
 
@@ -56,7 +56,7 @@ def do_test_query(
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
+    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
 )
 @given(qname=sampled_from(sorted(ZONE.reachable)))
 def test_nodata(server, qname: dns.name.Name, named_port: int) -> None:
@@ -72,7 +72,7 @@ def assume_nx_and_no_delegation(qname):
     assume(qname not in ZONE.all_existing_names)
 
     # name must not be under a delegation or DNAME:
-    # it would not work with resolver ns4
+    # it would not work with resolver ns2
     assume(
         not isctest.name.is_related_to_any(
             qname,
@@ -83,7 +83,7 @@ def assume_nx_and_no_delegation(qname):
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
+    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
 )
 @given(qname=dns_names(suffix=SUFFIX))
 def test_nxdomain(server, qname: dns.name.Name, named_port: int) -> None:
@@ -96,7 +96,7 @@ def test_nxdomain(server, qname: dns.name.Name, named_port: int) -> None:
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
+    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
 )
 @given(qname=dns_names(suffix=ZONE.ents))
 def test_ents(server, qname: dns.name.Name, named_port: int) -> None:
@@ -112,7 +112,7 @@ def test_ents(server, qname: dns.name.Name, named_port: int) -> None:
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
+    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
 )
 @given(qname=dns_names(suffix=ZONE.reachable_wildcard_parents))
 def test_wildcard_synthesis(server, qname: dns.name.Name, named_port: int) -> None:
@@ -125,7 +125,7 @@ def test_wildcard_synthesis(server, qname: dns.name.Name, named_port: int) -> No
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns3"), pytest.param(RESOLVER, id="ns4")]
+    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
 )
 @given(qname=dns_names(suffix=ZONE.reachable_wildcard_parents))
 def test_wildcard_nodata(server, qname: dns.name.Name, named_port: int) -> None:
