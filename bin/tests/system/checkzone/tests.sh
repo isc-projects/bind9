@@ -260,5 +260,25 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "Checking for RSASHA1 deprecated warning ($n)"
+ret=0
+$CHECKZONE example zones/warn.deprecated.rsasha1.db >test.out.$n || ret=1
+grep "deprecated DNSKEY algorithm found: 5 (RSASHA1)" test.out.$n >/dev/null || ret=1
+grep "all DNSKEY algorithms found are deprecated" test.out.$n >/dev/null || ret=1
+grep "loaded serial 0 (DNSSEC signed)" test.out.$n >/dev/null || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "Checking for NSECRSASHA1 deprected warning ($n)"
+ret=0
+$CHECKZONE example zones/warn.deprecated.nsec3rsasha1.db >test.out.$n || ret=1
+grep "deprecated DNSKEY algorithm found: 7 (NSEC3RSASHA1)" test.out.$n >/dev/null || ret=1
+grep "all DNSKEY algorithms found are deprecated" test.out.$n >/dev/null || ret=1
+grep "loaded serial 0 (DNSSEC signed)" test.out.$n >/dev/null || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
