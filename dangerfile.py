@@ -406,27 +406,17 @@ if mr_title_action == "sec" and (mr_title_cve is None or "CVE-20" not in mr_titl
 # PAIRWISE TESTING
 ###############################################################################
 #
-# FAIL if the merge request adds any new ./configure switch without an
-# associated annotation used for pairwise testing.
+# MESSAGE about pairwise-testing any new build options before merging.
 
-configure_added_lines = added_lines(target_branch, ["configure.ac"])
-switches_added = lines_containing(
-    configure_added_lines, "AC_ARG_ENABLE"
-) + lines_containing(configure_added_lines, "AC_ARG_WITH")
-annotations_added = lines_containing(configure_added_lines, "# [pairwise: ")
+meson_added_lines = added_lines(target_branch, ["meson_options.txt"])
+switches_added = lines_containing(meson_added_lines, "option(")
 if switches_added:
-    if len(switches_added) > len(annotations_added):
-        fail(
-            "This merge request adds at least one new `./configure` switch that "
-            "is not annotated for pairwise testing purposes."
-        )
-    else:
-        message(
-            "**Before merging**, please start a full CI pipeline for this "
-            "branch with the `PAIRWISE_TESTING` variable set to any "
-            "non-empty value (e.g. `1`). This will cause the `pairwise` "
-            "job to exercise the new `./configure` switches."
-        )
+    message(
+        "**Before merging**, please start a full CI pipeline for this "
+        "branch with the `PAIRWISE_TESTING` variable set to any "
+        "non-empty value (e.g. `1`). This will cause the `pairwise` "
+        "job to exercise the new build options added by this merge request."
+    )
 
 ###############################################################################
 # PRE-RELEASE TESTING
