@@ -16,17 +16,21 @@
 #if !defined(HAVE_JEMALLOC)
 
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include <isc/overflow.h>
 #include <isc/util.h>
 
 const char *malloc_conf = NULL;
 
-#define MALLOCX_ZERO	    ((int)0x40)
-#define MALLOCX_TCACHE_NONE (0)
-#define MALLOCX_ARENA(a)    (0)
+/*
+ * The MALLOCX_ZERO and MALLOCX_ZERO_GET macros were taken literal from
+ * jemalloc_macros.h and jemalloc_internal_types.h headers respectively.
+ */
 
-#include <stdlib.h>
+#define MALLOCX_ZERO		((int)0x40)
+#define MALLOCX_ZERO_GET(flags) ((bool)(flags & MALLOCX_ZERO))
 
 typedef union {
 	size_t size;
@@ -44,7 +48,7 @@ mallocx(size_t size, int flags) {
 	si->size = size;
 	ptr = &si[1];
 
-	if ((flags & MALLOCX_ZERO) != 0) {
+	if (MALLOCX_ZERO_GET(flags)) {
 		memset(ptr, 0, size);
 	}
 
@@ -70,7 +74,7 @@ rallocx(void *ptr, size_t size, int flags) {
 	size_info *si = realloc(&(((size_info *)ptr)[-1]), size + sizeof(*si));
 	INSIST(si != NULL);
 
-	if ((flags & MALLOCX_ZERO) != 0 && size > si->size) {
+	if (MALLOCX_ZERO_GET(flags) && size > si->size) {
 		memset((uint8_t *)si + sizeof(*si) + si->size, 0,
 		       size - si->size);
 	}
