@@ -156,3 +156,12 @@ installed. These can be downloaded from
 https://developer.apple.com/xcode/resources/ or, if Xcode is already
 installed, simply run ``xcode-select --install``. (Note that an Apple ID
 may be required to access the download page.)
+
+Packager Builds
+~~~~~~~~~~~~~~~
+
+Packagers are recommended to use the ``plain`` optimization level or the
+``plain`` build type when setting up the build directory. This will also
+disable the default hardening flags and any such flag must be set with
+``CFLAGS``. The top ``meson.build`` file in the source tree can be
+inspected for recommended flags.

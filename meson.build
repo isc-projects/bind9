@@ -43,6 +43,7 @@ endif
 developer_mode = get_option('developer').enabled()
 
 c_std = get_option('c_std')
+optimization = get_option('optimization')
 sanitizer = get_option('b_sanitize')
 
 trace_logging = get_option('trace-logging')
@@ -148,23 +149,10 @@ add_project_arguments(
         '-Werror=strict-prototypes',
         '-Werror=vla',
 
-        '-fcf-protection=full',
         '-fdiagnostics-show-option',
         '-fno-delete-null-pointer-checks',
         '-fno-strict-aliasing',
-        '-fstack-clash-protection',
-        '-fstack-protector-strong',
         '-fstrict-flex-arrays=3',
-    ),
-    language: 'c',
-)
-
-add_project_link_arguments(
-    cc.get_supported_link_arguments(
-        '-Wl,-z,noexecstack',
-        '-Wl,-z,now',
-        '-Wl,-z,relro',
-        '-Wl,-z,separate-code',
     ),
     language: 'c',
 )
@@ -183,19 +171,42 @@ int main(void) {
 }
 '''
 
-if not (get_option('optimization') == '0' or get_option('buildtype') == 'plain')
-    if cc.compiles(
-        fortify_test,
-        args: ['-Werror=cpp', '-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=3'],
-        name: 'usage of _FORTIFY_SOURCE=3',
-    )
-        add_project_arguments('-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=3', language: 'c')
-    else
-        add_project_arguments('-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=2', language: 'c')
+if optimization != 'plain'
+    if optimization != '0'
+        if cc.compiles(
+            fortify_test,
+            args: ['-Werror=cpp', '-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=3'],
+            name: 'usage of _FORTIFY_SOURCE=3',
+        )
+            add_project_arguments('-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=3', language: 'c')
+        else
+            add_project_arguments('-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=2', language: 'c')
+        endif
     endif
+
+    add_project_arguments(
+        cc.get_supported_arguments(
+            '-fcf-protection=full',
+            '-fstack-clash-protection',
+            '-fstack-protector-strong',
+
+            '-mbranch-protection=standard',
+        ),
+        language: 'c',
+    )
+
+    add_project_link_arguments(
+        cc.get_supported_link_arguments(
+            '-Wl,-z,noexecstack',
+            '-Wl,-z,now',
+            '-Wl,-z,relro',
+            '-Wl,-z,separate-code',
+        ),
+        language: 'c',
+    )
 endif
 
-if host_machine.system() == 'x86'
+if host_machine.cpu_family() == 'x86'
     add_project_arguments(
         cc.get_supported_arguments(
             '-Wno-psabi',
