@@ -66,7 +66,7 @@ options {\n\
 	geoip-directory \".\";\n"
 #endif /* if defined(HAVE_GEOIP2) */
 			    "\
-	interface-interval 60;\n\
+	interface-interval 60m;\n\
 	listen-on {any;};\n\
 	listen-on-v6 {any;};\n\
 	match-mapped-addresses no;\n\
