@@ -909,6 +909,7 @@ gcc:almalinux9:amd64:
 system:gcc:almalinux9:amd64:
   <<: *almalinux_9_amd64_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:almalinux9:amd64
       artifacts: true
@@ -916,6 +917,7 @@ system:gcc:almalinux9:amd64:
 unit:gcc:almalinux9:amd64:
   <<: *almalinux_9_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:almalinux9:amd64
       artifacts: true
