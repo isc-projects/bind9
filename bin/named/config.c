@@ -69,7 +69,7 @@ options {\n\
 #endif /* if defined(HAVE_GEOIP2) */
 			    "\
 	heartbeat-interval 60;\n\
-	interface-interval 60;\n\
+	interface-interval 60m;\n\
 #	keep-response-order {none;};\n\
 	listen-on {any;};\n\
 	listen-on-v6 {any;};\n\
