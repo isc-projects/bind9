@@ -2965,7 +2965,6 @@ start_tcp(dig_query_t *query) {
 	if (keep != NULL && isc_sockaddr_equal(&keepaddr, &query->sockaddr)) {
 		query->handle = keep;
 		launch_next_query(query);
-		query_detach(&query);
 		return;
 	} else if (keep != NULL) {
 		isc_nmhandle_detach(&keep);
