@@ -21,13 +21,12 @@ options {
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
 	recursion yes;
-	dnssec-validation yes;
+	dnssec-validation no;
 	notify yes;
 	qname-minimization disabled;
 	zone-statistics yes;
 };
 
-trust-anchors { };
 
 include "statistics-channels.conf";
 

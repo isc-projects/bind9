@@ -24,10 +24,9 @@ options {
 	listen-on-v6 { fd92:7065:b8e:ffff::3; };
 	forwarders { fd92:7065:b8e:ffff::2; };
 	forward first;
-	dnssec-validation yes;
+	dnssec-validation no;
 };
 
-trust-anchors { };
 
 key rndc_key {
 	secret "1234abcd8765";

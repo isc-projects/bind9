@@ -45,11 +45,10 @@ options {
 	recursion no;
 	notify explicit;
 	statistics-file "named.stats";
-	dnssec-validation yes;
+	dnssec-validation no;
 	tcp-initial-timeout 1200;
 };
 
-trust-anchors { };
 
 zone "example" {
 	type primary;
