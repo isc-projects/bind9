@@ -285,6 +285,7 @@ stages:
   - test -x "$PYTEST"
 
 .parse_tsan: &parse_tsan
+    - *find_python
     - find -name 'tsan.*' -exec "$PYTHON" util/parse_tsan.py {} \;
 
 .check_readline_setup: &check_readline_setup
@@ -463,7 +464,6 @@ stages:
   after_script:
     - *display_pytest_failures
     - find bin/tests/system -name "*dig.*" | xargs grep "error" || true
-    - *find_python
     - *parse_tsan
 
 .unit_test_common: &unit_test_job
@@ -494,7 +494,6 @@ stages:
 .unit_test_tsan: &unit_test_tsan_job
   <<: *unit_test_job
   after_script:
-    - *find_python
     - *parse_tsan
 
 .docs: &docs_job
@@ -1596,7 +1595,6 @@ respdiff:tsan:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
     - cd ../.. && make clean >/dev/null 2>&1
   after_script:
-    - *find_python
     - *parse_tsan
 
 respdiff-third-party:
