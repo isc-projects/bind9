@@ -154,17 +154,6 @@ To ensure your patch is acted on as promptly as possible, please:
   library API, include unit tests. See [Testing](doc/dev/dev.md#testing)
   for more information.
 
-##### Changes to `configure`
-
-If you need to make changes to `configure`, you should not edit it
-directly; instead, edit `configure.ac`, then run `autoconf`.  Similarly,
-instead of editing `config.h.in` directly, edit `configure.ac` and run
-`autoheader`.
-
-When submitting a patch as a diff, it's fine to omit the `configure`
-diffs to save space.  Just send the `configure.ac` diffs and we'll
-generate the new `configure` during the review process.
-
 ##### Documentation
 
 All functional changes should be documented. There are three types
