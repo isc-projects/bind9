@@ -22,10 +22,9 @@ options {
 	forward only;
 	forwarders { 10.53.0.4; };
 	deny-answer-aliases { "rebind"; };
-	dnssec-validation yes;
+	dnssec-validation no;
 };
 
-trust-anchors { };
 
 zone "." {
 	type hint;
