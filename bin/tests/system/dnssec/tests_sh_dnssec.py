@@ -72,6 +72,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns2/too-many-iterations.db",
         "ns2/inconsistent.db",
         "ns2/trusted.db",
+        "ns2/updatecheck-kskonly.secure.db",
         "ns2/updatecheck-kskonly.secure.ksk.id",
         "ns2/updatecheck-kskonly.secure.ksk.key",
         "ns2/updatecheck-kskonly.secure.zsk.id",

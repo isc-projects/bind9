@@ -297,7 +297,6 @@ $SETTIME -s -g OMNIPRESENT -k OMNIPRESENT now -r OMNIPRESENT now -d RUMOURED now
 $SETTIME -s -g OMNIPRESENT -k OMNIPRESENT now -z OMNIPRESENT now $key2 >settime.out.$zone.zsk 2>&1
 # Don't sign, let dnssec-policy maintain do it.
 cat "$infile" "$key1.key" "$key2.key" >"$zonefile"
-mv $zonefile "$zonefile.signed"
 
 zone=hours-vs-days
 infile=hours-vs-days.db.in

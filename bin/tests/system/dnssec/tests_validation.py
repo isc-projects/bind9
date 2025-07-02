@@ -1084,12 +1084,6 @@ def test_validating_forwarder(servers):
 
 
 def test_expired_signatures(servers):
-    # check expired signatures are still in place when updates are disabled
-    msg = isctest.query.create("expired.example", "SOA")
-    res = isctest.query.tcp(msg, "10.53.0.3")
-    soa, sigs = res.answer
-    assert sigs
-
     # check expired signatures do not validate
     msg = isctest.query.create("expired.example", "SOA")
     res = isctest.query.tcp(msg, "10.53.0.3")

@@ -185,7 +185,7 @@ zone "cdnskey-auto.secure" {
 
 zone "updatecheck-kskonly.secure" {
 	type primary;
-	file "updatecheck-kskonly.secure.db.signed";
+	file "updatecheck-kskonly.secure.db";
 	dnssec-policy kskonly;
 	allow-update { any; };
 };
