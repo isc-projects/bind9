@@ -3467,6 +3467,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			switch (ds.digest_type) {
 			case DNS_DSDIGEST_SHA1:
+			case DNS_DSDIGEST_GOST:
 				if (!logged_digest_type[ds.digest_type]) {
 					char algbuf[DNS_DSDIGEST_FORMATSIZE];
 					dns_name_format(name, namebuf,
@@ -23056,6 +23057,7 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 			 */
 			switch (structcds.digest_type) {
 			case DNS_DSDIGEST_SHA1:
+			case DNS_DSDIGEST_GOST:
 				if (!logged_digest_type[structcds.digest_type])
 				{
 					char algbuf[DNS_DSDIGEST_FORMATSIZE];
