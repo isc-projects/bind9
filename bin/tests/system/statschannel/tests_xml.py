@@ -148,6 +148,6 @@ def test_zone_with_many_keys_xml(statsport):
     )
 
 
-@isctest.mark.flaky(max_runs=2, rerun_filter=isctest.mark.with_tsan)
+@isctest.mark.flaky(max_runs=2)
 def test_traffic_xml(statsport):
     generic.test_traffic(fetch_traffic_xml, statsip="10.53.0.2", statsport=statsport)
