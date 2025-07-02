@@ -454,8 +454,9 @@ stages:
   script:
     - *fips_feature_test
     - RET=0
-    - meson test -C build --no-rebuild || RET=1
+    - meson test -C build --no-rebuild --no-suite flaky || RET=1
     - cp build/meson-logs/testlog.junit.xml $CI_PROJECT_DIR/junit.xml
+    - meson test -C build --no-rebuild --suite flaky || meson test -C build --no-rebuild --suite flaky || RET=1
     - *check_for_junit_xml
     - (exit $RET)
     - test "$CLEAN_BUILD_ARTIFACTS_ON_SUCCESS" -eq 0 || ninja -C build clean >/dev/null 2>&1
@@ -463,7 +464,9 @@ stages:
     untracked: true
     when: always
     reports:
-      junit: junit.xml
+      junit:
+        - junit.xml
+        - build/meson-logs/testlog-flaky.junit.xml
 
 .unit_test_tsan: &unit_test_tsan_job
   <<: *unit_test_job
