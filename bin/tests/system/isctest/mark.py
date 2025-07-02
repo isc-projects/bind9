@@ -39,10 +39,6 @@ def feature_test(feature):
     return True
 
 
-def with_tsan(*args):  # pylint: disable=unused-argument
-    return feature_test("--tsan")
-
-
 def with_algorithm(name: str):
     key = f"{name}_SUPPORTED"
     assert key in os.environ, f"{key} env variable undefined"
