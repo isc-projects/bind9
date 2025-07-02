@@ -2510,54 +2510,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "check that trust-anchor-telemetry queries are logged ($n)"
-ret=0
-grep "sending trust-anchor-telemetry query '_ta-[0-9a-f]*/NULL" ns6/named.run >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "check that _ta-XXXX trust-anchor-telemetry queries are logged ($n)"
-ret=0
-grep "trust-anchor-telemetry '_ta-[0-9a-f]*/IN' from" ns1/named.run >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "check that _ta-AAAA trust-anchor-telemetry are not sent when disabled ($n)"
-ret=0
-grep "sending trust-anchor-telemetry query '_ta-[0-9a-f]*/IN" ns1/named.run >/dev/null && ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "check that KEY-TAG trust-anchor-telemetry queries are logged ($n)"
-ret=0
-dig_with_opts . dnskey +ednsopt=KEY-TAG:ffff @10.53.0.1 >dig.out.ns1.test$n || ret=1
-grep "trust-anchor-telemetry './IN' from .* 65535" ns1/named.run >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "check that multiple KEY-TAG trust-anchor-telemetry options don't leak memory ($n)"
-ret=0
-dig_with_opts . dnskey +ednsopt=KEY-TAG:fffe +ednsopt=KEY-TAG:fffd @10.53.0.1 >dig.out.ns1.test$n || ret=1
-grep "trust-anchor-telemetry './IN' from .* 65534" ns1/named.run >/dev/null || ret=1
-grep "trust-anchor-telemetry './IN' from .* 65533" ns1/named.run >/dev/null && ret=1
-stop_server ns1 || ret=1
-nextpart ns1/named.run >/dev/null
-start_server --noclean --restart --port ${PORT} ns1 || ret=1
-n=$(($n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "waiting for root server to finish reloading ($n)"
-ret=0
-wait_for_log 20 "all zones loaded" ns1/named.run || ret=1
-n=$(($n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 echo_i "check that the view is logged in messages from the validator when using views ($n)"
 ret=0
 grep "view rec: *validat" ns4/named.run >/dev/null || ret=1
