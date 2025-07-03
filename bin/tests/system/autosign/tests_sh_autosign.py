@@ -11,8 +11,6 @@
 
 import pytest
 
-import isctest.mark
-
 pytestmark = pytest.mark.extra_artifacts(
     [
         "active.key",
@@ -147,6 +145,6 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-@isctest.mark.flaky(max_runs=2)
+@pytest.mark.flaky(max_runs=2)
 def test_autosign(run_tests_sh):
     run_tests_sh()
