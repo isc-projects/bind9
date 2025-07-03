@@ -13,6 +13,7 @@
 
 import os
 from pathlib import Path
+import platform
 import shutil
 import ssl
 import subprocess
@@ -52,6 +53,10 @@ def is_dnsrps_available():
     except subprocess.CalledProcessError:
         return False
     return True
+
+
+def is_host_freebsd_13(*_):
+    return platform.system() == "FreeBSD" and platform.release().startswith("13")
 
 
 have_libxml2 = pytest.mark.skipif(

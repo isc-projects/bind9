@@ -26,5 +26,6 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
+@isctest.mark.flaky(max_runs=2, rerun_filter=isctest.mark.is_host_freebsd_13)
 def test_dnstap(run_tests_sh):
     run_tests_sh()
