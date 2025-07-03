@@ -15,50 +15,47 @@ Notes for BIND 9.20.11
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- [CVE-2025-40777] Fix a possible assertion failure when using the
-  'stale-answer-client-timeout 0' option.
+- Fix a possible assertion failure when
+  :any:`stale-answer-client-timeout` is set to ``0``.
 
   In specific circumstances the :iscman:`named` resolver process could
-  terminate unexpectedly when stale answers were enabled and the
-  ``stale-answer-client-timeout 0`` configuration option was used. This
-  has been fixed. :gl:`#5372`
+  exit with an assertion failure when stale answers were enabled and the
+  :any:`stale-answer-client-timeout` configuration option was set to
+  ``0``. This has been fixed. :cve:`2025-40777` :gl:`#5372`
 
 New Features
 ~~~~~~~~~~~~
 
-- Add support to set and display the CO flag.
+- Add support for the CO flag to :iscman:`dig`.
 
-  Add support to display the CO (Compact denial of existence Ok flag)
-  when displaying messages.
-
-  Add support to set the CO flag when making queries in dig (+coflag).
-  :gl:`#5319`
+  Add support for Compact Denial of Existence to :iscman:`dig`.  This
+  includes showing the CO (Compact Answers OK) flag when displaying
+  messages and adding an option to set the CO flag when making queries
+  (:option:`dig +coflag`). :gl:`#5319`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Fix the default interface-interval from 60s to 60m.
+- Correct the default :any:`interface-interval` from 60s to 60m.
 
-  When the interface-interval parser was changed from uint32 parser to
-  duration parser, the default value stayed at plain number `60` which
-  now means 60 seconds instead of 60 minutes.  The documentation also
-  incorrectly states that the value is in minutes.  That has been fixed.
-  :gl:`#5246`
+  When the :any:`interface-interval` parser was changed from a
+  ``uint32`` parser to a duration parser, the default value stayed at
+  plain number ``60`` which now means 60 seconds instead of 60 minutes.
+  The documentation also incorrectly states that the value is in
+  minutes. That has been fixed. :gl:`#5246`
 
-- Fix purge-keys bug when using views.
+- Fix a :any:`purge-keys` bug when using multiple views of a zone.
 
   Previously, when a DNSSEC key was purged by one zone view, other zone
   views would return an error about missing key files. This has been
   fixed. :gl:`#5315`
 
-- Use IPv6 queries in delv +ns.
+- Use IPv6 queries in :option:`delv +ns`.
 
-  `delv +ns` invokes the same code to perform name resolution as
-  `named`, but it neglected to set up an IPv6 dispatch object first.
-  Consequently, it was behaving more like `named -4`. It now sets up
-  dispatch objects for both address families, and performs resolver
-  queries to both v4 and v6 addresses, except when one of the address
-  families has been suppressed by using `delv -4` or `delv -6`.
-  :gl:`#5352`
-
-
+  :option:`delv +ns` invokes the same code to perform name resolution as
+  :iscman:`named`, but it neglected to set up an IPv6 dispatch object
+  first. Consequently, it was behaving more like :option:`named -4`. It
+  now sets up dispatch objects for both address families, and performs
+  resolver queries to both IPv4 and IPv6 addresses, except when one of
+  the address families has been suppressed by using :option:`delv -4` or
+  :option:`delv -6`. :gl:`#5352`
