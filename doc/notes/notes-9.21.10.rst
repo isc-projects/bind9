@@ -49,6 +49,14 @@ New Features
   messages and adding an option to set the CO flag when making queries
   (:option:`dig +coflag`). :gl:`#5319`
 
+Feature Changes
+~~~~~~~~~~~~~~~
+
+- The build system was changed to `Meson`_. See :ref:`build_bind` for
+  revised instructions on building BIND 9 from source. :gl:`!8989`
+
+.. _Meson: https://mesonbuild.com/
+
 Bug Fixes
 ~~~~~~~~~
 
