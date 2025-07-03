@@ -13,6 +13,7 @@
 
 import os
 from pathlib import Path
+import platform
 import shutil
 import subprocess
 
@@ -51,6 +52,10 @@ def is_dnsrps_available():
     except subprocess.CalledProcessError:
         return False
     return True
+
+
+def is_host_freebsd_13(*_):
+    return platform.system() == "FreeBSD" and platform.release().startswith("13")
 
 
 def with_algorithm(name: str):
