@@ -19,36 +19,33 @@ Security Fixes
   serve-stale enabled.
 
   When :iscman:`named` was running with stale answers enabled and with
-  the ``stale-answer-client-timeout 0`` configuration option, in certain
-  situations it was possible that some queries could remain unanswered.
-  This has been fixed. :gl:`#5383`
+  the :any:`stale-answer-client-timeout` configuration option set to
+  ``0``, in certain situations it was possible that some queries could
+  remain unanswered.  This has been fixed. :gl:`#5383`
 
 New Features
 ~~~~~~~~~~~~
 
-- Add support to set and display the CO flag.
+- Add support for the CO flag to :iscman:`dig`.
 
-  Add support to display the CO (Compact denial of existence Ok flag)
-  when displaying messages.
-
-  Add support to set the CO flag when making queries in dig (+coflag).
-  :gl:`#5319`
+  Add support for Compact Denial of Existence to :iscman:`dig`.  This
+  includes showing the CO (Compact Answers OK) flag when displaying
+  messages and adding an option to set the CO flag when making queries
+  (:option:`dig +coflag`). :gl:`#5319`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Fix the default interface-interval from 60s to 60m.
+- Correct the default :any:`interface-interval` from 60s to 60m.
 
-  When the interface-interval parser was changed from uint32 parser to
-  duration parser, the default value stayed at plain number `60` which
-  now means 60 seconds instead of 60 minutes.  The documentation also
-  incorrectly states that the value is in minutes.  That has been fixed.
-  :gl:`#5246`
+  When the :any:`interface-interval` parser was changed from a
+  ``uint32`` parser to a duration parser, the default value stayed at
+  plain number ``60`` which now means 60 seconds instead of 60 minutes.
+  The documentation also incorrectly states that the value is in
+  minutes. That has been fixed. :gl:`#5246`
 
-- Fix purge-keys bug when using views.
+- Fix a :any:`purge-keys` bug when using multiple views of a zone.
 
   Previously, when a DNSSEC key was purged by one zone view, other zone
   views would return an error about missing key files. This has been
   fixed. :gl:`#5315`
-
-

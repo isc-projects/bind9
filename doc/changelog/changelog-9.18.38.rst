@@ -26,9 +26,9 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- Add support to set and display the CO flag. ``9e897623701``
+- Add support for the CO flag to dig. ``9e897623701``
 
-  Add support to display the CO (Compact denial of existence Ok flag)
+  Add support to display the CO (Compact Answers OK flag)
   when displaying messages.
 
   Add support to set the CO flag when making queries in dig (+coflag).
