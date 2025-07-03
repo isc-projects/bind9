@@ -44,9 +44,9 @@ New Features
   compares them, and generates a journal file from the differences.
   :gl:`#5164` :gl:`!10081`
 
-- Add support to set and display the CO flag. ``419ad060238``
+- Add support for the CO flag to dig. ``419ad060238``
 
-  Add support to display the CO (Compact denial of existence Ok flag)
+  Add support to display the CO (Compact Answers OK flag)
   when displaying messages.
 
   Add support to set the CO flag when making queries in dig (+coflag).
