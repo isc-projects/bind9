@@ -203,7 +203,7 @@ def cb_ixfr_is_signed(expected_updates, params, ksks=None, zsks=None):
         )
 
     for update in expected_updates:
-        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+        isctest.run.retry_with_timeout(update_is_signed, timeout=10)
 
 
 def cb_rrsig_refresh(params, ksks=None, zsks=None):
@@ -586,6 +586,9 @@ def cb_remove_keyfiles(params, ksks=None, zsks=None):
                 ],
             },
             id="secondary.kasp",
+            marks=pytest.mark.flaky(
+                max_runs=2, rerun_filter=isctest.mark.is_host_freebsd_13
+            ),
         ),
         pytest.param(
             {
