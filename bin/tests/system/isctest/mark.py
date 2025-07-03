@@ -12,6 +12,7 @@
 # information regarding copyright ownership.
 
 import os
+import platform
 import shutil
 import subprocess
 
@@ -37,6 +38,10 @@ def feature_test(feature):
             raise
         return False
     return True
+
+
+def is_host_freebsd_13(*_):
+    return platform.system() == "FreeBSD" and platform.release().startswith("13")
 
 
 def with_algorithm(name: str):

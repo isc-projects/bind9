@@ -13,7 +13,6 @@
 
 # pylint: disable=unused-variable
 
-import platform
 import socket
 import time
 
@@ -68,11 +67,7 @@ def test_initial_timeout(named_port):
                 raise EOFError from e
 
 
-def is_host_freebsd_13(*_):
-    return platform.system() == "FreeBSD" and platform.release().startswith("13")
-
-
-@isctest.mark.flaky(max_runs=2, rerun_filter=is_host_freebsd_13)
+@isctest.mark.flaky(max_runs=2, rerun_filter=isctest.mark.is_host_freebsd_13)
 def test_idle_timeout(named_port):
     #
     # The idle timeout is 5 seconds, so the third message should fail
