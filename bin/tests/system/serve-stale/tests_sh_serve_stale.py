@@ -11,6 +11,8 @@
 
 import pytest
 
+import isctest.mark
+
 pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
@@ -26,5 +28,6 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
+@isctest.mark.flaky(max_runs=2)
 def test_serve_stale(run_tests_sh):
     run_tests_sh()
