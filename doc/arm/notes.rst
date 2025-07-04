@@ -45,6 +45,7 @@ The list of known issues affecting the latest version in the 9.18 branch can be
 found at
 https://gitlab.isc.org/isc-projects/bind9/-/wikis/Known-Issues-in-BIND-9.18
 
+.. include:: ../notes/notes-9.18.38.rst
 .. include:: ../notes/notes-9.18.37.rst
 .. include:: ../notes/notes-9.18.36.rst
 .. include:: ../notes/notes-9.18.35.rst
