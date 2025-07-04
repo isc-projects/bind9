@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from typing import Iterator, Optional, TextIO, Any, List, Union, Pattern, Match
+from typing import Any, Iterator, List, Match, Optional, Pattern, TextIO, TypeVar, Union
 
 import abc
 import os
@@ -18,6 +18,8 @@ import time
 
 
 FlexPattern = Union[str, Pattern]
+T = TypeVar("T")
+OneOrMore = Union[T, List[T]]
 
 
 class WatchLogException(Exception):
@@ -133,9 +135,12 @@ class WatchLog(abc.ABC):
                 return
             yield line
 
-    def _prepare_patterns(
-        self, strings: Union[FlexPattern, List[FlexPattern]]
-    ) -> List[Pattern]:
+    def _setup_wait(self, patterns: OneOrMore[FlexPattern]) -> List[Pattern]:
+        self._wait_function_called = True
+        self._deadline = time.monotonic() + self._timeout
+        return self._prepare_patterns(patterns)
+
+    def _prepare_patterns(self, strings: OneOrMore[FlexPattern]) -> List[Pattern]:
         """
         Convert a mix of string(s) and/or pattern(s) into a list of patterns.
 
@@ -157,7 +162,20 @@ class WatchLog(abc.ABC):
                 )
         return patterns
 
-    def wait_for_line(self, patterns: Union[FlexPattern, List[FlexPattern]]) -> Match:
+    def _wait_for_match(self, regexes: List[Pattern]) -> Match:
+        while time.monotonic() < self._deadline:
+            for line in self._readlines():
+                for regex in regexes:
+                    match = regex.search(line)
+                    if match:
+                        return match
+            time.sleep(0.1)
+        raise WatchLogTimeout(
+            f"Timeout reached watching {self._path} for "
+            f"{' | '.join([regex.pattern for regex in regexes])}"
+        )
+
+    def wait_for_line(self, patterns: OneOrMore[FlexPattern]) -> Match:
         """
         Block execution until any line of interest appears in the log file.
 
@@ -253,9 +271,7 @@ class WatchLog(abc.ABC):
         >>> print(match2.group(0))
         qux
         """
-        regexes = self._prepare_patterns(patterns)
-        self._wait_function_called = True
-        self._deadline = time.monotonic() + self._timeout
+        regexes = self._setup_wait(patterns)
 
         return self._wait_for_match(regexes)
 
@@ -326,9 +342,7 @@ class WatchLog(abc.ABC):
           ...
         isctest.log.watchlog.WatchLogTimeout: ...
         """
-        regexes = self._prepare_patterns(patterns)
-        self._wait_function_called = True
-        self._deadline = time.monotonic() + self._timeout
+        regexes = self._setup_wait(patterns)
         matches = []
 
         for regex in regexes:
@@ -394,9 +408,7 @@ class WatchLog(abc.ABC):
           ...
         isctest.log.watchlog.WatchLogTimeout: ...
         """
-        regexes = self._prepare_patterns(patterns)
-        self._wait_function_called = True
-        self._deadline = time.monotonic() + self._timeout
+        regexes = self._setup_wait(patterns)
         unmatched_regexes = set(regexes)
         matches = []
 
@@ -406,19 +418,6 @@ class WatchLog(abc.ABC):
             unmatched_regexes.discard(match.re)
 
         return matches
-
-    def _wait_for_match(self, regexes: List[Pattern]) -> Match:
-        while time.monotonic() < self._deadline:
-            for line in self._readlines():
-                for regex in regexes:
-                    match = regex.search(line)
-                    if match:
-                        return match
-            time.sleep(0.1)
-        raise WatchLogTimeout(
-            f"Timeout reached watching {self._path} for "
-            f"{' | '.join([regex.pattern for regex in regexes])}"
-        )
 
     def __enter__(self) -> Any:
         self._fd = open(self._path, encoding="utf-8")
