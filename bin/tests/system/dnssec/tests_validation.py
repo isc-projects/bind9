@@ -18,10 +18,38 @@ from dns import edns, flags, name, rcode, rdataclass, rdatatype
 
 import pytest
 
-pytest.importorskip("dns", minversion="2.0.0")
 import isctest
 import isctest.mark
 from isctest.util import param
+
+
+pytest.importorskip("dns", minversion="2.0.0")
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "*/K*",
+        "*/dsset-*",
+        "*/*.bk",
+        "*/*.conf",
+        "*/*.db",
+        "*/*.id",
+        "*/*.jnl",
+        "*/*.jbk",
+        "*/*.key",
+        "*/*.signed",
+        "*/settime.out.*",
+        "ans*/ans.run",
+        "*/trusted.keys",
+        "*/*.bad",
+        "*/*.next",
+        "*/*.stripped",
+        "*/*.tmp",
+        "*/*.stage?",
+        "*/*.patched",
+        "*/*.lower",
+        "*/*.upper",
+        "*/*.unsplit",
+    ]
+)
 
 
 # helper functions
@@ -64,7 +92,7 @@ def test_insecure_glue():
     isctest.check.rr_count_eq(res.answer, 1)
     isctest.check.rr_count_eq(res.authority, 1)
     isctest.check.rr_count_eq(res.additional, 1)
-    assert str(res.additional[0].name) == "ns.insecure.example."
+    assert str(res.additional[0].name) == "ns3.insecure.example."
     addrs = [str(a) for a in res.additional[0]]
     assert "10.53.0.3" in addrs
 
@@ -1271,11 +1299,12 @@ def test_broken_servers():
     isctest.check.noadflag(res)
 
 
-def test_pending_ds():
+def test_pending_ds(servers):
     # check that a query against a validating resolver succeeds when there is
     # a negative cache entry with trust level "pending" for the DS.  prime
     # with a +cd DS query to produce the negative cache entry, then send a
     # query that uses that entry as part of the validation process.
+    ns4 = servers["ns4"]
     ns4.rndc("flush", log=False)
     msg = isctest.query.create("insecure.example", "DS", cd=True)
     res = isctest.query.tcp(msg, "10.53.0.4")

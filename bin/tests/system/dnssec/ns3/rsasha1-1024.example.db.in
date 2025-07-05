@@ -9,19 +9,55 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-$TTL 300	; 5 minutes
-@			IN SOA	mname1. . (
-				2000042407 ; serial
-				20         ; refresh (20 seconds)
-				20         ; retry (20 seconds)
-				1814400    ; expire (3 weeks)
-				3600       ; minimum (1 hour)
-				)
-			NS	ns
-ns			A	10.53.0.3
-
-a			A	10.0.0.1
-b			A	10.0.0.2
-d			A	10.0.0.4
-z			A	10.0.0.26
-a.a.a.a.a.a.a.a.a.a.e	A	10.0.0.27
+; File written on Sat Jul  5 14:07:41 2025
+; dnssec-signzone version 9.21.10-dev
+rsasha1-1024.example.			      300 IN SOA	mname1. . 2000042407 20 20 1814400 3600
+rsasha1-1024.example.			      300 IN RRSIG	SOA 5 2 300 20930723222148 20250705200741 58758 rsasha1-1024.example. PJOZW7DeXBMB3VJ3RGFHbq5sWGc8zas7y8BKaEz4rWmScEfJrmt5ZGtm XPuQ08roCQjirb6ltLGMBorOZ5PrKkF998FhihCzUjJm9FSAVu3VW0FH 0AHGRuoErR7goE8kp3mQtqDjQfKN3RYisffzXC8K8WDb9AXNo6tdPl6d efA=
+; resign=20930723222148
+rsasha1-1024.example.			      300 IN NS		ns3.rsasha1-1024.example.
+rsasha1-1024.example.			      300 IN RRSIG	NS 5 2 300 20930723222148 20250705200741 58758 rsasha1-1024.example. 7bxj7Z1i+Yfn9GzJg7eYbx46KPQOybj/aqhJUDp4ajlYKHrHHtlhHiez DfDj5RlgLGdAzRQPBs51L9KWWl+S6+MPujeVOIT+8SLWbkAWiaY2xLl4 YvZOFFelI1msoBPsXHt28OZz395Iun0VRTnOYAVR/M8lFAwhwYKxnK6S pD8=
+; resign=20930723222148
+rsasha1-1024.example.			      300 IN NSEC	a.rsasha1-1024.example. NS SOA RRSIG NSEC DNSKEY
+rsasha1-1024.example.			      300 IN RRSIG	NSEC 5 2 300 20930723222148 20250705200741 58758 rsasha1-1024.example. ranydIBWyrsp6gvreVGLy8jlHnQh6fL36grp1Rqp6OBNsSn+WegQP5uQ alksR/mDvSAFAeCEX6jJ+GbZan9SUYpkrqbyZtrX1+xKnbbu12ogx/lc Egph/QTXsD6iFBXRB7psiqV1mJx2PjmSHEsDN6zxbOvCrSBSoUQZOkeJ ePc=
+; resign=20930723222148
+rsasha1-1024.example.			      300 IN DNSKEY	256 3 5 AwEAAfrnP/8ng5St8Ok9VOJ4QWrOIfAp1pzT0quT8+Else7jAOI55qAB qcWOOMfkgF3AGfmD/OkTo17fq4HeoULrnOw8mTPjbQFowrnPRWpClj3N lRUVfYpVaKOzy3WnUSiqtegktKMaZgvBz5BgAeJOkG6IpHCqYab5135K JplSUlBz
+rsasha1-1024.example.			      300 IN DNSKEY	257 3 5 AwEAAfF0adqZOjSh1ADpmABpTwEAD/cWy/+9R42G+DqZK/8pkxfvC6N9 b9zWsa9LhyBge97aq7LyzlKO4HJvYK7su16y3ZeEQUplrwIwD6OPoffu X7vjNA+O7vikjdSN6sXI/x7eKwU+ZQbLyCao4COGy+Xl8VowWmIGJ3DZ wEhwOd+t
+rsasha1-1024.example.			      300 IN RRSIG	DNSKEY 5 2 300 20930723222148 20250705200741 29488 rsasha1-1024.example. qGZmNE1DZMvZ/OwZXuRtebtpIIE3pzYUQngQD9VUHyA9D1cLuElyevgl /pjOh5Vpt0nid1Y0HrLrXYe6xRsT8a+hhp+5ybUqjOpusBDkj/LYnlev y27Nor/GcHNy03R+B/Piu+1T3UA+dxvYc+YJrmmx7XU5tMpqFyV4C4if IyU=
+rsasha1-1024.example.			      300 IN RRSIG	DNSKEY 5 2 300 20930723222148 20250705200741 58758 rsasha1-1024.example. eMnV0gdwLW5SY+gL5CsTilyz3qN9YJBnD/EgaK4xXxnV8hoTXB/QgtAP +/jylOSIMqCT+VA9UlV2q2WyQd3n2ycdAaXIrZhMJDo/ErXcNrfi4h2G aKLVr/NiX6VlNhyNgbYgz0dM6CjcMbFQSr43hFJ4oWbOrEAS5a708/6t uUU=
+; resign=20930723222148
+a.rsasha1-1024.example.			      300 IN A		10.0.0.1
+a.rsasha1-1024.example.			      300 IN RRSIG	A 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. 41BzMHFHRo79n2jipZYetBEeJ2tb/HD2wj28I++yPLmVbn2IUnA0qOQV ypYQmAjhIKgDD+KHq0SB+WbPnVj6buV7WZ8mlknFDNxmMc6erdStBwsO shtL5kNUv33QTsyRGtreCnEjjWSSMzC63sdBXyjN5+ZWVqxKIFKGwMJZ uwg=
+; resign=20930723222148
+a.rsasha1-1024.example.			      300 IN NSEC	b.rsasha1-1024.example. A RRSIG NSEC
+a.rsasha1-1024.example.			      300 IN RRSIG	NSEC 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. KXNm/3ISKA9TJqFUAgrFVVwrRqIMZ9IhaLALTD8nZl5guNfq1NUnjKQW kbM24C2b9Wb3ID+lIlz8NygSdVyGpUsxvyn3s72wxRHyAQjWSgXMsxHH K7OlPMWKOKEaa27uGjbXkcITPstqveaZNdCdNba7hrjiBuETsLBRQoyi pO8=
+; resign=20930723222148
+b.rsasha1-1024.example.			      300 IN A		10.0.0.2
+b.rsasha1-1024.example.			      300 IN RRSIG	A 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. sFXNp9u1KLmGALRtBygUQa4jNug25BWHJlBjKiaIQHal4YN2wpNMBfP5 8pwAfTJHpMZmnIfTQKpYHFYI+AZ0VUh8KRjkUfZYtgviu6BqPshuhNVa hKYpSzpUDCjjg29oYPC36sIZSnZDbhbRYLzERXMVB/tLujDgjoGD4z3b dzM=
+; resign=20930723222148
+b.rsasha1-1024.example.			      300 IN NSEC	a.b.rsasha1-1024.example. A RRSIG NSEC
+b.rsasha1-1024.example.			      300 IN RRSIG	NSEC 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. mz7zYeNU967NoqNLTbi9ggh+jG8c4AQK8nfkP6f09EuH76BcU9T/BzKI lLPws1PYmBeT+WXmcwuFyDxPlSntO/xlU/t5wMGOjMwHWRPaFiaAx3H9 PZj9JC4UDfEKOB/2icS9HQrBqzsPlzYVWrdqkAgm4ErVl4DNU0zUhv6y Xpk=
+; resign=20930723222148
+a.b.rsasha1-1024.example.		      300 IN A		10.0.0.1
+a.b.rsasha1-1024.example.		      300 IN RRSIG	A 5 4 300 20930723222148 20250705200741 58758 rsasha1-1024.example. e4R1G9oEo5I2kPqVsbUYBgP0Bv5Eyp9BTesgKqAJ0q9NfZGtjh/03kCr A8CPw7mwL3qLEVo/oupkzpLj/gt5Zszdlmu7Bw81cJfV+x5cPyLjXJty Z9+T9KZIFa/tqW8FFF3/owEecTjcPjJs/mrlNy7lbp1kLXBIk6S7yt+c dpo=
+; resign=20930723222148
+a.b.rsasha1-1024.example.		      300 IN NSEC	d.rsasha1-1024.example. A RRSIG NSEC
+a.b.rsasha1-1024.example.		      300 IN RRSIG	NSEC 5 4 300 20930723222148 20250705200741 58758 rsasha1-1024.example. Y3N3uY1kIyY9WlgWF8ZQ9gmo3Xi74G+UF195ljexwkjlU7LOX7TuaJpJ PyaqASJBGNF6aLbcwR89rItxJknSdNk4oqvQiwykZ0e02MXb/zPeqqkG +y9jS9M+ygKjMcyY+qHVgjy5UaldUqOV/bjg7cq2Z2FsCjkD+lCmGzfl pd4=
+; resign=20930723222148
+d.rsasha1-1024.example.			      300 IN A		10.0.0.4
+d.rsasha1-1024.example.			      300 IN RRSIG	A 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. 1jqKrIB7M9la2A8cRVdy92TV19elq3pGvu19DGz77sbn3HYrb3lF+zSl O2g+75RxuwzN8yoGe5P6/EfaZviOPNBV5s5e+xKHQwAxE0RCdnLUcuE9 8PAuNBogBvhrDzZJQh0p1ap4vyuxCEH3jDYua9Ul7VMy8UmGcBO0BuaS f+A=
+; resign=20930723222148
+d.rsasha1-1024.example.			      300 IN NSEC	ns3.rsasha1-1024.example. A RRSIG NSEC
+d.rsasha1-1024.example.			      300 IN RRSIG	NSEC 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. JA2sayAAdp9pCtOSsv66hD6LlgA8IFC2gzVSIjYVnz5vevoXHcok7HTi UbaaWoE0UaCI5DrMTSc9x6IOMe0OTC4PLPl3dntnaiOZJfe1Fr97zyme jaMzqd61Tla/dGM58KUKKSL30hj/5o5DwW7ppdHKIW0sq3YXufnDOCgx TT8=
+; resign=20930723222148
+ns3.rsasha1-1024.example.		      300 IN A		10.53.0.3
+ns3.rsasha1-1024.example.		      300 IN RRSIG	A 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. NTFkNDGrOnrz1BvHEgqq3I02y+unDlUmkd2RM5pFz4wMWlZm7b2sPFsi kGH8AwE7U5RBR4Pi6YLS7im+GKXRKEChYbHy7QU2XyvGueQ0AK8jLN3+ daSr0vK5RGSDihl3lWELQPGF4/qrYYVQI8itrewvYWA2EKmPjgJAtjKV DO4=
+; resign=20930723222148
+ns3.rsasha1-1024.example.		      300 IN NSEC	z.rsasha1-1024.example. A RRSIG NSEC
+ns3.rsasha1-1024.example.		      300 IN RRSIG	NSEC 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. Dx7nC3ZCVV+BTR06WOG6vh9mt81aQijpKH7N03GopNejfbEN3dtGR2n4 cEnc/rofcy0HaDiRGKptrxYNDez6g9awh73p9FDQgE/gnnOJ1WAOIyVi XE4OHSwxfRRdYNV5oDY5Dsl9/ZNuewwc22hfEHTALKDv5ncOeGlk4r/U cds=
+; resign=20930723222148
+z.rsasha1-1024.example.			      300 IN A		10.0.0.26
+z.rsasha1-1024.example.			      300 IN RRSIG	A 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. RO5OYSdypaZuuB+cYQLfj9nZ6PgCpd3iSOZETdY0/RYcH31dX/mDWa/s ODefiUOcyZNJYbJmcZXbOboBQOsHSB2+SsYwc6hfkKiACvB564/6u/5v hujJJQqEpJfuGEaGfJtQHjPgXQoa33juX7k+4zOQJFAs0z4loIb5s9d2 Gyw=
+; resign=20930723222148
+z.rsasha1-1024.example.			      300 IN NSEC	rsasha1-1024.example. A RRSIG NSEC
+z.rsasha1-1024.example.			      300 IN RRSIG	NSEC 5 3 300 20930723222148 20250705200741 58758 rsasha1-1024.example. hLdkoNjYFvJ0xYYOp2D0mqoZntJ8M0crDboQ5CGQ5fZD3eIFWG/uWqky 9tt6udqkqrVv7cniTlyoD1GQqBpx4FR9P5qgMXDQ5EvZ7WncjfVg2IFV PYZAqV1iFiQXackDd3jipKGFgx8NKvfl/jr1tdNR+5LqxHFM51zb7Hak J08=
+; resign=20930723222148

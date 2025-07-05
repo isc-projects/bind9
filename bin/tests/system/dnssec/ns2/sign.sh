@@ -29,6 +29,31 @@ done
 
 cp "../ns3/dsset-target.peer-ns-spoof." .
 
+# Set up some unsigned zones:
+# insecure
+zone=insecure.secure.
+infile=template.db.in
+zonefile=insecure.secure.example.db
+cp $infile $zonefile
+
+# delegated child of an nsec3 zone
+zone=child.nsec3.secure.
+infile=template.db.in
+zonefile=child.nsec3.secure.example.db
+cp $infile $zonefile
+
+# delegated child of an optout zone
+zone=child.nsec3.secure.
+infile=template.db.in
+zonefile=child.nsec3.secure.example.db
+cp $infile $zonefile
+
+# zone pre-signed with RFC2335 signatures
+zone=rfc2335.example.
+infile=rfc2335.example.db.in
+zonefile=rfc2335.example.db
+cp $infile $zonefile
+
 # Sign the "trusted." and "managed." zones.
 zone=managed.
 infile=key.db.in
@@ -143,7 +168,7 @@ cat "$infile" "$keyname1.key" "$keyname2.key" >"$zonefile"
 # Sign the badparam secure file
 
 zone=badparam.
-infile=badparam.db.in
+infile=template.db.in
 zonefile=badparam.db
 
 keyname1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
@@ -211,7 +236,7 @@ cat "$key1.key" "$key2.key" >>"$zonefile"
 "$SIGNER" -3 - -A -H 1 -g -o "$zone" -k "$key1" "$zonefile" "$key2" >/dev/null 2>&1
 
 zone=cds.secure
-infile=cds.secure.db.in
+infile=template.db.in
 zonefile=cds.secure.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
@@ -220,7 +245,7 @@ cat "$infile" "$key1.key" "$key2.key" "$key1.cds" >$zonefile
 "$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1
 
 zone=cds-x.secure
-infile=cds.secure.db.in
+infile=template.db.in
 zonefile=cds-x.secure.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
@@ -230,7 +255,7 @@ cat "$infile" "$key1.key" "$key2.key" "$key3.key" "$key2.cds" >"$zonefile"
 "$SIGNER" -g -x -o "$zone" "$zonefile" >/dev/null 2>&1
 
 zone=cds-update.secure
-infile=cds-update.secure.db.in
+infile=template.db.in
 zonefile=cds-update.secure.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
@@ -239,7 +264,7 @@ cat "$infile" "$key1.key" "$key2.key" >"$zonefile"
 keyfile_to_key_id "$key1" >cds-update.secure.id
 
 zone=cds-auto.secure
-infile=cds-auto.secure.db.in
+infile=template.db.in
 zonefile=cds-auto.secure.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
@@ -247,7 +272,7 @@ $SETTIME -P sync now "$key1" >/dev/null
 cat "$infile" >"$zonefile.signed"
 
 zone=cdnskey.secure
-infile=cdnskey.secure.db.in
+infile=template.db.in
 zonefile=cdnskey.secure.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
@@ -256,7 +281,7 @@ cat "$infile" "$key1.key" "$key2.key" "$key1.cds" >"$zonefile"
 "$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1
 
 zone=cdnskey-x.secure
-infile=cdnskey.secure.db.in
+infile=template.db.in
 zonefile=cdnskey-x.secure.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
@@ -266,7 +291,7 @@ cat "$infile" "$key1.key" "$key2.key" "$key3.key" "$key1.cds" >"$zonefile"
 "$SIGNER" -g -x -o "$zone" "$zonefile" >/dev/null 2>&1
 
 zone=cdnskey-update.secure
-infile=cdnskey-update.secure.db.in
+infile=template.db.in
 zonefile=cdnskey-update.secure.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
@@ -275,7 +300,7 @@ cat "$infile" "$key1.key" "$key2.key" >"$zonefile"
 keyfile_to_key_id "$key1" >cdnskey-update.secure.id
 
 zone=cdnskey-auto.secure
-infile=cdnskey-auto.secure.db.in
+infile=template.db.in
 zonefile=cdnskey-auto.secure.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
@@ -283,7 +308,7 @@ $SETTIME -P sync now "$key1" >/dev/null
 cat "$infile" >"$zonefile.signed"
 
 zone=updatecheck-kskonly.secure
-infile=template.secure.db.in
+infile=template.db.in
 zonefile=${zone}.db
 key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
@@ -321,7 +346,7 @@ cat "$infile" "$key1.key" "$key2.key" >"$zonefile"
 # A zone with a secure chain of trust of two KSKs, only one KSK is not signing.
 #
 zone=lazy-ksk
-infile=lazy-ksk.db.in
+infile=template.db.in
 zonefile=lazy-ksk.db
 ksk1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 ksk2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")

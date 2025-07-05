@@ -18,6 +18,13 @@ set -e
 
 echo_i "ns6/sign.sh"
 
+# set up unsigned zone first
+zone=nosoa.secure.example.
+infile=nosoa.secure.example.db.in
+zonefile=nosoa.secure.example.db
+cp "$infile" "$zonefile"
+
+# now sign the others
 zone=optout-tld
 infile=optout-tld.db.in
 zonefile=optout-tld.db

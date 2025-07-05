@@ -18,7 +18,35 @@ import pytest
 import isctest
 
 
-pytestmark = pytest.mark.skipif(bool(os.getenv("TSAN_OPTIONS", "")), reason="TSAN")
+pytestmark = [
+    pytest.mark.skipif(bool(os.getenv("TSAN_OPTIONS", "")), reason="TSAN"),
+    pytest.mark.extra_artifacts(
+        [
+            "*/K*",
+            "*/dsset-*",
+            "*/*.bk",
+            "*/*.conf",
+            "*/*.db",
+            "*/*.id",
+            "*/*.jnl",
+            "*/*.jbk",
+            "*/*.key",
+            "*/*.signed",
+            "*/settime.out.*",
+            "ans*/ans.run",
+            "*/trusted.keys",
+            "*/*.bad",
+            "*/*.next",
+            "*/*.stripped",
+            "*/*.tmp",
+            "*/*.stage?",
+            "*/*.patched",
+            "*/*.lower",
+            "*/*.upper",
+            "*/*.unsplit",
+        ]
+    ),
+]
 
 
 # helper functions

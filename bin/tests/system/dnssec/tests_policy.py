@@ -14,7 +14,37 @@ import time
 
 from dns import rdatatype
 
+import pytest
+
 import isctest
+
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "*/K*",
+        "*/dsset-*",
+        "*/*.bk",
+        "*/*.conf",
+        "*/*.db",
+        "*/*.id",
+        "*/*.jnl",
+        "*/*.jbk",
+        "*/*.key",
+        "*/*.signed",
+        "*/settime.out.*",
+        "ans*/ans.run",
+        "*/trusted.keys",
+        "*/*.bad",
+        "*/*.next",
+        "*/*.stripped",
+        "*/*.tmp",
+        "*/*.stage?",
+        "*/*.patched",
+        "*/*.lower",
+        "*/*.upper",
+        "*/*.unsplit",
+    ]
+)
 
 
 def is_rrsig_soa(rrset):

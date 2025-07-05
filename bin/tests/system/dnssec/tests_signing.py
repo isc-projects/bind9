@@ -23,6 +23,34 @@ pytest.importorskip("dns", minversion="2.0.0")
 import isctest
 
 
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "*/K*",
+        "*/dsset-*",
+        "*/*.bk",
+        "*/*.conf",
+        "*/*.db",
+        "*/*.id",
+        "*/*.jnl",
+        "*/*.jbk",
+        "*/*.key",
+        "*/*.signed",
+        "*/settime.out.*",
+        "ans*/ans.run",
+        "*/trusted.keys",
+        "*/*.bad",
+        "*/*.next",
+        "*/*.stripped",
+        "*/*.tmp",
+        "*/*.stage?",
+        "*/*.patched",
+        "*/*.lower",
+        "*/*.upper",
+        "*/*.unsplit",
+    ]
+)
+
+
 # helper functions
 def grep_c(regex, filename):
     with open(filename, "r", encoding="utf-8") as f:
@@ -171,10 +199,10 @@ def test_update_signing():
     # check that the NSEC3 record for the apex is properly signed
     # when a DNSKEY is added via UPDATE
     key = keygen(
-        "-q3fk", "-a", os.environ["DEFAULT_ALGORITHM"], "update-nsec3.example."
+        "-Kns3", "-q3fk", "-a", os.environ["DEFAULT_ALGORITHM"], "update-nsec3.example."
     )
 
-    with open(f"{key}.key", "r", encoding="utf-8") as f:
+    with open(f"ns3/{key}.key", "r", encoding="utf-8") as f:
         dnskey = f.read().splitlines()[-1]
         dnskey = " ".join(dnskey.split()[3:])
 

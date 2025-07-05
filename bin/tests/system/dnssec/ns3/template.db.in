@@ -17,11 +17,11 @@ $TTL 300	; 5 minutes
 				1814400    ; expire (3 weeks)
 				3600       ; minimum (1 hour)
 				)
-			NS	ns
-ns			A	10.53.0.3
+			NS	ns3
+ns3			A	10.53.0.3
 
 a			A	10.0.0.1
+a.b			A	10.0.0.1
 b			A	10.0.0.2
-c			A	10.0.0.3
 d			A	10.0.0.4
 z			A	10.0.0.26
