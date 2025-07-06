@@ -1742,6 +1742,33 @@ respdiff-third-party:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
     - cd ../.. && make clean >/dev/null 2>&1
 
+.respdiff-recent-named: &respdiff_recent_named
+  <<: *respdiff_job
+  <<: *debian_bookworm_amd64_image
+  <<: *default_triggering_rules
+  needs:
+    - job: ci-variables
+      artifacts: true
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - mkdir version-under-test
+    - cp -ar bin version-under-test/
+    - BASELINE=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$BIND_BASELINE_VERSION}
+    - git fetch --unshallow origin ${BASELINE}
+    - git checkout FETCH_HEAD
+    - autoreconf -fi
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - cd bind9-qa/respdiff
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}/version-under-test" "${CI_PROJECT_DIR}/bin/named/named"
+
+respdiff:recent-named:
+  <<: *respdiff_recent_named
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.3"
+
 # Performance tests
 
 shotgun:udp:
