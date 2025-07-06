@@ -29,7 +29,7 @@ options {
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { fd92:7065:b8e:ffff::3; };
 	notify yes;
-	dnssec-validation yes;
+	dnssec-validation no;
 	allow-recursion { any; };
 	resolver-use-dns64 yes;
 
@@ -40,7 +40,6 @@ options {
 	};
 };
 
-trust-anchors { };
 
 zone "." {
 	type hint;

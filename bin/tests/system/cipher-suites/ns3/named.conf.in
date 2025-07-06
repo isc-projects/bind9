@@ -36,10 +36,9 @@ options {
 	notify no;
 	ixfr-from-differences yes;
 	check-integrity no;
-	dnssec-validation yes;
+	dnssec-validation no;
 };
 
-trust-anchors { };
 
 zone "." {
 	type hint;

@@ -23,11 +23,10 @@ options {
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
 	recursion yes;
-	dnssec-validation yes;
+	dnssec-validation no;
 	minimal-responses yes;
 };
 
-trust-anchors { };
 
 statistics-channels { inet 10.53.0.4 port @EXTRAPORT1@ allow { localhost; }; };
 

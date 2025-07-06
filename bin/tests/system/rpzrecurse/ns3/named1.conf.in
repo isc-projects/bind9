@@ -27,7 +27,7 @@ options {
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
 	recursion yes;
-	dnssec-validation yes;
+	dnssec-validation no;
 	response-policy { zone "policy"; }
 		qname-wait-recurse yes
 		nsip-enable yes
@@ -36,7 +36,6 @@ options {
 	include "../dnsrps.conf";
 };
 
-trust-anchors { };
 
 zone "policy" { type primary; file "policy.db"; };
 
