@@ -137,6 +137,7 @@ struct dns_adbname {
 	dns_name_t *name;
 	unsigned int partial_result;
 	unsigned int flags;
+	unsigned int type;
 	isc_stdtime_t expire_v4;
 	isc_stdtime_t expire_v6;
 	dns_adbnamehooklist_t v4;
@@ -263,7 +264,7 @@ ISC_REFCOUNT_DECL(dns_adbentry);
  * Internal functions (and prototypes).
  */
 static dns_adbname_t *
-new_adbname(dns_adb_t *adb, const dns_name_t *, unsigned int flags);
+new_adbname(dns_adb_t *adb, const dns_name_t *, unsigned int type);
 static void
 destroy_adbname(dns_adbname_t *);
 static bool
@@ -293,8 +294,8 @@ free_adbfetch(dns_adb_t *, dns_adbfetch_t **);
 static void
 purge_stale_names(dns_adb_t *adb, isc_stdtime_t now);
 static dns_adbname_t *
-get_attached_and_locked_name(dns_adb_t *, const dns_name_t *,
-			     unsigned int flags, isc_stdtime_t now);
+get_attached_and_locked_name(dns_adb_t *, const dns_name_t *, unsigned int type,
+			     isc_stdtime_t now);
 static void
 purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now);
 static dns_adbentry_t *
@@ -412,9 +413,11 @@ enum {
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
 #define FIND_NOFETCH(fn)	(((fn)->options & DNS_ADBFIND_NOFETCH) != 0)
 
-#define ADBNAME_FLAGS_MASK                                  \
+#define ADBNAME_TYPE_MASK                                   \
 	(DNS_ADBFIND_STARTATZONE | DNS_ADBFIND_STATICSTUB | \
 	 DNS_ADBFIND_NOVALIDATE)
+
+#define ADBNAME_TYPE(options) ((options) & ADBNAME_TYPE_MASK)
 
 /*
  * These are currently used on simple unsigned ints, so they are
@@ -424,15 +427,6 @@ enum {
 #define WANT_INET6(x) (((x) & DNS_ADBFIND_INET6) != 0)
 
 #define EXPIRE_OK(exp, now) ((exp == INT_MAX) || (exp < now))
-
-/*
- * Find out if the flags on a name (nf) indicate if it is a hint or
- * glue, and compare this to the appropriate bits set in o, to see if
- * this is ok.
- */
-#define STARTATZONE_MATCHES(nf, o)                  \
-	(((nf)->flags & DNS_ADBFIND_STARTATZONE) == \
-	 ((o) & DNS_ADBFIND_STARTATZONE))
 
 #define ENTER_LEVEL  ISC_LOG_DEBUG(50)
 #define CLEAN_LEVEL  ISC_LOG_DEBUG(100)
@@ -846,7 +840,7 @@ clean_finds_at_name(dns_adbname_t *name, dns_adbstatus_t astat,
 }
 
 static dns_adbname_t *
-new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, unsigned int flags) {
+new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, unsigned int type) {
 	dns_adbname_t *name = NULL;
 
 	name = isc_mem_get(adb->mctx, sizeof(*name));
@@ -860,7 +854,7 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, unsigned int flags) {
 		.v6 = ISC_LIST_INITIALIZER,
 		.finds = ISC_LIST_INITIALIZER,
 		.link = ISC_LINK_INITIALIZER,
-		.flags = flags & ADBNAME_FLAGS_MASK,
+		.type = type,
 		.magic = DNS_ADBNAME_MAGIC,
 	};
 
@@ -1125,9 +1119,7 @@ match_adbname(void *node, const void *key) {
 	const dns_adbname_t *adbname0 = node;
 	const dns_adbname_t *adbname1 = key;
 
-	if ((adbname0->flags & ADBNAME_FLAGS_MASK) !=
-	    (adbname1->flags & ADBNAME_FLAGS_MASK))
-	{
+	if (adbname0->type != adbname1->type) {
 		return false;
 	}
 
@@ -1137,12 +1129,11 @@ match_adbname(void *node, const void *key) {
 static uint32_t
 hash_adbname(const dns_adbname_t *adbname) {
 	isc_hash32_t hash;
-	unsigned int flags = adbname->flags & ADBNAME_FLAGS_MASK;
 
 	isc_hash32_init(&hash);
 	isc_hash32_hash(&hash, adbname->name->ndata, adbname->name->length,
 			false);
-	isc_hash32_hash(&hash, &flags, sizeof(flags), true);
+	isc_hash32_hash(&hash, &adbname->type, sizeof(adbname->type), true);
 	return isc_hash32_finalize(&hash);
 }
 
@@ -1151,14 +1142,14 @@ hash_adbname(const dns_adbname_t *adbname) {
  */
 static dns_adbname_t *
 get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
-			     unsigned int flags, isc_stdtime_t now) {
+			     unsigned int type, isc_stdtime_t now) {
 	isc_result_t result;
 	dns_adbname_t *adbname = NULL;
 	isc_time_t timenow;
 	isc_stdtime_t last_update;
 	dns_adbname_t key = {
 		.name = UNCONST(name),
-		.flags = flags & ADBNAME_FLAGS_MASK,
+		.type = type,
 	};
 	uint32_t hashval = hash_adbname(&key);
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
@@ -1184,7 +1175,7 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 		UPGRADELOCK(&adb->names_lock, locktype);
 
 		/* Allocate a new name and add it to the hash table. */
-		adbname = new_adbname(adb, name, key.flags);
+		adbname = new_adbname(adb, name, key.type);
 
 		void *found = NULL;
 		result = isc_hashmap_add(adb->names, hashval, match_adbname,
@@ -1850,7 +1841,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 
 again:
 	/* Try to see if we know anything about this name at all. */
-	adbname = get_attached_and_locked_name(adb, name, find->options, now);
+	adbname = get_attached_and_locked_name(
+		adb, name, ADBNAME_TYPE(find->options), now);
 
 	if (NAME_DEAD(adbname)) {
 		UNLOCK(&adbname->lock);
@@ -2511,12 +2503,12 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	 * any matching static-stub zone without looking into the cache to honor
 	 * the configuration on which server we should send queries to.
 	 */
-	if ((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0) {
+	if ((adbname->type & DNS_ADBFIND_STARTATZONE) != 0) {
 		options |= DNS_DBFIND_PENDINGOK;
 	}
 	result = dns_view_find(adb->view, adbname->name, rdtype, now, options,
 			       true,
-			       (adbname->flags & DNS_ADBFIND_STARTATZONE) != 0,
+			       (adbname->type & DNS_ADBFIND_STARTATZONE) != 0,
 			       NULL, NULL, fname, &rdataset, NULL);
 
 	switch (result) {
@@ -3263,9 +3255,9 @@ again:
 	 * with and without DNS_ADBFIND_STATICSTUB set and with and without
 	 * DNS_ADBFIND_NOVALIDATE set.
 	 */
-	key.flags = ((static_stub) ? DNS_ADBFIND_STATICSTUB : 0) |
-		    ((start_at_zone) ? DNS_ADBFIND_STARTATZONE : 0) |
-		    ((novalidate) ? DNS_ADBFIND_NOVALIDATE : 0);
+	key.type = ((static_stub) ? DNS_ADBFIND_STATICSTUB : 0) |
+		   ((start_at_zone) ? DNS_ADBFIND_STARTATZONE : 0) |
+		   ((novalidate) ? DNS_ADBFIND_NOVALIDATE : 0);
 
 	result = isc_hashmap_find(adb->names, hash_adbname(&key), match_adbname,
 				  (void *)&key, (void **)&adbname);
