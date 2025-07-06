@@ -94,14 +94,13 @@ options {
 	notify explicit;
 	also-notify { 10.53.0.2 port @PORT@; };
 	statistics-file "named.stats";
-	dnssec-validation yes;
+	dnssec-validation no;
 	tcp-initial-timeout 1200;
 	transfers-in 100;
 	transfers-out 100;
 	max-records-per-type 0;
 };
 
-trust-anchors { };
 
 zone "." {
 	type primary;

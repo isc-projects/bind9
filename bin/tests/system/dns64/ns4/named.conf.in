@@ -26,11 +26,10 @@ options {
 	listen-on port @PORT@ { 10.53.0.4; };	// for start.pl
 	listen-on-v6 { fd92:7065:b8e:fffe::10.53.0.4; };
 	notify yes;
-	dnssec-validation yes;
+	dnssec-validation no;
 	recursion no;
 };
 
-trust-anchors { };
 
 zone "." {
 	type master;

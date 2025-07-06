@@ -29,7 +29,7 @@ options {
 	notify yes;
 	minimal-responses no;
 	recursion yes;
-	dnssec-validation yes;
+	dnssec-validation no;
 	min-refresh-time 1;
 	min-retry-time 1;
 
@@ -64,7 +64,6 @@ options {
 	notify-delay 0;
 };
 
-trust-anchors { };
 
 logging { category rpz { default_debug; }; };
 

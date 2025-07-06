@@ -20,7 +20,7 @@ options {
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
 	recursion yes;
-	dnssec-validation yes;
+	dnssec-validation no;
 	notify yes;
 	rrset-order {
 		name "random.example" order random;
@@ -31,7 +31,6 @@ options {
 	};
 };
 
-trust-anchors { };
 
 zone "." {
 	type hint;
