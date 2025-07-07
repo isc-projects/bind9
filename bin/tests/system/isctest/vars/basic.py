@@ -61,4 +61,5 @@ BASIC_VARS = {
     ),
     "LC_ALL": "C",
     "ANS_LOG_LEVEL": "debug",
+    "DYLIB": ("dylib" if os.uname().sysname == "Darwin" else "so"),
 }

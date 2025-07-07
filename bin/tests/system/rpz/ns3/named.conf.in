@@ -157,5 +157,5 @@ zone "static-stub-nomatch." {
 # The "BAD" comments below are necessary, because they will be removed using
 # 'sed' by tests.sh in order to activate the faulty configuration.
 #BAD	dlz "bad-dlz" {
-#BAD		database "dlopen bad-dlz.so example.org";
+#BAD		database "dlopen bad-dlz.@DYLIB@ example.org";
 #BAD	};
