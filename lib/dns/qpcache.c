@@ -2327,10 +2327,11 @@ reactivate_node(qpcache_t *qpdb, qpcnode_t *node,
 }
 
 static qpcnode_t *
-new_qpcnode(qpcache_t *qpdb, const dns_name_t *name) {
+new_qpcnode(qpcache_t *qpdb, const dns_name_t *name, dns_namespace_t nspace) {
 	qpcnode_t *newdata = isc_mem_get(qpdb->common.mctx, sizeof(*newdata));
 	*newdata = (qpcnode_t){
 		.name = DNS_NAME_INITEMPTY,
+		.nspace = nspace,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.locknum = isc_random_uniform(qpdb->buckets_count),
 	};
@@ -2367,8 +2368,7 @@ qpcache_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 		result = dns_qp_getname(qpdb->tree, name, nspace,
 					(void **)&node, NULL);
 		if (result != ISC_R_SUCCESS) {
-			node = new_qpcnode(qpdb, name);
-			node->nspace = nspace;
+			node = new_qpcnode(qpdb, name, nspace);
 			result = dns_qp_insert(qpdb->tree, node, 0);
 			INSIST(result == ISC_R_SUCCESS);
 			qpcnode_unref(node);
@@ -3049,8 +3049,8 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					(void **)&nsecnode, NULL);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(nsecnode == NULL);
-			nsecnode = new_qpcnode(qpdb, name);
-			nsecnode->nspace = DNS_DBNAMESPACE_NSEC;
+			nsecnode = new_qpcnode(qpdb, name,
+					       DNS_DBNAMESPACE_NSEC);
 			result = dns_qp_insert(qpdb->nsec, nsecnode, 0);
 			INSIST(result == ISC_R_SUCCESS);
 			qpcnode_detach(&nsecnode);

@@ -662,10 +662,11 @@ qpz_heap_destroy(qpz_heap_t *qpheap) {
 }
 
 static qpznode_t *
-new_qpznode(qpzonedb_t *qpdb, const dns_name_t *name) {
+new_qpznode(qpzonedb_t *qpdb, const dns_name_t *name, dns_namespace_t nspace) {
 	qpznode_t *newdata = isc_mem_get(qpdb->common.mctx, sizeof(*newdata));
 	*newdata = (qpznode_t){
 		.name = DNS_NAME_INITEMPTY,
+		.nspace = nspace,
 		.heap = qpdb->heap,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.locknum = qpzone_get_locknum(),
@@ -766,8 +767,9 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 * We now explicitly create a node for the zone's origin, and then
 	 * we simply remember the node data's address.
 	 */
-	qpdb->origin = new_qpznode(qpdb, &qpdb->common.origin);
-	qpdb->origin->nspace = DNS_DBNAMESPACE_NORMAL;
+	qpdb->origin = new_qpznode(qpdb, &qpdb->common.origin,
+				   DNS_DBNAMESPACE_NORMAL);
+
 	result = dns_qp_insert(qp, qpdb->origin, 0);
 	INSIST(result == ISC_R_SUCCESS);
 
@@ -775,8 +777,8 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 * Add an apex node to the NSEC tree so that we can quickly skip over
 	 * the NSEC nodes while iterating over the full tree.
 	 */
-	qpdb->nsec_origin = new_qpznode(qpdb, &qpdb->common.origin);
-	qpdb->nsec_origin->nspace = DNS_DBNAMESPACE_NSEC;
+	qpdb->nsec_origin = new_qpznode(qpdb, &qpdb->common.origin,
+					DNS_DBNAMESPACE_NSEC);
 	result = dns_qp_insert(qp, qpdb->nsec_origin, 0);
 	INSIST(result == ISC_R_SUCCESS);
 
@@ -785,8 +787,8 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 * return partial matches when there is only a single NSEC3
 	 * record in the tree.
 	 */
-	qpdb->nsec3_origin = new_qpznode(qpdb, &qpdb->common.origin);
-	qpdb->nsec3_origin->nspace = DNS_DBNAMESPACE_NSEC3;
+	qpdb->nsec3_origin = new_qpznode(qpdb, &qpdb->common.origin,
+					 DNS_DBNAMESPACE_NSEC3);
 	result = dns_qp_insert(qp, qpdb->nsec3_origin, 0);
 	INSIST(result == ISC_R_SUCCESS);
 
@@ -1718,8 +1720,7 @@ loading_addnode(qpz_load_t *loadctx, const dns_name_t *name,
 		if (result == ISC_R_SUCCESS) {
 			*nodep = node;
 		} else {
-			node = new_qpznode(qpdb, name);
-			node->nspace = DNS_DBNAMESPACE_NSEC3;
+			node = new_qpznode(qpdb, name, DNS_DBNAMESPACE_NSEC3);
 			result = dns_qp_insert(loadctx->tree, node, 0);
 			INSIST(result == ISC_R_SUCCESS);
 			*nodep = node;
@@ -1736,8 +1737,7 @@ loading_addnode(qpz_load_t *loadctx, const dns_name_t *name,
 		}
 	} else {
 		INSIST(node == NULL);
-		node = new_qpznode(qpdb, name);
-		node->nspace = DNS_DBNAMESPACE_NORMAL;
+		node = new_qpznode(qpdb, name, DNS_DBNAMESPACE_NORMAL);
 		result = dns_qp_insert(loadctx->tree, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		qpznode_unref(node);
@@ -1755,8 +1755,7 @@ loading_addnode(qpz_load_t *loadctx, const dns_name_t *name,
 	 * move on.
 	 */
 	node->havensec = true;
-	nsecnode = new_qpznode(qpdb, name);
-	nsecnode->nspace = DNS_DBNAMESPACE_NSEC;
+	nsecnode = new_qpznode(qpdb, name, DNS_DBNAMESPACE_NSEC);
 	(void)dns_qp_insert(loadctx->tree, nsecnode, 0);
 	qpznode_detach(&nsecnode);
 
@@ -2137,8 +2136,7 @@ wildcardmagic(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
 	result = dns_qp_getname(qp, &foundname, nspace, (void **)&node, NULL);
 	if (result != ISC_R_SUCCESS) {
 		INSIST(node == NULL);
-		node = new_qpznode(qpdb, &foundname);
-		node->nspace = nspace;
+		node = new_qpznode(qpdb, &foundname, nspace);
 		result = dns_qp_insert(qp, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		qpznode_unref(node);
@@ -2569,8 +2567,7 @@ findnodeintree(qpzonedb_t *qpdb, const dns_name_t *name, bool create,
 			return result;
 		}
 
-		node = new_qpznode(qpdb, name);
-		node->nspace = nspace;
+		node = new_qpznode(qpdb, name, nspace);
 		result = dns_qp_insert(qp, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		qpznode_unref(node);
@@ -4894,8 +4891,8 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 		 * so we can detach the new one we created and
 		 * move on.
 		 */
-		qpznode_t *nsecnode = new_qpznode(qpdb, name);
-		nsecnode->nspace = DNS_DBNAMESPACE_NSEC;
+		qpznode_t *nsecnode = new_qpznode(qpdb, name,
+						  DNS_DBNAMESPACE_NSEC);
 		(void)dns_qp_insert(nsec, nsecnode, 0);
 		qpznode_detach(&nsecnode);
 	}
