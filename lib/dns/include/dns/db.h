@@ -238,9 +238,9 @@ struct dns_dbonupdatelistener {
  * the beginning of the key, converting them to '0', '1', and '2'.
  */
 typedef enum {
-	DNS_DB_NSEC_NORMAL = 0, /* regular namespace */
-	DNS_DB_NSEC_NSEC = 1,	/* nsec namespace */
-	DNS_DB_NSEC_NSEC3 = 2,	/* nsec3 namespace */
+	DNS_DBNAMESPACE_NORMAL = 0, /* regular namespace */
+	DNS_DBNAMESPACE_NSEC = 1,   /* nsec namespace */
+	DNS_DBNAMESPACE_NSEC3 = 2,  /* nsec3 namespace */
 } dns_namespace_t;
 
 /*@{*/

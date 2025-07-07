@@ -77,7 +77,7 @@ ztqpmakekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	    uint32_t ival ISC_ATTR_UNUSED) {
 	dns_zone_t *zone = pval;
 	dns_name_t *name = dns_zone_getorigin(zone);
-	return dns_qpkey_fromname(key, name, 0);
+	return dns_qpkey_fromname(key, name, DNS_DBNAMESPACE_NORMAL);
 }
 
 static void
@@ -156,7 +156,8 @@ dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone) {
 	REQUIRE(VALID_ZT(zt));
 
 	dns_qpmulti_write(zt->multi, &qp);
-	result = dns_qp_deletename(qp, dns_zone_getorigin(zone), 0, NULL, NULL);
+	result = dns_qp_deletename(qp, dns_zone_getorigin(zone),
+				   DNS_DBNAMESPACE_NORMAL, NULL, NULL);
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(zt->multi, &qp);
 
@@ -179,10 +180,11 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 	dns_qpmulti_query(zt->multi, &qpr);
 
 	if (exactopts == DNS_ZTFIND_EXACT) {
-		result = dns_qp_getname(&qpr, name, 0, &pval, NULL);
+		result = dns_qp_getname(&qpr, name, DNS_DBNAMESPACE_NORMAL,
+					&pval, NULL);
 	} else {
-		result = dns_qp_lookup(&qpr, name, 0, NULL, NULL, &chain, &pval,
-				       NULL);
+		result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL,
+				       NULL, &chain, &pval, NULL);
 		if (exactopts == DNS_ZTFIND_NOEXACT && result == ISC_R_SUCCESS)
 		{
 			/* get pval from the previous chain link */

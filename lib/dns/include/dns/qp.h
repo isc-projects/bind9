@@ -477,11 +477,7 @@ size_t
 dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name,
 		   dns_namespace_t space);
 /*%<
- * Convert a DNS name into a trie lookup key.
- *
- * If 'space' is DNS_DB_NSEC_NORMAL (0), convert the name for a normal lookup.
- * If 'space' is DNS_DB_NSEC_NSEC, convert the name for a NSEC lookup.
- * If 'space' is DNS_DB_NSEC_NSEC3, convert the name for a NSEC3 lookup.
+ * Convert a DNS name into a trie lookup key in the right namespace.
  *
  * Requires:
  * \li  `name` is a pointer to a valid `dns_name_t`
@@ -549,8 +545,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	      dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
 /*%<
  * Look up a leaf in a qp-trie that is equal to, or an ancestor domain of,
- * 'name' in the namespace 'space'. The namespace can either be
- * DNS_DB_NSEC_NORMAL, DNS_DB_NSEC_NSEC, or DNS_DB_NSEC3.
+ * 'name' in the namespace 'space'.
  *
  * If 'foundname' is not NULL, it will be updated to contain the name
  * that was found (if any). The return code, ISC_R_SUCCESS or

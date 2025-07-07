@@ -604,14 +604,14 @@ delete_node(qpcache_t *qpdb, qpcnode_t *node) {
 	}
 
 	switch (node->nspace) {
-	case DNS_DB_NSEC_NORMAL:
+	case DNS_DBNAMESPACE_NORMAL:
 		if (node->havensec) {
 			/*
 			 * Delete the corresponding node from the auxiliary NSEC
 			 * tree before deleting from the main tree.
 			 */
 			result = dns_qp_deletename(qpdb->nsec, &node->name,
-						   DNS_DB_NSEC_NSEC, NULL,
+						   DNS_DBNAMESPACE_NSEC, NULL,
 						   NULL);
 			if (result != ISC_R_SUCCESS) {
 				isc_log_write(DNS_LOGCATEGORY_DATABASE,
@@ -625,7 +625,7 @@ delete_node(qpcache_t *qpdb, qpcnode_t *node) {
 		result = dns_qp_deletename(qpdb->tree, &node->name,
 					   node->nspace, NULL, NULL);
 		break;
-	case DNS_DB_NSEC_NSEC:
+	case DNS_DBNAMESPACE_NSEC:
 		result = dns_qp_deletename(qpdb->nsec, &node->name,
 					   node->nspace, NULL, NULL);
 		break;
@@ -1395,8 +1395,8 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 	/*
 	 * Look for the node in the auxilary tree.
 	 */
-	result = dns_qp_lookup(search->qpdb->nsec, name, DNS_DB_NSEC_NSEC, NULL,
-			       &iter, NULL, (void **)&node, NULL);
+	result = dns_qp_lookup(search->qpdb->nsec, name, DNS_DBNAMESPACE_NSEC,
+			       NULL, &iter, NULL, (void **)&node, NULL);
 	if (result != DNS_R_PARTIALMATCH) {
 		return ISC_R_NOTFOUND;
 	}
@@ -1417,7 +1417,7 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 	 */
 	node = NULL;
 	result = dns_qp_getname(search->qpdb->tree, predecessor,
-				DNS_DB_NSEC_NORMAL, (void **)&node, NULL);
+				DNS_DBNAMESPACE_NORMAL, (void **)&node, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -1524,8 +1524,8 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	/*
 	 * Search down from the root of the tree.
 	 */
-	result = dns_qp_lookup(search.qpdb->tree, name, 0, NULL, NULL,
-			       &search.chain, (void **)&node, NULL);
+	result = dns_qp_lookup(search.qpdb->tree, name, DNS_DBNAMESPACE_NORMAL,
+			       NULL, NULL, &search.chain, (void **)&node, NULL);
 	if (result != ISC_R_NOTFOUND && foundname != NULL) {
 		dns_name_copy(&node->name, foundname);
 	}
@@ -1964,8 +1964,8 @@ qpcache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	/*
 	 * Search down from the root of the tree.
 	 */
-	result = dns_qp_lookup(search.qpdb->tree, name, 0, NULL, NULL,
-			       &search.chain, (void **)&node, NULL);
+	result = dns_qp_lookup(search.qpdb->tree, name, DNS_DBNAMESPACE_NORMAL,
+			       NULL, NULL, &search.chain, (void **)&node, NULL);
 
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -2352,7 +2352,7 @@ qpcache_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	qpcnode_t *node = NULL;
 	isc_result_t result;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
-	dns_namespace_t dopt = DNS_DB_NSEC_NORMAL;
+	dns_namespace_t nspace = DNS_DBNAMESPACE_NORMAL;
 
 	TREE_RDLOCK(&qpdb->tree_lock, &tlocktype);
 	result = dns_qp_getname(qpdb->tree, name, nspace, (void **)&node, NULL);
@@ -2368,7 +2368,7 @@ qpcache_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 					(void **)&node, NULL);
 		if (result != ISC_R_SUCCESS) {
 			node = new_qpcnode(qpdb, name);
-			node->nspace = dopt;
+			node->nspace = nspace;
 			result = dns_qp_insert(qpdb->tree, node, 0);
 			INSIST(result == ISC_R_SUCCESS);
 			qpcnode_unref(node);
@@ -3045,12 +3045,12 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (newnsec && !qpnode->havensec) {
 		qpcnode_t *nsecnode = NULL;
 
-		result = dns_qp_getname(qpdb->nsec, name, DNS_DB_NSEC_NSEC,
+		result = dns_qp_getname(qpdb->nsec, name, DNS_DBNAMESPACE_NSEC,
 					(void **)&nsecnode, NULL);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(nsecnode == NULL);
 			nsecnode = new_qpcnode(qpdb, name);
-			nsecnode->nspace = DNS_DB_NSEC_NSEC;
+			nsecnode->nspace = DNS_DBNAMESPACE_NSEC;
 			result = dns_qp_insert(qpdb->nsec, nsecnode, 0);
 			INSIST(result == ISC_R_SUCCESS);
 			qpcnode_detach(&nsecnode);
@@ -3427,7 +3427,8 @@ resume_iteration(qpc_dbit_t *qpdbiter, bool continuing) {
 	 */
 	if (continuing && qpdbiter->node != NULL) {
 		isc_result_t result;
-		result = dns_qp_lookup(qpdb->tree, qpdbiter->name, 0, NULL,
+		result = dns_qp_lookup(qpdb->tree, qpdbiter->name,
+				       DNS_DBNAMESPACE_NORMAL, NULL,
 				       &qpdbiter->iter, NULL, NULL, NULL);
 		INSIST(result == ISC_R_SUCCESS);
 	}
@@ -3555,8 +3556,9 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 
 	dereference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 
-	result = dns_qp_lookup(qpdb->tree, name, 0, NULL, &qpdbiter->iter, NULL,
-			       (void **)&qpdbiter->node, NULL);
+	result = dns_qp_lookup(qpdb->tree, name, DNS_DBNAMESPACE_NORMAL, NULL,
+			       &qpdbiter->iter, NULL, (void **)&qpdbiter->node,
+			       NULL);
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		dns_name_copy(&qpdbiter->node->name, qpdbiter->name);

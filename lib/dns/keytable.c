@@ -273,7 +273,8 @@ delete_ds(dns_qp_t *qp, dns_keytable_t *keytable, dns_keynode_t *knode,
 		}
 	}
 
-	result = dns_qp_deletename(qp, &knode->name, 0, &pval, NULL);
+	result = dns_qp_deletename(qp, &knode->name, DNS_DBNAMESPACE_NORMAL,
+				   &pval, NULL);
 	INSIST(result == ISC_R_SUCCESS);
 	INSIST(pval == knode);
 
@@ -343,7 +344,8 @@ insert(dns_keytable_t *keytable, bool managed, bool initial,
 
 	dns_qpmulti_write(keytable->table, &qp);
 
-	result = dns_qp_getname(qp, keyname, 0, &pval, NULL);
+	result = dns_qp_getname(qp, keyname, DNS_DBNAMESPACE_NORMAL, &pval,
+				NULL);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * There was no match for "keyname" in "keytable" yet, so one
@@ -400,7 +402,8 @@ dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname,
 	REQUIRE(keyname != NULL);
 
 	dns_qpmulti_write(keytable->table, &qp);
-	result = dns_qp_deletename(qp, keyname, 0, &pval, NULL);
+	result = dns_qp_deletename(qp, keyname, DNS_DBNAMESPACE_NORMAL, &pval,
+				   NULL);
 	if (result == ISC_R_SUCCESS) {
 		dns_keynode_t *n = pval;
 		if (callback != NULL) {
@@ -430,7 +433,8 @@ dns_keytable_deletekey(dns_keytable_t *keytable, const dns_name_t *keyname,
 	REQUIRE(dnskey != NULL);
 
 	dns_qpmulti_write(keytable->table, &qp);
-	result = dns_qp_getname(qp, keyname, 0, &pval, NULL);
+	result = dns_qp_getname(qp, keyname, DNS_DBNAMESPACE_NORMAL, &pval,
+				NULL);
 	if (result != ISC_R_SUCCESS) {
 		goto finish;
 	}
@@ -479,7 +483,8 @@ dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
 	REQUIRE(keynodep != NULL && *keynodep == NULL);
 
 	dns_qpmulti_query(keytable->table, &qpr);
-	result = dns_qp_getname(&qpr, keyname, 0, &pval, NULL);
+	result = dns_qp_getname(&qpr, keyname, DNS_DBNAMESPACE_NORMAL, &pval,
+				NULL);
 	if (result == ISC_R_SUCCESS) {
 		dns_keynode_t *knode = pval;
 		dns_keynode_attach(knode, keynodep);
@@ -506,7 +511,8 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
 	REQUIRE(foundname != NULL);
 
 	dns_qpmulti_query(keytable->table, &qpr);
-	result = dns_qp_lookup(&qpr, name, 0, NULL, NULL, NULL, &pval, NULL);
+	result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL,
+			       NULL, &pval, NULL);
 	keynode = pval;
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
@@ -535,7 +541,8 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
 	REQUIRE(wantdnssecp != NULL);
 
 	dns_qpmulti_query(keytable->table, &qpr);
-	result = dns_qp_lookup(&qpr, name, 0, NULL, NULL, NULL, &pval, NULL);
+	result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL,
+			       NULL, &pval, NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		keynode = pval;
 		if (foundname != NULL) {
@@ -830,7 +837,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns_keynode_t *keynode = pval;
-	return dns_qpkey_fromname(key, &keynode->name, 0);
+	return dns_qpkey_fromname(key, &keynode->name, DNS_DBNAMESPACE_NORMAL);
 }
 
 static void

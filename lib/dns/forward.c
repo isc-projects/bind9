@@ -163,7 +163,8 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	REQUIRE(VALID_FWDTABLE(fwdtable));
 
 	dns_qpmulti_query(fwdtable->table, &qpr);
-	result = dns_qp_lookup(&qpr, name, 0, NULL, NULL, NULL, &pval, NULL);
+	result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL,
+			       NULL, &pval, NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		dns_forwarders_t *fwdrs = pval;
 		*forwardersp = fwdrs;
@@ -233,7 +234,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns_forwarders_t *fwd = pval;
-	return dns_qpkey_fromname(key, &fwd->name, 0);
+	return dns_qpkey_fromname(key, &fwd->name, DNS_DBNAMESPACE_NORMAL);
 }
 
 static void
