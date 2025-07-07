@@ -12,6 +12,7 @@
 # information regarding copyright ownership.
 
 import os
+import platform
 import shutil
 import subprocess
 
@@ -39,8 +40,8 @@ def feature_test(feature):
     return True
 
 
-def with_tsan(*args):  # pylint: disable=unused-argument
-    return feature_test("--tsan")
+def is_host_freebsd_13(*_):
+    return platform.system() == "FreeBSD" and platform.release().startswith("13")
 
 
 def with_algorithm(name: str):
@@ -79,20 +80,3 @@ softhsm2_environment = pytest.mark.skipif(
     ),
     reason="SOFTHSM2_CONF and SOFTHSM2_MODULE environmental variables must be set and pkcs11-tool and softhsm2-util tools present",
 )
-
-try:
-    import flaky as flaky_pkg  # type: ignore
-except ModuleNotFoundError:
-    # In case the flaky package is not installed, run the tests as usual
-    # without any attempts to re-run them.
-    # pylint: disable=unused-argument
-    def flaky(*args, **kwargs):
-        """Mock decorator that doesn't do anything special, just returns the function."""
-
-        def wrapper(wrapped_obj):
-            return wrapped_obj
-
-        return wrapper
-
-else:
-    flaky = flaky_pkg.flaky
