@@ -11,7 +11,6 @@
 
 import pytest
 
-import isctest.mark
 
 pytestmark = pytest.mark.extra_artifacts(
     [
@@ -48,6 +47,6 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-@isctest.mark.flaky(max_runs=2)  # GL#3098
+@pytest.mark.flaky(max_runs=2)  # GL#3098
 def test_mkeys(run_tests_sh):
     run_tests_sh()
