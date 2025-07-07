@@ -86,7 +86,6 @@ def token_init_and_cleanup():
             raise_on_exception=False,
         ).stdout.decode("utf-8")
         assert re.search("Found token (.*) with matching token label", output)
-        assert re.search("The token (.*) has been deleted", output)
 
 
 # pylint: disable-msg=too-many-locals

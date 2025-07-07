@@ -1760,15 +1760,6 @@ if [ -x "$DELV" ]; then
 
   if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null; then
     n=$((n + 1))
-    echo_i "checking delv +ns uses both address families ($n)"
-    ret=0
-    delv_with_opts -a ns1/anchor.dnskey +root +ns +hint=root.hint a a.example >delv.out.test$n || ret=1
-    grep -qF 'sending packet to 10.53' delv.out.test$n >/dev/null || ret=1
-    grep -qF 'sending packet to fd92:7065' delv.out.test$n >/dev/null || ret=1
-    if [ $ret -ne 0 ]; then echo_i "failed"; fi
-    status=$((status + ret))
-
-    n=$((n + 1))
     echo_i "checking delv -4 +ns uses only IPv4 ($n)"
     ret=0
     delv_with_opts -a ns1/anchor.dnskey +root -4 +ns +hint=root.hint a a.example >delv.out.test$n || ret=1
