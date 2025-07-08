@@ -26,6 +26,9 @@ from common import (
 
 @pytest.fixture(scope="module", autouse=True)
 def reconfigure_policy(ns6, templates):
+    isctest.kasp.wait_keymgr_done(ns6, "going-straight-to-none.kasp")
+    isctest.kasp.wait_keymgr_done(ns6, "going-straight-to-none-dynamic.kasp")
+
     templates.render("ns6/named.conf", {"policy": "none"})
     ns6.reconfigure()
 

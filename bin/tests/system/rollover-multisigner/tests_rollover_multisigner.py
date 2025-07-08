@@ -62,6 +62,8 @@ def test_rollover_multisigner(ns3, alg, size):
 
     zone = "multisigner-model2.kasp"
 
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
@@ -137,6 +139,8 @@ def test_rollover_multisigner(ns3, alg, size):
     # the old omnipresent keys outside of the desired key range and the new
     # keys in the desired key range.
     zone = "single-to-multisigner.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
 
     isctest.kasp.check_dnssec_verify(ns3, zone)
 

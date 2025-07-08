@@ -39,9 +39,11 @@ TIME_PASSED = 0  # set in reconfigure() fixture
 @pytest.fixture(scope="module", autouse=True)
 def reconfigure(ns6, templates):
     global TIME_PASSED  # pylint: disable=global-statement
-    start_time = KeyTimingMetadata.now()
+
+    isctest.kasp.wait_keymgr_done(ns6, "step1.algorithm-roll.kasp")
 
     templates.render("ns6/named.conf", {"alg_roll": True})
+    start_time = KeyTimingMetadata.now()
     ns6.reconfigure()
 
     # Calculate time passed to correctly check for next key events.
@@ -49,8 +51,12 @@ def reconfigure(ns6, templates):
 
 
 def test_algoroll_ksk_zsk_reconfig_step1(ns6, alg, size):
+    zone = "step1.algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step1.algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The RSASHA keys are outroducing.
@@ -67,8 +73,12 @@ def test_algoroll_ksk_zsk_reconfig_step1(ns6, alg, size):
 
 
 def test_algoroll_ksk_zsk_reconfig_step2(ns6, alg, size):
+    zone = "step2.algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step2.algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The RSASHA keys are outroducing, but need to stay present
@@ -92,8 +102,12 @@ def test_algoroll_ksk_zsk_reconfig_step2(ns6, alg, size):
 
 
 def test_algoroll_ksk_zsk_reconfig_step3(ns6, alg, size):
+    zone = "step3.algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step3.algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The DS can be swapped.
@@ -110,8 +124,12 @@ def test_algoroll_ksk_zsk_reconfig_step3(ns6, alg, size):
 
 
 def test_algoroll_ksk_zsk_reconfig_step4(ns6, alg, size):
+    zone = "step4.algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step4.algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The old DS is HIDDEN, we can remove the old algorithm records.
@@ -128,8 +146,12 @@ def test_algoroll_ksk_zsk_reconfig_step4(ns6, alg, size):
 
 
 def test_algoroll_ksk_zsk_reconfig_step5(ns6, alg, size):
+    zone = "step5.algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step5.algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The DNSKEY becomes HIDDEN.
@@ -150,8 +172,12 @@ def test_algoroll_ksk_zsk_reconfig_step5(ns6, alg, size):
 
 
 def test_algoroll_ksk_zsk_reconfig_step6(ns6, alg, size):
+    zone = "step6.algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step6.algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The zone signatures are now HIDDEN.

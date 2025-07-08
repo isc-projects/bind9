@@ -35,6 +35,8 @@ def test_straight2none_initial(zone, ns6, alg, size):
     config = DEFAULT_CONFIG
     policy = "default"
 
+    isctest.kasp.wait_keymgr_done(ns6, zone)
+
     step = {
         "zone": zone,
         "cdss": CDSS,

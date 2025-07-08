@@ -37,6 +37,8 @@ from common import (
 def test_lifetime_initial(zone, policy, lifetime, alg, size, ns6):
     config = DEFAULT_CONFIG
 
+    isctest.kasp.wait_keymgr_done(ns6, zone)
+
     step = {
         "zone": zone,
         "cdss": CDSS,

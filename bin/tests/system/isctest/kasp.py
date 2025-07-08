@@ -9,6 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from datetime import datetime, timedelta, timezone
 from functools import total_ordering
 import glob
 import os
@@ -18,10 +19,10 @@ import subprocess
 import time
 from typing import Dict, List, Optional, Tuple, Union
 
-from datetime import datetime, timedelta, timezone
-
 import dns
 import dns.tsig
+
+from isctest.instance import NamedInstance
 import isctest.log
 import isctest.query
 import isctest.util
@@ -1520,3 +1521,15 @@ def policy_to_properties(ttl, keys: List[str]) -> List[KeyProperties]:
         proplist.append(keyprop)
 
     return proplist
+
+
+def wait_keymgr_done(server: NamedInstance, zone: str, reconfig: bool = False) -> None:
+    """
+    Block and wait until the keymgr is done processing zone.
+    """
+    messages = []
+    if reconfig:
+        messages.append("received control channel command 'reconfig'")
+    messages.append(f"keymgr: {zone} done")
+    with server.watch_log_from_start() as watcher:
+        watcher.wait_for_sequence(messages)

@@ -41,11 +41,14 @@ def reconfigure_policy(ns6, templates):
 def test_going_insecure_reconfig_step1(zone, alg, size, ns6):
     config = DEFAULT_CONFIG
     policy = "insecure"
+    zone = f"step1.{zone}"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
 
     # Key goal states should be HIDDEN.
     # The DS may be removed if we are going insecure.
     step = {
-        "zone": f"step1.{zone}",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"ksk 0 {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{-DURATION['P10D']}",
@@ -71,12 +74,15 @@ def test_going_insecure_reconfig_step1(zone, alg, size, ns6):
 def test_going_insecure_reconfig_step2(zone, alg, size, ns6):
     config = DEFAULT_CONFIG
     policy = "insecure"
+    zone = f"step2.{zone}"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
 
     # The DS is long enough removed from the zone to be considered
     # HIDDEN.  This means the DNSKEY and the KSK signatures can be
     # removed.
     step = {
-        "zone": f"step2.{zone}",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"ksk 0 {alg} {size} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{-DURATION['P10D']}",

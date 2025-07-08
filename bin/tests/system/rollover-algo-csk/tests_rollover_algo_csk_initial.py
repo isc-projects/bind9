@@ -24,9 +24,12 @@ from common import (
 def test_algoroll_csk_initial(ns6):
     config = ALGOROLL_CONFIG
     policy = "csk-algoroll"
+    zone = "step1.csk-algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone)
 
     step = {
-        "zone": "step1.csk-algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"csk 0 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P7D']}",

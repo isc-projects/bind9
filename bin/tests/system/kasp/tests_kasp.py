@@ -642,6 +642,8 @@ def test_kasp_case(servers, ns3, params):
     zone = params["zone"]
     policy = params["policy"]
 
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     params["config"]["key-directory"] = params["config"]["key-directory"].replace(
         "{keydir}", keydir
     )
@@ -753,6 +755,8 @@ def test_kasp_inherit_signed(zone, policy, server_id, alg, tsig_kind, servers):
         else None
     )
 
+    isctest.kasp.wait_keymgr_done(server, zone)
+
     key1 = KeyProperties.default()
     key1.metadata["Algorithm"] = alg.number
     key1.metadata["Length"] = alg.bits
@@ -778,6 +782,8 @@ def test_kasp_inherit_view(number, dynamic, inline_signing, txt_rdata, ns4):
     policy = "test"
     view = f"example{number}"
     tsig = f"{os.environ['DEFAULT_HMAC']}:keyforview{number}:{KASP_INHERIT_TSIG_SECRET[f'view{number}']}"
+
+    isctest.kasp.wait_keymgr_done(ns4, zone)
 
     key1 = KeyProperties.default()
     key1.metadata["Algorithm"] = ECDSAP384SHA384.number
@@ -827,6 +833,8 @@ def test_kasp_default(ns3):
     isctest.log.info("check a zone with the default policy is signed")
     zone = "default.kasp"
     policy = "default"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
 
     # Key properties.
     # DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
@@ -904,6 +912,9 @@ def test_kasp_default(ns3):
     # A zone that uses inline-signing.
     isctest.log.info("check an inline-signed zone with the default policy is signed")
     zone = "inline-signing.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     # Key properties.
     key1 = KeyProperties.default()
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
@@ -920,6 +931,9 @@ def test_kasp_dynamic(ns3):
     isctest.log.info("check dynamic zone is updated and signed after update")
     zone = "dynamic.kasp"
     policy = "default"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     # Key properties.
     key1 = KeyProperties.default()
     expected = [key1]
@@ -982,6 +996,9 @@ def test_kasp_dynamic(ns3):
 
     # Dynamic, and inline-signing.
     zone = "dynamic-inline-signing.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     # Key properties.
     key1 = KeyProperties.default()
     expected = [key1]
@@ -1016,6 +1033,9 @@ def test_kasp_dynamic(ns3):
     # Dynamic, signed, and inline-signing.
     isctest.log.info("check dynamic signed, and inline-signed zone")
     zone = "dynamic-signed-inline-signing.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     # Key properties.
     key1 = KeyProperties.default()
     # The ns3/setup.sh script sets all states to omnipresent.
@@ -1045,6 +1065,9 @@ def test_kasp_checkds(ns3):
         f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
         f"zsk unlimited {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
     ]
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     ksks = [k for k in keys if k.is_ksk()]
@@ -1087,6 +1110,9 @@ def test_kasp_checkds_doubleksk(ns3):
         f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
         f"zsk unlimited {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
     ]
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     ksks = [k for k in keys if k.is_ksk()]
@@ -1156,6 +1182,9 @@ def test_kasp_checkds_csk(ns3):
     policy_keys = [
         f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
     ]
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     expected = isctest.kasp.policy_to_properties(ttl=303, keys=policy_keys)
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     isctest.kasp.check_dnssec_verify(ns3, zone)
@@ -1186,7 +1215,10 @@ def test_kasp_special_characters(ns3):
     # A zone with special characters.
     isctest.log.info("check special characters")
 
-    zone = r'i-am.":\;?&[]\@!\$*+,|=\.\(\)special.kasp'
+    zone = r"i-am.\":\;?&[]\@!\$*+,|=\.\(\)special.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     # It is non-trivial to adapt the tests to deal with all possible different
     # escaping characters, so we will just try to verify the zone.
     isctest.kasp.check_dnssec_verify(ns3, zone)
@@ -1197,6 +1229,9 @@ def test_kasp_insecure(ns3):
     isctest.log.info("check insecure zones")
 
     zone = "insecure.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     expected = []
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     isctest.kasp.check_keys(zone, keys, expected)
@@ -1432,6 +1467,9 @@ def test_kasp_zsk_retired(ns3):
         # zsk successor
         f"zsk 31536000 {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:hidden",
     ]
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     expected = isctest.kasp.policy_to_properties(300, key_properties)
     keys = isctest.kasp.keydir_to_keylist(zone, "ns3")
     ksks = [k for k in keys if k.is_ksk()]
@@ -1549,6 +1587,8 @@ def test_kasp_purge_keys(ns4):
     tsig2 = (
         f"{os.environ['DEFAULT_HMAC']}:keyforview2:{KASP_INHERIT_TSIG_SECRET['view2']}"
     )
+
+    isctest.kasp.wait_keymgr_done(ns4, zone)
 
     isctest.kasp.check_dnssec_verify(ns4, zone, tsig=tsig1)
     isctest.kasp.check_dnssec_verify(ns4, zone, tsig=tsig2)
