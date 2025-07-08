@@ -63,9 +63,13 @@ OFFSETS["step8-s"] = OFFSETS["step7-s"] - int(CONFIG["purge-keys"].total_seconds
 
 
 def test_csk_roll1_step1(alg, size, ns3):
+    zone = "step1.csk-roll1.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Introduce the first key. This will immediately be active.
-        "zone": "step1.csk-roll1.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"csk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']}",
@@ -79,6 +83,10 @@ def test_csk_roll1_step1(alg, size, ns3):
 
 
 def test_csk_roll1_step2(alg, size, ns3):
+    zone = "step2.csk-roll1.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Successor CSK is prepublished (signs DNSKEY RRset, but not yet
         # other RRsets).
@@ -86,7 +94,7 @@ def test_csk_roll1_step2(alg, size, ns3):
         # CSK2 goal: hidden -> omnipresent
         # CSK2 dnskey: hidden -> rumoured
         # CSK2 krrsig: hidden -> rumoured
-        "zone": "step2.csk-roll1.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"csk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
@@ -100,11 +108,15 @@ def test_csk_roll1_step2(alg, size, ns3):
 
 
 def test_csk_roll1_step3(alg, size, ns3):
+    zone = "step3.csk-roll1.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Successor CSK becomes omnipresent, meaning we can start signing
         # the remainder of the zone with the successor CSK, and we can
         # submit the DS.
-        "zone": "step3.csk-roll1.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # Predecessor CSK will be removed, so moving to UNRETENTIVE.
         # CSK1 zrrsig: omnipresent -> unretentive
@@ -134,8 +146,12 @@ def test_csk_roll1_step3(alg, size, ns3):
 
 
 def test_csk_roll1_step4(alg, size, ns3):
+    zone = "step4.csk-roll1.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step4.csk-roll1.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The predecessor CSK is no longer signing the DNSKEY RRset.
         # CSK1 krrsig: omnipresent -> unretentive
@@ -157,8 +173,12 @@ def test_csk_roll1_step4(alg, size, ns3):
 
 
 def test_csk_roll1_step5(alg, size, ns3):
+    zone = "step5.csk-roll1.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step5.csk-roll1.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The predecessor KRRSIG records are now all hidden.
         # CSK1 krrsig: unretentive -> hidden
@@ -176,8 +196,12 @@ def test_csk_roll1_step5(alg, size, ns3):
 
 
 def test_csk_roll1_step6(alg, size, ns3):
+    zone = "step6.csk-roll1.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step6.csk-roll1.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The predecessor ZRRSIG records are now all hidden (so the DNSKEY
         # can be removed).
@@ -197,8 +221,12 @@ def test_csk_roll1_step6(alg, size, ns3):
 
 
 def test_csk_roll1_step7(alg, size, ns3):
+    zone = "step7.csk-roll1.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step7.csk-roll1.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The predecessor CSK is now completely HIDDEN.
         "keyprops": [
@@ -215,8 +243,12 @@ def test_csk_roll1_step7(alg, size, ns3):
 
 
 def test_csk_roll1_step8(alg, size, ns3):
+    zone = "step8.csk-roll1.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step8.csk-roll1.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"csk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{OFFSETS['step8-s']}",

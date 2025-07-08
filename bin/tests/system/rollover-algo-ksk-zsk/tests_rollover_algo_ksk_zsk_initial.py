@@ -24,9 +24,12 @@ from common import (
 def test_algoroll_ksk_zsk_initial(ns6):
     config = ALGOROLL_CONFIG
     policy = "rsasha256"
+    zone = "step1.algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone)
 
     step = {
-        "zone": "step1.algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"ksk 0 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{-DURATION['P7D']}",

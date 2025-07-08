@@ -37,6 +37,8 @@ def test_rollover_ksk_three_is_a_crowd(alg, size, ns3):
     """Test #2375: Scheduled rollovers are happening faster than they can finish."""
     zone = "three-is-a-crowd.kasp"
 
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         "zone": zone,
         "cdss": CDSS,

@@ -55,9 +55,13 @@ OFFSETS["step6-s"] = OFFSETS["step5-s"] - int(CONFIG["purge-keys"].total_seconds
 
 
 def test_zsk_prepub_step1(alg, size, ns3):
+    zone = "step1.zsk-prepub.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Introduce the first key. This will immediately be active.
-        "zone": "step1.zsk-prepub.autosign",
+        "zone": zone,
         "keyprops": [
             f"ksk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']}",
             f"zsk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step1-p']}",
@@ -71,12 +75,16 @@ def test_zsk_prepub_step1(alg, size, ns3):
 
 
 def test_zsk_prepub_step2(alg, size, ns3):
+    zone = "step2.zsk-prepub.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # it is time to pre-publish the successor zsk.
         # zsk1 goal: omnipresent -> hidden
         # zsk2 goal: hidden -> omnipresent
         # zsk2 dnskey: hidden -> rumoured
-        "zone": "step2.zsk-prepub.autosign",
+        "zone": zone,
         "keyprops": [
             f"ksk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
             f"zsk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step2-p']}",
@@ -91,13 +99,17 @@ def test_zsk_prepub_step2(alg, size, ns3):
 
 
 def test_zsk_prepub_step3(alg, size, ns3):
+    zone = "step3.zsk-prepub.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # predecessor zsk is no longer actively signing. successor zsk is
         # now actively signing.
         # zsk1 zrrsig: omnipresent -> unretentive
         # zsk2 dnskey: rumoured -> omnipresent
         # zsk2 zrrsig: hidden -> rumoured
-        "zone": "step3.zsk-prepub.autosign",
+        "zone": zone,
         "keyprops": [
             f"ksk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step3-p']}",
             f"zsk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:omnipresent zrrsig:unretentive offset:{OFFSETS['step3-p']}",
@@ -116,13 +128,17 @@ def test_zsk_prepub_step3(alg, size, ns3):
 
 
 def test_zsk_prepub_step4(alg, size, ns3):
+    zone = "step4.zsk-prepub.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # predecessor zsk is no longer needed. all rrsets are signed with
         # the successor zsk.
         # zsk1 dnskey: omnipresent -> unretentive
         # zsk1 zrrsig: unretentive -> hidden
         # zsk2 zrrsig: rumoured -> omnipresent
-        "zone": "step4.zsk-prepub.autosign",
+        "zone": zone,
         "keyprops": [
             f"ksk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-p']}",
             f"zsk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:unretentive zrrsig:hidden offset:{OFFSETS['step4-p']}",
@@ -137,10 +153,14 @@ def test_zsk_prepub_step4(alg, size, ns3):
 
 
 def test_zsk_prepub_step5(alg, size, ns3):
+    zone = "step5.zsk-prepub.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # predecessor zsk is now removed.
         # zsk1 dnskey: unretentive -> hidden
-        "zone": "step5.zsk-prepub.autosign",
+        "zone": zone,
         "keyprops": [
             f"ksk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step5-p']}",
             f"zsk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:hidden zrrsig:hidden offset:{OFFSETS['step5-p']}",
@@ -156,9 +176,13 @@ def test_zsk_prepub_step5(alg, size, ns3):
 
 
 def test_zsk_prepub_step6(alg, size, ns3):
+    zone = "step6.zsk-prepub.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # predecessor zsk is now purged.
-        "zone": "step6.zsk-prepub.autosign",
+        "zone": zone,
         "keyprops": [
             f"ksk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step6-p']}",
             f"zsk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step6-s']}",

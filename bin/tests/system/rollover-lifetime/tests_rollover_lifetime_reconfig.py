@@ -27,6 +27,11 @@ from common import (
 
 @pytest.fixture(scope="module", autouse=True)
 def reconfigure_policy(ns6, templates):
+    isctest.kasp.wait_keymgr_done(ns6, "shorter-lifetime")
+    isctest.kasp.wait_keymgr_done(ns6, "longer-lifetime")
+    isctest.kasp.wait_keymgr_done(ns6, "limit-lifetime")
+    isctest.kasp.wait_keymgr_done(ns6, "unlimit-lifetime")
+
     templates.render("ns6/named.conf", {"change_lifetime": True})
     ns6.reconfigure()
 
@@ -46,6 +51,8 @@ def reconfigure_policy(ns6, templates):
 )
 def test_lifetime_reconfig(zone, policy, lifetime, alg, size, ns6):
     config = DEFAULT_CONFIG
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
 
     step = {
         "zone": zone,

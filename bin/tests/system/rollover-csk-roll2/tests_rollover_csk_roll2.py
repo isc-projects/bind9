@@ -66,9 +66,13 @@ OFFSETS["step7-s"] = OFFSETS["step6-s"] - int(timedelta(days=90).total_seconds()
 
 
 def test_csk_roll2_step1(alg, size, ns3):
+    zone = "step1.csk-roll2.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Introduce the first key. This will immediately be active.
-        "zone": "step1.csk-roll2.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"csk {LIFETIME_POLICY} {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']}",
@@ -82,6 +86,10 @@ def test_csk_roll2_step1(alg, size, ns3):
 
 
 def test_csk_roll2_step2(alg, size, ns3):
+    zone = "step2.csk-roll2.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Successor CSK is prepublished (signs DNSKEY RRset, but not yet
         # other RRsets).
@@ -89,7 +97,7 @@ def test_csk_roll2_step2(alg, size, ns3):
         # CSK2 goal: hidden -> omnipresent
         # CSK2 dnskey: hidden -> rumoured
         # CSK2 krrsig: hidden -> rumoured
-        "zone": "step2.csk-roll2.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"csk {LIFETIME_POLICY} {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
@@ -103,11 +111,15 @@ def test_csk_roll2_step2(alg, size, ns3):
 
 
 def test_csk_roll2_step3(alg, size, ns3):
+    zone = "step3.csk-roll2.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Successor CSK becomes omnipresent, meaning we can start signing
         # the remainder of the zone with the successor CSK, and we can
         # submit the DS.
-        "zone": "step3.csk-roll2.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # Predecessor CSK will be removed, so moving to UNRETENTIVE.
         # CSK1 zrrsig: omnipresent -> unretentive
@@ -137,8 +149,12 @@ def test_csk_roll2_step3(alg, size, ns3):
 
 
 def test_csk_roll2_step4(alg, size, ns3):
+    zone = "step4.csk-roll2.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step4.csk-roll2.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The predecessor ZRRSIG is HIDDEN. The successor ZRRSIG is
         # OMNIPRESENT.
@@ -162,8 +178,12 @@ def test_csk_roll2_step4(alg, size, ns3):
 
 
 def test_csk_roll2_step5(alg, size, ns3):
+    zone = "step5.csk-roll2.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step5.csk-roll2.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The predecessor DNSKEY can be removed.
         # CSK1 dnskey: omnipresent -> unretentive
@@ -184,8 +204,12 @@ def test_csk_roll2_step5(alg, size, ns3):
 
 
 def test_csk_roll2_step6(alg, size, ns3):
+    zone = "step6.csk-roll2.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step6.csk-roll2.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The predecessor CSK is now completely HIDDEN.
         # CSK1 dnskey: unretentive -> hidden
@@ -203,8 +227,12 @@ def test_csk_roll2_step6(alg, size, ns3):
 
 
 def test_csk_roll2_step7(alg, size, ns3):
+    zone = "step7.csk-roll2.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step7.csk-roll2.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The predecessor CSK is now completely HIDDEN.
         "keyprops": [

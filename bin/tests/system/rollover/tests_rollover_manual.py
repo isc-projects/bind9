@@ -36,8 +36,7 @@ def test_rollover_manual(ns3):
     size = os.environ["DEFAULT_BITS"]
     zone = "manual-rollover.kasp"
 
-    with ns3.watch_log_from_start() as watcher:
-        watcher.wait_for_line(f"keymgr: {zone} done")
+    isctest.kasp.wait_keymgr_done(ns3, zone)
 
     isctest.kasp.check_dnssec_verify(ns3, zone)
 
