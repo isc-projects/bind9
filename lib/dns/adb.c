@@ -293,11 +293,15 @@ static void
 free_adbfetch(dns_adb_t *, dns_adbfetch_t **);
 static void
 purge_stale_names(dns_adb_t *adb, isc_stdtime_t now);
+static void
+purge_names_overmem(dns_adb_t *adb, size_t requested);
 static dns_adbname_t *
 get_attached_and_locked_name(dns_adb_t *, const dns_name_t *, unsigned int type,
 			     isc_stdtime_t now);
 static void
 purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now);
+static void
+purge_entries_overmem(dns_adb_t *adb, size_t requested);
 static dns_adbentry_t *
 get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 			      const isc_sockaddr_t *addr);
@@ -316,7 +320,7 @@ static void
 clean_finds_at_name(dns_adbname_t *, dns_adbstatus_t, unsigned int);
 static void
 maybe_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
-static bool
+static void
 maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now);
 static void
 expire_name(dns_adbname_t *adbname, dns_adbstatus_t astat);
@@ -1153,18 +1157,21 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 	};
 	uint32_t hashval = hash_adbname(&key);
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
+	bool overmem = isc_mem_isovermem(adb->mctx);
 
 	isc_time_set(&timenow, now, 0);
 
 	RWLOCK(&adb->names_lock, locktype);
 	last_update = adb->names_last_update;
 
-	if (last_update + ADB_STALE_MARGIN >= now ||
-	    isc_mem_isovermem(adb->mctx))
-	{
+	if (last_update + ADB_STALE_MARGIN >= now || overmem) {
 		last_update = now;
 		UPGRADELOCK(&adb->names_lock, locktype);
-		purge_stale_names(adb, now);
+		if (overmem) {
+			purge_names_overmem(adb, 2 * sizeof(*adbname));
+		} else {
+			purge_stale_names(adb, now);
+		}
 		adb->names_last_update = last_update;
 	}
 
@@ -1218,16 +1225,6 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 	return adbname;
 }
 
-static void
-upgrade_entries_lock(dns_adb_t *adb, isc_rwlocktype_t *locktypep,
-		     isc_stdtime_t now) {
-	if (*locktypep == isc_rwlocktype_read) {
-		UPGRADELOCK(&adb->entries_lock, *locktypep);
-		purge_stale_entries(adb, now);
-		adb->entries_last_update = now;
-	}
-}
-
 static bool
 match_adbentry(void *node, const void *key) {
 	dns_adbentry_t *adbentry = node;
@@ -1247,25 +1244,30 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 	isc_stdtime_t last_update;
 	uint32_t hashval = isc_sockaddr_hash(addr, true);
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
+	bool overmem = isc_mem_isovermem(adb->mctx);
 
 	isc_time_set(&timenow, now, 0);
 
 	RWLOCK(&adb->entries_lock, locktype);
 	last_update = adb->entries_last_update;
 
-	if (now - last_update > ADB_STALE_MARGIN ||
-	    isc_mem_isovermem(adb->mctx))
-	{
+	if (now - last_update > ADB_STALE_MARGIN || overmem) {
 		last_update = now;
 
-		upgrade_entries_lock(adb, &locktype, now);
+		UPGRADELOCK(&adb->entries_lock, locktype);
+		if (overmem) {
+			purge_entries_overmem(adb, 2 * sizeof(*adbentry));
+		} else {
+			purge_stale_entries(adb, now);
+		}
+		adb->entries_last_update = now;
 	}
 
 	result = isc_hashmap_find(adb->entries, hashval, match_adbentry,
 				  (const unsigned char *)addr,
 				  (void **)&adbentry);
 	if (result == ISC_R_NOTFOUND) {
-		upgrade_entries_lock(adb, &locktype, now);
+		UPGRADELOCK(&adb->entries_lock, locktype);
 
 	create:
 		INSIST(locktype == isc_rwlocktype_write);
@@ -1300,7 +1302,7 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 
 		/* We need to upgrade the LRU lock */
 		UNLOCK(&adbentry->lock);
-		upgrade_entries_lock(adb, &locktype, now);
+		UPGRADELOCK(&adb->entries_lock, locktype);
 		LOCK(&adbentry->lock);
 		FALLTHROUGH;
 	case isc_rwlocktype_write:
@@ -1398,30 +1400,28 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 /*
  * The name must be locked and write lock on adb->names_lock must be held.
  */
-static bool
+static void
 maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now) {
 	REQUIRE(DNS_ADBNAME_VALID(adbname));
 
 	/* Leave this name alone if it still has active namehooks... */
 	if (NAME_HAS_V4(adbname) || NAME_HAS_V6(adbname)) {
-		return false;
+		return;
 	}
 
 	/* ...an active fetch in progres... */
 	if (NAME_FETCH(adbname)) {
-		return false;
+		return;
 	}
 
 	/* ... or is not yet expired. */
 	if (!EXPIRE_OK(adbname->expire_v4, now) ||
 	    !EXPIRE_OK(adbname->expire_v6, now))
 	{
-		return false;
+		return;
 	}
 
 	expire_name(adbname, DNS_ADB_EXPIRED);
-
-	return true;
 }
 
 static void
@@ -1480,68 +1480,45 @@ maybe_expire_entry(dns_adbentry_t *adbentry, isc_stdtime_t now) {
  */
 static void
 purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
-	bool overmem = isc_mem_isovermem(adb->mctx);
-	int max_removed = overmem ? 2 : 1;
-	int scans = 0, removed = 0;
-	dns_adbname_t *prev = NULL;
+	dns_adbname_t *adbname = ISC_LIST_TAIL(adb->names_lru);
+
+	if (adbname == NULL) {
+		return;
+	}
+
+	dns_adbname_ref(adbname);
+	LOCK(&adbname->lock);
 
 	/*
-	 * We limit the number of scanned entries to 10 (arbitrary choice)
-	 * in order to avoid examining too many entries when there are many
-	 * tail entries that have fetches (this should be rare, but could
-	 * happen).
+	 * Remove the name if it's expired or unused, has no address data.
 	 */
+	maybe_expire_namehooks(adbname, now);
+	maybe_expire_name(adbname, now);
+
+	UNLOCK(&adbname->lock);
+	dns_adbname_detach(&adbname);
+}
+
+static void
+purge_names_overmem(dns_adb_t *adb, size_t requested) {
+	dns_adbname_t *prev = NULL;
+	size_t expired = 0;
 
 	for (dns_adbname_t *adbname = ISC_LIST_TAIL(adb->names_lru);
-	     adbname != NULL && removed < max_removed && scans < 10;
-	     adbname = prev)
+	     adbname != NULL && expired < requested; adbname = prev)
 	{
 		prev = ISC_LIST_PREV(adbname, link);
 
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 
-		scans++;
-
 		/*
 		 * Remove the name if it's expired or unused,
 		 * has no address data.
 		 */
-		maybe_expire_namehooks(adbname, now);
-		if (maybe_expire_name(adbname, now)) {
-			removed++;
-			goto next;
-		}
-
-		/*
-		 * Make sure that we are not purging ADB names that has been
-		 * just created.
-		 */
-		if (adbname->last_used + ADB_CACHE_MINIMUM >= now) {
-			prev = NULL;
-			goto next;
-		}
-
-		if (overmem) {
-			expire_name(adbname, DNS_ADB_CANCELED);
-			removed++;
-			goto next;
-		}
-
-		if (adbname->last_used + ADB_STALE_MARGIN < now) {
-			expire_name(adbname, DNS_ADB_CANCELED);
-			removed++;
-			goto next;
-		}
-
-		/*
-		 * We won't expire anything on the LRU list as the
-		 * .last_used + ADB_STALE_MARGIN will always be bigger
-		 * than `now` for all previous entries, so we just stop
-		 * the scanning.
-		 */
-		prev = NULL;
-	next:
+		maybe_expire_namehooks(adbname, INT_MAX);
+		expire_name(adbname, DNS_ADB_CANCELED);
+		expired += sizeof(*adbname);
 		UNLOCK(&adbname->lock);
 		dns_adbname_detach(&adbname);
 	}
@@ -1560,7 +1537,7 @@ cleanup_names(dns_adb_t *adb, isc_stdtime_t now) {
 		 * fetches, we can remove this name from the bucket.
 		 */
 		maybe_expire_namehooks(adbname, now);
-		(void)maybe_expire_name(adbname, now);
+		maybe_expire_name(adbname, now);
 		UNLOCK(&adbname->lock);
 		dns_adbname_detach(&adbname);
 	}
@@ -1579,10 +1556,28 @@ cleanup_names(dns_adb_t *adb, isc_stdtime_t now) {
  */
 static void
 purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
-	bool overmem = isc_mem_isovermem(adb->mctx);
-	int max_removed = overmem ? 2 : 1;
-	int scans = 0, removed = 0;
+	dns_adbentry_t *adbentry = ISC_LIST_TAIL(adb->entries_lru);
+
+	if (adbentry == NULL) {
+		return;
+	}
+
+	dns_adbentry_ref(adbentry);
+	LOCK(&adbentry->lock);
+
+	/*
+	 * Remove the entry if it's expired and unused.
+	 */
+	(void)maybe_expire_entry(adbentry, now);
+
+	UNLOCK(&adbentry->lock);
+	dns_adbentry_detach(&adbentry);
+}
+
+static void
+purge_entries_overmem(dns_adb_t *adb, size_t requested) {
 	dns_adbentry_t *prev = NULL;
+	size_t expired = 0;
 
 	/*
 	 * We limit the number of scanned entries to 10 (arbitrary choice)
@@ -1592,53 +1587,16 @@ purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
 	 */
 
 	for (dns_adbentry_t *adbentry = ISC_LIST_TAIL(adb->entries_lru);
-	     adbentry != NULL && removed < max_removed && scans < 10;
-	     adbentry = prev)
+	     adbentry != NULL && expired < requested; adbentry = prev)
 	{
 		prev = ISC_LIST_PREV(adbentry, link);
 
 		dns_adbentry_ref(adbentry);
 		LOCK(&adbentry->lock);
 
-		scans++;
+		(void)maybe_expire_entry(adbentry, INT_MAX);
+		expired += sizeof(*adbentry);
 
-		/*
-		 * Remove the entry if it's expired and unused.
-		 */
-		if (maybe_expire_entry(adbentry, now)) {
-			removed++;
-			goto next;
-		}
-
-		/*
-		 * Make sure that we are not purging ADB entry that has been
-		 * just created.
-		 */
-		if (adbentry->last_used + ADB_CACHE_MINIMUM >= now) {
-			prev = NULL;
-			goto next;
-		}
-
-		if (overmem) {
-			maybe_expire_entry(adbentry, INT_MAX);
-			removed++;
-			goto next;
-		}
-
-		if (adbentry->last_used + ADB_STALE_MARGIN < now) {
-			maybe_expire_entry(adbentry, INT_MAX);
-			removed++;
-			goto next;
-		}
-
-		/*
-		 * We won't expire anything on the LRU list as the
-		 * .last_used + ADB_STALE_MARGIN will always be bigger
-		 * than `now` for all previous entries, so we just stop
-		 * the scanning
-		 */
-		prev = NULL;
-	next:
 		UNLOCK(&adbentry->lock);
 		dns_adbentry_detach(&adbentry);
 	}
