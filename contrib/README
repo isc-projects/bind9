@@ -20,11 +20,6 @@ be fixed as time permits.
       Assorted useful scripts, including 'zone-edit'
       which enables editing of a dynamic zone, and others.
 
-    - dlz/modules
-
-      Dynamically linkable DLZ modules have been moved into a separate
-      repository located at https://gitlab.isc.org/isc-projects/dlz-modules.
-
     - gitchangelog/
 
       QA utility to produce changelog and release notes from git log.
