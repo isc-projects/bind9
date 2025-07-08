@@ -39,6 +39,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #undef CHECK
+#define DEFAULT_BUCKETS_COUNT 1 /*%< Should be prime. */
 #include "qpzone.c"
 #pragma GCC diagnostic pop
 
@@ -108,7 +109,6 @@ ownercase_test_one(const char *str1, const char *str2) {
 	*qpdb = (qpzonedb_t){
 		.common.methods = &qpdb_zonemethods,
 		.common.mctx = mctx,
-		.buckets_count = 1,
 	};
 	qpznode_t node = { .locknum = 0 };
 	dns_slabheader_t header = {
@@ -176,7 +176,6 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	*qpdb = (qpzonedb_t){
 		.common.methods = &qpdb_zonemethods,
 		.common.mctx = mctx,
-		.buckets_count = 1,
 	};
 	qpznode_t node = { .locknum = 0 };
 	dns_slabheader_t header = {
