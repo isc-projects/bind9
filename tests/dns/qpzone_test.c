@@ -39,7 +39,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #undef CHECK
-#define DEFAULT_BUCKETS_COUNT 1 /*%< Should be prime. */
+#define DEFAULT_BUCKETS_COUNT 1
 #include "qpzone.c"
 #pragma GCC diagnostic pop
 
