@@ -54,7 +54,7 @@ OFFSETS["step6-p"] = OFFSETS["step5-p"] - int(CONFIG["purge-keys"].total_seconds
 OFFSETS["step6-s"] = OFFSETS["step5-s"] - int(CONFIG["purge-keys"].total_seconds())
 
 
-def test_zsk_prepub_step1(alg, size, servers):
+def test_zsk_prepub_step1(alg, size, ns3):
     step = {
         # Introduce the first key. This will immediately be active.
         "zone": "step1.zsk-prepub.autosign",
@@ -67,10 +67,10 @@ def test_zsk_prepub_step1(alg, size, servers):
         # already passed).
         "nextev": ZSK_LIFETIME - IPUB - timedelta(days=7),
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_zsk_prepub_step2(alg, size, servers):
+def test_zsk_prepub_step2(alg, size, ns3):
     step = {
         # it is time to pre-publish the successor zsk.
         # zsk1 goal: omnipresent -> hidden
@@ -87,10 +87,10 @@ def test_zsk_prepub_step2(alg, size, servers):
         # that is the dnskey ttl plus the zone propagation delay
         "nextev": IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_zsk_prepub_step3(alg, size, servers):
+def test_zsk_prepub_step3(alg, size, ns3):
     step = {
         # predecessor zsk is no longer actively signing. successor zsk is
         # now actively signing.
@@ -112,10 +112,10 @@ def test_zsk_prepub_step3(alg, size, servers):
         # from the predecessor zsk.
         "smooth": True,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_zsk_prepub_step4(alg, size, servers):
+def test_zsk_prepub_step4(alg, size, ns3):
     step = {
         # predecessor zsk is no longer needed. all rrsets are signed with
         # the successor zsk.
@@ -133,10 +133,10 @@ def test_zsk_prepub_step4(alg, size, servers):
         # this is the dnskey ttl plus zone propagation delay.
         "nextev": KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_zsk_prepub_step5(alg, size, servers):
+def test_zsk_prepub_step5(alg, size, ns3):
     step = {
         # predecessor zsk is now removed.
         # zsk1 dnskey: unretentive -> hidden
@@ -152,10 +152,10 @@ def test_zsk_prepub_step5(alg, size, servers):
         # elapsed.
         "nextev": ZSK_LIFETIME - IRET - IPUB - KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_zsk_prepub_step6(alg, size, servers):
+def test_zsk_prepub_step6(alg, size, ns3):
     step = {
         # predecessor zsk is now purged.
         "zone": "step6.zsk-prepub.autosign",
@@ -165,4 +165,4 @@ def test_zsk_prepub_step6(alg, size, servers):
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)

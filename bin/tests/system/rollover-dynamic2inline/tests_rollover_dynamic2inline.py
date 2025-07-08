@@ -21,7 +21,7 @@ from common import (
 )
 
 
-def test_dynamic2inline(alg, size, servers, templates):
+def test_dynamic2inline(alg, size, ns6, templates):
     config = DEFAULT_CONFIG
     policy = "default"
 
@@ -34,9 +34,9 @@ def test_dynamic2inline(alg, size, servers, templates):
         "nextev": None,
     }
 
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)
 
     templates.render("ns6/named.conf", {"change_lifetime": True})
-    servers["ns6"].reconfigure()
+    ns6.reconfigure()
 
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)

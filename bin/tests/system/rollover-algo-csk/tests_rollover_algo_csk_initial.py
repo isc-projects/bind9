@@ -21,7 +21,7 @@ from common import (
 )
 
 
-def test_algoroll_csk_initial(servers):
+def test_algoroll_csk_initial(ns6):
     config = ALGOROLL_CONFIG
     policy = "csk-algoroll"
 
@@ -33,4 +33,4 @@ def test_algoroll_csk_initial(servers):
         ],
         "nextev": TIMEDELTA["PT1H"],
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)

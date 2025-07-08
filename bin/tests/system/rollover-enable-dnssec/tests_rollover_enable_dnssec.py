@@ -44,7 +44,7 @@ OFFSETS["step3"] = -int(IRETZSK.total_seconds())
 OFFSETS["step4"] = -int(IPUBC.total_seconds() + IRETKSK.total_seconds())
 
 
-def test_rollover_enable_dnssec_step1(alg, size, servers):
+def test_rollover_enable_dnssec_step1(alg, size, ns3):
     step = {
         "zone": "step1.enable-dnssec.autosign",
         "cdss": CDSS,
@@ -55,10 +55,10 @@ def test_rollover_enable_dnssec_step1(alg, size, servers):
         # after the publication interval.
         "nextev": IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_rollover_enable_dnssec_step2(alg, size, servers):
+def test_rollover_enable_dnssec_step2(alg, size, ns3):
     step = {
         "zone": "step2.enable-dnssec.autosign",
         "cdss": CDSS,
@@ -73,10 +73,10 @@ def test_rollover_enable_dnssec_step2(alg, size, servers):
         # Minus the time already elapsed.
         "nextev": IRETZSK - IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_rollover_enable_dnssec_step3(alg, size, servers):
+def test_rollover_enable_dnssec_step3(alg, size, ns3):
     step = {
         "zone": "step3.enable-dnssec.autosign",
         "cdss": CDSS,
@@ -90,10 +90,10 @@ def test_rollover_enable_dnssec_step3(alg, size, servers):
         # This is after the retire interval.
         "nextev": IRETKSK,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_rollover_enable_dnssec_step4(alg, size, servers):
+def test_rollover_enable_dnssec_step4(alg, size, ns3):
     step = {
         "zone": "step4.enable-dnssec.autosign",
         "cdss": CDSS,
@@ -106,4 +106,4 @@ def test_rollover_enable_dnssec_step4(alg, size, servers):
         # established. So we fall back to the default loadkeys interval.
         "nextev": TIMEDELTA["PT1H"],
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)

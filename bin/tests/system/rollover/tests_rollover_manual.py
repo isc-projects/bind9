@@ -18,8 +18,7 @@ from isctest.kasp import KeyTimingMetadata, Ipub, Iret
 from common import pytestmark  # pylint: disable=unused-import
 
 
-def test_rollover_manual(servers):
-    server = servers["ns3"]
+def test_rollover_manual(ns3):
     policy = "manual-rollover"
     config = {
         "dnskey-ttl": timedelta(hours=1),
@@ -37,17 +36,17 @@ def test_rollover_manual(servers):
     size = os.environ["DEFAULT_BITS"]
     zone = "manual-rollover.kasp"
 
-    with server.watch_log_from_start() as watcher:
+    with ns3.watch_log_from_start() as watcher:
         watcher.wait_for_line(f"keymgr: {zone} done")
 
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
         f"ksk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
         f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
     ]
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)
-    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    keys = isctest.kasp.keydir_to_keylist(zone, ns3.identifier)
     ksks = [k for k in keys if k.is_ksk()]
     zsks = [k for k in keys if not k.is_ksk()]
 
@@ -58,9 +57,9 @@ def test_rollover_manual(servers):
         kp.set_expected_keytimes(config, offset=offset)
 
     isctest.kasp.check_keytimes(keys, expected)
-    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks)
-    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_dnssecstatus(ns3, zone, keys, policy=policy)
+    isctest.kasp.check_apex(ns3, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns3, zone, ksks, zsks)
 
     # Schedule KSK rollover in six months.
     assert len(ksks) == 1
@@ -71,24 +70,24 @@ def test_rollover_manual(servers):
         config, zsk=False, ksk=True
     )
 
-    with server.watch_log_from_here() as watcher:
-        server.rndc(f"dnssec -rollover -key {ksk.tag} -when {startroll} {zone}")
+    with ns3.watch_log_from_here() as watcher:
+        ns3.rndc(f"dnssec -rollover -key {ksk.tag} -when {startroll} {zone}")
         watcher.wait_for_line(f"keymgr: {zone} done")
 
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(ns3, zone)
     isctest.kasp.check_keys(zone, keys, expected)
     isctest.kasp.check_keytimes(keys, expected)
-    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks)
-    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_dnssecstatus(ns3, zone, keys, policy=policy)
+    isctest.kasp.check_apex(ns3, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns3, zone, ksks, zsks)
 
     # Schedule KSK rollover now.
     now = KeyTimingMetadata.now()
-    with server.watch_log_from_here() as watcher:
-        server.rndc(f"dnssec -rollover -key {ksk.tag} -when {now} {zone}")
+    with ns3.watch_log_from_here() as watcher:
+        ns3.rndc(f"dnssec -rollover -key {ksk.tag} -when {now} {zone}")
         watcher.wait_for_line(f"keymgr: {zone} done")
 
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
         f"ksk unlimited {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
@@ -96,7 +95,7 @@ def test_rollover_manual(servers):
         f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
     ]
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)
-    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    keys = isctest.kasp.keydir_to_keylist(zone, ns3.identifier)
     ksks = [k for k in keys if k.is_ksk()]
     zsks = [k for k in keys if not k.is_ksk()]
 
@@ -118,19 +117,19 @@ def test_rollover_manual(servers):
     )
 
     isctest.kasp.check_keytimes(keys, expected)
-    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks)
-    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_dnssecstatus(ns3, zone, keys, policy=policy)
+    isctest.kasp.check_apex(ns3, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns3, zone, ksks, zsks)
 
     # Schedule ZSK rollover now.
     assert len(zsks) == 1
     zsk = zsks[0]
     now = KeyTimingMetadata.now()
-    with server.watch_log_from_here() as watcher:
-        server.rndc(f"dnssec -rollover -key {zsk.tag} -when {now} {zone}")
+    with ns3.watch_log_from_here() as watcher:
+        ns3.rndc(f"dnssec -rollover -key {zsk.tag} -when {now} {zone}")
         watcher.wait_for_line(f"keymgr: {zone} done")
 
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
         f"ksk unlimited {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
@@ -139,7 +138,7 @@ def test_rollover_manual(servers):
         f"zsk unlimited {alg} {size} goal:omnipresent dnskey:rumoured zrrsig:hidden",
     ]
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)
-    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    keys = isctest.kasp.keydir_to_keylist(zone, ns3.identifier)
     ksks = [k for k in keys if k.is_ksk()]
     zsks = [k for k in keys if not k.is_ksk()]
 
@@ -153,5 +152,5 @@ def test_rollover_manual(servers):
 
     # Try to schedule a ZSK rollover for an inactive key (should fail).
     zsk = expected[3].key
-    response = server.rndc(f"dnssec -rollover -key {zsk.tag} {zone}")
+    response = ns3.rndc(f"dnssec -rollover -key {zsk.tag} {zone}")
     assert "key is not actively signing" in response

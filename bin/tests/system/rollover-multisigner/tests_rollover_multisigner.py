@@ -28,8 +28,7 @@ from common import (
 )
 
 
-def test_rollover_multisigner(servers, alg, size):
-    server = servers["ns3"]
+def test_rollover_multisigner(ns3, alg, size):
     policy = "multisigner-model2"
     config = {
         "dnskey-ttl": timedelta(hours=1),
@@ -63,7 +62,7 @@ def test_rollover_multisigner(servers, alg, size):
 
     zone = "multisigner-model2.kasp"
 
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
         f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden tag-range:32768-65535",
@@ -77,7 +76,7 @@ def test_rollover_multisigner(servers, alg, size):
     expected2[0].properties["legacy"] = True
     expected = expected + expected2
 
-    ownkeys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    ownkeys = isctest.kasp.keydir_to_keylist(zone, ns3.identifier)
     extkeys = isctest.kasp.keydir_to_keylist(zone)
     keys = ownkeys + extkeys
     ksks = [k for k in ownkeys if k.is_ksk()]
@@ -88,9 +87,9 @@ def test_rollover_multisigner(servers, alg, size):
     for kp in expected:
         kp.set_expected_keytimes(config)
     isctest.kasp.check_keytimes(keys, expected)
-    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks)
-    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_dnssecstatus(ns3, zone, keys, policy=policy)
+    isctest.kasp.check_apex(ns3, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns3, zone, ksks, zsks)
 
     # Update zone with ZSK from another provider for zone.
     out = keygen(zone)
@@ -106,15 +105,15 @@ def test_rollover_multisigner(servers, alg, size):
 
     update_msg = dns.update.UpdateMessage(zone)
     update_msg.add(f"{dnskey[0]}", 3600, "DNSKEY", rdata)
-    server.nsupdate(update_msg)
+    ns3.nsupdate(update_msg)
 
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(ns3, zone)
 
     keys = keys + newkeys
     zsks = zsks + newkeys
     isctest.kasp.check_keys(zone, keys, expected)
-    isctest.kasp.check_apex(server, zone, ksks, zsks)
-    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_apex(ns3, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns3, zone, ksks, zsks)
 
     # Remove ZSKs from the other providers for zone.
     dnskey2 = extkeys[0].dnskey().split()
@@ -122,24 +121,24 @@ def test_rollover_multisigner(servers, alg, size):
     update_msg = dns.update.UpdateMessage(zone)
     update_msg.delete(f"{dnskey[0]}", "DNSKEY", rdata)
     update_msg.delete(f"{dnskey2[0]}", "DNSKEY", rdata2)
-    server.nsupdate(update_msg)
+    ns3.nsupdate(update_msg)
 
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(ns3, zone)
 
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)
     keys = ownkeys
     ksks = [k for k in ownkeys if k.is_ksk()]
     zsks = [k for k in ownkeys if not k.is_ksk()]
     isctest.kasp.check_keys(zone, keys, expected)
-    isctest.kasp.check_apex(server, zone, ksks, zsks)
-    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_apex(ns3, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns3, zone, ksks, zsks)
 
     # A zone transitioning from single-signed to multi-signed. We should have
     # the old omnipresent keys outside of the desired key range and the new
     # keys in the desired key range.
     zone = "single-to-multisigner.kasp"
 
-    isctest.kasp.check_dnssec_verify(server, zone)
+    isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
         f"ksk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden tag-range:32768-65535",
@@ -148,7 +147,7 @@ def test_rollover_multisigner(servers, alg, size):
         f"zsk unlimited {alg} {size} goal:hidden dnskey:omnipresent zrrsig:omnipresent tag-range:0-32767 offset:{offval}",
     ]
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)
-    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    keys = isctest.kasp.keydir_to_keylist(zone, ns3.identifier)
     ksks = [k for k in keys if k.is_ksk()]
     zsks = [k for k in keys if not k.is_ksk()]
 
@@ -168,6 +167,6 @@ def test_rollover_multisigner(servers, alg, size):
     )
 
     isctest.kasp.check_keytimes(keys, expected)
-    isctest.kasp.check_dnssecstatus(server, zone, keys, policy=policy)
-    isctest.kasp.check_apex(server, zone, ksks, zsks)
-    isctest.kasp.check_subdomain(server, zone, ksks, zsks)
+    isctest.kasp.check_dnssecstatus(ns3, zone, keys, policy=policy)
+    isctest.kasp.check_apex(ns3, zone, ksks, zsks)
+    isctest.kasp.check_subdomain(ns3, zone, ksks, zsks)

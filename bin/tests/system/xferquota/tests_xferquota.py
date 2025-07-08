@@ -33,14 +33,14 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-def test_xferquota(named_port, servers):
+def test_xferquota(named_port, ns1, ns2):
     # Changing test zone ensuring that the time stamp changes
     time.sleep(1)
     shutil.copyfile("ns1/changing2.db", "ns1/changing.db")
     with open("ns1/named.pid", "r", encoding="utf-8") as pidfile:
         pid = int(pidfile.read())
     os.kill(pid, signal.SIGHUP)
-    with servers["ns1"].watch_log_from_start() as watcher:
+    with ns1.watch_log_from_start() as watcher:
         watcher.wait_for_line("received SIGHUP signal to reload zones")
 
     def check_line_count():
@@ -75,6 +75,6 @@ def test_xferquota(named_port, servers):
         f"transfer of 'changing/IN' from 10.53.0.1#{named_port}: "
         f"Transfer completed: .*\\(serial 2\\)"
     )
-    with servers["ns2"].watch_log_from_start(timeout=30) as watcher:
+    with ns2.watch_log_from_start(timeout=30) as watcher:
         watcher.wait_for_line(pattern)
     query_and_compare(a_msg)

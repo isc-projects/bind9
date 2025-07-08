@@ -26,9 +26,9 @@ from common import (
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure_policy(servers, templates):
+def reconfigure_policy(ns6, templates):
     templates.render("ns6/named.conf", {"policy": "insecure"})
-    servers["ns6"].reconfigure()
+    ns6.reconfigure()
 
 
 @pytest.mark.parametrize(
@@ -38,7 +38,7 @@ def reconfigure_policy(servers, templates):
         "going-insecure-dynamic.kasp",
     ],
 )
-def test_going_insecure_reconfig_step1(zone, alg, size, servers):
+def test_going_insecure_reconfig_step1(zone, alg, size, ns6):
     config = DEFAULT_CONFIG
     policy = "insecure"
 
@@ -58,7 +58,7 @@ def test_going_insecure_reconfig_step1(zone, alg, size, servers):
         "cds-delete": True,
         "check-keytimes": False,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)
 
 
 @pytest.mark.parametrize(
@@ -68,7 +68,7 @@ def test_going_insecure_reconfig_step1(zone, alg, size, servers):
         "going-insecure-dynamic.kasp",
     ],
 )
-def test_going_insecure_reconfig_step2(zone, alg, size, servers):
+def test_going_insecure_reconfig_step2(zone, alg, size, ns6):
     config = DEFAULT_CONFIG
     policy = "insecure"
 
@@ -90,4 +90,4 @@ def test_going_insecure_reconfig_step2(zone, alg, size, servers):
         "zone-signed": False,
         "check-keytimes": False,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)
