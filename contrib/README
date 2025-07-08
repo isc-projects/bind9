@@ -15,11 +15,6 @@ This directory contains scripts, tools, and other useful accessories to
 BIND 9.  Contrib software is not supported by ISC, but reported bugs will
 be fixed as time permits.
 
-    - scripts/
-
-      Assorted useful scripts, including 'zone-edit'
-      which enables editing of a dynamic zone, and others.
-
     - gitchangelog/
 
       QA utility to produce changelog and release notes from git log.
