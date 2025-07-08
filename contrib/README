@@ -17,8 +17,7 @@ be fixed as time permits.
 
     - scripts/
 
-      Assorted useful scripts, including 'nanny' which monitors
-      named and restarts it in the event of a crash, 'zone-edit'
+      Assorted useful scripts, including 'zone-edit'
       which enables editing of a dynamic zone, and others.
 
     - dlz/modules
