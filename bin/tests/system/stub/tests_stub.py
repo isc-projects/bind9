@@ -26,7 +26,7 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-def test_stub_zones_availability(servers):
+def test_stub_zones_availability(ns3):
     # check that the stub zone has been saved to disk
     assert os.path.exists("ns3/child.example.st")
 
@@ -65,8 +65,8 @@ def test_stub_zones_availability(servers):
     stub_zone_lookout_without_recursion()
     stub_zone_lookout_with_recursion()
 
-    servers["ns3"].stop()
-    servers["ns3"].start(["--noclean", "--restart", "--port", os.environ["PORT"]])
+    ns3.stop()
+    ns3.start(["--noclean", "--restart", "--port", os.environ["PORT"]])
 
     axfr_denied()
     stub_zone_lookout_without_recursion()

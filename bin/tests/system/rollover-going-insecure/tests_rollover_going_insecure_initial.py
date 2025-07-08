@@ -31,7 +31,7 @@ from common import (
         "going-insecure-dynamic.kasp",
     ],
 )
-def test_going_insecure_initial(zone, servers, alg, size):
+def test_going_insecure_initial(zone, ns6, alg, size):
     config = UNSIGNING_CONFIG
     policy = "unsigning"
     step = {
@@ -43,4 +43,4 @@ def test_going_insecure_initial(zone, servers, alg, size):
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)

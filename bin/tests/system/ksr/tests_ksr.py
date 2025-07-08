@@ -564,7 +564,7 @@ def test_ksr_errors():
     assert "dnssec-ksr: fatal: 'sign' requires a KSR file" in err
 
 
-def test_ksr_common(servers):
+def test_ksr_common(ns1):
     # common test cases (1)
     zone = "common.test"
     policy = "common"
@@ -738,7 +738,6 @@ def test_ksr_common(servers):
     )
 
     # add zone
-    ns1 = servers["ns1"]
     ns1.rndc(
         f"addzone {zone} "
         + "{ type primary; file "
@@ -764,7 +763,7 @@ def test_ksr_common(servers):
     isctest.kasp.check_subdomain(ns1, zone, ksks, overlapping_zsks, offline_ksk=True)
 
 
-def test_ksr_lastbundle(servers):
+def test_ksr_lastbundle(ns1):
     zone = "last-bundle.test"
     policy = "common"
     n = 1
@@ -811,7 +810,6 @@ def test_ksr_lastbundle(servers):
     check_signedkeyresponse(out, zone, ksks, zsks, then, until, refresh)
 
     # add zone
-    ns1 = servers["ns1"]
     ns1.rndc(
         f"addzone {zone} "
         + "{ type primary; file "
@@ -841,7 +839,7 @@ def test_ksr_lastbundle(servers):
     assert f"zone {zone}/IN (signed): zone_rekey: {warning}" in ns1.log
 
 
-def test_ksr_inthemiddle(servers):
+def test_ksr_inthemiddle(ns1):
     zone = "in-the-middle.test"
     policy = "common"
     n = 1
@@ -889,7 +887,6 @@ def test_ksr_inthemiddle(servers):
     check_signedkeyresponse(out, zone, ksks, zsks, then, until, refresh)
 
     # add zone
-    ns1 = servers["ns1"]
     ns1.rndc(
         f"addzone {zone} "
         + "{ type primary; file "
@@ -982,18 +979,14 @@ def check_ksr_rekey_logs_error(server, zone, policy, offset, end):
     assert line in server.log
 
 
-def test_ksr_rekey_logs_error(servers):
+def test_ksr_rekey_logs_error(ns1):
     # check that an SKR that is too old logs error
-    check_ksr_rekey_logs_error(
-        servers["ns1"], "past.test", "common", -63072000, -31536000
-    )
+    check_ksr_rekey_logs_error(ns1, "past.test", "common", -63072000, -31536000)
     # check that an SKR that is too new logs error
-    check_ksr_rekey_logs_error(
-        servers["ns1"], "future.test", "common", 2592000, 31536000
-    )
+    check_ksr_rekey_logs_error(ns1, "future.test", "common", 2592000, 31536000)
 
 
-def test_ksr_unlimited(servers):
+def test_ksr_unlimited(ns1):
     zone = "unlimited.test"
     policy = "unlimited"
     n = 1
@@ -1082,7 +1075,6 @@ def test_ksr_unlimited(servers):
     check_signedkeyresponse(out, zone, ksks, zsks, now, until, refresh)
 
     # add zone
-    ns1 = servers["ns1"]
     ns1.rndc(
         f"addzone {zone} "
         + "{ type primary; file "
@@ -1108,7 +1100,7 @@ def test_ksr_unlimited(servers):
     isctest.kasp.check_subdomain(ns1, zone, ksks, zsks, offline_ksk=True)
 
 
-def test_ksr_twotone(servers):
+def test_ksr_twotone(ns1):
     zone = "two-tone.test"
     policy = "two-tone"
     n = 1
@@ -1192,7 +1184,6 @@ def test_ksr_twotone(servers):
     check_signedkeyresponse(out, zone, ksks, zsks, now, until, refresh)
 
     # add zone
-    ns1 = servers["ns1"]
     ns1.rndc(
         f"addzone {zone} "
         + "{ type primary; file "
@@ -1224,7 +1215,7 @@ def test_ksr_twotone(servers):
     isctest.kasp.check_subdomain(ns1, zone, ksks, zsks, offline_ksk=True)
 
 
-def test_ksr_kskroll(servers):
+def test_ksr_kskroll(ns1):
     zone = "ksk-roll.test"
     policy = "ksk-roll"
     n = 1
@@ -1270,7 +1261,6 @@ def test_ksr_kskroll(servers):
     check_signedkeyresponse(out, zone, ksks, zsks, now, until, refresh)
 
     # add zone
-    ns1 = servers["ns1"]
     ns1.rndc(
         f"addzone {zone} "
         + "{ type primary; file "

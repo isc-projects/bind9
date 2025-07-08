@@ -634,3 +634,53 @@ def servers(system_test_dir):
             except ValueError:
                 continue
     return instances
+
+
+@pytest.fixture(scope="module")
+def ns1(servers):
+    return servers["ns1"]
+
+
+@pytest.fixture(scope="module")
+def ns2(servers):
+    return servers["ns2"]
+
+
+@pytest.fixture(scope="module")
+def ns3(servers):
+    return servers["ns3"]
+
+
+@pytest.fixture(scope="module")
+def ns4(servers):
+    return servers["ns4"]
+
+
+@pytest.fixture(scope="module")
+def ns5(servers):
+    return servers["ns5"]
+
+
+@pytest.fixture(scope="module")
+def ns6(servers):
+    return servers["ns6"]
+
+
+@pytest.fixture(scope="module")
+def ns7(servers):
+    return servers["ns7"]
+
+
+@pytest.fixture(scope="module")
+def ns8(servers):
+    return servers["ns8"]
+
+
+@pytest.fixture(scope="module")
+def ns9(servers):
+    return servers["ns9"]
+
+
+@pytest.fixture(scope="module")
+def ns10(servers):
+    return servers["ns10"]

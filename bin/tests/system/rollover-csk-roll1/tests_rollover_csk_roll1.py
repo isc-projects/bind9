@@ -62,7 +62,7 @@ OFFSETS["step8-p"] = OFFSETS["step7-p"] - int(CONFIG["purge-keys"].total_seconds
 OFFSETS["step8-s"] = OFFSETS["step7-s"] - int(CONFIG["purge-keys"].total_seconds())
 
 
-def test_csk_roll1_step1(alg, size, servers):
+def test_csk_roll1_step1(alg, size, ns3):
     step = {
         # Introduce the first key. This will immediately be active.
         "zone": "step1.csk-roll1.autosign",
@@ -75,10 +75,10 @@ def test_csk_roll1_step1(alg, size, servers):
         # registration delay).
         "nextev": CSK_LIFETIME - IPUB - timedelta(days=7),
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_csk_roll1_step2(alg, size, servers):
+def test_csk_roll1_step2(alg, size, ns3):
     step = {
         # Successor CSK is prepublished (signs DNSKEY RRset, but not yet
         # other RRsets).
@@ -96,10 +96,10 @@ def test_csk_roll1_step2(alg, size, servers):
         # Next key event is when the successor CSK becomes OMNIPRESENT.
         "nextev": IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_csk_roll1_step3(alg, size, servers):
+def test_csk_roll1_step3(alg, size, ns3):
     step = {
         # Successor CSK becomes omnipresent, meaning we can start signing
         # the remainder of the zone with the successor CSK, and we can
@@ -130,10 +130,10 @@ def test_csk_roll1_step3(alg, size, servers):
         # from the predecessor ZSK.
         "smooth": True,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_csk_roll1_step4(alg, size, servers):
+def test_csk_roll1_step4(alg, size, ns3):
     step = {
         "zone": "step4.csk-roll1.autosign",
         "cdss": CDSS,
@@ -153,10 +153,10 @@ def test_csk_roll1_step4(alg, size, servers):
         # We already swapped the DS in the previous step, so disable ds-swap.
         "ds-swap": False,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_csk_roll1_step5(alg, size, servers):
+def test_csk_roll1_step5(alg, size, ns3):
     step = {
         "zone": "step5.csk-roll1.autosign",
         "cdss": CDSS,
@@ -172,10 +172,10 @@ def test_csk_roll1_step5(alg, size, servers):
         # CSK.
         "nextev": SIGNDELAY,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_csk_roll1_step6(alg, size, servers):
+def test_csk_roll1_step6(alg, size, ns3):
     step = {
         "zone": "step6.csk-roll1.autosign",
         "cdss": CDSS,
@@ -193,10 +193,10 @@ def test_csk_roll1_step6(alg, size, servers):
         # This is the DNSKEY TTL plus zone propagation delay.
         "nextev": KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_csk_roll1_step7(alg, size, servers):
+def test_csk_roll1_step7(alg, size, ns3):
     step = {
         "zone": "step7.csk-roll1.autosign",
         "cdss": CDSS,
@@ -211,10 +211,10 @@ def test_csk_roll1_step7(alg, size, servers):
         # minus the prepublication time.
         "nextev": CSK_LIFETIME - IRETZSK - IPUB - KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_csk_roll1_step8(alg, size, servers):
+def test_csk_roll1_step8(alg, size, ns3):
     step = {
         "zone": "step8.csk-roll1.autosign",
         "cdss": CDSS,
@@ -223,4 +223,4 @@ def test_csk_roll1_step8(alg, size, servers):
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)

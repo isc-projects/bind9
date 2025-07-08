@@ -27,22 +27,22 @@ pytestmark = [
 ]
 
 
-def test_nzd2nzf(servers):
+def test_nzd2nzf(ns1):
     zone_data = '"added.example" { type primary; file "added.db"; };'
     msg = dns.message.make_query("a.added.example.", "A")
 
     # query for non-existing zone data
-    res = isctest.query.tcp(msg, servers["ns1"].ip)
+    res = isctest.query.tcp(msg, ns1.ip)
     isctest.check.refused(res)
 
     # add new zone into the default NZD using "rndc addzone"
-    servers["ns1"].rndc(f"addzone {zone_data}", log=False)
+    ns1.rndc(f"addzone {zone_data}", log=False)
 
     # query for existing zone data
-    res = isctest.query.tcp(msg, servers["ns1"].ip)
+    res = isctest.query.tcp(msg, ns1.ip)
     isctest.check.noerror(res)
 
-    servers["ns1"].stop()
+    ns1.stop()
 
     # dump "_default.nzd" to "_default.nzf" and check that it contains the expected content
     cfg_dir = "ns1"
@@ -59,8 +59,8 @@ def test_nzd2nzf(servers):
     os.remove(nzd_filename)
 
     # start ns1 again, it should migrate "_default.nzf" to "_default.nzd"
-    servers["ns1"].start(["--noclean", "--restart", "--port", os.environ["PORT"]])
+    ns1.start(["--noclean", "--restart", "--port", os.environ["PORT"]])
 
     # query for zone data from the migrated zone config
-    res = isctest.query.tcp(msg, servers["ns1"].ip)
+    res = isctest.query.tcp(msg, ns1.ip)
     isctest.check.noerror(res)
