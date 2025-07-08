@@ -198,6 +198,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:almalinux-9-amd64"
   <<: *linux_amd64
 
+.almalinux-10-amd64: &almalinux_10_amd64_image
+  image: "$CI_REGISTRY_IMAGE:almalinux-10-amd64"
+  <<: *linux_amd64
+
 # Debian
 
 .debian-bookworm-amd64: &debian_bookworm_amd64_image
@@ -822,6 +826,7 @@ gcc:almalinux9:amd64:
 system:gcc:almalinux9:amd64:
   <<: *almalinux_9_amd64_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:almalinux9:amd64
       artifacts: true
@@ -829,8 +834,34 @@ system:gcc:almalinux9:amd64:
 unit:gcc:almalinux9:amd64:
   <<: *almalinux_9_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:almalinux9:amd64
+      artifacts: true
+
+# Jobs for regular GCC builds on Alma Linux 10 (amd64)
+
+gcc:almalinux10:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "-Didn=enabled"
+  <<: *almalinux_10_amd64_image
+  <<: *build_job
+
+system:gcc:almalinux10:amd64:
+  <<: *almalinux_10_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:almalinux10:amd64
+      artifacts: true
+
+unit:gcc:almalinux10:amd64:
+  <<: *almalinux_10_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:almalinux10:amd64
+      artifacts: true
 
 # Jobs for scheduled GCC builds on AlmaLinux 8 & 9 FIPS-aware images with FIPS
 # mode in BIND 9 enabled
