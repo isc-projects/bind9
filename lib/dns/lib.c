@@ -22,6 +22,7 @@
 #include "dst_internal.h"
 #include "dyndb_p.h"
 #include "qp_p.h"
+#include "qpzone_p.h"
 
 /***
  *** Functions
@@ -46,6 +47,7 @@ dns__lib_initialize(void) {
 	dns__db_initialize();
 	dns__dyndb_initialize();
 	dns__qp_initialize();
+	dns__qpzone_initialize();
 }
 
 void
@@ -54,6 +56,7 @@ dns__lib_shutdown(void) {
 		return;
 	}
 
+	dns__qpzone_shutdown();
 	dns__qp_shutdown();
 	dns__dyndb_shutdown();
 	dns__db_shutdown();
