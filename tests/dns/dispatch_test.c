@@ -245,7 +245,7 @@ teardown_test(void **state) {
 	isc_tlsctx_cache_detach(&tls_tlsctx_client_cache);
 	isc_tlsctx_free(&tls_listen_tlsctx);
 
-	isc_netmgr_destroy(&connect_nm);
+	isc_nm_detach(&connect_nm);
 
 	teardown_netmgr(state);
 	teardown_loopmgr(state);

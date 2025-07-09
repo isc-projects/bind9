@@ -377,7 +377,7 @@ setup_test(void **state) {
 static int
 teardown_test(void **state ISC_ATTR_UNUSED) {
 	for (size_t i = 0; i < MAX_NM; i++) {
-		isc_netmgr_destroy(&nm[i]);
+		isc_nm_detach(&nm[i]);
 		assert_null(nm[i]);
 	}
 	isc_mem_cput(mctx, nm, MAX_NM, sizeof(nm[0]));

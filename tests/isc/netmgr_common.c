@@ -226,10 +226,10 @@ teardown_netmgr_test(void **state ISC_ATTR_UNUSED) {
 	isc_tlsctx_free(&tcp_connect_tlsctx);
 	isc_tlsctx_free(&tcp_listen_tlsctx);
 
-	isc_netmgr_destroy(&connect_nm);
+	isc_nm_detach(&connect_nm);
 	assert_null(connect_nm);
 
-	isc_netmgr_destroy(&listen_nm);
+	isc_nm_detach(&listen_nm);
 	assert_null(listen_nm);
 
 	teardown_loopmgr(state);

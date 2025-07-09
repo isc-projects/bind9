@@ -45,7 +45,7 @@ isc_managers_destroy(isc_mem_t **mctxp, isc_loopmgr_t **loopmgrp,
 	 * The sequence of operations here is important:
 	 */
 
-	isc_netmgr_destroy(netmgrp);
+	isc_nm_detach(netmgrp);
 	isc_loopmgr_destroy(loopmgrp);
 	isc_mem_detach(mctxp);
 }
