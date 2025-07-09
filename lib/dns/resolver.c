@@ -105,6 +105,14 @@
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),             \
 		      "fctx %p(%s): %s %s%u", fctx, fctx->info, (m1), (m2), \
 		      (v))
+#define FCTXTRACEN(m1, name, res)                                    \
+	do {                                                         \
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {  \
+			char dbuf[DNS_NAME_FORMATSIZE];              \
+			dns_name_format((name), dbuf, sizeof(dbuf)); \
+			FCTXTRACE4((m1), dbuf, (res));               \
+		}                                                    \
+	} while (0)
 #define FTRACE(m)                                                          \
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                  \
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),            \
@@ -156,6 +164,7 @@
 		UNUSED(m2);   \
 		UNUSED(v);    \
 	} while (0)
+#define FCTXTRACEN(m1, name, res) FCTXTRACE4(m1, name, res)
 #define FTRACE(m)          \
 	do {               \
 		UNUSED(m); \
@@ -4488,13 +4497,20 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	result = dns_view_findzonecut(res->view, fctx->name, fname, dcname,
 				      fctx->now, findoptions, true, true,
 				      &fctx->nameservers, NULL);
+	FCTXTRACEN("resume_qmin findzonecut", fname, result);
 
 	/*
 	 * DNS_R_NXDOMAIN here means we have not loaded the root zone
 	 * mirror yet - but DNS_R_NXDOMAIN is not a valid return value
 	 * when doing recursion, we need to patch it.
+	 *
+	 * CNAME or DNAME means zone were added with that record
+	 * after the start of a recursion. It means we do not have
+	 * initialized correct hevent->foundname and have to fail.
 	 */
-	if (result == DNS_R_NXDOMAIN) {
+	if (result == DNS_R_NXDOMAIN || result == DNS_R_CNAME ||
+	    result == DNS_R_DNAME)
+	{
 		result = DNS_R_SERVFAIL;
 	}
 
@@ -5396,10 +5412,13 @@ clone_results(fetchctx_t *fctx) {
 	for (event = ISC_LIST_HEAD(fctx->events); event != NULL;
 	     event = ISC_LIST_NEXT(event, ev_link))
 	{
-		/* This is the the head event; keep a pointer and move
-		 * on */
+		/*
+		 * This is the the head event; keep a pointer and move on.
+		 */
 		if (hevent == NULL) {
 			hevent = ISC_LIST_HEAD(fctx->events);
+			FCTXTRACEN("clone_results", hevent->foundname,
+				   hevent->result);
 			continue;
 		}
 
