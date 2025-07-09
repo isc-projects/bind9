@@ -142,11 +142,6 @@ struct dns_rdataset {
 		bool stale	  : 1;
 		bool ancient	  : 1;
 		bool stale_window : 1;
-		bool stale_added  : 1; /*%< Added during a
-			stale-answer-client-timeout lookup. In other words, the
-			RRset was added during a lookup of stale data and does
-			not necessarily mean that the rdataset itself is stale.
-		      */
 		bool	       keepcase	  : 1;
 		bool	       staticstub : 1;
 		dns_orderopt_t order	  : 2;

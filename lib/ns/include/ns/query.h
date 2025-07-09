@@ -174,7 +174,6 @@ struct ns_query {
 #define NS_QUERYATTR_RRL_CHECKED     0x010000
 #define NS_QUERYATTR_REDIRECT	     0x020000
 #define NS_QUERYATTR_ANSWERED	     0x040000
-#define NS_QUERYATTR_STALEOK	     0x080000
 
 typedef struct query_ctx query_ctx_t;
 
@@ -202,7 +201,6 @@ struct query_ctx {
 	bool authoritative;		    /* authoritative query? */
 	bool want_restart;		    /* CNAME chain or other
 					     * restart needed */
-	bool		refresh_rrset;	    /* stale RRset refresh needed */
 	bool		need_wildcardproof; /* wildcard proof needed */
 	bool		nxrewrite;	    /* negative answer from RPZ */
 	bool		findcoveringnsec;   /* lookup covering NSEC */
