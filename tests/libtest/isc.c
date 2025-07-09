@@ -121,7 +121,7 @@ int
 teardown_netmgr(void **state ISC_ATTR_UNUSED) {
 	REQUIRE(loopmgr != NULL);
 
-	isc_netmgr_destroy(&netmgr);
+	isc_nm_detach(&netmgr);
 
 	return 0;
 }

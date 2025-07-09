@@ -244,62 +244,27 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
  * Free the resources of the network manager.
  */
 static void
-nm_destroy(isc_nm_t **mgr0) {
-	REQUIRE(VALID_NM(*mgr0));
+nm_destroy(isc_nm_t *netmgr) {
+	REQUIRE(VALID_NM(netmgr));
 
-	isc_nm_t *mgr = *mgr0;
-	*mgr0 = NULL;
+	isc_refcount_destroy(&netmgr->references);
 
-	isc_refcount_destroy(&mgr->references);
+	netmgr->magic = 0;
 
-	mgr->magic = 0;
-
-	if (mgr->stats != NULL) {
-		isc_stats_detach(&mgr->stats);
+	if (netmgr->stats != NULL) {
+		isc_stats_detach(&netmgr->stats);
 	}
 
-	isc_mem_cput(mgr->mctx, mgr->workers, mgr->nloops,
-		     sizeof(mgr->workers[0]));
-	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
+	isc_mem_cput(netmgr->mctx, netmgr->workers, netmgr->nloops,
+		     sizeof(netmgr->workers[0]));
+	isc_mem_putanddetach(&netmgr->mctx, netmgr, sizeof(*netmgr));
 }
 
-void
-isc_nm_attach(isc_nm_t *mgr, isc_nm_t **dst) {
-	REQUIRE(VALID_NM(mgr));
-	REQUIRE(dst != NULL && *dst == NULL);
-
-	isc_refcount_increment(&mgr->references);
-
-	*dst = mgr;
-}
-
-void
-isc_nm_detach(isc_nm_t **mgr0) {
-	isc_nm_t *mgr = NULL;
-
-	REQUIRE(mgr0 != NULL);
-	REQUIRE(VALID_NM(*mgr0));
-
-	mgr = *mgr0;
-	*mgr0 = NULL;
-
-	if (isc_refcount_decrement(&mgr->references) == 1) {
-		nm_destroy(&mgr);
-	}
-}
-
-void
-isc_netmgr_destroy(isc_nm_t **netmgrp) {
-	isc_nm_t *mgr = NULL;
-
-	REQUIRE(VALID_NM(*netmgrp));
-
-	mgr = *netmgrp;
-	*netmgrp = NULL;
-
-	REQUIRE(isc_refcount_decrement(&mgr->references) == 1);
-	nm_destroy(&mgr);
-}
+#if ISC_NETMGR_TRACE
+ISC_REFCOUNT_TRACE_IMPL(isc_nm, nm_destroy)
+#else
+ISC_REFCOUNT_IMPL(isc_nm, nm_destroy);
+#endif
 
 void
 isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp) {

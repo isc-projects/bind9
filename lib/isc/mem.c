@@ -845,8 +845,8 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 
 		if ((isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0) {
 			fprintf(stderr,
-				"overmem mctx %p inuse %zu hi_water %zu\n", ctx,
-				inuse, hiwater);
+				"overmem %s mctx %p inuse %zu hi_water %zu\n",
+				ctx->name, ctx, inuse, hiwater);
 		}
 
 		atomic_store_relaxed(&ctx->stat[tid].is_overmem, true);
@@ -865,8 +865,8 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 
 		if ((isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0) {
 			fprintf(stderr,
-				"overmem mctx %p inuse %zu lo_water %zu\n", ctx,
-				inuse, lowater);
+				"overmem %s mctx %p inuse %zu lo_water %zu\n",
+				ctx->name, ctx, inuse, lowater);
 		}
 		atomic_store_relaxed(&ctx->stat[tid].is_overmem, false);
 		return false;

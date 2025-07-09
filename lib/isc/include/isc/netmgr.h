@@ -123,16 +123,17 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netgmrp);
  * Creates a new network manager and starts it running when loopmgr is started.
  */
 
-void
-isc_netmgr_destroy(isc_nm_t **netmgrp);
-/*%<
- * Similar to isc_nm_detach(), but requires all other references to be gone.
- */
+#if ISC_NETMGR_TRACE
+#define isc_nm_ref(ptr)	  isc_nm__ref(ptr, __func__, __FILE__, __LINE__)
+#define isc_nm_unref(ptr) isc_nm__unref(ptr, __func__, __FILE__, __LINE__)
+#define isc_nm_attach(ptr, ptrp) \
+	isc_nm__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define isc_nm_detach(ptrp) isc_nm__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(isc_nm);
+#else
+ISC_REFCOUNT_DECL(isc_nm);
+#endif
 
-void
-isc_nm_attach(isc_nm_t *mgr, isc_nm_t **dst);
-void
-isc_nm_detach(isc_nm_t **mgr0);
 /*%<
  * Attach/detach a network manager. When all references have been
  * released, the network manager is shut down, freeing all resources.
