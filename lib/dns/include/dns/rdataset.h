@@ -119,32 +119,32 @@ struct dns_rdataset {
 
 	struct {
 		bool question	 : 1;
-		bool rendered	 : 1;  /*%< message.c: was rendered */
-		bool answered	 : 1;  /*%< server. */
-		bool cache	 : 1;  /*%< resolver. */
-		bool answer	 : 1;  /*%< resolver. */
-		bool answersig	 : 1;  /*%< resolver. */
-		bool external	 : 1;  /*%< resolver. */
-		bool ncache	 : 1;  /*%< resolver. */
-		bool chaining	 : 1;  /*%< resolver. */
-		bool ttladjusted : 1;  /*%< message.c: data had differing TTL
-			values, and the rdataset->ttl holds the smallest */
-		bool chase	  : 1; /*%< Used by resolver. */
-		bool nxdomain	  : 1;
-		bool noqname	  : 1;
-		bool checknames	  : 1; /*%< Used by resolver. */
-		bool required	  : 1;
-		bool resign	  : 1;
-		bool closest	  : 1;
-		bool optout	  : 1; /*%< OPTOUT proof */
-		bool negative	  : 1;
-		bool prefetch	  : 1;
-		bool stale	  : 1;
-		bool ancient	  : 1;
-		bool stale_window : 1;
-		bool	       keepcase	  : 1;
-		bool	       staticstub : 1;
-		dns_orderopt_t order	  : 2;
+		bool rendered	 : 1; /*%< message.c: was rendered */
+		bool answered	 : 1; /*%< server. */
+		bool cache	 : 1; /*%< resolver. */
+		bool answer	 : 1; /*%< resolver. */
+		bool answersig	 : 1; /*%< resolver. */
+		bool external	 : 1; /*%< resolver. */
+		bool ncache	 : 1; /*%< resolver. */
+		bool chaining	 : 1; /*%< resolver. */
+		bool ttladjusted : 1; /*%< message.c: data had differing TTL
+		       values, and the rdataset->ttl holds the smallest */
+		bool	       chase	    : 1; /*%< Used by resolver. */
+		bool	       nxdomain	    : 1;
+		bool	       noqname	    : 1;
+		bool	       checknames   : 1; /*%< Used by resolver. */
+		bool	       required	    : 1;
+		bool	       resign	    : 1;
+		bool	       closest	    : 1;
+		bool	       optout	    : 1; /*%< OPTOUT proof */
+		bool	       negative	    : 1;
+		bool	       prefetch	    : 1;
+		bool	       stale	    : 1;
+		bool	       ancient	    : 1;
+		bool	       stale_window : 1;
+		bool	       keepcase	    : 1;
+		bool	       staticstub   : 1;
+		dns_orderopt_t order	    : 2;
 	} attributes;
 
 	/*%

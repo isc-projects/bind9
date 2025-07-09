@@ -2813,12 +2813,19 @@ query_stale_refresh(ns_client_t *client, dns_name_t *qname,
 		    dns_rdataset_t *rdataset) {
 	CTRACE(ISC_LOG_DEBUG(3), "query_stale_refresh");
 
-	bool stale_refresh_window =
-		(STALE_WINDOW(rdataset) &&
-		 (client->query.dboptions & DNS_DBFIND_STALEENABLED) != 0);
+	bool stale_refresh_window = false;
+	bool stale_rrset = true;
+
+	if (rdataset != NULL) {
+		stale_refresh_window = (STALE_WINDOW(rdataset) &&
+					(client->query.dboptions &
+					 DNS_DBFIND_STALEENABLED) != 0);
+		stale_rrset = STALE(rdataset);
+	}
+
 	if (FETCH_RECTYPE_STALE_REFRESH(client) != NULL ||
 	    (client->query.dboptions & DNS_DBFIND_STALETIMEOUT) == 0 ||
-	    !STALE(rdataset) || stale_refresh_window)
+	    !stale_rrset || stale_refresh_window)
 	{
 		return;
 	}
@@ -2840,6 +2847,18 @@ query_stale_refresh(ns_client_t *client, dns_name_t *qname,
 
 	fetch_and_forget(client, qname, client->query.qtype,
 			 RECTYPE_STALE_REFRESH);
+}
+
+static void
+query_stale_refresh_ncache(ns_client_t *client) {
+	dns_name_t *qname;
+
+	if (client->query.origqname != NULL) {
+		qname = client->query.origqname;
+	} else {
+		qname = client->query.qname;
+	}
+	query_stale_refresh(client, qname, NULL);
 }
 
 static void
@@ -9965,7 +9984,7 @@ query_ncache(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	if (!qctx->is_zone && RECURSIONOK(qctx->client)) {
-		query_stale_refresh(qctx->client, qctx->fname, qctx->rdataset);
+		query_stale_refresh_ncache(qctx->client);
 	}
 
 	return query_nodata(qctx, result);
