@@ -891,6 +891,7 @@ gcc:8fips:amd64:
 system:gcc:8fips:amd64:
   <<: *almalinux_8fips_amd64_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   variables:
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
@@ -900,6 +901,7 @@ system:gcc:8fips:amd64:
 unit:gcc:8fips:amd64:
   <<: *almalinux_8fips_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   variables:
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
