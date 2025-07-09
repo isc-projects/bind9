@@ -629,9 +629,9 @@ enum {
 #define BADCOOKIE(a)   (((a)->flags & FCTX_ADDRINFO_BADCOOKIE) != 0)
 #define ISDUALSTACK(a) (((a)->flags & FCTX_ADDRINFO_DUALSTACK) != 0)
 
-#define NXDOMAIN(r)   (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
-#define NEGATIVE(r)   (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
-#define STATICSTUB(r) (((r)->attributes & DNS_RDATASETATTR_STATICSTUB) != 0)
+#define NXDOMAIN(r)   (((r)->attributes.nxdomain))
+#define NEGATIVE(r)   (((r)->attributes.negative))
+#define STATICSTUB(r) (((r)->attributes.staticstub))
 
 #ifdef ENABLE_AFL
 bool dns_fuzzing_resolver = false;
@@ -5052,13 +5052,13 @@ clone_results(fetchctx_t *fctx) {
 	}
 }
 
-#define CACHE(r)      (((r)->attributes & DNS_RDATASETATTR_CACHE) != 0)
-#define ANSWER(r)     (((r)->attributes & DNS_RDATASETATTR_ANSWER) != 0)
-#define ANSWERSIG(r)  (((r)->attributes & DNS_RDATASETATTR_ANSWERSIG) != 0)
-#define EXTERNAL(r)   (((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
-#define CHAINING(r)   (((r)->attributes & DNS_RDATASETATTR_CHAINING) != 0)
-#define CHASE(r)      (((r)->attributes & DNS_RDATASETATTR_CHASE) != 0)
-#define CHECKNAMES(r) (((r)->attributes & DNS_RDATASETATTR_CHECKNAMES) != 0)
+#define CACHE(r)      (((r)->attributes.cache))
+#define ANSWER(r)     (((r)->attributes.answer))
+#define ANSWERSIG(r)  (((r)->attributes.answersig))
+#define EXTERNAL(r)   (((r)->attributes.external))
+#define CHAINING(r)   (((r)->attributes.chaining))
+#define CHASE(r)      (((r)->attributes.chase))
+#define CHECKNAMES(r) (((r)->attributes.checknames))
 
 /*
  * Cancel validators associated with '*fctx' if it is ready to be
@@ -5953,7 +5953,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		 * Mark the rdataset as being prefetch eligible.
 		 */
 		if (rdataset->ttl >= fctx->res->view->prefetch_eligible) {
-			rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
+			rdataset->attributes.prefetch = true;
 		}
 
 		/*
@@ -6016,8 +6016,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			 */
 			if (rdataset->ttl >= fctx->res->view->prefetch_eligible)
 			{
-				rdataset->attributes |=
-					DNS_RDATASETATTR_PREFETCH;
+				rdataset->attributes.prefetch = true;
 			}
 
 			/*
@@ -6584,11 +6583,11 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset, bool external,
 	 */
 	if (!CACHE(rdataset)) {
 		name->attributes.chase = true;
-		rdataset->attributes |= DNS_RDATASETATTR_CHASE;
+		rdataset->attributes.chase = true;
 	}
-	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
+	rdataset->attributes.cache = true;
 	if (external) {
-		rdataset->attributes |= DNS_RDATASETATTR_EXTERNAL;
+		rdataset->attributes.external = true;
 	}
 }
 
@@ -7154,8 +7153,7 @@ checknamessection(dns_message_t *message, dns_section_t section) {
 							  rdata.type, false) ||
 				    !dns_rdata_checknames(&rdata, name, NULL))
 				{
-					rdataset->attributes |=
-						DNS_RDATASETATTR_CHECKNAMES;
+					rdataset->attributes.checknames = true;
 				}
 			}
 		}
@@ -8489,8 +8487,8 @@ rctx_answer_any(respctx_t *rctx) {
 
 		rctx->aname->attributes.cache = true;
 		rctx->aname->attributes.answer = true;
-		rdataset->attributes |= DNS_RDATASETATTR_ANSWER;
-		rdataset->attributes |= DNS_RDATASETATTR_CACHE;
+		rdataset->attributes.answer = true;
+		rdataset->attributes.cache = true;
 		rdataset->trust = rctx->trust;
 	}
 
@@ -8532,8 +8530,8 @@ rctx_answer_match(respctx_t *rctx) {
 
 	rctx->aname->attributes.cache = true;
 	rctx->aname->attributes.answer = true;
-	rctx->ardataset->attributes |= DNS_RDATASETATTR_ANSWER;
-	rctx->ardataset->attributes |= DNS_RDATASETATTR_CACHE;
+	rctx->ardataset->attributes.answer = true;
+	rctx->ardataset->attributes.cache = true;
 	rctx->ardataset->trust = rctx->trust;
 	(void)dns_rdataset_additionaldata(rctx->ardataset, rctx->aname,
 					  check_related, rctx,
@@ -8551,8 +8549,8 @@ rctx_answer_match(respctx_t *rctx) {
 			continue;
 		}
 
-		sigrdataset->attributes |= DNS_RDATASETATTR_ANSWERSIG;
-		sigrdataset->attributes |= DNS_RDATASETATTR_CACHE;
+		sigrdataset->attributes.answersig = true;
+		sigrdataset->attributes.cache = true;
 		sigrdataset->trust = rctx->trust;
 		break;
 	}
@@ -8594,9 +8592,9 @@ rctx_answer_cname(respctx_t *rctx) {
 	rctx->cname->attributes.cache = true;
 	rctx->cname->attributes.answer = true;
 	rctx->cname->attributes.chaining = true;
-	rctx->crdataset->attributes |= DNS_RDATASETATTR_ANSWER;
-	rctx->crdataset->attributes |= DNS_RDATASETATTR_CACHE;
-	rctx->crdataset->attributes |= DNS_RDATASETATTR_CHAINING;
+	rctx->crdataset->attributes.answer = true;
+	rctx->crdataset->attributes.cache = true;
+	rctx->crdataset->attributes.chaining = true;
 	rctx->crdataset->trust = rctx->trust;
 
 	ISC_LIST_FOREACH (rctx->cname->list, sigrdataset, link) {
@@ -8611,8 +8609,8 @@ rctx_answer_cname(respctx_t *rctx) {
 			continue;
 		}
 
-		sigrdataset->attributes |= DNS_RDATASETATTR_ANSWERSIG;
-		sigrdataset->attributes |= DNS_RDATASETATTR_CACHE;
+		sigrdataset->attributes.answersig = true;
+		sigrdataset->attributes.cache = true;
 		sigrdataset->trust = rctx->trust;
 		break;
 	}
@@ -8644,9 +8642,9 @@ rctx_answer_dname(respctx_t *rctx) {
 	rctx->dname->attributes.cache = true;
 	rctx->dname->attributes.answer = true;
 	rctx->dname->attributes.chaining = true;
-	rctx->drdataset->attributes |= DNS_RDATASETATTR_ANSWER;
-	rctx->drdataset->attributes |= DNS_RDATASETATTR_CACHE;
-	rctx->drdataset->attributes |= DNS_RDATASETATTR_CHAINING;
+	rctx->drdataset->attributes.answer = true;
+	rctx->drdataset->attributes.cache = true;
+	rctx->drdataset->attributes.chaining = true;
 	rctx->drdataset->trust = rctx->trust;
 
 	ISC_LIST_FOREACH (rctx->dname->list, sigrdataset, link) {
@@ -8661,8 +8659,8 @@ rctx_answer_dname(respctx_t *rctx) {
 			continue;
 		}
 
-		sigrdataset->attributes |= DNS_RDATASETATTR_ANSWERSIG;
-		sigrdataset->attributes |= DNS_RDATASETATTR_CACHE;
+		sigrdataset->attributes.answersig = true;
+		sigrdataset->attributes.cache = true;
 		sigrdataset->trust = rctx->trust;
 		break;
 	}
@@ -8698,8 +8696,7 @@ rctx_authority_positive(respctx_t *rctx) {
 				     rdataset->covers == dns_rdatatype_ns))
 				{
 					name->attributes.cache = true;
-					rdataset->attributes |=
-						DNS_RDATASETATTR_CACHE;
+					rdataset->attributes.cache = true;
 
 					if (rctx->aa) {
 						rdataset->trust =
@@ -8933,7 +8930,7 @@ rctx_authority_negative(respctx_t *rctx) {
 					rctx->ns_rdataset = rdataset;
 				}
 				name->attributes.cache = true;
-				rdataset->attributes |= DNS_RDATASETATTR_CACHE;
+				rdataset->attributes.cache = true;
 				rdataset->trust = dns_trust_glue;
 				break;
 			case dns_rdatatype_soa:
@@ -8957,7 +8954,7 @@ rctx_authority_negative(respctx_t *rctx) {
 					rctx->soa_name = name;
 				}
 				name->attributes.ncache = true;
-				rdataset->attributes |= DNS_RDATASETATTR_NCACHE;
+				rdataset->attributes.ncache = true;
 				if (rctx->aa) {
 					rdataset->trust =
 						dns_trust_authauthority;
@@ -9049,12 +9046,10 @@ rctx_authority_dnssec(respctx_t *rctx) {
 			case dns_rdatatype_nsec3:
 				if (rctx->negative) {
 					name->attributes.ncache = true;
-					rdataset->attributes |=
-						DNS_RDATASETATTR_NCACHE;
+					rdataset->attributes.ncache = true;
 				} else if (type == dns_rdatatype_nsec) {
 					name->attributes.cache = true;
-					rdataset->attributes |=
-						DNS_RDATASETATTR_CACHE;
+					rdataset->attributes.cache = true;
 				}
 
 				if (rctx->aa) {
@@ -9100,7 +9095,7 @@ rctx_authority_dnssec(respctx_t *rctx) {
 				}
 
 				name->attributes.cache = true;
-				rdataset->attributes |= DNS_RDATASETATTR_CACHE;
+				rdataset->attributes.cache = true;
 
 				if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
 					checknta = false;
@@ -9286,7 +9281,7 @@ again:
 		name->attributes.chase = false;
 		ISC_LIST_FOREACH (name->list, rdataset, link) {
 			if (CHASE(rdataset)) {
-				rdataset->attributes &= ~DNS_RDATASETATTR_CHASE;
+				rdataset->attributes.chase = false;
 				(void)dns_rdataset_additionaldata(
 					rdataset, name, check_related, rctx,
 					DNS_RDATASET_MAXADDITIONAL);

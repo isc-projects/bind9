@@ -114,7 +114,7 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 #define VALID_PSEUDOSECTION(s) \
 	(((s) >= DNS_PSEUDOSECTION_ANY) && ((s) < DNS_PSEUDOSECTION_MAX))
 
-#define OPTOUT(x) (((x)->attributes & DNS_RDATASETATTR_OPTOUT) != 0)
+#define OPTOUT(x) (((x)->attributes.optout))
 
 /*%
  * This is the size of each individual scratchpad buffer, and the numbers
@@ -998,7 +998,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 		dns_message_gettemprdataset(msg, &rdataset);
 		dns_rdatalist_tordataset(rdatalist, rdataset);
 
-		rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
+		rdataset->attributes.question = true;
 
 		ISC_LIST_APPEND(name->list, rdataset, link);
 
@@ -1452,7 +1452,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 		 * minimize them.
 		 */
 		if (ttl != rdataset->ttl) {
-			rdataset->attributes |= DNS_RDATASETATTR_TTLADJUSTED;
+			rdataset->attributes.ttladjusted = true;
 			if (ttl < rdataset->ttl) {
 				rdataset->ttl = ttl;
 			}
@@ -1927,10 +1927,8 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	name = ISC_LIST_HEAD(*section);
 	if (name != NULL) {
 		rdataset = ISC_LIST_HEAD(name->list);
-		if (rdataset != NULL &&
-		    (rdataset->attributes & DNS_RDATASETATTR_REQUIREDGLUE) !=
-			    0 &&
-		    (rdataset->attributes & DNS_RDATASETATTR_RENDERED) == 0)
+		if (rdataset != NULL && rdataset->attributes.required &&
+		    !rdataset->attributes.rendered)
 		{
 			st = *(msg->buffer);
 			count = 0;
@@ -1963,7 +1961,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 			update_min_section_ttl(msg, sectionid, rdataset);
 
-			rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+			rdataset->attributes.rendered = true;
 		}
 	}
 
@@ -1977,9 +1975,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 		ISC_LIST_FOREACH (*section, n, link) {
 			ISC_LIST_FOREACH (n->list, rds, link) {
-				if ((rds->attributes &
-				     DNS_RDATASETATTR_RENDERED) != 0)
-				{
+				if (rds->attributes.rendered) {
 					continue;
 				}
 
@@ -2051,7 +2047,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 				update_min_section_ttl(msg, sectionid, rds);
 
-				rds->attributes |= DNS_RDATASETATTR_RENDERED;
+				rds->attributes.rendered = true;
 			}
 		}
 	} while (--pass != 0);
@@ -2282,7 +2278,7 @@ dns_message_renderreset(dns_message_t *msg) {
 		msg->counts[i] = 0;
 		MSG_SECTION_FOREACH (msg, i, name) {
 			ISC_LIST_FOREACH (name->list, rds, link) {
-				rds->attributes &= ~DNS_RDATASETATTR_RENDERED;
+				rds->attributes.rendered = false;
 			}
 		}
 	}
@@ -5027,8 +5023,7 @@ message_authority_soa_min(dns_message_t *msg, dns_ttl_t *ttlp) {
 
 	MSG_SECTION_FOREACH (msg, DNS_SECTION_AUTHORITY, name) {
 		ISC_LIST_FOREACH (name->list, rds, link) {
-			if ((rds->attributes & DNS_RDATASETATTR_RENDERED) == 0)
-			{
+			if (!rds->attributes.rendered) {
 				continue;
 			}
 

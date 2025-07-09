@@ -1325,7 +1325,7 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	dns_rdatatype_t rdtype;
 	const cfg_obj_t *obj;
 	dns_fixedname_t fixed;
-	unsigned int mode = 0;
+	dns_orderopt_t mode = dns_order_none;
 	const char *str;
 	isc_buffer_t b;
 	isc_result_t result;
@@ -1363,11 +1363,11 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	INSIST(cfg_obj_isstring(obj));
 	str = cfg_obj_asstring(obj);
 	if (!strcasecmp(str, "random")) {
-		mode = DNS_RDATASETATTR_RANDOMIZE;
+		mode = dns_order_randomize;
 	} else if (!strcasecmp(str, "cyclic")) {
-		mode = DNS_RDATASETATTR_CYCLIC;
+		mode = dns_order_cyclic;
 	} else if (!strcasecmp(str, "none")) {
-		mode = DNS_RDATASETATTR_NONE;
+		mode = dns_order_none;
 	} else {
 		UNREACHABLE();
 	}

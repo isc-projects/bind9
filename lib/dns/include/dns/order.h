@@ -32,18 +32,16 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp);
 void
 dns_order_add(dns_order_t *order, const dns_name_t *name,
 	      dns_rdatatype_t rdtype, dns_rdataclass_t rdclass,
-	      unsigned int mode);
+	      dns_orderopt_t mode);
 /*%<
  * Add a entry to the end of the order list.
  *
  * Requires:
  * \li	'order' to be valid.
  *\li	'name' to be valid.
- *\li	'mode' to be one of #DNS_RDATASETATTR_RANDOMIZE,
- *		#DNS_RDATASETATTR_FIXEDORDER or zero (#DNS_RDATASETATTR_CYCLIC).
  */
 
-unsigned int
+dns_orderopt_t
 dns_order_find(dns_order_t *order, const dns_name_t *name,
 	       dns_rdatatype_t rdtype, dns_rdataclass_t rdclass);
 /*%<

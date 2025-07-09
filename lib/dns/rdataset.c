@@ -29,6 +29,7 @@
 #include <dns/ncache.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/types.h>
 
 static const char *trustnames[] = {
 	"none",		  "pending-additional",
@@ -141,7 +142,7 @@ dns_rdataset_makequestion(dns_rdataset_t *rdataset, dns_rdataclass_t rdclass,
 	rdataset->methods = &question_methods;
 	rdataset->rdclass = rdclass;
 	rdataset->type = type;
-	rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
+	rdataset->attributes.question = true;
 }
 
 unsigned int
@@ -208,9 +209,8 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 }
 
 #define MAX_SHUFFLE    32
-#define WANT_FIXED(r)  (((r)->attributes & DNS_RDATASETATTR_FIXEDORDER) != 0)
-#define WANT_RANDOM(r) (((r)->attributes & DNS_RDATASETATTR_RANDOMIZE) != 0)
-#define WANT_CYCLIC(r) (((r)->attributes & DNS_RDATASETATTR_CYCLIC) != 0)
+#define WANT_RANDOM(r) (((r)->attributes.order == dns_order_randomize))
+#define WANT_CYCLIC(r) (((r)->attributes.order == dns_order_cyclic))
 
 struct towire_sort {
 	int key;
@@ -257,12 +257,12 @@ towire(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	want_random = WANT_RANDOM(rdataset);
 	want_cyclic = WANT_CYCLIC(rdataset);
 
-	if ((rdataset->attributes & DNS_RDATASETATTR_QUESTION) != 0) {
+	if (rdataset->attributes.question) {
 		question = true;
 		count = 1;
 		result = dns_rdataset_first(rdataset);
 		INSIST(result == ISC_R_NOMORE);
-	} else if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+	} else if (rdataset->attributes.negative) {
 		/*
 		 * This is a negative caching rdataset.
 		 */
@@ -481,7 +481,7 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 	 */
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_QUESTION) == 0);
+	REQUIRE(!rdataset->attributes.question);
 
 	if (limit != 0 && dns_rdataset_count(rdataset) > limit) {
 		return DNS_R_TOOMANYRECORDS;
@@ -586,7 +586,7 @@ dns_rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	REQUIRE(rdataset->methods != NULL);
 
 	if (rdataset->methods->setownercase != NULL &&
-	    (rdataset->attributes & DNS_RDATASETATTR_KEEPCASE) == 0)
+	    !rdataset->attributes.keepcase)
 	{
 		(rdataset->methods->setownercase)(rdataset, name);
 	}
@@ -598,7 +598,7 @@ dns_rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	REQUIRE(rdataset->methods != NULL);
 
 	if (rdataset->methods->getownercase != NULL &&
-	    (rdataset->attributes & DNS_RDATASETATTR_KEEPCASE) == 0)
+	    !rdataset->attributes.keepcase)
 	{
 		(rdataset->methods->getownercase)(rdataset, name);
 	}

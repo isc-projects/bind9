@@ -1013,16 +1013,16 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	rdataset->resign = 0;
 
 	if (NEGATIVE(header)) {
-		rdataset->attributes |= DNS_RDATASETATTR_NEGATIVE;
+		rdataset->attributes.negative = true;
 	}
 	if (NXDOMAIN(header)) {
-		rdataset->attributes |= DNS_RDATASETATTR_NXDOMAIN;
+		rdataset->attributes.nxdomain = true;
 	}
 	if (OPTOUT(header)) {
-		rdataset->attributes |= DNS_RDATASETATTR_OPTOUT;
+		rdataset->attributes.optout = true;
 	}
 	if (PREFETCH(header)) {
-		rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
+		rdataset->attributes.prefetch = true;
 	}
 
 	if (stale && !ancient) {
@@ -1033,12 +1033,12 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 			rdataset->ttl = 0;
 		}
 		if (STALE_WINDOW(header)) {
-			rdataset->attributes |= DNS_RDATASETATTR_STALE_WINDOW;
+			rdataset->attributes.stale_window = true;
 		}
-		rdataset->attributes |= DNS_RDATASETATTR_STALE;
+		rdataset->attributes.stale = true;
 		rdataset->expire = header->expire;
 	} else if (!ACTIVE(header, now)) {
-		rdataset->attributes |= DNS_RDATASETATTR_ANCIENT;
+		rdataset->attributes.ancient = true;
 		rdataset->ttl = 0;
 	}
 
@@ -1055,11 +1055,11 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	 */
 	rdataset->slab.noqname = header->noqname;
 	if (header->noqname != NULL) {
-		rdataset->attributes |= DNS_RDATASETATTR_NOQNAME;
+		rdataset->attributes.noqname = true;
 	}
 	rdataset->slab.closest = header->closest;
 	if (header->closest != NULL) {
-		rdataset->attributes |= DNS_RDATASETATTR_CLOSEST;
+		rdataset->attributes.closest = true;
 	}
 }
 
@@ -2962,19 +2962,19 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
-	if ((rdataset->attributes & DNS_RDATASETATTR_PREFETCH) != 0) {
+	if (rdataset->attributes.prefetch) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_PREFETCH);
 	}
-	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+	if (rdataset->attributes.negative) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_NEGATIVE);
 	}
-	if ((rdataset->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0) {
+	if (rdataset->attributes.nxdomain) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_NXDOMAIN);
 	}
-	if ((rdataset->attributes & DNS_RDATASETATTR_OPTOUT) != 0) {
+	if (rdataset->attributes.optout) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_OPTOUT);
 	}
-	if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
+	if (rdataset->attributes.noqname) {
 		result = addnoqname(qpdb->common.mctx, newheader,
 				    qpdb->maxrrperset, rdataset);
 		if (result != ISC_R_SUCCESS) {
@@ -2982,7 +2982,7 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			return result;
 		}
 	}
-	if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0) {
+	if (rdataset->attributes.closest) {
 		result = addclosest(qpdb->common.mctx, newheader,
 				    qpdb->maxrrperset, rdataset);
 		if (result != ISC_R_SUCCESS) {

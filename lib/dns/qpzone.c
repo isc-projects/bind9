@@ -1058,7 +1058,7 @@ bindrdataset(qpzonedb_t *qpdb, qpznode_t *node, dns_slabheader_t *header,
 	rdataset->trust = header->trust;
 
 	if (OPTOUT(header)) {
-		rdataset->attributes |= DNS_RDATASETATTR_OPTOUT;
+		rdataset->attributes.optout = true;
 	}
 
 	rdataset->count = atomic_fetch_add_relaxed(&header->count, 1);
@@ -1074,18 +1074,18 @@ bindrdataset(qpzonedb_t *qpdb, qpznode_t *node, dns_slabheader_t *header,
 	 */
 	rdataset->slab.noqname = header->noqname;
 	if (header->noqname != NULL) {
-		rdataset->attributes |= DNS_RDATASETATTR_NOQNAME;
+		rdataset->attributes.noqname = true;
 	}
 	rdataset->slab.closest = header->closest;
 	if (header->closest != NULL) {
-		rdataset->attributes |= DNS_RDATASETATTR_CLOSEST;
+		rdataset->attributes.closest = true;
 	}
 
 	/*
 	 * Copy out re-signing information.
 	 */
 	if (RESIGN(header)) {
-		rdataset->attributes |= DNS_RDATASETATTR_RESIGN;
+		rdataset->attributes.resign = true;
 		rdataset->resign = (header->resign << 1) | header->resign_lsb;
 	} else {
 		rdataset->resign = 0;
@@ -2228,7 +2228,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 
 	dns_slabheader_setownercase(newheader, name);
 
-	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
+	if (rdataset->attributes.resign) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_RESIGN);
 		newheader->resign =
 			(isc_stdtime_t)(dns_time64_from32(rdataset->resign) >>
@@ -4745,7 +4745,7 @@ qpzone_addrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 
 	newheader->serial = version->serial;
-	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
+	if (rdataset->attributes.resign) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_RESIGN);
 		newheader->resign =
 			(isc_stdtime_t)(dns_time64_from32(rdataset->resign) >>
@@ -4857,7 +4857,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	newheader->serial = version->serial;
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
-	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
+	if (rdataset->attributes.resign) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_RESIGN);
 		newheader->resign =
 			(isc_stdtime_t)(dns_time64_from32(rdataset->resign) >>
@@ -5161,7 +5161,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 
 	/*
 	 * If the currently processed NS record is in-bailiwick, mark any glue
-	 * RRsets found for it with DNS_RDATASETATTR_REQUIRED.  Note that for
+	 * RRsets found for it with 'required' attribute.  Note that for
 	 * simplicity, glue RRsets for all in-bailiwick NS records are marked
 	 * this way, even though dns_message_rendersection() only checks the
 	 * attributes for the first rdataset associated with the first name
@@ -5169,12 +5169,10 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	 */
 	if (glue != NULL && dns_name_issubdomain(name, &node->name)) {
 		if (dns_rdataset_isassociated(&glue->rdataset_a)) {
-			glue->rdataset_a.attributes |=
-				DNS_RDATASETATTR_REQUIRED;
+			glue->rdataset_a.attributes.required = true;
 		}
 		if (dns_rdataset_isassociated(&glue->rdataset_aaaa)) {
-			glue->rdataset_aaaa.attributes |=
-				DNS_RDATASETATTR_REQUIRED;
+			glue->rdataset_aaaa.attributes.required = true;
 		}
 	}
 
@@ -5212,7 +5210,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	return result;
 }
 
-#define IS_REQUIRED_GLUE(r) (((r)->attributes & DNS_RDATASETATTR_REQUIRED) != 0)
+#define IS_REQUIRED_GLUE(r) (((r)->attributes.required))
 
 static void
 addglue_to_message(dns_glue_t *ge, dns_message_t *msg) {

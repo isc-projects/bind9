@@ -522,10 +522,10 @@ client_state_destroy(const query_ctx_t *qctx, filter_instance_t *inst) {
 static void
 mark_as_rendered(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	if (rdataset != NULL && dns_rdataset_isassociated(rdataset)) {
-		rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+		rdataset->attributes.rendered = true;
 	}
 	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset)) {
-		sigrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+		sigrdataset->attributes.rendered = true;
 	}
 }
 
