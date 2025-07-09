@@ -245,11 +245,6 @@ struct dns_rdataset {
  *
  * \def DNS_RDATASETATTR_LOADORDER
  *	Output the RRset in load order.
- *
- * \def DNS_RDATASETATTR_STALE_ADDED
- *	Set on rdatasets that were added during a stale-answer-client-timeout
- *	lookup. In other words, the RRset was added during a lookup of stale
- *	data and does not necessarily mean that the rdataset itself is stale.
  */
 
 #define DNS_RDATASETATTR_NONE	      0x00000000 /*%< No ordering. */
@@ -281,9 +276,9 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_STALE	      0x01000000
 #define DNS_RDATASETATTR_ANCIENT      0x02000000
 #define DNS_RDATASETATTR_STALE_WINDOW 0x04000000
-#define DNS_RDATASETATTR_STALE_ADDED  0x08000000
-#define DNS_RDATASETATTR_KEEPCASE     0x10000000
-#define DNS_RDATASETATTR_STATICSTUB   0x20000000
+/* #define DNS_RDATASETATTR_STALE_ADDED  0x08000000 - Obsolete */
+#define DNS_RDATASETATTR_KEEPCASE   0x10000000
+#define DNS_RDATASETATTR_STATICSTUB 0x20000000
 
 /*%
  * _OMITDNSSEC:
