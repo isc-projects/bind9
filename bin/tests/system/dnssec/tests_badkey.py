@@ -14,6 +14,7 @@ from dns import flags
 import pytest
 
 import isctest
+from isctest.util import param
 
 
 pytestmark = pytest.mark.extra_artifacts(
@@ -44,90 +45,48 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-def test_misconfigured_validation():
-    # check that validation fails with a misconfigured trust anchor
-    msg = isctest.query.create("example.", "SOA")
+@pytest.mark.parametrize(
+    "check, qname, qtype",
+    [
+        param("validation", "example.", "SOA"),
+        param("negative-validation", "example.", "PTR"),
+        param("insecurity-proof", "a.insecure.example.", "A"),
+    ],
+)
+def test_misconfigured_ta_servfail(check, qname, qtype):
+    isctest.log.info(f"check that {check} fails")
+    msg = isctest.query.create(qname, qtype)
     res = isctest.query.tcp(msg, "10.53.0.5")
     isctest.check.servfail(res)
 
 
-def test_misconfigured_negative_validation():
-    # check that negative validation fails with a misconfigured trust anchor
-    msg = isctest.query.create("example.", "PTR")
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.servfail(res)
-
-
-def test_misconfigured_insecurity():
-    # check that insecurity proofs fail with a misconfigured trust anchor
-    msg = isctest.query.create("a.insecure.example.", "A")
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.servfail(res)
-
-
-def test_misconfigured_cd_positive():
-    # check AD bit of a positive answer with misconfigured trust anchor, CD=1
-    msg = isctest.query.create("example.", "SOA")
+@pytest.mark.parametrize(
+    "check, qname, qtype, rcode_func",
+    [
+        param("positive-answer", "example.", "SOA", isctest.check.noerror),
+        param("negative-answer", "q.example.", "SOA", isctest.check.nxdomain),
+        param("bogus-answer", "a.bogus.example.", "SOA", isctest.check.noerror),
+        param("insecurity-proof", "a.insecure.example.", "SOA", isctest.check.noerror),
+        param(
+            "negative-insecurity-proof",
+            "q.insecure.example.",
+            "SOA",
+            isctest.check.nxdomain,
+        ),
+    ],
+)
+def test_misconfigured_ta_with_cd(check, qname, qtype, rcode_func):
+    isctest.log.info(f"check {check} with CD=1")
+    msg = isctest.query.create(qname, qtype)
     msg.flags |= flags.CD
     res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.noerror(res)
-    assert (res.flags & flags.AD) == 0
+    rcode_func(res)
+    isctest.check.noadflag(res)
 
-
-def test_misconfigured_cd_negative():
-    # check cd bit on a negative answer with misconfigured trust anchor, CD=1
-    msg = isctest.query.create("q.example.", "SOA")
-    msg.flags |= flags.CD
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.nxdomain(res)
-    assert (res.flags & flags.AD) == 0
-    # compare the response from a correctly configured server
+    isctest.log.debug("compare the response from a correctly configured server")
     res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.nxdomain(res2)
-    assert (res2.flags & flags.AD) == 0
-    assert res.answer == res2.answer
-
-
-def test_misconfigured_cd_bogus():
-    # check cd bit on a query that should fail
-    msg = isctest.query.create("a.bogus.example.", "SOA")
-    msg.flags |= flags.CD
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.noerror(res)
-    assert (res.flags & flags.AD) == 0
-    # compare the response from a correctly configured server
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.noerror(res2)
-    assert (res2.flags & flags.AD) == 0
-    assert res.answer == res2.answer
-
-
-def test_misconfigured_cd_insecurity():
-    # check cd bit on an insecurity proof
-    msg = isctest.query.create("a.insecure.example.", "SOA")
-    msg.flags |= flags.CD
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.noerror(res)
-    assert (res.flags & flags.AD) == 0
-    # compare the response from a correctly configured server
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.noerror(res2)
-    assert (res2.flags & flags.AD) == 0
-    assert res.answer == res2.answer
-
-
-def test_misconfigured_cd_negative_insecurity():
-    # check cd bit on an insecurity proof
-    msg = isctest.query.create("q.insecure.example.", "A")
-    msg.flags |= flags.CD
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.nxdomain(res)
-    assert (res.flags & flags.AD) == 0
-    # compare the response from a correctly configured server
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.nxdomain(res2)
-    assert (res2.flags & flags.AD) == 0
-    assert res.answer == res2.answer
+    isctest.check.noadflag(res2)
+    isctest.check.same_answer(res, res2)
 
 
 def test_revoked_init(servers, templates):
