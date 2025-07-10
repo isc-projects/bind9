@@ -55,18 +55,7 @@
 #include <dns/types.h>
 
 #define DNS_RDATASET_MAXADDITIONAL 13
-
-/* Fixed RRSet helper macros */
-
-#define DNS_RDATASET_LENGTH 2;
-
-#if DNS_RDATASET_FIXED
-#define DNS_RDATASET_ORDER 2
-#define DNS_RDATASET_COUNT (count * 4)
-#else /* !DNS_RDATASET_FIXED */
-#define DNS_RDATASET_ORDER 0
-#define DNS_RDATASET_COUNT 0
-#endif /* DNS_RDATASET_FIXED */
+#define DNS_RDATASET_LENGTH	   2;
 
 typedef enum {
 	dns_rdatasetadditional_fromauth,
@@ -128,10 +117,40 @@ struct dns_rdataset {
 	dns_trust_t	trust;
 	dns_rdatatype_t covers;
 
-	/*
-	 * attributes
-	 */
-	unsigned int attributes;
+	struct {
+		bool question	 : 1;
+		bool rendered	 : 1;  /*%< message.c: was rendered */
+		bool answered	 : 1;  /*%< server. */
+		bool cache	 : 1;  /*%< resolver. */
+		bool answer	 : 1;  /*%< resolver. */
+		bool answersig	 : 1;  /*%< resolver. */
+		bool external	 : 1;  /*%< resolver. */
+		bool ncache	 : 1;  /*%< resolver. */
+		bool chaining	 : 1;  /*%< resolver. */
+		bool ttladjusted : 1;  /*%< message.c: data had differing TTL
+			values, and the rdataset->ttl holds the smallest */
+		bool chase	  : 1; /*%< Used by resolver. */
+		bool nxdomain	  : 1;
+		bool noqname	  : 1;
+		bool checknames	  : 1; /*%< Used by resolver. */
+		bool required	  : 1;
+		bool resign	  : 1;
+		bool closest	  : 1;
+		bool optout	  : 1; /*%< OPTOUT proof */
+		bool negative	  : 1;
+		bool prefetch	  : 1;
+		bool stale	  : 1;
+		bool ancient	  : 1;
+		bool stale_window : 1;
+		bool stale_added  : 1; /*%< Added during a
+			stale-answer-client-timeout lookup. In other words, the
+			RRset was added during a lookup of stale data and does
+			not necessarily mean that the rdataset itself is stale.
+		      */
+		bool	       keepcase	  : 1;
+		bool	       staticstub : 1;
+		dns_orderopt_t order	  : 2;
+	} attributes;
 
 	/*%
 	 * the counter provides the starting point in the "cyclic" order.
@@ -143,7 +162,7 @@ struct dns_rdataset {
 
 	/*
 	 * This RRSIG RRset should be re-generated around this time.
-	 * Only valid if DNS_RDATASETATTR_RESIGN is set in attributes.
+	 * Only valid if 'resign' attribute is set.
 	 */
 	union {
 		isc_stdtime_t resign;
@@ -236,56 +255,6 @@ struct dns_rdataset {
 #define DNS_RDATASET_FOREACH(rds)               \
 	DNS_RDATASET_FOREACH_RES(rds, DNS__RDATASET_CONCAT(x, __LINE__))
 /* clang-format on */
-
-/*!
- * \def DNS_RDATASETATTR_RENDERED
- *	Used by message.c to indicate that the rdataset was rendered.
- *
- * \def DNS_RDATASETATTR_TTLADJUSTED
- *	Used by message.c to indicate that the rdataset's rdata had differing
- *	TTL values, and the rdataset->ttl holds the smallest.
- *
- * \def DNS_RDATASETATTR_LOADORDER
- *	Output the RRset in load order.
- *
- * \def DNS_RDATASETATTR_STALE_ADDED
- *	Set on rdatasets that were added during a stale-answer-client-timeout
- *	lookup. In other words, the RRset was added during a lookup of stale
- *	data and does not necessarily mean that the rdataset itself is stale.
- */
-
-#define DNS_RDATASETATTR_NONE	      0x00000000 /*%< No ordering. */
-#define DNS_RDATASETATTR_QUESTION     0x00000001
-#define DNS_RDATASETATTR_RENDERED     0x00000002 /*%< Used by message.c */
-#define DNS_RDATASETATTR_ANSWERED     0x00000004 /*%< Used by server. */
-#define DNS_RDATASETATTR_CACHE	      0x00000008 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_ANSWER	      0x00000010 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_ANSWERSIG    0x00000020 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_EXTERNAL     0x00000040 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_NCACHE	      0x00000080 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_CHAINING     0x00000100 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_TTLADJUSTED  0x00000200 /*%< Used by message.c */
-#define DNS_RDATASETATTR_FIXEDORDER   0x00000400 /*%< Fixed ordering. */
-#define DNS_RDATASETATTR_RANDOMIZE    0x00000800 /*%< Random ordering. */
-#define DNS_RDATASETATTR_CHASE	      0x00001000 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_NXDOMAIN     0x00002000
-#define DNS_RDATASETATTR_NOQNAME      0x00004000
-#define DNS_RDATASETATTR_CHECKNAMES   0x00008000 /*%< Used by resolver. */
-#define DNS_RDATASETATTR_REQUIRED     0x00010000
-#define DNS_RDATASETATTR_REQUIREDGLUE DNS_RDATASETATTR_REQUIRED
-#define DNS_RDATASETATTR_UNUSED1      0x00020000
-#define DNS_RDATASETATTR_RESIGN	      0x00040000
-#define DNS_RDATASETATTR_CLOSEST      0x00080000
-#define DNS_RDATASETATTR_OPTOUT	      0x00100000 /*%< OPTOUT proof */
-#define DNS_RDATASETATTR_NEGATIVE     0x00200000
-#define DNS_RDATASETATTR_PREFETCH     0x00400000
-#define DNS_RDATASETATTR_CYCLIC	      0x00800000 /*%< Cyclic ordering. */
-#define DNS_RDATASETATTR_STALE	      0x01000000
-#define DNS_RDATASETATTR_ANCIENT      0x02000000
-#define DNS_RDATASETATTR_STALE_WINDOW 0x04000000
-#define DNS_RDATASETATTR_STALE_ADDED  0x08000000
-#define DNS_RDATASETATTR_KEEPCASE     0x10000000
-#define DNS_RDATASETATTR_STATICSTUB   0x20000000
 
 /*%
  * _OMITDNSSEC:
@@ -574,7 +543,7 @@ dns__rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
  * Return the noqname proof for this record.
  *
  * Requires:
- *\li	'rdataset' to be valid and #DNS_RDATASETATTR_NOQNAME to be set.
+ *\li	'rdataset' to be valid and 'noqname' attribute to be set.
  *\li	'name' to be valid.
  *\li	'neg' and 'negsig' to be valid and not associated.
  */
@@ -583,12 +552,12 @@ isc_result_t
 dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
 /*%<
  * Associate a noqname proof with this record.
- * Sets #DNS_RDATASETATTR_NOQNAME if successful.
+ * Sets 'noqname' attribute if successful.
  * Adjusts the 'rdataset->ttl' to minimum of the 'rdataset->ttl' and
  * the 'nsec'/'nsec3' and 'rrsig(nsec)'/'rrsig(nsec3)' ttl.
  *
  * Requires:
- *\li	'rdataset' to be valid and #DNS_RDATASETATTR_NOQNAME to be set.
+ *\li	'rdataset' to be valid and 'noqname' attribute to be set.
  *\li	'name' to be valid and have NSEC or NSEC3 and associated RRSIG
  *	 rdatasets.
  */
@@ -603,7 +572,7 @@ dns__rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
  * Return the closest encloser for this record.
  *
  * Requires:
- *\li	'rdataset' to be valid and #DNS_RDATASETATTR_CLOSEST to be set.
+ *\li	'rdataset' to be valid and 'closest' attribute to be set.
  *\li	'name' to be valid.
  *\li	'nsec' and 'nsecsig' to be valid and not associated.
  */
@@ -612,12 +581,12 @@ isc_result_t
 dns_rdataset_addclosest(dns_rdataset_t *rdataset, dns_name_t *name);
 /*%<
  * Associate a closest encloset proof with this record.
- * Sets #DNS_RDATASETATTR_CLOSEST if successful.
+ * Sets 'closest' attribute if successful.
  * Adjusts the 'rdataset->ttl' to minimum of the 'rdataset->ttl' and
  * the 'nsec' and 'rrsig(nsec)' ttl.
  *
  * Requires:
- *\li	'rdataset' to be valid and #DNS_RDATASETATTR_CLOSEST to be set.
+ *\li	'rdataset' to be valid and 'closest' attribute to be set.
  *\li	'name' to be valid and have NSEC3 and RRSIG(NSEC3) rdatasets.
  */
 

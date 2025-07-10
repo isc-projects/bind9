@@ -32,7 +32,7 @@ struct dns_order_ent {
 	dns_fixedname_t name;
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t rdtype;
-	unsigned int mode;
+	dns_orderopt_t mode;
 	ISC_LINK(dns_order_ent_t) link;
 };
 
@@ -66,14 +66,10 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 void
 dns_order_add(dns_order_t *order, const dns_name_t *name,
 	      dns_rdatatype_t rdtype, dns_rdataclass_t rdclass,
-	      unsigned int mode) {
+	      dns_orderopt_t mode) {
 	dns_order_ent_t *ent = NULL;
 
 	REQUIRE(DNS_ORDER_VALID(order));
-	REQUIRE(mode == DNS_RDATASETATTR_RANDOMIZE ||
-		mode == DNS_RDATASETATTR_FIXEDORDER ||
-		mode == DNS_RDATASETATTR_CYCLIC ||
-		mode == DNS_RDATASETATTR_NONE);
 
 	ent = isc_mem_get(order->mctx, sizeof(*ent));
 	*ent = (dns_order_ent_t){
@@ -97,7 +93,7 @@ match(const dns_name_t *name1, const dns_name_t *name2) {
 	return dns_name_equal(name1, name2);
 }
 
-unsigned int
+dns_orderopt_t
 dns_order_find(dns_order_t *order, const dns_name_t *name,
 	       dns_rdatatype_t rdtype, dns_rdataclass_t rdclass) {
 	REQUIRE(DNS_ORDER_VALID(order));
@@ -115,7 +111,7 @@ dns_order_find(dns_order_t *order, const dns_name_t *name,
 			return ent->mode;
 		}
 	}
-	return DNS_RDATASETATTR_NONE;
+	return dns_order_none;
 }
 
 void

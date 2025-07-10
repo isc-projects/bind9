@@ -148,13 +148,13 @@
 #define QUERY_STALETIMEOUT(q) (((q)->dboptions & DNS_DBFIND_STALETIMEOUT) != 0)
 
 /*% Does the rdataset 'r' have an attached 'No QNAME Proof'? */
-#define NOQNAME(r) (((r)->attributes & DNS_RDATASETATTR_NOQNAME) != 0)
+#define NOQNAME(r) (((r)->attributes.noqname))
 
 /*% Does the rdataset 'r' contain a stale answer? */
-#define STALE(r) (((r)->attributes & DNS_RDATASETATTR_STALE) != 0)
+#define STALE(r) (((r)->attributes.stale))
 
 /*% Does the rdataset 'r' is stale and within stale-refresh-time? */
-#define STALE_WINDOW(r) (((r)->attributes & DNS_RDATASETATTR_STALE_WINDOW) != 0)
+#define STALE_WINDOW(r) (((r)->attributes.stale_window))
 
 #ifdef WANT_QUERYTRACE
 static void
@@ -510,9 +510,6 @@ query_addwildcardproof(query_ctx_t *qctx, bool ispositive, bool nodata);
 
 static void
 query_addauth(query_ctx_t *qctx);
-
-static void
-query_clear_stale(ns_client_t *client);
 
 /*
  * Increment query statistics counters.
@@ -2179,7 +2176,7 @@ query_setorder(query_ctx_t *qctx, dns_name_t *name, dns_rdataset_t *rdataset) {
 	UNUSED(client);
 
 	if (order != NULL) {
-		rdataset->attributes |= dns_order_find(
+		rdataset->attributes.order = dns_order_find(
 			order, name, rdataset->type, rdataset->rdclass);
 	}
 }
@@ -2269,12 +2266,11 @@ query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
 		if (dbuf != NULL) {
 			ns_client_releasename(client, namep);
 		}
-		if ((rdataset->attributes & DNS_RDATASETATTR_REQUIRED) != 0) {
-			mrdataset->attributes |= DNS_RDATASETATTR_REQUIRED;
+		if (rdataset->attributes.required) {
+			mrdataset->attributes.required = true;
 		}
-		if ((rdataset->attributes & DNS_RDATASETATTR_STALE_ADDED) != 0)
-		{
-			mrdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
+		if (rdataset->attributes.stale_added) {
+			mrdataset->attributes.stale_added = true;
 		}
 		return;
 	} else if (result == DNS_R_NXDOMAIN) {
@@ -2826,7 +2822,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	if (FETCH_RECTYPE_PREFETCH(client) != NULL ||
 	    client->inner.view->prefetch_trigger == 0U ||
 	    rdataset->ttl > client->inner.view->prefetch_trigger ||
-	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
+	    !rdataset->attributes.prefetch)
 	{
 		return;
 	}
@@ -4364,7 +4360,7 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	/*
 	 * Look for a signature in a negative cache rdataset.
 	 */
-	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) == 0) {
+	if (!rdataset->attributes.negative) {
 		return true;
 	}
 	found = dns_fixedname_initname(&fixed);
@@ -4715,7 +4711,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		{
 			return ISC_R_NOTFOUND;
 		}
-		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+		if (rdataset->attributes.negative) {
 			DNS_RDATASET_FOREACH (rdataset) {
 				dns_ncache_current(rdataset, found, &trdataset);
 				type = trdataset.type;
@@ -4849,7 +4845,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		{
 			return ISC_R_NOTFOUND;
 		}
-		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+		if (rdataset->attributes.negative) {
 			DNS_RDATASET_FOREACH (rdataset) {
 				dns_ncache_current(rdataset, found, &trdataset);
 				type = trdataset.type;
@@ -5987,7 +5983,7 @@ query_lookup(query_ctx_t *qctx) {
 		 * clean it up if needed when we resume from recursion.
 		 */
 		qctx->client->query.attributes |= NS_QUERYATTR_STALEOK;
-		qctx->rdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
+		qctx->rdataset->attributes.stale_added = true;
 	}
 
 	result = query_gotanswer(qctx, result);
@@ -5997,11 +5993,11 @@ cleanup:
 }
 
 /*
- * Clear all rdatasets from the message that are in the given section and
- * that have the 'attr' attribute set.
+ * Clear all rdatasets from the message, or only those with stale_added
+ * attribute set.
  */
 static void
-message_clearrdataset(dns_message_t *msg, unsigned int attr) {
+message_clearrdataset(dns_message_t *msg, bool stale_only) {
 	unsigned int i;
 
 	/*
@@ -6010,7 +6006,8 @@ message_clearrdataset(dns_message_t *msg, unsigned int attr) {
 	for (i = DNS_SECTION_ANSWER; i < DNS_SECTION_MAX; i++) {
 		ISC_LIST_FOREACH (msg->sections[i], name, link) {
 			ISC_LIST_FOREACH (name->list, rds, link) {
-				if ((rds->attributes & attr) != attr) {
+				if (stale_only && !rds->attributes.stale_added)
+				{
 					continue;
 				}
 				ISC_LIST_UNLINK(name->list, rds, link);
@@ -6028,15 +6025,6 @@ message_clearrdataset(dns_message_t *msg, unsigned int attr) {
 			}
 		}
 	}
-}
-
-/*
- * Clear any rdatasets from the client's message that were added on a lookup
- * due to a client timeout.
- */
-static void
-query_clear_stale(ns_client_t *client) {
-	message_clearrdataset(client->message, DNS_RDATASETATTR_STALE_ADDED);
 }
 
 /*
@@ -6900,8 +6888,7 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 		} else if (result == DNS_R_NCACHENXDOMAIN &&
 			   qctx->rdataset != NULL &&
 			   dns_rdataset_isassociated(qctx->rdataset) &&
-			   (qctx->rdataset->attributes &
-			    DNS_RDATASETATTR_NEGATIVE) != 0)
+			   qctx->rdataset->attributes.negative)
 		{
 			/*
 			 * Try to use owner name in the negative cache SOA.
@@ -7590,7 +7577,7 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	query_addrrset(qctx, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
 
-	if ((qctx->noqname->attributes & DNS_RDATASETATTR_CLOSEST) == 0) {
+	if (!qctx->noqname->attributes.closest) {
 		goto cleanup;
 	}
 
@@ -7967,7 +7954,11 @@ query_addanswer(query_ctx_t *qctx) {
 	    !QUERY_STALETIMEOUT(&qctx->client->query) && !qctx->refresh_rrset)
 	{
 		CCTRACE(ISC_LOG_DEBUG(3), "query_clear_stale");
-		query_clear_stale(qctx->client);
+		/*
+		 * Clear any rdatasets from the client's message that were added
+		 * on a lookup due to a client timeout.
+		 */
+		message_clearrdataset(qctx->client->message, true);
 		/*
 		 * We can clear the attribute to prevent redundant clearing
 		 * in subsequent lookups.
@@ -10544,7 +10535,7 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 		}
 
 		if (section == DNS_SECTION_ADDITIONAL) {
-			rdataset->attributes |= DNS_RDATASETATTR_REQUIRED;
+			rdataset->attributes.required = true;
 		}
 		query_addrrset(qctx, &name, &rdataset, sigrdatasetp, NULL,
 			       section);
@@ -11240,8 +11231,7 @@ query_glueanswer(query_ctx_t *qctx) {
 							link);
 					ISC_LIST_PREPEND(name->list, rdataset,
 							 link);
-					rdataset->attributes |=
-						DNS_RDATASETATTR_REQUIRED;
+					rdataset->attributes.required = true;
 					break;
 				}
 			}
@@ -11402,7 +11392,7 @@ ns_query_done(query_ctx_t *qctx) {
 		 * RRsets, clear the RRsets from the message before doing the
 		 * refresh.
 		 */
-		message_clearrdataset(qctx->client->message, 0);
+		message_clearrdataset(qctx->client->message, false);
 		query_stale_refresh(qctx->client);
 	}
 

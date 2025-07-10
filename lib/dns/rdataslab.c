@@ -1099,9 +1099,10 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = noqname->neg,
 		.link = nsec->link,
 		.count = nsec->count,
-		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
+		.attributes = nsec->attributes,
 		.magic = nsec->magic,
 	};
+	nsec->attributes.keepcase = true;
 
 	dns__db_attachnode(db, node,
 			   &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
@@ -1117,9 +1118,10 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = noqname->negsig,
 		.link = nsecsig->link,
 		.count = nsecsig->count,
-		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
+		.attributes = nsecsig->attributes,
 		.magic = nsecsig->magic,
 	};
+	nsecsig->attributes.keepcase = true;
 
 	dns_name_clone(&noqname->name, name);
 
@@ -1152,9 +1154,10 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = closest->neg,
 		.link = nsec->link,
 		.count = nsec->count,
-		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
+		.attributes = nsec->attributes,
 		.magic = nsec->magic,
 	};
+	nsec->attributes.keepcase = true;
 
 	dns__db_attachnode(db, node,
 			   &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
@@ -1170,9 +1173,10 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.slab.raw = closest->negsig,
 		.link = nsecsig->link,
 		.count = nsecsig->count,
-		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
+		.attributes = nsecsig->attributes,
 		.magic = nsecsig->magic,
 	};
+	nsecsig->attributes.keepcase = true;
 
 	dns_name_clone(&closest->name, name);
 

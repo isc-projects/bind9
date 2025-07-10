@@ -164,9 +164,7 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 
 		if (name->attributes.ncache) {
 			ISC_LIST_FOREACH (name->list, rdataset, link) {
-				if ((rdataset->attributes &
-				     DNS_RDATASETATTR_NCACHE) == 0)
-				{
+				if (!rdataset->attributes.ncache) {
 					continue;
 				}
 				type = rdataset->type;
@@ -261,12 +259,12 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		trust = dns_trust_answer;
 	}
 	ncrdataset.trust = trust;
-	ncrdataset.attributes |= DNS_RDATASETATTR_NEGATIVE;
+	ncrdataset.attributes.negative = true;
 	if (message->rcode == dns_rcode_nxdomain) {
-		ncrdataset.attributes |= DNS_RDATASETATTR_NXDOMAIN;
+		ncrdataset.attributes.nxdomain = true;
 	}
 	if (optout) {
-		ncrdataset.attributes |= DNS_RDATASETATTR_OPTOUT;
+		ncrdataset.attributes.optout = true;
 	}
 
 	return dns_db_addrdataset(cache, node, NULL, now, &ncrdataset, 0,
@@ -292,7 +290,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 
 	REQUIRE(rdataset != NULL);
 	REQUIRE(rdataset->type == 0);
-	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0);
+	REQUIRE(rdataset->attributes.negative);
 
 	savedbuffer = *target;
 	count = 0;
@@ -508,7 +506,7 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 	REQUIRE(ncacherdataset != NULL);
 	REQUIRE(DNS_RDATASET_VALID(ncacherdataset));
 	REQUIRE(ncacherdataset->type == 0);
-	REQUIRE((ncacherdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0);
+	REQUIRE(ncacherdataset->attributes.negative);
 	REQUIRE(name != NULL);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
 	REQUIRE(type != dns_rdatatype_rrsig);
@@ -574,7 +572,7 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 
 	REQUIRE(ncacherdataset != NULL);
 	REQUIRE(ncacherdataset->type == 0);
-	REQUIRE((ncacherdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0);
+	REQUIRE(ncacherdataset->attributes.negative);
 	REQUIRE(name != NULL);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
 
@@ -659,7 +657,7 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 
 	REQUIRE(ncacherdataset != NULL);
 	REQUIRE(ncacherdataset->type == 0);
-	REQUIRE((ncacherdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0);
+	REQUIRE(ncacherdataset->attributes.negative);
 	REQUIRE(found != NULL);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
 

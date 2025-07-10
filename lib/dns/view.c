@@ -1110,7 +1110,7 @@ db_find:
 		 * addresses we use the configured server addresses.
 		 */
 		if (dns_zone_gettype(zone) == dns_zone_staticstub) {
-			rdataset->attributes |= DNS_RDATASETATTR_STATICSTUB;
+			rdataset->attributes.staticstub = true;
 		}
 
 		if (use_cache && view->cachedb != NULL && db != view->hints) {

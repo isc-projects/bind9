@@ -179,9 +179,7 @@ ISC_LOOP_TEST_IMPL(dns_dbfind_staleok) {
 		do {
 			count++;
 			assert_in_range(count, 1, 21); /* loop sanity */
-			assert_int_equal(rdataset.attributes &
-						 DNS_RDATASETATTR_STALE,
-					 0);
+			assert_int_equal(rdataset.attributes.stale, false);
 			assert_true(rdataset.ttl > 0);
 			dns_db_detachnode(db, &node);
 			dns_rdataset_disassociate(&rdataset);
@@ -215,9 +213,8 @@ ISC_LOOP_TEST_IMPL(dns_dbfind_staleok) {
 				count++;
 				assert_in_range(count, 0, 49); /* loop sanity */
 				assert_int_equal(result, ISC_R_SUCCESS);
-				assert_int_equal(rdataset.attributes &
-							 DNS_RDATASETATTR_STALE,
-						 DNS_RDATASETATTR_STALE);
+				assert_int_equal(rdataset.attributes.stale,
+						 true);
 				dns_db_detachnode(db, &node);
 				dns_rdataset_disassociate(&rdataset);
 

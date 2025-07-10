@@ -369,7 +369,7 @@ print_status(dns_rdataset_t *rdataset) {
 
 	buf[0] = '\0';
 
-	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+	if (rdataset->attributes.negative) {
 		strlcat(buf, "negative response", sizeof(buf));
 		strlcat(buf, yaml ? "_" : ", ", sizeof(buf));
 	}
@@ -474,9 +474,7 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 			DNS_RDATASET_FOREACH (rdataset) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 
-				if ((rdataset->attributes &
-				     DNS_RDATASETATTR_NEGATIVE) != 0)
-				{
+				if (rdataset->attributes.negative) {
 					continue;
 				}
 
@@ -497,9 +495,7 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 			}
 		} else {
 			dns_indent_t indent = { "  ", 2 };
-			if (!yaml && (rdataset->attributes &
-				      DNS_RDATASETATTR_NEGATIVE) != 0)
-			{
+			if (!yaml && rdataset->attributes.negative) {
 				isc_buffer_putstr(&target, "; ");
 			}
 			result = dns_master_rdatasettotext(

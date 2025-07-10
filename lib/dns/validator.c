@@ -115,8 +115,8 @@ enum valattr {
 #define OFFLOADED(v) (((v)->attributes & VALATTR_OFFLOADED) != 0)
 #define COMPLETE(v)  (((v)->attributes & VALATTR_COMPLETE) != 0)
 
-#define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
-#define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
+#define NEGATIVE(r) (((r)->attributes.negative))
+#define NXDOMAIN(r) (((r)->attributes.nxdomain))
 
 #define MAXVALIDATIONS(r) (((r)->attributes & VALATTR_MAXVALIDATIONS) != 0)
 #define MAXVALIDATIONFAILS(r) \

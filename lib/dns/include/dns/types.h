@@ -237,6 +237,12 @@ typedef enum {
 } dns_masterformat_t;
 
 typedef enum {
+	dns_order_none,
+	dns_order_cyclic,
+	dns_order_randomize
+} dns_orderopt_t;
+
+typedef enum {
 	dns_expire_lru = 0,
 	dns_expire_ttl = 1,
 	dns_expire_flush = 2,

@@ -83,9 +83,9 @@ struct dns_master_style {
 #define DNS_TOTEXT_LINEBREAK_MAXLEN 100
 
 /*% Does the rdataset 'r' contain a stale answer? */
-#define STALE(r) (((r)->attributes & DNS_RDATASETATTR_STALE) != 0)
+#define STALE(r) (((r)->attributes.stale))
 /*% Does the rdataset 'r' contain an expired answer? */
-#define ANCIENT(r) (((r)->attributes & DNS_RDATASETATTR_ANCIENT) != 0)
+#define ANCIENT(r) (((r)->attributes.ancient))
 
 /*%
  * Context structure for a masterfile dump in progress.
@@ -271,7 +271,7 @@ struct dns_dumpctx {
 				 FILE *f);
 };
 
-#define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
+#define NXDOMAIN(x) (((x)->attributes.nxdomain))
 
 static const dns_indent_t default_indent = { "\t", 1 };
 static const dns_indent_t default_yamlindent = { "  ", 1 };
@@ -717,7 +717,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		 * Type.
 		 */
 
-		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+		if (rdataset->attributes.negative) {
 			type = rdataset->covers;
 		} else {
 			type = rdataset->type;
@@ -725,7 +725,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 		INDENT_TO(type_column);
 		type_start = target->used;
-		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+		if (rdataset->attributes.negative) {
 			RETERR(str_totext("\\-", target));
 		}
 		switch (type) {
@@ -760,7 +760,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		 * Rdata.
 		 */
 		INDENT_TO(rdata_column);
-		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+		if (rdataset->attributes.negative) {
 			if (NXDOMAIN(rdataset)) {
 				RETERR(str_totext(";-$NXDOMAIN", target));
 			} else {
@@ -1143,7 +1143,7 @@ again:
 			}
 			fprintf(f, "; %s\n", dns_trust_totext(rds->trust));
 		}
-		if (((rds->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) &&
+		if ((rds->attributes.negative) &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0)
 		{
 			/* Omit negative cache entries */
@@ -1169,7 +1169,7 @@ again:
 			}
 		}
 		if (((ctx->style.flags & DNS_STYLEFLAG_RESIGN) != 0) &&
-		    ((rds->attributes & DNS_RDATASETATTR_RESIGN) != 0))
+		    (rds->attributes.resign))
 		{
 			isc_buffer_t b;
 			char buf[sizeof("YYYYMMDDHHMMSS")];
@@ -1323,7 +1323,7 @@ dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 
 		dns_rdataset_getownercase(&rdataset, name);
 
-		if (((rdataset.attributes & DNS_RDATASETATTR_NEGATIVE) != 0) &&
+		if (rdataset.attributes.negative &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0)
 		{
 			/* Omit negative cache entries */

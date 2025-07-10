@@ -215,7 +215,7 @@ dns_rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
 		ttl = negsig->ttl;
 	}
 	rdataset->ttl = neg->ttl = negsig->ttl = ttl;
-	rdataset->attributes |= DNS_RDATASETATTR_NOQNAME;
+	rdataset->attributes.noqname = true;
 	rdataset->rdlist.noqname = name;
 	return ISC_R_SUCCESS;
 }
@@ -230,7 +230,7 @@ dns_rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_name_t *noqname = NULL;
 
 	REQUIRE(rdataset != NULL);
-	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0);
+	REQUIRE(rdataset->attributes.noqname);
 
 	rdclass = rdataset->rdclass;
 	noqname = rdataset->rdlist.noqname;
@@ -312,7 +312,7 @@ dns_rdatalist_addclosest(dns_rdataset_t *rdataset, dns_name_t *name) {
 		ttl = negsig->ttl;
 	}
 	rdataset->ttl = neg->ttl = negsig->ttl = ttl;
-	rdataset->attributes |= DNS_RDATASETATTR_CLOSEST;
+	rdataset->attributes.closest = true;
 	rdataset->rdlist.closest = name;
 	return ISC_R_SUCCESS;
 }
@@ -327,7 +327,7 @@ dns_rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_name_t *closest = NULL;
 
 	REQUIRE(rdataset != NULL);
-	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0);
+	REQUIRE(rdataset->attributes.closest);
 
 	rdclass = rdataset->rdclass;
 	closest = rdataset->rdlist.closest;

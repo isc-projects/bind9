@@ -2898,7 +2898,7 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 		if (dataset.type == dns_rdatatype_rrsig &&
 		    (lctx->options & DNS_MASTER_RESIGN) != 0)
 		{
-			dataset.attributes |= DNS_RDATASETATTR_RESIGN;
+			dataset.attributes.resign = true;
 			dataset.resign = resign_fromlist(this, lctx);
 		}
 		result = callbacks->add(callbacks->add_private, owner,

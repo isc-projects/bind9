@@ -73,7 +73,7 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
  * The 'covers' argument is the RR type whose nonexistence we are caching,
  * or dns_rdatatype_any when caching a NXDOMAIN response.
  *
- * 'optout' indicates a DNS_RDATASETATTR_OPTOUT should be set.
+ * 'optout' parameter indicates if 'optout' attribute should be set.
  *
  * Note:
  *\li	If 'addedrdataset' is not NULL, then it will be attached to the added
