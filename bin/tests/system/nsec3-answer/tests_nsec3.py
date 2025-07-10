@@ -92,7 +92,8 @@ def test_nxdomain(server, qname: dns.name.Name, named_port: int) -> None:
     wname = ZONE.source_of_synthesis(qname)
     assume(wname not in ZONE.reachable_wildcards)
 
-    check_nxdomain(server, named_port, qname)
+    _, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
+    check_nxdomain(qname, nsec3check)
 
 
 @pytest.mark.parametrize(
@@ -103,12 +104,14 @@ def test_ents(server, qname: dns.name.Name, named_port: int) -> None:
     """ENT can have a wildcard under it"""
     assume_nx_and_no_delegation(qname)
 
+    _, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
+
     wname = ZONE.source_of_synthesis(qname)
     # does qname match a wildcard under ENT?
     if wname in ZONE.reachable_wildcards:
-        check_wildcard_synthesis(server, named_port, qname)
+        check_wildcard_synthesis(qname, nsec3check)
     else:
-        check_nxdomain(server, named_port, qname)
+        check_nxdomain(qname, nsec3check)
 
 
 @pytest.mark.parametrize(
@@ -121,7 +124,8 @@ def test_wildcard_synthesis(server, qname: dns.name.Name, named_port: int) -> No
     wname = ZONE.source_of_synthesis(qname)
     assume(wname in ZONE.reachable_wildcards)
 
-    check_wildcard_synthesis(server, named_port, qname)
+    _, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
+    check_wildcard_synthesis(qname, nsec3check)
 
 
 @pytest.mark.parametrize(
@@ -134,12 +138,12 @@ def test_wildcard_nodata(server, qname: dns.name.Name, named_port: int) -> None:
     wname = ZONE.source_of_synthesis(qname)
     assume(wname in ZONE.reachable_wildcards)
 
-    check_wildcard_nodata(server, named_port, qname)
+    _, nsec3check = do_test_query(qname, dns.rdatatype.AAAA, server, named_port)
+    check_wildcard_nodata(qname, nsec3check)
 
 
-def check_wildcard_nodata(server, named_port: int, qname: dns.name.Name) -> None:
-    response, nsec3check = do_test_query(qname, dns.rdatatype.AAAA, server, named_port)
-    assert response.rcode() is dns.rcode.NOERROR
+def check_wildcard_nodata(qname: dns.name.Name, nsec3check: "NSEC3Checker") -> None:
+    assert nsec3check.response.rcode() is dns.rcode.NOERROR
 
     ce, nce = ZONE.closest_encloser(qname)
     nsec3check.prove_name_exists(ce)
@@ -151,9 +155,8 @@ def check_wildcard_nodata(server, named_port: int, qname: dns.name.Name) -> None
     nsec3check.check_extraneous_rrs()
 
 
-def check_nxdomain(server, named_port: int, qname: dns.name.Name) -> None:
-    response, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
-    assert response.rcode() is dns.rcode.NXDOMAIN
+def check_nxdomain(qname: dns.name.Name, nsec3check: "NSEC3Checker") -> None:
+    assert nsec3check.response.rcode() is dns.rcode.NXDOMAIN
 
     ce, nce = ZONE.closest_encloser(qname)
     nsec3check.prove_name_exists(ce)
@@ -164,12 +167,11 @@ def check_nxdomain(server, named_port: int, qname: dns.name.Name) -> None:
     nsec3check.check_extraneous_rrs()
 
 
-def check_wildcard_synthesis(server, named_port: int, qname: dns.name.Name) -> None:
+def check_wildcard_synthesis(qname: dns.name.Name, nsec3check: "NSEC3Checker") -> None:
     """Expect wildcard response with a signed A RRset"""
-    response, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
-    assert response.rcode() is dns.rcode.NOERROR
+    assert nsec3check.response.rcode() is dns.rcode.NOERROR
 
-    answer_sig = response.get_rrset(
+    answer_sig = nsec3check.response.get_rrset(
         section="ANSWER",
         name=qname,
         rdclass=dns.rdataclass.IN,
