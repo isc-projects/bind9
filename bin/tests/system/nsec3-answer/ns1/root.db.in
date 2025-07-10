@@ -25,7 +25,9 @@ a.						A	10.0.0.1
 a.a.a.a.					A	10.0.0.3
 b.						A	10.0.0.2
 b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.	A	10.0.0.2
-; cname.						CNAME	cname.a.a.
+cname.						CNAME	does-not-exist.
+cname.cname.					CNAME	cname.
+cname.ent.cname.				CNAME	cname.cname.
 d.						A	10.0.0.4
 dname-nowhere.					DNAME	does-not-exist.
 insecure.					NS	a.root-servers.nil.
