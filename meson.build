@@ -1630,8 +1630,6 @@ alias_target('system-test-dependencies', system_test_targets)
 
 ### Documentation
 
-alias_target('doc-misc', doc_misc_targets)
-
 get_release_date = '''
 import os
 import datetime
@@ -1663,6 +1661,8 @@ if doc_opt.allowed()
     install_man(man_pages)
 
     if sphinx_build.found()
+        alias_target('doc-misc', doc_misc_targets)
+
         meson.add_dist_script(
             'util' / 'meson-dist-package.sh',
             'manual',
