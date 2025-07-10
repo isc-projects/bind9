@@ -60,7 +60,6 @@
 
 #define DNS_RDATASET_LENGTH 2;
 
-#define DNS_RDATASET_ORDER 0
 #define DNS_RDATASET_COUNT 0
 
 typedef enum {

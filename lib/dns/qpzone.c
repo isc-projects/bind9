@@ -1136,7 +1136,7 @@ setnsec3parameters(dns_db_t *db, qpz_version_t *version) {
 			raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
 			while (count-- > 0U) {
 				length = raw[0] * 256 + raw[1];
-				raw += DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
+				raw += DNS_RDATASET_LENGTH;
 				region.base = raw;
 				region.length = length;
 				raw += length;
@@ -2639,7 +2639,7 @@ matchparams(dns_slabheader_t *header, qpz_search_t *search) {
 
 	while (count-- > 0) {
 		rdlen = raw[0] * 256 + raw[1];
-		raw += DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
+		raw += DNS_RDATASET_LENGTH;
 		region.base = raw;
 		region.length = rdlen;
 		dns_rdata_fromregion(&rdata, search->qpdb->common.rdclass,
