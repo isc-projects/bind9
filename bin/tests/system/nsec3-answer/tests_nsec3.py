@@ -124,6 +124,24 @@ def test_cname_nxdomain(server, qname: dns.name.Name, named_port: int) -> None:
 @pytest.mark.parametrize(
     "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
 )
+@given(qname=dns_names(suffix=ZONE.get_names_with_type(dns.rdatatype.DNAME)))
+def test_dname_nxdomain(server, qname: dns.name.Name, named_port: int) -> None:
+    """DNAME which terminates by NXDOMAIN, no wildcards involved"""
+    assume(qname not in ZONE.reachable)
+
+    response, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
+    chain = response.resolve_chaining()
+    assume_nx_and_no_delegation(chain.canonical_name)
+
+    wname = ZONE.source_of_synthesis(chain.canonical_name)
+    assume(wname not in ZONE.reachable_wildcards)
+
+    check_nxdomain(chain.canonical_name, nsec3check)
+
+
+@pytest.mark.parametrize(
+    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+)
 @given(qname=dns_names(suffix=ZONE.ents))
 def test_ents(server, qname: dns.name.Name, named_port: int) -> None:
     """ENT can have a wildcard under it"""
