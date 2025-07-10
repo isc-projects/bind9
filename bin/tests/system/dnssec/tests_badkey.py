@@ -87,38 +87,3 @@ def test_misconfigured_ta_with_cd(check, qname, qtype, rcode_func):
     res2 = isctest.query.tcp(msg, "10.53.0.4")
     isctest.check.noadflag(res2)
     isctest.check.same_answer(res, res2)
-
-
-def test_revoked_init(servers, templates):
-    # use a revoked key and try to reiniitialize; check for failure
-    ns5 = servers["ns5"]
-    templates.render("ns5/named.conf", {"revoked_key": True})
-    ns5.reconfigure(log=False)
-
-    msg = isctest.query.create(".", "SOA")
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.servfail(res)
-
-
-def test_broken_forwarding(servers, templates):
-    # check forwarder CD behavior (forward server with bad trust anchor)
-    ns5 = servers["ns5"]
-    templates.render("ns5/named.conf", {"broken_key": True})
-    ns5.reconfigure(log=False)
-
-    ns9 = servers["ns9"]
-    templates.render("ns9/named.conf", {"forward_badkey": True})
-    ns9.reconfigure(log=False)
-
-    # confirm invalid trust anchor produces SERVFAIL in resolver
-    msg = isctest.query.create("a.secure.example.", "A")
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.servfail(res)
-
-    # check that lookup involving forwarder succeeds and SERVFAIL was received
-    with ns9.watch_log_from_here() as watcher:
-        msg = isctest.query.create("a.secure.example.", "SOA")
-        res = isctest.query.tcp(msg, "10.53.0.9")
-        isctest.check.noerror(res)
-        assert (res.flags & flags.AD) != 0
-        watcher.wait_for_line("status: SERVFAIL")

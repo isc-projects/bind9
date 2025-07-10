@@ -13,6 +13,8 @@
 
 // NS9
 
+{% set forward_badkey = forward_badkey | default(False) %}
+
 options {
 	query-source address 10.53.0.9;
 	notify-source 10.53.0.9;
@@ -24,7 +26,6 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	forward only;
-{% set forward_badkey = forward_badkey | default(False) %}
 {% if forward_badkey %}
 	forwarders { 10.53.0.5; };
 {% else %}
