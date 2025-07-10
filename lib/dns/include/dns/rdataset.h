@@ -60,13 +60,8 @@
 
 #define DNS_RDATASET_LENGTH 2;
 
-#if DNS_RDATASET_FIXED
-#define DNS_RDATASET_ORDER 2
-#define DNS_RDATASET_COUNT (count * 4)
-#else /* !DNS_RDATASET_FIXED */
 #define DNS_RDATASET_ORDER 0
 #define DNS_RDATASET_COUNT 0
-#endif /* DNS_RDATASET_FIXED */
 
 typedef enum {
 	dns_rdatasetadditional_fromauth,
