@@ -35,7 +35,7 @@ generate_man_pages() {
     -b man \
     -D "release=${MESON_PROJECT_VERSION}" \
     -D "version=${MESON_PROJECT_VERSION}" \
-    -D "today_fmt=%Y-%m-%d" \
+    -D "today=@RELEASE_DATE@" \
     -d "${MESON_BUILD_ROOT}/dist-man-buildroot" \
     -c "${MESON_SOURCE_ROOT}/doc/man" \
     "${MESON_SOURCE_ROOT}/doc/man" \

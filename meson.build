@@ -1632,15 +1632,30 @@ alias_target('system-test-dependencies', system_test_targets)
 
 alias_target('doc-misc', doc_misc_targets)
 
+get_release_date = '''
+import os
+import datetime
+
+changelog_mtime = os.path.getmtime("doc/arm/changelog.rst")
+release_date = datetime.date.fromtimestamp(changelog_mtime)
+print(release_date, end="")
+'''
+
 if doc_opt.allowed()
+    release_date = ''
+    if python.found()
+      release_date = run_command(python, ['-c', get_release_date], check: true).stdout()
+    endif
+
     man_srcconf = man_srcset.apply(config, strict: false)
     foreach man : man_srcconf.sources()
         man_pages += configure_file(
             input: man,
             output: fs.stem(man),
             configuration: {
-                'SYSCONFDIR': sysconfdir,
+                'RELEASE_DATE': release_date,
                 'RUNSTATEDIR': runstatedir,
+                'SYSCONFDIR': sysconfdir,
             },
         )
     endforeach
