@@ -98,7 +98,7 @@ typedef struct filter_instance {
 /*
  * Client attribute tests.
  */
-#define WANTDNSSEC(c)  (((c)->attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
+#define WANTDNSSEC(c)  (((c)->inner.attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
 #define RECURSIONOK(c) (((c)->query.attributes & NS_QUERYATTR_RECURSIONOK) != 0)
 
 /*
@@ -439,11 +439,11 @@ typedef struct section_filter {
  */
 static bool
 is_v4_client(ns_client_t *client) {
-	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET) {
+	if (isc_sockaddr_pf(&client->inner.peeraddr) == AF_INET) {
 		return true;
 	}
-	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
-	    IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
+	if (isc_sockaddr_pf(&client->inner.peeraddr) == AF_INET6 &&
+	    IN6_IS_ADDR_V4MAPPED(&client->inner.peeraddr.type.sin6.sin6_addr))
 	{
 		return true;
 	}
@@ -455,8 +455,8 @@ is_v4_client(ns_client_t *client) {
  */
 static bool
 is_v6_client(ns_client_t *client) {
-	if (isc_sockaddr_pf(&client->peeraddr) == AF_INET6 &&
-	    !IN6_IS_ADDR_V4MAPPED(&client->peeraddr.type.sin6.sin6_addr))
+	if (isc_sockaddr_pf(&client->inner.peeraddr) == AF_INET6 &&
+	    !IN6_IS_ADDR_V4MAPPED(&client->inner.peeraddr.type.sin6.sin6_addr))
 	{
 		return true;
 	}
@@ -705,7 +705,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 		trdataset = ns_client_newrdataset(qctx->client);
 		result = dns_db_findrdataset(
 			qctx->db, qctx->node, qctx->version, dns_rdatatype_aaaa,
-			0, qctx->client->now, trdataset, NULL);
+			0, qctx->client->inner.now, trdataset, NULL);
 		if (dns_rdataset_isassociated(trdataset)) {
 			dns_rdataset_disassociate(trdataset);
 		}

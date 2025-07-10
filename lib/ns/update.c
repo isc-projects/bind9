@@ -210,7 +210,8 @@
 /*
  * Return TRUE if NS_CLIENTATTR_TCP is set in the attributes other FALSE.
  */
-#define TCPCLIENT(client) (((client)->attributes & NS_CLIENTATTR_TCP) != 0)
+#define TCPCLIENT(client) \
+	(((client)->inner.attributes & NS_CLIENTATTR_TCP) != 0)
 
 /**************************************************************************/
 
@@ -357,7 +358,7 @@ checkqueryacl(ns_client_t *client, dns_acl_t *queryacl, dns_name_t *zonename,
 		int level = update_possible ? ISC_LOG_ERROR : ISC_LOG_INFO;
 
 		dns_name_format(zonename, namebuf, sizeof(namebuf));
-		dns_rdataclass_format(client->view->rdclass, classbuf,
+		dns_rdataclass_format(client->inner.view->rdclass, classbuf,
 				      sizeof(classbuf));
 
 		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
@@ -366,7 +367,7 @@ checkqueryacl(ns_client_t *client, dns_acl_t *queryacl, dns_name_t *zonename,
 			      namebuf, classbuf);
 	} else if (!update_possible) {
 		dns_name_format(zonename, namebuf, sizeof(namebuf));
-		dns_rdataclass_format(client->view->rdclass, classbuf,
+		dns_rdataclass_format(client->inner.view->rdclass, classbuf,
 				      sizeof(classbuf));
 
 		result = DNS_R_REFUSED;
@@ -415,15 +416,15 @@ checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
 		}
 	}
 
-	if (client->signer != NULL) {
-		dns_name_format(client->signer, namebuf, sizeof(namebuf));
+	if (client->inner.signer != NULL) {
+		dns_name_format(client->inner.signer, namebuf, sizeof(namebuf));
 		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
 			      NS_LOGMODULE_UPDATE, ISC_LOG_INFO,
 			      "signer \"%s\" %s", namebuf, msg);
 	}
 
 	dns_name_format(zonename, namebuf, sizeof(namebuf));
-	dns_rdataclass_format(client->view->rdclass, classbuf,
+	dns_rdataclass_format(client->inner.view->rdclass, classbuf,
 			      sizeof(classbuf));
 
 	ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
@@ -1634,7 +1635,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
 				     "update", dns_zone_getorigin(zone), false,
 				     false));
-	} else if (client->signer == NULL && !TCPCLIENT(client)) {
+	} else if (client->inner.signer == NULL && !TCPCLIENT(client)) {
 		CHECK(checkupdateacl(client, NULL, "update",
 				     dns_zone_getorigin(zone), false, true));
 	}
@@ -1738,7 +1739,8 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 
 			maxbytype[update] = 0;
 
-			isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+			isc_netaddr_fromsockaddr(&netaddr,
+						 &client->inner.peeraddr);
 
 			if (client->message->tsigkey != NULL) {
 				tsigkey = client->message->tsigkey->key;
@@ -1771,7 +1773,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 
 				ssuinfo.name = name;
 				ssuinfo.table = ssutable;
-				ssuinfo.signer = client->signer;
+				ssuinfo.signer = client->inner.signer;
 				ssuinfo.addr = &netaddr;
 				ssuinfo.aclenv = env;
 				ssuinfo.tcp = TCPCLIENT(client);
@@ -1791,9 +1793,10 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 				CHECK(rr_exists(db, ver, name, &rdata, &flag));
 				if (flag &&
 				    !dns_ssutable_checkrules(
-					    ssutable, client->signer, name,
-					    &netaddr, TCPCLIENT(client), env,
-					    rdata.type, target, tsigkey, NULL))
+					    ssutable, client->inner.signer,
+					    name, &netaddr, TCPCLIENT(client),
+					    env, rdata.type, target, tsigkey,
+					    NULL))
 				{
 					FAILC(DNS_R_REFUSED,
 					      "rejected by secure update");
@@ -1801,9 +1804,9 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 			} else if (rdata.type != dns_rdatatype_any) {
 				const dns_ssurule_t *ssurule = NULL;
 				if (!dns_ssutable_checkrules(
-					    ssutable, client->signer, name,
-					    &netaddr, TCPCLIENT(client), env,
-					    rdata.type, target, tsigkey,
+					    ssutable, client->inner.signer,
+					    name, &netaddr, TCPCLIENT(client),
+					    env, rdata.type, target, tsigkey,
 					    &ssurule))
 				{
 					FAILC(DNS_R_REFUSED,
@@ -1813,7 +1816,8 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 								    rdata.type);
 			} else {
 				if (!ssu_checkall(db, ver, name, ssutable,
-						  client->signer, &netaddr, env,
+						  client->inner.signer,
+						  &netaddr, env,
 						  TCPCLIENT(client), tsigkey))
 				{
 					FAILC(DNS_R_REFUSED,
@@ -1845,7 +1849,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 		.result = ISC_R_SUCCESS,
 	};
 
-	isc_nmhandle_attach(client->handle, &client->updatehandle);
+	isc_nmhandle_attach(client->inner.handle, &client->inner.updatehandle);
 	isc_async_run(dns_zone_getloop(zone), update_action, uev);
 	maxbytype = NULL;
 
@@ -1877,13 +1881,13 @@ respond(ns_client_t *client, isc_result_t result) {
 			      "could not create update response message: %s",
 			      isc_result_totext(msg_result));
 		ns_client_drop(client, msg_result);
-		isc_nmhandle_detach(&client->reqhandle);
+		isc_nmhandle_detach(&client->inner.reqhandle);
 		return;
 	}
 
 	client->message->rcode = dns_result_torcode(result);
 	ns_client_send(client);
-	isc_nmhandle_detach(&client->reqhandle);
+	isc_nmhandle_detach(&client->inner.reqhandle);
 }
 
 void
@@ -1899,7 +1903,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 	 * Attach to the request handle. This will be held until
 	 * we respond, or drop the request.
 	 */
-	isc_nmhandle_attach(handle, &client->reqhandle);
+	isc_nmhandle_attach(handle, &client->inner.reqhandle);
 
 	/*
 	 * Interpret the zone section.
@@ -1929,8 +1933,8 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		      "update zone section contains multiple RRs");
 	}
 
-	result = dns_view_findzone(client->view, zonename, DNS_ZTFIND_EXACT,
-				   &zone);
+	result = dns_view_findzone(client->inner.view, zonename,
+				   DNS_ZTFIND_EXACT, &zone);
 	if (result != ISC_R_SUCCESS) {
 		FAILN(DNS_R_NOTAUTH, zonename,
 		      "not authoritative for update zone");
@@ -1982,7 +1986,7 @@ failure:
 	 */
 	if (result == DNS_R_DROP) {
 		ns_client_drop(client, result);
-		isc_nmhandle_detach(&client->reqhandle);
+		isc_nmhandle_detach(&client->inner.reqhandle);
 	} else {
 		respond(client, result);
 	}
@@ -3377,7 +3381,7 @@ updatedone_action(void *arg) {
 	update_t *uev = (update_t *)arg;
 	ns_client_t *client = uev->client;
 
-	REQUIRE(client->updatehandle == client->handle);
+	REQUIRE(client->inner.updatehandle == client->inner.handle);
 
 	switch (uev->result) {
 	case ISC_R_SUCCESS:
@@ -3398,7 +3402,7 @@ updatedone_action(void *arg) {
 		dns_zone_detach(&uev->zone);
 	}
 	isc_mem_put(client->manager->mctx, uev, sizeof(*uev));
-	isc_nmhandle_detach(&client->updatehandle);
+	isc_nmhandle_detach(&client->inner.updatehandle);
 }
 
 /*%
@@ -3413,7 +3417,7 @@ forward_fail(void *arg) {
 
 	isc_quota_release(&client->manager->sctx->updquota);
 	isc_mem_put(client->manager->mctx, uev, sizeof(*uev));
-	isc_nmhandle_detach(&client->updatehandle);
+	isc_nmhandle_detach(&client->inner.updatehandle);
 }
 
 static void
@@ -3445,8 +3449,8 @@ forward_done(void *arg) {
 
 	isc_quota_release(&client->manager->sctx->updquota);
 	isc_mem_put(client->manager->mctx, uev, sizeof(*uev));
-	isc_nmhandle_detach(&client->reqhandle);
-	isc_nmhandle_detach(&client->updatehandle);
+	isc_nmhandle_detach(&client->inner.reqhandle);
+	isc_nmhandle_detach(&client->inner.updatehandle);
 }
 
 static void
@@ -3509,7 +3513,7 @@ send_forward(ns_client_t *client, dns_zone_t *zone) {
 		      LOGLEVEL_PROTOCOL, "forwarding update for zone '%s/%s'",
 		      namebuf, classbuf);
 
-	isc_nmhandle_attach(client->handle, &client->updatehandle);
+	isc_nmhandle_attach(client->inner.handle, &client->inner.updatehandle);
 	isc_async_run(dns_zone_getloop(zone), forward_action, uev);
 
 	return result;

@@ -230,7 +230,7 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp) {
 
 	atomic_store(&client_refs[i], 2);
 	atomic_store(&client_addrs[i], (uintptr_t)client);
-	client->handle = (isc_nmhandle_t *)client; /* Hack */
+	client->inner.handle = (isc_nmhandle_t *)client; /* Hack */
 	*clientp = client;
 }
 
@@ -389,12 +389,12 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	saved_hook_table = ns__hook_table;
 	ns__hook_table = query_hooks;
 
-	ns_query_start(client, client->handle);
+	ns_query_start(client, client->inner.handle);
 
 	ns__hook_table = saved_hook_table;
 	ns_hooktable_free(mctx, (void **)&query_hooks);
 
-	isc_nmhandle_detach(&client->reqhandle);
+	isc_nmhandle_detach(&client->inner.reqhandle);
 
 	return ISC_R_SUCCESS;
 }
@@ -415,13 +415,13 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	 * Allocate and initialize a client structure.
 	 */
 	ns_test_getclient(NULL, false, &client);
-	client->tnow = isc_time_now();
+	client->inner.tnow = isc_time_now();
 
 	/*
 	 * Every client needs to belong to a view.
 	 */
 	result = dns_test_makeview("view", false, params->with_cache,
-				   &client->view);
+				   &client->inner.view);
 	if (result != ISC_R_SUCCESS) {
 		goto detach_client;
 	}
@@ -441,7 +441,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	 * set in ns_client_request(), i.e. earlier than the unit tests hook
 	 * into the call chain, just set it manually.
 	 */
-	client->attributes |= NS_CLIENTATTR_RA;
+	client->inner.attributes |= NS_CLIENTATTR_RA;
 
 	/*
 	 * Create a query context for a client sending the previously
@@ -457,7 +457,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	 * decrement it in order for it to drop to zero when "qctx" gets
 	 * destroyed.
 	 */
-	handle = client->handle;
+	handle = client->inner.handle;
 	isc_nmhandle_detach(&handle);
 
 	return ISC_R_SUCCESS;
@@ -465,9 +465,9 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 detach_query:
 	dns_message_detach(&client->message);
 detach_view:
-	dns_view_detach(&client->view);
+	dns_view_detach(&client->inner.view);
 detach_client:
-	isc_nmhandle_detach(&client->handle);
+	isc_nmhandle_detach(&client->inner.handle);
 
 	return result;
 }
@@ -489,7 +489,7 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 		dns_db_detach(&qctx->db);
 	}
 	if (qctx->client != NULL) {
-		isc_nmhandle_detach(&qctx->client->handle);
+		isc_nmhandle_detach(&qctx->client->inner.handle);
 	}
 
 	isc_mem_put(mctx, qctx, sizeof(*qctx));

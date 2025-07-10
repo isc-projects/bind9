@@ -122,8 +122,9 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 		result = isc_time_nowplusinterval(&expire, &hour);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		dns_badcache_add(qctx->client->view->failcache, dns_rootname,
-				 dns_rdatatype_ns, test->cache_entry_flags,
+		dns_badcache_add(qctx->client->inner.view->failcache,
+				 dns_rootname, dns_rdatatype_ns,
+				 test->cache_entry_flags,
 				 isc_time_seconds(&expire));
 	}
 
@@ -315,7 +316,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 	/*
 	 * Enable view->checknames by default, disable if requested.
 	 */
-	qctx->client->view->checknames = !test->disable_name_checks;
+	qctx->client->inner.view->checknames = !test->disable_name_checks;
 
 	/*
 	 * Load zone from file and attach it to the client's view, if
@@ -324,7 +325,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 	if (test->auth_zone_path != NULL) {
 		result = ns_test_serve_zone(test->auth_zone_origin,
 					    test->auth_zone_path,
-					    qctx->client->view);
+					    qctx->client->inner.view);
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
@@ -367,7 +368,8 @@ run_start_test(const ns__query_start_test_params_t *test) {
 				 "query context, but some was",
 				 test->id.description, test->id.lineno);
 		}
-		if (qctx->db == NULL || qctx->db != qctx->client->view->cachedb)
+		if (qctx->db == NULL ||
+		    qctx->db != qctx->client->inner.view->cachedb)
 		{
 			fail_msg("# test \"%s\" on line %d: "
 				 "cache database was expected to be "
@@ -388,7 +390,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 				 "context, but it was not",
 				 test->id.description, test->id.lineno);
 		}
-		if (qctx->db == qctx->client->view->cachedb) {
+		if (qctx->db == qctx->client->inner.view->cachedb) {
 			fail_msg("# test \"%s\" on line %d: "
 				 "cache database was not expected to be "
 				 "attached to query context, but it is",
@@ -887,7 +889,7 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 		};
 		result = ns_test_qctx_create(&qctx_params, &qctx);
 		INSIST(result == ISC_R_SUCCESS);
-		qctx->client->sendcb = send_noop;
+		qctx->client->inner.sendcb = send_noop;
 	}
 
 	/*
@@ -914,15 +916,15 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	    test->do_cancel)
 	{
 		expect_servfail = true;
-		isc_nmhandle_attach(qctx->client->handle,
-				    &qctx->client->reqhandle);
+		isc_nmhandle_attach(qctx->client->inner.handle,
+				    &qctx->client->inner.reqhandle);
 	}
 
 	/*
 	 * Emulate query handling from query_start.
 	 * Specified hook should be called.
 	 */
-	qctx->client->state = NS_CLIENTSTATE_WORKING;
+	qctx->client->inner.state = NS_CLIENTSTATE_WORKING;
 	result = ns__query_start(qctx);
 	INSIST(result == ISC_R_UNSET);
 
@@ -944,23 +946,23 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 
 	/* If async event has started, manually invoke the 'done' event. */
 	if (asdata.async) {
-		qctx->client->now = 0; /* set to sentinel before resume */
+		qctx->client->inner.now = 0; /* set to sentinel before resume */
 		asdata.rev->cb(asdata.rev);
 
 		/* Confirm necessary cleanup has been performed. */
 		INSIST(qctx->client->query.hookactx == NULL);
-		INSIST(qctx->client->state == NS_CLIENTSTATE_WORKING);
+		INSIST(qctx->client->inner.state == NS_CLIENTSTATE_WORKING);
 		INSIST(ns_stats_get_counter(
 			       qctx->client->manager->sctx->nsstats,
 			       ns_statscounter_recursclients) == 0);
-		INSIST(!ISC_LINK_LINKED(qctx->client, rlink));
+		INSIST(!ISC_LINK_LINKED(qctx->client, inner.rlink));
 		if (!test->do_cancel) {
 			/*
 			 * In the normal case the client's timestamp is updated
 			 * and the query handling has been resumed from the
 			 * expected point.
 			 */
-			INSIST(qctx->client->now != 0);
+			INSIST(qctx->client->inner.now != 0);
 			INSIST(asdata.lasthookpoint == test->hookpoint2);
 		}
 	} else {
@@ -1385,21 +1387,22 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 	result = ns_test_qctx_create(&qctx_params, &qctx);
 	INSIST(result == ISC_R_SUCCESS);
 
-	qctx->client->sendcb = send_noop;
+	qctx->client->inner.sendcb = send_noop;
 
 	/* Load a zone.  it should have ns.foo/A */
 	result = ns_test_serve_zone("foo", TESTS_DIR "/testdata/query/foo.db",
-				    qctx->client->view);
+				    qctx->client->inner.view);
 	INSIST(result == ISC_R_SUCCESS);
 
 	/*
 	 * We expect to have a response sent all cases, so we need to
 	 * setup reqhandle (which will be detached on the send).
 	 */
-	isc_nmhandle_attach(qctx->client->handle, &qctx->client->reqhandle);
+	isc_nmhandle_attach(qctx->client->inner.handle,
+			    &qctx->client->inner.reqhandle);
 
 	/* Handle the query.  hook-based async event will be triggered. */
-	qctx->client->state = NS_CLIENTSTATE_WORKING;
+	qctx->client->inner.state = NS_CLIENTSTATE_WORKING;
 	ns__query_start(qctx);
 
 	/* If specified cancel the query at this point. */
