@@ -1133,7 +1133,7 @@ setnsec3parameters(dns_db_t *db, qpz_version_t *version) {
 			 */
 			raw = dns_slabheader_raw(header);
 			count = raw[0] * 256 + raw[1]; /* count */
-			raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
+			raw += DNS_RDATASET_LENGTH;
 			while (count-- > 0U) {
 				length = raw[0] * 256 + raw[1];
 				raw += DNS_RDATASET_LENGTH;
@@ -2635,7 +2635,7 @@ matchparams(dns_slabheader_t *header, qpz_search_t *search) {
 
 	raw = (unsigned char *)header + sizeof(*header);
 	count = raw[0] * 256 + raw[1]; /* count */
-	raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
+	raw += DNS_RDATASET_LENGTH;
 
 	while (count-- > 0) {
 		rdlen = raw[0] * 256 + raw[1];

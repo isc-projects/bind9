@@ -55,12 +55,7 @@
 #include <dns/types.h>
 
 #define DNS_RDATASET_MAXADDITIONAL 13
-
-/* Fixed RRSet helper macros */
-
-#define DNS_RDATASET_LENGTH 2;
-
-#define DNS_RDATASET_COUNT 0
+#define DNS_RDATASET_LENGTH	   2;
 
 typedef enum {
 	dns_rdatasetadditional_fromauth,
