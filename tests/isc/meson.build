@@ -62,7 +62,7 @@ flaky_isc_test = [
     'random',
 ]
 
-if config.has('HAVE_NGHTTP2')
+if config.has('HAVE_LIBNGHTTP2')
     isc_test += 'doh'
 endif
 
