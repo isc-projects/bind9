@@ -59,25 +59,19 @@ def nordflag(message: dns.message.Message) -> None:
     assert (message.flags & dns.flags.RD) == 0, str(message)
 
 
-def section_equal(sec1: list, sec2: list) -> None:
-    # convert an RRset to a normalized string (lower case, TTL=0)
-    # so it can be used as a set member.
-    def normalized(rrset):
-        ttl = rrset.ttl
-        rrset.ttl = 0
-        s = str(rrset).lower()
-        rrset.ttl = ttl
-        return s
-
-    # convert the section contents to sets before comparison,
-    # in case they aren't in the same sort order.
-    set1 = {normalized(item) for item in sec1}
-    set2 = {normalized(item) for item in sec2}
-    assert set1 == set2
+def section_equal(first_section: list, second_section: list) -> None:
+    for rrset in first_section:
+        assert (
+            rrset in second_section
+        ), f"No corresponding RRset found in second section: {rrset}"
+    for rrset in second_section:
+        assert (
+            rrset in first_section
+        ), f"No corresponding RRset found in first section: {rrset}"
 
 
 def same_data(res1: dns.message.Message, res2: dns.message.Message):
-    assert res1.question == res2.question
+    section_equal(res1.question, res2.question)
     section_equal(res1.answer, res2.answer)
     section_equal(res1.authority, res2.authority)
     section_equal(res1.additional, res2.additional)
@@ -85,7 +79,7 @@ def same_data(res1: dns.message.Message, res2: dns.message.Message):
 
 
 def same_answer(res1: dns.message.Message, res2: dns.message.Message):
-    assert res1.question == res2.question
+    section_equal(res1.question, res2.question)
     section_equal(res1.answer, res2.answer)
     assert res1.rcode() == res2.rcode()
 
