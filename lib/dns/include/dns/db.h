@@ -233,15 +233,15 @@ struct dns_dbonupdatelistener {
 };
 
 /*%
- * Used in composite databases such as RBTDB to indicate whether a node
- * exists in a specal tree for NSEC or NSEC3.
+ * Used in QP keys to indicate whether a node is in a special namespace
+ * such as NSEC or NSEC3. These values will be mapped to characters at
+ * the beginning of the key, converting them to '0', '1', and '2'.
  */
-enum {
-	DNS_DB_NSEC_NORMAL = 0,	  /* in main tree */
-	DNS_DB_NSEC_HAS_NSEC = 1, /* also has node in nsec tree */
-	DNS_DB_NSEC_NSEC = 2,	  /* in nsec tree */
-	DNS_DB_NSEC_NSEC3 = 3	  /* in nsec3 tree */
-};
+typedef enum {
+	DNS_DBNAMESPACE_NORMAL = 0, /* regular namespace */
+	DNS_DBNAMESPACE_NSEC = 1,   /* nsec namespace */
+	DNS_DBNAMESPACE_NSEC3 = 2,  /* nsec3 namespace */
+} dns_namespace_t;
 
 /*@{*/
 /*%

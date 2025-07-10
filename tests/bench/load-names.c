@@ -66,7 +66,8 @@ static size_t
 item_makekey(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	assert(pval == &item[ival]);
-	return dns_qpkey_fromname(key, &item[ival].fixed.name);
+	return dns_qpkey_fromname(key, &item[ival].fixed.name,
+				  DNS_DBNAMESPACE_NORMAL);
 }
 
 static void
@@ -325,7 +326,8 @@ sqz_qp(void *qp) {
 
 static isc_result_t
 get_qp(void *qp, size_t count, void **pval) {
-	return dns_qp_getname(qp, &item[count].fixed.name, pval, NULL);
+	return dns_qp_getname(qp, &item[count].fixed.name,
+			      DNS_DBNAMESPACE_NORMAL, pval, NULL);
 }
 
 static void *

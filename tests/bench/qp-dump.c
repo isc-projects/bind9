@@ -87,7 +87,7 @@ qpkey_from_smallname(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	dns_name_t name = DNS_NAME_INITEMPTY;
 	name_from_smallname(&name, pval, ival);
-	return dns_qpkey_fromname(key, &name);
+	return dns_qpkey_fromname(key, &name, DNS_DBNAMESPACE_NORMAL);
 }
 
 static void
