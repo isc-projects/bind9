@@ -47,7 +47,7 @@ ZONE = isctest.name.ZoneAnalyzer.read_path(
 
 def do_test_query(
     qname, qtype, server, named_port
-) -> Tuple[dns.message.Message, "NSEC3Checker"]:
+) -> Tuple[dns.message.QueryMessage, "NSEC3Checker"]:
     query = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
     response = isctest.query.tcp(query, server, named_port, timeout=TIMEOUT)
     isctest.check.is_response_to(response, query)
@@ -58,7 +58,11 @@ def do_test_query(
 @pytest.mark.parametrize(
     "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
 )
-@given(qname=sampled_from(sorted(ZONE.reachable)))
+@given(
+    qname=sampled_from(
+        sorted(ZONE.reachable - ZONE.get_names_with_type(dns.rdatatype.CNAME))
+    )
+)
 def test_nodata(server, qname: dns.name.Name, named_port: int) -> None:
     """An existing name, no wildcards, but a query type for RRset which does not exist"""
     response, nsec3check = do_test_query(qname, dns.rdatatype.HINFO, server, named_port)
@@ -94,6 +98,22 @@ def test_nxdomain(server, qname: dns.name.Name, named_port: int) -> None:
 
     _, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
     check_nxdomain(qname, nsec3check)
+
+
+@pytest.mark.parametrize(
+    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+)
+@given(qname=sampled_from(sorted(ZONE.get_names_with_type(dns.rdatatype.CNAME))))
+def test_cname_nxdomain(server, qname: dns.name.Name, named_port: int) -> None:
+    """CNAME which terminates by NXDOMAIN, no wildcards involved"""
+    response, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
+    chain = response.resolve_chaining()
+    assume_nx_and_no_delegation(chain.canonical_name)
+
+    wname = ZONE.source_of_synthesis(chain.canonical_name)
+    assume(wname not in ZONE.reachable_wildcards)
+
+    check_nxdomain(chain.canonical_name, nsec3check)
 
 
 @pytest.mark.parametrize(
