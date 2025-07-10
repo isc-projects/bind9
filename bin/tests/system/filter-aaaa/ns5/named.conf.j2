@@ -11,23 +11,30 @@
  * information regarding copyright ownership.
  */
 
+{% set filtertype = filtertype | default("aaaa") %}
+
 options {
-	query-source address 10.53.0.3;
-	notify-source 10.53.0.3;
-	transfer-source 10.53.0.3;
+	query-source address 10.53.0.5;
+	notify-source 10.53.0.5;
+	transfer-source 10.53.0.5;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.3; };
-	listen-on-v6 { fd92:7065:b8e:ffff::3; };
+	listen-on { 10.53.0.5; };
+	listen-on-v6 { fd92:7065:b8e:ffff::5; };
 	recursion yes;
-	dnssec-validation yes;
+	dnssec-validation no;
 	notify yes;
+	dns64 64:ff9b::/96 {
+			    clients { any; };
+			    exclude { any; };
+			    mapped { any; };
+	};
 	minimal-responses no;
 };
 
-plugin query "@TOP_BUILDDIR@/filter-aaaa.@DYLIB@" {
-	filter-aaaa-on-v6 break-dnssec;
-	filter-aaaa { fd92:7065:b8e:ffff::3; };
+plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
+	filter-@filtertype@-on-v4 break-dnssec;
+	filter-@filtertype@ { any; };
 };
 
 key rndc_key {
@@ -36,7 +43,7 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.5 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 zone "." { type hint; file "hints"; };
