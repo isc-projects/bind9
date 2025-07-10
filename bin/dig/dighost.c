@@ -2697,6 +2697,7 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		}
 		query_detach(&query);
 		lookup_detach(&l);
+		check_if_done();
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
 		debug("send failed: %s", isc_result_totext(eresult));
@@ -2965,7 +2966,6 @@ start_tcp(dig_query_t *query) {
 	if (keep != NULL && isc_sockaddr_equal(&keepaddr, &query->sockaddr)) {
 		query->handle = keep;
 		launch_next_query(query);
-		query_detach(&query);
 		return;
 	} else if (keep != NULL) {
 		isc_nmhandle_detach(&keep);
