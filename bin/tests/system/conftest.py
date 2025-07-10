@@ -70,6 +70,10 @@ SYMLINK_REPLACEMENT_RE = re.compile(r"/tests(_.*)\.py")
 
 isctest.check.is_executable(isctest.vars.ALL["PYTHON"], "Python interpreter required")
 isctest.check.is_executable(isctest.vars.ALL["PERL"], "Perl interpreter required")
+isctest.check.is_executable(
+    isctest.vars.ALL["FEATURETEST"],
+    "Run this first: ninja -C build system-test-dependencies",
+)
 
 # --------------------------- pytest hooks -------------------------------
 
