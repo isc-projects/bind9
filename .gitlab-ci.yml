@@ -113,6 +113,7 @@ stages:
     - amd64
     - autoscaler
     - aws
+    - fips
     - shell
 
 .almalinux-9fips-amd64-image: &almalinux_9fips_amd64_image
@@ -121,6 +122,7 @@ stages:
     - amd64
     - autoscaler
     - aws
+    - fips
     - shell
 
 # Autoscaling GitLab Runner on AWS EC2 (amd64)
