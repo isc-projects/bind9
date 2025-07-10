@@ -7236,7 +7236,7 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 			wouldlog, log_buf, sizeof(log_buf));
 		if (rrl_result != DNS_RRL_RESULT_OK) {
 			/*
-			 * Log dropped or slipped responses in the query
+			 * Log dropped or slipped responses in the query-errors
 			 * category so that requests are not silently lost.
 			 * Starts of rate-limited bursts are logged in
 			 * DNS_LOGCATEGORY_RRL.
@@ -7246,7 +7246,8 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 			 * with other truncated responses in RespTruncated.
 			 */
 			if (wouldlog) {
-				ns_client_log(qctx->client, DNS_LOGCATEGORY_RRL,
+				ns_client_log(qctx->client,
+					      NS_LOGCATEGORY_QUERY_ERRORS,
 					      NS_LOGMODULE_QUERY,
 					      DNS_RRL_LOG_DROP, "%s", log_buf);
 			}
