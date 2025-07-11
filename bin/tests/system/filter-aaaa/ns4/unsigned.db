@@ -17,7 +17,7 @@ $TTL	120
 ns		A	10.53.0.4
 		AAAA	fd92:7065:b8e:ffff::4
 
-a-only		NS	1.0.0.4
+a-only		A	1.0.0.5
 aaaa-only	AAAA	2001:db8::5
 dual		A	1.0.0.6
 dual 		AAAA	2001:db8::6
