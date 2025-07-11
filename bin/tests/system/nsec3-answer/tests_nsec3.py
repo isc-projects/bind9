@@ -65,10 +65,35 @@ def do_test_query(
 )
 def test_nodata(server, qname: dns.name.Name, named_port: int) -> None:
     """An existing name, no wildcards, but a query type for RRset which does not exist"""
-    response, nsec3check = do_test_query(qname, dns.rdatatype.HINFO, server, named_port)
-    assert response.rcode() is dns.rcode.NOERROR
+    _, nsec3check = do_test_query(qname, dns.rdatatype.HINFO, server, named_port)
+    check_nodata(qname, nsec3check)
 
-    nsec3check.prove_name_exists(qname)
+
+@pytest.mark.parametrize("server", [pytest.param(AUTH, id="ns1")])
+@given(
+    qname=dns_names(
+        suffix=(ZONE.delegations - ZONE.get_names_with_type(dns.rdatatype.DS))
+    )
+)
+def test_nodata_ds(server, qname: dns.name.Name, named_port: int) -> None:
+    """Auth sends proof of nonexistance with referral without DS RR. Opt-out is not supported."""
+    response, nsec3check = do_test_query(qname, dns.rdatatype.HINFO, server, named_port)
+
+    nsrr = None
+    for rrset in response.authority:
+        if rrset.rdtype == dns.rdatatype.NS:
+            nsrr = rrset
+            break
+    assert nsrr is not None, "NS RRset missing in delegation answer"
+
+    # DS RR does not exist so we must prove it by having NSEC3 with QNAME
+    check_nodata(nsrr.name, nsec3check)
+
+
+def check_nodata(name: dns.name.Name, nsec3check: "NSEC3Checker"):
+    assert nsec3check.response.rcode() is dns.rcode.NOERROR
+
+    nsec3check.prove_name_exists(name)
     nsec3check.check_extraneous_rrs()
 
 
