@@ -84,7 +84,6 @@ tostruct_smimea(ARGS_TOSTRUCT) {
 
 	smimea->common.rdclass = rdata->rdclass;
 	smimea->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&smimea->common, link);
 
 	return generic_tostruct_tlsa(CALL_TOSTRUCT);
 }

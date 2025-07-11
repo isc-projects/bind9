@@ -193,7 +193,6 @@ tostruct_cert(ARGS_TOSTRUCT) {
 
 	cert->common.rdclass = rdata->rdclass;
 	cert->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&cert->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 

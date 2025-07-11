@@ -209,7 +209,6 @@ tostruct_afsdb(ARGS_TOSTRUCT) {
 
 	afsdb->common.rdclass = rdata->rdclass;
 	afsdb->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&afsdb->common, link);
 
 	dns_name_init(&afsdb->server);
 

@@ -217,7 +217,6 @@ generic_tostruct_tlsa(ARGS_TOSTRUCT) {
 	REQUIRE(tlsa != NULL);
 	REQUIRE(tlsa->common.rdclass == rdata->rdclass);
 	REQUIRE(tlsa->common.rdtype == rdata->type);
-	REQUIRE(!ISC_LINK_LINKED(&tlsa->common, link));
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -266,7 +265,6 @@ tostruct_tlsa(ARGS_TOSTRUCT) {
 
 	tlsa->common.rdclass = rdata->rdclass;
 	tlsa->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&tlsa->common, link);
 
 	return generic_tostruct_tlsa(CALL_TOSTRUCT);
 }

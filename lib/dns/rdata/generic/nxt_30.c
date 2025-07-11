@@ -243,7 +243,6 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 
 	nxt->common.rdclass = rdata->rdclass;
 	nxt->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&nxt->common, link);
 
 	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);

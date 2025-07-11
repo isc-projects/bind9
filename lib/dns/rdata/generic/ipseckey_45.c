@@ -352,7 +352,6 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 
 	ipseckey->common.rdclass = rdata->rdclass;
 	ipseckey->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&ipseckey->common, link);
 
 	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);

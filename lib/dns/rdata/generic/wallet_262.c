@@ -77,7 +77,6 @@ tostruct_wallet(ARGS_TOSTRUCT) {
 
 	wallet->common.rdclass = rdata->rdclass;
 	wallet->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&wallet->common, link);
 
 	return generic_tostruct_txt(CALL_TOSTRUCT);
 }

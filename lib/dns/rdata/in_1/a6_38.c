@@ -351,7 +351,6 @@ tostruct_in_a6(ARGS_TOSTRUCT) {
 
 	a6->common.rdclass = rdata->rdclass;
 	a6->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&a6->common, link);
 
 	dns_rdata_toregion(rdata, &r);
 

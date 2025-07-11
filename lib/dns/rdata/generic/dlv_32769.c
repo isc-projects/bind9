@@ -87,7 +87,6 @@ tostruct_dlv(ARGS_TOSTRUCT) {
 
 	dlv->common.rdclass = rdata->rdclass;
 	dlv->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&dlv->common, link);
 
 	return generic_tostruct_ds(CALL_TOSTRUCT);
 }

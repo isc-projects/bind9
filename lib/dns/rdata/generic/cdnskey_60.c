@@ -90,7 +90,6 @@ tostruct_cdnskey(ARGS_TOSTRUCT) {
 
 	dnskey->common.rdclass = rdata->rdclass;
 	dnskey->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&dnskey->common, link);
 
 	return generic_tostruct_key(CALL_TOSTRUCT);
 }

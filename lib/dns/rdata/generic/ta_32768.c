@@ -87,7 +87,6 @@ tostruct_ta(ARGS_TOSTRUCT) {
 	 */
 	ds->common.rdclass = rdata->rdclass;
 	ds->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&ds->common, link);
 
 	return generic_tostruct_ds(CALL_TOSTRUCT);
 }

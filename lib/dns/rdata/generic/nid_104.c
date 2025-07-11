@@ -149,7 +149,6 @@ tostruct_nid(ARGS_TOSTRUCT) {
 
 	nid->common.rdclass = rdata->rdclass;
 	nid->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&nid->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 	nid->pref = uint16_fromregion(&region);

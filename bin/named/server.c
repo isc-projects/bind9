@@ -752,8 +752,6 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 	*ds = (dns_rdata_ds_t){ .common.rdclass = dns_rdataclass_in,
 				.common.rdtype = dns_rdatatype_ds };
 
-	ISC_LINK_INIT(&ds->common, link);
-
 	switch (anchortype) {
 	case INIT_DNSKEY:
 	case STATIC_DNSKEY:
@@ -769,8 +767,6 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		 * The key data in keystruct is not dynamically allocated.
 		 */
 		keystruct.mctx = NULL;
-
-		ISC_LINK_INIT(&keystruct.common, link);
 
 		if (rdata1 > 0xffff) {
 			CHECKM(ISC_R_RANGE, "key flags");

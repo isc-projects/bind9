@@ -173,7 +173,6 @@ tostruct_in_aaaa(ARGS_TOSTRUCT) {
 
 	aaaa->common.rdclass = rdata->rdclass;
 	aaaa->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&aaaa->common, link);
 
 	dns_rdata_toregion(rdata, &r);
 	INSIST(r.length == 16);

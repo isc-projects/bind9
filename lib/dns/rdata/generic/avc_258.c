@@ -77,7 +77,6 @@ tostruct_avc(ARGS_TOSTRUCT) {
 
 	avc->common.rdclass = rdata->rdclass;
 	avc->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&avc->common, link);
 
 	return generic_tostruct_txt(CALL_TOSTRUCT);
 }

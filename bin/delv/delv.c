@@ -697,8 +697,6 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 		dnskey.common.rdtype = dns_rdatatype_dnskey;
 		dnskey.mctx = NULL;
 
-		ISC_LINK_INIT(&dnskey.common, link);
-
 		dnskey.flags = (uint16_t)rdata1;
 		dnskey.protocol = (uint8_t)rdata2;
 		dnskey.algorithm = (uint8_t)rdata3;
@@ -727,8 +725,6 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 		ds.common.rdclass = dns_rdataclass_in;
 		ds.common.rdtype = dns_rdatatype_ds;
 		ds.mctx = NULL;
-
-		ISC_LINK_INIT(&ds.common, link);
 
 		ds.key_tag = (uint16_t)rdata1;
 		ds.algorithm = (uint8_t)rdata2;

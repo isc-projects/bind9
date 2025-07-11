@@ -576,7 +576,6 @@ dns_tsig_sign(dns_message_t *msg) {
 		.mctx = mctx,
 		.common.rdclass = dns_rdataclass_any,
 		.common.rdtype = dns_rdatatype_tsig,
-		.common.link = ISC_LINK_INITIALIZER,
 		.timesigned = now + msg->timeadjust,
 		.fudge = DNS_TSIG_FUDGE,
 		.originalid = msg->id,

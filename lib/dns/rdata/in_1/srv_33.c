@@ -272,7 +272,6 @@ tostruct_in_srv(ARGS_TOSTRUCT) {
 
 	srv->common.rdclass = rdata->rdclass;
 	srv->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&srv->common, link);
 
 	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);

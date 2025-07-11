@@ -146,7 +146,6 @@ tostruct_dname(ARGS_TOSTRUCT) {
 
 	dname->common.rdclass = rdata->rdclass;
 	dname->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&dname->common, link);
 
 	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);

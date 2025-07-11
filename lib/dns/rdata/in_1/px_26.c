@@ -256,7 +256,6 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 
 	px->common.rdclass = rdata->rdclass;
 	px->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&px->common, link);
 
 	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);

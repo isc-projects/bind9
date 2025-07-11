@@ -78,7 +78,6 @@ tostruct_resinfo(ARGS_TOSTRUCT) {
 
 	resinfo->common.rdclass = rdata->rdclass;
 	resinfo->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&resinfo->common, link);
 
 	return generic_tostruct_txt(CALL_TOSTRUCT);
 }

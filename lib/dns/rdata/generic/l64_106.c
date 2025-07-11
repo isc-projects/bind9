@@ -149,7 +149,6 @@ tostruct_l64(ARGS_TOSTRUCT) {
 
 	l64->common.rdclass = rdata->rdclass;
 	l64->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&l64->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 	l64->pref = uint16_fromregion(&region);
