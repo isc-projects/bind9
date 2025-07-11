@@ -27,6 +27,8 @@ zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
 
-"$SIGNER" -3 - -o "$zone" "$zonefile" 2>&1 >"$zonefile.sign.log"
+SALT="$(printf "%04x" "$(($(date +%s) / 3600 % 65536))")"
+echo_ic "NSEC3 salt for this hour: $SALT"
+"$SIGNER" -3 "$SALT" -o "$zone" "$zonefile" 2>&1 >"$zonefile.sign.log"
 
 keyfile_to_initial_ds "$ksk" >managed-keys.conf
