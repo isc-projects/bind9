@@ -40,3 +40,12 @@ occluded.secure.				A	0.0.0.0
 *.wild.						A	10.0.0.6
 explicit.wild.					A	192.0.2.66
 z.						A	10.0.0.26
+
+; randomly generated subtree to excercise unknown corner cases
+; intentionally small, to not blow up algorithms with quadratic complexity in ZoneAnalyzer and name generator
+a.a.a.b.a.a.a.b.a.a.b.b.a.random.	TXT	"r"
+b.b.a.a.b.b.a.a.a.b.b.a.b.a.a.a.a.a.b.a.a.b.a.b.a.b.b.b.b.b.a.a.a.a.b.a.a.a.b.a.a.b.b.a.random.	TXT	"r"
+a.a.a.b.b.a.b.b.a.b.a.b.a.b.a.b.b.b.a.random.	TXT	"r"
+b.b.a.b.a.b.a.a.a.b.a.a.b.a.a.a.a.b.b.a.b.b.a.b.a.b.a.b.a.b.b.b.a.random.	TXT	"r"
+a.b.a.a.b.a.b.a.b.a.a.b.a.b.a.a.a.b.b.a.b.b.a.a.b.b.a.a.b.a.b.a.b.b.b.b.a.a.a.a.a.a.a.a.b.a.b.a.b.b.a.b.a.b.a.a.a.b.a.a.b.a.a.a.a.b.b.a.b.b.a.b.a.b.a.b.a.b.b.b.a.random.	TXT	"r"
+a.a.a.a.a.b.b.a.a.a.a.a.b.b.a.a.b.a.a.b.a.a.b.b.a.a.a.b.a.a.a.b.b.b.b.b.a.a.a.b.b.b.b.b.b.a.b.b.b.a.a.b.b.b.b.a.a.a.a.b.a.b.b.a.b.a.a.b.b.b.b.b.b.b.a.b.b.a.b.a.b.a.a.a.b.b.a.a.b.b.a.b.a.b.b.a.b.b.b.a.b.b.b.b.b.a.a.b.a.a.a.b.b.a.a.a.b.b.b.b.b.a.random.	TXT	"r"
