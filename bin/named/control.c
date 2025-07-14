@@ -178,7 +178,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		/* Do not flush master files */
 		named_server_flushonshutdown(named_g_server, false);
 		named_os_shutdownmsg(cmdline, *text);
-		isc_loopmgr_shutdown(named_g_loopmgr);
+		isc_loopmgr_shutdown();
 		result = ISC_R_SHUTTINGDOWN;
 	} else if (command_compare(command, NAMED_COMMAND_STOP)) {
 		/*
@@ -196,7 +196,7 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 #endif /* ifdef HAVE_LIBSCF */
 		named_server_flushonshutdown(named_g_server, true);
 		named_os_shutdownmsg(cmdline, *text);
-		isc_loopmgr_shutdown(named_g_loopmgr);
+		isc_loopmgr_shutdown();
 		result = ISC_R_SHUTTINGDOWN;
 	} else if (command_compare(command, NAMED_COMMAND_ADDZONE) ||
 		   command_compare(command, NAMED_COMMAND_MODZONE))

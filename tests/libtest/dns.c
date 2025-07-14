@@ -65,23 +65,20 @@ dns_test_makeview(const char *name, bool with_dispatchmgr, bool with_cache,
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 
 	if (with_dispatchmgr) {
-		result = dns_dispatchmgr_create(mctx, loopmgr, netmgr,
-						&dispatchmgr);
+		result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
 	}
 
-	dns_view_create(mctx, loopmgr, dispatchmgr, dns_rdataclass_in, name,
-			&view);
+	dns_view_create(mctx, dispatchmgr, dns_rdataclass_in, name, &view);
 
 	if (dispatchmgr != NULL) {
 		dns_dispatchmgr_detach(&dispatchmgr);
 	}
 
 	if (with_cache) {
-		result = dns_cache_create(loopmgr, dns_rdataclass_in, "", mctx,
-					  &cache);
+		result = dns_cache_create(dns_rdataclass_in, "", mctx, &cache);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
 			return result;

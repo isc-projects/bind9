@@ -124,7 +124,7 @@ fuzz_thread_client(void *arg) {
 				close(sockfd);
 				named_server_flushonshutdown(named_g_server,
 							     false);
-				isc_loopmgr_shutdown(named_g_loopmgr);
+				isc_loopmgr_shutdown();
 				return NULL;
 			}
 			raise(SIGSTOP);
@@ -157,7 +157,7 @@ fuzz_thread_client(void *arg) {
 	close(sockfd);
 
 	named_server_flushonshutdown(named_g_server, false);
-	isc_loopmgr_shutdown(named_g_loopmgr);
+	isc_loopmgr_shutdown();
 
 	return NULL;
 }
@@ -372,7 +372,7 @@ fuzz_thread_resolver(void *arg) {
 				close(listenfd);
 				named_server_flushonshutdown(named_g_server,
 							     false);
-				isc_loopmgr_shutdown(named_g_loopmgr);
+				isc_loopmgr_shutdown();
 				return NULL;
 			}
 			raise(SIGSTOP);
@@ -572,7 +572,7 @@ fuzz_thread_resolver(void *arg) {
 	close(sockfd);
 	close(listenfd);
 	named_server_flushonshutdown(named_g_server, false);
-	isc_loopmgr_shutdown(named_g_loopmgr);
+	isc_loopmgr_shutdown();
 
 #ifdef __AFL_LOOP
 	/*
@@ -714,7 +714,7 @@ fuzz_thread_tcp(void *arg) {
 	free(buf);
 	close(sockfd);
 	named_server_flushonshutdown(named_g_server, false);
-	isc_loopmgr_shutdown(named_g_loopmgr);
+	isc_loopmgr_shutdown();
 
 	return NULL;
 }
@@ -731,7 +731,7 @@ named_fuzz_notify(void) {
 #ifdef ENABLE_AFL
 	if (getenv("AFL_CMIN")) {
 		named_server_flushonshutdown(named_g_server, false);
-		isc_loopmgr_shutdown(named_g_loopmgr);
+		isc_loopmgr_shutdown();
 		return;
 	}
 

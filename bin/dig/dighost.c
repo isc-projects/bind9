@@ -101,7 +101,6 @@ unsigned int timeout = 0;
 unsigned int extrabytes;
 isc_mem_t *mctx = NULL;
 isc_nm_t *netmgr = NULL;
-isc_loopmgr_t *loopmgr = NULL;
 isc_loop_t *mainloop = NULL;
 isc_sockaddr_t localaddr;
 isc_refcount_t sendcount = 0;
@@ -521,9 +520,9 @@ set_nameserver(char *opt) {
 		return;
 	}
 
-	isc_loopmgr_blocking(loopmgr);
+	isc_loopmgr_blocking();
 	result = isc_getaddresses(opt, 0, sockaddrs, DIG_MAX_ADDRESSES, &count);
-	isc_loopmgr_nonblocking(loopmgr);
+	isc_loopmgr_nonblocking();
 	if (result != ISC_R_SUCCESS) {
 		fatal("couldn't get address for '%s': %s", opt,
 		      isc_result_totext(result));
@@ -1346,7 +1345,7 @@ setup_libs(int argc, char **argv) {
 		fatal("can't find either v4 or v6 networking");
 	}
 
-	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
+	isc_managers_create(&mctx, 1, &netmgr);
 
 	logconfig = isc_logconfig_get();
 	isc_log_createandusechannel(logconfig, "debug", ISC_LOG_TOFILEDESC,
@@ -1355,7 +1354,7 @@ setup_libs(int argc, char **argv) {
 				    ISC_LOGMODULE_DEFAULT);
 	isc_log_setdebuglevel(0);
 
-	mainloop = isc_loop_main(loopmgr);
+	mainloop = isc_loop_main();
 }
 
 typedef struct dig_ednsoptname {
@@ -4541,9 +4540,9 @@ get_address(char *host, in_port_t myport, isc_sockaddr_t *sockaddr) {
 	int count;
 	isc_result_t result;
 
-	isc_loopmgr_blocking(loopmgr);
+	isc_loopmgr_blocking();
 	result = isc_getaddresses(host, myport, sockaddr, 1, &count);
-	isc_loopmgr_nonblocking(loopmgr);
+	isc_loopmgr_nonblocking();
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -4562,10 +4561,10 @@ getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp) {
 	dig_server_t *srv;
 	char tmp[ISC_NETADDR_FORMATSIZE];
 
-	isc_loopmgr_blocking(loopmgr);
+	isc_loopmgr_blocking();
 	result = isc_getaddresses(host, 0, sockaddrs, DIG_MAX_ADDRESSES,
 				  &count);
-	isc_loopmgr_nonblocking(loopmgr);
+	isc_loopmgr_nonblocking();
 	SET_IF_NOT_NULL(resultp, result);
 	if (result != ISC_R_SUCCESS) {
 		if (resultp == NULL) {
@@ -4710,7 +4709,7 @@ destroy_libs(void) {
 		isc_mem_stats(mctx, stderr);
 	}
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
+	isc_managers_destroy(&mctx, &netmgr);
 
 #if ENABLE_LEAK_DETECTION
 	isc__crypto_setdestroycheck(true);

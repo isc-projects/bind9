@@ -1493,8 +1493,7 @@ add_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
  * Get ready for a new set of policy zones for a view.
  */
 isc_result_t
-dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr,
-		  dns_rpz_zones_t **rpzsp) {
+dns_rpz_new_zones(dns_view_t *view, dns_rpz_zones_t **rpzsp) {
 	dns_rpz_zones_t *rpzs = NULL;
 	isc_mem_t *mctx = NULL;
 
@@ -1505,7 +1504,6 @@ dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	rpzs = isc_mem_get(mctx, sizeof(*rpzs));
 	*rpzs = (dns_rpz_zones_t){
-		.loopmgr = loopmgr,
 		.magic = DNS_RPZ_ZONES_MAGIC,
 	};
 

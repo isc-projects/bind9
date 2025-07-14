@@ -239,8 +239,6 @@ typedef struct qpcache qpcache_t;
 struct qpcache {
 	/* Unlocked. */
 	dns_db_t common;
-	/* Loopmgr */
-	isc_loopmgr_t *loopmgr;
 	/* Locks the data in this struct */
 	isc_rwlock_t lock;
 	/* Locks the tree structure (prevents nodes appearing/disappearing) */
@@ -788,8 +786,7 @@ qpcnode_release(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
 			    deadlink))
 		{
 			/* Queue was empty, trigger new cleaning */
-			isc_loop_t *loop = isc_loop_get(qpdb->loopmgr,
-							node->locknum);
+			isc_loop_t *loop = isc_loop_get(node->locknum);
 
 			qpcache_ref(qpdb);
 			isc_async_run(loop, cleanup_deadnodes_cb, qpdb);
@@ -3166,8 +3163,7 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 	isc_mem_t *hmctx = mctx;
 	isc_loop_t *loop = isc_loop();
 	int i;
-	isc_loopmgr_t *loopmgr = isc_loop_getloopmgr(loop);
-	size_t nloops = isc_loopmgr_nloops(loopmgr);
+	size_t nloops = isc_loopmgr_nloops();
 
 	/* This database implementation only supports cache semantics */
 	REQUIRE(type == dns_dbtype_cache);
@@ -3181,7 +3177,6 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 		.common.rdclass = rdclass,
 		.common.attributes = DNS_DBATTR_CACHE,
 		.common.references = 1,
-		.loopmgr = isc_loop_getloopmgr(loop),
 		.references = 1,
 		.buckets_count = nloops,
 	};
@@ -3196,7 +3191,7 @@ dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
 	isc_rwlock_init(&qpdb->lock);
 	TREE_INITLOCK(&qpdb->tree_lock);
 
-	qpdb->buckets_count = isc_loopmgr_nloops(qpdb->loopmgr);
+	qpdb->buckets_count = isc_loopmgr_nloops();
 
 	dns_rdatasetstats_create(mctx, &qpdb->rrsetstats);
 	for (i = 0; i < (int)qpdb->buckets_count; i++) {

@@ -3356,7 +3356,7 @@ query_finished(void) {
 		}
 		batchname = NULL;
 	}
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -3457,8 +3457,8 @@ void
 dig_startup(void) {
 	debug("dig_startup()");
 
-	isc_loopmgr_setup(loopmgr, run_loop, NULL);
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_setup(run_loop, NULL);
+	isc_loopmgr_run();
 }
 
 void

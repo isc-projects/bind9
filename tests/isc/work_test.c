@@ -40,38 +40,33 @@
 static atomic_uint scheduled = 0;
 
 static void
-work_cb(void *arg) {
-	UNUSED(arg);
-
+work_cb(void *arg ISC_ATTR_UNUSED) {
 	atomic_fetch_add(&scheduled, 1);
 
 	assert_int_equal(isc_tid(), ISC_TID_UNKNOWN);
 }
 
 static void
-after_work_cb(void *arg) {
-	UNUSED(arg);
-
+after_work_cb(void *arg ISC_ATTR_UNUSED) {
 	assert_int_equal(atomic_load(&scheduled), 1);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
-work_enqueue_cb(void *arg) {
-	UNUSED(arg);
-	isc_tid_t tid = isc_loopmgr_nloops(loopmgr) - 1;
+work_enqueue_cb(void *arg ISC_ATTR_UNUSED) {
+	isc_tid_t tid = isc_loopmgr_nloops() - 1;
 
-	isc_loop_t *loop = isc_loop_get(loopmgr, tid);
+	isc_loop_t *loop = isc_loop_get(tid);
 
-	isc_work_enqueue(loop, work_cb, after_work_cb, loopmgr);
+	isc_work_enqueue(loop, work_cb, after_work_cb, NULL);
 }
 
 ISC_RUN_TEST_IMPL(isc_work_enqueue) {
 	atomic_init(&scheduled, 0);
 
-	isc_loop_setup(isc_loop_main(loopmgr), work_enqueue_cb, loopmgr);
+	isc_loop_setup(isc_loop_main(), work_enqueue_cb, NULL);
 
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_run();
 
 	assert_int_equal(atomic_load(&scheduled), 1);
 }

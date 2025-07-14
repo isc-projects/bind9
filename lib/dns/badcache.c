@@ -82,10 +82,8 @@ static bool
 bcentry_alive(struct cds_lfht *ht, dns_bcentry_t *bad, isc_stdtime_t now);
 
 dns_badcache_t *
-dns_badcache_new(isc_mem_t *mctx, isc_loopmgr_t *loopmgr) {
-	REQUIRE(loopmgr != NULL);
-
-	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
+dns_badcache_new(isc_mem_t *mctx) {
+	uint32_t nloops = isc_loopmgr_nloops();
 	dns_badcache_t *bc = isc_mem_get(mctx, sizeof(*bc));
 	*bc = (dns_badcache_t){
 		.magic = BADCACHE_MAGIC,

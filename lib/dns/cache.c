@@ -69,7 +69,6 @@ struct dns_cache {
 	isc_mem_t *mctx;  /* Memory context for the dns_cache object */
 	isc_mem_t *hmctx; /* Heap memory */
 	isc_mem_t *tmctx; /* Tree memory */
-	isc_loopmgr_t *loopmgr;
 	char *name;
 	isc_refcount_t references;
 
@@ -135,7 +134,7 @@ cache_create_db(dns_cache_t *cache, dns_db_t **dbp, isc_mem_t **tmctxp,
 	 * XXX this is only used by the RBT cache, and can
 	 * be removed when it is.
 	 */
-	dns_db_setloop(db, isc_loop_main(cache->loopmgr));
+	dns_db_setloop(db, isc_loop_main());
 
 	*dbp = db;
 	*hmctxp = hmctx;
@@ -167,12 +166,11 @@ cache_destroy(dns_cache_t *cache) {
 }
 
 isc_result_t
-dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
-		 const char *cachename, isc_mem_t *mctx, dns_cache_t **cachep) {
+dns_cache_create(dns_rdataclass_t rdclass, const char *cachename,
+		 isc_mem_t *mctx, dns_cache_t **cachep) {
 	isc_result_t result;
 	dns_cache_t *cache = NULL;
 
-	REQUIRE(loopmgr != NULL);
 	REQUIRE(cachename != NULL);
 	REQUIRE(cachep != NULL && *cachep == NULL);
 
@@ -180,7 +178,6 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 	*cache = (dns_cache_t){
 		.rdclass = rdclass,
 		.name = isc_mem_strdup(mctx, cachename),
-		.loopmgr = loopmgr,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.magic = CACHE_MAGIC,
 	};

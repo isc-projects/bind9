@@ -87,7 +87,7 @@ ISC_LOOP_TEST_IMPL(apply) {
 	/* The view was left attached in dns_test_makezone() */
 	dns_view_detach(&view);
 	dns_zone_detach(&zone);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static isc_result_t
@@ -110,7 +110,7 @@ load_done_last(void *uap) {
 	dns_zone_detach(&zone);
 	dns_view_detach(&view);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 
 	return ISC_R_SUCCESS;
 }
@@ -221,7 +221,7 @@ all_done(void *arg ISC_ATTR_UNUSED) {
 	dns_zone_detach(&zone3);
 	dns_view_detach(&view);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 	return ISC_R_SUCCESS;
 }
 

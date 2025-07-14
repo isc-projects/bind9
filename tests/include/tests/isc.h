@@ -30,13 +30,11 @@
 #include <isc/util.h>
 #include <isc/uv.h>
 
-extern isc_mem_t     *mctx;
-extern isc_loop_t    *mainloop;
-extern isc_loopmgr_t *loopmgr;
-extern isc_nm_t	     *netmgr;
-extern int	      ncpus;
-extern unsigned int   workers;
-extern bool	      debug;
+extern isc_mem_t   *mctx;
+extern isc_nm_t	   *netmgr;
+extern int	    ncpus;
+extern unsigned int workers;
+extern bool	    debug;
 
 int
 setup_mctx(void **state);
@@ -125,21 +123,22 @@ teardown_managers(void **state);
 	}                 \
 	;
 
-#define ISC_LOOP_TEST_CUSTOM_IMPL(name, setup, teardown)                   \
-	void run_test_##name(void **state ISC_ATTR_UNUSED);                \
-	void loop_test_##name(void *arg ISC_ATTR_UNUSED);                  \
-	void run_test_##name(void **state ISC_ATTR_UNUSED) {               \
-		isc_job_cb setup_loop = setup;                             \
-		isc_job_cb teardown_loop = teardown;                       \
-		if (setup_loop != NULL) {                                  \
-			isc_loop_setup(mainloop, setup_loop, state);       \
-		}                                                          \
-		if (teardown_loop != NULL) {                               \
-			isc_loop_teardown(mainloop, teardown_loop, state); \
-		}                                                          \
-		isc_loop_setup(mainloop, loop_test_##name, state);         \
-		isc_loopmgr_run(loopmgr);                                  \
-	}                                                                  \
+#define ISC_LOOP_TEST_CUSTOM_IMPL(name, setup, teardown)                    \
+	void run_test_##name(void **state ISC_ATTR_UNUSED);                 \
+	void loop_test_##name(void *arg ISC_ATTR_UNUSED);                   \
+	void run_test_##name(void **state ISC_ATTR_UNUSED) {                \
+		isc_job_cb setup_loop = setup;                              \
+		isc_job_cb teardown_loop = teardown;                        \
+		if (setup_loop != NULL) {                                   \
+			isc_loop_setup(isc_loop_main(), setup_loop, state); \
+		}                                                           \
+		if (teardown_loop != NULL) {                                \
+			isc_loop_teardown(isc_loop_main(), teardown_loop,   \
+					  state);                           \
+		}                                                           \
+		isc_loop_setup(isc_loop_main(), loop_test_##name, state);   \
+		isc_loopmgr_run();                                          \
+	}                                                                   \
 	void loop_test_##name(void *arg ISC_ATTR_UNUSED)
 
 #define ISC_LOOP_TEST_IMPL(name) ISC_LOOP_TEST_CUSTOM_IMPL(name, NULL, NULL)

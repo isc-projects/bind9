@@ -41,8 +41,7 @@ isc_helper_run(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
 	REQUIRE(VALID_LOOP(loop));
 	REQUIRE(cb != NULL);
 
-	isc_loop_t *helper = &loop->loopmgr->helpers[loop->tid];
-
+	isc_loop_t *helper = isc_loop_helper(loop);
 	isc_job_t *job = isc_mem_get(helper->mctx, sizeof(*job));
 	*job = (isc_job_t){
 		.cb = cb,

@@ -279,8 +279,7 @@ struct dns_catz_zonemodmethods {
 };
 
 dns_catz_zones_t *
-dns_catz_zones_new(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		   dns_catz_zonemodmethods_t *zmm);
+dns_catz_zones_new(isc_mem_t *mctx, dns_catz_zonemodmethods_t *zmm);
 /*%<
  * Allocate a new catz_zones object, a collection storing all catalog zones
  * for a view.

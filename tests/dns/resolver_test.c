@@ -78,8 +78,8 @@ mkres(dns_resolver_t **resolverp) {
 	isc_result_t result;
 
 	isc_tlsctx_cache_create(mctx, &tlsctx_cache);
-	result = dns_resolver_create(view, loopmgr, netmgr, 0, tlsctx_cache,
-				     dispatch, NULL, resolverp);
+	result = dns_resolver_create(view, netmgr, 0, tlsctx_cache, dispatch,
+				     NULL, resolverp);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
@@ -98,7 +98,7 @@ ISC_LOOP_TEST_IMPL(create) {
 
 	mkres(&resolver);
 	destroy_resolver(&resolver);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* dns_resolver_gettimeout */
@@ -112,7 +112,7 @@ ISC_LOOP_TEST_IMPL(gettimeout) {
 	assert_true(timeout > 0);
 
 	destroy_resolver(&resolver);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* dns_resolver_settimeout */
@@ -128,7 +128,7 @@ ISC_LOOP_TEST_IMPL(settimeout) {
 	assert_true(timeout == default_timeout + 1);
 
 	destroy_resolver(&resolver);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* dns_resolver_settimeout */
@@ -149,7 +149,7 @@ ISC_LOOP_TEST_IMPL(settimeout_default) {
 	assert_int_equal(timeout, default_timeout);
 
 	destroy_resolver(&resolver);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* dns_resolver_settimeout below minimum */
@@ -166,7 +166,7 @@ ISC_LOOP_TEST_IMPL(settimeout_belowmin) {
 	assert_in_range(timeout, default_timeout, 3999999);
 
 	destroy_resolver(&resolver);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* dns_resolver_settimeout over maximum */
@@ -183,7 +183,7 @@ ISC_LOOP_TEST_IMPL(settimeout_overmax) {
 	assert_in_range(timeout, default_timeout, 3999999);
 
 	destroy_resolver(&resolver);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_TEST_LIST_START

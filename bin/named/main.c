@@ -970,8 +970,7 @@ create_managers(void) {
 			 "thread count limit)"
 		       : "");
 
-	isc_managers_create(&named_g_mctx, named_g_cpus, &named_g_loopmgr,
-			    &named_g_netmgr);
+	isc_managers_create(&named_g_mctx, named_g_cpus, &named_g_netmgr);
 
 	isc_nm_maxudp(named_g_netmgr, maxudp);
 
@@ -1472,7 +1471,7 @@ main(int argc, char *argv[]) {
 	 * Pause the loop manager in fatal.
 	 */
 	named_g_loopmgr_running = true;
-	isc_loopmgr_run(named_g_loopmgr);
+	isc_loopmgr_run();
 
 #ifdef HAVE_LIBSCF
 	if (named_smf_want_disable == 1) {
@@ -1506,7 +1505,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	isc_managers_destroy(&named_g_mctx, &named_g_loopmgr, &named_g_netmgr);
+	isc_managers_destroy(&named_g_mctx, &named_g_netmgr);
 
 #if ENABLE_LEAK_DETECTION
 	isc__crypto_setdestroycheck(true);

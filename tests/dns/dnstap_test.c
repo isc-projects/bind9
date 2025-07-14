@@ -131,7 +131,7 @@ ISC_LOOP_TEST_IMPL(dns_dt_create) {
 		fstrm_iothr_options_destroy(&fopt);
 	}
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* send dnstap messages */
@@ -298,7 +298,7 @@ ISC_LOOP_TEST_IMPL(dns_dt_send) {
 		dns_dt_close(&handle);
 	}
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* dnstap message to text */
@@ -362,7 +362,7 @@ ISC_LOOP_TEST_IMPL(dns_dt_totext) {
 	if (handle != NULL) {
 		dns_dt_close(&handle);
 	}
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_TEST_LIST_START

@@ -63,7 +63,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_create) {
 	dns_zonemgr_detach(&myzonemgr);
 	assert_null(myzonemgr);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* manage and release a zone */
@@ -96,7 +96,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_managezone) {
 	dns_zonemgr_detach(&myzonemgr);
 	assert_null(myzonemgr);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* create and release a zone */
@@ -122,7 +122,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_createzone) {
 	dns_zonemgr_detach(&myzonemgr);
 	assert_null(myzonemgr);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_TEST_LIST_START

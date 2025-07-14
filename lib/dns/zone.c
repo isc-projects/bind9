@@ -616,7 +616,6 @@ struct dns_zonemgr {
 	unsigned int magic;
 	isc_mem_t *mctx;
 	isc_refcount_t refs;
-	isc_loopmgr_t *loopmgr;
 	isc_nm_t *netmgr;
 	uint32_t workers;
 	isc_mem_t **mctxpool;
@@ -19321,7 +19320,6 @@ void
 dns_zonemgr_create(isc_mem_t *mctx, isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr = NULL;
 	isc_loop_t *loop = isc_loop();
-	isc_loopmgr_t *loopmgr = isc_loop_getloopmgr(loop);
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(netmgr != NULL);
@@ -19330,9 +19328,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 
 	*zmgr = (dns_zonemgr_t){
-		.loopmgr = loopmgr,
 		.netmgr = netmgr,
-		.workers = isc_loopmgr_nloops(loopmgr),
+		.workers = isc_loopmgr_nloops(),
 		.transfersin = 10,
 		.transfersperns = 2,
 	};
@@ -19414,7 +19411,7 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
 
-	isc_loop_t *loop = isc_loop_get(zmgr->loopmgr, zone->tid);
+	isc_loop_t *loop = isc_loop_get(zone->tid);
 	isc_loop_attach(loop, &zone->loop);
 
 	zonemgr_keymgmt_add(zmgr, zone, &zone->kfio);

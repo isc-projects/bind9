@@ -16,8 +16,9 @@ information regarding copyright ownership.
 This document aims to describe the design of the basic event loop handling in
 the BIND 9.
 
-Every application is expected to create and use a single ``isc_loopmgr_t``
-instance.
+Every application is expected to run ``isc_loopmgr_create()``, either
+directly or indirectly via ``isc_managers_create()``. This creates a
+single loop manager.
 
 ## Event Loops
 

@@ -58,7 +58,6 @@
 bool verbose;
 
 static isc_nm_t *netmgr = NULL;
-static isc_loopmgr_t *loopmgr = NULL;
 
 static const char *admin_conffile = NULL;
 static const char *admin_keyfile = NULL;
@@ -362,7 +361,7 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isccc_sexpr_free(&response);
 
 	isccc_ccmsg_disconnect(ccmsg);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -952,8 +951,8 @@ main(int argc, char **argv) {
 
 	serial = isc_random32();
 
-	isc_managers_create(&rndc_mctx, 1, &loopmgr, &netmgr);
-	isc_loopmgr_setup(loopmgr, rndc_start, NULL);
+	isc_managers_create(&rndc_mctx, 1, &netmgr);
+	isc_loopmgr_setup(rndc_start, NULL);
 
 	isc_nm_setinitialtimeout(netmgr, timeout);
 	isc_nm_setprimariestimeout(netmgr, timeout);
@@ -1000,7 +999,7 @@ main(int argc, char **argv) {
 		get_addresses(servername, (in_port_t)remoteport);
 	}
 
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_run();
 
 	isccc_ccmsg_invalidate(&rndc_ccmsg);
 
@@ -1015,7 +1014,7 @@ main(int argc, char **argv) {
 		isc_mem_stats(rndc_mctx, stderr);
 	}
 
-	isc_managers_destroy(&rndc_mctx, &loopmgr, &netmgr);
+	isc_managers_destroy(&rndc_mctx, &netmgr);
 
 	if (failed) {
 		return 1;

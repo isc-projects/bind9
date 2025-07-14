@@ -21,6 +21,7 @@
 #include <lmdb.h>
 #endif /* ifdef HAVE_LMDB */
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/dir.h>
 #include <isc/file.h>
@@ -91,9 +92,9 @@
 #define UNREACH_BACKOFF_ELIGIBLE_SEC  ((uint16_t)120)
 
 void
-dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		dns_dispatchmgr_t *dispatchmgr, dns_rdataclass_t rdclass,
-		const char *name, dns_view_t **viewp) {
+dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
+		dns_rdataclass_t rdclass, const char *name,
+		dns_view_t **viewp) {
 	dns_view_t *view = NULL;
 	isc_result_t result;
 	char buffer[1024];
@@ -153,10 +154,10 @@ dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 
 	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
-	view->failcache = dns_badcache_new(view->mctx, loopmgr);
+	view->failcache = dns_badcache_new(view->mctx);
 
 	view->unreachcache = dns_unreachcache_new(
-		view->mctx, loopmgr, UNREACH_HOLD_TIME_INITIAL_SEC,
+		view->mctx, UNREACH_HOLD_TIME_INITIAL_SEC,
 		UNREACH_HOLD_TIME_MAX_SEC, UNREACH_BACKOFF_ELIGIBLE_SEC);
 
 	isc_mutex_init(&view->new_zone_lock);
@@ -393,6 +394,107 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 	*targetp = source;
 }
 
+static void
+shutdown_view(dns_view_t *view) {
+	dns_zone_t *mkzone = NULL, *rdzone = NULL;
+	dns_zt_t *zonetable = NULL;
+	dns_resolver_t *resolver = NULL;
+	dns_adb_t *adb = NULL;
+	dns_requestmgr_t *requestmgr = NULL;
+	dns_dispatchmgr_t *dispatchmgr = NULL;
+
+	isc_refcount_destroy(&view->references);
+
+	/* Shutdown the attached objects first */
+	if (view->resolver != NULL) {
+		dns_resolver_shutdown(view->resolver);
+	}
+
+	rcu_read_lock();
+	adb = rcu_dereference(view->adb);
+	if (adb != NULL) {
+		dns_adb_shutdown(adb);
+	}
+	rcu_read_unlock();
+
+	if (view->requestmgr != NULL) {
+		dns_requestmgr_shutdown(view->requestmgr);
+	}
+
+	/* Swap the pointers under the lock */
+	LOCK(&view->lock);
+
+	if (view->resolver != NULL) {
+		resolver = view->resolver;
+		view->resolver = NULL;
+	}
+
+	rcu_read_lock();
+	zonetable = rcu_xchg_pointer(&view->zonetable, NULL);
+	if (zonetable != NULL) {
+		if (view->flush) {
+			dns_zt_flush(zonetable);
+		}
+	}
+	adb = rcu_xchg_pointer(&view->adb, NULL);
+	dispatchmgr = rcu_xchg_pointer(&view->dispatchmgr, NULL);
+	rcu_read_unlock();
+
+	if (view->requestmgr != NULL) {
+		requestmgr = view->requestmgr;
+		view->requestmgr = NULL;
+	}
+	if (view->managed_keys != NULL) {
+		mkzone = view->managed_keys;
+		view->managed_keys = NULL;
+		if (view->flush) {
+			dns_zone_flush(mkzone);
+		}
+	}
+	if (view->redirect != NULL) {
+		rdzone = view->redirect;
+		view->redirect = NULL;
+		if (view->flush) {
+			dns_zone_flush(rdzone);
+		}
+	}
+	if (view->catzs != NULL) {
+		dns_catz_zones_shutdown(view->catzs);
+		dns_catz_zones_detach(&view->catzs);
+	}
+	if (view->ntatable_priv != NULL) {
+		dns_ntatable_shutdown(view->ntatable_priv);
+	}
+	UNLOCK(&view->lock);
+
+	/* Detach outside view lock */
+	if (resolver != NULL) {
+		dns_resolver_detach(&resolver);
+	}
+
+	synchronize_rcu();
+	if (dispatchmgr != NULL) {
+		dns_dispatchmgr_detach(&dispatchmgr);
+	}
+	if (adb != NULL) {
+		dns_adb_detach(&adb);
+	}
+	if (zonetable != NULL) {
+		dns_zt_detach(&zonetable);
+	}
+	if (requestmgr != NULL) {
+		dns_requestmgr_detach(&requestmgr);
+	}
+	if (mkzone != NULL) {
+		dns_zone_detach(&mkzone);
+	}
+	if (rdzone != NULL) {
+		dns_zone_detach(&rdzone);
+	}
+
+	dns_view_weakdetach(&view);
+}
+
 void
 dns_view_detach(dns_view_t **viewp) {
 	dns_view_t *view = NULL;
@@ -403,102 +505,7 @@ dns_view_detach(dns_view_t **viewp) {
 	*viewp = NULL;
 
 	if (isc_refcount_decrement(&view->references) == 1) {
-		dns_zone_t *mkzone = NULL, *rdzone = NULL;
-		dns_zt_t *zonetable = NULL;
-		dns_resolver_t *resolver = NULL;
-		dns_adb_t *adb = NULL;
-		dns_requestmgr_t *requestmgr = NULL;
-		dns_dispatchmgr_t *dispatchmgr = NULL;
-
-		isc_refcount_destroy(&view->references);
-
-		/* Shutdown the attached objects first */
-		if (view->resolver != NULL) {
-			dns_resolver_shutdown(view->resolver);
-		}
-
-		rcu_read_lock();
-		adb = rcu_dereference(view->adb);
-		if (adb != NULL) {
-			dns_adb_shutdown(adb);
-		}
-		rcu_read_unlock();
-
-		if (view->requestmgr != NULL) {
-			dns_requestmgr_shutdown(view->requestmgr);
-		}
-
-		/* Swap the pointers under the lock */
-		LOCK(&view->lock);
-
-		if (view->resolver != NULL) {
-			resolver = view->resolver;
-			view->resolver = NULL;
-		}
-
-		rcu_read_lock();
-		zonetable = rcu_xchg_pointer(&view->zonetable, NULL);
-		if (zonetable != NULL) {
-			if (view->flush) {
-				dns_zt_flush(zonetable);
-			}
-		}
-		adb = rcu_xchg_pointer(&view->adb, NULL);
-		dispatchmgr = rcu_xchg_pointer(&view->dispatchmgr, NULL);
-		rcu_read_unlock();
-
-		if (view->requestmgr != NULL) {
-			requestmgr = view->requestmgr;
-			view->requestmgr = NULL;
-		}
-		if (view->managed_keys != NULL) {
-			mkzone = view->managed_keys;
-			view->managed_keys = NULL;
-			if (view->flush) {
-				dns_zone_flush(mkzone);
-			}
-		}
-		if (view->redirect != NULL) {
-			rdzone = view->redirect;
-			view->redirect = NULL;
-			if (view->flush) {
-				dns_zone_flush(rdzone);
-			}
-		}
-		if (view->catzs != NULL) {
-			dns_catz_zones_shutdown(view->catzs);
-			dns_catz_zones_detach(&view->catzs);
-		}
-		if (view->ntatable_priv != NULL) {
-			dns_ntatable_shutdown(view->ntatable_priv);
-		}
-		UNLOCK(&view->lock);
-
-		/* Detach outside view lock */
-		if (resolver != NULL) {
-			dns_resolver_detach(&resolver);
-		}
-		synchronize_rcu();
-		if (dispatchmgr != NULL) {
-			dns_dispatchmgr_detach(&dispatchmgr);
-		}
-		if (adb != NULL) {
-			dns_adb_detach(&adb);
-		}
-		if (zonetable != NULL) {
-			dns_zt_detach(&zonetable);
-		}
-		if (requestmgr != NULL) {
-			dns_requestmgr_detach(&requestmgr);
-		}
-		if (mkzone != NULL) {
-			dns_zone_detach(&mkzone);
-		}
-		if (rdzone != NULL) {
-			dns_zone_detach(&rdzone);
-		}
-
-		dns_view_weakdetach(&view);
+		shutdown_view(view);
 	}
 }
 
@@ -535,25 +542,23 @@ dns_view_createresolver(dns_view_t *view, isc_nm_t *netmgr,
 			dns_dispatch_t *dispatchv6) {
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
-	isc_loopmgr_t *loopmgr = isc_loop_getloopmgr(isc_loop());
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 	REQUIRE(view->dispatchmgr != NULL);
 
-	result = dns_resolver_create(view, loopmgr, netmgr, options,
-				     tlsctx_cache, dispatchv4, dispatchv6,
-				     &view->resolver);
+	result = dns_resolver_create(view, netmgr, options, tlsctx_cache,
+				     dispatchv4, dispatchv6, &view->resolver);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
 
 	isc_mem_create("ADB", &mctx);
-	dns_adb_create(mctx, loopmgr, view, &view->adb);
+	dns_adb_create(mctx, view, &view->adb);
 	isc_mem_detach(&mctx);
 
-	result = dns_requestmgr_create(view->mctx, loopmgr, view->dispatchmgr,
+	result = dns_requestmgr_create(view->mctx, view->dispatchmgr,
 				       dispatchv4, dispatchv6,
 				       &view->requestmgr);
 	if (result != ISC_R_SUCCESS) {
@@ -1479,12 +1484,12 @@ dns_view_freezezones(dns_view_t *view, bool value) {
 }
 
 void
-dns_view_initntatable(dns_view_t *view, isc_loopmgr_t *loopmgr) {
+dns_view_initntatable(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->ntatable_priv != NULL) {
 		dns_ntatable_detach(&view->ntatable_priv);
 	}
-	dns_ntatable_create(view, loopmgr, &view->ntatable_priv);
+	dns_ntatable_create(view, &view->ntatable_priv);
 }
 
 isc_result_t

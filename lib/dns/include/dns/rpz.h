@@ -212,7 +212,6 @@ struct dns_rpz_zones {
 	unsigned int   magic;
 	isc_refcount_t references;
 	isc_mem_t     *mctx;
-	isc_loopmgr_t *loopmgr;
 
 	dns_rpz_popt_t	   p;
 	dns_rpz_zone_t	  *zones[DNS_RPZ_MAX_ZONES];
@@ -376,8 +375,7 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 		     dns_name_t *selfname);
 
 isc_result_t
-dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr,
-		  dns_rpz_zones_t **rpzsp);
+dns_rpz_new_zones(dns_view_t *view, dns_rpz_zones_t **rpzsp);
 
 isc_result_t
 dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp);

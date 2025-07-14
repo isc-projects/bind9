@@ -153,7 +153,7 @@ netmgr_teardown(void *arg) {
 #endif
 
 void
-isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
+isc_netmgr_create(isc_mem_t *mctx, isc_nm_t **netmgrp) {
 	isc_nm_t *netmgr = NULL;
 
 #ifdef MAXIMAL_UV_VERSION
@@ -174,8 +174,7 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 
 	netmgr = isc_mem_get(mctx, sizeof(*netmgr));
 	*netmgr = (isc_nm_t){
-		.loopmgr = loopmgr,
-		.nloops = isc_loopmgr_nloops(loopmgr),
+		.nloops = isc_loopmgr_nloops(),
 	};
 
 	isc_mem_attach(mctx, &netmgr->mctx);
@@ -205,12 +204,12 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 	netmgr->workers = isc_mem_cget(mctx, netmgr->nloops,
 				       sizeof(netmgr->workers[0]));
 
-	isc_loopmgr_teardown(loopmgr, netmgr_teardown, netmgr);
+	isc_loopmgr_teardown(netmgr_teardown, netmgr);
 
 	netmgr->magic = NM_MAGIC;
 
 	for (size_t i = 0; i < netmgr->nloops; i++) {
-		isc_loop_t *loop = isc_loop_get(netmgr->loopmgr, i);
+		isc_loop_t *loop = isc_loop_get(i);
 		isc__networker_t *worker = &netmgr->workers[i];
 
 		*worker = (isc__networker_t){
@@ -2541,8 +2540,7 @@ settlsctx_cb(void *arg) {
 
 static void
 set_tlsctx_workers(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
-	const size_t nworkers =
-		(size_t)isc_loopmgr_nloops(listener->worker->netmgr->loopmgr);
+	const size_t nworkers = (size_t)isc_loopmgr_nloops();
 	/* Update the TLS context reference for every worker thread. */
 	for (size_t i = 0; i < nworkers; i++) {
 		isc__networker_t *worker =

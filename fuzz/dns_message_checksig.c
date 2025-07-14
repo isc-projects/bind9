@@ -86,7 +86,6 @@ static isc_mem_t *mctx = NULL;
 #define HMACSHA256 "\x0bhmac-sha256"
 
 static isc_stdtime_t fuzztime = 0x622acce1;
-static isc_loopmgr_t *loopmgr = NULL;
 static dns_view_t *view = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
 static dns_tsigkeyring_t *ring = NULL;
@@ -171,9 +170,9 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 
 	isc_mem_create("fuzz", &mctx);
 
-	isc_loopmgr_create(mctx, 1, &loopmgr);
+	isc_loopmgr_create(mctx, 1);
 
-	dns_view_create(mctx, loopmgr, NULL, dns_rdataclass_in, "view", &view);
+	dns_view_create(mctx, NULL, dns_rdataclass_in, "view", &view);
 
 	dns_tsigkeyring_create(mctx, &ring);
 	dns_tsigkeyring_create(mctx, &emptyring);

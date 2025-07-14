@@ -258,15 +258,13 @@ dns_dyndb_cleanup(void) {
 
 void
 dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, dns_view_t *view,
-		    dns_zonemgr_t *zmgr, isc_loopmgr_t *loopmgr,
-		    dns_dyndbctx_t **dctxp) {
+		    dns_zonemgr_t *zmgr, dns_dyndbctx_t **dctxp) {
 	dns_dyndbctx_t *dctx;
 
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 
 	dctx = isc_mem_get(mctx, sizeof(*dctx));
 	*dctx = (dns_dyndbctx_t){
-		.loopmgr = loopmgr,
 		.hashinit = hashinit,
 	};
 
@@ -300,7 +298,6 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp) {
 	if (dctx->zmgr != NULL) {
 		dns_zonemgr_detach(&dctx->zmgr);
 	}
-	dctx->loopmgr = NULL;
 
 	isc_mem_putanddetach(&dctx->mctx, dctx, sizeof(*dctx));
 }

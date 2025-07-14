@@ -122,7 +122,6 @@ static bool usevc = false;
 static bool usegsstsig = false;
 static bool local_only = false;
 static isc_nm_t *netmgr = NULL;
-static isc_loopmgr_t *loopmgr = NULL;
 static isc_mem_t *gmctx = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
@@ -908,7 +907,7 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = dns_dispatchmgr_create(gmctx, loopmgr, netmgr, &dispatchmgr);
+	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
 	set_source_ports(dispatchmgr);
@@ -950,7 +949,7 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 	dns_transport_set_always_verify_remote(transport,
 					       tls_always_verify_remote);
 
-	result = dns_requestmgr_create(gmctx, loopmgr, dispatchmgr, dispatchv4,
+	result = dns_requestmgr_create(gmctx, dispatchmgr, dispatchv4,
 				       dispatchv6, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 
@@ -975,9 +974,9 @@ get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 	int count = 0;
 	isc_result_t result;
 
-	isc_loopmgr_blocking(loopmgr);
+	isc_loopmgr_blocking();
 	result = isc_getaddresses(host, port, sockaddr, naddrs, &count);
-	isc_loopmgr_nonblocking(loopmgr);
+	isc_loopmgr_nonblocking();
 	if (result != ISC_R_SUCCESS) {
 		error("couldn't get address for '%s': %s", host,
 		      isc_result_totext(result));
@@ -2651,7 +2650,7 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 	result = dns_request_create(requestmgr, updatemsg, srcaddr, primary,
 				    req_transport, req_tls_ctx_cache, options,
 				    tsigkey, timeout, timeout, udp_timeout,
-				    udp_retries, isc_loop_main(loopmgr),
+				    udp_retries, isc_loop_main(),
 				    update_completed, NULL, &request);
 	check_result(result, "dns_request_create");
 
@@ -2757,8 +2756,8 @@ recvsoa(void *arg) {
 		result = dns_request_create(
 			requestmgr, soaquery, srcaddr, addr, req_transport,
 			req_tls_ctx_cache, options, NULL, timeout, timeout,
-			udp_timeout, udp_retries, isc_loop_main(loopmgr),
-			recvsoa, reqinfo, &request);
+			udp_timeout, udp_retries, isc_loop_main(), recvsoa,
+			reqinfo, &request);
 		check_result(result, "dns_request_create");
 		requests++;
 		return;
@@ -2985,11 +2984,11 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(
-		requestmgr, msg, srcaddr, destaddr, req_transport,
-		req_tls_ctx_cache, options, default_servers ? NULL : tsigkey,
-		timeout, timeout, udp_timeout, udp_retries,
-		isc_loop_main(loopmgr), recvsoa, reqinfo, request);
+	result = dns_request_create(requestmgr, msg, srcaddr, destaddr,
+				    req_transport, req_tls_ctx_cache, options,
+				    default_servers ? NULL : tsigkey, timeout,
+				    timeout, udp_timeout, udp_retries,
+				    isc_loop_main(), recvsoa, reqinfo, request);
 	check_result(result, "dns_request_create");
 	requests++;
 }
@@ -3192,8 +3191,8 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	result = dns_request_create(requestmgr, msg, srcaddr, destaddr,
 				    req_transport, req_tls_ctx_cache, options,
 				    tsigkey, timeout, timeout, udp_timeout,
-				    udp_retries, isc_loop_main(loopmgr),
-				    recvgss, reqinfo, request);
+				    udp_retries, isc_loop_main(), recvgss,
+				    reqinfo, request);
 	check_result(result, "dns_request_create");
 	if (debugging) {
 		show_message(stdout, msg, "Outgoing update query:");
@@ -3473,7 +3472,7 @@ cleanup(void) {
 	isc_mutex_destroy(&answer_lock);
 
 	ddebug("Shutting down managers");
-	isc_managers_destroy(&gmctx, &loopmgr, &netmgr);
+	isc_managers_destroy(&gmctx, &netmgr);
 }
 
 static void
@@ -3488,11 +3487,11 @@ getinput(void *arg) {
 	}
 
 	reset_system();
-	isc_loopmgr_blocking(loopmgr);
+	isc_loopmgr_blocking();
 	more = user_interaction();
-	isc_loopmgr_nonblocking(loopmgr);
+	isc_loopmgr_nonblocking();
 	if (!more) {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 		return;
 	}
 
@@ -3522,7 +3521,7 @@ main(int argc, char **argv) {
 
 	pre_parse_args(argc, argv);
 
-	isc_managers_create(&gmctx, 1, &loopmgr, &netmgr);
+	isc_managers_create(&gmctx, 1, &netmgr);
 
 	parse_args(argc, argv);
 
@@ -3533,10 +3532,10 @@ main(int argc, char **argv) {
 	isc_nm_setkeepalivetimeout(netmgr, timeoutms);
 	isc_nm_setadvertisedtimeout(netmgr, timeoutms);
 
-	isc_loopmgr_setup(loopmgr, setup_system, NULL);
-	isc_loopmgr_setup(loopmgr, getinput, NULL);
-	isc_loopmgr_teardown(loopmgr, shutdown_program, NULL);
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_setup(setup_system, NULL);
+	isc_loopmgr_setup(getinput, NULL);
+	isc_loopmgr_teardown(shutdown_program, NULL);
+	isc_loopmgr_run();
 
 	cleanup();
 

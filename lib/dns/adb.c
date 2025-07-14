@@ -104,7 +104,6 @@ typedef struct dns_adblru {
 struct dns_adb {
 	unsigned int magic;
 	uint32_t nloops;
-	isc_loopmgr_t *loopmgr;
 
 	isc_mutex_t lock;
 	isc_mem_t *mctx;
@@ -1608,18 +1607,16 @@ ISC_REFCOUNT_IMPL(dns_adb, dns_adb_destroy);
  */
 
 void
-dns_adb_create(isc_mem_t *mem, isc_loopmgr_t *loopmgr, dns_view_t *view,
-	       dns_adb_t **adbp) {
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **adbp) {
 	REQUIRE(mem != NULL);
 	REQUIRE(view != NULL);
 	REQUIRE(adbp != NULL && *adbp == NULL);
 
-	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
+	uint32_t nloops = isc_loopmgr_nloops();
 	dns_adb_t *adb = isc_mem_get(mem, sizeof(dns_adb_t));
 	*adb = (dns_adb_t){
 		.references = 1,
 		.nloops = nloops,
-		.loopmgr = loopmgr,
 		.magic = DNS_ADB_MAGIC,
 	};
 
@@ -1696,7 +1693,7 @@ dns_adb_shutdown(dns_adb_t *adb) {
 	 * shutting down ADB.
 	 */
 	dns_adb_ref(adb);
-	isc_async_run(isc_loop_main(adb->loopmgr), dns_adb_shutdown_async, adb);
+	isc_async_run(isc_loop_main(), dns_adb_shutdown_async, adb);
 }
 
 /*

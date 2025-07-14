@@ -61,7 +61,7 @@ ISC_LOOP_TEST_IMPL(getoriginnode) {
 	dns_db_detachnode(db, &node);
 
 	dns_db_detach(&db);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* test getservestalettl and setservestalettl */
@@ -90,7 +90,7 @@ ISC_LOOP_TEST_IMPL(getsetservestalettl) {
 	assert_int_equal(ttl, 6 * 3600);
 
 	dns_db_detach(&db);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* check DNS_DBFIND_STALEOK works */
@@ -239,7 +239,7 @@ ISC_LOOP_TEST_IMPL(dns_dbfind_staleok) {
 	}
 
 	dns_db_detach(&db);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* database class */
@@ -259,7 +259,7 @@ ISC_LOOP_TEST_IMPL(class) {
 	assert_int_equal(dns_db_class(db), dns_rdataclass_in);
 
 	dns_db_detach(&db);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* database type */
@@ -287,7 +287,7 @@ ISC_LOOP_TEST_IMPL(dbtype) {
 	assert_true(dns_db_iscache(db));
 	assert_false(dns_db_iszone(db));
 	dns_db_detach(&db);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* database versions */
@@ -385,7 +385,7 @@ ISC_LOOP_TEST_IMPL(version) {
 	dns_db_closeversion(db, &ver, false);
 
 	dns_db_detach(&db);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_TEST_LIST_START

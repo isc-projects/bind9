@@ -90,18 +90,18 @@ setup_server(void **state) {
 
 	ns_server_create(mctx, matchview, &sctx);
 
-	result = dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr,
-					dispatchmgr, NULL, &interfacemgr);
+	result = ns_interfacemgr_create(mctx, sctx, netmgr, dispatchmgr, NULL,
+					&interfacemgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	isc_loop_setup(mainloop, scan_interfaces, NULL);
+	isc_loop_setup(isc_loop_main(), scan_interfaces, NULL);
 
 	return 0;
 

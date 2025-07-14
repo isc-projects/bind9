@@ -20,8 +20,7 @@
 typedef void (*isc_signal_cb)(void *, int);
 
 isc_signal_t *
-isc_signal_new(isc_loopmgr_t *loopmgr, isc_signal_cb cb, void *cbarg,
-	       int signum);
+isc_signal_new(isc_signal_cb cb, void *cbarg, int signum);
 /*%<
  * Create a new signal handler for loop manager 'loopmgr', handling
  * the signal value 'signum'.

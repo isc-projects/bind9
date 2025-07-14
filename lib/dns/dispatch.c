@@ -969,7 +969,7 @@ setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
  */
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
+dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm,
 		       dns_dispatchmgr_t **mgrp) {
 	dns_dispatchmgr_t *mgr = NULL;
 	isc_portset_t *v4portset = NULL;
@@ -981,7 +981,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 	mgr = isc_mem_get(mctx, sizeof(dns_dispatchmgr_t));
 	*mgr = (dns_dispatchmgr_t){
 		.magic = 0,
-		.nloops = isc_loopmgr_nloops(loopmgr),
+		.nloops = isc_loopmgr_nloops(),
 	};
 
 #if DNS_DISPATCH_TRACE

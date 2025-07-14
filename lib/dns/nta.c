@@ -42,7 +42,6 @@ struct dns_ntatable {
 	isc_mem_t *mctx;
 	dns_view_t *view;
 	isc_rwlock_t rwlock;
-	isc_loopmgr_t *loopmgr;
 	isc_refcount_t references;
 	dns_qpmulti_t *table;
 	atomic_bool shuttingdown;
@@ -113,18 +112,16 @@ ISC_REFCOUNT_IMPL(dns__nta, dns__nta_destroy);
 #endif
 
 void
-dns_ntatable_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
-		    dns_ntatable_t **ntatablep) {
+dns_ntatable_create(dns_view_t *view, dns_ntatable_t **ntatablep) {
 	dns_ntatable_t *ntatable = NULL;
 
 	REQUIRE(ntatablep != NULL && *ntatablep == NULL);
 
 	ntatable = isc_mem_get(view->mctx, sizeof(*ntatable));
 	*ntatable = (dns_ntatable_t){
-		.loopmgr = loopmgr,
+		.mctx = isc_mem_ref(view->mctx),
 	};
 
-	isc_mem_attach(view->mctx, &ntatable->mctx);
 	dns_view_weakattach(view, &ntatable->view);
 
 	isc_rwlock_init(&ntatable->rwlock);

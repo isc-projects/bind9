@@ -118,7 +118,7 @@ typedef enum isc_nm_proxy_type {
  */
 
 void
-isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netgmrp);
+isc_netmgr_create(isc_mem_t *mctx, isc_nm_t **netgmrp);
 /*%<
  * Creates a new network manager and starts it running when loopmgr is started.
  */

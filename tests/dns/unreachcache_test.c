@@ -64,7 +64,7 @@ ISC_LOOP_TEST_IMPL(basic) {
 	isc_sockaddr_fromin6(&src_addrv6, &in6addr_loopback, src_port);
 	isc_sockaddr_fromin6(&dst_addrv6, &in6addr_loopback, dst_port);
 
-	uc = dns_unreachcache_new(mctx, loopmgr, EXPIRE_MIN_S, EXPIRE_MAX_S,
+	uc = dns_unreachcache_new(mctx, EXPIRE_MIN_S, EXPIRE_MAX_S,
 				  BACKOFF_ELGIBLE_S);
 	dns_unreachcache_add(uc, &dst_addrv4, &src_addrv4);
 	dns_unreachcache_add(uc, &dst_addrv6, &src_addrv6);
@@ -96,7 +96,7 @@ ISC_LOOP_TEST_IMPL(basic) {
 
 	dns_unreachcache_destroy(&uc);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_LOOP_TEST_IMPL(expire) {
@@ -110,7 +110,7 @@ ISC_LOOP_TEST_IMPL(expire) {
 	isc_sockaddr_fromin(&src_addrv4, &localhost4, src_port);
 	isc_sockaddr_fromin(&dst_addrv4, &localhost4, dst_port);
 
-	uc = dns_unreachcache_new(mctx, loopmgr, EXPIRE_MIN_S, EXPIRE_MAX_S,
+	uc = dns_unreachcache_new(mctx, EXPIRE_MIN_S, EXPIRE_MAX_S,
 				  BACKOFF_ELGIBLE_S);
 	/* Two adds to "confirm" the addition. */
 	dns_unreachcache_add(uc, &dst_addrv4, &src_addrv4);
@@ -147,7 +147,7 @@ ISC_LOOP_TEST_IMPL(expire) {
 
 	dns_unreachcache_destroy(&uc);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_LOOP_TEST_IMPL(flush) {
@@ -161,7 +161,7 @@ ISC_LOOP_TEST_IMPL(flush) {
 	isc_sockaddr_fromin(&src_addrv4, &localhost4, src_port);
 	isc_sockaddr_fromin(&dst_addrv4, &localhost4, dst_port);
 
-	uc = dns_unreachcache_new(mctx, loopmgr, EXPIRE_MIN_S, EXPIRE_MAX_S,
+	uc = dns_unreachcache_new(mctx, EXPIRE_MIN_S, EXPIRE_MAX_S,
 				  BACKOFF_ELGIBLE_S);
 	/* Two adds to "confirm" the addition. */
 	dns_unreachcache_add(uc, &dst_addrv4, &src_addrv4);
@@ -177,7 +177,7 @@ ISC_LOOP_TEST_IMPL(flush) {
 
 	dns_unreachcache_destroy(&uc);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_TEST_LIST_START

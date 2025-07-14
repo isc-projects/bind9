@@ -59,7 +59,6 @@
 
 static isc_mem_t *mctx = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
-static isc_loopmgr_t *loopmgr = NULL;
 static bool have_src = false;
 static isc_sockaddr_t srcaddr;
 static isc_sockaddr_t dstaddr;
@@ -113,7 +112,7 @@ recvresponse(void *arg) {
 	dns_request_destroy(&request);
 
 	if (--onfly == 0) {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 	}
 	return;
 }
@@ -165,7 +164,7 @@ sendquery(void) {
 	result = dns_request_create(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, NULL,
 		NULL, DNS_REQUESTOPT_TCP, NULL, TIMEOUT, TIMEOUT, 0, 0,
-		isc_loop_main(loopmgr), recvresponse, message, &request);
+		isc_loop_main(), recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 
 	return ISC_R_SUCCESS;
@@ -182,7 +181,7 @@ sendqueries(void *arg) {
 	} while (result == ISC_R_SUCCESS);
 
 	if (onfly == 0) {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 	}
 	return;
 }
@@ -271,26 +270,26 @@ main(int argc, char *argv[]) {
 	}
 	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
-	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
+	isc_managers_create(&mctx, 1, &netmgr);
 
-	RUNCHECK(dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	RUNCHECK(dns_dispatch_createudp(
 		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchv4));
-	RUNCHECK(dns_requestmgr_create(mctx, loopmgr, dispatchmgr, dispatchv4,
-				       NULL, &requestmgr));
+	RUNCHECK(dns_requestmgr_create(mctx, dispatchmgr, dispatchv4, NULL,
+				       &requestmgr));
 
-	dns_view_create(mctx, loopmgr, NULL, 0, "_test", &view);
+	dns_view_create(mctx, NULL, 0, "_test", &view);
 
-	isc_loopmgr_setup(loopmgr, sendqueries, NULL);
-	isc_loopmgr_teardown(loopmgr, teardown_view, view);
-	isc_loopmgr_teardown(loopmgr, teardown_requestmgr, requestmgr);
-	isc_loopmgr_teardown(loopmgr, teardown_dispatchv4, dispatchv4);
-	isc_loopmgr_teardown(loopmgr, teardown_dispatchmgr, dispatchmgr);
+	isc_loopmgr_setup(sendqueries, NULL);
+	isc_loopmgr_teardown(teardown_view, view);
+	isc_loopmgr_teardown(teardown_requestmgr, requestmgr);
+	isc_loopmgr_teardown(teardown_dispatchv4, dispatchv4);
+	isc_loopmgr_teardown(teardown_dispatchmgr, dispatchmgr);
 
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_run();
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
+	isc_managers_destroy(&mctx, &netmgr);
 
 	return 0;
 }
