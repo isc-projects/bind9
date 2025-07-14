@@ -74,7 +74,6 @@ struct dns_client {
 	unsigned int attributes;
 	isc_mem_t *mctx;
 	isc_loop_t *loop;
-	isc_nm_t *nm;
 	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatch_t *dispatchv4;
 	dns_dispatch_t *dispatchv6;
@@ -197,7 +196,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 }
 
 static isc_result_t
-createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_nm_t *nm,
+createview(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	   isc_tlsctx_cache_t *tlsctx_client_cache,
 	   dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
 	   dns_dispatch_t *dispatchv6, dns_view_t **viewp) {
@@ -209,8 +208,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_nm_t *nm,
 	/* Initialize view security roots */
 	dns_view_initsecroots(view);
 
-	CHECK(dns_view_createresolver(view, nm, 0, tlsctx_client_cache,
-				      dispatchv4, dispatchv6));
+	CHECK(dns_view_createresolver(view, 0, tlsctx_client_cache, dispatchv4,
+				      dispatchv6));
 	CHECK(dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
 			    dns_dbtype_cache, rdclass, 0, NULL,
 			    &view->cachedb));
@@ -224,7 +223,7 @@ cleanup:
 }
 
 isc_result_t
-dns_client_create(isc_mem_t *mctx, isc_nm_t *nm, unsigned int options,
+dns_client_create(isc_mem_t *mctx, unsigned int options,
 		  isc_tlsctx_cache_t *tlsctx_client_cache,
 		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6) {
@@ -235,7 +234,6 @@ dns_client_create(isc_mem_t *mctx, isc_nm_t *nm, unsigned int options,
 	dns_view_t *view = NULL;
 
 	REQUIRE(mctx != NULL);
-	REQUIRE(nm != NULL);
 	REQUIRE(tlsctx_client_cache != NULL);
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
@@ -244,12 +242,11 @@ dns_client_create(isc_mem_t *mctx, isc_nm_t *nm, unsigned int options,
 	client = isc_mem_get(mctx, sizeof(*client));
 	*client = (dns_client_t){
 		.loop = isc_loop_get(0),
-		.nm = nm,
 		.max_restarts = DEF_MAX_RESTARTS,
 		.max_queries = DEF_MAX_QUERIES,
 	};
 
-	result = dns_dispatchmgr_create(mctx, nm, &client->dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, &client->dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_client;
 	}
@@ -286,7 +283,7 @@ dns_client_create(isc_mem_t *mctx, isc_nm_t *nm, unsigned int options,
 	isc_refcount_init(&client->references, 1);
 
 	/* Create the default view for class IN */
-	result = createview(mctx, dns_rdataclass_in, nm, tlsctx_client_cache,
+	result = createview(mctx, dns_rdataclass_in, tlsctx_client_cache,
 			    client->dispatchmgr, dispatchv4, dispatchv6, &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;

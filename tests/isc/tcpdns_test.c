@@ -53,16 +53,16 @@ static void
 start_listening(uint32_t nworkers, isc_nm_accept_cb_t accept_cb,
 		isc_nm_recv_cb_t recv_cb) {
 	isc_result_t result = isc_nm_listenstreamdns(
-		listen_nm, nworkers, &tcp_listen_addr, recv_cb, NULL, accept_cb,
-		NULL, 128, NULL, NULL, get_proxy_type(), &listen_sock);
+		nworkers, &tcp_listen_addr, recv_cb, NULL, accept_cb, NULL, 128,
+		NULL, NULL, get_proxy_type(), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 }
 
 static void
-tcpdns_connect(isc_nm_t *nm) {
-	isc_nm_streamdnsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
+tcpdns_connect(void) {
+	isc_nm_streamdnsconnect(&tcp_connect_addr, &tcp_listen_addr,
 				connect_connect_cb, tcpdns_connect, T_CONNECT,
 				NULL, NULL, NULL, get_proxy_type(), NULL);
 }
@@ -72,7 +72,7 @@ ISC_LOOP_TEST_IMPL(tcpdns_noop) {
 
 	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
-	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
+	isc_nm_streamdnsconnect(&tcp_connect_addr, &tcp_listen_addr,
 				connect_success_cb, tcpdns_connect, T_CONNECT,
 				NULL, NULL, NULL, get_proxy_type(), NULL);
 }
@@ -81,7 +81,7 @@ ISC_LOOP_TEST_IMPL(tcpdns_noresponse) {
 	start_listening(ISC_NM_LISTEN_ALL, noop_accept_cb, noop_recv_cb);
 
 	isc_refcount_increment0(&active_cconnects);
-	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
+	isc_nm_streamdnsconnect(&tcp_connect_addr, &tcp_listen_addr,
 				connect_connect_cb, tcpdns_connect, T_CONNECT,
 				NULL, NULL, NULL, get_proxy_type(), NULL);
 }
@@ -100,11 +100,6 @@ ISC_LOOP_TEST_IMPL(tcpdns_timeout_recovery) {
 	 * timeout_retry_cb() will give up after five timeouts.
 	 */
 	connect_readcb = timeout_retry_cb;
-	isc_nm_setinitialtimeout(connect_nm, T_SOFT);
-	isc_nm_setprimariestimeout(connect_nm, T_SOFT);
-	isc_nm_setidletimeout(connect_nm, T_SOFT);
-	isc_nm_setkeepalivetimeout(connect_nm, T_SOFT);
-	isc_nm_setadvertisedtimeout(connect_nm, T_SOFT);
 
 	isc_async_current(stream_recv_send_connect, tcpdns_connect);
 }

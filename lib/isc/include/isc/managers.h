@@ -20,7 +20,7 @@
 typedef struct isc_managers isc_managers_t;
 
 void
-isc_managers_create(isc_mem_t **mctx, uint32_t workers, isc_nm_t **netmgrp);
+isc_managers_create(isc_mem_t **mctx, uint32_t workers);
 
 void
-isc_managers_destroy(isc_mem_t **mctx, isc_nm_t **netmgrp);
+isc_managers_destroy(isc_mem_t **mctx);

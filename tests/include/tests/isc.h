@@ -31,7 +31,6 @@
 #include <isc/uv.h>
 
 extern isc_mem_t   *mctx;
-extern isc_nm_t	   *netmgr;
 extern int	    ncpus;
 extern unsigned int workers;
 extern bool	    debug;

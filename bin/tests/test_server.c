@@ -34,7 +34,6 @@ typedef enum { UDP, TCP, DOT, HTTPS, HTTP } protocol_t;
 static const char *protocols[] = { "udp", "tcp", "dot", "https", "http-plain" };
 
 static isc_mem_t *mctx = NULL;
-static isc_nm_t *netmgr = NULL;
 
 static protocol_t protocol;
 static in_port_t port;
@@ -167,7 +166,7 @@ parse_options(int argc, char **argv) {
 
 static void
 setup(void) {
-	isc_managers_create(&mctx, workers, &netmgr);
+	isc_managers_create(&mctx, workers);
 }
 
 static void
@@ -176,7 +175,7 @@ teardown(void) {
 		isc_tlsctx_free(&tls_ctx);
 	}
 
-	isc_managers_destroy(&mctx, &netmgr);
+	isc_managers_destroy(&mctx);
 }
 
 static void
@@ -244,22 +243,20 @@ run(void) {
 
 	switch (protocol) {
 	case UDP:
-		result = isc_nm_listenudp(netmgr, ISC_NM_LISTEN_ALL, &sockaddr,
-					  read_cb, NULL, &sock);
+		result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &sockaddr, read_cb,
+					  NULL, &sock);
 		break;
 	case TCP:
-		result = isc_nm_listenstreamdns(netmgr, ISC_NM_LISTEN_ALL,
-						&sockaddr, read_cb, NULL,
-						accept_cb, NULL, 0, NULL, NULL,
-						ISC_NM_PROXY_NONE, &sock);
+		result = isc_nm_listenstreamdns(
+			ISC_NM_LISTEN_ALL, &sockaddr, read_cb, NULL, accept_cb,
+			NULL, 0, NULL, NULL, ISC_NM_PROXY_NONE, &sock);
 		break;
 	case DOT: {
 		isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 
 		result = isc_nm_listenstreamdns(
-			netmgr, ISC_NM_LISTEN_ALL, &sockaddr, read_cb, NULL,
-			accept_cb, NULL, 0, NULL, tls_ctx, ISC_NM_PROXY_NONE,
-			&sock);
+			ISC_NM_LISTEN_ALL, &sockaddr, read_cb, NULL, accept_cb,
+			NULL, 0, NULL, tls_ctx, ISC_NM_PROXY_NONE, &sock);
 		break;
 	}
 #if HAVE_LIBNGHTTP2
@@ -275,9 +272,9 @@ run(void) {
 			eps, ISC_NM_HTTP_DEFAULT_PATH, read_cb, NULL);
 
 		if (result == ISC_R_SUCCESS) {
-			result = isc_nm_listenhttp(
-				netmgr, ISC_NM_LISTEN_ALL, &sockaddr, 0, NULL,
-				tls_ctx, eps, 0, ISC_NM_PROXY_NONE, &sock);
+			result = isc_nm_listenhttp(ISC_NM_LISTEN_ALL, &sockaddr,
+						   0, NULL, tls_ctx, eps, 0,
+						   ISC_NM_PROXY_NONE, &sock);
 		}
 		isc_nm_http_endpoints_detach(&eps);
 	} break;

@@ -1314,8 +1314,7 @@ xfrin_start(dns_xfrin_t *xfr) {
 		goto failure;
 	}
 
-	primaries_timeout =
-		isc_nm_getprimariestimeout(dns_dispatchmgr_getnetmgr(dispmgr));
+	primaries_timeout = isc_nm_getprimariestimeout();
 	result = dns_dispatch_createtcp(dispmgr, &xfr->sourceaddr,
 					&xfr->primaryaddr, xfr->transport,
 					DNS_DISPATCHOPT_UNSHARED, &xfr->disp);

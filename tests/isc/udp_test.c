@@ -80,7 +80,7 @@ ISC_LOOP_TEST_IMPL(mock_listenudp_uv_udp_open) {
 
 	WILL_RETURN(uv_udp_open, UV_ENOMEM);
 
-	result = isc_nm_listenudp(netmgr, ISC_NM_LISTEN_ALL, &udp_listen_addr,
+	result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &udp_listen_addr,
 				  mock_recv_cb, NULL, &listen_sock);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
 	assert_null(listen_sock);
@@ -95,7 +95,7 @@ ISC_LOOP_TEST_IMPL(mock_listenudp_uv_udp_bind) {
 
 	WILL_RETURN(uv_udp_bind, UV_EADDRINUSE);
 
-	result = isc_nm_listenudp(netmgr, ISC_NM_LISTEN_ALL, &udp_listen_addr,
+	result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &udp_listen_addr,
 				  mock_recv_cb, NULL, &listen_sock);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
 	assert_null(listen_sock);
@@ -110,7 +110,7 @@ ISC_LOOP_TEST_IMPL(mock_listenudp_uv_udp_recv_start) {
 
 	WILL_RETURN(uv_udp_recv_start, UV_EADDRINUSE);
 
-	result = isc_nm_listenudp(netmgr, ISC_NM_LISTEN_ALL, &udp_listen_addr,
+	result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &udp_listen_addr,
 				  mock_recv_cb, NULL, &listen_sock);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
 	assert_null(listen_sock);
@@ -124,7 +124,7 @@ ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_udp_open) {
 	WILL_RETURN(uv_udp_open, UV_ENOMEM);
 
 	isc_refcount_increment0(&active_cconnects);
-	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
+	isc_nm_udpconnect(&udp_connect_addr, &udp_listen_addr,
 			  udp_connect_nomemory_cb, NULL, UDP_T_CONNECT);
 	isc_loopmgr_shutdown();
 
@@ -135,7 +135,7 @@ ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_udp_bind) {
 	WILL_RETURN(uv_udp_bind, UV_ENOMEM);
 
 	isc_refcount_increment0(&active_cconnects);
-	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
+	isc_nm_udpconnect(&udp_connect_addr, &udp_listen_addr,
 			  udp_connect_nomemory_cb, NULL, UDP_T_CONNECT);
 	isc_loopmgr_shutdown();
 
@@ -146,7 +146,7 @@ ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_udp_connect) {
 	WILL_RETURN(uv_udp_connect, UV_ENOMEM);
 
 	isc_refcount_increment0(&active_cconnects);
-	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
+	isc_nm_udpconnect(&udp_connect_addr, &udp_listen_addr,
 			  udp_connect_nomemory_cb, NULL, UDP_T_CONNECT);
 	isc_loopmgr_shutdown();
 
@@ -157,7 +157,7 @@ ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_recv_buffer_size) {
 	WILL_RETURN(uv_recv_buffer_size, UV_ENOMEM);
 
 	isc_refcount_increment0(&active_cconnects);
-	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
+	isc_nm_udpconnect(&udp_connect_addr, &udp_listen_addr,
 			  connect_success_cb, NULL, UDP_T_CONNECT);
 	isc_loopmgr_shutdown();
 
@@ -168,7 +168,7 @@ ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_send_buffer_size) {
 	WILL_RETURN(uv_send_buffer_size, UV_ENOMEM);
 
 	isc_refcount_increment0(&active_cconnects);
-	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
+	isc_nm_udpconnect(&udp_connect_addr, &udp_listen_addr,
 			  connect_success_cb, NULL, UDP_T_CONNECT);
 	isc_loopmgr_shutdown();
 

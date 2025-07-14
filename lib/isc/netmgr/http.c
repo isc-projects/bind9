@@ -1892,23 +1892,20 @@ error:
 }
 
 void
-isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		   const char *uri, bool post, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t *tlsctx, const char *sni_hostname,
+isc_nm_httpconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer, const char *uri,
+		   bool post, isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *tlsctx,
+		   const char *sni_hostname,
 		   isc_tlsctx_client_session_cache_t *client_sess_cache,
 		   unsigned int timeout, isc_nm_proxy_type_t proxy_type,
 		   isc_nm_proxyheader_info_t *proxy_info) {
 	isc_sockaddr_t local_interface;
 	isc_nmsocket_t *sock = NULL;
-	isc__networker_t *worker = NULL;
+	isc__networker_t *worker = isc__networker_current();
 
-	REQUIRE(VALID_NM(mgr));
 	REQUIRE(cb != NULL);
 	REQUIRE(peer != NULL);
 	REQUIRE(uri != NULL);
 	REQUIRE(*uri != '\0');
-
-	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
@@ -1963,32 +1960,32 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	switch (proxy_type) {
 	case ISC_NM_PROXY_NONE:
 		if (tlsctx != NULL) {
-			isc_nm_tlsconnect(mgr, local, peer,
-					  transport_connect_cb, sock, tlsctx,
-					  sni_hostname, client_sess_cache,
-					  timeout, false, NULL);
+			isc_nm_tlsconnect(local, peer, transport_connect_cb,
+					  sock, tlsctx, sni_hostname,
+					  client_sess_cache, timeout, false,
+					  NULL);
 		} else {
-			isc_nm_tcpconnect(mgr, local, peer,
-					  transport_connect_cb, sock, timeout);
+			isc_nm_tcpconnect(local, peer, transport_connect_cb,
+					  sock, timeout);
 		}
 		break;
 	case ISC_NM_PROXY_PLAIN:
 		if (tlsctx != NULL) {
-			isc_nm_tlsconnect(mgr, local, peer,
-					  transport_connect_cb, sock, tlsctx,
-					  sni_hostname, client_sess_cache,
-					  timeout, true, proxy_info);
+			isc_nm_tlsconnect(local, peer, transport_connect_cb,
+					  sock, tlsctx, sni_hostname,
+					  client_sess_cache, timeout, true,
+					  proxy_info);
 		} else {
 			isc_nm_proxystreamconnect(
-				mgr, local, peer, transport_connect_cb, sock,
+				local, peer, transport_connect_cb, sock,
 				timeout, NULL, NULL, NULL, proxy_info);
 		}
 		break;
 	case ISC_NM_PROXY_ENCRYPTED:
 		INSIST(tlsctx != NULL);
-		isc_nm_proxystreamconnect(
-			mgr, local, peer, transport_connect_cb, sock, timeout,
-			tlsctx, sni_hostname, client_sess_cache, proxy_info);
+		isc_nm_proxystreamconnect(local, peer, transport_connect_cb,
+					  sock, timeout, tlsctx, sni_hostname,
+					  client_sess_cache, proxy_info);
 		break;
 	default:
 		UNREACHABLE();
@@ -2943,20 +2940,18 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 }
 
 isc_result_t
-isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
-		  int backlog, isc_quota_t *quota, isc_tlsctx_t *ctx,
+isc_nm_listenhttp(uint32_t workers, isc_sockaddr_t *iface, int backlog,
+		  isc_quota_t *quota, isc_tlsctx_t *ctx,
 		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
 		  isc_nm_proxy_type_t proxy_type, isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *sock = NULL;
 	isc_result_t result = ISC_R_FAILURE;
-	isc__networker_t *worker = NULL;
+	isc__networker_t *worker = isc__networker_current();
 
-	REQUIRE(VALID_NM(mgr));
 	REQUIRE(!ISC_LIST_EMPTY(eps->handlers));
 	REQUIRE(atomic_load(&eps->in_use) == false);
 	REQUIRE(isc_tid() == 0);
 
-	worker = &mgr->workers[isc_tid()];
 	sock = isc_mempool_get(worker->nmsocket_pool);
 	isc__nmsocket_init(sock, worker, isc_nm_httplistener, iface, NULL);
 	http_initsocket(sock);
@@ -2972,10 +2967,10 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	case ISC_NM_PROXY_NONE:
 		if (ctx != NULL) {
 			result = isc_nm_listentls(
-				mgr, workers, iface, httplisten_acceptcb, sock,
+				workers, iface, httplisten_acceptcb, sock,
 				backlog, quota, ctx, false, &sock->outer);
 		} else {
-			result = isc_nm_listentcp(mgr, workers, iface,
+			result = isc_nm_listentcp(workers, iface,
 						  httplisten_acceptcb, sock,
 						  backlog, quota, &sock->outer);
 		}
@@ -2983,18 +2978,18 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	case ISC_NM_PROXY_PLAIN:
 		if (ctx != NULL) {
 			result = isc_nm_listentls(
-				mgr, workers, iface, httplisten_acceptcb, sock,
+				workers, iface, httplisten_acceptcb, sock,
 				backlog, quota, ctx, true, &sock->outer);
 		} else {
 			result = isc_nm_listenproxystream(
-				mgr, workers, iface, httplisten_acceptcb, sock,
+				workers, iface, httplisten_acceptcb, sock,
 				backlog, quota, NULL, &sock->outer);
 		}
 		break;
 	case ISC_NM_PROXY_ENCRYPTED:
 		INSIST(ctx != NULL);
 		result = isc_nm_listenproxystream(
-			mgr, workers, iface, httplisten_acceptcb, sock, backlog,
+			workers, iface, httplisten_acceptcb, sock, backlog,
 			quota, ctx, &sock->outer);
 		break;
 	default:
@@ -3388,7 +3383,7 @@ http_set_endpoints_cb(void *arg) {
 	const isc_tid_t tid = isc_tid();
 	isc_nmsocket_t *listener = data->listener;
 	isc_nm_http_endpoints_t *endpoints = data->endpoints;
-	isc__networker_t *worker = &listener->worker->netmgr->workers[tid];
+	isc__networker_t *worker = isc__networker_current();
 
 	isc_mem_put(worker->loop->mctx, data, sizeof(*data));
 
@@ -3410,8 +3405,7 @@ isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 	atomic_store(&eps->in_use, true);
 
 	for (size_t i = 0; i < isc_loopmgr_nloops(); i++) {
-		isc__networker_t *worker =
-			&listener->worker->netmgr->workers[i];
+		isc__networker_t *worker = isc__networker_get(i);
 		http_endpoints_data_t *data = isc_mem_cget(worker->loop->mctx,
 							   1, sizeof(*data));
 
@@ -3428,7 +3422,7 @@ http_init_listener_endpoints(isc_nmsocket_t *listener,
 	size_t nworkers;
 
 	REQUIRE(VALID_NMSOCK(listener));
-	REQUIRE(listener->worker != NULL && VALID_NM(listener->worker->netmgr));
+	REQUIRE(listener->worker != NULL);
 	REQUIRE(VALID_HTTP_ENDPOINTS(epset));
 
 	nworkers = (size_t)isc_loopmgr_nloops();
@@ -3447,7 +3441,7 @@ http_init_listener_endpoints(isc_nmsocket_t *listener,
 
 static void
 http_cleanup_listener_endpoints(isc_nmsocket_t *listener) {
-	REQUIRE(listener->worker != NULL && VALID_NM(listener->worker->netmgr));
+	REQUIRE(listener->worker != NULL);
 
 	if (listener->h2->listener_endpoints == NULL) {
 		return;

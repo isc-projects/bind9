@@ -1102,9 +1102,9 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 		CHECK(ISC_R_FAMILYNOSUPPORT);
 	}
 
-	CHECK(isc_nm_listentcp(named_g_netmgr, ISC_NM_LISTEN_ONE,
-			       &listener->address, control_newconn, listener, 5,
-			       NULL, &listener->sock));
+	CHECK(isc_nm_listentcp(ISC_NM_LISTEN_ONE, &listener->address,
+			       control_newconn, listener, 5, NULL,
+			       &listener->sock));
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_CONTROL,
 		      ISC_LOG_NOTICE, "command channel listening on %s",

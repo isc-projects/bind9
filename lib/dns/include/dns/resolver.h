@@ -170,7 +170,7 @@ enum {
 #define DNS_QMIN_MAX_NO_DELEGATION 3
 
 isc_result_t
-dns_resolver_create(dns_view_t *view, isc_nm_t *nm, unsigned int options,
+dns_resolver_create(dns_view_t *view, unsigned int options,
 		    isc_tlsctx_cache_t *tlsctx_cache,
 		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp);

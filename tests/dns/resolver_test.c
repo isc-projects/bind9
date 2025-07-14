@@ -78,8 +78,8 @@ mkres(dns_resolver_t **resolverp) {
 	isc_result_t result;
 
 	isc_tlsctx_cache_create(mctx, &tlsctx_cache);
-	result = dns_resolver_create(view, netmgr, 0, tlsctx_cache, dispatch,
-				     NULL, resolverp);
+	result = dns_resolver_create(view, 0, tlsctx_cache, dispatch, NULL,
+				     resolverp);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 

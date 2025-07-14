@@ -95,7 +95,7 @@ typedef struct dns_clientresume {
 } dns_clientresume_t; /* too long? */
 
 isc_result_t
-dns_client_create(isc_mem_t *mctx, isc_nm_t *nm, unsigned int options,
+dns_client_create(isc_mem_t *mctx, unsigned int options,
 		  isc_tlsctx_cache_t *tlsctx_client_cache,
 		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6);

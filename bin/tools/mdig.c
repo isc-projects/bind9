@@ -118,7 +118,6 @@ static int onfly = 0;
 static char hexcookie[81];
 
 static isc_sockaddr_t bind_any;
-static isc_nm_t *netmgr = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_dispatch_t *dispatchvx = NULL;
 static dns_view_t *view = NULL;
@@ -2057,7 +2056,7 @@ teardown(void *arg ISC_ATTR_UNUSED) {
 
 static void
 setup(void *arg ISC_ATTR_UNUSED) {
-	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	set_source_ports(dispatchmgr);
 
@@ -2095,7 +2094,7 @@ main(int argc, char *argv[]) {
 
 	preparse_args(argc, argv);
 
-	isc_managers_create(&mctx, 1, &netmgr);
+	isc_managers_create(&mctx, 1);
 
 	isc_nonce_buf(cookie_secret, sizeof(cookie_secret));
 
@@ -2175,6 +2174,6 @@ main(int argc, char *argv[]) {
 		isc_mem_free(mctx, default_query.ecs_addr);
 	}
 
-	isc_managers_destroy(&mctx, &netmgr);
+	isc_managers_destroy(&mctx);
 	return 0;
 }

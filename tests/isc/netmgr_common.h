@@ -31,11 +31,8 @@
 #define PROXYSTREAM_TEST_PORT 9158
 #define PROXYUDP_TEST_PORT    9159
 
-typedef void (*stream_connect_function)(isc_nm_t *nm);
-typedef void (*connect_func)(isc_nm_t *);
-
-extern isc_nm_t *listen_nm;
-extern isc_nm_t *connect_nm;
+typedef void (*stream_connect_function)(void);
+typedef void (*connect_func)(void);
 
 extern isc_sockaddr_t tcp_listen_addr;
 extern isc_sockaddr_t tcp_connect_addr;

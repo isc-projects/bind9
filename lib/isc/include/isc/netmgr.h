@@ -118,24 +118,15 @@ typedef enum isc_nm_proxy_type {
  */
 
 void
-isc_netmgr_create(isc_mem_t *mctx, isc_nm_t **netgmrp);
+isc_netmgr_create(isc_mem_t *mctx);
 /*%<
  * Creates a new network manager and starts it running when loopmgr is started.
  */
 
-#if ISC_NETMGR_TRACE
-#define isc_nm_ref(ptr)	  isc_nm__ref(ptr, __func__, __FILE__, __LINE__)
-#define isc_nm_unref(ptr) isc_nm__unref(ptr, __func__, __FILE__, __LINE__)
-#define isc_nm_attach(ptr, ptrp) \
-	isc_nm__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
-#define isc_nm_detach(ptrp) isc_nm__detach(ptrp, __func__, __FILE__, __LINE__)
-ISC_REFCOUNT_TRACE_DECL(isc_nm);
-#else
-ISC_REFCOUNT_DECL(isc_nm);
-#endif
-
+void
+isc_netmgr_destroy(void);
 /*%<
- * Attach/detach a network manager. When all references have been
+ * Destroy a network manager. When all references have been
  * released, the network manager is shut down, freeing all resources.
  */
 
@@ -283,15 +274,9 @@ isc_nmhandle_real_localaddr(isc_nmhandle_t *handle);
  * 'isc_nmhandle_localaddr()' instead.
  */
 
-isc_nm_t *
-isc_nmhandle_netmgr(isc_nmhandle_t *handle);
-/*%<
- * Return a pointer to the netmgr object for the given handle.
- */
-
 isc_result_t
-isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
-		 isc_nm_recv_cb_t cb, void *cbarg, isc_nmsocket_t **sockp);
+isc_nm_listenudp(uint32_t workers, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
+		 void *cbarg, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for UDP packets on interface 'iface' using net manager
  * 'mgr'.
@@ -303,8 +288,8 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  */
 
 void
-isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
+isc_nm_udpconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer, isc_nm_cb_t cb,
+		  void *cbarg, unsigned int timeout);
 /*%<
  * Open a UDP socket, bind to 'local' and connect to 'peer', and
  * immediately call 'cb' with a handle so that the caller can begin
@@ -317,7 +302,7 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
  */
 
 isc_result_t
-isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg);
+isc_nm_routeconnect(isc_nm_cb_t cb, void *cbarg);
 /*%<
  * Open a route/netlink socket and call 'cb', so the caller can be
  * begin listening for interface changes.  This behaves similarly to
@@ -328,7 +313,7 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg);
  */
 
 isc_result_t
-isc_nm_listenproxyudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+isc_nm_listenproxyudp(uint32_t workers, isc_sockaddr_t *iface,
 		      isc_nm_recv_cb_t cb, void *cbarg, isc_nmsocket_t **sockp);
 /*%<
  * The same as `isc_nm_listenudp()`, but PROXYv2 headers are
@@ -336,9 +321,8 @@ isc_nm_listenproxyudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  */
 
 void
-isc_nm_proxyudpconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
-		       isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
-		       unsigned int		  timeout,
+isc_nm_proxyudpconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer,
+		       isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		       isc_nm_proxyheader_info_t *proxy_info);
 /*%<
  * The same as `isc_nm_udpconnect()`, but PROXYv2 headers are added
@@ -402,7 +386,7 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
  */
 
 isc_result_t
-isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+isc_nm_listentcp(uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 		 isc_quota_t *quota, isc_nmsocket_t **sockp);
 /*%<
@@ -421,7 +405,7 @@ isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  */
 
 void
-isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
+isc_nm_tcpconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t connect_cb, void *connect_cbarg,
 		  unsigned int timeout);
 /*%<
@@ -438,7 +422,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
  */
 
 isc_result_t
-isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+isc_nm_listenstreamdns(uint32_t workers, isc_sockaddr_t *iface,
 		       isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
 		       isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 		       int backlog, isc_quota_t *quota, isc_tlsctx_t *tlsctx,
@@ -469,7 +453,7 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  */
 
 isc_result_t
-isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+isc_nm_listenproxystream(uint32_t workers, isc_sockaddr_t *iface,
 			 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 			 int backlog, isc_quota_t *quota, isc_tlsctx_t *tlsctx,
 			 isc_nmsocket_t **sockp);
@@ -492,10 +476,9 @@ isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  */
 
 void
-isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
-			  isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
-			  unsigned int timeout, isc_tlsctx_t *tlsctx,
-			  const char			    *sni_hostname,
+isc_nm_proxystreamconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer,
+			  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
+			  isc_tlsctx_t *tlsctx, const char *sni_hostname,
 			  isc_tlsctx_client_session_cache_t *client_sess_cache,
 			  isc_nm_proxyheader_info_t	    *proxy_info);
 /*%<
@@ -537,7 +520,7 @@ isc_nm_proxyheader_info_init_complete(isc_nm_proxyheader_info_t *restrict info,
  */
 
 void
-isc_nm_setinitialtimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+isc_nm_setinitialtimeout(uint32_t timeout_ms);
 /*%<
  * Sets the initial TCP timeout value (in milliseconds).
  *
@@ -546,7 +529,7 @@ isc_nm_setinitialtimeout(isc_nm_t *mgr, uint32_t timeout_ms);
  */
 
 void
-isc_nm_setprimariestimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+isc_nm_setprimariestimeout(uint32_t timeout_ms);
 /*%<
  * Sets the primary servers connect TCP timeout value (in milliseconds).
  *
@@ -555,7 +538,7 @@ isc_nm_setprimariestimeout(isc_nm_t *mgr, uint32_t timeout_ms);
  */
 
 void
-isc_nm_setidletimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+isc_nm_setidletimeout(uint32_t timeout_ms);
 /*%<
  * Sets the idle TCP timeout value (in milliseconds).
  *
@@ -564,7 +547,7 @@ isc_nm_setidletimeout(isc_nm_t *mgr, uint32_t timeout_ms);
  */
 
 void
-isc_nm_setkeepalivetimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+isc_nm_setkeepalivetimeout(uint32_t timeout_ms);
 /*%<
  * Sets the keepalive TCP timeout value (in milliseconds), and the timeout value
  * to advertise in responses using the EDNS TCP Keepalive option.
@@ -574,7 +557,7 @@ isc_nm_setkeepalivetimeout(isc_nm_t *mgr, uint32_t timeout_ms);
  */
 
 void
-isc_nm_setadvertisedtimeout(isc_nm_t *mgr, uint32_t timeout_ms);
+isc_nm_setadvertisedtimeout(uint32_t timeout_ms);
 /*%<
  * Sets the advertised TCP timeout value (in milliseconds).
  *
@@ -583,8 +566,8 @@ isc_nm_setadvertisedtimeout(isc_nm_t *mgr, uint32_t timeout_ms);
  */
 
 void
-isc_nm_setnetbuffers(isc_nm_t *mgr, int32_t recv_tcp, int32_t send_tcp,
-		     int32_t recv_udp, int32_t send_udp);
+isc_nm_setnetbuffers(int32_t recv_tcp, int32_t send_tcp, int32_t recv_udp,
+		     int32_t send_udp);
 /*%<
  * If not 0, sets the SO_RCVBUF and SO_SNDBUF socket options for TCP and UDP
  * respectively.
@@ -594,9 +577,9 @@ isc_nm_setnetbuffers(isc_nm_t *mgr, int32_t recv_tcp, int32_t send_tcp,
  */
 
 bool
-isc_nm_getloadbalancesockets(isc_nm_t *mgr);
+isc_nm_getloadbalancesockets(void);
 void
-isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled);
+isc_nm_setloadbalancesockets(bool enabled);
 /*%<
  * Get and set value of load balancing of the sockets.
  *
@@ -605,7 +588,7 @@ isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled);
  */
 
 uint32_t
-isc_nm_getinitialtimeout(isc_nm_t *mgr);
+isc_nm_getinitialtimeout(void);
 /*%<
  * Gets the initial TCP timeout value in milliseconds.
  *
@@ -614,7 +597,7 @@ isc_nm_getinitialtimeout(isc_nm_t *mgr);
  */
 
 uint32_t
-isc_nm_getprimariestimeout(isc_nm_t *mgr);
+isc_nm_getprimariestimeout(void);
 /*%<
  * Gets the primary servers connect TCP timeout value in milliseconds.
  *
@@ -623,7 +606,7 @@ isc_nm_getprimariestimeout(isc_nm_t *mgr);
  */
 
 uint32_t
-isc_nm_getidletimeout(isc_nm_t *mgr);
+isc_nm_getidletimeout(void);
 /*%<
  * Gets the idle TCP timeout value in milliseconds.
  *
@@ -632,7 +615,7 @@ isc_nm_getidletimeout(isc_nm_t *mgr);
  */
 
 uint32_t
-isc_nm_getkeepalivetimeout(isc_nm_t *mgr);
+isc_nm_getkeepalivetimeout(void);
 /*%<
  * Gets the keepalive TCP timeout value in milliseconds.
  *
@@ -641,7 +624,7 @@ isc_nm_getkeepalivetimeout(isc_nm_t *mgr);
  */
 
 uint32_t
-isc_nm_getadvertisedtimeout(isc_nm_t *mgr);
+isc_nm_getadvertisedtimeout(void);
 /*%<
  * Gets the advertised TCP timeout value in milliseconds.
  *
@@ -650,14 +633,14 @@ isc_nm_getadvertisedtimeout(isc_nm_t *mgr);
  */
 
 void
-isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp);
+isc_nm_maxudp(uint32_t maxudp);
 /*%<
  * Simulate a broken firewall that blocks UDP messages larger than a given
  * size.
  */
 
 void
-isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats);
+isc_nm_setstats(isc_stats_t *stats);
 /*%<
  * Set a socket statistics counter set 'stats' for 'mgr'.
  *
@@ -679,10 +662,9 @@ isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type);
  */
 
 void
-isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
-			isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
-			unsigned int timeout, isc_tlsctx_t *tlsctx,
-			const char			  *sni_hostname,
+isc_nm_streamdnsconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer,
+			isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
+			isc_tlsctx_t *tlsctx, const char *sni_hostname,
 			isc_tlsctx_client_session_cache_t *client_sess_cache,
 			isc_nm_proxy_type_t		   proxy_type,
 			isc_nm_proxyheader_info_t	  *proxy_info);
@@ -731,13 +713,13 @@ isc_nmhandle_proxy_type(isc_nmhandle_t *handle);
  */
 
 isc_result_t
-isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+isc_nm_listentls(uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 		 isc_quota_t *quota, isc_tlsctx_t *sslctx, bool proxy,
 		 isc_nmsocket_t **sockp);
 
 void
-isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
+isc_nm_tlsconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t connect_cb, void *connect_cbarg,
 		  isc_tlsctx_t *ctx, const char *sni_hostname,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
@@ -749,16 +731,16 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 #define ISC_NM_HTTP_DEFAULT_PATH "/dns-query"
 
 void
-isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
-		   isc_tlsctx_t *ctx, const char *sni_hostname,
+isc_nm_httpconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer, const char *uri,
+		   bool POST, isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
+		   const char			     *sni_hostname,
 		   isc_tlsctx_client_session_cache_t *client_sess_cache,
 		   unsigned int timeout, isc_nm_proxy_type_t proxy_type,
 		   isc_nm_proxyheader_info_t *proxy_info);
 
 isc_result_t
-isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
-		  int backlog, isc_quota_t *quota, isc_tlsctx_t *ctx,
+isc_nm_listenhttp(uint32_t workers, isc_sockaddr_t *iface, int backlog,
+		  isc_quota_t *quota, isc_tlsctx_t *ctx,
 		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
 		  isc_nm_proxy_type_t proxy_type, isc_nmsocket_t **sockp);
 

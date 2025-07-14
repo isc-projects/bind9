@@ -65,7 +65,6 @@ struct ns_interfacemgr {
 	isc_mutex_t lock;
 	isc_mem_t *mctx;   /*%< Memory context */
 	ns_server_t *sctx; /*%< Server context */
-	isc_nm_t *nm;	   /*%< Net manager */
 	uint32_t ncpus;	   /*%< Number of workers */
 	dns_dispatchmgr_t *dispatchmgr;
 	unsigned int generation; /*%< Current generation no */
@@ -266,7 +265,7 @@ route_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 }
 
 isc_result_t
-ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_nm_t *nm,
+ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		       dns_dispatchmgr_t *dispatchmgr,
 		       dns_geoip_databases_t *geoip, ns_interfacemgr_t **mgrp) {
 	isc_result_t result;
@@ -278,7 +277,6 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_nm_t *nm,
 
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
 	*mgr = (ns_interfacemgr_t){
-		.nm = nm,
 		.dispatchmgr = dispatchmgr,
 		.generation = 1,
 		.ncpus = isc_loopmgr_nloops(),
@@ -342,8 +340,7 @@ ns_interfacemgr_routeconnect(ns_interfacemgr_t *mgr) {
 
 	ns_interfacemgr_ref(mgr);
 
-	isc_result_t result = isc_nm_routeconnect(mgr->nm, route_connected,
-						  mgr);
+	isc_result_t result = isc_nm_routeconnect(route_connected, mgr);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
 			      ISC_LOG_INFO, "unable to open route socket: %s",
@@ -477,14 +474,14 @@ ns_interface_listenudp(ns_interface_t *ifp, isc_nm_proxy_type_t proxy) {
 
 	/* Reserve space for an ns_client_t with the netmgr handle */
 	if (proxy == ISC_NM_PROXY_NONE) {
-		result = isc_nm_listenudp(ifp->mgr->nm, ISC_NM_LISTEN_ALL,
-					  &ifp->addr, ns_client_request, ifp,
+		result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &ifp->addr,
+					  ns_client_request, ifp,
 					  &ifp->udplistensocket);
 	} else {
 		INSIST(proxy == ISC_NM_PROXY_PLAIN);
-		result = isc_nm_listenproxyudp(ifp->mgr->nm, ISC_NM_LISTEN_ALL,
-					       &ifp->addr, ns_client_request,
-					       ifp, &ifp->udplistensocket);
+		result = isc_nm_listenproxyudp(ISC_NM_LISTEN_ALL, &ifp->addr,
+					       ns_client_request, ifp,
+					       &ifp->udplistensocket);
 	}
 	return result;
 }
@@ -494,8 +491,8 @@ ns_interface_listentcp(ns_interface_t *ifp, isc_nm_proxy_type_t proxy) {
 	isc_result_t result;
 
 	result = isc_nm_listenstreamdns(
-		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
-		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
+		ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request, ifp,
+		ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, NULL, proxy, &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
@@ -528,8 +525,8 @@ ns_interface_listentls(ns_interface_t *ifp, isc_nm_proxy_type_t proxy,
 	isc_result_t result;
 
 	result = isc_nm_listenstreamdns(
-		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
-		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
+		ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request, ifp,
+		ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, sslctx, proxy,
 		&ifp->tlslistensocket);
 
@@ -591,9 +588,8 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_nm_proxy_type_t proxy,
 		quota = isc_mem_get(ifp->mgr->mctx, sizeof(*quota));
 		isc_quota_init(quota, max_clients);
 		result = isc_nm_listenhttp(
-			ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr,
-			ifp->mgr->backlog, quota, sslctx, epset,
-			max_concurrent_streams, proxy, &sock);
+			ISC_NM_LISTEN_ALL, &ifp->addr, ifp->mgr->backlog, quota,
+			sslctx, epset, max_concurrent_streams, proxy, &sock);
 	}
 
 	isc_nm_http_endpoints_detach(&epset);

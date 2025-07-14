@@ -139,7 +139,6 @@ static atomic_uint_fast32_t nsigned = 0, nretained = 0, ndropped = 0;
 static atomic_uint_fast32_t nverified = 0, nverifyfailed = 0;
 static const char *directory = NULL, *dsdir = NULL;
 static isc_mutex_t namelock;
-static isc_nm_t *netmgr = NULL;
 static dns_db_t *gdb;		  /* The database */
 static dns_dbversion_t *gversion; /* The database version */
 static dns_dbiterator_t *gdbiter; /* The database iterator */
@@ -3636,7 +3635,7 @@ main(int argc, char *argv[]) {
 		directory = ".";
 	}
 
-	isc_managers_create(&mctx, nloops, &netmgr);
+	isc_managers_create(&mctx, nloops);
 
 	setup_logging();
 
@@ -4006,7 +4005,7 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	}
 
-	isc_managers_destroy(&mctx, &netmgr);
+	isc_managers_destroy(&mctx);
 
 	if (printstats) {
 		timer_finish = isc_time_now();

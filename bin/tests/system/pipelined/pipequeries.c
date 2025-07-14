@@ -217,7 +217,6 @@ main(int argc, char *argv[]) {
 	isc_sockaddr_t bind_any;
 	struct in_addr inaddr;
 	isc_result_t result;
-	isc_nm_t *netmgr = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchv4 = NULL;
 	dns_view_t *view = NULL;
@@ -270,9 +269,9 @@ main(int argc, char *argv[]) {
 	}
 	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
-	isc_managers_create(&mctx, 1, &netmgr);
+	isc_managers_create(&mctx, 1);
 
-	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	RUNCHECK(dns_dispatch_createudp(
 		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchv4));
@@ -289,7 +288,7 @@ main(int argc, char *argv[]) {
 
 	isc_loopmgr_run();
 
-	isc_managers_destroy(&mctx, &netmgr);
+	isc_managers_destroy(&mctx);
 
 	return 0;
 }

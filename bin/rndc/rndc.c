@@ -57,8 +57,6 @@
 
 bool verbose;
 
-static isc_nm_t *netmgr = NULL;
-
 static const char *admin_conffile = NULL;
 static const char *admin_keyfile = NULL;
 static const char *version = PACKAGE_VERSION;
@@ -526,8 +524,7 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 		UNREACHABLE();
 	}
 
-	isc_nm_tcpconnect(netmgr, local, addr, rndc_connected, &rndc_ccmsg,
-			  timeout);
+	isc_nm_tcpconnect(local, addr, rndc_connected, &rndc_ccmsg, timeout);
 }
 
 static void
@@ -951,13 +948,13 @@ main(int argc, char **argv) {
 
 	serial = isc_random32();
 
-	isc_managers_create(&rndc_mctx, 1, &netmgr);
+	isc_managers_create(&rndc_mctx, 1);
 	isc_loopmgr_setup(rndc_start, NULL);
 
-	isc_nm_setinitialtimeout(netmgr, timeout);
-	isc_nm_setprimariestimeout(netmgr, timeout);
-	isc_nm_setidletimeout(netmgr, timeout);
-	isc_nm_setkeepalivetimeout(netmgr, timeout);
+	isc_nm_setinitialtimeout(timeout);
+	isc_nm_setprimariestimeout(timeout);
+	isc_nm_setidletimeout(timeout);
+	isc_nm_setkeepalivetimeout(timeout);
 
 	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, isc_commandline_progname);
@@ -1014,7 +1011,7 @@ main(int argc, char **argv) {
 		isc_mem_stats(rndc_mctx, stderr);
 	}
 
-	isc_managers_destroy(&rndc_mctx, &netmgr);
+	isc_managers_destroy(&rndc_mctx);
 
 	if (failed) {
 		return 1;

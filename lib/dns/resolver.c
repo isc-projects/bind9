@@ -551,7 +551,6 @@ struct dns_resolver {
 	isc_mutex_t lock;
 	isc_mutex_t primelock;
 	dns_rdataclass_t rdclass;
-	isc_nm_t *nm;
 	dns_view_t *view;
 	bool frozen;
 	unsigned int options;
@@ -9848,7 +9847,7 @@ spillattimer_countdown(void *arg) {
 }
 
 isc_result_t
-dns_resolver_create(dns_view_t *view, isc_nm_t *nm, unsigned int options,
+dns_resolver_create(dns_view_t *view, unsigned int options,
 		    isc_tlsctx_cache_t *tlsctx_cache,
 		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp) {
@@ -9866,7 +9865,6 @@ dns_resolver_create(dns_view_t *view, isc_nm_t *nm, unsigned int options,
 	res = isc_mem_get(view->mctx, sizeof(*res));
 	*res = (dns_resolver_t){
 		.rdclass = view->rdclass,
-		.nm = nm,
 		.options = options,
 		.tlsctx_cache = tlsctx_cache,
 		.spillatmin = 10,

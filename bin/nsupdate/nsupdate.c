@@ -121,7 +121,6 @@ static bool use_tls = false;
 static bool usevc = false;
 static bool usegsstsig = false;
 static bool local_only = false;
-static isc_nm_t *netmgr = NULL;
 static isc_mem_t *gmctx = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
@@ -907,7 +906,7 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
+	result = dns_dispatchmgr_create(gmctx, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
 	set_source_ports(dispatchmgr);
@@ -3472,7 +3471,7 @@ cleanup(void) {
 	isc_mutex_destroy(&answer_lock);
 
 	ddebug("Shutting down managers");
-	isc_managers_destroy(&gmctx, &netmgr);
+	isc_managers_destroy(&gmctx);
 }
 
 static void
@@ -3521,16 +3520,16 @@ main(int argc, char **argv) {
 
 	pre_parse_args(argc, argv);
 
-	isc_managers_create(&gmctx, 1, &netmgr);
+	isc_managers_create(&gmctx, 1);
 
 	parse_args(argc, argv);
 
 	/* Set the network manager timeouts in milliseconds. */
-	isc_nm_setinitialtimeout(netmgr, timeoutms);
-	isc_nm_setprimariestimeout(netmgr, timeoutms);
-	isc_nm_setidletimeout(netmgr, timeoutms);
-	isc_nm_setkeepalivetimeout(netmgr, timeoutms);
-	isc_nm_setadvertisedtimeout(netmgr, timeoutms);
+	isc_nm_setinitialtimeout(timeoutms);
+	isc_nm_setprimariestimeout(timeoutms);
+	isc_nm_setidletimeout(timeoutms);
+	isc_nm_setkeepalivetimeout(timeoutms);
+	isc_nm_setadvertisedtimeout(timeoutms);
 
 	isc_loopmgr_setup(setup_system, NULL);
 	isc_loopmgr_setup(getinput, NULL);

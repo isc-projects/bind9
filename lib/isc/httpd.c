@@ -226,14 +226,13 @@ static void (*finishhook)(void) = NULL;
 #endif /* ENABLE_AFL */
 
 isc_result_t
-isc_httpdmgr_create(isc_nm_t *nm, isc_mem_t *mctx, isc_sockaddr_t *addr,
+isc_httpdmgr_create(isc_mem_t *mctx, isc_sockaddr_t *addr,
 		    isc_httpdclientok_t *client_ok,
 		    isc_httpdondestroy_t *ondestroy, void *cb_arg,
 		    isc_httpdmgr_t **httpdmgrp) {
 	isc_result_t result;
 	isc_httpdmgr_t *httpdmgr = NULL;
 
-	REQUIRE(nm != NULL);
 	REQUIRE(mctx != NULL);
 	REQUIRE(httpdmgrp != NULL && *httpdmgrp == NULL);
 
@@ -252,8 +251,8 @@ isc_httpdmgr_create(isc_nm_t *nm, isc_mem_t *mctx, isc_sockaddr_t *addr,
 
 	isc_refcount_init(&httpdmgr->references, 1);
 
-	CHECK(isc_nm_listentcp(nm, ISC_NM_LISTEN_ONE, addr, httpd_newconn,
-			       httpdmgr, 5, NULL, &httpdmgr->sock));
+	CHECK(isc_nm_listentcp(ISC_NM_LISTEN_ONE, addr, httpd_newconn, httpdmgr,
+			       5, NULL, &httpdmgr->sock));
 
 	httpdmgr->magic = HTTPDMGR_MAGIC;
 	*httpdmgrp = httpdmgr;

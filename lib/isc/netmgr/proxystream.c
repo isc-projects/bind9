@@ -241,7 +241,7 @@ proxystream_sock_new(isc__networker_t *worker, const isc_nmsocket_type_t type,
 	isc__nmsocket_init(sock, worker, type, addr, NULL);
 	sock->result = ISC_R_UNSET;
 	if (type == isc_nm_proxystreamsocket) {
-		sock->read_timeout = isc_nm_getinitialtimeout(worker->netmgr);
+		sock->read_timeout = isc_nm_getinitialtimeout();
 		sock->client = !is_server;
 		sock->connecting = !is_server;
 		if (is_server) {
@@ -313,15 +313,14 @@ proxystream_accept_cb(isc_nmhandle_t *handle, isc_result_t result,
 }
 
 isc_result_t
-isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+isc_nm_listenproxystream(uint32_t workers, isc_sockaddr_t *iface,
 			 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 			 int backlog, isc_quota_t *quota, isc_tlsctx_t *tlsctx,
 			 isc_nmsocket_t **sockp) {
 	isc_result_t result;
 	isc_nmsocket_t *listener = NULL;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = isc__networker_current();
 
-	REQUIRE(VALID_NM(mgr));
 	REQUIRE(isc_tid() == 0);
 	REQUIRE(sockp != NULL && *sockp == NULL);
 
@@ -335,13 +334,13 @@ isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	listener->accept_cbarg = accept_cbarg;
 
 	if (tlsctx == NULL) {
-		result = isc_nm_listentcp(mgr, workers, iface,
-					  proxystream_accept_cb, listener,
-					  backlog, quota, &listener->outer);
+		result = isc_nm_listentcp(workers, iface, proxystream_accept_cb,
+					  listener, backlog, quota,
+					  &listener->outer);
 	} else {
-		result = isc_nm_listentls(
-			mgr, workers, iface, proxystream_accept_cb, listener,
-			backlog, quota, tlsctx, false, &listener->outer);
+		result = isc_nm_listentls(workers, iface, proxystream_accept_cb,
+					  listener, backlog, quota, tlsctx,
+					  false, &listener->outer);
 	}
 
 	if (result != ISC_R_SUCCESS) {
@@ -455,17 +454,14 @@ error:
 }
 
 void
-isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
-			  isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
-			  unsigned int timeout, isc_tlsctx_t *tlsctx,
-			  const char *sni_hostname,
+isc_nm_proxystreamconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer,
+			  isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
+			  isc_tlsctx_t *tlsctx, const char *sni_hostname,
 			  isc_tlsctx_client_session_cache_t *client_sess_cache,
 			  isc_nm_proxyheader_info_t *proxy_info) {
 	isc_result_t result = ISC_R_FAILURE;
 	isc_nmsocket_t *nsock = NULL;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
-
-	REQUIRE(VALID_NM(mgr));
+	isc__networker_t *worker = isc__networker_current();
 
 	if (isc__nm_closing(worker)) {
 		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
@@ -497,13 +493,12 @@ isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (tlsctx == NULL) {
-		isc_nm_tcpconnect(mgr, local, peer, proxystream_connect_cb,
-				  nsock, nsock->connect_timeout);
+		isc_nm_tcpconnect(local, peer, proxystream_connect_cb, nsock,
+				  nsock->connect_timeout);
 	} else {
-		isc_nm_tlsconnect(mgr, local, peer, proxystream_connect_cb,
-				  nsock, tlsctx, sni_hostname,
-				  client_sess_cache, nsock->connect_timeout,
-				  false, NULL);
+		isc_nm_tlsconnect(local, peer, proxystream_connect_cb, nsock,
+				  tlsctx, sni_hostname, client_sess_cache,
+				  nsock->connect_timeout, false, NULL);
 	}
 }
 

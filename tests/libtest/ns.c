@@ -90,12 +90,12 @@ setup_server(void **state) {
 
 	ns_server_create(mctx, matchview, &sctx);
 
-	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = ns_interfacemgr_create(mctx, sctx, netmgr, dispatchmgr, NULL,
+	result = ns_interfacemgr_create(mctx, sctx, dispatchmgr, NULL,
 					&interfacemgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;

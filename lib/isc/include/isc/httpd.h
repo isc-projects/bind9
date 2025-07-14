@@ -35,7 +35,7 @@ typedef isc_result_t(isc_httpdaction_t)(
 typedef bool(isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
 
 isc_result_t
-isc_httpdmgr_create(isc_nm_t *nm, isc_mem_t *mctx, isc_sockaddr_t *addr,
+isc_httpdmgr_create(isc_mem_t *mctx, isc_sockaddr_t *addr,
 		    isc_httpdclientok_t	 *client_ok,
 		    isc_httpdondestroy_t *ondestroy, void *cb_arg,
 		    isc_httpdmgr_t **httpdmgrp);
