@@ -32,7 +32,6 @@
 #include <dns/name.h>
 #include <dns/types.h>
 
-isc_mem_t *mctx = NULL;
 char jbuf[PATH_MAX];
 
 static void
@@ -55,8 +54,8 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 		return result;
 	}
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, name, dns_dbtype_zone,
-			       dns_rdataclass_in, 0, NULL, db);
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, name,
+			       dns_dbtype_zone, dns_rdataclass_in, 0, NULL, db);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -73,7 +72,7 @@ loadjournal(dns_db_t *db, const char *file) {
 	dns_journal_t *jnl = NULL;
 	isc_result_t result;
 
-	result = dns_journal_open(mctx, file, DNS_JOURNAL_READ, &jnl);
+	result = dns_journal_open(isc_g_mctx, file, DNS_JOURNAL_READ, &jnl);
 	if (result == ISC_R_NOTFOUND) {
 		return ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
@@ -152,7 +151,7 @@ main(int argc, char **argv) {
 		journal = (const char *)jbuf;
 	}
 
-	isc_mem_create(isc_commandline_progname, &mctx);
+	isc_mem_create("default", &isc_g_mctx);
 
 	logconfig = isc_logconfig_get();
 	isc_log_createandusechannel(
@@ -205,7 +204,7 @@ main(int argc, char **argv) {
 		goto cleanup;
 	}
 
-	result = dns_db_diff(mctx, newdb, NULL, olddb, NULL, journal);
+	result = dns_db_diff(isc_g_mctx, newdb, NULL, olddb, NULL, journal);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "Comparison failed: %s\n",
 			isc_result_totext(result));
@@ -219,8 +218,8 @@ cleanup:
 		dns_db_detach(&olddb);
 	}
 
-	if (mctx != NULL) {
-		isc_mem_detach(&mctx);
+	if (isc_g_mctx != NULL) {
+		isc_mem_detach(&isc_g_mctx);
 	}
 
 	return (result != ISC_R_SUCCESS) ? 1 : 0;

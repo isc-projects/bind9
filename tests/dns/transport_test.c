@@ -38,7 +38,7 @@ ISC_RUN_TEST_IMPL(dns_transport_totext) {
 	dns_transport_t *tls = NULL, *http = NULL;
 	dns_transport_list_t *tlist = NULL;
 
-	tlist = dns_transport_list_new(mctx);
+	tlist = dns_transport_list_new(isc_g_mctx);
 	udp = dns_transport_new(dns_rootname, DNS_TRANSPORT_UDP, tlist);
 	tcp = dns_transport_new(dns_rootname, DNS_TRANSPORT_TCP, tlist);
 	tls = dns_transport_new(dns_rootname, DNS_TRANSPORT_TLS, tlist);

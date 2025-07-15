@@ -144,7 +144,7 @@ ISC_RUN_TEST_IMPL(duration) {
 		isc_buffer_add(&buf1, strlen(conf) - 1);
 
 		/* Parse with default line numbering */
-		result = cfg_parser_create(mctx, &p1);
+		result = cfg_parser_create(isc_g_mctx, &p1);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		result = cfg_parse_buffer(p1, &buf1, "text1", 0,

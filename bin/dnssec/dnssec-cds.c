@@ -61,11 +61,6 @@
 #include "dnssectool.h"
 
 /*
- * Infrastructure
- */
-static isc_mem_t *mctx = NULL;
-
-/*
  * The domain we are working on
  */
 static const char *namestr = NULL;
@@ -217,9 +212,9 @@ freelist(dns_rdataset_t *rdataset) {
 
 	ISC_LIST_FOREACH (rdlist->rdata, rdata, link) {
 		ISC_LIST_UNLINK(rdlist->rdata, rdata, link);
-		isc_mem_put(mctx, rdata, sizeof(*rdata));
+		isc_mem_put(isc_g_mctx, rdata, sizeof(*rdata));
 	}
-	isc_mem_put(mctx, rdlist, sizeof(*rdlist));
+	isc_mem_put(isc_g_mctx, rdlist, sizeof(*rdlist));
 	dns_rdataset_disassociate(rdataset);
 }
 
@@ -242,8 +237,8 @@ static void
 load_db(const char *filename, dns_db_t **dbp, dns_dbnode_t **nodep) {
 	isc_result_t result;
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, name, dns_dbtype_zone,
-			       rdclass, 0, NULL, dbp);
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, name,
+			       dns_dbtype_zone, rdclass, 0, NULL, dbp);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*dbp, filename, dns_masterformat_text,
@@ -373,12 +368,12 @@ formatset(dns_rdataset_t *rdataset) {
 	 * eliminates any tab characters.
 	 */
 	result = dns_master_stylecreate(&style, styleflags, 0, 0, 0, 0, 0,
-					1000000, 0, mctx);
+					1000000, 0, isc_g_mctx);
 	check_result(result, "dns_master_stylecreate2 failed");
 
-	isc_buffer_allocate(mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
+	isc_buffer_allocate(isc_g_mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
 	result = dns_master_rdatasettotext(name, rdataset, style, NULL, buf);
-	dns_master_styledestroy(&style, mctx);
+	dns_master_styledestroy(&style, isc_g_mctx);
 
 	if ((result == ISC_R_SUCCESS) && isc_buffer_availablelength(buf) < 1) {
 		result = ISC_R_NOSPACE;
@@ -530,7 +525,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 
 	nkey = dns_rdataset_count(keyset);
 
-	keytable = isc_mem_cget(mctx, nkey, sizeof(keytable[0]));
+	keytable = isc_mem_cget(isc_g_mctx, nkey, sizeof(keytable[0]));
 	ki = keytable;
 
 	DNS_RDATASET_FOREACH (keyset) {
@@ -557,7 +552,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 			continue;
 		}
 
-		result = dns_dnssec_keyfromrdata(name, keyrdata, mctx,
+		result = dns_dnssec_keyfromrdata(name, keyrdata, isc_g_mctx,
 						 &ki->dst);
 		if (result != ISC_R_SUCCESS) {
 			vbprintf(3,
@@ -586,7 +581,7 @@ free_keytable(keyinfo_t **keytable_p) {
 		}
 	}
 
-	isc_mem_cput(mctx, keytable, nkey, sizeof(keytable[0]));
+	isc_mem_cput(isc_g_mctx, keytable, nkey, sizeof(keytable[0]));
 }
 
 /*
@@ -607,7 +602,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 
 	REQUIRE(keytbl != NULL);
 
-	algo = isc_mem_cget(mctx, nkey, sizeof(algo[0]));
+	algo = isc_mem_cget(isc_g_mctx, nkey, sizeof(algo[0]));
 
 	DNS_RDATASET_FOREACH (sigset) {
 		dns_rdata_t sigrdata = DNS_RDATA_INIT;
@@ -642,7 +637,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 			}
 
 			result = dns_dnssec_verify(name, rdataset, ki->dst,
-						   false, mctx, &sigrdata,
+						   false, isc_g_mctx, &sigrdata,
 						   NULL);
 
 			if (result != ISC_R_SUCCESS &&
@@ -688,7 +683,7 @@ signed_loose(dns_secalg_t *algo) {
 			ok = true;
 		}
 	}
-	isc_mem_cput(mctx, algo, nkey, sizeof(algo[0]));
+	isc_mem_cput(isc_g_mctx, algo, nkey, sizeof(algo[0]));
 	return ok;
 }
 
@@ -728,7 +723,7 @@ signed_strict(dns_rdataset_t *dsset, dns_secalg_t *algo) {
 		}
 	}
 
-	isc_mem_cput(mctx, algo, nkey, sizeof(algo[0]));
+	isc_mem_cput(isc_g_mctx, algo, nkey, sizeof(algo[0]));
 	return all_ok;
 }
 
@@ -789,7 +784,7 @@ append_new_ds_set(ds_maker_func_t *ds_from_rdata, isc_buffer_t *buf,
 
 		dns_rdataset_current(crdset, &crdata);
 
-		ds = isc_mem_get(mctx, sizeof(*ds));
+		ds = isc_mem_get(isc_g_mctx, sizeof(*ds));
 		dns_rdata_init(ds);
 
 		result = ds_from_rdata(buf, ds, dt, &crdata);
@@ -799,13 +794,13 @@ append_new_ds_set(ds_maker_func_t *ds_from_rdata, isc_buffer_t *buf,
 			ISC_LIST_APPEND(dslist->rdata, ds, link);
 			break;
 		case ISC_R_IGNORE:
-			isc_mem_put(mctx, ds, sizeof(*ds));
+			isc_mem_put(isc_g_mctx, ds, sizeof(*ds));
 			continue;
 		case ISC_R_NOSPACE:
-			isc_mem_put(mctx, ds, sizeof(*ds));
+			isc_mem_put(isc_g_mctx, ds, sizeof(*ds));
 			return result;
 		default:
-			isc_mem_put(mctx, ds, sizeof(*ds));
+			isc_mem_put(isc_g_mctx, ds, sizeof(*ds));
 			check_result(result, "ds_from_rdata()");
 		}
 	}
@@ -823,7 +818,7 @@ make_new_ds_set(ds_maker_func_t *ds_from_rdata, uint32_t ttl,
 		dns_rdatalist_t *dslist = NULL;
 		size_t n;
 
-		dslist = isc_mem_get(mctx, sizeof(*dslist));
+		dslist = isc_mem_get(isc_g_mctx, sizeof(*dslist));
 		dns_rdatalist_init(dslist);
 		dslist->rdclass = rdclass;
 		dslist->type = dns_rdatatype_ds;
@@ -832,7 +827,7 @@ make_new_ds_set(ds_maker_func_t *ds_from_rdata, uint32_t ttl,
 		dns_rdataset_init(&new_ds_set);
 		dns_rdatalist_tordataset(dslist, &new_ds_set);
 
-		isc_buffer_allocate(mctx, &new_ds_buf, size);
+		isc_buffer_allocate(isc_g_mctx, &new_ds_buf, size);
 
 		n = sizeof(dtype) / sizeof(dtype[0]);
 		for (size_t i = 0; i < n && dtype[i] != 0; i++) {
@@ -881,7 +876,7 @@ consistent_digests(dns_rdataset_t *dsset) {
 
 	n = dns_rdataset_count(dsset);
 
-	arrdata = isc_mem_cget(mctx, n, sizeof(dns_rdata_t));
+	arrdata = isc_mem_cget(isc_g_mctx, n, sizeof(dns_rdata_t));
 
 	DNS_RDATASET_FOREACH (dsset) {
 		dns_rdata_init(&arrdata[i]);
@@ -894,7 +889,7 @@ consistent_digests(dns_rdataset_t *dsset) {
 	/*
 	 * Convert sorted arrdata to more accessible format
 	 */
-	ds = isc_mem_cget(mctx, n, sizeof(dns_rdata_ds_t));
+	ds = isc_mem_cget(isc_g_mctx, n, sizeof(dns_rdata_ds_t));
 
 	for (i = 0; i < n; i++) {
 		result = dns_rdata_tostruct(&arrdata[i], &ds[i], NULL);
@@ -933,8 +928,8 @@ consistent_digests(dns_rdataset_t *dsset) {
 	/*
 	 * Done!
 	 */
-	isc_mem_cput(mctx, ds, n, sizeof(dns_rdata_ds_t));
-	isc_mem_cput(mctx, arrdata, n, sizeof(dns_rdata_t));
+	isc_mem_cput(isc_g_mctx, ds, n, sizeof(dns_rdata_ds_t));
+	isc_mem_cput(isc_g_mctx, arrdata, n, sizeof(dns_rdata_t));
 
 	return match;
 }
@@ -965,8 +960,8 @@ update_diff(const char *cmd, uint32_t ttl, dns_rdataset_t *addset,
 	dns_rdataset_t diffset;
 	uint32_t save;
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, name, dns_dbtype_zone,
-			       rdclass, 0, NULL, &update_db);
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, name,
+			       dns_dbtype_zone, rdclass, 0, NULL, &update_db);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_newversion(update_db, &update_version);
@@ -1057,11 +1052,11 @@ cleanup(void) {
 		free_keytable(&new_key_tbl);
 	}
 	free_all_sets();
-	if (mctx != NULL) {
+	if (isc_g_mctx != NULL) {
 		if (print_mem_stats && verbose > 10) {
-			isc_mem_stats(mctx, stdout);
+			isc_mem_stats(isc_g_mctx, stdout);
 		}
-		isc_mem_detach(&mctx);
+		isc_mem_detach(&isc_g_mctx);
 	}
 }
 
@@ -1080,7 +1075,7 @@ main(int argc, char *argv[]) {
 
 	isc_commandline_init(argc, argv);
 
-	isc_mem_create(isc_commandline_progname, &mctx);
+	isc_mem_create("default", &isc_g_mctx);
 
 	isc_commandline_errprint = false;
 

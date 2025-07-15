@@ -43,7 +43,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	UNUSED(state);
 
 	b = NULL;
-	isc_buffer_allocate(mctx, &b, ISC_BUFFER_INCR);
+	isc_buffer_allocate(isc_g_mctx, &b, ISC_BUFFER_INCR);
 	assert_int_equal(b->length, ISC_BUFFER_INCR);
 
 	/*
@@ -105,7 +105,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_dynamic) {
 	UNUSED(state);
 
 	b = NULL;
-	isc_buffer_allocate(mctx, &b, last_length);
+	isc_buffer_allocate(isc_g_mctx, &b, last_length);
 	assert_non_null(b);
 	assert_int_equal(b->length, last_length);
 
@@ -151,7 +151,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_copyregion) {
 
 	UNUSED(state);
 
-	isc_buffer_allocate(mctx, &b, sizeof(data));
+	isc_buffer_allocate(isc_g_mctx, &b, sizeof(data));
 
 	/*
 	 * Fill originally allocated buffer space.
@@ -182,7 +182,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_printf) {
 	 * Prepare a buffer with auto-reallocation enabled.
 	 */
 	b = NULL;
-	isc_buffer_allocate(mctx, &b, 0);
+	isc_buffer_allocate(isc_g_mctx, &b, 0);
 
 	/*
 	 * Sanity check.

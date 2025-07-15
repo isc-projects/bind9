@@ -115,7 +115,7 @@ create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg, const char *keystr,
 
 	keystruct->common.rdclass = rdclass;
 	keystruct->common.rdtype = dns_rdatatype_dnskey;
-	keystruct->mctx = mctx;
+	keystruct->mctx = isc_g_mctx;
 	keystruct->flags = flags;
 	keystruct->protocol = proto;
 	keystruct->algorithm = alg;
@@ -125,7 +125,7 @@ create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg, const char *keystr,
 			 ISC_R_SUCCESS);
 	isc_buffer_usedregion(&keydatabuf, &r);
 	keystruct->datalen = r.length;
-	keystruct->data = isc_mem_allocate(mctx, r.length);
+	keystruct->data = isc_mem_allocate(isc_g_mctx, r.length);
 	memmove(keystruct->data, r.base, r.length);
 }
 

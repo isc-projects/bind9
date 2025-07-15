@@ -69,6 +69,8 @@ unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 
 volatile void *isc__mem_malloc = mallocx;
 
+isc_mem_t *isc_g_mctx = NULL;
+
 /*
  * Constants.
  */

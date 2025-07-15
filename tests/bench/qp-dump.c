@@ -27,6 +27,7 @@
 #include <dns/types.h>
 
 #include "dns/name.h"
+#include "tests/isc.h"
 
 #include <tests/dns.h>
 #include <tests/qp.h>
@@ -58,7 +59,7 @@ static void
 smallname_from_name(const dns_name_t *name, void **valp, uint32_t *ctxp) {
 	uint8_t labels = dns_name_countlabels(name);
 	size_t size = sizeof(isc_refcount_t) + name->length + labels;
-	*valp = isc_mem_get(mctx, size);
+	*valp = isc_mem_get(isc_g_mctx, size);
 	*ctxp = labels << 8 | name->length;
 	isc_refcount_init(smallname_refcount(*valp, *ctxp), 0);
 	memmove(smallname_ndata(*valp, *ctxp), name->ndata, name->length);
@@ -68,7 +69,7 @@ static void
 smallname_free(void *pval, uint32_t ival) {
 	size_t size = sizeof(isc_refcount_t);
 	size += smallname_length(pval, ival) + smallname_labels(pval, ival);
-	isc_mem_put(mctx, pval, size);
+	isc_mem_put(isc_g_mctx, pval, size);
 }
 
 static void
@@ -161,7 +162,7 @@ main(int argc, char *argv[]) {
 		exit(EXIT_SUCCESS);
 	}
 
-	isc_mem_create("test", &mctx);
+	isc_mem_create("test", &isc_g_mctx);
 
 	filename = argv[0];
 	result = isc_file_getsize(filename, &fileoff);
@@ -172,7 +173,7 @@ main(int argc, char *argv[]) {
 	}
 
 	filesize = (size_t)fileoff;
-	filetext = isc_mem_get(mctx, filesize + 1);
+	filetext = isc_mem_get(isc_g_mctx, filesize + 1);
 	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));
@@ -181,7 +182,7 @@ main(int argc, char *argv[]) {
 	fclose(fp);
 	filetext[filesize] = '\0';
 
-	dns_qp_create(mctx, &methods, NULL, &qp);
+	dns_qp_create(isc_g_mctx, &methods, NULL, &qp);
 
 	pos = filetext;
 	file_end = pos + filesize;
@@ -258,7 +259,7 @@ main(int argc, char *argv[]) {
 		print_megabytes("qp-trie", bytes);
 		print_megabytes("qp-trie + smallnames", bytes + smallbytes);
 		print_megabytes("calculated", bytes + smallbytes + filesize);
-		print_megabytes("allocated", isc_mem_inuse(mctx));
+		print_megabytes("allocated", isc_mem_inuse(isc_g_mctx));
 		printf("%6zu - height\n", qp_test_getheight(qp));
 		printf("%6zu - max key len\n", qp_test_maxkeylen(qp));
 	}

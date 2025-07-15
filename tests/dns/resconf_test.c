@@ -174,7 +174,7 @@ ISC_RUN_TEST_IMPL(irs_resconf_load) {
 		if (debug) {
 			fprintf(stderr, "# testing '%s'\n", tests[i].file);
 		}
-		result = irs_resconf_load(mctx, tests[i].file, &resconf);
+		result = irs_resconf_load(isc_g_mctx, tests[i].file, &resconf);
 		if (result != tests[i].loadres) {
 			fail_msg("# unexpected result %s loading %s",
 				 isc_result_totext(result), tests[i].file);

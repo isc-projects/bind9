@@ -145,7 +145,7 @@ static void
 setup_items(void) {
 	void *pval = NULL;
 	dns_qp_t *qp = NULL;
-	dns_qp_create(mctx, &test_methods, NULL, &qp);
+	dns_qp_create(isc_g_mctx, &test_methods, NULL, &qp);
 	for (size_t i = 0; i < ARRAY_SIZE(item); i++) {
 		do {
 			size_t len = isc_random_uniform(16) + 4;
@@ -355,7 +355,7 @@ many_transactions(void *arg) {
 	UNUSED(arg);
 
 	dns_qpmulti_t *qpm = NULL;
-	dns_qpmulti_create(mctx, &test_methods, NULL, &qpm);
+	dns_qpmulti_create(isc_g_mctx, &test_methods, NULL, &qpm);
 	qpm->writer.write_protect = true;
 
 	for (size_t n = 0; n < TRANSACTION_COUNT; n++) {

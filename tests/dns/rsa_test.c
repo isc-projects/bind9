@@ -137,15 +137,15 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	ret = dst_key_fromfile(name, 29238, DST_ALG_RSASHA256, DST_TYPE_PUBLIC,
-			       TESTS_DIR, mctx, &key);
+			       TESTS_DIR, isc_g_mctx, &key);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	/* RSASHA1 - May not be supported by the OS */
 	if (dst_algorithm_supported(DST_ALG_RSASHA1)) {
 		key->key_alg = DST_ALG_RSASHA1;
 
-		ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-					 false, &ctx);
+		ret = dst_context_create(key, isc_g_mctx,
+					 DNS_LOGCATEGORY_DNSSEC, false, &ctx);
 		assert_int_equal(ret, ISC_R_SUCCESS);
 
 		r.base = d;
@@ -165,7 +165,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 
 	key->key_alg = DST_ALG_RSASHA256;
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
+	ret = dst_context_create(key, isc_g_mctx, DNS_LOGCATEGORY_DNSSEC, false,
 				 &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
@@ -185,7 +185,7 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 
 	key->key_alg = DST_ALG_RSASHA512;
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
+	ret = dst_context_create(key, isc_g_mctx, DNS_LOGCATEGORY_DNSSEC, false,
 				 &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 

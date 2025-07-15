@@ -175,8 +175,7 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 	}
 
 parse_acl:
-	result = cfg_acl_fromconfig(aclobj, config, actx, named_g_mctx, 0,
-				    &acl);
+	result = cfg_acl_fromconfig(aclobj, config, actx, isc_g_mctx, 0, &acl);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

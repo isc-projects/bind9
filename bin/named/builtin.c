@@ -711,10 +711,10 @@ destroy(dns_db_t *db) {
 	isc_refcount_destroy(&bdb->common.references);
 
 	if (bdb->server != NULL) {
-		isc_mem_free(named_g_mctx, bdb->server);
+		isc_mem_free(isc_g_mctx, bdb->server);
 	}
 	if (bdb->contact != NULL) {
-		isc_mem_free(named_g_mctx, bdb->contact);
+		isc_mem_free(isc_g_mctx, bdb->contact);
 	}
 
 	bdb->common.magic = 0;
@@ -1216,8 +1216,8 @@ create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 			goto cleanup;
 		}
 
-		bdb->server = isc_mem_strdup(named_g_mctx, argv[1]);
-		bdb->contact = isc_mem_strdup(named_g_mctx, argv[2]);
+		bdb->server = isc_mem_strdup(isc_g_mctx, argv[1]);
+		bdb->contact = isc_mem_strdup(isc_g_mctx, argv[2]);
 	} else if (argc != 1) {
 		result = DNS_R_SYNTAX;
 		goto cleanup;
@@ -1233,10 +1233,10 @@ create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 cleanup:
 	dns_name_free(&bdb->common.origin, mctx);
 	if (bdb->server != NULL) {
-		isc_mem_free(named_g_mctx, bdb->server);
+		isc_mem_free(isc_g_mctx, bdb->server);
 	}
 	if (bdb->contact != NULL) {
-		isc_mem_free(named_g_mctx, bdb->contact);
+		isc_mem_free(isc_g_mctx, bdb->contact);
 	}
 
 	isc_mem_putanddetach(&bdb->common.mctx, bdb, sizeof(bdb_t));
@@ -1253,13 +1253,13 @@ isc_result_t
 named_builtin_init(void) {
 	isc_result_t result;
 
-	result = dns_db_register("_builtin", create, &builtin, named_g_mctx,
+	result = dns_db_register("_builtin", create, &builtin, isc_g_mctx,
 				 &builtin.dbimp);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
 
-	result = dns_db_register("_dns64", create, &dns64, named_g_mctx,
+	result = dns_db_register("_dns64", create, &dns64, isc_g_mctx,
 				 &dns64.dbimp);
 	if (result != ISC_R_SUCCESS) {
 		dns_db_unregister(&builtin.dbimp);

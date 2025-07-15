@@ -195,7 +195,7 @@ rdatasetstats(void **state ISC_ATTR_UNUSED, bool servestale) {
 	unsigned int from = 0;
 	dns_stats_t *stats = NULL;
 
-	dns_rdatasetstats_create(mctx, &stats);
+	dns_rdatasetstats_create(isc_g_mctx, &stats);
 
 	/* First 255 types. */
 	for (i = 1; i <= 255; i++) {

@@ -55,7 +55,6 @@
 
 #include "dnstap.pb-c.h"
 
-isc_mem_t *mctx = NULL;
 bool memrecord = false;
 bool printmessage = false;
 bool hexmessage = false;
@@ -104,7 +103,7 @@ print_dtdata(dns_dtdata_t *dt) {
 	isc_result_t result;
 	isc_buffer_t *b = NULL;
 
-	isc_buffer_allocate(mctx, &b, 2048);
+	isc_buffer_allocate(isc_g_mctx, &b, 2048);
 	if (b == NULL) {
 		fatal("out of memory");
 	}
@@ -130,7 +129,7 @@ print_hex(dns_dtdata_t *dt) {
 	}
 
 	textlen = (dt->msgdata.length * 2) + 1;
-	isc_buffer_allocate(mctx, &b, textlen);
+	isc_buffer_allocate(isc_g_mctx, &b, textlen);
 	if (b == NULL) {
 		fatal("out of memory");
 	}
@@ -155,7 +154,7 @@ print_packet(dns_dtdata_t *dt, const dns_master_style_t *style) {
 	if (dt->msg != NULL) {
 		size_t textlen = 2048;
 
-		isc_buffer_allocate(mctx, &b, textlen);
+		isc_buffer_allocate(isc_g_mctx, &b, textlen);
 		if (b == NULL) {
 			fatal("out of memory");
 		}
@@ -376,9 +375,9 @@ main(int argc, char *argv[]) {
 		fatal("no file specified");
 	}
 
-	isc_mem_create(isc_commandline_progname, &mctx);
+	isc_mem_create("default", &isc_g_mctx);
 
-	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, mctx, &handle),
+	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, isc_g_mctx, &handle),
 	       "dns_dt_openfile");
 
 	for (;;) {
@@ -396,7 +395,7 @@ main(int argc, char *argv[]) {
 		input.base = data;
 		input.length = datalen;
 
-		result = dns_dt_parse(mctx, &input, &dt);
+		result = dns_dt_parse(isc_g_mctx, &input, &dt);
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}
@@ -426,7 +425,7 @@ cleanup:
 	if (message != NULL) {
 		dns_message_detach(&message);
 	}
-	isc_mem_detach(&mctx);
+	isc_mem_detach(&isc_g_mctx);
 
 	exit(rv);
 }

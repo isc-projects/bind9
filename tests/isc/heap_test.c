@@ -58,7 +58,7 @@ ISC_RUN_TEST_IMPL(isc_heap_delete) {
 
 	UNUSED(state);
 
-	isc_heap_create(mctx, compare, idx, 0, &heap);
+	isc_heap_create(isc_g_mctx, compare, idx, 0, &heap);
 	assert_non_null(heap);
 
 	isc_heap_insert(heap, &e1);

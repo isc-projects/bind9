@@ -52,7 +52,7 @@ smallname_ndata(void *pval, uint32_t ival) {
 static void
 smallname_from_name(const dns_name_t *name, void **valp, uint32_t *ctxp) {
 	size_t size = sizeof(isc_refcount_t) + name->length;
-	*valp = isc_mem_get(mctx, size);
+	*valp = isc_mem_get(isc_g_mctx, size);
 	*ctxp = name->length;
 	isc_refcount_init(smallname_refcount(*valp, *ctxp), 0);
 	memmove(smallname_ndata(*valp, *ctxp), name->ndata, name->length);
@@ -62,7 +62,7 @@ static void
 smallname_free(void *pval, uint32_t ival) {
 	size_t size = sizeof(isc_refcount_t);
 	size += smallname_length(pval, ival);
-	isc_mem_put(mctx, pval, size);
+	isc_mem_put(isc_g_mctx, pval, size);
 }
 
 static void
@@ -133,7 +133,7 @@ load_qp(dns_qp_t *qp, const char *filename) {
 	}
 
 	filesize = (size_t)fileoff;
-	filetext = isc_mem_get(mctx, filesize + 1);
+	filetext = isc_mem_get(isc_g_mctx, filesize + 1);
 	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));
@@ -197,9 +197,9 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create("test", &mctx);
+	isc_mem_create("test", &isc_g_mctx);
 
-	dns_qp_create(mctx, &methods, NULL, &qp);
+	dns_qp_create(isc_g_mctx, &methods, NULL, &qp);
 
 	start = isc_time_monotonic();
 	n = load_qp(qp, argv[1]);
@@ -209,7 +209,7 @@ main(int argc, char **argv) {
 	snprintf(buf, sizeof(buf), "load %zd names:", n);
 	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
-	items = isc_mem_cget(mctx, n, sizeof(dns_fixedname_t));
+	items = isc_mem_cget(isc_g_mctx, n, sizeof(dns_fixedname_t));
 	dns_qpiter_init(qp, &it);
 
 	start = isc_time_monotonic();
@@ -273,6 +273,6 @@ main(int argc, char **argv) {
 		 "look up %zd wrong names (dns_qp_lookup):", n);
 	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
-	isc_mem_cput(mctx, items, n, sizeof(dns_fixedname_t));
+	isc_mem_cput(isc_g_mctx, items, n, sizeof(dns_fixedname_t));
 	return 0;
 }

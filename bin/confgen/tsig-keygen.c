@@ -84,7 +84,6 @@ main(int argc, char **argv) {
 	bool quiet = false;
 	isc_buffer_t key_txtbuffer;
 	char key_txtsecret[256];
-	isc_mem_t *mctx = NULL;
 	const char *keyname = NULL;
 	const char *zone = NULL;
 	const char *self_domain = NULL;
@@ -195,7 +194,7 @@ main(int argc, char **argv) {
 	/* Use canonical algorithm name */
 	algname = dst_hmac_algorithm_totext(alg);
 
-	isc_mem_create(isc_commandline_progname, &mctx);
+	isc_mem_create("default", &isc_g_mctx);
 
 	if (keyname == NULL) {
 		const char *suffix = NULL;
@@ -209,7 +208,7 @@ main(int argc, char **argv) {
 		}
 		if (suffix != NULL) {
 			len = strlen(keyname) + strlen(suffix) + 2;
-			keybuf = isc_mem_get(mctx, len);
+			keybuf = isc_mem_get(isc_g_mctx, len);
 			snprintf(keybuf, len, "%s.%s", keyname, suffix);
 			keyname = (const char *)keybuf;
 		}
@@ -217,7 +216,7 @@ main(int argc, char **argv) {
 
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
-	generate_key(mctx, alg, keysize, &key_txtbuffer);
+	generate_key(isc_g_mctx, alg, keysize, &key_txtbuffer);
 
 	if (!quiet) {
 		printf("\
@@ -272,14 +271,14 @@ nsupdate -k <keyfile>\n");
 	}
 
 	if (keybuf != NULL) {
-		isc_mem_put(mctx, keybuf, len);
+		isc_mem_put(isc_g_mctx, keybuf, len);
 	}
 
 	if (show_final_mem) {
-		isc_mem_stats(mctx, stderr);
+		isc_mem_stats(isc_g_mctx, stderr);
 	}
 
-	isc_mem_detach(&mctx);
+	isc_mem_detach(&isc_g_mctx);
 
 	return 0;
 }

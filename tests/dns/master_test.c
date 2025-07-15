@@ -151,7 +151,7 @@ test_master(const char *workdir, const char *testfile,
 
 	result = dns_master_loadfile(testfile, dns_origin, dns_origin,
 				     dns_rdataclass_in, true, 0, &callbacks,
-				     NULL, NULL, mctx, format, 0);
+				     NULL, NULL, isc_g_mctx, format, 0);
 
 	return result;
 }
@@ -159,7 +159,7 @@ test_master(const char *workdir, const char *testfile,
 static void
 include_callback(const char *filename, void *arg) {
 	char **argp = (char **)arg;
-	*argp = isc_mem_strdup(mctx, filename);
+	*argp = isc_mem_strdup(isc_g_mctx, filename);
 }
 
 /*
@@ -327,12 +327,13 @@ ISC_RUN_TEST_IMPL(master_includelist) {
 	result = dns_master_loadfile(TESTS_DIR "/testdata/master/master8.data",
 				     dns_origin, dns_origin, dns_rdataclass_in,
 				     0, true, &callbacks, include_callback,
-				     &filename, mctx, dns_masterformat_text, 0);
+				     &filename, isc_g_mctx,
+				     dns_masterformat_text, 0);
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 	assert_non_null(filename);
 	if (filename != NULL) {
 		assert_string_equal(filename, "testdata/master/master6.data");
-		isc_mem_free(mctx, filename);
+		isc_mem_free(isc_g_mctx, filename);
 	}
 }
 
@@ -458,7 +459,7 @@ ISC_RUN_TEST_IMPL(dumpraw) {
 	result = setup_master(nullmsg, nullmsg);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_origin,
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, dns_origin,
 			       dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -475,8 +476,9 @@ ISC_RUN_TEST_IMPL(dumpraw) {
 
 	dns_db_currentversion(db, &version);
 
-	result = dns_master_dump(mctx, db, version, &dns_master_style_default,
-				 "test.dump", dns_masterformat_raw, NULL);
+	result = dns_master_dump(isc_g_mctx, db, version,
+				 &dns_master_style_default, "test.dump",
+				 dns_masterformat_raw, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = test_master(NULL, "test.dump", dns_masterformat_raw, nullmsg,
@@ -490,8 +492,9 @@ ISC_RUN_TEST_IMPL(dumpraw) {
 	header.flags |= DNS_MASTERRAW_SOURCESERIALSET;
 
 	unlink("test.dump");
-	result = dns_master_dump(mctx, db, version, &dns_master_style_default,
-				 "test.dump", dns_masterformat_raw, &header);
+	result = dns_master_dump(isc_g_mctx, db, version,
+				 &dns_master_style_default, "test.dump",
+				 dns_masterformat_raw, &header);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = test_master(NULL, "test.dump", dns_masterformat_raw, nullmsg,

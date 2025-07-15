@@ -71,7 +71,7 @@ prepare_rdata(dns_rdata_t *rdata, unsigned char *dest, size_t dest_size) {
 
 ISC_RUN_TEST_IMPL(dns_diff_size) {
 	dns_diff_t diff;
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(isc_g_mctx, &diff);
 
 	assert_true(dns_diff_size(&diff) == 0);
 
@@ -84,18 +84,18 @@ ISC_RUN_TEST_IMPL(dns_diff_size) {
 	}
 
 	dns_difftuple_t *tup_1 = NULL, *tup_2 = NULL, *tup_3 = NULL;
-	dns_difftuple_create(mctx, DNS_DIFFOP_ADD, &name_1, 1, &rdatas[0],
+	dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_ADD, &name_1, 1, &rdatas[0],
 			     &tup_1);
-	dns_difftuple_create(mctx, DNS_DIFFOP_DEL, &name_2, 1, &rdatas[1],
+	dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_DEL, &name_2, 1, &rdatas[1],
 			     &tup_2);
-	dns_difftuple_create(mctx, DNS_DIFFOP_DEL, &name_3, 1, &rdatas[2],
+	dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_DEL, &name_3, 1, &rdatas[2],
 			     &tup_3);
 
 	dns_difftuple_t *tup_dup = NULL, *tup_nodup = NULL;
-	dns_difftuple_create(mctx, DNS_DIFFOP_DEL, &name_dup, 1, &rdatas[3],
-			     &tup_dup);
-	dns_difftuple_create(mctx, DNS_DIFFOP_ADD, &name_nodup, 1, &rdatas[4],
-			     &tup_nodup);
+	dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_DEL, &name_dup, 1,
+			     &rdatas[3], &tup_dup);
+	dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_ADD, &name_nodup, 1,
+			     &rdatas[4], &tup_nodup);
 
 	dns_diff_append(&diff, &tup_1);
 	assert_true(dns_diff_size(&diff) == 1);

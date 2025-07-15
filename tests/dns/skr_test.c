@@ -109,7 +109,8 @@ static void
 print_rdata(FILE *fp, dns_rdata_t *rdata) {
 	dns_rdataset_t rrset = DNS_RDATASET_INIT;
 
-	dns_rdatalist_t *rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
+	dns_rdatalist_t *rdatalist = isc_mem_get(isc_g_mctx,
+						 sizeof(*rdatalist));
 	dns_rdatalist_init(rdatalist);
 	rdatalist->rdclass = dns_rdataclass_in;
 	rdatalist->type = rdata->type;
@@ -132,7 +133,7 @@ print_rdata(FILE *fp, dns_rdata_t *rdata) {
 	ISC_LIST_FOREACH (rdatalist->rdata, rd, link) {
 		ISC_LIST_UNLINK(rdatalist->rdata, rdata, link);
 	}
-	isc_mem_put(mctx, rdatalist, sizeof(*rdatalist));
+	isc_mem_put(isc_g_mctx, rdatalist, sizeof(*rdatalist));
 }
 
 static void
@@ -145,7 +146,7 @@ sign_rrset(FILE *fp, isc_stdtime_t inception, isc_stdtime_t expiration,
 
 	isc_buffer_init(&target, target_mem, 1024);
 	ret = dns_dnssec_sign(dname, rrset, ksk->key, &clockskew, &expiration,
-			      mctx, &target, rrsig);
+			      isc_g_mctx, &target, rrsig);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	print_rdata(fp, rrsig);
@@ -165,7 +166,7 @@ write_record(FILE *fp, dns_rdatatype_t rdtype, const char *rdatastr,
 	isc_buffer_add(&source, strlen(rdatastr));
 
 	/* Create a lexer as one is required by dns_rdata_fromtext(). */
-	isc_lex_create(mctx, 64, &lex);
+	isc_lex_create(isc_g_mctx, 64, &lex);
 	specials[0] = 1;
 	specials['('] = 1;
 	specials[')'] = 1;
@@ -176,7 +177,7 @@ write_record(FILE *fp, dns_rdatatype_t rdtype, const char *rdatastr,
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	ret = dns_rdata_fromtext(rdata, dns_rdataclass_in, rdtype, lex, dname,
-				 0, mctx, &target, NULL);
+				 0, isc_g_mctx, &target, NULL);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	print_rdata(fp, rdata);
@@ -226,8 +227,8 @@ create_bundle(FILE *fp, isc_stdtime_t btime, int bnum) {
 			     &test_bundles[bnum].zsk2);
 	}
 	/* Create the DNSKEY signature. */
-	dnskeylist = isc_mem_get(mctx, sizeof(*dnskeylist));
-	dnskeyset = isc_mem_get(mctx, sizeof(*dnskeyset));
+	dnskeylist = isc_mem_get(isc_g_mctx, sizeof(*dnskeylist));
+	dnskeyset = isc_mem_get(isc_g_mctx, sizeof(*dnskeyset));
 	dns_rdatalist_init(dnskeylist);
 	dns_rdataset_init(dnskeyset);
 	dnskeylist->rdclass = dns_rdataclass_in;
@@ -242,8 +243,8 @@ create_bundle(FILE *fp, isc_stdtime_t btime, int bnum) {
 	ISC_LIST_FOREACH (dnskeylist->rdata, rd, link) {
 		ISC_LIST_UNLINK(dnskeylist->rdata, rd, link);
 	}
-	isc_mem_put(mctx, dnskeylist, sizeof(*dnskeylist));
-	isc_mem_put(mctx, dnskeyset, sizeof(*dnskeyset));
+	isc_mem_put(isc_g_mctx, dnskeylist, sizeof(*dnskeylist));
+	isc_mem_put(isc_g_mctx, dnskeyset, sizeof(*dnskeyset));
 
 	/* CDNSKEY */
 	dns_rdata_init(&test_bundles[bnum].cdnskey);
@@ -251,8 +252,8 @@ create_bundle(FILE *fp, isc_stdtime_t btime, int bnum) {
 		     test_bundles[bnum].cdnskeybuf,
 		     &test_bundles[bnum].cdnskey);
 
-	cdnskeylist = isc_mem_get(mctx, sizeof(*cdnskeylist));
-	cdnskeyset = isc_mem_get(mctx, sizeof(*cdnskeyset));
+	cdnskeylist = isc_mem_get(isc_g_mctx, sizeof(*cdnskeylist));
+	cdnskeyset = isc_mem_get(isc_g_mctx, sizeof(*cdnskeyset));
 	dns_rdatalist_init(cdnskeylist);
 	dns_rdataset_init(cdnskeyset);
 	cdnskeylist->rdclass = dns_rdataclass_in;
@@ -267,16 +268,16 @@ create_bundle(FILE *fp, isc_stdtime_t btime, int bnum) {
 	ISC_LIST_FOREACH (cdnskeylist->rdata, rd, link) {
 		ISC_LIST_UNLINK(cdnskeylist->rdata, rd, link);
 	}
-	isc_mem_put(mctx, cdnskeylist, sizeof(*cdnskeylist));
-	isc_mem_put(mctx, cdnskeyset, sizeof(*cdnskeyset));
+	isc_mem_put(isc_g_mctx, cdnskeylist, sizeof(*cdnskeylist));
+	isc_mem_put(isc_g_mctx, cdnskeyset, sizeof(*cdnskeyset));
 
 	/* CDS */
 	dns_rdata_init(&test_bundles[bnum].cds);
 	write_record(fp, dns_rdatatype_cds, cdsstr, test_bundles[bnum].cdsbuf,
 		     &test_bundles[bnum].cds);
 
-	cdslist = isc_mem_get(mctx, sizeof(*cdslist));
-	cdsset = isc_mem_get(mctx, sizeof(*cdsset));
+	cdslist = isc_mem_get(isc_g_mctx, sizeof(*cdslist));
+	cdsset = isc_mem_get(isc_g_mctx, sizeof(*cdsset));
 	dns_rdatalist_init(cdslist);
 	dns_rdataset_init(cdsset);
 	cdslist->rdclass = dns_rdataclass_in;
@@ -290,8 +291,8 @@ create_bundle(FILE *fp, isc_stdtime_t btime, int bnum) {
 	ISC_LIST_FOREACH (cdslist->rdata, rd, link) {
 		ISC_LIST_UNLINK(cdslist->rdata, rd, link);
 	}
-	isc_mem_put(mctx, cdslist, sizeof(*cdslist));
-	isc_mem_put(mctx, cdsset, sizeof(*cdsset));
+	isc_mem_put(isc_g_mctx, cdslist, sizeof(*cdslist));
+	isc_mem_put(isc_g_mctx, cdsset, sizeof(*cdsset));
 
 	/* Signature times. */
 	test_bundles[bnum].btime = btime;
@@ -405,7 +406,7 @@ create_skr_file(void) {
 
 	/* Set up output file */
 	tempfilelen = strlen(TESTS_DIR "/testdata/skr/") + 20;
-	tempfile = isc_mem_get(mctx, tempfilelen);
+	tempfile = isc_mem_get(isc_g_mctx, tempfilelen);
 	ret = isc_file_mktemplate(testskr, tempfile, tempfilelen);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 	ret = isc_file_openunique(tempfile, &outfp);
@@ -425,7 +426,7 @@ create_skr_file(void) {
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	isc_file_remove(tempfile);
-	isc_mem_put(mctx, tempfile, tempfilelen);
+	isc_mem_put(isc_g_mctx, tempfile, tempfilelen);
 }
 
 ISC_RUN_TEST_IMPL(skr_read) {
@@ -445,15 +446,16 @@ ISC_RUN_TEST_IMPL(skr_read) {
 
 	/* Get the KSK */
 	ISC_LIST_INIT(keys);
-	result = dns_dnssec_findmatchingkeys(
-		dname, NULL, TESTS_DIR "/testdata/skr/", NULL, 0, mctx, &keys);
+	result = dns_dnssec_findmatchingkeys(dname, NULL,
+					     TESTS_DIR "/testdata/skr/", NULL,
+					     0, isc_g_mctx, &keys);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Create/read the SKR file */
 	create_skr_file();
-	dns_skr_create(mctx, testskr, dname, dns_rdataclass_in, &skr);
-	result = dns_skr_read(mctx, testskr, dname, dns_rdataclass_in, TTL,
-			      &skr);
+	dns_skr_create(isc_g_mctx, testskr, dname, dns_rdataclass_in, &skr);
+	result = dns_skr_read(isc_g_mctx, testskr, dname, dns_rdataclass_in,
+			      TTL, &skr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_file_remove(testskr);
@@ -482,7 +484,7 @@ ISC_RUN_TEST_IMPL(skr_read) {
 		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys);
 		ISC_LIST_UNLINK(keys, key, link);
 		dst_key_free(&key->key);
-		dns_dnsseckey_destroy(mctx, &key);
+		dns_dnsseckey_destroy(isc_g_mctx, &key);
 	}
 }
 

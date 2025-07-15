@@ -48,7 +48,6 @@
 #define NAMED_RUN_PID_DIR 1
 #endif /* ifndef NAMED_RUN_PID_DIR */
 
-EXTERN isc_mem_t *named_g_mctx		      INIT(NULL);
 EXTERN unsigned int named_g_cpus	      INIT(0);
 EXTERN bool named_g_loopmgr_running	      INIT(false);
 EXTERN dns_dispatchmgr_t *named_g_dispatchmgr INIT(NULL);

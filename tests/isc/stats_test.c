@@ -34,7 +34,7 @@
 ISC_RUN_TEST_IMPL(isc_stats_basic) {
 	isc_stats_t *stats = NULL;
 
-	isc_stats_create(mctx, &stats, 4);
+	isc_stats_create(isc_g_mctx, &stats, 4);
 	assert_int_equal(isc_stats_ncounters(stats), 4);
 
 	/* Default all 0. */

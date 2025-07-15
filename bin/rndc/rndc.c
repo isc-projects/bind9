@@ -73,7 +73,6 @@ static uint32_t algorithm;
 static isccc_region_t secret;
 static bool failed = false;
 static bool c_flag = false;
-static isc_mem_t *rndc_mctx = NULL;
 static char *command = NULL;
 static char *args = NULL;
 static uint32_t serial;
@@ -495,7 +494,7 @@ rndc_connected(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	r.length = databuf->used;
 
 	/* isccc_ccmsg_init() attaches to the handle */
-	isccc_ccmsg_init(rndc_mctx, handle, ccmsg);
+	isccc_ccmsg_init(isc_g_mctx, handle, ccmsg);
 	isccc_ccmsg_setmaxsize(ccmsg, 1024 * 1024);
 
 	isccc_ccmsg_readmessage(ccmsg, rndc_recvnonce, ccmsg);
@@ -948,7 +947,7 @@ main(int argc, char **argv) {
 
 	serial = isc_random32();
 
-	isc_managers_create(&rndc_mctx, 1);
+	isc_managers_create(1);
 	isc_loopmgr_setup(rndc_start, NULL);
 
 	isc_nm_setinitialtimeout(timeout);
@@ -964,9 +963,9 @@ main(int argc, char **argv) {
 		ISC_LOG_PRINTTAG | ISC_LOG_PRINTLEVEL, ISC_LOGCATEGORY_DEFAULT,
 		ISC_LOGMODULE_DEFAULT);
 
-	parse_config(rndc_mctx, keyname, &pctx, &config);
+	parse_config(isc_g_mctx, keyname, &pctx, &config);
 
-	isc_buffer_allocate(rndc_mctx, &databuf, 2048);
+	isc_buffer_allocate(isc_g_mctx, &databuf, 2048);
 
 	/*
 	 * Convert argc/argv into a space-delimited command string
@@ -978,7 +977,7 @@ main(int argc, char **argv) {
 		argslen += strlen(argv[i]) + 1;
 	}
 
-	args = isc_mem_get(rndc_mctx, argslen);
+	args = isc_mem_get(isc_g_mctx, argslen);
 
 	p = args;
 	for (i = 0; i < argc; i++) {
@@ -1003,15 +1002,15 @@ main(int argc, char **argv) {
 	cfg_obj_destroy(pctx, &config);
 	cfg_parser_destroy(&pctx);
 
-	isc_mem_put(rndc_mctx, args, argslen);
+	isc_mem_put(isc_g_mctx, args, argslen);
 
 	isc_buffer_free(&databuf);
 
 	if (show_final_mem) {
-		isc_mem_stats(rndc_mctx, stderr);
+		isc_mem_stats(isc_g_mctx, stderr);
 	}
 
-	isc_managers_destroy(&rndc_mctx);
+	isc_managers_destroy();
 
 	if (failed) {
 		return 1;

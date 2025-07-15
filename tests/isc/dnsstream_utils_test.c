@@ -41,7 +41,7 @@
 static int
 setup_test_dnsbuf(void **state) {
 	isc_buffer_t **pdnsbuf = (isc_buffer_t **)state;
-	isc_buffer_allocate(mctx, pdnsbuf, STATIC_BUFFER_SIZE);
+	isc_buffer_allocate(isc_g_mctx, pdnsbuf, STATIC_BUFFER_SIZE);
 
 	return 0;
 }
@@ -68,7 +68,7 @@ static int
 setup_test_dnsasm(void **state) {
 	isc_dnsstream_assembler_t **pdnsasm =
 		(isc_dnsstream_assembler_t **)state;
-	*pdnsasm = isc_dnsstream_assembler_new(mctx, dnsasm_dummy, NULL);
+	*pdnsasm = isc_dnsstream_assembler_new(isc_g_mctx, dnsasm_dummy, NULL);
 
 	return 0;
 }
@@ -382,7 +382,7 @@ ISC_RUN_TEST_IMPL(dnsasm_multiple_messages_test) {
 	size_t verified = 0;
 
 	isc_buffer_init(&dnsbuf, NULL, 0);
-	isc_buffer_setmctx(&dnsbuf, mctx);
+	isc_buffer_setmctx(&dnsbuf, isc_g_mctx);
 	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
 	isc_buffer_putmem(&dnsbuf, (void *)response, sizeof(response));
 	isc_buffer_putmem(&dnsbuf, (void *)request_large,
@@ -464,7 +464,7 @@ ISC_RUN_TEST_IMPL(dnsasm_error_data_test) {
 	uint16_t bad_data = 0;
 
 	isc_buffer_init(&dnsbuf, NULL, 0);
-	isc_buffer_setmctx(&dnsbuf, mctx);
+	isc_buffer_setmctx(&dnsbuf, isc_g_mctx);
 
 	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
 	isc_buffer_putmem(&dnsbuf, (void *)&bad_data, sizeof(bad_data));
@@ -518,7 +518,7 @@ ISC_RUN_TEST_IMPL(dnsasm_torn_randomly_test) {
 	const size_t npackets = sizeof(packets) / sizeof(packets[0]);
 
 	isc_buffer_init(&dnsbuf, NULL, 0);
-	isc_buffer_setmctx(&dnsbuf, mctx);
+	isc_buffer_setmctx(&dnsbuf, isc_g_mctx);
 
 	for (size_t i = 0; i < npackets; i++) {
 		isc_buffer_putmem(&dnsbuf, packets[i].base, packets[i].length);
@@ -600,7 +600,7 @@ ISC_RUN_TEST_IMPL(dnsasm_clear_buffer_within_cb_test) {
 	isc_buffer_t dnsbuf;
 
 	isc_buffer_init(&dnsbuf, NULL, 0);
-	isc_buffer_setmctx(&dnsbuf, mctx);
+	isc_buffer_setmctx(&dnsbuf, isc_g_mctx);
 
 	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
 	isc_buffer_putmem(&dnsbuf, (void *)&response, sizeof(response));

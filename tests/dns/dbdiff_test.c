@@ -61,7 +61,7 @@ ISC_RUN_TEST_IMPL(diffx_same) {
 	test_create(TESTS_DIR "/testdata/diff/zone1.data", &olddb,
 		    TESTS_DIR "/testdata/diff/zone1.data", &newdb);
 
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(isc_g_mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -85,7 +85,7 @@ ISC_RUN_TEST_IMPL(diffx_add) {
 	test_create(TESTS_DIR "/testdata/diff/zone1.data", &olddb,
 		    TESTS_DIR "/testdata/diff/zone2.data", &newdb);
 
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(isc_g_mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -114,7 +114,7 @@ ISC_RUN_TEST_IMPL(diffx_remove) {
 	test_create(TESTS_DIR "/testdata/diff/zone1.data", &olddb,
 		    TESTS_DIR "/testdata/diff/zone3.data", &newdb);
 
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(isc_g_mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);

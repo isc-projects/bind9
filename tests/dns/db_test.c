@@ -47,7 +47,7 @@ ISC_LOOP_TEST_IMPL(getoriginnode) {
 	dns_dbnode_t *node = NULL;
 	isc_result_t result;
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -70,7 +70,7 @@ ISC_LOOP_TEST_IMPL(getsetservestalettl) {
 	isc_result_t result;
 	dns_ttl_t ttl;
 
-	result = dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(isc_g_mctx, CACHEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -108,7 +108,7 @@ ISC_LOOP_TEST_IMPL(dns_dbfind_staleok) {
 	isc_result_t result;
 	unsigned char data[] = { 0x0a, 0x00, 0x00, 0x01 };
 
-	result = dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(isc_g_mctx, CACHEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -247,7 +247,7 @@ ISC_LOOP_TEST_IMPL(class) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -268,7 +268,7 @@ ISC_LOOP_TEST_IMPL(dbtype) {
 	dns_db_t *db = NULL;
 
 	/* DB has zone semantics */
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -280,7 +280,7 @@ ISC_LOOP_TEST_IMPL(dbtype) {
 	dns_db_detach(&db);
 
 	/* DB has cache semantics */
-	result = dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(isc_g_mctx, CACHEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);

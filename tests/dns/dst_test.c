@@ -63,7 +63,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 	result = isc_file_getsizefd(fileno(fp), &size);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	data = isc_mem_get(mctx, size + 1);
+	data = isc_mem_get(isc_g_mctx, size + 1);
 	assert_non_null(data);
 
 	len = (size_t)size;
@@ -113,7 +113,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 	result = ISC_R_SUCCESS;
 
 err:
-	isc_mem_put(mctx, data, size + 1);
+	isc_mem_put(isc_g_mctx, data, size + 1);
 	return result;
 }
 
@@ -144,7 +144,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	result = isc_file_getsizefd(fileno(fp), &size);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	data = isc_mem_get(mctx, size + 1);
+	data = isc_mem_get(isc_g_mctx, size + 1);
 	assert_non_null(data);
 
 	p = data;
@@ -166,7 +166,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	result = dns_name_fromtext(name, &b, dns_rootname, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_fromfile(name, id, alg, type,
-				  TESTS_DIR "/testdata/dst", mctx, &key);
+				  TESTS_DIR "/testdata/dst", isc_g_mctx, &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&databuf, data, (unsigned int)size);
@@ -187,8 +187,8 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	 */
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
 
-	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL, false,
-				    &ctx);
+	result = dst_context_create(key, isc_g_mctx, DNS_LOGCATEGORY_GENERAL,
+				    false, &ctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dst_context_adddata(ctx, &datareg);
@@ -205,8 +205,8 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 		isc_result_t result2;
 
 		dst_context_destroy(&ctx);
-		result2 = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL,
-					     false, &ctx);
+		result2 = dst_context_create(
+			key, isc_g_mctx, DNS_LOGCATEGORY_GENERAL, false, &ctx);
 		assert_int_equal(result2, ISC_R_SUCCESS);
 
 		result2 = dst_context_adddata(ctx, &datareg);
@@ -231,7 +231,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 		fprintf(stderr, "# %s:\n# %s\n", sigpath, hexbuf);
 	}
 
-	isc_mem_put(mctx, data, size + 1);
+	isc_mem_put(isc_g_mctx, data, size + 1);
 	dst_context_destroy(&ctx);
 	dst_key_free(&key);
 
@@ -301,7 +301,7 @@ check_cmp(const char *key1_name, dns_keytag_t key1_id, const char *key2_name,
 	result = dns_name_fromtext(name1, &b1, dns_rootname, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_fromfile(name1, key1_id, alg, type,
-				  TESTS_DIR "/comparekeys", mctx, &key1);
+				  TESTS_DIR "/comparekeys", isc_g_mctx, &key1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -313,7 +313,7 @@ check_cmp(const char *key1_name, dns_keytag_t key1_id, const char *key2_name,
 	result = dns_name_fromtext(name2, &b2, dns_rootname, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_fromfile(name2, key2_id, alg, type,
-				  TESTS_DIR "/comparekeys", mctx, &key2);
+				  TESTS_DIR "/comparekeys", isc_g_mctx, &key2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -449,22 +449,22 @@ ISC_RUN_TEST_IMPL(ecdsa_determinism_test) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_fromfile(name, 19786, DST_ALG_ECDSA256,
 				  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
-				  TESTS_DIR "/comparekeys", mctx, &key);
+				  TESTS_DIR "/comparekeys", isc_g_mctx, &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_sigsize(key, &siglen);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_buffer_allocate(mctx, &sigbuf1, siglen);
-	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL, true,
-				    &ctx);
+	isc_buffer_allocate(isc_g_mctx, &sigbuf1, siglen);
+	result = dst_context_create(key, isc_g_mctx, DNS_LOGCATEGORY_GENERAL,
+				    true, &ctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_context_sign(ctx, sigbuf1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dst_context_destroy(&ctx);
 
-	isc_buffer_allocate(mctx, &sigbuf2, siglen);
-	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL, true,
-				    &ctx);
+	isc_buffer_allocate(isc_g_mctx, &sigbuf2, siglen);
+	result = dst_context_create(key, isc_g_mctx, DNS_LOGCATEGORY_GENERAL,
+				    true, &ctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_context_sign(ctx, sigbuf2);
 	assert_int_equal(result, ISC_R_SUCCESS);

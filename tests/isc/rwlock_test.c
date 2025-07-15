@@ -72,7 +72,7 @@ setup_env(void **unused __attribute__((__unused__))) {
 	}
 	assert_int_not_equal(delay_loop, 0);
 
-	rnd = isc_mem_cget(mctx, loops, sizeof(rnd[0]));
+	rnd = isc_mem_cget(isc_g_mctx, loops, sizeof(rnd[0]));
 	for (size_t i = 0; i < loops; i++) {
 		rnd[i] = (uint8_t)isc_random_uniform(100);
 	}
@@ -82,7 +82,7 @@ setup_env(void **unused __attribute__((__unused__))) {
 
 static int
 teardown_env(void **state __attribute__((__unused__))) {
-	isc_mem_cput(mctx, rnd, loops, sizeof(rnd[0]));
+	isc_mem_cput(isc_g_mctx, rnd, loops, sizeof(rnd[0]));
 
 	return 0;
 }
@@ -326,7 +326,8 @@ isc__rwlock_benchmark(isc_thread_t *threads, unsigned int nthreads,
 }
 
 ISC_RUN_TEST_IMPL(isc_rwlock_benchmark) {
-	isc_thread_t *threads = isc_mem_cget(mctx, workers, sizeof(*threads));
+	isc_thread_t *threads = isc_mem_cget(isc_g_mctx, workers,
+					     sizeof(*threads));
 
 	memset(threads, 0, sizeof(*threads) * workers);
 
@@ -340,7 +341,7 @@ ISC_RUN_TEST_IMPL(isc_rwlock_benchmark) {
 		isc__rwlock_benchmark(threads, nthreads, 100);
 	}
 
-	isc_mem_cput(mctx, threads, workers, sizeof(*threads));
+	isc_mem_cput(isc_g_mctx, threads, workers, sizeof(*threads));
 }
 
 ISC_TEST_LIST_START

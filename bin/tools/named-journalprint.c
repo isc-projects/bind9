@@ -47,7 +47,6 @@ setup_logging(FILE *errout) {
 int
 main(int argc, char **argv) {
 	char *file;
-	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	uint32_t flags = 0U;
 	int ch;
@@ -92,24 +91,25 @@ main(int argc, char **argv) {
 	}
 	file = argv[0];
 
-	isc_mem_create(isc_commandline_progname, &mctx);
+	isc_mem_create("default", &isc_g_mctx);
 	setup_logging(stderr);
 
 	if (upgrade) {
 		flags = DNS_JOURNAL_COMPACTALL;
-		result = dns_journal_compact(mctx, file, 0, flags, 0);
+		result = dns_journal_compact(isc_g_mctx, file, 0, flags, 0);
 	} else if (downgrade) {
 		flags = DNS_JOURNAL_COMPACTALL | DNS_JOURNAL_VERSION1;
-		result = dns_journal_compact(mctx, file, 0, flags, 0);
+		result = dns_journal_compact(isc_g_mctx, file, 0, flags, 0);
 	} else if (compact) {
 		flags = 0;
-		result = dns_journal_compact(mctx, file, serial, flags, 0);
+		result = dns_journal_compact(isc_g_mctx, file, serial, flags,
+					     0);
 	} else {
-		result = dns_journal_print(mctx, flags, file, stdout);
+		result = dns_journal_print(isc_g_mctx, flags, file, stdout);
 		if (result == DNS_R_NOJOURNAL) {
 			fprintf(stderr, "%s\n", isc_result_totext(result));
 		}
 	}
-	isc_mem_detach(&mctx);
+	isc_mem_detach(&isc_g_mctx);
 	return result != ISC_R_SUCCESS ? 1 : 0;
 }

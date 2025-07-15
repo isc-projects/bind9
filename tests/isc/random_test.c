@@ -403,7 +403,7 @@ monobit(uint16_t *values, size_t length) {
 	double s_obs;
 	double p_value;
 
-	UNUSED(mctx);
+	UNUSED(isc_g_mctx);
 
 	numbits = length * sizeof(*values) * 8;
 	scount = 0;
@@ -439,7 +439,7 @@ runs(uint16_t *values, size_t length) {
 	double denom;
 	double p_value;
 
-	UNUSED(mctx);
+	UNUSED(isc_g_mctx);
 
 	numbits = length * sizeof(*values) * 8;
 	bcount = 0;
@@ -521,7 +521,7 @@ blockfrequency(uint16_t *values, size_t length) {
 	assert_true(numblocks < 100);
 	assert_true(numbits >= (mbits * numblocks));
 
-	pi = isc_mem_cget(mctx, numblocks, sizeof(double));
+	pi = isc_mem_cget(isc_g_mctx, numblocks, sizeof(double));
 	assert_non_null(pi);
 
 	for (i = 0; i < numblocks; i++) {
@@ -544,7 +544,7 @@ blockfrequency(uint16_t *values, size_t length) {
 
 	chi_square *= 4 * mbits;
 
-	isc_mem_cput(mctx, pi, numblocks, sizeof(double));
+	isc_mem_cput(isc_g_mctx, pi, numblocks, sizeof(double));
 
 	p_value = igamc(numblocks * 0.5, chi_square * 0.5);
 
@@ -571,7 +571,7 @@ binarymatrixrank(uint16_t *values, size_t length) {
 	double chi_square;
 	double p_value;
 
-	UNUSED(mctx);
+	UNUSED(isc_g_mctx);
 
 	matrix_m = 32;
 	matrix_q = 32;

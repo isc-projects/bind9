@@ -125,7 +125,6 @@ static int cycle = -1;
 static int jitter = 0;
 static bool tryverify = false;
 static bool printstats = false;
-static isc_mem_t *mctx = NULL;
 static dns_ttl_t zone_soa_min_ttl;
 static dns_ttl_t soa_ttl;
 static FILE *outfp = NULL;
@@ -208,7 +207,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 	result = dns_db_allrdatasets(gdb, node, gversion, 0, 0, &iter);
 	check_result(result, "dns_db_allrdatasets");
 
-	isc_buffer_allocate(mctx, &buffer, bufsize);
+	isc_buffer_allocate(isc_g_mctx, &buffer, bufsize);
 
 	DNS_RDATASETITER_FOREACH (iter) {
 		dns_rdataset_t rds = DNS_RDATASET_INIT;
@@ -233,7 +232,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 
 			bufsize <<= 1;
 			isc_buffer_free(&buffer);
-			isc_buffer_allocate(mctx, &buffer, bufsize);
+			isc_buffer_allocate(isc_g_mctx, &buffer, bufsize);
 		}
 		check_result(result, "dns_master_rdatasettotext");
 
@@ -287,7 +286,7 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	jendtime = (jitter != 0) ? expiry - isc_random_uniform(jitter) : expiry;
 	isc_buffer_init(&b, array, sizeof(array));
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &jendtime,
-				 mctx, &b, &trdata);
+				 isc_g_mctx, &b, &trdata);
 	if (result != ISC_R_SUCCESS) {
 		fatal("dnskey '%s' failed to sign data: %s", keystr,
 		      isc_result_totext(result));
@@ -295,8 +294,8 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	INCSTAT(nsigned);
 
 	if (tryverify) {
-		result = dns_dnssec_verify(name, rdataset, key, true, mctx,
-					   &trdata, NULL);
+		result = dns_dnssec_verify(name, rdataset, key, true,
+					   isc_g_mctx, &trdata, NULL);
 		if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
 			vbprintf(3, "\tsignature verified\n");
 			INCSTAT(nverified);
@@ -307,8 +306,8 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	}
 
 	tuple = NULL;
-	dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name, ttl, &trdata,
-			     &tuple);
+	dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_ADDRESIGN, name, ttl,
+			     &trdata, &tuple);
 	dns_diff_append(add, &tuple);
 }
 
@@ -393,20 +392,21 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 
 	result = dst_key_fromfile(&rrsig->signer, rrsig->keyid,
 				  rrsig->algorithm, DST_TYPE_PUBLIC, directory,
-				  mctx, &pubkey);
+				  isc_g_mctx, &pubkey);
 	if (result != ISC_R_SUCCESS) {
 		isc_rwlock_unlock(&keylist_lock, isc_rwlocktype_write);
 		return NULL;
 	}
 
-	result = dst_key_fromfile(
-		&rrsig->signer, rrsig->keyid, rrsig->algorithm,
-		DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, directory, mctx, &privkey);
+	result = dst_key_fromfile(&rrsig->signer, rrsig->keyid,
+				  rrsig->algorithm,
+				  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, directory,
+				  isc_g_mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
 		dst_key_free(&pubkey);
-		dns_dnsseckey_create(mctx, &privkey, &key);
+		dns_dnsseckey_create(isc_g_mctx, &privkey, &key);
 	} else {
-		dns_dnsseckey_create(mctx, &pubkey, &key);
+		dns_dnsseckey_create(isc_g_mctx, &pubkey, &key);
 		key->pubkey = true;
 	}
 
@@ -455,7 +455,8 @@ static bool
 setverifies(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	    dns_rdata_t *rrsig) {
 	isc_result_t result;
-	result = dns_dnssec_verify(name, set, key, false, mctx, rrsig, NULL);
+	result = dns_dnssec_verify(name, set, key, false, isc_g_mctx, rrsig,
+				   NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
 		INCSTAT(nverified);
 		return true;
@@ -511,8 +512,8 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	if (!nosigs) {
 		arraysize += dns_rdataset_count(&sigset);
 	}
-	wassignedby = isc_mem_cget(mctx, arraysize, sizeof(bool));
-	nowsignedby = isc_mem_cget(mctx, arraysize, sizeof(bool));
+	wassignedby = isc_mem_cget(isc_g_mctx, arraysize, sizeof(bool));
+	nowsignedby = isc_mem_cget(isc_g_mctx, arraysize, sizeof(bool));
 
 	for (i = 0; i < arraysize; i++) {
 		wassignedby[i] = nowsignedby[i] = false;
@@ -642,22 +643,23 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 						 sigstr);
 					tuple = NULL;
 					dns_difftuple_create(
-						mctx, DNS_DIFFOP_DELRESIGN,
-						name, sigset.ttl, &sigrdata,
-						&tuple);
+						isc_g_mctx,
+						DNS_DIFFOP_DELRESIGN, name,
+						sigset.ttl, &sigrdata, &tuple);
 					dns_diff_append(del, &tuple);
 					dns_difftuple_create(
-						mctx, DNS_DIFFOP_ADDRESIGN,
-						name, ttl, &sigrdata, &tuple);
+						isc_g_mctx,
+						DNS_DIFFOP_ADDRESIGN, name, ttl,
+						&sigrdata, &tuple);
 					dns_diff_append(add, &tuple);
 				}
 			} else {
 				tuple = NULL;
 				vbprintf(2, "\tremoving signature by %s\n",
 					 sigstr);
-				dns_difftuple_create(mctx, DNS_DIFFOP_DELRESIGN,
-						     name, sigset.ttl,
-						     &sigrdata, &tuple);
+				dns_difftuple_create(
+					isc_g_mctx, DNS_DIFFOP_DELRESIGN, name,
+					sigset.ttl, &sigrdata, &tuple);
 				dns_diff_append(del, &tuple);
 				INCSTAT(ndropped);
 			}
@@ -779,8 +781,8 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		}
 	}
 
-	isc_mem_cput(mctx, wassignedby, arraysize, sizeof(bool));
-	isc_mem_cput(mctx, nowsignedby, arraysize, sizeof(bool));
+	isc_mem_cput(isc_g_mctx, wassignedby, arraysize, sizeof(bool));
+	isc_mem_cput(isc_g_mctx, nowsignedby, arraysize, sizeof(bool));
 }
 
 struct hashlist {
@@ -995,7 +997,7 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 	}
 	isc_buffer_putuint8(&b, 0);
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_zone, rdclass, 0, NULL, dbp);
 	check_result(result, "dns_db_create()");
 
@@ -1064,7 +1066,7 @@ loadds(dns_name_t *name, uint32_t ttl, dns_rdataset_t *dsset) {
 
 	result = dns_db_newversion(db, &ver);
 	check_result(result, "dns_db_newversion");
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(isc_g_mctx, &diff);
 
 	DNS_RDATASET_FOREACH (&keyset) {
 		dns_rdata_t key = DNS_RDATA_INIT;
@@ -1074,8 +1076,8 @@ loadds(dns_name_t *name, uint32_t ttl, dns_rdataset_t *dsset) {
 					   dsbuf, sizeof(dsbuf), &ds);
 		check_result(result, "dns_ds_buildrdata");
 
-		dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name, ttl, &ds,
-				     &tuple);
+		dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_ADDRESIGN, name,
+				     ttl, &ds, &tuple);
 		dns_diff_append(&diff, &tuple);
 	}
 
@@ -1181,8 +1183,8 @@ signname(dns_dbnode_t *node, bool apex, dns_name_t *name) {
 	/*
 	 * Now iterate through the rdatasets.
 	 */
-	dns_diff_init(mctx, &del);
-	dns_diff_init(mctx, &add);
+	dns_diff_init(isc_g_mctx, &del);
+	dns_diff_init(isc_g_mctx, &add);
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(gdb, node, gversion, 0, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets()");
@@ -2130,9 +2132,9 @@ rrset_cleanup(dns_name_t *name, dns_rdataset_t *rdataset, dns_diff_t *add,
 			{
 				vbprintf(2, "removing duplicate at %s/%s\n",
 					 namestr, typestr);
-				dns_difftuple_create(mctx, DNS_DIFFOP_DELRESIGN,
-						     name, rdataset->ttl,
-						     &rdata2, &tuple);
+				dns_difftuple_create(
+					isc_g_mctx, DNS_DIFFOP_DELRESIGN, name,
+					rdataset->ttl, &rdata2, &tuple);
 				dns_diff_append(del, &tuple);
 			} else if (set_maxttl && rdataset->ttl > maxttl) {
 				vbprintf(2,
@@ -2140,14 +2142,14 @@ rrset_cleanup(dns_name_t *name, dns_rdataset_t *rdataset, dns_diff_t *add,
 					 "from %d to %d\n",
 					 namestr, typestr, rdataset->ttl,
 					 maxttl);
-				dns_difftuple_create(mctx, DNS_DIFFOP_DELRESIGN,
-						     name, rdataset->ttl,
-						     &rdata2, &tuple);
+				dns_difftuple_create(
+					isc_g_mctx, DNS_DIFFOP_DELRESIGN, name,
+					rdataset->ttl, &rdata2, &tuple);
 				dns_diff_append(del, &tuple);
 				tuple = NULL;
-				dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN,
-						     name, maxttl, &rdata2,
-						     &tuple);
+				dns_difftuple_create(isc_g_mctx,
+						     DNS_DIFFOP_ADDRESIGN, name,
+						     maxttl, &rdata2, &tuple);
 				dns_diff_append(add, &tuple);
 			}
 		}
@@ -2165,8 +2167,8 @@ cleanup_zone(void) {
 	dns_fixedname_t fname;
 	dns_name_t *name = dns_fixedname_initname(&fname);
 
-	dns_diff_init(mctx, &add);
-	dns_diff_init(mctx, &del);
+	dns_diff_init(isc_g_mctx, &add);
+	dns_diff_init(isc_g_mctx, &del);
 
 	result = dns_db_createiterator(gdb, 0, &dbiter);
 	check_result(result, "dns_db_createiterator()");
@@ -2487,8 +2489,8 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 		      isc_result_totext(result));
 	}
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, name, dns_dbtype_zone,
-			       rdclass, 0, NULL, db);
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, name,
+			       dns_dbtype_zone, rdclass, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*db, file, inputformat, 0);
@@ -2554,8 +2556,8 @@ loadzonekeys(bool preserve_keys, bool load_public) {
 
 	/* Load keys corresponding to the existing DNSKEY RRset. */
 	result = dns_dnssec_keylistfromrdataset(
-		gorigin, NULL, directory, mctx, &rdataset, &keysigs, &soasigs,
-		preserve_keys, load_public, &keylist);
+		gorigin, NULL, directory, isc_g_mctx, &rdataset, &keysigs,
+		&soasigs, preserve_keys, load_public, &keylist);
 	if (result != ISC_R_SUCCESS) {
 		fatal("failed to load the zone keys: %s",
 		      isc_result_totext(result));
@@ -2584,9 +2586,10 @@ loadexplicitkeys(char *keyfiles[], int n, bool setksk) {
 		dns_dnsseckey_t *key = NULL;
 		dst_key_t *newkey = NULL;
 
-		result = dst_key_fromnamedfile(
-			keyfiles[i], directory,
-			DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, mctx, &newkey);
+		result = dst_key_fromnamedfile(keyfiles[i], directory,
+					       DST_TYPE_PUBLIC |
+						       DST_TYPE_PRIVATE,
+					       isc_g_mctx, &newkey);
 		if (result != ISC_R_SUCCESS) {
 			fatal("cannot load dnskey %s: %s", keyfiles[i],
 			      isc_result_totext(result));
@@ -2613,7 +2616,7 @@ loadexplicitkeys(char *keyfiles[], int n, bool setksk) {
 
 		if (key == NULL) {
 			/* We haven't seen this key before */
-			dns_dnsseckey_create(mctx, &newkey, &key);
+			dns_dnsseckey_create(isc_g_mctx, &newkey, &key);
 			ISC_LIST_APPEND(keylist, key, link);
 			key->source = dns_keysource_user;
 		} else {
@@ -2648,7 +2651,7 @@ static void
 clear_keylist(dns_dnsseckeylist_t *list) {
 	ISC_LIST_FOREACH (*list, key, link) {
 		ISC_LIST_UNLINK(*list, key, link);
-		dns_dnsseckey_destroy(mctx, &key);
+		dns_dnsseckey_destroy(isc_g_mctx, &key);
 	}
 }
 
@@ -2689,7 +2692,7 @@ add_digest(char *str, size_t dlen, dns_kasp_digestlist_t *digests,
 		}
 	}
 
-	digest = isc_mem_get(mctx, sizeof(*digest));
+	digest = isc_mem_get(isc_g_mctx, sizeof(*digest));
 	digest->digest = alg;
 	ISC_LINK_INIT(digest, link);
 	ISC_LIST_APPEND(*digests, digest, link);
@@ -2740,7 +2743,7 @@ findkeys:
 	 * Find keys that match this zone in the key repository.
 	 */
 	result = dns_dnssec_findmatchingkeys(gorigin, NULL, directory, NULL,
-					     now, mctx, &matchkeys);
+					     now, isc_g_mctx, &matchkeys);
 	if (result == ISC_R_NOTFOUND) {
 		result = ISC_R_SUCCESS;
 	}
@@ -2766,20 +2769,20 @@ findkeys:
 		dns_rdataset_disassociate(&cdnskeyset);
 	}
 
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(isc_g_mctx, &diff);
 
 	/*
 	 * Update keylist with information from from the key repository.
 	 */
 	dns_dnssec_updatekeys(&keylist, &matchkeys, NULL, gorigin, keyttl,
-			      &diff, mctx, report);
+			      &diff, isc_g_mctx, report);
 
 	/*
 	 * Update keylist with sync records.
 	 */
 
 	dns_dnssec_syncupdate(&keylist, &rmkeys, &cdsset, &cdnskeyset, now,
-			      &digests, cdnskey, keyttl, &diff, mctx);
+			      &digests, cdnskey, keyttl, &diff, isc_g_mctx);
 
 	dns_name_format(gorigin, name, sizeof(name));
 
@@ -2806,7 +2809,7 @@ findkeys:
 
 	ISC_LIST_FOREACH (digests, d, link) {
 		ISC_LIST_UNLINK(digests, d, link);
-		isc_mem_put(mctx, d, sizeof(*d));
+		isc_mem_put(isc_g_mctx, d, sizeof(*d));
 	}
 	INSIST(ISC_LIST_EMPTY(digests));
 }
@@ -3001,7 +3004,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	if (dsdir != NULL) {
 		filenamelen += strlen(dsdir) + 1;
 	}
-	filename = isc_mem_get(mctx, filenamelen);
+	filename = isc_mem_get(isc_g_mctx, filenamelen);
 	if (dsdir != NULL) {
 		snprintf(filename, filenamelen, "%s/", dsdir);
 	} else {
@@ -3010,7 +3013,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	strlcat(filename, prefix, filenamelen);
 	strlcat(filename, namestr, filenamelen);
 
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(isc_g_mctx, &diff);
 
 	name = gorigin;
 
@@ -3054,17 +3057,17 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 						   DNS_DSDIGEST_SHA256, dsbuf,
 						   sizeof(dsbuf), &ds);
 			check_result(result, "dns_ds_buildrdata");
-			dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name,
-					     0, &ds, &tuple);
+			dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_ADDRESIGN,
+					     name, 0, &ds, &tuple);
 		} else {
-			dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN,
+			dns_difftuple_create(isc_g_mctx, DNS_DIFFOP_ADDRESIGN,
 					     gorigin, zone_soa_min_ttl, &rdata,
 					     &tuple);
 		}
 		dns_diff_append(&diff, &tuple);
 	}
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_zone, gclass, 0, NULL, &db);
 	check_result(result, "dns_db_create");
 
@@ -3075,11 +3078,11 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	check_result(result, "dns_diff_apply");
 	dns_diff_clear(&diff);
 
-	result = dns_master_dump(mctx, db, dbversion, style, filename,
+	result = dns_master_dump(isc_g_mctx, db, dbversion, style, filename,
 				 dns_masterformat_text, NULL);
 	check_result(result, "dns_master_dump");
 
-	isc_mem_put(mctx, filename, filenamelen);
+	isc_mem_put(isc_g_mctx, filename, filenamelen);
 
 	dns_db_closeversion(db, &dbversion, false);
 	dns_db_detach(&db);
@@ -3635,7 +3638,7 @@ main(int argc, char *argv[]) {
 		directory = ".";
 	}
 
-	isc_managers_create(&mctx, nloops);
+	isc_managers_create(nloops);
 
 	setup_logging();
 
@@ -3659,7 +3662,7 @@ main(int argc, char *argv[]) {
 		size_t size;
 		free_output = true;
 		size = strlen(file) + strlen(".signed") + 1;
-		output = isc_mem_allocate(mctx, size);
+		output = isc_mem_allocate(isc_g_mctx, size);
 		snprintf(output, size, "%s.signed", file);
 	}
 
@@ -3730,14 +3733,14 @@ main(int argc, char *argv[]) {
 	}
 
 	result = dns_master_stylecreate(&dsstyle, DNS_STYLEFLAG_NO_TTL, 0, 24,
-					0, 0, 0, 8, 0xffffffff, mctx);
+					0, 0, 0, 8, 0xffffffff, isc_g_mctx);
 	check_result(result, "dns_master_stylecreate");
 
 	gdb = NULL;
 	timer_start = isc_time_now();
 	loadzone(file, origin, rdclass, &gdb);
 	if (journal != NULL) {
-		loadjournal(mctx, gdb, journal);
+		loadjournal(isc_g_mctx, gdb, journal);
 	}
 	gorigin = dns_db_origin(gdb);
 	gclass = dns_db_class(gdb);
@@ -3898,7 +3901,7 @@ main(int argc, char *argv[]) {
 		}
 	} else {
 		tempfilelen = strlen(output) + 20;
-		tempfile = isc_mem_get(mctx, tempfilelen);
+		tempfile = isc_mem_get(isc_g_mctx, tempfilelen);
 
 		result = isc_file_mktemplate(output, tempfile, tempfilelen);
 		check_result(result, "isc_file_mktemplate");
@@ -3939,9 +3942,9 @@ main(int argc, char *argv[]) {
 	if (disable_zone_check) {
 		vresult = ISC_R_SUCCESS;
 	} else {
-		vresult = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin,
-						NULL, mctx, ignore_kskflag,
-						keyset_kskonly, report);
+		vresult = dns_zoneverify_dnssec(
+			NULL, gdb, gversion, gorigin, NULL, isc_g_mctx,
+			ignore_kskflag, keyset_kskonly, report);
 		if (vresult != ISC_R_SUCCESS) {
 			fprintf(output_stdout ? stderr : stdout,
 				"Zone verification failed (%s)\n",
@@ -3958,7 +3961,7 @@ main(int argc, char *argv[]) {
 			header.flags = DNS_MASTERRAW_SOURCESERIALSET;
 			header.sourceserial = serialnum;
 		}
-		result = dns_master_dumptostream(mctx, gdb, gversion,
+		result = dns_master_dumptostream(isc_g_mctx, gdb, gversion,
 						 masterstyle, outputformat,
 						 &header, outfp);
 		check_result(result, "dns_master_dumptostream");
@@ -3988,24 +3991,24 @@ main(int argc, char *argv[]) {
 
 	ISC_LIST_FOREACH (keylist, key, link) {
 		ISC_LIST_UNLINK(keylist, key, link);
-		dns_dnsseckey_destroy(mctx, &key);
+		dns_dnsseckey_destroy(isc_g_mctx, &key);
 	}
 
 	if (tempfilelen != 0) {
-		isc_mem_put(mctx, tempfile, tempfilelen);
+		isc_mem_put(isc_g_mctx, tempfile, tempfilelen);
 	}
 
 	if (free_output) {
-		isc_mem_free(mctx, output);
+		isc_mem_free(isc_g_mctx, output);
 	}
 
-	dns_master_styledestroy(&dsstyle, mctx);
+	dns_master_styledestroy(&dsstyle, isc_g_mctx);
 
 	if (verbose > 10) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
 
-	isc_managers_destroy(&mctx);
+	isc_managers_destroy();
 
 	if (printstats) {
 		timer_finish = isc_time_now();

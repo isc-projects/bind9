@@ -32,7 +32,6 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 
-static isc_mem_t *mctx;
 static isc_lex_t *lex;
 
 static isc_lexspecials_t specials;
@@ -60,8 +59,8 @@ cleanup(void) {
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 	}
-	if (mctx != NULL) {
-		isc_mem_detach(&mctx);
+	if (isc_g_mctx != NULL) {
+		isc_mem_detach(&isc_g_mctx);
 	}
 }
 
@@ -170,8 +169,8 @@ main(int argc, char *argv[]) {
 		exit(EXIT_SUCCESS);
 	}
 
-	isc_mem_create(argv[0], &mctx);
-	isc_lex_create(mctx, 256, &lex);
+	isc_mem_create("default", &isc_g_mctx);
+	isc_lex_create(isc_g_mctx, 256, &lex);
 
 	/*
 	 * Set up to lex DNS master file.
@@ -280,7 +279,7 @@ main(int argc, char *argv[]) {
 
 		isc_buffer_init(&dbuf, data, sizeof(data));
 		result = dns_rdata_fromtext(&rdata, rdclass, rdtype, lex, name,
-					    0, mctx, &dbuf, NULL);
+					    0, isc_g_mctx, &dbuf, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_fromtext: %s",
 			      isc_result_totext(result));

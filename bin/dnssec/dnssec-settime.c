@@ -40,8 +40,6 @@
 
 #include "dnssectool.h"
 
-static isc_mem_t *mctx = NULL;
-
 ISC_NORETURN static void
 usage(void);
 
@@ -245,7 +243,7 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create(isc_commandline_progname, &mctx);
+	isc_mem_create("default", &isc_g_mctx);
 
 	setup_logging();
 
@@ -362,7 +360,7 @@ main(int argc, char **argv) {
 			 * We don't have to copy it here, but do it to
 			 * simplify cleanup later
 			 */
-			directory = isc_mem_strdup(mctx,
+			directory = isc_mem_strdup(isc_g_mctx,
 						   isc_commandline_argument);
 			break;
 		case 'k':
@@ -572,7 +570,7 @@ main(int argc, char **argv) {
 		}
 
 		result = dst_key_fromnamedfile(predecessor, directory, options,
-					       mctx, &prevkey);
+					       isc_g_mctx, &prevkey);
 		if (result != ISC_R_SUCCESS) {
 			fatal("Invalid keyfile %s: %s", filename,
 			      isc_result_totext(result));
@@ -670,7 +668,8 @@ main(int argc, char **argv) {
 	if (directory != NULL) {
 		filename = argv[isc_commandline_index];
 	} else {
-		result = isc_file_splitpath(mctx, argv[isc_commandline_index],
+		result = isc_file_splitpath(isc_g_mctx,
+					    argv[isc_commandline_index],
 					    &directory, &filename);
 		if (result != ISC_R_SUCCESS) {
 			fatal("cannot process filename %s: %s",
@@ -679,7 +678,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	result = dst_key_fromnamedfile(filename, directory, options, mctx,
+	result = dst_key_fromnamedfile(filename, directory, options, isc_g_mctx,
 				       &key);
 	if (result != ISC_R_SUCCESS) {
 		fatal("Invalid keyfile %s: %s", filename,
@@ -949,10 +948,10 @@ main(int argc, char **argv) {
 	}
 	dst_key_free(&key);
 	if (verbose > 10) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
-	isc_mem_free(mctx, directory);
-	isc_mem_detach(&mctx);
+	isc_mem_free(isc_g_mctx, directory);
+	isc_mem_detach(&isc_g_mctx);
 
 	return 0;
 }

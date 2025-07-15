@@ -34,7 +34,7 @@ ISC_RUN_TEST_IMPL(isc_counter) {
 	isc_result_t result;
 	isc_counter_t *counter = NULL;
 
-	isc_counter_create(mctx, 0, &counter);
+	isc_counter_create(isc_g_mctx, 0, &counter);
 
 	for (size_t i = 0; i < 10; i++) {
 		result = isc_counter_increment(counter);

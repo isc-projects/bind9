@@ -128,18 +128,18 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	size_t lowater = maxcache - (maxcache >> 2); /* ditto */
 	isc_result_t result;
 	dns_db_t *db = NULL;
-	isc_mem_t *mctx2 = NULL;
+	isc_mem_t *mctx = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
 	size_t i;
 
-	isc_mem_create("test", &mctx2);
+	isc_mem_create("test", &mctx);
 
-	result = dns_db_create(mctx2, CACHEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_mem_setwater(mctx2, hiwater, lowater);
+	isc_mem_setwater(mctx, hiwater, lowater);
 
 	/*
 	 * Add cache entries with minimum size of data until 'overmem'
@@ -147,10 +147,10 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	 * This should eventually happen, but we also limit the number of
 	 * iteration to avoid an infinite loop in case something gets wrong.
 	 */
-	for (i = 0; !isc_mem_isovermem(mctx2) && i < (maxcache / 10); i++) {
+	for (i = 0; !isc_mem_isovermem(mctx) && i < (maxcache / 10); i++) {
 		overmempurge_addrdataset(db, now, i, 50053, 0, false);
 	}
-	assert_true(isc_mem_isovermem(mctx2));
+	assert_true(isc_mem_isovermem(mctx));
 
 	/*
 	 * Then try to add the same number of entries, each has very large data.
@@ -163,13 +163,13 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 		cleanup_all_deadnodes(db);
 		if (verbose) {
 			print_message("# inuse: %zd max: %zd\n",
-				      isc_mem_inuse(mctx2), maxcache);
+				      isc_mem_inuse(mctx), maxcache);
 		}
-		assert_true(isc_mem_inuse(mctx2) < maxcache);
+		assert_true(isc_mem_inuse(mctx) < maxcache);
 	}
 
 	dns_db_detach(&db);
-	isc_mem_detach(&mctx2);
+	isc_mem_detach(&mctx);
 	isc_loopmgr_shutdown();
 }
 
@@ -179,18 +179,18 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	size_t lowater = maxcache - (maxcache >> 2); /* ditto */
 	isc_result_t result;
 	dns_db_t *db = NULL;
-	isc_mem_t *mctx2 = NULL;
+	isc_mem_t *mctx = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
 	size_t i;
 
-	isc_mem_create("test", &mctx2);
+	isc_mem_create("test", &mctx);
 
-	result = dns_db_create(mctx2, CACHEDB_DEFAULT, dns_rootname,
+	result = dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
 			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
 			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_mem_setwater(mctx2, hiwater, lowater);
+	isc_mem_setwater(mctx, hiwater, lowater);
 
 	/*
 	 * Add cache entries with minimum size of data until 'overmem'
@@ -198,10 +198,10 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	 * This should eventually happen, but we also limit the number of
 	 * iteration to avoid an infinite loop in case something gets wrong.
 	 */
-	for (i = 0; !isc_mem_isovermem(mctx2) && i < (maxcache / 10); i++) {
+	for (i = 0; !isc_mem_isovermem(mctx) && i < (maxcache / 10); i++) {
 		overmempurge_addrdataset(db, now, i, 50053, 0, false);
 	}
-	assert_true(isc_mem_isovermem(mctx2));
+	assert_true(isc_mem_isovermem(mctx));
 
 	/*
 	 * Then try to add the same number of entries, each has very long name.
@@ -214,13 +214,13 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 		cleanup_all_deadnodes(db);
 		if (verbose) {
 			print_message("# inuse: %zd max: %zd\n",
-				      isc_mem_inuse(mctx2), maxcache);
+				      isc_mem_inuse(mctx), maxcache);
 		}
-		assert_true(isc_mem_inuse(mctx2) < maxcache);
+		assert_true(isc_mem_inuse(mctx) < maxcache);
 	}
 
 	dns_db_detach(&db);
-	isc_mem_detach(&mctx2);
+	isc_mem_detach(&mctx);
 	isc_loopmgr_shutdown();
 }
 

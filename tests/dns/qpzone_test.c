@@ -107,7 +107,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)&qpdb_s;
 	*qpdb = (qpzonedb_t){
 		.common.methods = &qpdb_zonemethods,
-		.common.mctx = mctx,
+		.common.mctx = isc_g_mctx,
 	};
 	qpznode_t node = { .locknum = 0 };
 	dns_slabheader_t header = {
@@ -170,7 +170,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)&qpdb_s;
 	*qpdb = (qpzonedb_t){
 		.common.methods = &qpdb_zonemethods,
-		.common.mctx = mctx,
+		.common.mctx = isc_g_mctx,
 	};
 	qpznode_t node = { .locknum = 0 };
 	dns_slabheader_t header = {

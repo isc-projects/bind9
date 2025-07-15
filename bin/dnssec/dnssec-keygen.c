@@ -231,7 +231,7 @@ progress(int p) {
 }
 
 static void
-keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
+keygen(keygen_ctx_t *ctx, int argc, char **argv) {
 	char filename[255];
 	char algstr[DNS_SECALG_FORMATSIZE];
 	uint16_t flags = 0;
@@ -394,7 +394,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		ret = dst_key_fromnamedfile(ctx->predecessor, ctx->directory,
 					    DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
 						    DST_TYPE_STATE,
-					    mctx, &prevkey);
+					    isc_g_mctx, &prevkey);
 		if (ret != ISC_R_SUCCESS) {
 			fatal("Invalid keyfile %s: %s", ctx->predecessor,
 			      isc_result_totext(ret));
@@ -560,17 +560,17 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		if (ctx->keystore != NULL && ctx->policy != NULL) {
 			ret = dns_keystore_keygen(
 				ctx->keystore, name, ctx->policy, ctx->rdclass,
-				mctx, ctx->alg, ctx->size, flags, &key);
+				isc_g_mctx, ctx->alg, ctx->size, flags, &key);
 		} else if (!ctx->quiet && show_progress) {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, 0,
 					       flags, DNS_KEYPROTO_DNSSEC,
-					       ctx->rdclass, NULL, mctx, &key,
-					       &progress);
+					       ctx->rdclass, NULL, isc_g_mctx,
+					       &key, &progress);
 		} else {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, 0,
 					       flags, DNS_KEYPROTO_DNSSEC,
-					       ctx->rdclass, NULL, mctx, &key,
-					       NULL);
+					       ctx->rdclass, NULL, isc_g_mctx,
+					       &key, NULL);
 		}
 
 		if (!ctx->quiet && show_progress) {
@@ -704,8 +704,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		 * if there is a risk of ID collision due to this key
 		 * or another key being revoked.
 		 */
-		if (key_collision(key, name, ctx->directory, mctx, ctx->tag_min,
-				  ctx->tag_max, NULL))
+		if (key_collision(key, name, ctx->directory, isc_g_mctx,
+				  ctx->tag_min, ctx->tag_max, NULL))
 		{
 			conflict = true;
 			if (null_key) {
@@ -789,7 +789,6 @@ main(int argc, char **argv) {
 	char *algname = NULL, *freeit = NULL;
 	char *classname = NULL;
 	char *endp;
-	isc_mem_t *mctx = NULL;
 	isc_result_t ret;
 	isc_textregion_t r;
 	unsigned char c;
@@ -838,7 +837,7 @@ main(int argc, char **argv) {
 	}
 	isc_commandline_reset = true;
 
-	isc_mem_create(isc_commandline_progname, &mctx);
+	isc_mem_create("default", &isc_g_mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -1146,13 +1145,13 @@ main(int argc, char **argv) {
 			ctx.tag_min = 0;
 			ctx.tag_max = 0xffff;
 
-			keygen(&ctx, mctx, argc, argv);
+			keygen(&ctx, argc, argv);
 		} else {
 			cfg_parser_t *parser = NULL;
 			cfg_obj_t *config = NULL;
 			dns_kasp_t *kasp = NULL;
 
-			RUNTIME_CHECK(cfg_parser_create(mctx, &parser) ==
+			RUNTIME_CHECK(cfg_parser_create(isc_g_mctx, &parser) ==
 				      ISC_R_SUCCESS);
 			if (cfg_parse_file(parser, ctx.configfile,
 					   &cfg_type_namedconf,
@@ -1163,8 +1162,8 @@ main(int argc, char **argv) {
 				      ctx.policy, ctx.configfile);
 			}
 
-			kasp_from_conf(config, mctx, ctx.policy, ctx.directory,
-				       &kasp);
+			kasp_from_conf(config, isc_g_mctx, ctx.policy,
+				       ctx.directory, &kasp);
 			if (kasp == NULL) {
 				fatal("failed to load dnssec-policy '%s'",
 				      ctx.policy);
@@ -1196,7 +1195,7 @@ main(int argc, char **argv) {
 				{
 					continue;
 				}
-				keygen(&ctx, mctx, argc, argv);
+				keygen(&ctx, argc, argv);
 			}
 
 			dns_kasp_detach(&kasp);
@@ -1204,13 +1203,13 @@ main(int argc, char **argv) {
 			cfg_parser_destroy(&parser);
 		}
 	} else {
-		keygen(&ctx, mctx, argc, argv);
+		keygen(&ctx, argc, argv);
 	}
 
 	if (verbose > 10) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
-	isc_mem_detach(&mctx);
+	isc_mem_detach(&isc_g_mctx);
 
 	if (freeit != NULL) {
 		free(freeit);

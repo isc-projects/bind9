@@ -422,7 +422,7 @@ main(int argc, char *argv[]) {
 
 	isc_rwlock_init(&rwl);
 
-	isc_mem_create("test", &mctx);
+	isc_mem_create("test", &isc_g_mctx);
 
 	if (argc != 2) {
 		fprintf(stderr,
@@ -439,7 +439,7 @@ main(int argc, char *argv[]) {
 	}
 	filesize = (size_t)fileoff;
 
-	filetext = isc_mem_get(mctx, filesize + 1);
+	filetext = isc_mem_get(isc_g_mctx, filesize + 1);
 	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));

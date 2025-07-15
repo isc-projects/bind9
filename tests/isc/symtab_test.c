@@ -34,8 +34,8 @@
 static void
 undefine(char *key, unsigned int type ISC_ATTR_UNUSED, isc_symvalue_t value,
 	 void *arg ISC_ATTR_UNUSED) {
-	isc_mem_free(mctx, key);
-	isc_mem_free(mctx, value.as_pointer);
+	isc_mem_free(isc_g_mctx, key);
+	isc_mem_free(isc_g_mctx, value.as_pointer);
 }
 
 ISC_RUN_TEST_IMPL(symtab_define) {
@@ -46,12 +46,12 @@ ISC_RUN_TEST_IMPL(symtab_define) {
 	isc_symexists_t policy = isc_symexists_reject;
 	char str[16], *key;
 	snprintf(str, sizeof(str), "%p", "define");
-	key = isc_mem_strdup(mctx, str);
+	key = isc_mem_strdup(isc_g_mctx, str);
 
-	isc_symtab_create(mctx, undefine, NULL, false, &symtab);
+	isc_symtab_create(isc_g_mctx, undefine, NULL, false, &symtab);
 	assert_non_null(symtab);
 
-	value.as_pointer = isc_mem_strdup(mctx, key);
+	value.as_pointer = isc_mem_strdup(isc_g_mctx, key);
 	assert_non_null(value.as_pointer);
 
 	result = isc_symtab_define(symtab, key, 1, value, policy);
@@ -77,13 +77,13 @@ ISC_RUN_TEST_IMPL(symtab_undefine) {
 	char str[16], *key, *key_after_undefine;
 	snprintf(str, sizeof(str), "%p", "undefine");
 
-	key = isc_mem_strdup(mctx, str);
-	key_after_undefine = isc_mem_strdup(mctx, str);
+	key = isc_mem_strdup(isc_g_mctx, str);
+	key_after_undefine = isc_mem_strdup(isc_g_mctx, str);
 
-	isc_symtab_create(mctx, undefine, NULL, false, &symtab);
+	isc_symtab_create(isc_g_mctx, undefine, NULL, false, &symtab);
 	assert_non_null(symtab);
 
-	value.as_pointer = isc_mem_strdup(mctx, key);
+	value.as_pointer = isc_mem_strdup(isc_g_mctx, key);
 	assert_non_null(value.as_pointer);
 
 	result = isc_symtab_define(symtab, key, 1, value, policy);
@@ -103,7 +103,7 @@ ISC_RUN_TEST_IMPL(symtab_undefine) {
 	/* key will be freed by isc_symtab_undefine, so we don't need to free
 	 * it again
 	 */
-	isc_mem_free(mctx, key_after_undefine);
+	isc_mem_free(isc_g_mctx, key_after_undefine);
 }
 
 ISC_RUN_TEST_IMPL(symtab_replace) {
@@ -115,16 +115,16 @@ ISC_RUN_TEST_IMPL(symtab_replace) {
 	isc_symexists_t policy = isc_symexists_replace;
 	char str[16], *key1, *key2;
 	snprintf(str, sizeof(str), "%p", "replace");
-	key1 = isc_mem_strdup(mctx, str);
-	key2 = isc_mem_strdup(mctx, str);
+	key1 = isc_mem_strdup(isc_g_mctx, str);
+	key2 = isc_mem_strdup(isc_g_mctx, str);
 
-	isc_symtab_create(mctx, undefine, NULL, false, &symtab);
+	isc_symtab_create(isc_g_mctx, undefine, NULL, false, &symtab);
 	assert_non_null(symtab);
 
-	value1.as_pointer = isc_mem_strdup(mctx, key1);
+	value1.as_pointer = isc_mem_strdup(isc_g_mctx, key1);
 	assert_non_null(value1.as_pointer);
 
-	value2.as_pointer = isc_mem_strdup(mctx, key2);
+	value2.as_pointer = isc_mem_strdup(isc_g_mctx, key2);
 	assert_non_null(value2.as_pointer);
 
 	result = isc_symtab_define(symtab, key1, 1, value1, policy);
@@ -156,16 +156,16 @@ ISC_RUN_TEST_IMPL(symtab_reject) {
 	isc_symexists_t policy = isc_symexists_reject;
 	char str[16], *key1, *key2;
 	snprintf(str, sizeof(str), "%p", "reject");
-	key1 = isc_mem_strdup(mctx, str);
-	key2 = isc_mem_strdup(mctx, str);
+	key1 = isc_mem_strdup(isc_g_mctx, str);
+	key2 = isc_mem_strdup(isc_g_mctx, str);
 
-	isc_symtab_create(mctx, undefine, NULL, false, &symtab);
+	isc_symtab_create(isc_g_mctx, undefine, NULL, false, &symtab);
 	assert_non_null(symtab);
 
-	value1.as_pointer = isc_mem_strdup(mctx, key1);
+	value1.as_pointer = isc_mem_strdup(isc_g_mctx, key1);
 	assert_non_null(value1.as_pointer);
 
-	value2.as_pointer = isc_mem_strdup(mctx, key2);
+	value2.as_pointer = isc_mem_strdup(isc_g_mctx, key2);
 	assert_non_null(value2.as_pointer);
 
 	result = isc_symtab_define(symtab, key1, 1, value1, policy);
@@ -212,7 +212,7 @@ ISC_RUN_TEST_IMPL(symtab_foreach) {
 	isc_symexists_t policy = isc_symexists_reject;
 	bool seen[TEST_NITEMS] = { 0 };
 
-	isc_symtab_create(mctx, undefine, NULL, false, &symtab);
+	isc_symtab_create(isc_g_mctx, undefine, NULL, false, &symtab);
 
 	/* Nothing should be in the table yet */
 	assert_non_null(symtab);
@@ -225,9 +225,9 @@ ISC_RUN_TEST_IMPL(symtab_foreach) {
 
 		snprintf(str, sizeof(str), "%08zx", i);
 
-		key = isc_mem_strdup(mctx, str);
+		key = isc_mem_strdup(isc_g_mctx, str);
 		assert_non_null(key);
-		value.as_pointer = isc_mem_strdup(mctx, str);
+		value.as_pointer = isc_mem_strdup(isc_g_mctx, str);
 		assert_non_null(value.as_pointer);
 		result = isc_symtab_define(symtab, key, i + 1, value, policy);
 		assert_int_equal(result, ISC_R_SUCCESS);

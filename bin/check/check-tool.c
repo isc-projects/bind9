@@ -93,7 +93,6 @@ dns_zoneopt_t zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_CHECKMX |
 			     DNS_ZONEOPT_WARNMXCNAME | DNS_ZONEOPT_WARNSRVCNAME;
 
 static isc_symtab_t *symtab = NULL;
-static isc_mem_t *sym_mctx;
 
 static void
 freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
@@ -107,21 +106,22 @@ add(char *key, int value) {
 	isc_result_t result;
 	isc_symvalue_t symvalue;
 
-	if (sym_mctx == NULL) {
-		isc_mem_create("check-tool", &sym_mctx);
+	if (isc_g_mctx == NULL) {
+		isc_mem_create("check-tool", &isc_g_mctx);
 	}
 
 	if (symtab == NULL) {
-		isc_symtab_create(sym_mctx, freekey, sym_mctx, false, &symtab);
+		isc_symtab_create(isc_g_mctx, freekey, isc_g_mctx, false,
+				  &symtab);
 	}
 
-	key = isc_mem_strdup(sym_mctx, key);
+	key = isc_mem_strdup(isc_g_mctx, key);
 
 	symvalue.as_pointer = NULL;
 	result = isc_symtab_define(symtab, key, value, symvalue,
 				   isc_symexists_reject);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_free(sym_mctx, key);
+		isc_mem_free(isc_g_mctx, key);
 	}
 }
 
