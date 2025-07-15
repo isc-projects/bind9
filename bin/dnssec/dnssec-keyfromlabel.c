@@ -59,8 +59,8 @@ usage(void) {
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -a algorithm: \n"
-			"        RSASHA1 |\n"
-			"        NSEC3RSASHA1 |\n"
+			"        RSASHA1 (deprecated) |\n"
+			"        NSEC3RSASHA1 (deprecated) |\n"
 			"        RSASHA256 | RSASHA512 |\n"
 			"        ECDSAP256SHA256 | ECDSAP384SHA384 |\n"
 			"        ED25519 | ED448\n");
@@ -522,6 +522,21 @@ main(int argc, char **argv) {
 		}
 
 		setpub = setact = true;
+	}
+
+	switch (alg) {
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1: {
+		char algstr[DNS_SECALG_FORMATSIZE];
+		dns_secalg_format(alg, algstr, sizeof(algstr));
+		fprintf(stderr,
+			"WARNING: DNSKEY algorithm '%s' is deprecated. Please "
+			"migrate to another algorithm\n",
+			algstr);
+		break;
+	}
+	default:
+		break;
 	}
 
 	rdclass = strtoclass(classname);

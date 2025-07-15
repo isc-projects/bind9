@@ -32,6 +32,12 @@ Files: **/*.after*
        bin/tests/system/checkzone/zones/bad-caa-rr.db
        bin/tests/system/checkzone/zones/bad1.db
        bin/tests/system/checkzone/zones/crashzone.db
+       bin/tests/system/checkzone/zones/warn.deprecated.cds-sha1.db
+       bin/tests/system/checkzone/zones/warn.deprecated.digest-sha1.db
+       bin/tests/system/checkzone/zones/warn.deprecated.ds-alg.db
+       bin/tests/system/checkzone/zones/warn.deprecated.key-alg.db
+       bin/tests/system/checkzone/zones/warn.deprecated.nsec3rsasha1.db
+       bin/tests/system/checkzone/zones/warn.deprecated.rsasha1.db
        bin/tests/system/dnstap/large-answer.fstrm
        bin/tests/system/doth/CA/CA.cfg
        bin/tests/system/doth/CA/README
