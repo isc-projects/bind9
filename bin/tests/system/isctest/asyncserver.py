@@ -373,6 +373,28 @@ class ResponseDrop(ResponseAction):
         return None
 
 
+class _ConnectionTeardownRequested(Exception):
+    pass
+
+
+@dataclass
+class ResponseDropAndCloseConnection(ResponseAction):
+    """
+    Action which makes the server close the connection after the DNS query is
+    received by the server (TCP only).
+
+    The connection may be closed with a delay if requested.
+    """
+
+    delay: float = 0.0
+
+    async def perform(self) -> Optional[Union[dns.message.Message, bytes]]:
+        if self.delay > 0:
+            logging.info("Waiting %.1fs before closing TCP connection", self.delay)
+            await asyncio.sleep(self.delay)
+        raise _ConnectionTeardownRequested
+
+
 class ResponseHandler(abc.ABC):
     """
     Base class for generic response handlers.
@@ -690,6 +712,8 @@ class AsyncDnsServer(AsyncServer):
                 if not wire:
                     break
                 await self._send_tcp_response(writer, peer, wire)
+            except _ConnectionTeardownRequested:
+                break
             except ConnectionResetError:
                 logging.error("TCP connection from %s reset by peer", peer)
                 return
