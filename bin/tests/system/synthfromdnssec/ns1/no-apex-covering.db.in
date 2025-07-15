@@ -13,14 +13,16 @@ $TTL 3600
 @		SOA	ns1 hostmaster 1 3600 1200 604800 3600
 @		NS	ns1
 ns1		A	10.53.0.1
-example		NS	ns1.example
-fun		NS	ns1.example
-ns1.example	A	10.53.0.1
-no-apex-covering NS	ns1.no-apex-covering
-ns1.no-apex-covering A	10.53.0.1
-dnamed		NS	ns1.dnamed
-ns1.dnamed	A	10.53.0.1
-minimal		NS	ns1.minimal
-ns1.minimal	A	10.53.0.1
-soa-without-dnskey NS	ns1.soa-without-dnskey
-ns1.soa-without-dnskey A 10.53.0.1
+; \007 sorts before * so the covering NSEC for the wildcard is not
+; the apex NSEC.
+\007		HINFO	"" ""
+nodata		TXT	nodata
+*.wild-a	A	1.2.3.4
+*.wild-cname 	CNAME	ns1
+*.wild-1-nsec	A	1.2.3.4
+*.wild-2-nsec 	A	1.2.3.4
+_x.wild-2-nsec	TXT	a name beween wild-2-nsec and a.wild-2-nsec
+*.wild-2-nsec-afterdata 	A	1.2.3.4
+*.wild-2-nsec-afterdata 	AAAA	2002::1
+_x.wild-2-nsec-afterdata	TXT	a name beween wild-2-nsec-afterdata and a.wild-2-nsec-afterdata
+dnamed		DNAME	dnamed.

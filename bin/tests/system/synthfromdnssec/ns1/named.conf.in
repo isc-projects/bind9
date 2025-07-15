@@ -62,6 +62,11 @@ zone "minimal" {
 	file "minimal.db.signed";
 };
 
+zone "no-apex-covering" {
+	type primary;
+	file "no-apex-covering.db.signed";
+};
+
 zone "soa-without-dnskey" {
 	type primary;
 	file "soa-without-dnskey.db.signed";
