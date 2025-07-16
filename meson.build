@@ -278,7 +278,7 @@ config.set_quoted('SESSION_KEYFILE', localstatedir / 'run' / 'named' / 'session.
 config.set_quoted('RNDC_CONFFILE', sysconfdir / 'rndc.conf')
 config.set_quoted('RNDC_KEYFILE', sysconfdir / 'rndc.key')
 
-config.set_quoted('NAMED_PLUGINDIR', datadir / 'bind')
+config.set_quoted('NAMED_PLUGINDIR', libdir / 'bind')
 config.set_quoted('NAMED_LOCALSTATEDIR', localstatedir)
 config.set_quoted('NAMED_SYSCONFDIR', sysconfdir)
 config.set_quoted('NAMED_CONFFILE', sysconfdir / 'named.conf')
