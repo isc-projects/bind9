@@ -650,7 +650,7 @@ ret=0
 $CHECKCONF kasp-bad-nsec3-iter.conf >checkconf.out$n 2>&1 && ret=1
 grep "dnssec-policy: nsec3 iterations value 151 out of range" <checkconf.out$n >/dev/null || ret=1
 lines=$(wc -l <"checkconf.out$n")
-if [ $lines -ne 3 ]; then ret=1; fi
+if [ $lines -ne 5 ]; then ret=1; fi
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -709,6 +709,15 @@ grep "dnssec-policy: algorithm 13 has multiple keys with ZSK role" <checkconf.ou
 grep "dnssec-policy: key lifetime is shorter than 30 days" <checkconf.out$n >/dev/null || ret=1
 lines=$(wc -l <"checkconf.out$n")
 if [ $lines -ne 5 ]; then ret=1; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking named-checkconf kasp deprecated algorithms ($n)"
+ret=0
+$CHECKCONF kasp-deprecated.conf >checkconf.out$n 2>&1 || ret=1
+grep "dnssec-policy: DNSSEC algorithm rsasha1 is deprecated" checkconf.out$n >/dev/null || ret=1
+grep "dnssec-policy: DNSSEC algorithm nsec3rsasha1 is deprecated" checkconf.out$n >/dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
