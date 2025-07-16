@@ -5639,16 +5639,14 @@ ns__query_start(query_ctx_t *qctx) {
 		}
 	}
 
-	if (!qctx->is_zone && qctx->view->staleanswerclienttimeout == 0 &&
-	    dns_view_staleanswerenabled(qctx->view))
-	{
-		/*
-		 * If stale answers are enabled and
-		 * stale-answer-client-timeout is zero, then we can promptly
-		 * answer with a stale RRset if one is available in cache.
-		 */
-		qctx->options.stalefirst = true;
-	}
+	/*
+	 * If stale answers are enabled and stale-answer-client-timeout is zero,
+	 * then we can promptly answer with a stale RRset if one is available in
+	 * cache.
+	 */
+	qctx->options.stalefirst = (!qctx->is_zone &&
+				    qctx->view->staleanswerclienttimeout == 0 &&
+				    dns_view_staleanswerenabled(qctx->view));
 
 	result = query_lookup(qctx);
 
@@ -5777,7 +5775,9 @@ query_lookup(query_ctx_t *qctx) {
 		rpzqname = qctx->client->query.qname;
 	}
 
-	if (qctx->options.stalefirst) {
+	qctx->client->query.dboptions &= ~DNS_DBFIND_STALETIMEOUT;
+
+	if (qctx->options.stalefirst && !qctx->is_zone) {
 		/*
 		 * If the 'stalefirst' flag is set, it means that a stale
 		 * RRset may be returned as part of this lookup. An attempt
@@ -5941,8 +5941,6 @@ query_lookup(query_ctx_t *qctx) {
 				qctx_freedata(qctx);
 				dns_db_attach(qctx->client->inner.view->cachedb,
 					      &qctx->db);
-				qctx->client->query.dboptions &=
-					~DNS_DBFIND_STALETIMEOUT;
 				qctx->options.stalefirst = false;
 				if (FETCH_RECTYPE_NORMAL(qctx->client) != NULL)
 				{
@@ -8581,11 +8579,9 @@ query_zone_delegation(query_ctx_t *qctx) {
 		 * setting the 'stalefirst' option, which is usually set in
 		 * the beginning in ns__query_start().
 		 */
-		if (qctx->view->staleanswerclienttimeout == 0 &&
-		    dns_view_staleanswerenabled(qctx->view))
-		{
-			qctx->options.stalefirst = true;
-		}
+		qctx->options.stalefirst =
+			(qctx->view->staleanswerclienttimeout == 0 &&
+			 dns_view_staleanswerenabled(qctx->view));
 
 		result = query_lookup(qctx);
 
