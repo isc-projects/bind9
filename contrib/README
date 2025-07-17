@@ -15,17 +15,6 @@ This directory contains scripts, tools, and other useful accessories to
 BIND 9.  Contrib software is not supported by ISC, but reported bugs will
 be fixed as time permits.
 
-    - scripts/
-
-      Assorted useful scripts, including 'nanny' which monitors
-      named and restarts it in the event of a crash, 'zone-edit'
-      which enables editing of a dynamic zone, and others.
-
-    - dlz/modules
-
-      Dynamically linkable DLZ modules have been moved into a separate
-      repository located at https://gitlab.isc.org/isc-projects/dlz-modules.
-
     - gitchangelog/
 
       QA utility to produce changelog and release notes from git log.

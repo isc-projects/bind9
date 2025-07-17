@@ -87,8 +87,7 @@ backend storage of redirection rules:
 Sample DLZ Module
 ~~~~~~~~~~~~~~~~~
 
-For guidance in the implementation of DLZ modules, the ``example``
-directory in the [gitlab.isc.org/isc-projects/dlz-modules](https://gitlab.isc.org/isc-projects/dlz-modules/-/tree/main/example?ref_type=heads)
+For guidance in the implementation of DLZ modules, the |example directory|_
 contains a basic dynamically linkable DLZ module - i.e., one which can be loaded
 at runtime by the "dlopen" DLZ driver. The example sets up a single zone, whose
 name is passed to the module as an argument in the :any:`dlz` statement:
@@ -124,9 +123,16 @@ responses in some other fashion, e.g., by providing different address
 records for a particular name depending on the network from which the
 query arrived.
 
-Documentation of the DLZ module API can be found in
-[README](https://gitlab.isc.org/isc-projects/dlz-modules/-/raw/main/example/README). This
-repository also contains the header file
-[dlz_minimal.h](https://gitlab.isc.org/isc-projects/dlz-modules/-/raw/main/modules/include/dlz_minimal.h),
+Documentation of the DLZ module API can be found in |README|_. This
+repository also contains |dlz_minimal.h|_,
 which defines the API and should be included by any dynamically linkable DLZ
 module.
+
+.. |example directory| replace:: ``example`` directory in the DLZ repository
+.. _example directory: https://gitlab.isc.org/isc-projects/dlz-modules/-/tree/main/example
+
+.. |README| replace:: the ``README`` file
+.. _README: https://gitlab.isc.org/isc-projects/dlz-modules/-/raw/main/example/README
+
+.. |dlz_minimal.h| replace:: the header file ``dlz_minimal.h``
+.. _dlz_minimal.h: https://gitlab.isc.org/isc-projects/dlz-modules/-/raw/main/modules/include/dlz_minimal.h

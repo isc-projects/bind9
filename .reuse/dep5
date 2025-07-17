@@ -160,14 +160,6 @@ License:
  as this notice is preserved.
 
 #
-# DLZ Modules
-#
-Files: contrib/dlz/modules/*/testing/*
-Copyright: Internet Systems Consortium, Inc. ("ISC")
-	   Stichting NLnet, Netherlands
-License: ISC and MPL-2.0
-
-#
 # Stuff that's basically uncopyrightable (configuration, generated files),
 # use CC0-1.0 for clarity that we don't care
 #
