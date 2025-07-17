@@ -305,7 +305,6 @@ tostruct_hip(ARGS_TOSTRUCT) {
 
 	hip->common.rdclass = rdata->rdclass;
 	hip->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&hip->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 

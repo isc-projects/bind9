@@ -500,7 +500,6 @@ tostruct_caa(ARGS_TOSTRUCT) {
 
 	caa->common.rdclass = rdata->rdclass;
 	caa->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&caa->common, link);
 
 	dns_rdata_toregion(rdata, &sr);
 

@@ -754,7 +754,6 @@ tostruct_loc(ARGS_TOSTRUCT) {
 
 	loc->common.rdclass = rdata->rdclass;
 	loc->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&loc->common, link);
 
 	loc->v.v0.version = version;
 	isc_region_consume(&r, 1);

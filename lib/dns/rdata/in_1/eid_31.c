@@ -135,7 +135,6 @@ tostruct_in_eid(ARGS_TOSTRUCT) {
 
 	eid->common.rdclass = rdata->rdclass;
 	eid->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&eid->common, link);
 
 	dns_rdata_toregion(rdata, &r);
 	eid->eid_len = r.length;

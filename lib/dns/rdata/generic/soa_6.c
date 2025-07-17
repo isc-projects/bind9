@@ -314,7 +314,6 @@ tostruct_soa(ARGS_TOSTRUCT) {
 
 	soa->common.rdclass = rdata->rdclass;
 	soa->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&soa->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 

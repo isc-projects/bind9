@@ -1021,7 +1021,6 @@ generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 
 	svcb->common.rdclass = rdata->rdclass;
 	svcb->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&svcb->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 

@@ -279,7 +279,6 @@ generic_tostruct_ds(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->length != 0);
 	REQUIRE(ds->common.rdtype == rdata->type);
 	REQUIRE(ds->common.rdclass == rdata->rdclass);
-	REQUIRE(!ISC_LINK_LINKED(&ds->common, link));
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -305,7 +304,6 @@ tostruct_ds(ARGS_TOSTRUCT) {
 
 	ds->common.rdclass = rdata->rdclass;
 	ds->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&ds->common, link);
 
 	return generic_tostruct_ds(CALL_TOSTRUCT);
 }

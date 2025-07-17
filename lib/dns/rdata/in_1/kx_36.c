@@ -188,7 +188,6 @@ tostruct_in_kx(ARGS_TOSTRUCT) {
 
 	kx->common.rdclass = rdata->rdclass;
 	kx->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&kx->common, link);
 
 	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);

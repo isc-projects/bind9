@@ -185,7 +185,6 @@ tostruct_sink(ARGS_TOSTRUCT) {
 
 	sink->common.rdclass = rdata->rdclass;
 	sink->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&sink->common, link);
 
 	dns_rdata_toregion(rdata, &sr);
 

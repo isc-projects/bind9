@@ -4500,7 +4500,6 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	memset(&kd, 0, sizeof(kd));
 	kd.common.rdclass = zone->rdclass;
 	kd.common.rdtype = dns_rdatatype_keydata;
-	ISC_LINK_INIT(&kd.common, link);
 
 	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 
@@ -24232,7 +24231,6 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	} else {
 		param.common.rdclass = zone->rdclass;
 		param.common.rdtype = dns_rdatatype_nsec3param;
-		ISC_LINK_INIT(&param.common, link);
 		param.mctx = NULL;
 		/*
 		 * nsec3 specific param set in

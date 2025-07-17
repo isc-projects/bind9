@@ -118,7 +118,6 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 
 	hinfo->common.rdclass = rdata->rdclass;
 	hinfo->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&hinfo->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 	hinfo->cpu_len = uint8_fromregion(&region);

@@ -361,7 +361,6 @@ generic_tostruct_key(ARGS_TOSTRUCT) {
 	REQUIRE(key != NULL);
 	REQUIRE(key->common.rdclass == rdata->rdclass);
 	REQUIRE(key->common.rdtype == rdata->type);
-	REQUIRE(!ISC_LINK_LINKED(&key->common, link));
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -417,7 +416,6 @@ tostruct_key(ARGS_TOSTRUCT) {
 
 	key->common.rdclass = rdata->rdclass;
 	key->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&key->common, link);
 
 	return generic_tostruct_key(CALL_TOSTRUCT);
 }

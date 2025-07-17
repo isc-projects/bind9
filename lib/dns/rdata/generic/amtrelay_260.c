@@ -313,7 +313,6 @@ tostruct_amtrelay(ARGS_TOSTRUCT) {
 
 	amtrelay->common.rdclass = rdata->rdclass;
 	amtrelay->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&amtrelay->common, link);
 
 	dns_name_init(&amtrelay->gateway);
 	amtrelay->data = NULL;

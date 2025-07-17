@@ -135,7 +135,6 @@ tostruct_in_nimloc(ARGS_TOSTRUCT) {
 
 	nimloc->common.rdclass = rdata->rdclass;
 	nimloc->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&nimloc->common, link);
 
 	dns_rdata_toregion(rdata, &r);
 	nimloc->nimloc_len = r.length;

@@ -170,7 +170,6 @@ tostruct_csync(ARGS_TOSTRUCT) {
 
 	csync->common.rdclass = rdata->rdclass;
 	csync->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&csync->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 

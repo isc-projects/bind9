@@ -258,7 +258,6 @@ tostruct_zonemd(ARGS_TOSTRUCT) {
 
 	zonemd->common.rdclass = rdata->rdclass;
 	zonemd->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&zonemd->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 

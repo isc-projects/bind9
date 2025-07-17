@@ -463,7 +463,6 @@ tostruct_sig(ARGS_TOSTRUCT) {
 
 	sig->common.rdclass = rdata->rdclass;
 	sig->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&sig->common, link);
 
 	dns_rdata_toregion(rdata, &sr);
 

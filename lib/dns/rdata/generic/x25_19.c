@@ -147,7 +147,6 @@ tostruct_x25(ARGS_TOSTRUCT) {
 
 	x25->common.rdclass = rdata->rdclass;
 	x25->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&x25->common, link);
 
 	dns_rdata_toregion(rdata, &r);
 	x25->x25_len = uint8_fromregion(&r);

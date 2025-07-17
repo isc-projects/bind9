@@ -170,7 +170,6 @@ tostruct_in_nsap(ARGS_TOSTRUCT) {
 
 	nsap->common.rdclass = rdata->rdclass;
 	nsap->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&nsap->common, link);
 
 	dns_rdata_toregion(rdata, &r);
 	nsap->nsap_len = r.length;

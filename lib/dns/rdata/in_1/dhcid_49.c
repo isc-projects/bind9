@@ -146,7 +146,6 @@ tostruct_in_dhcid(ARGS_TOSTRUCT) {
 
 	dhcid->common.rdclass = rdata->rdclass;
 	dhcid->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&dhcid->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 

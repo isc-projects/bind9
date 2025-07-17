@@ -167,7 +167,6 @@ generic_tostruct_txt(ARGS_TOSTRUCT) {
 	REQUIRE(txt != NULL);
 	REQUIRE(txt->common.rdclass == rdata->rdclass);
 	REQUIRE(txt->common.rdtype == rdata->type);
-	REQUIRE(!ISC_LINK_LINKED(&txt->common, link));
 
 	dns_rdata_toregion(rdata, &r);
 	txt->txt_len = r.length;
@@ -209,7 +208,6 @@ tostruct_txt(ARGS_TOSTRUCT) {
 
 	txt->common.rdclass = rdata->rdclass;
 	txt->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&txt->common, link);
 
 	return generic_tostruct_txt(CALL_TOSTRUCT);
 }

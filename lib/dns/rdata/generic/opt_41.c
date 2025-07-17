@@ -366,7 +366,6 @@ tostruct_opt(ARGS_TOSTRUCT) {
 
 	opt->common.rdclass = rdata->rdclass;
 	opt->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&opt->common, link);
 
 	dns_rdata_toregion(rdata, &r);
 	opt->length = r.length;

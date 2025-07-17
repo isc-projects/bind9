@@ -138,7 +138,6 @@ tostruct_eui48(ARGS_TOSTRUCT) {
 
 	eui48->common.rdclass = rdata->rdclass;
 	eui48->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&eui48->common, link);
 
 	memmove(eui48->eui48, rdata->data, rdata->length);
 	return ISC_R_SUCCESS;

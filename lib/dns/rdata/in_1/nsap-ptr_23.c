@@ -153,7 +153,6 @@ tostruct_in_nsap_ptr(ARGS_TOSTRUCT) {
 
 	nsap_ptr->common.rdclass = rdata->rdclass;
 	nsap_ptr->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&nsap_ptr->common, link);
 
 	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);

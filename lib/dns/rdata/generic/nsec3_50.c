@@ -294,7 +294,6 @@ tostruct_nsec3(ARGS_TOSTRUCT) {
 
 	nsec3->common.rdclass = rdata->rdclass;
 	nsec3->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&nsec3->common, link);
 
 	region.base = rdata->data;
 	region.length = rdata->length;

@@ -134,7 +134,6 @@ tostruct_gpos(ARGS_TOSTRUCT) {
 
 	gpos->common.rdclass = rdata->rdclass;
 	gpos->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&gpos->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 	gpos->long_len = uint8_fromregion(&region);

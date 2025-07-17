@@ -501,7 +501,6 @@ tostruct_naptr(ARGS_TOSTRUCT) {
 
 	naptr->common.rdclass = rdata->rdclass;
 	naptr->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&naptr->common, link);
 
 	naptr->flags = NULL;
 	naptr->service = NULL;

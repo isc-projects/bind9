@@ -209,7 +209,6 @@ tostruct_minfo(ARGS_TOSTRUCT) {
 
 	minfo->common.rdclass = rdata->rdclass;
 	minfo->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&minfo->common, link);
 
 	dns_name_init(&name);
 	dns_rdata_toregion(rdata, &region);

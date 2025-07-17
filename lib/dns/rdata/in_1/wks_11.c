@@ -307,7 +307,6 @@ tostruct_in_wks(ARGS_TOSTRUCT) {
 
 	wks->common.rdclass = rdata->rdclass;
 	wks->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&wks->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 	n = uint32_fromregion(&region);

@@ -91,7 +91,6 @@ tostruct_cds(ARGS_TOSTRUCT) {
 	 */
 	cds->common.rdclass = rdata->rdclass;
 	cds->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&cds->common, link);
 
 	return generic_tostruct_ds(CALL_TOSTRUCT);
 }
