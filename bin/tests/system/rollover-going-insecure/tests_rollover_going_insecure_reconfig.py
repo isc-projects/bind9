@@ -26,9 +26,9 @@ from common import (
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure_policy(servers, templates):
+def reconfigure_policy(ns6, templates):
     templates.render("ns6/named.conf", {"policy": "insecure"})
-    servers["ns6"].reconfigure()
+    ns6.reconfigure()
 
 
 @pytest.mark.parametrize(
@@ -38,14 +38,17 @@ def reconfigure_policy(servers, templates):
         "going-insecure-dynamic.kasp",
     ],
 )
-def test_going_insecure_reconfig_step1(zone, alg, size, servers):
+def test_going_insecure_reconfig_step1(zone, alg, size, ns6):
     config = DEFAULT_CONFIG
     policy = "insecure"
+    zone = f"step1.{zone}"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
 
     # Key goal states should be HIDDEN.
     # The DS may be removed if we are going insecure.
     step = {
-        "zone": f"step1.{zone}",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"ksk 0 {alg} {size} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{-DURATION['P10D']}",
@@ -58,7 +61,7 @@ def test_going_insecure_reconfig_step1(zone, alg, size, servers):
         "cds-delete": True,
         "check-keytimes": False,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)
 
 
 @pytest.mark.parametrize(
@@ -68,15 +71,18 @@ def test_going_insecure_reconfig_step1(zone, alg, size, servers):
         "going-insecure-dynamic.kasp",
     ],
 )
-def test_going_insecure_reconfig_step2(zone, alg, size, servers):
+def test_going_insecure_reconfig_step2(zone, alg, size, ns6):
     config = DEFAULT_CONFIG
     policy = "insecure"
+    zone = f"step2.{zone}"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
 
     # The DS is long enough removed from the zone to be considered
     # HIDDEN.  This means the DNSKEY and the KSK signatures can be
     # removed.
     step = {
-        "zone": f"step2.{zone}",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"ksk 0 {alg} {size} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{-DURATION['P10D']}",
@@ -90,4 +96,4 @@ def test_going_insecure_reconfig_step2(zone, alg, size, servers):
         "zone-signed": False,
         "check-keytimes": False,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)

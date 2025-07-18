@@ -59,13 +59,12 @@ def check_if_server_is_responsive(ns3):
         return False
 
 
-def test_rndc_deadlock(servers):
+def test_rndc_deadlock(ns3):
     """
     Test whether running "rndc addzone", "rndc modzone", and "rndc delzone"
     commands concurrently does not trigger a deadlock
     """
     test_state = {"finished": False}
-    ns3 = servers["ns3"]
 
     # Create 4 worker threads running "rndc" commands in a loop.
     with concurrent.futures.ThreadPoolExecutor() as executor:

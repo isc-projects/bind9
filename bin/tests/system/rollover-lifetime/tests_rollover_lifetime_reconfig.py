@@ -26,9 +26,14 @@ from common import (
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure_policy(servers, templates):
+def reconfigure_policy(ns6, templates):
+    isctest.kasp.wait_keymgr_done(ns6, "shorter-lifetime")
+    isctest.kasp.wait_keymgr_done(ns6, "longer-lifetime")
+    isctest.kasp.wait_keymgr_done(ns6, "limit-lifetime")
+    isctest.kasp.wait_keymgr_done(ns6, "unlimit-lifetime")
+
     templates.render("ns6/named.conf", {"change_lifetime": True})
-    servers["ns6"].reconfigure()
+    ns6.reconfigure()
 
 
 @pytest.mark.parametrize(
@@ -44,8 +49,10 @@ def reconfigure_policy(servers, templates):
         param("unlimit-lifetime", "unlimited-lifetime", 0),
     ],
 )
-def test_lifetime_reconfig(zone, policy, lifetime, alg, size, servers):
+def test_lifetime_reconfig(zone, policy, lifetime, alg, size, ns6):
     config = DEFAULT_CONFIG
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
 
     step = {
         "zone": zone,
@@ -55,4 +62,4 @@ def test_lifetime_reconfig(zone, policy, lifetime, alg, size, servers):
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)

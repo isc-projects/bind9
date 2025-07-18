@@ -14,7 +14,7 @@ import isctest
 import dns.message
 
 
-def test_database(servers, templates):
+def test_database(ns1, templates):
     msg = dns.message.make_query("database.", "SOA")
 
     # checking pre reload zone
@@ -28,8 +28,8 @@ def test_database(servers, templates):
     )
 
     templates.render("ns1/named.conf", {"rname": "marka.isc.org."})
-    with servers["ns1"].watch_log_from_here() as watcher:
-        servers["ns1"].rndc("reload")
+    with ns1.watch_log_from_here() as watcher:
+        ns1.rndc("reload")
         watcher.wait_for_line("all zones loaded")
 
     # checking post reload zone

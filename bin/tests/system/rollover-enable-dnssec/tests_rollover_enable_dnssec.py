@@ -44,9 +44,13 @@ OFFSETS["step3"] = -int(IRETZSK.total_seconds())
 OFFSETS["step4"] = -int(IPUBC.total_seconds() + IRETKSK.total_seconds())
 
 
-def test_rollover_enable_dnssec_step1(alg, size, servers):
+def test_rollover_enable_dnssec_step1(alg, size, ns3):
+    zone = "step1.enable-dnssec.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step1.enable-dnssec.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden offset:{OFFSETS['step1']}",
@@ -55,12 +59,16 @@ def test_rollover_enable_dnssec_step1(alg, size, servers):
         # after the publication interval.
         "nextev": IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_rollover_enable_dnssec_step2(alg, size, servers):
+def test_rollover_enable_dnssec_step2(alg, size, ns3):
+    zone = "step2.enable-dnssec.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step2.enable-dnssec.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # The DNSKEY is omnipresent, but the zone signatures not yet.
         # Thus, the DS remains hidden.
@@ -73,12 +81,16 @@ def test_rollover_enable_dnssec_step2(alg, size, servers):
         # Minus the time already elapsed.
         "nextev": IRETZSK - IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_rollover_enable_dnssec_step3(alg, size, servers):
+def test_rollover_enable_dnssec_step3(alg, size, ns3):
+    zone = "step3.enable-dnssec.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step3.enable-dnssec.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # All signatures should be omnipresent, so the DS can be submitted.
         # zrrsig: rumoured -> omnipresent
@@ -90,12 +102,16 @@ def test_rollover_enable_dnssec_step3(alg, size, servers):
         # This is after the retire interval.
         "nextev": IRETKSK,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
 
 
-def test_rollover_enable_dnssec_step4(alg, size, servers):
+def test_rollover_enable_dnssec_step4(alg, size, ns3):
+    zone = "step4.enable-dnssec.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
-        "zone": "step4.enable-dnssec.autosign",
+        "zone": zone,
         "cdss": CDSS,
         # DS has been published long enough.
         # ds: rumoured -> omnipresent
@@ -106,4 +122,4 @@ def test_rollover_enable_dnssec_step4(alg, size, servers):
         # established. So we fall back to the default loadkeys interval.
         "nextev": TIMEDELTA["PT1H"],
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, CONFIG, POLICY, step)
