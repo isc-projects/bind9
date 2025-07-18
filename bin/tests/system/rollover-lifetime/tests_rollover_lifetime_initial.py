@@ -34,8 +34,10 @@ from common import (
         param("unlimit-lifetime", "short-lifetime", "P6M"),
     ],
 )
-def test_lifetime_initial(zone, policy, lifetime, alg, size, servers):
+def test_lifetime_initial(zone, policy, lifetime, alg, size, ns6):
     config = DEFAULT_CONFIG
+
+    isctest.kasp.wait_keymgr_done(ns6, zone)
 
     step = {
         "zone": zone,
@@ -45,4 +47,4 @@ def test_lifetime_initial(zone, policy, lifetime, alg, size, servers):
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)

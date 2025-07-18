@@ -33,10 +33,11 @@ OFFSET2 = -int(timedelta(hours=27).total_seconds())
 TTL = int(KSK_CONFIG["dnskey-ttl"].total_seconds())
 
 
-def test_rollover_ksk_three_is_a_crowd(alg, size, servers):
+def test_rollover_ksk_three_is_a_crowd(alg, size, ns3):
     """Test #2375: Scheduled rollovers are happening faster than they can finish."""
-    server = servers["ns3"]
     zone = "three-is-a-crowd.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
 
     step = {
         "zone": zone,
@@ -48,16 +49,16 @@ def test_rollover_ksk_three_is_a_crowd(alg, size, servers):
         ],
         "keyrelationships": [0, 1],
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, KSK_CONFIG, POLICY, step)
 
     # Rollover successor KSK (with DS in rumoured state).
     expected = isctest.kasp.policy_to_properties(TTL, step["keyprops"])
-    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    keys = isctest.kasp.keydir_to_keylist(zone, ns3.identifier)
     isctest.kasp.check_keys(zone, keys, expected)
     key = expected[1].key
     now = KeyTimingMetadata.now()
-    with server.watch_log_from_here() as watcher:
-        server.rndc(f"dnssec -rollover -key {key.tag} -when {now} {zone}")
+    with ns3.watch_log_from_here() as watcher:
+        ns3.rndc(f"dnssec -rollover -key {key.tag} -when {now} {zone}")
         watcher.wait_for_line(f"keymgr: {zone} done")
 
     # We now expect four keys (3x KSK, 1x ZSK).
@@ -72,10 +73,10 @@ def test_rollover_ksk_three_is_a_crowd(alg, size, servers):
         ],
         "check-keytimes": False,  # checked manually with modified values
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, KSK_CONFIG, POLICY, step)
 
     expected = isctest.kasp.policy_to_properties(TTL, step["keyprops"])
-    keys = isctest.kasp.keydir_to_keylist(zone, server.identifier)
+    keys = isctest.kasp.keydir_to_keylist(zone, ns3.identifier)
     isctest.kasp.check_keys(zone, keys, expected)
 
     expected[0].metadata["Successor"] = expected[1].key.tag

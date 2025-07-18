@@ -31,11 +31,15 @@ from common import (
         "going-insecure-dynamic.kasp",
     ],
 )
-def test_going_insecure_initial(zone, servers, alg, size):
+def test_going_insecure_initial(zone, ns6, alg, size):
     config = UNSIGNING_CONFIG
     policy = "unsigning"
+    zone = f"step1.{zone}"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone)
+
     step = {
-        "zone": f"step1.{zone}",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"ksk 0 {alg} {size} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']}",
@@ -43,4 +47,4 @@ def test_going_insecure_initial(zone, servers, alg, size):
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)

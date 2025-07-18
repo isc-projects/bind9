@@ -25,9 +25,12 @@ from common import (
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure_policy(servers, templates):
+def reconfigure_policy(ns6, templates):
+    isctest.kasp.wait_keymgr_done(ns6, "going-straight-to-none.kasp")
+    isctest.kasp.wait_keymgr_done(ns6, "going-straight-to-none-dynamic.kasp")
+
     templates.render("ns6/named.conf", {"policy": "none"})
-    servers["ns6"].reconfigure()
+    ns6.reconfigure()
 
 
 @pytest.mark.parametrize(
@@ -37,7 +40,7 @@ def reconfigure_policy(servers, templates):
         "going-straight-to-none-dynamic.kasp",
     ],
 )
-def test_straight2none_reconfig(zone, servers, alg, size):
+def test_straight2none_reconfig(zone, ns6, alg, size):
     config = DEFAULT_CONFIG
     policy = None
 
@@ -51,4 +54,4 @@ def test_straight2none_reconfig(zone, servers, alg, size):
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)

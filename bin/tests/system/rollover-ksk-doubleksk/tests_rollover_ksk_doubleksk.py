@@ -45,10 +45,14 @@ OFFSETS["step6-p"] = OFFSETS["step5-p"] - int(KSK_CONFIG["purge-keys"].total_sec
 OFFSETS["step6-s"] = OFFSETS["step5-s"] - int(KSK_CONFIG["purge-keys"].total_seconds())
 
 
-def test_ksk_doubleksk_step1(alg, size, servers):
+def test_ksk_doubleksk_step1(alg, size, ns3):
+    zone = "step1.ksk-doubleksk.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Introduce the first key. This will immediately be active.
-        "zone": "step1.ksk-doubleksk.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step1-p']}",
@@ -59,17 +63,21 @@ def test_ksk_doubleksk_step1(alg, size, servers):
         # already passed).
         "nextev": KSK_LIFETIME - KSK_IPUB - timedelta(days=7),
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, KSK_CONFIG, POLICY, step)
 
 
-def test_ksk_doubleksk_step2(alg, size, servers):
+def test_ksk_doubleksk_step2(alg, size, ns3):
+    zone = "step2.ksk-doubleksk.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Successor KSK is prepublished (and signs DNSKEY RRset).
         # KSK1 goal: omnipresent -> hidden
         # KSK2 goal: hidden -> omnipresent
         # KSK2 dnskey: hidden -> rumoured
         # KSK2 krrsig: hidden -> rumoured
-        "zone": "step2.ksk-doubleksk.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step2-p']}",
@@ -80,10 +88,14 @@ def test_ksk_doubleksk_step2(alg, size, servers):
         # Next key event is when the successor KSK becomes OMNIPRESENT.
         "nextev": KSK_IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, KSK_CONFIG, POLICY, step)
 
 
-def test_ksk_doubleksk_step3(alg, size, servers):
+def test_ksk_doubleksk_step3(alg, size, ns3):
+    zone = "step3.ksk-doubleksk.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # The successor DNSKEY RRset has become omnipresent.  The
         # predecessor DS  can be withdrawn and the successor DS can be
@@ -92,7 +104,7 @@ def test_ksk_doubleksk_step3(alg, size, servers):
         # KSK2 dnskey: rumoured -> omnipresent
         # KSK2 krrsig: rumoured -> omnipresent
         # KSK2 ds: hidden -> rumoured
-        "zone": "step3.ksk-doubleksk.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step3-p']}",
@@ -106,10 +118,14 @@ def test_ksk_doubleksk_step3(alg, size, servers):
         # successor DS.  This is the the retire interval.
         "nextev": KSK_IRET,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, KSK_CONFIG, POLICY, step)
 
 
-def test_ksk_doubleksk_step4(alg, size, servers):
+def test_ksk_doubleksk_step4(alg, size, ns3):
+    zone = "step4.ksk-doubleksk.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # The predecessor DNSKEY may be removed, the successor DS is
         # omnipresent.
@@ -117,7 +133,7 @@ def test_ksk_doubleksk_step4(alg, size, servers):
         # KSK1 krrsig: omnipresent -> unretentive
         # KSK1 ds: unretentive -> hidden
         # KSK2 ds: rumoured -> omnipresent
-        "zone": "step4.ksk-doubleksk.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step4-p']}",
@@ -129,16 +145,20 @@ def test_ksk_doubleksk_step4(alg, size, servers):
         # This is the DNSKEY TTL plus zone propagation delay.
         "nextev": KSK_KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, KSK_CONFIG, POLICY, step)
 
 
-def test_ksk_doubleksk_step5(alg, size, servers):
+def test_ksk_doubleksk_step5(alg, size, ns3):
+    zone = "step5.ksk-doubleksk.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # The predecessor DNSKEY is long enough removed from the zone it
         # has become hidden.
         # KSK1 dnskey: unretentive -> hidden
         # KSK1 krrsig: unretentive -> hidden
-        "zone": "step5.ksk-doubleksk.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step5-p']}",
@@ -150,13 +170,17 @@ def test_ksk_doubleksk_step5(alg, size, servers):
         # This is the KSK lifetime minus Ipub minus Iret minus time elapsed.
         "nextev": KSK_LIFETIME - KSK_IPUB - KSK_IRET - KSK_KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, KSK_CONFIG, POLICY, step)
 
 
-def test_ksk_doubleksk_step6(alg, size, servers):
+def test_ksk_doubleksk_step6(alg, size, ns3):
+    zone = "step6.ksk-doubleksk.autosign"
+
+    isctest.kasp.wait_keymgr_done(ns3, zone)
+
     step = {
         # Predecessor KSK is now purged.
-        "zone": "step6.ksk-doubleksk.autosign",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {alg} {size} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step6-p']}",
@@ -164,4 +188,4 @@ def test_ksk_doubleksk_step6(alg, size, servers):
         ],
         "nextev": None,
     }
-    isctest.kasp.check_rollover_step(servers["ns3"], KSK_CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns3, KSK_CONFIG, POLICY, step)

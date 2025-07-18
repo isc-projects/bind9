@@ -14,9 +14,8 @@ import dns.message
 import isctest
 
 
-def test_emptyzones(servers, templates):
+def test_emptyzones(ns1, templates):
     # check that switching to automatic empty zones works
-    ns1 = servers["ns1"]
     with ns1.watch_log_from_here() as watcher:
         ns1.rndc("reload")
         watcher.wait_for_line("all zones loaded")

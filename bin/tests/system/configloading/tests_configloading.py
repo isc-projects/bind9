@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 
-def test_configloading_log(servers):
+def test_configloading_log(ns1):
     """
     This test is a "guard/warning" to make sure the named.conf loading
     (parsing) is done outside of the exclusive mode (so, named is still able to
@@ -18,7 +18,6 @@ def test_configloading_log(servers):
     is currently based on logging, so it's quite brittle.
     """
 
-    server = servers["ns1"]
     log_sequence = [
         "load_configuration",
         "parsing user configuration from ",
@@ -26,13 +25,13 @@ def test_configloading_log(servers):
         "loop exclusive mode: starting",
     ]
 
-    with server.watch_log_from_start() as watcher:
+    with ns1.watch_log_from_start() as watcher:
         watcher.wait_for_sequence(log_sequence)
 
-    with server.watch_log_from_here() as watcher:
-        server.rndc("reconfig")
+    with ns1.watch_log_from_here() as watcher:
+        ns1.rndc("reconfig")
         watcher.wait_for_sequence(log_sequence)
 
-    with server.watch_log_from_here() as watcher:
-        server.rndc("reload")
+    with ns1.watch_log_from_here() as watcher:
+        ns1.rndc("reload")
         watcher.wait_for_sequence(log_sequence)

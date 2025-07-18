@@ -37,20 +37,26 @@ TIME_PASSED = 0  # set in reconfigure() fixture
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure(servers, templates):
+def reconfigure(ns6, templates):
     global TIME_PASSED  # pylint: disable=global-statement
-    start_time = KeyTimingMetadata.now()
+
+    isctest.kasp.wait_keymgr_done(ns6, "step1.csk-algorithm-roll.kasp")
 
     templates.render("ns6/named.conf", {"csk_roll": True})
-    servers["ns6"].reconfigure()
+    start_time = KeyTimingMetadata.now()
+    ns6.reconfigure()
 
     # Calculate time passed to correctly check for next key events.
     TIME_PASSED = KeyTimingMetadata.now().value - start_time.value
 
 
-def test_algoroll_csk_reconfig_step1(servers, alg, size):
+def test_algoroll_csk_reconfig_step1(ns6, alg, size):
+    zone = "step1.csk-algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step1.csk-algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The RSASHA keys are outroducing.
@@ -61,12 +67,16 @@ def test_algoroll_csk_reconfig_step1(servers, alg, size):
         # Next key event is when the ecdsa256 keys have been propagated.
         "nextev": ALGOROLL_IPUB,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns6, CONFIG, POLICY, step)
 
 
-def test_algoroll_csk_reconfig_step2(servers, alg, size):
+def test_algoroll_csk_reconfig_step2(ns6, alg, size):
+    zone = "step2.csk-algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step2.csk-algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The RSASHA keys are outroducing, but need to stay present
@@ -84,12 +94,16 @@ def test_algoroll_csk_reconfig_step2(servers, alg, size):
         # the time passed between key creation and invoking 'rndc reconfig'.
         "nextev": ALGOROLL_IPUBC - ALGOROLL_IPUB - TIME_PASSED,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns6, CONFIG, POLICY, step)
 
 
-def test_algoroll_csk_reconfig_step3(servers, alg, size):
+def test_algoroll_csk_reconfig_step3(ns6, alg, size):
+    zone = "step3.csk-algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step3.csk-algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The DS can be swapped.
@@ -100,12 +114,16 @@ def test_algoroll_csk_reconfig_step3(servers, alg, size):
         # after the publication interval of the parent side.
         "nextev": ALGOROLL_IRETKSK - TIME_PASSED,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns6, CONFIG, POLICY, step)
 
 
-def test_algoroll_csk_reconfig_step4(servers, alg, size):
+def test_algoroll_csk_reconfig_step4(ns6, alg, size):
+    zone = "step4.csk-algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step4.csk-algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The old DS is HIDDEN, we can remove the old algorithm records.
@@ -116,12 +134,16 @@ def test_algoroll_csk_reconfig_step4(servers, alg, size):
         # This happens after the DNSKEY TTL plus zone propagation delay.
         "nextev": ALGOROLL_KEYTTLPROP,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns6, CONFIG, POLICY, step)
 
 
-def test_algoroll_csk_reconfig_step5(servers, alg, size):
+def test_algoroll_csk_reconfig_step5(ns6, alg, size):
+    zone = "step5.csk-algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step5.csk-algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The DNSKEY becomes HIDDEN.
@@ -136,12 +158,16 @@ def test_algoroll_csk_reconfig_step5(servers, alg, size):
         # between key creation and invoking 'rndc reconfig'.
         "nextev": ALGOROLL_IRET - ALGOROLL_IRETKSK - ALGOROLL_KEYTTLPROP - TIME_PASSED,
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns6, CONFIG, POLICY, step)
 
 
-def test_algoroll_csk_reconfig_step6(servers, alg, size):
+def test_algoroll_csk_reconfig_step6(ns6, alg, size):
+    zone = "step6.csk-algorithm-roll.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
+
     step = {
-        "zone": "step6.csk-algorithm-roll.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             # The zone signatures are now HIDDEN.
@@ -153,4 +179,4 @@ def test_algoroll_csk_reconfig_step6(servers, alg, size):
         # loadkeys interval.
         "nextev": TIMEDELTA["PT1H"],
     }
-    isctest.kasp.check_rollover_step(servers["ns6"], CONFIG, POLICY, step)
+    isctest.kasp.check_rollover_step(ns6, CONFIG, POLICY, step)

@@ -21,12 +21,15 @@ from common import (
 )
 
 
-def test_dynamic2inline(alg, size, servers, templates):
+def test_dynamic2inline(alg, size, ns6, templates):
     config = DEFAULT_CONFIG
     policy = "default"
+    zone = "dynamic2inline.kasp"
+
+    isctest.kasp.wait_keymgr_done(ns6, zone)
 
     step = {
-        "zone": "dynamic2inline.kasp",
+        "zone": zone,
         "cdss": CDSS,
         "keyprops": [
             f"csk unlimited {alg} {size} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
@@ -34,9 +37,10 @@ def test_dynamic2inline(alg, size, servers, templates):
         "nextev": None,
     }
 
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)
 
     templates.render("ns6/named.conf", {"change_lifetime": True})
-    servers["ns6"].reconfigure()
+    ns6.reconfigure()
+    isctest.kasp.wait_keymgr_done(ns6, zone, reconfig=True)
 
-    isctest.kasp.check_rollover_step(servers["ns6"], config, policy, step)
+    isctest.kasp.check_rollover_step(ns6, config, policy, step)
