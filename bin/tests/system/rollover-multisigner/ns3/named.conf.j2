@@ -14,8 +14,21 @@
 include "kasp.conf";
 include "named.common.conf";
 
-zone "manual-rollover.kasp" {
+/* RFC 8901 Multi-signer Model 2. */
+zone "multisigner-model2.kasp" {
         type primary;
-        file "manual-rollover.kasp.db";
-        dnssec-policy "manual-rollover";
+        file "multisigner-model2.kasp.db";
+        dnssec-policy "multisigner-model2";
+        allow-update { any; };
+};
+
+/*
+ * A zone that starts with keys that have tags that are
+ * outside of the desired multi-signer key tag range.
+ */
+zone "single-to-multisigner.kasp" {
+        type primary;
+        file "single-to-multisigner.kasp.db";
+        dnssec-policy "multisigner-model2";
+        allow-update { any; };
 };
