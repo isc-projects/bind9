@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ *
+ * SPDX-License-Identifier: MPL-2.0
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.  If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * See the COPYRIGHT file distributed with this work for additional
+ * information regarding copyright ownership.
+ */
+
+{% set csk_roll = csk_roll | default(False) %}
+{% set _csk_file = "csk1.conf" if not csk_roll else "csk2.conf" %}
+
+include "@_csk_file@";
+include "named.common.conf";
+
+zone "step1.csk-algorithm-roll.kasp" {
+	type primary;
+	file "step1.csk-algorithm-roll.kasp.db";
+	dnssec-policy "csk-algoroll";
+};
+
+{% if csk_roll %}
+zone "step2.csk-algorithm-roll.kasp" {
+	type primary;
+	file "step2.csk-algorithm-roll.kasp.db";
+	dnssec-policy "csk-algoroll";
+};
+
+zone "step3.csk-algorithm-roll.kasp" {
+	type primary;
+	file "step3.csk-algorithm-roll.kasp.db";
+	dnssec-policy "csk-algoroll";
+};
+
+zone "step4.csk-algorithm-roll.kasp" {
+	type primary;
+	file "step4.csk-algorithm-roll.kasp.db";
+	dnssec-policy "csk-algoroll";
+};
+
+zone "step5.csk-algorithm-roll.kasp" {
+	type primary;
+	file "step5.csk-algorithm-roll.kasp.db";
+	dnssec-policy "csk-algoroll";
+};
+
+zone "step6.csk-algorithm-roll.kasp" {
+	type primary;
+	file "step6.csk-algorithm-roll.kasp.db";
+	dnssec-policy "csk-algoroll";
+};
+{% endif %}

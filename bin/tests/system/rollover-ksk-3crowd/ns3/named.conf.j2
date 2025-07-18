@@ -11,11 +11,13 @@
  * information regarding copyright ownership.
  */
 
-dnssec-policy "manual-rollover" {
-	dnskey-ttl 3600;
+include "kasp.conf";
+include "named.common.conf";
 
-	keys {
-		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-	};
+zone "three-is-a-crowd.kasp" {
+        type primary;
+        file "three-is-a-crowd.kasp.db";
+        inline-signing yes;
+        /* Use same policy as KSK rollover test zones. */
+        dnssec-policy "ksk-doubleksk";
 };

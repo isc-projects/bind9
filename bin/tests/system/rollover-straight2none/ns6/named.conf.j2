@@ -11,11 +11,21 @@
  * information regarding copyright ownership.
  */
 
-dnssec-policy "manual-rollover" {
-	dnskey-ttl 3600;
+{% set policy = policy | default("default") %}
 
-	keys {
-		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-	};
+include "kasp.conf";
+include "named.common.conf";
+
+zone "going-straight-to-none.kasp" {
+	type primary;
+	file "going-straight-to-none.kasp.db";
+	dnssec-policy @policy@;
+};
+
+zone "going-straight-to-none-dynamic.kasp" {
+	type primary;
+	file "going-straight-to-none-dynamic.kasp.db.signed";
+	inline-signing no;
+	dnssec-policy @policy@;
+	allow-update { any; };
 };

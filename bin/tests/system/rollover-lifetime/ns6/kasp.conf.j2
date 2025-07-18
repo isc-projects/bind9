@@ -11,11 +11,19 @@
  * information regarding copyright ownership.
  */
 
-dnssec-policy "manual-rollover" {
-	dnskey-ttl 3600;
-
+dnssec-policy "unlimited-lifetime" {
 	keys {
-		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
-		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		csk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+	};
+};
+dnssec-policy "short-lifetime" {
+	keys {
+		csk lifetime P6M algorithm @DEFAULT_ALGORITHM@;
+	};
+};
+
+dnssec-policy "long-lifetime" {
+	keys {
+		csk lifetime P1Y algorithm @DEFAULT_ALGORITHM@;
 	};
 };
