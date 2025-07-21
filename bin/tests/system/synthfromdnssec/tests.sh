@@ -132,6 +132,17 @@ for ns in 2 4 5 6; do
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
+  echo_i "prime negative NXDOMAIN response no-apex-covering (synth-from-dnssec ${description};) ($n)"
+  ret=0
+  dig_with_opts a.no-apex-covering. @10.53.0.${ns} a >dig.out.ns${ns}.test$n || ret=1
+  check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+  check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
+  check_nosynth_soa no-apex-covering. dig.out.ns${ns}.test$n || ret=1
+  [ $ns -eq 2 ] && cp dig.out.ns${ns}.test$n no-apex-covering.out
+  n=$((n + 1))
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
   echo_i "prime negative NODATA response (synth-from-dnssec ${description};) ($n)"
   ret=0
   dig_with_opts nodata.example. @10.53.0.${ns} a >dig.out.ns${ns}.test$n || ret=1
@@ -366,6 +377,24 @@ for ns in 2 4 5 6; do
     nextpart ns1/named.run | grep b.example/A >/dev/null || ret=1
   fi
   digcomp nxdomain.out dig.out.ns${ns}.test$n || ret=1
+  n=$((n + 1))
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  echo_i "check synthesized NXDOMAIN response no-apex-covering (synth-from-dnssec ${description};) ($n)"
+  ret=0
+  nextpart ns1/named.run >/dev/null
+  dig_with_opts b.no-apex-covering. @10.53.0.${ns} a >dig.out.ns${ns}.test$n || ret=1
+  check_ad_flag $ad dig.out.ns${ns}.test$n || ret=1
+  check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
+  if [ ${synth} = yes ]; then
+    check_synth_soa no-apex-covering. dig.out.ns${ns}.test$n || ret=1
+    nextpart ns1/named.run | grep b.no-apex-covering/A >/dev/null && ret=1
+  else
+    check_nosynth_soa no-apex-covering. dig.out.ns${ns}.test$n || ret=1
+    nextpart ns1/named.run | grep b.no-apex-covering/A >/dev/null || ret=1
+  fi
+  digcomp no-apex-covering.out dig.out.ns${ns}.test$n || ret=1
   n=$((n + 1))
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
@@ -670,7 +699,7 @@ for ns in 2 4 5 6; do
 
   for synthesized in NXDOMAIN no-data wildcard; do
     case $synthesized in
-      NXDOMAIN) count=1 ;;
+      NXDOMAIN) count=2 ;;
       no-data) count=4 ;;
       wildcard) count=2 ;;
     esac
@@ -727,7 +756,7 @@ for ns in 2 4 5 6; do
 
     for synthesized in SynthNXDOMAIN SynthNODATA SynthWILDCARD; do
       case $synthesized in
-        SynthNXDOMAIN) count=1 ;;
+        SynthNXDOMAIN) count=2 ;;
         SynthNODATA) count=4 ;;
         SynthWILDCARD) count=2 ;;
       esac
@@ -786,7 +815,7 @@ for ns in 2 4 5 6; do
 
     for synthesized in SynthNXDOMAIN SynthNODATA SynthWILDCARD; do
       case $synthesized in
-        SynthNXDOMAIN) count=1 ;;
+        SynthNXDOMAIN) count=2 ;;
         SynthNODATA) count=4 ;;
         SynthWILDCARD) count=2 ;;
       esac

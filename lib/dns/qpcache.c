@@ -1517,7 +1517,13 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 	 */
 	result = dns_qp_lookup(search->qpdb->nsec, name, NULL, &iter, NULL,
 			       (void **)&node, NULL);
-	if (result != DNS_R_PARTIALMATCH) {
+	/*
+	 * When DNS_R_PARTIALMATCH or ISC_R_NOTFOUND is returned from
+	 * dns_qp_lookup there is potentially a covering NSEC present
+	 * in the cache so we need to search for it.  Otherwise we are
+	 * done here.
+	 */
+	if (result != DNS_R_PARTIALMATCH && result != ISC_R_NOTFOUND) {
 		return ISC_R_NOTFOUND;
 	}
 
