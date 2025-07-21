@@ -14,6 +14,12 @@ foreach unit : [
     'plugin',
     'query',
 ]
+    linkargs = ''
+    if unit == 'plugin'
+        linkargs = [
+            '-Wl,--wrap=isc_file_exists',
+        ]
+    endif
     test_bin = executable(
         unit,
         files(f'@unit@_test.c', 'netmgr_wrap.c'),
@@ -31,6 +37,7 @@ foreach unit : [
             cmocka_dep,
             nghttp2_dep,
         ],
+        link_args: linkargs,
     )
 
     test(
