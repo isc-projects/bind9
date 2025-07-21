@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include <isc/errno.h>
+#include <isc/file.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -54,9 +55,10 @@ struct ns_plugin {
 static ns_hooklist_t default_hooktable[NS_HOOKPOINTS_COUNT];
 ns_hooktable_t *ns__hook_table = &default_hooktable;
 
-isc_result_t
-ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {
+static isc_result_t
+plugin_expandpath(const char *src, char *dst, size_t dstsize, bool appendext) {
 	int result;
+	const char *ext = appendext ? NAMED_PLUGINEXT : "";
 
 	/*
 	 * On Unix systems, differentiate between paths and filenames.
@@ -65,12 +67,13 @@ ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {
 		/*
 		 * 'src' is an absolute or relative path.  Copy it verbatim.
 		 */
-		result = snprintf(dst, dstsize, "%s", src);
+		result = snprintf(dst, dstsize, "%s%s", src, ext);
 	} else {
 		/*
 		 * 'src' is a filename.  Prepend default plugin directory path.
 		 */
-		result = snprintf(dst, dstsize, "%s/%s", NAMED_PLUGINDIR, src);
+		result = snprintf(dst, dstsize, "%s/%s%s", NAMED_PLUGINDIR, src,
+				  ext);
 	}
 
 	if (result < 0) {
@@ -80,6 +83,22 @@ ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {
 	} else {
 		return ISC_R_SUCCESS;
 	}
+}
+
+isc_result_t
+ns_plugin_expandpath(const char *src, char *dst, size_t dstsize) {
+	isc_result_t result;
+
+	result = plugin_expandpath(src, dst, dstsize, false);
+	if (result != ISC_R_SUCCESS) {
+		return result;
+	}
+
+	if (isc_file_exists(dst) == false) {
+		result = plugin_expandpath(src, dst, dstsize, true);
+	}
+
+	return result;
 }
 
 static isc_result_t
