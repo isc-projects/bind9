@@ -21,6 +21,17 @@ rndccmd() (
   "$RNDC" -c ../_common/rndc.conf -p "${CONTROLPORT}" -s "$@"
 )
 
+dig_with_opts() (
+  "$DIG" -p "$PORT" "$@"
+)
+
+sendcmd() (
+  SERVER="${1}"
+  COMMAND="${2}"
+  COMMAND_ARGS="${3}"
+  dig_with_opts "@${SERVER}" "${COMMAND_ARGS}.${COMMAND}._control." TXT +time=5 +tries=1 +tcp >/dev/null 2>&1
+)
+
 burst() {
   server=${1}
   num=${4:-20}
@@ -66,7 +77,7 @@ echo_i "checking recursing clients are dropped at the per-server limit ($n)"
 ret=0
 # make the server lame and restart
 rndccmd 10.53.0.3 flush
-touch ans4/norespond
+sendcmd 10.53.0.4 send-responses "disable"
 for try in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
   burst 10.53.0.3 a $try
   # fetches-per-server is at 400, but at 20qps against a lame server,
@@ -111,7 +122,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking lame server recovery ($n)"
 ret=0
-test -f ans4/norespond && rm -f ans4/norespond
+sendcmd 10.53.0.4 send-responses "enable"
 for try in 1 2 3 4 5; do
   burst 10.53.0.3 b $try
   stat 10.53.0.3 0 200 || ret=1
@@ -163,7 +174,7 @@ echo_i "checking lame server clients are dropped at the per-domain limit ($n)"
 ret=0
 fail=0
 success=0
-touch ans4/norespond
+sendcmd 10.53.0.4 send-responses "disable"
 for try in 1 2 3 4 5; do
   burst 10.53.0.3 d $try 300
   $DIGCMD a ${try}.example >dig.out.ns3.$n.$try
@@ -207,7 +218,7 @@ ret=0
 fail=0
 exceeded=0
 success=0
-touch ans4/norespond
+sendcmd 10.53.0.4 send-responses "disable"
 for try in 1 2 3 4 5; do
   burst 10.53.0.3 b $try 400
   $DIGCMD +time=2 a ${try}.example >dig.out.ns3.$n.$try
@@ -253,7 +264,7 @@ nextpart ns5/named.run >/dev/null
 n=$((n + 1))
 echo_i "checking clients are dropped at the clients-per-query limit ($n)"
 ret=0
-test -f ans4/norespond && rm -f ans4/norespond
+sendcmd 10.53.0.4 send-responses "enable"
 for try in 1 2 3 4 5; do
   burst 10.53.0.5 latency $try 20 "dup"
   sleep 1
@@ -296,7 +307,7 @@ nextpart ns5/named.run >/dev/null
 n=$((n + 1))
 echo_i "checking clients are dropped at the clients-per-query limit with stale-answer-client-timeout ($n)"
 ret=0
-test -f ans4/norespond && rm -f ans4/norespond
+sendcmd 10.53.0.4 send-responses "enable"
 for try in 1 2 3 4 5; do
   burst 10.53.0.5 latency $try 20 "dup"
   sleep 1
