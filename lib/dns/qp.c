@@ -716,7 +716,7 @@ chunk_free(dns_qp_t *qp, dns_qpchunk_t chunk) {
  */
 static void
 recycle(dns_qp_t *qp) {
-	unsigned int free = 0;
+	unsigned int nfree = 0;
 
 	isc_nanosecs_t start = isc_time_monotonic();
 
@@ -725,15 +725,15 @@ recycle(dns_qp_t *qp) {
 		    qp->usage[chunk].exists && !qp->usage[chunk].immutable)
 		{
 			chunk_free(qp, chunk);
-			free++;
+			nfree++;
 		}
 	}
 
 	isc_nanosecs_t time = isc_time_monotonic() - start;
 	atomic_fetch_add_relaxed(&recycle_time, time);
 
-	if (free > 0) {
-		LOG_STATS("qp recycle" PRItime "free %u chunks", time, free);
+	if (nfree > 0) {
+		LOG_STATS("qp recycle" PRItime "free %u chunks", time, nfree);
 		LOG_STATS("qp recycle leaf %u live %u used %u free %u hold %u",
 			  qp->leaf_count, qp->used_count - qp->free_count,
 			  qp->used_count, qp->free_count, qp->hold_count);
@@ -757,7 +757,7 @@ reclaim_chunks_cb(struct rcu_head *arg) {
 	 * If chunk_max is zero, chunks have already been freed.
 	 */
 	if (qp->chunk_max != 0) {
-		unsigned int free = 0;
+		unsigned int nfree = 0;
 		isc_nanosecs_t start = isc_time_monotonic();
 
 		INSIST(QP_VALID(qp));
@@ -769,16 +769,16 @@ reclaim_chunks_cb(struct rcu_head *arg) {
 				qp->usage[chunk].snapfree = true;
 			} else {
 				chunk_free(qp, chunk);
-				free++;
+				nfree++;
 			}
 		}
 
 		isc_nanosecs_t time = isc_time_monotonic() - start;
 		recycle_time += time;
 
-		if (free > 0) {
+		if (nfree > 0) {
 			LOG_STATS("qp reclaim" PRItime "free %u chunks", time,
-				  free);
+				  nfree);
 			LOG_STATS(
 				"qp reclaim leaf %u live %u used %u free %u "
 				"hold %u",
@@ -852,7 +852,7 @@ reclaim_chunks(dns_qpmulti_t *multi) {
  */
 static void
 marksweep_chunks(dns_qpmulti_t *multi) {
-	unsigned int free = 0;
+	unsigned int nfree = 0;
 
 	isc_nanosecs_t start = isc_time_monotonic();
 
@@ -873,15 +873,15 @@ marksweep_chunks(dns_qpmulti_t *multi) {
 		qpw->usage[chunk].snapmark = false;
 		if (qpw->usage[chunk].snapfree && !qpw->usage[chunk].snapshot) {
 			chunk_free(qpw, chunk);
-			free++;
+			nfree++;
 		}
 	}
 
 	isc_nanosecs_t time = isc_time_monotonic() - start;
 	recycle_time += time;
 
-	if (free > 0) {
-		LOG_STATS("qp marksweep" PRItime "free %u chunks", time, free);
+	if (nfree > 0) {
+		LOG_STATS("qp marksweep" PRItime "free %u chunks", time, nfree);
 		LOG_STATS(
 			"qp marksweep leaf %u live %u used %u free %u hold %u",
 			qpw->leaf_count, qpw->used_count - qpw->free_count,
@@ -1319,7 +1319,7 @@ dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp) {
  */
 void
 dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
-	unsigned int free = 0;
+	unsigned int nfree = 0;
 
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(multi->writer.transaction_mode == QP_UPDATE);
@@ -1342,7 +1342,7 @@ dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 				INSIST(!multi->rollback->usage[chunk].exists);
 				multi->rollback->base->ptr[chunk] = NULL;
 			}
-			free++;
+			nfree++;
 		}
 	}
 
@@ -1365,7 +1365,7 @@ dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	isc_nanosecs_t time = isc_time_monotonic() - start;
 	atomic_fetch_add_relaxed(&rollback_time, time);
 
-	LOG_STATS("qp rollback" PRItime "free %u chunks", time, free);
+	LOG_STATS("qp rollback" PRItime "free %u chunks", time, nfree);
 
 	*qptp = NULL;
 	UNLOCK(&multi->mutex);
