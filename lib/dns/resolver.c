@@ -4423,10 +4423,9 @@ fctx_expired(void *arg) {
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(fctx->tid == isc_tid());
 
+	FCTXTRACE(isc_result_totext(ISC_R_TIMEDOUT));
 	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-		      ISC_LOG_INFO,
-		      "shut down hung fetch while resolving %p(%s)", fctx,
-		      fctx->info);
+		      ISC_LOG_INFO, "gave up on resolving '%s'", fctx->info);
 
 	dns_ede_add(&fctx->edectx, DNS_EDE_NOREACHABLEAUTH, NULL);
 
