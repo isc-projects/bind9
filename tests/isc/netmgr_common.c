@@ -26,6 +26,8 @@
  */
 #include <openssl/err.h>
 
+#include "isc/loop.h"
+
 #define UNIT_TESTING
 #include <cmocka.h>
 
@@ -176,7 +178,7 @@ setup_netmgr_test(void **state) {
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 
 	setup_loopmgr(state);
-	isc_netmgr_create(mctx, loopmgr, &listen_nm);
+	isc_netmgr_create(mctx, &listen_nm);
 	assert_non_null(listen_nm);
 	isc_nm_setinitialtimeout(listen_nm, T_INIT);
 	isc_nm_setprimariestimeout(listen_nm, T_PRIMARIES);
@@ -184,7 +186,7 @@ setup_netmgr_test(void **state) {
 	isc_nm_setkeepalivetimeout(listen_nm, T_KEEPALIVE);
 	isc_nm_setadvertisedtimeout(listen_nm, T_ADVERTISED);
 
-	isc_netmgr_create(mctx, loopmgr, &connect_nm);
+	isc_netmgr_create(mctx, &connect_nm);
 	assert_non_null(connect_nm);
 	isc_nm_setinitialtimeout(connect_nm, T_INIT);
 	isc_nm_setprimariestimeout(connect_nm, T_PRIMARIES);
@@ -302,7 +304,7 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		break;
 	case ISC_R_SUCCESS:
 		if (have_expected_csends(atomic_fetch_add(&csends, 1) + 1)) {
-			do_csends_shutdown(loopmgr);
+			do_csends_shutdown();
 		}
 		break;
 	default:
@@ -344,7 +346,7 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		assert_true(magic == send_magic);
 
 		if (have_expected_creads(atomic_fetch_add(&creads, 1) + 1)) {
-			do_creads_shutdown(loopmgr);
+			do_creads_shutdown();
 		}
 
 		if (magic == send_magic && allow_send_back) {
@@ -392,7 +394,7 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	/* We are finished, initiate the shutdown */
 	if (have_expected_cconnects(atomic_fetch_add(&cconnects, 1) + 1)) {
-		do_cconnects_shutdown(loopmgr);
+		do_cconnects_shutdown();
 	} else if (do_send) {
 		isc_async_current(stream_recv_send_connect,
 				  cbarg == NULL
@@ -426,7 +428,7 @@ listen_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		break;
 	case ISC_R_SUCCESS:
 		if (have_expected_ssends(atomic_fetch_add(&ssends, 1) + 1)) {
-			do_ssends_shutdown(loopmgr);
+			do_ssends_shutdown();
 		}
 		break;
 	default:
@@ -459,7 +461,7 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		assert_true(magic == send_magic);
 
 		if (have_expected_sreads(atomic_fetch_add(&sreads, 1) + 1)) {
-			do_sreads_shutdown(loopmgr);
+			do_sreads_shutdown();
 		}
 
 		assert_true(region->length >= sizeof(magic));
@@ -505,7 +507,7 @@ listen_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	}
 
 	if (have_expected_saccepts(atomic_fetch_add(&saccepts, 1) + 1)) {
-		do_saccepts_shutdown(loopmgr);
+		do_saccepts_shutdown();
 	}
 
 	isc_nmhandle_attach(handle, &(isc_nmhandle_t *){ NULL });
@@ -527,7 +529,7 @@ stream_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	}
 
 	if (have_expected_saccepts(atomic_fetch_add(&saccepts, 1) + 1)) {
-		do_saccepts_shutdown(loopmgr);
+		do_saccepts_shutdown();
 	}
 
 	if (stream_use_PROXY) {
@@ -578,7 +580,7 @@ timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_refcount_decrement(&active_creads);
 	isc_nmhandle_detach(&handle);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 isc_quota_t *
@@ -734,7 +736,7 @@ connect_success_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	assert_int_equal(eresult, ISC_R_SUCCESS);
 
 	if (have_expected_cconnects(atomic_fetch_add(&cconnects, 1) + 1)) {
-		do_cconnects_shutdown(loopmgr);
+		do_cconnects_shutdown();
 		return;
 	}
 }
@@ -764,7 +766,7 @@ stream_noop(void **state ISC_ATTR_UNUSED) {
 
 	result = stream_listen(noop_accept_cb, NULL, 128, NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
 	connect_readcb = NULL;
 	stream_connect(connect_success_cb, NULL, T_CONNECT);
@@ -811,7 +813,7 @@ noresponse_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_refcount_decrement(&active_creads);
 	isc_nmhandle_detach(&handle);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -893,7 +895,7 @@ stream_noresponse(void **state ISC_ATTR_UNUSED) {
 
 	result = stream_listen(noop_accept_cb, NULL, 128, NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
 	stream_connect(noresponse_connectcb, NULL, T_CONNECT);
 }
@@ -1027,7 +1029,7 @@ stream_timeout_recovery(void **state ISC_ATTR_UNUSED) {
 	noanswer = true;
 	result = stream_listen(stream_accept_cb, NULL, 128, NULL, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
 	/*
 	 * Shorten all the client timeouts to 0.05 seconds.
@@ -1108,7 +1110,7 @@ stream_recv_one(void **state ISC_ATTR_UNUSED) {
 	result = stream_listen(stream_accept_cb, NULL, 128, quotap,
 			       &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
 	stream_connect(connect_connect_cb, NULL, T_CONNECT);
 }
@@ -1186,7 +1188,7 @@ stream_recv_two(void **state ISC_ATTR_UNUSED) {
 	result = stream_listen(stream_accept_cb, NULL, 128, quotap,
 			       &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
 	stream_connect(connect_connect_cb, NULL, T_CONNECT);
 
@@ -1250,11 +1252,10 @@ stream_recv_send(void **state ISC_ATTR_UNUSED) {
 	result = stream_listen(stream_accept_cb, NULL, 128, quotap,
 			       &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
 	for (size_t i = 0; i < workers; i++) {
-		isc_async_run(isc_loop_get(loopmgr, i),
-			      stream_recv_send_connect,
+		isc_async_run(isc_loop_get(i), stream_recv_send_connect,
 			      get_stream_connect_function());
 	}
 }
@@ -1374,7 +1375,7 @@ udp_start_listening(uint32_t nworkers, isc_nm_recv_cb_t cb) {
 
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 }
 
 static void
@@ -1390,7 +1391,7 @@ udp__send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		if (have_expected_csends(atomic_fetch_add(&csends, 1) + 1)) {
 			if (csends_shutdown) {
 				isc_nm_cancelread(handle);
-				isc_loopmgr_shutdown(loopmgr);
+				isc_loopmgr_shutdown();
 			}
 		}
 		break;
@@ -1448,7 +1449,7 @@ udp__connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		assert_true(magic == send_magic);
 
 		if (have_expected_creads(atomic_fetch_add(&creads, 1) + 1)) {
-			do_creads_shutdown(loopmgr);
+			do_creads_shutdown();
 		}
 
 		if (magic == send_magic && allow_send_back) {
@@ -1486,7 +1487,7 @@ udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		if (have_expected_cconnects(atomic_fetch_add(&cconnects, 1) +
 					    1))
 		{
-			do_cconnects_shutdown(loopmgr);
+			do_cconnects_shutdown();
 		} else if (do_send) {
 			isc_async_current(udp_enqueue_connect, cbarg);
 		}
@@ -1585,7 +1586,7 @@ udp_noresponse_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	isc_nmhandle_detach(&handle);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -1720,7 +1721,7 @@ udp_timeout_recovery_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_nmhandle_detach(&handle);
 
 	atomic_fetch_add(&creads, 1);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -1858,7 +1859,7 @@ udp_shutdown_connect_teardown(void **state) {
 
 void
 udp_shutdown_connect(void **arg ISC_ATTR_UNUSED) {
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 	/*
 	 * isc_nm_udpconnect() is synchronous, so we need to launch this on the
 	 * async loop.
@@ -1910,7 +1911,7 @@ udp_shutdown_read_send_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	atomic_fetch_add(&csends, 1);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 
 	isc_nmhandle_detach(&handle);
 	isc_refcount_decrement(&active_csends);
@@ -2060,7 +2061,7 @@ udp_cancel_read_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	case ISC_R_CANCELED:
 		/* The read has been canceled */
 		atomic_fetch_add(&creads, 1);
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 		break;
 	default:
 		UNREACHABLE();
@@ -2269,8 +2270,7 @@ udp_recv_send(void **arg ISC_ATTR_UNUSED) {
 	udp_start_listening(ISC_NM_LISTEN_ALL, udp_listen_read_cb);
 
 	for (size_t i = 0; i < workers; i++) {
-		isc_async_run(isc_loop_get(loopmgr, i), udp_enqueue_connect,
-			      NULL);
+		isc_async_run(isc_loop_get(i), udp_enqueue_connect, NULL);
 	}
 }
 
@@ -2299,7 +2299,7 @@ udp_double_read_send_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	switch (eresult) {
 	case ISC_R_SUCCESS:
 		if (have_expected_ssends(atomic_fetch_add(&ssends, 1) + 1)) {
-			do_ssends_shutdown(loopmgr);
+			do_ssends_shutdown();
 		} else {
 			isc_nmhandle_t *sendhandle = NULL;
 			isc_nmhandle_attach(handle, &sendhandle);
@@ -2389,7 +2389,7 @@ udp_double_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		assert_true(magic == send_magic);
 
 		if (have_expected_creads(atomic_fetch_add(&creads, 1) + 1)) {
-			do_creads_shutdown(loopmgr);
+			do_creads_shutdown();
 			detach = true;
 		}
 

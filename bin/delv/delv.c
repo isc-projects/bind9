@@ -110,7 +110,6 @@ static FILE *logfp = NULL;
 
 /* Managers */
 static isc_nm_t *netmgr = NULL;
-static isc_loopmgr_t *loopmgr = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
 static ns_interfacemgr_t *interfacemgr = NULL;
@@ -1845,7 +1844,7 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 
 	dns_client_detach(&client);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -1880,8 +1879,8 @@ run_resolve(void *arg) {
 	}
 
 	/* Create client */
-	CHECK(dns_client_create(mctx, loopmgr, netmgr, 0, tlsctx_client_cache,
-				&client, srcaddr4, srcaddr6));
+	CHECK(dns_client_create(mctx, netmgr, 0, tlsctx_client_cache, &client,
+				srcaddr4, srcaddr6));
 	dns_client_setmaxrestarts(client, restarts);
 	dns_client_setmaxqueries(client, maxtotal);
 
@@ -1905,7 +1904,7 @@ cleanup:
 	}
 
 	isc_mem_put(mctx, namelist, sizeof(*namelist));
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 
 	dns_client_detach(&client);
 }
@@ -1933,7 +1932,7 @@ shutdown_server(void) {
 		ns_server_detach(&sctx);
 	}
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -2078,7 +2077,7 @@ sendquery(void *arg) {
 				   NULL, 0));
 	CHECK(dns_message_setopt(message, opt));
 
-	CHECK(dns_requestmgr_create(mctx, loopmgr, dispatchmgr, NULL, NULL,
+	CHECK(dns_requestmgr_create(mctx, dispatchmgr, NULL, NULL,
 				    &requestmgr));
 
 	dns_view_attach(view, &(dns_view_t *){ NULL });
@@ -2134,7 +2133,7 @@ run_server(void *arg) {
 
 	ns_server_create(mctx, matchview, &sctx);
 
-	CHECK(dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr));
+	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	if (use_ipv4) {
 		isc_sockaddr_any(&any);
@@ -2148,12 +2147,12 @@ run_server(void *arg) {
 		CHECK(dns_dispatch_createudp(dispatchmgr, a, &dispatch6));
 	}
 
-	CHECK(ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr, dispatchmgr,
-				     NULL, &interfacemgr));
+	CHECK(ns_interfacemgr_create(mctx, sctx, netmgr, dispatchmgr, NULL,
+				     &interfacemgr));
 
-	dns_view_create(mctx, loopmgr, dispatchmgr, dns_rdataclass_in,
-			"_default", &view);
-	CHECK(dns_cache_create(loopmgr, dns_rdataclass_in, "", mctx, &cache));
+	dns_view_create(mctx, dispatchmgr, dns_rdataclass_in, "_default",
+			&view);
+	CHECK(dns_cache_create(dns_rdataclass_in, "", mctx, &cache));
 	dns_view_setcache(view, cache, false);
 	dns_cache_detach(&cache);
 	dns_view_setdstport(view, destport);
@@ -2216,8 +2215,8 @@ main(int argc, char *argv[]) {
 	argc--;
 	argv++;
 
-	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
-	loop = isc_loop_main(loopmgr);
+	isc_managers_create(&mctx, 1, &netmgr);
+	loop = isc_loop_main();
 
 	parse_args(argc, argv);
 
@@ -2241,7 +2240,7 @@ main(int argc, char *argv[]) {
 	isc_tlsctx_cache_create(mctx, &tlsctx_client_cache);
 
 	isc_loop_setup(loop, fulltrace ? run_server : run_resolve, NULL);
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_run();
 
 cleanup:
 	if (tlsctx_client_cache != NULL) {
@@ -2260,7 +2259,7 @@ cleanup:
 		dns_master_styledestroy(&style, mctx);
 	}
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
+	isc_managers_destroy(&mctx, &netmgr);
 
 	return 0;
 }

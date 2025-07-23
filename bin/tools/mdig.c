@@ -83,7 +83,6 @@
 #define MAXTRIES   0xffffffff
 
 static isc_mem_t *mctx = NULL;
-static isc_loopmgr_t *loopmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
 static const char *batchname = NULL;
 static FILE *batchfp = NULL;
@@ -522,7 +521,7 @@ cleanup:
 	dns_request_destroy(&request);
 
 	if (--onfly == 0) {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 	}
 	return;
 }
@@ -731,7 +730,7 @@ sendquery(struct query *query) {
 	result = dns_request_create(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, NULL,
 		NULL, options, NULL, query->timeout, query->timeout,
-		query->udptimeout, query->udpretries, isc_loop_main(loopmgr),
+		query->udptimeout, query->udpretries, isc_loop_main(),
 		recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 
@@ -750,7 +749,7 @@ sendqueries(void *arg) {
 	}
 
 	if (onfly == 0) {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 	}
 }
 
@@ -2058,7 +2057,7 @@ teardown(void *arg ISC_ATTR_UNUSED) {
 
 static void
 setup(void *arg ISC_ATTR_UNUSED) {
-	RUNCHECK(dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	set_source_ports(dispatchmgr);
 
@@ -2071,10 +2070,10 @@ setup(void *arg ISC_ATTR_UNUSED) {
 		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchvx));
 
 	RUNCHECK(dns_requestmgr_create(
-		mctx, loopmgr, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
+		mctx, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
 		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
-	dns_view_create(mctx, loopmgr, NULL, 0, "_mdig", &view);
+	dns_view_create(mctx, NULL, 0, "_mdig", &view);
 }
 
 /*% Main processing routine for mdig */
@@ -2096,7 +2095,7 @@ main(int argc, char *argv[]) {
 
 	preparse_args(argc, argv);
 
-	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
+	isc_managers_create(&mctx, 1, &netmgr);
 
 	isc_nonce_buf(cookie_secret, sizeof(cookie_secret));
 
@@ -2124,9 +2123,9 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	isc_loopmgr_setup(loopmgr, setup, NULL);
-	isc_loopmgr_setup(loopmgr, sendqueries, ISC_LIST_HEAD(queries));
-	isc_loopmgr_teardown(loopmgr, teardown, NULL);
+	isc_loopmgr_setup(setup, NULL);
+	isc_loopmgr_setup(sendqueries, ISC_LIST_HEAD(queries));
+	isc_loopmgr_teardown(teardown, NULL);
 
 	/*
 	 * Stall to the start of a new second.
@@ -2154,7 +2153,7 @@ main(int argc, char *argv[]) {
 		} while (1);
 	}
 
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_run();
 
 	ISC_LIST_FOREACH (queries, query, link) {
 		if (query->ednsopts != NULL) {
@@ -2176,6 +2175,6 @@ main(int argc, char *argv[]) {
 		isc_mem_free(mctx, default_query.ecs_addr);
 	}
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
+	isc_managers_destroy(&mctx, &netmgr);
 	return 0;
 }

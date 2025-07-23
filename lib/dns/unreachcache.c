@@ -86,14 +86,13 @@ ucentry_alive(struct cds_lfht *ht, dns_ucentry_t *unreach, isc_stdtime_t now,
 	      bool alive_or_waiting);
 
 dns_unreachcache_t *
-dns_unreachcache_new(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		     const uint16_t expire_min_s, const uint16_t expire_max_s,
+dns_unreachcache_new(isc_mem_t *mctx, const uint16_t expire_min_s,
+		     const uint16_t expire_max_s,
 		     const uint16_t backoff_eligible_s) {
-	REQUIRE(loopmgr != NULL);
 	REQUIRE(expire_min_s > 0);
 	REQUIRE(expire_min_s <= expire_max_s);
 
-	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
+	uint32_t nloops = isc_loopmgr_nloops();
 	dns_unreachcache_t *uc = isc_mem_get(mctx, sizeof(*uc));
 	*uc = (dns_unreachcache_t){
 		.magic = UNREACHCACHE_MAGIC,

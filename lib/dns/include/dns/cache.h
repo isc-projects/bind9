@@ -69,8 +69,8 @@ ISC_REFCOUNT_DECL(dns_cache);
 #endif
 
 isc_result_t
-dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
-		 const char *cachename, isc_mem_t *mctx, dns_cache_t **cachep);
+dns_cache_create(dns_rdataclass_t rdclass, const char *cachename,
+		 isc_mem_t *mctx, dns_cache_t **cachep);
 /*%<
  * Create a new DNS cache.
  *

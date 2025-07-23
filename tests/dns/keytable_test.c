@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "isc/loop.h"
+
 #define UNIT_TESTING
 #include <cmocka.h>
 
@@ -174,7 +176,7 @@ create_tables(void) {
 			 ISC_R_SUCCESS);
 
 	dns_keytable_create(view, &keytable);
-	dns_ntatable_create(view, loopmgr, &ntatable);
+	dns_ntatable_create(view, &ntatable);
 
 	/* Add a normal key */
 	dns_test_namefromstring("example.com.", &fn);
@@ -379,7 +381,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	dns_keynode_detach(&keynode);
 	destroy_tables();
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* delete keys from the keytable */
@@ -412,7 +414,7 @@ ISC_LOOP_TEST_IMPL(delete) {
 
 	destroy_tables();
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* delete key nodes from the keytable */
@@ -481,7 +483,7 @@ ISC_LOOP_TEST_IMPL(deletekey) {
 
 	destroy_tables();
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* check find-variant operations */
@@ -537,7 +539,7 @@ ISC_LOOP_TEST_IMPL(find) {
 
 	destroy_tables();
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* check issecuredomain() */
@@ -576,7 +578,7 @@ ISC_LOOP_TEST_IMPL(issecuredomain) {
 
 	destroy_tables();
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* check dns_keytable_dump() */
@@ -596,7 +598,7 @@ ISC_LOOP_TEST_IMPL(dump) {
 
 	destroy_tables();
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 /* check negative trust anchors */
@@ -618,7 +620,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	result = dns_view_getsecroots(myview, &keytable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	dns_view_initntatable(myview, loopmgr);
+	dns_view_initntatable(myview);
 	result = dns_view_getntatable(myview, &ntatable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -693,7 +695,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	assert_false(covered);
 	assert_true(issecure);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 
 	/* Clean up */
 	dns_ntatable_detach(&ntatable);

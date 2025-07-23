@@ -140,7 +140,6 @@ static atomic_uint_fast32_t nverified = 0, nverifyfailed = 0;
 static const char *directory = NULL, *dsdir = NULL;
 static isc_mutex_t namelock;
 static isc_nm_t *netmgr = NULL;
-static isc_loopmgr_t *loopmgr = NULL;
 static dns_db_t *gdb;		  /* The database */
 static dns_dbversion_t *gversion; /* The database version */
 static dns_dbiterator_t *gdbiter; /* The database iterator */
@@ -1543,7 +1542,7 @@ assignwork(void *arg) {
 	if (atomic_load(&finished)) {
 		ended++;
 		if (ended == nloops) {
-			isc_loopmgr_shutdown(loopmgr);
+			isc_loopmgr_shutdown();
 		}
 		UNLOCK(&namelock);
 		return;
@@ -1619,7 +1618,7 @@ assignwork(void *arg) {
 	if (!found) {
 		ended++;
 		if (ended == nloops) {
-			isc_loopmgr_shutdown(loopmgr);
+			isc_loopmgr_shutdown();
 		}
 		UNLOCK(&namelock);
 		return;
@@ -3637,7 +3636,7 @@ main(int argc, char *argv[]) {
 		directory = ".";
 	}
 
-	isc_managers_create(&mctx, nloops, &loopmgr, &netmgr);
+	isc_managers_create(&mctx, nloops, &netmgr);
 
 	setup_logging();
 
@@ -3927,9 +3926,9 @@ main(int argc, char *argv[]) {
 		 * There is more work to do.  Spread it out over multiple
 		 * processors if possible.
 		 */
-		isc_loopmgr_setup(loopmgr, assignwork, NULL);
-		isc_loopmgr_teardown(loopmgr, abortwork, NULL);
-		isc_loopmgr_run(loopmgr);
+		isc_loopmgr_setup(assignwork, NULL);
+		isc_loopmgr_teardown(abortwork, NULL);
+		isc_loopmgr_run();
 
 		if (!atomic_load(&finished)) {
 			fatal("process aborted by user");
@@ -4007,7 +4006,7 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	}
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
+	isc_managers_destroy(&mctx, &netmgr);
 
 	if (printstats) {
 		timer_finish = isc_time_now();

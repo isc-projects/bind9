@@ -45,8 +45,7 @@
 #define VALID_NTATABLE(nt) ISC_MAGIC_VALID(nt, NTATABLE_MAGIC)
 
 void
-dns_ntatable_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
-		    dns_ntatable_t **ntatablep);
+dns_ntatable_create(dns_view_t *view, dns_ntatable_t **ntatablep);
 /*%<
  * Create an NTA table in view 'view'.
  *

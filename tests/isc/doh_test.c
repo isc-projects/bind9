@@ -348,7 +348,7 @@ setup_test(void **state) {
 
 	nm = isc_mem_cget(mctx, MAX_NM, sizeof(nm[0]));
 	for (size_t i = 0; i < MAX_NM; i++) {
-		isc_netmgr_create(mctx, loopmgr, &nm[i]);
+		isc_netmgr_create(mctx, &nm[i]);
 		assert_non_null(nm[i]);
 	}
 
@@ -434,10 +434,10 @@ doh_receive_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		if (have_expected_csends(atomic_fetch_add(&csends, 1) + 1) ||
 		    have_expected_creads(atomic_fetch_add(&creads, 1) + 1))
 		{
-			isc_loopmgr_shutdown(loopmgr);
+			isc_loopmgr_shutdown();
 		}
 	} else {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 	}
 }
 
@@ -518,7 +518,7 @@ ISC_LOOP_TEST_IMPL(mock_doh_uv_tcp_bind) {
 
 	RESET_RETURN;
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -546,7 +546,7 @@ doh_noop(void *arg ISC_ATTR_UNUSED) {
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
 				   0, get_proxy_type(), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+	isc_loop_teardown(isc_loop_main(), listen_sock_close, listen_sock);
 
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			ISC_NM_HTTP_DEFAULT_PATH);
@@ -555,7 +555,7 @@ doh_noop(void *arg ISC_ATTR_UNUSED) {
 					      .length = send_msg.len },
 			     noop_read_cb, NULL, atomic_load(&use_TLS), 30000);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 
 	assert_int_equal(0, atomic_load(&csends));
 	assert_int_equal(0, atomic_load(&creads));
@@ -589,7 +589,7 @@ doh_noresponse(void *arg ISC_ATTR_UNUSED) {
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
 				   0, get_proxy_type(), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+	isc_loop_teardown(isc_loop_main(), listen_sock_close, listen_sock);
 
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			ISC_NM_HTTP_DEFAULT_PATH);
@@ -598,7 +598,7 @@ doh_noresponse(void *arg ISC_ATTR_UNUSED) {
 					      .length = send_msg.len },
 			     noop_read_cb, NULL, atomic_load(&use_TLS), 30000);
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_LOOP_TEST_IMPL(doh_noresponse_POST) {
@@ -640,7 +640,7 @@ timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 
 	isc_nmhandle_detach(&handle);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -681,7 +681,7 @@ doh_timeout_recovery(void *arg ISC_ATTR_UNUSED) {
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
 				   0, get_proxy_type(), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+	isc_loop_teardown(isc_loop_main(), listen_sock_close, listen_sock);
 
 	/*
 	 * Accept connections but don't send responses, forcing client
@@ -758,7 +758,7 @@ doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		isc_async_current(doh_connect_thread, connect_nm);
 	}
 	if (sends <= 0) {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 	}
 }
 
@@ -787,7 +787,7 @@ doh_connect_thread(void *arg) {
 			     atomic_load(&use_TLS), 30000);
 
 	if (sends <= 0) {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 	}
 }
 
@@ -823,7 +823,7 @@ doh_recv_one(void *arg ISC_ATTR_UNUSED) {
 			     doh_receive_reply_cb, NULL, atomic_load(&use_TLS),
 			     30000);
 
-	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+	isc_loop_teardown(isc_loop_main(), listen_sock_close, listen_sock);
 }
 
 static int
@@ -954,7 +954,7 @@ doh_recv_two(void *arg ISC_ATTR_UNUSED) {
 			   NULL, ctx, NULL, client_sess_cache, 5000,
 			   get_proxy_type(), NULL);
 
-	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+	isc_loop_teardown(isc_loop_main(), listen_sock_close, listen_sock);
 }
 
 static int
@@ -1027,7 +1027,7 @@ doh_recv_send(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
-	size_t nthreads = isc_loopmgr_nloops(loopmgr);
+	size_t nthreads = isc_loopmgr_nloops();
 	isc_quota_t *quotap = init_listener_quota(workers);
 
 	atomic_store(&total_sends, 1000);
@@ -1044,11 +1044,10 @@ doh_recv_send(void *arg ISC_ATTR_UNUSED) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (size_t i = 0; i < nthreads; i++) {
-		isc_async_run(isc_loop_get(loopmgr, i), doh_connect_thread,
-			      connect_nm);
+		isc_async_run(isc_loop_get(i), doh_connect_thread, connect_nm);
 	}
 
-	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+	isc_loop_teardown(isc_loop_main(), listen_sock_close, listen_sock);
 }
 
 static int
@@ -1168,7 +1167,7 @@ ISC_LOOP_TEST_IMPL(doh_bad_connect_uri) {
 					      .length = send_msg.len },
 			     doh_receive_reply_cb, NULL, true, 30000);
 
-	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+	isc_loop_teardown(isc_loop_main(), listen_sock_close, listen_sock);
 }
 
 ISC_RUN_TEST_IMPL(doh_parse_GET_query_string) {

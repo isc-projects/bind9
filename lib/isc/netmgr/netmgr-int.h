@@ -330,7 +330,6 @@ struct isc_nm {
 	int magic;
 	isc_refcount_t references;
 	isc_mem_t *mctx;
-	isc_loopmgr_t *loopmgr;
 	uint32_t nloops;
 	isc__networker_t *workers;
 

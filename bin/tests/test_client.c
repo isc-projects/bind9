@@ -52,7 +52,6 @@ static const char *protocols[] = { "udp",	    "tcp",
 				   "http-plain-get" };
 
 static isc_mem_t *mctx = NULL;
-static isc_loopmgr_t *loopmgr = NULL;
 static isc_nm_t *netmgr = NULL;
 
 static protocol_t protocol;
@@ -287,7 +286,7 @@ parse_options(int argc, char **argv) {
 
 static void
 setup(void) {
-	isc_managers_create(&mctx, workers, &loopmgr, &netmgr);
+	isc_managers_create(&mctx, workers, &netmgr);
 }
 
 static void
@@ -300,7 +299,7 @@ teardown(void) {
 		isc_tlsctx_free(&tls_ctx);
 	}
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
+	isc_managers_destroy(&mctx, &netmgr);
 }
 
 static void

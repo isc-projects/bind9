@@ -2661,8 +2661,7 @@ clientmgr_destroy(ns_clientmgr_t *mgr) {
 ISC_REFCOUNT_IMPL(ns_clientmgr, clientmgr_destroy);
 
 isc_result_t
-ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
-		    dns_aclenv_t *aclenv, isc_tid_t tid,
+ns_clientmgr_create(ns_server_t *sctx, dns_aclenv_t *aclenv, isc_tid_t tid,
 		    ns_clientmgr_t **managerp) {
 	ns_clientmgr_t *manager = NULL;
 	isc_mem_t *mctx = NULL;
@@ -2676,7 +2675,7 @@ ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
 		.tid = tid,
 		.recursing = ISC_LIST_INITIALIZER,
 	};
-	isc_loop_attach(isc_loop_get(loopmgr, tid), &manager->loop);
+	isc_loop_attach(isc_loop_get(tid), &manager->loop);
 	isc_mutex_init(&manager->reclock);
 	dns_aclenv_attach(aclenv, &manager->aclenv);
 	isc_refcount_init(&manager->references, 1);

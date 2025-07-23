@@ -42,7 +42,6 @@
 #include <dns/qp.h>
 #include <dns/types.h>
 
-#include "loop_p.h"
 #include "qp_p.h"
 
 #include <tests/qp.h>
@@ -173,7 +172,6 @@ collect(void *);
 struct thread_args {
 	struct bench_state *bctx; /* (in) */
 	isc_barrier_t *barrier;	  /* (in) */
-	isc_loopmgr_t *loopmgr;	  /* (in) */
 	isc_job_t job;		  /* (in) */
 	isc_job_cb cb;		  /* (in) */
 	dns_qpmulti_t *multi;	  /* (in) */
@@ -211,7 +209,7 @@ next_loop(struct thread_args *args, isc_nanosecs_t start) {
 		isc_job_run(isc_loop(), &args->job, args->cb, args);
 		return;
 	}
-	isc_async_run(isc_loop_main(args->loopmgr), collect, args);
+	isc_async_run(isc_loop_main(), collect, args);
 }
 
 #if ZIPF
@@ -332,7 +330,6 @@ enum benchmode {
 struct bench_state {
 	isc_mem_t *mctx;
 	isc_barrier_t barrier;
-	isc_loopmgr_t *loopmgr;
 	dns_qpmulti_t *multi;
 	enum benchmode mode;
 	size_t bytes;
@@ -430,11 +427,10 @@ dispatch(struct bench_state *bctx) {
 	case init:
 		goto init_max_items_rw;
 
-	fini:;
-		isc_loopmgr_t *loopmgr = bctx->loopmgr;
+	fini:
 		dns_qpmulti_destroy(&bctx->multi);
 		isc_mem_putanddetach(&bctx->mctx, bctx, bctx->bytes);
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 		return;
 
 	init_max_items_rw:
@@ -703,7 +699,6 @@ dispatch(struct bench_state *bctx) {
 		bctx->thread[t] = (struct thread_args){
 			.bctx = bctx,
 			.barrier = &bctx->barrier,
-			.loopmgr = bctx->loopmgr,
 			.multi = bctx->multi,
 			.max_item = bctx->max_item,
 			.zipf_skew = bctx->zipf_skew,
@@ -716,8 +711,7 @@ dispatch(struct bench_state *bctx) {
 			.tx_per_loop = mut ? bctx->mut_tx_per_loop
 					   : bctx->read_tx_per_loop,
 		};
-		isc_async_run(isc_loop_get(bctx->loopmgr, t), first_loop,
-			      &bctx->thread[t]);
+		isc_async_run(isc_loop_get(t), first_loop, &bctx->thread[t]);
 	}
 }
 
@@ -794,17 +788,15 @@ collect(void *varg) {
 }
 
 static void
-startup(void *arg) {
-	isc_loopmgr_t *loopmgr = arg;
+startup(void *arg ISC_ATTR_UNUSED) {
 	isc_loop_t *loop = isc_loop();
 	isc_mem_t *mctx = isc_loop_getmctx(loop);
-	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
+	uint32_t nloops = isc_loopmgr_nloops();
 	size_t bytes = sizeof(struct bench_state) +
 		       sizeof(struct thread_args) * nloops;
 	struct bench_state *bctx = isc_mem_cget(mctx, 1, bytes);
 
 	*bctx = (struct bench_state){
-		.loopmgr = loopmgr,
 		.bytes = bytes,
 		.nloops = nloops,
 	};
@@ -814,7 +806,6 @@ startup(void *arg) {
 }
 
 struct ticker {
-	isc_loopmgr_t *loopmgr;
 	isc_mem_t *mctx;
 	isc_timer_t *timer;
 };
@@ -848,15 +839,14 @@ stop_ticker(void *varg) {
 }
 
 static void
-setup_tickers(isc_mem_t *mctx, isc_loopmgr_t *loopmgr) {
-	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
+setup_tickers(isc_mem_t *mctx) {
+	uint32_t nloops = isc_loopmgr_nloops();
 	for (uint32_t i = 0; i < nloops; i++) {
-		isc_loop_t *loop = isc_loop_get(loopmgr, i);
+		isc_loop_t *loop = isc_loop_get(i);
 		struct ticker *ticker = isc_mem_get(mctx, sizeof(*ticker));
 		*ticker = (struct ticker){
-			.loopmgr = loopmgr,
+			.mctx = isc_mem_ref(mctx),
 		};
-		isc_mem_attach(mctx, &ticker->mctx);
 		isc_loop_setup(loop, start_ticker, ticker);
 		isc_loop_teardown(loop, stop_ticker, ticker);
 	}
@@ -864,7 +854,6 @@ setup_tickers(isc_mem_t *mctx, isc_loopmgr_t *loopmgr) {
 
 int
 main(void) {
-	isc_loopmgr_t *loopmgr = NULL;
 	isc_mem_t *mctx = NULL;
 
 	setlinebuf(stdout);
@@ -884,11 +873,11 @@ main(void) {
 	init_logging();
 	init_items(mctx);
 
-	isc_loopmgr_create(mctx, nloops, &loopmgr);
-	setup_tickers(mctx, loopmgr);
-	isc_loop_setup(isc_loop_main(loopmgr), startup, loopmgr);
-	isc_loopmgr_run(loopmgr);
-	isc_loopmgr_destroy(&loopmgr);
+	isc_loopmgr_create(mctx, nloops);
+	setup_tickers(mctx);
+	isc_loop_setup(isc_loop_main(), startup, NULL);
+	isc_loopmgr_run();
+	isc_loopmgr_destroy();
 
 	isc_mem_free(mctx, item);
 	isc_mem_checkdestroyed(stdout);

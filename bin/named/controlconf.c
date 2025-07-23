@@ -538,7 +538,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	controlconnection_ref(conn);
 
 	/* Trigger the command asynchronously. */
-	isc_async_run(named_g_mainloop, control_command, conn);
+	isc_async_run(isc_loop_main(), control_command, conn);
 
 	return;
 

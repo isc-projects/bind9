@@ -764,9 +764,9 @@ readline_next_command(void *arg) {
 
 	UNUSED(arg);
 
-	isc_loopmgr_blocking(loopmgr);
+	isc_loopmgr_blocking();
 	ptr = readline("> ");
-	isc_loopmgr_nonblocking(loopmgr);
+	isc_loopmgr_nonblocking();
 	if (ptr == NULL) {
 		return;
 	}
@@ -840,7 +840,7 @@ start_next_command(void);
 
 static void
 process_next_command(void *arg ISC_ATTR_UNUSED) {
-	isc_loop_t *loop = isc_loop_main(loopmgr);
+	isc_loop_t *loop = isc_loop_main();
 	if (cmdline == NULL) {
 		in_use = false;
 	} else {
@@ -856,15 +856,15 @@ process_next_command(void *arg ISC_ATTR_UNUSED) {
 
 static void
 start_next_command(void) {
-	isc_loop_t *loop = isc_loop_main(loopmgr);
+	isc_loop_t *loop = isc_loop_main();
 	if (!in_use) {
-		isc_loopmgr_shutdown(loopmgr);
+		isc_loopmgr_shutdown();
 		return;
 	}
 
 	cmdline = NULL;
 
-	isc_loopmgr_pause(loopmgr);
+	isc_loopmgr_pause();
 	if (interactive) {
 		isc_work_enqueue(loop, readline_next_command,
 				 process_next_command, loop);
@@ -872,7 +872,7 @@ start_next_command(void) {
 		isc_work_enqueue(loop, fgets_next_command, process_next_command,
 				 loop);
 	}
-	isc_loopmgr_resume(loopmgr);
+	isc_loopmgr_resume();
 }
 
 static void
@@ -911,13 +911,13 @@ main(int argc, char **argv) {
 		set_search_domain(domainopt);
 	}
 	if (in_use) {
-		isc_loopmgr_setup(loopmgr, run_loop, NULL);
+		isc_loopmgr_setup(run_loop, NULL);
 	} else {
-		isc_loopmgr_setup(loopmgr, read_loop, NULL);
+		isc_loopmgr_setup(read_loop, NULL);
 	}
 	in_use = !in_use;
 
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_run();
 
 	puts("");
 	debug("done, and starting to shut down");

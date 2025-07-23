@@ -33,8 +33,6 @@
 #include <tests/isc.h>
 
 isc_mem_t *mctx = NULL;
-isc_loop_t *mainloop = NULL;
-isc_loopmgr_t *loopmgr = NULL;
 isc_nm_t *netmgr = NULL;
 unsigned int workers = 0;
 bool debug = false;
@@ -90,8 +88,7 @@ setup_loopmgr(void **state ISC_ATTR_UNUSED) {
 
 	setup_workers(state);
 
-	isc_loopmgr_create(mctx, workers, &loopmgr);
-	mainloop = isc_loop_main(loopmgr);
+	isc_loopmgr_create(mctx, workers);
 
 	return 0;
 }
@@ -100,27 +97,22 @@ int
 teardown_loopmgr(void **state ISC_ATTR_UNUSED) {
 	REQUIRE(netmgr == NULL);
 
-	mainloop = NULL;
-	isc_loopmgr_destroy(&loopmgr);
+	isc_loopmgr_destroy();
 
 	return 0;
 }
 
 int
 setup_netmgr(void **state ISC_ATTR_UNUSED) {
-	REQUIRE(loopmgr != NULL);
-
 	adjustnofile();
 
-	isc_netmgr_create(mctx, loopmgr, &netmgr);
+	isc_netmgr_create(mctx, &netmgr);
 
 	return 0;
 }
 
 int
 teardown_netmgr(void **state ISC_ATTR_UNUSED) {
-	REQUIRE(loopmgr != NULL);
-
 	isc_nm_detach(&netmgr);
 
 	return 0;

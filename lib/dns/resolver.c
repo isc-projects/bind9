@@ -551,7 +551,6 @@ struct dns_resolver {
 	isc_mutex_t lock;
 	isc_mutex_t primelock;
 	dns_rdataclass_t rdclass;
-	isc_loopmgr_t *loopmgr;
 	isc_nm_t *nm;
 	dns_view_t *view;
 	bool frozen;
@@ -9849,8 +9848,8 @@ spillattimer_countdown(void *arg) {
 }
 
 isc_result_t
-dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
-		    unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
+dns_resolver_create(dns_view_t *view, isc_nm_t *nm, unsigned int options,
+		    isc_tlsctx_cache_t *tlsctx_cache,
 		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp) {
 	dns_resolver_t *res = NULL;
@@ -9866,7 +9865,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 
 	res = isc_mem_get(view->mctx, sizeof(*res));
 	*res = (dns_resolver_t){
-		.loopmgr = loopmgr,
 		.rdclass = view->rdclass,
 		.nm = nm,
 		.options = options,
@@ -9880,7 +9878,7 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		.maxdepth = DEFAULT_RECURSION_DEPTH,
 		.maxqueries = DEFAULT_MAX_QUERIES,
 		.alternates = ISC_LIST_INITIALIZER,
-		.nloops = isc_loopmgr_nloops(loopmgr),
+		.nloops = isc_loopmgr_nloops(),
 		.maxvalidations = DEFAULT_MAX_VALIDATIONS,
 		.maxvalidationfails = DEFAULT_MAX_VALIDATION_FAILURES,
 	};
@@ -9928,7 +9926,7 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 	res->rdspools = isc_mem_cget(res->mctx, res->nloops,
 				     sizeof(res->rdspools[0]));
 	for (size_t i = 0; i < res->nloops; i++) {
-		isc_loop_t *loop = isc_loop_get(res->loopmgr, i);
+		isc_loop_t *loop = isc_loop_get(i);
 		isc_mem_t *pool_mctx = isc_loop_getmctx(loop);
 
 		dns_message_createpools(pool_mctx, &res->namepools[i],
@@ -10950,8 +10948,7 @@ dns_resolver_setstats(dns_resolver_t *res, isc_stats_t *stats) {
 	isc_stats_attach(stats, &res->stats);
 
 	/* initialize the bucket "counter"; it's a static value */
-	set_stats(res, dns_resstatscounter_buckets,
-		  isc_loopmgr_nloops(res->loopmgr));
+	set_stats(res, dns_resstatscounter_buckets, isc_loopmgr_nloops());
 }
 
 void

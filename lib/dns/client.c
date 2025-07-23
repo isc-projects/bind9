@@ -198,14 +198,13 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 
 static isc_result_t
 createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_nm_t *nm,
-	   isc_tlsctx_cache_t *tlsctx_client_cache, isc_loopmgr_t *loopmgr,
+	   isc_tlsctx_cache_t *tlsctx_client_cache,
 	   dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
 	   dns_dispatch_t *dispatchv6, dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
-	dns_view_create(mctx, loopmgr, dispatchmgr, rdclass,
-			DNS_CLIENTVIEW_NAME, &view);
+	dns_view_create(mctx, dispatchmgr, rdclass, DNS_CLIENTVIEW_NAME, &view);
 
 	/* Initialize view security roots */
 	dns_view_initsecroots(view);
@@ -225,8 +224,8 @@ cleanup:
 }
 
 isc_result_t
-dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
-		  unsigned int options, isc_tlsctx_cache_t *tlsctx_client_cache,
+dns_client_create(isc_mem_t *mctx, isc_nm_t *nm, unsigned int options,
+		  isc_tlsctx_cache_t *tlsctx_client_cache,
 		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6) {
 	isc_result_t result;
@@ -244,14 +243,13 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 
 	client = isc_mem_get(mctx, sizeof(*client));
 	*client = (dns_client_t){
-		.loop = isc_loop_get(loopmgr, 0),
+		.loop = isc_loop_get(0),
 		.nm = nm,
 		.max_restarts = DEF_MAX_RESTARTS,
 		.max_queries = DEF_MAX_QUERIES,
 	};
 
-	result = dns_dispatchmgr_create(mctx, loopmgr, nm,
-					&client->dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, nm, &client->dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_client;
 	}
@@ -289,7 +287,6 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 
 	/* Create the default view for class IN */
 	result = createview(mctx, dns_rdataclass_in, nm, tlsctx_client_cache,
-			    isc_loop_getloopmgr(client->loop),
 			    client->dispatchmgr, dispatchv4, dispatchv6, &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;

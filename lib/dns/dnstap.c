@@ -278,12 +278,10 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 	struct fstrm_file_options *ffwopt = NULL;
 	struct fstrm_writer_options *fwopt = NULL;
 	struct fstrm_writer *fw = NULL;
-	isc_loopmgr_t *loopmgr = NULL;
 
 	REQUIRE(VALID_DTENV(env));
 
-	loopmgr = isc_loop_getloopmgr(env->loop);
-	isc_loopmgr_pause(loopmgr);
+	isc_loopmgr_pause();
 
 	/*
 	 * Check that we can create a new fw object.
@@ -379,7 +377,7 @@ cleanup:
 		fstrm_writer_options_destroy(&fwopt);
 	}
 
-	isc_loopmgr_resume(loopmgr);
+	isc_loopmgr_resume();
 
 	return result;
 }

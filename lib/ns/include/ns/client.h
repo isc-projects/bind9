@@ -336,8 +336,7 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds);
  */
 
 isc_result_t
-ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
-		    dns_aclenv_t *aclenv, isc_tid_t tid,
+ns_clientmgr_create(ns_server_t *sctx, dns_aclenv_t *aclenv, isc_tid_t tid,
 		    ns_clientmgr_t **managerp);
 /*%<
  * Create a client manager.

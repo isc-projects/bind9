@@ -232,8 +232,8 @@ ISC_LOOP_TEST_IMPL(ns__query_sfcache) {
 		run_sfcache_test(&tests[i]);
 	}
 
-	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loop_teardown(isc_loop_main(), shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown();
 }
 
 /*****
@@ -581,8 +581,8 @@ ISC_LOOP_TEST_IMPL(ns__query_start) {
 		run_start_test(&tests[i]);
 	}
 
-	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loop_teardown(isc_loop_main(), shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown();
 }
 
 /*****
@@ -1235,8 +1235,8 @@ ISC_LOOP_TEST_IMPL(ns__query_hookasync) {
 		run_hookasync_test(&tests[i]);
 	}
 
-	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loop_teardown(isc_loop_main(), shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown();
 }
 
 /*****
@@ -1474,8 +1474,8 @@ ISC_LOOP_TEST_IMPL(ns__query_hookasync_e2e) {
 		run_hookasync_e2e_test(&tests[i]);
 	}
 
-	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loop_teardown(isc_loop_main(), shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown();
 }
 
 ISC_TEST_LIST_START

@@ -140,7 +140,7 @@ show_usage(void) {
 
 static void
 host_shutdown(void) {
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -898,8 +898,8 @@ main(int argc, char **argv) {
 		setup_text_key();
 	}
 
-	isc_loopmgr_setup(loopmgr, run_loop, NULL);
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_setup(run_loop, NULL);
+	isc_loopmgr_run();
 
 	cancel_all();
 	destroy_libs();

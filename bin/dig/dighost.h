@@ -30,6 +30,7 @@
 #include <isc/sockaddr.h>
 #include <isc/time.h>
 
+#include <dns/fixedname.h>
 #include <dns/rdatalist.h>
 
 #include <dst/dst.h>
@@ -265,7 +266,6 @@ extern dst_algorithm_t hmac_alg;
 extern unsigned int digestbits;
 extern dns_tsigkey_t *tsigkey;
 extern bool validated;
-extern isc_loopmgr_t *loopmgr;
 extern isc_loop_t *mainloop;
 extern bool free_now;
 extern bool debugging, debugtiming, memdebugging;

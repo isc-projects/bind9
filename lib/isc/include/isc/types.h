@@ -50,7 +50,6 @@ typedef struct isc_interface	 isc_interface_t;     /*%< Interface */
 typedef struct isc_interfaceiter isc_interfaceiter_t; /*%< Interface Iterator */
 typedef struct isc_lex		 isc_lex_t;	      /*%< Lex */
 typedef struct isc_loop		 isc_loop_t;	      /*%< Event loop */
-typedef struct isc_loopmgr	 isc_loopmgr_t;	      /*%< Event loop manager */
 typedef struct isc_mem		 isc_mem_t;	      /*%< Memory */
 typedef struct isc_mempool	 isc_mempool_t;	      /*%< Memory Pool */
 typedef struct isc_netaddr	 isc_netaddr_t;	      /*%< Net Address */

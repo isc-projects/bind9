@@ -1516,8 +1516,7 @@ tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx) {
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(ctx != NULL);
 
-	nworkers =
-		(size_t)isc_loopmgr_nloops(listener->worker->netmgr->loopmgr);
+	nworkers = (size_t)isc_loopmgr_nloops();
 	INSIST(nworkers > 0);
 
 	listener->tlsstream.listener_tls_ctx = isc_mem_cget(

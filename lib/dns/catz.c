@@ -142,7 +142,6 @@ struct dns_catz_zones {
 	isc_refcount_t references;
 	isc_mutex_t lock;
 	dns_catz_zonemodmethods_t *zmm;
-	isc_loopmgr_t *loopmgr;
 	dns_view_t *view;
 	atomic_bool shuttingdown;
 };
@@ -781,16 +780,15 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 }
 
 dns_catz_zones_t *
-dns_catz_zones_new(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		   dns_catz_zonemodmethods_t *zmm) {
+dns_catz_zones_new(isc_mem_t *mctx, dns_catz_zonemodmethods_t *zmm) {
 	REQUIRE(mctx != NULL);
-	REQUIRE(loopmgr != NULL);
 	REQUIRE(zmm != NULL);
 
 	dns_catz_zones_t *catzs = isc_mem_get(mctx, sizeof(*catzs));
-	*catzs = (dns_catz_zones_t){ .loopmgr = loopmgr,
-				     .zmm = zmm,
-				     .magic = DNS_CATZ_ZONES_MAGIC };
+	*catzs = (dns_catz_zones_t){
+		.zmm = zmm,
+		.magic = DNS_CATZ_ZONES_MAGIC,
+	};
 
 	isc_mutex_init(&catzs->lock);
 	isc_refcount_init(&catzs->references, 1);

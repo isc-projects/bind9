@@ -55,8 +55,8 @@
  ***/
 
 dns_unreachcache_t *
-dns_unreachcache_new(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		     const uint16_t expire_min_s, const uint16_t expire_max_s,
+dns_unreachcache_new(isc_mem_t *mctx, const uint16_t expire_min_s,
+		     const uint16_t expire_max_s,
 		     const uint16_t backoff_eligible_s);
 /*%
  * Allocate and initialize an unreachable cache. A newly entered entry expires

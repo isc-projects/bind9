@@ -111,7 +111,7 @@ ISC_LOOP_TEST_IMPL(filename) {
 	assert_string_equal(dns_zone_getfile(zone), longname);
 
 	dns_zone_detach(&zone);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_TEST_LIST_START

@@ -3403,17 +3403,13 @@ http_set_endpoints_cb(void *arg) {
 void
 isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 			  isc_nm_http_endpoints_t *eps) {
-	isc_loopmgr_t *loopmgr = NULL;
-
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(listener->type == isc_nm_httplistener);
 	REQUIRE(VALID_HTTP_ENDPOINTS(eps));
 
-	loopmgr = listener->worker->netmgr->loopmgr;
-
 	atomic_store(&eps->in_use, true);
 
-	for (size_t i = 0; i < isc_loopmgr_nloops(loopmgr); i++) {
+	for (size_t i = 0; i < isc_loopmgr_nloops(); i++) {
 		isc__networker_t *worker =
 			&listener->worker->netmgr->workers[i];
 		http_endpoints_data_t *data = isc_mem_cget(worker->loop->mctx,
@@ -3430,14 +3426,12 @@ static void
 http_init_listener_endpoints(isc_nmsocket_t *listener,
 			     isc_nm_http_endpoints_t *epset) {
 	size_t nworkers;
-	isc_loopmgr_t *loopmgr = NULL;
 
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(listener->worker != NULL && VALID_NM(listener->worker->netmgr));
 	REQUIRE(VALID_HTTP_ENDPOINTS(epset));
 
-	loopmgr = listener->worker->netmgr->loopmgr;
-	nworkers = (size_t)isc_loopmgr_nloops(loopmgr);
+	nworkers = (size_t)isc_loopmgr_nloops();
 	INSIST(nworkers > 0);
 
 	listener->h2->listener_endpoints =

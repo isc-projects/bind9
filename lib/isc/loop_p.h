@@ -43,8 +43,6 @@ struct isc_loop {
 	isc_refcount_t references;
 	isc_thread_t thread;
 
-	isc_loopmgr_t *loopmgr;
-
 	uv_loop_t loop;
 	isc_tid_t tid;
 
@@ -83,7 +81,7 @@ struct isc_loop {
 #define LOOPMGR_MAGIC	 ISC_MAGIC('L', 'o', 'o', 'M')
 #define VALID_LOOPMGR(t) ISC_MAGIC_VALID(t, LOOPMGR_MAGIC)
 
-struct isc_loopmgr {
+typedef struct isc_loopmgr {
 	int magic;
 	isc_mem_t *mctx;
 
@@ -110,7 +108,7 @@ struct isc_loopmgr {
 	/* per-thread objects */
 	isc_loop_t *loops;
 	isc_loop_t *helpers;
-};
+} isc_loopmgr_t;
 
 /*
  * Signal Handler

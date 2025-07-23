@@ -365,17 +365,17 @@ many_transactions(void *arg) {
 	}
 
 	dns_qpmulti_destroy(&qpm);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_RUN_TEST_IMPL(qpmulti) {
 	setup_loopmgr(NULL);
 	setup_logging();
 	setup_items();
-	isc_loop_setup(isc_loop_main(loopmgr), many_transactions, NULL);
-	isc_loopmgr_run(loopmgr);
+	isc_loop_setup(isc_loop_main(), many_transactions, NULL);
+	isc_loopmgr_run();
 	rcu_barrier();
-	isc_loopmgr_destroy(&loopmgr);
+	isc_loopmgr_destroy();
 }
 
 ISC_TEST_LIST_START

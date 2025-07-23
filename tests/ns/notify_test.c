@@ -116,8 +116,8 @@ ISC_LOOP_TEST_IMPL(notify_start) {
 	isc_nmhandle_detach(&client->inner.handle);
 	isc_nmhandle_detach(&handle);
 
-	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loop_teardown(isc_loop_main(), shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown();
 }
 
 ISC_TEST_LIST_START

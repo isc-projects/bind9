@@ -51,16 +51,11 @@ isc_timer_create(isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 		 isc_timer_t **timerp) {
 	int r;
 	isc_timer_t *timer;
-	isc_loopmgr_t *loopmgr = NULL;
 
 	REQUIRE(cb != NULL);
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	REQUIRE(VALID_LOOP(loop));
-
-	loopmgr = loop->loopmgr;
-
-	REQUIRE(VALID_LOOPMGR(loopmgr));
 	REQUIRE(loop == isc_loop());
 
 	timer = isc_mem_get(loop->mctx, sizeof(*timer));
@@ -113,7 +108,6 @@ timer_cb(uv_timer_t *handle) {
 void
 isc_timer_start(isc_timer_t *timer, isc_timertype_t type,
 		const isc_interval_t *interval) {
-	isc_loopmgr_t *loopmgr = NULL;
 	isc_loop_t *loop = NULL;
 	int r;
 
@@ -124,10 +118,6 @@ isc_timer_start(isc_timer_t *timer, isc_timertype_t type,
 	loop = timer->loop;
 
 	REQUIRE(VALID_LOOP(loop));
-
-	loopmgr = loop->loopmgr;
-
-	REQUIRE(VALID_LOOPMGR(loopmgr));
 
 	switch (type) {
 	case isc_timertype_once:

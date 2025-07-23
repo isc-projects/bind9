@@ -49,7 +49,6 @@ struct dns_requestmgr {
 	unsigned int magic;
 	isc_mem_t *mctx;
 	isc_refcount_t references;
-	isc_loopmgr_t *loopmgr;
 
 	atomic_bool shuttingdown;
 
@@ -122,8 +121,7 @@ req_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
  ***/
 
 isc_result_t
-dns_requestmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		      dns_dispatchmgr_t *dispatchmgr,
+dns_requestmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 		      dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		      dns_requestmgr_t **requestmgrp) {
 	REQUIRE(requestmgrp != NULL && *requestmgrp == NULL);
@@ -134,18 +132,17 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	dns_requestmgr_t *requestmgr = isc_mem_get(mctx, sizeof(*requestmgr));
 	*requestmgr = (dns_requestmgr_t){
 		.magic = REQUESTMGR_MAGIC,
-		.loopmgr = loopmgr,
 	};
 	isc_mem_attach(mctx, &requestmgr->mctx);
 
-	uint32_t nloops = isc_loopmgr_nloops(requestmgr->loopmgr);
+	uint32_t nloops = isc_loopmgr_nloops();
 	requestmgr->requests = isc_mem_cget(requestmgr->mctx, nloops,
 					    sizeof(requestmgr->requests[0]));
 	for (size_t i = 0; i < nloops; i++) {
 		ISC_LIST_INIT(requestmgr->requests[i]);
 
 		/* unreferenced in requests_cancel() */
-		isc_loop_ref(isc_loop_get(requestmgr->loopmgr, i));
+		isc_loop_ref(isc_loop_get(i));
 	}
 
 	dns_dispatchmgr_attach(dispatchmgr, &requestmgr->dispatchmgr);
@@ -153,12 +150,12 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	if (dispatchv4 != NULL) {
 		dns_dispatchset_create(requestmgr->mctx, dispatchv4,
 				       &requestmgr->dispatches4,
-				       isc_loopmgr_nloops(requestmgr->loopmgr));
+				       isc_loopmgr_nloops());
 	}
 	if (dispatchv6 != NULL) {
 		dns_dispatchset_create(requestmgr->mctx, dispatchv6,
 				       &requestmgr->dispatches6,
-				       isc_loopmgr_nloops(requestmgr->loopmgr));
+				       isc_loopmgr_nloops());
 	}
 
 	isc_refcount_init(&requestmgr->references, 1);
@@ -184,7 +181,7 @@ requests_cancel(void *arg) {
 		req_sendevent(request, ISC_R_CANCELED);
 	}
 
-	isc_loop_unref(isc_loop_get(requestmgr->loopmgr, tid));
+	isc_loop_unref(isc_loop_get(tid));
 	dns_requestmgr_detach(&requestmgr);
 }
 
@@ -211,7 +208,7 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 	synchronize_rcu();
 
 	isc_tid_t tid = isc_tid();
-	uint32_t nloops = isc_loopmgr_nloops(requestmgr->loopmgr);
+	uint32_t nloops = isc_loopmgr_nloops();
 	for (size_t i = 0; i < nloops; i++) {
 		dns_requestmgr_ref(requestmgr);
 
@@ -221,7 +218,7 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 			continue;
 		}
 
-		isc_loop_t *loop = isc_loop_get(requestmgr->loopmgr, i);
+		isc_loop_t *loop = isc_loop_get(i);
 		isc_async_run(loop, requests_cancel, requestmgr);
 	}
 }
@@ -232,7 +229,7 @@ requestmgr_destroy(dns_requestmgr_t *requestmgr) {
 
 	INSIST(atomic_load(&requestmgr->shuttingdown));
 
-	size_t nloops = isc_loopmgr_nloops(requestmgr->loopmgr);
+	size_t nloops = isc_loopmgr_nloops();
 	for (size_t i = 0; i < nloops; i++) {
 		INSIST(ISC_LIST_EMPTY(requestmgr->requests[i]));
 	}

@@ -57,7 +57,7 @@ start_listening(uint32_t nworkers, isc_nm_accept_cb_t accept_cb,
 		&listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 }
 
 static void
@@ -139,8 +139,8 @@ ISC_LOOP_TEST_IMPL(tlsdns_recv_send) {
 	start_listening(ISC_NM_LISTEN_ALL, listen_accept_cb, listen_read_cb);
 
 	for (size_t i = 0; i < workers; i++) {
-		isc_async_run(isc_loop_get(loopmgr, i),
-			      stream_recv_send_connect, tlsdns_connect);
+		isc_async_run(isc_loop_get(i), stream_recv_send_connect,
+			      tlsdns_connect);
 	}
 }
 

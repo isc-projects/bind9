@@ -21,6 +21,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "isc/attributes.h"
+
 #define UNIT_TESTING
 #include <cmocka.h>
 
@@ -38,97 +40,87 @@
 static atomic_uint scheduled = 0;
 
 static void
-count(void *arg) {
-	UNUSED(arg);
-
+count(void *arg ISC_ATTR_UNUSED) {
 	atomic_fetch_add(&scheduled, 1);
 }
 
 static void
-shutdown_loopmgr(void *arg) {
-	UNUSED(arg);
-
-	while (atomic_load(&scheduled) != loopmgr->nloops) {
+shutdown_loopmgr(void *arg ISC_ATTR_UNUSED) {
+	while (atomic_load(&scheduled) != isc_loopmgr_nloops()) {
 		isc_thread_yield();
 	}
 
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 }
 
 ISC_RUN_TEST_IMPL(isc_loopmgr) {
 	atomic_store(&scheduled, 0);
 
-	isc_loopmgr_setup(loopmgr, count, loopmgr);
-	isc_loop_setup(mainloop, shutdown_loopmgr, loopmgr);
+	isc_loopmgr_setup(count, NULL);
+	isc_loop_setup(isc_loop_main(), shutdown_loopmgr, NULL);
 
-	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_run();
 
-	assert_int_equal(atomic_load(&scheduled), loopmgr->nloops);
+	assert_int_equal(atomic_load(&scheduled), isc_loopmgr_nloops());
 }
 
 static void
 runjob(void *arg ISC_ATTR_UNUSED) {
-	isc_async_current(count, loopmgr);
+	isc_async_current(count, NULL);
 	if (isc_tid() == 0) {
-		isc_async_current(shutdown_loopmgr, loopmgr);
+		isc_async_current(shutdown_loopmgr, NULL);
 	}
 }
 
 ISC_RUN_TEST_IMPL(isc_loopmgr_runjob) {
 	atomic_store(&scheduled, 0);
 
-	isc_loopmgr_setup(loopmgr, runjob, loopmgr);
-	isc_loopmgr_run(loopmgr);
-	assert_int_equal(atomic_load(&scheduled), loopmgr->nloops);
+	isc_loopmgr_setup(runjob, NULL);
+	isc_loopmgr_run();
+	assert_int_equal(atomic_load(&scheduled), isc_loopmgr_nloops());
 }
 
 static void
-pause_loopmgr(void *arg) {
-	UNUSED(arg);
+pause_loopmgr(void *arg ISC_ATTR_UNUSED) {
+	isc_loopmgr_pause();
 
-	isc_loopmgr_pause(loopmgr);
+	assert_true(isc_loopmgr_paused());
 
-	assert_true(atomic_load(&loopmgr->paused));
-
-	for (size_t i = 0; i < loopmgr->nloops; i++) {
-		isc_loop_t *loop = &loopmgr->loops[i];
+	for (size_t i = 0; i < isc_loopmgr_nloops(); i++) {
+		isc_loop_t *loop = isc_loop_get(i);
 
 		assert_true(loop->paused);
 	}
 
-	atomic_init(&scheduled, loopmgr->nloops);
+	atomic_init(&scheduled, isc_loopmgr_nloops());
 
-	isc_loopmgr_resume(loopmgr);
+	isc_loopmgr_resume();
 }
 
 ISC_RUN_TEST_IMPL(isc_loopmgr_pause) {
-	isc_loop_setup(mainloop, pause_loopmgr, loopmgr);
-	isc_loop_setup(mainloop, shutdown_loopmgr, loopmgr);
-	isc_loopmgr_run(loopmgr);
+	isc_loop_setup(isc_loop_main(), pause_loopmgr, NULL);
+	isc_loop_setup(isc_loop_main(), shutdown_loopmgr, NULL);
+	isc_loopmgr_run();
 }
 
 static void
-send_sigint(void *arg) {
-	UNUSED(arg);
-
+send_sigint(void *arg ISC_ATTR_UNUSED) {
 	kill(getpid(), SIGINT);
 }
 
 ISC_RUN_TEST_IMPL(isc_loopmgr_sigint) {
-	isc_loop_setup(mainloop, send_sigint, loopmgr);
-	isc_loopmgr_run(loopmgr);
+	isc_loop_setup(isc_loop_main(), send_sigint, NULL);
+	isc_loopmgr_run();
 }
 
 static void
-send_sigterm(void *arg) {
-	UNUSED(arg);
-
+send_sigterm(void *arg ISC_ATTR_UNUSED) {
 	kill(getpid(), SIGINT);
 }
 
 ISC_RUN_TEST_IMPL(isc_loopmgr_sigterm) {
-	isc_loop_setup(mainloop, send_sigterm, loopmgr);
-	isc_loopmgr_run(loopmgr);
+	isc_loop_setup(isc_loop_main(), send_sigterm, NULL);
+	isc_loopmgr_run();
 }
 
 ISC_TEST_LIST_START

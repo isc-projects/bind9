@@ -90,10 +90,10 @@ stream_shutdownconnect(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = stream_listen(stream_accept_cb, NULL, 128, NULL,
 					    &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
 	/* Schedule the shutdown before the connect */
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 
 	stream_connect(shutdownconnect_connectcb, NULL, T_CONNECT);
 }
@@ -156,7 +156,7 @@ shutdownread_connectcb(isc_nmhandle_t *handle, isc_result_t eresult,
 	atomic_fetch_add(&cconnects, 1);
 
 	/* Schedule the shutdown before read and send */
-	isc_loopmgr_shutdown(loopmgr);
+	isc_loopmgr_shutdown();
 
 	isc_refcount_increment0(&active_creads);
 	isc_nmhandle_ref(handle);
@@ -205,7 +205,7 @@ stream_shutdownread(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = stream_listen(stream_accept_cb, NULL, 128, NULL,
 					    &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	isc_loop_teardown(mainloop, stop_listening, listen_sock);
+	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
 	stream_connect(shutdownread_connectcb, NULL, T_CONNECT);
 }
