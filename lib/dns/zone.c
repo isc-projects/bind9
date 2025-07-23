@@ -616,7 +616,6 @@ struct dns_zonemgr {
 	unsigned int magic;
 	isc_mem_t *mctx;
 	isc_refcount_t refs;
-	isc_nm_t *netmgr;
 	uint32_t workers;
 	isc_mem_t **mctxpool;
 	isc_ratelimiter_t *checkdsrl;
@@ -12930,9 +12929,8 @@ again:
 
 	zmgr_tlsctx_attach(notify->zone->zmgr, &zmgr_tlsctx_cache);
 
-	const unsigned int connect_timeout =
-		isc_nm_getinitialtimeout(notify->zone->zmgr->netmgr) /
-		MS_PER_SEC;
+	const unsigned int connect_timeout = isc_nm_getinitialtimeout() /
+					     MS_PER_SEC;
 	result = dns_request_create(
 		notify->zone->view->requestmgr, message, &src, &notify->dst,
 		notify->transport, zmgr_tlsctx_cache, options, key,
@@ -14856,8 +14854,8 @@ again:
 	}
 
 	zone_iattach(zone, &(dns_zone_t *){ NULL });
-	const unsigned int connect_timeout =
-		isc_nm_getprimariestimeout(zone->zmgr->netmgr) / MS_PER_SEC;
+	const unsigned int connect_timeout = isc_nm_getprimariestimeout() /
+					     MS_PER_SEC;
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
 		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
@@ -15131,8 +15129,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args->stub = stub;
 	cb_args->tsig_key = key;
 	cb_args->udpsize = udpsize;
-	cb_args->connect_timeout =
-		isc_nm_getprimariestimeout(zone->zmgr->netmgr) / MS_PER_SEC;
+	cb_args->connect_timeout = isc_nm_getprimariestimeout() / MS_PER_SEC;
 	cb_args->timeout = TCP_REQUEST_TIMEOUT;
 	cb_args->reqnsid = reqnsid;
 
@@ -18969,8 +18966,8 @@ next:
 	}
 
 	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
-	const unsigned int connect_timeout =
-		isc_nm_getprimariestimeout(zone->zmgr->netmgr) / MS_PER_SEC;
+	const unsigned int connect_timeout = isc_nm_getprimariestimeout() /
+					     MS_PER_SEC;
 	result = dns_request_createraw(
 		forward->zone->view->requestmgr, forward->msgbuf, &src,
 		&forward->addr, forward->transport, zmgr_tlsctx_cache,
@@ -19317,18 +19314,16 @@ zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_keyfileio_t **deleted) {
 }
 
 void
-dns_zonemgr_create(isc_mem_t *mctx, isc_nm_t *netmgr, dns_zonemgr_t **zmgrp) {
+dns_zonemgr_create(isc_mem_t *mctx, dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr = NULL;
 	isc_loop_t *loop = isc_loop();
 
 	REQUIRE(mctx != NULL);
-	REQUIRE(netmgr != NULL);
 	REQUIRE(zmgrp != NULL && *zmgrp == NULL);
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 
 	*zmgr = (dns_zonemgr_t){
-		.netmgr = netmgr,
 		.workers = isc_loopmgr_nloops(),
 		.transfersin = 10,
 		.transfersperns = 2,
@@ -21517,9 +21512,8 @@ checkds_send_toaddr(void *arg) {
 		     "checkds: create request for DS query to %s", addrbuf);
 
 	options |= DNS_REQUESTOPT_TCP;
-	const unsigned int connect_timeout =
-		isc_nm_getinitialtimeout(checkds->zone->zmgr->netmgr) /
-		MS_PER_SEC;
+	const unsigned int connect_timeout = isc_nm_getinitialtimeout() /
+					     MS_PER_SEC;
 	result = dns_request_create(
 		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
 		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,

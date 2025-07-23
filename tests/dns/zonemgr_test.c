@@ -57,7 +57,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_create) {
 
 	UNUSED(arg);
 
-	dns_zonemgr_create(mctx, netmgr, &myzonemgr);
+	dns_zonemgr_create(mctx, &myzonemgr);
 
 	dns_zonemgr_shutdown(myzonemgr);
 	dns_zonemgr_detach(&myzonemgr);
@@ -74,7 +74,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_managezone) {
 
 	UNUSED(arg);
 
-	dns_zonemgr_create(mctx, netmgr, &myzonemgr);
+	dns_zonemgr_create(mctx, &myzonemgr);
 
 	result = dns_test_makezone("foo", &zone, NULL, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -107,7 +107,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_createzone) {
 
 	UNUSED(arg);
 
-	dns_zonemgr_create(mctx, netmgr, &myzonemgr);
+	dns_zonemgr_create(mctx, &myzonemgr);
 
 	result = dns_zonemgr_createzone(myzonemgr, &zone);
 	assert_int_equal(result, ISC_R_SUCCESS);

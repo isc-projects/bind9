@@ -18,30 +18,27 @@
 #include <isc/uv.h>
 
 void
-isc_managers_create(isc_mem_t **mctxp, uint32_t workers, isc_nm_t **netmgrp) {
+isc_managers_create(isc_mem_t **mctxp, uint32_t workers) {
 	REQUIRE(mctxp != NULL && *mctxp == NULL);
 	isc_mem_create("managers", mctxp);
 	INSIST(*mctxp != NULL);
 
 	isc_loopmgr_create(*mctxp, workers);
 
-	REQUIRE(netmgrp != NULL && *netmgrp == NULL);
-	isc_netmgr_create(*mctxp, netmgrp);
-	INSIST(*netmgrp != NULL);
+	isc_netmgr_create(*mctxp);
 
 	isc_rwlock_setworkers(workers);
 }
 
 void
-isc_managers_destroy(isc_mem_t **mctxp, isc_nm_t **netmgrp) {
+isc_managers_destroy(isc_mem_t **mctxp) {
 	REQUIRE(mctxp != NULL && *mctxp != NULL);
-	REQUIRE(netmgrp != NULL && *netmgrp != NULL);
 
 	/*
 	 * The sequence of operations here is important:
 	 */
 
-	isc_nm_detach(netmgrp);
+	isc_netmgr_destroy();
 	isc_loopmgr_destroy();
 	isc_mem_detach(mctxp);
 }

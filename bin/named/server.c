@@ -4463,7 +4463,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		goto cleanup;
 	}
 
-	CHECK(dns_view_createresolver(view, named_g_netmgr, resopts,
+	CHECK(dns_view_createresolver(view, resopts,
 				      named_g_server->tlsctx_client_cache,
 				      dispatch4, dispatch6));
 
@@ -8144,11 +8144,11 @@ apply_configuration(cfg_parser_t *configparser, cfg_obj_t *config,
 		primaries = MIN_PRIMARIES_TIMEOUT;
 	}
 
-	isc_nm_setinitialtimeout(named_g_netmgr, initial);
-	isc_nm_setprimariestimeout(named_g_netmgr, primaries);
-	isc_nm_setidletimeout(named_g_netmgr, idle);
-	isc_nm_setkeepalivetimeout(named_g_netmgr, keepalive);
-	isc_nm_setadvertisedtimeout(named_g_netmgr, advertised);
+	isc_nm_setinitialtimeout(initial);
+	isc_nm_setprimariestimeout(primaries);
+	isc_nm_setidletimeout(idle);
+	isc_nm_setkeepalivetimeout(keepalive);
+	isc_nm_setadvertisedtimeout(advertised);
 
 #define CAP_IF_NOT_ZERO(v, min, max) \
 	if (v > 0 && v < min) {      \
@@ -8182,9 +8182,8 @@ apply_configuration(cfg_parser_t *configparser, cfg_obj_t *config,
 	send_udp_buffer_size = cfg_obj_asuint32(obj);
 	CAP_IF_NOT_ZERO(send_udp_buffer_size, 4096, INT32_MAX);
 
-	isc_nm_setnetbuffers(named_g_netmgr, recv_tcp_buffer_size,
-			     send_tcp_buffer_size, recv_udp_buffer_size,
-			     send_udp_buffer_size);
+	isc_nm_setnetbuffers(recv_tcp_buffer_size, send_tcp_buffer_size,
+			     recv_udp_buffer_size, send_udp_buffer_size);
 
 #undef CAP_IF_NOT_ZERO
 
@@ -8319,11 +8318,8 @@ apply_configuration(cfg_parser_t *configparser, cfg_obj_t *config,
 	loadbalancesockets = cfg_obj_asboolean(obj);
 #if HAVE_SO_REUSEPORT_LB
 	if (first_time) {
-		isc_nm_setloadbalancesockets(named_g_netmgr,
-					     cfg_obj_asboolean(obj));
-	} else if (loadbalancesockets !=
-		   isc_nm_getloadbalancesockets(named_g_netmgr))
-	{
+		isc_nm_setloadbalancesockets(cfg_obj_asboolean(obj));
+	} else if (loadbalancesockets != isc_nm_getloadbalancesockets()) {
 		cfg_obj_log(obj, ISC_LOG_WARNING,
 			    "changing reuseport value requires server restart");
 	}
@@ -9378,10 +9374,9 @@ run_server(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
 	dns_geoip_databases_t *geoip = NULL;
 
-	dns_zonemgr_create(named_g_mctx, named_g_netmgr, &server->zonemgr);
+	dns_zonemgr_create(named_g_mctx, &server->zonemgr);
 
-	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_netmgr,
-					  &named_g_dispatchmgr),
+	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, &named_g_dispatchmgr),
 		   "creating dispatch manager");
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
@@ -9393,8 +9388,8 @@ run_server(void *arg) {
 #endif /* if defined(HAVE_GEOIP2) */
 
 	CHECKFATAL(ns_interfacemgr_create(named_g_mctx, server->sctx,
-					  named_g_netmgr, named_g_dispatchmgr,
-					  geoip, &server->interfacemgr),
+					  named_g_dispatchmgr, geoip,
+					  &server->interfacemgr),
 		   "creating interface manager");
 
 	isc_timer_create(isc_loop_main(), interface_timer_tick, server,
@@ -9802,7 +9797,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	isc_stats_create(server->mctx, &server->sockstats,
 			 isc_sockstatscounter_max);
-	isc_nm_setstats(named_g_netmgr, server->sockstats);
+	isc_nm_setstats(server->sockstats);
 
 	isc_stats_create(named_g_mctx, &server->zonestats,
 			 dns_zonestatscounter_max);
@@ -15704,11 +15699,11 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 		return ISC_R_UNEXPECTEDEND;
 	}
 
-	initial = isc_nm_getinitialtimeout(named_g_netmgr);
-	primaries = isc_nm_getprimariestimeout(named_g_netmgr);
-	idle = isc_nm_getidletimeout(named_g_netmgr);
-	keepalive = isc_nm_getkeepalivetimeout(named_g_netmgr);
-	advertised = isc_nm_getadvertisedtimeout(named_g_netmgr);
+	initial = isc_nm_getinitialtimeout();
+	primaries = isc_nm_getprimariestimeout();
+	idle = isc_nm_getidletimeout();
+	keepalive = isc_nm_getkeepalivetimeout();
+	advertised = isc_nm_getadvertisedtimeout();
 
 	/* Look for optional arguments. */
 	ptr = next_token(lex, NULL);
@@ -15771,11 +15766,11 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 			CHECK(ISC_R_RANGE);
 		}
 
-		isc_nm_setinitialtimeout(named_g_netmgr, initial);
-		isc_nm_setprimariestimeout(named_g_netmgr, primaries);
-		isc_nm_setidletimeout(named_g_netmgr, idle);
-		isc_nm_setkeepalivetimeout(named_g_netmgr, keepalive);
-		isc_nm_setadvertisedtimeout(named_g_netmgr, advertised);
+		isc_nm_setinitialtimeout(initial);
+		isc_nm_setprimariestimeout(primaries);
+		isc_nm_setidletimeout(idle);
+		isc_nm_setkeepalivetimeout(keepalive);
+		isc_nm_setadvertisedtimeout(advertised);
 	}
 
 	snprintf(msg, sizeof(msg), "tcp-initial-timeout=%u\n", initial / 100);

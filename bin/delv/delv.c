@@ -109,7 +109,6 @@ static dns_stats_t *resquerystats = NULL;
 static FILE *logfp = NULL;
 
 /* Managers */
-static isc_nm_t *netmgr = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
 static ns_interfacemgr_t *interfacemgr = NULL;
@@ -1879,8 +1878,8 @@ run_resolve(void *arg) {
 	}
 
 	/* Create client */
-	CHECK(dns_client_create(mctx, netmgr, 0, tlsctx_client_cache, &client,
-				srcaddr4, srcaddr6));
+	CHECK(dns_client_create(mctx, 0, tlsctx_client_cache, &client, srcaddr4,
+				srcaddr6));
 	dns_client_setmaxrestarts(client, restarts);
 	dns_client_setmaxqueries(client, maxtotal);
 
@@ -2082,8 +2081,7 @@ sendquery(void *arg) {
 
 	dns_view_attach(view, &(dns_view_t *){ NULL });
 
-	const unsigned int timeout = isc_nm_getinitialtimeout(netmgr) /
-				     MS_PER_SEC;
+	const unsigned int timeout = isc_nm_getinitialtimeout() / MS_PER_SEC;
 	CHECK(dns_request_create(requestmgr, message, NULL, &peer, NULL, NULL,
 				 DNS_REQUESTOPT_TCP, NULL, timeout, timeout, 0,
 				 0, isc_loop(), recvresponse, message,
@@ -2133,7 +2131,7 @@ run_server(void *arg) {
 
 	ns_server_create(mctx, matchview, &sctx);
 
-	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
+	CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	if (use_ipv4) {
 		isc_sockaddr_any(&any);
@@ -2147,7 +2145,7 @@ run_server(void *arg) {
 		CHECK(dns_dispatch_createudp(dispatchmgr, a, &dispatch6));
 	}
 
-	CHECK(ns_interfacemgr_create(mctx, sctx, netmgr, dispatchmgr, NULL,
+	CHECK(ns_interfacemgr_create(mctx, sctx, dispatchmgr, NULL,
 				     &interfacemgr));
 
 	dns_view_create(mctx, dispatchmgr, dns_rdataclass_in, "_default",
@@ -2169,8 +2167,8 @@ run_server(void *arg) {
 	dns_view_initsecroots(view);
 	CHECK(setup_dnsseckeys(NULL, view));
 
-	CHECK(dns_view_createresolver(view, netmgr, 0, tlsctx_client_cache,
-				      dispatch4, dispatch6));
+	CHECK(dns_view_createresolver(view, 0, tlsctx_client_cache, dispatch4,
+				      dispatch6));
 	dns_resolver_setmaxqueries(view->resolver, maxqueries);
 
 	isc_stats_create(mctx, &resstats, dns_resstatscounter_max);
@@ -2185,10 +2183,9 @@ run_server(void *arg) {
 
 	ns_interface_create(interfacemgr, &addr, NULL, &ifp);
 
-	CHECK(isc_nm_listenstreamdns(netmgr, ISC_NM_LISTEN_ONE, &addr,
-				     ns_client_request, ifp, accept_cb, ifp, 10,
-				     NULL, NULL, ISC_NM_PROXY_NONE,
-				     &ifp->tcplistensocket));
+	CHECK(isc_nm_listenstreamdns(
+		ISC_NM_LISTEN_ONE, &addr, ns_client_request, ifp, accept_cb,
+		ifp, 10, NULL, NULL, ISC_NM_PROXY_NONE, &ifp->tcplistensocket));
 	ifp->flags |= NS_INTERFACEFLAG_LISTENING;
 	isc_async_current(sendquery, ifp->tcplistensocket);
 
@@ -2215,7 +2212,7 @@ main(int argc, char *argv[]) {
 	argc--;
 	argv++;
 
-	isc_managers_create(&mctx, 1, &netmgr);
+	isc_managers_create(&mctx, 1);
 	loop = isc_loop_main();
 
 	parse_args(argc, argv);
@@ -2259,7 +2256,7 @@ cleanup:
 		dns_master_styledestroy(&style, mctx);
 	}
 
-	isc_managers_destroy(&mctx, &netmgr);
+	isc_managers_destroy(&mctx);
 
 	return 0;
 }

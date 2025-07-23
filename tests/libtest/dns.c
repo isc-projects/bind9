@@ -65,7 +65,7 @@ dns_test_makeview(const char *name, bool with_dispatchmgr, bool with_cache,
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 
 	if (with_dispatchmgr) {
-		result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
+		result = dns_dispatchmgr_create(mctx, &dispatchmgr);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
@@ -160,7 +160,7 @@ void
 dns_test_setupzonemgr(void) {
 	REQUIRE(zonemgr == NULL);
 
-	dns_zonemgr_create(mctx, netmgr, &zonemgr);
+	dns_zonemgr_create(mctx, &zonemgr);
 }
 
 isc_result_t

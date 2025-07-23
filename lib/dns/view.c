@@ -536,8 +536,8 @@ dns_view_weakdetach(dns_view_t **viewp) {
 }
 
 isc_result_t
-dns_view_createresolver(dns_view_t *view, isc_nm_t *netmgr,
-			unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
+dns_view_createresolver(dns_view_t *view, unsigned int options,
+			isc_tlsctx_cache_t *tlsctx_cache,
 			dns_dispatch_t *dispatchv4,
 			dns_dispatch_t *dispatchv6) {
 	isc_result_t result;
@@ -548,8 +548,8 @@ dns_view_createresolver(dns_view_t *view, isc_nm_t *netmgr,
 	REQUIRE(view->resolver == NULL);
 	REQUIRE(view->dispatchmgr != NULL);
 
-	result = dns_resolver_create(view, netmgr, options, tlsctx_cache,
-				     dispatchv4, dispatchv6, &view->resolver);
+	result = dns_resolver_create(view, options, tlsctx_cache, dispatchv4,
+				     dispatchv6, &view->resolver);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

@@ -47,6 +47,8 @@
 #include "netmgr-int.h"
 #include "openssl_shim.h"
 
+isc__netmgr_t *isc__netmgr = NULL;
+
 /*%
  * Shortcut index arrays to get access to statistics counters.
  */
@@ -119,7 +121,7 @@ networker_teardown(void *arg) {
 	worker->shuttingdown = true;
 
 	isc__netmgr_log(
-		worker->netmgr, ISC_LOG_DEBUG(1),
+		ISC_LOG_DEBUG(1),
 		"Shutting down network manager worker on loop %p(%" PRItid ")",
 		loop, isc_tid());
 
@@ -129,13 +131,11 @@ networker_teardown(void *arg) {
 }
 
 static void
-netmgr_teardown(void *arg) {
-	isc_nm_t *netmgr = (void *)arg;
-
-	if (atomic_compare_exchange_strong_acq_rel(&netmgr->shuttingdown,
+netmgr_teardown(void *arg ISC_ATTR_UNUSED) {
+	if (atomic_compare_exchange_strong_acq_rel(&isc__netmgr->shuttingdown,
 						   &(bool){ false }, true))
 	{
-		isc__netmgr_log(netmgr, ISC_LOG_DEBUG(1),
+		isc__netmgr_log(ISC_LOG_DEBUG(1),
 				"Shutting down network manager");
 	}
 }
@@ -153,8 +153,8 @@ netmgr_teardown(void *arg) {
 #endif
 
 void
-isc_netmgr_create(isc_mem_t *mctx, isc_nm_t **netmgrp) {
-	isc_nm_t *netmgr = NULL;
+isc_netmgr_create(isc_mem_t *mctx) {
+	isc__netmgr_t *netmgr = NULL;
 
 #ifdef MAXIMAL_UV_VERSION
 	if (uv_version() > MAXIMAL_UV_VERSION) {
@@ -173,7 +173,7 @@ isc_netmgr_create(isc_mem_t *mctx, isc_nm_t **netmgrp) {
 	}
 
 	netmgr = isc_mem_get(mctx, sizeof(*netmgr));
-	*netmgr = (isc_nm_t){
+	*netmgr = (isc__netmgr_t){
 		.nloops = isc_loopmgr_nloops(),
 	};
 
@@ -218,7 +218,7 @@ isc_netmgr_create(isc_mem_t *mctx, isc_nm_t **netmgrp) {
 			.active_sockets = ISC_LIST_INITIALIZER,
 		};
 
-		isc_nm_attach(netmgr, &worker->netmgr);
+		isc__netmgr_ref(netmgr);
 
 		isc_mem_attach(loop->mctx, &worker->mctx);
 
@@ -236,14 +236,14 @@ isc_netmgr_create(isc_mem_t *mctx, isc_nm_t **netmgrp) {
 		isc_refcount_init(&worker->references, 1);
 	}
 
-	*netmgrp = netmgr;
+	isc__netmgr = netmgr;
 }
 
 /*
  * Free the resources of the network manager.
  */
 static void
-nm_destroy(isc_nm_t *netmgr) {
+netmgr_destroy(isc__netmgr_t *netmgr) {
 	REQUIRE(VALID_NM(netmgr));
 
 	isc_refcount_destroy(&netmgr->references);
@@ -260,16 +260,21 @@ nm_destroy(isc_nm_t *netmgr) {
 }
 
 #if ISC_NETMGR_TRACE
-ISC_REFCOUNT_TRACE_IMPL(isc_nm, nm_destroy)
+ISC_REFCOUNT_TRACE_IMPL(isc__netmgr, netmgr_destroy)
 #else
-ISC_REFCOUNT_IMPL(isc_nm, nm_destroy);
+ISC_REFCOUNT_IMPL(isc__netmgr, netmgr_destroy);
 #endif
 
 void
-isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp) {
-	REQUIRE(VALID_NM(mgr));
+isc_netmgr_destroy(void) {
+	isc__netmgr_detach(&isc__netmgr);
+}
 
-	atomic_store_relaxed(&mgr->maxudp, maxudp);
+void
+isc_nm_maxudp(uint32_t maxudp) {
+	REQUIRE(VALID_NM(isc__netmgr));
+
+	atomic_store_relaxed(&isc__netmgr->maxudp, maxudp);
 }
 
 void
@@ -303,100 +308,100 @@ isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
 }
 
 void
-isc_nm_setinitialtimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_setinitialtimeout(uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	atomic_store_relaxed(&mgr->init, timeout_ms);
+	atomic_store_relaxed(&isc__netmgr->init, timeout_ms);
 }
 
 void
-isc_nm_setprimariestimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_setprimariestimeout(uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	atomic_store_relaxed(&mgr->primaries, timeout_ms);
+	atomic_store_relaxed(&isc__netmgr->primaries, timeout_ms);
 }
 
 void
-isc_nm_setidletimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_setidletimeout(uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	atomic_store_relaxed(&mgr->idle, timeout_ms);
+	atomic_store_relaxed(&isc__netmgr->idle, timeout_ms);
 }
 
 void
-isc_nm_setkeepalivetimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_setkeepalivetimeout(uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	atomic_store_relaxed(&mgr->keepalive, timeout_ms);
+	atomic_store_relaxed(&isc__netmgr->keepalive, timeout_ms);
 }
 
 void
-isc_nm_setadvertisedtimeout(isc_nm_t *mgr, uint32_t timeout_ms) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_setadvertisedtimeout(uint32_t timeout_ms) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	atomic_store_relaxed(&mgr->advertised, timeout_ms);
+	atomic_store_relaxed(&isc__netmgr->advertised, timeout_ms);
 }
 
 void
-isc_nm_setnetbuffers(isc_nm_t *mgr, int32_t recv_tcp, int32_t send_tcp,
-		     int32_t recv_udp, int32_t send_udp) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_setnetbuffers(int32_t recv_tcp, int32_t send_tcp, int32_t recv_udp,
+		     int32_t send_udp) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	atomic_store_relaxed(&mgr->recv_tcp_buffer_size, recv_tcp);
-	atomic_store_relaxed(&mgr->send_tcp_buffer_size, send_tcp);
-	atomic_store_relaxed(&mgr->recv_udp_buffer_size, recv_udp);
-	atomic_store_relaxed(&mgr->send_udp_buffer_size, send_udp);
+	atomic_store_relaxed(&isc__netmgr->recv_tcp_buffer_size, recv_tcp);
+	atomic_store_relaxed(&isc__netmgr->send_tcp_buffer_size, send_tcp);
+	atomic_store_relaxed(&isc__netmgr->recv_udp_buffer_size, recv_udp);
+	atomic_store_relaxed(&isc__netmgr->send_udp_buffer_size, send_udp);
 }
 
 bool
-isc_nm_getloadbalancesockets(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_getloadbalancesockets(void) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	return mgr->load_balance_sockets;
+	return isc__netmgr->load_balance_sockets;
 }
 
 void
-isc_nm_setloadbalancesockets(isc_nm_t *mgr, ISC_ATTR_UNUSED bool enabled) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_setloadbalancesockets(ISC_ATTR_UNUSED bool enabled) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
 #if HAVE_SO_REUSEPORT_LB
-	mgr->load_balance_sockets = enabled;
+	isc__netmgr->load_balance_sockets = enabled;
 #endif
 }
 
 uint32_t
-isc_nm_getinitialtimeout(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_getinitialtimeout(void) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	return atomic_load_relaxed(&mgr->init);
+	return atomic_load_relaxed(&isc__netmgr->init);
 }
 
 uint32_t
-isc_nm_getprimariestimeout(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_getprimariestimeout(void) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	return atomic_load_relaxed(&mgr->primaries);
+	return atomic_load_relaxed(&isc__netmgr->primaries);
 }
 
 uint32_t
-isc_nm_getidletimeout(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_getidletimeout(void) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	return atomic_load_relaxed(&mgr->idle);
+	return atomic_load_relaxed(&isc__netmgr->idle);
 }
 
 uint32_t
-isc_nm_getkeepalivetimeout(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_getkeepalivetimeout(void) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	return atomic_load_relaxed(&mgr->keepalive);
+	return atomic_load_relaxed(&isc__netmgr->keepalive);
 }
 
 uint32_t
-isc_nm_getadvertisedtimeout(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
+isc_nm_getadvertisedtimeout(void) {
+	REQUIRE(VALID_NM(isc__netmgr));
 
-	return atomic_load_relaxed(&mgr->advertised);
+	return atomic_load_relaxed(&isc__netmgr->advertised);
 }
 
 bool
@@ -1488,25 +1493,20 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 void
 isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
 	isc_nmsocket_t *sock = NULL;
-	isc_nm_t *netmgr = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	sock = handle->sock;
-	netmgr = sock->worker->netmgr;
 
 	REQUIRE(sock->tid == isc_tid());
 
 	switch (sock->type) {
-	case isc_nm_tcpsocket:
+	case isc_nm_tcpsocket:;
 		sock->keepalive = value;
-		sock->read_timeout =
-			value ? atomic_load_relaxed(&netmgr->keepalive)
-			      : atomic_load_relaxed(&netmgr->idle);
-		sock->write_timeout =
-			value ? atomic_load_relaxed(&netmgr->keepalive)
-			      : atomic_load_relaxed(&netmgr->idle);
+		sock->read_timeout = sock->write_timeout =
+			value ? atomic_load_relaxed(&isc__netmgr->keepalive)
+			      : atomic_load_relaxed(&isc__netmgr->idle);
 		break;
 	case isc_nm_streamdnssocket:
 		isc__nmhandle_streamdns_keepalive(handle, value);
@@ -1586,14 +1586,6 @@ isc_nmhandle_localaddr(isc_nmhandle_t *handle) {
 #endif /* ISC_SOCKET_DETAILS */
 
 	return addr;
-}
-
-isc_nm_t *
-isc_nmhandle_netmgr(isc_nmhandle_t *handle) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	return handle->sock->worker->netmgr;
 }
 
 isc__nm_uvreq_t *
@@ -2055,12 +2047,12 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 }
 
 void
-isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats) {
-	REQUIRE(VALID_NM(mgr));
-	REQUIRE(mgr->stats == NULL);
+isc_nm_setstats(isc_stats_t *stats) {
+	REQUIRE(VALID_NM(isc__netmgr));
+	REQUIRE(isc__netmgr->stats == NULL);
 	REQUIRE(isc_stats_ncounters(stats) == isc_sockstatscounter_max);
 
-	isc_stats_attach(stats, &mgr->stats);
+	isc_stats_attach(stats, &isc__netmgr->stats);
 }
 
 void
@@ -2068,9 +2060,8 @@ isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(id < STATID_MAX);
 
-	if (sock->statsindex != NULL && sock->worker->netmgr->stats != NULL) {
-		isc_stats_increment(sock->worker->netmgr->stats,
-				    sock->statsindex[id]);
+	if (sock->statsindex != NULL && isc__netmgr->stats != NULL) {
+		isc_stats_increment(isc__netmgr->stats, sock->statsindex[id]);
 	}
 }
 
@@ -2079,9 +2070,8 @@ isc__nm_decstats(isc_nmsocket_t *sock, isc__nm_statid_t id) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(id < STATID_MAX);
 
-	if (sock->statsindex != NULL && sock->worker->netmgr->stats != NULL) {
-		isc_stats_decrement(sock->worker->netmgr->stats,
-				    sock->statsindex[id]);
+	if (sock->statsindex != NULL && isc__netmgr->stats != NULL) {
+		isc_stats_decrement(isc__netmgr->stats, sock->statsindex[id]);
 	}
 }
 
@@ -2143,22 +2133,22 @@ isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type) {
 #endif
 
 void
-isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle) {
+isc__nm_set_network_buffers(uv_handle_t *handle) {
 	int32_t recv_buffer_size = 0;
 	int32_t send_buffer_size = 0;
 
 	switch (handle->type) {
 	case UV_TCP:
 		recv_buffer_size =
-			atomic_load_relaxed(&nm->recv_tcp_buffer_size);
+			atomic_load_relaxed(&isc__netmgr->recv_tcp_buffer_size);
 		send_buffer_size =
-			atomic_load_relaxed(&nm->send_tcp_buffer_size);
+			atomic_load_relaxed(&isc__netmgr->send_tcp_buffer_size);
 		break;
 	case UV_UDP:
 		recv_buffer_size =
-			atomic_load_relaxed(&nm->recv_udp_buffer_size);
+			atomic_load_relaxed(&isc__netmgr->recv_udp_buffer_size);
 		send_buffer_size =
-			atomic_load_relaxed(&nm->send_udp_buffer_size);
+			atomic_load_relaxed(&isc__netmgr->send_udp_buffer_size);
 		break;
 	default:
 		UNREACHABLE();
@@ -2526,7 +2516,7 @@ settlsctx_cb(void *arg) {
 	const isc_tid_t tid = isc_tid();
 	isc_nmsocket_t *listener = data->listener;
 	isc_tlsctx_t *tlsctx = data->tlsctx;
-	isc__networker_t *worker = &listener->worker->netmgr->workers[tid];
+	isc__networker_t *worker = isc__networker_current();
 
 	isc_mem_put(worker->loop->mctx, data, sizeof(*data));
 
@@ -2543,8 +2533,7 @@ set_tlsctx_workers(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 	const size_t nworkers = (size_t)isc_loopmgr_nloops();
 	/* Update the TLS context reference for every worker thread. */
 	for (size_t i = 0; i < nworkers; i++) {
-		isc__networker_t *worker =
-			&listener->worker->netmgr->workers[i];
+		isc__networker_t *worker = isc__networker_get(i);
 		settlsctx_data_t *data = isc_mem_cget(worker->loop->mctx, 1,
 						      sizeof(*data));
 
@@ -2626,10 +2615,7 @@ isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls) {
 
 static void
 isc__networker_destroy(isc__networker_t *worker) {
-	isc_nm_t *netmgr = worker->netmgr;
-	worker->netmgr = NULL;
-
-	isc__netmgr_log(netmgr, ISC_LOG_DEBUG(1),
+	isc__netmgr_log(ISC_LOG_DEBUG(1),
 			"Destroying network manager worker on loop %p(%" PRItid
 			")",
 			worker->loop, isc_tid());
@@ -2641,13 +2627,14 @@ isc__networker_destroy(isc__networker_t *worker) {
 
 	isc_mem_putanddetach(&worker->mctx, worker->recvbuf,
 			     ISC_NETMGR_RECVBUF_SIZE);
-	isc_nm_detach(&netmgr);
+
+	isc__netmgr_unref(isc__netmgr);
 }
 
 ISC_REFCOUNT_IMPL(isc__networker, isc__networker_destroy);
 
 void
-isc__netmgr_log(const isc_nm_t *netmgr, int level, const char *fmt, ...) {
+isc__netmgr_log(int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
@@ -2660,7 +2647,7 @@ isc__netmgr_log(const isc_nm_t *netmgr, int level, const char *fmt, ...) {
 	va_end(ap);
 
 	isc_log_write(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR, level,
-		      "netmgr %p: %s", netmgr, msgbuf);
+		      "netmgr %p: %s", isc__netmgr, msgbuf);
 }
 
 void
@@ -2899,6 +2886,18 @@ isc_nm_proxyheader_info_init_complete(isc_nm_proxyheader_info_t *restrict info,
 					     .complete_header = *header_data };
 }
 
+isc__networker_t *
+isc__networker_current(void) {
+	REQUIRE(VALID_NM(isc__netmgr));
+	return &isc__netmgr->workers[isc_tid()];
+}
+
+isc__networker_t *
+isc__networker_get(uint32_t tid) {
+	REQUIRE(VALID_NM(isc__netmgr));
+	return &isc__netmgr->workers[tid];
+}
+
 #if ISC_NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr
@@ -2998,11 +2997,9 @@ isc__nm_dump_active(isc__networker_t *worker) {
 }
 
 void
-isc__nm_dump_active_manager(isc_nm_t *netmgr) {
-	size_t i = 0;
-
-	for (i = 0; i < netmgr->nloops; i++) {
-		isc__networker_t *worker = &netmgr->workers[i];
+isc__nm_dump_active_manager(void) {
+	for (size_t i = 0; i < isc__netmgr->nloops; i++) {
+		isc__networker_t *worker = isc__networker_get(i);
 
 		if (!ISC_LIST_EMPTY(worker->active_sockets)) {
 			fprintf(stderr, "Worker #%zu (%p)\n", i, worker);

@@ -13,6 +13,10 @@
 
 /*! \file */
 
+/*
+ * FIXME: Might need dns_dispatch_shuttingdown()
+ */
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -54,7 +58,6 @@ struct dns_dispatchmgr {
 	isc_mem_t *mctx;
 	dns_acl_t *blackhole;
 	isc_stats_t *stats;
-	isc_nm_t *nm;
 
 	uint32_t nloops;
 
@@ -969,8 +972,7 @@ setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
  */
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm,
-		       dns_dispatchmgr_t **mgrp) {
+dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp) {
 	dns_dispatchmgr_t *mgr = NULL;
 	isc_portset_t *v4portset = NULL;
 	isc_portset_t *v6portset = NULL;
@@ -991,7 +993,6 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm,
 	isc_refcount_init(&mgr->references, 1);
 
 	isc_mem_attach(mctx, &mgr->mctx);
-	isc_nm_attach(nm, &mgr->nm);
 
 	mgr->tcps = isc_mem_cget(mgr->mctx, mgr->nloops, sizeof(mgr->tcps[0]));
 	for (size_t i = 0; i < mgr->nloops; i++) {
@@ -1078,8 +1079,6 @@ dispatchmgr_destroy(dns_dispatchmgr_t *mgr) {
 			     sizeof(in_port_t));
 	}
 
-	isc_nm_detach(&mgr->nm);
-
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(dns_dispatchmgr_t));
 }
 
@@ -1089,13 +1088,6 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats) {
 	REQUIRE(mgr->stats == NULL);
 
 	isc_stats_attach(stats, &mgr->stats);
-}
-
-isc_nm_t *
-dns_dispatchmgr_getnetmgr(dns_dispatchmgr_t *mgr) {
-	REQUIRE(VALID_DISPATCHMGR(mgr));
-
-	return mgr->nm;
 }
 
 /*
@@ -1952,8 +1944,8 @@ udp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispentry_ref(resp); /* DISPENTRY004 */
 	ISC_LIST_APPEND(disp->pending, resp, plink);
 
-	isc_nm_udpconnect(disp->mgr->nm, &resp->local, &resp->peer,
-			  udp_connected, resp, resp->timeout);
+	isc_nm_udpconnect(&resp->local, &resp->peer, udp_connected, resp,
+			  resp->timeout);
 }
 
 static inline const char *
@@ -2024,8 +2016,8 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 
 		const char *hostname = get_tls_sni_hostname(resp);
 
-		isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
-					&disp->peer, tcp_connected, disp,
+		isc_nm_streamdnsconnect(&disp->local, &disp->peer,
+					tcp_connected, disp,
 					resp->connect_timeout, tlsctx, hostname,
 					sess_cache, ISC_NM_PROXY_NONE, NULL);
 		break;

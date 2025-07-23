@@ -3665,7 +3665,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 		CHECK(ISC_R_FAMILYNOSUPPORT);
 	}
 
-	CHECK(isc_httpdmgr_create(named_g_netmgr, server->mctx, addr, client_ok,
+	CHECK(isc_httpdmgr_create(server->mctx, addr, client_ok,
 				  destroy_listener, listener,
 				  &listener->httpdmgr));
 

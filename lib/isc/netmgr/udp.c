@@ -67,7 +67,7 @@ static void
 udp_close_cb(uv_handle_t *handle);
 
 static uv_os_sock_t
-isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
+isc__nm_udp_lb_socket(sa_family_t sa_family) {
 	isc_result_t result;
 	uv_os_sock_t sock = -1;
 
@@ -80,7 +80,7 @@ isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	result = isc__nm_socket_reuse(sock, 1);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	if (mgr->load_balance_sockets) {
+	if (isc__netmgr->load_balance_sockets) {
 		result = isc__nm_socket_reuse_lb(sock);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
@@ -104,7 +104,6 @@ start_udp_child_job(void *arg) {
 	int uv_init_flags = 0;
 	sa_family_t sa_family = sock->iface.type.sa.sa_family;
 	isc_result_t result = ISC_R_UNSET;
-	isc_nm_t *mgr = sock->worker->netmgr;
 	isc_loop_t *loop = sock->worker->loop;
 
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
@@ -134,7 +133,7 @@ start_udp_child_job(void *arg) {
 		uv_bind_flags |= UV_UDP_IPV6ONLY;
 	}
 
-	if (mgr->load_balance_sockets) {
+	if (isc__netmgr->load_balance_sockets) {
 		r = isc__nm_udp_freebind(&sock->uv_handle.udp,
 					 &sock->parent->iface.type.sa,
 					 uv_bind_flags);
@@ -157,7 +156,7 @@ start_udp_child_job(void *arg) {
 		sock->uv_handle.udp.flags = sock->parent->uv_handle.udp.flags;
 	}
 
-	isc__nm_set_network_buffers(mgr, &sock->uv_handle.handle);
+	isc__nm_set_network_buffers(&sock->uv_handle.handle);
 
 	r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
 			      isc__nm_udp_read_cb);
@@ -179,9 +178,9 @@ done:
 }
 
 static void
-start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
-		uv_os_sock_t fd, isc_tid_t tid) {
-	isc__networker_t *worker = &mgr->workers[tid];
+start_udp_child(isc_sockaddr_t *iface, isc_nmsocket_t *sock, uv_os_sock_t fd,
+		isc_tid_t tid) {
+	isc__networker_t *worker = isc__networker_get(tid);
 	isc_nmsocket_t *csock = &sock->children[tid];
 
 	isc__nmsocket_init(csock, worker, isc_nm_udpsocket, iface, sock);
@@ -189,9 +188,8 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	csock->recv_cbarg = sock->recv_cbarg;
 	csock->inactive_handles_max = ISC_NM_NMHANDLES_MAX;
 
-	if (mgr->load_balance_sockets) {
-		csock->fd = isc__nm_udp_lb_socket(mgr,
-						  iface->type.sa.sa_family);
+	if (isc__netmgr->load_balance_sockets) {
+		csock->fd = isc__nm_udp_lb_socket(iface->type.sa.sa_family);
 	} else {
 		csock->fd = dup(fd);
 	}
@@ -205,32 +203,30 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 }
 
 isc_result_t
-isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
-		 isc_nm_recv_cb_t cb, void *cbarg, isc_nmsocket_t **sockp) {
+isc_nm_listenudp(uint32_t workers, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
+		 void *cbarg, isc_nmsocket_t **sockp) {
 	isc_result_t result = ISC_R_UNSET;
 	isc_nmsocket_t *sock = NULL;
 	uv_os_sock_t fd = -1;
-	isc__networker_t *worker = NULL;
+	isc__networker_t *worker = isc__networker_get(0);
 
-	REQUIRE(VALID_NM(mgr));
 	REQUIRE(isc_tid() == 0);
-
-	worker = &mgr->workers[0];
 
 	if (isc__nm_closing(worker)) {
 		return ISC_R_SHUTTINGDOWN;
 	}
 
 	if (workers == 0) {
-		workers = mgr->nloops;
+		workers = isc__netmgr->nloops;
 	}
-	REQUIRE(workers <= mgr->nloops);
+	REQUIRE(workers <= isc__netmgr->nloops);
 
 	sock = isc_mempool_get(worker->nmsocket_pool);
 	isc__nmsocket_init(sock, worker, isc_nm_udplistener, iface, NULL);
 
-	sock->nchildren = (workers == ISC_NM_LISTEN_ALL) ? (uint32_t)mgr->nloops
-							 : workers;
+	sock->nchildren = (workers == ISC_NM_LISTEN_ALL)
+				  ? (uint32_t)isc__netmgr->nloops
+				  : workers;
 	sock->children = isc_mem_cget(worker->mctx, sock->nchildren,
 				      sizeof(sock->children[0]));
 
@@ -239,21 +235,21 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
 
-	if (!mgr->load_balance_sockets) {
-		fd = isc__nm_udp_lb_socket(mgr, iface->type.sa.sa_family);
+	if (!isc__netmgr->load_balance_sockets) {
+		fd = isc__nm_udp_lb_socket(iface->type.sa.sa_family);
 	}
 
-	start_udp_child(mgr, iface, sock, fd, 0);
+	start_udp_child(iface, sock, fd, 0);
 	result = sock->children[0].result;
 	INSIST(result != ISC_R_UNSET);
 
 	for (size_t i = 1; i < sock->nchildren; i++) {
-		start_udp_child(mgr, iface, sock, fd, i);
+		start_udp_child(iface, sock, fd, i);
 	}
 
 	isc_barrier_wait(&sock->listen_barrier);
 
-	if (!mgr->load_balance_sockets) {
+	if (!isc__netmgr->load_balance_sockets) {
 		isc__nm_closesocket(fd);
 	}
 
@@ -341,8 +337,7 @@ route_connect_direct(isc_nmsocket_t *sock) {
 		return isc_uverr2result(r);
 	}
 
-	isc__nm_set_network_buffers(sock->worker->netmgr,
-				    &sock->uv_handle.handle);
+	isc__nm_set_network_buffers(&sock->uv_handle.handle);
 
 	sock->connecting = false;
 	sock->connected = true;
@@ -353,18 +348,15 @@ route_connect_direct(isc_nmsocket_t *sock) {
 #endif /* USE_ROUTE_SOCKET */
 
 isc_result_t
-isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
+isc_nm_routeconnect(isc_nm_cb_t cb, void *cbarg) {
 #ifdef USE_ROUTE_SOCKET
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	isc__nm_uvreq_t *req = NULL;
-	isc__networker_t *worker = NULL;
+	isc__networker_t *worker = isc__networker_current();
 	uv_os_sock_t fd = -1;
 
-	REQUIRE(VALID_NM(mgr));
 	REQUIRE(isc_tid() == 0);
-
-	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		return ISC_R_SHUTTINGDOWN;
@@ -504,7 +496,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	 * - If we're simulating a firewall blocking UDP packets
 	 *   bigger than 'maxudp' bytes for testing purposes.
 	 */
-	maxudp = atomic_load_relaxed(&sock->worker->netmgr->maxudp);
+	maxudp = atomic_load_relaxed(&isc__netmgr->maxudp);
 	if (maxudp != 0 && (uint32_t)nrecv > maxudp) {
 		/*
 		 * We need to keep the read_cb intact in case, so the
@@ -675,7 +667,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	REQUIRE(sock->tid == isc_tid());
 
 	worker = sock->worker;
-	maxudp = atomic_load(&worker->netmgr->maxudp);
+	maxudp = atomic_load(&isc__netmgr->maxudp);
 	sa = sock->connected ? NULL : &peer->type.sa;
 
 	/*
@@ -721,7 +713,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		if (r < 0) {
 			if (can_log_udp_sends()) {
 				isc__netmgr_log(
-					worker->netmgr, ISC_LOG_ERROR,
+					ISC_LOG_ERROR,
 					"Sending UDP messages failed: %s",
 					isc_result_totext(isc_uverr2result(r)));
 			}
@@ -792,8 +784,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		return isc_uverr2result(r);
 	}
 
-	isc__nm_set_network_buffers(sock->worker->netmgr,
-				    &sock->uv_handle.handle);
+	isc__nm_set_network_buffers(&sock->uv_handle.handle);
 
 	/*
 	 * On FreeBSD the UDP connect() call sometimes results in a
@@ -813,20 +804,17 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 }
 
 void
-isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
+isc_nm_udpconnect(isc_sockaddr_t *local, isc_sockaddr_t *peer, isc_nm_cb_t cb,
+		  void *cbarg, unsigned int timeout) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	isc__nm_uvreq_t *req = NULL;
 	sa_family_t sa_family;
-	isc__networker_t *worker = NULL;
+	isc__networker_t *worker = isc__networker_current();
 	uv_os_sock_t fd = -1;
 
-	REQUIRE(VALID_NM(mgr));
 	REQUIRE(local != NULL);
 	REQUIRE(peer != NULL);
-
-	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);

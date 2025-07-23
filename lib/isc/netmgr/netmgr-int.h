@@ -210,7 +210,6 @@ typedef struct isc__networker {
 	isc_mem_t *mctx;
 	isc_refcount_t references;
 	isc_loop_t *loop;
-	isc_nm_t *netmgr;
 	bool shuttingdown;
 
 	char *recvbuf;
@@ -229,7 +228,7 @@ void
 isc__nm_dump_active(isc__networker_t *worker);
 
 void
-isc__nm_dump_active_manager(isc_nm_t *netmgr);
+isc__nm_dump_active_manager(void);
 #endif /* ISC_NETMGR_TRACE */
 
 /*
@@ -320,13 +319,7 @@ struct isc__nm_uvreq {
 	isc_job_t job;
 };
 
-/*
- * Network manager
- */
-#define NM_MAGIC    ISC_MAGIC('N', 'E', 'T', 'M')
-#define VALID_NM(t) ISC_MAGIC_VALID(t, NM_MAGIC)
-
-struct isc_nm {
+typedef struct isc__netmgr {
 	int magic;
 	isc_refcount_t references;
 	isc_mem_t *mctx;
@@ -365,7 +358,28 @@ struct isc_nm {
 	atomic_int_fast32_t send_udp_buffer_size;
 	atomic_int_fast32_t recv_tcp_buffer_size;
 	atomic_int_fast32_t send_tcp_buffer_size;
-};
+} isc__netmgr_t;
+
+extern isc__netmgr_t *isc__netmgr;
+
+/*
+ * Network manager
+ */
+#define NM_MAGIC    ISC_MAGIC('N', 'E', 'T', 'M')
+#define VALID_NM(t) ISC_MAGIC_VALID(t, NM_MAGIC)
+
+#if ISC_NETMGR_TRACE
+#define isc__netmgr_ref(ptr) isc__netmgr__ref(ptr, __func__, __FILE__, __LINE__)
+#define isc__netmgr_unref(ptr) \
+	isc__netmgr__unref(ptr, __func__, __FILE__, __LINE__)
+#define isc__netmgr_attach(ptr, ptrp) \
+	isc__netmgr__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define isc__netmgr_detach(ptrp) \
+	isc__netmgr__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(isc__netmgr);
+#else
+ISC_REFCOUNT_DECL(isc__netmgr);
+#endif
 
 /*%
  * A universal structure for either a single socket or a group of
@@ -1373,7 +1387,7 @@ isc__nm_socket_min_mtu(uv_os_sock_t fd, sa_family_t sa_family);
  */
 
 void
-isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle);
+isc__nm_set_network_buffers(uv_handle_t *handle);
 /*%>
  * Sets the pre-configured network buffers size on the handle.
  */
@@ -1469,8 +1483,7 @@ isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls);
  * Logging helpers
  */
 void
-isc__netmgr_log(const isc_nm_t *netmgr, int level, const char *fmt, ...)
-	ISC_FORMAT_PRINTF(3, 4);
+isc__netmgr_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 void
 isc__nmsocket_log(const isc_nmsocket_t *sock, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
@@ -1512,3 +1525,9 @@ isc__nm_senddns(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
  * The same as 'isc_nm_send()', but with data length sent
  * ahead of data (two bytes (16 bit) in big-endian format).
  */
+
+isc__networker_t *
+isc__networker_current(void);
+
+isc__networker_t *
+isc__networker_get(uint32_t tid);

@@ -75,7 +75,7 @@ typedef enum dns_dispatchopt {
 } dns_dispatchopt_t;
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm, dns_dispatchmgr_t **mgrp);
+dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
 /*%<
  * Creates a new dispatchmgr object, and sets the available ports
  * to the default range (1024-65535).
@@ -159,15 +159,6 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats);
  *\li	mgr is a valid dispatchmgr with no managed dispatch.
  *\li	stats is a valid statistics supporting resolver statistics counters
  *	(see dns/stats.h).
- */
-
-isc_nm_t *
-dns_dispatchmgr_getnetmgr(dns_dispatchmgr_t *mgr);
-/*%<
- * Get the network manager object associated with the dispatch manager.
- *
- * Requires:
- *\li	disp is valid
  */
 
 isc_result_t

@@ -52,7 +52,6 @@ static const char *protocols[] = { "udp",	    "tcp",
 				   "http-plain-get" };
 
 static isc_mem_t *mctx = NULL;
-static isc_nm_t *netmgr = NULL;
 
 static protocol_t protocol;
 static const char *address;
@@ -286,7 +285,7 @@ parse_options(int argc, char **argv) {
 
 static void
 setup(void) {
-	isc_managers_create(&mctx, workers, &netmgr);
+	isc_managers_create(&mctx, workers);
 }
 
 static void
@@ -299,7 +298,7 @@ teardown(void) {
 		isc_tlsctx_free(&tls_ctx);
 	}
 
-	isc_managers_destroy(&mctx, &netmgr);
+	isc_managers_destroy(&mctx);
 }
 
 static void
@@ -374,22 +373,20 @@ static void
 run(void) {
 	switch (protocol) {
 	case UDP:
-		isc_nm_udpconnect(netmgr, &sockaddr_local, &sockaddr_remote,
-				  connect_cb, NULL, timeout);
+		isc_nm_udpconnect(&sockaddr_local, &sockaddr_remote, connect_cb,
+				  NULL, timeout);
 		break;
 	case TCP:
-		isc_nm_streamdnsconnect(netmgr, &sockaddr_local,
-					&sockaddr_remote, connect_cb, NULL,
-					timeout, NULL, NULL, NULL,
-					ISC_NM_PROXY_NONE, NULL);
+		isc_nm_streamdnsconnect(&sockaddr_local, &sockaddr_remote,
+					connect_cb, NULL, timeout, NULL, NULL,
+					NULL, ISC_NM_PROXY_NONE, NULL);
 		break;
 	case DOT: {
 		isc_tlsctx_createclient(&tls_ctx);
 
-		isc_nm_streamdnsconnect(netmgr, &sockaddr_local,
-					&sockaddr_remote, connect_cb, NULL,
-					timeout, tls_ctx, NULL, NULL,
-					ISC_NM_PROXY_NONE, NULL);
+		isc_nm_streamdnsconnect(&sockaddr_local, &sockaddr_remote,
+					connect_cb, NULL, timeout, tls_ctx,
+					NULL, NULL, ISC_NM_PROXY_NONE, NULL);
 		break;
 	}
 #if HAVE_LIBNGHTTP2
@@ -408,10 +405,9 @@ run(void) {
 		if (is_https) {
 			isc_tlsctx_createclient(&tls_ctx);
 		}
-		isc_nm_httpconnect(netmgr, &sockaddr_local, &sockaddr_remote,
-				   req_url, is_post, connect_cb, NULL, tls_ctx,
-				   NULL, NULL, timeout, ISC_NM_PROXY_NONE,
-				   NULL);
+		isc_nm_httpconnect(&sockaddr_local, &sockaddr_remote, req_url,
+				   is_post, connect_cb, NULL, tls_ctx, NULL,
+				   NULL, timeout, ISC_NM_PROXY_NONE, NULL);
 	} break;
 #endif
 	default:

@@ -970,9 +970,9 @@ create_managers(void) {
 			 "thread count limit)"
 		       : "");
 
-	isc_managers_create(&named_g_mctx, named_g_cpus, &named_g_netmgr);
+	isc_managers_create(&named_g_mctx, named_g_cpus);
 
-	isc_nm_maxudp(named_g_netmgr, maxudp);
+	isc_nm_maxudp(maxudp);
 
 	return ISC_R_SUCCESS;
 }
@@ -1505,7 +1505,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	isc_managers_destroy(&named_g_mctx, &named_g_netmgr);
+	isc_managers_destroy(&named_g_mctx);
 
 #if ENABLE_LEAK_DETECTION
 	isc__crypto_setdestroycheck(true);

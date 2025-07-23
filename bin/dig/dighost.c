@@ -100,7 +100,6 @@ bool port_set = false;
 unsigned int timeout = 0;
 unsigned int extrabytes;
 isc_mem_t *mctx = NULL;
-isc_nm_t *netmgr = NULL;
 isc_loop_t *mainloop = NULL;
 isc_sockaddr_t localaddr;
 isc_refcount_t sendcount = 0;
@@ -1345,7 +1344,7 @@ setup_libs(int argc, char **argv) {
 		fatal("can't find either v4 or v6 networking");
 	}
 
-	isc_managers_create(&mctx, 1, &netmgr);
+	isc_managers_create(&mctx, 1);
 
 	logconfig = isc_logconfig_get();
 	isc_log_createandusechannel(logconfig, "debug", ISC_LOG_TOFILEDESC,
@@ -3011,7 +3010,7 @@ start_tcp(dig_query_t *query) {
 		if (tlsctx == NULL) {
 			goto failure_tls;
 		}
-		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
+		isc_nm_streamdnsconnect(&localaddr, &query->sockaddr,
 					tcp_connected, connectquery,
 					local_timeout, tlsctx,
 					get_tls_sni_hostname(query), sess_cache,
@@ -3032,14 +3031,14 @@ start_tcp(dig_query_t *query) {
 			}
 		}
 
-		isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr, uri,
+		isc_nm_httpconnect(&localaddr, &query->sockaddr, uri,
 				   !query->lookup->https_get, tcp_connected,
 				   connectquery, tlsctx,
 				   get_tls_sni_hostname(query), sess_cache,
 				   local_timeout, proxy_type, ppi);
 #endif
 	} else {
-		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
+		isc_nm_streamdnsconnect(&localaddr, &query->sockaddr,
 					tcp_connected, connectquery,
 					local_timeout, NULL, NULL, NULL,
 					proxy_type, ppi);
@@ -3305,13 +3304,12 @@ start_udp(dig_query_t *query) {
 				&query->lookup->proxy_dst_addr, NULL);
 			ppi = &proxy_info;
 		}
-		isc_nm_proxyudpconnect(netmgr, &localaddr, &query->sockaddr,
-				       udp_ready, connectquery,
-				       (timeout ? timeout : UDP_TIMEOUT) * 1000,
-				       ppi);
+		isc_nm_proxyudpconnect(
+			&localaddr, &query->sockaddr, udp_ready, connectquery,
+			(timeout ? timeout : UDP_TIMEOUT) * 1000, ppi);
 	} else {
-		isc_nm_udpconnect(netmgr, &localaddr, &query->sockaddr,
-				  udp_ready, connectquery,
+		isc_nm_udpconnect(&localaddr, &query->sockaddr, udp_ready,
+				  connectquery,
 				  (timeout ? timeout : UDP_TIMEOUT) * 1000);
 	}
 }
@@ -4709,7 +4707,7 @@ destroy_libs(void) {
 		isc_mem_stats(mctx, stderr);
 	}
 
-	isc_managers_destroy(&mctx, &netmgr);
+	isc_managers_destroy(&mctx);
 
 #if ENABLE_LEAK_DETECTION
 	isc__crypto_setdestroycheck(true);

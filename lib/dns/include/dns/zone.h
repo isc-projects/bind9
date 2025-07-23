@@ -1706,7 +1706,7 @@ dns_zone_prepare_shutdown(dns_zone_t *zone);
  */
 
 void
-dns_zonemgr_create(isc_mem_t *mctx, isc_nm_t *netmgr, dns_zonemgr_t **zmgrp);
+dns_zonemgr_create(isc_mem_t *mctx, dns_zonemgr_t **zmgrp);
 /*%<
  * Create a zone manager.
  *

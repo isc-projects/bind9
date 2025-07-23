@@ -1189,8 +1189,7 @@ no_nsid:
 	}
 	if (TCP_CLIENT(client) && USEKEEPALIVE(client)) {
 		isc_buffer_t buf;
-		uint32_t advertised_timeout = isc_nm_getadvertisedtimeout(
-			isc_nmhandle_netmgr(client->inner.handle));
+		uint32_t advertised_timeout = isc_nm_getadvertisedtimeout();
 
 		INSIST(count < DNS_EDNSOPTIONS);
 

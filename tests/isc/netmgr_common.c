@@ -46,9 +46,6 @@
 
 #include <tests/isc.h>
 
-isc_nm_t *listen_nm = NULL;
-isc_nm_t *connect_nm = NULL;
-
 isc_sockaddr_t tcp_listen_addr;
 isc_sockaddr_t tcp_connect_addr;
 isc_tlsctx_t *tcp_listen_tlsctx = NULL;
@@ -178,21 +175,12 @@ setup_netmgr_test(void **state) {
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 
 	setup_loopmgr(state);
-	isc_netmgr_create(mctx, &listen_nm);
-	assert_non_null(listen_nm);
-	isc_nm_setinitialtimeout(listen_nm, T_INIT);
-	isc_nm_setprimariestimeout(listen_nm, T_PRIMARIES);
-	isc_nm_setidletimeout(listen_nm, T_IDLE);
-	isc_nm_setkeepalivetimeout(listen_nm, T_KEEPALIVE);
-	isc_nm_setadvertisedtimeout(listen_nm, T_ADVERTISED);
-
-	isc_netmgr_create(mctx, &connect_nm);
-	assert_non_null(connect_nm);
-	isc_nm_setinitialtimeout(connect_nm, T_INIT);
-	isc_nm_setprimariestimeout(connect_nm, T_PRIMARIES);
-	isc_nm_setidletimeout(connect_nm, T_IDLE);
-	isc_nm_setkeepalivetimeout(connect_nm, T_KEEPALIVE);
-	isc_nm_setadvertisedtimeout(connect_nm, T_ADVERTISED);
+	isc_netmgr_create(mctx);
+	isc_nm_setinitialtimeout(T_INIT);
+	isc_nm_setprimariestimeout(T_PRIMARIES);
+	isc_nm_setidletimeout(T_IDLE);
+	isc_nm_setkeepalivetimeout(T_KEEPALIVE);
+	isc_nm_setadvertisedtimeout(T_ADVERTISED);
 
 	isc_quota_init(&listener_quota, 0);
 	atomic_store(&check_listener_quota, false);
@@ -228,11 +216,7 @@ teardown_netmgr_test(void **state ISC_ATTR_UNUSED) {
 	isc_tlsctx_free(&tcp_connect_tlsctx);
 	isc_tlsctx_free(&tcp_listen_tlsctx);
 
-	isc_nm_detach(&connect_nm);
-	assert_null(connect_nm);
-
-	isc_nm_detach(&listen_nm);
-	assert_null(listen_nm);
+	isc_netmgr_destroy();
 
 	teardown_loopmgr(state);
 
@@ -404,6 +388,10 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	isc_refcount_increment0(&active_creads);
 	isc_nmhandle_attach(handle, &readhandle);
+	/*
+	 * Shorten all the client timeouts to 0.05 seconds.
+	 */
+	isc_nmhandle_settimeout(handle, T_SOFT);
 	isc_nm_read(handle, connect_readcb, NULL);
 
 	connect_send(handle);
@@ -554,7 +542,7 @@ stream_recv_send_connect(void *arg) {
 	isc_sockaddr_fromin6(&connect_addr, &in6addr_loopback, 0);
 
 	isc_refcount_increment0(&active_cconnects);
-	connect(connect_nm);
+	connect();
 }
 
 /* Common stream protocols code */
@@ -595,14 +583,14 @@ tcp_listener_init_quota(size_t nthreads) {
 }
 
 static void
-tcp_connect(isc_nm_t *nm) {
-	isc_nm_tcpconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
+tcp_connect(void) {
+	isc_nm_tcpconnect(&tcp_connect_addr, &tcp_listen_addr,
 			  connect_connect_cb, NULL, T_CONNECT);
 }
 
 static void
-tls_connect(isc_nm_t *nm) {
-	isc_nm_tlsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
+tls_connect(void) {
+	isc_nm_tlsconnect(&tcp_connect_addr, &tcp_listen_addr,
 			  connect_connect_cb, NULL, tcp_connect_tlsctx, NULL,
 			  tcp_tlsctx_client_sess_cache, T_CONNECT,
 			  stream_use_PROXY, NULL);
@@ -631,13 +619,13 @@ get_proxyheader_info(void) {
 }
 
 static void
-proxystream_connect(isc_nm_t *nm) {
+proxystream_connect(void) {
 	isc_tlsctx_t *tlsctx = stream_PROXY_over_TLS ? tcp_connect_tlsctx
 						     : NULL;
 	isc_tlsctx_client_session_cache_t *sess_cache =
 		stream_PROXY_over_TLS ? tcp_tlsctx_client_sess_cache : NULL;
 
-	isc_nm_proxystreamconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
+	isc_nm_proxystreamconnect(&tcp_connect_addr, &tcp_listen_addr,
 				  connect_connect_cb, NULL, T_CONNECT, tlsctx,
 				  NULL, sess_cache, get_proxyheader_info());
 }
@@ -661,22 +649,22 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (stream_use_TLS && !stream_PROXY_over_TLS) {
-		result = isc_nm_listentls(
-			listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr,
-			accept_cb, accept_cbarg, backlog, quota,
-			tcp_listen_tlsctx, stream_use_PROXY, sockp);
+		result = isc_nm_listentls(ISC_NM_LISTEN_ALL, &tcp_listen_addr,
+					  accept_cb, accept_cbarg, backlog,
+					  quota, tcp_listen_tlsctx,
+					  stream_use_PROXY, sockp);
 		return result;
 	} else if (stream_use_PROXY) {
 		isc_tlsctx_t *tlsctx = stream_PROXY_over_TLS ? tcp_listen_tlsctx
 							     : NULL;
 		result = isc_nm_listenproxystream(
-			listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr,
-			accept_cb, accept_cbarg, backlog, quota, tlsctx, sockp);
+			ISC_NM_LISTEN_ALL, &tcp_listen_addr, accept_cb,
+			accept_cbarg, backlog, quota, tlsctx, sockp);
 		return result;
 	} else {
-		result = isc_nm_listentcp(listen_nm, ISC_NM_LISTEN_ALL,
-					  &tcp_listen_addr, accept_cb,
-					  accept_cbarg, backlog, quota, sockp);
+		result = isc_nm_listentcp(ISC_NM_LISTEN_ALL, &tcp_listen_addr,
+					  accept_cb, accept_cbarg, backlog,
+					  quota, sockp);
 		return result;
 	}
 
@@ -688,9 +676,8 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	isc_refcount_increment0(&active_cconnects);
 
 	if (stream_use_TLS && !stream_PROXY_over_TLS) {
-		isc_nm_tlsconnect(connect_nm, &tcp_connect_addr,
-				  &tcp_listen_addr, cb, cbarg,
-				  tcp_connect_tlsctx, NULL,
+		isc_nm_tlsconnect(&tcp_connect_addr, &tcp_listen_addr, cb,
+				  cbarg, tcp_connect_tlsctx, NULL,
 				  tcp_tlsctx_client_sess_cache, timeout,
 				  stream_use_PROXY, NULL);
 		return;
@@ -701,14 +688,13 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 		isc_tlsctx_client_session_cache_t *sess_cache =
 			stream_PROXY_over_TLS ? tcp_tlsctx_client_sess_cache
 					      : NULL;
-		isc_nm_proxystreamconnect(connect_nm, &tcp_connect_addr,
-					  &tcp_listen_addr, cb, cbarg, timeout,
-					  tlsctx, NULL, sess_cache,
-					  get_proxyheader_info());
+		isc_nm_proxystreamconnect(&tcp_connect_addr, &tcp_listen_addr,
+					  cb, cbarg, timeout, tlsctx, NULL,
+					  sess_cache, get_proxyheader_info());
 		return;
 	} else {
-		isc_nm_tcpconnect(connect_nm, &tcp_connect_addr,
-				  &tcp_listen_addr, cb, cbarg, timeout);
+		isc_nm_tcpconnect(&tcp_connect_addr, &tcp_listen_addr, cb,
+				  cbarg, timeout);
 		return;
 	}
 	UNREACHABLE();
@@ -1031,14 +1017,7 @@ stream_timeout_recovery(void **state ISC_ATTR_UNUSED) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
 
-	/*
-	 * Shorten all the client timeouts to 0.05 seconds.
-	 */
-	isc_nm_setinitialtimeout(connect_nm, T_SOFT);
-	isc_nm_setprimariestimeout(connect_nm, T_SOFT);
-	isc_nm_setidletimeout(connect_nm, T_SOFT);
-	isc_nm_setkeepalivetimeout(connect_nm, T_SOFT);
-	isc_nm_setadvertisedtimeout(connect_nm, T_SOFT);
+	//	isc_nm_setinitialtimeout(T_SOFT);
 	connect_readcb = timeout_retry_cb;
 	stream_connect(connect_connect_cb, NULL, T_CONNECT);
 }
@@ -1342,12 +1321,11 @@ teardown_udp_test(void **state) {
 static void
 udp_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	if (udp_use_PROXY) {
-		isc_nm_proxyudpconnect(netmgr, &udp_connect_addr,
-				       &udp_listen_addr, cb, cbarg, timeout,
-				       NULL);
+		isc_nm_proxyudpconnect(&udp_connect_addr, &udp_listen_addr, cb,
+				       cbarg, timeout, NULL);
 	} else {
-		isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
-				  cb, cbarg, timeout);
+		isc_nm_udpconnect(&udp_connect_addr, &udp_listen_addr, cb,
+				  cbarg, timeout);
 	}
 }
 
@@ -1365,12 +1343,11 @@ udp_start_listening(uint32_t nworkers, isc_nm_recv_cb_t cb) {
 	isc_result_t result;
 
 	if (udp_use_PROXY) {
-		result = isc_nm_listenproxyudp(netmgr, nworkers,
-					       &udp_listen_addr, cb, NULL,
-					       &listen_sock);
+		result = isc_nm_listenproxyudp(nworkers, &udp_listen_addr, cb,
+					       NULL, &listen_sock);
 	} else {
-		result = isc_nm_listenudp(netmgr, nworkers, &udp_listen_addr,
-					  cb, NULL, &listen_sock);
+		result = isc_nm_listenudp(nworkers, &udp_listen_addr, cb, NULL,
+					  &listen_sock);
 	}
 
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -1831,7 +1808,7 @@ udp_shutdown_connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	 */
 	if (atomic_fetch_add(&cconnects, 1) == 0) {
 		assert_int_equal(eresult, ISC_R_SUCCESS);
-		isc_async_current(udp_shutdown_connect_async_cb, netmgr);
+		isc_async_current(udp_shutdown_connect_async_cb, NULL);
 	} else {
 		assert_int_equal(eresult, ISC_R_SHUTTINGDOWN);
 	}
@@ -1864,7 +1841,7 @@ udp_shutdown_connect(void **arg ISC_ATTR_UNUSED) {
 	 * isc_nm_udpconnect() is synchronous, so we need to launch this on the
 	 * async loop.
 	 */
-	isc_async_current(udp_shutdown_connect_async_cb, netmgr);
+	isc_async_current(udp_shutdown_connect_async_cb, NULL);
 }
 
 int
