@@ -414,6 +414,77 @@ class ConnectionHandler(abc.ABC):
         raise NotImplementedError
 
 
+@dataclass
+class ConnectionReset(ConnectionHandler):
+    """
+    A connection handler that makes the server close the connection without
+    reading anything from the client socket.
+
+    The connection may be closed with a delay if requested.
+
+    The sole purpose of this handler is to trigger a connection reset, i.e. to
+    make the server send an RST segment; this happens when the server closes a
+    client's socket while there is still unread data in that socket's buffer.
+    If closing the connection _after_ the query is read by the server is enough
+    for a given use case, the ResponseDropAndCloseConnection response handler
+    should be used instead.
+    """
+
+    delay: float = 0.0
+
+    async def handle(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, peer: Peer
+    ) -> None:
+        try:
+            # Python >= 3.7
+            loop = asyncio.get_running_loop()
+        except AttributeError:
+            # Python < 3.7
+            loop = asyncio.get_event_loop()
+
+        logging.info("Blocking reads from %s", peer)
+
+        # This is Michał's submission for the Ugliest Hack of the Year contest.
+        # (The alternative was implementing an asyncio transport from scratch.)
+        #
+        # In order to prevent the client socket from being read from, simply
+        # not calling `reader.read()` is not enough, because asyncio buffers
+        # incoming data itself on the transport level.  However, `StreamReader`
+        # does not expose the underlying transport as a property.  Therefore,
+        # cheat by extracting it from `StreamWriter` as it is the same
+        # bidirectional transport as for the read side (a `Transport`, which is
+        # a subclass of both `ReadTransport` and `WriteTransport`) and call
+        # `ReadTransport.pause_reading()` to remove the underlying socket from
+        # the set of descriptors monitored by the selector, thereby preventing
+        # any reads from happening on the client socket.  However...
+        loop.call_soon(writer.transport.pause_reading)  # type: ignore
+
+        # ...due to `AsyncDnsServer._handle_tcp()` being a coroutine, by the
+        # time it gets executed, asyncio transport code will already have added
+        # the client socket to the set of descriptors monitored by the
+        # selector.  Therefore, if the client starts sending data immediately,
+        # a read from the socket will have already been scheduled by the time
+        # this handler gets executed.  There is no way to prevent that from
+        # happening, so work around it by abusing the fact that the transport
+        # at hand is specifically an instance of `_SelectorSocketTransport`
+        # (from asyncio.selector_events) and set the size of its read buffer to
+        # just a single byte.  This does give asyncio enough time to read that
+        # single byte from the client socket's buffer before that socket is
+        # removed from the set of monitored descriptors, but prevents the
+        # one-off read from emptying the client socket buffer _entirely_, which
+        # is enough to trigger sending an RST segment when the connection is
+        # closed shortly afterwards.
+        writer.transport.max_size = 1  # type: ignore
+
+        if self.delay > 0:
+            logging.info(
+                "Waiting %.1fs before closing TCP connection from %s", self.delay, peer
+            )
+            await asyncio.sleep(self.delay)
+
+        raise _ConnectionTeardownRequested
+
+
 class ResponseHandler(abc.ABC):
     """
     Base class for generic response handlers.
