@@ -253,6 +253,7 @@ isc__crypto_initialize(void) {
 	uint64_t opts = OPENSSL_INIT_LOAD_CONFIG;
 
 	isc_mem_create("OpenSSL", &isc__crypto_mctx);
+	isc_mem_setdebugging(isc__crypto_mctx, 0);
 	isc_mem_setdestroycheck(isc__crypto_mctx, false);
 
 #if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x30000000L

@@ -81,8 +81,6 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create("default", &isc_g_mctx);
-
 	isc_commandline_errprint = false;
 
 	while ((ch = isc_commandline_parse(argc, argv, "E:fK:rRhv:V")) != -1) {
@@ -251,7 +249,6 @@ cleanup:
 	if (dir != NULL) {
 		isc_mem_free(isc_g_mctx, dir);
 	}
-	isc_mem_detach(&isc_g_mctx);
 
 	return 0;
 }

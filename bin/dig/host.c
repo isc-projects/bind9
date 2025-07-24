@@ -577,15 +577,15 @@ pre_parse_args(int argc, char **argv) {
 			memdebugging = true;
 			if (strcasecmp("trace", isc_commandline_argument) == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			} else if (strcasecmp("record",
 					      isc_commandline_argument) == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			} else if (strcasecmp("usage",
 					      isc_commandline_argument) == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+				isc_mem_debugon(ISC_MEM_DEBUGUSAGE);
 			}
 			break;
 

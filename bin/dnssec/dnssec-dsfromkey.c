@@ -383,8 +383,6 @@ main(int argc, char **argv) {
 
 	isc_commandline_init(argc, argv);
 
-	isc_mem_create("default", &isc_g_mctx);
-
 	isc_commandline_errprint = false;
 
 #define OPTIONS "12Aa:Cc:d:Ff:K:sT:v:whV"
@@ -547,7 +545,6 @@ main(int argc, char **argv) {
 	if (verbose > 10) {
 		isc_mem_stats(isc_g_mctx, stdout);
 	}
-	isc_mem_detach(&isc_g_mctx);
 
 	fflush(stdout);
 	if (ferror(stdout)) {

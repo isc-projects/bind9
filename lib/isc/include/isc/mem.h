@@ -35,7 +35,6 @@
 #define ISC_MEM_TRACKLINES 0
 #endif /* ifndef ISC_MEM_TRACKLINES */
 
-extern unsigned int isc_mem_debugging;
 extern unsigned int isc_mem_defaultflags;
 
 /*@{*/
@@ -45,14 +44,10 @@ extern unsigned int isc_mem_defaultflags;
 #define ISC_MEM_DEBUGALL \
 	(ISC_MEM_DEBUGTRACE | ISC_MEM_DEBUGRECORD | ISC_MEM_DEBUGUSAGE)
 /*!<
- * The variable isc_mem_debugging holds a set of flags for
- * turning certain memory debugging options on or off at
- * runtime.  It is initialized to the value ISC_MEM_DEGBUGGING,
- * which is 0 by default but may be overridden at compile time.
- * The following flags can be specified:
+ * The following memory debugging options can be specified:
  *
  * \li #ISC_MEM_DEBUGTRACE
- *	Log each allocation and free to isc_lctx.
+ *	Log each allocation and free.
  *
  * \li #ISC_MEM_DEBUGRECORD
  *	Remember each allocation, and match them up on free.
@@ -61,6 +56,15 @@ extern unsigned int isc_mem_defaultflags;
  * \li #ISC_MEM_DEBUGUSAGE
  *	Every time the memory usage is greater (lower) than hi_water
  *	(lo_water) mark, print the current inuse memory.
+ *
+ * These flags are set in the static variable mem_debugging.
+ * When a new memory context is created, its debugging flags
+ * are set to the current value of mem_debugging.
+ *
+ * By default, no flags are set. This can be overridden by changing
+ * ISC_MEM_DEBUGGING in mem.c. The flags can be activated at runtime by
+ * setting environment variables (for example, "ISC_MEM_DEBUGRECORD=1")
+ * or by calling isc_mem_debugon() (see below).
  */
 /*@}*/
 
@@ -217,13 +221,39 @@ extern volatile void *isc__mem_malloc;
 #endif
 void
 isc__mem_create(const char *name, isc_mem_t **_ISC_MEM_FLARG);
-
 /*!<
  * \brief Create a memory context.
  *
  * Requires:
  * mctxp != NULL && *mctxp == NULL */
 /*@}*/
+
+unsigned int
+isc_mem_debugon(unsigned int debugging);
+unsigned int
+isc_mem_debugoff(unsigned int debugging);
+/*!<
+ * Set or clear debugging the flags for the main memory context
+ * (isc_g_mctx), and the default debugging flags for all memory
+ * contexts yet to be created (mem_debugging).
+ *
+ * Note: These are bitwise operations. To clear the existing flags
+ * before setting new ones, use isc_mem_debugoff(ISC_MEM_DEBUGALL).
+ *
+ * Returns:
+ * \li	the previous value of the debugging flags
+ */
+
+void
+isc_mem_setdebugging(isc_mem_t *ctx, unsigned int debugging);
+/*!<
+ * Set the debugging flags for a single memory context.
+ *
+ * Note: This is an assignemnt, not a bitwise operation.
+ *
+ * Requires:
+ * \li	'ctx' valid memory context without active allocation.
+ */
 
 #if ISC_MEM_TRACE
 #define isc_mem_ref(ptr)   isc_mem__ref(ptr, __func__, __FILE__, __LINE__)

@@ -2960,8 +2960,8 @@ preparse_args(int argc, char **argv) {
 				break;
 			case 'm':
 				memdebugging = true;
-				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
-						    ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE |
+						ISC_MEM_DEBUGRECORD);
 				break;
 			case 'r':
 				/*

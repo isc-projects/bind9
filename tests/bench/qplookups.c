@@ -197,8 +197,6 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create("test", &isc_g_mctx);
-
 	dns_qp_create(isc_g_mctx, &methods, NULL, &qp);
 
 	start = isc_time_monotonic();

@@ -128,7 +128,7 @@ main(int argc, char **argv) {
 			usage(0);
 			break;
 		case 'm':
-			isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+			isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			break;
 		default:
 			usage(1);
@@ -150,8 +150,6 @@ main(int argc, char **argv) {
 		snprintf(jbuf, sizeof(jbuf), "%s.jnl", file1);
 		journal = (const char *)jbuf;
 	}
-
-	isc_mem_create("default", &isc_g_mctx);
 
 	logconfig = isc_logconfig_get();
 	isc_log_createandusechannel(
@@ -216,10 +214,6 @@ cleanup:
 	}
 	if (olddb != NULL) {
 		dns_db_detach(&olddb);
-	}
-
-	if (isc_g_mctx != NULL) {
-		isc_mem_detach(&isc_g_mctx);
 	}
 
 	return (result != ISC_R_SUCCESS) ? 1 : 0;

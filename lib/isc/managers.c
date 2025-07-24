@@ -19,7 +19,6 @@
 
 void
 isc_managers_create(uint32_t workers) {
-	isc_mem_create("default", &isc_g_mctx);
 	isc_loopmgr_create(isc_g_mctx, workers);
 	isc_netmgr_create(isc_g_mctx);
 	isc_rwlock_setworkers(workers);
@@ -32,5 +31,4 @@ isc_managers_destroy(void) {
 	 */
 	isc_netmgr_destroy();
 	isc_loopmgr_destroy();
-	isc_mem_detach(&isc_g_mctx);
 }

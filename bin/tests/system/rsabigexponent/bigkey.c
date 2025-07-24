@@ -104,8 +104,6 @@ main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	isc_mem_create(argv[0], &isc_g_mctx);
-
 	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, "bigkey");
 
@@ -137,7 +135,6 @@ main(int argc, char **argv) {
 	printf("%s\n", filename);
 	dst_key_free(&key);
 
-	isc_mem_detach(&isc_g_mctx);
 	return 0;
 }
 

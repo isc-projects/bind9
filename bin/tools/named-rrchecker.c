@@ -59,9 +59,6 @@ cleanup(void) {
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 	}
-	if (isc_g_mctx != NULL) {
-		isc_mem_detach(&isc_g_mctx);
-	}
 }
 
 ISC_NORETURN static void
@@ -169,7 +166,6 @@ main(int argc, char *argv[]) {
 		exit(EXIT_SUCCESS);
 	}
 
-	isc_mem_create("default", &isc_g_mctx);
 	isc_lex_create(isc_g_mctx, 256, &lex);
 
 	/*

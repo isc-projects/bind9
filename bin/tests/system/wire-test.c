@@ -120,15 +120,15 @@ main(int argc, char *argv[]) {
 		case 'm':
 			if (strcasecmp(isc_commandline_argument, "record") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			}
 			if (strcasecmp(isc_commandline_argument, "trace") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			}
 			if (strcasecmp(isc_commandline_argument, "usage") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+				isc_mem_debugon(ISC_MEM_DEBUGUSAGE);
 			}
 			break;
 		default:
@@ -136,8 +136,6 @@ main(int argc, char *argv[]) {
 		}
 	}
 	isc_commandline_reset = true;
-
-	isc_mem_create(argv[0], &isc_g_mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -258,7 +256,6 @@ main(int argc, char *argv[]) {
 	if (printmemstats) {
 		isc_mem_stats(isc_g_mctx, stdout);
 	}
-	isc_mem_detach(&isc_g_mctx);
 
 	return 0;
 }

@@ -109,11 +109,6 @@ main(int argc, char **argv) {
 	FILE *errout = stdout;
 	char *endp;
 
-	/*
-	 * Uncomment the following line if memory debugging is needed:
-	 * isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	 */
-
 	outputstyle = &dns_master_style_full;
 
 	isc_commandline_init(argc, argv);
@@ -518,7 +513,6 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create("default", &isc_g_mctx);
 	if (!quiet) {
 		RUNTIME_CHECK(setup_logging(errout) == ISC_R_SUCCESS);
 	}
@@ -560,7 +554,6 @@ main(int argc, char **argv) {
 		fprintf(errout, "OK\n");
 	}
 	destroy();
-	isc_mem_detach(&isc_g_mctx);
 
 	return (result == ISC_R_SUCCESS) ? 0 : 1;
 }

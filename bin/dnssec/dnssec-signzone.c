@@ -3297,15 +3297,15 @@ main(int argc, char *argv[]) {
 		case 'm':
 			if (strcasecmp(isc_commandline_argument, "record") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			}
 			if (strcasecmp(isc_commandline_argument, "trace") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			}
 			if (strcasecmp(isc_commandline_argument, "usage") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+				isc_mem_debugon(ISC_MEM_DEBUGUSAGE);
 			}
 			break;
 		default:

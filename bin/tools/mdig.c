@@ -1818,8 +1818,8 @@ preparse_args(int argc, char **argv) {
 		while (strpbrk(option, single_dash_opts) == &option[0]) {
 			switch (option[0]) {
 			case 'm':
-				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
-						    ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE |
+						ISC_MEM_DEBUGRECORD);
 				break;
 			case '4':
 				if (ipv6only) {

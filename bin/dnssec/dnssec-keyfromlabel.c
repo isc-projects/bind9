@@ -149,8 +149,6 @@ main(int argc, char **argv) {
 
 	isc_commandline_init(argc, argv);
 
-	isc_mem_create("default", &isc_g_mctx);
-
 	isc_commandline_errprint = false;
 
 #define CMDLINE_FLAGS "3A:a:Cc:D:E:Ff:GhI:i:kK:L:l:M:n:P:p:R:S:t:v:Vy"
@@ -699,7 +697,6 @@ main(int argc, char **argv) {
 		isc_mem_stats(isc_g_mctx, stdout);
 	}
 	isc_mem_free(isc_g_mctx, label);
-	isc_mem_detach(&isc_g_mctx);
 
 	if (freeit != NULL) {
 		free(freeit);

@@ -599,15 +599,15 @@ main(int argc, char **argv) {
 		case 'm':
 			if (strcasecmp(isc_commandline_argument, "record") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			}
 			if (strcasecmp(isc_commandline_argument, "trace") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			}
 			if (strcasecmp(isc_commandline_argument, "usage") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+				isc_mem_debugon(ISC_MEM_DEBUGUSAGE);
 			}
 			break;
 		default:
@@ -615,8 +615,6 @@ main(int argc, char **argv) {
 		}
 	}
 	isc_commandline_reset = true;
-
-	isc_mem_create("default", &isc_g_mctx);
 
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != EOF) {
 		switch (c) {
@@ -688,7 +686,6 @@ main(int argc, char **argv) {
 			}
 			FALLTHROUGH;
 		case 'h':
-			isc_mem_detach(&isc_g_mctx);
 			usage();
 
 		default:
@@ -711,7 +708,6 @@ main(int argc, char **argv) {
 	}
 
 	if (isc_commandline_index + 1 < argc) {
-		isc_mem_detach(&isc_g_mctx);
 		usage();
 	}
 	if (argv[isc_commandline_index] != NULL) {
@@ -750,10 +746,6 @@ cleanup:
 
 	if (parser != NULL) {
 		cfg_parser_destroy(&parser);
-	}
-
-	if (isc_g_mctx != NULL) {
-		isc_mem_detach(&isc_g_mctx);
 	}
 
 	return result == ISC_R_SUCCESS ? 0 : 1;

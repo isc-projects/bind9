@@ -361,6 +361,8 @@ parse_int(char *arg, const char *desc) {
 	return tmp;
 }
 
+static unsigned int mem_debugging = 0;
+
 static struct flag_def {
 	const char *name;
 	unsigned int value;
@@ -860,7 +862,8 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'm':
 			set_flags(isc_commandline_argument, mem_debug_flags,
-				  &isc_mem_debugging);
+				  &mem_debugging);
+			isc_mem_debugon(mem_debugging);
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':

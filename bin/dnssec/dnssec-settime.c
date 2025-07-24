@@ -243,8 +243,6 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create("default", &isc_g_mctx);
-
 	setup_logging();
 
 	isc_commandline_errprint = false;
@@ -951,7 +949,6 @@ main(int argc, char **argv) {
 		isc_mem_stats(isc_g_mctx, stdout);
 	}
 	isc_mem_free(isc_g_mctx, directory);
-	isc_mem_detach(&isc_g_mctx);
 
 	return 0;
 }

@@ -869,7 +869,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'M':
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
+			isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			break;
 
 		case 'm':

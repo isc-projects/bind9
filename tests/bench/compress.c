@@ -42,9 +42,6 @@ main(void) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
-	isc_mem_t *mctx = NULL;
-	isc_mem_create("test", &mctx);
-
 	static dns_fixedname_t fixedname[65536];
 	unsigned int count = 0;
 
@@ -76,14 +73,14 @@ main(void) {
 		dns_compress_t cctx;
 
 		isc_buffer_init(&buf, wire, sizeof(wire));
-		dns_compress_init(&cctx, mctx, 0);
+		dns_compress_init(&cctx, isc_g_mctx, 0);
 
 		for (unsigned int i = 0; i < count; i++) {
 			dns_name_t *name = dns_fixedname_name(&fixedname[i]);
 			result = dns_name_towire(name, &cctx, &buf);
 			if (result == ISC_R_NOSPACE) {
 				dns_compress_invalidate(&cctx);
-				dns_compress_init(&cctx, mctx, 0);
+				dns_compress_init(&cctx, isc_g_mctx, 0);
 				isc_buffer_init(&buf, wire, sizeof(wire));
 			} else {
 				CHECKRESULT(result, "dns_name_towire");
@@ -99,8 +96,6 @@ main(void) {
 	printf("time %f / %u\n", (double)microseconds / 1000000.0, repeat);
 
 	printf("names %u\n", count);
-
-	isc_mem_detach(&mctx);
 
 	return 0;
 }

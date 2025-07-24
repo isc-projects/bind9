@@ -145,7 +145,7 @@ main(int argc, char **argv) {
 			keyname = isc_commandline_argument;
 			break;
 		case 'M':
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
+			isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			break;
 
 		case 'm':
@@ -218,7 +218,6 @@ main(int argc, char **argv) {
 	}
 	algname = dst_hmac_algorithm_totext(alg);
 
-	isc_mem_create("default", &isc_g_mctx);
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
 	generate_key(isc_g_mctx, alg, keysize, &key_txtbuffer);
@@ -281,8 +280,6 @@ options {\n\
 	if (show_final_mem) {
 		isc_mem_stats(isc_g_mctx, stderr);
 	}
-
-	isc_mem_detach(&isc_g_mctx);
 
 	return 0;
 }

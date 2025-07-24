@@ -35,6 +35,7 @@
 #include <isc/types.h>
 #include <isc/urcu.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlwriter.h>
@@ -64,7 +65,8 @@
 #ifndef ISC_MEM_DEBUGGING
 #define ISC_MEM_DEBUGGING 0
 #endif /* ifndef ISC_MEM_DEBUGGING */
-unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
+
+static unsigned int mem_debugging = ISC_MEM_DEBUGGING;
 unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 
 volatile void *isc__mem_malloc = mallocx;
@@ -384,6 +386,23 @@ mem_putstats(isc_mem_t *ctx, size_t size) {
  * Private.
  */
 
+static bool
+debugging_enabled(const char *name) {
+	char env_buf[256];
+	size_t env_size = sizeof(env_buf);
+
+	int r = uv_os_getenv(name, env_buf, &env_size);
+	switch (r) {
+	case 0:
+		return true;
+	case UV_ENOENT:
+		return false;
+	default:
+		UV_RUNTIME_CHECK(uv_os_getenv, r);
+		UNREACHABLE();
+	}
+}
+
 void
 isc__mem_initialize(void) {
 /*
@@ -395,6 +414,20 @@ isc__mem_initialize(void) {
 
 	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
+
+	if (debugging_enabled("ISC_MEM_DEBUGTRACE")) {
+		mem_debugging |= ISC_MEM_DEBUGTRACE;
+	}
+
+	if (debugging_enabled("ISC_MEM_DEBUGRECORD")) {
+		mem_debugging |= ISC_MEM_DEBUGRECORD;
+	}
+
+	if (debugging_enabled("ISC_MEM_DEBUGUSAGE")) {
+		mem_debugging |= ISC_MEM_DEBUGUSAGE;
+	}
+
+	isc_mem_create("default", &isc_g_mctx);
 }
 
 void
@@ -402,6 +435,8 @@ isc__mem_shutdown(void) {
 	bool empty;
 
 	rcu_barrier();
+
+	isc_mem_detach(&isc_g_mctx);
 
 	isc__mem_checkdestroyed();
 
@@ -412,6 +447,40 @@ isc__mem_shutdown(void) {
 	if (empty) {
 		isc_mutex_destroy(&contextslock);
 	}
+}
+
+void
+isc_mem_setdebugging(isc_mem_t *ctx, unsigned int debugging) {
+	REQUIRE(VALID_CONTEXT(ctx));
+	REQUIRE(isc_mem_inuse(ctx) == 0);
+
+	ctx->debugging = debugging;
+}
+
+unsigned int
+isc_mem_debugon(unsigned int debugging) {
+	unsigned int old_mem_debugging = mem_debugging;
+
+	if (debugging != 0) {
+		mem_debugging |= debugging;
+
+		isc_mem_setdebugging(isc_g_mctx, mem_debugging);
+	}
+
+	return old_mem_debugging;
+}
+
+unsigned int
+isc_mem_debugoff(unsigned int debugging) {
+	unsigned int old_mem_debugging = mem_debugging;
+
+	if (debugging != 0) {
+		mem_debugging &= ~debugging;
+
+		isc_mem_setdebugging(isc_g_mctx, mem_debugging);
+	}
+
+	return old_mem_debugging;
 }
 
 static void
@@ -845,7 +914,7 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 			return false;
 		}
 
-		if ((isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0) {
+		if ((ctx->debugging & ISC_MEM_DEBUGUSAGE) != 0) {
 			fprintf(stderr,
 				"overmem %s mctx %p inuse %zu hi_water %zu\n",
 				ctx->name, ctx, inuse, hiwater);
@@ -865,7 +934,7 @@ isc_mem_isovermem(isc_mem_t *ctx) {
 			return true;
 		}
 
-		if ((isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0) {
+		if ((ctx->debugging & ISC_MEM_DEBUGUSAGE) != 0) {
 			fprintf(stderr,
 				"overmem %s mctx %p inuse %zu lo_water %zu\n",
 				ctx->name, ctx, inuse, lowater);
@@ -1158,7 +1227,7 @@ isc__mem_checkdestroyed(void) {
 	LOCK(&contextslock);
 	if (!ISC_LIST_EMPTY(contexts)) {
 #if ISC_MEM_TRACKLINES
-		if ((isc_mem_debugging & TRACE_OR_RECORD) != 0) {
+		if ((mem_debugging & TRACE_OR_RECORD) != 0) {
 			print_contexts(file);
 		}
 #endif /* if ISC_MEM_TRACKLINES */
@@ -1378,9 +1447,9 @@ error:
 
 void
 isc__mem_create(const char *name, isc_mem_t **mctxp FLARG) {
-	mem_create(name, mctxp, isc_mem_debugging, isc_mem_defaultflags, 0);
+	mem_create(name, mctxp, mem_debugging, isc_mem_defaultflags, 0);
 #if ISC_MEM_TRACKLINES
-	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+	if ((mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "create mctx %p func %s file %s line %u\n",
 			*mctxp, func, file, line);
 	}

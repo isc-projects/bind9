@@ -130,7 +130,7 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 'M':
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
+			isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			break;
 		case 'm':
 			show_final_mem = true;
@@ -193,8 +193,6 @@ main(int argc, char **argv) {
 
 	/* Use canonical algorithm name */
 	algname = dst_hmac_algorithm_totext(alg);
-
-	isc_mem_create("default", &isc_g_mctx);
 
 	if (keyname == NULL) {
 		const char *suffix = NULL;
@@ -277,8 +275,6 @@ nsupdate -k <keyfile>\n");
 	if (show_final_mem) {
 		isc_mem_stats(isc_g_mctx, stderr);
 	}
-
-	isc_mem_detach(&isc_g_mctx);
 
 	return 0;
 }

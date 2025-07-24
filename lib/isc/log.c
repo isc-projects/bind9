@@ -1552,6 +1552,7 @@ isc__log_initialize(void) {
 	isc_mem_t *mctx = NULL;
 
 	isc_mem_create("log", &mctx);
+	isc_mem_setdebugging(mctx, 0);
 
 	isc__lctx = isc_mem_get(mctx, sizeof(*isc__lctx));
 	*isc__lctx = (isc_log_t){

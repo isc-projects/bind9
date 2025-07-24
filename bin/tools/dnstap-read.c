@@ -55,7 +55,6 @@
 
 #include "dnstap.pb-c.h"
 
-bool memrecord = false;
 bool printmessage = false;
 bool hexmessage = false;
 bool yaml = false;
@@ -347,8 +346,7 @@ main(int argc, char *argv[]) {
 	while ((ch = isc_commandline_parse(argc, argv, "mptxy")) != -1) {
 		switch (ch) {
 		case 'm':
-			isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-			memrecord = true;
+			isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			break;
 		case 'p':
 			printmessage = true;
@@ -374,8 +372,6 @@ main(int argc, char *argv[]) {
 	if (argc < 1) {
 		fatal("no file specified");
 	}
-
-	isc_mem_create("default", &isc_g_mctx);
 
 	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, isc_g_mctx, &handle),
 	       "dns_dt_openfile");
@@ -425,7 +421,6 @@ cleanup:
 	if (message != NULL) {
 		dns_message_detach(&message);
 	}
-	isc_mem_detach(&isc_g_mctx);
 
 	exit(rv);
 }

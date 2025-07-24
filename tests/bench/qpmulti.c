@@ -854,8 +854,6 @@ setup_tickers(isc_mem_t *mctx) {
 
 int
 main(void) {
-	isc_mem_t *mctx = NULL;
-
 	setlinebuf(stdout);
 
 	uint32_t nloops;
@@ -868,20 +866,18 @@ main(void) {
 	}
 	INSIST(nloops > 1);
 
-	isc_mem_create("test", &mctx);
-	isc_mem_setdestroycheck(mctx, true);
+	isc_mem_setdestroycheck(isc_g_mctx, true);
 	init_logging();
-	init_items(mctx);
+	init_items(isc_g_mctx);
 
-	isc_loopmgr_create(mctx, nloops);
-	setup_tickers(mctx);
+	isc_loopmgr_create(isc_g_mctx, nloops);
+	setup_tickers(isc_g_mctx);
 	isc_loop_setup(isc_loop_main(), startup, NULL);
 	isc_loopmgr_run();
 	isc_loopmgr_destroy();
 
-	isc_mem_free(mctx, item);
+	isc_mem_free(isc_g_mctx, item);
 	isc_mem_checkdestroyed(stdout);
-	isc_mem_detach(&mctx);
 
 	return 0;
 }

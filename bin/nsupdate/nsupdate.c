@@ -1002,8 +1002,8 @@ pre_parse_args(int argc, char **argv) {
 			debugging = true;
 			ddebugging = true;
 			memdebugging = true;
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
-					    ISC_MEM_DEBUGRECORD;
+			isc_mem_debugon(ISC_MEM_DEBUGTRACE |
+					ISC_MEM_DEBUGRECORD);
 			break;
 
 		case '4':

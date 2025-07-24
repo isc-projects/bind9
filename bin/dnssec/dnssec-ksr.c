@@ -1330,8 +1330,6 @@ main(int argc, char *argv[]) {
 
 	isc_commandline_init(argc, argv);
 
-	isc_mem_create("default", &isc_g_mctx);
-
 	isc_commandline_errprint = false;
 
 #define OPTIONS "E:e:Ff:hi:K:k:l:ov:V"

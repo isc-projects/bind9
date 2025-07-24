@@ -8918,7 +8918,7 @@ apply_configuration(cfg_parser_t *configparser, cfg_obj_t *config,
 		named_g_memstatistics = cfg_obj_asboolean(obj);
 	} else {
 		named_g_memstatistics =
-			((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0);
+			((isc_mem_debugon(0) & ISC_MEM_DEBUGRECORD) != 0);
 	}
 
 	obj = NULL;

@@ -1052,11 +1052,8 @@ cleanup(void) {
 		free_keytable(&new_key_tbl);
 	}
 	free_all_sets();
-	if (isc_g_mctx != NULL) {
-		if (print_mem_stats && verbose > 10) {
-			isc_mem_stats(isc_g_mctx, stdout);
-		}
-		isc_mem_detach(&isc_g_mctx);
+	if (print_mem_stats && verbose > 10) {
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
 }
 
@@ -1074,8 +1071,6 @@ main(int argc, char *argv[]) {
 	setfatalcallback(cleanup);
 
 	isc_commandline_init(argc, argv);
-
-	isc_mem_create("default", &isc_g_mctx);
 
 	isc_commandline_errprint = false;
 
@@ -1112,8 +1107,8 @@ main(int argc, char *argv[]) {
 			}
 			break;
 		case 'm':
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
-					    ISC_MEM_DEBUGRECORD;
+			isc_mem_debugon(ISC_MEM_DEBUGTRACE |
+					ISC_MEM_DEBUGRECORD);
 			break;
 		case 's':
 			startstr = isc_commandline_argument;

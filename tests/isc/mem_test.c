@@ -182,7 +182,6 @@ ISC_RUN_TEST_IMPL(isc_mem_inuse) {
 	ssize_t diff;
 	void *ptr;
 
-	mctx = NULL;
 	isc_mem_create("test", &mctx);
 
 	before = isc_mem_inuse(mctx);
@@ -334,18 +333,19 @@ ISC_RUN_TEST_IMPL(isc_mem_noflags) {
 	char buf[4096], *p;
 	FILE *f;
 	void *ptr;
+	unsigned int debugging;
 
 	result = isc_stdio_open("mem.output", "w", &f);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_mem_debugging = 0;
+	debugging = isc_mem_debugoff(ISC_MEM_DEBUGALL);
 	isc_mem_create("test", &mctx);
 	ptr = isc_mem_get(mctx, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx, f);
 	isc_mem_put(mctx, ptr, 2048);
 	isc_mem_detach(&mctx);
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
+	isc_mem_debugon(debugging);
 	isc_stdio_close(f);
 
 	memset(buf, 0, sizeof(buf));
@@ -354,7 +354,7 @@ ISC_RUN_TEST_IMPL(isc_mem_noflags) {
 	result = isc_stdio_read(buf, sizeof(buf), 1, f, NULL);
 	assert_int_equal(result, ISC_R_EOF);
 	isc_stdio_close(f);
-	isc_file_remove("mem.output");
+	// isc_file_remove("mem.output");
 
 	buf[sizeof(buf) - 1] = 0;
 
@@ -433,19 +433,22 @@ ISC_RUN_TEST_IMPL(isc_mem_traceflag) {
 	char buf[4096], *p;
 	FILE *f;
 	void *ptr;
+	unsigned int debugging;
 
 	/* redirect stderr so we can check trace output */
 	f = freopen("mem.output", "w", stderr);
 	assert_non_null(f);
 
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD | ISC_MEM_DEBUGTRACE;
+	debugging = isc_mem_debugoff(ISC_MEM_DEBUGALL);
+	isc_mem_debugon(ISC_MEM_DEBUGRECORD | ISC_MEM_DEBUGTRACE);
 	isc_mem_create("test", &mctx);
 	ptr = isc_mem_get(mctx, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx, f);
 	isc_mem_put(mctx, ptr, 2048);
 	isc_mem_detach(&mctx);
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
+	isc_mem_debugoff(ISC_MEM_DEBUGALL);
+	isc_mem_debugon(debugging);
 	isc_stdio_close(f);
 
 	memset(buf, 0, sizeof(buf));

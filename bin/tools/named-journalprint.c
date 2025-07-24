@@ -91,7 +91,6 @@ main(int argc, char **argv) {
 	}
 	file = argv[0];
 
-	isc_mem_create("default", &isc_g_mctx);
 	setup_logging(stderr);
 
 	if (upgrade) {
@@ -110,6 +109,6 @@ main(int argc, char **argv) {
 			fprintf(stderr, "%s\n", isc_result_totext(result));
 		}
 	}
-	isc_mem_detach(&isc_g_mctx);
+
 	return result != ISC_R_SUCCESS ? 1 : 0;
 }

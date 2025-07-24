@@ -67,16 +67,13 @@ setup_workers(void **state ISC_ATTR_UNUSED) {
 
 int
 setup_mctx(void **state ISC_ATTR_UNUSED) {
-	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	isc_mem_create("test", &isc_g_mctx);
+	isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 
 	return 0;
 }
 
 int
 teardown_mctx(void **state ISC_ATTR_UNUSED) {
-	isc_mem_detach(&isc_g_mctx);
-
 	return 0;
 }
 
