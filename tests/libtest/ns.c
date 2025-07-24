@@ -55,6 +55,9 @@ dns_dispatchmgr_t *dispatchmgr = NULL;
 ns_interfacemgr_t *interfacemgr = NULL;
 ns_server_t *sctx = NULL;
 
+atomic_uint_fast32_t client_refs[32];
+atomic_uintptr_t client_addrs[32];
+
 static isc_result_t
 matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	  dns_message_t *message, dns_aclenv_t *env, ns_server_t *lsctx,

@@ -21,6 +21,8 @@
 
 #include <ns/client.h>
 
+#include <tests/ns.h>
+
 #if ISC_NETMGR_TRACE
 #define FLARG                                                                 \
 	, const char *func ISC_ATTR_UNUSED, const char *file ISC_ATTR_UNUSED, \
@@ -32,8 +34,6 @@
 /*
  * We don't want to use netmgr-based client accounting, we need to emulate it.
  */
-atomic_uint_fast32_t client_refs[32];
-atomic_uintptr_t client_addrs[32];
 
 #if ISC_NETMGR_TRACE
 void
