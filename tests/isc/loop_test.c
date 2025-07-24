@@ -33,6 +33,11 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
+/*
+ * Prevent the odr-violation by renaming isc__loopmgr when including loop.c for
+ * the second time.
+ */
+#define isc__loopmgr isc___loopmgr
 #include "loop.c"
 
 #include <tests/isc.h>
