@@ -34,7 +34,7 @@ def test_accept_expired(servers):
     msg = isctest.query.create("expiring.example", "SOA")
     res2 = isctest.query.tcp(msg, "10.53.0.4")
     for rrset in res1.answer:
-        assert rrset.ttl <= 3600
+        assert 240 <= rrset.ttl <= 300
     for rrset in res2.answer:
         assert rrset.ttl <= 120
 
@@ -47,7 +47,7 @@ def test_accept_expired(servers):
     msg = isctest.query.create("expiring.example", "MX")
     res2 = isctest.query.tcp(msg, "10.53.0.4")
     for rrset in res1.additional:
-        assert rrset.ttl <= 3600
+        assert 240 <= rrset.ttl <= 300
     for rrset in res2.additional:
         assert rrset.ttl <= 120
 
@@ -59,6 +59,6 @@ def test_accept_expired(servers):
     msg = isctest.query.create("expired.example", "SOA")
     res2 = isctest.query.tcp(msg, "10.53.0.4")
     for rrset in res1.additional:
-        assert rrset.ttl <= 3600
+        assert 240 <= rrset.ttl <= 300
     for rrset in res2.additional:
         assert rrset.ttl <= 120

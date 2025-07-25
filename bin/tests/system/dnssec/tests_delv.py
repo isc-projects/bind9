@@ -75,12 +75,12 @@ def test_positive_validation_delv():
     # check positive validation NSEC
     response = delv("a", "a.example")
     assert grep_c("a.example..*10.0.0.1", response)
-    assert grep_c("a.example..*.RRSIG.A [0-9][0-9]* 2 3600 .*", response)
+    assert grep_c("a.example..*.RRSIG.A [0-9][0-9]* 2 300 .*", response)
 
     # check positive validation NSEC (trsuted-keys)
     response = delv("a", "a.example", tkeys=True)
     assert grep_c("a.example..*10.0.0.1", response)
-    assert grep_c("a.example..*.RRSIG.A [0-9][0-9]* 2 3600 .*", response)
+    assert grep_c("a.example..*.RRSIG.A [0-9][0-9]* 2 300 .*", response)
 
     # check positive validation NSEC3
     response = delv("a", "a.nsec3.example")
@@ -95,7 +95,7 @@ def test_positive_validation_delv():
     # check positive wildcard validation NSEC
     response = delv("a", "a.wild.example")
     assert grep_c("a.wild.example..*10.0.0.27", response)
-    assert grep_c("a.wild.example..*.RRSIG.A [0-9][0-9]* 2 3600 .*", response)
+    assert grep_c("a.wild.example..*.RRSIG.A [0-9][0-9]* 2 300 .*", response)
 
     # check positive wildcard validation NSEC3
     response = delv("a", "a.wild.nsec3.example")
