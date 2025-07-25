@@ -59,6 +59,14 @@ def nordflag(message: dns.message.Message) -> None:
     assert (message.flags & dns.flags.RD) == 0, str(message)
 
 
+def raflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.RA) != 0, str(message)
+
+
+def noraflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.RA) == 0, str(message)
+
+
 def section_equal(first_section: list, second_section: list) -> None:
     for rrset in first_section:
         assert (
