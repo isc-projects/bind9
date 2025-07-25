@@ -13,8 +13,6 @@ import os
 import re
 import time
 
-import pytest
-
 import isctest
 
 
