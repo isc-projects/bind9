@@ -18,8 +18,7 @@ import isctest
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure(servers, templates):
-    ns4 = servers["ns4"]
+def reconfigure(ns4, templates):
     templates.render("ns4/named.conf", {"multi_view": True})
     ns4.reconfigure(log=False)
 

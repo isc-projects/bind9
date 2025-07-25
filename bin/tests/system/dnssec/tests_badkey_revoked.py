@@ -15,8 +15,7 @@ import isctest
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure(servers, templates):
-    ns5 = servers["ns5"]
+def reconfigure(ns5, templates):
     templates.render("ns5/named.conf", {"revoked_key": True})
     ns5.reconfigure(log=False)
 

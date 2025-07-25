@@ -17,19 +17,16 @@ import isctest
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure(servers, templates):
-    ns5 = servers["ns5"]
+def reconfigure(ns5, ns9, templates):
     templates.render("ns5/named.conf", {"broken_key": True})
     ns5.reconfigure(log=False)
 
-    ns9 = servers["ns9"]
     templates.render("ns9/named.conf", {"forward_badkey": True})
     ns9.reconfigure(log=False)
 
 
-def test_broken_forwarding(servers):
+def test_broken_forwarding(ns9):
     # check forwarder CD behavior (forward server with bad trust anchor)
-    ns9 = servers["ns9"]
 
     # confirm invalid trust anchor produces SERVFAIL in resolver
     msg = isctest.query.create("a.secure.example.", "A")

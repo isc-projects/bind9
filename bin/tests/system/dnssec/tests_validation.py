@@ -116,7 +116,7 @@ def test_adflag():
     isctest.check.noadflag(res2)
 
 
-def test_secure_root(servers):
+def test_secure_root(ns4):
     # check that a query for a secure root validates
     msg = isctest.query.create(".", "KEY")
     res = isctest.query.tcp(msg, "10.53.0.4")
@@ -124,7 +124,6 @@ def test_secure_root(servers):
     isctest.check.adflag(res)
 
     # check that "rndc secroots" dumps the trusted keys
-    ns4 = servers["ns4"]
     key = int(getfrom("ns1/managed.key.id"))
     alg = os.environ["DEFAULT_ALGORITHM"]
     expected = f"./{alg}/{key} ; static"
@@ -375,7 +374,7 @@ def test_signing_algorithms():
     isctest.check.adflag(res2)
 
 
-def test_private_algorithms(servers):
+def test_private_algorithms(ns4):
     # positive answer, private algorithm
     msg = isctest.query.create("a.rsasha256oid.example", "A")
     res1 = isctest.query.tcp(msg, "10.53.0.3")
@@ -398,7 +397,6 @@ def test_private_algorithms(servers):
     isctest.check.adflag(res2)
 
     # positive anwer, extra ds for unknown private algorithm
-    ns4 = servers["ns4"]
     with ns4.watch_log_from_here() as watcher:
         msg = isctest.query.create("a.extradsunknownoid.example", "A")
         res1 = isctest.query.tcp(msg, "10.53.0.3")
@@ -704,9 +702,7 @@ def test_negative_validation_optout():
     isctest.check.servfail(res2)
 
 
-def test_cache(servers):
-    ns4 = servers["ns4"]
-
+def test_cache(ns4):
     # check that key id's are logged when dumping the cache
     ns4.rndc("dumpdb -cache", log=False)
     assert grep_q("; key id = ", "ns4/named_dump.db")
@@ -755,7 +751,7 @@ def test_cache(servers):
         assert res1.authority[0].ttl != res2.authority[0].ttl
 
 
-def test_insecure_proof_nsec(servers):
+def test_insecure_proof_nsec(ns4):
     # 1-server positive
     msg = isctest.query.create("a.insecure.example", "A")
     res1 = isctest.query.tcp(msg, "10.53.0.3")
@@ -806,7 +802,6 @@ def test_insecure_proof_nsec(servers):
     isctest.check.noadflag(res2)
 
     # insecurity proof using negative cache
-    ns4 = servers["ns4"]
     ns4.rndc("flush", log=False)
     msg = isctest.query.create("insecure.example", "DS", cd=True)
     isctest.query.tcp(msg, "10.53.0.4")
@@ -931,10 +926,7 @@ def test_positive_validation_multistage(qname):
     isctest.check.adflag(res2)
 
 
-def test_validation_recovery(servers):
-    ns2 = servers["ns2"]
-    ns4 = servers["ns4"]
-
+def test_validation_recovery(ns2, ns4):
     # check recovery from spoofed server address.
     # prime cache with spoofed address records...
     msg = isctest.query.create("target.peer-ns-spoof", "A", cd=True)
@@ -1070,10 +1062,7 @@ def test_transitions():
     assert str(a[0]) == "10.53.0.10"
 
 
-def test_validating_forwarder(servers):
-    ns9 = servers["ns9"]
-    ns4 = servers["ns4"]
-
+def test_validating_forwarder(ns4, ns9):
     # check validating forwarder behavior with mismatching NS
     ns4.rndc("flush", log=False)
     msg = isctest.query.create("inconsistent", "NS", dnssec=False, cd=True)
@@ -1111,7 +1100,7 @@ def test_validating_forwarder(servers):
         watcher.wait_for_line("status: SERVFAIL")
 
 
-def test_expired_signatures(servers):
+def test_expired_signatures(ns4):
     # check expired signatures do not validate
     msg = isctest.query.create("expired.example", "SOA")
     res = isctest.query.tcp(msg, "10.53.0.3")
@@ -1147,8 +1136,6 @@ def test_expired_signatures(servers):
     res = isctest.query.tcp(msg, "10.53.0.4")
     isctest.check.adflag(res)
     isctest.check.noerror(res)
-
-    ns4 = servers["ns4"]
 
     # test TTL is capped at RRSIG expiry time
     ns4.rndc("flush", log=False)
@@ -1256,12 +1243,11 @@ def test_broken_servers():
     isctest.check.noadflag(res)
 
 
-def test_pending_ds(servers):
+def test_pending_ds(ns4):
     # check that a query against a validating resolver succeeds when there is
     # a negative cache entry with trust level "pending" for the DS.  prime
     # with a +cd DS query to produce the negative cache entry, then send a
     # query that uses that entry as part of the validation process.
-    ns4 = servers["ns4"]
     ns4.rndc("flush", log=False)
     msg = isctest.query.create("insecure.example", "DS", cd=True)
     res = isctest.query.tcp(msg, "10.53.0.4")

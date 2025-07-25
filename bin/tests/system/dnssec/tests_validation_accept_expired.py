@@ -17,15 +17,12 @@ import isctest
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure(servers, templates):
-    ns4 = servers["ns4"]
+def reconfigure(ns4, templates):
     templates.render("ns4/named.conf", {"accept_expired": True})
     ns4.reconfigure(log=False)
 
 
-def test_accept_expired(servers):
-    ns4 = servers["ns4"]
-
+def test_accept_expired(ns4):
     # test TTL of about-to-expire rrsets with accept-expired
     ns4.rndc("flush", log=False)
     msg = isctest.query.create("expiring.example", "SOA")

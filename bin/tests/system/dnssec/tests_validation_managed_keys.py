@@ -18,8 +18,7 @@ import isctest
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure(servers, templates):
-    ns4 = servers["ns4"]
+def reconfigure(ns4, templates):
     assert os.path.exists("ns4/managed-keys.bind.jnl") is False
     shutil.copyfile("ns4/managed-keys.bind.in", "ns4/managed-keys.bind")
     templates.render("ns4/named.conf", {"managed_key": True})
@@ -32,7 +31,7 @@ def getfrom(file):
         return f.read().strip()
 
 
-def test_secure_root_managed(servers):
+def test_secure_root_managed(ns4):
     # check that a query for a secure root validates
     msg = isctest.query.create(".", "KEY")
     res = isctest.query.tcp(msg, "10.53.0.4")
@@ -40,7 +39,6 @@ def test_secure_root_managed(servers):
     isctest.check.adflag(res)
 
     # check that "rndc secroots" dumps the trusted keys
-    ns4 = servers["ns4"]
     key = int(getfrom("ns1/managed.key.id"))
     alg = os.environ["DEFAULT_ALGORITHM"]
     expected = f"./{alg}/{key} ; managed"
@@ -101,8 +99,7 @@ def test_ds_managed():
     isctest.check.noerror(res2)
 
 
-def test_keydata_storage(servers):
-    ns4 = servers["ns4"]
+def test_keydata_storage(ns4):
     ns4.rndc("managed-keys sync", log=False)
     with isctest.log.WatchLogFromStart("ns4/managed-keys.bind") as watcher:
         watcher.wait_for_line(["KEYDATA", "next refresh:"])

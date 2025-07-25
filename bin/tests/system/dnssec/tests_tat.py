@@ -47,10 +47,7 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-def test_tat_queries(servers):
-    ns1 = servers["ns1"]
-    ns6 = servers["ns6"]
-
+def test_tat_queries(ns1, ns6):
     # check that trust-anchor-telemetry queries are logged
     with ns6.watch_log_from_start() as watcher:
         watcher.wait_for_line("sending trust-anchor-telemetry query '_ta-")

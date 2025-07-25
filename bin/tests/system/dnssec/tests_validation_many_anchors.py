@@ -16,8 +16,7 @@ import isctest
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reconfigure(servers, templates):
-    ns5 = servers["ns5"]
+def reconfigure(ns5, templates):
     templates.render("ns5/named.conf", {"many_anchors": True})
     with ns5.watch_log_from_here() as watcher:
         ns5.reconfigure(log=False)

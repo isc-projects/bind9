@@ -387,24 +387,19 @@ def test_cdnskey_signing():
         "signing -clear all",  # without zone
     ],
 )
-def test_rndc_signing_except(cmd, servers):
-    ns3 = servers["ns3"]
-
+def test_rndc_signing_except(cmd, ns3):
     # check that 'rndc signing' errors are handled
     with pytest.raises(isctest.rndc.RNDCException):
         ns3.rndc(cmd, log=False)
     ns3.rndc("status", log=False)
 
 
-def test_rndc_signing_output(servers):
-    ns3 = servers["ns3"]
-
+def test_rndc_signing_output(ns3):
     response = ns3.rndc("signing -list dynamic.example", log=False)
     assert "No signing records found" in response
 
 
-def test_zonestatus_signing(servers):
-    ns3 = servers["ns3"]
+def test_zonestatus_signing(ns3):
     # check that the correct resigning time is reported in zonestatus.
     # zonestatus reports a name/type and expecting resigning time;
     # we convert the time to seconds since epoch, look up the RRSIG
@@ -430,7 +425,7 @@ def test_zonestatus_signing(servers):
     assert when < sigs[0].expiration
 
 
-def test_offline_ksk_signing(servers):
+def test_offline_ksk_signing(ns2):
     def getfrom(file):
         with open(file, encoding="utf-8") as f:
             return f.read().strip()
@@ -487,7 +482,6 @@ def test_offline_ksk_signing(servers):
 
     ksk_only_types = ["DNSKEY", "CDNSKEY", "CDS"]
 
-    ns2 = servers["ns2"]
     zone = "updatecheck-kskonly.secure"
     KSK = getfrom(f"ns2/{zone}.ksk.key")
     ZSK = getfrom(f"ns2/{zone}.zsk.key")

@@ -51,13 +51,12 @@ def is_rrsig_soa(rrset):
     return rrset.rdtype == rdatatype.RRSIG and rrset.covers == rdatatype.SOA
 
 
-def test_signatures_validity(servers, templates):
+def test_signatures_validity(ns3, templates):
     # check that increasing signatures-validity triggers resigning
     msg = isctest.query.create("siginterval.example.", "AXFR")
     res = isctest.query.tcp(msg, "10.53.0.3")
     before = next(filter(is_rrsig_soa, res.answer))
 
-    ns3 = servers["ns3"]
     templates.render("ns3/named.conf", {"long_sigs": True})
     with ns3.watch_log_from_here() as watcher:
         ns3.reconfigure(log=False)
