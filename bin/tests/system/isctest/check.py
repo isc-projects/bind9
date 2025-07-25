@@ -168,28 +168,10 @@ def empty_answer(message: dns.message.Message) -> None:
     assert not message.answer, str(message)
 
 
-def answer_count_eq(m: dns.message.Message, expected: int):
-    count = sum(max(1, len(rrs)) for rrs in m.answer)
-    assert count == expected, str(m)
-
-
-def authority_count_eq(m: dns.message.Message, expected: int):
-    count = sum(max(1, len(rrs)) for rrs in m.authority)
-    assert count == expected, str(m)
-
-
-def additional_count_eq(m: dns.message.Message, expected: int):
-    count = sum(max(1, len(rrs)) for rrs in m.additional)
-
-    # add one for the OPT?
-    opt = bool(m.opt) if hasattr(m, "opt") else bool(m.edns >= 0)
-    count += 1 if opt else 0
-
-    # add one for the TSIG?
-    tsig = bool(m.tsig) if hasattr(m, "tsig") else m.had_tsig
-    count += 1 if tsig else 0
-
-    assert count == expected, str(m)
+def rr_count_eq(section: list, expected: int):
+    # NOTE: OPT and TSIG records aren't included in the count for ADDITIONAL section
+    count = sum(len(rrset) for rrset in section)
+    assert count == expected, str(section)
 
 
 def is_response_to(response: dns.message.Message, query: dns.message.Message) -> None:
