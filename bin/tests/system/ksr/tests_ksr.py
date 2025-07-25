@@ -11,6 +11,7 @@
 
 from datetime import timedelta
 import os
+import re
 import shutil
 import time
 
@@ -651,17 +652,10 @@ def test_ksr_common(ns1):
     overlapping_zsks = isctest.kasp.keystr_to_keylist(out, zskdir)
     assert len(overlapping_zsks) == 4
 
-    verbose = err.split()
-    selected = 0
-    generated = 0
-    for output in verbose:
-        if "Selecting" in output:
-            selected += 1
-        if "Generating" in output:
-            generated += 1
-        # Subtract if there was a key collision.
-        if "collide" in output:
-            generated -= 1
+    selected = len(re.findall("Selecting key pair", err))
+    generated = len(re.findall("Generating key pair", err)) - len(
+        re.findall("collide", err)
+    )
 
     assert selected == 2
     assert generated == 2
