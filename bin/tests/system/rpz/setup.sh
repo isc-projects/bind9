@@ -44,6 +44,9 @@ done
 cp ns3/manual-update-rpz.db.in ns3/manual-update-rpz.db
 cp ns8/manual-update-rpz.db.in ns8/manual-update-rpz.db
 
+cp ns3/evil-cname.db.in ns3/evil-cname.db
+cp ns3/wild-cname.db.in ns3/wild-cname.db
+
 cp ns3/mixed-case-rpz-1.db.in ns3/mixed-case-rpz.db
 
 # a zone that expires quickly and then can't be refreshed
