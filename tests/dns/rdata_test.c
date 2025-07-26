@@ -1710,6 +1710,113 @@ ISC_RUN_TEST_IMPL(ds) {
 }
 
 /*
+ * DSYNC tests.
+ *
+ * draft-ietf-dnsop-generalized-notify-09
+ *
+ * 2.1.  Wire Format
+ *
+ *    The DSYNC RDATA wire format is encoded as follows:
+ *
+ *                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+ *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    | RRtype                        | Scheme        | Port
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                    | Target ...  /
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-/
+ *
+ *    RRtype  The type of generalized NOTIFY that this DSYNC RR defines the
+ *       desired target address for (see "Resource Record (RR) TYPEs" IANA
+ *       registry).  For now, only CDS and CSYNC are supported values, with
+ *       the former indicating an updated CDS or CDNSKEY record set.
+ *
+ *    Scheme  The mode used for contacting the desired notification
+ *       address.  This is an 8-bit unsigned integer.  Records with value 0
+ *       (null scheme) are ignored by consumers.  Value 1 is described in
+ *       this document, and values 128-255 are reserved for private use.
+ *       All other values are currently unassigned.
+ *
+ *    Port  The port on the target host of the notification service.  This
+ *       is a 16-bit unsigned integer in network byte order.  Records with
+ *       value 0 are ignored by consumers.
+ *
+ *    Target  The fully-qualified, uncompressed domain name of the target
+ *       host providing the service of listening for generalized
+ *       notifications of the specified type.  This name MUST resolve to
+ *       one or more address records.
+ *
+ * 2.2.  Presentation Format
+ *
+ *    The presentation format of the RDATA portion is as follows:
+ *
+ *    *  The RRtype field is represented as a mnemonic from the "Resource
+ *       Record (RR) TYPEs" registry.
+ *
+ *    *  The Scheme field is represented by its mnemonic if assigned (see
+ *       Section 6.2), otherwise as an unsigned decimal integer.
+ *
+ *    *  The Port field is represented as an unsigned decimal integer.
+ *
+ *    *  The Target field is represented as a <domain-name> ([RFC1035],
+ *       Section 5.1).
+ */
+ISC_RUN_TEST_IMPL(dsync) {
+	text_ok_t text_ok[] = {
+		/*
+		 * Invalid, empty record.
+		 */
+		TEXT_INVALID(""),
+		/*
+		 * Known type and known scheme.
+		 */
+		TEXT_VALID("CDS NOTIFY 0 example.com"),
+		/*
+		 * Known type and unknown scheme.
+		 */
+		TEXT_VALID("CDS 3 0 example.com"),
+		/*
+		 * Unknown type and known scheme.
+		 */
+		TEXT_VALID("TYPE1000 NOTIFY 0 example.com"),
+		/*
+		 * Unknown type and unknown scheme.
+		 */
+		TEXT_VALID("TYPE1000 3 0 example.com"),
+		/*
+		 * Unknown type and unknown scheme, max port.
+		 */
+		TEXT_VALID("TYPE1000 3 65535 example.com"),
+		/*
+		 * Unknown type and max scheme, max port.
+		 */
+		TEXT_VALID("TYPE64000 255 65535 example.com"),
+		/*
+		 * Invalid type and max scheme, max port.
+		 */
+		TEXT_INVALID("INVALID 255 65536 example.com"),
+		/*
+		 * Unknown type and too big scheme, max port.
+		 */
+		TEXT_INVALID("TYPE1000 256 65536 example.com"),
+		/*
+		 * Unknown type and unknown scheme, port too big.
+		 */
+		TEXT_INVALID("TYPE1000 3 65536 example.com"),
+		/*
+		 * Unknown type and bad scheme, max port.
+		 */
+		TEXT_INVALID("TYPE1000 UNKNOWN 65535 example.com"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	check_rdata(text_ok, NULL, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_dsync, sizeof(dns_rdata_dsync_t));
+}
+
+/*
  * EDNS Client Subnet tests.
  *
  * RFC 7871:
