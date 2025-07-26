@@ -49,6 +49,7 @@ pytestmark = pytest.mark.extra_artifacts(
                 "DNSKEY",
                 "DOA",
                 "DS",
+                "DSYNC",
                 "EID",
                 "EUI48",
                 "EUI64",
