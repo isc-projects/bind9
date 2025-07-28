@@ -10,6 +10,7 @@
  * See the COPYRIGHT file distributed with this work for additional
  * information regarding copyright ownership.
  */
+{% set noextension = noextension | default(False) %}
 
 options {
 	query-source address 10.53.0.1;
@@ -24,8 +25,11 @@ options {
 	minimal-responses no;
 };
 
-
+{% if noextension %}
+plugin query "@TOP_BUILDDIR@/testlib-driver-async";
+{% else %}
 plugin query "@TOP_BUILDDIR@/testlib-driver-async.@DYLIB@";
+{% endif %}
 
 key rndc_key {
 	secret "1234abcd8765";

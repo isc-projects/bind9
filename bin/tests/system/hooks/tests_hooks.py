@@ -16,8 +16,16 @@ pytest.importorskip("dns")
 import dns.message
 
 
-def test_async_hook():
+def test_hooks():
     msg = dns.message.make_query("example.com.", "A")
     res = isctest.query.udp(msg, "10.53.0.1")
     # the test-async plugin changes the status of any positive answer to NOTIMP
     isctest.check.notimp(res)
+
+
+def test_hooks_noextension(ns1, templates):
+    templates.render("ns1/named.conf", {"noextension": True})
+    with ns1.watch_log_from_here() as watcher:
+        ns1.rndc("reload")
+        watcher.wait_for_line("all zones loaded")
+    test_hooks()

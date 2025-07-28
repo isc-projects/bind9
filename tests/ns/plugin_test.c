@@ -34,7 +34,16 @@
 
 #include <dns/lib.h>
 
-#include <ns/hooks.h>
+#include "../ns/hooks.c"
+
+bool
+__wrap_isc_file_exists(const char *pathname);
+
+bool
+__wrap_isc_file_exists(const char *pathname) {
+	UNUSED(pathname);
+	return mock();
+}
 
 #include <tests/ns.h>
 
@@ -43,8 +52,8 @@
  */
 typedef struct {
 	const ns_test_id_t id; /* libns test identifier */
-	const char *input;     /* source string - plugin name or path
-				* */
+	const char *input;     /* source string - plugin name or path */
+	bool exists;	       /* return of mocked isc_file_exists() */
 	size_t output_size;    /* size of target char array to
 				* allocate */
 	isc_result_t result;   /* expected return value */
@@ -64,6 +73,10 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	REQUIRE(test->id.description != NULL);
 	REQUIRE(test->input != NULL);
 	REQUIRE(test->result != ISC_R_SUCCESS || test->output != NULL);
+
+	if (test->result == ISC_R_SUCCESS) {
+		will_return(__wrap_isc_file_exists, test->exists);
+	}
 
 	/*
 	 * Prepare a target buffer of given size.  Store it in 'state' so that
@@ -108,6 +121,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 		{
 			NS_TEST_ID("correct use with an absolute path"),
 			.input = "/usr/lib/named/foo.so",
+			.exists = true,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
 			.output = "/usr/lib/named/foo.so",
@@ -115,6 +129,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 		{
 			NS_TEST_ID("correct use with a relative path"),
 			.input = "../../foo.so",
+			.exists = true,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
 			.output = "../../foo.so",
@@ -122,31 +137,72 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 		{
 			NS_TEST_ID("correct use with a filename"),
 			.input = "foo.so",
+			.exists = true,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
 			.output = NAMED_PLUGINDIR "/foo.so",
 		},
 		{
+			NS_TEST_ID("correct use with an absolute path and no "
+				   "extension"),
+			.input = "/usr/lib/named/foo",
+			.exists = false,
+			.output_size = PATH_MAX,
+			.result = ISC_R_SUCCESS,
+			.output = "/usr/lib/named/foo.so",
+		},
+		{
+			NS_TEST_ID("correct use with a relative path and no "
+				   "extension"),
+			.input = "../../foo",
+			.exists = false,
+			.output_size = PATH_MAX,
+			.result = ISC_R_SUCCESS,
+			.output = "../../foo.so",
+		},
+		{
+			NS_TEST_ID("correct use with a filename and no "
+				   "extension"),
+			.input = "foo",
+			.exists = false,
+			.output_size = PATH_MAX,
+			.result = ISC_R_SUCCESS,
+			.output = NAMED_PLUGINDIR "/foo.so",
+		},
+		{
+			NS_TEST_ID("correct use with a filename and no "
+				   "extension but a name with dots"),
+			.input = "foo.bar",
+			.exists = false,
+			.output_size = PATH_MAX,
+			.result = ISC_R_SUCCESS,
+			.output = NAMED_PLUGINDIR "/foo.bar.so",
+		},
+		{
 			NS_TEST_ID("no space at all in target buffer"),
 			.input = "/usr/lib/named/foo.so",
+			.exists = true,
 			.output_size = 0,
 			.result = ISC_R_NOSPACE,
 		},
 		{
 			NS_TEST_ID("target buffer too small to fit input"),
 			.input = "/usr/lib/named/foo.so",
+			.exists = true,
 			.output_size = 1,
 			.result = ISC_R_NOSPACE,
 		},
 		{
 			NS_TEST_ID("target buffer too small to fit NULL byte"),
 			.input = "/foo.so",
+			.exists = true,
 			.output_size = 7,
 			.result = ISC_R_NOSPACE,
 		},
 		{
 			NS_TEST_ID("target buffer too small to fit full path"),
 			.input = "foo.so",
+			.exists = true,
 			.output_size = 7,
 			.result = ISC_R_NOSPACE,
 		},
