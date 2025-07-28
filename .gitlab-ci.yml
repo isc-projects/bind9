@@ -127,6 +127,15 @@ stages:
     - fips
     - shell
 
+.almalinux-10fips-amd64-image: &almalinux_10fips_amd64_image
+  tags:
+    - almalinux-10
+    - amd64
+    - autoscaler
+    - aws
+    - fips
+    - shell
+
 # Autoscaling GitLab Runner on AWS EC2 (amd64)
 
 .linux-amd64: &linux_amd64
@@ -338,7 +347,14 @@ stages:
   - cd bind-*
 
 .fips-feature-test: &fips_feature_test
-    - if bin/tests/system/feature-test --have-fips-mode; then fips-mode-setup --check; fips-mode-setup --is-enabled; fi
+    - if bin/tests/system/feature-test --have-fips-mode; then
+        if [ "$(cat /proc/sys/crypto/fips_enabled)" = "1" ]; then
+          echo "FIPS is enabled";
+        else
+          echo "FIPS is disabled";
+          exit 1;
+        fi
+      fi
 
 .check_for_junit_xml: &check_for_junit_xml
     # test if junit.xml file exists and is longer 40 bytes
@@ -976,6 +992,7 @@ gcc:8fips:amd64:
 system:gcc:8fips:amd64:
   <<: *almalinux_8fips_amd64_image
   <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   variables:
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
@@ -985,6 +1002,7 @@ system:gcc:8fips:amd64:
 unit:gcc:8fips:amd64:
   <<: *almalinux_8fips_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   variables:
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
@@ -1018,6 +1036,33 @@ unit:gcc:9fips:amd64:
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
   needs:
     - job: gcc:9fips:amd64
+      artifacts: true
+
+gcc:10fips:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode --disable-leak-detection --disable-tracing"
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
+  <<: *almalinux_10fips_amd64_image
+  <<: *build_job
+
+system:gcc:10fips:amd64:
+  <<: *almalinux_10fips_amd64_image
+  <<: *system_test_job
+  variables:
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
+  needs:
+    - job: gcc:10fips:amd64
+      artifacts: true
+
+unit:gcc:10fips:amd64:
+  <<: *almalinux_10fips_amd64_image
+  <<: *unit_test_job
+  variables:
+    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
+  needs:
+    - job: gcc:10fips:amd64
       artifacts: true
 
 gcc:tarball:nosphinx:
