@@ -79,7 +79,7 @@ def has_signed_apex_nsec(zone, response):
 
 
 def do_query(server, qname, qtype, tcp=False):
-    msg = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
+    msg = isctest.query.create(qname, qtype)
     query_func = isctest.query.tcp if tcp else isctest.query.udp
     response = query_func(msg, server.ip, expected_rcode=dns.rcode.NOERROR)
     return response

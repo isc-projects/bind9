@@ -9,13 +9,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import isctest
+import dns
 
-import dns.message
+import isctest
 
 
 def test_database(servers, templates):
-    msg = dns.message.make_query("database.", "SOA")
+    msg = isctest.query.create("database.", "SOA")
 
     # checking pre reload zone
     res = isctest.query.tcp(msg, "10.53.0.1")

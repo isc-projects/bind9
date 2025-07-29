@@ -13,8 +13,8 @@ import shutil
 from typing import Optional
 
 import dns.flags
-import dns.rcode
 import dns.message
+import dns.rcode
 import dns.zone
 
 import isctest.log
@@ -150,6 +150,16 @@ def zones_equal(
 def is_executable(cmd: str, errmsg: str) -> None:
     executable = shutil.which(cmd)
     assert executable is not None, errmsg
+
+
+def named_alive(named_proc, resolver_ip):
+    assert named_proc.poll() is None, "named isn't running"
+    msg = isctest.query.create("version.bind", "TXT", "CH")
+    isctest.query.tcp(msg, resolver_ip, expected_rcode=dns_rcode.NOERROR)
+
+
+def notauth(message: dns.message.Message) -> None:
+    rcode(message, dns.rcode.NOTAUTH)
 
 
 def nxdomain(message: dns.message.Message) -> None:
