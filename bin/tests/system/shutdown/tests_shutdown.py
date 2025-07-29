@@ -105,7 +105,7 @@ def do_work(named_proc, resolver_ip, instance, kill_method, n_workers, n_queries
                     )
 
                 qname = relname + ".test"
-                msg = dns.message.make_query(qname, "A")
+                msg = isctest.query.create(qname, "A")
                 futures[
                     executor.submit(
                         isctest.query.udp, msg, resolver_ip, timeout=1, attempts=1

@@ -22,10 +22,10 @@ from typing import Dict, List, Optional, Tuple, Union
 import dns
 import dns.tsig
 
-from isctest.instance import NamedInstance
 import isctest.log
 import isctest.query
 import isctest.util
+from isctest.instance import NamedInstance
 from isctest.vars.algorithms import Algorithm, ALL_ALGORITHMS_BY_NUM
 
 DEFAULT_TTL = 300
@@ -34,7 +34,7 @@ NEXT_KEY_EVENT_THRESHOLD = 100
 
 
 def _query(server, qname, qtype, tsig=None):
-    query = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
+    query = isctest.query.create(qname, qtype)
 
     if tsig is not None:
         tsigkey = tsig.split(":")
