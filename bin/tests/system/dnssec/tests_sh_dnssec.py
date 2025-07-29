@@ -13,6 +13,7 @@ import pytest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
+        ".hypothesis/examples/*",
         "K*",
         "canonical*",
         "delv.out*",
