@@ -19,12 +19,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "isc/list.h"
-
 #define UNIT_TESTING
 #include <cmocka.h>
 
 #include <dns/diff.h>
+
+/* isc/list.h must be imported after cmocka to avoid redefinition errors */
+#include <isc/list.h>
 
 #include <tests/dns.h>
 
