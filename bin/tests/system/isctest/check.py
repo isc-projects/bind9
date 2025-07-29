@@ -14,8 +14,8 @@ import shutil
 from typing import Optional
 
 import dns.flags
-import dns.rcode
 import dns.message
+import dns.rcode
 import dns.zone
 
 import isctest.log
@@ -155,7 +155,7 @@ def is_executable(cmd: str, errmsg: str) -> None:
 
 def named_alive(named_proc, resolver_ip):
     assert named_proc.poll() is None, "named isn't running"
-    msg = dns.message.make_query("version.bind", "TXT", "CH")
+    msg = isctest.query.create("version.bind", "TXT", "CH")
     isctest.query.tcp(msg, resolver_ip, expected_rcode=dns_rcode.NOERROR)
 
 
