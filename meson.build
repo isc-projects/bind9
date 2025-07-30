@@ -1650,7 +1650,7 @@ print(release_date, end="")
 if doc_opt.allowed()
     release_date = ''
     if python.found()
-      release_date = run_command(python, ['-c', get_release_date], check: true).stdout()
+        release_date = run_command(python, ['-c', get_release_date], check: true).stdout()
     endif
 
     man_srcconf = man_srcset.apply(config, strict: false)
