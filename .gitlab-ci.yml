@@ -615,6 +615,29 @@ coccinelle:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
+meson-format:
+  ######################################################################
+  # Revert to using the "precheck_job" anchor after the "base" image is
+  # upgraded to Debian trixie, which has muon 0.4.0.
+  <<: *default_triggering_rules
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  ######################################################################
+  needs: []
+  script:
+    - git ls-files "*meson.build" | xargs muon-meson fmt -i
+    - git diff > meson-format.patch
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+  artifacts:
+    paths:
+      - meson-format.patch
+    expire_in: "1 week"
+    when: on_failure
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - "**/meson.build"
+
 doctest:
   <<: *precheck_job
   needs: []
