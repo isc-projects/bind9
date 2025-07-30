@@ -307,6 +307,14 @@ stages:
         grep "^#define HAVE_READLINE_READLINE" config.h;
       fi
 
+.list_installed_package_versions: &list_installed_package_versions
+  - echo -e "\e[0Ksection_start:`date +%s`:installed_packages_section[collapsed=true]\r\e[0KHeader of the installed packages collapsible section"
+  - ( pip3 list || pip list || echo "no pip" ) 2>/dev/null
+  - for cmd in "apk info --verbose" "dpkg-query --show --showformat='\${Package}-\${Version}\n'" "pkg info --quiet" "rpm -qa | sort"; do
+      eval "$cmd" 2>/dev/null && break;
+    done || true
+  - echo -e "\e[0Ksection_end:`date +%s`:installed_packages_section\r\e[0K"
+
 # Unpack release tarball and continue work in the extracted directory.
 .unpack_release_tarball: &unpack_release_tarball
   - tar --extract --file bind-*.tar.xz
@@ -334,6 +342,7 @@ stages:
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OUT_OF_TREE_WORKSPACE}" && mkdir "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
+    - *list_installed_package_versions
   script:
     - *configure
     - *check_readline_setup
@@ -753,6 +762,8 @@ docs:
   <<: *default_triggering_rules
   <<: *base_image
   <<: *docs_job
+  before_script:
+    - *list_installed_package_versions
   needs:
     - job: autoreconf
       artifacts: true
@@ -941,6 +952,7 @@ gcc:tarball:nosphinx:
   <<: *almalinux_9_amd64_image
   <<: *build_job
   before_script:
+    - *list_installed_package_versions
     - (! command -v sphinx-build >/dev/null)
     - *unpack_release_tarball
   needs:
@@ -1012,6 +1024,8 @@ scan-build:
     CFLAGS: "${CFLAGS_COMMON}"
     CONFIGURE: "${SCAN_BUILD} ./configure"
     EXTRA_CONFIGURE: "--with-libidn2"
+  before_script:
+    - *list_installed_package_versions
   script:
     - *configure
     - *scan_build
@@ -1094,6 +1108,7 @@ gcc:tarball:
   <<: *base_image
   <<: *build_job
   before_script:
+    - *list_installed_package_versions
     - *unpack_release_tarball
   needs:
     - job: tarball-create
