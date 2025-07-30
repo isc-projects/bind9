@@ -150,7 +150,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 			.exists = false,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-			.output = "/usr/lib/named/foo.so",
+			.output = "/usr/lib/named/foo" NAMED_PLUGINEXT,
 		},
 		{
 			NS_TEST_ID("correct use with a relative path and no "
@@ -159,7 +159,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 			.exists = false,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-			.output = "../../foo.so",
+			.output = "../../foo" NAMED_PLUGINEXT,
 		},
 		{
 			NS_TEST_ID("correct use with a filename and no "
@@ -168,7 +168,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 			.exists = false,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-			.output = NAMED_PLUGINDIR "/foo.so",
+			.output = NAMED_PLUGINDIR "/foo" NAMED_PLUGINEXT,
 		},
 		{
 			NS_TEST_ID("correct use with a filename and no "
@@ -177,7 +177,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 			.exists = false,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-			.output = NAMED_PLUGINDIR "/foo.bar.so",
+			.output = NAMED_PLUGINDIR "/foo.bar" NAMED_PLUGINEXT,
 		},
 		{
 			NS_TEST_ID("no space at all in target buffer"),
