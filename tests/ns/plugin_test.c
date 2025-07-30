@@ -34,16 +34,17 @@
 
 #include <dns/lib.h>
 
-#include "../ns/hooks.c"
-
-bool
-__wrap_isc_file_exists(const char *pathname);
-
-bool
-__wrap_isc_file_exists(const char *pathname) {
+/*
+ * Mocking isc_file_exists() as it's used inside the tested
+ * ns_plugin_expandpath() function defined in lib/ns/hooks.c
+ */
+static bool
+isc_file_exists(const char *pathname) {
 	UNUSED(pathname);
 	return mock();
 }
+
+#include "../ns/hooks.c"
 
 #include <tests/ns.h>
 
@@ -75,7 +76,7 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	REQUIRE(test->result != ISC_R_SUCCESS || test->output != NULL);
 
 	if (test->result == ISC_R_SUCCESS) {
-		will_return(__wrap_isc_file_exists, test->exists);
+		will_return(isc_file_exists, test->exists);
 	}
 
 	/*
@@ -149,7 +150,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 			.exists = false,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-			.output = "/usr/lib/named/foo.so",
+			.output = "/usr/lib/named/foo" NAMED_PLUGINEXT,
 		},
 		{
 			NS_TEST_ID("correct use with a relative path and no "
@@ -158,7 +159,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 			.exists = false,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-			.output = "../../foo.so",
+			.output = "../../foo" NAMED_PLUGINEXT,
 		},
 		{
 			NS_TEST_ID("correct use with a filename and no "
@@ -167,7 +168,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 			.exists = false,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-			.output = NAMED_PLUGINDIR "/foo.so",
+			.output = NAMED_PLUGINDIR "/foo" NAMED_PLUGINEXT,
 		},
 		{
 			NS_TEST_ID("correct use with a filename and no "
@@ -176,7 +177,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 			.exists = false,
 			.output_size = PATH_MAX,
 			.result = ISC_R_SUCCESS,
-			.output = NAMED_PLUGINDIR "/foo.bar.so",
+			.output = NAMED_PLUGINDIR "/foo.bar" NAMED_PLUGINEXT,
 		},
 		{
 			NS_TEST_ID("no space at all in target buffer"),
