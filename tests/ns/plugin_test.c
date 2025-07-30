@@ -34,16 +34,17 @@
 
 #include <dns/lib.h>
 
-#include "../ns/hooks.c"
-
-bool
-__wrap_isc_file_exists(const char *pathname);
-
-bool
-__wrap_isc_file_exists(const char *pathname) {
+/*
+ * Mocking isc_file_exists() as it's used inside the tested
+ * ns_plugin_expandpath() function defined in lib/ns/hooks.c
+ */
+static bool
+isc_file_exists(const char *pathname) {
 	UNUSED(pathname);
 	return mock();
 }
+
+#include "../ns/hooks.c"
 
 #include <tests/ns.h>
 
@@ -75,7 +76,7 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	REQUIRE(test->result != ISC_R_SUCCESS || test->output != NULL);
 
 	if (test->result == ISC_R_SUCCESS) {
-		will_return(__wrap_isc_file_exists, test->exists);
+		will_return(isc_file_exists, test->exists);
 	}
 
 	/*
