@@ -84,7 +84,7 @@ def transfers_complete(servers):
 )
 # pylint: disable=redefined-outer-name,unused-argument
 def test_cipher_suites_tls_xfer(qname, ns, rcode, transfers_complete):
-    msg = dns.message.make_query(qname, "AXFR")
+    msg = isctest.query.create(qname, "AXFR")
     ans = isctest.query.tls(msg, f"10.53.0.{ns}")
     assert ans.rcode() == rcode
     if rcode == dns.rcode.NOERROR:

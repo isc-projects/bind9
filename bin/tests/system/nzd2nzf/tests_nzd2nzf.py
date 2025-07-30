@@ -17,8 +17,6 @@ import isctest
 import isctest.mark
 import isctest.run
 
-import dns.message
-
 pytestmark = [
     isctest.mark.with_lmdb,
     pytest.mark.extra_artifacts(
@@ -29,7 +27,7 @@ pytestmark = [
 
 def test_nzd2nzf(ns1):
     zone_data = '"added.example" { type primary; file "added.db"; };'
-    msg = dns.message.make_query("a.added.example.", "A")
+    msg = isctest.query.create("a.added.example.", "A")
 
     # query for non-existing zone data
     res = isctest.query.tcp(msg, ns1.ip)

@@ -805,7 +805,7 @@ def test_kasp_inherit_view(number, dynamic, inline_signing, txt_rdata, ns4):
     qname = f"view.{zone}."
     qtype = dns.rdatatype.TXT
     rdata = txt_rdata
-    query = dns.message.make_query(qname, qtype, use_edns=True, want_dnssec=True)
+    query = isctest.query.create(qname, qtype)
     tsigkey = tsig.split(":")
     keyring = dns.tsig.Key(tsigkey[1], tsigkey[2], tsigkey[0])
     query.use_tsig(keyring)
@@ -1612,7 +1612,7 @@ def test_kasp_reload_restart(ns6):
     def query_soa(qname):
         fqdn = dns.name.from_text(qname)
         qtype = dns.rdatatype.SOA
-        query = dns.message.make_query(fqdn, qtype, use_edns=True, want_dnssec=True)
+        query = isctest.query.create(fqdn, qtype)
         try:
             response = isctest.query.tcp(query, ns6.ip, ns6.ports.dns, timeout=3)
         except dns.exception.Timeout:

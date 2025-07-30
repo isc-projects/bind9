@@ -60,8 +60,8 @@ def test_xferquota(named_port, ns1, ns2):
 
     isctest.run.retry_with_timeout(check_line_count, timeout=360)
 
-    axfr_msg = dns.message.make_query("zone000099.example.", "AXFR")
-    a_msg = dns.message.make_query("a.changing.", "A")
+    axfr_msg = isctest.query.create("zone000099.example.", "AXFR")
+    a_msg = isctest.query.create("a.changing.", "A")
 
     def query_and_compare(msg):
         ns1response = isctest.query.tcp(msg, "10.53.0.1")
