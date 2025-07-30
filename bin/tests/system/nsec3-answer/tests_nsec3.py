@@ -268,7 +268,7 @@ def check_wildcard_synthesis(qname: dns.name.Name, nsec3check: "NSEC3Checker") -
     nsec3check.check_extraneous_rrs()
 
 
-@dataclass(kw_only=True, frozen=True)
+@dataclass(frozen=True)
 class NSEC3Params:
     """Common values from a single DNS response"""
 
