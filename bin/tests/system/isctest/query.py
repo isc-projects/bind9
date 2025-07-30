@@ -74,3 +74,23 @@ def udp(*args, **kwargs) -> Any:
 
 def tcp(*args, **kwargs) -> Any:
     return generic_query(dns.query.tcp, *args, **kwargs)
+
+
+def create(
+    qname,
+    qtype,
+    qclass=dns.rdataclass.IN,
+    dnssec: bool = True,
+    cd: bool = False,
+    ad: bool = True,
+) -> dns.message.Message:
+    """Create DNS query with defaults suitable for our tests."""
+    msg = dns.message.make_query(
+        qname, qtype, qclass, use_edns=True, want_dnssec=dnssec
+    )
+    msg.flags = dns.flags.RD
+    if ad:
+        msg.flags |= dns.flags.AD
+    if cd:
+        msg.flags |= dns.flags.CD
+    return msg

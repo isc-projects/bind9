@@ -12,8 +12,9 @@
 import shutil
 from typing import Optional
 
-import dns.rcode
+import dns.flags
 import dns.message
+import dns.rcode
 import dns.zone
 
 import isctest.log
@@ -38,6 +39,55 @@ def refused(message: dns.message.Message) -> None:
 
 def servfail(message: dns.message.Message) -> None:
     rcode(message, dns_rcode.SERVFAIL)
+
+
+def adflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.AD) != 0, str(message)
+
+
+def noadflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.AD) == 0, str(message)
+
+
+def rdflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.RD) != 0, str(message)
+
+
+def nordflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.RD) == 0, str(message)
+
+
+def raflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.RA) != 0, str(message)
+
+
+def noraflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.RA) == 0, str(message)
+
+
+def section_equal(first_section: list, second_section: list) -> None:
+    for rrset in first_section:
+        assert (
+            rrset in second_section
+        ), f"No corresponding RRset found in second section: {rrset}"
+    for rrset in second_section:
+        assert (
+            rrset in first_section
+        ), f"No corresponding RRset found in first section: {rrset}"
+
+
+def same_data(res1: dns.message.Message, res2: dns.message.Message):
+    section_equal(res1.question, res2.question)
+    section_equal(res1.answer, res2.answer)
+    section_equal(res1.authority, res2.authority)
+    section_equal(res1.additional, res2.additional)
+    assert res1.rcode() == res2.rcode()
+
+
+def same_answer(res1: dns.message.Message, res2: dns.message.Message):
+    section_equal(res1.question, res2.question)
+    section_equal(res1.answer, res2.answer)
+    assert res1.rcode() == res2.rcode()
 
 
 def rrsets_equal(
@@ -102,6 +152,16 @@ def is_executable(cmd: str, errmsg: str) -> None:
     assert executable is not None, errmsg
 
 
+def named_alive(named_proc, resolver_ip):
+    assert named_proc.poll() is None, "named isn't running"
+    msg = isctest.query.create("version.bind", "TXT", "CH")
+    isctest.query.tcp(msg, resolver_ip, expected_rcode=dns_rcode.NOERROR)
+
+
+def notauth(message: dns.message.Message) -> None:
+    rcode(message, dns.rcode.NOTAUTH)
+
+
 def nxdomain(message: dns.message.Message) -> None:
     rcode(message, dns.rcode.NXDOMAIN)
 
@@ -112,6 +172,12 @@ def single_question(message: dns.message.Message) -> None:
 
 def empty_answer(message: dns.message.Message) -> None:
     assert not message.answer, str(message)
+
+
+def rr_count_eq(section: list, expected: int):
+    # NOTE: OPT and TSIG records aren't included in the count for ADDITIONAL section
+    count = sum(len(rrset) for rrset in section)
+    assert count == expected, str(section)
 
 
 def is_response_to(response: dns.message.Message, query: dns.message.Message) -> None:
