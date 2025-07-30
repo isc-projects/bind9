@@ -13,7 +13,7 @@ from typing import Container, Iterable, FrozenSet
 
 import pytest
 
-pytest.importorskip("dns", minversion="2.1.0")  # NameRelation
+pytest.importorskip("dns", minversion="2.3.0")  # NameRelation
 from dns.name import Name, NameRelation
 import dns.zone
 import dns.rdatatype
