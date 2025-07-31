@@ -795,36 +795,48 @@ docs:tarball:
 
 # Job detecting named.conf breakage introduced since the previous point release
 
-# TODO: add when more meson versions are released
-# cross-version-config-tests:
-#   stage: system
-#   <<: *base_image
-#   <<: *default_triggering_rules
-#   variables:
-#     CC: gcc
-#     CFLAGS: "${CFLAGS_COMMON}"
-#     AUTOCONF_CONFIGURE: "--disable-maintainer-mode --enable-developer --enable-leak-detection --enable-option-checking=fatal --disable-option-checking --with-cmocka"
-#   script:
-#     - *configure
-#     - *setup_interfaces
-#     - meson compile -C build system-test-init system-test-dependencies
-#     - meson compile -C build
-#     - *find_pytest
-#     - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BIND_BASELINE_VERSION}"
-#     - cd "bind-${BIND_BASELINE_VERSION}"
-#     - autoreconf -fi
-#   needs:
-#     - job: ci-variables
-#       artifacts: true
-#   artifacts:
-#     reports:
-#       junit: junit.xml
-#     paths:
-#       - bind-*
-#       - junit.xml
-#     untracked: true
-#     expire_in: "1 day"
-#     when: always
+cross-version-config-tests:
+  stage: system
+  <<: *base_image
+  <<: *default_triggering_rules
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+  script:
+    - *configure
+    - *setup_interfaces
+    - meson compile -C build system-test-init system-test-dependencies
+    - meson compile -C build
+    - *find_pytest
+    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BIND_BASELINE_VERSION}"
+    - cd "bind-${BIND_BASELINE_VERSION}"
+    # The cross-version-config-tests job would fail when a system test is
+    # removed from the upcoming release. To avoid this, remove the system test
+    # also from the $BIND_BASELINE_VERSION.
+    - find bin/tests/system/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -e ../"$0" || rm -rfv -- "$0"' {} \;
+    # @DYLIB@ is missing
+    - cp ../bin/tests/system/isctest/vars/basic.py ./bin/tests/system/isctest/vars/basic.py
+    - cp ../bin/tests/system/isctest/vars/.build_vars/TOP_BUILDDIR ./bin/tests/system/isctest/vars/.build_vars/TOP_BUILDDIR
+    - echo "${CI_PROJECT_DIR}/bind-${BIND_BASELINE_VERSION}" > ../build/bin/tests/system/isctest/vars/.build_vars/TOP_SRCDIR
+    - cd ./bin/tests/system
+    # System tests that employ binary drivers will fail on ABI change and
+    # should not be run.
+    - rm -r dlzexternal
+    - rm -r dyndb
+    - >
+      "$PYTEST" --setup-only --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "${TEST_PARALLEL_JOBS:-1}"
+  needs:
+    - job: ci-variables
+      artifacts: true
+  artifacts:
+    reports:
+      junit: junit.xml
+    paths:
+      - bind-*
+      - junit.xml
+    untracked: true
+    expire_in: "1 day"
+    when: always
 
 # Jobs for regular GCC builds on Alpine Linux 3.22 (amd64)
 
