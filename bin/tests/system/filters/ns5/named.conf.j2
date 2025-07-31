@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-{% set filtertype = filtertype | default("aaaa") %}
-
 options {
 	query-source address 10.53.0.5;
 	notify-source 10.53.0.5;
@@ -32,9 +30,9 @@ options {
 	minimal-responses no;
 };
 
-plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
-	filter-@filtertype@-on-v4 break-dnssec;
-	filter-@filtertype@ { any; };
+plugin query "../../../../plugins/.libs/filter-aaaa.so" {
+	filter-aaaa-on-v4 break-dnssec;
+	filter-aaaa { any; };
 };
 
 key rndc_key {
