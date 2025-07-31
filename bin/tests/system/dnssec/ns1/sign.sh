@@ -22,7 +22,6 @@ zonefile=root.db
 
 (cd ../ns2 && $SHELL sign.sh)
 (cd ../ns6 && $SHELL sign.sh)
-(cd ../ns7 && $SHELL sign.sh)
 
 echo_i "ns1/sign.sh"
 
@@ -45,13 +44,12 @@ cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
 
 "$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1
 
-# Configure the resolving server with a staitc key.
+# Configure the resolving server with a static key.
 keyfile_to_static_ds "$ksk" >trusted.conf
 cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
 cp trusted.conf ../ns6/trusted.conf
-cp trusted.conf ../ns7/trusted.conf
 cp trusted.conf ../ns9/trusted.conf
 
 keyfile_to_static_keys "$ksk" >trusted.keys
@@ -70,4 +68,4 @@ keyfile_to_key_id "$ksk" >managed.key.id
 # Also generate a broken trusted-keys file for the dnssec test.
 #
 broken=$("$KEYGEN" -q -fk -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" .)
-keyfile_to_static_ds "$broken" >../ns4/broken.conf
+keyfile_to_static_ds "$broken" >../ns5/broken.conf

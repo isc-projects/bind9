@@ -12,10 +12,10 @@
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
 				2000042407 ; serial
-				20         ; refresh (20 seconds)
-				20         ; retry (20 seconds)
-				1814400    ; expire (3 weeks)
-				3600       ; minimum (1 hour)
+				20	   ; refresh (20 seconds)
+				20	   ; retry (20 seconds)
+				1814400	   ; expire (3 weeks)
+				3600	   ; minimum (1 hour)
 				)
 			NS	ns2
 			NS	ns3
@@ -30,8 +30,8 @@ d			A	10.0.0.4
 foo			TXT	"testing"
 foo			A	10.0.1.0
 
-bad-cname		CNAME   a
-bad-dname		DNAME   @
+bad-cname		CNAME	a
+bad-dname		DNAME	@
 
 ; Used for testing CNAME queries
 cname1			CNAME	cname1-target
@@ -52,150 +52,153 @@ secure			NS	ns3.secure
 ns3.secure		A	10.53.0.3
 
 ; An insecure subdomain
-insecure		NS	ns.insecure
-ns.insecure		A	10.53.0.3
+insecure		NS	ns3.insecure
+ns3.insecure		A	10.53.0.3
 
-; A second insecure subdomain
-insecure2		NS	ns.insecure2
-ns.insecure2		A	10.53.0.3
+; A subdomain with an extra DNSKEY in the wrong place
+extrakey		NS	ns3.extrakey
+ns3.extrakey		A	10.53.0.3
 
 ; A secure subdomain we're going to inject bogus data into
-bogus			NS	ns.bogus
-ns.bogus		A	10.53.0.3
+bogus			NS	ns3.bogus
+ns3.bogus		A	10.53.0.3
 
 ; A subdomain with a corrupt DS
-badds			NS	ns.badds
-ns.badds		A	10.53.0.3
+badds			NS	ns3.badds
+ns3.badds		A	10.53.0.3
 
 ; A subdomain with a corrupt DS, but locally trusted by the forwarder
-localkey		NS	ns.localkey
-ns.localkey		A	10.53.0.3
+localkey		NS	ns3.localkey
+ns3.localkey		A	10.53.0.3
 
 ; A dynamic secure subdomain
-dynamic			NS	dynamic
-dynamic			A	10.53.0.3
+dynamic			NS	ns3.dynamic
+ns3.dynamic			A	10.53.0.3
 
 ; A subdomain with expired signatures
-expired			NS	ns.expired
-ns.expired		A	10.53.0.3
+expired			NS	ns3.expired
+ns3.expired		A	10.53.0.3
 
 ; A rfc2535 signed zone w/ CNAME
 rfc2535			NS	ns.rfc2535
-ns.rfc2535		A	10.53.0.3
+ns.rfc2535		A	10.53.0.2
 
 z			A	10.0.0.26
 
-keyless			NS	ns.keyless
-ns.keyless		A	10.53.0.3
+keyless			NS	ns3.keyless
+ns3.keyless		A	10.53.0.3
 
-nsec3			NS	ns.nsec3
-ns.nsec3		A	10.53.0.3
+nsec3			NS	ns3.nsec3
+ns3.nsec3		A	10.53.0.3
 
-optout			NS	ns.optout
-ns.optout		A	10.53.0.3
+optout			NS	ns3.optout
+ns3.optout		A	10.53.0.3
 
-nsec3-unknown		NS	ns.nsec3-unknown
-ns.nsec3-unknown	A	10.53.0.3
+nsec3-unknown		NS	ns3.nsec3-unknown
+ns3.nsec3-unknown	A	10.53.0.3
 
-optout-unknown		NS	ns.optout-unknown
-ns.optout-unknown	A	10.53.0.3
+optout-unknown		NS	ns3.optout-unknown
+ns3.optout-unknown	A	10.53.0.3
 
-dnskey-unknown		NS	ns.dnskey-unknown
-ns.dnskey-unknown	A	10.53.0.3
+dnskey-unknown		NS	ns3.dnskey-unknown
+ns3.dnskey-unknown	A	10.53.0.3
 
-dnskey-unsupported	NS	ns.dnskey-unsupported
-ns.dnskey-unsupported	A	10.53.0.3
+dnskey-unsupported	NS	ns3.dnskey-unsupported
+ns3.dnskey-unsupported	A	10.53.0.3
 
-ds-unsupported	NS	ns.ds-unsupported
-ns.ds-unsupported	A	10.53.0.3
+dnskey-unsupported-2		NS	ns3.dnskey-unsupported
+ns3.dnskey-unsupported-2	A	10.53.0.3
 
-digest-alg-unsupported    NS 	ns.digest-alg-unsupported
-ns.digest-alg-unsupported A	10.53.0.3
+ds-unsupported		NS	ns3.ds-unsupported
+ns3.ds-unsupported	A	10.53.0.3
 
-dnskey-nsec3-unknown	NS	ns.dnskey-nsec3-unknown
-ns.dnskey-nsec3-unknown	A	10.53.0.3
+digest-alg-unsupported		NS	ns3.digest-alg-unsupported
+ns3.digest-alg-unsupported	A	10.53.0.3
 
-multiple		NS	ns.multiple
-ns.multiple		A	10.53.0.3
+dnskey-nsec3-unknown		NS	ns3.dnskey-nsec3-unknown
+ns3.dnskey-nsec3-unknown	A	10.53.0.3
+
+multiple		NS	ns3.multiple
+ns3.multiple		A	10.53.0.3
 
 *.wild			A	10.0.0.27
 
-rsasha256		NS	ns.rsasha256
-ns.rsasha256		A	10.53.0.3
+rsasha256		NS	ns3.rsasha256
+ns3.rsasha256		A	10.53.0.3
 
-rsasha512		NS	ns.rsasha512
-ns.rsasha512		A	10.53.0.3
+rsasha512		NS	ns3.rsasha512
+ns3.rsasha512		A	10.53.0.3
 
-kskonly			NS	ns.kskonly
-ns.kskonly		A	10.53.0.3
+kskonly			NS	ns3.kskonly
+ns3.kskonly		A	10.53.0.3
 
-update-nsec3		NS	ns.update-nsec3
-ns.update-nsec3		A	10.53.0.3
+update-nsec3		NS	ns3.update-nsec3
+ns3.update-nsec3	A	10.53.0.3
 
-auto-nsec		NS	ns.auto-nsec
-ns.auto-nsec		A	10.53.0.3
+auto-nsec		NS	ns3.auto-nsec
+ns3.auto-nsec		A	10.53.0.3
 
-auto-nsec3		NS	ns.auto-nsec3
-ns.auto-nsec3		A	10.53.0.3
+auto-nsec3		NS	ns3.auto-nsec3
+ns3.auto-nsec3		A	10.53.0.3
 
 
 below-cname		CNAME	some.where.else.
 
-insecure.below-cname	NS	ns.insecure.below-cname
-ns.insecure.below-cname	A	10.53.0.3
+insecure.below-cname		NS	ns3.insecure.below-cname
+ns3.insecure.below-cname	A	10.53.0.3
 
-secure.below-cname	NS	ns.secure.below-cname
-ns.secure.below-cname	A	10.53.0.3
+secure.below-cname	NS	ns3.secure.below-cname
+ns3.secure.below-cname	A	10.53.0.3
 
-ttlpatch		NS	ns.ttlpatch
-ns.ttlpatch		A	10.53.0.3
+ttlpatch		NS	ns3.ttlpatch
+ns3.ttlpatch		A	10.53.0.3
 
-split-dnssec		NS	ns.split-dnssec
-ns.split-dnssec		A	10.53.0.3
+split-dnssec		NS	ns3.split-dnssec
+ns3.split-dnssec	A	10.53.0.3
 
-split-smart		NS	ns.split-smart
-ns.split-smart		A	10.53.0.3
+split-smart		NS	ns3.split-smart
+ns3.split-smart		A	10.53.0.3
 
-upper			NS	ns.upper
-ns.upper		A	10.53.0.3
+upper			NS	ns3.upper
+ns3.upper		A	10.53.0.3
 
-LOWER			NS	NS.LOWER
-NS.LOWER		A	10.53.0.3
+LOWER			NS	NS3.LOWER
+NS3.LOWER		A	10.53.0.3
 
-expiring                 NS      ns.expiring
-ns.expiring              A       10.53.0.3
+expiring		NS	ns3.expiring
+ns3.expiring		A	10.53.0.3
 
-future			NS	ns.future
-ns.future		A	10.53.0.3
+future			NS	ns3.future
+ns3.future		A	10.53.0.3
 
-managed-future		NS	ns.managed-future
-ns.managed-future	A	10.53.0.3
+managed-future		NS	ns3.managed-future
+ns3.managed-future	A	10.53.0.3
 
-revkey			NS	ns.revkey
-ns.revkey		A	10.53.0.3
+revkey			NS	ns3.revkey
+ns3.revkey		A	10.53.0.3
 
-rsasha1			NS	ns.rsasha1
-ns.rsasha1		A	10.53.0.3
+rsasha1			NS	ns3.rsasha1
+ns3.rsasha1		A	10.53.0.3
 
-rsasha1-1024		NS	ns.rsasha1-1024
-ns.rsasha1-1024		A	10.53.0.3
+rsasha1-1024		NS	ns3.rsasha1-1024
+ns3.rsasha1-1024	A	10.53.0.3
 
 dname-at-apex-nsec3	NS	ns3
 
-rsasha256oid		NS	ns.rsasha256oid
-ns.rsasha256oid		A	10.53.0.3
+rsasha256oid		NS	ns3.rsasha256oid
+ns3.rsasha256oid	A	10.53.0.3
 
-rsasha512oid		NS	ns.rsasha512oid
-ns.rsasha512oid		A	10.53.0.3
+rsasha512oid		NS	ns3.rsasha512oid
+ns3.rsasha512oid	A	10.53.0.3
 
-unknownoid		NS	ns.unknownoid
-ns.unknownoid		A	10.53.0.3
+unknownoid		NS	ns3.unknownoid
+ns3.unknownoid		A	10.53.0.3
 
-extradsoid		NS	ns.extradsoid
-ns.extradsoid		A	10.53.0.3
+extradsoid		NS	ns3.extradsoid
+ns3.extradsoid		A	10.53.0.3
 
-extradsunknownoid	NS	ns.extradsunknownoid
-ns.extradsunknownoid	A	10.53.0.3
+extradsunknownoid	NS	ns3.extradsunknownoid
+ns3.extradsunknownoid	A	10.53.0.3
 
-extended-ds-unknown-oid	NS	ns.extended-ds-unknown-oid
-ns.extended-ds-unknown-oid A	10.53.0.3
+extended-ds-unknown-oid	NS	ns3.extended-ds-unknown-oid
+ns3.extended-ds-unknown-oid A	10.53.0.3

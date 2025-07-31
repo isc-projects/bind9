@@ -1,0 +1,30 @@
+; Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+;
+; SPDX-License-Identifier: MPL-2.0
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0.  If a copy of the MPL was not distributed with this
+; file, you can obtain one at https://mozilla.org/MPL/2.0/.
+;
+; See the COPYRIGHT file distributed with this work for additional
+; information regarding copyright ownership.
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 12263
+;; flags: qr aa rd; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 1
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: d70bfeeee608e7490100000068630120672a49b90d12287f (good)
+;; QUESTION SECTION:
+;algroll.			IN	DNSKEY
+
+;; ANSWER SECTION:
+algroll.		30	IN	DNSKEY	257 3 13 8ZsRCWjcBidh4U5O2xldz97ZODaXz9FzeNxQVcpf2bOlKE6QOSEgkvuG IYNnOuHwekp4wpC4x8aqEsULsO1p4w==
+algroll.		30	IN	DNSKEY	256 3 13 w6cJYtYydN0OL+N64KM75NtWtl+KUzPCqGD9TE9vO+cCtb5qILojunGr jjxT3LzGVjgwhyLReJwVJkIDMWvHXw==
+algroll.		30	IN	RRSIG	DNSKEY 8 1 30 20250730202512 20250630202512 47525 algroll. vDuABgFYmjaw9ehT+lb4KDDnOiFu/Ts3LqAFLLRDU9CpPGIY0eH5c00P seEpRaapEF8N55t8/MRQpMxWaQCd67ERenUn3DFuSDACYoftyAdXsFvi 56giRNDziVhWJXKaQDQ/DIfLJ3W7F8BFSVZCFKq5Gv4MiS92+uvdQUkl 7cIgmJEWpcZ7PQB55r0vQizBP8rXrpcMXMtsojTFXQjF0uomW7/o1RIv KOQTcUnqfT1X4nRkQghhJQNJMftVrjVRkxPu+zq2AST+s2XQD9DBntA3 LFd1Yy1+X3OypjY9ZuD6Y5tC+5e1+IEY2CG/fbrqywMo/4pQ3DZ4ZbWC KATW1g==
+algroll.		30	IN	RRSIG	DNSKEY 8 1 30 20250730202512 20250630202512 60676 algroll. fMZaKG2IwwFMoglH5UxZBVjtT0XGwGokdmO+mA6EJxnBBpKXwhBpv24r Mn61ZXN+pmpn4yUDIsMc1Mb6Irwnak7REfsVO/CKmhNmx/hjmoC2y6B5 +xkoUxCDml8hn/nAFftNVpaFq//1UcPyaXvvALN73hgyuE/Cnrl8DTLL kXfqPzHi7sbEgJf2Fkk0crc+gb4E+Wdrz3D354ogRZ2sguvnOfBZvzA/ uQ5UqKtVx2/44C/nW9Wbnkdi+Z1RuRKJOOoJBHIE0f1dTYnbyUOEMEIW AOAUzoKStDnNom0aWfDs6CGQmPcc9vHp2j63D+h2PkfzmyvHI2K3T9ep HbDCMw==
+algroll.		30	IN	RRSIG	DNSKEY 13 1 30 20250730202512 20250630202512 13162 algroll. otMMLO7OiYbMvZsYDKBzJrJKsN5E5WCfQLP2KWo5/V0c88U/PJHY9kEa ysChyPRLDM5VN5WnRzzPxgT/KMnqWw==
+algroll.		30	IN	RRSIG	DNSKEY 13 1 30 20250730202512 20250630202512 54661 algroll. nHj9WTm112HMVGpcg3BsBb4s12R3pLl/mVYnz8snFDBuLrRS0dERMQSp PuNmd3D9WDbLyFBClrjzG+BDHBSILQ==
+

@@ -1,0 +1,29 @@
+; Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+;
+; SPDX-License-Identifier: MPL-2.0
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0.  If a copy of the MPL was not distributed with this
+; file, you can obtain one at https://mozilla.org/MPL/2.0/.
+;
+; See the COPYRIGHT file distributed with this work for additional
+; information regarding copyright ownership.
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 51808
+;; flags: qr rd ra ad; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: e2c7e750ed266cde0100000068630121f863ce122f5ef67e (good)
+;; QUESTION SECTION:
+;revkey.example.			IN	DNSKEY
+
+;; ANSWER SECTION:
+revkey.example.		300	IN	DNSKEY	385 3 13 8dtsAwGIpEVKQMxW/Oyf+aoUU6keQ3+q7jeKcXc1GZf9O/wb5a93ghI9 mnmJSMKNPOXUZlz8XuwNu0kuIU/f+g==
+revkey.example.		300	IN	DNSKEY	256 3 13 E+r2vT9F+V/dV2RALkjYSFyZGSv2FMjzNSgscold+M6tT7HRlWU5dOSF BhJfHF1AwyzWjsn2AjdhU15VZQxb7g==
+revkey.example.		300	IN	DNSKEY	257 3 13 utSQOEBp4zNV8AnNC+aEU+Pf+zXcutD863bKWhWQRVB/+yBUmtS/q26H ke68j35nLAywm+7/OS+x7Iryhlnh/w==
+revkey.example.		300	IN	RRSIG	DNSKEY 13 2 300 20250730202509 20250630202509 25492 revkey.example. p+D2U3RHcdklSeehdbPP1aoZSRYD0rjbQW1cR8PqygCFaWX3M88D5aKS m8L2t6kl5w6ks529zWkpZWsBSj2Vnw==
+revkey.example.		300	IN	RRSIG	DNSKEY 13 2 300 20250730202509 20250630202509 54617 revkey.example. fCB4AYrdcceLW5MeDpGim5ItqGOCyw0/M1WYNsbj5D0G4P7lACRISJng plg/H3n1EZUN69H7suKcYo/fn+VT0Q==
+revkey.example.		300	IN	RRSIG	DNSKEY 13 2 300 20250730202509 20250630202509 57467 revkey.example. lZLA4ik9SoF4+nyQlBoA/Haj8OO/sBpYQ3e597StgSKX2Cq3apfXGcB2 jLIu0raNQ6OjqI2WtwHhKauPlJZloA==
+

@@ -17,8 +17,8 @@ $TTL 300	; 5 minutes
 				1814400    ; expire (3 weeks)
 				3600       ; minimum (1 hour)
 				)
-			NS	ns
-ns			A	10.53.0.3
+			NS	ns3
+ns3			A	10.53.0.3
 
 a			A	10.0.0.1
 b			A	10.0.0.2
@@ -26,14 +26,14 @@ d			A	10.0.0.4
 z			A	10.0.0.26
 a.a.a.a			A	10.0.0.3
 *.wild			A	10.0.0.6
-insecure		NS	ns.insecure
-ns.insecure		A	10.53.0.3
-secure			NS	ns.secure
-ns.secure		A	10.53.0.3
-nsec3			NS	ns.nsec3
-ns.nsec3		A	10.53.0.3
-optout			NS	ns.optout
-ns.optout		A	10.53.0.3
+insecure		NS	ns3.insecure
+ns3.insecure		A	10.53.0.3
+secure			NS	ns3.secure
+ns3.secure		A	10.53.0.3
+nsec3			NS	ns3.nsec3
+ns3.nsec3		A	10.53.0.3
+optout			NS	ns3.optout
+ns3.optout		A	10.53.0.3
 child			NS	ns2.example.
 insecure.empty		NS	ns.insecure.empty
 ns.insecure.empty	A	10.53.0.3
