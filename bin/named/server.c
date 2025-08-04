@@ -9359,6 +9359,13 @@ load_configuration(const char *filename, named_server_t *server,
 	server->interface_interval = interface_interval;
 
 	/*
+	 * FreeBSD workaround: Trigger the interface rescan immediately
+	 * otherwise the server will start listening only after
+	 * 'interface-interval' first tick, possibly never.
+	 */
+	(void)ns_interfacemgr_scan(server->interfacemgr, false, false);
+
+	/*
 	 * Enable automatic interface scans.
 	 */
 	obj = NULL;
