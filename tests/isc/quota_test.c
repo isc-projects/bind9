@@ -32,6 +32,8 @@
 #include <isc/util.h>
 #include <isc/uv.h>
 
+#include "thread_p.h"
+
 #include <tests/isc.h>
 
 isc_quota_t quota;
@@ -268,8 +270,9 @@ quota_thread(void *qtip) {
 }
 
 ISC_RUN_TEST_IMPL(isc_quota_callback_mt) {
-	UNUSED(state);
 	int i;
+
+	isc_thread_setstacksize(THREAD_MINSTACKSIZE);
 
 	isc_quota_init(&quota, 100);
 	static qthreadinfo_t qtis[10];

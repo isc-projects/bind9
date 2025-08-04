@@ -37,6 +37,7 @@
 #include <isc/util.h>
 
 #include "mem_p.h"
+#include "thread_p.h"
 
 #include <tests/isc.h>
 
@@ -515,6 +516,8 @@ ISC_RUN_TEST_IMPL(isc_mem_benchmark) {
 	isc_thread_t threads[32];
 	isc_time_t ts1, ts2;
 	double t;
+
+	isc_thread_setstacksize(THREAD_MINSTACKSIZE);
 
 	atomic_init(&mem_size, ITEM_SIZE);
 

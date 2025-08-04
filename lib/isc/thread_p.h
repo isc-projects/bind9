@@ -17,6 +17,12 @@
 
 /*! \file */
 
+#ifndef THREAD_MINSTACKSIZE
+#define THREAD_MINSTACKSIZE (1U * 1024 * 1024)
+#endif /* ifndef THREAD_MINSTACKSIZE */
+
+extern pthread_attr_t isc__thread_attr;
+
 void
 isc__thread_initialize(void);
 
