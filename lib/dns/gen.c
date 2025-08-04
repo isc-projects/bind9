@@ -353,7 +353,6 @@ doswitch(const char *name, const char *function, const char *args,
 static void
 insert_into_typenames(int type, const char *typebuf, const char *attr) {
 	struct ttnam *ttn = NULL;
-	size_t c;
 	int i, n;
 	char tmp[256];
 
@@ -379,25 +378,25 @@ insert_into_typenames(int type, const char *typebuf, const char *attr) {
 		ttnam_count = i + 1;
 	}
 
-	/* XXXMUKS: This is redundant due to the INSIST above. */
-	if (strlen(typebuf) > sizeof(ttn->typebuf) - 1) {
+	char *end = memccpy(ttn->typebuf, typebuf, '\0', sizeof(ttn->typebuf));
+
+	if (end == NULL) {
 		fprintf(stderr, "Error:  type name %s is too long\n", typebuf);
 		exit(EXIT_FAILURE);
 	}
 
-	strncpy(ttn->typebuf, typebuf, sizeof(ttn->typebuf));
-	ttn->typebuf[sizeof(ttn->typebuf) - 1] = '\0';
-
-	strncpy(ttn->macroname, ttn->typebuf, sizeof(ttn->macroname));
-	ttn->macroname[sizeof(ttn->macroname) - 1] = '\0';
+	end = memccpy(ttn->macroname, typebuf, '\0', sizeof(ttn->macroname));
+	if (end == NULL) {
+		fprintf(stderr, "Error:  type name %s is too long\n", typebuf);
+		exit(EXIT_FAILURE);
+	}
 
 	ttn->type = type;
-	c = strlen(ttn->macroname);
-	while (c > 0) {
-		if (ttn->macroname[c - 1] == '-') {
-			ttn->macroname[c - 1] = '_';
+	while (end > ttn->macroname) {
+		if (*end == '-') {
+			*end = '_';
 		}
-		c--;
+		end--;
 	}
 
 	if (attr == NULL) {
@@ -435,6 +434,7 @@ add(unsigned int rdclass, const char *classbuf, int type, const char *typebuf,
 	struct tt *tt, *oldtt;
 	struct cc *newcc;
 	struct cc *cc, *oldcc;
+	char *end = NULL;
 
 	INSIST(strlen(typebuf) < TYPECLASSBUF);
 	INSIST(strlen(classbuf) < TYPECLASSBUF);
@@ -451,17 +451,17 @@ add(unsigned int rdclass, const char *classbuf, int type, const char *typebuf,
 	newtt->rdclass = rdclass;
 	newtt->type = type;
 
-	strncpy(newtt->classbuf, classbuf, sizeof(newtt->classbuf));
-	newtt->classbuf[sizeof(newtt->classbuf) - 1] = '\0';
+	end = memccpy(newtt->classbuf, classbuf, '\0', sizeof(newtt->classbuf));
+	INSIST(end != NULL);
 
-	strncpy(newtt->typebuf, typebuf, sizeof(newtt->typebuf));
-	newtt->typebuf[sizeof(newtt->typebuf) - 1] = '\0';
+	end = memccpy(newtt->typebuf, typebuf, '\0', sizeof(newtt->typebuf));
+	INSIST(end != NULL);
 
 	if (strncmp(dirbuf, "./", 2) == 0) {
 		dirbuf += 2;
 	}
-	strncpy(newtt->dirbuf, dirbuf, sizeof(newtt->dirbuf));
-	newtt->dirbuf[sizeof(newtt->dirbuf) - 1] = '\0';
+	end = memccpy(newtt->dirbuf, dirbuf, '\0', sizeof(newtt->dirbuf));
+	INSIST(end != NULL);
 
 	tt = types;
 	oldtt = NULL;
