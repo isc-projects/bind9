@@ -57,7 +57,6 @@
 #define PORT	5300
 #define TIMEOUT 30
 
-static isc_mem_t *mctx = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
 static bool have_src = false;
 static isc_sockaddr_t srcaddr;
@@ -80,7 +79,7 @@ recvresponse(void *arg) {
 		exit(EXIT_FAILURE);
 	}
 
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
 			   &response);
 
 	result = dns_request_getresponse(request, response,
@@ -143,7 +142,7 @@ sendquery(void) {
 				   dns_rootname, 0);
 	CHECK("dns_name_fromtext", result);
 
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
 			   &message);
 
 	message->opcode = dns_opcode_query;
@@ -269,16 +268,16 @@ main(int argc, char *argv[]) {
 	}
 	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
-	isc_managers_create(&mctx, 1);
+	isc_managers_create(1);
 
-	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(isc_g_mctx, &dispatchmgr));
 
 	RUNCHECK(dns_dispatch_createudp(
 		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchv4));
-	RUNCHECK(dns_requestmgr_create(mctx, dispatchmgr, dispatchv4, NULL,
-				       &requestmgr));
+	RUNCHECK(dns_requestmgr_create(isc_g_mctx, dispatchmgr, dispatchv4,
+				       NULL, &requestmgr));
 
-	dns_view_create(mctx, NULL, 0, "_test", &view);
+	dns_view_create(isc_g_mctx, NULL, 0, "_test", &view);
 
 	isc_loopmgr_setup(sendqueries, NULL);
 	isc_loopmgr_teardown(teardown_view, view);
@@ -288,7 +287,7 @@ main(int argc, char *argv[]) {
 
 	isc_loopmgr_run();
 
-	isc_managers_destroy(&mctx);
+	isc_managers_destroy();
 
 	return 0;
 }

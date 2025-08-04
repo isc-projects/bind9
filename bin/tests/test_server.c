@@ -33,8 +33,6 @@ typedef enum { UDP, TCP, DOT, HTTPS, HTTP } protocol_t;
 
 static const char *protocols[] = { "udp", "tcp", "dot", "https", "http-plain" };
 
-static isc_mem_t *mctx = NULL;
-
 static protocol_t protocol;
 static in_port_t port;
 static isc_netaddr_t netaddr;
@@ -166,7 +164,7 @@ parse_options(int argc, char **argv) {
 
 static void
 setup(void) {
-	isc_managers_create(&mctx, workers);
+	isc_managers_create(workers);
 }
 
 static void
@@ -175,7 +173,7 @@ teardown(void) {
 		isc_tlsctx_free(&tls_ctx);
 	}
 
-	isc_managers_destroy(&mctx);
+	isc_managers_destroy();
 }
 
 static void
@@ -208,7 +206,7 @@ read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		((uint8_t *)region->base)[2] ^= 0x80;
 	}
 
-	reply = isc_mem_get(mctx, sizeof(isc_region_t) + region->length);
+	reply = isc_mem_get(isc_g_mctx, sizeof(isc_region_t) + region->length);
 	reply->length = region->length;
 	reply->base = (uint8_t *)reply + sizeof(isc_region_t);
 	memmove(reply->base, region->base, region->length);
@@ -224,7 +222,7 @@ send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	REQUIRE(handle != NULL);
 	REQUIRE(eresult == ISC_R_SUCCESS);
 
-	isc_mem_put(mctx, cbarg, sizeof(isc_region_t) + reply->length);
+	isc_mem_put(isc_g_mctx, cbarg, sizeof(isc_region_t) + reply->length);
 }
 
 static isc_result_t
@@ -267,7 +265,7 @@ run(void) {
 		if (is_https) {
 			isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 		}
-		eps = isc_nm_http_endpoints_new(mctx);
+		eps = isc_nm_http_endpoints_new(isc_g_mctx);
 		result = isc_nm_http_endpoints_add(
 			eps, ISC_NM_HTTP_DEFAULT_PATH, read_cb, NULL);
 

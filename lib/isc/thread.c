@@ -48,7 +48,7 @@ static struct call_rcu_data *isc__thread_call_rcu_data = NULL;
 
 /*
  * We can't use isc_mem API here, because it's called too early and the
- * isc_mem_debugging flags can be changed later causing mismatch between flags
+ * memory debugging flags can be changed later causing mismatch between flags
  * used for isc_mem_get() and isc_mem_put().
  */
 

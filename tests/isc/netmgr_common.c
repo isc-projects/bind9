@@ -175,7 +175,7 @@ setup_netmgr_test(void **state) {
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 
 	setup_loopmgr(state);
-	isc_netmgr_create(mctx);
+	isc_netmgr_create(isc_g_mctx);
 	isc_nm_setinitialtimeout(T_INIT);
 	isc_nm_setprimariestimeout(T_PRIMARIES);
 	isc_nm_setidletimeout(T_IDLE);
@@ -200,7 +200,7 @@ setup_netmgr_test(void **state) {
 	isc_tlsctx_enable_dot_client_alpn(tcp_connect_tlsctx);
 
 	isc_tlsctx_client_session_cache_create(
-		mctx, tcp_connect_tlsctx,
+		isc_g_mctx, tcp_connect_tlsctx,
 		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
 		&tcp_tlsctx_client_sess_cache);
 

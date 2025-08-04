@@ -32,7 +32,6 @@
 
 #include <tests/isc.h>
 
-isc_mem_t *mctx = NULL;
 unsigned int workers = 0;
 bool debug = false;
 
@@ -68,26 +67,23 @@ setup_workers(void **state ISC_ATTR_UNUSED) {
 
 int
 setup_mctx(void **state ISC_ATTR_UNUSED) {
-	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	isc_mem_create("test", &mctx);
+	isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 
 	return 0;
 }
 
 int
 teardown_mctx(void **state ISC_ATTR_UNUSED) {
-	isc_mem_detach(&mctx);
-
 	return 0;
 }
 
 int
 setup_loopmgr(void **state ISC_ATTR_UNUSED) {
-	REQUIRE(mctx != NULL);
+	REQUIRE(isc_g_mctx != NULL);
 
 	setup_workers(state);
 
-	isc_loopmgr_create(mctx, workers);
+	isc_loopmgr_create(isc_g_mctx, workers);
 
 	return 0;
 }
@@ -103,7 +99,7 @@ int
 setup_netmgr(void **state ISC_ATTR_UNUSED) {
 	adjustnofile();
 
-	isc_netmgr_create(mctx);
+	isc_netmgr_create(isc_g_mctx);
 
 	return 0;
 }

@@ -99,7 +99,6 @@ in_port_t port = 53;
 bool port_set = false;
 unsigned int timeout = 0;
 unsigned int extrabytes;
-isc_mem_t *mctx = NULL;
 isc_loop_t *mainloop = NULL;
 isc_sockaddr_t localaddr;
 isc_refcount_t sendcount = 0;
@@ -448,7 +447,7 @@ make_server(const char *servname, const char *userarg) {
 	REQUIRE(servname != NULL);
 
 	debug("make_server(%s)", servname);
-	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
+	srv = isc_mem_allocate(isc_g_mctx, sizeof(struct dig_server));
 	strlcpy(srv->servername, servname, MXNAME);
 	strlcpy(srv->userarg, userarg, MXNAME);
 	ISC_LINK_INIT(srv, link);
@@ -502,7 +501,7 @@ flush_server_list(void) {
 	debug("flush_server_list()");
 	ISC_LIST_FOREACH (server_list, s, link) {
 		ISC_LIST_DEQUEUE(server_list, s, link);
-		isc_mem_free(mctx, s);
+		isc_mem_free(isc_g_mctx, s);
 	}
 }
 
@@ -577,7 +576,7 @@ make_empty_lookup(void) {
 
 	INSIST(!free_now);
 
-	looknew = isc_mem_allocate(mctx, sizeof(*looknew));
+	looknew = isc_mem_allocate(isc_g_mctx, sizeof(*looknew));
 	*looknew = (dig_lookup_t){
 		.pending = true,
 		.rdtype = dns_rdatatype_a,
@@ -608,7 +607,7 @@ make_empty_lookup(void) {
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
 
-	isc_tlsctx_cache_create(mctx, &looknew->tls_ctx_cache);
+	isc_tlsctx_cache_create(isc_g_mctx, &looknew->tls_ctx_cache);
 
 	isc_refcount_init(&looknew->references, 1);
 
@@ -626,7 +625,7 @@ static void
 cloneopts(dig_lookup_t *looknew, dig_lookup_t *lookold) {
 	size_t len = sizeof(looknew->ednsopts[0]) * EDNSOPT_OPTIONS;
 	size_t i;
-	looknew->ednsopts = isc_mem_allocate(mctx, len);
+	looknew->ednsopts = isc_mem_allocate(isc_g_mctx, len);
 	for (i = 0; i < EDNSOPT_OPTIONS; i++) {
 		looknew->ednsopts[i].code = 0;
 		looknew->ednsopts[i].length = 0;
@@ -641,8 +640,8 @@ cloneopts(dig_lookup_t *looknew, dig_lookup_t *lookold) {
 		len = lookold->ednsopts[i].length;
 		if (len != 0) {
 			INSIST(lookold->ednsopts[i].value != NULL);
-			looknew->ednsopts[i].value = isc_mem_allocate(mctx,
-								      len);
+			looknew->ednsopts[i].value =
+				isc_mem_allocate(isc_g_mctx, len);
 			memmove(looknew->ednsopts[i].value,
 				lookold->ednsopts[i].value, len);
 		}
@@ -696,32 +695,33 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->header_only = lookold->header_only;
 	looknew->https_mode = lookold->https_mode;
 	if (lookold->https_path != NULL) {
-		looknew->https_path = isc_mem_strdup(mctx, lookold->https_path);
+		looknew->https_path = isc_mem_strdup(isc_g_mctx,
+						     lookold->https_path);
 	}
 	looknew->https_get = lookold->https_get;
 	looknew->http_plain = lookold->http_plain;
 
 	looknew->tls_ca_set = lookold->tls_ca_set;
 	if (lookold->tls_ca_file != NULL) {
-		looknew->tls_ca_file = isc_mem_strdup(mctx,
+		looknew->tls_ca_file = isc_mem_strdup(isc_g_mctx,
 						      lookold->tls_ca_file);
 	};
 
 	looknew->tls_hostname_set = lookold->tls_hostname_set;
 	if (lookold->tls_hostname != NULL) {
-		looknew->tls_hostname = isc_mem_strdup(mctx,
+		looknew->tls_hostname = isc_mem_strdup(isc_g_mctx,
 						       lookold->tls_hostname);
 	}
 
 	looknew->tls_key_file_set = lookold->tls_key_file_set;
 	if (lookold->tls_key_file != NULL) {
-		looknew->tls_key_file = isc_mem_strdup(mctx,
+		looknew->tls_key_file = isc_mem_strdup(isc_g_mctx,
 						       lookold->tls_key_file);
 	}
 
 	looknew->tls_cert_file_set = lookold->tls_cert_file_set;
 	if (lookold->tls_cert_file != NULL) {
-		looknew->tls_cert_file = isc_mem_strdup(mctx,
+		looknew->tls_cert_file = isc_mem_strdup(isc_g_mctx,
 							lookold->tls_cert_file);
 	}
 
@@ -790,7 +790,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->proxy_dst_addr = lookold->proxy_dst_addr;
 
 	if (lookold->ecs_addr != NULL) {
-		looknew->ecs_addr = isc_mem_get(mctx,
+		looknew->ecs_addr = isc_mem_get(isc_g_mctx,
 						sizeof(*looknew->ecs_addr));
 		memmove(looknew->ecs_addr, lookold->ecs_addr,
 			sizeof(*looknew->ecs_addr));
@@ -856,10 +856,10 @@ setup_text_key(void) {
 	unsigned char *secretstore;
 
 	debug("setup_text_key()");
-	isc_buffer_allocate(mctx, &namebuf, MXNAME);
+	isc_buffer_allocate(isc_g_mctx, &namebuf, MXNAME);
 	isc_buffer_putstr(namebuf, keynametext);
 	secretsize = (unsigned int)strlen(keysecret) * 3 / 4;
-	secretstore = isc_mem_allocate(mctx, secretsize);
+	secretstore = isc_mem_allocate(isc_g_mctx, secretsize);
 	isc_buffer_init(&secretbuf, secretstore, secretsize);
 	result = isc_base64_decodestring(keysecret, &secretbuf);
 	if (result != ISC_R_SUCCESS) {
@@ -879,7 +879,7 @@ setup_text_key(void) {
 	}
 
 	result = dns_tsigkey_create(keyname, hmac_alg, secretstore,
-				    (int)secretsize, mctx, &tsigkey);
+				    (int)secretsize, isc_g_mctx, &tsigkey);
 failure:
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n", keynametext,
@@ -888,7 +888,7 @@ failure:
 		dst_key_setbits(tsigkey->key, digestbits);
 	}
 
-	isc_mem_free(mctx, secretstore);
+	isc_mem_free(isc_g_mctx, secretstore);
 	isc_buffer_free(&namebuf);
 }
 
@@ -950,7 +950,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 		fatal("invalid prefix '%s'\n", value);
 	}
 
-	sa = isc_mem_get(mctx, sizeof(*sa));
+	sa = isc_mem_get(isc_g_mctx, sizeof(*sa));
 	*sa = (isc_sockaddr_t){ .length = 0 };
 
 	if (strcmp(buf, "0") == 0) {
@@ -1086,7 +1086,7 @@ read_confkey(void) {
 		return ISC_R_FILENOTFOUND;
 	}
 
-	result = cfg_parser_create(mctx, &pctx);
+	result = cfg_parser_create(isc_g_mctx, &pctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1139,8 +1139,9 @@ setup_file_key(void) {
 	}
 
 	/* Try reading the key from a K* pair */
-	result = dst_key_fromnamedfile(
-		keyfile, NULL, DST_TYPE_PRIVATE | DST_TYPE_KEY, mctx, &dstkey);
+	result = dst_key_fromnamedfile(keyfile, NULL,
+				       DST_TYPE_PRIVATE | DST_TYPE_KEY,
+				       isc_g_mctx, &dstkey);
 
 	/* If that didn't work, try reading it as a session.key keyfile */
 	if (result != ISC_R_SUCCESS) {
@@ -1174,7 +1175,7 @@ setup_file_key(void) {
 	if (dstkey != NULL) {
 		result = dns_tsigkey_createfromkey(
 			dst_key_name(dstkey), hmac_alg, dstkey, false, false,
-			NULL, 0, 0, mctx, &tsigkey);
+			NULL, 0, 0, isc_g_mctx, &tsigkey);
 		if (result != ISC_R_SUCCESS) {
 			printf(";; Couldn't create key %s: %s\n", keynametext,
 			       isc_result_totext(result));
@@ -1190,7 +1191,7 @@ failure:
 static dig_searchlist_t *
 make_searchlist_entry(char *domain) {
 	dig_searchlist_t *search;
-	search = isc_mem_allocate(mctx, sizeof(*search));
+	search = isc_mem_allocate(isc_g_mctx, sizeof(*search));
 	strlcpy(search->origin, domain, MXNAME);
 	search->origin[MXNAME - 1] = 0;
 	ISC_LINK_INIT(search, link);
@@ -1201,7 +1202,7 @@ static void
 clear_searchlist(void) {
 	ISC_LIST_FOREACH (search_list, search, link) {
 		ISC_LIST_UNLINK(search_list, search, link);
-		isc_mem_free(mctx, search);
+		isc_mem_free(isc_g_mctx, search);
 	}
 }
 
@@ -1259,7 +1260,7 @@ setup_system(bool ipv4only, bool ipv6only) {
 		}
 	}
 
-	result = irs_resconf_load(mctx, RESOLV_CONF, &resconf);
+	result = irs_resconf_load(isc_g_mctx, RESOLV_CONF, &resconf);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 		fatal("parse of %s failed", RESOLV_CONF);
 	}
@@ -1344,7 +1345,7 @@ setup_libs(int argc, char **argv) {
 		fatal("can't find either v4 or v6 networking");
 	}
 
-	isc_managers_create(&mctx, 1);
+	isc_managers_create(1);
 
 	logconfig = isc_logconfig_get();
 	isc_log_createandusechannel(logconfig, "debug", ISC_LOG_TOFILEDESC,
@@ -1421,7 +1422,8 @@ save_opt(dig_lookup_t *lookup, char *code, char *value) {
 	INSIST(lookup->ednsopts != NULL);
 
 	if (lookup->ednsopts[lookup->ednsoptscnt].value != NULL) {
-		isc_mem_free(mctx, lookup->ednsopts[lookup->ednsoptscnt].value);
+		isc_mem_free(isc_g_mctx,
+			     lookup->ednsopts[lookup->ednsoptscnt].value);
 	}
 
 	lookup->ednsopts[lookup->ednsoptscnt].code = num;
@@ -1430,7 +1432,7 @@ save_opt(dig_lookup_t *lookup, char *code, char *value) {
 
 	if (value != NULL) {
 		char *buf;
-		buf = isc_mem_allocate(mctx, strlen(value) / 2 + 1);
+		buf = isc_mem_allocate(isc_g_mctx, strlen(value) / 2 + 1);
 		isc_buffer_init(&b, buf, (unsigned int)strlen(value) / 2 + 1);
 		result = isc_hex_decodestring(value, &b);
 		check_result(result, "isc_hex_decodestring");
@@ -1541,7 +1543,7 @@ _destroy_lookup(dig_lookup_t *lookup) {
 	ISC_LIST_FOREACH (lookup->my_server_list, s, link) {
 		debug("freeing server %p belonging to %p", s, lookup);
 		ISC_LIST_DEQUEUE(lookup->my_server_list, s, link);
-		isc_mem_free(mctx, s);
+		isc_mem_free(isc_g_mctx, s);
 	}
 	if (lookup->sendmsg != NULL) {
 		dns_message_detach(&lookup->sendmsg);
@@ -1551,7 +1553,7 @@ _destroy_lookup(dig_lookup_t *lookup) {
 		isc_buffer_free(&lookup->querysig);
 	}
 	if (lookup->sendspace != NULL) {
-		isc_mem_put(mctx, lookup->sendspace, COMMSIZE);
+		isc_mem_put(isc_g_mctx, lookup->sendspace, COMMSIZE);
 	}
 
 	if (lookup->tsigctx != NULL) {
@@ -1559,21 +1561,23 @@ _destroy_lookup(dig_lookup_t *lookup) {
 	}
 
 	if (lookup->ecs_addr != NULL) {
-		isc_mem_put(mctx, lookup->ecs_addr, sizeof(*lookup->ecs_addr));
+		isc_mem_put(isc_g_mctx, lookup->ecs_addr,
+			    sizeof(*lookup->ecs_addr));
 	}
 
 	if (lookup->ednsopts != NULL) {
 		size_t i;
 		for (i = 0; i < EDNSOPT_OPTIONS; i++) {
 			if (lookup->ednsopts[i].value != NULL) {
-				isc_mem_free(mctx, lookup->ednsopts[i].value);
+				isc_mem_free(isc_g_mctx,
+					     lookup->ednsopts[i].value);
 			}
 		}
-		isc_mem_free(mctx, lookup->ednsopts);
+		isc_mem_free(isc_g_mctx, lookup->ednsopts);
 	}
 
 	if (lookup->https_path) {
-		isc_mem_free(mctx, lookup->https_path);
+		isc_mem_free(isc_g_mctx, lookup->https_path);
 	}
 
 	if (lookup->tls_ctx_cache != NULL) {
@@ -1581,22 +1585,22 @@ _destroy_lookup(dig_lookup_t *lookup) {
 	}
 
 	if (lookup->tls_ca_file != NULL) {
-		isc_mem_free(mctx, lookup->tls_ca_file);
+		isc_mem_free(isc_g_mctx, lookup->tls_ca_file);
 	}
 
 	if (lookup->tls_hostname != NULL) {
-		isc_mem_free(mctx, lookup->tls_hostname);
+		isc_mem_free(isc_g_mctx, lookup->tls_hostname);
 	}
 
 	if (lookup->tls_key_file != NULL) {
-		isc_mem_free(mctx, lookup->tls_key_file);
+		isc_mem_free(isc_g_mctx, lookup->tls_key_file);
 	}
 
 	if (lookup->tls_cert_file != NULL) {
-		isc_mem_free(mctx, lookup->tls_cert_file);
+		isc_mem_free(isc_g_mctx, lookup->tls_cert_file);
 	}
 
-	isc_mem_free(mctx, lookup);
+	isc_mem_free(isc_g_mctx, lookup);
 }
 
 #define lookup_attach(s, t) _lookup_attach(s, t, __FILE__, __LINE__)
@@ -1657,11 +1661,11 @@ destroy_query(dig_query_t *query, const char *file, unsigned int line) {
 
 	INSIST(query->recvspace != NULL);
 
-	isc_mem_put(mctx, query->recvspace, COMMSIZE);
-	isc_mem_put(mctx, query->tmpsendspace, COMMSIZE);
+	isc_mem_put(isc_g_mctx, query->recvspace, COMMSIZE);
+	isc_mem_put(isc_g_mctx, query->tmpsendspace, COMMSIZE);
 
 	query->magic = 0;
-	isc_mem_free(mctx, query);
+	isc_mem_free(isc_g_mctx, query);
 }
 
 #define query_attach(s, t) _query_attach(s, t, __FILE__, __LINE__)
@@ -2033,7 +2037,7 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_name_t *soaname = NULL;
 
 	debug("insert_soa()");
-	soa.mctx = mctx;
+	soa.mctx = isc_g_mctx;
 	soa.serial = lookup->ixfr_serial;
 	soa.refresh = 0;
 	soa.retry = 0;
@@ -2087,14 +2091,15 @@ _new_query(dig_lookup_t *lookup, char *servname, char *userarg,
 	   const char *file, unsigned int line) {
 	dig_query_t *query = NULL;
 
-	query = isc_mem_allocate(mctx, sizeof(dig_query_t));
+	query = isc_mem_allocate(isc_g_mctx, sizeof(dig_query_t));
 	debug("create query %p linked to lookup %p", query, lookup);
 	*query = (dig_query_t){ .sendbuf = lookup->renderbuf,
 				.servname = servname,
 				.userarg = userarg,
 				.warn_id = true,
-				.recvspace = isc_mem_get(mctx, COMMSIZE),
-				.tmpsendspace = isc_mem_get(mctx, COMMSIZE) };
+				.recvspace = isc_mem_get(isc_g_mctx, COMMSIZE),
+				.tmpsendspace = isc_mem_get(isc_g_mctx,
+							    COMMSIZE) };
 
 	lookup_attach(lookup, &query->lookup);
 
@@ -2148,7 +2153,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	debug("setup_lookup(%p)", lookup);
 
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
 			   &lookup->sendmsg);
 
 	if (lookup->new_search) {
@@ -2386,9 +2391,9 @@ setup_lookup(dig_lookup_t *lookup) {
 		lookup->sendmsg->fuzztime = lookup->fuzztime;
 	}
 
-	lookup->sendspace = isc_mem_get(mctx, COMMSIZE);
+	lookup->sendspace = isc_mem_get(isc_g_mctx, COMMSIZE);
 
-	dns_compress_init(&cctx, mctx, 0);
+	dns_compress_init(&cctx, isc_g_mctx, 0);
 
 	debug("starting to render the message");
 	isc_buffer_init(&lookup->renderbuf, lookup->sendspace, COMMSIZE);
@@ -2836,7 +2841,8 @@ get_create_tls_context(dig_query_t *query, const bool is_https,
 #endif /* HAVE_LIBNGHTTP2 */
 
 		isc_tlsctx_client_session_cache_create(
-			mctx, ctx, ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
+			isc_g_mctx, ctx,
+			ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
 			&sess_cache);
 
 		result = isc_tlsctx_cache_add(
@@ -4132,13 +4138,14 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		goto keep_query;
 	}
 
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &msg);
 
 	if (tsigkey != NULL) {
 		if (l->querysig == NULL) {
 			debug("getting initial querysig");
-			result = dns_message_getquerytsig(l->sendmsg, mctx,
-							  &l->querysig);
+			result = dns_message_getquerytsig(
+				l->sendmsg, isc_g_mctx, &l->querysig);
 			check_result(result, "dns_message_getquerytsig");
 		}
 		dns_message_setquerytsig(msg, l->querysig);
@@ -4361,7 +4368,8 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			debug("freeing querysig buffer %p", l->querysig);
 			isc_buffer_free(&l->querysig);
 		}
-		result = dns_message_getquerytsig(msg, mctx, &l->querysig);
+		result = dns_message_getquerytsig(msg, isc_g_mctx,
+						  &l->querysig);
 		check_result(result, "dns_message_getquerytsig");
 	}
 
@@ -4704,10 +4712,10 @@ destroy_libs(void) {
 
 	debug("Destroy memory");
 	if (memdebugging != 0) {
-		isc_mem_stats(mctx, stderr);
+		isc_mem_stats(isc_g_mctx, stderr);
 	}
 
-	isc_managers_destroy(&mctx);
+	isc_managers_destroy();
 
 #if ENABLE_LEAK_DETECTION
 	isc__crypto_setdestroycheck(true);

@@ -34,9 +34,7 @@
 
 /* INCLUDE LAST */
 
-#define mctx __mctx
 #include "ht.c"
-#undef mctx
 
 static void
 test_ht_full(uint8_t init_bits, uintptr_t count) {
@@ -44,7 +42,7 @@ test_ht_full(uint8_t init_bits, uintptr_t count) {
 	isc_result_t result;
 	uintptr_t i;
 
-	isc_ht_init(&ht, mctx, init_bits, ISC_HT_CASE_SENSITIVE);
+	isc_ht_init(&ht, isc_g_mctx, init_bits, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 
 	for (i = 1; i < count; i++) {
@@ -189,7 +187,7 @@ test_ht_iterator(void) {
 	unsigned char key[16];
 	size_t tksize;
 
-	isc_ht_init(&ht, mctx, HT_MIN_BITS, ISC_HT_CASE_SENSITIVE);
+	isc_ht_init(&ht, isc_g_mctx, HT_MIN_BITS, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
 		/*
@@ -341,7 +339,7 @@ ISC_RUN_TEST_IMPL(isc_ht_case) {
 	unsigned char upper[16] = { "TEST CASE" };
 	unsigned char mixed[16] = { "tEsT CaSe" };
 
-	isc_ht_init(&ht, mctx, 8, ISC_HT_CASE_SENSITIVE);
+	isc_ht_init(&ht, isc_g_mctx, 8, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 
 	result = isc_ht_add(ht, lower, 16, (void *)lower);
@@ -360,7 +358,7 @@ ISC_RUN_TEST_IMPL(isc_ht_case) {
 	isc_ht_destroy(&ht);
 	assert_null(ht);
 
-	isc_ht_init(&ht, mctx, 8, ISC_HT_CASE_INSENSITIVE);
+	isc_ht_init(&ht, isc_g_mctx, 8, ISC_HT_CASE_INSENSITIVE);
 	assert_non_null(ht);
 
 	result = isc_ht_add(ht, lower, 16, (void *)lower);

@@ -52,15 +52,15 @@ ISC_RUN_TEST_IMPL(dns_acl_isinsecure) {
 
 	UNUSED(state);
 
-	result = dns_acl_any(mctx, &any);
+	result = dns_acl_any(isc_g_mctx, &any);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_acl_none(mctx, &none);
+	result = dns_acl_none(isc_g_mctx, &none);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	dns_acl_create(mctx, 1, &notnone);
+	dns_acl_create(isc_g_mctx, 1, &notnone);
 
-	dns_acl_create(mctx, 1, &notany);
+	dns_acl_create(isc_g_mctx, 1, &notany);
 
 	result = dns_acl_merge(notnone, none, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -69,7 +69,7 @@ ISC_RUN_TEST_IMPL(dns_acl_isinsecure) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 #if defined(HAVE_GEOIP2)
-	dns_acl_create(mctx, 1, &geoip);
+	dns_acl_create(isc_g_mctx, 1, &geoip);
 
 	de = geoip->elements;
 	assert_non_null(de);
@@ -83,7 +83,7 @@ ISC_RUN_TEST_IMPL(dns_acl_isinsecure) {
 	de->node_num = dns_acl_node_count(geoip);
 	geoip->length++;
 
-	dns_acl_create(mctx, 1, &notgeoip);
+	dns_acl_create(isc_g_mctx, 1, &notgeoip);
 
 	result = dns_acl_merge(notgeoip, geoip, false);
 	assert_int_equal(result, ISC_R_SUCCESS);

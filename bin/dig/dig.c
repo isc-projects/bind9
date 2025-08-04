@@ -707,13 +707,16 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	    (query->lookup->nottl && query->lookup->noclass))
 	{
 		result = dns_master_stylecreate(&style, styleflags, 24, 24, 24,
-						32, 80, 8, splitwidth, mctx);
+						32, 80, 8, splitwidth,
+						isc_g_mctx);
 	} else if (query->lookup->nottl || query->lookup->noclass) {
 		result = dns_master_stylecreate(&style, styleflags, 24, 24, 32,
-						40, 80, 8, splitwidth, mctx);
+						40, 80, 8, splitwidth,
+						isc_g_mctx);
 	} else {
 		result = dns_master_stylecreate(&style, styleflags, 24, 32, 40,
-						48, 80, 8, splitwidth, mctx);
+						48, 80, 8, splitwidth,
+						isc_g_mctx);
 	}
 	check_result(result, "dns_master_stylecreate");
 
@@ -744,7 +747,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
 	}
 
-	isc_buffer_allocate(mctx, &buf, len);
+	isc_buffer_allocate(isc_g_mctx, &buf, len);
 
 	if (yaml) {
 		enum { Q = 0x1, R = 0x2 }; /* Q:query; R:ecursive */
@@ -936,7 +939,7 @@ repopulate_buffer:
 		buftoosmall:
 			len += OUTPUTBUF;
 			isc_buffer_free(&buf);
-			isc_buffer_allocate(mctx, &buf, len);
+			isc_buffer_allocate(isc_g_mctx, &buf, len);
 			goto repopulate_buffer;
 		}
 		check_result(result, "dns_message_pseudosectiontotext");
@@ -1025,7 +1028,7 @@ repopulate_buffer:
 	isc_buffer_free(&buf);
 
 	if (style != NULL) {
-		dns_master_styledestroy(&style, mctx);
+		dns_master_styledestroy(&style, isc_g_mctx);
 	}
 
 	dig_idnsetup(query->lookup, false);
@@ -1440,8 +1443,8 @@ plus_tls_options(const char *cmd, const char *value, const bool state,
 				FULLCHECK("tls-ca");
 				lookup->tls_ca_set = state;
 				if (state && value != NULL) {
-					lookup->tls_ca_file =
-						isc_mem_strdup(mctx, value);
+					lookup->tls_ca_file = isc_mem_strdup(
+						isc_g_mctx, value);
 				}
 				break;
 			case 'e':
@@ -1450,8 +1453,9 @@ plus_tls_options(const char *cmd, const char *value, const bool state,
 				if (state) {
 					if (value != NULL && *value != '\0') {
 						lookup->tls_cert_file =
-							isc_mem_strdup(mctx,
-								       value);
+							isc_mem_strdup(
+								isc_g_mctx,
+								value);
 					} else {
 						fprintf(stderr,
 							";; TLS certificate "
@@ -1470,8 +1474,8 @@ plus_tls_options(const char *cmd, const char *value, const bool state,
 			lookup->tls_hostname_set = state;
 			if (state) {
 				if (value != NULL && *value != '\0') {
-					lookup->tls_hostname =
-						isc_mem_strdup(mctx, value);
+					lookup->tls_hostname = isc_mem_strdup(
+						isc_g_mctx, value);
 				} else {
 					fprintf(stderr, ";; TLS hostname is "
 							"not specified\n");
@@ -1484,8 +1488,8 @@ plus_tls_options(const char *cmd, const char *value, const bool state,
 			lookup->tls_key_file_set = state;
 			if (state) {
 				if (value != NULL && *value != '\0') {
-					lookup->tls_key_file =
-						isc_mem_strdup(mctx, value);
+					lookup->tls_key_file = isc_mem_strdup(
+						isc_g_mctx, value);
 				} else {
 					fprintf(stderr,
 						";; TLS private key file is "
@@ -1920,7 +1924,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				   "http-plain-post");
 #if HAVE_LIBNGHTTP2
 			if (lookup->https_path != NULL) {
-				isc_mem_free(mctx, lookup->https_path);
+				isc_mem_free(isc_g_mctx, lookup->https_path);
 				lookup->https_path = NULL;
 			}
 			if (!state) {
@@ -1973,7 +1977,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			}
 			if (value == NULL) {
 				lookup->https_path = isc_mem_strdup(
-					mctx, ISC_NM_HTTP_DEFAULT_PATH);
+					isc_g_mctx, ISC_NM_HTTP_DEFAULT_PATH);
 			} else {
 				if (!isc_nm_http_path_isvalid(value)) {
 					fprintf(stderr,
@@ -1983,7 +1987,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 						value);
 					goto invalid_option;
 				}
-				lookup->https_path = isc_mem_strdup(mctx,
+				lookup->https_path = isc_mem_strdup(isc_g_mctx,
 								    value);
 			}
 #else
@@ -2387,7 +2391,8 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			}
 			if (!state) {
 				if (lookup->ecs_addr != NULL) {
-					isc_mem_put(mctx, lookup->ecs_addr,
+					isc_mem_put(isc_g_mctx,
+						    lookup->ecs_addr,
 						    sizeof(*lookup->ecs_addr));
 					lookup->ecs_addr = NULL;
 				}
@@ -2397,7 +2402,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				lookup->edns = DEFAULT_EDNS_VERSION;
 			}
 			if (lookup->ecs_addr != NULL) {
-				isc_mem_put(mctx, lookup->ecs_addr,
+				isc_mem_put(isc_g_mctx, lookup->ecs_addr,
 					    sizeof(*lookup->ecs_addr));
 				lookup->ecs_addr = NULL;
 			}
@@ -2955,8 +2960,8 @@ preparse_args(int argc, char **argv) {
 				break;
 			case 'm':
 				memdebugging = true;
-				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
-						    ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE |
+						ISC_MEM_DEBUGRECORD);
 				break;
 			case 'r':
 				/*

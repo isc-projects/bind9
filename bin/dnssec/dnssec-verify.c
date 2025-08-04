@@ -64,7 +64,6 @@
 #include "dnssectool.h"
 
 static isc_stdtime_t now;
-static isc_mem_t *mctx = NULL;
 static dns_masterformat_t inputformat = dns_masterformat_text;
 static dns_db_t *gdb = NULL;		 /* The database */
 static dns_dbversion_t *gversion = NULL; /* The database version */
@@ -108,8 +107,8 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 		      isc_result_totext(result));
 	}
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, name, dns_dbtype_zone,
-			       rdclass, 0, NULL, db);
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, name,
+			       dns_dbtype_zone, rdclass, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*db, file, inputformat, 0);
@@ -185,15 +184,15 @@ main(int argc, char *argv[]) {
 		case 'm':
 			if (strcasecmp(isc_commandline_argument, "record") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			}
 			if (strcasecmp(isc_commandline_argument, "trace") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			}
 			if (strcasecmp(isc_commandline_argument, "usage") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+				isc_mem_debugon(ISC_MEM_DEBUGUSAGE);
 			}
 			break;
 		default:
@@ -201,8 +200,6 @@ main(int argc, char *argv[]) {
 		}
 	}
 	isc_commandline_reset = true;
-
-	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -314,7 +311,7 @@ main(int argc, char *argv[]) {
 	report("Loading zone '%s' from file '%s'\n", origin, file);
 	loadzone(file, origin, rdclass, &gdb);
 	if (journal != NULL) {
-		loadjournal(mctx, gdb, journal);
+		loadjournal(isc_g_mctx, gdb, journal);
 	}
 	gorigin = dns_db_origin(gdb);
 	gclass = dns_db_class(gdb);
@@ -323,16 +320,16 @@ main(int argc, char *argv[]) {
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
 
-	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, NULL, mctx,
-				       ignore_kskflag, keyset_kskonly, report);
+	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, NULL,
+				       isc_g_mctx, ignore_kskflag,
+				       keyset_kskonly, report);
 
 	dns_db_closeversion(gdb, &gversion, false);
 	dns_db_detach(&gdb);
 
 	if (verbose > 10) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
-	isc_mem_detach(&mctx);
 
 	return result == ISC_R_SUCCESS ? 0 : 1;
 }

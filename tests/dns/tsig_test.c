@@ -90,7 +90,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target,
 
 	memset(&tsig, 0, sizeof(tsig));
 
-	dns_compress_init(&cctx, mctx, 0);
+	dns_compress_init(&cctx, isc_g_mctx, 0);
 
 	tsig.common.rdclass = dns_rdataclass_any;
 	tsig.common.rdtype = dns_rdatatype_tsig;
@@ -111,7 +111,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target,
 	CHECK(dst_context_adddata(tsigctx, &r));
 
 	CHECK(dst_key_sigsize(key->key, &sigsize));
-	tsig.signature = isc_mem_get(mctx, sigsize);
+	tsig.signature = isc_mem_get(isc_g_mctx, sigsize);
 	isc_buffer_init(&sigbuf, tsig.signature, sigsize);
 	CHECK(dst_context_sign(tsigctx, &sigbuf));
 	tsig.siglen = isc_buffer_usedlength(&sigbuf);
@@ -120,7 +120,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target,
 		isc_random_buf(tsig.signature, tsig.siglen);
 	}
 
-	isc_buffer_allocate(mctx, &dynbuf, 512);
+	isc_buffer_allocate(isc_g_mctx, &dynbuf, 512);
 	CHECK(dns_rdata_fromstruct(&rdata, dns_rdataclass_any,
 				   dns_rdatatype_tsig, &tsig, dynbuf));
 	dns_rdatalist_init(&rdatalist);
@@ -141,7 +141,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target,
 	}
 cleanup:
 	if (tsig.signature != NULL) {
-		isc_mem_put(mctx, tsig.signature, sigsize);
+		isc_mem_put(isc_g_mctx, tsig.signature, sigsize);
 	}
 	if (dynbuf != NULL) {
 		isc_buffer_free(&dynbuf);
@@ -163,13 +163,13 @@ printmessage(dns_message_t *msg) {
 	}
 
 	do {
-		buf = isc_mem_get(mctx, len);
+		buf = isc_mem_get(isc_g_mctx, len);
 
 		isc_buffer_init(&b, buf, len);
 		result = dns_message_totext(msg, &dns_master_style_debug, 0,
 					    &b);
 		if (result == ISC_R_NOSPACE) {
-			isc_mem_put(mctx, buf, len);
+			isc_mem_put(isc_g_mctx, buf, len);
 			len *= 2;
 		} else if (result == ISC_R_SUCCESS) {
 			printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
@@ -177,7 +177,7 @@ printmessage(dns_message_t *msg) {
 	} while (result == ISC_R_NOSPACE);
 
 	if (buf != NULL) {
-		isc_mem_put(mctx, buf, len);
+		isc_mem_put(isc_g_mctx, buf, len);
 	}
 }
 
@@ -188,7 +188,8 @@ render(isc_buffer_t *buf, unsigned int flags, dns_tsigkey_t *key,
 	dns_compress_t cctx;
 	isc_result_t result;
 
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER, &msg);
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
+			   &msg);
 	assert_non_null(msg);
 
 	msg->id = 50;
@@ -214,7 +215,7 @@ render(isc_buffer_t *buf, unsigned int flags, dns_tsigkey_t *key,
 		dns_message_setquerytsig(msg, *tsigin);
 	}
 
-	dns_compress_init(&cctx, mctx, 0);
+	dns_compress_init(&cctx, isc_g_mctx, 0);
 
 	result = dns_message_renderbegin(msg, &cctx, buf);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -233,7 +234,7 @@ render(isc_buffer_t *buf, unsigned int flags, dns_tsigkey_t *key,
 			isc_buffer_free(tsigin);
 		}
 
-		result = dns_message_getquerytsig(msg, mctx, tsigout);
+		result = dns_message_getquerytsig(msg, isc_g_mctx, tsigout);
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
@@ -264,11 +265,11 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	result = dns_name_fromstring(keyname, "test", dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	dns_tsigkeyring_create(mctx, &ring);
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
 	assert_non_null(ring);
 
 	result = dns_tsigkey_create(keyname, DST_ALG_HMACSHA256, secret,
-				    sizeof(secret), mctx, &key);
+				    sizeof(secret), isc_g_mctx, &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_tsigkeyring_add(ring, key);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -277,21 +278,22 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	/*
 	 * Create request.
 	 */
-	isc_buffer_allocate(mctx, &buf, 65535);
+	isc_buffer_allocate(isc_g_mctx, &buf, 65535);
 	render(buf, 0, key, &tsigout, &querytsig, NULL);
 	isc_buffer_free(&buf);
 
 	/*
 	 * Create response message 1.
 	 */
-	isc_buffer_allocate(mctx, &buf, 65535);
+	isc_buffer_allocate(isc_g_mctx, &buf, 65535);
 	render(buf, DNS_MESSAGEFLAG_QR, key, &querytsig, &tsigout, NULL);
 	assert_non_null(tsigout);
 
 	/*
 	 * Process response message 1.
 	 */
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &msg);
 	assert_non_null(msg);
 
 	result = dns_message_settsigkey(msg, key);
@@ -314,7 +316,7 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	 */
 	assert_non_null(dns_message_gettsig(msg, &tsigowner));
 
-	result = dns_message_getquerytsig(msg, mctx, &tsigin);
+	result = dns_message_getquerytsig(msg, isc_g_mctx, &tsigin);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	tsigctx = msg->tsigctx;
@@ -322,8 +324,8 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	isc_buffer_free(&buf);
 	dns_message_detach(&msg);
 
-	result = dst_context_create(key->key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				    false, &outctx);
+	result = dst_context_create(key->key, isc_g_mctx,
+				    DNS_LOGCATEGORY_DNSSEC, false, &outctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(outctx);
 
@@ -336,7 +338,7 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	/*
 	 * Create response message 2.
 	 */
-	isc_buffer_allocate(mctx, &buf, 65535);
+	isc_buffer_allocate(isc_g_mctx, &buf, 65535);
 
 	assert_int_equal(result, ISC_R_SUCCESS);
 	render(buf, DNS_MESSAGEFLAG_QR, key, &tsigout, &tsigout, outctx);
@@ -344,7 +346,8 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	/*
 	 * Process response message 2.
 	 */
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &msg);
 	assert_non_null(msg);
 
 	msg->tcp_continuation = 1;
@@ -380,7 +383,7 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	/*
 	 * Create response message 3.
 	 */
-	isc_buffer_allocate(mctx, &buf, 65535);
+	isc_buffer_allocate(isc_g_mctx, &buf, 65535);
 	render(buf, DNS_MESSAGEFLAG_QR, key, &tsigout, &tsigout, outctx);
 
 	result = add_tsig(outctx, key, buf, now, mangle_sig);
@@ -389,7 +392,8 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 	/*
 	 * Process response message 3.
 	 */
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &msg);
 	assert_non_null(msg);
 
 	msg->tcp_continuation = 1;
@@ -431,7 +435,7 @@ tsig_tcp(isc_stdtime_t now, isc_result_t expected_result, bool mangle_sig) {
 		isc_buffer_free(&tsigin);
 	}
 
-	result = dns_message_getquerytsig(msg, mctx, &tsigin);
+	result = dns_message_getquerytsig(msg, isc_g_mctx, &tsigin);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_free(&buf);

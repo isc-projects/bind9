@@ -182,7 +182,7 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 
 	dns_name_format(name, namestr, sizeof(namestr));
 retry:
-	isc_buffer_allocate(mctx, &b, bufsize);
+	isc_buffer_allocate(isc_g_mctx, &b, bufsize);
 	result = dns_rdata_totext(rdata, NULL, b);
 	if (result == ISC_R_NOSPACE) {
 		isc_buffer_free(&b);
@@ -577,15 +577,15 @@ pre_parse_args(int argc, char **argv) {
 			memdebugging = true;
 			if (strcasecmp("trace", isc_commandline_argument) == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			} else if (strcasecmp("record",
 					      isc_commandline_argument) == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			} else if (strcasecmp("usage",
 					      isc_commandline_argument) == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+				isc_mem_debugon(ISC_MEM_DEBUGUSAGE);
 			}
 			break;
 

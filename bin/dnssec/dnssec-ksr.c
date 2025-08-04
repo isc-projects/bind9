@@ -38,10 +38,6 @@
 #include "dnssectool.h"
 
 /*
- * Infrastructure
- */
-static isc_mem_t *mctx = NULL;
-/*
  * The domain we are working on
  */
 static const char *namestr = NULL;
@@ -177,14 +173,14 @@ getkasp(ksr_ctx_t *ksr, dns_kasp_t **kasp) {
 	cfg_parser_t *parser = NULL;
 	cfg_obj_t *config = NULL;
 
-	RUNTIME_CHECK(cfg_parser_create(mctx, &parser) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(cfg_parser_create(isc_g_mctx, &parser) == ISC_R_SUCCESS);
 	if (cfg_parse_file(parser, ksr->configfile, &cfg_type_namedconf,
 			   &config) != ISC_R_SUCCESS)
 	{
 		fatal("unable to load dnssec-policy '%s' from '%s'",
 		      ksr->policy, ksr->configfile);
 	}
-	kasp_from_conf(config, mctx, ksr->policy, ksr->keydir, kasp);
+	kasp_from_conf(config, isc_g_mctx, ksr->policy, ksr->keydir, kasp);
 	if (*kasp == NULL) {
 		fatal("failed to load dnssec-policy '%s'", ksr->policy);
 	}
@@ -221,7 +217,7 @@ get_dnskeys(ksr_ctx_t *ksr, dns_dnsseckeylist_t *keys) {
 	ISC_LIST_INIT(*keys);
 	ISC_LIST_INIT(keys_read);
 	ret = dns_dnssec_findmatchingkeys(name, NULL, ksr->keydir, NULL,
-					  ksr->now, mctx, &keys_read);
+					  ksr->now, isc_g_mctx, &keys_read);
 	if (ret != ISC_R_SUCCESS && ret != ISC_R_NOTFOUND) {
 		fatal("failed to load existing keys from %s: %s", ksr->keydir,
 		      isc_result_totext(ret));
@@ -230,7 +226,7 @@ get_dnskeys(ksr_ctx_t *ksr, dns_dnsseckeylist_t *keys) {
 	ISC_LIST_FOREACH (keys_read, dk, link) {
 		n++;
 	}
-	keys_sorted = isc_mem_cget(mctx, n, sizeof(dns_dnsseckey_t *));
+	keys_sorted = isc_mem_cget(isc_g_mctx, n, sizeof(dns_dnsseckey_t *));
 	ISC_LIST_FOREACH (keys_read, dk, link) {
 		keys_sorted[i++] = dk;
 	}
@@ -243,7 +239,7 @@ get_dnskeys(ksr_ctx_t *ksr, dns_dnsseckeylist_t *keys) {
 		ISC_LIST_APPEND(*keys, keys_sorted[i], link);
 	}
 	INSIST(ISC_LIST_EMPTY(keys_read));
-	isc_mem_cput(mctx, keys_sorted, n, sizeof(dns_dnsseckey_t *));
+	isc_mem_cput(isc_g_mctx, keys_sorted, n, sizeof(dns_dnsseckey_t *));
 }
 
 static void
@@ -265,7 +261,7 @@ cleanup(dns_dnsseckeylist_t *keys, dns_kasp_t *kasp) {
 	ISC_LIST_FOREACH (*keys, key, link) {
 		ISC_LIST_UNLINK(*keys, key, link);
 		dst_key_free(&key->key);
-		dns_dnsseckey_destroy(mctx, &key);
+		dns_dnsseckey_destroy(isc_g_mctx, &key);
 	}
 	dns_kasp_detach(&kasp);
 
@@ -310,9 +306,9 @@ freerrset(dns_rdataset_t *rdataset) {
 
 	ISC_LIST_FOREACH (rdlist->rdata, rdata, link) {
 		ISC_LIST_UNLINK(rdlist->rdata, rdata, link);
-		isc_mem_put(mctx, rdata, sizeof(*rdata));
+		isc_mem_put(isc_g_mctx, rdata, sizeof(*rdata));
 	}
-	isc_mem_put(mctx, rdlist, sizeof(*rdlist));
+	isc_mem_put(isc_g_mctx, rdlist, sizeof(*rdlist));
 	dns_rdataset_disassociate(rdataset);
 }
 
@@ -429,19 +425,19 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 		if (ksr->keystore != NULL && ksr->policy != NULL) {
 			ret = dns_keystore_keygen(
 				ksr->keystore, name, ksr->policy,
-				dns_rdataclass_in, mctx, ksr->alg, ksr->size,
-				flags, &key);
+				dns_rdataclass_in, isc_g_mctx, ksr->alg,
+				ksr->size, flags, &key);
 		} else if (show_progress) {
 			ret = dst_key_generate(name, ksr->alg, ksr->size, 0,
 					       flags, DNS_KEYPROTO_DNSSEC,
-					       dns_rdataclass_in, NULL, mctx,
-					       &key, &progress);
+					       dns_rdataclass_in, NULL,
+					       isc_g_mctx, &key, &progress);
 			fflush(stderr);
 		} else {
 			ret = dst_key_generate(name, ksr->alg, ksr->size, 0,
 					       flags, DNS_KEYPROTO_DNSSEC,
-					       dns_rdataclass_in, NULL, mctx,
-					       &key, NULL);
+					       dns_rdataclass_in, NULL,
+					       isc_g_mctx, &key, NULL);
 		}
 
 		if (ret != ISC_R_SUCCESS) {
@@ -450,7 +446,7 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 		}
 
 		/* Do not overwrite an existing key. */
-		if (key_collision(key, name, ksr->keydir, mctx,
+		if (key_collision(key, name, ksr->keydir, isc_g_mctx,
 				  dns_kasp_key_tagmin(kaspkey),
 				  dns_kasp_key_tagmax(kaspkey), NULL))
 		{
@@ -561,7 +557,7 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 			  sizeof(algstr));
 
 	/* Fetch matching key pair. */
-	rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
+	rdatalist = isc_mem_get(isc_g_mctx, sizeof(*rdatalist));
 	dns_rdatalist_init(rdatalist);
 	rdatalist->rdclass = dns_rdataclass_in;
 	rdatalist->type = dns_rdatatype_dnskey;
@@ -596,12 +592,12 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 		isc_region_t r;
 		unsigned char rdatabuf[DST_KEY_MAXSIZE];
 
-		rdata = isc_mem_get(mctx, sizeof(*rdata));
+		rdata = isc_mem_get(isc_g_mctx, sizeof(*rdata));
 		dns_rdata_init(rdata);
 		isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
 		CHECK(dst_key_todns(dk->key, &buf));
 		isc_buffer_usedregion(&buf, &r);
-		isc_buffer_allocate(mctx, &newbuf, r.length);
+		isc_buffer_allocate(isc_g_mctx, &newbuf, r.length);
 		isc_buffer_putmem(newbuf, r.base, r.length);
 		isc_buffer_usedregion(newbuf, &r);
 		dns_rdata_fromregion(rdata, dns_rdataclass_in,
@@ -666,7 +662,7 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	print_rdata(rrset);
 
 	/* Signatures */
-	rrsiglist = isc_mem_get(mctx, sizeof(*rrsiglist));
+	rrsiglist = isc_mem_get(isc_g_mctx, sizeof(*rrsiglist));
 	dns_rdatalist_init(rrsiglist);
 	rrsiglist->rdclass = dns_rdataclass_in;
 	rrsiglist->type = dns_rdatatype_rrsig;
@@ -699,16 +695,16 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 			continue;
 		}
 
-		rrsig = isc_mem_get(mctx, sizeof(*rrsig));
+		rrsig = isc_mem_get(isc_g_mctx, sizeof(*rrsig));
 		dns_rdata_init(rrsig);
 		isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
 		ret = dns_dnssec_sign(name, rrset, dk->key, &clockskew,
-				      &expiration, mctx, &buf, &rdata);
+				      &expiration, isc_g_mctx, &buf, &rdata);
 		if (ret != ISC_R_SUCCESS) {
 			fatal("failed to sign KSR");
 		}
 		isc_buffer_usedregion(&buf, &rs);
-		isc_buffer_allocate(mctx, &newbuf, rs.length);
+		isc_buffer_allocate(isc_g_mctx, &newbuf, rs.length);
 		isc_buffer_putmem(newbuf, rs.base, rs.length);
 		isc_buffer_usedregion(newbuf, &rs);
 		dns_rdata_fromregion(rrsig, dns_rdataclass_in,
@@ -734,9 +730,11 @@ get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 		dns_rdataset_t *dnskeyset, dns_rdataset_t *cdnskeyset,
 		dns_rdataset_t *cdsset) {
 	dns_kasp_digestlist_t digests = dns_kasp_digests(kasp);
-	dns_rdatalist_t *dnskeylist = isc_mem_get(mctx, sizeof(*dnskeylist));
-	dns_rdatalist_t *cdnskeylist = isc_mem_get(mctx, sizeof(*cdnskeylist));
-	dns_rdatalist_t *cdslist = isc_mem_get(mctx, sizeof(*cdslist));
+	dns_rdatalist_t *dnskeylist = isc_mem_get(isc_g_mctx,
+						  sizeof(*dnskeylist));
+	dns_rdatalist_t *cdnskeylist = isc_mem_get(isc_g_mctx,
+						   sizeof(*cdnskeylist));
+	dns_rdatalist_t *cdslist = isc_mem_get(isc_g_mctx, sizeof(*cdslist));
 	isc_result_t ret = ISC_R_SUCCESS;
 	isc_stdtime_t next_bundle = next_inception;
 
@@ -782,13 +780,13 @@ get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 
 		if (published) {
 			newbuf = NULL;
-			rdata = isc_mem_get(mctx, sizeof(*rdata));
+			rdata = isc_mem_get(isc_g_mctx, sizeof(*rdata));
 			dns_rdata_init(rdata);
 
 			isc_buffer_init(&buf, kskbuf, sizeof(kskbuf));
 			CHECK(dst_key_todns(dk->key, &buf));
 			isc_buffer_usedregion(&buf, &r);
-			isc_buffer_allocate(mctx, &newbuf, r.length);
+			isc_buffer_allocate(isc_g_mctx, &newbuf, r.length);
 			isc_buffer_putmem(newbuf, r.base, r.length);
 			isc_buffer_usedregion(newbuf, &r);
 			dns_rdata_fromregion(rdata, dns_rdataclass_in,
@@ -826,13 +824,13 @@ get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 
 		/* CDNSKEY */
 		newbuf = NULL;
-		rdata = isc_mem_get(mctx, sizeof(*rdata));
+		rdata = isc_mem_get(isc_g_mctx, sizeof(*rdata));
 		dns_rdata_init(rdata);
 
 		isc_buffer_init(&buf, cdnskeybuf, sizeof(cdnskeybuf));
 		CHECK(dst_key_todns(dk->key, &buf));
 		isc_buffer_usedregion(&buf, &r);
-		isc_buffer_allocate(mctx, &newbuf, r.length);
+		isc_buffer_allocate(isc_g_mctx, &newbuf, r.length);
 		isc_buffer_putmem(newbuf, r.base, r.length);
 		isc_buffer_usedregion(newbuf, &r);
 		dns_rdata_fromregion(rdata, dns_rdataclass_in,
@@ -849,14 +847,14 @@ get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 			dns_rdata_t *rdata2 = NULL;
 			dns_rdata_t cds = DNS_RDATA_INIT;
 
-			rdata2 = isc_mem_get(mctx, sizeof(*rdata2));
+			rdata2 = isc_mem_get(isc_g_mctx, sizeof(*rdata2));
 			dns_rdata_init(rdata2);
 
 			CHECK(dns_ds_buildrdata(name, rdata, alg->digest,
 						cdsbuf, sizeof(cdsbuf), &cds));
 			cds.type = dns_rdatatype_cds;
 			dns_rdata_toregion(&cds, &rcds);
-			isc_buffer_allocate(mctx, &newbuf2, rcds.length);
+			isc_buffer_allocate(isc_g_mctx, &newbuf2, rcds.length);
 			isc_buffer_putmem(newbuf2, rcds.base, rcds.length);
 			isc_buffer_usedregion(newbuf2, &rcds);
 			dns_rdata_fromregion(rdata2, dns_rdataclass_in,
@@ -867,7 +865,7 @@ get_keymaterial(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 		}
 
 		if (!dns_kasp_cdnskey(kasp)) {
-			isc_mem_put(mctx, rdata, sizeof(*rdata));
+			isc_mem_put(isc_g_mctx, rdata, sizeof(*rdata));
 		}
 	}
 	/* All good */
@@ -898,7 +896,7 @@ sign_bundle(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 
 		/* DNSKEY RRset */
 		dns_rdatalist_t *dnskeylist;
-		dnskeylist = isc_mem_get(mctx, sizeof(*dnskeylist));
+		dnskeylist = isc_mem_get(isc_g_mctx, sizeof(*dnskeylist));
 		dns_rdatalist_init(dnskeylist);
 		dnskeylist->rdclass = dns_rdataclass_in;
 		dnskeylist->type = dns_rdatatype_dnskey;
@@ -918,7 +916,8 @@ sign_bundle(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 		for (isc_result_t r = dns_rdatalist_first(&ksk);
 		     r == ISC_R_SUCCESS; r = dns_rdatalist_next(&ksk))
 		{
-			dns_rdata_t *clone = isc_mem_get(mctx, sizeof(*clone));
+			dns_rdata_t *clone = isc_mem_get(isc_g_mctx,
+							 sizeof(*clone));
 			dns_rdata_init(clone);
 			dns_rdatalist_current(&ksk, clone);
 			ISC_LIST_APPEND(dnskeylist->rdata, clone, link);
@@ -927,7 +926,8 @@ sign_bundle(ksr_ctx_t *ksr, dns_kasp_t *kasp, isc_stdtime_t inception,
 		for (isc_result_t r = dns_rdatalist_first(&zsk);
 		     r == ISC_R_SUCCESS; r = dns_rdatalist_next(&zsk))
 		{
-			dns_rdata_t *clone = isc_mem_get(mctx, sizeof(*clone));
+			dns_rdata_t *clone = isc_mem_get(isc_g_mctx,
+							 sizeof(*clone));
 			dns_rdata_init(clone);
 			dns_rdatalist_current(&zsk, clone);
 			ISC_LIST_APPEND(dnskeylist->rdata, clone, link);
@@ -1027,7 +1027,7 @@ parse_dnskey(isc_lex_t *lex, char *owner, isc_buffer_t *buf, dns_ttl_t *ttl) {
 	}
 
 	ret = dns_rdata_fromtext(NULL, rdclass, dns_rdatatype_dnskey, lex, name,
-				 0, mctx, buf, NULL);
+				 0, isc_g_mctx, buf, NULL);
 
 cleanup:
 	isc_lex_setcomments(lex, 0);
@@ -1171,7 +1171,7 @@ sign(ksr_ctx_t *ksr) {
 	setcontext(ksr, kasp);
 	/* Sign request */
 	inception = ksr->start;
-	isc_lex_create(mctx, KSR_LINESIZE, &lex);
+	isc_lex_create(isc_g_mctx, KSR_LINESIZE, &lex);
 	memset(specials, 0, sizeof(specials));
 	specials['('] = 1;
 	specials[')'] = 1;
@@ -1238,7 +1238,7 @@ sign(ksr_ctx_t *ksr) {
 			}
 
 			/* Start next bundle */
-			rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
+			rdatalist = isc_mem_get(isc_g_mctx, sizeof(*rdatalist));
 			dns_rdatalist_init(rdatalist);
 			rdatalist->rdclass = dns_rdataclass_in;
 			rdatalist->type = dns_rdatatype_dnskey;
@@ -1270,7 +1270,7 @@ sign(ksr_ctx_t *ksr) {
 
 			INSIST(rdatalist != NULL);
 
-			rdata = isc_mem_get(mctx, sizeof(*rdata));
+			rdata = isc_mem_get(isc_g_mctx, sizeof(*rdata));
 			dns_rdata_init(rdata);
 			isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
 			ret = parse_dnskey(lex, STR(token), &buf, &ttl);
@@ -1280,7 +1280,7 @@ sign(ksr_ctx_t *ksr) {
 				      isc_result_totext(ret));
 			}
 			isc_buffer_usedregion(&buf, &r);
-			isc_buffer_allocate(mctx, &newbuf, r.length);
+			isc_buffer_allocate(isc_g_mctx, &newbuf, r.length);
 			isc_buffer_putmem(newbuf, r.base, r.length);
 			isc_buffer_usedregion(newbuf, &r);
 			dns_rdata_fromregion(rdata, dns_rdataclass_in,
@@ -1329,8 +1329,6 @@ main(int argc, char *argv[]) {
 	};
 
 	isc_commandline_init(argc, argv);
-
-	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 

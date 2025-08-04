@@ -180,7 +180,7 @@ printrdata(dns_rdata_t *rdata) {
 	}
 
 	while (!done) {
-		isc_buffer_allocate(mctx, &b, size);
+		isc_buffer_allocate(isc_g_mctx, &b, size);
 		result = dns_rdata_totext(rdata, NULL, b);
 		if (result == ISC_R_SUCCESS) {
 			printf("%.*s\n", (int)isc_buffer_usedlength(b),

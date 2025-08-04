@@ -34,9 +34,7 @@
 
 /* INCLUDE LAST */
 
-#define mctx __mctx
 #include "hashmap.c"
-#undef mctx
 
 typedef struct test_node {
 	uint32_t hashval;
@@ -71,11 +69,11 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 	isc_result_t result;
 	test_node_t *nodes, *long_nodes, *upper_nodes;
 
-	nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
-	long_nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
-	upper_nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
+	nodes = isc_mem_cget(isc_g_mctx, count, sizeof(nodes[0]));
+	long_nodes = isc_mem_cget(isc_g_mctx, count, sizeof(nodes[0]));
+	upper_nodes = isc_mem_cget(isc_g_mctx, count, sizeof(nodes[0]));
 
-	isc_hashmap_create(mctx, init_bits, &hashmap);
+	isc_hashmap_create(isc_g_mctx, init_bits, &hashmap);
 	assert_non_null(hashmap);
 
 	/*
@@ -212,9 +210,9 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 	isc_hashmap_destroy(&hashmap);
 	assert_null(hashmap);
 
-	isc_mem_cput(mctx, nodes, count, sizeof(nodes[0]));
-	isc_mem_cput(mctx, long_nodes, count, sizeof(nodes[0]));
-	isc_mem_cput(mctx, upper_nodes, count, sizeof(nodes[0]));
+	isc_mem_cput(isc_g_mctx, nodes, count, sizeof(nodes[0]));
+	isc_mem_cput(isc_g_mctx, long_nodes, count, sizeof(nodes[0]));
+	isc_mem_cput(isc_g_mctx, upper_nodes, count, sizeof(nodes[0]));
 }
 
 #include "hashmap_nodes.h"
@@ -228,10 +226,10 @@ test_hashmap_iterator(bool random_data) {
 	test_node_t *nodes;
 	bool *seen;
 
-	nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
-	seen = isc_mem_cget(mctx, count, sizeof(seen[0]));
+	nodes = isc_mem_cget(isc_g_mctx, count, sizeof(nodes[0]));
+	seen = isc_mem_cget(isc_g_mctx, count, sizeof(seen[0]));
 
-	isc_hashmap_create(mctx, HASHMAP_MIN_BITS, &hashmap);
+	isc_hashmap_create(isc_g_mctx, HASHMAP_MIN_BITS, &hashmap);
 	assert_non_null(hashmap);
 
 	for (size_t i = 0; i < count; i++) {
@@ -357,8 +355,8 @@ test_hashmap_iterator(bool random_data) {
 	isc_hashmap_destroy(&hashmap);
 	assert_null(hashmap);
 
-	isc_mem_cput(mctx, seen, count, sizeof(seen[0]));
-	isc_mem_cput(mctx, nodes, count, sizeof(nodes[0]));
+	isc_mem_cput(isc_g_mctx, seen, count, sizeof(seen[0]));
+	isc_mem_cput(isc_g_mctx, nodes, count, sizeof(nodes[0]));
 }
 
 /* 1 bit, 120 elements test, full rehashing */
@@ -409,7 +407,7 @@ ISC_RUN_TEST_IMPL(isc_hashmap_hash_zero_length) {
 	bool again = false;
 
 again:
-	isc_hashmap_create(mctx, 1, &hashmap);
+	isc_hashmap_create(isc_g_mctx, 1, &hashmap);
 
 	hashval = isc_hash32("", 0, true);
 
@@ -452,7 +450,7 @@ ISC_RUN_TEST_IMPL(isc_hashmap_case) {
 	test_node_t mixed = { .key = "IsC_hAsHmAp_CaSe" };
 	void *f = NULL;
 
-	isc_hashmap_create(mctx, 1, &hashmap);
+	isc_hashmap_create(isc_g_mctx, 1, &hashmap);
 
 	result = isc_hashmap_add(hashmap,
 				 isc_hash32(lower.key, strlen(lower.key), true),
@@ -477,7 +475,7 @@ ISC_RUN_TEST_IMPL(isc_hashmap_case) {
 
 	isc_hashmap_destroy(&hashmap);
 
-	isc_hashmap_create(mctx, 1, &hashmap);
+	isc_hashmap_create(isc_g_mctx, 1, &hashmap);
 
 	result = isc_hashmap_add(
 		hashmap, isc_hash32(lower.key, strlen(lower.key), false),

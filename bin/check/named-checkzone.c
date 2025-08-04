@@ -43,7 +43,6 @@
 #include "check-tool.h"
 
 static int quiet = 0;
-static isc_mem_t *mctx = NULL;
 dns_zone_t *zone = NULL;
 dns_zonetype_t zonetype = dns_zone_primary;
 static int dumpzone = 0;
@@ -109,11 +108,6 @@ main(int argc, char **argv) {
 	bool logdump = false;
 	FILE *errout = stdout;
 	char *endp;
-
-	/*
-	 * Uncomment the following line if memory debugging is needed:
-	 * isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	 */
 
 	outputstyle = &dns_master_style_full;
 
@@ -519,7 +513,6 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create(isc_commandline_progname, &mctx);
 	if (!quiet) {
 		RUNTIME_CHECK(setup_logging(errout) == ISC_R_SUCCESS);
 	}
@@ -535,7 +528,7 @@ main(int argc, char **argv) {
 
 	isc_commandline_index++;
 
-	result = load_zone(mctx, origin, filename, inputformat, classname,
+	result = load_zone(isc_g_mctx, origin, filename, inputformat, classname,
 			   maxttl, &zone);
 
 	if (snset) {
@@ -561,7 +554,6 @@ main(int argc, char **argv) {
 		fprintf(errout, "OK\n");
 	}
 	destroy();
-	isc_mem_detach(&mctx);
 
 	return (result == ISC_R_SUCCESS) ? 0 : 1;
 }

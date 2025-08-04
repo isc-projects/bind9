@@ -87,7 +87,6 @@ main(int argc, char **argv) {
 	bool show_final_mem = false;
 	isc_buffer_t key_txtbuffer;
 	char key_txtsecret[256];
-	isc_mem_t *mctx = NULL;
 	const char *keyname = NULL;
 	const char *serveraddr = NULL;
 	dns_secalg_t alg;
@@ -146,7 +145,7 @@ main(int argc, char **argv) {
 			keyname = isc_commandline_argument;
 			break;
 		case 'M':
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
+			isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			break;
 
 		case 'm':
@@ -219,10 +218,9 @@ main(int argc, char **argv) {
 	}
 	algname = dst_hmac_algorithm_totext(alg);
 
-	isc_mem_create(isc_commandline_progname, &mctx);
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
-	generate_key(mctx, alg, keysize, &key_txtbuffer);
+	generate_key(isc_g_mctx, alg, keysize, &key_txtbuffer);
 
 	if (keyonly) {
 		write_key_file(keyfile, chrootdir == NULL ? user : NULL,
@@ -234,7 +232,7 @@ main(int argc, char **argv) {
 		if (chrootdir != NULL) {
 			char *buf;
 			len = strlen(chrootdir) + strlen(keyfile) + 2;
-			buf = isc_mem_get(mctx, len);
+			buf = isc_mem_get(isc_g_mctx, len);
 			snprintf(buf, len, "%s%s%s", chrootdir,
 				 (*keyfile != '/') ? "/" : "", keyfile);
 
@@ -242,7 +240,7 @@ main(int argc, char **argv) {
 			if (!quiet) {
 				printf("wrote key file \"%s\"\n", buf);
 			}
-			isc_mem_put(mctx, buf, len);
+			isc_mem_put(isc_g_mctx, buf, len);
 		}
 	} else {
 		printf("\
@@ -280,10 +278,8 @@ options {\n\
 	}
 
 	if (show_final_mem) {
-		isc_mem_stats(mctx, stderr);
+		isc_mem_stats(isc_g_mctx, stderr);
 	}
-
-	isc_mem_detach(&mctx);
 
 	return 0;
 }

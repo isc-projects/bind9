@@ -146,7 +146,8 @@ proxy2_handler_dummy(const isc_result_t result, const isc_proxy2_command_t cmd,
 static int
 setup_test_proxy(void **state) {
 	isc_proxy2_handler_t **handler = (isc_proxy2_handler_t **)state;
-	*handler = isc_proxy2_handler_new(mctx, 0, proxy2_handler_dummy, NULL);
+	*handler = isc_proxy2_handler_new(isc_g_mctx, 0, proxy2_handler_dummy,
+					  NULL);
 	return 0;
 }
 
@@ -531,7 +532,7 @@ ISC_RUN_TEST_IMPL(proxyheader_max_size_test) {
 
 	UNUSED(state);
 
-	isc_proxy2_handler_init(&handler, mctx, sizeof(proxy_v2_header),
+	isc_proxy2_handler_init(&handler, isc_g_mctx, sizeof(proxy_v2_header),
 				proxy2_handler_dummy, NULL);
 
 	result = isc_proxy2_handler_push_data(&handler, proxy_v2_header,
@@ -541,7 +542,8 @@ ISC_RUN_TEST_IMPL(proxyheader_max_size_test) {
 
 	isc_proxy2_handler_uninit(&handler);
 
-	isc_proxy2_handler_init(&handler, mctx, sizeof(proxy_v2_header) - 1,
+	isc_proxy2_handler_init(&handler, isc_g_mctx,
+				sizeof(proxy_v2_header) - 1,
 				proxy2_handler_dummy, NULL);
 
 	result = isc_proxy2_handler_push_data(&handler, proxy_v2_header,
@@ -794,8 +796,8 @@ proxy2_handler_rebuild(isc_buffer_t *restrict outbuf, const void *data,
 		       const size_t size) {
 	isc_proxy2_handler_t handler = { 0 };
 
-	isc_proxy2_handler_init(&handler, mctx, 0, proxy2_handler_rebuild_cb,
-				outbuf);
+	isc_proxy2_handler_init(&handler, isc_g_mctx, 0,
+				proxy2_handler_rebuild_cb, outbuf);
 
 	isc_proxy2_handler_push_data(&handler, data, size);
 

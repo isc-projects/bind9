@@ -65,20 +65,22 @@ dns_test_makeview(const char *name, bool with_dispatchmgr, bool with_cache,
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 
 	if (with_dispatchmgr) {
-		result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+		result = dns_dispatchmgr_create(isc_g_mctx, &dispatchmgr);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
 	}
 
-	dns_view_create(mctx, dispatchmgr, dns_rdataclass_in, name, &view);
+	dns_view_create(isc_g_mctx, dispatchmgr, dns_rdataclass_in, name,
+			&view);
 
 	if (dispatchmgr != NULL) {
 		dns_dispatchmgr_detach(&dispatchmgr);
 	}
 
 	if (with_cache) {
-		result = dns_cache_create(dns_rdataclass_in, "", mctx, &cache);
+		result = dns_cache_create(dns_rdataclass_in, "", isc_g_mctx,
+					  &cache);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
 			return result;
@@ -111,7 +113,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	/*
 	 * Create the zone structure.
 	 */
-	dns_zone_create(&zone, mctx, 0);
+	dns_zone_create(&zone, isc_g_mctx, 0);
 
 	/*
 	 * Set zone type and origin.
@@ -160,7 +162,7 @@ void
 dns_test_setupzonemgr(void) {
 	REQUIRE(zonemgr == NULL);
 
-	dns_zonemgr_create(mctx, &zonemgr);
+	dns_zonemgr_create(isc_g_mctx, &zonemgr);
 }
 
 isc_result_t
@@ -214,8 +216,8 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 		return result;
 	}
 
-	result = dns_db_create(mctx, dbimp, name, dbtype, dns_rdataclass_in, 0,
-			       NULL, db);
+	result = dns_db_create(isc_g_mctx, dbimp, name, dbtype,
+			       dns_rdataclass_in, 0, NULL, db);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -351,7 +353,7 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	/*
 	 * Create a lexer as one is required by dns_rdata_fromtext().
 	 */
-	isc_lex_create(mctx, 64, &lex);
+	isc_lex_create(isc_g_mctx, 64, &lex);
 
 	/*
 	 * Set characters which will be treated as valid multi-line RDATA
@@ -394,7 +396,7 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	 * Parse input string, determining result.
 	 */
 	result = dns_rdata_fromtext(rdata, rdclass, rdtype, lex, dns_rootname,
-				    0, mctx, &target, &callbacks);
+				    0, isc_g_mctx, &target, &callbacks);
 
 destroy_lexer:
 	isc_lex_destroy(&lex);
@@ -413,7 +415,7 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
 
 	name = dns_fixedname_initname(fname);
 
-	isc_buffer_allocate(mctx, &b, length);
+	isc_buffer_allocate(isc_g_mctx, &b, length);
 
 	isc_buffer_putmem(b, (const unsigned char *)namestr, length);
 	result = dns_name_fromtext(name, b, NULL, 0);
@@ -438,7 +440,7 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
 	REQUIRE(diff != NULL);
 	REQUIRE(changes != NULL);
 
-	dns_diff_init(mctx, diff);
+	dns_diff_init(isc_g_mctx, diff);
 
 	for (i = 0; changes[i].owner != NULL; i++) {
 		/*
@@ -446,7 +448,7 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
 		 */
 		name = dns_fixedname_initname(&fixedname);
 		result = dns_name_fromstring(name, changes[i].owner,
-					     dns_rootname, 0, mctx);
+					     dns_rootname, 0, isc_g_mctx);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
@@ -477,8 +479,8 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
 		 * Create a diff tuple for the parsed change and append it to
 		 * the diff.
 		 */
-		dns_difftuple_create(mctx, changes[i].op, name, changes[i].ttl,
-				     &rdata, &tuple);
+		dns_difftuple_create(isc_g_mctx, changes[i].op, name,
+				     changes[i].ttl, &rdata, &tuple);
 		dns_diff_append(diff, &tuple);
 	}
 

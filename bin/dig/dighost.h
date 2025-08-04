@@ -253,7 +253,6 @@ extern bool check_ra, have_ipv4, have_ipv6, specified_source, usesearch,
 extern in_port_t port;
 extern bool port_set;
 extern unsigned int timeout;
-extern isc_mem_t *mctx;
 extern isc_refcount_t sendcount;
 extern int ndots;
 extern int lookup_counter;

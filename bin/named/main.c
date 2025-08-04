@@ -361,6 +361,8 @@ parse_int(char *arg, const char *desc) {
 	return tmp;
 }
 
+static unsigned int mem_debugging = 0;
+
 static struct flag_def {
 	const char *name;
 	unsigned int value;
@@ -606,9 +608,9 @@ printversion(bool verbose) {
 	printf("  named PID file:       %s\n", named_g_defaultpidfile);
 #if defined(HAVE_GEOIP2)
 #define RTC(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
-	isc_mem_t *mctx = NULL;
-	isc_mem_create("geoip", &mctx);
-	RTC(cfg_parser_create(mctx, &parser));
+	isc_mem_t *geoip_mctx = NULL;
+	isc_mem_create("geoip", &geoip_mctx);
+	RTC(cfg_parser_create(geoip_mctx, &parser));
 	RTC(named_config_parsedefaults(parser, &config));
 	RTC(cfg_map_get(config, "options", &defaults));
 	RTC(cfg_map_get(defaults, "geoip-directory", &obj));
@@ -617,7 +619,7 @@ printversion(bool verbose) {
 	}
 	cfg_obj_destroy(parser, &config);
 	cfg_parser_destroy(&parser);
-	isc_mem_detach(&mctx);
+	isc_mem_detach(&geoip_mctx);
 #endif /* HAVE_GEOIP2 */
 }
 
@@ -860,7 +862,8 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'm':
 			set_flags(isc_commandline_argument, mem_debug_flags,
-				  &isc_mem_debugging);
+				  &mem_debugging);
+			isc_mem_debugon(mem_debugging);
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':
@@ -970,7 +973,7 @@ create_managers(void) {
 			 "thread count limit)"
 		       : "");
 
-	isc_managers_create(&named_g_mctx, named_g_cpus);
+	isc_managers_create(named_g_cpus);
 
 	isc_nm_maxudp(maxudp);
 
@@ -1001,7 +1004,7 @@ setup(void) {
 
 #ifdef HAVE_LIBSCF
 	/* Check if named is under smf control, before chroot. */
-	result = named_smf_get_instance(&instance, 0, named_g_mctx);
+	result = named_smf_get_instance(&instance, 0, isc_g_mctx);
 	/* We don't care about instance, just check if we got one. */
 	if (result == ISC_R_SUCCESS) {
 		named_smf_got_instance = 1;
@@ -1009,7 +1012,7 @@ setup(void) {
 		named_smf_got_instance = 0;
 	}
 	if (instance != NULL) {
-		isc_mem_free(named_g_mctx, instance);
+		isc_mem_free(isc_g_mctx, instance);
 	}
 #endif /* HAVE_LIBSCF */
 
@@ -1216,13 +1219,13 @@ setup(void) {
 	/*
 	 * Register the DLZ "dlopen" driver.
 	 */
-	result = dlz_dlopen_init(named_g_mctx);
+	result = dlz_dlopen_init(isc_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		named_main_earlyfatal("dlz_dlopen_init() failed: %s",
 				      isc_result_totext(result));
 	}
 
-	named_server_create(named_g_mctx, &named_g_server);
+	named_server_create(isc_g_mctx, &named_g_server);
 	ENSURE(named_g_server != NULL);
 	sctx = named_g_server->sctx;
 
@@ -1475,7 +1478,7 @@ main(int argc, char *argv[]) {
 
 #ifdef HAVE_LIBSCF
 	if (named_smf_want_disable == 1) {
-		result = named_smf_get_instance(&instance, 1, named_g_mctx);
+		result = named_smf_get_instance(&instance, 1, isc_g_mctx);
 		if (result == ISC_R_SUCCESS && instance != NULL) {
 			if (smf_disable_instance(instance, 0) != 0) {
 				UNEXPECTED_ERROR("smf_disable_instance() "
@@ -1485,7 +1488,7 @@ main(int argc, char *argv[]) {
 			}
 		}
 		if (instance != NULL) {
-			isc_mem_free(named_g_mctx, instance);
+			isc_mem_free(isc_g_mctx, instance);
 		}
 	}
 #endif /* HAVE_LIBSCF */
@@ -1493,19 +1496,19 @@ main(int argc, char *argv[]) {
 	cleanup();
 
 	if (want_stats) {
-		isc_mem_stats(named_g_mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
 
 	if (named_g_memstatistics && memstats != NULL) {
 		FILE *fp = NULL;
 		result = isc_stdio_open(memstats, "w", &fp);
 		if (result == ISC_R_SUCCESS) {
-			isc_mem_stats(named_g_mctx, fp);
+			isc_mem_stats(isc_g_mctx, fp);
 			(void)isc_stdio_close(fp);
 		}
 	}
 
-	isc_managers_destroy(&named_g_mctx);
+	isc_managers_destroy();
 
 #if ENABLE_LEAK_DETECTION
 	isc__crypto_setdestroycheck(true);

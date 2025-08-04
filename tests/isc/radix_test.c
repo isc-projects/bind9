@@ -42,7 +42,7 @@ ISC_RUN_TEST_IMPL(isc_radix_remove) {
 
 	UNUSED(state);
 
-	isc_radix_create(mctx, &radix, 32);
+	isc_radix_create(isc_g_mctx, &radix, 32);
 
 	in_addr.s_addr = inet_addr("1.1.1.1");
 	isc_netaddr_fromin(&netaddr, &in_addr);
@@ -90,7 +90,7 @@ ISC_RUN_TEST_IMPL(isc_radix_search) {
 
 	UNUSED(state);
 
-	isc_radix_create(mctx, &radix, 32);
+	isc_radix_create(isc_g_mctx, &radix, 32);
 
 	in_addr.s_addr = inet_addr("3.3.3.0");
 	isc_netaddr_fromin(&netaddr, &in_addr);

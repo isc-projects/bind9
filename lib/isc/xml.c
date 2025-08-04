@@ -53,6 +53,7 @@ isc__xml_initialize(void) {
 #ifdef HAVE_LIBXML2
 #ifndef LIBXML_HAS_DEPRECATED_MEMORY_ALLOCATION_FUNCTIONS
 	isc_mem_create("libxml2", &isc__xml_mctx);
+	isc_mem_setdebugging(isc__xml_mctx, 0);
 	isc_mem_setdestroycheck(isc__xml_mctx, false);
 
 	RUNTIME_CHECK(xmlMemSetup(isc__xml_free, isc__xml_malloc,

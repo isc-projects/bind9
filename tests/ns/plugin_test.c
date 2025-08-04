@@ -83,7 +83,7 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 	 * Prepare a target buffer of given size.  Store it in 'state' so that
 	 * it can get cleaned up by _teardown() if the test fails.
 	 */
-	*target = isc_mem_allocate(mctx, test->output_size);
+	*target = isc_mem_allocate(isc_g_mctx, test->output_size);
 
 	/*
 	 * Call ns_plugin_expandpath().
@@ -111,7 +111,7 @@ run_full_path_test(const ns_plugin_expandpath_test_params_t *test,
 			 *target);
 	}
 
-	isc_mem_free(mctx, *target);
+	isc_mem_free(isc_g_mctx, *target);
 }
 
 /* test ns_plugin_expandpath() */

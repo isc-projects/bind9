@@ -51,7 +51,6 @@
 static dns_rdataclass_t rdclass;
 static dns_fixedname_t fixed;
 static dns_name_t *name = NULL;
-static isc_mem_t *mctx = NULL;
 static uint32_t ttl;
 static bool emitttl = false;
 static unsigned int split_width = 0;
@@ -81,7 +80,7 @@ db_load_from_stream(dns_db_t *db, FILE *fp) {
 	}
 
 	result = dns_master_loadstream(fp, name, name, rdclass, 0, &callbacks,
-				       mctx);
+				       isc_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		fatal("can't load from input: %s", isc_result_totext(result));
 	}
@@ -101,8 +100,8 @@ loadset(const char *filename, dns_rdataset_t *rdataset) {
 
 	dns_name_format(name, setname, sizeof(setname));
 
-	result = dns_db_create(mctx, ZONEDB_DEFAULT, name, dns_dbtype_zone,
-			       rdclass, 0, NULL, &db);
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, name,
+			       dns_dbtype_zone, rdclass, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS) {
 		fatal("can't create database");
 	}
@@ -188,8 +187,8 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 
 	isc_buffer_init(&keyb, key_buf, key_buf_size);
 
-	result = dst_key_fromnamedfile(filename, NULL, DST_TYPE_PUBLIC, mctx,
-				       &key);
+	result = dst_key_fromnamedfile(filename, NULL, DST_TYPE_PUBLIC,
+				       isc_g_mctx, &key);
 	if (result != ISC_R_SUCCESS) {
 		fatal("can't load %s.key: %s", filename,
 		      isc_result_totext(result));
@@ -228,7 +227,7 @@ logkey(dns_rdata_t *rdata) {
 
 	isc_buffer_init(&buf, rdata->data, rdata->length);
 	isc_buffer_add(&buf, rdata->length);
-	result = dst_key_fromdns(name, rdclass, &buf, mctx, &key);
+	result = dst_key_fromdns(name, rdclass, &buf, isc_g_mctx, &key);
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
@@ -383,8 +382,6 @@ main(int argc, char **argv) {
 	}
 
 	isc_commandline_init(argc, argv);
-
-	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -546,9 +543,8 @@ main(int argc, char **argv) {
 		dns_rdataset_disassociate(&rdataset);
 	}
 	if (verbose > 10) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
-	isc_mem_detach(&mctx);
 
 	fflush(stdout);
 	if (ferror(stdout)) {

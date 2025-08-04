@@ -422,8 +422,6 @@ main(int argc, char *argv[]) {
 
 	isc_rwlock_init(&rwl);
 
-	isc_mem_create("test", &mctx);
-
 	if (argc != 2) {
 		fprintf(stderr,
 			"usage: load-names <filename.csv> <nthreads>\n");
@@ -439,7 +437,7 @@ main(int argc, char *argv[]) {
 	}
 	filesize = (size_t)fileoff;
 
-	filetext = isc_mem_get(mctx, filesize + 1);
+	filetext = isc_mem_get(isc_g_mctx, filesize + 1);
 	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));
@@ -493,18 +491,16 @@ main(int argc, char *argv[]) {
 		       "---------- | ---------- | ---------- |\n");
 
 		for (struct fun *fun = fun_list; fun->name != NULL; fun++) {
-			isc_mem_t *mem = NULL;
 			void *map = NULL;
 
-			isc_mem_create("test", &mem);
-			map = fun->new(mem);
+			map = fun->new(isc_g_mctx);
 
 			size_t nitems = lines / (nthreads + 1);
 
 			isc_barrier_init(&barrier, nthreads);
 
 			isc_time_t t0 = isc_time_now_hires();
-			size_t m0 = isc_mem_inuse(mem);
+			size_t m0 = isc_mem_inuse(isc_g_mctx);
 
 			for (size_t i = 0; i < nthreads; i++) {
 				threads[i] = (struct thread_s){
@@ -526,13 +522,13 @@ main(int argc, char *argv[]) {
 				d1 += threads[i].d1;
 			}
 
-			size_t m1 = isc_mem_inuse(mem);
+			size_t m1 = isc_mem_inuse(isc_g_mctx);
 
 			rcu_barrier();
 
 			isc_time_t t1 = isc_time_now_hires();
 			uint64_t d3 = isc_time_microdiff(&t1, &t0);
-			size_t m2 = isc_mem_inuse(mem);
+			size_t m2 = isc_mem_inuse(isc_g_mctx);
 
 			printf("%10s | %10zu | %10.4f | %10.4f | %10.4f | "
 			       "%10.4f | %10.4f |\n",

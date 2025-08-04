@@ -1552,6 +1552,7 @@ isc__log_initialize(void) {
 	isc_mem_t *mctx = NULL;
 
 	isc_mem_create("log", &mctx);
+	isc_mem_setdebugging(mctx, 0);
 
 	isc__lctx = isc_mem_get(mctx, sizeof(*isc__lctx));
 	*isc__lctx = (isc_log_t){
@@ -1572,6 +1573,14 @@ isc__log_initialize(void) {
 
 void
 isc__log_shutdown(void) {
+	/*
+	 * There is a data race when the QP database reclaims chunks on the
+	 * call_rcu threads and tries to log the number of reclaimed chunks
+	 * while the server is shutting down.  Work around this by adding
+	 * an rcu_barrier() before shutting down the global logging context.
+	 */
+	rcu_barrier();
+
 	REQUIRE(VALID_CONTEXT(isc__lctx));
 
 	isc_mem_t *mctx = isc__lctx->mctx;

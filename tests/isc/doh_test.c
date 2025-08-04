@@ -158,7 +158,6 @@ proxy_verify_unspec_endpoint(isc_nmhandle_t *handle) {
 }
 
 typedef struct csdata {
-	isc_mem_t *mctx;
 	isc_nm_recv_cb_t reply_cb;
 	void *cb_arg;
 	isc_region_t region;
@@ -170,7 +169,7 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	(void)atomic_fetch_sub(&active_cconnects, 1);
 	memmove(&data, arg, sizeof(data));
-	isc_mem_put(data.mctx, arg, sizeof(data));
+	isc_mem_put(isc_g_mctx, arg, sizeof(data));
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
@@ -183,11 +182,11 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		goto error;
 	}
 
-	isc_mem_putanddetach(&data.mctx, data.region.base, data.region.length);
+	isc_mem_put(isc_g_mctx, data.region.base, data.region.length);
 	return;
 error:
 	data.reply_cb(handle, result, NULL, data.cb_arg);
-	isc_mem_putanddetach(&data.mctx, data.region.base, data.region.length);
+	isc_mem_put(isc_g_mctx, data.region.base, data.region.length);
 }
 
 static void
@@ -198,12 +197,11 @@ connect_send_request(const char *uri, bool post, isc_region_t *region,
 	csdata_t *data = NULL;
 	isc_tlsctx_t *ctx = NULL;
 
-	copy = (isc_region_t){ .base = isc_mem_get(mctx, region->length),
+	copy = (isc_region_t){ .base = isc_mem_get(isc_g_mctx, region->length),
 			       .length = region->length };
 	memmove(copy.base, region->base, region->length);
-	data = isc_mem_get(mctx, sizeof(*data));
+	data = isc_mem_get(isc_g_mctx, sizeof(*data));
 	*data = (csdata_t){ .reply_cb = cb, .cb_arg = cbarg, .region = copy };
-	isc_mem_attach(mctx, &data->mctx);
 	if (tls) {
 		ctx = client_tlsctx;
 	}
@@ -350,7 +348,7 @@ setup_test(void **state) {
 	isc_tlsctx_createclient(&client_tlsctx);
 	isc_tlsctx_enable_http2client_alpn(client_tlsctx);
 	isc_tlsctx_client_session_cache_create(
-		mctx, client_tlsctx,
+		isc_g_mctx, client_tlsctx,
 		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
 		&client_sess_cache);
 
@@ -358,7 +356,7 @@ setup_test(void **state) {
 	atomic_store(&check_listener_quota, false);
 
 	INSIST(endpoints == NULL);
-	endpoints = isc_nm_http_endpoints_new(mctx);
+	endpoints = isc_nm_http_endpoints_new(isc_g_mctx);
 
 	return 0;
 }
@@ -1358,90 +1356,91 @@ ISC_RUN_TEST_IMPL(doh_base64url_to_base64) {
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4=";
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhcw==";
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3Vy";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3Vy";
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3U";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3U=";
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhcw==";
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "PDw_Pz8-Pg";
 		char res_test[] = "PDw/Pz8+Pg==";
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char test[] = "PDw_Pz8-Pg";
 		char res_test[] = "PDw/Pz8+Pg==";
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  NULL);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), NULL);
 		assert_non_null(res);
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* invalid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(mctx, test, 0, &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test, 0,
+						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1450,8 +1449,8 @@ ISC_RUN_TEST_IMPL(doh_base64url_to_base64) {
 		char test[] = "";
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1460,8 +1459,8 @@ ISC_RUN_TEST_IMPL(doh_base64url_to_base64) {
 		char test[] = "PDw_Pz8-Pg==";
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1471,8 +1470,8 @@ ISC_RUN_TEST_IMPL(doh_base64url_to_base64) {
 						     end */
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1480,7 +1479,8 @@ ISC_RUN_TEST_IMPL(doh_base64url_to_base64) {
 	{
 		res_len = 0;
 
-		res = isc__nm_base64url_to_base64(mctx, NULL, 31231, &res_len);
+		res = isc__nm_base64url_to_base64(isc_g_mctx, NULL, 31231,
+						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1494,90 +1494,91 @@ ISC_RUN_TEST_IMPL(doh_base64_to_base64url) {
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4";
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4=";
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw==";
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3Vy";
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3Vy";
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3U";
 		char test[] = "YW55IGNhcm5hbCBwbGVhc3U=";
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw==";
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "PDw_Pz8-Pg";
 		char test[] = "PDw/Pz8+Pg==";
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_non_null(res);
 		assert_true(res_len == strlen(res_test));
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* valid */
 	{
 		char res_test[] = "PDw_Pz8-Pg";
 		char test[] = "PDw/Pz8+Pg==";
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  NULL);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), NULL);
 		assert_non_null(res);
 		assert_true(strcmp(res, res_test) == 0);
-		isc_mem_free(mctx, res);
+		isc_mem_free(isc_g_mctx, res);
 	}
 	/* invalid */
 	{
 		char test[] = "YW55IGNhcm5hbCBwbGVhcw";
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(mctx, test, 0, &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test, 0,
+						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1586,8 +1587,8 @@ ISC_RUN_TEST_IMPL(doh_base64_to_base64url) {
 		char test[] = "";
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1596,8 +1597,8 @@ ISC_RUN_TEST_IMPL(doh_base64_to_base64url) {
 		char test[] = "PDw_Pz8-Pg==";
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1607,8 +1608,8 @@ ISC_RUN_TEST_IMPL(doh_base64_to_base64url) {
 						     end */
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(mctx, test, strlen(test),
-						  &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, test,
+						  strlen(test), &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}
@@ -1616,7 +1617,8 @@ ISC_RUN_TEST_IMPL(doh_base64_to_base64url) {
 	{
 		res_len = 0;
 
-		res = isc__nm_base64_to_base64url(mctx, NULL, 31231, &res_len);
+		res = isc__nm_base64_to_base64url(isc_g_mctx, NULL, 31231,
+						  &res_len);
 		assert_null(res);
 		assert_true(res_len == 0);
 	}

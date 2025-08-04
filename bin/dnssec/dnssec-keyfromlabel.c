@@ -115,7 +115,6 @@ main(int argc, char **argv) {
 	uint16_t flags = 0, kskflag = 0, revflag = 0;
 	dst_algorithm_t alg;
 	bool oldstyle = false;
-	isc_mem_t *mctx = NULL;
 	int ch;
 	isc_result_t ret;
 	isc_textregion_t r;
@@ -149,8 +148,6 @@ main(int argc, char **argv) {
 	}
 
 	isc_commandline_init(argc, argv);
-
-	isc_mem_create(isc_commandline_progname, &mctx);
 
 	isc_commandline_errprint = false;
 
@@ -199,7 +196,8 @@ main(int argc, char **argv) {
 			setttl = true;
 			break;
 		case 'l':
-			label = isc_mem_strdup(mctx, isc_commandline_argument);
+			label = isc_mem_strdup(isc_g_mctx,
+					       isc_commandline_argument);
 			break;
 		case 'M': {
 			unsigned long ul;
@@ -370,9 +368,9 @@ main(int argc, char **argv) {
 			int len;
 
 			len = strlen(label) + 8;
-			l = isc_mem_allocate(mctx, len);
+			l = isc_mem_allocate(isc_g_mctx, len);
 			snprintf(l, len, "pkcs11:%s", label);
-			isc_mem_free(mctx, label);
+			isc_mem_free(isc_g_mctx, label);
 			label = l;
 		}
 
@@ -461,7 +459,7 @@ main(int argc, char **argv) {
 
 		ret = dst_key_fromnamedfile(predecessor, directory,
 					    DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
-					    mctx, &prevkey);
+					    isc_g_mctx, &prevkey);
 		if (ret != ISC_R_SUCCESS) {
 			fatal("Invalid keyfile %s: %s", predecessor,
 			      isc_result_totext(ret));
@@ -557,7 +555,7 @@ main(int argc, char **argv) {
 
 	/* associate the key */
 	ret = dst_key_fromlabel(name, alg, flags, DNS_KEYPROTO_DNSSEC, rdclass,
-				label, NULL, mctx, &key);
+				label, NULL, isc_g_mctx, &key);
 
 	if (ret != ISC_R_SUCCESS) {
 		char namestr[DNS_NAME_FORMATSIZE];
@@ -647,7 +645,8 @@ main(int argc, char **argv) {
 	 * is a risk of ID collision due to this key or another key
 	 * being revoked.
 	 */
-	if (key_collision(key, name, directory, mctx, tag_min, tag_max, &exact))
+	if (key_collision(key, name, directory, isc_g_mctx, tag_min, tag_max,
+			  &exact))
 	{
 		isc_buffer_clear(&buf);
 		ret = dst_key_buildfilename(key, 0, directory, &buf);
@@ -695,10 +694,9 @@ main(int argc, char **argv) {
 	}
 
 	if (verbose > 10) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
-	isc_mem_free(mctx, label);
-	isc_mem_detach(&mctx);
+	isc_mem_free(isc_g_mctx, label);
 
 	if (freeit != NULL) {
 		free(freeit);

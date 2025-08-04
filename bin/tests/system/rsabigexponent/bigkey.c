@@ -48,7 +48,6 @@ dst_key_t *key;
 dns_fixedname_t fname;
 dns_name_t *name;
 unsigned int bits = 2048U;
-isc_mem_t *mctx;
 isc_logconfig_t *logconfig;
 int level = ISC_LOG_WARNING;
 char filename[255];
@@ -105,8 +104,6 @@ main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	isc_mem_create(argv[0], &mctx);
-
 	logconfig = isc_logconfig_get();
 	isc_log_settag(logconfig, "bigkey");
 
@@ -126,7 +123,7 @@ main(int argc, char **argv) {
 
 	CHECK(dst_key_buildinternal(name, DNS_KEYALG_RSASHA256, bits,
 				    DNS_KEYOWNER_ZONE, DNS_KEYPROTO_DNSSEC,
-				    dns_rdataclass_in, pkey, mctx, &key),
+				    dns_rdataclass_in, pkey, isc_g_mctx, &key),
 	      "dst_key_buildinternal(...)");
 
 	CHECK(dst_key_tofile(key, DST_TYPE_PRIVATE | DST_TYPE_PUBLIC, NULL),
@@ -138,7 +135,6 @@ main(int argc, char **argv) {
 	printf("%s\n", filename);
 	dst_key_free(&key);
 
-	isc_mem_detach(&mctx);
 	return 0;
 }
 

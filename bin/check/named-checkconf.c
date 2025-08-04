@@ -139,7 +139,7 @@ get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
 }
 
 static isc_result_t
-configure_hint(const char *zfile, const char *zclass, isc_mem_t *mctx) {
+configure_hint(const char *zfile, const char *zclass) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_rdataclass_t rdclass;
@@ -156,7 +156,7 @@ configure_hint(const char *zfile, const char *zclass, isc_mem_t *mctx) {
 		return result;
 	}
 
-	result = dns_rootns_create(mctx, rdclass, zfile, &db);
+	result = dns_rootns_create(isc_g_mctx, rdclass, zfile, &db);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -168,8 +168,7 @@ configure_hint(const char *zfile, const char *zclass, isc_mem_t *mctx) {
 /*% configure the zone */
 static isc_result_t
 configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
-	       const cfg_obj_t *vconfig, const cfg_obj_t *config,
-	       isc_mem_t *mctx, bool list) {
+	       const cfg_obj_t *vconfig, const cfg_obj_t *config, bool list) {
 	int i = 0;
 	isc_result_t result;
 	const char *zclass;
@@ -258,7 +257,7 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 	 * master and redirect
 	 */
 	if (strcasecmp(cfg_obj_asstring(typeobj), "hint") == 0) {
-		return configure_hint(zfile, zclass, mctx);
+		return configure_hint(zfile, zclass);
 	} else if ((strcasecmp(cfg_obj_asstring(typeobj), "primary") != 0) &&
 		   (strcasecmp(cfg_obj_asstring(typeobj), "master") != 0) &&
 		   (strcasecmp(cfg_obj_asstring(typeobj), "redirect") != 0))
@@ -453,8 +452,8 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 		zone_options |= DNS_ZONEOPT_CHECKTTL;
 	}
 
-	result = load_zone(mctx, zname, zfile, masterformat, zclass, maxttl,
-			   NULL);
+	result = load_zone(isc_g_mctx, zname, zfile, masterformat, zclass,
+			   maxttl, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "%s/%s/%s: %s\n", view, zname, zclass,
 			isc_result_totext(result));
@@ -465,7 +464,7 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 /*% configure a view */
 static isc_result_t
 configure_view(const char *vclass, const char *view, const cfg_obj_t *config,
-	       const cfg_obj_t *vconfig, isc_mem_t *mctx, bool list) {
+	       const cfg_obj_t *vconfig, bool list) {
 	const cfg_obj_t *voptions = NULL;
 	const cfg_obj_t *zonelist = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -486,7 +485,7 @@ configure_view(const char *vclass, const char *view, const cfg_obj_t *config,
 	CFG_LIST_FOREACH (zonelist, element) {
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		tresult = configure_zone(vclass, view, zconfig, vconfig, config,
-					 mctx, list);
+					 list);
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -510,8 +509,7 @@ config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 
 /*% load zones from the configuration */
 static isc_result_t
-load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
-		      bool list_zones) {
+load_zones_fromconfig(const cfg_obj_t *config, bool list_zones) {
 	const cfg_obj_t *views = NULL;
 	const cfg_obj_t *vconfig = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -544,7 +542,7 @@ load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 
 		dns_rdataclass_format(viewclass, buf, sizeof(buf));
 		vname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
-		tresult = configure_view(buf, vname, config, vconfig, mctx,
+		tresult = configure_view(buf, vname, config, vconfig,
 					 list_zones);
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
@@ -552,7 +550,7 @@ load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 	}
 
 	if (views == NULL) {
-		tresult = configure_view("IN", "_default", config, NULL, mctx,
+		tresult = configure_view("IN", "_default", config, NULL,
 					 list_zones);
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
@@ -579,7 +577,6 @@ main(int argc, char **argv) {
 	cfg_parser_t *parser = NULL;
 	cfg_obj_t *config = NULL;
 	const char *conffile = NULL;
-	isc_mem_t *mctx = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	bool load_zones = false;
 	bool list_zones = false;
@@ -602,15 +599,15 @@ main(int argc, char **argv) {
 		case 'm':
 			if (strcasecmp(isc_commandline_argument, "record") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			}
 			if (strcasecmp(isc_commandline_argument, "trace") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			}
 			if (strcasecmp(isc_commandline_argument, "usage") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+				isc_mem_debugon(ISC_MEM_DEBUGUSAGE);
 			}
 			break;
 		default:
@@ -618,8 +615,6 @@ main(int argc, char **argv) {
 		}
 	}
 	isc_commandline_reset = true;
-
-	isc_mem_create(isc_commandline_progname, &mctx);
 
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != EOF) {
 		switch (c) {
@@ -691,7 +686,6 @@ main(int argc, char **argv) {
 			}
 			FALLTHROUGH;
 		case 'h':
-			isc_mem_detach(&mctx);
 			usage();
 
 		default:
@@ -714,7 +708,6 @@ main(int argc, char **argv) {
 	}
 
 	if (isc_commandline_index + 1 < argc) {
-		isc_mem_detach(&mctx);
 		usage();
 	}
 	if (argv[isc_commandline_index] != NULL) {
@@ -726,7 +719,7 @@ main(int argc, char **argv) {
 
 	CHECK(setup_logging(stdout));
 
-	CHECK(cfg_parser_create(mctx, &parser));
+	CHECK(cfg_parser_create(isc_g_mctx, &parser));
 
 	if (nodeprecate) {
 		cfg_parser_setflags(parser, CFG_PCTX_NODEPRECATED, true);
@@ -737,9 +730,9 @@ main(int argc, char **argv) {
 	cfg_parser_setcallback(parser, directory_callback, NULL);
 
 	CHECK(cfg_parse_file(parser, conffile, &cfg_type_namedconf, &config));
-	CHECK(isccfg_check_namedconf(config, checkflags, mctx));
+	CHECK(isccfg_check_namedconf(config, checkflags, isc_g_mctx));
 	if (load_zones || list_zones) {
-		CHECK(load_zones_fromconfig(config, mctx, list_zones));
+		CHECK(load_zones_fromconfig(config, list_zones));
 	}
 
 	if (print) {
@@ -753,10 +746,6 @@ cleanup:
 
 	if (parser != NULL) {
 		cfg_parser_destroy(&parser);
-	}
-
-	if (mctx != NULL) {
-		isc_mem_detach(&mctx);
 	}
 
 	return result == ISC_R_SUCCESS ? 0 : 1;

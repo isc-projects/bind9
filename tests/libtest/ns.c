@@ -91,14 +91,14 @@ setup_server(void **state) {
 
 	setup_managers(state);
 
-	ns_server_create(mctx, matchview, &sctx);
+	ns_server_create(isc_g_mctx, matchview, &sctx);
 
-	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+	result = dns_dispatchmgr_create(isc_g_mctx, &dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = ns_interfacemgr_create(mctx, sctx, dispatchmgr, NULL,
+	result = ns_interfacemgr_create(isc_g_mctx, sctx, dispatchmgr, NULL,
 					&interfacemgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -258,7 +258,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	/*
 	 * Create a new DNS message holding a query.
 	 */
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
 			   &message);
 
 	/*
@@ -282,7 +282,8 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	 * class IN and type "qtype", link the two and add the result to the
 	 * QUESTION section of the query.
 	 */
-	result = dns_name_fromstring(qname, qnamestr, dns_rootname, 0, mctx);
+	result = dns_name_fromstring(qname, qnamestr, dns_rootname, 0,
+				     isc_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto put_name;
 	}
@@ -293,7 +294,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	/*
 	 * Render the query.
 	 */
-	dns_compress_init(&cctx, mctx, 0);
+	dns_compress_init(&cctx, isc_g_mctx, 0);
 	isc_buffer_init(&querybuf, query, sizeof(query));
 	result = dns_message_renderbegin(message, &cctx, &querybuf);
 	if (result != ISC_R_SUCCESS) {
@@ -349,7 +350,7 @@ extract_qctx(void *arg, void *data, isc_result_t *resultp) {
 	 * duplicated or otherwise they will become invalidated once the stack
 	 * gets unwound.
 	 */
-	qctx = isc_mem_get(mctx, sizeof(*qctx));
+	qctx = isc_mem_get(isc_g_mctx, sizeof(*qctx));
 	memmove(qctx, (query_ctx_t *)arg, sizeof(*qctx));
 
 	qctxp = (query_ctx_t **)data;
@@ -386,8 +387,8 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	 * set hooks.
 	 */
 
-	ns_hooktable_create(mctx, &query_hooks);
-	ns_hook_add(query_hooks, mctx, NS_QUERY_SETUP, &hook);
+	ns_hooktable_create(isc_g_mctx, &query_hooks);
+	ns_hook_add(query_hooks, isc_g_mctx, NS_QUERY_SETUP, &hook);
 
 	saved_hook_table = ns__hook_table;
 	ns__hook_table = query_hooks;
@@ -395,7 +396,7 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	ns_query_start(client, client->inner.handle);
 
 	ns__hook_table = saved_hook_table;
-	ns_hooktable_free(mctx, (void **)&query_hooks);
+	ns_hooktable_free(isc_g_mctx, (void **)&query_hooks);
 
 	isc_nmhandle_detach(&client->inner.reqhandle);
 
@@ -495,7 +496,7 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 		isc_nmhandle_detach(&qctx->client->inner.handle);
 	}
 
-	isc_mem_put(mctx, qctx, sizeof(*qctx));
+	isc_mem_put(isc_g_mctx, qctx, sizeof(*qctx));
 }
 
 ns_hookresult_t
@@ -524,8 +525,8 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 		return result;
 	}
 
-	result = dns_db_create(mctx, dbimp, name, dbtype, dns_rdataclass_in, 0,
-			       NULL, db);
+	result = dns_db_create(isc_g_mctx, dbimp, name, dbtype,
+			       dns_rdataclass_in, 0, NULL, db);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}

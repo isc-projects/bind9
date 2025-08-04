@@ -30,7 +30,6 @@
 #include <isc/util.h>
 #include <isc/uv.h>
 
-extern isc_mem_t   *mctx;
 extern int	    ncpus;
 extern unsigned int workers;
 extern bool	    debug;
@@ -247,7 +246,7 @@ teardown_managers(void **state);
 			r = cmocka_run_group_tests(tests, setup, teardown);             \
 		}                                                                       \
                                                                                         \
-		isc_mem_detach(&mctx);                                                  \
+		teardown_mctx(NULL);                                                    \
                                                                                         \
 		return (r);                                                             \
 	}

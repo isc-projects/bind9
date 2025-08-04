@@ -448,7 +448,7 @@ named_config_parsefile(cfg_parser_t *parser, cfg_obj_t **conf) {
 	 * registered.)
 	 */
 	result = isccfg_check_namedconf(*conf, BIND_CHECK_ALGORITHMS,
-					named_g_mctx);
+					isc_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

@@ -27,7 +27,6 @@
 #include <dns/message.h>
 
 int parseflags = 0;
-isc_mem_t *mctx = NULL;
 bool printmemstats = false;
 bool dorender = false;
 
@@ -81,13 +80,13 @@ printmessage(dns_message_t *msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	do {
-		buf = isc_mem_get(mctx, len);
+		buf = isc_mem_get(isc_g_mctx, len);
 
 		isc_buffer_init(&b, buf, len);
 		result = dns_message_totext(msg, &dns_master_style_debug, 0,
 					    &b);
 		if (result == ISC_R_NOSPACE) {
-			isc_mem_put(mctx, buf, len);
+			isc_mem_put(isc_g_mctx, buf, len);
 			len *= 2;
 		} else if (result == ISC_R_SUCCESS) {
 			printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
@@ -95,7 +94,7 @@ printmessage(dns_message_t *msg) {
 	} while (result == ISC_R_NOSPACE);
 
 	if (buf != NULL) {
-		isc_mem_put(mctx, buf, len);
+		isc_mem_put(isc_g_mctx, buf, len);
 	}
 
 	return result;
@@ -121,15 +120,15 @@ main(int argc, char *argv[]) {
 		case 'm':
 			if (strcasecmp(isc_commandline_argument, "record") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+				isc_mem_debugon(ISC_MEM_DEBUGRECORD);
 			}
 			if (strcasecmp(isc_commandline_argument, "trace") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+				isc_mem_debugon(ISC_MEM_DEBUGTRACE);
 			}
 			if (strcasecmp(isc_commandline_argument, "usage") == 0)
 			{
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+				isc_mem_debugon(ISC_MEM_DEBUGUSAGE);
 			}
 			break;
 		default:
@@ -137,8 +136,6 @@ main(int argc, char *argv[]) {
 		}
 	}
 	isc_commandline_reset = true;
-
-	isc_mem_create(argv[0], &mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -182,7 +179,7 @@ main(int argc, char *argv[]) {
 		f = stdin;
 	}
 
-	isc_buffer_allocate(mctx, &input, 64 * 1024);
+	isc_buffer_allocate(isc_g_mctx, &input, 64 * 1024);
 
 	if (rawdata) {
 		while (fread(&c, 1, 1, f) != 0) {
@@ -257,9 +254,8 @@ main(int argc, char *argv[]) {
 	isc_buffer_free(&input);
 
 	if (printmemstats) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
-	isc_mem_detach(&mctx);
 
 	return 0;
 }
@@ -271,7 +267,8 @@ process_message(isc_buffer_t *source) {
 	int i;
 
 	message = NULL;
-	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &message);
+	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &message);
 
 	result = dns_message_parse(message, source, parseflags);
 	if (result == DNS_R_RECOVERABLE) {
@@ -283,7 +280,7 @@ process_message(isc_buffer_t *source) {
 	CHECKRESULT(result, "printmessage() failed");
 
 	if (printmemstats) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
 
 	if (dorender) {
@@ -304,7 +301,7 @@ process_message(isc_buffer_t *source) {
 			message->counts[i] = 0; /* Another hack XXX */
 		}
 
-		dns_compress_init(&cctx, mctx, 0);
+		dns_compress_init(&cctx, isc_g_mctx, 0);
 
 		result = dns_message_renderbegin(message, &cctx, &buffer);
 		CHECKRESULT(result, "dns_message_renderbegin() failed");
@@ -337,11 +334,11 @@ process_message(isc_buffer_t *source) {
 
 		printf("Message rendered.\n");
 		if (printmemstats) {
-			isc_mem_stats(mctx, stdout);
+			isc_mem_stats(isc_g_mctx, stdout);
 		}
 
-		dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
-				   &message);
+		dns_message_create(isc_g_mctx, NULL, NULL,
+				   DNS_MESSAGE_INTENTPARSE, &message);
 
 		result = dns_message_parse(message, &buffer, parseflags);
 		CHECKRESULT(result, "dns_message_parse failed");

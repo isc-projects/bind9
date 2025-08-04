@@ -77,7 +77,7 @@ dns_ede_test_equals(const ede_test_expected_t *expected, size_t expected_count,
 ISC_RUN_TEST_IMPL(dns_ede_test_text_max_count) {
 	dns_edectx_t edectx;
 
-	dns_ede_init(mctx, &edectx);
+	dns_ede_init(isc_g_mctx, &edectx);
 
 	const char *txt1 = "foobar";
 	const char *txt2 = "It's been a long time since I rock-and-rolled"
@@ -103,7 +103,7 @@ ISC_RUN_TEST_IMPL(dns_ede_test_text_max_count) {
 ISC_RUN_TEST_IMPL(dns_ede_test_max_count) {
 	dns_edectx_t edectx;
 
-	dns_ede_init(mctx, &edectx);
+	dns_ede_init(isc_g_mctx, &edectx);
 
 	dns_ede_add(&edectx, 1, NULL);
 	dns_ede_add(&edectx, 22, "two");
@@ -125,7 +125,7 @@ ISC_RUN_TEST_IMPL(dns_ede_test_max_count) {
 ISC_RUN_TEST_IMPL(dns_ede_test_duplicates) {
 	dns_edectx_t edectx;
 
-	dns_ede_init(mctx, &edectx);
+	dns_ede_init(isc_g_mctx, &edectx);
 
 	dns_ede_add(&edectx, 1, NULL);
 	dns_ede_add(&edectx, 1, "two");
@@ -145,7 +145,7 @@ ISC_RUN_TEST_IMPL(dns_ede_test_duplicates) {
 ISC_RUN_TEST_IMPL(dns_ede_test_infocode_range) {
 	dns_edectx_t edectx;
 
-	dns_ede_init(mctx, &edectx);
+	dns_ede_init(isc_g_mctx, &edectx);
 
 	dns_ede_add(&edectx, 1, NULL);
 	expect_assert_failure(dns_ede_add(&edectx, 32, NULL));
@@ -163,8 +163,8 @@ ISC_RUN_TEST_IMPL(dns_ede_test_copy) {
 	dns_edectx_t edectx2;
 	dns_edectx_t edectx3;
 
-	dns_ede_init(mctx, &edectx1);
-	dns_ede_init(mctx, &edectx2);
+	dns_ede_init(isc_g_mctx, &edectx1);
+	dns_ede_init(isc_g_mctx, &edectx2);
 
 	dns_ede_add(&edectx1, 1, NULL);
 	dns_ede_add(&edectx1, 2, "two-the-first");
@@ -195,7 +195,7 @@ ISC_RUN_TEST_IMPL(dns_ede_test_copy) {
 	dns_ede_test_equals(expected2, 3, &edectx2);
 	dns_ede_test_equals(expected, 3, &edectx1);
 
-	dns_ede_init(mctx, &edectx3);
+	dns_ede_init(isc_g_mctx, &edectx3);
 	dns_ede_add(&edectx3, 2, "two-the-third");
 	dns_ede_copy(&edectx3, &edectx2);
 

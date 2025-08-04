@@ -56,9 +56,12 @@ setup(void **state ISC_ATTR_UNUSED) {
 	dns_fixedname_t fn;
 	dns_name_t *name = dns_fixedname_name(&fn);
 
-	dns_nametree_create(mctx, DNS_NAMETREE_BOOL, "bool test", &booltree);
-	dns_nametree_create(mctx, DNS_NAMETREE_BITS, "bits test", &bitstree);
-	dns_nametree_create(mctx, DNS_NAMETREE_COUNT, "count test", &counttree);
+	dns_nametree_create(isc_g_mctx, DNS_NAMETREE_BOOL, "bool test",
+			    &booltree);
+	dns_nametree_create(isc_g_mctx, DNS_NAMETREE_BITS, "bits test",
+			    &bitstree);
+	dns_nametree_create(isc_g_mctx, DNS_NAMETREE_COUNT, "count test",
+			    &counttree);
 
 	/* Add a positive boolean node */
 	dns_test_namefromstring("example.com.", &fn);

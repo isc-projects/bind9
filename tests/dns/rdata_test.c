@@ -175,7 +175,7 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
 	/*
 	 * Try converting input data into uncompressed wire form.
 	 */
-	dns_compress_init(&cctx, mctx, 0);
+	dns_compress_init(&cctx, isc_g_mctx, 0);
 	result = dns_rdata_towire(rdata, &cctx, &target);
 	detect_uncleared_libcrypto_error();
 	dns_compress_invalidate(&cctx);
@@ -264,7 +264,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 	char buf[1024];
 	unsigned int count = 0;
 
-	rdata_struct = isc_mem_allocate(mctx, structsize);
+	rdata_struct = isc_mem_allocate(isc_g_mctx, structsize);
 	assert_non_null(rdata_struct);
 
 	/*
@@ -345,7 +345,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 	}
 	}
 
-	isc_mem_free(mctx, rdata_struct);
+	isc_mem_free(isc_g_mctx, rdata_struct);
 }
 
 /*

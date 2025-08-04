@@ -36,8 +36,6 @@
 
 #include "dnssectool.h"
 
-static isc_mem_t *mctx = NULL;
-
 ISC_NORETURN static void
 usage(void);
 
@@ -83,8 +81,6 @@ main(int argc, char **argv) {
 		usage();
 	}
 
-	isc_mem_create(isc_commandline_progname, &mctx);
-
 	isc_commandline_errprint = false;
 
 	while ((ch = isc_commandline_parse(argc, argv, "E:fK:rRhv:V")) != -1) {
@@ -100,7 +96,8 @@ main(int argc, char **argv) {
 			 * We don't have to copy it here, but do it to
 			 * simplify cleanup later
 			 */
-			dir = isc_mem_strdup(mctx, isc_commandline_argument);
+			dir = isc_mem_strdup(isc_g_mctx,
+					     isc_commandline_argument);
 			break;
 		case 'r':
 			removefile = true;
@@ -149,20 +146,22 @@ main(int argc, char **argv) {
 	if (dir != NULL) {
 		filename = argv[isc_commandline_index];
 	} else {
-		result = isc_file_splitpath(mctx, argv[isc_commandline_index],
-					    &dir, &filename);
+		result = isc_file_splitpath(isc_g_mctx,
+					    argv[isc_commandline_index], &dir,
+					    &filename);
 		if (result != ISC_R_SUCCESS) {
 			fatal("cannot process filename %s: %s",
 			      argv[isc_commandline_index],
 			      isc_result_totext(result));
 		}
 		if (strcmp(dir, ".") == 0) {
-			isc_mem_free(mctx, dir);
+			isc_mem_free(isc_g_mctx, dir);
 		}
 	}
 
-	result = dst_key_fromnamedfile(
-		filename, dir, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, mctx, &key);
+	result = dst_key_fromnamedfile(filename, dir,
+				       DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
+				       isc_g_mctx, &key);
 	if (result != ISC_R_SUCCESS) {
 		fatal("Invalid keyfile name %s: %s", filename,
 		      isc_result_totext(result));
@@ -245,12 +244,11 @@ main(int argc, char **argv) {
 cleanup:
 	dst_key_free(&key);
 	if (verbose > 10) {
-		isc_mem_stats(mctx, stdout);
+		isc_mem_stats(isc_g_mctx, stdout);
 	}
 	if (dir != NULL) {
-		isc_mem_free(mctx, dir);
+		isc_mem_free(isc_g_mctx, dir);
 	}
-	isc_mem_detach(&mctx);
 
 	return 0;
 }
