@@ -12,7 +12,7 @@
 # pylint: disable=redefined-outer-name,unused-import
 
 import isctest
-from common import (
+from rollover.common import (
     pytestmark,
     alg,
     size,

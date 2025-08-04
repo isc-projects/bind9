@@ -15,7 +15,7 @@ import os
 import isctest
 from isctest.kasp import KeyTimingMetadata, Ipub, Iret
 
-from common import pytestmark  # pylint: disable=unused-import
+from rollover.common import pytestmark  # pylint: disable=unused-import
 
 
 def test_rollover_manual(ns3):
