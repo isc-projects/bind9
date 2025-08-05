@@ -40,11 +40,9 @@
 
 #include "thread_p.h"
 
-#ifndef THREAD_MINSTACKSIZE
-#define THREAD_MINSTACKSIZE (1024U * 1024)
-#endif /* ifndef THREAD_MINSTACKSIZE */
-
 static struct call_rcu_data *isc__thread_call_rcu_data = NULL;
+
+pthread_attr_t isc__thread_attr;
 
 /*
  * We can't use isc_mem API here, because it's called too early and the
@@ -126,28 +124,9 @@ isc_thread_main(isc_threadfunc_t func, void *arg) {
 
 void
 isc_thread_create(isc_threadfunc_t func, void *arg, isc_thread_t *thread) {
-	int ret;
-	pthread_attr_t attr;
-
-	pthread_attr_init(&attr);
-
-#if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
-	defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
-	size_t stacksize;
-	ret = pthread_attr_getstacksize(&attr, &stacksize);
-	PTHREADS_RUNTIME_CHECK(pthread_attr_getstacksize, ret);
-
-	if (stacksize < THREAD_MINSTACKSIZE) {
-		ret = pthread_attr_setstacksize(&attr, THREAD_MINSTACKSIZE);
-		PTHREADS_RUNTIME_CHECK(pthread_attr_setstacksize, ret);
-	}
-#endif /* if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
-	* defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE) */
-
-	ret = pthread_create(thread, &attr, thread_run, thread_wrap(func, arg));
+	int ret = pthread_create(thread, &isc__thread_attr, thread_run,
+				 thread_wrap(func, arg));
 	PTHREADS_RUNTIME_CHECK(pthread_create, ret);
-
-	pthread_attr_destroy(&attr);
 }
 
 void
@@ -186,6 +165,26 @@ isc_thread_yield(void) {
 #elif defined(HAVE_PTHREAD_YIELD_NP)
 	pthread_yield_np();
 #endif /* if defined(HAVE_SCHED_YIELD) */
+}
+
+size_t
+isc_thread_getstacksize(void) {
+	size_t stacksize = 0;
+
+#if HAVE_PTHREAD_ATTR_GETSTACKSIZE
+	int ret = pthread_attr_getstacksize(&isc__thread_attr, &stacksize);
+	PTHREADS_RUNTIME_CHECK(pthread_attr_getstacksize, ret);
+#endif /* HAVE_PTHREAD_ATTR_GETSTACKSIZE */
+
+	return stacksize;
+}
+
+void
+isc_thread_setstacksize(size_t stacksize ISC_ATTR_UNUSED) {
+#if HAVE_PTHREAD_ATTR_SETSTACKSIZE
+	int ret = pthread_attr_setstacksize(&isc__thread_attr, stacksize);
+	PTHREADS_RUNTIME_CHECK(pthread_attr_setstacksize, ret);
+#endif /* HAVE_PTHREAD_ATTR_SETSTACKSIZE */
 }
 
 void

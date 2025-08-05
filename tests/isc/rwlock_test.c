@@ -37,6 +37,8 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
+#include "thread_p.h"
+
 #include <tests/isc.h>
 
 static unsigned int loops = 100;
@@ -254,6 +256,8 @@ isc__rwlock_benchmark(isc_thread_t *threads, unsigned int nthreads,
 	double t;
 	int dc;
 	size_t cont;
+
+	isc_thread_setstacksize(THREAD_MINSTACKSIZE);
 
 	expected_counter = ITERS * nthreads * loops *
 			   ((CNT_MAX - CNT_MIN) / DC + 1);

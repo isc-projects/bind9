@@ -20,6 +20,7 @@
 #include <isc/uv.h>
 
 #include "os_p.h"
+#include "thread_p.h"
 
 static unsigned int isc__os_ncpus = 0;
 static unsigned long isc__os_cacheline = ISC_OS_CACHELINE_SIZE;
@@ -201,9 +202,16 @@ isc__os_initialize(void) {
 		isc__os_cacheline = s;
 	}
 #endif
+
+	pthread_attr_init(&isc__thread_attr);
+
+	size_t stacksize = isc_thread_getstacksize();
+	if (stacksize != 0 && stacksize < THREAD_MINSTACKSIZE) {
+		isc_thread_setstacksize(THREAD_MINSTACKSIZE);
+	}
 }
 
 void
 isc__os_shutdown(void) {
-	/* empty, but defined for completeness */;
+	pthread_attr_destroy(&isc__thread_attr);
 }

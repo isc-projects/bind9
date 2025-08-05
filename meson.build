@@ -453,16 +453,6 @@ foreach fn, header : {
     'flockfile': '#include <stdio.h>',
     'getc_unlocked': '#include <stdio.h>',
 
-    # Thread control
-    'pthread_attr_getstacksize': '#include <pthread.h>',
-    'pthread_attr_setstacksize': '#include <pthread.h>',
-    'pthread_barrier_init': '#include <pthread.h>',
-    'pthread_set_name_np': '#include <pthread.h>',
-    'pthread_setname_np': '#include <pthread.h>',
-    'pthread_spin_init': '#include <pthread.h>',
-    'pthread_yield': '#include <pthread.h>',
-    'pthread_yield_np': '#include <pthread.h>',
-
     # Processor control
     'cpuset_getaffinity': '#include <sys/cpuset.h>',
     'sched_getaffinity': '#include <sched.h>',
@@ -524,8 +514,30 @@ endif
 ###
 null_dep = dependency('', required: false)
 
-thread_dep = dependency('threads')
 m_dep = cc.find_library('m', required: false)
+
+## Threads
+thread_dep = dependency('threads')
+
+foreach fn : [
+    'pthread_attr_getstacksize',
+    'pthread_attr_setstacksize',
+    'pthread_barrier_init',
+    'pthread_set_name_np',
+    'pthread_setname_np',
+    'pthread_spin_init',
+    'pthread_yield',
+    'pthread_yield_np',
+]
+    if cc.has_function(
+        fn,
+        prefix: '#include <pthread.h>',
+        args: sys_defines,
+        dependencies: thread_dep,
+    )
+        config.set('HAVE_@0@'.format(fn.to_upper()), 1)
+    endif
+endforeach
 
 ## OpenSSL
 openssl_dep = [

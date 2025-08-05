@@ -36,6 +36,8 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
+#include "thread_p.h"
+
 #include <tests/isc.h>
 
 static unsigned int loops = 100;
@@ -123,6 +125,8 @@ ISC_RUN_TEST_IMPL(isc_mutex_benchmark) {
 	int dc;
 	size_t cont;
 	int r;
+
+	isc_thread_setstacksize(THREAD_MINSTACKSIZE);
 
 	memset(threads, 0, sizeof(*threads) * workers);
 

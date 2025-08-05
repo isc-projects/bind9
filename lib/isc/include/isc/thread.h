@@ -52,3 +52,8 @@ void
 isc_thread_setname(isc_thread_t thread, const char *name);
 
 #define isc_thread_self (uintptr_t)pthread_self
+
+size_t
+isc_thread_getstacksize(void);
+void
+isc_thread_setstacksize(size_t stacksize);
