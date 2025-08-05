@@ -887,6 +887,7 @@ unit:gcc:almalinux8:amd64:
   needs:
     - job: gcc:almalinux8:amd64
       artifacts: true
+  allow_failure: true  # remove once GL#5448 is fixed
 
 # Jobs for regular GCC builds on Alma Linux 9 (amd64)
 
