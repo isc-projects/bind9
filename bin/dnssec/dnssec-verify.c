@@ -33,6 +33,7 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/time.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -341,6 +342,8 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	}
 	isc_mem_destroy(&mctx);
+
+	rcu_barrier();
 
 	return result == ISC_R_SUCCESS ? 0 : 1;
 }

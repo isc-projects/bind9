@@ -60,6 +60,7 @@
 #include <isc/string.h>
 #include <isc/tid.h>
 #include <isc/time.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -4174,6 +4175,8 @@ main(int argc, char *argv[]) {
 			    &sign_finish);
 	}
 	isc_mutex_destroy(&namelock);
+
+	rcu_barrier();
 
 	return vresult == ISC_R_SUCCESS ? 0 : 1;
 }

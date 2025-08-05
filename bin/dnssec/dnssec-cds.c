@@ -34,6 +34,7 @@
 #include <isc/serial.h>
 #include <isc/string.h>
 #include <isc/time.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -1083,6 +1084,7 @@ cleanup(void) {
 		}
 		isc_mem_destroy(&mctx);
 	}
+	rcu_barrier();
 }
 
 int

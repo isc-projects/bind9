@@ -156,5 +156,7 @@ cleanup:
 		isc_mem_destroy(&mctx);
 	}
 
+	rcu_barrier();
+
 	return result != ISC_R_SUCCESS ? 1 : 0;
 }
