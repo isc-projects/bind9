@@ -12,7 +12,6 @@
 from . import check
 from . import instance
 from . import query
-from . import name
 from . import rndc
 from . import run
 from . import template
