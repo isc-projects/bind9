@@ -145,13 +145,13 @@
 #define QUERY_STALETIMEOUT(q) (((q)->dboptions & DNS_DBFIND_STALETIMEOUT) != 0)
 
 /*% Does the rdataset 'r' have an attached 'No QNAME Proof'? */
-#define NOQNAME(r) (((r)->attributes.noqname))
+#define NOQNAME(r) ((r)->attributes.noqname)
 
 /*% Does the rdataset 'r' contain a stale answer? */
-#define STALE(r) (((r)->attributes.stale))
+#define STALE(r) ((r)->attributes.stale)
 
 /*% Does the rdataset 'r' is stale and within stale-refresh-time? */
-#define STALE_WINDOW(r) (((r)->attributes.stale_window))
+#define STALE_WINDOW(r) ((r)->attributes.stale_window)
 
 #ifdef WANT_QUERYTRACE
 static void
@@ -6972,6 +6972,16 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 	return ISC_R_SUCCESS;
 }
 
+static void
+query_rpz_add_ede(query_ctx_t *qctx) {
+	if (qctx->rpz_st->m.rpz->ede != 0 &&
+	    qctx->rpz_st->m.rpz->ede != UINT16_MAX)
+	{
+		dns_ede_add(&qctx->client->edectx, qctx->rpz_st->m.rpz->ede,
+			    NULL);
+	}
+}
+
 /*%
  * Do any RPZ rewriting that may be needed for this query.
  */
@@ -7124,6 +7134,8 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			result = dns_rdata_tostruct(&rdata, &cname, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_rdata_reset(&rdata);
+
+			query_rpz_add_ede(qctx);
 			result = query_rpzcname(qctx, &cname.cname);
 			if (result != ISC_R_SUCCESS) {
 				return ISC_R_COMPLETE;
@@ -7137,6 +7149,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			 * Add overriding CNAME from a named.conf
 			 * response-policy statement
 			 */
+			query_rpz_add_ede(qctx);
 			result = query_rpzcname(qctx,
 						&qctx->rpz_st->m.rpz->cname);
 			if (result != ISC_R_SUCCESS) {
@@ -7149,12 +7162,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			UNREACHABLE();
 		}
 
-		if (qctx->rpz_st->m.rpz->ede != 0 &&
-		    qctx->rpz_st->m.rpz->ede != UINT16_MAX)
-		{
-			dns_ede_add(&qctx->client->edectx,
-				    qctx->rpz_st->m.rpz->ede, NULL);
-		}
+		query_rpz_add_ede(qctx);
 
 		/*
 		 * Turn off DNSSEC because the results of a
