@@ -673,3 +673,30 @@ dns_rdataset_equals(const dns_rdataset_t *rdataset1,
  * \li	'rdataset1' is a valid rdataset.
  * \li	'rdataset2' is a valid rdataset.
  */
+
+/*%
+ * Returns true if the rdataset is of type 'type', or type RRSIG
+ * and covers 'type'.
+ */
+static inline bool
+dns_rdataset_matchestype(const dns_rdataset_t *rdataset,
+			 const dns_rdatatype_t type) {
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+
+	return rdataset->type == type ||
+	       (rdataset->type == dns_rdatatype_rrsig &&
+		rdataset->covers == type);
+}
+
+/*%
+ * Returns true if the rdataset is of type 'type', or type RRSIG
+ * and covers 'type'.
+ */
+static inline bool
+dns_rdataset_issigtype(const dns_rdataset_t *rdataset,
+		       const dns_rdatatype_t type) {
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+
+	return rdataset->type == dns_rdatatype_rrsig &&
+	       rdataset->covers == type;
+}

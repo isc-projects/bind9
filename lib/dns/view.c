@@ -1535,41 +1535,31 @@ dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now, const dns_name_t *name,
 	return dns_ntatable_covered(view->ntatable_priv, now, name, anchor);
 }
 
-isc_result_t
+bool
 dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
-			isc_stdtime_t now, bool checknta, bool *ntap,
-			bool *secure_domain) {
-	isc_result_t result;
+			isc_stdtime_t now, bool checknta, bool *ntap) {
 	bool secure = false;
 	dns_fixedname_t fn;
 	dns_name_t *anchor;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	if (view->secroots_priv == NULL) {
-		return ISC_R_NOTFOUND;
+	if (!view->enablevalidation || view->secroots_priv == NULL) {
+		return false;
 	}
 
 	anchor = dns_fixedname_initname(&fn);
-
-	result = dns_keytable_issecuredomain(view->secroots_priv, name, anchor,
-					     &secure);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	secure = dns_keytable_issecuredomain(view->secroots_priv, name, anchor);
 
 	SET_IF_NOT_NULL(ntap, false);
 	if (checknta && secure && view->ntatable_priv != NULL &&
 	    dns_ntatable_covered(view->ntatable_priv, now, name, anchor))
 	{
-		if (ntap != NULL) {
-			*ntap = true;
-		}
+		SET_IF_NOT_NULL(ntap, true);
 		secure = false;
 	}
 
-	*secure_domain = secure;
-	return ISC_R_SUCCESS;
+	return secure;
 }
 
 void
