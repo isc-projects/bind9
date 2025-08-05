@@ -774,6 +774,16 @@ if [ native = "$MODE" ]; then
   $DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t || setret "failed"
   grep -F "EDE: 4 (Forged Answer)" dig.out.$t >/dev/null || setret "failed"
 
+  t=$((t + 1))
+  echo_i "checking the configured extended DNS error code, CNAME override (EDE) (${t})"
+  $DIG -p ${PORT} @$ns3 evil.tld2 >dig.out.$t || setret "failed"
+  grep -F "EDE: 15 (Blocked)" dig.out.$t >/dev/null || setret "failed"
+
+  t=$((t + 1))
+  echo_i "checking the configured extended DNS error code, wildcard CNAME override (EDE) (${t})"
+  $DIG -p ${PORT} @$ns3 foo.evil.tld2 >dig.out.$t || setret "failed"
+  grep -F "EDE: 15 (Blocked)" dig.out.$t >/dev/null || setret "failed"
+
   # reload a RPZ zone that is now deliberately broken.
   t=$((t + 1))
   echo_i "checking rpz failed update will keep previous rpz rules (${t})"

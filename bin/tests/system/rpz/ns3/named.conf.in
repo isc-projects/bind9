@@ -51,6 +51,8 @@ options {
 	    zone "bl.tld2";
 	    zone "manual-update-rpz"	ede forged;
 	    zone "mixed-case-rpz";
+	    zone "evil-cname"  policy cname a12.tld2. ede blocked;
+	    zone "wild-cname"  ede blocked;
 	}
 	add-soa yes
 	min-ns-dots 0
@@ -149,6 +151,16 @@ zone "stub-nomatch." {
 zone "static-stub-nomatch." {
 	type static-stub;
 	server-addresses { 10.53.0.10; };
+};
+
+zone "evil-cname" {
+	type primary;
+	file "evil-cname.db";
+};
+
+zone "wild-cname" {
+	type primary;
+	file "wild-cname.db";
 };
 
 # A faulty dlz configuration to check if named with response policy zones
