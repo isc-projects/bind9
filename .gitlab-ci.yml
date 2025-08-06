@@ -624,7 +624,7 @@ vulture:
   <<: *precheck_job
   needs: []
   script:
-    - vulture --exclude "*ans.py,conftest.py,isctest" --ignore-names "pytestmark,reconfigure_policy" bin/tests/system/
+    - vulture --exclude "*ans.py,conftest.py,isctest" --ignore-names "pytestmark,reconfigure_policy,setup_filters" bin/tests/system/
 
 ci-variables:
   <<: *precheck_job

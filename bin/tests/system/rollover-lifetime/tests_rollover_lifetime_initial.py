@@ -15,7 +15,7 @@ import pytest
 
 import isctest
 from isctest.util import param
-from common import (
+from rollover.common import (
     pytestmark,
     alg,
     size,

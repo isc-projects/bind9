@@ -14,11 +14,11 @@
 import os
 from pathlib import Path
 import platform
+import socket
 import shutil
 import subprocess
 
 import pytest
-
 
 long_test = pytest.mark.skipif(
     not os.environ.get("CI_ENABLE_LONG_TESTS"), reason="CI_ENABLE_LONG_TESTS not set"
@@ -101,3 +101,15 @@ softhsm2_environment = pytest.mark.skipif(
     ),
     reason="SOFTHSM2_CONF and SOFTHSM2_MODULE environmental variables must be set and pkcs11-tool and softhsm2-util tools present",
 )
+
+
+def have_ipv6():
+    sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+    try:
+        sock.bind(("fd92:7065:b8e:ffff::1", 0))
+    except OSError:
+        return False
+    return True
+
+
+with_ipv6 = pytest.mark.skipif(not have_ipv6(), reason="IPv6 not available")

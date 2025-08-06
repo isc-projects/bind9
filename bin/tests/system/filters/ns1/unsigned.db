@@ -10,16 +10,16 @@
 ; information regarding copyright ownership.
 
 $TTL	120
-@		SOA	ns.signed.  hostmaster.ns.signed. ( 1 3600 1200 604800 60 )
+@		SOA	ns.unsigned.  hostmaster.ns.unsigned. ( 1 3600 1200 604800 60 )
 @		NS	ns
 @               MX      10 mx
 
 ns		A	10.53.0.1
 		AAAA	fd92:7065:b8e:ffff::1
 
-a-only		NS	1.0.0.1
-aaaa-only	AAAA	2001:db8::2
-dual		A	1.0.0.3
-dual 		AAAA	2001:db8::3
+a-only		A	1.0.0.5
+aaaa-only	AAAA	2001:db8::5
+dual		A	1.0.0.6
+dual 		AAAA	2001:db8::6
 mx		A	1.0.0.3
 mx 		AAAA	2001:db8::3

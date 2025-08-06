@@ -21,7 +21,7 @@ import dns.update
 
 import isctest
 from isctest.kasp import Iret
-from common import (
+from rollover.common import (
     pytestmark,
     alg,
     size,

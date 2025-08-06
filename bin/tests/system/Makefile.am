@@ -113,7 +113,7 @@ TESTS =				\
 	ednscompliance		\
 	emptyzones		\
 	enginepkcs11		\
-	filter-aaaa		\
+	filters			\
 	fetchlimit		\
 	formerr			\
 	forward			\
