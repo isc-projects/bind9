@@ -67,9 +67,10 @@ libdns_la_HEADERS =			\
 	include/dns/dns64.h		\
 	include/dns/dnsrps.h		\
 	include/dns/dnssec.h		\
+	include/dns/dnstap.h		\
 	include/dns/ds.h		\
 	include/dns/dsdigest.h		\
-	include/dns/dnstap.h		\
+	include/dns/dsync.h		\
 	include/dns/dyndb.h		\
 	include/dns/ecs.h		\
 	include/dns/edns.h		\
@@ -87,8 +88,8 @@ libdns_la_HEADERS =			\
 	include/dns/keytable.h		\
 	include/dns/keyvalues.h		\
 	include/dns/librpz.h		\
-	include/dns/lookup.h		\
 	include/dns/log.h		\
+	include/dns/lookup.h		\
 	include/dns/master.h		\
 	include/dns/masterdump.h	\
 	include/dns/message.h		\
@@ -125,8 +126,8 @@ libdns_la_HEADERS =			\
 	include/dns/ssu.h		\
 	include/dns/stats.h		\
 	include/dns/time.h		\
-	include/dns/transport.h		\
 	include/dns/tkey.h		\
+	include/dns/transport.h		\
 	include/dns/tsec.h		\
 	include/dns/tsig.h		\
 	include/dns/ttl.h		\
