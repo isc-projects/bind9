@@ -15,7 +15,7 @@ from datetime import timedelta
 
 import isctest
 from isctest.kasp import Ipub, Iret
-from common import (
+from rollover.common import (
     pytestmark,
     alg,
     size,

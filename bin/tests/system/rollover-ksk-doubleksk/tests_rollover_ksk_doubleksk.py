@@ -14,7 +14,7 @@
 from datetime import timedelta
 
 import isctest
-from common import (
+from rollover.common import (
     pytestmark,
     alg,
     size,

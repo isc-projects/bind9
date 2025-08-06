@@ -12,7 +12,7 @@
 # pylint: disable=unused-import
 
 import isctest
-from common import (
+from rollover.common import (
     pytestmark,
     CDSS,
     DURATION,

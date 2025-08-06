@@ -13,7 +13,7 @@
 
 import isctest
 from isctest.kasp import Ipub, IpubC, Iret
-from common import (
+from rollover.common import (
     pytestmark,
     alg,
     size,
