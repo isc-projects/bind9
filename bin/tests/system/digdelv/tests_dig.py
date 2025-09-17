@@ -1270,3 +1270,13 @@ def test_yaml_character_values(dig, ns3):
     answer = response["ANSWER_SECTION"][0]
     strings = " ".join(quoted(i) for i in range(256))
     assert answer == f"all.yaml.example. 300 IN TXT {strings}"
+
+
+def test_deflag(dig, ns3):
+    """
+    Check that the DE flag is sent when specified.
+    """
+    result = dig(f"@{ns3.ip} +de a.example +qr")
+    assert "flags: de" in result.out
+    result = dig(f"@{ns3.ip} a.example +qr")
+    assert "flags: de" not in result.out

@@ -563,6 +563,9 @@ ns_client_log_flags(ns_client_t *client, unsigned int flags,
 	} else if (client->inner.wantcookie) {
 		isc_buffer_putuint8(&b, 'K');
 	}
+	if ((extflags & DNS_MESSAGEEXTFLAG_DE) != 0) {
+		isc_buffer_putuint8(&b, 'G');
+	}
 	isc_buffer_putuint8(&b, 0);
 }
 

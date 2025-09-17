@@ -104,9 +104,9 @@ struct dig_lookup {
 	unsigned int magic;
 	isc_refcount_t references;
 	bool aaonly, adflag, badcookie, besteffort, cdflag, cleared, coflag,
-		comments, dns64prefix, dnssec, doing_xfr, done_as_is, ednsneg,
-		expandaaaa, svcparamkeycompat, expire, fuzzing, header_only,
-		identify, /*%< Append an "on server <foo>" message */
+		comments, dns64prefix, deflag, dnssec, doing_xfr, done_as_is,
+		ednsneg, expandaaaa, svcparamkeycompat, expire, fuzzing,
+		header_only, identify,	/*%< Append "on server <foo>" message */
 		identify_previous_line, /*% Prepend a "Nameserver <foo>:"
 					   message, with newline and tab */
 		idnin, idnout, ignore, multiline, need_search, new_search,
