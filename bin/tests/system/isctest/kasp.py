@@ -191,7 +191,7 @@ class KeyProperties:
         legacy: bool = False,
         role: str = "csk",
         ttl: int = 3600,
-        flags: int = 257,
+        flags: int = KEYFLAG_SEP | KEYFLAG_ZONE,
         keytag_min: int = 0,
         keytag_max: int = 65535,
         offset: timedelta | int = 0,

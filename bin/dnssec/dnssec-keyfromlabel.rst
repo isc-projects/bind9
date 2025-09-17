@@ -82,7 +82,8 @@ Options
 .. option:: -f flag
 
    This option sets the specified flag in the ``flag`` field of the KEY/DNSKEY record.
-   The only recognized flags are KSK (Key-Signing Key) and REVOKE.
+   The only recognized flags are KSK (Key-Signing Key), ADT (Authoritative
+   Delegation Types), and REVOKE.
 
 .. option:: -G
 

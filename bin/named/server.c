@@ -14457,7 +14457,9 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t *text) {
 			CHECK(putstr(text, buf));
 
 			revoked = ((kd.flags & DNS_KEYFLAG_REVOKE) != 0);
-			snprintf(buf, sizeof(buf), "\n\tflags:%s%s%s",
+			snprintf(buf, sizeof(buf), "\n\tflags:%s%s%s%s",
+				 ((kd.flags & DNS_KEYFLAG_ADT) != 0) ? " ADT"
+								     : "",
 				 revoked ? " REVOKE" : "",
 				 ((kd.flags & DNS_KEYFLAG_KSK) != 0) ? " SEP"
 								     : "",

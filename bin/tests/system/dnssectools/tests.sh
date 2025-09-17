@@ -1126,5 +1126,21 @@ test $(wc -l <dsfromkey.out.test$n) -eq 1 || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 
+echo_i "check dnssec-keygen flag options ($n)"
+ret=0
+zone=example
+key=$("$KEYGEN" -K signer -f ZSK -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 256 "signer/${key}.key" || ret=1
+key=$("$KEYGEN" -K signer -f KSK -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 257 "signer/${key}.key" || ret=1
+key=$("$KEYGEN" -K signer -f ADT -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 258 "signer/${key}.key" || ret=1
+key=$("$KEYGEN" -K signer -f ADT -f KSK -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 259 "signer/${key}.key" || ret=1
+key=$("$KEYGEN" -K signer -f KSK -f REVOKE -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 385 "signer/${key}.key" || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
