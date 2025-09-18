@@ -109,6 +109,8 @@ prio_type(dns_typepair_t type) {
 	case DNS_SIGTYPEPAIR(dns_rdatatype_dname):
 	case dns_rdatatype_svcb:
 	case DNS_SIGTYPEPAIR(dns_rdatatype_svcb):
+	case dns_rdatatype_deleg:
+	case DNS_SIGTYPEPAIR(dns_rdatatype_deleg):
 	case dns_rdatatype_https:
 	case DNS_SIGTYPEPAIR(dns_rdatatype_https):
 	case dns_rdatatype_dnskey:

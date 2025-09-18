@@ -31,6 +31,9 @@ for db in zones/good*.db; do
     zones/good-rpz-prefix.db)
       $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || ret=1
       ;;
+    zones/good-deleg-root.db)
+      $CHECKZONE -i local . $db >test.out.$n 2>&1 || ret=1
+      ;;
     *)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || ret=1
       ;;
@@ -134,7 +137,7 @@ for db in zones/bad*.db; do
       ;;
     zones/bad-svcb-mandatory.db)
       $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
-      grep "zones/bad-svcb-mandatory.db:6: near eol: disallowed (by application policy)" test.out.$n >/dev/null || ret=1
+      grep "zones/bad-svcb-mandatory.db:6: near eol: disallowed" test.out.$n >/dev/null || ret=1
       ;;
     zones/bad-svcb-servername.db)
       $CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db >test.out.$n 2>&1 || v=$?

@@ -524,6 +524,15 @@ keydata			TYPE65533	\# 0
 keydata			TYPE65533	\# 6 010203040506
 keydata			TYPE65533	\# 18 010203040506010203040506010203040506
 
+; deleg and delegparam (61440 and 54)
+deleg			DELEG	server-name=ns1.example.net.,ns2.example.org.
+deleg			DELEG	server-ipv4=192.0.2.1 server-ipv6=2001:DB8::1
+deleg                   DELEG   server-ipv4=192.0.2.2 mandatory=server-ipv4
+deleg			DELEG	key12345=abc
+delegparam			DELEGPARAM	server-name=ns1.example.net.,ns2.example.org.
+delegparam			DELEGPARAM	server-ipv4=192.0.2.1 server-ipv6=2001:DB8::1
+delegparam			DELEGPARAM	key321=xyz
+
 ; type 65535 (reserved)
 
 EOF
