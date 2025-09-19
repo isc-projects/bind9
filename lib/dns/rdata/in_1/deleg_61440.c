@@ -19,7 +19,7 @@
 
 #define RRTYPE_DELEG_ATTRIBUTES                                            \
 	(DNS_RDATATYPEATTR_FOLLOWADDITIONAL | DNS_RDATATYPEATTR_ATPARENT | \
-	 DNS_RDATATYPEATTR_ZONECUTAUTH)
+	 DNS_RDATATYPEATTR_ZONECUTAUTH | DNS_RDATATYPEATTR_DELEGATION)
 
 /*
  * Delegation Information Registry
@@ -210,9 +210,9 @@ finish:
 }
 
 static isc_result_t
-servname_fromtxt(isc_textregion_t *region, const dns_name_t *origin,
-		 unsigned int options, isc_lex_t *lexer,
-		 dns_rdatacallbacks_t *callbacks, isc_buffer_t *target) {
+servname_fromtext(isc_textregion_t *region, const dns_name_t *origin,
+		  unsigned int options, isc_lex_t *lexer,
+		  dns_rdatacallbacks_t *callbacks, isc_buffer_t *target) {
 	isc_textregion_t src = *region;
 
 	if (origin == NULL) {
@@ -319,8 +319,8 @@ deleg_fromtext(isc_textregion_t *region, const dns_name_t *origin,
 			} while (e != NULL);
 			break;
 		case deleg_namelist:
-			RETERR(servname_fromtxt(region, origin, options, lexer,
-						callbacks, target));
+			RETERR(servname_fromtext(region, origin, options, lexer,
+						 callbacks, target));
 			break;
 		case deleg_keylist:
 			if (region->length == 0) {
@@ -918,7 +918,9 @@ generic_checknames_in_deleg(ARGS_CHECKNAMES) {
 			if (!dns_name_ishostname(&name, false)) {
 				return false;
 			}
-			if (dns_name_issubdomain(&name, owner)) {
+			if (rdata->type == dns_rdatatype_deleg &&
+			    dns_name_issubdomain(&name, owner))
+			{
 				return false;
 			}
 		}

@@ -448,7 +448,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * NS, SOA and DNSKEY records are signed by their owners.
 	 * NSEC3 records are signed by the apex, exactly one level up
 	 * from their owner names.
-	 * DS records are signed by the parent zone.
+	 * DS and DELEG records are signed by the parent.
 	 */
 	switch (set->type) {
 	case dns_rdatatype_nsec3: {
@@ -473,6 +473,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		}
 		break;
 	case dns_rdatatype_ds:
+	case dns_rdatatype_deleg:
 		if (dns_name_equal(name, &sig.signer)) {
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;

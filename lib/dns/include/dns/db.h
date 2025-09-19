@@ -291,6 +291,7 @@ enum {
 	 * stale-refresh-time window.
 	 */
 	DNS_DBFIND_STALESTART = 1 << 12,
+	DNS_DBFIND_DELEGOK = 1 << 13,
 };
 /*@}*/
 
@@ -855,6 +856,11 @@ dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
  * \li	If 'options' does not have #DNS_DBFIND_PENDINGOK set, then no
  *	pending data will be returned.  This option is only meaningful for
  *	cache databases.
+ *
+ * \li	If 'options' does not have #DNS_DBFIND_DELEGOK set, then only
+ * 	NS referrals will be returned. This allows different delegation
+ * 	answers to be sent depending on whether a client has set the
+ * 	DE (DELEG-OK) bit.
  *
  * \li	If the #DNS_DBFIND_NOWILD option is set, then wildcard matching will
  *	be disabled.  This option is only meaningful for zone databases.

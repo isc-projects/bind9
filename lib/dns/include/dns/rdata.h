@@ -143,6 +143,8 @@ enum {
 	DNS_RDATATYPEATTR_ATCNAME = 1 << 10,
 	/*% Follow additional */
 	DNS_RDATATYPEATTR_FOLLOWADDITIONAL = 1 << 11,
+	/*% Delegation type */
+	DNS_RDATATYPEATTR_DELEGATION = 1 << 12,
 };
 
 #define DNS_RDATA_INIT                        \
@@ -643,6 +645,22 @@ dns_rdatatype_atparent(dns_rdatatype_t type) {
 }
 
 /*%
+ * Special case of dns_rdatatype_atparent(), to be used when DELEG might or
+ * might not count as an at-parent type, depending on whether DE=1.
+ *
+ * Requires:
+ * \li	'type' is a valid rdata type.
+ *
+ */
+static inline bool
+dns_rdatatype_atparent_deleg(dns_rdatatype_t type, bool de) {
+	if (type == dns_rdatatype_deleg) {
+		return de;
+	}
+	return dns_rdatatype_atparent(type);
+}
+
+/*%
  * Return true if adding a record of type 'type' to the ADDITIONAL section
  * of a message can itself trigger the addition of still more data to the
  * additional section.
@@ -749,6 +767,20 @@ dns_rdatatype_isaddr(dns_rdatatype_t type) {
 static inline bool
 dns_rdatatype_isalias(dns_rdatatype_t type) {
 	return type == dns_rdatatype_cname || type == dns_rdatatype_dname;
+}
+
+/*%
+ * Return true iff rdata of type 'type' is a delegating type: either
+ * NS or DELEG.
+ *
+ * Requires:
+ * \li	'type' is a valid rdata type.
+ *
+ */
+static inline bool
+dns_rdatatype_isdelegation(dns_rdatatype_t type) {
+	return (dns_rdatatype_attributes(type) &
+		DNS_RDATATYPEATTR_DELEGATION) != 0;
 }
 
 /*%

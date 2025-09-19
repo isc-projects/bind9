@@ -2625,8 +2625,8 @@ Boolean Options
    :rfc:`952` and :rfc:`821` as modified by :rfc:`1123`.
 
    :any:`check-names` applies to the owner names of A, AAAA, and MX records.
-   It also applies to the domain names in the RDATA of NS, SOA, MX, and
-   SRV records. It further applies to the RDATA of PTR records where the
+   It also applies to the domain names in the RDATA of NS, SOA, MX, SRV,
+   and DELEG records. It further applies to the RDATA of PTR records where the
    owner name indicates that it is a reverse lookup of a hostname (the
    owner name ends in IN-ADDR.ARPA, IP6.ARPA, or IP6.INT).
 
@@ -2675,6 +2675,8 @@ Boolean Options
    use :iscman:`named-checkzone`). For NS records, only names below top-of-zone
    are checked (for out-of-zone names and glue consistency checks, use
    :iscman:`named-checkzone`). DS records not at delegations are rejected.
+   DELEG records containing "server-name" or "include-delegparam"
+   parameters which point to names below the zone cut are rejected.
    The default is ``yes``.
 
    The use of the SPF record to publish Sender Policy Framework is

@@ -2286,26 +2286,20 @@ static bool
 integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	dns_dbiterator_t *dbiterator = NULL;
 	dns_dbnode_t *node = NULL;
-	dns_rdataset_t rdataset;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 	dns_fixedname_t fixed;
 	dns_fixedname_t fixedbottom;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	dns_name_t *bottom = dns_fixedname_initname(&fixedbottom);
 	dns_rdata_mx_t mx;
 	dns_rdata_ns_t ns;
 	dns_rdata_in_srv_t srv;
-	dns_name_t *name;
-	dns_name_t *bottom;
 	isc_result_t result;
-	bool ok = true, have_spf, have_txt;
-	bool has_a = false;
-	bool has_aaaa = false;
-	int level;
+	bool ok = true;
+	bool has_a = false, has_aaaa = false;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	bool logged_algorithm[DST_MAX_ALGS];
 	bool logged_digest_type[DNS_DSDIGEST_MAX + 1];
-
-	name = dns_fixedname_initname(&fixed);
-	bottom = dns_fixedname_initname(&fixedbottom);
-	dns_rdataset_init(&rdataset);
 
 	result = dns_db_createiterator(db, 0, &dbiterator);
 	if (result != ISC_R_SUCCESS) {
@@ -2313,6 +2307,9 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	}
 
 	DNS_DBITERATOR_FOREACH(dbiterator) {
+		bool have_ns = false, have_deleg = false;
+		bool have_spf = false, have_txt = false;
+
 		CHECK(dns_dbiterator_current(dbiterator, &node, name));
 
 		/*
@@ -2374,23 +2371,25 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 
 	checkforns:
 		/*
-		 * Don't check the NS records at the origin.
+		 * Skip checking NS records at the apex.
 		 */
 		if (dns_name_equal(name, &zone->origin)) {
-			goto checkfords;
+			goto checkfordeleg;
 		}
 
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ns,
 					     0, 0, &rdataset, NULL);
 		if (result != ISC_R_SUCCESS) {
-			goto checkfords;
+			goto checkfordeleg;
 		}
 
 		/*
 		 * Remember bottom of zone due to NS.
 		 */
 		dns_name_copy(name, bottom);
+		have_ns = true;
 
+		/* Check glue correctness */
 		DNS_RDATASET_FOREACH(&rdataset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
@@ -2405,15 +2404,85 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		}
 		dns_rdataset_disassociate(&rdataset);
 
+	checkfordeleg:
+		result = dns_db_findrdataset(db, node, NULL,
+					     dns_rdatatype_deleg, 0, 0,
+					     &rdataset, NULL);
+		if (result != ISC_R_SUCCESS) {
+			goto checkfords;
+		}
+
+		/* DELEG is not allowed at the apex and is class-IN only. */
+		if (dns_name_equal(name, &zone->origin)) {
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "DELEG at zone apex (%s)", namebuf);
+			dns_rdataset_disassociate(&rdataset);
+			ok = false;
+			goto checkfords;
+		} else if (zone->rdclass != dns_rdataclass_in) {
+			dns_zone_log(zone, ISC_LOG_ERROR, "DELEG: bad class");
+			ok = false;
+			goto checkfords;
+		}
+
 		/*
-		 * Check for deprecated DS digest types.
+		 * check the DELEG rrset for server-name and
+		 * include-delegparam paramters, and reject if they're
+		 * below the owner name.
+		 */
+		DNS_RDATASET_FOREACH(&rdataset) {
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdataset_current(&rdataset, &rdata);
+			dns_fixedname_t fbad;
+			dns_name_t *bad = dns_fixedname_initname(&fbad);
+
+			if (!dns_rdata_checknames(&rdata, name, bad)) {
+				dns_name_format(bad, namebuf, sizeof(namebuf));
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "DELEG: invalid target name '%s'",
+					     namebuf);
+				ok = false;
+				dns_rdataset_disassociate(&rdataset);
+				goto checkfords;
+			}
+		}
+
+		/*
+		 * Remember bottom of zone due to DELEG.
+		 */
+		dns_name_copy(name, bottom);
+		have_deleg = true;
+		dns_rdataset_disassociate(&rdataset);
+
+	checkfords:
+		/*
+		 * DS is only allowed at a delegation point (i.e.,
+		 * coexisting with NS or DELEG and not at the apex).
 		 */
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ds,
 					     0, 0, &rdataset, NULL);
 		if (result != ISC_R_SUCCESS) {
-			goto next;
+			goto checkfordname;
 		}
 
+		if (!have_ns && !have_deleg) {
+			int level = ISC_LOG_WARNING;
+			if (zone->type == dns_zone_primary) {
+				level = ISC_LOG_ERROR;
+				ok = false;
+			}
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_zone_log(zone, level,
+				     "DS not at delegation point (%s)",
+				     namebuf);
+			dns_rdataset_disassociate(&rdataset);
+			goto checkfordname;
+		}
+
+		/*
+		 * Check for deprecated DS digest types.
+		 */
 		memset(logged_algorithm, 0, sizeof(logged_algorithm));
 		memset(logged_digest_type, 0, sizeof(logged_digest_type));
 		DNS_RDATASET_FOREACH(&rdataset) {
@@ -2469,38 +2538,21 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		}
 		dns_rdataset_disassociate(&rdataset);
 
-		goto next;
-
-	checkfords:
-		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ds,
-					     0, 0, &rdataset, NULL);
-		if (result != ISC_R_SUCCESS) {
-			goto checkfordname;
-		}
-		dns_rdataset_disassociate(&rdataset);
-
-		if (zone->type == dns_zone_primary) {
-			level = ISC_LOG_ERROR;
-			ok = false;
-		} else {
-			level = ISC_LOG_WARNING;
-		}
-		dns_name_format(name, namebuf, sizeof(namebuf));
-		dns_zone_log(zone, level, "DS not at delegation point (%s)",
-			     namebuf);
-
 	checkfordname:
 		result = dns_db_findrdataset(db, node, NULL,
 					     dns_rdatatype_dname, 0, 0,
 					     &rdataset, NULL);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * Remember bottom of zone due to DNAME.
-			 */
-			dns_name_copy(name, bottom);
-			dns_rdataset_disassociate(&rdataset);
+		if (result != ISC_R_SUCCESS) {
+			goto checkformx;
 		}
 
+		/*
+		 * Remember bottom of zone due to DNAME.
+		 */
+		dns_name_copy(name, bottom);
+		dns_rdataset_disassociate(&rdataset);
+
+	checkformx:
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_mx,
 					     0, 0, &rdataset, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -2520,6 +2572,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 
 	checksrv:
 		if (zone->rdclass != dns_rdataclass_in) {
+			/* All the remaining tests are for class IN only */
 			goto next;
 		}
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_srv,
@@ -2541,7 +2594,8 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 
 	checkforaaaa:
 		/*
-		 * Check if there is an A or AAAA RRset in the zone.
+		 * Check if there is an A or AAAA RRset anywhere in
+		 * the zone.
 		 */
 		if (!has_a) {
 			result = dns_db_findrdataset(db, node, NULL,
@@ -2572,7 +2626,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		if (zone->rdclass != dns_rdataclass_in) {
 			goto next;
 		}
-		have_spf = have_txt = false;
+
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_spf,
 					     0, 0, &rdataset, NULL);
 		if (result == ISC_R_SUCCESS) {
@@ -4142,7 +4196,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			dns_journal_destroy(&journal);
 		} else {
 			jserial = serial;
-			result = ISC_R_SUCCESS;
 		}
 
 		if (jserial != serial) {
@@ -4189,7 +4242,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (nscount == 0 && DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNS))
 		{
 			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
-				      ISC_LOG_ERROR, "has no NS records");
+				      ISC_LOG_WARNING, "has no NS records");
 			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_FATALNS)) {
 				RETERR(DNS_R_BADZONE);
 			}
@@ -6310,7 +6363,8 @@ check_if_bottom_of_zone(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, bool *is_bottom_of_zone) {
 	isc_result_t result;
 	dns_rdatasetiter_t *iterator = NULL;
-	bool seen_soa = false, seen_ns = false, seen_dname = false;
+	bool seen_soa = false, seen_ns = false;
+	bool seen_dname = false, seen_deleg = false;
 
 	REQUIRE(is_bottom_of_zone != NULL);
 
@@ -6332,6 +6386,9 @@ check_if_bottom_of_zone(dns_db_t *db, dns_dbnode_t *node,
 		case dns_rdatatype_ns:
 			seen_ns = true;
 			break;
+		case dns_rdatatype_deleg:
+			seen_deleg = true;
+			break;
 		case dns_rdatatype_dname:
 			seen_dname = true;
 			break;
@@ -6339,7 +6396,7 @@ check_if_bottom_of_zone(dns_db_t *db, dns_dbnode_t *node,
 		dns_rdataset_disassociate(&rdataset);
 	}
 
-	if ((seen_ns && !seen_soa) || seen_dname) {
+	if ((seen_ns && !seen_soa) || seen_dname || seen_deleg) {
 		*is_bottom_of_zone = true;
 	}
 
@@ -6355,6 +6412,7 @@ typedef struct seen {
 	bool nsec3;
 	bool ds;
 	bool dname;
+	bool deleg;
 } seen_t;
 
 static isc_result_t
@@ -6388,6 +6446,8 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			(*seen).nsec = true;
 		} else if (rdataset.type == dns_rdatatype_nsec3) {
 			(*seen).nsec3 = true;
+		} else if (rdataset.type == dns_rdatatype_deleg) {
+			(*seen).deleg = true;
 		}
 
 		dns_rdataset_disassociate(&rdataset);
@@ -6487,6 +6547,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		}
 
 		if (seen.ns && !seen.soa && rdataset.type != dns_rdatatype_ds &&
+		    rdataset.type != dns_rdatatype_deleg &&
 		    rdataset.type != dns_rdatatype_nsec)
 		{
 			continue;
@@ -15271,7 +15332,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 		}
 		if (nscount == 0 && DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNS))
 		{
-			dns_zone_log(zone, ISC_LOG_ERROR, "has no NS records");
+			dns_zone_log(zone, ISC_LOG_WARNING,
+				     "has no NS records");
 			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_FATALNS)) {
 				RETERR(DNS_R_BADZONE);
 			}
@@ -15541,7 +15603,7 @@ again:
 			    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNS))
 			{
 				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
-					      ISC_LOG_ERROR,
+					      ISC_LOG_WARNING,
 					      "transferred zone "
 					      "has no NS records");
 				if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_FATALNS))
@@ -17183,7 +17245,9 @@ checkds_done(void *arg) {
 		}
 
 		ISC_LIST_FOREACH(name->list, rdataset, link) {
-			if (rdataset->type != dns_rdatatype_ds) {
+			if (rdataset->type != dns_rdatatype_ds &&
+			    rdataset->type != dns_rdatatype_deleg)
+			{
 				goto next;
 			}
 

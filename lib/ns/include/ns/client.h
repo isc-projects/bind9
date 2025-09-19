@@ -179,6 +179,7 @@ struct ns_client {
 						      */
 				bool wantdnssec : 1; /*%< include dnssec records
 						      */
+				bool wantdeleg : 1;  /*%< DELEG ok */
 				bool wantnsid : 1; /*%< include nameserver ID */
 				bool badcookie : 1; /*%< bad/out-of-date cookie
 						     */

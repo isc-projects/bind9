@@ -43,21 +43,23 @@
 #include <isc/types.h>
 
 #include <dns/ecs.h>
+#include <dns/ede.h>
 
 /*****
 ***** Types
 *****/
 
-#define DNS_CLIENTINFO_VERSION 3
+#define DNS_CLIENTINFO_VERSION 4
 /*
  * Any updates to this structure should also be applied in
  * https://gitlab.isc.org/isc-projects/dlz-modules/-/raw/main/modules/include/dlz_minimal.h
  */
 typedef struct dns_clientinfo {
-	uint16_t  version;
-	void	 *data;
-	void	 *dbversion;
-	dns_ecs_t ecs;
+	uint16_t      version;
+	void	     *data;
+	void	     *dbversion;
+	dns_ecs_t     ecs;
+	dns_edectx_t *edectx;
 } dns_clientinfo_t;
 
 typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
@@ -84,10 +86,12 @@ dns_clientinfomethods_init(dns_clientinfomethods_t  *methods,
 			   dns_clientinfo_sourceip_t sourceip);
 
 void
-dns_clientinfo_init(dns_clientinfo_t *ci, void *data, void *versionp);
+dns_clientinfo_init(dns_clientinfo_t *ci, void *data, void *versionp,
+		    dns_edectx_t *edectx);
 /*%<
- * Initialize a clientinfo object, setting the data to 'data' and the
- * database version to 'versionp'. ECS data is initialized to 0/0/0.
+ * Initialize a clientinfo object, setting the data to 'data', the
+ * database version to 'versionp', and the EDE context to 'edectx'.
+ * ECS data is initialized to 0/0/0.
  */
 
 void
