@@ -7,6 +7,12 @@ variables:
   # Locale settings do not affect the build, but might affect tests.
   LC_ALL: C
 
+  # automated commits will inherit identification from pipeline trigger
+  GIT_AUTHOR_NAME: "$GITLAB_USER_NAME (GitLab job $CI_JOB_ID)"
+  GIT_AUTHOR_EMAIL: "$GITLAB_USER_EMAIL"
+  GIT_COMMITTER_NAME: "$GIT_AUTHOR_NAME"
+  GIT_COMMITTER_EMAIL: "$GIT_AUTHOR_EMAIL"
+
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
   SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
 
@@ -1015,9 +1021,6 @@ pairwise:
   # post-merge processes should run even if another MR was merged while the job was running (or queued)
   interruptible: false
   variables:
-    # automated commits will inherit identification from the user who pressed Merge button
-    GIT_COMMITTER_NAME: $GITLAB_USER_NAME
-    GIT_COMMITTER_EMAIL: $GITLAB_USER_EMAIL
     # avoid leftover branches from previous jobs
     GIT_STRATEGY: clone
     # assumed max depth of a MR for backport or a rebased force-push
