@@ -1035,7 +1035,7 @@ pairwise:
     - MERGE_REQUEST_ID="$(git log -1 --format='%b' | sed --silent -e "s|^See merge request ${CI_PROJECT_PATH}\!||p")"
     - >
       : stop if this is not a merge request in the current project\'s namespace
-    - test -n "$MERGE_REQUEST_ID"
+    - test -n "$MERGE_REQUEST_ID" || exit 0
     - *git_clone_bind9-qa
 
 merged-metadata:
