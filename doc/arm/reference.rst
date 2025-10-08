@@ -4685,9 +4685,6 @@ that matches all clients.
    the real version number of this server. Specifying ``version none``
    disables processing of the queries.
 
-   Setting :any:`version` to any value (including ``none``) also disables
-   queries for ``authors.bind TXT CH``.
-
 .. namedconf:statement:: hostname
    :tags: server
    :short: Specifies the hostname of the server to return in response to a ``hostname.bind`` query.
