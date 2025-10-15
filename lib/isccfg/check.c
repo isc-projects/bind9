@@ -5940,7 +5940,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				}
 			}
 
-			if ((taflags & ROOT_KSK_STATIC) != 0) {
+			if ((taflags & ROOT_KSK_2017) != 0 &&
+			    (taflags & ROOT_KSK_STATIC) != 0)
+			{
 				cfg_obj_log(check_keys[i], logctx,
 					    ISC_LOG_WARNING,
 					    "trusted-keys entry for the root "
@@ -5997,7 +5999,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				}
 			}
 
-			if ((taflags & ROOT_KSK_STATIC) != 0) {
+			if ((taflags & ROOT_KSK_2017) != 0 &&
+			    (taflags & ROOT_KSK_STATIC) != 0)
+			{
 				cfg_obj_log(check_keys[i], logctx,
 					    ISC_LOG_WARNING,
 					    "static entry for the root "
