@@ -87,6 +87,10 @@ Options
 
    This option runs the server in the foreground and forces all logging to ``stderr``.
 
+.. option:: -H
+
+   This option prints built-in root servers hints and exits.
+
 .. option:: -L logfile
 
    This option sets the log to the file ``logfile`` by default, instead of the system log.

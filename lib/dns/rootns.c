@@ -230,3 +230,8 @@ cleanup:
 
 	return result;
 }
+
+const char *
+dns_rootns_gethints(void) {
+	return root_ns;
+}
