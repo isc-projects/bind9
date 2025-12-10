@@ -92,7 +92,8 @@ report(const char *format, ...) {
  * Load the zone file from disk
  */
 static void
-loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
+loadzone(char *file, const char *origin, bool origin_is_file,
+	 dns_rdataclass_t rdclass, dns_db_t **db) {
 	isc_buffer_t b;
 	int len;
 	dns_fixedname_t fname;
@@ -100,7 +101,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	isc_result_t result;
 
 	len = strlen(origin);
-	isc_buffer_init(&b, origin, len);
+	isc_buffer_constinit(&b, origin, len);
 	isc_buffer_add(&b, len);
 
 	name = dns_fixedname_initname(&fname);
@@ -120,12 +121,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	case ISC_R_SUCCESS:
 		break;
 	case DNS_R_NOTZONETOP:
-		/*
-		 * Comparing pointers (vs. using strcmp()) is intentional: we
-		 * want to check whether -o was supplied on the command line,
-		 * not whether origin and file contain the same string.
-		 */
-		if (origin == file) {
+		if (origin_is_file) {
 			fatal("failed loading zone '%s' from file '%s': "
 			      "use -o to specify a different zone origin",
 			      origin, file);
@@ -168,7 +164,8 @@ usage(int ret) {
 
 int
 main(int argc, char *argv[]) {
-	char *origin = NULL, *file = NULL;
+	const char *origin = NULL;
+	char *file = NULL;
 	char *inputformatstr = NULL;
 	isc_result_t result;
 	isc_log_t *log = NULL;
@@ -177,6 +174,7 @@ main(int argc, char *argv[]) {
 	dns_rdataclass_t rdclass;
 	char *endp;
 	int ch;
+	bool origin_is_file = false;
 
 #define CMDLINE_FLAGS "c:E:hJ:m:o:I:qv:Vxz"
 
@@ -305,7 +303,8 @@ main(int argc, char *argv[]) {
 	POST(argv);
 
 	if (origin == NULL) {
-		origin = file;
+		origin = isc_file_basename(file);
+		origin_is_file = true;
 	}
 
 	if (inputformatstr != NULL) {
@@ -320,7 +319,7 @@ main(int argc, char *argv[]) {
 
 	gdb = NULL;
 	report("Loading zone '%s' from file '%s'\n", origin, file);
-	loadzone(file, origin, rdclass, &gdb);
+	loadzone(file, origin, origin_is_file, rdclass, &gdb);
 	if (journal != NULL) {
 		loadjournal(mctx, gdb, journal);
 	}
