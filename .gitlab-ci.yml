@@ -186,6 +186,9 @@ stages:
       $EXTRA_CONFIGURE
       || (test -s config.log && cat config.log; exit 1)
 
+.git-clone-bind9-qa: &git_clone_bind9-qa
+  - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -265,7 +268,7 @@ stages:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
     - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
   after_script:
     - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
@@ -311,7 +314,7 @@ changes:
 ci-orphaned-anchors:
   <<: *precheck_job
   script:
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
     - bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
   needs: []
   rules:
@@ -719,7 +722,7 @@ customer-git:branch:
         BRANCH: '$CI_COMMIT_BRANCH'
   before_script:
     - test -n "$CUSTOMER"
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
   script:
     - git checkout -b "$BRANCH"  # ensure refs/heads/$BRANCH exists; GitLab clones with detached HEAD
     - bind9-qa/releng/push_to_customer_repository.py --branch "$BRANCH" --customer "$CUSTOMER" --force
@@ -735,7 +738,7 @@ customer-git:tag:
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null'
   before_script:
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
     - git clone --depth 1 "https://token:${ISC_CUSTOMERS_WRITE_TOKEN}@gitlab.isc.org/isc-customers/isc-customer-settings.git"
   script:
     - bind9-qa/releng/push_to_customer_repository.py --tag "$CI_COMMIT_TAG" --entitlements isc-customer-settings/entitlements.yaml --force
@@ -816,7 +819,7 @@ abi-check:
     - >
       : stop if this is not a merge request in the current project\'s namespace
     - test -n "$MERGE_REQUEST_ID"
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
 
 merged-metadata:
   <<: *post_merge
