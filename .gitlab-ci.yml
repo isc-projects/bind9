@@ -54,7 +54,7 @@ default:
       - runner_system_failure
 
 stages:
-  - precheck
+  - quick-checks
   - build
   - unit
   - system
@@ -169,10 +169,12 @@ stages:
     - *rule_tag
     - *rule_source_other_than_mr
 
-.precheck: &precheck_job
+.quick-check: &quick_checks_job
   <<: *default_triggering_rules
   <<: *base_image
-  stage: precheck
+  stage: quick-checks
+  tags:
+    - smalljob
 
 .configure: &configure
     - ${CONFIGURE}
@@ -291,10 +293,10 @@ stages:
 
 ### Job Definitions
 
-# Jobs in the precheck stage
+# Jobs in the quick-checks stage
 
 misc:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - sh util/check-ans-prereq.sh
     - sh util/checklibs.sh > checklibs.out
@@ -309,7 +311,7 @@ misc:
     when: on_failure
 
 changes:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
@@ -318,7 +320,7 @@ changes:
     - rm CHANGES.tmp
 
 ci-orphaned-anchors:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - *git_clone_bind9-qa
     - >
@@ -330,7 +332,7 @@ ci-orphaned-anchors:
         - .gitlab-ci.yml
 
 coccinelle:
-  <<: *precheck_job
+  <<: *quick_checks_job
   rules:
     - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       changes:
@@ -345,7 +347,7 @@ coccinelle:
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
 danger:
-  <<: *precheck_job
+  <<: *quick_checks_job
   environment:
     name: danger
     action: access
@@ -356,7 +358,7 @@ danger:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 tarball-create:
-  stage: precheck
+  stage: quick-checks
   <<: *base_image
   <<: *default_triggering_rules
   script:
