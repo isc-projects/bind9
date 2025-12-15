@@ -55,12 +55,12 @@ default:
 
 stages:
   - quick-checks
+  - other-checks
   - build
   - unit
   - system
   - performance
   - docs
-  - other-checks
   - postmerge
   - release
 
@@ -337,6 +337,19 @@ ci-orphaned-anchors:
       changes:
         - .gitlab-ci.yml
 
+danger:
+  <<: *quick_checks_job
+  environment:
+    name: danger
+    action: access
+  script:
+    - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
+    - hazard
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# Jobs in the other-checks stage
+
 coccinelle:
   <<: *other_checks_job
   rules:
@@ -351,17 +364,6 @@ coccinelle:
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
-
-danger:
-  <<: *quick_checks_job
-  environment:
-    name: danger
-    action: access
-  script:
-    - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
-    - hazard
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 tarball-create:
   <<: *build_job
