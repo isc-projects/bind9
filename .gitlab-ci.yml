@@ -399,6 +399,16 @@ ci-orphaned-anchors:
       changes:
         - .gitlab-ci.yml
 
+pylint:
+  <<: *quick_checks_job
+  <<: *python_triggering_rules
+  script:
+    - *configure
+    - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
+      # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
+
 reuse:
   <<: *quick_checks_job
   image:
@@ -454,16 +464,6 @@ coccinelle:
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
-
-pylint:
-  <<: *other_checks_job
-  <<: *python_triggering_rules
-  script:
-    - *configure
-    - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
-      # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
 
 tarball-create:
   <<: *build_job
