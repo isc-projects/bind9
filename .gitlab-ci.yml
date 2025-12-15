@@ -211,6 +211,12 @@ stages:
   tags:
     - smalljob
 
+.other-check: &other_checks_job
+  <<: *default_triggering_rules
+  <<: *base_image
+  stage: other-checks
+  needs: []
+
 .configure: &configure
     - ${CONFIGURE}
       --disable-maintainer-mode
@@ -442,16 +448,14 @@ danger:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 pylint:
+  <<: *other_checks_job
   <<: *python_triggering_rules
-  <<: *base_image
-  stage: other-checks
   script:
     - *configure
     - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
       # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
-  needs: []
 
 checkbashisms:
   <<: *quick_checks_job
@@ -971,9 +975,7 @@ respdiff-third-party:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}"
 
 gcov:
-  <<: *base_image
-  <<: *default_triggering_rules
-  stage: other-checks
+  <<: *other_checks_job
   needs:
     - job: system:gcc:trixie:amd64
       artifacts: true
