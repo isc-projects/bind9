@@ -66,7 +66,7 @@ stages:
   - system
   - performance
   - docs
-  - postcheck
+  - other-checks
   - postmerge
   - release
 
@@ -444,7 +444,7 @@ danger:
 pylint:
   <<: *python_triggering_rules
   <<: *base_image
-  stage: postcheck
+  stage: other-checks
   script:
     - *configure
     - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
@@ -973,7 +973,7 @@ respdiff-third-party:
 gcov:
   <<: *base_image
   <<: *default_triggering_rules
-  stage: postcheck
+  stage: other-checks
   needs:
     - job: system:gcc:trixie:amd64
       artifacts: true
