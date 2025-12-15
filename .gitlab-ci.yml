@@ -60,7 +60,7 @@ stages:
   - system
   - performance
   - docs
-  - postcheck
+  - other-checks
   - postmerge
   - release
 
