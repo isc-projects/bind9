@@ -338,7 +338,7 @@ ci-orphaned-anchors:
         - .gitlab-ci.yml
 
 coccinelle:
-  <<: *quick_checks_job
+  <<: *other_checks_job
   rules:
     - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       changes:
@@ -364,9 +364,8 @@ danger:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 tarball-create:
-  stage: quick-checks
+  <<: *build_job
   <<: *base_image
-  <<: *default_triggering_rules
   script:
     - source version
     - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
