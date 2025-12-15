@@ -400,7 +400,7 @@ ci-orphaned-anchors:
         - .gitlab-ci.yml
 
 coccinelle:
-  <<: *quick_checks_job
+  <<: *other_checks_job
   rules:
     - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       changes:
@@ -458,15 +458,14 @@ pylint:
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
 
 checkbashisms:
-  <<: *quick_checks_job
+  <<: *other_checks_job
   <<: *shell_triggering_rules
   script:
     - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
 
 tarball-create:
-  stage: quick-checks
+  <<: *build_job
   <<: *base_image
-  <<: *default_triggering_rules
   script:
     - source version
     - export BIND9_VERSION="${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
