@@ -176,6 +176,12 @@ stages:
   tags:
     - smalljob
 
+.other-check: &other_checks_job
+  <<: *default_triggering_rules
+  <<: *base_image
+  stage: other-checks
+  needs: []
+
 .configure: &configure
     - ${CONFIGURE}
       --enable-developer
