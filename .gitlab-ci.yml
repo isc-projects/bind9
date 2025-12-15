@@ -61,12 +61,12 @@ default:
 
 stages:
   - quick-checks
+  - other-checks
   - build
   - unit
   - system
   - performance
   - docs
-  - other-checks
   - postmerge
   - release
 
@@ -399,21 +399,6 @@ ci-orphaned-anchors:
       changes:
         - .gitlab-ci.yml
 
-coccinelle:
-  <<: *other_checks_job
-  rules:
-    - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
-      changes:
-        - '**/*.c'
-        - '**/*.h'
-        - 'cocci/**'
-    - *rule_mr_manual
-    - *rule_tag
-    - *rule_source_other_than_mr
-  script:
-    - util/check-cocci
-    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
-
 reuse:
   <<: *quick_checks_job
   image:
@@ -447,6 +432,29 @@ danger:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
+# Jobs in the other-checks stage
+
+checkbashisms:
+  <<: *other_checks_job
+  <<: *shell_triggering_rules
+  script:
+    - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
+
+coccinelle:
+  <<: *other_checks_job
+  rules:
+    - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+      changes:
+        - '**/*.c'
+        - '**/*.h'
+        - 'cocci/**'
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
+  script:
+    - util/check-cocci
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+
 pylint:
   <<: *other_checks_job
   <<: *python_triggering_rules
@@ -456,12 +464,6 @@ pylint:
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
       # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
-
-checkbashisms:
-  <<: *other_checks_job
-  <<: *shell_triggering_rules
-  script:
-    - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
 
 tarball-create:
   <<: *build_job
@@ -974,7 +976,9 @@ respdiff-third-party:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}"
 
 gcov:
-  <<: *other_checks_job
+  <<: *default_triggering_rules
+  <<: *base_image
+  stage: system
   needs:
     - job: system:gcc:trixie:amd64
       artifacts: true
