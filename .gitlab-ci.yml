@@ -173,6 +173,7 @@ stages:
   <<: *default_triggering_rules
   <<: *base_image
   stage: quick-checks
+  needs: []
   tags:
     - smalljob
 
@@ -331,7 +332,6 @@ ci-orphaned-anchors:
     - *git_clone_bind9-qa
     - >
       "$CI_PROJECT_DIR"/bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
-  needs: []
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
