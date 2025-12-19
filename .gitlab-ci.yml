@@ -208,6 +208,7 @@ stages:
   <<: *default_triggering_rules
   <<: *base_image
   stage: quick-checks
+  needs: []
   tags:
     - smalljob
 
@@ -368,7 +369,6 @@ changes:
     - perl util/check-changes CHANGES
     - sh util/check-line-length.sh CHANGES
     - rm CHANGES.tmp
-  needs: []
 
 black:
   <<: *quick_checks_job
@@ -393,7 +393,6 @@ ci-orphaned-anchors:
     - *git_clone_bind9-qa
     - >
       "$CI_PROJECT_DIR"/bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
-  needs: []
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
@@ -420,7 +419,6 @@ reuse:
 shfmt:
   <<: *quick_checks_job
   <<: *shell_triggering_rules
-  needs: []
   script:
     - shfmt -w -i 2 -ci -bn bin/tests/system/ util/ $(find bin/tests/system/ -name "*.sh.in")
     - git diff > shfmt.patch
