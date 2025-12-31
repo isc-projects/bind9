@@ -30,6 +30,10 @@ dns_header_gen = executable(
 
 subdir('include')
 
+if config.has('HAVE_OPENSSL_MLDSA44')
+    dns_srcset.add(files('opensslmldsa_link.c'))
+endif
+
 dns_srcset.add(dns_gen_headers)
 dns_srcset.add(when: dnstap_dep, if_true: files('dnstap.c'))
 dns_srcset.add(when: maxminddb_dep, if_true: files('geoip2.c'))

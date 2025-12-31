@@ -146,7 +146,8 @@ usage(int ret) {
 	}
 	fprintf(stderr, "        RSASHA256 | RSASHA512 |\n");
 	fprintf(stderr, "        ECDSAP256SHA256 | ECDSAP384SHA384 |\n");
-	fprintf(stderr, "        ED25519 | ED448\n");
+	fprintf(stderr, "        ED25519 | ED448 |\n");
+	fprintf(stderr, "        MLDSA44\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -b <key size in bits>:\n");
 	if (!isc_crypto_fips_mode()) {
@@ -162,6 +163,7 @@ usage(int ret) {
 	fprintf(stderr, "        ECDSAP384SHA384:\tignored\n");
 	fprintf(stderr, "        ED25519:\tignored\n");
 	fprintf(stderr, "        ED448:\tignored\n");
+	fprintf(stderr, "        MLDSA44:\tignored\n");
 	fprintf(stderr, "        (key size defaults are set according to\n"
 			"        algorithm and usage (ZSK or KSK)\n");
 	fprintf(stderr, "    -c <class>: (default: IN)\n");
@@ -288,6 +290,7 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 			case DST_ALG_ECDSA384:
 			case DST_ALG_ED25519:
 			case DST_ALG_ED448:
+			case DST_ALG_MLDSA44:
 				break;
 			default:
 				fatal("algorithm %s is incompatible with NSEC3"
@@ -322,6 +325,7 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 			case DST_ALG_ECDSA384:
 			case DST_ALG_ED25519:
 			case DST_ALG_ED448:
+			case DST_ALG_MLDSA44:
 				break;
 			default:
 				fatal("key size not specified (-b option)");
@@ -492,6 +496,9 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 	case DST_ALG_ED448:
 		ctx->size = 456;
 		break;
+	case DST_ALG_MLDSA44:
+		ctx->size = DNS_KEY_MLDSA44SIZE * 8;
+		break;
 	default:
 		fatal("not a dnskey algorithm %u\n", ctx->alg);
 	}
@@ -512,6 +519,7 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 	case DST_ALG_ECDSA384:
 	case DST_ALG_ED25519:
 	case DST_ALG_ED448:
+	case DST_ALG_MLDSA44:
 		show_progress = true;
 		break;
 	default:

@@ -26,6 +26,13 @@
  * redefined malloc in cmocka.h.
  */
 #include <openssl/err.h>
+#ifdef HAVE_OPENSSL_MLDSA44
+#include <limits.h>
+
+#include <openssl/core_names.h>
+#include <openssl/params.h>
+#include <openssl/provider.h>
+#endif
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -259,7 +266,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	size_t rval, len;
 	FILE *fp;
 	dst_key_t *key = NULL;
-	unsigned char sig[512];
+	unsigned char sig[DNS_SIG_MLDSA44SIZE + 1];
 	unsigned char *p;
 	unsigned char *data;
 	off_t size;
@@ -357,11 +364,12 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 		isc_region_t r;
 		isc_buffer_usedregion(&sigb, &r);
 
-		char hexbuf[4096] = { 0 };
+		char hexbuf[sizeof(sigbuf2) * 2 + 1] = { 0 };
 		isc_buffer_t hb;
 		isc_buffer_init(&hb, hexbuf, sizeof(hexbuf));
 
-		isc_hex_totext(&r, 0, "", &hb);
+		result2 = isc_hex_totext(&r, 0, "", &hb);
+		assert_int_equal(result2, ISC_R_SUCCESS);
 
 		fprintf(stderr, "# %s:\n# %s\n", sigpath, hexbuf);
 	}
@@ -385,6 +393,13 @@ ISC_RUN_TEST_IMPL(sig_test) {
 		dns_secalg_t alg;
 		bool expect;
 	} testcases[] = {
+		/* Published DNSSEC example, including the private seed. */
+		{ TESTS_DIR "/testdata/dst/mldsa.data",
+		  TESTS_DIR "/testdata/dst/mldsa.sig", "example.com.", 59829,
+		  DST_ALG_MLDSA44, true },
+		{ TESTS_DIR "/testdata/dst/test1.data",
+		  TESTS_DIR "/testdata/dst/mldsa.sig", "example.com.", 59829,
+		  DST_ALG_MLDSA44, false },
 		{ TESTS_DIR "/testdata/dst/test1.data",
 		  TESTS_DIR "/testdata/dst/test1.ecdsa256sig", "test.", 49130,
 		  DST_ALG_ECDSA256, true },
@@ -621,12 +636,230 @@ ISC_RUN_TEST_IMPL(ecdsa_determinism_test) {
 	dst_key_free(&key);
 }
 
+static isc_result_t
+mldsa_verify(dst_key_t *key, isc_region_t *data, isc_region_t *sig) {
+	dst_context_t *ctx = NULL;
+	isc_result_t result;
+
+	result = dst_context_create(key, isc_g_mctx, DNS_LOGCATEGORY_GENERAL,
+				    false, &ctx);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(dst_context_adddata(ctx, data), ISC_R_SUCCESS);
+	result = dst_context_verify(ctx, sig);
+	dst_context_destroy(&ctx);
+	return result;
+}
+
+ISC_RUN_TEST_IMPL(mldsa_wire) {
+	dns_fixedname_t fname;
+	dns_name_t *name = dns_fixedname_initname(&fname);
+	dst_key_t *key = NULL, *pub = NULL;
+	dst_context_t *ctx = NULL;
+	unsigned char wire[4 + DNS_KEY_MLDSA44SIZE + 1] = { 0 };
+	unsigned char signature[DNS_SIG_MLDSA44SIZE + 1] = { 0 };
+	unsigned char message[4096] = { 1, 2, 3, 4 };
+	isc_region_t data = { .base = message, .length = sizeof(message) };
+	isc_region_t sig;
+	isc_buffer_t buf;
+	unsigned int sigsize;
+
+	if (!dst_algorithm_supported(DST_ALG_MLDSA44)) {
+		skip();
+	}
+	assert_int_equal(dns_name_fromstring(name, "example.com.", dns_rootname,
+					     0, isc_g_mctx),
+			 ISC_R_SUCCESS);
+	assert_int_equal(dst_key_fromfile(name, 59829, DST_ALG_MLDSA44,
+					  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
+					  TESTS_DIR "/testdata/dst", isc_g_mctx,
+					  &key),
+			 ISC_R_SUCCESS);
+	assert_int_equal(dst_key_size(key), 1312 * 8);
+	assert_int_equal(dst_key_sigsize(key, &sigsize), ISC_R_SUCCESS);
+	assert_int_equal(sigsize, 2420);
+
+	isc_buffer_init(&buf, wire, sizeof(wire));
+	assert_int_equal(dst_key_todns(key, &buf), ISC_R_SUCCESS);
+	assert_int_equal(isc_buffer_usedlength(&buf), 4 + 1312);
+	assert_int_equal(wire[3], 18);
+	assert_int_equal(dst_key_fromdns(name, dns_rdataclass_in, &buf,
+					 isc_g_mctx, &pub),
+			 ISC_R_SUCCESS);
+	assert_true(dst_key_pubcompare(key, pub, false));
+
+	/* Truncated and oversized public keys must not be accepted. */
+	unsigned int lengths[] = { 5, 4 + 1311, 4 + 1313 };
+	for (size_t i = 0; i < ARRAY_SIZE(lengths); i++) {
+		dst_key_t *bad = NULL;
+		isc_buffer_init(&buf, wire, sizeof(wire));
+		isc_buffer_add(&buf, lengths[i]);
+		assert_int_equal(dst_key_fromdns(name, dns_rdataclass_in, &buf,
+						 isc_g_mctx, &bad),
+				 DST_R_INVALIDPUBLICKEY);
+		assert_null(bad);
+	}
+
+	assert_int_equal(dst_context_create(key, isc_g_mctx,
+					    DNS_LOGCATEGORY_GENERAL, true,
+					    &ctx),
+			 ISC_R_SUCCESS);
+	/* Exercise hashing of multiple input regions into mu. */
+	isc_region_t first = { .base = message, .length = 20 };
+	isc_region_t rest = { .base = message + 20,
+			      .length = sizeof(message) - 20 };
+	assert_int_equal(dst_context_adddata(ctx, &first), ISC_R_SUCCESS);
+	assert_int_equal(dst_context_adddata(ctx, &rest), ISC_R_SUCCESS);
+	isc_buffer_init(&buf, signature, DNS_SIG_MLDSA44SIZE - 1);
+	assert_int_equal(dst_context_sign(ctx, &buf), ISC_R_NOSPACE);
+	isc_buffer_init(&buf, signature, sizeof(signature));
+	assert_int_equal(dst_context_sign(ctx, &buf), ISC_R_SUCCESS);
+	assert_int_equal(isc_buffer_usedlength(&buf), 2420);
+	dst_context_destroy(&ctx);
+	isc_buffer_usedregion(&buf, &sig);
+#ifdef HAVE_OPENSSL_MLDSA44
+	/* Signing over mu must match OpenSSL's one-shot pure ML-DSA. */
+	EVP_MD_CTX *oneshot = EVP_MD_CTX_new();
+	assert_non_null(oneshot);
+	assert_int_equal(
+		EVP_DigestVerifyInit_ex(oneshot, NULL, NULL, NULL, NULL,
+					pub->keydata.pkeypair.pub, NULL),
+		1);
+	assert_int_equal(EVP_DigestVerify(oneshot, sig.base, sig.length,
+					  data.base, data.length),
+			 1);
+	EVP_MD_CTX_free(oneshot);
+#endif
+	assert_int_equal(mldsa_verify(pub, &data, &sig), ISC_R_SUCCESS);
+	sig.length--;
+	assert_int_equal(mldsa_verify(pub, &data, &sig), DST_R_VERIFYFAILURE);
+	sig.length += 2;
+	assert_int_equal(mldsa_verify(pub, &data, &sig), DST_R_VERIFYFAILURE);
+	sig.length--;
+	signature[0] ^= 1;
+	assert_int_equal(mldsa_verify(pub, &data, &sig), DST_R_VERIFYFAILURE);
+
+#ifdef HAVE_OPENSSL_MLDSA44
+	/* Neither a nonempty context nor unencoded ML-DSA is DNSSEC MLDSA44. */
+	int encoding = 0;
+	char context[] = "DNSSEC";
+	OSSL_PARAM contexts[] = {
+		OSSL_PARAM_octet_string(OSSL_SIGNATURE_PARAM_CONTEXT_STRING,
+					context, sizeof(context) - 1),
+		OSSL_PARAM_END,
+	};
+	OSSL_PARAM unencoded[] = {
+		OSSL_PARAM_int(OSSL_SIGNATURE_PARAM_MESSAGE_ENCODING,
+			       &encoding),
+		OSSL_PARAM_END,
+	};
+	const OSSL_PARAM *variants[] = { contexts, unencoded };
+	for (size_t i = 0; i < ARRAY_SIZE(variants); i++) {
+		EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+		size_t len = DNS_SIG_MLDSA44SIZE;
+		assert_non_null(mdctx);
+		assert_int_equal(
+			EVP_DigestSignInit_ex(mdctx, NULL, NULL, NULL, NULL,
+					      key->keydata.pkeypair.priv,
+					      variants[i]),
+			1);
+		assert_int_equal(EVP_DigestSign(mdctx, signature, &len,
+						data.base, data.length),
+				 1);
+		assert_int_equal(mldsa_verify(pub, &data, &sig),
+				 DST_R_VERIFYFAILURE);
+		EVP_MD_CTX_free(mdctx);
+	}
+#endif
+	dst_key_free(&pub);
+	dst_key_free(&key);
+}
+
+#ifdef HAVE_OPENSSL_MLDSA44
+/*
+ * The private key file holds the seed, so generated and loaded keys must
+ * be writable even when the provider is configured to discard the seed.
+ */
+ISC_RUN_TEST_IMPL(mldsa_noretain) {
+	dns_fixedname_t fname;
+	dns_name_t *name = dns_fixedname_initname(&fname);
+	dst_key_t *key = NULL, *loaded = NULL;
+	EVP_KEYMGMT *keymgmt = NULL;
+	OSSL_PROVIDER *prov = NULL;
+	char keydir[] = BUILDDIR "/mldsa_noretain.XXXXXX";
+	char filename[PATH_MAX] = { 0 };
+	isc_buffer_t buf;
+
+	if (!dst_algorithm_supported(DST_ALG_MLDSA44)) {
+		skip();
+	}
+
+	keymgmt = EVP_KEYMGMT_fetch(NULL, "ML-DSA-44", NULL);
+	assert_non_null(keymgmt);
+	prov = UNCONST(EVP_KEYMGMT_get0_provider(keymgmt));
+	/* OpenSSL 4.0 keeps the seed of generated keys regardless. */
+	assert_int_equal(OSSL_PROVIDER_add_conf_parameter(
+				 prov, "ml-dsa.retain_seed", "no"),
+			 1);
+
+	assert_non_null(mkdtemp(keydir));
+	assert_int_equal(dns_name_fromstring(name, "example.", dns_rootname, 0,
+					     isc_g_mctx),
+			 ISC_R_SUCCESS);
+	assert_int_equal(
+		dst_key_generate(name, DST_ALG_MLDSA44, 0, 0, DNS_KEYOWNER_ZONE,
+				 DNS_KEYPROTO_DNSSEC, dns_rdataclass_in, NULL,
+				 isc_g_mctx, &key, NULL),
+		ISC_R_SUCCESS);
+
+	/* Write a generated key, as dnssec-keygen does. */
+	assert_int_equal(
+		dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, keydir),
+		ISC_R_SUCCESS);
+
+	/* Read it back and rewrite it twice, as dnssec-settime does. */
+	for (size_t i = 0; i < 2; i++) {
+		assert_int_equal(
+			dst_key_fromfile(name, dst_key_id(key), DST_ALG_MLDSA44,
+					 DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
+					 keydir, isc_g_mctx, &loaded),
+			ISC_R_SUCCESS);
+		assert_true(dst_key_compare(key, loaded));
+		assert_int_equal(
+			dst_key_tofile(loaded,
+				       DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
+				       keydir),
+			ISC_R_SUCCESS);
+		dst_key_free(&loaded);
+	}
+
+	int types[] = { DST_TYPE_PUBLIC, DST_TYPE_PRIVATE };
+	for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
+		isc_buffer_init(&buf, filename, sizeof(filename));
+		assert_int_equal(
+			dst_key_buildfilename(key, types[i], keydir, &buf),
+			ISC_R_SUCCESS);
+		assert_int_equal(remove(filename), 0);
+	}
+	assert_int_equal(rmdir(keydir), 0);
+
+	assert_int_equal(OSSL_PROVIDER_add_conf_parameter(
+				 prov, "ml-dsa.retain_seed", "yes"),
+			 1);
+	dst_key_free(&key);
+	EVP_KEYMGMT_free(keymgmt);
+}
+#endif /* HAVE_OPENSSL_MLDSA44 */
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(algorithm_fromdata)
 ISC_TEST_ENTRY(algorithm_format)
 ISC_TEST_ENTRY(algorithm_totext)
 ISC_TEST_ENTRY(key_format)
 ISC_TEST_ENTRY(sig_test)
+ISC_TEST_ENTRY(mldsa_wire)
+#ifdef HAVE_OPENSSL_MLDSA44
+ISC_TEST_ENTRY(mldsa_noretain)
+#endif /* HAVE_OPENSSL_MLDSA44 */
 ISC_TEST_ENTRY(cmp_test)
 ISC_TEST_ENTRY(ecdsa_determinism_test)
 ISC_TEST_LIST_END

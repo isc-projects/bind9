@@ -1,0 +1,9 @@
+options {
+	{% include_indented "_common/options.conf.j2" %}
+	recursion yes;
+	dnssec-validation yes;
+};
+
+{% include "_common/controls.conf.j2" %}
+{% include "_common/trusted.conf.j2" %}
+{% include "_common/root.hint.conf" %}

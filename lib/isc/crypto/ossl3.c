@@ -95,6 +95,8 @@ static isc_constregion_t md_to_name[ISC_MD_MAX] = {
 			    .length = sizeof("SHA2-384") - 1 },
 	[ISC_MD_SHA512] = { .base = "SHA2-512",
 			    .length = sizeof("SHA2-512") - 1 },
+	[ISC_MD_SHAKE256] = { .base = "SHAKE-256",
+			      .length = sizeof("SHAKE-256") - 1 },
 };
 
 static OSSL_PARAM md_to_hmac_params[ISC_MD_MAX][2] = {
@@ -123,6 +125,8 @@ static OSSL_PARAM md_to_hmac_params[ISC_MD_MAX][2] = {
 		OSSL_PARAM_utf8_string(OSSL_MAC_PARAM_DIGEST, UNCONST("SHA2-512"), sizeof("SHA2-512") - 1),
 		OSSL_PARAM_END,
 	},
+	[ISC_MD_SHAKE256] = {
+		OSSL_PARAM_utf8_string(OSSL_MAC_PARAM_DIGEST, UNCONST("SHAKE-256"), sizeof("SHAKE-256") - 1), OSSL_PARAM_END, },
 };
 
 #define md_register_algorithm(alg)                                             \
@@ -152,6 +156,9 @@ register_algorithms(void) {
 	md_register_algorithm(SHA256);
 	md_register_algorithm(SHA384);
 	md_register_algorithm(SHA512);
+#if HAVE_OPENSSL_MLDSA44
+	md_register_algorithm(SHAKE256);
+#endif
 
 	INSIST(evp_aes_128_gcm == NULL);
 	evp_aes_128_gcm = EVP_CIPHER_fetch(NULL, "AES-128-GCM", NULL);

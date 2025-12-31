@@ -456,6 +456,9 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 	case DST_ALG_ED448:
 		size = 456;
 		break;
+	case DST_ALG_MLDSA44:
+		size = DNS_KEY_MLDSA44SIZE * 8;
+		break;
 	default:
 		/* unsupported */
 		break;

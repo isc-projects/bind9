@@ -727,6 +727,11 @@ if cc.has_header_symbol('openssl/evp.h', 'NID_ED448', dependencies: openssl_dep)
     config.set('HAVE_OPENSSL_ED448', 1)
 endif
 
+# Check for ML-DSA support (requires OpenSSL 3.5+ with ML-DSA support)
+if cc.has_header_symbol('openssl/evp.h', 'EVP_PKEY_ML_DSA_44', dependencies: openssl_dep)
+    config.set('HAVE_OPENSSL_MLDSA44', 1)
+endif
+
 foreach fn, header : {
     'ERR_get_error_all': '#include <openssl/err.h>',
     'BIO_read_ex': '#include <openssl/bio.h>',

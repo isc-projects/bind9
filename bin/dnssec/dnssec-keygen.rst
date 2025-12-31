@@ -49,7 +49,7 @@ Options
    This option selects the cryptographic algorithm. For DNSSEC keys,
    the value of ``algorithm`` must be one of RSASHA1 (deprecated),
    NSEC3RSASHA1 (deprecated), RSASHA256, RSASHA512, ECDSAP256SHA256,
-   ECDSAP384SHA384, ED25519, or ED448.
+   ECDSAP384SHA384, ED25519, ED448, or MLDSA44.
 
    These values are case-insensitive. In some cases, abbreviations
    are supported, such as ECDSA256 for ECDSAP256SHA256 and ECDSA384

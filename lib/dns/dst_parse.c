@@ -42,6 +42,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/keyvalues.h>
 #include <dns/time.h>
 
 #include "dst_internal.h"
@@ -105,6 +106,8 @@ static struct parse_map map[] = { { TAG_RSA_MODULUS, "Modulus:" },
 				  { TAG_EDDSA_PRIVATEKEY, "PrivateKey:" },
 				  { TAG_EDDSA_ENGINE, "Engine:" },
 				  { TAG_EDDSA_LABEL, "Label:" },
+
+				  { TAG_MLDSA_PRIVATEKEY, "PrivateKey:" },
 
 				  { TAG_HMACMD5_KEY, "Key:" },
 				  { TAG_HMACMD5_BITS, "Bits:" },
@@ -291,6 +294,27 @@ check_eddsa(const dst_private_t *priv, bool external) {
 }
 
 static isc_result_t
+check_mldsa(const dst_private_t *priv, bool external) {
+	if (external) {
+		return priv->nelements == 0 ? ISC_R_SUCCESS
+					    : DST_R_INVALIDPRIVATEKEY;
+	}
+
+	/*
+	 * The private key is the ML-DSA seed and nothing else;
+	 * opensslmldsa_parse() relies on this.
+	 */
+	if (priv->nelements != MLDSA_NTAGS ||
+	    priv->elements[0].tag != TAG_MLDSA_PRIVATEKEY ||
+	    priv->elements[0].length != DNS_KEY_MLDSA44SEEDSIZE)
+	{
+		return DST_R_INVALIDPRIVATEKEY;
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
 check_hmac_md5(const dst_private_t *priv, bool old) {
 	int i, j;
 
@@ -360,6 +384,8 @@ check_data(const dst_private_t *priv, const unsigned int alg, bool old,
 	case DST_ALG_ED25519:
 	case DST_ALG_ED448:
 		return check_eddsa(priv, external);
+	case DST_ALG_MLDSA44:
+		return check_mldsa(priv, external);
 	case DST_ALG_HMACMD5:
 		return check_hmac_md5(priv, old);
 	case DST_ALG_HMACSHA1:
@@ -675,6 +701,9 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		break;
 	case DST_ALG_ED448:
 		fprintf(fp, "(ED448)\n");
+		break;
+	case DST_ALG_MLDSA44:
+		fprintf(fp, "(MLDSA44)\n");
 		break;
 	case DST_ALG_HMACMD5:
 		fprintf(fp, "(HMAC_MD5)\n");
