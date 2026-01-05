@@ -114,16 +114,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-trixie-amd64cross32"
   <<: *linux_amd64
 
-.debian-sid-amd64: &debian_sid_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
-  <<: *linux_amd64
-
-# openSUSE Tumbleweed
-
-.tumbleweed-latest-amd64: &tumbleweed_latest_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tumbleweed-latest-amd64"
-  <<: *linux_amd64
-
 # Fedora
 
 .fedora-40-amd64: &fedora_40_amd64_image
@@ -519,7 +509,7 @@ gcc:almalinux8:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-buffer-useinline --with-libidn2"
+    EXTRA_CONFIGURE: "--enable-buffer-useinline --with-libidn2 --with-gssapi=krb5-config"
   <<: *almalinux_8_amd64_image
   <<: *build_job
 
@@ -583,8 +573,8 @@ gcc:tarball:nosphinx:
 gcc:noble:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb"
+    CFLAGS: "${CFLAGS_COMMON} -O3 -DDEBUG"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb --without-libtool --with-dlopen --without-python"
   <<: *ubuntu_noble_amd64_image
   <<: *build_job
 
@@ -721,23 +711,6 @@ unit:gcc:tarball:
     - job: gcc:tarball
       artifacts: true
 
-# Jobs for debug GCC builds on openSUSE Tumbleweed (amd64)
-
-gcc:tumbleweed:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
-    EXTRA_CONFIGURE: "--with-libidn2 --with-gssapi=krb5-config"
-  <<: *tumbleweed_latest_amd64_image
-  <<: *build_job
-
-system:gcc:tumbleweed:amd64:
-  <<: *tumbleweed_latest_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:tumbleweed:amd64
-      artifacts: true
-
 # Jobs for regular GCC builds on Ubuntu 22.04 Jammy Jellyfish (amd64)
 
 gcc:jammy:amd64:
@@ -832,30 +805,6 @@ unit:clang:trixie:amd64:
   <<: *unit_test_job
   needs:
     - job: clang:trixie:amd64
-      artifacts: true
-
-# Jobs with libtool disabled
-
-nolibtool:sid:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-libtool --with-dlopen --without-python"
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
-system:nolibtool:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: nolibtool:sid:amd64
-      artifacts: true
-
-unit:nolibtool:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: nolibtool:sid:amd64
       artifacts: true
 
 # Job producing a release directory
