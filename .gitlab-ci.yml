@@ -781,6 +781,8 @@ abi-check:
   <<: *base_image
   stage: postmerge
   needs: []
+  tags:
+    - smalljob
   # post-merge processes should run even if another MR was merged while the job was running (or queued)
   interruptible: false
   variables:
