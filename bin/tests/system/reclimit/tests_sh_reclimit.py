@@ -11,8 +11,6 @@
 
 import pytest
 
-import isctest.mark
-
 EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
@@ -25,11 +23,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     ]
 )
 
-pytestmark = [
-    isctest.mark.requires_net_dns,
-    isctest.mark.requires_net_dns_nameserver,
-    EXTRA_ARTIFACTS,
-]
+pytestmark = EXTRA_ARTIFACTS
 
 
 # The reclimit is known to be quite unstable. GL #1587
