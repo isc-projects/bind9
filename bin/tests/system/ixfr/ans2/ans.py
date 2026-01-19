@@ -196,8 +196,8 @@ class TooManyRecordsIxfrHandler(IxfrHandler):
 
 class FallbackTooManyRecordsAxfrHandler(AxfrHandler):
     answers = (
+        (soa(3),),
         (
-            soa(3),
             ns(),
             txt("fallback AXFR on too many records"),
         ),
