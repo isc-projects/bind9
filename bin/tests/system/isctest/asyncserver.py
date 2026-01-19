@@ -11,7 +11,7 @@ See the COPYRIGHT file distributed with this work for additional
 information regarding copyright ownership.
 """
 
-from collections.abc import AsyncGenerator, Callable, Coroutine, Sequence
+from collections.abc import AsyncGenerator, Callable, Collection, Coroutine, Sequence
 from dataclasses import dataclass, field
 from typing import Any, cast
 
@@ -873,6 +873,63 @@ class ForwarderHandler(ResponseHandler):
                 forwarding_target,
             )
             yield BytesResponseSend(response.result())
+
+
+class AxfrHandler(ResponseHandler):
+    """
+    Base class for AXFR response handlers.
+
+    Subclasses must define the `initial_soa`, `zone_contents`, and `final_soa`
+    properties to specify the content of the AXFR responses.
+
+    The responses are constructed without any regard to zone data.
+    """
+
+    @property
+    @abc.abstractmethod
+    def initial_soa(self) -> dns.rrset.RRset:
+        """
+        Initial SOA record of response packets sent in response to
+        AXFR queries.
+        """
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def zone_contents(self) -> Collection[dns.rrset.RRset]:
+        """
+        Answer section of the second response packet sent in response to
+        AXFR queries.
+        """
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def final_soa(self) -> dns.rrset.RRset:
+        """
+        Final SOA record of response packets sent in response to
+        AXFR queries.
+        """
+        raise NotImplementedError
+
+    def match(self, qctx: QueryContext) -> bool:
+        return qctx.qtype == dns.rdatatype.AXFR
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.prepare_new_response(with_zone_data=False)
+        qctx.response.answer.append(self.initial_soa)
+        yield DnsResponseSend(qctx.response)
+
+        qctx.prepare_new_response(with_zone_data=False)
+        for rrset_ in self.zone_contents:
+            qctx.response.answer.append(rrset_)
+        yield DnsResponseSend(qctx.response)
+
+        qctx.prepare_new_response(with_zone_data=False)
+        qctx.response.answer.append(self.final_soa)
+        yield DnsResponseSend(qctx.response)
 
 
 @dataclass
