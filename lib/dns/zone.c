@@ -475,7 +475,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, isc_tid_t tid) {
 	REQUIRE(mctx != NULL);
 
 	now = isc_time_now();
-	zone = isc_mem_get(mctx, sizeof(*zone));
+	zone = isc_mem_getx(mctx, sizeof(*zone),
+			    ISC_MEM_ALIGN(ISC_OS_CACHELINE_SIZE));
 	*zone = (dns_zone_t){
 		.masterformat = dns_masterformat_none,
 		.journalsize = -1,
@@ -730,7 +731,10 @@ dns__zone_free(dns_zone_t *zone) {
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 	isc_mutex_destroy(&zone->lock);
 	zone->magic = 0;
-	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
+	isc_mem_t *mctx = zone->mctx;
+	isc_mem_putx(mctx, zone, sizeof(*zone),
+		     ISC_MEM_ALIGN(ISC_OS_CACHELINE_SIZE));
+	isc_mem_detach(&mctx);
 }
 
 /*

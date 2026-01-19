@@ -17,6 +17,8 @@
 
 #include <stdbool.h>
 
+#include <isc/os.h>
+
 #include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/notify.h>
@@ -366,9 +368,10 @@ struct dns_zone {
 	bool locked;
 #endif /* ifdef DNS_ZONE_CHECKLOCK */
 	isc_mem_t *mctx;
-	isc_refcount_t references;
+	__attribute__((
+		aligned(ISC_OS_CACHELINE_SIZE))) isc_refcount_t references;
 
-	isc_rwlock_t dblock;
+	__attribute__((aligned(ISC_OS_CACHELINE_SIZE))) isc_rwlock_t dblock;
 	dns_db_t *db; /* Locked by dblock */
 
 	isc_tid_t tid;
