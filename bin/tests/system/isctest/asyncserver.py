@@ -1390,6 +1390,24 @@ class AsyncDnsServer(AsyncServer):
         )
         logging.debug("[OUT] %s", response.hex())
 
+    def _prepare_response_wire(
+        self, qctx: QueryContext, response: dns.message.Message | bytes | None
+    ) -> bytes | None:
+        def prepend_length_unless_udp(payload: bytes) -> bytes:
+            if qctx.protocol == DnsProtocol.UDP:
+                return payload
+            return len(payload).to_bytes(2, byteorder="big") + payload
+
+        match response:
+            case dns.message.Message(wire=bytes() as payload) | (bytes() as payload):
+                # Calling to_wire() on a Message again may result in a different TSIG
+                # signature being generated, which would be incorrect.
+                return prepend_length_unless_udp(payload)
+            case dns.message.Message(wire=None):
+                return prepend_length_unless_udp(response.to_wire(max_size=65535))
+            case _:
+                return None
+
     async def _handle_query(
         self, wire: bytes, socket: Peer, peer: Peer, protocol: DnsProtocol
     ) -> AsyncGenerator[bytes, None]:
@@ -1406,14 +1424,12 @@ class AsyncDnsServer(AsyncServer):
         self._log_query(qctx)
         responses = self._prepare_responses(qctx)
         async for response in responses:
+            # Call _prepare_response_wire before logging the response, so that TSIG
+            # records are properly included in the logged response.
+            response_wire = self._prepare_response_wire(qctx, response)
             self._log_response(qctx, response)
-            if response:
-                if isinstance(response, dns.message.Message):
-                    response = response.to_wire(max_size=65535)
-                if protocol == DnsProtocol.UDP:
-                    yield response
-                else:
-                    yield len(payload).to_bytes(2, byteorder="big") + payload
+            if response_wire is not None:
+                yield response_wire
 
     def _parse_message(self, wire: bytes) -> dns.message.Message:
         try:
