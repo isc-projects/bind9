@@ -360,6 +360,13 @@ def test_ednsopt_08_no_insist(dig, ns3):
     assert "FORMERR" in result.out
 
 
+def test_nxname_returns_formerr(dig, ns3):
+    """checking dig NXNAME returns FORMERR."""
+    result = dig(f"@{ns3.ip} +qr NXNAME a.example")
+    assert Re(r"^;a\.example\.\s+IN\sNXNAME$") in result.out
+    assert "FORMERR" in result.out
+
+
 @pytest.mark.parametrize(
     "option",
     [
