@@ -220,7 +220,7 @@ stages:
       || (test -s config.log && cat config.log; exit 1)
 
 .git-clone-bind9-qa: &git_clone_bind9-qa
-  - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+  - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git "$CI_PROJECT_DIR"/bind9-qa
 
 .build: &build_job
   <<: *default_triggering_rules
@@ -377,7 +377,8 @@ ci-orphaned-anchors:
   <<: *precheck_job
   script:
     - *git_clone_bind9-qa
-    - bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
   needs: []
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -982,7 +983,8 @@ customer-git:branch:
     - *git_clone_bind9-qa
   script:
     - git checkout -b "$BRANCH"  # ensure refs/heads/$BRANCH exists; GitLab clones with detached HEAD
-    - bind9-qa/releng/push_to_customer_repository.py --branch "$BRANCH" --customer "$CUSTOMER" --force
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/push_to_customer_repository.py --branch "$BRANCH" --customer "$CUSTOMER" --force
 
 customer-git:tag:
   <<: *customer_git
@@ -998,7 +1000,8 @@ customer-git:tag:
     - *git_clone_bind9-qa
     - git clone --depth 1 "https://token:${ISC_CUSTOMERS_WRITE_TOKEN}@gitlab.isc.org/isc-customers/isc-customer-settings.git"
   script:
-    - bind9-qa/releng/push_to_customer_repository.py --tag "$CI_COMMIT_TAG" --entitlements isc-customer-settings/entitlements.yaml --force
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/push_to_customer_repository.py --tag "$CI_COMMIT_TAG" --entitlements isc-customer-settings/entitlements.yaml --force
 
 # Respdiff tests
 
@@ -1114,4 +1117,5 @@ merged-metadata:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ || $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+(-sub)?$/ || $CI_COMMIT_REF_NAME =~ /^v9\.[0-9]+\.[0-9]+-release$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
-    - bind9-qa/releng/after_merge.py "$CI_PROJECT_ID" "$MERGE_REQUEST_ID"
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/after_merge.py "$CI_PROJECT_ID" "$MERGE_REQUEST_ID"
