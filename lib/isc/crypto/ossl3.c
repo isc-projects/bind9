@@ -18,6 +18,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/kdf.h>
 #include <openssl/provider.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
@@ -34,6 +35,11 @@
 #include <isc/safe.h>
 #include <isc/util.h>
 
+#define CRYPTO_ERROR(fn)                                           \
+	isc__ossl_wrap_logged_toresult(                            \
+		ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_CRYPTO, fn, \
+		ISC_R_CRYPTOFAILURE, __FILE__, __LINE__)
+
 struct isc_hmac_key {
 	uint32_t magic;
 	uint32_t len;
@@ -46,7 +52,24 @@ constexpr uint32_t hmac_key_magic = ISC_MAGIC('H', 'M', 'A', 'C');
 
 static OSSL_PROVIDER *base = NULL, *fips = NULL;
 
+/*
+ * Because HKDF-Expand-Label is defined in the RFC of TLS 1.3, OpenSSL
+ * has named the algorithm as TLS1.3 KDF internally.
+ */
+static EVP_KDF *evp_tls_1_3_kdf = NULL;
+static EVP_KDF *evp_hkdf = NULL;
+
 static EVP_MAC *evp_hmac = NULL;
+
+static isc_constregion_t md_to_name[ISC_MD_MAX] = {
+	[ISC_MD_UNKNOWN] = { NULL, 0 },
+	[ISC_MD_MD5] = { "MD5", sizeof("MD5") - 1 },
+	[ISC_MD_SHA1] = { "SHA1", sizeof("SHA1") - 1 },
+	[ISC_MD_SHA224] = { "SHA2-224", sizeof("SHA2-224") - 1 },
+	[ISC_MD_SHA256] = { "SHA2-256", sizeof("SHA2-256") - 1 },
+	[ISC_MD_SHA384] = { "SHA2-384", sizeof("SHA2-384") - 1 },
+	[ISC_MD_SHA512] = { "SHA2-512", sizeof("SHA2-512") - 1 },
+};
 
 static OSSL_PARAM md_to_hmac_params[ISC_MD_MAX][2] = {
 	[ISC_MD_UNKNOWN] = { OSSL_PARAM_END },
@@ -106,11 +129,35 @@ register_algorithms(void) {
 			    "EVP_MAC-HMAC implementation");
 	}
 
+	evp_tls_1_3_kdf = EVP_KDF_fetch(NULL, OSSL_KDF_NAME_TLS1_3_KDF, NULL);
+	if (evp_tls_1_3_kdf == NULL) {
+		FATAL_ERROR(
+			"OpenSSL failed to find an TLS 1.3 KDF implementation."
+			"Please make sure the default provider has an "
+			"EVP_KDF-TLS13_KDF implementation");
+	}
+
+	evp_hkdf = EVP_KDF_fetch(NULL, OSSL_KDF_NAME_HKDF, NULL);
+	if (evp_hkdf == NULL) {
+		ERR_clear_error();
+		FATAL_ERROR("OpenSSL failed to find an HKDF implementation. "
+			    "Please make sure the default provider has an "
+			    "EVP_KDF-HKDF implementation");
+	}
+
 	return ISC_R_SUCCESS;
 }
 
 static void
 unregister_algorithms(void) {
+	INSIST(evp_hkdf != NULL);
+	EVP_KDF_free(evp_hkdf);
+	evp_hkdf = NULL;
+
+	INSIST(evp_tls_1_3_kdf != NULL);
+	EVP_KDF_free(evp_tls_1_3_kdf);
+	evp_tls_1_3_kdf = NULL;
+
 	for (size_t i = 0; i < ISC_MD_MAX; i++) {
 		if (isc__crypto_md[i] != NULL) {
 			EVP_MD_free(isc__crypto_md[i]);
@@ -316,6 +363,186 @@ isc_hmac_final(isc_hmac_t *hmac, isc_buffer_t *out) {
 	isc_buffer_add(out, len);
 
 	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+isc_crypto_hkdf_extract(isc_region_t out, isc_md_type_t md,
+			isc_constregion_t secret, isc_constregion_t salt) {
+	isc_result_t result;
+	EVP_KDF_CTX *ctx;
+	int mode = EVP_KDF_HKDF_MODE_EXTRACT_ONLY;
+
+	REQUIRE(md != ISC_MD_UNKNOWN && md < ISC_MD_MAX);
+	REQUIRE(out.base != NULL && out.length != 0);
+	REQUIRE(secret.base != NULL && secret.length != 0);
+	REQUIRE(salt.base != NULL && salt.length != 0);
+
+	if (isc__crypto_md[md] == NULL) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	const OSSL_PARAM params[] = {
+		OSSL_PARAM_int(OSSL_KDF_PARAM_MODE, &mode),
+		OSSL_PARAM_utf8_string(OSSL_KDF_PARAM_DIGEST,
+				       UNCONST(md_to_name[md].base),
+				       md_to_name[md].length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_KEY,
+					UNCONST(secret.base), secret.length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_SALT, UNCONST(salt.base),
+					salt.length),
+		OSSL_PARAM_END,
+	};
+
+	ctx = EVP_KDF_CTX_new(evp_hkdf);
+	if (ctx == NULL) {
+		CLEANUP(CRYPTO_ERROR("EVP_KDF_CTX_new"));
+	}
+
+	if (EVP_KDF_derive(ctx, out.base, out.length, params) != 1) {
+		CLEANUP(CRYPTO_ERROR("EVP_KDF_derive"));
+	}
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	EVP_KDF_CTX_free(ctx);
+	return result;
+}
+
+isc_result_t
+isc_crypto_hkdf_expand(isc_region_t out, isc_md_type_t md,
+		       isc_constregion_t prk, isc_constregion_t info) {
+	isc_result_t result;
+	EVP_KDF_CTX *ctx;
+	int mode = EVP_KDF_HKDF_MODE_EXPAND_ONLY;
+
+	REQUIRE(md != ISC_MD_UNKNOWN && md < ISC_MD_MAX);
+	REQUIRE(out.base != NULL && out.length != 0);
+	REQUIRE(prk.base != NULL && prk.length != 0);
+	REQUIRE(info.base != NULL && info.length != 0);
+
+	if (isc__crypto_md[md] == NULL) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	const OSSL_PARAM params[] = {
+		OSSL_PARAM_int(OSSL_KDF_PARAM_MODE, &mode),
+		OSSL_PARAM_utf8_string(OSSL_KDF_PARAM_DIGEST,
+				       UNCONST(md_to_name[md].base),
+				       md_to_name[md].length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_KEY, UNCONST(prk.base),
+					prk.length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_INFO, UNCONST(info.base),
+					info.length),
+		OSSL_PARAM_END,
+	};
+
+	ctx = EVP_KDF_CTX_new(evp_hkdf);
+	if (ctx == NULL) {
+		CLEANUP(CRYPTO_ERROR("EVP_KDF_CTX_new"));
+	}
+
+	if (EVP_KDF_derive(ctx, out.base, out.length, params) != 1) {
+		CLEANUP(CRYPTO_ERROR("EVP_KDF_derive"));
+	}
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	EVP_KDF_CTX_free(ctx);
+	return result;
+}
+
+isc_result_t
+isc_crypto_hkdf_expand_label(isc_region_t out, isc_md_type_t md,
+			     isc_constregion_t secret,
+			     isc_constregion_t label) {
+	isc_result_t result;
+	EVP_KDF_CTX *ctx;
+	int mode = EVP_PKEY_HKDEF_MODE_EXPAND_ONLY;
+
+	REQUIRE(out.base != NULL && out.length != 0);
+	REQUIRE(md != ISC_MD_UNKNOWN && md < ISC_MD_MAX);
+	REQUIRE(secret.base != NULL && secret.length != 0);
+	REQUIRE(label.base != NULL && label.length != 0);
+
+	if (isc__crypto_md[md] == NULL) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	const OSSL_PARAM params[] = {
+		OSSL_PARAM_int(OSSL_KDF_PARAM_MODE, &mode),
+		OSSL_PARAM_utf8_string(OSSL_KDF_PARAM_DIGEST,
+				       UNCONST(md_to_name[md].base),
+				       md_to_name[md].length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_PREFIX,
+					UNCONST("tls13 "),
+					sizeof("tls13 ") - 1),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_KEY,
+					UNCONST(secret.base), secret.length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_LABEL,
+					UNCONST(label.base), label.length),
+		OSSL_PARAM_END,
+	};
+
+	/* Please see the comment in `evp_tls_1_3_kdf` */
+	ctx = EVP_KDF_CTX_new(evp_tls_1_3_kdf);
+	if (ctx == NULL) {
+		CLEANUP(CRYPTO_ERROR("EVP_KDF_CTX_new"));
+	}
+
+	if (EVP_KDF_derive(ctx, out.base, out.length, params) != 1) {
+		CLEANUP(CRYPTO_ERROR("EVP_KDF_derive"));
+	}
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	EVP_KDF_CTX_free(ctx);
+	return result;
+}
+
+isc_result_t
+isc_crypto_hkdf(isc_region_t out, isc_md_type_t md, isc_constregion_t ikm,
+		isc_constregion_t salt, isc_constregion_t info) {
+	isc_result_t result;
+	EVP_KDF_CTX *ctx;
+	int mode = EVP_KDF_HKDF_MODE_EXTRACT_AND_EXPAND;
+
+	REQUIRE(md != ISC_MD_UNKNOWN && md < ISC_MD_MAX);
+	REQUIRE(out.base != NULL && out.length != 0);
+	REQUIRE(ikm.base != NULL && ikm.length != 0);
+	REQUIRE(salt.base != NULL && salt.length != 0);
+	REQUIRE(info.base != NULL && info.length != 0);
+
+	if (isc__crypto_md[md] == NULL) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	const OSSL_PARAM params[] = {
+		OSSL_PARAM_int(OSSL_KDF_PARAM_MODE, &mode),
+		OSSL_PARAM_utf8_string(OSSL_KDF_PARAM_DIGEST,
+				       UNCONST(md_to_name[md].base),
+				       md_to_name[md].length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_KEY, UNCONST(ikm.base),
+					ikm.length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_INFO, UNCONST(info.base),
+					info.length),
+		OSSL_PARAM_octet_string(OSSL_KDF_PARAM_SALT, UNCONST(salt.base),
+					salt.length),
+		OSSL_PARAM_END,
+	};
+
+	ctx = EVP_KDF_CTX_new(evp_hkdf);
+	if (ctx == NULL) {
+		CLEANUP(CRYPTO_ERROR("EVP_KDF_CTX_new"));
+	}
+
+	if (EVP_KDF_derive(ctx, out.base, out.length, params) != 1) {
+		CLEANUP(CRYPTO_ERROR("EVP_KDF_derive"));
+	}
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	EVP_KDF_CTX_free(ctx);
+	return result;
 }
 
 bool

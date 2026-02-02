@@ -676,6 +676,11 @@ foreach fn, header : {
     )
 endforeach
 
+config.set(
+    'HAVE_OPENSSL_HKDF_H',
+    cc.has_header('openssl/hkdf.h', dependencies: openssl_dep),
+)
+
 ## libuv
 uv_dep = dependency('libuv', version: '>=1.34.0')
 if uv_dep.version().version_compare('<1.40.0')
