@@ -39,6 +39,10 @@
 #define __has_header(x) 0
 #endif
 
+#ifndef __has_builtin
+#define __has_builtin(x) 0
+#endif
+
 /***
  *** General Macros.
  ***/
@@ -303,3 +307,9 @@ mock_assert(const int result, const char *const expression,
 		a = b;                    \
 		b = __tmp_swap;           \
 	}
+
+#if __has_builtin(__builtin_types_compatible_p)
+#define ISC_TYPES_COMPATIBLE(x, y) __builtin_types_compatible_p(x, y)
+#else /* __has_builtin(__builtin_types_compatible_p) */
+#define ISC_TYPES_COMPATIBLE(x, y) 1
+#endif /* __has_builtin(__builtin_types_compatible_p) */
