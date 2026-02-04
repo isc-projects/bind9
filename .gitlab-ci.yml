@@ -321,6 +321,10 @@ changes:
 
 black:
   <<: *precheck_job
+  # Do not follow black updates in the base image so we don't have to change
+  # Python script formatting.
+  before_script:
+    - pip3 install black==25.12.0
   script:
     - black $(git ls-files '*.py' '*.py.in')
     - git diff > black.patch
