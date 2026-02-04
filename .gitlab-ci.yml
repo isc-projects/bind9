@@ -186,6 +186,7 @@ stages:
       --with-libxml2
       --with-json-c
       --without-make-clean
+      --without-python
       $EXTRA_CONFIGURE
       || (test -s config.log && cat config.log; exit 1)
 
@@ -485,7 +486,7 @@ gcc:alpine3.20:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--without-gssapi"
+    EXTRA_CONFIGURE: "--without-gssapi --with-python"
   <<: *alpine_3_20_amd64_image
   <<: *build_job
 
@@ -574,7 +575,7 @@ gcc:noble:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O3 -DDEBUG"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb --without-libtool --with-dlopen --without-python"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb --without-libtool --with-dlopen"
   <<: *ubuntu_noble_amd64_image
   <<: *build_job
 
@@ -789,7 +790,6 @@ clang:trixie:amd64:
   variables:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
-    EXTRA_CONFIGURE: "--with-python=python3"
   <<: *debian_trixie_amd64_image
   <<: *build_job
 
