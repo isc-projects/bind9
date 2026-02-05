@@ -216,7 +216,7 @@ default_with_python="python python3 python3.11 python3.10 python3.9 python3.8 py
 
 AC_ARG_VAR([PYTHON], [path to python executable])
 
-# [pairwise: --with-python, --without-python]
+# [pairwise: --without-python]
 AC_ARG_WITH([python],
 	    AS_HELP_STRING([--with-python=PATH],
 			   [specify path to Python interpreter]),
