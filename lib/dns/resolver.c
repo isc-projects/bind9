@@ -3375,7 +3375,8 @@ already_waiting_for(dns_adbfind_t *find, dns_rdatatype_t type) {
 static void
 findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	 unsigned int options, unsigned int flags, isc_stdtime_t now,
-	 bool *overquota, bool *need_alternate, bool *have_address) {
+	 bool *overquota, bool *need_alternate, bool *have_address,
+	 size_t maxfindlen, size_t *findlen) {
 	dns_adbfind_t *find = NULL;
 	dns_resolver_t *res = fctx->res;
 	bool unshared = ((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
@@ -3416,7 +3417,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	result = dns_adb_createfind(fctx->adb, fctx->loop, fctx_finddone, fctx,
 				    name, options, now, res->view->dstport,
 				    fctx->depth + 1, fctx->qc, fctx->gqc, fctx,
-				    &find);
+				    maxfindlen, &find, findlen);
 
 	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
 		      ISC_LOG_DEBUG(3), "fctx %p(%s): createfind for %s - %s",
@@ -3670,7 +3671,7 @@ fctx_getaddresses_addresses(fetchctx_t *fctx, isc_stdtime_t now,
 
 	ISC_LIST_FOREACH(fctx->delegset->delegs, deleg, link) {
 		dns_adbfind_t *find = NULL;
-		size_t maxaddrs = max_delegation_servers - *ns_processed;
+		size_t maxfindlen = max_delegation_servers - *ns_processed;
 		size_t findlen = 0;
 
 		if (*ns_processed >= max_delegation_servers) {
@@ -3690,7 +3691,7 @@ fctx_getaddresses_addresses(fetchctx_t *fctx, isc_stdtime_t now,
 		fetchctx_ref(fctx);
 		dns_adb_createaddrinfosfind(fctx->adb, &deleg->addresses,
 					    fctx->res->view->dstport, options,
-					    now, maxaddrs, &find, &findlen);
+					    now, maxfindlen, &find, &findlen);
 
 		if (find == NULL) {
 			fetchctx_unref(fctx);
@@ -3778,6 +3779,12 @@ shufflens:
 		unsigned int static_stub = 0;
 		unsigned int no_fetch = 0;
 		dns_name_t *ns = nameservers[i];
+		size_t maxfindlen = max_delegation_servers - *ns_processed;
+		size_t findlen = 0;
+
+		if (*ns_processed >= max_delegation_servers) {
+			break;
+		}
 
 		if (fctx->delegset->staticstub &&
 		    dns_name_equal(ns, fctx->domain))
@@ -3794,15 +3801,15 @@ shufflens:
 		}
 
 		findname(fctx, ns, 0, stdoptions | static_stub | no_fetch, 0,
-			 now, &overquota, need_alternatep, &have_address);
+			 now, &overquota, need_alternatep, &have_address,
+			 maxfindlen, &findlen);
 
 		if (!overquota) {
 			*all_spilledp = false;
 		}
+		*ns_processed += findlen;
 
-		if (++(*ns_processed) >= max_delegation_servers) {
-			break;
-		}
+		INSIST(*ns_processed <= max_delegation_servers);
 	}
 
 	if (fctx->pending_running == 0 && !have_address) {
@@ -3828,7 +3835,8 @@ fctx_getaddresses_alternate(fetchctx_t *fctx, isc_stdtime_t now,
 		if (!a->isaddress) {
 			findname(fctx, &a->_u._n.name, a->_u._n.port,
 				 stdoptions, FCTX_ADDRINFO_DUALSTACK, now, NULL,
-				 NULL, NULL);
+				 NULL, NULL,
+				 fctx->res->view->max_delegation_servers, NULL);
 			continue;
 		}
 		if (isc_sockaddr_pf(&a->_u.addr) != family) {
