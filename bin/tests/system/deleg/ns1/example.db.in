@@ -1,0 +1,74 @@
+; Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+;
+; SPDX-License-Identifier: MPL-2.0
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0.  If a copy of the MPL was not distributed with this
+; file, you can obtain one at https://mozilla.org/MPL/2.0/.
+;
+; See the COPYRIGHT file distributed with this work for additional
+; information regarding copyright ownership.
+
+$TTL 300	; 5 minutes
+@			IN SOA	mname1. . (
+				2000042407 ; serial
+				20	   ; refresh (20 seconds)
+				20	   ; retry (20 seconds)
+				1814400	   ; expire (3 weeks)
+				3600	   ; minimum (1 hour)
+				)
+			NS	ns1
+ns1			A	10.53.0.1
+
+; Used for testing ANY queries
+foo			TXT	"testing"
+foo			A	10.0.1.0
+
+; Used for testing CNAME queries
+cname1			CNAME	cname1-target
+cname1-target		TXT	"testing cname"
+
+; Used for testing DNAME queries
+dname1			DNAME	dname1-target
+foo.dname1-target	TXT	"testing dname"
+
+; An NS-delegated subdomain
+nsonly			TXT     "this should be occluded"
+nsonly			NS	ns3.nsonly
+ns3.nsonly		A	10.53.0.3
+
+; NS-delegated secure delegation
+nsonly-ds               TXT     "this should be occluded"
+nsonly-ds		DS	7250 13 2 A30B3F78B6DDE9A4A9A2AD0C805518B4F49EC62E7D3F4531D33DE697CDA01CB2
+nsonly-ds		NS	ns3.nsonly-ds
+ns3.nsonly-ds		A	10.53.0.3
+
+; A DELEG-delegated subdomain
+delegonly		TXT     "this should be occluded"
+delegonly		DELEG	server-ipv4=10.53.0.3
+
+; DELEG-delegated secure delegation
+delegonly-ds		TXT     "this should be occluded"
+delegonly-ds		DS	7250 13 2 A30B3F78B6DDE9A4A9A2AD0C805518B4F49EC62E7D3F4531D33DE697CDA01CB2
+delegonly-ds		DELEG	server-ipv4=10.53.0.3
+
+; A subdomain delegated with both NS and DELEG
+mixed			TXT     "this should be occluded"
+mixed			DELEG	server-ipv4=10.53.0.3
+mixed			NS	ns3.mixed
+ns3.mixed		A	10.53.0.3
+
+; A secure delegation with both NS and DELEG
+mixed-ds		TXT     "this should be occluded"
+mixed-ds		DS	7250 13 2 A30B3F78B6DDE9A4A9A2AD0C805518B4F49EC62E7D3F4531D33DE697CDA01CB2
+mixed-ds		DELEG	server-ipv4=10.53.0.3
+mixed-ds		NS	ns3.mixed
+ns3.mixed-ds		A	10.53.0.3
+
+*.wild			A	10.0.0.27
+
+; normal positive answer
+data			TXT	"answer"
+
+; positive answer below an ENT
+data.empty.data		TXT	"answer below ENT"

@@ -167,6 +167,14 @@ for db in zones/bad*.db; do
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
       grep "zones/badttl.db:1: unexpected end of line" test.out.$n >/dev/null || ret=1
       ;;
+    zones/bad-deleg-apex.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "bad-deleg-apex.db:15: DELEG record at top of zone (example)" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-deleg-into-zone.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "DELEG: invalid target name 'ns.sub.example'" test.out.$n >/dev/null || ret=1
+      ;;
     *)
       ret=1
       echo "add case entry for $db"
@@ -450,6 +458,14 @@ $CHECKZONE example zones/warn.no-apex-ns.db >test.out.$n || ret=1
 grep "zone example/IN: has no NS records" test.out.$n >/dev/null || ret=1
 grep "OK" test.out.$n >/dev/null || ret=1
 $CHECKZONE -n fail example zones/warn.no-apex-ns.db >/dev/null && ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "Checking DELEG in a non-IN zone ($n)"
+ret=0
+$CHECKZONE example zones/deleg.db >test.out.$n || ret=1
+$CHECKZONE -c chaos example zones/deleg.db >test.out.$n && ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
