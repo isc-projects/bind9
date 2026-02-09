@@ -20,6 +20,122 @@
 #include <isc/region.h>
 #include <isc/types.h>
 
+/**
+ * \brief
+ * Context to an AEAD cipher.
+ *
+ * \warning Do not rely on the fact that this typedef is a `EVP_CIPHER_CTX`.
+ * It _can_ and **will** change without any announcement.
+ */
+#ifdef HAVE_EVP_AEAD_CTX_NEW
+typedef struct evp_aead_ctx_st isc_crypto_aead_t;
+#else  /* HAVE_EVP_AEAD_CTX_NEW */
+typedef struct evp_cipher_ctx_st isc_crypto_aead_t;
+#endif /* HAVE_EVP_AEAD_CTX_NEW */
+
+typedef enum isc_crypto_aead_algorithm {
+	ISC_CRYPTO_AEAD_ALGORITHM_INVALID = 0,
+	ISC_CRYPTO_AEAD_ALGORITHM_AES128GCM = 1,
+	ISC_CRYPTO_AEAD_ALGORITHM_AES256GCM = 2,
+	ISC_CRYPTO_AEAD_ALGORITHM_CHACHA20POLY1305 = 3,
+	ISC_CRYPTO_AEAD_ALGORITHM_MAX = 4,
+} isc_crypto_aead_algorithm_t;
+
+typedef enum isc_crypto_aead_direction {
+	ISC_CRYPTO_AEAD_DIRECTION_INVALID = 0,
+	ISC_CRYPTO_AEAD_DIRECTION_SEAL = 1,
+	ISC_CRYPTO_AEAD_DIRECTION_OPEN = 2,
+	ISC_CRYPTO_AEAD_DIRECTION_MAX = 3,
+} isc_crypto_aead_direction_t;
+
+constexpr size_t isc_crypto_aes128gcm_key_length = 16;
+constexpr size_t isc_crypto_aes256gcm_key_length = 32;
+constexpr size_t isc_crypto_chacha20poly1305_key_length = 32;
+
+constexpr size_t isc_crypto_aes128gcm_nonce_length = 12;
+constexpr size_t isc_crypto_aes256gcm_nonce_length = 12;
+constexpr size_t isc_crypto_chacha20poly1305_nonce_length = 12;
+
+constexpr size_t isc_crypto_aes128gcm_tag_length = 16;
+constexpr size_t isc_crypto_aes256gcm_tag_length = 16;
+constexpr size_t isc_crypto_chacha20poly1305_tag_length = 16;
+
+constexpr size_t isc_crypto_aead_tag_length = 16;
+
+void
+isc_crypto_aead_destroy(isc_crypto_aead_t **aeadp);
+/**<
+ * \brief
+ * Destroy the AEAD context and wipe out the keys.
+ *
+ * Requires:
+ * - `*aeadp` must be a valid AEAD context.
+ */
+
+isc_result_t
+isc_crypto_aead_create(isc_crypto_aead_algorithm_t algorithm,
+		       isc_constregion_t	   key,
+		       isc_crypto_aead_direction_t direction,
+		       isc_crypto_aead_t	 **aeadp);
+/**<
+ * \brief
+ * Create an AEAD context for encryption or decryption operations.
+ *
+ * Requires:
+ * - `algorithm` must be a valid algorithm enum value.
+ * - `key.base != NULL` and key.length must be equal to the exact key length of
+ * the algorithm.
+ * - `direction` must be either #ISC_CRYPTO_AEAD_DIRECTION_SEAL or
+ * #ISC_CRYPTO_AEAD_DIRECTION_OPEN
+ * - `aeadp != NULL` and `*aeadp == NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_NOTIMPLEMENTED if the aead algorithm is not available
+ * \retval ISC_R_CRYPTOFAILURE on libcrypto failure
+ */
+
+isc_result_t
+isc_crypto_aead_seal(isc_crypto_aead_t *aead, isc_constregion_t nonce,
+		     isc_constregion_t plaintext, isc_region_t out,
+		     size_t *out_sealed_len, isc_constregion_t additional_data);
+/**<
+ * \brief
+ * Encrypt the plaintext and authenticate the ciphertext with the additional
+ * data.
+ *
+ * Requires:
+ * - `aead` is a valid AEAD context.
+ * - `nonce.base != NULL` and has the appropriate length for the algorithm.
+ * - `plaintext.base != NULL` and `out.base != NULL`
+ * - `out.length == plaintext.length + isc_crypto_aead_tag_length`
+ * - `out_sealed_len != NULL`
+ * - `additional_data` must either have a `NULL` base or a non-zero length.
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_CRYPTOFAILURE on opaque cryptographical failure
+ */
+
+isc_result_t
+isc_crypto_aead_open(isc_crypto_aead_t *aead, isc_constregion_t nonce,
+		     isc_constregion_t ciphertext, isc_region_t out,
+		     size_t *out_opened_len, isc_constregion_t additional_data);
+/**<
+ * \brief
+ * Decrypt the ciphertext and authenticate the ciphertext with the additional
+ * data.
+ *
+ * Requires:
+ * - `aead` is a valid AEAD context.
+ * - `nonce.base != NULL` and has the appropriate length for the algorithm.
+ * - `ciphertext.base != NULL` and `out.base != NULL`
+ * - `out.length == ciphertext.length - isc_crypto_aead_tag_length`
+ * - `out_opened_len != NULL`
+ * - `additional_data` must either have a `NULL` base or a non-zero length.
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_CRYPTOFAILURE on opaque cryptographical failure
+ */
+
 isc_result_t
 isc_crypto_hkdf_extract(isc_region_t out, isc_md_type_t md,
 			isc_constregion_t secret, isc_constregion_t salt);

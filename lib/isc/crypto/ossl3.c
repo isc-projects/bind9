@@ -31,6 +31,7 @@
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/ossl_wrap.h>
+#include <isc/overflow.h>
 #include <isc/region.h>
 #include <isc/safe.h>
 #include <isc/util.h>
@@ -48,6 +49,9 @@ struct isc_hmac_key {
 	uint8_t secret[];
 };
 
+STATIC_ASSERT(ISC_TYPES_COMPATIBLE(isc_crypto_aead_t, EVP_CIPHER_CTX),
+	      "isc_crypto_aead_t is not compatible with EVP_CIPHER_CTX");
+
 constexpr uint32_t hmac_key_magic = ISC_MAGIC('H', 'M', 'A', 'C');
 
 static OSSL_PROVIDER *base = NULL, *fips = NULL;
@@ -60,6 +64,11 @@ static EVP_KDF *evp_tls_1_3_kdf = NULL;
 static EVP_KDF *evp_hkdf = NULL;
 
 static EVP_MAC *evp_hmac = NULL;
+
+/* AEAD */
+static EVP_CIPHER *evp_aes_128_gcm = NULL;
+static EVP_CIPHER *evp_aes_256_gcm = NULL;
+static EVP_CIPHER *evp_chacha20poly1305 = NULL;
 
 static isc_constregion_t md_to_name[ISC_MD_MAX] = {
 	[ISC_MD_UNKNOWN] = { NULL, 0 },
@@ -112,6 +121,10 @@ static isc_result_t
 register_algorithms(void) {
 	if (!isc_crypto_fips_mode()) {
 		md_register_algorithm(MD5);
+
+		INSIST(evp_chacha20poly1305 == NULL);
+		evp_chacha20poly1305 =
+			EVP_CIPHER_fetch(NULL, "ChaCha20-Poly1305", NULL);
 	}
 
 	md_register_algorithm(SHA1);
@@ -119,6 +132,12 @@ register_algorithms(void) {
 	md_register_algorithm(SHA256);
 	md_register_algorithm(SHA384);
 	md_register_algorithm(SHA512);
+
+	INSIST(evp_aes_128_gcm == NULL);
+	evp_aes_128_gcm = EVP_CIPHER_fetch(NULL, "AES-128-GCM", NULL);
+
+	INSIST(evp_aes_256_gcm == NULL);
+	evp_aes_256_gcm = EVP_CIPHER_fetch(NULL, "AES-256-GCM", NULL);
 
 	/* We _must_ have HMAC */
 	evp_hmac = EVP_MAC_fetch(NULL, "HMAC", NULL);
@@ -150,6 +169,8 @@ register_algorithms(void) {
 
 static void
 unregister_algorithms(void) {
+	size_t i;
+
 	INSIST(evp_hkdf != NULL);
 	EVP_KDF_free(evp_hkdf);
 	evp_hkdf = NULL;
@@ -158,16 +179,25 @@ unregister_algorithms(void) {
 	EVP_KDF_free(evp_tls_1_3_kdf);
 	evp_tls_1_3_kdf = NULL;
 
-	for (size_t i = 0; i < ISC_MD_MAX; i++) {
+	INSIST(evp_hmac != NULL);
+	EVP_MAC_free(evp_hmac);
+	evp_hmac = NULL;
+
+	EVP_CIPHER_free(evp_chacha20poly1305);
+	evp_chacha20poly1305 = NULL;
+
+	EVP_CIPHER_free(evp_aes_256_gcm);
+	evp_aes_256_gcm = NULL;
+
+	EVP_CIPHER_free(evp_aes_128_gcm);
+	evp_aes_128_gcm = NULL;
+
+	for (i = 0; i < ISC_MD_MAX; i++) {
 		if (isc__crypto_md[i] != NULL) {
 			EVP_MD_free(isc__crypto_md[i]);
 			isc__crypto_md[i] = NULL;
 		}
 	}
-
-	INSIST(evp_hmac != NULL);
-	EVP_MAC_free(evp_hmac);
-	evp_hmac = NULL;
 }
 
 #undef md_register_algorithm
@@ -363,6 +393,207 @@ isc_hmac_final(isc_hmac_t *hmac, isc_buffer_t *out) {
 	isc_buffer_add(out, len);
 
 	return ISC_R_SUCCESS;
+}
+
+void
+isc_crypto_aead_destroy(isc_crypto_aead_t **aeadp) {
+	EVP_CIPHER_CTX *ctx;
+
+	REQUIRE(aeadp != NULL && *aeadp != NULL);
+
+	ctx = MOVE_OWNERSHIP(*aeadp);
+
+	EVP_CIPHER_CTX_free(ctx);
+}
+
+isc_result_t
+isc_crypto_aead_create(isc_crypto_aead_algorithm_t algorithm,
+		       isc_constregion_t key,
+		       isc_crypto_aead_direction_t direction,
+		       isc_crypto_aead_t **aeadp) {
+	EVP_CIPHER_CTX *ctx;
+	isc_result_t result;
+	EVP_CIPHER *evp;
+	size_t nonce;
+	int dir;
+
+	const OSSL_PARAM params[] = {
+		OSSL_PARAM_size_t(OSSL_CIPHER_PARAM_IVLEN, &nonce),
+		OSSL_PARAM_END,
+	};
+
+	REQUIRE(key.base != NULL);
+	REQUIRE(aeadp != NULL && *aeadp == NULL);
+
+	switch (direction) {
+	case ISC_CRYPTO_AEAD_DIRECTION_SEAL:
+		dir = 1;
+		break;
+	case ISC_CRYPTO_AEAD_DIRECTION_OPEN:
+		dir = 0;
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	switch (algorithm) {
+	case ISC_CRYPTO_AEAD_ALGORITHM_AES128GCM:
+		nonce = isc_crypto_aes128gcm_nonce_length;
+		evp = evp_aes_128_gcm;
+		break;
+	case ISC_CRYPTO_AEAD_ALGORITHM_AES256GCM:
+		nonce = isc_crypto_aes256gcm_nonce_length;
+		evp = evp_aes_256_gcm;
+		break;
+	case ISC_CRYPTO_AEAD_ALGORITHM_CHACHA20POLY1305:
+		nonce = isc_crypto_chacha20poly1305_nonce_length;
+		evp = evp_chacha20poly1305;
+		break;
+	default:
+		UNREACHABLE();
+	};
+
+	if (evp == NULL) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	ctx = EVP_CIPHER_CTX_new();
+	if (ctx == NULL) {
+		CLEANUP(CRYPTO_ERROR("EVP_CIPHER_CTX_new"));
+	}
+
+	if (EVP_CipherInit_ex2(ctx, evp, key.base, NULL, dir, params) != 1) {
+		CLEANUP(CRYPTO_ERROR("EVP_CipherInit_ex2"));
+	}
+
+	*aeadp = MOVE_OWNERSHIP(ctx);
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	EVP_CIPHER_CTX_free(ctx);
+	return result;
+}
+
+isc_result_t
+isc_crypto_aead_seal(isc_crypto_aead_t *aead, isc_constregion_t nonce,
+		     isc_constregion_t plaintext, isc_region_t out,
+		     size_t *out_sealed_len,
+		     isc_constregion_t additional_data) {
+	isc_result_t result;
+	size_t sealed;
+	int len;
+
+	REQUIRE(aead != NULL);
+	REQUIRE(nonce.base != NULL);
+	REQUIRE(out.base != NULL && plaintext.base != NULL);
+	REQUIRE(out.length ==
+		ISC_CHECKED_ADD(plaintext.length, isc_crypto_aead_tag_length));
+	REQUIRE(out_sealed_len != NULL);
+
+	OSSL_PARAM params[] = {
+		OSSL_PARAM_octet_string(OSSL_CIPHER_PARAM_AEAD_TAG,
+					out.base + plaintext.length,
+					isc_crypto_aead_tag_length),
+		OSSL_PARAM_END,
+	};
+
+	ERR_set_mark();
+
+	if (EVP_EncryptInit_ex(aead, NULL, NULL, NULL, nonce.base) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	if (EVP_EncryptUpdate(aead, NULL, &len, additional_data.base,
+			      additional_data.length) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	len = out.length;
+	if (EVP_EncryptUpdate(aead, out.base, &len, plaintext.base,
+			      plaintext.length) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	sealed = len + isc_crypto_aead_tag_length;
+
+	out.base += len;
+	len = out.length - len;
+	if (EVP_EncryptFinal_ex(aead, out.base, &len) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	if (EVP_CIPHER_CTX_get_params(aead, params) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	*out_sealed_len = sealed + len;
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	ERR_pop_to_mark();
+	return result;
+}
+
+isc_result_t
+isc_crypto_aead_open(isc_crypto_aead_t *aead, isc_constregion_t nonce,
+		     isc_constregion_t ciphertext, isc_region_t out,
+		     size_t *out_opened_len,
+		     isc_constregion_t additional_data) {
+	isc_result_t result;
+	const uint8_t *ct;
+	size_t opened;
+	int len = 0;
+
+	uint8_t *k = NULL;
+
+	REQUIRE(aead != NULL);
+	REQUIRE(nonce.base != NULL);
+	REQUIRE(out.base != NULL && ciphertext.base != NULL);
+	REQUIRE(out.length ==
+		ISC_CHECKED_SUB(ciphertext.length, isc_crypto_aead_tag_length));
+	REQUIRE(out_opened_len != NULL);
+
+	ct = ciphertext.base;
+	const OSSL_PARAM params[] = {
+		OSSL_PARAM_octet_string(OSSL_CIPHER_PARAM_AEAD_TAG,
+					UNCONST(ct + out.length),
+					isc_crypto_aead_tag_length),
+		OSSL_PARAM_END,
+	};
+
+	ERR_set_mark();
+
+	if (EVP_DecryptInit_ex2(aead, NULL, k, nonce.base, params) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	if (EVP_DecryptUpdate(aead, NULL, &len, additional_data.base,
+			      additional_data.length) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	len = out.length;
+	if (EVP_DecryptUpdate(aead, out.base, &len, ciphertext.base, len) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	opened = len;
+
+	out.base += len;
+	len = out.length - len;
+	if (EVP_DecryptFinal_ex(aead, out.base, &len) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	*out_opened_len = opened;
+	result = ISC_R_SUCCESS;
+cleanup:
+	ERR_pop_to_mark();
+	return result;
 }
 
 isc_result_t

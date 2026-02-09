@@ -643,6 +643,21 @@ else
     config.set('HAVE_OPENSSL_3', false)
     config.set('OPENSSL_API_COMPAT', 10100)
 
+    have_openssl_aead_h = cc.has_header('openssl/aead.h', dependencies: openssl_dep)
+    config.set('HAVE_OPENSSL_AEAD_H', have_openssl_aead_h)
+    if have_openssl_aead_h
+        config.set('HAVE_EVP_AEAD_CTX_NEW', true)
+    else
+        config.set(
+            'HAVE_EVP_AEAD_CTX_NEW',
+            cc.has_function(
+                'EVP_AEAD_CTX_new',
+                dependencies: openssl_dep,
+                prefix: '#include <openssl/evp.h>',
+            ),
+        )
+    endif
+
     config.set(
         'HAVE_FIPS_MODE',
         cc.has_function(

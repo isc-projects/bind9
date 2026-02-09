@@ -28,8 +28,14 @@
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/ossl_wrap.h>
+#include <isc/overflow.h>
+#include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/util.h>
+
+#ifdef HAVE_OPENSSL_AEAD_H
+#include <openssl/aead.h>
+#endif /* HAVE_OPENSSL_AEAD_H */
 
 #ifdef HAVE_OPENSSL_HKDF_H
 #include <openssl/hkdf.h>
@@ -49,6 +55,14 @@ struct isc_hmac_key {
 	EVP_MD *md;
 	uint8_t secret[];
 };
+
+#ifdef HAVE_EVP_AEAD_CTX_NEW
+STATIC_ASSERT(ISC_TYPES_COMPATIBLE(isc_crypto_aead_t, EVP_AEAD_CTX),
+	      "isc_crypto_aead_t is not compatible with EVP_AEAD_CTX");
+#else  /* HAVE_EVP_AEAD_CTX_NEW */
+STATIC_ASSERT(ISC_TYPES_COMPATIBLE(isc_crypto_aead_t, EVP_CIPHER_CTX),
+	      "isc_crypto_aead_t is not compatible with EVP_CIPHER_CTX");
+#endif /* HAVE_EVP_AEAD_CTX_NEW */
 
 static isc_mem_t *isc__crypto_mctx = NULL;
 
@@ -315,6 +329,316 @@ isc__crypto_free_ex(void *ptr, const char *file, int line) {
 #endif /* ISC_MEM_TRACKLINES */
 
 #endif /* !LIBRESSL_VERSION_NUMBER */
+
+#ifdef HAVE_EVP_AEAD_CTX_NEW
+
+void
+isc_crypto_aead_destroy(isc_crypto_aead_t **aeadp) {
+	EVP_AEAD_CTX *ctx;
+
+	REQUIRE(aeadp != NULL && *aeadp != NULL);
+
+	ctx = MOVE_OWNERSHIP(*aeadp);
+	EVP_AEAD_CTX_free(ctx);
+}
+
+isc_result_t
+isc_crypto_aead_create(isc_crypto_aead_algorithm_t algorithm,
+		       isc_constregion_t key,
+		       isc_crypto_aead_direction_t direction ISC_ATTR_UNUSED,
+		       isc_crypto_aead_t **aeadp) {
+	const EVP_AEAD *evp;
+	EVP_AEAD_CTX *ctx;
+
+	REQUIRE(aeadp != NULL && *aeadp == NULL);
+	REQUIRE(key.base != NULL);
+
+	switch (algorithm) {
+	case ISC_CRYPTO_AEAD_ALGORITHM_AES128GCM:
+		evp = EVP_aead_aes_128_gcm();
+		break;
+	case ISC_CRYPTO_AEAD_ALGORITHM_AES256GCM:
+		evp = EVP_aead_aes_256_gcm();
+		break;
+	case ISC_CRYPTO_AEAD_ALGORITHM_CHACHA20POLY1305:
+		evp = EVP_aead_chacha20_poly1305();
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	/*
+	 * LibreSSL's EVP_AEAD_CTX_new is *just slightly* different than the
+	 * BoringSSL version.
+	 */
+#ifdef LIBRESSL_VERSION_NUMBER
+	ctx = EVP_AEAD_CTX_new();
+	if (ctx == NULL) {
+		return CRYPTO_ERROR("EVP_AEAD_CTX_new");
+	}
+
+	if (EVP_AEAD_CTX_init(ctx, evp, key.base, key.length, 0, NULL) != 1) {
+		EVP_AEAD_CTX_free(ctx);
+		return CRYPTO_ERROR("EVP_AEAD_CTX_init");
+	}
+#else  /* LIBRESSL_VERSION_NUMBER */
+	ctx = EVP_AEAD_CTX_new(evp, key.base, key.length, 0);
+	if (ctx == NULL) {
+		return CRYPTO_ERROR("EVP_AEAD_CTX_new");
+	}
+#endif /* LIBRESSL_VERSION_NUMBER */
+
+	*aeadp = MOVE_OWNERSHIP(ctx);
+
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+isc_crypto_aead_seal(isc_crypto_aead_t *aead, isc_constregion_t nonce,
+		     isc_constregion_t plaintext, isc_region_t out,
+		     size_t *out_sealed_len,
+		     isc_constregion_t additional_data) {
+	isc_result_t result;
+	size_t len = out.length;
+
+	REQUIRE(aead != NULL);
+
+	ERR_set_mark();
+
+	if (EVP_AEAD_CTX_seal(aead, out.base, &len, out.length, nonce.base,
+			      nonce.length, plaintext.base, plaintext.length,
+			      additional_data.base,
+			      additional_data.length) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	*out_sealed_len = len;
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	ERR_pop_to_mark();
+	return result;
+}
+
+isc_result_t
+isc_crypto_aead_open(isc_crypto_aead_t *aead, isc_constregion_t nonce,
+		     isc_constregion_t ciphertext, isc_region_t out,
+		     size_t *out_opened_len,
+		     isc_constregion_t additional_data) {
+	isc_result_t result;
+	size_t len;
+
+	REQUIRE(aead != NULL);
+
+	ERR_set_mark();
+
+	if (EVP_AEAD_CTX_open(aead, out.base, &len, out.length, nonce.base,
+			      nonce.length, ciphertext.base, ciphertext.length,
+			      additional_data.base,
+			      additional_data.length) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	*out_opened_len = len;
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	ERR_pop_to_mark();
+	return result;
+}
+
+#else  /* HAVE_EVP_AEAD_CTX_NEW */
+
+void
+isc_crypto_aead_destroy(isc_crypto_aead_t **aeadp) {
+	EVP_CIPHER_CTX *ctx;
+
+	REQUIRE(aeadp != NULL && *aeadp != NULL);
+
+	ctx = MOVE_OWNERSHIP(*aeadp);
+
+	EVP_CIPHER_CTX_free(ctx);
+}
+
+isc_result_t
+isc_crypto_aead_create(isc_crypto_aead_algorithm_t algorithm,
+		       isc_constregion_t key,
+		       isc_crypto_aead_direction_t direction,
+		       isc_crypto_aead_t **aeadp) {
+	EVP_CIPHER_CTX *ctx;
+	isc_result_t result;
+	const EVP_CIPHER *evp;
+	int dir;
+
+	REQUIRE(aeadp != NULL && *aeadp == NULL);
+	REQUIRE(key.base != NULL);
+
+	switch (algorithm) {
+	case ISC_CRYPTO_AEAD_ALGORITHM_AES128GCM:
+		evp = EVP_aes_128_gcm();
+		break;
+	case ISC_CRYPTO_AEAD_ALGORITHM_AES256GCM:
+		evp = EVP_aes_256_gcm();
+		break;
+	case ISC_CRYPTO_AEAD_ALGORITHM_CHACHA20POLY1305:
+		evp = EVP_chacha20_poly1305();
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	switch (direction) {
+	case ISC_CRYPTO_AEAD_DIRECTION_SEAL:
+		dir = 1;
+		break;
+	case ISC_CRYPTO_AEAD_DIRECTION_OPEN:
+		dir = 0;
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	ctx = EVP_CIPHER_CTX_new();
+	if (ctx == NULL) {
+		CLEANUP(CRYPTO_ERROR("EVP_CIPHER_CTX_new"));
+	}
+
+	if (EVP_CipherInit_ex(ctx, evp, NULL, key.base, NULL, dir) != 1) {
+		CLEANUP(CRYPTO_ERROR("EVP_CipherInit_ex"));
+	}
+
+	*aeadp = MOVE_OWNERSHIP(ctx);
+
+	result = ISC_R_SUCCESS;
+cleanup:
+	EVP_CIPHER_CTX_free(ctx);
+	return result;
+}
+
+isc_result_t
+isc_crypto_aead_seal(isc_crypto_aead_t *aead, isc_constregion_t nonce,
+		     isc_constregion_t plaintext, isc_region_t out,
+		     size_t *out_sealed_len,
+		     isc_constregion_t additional_data) {
+	isc_result_t result;
+	size_t sealed;
+	int len;
+
+	REQUIRE(aead != NULL);
+	REQUIRE(nonce.base != NULL);
+	REQUIRE(out.base != NULL && plaintext.base != NULL);
+	REQUIRE(out.length ==
+		ISC_CHECKED_ADD(plaintext.length, isc_crypto_aead_tag_length));
+	REQUIRE(out_sealed_len != NULL);
+
+	ERR_set_mark();
+
+	if (EVP_CipherInit_ex(aead, NULL, NULL, NULL, nonce.base, 1) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	if (additional_data.base != NULL) {
+		INSIST(additional_data.length != 0);
+		if (EVP_EncryptUpdate(aead, NULL, &len, additional_data.base,
+				      additional_data.length) != 1)
+		{
+			CLEANUP(ISC_R_CRYPTOFAILURE);
+		}
+	}
+
+	len = out.length;
+	if (EVP_EncryptUpdate(aead, out.base, &len, plaintext.base,
+			      plaintext.length) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	sealed = len + isc_crypto_aead_tag_length;
+
+	out.base += len;
+	len = out.length - len;
+	if (EVP_EncryptFinal_ex(aead, out.base, &len) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	if (EVP_CIPHER_CTX_ctrl(aead, EVP_CTRL_AEAD_GET_TAG,
+				isc_crypto_aead_tag_length,
+				out.base + len) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	*out_sealed_len = sealed;
+	result = ISC_R_SUCCESS;
+cleanup:
+	ERR_pop_to_mark();
+	return result;
+}
+
+isc_result_t
+isc_crypto_aead_open(isc_crypto_aead_t *aead, isc_constregion_t nonce,
+		     isc_constregion_t ciphertext, isc_region_t out,
+		     size_t *out_opened_len,
+		     isc_constregion_t additional_data) {
+	isc_result_t result;
+	const uint8_t *ct;
+	size_t opened;
+	int len;
+
+	REQUIRE(aead != NULL);
+	REQUIRE(nonce.base != NULL);
+	REQUIRE(out.base != NULL && ciphertext.base != NULL);
+	REQUIRE(out.length ==
+		ISC_CHECKED_SUB(ciphertext.length, isc_crypto_aead_tag_length));
+	REQUIRE(out_opened_len != NULL);
+
+	ct = ciphertext.base;
+
+	ERR_set_mark();
+
+	if (EVP_CipherInit_ex(aead, NULL, NULL, NULL, nonce.base, 0) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	if (EVP_CIPHER_CTX_ctrl(aead, EVP_CTRL_AEAD_SET_TAG,
+				isc_crypto_aead_tag_length,
+				UNCONST(ct + out.length)) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	if (additional_data.base != NULL) {
+		INSIST(additional_data.length != 0);
+		if (EVP_DecryptUpdate(aead, NULL, &len, additional_data.base,
+				      additional_data.length) != 1)
+		{
+			CLEANUP(ISC_R_CRYPTOFAILURE);
+		}
+	}
+
+	len = out.length;
+	if (EVP_DecryptUpdate(aead, out.base, &len, ciphertext.base,
+			      ciphertext.length) != 1)
+	{
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	opened = len;
+	out.base += len;
+	len = out.length - len;
+	if (EVP_DecryptFinal_ex(aead, out.base, &len) != 1) {
+		CLEANUP(ISC_R_CRYPTOFAILURE);
+	}
+
+	*out_opened_len = opened + len;
+	result = ISC_R_SUCCESS;
+cleanup:
+	ERR_pop_to_mark();
+	return result;
+}
+#endif /* HAVE_EVP_AEAD_CTX_NEW */
 
 #ifdef HAVE_OPENSSL_HKDF_H
 

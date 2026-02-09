@@ -17,6 +17,7 @@
 #include <isc/crypto.h>
 #include <isc/md.h>
 #include <isc/ossl_wrap.h>
+#include <isc/util.h>
 
 EVP_MD *isc__crypto_md[] = {
 	[ISC_MD_UNKNOWN] = NULL, [ISC_MD_MD5] = NULL,	 [ISC_MD_SHA1] = NULL,
