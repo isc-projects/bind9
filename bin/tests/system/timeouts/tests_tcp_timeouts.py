@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# pylint: disable=unused-variable
-
 import socket
 import time
 
@@ -24,7 +22,7 @@ import dns.query
 import dns.rdataclass
 import dns.rdatatype
 
-import isctest.mark  # pylint: disable=import-error
+import isctest.mark
 
 pytestmark = pytest.mark.extra_artifacts(
     [

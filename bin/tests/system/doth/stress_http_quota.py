@@ -135,9 +135,8 @@ class SubDIG:
         return command
 
     def run(self):
-        # pylint: disable=consider-using-with
         with open(os.devnull, "w", encoding="utf-8") as devnull:
-            self.sub_process = subprocess.Popen(
+            self.sub_process = subprocess.Popen(  # pylint: disable=consider-using-with
                 self.get_command(), shell=True, stdout=devnull
             )
 

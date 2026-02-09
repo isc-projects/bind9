@@ -86,7 +86,6 @@ def token_init_and_cleanup():
         assert Re("Found token (.*) with matching token label") in cmd.out
 
 
-# pylint: disable-msg=too-many-locals
 @pytest.mark.parametrize(
     "alg_name,alg_type,alg_bits",
     [
