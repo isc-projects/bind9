@@ -44,6 +44,7 @@
 #include <tests/isc.h>
 
 typedef struct aead_testcase aead_testcase_t;
+typedef struct quic_hp_testcase quic_hp_testcase_t;
 
 struct aead_testcase {
 	isc_crypto_aead_algorithm_t algorithm;
@@ -54,6 +55,13 @@ struct aead_testcase {
 	const uint8_t additional_data[8];
 };
 
+struct quic_hp_testcase {
+	isc_crypto_quic_hp_protect_algorithm_t algorithm;
+	size_t keylen;
+	const uint8_t mask[5];
+	const uint8_t key[32];
+	const uint8_t sample[16];
+};
 
 static void
 test_aead(const aead_testcase_t *const testcase) {
@@ -283,10 +291,88 @@ ISC_RUN_TEST_IMPL(hkdf_expand_label) {
 	assert_memory_equal(expected, actual, 32);
 }
 
+ISC_RUN_TEST_IMPL(quic_hp_protect) {
+	isc_crypto_quic_hp_protect_t *prot = NULL;
+	isc_constregion_t key;
+	uint8_t generated[16];
+	isc_result_t result;
+	size_t i;
+
+	static const quic_hp_testcase_t testcases[] = {
+		{
+			ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES128,
+			isc_crypto_aes128gcm_key_length,
+			{ 0x2e, 0xc0, 0xd8, 0x35, 0x6a },
+			{ 0xc2, 0x06, 0xb8, 0xd9, 0xb9, 0xf0, 0xf3, 0x76, 0x44,
+			  0x43, 0x0b, 0x49, 0x0e, 0xea, 0xa3, 0x14 },
+			{ 0x2c, 0xd0, 0x99, 0x1c, 0xd2, 0x5b, 0x0a, 0xac, 0x40,
+			  0x6a, 0x58, 0x16, 0xb6, 0x39, 0x41, 0x00 },
+		},
+
+	};
+
+	static const quic_hp_testcase_t non_fips_testcases[] = {
+		{
+			ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_CHACHA20,
+			isc_crypto_chacha20poly1305_key_length,
+			{ 0xae, 0xfe, 0xfe, 0x7d, 0x03 },
+			{ 0x25, 0xa2, 0x82, 0xb9, 0xe8, 0x2f, 0x06, 0xf2,
+			  0x1f, 0x48, 0x89, 0x17, 0xa4, 0xfc, 0x8f, 0x1b,
+			  0x73, 0x57, 0x36, 0x85, 0x60, 0x85, 0x97, 0xd0,
+			  0xef, 0xcb, 0x07, 0x6b, 0x0a, 0xb7, 0xa7, 0xa4 },
+			{ 0x5e, 0x5c, 0xd5, 0x5c, 0x41, 0xf6, 0x90, 0x80, 0x57,
+			  0x5d, 0x79, 0x99, 0xc2, 0x5a, 0x5b, 0xfb },
+		},
+	};
+
+	for (i = 0; i < ARRAY_SIZE(testcases); i++) {
+		key = (isc_constregion_t){
+			.base = testcases[i].key,
+			.length = testcases[i].keylen,
+		};
+
+		result = isc_crypto_quic_hp_protect_create(
+			isc_g_mctx, key, testcases[i].algorithm, &prot);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		result = isc_crypto_quic_hp_protect_mask(prot, generated,
+							 testcases[i].sample);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_memory_equal(generated, testcases[i].mask,
+				    sizeof(testcases[i].mask));
+
+		isc_crypto_quic_hp_protect_destroy(&prot);
+	}
+
+	if (isc_crypto_fips_mode()) {
+		return;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(non_fips_testcases); i++) {
+		key = (isc_constregion_t){
+			.base = testcases[i].key,
+			.length = testcases[i].keylen,
+		};
+
+		result = isc_crypto_quic_hp_protect_create(
+			isc_g_mctx, key, testcases[i].algorithm, &prot);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		result = isc_crypto_quic_hp_protect_mask(prot, generated,
+							 testcases[i].sample);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_memory_equal(generated, testcases[i].mask,
+				    sizeof(testcases[i].mask));
+
+		isc_crypto_quic_hp_protect_destroy(&prot);
+	}
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(aead)
 ISC_TEST_ENTRY(hkdf)
 ISC_TEST_ENTRY(hkdf_expand_label)
+ISC_TEST_ENTRY(quic_hp_protect)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

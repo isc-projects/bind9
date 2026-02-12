@@ -13,15 +13,18 @@
 
 #include <stdint.h>
 
+#include <openssl/aes.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
+#include <openssl/opensslv.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 
 #include <isc/buffer.h>
 #include <isc/crypto.h>
+#include <isc/endian.h>
 #include <isc/hmac.h>
 #include <isc/log.h>
 #include <isc/magic.h>
@@ -36,6 +39,10 @@
 #ifdef HAVE_OPENSSL_AEAD_H
 #include <openssl/aead.h>
 #endif /* HAVE_OPENSSL_AEAD_H */
+
+#if HAVE_CRYPTO_CHACHA_20
+#include <openssl/chacha.h>
+#endif /* HAVE_CRYPTO_CHACHA_20 */
 
 #ifdef HAVE_OPENSSL_HKDF_H
 #include <openssl/hkdf.h>
@@ -56,6 +63,20 @@ struct isc_hmac_key {
 	uint8_t secret[];
 };
 
+struct isc_crypto_quic_hp_protect {
+	uint32_t magic;
+	isc_crypto_quic_hp_protect_algorithm_t algorithm;
+	isc_mem_t *mctx;
+	union {
+		AES_KEY aes;
+#if HAVE_CRYPTO_CHACHA_20
+		uint8_t chacha20[32];
+#else  /* HAVE_CRYPTO_CHACHA_20 */
+		EVP_CIPHER_CTX *chacha20;
+#endif /* HAVE_CRYPTO_CHACHA_20 */
+	} key;
+};
+
 #ifdef HAVE_EVP_AEAD_CTX_NEW
 STATIC_ASSERT(ISC_TYPES_COMPATIBLE(isc_crypto_aead_t, EVP_AEAD_CTX),
 	      "isc_crypto_aead_t is not compatible with EVP_AEAD_CTX");
@@ -63,6 +84,8 @@ STATIC_ASSERT(ISC_TYPES_COMPATIBLE(isc_crypto_aead_t, EVP_AEAD_CTX),
 STATIC_ASSERT(ISC_TYPES_COMPATIBLE(isc_crypto_aead_t, EVP_CIPHER_CTX),
 	      "isc_crypto_aead_t is not compatible with EVP_CIPHER_CTX");
 #endif /* HAVE_EVP_AEAD_CTX_NEW */
+
+constexpr uint32_t crypto_quic_hp_protect_magic = ISC_MAGIC('C', 'Q', 'h', 'p');
 
 static isc_mem_t *isc__crypto_mctx = NULL;
 
@@ -1013,6 +1036,164 @@ cleanup:
 }
 
 #endif /* HAVE_OPENSSL_HKDF_H */
+
+void
+isc_crypto_quic_hp_protect_destroy(isc_crypto_quic_hp_protect_t **protp) {
+	isc_crypto_quic_hp_protect_t *prot;
+
+	REQUIRE(protp != NULL && *protp != NULL &&
+		(*protp)->magic == crypto_quic_hp_protect_magic);
+
+	prot = MOVE_OWNERSHIP(*protp);
+
+	prot->magic = 0x00;
+
+#if !HAVE_CRYPTO_CHACHA_20
+	if (prot->algorithm == ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_CHACHA20) {
+		EVP_CIPHER_CTX_free(prot->key.chacha20);
+	}
+#endif /* HAVE_CRYPTO_CHACHA_20 */
+
+	isc_safe_memwipe(&prot->key, ISC_MAX(sizeof(prot->key.aes),
+					     sizeof(prot->key.chacha20)));
+
+	isc_mem_putanddetach(&prot->mctx, prot, sizeof(*prot));
+}
+
+isc_result_t
+isc_crypto_quic_hp_protect_create(
+	isc_mem_t *mctx, isc_constregion_t key,
+	isc_crypto_quic_hp_protect_algorithm_t algorithm,
+	isc_crypto_quic_hp_protect_t **protp) {
+	isc_crypto_quic_hp_protect_t *prot;
+	isc_result_t result;
+
+	REQUIRE(protp != NULL && *protp == NULL);
+	REQUIRE(key.base != NULL);
+
+	prot = isc_mem_get(mctx, sizeof(*prot));
+	*prot = (isc_crypto_quic_hp_protect_t){
+		.magic = crypto_quic_hp_protect_magic,
+		.algorithm = algorithm,
+		.mctx = isc_mem_ref(mctx),
+	};
+
+	switch (algorithm) {
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES128:
+		INSIST(key.length == isc_crypto_aes128gcm_key_length);
+		if (AES_set_encrypt_key(key.base, 128, &prot->key.aes) != 0) {
+			CLEANUP(CRYPTO_ERROR("AES_set_encrypt_key"));
+		}
+		break;
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES256:
+		INSIST(key.length == isc_crypto_aes256gcm_key_length);
+		if (AES_set_encrypt_key(key.base, 256, &prot->key.aes) != 0) {
+			CLEANUP(CRYPTO_ERROR("AES_set_encrypt_key"));
+		}
+		break;
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_CHACHA20:
+		INSIST(key.length == isc_crypto_chacha20poly1305_key_length);
+		if (isc_crypto_fips_mode()) {
+			CLEANUP(ISC_R_NOTIMPLEMENTED);
+		}
+#if HAVE_CRYPTO_CHACHA_20
+		memmove(prot->key.chacha20, key.base,
+			isc_crypto_chacha20poly1305_key_length);
+#else  /* HAVE_CRYPTO_CHACHA_20 */
+		prot->key.chacha20 = EVP_CIPHER_CTX_new();
+		if (prot->key.chacha20 == NULL) {
+			CLEANUP(CRYPTO_ERROR("EVP_CIPHER_CTX_new"));
+		}
+
+		if (EVP_EncryptInit_ex(prot->key.chacha20, EVP_chacha20(), NULL,
+				       key.base, NULL) != 1)
+		{
+			EVP_CIPHER_CTX_free(prot->key.chacha20);
+			CLEANUP(CRYPTO_ERROR("EVP_EncryptInit_ex"));
+		}
+#endif /* HAVE_CRYPTO_CHACHA_20 */
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	*protp = prot;
+
+	return ISC_R_SUCCESS;
+
+cleanup:
+	isc_mem_putanddetach(&prot->mctx, prot, sizeof(*prot));
+	return result;
+}
+
+isc_result_t
+isc_crypto_quic_hp_protect_mask(isc_crypto_quic_hp_protect_t *prot,
+				uint8_t *out, const uint8_t *sample) {
+	static const uint8_t zeros[5] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
+#if HAVE_CRYPTO_CHACHA_20
+	const uint8_t *nonce;
+	uint64_t counter;
+#else  /* HAVE_CRYPTO_CHACHA_20 */
+	int len;
+#endif /* HAVE_CRYPTO_CHACHA_20 */
+
+	REQUIRE(prot != NULL && prot->magic == crypto_quic_hp_protect_magic);
+	REQUIRE(out != NULL && sample != NULL);
+
+	switch (prot->algorithm) {
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES128:
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES256:
+		AES_ecb_encrypt(sample, out, &prot->key.aes, 1);
+		break;
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_CHACHA20:
+#if HAVE_CRYPTO_CHACHA_20
+		/*
+		 * `CRYPTO_chacha_20` is the IETF variant of ChaCha20 with a
+		 * 32-bit counter and a 96-bit nonce in BoringSSL and its forks
+		 * such as AWS-LC.
+		 *
+		 * However, LibreSSL implements the original paper with 64-bit
+		 * counter and a 64-bit nonce. This can easily be turned into
+		 * the IETF variant by reading 32-bits more to the counter from
+		 * the sample and using the rest and the nonce. The ChaCha20
+		 * block state will be equivalent.
+		 */
+#ifdef LIBRESSL_VERSION_NUMBER
+		counter = ISC_U8TO64_LE(sample);
+		nonce = sample + 8;
+#else  /* LIBRESSL_VERSION_NUMBER */
+		counter = ISC_U8TO32_LE(sample);
+		nonce = sample + 4;
+#endif /* LIBRESSL_VERSION_NUMBER */
+		CRYPTO_chacha_20(out, zeros, sizeof(zeros), prot->key.chacha20,
+				 nonce, counter);
+
+#else  /* HAVE_CRYPTO_CHACHA_20 */
+		if (EVP_EncryptInit_ex(prot->key.chacha20, NULL, NULL, NULL,
+				       sample) != 1)
+		{
+			return CRYPTO_ERROR("EVP_EncryptInit_ex");
+		}
+
+		if (EVP_EncryptUpdate(prot->key.chacha20, out, &len, zeros,
+				      sizeof(zeros)) != 1)
+		{
+			return CRYPTO_ERROR("EVP_EncryptUpdate");
+		}
+
+		if (EVP_EncryptFinal_ex(prot->key.chacha20, out + sizeof(zeros),
+					&len) != 1)
+		{
+			return CRYPTO_ERROR("EVP_EncryptFinal_ex");
+		}
+#endif /* HAVE_CRYPTO_CHACHA_20 */
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	return ISC_R_SUCCESS;
+}
 
 #ifdef HAVE_FIPS_MODE
 bool

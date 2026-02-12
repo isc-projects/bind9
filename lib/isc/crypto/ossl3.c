@@ -49,9 +49,16 @@ struct isc_hmac_key {
 	uint8_t secret[];
 };
 
+struct isc_crypto_quic_hp_protect {
+	uint32_t magic;
+	isc_mem_t *mctx;
+	EVP_CIPHER_CTX *ctx;
+};
+
 STATIC_ASSERT(ISC_TYPES_COMPATIBLE(isc_crypto_aead_t, EVP_CIPHER_CTX),
 	      "isc_crypto_aead_t is not compatible with EVP_CIPHER_CTX");
 
+constexpr uint32_t quic_hp_protect_magic = ISC_MAGIC('C', 'Q', 'h', 'p');
 constexpr uint32_t hmac_key_magic = ISC_MAGIC('H', 'M', 'A', 'C');
 
 static OSSL_PROVIDER *base = NULL, *fips = NULL;
@@ -69,6 +76,11 @@ static EVP_MAC *evp_hmac = NULL;
 static EVP_CIPHER *evp_aes_128_gcm = NULL;
 static EVP_CIPHER *evp_aes_256_gcm = NULL;
 static EVP_CIPHER *evp_chacha20poly1305 = NULL;
+
+/* QUIC Header Protection */
+static EVP_CIPHER *evp_aes_128_ctr = NULL;
+static EVP_CIPHER *evp_aes_256_ctr = NULL;
+static EVP_CIPHER *evp_chacha20 = NULL;
 
 static isc_constregion_t md_to_name[ISC_MD_MAX] = {
 	[ISC_MD_UNKNOWN] = { NULL, 0 },
@@ -125,6 +137,9 @@ register_algorithms(void) {
 		INSIST(evp_chacha20poly1305 == NULL);
 		evp_chacha20poly1305 =
 			EVP_CIPHER_fetch(NULL, "ChaCha20-Poly1305", NULL);
+
+		INSIST(evp_chacha20 == NULL);
+		evp_chacha20 = EVP_CIPHER_fetch(NULL, "ChaCha20", NULL);
 	}
 
 	md_register_algorithm(SHA1);
@@ -138,6 +153,12 @@ register_algorithms(void) {
 
 	INSIST(evp_aes_256_gcm == NULL);
 	evp_aes_256_gcm = EVP_CIPHER_fetch(NULL, "AES-256-GCM", NULL);
+
+	INSIST(evp_aes_128_ctr == NULL);
+	evp_aes_128_ctr = EVP_CIPHER_fetch(NULL, "AES-128-CTR", NULL);
+
+	INSIST(evp_aes_256_ctr == NULL);
+	evp_aes_256_ctr = EVP_CIPHER_fetch(NULL, "AES-256-CTR", NULL);
 
 	/* We _must_ have HMAC */
 	evp_hmac = EVP_MAC_fetch(NULL, "HMAC", NULL);
@@ -182,6 +203,15 @@ unregister_algorithms(void) {
 	INSIST(evp_hmac != NULL);
 	EVP_MAC_free(evp_hmac);
 	evp_hmac = NULL;
+
+	EVP_CIPHER_free(evp_chacha20);
+	evp_chacha20 = NULL;
+
+	EVP_CIPHER_free(evp_aes_256_ctr);
+	evp_aes_256_ctr = NULL;
+
+	EVP_CIPHER_free(evp_aes_128_ctr);
+	evp_aes_128_ctr = NULL;
 
 	EVP_CIPHER_free(evp_chacha20poly1305);
 	evp_chacha20poly1305 = NULL;
@@ -773,6 +803,106 @@ isc_crypto_hkdf(isc_region_t out, isc_md_type_t md, isc_constregion_t ikm,
 	result = ISC_R_SUCCESS;
 cleanup:
 	EVP_KDF_CTX_free(ctx);
+	return result;
+}
+
+void
+isc_crypto_quic_hp_protect_destroy(isc_crypto_quic_hp_protect_t **protp) {
+	isc_crypto_quic_hp_protect_t *prot;
+
+	REQUIRE(protp != NULL && *protp != NULL &&
+		(*protp)->magic == quic_hp_protect_magic);
+
+	prot = MOVE_OWNERSHIP(*protp);
+	prot->magic = 0x00;
+	EVP_CIPHER_CTX_free(prot->ctx);
+	isc_mem_putanddetach(&prot->mctx, prot, sizeof(*prot));
+}
+
+isc_result_t
+isc_crypto_quic_hp_protect_create(
+	isc_mem_t *mctx, isc_constregion_t key,
+	isc_crypto_quic_hp_protect_algorithm_t algorithm,
+	isc_crypto_quic_hp_protect_t **protp) {
+	isc_crypto_quic_hp_protect_t *prot;
+	const EVP_CIPHER *evp;
+	EVP_CIPHER_CTX *ctx;
+	size_t len;
+
+	REQUIRE(protp != NULL && *protp == NULL);
+	REQUIRE(key.base != NULL);
+
+	switch (algorithm) {
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES128:
+		len = isc_crypto_aes128gcm_key_length;
+		evp = evp_aes_128_ctr;
+		break;
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES256:
+		len = isc_crypto_aes256gcm_key_length;
+		evp = evp_aes_256_ctr;
+		break;
+	case ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_CHACHA20:
+		len = isc_crypto_chacha20poly1305_key_length;
+		evp = evp_chacha20;
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	INSIST(key.length == len);
+
+	if (evp == NULL) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	ctx = EVP_CIPHER_CTX_new();
+	if (ctx == NULL) {
+		return CRYPTO_ERROR("EVP_CIPHER_CTX_new");
+	}
+
+	if (EVP_CipherInit_ex2(ctx, evp, key.base, NULL, 1, NULL) != 1) {
+		EVP_CIPHER_CTX_free(ctx);
+		return CRYPTO_ERROR("EVP_CipherInit_ex2");
+	}
+
+	prot = isc_mem_get(mctx, sizeof(*prot));
+	*prot = (isc_crypto_quic_hp_protect_t){
+		.magic = quic_hp_protect_magic,
+		.ctx = ctx,
+	};
+	isc_mem_attach(mctx, &prot->mctx);
+
+	*protp = prot;
+
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+isc_crypto_quic_hp_protect_mask(isc_crypto_quic_hp_protect_t *prot,
+				uint8_t *out, const uint8_t *sample) {
+	static const uint8_t zeros[5] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
+	isc_result_t result;
+	int len;
+
+	REQUIRE(prot != NULL && prot->magic == quic_hp_protect_magic);
+	REQUIRE(out != NULL && sample != NULL);
+
+	if (EVP_EncryptInit_ex2(prot->ctx, NULL, NULL, sample, NULL) != 1) {
+		CLEANUP(CRYPTO_ERROR("EVP_EncryptInit_ex2"));
+	}
+
+	if (EVP_EncryptUpdate(prot->ctx, out, &len, zeros, sizeof(zeros)) != 1)
+	{
+		CLEANUP(CRYPTO_ERROR("EVP_EncryptUpdate"));
+	}
+
+	if (EVP_EncryptFinal_ex(prot->ctx, out + sizeof(zeros), &len) != 1) {
+		CLEANUP(CRYPTO_ERROR("EVP_EncryptFinal_ex"));
+	}
+
+	result = ISC_R_SUCCESS;
+
+cleanup:
 	return result;
 }
 

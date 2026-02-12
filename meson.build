@@ -684,6 +684,7 @@ foreach fn, header : {
     'BIO_write_ex': '#include <openssl/bio.h>',
     'EVP_PKEY_eq': '#include <openssl/evp.h>',
     'SSL_CTX_set1_cert_store': '#include <openssl/ssl.h>',
+    'CRYPTO_chacha_20': '#include <openssl/chacha.h>',
 }
     config.set10(
         'HAVE_@0@'.format(fn.to_upper()),

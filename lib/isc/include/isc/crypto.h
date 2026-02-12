@@ -33,6 +33,15 @@ typedef struct evp_aead_ctx_st isc_crypto_aead_t;
 typedef struct evp_cipher_ctx_st isc_crypto_aead_t;
 #endif /* HAVE_EVP_AEAD_CTX_NEW */
 
+/**
+ * \brief
+ * Context to a mask generator to protect QUIC packet headers as specified by
+ * RFC 9001, Section 5.4. [1]
+ *
+ * [1]: https://datatracker.ietf.org/doc/html/rfc9001#section-5.4
+ */
+typedef struct isc_crypto_quic_hp_protect isc_crypto_quic_hp_protect_t;
+
 typedef enum isc_crypto_aead_algorithm {
 	ISC_CRYPTO_AEAD_ALGORITHM_INVALID = 0,
 	ISC_CRYPTO_AEAD_ALGORITHM_AES128GCM = 1,
@@ -47,6 +56,14 @@ typedef enum isc_crypto_aead_direction {
 	ISC_CRYPTO_AEAD_DIRECTION_OPEN = 2,
 	ISC_CRYPTO_AEAD_DIRECTION_MAX = 3,
 } isc_crypto_aead_direction_t;
+
+typedef enum isc_crypto_quic_hp_protect_algorithm {
+	ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_INVALID = 0,
+	ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES128 = 1,
+	ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_AES256 = 2,
+	ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_CHACHA20 = 3,
+	ISC_CRYPTO_QUIC_HP_PROTECT_ALGORITHM_MAX = 4,
+} isc_crypto_quic_hp_protect_algorithm_t;
 
 constexpr size_t isc_crypto_aes128gcm_key_length = 16;
 constexpr size_t isc_crypto_aes256gcm_key_length = 32;
@@ -209,6 +226,52 @@ isc_crypto_hkdf(isc_region_t out, isc_md_type_t md, isc_constregion_t secret,
  *
  * \retval ISC_R_SUCCESS on success
  * \retval ISC_R_NOTIMPLEMENTED if the hash function is not supported
+ * \retval ISC_R_CRYPTOFAILURE on libcrypto failure
+ */
+
+void
+isc_crypto_quic_hp_protect_destroy(isc_crypto_quic_hp_protect_t **protp);
+/**<
+ * \brief
+ * Destroy a QUIC header protection context.
+ *
+ * Requires:
+ * - `*protp` is a valid QUIC header protection context.
+ */
+
+isc_result_t
+isc_crypto_quic_hp_protect_create(
+	isc_mem_t *mctx, isc_constregion_t key,
+	isc_crypto_quic_hp_protect_algorithm_t algorithm,
+	isc_crypto_quic_hp_protect_t	     **protp);
+/**<
+ * \brief
+ * Create a new QUIC header protection context.
+ *
+ * Requires:
+ * - `mctx` is a valid memory context
+ * - `key` is a valid AEAD-key that has the correct key size for
+ * `aead_algorithm`.
+ * - `aead_algorithm` is a valid AEAD type.
+ * - `protp != NULL` and `*protp == NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_CRYPTOFAILURE on libcrypto failure
+ */
+
+isc_result_t
+isc_crypto_quic_hp_protect_mask(isc_crypto_quic_hp_protect_t *prot,
+				uint8_t *out, const uint8_t *sample);
+/**<
+ * \brief
+ * Generate a QUIC header protection mask.
+ *
+ * Requires:
+ * - `prot` is a valid QUIC header protection context.
+ * - `out` is non-`NULL` and points to 16 bytes.
+ * - `sample` is non-NULL and points to 16 bytes of sampleable data.
+ *
+ * \retval ISC_R_SUCCESS on success
  * \retval ISC_R_CRYPTOFAILURE on libcrypto failure
  */
 
