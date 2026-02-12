@@ -163,7 +163,6 @@ register_algorithms(void) {
 	/* We _must_ have HMAC */
 	evp_hmac = EVP_MAC_fetch(NULL, "HMAC", NULL);
 	if (evp_hmac == NULL) {
-		ERR_clear_error();
 		FATAL_ERROR("OpenSSL failed to find an HMAC implementation. "
 			    "Please make sure the default provider has an "
 			    "EVP_MAC-HMAC implementation");
@@ -179,11 +178,12 @@ register_algorithms(void) {
 
 	evp_hkdf = EVP_KDF_fetch(NULL, OSSL_KDF_NAME_HKDF, NULL);
 	if (evp_hkdf == NULL) {
-		ERR_clear_error();
 		FATAL_ERROR("OpenSSL failed to find an HKDF implementation. "
 			    "Please make sure the default provider has an "
 			    "EVP_KDF-HKDF implementation");
 	}
+
+	ERR_clear_error();
 
 	return ISC_R_SUCCESS;
 }
