@@ -255,6 +255,20 @@ dns_vectop_destroy(isc_mem_t *mctx, dns_vectop_t **topp);
  * Free all memory associated with '*vectopp'.
  */
 
+dns_vecheader_t *
+dns_vecheader_moveheader(dns_rdataset_t *rdataset);
+/*%<
+ * Transfer ownership of the vecheader from 'rdataset' to the caller.
+ * The rdataset is left disassociated so that dns_rdataset_cleanup()
+ * becomes a no-op.
+ *
+ * Requires:
+ *\li	'rdataset' is associated with an rdatavec.
+ *
+ * Returns:
+ *\li	The vecheader pointer previously held by the rdataset.
+ */
+
 /*
  * Reference counting for dns_vecheader_t
  */

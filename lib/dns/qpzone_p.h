@@ -25,10 +25,10 @@
 struct dns_glue {
 	struct dns_glue *next;
 	dns_name_t name;
-	dns_rdataset_t rdataset_a;
-	dns_rdataset_t sigrdataset_a;
-	dns_rdataset_t rdataset_aaaa;
-	dns_rdataset_t sigrdataset_aaaa;
+	dns_vecheader_t *header_a;
+	dns_vecheader_t *sigheader_a;
+	dns_vecheader_t *header_aaaa;
+	dns_vecheader_t *sigheader_aaaa;
 	bool required;
 };
 
