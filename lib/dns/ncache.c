@@ -156,7 +156,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	isc_buffer_init(&buffer, data, sizeof(data));
 
 	MSG_SECTION_FOREACH(message, DNS_SECTION_AUTHORITY, name) {
-		if (name->attributes.ncache) {
+		if (dns_linkedname_name(name)->attributes.ncache) {
 			ISC_LIST_FOREACH(name->list, rdataset, link) {
 				if (!rdataset->attributes.ncache) {
 					continue;
@@ -194,7 +194,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					/*
 					 * Copy the owner name to the buffer.
 					 */
-					dns_name_toregion(name, &r);
+					dns_name_toregion(
+						dns_linkedname_name(name), &r);
 					RETERR(isc_buffer_copyregion(&buffer,
 								     &r));
 					/*

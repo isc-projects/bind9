@@ -1185,14 +1185,15 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 
 	/* Query tuple */
 	if (d->msg != NULL) {
-		dns_name_t *name = NULL;
+		dns_linkedname_t *name = NULL;
 		dns_rdataset_t *rdataset;
 
 		CHECK(dns_message_firstname(d->msg, DNS_SECTION_QUESTION));
 		dns_message_currentname(d->msg, DNS_SECTION_QUESTION, &name);
 		rdataset = ISC_LIST_HEAD(name->list);
 
-		dns_name_format(name, d->namebuf, sizeof(d->namebuf));
+		dns_name_format(dns_linkedname_name(name), d->namebuf,
+				sizeof(d->namebuf));
 		dns_rdatatype_format(rdataset->type, d->typebuf,
 				     sizeof(d->typebuf));
 		dns_rdataclass_format(rdataset->rdclass, d->classbuf,

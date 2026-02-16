@@ -90,7 +90,8 @@
 		char _buf1[DNS_NAME_FORMATSIZE];                             \
 		char _buf2[DNS_RDATACLASS_FORMATSIZE];                       \
 		result = (code);                                             \
-		dns_name_format(question, _buf1, sizeof(_buf1));             \
+		dns_name_format(dns_linkedname_name(question), _buf1,        \
+				sizeof(_buf1));                              \
 		dns_rdataclass_format(rdclass, _buf2, sizeof(_buf2));        \
 		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT,              \
 			      NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO,           \
@@ -712,7 +713,7 @@ xfrout_delayed_timeout(void *arg, isc_result_t result);
 void
 ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	isc_result_t result;
-	dns_name_t *question_name;
+	dns_linkedname_t *question_name;
 	dns_rdataset_t *question_rdataset;
 	dns_zone_t *zone = NULL, *raw = NULL, *mayberaw;
 	dns_db_t *db = NULL;
@@ -777,7 +778,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	}
 
-	result = dns_view_findzone(client->inner.view, question_name,
+	result = dns_view_findzone(client->inner.view,
+				   dns_linkedname_name(question_name),
 				   DNS_ZTFIND_EXACT, &zone);
 	if (result != ISC_R_SUCCESS || dns_zone_gettype(zone) == dns_zone_dlz) {
 		/*
@@ -787,7 +789,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		 */
 		if (!ISC_LIST_EMPTY(client->inner.view->dlz_searched)) {
 			result = dns_dlzallowzonexfr(
-				client->inner.view, question_name,
+				client->inner.view,
+				dns_linkedname_name(question_name),
 				&client->inner.peeraddr, &db);
 			if (result == ISC_R_DEFAULT) {
 				useviewacl = true;
@@ -798,8 +801,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 				char _buf2[DNS_RDATACLASS_FORMATSIZE];
 
 				result = DNS_R_REFUSED;
-				dns_name_format(question_name, _buf1,
-						sizeof(_buf1));
+				dns_name_format(
+					dns_linkedname_name(question_name),
+					_buf1, sizeof(_buf1));
 				dns_rdataclass_format(question_class, _buf2,
 						      sizeof(_buf2));
 				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
@@ -841,8 +845,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		dns_db_currentversion(db, &ver);
 	}
 
-	xfrout_log1(client, question_name, question_class, ISC_LOG_DEBUG(6),
-		    "%s question section OK", mnemonic);
+	xfrout_log1(client, dns_linkedname_name(question_name), question_class,
+		    ISC_LOG_DEBUG(6), "%s question section OK", mnemonic);
 
 	/*
 	 * Check the authority section.  Look for a SOA record with
@@ -852,7 +856,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		/*
 		 * Ignore data whose owner name is not the zone apex.
 		 */
-		if (!dns_name_equal(soa_name, question_name)) {
+		if (!dns_name_equal(dns_linkedname_name(soa_name),
+				    dns_linkedname_name(question_name)))
+		{
 			continue;
 		}
 
@@ -883,8 +889,8 @@ got_soa:
 		CHECK(result);
 	}
 
-	xfrout_log1(client, question_name, question_class, ISC_LOG_DEBUG(6),
-		    "%s authority section OK", mnemonic);
+	xfrout_log1(client, dns_linkedname_name(question_name), question_class,
+		    ISC_LOG_DEBUG(6), "%s authority section OK", mnemonic);
 
 	/*
 	 * If not a DLZ zone or we are falling back to the view's transfer
@@ -893,7 +899,8 @@ got_soa:
 	if (!is_dlz || useviewacl) {
 		dns_acl_t *acl;
 
-		ns_client_aclmsg("zone transfer", question_name, reqtype,
+		ns_client_aclmsg("zone transfer",
+				 dns_linkedname_name(question_name), reqtype,
 				 client->inner.view->rdclass, msg, sizeof(msg));
 		if (useviewacl) {
 			acl = client->inner.view->transferacl;
@@ -990,7 +997,8 @@ got_soa:
 							      &provide_ixfr);
 			}
 			if (!provide_ixfr) {
-				xfrout_log1(client, question_name,
+				xfrout_log1(client,
+					    dns_linkedname_name(question_name),
 					    question_class, ISC_LOG_DEBUG(4),
 					    "IXFR delta response disabled due "
 					    "to 'provide-ixfr no;' being set");
@@ -1008,8 +1016,8 @@ got_soa:
 			result = ISC_R_NOTFOUND;
 		}
 		if (result == ISC_R_NOTFOUND || result == ISC_R_RANGE) {
-			xfrout_log1(client, question_name, question_class,
-				    ISC_LOG_INFO,
+			xfrout_log1(client, dns_linkedname_name(question_name),
+				    question_class, ISC_LOG_INFO,
 				    "IXFR version not in journal, "
 				    "falling back to AXFR (serial %u)",
 				    begin_serial);
@@ -1024,7 +1032,8 @@ got_soa:
 			if (ratio != 0 && ((100 * jsize) / dbsize) > ratio) {
 				data_stream->methods->destroy(&data_stream);
 				data_stream = NULL;
-				xfrout_log1(client, question_name,
+				xfrout_log1(client,
+					    dns_linkedname_name(question_name),
 					    question_class, ISC_LOG_INFO,
 					    "IXFR delta size (%zu bytes) "
 					    "exceeds the maximum ratio to "
@@ -1035,7 +1044,8 @@ got_soa:
 				mnemonic = "AXFR-style IXFR";
 				goto axfr_fallback;
 			} else {
-				xfrout_log1(client, question_name,
+				xfrout_log1(client,
+					    dns_linkedname_name(question_name),
 					    question_class, ISC_LOG_DEBUG(4),
 					    "IXFR delta size (%zu bytes); "
 					    "database size "
@@ -1066,15 +1076,17 @@ have_stream:
 	 */
 
 	if (is_dlz) {
-		xfrout_ctx_create(mctx, client, request->id, question_name,
-				  reqtype, question_class, zone, db, ver,
-				  stream, dns_message_gettsigkey(request),
-				  tsigbuf, request->verified_sig, 3600, 3600,
+		xfrout_ctx_create(mctx, client, request->id,
+				  dns_linkedname_name(question_name), reqtype,
+				  question_class, zone, db, ver, stream,
+				  dns_message_gettsigkey(request), tsigbuf,
+				  request->verified_sig, 3600, 3600,
 				  (format == dns_many_answers) ? true : false,
 				  &xfr);
 	} else {
 		xfrout_ctx_create(
-			mctx, client, request->id, question_name, reqtype,
+			mctx, client, request->id,
+			dns_linkedname_name(question_name), reqtype,
 			question_class, zone, db, ver, stream,
 			dns_message_gettsigkey(request), tsigbuf,
 			request->verified_sig, dns_zone_getmaxxfrout(zone),
@@ -1096,16 +1108,19 @@ have_stream:
 	xfr->poll = is_poll;
 	if (is_poll) {
 		xfr->mnemonic = "IXFR poll response";
-		xfrout_log1(client, question_name, question_class,
-			    ISC_LOG_DEBUG(1), "IXFR poll up to date%s%s",
+		xfrout_log1(client, dns_linkedname_name(question_name),
+			    question_class, ISC_LOG_DEBUG(1),
+			    "IXFR poll up to date%s%s",
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
 	} else if (is_ixfr) {
-		xfrout_log1(client, question_name, question_class, ISC_LOG_INFO,
+		xfrout_log1(client, dns_linkedname_name(question_name),
+			    question_class, ISC_LOG_INFO,
 			    "%s started%s%s (serial %u -> %u)", mnemonic,
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname,
 			    begin_serial, current_serial);
 	} else {
-		xfrout_log1(client, question_name, question_class, ISC_LOG_INFO,
+		xfrout_log1(client, dns_linkedname_name(question_name),
+			    question_class, ISC_LOG_INFO,
 			    "%s started%s%s (serial %u)", mnemonic,
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname,
 			    current_serial);
@@ -1354,7 +1369,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	dns_message_t *msg = NULL; /* Client message if UDP, tcpmsg if TCP */
 	isc_result_t result;
 	dns_rdataset_t *qrdataset;
-	dns_name_t *msgname = NULL;
+	dns_linkedname_t *msgname = NULL;
 	dns_rdata_t *msgrdata = NULL;
 	dns_rdatalist_t *msgrdl = NULL;
 	dns_rdataset_t *msgrds = NULL;
@@ -1426,7 +1441,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		 * have a question section.
 		 */
 		if (!xfr->question_added) {
-			dns_name_t *qname = NULL;
+			dns_linkedname_t *qname = NULL;
 			isc_region_t r;
 
 			/*
@@ -1447,7 +1462,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			r.length = xfr->qname->length;
 			isc_buffer_putmem(&xfr->buf, xfr->qname->ndata,
 					  xfr->qname->length);
-			dns_name_fromregion(qname, &r);
+			dns_name_fromregion(dns_linkedname_name(qname), &r);
 			ISC_LIST_INIT(qname->list);
 			ISC_LIST_APPEND(qname->list, qrdataset, link);
 
@@ -1515,7 +1530,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		INSIST(r.length >= name->length);
 		r.length = name->length;
 		isc_buffer_putmem(&xfr->buf, name->ndata, name->length);
-		dns_name_fromregion(msgname, &r);
+		dns_name_fromregion(dns_linkedname_name(msgname), &r);
 
 		/* Reserve space for RR header. */
 		isc_buffer_add(&xfr->buf, 10);

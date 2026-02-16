@@ -516,12 +516,13 @@ mark_as_rendered(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
  * above processing to happen.
  */
 static bool
-process_name(query_ctx_t *qctx, filter_aaaa_t mode, const dns_name_t *name,
-	     dns_rdatatype_t type, bool only_if_a_exists) {
+process_name(query_ctx_t *qctx, filter_aaaa_t mode,
+	     const dns_linkedname_t *name, dns_rdatatype_t type,
+	     bool only_if_a_exists) {
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
 	isc_result_t result;
 	bool modified = false;
-	dns_name_t *n = UNCONST(name);
+	dns_linkedname_t *n = UNCONST(name);
 
 	if (only_if_a_exists) {
 		CHECK(dns_message_findtype(n, dns_rdatatype_a, 0, NULL));
@@ -574,7 +575,9 @@ process_section(const section_filter_t *filter) {
 	dns_message_t *message = qctx->client->message;
 
 	MSG_SECTION_FOREACH(message, section, cur) {
-		if (name != NULL && !dns_name_equal(name, cur)) {
+		if (name != NULL &&
+		    !dns_name_equal(name, dns_linkedname_name(cur)))
+		{
 			/*
 			 * We only want to process 'name' and this is not it.
 			 */
@@ -739,9 +742,10 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			 * We'll make a note to not render it
 			 * if the recursion for the A succeeds.
 			 */
-			result = ns_query_recurse(qctx->client, dns_rdatatype_a,
-						  qctx->client->query.qname,
-						  qctx->resuming);
+			result = ns_query_recurse(
+				qctx->client, dns_rdatatype_a,
+				dns_linkedname_name(qctx->client->query.qname),
+				qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
 				client_state->flags |= FILTER_AAAA_RECURSING;
 				qctx->client->query.recursing = true;
@@ -754,7 +758,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			.qctx = qctx,
 			.mode = client_state->mode,
 			.section = DNS_SECTION_ANSWER,
-			.name = qctx->fname,
+			.name = dns_linkedname_name(qctx->fname),
 			.type = dns_rdatatype_aaaa,
 		};
 		process_section(&filter_answer);
@@ -795,7 +799,7 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 			.qctx = qctx,
 			.mode = client_state->mode,
 			.section = DNS_SECTION_ANSWER,
-			.name = qctx->tname,
+			.name = dns_linkedname_name(qctx->tname),
 			.type = dns_rdatatype_aaaa,
 			.only_if_a_exists = qctx->authoritative,
 		};

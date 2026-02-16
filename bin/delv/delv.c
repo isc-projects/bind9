@@ -1838,7 +1838,7 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 
 	ISC_LIST_FOREACH(*namelist, response_name, link) {
 		ISC_LIST_FOREACH(response_name->list, rdataset, link) {
-			printdata(rdataset, response_name);
+			printdata(rdataset, dns_linkedname_name(response_name));
 		}
 	}
 
@@ -1982,7 +1982,7 @@ recvresponse(void *arg) {
 			 * fine, we can just print that version.
 			 */
 			if (!showtrust) {
-				printdata(rdataset, name);
+				printdata(rdataset, dns_linkedname_name(name));
 				continue;
 			}
 
@@ -1994,10 +1994,12 @@ recvresponse(void *arg) {
 			 * duplicate output, so we check here whether we've
 			 * already printed this name and type.
 			 */
-			if (prev != NULL && dns_name_equal(prev, name)) {
+			if (prev != NULL &&
+			    dns_name_equal(prev, dns_linkedname_name(name)))
+			{
 				continue;
 			}
-			prev = name;
+			prev = dns_linkedname_name(name);
 
 			if (prevtype == rdataset->type) {
 				continue;
@@ -2015,13 +2017,15 @@ recvresponse(void *arg) {
 			if (cdflag) {
 				options |= DNS_DBFIND_PENDINGOK;
 			}
-			result = dns_view_simplefind(view, name, rdataset->type,
-						     0, options, &rds, &sigs);
+			result = dns_view_simplefind(
+				view, dns_linkedname_name(name), rdataset->type,
+				0, options, &rds, &sigs);
 			if (result == ISC_R_SUCCESS) {
-				printdata(&rds, name);
+				printdata(&rds, dns_linkedname_name(name));
 				dns_rdataset_disassociate(&rds);
 				if (dns_rdataset_isassociated(&sigs)) {
-					printdata(&sigs, name);
+					printdata(&sigs,
+						  dns_linkedname_name(name));
 					dns_rdataset_disassociate(&sigs);
 				}
 			}
@@ -2051,7 +2055,8 @@ sendquery(void *arg) {
 	isc_sockaddr_t peer = isc_nmsocket_getaddr(sock);
 	isc_result_t result;
 	dns_message_t *message = NULL;
-	dns_name_t *query_name = NULL, *mname = NULL;
+	dns_name_t *query_name = NULL;
+	dns_linkedname_t *mname = NULL;
 	dns_rdataset_t *mrdataset = NULL;
 	dns_request_t *request = NULL;
 
@@ -2070,7 +2075,7 @@ sendquery(void *arg) {
 
 	dns_message_gettempname(message, &mname);
 	dns_message_gettemprdataset(message, &mrdataset);
-	dns_name_clone(query_name, mname);
+	dns_name_clone(query_name, dns_linkedname_name(mname));
 	dns_rdataset_makequestion(mrdataset, dns_rdataclass_in, qtype);
 	ISC_LIST_APPEND(mname->list, mrdataset, link);
 	dns_message_addname(message, mname, DNS_SECTION_QUESTION);

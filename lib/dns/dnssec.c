@@ -190,12 +190,13 @@ digest_sig(dst_context_t *ctx, bool downcase, dns_rdata_t *sigrdata,
 	if (downcase) {
 		dns_fixedname_init(&fname);
 
-		RUNTIME_CHECK(dns_name_downcase(&rrsig->signer,
-						dns_fixedname_name(&fname)) ==
-			      ISC_R_SUCCESS);
+		RUNTIME_CHECK(
+			dns_name_downcase(dns_linkedname_name(&rrsig->signer),
+					  dns_fixedname_name(&fname)) ==
+			ISC_R_SUCCESS);
 		dns_name_toregion(dns_fixedname_name(&fname), &r);
 	} else {
-		dns_name_toregion(&rrsig->signer, &r);
+		dns_name_toregion(dns_linkedname_name(&rrsig->signer), &r);
 	}
 
 	return dst_context_adddata(ctx, &r);
@@ -240,12 +241,13 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	/*
 	 * Downcase signer.
 	 */
-	dns_name_init(&sig.signer);
+	dns_name_init(dns_linkedname_name(&sig.signer));
 	dns_fixedname_init(&fsigner);
 	RUNTIME_CHECK(dns_name_downcase(dst_key_name(key),
 					dns_fixedname_name(&fsigner)) ==
 		      ISC_R_SUCCESS);
-	dns_name_clone(dns_fixedname_name(&fsigner), &sig.signer);
+	dns_name_clone(dns_fixedname_name(&fsigner),
+		       dns_linkedname_name(&sig.signer));
 
 	sig.covered = set->type;
 	sig.algorithm = dst_algorithm_tosecalg(dst_key_alg(key));
@@ -418,7 +420,9 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * for it.
 	 */
 	siglabels = sig.labels + 1;
-	if (siglabels < dns_name_countlabels(&sig.signer) || siglabels > labels)
+	if (siglabels <
+		    dns_name_countlabels(dns_linkedname_name(&sig.signer)) ||
+	    siglabels > labels)
 	{
 		inc_stat(dns_dnssecstats_fail);
 		return DNS_R_SIGINVALID;
@@ -459,7 +463,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			return DNS_R_INVALIDNSEC3;
 		}
 		dns_name_split(name, labels - 1, NULL, &apex);
-		if (!dns_name_equal(&apex, &sig.signer)) {
+		if (!dns_name_equal(&apex, dns_linkedname_name(&sig.signer))) {
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;
 		}
@@ -467,19 +471,21 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	case dns_rdatatype_ns:
 	case dns_rdatatype_soa:
 	case dns_rdatatype_dnskey:
-		if (!dns_name_equal(name, &sig.signer)) {
+		if (!dns_name_equal(name, dns_linkedname_name(&sig.signer))) {
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;
 		}
 		break;
 	case dns_rdatatype_ds:
-		if (dns_name_equal(name, &sig.signer)) {
+		if (dns_name_equal(name, dns_linkedname_name(&sig.signer))) {
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;
 		}
 		FALLTHROUGH;
 	default:
-		if (!dns_name_issubdomain(name, &sig.signer)) {
+		if (!dns_name_issubdomain(name,
+					  dns_linkedname_name(&sig.signer)))
+		{
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;
 		}
@@ -492,7 +498,9 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		RETERR(dns_rdataset_first(set));
 		dns_rdataset_current(set, &rdata);
 		RETERR(dns_rdata_tostruct(&rdata, &nsec));
-		if (!dns_name_issubdomain(&nsec.next, &sig.signer)) {
+		if (!dns_name_issubdomain(&nsec.next,
+					  dns_linkedname_name(&sig.signer)))
+		{
 			return DNS_R_NOVALIDNSEC;
 		}
 	}
@@ -591,7 +599,8 @@ again:
 	result = dst_context_verify(ctx, &r);
 	if (result == ISC_R_SUCCESS && downcase) {
 		char namebuf[DNS_NAME_FORMATSIZE];
-		dns_name_format(&sig.signer, namebuf, sizeof(namebuf));
+		dns_name_format(dns_linkedname_name(&sig.signer), namebuf,
+				sizeof(namebuf));
 		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
 			      ISC_LOG_DEBUG(1),
 			      "successfully validated after lower casing "
@@ -627,7 +636,8 @@ cleanup:
 					      wild) == ISC_R_SUCCESS);
 		}
 		if (wildsigner != NULL) {
-			dns_name_copy(&sig.signer, wildsigner);
+			dns_name_copy(dns_linkedname_name(&sig.signer),
+				      wildsigner);
 		}
 		inc_stat(dns_dnssecstats_wildcard);
 		result = DNS_R_FROMWILDCARD;

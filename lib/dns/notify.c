@@ -196,7 +196,7 @@ notify_createmessage(dns_notify_t *notify, dns_message_t **messagep) {
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 
-	dns_name_t *tempname = NULL;
+	dns_linkedname_t *tempname = NULL;
 	dns_rdata_t *temprdata = NULL;
 	dns_rdatalist_t *temprdatalist = NULL;
 	dns_rdataset_t *temprdataset = NULL;
@@ -222,7 +222,8 @@ notify_createmessage(dns_notify_t *notify, dns_message_t **messagep) {
 	/*
 	 * Make question.
 	 */
-	dns_name_clone(dns_zone_getorigin(notify->zone), tempname);
+	dns_name_clone(dns_zone_getorigin(notify->zone),
+		       dns_linkedname_name(tempname));
 	dns_rdataset_makequestion(temprdataset, dns_zone_getclass(notify->zone),
 				  notify->type);
 	ISC_LIST_APPEND(tempname->list, temprdataset, link);
@@ -243,9 +244,11 @@ notify_createmessage(dns_notify_t *notify, dns_message_t **messagep) {
 	INSIST(result == ISC_R_SUCCESS);
 	INSIST(zonedb != NULL); /* XXXJT: is this assumption correct? */
 
-	dns_name_clone(dns_zone_getorigin(notify->zone), tempname);
+	dns_name_clone(dns_zone_getorigin(notify->zone),
+		       dns_linkedname_name(tempname));
 	dns_db_currentversion(zonedb, &version);
-	result = dns_db_findnode(zonedb, tempname, false, &node);
+	result = dns_db_findnode(zonedb, dns_linkedname_name(tempname), false,
+				 &node);
 	if (result != ISC_R_SUCCESS) {
 		goto soa_cleanup;
 	}

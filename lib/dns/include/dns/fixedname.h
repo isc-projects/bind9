@@ -59,9 +59,9 @@
 *****/
 
 struct dns_fixedname {
-	dns_name_t    name;
-	isc_buffer_t  buffer;
-	unsigned char data[DNS_NAME_MAXWIRE];
+	dns_linkedname_t name_wl;
+	isc_buffer_t	 buffer;
+	unsigned char	 data[DNS_NAME_MAXWIRE];
 };
 
 typedef unsigned char dns_nsec3hash_t[ISC_SHA1_DIGESTLENGTH];
@@ -93,3 +93,8 @@ dns_fixedname_fromnsec3hash(dns_fixedname_t *fixed, const dns_nsec3hash_t *hash,
  * Returns:
  *\li	#ISC_R_NOSPACE when the resulting name does not fit in 'fixed'.
  */
+dns_linkedname_t *
+dns_fixedname_linkedname(dns_fixedname_t *fixed);
+
+dns_linkedname_t *
+dns_fixedname_initlinkedname(dns_fixedname_t *fixed);

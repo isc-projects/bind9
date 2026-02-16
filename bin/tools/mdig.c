@@ -534,7 +534,7 @@ static isc_result_t
 sendquery(struct query *query) {
 	dns_request_t *request = NULL;
 	dns_message_t *message = NULL;
-	dns_name_t *qname = NULL;
+	dns_linkedname_t *qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
 	isc_result_t result;
 	dns_fixedname_t queryname;
@@ -576,7 +576,8 @@ sendquery(struct query *query) {
 
 	dns_message_gettemprdataset(message, &qrdataset);
 
-	dns_name_clone(dns_fixedname_name(&queryname), qname);
+	dns_name_clone(dns_fixedname_name(&queryname),
+		       dns_linkedname_name(qname));
 	dns_rdataset_makequestion(qrdataset, query->rdclass, query->rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);

@@ -215,21 +215,24 @@ printsection(dig_query_t *query, dns_message_t *msg, bool headers,
 					if (section != DNS_SECTION_ANSWER) {
 						goto def_short_section;
 					}
-					dns_name_format(name, namebuf,
-							sizeof(namebuf));
+					dns_name_format(
+						dns_linkedname_name(name),
+						namebuf, sizeof(namebuf));
 					printf("Name:\t%s\n", namebuf);
 					printaddr(&rdata);
 					break;
 				case dns_rdatatype_soa:
-					dns_name_format(name, namebuf,
-							sizeof(namebuf));
+					dns_name_format(
+						dns_linkedname_name(name),
+						namebuf, sizeof(namebuf));
 					printf("%s\n", namebuf);
 					printsoa(&rdata);
 					break;
 				default:
 				def_short_section:
-					dns_name_format(name, namebuf,
-							sizeof(namebuf));
+					dns_name_format(
+						dns_linkedname_name(name),
+						namebuf, sizeof(namebuf));
 					printf("%s\t", namebuf);
 					printrdata(&rdata);
 					break;
@@ -271,7 +274,8 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 	MSG_SECTION_FOREACH(msg, section, name) {
 		ISC_LIST_FOREACH(name->list, rdataset, link) {
 			if (section == DNS_SECTION_QUESTION) {
-				dns_name_format(name, namebuf, sizeof(namebuf));
+				dns_name_format(dns_linkedname_name(name),
+						namebuf, sizeof(namebuf));
 				printf("\t%s, ", namebuf);
 				dns_rdatatype_format(rdataset->type, namebuf,
 						     sizeof(namebuf));
@@ -284,7 +288,8 @@ detailsection(dig_query_t *query, dns_message_t *msg, bool headers,
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rdataset, &rdata);
 
-				dns_name_format(name, namebuf, sizeof(namebuf));
+				dns_name_format(dns_linkedname_name(name),
+						namebuf, sizeof(namebuf));
 				printf("    ->  %s\n", namebuf);
 
 				switch (rdata.type) {
@@ -373,8 +378,8 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 	if (msg->rcode != 0) {
 		char nametext[DNS_NAME_FORMATSIZE];
-		dns_name_format(query->lookup->name, nametext,
-				sizeof(nametext));
+		dns_name_format(dns_linkedname_name(query->lookup->name),
+				nametext, sizeof(nametext));
 		printf("** server can't find %s: %s\n", nametext,
 		       rcode_totext(msg->rcode));
 		debug("returning with rcode == 0");
@@ -392,7 +397,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 		/* Add AAAA lookup. */
 		name = dns_fixedname_initname(&fixed);
-		dns_name_copy(query->lookup->name, name);
+		dns_name_copy(dns_linkedname_name(query->lookup->name), name);
 		chase_cnamechain(msg, name);
 		dns_name_format(name, namestr, sizeof(namestr));
 		lookup = clone_lookup(query->lookup, false);

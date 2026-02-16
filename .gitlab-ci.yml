@@ -608,9 +608,9 @@ stages:
     - git ls-files -z | xargs -0 -r touch -t 199808172205
     # Build the test binaries here (rather than in the build job) and run them.
     # CMocka tests: Mark Meson-generated XMLs to exclude them later with --logbase, CMocka generates better ones.
-    - meson test -C build --suite cmocka --wrapper "$MESON_WRAPPER" --logbase "exclude-" || RET=1
+    - meson test -C build --print-errorlogs --suite cmocka --wrapper "$MESON_WRAPPER" --logbase "exclude-" || RET=1
     # Non-CMocka test: Use Meson-generated XMLs.
-    - meson test -C build --no-suite cmocka --wrapper "$MESON_WRAPPER" --logbase "include-" || RET=1
+    - meson test -C build --print-errorlogs --no-suite cmocka --wrapper "$MESON_WRAPPER" --logbase "include-" || RET=1
     - >
       "$PYTHON" "$CI_PROJECT_DIR"/bind9-qa/ci/postprocess_junit_files.py build/meson-logs/include-*.junit.xml --output "$CI_PROJECT_DIR/junit.xml"
     - (exit $RET)

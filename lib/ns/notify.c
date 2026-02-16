@@ -112,7 +112,7 @@ void
 ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	dns_message_t *request = client->message;
 	isc_result_t result;
-	dns_name_t *zonename;
+	dns_linkedname_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL;
 
@@ -170,7 +170,8 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 				    zone_rdataset->type, result);
 		goto done;
 	}
-	result = dns_view_findzone(client->inner.view, zonename,
+	result = dns_view_findzone(client->inner.view,
+				   dns_linkedname_name(zonename),
 				   DNS_ZTFIND_EXACT, &zone);
 	if (result == ISC_R_SUCCESS) {
 		dns_zonetype_t zonetype = dns_zone_gettype(zone);

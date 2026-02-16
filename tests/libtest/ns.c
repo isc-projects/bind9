@@ -249,7 +249,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	dns_rdataset_t *qrdataset = NULL;
 	dns_message_t *message = NULL;
 	unsigned char query[65535];
-	dns_name_t *qname = NULL;
+	dns_linkedname_t *qname = NULL;
 	isc_buffer_t querybuf;
 	dns_compress_t cctx;
 	isc_result_t result;
@@ -284,8 +284,8 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	 * class IN and type "qtype", link the two and add the result to the
 	 * QUESTION section of the query.
 	 */
-	result = dns_name_fromstring(qname, qnamestr, dns_rootname, 0,
-				     isc_g_mctx);
+	result = dns_name_fromstring(dns_linkedname_name(qname), qnamestr,
+				     dns_rootname, 0, isc_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto put_name;
 	}

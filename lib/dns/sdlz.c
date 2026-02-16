@@ -1095,7 +1095,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static bool
 sdlz_addglue_addr(sdlz_addglue_ctx_t *ctx, dns_dbnode_t *node,
-		  dns_rdatatype_t type, dns_name_t **mnamep,
+		  dns_rdatatype_t type, dns_linkedname_t **mnamep,
 		  bool required DNS__DB_FLARG) {
 	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result;
@@ -1112,7 +1112,7 @@ sdlz_addglue_addr(sdlz_addglue_ctx_t *ctx, dns_dbnode_t *node,
 		dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
 
 		dns_message_gettempname(ctx->msg, mnamep);
-		dns_name_copy(&sdlznode->name, *mnamep);
+		dns_name_copy(&sdlznode->name, dns_linkedname_name(*mnamep));
 	}
 
 	if (required) {
@@ -1133,7 +1133,7 @@ sdlz_addglue_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 		dns_rdataset_t *unused ISC_ATTR_UNUSED DNS__DB_FLARG) {
 	sdlz_addglue_ctx_t *ctx = arg;
 	dns_dbnode_t *node = NULL;
-	dns_name_t *mname = NULL;
+	dns_linkedname_t *mname = NULL;
 	isc_result_t result;
 	bool added = false;
 	bool required;
