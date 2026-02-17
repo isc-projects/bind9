@@ -121,6 +121,7 @@ struct dns_dispatch {
 
 	dns_dispatchopt_t options;
 	dns_dispatchstate_t state;
+	dns_dispatchtype_t disptype;
 
 	bool reading;
 
@@ -1138,6 +1139,7 @@ struct dispatch_key {
 	const isc_sockaddr_t *local;
 	const isc_sockaddr_t *peer;
 	const dns_transport_t *transport;
+	const dns_dispatchtype_t disptype;
 };
 
 static uint32_t
@@ -1170,70 +1172,10 @@ dispatch_match(struct cds_lfht_node *node, const void *key0) {
 	       (key->local == NULL || isc_sockaddr_equal(&local, key->local));
 }
 
-isc_result_t
-dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		       const isc_sockaddr_t *destaddr,
-		       dns_transport_t *transport, dns_dispatchopt_t options,
-		       dns_dispatch_t **dispp) {
-	dns_dispatch_t *disp = NULL;
-	uint32_t tid = isc_tid();
-
-	REQUIRE(VALID_DISPATCHMGR(mgr));
-	REQUIRE(destaddr != NULL);
-
-	dispatch_allocate(mgr, isc_socktype_tcp, tid, &disp);
-
-	disp->options = options;
-	disp->peer = *destaddr;
-	if (transport != NULL) {
-		dns_transport_attach(transport, &disp->transport);
-	}
-
-	if (localaddr != NULL) {
-		disp->local = *localaddr;
-	} else {
-		int pf;
-		pf = isc_sockaddr_pf(destaddr);
-		isc_sockaddr_anyofpf(&disp->local, pf);
-		isc_sockaddr_setport(&disp->local, 0);
-	}
-
-	/*
-	 * Append it to the dispatcher list.
-	 */
-	struct dispatch_key key = {
-		.local = &disp->local,
-		.peer = &disp->peer,
-		.transport = transport,
-	};
-
-	if ((disp->options & DNS_DISPATCHOPT_UNSHARED) == 0) {
-		rcu_read_lock();
-		cds_lfht_add(mgr->tcps[tid], dispatch_hash(&key),
-			     &disp->ht_node);
-		rcu_read_unlock();
-	}
-
-	if (isc_log_wouldlog(dns_lctx, 90)) {
-		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-
-		isc_sockaddr_format(&disp->local, addrbuf,
-				    ISC_SOCKADDR_FORMATSIZE);
-
-		mgr_log(mgr, ISC_LOG_DEBUG(90),
-			"dns_dispatch_createtcp: created TCP dispatch %p for "
-			"%s",
-			disp, addrbuf);
-	}
-	*dispp = disp;
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t
-dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
-		    const isc_sockaddr_t *localaddr, dns_transport_t *transport,
-		    dns_dispatch_t **dispp) {
+static isc_result_t
+dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
+		const isc_sockaddr_t *destaddr, dns_transport_t *transport,
+		dns_dispatchtype_t disptype, dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp_connected = NULL;
 	dns_dispatch_t *disp_fallback = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
@@ -1247,6 +1189,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		.local = localaddr,
 		.peer = destaddr,
 		.transport = transport,
+		.disptype = disptype,
 	};
 
 	rcu_read_lock();
@@ -1258,23 +1201,19 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		INSIST(disp->tid == isc_tid());
 		INSIST(disp->socktype == isc_socktype_tcp);
 
+		if (disp->disptype != disptype) {
+			continue;
+		}
+
 		switch (disp->state) {
 		case DNS_DISPATCHSTATE_NONE:
 			/* A dispatch in indeterminate state, skip it */
 			break;
 		case DNS_DISPATCHSTATE_CONNECTED:
-			if (ISC_LIST_EMPTY(disp->active)) {
-				/* Ignore dispatch with no responses */
-				break;
-			}
 			/* We found a connected dispatch */
 			dns_dispatch_attach(disp, &disp_connected);
 			break;
 		case DNS_DISPATCHSTATE_CONNECTING:
-			if (ISC_LIST_EMPTY(disp->pending)) {
-				/* Ignore dispatch with no responses */
-				break;
-			}
 			/* We found "a" dispatch, store it for later */
 			if (disp_fallback == NULL) {
 				dns_dispatch_attach(disp, &disp_fallback);
@@ -1312,6 +1251,103 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 	}
 
 	return result;
+}
+
+static void
+dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
+		   const isc_sockaddr_t *destaddr, dns_transport_t *transport,
+		   dns_dispatchtype_t disptype, dns_dispatchopt_t options,
+		   dns_dispatch_t **dispp) {
+	dns_dispatch_t *disp = NULL;
+	uint32_t tid = isc_tid();
+
+	dispatch_allocate(mgr, isc_socktype_tcp, tid, &disp);
+
+	disp->disptype = disptype;
+	disp->options = options;
+	disp->peer = *destaddr;
+	if (transport != NULL) {
+		dns_transport_attach(transport, &disp->transport);
+	}
+
+	if (localaddr != NULL) {
+		disp->local = *localaddr;
+	} else {
+		int pf;
+		pf = isc_sockaddr_pf(destaddr);
+		isc_sockaddr_anyofpf(&disp->local, pf);
+		isc_sockaddr_setport(&disp->local, 0);
+	}
+
+	/*
+	 * Append it to the dispatcher list.
+	 */
+	if ((options & DNS_DISPATCHOPT_FIXEDID) == 0) {
+		struct dispatch_key key = {
+			.local = &disp->local,
+			.peer = &disp->peer,
+			.transport = transport,
+			.disptype = disptype,
+		};
+		rcu_read_lock();
+		cds_lfht_add(mgr->tcps[tid], dispatch_hash(&key),
+			     &disp->ht_node);
+		rcu_read_unlock();
+	}
+
+	*dispp = disp;
+}
+
+isc_result_t
+dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
+		       const isc_sockaddr_t *destaddr,
+		       dns_transport_t *transport, dns_dispatchtype_t disptype,
+		       dns_dispatchopt_t options, dns_dispatch_t **dispp) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	REQUIRE(destaddr != NULL);
+
+	isc_result_t result;
+
+	if ((options & DNS_DISPATCHOPT_FIXEDID) == 0) {
+		result = dispatch_gettcp(mgr, localaddr, destaddr, transport,
+					 disptype, dispp);
+		if (result == ISC_R_SUCCESS) {
+			if (isc_log_wouldlog(dns_lctx, 90)) {
+				char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+
+				isc_sockaddr_format(&(*dispp)->local, addrbuf,
+						    ISC_SOCKADDR_FORMATSIZE);
+
+				mgr_log(mgr, ISC_LOG_DEBUG(90),
+					"dns_dispatch_createtcp: reused TCP "
+					"dispatch %p for "
+					"%s",
+					*dispp, addrbuf);
+			}
+			return result;
+		}
+	}
+
+	/*
+	 * Otherwise allocate new TCP dispatch.
+	 */
+
+	dispatch_createtcp(mgr, localaddr, destaddr, transport, disptype,
+			   options, dispp);
+
+	if (isc_log_wouldlog(dns_lctx, 90)) {
+		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+
+		isc_sockaddr_format(&(*dispp)->local, addrbuf,
+				    ISC_SOCKADDR_FORMATSIZE);
+
+		mgr_log(mgr, ISC_LOG_DEBUG(90),
+			"dns_dispatch_createtcp: created TCP dispatch %p for "
+			"%s",
+			*dispp, addrbuf);
+	}
+
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -1391,8 +1427,8 @@ dispatch_destroy(dns_dispatch_t *disp) {
 
 	disp->magic = 0;
 
-	if (disp->socktype == isc_socktype_tcp &&
-	    (disp->options & DNS_DISPATCHOPT_UNSHARED) == 0)
+	if ((disp->options & DNS_DISPATCHOPT_FIXEDID) == 0 &&
+	    disp->socktype == isc_socktype_tcp)
 	{
 		(void)cds_lfht_del(mgr->tcps[tid], &disp->ht_node);
 	}

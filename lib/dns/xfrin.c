@@ -1346,7 +1346,7 @@ xfrin_start(dns_xfrin_t *xfr) {
 	} else {
 		result = dns_dispatch_createtcp(
 			dispmgr, &xfr->sourceaddr, &xfr->primaryaddr,
-			xfr->transport, DNS_DISPATCHOPT_UNSHARED, &xfr->disp);
+			xfr->transport, DNS_DISPATCHTYPE_XFRIN, 0, &xfr->disp);
 		dns_dispatchmgr_detach(&dispmgr);
 		CHECK(result);
 	}
