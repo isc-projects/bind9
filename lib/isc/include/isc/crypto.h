@@ -13,6 +13,8 @@
 
 #pragma once
 
+/*! \file isc/crypto.h */
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -277,15 +279,17 @@ isc_crypto_quic_hp_protect_mask(isc_crypto_quic_hp_protect_t *prot,
 
 bool
 isc_crypto_fips_mode(void);
-/*
+/**<
  * Return if FIPS mode is currently enabled or not.
  */
 
 isc_result_t
 isc_crypto_fips_enable(void);
-/*
+/**<
+ * \brief
  * Enable FIPS mode. It cannot be disabled afterwards.
  *
+ * \warning
  * This function is NOT thread safe.
  */
 
