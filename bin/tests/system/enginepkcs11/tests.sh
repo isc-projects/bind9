@@ -50,11 +50,17 @@ check_keys() {
 cd ns1
 
 for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
-  ecdsap256sha256:EC:prime256v1 ecdsap384sha384:EC:prime384v1; do # Edwards curves are not yet supported by OpenSC
-  # ed25519:EC:edwards25519 ed448:EC:edwards448
+  ecdsap256sha256:EC:prime256v1 ecdsap384sha384:EC:prime384v1 \
+  ed25519:EC:Ed25519 ed448:EC:Ed448; do
   alg=$(echo "$algtypebits" | cut -f 1 -d :)
   type=$(echo "$algtypebits" | cut -f 2 -d :)
   bits=$(echo "$algtypebits" | cut -f 3 -d :)
+  alg_upper=$(echo "$alg" | tr '[:lower:]' '[:upper:]')
+  supported=$(eval "echo \$${alg_upper}_SUPPORTED")
+  if [ "${supported}" != 1 ]; then
+    echo_i "skipping test for ${alg}:${type}:${bits}, not supported by this build"
+    continue
+  fi
   zone="${alg}.example"
   zonefile="zone.${zone}.db.signed"
 
