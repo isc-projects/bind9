@@ -2754,6 +2754,19 @@ validate_authority(dns_validator_t *val, bool resume) {
 							dns_rdatatype_soa))
 					continue;
 			}
+
+			if (rdataset->type != dns_rdatatype_nsec &&
+			    DNS_TRUST_SECURE(rdataset->trust))
+			{
+				/*
+				 * The negative response data is already
+				 * verified. We skip NSEC records, because
+				 * they require special processing in
+				 * authvalidated().
+				 */
+				continue;
+			}
+
 			val->currentset = rdataset;
 			result = create_validator(val, name, rdataset->type,
 						  rdataset, sigrdataset,
@@ -2831,6 +2844,18 @@ validate_ncache(dns_validator_t *val, bool resume) {
 						dns_rdatatype_soa))
 				continue;
 		}
+
+		if (rdataset->type != dns_rdatatype_nsec &&
+		    DNS_TRUST_SECURE(rdataset->trust))
+		{
+			/*
+			 * The negative response data is already verified.
+			 * We skip NSEC records, because they require special
+			 * processing in authvalidated().
+			 */
+			continue;
+		}
+
 		val->currentset = rdataset;
 		result = create_validator(val, name, rdataset->type,
 					  rdataset, sigrdataset,
