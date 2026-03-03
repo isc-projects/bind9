@@ -2429,6 +2429,17 @@ validate_neg_rrset(dns_validator_t *val, dns_name_t *name,
 		}
 	}
 
+	if (rdataset->type != dns_rdatatype_nsec &&
+	    DNS_TRUST_SECURE(rdataset->trust))
+	{
+		/*
+		 * The negative response data is already verified.
+		 * We skip NSEC records, because they require special
+		 * processing in validator_callback_nsec().
+		 */
+		return DNS_R_CONTINUE;
+	}
+
 	val->currentset = rdataset;
 	result = create_validator(val, name, rdataset->type, rdataset,
 				  sigrdataset, validator_callback_nsec,
@@ -2539,11 +2550,9 @@ validate_ncache(dns_validator_t *val, bool resume) {
 		}
 
 		result = validate_neg_rrset(val, name, rdataset, sigrdataset);
-		if (result == DNS_R_CONTINUE) {
-			continue;
+		if (result != DNS_R_CONTINUE) {
+			return (result);
 		}
-
-		return (result);
 	}
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
