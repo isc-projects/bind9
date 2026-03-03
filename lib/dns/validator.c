@@ -1557,6 +1557,13 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 	bool ignore = false;
 	dns_name_t *wild;
 
+	if (DNS_TRUST_SECURE(val->event->rdataset->trust)) {
+		/*
+		 * This RRset was already verified before.
+		 */
+		return ISC_R_SUCCESS;
+	}
+
 	val->attributes |= VALATTR_TRIEDVERIFY;
 	wild = dns_fixedname_initname(&fixed);
  again:
