@@ -4108,31 +4108,13 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		CHECK(configure_alternates(config, view, alternates));
 
 	/*
-	 * We have default hints for class IN if we need them.
+	 * We have default root hints for class IN if we need them.
+	 * Each view gets its own rootdb so a priming response only
+	 * writes into that view's copy.  Other classes don't support
+	 * recursion and don't need hints.
 	 */
 	if (view->rdclass == dns_rdataclass_in && view->hints == NULL)
 		dns_view_sethints(view, ns_g_server->in_roothints);
-
-	/*
-	 * If we still have no hints, this is a non-IN view with no
-	 * "hints zone" configured.  Issue a warning, except if this
-	 * is a root server.  Root servers never need to consult
-	 * their hints, so it's no point requiring users to configure
-	 * them.
-	 */
-	if (view->hints == NULL) {
-		dns_zone_t *rootzone = NULL;
-		(void)dns_view_findzone(view, dns_rootname, &rootzone);
-		if (rootzone != NULL) {
-			dns_zone_detach(&rootzone);
-			need_hints = false;
-		}
-		if (need_hints)
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "no root hints for view '%s'",
-				      view->name);
-	}
 
 	/*
 	 * Configure the view's TSIG keys.
@@ -4240,7 +4222,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = ns_config_get(maps, "recursion", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->recursion = cfg_obj_asboolean(obj);
+	view->recursion = (view->rdclass == dns_rdataclass_in &&
+			   cfg_obj_asboolean(obj));
 
 	obj = NULL;
 	result = ns_config_get(maps, "auth-nxdomain", &obj);
@@ -4347,10 +4330,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				 "allow-query-cache", NULL, actx,
 				 ns_g_mctx, &view->cacheacl));
 
-	if (strcmp(view->name, "_bind") != 0 &&
-	    view->rdclass != dns_rdataclass_chaos)
-	{
-		/* named.conf only */
+	if (view->rdclass != dns_rdataclass_in) {
+		dns_acl_none(ns_g_mctx, &view->recursionacl);
+		dns_acl_none(ns_g_mctx, &view->recursiononacl);
+	} else {
 		CHECK(configure_view_acl(vconfig, config, NULL,
 					 "allow-recursion", NULL, actx,
 					 ns_g_mctx, &view->recursionacl));
