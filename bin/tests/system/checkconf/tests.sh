@@ -545,6 +545,7 @@ $CHECKCONF -l good.conf \
   | grep -v "is not implemented" \
   | grep -v "is not recommended" \
   | grep -v "no longer exists" \
+  | grep -v "recursion will be disabled" \
   | grep -v "is obsolete" >checkconf.out$n || ret=1
 diff good.zonelist checkconf.out$n >diff.out$n || ret=1
 if [ $ret -ne 0 ]; then
