@@ -263,12 +263,25 @@ dlv_algorithm_supported(dns_validator_t *val) {
 }
 
 /*%
- * Look in the NSEC record returned from a DS query to see if there is
- * a NS RRset at this name.  If it is found we are at a delegation point.
+ * The isdelegation() function is called as part of seeking the DS record.
+ * Look in the NSEC or NSEC3 record returned from a DS query to see if the
+ * record has the NS bitmap set. If so, we are at a delegation point.
+ *
+ * If the response contains NSEC3 records with too high iterations, we cannot
+ * (or rather we are not going to) validate the insecurity proof. Instead we
+ * are going to treat the message as insecure and just assume the DS was at
+ * the delegation.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS	the NS bitmap was set in the NSEC or NSEC3 record, or
+ *			the NSEC3 covers the name (in case of opt-out), or
+ *			we cannot validate the insecurity proof and are going
+ *			to treat the message as isnecure.
+ *\li	#ISC_R_NOTFOUND the NS bitmap was not set,
  */
-static bool
-isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
-	     isc_result_t dbresult)
+static isc_result_t
+isdelegation(dns_validator_t *val, dns_name_t *name, dns_rdataset_t *rdataset,
+	     isc_result_t dbresult, const char *caller)
 {
 	dns_fixedname_t fixed;
 	dns_label_t hashlabel;
@@ -296,7 +309,7 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 		if (result == ISC_R_NOTFOUND)
 			goto trynsec3;
 		if (result != ISC_R_SUCCESS)
-			return (false);
+			return (ISC_R_NOTFOUND);
 	}
 
 	INSIST(set.type == dns_rdatatype_nsec);
@@ -309,7 +322,7 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&set);
-	return (found);
+	return (found ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
 
  trynsec3:
 	/*
@@ -346,18 +359,33 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 			(void)dns_rdata_tostruct(&rdata, &nsec3, NULL);
 			if (nsec3.hash != 1)
 				continue;
+
+			/*
+			 * If there are too many iterations assume bad things
+			 * are happening and bail out early. Treat as if the
+			 * DS was at the delegation.
+			 */
+			if (nsec3.iterations > DNS_NSEC3_MAXITERATIONS) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "%s: too many iterations",
+					      caller);
+				dns_rdataset_disassociate(&set);
+				return (ISC_R_SUCCESS);
+			}
+
 			length = isc_iterated_hash(hash, nsec3.hash,
 						   nsec3.iterations, nsec3.salt,
 						   nsec3.salt_length,
 						   name->ndata, name->length);
 			if (length != isc_buffer_usedlength(&buffer))
 				continue;
+
 			order = memcmp(hash, owner, length);
 			if (order == 0) {
 				found = dns_nsec3_typepresent(&rdata,
 							      dns_rdatatype_ns);
 				dns_rdataset_disassociate(&set);
-				return (found);
+				return (found ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
 			}
 			if ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) == 0)
 				continue;
@@ -371,12 +399,12 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 					memcmp(hash, nsec3.next, length) < 0)))
 			{
 				dns_rdataset_disassociate(&set);
-				return (true);
+				return (ISC_R_SUCCESS);
 			}
 		}
 		dns_rdataset_disassociate(&set);
 	}
-	return (found);
+	return (found ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
 }
 
 /*%
@@ -598,7 +626,8 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 		 */
 		tname = dns_fixedname_name(&devent->foundname);
 		if (eresult != DNS_R_CNAME &&
-		    isdelegation(tname, &val->frdataset, eresult)) {
+		    isdelegation(val, tname, &val->frdataset, eresult,
+				 "dsfetched2") == ISC_R_SUCCESS) {
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
 					      "must be secure failure, no DS"
@@ -755,10 +784,13 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 			      dns_trust_totext(val->frdataset.trust));
 		have_dsset = (val->frdataset.type == dns_rdatatype_ds);
 		name = dns_fixedname_name(&val->fname);
+
 		if ((val->attributes & VALATTR_INSECURITY) != 0 &&
 		    val->frdataset.covers == dns_rdatatype_ds &&
 		    NEGATIVE(&val->frdataset) &&
-		    isdelegation(name, &val->frdataset, DNS_R_NCACHENXRRSET)) {
+		    isdelegation(val, name, &val->frdataset,
+				 DNS_R_NCACHENXRRSET,
+				 "dsvalidated") == ISC_R_SUCCESS) {
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
 					      "must be secure failure, no DS "
@@ -2843,7 +2875,8 @@ nsecvalidate(dns_validator_t *val, bool resume) {
 			result = findnsec3proofs(val);
 			if (result == DNS_R_NSEC3ITERRANGE) {
 				validator_log(val, ISC_LOG_DEBUG(3),
-					      "too many iterations");
+					      "%s: too many iterations",
+					      __func__);
 				markanswer(val, "validate_nx (3)");
 				return (ISC_R_SUCCESS);
 			}
@@ -2878,7 +2911,7 @@ nsecvalidate(dns_validator_t *val, bool resume) {
 		result = findnsec3proofs(val);
 		if (result == DNS_R_NSEC3ITERRANGE) {
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "too many iterations");
+				      "%s: too many iterations", __func__);
 			markanswer(val, "validate_nx (4)");
 			return (ISC_R_SUCCESS);
 		}
@@ -3464,7 +3497,8 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 				result = DNS_R_NOVALIDSIG;
 				goto out;
 			}
-			if (isdelegation(tname, &val->frdataset, result)) {
+			if (isdelegation(val, tname, &val->frdataset, result,
+					 "proveunsecure") == ISC_R_SUCCESS) {
 				if (val->mustbesecure) {
 					validator_log(val, ISC_LOG_WARNING,
 						      "must be secure failure, "
