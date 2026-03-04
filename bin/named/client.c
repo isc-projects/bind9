@@ -3151,11 +3151,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
+		if (client->view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 		ns_client_settimeout(client, 60);
 		ns_update_start(client, sigresult);
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
+		if (client->view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 		ns_client_settimeout(client, 60);
 		ns_notify_start(client);
 		break;
