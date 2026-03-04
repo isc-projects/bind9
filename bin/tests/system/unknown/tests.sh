@@ -73,8 +73,8 @@ echo_i "querying for various representations of a CLASS10 TYPE1 record"
 for i in 1 2
 do
 	ret=0
-	$DIG +short $DIGOPTS @10.53.0.1 a$i.example a class10 > dig.out || ret=1
-	echo '\# 4 0A000001' | $DIFF - dig.out || ret=1
+	$DIG $DIGOPTS @10.53.0.1 a$i.example a class10 > dig.out || ret=1
+        grep -q "NOTIMP" dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo_i "#$i failed"
@@ -86,8 +86,8 @@ echo_i "querying for various representations of a CLASS10 TXT record"
 for i in 1 2 3 4
 do
 	ret=0
-	$DIG +short $DIGOPTS @10.53.0.1 txt$i.example txt class10 > dig.out || ret=1
-	echo '"hello"' | $DIFF - dig.out || ret=1
+	$DIG $DIGOPTS @10.53.0.1 txt$i.example txt class10 > dig.out || ret=1
+        grep -q "NOTIMP" dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo_i "#$i failed"
@@ -99,8 +99,8 @@ echo_i "querying for various representations of a CLASS10 TYPE123 record"
 for i in 1 2
 do
 	ret=0
-	$DIG +short $DIGOPTS @10.53.0.1 unk$i.example type123 class10 > dig.out || ret=1
-	echo '\# 1 00' | $DIFF - dig.out || ret=1
+	$DIG $DIGOPTS @10.53.0.1 unk$i.example type123 class10 > dig.out || ret=1
+        grep -q "NOTIMP" dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo_i "#$i failed"
