@@ -1932,10 +1932,12 @@ dlzconfigure_callback(dns_view_t *view, dns_dlzdb_t *dlzdb, dns_zone_t *zone) {
 	dns_rdataclass_t zclass = view->rdclass;
 	isc_result_t result;
 
+	dns_zone_setclass(zone, zclass);
 	result = dns_zonemgr_managezone(named_g_server->zonemgr, zone);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
+
 	dns_zone_setstats(zone, named_g_server->zonestats);
 
 	return (named_zone_configure_writeable_dlz(dlzdb, zone, zclass,

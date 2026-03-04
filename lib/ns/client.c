@@ -2194,6 +2194,10 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
+		if (client->view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 #ifdef HAVE_DNSTAP
 		dns_dt_send(client->view, DNS_DTTYPE_UQ, &client->peeraddr,
 			    &client->destsockaddr, TCP_CLIENT(client), NULL,
@@ -2204,6 +2208,10 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
+		if (client->view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 		ns_client_settimeout(client, 60);
 		ns_notify_start(client, handle);
 		break;
