@@ -999,7 +999,9 @@ ssu_checkrr(void *data, rr_t *rr) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		target = &ptr.ptr;
 	}
-	if (rr->rdata.type == dns_rdatatype_srv) {
+	if (rr->rdata.rdclass == dns_rdataclass_in &&
+	    rr->rdata.type == dns_rdatatype_srv)
+	{
 		result = dns_rdata_tostruct(&rr->rdata, &srv, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		target = &srv.target;
@@ -1354,7 +1356,10 @@ replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 			return true;
 		}
 	}
-	if (db_rr->type == dns_rdatatype_wks) {
+
+	if (db_rr->rdclass == dns_rdataclass_in &&
+	    db_rr->type == dns_rdatatype_wks)
+	{
 		/*
 		 * Compare the address and protocol fields only.  These
 		 * form the first five bytes of the RR data.  Do a
@@ -1497,8 +1502,7 @@ cleanup:
  * 'rdata', and 'ttl', respectively.
  */
 static void
-get_current_rr(dns_message_t *msg, dns_section_t section,
-	       dns_rdataclass_t zoneclass, dns_name_t **name,
+get_current_rr(dns_message_t *msg, dns_section_t section, dns_name_t **name,
 	       dns_rdata_t *rdata, dns_rdatatype_t *covers, dns_ttl_t *ttl,
 	       dns_rdataclass_t *update_class) {
 	dns_rdataset_t *rdataset;
@@ -1514,7 +1518,7 @@ get_current_rr(dns_message_t *msg, dns_section_t section,
 	dns_rdataset_current(rdataset, rdata);
 	INSIST(dns_rdataset_next(rdataset) == ISC_R_NOMORE);
 	*update_class = rdata->rdclass;
-	rdata->rdclass = zoneclass;
+	rdata->rdclass = dns_rdataclass_in;
 }
 
 /*%
@@ -1616,7 +1620,6 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	dns_message_t *request = client->message;
 	isc_mem_t *mctx = client->manager->mctx;
 	dns_aclenv_t *env = client->manager->aclenv;
-	dns_rdataclass_t zoneclass;
 	dns_rdatatype_t covers;
 	dns_name_t *zonename = NULL;
 	unsigned int *maxbytype = NULL;
@@ -1626,9 +1629,11 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 
 	CHECK(dns_zone_getdb(zone, &db));
 	zonename = dns_db_origin(db);
-	zoneclass = dns_db_class(db);
 	dns_zone_getssutable(zone, &ssutable);
 	dns_db_currentversion(db, &ver);
+
+	/* Updates are only supported for class IN. */
+	INSIST(dns_zone_getclass(zone) == dns_rdataclass_in);
 
 	/*
 	 * Update message processing can leak record existence information
@@ -1680,13 +1685,13 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 
 		INSIST(ssutable == NULL || update < maxbytypelen);
 
-		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass, &name,
-			       &rdata, &covers, &ttl, &update_class);
+		get_current_rr(request, DNS_SECTION_UPDATE, &name, &rdata,
+			       &covers, &ttl, &update_class);
 
 		if (!dns_name_issubdomain(name, zonename)) {
 			FAILC(DNS_R_NOTZONE, "update RR is outside zone");
 		}
-		if (update_class == zoneclass) {
+		if (update_class == dns_rdataclass_in) {
 			/*
 			 * Check for meta-RRs.  The RFC2136 pseudocode says
 			 * check for ANY|AXFR|MAILA|MAILB, but the text adds
@@ -1776,7 +1781,6 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 			}
 
 			if (update_class == dns_rdataclass_any &&
-			    zoneclass == dns_rdataclass_in &&
 			    (rdata.type == dns_rdatatype_ptr ||
 			     rdata.type == dns_rdatatype_srv))
 			{
@@ -2860,7 +2864,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	isc_mem_t *mctx = client->mctx;
 	dns_rdatatype_t covers;
 	dns_message_t *request = client->message;
-	dns_rdataclass_t zoneclass;
 	dns_name_t *zonename = NULL;
 	dns_fixedname_t tmpnamefixed;
 	dns_name_t *tmpname = NULL;
@@ -2880,9 +2883,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 
 	CHECK(dns_zone_getdb(zone, &db));
 	zonename = dns_db_origin(db);
-	zoneclass = dns_db_class(db);
 	options = dns_zone_getoptions(zone);
 
+	INSIST(dns_zone_getclass(zone) == dns_rdataclass_in);
 	/*
 	 * Get old and new versions now that queryacl has been checked.
 	 */
@@ -2903,8 +2906,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		dns_rdataclass_t update_class;
 		bool flag;
 
-		get_current_rr(request, DNS_SECTION_PREREQUISITE, zoneclass,
-			       &name, &rdata, &covers, &ttl, &update_class);
+		get_current_rr(request, DNS_SECTION_PREREQUISITE, &name, &rdata,
+			       &covers, &ttl, &update_class);
 
 		if (ttl != 0) {
 			PREREQFAILC(DNS_R_FORMERR,
@@ -2967,7 +2970,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						"prerequisite not satisfied");
 				}
 			}
-		} else if (update_class == zoneclass) {
+		} else if (update_class == dns_rdataclass_in) {
 			/* "temp<rr.name, rr.type> += rr;" */
 			result = temp_append(&temp, name, &rdata);
 			if (result != ISC_R_SUCCESS) {
@@ -3029,10 +3032,10 @@ update_action(isc_task_t *task, isc_event_t *event) {
 
 		INSIST(ssutable == NULL || update < maxbytypelen);
 
-		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass, &name,
-			       &rdata, &covers, &ttl, &update_class);
+		get_current_rr(request, DNS_SECTION_UPDATE, &name, &rdata,
+			       &covers, &ttl, &update_class);
 
-		if (update_class == zoneclass) {
+		if (update_class == dns_rdataclass_in) {
 			/*
 			 * RFC1123 doesn't allow MF and MD in master files.
 			 */

@@ -949,7 +949,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	INSIST(DNS_ADB_VALID(adb));
 
 	rdtype = rdataset->type;
-	INSIST((rdtype == dns_rdatatype_a) || (rdtype == dns_rdatatype_aaaa));
+	REQUIRE(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
 
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	new_addresses_added = false;
