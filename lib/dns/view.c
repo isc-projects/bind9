@@ -118,6 +118,19 @@ dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 	REQUIRE(name != NULL);
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
+	switch (rdclass) {
+	case dns_rdataclass_in:
+		break;
+	case dns_rdataclass_chaos:
+		if (strcmp(name, "_bind") == 0) {
+			/* allowed */
+			break;
+		}
+		FALLTHROUGH;
+	default:
+		UNREACHABLE();
+	}
+
 	result = isc_file_sanitize(NULL, name, "nta", buffer, sizeof(buffer));
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 

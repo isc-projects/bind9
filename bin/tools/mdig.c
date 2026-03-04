@@ -2046,7 +2046,7 @@ setup(void *arg ISC_ATTR_UNUSED) {
 		isc_g_mctx, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
 		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
-	dns_view_create(isc_g_mctx, NULL, 0, "_mdig", &view);
+	dns_view_create(isc_g_mctx, NULL, dns_rdataclass_in, "_mdig", &view);
 }
 
 /*% Main processing routine for mdig */

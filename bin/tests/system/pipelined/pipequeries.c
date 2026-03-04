@@ -277,7 +277,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(dns_requestmgr_create(isc_g_mctx, dispatchmgr, dispatchv4,
 				       NULL, &requestmgr));
 
-	dns_view_create(isc_g_mctx, NULL, 0, "_test", &view);
+	dns_view_create(isc_g_mctx, NULL, dns_rdataclass_in, "_test", &view);
 
 	isc_loopmgr_setup(sendqueries, NULL);
 	isc_loopmgr_teardown(teardown_view, view);

@@ -16,16 +16,3 @@ key rndc_key {
 controls {
 	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
-
-view chaos ch {
-	match-clients { any; };
-	recursion yes;
-	zone "." {
-		type hint;
-		file "chaos.db";
-	};
-	zone "version.bind" {
-		type primary;
-		database "_builtin version";
-	};
-};

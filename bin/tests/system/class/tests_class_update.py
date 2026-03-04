@@ -21,6 +21,7 @@ import isctest
 pytestmark = pytest.mark.extra_artifacts(
     [
         "*/*.db",
+        "*/*.jnl",
     ]
 )
 

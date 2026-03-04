@@ -18,6 +18,7 @@ import isctest
 pytestmark = pytest.mark.extra_artifacts(
     [
         "*/*.db",
+        "*/*.jnl",
     ]
 )
 
@@ -31,7 +32,7 @@ def test_chaos_recursion():
 def test_chaos_auth():
     msg = isctest.query.create("a.example.", "A", qclass="CH")
     res = isctest.query.udp(msg, "10.53.0.2")
-    isctest.check.noerror(res)
+    isctest.check.refused(res)
 
 
 def test_chaos_forward():
