@@ -2123,8 +2123,6 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		break;
 	case dns_rdataclass_chaos:
 		break;
-	case dns_rdataclass_hs:
-		break;
 	case dns_rdataclass_none:
 		if (client->message->opcode != dns_opcode_update) {
 			ns_client_dumpmessage(client,
