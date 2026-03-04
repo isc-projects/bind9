@@ -1715,6 +1715,7 @@ dlzconfigure_callback(dns_view_t *view, dns_dlzdb_t *dlzdb, dns_zone_t *zone) {
 	dns_name_t *origin = dns_zone_getorigin(zone);
 	dns_rdataclass_t zclass = view->rdclass;
 
+	dns_zone_setclass(zone, zclass);
 	RETERR(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 
 	dns_zone_setstats(zone, named_g_server->zonestats);

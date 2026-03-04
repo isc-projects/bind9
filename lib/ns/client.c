@@ -2459,6 +2459,10 @@ ns_client_request_continue(void *arg) {
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
+		if (client->inner.view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 #ifdef HAVE_DNSTAP
 		dns_dt_send(client->inner.view, DNS_DTTYPE_UQ,
 			    &client->inner.peeraddr,
@@ -2472,6 +2476,10 @@ ns_client_request_continue(void *arg) {
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
+		if (client->inner.view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 		ns_client_settimeout(client, 60);
 		ns_notify_start(client, client->inner.handle);
 		break;
