@@ -110,8 +110,7 @@ struct ns_server {
 	uint8_t	       max_restarts;
 
 	/*% Server id for NSID */
-	char *server_id;
-	bool  usehostname;
+	isc_region_t server_id;
 
 	/*% Fuzzer callback */
 	isc_fuzztype_t fuzztype;
@@ -171,10 +170,19 @@ ns_server_detach(ns_server_t **sctxp);
  *\li	'*sctxp' is NULL on return.
  */
 
-isc_result_t
+void
 ns_server_setserverid(ns_server_t *sctx, const char *serverid);
 /*%<
  * Set sctx->server_id to 'serverid'. If it was set previously, free the memory.
+ *
+ * Requires:
+ *\li	'sctx' is valid.
+ */
+
+void
+ns_server_clearserverid(ns_server_t *sctx);
+/*%<
+ * Clear sctx->server_id. If it was set previously, free the memory.
  *
  * Requires:
  *\li	'sctx' is valid.
