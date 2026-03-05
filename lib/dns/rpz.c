@@ -194,9 +194,10 @@ ISC_REFCOUNT_DECL(nmdata);
 #endif
 
 static isc_result_t
-rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name, bool fail);
+rpz_add(dns_rpz_zone_t *rpz, dns_qp_t *qp, const dns_name_t *src_name,
+	bool fail);
 static void
-rpz_del(dns_rpz_zone_t *rpz, const dns_name_t *src_name);
+rpz_del(dns_rpz_zone_t *rpz, dns_qp_t *qp, const dns_name_t *src_name);
 
 static nmdata_t *
 new_nmdata(isc_mem_t *mctx, const dns_name_t *name, const nmdata_t *data);
@@ -1369,12 +1370,11 @@ new_nmdata(isc_mem_t *mctx, const dns_name_t *name, const nmdata_t *data) {
 }
 
 static isc_result_t
-add_nm(dns_rpz_zones_t *rpzs, dns_name_t *trig_name, const nmdata_t *new_data) {
+add_nm(dns_rpz_zones_t *rpzs, dns_qp_t *qp, dns_name_t *trig_name,
+       const nmdata_t *new_data) {
 	isc_result_t result;
 	nmdata_t *data = NULL;
-	dns_qp_t *qp = NULL;
 
-	dns_qpmulti_write(rpzs->table, &qp);
 	result = dns_qp_getname(qp, trig_name, DNS_DBNAMESPACE_NORMAL,
 				(void **)&data, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -1382,7 +1382,7 @@ add_nm(dns_rpz_zones_t *rpzs, dns_name_t *trig_name, const nmdata_t *new_data) {
 		data = new_nmdata(rpzs->mctx, trig_name, new_data);
 		result = dns_qp_insert(qp, data, 0);
 		nmdata_detach(&data);
-		goto done;
+		return result;
 	}
 
 	/*
@@ -1402,15 +1402,11 @@ add_nm(dns_rpz_zones_t *rpzs, dns_name_t *trig_name, const nmdata_t *new_data) {
 	data->wild.qname |= new_data->wild.qname;
 	data->wild.ns |= new_data->wild.ns;
 
-done:
-	dns_qp_compact(qp, DNS_QPGC_MAYBE);
-	dns_qpmulti_commit(rpzs->table, &qp);
-
 	return result;
 }
 
 static isc_result_t
-add_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
+add_name(dns_rpz_zone_t *rpz, dns_qp_t *qp, dns_rpz_type_t rpz_type,
 	 const dns_name_t *src_name) {
 	nmdata_t new_data;
 	dns_fixedname_t trig_namef;
@@ -1425,7 +1421,7 @@ add_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	trig_name = dns_fixedname_initname(&trig_namef);
 	name2data(rpz, rpz_type, src_name, trig_name, &new_data);
 
-	result = add_nm(rpz->rpzs, trig_name, &new_data);
+	result = add_nm(rpz->rpzs, qp, trig_name, &new_data);
 
 	/*
 	 * Do not worry if the node already exists,
@@ -1698,6 +1694,7 @@ dns_rpz_checkdb(dns_db_t *db, isc_mem_t *mctx) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_rpz_zone_t *rpz = NULL;
 	dns_rpz_zones_t *rpzs = NULL;
+	dns_qp_t *qp = NULL;
 	dns_view_t *view = NULL;
 	isc_result_t result, aresult = ISC_R_SUCCESS;
 
@@ -1723,13 +1720,15 @@ dns_rpz_checkdb(dns_db_t *db, isc_mem_t *mctx) {
 	CHECK(dns_name_fromstring(&rpz->tcp_only, DNS_RPZ_TCP_ONLY_NAME,
 				  dns_rootname, DNS_NAME_DOWNCASE, mctx));
 
+	dns_qpmulti_write(rpzs->table, &qp);
+
 	CHECK(dns_db_createiterator(db, DNS_DB_NONSEC3, &dbit));
 	DNS_DBITERATOR_FOREACH(dbit) {
 		CHECK(dns_dbiterator_current(dbit, &node, name));
 		CHECK(dns_db_allrdatasets(db, node, NULL, 0, 0, &rdsiter));
 		result = dns_rdatasetiter_first(rdsiter);
 		if (result == ISC_R_SUCCESS) {
-			result = rpz_add(rpz, name, true);
+			result = rpz_add(rpz, qp, name, true);
 			/* Remember rpz_add errors. */
 			if (result != ISC_R_SUCCESS) {
 				aresult = result;
@@ -1742,6 +1741,9 @@ dns_rpz_checkdb(dns_db_t *db, isc_mem_t *mctx) {
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	if (qp != NULL) {
+		dns_qpmulti_commit(rpzs->table, &qp);
+	}
 	if (rdsiter != NULL) {
 		dns_rdatasetiter_destroy(&rdsiter);
 	}
@@ -1798,6 +1800,9 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 
 	LOCK(&rpz->rpzs->maint_lock);
 	slow_mode = rpz->rpzs->p.slow_mode;
+
+	dns_qp_t *qp = NULL;
+	dns_qpmulti_write(rpz->rpzs->table, &qp);
 
 	while (result == ISC_R_SUCCESS) {
 		char namebuf[DNS_NAME_FORMATSIZE];
@@ -1872,7 +1877,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 			goto next;
 		}
 
-		result = rpz_add(rpz, name, false);
+		result = rpz_add(rpz, qp, name, false);
 
 		if (result != ISC_R_SUCCESS) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
@@ -1903,6 +1908,8 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 	}
 
 done:
+	dns_qp_compact(qp, DNS_QPGC_MAYBE);
+	dns_qpmulti_commit(rpz->rpzs->table, &qp);
 	UNLOCK(&rpz->rpzs->maint_lock);
 
 cleanup:
@@ -1917,10 +1924,12 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 	isc_ht_iter_t *iter = NULL;
 	dns_name_t *name = NULL;
 	dns_fixedname_t fixname;
+	dns_qp_t *qp = NULL;
 
 	name = dns_fixedname_initname(&fixname);
 
 	LOCK(&rpz->rpzs->maint_lock);
+	dns_qpmulti_write(rpz->rpzs->table, &qp);
 
 	isc_ht_iter_create(rpz->nodes, &iter);
 
@@ -1941,12 +1950,15 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 		region.length = (unsigned int)keysize;
 		dns_name_fromregion(name, &region);
 
-		rpz_del(rpz, name);
+		rpz_del(rpz, qp, name);
 	}
 	INSIST(result != ISC_R_SUCCESS);
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
 	}
+
+	dns_qp_compact(qp, DNS_QPGC_MAYBE);
+	dns_qpmulti_commit(rpz->rpzs->table, &qp);
 
 	isc_ht_iter_destroy(&iter);
 
@@ -2192,7 +2204,8 @@ ISC_REFCOUNT_IMPL(dns_rpz_zones, dns__rpz_zones_destroy);
  * Add an IP address to the radix tree or a name to the summary database.
  */
 static isc_result_t
-rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name, bool fail) {
+rpz_add(dns_rpz_zone_t *rpz, dns_qp_t *qp, const dns_name_t *src_name,
+	bool fail) {
 	dns_rpz_type_t rpz_type;
 	isc_result_t result = ISC_R_FAILURE;
 	dns_rpz_zones_t *rpzs = NULL;
@@ -2209,7 +2222,7 @@ rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name, bool fail) {
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_QNAME:
 	case DNS_RPZ_TYPE_NSDNAME:
-		result = add_name(rpz, rpz_type, src_name);
+		result = add_name(rpz, qp, rpz_type, src_name);
 		break;
 	case DNS_RPZ_TYPE_CLIENT_IP:
 	case DNS_RPZ_TYPE_IP:
@@ -2314,19 +2327,15 @@ done:
 }
 
 static void
-del_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
+del_name(dns_rpz_zone_t *rpz, dns_qp_t *qp, dns_rpz_type_t rpz_type,
 	 const dns_name_t *src_name) {
 	isc_result_t result;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t trig_namef;
 	dns_name_t *trig_name = NULL;
-	dns_rpz_zones_t *rpzs = rpz->rpzs;
 	nmdata_t *data = NULL;
 	nmdata_t del_data;
-	dns_qp_t *qp = NULL;
 	bool exists;
-
-	dns_qpmulti_write(rpzs->table, &qp);
 
 	/*
 	 * We need a summary database of names even with 1 policy zone,
@@ -2340,7 +2349,7 @@ del_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 				(void **)&data, NULL);
 	if (result != ISC_R_SUCCESS) {
 		INSIST(data == NULL);
-		goto done;
+		return;
 	}
 
 	INSIST(data != NULL);
@@ -2382,17 +2391,13 @@ del_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		adj_trigger_cnt(rpz, rpz_type, NULL, 0, false);
 		RWUNLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 	}
-
-done:
-	dns_qp_compact(qp, DNS_QPGC_MAYBE);
-	dns_qpmulti_commit(rpzs->table, &qp);
 }
 
 /*
  * Remove an IP address from the radix tree or a name from the summary database.
  */
 static void
-rpz_del(dns_rpz_zone_t *rpz, const dns_name_t *src_name) {
+rpz_del(dns_rpz_zone_t *rpz, dns_qp_t *qp, const dns_name_t *src_name) {
 	dns_rpz_type_t rpz_type;
 	dns_rpz_zones_t *rpzs = NULL;
 	dns_rpz_num_t rpz_num;
@@ -2408,7 +2413,7 @@ rpz_del(dns_rpz_zone_t *rpz, const dns_name_t *src_name) {
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_QNAME:
 	case DNS_RPZ_TYPE_NSDNAME:
-		del_name(rpz, rpz_type, src_name);
+		del_name(rpz, qp, rpz_type, src_name);
 		break;
 	case DNS_RPZ_TYPE_CLIENT_IP:
 	case DNS_RPZ_TYPE_IP:
