@@ -1798,14 +1798,16 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 
 	LOCK(&rpz->rpzs->maint_lock);
 	slow_mode = rpz->rpzs->p.slow_mode;
-	UNLOCK(&rpz->rpzs->maint_lock);
 
 	while (result == ISC_R_SUCCESS) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_rdatasetiter_t *rdsiter = NULL;
 		dns_dbnode_t *node = NULL;
 
-		CHECK(dns__rpz_shuttingdown(rpz->rpzs));
+		if (rpz->rpzs->shuttingdown) {
+			result = ISC_R_SHUTTINGDOWN;
+			goto done;
+		}
 
 		result = dns_dbiterator_current(updbit, &node, name);
 		if (result != ISC_R_SUCCESS) {
@@ -1813,7 +1815,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 				      DNS_LOGMODULE_RPZ, ISC_LOG_ERROR,
 				      "rpz: %s: failed to get dbiterator - %s",
 				      domain, isc_result_totext(result));
-			goto cleanup;
+			goto done;
 		}
 
 		result = dns_dbiterator_pause(updbit);
@@ -1828,7 +1830,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 				      "rrdatasets - %s",
 				      domain, isc_result_totext(result));
 			dns_db_detachnode(&node);
-			goto cleanup;
+			goto done;
 		}
 
 		result = dns_rdatasetiter_first(rdsiter);
@@ -1870,14 +1872,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 			goto next;
 		}
 
-		/*
-		 * Only the single rpz updates are serialized, so we need to
-		 * lock here because we can be processing more updates to
-		 * different rpz zones at the same time
-		 */
-		LOCK(&rpz->rpzs->maint_lock);
 		result = rpz_add(rpz, name, false);
-		UNLOCK(&rpz->rpzs->maint_lock);
 
 		if (result != ISC_R_SUCCESS) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
@@ -1907,6 +1902,9 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		result = ISC_R_SUCCESS;
 	}
 
+done:
+	UNLOCK(&rpz->rpzs->maint_lock);
+
 cleanup:
 	dns_dbiterator_destroy(&updbit);
 
@@ -1922,6 +1920,8 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 
 	name = dns_fixedname_initname(&fixname);
 
+	LOCK(&rpz->rpzs->maint_lock);
+
 	isc_ht_iter_create(rpz->nodes, &iter);
 
 	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
@@ -1931,8 +1931,8 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 		unsigned char *key = NULL;
 		size_t keysize;
 
-		result = dns__rpz_shuttingdown(rpz->rpzs);
-		if (result != ISC_R_SUCCESS) {
+		if (rpz->rpzs->shuttingdown) {
+			result = ISC_R_SHUTTINGDOWN;
 			break;
 		}
 
@@ -1941,9 +1941,7 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 		region.length = (unsigned int)keysize;
 		dns_name_fromregion(name, &region);
 
-		LOCK(&rpz->rpzs->maint_lock);
 		rpz_del(rpz, name);
-		UNLOCK(&rpz->rpzs->maint_lock);
 	}
 	INSIST(result != ISC_R_SUCCESS);
 	if (result == ISC_R_NOMORE) {
@@ -1951,6 +1949,8 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 	}
 
 	isc_ht_iter_destroy(&iter);
+
+	UNLOCK(&rpz->rpzs->maint_lock);
 
 	return result;
 }
