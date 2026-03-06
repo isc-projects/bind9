@@ -103,7 +103,7 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
  * most in TCPDNS or TLSDNS connections, so there's no risk of overrun
  * when using a buffer this size.
  */
-#define NM_BIG_BUF ISC_NETMGR_TCP_RECVBUF_SIZE * 2
+#define NM_BIG_BUF (ISC_NETMGR_TCP_RECVBUF_SIZE * 2)
 
 /*%
  * Maximum segment size (MSS) of TCP socket on which the server responds to
