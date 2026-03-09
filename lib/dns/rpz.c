@@ -1870,10 +1870,8 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		}
 
 		/* Does the entry exist in the old nodes table? */
-		result = isc_ht_find(rpz->nodes, name->ndata, name->length,
-				     NULL);
+		result = isc_ht_delete(rpz->nodes, name->ndata, name->length);
 		if (result == ISC_R_SUCCESS) { /* found */
-			isc_ht_delete(rpz->nodes, name->ndata, name->length);
 			goto next;
 		}
 
