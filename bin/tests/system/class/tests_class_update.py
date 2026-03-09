@@ -12,7 +12,7 @@
 import socket
 import struct
 
-from dns import rdataclass, rdatatype, update
+from dns import message, rdataclass, rdatatype, update
 
 import pytest
 
@@ -35,6 +35,7 @@ def encode_name(name: str) -> bytes:
 @pytest.mark.parametrize(
     "rdtype,rdclass,ttl,rdata",
     [
+        (rdatatype.SRV, rdataclass.NONE, 0, b"\x00\x00\x00\x00\x00\x00\x01"),
         (rdatatype.SRV, rdataclass.NONE, 0, b"\x00"),
         (rdatatype.KX, rdataclass.NONE, 0, b""),
         (rdatatype.PX, rdataclass.NONE, 0, b""),
@@ -69,7 +70,7 @@ def test_class_invalid(rdtype, rdclass, ttl, rdata, named_port):
         s.sendall(packet)
         try:
             rwire = s.recv(4096)
-            res = dns.message.from_wire(rwire)
+            res = message.from_wire(rwire)
             isctest.check.formerr(res)
         except Exception:  # pylint: disable=broad-except
             pass
@@ -94,3 +95,43 @@ def test_class_chaosupdate(rdtype, rdata):
     up.add("foo.example.", 300, rdtype, rdata)
     res = isctest.query.tcp(up, "10.53.0.2")
     isctest.check.notimp(res)
+
+
+def test_class_undefined(ns2):
+    up = update.UpdateMessage(".", rdclass=257)
+    up.present(".", 0)
+    up.answer[0].rdclass = rdataclass.NONE
+    with ns2.watch_log_from_here() as watcher:
+        res = isctest.query.tcp(up, "10.53.0.2")
+        isctest.check.notimp(res)
+        watcher.wait_for_line("invalid message class: CLASS257")
+
+
+def test_class_zero(ns2):
+    up = update.UpdateMessage(".", rdclass=0)
+    up.present(".", 0)
+    up.answer[0].rdclass = rdataclass.NONE
+    with ns2.watch_log_from_here() as watcher:
+        res = isctest.query.tcp(up, "10.53.0.2")
+        isctest.check.formerr(res)
+        watcher.wait_for_line("message class could not be determined")
+
+
+def test_class_any(ns2):
+    up = update.UpdateMessage(".", rdclass=rdataclass.ANY)
+    up.present(".", 0)
+    up.answer[0].rdclass = rdataclass.NONE
+    with ns2.watch_log_from_here() as watcher:
+        res = isctest.query.tcp(up, "10.53.0.2")
+        isctest.check.formerr(res)
+        watcher.wait_for_line("message parsing failed: FORMERR")
+
+
+def test_class_none(ns2):
+    up = update.UpdateMessage(".", rdclass=rdataclass.NONE)
+    up.present(".", 0)
+    up.answer[0].rdclass = rdataclass.NONE
+    with ns2.watch_log_from_here() as watcher:
+        res = isctest.query.tcp(up, "10.53.0.2")
+        isctest.check.formerr(res)
+        watcher.wait_for_line("message parsing failed: FORMERR")
