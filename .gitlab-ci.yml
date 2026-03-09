@@ -320,6 +320,9 @@ stages:
 .rule_tag_open_source: &rule_tag_open_source
   - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && $CI_COMMIT_TAG !~ /-S/'
 
+.rule_tag_open_source_stable: &rule_tag_open_source_stable
+  - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && $CI_COMMIT_TAG =~ $STABLE_VERSION_REGEX'
+
 .rule_tag_open_source_maintenance: &rule_tag_open_source_maintenance
   - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && $CI_COMMIT_TAG !~ /-S/ && $RELEASE_TYPE != "security"'
 
@@ -2361,7 +2364,7 @@ update-stable-tag:
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/update_stable_tag.py --tag "$CI_COMMIT_TAG"
   rules:
-    - *rule_tag_open_source
+    - *rule_tag_open_source_stable
   artifacts:
     paths:
       - bind9/
