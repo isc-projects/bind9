@@ -167,7 +167,6 @@ write_record(FILE *fp, dns_rdatatype_t rdtype, const char *rdatastr,
 
 	/* Create a lexer as one is required by dns_rdata_fromtext(). */
 	isc_lex_create(isc_g_mctx, 64, &lex);
-	specials[0] = 1;
 	specials['('] = 1;
 	specials[')'] = 1;
 	specials['"'] = 1;

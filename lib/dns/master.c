@@ -534,7 +534,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 		 * in lib/dns/tests/dnstest.c.
 		 */
 		memset(specials, 0, sizeof(specials));
-		specials[0] = 1;
 		specials['('] = 1;
 		specials[')'] = 1;
 		specials['"'] = 1;

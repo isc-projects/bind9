@@ -33,6 +33,72 @@
 
 #define AS_STR(x) (x).value.as_textregion.base
 
+/* check handling of 0x00 */
+ISC_RUN_TEST_IMPL(lex_0x00) {
+	isc_result_t result;
+	isc_lex_t *lex = NULL;
+	isc_buffer_t buf;
+	isc_token_t token;
+
+	unsigned char nul_then_A[] = { '\0', 'A' };
+	unsigned char embedded_null[] = { '"', 'a', '\0', 'b', '"' };
+	unsigned char escaped_null[] = { 'a', '\\', '\0', 'b' };
+
+	UNUSED(state);
+
+	isc_lex_create(isc_g_mctx, 1024, &lex);
+
+	isc_buffer_init(&buf, &nul_then_A[0], sizeof(nul_then_A));
+	isc_buffer_add(&buf, sizeof(nul_then_A));
+
+	result = isc_lex_openbuffer(lex, &buf);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_lex_gettoken(lex, 0, &token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(token.type, isc_tokentype_unknown);
+
+	result = isc_lex_gettoken(lex, 0, &token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(token.type, isc_tokentype_string);
+
+	isc_lex_close(lex);
+
+	/*
+	 * Check that an embedded NUL is preserved in a quoted string.
+	 */
+	isc_buffer_init(&buf, &embedded_null[0], sizeof(embedded_null));
+	isc_buffer_add(&buf, sizeof(embedded_null));
+
+	result = isc_lex_openbuffer(lex, &buf);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_lex_gettoken(lex, ISC_LEXOPT_QSTRING, &token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(token.type, isc_tokentype_qstring);
+	assert_int_equal(token.value.as_textregion.length, 3);
+	assert_memory_equal(token.value.as_textregion.base, "a\0b", 3);
+
+	isc_lex_close(lex);
+
+	/*
+	 * Check that an escaped NUL is preserved.
+	 */
+	isc_buffer_init(&buf, &escaped_null[0], sizeof(escaped_null));
+	isc_buffer_add(&buf, sizeof(escaped_null));
+
+	result = isc_lex_openbuffer(lex, &buf);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_lex_gettoken(lex, ISC_LEXOPT_ESCAPE, &token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(token.type, isc_tokentype_string);
+	assert_int_equal(token.value.as_textregion.length, 4);
+	assert_memory_equal(token.value.as_textregion.base, "a\\\0b", 4);
+
+	isc_lex_destroy(&lex);
+}
+
 /* check handling of 0xff */
 ISC_RUN_TEST_IMPL(lex_0xff) {
 	isc_result_t result;
@@ -72,8 +138,8 @@ ISC_RUN_TEST_IMPL(lex_setline) {
 
 	isc_lex_create(isc_g_mctx, 1024, &lex);
 
-	isc_buffer_init(&buf, &text[0], sizeof(text));
-	isc_buffer_add(&buf, sizeof(text));
+	isc_buffer_init(&buf, &text[0], sizeof(text) - 1);
+	isc_buffer_add(&buf, sizeof(text) - 1);
 
 	result = isc_lex_openbuffer(lex, &buf);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -340,6 +406,7 @@ ISC_RUN_TEST_IMPL(lex_keypair) {
 }
 
 ISC_TEST_LIST_START
+ISC_TEST_ENTRY(lex_0x00)
 ISC_TEST_ENTRY(lex_0xff)
 ISC_TEST_ENTRY(lex_keypair)
 ISC_TEST_ENTRY(lex_setline)
