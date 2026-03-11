@@ -368,7 +368,6 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	 * delimiters while reading the source string.  These should match
 	 * specials from lib/dns/master.c.
 	 */
-	specials[0] = 1;
 	specials['('] = 1;
 	specials[')'] = 1;
 	specials['"'] = 1;
