@@ -30,6 +30,8 @@ can potentially cause crashes, incorrect data handling, or corruption:
 - Clients communicating via the :any:`controls` socket using configured keys
 - Access to :any:`statistics-channels` from untrusted clients
 - Sockets used for :any:`update-policy` type `external`
+- Configuring resources (views, zones, ...) with non-Internet (IN) Resource
+  Record classes (like CHAOS or HESIOD)
 
 Certain aspects of the DNS protocol are left unspecified, such as the handling of
 responses from DNS servers which do not fully conform to the DNS protocol. For
