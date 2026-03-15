@@ -130,6 +130,8 @@ struct dns_dispatch {
 	dns_dispatchstate_t state;
 	dns_dispatchtype_t disptype;
 
+	dns_messageid_t nextid; /*%< next sequential QID for TCP */
+
 	bool reading;
 
 	dns_displist_t pending;
@@ -648,12 +650,9 @@ tcp_recv_oldest(dns_dispatch_t *disp, dns_dispentry_t **respp) {
 	return ISC_R_NOTFOUND;
 }
 
-/*
- * NOTE: Must be RCU read locked!
- */
 static isc_result_t
 tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region,
-		 isc_sockaddr_t *peer, dns_dispentry_t **respp) {
+		 dns_dispentry_t **respp) {
 	isc_buffer_t source;
 	dns_messageid_t id;
 	unsigned int flags;
@@ -689,37 +688,24 @@ tcp_recv_success(dns_dispatch_t *disp, isc_region_t *region,
 	}
 
 	/*
-	 * We have a valid response; find the associated dispentry object
-	 * and call the caller back.
+	 * We have a valid response; find the associated dispentry by
+	 * scanning disp->active.  With sequential IDs and a bounded
+	 * pipelining limit this is a short linear scan.
 	 */
-	dns_dispentry_t key = {
-		.id = id,
-		.peer = *peer,
-		.port = isc_sockaddr_getport(&disp->local),
-	};
-	struct cds_lfht_iter iter;
-	cds_lfht_lookup(disp->mgr->qids, qid_hash(&key), qid_match, &key,
-			&iter);
-
-	dns_dispentry_t *resp = cds_lfht_entry(cds_lfht_iter_get_node(&iter),
-					       dns_dispentry_t, ht_node);
-
-	/* Skip responses that are not ours */
-	if (resp != NULL && resp->disp == disp) {
-		if (!resp->reading) {
-			/*
-			 * We already got a message for this QID and weren't
-			 * expecting any more.
-			 */
-			result = ISC_R_UNEXPECTED;
-		} else {
-			*respp = resp;
+	dns_dispentry_t *resp = NULL, *r = NULL;
+	ISC_LIST_FOREACH(disp->active, r, alink) {
+		if (r->id == id) {
+			resp = r;
+			break;
 		}
+	}
+
+	if (resp != NULL) {
+		*respp = resp;
 	} else {
 		result = ISC_R_NOTFOUND;
 	}
-	dispatch_log(disp, ISC_LOG_DEBUG(90),
-		     "search for response in hashtable: %s",
+	dispatch_log(disp, ISC_LOG_DEBUG(90), "search for response: %s",
 		     isc_result_totext(result));
 
 	return result;
@@ -815,7 +801,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		break;
 	case ISC_R_SUCCESS:
 		/* We got an answer */
-		result = tcp_recv_success(disp, region, &peer, &resp);
+		result = tcp_recv_success(disp, region, &resp);
 		break;
 
 	default:
@@ -1271,6 +1257,7 @@ dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 	dispatch_allocate(mgr, isc_socktype_tcp, tid, &disp);
 
 	disp->disptype = disptype;
+	disp->nextid = isc_random16();
 	disp->options = options;
 	disp->peer = *destaddr;
 	if (transport != NULL) {
@@ -1524,35 +1511,52 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
 	}
 
 	isc_result_t result = ISC_R_NOMORE;
-	size_t i = 0;
 	rcu_read_lock();
-	do {
+
+	if (disp->socktype == isc_socktype_tcp) {
 		/*
-		 * Try somewhat hard to find a unique ID. Start with
-		 * a random number unless DNS_DISPATCHOPT_FIXEDID is set,
-		 * in which case we start with the ID passed in via *idp.
+		 * TCP dispentries don't use the global QID hash table.
+		 * Responses are matched by scanning disp->active, and
+		 * sequential per-dispatch IDs (bounded by the pipelining
+		 * limit) are guaranteed to be unique within the dispatch.
+		 * FIXEDID TCP dispatches are always fresh and isolated
+		 * (see dns_dispatch_createtcp), so the caller-supplied ID
+		 * can't collide either.
 		 */
 		resp->id = ((options & DNS_DISPATCHOPT_FIXEDID) != 0)
 				   ? *idp
-				   : (dns_messageid_t)isc_random16();
+				   : disp->nextid++;
+		result = ISC_R_SUCCESS;
+	} else {
+		size_t i = 0;
+		do {
+			/*
+			 * Try somewhat hard to find a unique random ID
+			 * (or use the fixed ID if DNS_DISPATCHOPT_FIXEDID
+			 * is set).
+			 */
+			resp->id = ((options & DNS_DISPATCHOPT_FIXEDID) != 0)
+					   ? *idp
+					   : (dns_messageid_t)isc_random16();
 
-		struct cds_lfht_node *node =
-			cds_lfht_add_unique(disp->mgr->qids, qid_hash(resp),
-					    qid_match, resp, &resp->ht_node);
+			struct cds_lfht_node *node = cds_lfht_add_unique(
+				disp->mgr->qids, qid_hash(resp), qid_match,
+				resp, &resp->ht_node);
 
-		if (node != &resp->ht_node) {
-			if ((options & DNS_DISPATCHOPT_FIXEDID) != 0) {
-				/*
-				 * When using fixed ID, we either must
-				 * use it or fail
-				 */
-				goto fail;
+			if (node != &resp->ht_node) {
+				if ((options & DNS_DISPATCHOPT_FIXEDID) != 0) {
+					/*
+					 * When using fixed ID, we either
+					 * must use it or fail.
+					 */
+					goto fail;
+				}
+			} else {
+				result = ISC_R_SUCCESS;
+				break;
 			}
-		} else {
-			result = ISC_R_SUCCESS;
-			break;
-		}
-	} while (i++ < QID_MAX_TRIES);
+		} while (i++ < QID_MAX_TRIES);
+	}
 fail:
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(disp->mctx, resp, sizeof(*resp));
@@ -1780,8 +1784,6 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 	}
 
 	dec_stats(disp->mgr, dns_resstatscounter_dispreqtcp);
-
-	(void)cds_lfht_del(disp->mgr->qids, &resp->ht_node);
 
 	resp->state = DNS_DISPATCHSTATE_CANCELED;
 
