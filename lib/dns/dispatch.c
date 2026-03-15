@@ -45,6 +45,13 @@
 #include <dns/transport.h>
 #include <dns/types.h>
 
+/*
+ * Maximum number of queries to pipeline on a single shared TCP dispatch.
+ * Once reached, the dispatch is removed from the hash table so new queries
+ * get a fresh connection.  Can be overridden via 'named -T tcppipelining=N'.
+ */
+size_t dns_dispatch_tcppipelining = 256;
+
 typedef ISC_LIST(dns_dispentry_t) dns_displist_t;
 
 struct dns_dispatchmgr {
@@ -1566,6 +1573,19 @@ fail:
 	dns_dispatch_attach(disp, &resp->disp); /* DISPATCH001 */
 
 	disp->requests++;
+
+	/*
+	 * If this shared TCP dispatch has reached the pipelining limit,
+	 * remove it from the hash table so new queries get a fresh
+	 * connection.  The dispatch continues to serve its existing
+	 * queries until they complete.
+	 */
+	if (disp->socktype == isc_socktype_tcp &&
+	    (disp->options & DNS_DISPATCHOPT_FIXEDID) == 0 &&
+	    disp->requests >= dns_dispatch_tcppipelining)
+	{
+		(void)cds_lfht_del(disp->mgr->tcps[isc_tid()], &disp->ht_node);
+	}
 
 	inc_stats(disp->mgr, (disp->socktype == isc_socktype_udp)
 				     ? dns_resstatscounter_disprequdp
