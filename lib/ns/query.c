@@ -11358,6 +11358,13 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 			}
 			return;
 		default: /* TSIG, etc. */
+			if ((dns_rdatatype_attributes(qtype) &
+			     DNS_RDATATYPEATTR_NOTQUESTION) != 0)
+			{
+				dns_ede_add(&client->edectx,
+					    DNS_EDE_INVALIDQTYPE,
+					    "Invalid Query Type");
+			}
 			query_error(client, DNS_R_FORMERR, __LINE__);
 			return;
 		}

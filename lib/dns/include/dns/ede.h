@@ -48,6 +48,7 @@ typedef enum ISC_FIXED_ENUM(dns_edecode, uint16_t) {
 	DNS_EDE_NOREACHABLEAUTH = 22,	  /*%< No Reachable Authority */
 	DNS_EDE_NETWORKERROR = 23,	  /*%< Network Error */
 	DNS_EDE_INVALIDDATA = 24,	  /*%< Invalid Data */
+	DNS_EDE_INVALIDQTYPE = 30,	  /*%< Invalid Query Type */
 	DNS_EDE_NTA = 33,		  /*%< Negative Trust Anchor */
 	DNS_EDE_MAX_CODE,
 	DNS_EDE_ENFORCE = UINT16_MAX, /*%< Enforce uint16_t size */
