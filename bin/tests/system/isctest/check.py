@@ -42,6 +42,10 @@ def servfail(message: dns.message.Message) -> None:
     rcode(message, dns.rcode.SERVFAIL)
 
 
+def formerr(message: dns.message.Message) -> None:
+    rcode(message, dns.rcode.FORMERR)
+
+
 def adflag(message: dns.message.Message) -> None:
     assert (message.flags & dns.flags.AD) != 0, str(message)
 
