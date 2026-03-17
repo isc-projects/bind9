@@ -4775,7 +4775,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 				 aclctx, isc_g_mctx, &view->proxyonacl));
 
 	if (view->rdclass != dns_rdataclass_in) {
-		view->recursion = false;
 		dns_acl_none(isc_g_mctx, &view->recursionacl);
 		dns_acl_none(isc_g_mctx, &view->recursiononacl);
 	} else {
