@@ -7543,6 +7543,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	return;
 
 cleanup:
+	resquery_detach(&rctx->query);
 	isc_mem_putanddetach(&rctx->mctx, rctx, sizeof(*rctx));
 }
 
@@ -7903,6 +7904,7 @@ resquery_response_continue(void *arg, isc_result_t result) {
 	rctx_done(rctx, result);
 
 cleanup:
+	resquery_detach(&rctx->query);
 	isc_mem_putanddetach(&rctx->mctx, rctx, sizeof(*rctx));
 }
 
@@ -7916,7 +7918,7 @@ static void
 rctx_respinit(resquery_t *query, fetchctx_t *fctx, isc_result_t result,
 	      isc_region_t *region, respctx_t *rctx) {
 	*rctx = (respctx_t){ .result = result,
-			     .query = query,
+			     .query = resquery_ref(query),
 			     .fctx = fctx,
 			     .broken_type = badns_response,
 			     .retryopts = query->options };
