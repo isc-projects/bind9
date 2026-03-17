@@ -5465,7 +5465,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 				 NULL, actx, named_g_mctx, &view->cacheonacl));
 
 	if (view->rdclass != dns_rdataclass_in) {
-		view->recursion = false;
 		dns_acl_none(named_g_mctx, &view->recursionacl);
 		dns_acl_none(named_g_mctx, &view->recursiononacl);
 	} else {
