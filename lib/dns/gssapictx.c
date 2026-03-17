@@ -296,7 +296,7 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 		   isc_mem_t *mctx, char **err_message) {
 	isc_region_t r;
 	isc_buffer_t namebuf;
-	gss_name_t gname;
+	gss_name_t gname = NULL;
 	OM_uint32 gret, minor, ret_flags, flags;
 	gss_buffer_desc gintoken, *gintokenp, gouttoken = GSS_C_EMPTY_BUFFER;
 	isc_result_t result;
@@ -356,9 +356,20 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 	}
 
 	/*
-	 * XXXSRA Not handled yet: RFC 3645 3.1.1: check ret_flags
-	 * MUTUAL and INTEG flags, fail if either not set.
+	 * RFC 3645 Section 3.1.1: verify that mutual authentication
+	 * and integrity are supported.  If either is missing, the
+	 * security context does not meet the protocol requirements.
 	 */
+	if (gret == GSS_S_COMPLETE &&
+	    (ret_flags & (GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG)) !=
+		    (GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG))
+	{
+		gss_log(3,
+			"GSS-API context lacks required MUTUAL or "
+			"INTEG flags (ret_flags=0x%x)",
+			(unsigned int)ret_flags);
+		CLEANUP(ISC_R_FAILURE);
+	}
 
 	/*
 	 * RFC 2744 states the a valid output token has a non-zero length.
@@ -372,7 +383,9 @@ cleanup:
 	if (gouttoken.length != 0U) {
 		(void)gss_release_buffer(&minor, &gouttoken);
 	}
-	(void)gss_release_name(&minor, &gname);
+	if (gname != NULL) {
+		(void)gss_release_name(&minor, &gname);
+	}
 	return result;
 }
 
