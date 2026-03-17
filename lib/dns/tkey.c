@@ -534,18 +534,8 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 		return (ISC_R_SUCCESS);
 	}
 
-	/*
-	 * XXXDCL need to check for key expiry per 4.1.1
-	 * XXXDCL need a way to check fully established, perhaps w/key_flags
-	 */
-
 	intoken.base = tkeyin->key;
 	intoken.length = tkeyin->keylen;
-
-	result = dns_tsigkey_find(&tsigkey, name, &tkeyin->algorithm, ring);
-	if (result == ISC_R_SUCCESS) {
-		gss_ctx = dst_key_getgssctx(tsigkey->key);
-	}
 
 	principal = dns_fixedname_initname(&fixed);
 
@@ -555,7 +545,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	result = dst_gssapi_acceptctx(tctx->gsscred, tctx->gssapi_keytab,
 				      &intoken, &outtoken, &gss_ctx, principal,
 				      tctx->mctx);
-	if (result == DNS_R_INVALIDTKEY) {
+	if (result != ISC_R_SUCCESS) {
 		if (tsigkey != NULL) {
 			dns_tsigkey_detach(&tsigkey);
 		}
@@ -564,11 +554,11 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 								      */
 		return (ISC_R_SUCCESS);
 	}
-	if (result != DNS_R_CONTINUE && result != ISC_R_SUCCESS) {
-		goto failure;
-	}
+
 	/*
-	 * XXXDCL Section 4.1.3: Limit GSS_S_CONTINUE_NEEDED to 10 times.
+	 * Multi-round GSS-API negotiation (GSS_S_CONTINUE_NEEDED) is
+	 * rejected in dst_gssapi_acceptctx(), so if we reach here the
+	 * negotiation is complete and the principal must be set.
 	 */
 
 	isc_stdtime_get(&now);
@@ -639,6 +629,10 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	return (ISC_R_SUCCESS);
 
 failure:
+	if (dstkey == NULL && gss_ctx != NULL) {
+		dst_gssapi_deletectx(tctx->mctx, &gss_ctx);
+	}
+
 	if (tsigkey != NULL) {
 		dns_tsigkey_detach(&tsigkey);
 	}
@@ -1576,9 +1570,8 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 				  NULL));
 
 	/*
-	 * XXXSRA This seems confused.  If we got CONTINUE from initctx,
-	 * the GSS negotiation hasn't completed yet, so we can't sign
-	 * anything yet.
+	 * GSS negotiation is complete (CONTINUE returned earlier).
+	 * Create the TSIG key from the established context.
 	 */
 
 	RETERR(dns_tsigkey_createfromkey(

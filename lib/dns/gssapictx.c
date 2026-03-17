@@ -608,7 +608,14 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 		GSS_SPNEGO_MECHANISM, flags, 0, NULL, gintokenp, NULL,
 		&gouttoken, &ret_flags, NULL);
 
-	if (gret != GSS_S_COMPLETE && gret != GSS_S_CONTINUE_NEEDED) {
+	switch (gret) {
+	case GSS_S_COMPLETE:
+		result = ISC_R_SUCCESS;
+		break;
+	case GSS_S_CONTINUE_NEEDED:
+		result = DNS_R_CONTINUE;
+		break;
+	default:
 		gss_err_message(mctx, gret, minor, err_message);
 		if (err_message != NULL && *err_message != NULL) {
 			gss_log(3, "Failure initiating security context: %s",
@@ -632,12 +639,6 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 	if (gouttoken.length != 0U) {
 		GBUFFER_TO_REGION(gouttoken, r);
 		RETERR(isc_buffer_copyregion(outtoken, &r));
-	}
-
-	if (gret == GSS_S_COMPLETE) {
-		result = ISC_R_SUCCESS;
-	} else {
-		result = DNS_R_CONTINUE;
 	}
 
 out:
@@ -664,14 +665,9 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 	char buf[1024];
 
 	REQUIRE(outtoken != NULL && *outtoken == NULL);
+	REQUIRE(*ctxout == NULL);
 
 	REGION_TO_GBUFFER(*intoken, gintoken);
-
-	if (*ctxout == NULL) {
-		context = GSS_C_NO_CONTEXT;
-	} else {
-		context = *ctxout;
-	}
 
 	if (gssapi_keytab != NULL) {
 #if defined(ISC_PLATFORM_GSSAPI_KRB5_HEADER) || defined(WIN32)
@@ -717,8 +713,15 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 
 	switch (gret) {
 	case GSS_S_COMPLETE:
-	case GSS_S_CONTINUE_NEEDED:
 		break;
+	/*
+	 * RFC 3645 4.1.3: we don't handle GSS_S_CONTINUE_NEEDED
+	 * Multi-round GSS-API negotiation is not supported.
+	 */
+	case GSS_S_CONTINUE_NEEDED:
+		gss_log(3, "multi-round GSS-API negotiation not supported");
+		(void)gss_delete_sec_context(&minor, &context, NULL);
+		FALLTHROUGH;
 	case GSS_S_DEFECTIVE_TOKEN:
 	case GSS_S_DEFECTIVE_CREDENTIAL:
 	case GSS_S_BAD_SIG:
@@ -731,7 +734,7 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 	case GSS_S_BAD_MECH:
 	case GSS_S_FAILURE:
 		result = DNS_R_INVALIDTKEY;
-	/* fall through */
+		FALLTHROUGH;
 	default:
 		gss_log(3, "failed gss_accept_sec_context: %s",
 			gss_error_tostring(gret, minor, buf, sizeof(buf)));
@@ -749,52 +752,56 @@ dst_gssapi_acceptctx(dns_gss_cred_id_t cred, const char *gssapi_keytab,
 		(void)gss_release_buffer(&minor, &gouttoken);
 	}
 
-	if (gret == GSS_S_COMPLETE) {
-		gret = gss_display_name(&minor, gname, &gnamebuf, NULL);
-		if (gret != GSS_S_COMPLETE) {
-			gss_log(3, "failed gss_display_name: %s",
-				gss_error_tostring(gret, minor, buf,
-						   sizeof(buf)));
-			RETERR(ISC_R_FAILURE);
-		}
+	INSIST(gret == GSS_S_COMPLETE);
 
-		/*
-		 * Compensate for a bug in Solaris8's implementation
-		 * of gss_display_name().  Should be harmless in any
-		 * case, since principal names really should not
-		 * contain null characters.
-		 */
-		if (gnamebuf.length > 0U &&
-		    ((char *)gnamebuf.value)[gnamebuf.length - 1] == '\0')
-		{
-			gnamebuf.length--;
-		}
+	gret = gss_display_name(&minor, gname, &gnamebuf, NULL);
+	if (gret != GSS_S_COMPLETE) {
+		gss_log(3, "failed gss_display_name: %s",
+			gss_error_tostring(gret, minor, buf, sizeof(buf)));
+		result = ISC_R_FAILURE;
+		goto out;
+	}
 
-		gss_log(3, "gss-api source name (accept) is %.*s",
-			(int)gnamebuf.length, (char *)gnamebuf.value);
+	/*
+	 * Compensate for a bug in Solaris8's implementation
+	 * of gss_display_name().  Should be harmless in any
+	 * case, since principal names really should not
+	 * contain null characters.
+	 */
+	if (gnamebuf.length > 0U &&
+	    ((char *)gnamebuf.value)[gnamebuf.length - 1] == '\0')
+	{
+		gnamebuf.length--;
+	}
 
-		GBUFFER_TO_REGION(gnamebuf, r);
-		isc_buffer_init(&namebuf, r.base, r.length);
-		isc_buffer_add(&namebuf, r.length);
+	gss_log(3, "gss-api source name (accept) is %.*s", (int)gnamebuf.length,
+		(char *)gnamebuf.value);
 
-		RETERR(dns_name_fromtext(principal, &namebuf, dns_rootname, 0,
-					 NULL));
+	GBUFFER_TO_REGION(gnamebuf, r);
+	isc_buffer_init(&namebuf, r.base, r.length);
+	isc_buffer_add(&namebuf, r.length);
 
-		if (gnamebuf.length != 0U) {
-			gret = gss_release_buffer(&minor, &gnamebuf);
-			if (gret != GSS_S_COMPLETE) {
-				gss_log(3, "failed gss_release_buffer: %s",
-					gss_error_tostring(gret, minor, buf,
-							   sizeof(buf)));
-			}
-		}
-	} else {
-		result = DNS_R_CONTINUE;
+	result = dns_name_fromtext(principal, &namebuf, dns_rootname, 0, NULL);
+	if (result != ISC_R_SUCCESS) {
+		goto out;
 	}
 
 	*ctxout = context;
 
 out:
+	if (result != ISC_R_SUCCESS && context != GSS_C_NO_CONTEXT) {
+		(void)gss_delete_sec_context(&minor, &context, NULL);
+	}
+
+	if (gnamebuf.length != 0U) {
+		gret = gss_release_buffer(&minor, &gnamebuf);
+		if (gret != GSS_S_COMPLETE) {
+			gss_log(3, "failed gss_release_buffer: %s",
+				gss_error_tostring(gret, minor, buf,
+						   sizeof(buf)));
+		}
+	}
+
 	if (gname != NULL) {
 		gret = gss_release_name(&minor, &gname);
 		if (gret != GSS_S_COMPLETE) {
