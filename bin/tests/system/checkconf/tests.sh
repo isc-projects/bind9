@@ -739,5 +739,16 @@ if [ $ret != 0 ]; then
 fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "check 'recursion yes;' is warned and disabled in a non-IN view ($n)"
+ret=0
+$CHECKCONF warn-chaos-recursion.conf >checkconf.out$n 2>&1 || ret=1
+grep -F "recursion will be disabled" checkconf.out$n >/dev/null || ret=1
+if [ $ret != 0 ]; then
+  echo_i "failed"
+  ret=1
+fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
