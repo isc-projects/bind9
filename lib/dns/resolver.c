@@ -6968,6 +6968,13 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 	}
 
 	/*
+	 * deny-answer-address doesn't apply to non-IN classes.
+	 */
+	if (rdataset->rdclass != dns_rdataclass_in) {
+		return true;
+	}
+
+	/*
 	 * Otherwise, search the filter list for a match for each
 	 * address record.  If a match is found, the address should be
 	 * filtered, so should the entire answer.
