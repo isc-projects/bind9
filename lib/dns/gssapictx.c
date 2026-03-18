@@ -442,15 +442,30 @@ dst_gssapi_acceptctx(const char *gssapi_keytab, isc_region_t *intoken,
 #endif
 	}
 
+	OM_uint32 ret_flags = 0;
+
 	gret = gss_accept_sec_context(&minor, &context, GSS_C_NO_CREDENTIAL,
 				      &gintoken, GSS_C_NO_CHANNEL_BINDINGS,
-				      &gname, NULL, &gouttoken, NULL, NULL,
-				      NULL);
+				      &gname, NULL, &gouttoken, &ret_flags,
+				      NULL, NULL);
 
 	result = ISC_R_FAILURE;
 
 	switch (gret) {
 	case GSS_S_COMPLETE:
+		/*
+		 * RFC 2743 Section 1.2.2: verify that the negotiated
+		 * context provides integrity protection.
+		 */
+		if ((ret_flags & GSS_C_INTEG_FLAG) == 0) {
+			gss_log(3,
+				"GSS-API context lacks required INTEG "
+				"flag (ret_flags=0x%x)",
+				(unsigned int)ret_flags);
+			(void)gss_delete_sec_context(&minor, &context, NULL);
+			result = DNS_R_INVALIDTKEY;
+			goto cleanup;
+		}
 		break;
 	/*
 	 * RFC 3645 4.1.3: we don't handle GSS_S_CONTINUE_NEEDED
