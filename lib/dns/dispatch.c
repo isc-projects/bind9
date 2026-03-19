@@ -1302,7 +1302,9 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 	isc_result_t result;
 
-	if ((options & DNS_DISPATCHOPT_FIXEDID) == 0) {
+	if ((options & DNS_DISPATCHOPT_FIXEDID) == 0 &&
+	    disptype != DNS_DISPATCHTYPE_XFRIN)
+	{
 		result = dispatch_gettcp(mgr, localaddr, destaddr, transport,
 					 disptype, dispp);
 		if (result == ISC_R_SUCCESS) {
