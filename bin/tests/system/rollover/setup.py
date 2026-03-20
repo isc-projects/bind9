@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from pathlib import Path
+
 import shutil
 
 from isctest.kasp import SettimeOptions, private_type_record
@@ -50,7 +52,7 @@ def configure_tld(zonename: str, delegations: list[Zone]) -> Zone:
     templates.render(f"ns2/{outfile}", tdata, template=f"ns2/{template}")
     signer(f"-P -x -O full -o {zonename} -f {outfile}.signed {outfile}", cwd="ns2")
 
-    return Zone(zonename, NS2, filename=f"{outfile}.signed")
+    return Zone(zonename, NS2, filepath=Path(f"{outfile}.signed"))
 
 
 def configure_root(delegations: list[Zone]) -> TrustAnchor:
@@ -1662,7 +1664,7 @@ def configure_straight2none(tld: str) -> list[Zone]:
     render_and_sign_zone(zonename, [csk_name], extra_options="-z")
 
     zonename = f"going-straight-to-none-dynamic.{tld}"
-    zones.append(Zone(zonename, NS3, filename=f"{zonename}.db.signed"))
+    zones.append(Zone(zonename, NS3, filepath=Path(f"{zonename}.db.signed")))
     isctest.log.info(f"setup {zonename}")
     # Key generation.
     csk_name = keygen(f"-f KSK {keytimes} {zonename}", cwd="ns3").out.strip()
