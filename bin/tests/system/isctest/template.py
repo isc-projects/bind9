@@ -11,7 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 from pathlib import Path
 import re
@@ -161,11 +161,12 @@ class Zone:
     name: str
     ns: Nameserver
     type: str = "primary"
-    filename: str | None = None
+    filepath: Path | None = field(default=None)
 
-    def __post_init__(self):
-        if self.filename is None:
-            self.filename = f"{self.name}.db"
+    def __post_init__(self) -> None:
+        if self.filepath is None:
+            base = "root" if self.name == "." else self.name
+            self.filepath = Path(f"zones/{base}.db")
 
 
 @dataclass
