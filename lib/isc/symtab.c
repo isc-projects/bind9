@@ -141,7 +141,8 @@ static inline uint32_t
 elt_hash(elt_t *restrict elt, bool case_sensitive) {
 	const uint8_t *ptr = elt->key;
 	size_t len = elt->size;
-	return fx_hash_bytes(0, ptr, len, case_sensitive);
+	return fx_add_to_hash(fx_hash_bytes(0, ptr, len, case_sensitive),
+			      elt->type);
 }
 
 isc_result_t

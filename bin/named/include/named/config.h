@@ -21,6 +21,7 @@
 #include <dns/zone.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/clause.h>
 
 isc_result_t
 named_config_parsedefaults(cfg_obj_t **conf);
@@ -29,7 +30,7 @@ isc_result_t
 named_config_parsefile(cfg_obj_t **conf);
 
 isc_result_t
-named_config_get(cfg_obj_t const *const *maps, const char *name,
+named_config_get(cfg_obj_t const *const *maps, enum cfg_clause name,
 		 const cfg_obj_t **obj);
 
 isc_result_t
@@ -51,7 +52,7 @@ dns_zonetype_t
 named_config_getzonetype(const cfg_obj_t *zonetypeobj);
 
 isc_result_t
-named_config_getremotesdef(const cfg_obj_t *cctx, const char *list,
+named_config_getremotesdef(const cfg_obj_t *cctx, enum cfg_clause list,
 			   const char *name, const cfg_obj_t **ret);
 
 isc_result_t
@@ -59,7 +60,7 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			     isc_mem_t *mctx, dns_ipkeylist_t *ipkl);
 
 isc_result_t
-named_config_getport(const cfg_obj_t *config, const char *type,
+named_config_getport(const cfg_obj_t *config, enum cfg_clause type,
 		     in_port_t *portp);
 
 isc_result_t
@@ -68,7 +69,7 @@ named_config_getkeyalgorithm(const char *str, unsigned int *typep,
 
 isc_result_t
 named_config_findopt(const cfg_obj_t *opts1, const cfg_obj_t *opts2,
-		     const char *name, const cfg_obj_t **objp);
+		     enum cfg_clause name, const cfg_obj_t **objp);
 
 isc_result_t
 named_config_effective(cfg_obj_t **effective, const cfg_obj_t *defaults,

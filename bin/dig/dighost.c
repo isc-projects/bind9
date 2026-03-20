@@ -77,6 +77,7 @@
 
 #include <dst/dst.h>
 
+#include <isccfg/clause.h>
 #include <isccfg/namedconf.h>
 
 #include <irs/resconf.h>
@@ -1094,10 +1095,10 @@ read_confkey(void) {
 
 	CHECK(cfg_parse_file(keyfile, &cfg_type_sessionkey, 0, &file));
 
-	CHECK(cfg_map_get(file, "key", &keyobj));
+	CHECK(cfg_map_get(file, CFG_CLAUSE_KEY, &keyobj));
 
-	(void)cfg_map_get(keyobj, "secret", &secretobj);
-	(void)cfg_map_get(keyobj, "algorithm", &algorithmobj);
+	(void)cfg_map_get(keyobj, CFG_CLAUSE_SECRET, &secretobj);
+	(void)cfg_map_get(keyobj, CFG_CLAUSE_ALGORITHM, &algorithmobj);
 	if (secretobj == NULL || algorithmobj == NULL) {
 		fatal("key must have algorithm and secret");
 	}

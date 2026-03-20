@@ -23,6 +23,7 @@
 #include <dns/transport.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/clause.h>
 
 #include <named/log.h>
 #include <named/transportconf.h>
@@ -106,22 +107,24 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 					      list);
 
 		dns_transport_set_tlsname(transport, dohid);
-		parse_transport_option(doh, transport, "key-file",
+		parse_transport_option(doh, transport, CFG_CLAUSE_KEY_FILE,
 				       dns_transport_set_keyfile);
-		parse_transport_option(doh, transport, "cert-file",
+		parse_transport_option(doh, transport, CFG_CLAUSE_CERT_FILE,
 				       dns_transport_set_certfile);
-		parse_transport_tls_versions(doh, transport, "protocols",
+		parse_transport_tls_versions(doh, transport,
+					     CFG_CLAUSE_PROTOCOLS,
 					     dns_transport_set_tls_versions);
-		parse_transport_option(doh, transport, "ciphers",
+		parse_transport_option(doh, transport, CFG_CLAUSE_CIPHERS,
 				       dns_transport_set_ciphers);
-		parse_transport_option(doh, transport, "cipher-suites",
+		parse_transport_option(doh, transport, CFG_CLAUSE_CIPHER_SUITES,
 				       dns_transport_set_cipher_suites);
 		parse_transport_bool_option(
-			doh, transport, "prefer-server-ciphers",
+			doh, transport, CFG_CLAUSE_PREFER_SERVER_CIPHERS,
 			dns_transport_set_prefer_server_ciphers);
-		parse_transport_option(doh, transport, "ca-file",
+		parse_transport_option(doh, transport, CFG_CLAUSE_CA_FILE,
 				       dns_transport_set_cafile);
-		parse_transport_option(doh, transport, "remote-hostname",
+		parse_transport_option(doh, transport,
+				       CFG_CLAUSE_REMOTE_HOSTNAME,
 				       dns_transport_set_remote_hostname);
 	}
 
@@ -155,22 +158,24 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 		transport = dns_transport_new(tlsname, DNS_TRANSPORT_TLS, list);
 
 		dns_transport_set_tlsname(transport, tlsid);
-		parse_transport_option(tls, transport, "key-file",
+		parse_transport_option(tls, transport, CFG_CLAUSE_KEY_FILE,
 				       dns_transport_set_keyfile);
-		parse_transport_option(tls, transport, "cert-file",
+		parse_transport_option(tls, transport, CFG_CLAUSE_CERT_FILE,
 				       dns_transport_set_certfile);
-		parse_transport_tls_versions(tls, transport, "protocols",
+		parse_transport_tls_versions(tls, transport,
+					     CFG_CLAUSE_PROTOCOLS,
 					     dns_transport_set_tls_versions);
-		parse_transport_option(tls, transport, "ciphers",
+		parse_transport_option(tls, transport, CFG_CLAUSE_CIPHERS,
 				       dns_transport_set_ciphers);
-		parse_transport_option(tls, transport, "cipher-suites",
+		parse_transport_option(tls, transport, CFG_CLAUSE_CIPHER_SUITES,
 				       dns_transport_set_cipher_suites);
 		parse_transport_bool_option(
-			tls, transport, "prefer-server-ciphers",
+			tls, transport, CFG_CLAUSE_PREFER_SERVER_CIPHERS,
 			dns_transport_set_prefer_server_ciphers);
-		parse_transport_option(tls, transport, "ca-file",
+		parse_transport_option(tls, transport, CFG_CLAUSE_CA_FILE,
 				       dns_transport_set_cafile);
-		parse_transport_option(tls, transport, "remote-hostname",
+		parse_transport_option(tls, transport,
+				       CFG_CLAUSE_REMOTE_HOSTNAME,
 				       dns_transport_set_remote_hostname);
 	}
 
@@ -188,14 +193,14 @@ transport_list_fromconfig(const cfg_obj_t *config, dns_transport_list_t *list) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (result == ISC_R_SUCCESS &&
-	    cfg_map_get(config, "tls", &obj) == ISC_R_SUCCESS)
+	    cfg_map_get(config, CFG_CLAUSE_TLS, &obj) == ISC_R_SUCCESS)
 	{
 		result = add_tls_transports(obj, list);
 		obj = NULL;
 	}
 
 	if (result == ISC_R_SUCCESS &&
-	    cfg_map_get(config, "doh", &obj) == ISC_R_SUCCESS)
+	    cfg_map_get(config, CFG_CLAUSE_DOH, &obj) == ISC_R_SUCCESS)
 	{
 		result = add_doh_transports(obj, list);
 		obj = NULL;

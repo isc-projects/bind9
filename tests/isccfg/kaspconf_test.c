@@ -74,7 +74,7 @@ kasp_fromtext(const char *conftext) {
 				  &config);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = cfg_map_get(config, "dnssec-policy", &kasps);
+	result = cfg_map_get(config, CFG_CLAUSE_DNSSEC_POLICY, &kasps);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = cfg_kasp_fromconfig(cfg_listelt_value(cfg_list_first(kasps)),

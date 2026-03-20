@@ -20,6 +20,7 @@
 #include <dst/gssapi.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/clause.h>
 
 #include <named/log.h>
 #include <named/tkeyconf.h>
@@ -33,8 +34,8 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 
 	if (options != NULL) {
 		const cfg_obj_t *obj = NULL;
-		isc_result_t result = cfg_map_get(options, "tkey-gssapi-keytab",
-						  &obj);
+		isc_result_t result = cfg_map_get(
+			options, CFG_CLAUSE_TKEY_GSSAPI_KEYTAB, &obj);
 		if (result == ISC_R_SUCCESS) {
 			const char *s = cfg_obj_asstring(obj);
 			tctx->gssapi_keytab = isc_mem_strdup(mctx, s);

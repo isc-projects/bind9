@@ -40,6 +40,8 @@
 #include <dns/zoneproperties.h>
 #include <dns/zt.h>
 
+#include <isccfg/clause.h>
+
 #include <ns/stats.h>
 
 #include <named/log.h>
@@ -4008,7 +4010,8 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 	/*
 	 * Get the list of named.conf 'statistics-channels' statements.
 	 */
-	(void)cfg_map_get(config, "statistics-channels", &statschannellist);
+	(void)cfg_map_get(config, CFG_CLAUSE_STATISTICS_CHANNELS,
+			  &statschannellist);
 
 	/*
 	 * Run through the new address/port list, noting sockets that are
@@ -4044,7 +4047,8 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 			const cfg_obj_t *listenercfg = NULL;
 
 			statschannel = cfg_listelt_value(element);
-			(void)cfg_map_get(statschannel, "inet", &listenercfg);
+			(void)cfg_map_get(statschannel, CFG_CLAUSE_INET,
+					  &listenercfg);
 			if (listenercfg == NULL) {
 				continue;
 			}

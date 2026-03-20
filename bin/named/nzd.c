@@ -23,6 +23,7 @@
 #include <dns/zoneproperties.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/clause.h>
 #include <isccfg/namedconf.h>
 
 #include <named/nzd.h>
@@ -399,7 +400,7 @@ nzd_load_nzf(dns_view_t *view) {
 	}
 
 	zonelist = NULL;
-	CHECK(cfg_map_get(nzf_config, "zone", &zonelist));
+	CHECK(cfg_map_get(nzf_config, CFG_CLAUSE_ZONE, &zonelist));
 	if (!cfg_obj_islist(zonelist)) {
 		CLEANUP(ISC_R_FAILURE);
 	}

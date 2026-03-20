@@ -25,6 +25,7 @@
 #include <dns/tsig.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/clause.h>
 
 #include <named/config.h>
 #include <named/log.h>
@@ -58,8 +59,8 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 
 		algobj = NULL;
 		secretobj = NULL;
-		(void)cfg_map_get(key, "algorithm", &algobj);
-		(void)cfg_map_get(key, "secret", &secretobj);
+		(void)cfg_map_get(key, CFG_CLAUSE_ALGORITHM, &algobj);
+		(void)cfg_map_get(key, CFG_CLAUSE_SECRET, &secretobj);
 		INSIST(algobj != NULL && secretobj != NULL);
 
 		/*
@@ -148,7 +149,7 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			break;
 		}
 		keylist = NULL;
-		result = cfg_map_get(maps[i], "key", &keylist);
+		result = cfg_map_get(maps[i], CFG_CLAUSE_KEY, &keylist);
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}
