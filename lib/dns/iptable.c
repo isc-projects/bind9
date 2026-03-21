@@ -58,7 +58,6 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 
 	result = isc_radix_insert(tab->radix, &node, NULL, &pfx);
 	if (result != ISC_R_SUCCESS) {
-		isc_refcount_destroy(&pfx.refcount);
 		return result;
 	}
 
@@ -81,7 +80,6 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 		}
 	}
 
-	isc_refcount_destroy(&pfx.refcount);
 	return ISC_R_SUCCESS;
 }
 

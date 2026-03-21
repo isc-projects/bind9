@@ -68,8 +68,6 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 	prefix->mctx = NULL;
 	isc_mem_attach(mctx, &prefix->mctx);
 
-	isc_refcount_init(&prefix->refcount, 1);
-
 	*target = prefix;
 	return ISC_R_SUCCESS;
 }
@@ -77,11 +75,8 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 static void
 _deref_prefix(isc_prefix_t *prefix) {
 	if (prefix != NULL) {
-		if (isc_refcount_decrement(&prefix->refcount) == 1) {
-			isc_refcount_destroy(&prefix->refcount);
-			isc_mem_putanddetach(&prefix->mctx, prefix,
-					     sizeof(isc_prefix_t));
-		}
+		isc_mem_putanddetach(&prefix->mctx, prefix,
+				     sizeof(isc_prefix_t));
 	}
 }
 
@@ -93,22 +88,8 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 	       (prefix->family == AF_UNSPEC && prefix->bitlen == 0));
 	REQUIRE(target != NULL && *target == NULL);
 
-	/*
-	 * If this prefix is a static allocation, copy it into new memory.
-	 * (Note, the refcount still has to be destroyed by the calling
-	 * routine.)
-	 */
-	if (isc_refcount_current(&prefix->refcount) == 0) {
-		isc_result_t ret;
-		ret = _new_prefix(mctx, target, prefix->family, &prefix->add,
-				  prefix->bitlen);
-		return ret;
-	}
-
-	isc_refcount_increment(&prefix->refcount);
-
-	*target = prefix;
-	return ISC_R_SUCCESS;
+	return _new_prefix(mctx, target, prefix->family, &prefix->add,
+			   prefix->bitlen);
 }
 
 static int

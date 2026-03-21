@@ -191,8 +191,6 @@ dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 		}
 	}
 
-	isc_refcount_destroy(&pfx.refcount);
-
 	/* Now search non-radix elements for a match with a lower node_num. */
 	for (i = 0; i < acl->length; i++) {
 		dns_aclelement_t *e = &acl->elements[i];

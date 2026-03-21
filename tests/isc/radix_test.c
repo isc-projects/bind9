@@ -52,7 +52,6 @@ ISC_RUN_TEST_IMPL(isc_radix_remove) {
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	node->data[0] = (void *)32;
-	isc_refcount_destroy(&prefix.refcount);
 
 	in_addr.s_addr = inet_addr("1.0.0.0");
 	isc_netaddr_fromin(&netaddr, &in_addr);
@@ -62,7 +61,6 @@ ISC_RUN_TEST_IMPL(isc_radix_remove) {
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	node->data[0] = (void *)8;
-	isc_refcount_destroy(&prefix.refcount);
 
 	in_addr.s_addr = inet_addr("1.1.1.0");
 	isc_netaddr_fromin(&netaddr, &in_addr);
@@ -72,7 +70,6 @@ ISC_RUN_TEST_IMPL(isc_radix_remove) {
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	node->data[0] = (void *)24;
-	isc_refcount_destroy(&prefix.refcount);
 
 	isc_radix_remove(radix, node);
 
@@ -100,7 +97,6 @@ ISC_RUN_TEST_IMPL(isc_radix_search) {
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	node->data[0] = (void *)1;
-	isc_refcount_destroy(&prefix.refcount);
 
 	in_addr.s_addr = inet_addr("3.3.0.0");
 	isc_netaddr_fromin(&netaddr, &in_addr);
@@ -110,7 +106,6 @@ ISC_RUN_TEST_IMPL(isc_radix_search) {
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	node->data[0] = (void *)2;
-	isc_refcount_destroy(&prefix.refcount);
 
 	in_addr.s_addr = inet_addr("3.3.3.3");
 	isc_netaddr_fromin(&netaddr, &in_addr);
@@ -120,8 +115,6 @@ ISC_RUN_TEST_IMPL(isc_radix_search) {
 	result = isc_radix_search(radix, &node, &prefix);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_ptr_equal(node->data[0], (void *)2);
-
-	isc_refcount_destroy(&prefix.refcount);
 
 	isc_radix_destroy(radix, NULL);
 }

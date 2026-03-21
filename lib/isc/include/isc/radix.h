@@ -19,7 +19,6 @@
 #include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/net.h>
-#include <isc/refcount.h>
 #include <isc/types.h>
 
 #define NETADDR_TO_PREFIX_T(na, pt, bits)                                \
@@ -39,15 +38,13 @@
 			(pt).family = AF_UNSPEC;                         \
 			(pt).bitlen = 0;                                 \
 		}                                                        \
-		isc_refcount_init(&(pt).refcount, 0);                    \
 	} while (0)
 
 typedef struct isc_prefix {
 	isc_mem_t   *mctx;
 	unsigned int family;   /* AF_INET | AF_INET6, or AF_UNSPEC for
 				* "any" */
-	unsigned int   bitlen; /* 0 for "any" */
-	isc_refcount_t refcount;
+	unsigned int bitlen;   /* 0 for "any" */
 	union {
 		struct in_addr	sin;
 		struct in6_addr sin6;
