@@ -103,12 +103,12 @@ dns_acl_isanyornone(dns_acl_t *acl, bool pos) {
 	/* Should never happen but let's be safe */
 	if (acl == NULL || acl->iptable == NULL ||
 	    acl->iptable->radix == NULL || acl->iptable->radix->head == NULL ||
-	    !acl->iptable->radix->head->has_prefix)
+	    acl->iptable->radix->head->prefix.family == 0)
 	{
 		return false;
 	}
 
-	if (acl->length != 0 || dns_acl_node_count(acl) != 1) {
+	if (acl->length != 0 || dns_acl_node_count(acl) != 2) {
 		return false;
 	}
 

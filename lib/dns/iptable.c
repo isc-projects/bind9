@@ -43,44 +43,51 @@ static bool dns_iptable_pos = true;
 /*
  * Add an IP prefix to an existing IP table
  */
-isc_result_t
-dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		      uint16_t bitlen, bool pos) {
-	isc_result_t result;
-	isc_prefix_t pfx;
+static isc_result_t
+iptable_addentry(dns_iptable_t *tab, isc_prefix_t *pfx, bool pos) {
 	isc_radix_node_t *node = NULL;
-	int i;
+	isc_result_t result;
 
-	INSIST(DNS_IPTABLE_VALID(tab));
-	INSIST(tab->radix != NULL);
-
-	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
-
-	result = isc_radix_insert(tab->radix, &node, NULL, &pfx);
+	result = isc_radix_insert(tab->radix, &node, NULL, pfx);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
 
 	/* If a node already contains data, don't overwrite it */
-	if (pfx.family == AF_UNSPEC) {
-		/* "any" or "none" */
-		INSIST(pfx.bitlen == 0);
-		for (i = 0; i < RADIX_FAMILIES; i++) {
-			if (node->data[i] == NULL) {
-				node->data[i] = pos ? &dns_iptable_pos
-						    : &dns_iptable_neg;
-			}
-		}
-	} else {
-		/* any other prefix */
-		int fam = ISC_RADIX_FAMILY(&pfx);
-		if (node->data[fam] == NULL) {
-			node->data[fam] = pos ? &dns_iptable_pos
-					      : &dns_iptable_neg;
-		}
+	int fam = ISC_RADIX_FAMILY(pfx);
+	if (node->data[fam] == NULL) {
+		node->data[fam] = pos ? &dns_iptable_pos : &dns_iptable_neg;
 	}
 
 	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
+		      uint16_t bitlen, bool pos) {
+	isc_result_t result;
+
+	INSIST(DNS_IPTABLE_VALID(tab));
+	INSIST(tab->radix != NULL);
+
+	if (addr == NULL) {
+		/*
+		 * "any" or "none": insert both IPv4 and IPv6 wildcard
+		 * entries so they match all addresses.
+		 */
+		isc_prefix_t pfx4 = { .family = AF_INET, .bitlen = 0 };
+		isc_prefix_t pfx6 = { .family = AF_INET6, .bitlen = 0 };
+
+		result = iptable_addentry(tab, &pfx4, pos);
+		if (result != ISC_R_SUCCESS) {
+			return result;
+		}
+		return iptable_addentry(tab, &pfx6, pos);
+	}
+
+	isc_prefix_t pfx;
+	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
+	return iptable_addentry(tab, &pfx, pos);
 }
 
 /*

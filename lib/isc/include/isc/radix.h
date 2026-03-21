@@ -21,32 +21,26 @@
 #include <isc/types.h>
 
 typedef struct isc_prefix {
-	unsigned int family; /* AF_INET | AF_INET6, or AF_UNSPEC for
-			      * "any" */
-	unsigned int bitlen; /* 0 for "any" */
+	unsigned int family; /* AF_INET | AF_INET6 (0 means no prefix) */
+	unsigned int bitlen; /* prefix length in bits */
 	union {
 		struct in_addr	sin;
 		struct in6_addr sin6;
 	} add;
 } isc_prefix_t;
 
-#define NETADDR_TO_PREFIX_T(na, pt, bits)                                \
-	do {                                                             \
-		const void *p = na;                                      \
-		memset(&(pt), 0, sizeof(pt));                            \
-		if (p != NULL) {                                         \
-			(pt).family = (na)->family;                      \
-			(pt).bitlen = (bits);                            \
-			if ((pt).family == AF_INET6) {                   \
-				memmove(&(pt).add.sin6, &(na)->type.in6, \
-					((bits) + 7) / 8);               \
-			} else                                           \
-				memmove(&(pt).add.sin, &(na)->type.in,   \
-					((bits) + 7) / 8);               \
-		} else {                                                 \
-			(pt).family = AF_UNSPEC;                         \
-			(pt).bitlen = 0;                                 \
-		}                                                        \
+#define NETADDR_TO_PREFIX_T(na, pt, bits)                        \
+	do {                                                     \
+		memset(&(pt), 0, sizeof(pt));                    \
+		(pt).family = (na)->family;                      \
+		(pt).bitlen = (bits);                            \
+		if ((pt).family == AF_INET6) {                   \
+			memmove(&(pt).add.sin6, &(na)->type.in6, \
+				((bits) + 7) / 8);               \
+		} else {                                         \
+			memmove(&(pt).add.sin, &(na)->type.in,   \
+				((bits) + 7) / 8);               \
+		}                                                \
 	} while (0)
 
 typedef void (*isc_radix_destroyfunc_t)(void *);
@@ -85,12 +79,11 @@ typedef struct isc_radix_node {
 	struct isc_radix_node *parent; /* may be used */
 	void		      *data[RADIX_FAMILIES]; /* pointers to IPv4
 						      * and IPV6 data */
-	isc_prefix_t	       prefix;		     /* inline prefix data */
-	uint32_t	       bit;   /* bit length of the prefix */
-	int node_num[RADIX_FAMILIES]; /* which node this was in
-				       * the tree, or -1 for
-				       * glue nodes */
-	bool has_prefix;
+	isc_prefix_t	       prefix;		     /* inline prefix data;
+						      * family==0 for glue */
+	uint32_t bit;				     /* bit position */
+	int	 node_num[RADIX_FAMILIES];	     /* insertion order,
+						      * or -1 for glue */
 } isc_radix_node_t;
 
 #define RADIX_TREE_MAGIC    ISC_MAGIC('R', 'd', 'x', 'T')
@@ -189,7 +182,7 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 		isc_radix_node_t **Xsp = Xstack;              \
 		isc_radix_node_t  *Xrn = (Xhead);             \
 		while ((Xnode = Xrn)) {                       \
-			if (Xnode->has_prefix)
+			if (Xnode->prefix.family != 0)
 
 #define RADIX_WALK_END                       \
 	if (Xrn->l) {                        \
