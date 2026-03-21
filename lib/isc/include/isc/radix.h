@@ -17,9 +17,18 @@
 #include <string.h>
 
 #include <isc/magic.h>
-#include <isc/mutex.h>
 #include <isc/net.h>
 #include <isc/types.h>
+
+typedef struct isc_prefix {
+	unsigned int family; /* AF_INET | AF_INET6, or AF_UNSPEC for
+			      * "any" */
+	unsigned int bitlen; /* 0 for "any" */
+	union {
+		struct in_addr	sin;
+		struct in6_addr sin6;
+	} add;
+} isc_prefix_t;
 
 #define NETADDR_TO_PREFIX_T(na, pt, bits)                                \
 	do {                                                             \
@@ -39,17 +48,6 @@
 			(pt).bitlen = 0;                                 \
 		}                                                        \
 	} while (0)
-
-typedef struct isc_prefix {
-	isc_mem_t   *mctx;
-	unsigned int family;   /* AF_INET | AF_INET6, or AF_UNSPEC for
-				* "any" */
-	unsigned int bitlen;   /* 0 for "any" */
-	union {
-		struct in_addr	sin;
-		struct in6_addr sin6;
-	} add;
-} isc_prefix_t;
 
 typedef void (*isc_radix_destroyfunc_t)(void *);
 typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
@@ -83,18 +81,16 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 #define ISC_RADIX_FAMILY(p) (((p)->family == AF_INET6) ? RADIX_V6 : RADIX_V4)
 
 typedef struct isc_radix_node {
-	isc_mem_t	      *mctx;
-	uint32_t	       bit;    /* bit length of the prefix */
-	isc_prefix_t	      *prefix; /* who we are in radix tree */
 	struct isc_radix_node *l, *r;  /* left and right children */
 	struct isc_radix_node *parent; /* may be used */
 	void		      *data[RADIX_FAMILIES]; /* pointers to IPv4
 						      * and IPV6 data */
-	int node_num[RADIX_FAMILIES];		     /* which node
-						      * this was in
-						      * the tree,
-						      * or -1 for glue
-						      * nodes */
+	isc_prefix_t	       prefix;		     /* inline prefix data */
+	uint32_t	       bit;   /* bit length of the prefix */
+	int node_num[RADIX_FAMILIES]; /* which node this was in
+				       * the tree, or -1 for
+				       * glue nodes */
+	bool has_prefix;
 } isc_radix_node_t;
 
 #define RADIX_TREE_MAGIC    ISC_MAGIC('R', 'd', 'x', 'T')
@@ -102,9 +98,9 @@ typedef struct isc_radix_node {
 
 typedef struct isc_radix_tree {
 	unsigned int	  magic;
+	uint32_t	  maxbits; /* for IP, 32 bit addresses */
 	isc_mem_t	 *mctx;
 	isc_radix_node_t *head;
-	uint32_t	  maxbits;	   /* for IP, 32 bit addresses */
 	int		  num_active_node; /* for debugging purposes */
 	int		  num_added_node;  /* total number of nodes */
 } isc_radix_tree_t;
@@ -193,7 +189,7 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 		isc_radix_node_t **Xsp = Xstack;              \
 		isc_radix_node_t  *Xrn = (Xhead);             \
 		while ((Xnode = Xrn)) {                       \
-			if (Xnode->prefix)
+			if (Xnode->has_prefix)
 
 #define RADIX_WALK_END                       \
 	if (Xrn->l) {                        \

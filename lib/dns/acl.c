@@ -103,7 +103,7 @@ dns_acl_isanyornone(dns_acl_t *acl, bool pos) {
 	/* Should never happen but let's be safe */
 	if (acl == NULL || acl->iptable == NULL ||
 	    acl->iptable->radix == NULL || acl->iptable->radix->head == NULL ||
-	    acl->iptable->radix->head->prefix == NULL)
+	    !acl->iptable->radix->head->has_prefix)
 	{
 		return false;
 	}
@@ -112,7 +112,7 @@ dns_acl_isanyornone(dns_acl_t *acl, bool pos) {
 		return false;
 	}
 
-	if (acl->iptable->radix->head->prefix->bitlen == 0 &&
+	if (acl->iptable->radix->head->prefix.bitlen == 0 &&
 	    acl->iptable->radix->head->data[0] != NULL &&
 	    acl->iptable->radix->head->data[0] ==
 		    acl->iptable->radix->head->data[1] &&
