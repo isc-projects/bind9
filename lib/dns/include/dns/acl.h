@@ -76,7 +76,7 @@ struct dns_aclelement {
 	dns_geoip_elem_t geoip_elem;
 #endif /* HAVE_GEOIP2 */
 	dns_acl_t *nestedacl;
-	int	   node_num;
+	int32_t	   node_num;
 };
 
 #define dns_acl_node_count(acl) acl->iptable->radix->num_added_node

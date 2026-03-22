@@ -55,36 +55,16 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	*target = acl;
 }
 
-/*
- * Create a new ACL and initialize it with the value "any" or "none",
- * depending on the value of the "neg" parameter.
- * "any" is a positive iptable entry with bit length 0.
- * "none" is the same as "!any".
- */
-static void
-dns_acl_anyornone(isc_mem_t *mctx, bool neg, dns_acl_t **target) {
-	dns_acl_t *acl = NULL;
-
-	dns_acl_create(mctx, 0, &acl);
-	dns_iptable_addprefix(acl->iptable, NULL, 0, !neg);
-
-	*target = acl;
-}
-
-/*
- * Create a new ACL that matches everything.
- */
 void
 dns_acl_any(isc_mem_t *mctx, dns_acl_t **target) {
-	dns_acl_anyornone(mctx, false, target);
+	dns_acl_create(mctx, 0, target);
+	dns_iptable_addprefix((*target)->iptable, NULL, 0, RADIX_ALLOW);
 }
 
-/*
- * Create a new ACL that matches nothing.
- */
 void
 dns_acl_none(isc_mem_t *mctx, dns_acl_t **target) {
-	dns_acl_anyornone(mctx, true, target);
+	dns_acl_create(mctx, 0, target);
+	dns_iptable_addprefix((*target)->iptable, NULL, 0, RADIX_DENY);
 }
 
 /*
@@ -105,16 +85,16 @@ dns_acl_isanyornone(dns_acl_t *acl, bool pos) {
 		return false;
 	}
 
-	if (acl->iptable->radix->head->prefix.bitlen == 0 &&
-	    acl->iptable->radix->head->data[0] != NULL &&
-	    acl->iptable->radix->head->data[0] ==
-		    acl->iptable->radix->head->data[1] &&
-	    *(bool *)(acl->iptable->radix->head->data[0]) == pos)
+	isc_radix_node_t *head = acl->iptable->radix->head;
+	isc_radix_match_t expected = pos ? RADIX_ALLOW : RADIX_DENY;
+
+	if (head->prefix.bitlen == 0 && head->match[RADIX_V4] == expected &&
+	    head->match[RADIX_V6] == expected)
 	{
 		return true;
 	}
 
-	return false; /* All others */
+	return false;
 }
 
 /*
@@ -150,7 +130,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	const isc_netaddr_t *addr = reqaddr;
 	isc_netaddr_t v4addr;
 	isc_result_t result;
-	int match_num = -1;
+	int32_t match_num = -1;
 	unsigned int i;
 
 	REQUIRE(reqaddr != NULL);
@@ -165,7 +145,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 
 	/* Always match with host addresses. */
 	bitlen = (addr->family == AF_INET6) ? 128 : 32;
-	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
+	isc_prefix_from_netaddr(&pfx, addr, bitlen);
 
 	/* Assume no match. */
 	*match = 0;
@@ -177,7 +157,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	if (result == ISC_R_SUCCESS && node != NULL) {
 		int fam = ISC_RADIX_FAMILY(&pfx);
 		match_num = node->node_num[fam];
-		if (*(bool *)node->data[fam]) {
+		if (node->match[fam] == RADIX_ALLOW) {
 			*match = match_num;
 		} else {
 			*match = -match_num;
@@ -263,7 +243,7 @@ dns_acl_match_port_transport(const isc_netaddr_t *reqaddr,
 isc_result_t
 dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 	unsigned int nelem, i;
-	int max_node = 0, nodes;
+	int32_t max_node = 0, nodes;
 
 	/* Resize the element array if needed. */
 	if (dest->length + source->length > dest->alloc) {
@@ -335,7 +315,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 	 * node_count value is set correctly afterward.
 	 */
 	nodes = max_node + dns_acl_node_count(dest);
-	dns_iptable_merge(dest->iptable, source->iptable, pos);
+	dns_iptable_merge(dest->iptable, source->iptable, !pos);
 	if (nodes > dns_acl_node_count(dest)) {
 		dns_acl_node_count(dest) = nodes;
 	}
@@ -500,13 +480,12 @@ static void
 check_insecure(isc_radix_node_t *node, void *arg) {
 	bool *found = arg;
 	isc_prefix_t *prefix = &node->prefix;
-	void **data = node->data;
 
 	/*
 	 * If all nonexistent or negative then this node is secure.
 	 */
-	if ((data[0] == NULL || !*(bool *)data[0]) &&
-	    (data[1] == NULL || !*(bool *)data[1]))
+	if (node->match[RADIX_V4] != RADIX_ALLOW &&
+	    node->match[RADIX_V6] != RADIX_ALLOW)
 	{
 		return;
 	}
@@ -517,13 +496,13 @@ check_insecure(isc_radix_node_t *node, void *arg) {
 	 */
 	if (prefix->bitlen == 32 &&
 	    htonl(prefix->add.sin.s_addr) == INADDR_LOOPBACK &&
-	    (data[1] == NULL || !*(bool *)data[1]))
+	    node->match[RADIX_V6] != RADIX_ALLOW)
 	{
 		return;
 	}
 
 	if (prefix->bitlen == 128 && IN6_IS_ADDR_LOOPBACK(&prefix->add.sin6) &&
-	    (data[0] == NULL || !*(bool *)data[0]))
+	    node->match[RADIX_V4] != RADIX_ALLOW)
 	{
 		return;
 	}

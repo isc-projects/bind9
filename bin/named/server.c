@@ -3537,7 +3537,7 @@ create_mapped_acl(void) {
 	isc_netaddr_fromin6(&addr, &in6);
 
 	dns_acl_create(isc_g_mctx, 1, &acl);
-	dns_iptable_addprefix(acl->iptable, &addr, 96, true);
+	dns_iptable_addprefix(acl->iptable, &addr, 96, RADIX_ALLOW);
 	named_g_mapped = acl;
 }
 
