@@ -49,8 +49,7 @@ insert_prefix(isc_radix_tree_t *radix, const char *str, uint16_t bitlen,
 
 	prefix_from_str(str, bitlen, &pfx);
 
-	isc_result_t result = isc_radix_insert(radix, &node, NULL, &pfx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_radix_insert(radix, &node, NULL, &pfx);
 	node->data[RADIX_V4] = data;
 
 	return node;

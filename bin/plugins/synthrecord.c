@@ -512,7 +512,8 @@ synthrecord_parseallowsynth(synthrecord_t *inst, const cfg_obj_t *cfg,
 	result = cfg_map_get(synthrecordcfg, "allow-synth", &obj);
 
 	if (result == ISC_R_NOTFOUND) {
-		return dns_acl_any(inst->mctx, &inst->allowedsynth);
+		dns_acl_any(inst->mctx, &inst->allowedsynth);
+		return ISC_R_SUCCESS;
 	}
 
 	if (result != ISC_R_SUCCESS) {

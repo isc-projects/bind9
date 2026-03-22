@@ -287,7 +287,7 @@ parse_parameters(filter_instance_t *inst, const char *parameters,
 					 (cfg_aclconfctx_t *)aclctx, mctx, 0,
 					 &inst->aaaa_acl));
 	} else {
-		CHECK(dns_acl_any(mctx, &inst->aaaa_acl));
+		dns_acl_any(mctx, &inst->aaaa_acl);
 	}
 
 cleanup:

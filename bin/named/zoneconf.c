@@ -1862,8 +1862,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		(void)named_config_get(nooptions, "allow-transfer", &obj);
 		if (obj == NULL) {
-			dns_acl_t *none;
-			CHECK(dns_acl_none(mctx, &none));
+			dns_acl_t *none = NULL;
+			dns_acl_none(mctx, &none);
 			dns_zone_setxfracl(zone, none);
 			dns_acl_detach(&none);
 		}

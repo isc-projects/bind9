@@ -115,7 +115,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
  * \li	ISC_R_SUCCESS
  */
 
-isc_result_t
+void
 isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		 isc_radix_node_t *source, isc_prefix_t *prefix);
 /*%<
@@ -127,9 +127,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
  * \li	'target' is not NULL and "*target" is NULL.
  * \li	'prefix' to be valid or 'source' to be non NULL and contain
  *	a valid prefix.
- *
- * Returns:
- * \li	ISC_R_SUCCESS
  */
 
 void

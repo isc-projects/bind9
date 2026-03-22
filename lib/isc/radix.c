@@ -11,12 +11,6 @@
  * information regarding copyright ownership.
  */
 
-/*
- * This source was adapted from MRT's RCS Ids:
- * Id: radix.c,v 1.10.2.1 1999/11/29 05:16:24 masaki Exp
- * Id: prefix.c,v 1.37.2.9 2000/03/10 02:53:19 labovit Exp
- */
-
 #include <inttypes.h>
 
 #include <isc/mem.h>
@@ -209,7 +203,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	return ISC_R_SUCCESS;
 }
 
-isc_result_t
+void
 isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		 isc_radix_node_t *source, isc_prefix_t *prefix) {
 	isc_radix_node_t *node;
@@ -254,7 +248,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		radix->head = node;
 		radix->num_active_node++;
 		*target = node;
-		return ISC_R_SUCCESS;
+		return;
 	}
 
 	u_char *addr = isc_prefix_touchar(prefix);
@@ -334,7 +328,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 				}
 			}
 			*target = node;
-			return ISC_R_SUCCESS;
+			return;
 		} else {
 			node->prefix = *prefix;
 		}
@@ -357,7 +351,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			node->node_num[ISC_RADIX_FAMILY(prefix)] = next;
 		}
 		*target = node;
-		return ISC_R_SUCCESS;
+		return;
 	}
 
 	isc_radix_node_t *new_node = radix_node_create(radix->mctx, prefix,
@@ -396,7 +390,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			node->left = new_node;
 		}
 		*target = new_node;
-		return ISC_R_SUCCESS;
+		return;
 	}
 
 	if (bitlen == differ_bit) {
@@ -446,7 +440,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	}
 
 	*target = new_node;
-	return ISC_R_SUCCESS;
+	return;
 }
 
 void

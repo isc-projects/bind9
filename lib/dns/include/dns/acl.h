@@ -125,13 +125,13 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
  * length is 0.
  */
 
-isc_result_t
+void
 dns_acl_any(isc_mem_t *mctx, dns_acl_t **target);
 /*%<
  * Create a new ACL that matches everything.
  */
 
-isc_result_t
+void
 dns_acl_none(isc_mem_t *mctx, dns_acl_t **target);
 /*%<
  * Create a new ACL that matches nothing.

@@ -84,12 +84,7 @@ create_zone(sample_instance_t *const inst, dns_name_t *const name,
 	}
 
 	/* This is completely insecure - use some sensible values instead! */
-	result = dns_acl_any(inst->mctx, &acl_any);
-	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR, "create_zone: dns_acl_any -> %s\n",
-			  isc_result_totext(result));
-		goto cleanup;
-	}
+	dns_acl_any(inst->mctx, &acl_any);
 	dns_zone_setupdateacl(raw, acl_any);
 	dns_zone_setqueryacl(raw, acl_any);
 	dns_zone_setxfracl(raw, acl_any);

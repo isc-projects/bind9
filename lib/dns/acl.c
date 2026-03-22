@@ -61,37 +61,30 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
  * "any" is a positive iptable entry with bit length 0.
  * "none" is the same as "!any".
  */
-static isc_result_t
+static void
 dns_acl_anyornone(isc_mem_t *mctx, bool neg, dns_acl_t **target) {
-	isc_result_t result;
 	dns_acl_t *acl = NULL;
 
 	dns_acl_create(mctx, 0, &acl);
-
-	result = dns_iptable_addprefix(acl->iptable, NULL, 0, !neg);
-	if (result != ISC_R_SUCCESS) {
-		dns_acl_detach(&acl);
-		return result;
-	}
+	dns_iptable_addprefix(acl->iptable, NULL, 0, !neg);
 
 	*target = acl;
-	return result;
 }
 
 /*
  * Create a new ACL that matches everything.
  */
-isc_result_t
+void
 dns_acl_any(isc_mem_t *mctx, dns_acl_t **target) {
-	return dns_acl_anyornone(mctx, false, target);
+	dns_acl_anyornone(mctx, false, target);
 }
 
 /*
  * Create a new ACL that matches nothing.
  */
-isc_result_t
+void
 dns_acl_none(isc_mem_t *mctx, dns_acl_t **target) {
-	return dns_acl_anyornone(mctx, true, target);
+	dns_acl_anyornone(mctx, true, target);
 }
 
 /*
@@ -342,7 +335,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 	 * node_count value is set correctly afterward.
 	 */
 	nodes = max_node + dns_acl_node_count(dest);
-	RETERR(dns_iptable_merge(dest->iptable, source->iptable, pos));
+	dns_iptable_merge(dest->iptable, source->iptable, pos);
 	if (nodes > dns_acl_node_count(dest)) {
 		dns_acl_node_count(dest) = nodes;
 	}

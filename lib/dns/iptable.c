@@ -43,30 +43,22 @@ static bool dns_iptable_pos = true;
 /*
  * Add an IP prefix to an existing IP table
  */
-static isc_result_t
+static void
 iptable_addentry(dns_iptable_t *tab, isc_prefix_t *pfx, bool pos) {
 	isc_radix_node_t *node = NULL;
-	isc_result_t result;
 
-	result = isc_radix_insert(tab->radix, &node, NULL, pfx);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	isc_radix_insert(tab->radix, &node, NULL, pfx);
 
 	/* Preserve first-match semantics: don't overwrite existing data */
 	int fam = ISC_RADIX_FAMILY(pfx);
 	if (node->data[fam] == NULL) {
 		node->data[fam] = pos ? &dns_iptable_pos : &dns_iptable_neg;
 	}
-
-	return ISC_R_SUCCESS;
 }
 
-isc_result_t
+void
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 		      uint16_t bitlen, bool pos) {
-	isc_result_t result;
-
 	INSIST(DNS_IPTABLE_VALID(tab));
 	INSIST(tab->radix != NULL);
 
@@ -78,29 +70,27 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 		isc_prefix_t pfx4 = { .family = AF_INET, .bitlen = 0 };
 		isc_prefix_t pfx6 = { .family = AF_INET6, .bitlen = 0 };
 
-		result = iptable_addentry(tab, &pfx4, pos);
-		if (result != ISC_R_SUCCESS) {
-			return result;
-		}
-		return iptable_addentry(tab, &pfx6, pos);
+		iptable_addentry(tab, &pfx4, pos);
+		iptable_addentry(tab, &pfx6, pos);
+		return;
 	}
 
 	isc_prefix_t pfx;
 	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
-	return iptable_addentry(tab, &pfx, pos);
+	iptable_addentry(tab, &pfx, pos);
 }
 
 /*
  * Merge one IP table into another one.
  */
-isc_result_t
+void
 dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos) {
 	isc_radix_node_t *node, *new_node;
-	int i, max_node = 0;
+	int max_node = 0;
 
 	RADIX_WALK(source->radix->head, node) {
 		new_node = NULL;
-		RETERR(isc_radix_insert(tab->radix, &new_node, node, NULL));
+		isc_radix_insert(tab->radix, &new_node, node, NULL);
 
 		/*
 		 * If we're negating a nested ACL, then we should
@@ -110,9 +100,11 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos) {
 		 * could be a security risk.  To prevent this, we
 		 * just leave the negative nodes negative.
 		 */
-		for (i = 0; i < RADIX_FAMILIES; i++) {
+		for (int i = 0; i < RADIX_FAMILIES; i++) {
 			if (!pos) {
-				if (node->data[i] && *(bool *)node->data[i]) {
+				if (node->data[i] != NULL &&
+				    *(bool *)node->data[i])
+				{
 					new_node->data[i] = &dns_iptable_neg;
 				}
 			}
@@ -124,7 +116,6 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos) {
 	RADIX_WALK_END;
 
 	tab->radix->num_added_node += max_node;
-	return ISC_R_SUCCESS;
 }
 
 static void

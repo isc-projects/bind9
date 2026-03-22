@@ -744,8 +744,7 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 			 * the nestedacl element, not the iptable entry.
 			 */
 			setpos = (nest_level != 0 || !neg);
-			CHECK(dns_iptable_addprefix(iptab, &addr, bitlen,
-						    setpos));
+			dns_iptable_addprefix(iptab, &addr, bitlen, setpos);
 
 			if (nest_level > 0) {
 				INSIST(dacl->length < dacl->alloc);
@@ -814,8 +813,7 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 			if (strcasecmp(name, "any") == 0) {
 				/* Iptable entry with zero bit length. */
 				setpos = (nest_level != 0 || !neg);
-				CHECK(dns_iptable_addprefix(iptab, NULL, 0,
-							    setpos));
+				dns_iptable_addprefix(iptab, NULL, 0, setpos);
 
 				if (nest_level != 0) {
 					INSIST(dacl->length < dacl->alloc);
@@ -833,8 +831,7 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 				 * "!none;".
 				 */
 				setpos = (nest_level != 0 || neg);
-				CHECK(dns_iptable_addprefix(iptab, NULL, 0,
-							    setpos));
+				dns_iptable_addprefix(iptab, NULL, 0, setpos);
 
 				if (!neg) {
 					dacl->has_negatives = !neg;
