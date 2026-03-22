@@ -120,17 +120,34 @@ isc_radix_destroy(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func) {
 	isc_mem_putanddetach(&radix->mctx, radix, sizeof(*radix));
 }
 
-/*
- * func will be called as func(node->prefix, node->data)
- */
 void
-isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func) {
-	isc_radix_node_t *node;
+isc_radix_foreach(isc_radix_tree_t *radix, isc_radix_foreachfunc_t func,
+		  void *arg) {
+	isc_radix_node_t *stack[RADIX_MAXBITS + 1];
+	isc_radix_node_t **sp = stack;
+	isc_radix_node_t *cur = radix->head;
 
+	REQUIRE(radix != NULL);
 	REQUIRE(func != NULL);
 
-	RADIX_WALK(radix->head, node) { func(&node->prefix, node->data); }
-	RADIX_WALK_END;
+	while (cur != NULL) {
+		if (cur->prefix.family != 0) {
+			func(cur, arg);
+		}
+
+		if (cur->left != NULL) {
+			if (cur->right != NULL) {
+				*sp++ = cur->right;
+			}
+			cur = cur->left;
+		} else if (cur->right != NULL) {
+			cur = cur->right;
+		} else if (sp != stack) {
+			cur = *(--sp);
+		} else {
+			cur = NULL;
+		}
+	}
 }
 
 isc_result_t

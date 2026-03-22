@@ -44,7 +44,6 @@ typedef struct isc_prefix {
 	}
 
 typedef void (*isc_radix_destroyfunc_t)(void *);
-typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 
 #define isc_prefix_tochar(prefix)  ((char *)&(prefix)->add.sin)
 #define isc_prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
@@ -85,6 +84,8 @@ typedef struct isc_radix_node {
 	int	 node_num[RADIX_FAMILIES];	     /* insertion order,
 						      * or -1 for glue */
 } isc_radix_node_t;
+
+typedef void (*isc_radix_foreachfunc_t)(isc_radix_node_t *node, void *arg);
 
 #define RADIX_TREE_MAGIC    ISC_MAGIC('R', 'd', 'x', 'T')
 #define RADIX_TREE_VALID(a) ISC_MAGIC_VALID(a, RADIX_TREE_MAGIC)
@@ -160,39 +161,14 @@ isc_radix_destroy(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
  */
 
 void
-isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
+isc_radix_foreach(isc_radix_tree_t *radix, isc_radix_foreachfunc_t func,
+		  void *arg);
 /*%<
- * Walk a radix tree calling 'func' to process node data.
+ * Walk a radix tree calling 'func' for each node that has a prefix.
  *
  * Requires:
  * \li	'radix' to be valid.
  * \li	'func' to point to a function.
  */
 
-#define RADIX_MAXBITS  128
-#define RADIX_NBIT(x)  (0x80 >> ((x) & 0x7f))
-#define RADIX_NBYTE(x) ((x) >> 3)
-
-#define RADIX_WALK(head, node)                               \
-	{                                                    \
-		isc_radix_node_t  *stack[RADIX_MAXBITS + 1]; \
-		isc_radix_node_t **sp = stack;               \
-		isc_radix_node_t  *cur = (head);             \
-		while (((node) = cur) != NULL) {             \
-			if ((node)->prefix.family != 0)
-
-#define RADIX_WALK_END                      \
-	if (cur->left != NULL) {            \
-		if (cur->right != NULL) {   \
-			*sp++ = cur->right; \
-		}                           \
-		cur = cur->left;            \
-	} else if (cur->right != NULL) {    \
-		cur = cur->right;           \
-	} else if (sp != stack) {           \
-		cur = *(--sp);              \
-	} else {                            \
-		cur = NULL;                 \
-	}                                   \
-	}                                   \
-	}
+#define RADIX_MAXBITS 128

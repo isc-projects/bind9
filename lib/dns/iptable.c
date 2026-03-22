@@ -80,42 +80,49 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 	iptable_addentry(tab, &pfx, pos);
 }
 
+typedef struct {
+	dns_iptable_t *tab;
+	bool pos;
+	int max_node;
+} iptable_merge_ctx_t;
+
+static void
+iptable_merge_node(isc_radix_node_t *node, void *arg) {
+	iptable_merge_ctx_t *ctx = arg;
+	isc_radix_node_t *new_node = NULL;
+
+	isc_radix_insert(ctx->tab->radix, &new_node, node, NULL);
+
+	/*
+	 * If we're negating a nested ACL, then we should
+	 * reverse the sense of every node.  However, this
+	 * could lead to a negative node in a nested ACL
+	 * becoming a positive match in the parent, which
+	 * could be a security risk.  To prevent this, we
+	 * just leave the negative nodes negative.
+	 */
+	for (size_t i = 0; i < RADIX_FAMILIES; i++) {
+		if (!ctx->pos && node->data[i] != NULL &&
+		    *(bool *)node->data[i])
+		{
+			new_node->data[i] = &dns_iptable_neg;
+		}
+		if (node->node_num[i] > ctx->max_node) {
+			ctx->max_node = node->node_num[i];
+		}
+	}
+}
+
 /*
  * Merge one IP table into another one.
  */
 void
 dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos) {
-	isc_radix_node_t *node, *new_node;
-	int max_node = 0;
+	iptable_merge_ctx_t ctx = { .tab = tab, .pos = pos };
 
-	RADIX_WALK(source->radix->head, node) {
-		new_node = NULL;
-		isc_radix_insert(tab->radix, &new_node, node, NULL);
+	isc_radix_foreach(source->radix, iptable_merge_node, &ctx);
 
-		/*
-		 * If we're negating a nested ACL, then we should
-		 * reverse the sense of every node.  However, this
-		 * could lead to a negative node in a nested ACL
-		 * becoming a positive match in the parent, which
-		 * could be a security risk.  To prevent this, we
-		 * just leave the negative nodes negative.
-		 */
-		for (int i = 0; i < RADIX_FAMILIES; i++) {
-			if (!pos) {
-				if (node->data[i] != NULL &&
-				    *(bool *)node->data[i])
-				{
-					new_node->data[i] = &dns_iptable_neg;
-				}
-			}
-			if (node->node_num[i] > max_node) {
-				max_node = node->node_num[i];
-			}
-		}
-	}
-	RADIX_WALK_END;
-
-	tab->radix->num_added_node += max_node;
+	tab->radix->num_added_node += ctx.max_node;
 }
 
 static void

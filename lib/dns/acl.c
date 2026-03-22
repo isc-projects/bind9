@@ -486,25 +486,22 @@ ISC_REFCOUNT_TRACE_IMPL(dns_acl, dns__acl_destroy);
 ISC_REFCOUNT_IMPL(dns_acl, dns__acl_destroy);
 #endif
 
-static isc_mutex_t insecure_prefix_lock;
-static bool insecure_prefix_found;
+void
+dns__acl_initialize(void) {}
 
 void
-dns__acl_initialize(void) {
-	isc_mutex_init(&insecure_prefix_lock);
-}
-
-void
-dns__acl_shutdown(void) {
-	isc_mutex_destroy(&insecure_prefix_lock);
-}
+dns__acl_shutdown(void) {}
 
 /*
- * Called via isc_radix_process() to find IP table nodes that are
- * insecure.
+ * Check whether a radix node represents an insecure prefix
+ * (non-negated, non-loopback).
  */
 static void
-is_insecure(isc_prefix_t *prefix, void **data) {
+check_insecure(isc_radix_node_t *node, void *arg) {
+	bool *found = arg;
+	isc_prefix_t *prefix = &node->prefix;
+	void **data = node->data;
+
 	/*
 	 * If all nonexistent or negative then this node is secure.
 	 */
@@ -532,8 +529,7 @@ is_insecure(isc_prefix_t *prefix, void **data) {
 	}
 
 	/* Non-negated, non-loopback */
-	insecure_prefix_found = true; /* LOCKED */
-	return;
+	*found = true;
 }
 
 /*
@@ -553,11 +549,8 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 	 * Walk radix tree to find out if there are any non-negated,
 	 * non-loopback prefixes.
 	 */
-	LOCK(&insecure_prefix_lock);
-	insecure_prefix_found = false;
-	isc_radix_process(a->iptable->radix, is_insecure);
-	insecure = insecure_prefix_found;
-	UNLOCK(&insecure_prefix_lock);
+	insecure = false;
+	isc_radix_foreach(a->iptable->radix, check_insecure, &insecure);
 	if (insecure) {
 		return true;
 	}
