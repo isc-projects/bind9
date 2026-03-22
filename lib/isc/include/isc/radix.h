@@ -30,7 +30,7 @@ typedef struct isc_prefix {
 } isc_prefix_t;
 
 #define NETADDR_TO_PREFIX_T(na, pt, bits)                        \
-	do {                                                     \
+	{                                                        \
 		memset(&(pt), 0, sizeof(pt));                    \
 		(pt).family = (na)->family;                      \
 		(pt).bitlen = (bits);                            \
@@ -41,7 +41,7 @@ typedef struct isc_prefix {
 			memmove(&(pt).add.sin, &(na)->type.in,   \
 				((bits) + 7) / 8);               \
 		}                                                \
-	} while (0)
+	}
 
 typedef void (*isc_radix_destroyfunc_t)(void *);
 typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
@@ -75,7 +75,7 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 #define ISC_RADIX_FAMILY(p) (((p)->family == AF_INET6) ? RADIX_V6 : RADIX_V4)
 
 typedef struct isc_radix_node {
-	struct isc_radix_node *l, *r;  /* left and right children */
+	struct isc_radix_node *left, *right; /* children */
 	struct isc_radix_node *parent; /* may be used */
 	void		      *data[RADIX_FAMILIES]; /* pointers to IPv4
 						      * and IPV6 data */
@@ -176,27 +176,26 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 #define RADIX_NBIT(x)  (0x80 >> ((x) & 0x7f))
 #define RADIX_NBYTE(x) ((x) >> 3)
 
-#define RADIX_WALK(Xhead, Xnode)                              \
-	do {                                                  \
-		isc_radix_node_t  *Xstack[RADIX_MAXBITS + 1]; \
-		isc_radix_node_t **Xsp = Xstack;              \
-		isc_radix_node_t  *Xrn = (Xhead);             \
-		while ((Xnode = Xrn)) {                       \
-			if (Xnode->prefix.family != 0)
+#define RADIX_WALK(head, node)                               \
+	{                                                    \
+		isc_radix_node_t  *stack[RADIX_MAXBITS + 1]; \
+		isc_radix_node_t **sp = stack;               \
+		isc_radix_node_t  *cur = (head);             \
+		while (((node) = cur) != NULL) {             \
+			if ((node)->prefix.family != 0)
 
-#define RADIX_WALK_END                       \
-	if (Xrn->l) {                        \
-		if (Xrn->r) {                \
-			*Xsp++ = Xrn->r;     \
-		}                            \
-		Xrn = Xrn->l;                \
-	} else if (Xrn->r) {                 \
-		Xrn = Xrn->r;                \
-	} else if (Xsp != Xstack) {          \
-		Xrn = *(--Xsp);              \
-	} else {                             \
-		Xrn = (isc_radix_node_t *)0; \
-	}                                    \
-	}                                    \
-	}                                    \
-	while (0)
+#define RADIX_WALK_END                      \
+	if (cur->left != NULL) {            \
+		if (cur->right != NULL) {   \
+			*sp++ = cur->right; \
+		}                           \
+		cur = cur->left;            \
+	} else if (cur->right != NULL) {    \
+		cur = cur->right;           \
+	} else if (sp != stack) {           \
+		cur = *(--sp);              \
+	} else {                            \
+		cur = NULL;                 \
+	}                                   \
+	}                                   \
+	}

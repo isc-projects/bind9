@@ -53,7 +53,7 @@ iptable_addentry(dns_iptable_t *tab, isc_prefix_t *pfx, bool pos) {
 		return result;
 	}
 
-	/* If a node already contains data, don't overwrite it */
+	/* Preserve first-match semantics: don't overwrite existing data */
 	int fam = ISC_RADIX_FAMILY(pfx);
 	if (node->data[fam] == NULL) {
 		node->data[fam] = pos ? &dns_iptable_pos : &dns_iptable_neg;
