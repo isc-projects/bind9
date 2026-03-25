@@ -357,7 +357,7 @@ enum {
 					 (x) == dns_trust_pending_additional)
 #define DNS_TRUST_GLUE(x)		((x) == dns_trust_glue)
 #define DNS_TRUST_ANSWER(x)		((x) == dns_trust_answer)
-
+#define DNS_TRUST_SECURE(x)		((x) >= dns_trust_secure)
 
 /*%
  * Name checking severities.
