@@ -1,4 +1,7 @@
 variables:
+  # The default timeout is 60 minutes. Set RUNNER_SCRIPT_TIMEOUT to 55m to
+  # leave room for the after_script timeout that defaults to 5m.
+  RUNNER_SCRIPT_TIMEOUT: 55m
   # Not normally needed, but may be if some script uses `apt-get install`.
   DEBIAN_FRONTEND: noninteractive
   # Locale settings do not affect the build, but might affect tests.
