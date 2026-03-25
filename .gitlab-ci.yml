@@ -1,4 +1,7 @@
 variables:
+  # The default timeout is 60 minutes. Set RUNNER_SCRIPT_TIMEOUT to 55m to
+  # leave room for the after_script timeout that defaults to 5m.
+  RUNNER_SCRIPT_TIMEOUT: 55m
   # Not normally needed, but may be if some script uses `apt-get install`.
   DEBIAN_FRONTEND: noninteractive
   # Locale settings do not affect the build, but might affect tests.
@@ -493,6 +496,9 @@ stages:
         SHOTGUN_ROUNDS: 5
       when: manual
       allow_failure: true
+  timeout: 2h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 1h55m
   script:
     - if [ -n "$WEEKDAY" ] && [ "$(date +%w)" != "$WEEKDAY" ]; then exit 0; fi  # if WEEKDAY is set, only run on those days
     - if [ -z "$BASELINE" ]; then export BASELINE=$BIND_BASELINE_VERSION; fi  # this dotenv variable can't be set in the rules section, because rules are evaluated before any jobs run
@@ -521,7 +527,6 @@ stages:
   needs:
     - job: ci-variables
       artifacts: true
-  timeout: 2h
 
 .system_test_common: &system_test_job
   <<: *default_triggering_rules
