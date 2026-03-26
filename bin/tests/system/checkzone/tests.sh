@@ -444,5 +444,15 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "Checking for no NS records warning ($n)"
+ret=0
+$CHECKZONE example zones/warn.no-apex-ns.db >test.out.$n || ret=1
+grep "zone example/IN: has no NS records" test.out.$n >/dev/null || ret=1
+grep "OK" test.out.$n >/dev/null || ret=1
+$CHECKZONE -n fail example zones/warn.no-apex-ns.db >/dev/null && ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

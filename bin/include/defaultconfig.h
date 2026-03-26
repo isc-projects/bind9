@@ -127,6 +127,7 @@ options {\n\
 	check-names primary fail;\n\
 	check-names response ignore;\n\
 	check-names secondary warn;\n\
+	check-ns warn;\n\
 	check-spf warn;\n\
 	check-svcb yes;\n\
 	clients-per-query 10;\n\

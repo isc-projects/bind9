@@ -10,6 +10,7 @@ zone <string> [ <class> ] {
 	check-mx ( fail | warn | ignore );
 	check-mx-cname ( fail | warn | ignore );
 	check-names ( fail | warn | ignore );
+	check-ns ( fail | warn | ignore );
 	check-sibling <boolean>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );

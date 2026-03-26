@@ -91,6 +91,7 @@ options {
 	check-mx ( fail | warn | ignore );
 	check-mx-cname ( fail | warn | ignore );
 	check-names ( primary | master | secondary | slave | response ) ( fail | warn | ignore ); // may occur multiple times
+	check-ns ( fail | warn | ignore );
 	check-sibling <boolean>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
@@ -384,6 +385,7 @@ template <string> {
 	check-mx ( fail | warn | ignore );
 	check-mx-cname ( fail | warn | ignore );
 	check-names ( fail | warn | ignore );
+	check-ns ( fail | warn | ignore );
 	check-sibling <boolean>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
@@ -504,6 +506,7 @@ view <string> [ <class> ] {
 	check-mx ( fail | warn | ignore );
 	check-mx-cname ( fail | warn | ignore );
 	check-names ( primary | master | secondary | slave | response ) ( fail | warn | ignore ); // may occur multiple times
+	check-ns ( fail | warn | ignore );
 	check-sibling <boolean>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );

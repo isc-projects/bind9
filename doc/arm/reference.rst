@@ -2654,6 +2654,14 @@ Boolean Options
    default is to ``warn``. Other possible values are ``fail`` and
    ``ignore``.
 
+.. namedconf:statement:: check-ns
+   :tags: zone
+   :short: Checks existence and correctness of NS records.
+
+   This checks whether a zone has an NS record at its apex, and whether
+   NS records appear to refer to IP addresses. The default is to ``warn``.
+   Other possible values are ``fail`` and ``ignore``.
+
 .. namedconf:statement:: check-wildcard
    :tags: zone
    :short: Checks for non-terminal wildcards.
