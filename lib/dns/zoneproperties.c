@@ -1224,20 +1224,6 @@ dns_zone_setzeronosoattl(dns_zone_t *zone, bool state) {
 }
 
 void
-dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	zone->check_names = severity;
-}
-
-dns_severity_t
-dns_zone_getchecknames(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return zone->check_names;
-}
-
-void
 dns_zone_setjournalsize(dns_zone_t *zone, int32_t size) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 

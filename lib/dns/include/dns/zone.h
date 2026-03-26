@@ -105,29 +105,28 @@ typedef enum {
 	DNS_ZONEOPT_CHECKMX = 1 << 10,	    /*%< check-mx */
 	DNS_ZONEOPT_CHECKMXFAIL = 1 << 11,  /*%< fatal check-mx failures */
 	DNS_ZONEOPT_CHECKINTEGRITY = 1 << 12, /*%< perform integrity checks */
-	DNS_ZONEOPT_CHECKSIBLING = 1 << 13, /*%< perform sibling glue checks */
-	DNS_ZONEOPT_NOCHECKNS = 1 << 14,    /*%< disable IN NS address checks */
-	DNS_ZONEOPT_WARNMXCNAME = 1 << 15,  /*%< warn on MX CNAME check */
-	DNS_ZONEOPT_IGNOREMXCNAME = 1 << 16,  /*%< ignore MX CNAME check */
-	DNS_ZONEOPT_WARNSRVCNAME = 1 << 17,   /*%< warn on SRV CNAME check */
-	DNS_ZONEOPT_IGNORESRVCNAME = 1 << 18, /*%< ignore SRV CNAME check */
-	DNS_ZONEOPT_UPDATECHECKKSK = 1 << 19, /*%< check dnskey KSK flag */
-	DNS_ZONEOPT_TRYTCPREFRESH = 1 << 20, /*%< try tcp refresh on udp failure
+	DNS_ZONEOPT_CHECKSIBLING = 1 << 13,  /*%< perform sibling glue checks */
+	DNS_ZONEOPT_WARNMXCNAME = 1 << 14,   /*%< warn on MX CNAME check */
+	DNS_ZONEOPT_IGNOREMXCNAME = 1 << 15, /*%< ignore MX CNAME check */
+	DNS_ZONEOPT_WARNSRVCNAME = 1 << 16,  /*%< warn on SRV CNAME check */
+	DNS_ZONEOPT_IGNORESRVCNAME = 1 << 17, /*%< ignore SRV CNAME check */
+	DNS_ZONEOPT_UPDATECHECKKSK = 1 << 18, /*%< check dnskey KSK flag */
+	DNS_ZONEOPT_TRYTCPREFRESH = 1 << 19, /*%< try tcp refresh on udp failure
 					      */
-	DNS_ZONEOPT_NOTIFYTOSOA = 1 << 21,   /*%< Notify the SOA MNAME */
-	DNS_ZONEOPT_NSEC3TESTZONE = 1 << 22, /*%< nsec3-test-zone */
-	DNS_ZONEOPT_LOGREPORTS = 1 << 23,    /* Log error-reporting queries */
-	DNS_ZONEOPT_DNSKEYKSKONLY = 1 << 24, /*%< dnssec-dnskey-kskonly */
-	DNS_ZONEOPT_CHECKDUPRR = 1 << 25,    /*%< check-dup-records */
-	DNS_ZONEOPT_CHECKDUPRRFAIL = 1 << 26, /*%< fatal check-dup-records
+	DNS_ZONEOPT_NOTIFYTOSOA = 1 << 20,   /*%< Notify the SOA MNAME */
+	DNS_ZONEOPT_NSEC3TESTZONE = 1 << 21, /*%< nsec3-test-zone */
+	DNS_ZONEOPT_LOGREPORTS = 1 << 22,    /* Log error-reporting queries */
+	DNS_ZONEOPT_DNSKEYKSKONLY = 1 << 23, /*%< dnssec-dnskey-kskonly */
+	DNS_ZONEOPT_CHECKDUPRR = 1 << 24,    /*%< check-dup-records */
+	DNS_ZONEOPT_CHECKDUPRRFAIL = 1 << 25, /*%< fatal check-dup-records
 					       * failures */
-	DNS_ZONEOPT_CHECKSPF = 1 << 27,	      /*%< check SPF records */
-	DNS_ZONEOPT_CHECKTTL = 1 << 28,	      /*%< check max-zone-ttl */
-	DNS_ZONEOPT_AUTOEMPTY = 1 << 29,      /*%< automatic empty zone */
-	DNS_ZONEOPT_CHECKSVCB = 1 << 30,      /*%< check SVBC records */
-	DNS_ZONEOPT_ZONEVERSION = 1U << 31,   /*%< enable zoneversion */
-	DNS_ZONEOPT_FULLSIGN = 1ULL << 32,    /*%< fully sign zone */
-	DNS_ZONEOPT_FORCEKEYMGR = 1ULL << 33, /*%< force keymgr step */
+	DNS_ZONEOPT_CHECKSPF = 1 << 26,	      /*%< check SPF records */
+	DNS_ZONEOPT_CHECKTTL = 1 << 27,	      /*%< check max-zone-ttl */
+	DNS_ZONEOPT_AUTOEMPTY = 1 << 28,      /*%< automatic empty zone */
+	DNS_ZONEOPT_CHECKSVCB = 1 << 29,      /*%< check SVBC records */
+	DNS_ZONEOPT_ZONEVERSION = 1U << 30,   /*%< enable zoneversion */
+	DNS_ZONEOPT_FULLSIGN = 1ULL << 31,    /*%< fully sign zone */
+	DNS_ZONEOPT_FORCEKEYMGR = 1ULL << 32, /*%< force keymgr step */
 	DNS_ZONEOPT___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneopt_t;
 

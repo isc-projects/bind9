@@ -1806,7 +1806,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 	dns_zone_setnotifytype(zone, dns_rdatatype_soa, dns_notifytype_no);
 	dns_zone_setnotifytype(zone, dns_rdatatype_cds, dns_notifytype_no);
-	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
+	dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNS, false);
 	setquerystats(zone, mctx, dns_zonestat_none);
 	CHECK(dns_view_addzone(view, zone));
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
@@ -3174,8 +3174,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 		dns_zone_attach(pzone, &zone);
 	}
 
-	dns_zone_setoption(zone, ~DNS_ZONEOPT_NOCHECKNS, false);
-	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
+	dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNS, false);
 	dns_zone_setoption(zone, DNS_ZONEOPT_ZONEVERSION, false);
 	dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 	dns_zone_setnotifytype(zone, dns_rdatatype_soa, dns_notifytype_no);
@@ -3282,7 +3281,7 @@ create_ipv4only_zone(dns_zone_t *pzone, dns_view_t *view,
 		dns_zone_setnotifytype(zone, dns_rdatatype_cds,
 				       dns_notifytype_no);
 		dns_zone_setautomatic(zone, true);
-		dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNS, false);
 	} else {
 		dns_zone_attach(pzone, &zone);
 	}
@@ -6222,6 +6221,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		dns_zone_setview(zone, view);
 		dns_zone_setstats(zone, named_g_server->zonestats);
 	}
+
 	if (rpz_num != DNS_RPZ_INVALID_NUM) {
 		result = dns_zone_rpz_enable(zone, view->rpzs, rpz_num);
 		if (result != ISC_R_SUCCESS) {
@@ -6234,6 +6234,9 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			goto cleanup;
 		}
 	}
+
+	dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNS, true);
+	dns_zone_setoption(zone, DNS_ZONEOPT_FATALNS, true);
 
 	if (zone_is_catz) {
 		dns_zone_catz_enable(zone, view->catzs);
@@ -6282,6 +6285,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			dns_zone_setorigin(raw, origin);
 			dns_zone_setview(raw, view);
 			dns_zone_setstats(raw, named_g_server->zonestats);
+			dns_zone_setoption(raw, DNS_ZONEOPT_CHECKNS, true);
+			dns_zone_setoption(zone, DNS_ZONEOPT_FATALNS, true);
 			CHECK(dns_zone_link(zone, raw));
 		}
 		named_config_findopt(zoptions, toptions,
@@ -6404,7 +6409,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 	dns_zone_setnotifytype(zone, dns_rdatatype_soa, dns_notifytype_no);
 	dns_zone_setnotifytype(zone, dns_rdatatype_cds, dns_notifytype_no);
-	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
+	dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNS, false);
 	dns_zone_setjournalsize(zone, 0);
 
 	dns_zone_setstats(zone, named_g_server->zonestats);
