@@ -45,6 +45,11 @@ class TemplateEngine:
             variable_start_string="@",
             variable_end_string="@",
         )
+        # allow instantiating the template dataclasses in jinja2 templates when
+        # using {% set %}
+        self.j2env.globals["Nameserver"] = Nameserver
+        self.j2env.globals["TrustAnchor"] = TrustAnchor
+        self.j2env.globals["Zone"] = Zone
 
     def render(
         self,
