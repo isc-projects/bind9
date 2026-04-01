@@ -1,0 +1,36 @@
+; Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+;
+; SPDX-License-Identifier: MPL-2.0
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0.  If a copy of the MPL was not distributed with this
+; file, you can obtain one at https://mozilla.org/MPL/2.0/.
+;
+; See the COPYRIGHT file distributed with this work for additional
+; information regarding copyright ownership.
+
+$TTL 300
+tld. 			IN SOA	owner.tld. ns.tld. (
+				2010   	; serial
+				600         	; refresh
+				600         	; retry
+				1200    	; expire
+				600       	; minimum
+				)
+tld.			NS	ns.tld.
+ns.tld. 		A 	10.53.0.2
+
+example4.tld.		NS	ns.example4.tld.
+ns.example4.tld.	A	10.53.0.3
+
+dnshoster.tld.		NS	ns1.dnshoster.tld.
+ns1.dnshoster.tld.	A	10.53.0.5
+ns1.dnshoster.tld.	A	10.53.0.6
+
+dnshoster.tld.		NS	ns2.dnshoster.tld.
+ns2.dnshoster.tld.	A	10.53.1.1
+ns2.dnshoster.tld.	A	10.53.1.2
+
+dnshoster.tld.		NS	ns3.dnshoster.tld.
+ns3.dnshoster.tld.	A	10.53.2.1
+ns3.dnshoster.tld.	A	10.53.2.2
