@@ -17,7 +17,6 @@
 #include <isc/urcu.h>
 
 #include <dns/nsec3.h>
-#include <dns/rdatavec.h>
 #include <dns/types.h>
 
 #ifdef STRONG_RWLOCK_CHECK
@@ -84,35 +83,6 @@
 
 #define IS_STUB(db)  (((db)->common.attributes & DNS_DBATTR_STUB) != 0)
 #define IS_CACHE(db) (((db)->common.attributes & DNS_DBATTR_CACHE) != 0)
-
-struct dns_glue {
-	struct dns_glue *next;
-	dns_name_t name;
-	dns_rdataset_t rdataset_a;
-	dns_rdataset_t sigrdataset_a;
-	dns_rdataset_t rdataset_aaaa;
-	dns_rdataset_t sigrdataset_aaaa;
-};
-
-struct dns_gluelist {
-	isc_mem_t *mctx;
-
-	const dns_dbversion_t *version;
-	dns_vecheader_t *header;
-
-	struct dns_glue *glue;
-
-	struct rcu_head rcu_head;
-	struct cds_wfs_node wfs_node;
-};
-
-typedef struct dns_glue_additionaldata_ctx {
-	dns_db_t *db;
-	dns_dbversion_t *version;
-	const dns_name_t *owner_name;
-
-	dns_glue_t *glue;
-} dns_glue_additionaldata_ctx_t;
 
 static inline bool
 prio_type(dns_typepair_t type) {
