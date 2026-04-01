@@ -18,6 +18,7 @@ Changelog
    development. Regular users should refer to :ref:`Release Notes <relnotes>`
    for changes relevant to them.
 
+.. include:: ../changelog/changelog-9.18.48.rst
 .. include:: ../changelog/changelog-9.18.47.rst
 .. include:: ../changelog/changelog-9.18.46.rst
 .. include:: ../changelog/changelog-9.18.45.rst
