@@ -39,6 +39,13 @@ ns3_sends_aaaa_queries() {
   fi
 }
 
+set_limit() {
+  IP=$1
+  LIMIT=$2
+  LOGID=$3
+  dig_with_opts @${IP} $LIMIT.limit._control TXT >dig.out.limit.${LOGID}
+}
+
 # Check whether the number of queries ans2 received from ns3 (this value is
 # read from dig output stored in file $1) is as expected.  The expected query
 # count is variable:
@@ -70,7 +77,7 @@ n=$((n + 1))
 echo_i "attempt excessive-depth lookup ($n)"
 ret=0
 echo "1000" >ans2/ans.limit
-echo "1000" >ans4/ans.limit
+set_limit 10.53.0.4 1000 $n
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.4 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.3 indirect1.example.org >dig.out.1.test$n || ret=1
@@ -85,7 +92,7 @@ n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
 echo "12" >ans2/ans.limit
-echo "12" >ans4/ans.limit
+set_limit 10.53.0.4 12 $n
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.4 reset >/dev/null || ret=1
@@ -119,7 +126,7 @@ n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
 echo "5" >ans2/ans.limit
-echo "5" >ans4/ans.limit
+set_limit 10.53.0.4 5 $n
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.4 reset >/dev/null || ret=1
@@ -137,7 +144,7 @@ n=$((n + 1))
 echo_i "attempt excessive-queries lookup ($n)"
 ret=0
 echo "13" >ans2/ans.limit
-echo "13" >ans4/ans.limit
+set_limit 10.53.0.4 13 $n
 cp ns3/named3.conf ns3/named.conf
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
