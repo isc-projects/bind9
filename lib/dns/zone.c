@@ -8735,7 +8735,7 @@ refresh_time(dns_zonefetch_t *fetch, bool retry) {
 	uint32_t t;
 	dns_rdataset_t *sigset;
 	dns_rdata_t sigrr = DNS_RDATA_INIT;
-	dns_rdata_sig_t sig;
+	dns_rdata_rrsig_t sig;
 	isc_stdtime_t now;
 
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_KEY);
