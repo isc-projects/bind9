@@ -66,9 +66,6 @@ rdataset_count(dns_rdataset_t *rdataset);
 static isc_result_t
 rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *neg, dns_rdataset_t *negsig DNS__DB_FLARG);
-static isc_result_t
-rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-		    dns_rdataset_t *neg, dns_rdataset_t *negsig DNS__DB_FLARG);
 static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
 static void
@@ -88,7 +85,6 @@ dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.clone = rdataset_clone,
 	.count = rdataset_count,
 	.getnoqname = rdataset_getnoqname,
-	.getclosest = rdataset_getclosest,
 	.settrust = rdataset_settrust,
 	.expire = rdataset_expire,
 	.clearprefetch = rdataset_clearprefetch,
@@ -119,7 +115,6 @@ dns_rdatasetmethods_t dns_rdataslab_proof_rdatasetmethods = {
 	.clone = slabheader_proof_clone,
 	.count = slabheader_proof_count,
 	.getnoqname = NULL,
-	.getclosest = NULL,
 	.settrust = NULL,
 	.expire = NULL,
 	.clearprefetch = NULL,
@@ -579,9 +574,6 @@ slabheader_destroy(dns_slabheader_t *header) {
 	if (header->noqname != NULL) {
 		dns_slabheader_freeproof(header->mctx, &header->noqname);
 	}
-	if (header->closest != NULL) {
-		dns_slabheader_freeproof(header->mctx, &header->closest);
-	}
 
 	isc_mem_putanddetach(&header->mctx, header, size);
 }
@@ -776,60 +768,6 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns__db_attachnode(node, &nsecsig->proof.node DNS__DB_FLARG_PASS);
 
 	dns_name_clone(&noqname->name, name);
-
-	return ISC_R_SUCCESS;
-}
-
-static isc_result_t
-rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-		    dns_rdataset_t *nsec,
-		    dns_rdataset_t *nsecsig DNS__DB_FLARG) {
-	dns_dbnode_t *node = rdataset->slab.node;
-	dns_slabheader_t *header = rdataset_getheader(rdataset);
-	const dns_slabheader_proof_t *closest = rdataset->slab.closest;
-
-	/*
-	 * Normally, rdataset->slab.raw points to the data immediately
-	 * following a dns_slabheader in memory. Here, though, it will
-	 * point to a bare rdataslab, a pointer to which is stored in
-	 * the dns_slabheader's `closest` field.
-	 *
-	 * The 'keepcase' attribute is set to prevent setownercase and
-	 * getownercase methods from affecting the case of NSEC/NSEC3
-	 * owner names.
-	 */
-	*nsec = (dns_rdataset_t){
-		.methods = &dns_rdataslab_proof_rdatasetmethods,
-		.rdclass = rdataset->rdclass,
-		.type = closest->type,
-		.ttl = rdataset->ttl,
-		.trust = rdataset->trust,
-		.proof.header = dns_slabheader_ref(header),
-		.proof.raw = closest->neg,
-		.link = nsec->link,
-		.attributes = nsec->attributes,
-		.magic = nsec->magic,
-	};
-	nsec->attributes.keepcase = true;
-	dns__db_attachnode(node, &nsec->proof.node DNS__DB_FLARG_PASS);
-
-	*nsecsig = (dns_rdataset_t){
-		.methods = &dns_rdataslab_proof_rdatasetmethods,
-		.rdclass = rdataset->rdclass,
-		.type = dns_rdatatype_rrsig,
-		.covers = closest->type,
-		.ttl = rdataset->ttl,
-		.trust = rdataset->trust,
-		.proof.header = dns_slabheader_ref(header),
-		.proof.raw = closest->negsig,
-		.link = nsecsig->link,
-		.attributes = nsecsig->attributes,
-		.magic = nsecsig->magic,
-	};
-	nsecsig->attributes.keepcase = true;
-	dns__db_attachnode(node, &nsecsig->proof.node DNS__DB_FLARG_PASS);
-
-	dns_name_clone(&closest->name, name);
 
 	return ISC_R_SUCCESS;
 }

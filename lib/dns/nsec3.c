@@ -1774,9 +1774,9 @@ isc_result_t
 dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			const dns_name_t *nsec3name, dns_rdataset_t *nsec3set,
 			dns_name_t *zonename, bool *exists, bool *data,
-			bool *optout, bool *unknown, bool *setclosest,
-			bool *setnearest, dns_name_t *closest,
-			dns_name_t *nearest, dns_nseclog_t logit, void *arg) {
+			bool *optout, bool *unknown, bool *setnearest,
+			dns_name_t *closest, dns_name_t *nearest,
+			dns_nseclog_t logit, void *arg) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t fzone;
 	dns_fixedname_t qfixed;
@@ -1803,8 +1803,6 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	REQUIRE((exists == NULL && data == NULL) ||
 		(exists != NULL && data != NULL));
 	REQUIRE(nsec3set != NULL && nsec3set->type == dns_rdatatype_nsec3);
-	REQUIRE((setclosest == NULL && closest == NULL) ||
-		(setclosest != NULL && closest != NULL));
 	REQUIRE((setnearest == NULL && nearest == NULL) ||
 		(setnearest != NULL && nearest != NULL));
 
@@ -2002,7 +2000,6 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 					 "encloser: '%s'",
 					 namebuf);
 				dns_name_copy(qname, closest);
-				*setclosest = true;
 			}
 			dns_name_format(qname, namebuf, sizeof(namebuf));
 			(*logit)(arg, ISC_LOG_DEBUG(3),

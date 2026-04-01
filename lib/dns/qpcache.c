@@ -989,10 +989,6 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	if (header->noqname != NULL) {
 		rdataset->attributes.noqname = true;
 	}
-	rdataset->slab.closest = header->closest;
-	if (header->closest != NULL) {
-		rdataset->attributes.closest = true;
-	}
 }
 
 static void
@@ -2491,13 +2487,6 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 				oldheader->noqname = newheader->noqname;
 				newheader->noqname = NULL;
 			}
-			if (oldheader->closest == NULL &&
-			    newheader->closest != NULL)
-			{
-				oldheader->closest = newheader->closest;
-				newheader->closest = NULL;
-			}
-
 			qpcache_hit(qpdb, oldheader);
 			bindrdataset(qpdb, qpnode, oldheader, now, nlocktype,
 				     tlocktype,
@@ -2549,13 +2538,6 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 				oldheader->noqname = newheader->noqname;
 				newheader->noqname = NULL;
 			}
-			if (oldheader->closest == NULL &&
-			    newheader->closest != NULL)
-			{
-				oldheader->closest = newheader->closest;
-				newheader->closest = NULL;
-			}
-
 			qpcache_hit(qpdb, oldheader);
 			bindrdataset(qpdb, qpnode, oldheader, now, nlocktype,
 				     tlocktype,
@@ -2681,48 +2663,6 @@ cleanup:
 }
 
 static isc_result_t
-addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
-	   dns_rdataset_t *rdataset) {
-	isc_result_t result;
-	dns_slabheader_proof_t *closest = NULL;
-	dns_name_t name = DNS_NAME_INITEMPTY;
-	dns_rdataset_t neg = DNS_RDATASET_INIT, negsig = DNS_RDATASET_INIT;
-	isc_region_t r1 = { .base = NULL }, r2 = { .base = NULL };
-
-	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	CHECK(dns_rdataslab_fromrdataset(&neg, mctx, &r1, maxrrperset));
-
-	CHECK(dns_rdataslab_fromrdataset(&negsig, mctx, &r2, maxrrperset));
-
-	closest = isc_mem_get(mctx, sizeof(*closest));
-	*closest = (dns_slabheader_proof_t){
-		.neg = ((dns_slabheader_t *)r1.base)->raw,
-		.negsig = ((dns_slabheader_t *)r2.base)->raw,
-		.name = DNS_NAME_INITEMPTY,
-		.type = neg.type,
-	};
-	dns_name_dup(&name, mctx, &closest->name);
-	newheader->closest = closest;
-
-cleanup:
-	if (result != ISC_R_SUCCESS) {
-		if (r1.base != NULL) {
-			dns_slabheader_t *header = (dns_slabheader_t *)r1.base;
-			dns_slabheader_detach(&header);
-		}
-		if (r2.base != NULL) {
-			dns_slabheader_t *header = (dns_slabheader_t *)r2.base;
-			dns_slabheader_detach(&header);
-		}
-	}
-	dns_rdataset_disassociate(&neg);
-	dns_rdataset_disassociate(&negsig);
-	return result;
-}
-
-static isc_result_t
 qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    isc_stdtime_t __now, dns_rdataset_t *rdataset,
 		    unsigned int options,
@@ -2783,10 +2723,6 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 	if (rdataset->attributes.noqname) {
 		CHECK(addnoqname(newheader->mctx, newheader, qpdb->maxrrperset,
-				 rdataset));
-	}
-	if (rdataset->attributes.closest) {
-		CHECK(addclosest(newheader->mctx, newheader, qpdb->maxrrperset,
 				 rdataset));
 	}
 
