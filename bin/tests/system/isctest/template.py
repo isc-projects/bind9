@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import re
+
 import jinja2
 
 from .log import debug
@@ -84,16 +86,47 @@ class TemplateEngine:
 
 @dataclass
 class Nameserver:
+
     name: str
-    ip: str
+    num: int | None = None
+    ip: str | None = None
+    ip6: str | None = None
+
+    def __post_init__(self):
+        if self.num is None:
+            match = re.search(r"\d+", self.name)
+            assert match
+            self.num = int(match.group(0))
+        if self.ip is None:
+            self.ip = f"10.53.0.{self.num}"
+        if self.ip6 is None:
+            self.ip6 = f"fd92:7065:b8e:ffff::{self.num}"
+
+
+NS1 = Nameserver("ns1")
+NS2 = Nameserver("ns2")
+NS3 = Nameserver("ns3")
+NS4 = Nameserver("ns4")
+NS5 = Nameserver("ns5")
+NS6 = Nameserver("ns6")
+NS7 = Nameserver("ns7")
+NS8 = Nameserver("ns8")
+NS9 = Nameserver("ns9")
+NS10 = Nameserver("ns10")
+NS11 = Nameserver("ns11")
 
 
 @dataclass
 class Zone:
+
     name: str
-    filename: str
     ns: Nameserver
     type: str = "primary"
+    filename: str | None = None
+
+    def __post_init__(self):
+        if self.filename is None:
+            self.filename = f"{self.name}.db"
 
 
 @dataclass
