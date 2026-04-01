@@ -2137,6 +2137,42 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking dnssec-signzone without -o and zone is in directory (incorrect basename) ($n)"
+ret=0
+cp signer/general/test13.zone signer/bad.db
+$SIGNER -O full -S signer/bad.db 2>signer.err.$n && ret=1
+grep "example.com: not at top of zone" signer.err.$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking dnssec-signzone without -o and zone is in directory ($n)"
+ret=0
+cp signer/general/test13.zone signer/example.com
+$SIGNER -S -K signer/general -O full signer/example.com >signer.out.$n || ret=1
+test -f signer/example.com.signed
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking dnssec-verify without -o and zone is in directory (incorrect basename) ($n)"
+ret=0
+$VERIFY signer/example.com.signed 2>verify.err.$n && ret=1
+grep "example.com: not at top of zone" verify.err.$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking dnssec-verify without -o and zone is in directory ($n)"
+ret=0
+cp signer/example.com.signed signer/example.com
+$VERIFY signer/example.com >verify.out.$n || ret=1
+grep "Loading zone 'example.com' from file 'signer/example.com'" verify.out.$n >/dev/null || ret=1
+grep "Zone fully signed" verify.out.$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking validated data are not cached longer than originalttl ($n)"
 ret=0
 dig_with_opts +ttl +noauth a.ttlpatch.example. @10.53.0.3 a >dig.out.ns3.test$n || ret=1
