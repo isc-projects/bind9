@@ -56,12 +56,17 @@ class TemplateEngine:
                 pytest.skip("jinja2 not found")
 
             loader = jinja2.FileSystemLoader(str(self.directory))
-            return jinja2.Environment(
+            self._j2env = jinja2.Environment(
                 loader=loader,
                 undefined=jinja2.StrictUndefined,
                 variable_start_string="@",
                 variable_end_string="@",
             )
+            # allow instantiating the template dataclasses in jinja2 templates when
+            # using {% set %}
+            self._j2env.globals["Nameserver"] = Nameserver
+            self._j2env.globals["TrustAnchor"] = TrustAnchor
+            self._j2env.globals["Zone"] = Zone
         return self._j2env
 
     def render(
