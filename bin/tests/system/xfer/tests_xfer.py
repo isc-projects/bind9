@@ -556,10 +556,15 @@ def test_ixfr_race(ns6):
     isctest.log.info(
         "Check that ixfr-race has been successfully transferred by the secondary"
     )
-    with ns6.watch_log_from_start() as watcher_transfer_completed:
-        watcher_transfer_completed.wait_for_line(
-            "zone ixfr-race/IN: zone transfer finished: success"
-        )
+    if "zone ixfr-race/IN: zone transfer finished: success" not in ns6.log:
+        # ns11 is started after ns6, so the zone transfer might not have
+        # happened by the time this test is started: if not, use retransfer to
+        # do the initial fetch now
+        with ns6.watch_log_from_start() as watcher_transfer_completed:
+            ns6.rndc("retransfer ixfr-race.")
+            watcher_transfer_completed.wait_for_line(
+                "zone ixfr-race/IN: zone transfer finished: success"
+            )
 
     isctest.log.info("Try to reload the zone from the primary")
     with ns6.watch_log_from_here() as watcher_transfer_completed:
