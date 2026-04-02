@@ -41,8 +41,11 @@
 #define ISC_HALFSIPHASH24_KEY_LENGTH 64 / 8
 #define ISC_HALFSIPHASH24_TAG_LENGTH 32 / 8
 
-#define cROUNDS 2
-#define dROUNDS 4
+#define cROUNDS_24 2
+#define dROUNDS_24 4
+
+#define cROUNDS_13 1
+#define dROUNDS_13 3
 
 #define HALF_ROUND64(a, b, c, d, s, t) \
 	a += b;                        \
@@ -125,7 +128,7 @@ static inline void
 isc_siphash24_one(isc_siphash24_t *restrict state, const uint64_t m) {
 	state->v3 ^= m;
 
-	for (size_t i = 0; i < cROUNDS; ++i) {
+	for (size_t i = 0; i < cROUNDS_24; ++i) {
 		SIPROUND(state->v0, state->v1, state->v2, state->v3);
 	}
 
@@ -270,7 +273,7 @@ isc_siphash24_finalize(isc_siphash24_t *restrict state, uint8_t *out) {
 
 	state->v2 ^= 0xff;
 
-	for (size_t i = 0; i < dROUNDS; ++i) {
+	for (size_t i = 0; i < dROUNDS_24; ++i) {
 		SIPROUND(state->v0, state->v1, state->v2, state->v3);
 	}
 
@@ -286,6 +289,200 @@ isc_siphash24(const uint8_t *key, const uint8_t *in, const size_t inlen,
 	isc_siphash24_init(&state, key);
 	isc_siphash24_hash(&state, in, inlen, case_sensitive);
 	isc_siphash24_finalize(&state, out);
+}
+
+/*
+ * SipHash-1-3: fewer rounds, suitable for hash tables where outputs
+ * are never exposed.  Uses the same state and init/hash functions as
+ * SipHash-2-4; only the round counts in _one and _finalize differ.
+ */
+typedef isc_siphash24_t isc_siphash13_t;
+
+#define ISC_SIPHASH13_KEY_LENGTH ISC_SIPHASH24_KEY_LENGTH
+#define ISC_SIPHASH13_TAG_LENGTH ISC_SIPHASH24_TAG_LENGTH
+
+static inline void
+isc_siphash13_init(isc_siphash24_t *state, const uint8_t *k) {
+	REQUIRE(k != NULL);
+
+	uint64_t k0 = ISC_U8TO64_LE(k);
+	uint64_t k1 = ISC_U8TO64_LE(k + 8);
+
+	*state = (isc_siphash24_t){
+		.k0 = k0,
+		.k1 = k1,
+		.v0 = UINT64_C(0x736f6d6570736575) ^ k0,
+		.v1 = UINT64_C(0x646f72616e646f6d) ^ k1,
+		.v2 = UINT64_C(0x6c7967656e657261) ^ k0,
+		.v3 = UINT64_C(0x7465646279746573) ^ k1,
+	};
+}
+
+static inline void
+isc_siphash13_one(isc_siphash13_t *restrict state, const uint64_t m) {
+	state->v3 ^= m;
+
+	for (size_t i = 0; i < cROUNDS_13; ++i) {
+		SIPROUND(state->v0, state->v1, state->v2, state->v3);
+	}
+
+	state->v0 ^= m;
+}
+
+static inline void
+isc_siphash13_hash(isc_siphash13_t *restrict state, const uint8_t *in,
+		   const size_t inlen, const bool case_sensitive) {
+	REQUIRE(inlen == 0 || in != NULL);
+
+	if (in == NULL || inlen == 0) {
+		return;
+	}
+
+	size_t	  len = inlen;
+	const int right = state->inlen & 7;
+
+	switch (right) {
+	case 0:
+		break;
+	case 1:
+		state->b |= U8TO64_ONE(case_sensitive, in[0]) << 8;
+		state->inlen++;
+		++in;
+
+		if (--len == 0) {
+			return;
+		}
+		FALLTHROUGH;
+	case 2:
+		state->b |= U8TO64_ONE(case_sensitive, in[0]) << 16;
+		state->inlen++;
+		++in;
+
+		if (--len == 0) {
+			return;
+		}
+		FALLTHROUGH;
+	case 3:
+		state->b |= U8TO64_ONE(case_sensitive, in[0]) << 24;
+		state->inlen++;
+		++in;
+
+		if (--len == 0) {
+			return;
+		}
+		FALLTHROUGH;
+	case 4:
+		state->b |= U8TO64_ONE(case_sensitive, in[0]) << 32;
+		state->inlen++;
+		++in;
+
+		if (--len == 0) {
+			return;
+		}
+		FALLTHROUGH;
+	case 5:
+		state->b |= U8TO64_ONE(case_sensitive, in[0]) << 40;
+		state->inlen++;
+		++in;
+
+		if (--len == 0) {
+			return;
+		}
+		FALLTHROUGH;
+	case 6:
+		state->b |= U8TO64_ONE(case_sensitive, in[0]) << 48;
+		state->inlen++;
+		++in;
+
+		if (--len == 0) {
+			return;
+		}
+		FALLTHROUGH;
+	case 7:
+		state->b |= U8TO64_ONE(case_sensitive, in[0]) << 56;
+		state->inlen++;
+		++in;
+
+		isc_siphash13_one(state, state->b);
+		state->b = 0; /* consumed */
+
+		if (--len == 0) {
+			return;
+		}
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	const uint8_t *end = in + len - (len % sizeof(uint64_t));
+	const size_t   left = len & 7;
+
+	for (; in != end; in += 8) {
+		uint64_t m = case_sensitive
+				     ? ISC_U8TO64_LE(in)
+				     : isc_ascii_tolower8(ISC_U8TO64_LE(in));
+
+		isc_siphash13_one(state, m);
+	}
+
+	INSIST(state->b == 0);
+	switch (left) {
+	case 7:
+		state->b |= U8TO64_ONE(case_sensitive, in[6]) << 48;
+		FALLTHROUGH;
+	case 6:
+		state->b |= U8TO64_ONE(case_sensitive, in[5]) << 40;
+		FALLTHROUGH;
+	case 5:
+		state->b |= U8TO64_ONE(case_sensitive, in[4]) << 32;
+		FALLTHROUGH;
+	case 4:
+		state->b |= U8TO64_ONE(case_sensitive, in[3]) << 24;
+		FALLTHROUGH;
+	case 3:
+		state->b |= U8TO64_ONE(case_sensitive, in[2]) << 16;
+		FALLTHROUGH;
+	case 2:
+		state->b |= U8TO64_ONE(case_sensitive, in[1]) << 8;
+		FALLTHROUGH;
+	case 1:
+		state->b |= U8TO64_ONE(case_sensitive, in[0]);
+		FALLTHROUGH;
+	case 0:
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	state->inlen += len;
+}
+
+static inline void
+isc_siphash13_finalize(isc_siphash13_t *restrict state, uint8_t *out) {
+	REQUIRE(out != NULL);
+
+	uint64_t b = ((uint64_t)state->inlen) << 56 | state->b;
+
+	isc_siphash13_one(state, b);
+
+	state->v2 ^= 0xff;
+
+	for (size_t i = 0; i < dROUNDS_13; ++i) {
+		SIPROUND(state->v0, state->v1, state->v2, state->v3);
+	}
+
+	b = state->v0 ^ state->v1 ^ state->v2 ^ state->v3;
+
+	ISC_U64TO8_LE(out, b);
+}
+
+static inline void
+isc_siphash13(const uint8_t *key, const uint8_t *in, const size_t inlen,
+	      bool case_sensitive, uint8_t *out) {
+	isc_siphash13_t state;
+	isc_siphash13_init(&state, key);
+	isc_siphash13_hash(&state, in, inlen, case_sensitive);
+	isc_siphash13_finalize(&state, out);
 }
 
 static inline void
@@ -309,7 +506,7 @@ static inline void
 isc_halfsiphash24_one(isc_halfsiphash24_t *restrict state, const uint32_t m) {
 	state->v3 ^= m;
 
-	for (size_t i = 0; i < cROUNDS; ++i) {
+	for (size_t i = 0; i < cROUNDS_24; ++i) {
 		HALFSIPROUND(state->v0, state->v1, state->v2, state->v3);
 	}
 
@@ -406,7 +603,7 @@ isc_halfsiphash24_finalize(isc_halfsiphash24_t *restrict state, uint8_t *out) {
 
 	state->v2 ^= 0xff;
 
-	for (size_t i = 0; i < dROUNDS; ++i) {
+	for (size_t i = 0; i < dROUNDS_24; ++i) {
 		HALFSIPROUND(state->v0, state->v1, state->v2, state->v3);
 	}
 
@@ -422,4 +619,148 @@ isc_halfsiphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 	isc_halfsiphash24_init(&state, k);
 	isc_halfsiphash24_hash(&state, in, inlen, case_sensitive);
 	isc_halfsiphash24_finalize(&state, out);
+}
+
+/*
+ * HalfSipHash-1-3: fewer rounds for hash tables.
+ */
+typedef isc_halfsiphash24_t isc_halfsiphash13_t;
+
+#define ISC_HALFSIPHASH13_KEY_LENGTH ISC_HALFSIPHASH24_KEY_LENGTH
+#define ISC_HALFSIPHASH13_TAG_LENGTH ISC_HALFSIPHASH24_TAG_LENGTH
+
+static inline void
+isc_halfsiphash13_init(isc_halfsiphash24_t *restrict state, const uint8_t *k) {
+	REQUIRE(k != NULL);
+
+	uint32_t k0 = ISC_U8TO32_LE(k);
+	uint32_t k1 = ISC_U8TO32_LE(k + 4);
+
+	*state = (isc_halfsiphash24_t){
+		.k0 = k0,
+		.k1 = k1,
+		.v0 = UINT32_C(0x00000000) ^ k0,
+		.v1 = UINT32_C(0x00000000) ^ k1,
+		.v2 = UINT32_C(0x6c796765) ^ k0,
+		.v3 = UINT32_C(0x74656462) ^ k1,
+	};
+}
+
+static inline void
+isc_halfsiphash13_one(isc_halfsiphash13_t *restrict state, const uint32_t m) {
+	state->v3 ^= m;
+
+	for (size_t i = 0; i < cROUNDS_13; ++i) {
+		HALFSIPROUND(state->v0, state->v1, state->v2, state->v3);
+	}
+
+	state->v0 ^= m;
+}
+
+static inline void
+isc_halfsiphash13_hash(isc_halfsiphash13_t *restrict state, const uint8_t *in,
+		       const size_t inlen, const bool case_sensitive) {
+	REQUIRE(inlen == 0 || in != NULL);
+
+	if (in == NULL || inlen == 0) {
+		return;
+	}
+
+	size_t	  len = inlen;
+	const int right = state->inlen & 3;
+
+	switch (right) {
+	case 0:
+		break;
+	case 1:
+		state->b |= U8TO32_ONE(case_sensitive, in[0]) << 8;
+		state->inlen++;
+		++in;
+
+		if (--len == 0) {
+			return;
+		}
+		FALLTHROUGH;
+	case 2:
+		state->b |= U8TO32_ONE(case_sensitive, in[0]) << 16;
+		state->inlen++;
+		++in;
+
+		if (--len == 0) {
+			return;
+		}
+		FALLTHROUGH;
+	case 3:
+		state->b |= U8TO32_ONE(case_sensitive, in[0]) << 24;
+		state->inlen++;
+		++in;
+
+		isc_halfsiphash13_one(state, state->b);
+		state->b = 0; /* consumed */
+
+		if (--len == 0) {
+			return;
+		}
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	const uint8_t *end = in + len - (len % sizeof(uint32_t));
+	const int      left = len & 3;
+
+	for (; in != end; in += 4) {
+		uint32_t m = case_sensitive
+				     ? ISC_U8TO32_LE(in)
+				     : isc_ascii_tolower4(ISC_U8TO32_LE(in));
+
+		isc_halfsiphash13_one(state, m);
+	}
+
+	INSIST(state->b == 0);
+	switch (left) {
+	case 3:
+		state->b |= U8TO32_ONE(case_sensitive, in[2]) << 16;
+		FALLTHROUGH;
+	case 2:
+		state->b |= U8TO32_ONE(case_sensitive, in[1]) << 8;
+		FALLTHROUGH;
+	case 1:
+		state->b |= U8TO32_ONE(case_sensitive, in[0]);
+		FALLTHROUGH;
+	case 0:
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	state->inlen += len;
+}
+
+static inline void
+isc_halfsiphash13_finalize(isc_halfsiphash13_t *restrict state, uint8_t *out) {
+	REQUIRE(out != NULL);
+
+	uint32_t b = ((uint32_t)state->inlen) << 24 | state->b;
+
+	isc_halfsiphash13_one(state, b);
+
+	state->v2 ^= 0xff;
+
+	for (size_t i = 0; i < dROUNDS_13; ++i) {
+		HALFSIPROUND(state->v0, state->v1, state->v2, state->v3);
+	}
+
+	b = state->v1 ^ state->v3;
+	ISC_U32TO8_LE(out, b);
+}
+
+static inline void
+isc_halfsiphash13(const uint8_t *k, const uint8_t *in, const size_t inlen,
+		  bool case_sensitive, uint8_t *out) {
+	isc_halfsiphash13_t state;
+
+	isc_halfsiphash13_init(&state, k);
+	isc_halfsiphash13_hash(&state, in, inlen, case_sensitive);
+	isc_halfsiphash13_finalize(&state, out);
 }

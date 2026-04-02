@@ -55,7 +55,7 @@ isc_hash_set_initializer(const void *initializer) {
 
 void
 isc_hash32_init(isc_hash32_t *restrict state) {
-	isc_halfsiphash24_init(state, isc_hash_key);
+	isc_halfsiphash13_init(state, isc_hash_key);
 }
 
 void
@@ -63,21 +63,21 @@ isc_hash32_hash(isc_hash32_t *restrict state, const void *data,
 		const size_t length, const bool case_sensitive) {
 	REQUIRE(length == 0 || data != NULL);
 
-	isc_halfsiphash24_hash(state, data, length, case_sensitive);
+	isc_halfsiphash13_hash(state, data, length, case_sensitive);
 }
 
 uint32_t
 isc_hash32_finalize(isc_hash32_t *restrict state) {
 	uint32_t hval;
 
-	isc_halfsiphash24_finalize(state, (uint8_t *)&hval);
+	isc_halfsiphash13_finalize(state, (uint8_t *)&hval);
 
 	return hval;
 }
 
 void
 isc_hash64_init(isc_hash64_t *restrict state) {
-	isc_siphash24_init(state, isc_hash_key);
+	isc_siphash13_init(state, isc_hash_key);
 }
 
 void
@@ -85,14 +85,14 @@ isc_hash64_hash(isc_hash64_t *restrict state, const void *data,
 		const size_t length, const bool case_sensitive) {
 	REQUIRE(length == 0 || data != NULL);
 
-	isc_siphash24_hash(state, data, length, case_sensitive);
+	isc_siphash13_hash(state, data, length, case_sensitive);
 }
 
 uint64_t
 isc_hash64_finalize(isc_hash64_t *restrict state) {
 	uint64_t hval;
 
-	isc_siphash24_finalize(state, (uint8_t *)&hval);
+	isc_siphash13_finalize(state, (uint8_t *)&hval);
 
 	return hval;
 }
