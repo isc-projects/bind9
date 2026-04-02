@@ -1999,8 +1999,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			rfc1918 = true;
 		else if (dns_name_isula(zname))
 			ula = true;
-		tmp += strlen(tmp);
-		len -= strlen(tmp);
 		(void)snprintf(tmp, len, "%u/%s", zclass,
 			       (ztype == CFG_ZONE_INVIEW) ? target :
 				(viewname != NULL) ? viewname : "_default");
