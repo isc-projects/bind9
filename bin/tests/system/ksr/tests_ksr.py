@@ -338,7 +338,7 @@ def check_keysigningrequest(path, zsks, start, end):
     line_no = 0
 
     inception = start
-    while inception < end:
+    while inception <= end:
         next_bundle = end + 1
         # expect bundle header
         assert f";; KeySigningRequest 1.0 {inception}" in lines[line_no]
@@ -402,7 +402,7 @@ def check_signedkeyresponse(
     dnskey_ttl = int(config["dnskey-ttl"].total_seconds())
 
     inception = start
-    while inception < end:
+    while inception <= end:
         # A single signed key response may consist of:
         # ;; SignedKeyResponse (header)
         # ;; DNSKEY 257 (one per published key in ksks)
@@ -487,7 +487,7 @@ def check_signedkeyresponse(
             inactive = key.get_timing("Inactive", must_exist=False)
             if active > inception:
                 continue
-            if inactive is not None and inception >= inactive:
+            if inactive is not None and inception > inactive:
                 continue
 
             # collect keys that should be in this bundle
@@ -537,7 +537,7 @@ def check_signedkeyresponse(
                 inactive = key.get_timing("Inactive", must_exist=False)
                 if active > inception:
                     continue
-                if inactive is not None and inception >= inactive:
+                if inactive is not None and inception > inactive:
                     continue
 
                 # collect keys that should be in this bundle
@@ -595,7 +595,7 @@ def check_signedkeyresponse(
                 inactive = key.get_timing("Inactive", must_exist=False)
                 if active > inception:
                     continue
-                if inactive is not None and inception >= inactive:
+                if inactive is not None and inception > inactive:
                     continue
 
                 # collect keys that should be in this bundle
