@@ -16436,7 +16436,6 @@ struct rss {
 	dns_zone_t *zone;
 	dns_db_t *db;
 	uint32_t serial;
-	ISC_LINK(struct rss) link;
 };
 
 static void
@@ -17301,7 +17300,6 @@ zone_send_secureserial(dns_zone_t *zone, uint32_t serial) {
 		rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
 		*rss = (struct rss){
 			.serial = serial,
-			.link = ISC_LINK_INITIALIZER,
 		};
 		zone_iattach(zone->secure, &rss->zone);
 
@@ -17767,7 +17765,7 @@ zone_send_securedb(dns_zone_t *zone, dns_db_t *db) {
 	struct rss *rss = NULL;
 
 	rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
-	*rss = (struct rss){ .link = ISC_LINK_INITIALIZER };
+	*rss = (struct rss){ 0 };
 
 	INSIST(LOCKED_ZONE(zone->secure));
 	zone_iattach(zone->secure, &rss->zone);
