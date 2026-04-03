@@ -582,6 +582,7 @@ struct dns_zone {
 	dns_db_t *rss_db;
 	dns_zone_t *rss_raw;
 	struct rss *rss;
+	struct rss *rss_next;
 	dns_update_state_t *rss_state;
 
 	isc_stats_t *gluecachestats;

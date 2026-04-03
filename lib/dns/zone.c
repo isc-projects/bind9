@@ -14393,16 +14393,29 @@ receive_secure_serial(void *arg) {
 	LOCK_ZONE(zone);
 
 	/*
-	 * The receive_secure_serial() is loop-serialized for the zone.  Make
-	 * sure there's no processing currently running.
+	 * The receive_secure_serial() is loop-serialized for the zone, but it
+	 * is possible for new serial to arrive before the old processing is
+	 * completed, because the old call could have been rescheduled if
+	 * dns_update_signaturesinc() below returned DNS_R_CONTINUE.
 	 */
-
-	INSIST(zone->rss == NULL || zone->rss == rss);
-
 	if (zone->rss != NULL) {
+		/* There is an existing processing */
 		UNLOCK_ZONE(zone);
+		if (zone->rss != rss) {
+			/*
+			 * A new 'rss' is sandwiched between a previous call
+			 * with the old 'zone->rss' and a future scheduled
+			 * call with the old 'zone->rss'. Reschedule the new
+			 * 'rss' so the old one can be completed first.
+			 */
+			isc_async_run(zone->loop, receive_secure_serial, rss);
+			return;
+		}
 	} else {
-		zone->rss = rss;
+		/* New arrival */
+		INSIST(rss == zone->rss_next);
+		zone->rss = MOVE_OWNERSHIP(zone->rss_next);
+
 		dns_diff_init(zone->mctx, &zone->rss_diff);
 
 		/*
@@ -14518,6 +14531,7 @@ receive_secure_serial(void *arg) {
 		&log, zone, zone->rss_db, zone->rss_oldver, zone->rss_newver,
 		&zone->rss_diff, zone->sigvalidityinterval, &zone->rss_state);
 	if (result == DNS_R_CONTINUE) {
+		/* Signing quantum reached, reschedule the next chunk. */
 		if (rjournal != NULL) {
 			dns_journal_destroy(&rjournal);
 		}
@@ -14622,15 +14636,25 @@ static isc_result_t
 zone_send_secureserial(dns_zone_t *zone, uint32_t serial) {
 	struct rss *rss = NULL;
 
-	rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
-	*rss = (struct rss){
-		.serial = serial,
-		.link = ISC_LINK_INITIALIZER,
-	};
-
 	INSIST(LOCKED_ZONE(zone->secure));
-	zone_iattach(zone->secure, &rss->zone);
-	isc_async_run(zone->secure->loop, receive_secure_serial, rss);
+
+	if (zone->secure->rss_next != NULL) {
+		/*
+		 * New version came earlier than the previous one had a
+		 * chance to be processed, just update the serial.
+		 */
+		zone->secure->rss_next->serial = serial;
+	} else {
+		rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
+		*rss = (struct rss){
+			.serial = serial,
+			.link = ISC_LINK_INITIALIZER,
+		};
+		zone_iattach(zone->secure, &rss->zone);
+
+		zone->secure->rss_next = rss;
+		isc_async_run(zone->secure->loop, receive_secure_serial, rss);
+	}
 
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_SENDSECURE);
 	return ISC_R_SUCCESS;
