@@ -549,3 +549,26 @@ def test_reconfiguration_when_zone_transfer_is_in_the_middle_of_soa_query(ns6):
         isctest.log.info("Try to reload the zone from the primary")
         ns6.rndc("reload xfr-and-reconfig")
         watcher_transfer_started.wait_for_line("Transfer started")
+
+
+# See #5767
+def test_ixfr_race(ns6):
+    isctest.log.info(
+        "Check that ixfr-race has been successfully transferred by the secondary"
+    )
+    if "zone ixfr-race/IN: zone transfer finished: success" not in ns6.log:
+        # ns11 is started after ns6, so the zone transfer might not have
+        # happened by the time this test is started: if not, use retransfer to
+        # do the initial fetch now
+        with ns6.watch_log_from_start() as watcher_transfer_completed:
+            ns6.rndc("retransfer ixfr-race.")
+            watcher_transfer_completed.wait_for_line(
+                "zone ixfr-race/IN: zone transfer finished: success"
+            )
+
+    isctest.log.info("Try to reload the zone from the primary")
+    with ns6.watch_log_from_here() as watcher_transfer_completed:
+        ns6.rndc("reload ixfr-race")
+        watcher_transfer_completed.wait_for_line(
+            "zone ixfr-race/IN: zone transfer finished: success"
+        )
