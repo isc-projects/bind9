@@ -14400,7 +14400,6 @@ receive_secure_serial(void *arg) {
 	INSIST(zone->rss == NULL || zone->rss == rss);
 
 	if (zone->rss != NULL) {
-		INSIST(zone->rss == rss);
 		UNLOCK_ZONE(zone);
 	} else {
 		zone->rss = rss;
