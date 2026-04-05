@@ -62,6 +62,8 @@ IncludeCategories:
     Priority:        99
   - Regex:           '^<tests/'
     Priority:        100
+  - Regex:           '<ngtcp2/'
+    Priority:        4
   - Regex:           '<openssl/'
     Priority:        4
   - Regex:           '<(mysql|protobuf-c)/'
