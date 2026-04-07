@@ -356,17 +356,19 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 	}
 
 	/*
-	 * RFC 3645 Section 3.1.1: verify that mutual authentication
-	 * and integrity are supported.  If either is missing, the
-	 * security context does not meet the protocol requirements.
+	 * RFC 3645 Section 3.1.1: verify that replay detection, mutual
+	 * authentication and integrity are supported.  The RFC mandates
+	 * checking replay_det_state and mutual_state; integ_avail is
+	 * also verified because GSS-TSIG cannot function without it.
 	 */
 	if (gret == GSS_S_COMPLETE &&
-	    (ret_flags & (GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG)) !=
-		    (GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG))
+	    (ret_flags &
+	     (GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG)) !=
+		    (GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG))
 	{
 		gss_log(3,
-			"GSS-API context lacks required MUTUAL or "
-			"INTEG flags (ret_flags=0x%x)",
+			"GSS-API context lacks required REPLAY, MUTUAL, "
+			"or INTEG flags (ret_flags=0x%x)",
 			(unsigned int)ret_flags);
 		CLEANUP(ISC_R_FAILURE);
 	}
