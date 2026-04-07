@@ -242,6 +242,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-noble-amd64"
   <<: *linux_amd64
 
+.ubuntu-resolute-amd64: &ubuntu_resolute_amd64_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-resolute-amd64"
+  <<: *linux_amd64
+
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
 
@@ -1473,6 +1477,30 @@ unit:gcc:noble:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:noble:amd64
+      artifacts: true
+
+# Jobs for regular GCC builds on Ubuntu 26.04 Resolute Raccoon (amd64)
+
+gcc:resolute:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *ubuntu_resolute_amd64_image
+  <<: *build_job
+
+system:gcc:resolute:amd64:
+  <<: *ubuntu_resolute_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:resolute:amd64
+      artifacts: true
+
+unit:gcc:resolute:amd64:
+  <<: *ubuntu_resolute_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:resolute:amd64
       artifacts: true
 
 # Jobs for ASAN builds on Fedora 43 (amd64)
