@@ -705,7 +705,7 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 		if (act > inception) {
 			continue;
 		}
-		if (inact != 0 && inception >= inact) {
+		if (inact != 0 && inception > inact) {
 			continue;
 		}
 
