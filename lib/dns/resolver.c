@@ -10089,9 +10089,9 @@ rctx_nextserver(respctx_t *rctx, dns_message_t *message,
  * rctx_resend():
  *
  * Resend the query, probably with the options changed. Calls
- * fctx_query(), passing rctx->retryopts (which is based on
- * query->options, but may have been updated since the last time
- * fctx_query() was called).
+ * fctx_query(), unless query counter limits are hit, passing
+ * rctx->retryopts (which is based on query->options, but may have
+ * been updated since the last time fctx_query() was called).
  */
 static void
 rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
@@ -10099,8 +10099,15 @@ rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
 	isc_result_t result;
 
 	FCTXTRACE("resend");
-	inc_stats(fctx->res, dns_resstatscounter_retry);
+
+	CHECK(incr_query_counters(fctx));
+
 	result = fctx_query(fctx, addrinfo, rctx->retryopts);
+	if (result == ISC_R_SUCCESS) {
+		inc_stats(fctx->res, dns_resstatscounter_retry);
+	}
+
+cleanup:
 	if (result != ISC_R_SUCCESS) {
 		fctx_done_detach(&rctx->fctx, result);
 	}
