@@ -10107,6 +10107,13 @@ rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
 	unsigned int bucketnum;
 
 	FCTXTRACE("resend");
+
+	result = incr_query_counters(fctx);
+	if (result != ISC_R_SUCCESS) {
+		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		return;
+	}
+
 	inc_stats(fctx->res, dns_resstatscounter_retry);
 	fctx_increference(fctx);
 	result = fctx_query(fctx, addrinfo, rctx->retryopts);
