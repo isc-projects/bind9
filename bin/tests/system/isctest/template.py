@@ -44,6 +44,8 @@ class TemplateEngine:
             undefined=jinja2.StrictUndefined,
             variable_start_string="@",
             variable_end_string="@",
+            trim_blocks=True,
+            keep_trailing_newline=True,
         )
         # allow instantiating the template dataclasses in jinja2 templates when
         # using {% set %}
