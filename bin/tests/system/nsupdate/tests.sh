@@ -797,7 +797,7 @@ END
 grep REFUSED nsupdate.out.$n >/dev/null 2>&1 || ret=1
 $DIG $DIGOPTS @10.53.0.6 \
   +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-  -x 127.0.0.1 >dig.out.ns6.$n
+  -x 127.0.0.1 >dig.out.ns6.$n || ret=1
 grep localhost. dig.out.ns6.$n >/dev/null 2>&1 && ret=1
 if test $ret -ne 0; then
   echo_i "failed"
@@ -835,7 +835,7 @@ END
 grep REFUSED nsupdate.out.$n >/dev/null 2>&1 || ret=1
 $DIG $DIGOPTS @10.53.0.6 \
   +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-  -x 192.168.0.1 >dig.out.ns6.$n
+  -x 192.168.0.1 >dig.out.ns6.$n || ret=1
 grep localhost. dig.out.ns6.$n >/dev/null 2>&1 && ret=1
 if test $ret -ne 0; then
   echo_i "failed"
@@ -856,7 +856,7 @@ END
 grep REFUSED nsupdate.out.$n >/dev/null 2>&1 || ret=1
 $DIG $DIGOPTS @10.53.0.6 \
   +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-  $REVERSE_NAME NS >dig.out.ns6.$n
+  $REVERSE_NAME NS >dig.out.ns6.$n || ret=1
 grep localhost. dig.out.ns6.$n >/dev/null 2>&1 && ret=1
 if test $ret -ne 0; then
   echo_i "failed"
@@ -898,7 +898,7 @@ END
 grep REFUSED nsupdate.out.$n >/dev/null 2>&1 || ret=1
 $DIG $DIGOPTS @fd92:7065:b8e:ffff::6 \
   +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-  $REVERSE_NAME NS >dig.out.ns6.$n
+  $REVERSE_NAME NS >dig.out.ns6.$n || ret=1
 grep localhost. dig.out.ns6.$n >/dev/null 2>&1 && ret=1
 if test $ret -ne 0; then
   echo_i "failed"
@@ -1675,7 +1675,7 @@ n=$((n + 1))
 ret=0
 echo_i "check that max records is enforced ($n)"
 nextpart ns6/named.run >/dev/null
-$NSUPDATE -v >nsupdate.out.$n 2>&1 <<END
+$NSUPDATE -v >nsupdate.out.$n 2>&1 <<END || ret=1
 server 10.53.0.6 ${PORT}
 local 10.53.0.5
 update del 5.0.53.10.in-addr.arpa.
@@ -1701,7 +1701,7 @@ n=$((n + 1))
 ret=0
 echo_i "check that max records for ANY is enforced ($n)"
 nextpart ns6/named.run >/dev/null
-$NSUPDATE -v >nsupdate.out.$n 2>&1 <<END
+$NSUPDATE -v >nsupdate.out.$n 2>&1 <<END || ret=1
 server 10.53.0.6 ${PORT}
 local 10.53.0.5
 update del 5.0.53.10.in-addr.arpa.
