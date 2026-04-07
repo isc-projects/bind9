@@ -55,9 +55,13 @@ class TemplateEngine:
             except ImportError:
                 pytest.skip("jinja2 not found")
 
-            loader = jinja2.FileSystemLoader(str(self.directory))
             self._j2env = jinja2.Environment(
-                loader=loader,
+                loader=jinja2.FileSystemLoader(
+                    [
+                        str(self.directory),
+                        str(ALL["srcdir"]),  # to allow _common/ includes
+                    ]
+                ),
                 undefined=jinja2.StrictUndefined,
                 variable_start_string="@",
                 variable_end_string="@",
@@ -83,12 +87,13 @@ class TemplateEngine:
         variables which the engine was initialized with are also filled in. In
         case of a variable name clash, `data` has precedence.
         """
+        available = self.j2env.list_templates()
         if template is None:
             template = f"{output}.j2.manual"
-            if not Path(template).is_file():
+            if template not in available:
                 template = f"{output}.j2"
-        if not Path(template).is_file():
-            raise RuntimeError('No jinja2 template found for "{output}"')
+        if template not in available:
+            raise RuntimeError(f'No jinja2 template found for "{output}"')
 
         if data is None:
             data = {**self.env_vars}
