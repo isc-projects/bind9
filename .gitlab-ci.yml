@@ -1663,6 +1663,7 @@ system:gcc:noble:amd64:
 unit:gcc:noble:amd64:
   <<: *ubuntu_noble_amd64_image
   <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:noble:amd64
       artifacts: true
