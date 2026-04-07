@@ -4294,6 +4294,21 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	return (addrinfo);
 }
 
+static isc_result_t
+incr_query_counters(fetchctx_t *fctx) {
+	isc_result_t result;
+
+	result = isc_counter_increment(fctx->qc);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+			      "exceeded max queries resolving '%s'",
+			      fctx->info);
+	}
+
+	return result;
+}
+
 static void
 fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	isc_result_t result;
@@ -4433,12 +4448,8 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		return;
 	}
 
-	result = isc_counter_increment(fctx->qc);
+	result = incr_query_counters(fctx);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-			      "exceeded max queries resolving '%s'",
-			      fctx->info);
 		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		return;
 	}
