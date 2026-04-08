@@ -1,0 +1,19 @@
+$TTL 300
+$ORIGIN example.
+@	IN SOA	ns.example. admin.example. (
+			2026040100	; serial
+			3600		; refresh
+			1800		; retry
+			604800		; expire
+			300		; minimum
+			)
+	NS	ns.example.
+
+ns	A	10.53.0.1
+ns	AAAA	fd92:7065:b8e:ffff::1
+
+; Delegation whose NS target is in-zone authoritative data (NOT glue).
+; The NS target ns.example. is at the zone apex, not below any zone cut,
+; so qpzone_find will return ISC_R_SUCCESS rather than DNS_R_GLUE when
+; looking up the glue for this delegation.
+sub	NS	ns.example.
