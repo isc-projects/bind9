@@ -155,7 +155,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	dns_rdata_t *rdata = NULL;
 	unsigned char *rawbuf = NULL;
 	unsigned int headerlen = sizeof(dns_vecheader_t);
-	unsigned int buflen = headerlen + 2;
+	uint32_t buflen = headerlen + 2;
 	isc_result_t result;
 	unsigned int nitems;
 	unsigned int nalloc;
@@ -256,12 +256,16 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 			rdata[i - 1].data = &removed;
 			nitems--;
 		} else {
-			buflen += (2 + rdata[i - 1].length);
+			buflen += 2 + rdata[i - 1].length;
 			/*
 			 * Provide space to store the per RR meta data.
 			 */
 			if (rdataset->type == dns_rdatatype_rrsig) {
 				buflen++;
+			}
+			if (buflen - headerlen - 2 > DNS_RDATA_MAXLENGTH) {
+				result = ISC_R_NOSPACE;
+				goto free_rdatas;
 			}
 		}
 	}
@@ -269,13 +273,17 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	/*
 	 * Don't forget the last item!
 	 */
-	buflen += (2 + rdata[i - 1].length);
+	buflen += 2 + rdata[i - 1].length;
 
 	/*
 	 * Provide space to store the per RR meta data.
 	 */
 	if (rdataset->type == dns_rdatatype_rrsig) {
 		buflen++;
+	}
+	if (buflen - headerlen - 2 > DNS_RDATA_MAXLENGTH) {
+		result = ISC_R_NOSPACE;
+		goto free_rdatas;
 	}
 
 	/*
@@ -463,7 +471,8 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 		   uint32_t maxrrperset, dns_vecheader_t **theaderp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned char *ocurrent = NULL, *ncurrent = NULL, *tcurrent = NULL;
-	unsigned int ocount, ncount, tlength, tcount = 0;
+	unsigned int ocount, ncount, tcount = 0;
+	uint32_t tlength;
 	vecinfo_t *oinfo = NULL, *ninfo = NULL;
 	size_t o = 0, n = 0;
 
@@ -489,22 +498,30 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 	tlength = header_size(oheader) + 2;
 
 	/*
+	 * Allocate both info arrays up front so the cleanup path is
+	 * always safe to call regardless of where we exit.
+	 */
+	oinfo = isc_mem_cget(mctx, ocount, sizeof(struct vecinfo));
+	ninfo = isc_mem_cget(mctx, ncount, sizeof(struct vecinfo));
+
+	/*
 	 * Gather the rdatas in the old vec and add their lengths to
 	 * the larget length.
 	 */
-	oinfo = isc_mem_cget(mctx, ocount, sizeof(struct vecinfo));
 	for (size_t i = 0; i < ocount; i++) {
 		oinfo[i].pos = ocurrent;
 		dns_rdata_init(&oinfo[i].rdata);
 		rdata_from_vecitem(&ocurrent, rdclass, type, &oinfo[i].rdata);
-		tlength += ocurrent - oinfo[i].pos;
+		tlength += (uint32_t)(ocurrent - oinfo[i].pos);
+		if (tlength - header_size(oheader) - 2 > DNS_RDATA_MAXLENGTH) {
+			CLEANUP(ISC_R_NOSPACE);
+		}
 	}
 
 	/*
 	 * Then add the length of rdatas in the new vec that aren't
 	 * duplicated in the old vec.
 	 */
-	ninfo = isc_mem_cget(mctx, ncount, sizeof(struct vecinfo));
 	for (size_t i = 0; i < ncount; i++) {
 		ninfo[i].pos = ncurrent;
 		dns_rdata_init(&ninfo[i].rdata);
@@ -542,7 +559,10 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 		 * We will be copying this item to the target, so
 		 * add its length to tlength and increment tcount.
 		 */
-		tlength += ncurrent - ninfo[i].pos;
+		tlength += (uint32_t)(ncurrent - ninfo[i].pos);
+		if (tlength - header_size(oheader) - 2 > DNS_RDATA_MAXLENGTH) {
+			CLEANUP(ISC_R_NOSPACE);
+		}
 		tcount++;
 	}
 
@@ -659,7 +679,8 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned char *ocurrent = NULL, *scurrent = NULL;
 	unsigned char *tstart = NULL, *tcurrent = NULL;
-	unsigned int ocount, scount, tlength;
+	unsigned int ocount, scount;
+	uint32_t tlength;
 	unsigned int tcount = 0, rcount = 0;
 	vecinfo_t *oinfo = NULL, *sinfo = NULL;
 
@@ -721,7 +742,12 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 			 * so copy it to the target.  Add its length to
 			 * tlength and increment tcount.
 			 */
-			tlength += ocurrent - oinfo[i].pos;
+			tlength += (uint32_t)(ocurrent - oinfo[i].pos);
+			if (tlength - header_size(oheader) - 2 >
+			    DNS_RDATA_MAXLENGTH)
+			{
+				CLEANUP(ISC_R_NOSPACE);
+			}
 			tcount++;
 		}
 	}
