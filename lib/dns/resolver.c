@@ -2533,11 +2533,31 @@ resquery_send(resquery_t *query) {
 	} else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0 ||
 		   (query->options & DNS_FETCHOPT_TRYCD) != 0)
 	{
+		/*
+		 * `DNS_FETCHOPT_TRYCD` has been set by the code processing a
+		 * SERVFAIL response from a forwarder with CD=0. This is a
+		 * second (and last) attempt to resend the query with CD=1 to
+		 * the same server.
+		 */
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 	} else if (res->view->enablevalidation &&
 		   ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0))
 	{
-		query->options |= DNS_FETCHOPT_TRYCD;
+		/*
+		 * RD flag is set, meaning either that the client requests
+		 * recursion or (non exclusive) we are asking a forwarder. The
+		 * logic about CD doesn't matter in the non-forwarder case, but
+		 * doesn't harm either (as an authoritative server will ignore
+		 * this). However, for the forwarder case, it means the
+		 * forwarder will attempt the validation.
+		 *
+		 * The query is sent with CD=0, and `DNS_FETCHOPT_TRYNOCD`
+		 * enables the code processing the response to know (if this is
+		 * a forwarder, which is re-checked in the code processing the
+		 * response) that we can re-send the query again, one more time,
+		 * with CD=1 (leaving the resolver doing the validation itself).
+		 */
+		query->options |= DNS_FETCHOPT_TRYNOCD;
 	}
 
 	/*
@@ -9993,7 +10013,8 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		rctx->resend = true;
 	} else if (ISFORWARDER(query->addrinfo) &&
 		   query->rmessage->rcode == dns_rcode_servfail &&
-		   (query->options & DNS_FETCHOPT_TRYCD) != 0)
+		   (query->options & DNS_FETCHOPT_TRYNOCD) != 0 &&
+		   (query->options & DNS_FETCHOPT_TRYCD) == 0)
 	{
 		/*
 		 * We got a SERVFAIL from a forwarder with
