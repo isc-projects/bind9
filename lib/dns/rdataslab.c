@@ -176,7 +176,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	static unsigned char removed;
 	struct xrdata *x = NULL;
 	unsigned char *rawbuf = NULL;
-	unsigned int buflen;
+	uint32_t buflen;
 	isc_result_t result;
 	unsigned int nitems;
 	unsigned int nalloc;
@@ -291,6 +291,10 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			if (rdataset->type == dns_rdatatype_rrsig) {
 				buflen++;
 			}
+			if (buflen - reservelen - 2 > DNS_RDATA_MAXLENGTH) {
+				result = ISC_R_NOSPACE;
+				goto free_rdatas;
+			}
 		}
 	}
 
@@ -307,6 +311,10 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	 */
 	if (rdataset->type == dns_rdatatype_rrsig) {
 		buflen++;
+	}
+	if (buflen - reservelen - 2 > DNS_RDATA_MAXLENGTH) {
+		result = ISC_R_NOSPACE;
+		goto free_rdatas;
 	}
 
 	/*
@@ -523,7 +531,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned char **tslabp) {
 	unsigned char *ocurrent = NULL, *ostart = NULL, *ncurrent = NULL;
 	unsigned char *tstart = NULL, *tcurrent = NULL, *data = NULL;
-	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
+	unsigned int ocount, ncount, count, olength, tcount, length;
+	uint32_t tlength;
 	dns_rdata_t ordata = DNS_RDATA_INIT;
 	dns_rdata_t nrdata = DNS_RDATA_INIT;
 	bool added_something = false;
@@ -610,6 +619,9 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 #endif /* if DNS_RDATASET_FIXED */
 			if (type == dns_rdatatype_rrsig) {
 				tlength++;
+			}
+			if (tlength - reservelen - 2 > DNS_RDATA_MAXLENGTH) {
+				return ISC_R_NOSPACE;
 			}
 			tcount++;
 			nncount++;
@@ -787,7 +799,8 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		       unsigned int flags, unsigned char **tslabp) {
 	unsigned char *mcurrent = NULL, *sstart = NULL, *scurrent = NULL;
 	unsigned char *tstart = NULL, *tcurrent = NULL;
-	unsigned int mcount, scount, rcount, count, tlength, tcount, i;
+	unsigned int mcount, scount, rcount, count, tcount, i;
+	uint32_t tlength;
 	dns_rdata_t srdata = DNS_RDATA_INIT;
 	dns_rdata_t mrdata = DNS_RDATA_INIT;
 #if DNS_RDATASET_FIXED
@@ -842,7 +855,10 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 			 * This rdata isn't in the sslab, and thus isn't
 			 * being subtracted.
 			 */
-			tlength += (unsigned int)(mcurrent - mrdatabegin);
+			tlength += (uint32_t)(mcurrent - mrdatabegin);
+			if (tlength - reservelen - 2 > DNS_RDATA_MAXLENGTH) {
+				return ISC_R_NOSPACE;
+			}
 			tcount++;
 		} else {
 			rcount++;
