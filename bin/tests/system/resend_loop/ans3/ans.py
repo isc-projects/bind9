@@ -22,6 +22,7 @@ from isctest.asyncserver import (
     AsyncDnsServer,
     DnsResponseSend,
     DomainHandler,
+    QnameHandler,
     QnameQtypeHandler,
     QueryContext,
     StaticResponseHandler,
@@ -78,12 +79,19 @@ class ExampleCookieHandler(DomainHandler):
             yield DnsResponseSend(qctx.response)
 
 
+class TestDotComServFailHandler(QnameHandler, StaticResponseHandler):
+    qnames = ["test.com."]
+    authoritative = False
+    rcode = dns.rcode.SERVFAIL
+
+
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(
         RootNsHandler(),
         ExampleNsHandler(),
         ExampleCookieHandler(),
+        TestDotComServFailHandler(),
     )
     server.run()
 
