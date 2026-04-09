@@ -1137,12 +1137,21 @@ struct dispatch_key {
 
 static uint32_t
 dispatch_hash(struct dispatch_key *key) {
-	uint32_t hashval = isc_sockaddr_hash(key->peer, false);
-	if (key->local) {
-		hashval ^= isc_sockaddr_hash(key->local, true);
-	}
+	isc_hash32_t hash;
 
-	return hashval;
+	isc_hash32_init(&hash);
+
+	isc_sockaddr_hash_ex(&hash, key->peer, false);
+	if (key->local != NULL) {
+		isc_sockaddr_hash_ex(&hash, key->local, true);
+	}
+	if (key->transport != NULL) {
+		uintptr_t transport = (uintptr_t)key->transport;
+		isc_hash32_hash(&hash, &transport, sizeof(transport), true);
+	}
+	isc_hash32_hash(&hash, &key->disptype, sizeof(key->disptype), true);
+
+	return isc_hash32_finalize(&hash);
 }
 
 static int
@@ -1160,7 +1169,8 @@ dispatch_match(struct cds_lfht_node *node, const void *key0) {
 		peer = disp->peer;
 	}
 
-	return isc_sockaddr_equal(&peer, key->peer) &&
+	return disp->disptype == key->disptype &&
+	       isc_sockaddr_equal(&peer, key->peer) &&
 	       disp->transport == key->transport &&
 	       (key->local == NULL || isc_sockaddr_equal(&local, key->local));
 }
@@ -1193,10 +1203,6 @@ dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 					  ht_node) {
 		INSIST(disp->tid == isc_tid());
 		INSIST(disp->socktype == isc_socktype_tcp);
-
-		if (disp->disptype != disptype) {
-			continue;
-		}
 
 		switch (disp->state) {
 		case DNS_DISPATCHSTATE_NONE:
