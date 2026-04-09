@@ -243,16 +243,16 @@ stages:
 
 # Fedora
 
-.tsan-fedora-43-amd64: &tsan_fedora_43_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tsan-fedora-43-amd64"
+.tsan-fedora-44-amd64: &tsan_fedora_44_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tsan-fedora-44-amd64"
   <<: *linux_amd64
 
-.fedora-43-amd64: &fedora_43_amd64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-43-amd64"
+.fedora-44-amd64: &fedora_44_amd64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-44-amd64"
   <<: *linux_amd64
 
-.fedora-43-arm64: &fedora_43_arm64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-43-arm64"
+.fedora-44-arm64: &fedora_44_arm64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-44-arm64"
   <<: *linux_arm64
 
 # Ubuntu
@@ -1615,25 +1615,25 @@ unit:gcc:resolute:amd64:
     - job: gcc:resolute:amd64
       artifacts: true
 
-# Jobs for ASAN builds on Fedora 43 (amd64)
+# Jobs for ASAN builds on Fedora 44 (amd64)
 
 gcc:asan:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "-Db_sanitize=address,undefined -Didn=enabled -Djemalloc=disabled -Dtracing=disabled"
-  <<: *fedora_43_amd64_image
+  <<: *fedora_44_amd64_image
   <<: *build_job
 
 system:gcc:asan:
-  <<: *fedora_43_amd64_image
+  <<: *fedora_44_amd64_image
   <<: *system_test_job
   needs:
     - job: gcc:asan
       artifacts: true
 
 unit:gcc:asan:
-  <<: *fedora_43_amd64_image
+  <<: *fedora_44_amd64_image
   <<: *unit_test_job
   needs:
     - job: gcc:asan
@@ -1663,7 +1663,7 @@ unit:clang:asan:
     - job: clang:asan
       artifacts: true
 
-# Jobs for TSAN builds on Fedora 43 (amd64)
+# Jobs for TSAN builds on Fedora 44 (amd64)
 
 gcc:tsan:
   variables:
@@ -1671,12 +1671,12 @@ gcc:tsan:
     CFLAGS: "${CFLAGS_COMMON} -Wno-stringop-overread"
     LDFLAGS: "-Wl,--disable-new-dtags"
     EXTRA_CONFIGURE: "${TSAN_CONFIGURE_FLAGS_COMMON}"
-  <<: *tsan_fedora_43_amd64_image
+  <<: *tsan_fedora_44_amd64_image
   <<: *build_job
 
 system:gcc:tsan:
   variables:
-  <<: *tsan_fedora_43_amd64_image
+  <<: *tsan_fedora_44_amd64_image
   <<: *system_test_tsan_job
   <<: *extra_system_tests_triggering_rules
   needs:
@@ -1686,7 +1686,7 @@ system:gcc:tsan:
 unit:gcc:tsan:
   variables:
     TSAN_SYMBOLIZER_PATH: "${TSAN_SYMBOLIZER_PATH_FEDORA}"
-  <<: *tsan_fedora_43_amd64_image
+  <<: *tsan_fedora_44_amd64_image
   <<: *unit_test_tsan_job
   <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
