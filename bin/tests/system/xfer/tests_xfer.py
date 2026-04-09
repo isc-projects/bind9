@@ -532,7 +532,7 @@ def test_reconfiguration_when_zone_transfer_is_in_the_middle_of_soa_query(ns6):
     ns6.rndc("reload xfr-and-reconfig")
 
     isctest.log.info("Reconfigure named while zone transfer attempt is in progress")
-    ns6.reconfigure()
+    ns6.reconfigure(timeout=30)
 
     isctest.log.info(
         "Confirm that the ongoing SOA request was canceled, caused by the reconfiguration"
