@@ -2034,9 +2034,6 @@ publish:
   variables:
     SSH_SCRIPT_CLIENT: |-
       ssh "${STAGING_USER_ACTIONS}@${STAGING_HOST}" "publish ${CI_COMMIT_TAG}"
-  after_script:
-    - *git_clone_bind9-qa
-    - if [ "${CI_JOB_STATUS}" = "success" ]; then "$CI_PROJECT_DIR"/bind9-qa/releng/manage_distros_token.py delete; fi
   artifacts:
     paths:
       - publish-${CI_COMMIT_TAG}.log
@@ -2046,6 +2043,21 @@ publish:
       artifacts: false
   rules:
     - *rule_tag_open_source
+
+publish-cleanup:
+  <<: *base_image
+  stage: release
+  script:
+    - *git_clone_bind9-qa
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/manage_distros_token.py delete
+  needs:
+    - job: publish
+      artifacts: false
+  tags:
+    - smalljob
+  rules:
+    - *rule_tag_security
 
 .manual_release_job_qa: &manual_release_job_qa
   <<: *manual_release_job
