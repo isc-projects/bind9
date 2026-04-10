@@ -516,7 +516,10 @@ nochange TCP a3-9.tld2                # 33 tcp-only
 here x.servfail <<'EOF'               # 34 qname-wait-recurse yes
   ;; status: SERVFAIL, x
 EOF
-addr 35.35.35.35 "x.servfail @$ns5" # 35 qname-wait-recurse no
+addr 35.35.35.35 "x.servfail @$ns5"                                                                                                                                                                                                                                    # 35 qname-wait-recurse no
+here aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.wild.sub1.tld2 <<'EOF' # 36 wildcard CNAME name to long
+    ;; status: YXDOMAIN, x
+EOF
 end_group
 ckstats $ns3 test1 ns3 22
 ckstats $ns5 test1 ns5 1
