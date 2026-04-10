@@ -637,7 +637,7 @@ out:
 isc_result_t
 dst_gssapi_acceptctx(gss_cred_id_t cred,
 		     const char *gssapi_keytab,
-		     isc_region_t *intoken, isc_buffer_t **outtoken,
+		     isc_region_t *intoken, isc_buffer_t **outtokenp,
 		     gss_ctx_id_t *ctxout, dns_name_t *principal,
 		     isc_mem_t *mctx) {
 	isc_region_t r;
@@ -650,7 +650,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	isc_result_t result;
 	char buf[1024];
 
-	REQUIRE(outtoken != NULL && *outtoken == NULL);
+	REQUIRE(outtokenp != NULL && *outtokenp == NULL);
 	REQUIRE(*ctxout == NULL);
 
 	REGION_TO_GBUFFER(*intoken, gintoken);
@@ -728,10 +728,13 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	}
 
 	if (gouttoken.length > 0U) {
-		RETERR(isc_buffer_allocate(mctx, outtoken,
+		RETERR(isc_buffer_allocate(mctx, outtokenp,
 					   (unsigned int)gouttoken.length));
 		GBUFFER_TO_REGION(gouttoken, r);
-		RETERR(isc_buffer_copyregion(*outtoken, &r));
+		result = isc_buffer_copyregion(*outtokenp, &r);
+		if (result != ISC_R_SUCCESS) {
+			goto out;
+		}
 		(void)gss_release_buffer(&minor, &gouttoken);
 	}
 
@@ -772,6 +775,10 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	*ctxout = context;
 
 out:
+	if (result != ISC_R_SUCCESS && *outtokenp != NULL) {
+		isc_buffer_free(outtokenp);
+	}
+
 	if (result != ISC_R_SUCCESS && context != GSS_C_NO_CONTEXT) {
 		(void)gss_delete_sec_context(&minor, &context, NULL);
 	}
