@@ -1817,9 +1817,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 			int order;
 
 			domain = dns_fixedname_name(&query->lookup->fdomain);
-			namereln =
-				dns_name_fullcompare(dns_linkedname_name(name),
-						     domain, &order, &nlabels);
+			namereln = dns_name_fullcompare(name, domain, &order,
+							&nlabels);
 			if (namereln == dns_namereln_equal) {
 				if (!horizontal) {
 					dighost_warning("BAD (HORIZONTAL) "
@@ -1875,8 +1874,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 					lookup->recurse = false;
 				}
 				domain = dns_fixedname_name(&lookup->fdomain);
-				dns_name_copy(dns_linkedname_name(name),
-					      domain);
+				dns_name_copy(name, domain);
 				lookup->edns = lookup->original_edns;
 			}
 			debug("adding server %s", namestr);
@@ -2044,8 +2042,7 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 
 	dns_message_gettempname(lookup->sendmsg, &soaname);
-	dns_name_clone(dns_linkedname_name(lookup->name),
-		       dns_linkedname_name(soaname));
+	dns_name_clone(lookup->name, dns_linkedname_name(soaname));
 	ISC_LIST_INIT(soaname->list);
 	ISC_LIST_APPEND(soaname->list, rdataset, link);
 	dns_message_addname(lookup->sendmsg, soaname, DNS_SECTION_AUTHORITY);
@@ -2265,10 +2262,9 @@ setup_lookup(dig_lookup_t *lookup) {
 			}
 		}
 	}
-	dns_name_format(dns_linkedname_name(lookup->name), store,
-			sizeof(store));
+	dns_name_format(lookup->name, store, sizeof(store));
 	dighost_trying(store, lookup);
-	INSIST(dns_name_isabsolute(dns_linkedname_name(lookup->name)));
+	INSIST(dns_name_isabsolute(lookup->name));
 
 	lookup->sendmsg->id = (dns_messageid_t)isc_random16();
 	lookup->sendmsg->opcode = lookup->opcode;
@@ -4201,16 +4197,13 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			ISC_LIST_FOREACH(name->list, rdataset, link) {
 				if (l->rdtype != rdataset->type ||
 				    l->rdclass != rdataset->rdclass ||
-				    !dns_name_equal(
-					    dns_linkedname_name(l->name),
-					    dns_linkedname_name(name)))
+				    !dns_name_equal(l->name, name))
 				{
 					char namestr[DNS_NAME_FORMATSIZE];
 					char typebuf[DNS_RDATATYPE_FORMATSIZE];
 					char classbuf[DNS_RDATACLASS_FORMATSIZE];
-					dns_name_format(
-						dns_linkedname_name(name),
-						namestr, sizeof(namestr));
+					dns_name_format(name, namestr,
+							sizeof(namestr));
 					dns_rdatatype_format(rdataset->type,
 							     typebuf,
 							     sizeof(typebuf));

@@ -2028,8 +2028,7 @@ parseclass:
 		{
 			char namebuf[DNS_NAME_FORMATSIZE];
 
-			dns_name_format(dns_linkedname_name(name), namebuf,
-					sizeof(namebuf));
+			dns_name_format(name, namebuf, sizeof(namebuf));
 			fprintf(stderr, "check-names failed: bad owner '%s'\n",
 				namebuf);
 			goto failure;
@@ -2862,8 +2861,7 @@ lookforsoa:
 
 	if (debugging) {
 		char namestr[DNS_NAME_FORMATSIZE];
-		dns_name_format(dns_linkedname_name(name), namestr,
-				sizeof(namestr));
+		dns_name_format(name, namestr, sizeof(namestr));
 		fprintf(stderr, "Found zone name: %s\n", namestr);
 	}
 
@@ -2886,7 +2884,7 @@ lookforsoa:
 		 * address.
 		 */
 		zname = dns_fixedname_initname(&fzname);
-		dns_name_copy(dns_linkedname_name(name), zname);
+		dns_name_copy(name, zname);
 	}
 
 	if (debugging) {
@@ -2954,7 +2952,7 @@ out:
 droplabel:
 	INSIST(!ISC_LIST_EMPTY(soaquery->sections[DNS_SECTION_QUESTION]));
 	name = ISC_LIST_HEAD(soaquery->sections[DNS_SECTION_QUESTION]);
-	nlabels = dns_name_countlabels(dns_linkedname_name(name));
+	nlabels = dns_name_countlabels(name);
 	if (nlabels == 1) {
 		fatal("could not find enclosing zone");
 	}
@@ -3409,8 +3407,7 @@ start_update(void) {
 
 		dns_linkedname_t *firstname =
 			ISC_LIST_HEAD(updatemsg->sections[section]);
-		dns_name_clone(dns_linkedname_name(firstname),
-			       dns_linkedname_name(name));
+		dns_name_clone(firstname, dns_linkedname_name(name));
 
 		/*
 		 * Looks to see if the first name references a DS record
@@ -3423,8 +3420,7 @@ start_update(void) {
 		    !dns_name_isroot(dns_linkedname_name(firstname)) &&
 		    tmprdataset->type == dns_rdatatype_ds)
 		{
-			unsigned int labels =
-				dns_name_countlabels(dns_linkedname_name(name));
+			unsigned int labels = dns_name_countlabels(name);
 			dns_name_getlabelsequence(dns_linkedname_name(name), 1,
 						  labels - 1,
 						  dns_linkedname_name(name));

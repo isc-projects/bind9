@@ -350,8 +350,7 @@ keythatsigned_unlocked(dns_rdata_rrsig_t *rrsig) {
 	ISC_LIST_FOREACH(keylist, key, link) {
 		if (rrsig->keyid == dst_key_id(key->key) &&
 		    algorithm == dst_key_alg(key->key) &&
-		    dns_name_equal(dns_linkedname_name(&rrsig->signer),
-				   dst_key_name(key->key)))
+		    dns_name_equal(&rrsig->signer, dst_key_name(key->key)))
 		{
 			return key;
 		}

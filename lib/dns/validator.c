@@ -1149,10 +1149,8 @@ validator_callback_nsec(void *arg) {
 		    rdataset->trust == dns_trust_secure &&
 		    (NEEDNODATA(val) || NEEDNOQNAME(val)) &&
 		    !FOUNDNODATA(val) && !FOUNDNOQNAME(val) &&
-		    dns_name_issubdomain(
-			    dns_linkedname_name(val->name),
-			    dns_linkedname_name(
-				    &subvalidator->siginfo->signer)) &&
+		    dns_name_issubdomain(val->name,
+					 &subvalidator->siginfo->signer) &&
 		    dns_nsec_noexistnodata(
 			    val->type, dns_linkedname_name(val->name),
 			    dns_linkedname_name(subvalidator->name), rdataset,
@@ -1286,7 +1284,7 @@ static bool
 check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	for (dns_validator_t *cur = val; cur != NULL; cur = cur->parent) {
-		if (!dns_name_equal(dns_linkedname_name(cur->name), name)) {
+		if (!dns_name_equal(cur->name, name)) {
 			continue;
 		}
 
@@ -1519,9 +1517,8 @@ seek_dnskey(dns_validator_t *val) {
 	 * The signer name must be at the same level as the owner name
 	 * or closer to the DNS root.
 	 */
-	namereln = dns_name_fullcompare(dns_linkedname_name(val->name),
-					dns_linkedname_name(&siginfo->signer),
-					&order, &nlabels);
+	namereln = dns_name_fullcompare(val->name, &siginfo->signer, &order,
+					&nlabels);
 	if (namereln != dns_namereln_subdomain &&
 	    namereln != dns_namereln_equal)
 	{
@@ -1745,8 +1742,7 @@ selfsigned_dnskey(dns_validator_t *val) {
 
 			if (sig.algorithm != key.algorithm ||
 			    sig.keyid != keytag ||
-			    !dns_name_equal(name,
-					    dns_linkedname_name(&sig.signer)))
+			    !dns_name_equal(name, &sig.signer))
 			{
 				continue;
 			}
@@ -1897,7 +1893,7 @@ again:
 			      isc_result_totext(result));
 	}
 	if (result == DNS_R_FROMWILDCARD) {
-		if (!dns_name_equal(dns_linkedname_name(val->name), wild)) {
+		if (!dns_name_equal(val->name, wild)) {
 			dns_name_t *closest = dns_fixedname_name(&val->closest);
 
 			/*
@@ -3290,8 +3286,7 @@ validate_neg_rrset(dns_validator_t *val, dns_linkedname_t *name,
 	 */
 	if (val->type == dns_rdatatype_dnskey &&
 	    rdataset->type == dns_rdatatype_nsec &&
-	    dns_name_equal(dns_linkedname_name(name),
-			   dns_linkedname_name(val->name)))
+	    dns_name_equal(name, val->name))
 	{
 		dns_rdata_t nsec = DNS_RDATA_INIT;
 
@@ -3687,16 +3682,14 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 	dns_name_t *found = dns_fixedname_initname(&fixedfound);
 	dns_linkedname_t *tname = dns_fixedname_initlinkedname(&val->fname);
 
-	if (val->labels == dns_name_countlabels(dns_linkedname_name(val->name)))
-	{
-		dns_name_copy(dns_linkedname_name(val->name),
-			      dns_linkedname_name(tname));
+	if (val->labels == dns_name_countlabels(val->name)) {
+		dns_name_copy(val->name, dns_linkedname_name(tname));
 	} else {
 		dns_name_split(dns_linkedname_name(val->name), val->labels,
 			       NULL, dns_linkedname_name(tname));
 	}
 
-	dns_name_format(dns_linkedname_name(tname), namebuf, sizeof(namebuf));
+	dns_name_format(tname, namebuf, sizeof(namebuf));
 	validator_log(val, ISC_LOG_DEBUG(3), "checking existence of DS at '%s'",
 		      namebuf);
 
@@ -3819,7 +3812,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		    dns_view_bestzonecut(val->view, dns_linkedname_name(tname),
 					 found, NULL, 0, 0, false, false,
 					 NULL) == ISC_R_SUCCESS &&
-		    dns_name_equal(dns_linkedname_name(tname), found))
+		    dns_name_equal(tname, found))
 		{
 			*resp = markanswer(val, "seek_ds (2)");
 			return ISC_R_COMPLETE;
@@ -3970,7 +3963,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool have_dnskey,
 	 */
 	val->attributes |= VALATTR_INSECURITY;
 
-	dns_name_copy(dns_linkedname_name(val->name), secroot);
+	dns_name_copy(val->name, secroot);
 
 	/*
 	 * If this is a response to a DS query, we need to look in
@@ -4067,9 +4060,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool have_dnskey,
 	 * Walk down through each of the remaining labels in the name,
 	 * looking for DS records.
 	 */
-	while (val->labels <=
-	       dns_name_countlabels(dns_linkedname_name(val->name)))
-	{
+	while (val->labels <= dns_name_countlabels(val->name)) {
 		isc_result_t tresult;
 
 		result = seek_ds(val, &tresult);
@@ -4444,8 +4435,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t category,
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
-		dns_name_format(dns_linkedname_name(val->name), namebuf,
-				sizeof(namebuf));
+		dns_name_format(val->name, namebuf, sizeof(namebuf));
 		dns_rdatatype_format(val->type, typebuf, sizeof(typebuf));
 		isc_log_write(category, module, level,
 			      "%s%s%s%.*svalidating %s/%s: %s", sep1, viewname,
@@ -4503,8 +4493,7 @@ validator_addede(dns_validator_t *val, uint16_t code, const char *extra) {
 		if (extra != NULL) {
 			isc_buffer_putuint8(&b, ' ');
 		}
-		dns_name_totext(dns_linkedname_name(val->name),
-				DNS_NAME_OMITFINALDOT, &b);
+		dns_name_totext(val->name, DNS_NAME_OMITFINALDOT, &b);
 		isc_buffer_putuint8(&b, '/');
 		dns_rdatatype_totext(val->type, &b);
 	}

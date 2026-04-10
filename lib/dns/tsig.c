@@ -143,7 +143,7 @@ static bool
 tkey_match(void *node, const void *key) {
 	dns_tsigkey_t *tkey = node;
 
-	return dns_name_equal(tkey->name, key);
+	return dns_name_equal(tkey->name, (const dns_name_t *)key);
 }
 
 static bool

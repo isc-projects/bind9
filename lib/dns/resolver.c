@@ -5281,9 +5281,8 @@ is_lame(fetchctx_t *fctx, dns_message_t *message) {
 			if (rdataset->type != dns_rdatatype_ns) {
 				continue;
 			}
-			namereln = dns_name_fullcompare(
-				dns_linkedname_name(name), fctx->domain, &order,
-				&labels);
+			namereln = dns_name_fullcompare(name, fctx->domain,
+							&order, &labels);
 			if (namereln == dns_namereln_equal &&
 			    (message->flags & DNS_MESSAGEFLAG_AA) != 0)
 			{
@@ -5382,14 +5381,13 @@ same_question(fetchctx_t *fctx, dns_message_t *message) {
 
 	if (fctx->type != rdataset->type ||
 	    fctx->res->rdclass != rdataset->rdclass ||
-	    !dns_name_equal(fctx->name, dns_linkedname_name(name)))
+	    !dns_name_equal(fctx->name, name))
 	{
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char classbuf[DNS_RDATACLASS_FORMATSIZE];
 		char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
-		dns_name_format(dns_linkedname_name(name), namebuf,
-				sizeof(namebuf));
+		dns_name_format(name, namebuf, sizeof(namebuf));
 		dns_rdataclass_format(rdataset->rdclass, classbuf,
 				      sizeof(classbuf));
 		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
@@ -5747,8 +5745,7 @@ fctx_cacheauthority(fetchctx_t *fctx, dns_message_t *message,
 			 * "black lies".
 			 */
 			if (rdataset->type == dns_rdatatype_nsec &&
-			    !dns_name_equal(fctx->name,
-					    dns_linkedname_name(name)) &&
+			    !dns_name_equal(fctx->name, name) &&
 			    is_minimal_nsec(rdataset))
 			{
 				continue;
@@ -5979,7 +5976,7 @@ answer_response:
 	FCTX_ATTR_SET(fctx, FCTX_ATTR_HAVEANSWER);
 
 	fctx_setresult(fctx);
-	dns_name_copy(dns_linkedname_name(val->name), fctx->resp.foundname);
+	dns_name_copy(val->name, fctx->resp.foundname);
 	dns_db_transfernode(fctx->cache, &node, &fctx->resp_node);
 
 	done = true;
@@ -6431,7 +6428,7 @@ rctx_cachename(respctx_t *rctx, dns_message_t *message,
 		if (dns_rdataset_isassociated(&fctx->resp.rdataset)) {
 			fctx_setresult(fctx);
 		}
-		dns_name_copy(dns_linkedname_name(name), fctx->resp.foundname);
+		dns_name_copy(name, fctx->resp.foundname);
 		dns_db_transfernode(fctx->cache, &node, &fctx->resp_node);
 		FCTX_ATTR_SET(fctx, FCTX_ATTR_HAVEANSWER);
 	}
@@ -8750,9 +8747,8 @@ rctx_answer_scan(respctx_t *rctx) {
 		unsigned int nlabels;
 		dns_namereln_t namereln;
 
-		namereln = dns_name_fullcompare(fctx->name,
-						dns_linkedname_name(name),
-						&order, &nlabels);
+		namereln = dns_name_fullcompare(fctx->name, name, &order,
+						&nlabels);
 		switch (namereln) {
 		case dns_namereln_equal:
 			ISC_LIST_FOREACH(name->list, rdataset, link) {
@@ -9082,7 +9078,7 @@ rctx_authority_positive(respctx_t *rctx) {
 	MSG_SECTION_FOREACH(msg, DNS_SECTION_AUTHORITY, name) {
 		if (!name_external(dns_linkedname_name(name), dns_rdatatype_ns,
 				   rctx) &&
-		    dns_name_issubdomain(fctx->name, dns_linkedname_name(name)))
+		    dns_name_issubdomain(fctx->name, name))
 		{
 			/*
 			 * We expect to find NS or SIG NS rdatasets, and
@@ -9282,9 +9278,7 @@ rctx_authority_negative(respctx_t *rctx) {
 
 	dns_message_t *msg = rctx->query->rmessage;
 	MSG_SECTION_FOREACH(msg, section, name) {
-		if (!dns_name_issubdomain(dns_linkedname_name(name),
-					  fctx->domain))
-		{
+		if (!dns_name_issubdomain(name, fctx->domain)) {
 			continue;
 		}
 
@@ -9295,15 +9289,13 @@ rctx_authority_negative(respctx_t *rctx) {
 			}
 			if ((type == dns_rdatatype_ns ||
 			     type == dns_rdatatype_soa) &&
-			    !dns_name_issubdomain(fctx->name,
-						  dns_linkedname_name(name)))
+			    !dns_name_issubdomain(fctx->name, name))
 			{
 				char qbuf[DNS_NAME_FORMATSIZE];
 				char nbuf[DNS_NAME_FORMATSIZE];
 				char tbuf[DNS_RDATATYPE_FORMATSIZE];
 				dns_rdatatype_format(type, tbuf, sizeof(tbuf));
-				dns_name_format(dns_linkedname_name(name), nbuf,
-						sizeof(nbuf));
+				dns_name_format(name, nbuf, sizeof(nbuf));
 				dns_name_format(fctx->name, qbuf, sizeof(qbuf));
 				log_formerr(fctx,
 					    "unrelated %s %s in "
@@ -9395,9 +9387,7 @@ rctx_authority_dnssec(respctx_t *rctx) {
 
 	dns_message_t *msg = rctx->query->rmessage;
 	MSG_SECTION_FOREACH(msg, DNS_SECTION_AUTHORITY, name) {
-		if (!dns_name_issubdomain(dns_linkedname_name(name),
-					  fctx->domain))
-		{
+		if (!dns_name_issubdomain(name, fctx->domain)) {
 			/*
 			 * Invalid name found; preserve it for logging
 			 * later.

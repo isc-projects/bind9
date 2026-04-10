@@ -2946,15 +2946,13 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 
 		LOCK(&client->query.fetchlock);
 		INSIST(client->query.qname != NULL);
-		dns_name_format(dns_linkedname_name(client->query.qname),
-				namebuf, sizeof(namebuf));
+		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
 		if (client->query.qname != client->query.origqname &&
 		    client->query.origqname != NULL)
 		{
 			origfor = " for ";
-			dns_name_format(
-				dns_linkedname_name(client->query.origqname),
-				original, sizeof(original));
+			dns_name_format(client->query.origqname, original,
+					sizeof(original));
 		} else {
 			origfor = "";
 			original[0] = '\0';
@@ -3111,7 +3109,7 @@ ns_client_keepname(ns_client_t *client, dns_linkedname_t *name,
 	 */
 	REQUIRE(client->query.namebufused);
 
-	dns_name_toregion(dns_linkedname_name(name), &r);
+	dns_name_toregion(name, &r);
 	isc_buffer_add(dbuf, r.length);
 	dns_name_setbuffer(dns_linkedname_name(name), NULL);
 	client->query.namebufused = false;

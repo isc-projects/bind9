@@ -17127,9 +17127,7 @@ checkds_done(void *arg) {
 	/* Lookup DS RRset. */
 
 	MSG_SECTION_FOREACH(message, DNS_SECTION_ANSWER, name) {
-		if (dns_name_compare(&zone->origin,
-				     dns_linkedname_name(name)) != 0)
-		{
+		if (dns_name_compare(&zone->origin, name) != 0) {
 			continue;
 		}
 

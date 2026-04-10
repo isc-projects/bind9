@@ -250,7 +250,7 @@ dns__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		return ISC_R_NOTFOUND;
 	}
 
-	dns_name_clone(dns_linkedname_name(noqname), name);
+	dns_name_clone(noqname, name);
 	dns_rdataset_clone(tneg, neg);
 	dns_rdataset_clone(tnegsig, negsig);
 	return ISC_R_SUCCESS;

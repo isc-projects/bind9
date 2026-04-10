@@ -541,8 +541,7 @@ delegset_size(dns_delegset_t *delegset) {
 			sz += sizeof(*address);
 		}
 		ISC_LIST_FOREACH(deleg->names, name, link) {
-			sz += sizeof(*name) +
-			      dns_name_size(dns_linkedname_name(name));
+			sz += sizeof(*name) + dns_name_size(name);
 		}
 	}
 
@@ -775,7 +774,7 @@ tostring_namelist(dns_namelist_t *namelist, const char *id, FILE *fp) {
 			char bdata[DNS_NAME_FORMATSIZE] = { 0 };
 
 			isc_buffer_init(&nameb, bdata, sizeof(bdata));
-			dns_name_totext(dns_linkedname_name(name), 0, &nameb);
+			dns_name_totext(name, 0, &nameb);
 			fprintf(fp, "%s", bdata);
 
 			if (name != ISC_LIST_TAIL(*namelist)) {

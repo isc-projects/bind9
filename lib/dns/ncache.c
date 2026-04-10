@@ -194,8 +194,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					/*
 					 * Copy the owner name to the buffer.
 					 */
-					dns_name_toregion(
-						dns_linkedname_name(name), &r);
+					dns_name_toregion(name, &r);
 					RETERR(isc_buffer_copyregion(&buffer,
 								     &r));
 					/*

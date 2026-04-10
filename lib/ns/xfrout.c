@@ -90,8 +90,7 @@
 		char _buf1[DNS_NAME_FORMATSIZE];                             \
 		char _buf2[DNS_RDATACLASS_FORMATSIZE];                       \
 		result = (code);                                             \
-		dns_name_format(dns_linkedname_name(question), _buf1,        \
-				sizeof(_buf1));                              \
+		dns_name_format(question, _buf1, sizeof(_buf1));             \
 		dns_rdataclass_format(rdclass, _buf2, sizeof(_buf2));        \
 		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT,              \
 			      NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO,           \
@@ -802,9 +801,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 				char _buf2[DNS_RDATACLASS_FORMATSIZE];
 
 				result = DNS_R_REFUSED;
-				dns_name_format(
-					dns_linkedname_name(question_name),
-					_buf1, sizeof(_buf1));
+				dns_name_format(question_name, _buf1,
+						sizeof(_buf1));
 				dns_rdataclass_format(question_class, _buf2,
 						      sizeof(_buf2));
 				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
@@ -857,9 +855,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		/*
 		 * Ignore data whose owner name is not the zone apex.
 		 */
-		if (!dns_name_equal(dns_linkedname_name(soa_name),
-				    dns_linkedname_name(question_name)))
-		{
+		if (!dns_name_equal(soa_name, question_name)) {
 			continue;
 		}
 

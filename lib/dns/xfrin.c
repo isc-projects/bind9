@@ -1938,7 +1938,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 
 		LIBDNS_XFRIN_RECV_QUESTION(xfr, xfr->info, msg);
 
-		if (!dns_name_equal(dns_linkedname_name(name), &xfr->name)) {
+		if (!dns_name_equal(name, &xfr->name)) {
 			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "question name mismatch");
 			CLEANUP(DNS_R_FORMERR);

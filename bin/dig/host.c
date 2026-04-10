@@ -375,8 +375,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 	if (msg->rcode != 0) {
 		char namestr[DNS_NAME_FORMATSIZE];
-		dns_name_format(dns_linkedname_name(query->lookup->name),
-				namestr, sizeof(namestr));
+		dns_name_format(query->lookup->name, namestr, sizeof(namestr));
 
 		if (query->lookup->identify_previous_line) {
 			printf("Nameserver %s:\n\t%s not found: %d(%s)\n",
@@ -403,7 +402,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 		/* Add AAAA and MX lookups. */
 		name = dns_fixedname_initname(&fixed);
-		dns_name_copy(dns_linkedname_name(query->lookup->name), name);
+		dns_name_copy(query->lookup->name, name);
 		chase_cnamechain(msg, name);
 		dns_name_format(name, namestr, sizeof(namestr));
 		lookup = clone_lookup(query->lookup, false);
@@ -532,8 +531,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	{
 		char namestr[DNS_NAME_FORMATSIZE];
 		char typestr[DNS_RDATATYPE_FORMATSIZE];
-		dns_name_format(dns_linkedname_name(query->lookup->name),
-				namestr, sizeof(namestr));
+		dns_name_format(query->lookup->name, namestr, sizeof(namestr));
 		dns_rdatatype_format(query->lookup->rdtype, typestr,
 				     sizeof(typestr));
 		printf("%s has no %s record\n", namestr, typestr);

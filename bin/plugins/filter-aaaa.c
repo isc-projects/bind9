@@ -575,9 +575,7 @@ process_section(const section_filter_t *filter) {
 	dns_message_t *message = qctx->client->message;
 
 	MSG_SECTION_FOREACH(message, section, cur) {
-		if (name != NULL &&
-		    !dns_name_equal(name, dns_linkedname_name(cur)))
-		{
+		if (name != NULL && !dns_name_equal(name, cur)) {
 			/*
 			 * We only want to process 'name' and this is not it.
 			 */

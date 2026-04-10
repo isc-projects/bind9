@@ -622,8 +622,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 		for (i = 0; i < nkey; i++) {
 			keyinfo_t *ki = &keytbl[i];
 			if (sig.keyid != ki->tag || sig.algorithm != ki->algo ||
-			    !dns_name_equal(dns_linkedname_name(&sig.signer),
-					    name))
+			    !dns_name_equal(&sig.signer, name))
 			{
 				continue;
 			}

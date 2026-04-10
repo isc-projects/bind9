@@ -196,7 +196,7 @@ digest_sig(dst_context_t *ctx, bool downcase, dns_rdata_t *sigrdata,
 			ISC_R_SUCCESS);
 		dns_name_toregion(dns_fixedname_name(&fname), &r);
 	} else {
-		dns_name_toregion(dns_linkedname_name(&rrsig->signer), &r);
+		dns_name_toregion(&rrsig->signer, &r);
 	}
 
 	return dst_context_adddata(ctx, &r);
@@ -471,21 +471,19 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	case dns_rdatatype_ns:
 	case dns_rdatatype_soa:
 	case dns_rdatatype_dnskey:
-		if (!dns_name_equal(name, dns_linkedname_name(&sig.signer))) {
+		if (!dns_name_equal(name, &sig.signer)) {
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;
 		}
 		break;
 	case dns_rdatatype_ds:
-		if (dns_name_equal(name, dns_linkedname_name(&sig.signer))) {
+		if (dns_name_equal(name, &sig.signer)) {
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;
 		}
 		FALLTHROUGH;
 	default:
-		if (!dns_name_issubdomain(name,
-					  dns_linkedname_name(&sig.signer)))
-		{
+		if (!dns_name_issubdomain(name, &sig.signer)) {
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;
 		}
@@ -599,8 +597,7 @@ again:
 	result = dst_context_verify(ctx, &r);
 	if (result == ISC_R_SUCCESS && downcase) {
 		char namebuf[DNS_NAME_FORMATSIZE];
-		dns_name_format(dns_linkedname_name(&sig.signer), namebuf,
-				sizeof(namebuf));
+		dns_name_format(&sig.signer, namebuf, sizeof(namebuf));
 		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
 			      ISC_LOG_DEBUG(1),
 			      "successfully validated after lower casing "

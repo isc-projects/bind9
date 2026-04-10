@@ -120,14 +120,12 @@ lfht_match(struct cds_lfht_node *ht_node, const void *_key) {
 						  ht_node);
 	const dns_name_t *key = _key;
 
-	return dns_name_equal(key,
-			      dns_linkedname_name_const(&i->fixed.name_wl));
+	return dns_name_equal(key, &i->fixed.name_wl);
 }
 
 static isc_result_t
 add_lfht(void *lfht, size_t count) {
-	unsigned long hash =
-		dns_name_hash(dns_linkedname_name(&item[count].fixed.name_wl));
+	unsigned long hash = dns_name_hash(&item[count].fixed.name_wl);
 
 	struct cds_lfht_node *ht_node = cds_lfht_add_unique(
 		lfht, hash, lfht_match,
@@ -143,8 +141,7 @@ add_lfht(void *lfht, size_t count) {
 
 static isc_result_t
 get_lfht(void *lfht, size_t count, void **pval) {
-	unsigned long hash =
-		dns_name_hash(dns_linkedname_name(&item[count].fixed.name_wl));
+	unsigned long hash = dns_name_hash(&item[count].fixed.name_wl);
 
 	struct cds_lfht_iter iter;
 	cds_lfht_lookup(lfht, hash, lfht_match,
@@ -202,27 +199,23 @@ new_hashmap(isc_mem_t *mem) {
 static bool
 name_match(void *node, const void *key) {
 	const struct item_s *i = node;
-	return dns_name_equal(dns_linkedname_name_const(&i->fixed.name_wl),
-			      key);
+	return dns_name_equal(&i->fixed.name_wl, (const dns_name_t *)key);
 }
 
 static isc_result_t
 add_hashmap(void *hashmap, size_t count) {
 	isc_result_t result = isc_hashmap_add(
-		hashmap,
-		dns_name_hash(dns_linkedname_name(&item[count].fixed.name_wl)),
-		name_match, dns_linkedname_name(&item[count].fixed.name_wl),
-		&item[count], NULL);
+		hashmap, dns_name_hash(&item[count].fixed.name_wl), name_match,
+		dns_linkedname_name(&item[count].fixed.name_wl), &item[count],
+		NULL);
 	return result;
 }
 
 static isc_result_t
 get_hashmap(void *hashmap, size_t count, void **pval) {
 	isc_result_t result = isc_hashmap_find(
-		hashmap,
-		dns_name_hash(dns_linkedname_name(&item[count].fixed.name_wl)),
-		name_match, dns_linkedname_name(&item[count].fixed.name_wl),
-		pval);
+		hashmap, dns_name_hash(&item[count].fixed.name_wl), name_match,
+		dns_linkedname_name(&item[count].fixed.name_wl), pval);
 	return result;
 }
 

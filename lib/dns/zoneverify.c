@@ -183,8 +183,7 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 	for (size_t key = 0; key < nkeys; key++) {
 		if (algorithm != dst_key_alg(dstkeys[key]) ||
 		    sig.keyid != dst_key_id(dstkeys[key]) ||
-		    !dns_name_equal(dns_linkedname_name(&sig.signer),
-				    vctx->origin))
+		    !dns_name_equal(&sig.signer, vctx->origin))
 		{
 			continue;
 		}

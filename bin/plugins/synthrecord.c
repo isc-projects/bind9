@@ -159,8 +159,7 @@ synthrecord_respond(synthrecord_t *inst, query_ctx_t *qctx, void *rdata,
 	 * rdataset to it.
 	 */
 	dns_message_gettempname(msg, &aname);
-	dns_name_copy(dns_linkedname_name(qctx->client->query.qname),
-		      dns_linkedname_name(aname));
+	dns_name_copy(qctx->client->query.qname, aname);
 	dns_message_addname(msg, aname, DNS_SECTION_ANSWER);
 	dns_rdataset_setownercase(synthset, dns_linkedname_name(aname));
 	ISC_LIST_APPEND(aname->list, synthset, link);

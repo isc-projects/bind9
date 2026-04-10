@@ -126,8 +126,7 @@ sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	dst_algorithm_t algorithm = dst_algorithm_fromdata(
 		sig->algorithm, sig->signature, sig->siglen);
 
-	dns_name_format(dns_linkedname_name(&sig->signer), namestr,
-			sizeof(namestr));
+	dns_name_format(&sig->signer, namestr, sizeof(namestr));
 	dst_algorithm_format(algorithm, algstr, sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, sig->keyid);
 }
