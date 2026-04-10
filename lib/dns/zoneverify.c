@@ -460,7 +460,7 @@ match_nsec3(const vctx_t *vctx, const dns_name_t *name,
 	    const unsigned char types[8192], unsigned int maxtype,
 	    const unsigned char *rawhash, size_t rhsize,
 	    isc_result_t *vresult) {
-	unsigned char cbm[8244];
+	unsigned char cbm[DNS_NSEC_MAXCBMSIZE];
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_rdata_nsec3_t nsec3;
 	isc_result_t result;
