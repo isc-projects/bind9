@@ -26,7 +26,6 @@ import os
 import pathlib
 import re
 import signal
-import struct
 import sys
 
 import dns.exception
@@ -1273,9 +1272,7 @@ class AsyncDnsServer(AsyncServer):
         if not wire_length_bytes:
             return None
 
-        (wire_length,) = struct.unpack("!H", wire_length_bytes)
-
-        return wire_length
+        return int.from_bytes(wire_length_bytes, byteorder="big")
 
     async def _read_tcp_query_wire(
         self, reader: asyncio.StreamReader, peer: Peer, wire_length: int
@@ -1416,8 +1413,7 @@ class AsyncDnsServer(AsyncServer):
                 if protocol == DnsProtocol.UDP:
                     yield response
                 else:
-                    response_length = struct.pack("!H", len(response))
-                    yield response_length + response
+                    yield len(payload).to_bytes(2, byteorder="big") + payload
 
     def _parse_message(self, wire: bytes) -> dns.message.Message:
         try:
