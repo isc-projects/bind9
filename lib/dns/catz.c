@@ -1469,7 +1469,6 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 			dns_rdata_freestruct(&rdata_txt);
 			result = dns_name_fromstring(keyname, keycbuf, 0, mctx);
 			if (result != ISC_R_SUCCESS) {
-				dns_name_free(keyname, mctx);
 				isc_mem_put(mctx, keyname, sizeof(*keyname));
 				return result;
 			}
