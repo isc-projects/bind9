@@ -1143,7 +1143,6 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			keycbuf[rdatastr.length] = 0;
 			result = dns_name_fromstring(keyname, keycbuf, 0, mctx);
 			if (result != ISC_R_SUCCESS) {
-				dns_name_free(keyname, mctx);
 				isc_mem_put(mctx, keyname, sizeof(dns_name_t));
 				return (result);
 			}
