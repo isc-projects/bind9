@@ -3420,6 +3420,35 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking maximal sized compresses bit map works ($n)"
+ret=0
+(
+  cd signer || exit 0
+  key1=$(${KEYGEN} -a "${DEFAULT_ALGORITHM}" -f KSK maxcbm.example)
+  key2=$(${KEYGEN} -a "${DEFAULT_ALGORITHM}" maxcbm.example)
+  cat >>maxcbm.example.db <<EOF
+\$TTL 3600
+@ SOA . . 0 0 0 0 3600
+@ NS .
+\$INCLUDE "${key1}.key"
+\$INCLUDE "${key2}.key"
+; the last data type in the first window
+data TYPE127 \# 0
+EOF
+  # add a record at the end of each cbm window less 1
+  type=$((256 + 254))
+  while test $type -lt 65536; do
+    echo "data TYPE$type \\# 0" >>maxcbm.example.db
+    type=$((type + 256))
+  done
+  "${SIGNER}" -3 - -o maxcbm.example maxcbm.example.db >signer.out.$n
+  "${CHECKZONE}" -q -D maxcbm.example maxcbm.example.db.signed \
+    | grep '^M7L6E3AJUD7LRVUMMQS595OGHBMT4DFT.*NSEC3.*TYPE65534$' >/dev/null || ret=1
+) || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "check that 'dnssec-keygen -S' works for all supported algorithms ($n)"
 ret=0
 alg=1

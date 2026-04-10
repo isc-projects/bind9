@@ -166,6 +166,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "signer/general/dsset-*",
         "signer/general/signed.zone",
         "signer/general/signer.out.*",
+        "signer/maxcbm.example.db",
         "signer/nsec3param.out",
         "signer/prepub.db",
         "signer/revoke.example.db",
