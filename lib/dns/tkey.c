@@ -182,12 +182,9 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	result = dst_gssapi_acceptctx(tctx->gssapi_keytab, &intoken, &outtoken,
 				      &gss_ctx, principal, tctx->mctx);
 	if (result != ISC_R_SUCCESS) {
-		if (tsigkey != NULL) {
-			dns_tsigkey_detach(&tsigkey);
-		}
 		tkeyout->error = dns_tsigerror_badkey;
 		tkey_log("process_gsstkey(): dns_tsigerror_badkey");
-		return ISC_R_SUCCESS;
+		CLEANUP(ISC_R_SUCCESS);
 	}
 
 	/*
@@ -196,14 +193,10 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	 * negotiation is complete and the principal must be set.
 	 */
 	if (dns_name_countlabels(principal) == 0U) {
-		if (tsigkey != NULL) {
-			dns_tsigkey_detach(&tsigkey);
-		}
-		dst_gssapi_deletectx(tctx->mctx, &gss_ctx);
 		tkeyout->error = dns_tsigerror_badkey;
 		tkey_log("process_gsstkey(): "
 			 "completed context with empty principal");
-		return ISC_R_SUCCESS;
+		CLEANUP(ISC_R_SUCCESS);
 	} else if (tsigkey == NULL) {
 #if HAVE_GSSAPI
 		OM_uint32 gret, minor, lifetime;
@@ -282,7 +275,9 @@ cleanup:
 		isc_buffer_free(&outtoken);
 	}
 
-	tkey_log("process_gsstkey(): %s", isc_result_totext(result));
+	if (result != ISC_R_SUCCESS) {
+		tkey_log("process_gsstkey(): %s", isc_result_totext(result));
+	}
 	return result;
 }
 
