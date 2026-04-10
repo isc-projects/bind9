@@ -14,14 +14,17 @@ from collections.abc import AsyncGenerator
 import dns.edns
 import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsResponseSend,
+    QnameHandler,
     QueryContext,
     ResponseHandler,
+    StaticResponseHandler,
 )
 
 
@@ -41,31 +44,33 @@ def _get_cookie(qctx: QueryContext):
     return None
 
 
-class PrimeHandler(ResponseHandler):
-    """
-    Specifically handle priming query for "." NS (type 2)
-    """
+def rrset(
+    qname: dns.name.Name | str,
+    rtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(qname, ttl, dns.rdataclass.IN, rtype, rdata)
 
-    def match(self, qctx: QueryContext) -> bool:
-        return len(qctx.qname.labels) == 0 and qctx.qtype == dns.rdatatype.NS
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
+class RootNSHandler(QnameHandler, StaticResponseHandler):
+    qnames = ["."]
+    answer = [
+        rrset(".", dns.rdatatype.NS, "a.root-servers.nil."),
+    ]
+    additional = [
+        rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3"),
+    ]
 
-        ns_rrset = dns.rrset.from_text(
-            ".", dns.rdatatype.NS, qctx.qclass, "a.root-servers.nil."
-        )
-        a_rrset = dns.rrset.from_text(
-            "a.root-servers.nil.", dns.rdatatype.A, qctx.qclass, "10.53.0.3"
-        )
 
-        response = qctx.prepare_new_response(with_zone_data=False)
-        response.set_rcode(dns.rcode.NOERROR)
-        response.answer.append(ns_rrset)
-        response.additional.append(a_rrset)
-
-        yield DnsResponseSend(response, authoritative=True)
+class ExampleNSHandler(QnameHandler, StaticResponseHandler):
+    qnames = ["example."]
+    answer = [
+        rrset("example.", dns.rdatatype.NS, "ns.example."),
+    ]
+    additional = [
+        rrset("ns.example.", dns.rdatatype.A, "10.53.0.3"),
+    ]
 
 
 class CookieHandler(ResponseHandler):
@@ -111,7 +116,8 @@ class NoErrorHandler(ResponseHandler):
 def resend_server() -> AsyncDnsServer:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(
-        PrimeHandler(),
+        RootNSHandler(),
+        ExampleNSHandler(),
         CookieHandler(),
         NoErrorHandler(),
     )
