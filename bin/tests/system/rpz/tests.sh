@@ -394,7 +394,7 @@ addr() {
   digcmd $2 >$DIGNM
   #ckalive "$2" "server crashed by 'dig $2'" || return 1
   ADDR_ESC=$(echo "$ADDR" | sed -e 's/\./\\./g')
-  ADDR_TTL=$(tr -d '\r' <$DIGNM | sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}$/\1/p")
+  ADDR_TTL=$(tr -d '\r' <$DIGNM | sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)[ 	]IN[ 	]AA*[ 	]${ADDR_ESC}\$/\1/p")
   if test -z "$ADDR_TTL"; then
     setret "'dig $2' wrong; no address $ADDR record in $DIGNM"
     return 1
