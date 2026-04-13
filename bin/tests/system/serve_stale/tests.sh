@@ -18,6 +18,13 @@ set -e
 RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 DIG="$DIG +time=12 +tries=1"
 
+ans8_control() {
+  control_name=$1
+  shift
+  $DIG -p "${PORT}" @10.53.0.8 "${control_name}.switch._control" TXT "$@" >dig.out.ans8_control || return 1
+  grep "status: NOERROR" dig.out.ans8_control >/dev/null || return 1
+}
+
 max_stale_ttl=$(sed -ne 's,^[[:space:]]*max-stale-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/include/defaultconfig.h)
 stale_answer_ttl=$(sed -ne 's,^[[:space:]]*stale-answer-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/include/defaultconfig.h)
 
@@ -115,9 +122,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "update target authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.8 txt update >dig.out.test$n || ret=1
-grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
-grep "TXT.\"update\"" dig.out.test$n >/dev/null || ret=1
+ans8_control update || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 # Query via stale CNAME — triggers the bug
@@ -154,9 +159,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "update target authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.8 txt restore >dig.out.test$n || ret=1
-grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
-grep "TXT.\"restore\"" dig.out.test$n >/dev/null || ret=1
+ans8_control restore || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
