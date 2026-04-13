@@ -850,7 +850,6 @@ typedef struct respctx {
 	dns_rdataset_t *ns_rdataset; /* NS rdataset */
 
 	dns_name_t *soa_name; /* SOA name in a negative answer */
-	dns_name_t *ds_name;  /* DS name in a negative answer */
 
 	dns_name_t *found_name;	    /* invalid name in negative
 				     * response */
@@ -8404,7 +8403,6 @@ rctx_answer_init(respctx_t *rctx) {
 	rctx->ns_rdataset = NULL;
 
 	rctx->soa_name = NULL;
-	rctx->ds_name = NULL;
 	rctx->found_name = NULL;
 }
 
@@ -9727,32 +9725,33 @@ rctx_authority_dnssec(respctx_t *rctx) {
 				 * marked.
 				 */
 				break;
-			case dns_rdatatype_ds:
+			case dns_rdatatype_ds:;
 				/*
-				 * DS or SIG DS.
+				 * DS or RRSIG(DS).
 				 *
 				 * These should only be here if this is
 				 * a referral, and there should only be
 				 * one DS RRset.
 				 */
+				const char *typestr = (rdataset->type ==
+						       dns_rdatatype_ds)
+							      ? "DS"
+							      : "RRSIG(DS)";
+
 				if (rctx->ns_name == NULL) {
-					log_formerr(fctx,
-						    "DS with no referral");
+					log_formerr(fctx, "%s with no referral",
+						    typestr);
 					rctx->result = DNS_R_FORMERR;
 					return ISC_R_COMPLETE;
 				}
 
-				if (rdataset->type == dns_rdatatype_ds) {
-					if (rctx->ds_name != NULL &&
-					    name != rctx->ds_name)
-					{
-						log_formerr(fctx,
-							    "DS doesn't match "
-							    "referral (NS)");
-						rctx->result = DNS_R_FORMERR;
-						return ISC_R_COMPLETE;
-					}
-					rctx->ds_name = name;
+				if (name != rctx->ns_name) {
+					log_formerr(fctx,
+						    "%s doesn't match the "
+						    "delegation owner name",
+						    typestr);
+					rctx->result = DNS_R_FORMERR;
+					return ISC_R_COMPLETE;
 				}
 
 				name->attributes |= DNS_NAMEATTR_CACHE;
