@@ -1,4 +1,6 @@
+{% if not ns.name.startswith("ans") %}
 $ORIGIN @zone.name@.
+{% endif %}
 $TTL 300
 {% raw %}@{% endraw %}			IN SOA	@zone.ns.name@.@zone.name@. . (
 				1		; serial
