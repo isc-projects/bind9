@@ -444,7 +444,7 @@ print_status(dns_rdataset_t *rdataset) {
 }
 
 static void
-printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
+printdata(dns_rdataset_t *rdataset, const dns_name_t *owner) {
 	isc_result_t result = ISC_R_SUCCESS;
 	static dns_trust_t trust;
 	static bool first = true;
@@ -1947,7 +1947,7 @@ recvresponse(void *arg) {
 	dns_message_t *query = dns_request_getarg(request);
 	isc_result_t result = dns_request_getresult(request);
 	dns_message_t *response = NULL;
-	dns_name_t *prev = NULL;
+	const dns_name_t *prev = NULL;
 
 	if (result != ISC_R_SUCCESS) {
 		fatal("request event result: %s", isc_result_totext(result));
@@ -1968,10 +1968,11 @@ recvresponse(void *arg) {
 		goto cleanup;
 	}
 
-	MSG_SECTION_FOREACH(response, DNS_SECTION_ANSWER, name) {
+	MSG_SECTION_FOREACH(response, DNS_SECTION_ANSWER, linkedname) {
+		const dns_name_t *name = dns_linkedname_name(linkedname);
 		dns_rdatatype_t prevtype = dns_rdatatype_none;
 
-		ISC_LIST_FOREACH(name->list, rdataset, link) {
+		ISC_LIST_FOREACH(linkedname->list, rdataset, link) {
 			dns_rdataset_t rds, sigs;
 			int options = 0;
 
@@ -1982,7 +1983,7 @@ recvresponse(void *arg) {
 			 * fine, we can just print that version.
 			 */
 			if (!showtrust) {
-				printdata(rdataset, dns_linkedname_name(name));
+				printdata(rdataset, name);
 				continue;
 			}
 
@@ -1994,12 +1995,10 @@ recvresponse(void *arg) {
 			 * duplicate output, so we check here whether we've
 			 * already printed this name and type.
 			 */
-			if (prev != NULL &&
-			    dns_name_equal(prev, dns_linkedname_name(name)))
-			{
+			if (prev != NULL && dns_name_equal(prev, name)) {
 				continue;
 			}
-			prev = dns_linkedname_name(name);
+			prev = name;
 
 			if (prevtype == rdataset->type) {
 				continue;
@@ -2017,15 +2016,13 @@ recvresponse(void *arg) {
 			if (cdflag) {
 				options |= DNS_DBFIND_PENDINGOK;
 			}
-			result = dns_view_simplefind(
-				view, dns_linkedname_name(name), rdataset->type,
-				0, options, &rds, &sigs);
+			result = dns_view_simplefind(view, name, rdataset->type,
+						     0, options, &rds, &sigs);
 			if (result == ISC_R_SUCCESS) {
-				printdata(&rds, dns_linkedname_name(name));
+				printdata(&rds, name);
 				dns_rdataset_disassociate(&rds);
 				if (dns_rdataset_isassociated(&sigs)) {
-					printdata(&sigs,
-						  dns_linkedname_name(name));
+					printdata(&sigs, name);
 					dns_rdataset_disassociate(&sigs);
 				}
 			}

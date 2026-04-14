@@ -2174,8 +2174,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	}
 
 	if (lookup->origin != NULL) {
+		dns_linkedname_t *oname = NULL;
+
 		debug("trying origin %s", lookup->origin->origin);
-		dns_message_gettempname(lookup->sendmsg, &lookup->oname);
+		dns_message_gettempname(lookup->sendmsg, &oname);
 		/* XXX Helper funct to conv char* to name? */
 		origin = lookup->origin->origin;
 #ifdef HAVE_LIBIDN2
@@ -2188,12 +2190,11 @@ setup_lookup(dig_lookup_t *lookup) {
 		len = (unsigned int)strlen(origin);
 		isc_buffer_init(&b, origin, len);
 		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(dns_linkedname_name(lookup->oname),
-					   &b, dns_rootname, 0);
+		result = dns_name_fromtext(dns_linkedname_name(oname), &b,
+					   dns_rootname, 0);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg, &lookup->name);
-			dns_message_puttempname(lookup->sendmsg,
-						&lookup->oname);
+			dns_message_puttempname(lookup->sendmsg, &oname);
 			fatal("'%s' is not in legal name syntax (%s)", origin,
 			      isc_result_totext(result));
 		}
@@ -2213,8 +2214,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				if (!dns_name_isabsolute(name)) {
 					result = dns_name_concatenate(
 						name,
-						dns_linkedname_name(
-							lookup->oname),
+						dns_linkedname_name(oname),
 						dns_linkedname_name(
 							lookup->name));
 				} else {
@@ -2227,7 +2227,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				dns_message_puttempname(lookup->sendmsg,
 							&lookup->name);
 				dns_message_puttempname(lookup->sendmsg,
-							&lookup->oname);
+							&oname);
 				if (result == DNS_R_NAMETOOLONG) {
 					return false;
 				}
@@ -2236,7 +2236,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				      isc_result_totext(result));
 			}
 		}
-		dns_message_puttempname(lookup->sendmsg, &lookup->oname);
+		dns_message_puttempname(lookup->sendmsg, &oname);
 	} else {
 		debug("using root origin");
 		if (lookup->trace && lookup->trace_root) {

@@ -138,7 +138,6 @@ struct dig_lookup {
 	dns_linkedname_t *name;
 	isc_interval_t interval;
 	dns_message_t *sendmsg;
-	dns_linkedname_t *oname;
 	ISC_LINK(dig_lookup_t) link;
 	ISC_LIST(dig_query_t) q;
 	ISC_LIST(dig_query_t) connecting;

@@ -1877,7 +1877,7 @@ evaluate_class(char *cmdline) {
 static uint16_t
 update_addordelete(char *cmdline, bool isdelete) {
 	isc_result_t result;
-	dns_linkedname_t *name = NULL;
+	dns_linkedname_t *linkedname = NULL;
 	uint32_t ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
@@ -1893,10 +1893,11 @@ update_addordelete(char *cmdline, bool isdelete) {
 	/*
 	 * Read the owner name.
 	 */
-	retval = parse_name(&cmdline, updatemsg, &name);
+	retval = parse_name(&cmdline, updatemsg, &linkedname);
 	if (retval != STATUS_MORE) {
 		return retval;
 	}
+	const dns_name_t *name = dns_linkedname_name(linkedname);
 
 	dns_message_gettemprdata(updatemsg, &rdata);
 
@@ -2022,8 +2023,8 @@ parseclass:
 		dns_fixedname_t fixed;
 		dns_name_t *bad;
 
-		if (!dns_rdata_checkowner(dns_linkedname_name(name),
-					  rdata->rdclass, rdata->type, true))
+		if (!dns_rdata_checkowner(name, rdata->rdclass, rdata->type,
+					  true))
 		{
 			char namebuf[DNS_NAME_FORMATSIZE];
 
@@ -2035,9 +2036,7 @@ parseclass:
 		}
 
 		bad = dns_fixedname_initname(&fixed);
-		if (!dns_rdata_checknames(rdata, dns_linkedname_name(name),
-					  bad))
-		{
+		if (!dns_rdata_checknames(rdata, name, bad)) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 
 			dns_name_format(bad, namebuf, sizeof(namebuf));
@@ -2048,7 +2047,7 @@ parseclass:
 	}
 
 	if (!isdelete && checksvcb && rdata->type == dns_rdatatype_svcb) {
-		result = dns_rdata_checksvcb(dns_linkedname_name(name), rdata);
+		result = dns_rdata_checksvcb(name, rdata);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "check-svcb failed: %s\n",
 				isc_result_totext(result));
@@ -2079,14 +2078,14 @@ doneparsing:
 	rdatalist->ttl = (dns_ttl_t)ttl;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
-	ISC_LIST_INIT(name->list);
-	ISC_LIST_APPEND(name->list, rdataset, link);
-	dns_message_addname(updatemsg, name, DNS_SECTION_UPDATE);
+	ISC_LIST_INIT(linkedname->list);
+	ISC_LIST_APPEND(linkedname->list, rdataset, link);
+	dns_message_addname(updatemsg, linkedname, DNS_SECTION_UPDATE);
 	return STATUS_MORE;
 
 failure:
-	if (name != NULL) {
-		dns_message_puttempname(updatemsg, &name);
+	if (linkedname != NULL) {
+		dns_message_puttempname(updatemsg, &linkedname);
 	}
 	dns_message_puttemprdata(updatemsg, &rdata);
 	return STATUS_SYNTAX;

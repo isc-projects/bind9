@@ -713,7 +713,8 @@ xfrout_delayed_timeout(void *arg, isc_result_t result);
 void
 ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	isc_result_t result;
-	dns_linkedname_t *question_name;
+	dns_linkedname_t *question_name_wl;
+	dns_name_t *question_name;
 	dns_rdataset_t *question_rdataset;
 	dns_zone_t *zone = NULL, *raw = NULL, *mayberaw;
 	dns_db_t *db = NULL;
@@ -766,20 +767,21 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 * The question section must contain exactly one question, and
 	 * it must be for AXFR/IXFR as appropriate.
 	 */
-	question_name = ISC_LIST_HEAD(request->sections[DNS_SECTION_QUESTION]);
-	question_rdataset = ISC_LIST_HEAD(question_name->list);
+	question_name_wl =
+		ISC_LIST_HEAD(request->sections[DNS_SECTION_QUESTION]);
+	question_name = dns_linkedname_name(question_name_wl);
+	question_rdataset = ISC_LIST_HEAD(question_name_wl->list);
 	question_class = question_rdataset->rdclass;
 	INSIST(question_rdataset->type == reqtype);
 	if (ISC_LIST_NEXT(question_rdataset, link) != NULL) {
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	}
 
-	if (ISC_LIST_NEXT(question_name, link) != NULL) {
+	if (ISC_LIST_NEXT(question_name_wl, link) != NULL) {
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	}
 
-	result = dns_view_findzone(client->inner.view,
-				   dns_linkedname_name(question_name),
+	result = dns_view_findzone(client->inner.view, question_name,
 				   DNS_ZTFIND_EXACT, &zone);
 	if (result != ISC_R_SUCCESS || dns_zone_gettype(zone) == dns_zone_dlz) {
 		/*
@@ -789,8 +791,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		 */
 		if (!ISC_LIST_EMPTY(client->inner.view->dlz_searched)) {
 			result = dns_dlzallowzonexfr(
-				client->inner.view,
-				dns_linkedname_name(question_name),
+				client->inner.view, question_name,
 				&client->inner.peeraddr, &db);
 			if (result == ISC_R_DEFAULT) {
 				useviewacl = true;
@@ -845,8 +846,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		dns_db_currentversion(db, &ver);
 	}
 
-	xfrout_log1(client, dns_linkedname_name(question_name), question_class,
-		    ISC_LOG_DEBUG(6), "%s question section OK", mnemonic);
+	xfrout_log1(client, question_name, question_class, ISC_LOG_DEBUG(6),
+		    "%s question section OK", mnemonic);
 
 	/*
 	 * Check the authority section.  Look for a SOA record with
@@ -889,8 +890,8 @@ got_soa:
 		CHECK(result);
 	}
 
-	xfrout_log1(client, dns_linkedname_name(question_name), question_class,
-		    ISC_LOG_DEBUG(6), "%s authority section OK", mnemonic);
+	xfrout_log1(client, question_name, question_class, ISC_LOG_DEBUG(6),
+		    "%s authority section OK", mnemonic);
 
 	/*
 	 * If not a DLZ zone or we are falling back to the view's transfer
@@ -899,8 +900,7 @@ got_soa:
 	if (!is_dlz || useviewacl) {
 		dns_acl_t *acl;
 
-		ns_client_aclmsg("zone transfer",
-				 dns_linkedname_name(question_name), reqtype,
+		ns_client_aclmsg("zone transfer", question_name, reqtype,
 				 client->inner.view->rdclass, msg, sizeof(msg));
 		if (useviewacl) {
 			acl = client->inner.view->transferacl;
@@ -997,8 +997,7 @@ got_soa:
 							      &provide_ixfr);
 			}
 			if (!provide_ixfr) {
-				xfrout_log1(client,
-					    dns_linkedname_name(question_name),
+				xfrout_log1(client, question_name,
 					    question_class, ISC_LOG_DEBUG(4),
 					    "IXFR delta response disabled due "
 					    "to 'provide-ixfr no;' being set");
@@ -1016,8 +1015,8 @@ got_soa:
 			result = ISC_R_NOTFOUND;
 		}
 		if (result == ISC_R_NOTFOUND || result == ISC_R_RANGE) {
-			xfrout_log1(client, dns_linkedname_name(question_name),
-				    question_class, ISC_LOG_INFO,
+			xfrout_log1(client, question_name, question_class,
+				    ISC_LOG_INFO,
 				    "IXFR version not in journal, "
 				    "falling back to AXFR (serial %u)",
 				    begin_serial);
@@ -1032,8 +1031,7 @@ got_soa:
 			if (ratio != 0 && ((100 * jsize) / dbsize) > ratio) {
 				data_stream->methods->destroy(&data_stream);
 				data_stream = NULL;
-				xfrout_log1(client,
-					    dns_linkedname_name(question_name),
+				xfrout_log1(client, question_name,
 					    question_class, ISC_LOG_INFO,
 					    "IXFR delta size (%zu bytes) "
 					    "exceeds the maximum ratio to "
@@ -1044,8 +1042,7 @@ got_soa:
 				mnemonic = "AXFR-style IXFR";
 				goto axfr_fallback;
 			} else {
-				xfrout_log1(client,
-					    dns_linkedname_name(question_name),
+				xfrout_log1(client, question_name,
 					    question_class, ISC_LOG_DEBUG(4),
 					    "IXFR delta size (%zu bytes); "
 					    "database size "
@@ -1076,17 +1073,15 @@ have_stream:
 	 */
 
 	if (is_dlz) {
-		xfrout_ctx_create(mctx, client, request->id,
-				  dns_linkedname_name(question_name), reqtype,
-				  question_class, zone, db, ver, stream,
-				  dns_message_gettsigkey(request), tsigbuf,
-				  request->verified_sig, 3600, 3600,
+		xfrout_ctx_create(mctx, client, request->id, question_name,
+				  reqtype, question_class, zone, db, ver,
+				  stream, dns_message_gettsigkey(request),
+				  tsigbuf, request->verified_sig, 3600, 3600,
 				  (format == dns_many_answers) ? true : false,
 				  &xfr);
 	} else {
 		xfrout_ctx_create(
-			mctx, client, request->id,
-			dns_linkedname_name(question_name), reqtype,
+			mctx, client, request->id, question_name, reqtype,
 			question_class, zone, db, ver, stream,
 			dns_message_gettsigkey(request), tsigbuf,
 			request->verified_sig, dns_zone_getmaxxfrout(zone),
@@ -1108,19 +1103,16 @@ have_stream:
 	xfr->poll = is_poll;
 	if (is_poll) {
 		xfr->mnemonic = "IXFR poll response";
-		xfrout_log1(client, dns_linkedname_name(question_name),
-			    question_class, ISC_LOG_DEBUG(1),
-			    "IXFR poll up to date%s%s",
+		xfrout_log1(client, question_name, question_class,
+			    ISC_LOG_DEBUG(1), "IXFR poll up to date%s%s",
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
 	} else if (is_ixfr) {
-		xfrout_log1(client, dns_linkedname_name(question_name),
-			    question_class, ISC_LOG_INFO,
+		xfrout_log1(client, question_name, question_class, ISC_LOG_INFO,
 			    "%s started%s%s (serial %u -> %u)", mnemonic,
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname,
 			    begin_serial, current_serial);
 	} else {
-		xfrout_log1(client, dns_linkedname_name(question_name),
-			    question_class, ISC_LOG_INFO,
+		xfrout_log1(client, question_name, question_class, ISC_LOG_INFO,
 			    "%s started%s%s (serial %u)", mnemonic,
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname,
 			    current_serial);

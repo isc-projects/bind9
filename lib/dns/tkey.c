@@ -285,7 +285,7 @@ cleanup:
 }
 
 static isc_result_t
-process_deletetkey(dns_name_t *signer, dns_name_t *name,
+process_deletetkey(const dns_name_t *signer, const dns_name_t *name,
 		   dns_rdata_tkey_t *tkeyin, dns_rdata_tkey_t *tkeyout,
 		   dns_tsigkeyring_t *ring) {
 	isc_result_t result;
@@ -402,7 +402,6 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		/*
 		 * A delete operation uses the fully specified qname.
 		 */
-		// FIXME: Is this correct?
 		keyname = dns_linkedname_name(qname);
 		CHECK(process_deletetkey(signer, keyname, &tkeyin, &tkeyout,
 					 ring));
