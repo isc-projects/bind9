@@ -126,6 +126,12 @@ grep -F "catz: dns_catz_add_zone catalog-bad5.example" ns2/named.run && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "checking that catalog-bad6.example (invalid TSIG key name) is handled ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: invalid record in catalog zone - mykey.primaries.ext.deadbeef.zones.catalog-bad6.example IN TXT (label too long) - ignoring" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 nextpart ns2/named.run >/dev/null
 
 ##########################################################################

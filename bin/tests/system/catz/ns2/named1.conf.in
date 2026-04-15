@@ -67,6 +67,10 @@ view "default" {
 		zone "catalog-bad4.example"
 			default-masters { 10.53.0.1; }
 			in-memory yes;
+		zone "catalog-bad6.example"
+			default-masters { 10.53.0.1; }
+			min-update-interval 1s
+			in-memory yes;
 	};
 
 	# A faulty dlz configuration to check if named and catz survive a certain class
@@ -155,6 +159,12 @@ view "default" {
 		primaries { 10.53.0.1; };
 	};
 
+	# Bad TSIG key name
+	zone "catalog-bad6.example" {
+		type secondary;
+		file "catalog-bad6.example.db";
+		primaries { 10.53.0.1; };
+	};
 };
 
 view "ch" ch {
