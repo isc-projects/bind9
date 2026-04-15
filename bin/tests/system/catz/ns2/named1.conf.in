@@ -43,6 +43,8 @@ options {
 #T1			default-masters { 10.53.0.1; };
 #T2		zone "catalog5.example"
 #T2			default-masters { 10.53.0.1; };
+		zone "catalog-bad6.example"
+			default-masters { 10.53.0.1; };
 	};
 };
 
@@ -75,6 +77,13 @@ zone "catalog3.example" {
 zone "catalog4.example" {
 	type secondary;
 	file "catalog4.example.db";
+	primaries { 10.53.0.1; };
+};
+
+# Bad TSIG key name
+zone "catalog-bad6.example" {
+	type secondary;
+	file "catalog-bad6.example.db";
 	primaries { 10.53.0.1; };
 };
 

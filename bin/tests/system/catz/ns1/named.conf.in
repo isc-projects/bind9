@@ -61,6 +61,16 @@ zone "catalog4.example" {
 
 /* catalog5 is missing on purpose */
 
+# Bad TSIG key name
+zone "catalog-bad6.example" {
+	type primary;
+	file "catalog-bad6.example.db";
+	allow-transfer { any; };
+	allow-update { any; };
+	also-notify { 10.53.0.2; };
+	notify explicit;
+};
+
 key tsig_key. {
 	secret "LSAnCU+Z";
 	algorithm @DEFAULT_HMAC@;

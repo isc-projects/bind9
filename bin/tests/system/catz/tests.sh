@@ -81,6 +81,17 @@ wait_for_no_zonefile() (
 
 status=0
 n=0
+
+##########################################################################
+
+echo_i "checking that catalog-bad6.example (invalid TSIG key name) is handled ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: unknown record in catalog zone - mykey.masters.deadbeef.zones.catalog-bad6.example IN TXT(label too long) - ignoring" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
 ##########################################################################
 echo_i "Testing adding/removing of domain in catalog zone"
 n=$((n + 1))
