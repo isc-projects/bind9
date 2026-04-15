@@ -9,55 +9,25 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+"""Custom authoritative server (ans4) for the dnssec_py suite.
+
+Per-domain response handlers live one-per-module in sibling *_ans.py files
+(e.g. rrsig_labels_signer_ans.py); this loader installs each into a single
+AsyncDnsServer.  Keeping each domain's crafted-response logic in its own
+file bounds its scope as the server accrues unrelated domains.
 """
-Custom authoritative server for the sibling-ds test.
 
-When returning a referral for child.sibling-ds, this server injects a DS
-record for sibling.sibling-ds into the authority section.  The resolver
-should reject this because the DS owner name does not match the
-delegation (NS) name.
-"""
-
-from collections.abc import AsyncGenerator
-
-import dns.rdatatype
-import dns.rrset
-
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
-)
-
-
-class SiblingDsInjectionHandler(DomainHandler):
-    """Inject a DS record for sibling.sibling-ds into child.sibling-ds referrals."""
-
-    domains = ["child.sibling-ds."]
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
-        # The default zone-data response already has the NS delegation for
-        # child.sibling-ds. and glue.  Add a DS record for the *sibling* zone
-        # (wrong name for this referral).
-        sibling_ds = dns.rrset.from_text(
-            "sibling.sibling-ds.",
-            300,
-            qctx.qclass,
-            dns.rdatatype.DS,
-            "12345 8 2 "
-            "49FD46E6C4B45C55D4AC69CBD3CD34AC1AFE51DE7B2B585ABCDEABCDEABCDEAB",
-        )
-        qctx.response.authority.append(sibling_ds)
-        yield DnsResponseSend(qctx.response)
+from dnssec_py.ans4 import rrsig_labels_signer_ans, sibling_ds_ans
+from isctest.asyncserver import AsyncDnsServer
 
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(SiblingDsInjectionHandler())
+
+    server.install_response_handler(sibling_ds_ans.SiblingDsInjectionHandler())
+    if rrsig_labels_signer_ans.PEM_PATH.exists():
+        server.install_response_handler(rrsig_labels_signer_ans.AttackerZoneHandler())
+
     server.run()
 
 
