@@ -1,0 +1,17 @@
+options {
+	query-source address 10.53.0.2;
+	notify-source 10.53.0.2;
+	transfer-source 10.53.0.2;
+	port @PORT@;
+	pid-file "named.pid";
+	listen-on { 10.53.0.2; };
+	listen-on-v6 { none; };
+	recursion no;
+	notify yes;
+};
+
+zone "example" {
+	type primary;
+	file "example.db.signed";
+	allow-update { any; };
+};
