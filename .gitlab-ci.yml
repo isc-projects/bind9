@@ -1893,6 +1893,51 @@ unit:clang:freebsd15:amd64:
   <<: *unit_test_job
   <<: *freebsd_autoscaler_15_amd64_tags
 
+# Build and run tests against the latest git version of libuv
+
+gcc:tumbleweed:libuv-git:amd64:
+  <<: *tumbleweed_latest_amd64_image
+  <<: *build_job
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
+    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_LIBEDIT}"
+  before_script:
+    - *list_installed_package_versions
+    - zypper --non-interactive rm --clean-deps libuv-devel
+    - git clone --depth 1 https://github.com/libuv/libuv.git /tmp/libuv
+    - cd /tmp/libuv
+    - sh autogen.sh
+    - ./configure --prefix="$CI_PROJECT_DIR/libuv"
+    - make -j"$BUILD_PARALLEL_JOBS" CFLAGS=""
+    - make install
+    - cd "$CI_PROJECT_DIR"
+    - export PKG_CONFIG_PATH="$CI_PROJECT_DIR/libuv/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+  rules:
+    - *rule_source_other_than_mr
+
+system:gcc:tumbleweed:libuv-git:amd64:
+  <<: *tumbleweed_latest_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:tumbleweed:libuv-git:amd64
+      artifacts: true
+  rules:
+    - *rule_source_other_than_mr
+
+unit:gcc:tumbleweed:libuv-git:amd64:
+  <<: *tumbleweed_latest_amd64_image
+  <<: *unit_test_job
+  before_script:
+    - bin/named/named -V > named.version
+    - "grep -E '^compiled with libuv version: [0-9]+\\.[0-9]+\\.[0-9]+$' named.version"
+    - "grep -E '^linked to libuv version: [0-9]+\\.[0-9]+\\.[0-9]+-dev$' named.version"
+  needs:
+    - job: gcc:tumbleweed:libuv-git:amd64
+      artifacts: true
+  rules:
+    - *rule_source_other_than_mr
+
 # Job producing a release directory
 
 release:
