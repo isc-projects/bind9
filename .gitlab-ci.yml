@@ -2255,6 +2255,8 @@ prepare-release-announcement:
     DOCUMENT: release-announcement
   rules:
     - *rule_tag_open_source
+  after_script:
+    - if [ "${CI_JOB_STATUS}" = "success" ]; then "$CI_PROJECT_DIR"/bind9-qa/releng/send_release_links.py --metadata "$CI_PROJECT_DIR"/bind9-qa/releng/metadata.json --message-mattermost; fi
 
 # Job preparing an EVN MR in Printing Press
 
