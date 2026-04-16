@@ -41,7 +41,13 @@
 
 static dns_rdatatype_t
 rdata_covers(dns_rdata_t *rdata) {
-	return rdata->type == dns_rdatatype_rrsig ? dns_rdata_covers(rdata) : 0;
+	if (rdata->type == dns_rdatatype_rrsig ||
+	    rdata->type == dns_rdatatype_sig)
+	{
+		return dns_rdata_covers(rdata);
+	}
+
+	return 0;
 }
 
 isc_result_t
