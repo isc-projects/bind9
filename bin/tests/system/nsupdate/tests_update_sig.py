@@ -32,15 +32,37 @@ by the AXFR-based regression test in this file.
 """
 
 import time
+from pathlib import Path
 
 import dns.rcode
 import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
+import dns.tsigkeyring
 import dns.update
+import pytest
 
 import isctest
+
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ans*/ans.run",
+        "ns*/*.bk",
+        "ns*/*.conf",
+        "ns*/*.db",
+        "ns*/*.db.jnl",
+        "ns*/*.db.signed",
+        "ns*/*.jnl",
+        "ns*/*.key",
+        "ns*/K*.key",
+        "ns*/K*.private",
+        "ns*/K*.state",
+        "ns*/dsset-*.",
+        "ns6/sigaxfr.bk",
+        "verylarge",
+    ]
+)
 
 
 def _make_sig_rdata(text):
@@ -79,9 +101,9 @@ def test_tcp_self_sig_record(ns6):
     crash-reproducing precondition.
     """
     ptr_update = dns.update.UpdateMessage("in-addr.arpa.")
-    ptr_update.add("1.0.0.127.in-addr.arpa.", 600, "PTR", "localhost.")
+    ptr_update.add("1.0.53.10.in-addr.arpa.", 600, "PTR", "localhost.")
     response = isctest.query.tcp(
-        ptr_update, ns6.ip, port=ns6.ports.dns, source="127.0.0.1"
+        ptr_update, ns6.ip, port=ns6.ports.dns, source="10.53.0.1"
     )
     assert response.rcode() == dns.rcode.NOERROR
 
@@ -92,16 +114,56 @@ def test_tcp_self_sig_record(ns6):
     sig_update = dns.update.UpdateMessage("in-addr.arpa.")
     sig_update.add("1.0.0.127.in-addr.arpa.", rds)
 
-    response = isctest.query.tcp(
-        sig_update, ns6.ip, port=ns6.ports.dns, source="127.0.0.1"
-    )
-    assert response.rcode() == dns.rcode.REFUSED
+    with ns6.watch_log_from_here() as watcher:
+        response = isctest.query.tcp(
+            sig_update, ns6.ip, port=ns6.ports.dns, source="10.53.0.1"
+        )
+        assert response.rcode() == dns.rcode.REFUSED
+
+        watcher.wait_for_line(
+            "updating zone 'in-addr.arpa/IN': update failed: SIG updates are not allowed (REFUSED)"
+        )
 
     # Confirm nothing of type SIG was stored.
-    msg = isctest.query.create("1.0.0.127.in-addr.arpa.", "SIG")
+    msg = isctest.query.create("1.0.53.10.in-addr.arpa.", "SIG")
     res = isctest.query.tcp(msg, ns6.ip, port=ns6.ports.dns)
     stored = any(rrset.rdtype == dns.rdatatype.SIG for rrset in res.answer)
     assert not stored, "SIG record was stored despite REFUSED response"
+
+
+def test_tcp_self_nxt_record(ns6):
+    """NXT (type 30) updates must be refused at the front door.
+
+    NXT is the legacy DNSSEC denial-of-existence type, obsolete since
+    RFC 3755 replaced it with NSEC.  Accepting it via dynamic update
+    would let an authorised updater inject records that the signing
+    and cut-point logic has no provision for.
+    """
+    # A second owner under a source that also matches tcp-self.
+    source = "10.53.0.2"
+    owner = "2.0.53.10.in-addr.arpa."
+
+    ptr_update = dns.update.UpdateMessage("in-addr.arpa.")
+    ptr_update.add(owner, 600, "PTR", "localhost.")
+    response = isctest.query.tcp(ptr_update, ns6.ip, port=ns6.ports.dns, source=source)
+    assert response.rcode() == dns.rcode.NOERROR
+
+    nxt = _make_nxt_rdata()
+    rds = dns.rdataset.Rdataset(dns.rdataclass.IN, dns.rdatatype.NXT)
+    rds.update_ttl(600)
+    rds.add(nxt)
+    nxt_update = dns.update.UpdateMessage("in-addr.arpa.")
+    nxt_update.add(owner, rds)
+
+    with ns6.watch_log_from_here() as watcher:
+        response = isctest.query.tcp(
+            nxt_update, ns6.ip, port=ns6.ports.dns, source="10.53.0.1"
+        )
+        assert response.rcode() == dns.rcode.REFUSED
+
+        watcher.wait_for_line(
+            "updating zone 'in-addr.arpa/IN': update failed: NXT updates are not allowed (REFUSED)"
+        )
 
 
 def test_sig_covers_preserved_via_axfr(ns6):
@@ -122,7 +184,7 @@ def test_sig_covers_preserved_via_axfr(ns6):
     """
     zone = "sigaxfr.nil"
     owner = f"host.{zone}."
-    dump_path = ns6.directory / "named_dump.db"
+    dump_path = Path("ns6") / "named_dump.db"
 
     # ns6 may have tried to SOA-poll ans11 before it was listening; force
     # a fresh refresh attempt and wait for the transfer to complete.
@@ -170,31 +232,3 @@ def test_sig_covers_preserved_via_axfr(ns6):
         "the Finding 1 bug both records are filed under typepair (SIG, 0) "
         "and share the first-seen TTL (600)."
     )
-
-
-def test_tcp_self_nxt_record(ns6):
-    """NXT (type 30) updates must be refused at the front door.
-
-    NXT is the legacy DNSSEC denial-of-existence type, obsolete since
-    RFC 3755 replaced it with NSEC.  Accepting it via dynamic update
-    would let an authorised updater inject records that the signing
-    and cut-point logic has no provision for.
-    """
-    # A second owner under a source that also matches tcp-self.
-    source = "127.0.0.2"
-    owner = "2.0.0.127.in-addr.arpa."
-
-    ptr_update = dns.update.UpdateMessage("in-addr.arpa.")
-    ptr_update.add(owner, 600, "PTR", "localhost.")
-    response = isctest.query.tcp(ptr_update, ns6.ip, port=ns6.ports.dns, source=source)
-    assert response.rcode() == dns.rcode.NOERROR
-
-    nxt = _make_nxt_rdata()
-    rds = dns.rdataset.Rdataset(dns.rdataclass.IN, dns.rdatatype.NXT)
-    rds.update_ttl(600)
-    rds.add(nxt)
-    nxt_update = dns.update.UpdateMessage("in-addr.arpa.")
-    nxt_update.add(owner, rds)
-
-    response = isctest.query.tcp(nxt_update, ns6.ip, port=ns6.ports.dns, source=source)
-    assert response.rcode() == dns.rcode.REFUSED
