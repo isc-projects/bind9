@@ -764,16 +764,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 	ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT,
 		      ISC_LOG_DEBUG(6), "%s request", mnemonic);
-	/*
-	 * Apply quota.
-	 */
-	result = isc_quota_attach(&client->sctx->xfroutquota, &quota);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
-			      "%s request denied: %s", mnemonic,
-			      isc_result_totext(result));
-		goto failure;
-	}
 
 	/*
 	 * Interpret the question section.
@@ -943,6 +933,18 @@ got_soa:
 	    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 	{
 		FAILC(DNS_R_FORMERR, "attempted AXFR over UDP");
+	}
+
+	/*
+	 * Apply quota after ACL is checked, so that unauthorized clients
+	 * can not starve the authorized clients.
+	 */
+	result = isc_quota_attach(&client->sctx->xfroutquota, &quota);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
+			      "%s request denied: %s", mnemonic,
+			      isc_result_totext(result));
+		goto failure;
 	}
 
 	/*
@@ -1218,6 +1220,7 @@ failure:
 	}
 	/* XXX kludge */
 	if (xfr != NULL) {
+		/* The quota will be released in xfrout_ctx_destroy(). */
 		xfrout_fail(xfr, result, "setting up zone transfer");
 	} else if (result != ISC_R_SUCCESS) {
 		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT,
