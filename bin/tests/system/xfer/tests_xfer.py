@@ -14,7 +14,6 @@ from re import compile as Re
 
 import fileinput
 import os
-import socket
 import time
 
 import dns.message
@@ -33,23 +32,17 @@ NEW_SOA_SERIAL = 1397051953
 OLD_SOA_SERIAL = 1397051952
 
 
-def sendcmd(cmdfile):
-    host = "10.53.0.5"
-    port = int(isctest.vars.ALL["EXTRAPORT1"])
-    cmdfile = f"ans5/{cmdfile}"
-    assert os.path.exists(cmdfile)
-
-    sock = socket.create_connection((host, port))
-    with open(cmdfile, "r", encoding="utf-8") as f:
-        for line in f:
-            sock.sendall(line.encode())
-    sock.close()
+def send_switch_control_command(command):
+    control_query = isctest.query.create(
+        f"{command}.switch._control.", dns.rdatatype.TXT
+    )
+    isctest.query.tcp(control_query, "10.53.0.5")
 
 
 @pytest.fixture(scope="module", autouse=True)
 def after_servers_start(templates, ns4):
     # initial correctly-signed transfer should succeed
-    sendcmd("goodaxfr")
+    send_switch_control_command("goodaxfr")
 
     with ns4.watch_log_from_here() as watcher:
         templates.render("ns4/named.conf", {"ns4_as_secondary_for_nil": True})
@@ -299,13 +292,13 @@ def test_make_ns4_secondary_for_nil():
         isctest.run.retry_with_timeout(_wait_for_soa, timeout=10)
         return True
 
-    sendcmd("goodaxfr")
+    send_switch_control_command("goodaxfr")
     assert wait_for_soa(), "SOA not found in the response"
     check_rdata_in_txt_record("initial AXFR")
 
 
 def test_handle_ixfr_notimp(ns4):
-    sendcmd("ixfrnotimp")
+    send_switch_control_command("ixfrnotimp")
     with ns4.watch_log_from_here() as watcher_transfer_success:
         with ns4.watch_log_from_here() as watcher_requesting_ixfr:
             ns4.rndc("refresh nil.")
@@ -363,7 +356,7 @@ def test_handle_ixfr_notimp(ns4):
     ],
 )
 def test_under_signed_transfer(command_file, expected_rdata, named_log_line, ns4):
-    sendcmd(command_file)
+    send_switch_control_command(command_file)
     with ns4.watch_log_from_here() as watcher:
         ns4.rndc("retransfer nil.")
         watcher.wait_for_line(named_log_line)
@@ -371,14 +364,14 @@ def test_under_signed_transfer(command_file, expected_rdata, named_log_line, ns4
 
 
 def test_handle_edns_notimp(ns4):
-    sendcmd("ednsnotimp")
+    send_switch_control_command("ednsnotimp")
     with ns4.watch_log_from_here() as watcher:
         ns4.rndc("retransfer nil.")
         watcher.wait_for_line("Transfer status: NOTIMP")
 
 
 def test_handle_edns_formerr(ns4):
-    sendcmd("ednsformerr")
+    send_switch_control_command("ednsformerr")
     with ns4.watch_log_from_here() as watcher:
         ns4.rndc("retransfer nil.")
         watcher.wait_for_line("Transfer status: success")
