@@ -753,7 +753,7 @@ static inline dns_qpweight_t
 branch_count_bitmap_before(dns_qpnode_t *n, dns_qpshift_t bit) {
 	uint64_t mask = (1ULL << bit) - 1 - TAG_MASK;
 	uint64_t bitmap = branch_index(n) & mask;
-	return (dns_qpweight_t)stdc_count_zeros(bitmap);
+	return (dns_qpweight_t)stdc_count_ones(bitmap);
 }
 
 /*
