@@ -2115,6 +2115,19 @@ publish-cleanup:
   tags:
     - smalljob
 
+# Job assigning issues and merge requests to version milestones
+
+assign-milestones:
+  <<: *manual_release_job_qa
+  needs:
+    - job: sign
+      artifacts: false
+  script:
+    - |
+      "${CI_PROJECT_DIR}"/bind9-qa/releng/assign_mrs_to_versioned_milestones.py --version "${CI_COMMIT_TAG}" --metadata "${CI_PROJECT_DIR}"/bind9-qa/releng/metadata.json
+  rules:
+    - *rule_tag
+
 # Jobs to update RPMs
 
 .rpm-build-job: &rpm_build_job
