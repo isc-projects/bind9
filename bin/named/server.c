@@ -12568,7 +12568,7 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		 cb);
 	CHECK(putstr(text, line));
 
-	if (gethostname(hostname, sizeof(hostname)) == 0) {
+	if (gethostname(hostname, sizeof(hostname)) != 0) {
 		strlcpy(hostname, "localhost", sizeof(hostname));
 	}
 	snprintf(line, sizeof(line), "running on %s: %s\n", hostname,
