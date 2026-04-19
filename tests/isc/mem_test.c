@@ -291,6 +291,17 @@ ISC_RUN_TEST_IMPL(isc_mem_reallocate) {
 	isc_mem_free(isc_g_mctx, data);
 }
 
+static bool
+at_least_one_overmem(isc_mem_t *mctx) {
+	for (size_t i = 0; i < UINT16_MAX; i++) {
+		/* The overmem is probability based in this range */
+		if (isc_mem_isovermem(mctx)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 ISC_RUN_TEST_IMPL(isc_mem_overmem) {
 	isc_mem_t *mctx = NULL;
 	isc_mem_create("test", &mctx);
@@ -298,27 +309,27 @@ ISC_RUN_TEST_IMPL(isc_mem_overmem) {
 
 	isc_mem_setwater(mctx, 1024, 512);
 
-	/* inuse < lo_water */
+	/* inuse <= lo_water is always false */
 	void *data1 = isc_mem_allocate(mctx, 256);
 	assert_false(isc_mem_isovermem(mctx));
 
-	/* lo_water < inuse < hi_water */
+	/* lo_water < inuse < hi_water might be true or false */
 	void *data2 = isc_mem_allocate(mctx, 512);
-	assert_false(isc_mem_isovermem(mctx));
+	assert_true(at_least_one_overmem(mctx));
 
-	/* hi_water < inuse */
+	/* hi_water <= inuse is always true */
 	void *data3 = isc_mem_allocate(mctx, 512);
 	assert_true(isc_mem_isovermem(mctx));
 
-	/* lo_water < inuse < hi_water */
+	/* lo_water < inuse < hi_water might be true or false */
 	isc_mem_free(mctx, data2);
-	assert_true(isc_mem_isovermem(mctx));
+	assert_true(at_least_one_overmem(mctx));
 
-	/* inuse < lo_water */
+	/* inuse <= lo_water is always false */
 	isc_mem_free(mctx, data3);
 	assert_false(isc_mem_isovermem(mctx));
 
-	/* inuse == 0 */
+	/* inuse == 0 is always false */
 	isc_mem_free(mctx, data1);
 	assert_false(isc_mem_isovermem(mctx));
 

@@ -30,6 +30,7 @@
 #include <isc/mutex.h>
 #include <isc/os.h>
 #include <isc/overflow.h>
+#include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/stdtime.h>
 #include <isc/strerr.h>
@@ -126,7 +127,6 @@ static isc_mutex_t contextslock;
 typedef union {
 	struct {
 		atomic_int_fast64_t inuse;
-		atomic_bool is_overmem;
 	};
 	char padding[ISC_OS_CACHELINE_SIZE];
 } isc__mem_stat_t;
@@ -620,7 +620,6 @@ mem_create(const char *name, isc_mem_t **ctxp, unsigned int debugging,
 
 	for (size_t i = 0; i < ARRAY_SIZE(ctx->stat_s); i++) {
 		atomic_init(&ctx->stat_s[i].inuse, 0);
-		atomic_init(&ctx->stat_s[i].is_overmem, false);
 	}
 
 	/* Reserve the [-1] index for ISC_TID_UNKNOWN */
@@ -1020,50 +1019,30 @@ bool
 isc_mem_isovermem(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	int32_t tid = isc_tid();
-
-	bool is_overmem = atomic_load_relaxed(&ctx->stat[tid].is_overmem);
-
-	if (!is_overmem) {
-		/* We are not overmem, check whether we should be? */
-		size_t hiwater = atomic_load_relaxed(&ctx->hi_water);
-		if (hiwater == 0) {
-			return false;
-		}
-
-		size_t inuse = isc_mem_inuse(ctx);
-		if (inuse <= hiwater) {
-			return false;
-		}
-
-		if ((ctx->debugging & ISC_MEM_DEBUGUSAGE) != 0) {
-			fprintf(stderr,
-				"overmem %s mctx %p inuse %zu hi_water %zu\n",
-				ctx->name, ctx, inuse, hiwater);
-		}
-
-		atomic_store_relaxed(&ctx->stat[tid].is_overmem, true);
-		return true;
-	} else {
-		/* We are overmem, check whether we should not be? */
-		size_t lowater = atomic_load_relaxed(&ctx->lo_water);
-		if (lowater == 0) {
-			return false;
-		}
-
-		size_t inuse = isc_mem_inuse(ctx);
-		if (inuse >= lowater) {
-			return true;
-		}
-
-		if ((ctx->debugging & ISC_MEM_DEBUGUSAGE) != 0) {
-			fprintf(stderr,
-				"overmem %s mctx %p inuse %zu lo_water %zu\n",
-				ctx->name, ctx, inuse, lowater);
-		}
-		atomic_store_relaxed(&ctx->stat[tid].is_overmem, false);
+	size_t hiwater = atomic_load_relaxed(&ctx->hi_water);
+	if (hiwater == 0) {
 		return false;
 	}
+
+	size_t inuse = isc_mem_inuse(ctx);
+	if (inuse >= hiwater) {
+		return true;
+	}
+
+	size_t lowater = atomic_load_relaxed(&ctx->lo_water);
+	if (inuse <= lowater) {
+		return false;
+	}
+
+	/*
+	 * Between lo_water and hi_water, return true with a probability
+	 * that ramps linearly from 0 at lo_water to 1 at hi_water.  This
+	 * spreads cache cleaning across many inserts instead of triggering
+	 * a thundering herd once the hi_water mark is crossed.
+	 */
+	uint32_t prob = (uint32_t)(((uint64_t)(inuse - lowater) * 256) /
+				   (hiwater - lowater));
+	return isc_random8() < prob;
 }
 
 const char *
