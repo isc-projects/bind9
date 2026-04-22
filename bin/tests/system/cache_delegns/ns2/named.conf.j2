@@ -1,0 +1,53 @@
+{% set disablev4 = disablev4 | default(False) %}
+{% set disablev6 = disablev6 | default(False) %}
+{% set dns64 = dns64 | default(False) %}
+
+options {
+{% if disablev4 %}
+	query-source address none;
+{% else %}
+	query-source address 10.53.0.2;
+{% endif %}
+
+{% if disablev6 %}
+	query-source-v6 none;
+{% else %}
+	query-source-v6 address fd92:7065:b8e:ffff::2;
+{% endif %}
+
+	notify-source 10.53.0.2;
+	transfer-source 10.53.0.2;
+	listen-on { 10.53.0.2; };
+
+	notify-source-v6 fd92:7065:b8e:ffff::2;
+	transfer-source-v6 fd92:7065:b8e:ffff::2;
+	listen-on-v6 { fd92:7065:b8e:ffff::2; };
+
+	port @PORT@;
+	pid-file "named.pid";
+	recursion yes;
+	dnssec-validation no;
+
+{% if dns64 %}
+	resolver-use-dns64 yes;
+	dns64 fd92:7065:b8e:fffe::/96 {
+		clients { any; };
+		mapped { 10.53.0.4; any; };
+		suffix ::;
+	};
+{% endif %}
+};
+
+zone "." {
+	type hint;
+	file "root.hint";
+};
+
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm @DEFAULT_HMAC@;
+};
+
+controls {
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};

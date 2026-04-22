@@ -6730,6 +6730,13 @@ cache_delegglue(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 	dns_rdataset_t *rdataset = NULL;
 	size_t naddrs = 0;
 	isc_result_t result;
+	dns_resolver_t *res = rctx->fctx->res;
+	bool hasv4 = res->dispatches4 != NULL;
+	bool dns64 = !ISC_LIST_EMPTY(res->view->dns64) && res->view->usedns64;
+
+	if (!hasv4 && !dns64) {
+		return 0;
+	}
 
 	result = dns_message_findname(rctx->query->rmessage,
 				      DNS_SECTION_ADDITIONAL, nsname,
@@ -6766,6 +6773,10 @@ cache_delegglue6(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 	dns_rdataset_t *rdataset = NULL;
 	size_t naddrs = 0;
 	isc_result_t result;
+
+	if (rctx->fctx->res->dispatches6 == NULL) {
+		return 0;
+	}
 
 	result = dns_message_findname(rctx->query->rmessage,
 				      DNS_SECTION_ADDITIONAL, nsname,
@@ -6814,8 +6825,6 @@ cache_delegns(respctx_t *rctx) {
 	dns_delegdb_t *delegdb = fctx->res->view->deleg;
 	dns_delegset_t *delegset = NULL;
 	dns_ttl_t ttl = rctx->ns_rdataset->ttl;
-	dns_fixedname_t fparent;
-	dns_name_t *parent = dns_fixedname_initname(&fparent);
 	size_t labels;
 	size_t ns_count = 0;
 	size_t max_servers = fctx->res->view->max_delegation_servers;
@@ -6824,17 +6833,6 @@ cache_delegns(respctx_t *rctx) {
 	FCTXTRACE("cache_delegns");
 
 	dns_delegset_allocset(delegdb, &delegset);
-
-	/*
-	 * The top of the delegated zone is `rctx->ns_name`. So truncating
-	 * the first label gives the common parent domain allowed to get
-	 * glues (this allows in-domain and sibling, but not different
-	 * parents).
-	 */
-	labels = dns_name_countlabels(rctx->ns_name);
-	if (labels > 1) {
-		dns_name_getlabelsequence(rctx->ns_name, 1, labels - 1, parent);
-	}
 
 	DNS_RDATASET_FOREACH(rctx->ns_rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -6883,12 +6881,28 @@ cache_delegns(respctx_t *rctx) {
 			continue;
 		}
 
-		/* in-bailiwick/sibling GLUE */
-		if (labels > 1 && dns_name_issubdomain(&ns.name, parent)) {
-			naddrs += cache_delegglue(delegset, deleg, &ttl, rctx,
-						  &ns.name);
-			naddrs += cache_delegglue6(delegset, deleg, &ttl, rctx,
-						   &ns.name);
+		/*
+		 * in-bailiwick/sibling GLUE
+		 *
+		 * The top of the delegated zone is `rctx->ns_name`. So
+		 * truncating the first label gives the common parent domain
+		 * allowed to get glues (this allows in-domain and sibling, but
+		 * not different parents).
+		 */
+		labels = dns_name_countlabels(rctx->ns_name);
+		if (labels > 1) {
+			dns_fixedname_t fparent;
+			dns_name_t *parent = dns_fixedname_initname(&fparent);
+
+			dns_name_getlabelsequence(rctx->ns_name, 1, labels - 1,
+						  parent);
+
+			if (dns_name_issubdomain(&ns.name, parent)) {
+				naddrs += cache_delegglue(delegset, deleg, &ttl,
+							  rctx, &ns.name);
+				naddrs += cache_delegglue6(
+					delegset, deleg, &ttl, rctx, &ns.name);
+			}
 		}
 
 		if (naddrs == 0) {

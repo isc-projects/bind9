@@ -1,0 +1,4 @@
+$TTL 999999
+.			 IN NS	 a.root-servers.nil.
+a.root-servers.nil.	 IN A	 10.53.0.1
+a.root-servers.nil.	 IN AAAA fd92:7065:b8e:ffff::1
