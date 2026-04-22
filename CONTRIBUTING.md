@@ -326,6 +326,66 @@ choose how they handle the contribution.  For example, they might:
    to ensure the submitter fully understands the DNS logic or internal
    BIND 9 architecture implemented by the tool.
 
+#### AI coding assistants
+
+The following subsections apply specifically to AI coding assistants
+(LLMs, agentic development tools, chatbots, and similar generative AI
+systems) used when contributing to BIND 9.  AI tools helping with
+BIND 9 development should follow the standard contribution process
+described in this document, the [BIND 9 coding style](doc/dev/style.md),
+and the [developer information](doc/dev/dev.md) page.
+
+##### Licensing and legal requirements
+
+All AI-assisted contributions must comply with BIND 9's licensing
+requirements:
+
+ - All code must be compatible with `MPL-2.0`.
+ - Each source file must carry the appropriate `SPDX-License-Identifier`
+   (see the [`doc/dev/copyrights`](doc/dev/copyrights) file for the
+   `reuse` invocation used to add headers).
+ - The human submitter is responsible for verifying that AI-generated
+   content does not reproduce code from incompatible sources.
+
+##### Signed-off-by and Developer Certificate of Origin
+
+AI agents MUST NOT add `Signed-off-by` tags.  Only humans can legally
+certify the Developer Certificate of Origin reproduced above.  The
+human submitter is responsible for:
+
+ - Reviewing all AI-generated code.
+ - Ensuring compliance with licensing requirements.
+ - Taking full responsibility for the contribution.
+
+##### Attribution
+
+When AI tools contribute to BIND 9 development, proper attribution
+helps track the evolving role of AI in the development process.
+Contributions should include an `Assisted-by` tag in the commit
+message trailer, using the format:
+
+>       Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
+
+Where:
+
+ - `AGENT_NAME` is the name of the AI tool or framework.
+ - `MODEL_VERSION` is the specific model version used.
+ - `[TOOL1] [TOOL2]` are optional specialized analysis tools used
+   (e.g., coccinelle, clang-tidy, AFL, Coverity).
+
+Basic development tools (git, compilers, meson, ninja, editors,
+clang-format, black, ruff) should not be listed.
+
+Example:
+
+>       Assisted-by: Claude:claude-opus-4-7 coccinelle clang-tidy
+
+AI agents MUST NOT add `Co-Authored-By` trailers.  `Co-Authored-By`
+designates a human co-author who shares responsibility for the
+contribution; an AI tool is not a co-author and cannot accept that
+responsibility.  Use the `Assisted-by` trailer described above
+instead.
+
 #### Thanks
 
 Thank you for your interest in contributing to the ongoing development
