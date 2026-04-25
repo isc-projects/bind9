@@ -27,50 +27,6 @@ rndccmd() {
 status=0
 n=0
 
-n=$((n + 1))
-echo_i "initializing TCP statistics ($n)"
-ret=0
-rndccmd 10.53.0.1 stats || ret=1
-rndccmd 10.53.0.2 stats || ret=1
-mv ns1/named.stats ns1/named.stats.test$n
-mv ns2/named.stats ns2/named.stats.test$n
-ntcp10="$(grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}')"
-ntcp20="$(grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{print $1}')"
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-n=$((n + 1))
-echo_i "checking TCP request statistics (resolver) ($n)"
-ret=0
-dig_with_opts @10.53.0.3 txt.example. >dig.out.test$n
-sleep 1
-rndccmd 10.53.0.1 stats || ret=1
-rndccmd 10.53.0.2 stats || ret=1
-mv ns1/named.stats ns1/named.stats.test$n
-mv ns2/named.stats ns2/named.stats.test$n
-ntcp11="$(grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}')"
-ntcp21="$(grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{print $1}')"
-if [ "$ntcp10" -ge "$ntcp11" ]; then ret=1; fi
-if [ "$ntcp20" -ne "$ntcp21" ]; then ret=1; fi
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-n=$((n + 1))
-echo_i "checking TCP request statistics (forwarder) ($n)"
-ret=0
-dig_with_opts @10.53.0.4 txt.example. >dig.out.test$n
-sleep 1
-rndccmd 10.53.0.1 stats || ret=1
-rndccmd 10.53.0.2 stats || ret=1
-mv ns1/named.stats ns1/named.stats.test$n
-mv ns2/named.stats ns2/named.stats.test$n
-ntcp12="$(grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}')"
-ntcp22="$(grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{print $1}')"
-if [ "$ntcp11" -ne "$ntcp12" ]; then ret=1; fi
-if [ "$ntcp21" -ge "$ntcp22" ]; then ret=1; fi
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
 # -------- TCP high-water tests ----------
 refresh_tcp_stats() {
   rndccmd 10.53.0.5 status >rndc.out.$n || ret=1

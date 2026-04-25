@@ -18,6 +18,7 @@ import time
 import dns.message
 import dns.name
 import dns.query
+import dns.rcode
 import dns.rrset
 import pytest
 
@@ -25,7 +26,7 @@ from isctest.instance import NamedInstance
 
 import isctest
 
-pytestmark = pytest.mark.extra_artifacts(["ans*/ans.run"])
+pytestmark = pytest.mark.extra_artifacts(["ns*/named.stats"])
 
 TIMEOUT: int = 10
 
@@ -34,6 +35,15 @@ def create_socket(host: str, port: int) -> socket.socket:
     sock = socket.create_connection((host, port), timeout=10)
     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
     return sock
+
+
+def tcp_requests_received(ns: NamedInstance) -> int:
+    ns.rndc("stats")
+    stats = isctest.text.TextFile(str(ns.directory / "named.stats"))
+    matches = stats.grep("TCP requests received")
+    assert matches, f"'TCP requests received' not found in {stats}"
+    # `rndc stats` appends to the file; only the last occurrence is current
+    return int(matches[-1].string.split()[0])
 
 
 def tcp_round_trip(
@@ -133,3 +143,47 @@ def test_tcp_big(ns7: NamedInstance, named_port: int) -> None:
             "a.example.", "A", dnssec=False, use_edns=-1, ad=False
         )
         tcp_round_trip(sock, msg)
+
+
+def wait_for_stable_tcp_requests(ns: NamedInstance, timeout: int = 10) -> int:
+    """Read the TCP request counter until it stops changing.
+
+    The counter is incremented on request receipt, so a client response
+    implies its upstream queries are already counted; this only needs to
+    absorb unsynchronized traffic such as the resolver's root priming query.
+    """
+    last = -1
+
+    def stable() -> bool:
+        nonlocal last
+        previous, last = last, tcp_requests_received(ns)
+        return previous == last
+
+    isctest.run.retry_with_timeout(stable, timeout=timeout)
+    return last
+
+
+def test_tcp_request_statistics(
+    ns1: NamedInstance, ns2: NamedInstance, ns3: NamedInstance, ns4: NamedInstance
+) -> None:
+    isctest.log.info("initializing TCP statistics")
+    ns1_tcp = tcp_requests_received(ns1)
+    ns2_tcp = tcp_requests_received(ns2)
+
+    isctest.log.info("checking TCP request statistics (resolver)")
+    msg = isctest.query.create("txt.example.", "A")
+    isctest.query.udp(msg, ns3.ip, expected_rcode=dns.rcode.NXDOMAIN)
+
+    ns1_tcp_after_resolver = wait_for_stable_tcp_requests(ns1)
+    ns2_tcp_after_resolver = wait_for_stable_tcp_requests(ns2)
+    assert ns1_tcp < ns1_tcp_after_resolver
+    assert ns2_tcp == ns2_tcp_after_resolver
+
+    isctest.log.info("checking TCP request statistics (forwarder)")
+    msg = isctest.query.create("txt.example.", "A")
+    isctest.query.udp(msg, ns4.ip, expected_rcode=dns.rcode.NXDOMAIN)
+
+    ns1_tcp_after_forwarder = wait_for_stable_tcp_requests(ns1)
+    ns2_tcp_after_forwarder = wait_for_stable_tcp_requests(ns2)
+    assert ns1_tcp_after_resolver == ns1_tcp_after_forwarder
+    assert ns2_tcp_after_resolver < ns2_tcp_after_forwarder
