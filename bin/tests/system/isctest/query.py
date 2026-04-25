@@ -134,12 +134,7 @@ def tcp(*args, **kwargs) -> Any:
 
 
 def tls(*args, **kwargs) -> Any:
-    try:
-        return generic_query(dns.query.tls, *args, **kwargs)
-    except TypeError as e:
-        raise RuntimeError(
-            "dnspython 2.5.0 or newer is required for isctest.query.tls()"
-        ) from e
+    return generic_query(dns.query.tls, *args, **kwargs)
 
 
 def create(
