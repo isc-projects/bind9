@@ -17,7 +17,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "rndc.out.*",
         "ans*/ans.run",
         "ans*/ans.run.prev",
-        "ns*/named.stats.*",
     ]
 )
 
