@@ -106,7 +106,7 @@ def rr(
     rrtype: SupportsInt,
     rrclass: SupportsInt,
     *,
-    ttl: int,
+    ttl: int = 1,
     rdata: bytes = b"",
 ) -> bytes:
     return wire(
@@ -133,7 +133,6 @@ def soa_rr(
         root(),
         dns.rdatatype.RdataType.SOA,
         dns.rdataclass.RdataClass.IN,
-        ttl=1,
         rdata=dns.rdtypes.ANY.SOA.SOA(
             dns.rdataclass.RdataClass.IN,
             dns.rdatatype.RdataType.SOA,
@@ -156,7 +155,6 @@ def nsec3_rr(
         owner,
         dns.rdatatype.RdataType.NSEC3,
         dns.rdataclass.RdataClass.IN,
-        ttl=1,
         rdata=dns.rdtypes.ANY.NSEC3.NSEC3(
             dns.rdataclass.RdataClass.IN,
             dns.rdatatype.RdataType.NSEC3,
@@ -186,7 +184,6 @@ def key_rr(*, rdclass: dns.rdataclass.RdataClass) -> bytes:
         root(),
         dns.rdatatype.RdataType.KEY,
         rdclass,
-        ttl=1,
         rdata=key_rdata(
             flags=0,
             protocol=0,
@@ -201,7 +198,6 @@ def malformed_rrsig_rr() -> bytes:
         root(),
         dns.rdatatype.RdataType.RRSIG,
         dns.rdataclass.RdataClass.IN,
-        ttl=1,
         rdata=dns.rdtypes.ANY.RRSIG.RRSIG(
             dns.rdataclass.RdataClass.IN,
             dns.rdatatype.RdataType.RRSIG,
@@ -234,7 +230,6 @@ def tsig_rr(
         owner,
         dns.rdatatype.RdataType.TSIG,
         rdclass,
-        ttl=1,
         rdata=dns.rdtypes.ANY.TSIG.TSIG(
             rdclass,
             dns.rdatatype.RdataType.TSIG,
@@ -276,7 +271,6 @@ def a_rr(owner: bytes = root()) -> bytes:
         owner,
         dns.rdatatype.RdataType.A,
         dns.rdataclass.RdataClass.IN,
-        ttl=1,
         rdata=a_rdata(),
     )
 
@@ -355,7 +349,6 @@ def query_raw_tcp(host: str, port: int, packet_wire: bytes) -> bytes:
                     root(),
                     dns.rdatatype.RdataType.MAILB,
                     dns.rdataclass.RdataClass.IN,
-                    ttl=1,
                 ),
             ),
             formerr_response_header(),
@@ -370,26 +363,24 @@ def query_raw_tcp(host: str, port: int, packet_wire: bytes) -> bytes:
         ),
         pytest.param(
             wire(
-                header(message_id=8, qdcount=1, nscount=1),
+                header(qdcount=1, nscount=1),
                 question(root(), dns.rdatatype.RdataType.A),
                 # Bad NSEC3 owner: X. is not in the base32hex alphabet.
                 nsec3_rr(owner=name("X.")),
             ),
             wire(
-                formerr_response_header(
-                    message_id=8, rcode=dns.rcode.SERVFAIL, qdcount=1
-                ),
+                formerr_response_header(rcode=dns.rcode.SERVFAIL, qdcount=1),
                 question(root(), dns.rdatatype.RdataType.A),
             ),
             id="badnsec3owner",
         ),
         pytest.param(
             wire(
-                header(message_id=9, arcount=1),
+                header(arcount=1),
                 # Truncated A record (no ttl, length or data)
                 question(root(), dns.rdatatype.RdataType.A),
             ),
-            formerr_response_header(message_id=9),
+            formerr_response_header(),
             id="shortrecord",
         ),
         pytest.param(
@@ -417,7 +408,7 @@ def query_raw_tcp(host: str, port: int, packet_wire: bytes) -> bytes:
                 ),
             ),
             formerr_response_header(),
-            id="questionclass",
+            id="twoquestionclasses",
         ),
         pytest.param(
             wire(
@@ -435,7 +426,6 @@ def query_raw_tcp(host: str, port: int, packet_wire: bytes) -> bytes:
                     root(),
                     dns.rdatatype.RdataType(65280),
                     dns.rdataclass.RdataClass(256),
-                    ttl=33554433,
                     rdata=a_rdata(),
                 ),
             ),
@@ -497,12 +487,13 @@ def query_raw_tcp(host: str, port: int, packet_wire: bytes) -> bytes:
         ),
         pytest.param(
             wire(
-                header(arcount=2),
+                # Test non-zero message ID is preserved in the response
+                header(message_id=67, arcount=2),
                 tsig_rr(),
                 # TSIG should be the last record
                 a_rr(),
             ),
-            formerr_response_header(),
+            formerr_response_header(message_id=67),
             id="tsignotlast",
         ),
     ],
