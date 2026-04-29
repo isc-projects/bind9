@@ -116,7 +116,6 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 	    !command_compare(command, NAMED_COMMAND_NULL) &&
 	    !command_compare(command, NAMED_COMMAND_STATUS) &&
 	    !command_compare(command, NAMED_COMMAND_SHOWZONE) &&
-	    !command_compare(command, NAMED_COMMAND_TESTGEN) &&
 	    !command_compare(command, NAMED_COMMAND_ZONESTATUS))
 	{
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL,
@@ -271,8 +270,6 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		result = named_server_sync(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_TCPTIMEOUTS)) {
 		result = named_server_tcptimeouts(lex, text);
-	} else if (command_compare(command, NAMED_COMMAND_TESTGEN)) {
-		result = named_server_testgen(lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_THAW) ||
 		   command_compare(command, NAMED_COMMAND_UNFREEZE))
 	{

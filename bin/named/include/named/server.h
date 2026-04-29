@@ -362,13 +362,6 @@ named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 		 isc_buffer_t *text);
 
 /*%
- * Generates a test sequence that is only for use in system tests. The
- * argument is the size of required output in bytes.
- */
-isc_result_t
-named_server_testgen(isc_lex_t *lex, isc_buffer_t *text);
-
-/*%
  * Force fefresh or print status for managed keys zones.
  */
 isc_result_t

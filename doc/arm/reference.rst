@@ -527,9 +527,8 @@ and retrieve non-DNS results from a name server.
 ``read-only``
    If the ``read-only`` argument is ``on``, the control channel is limited
    to the following set of read-only commands: ``nta -dump``, :any:`null`,
-   ``status``, ``showzone``, ``testgen``, and ``zonestatus``. By default,
-   ``read-only`` is not enabled and the control channel allows read-write
-   access.
+   ``status``, ``showzone``, and ``zonestatus``. By default, ``read-only``
+   is not enabled and the control channel allows read-write access.
 
 If no :any:`controls` statement is present, :iscman:`named` sets up a default
 control channel listening on the loopback address 127.0.0.1 and its IPv6
