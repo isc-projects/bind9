@@ -5127,7 +5127,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 			return ISC_R_NOTFOUND;
 		}
 	} else {
-		dns_name_copy(redirectname, client->view->redirectzone);
+		dns_name_copy(client->view->redirectzone, redirectname);
 	}
 
 	options = 0;
