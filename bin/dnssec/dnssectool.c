@@ -17,7 +17,10 @@
  * DNSSEC Support Routines.
  */
 
+#include <ctype.h>
+#include <errno.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -223,19 +226,35 @@ isnone(const char *str) {
 dns_ttl_t
 strtottl(const char *str) {
 	const char *orig = str;
-	dns_ttl_t ttl;
+	const char *p = str;
+	unsigned long val;
 	char *endp;
 
 	if (isnone(str)) {
 		return (dns_ttl_t)0;
 	}
 
-	ttl = strtol(str, &endp, 0);
-	if (ttl == 0 && endp == str) {
-		fatal("TTL must be numeric");
+	/*
+	 * strtoul() silently negates a leading '-', producing
+	 * ULONG_MAX-class values that then truncate to a near-UINT32_MAX
+	 * TTL. Reject the sign explicitly before parsing.
+	 */
+	while (isspace((unsigned char)*p)) {
+		p++;
 	}
-	ttl = time_units(ttl, endp, orig);
-	return ttl;
+	if (*p == '-') {
+		fatal("TTL must be non-negative: %s", orig);
+	}
+
+	errno = 0;
+	val = strtoul(str, &endp, 0);
+	if (endp == str) {
+		fatal("TTL must be numeric: %s", orig);
+	}
+	if (errno == ERANGE || val > UINT32_MAX) {
+		fatal("TTL %s out of range (max %u)", orig, UINT32_MAX);
+	}
+	return time_units((dns_ttl_t)val, endp, orig);
 }
 
 dst_key_state_t
