@@ -4203,6 +4203,39 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	return addrinfo;
 }
 
+static isc_result_t
+incr_query_counters(fetchctx_t *fctx) {
+	isc_result_t result;
+
+	result = isc_counter_increment(fctx->qc);
+#if WANT_QUERYTRACE
+	FCTXTRACE5("query", "max-recursion-queries, querycount=",
+		   isc_counter_used(fctx->qc));
+#endif
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+			      "exceeded max queries resolving '%s' "
+			      "(max-recursion-queries, querycount=%u)",
+			      fctx->info, isc_counter_used(fctx->qc));
+	} else if (fctx->gqc != NULL) {
+		result = isc_counter_increment(fctx->gqc);
+#if WANT_QUERYTRACE
+		FCTXTRACE5("query", "max-query-count, querycount=",
+			   isc_counter_used(fctx->gqc));
+#endif
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+				      "exceeded global max queries resolving "
+				      "'%s' (max-query-count, querycount=%u)",
+				      fctx->info, isc_counter_used(fctx->gqc));
+		}
+	}
+
+	return result;
+}
+
 static void
 fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	isc_result_t result;
@@ -4357,31 +4390,11 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		return;
 	}
 
-	result = isc_counter_increment(fctx->qc);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-			      "exceeded max queries resolving '%s' "
-			      "(max-recursion-queries, querycount=%u)",
-			      fctx->info, isc_counter_used(fctx->qc));
-		fctx_done_detach(&fctx, DNS_R_SERVFAIL);
-		return;
-	}
-
-	if (fctx->gqc != NULL) {
-		result = isc_counter_increment(fctx->gqc);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-				      "exceeded global max queries resolving "
-				      "'%s' (max-query-count, querycount=%u)",
-				      fctx->info, isc_counter_used(fctx->gqc));
-			fctx_done_detach(&fctx, DNS_R_SERVFAIL);
-			return;
-		}
-	}
+	CHECK(incr_query_counters(fctx));
 
 	result = fctx_query(fctx, addrinfo, fctx->options);
+
+cleanup:
 	if (result != ISC_R_SUCCESS) {
 		fctx_done_detach(&fctx, result);
 	} else if (retrying) {
@@ -10076,9 +10089,9 @@ rctx_nextserver(respctx_t *rctx, dns_message_t *message,
  * rctx_resend():
  *
  * Resend the query, probably with the options changed. Calls
- * fctx_query(), passing rctx->retryopts (which is based on
- * query->options, but may have been updated since the last time
- * fctx_query() was called).
+ * fctx_query(), unless query counter limits are hit, passing
+ * rctx->retryopts (which is based on query->options, but may have
+ * been updated since the last time fctx_query() was called).
  */
 static void
 rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
@@ -10086,8 +10099,15 @@ rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
 	isc_result_t result;
 
 	FCTXTRACE("resend");
-	inc_stats(fctx->res, dns_resstatscounter_retry);
+
+	CHECK(incr_query_counters(fctx));
+
 	result = fctx_query(fctx, addrinfo, rctx->retryopts);
+	if (result == ISC_R_SUCCESS) {
+		inc_stats(fctx->res, dns_resstatscounter_retry);
+	}
+
+cleanup:
 	if (result != ISC_R_SUCCESS) {
 		fctx_done_detach(&rctx->fctx, result);
 	}
