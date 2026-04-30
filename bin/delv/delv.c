@@ -1982,7 +1982,9 @@ cleanup:
 	isc_mem_put(mctx, namelist, sizeof(*namelist));
 	isc_loopmgr_shutdown(loopmgr);
 
-	dns_client_detach(&client);
+	if (client != NULL) {
+		dns_client_detach(&client);
+	}
 }
 
 static void
