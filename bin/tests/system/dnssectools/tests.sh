@@ -342,6 +342,33 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking that a negative DNSKEY TTL is rejected ($n)"
+ret=0
+zone=example
+$KEYGEN -L -1 -a $DEFAULT_ALGORITHM $zone >dnssectools.out.test$n 2>&1 && ret=1
+grep -q "TTL must be non-negative" dnssectools.out.test$n || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that an out-of-range DNSKEY TTL is rejected ($n)"
+ret=0
+zone=example
+$KEYGEN -L 9999999999 -a $DEFAULT_ALGORITHM $zone >dnssectools.out.test$n 2>&1 && ret=1
+grep -q "out of range" dnssectools.out.test$n || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+echo_i "checking that a negative DNSKEY TTL with a unit suffix is rejected ($n)"
+ret=0
+zone=example
+$KEYGEN -L -1d -a $DEFAULT_ALGORITHM $zone >dnssectools.out.test$n 2>&1 && ret=1
+grep -q "TTL must be non-negative" dnssectools.out.test$n || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking that a DS record cannot be generated for a key using an unsupported algorithm ($n)"
 ret=0
 zone=example
