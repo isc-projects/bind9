@@ -1,0 +1,47 @@
+@@
+expression E;
+identifier ROOT =~ "^dns_rootname$";
+@@
+
+- dns_name_equal(E, ROOT)
++ dns_name_isroot(E)
+
+@@
+expression E;
+identifier ROOT =~ "^dns_rootname$";
+@@
+
+- dns_name_equal(ROOT, E)
++ dns_name_isroot(E)
+
+@@
+expression E;
+identifier ROOT =~ "^dns_rootname$";
+@@
+
+- dns_name_compare(E, ROOT) == 0
++ dns_name_isroot(E)
+
+@@
+expression E;
+identifier ROOT =~ "^dns_rootname$";
+@@
+
+- dns_name_compare(ROOT, E) == 0
++ dns_name_isroot(E)
+
+@@
+constant ONE =~ "^1[uUlL]*$";
+expression E;
+@@
+
+- dns_name_countlabels(E) <= ONE
++ !dns_name_belowroot(E)
+
+@@
+constant ONE =~ "^1[uUlL]*$";
+expression E;
+@@
+
+- dns_name_countlabels(E) > ONE
++ dns_name_belowroot(E)
