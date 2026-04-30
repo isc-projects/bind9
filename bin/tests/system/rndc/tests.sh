@@ -527,30 +527,10 @@ grep 'unknown class' rndc.out.4.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-for i in 512 1024 2048 4096 8192 16384 32768 65536 131072 262144 524288; do
-  n=$((n + 1))
-  echo_i "testing rndc buffer size limits (size=${i}) ($n)"
-  ret=0
-  $RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf testgen ${i} 2>&1 >rndc.out.$i.test$n || ret=1
-  {
-    actual_size=$($GENCHECK rndc.out.$i.test$n)
-    rc=$?
-  } || true
-  if [ "$rc" = "0" ]; then
-    expected_size=$((i + 1))
-    if [ $actual_size != $expected_size ]; then ret=1; fi
-  else
-    ret=1
-  fi
-
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-done
-
 n=$((n + 1))
 echo_i "testing rndc -r (show result) ($n)"
 ret=0
-$RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf -r testgen 0 2>&1 >rndc.out.1.test$n || ret=1
+$RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf -r null 2>&1 >rndc.out.1.test$n || ret=1
 grep "ISC_R_SUCCESS 0" rndc.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

@@ -70,7 +70,6 @@
 #define NAMED_COMMAND_STOP	   "stop"
 #define NAMED_COMMAND_SYNC	   "sync"
 #define NAMED_COMMAND_TCPTIMEOUTS  "tcp-timeouts"
-#define NAMED_COMMAND_TESTGEN	   "testgen"
 #define NAMED_COMMAND_THAW	   "thaw"
 #define NAMED_COMMAND_TRACE	   "trace"
 #define NAMED_COMMAND_UNFREEZE	   "unfreeze"

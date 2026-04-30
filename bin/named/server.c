@@ -11702,40 +11702,6 @@ cleanup:
 	return result;
 }
 
-isc_result_t
-named_server_testgen(isc_lex_t *lex, isc_buffer_t *text) {
-	isc_result_t result;
-	char *ptr;
-	unsigned long count;
-	unsigned long i;
-	const unsigned char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-	REQUIRE(text != NULL);
-
-	/* Skip the command name. */
-	ptr = next_token(lex, text);
-	if (ptr == NULL) {
-		return ISC_R_UNEXPECTEDEND;
-	}
-
-	ptr = next_token(lex, text);
-	if (ptr == NULL) {
-		count = 26;
-	} else {
-		count = strtoul(ptr, NULL, 10);
-	}
-
-	CHECK(isc_buffer_reserve(text, count));
-	for (i = 0; i < count; i++) {
-		CHECK(putuint8(text, chars[i % (sizeof(chars) - 1)]));
-	}
-
-	CHECK(putnull(text));
-
-cleanup:
-	return result;
-}
-
 /*
  * Act on a "sign" or "loadkeys" command from the command channel.
  */
