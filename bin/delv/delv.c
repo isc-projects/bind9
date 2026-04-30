@@ -1911,7 +1911,9 @@ cleanup:
 	isc_mem_put(isc_g_mctx, namelist, sizeof(*namelist));
 	isc_loopmgr_shutdown();
 
-	dns_client_detach(&client);
+	if (client != NULL) {
+		dns_client_detach(&client);
+	}
 }
 
 static void
