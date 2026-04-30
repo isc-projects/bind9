@@ -1244,7 +1244,11 @@ sign(ksr_ctx_t *ksr) {
 			isc_region_t r;
 			u_char rdatabuf[DST_KEY_MAXSIZE];
 
-			INSIST(rdatalist != NULL);
+			if (rdatalist == NULL) {
+				fatal("bad KSR file %s(%lu): DNSKEY record "
+				      "before ';; KeySigningRequest' header",
+				      ksr->file, isc_lex_getsourceline(lex));
+			}
 
 			rdata = isc_mem_get(isc_g_mctx, sizeof(*rdata));
 			dns_rdata_init(rdata);
@@ -1261,7 +1265,7 @@ sign(ksr_ctx_t *ksr) {
 			isc_buffer_usedregion(newbuf, &r);
 			dns_rdata_fromregion(rdata, dns_rdataclass_in,
 					     dns_rdatatype_dnskey, &r);
-			if (rdatalist != NULL && ttl < rdatalist->ttl) {
+			if (ttl < rdatalist->ttl) {
 				rdatalist->ttl = ttl;
 			}
 
