@@ -2562,7 +2562,7 @@ merged-metadata:
     - *configure
     - meson compile -C build
     - git range-diff --color=always "${BASE_COMMIT}" "${CI_COMMIT_SHA}" HEAD
-    - git push -f origin "HEAD:${CI_COMMIT_REF_NAME}"
+    - if ! git push --force-with-lease origin "HEAD:${CI_COMMIT_REF_NAME}"; then touch .git-push-failed; exit 1; fi
   after_script:
     - if [ "${CI_JOB_STATUS}" = "success" ]; then exit 0; fi
     - OLDEST_MERGE_COMMIT="$(git log --reverse --merges --pretty=%H "${CI_COMMIT_SHA}..${BASE_COMMIT}" | head -1)"
@@ -2577,7 +2577,11 @@ merged-metadata:
           # Rebase did not fail; most likely, this is a build failure, or the job was canceled
           CONFLICT_COMMIT="${OLDEST_MERGE_COMMIT}"
           if [ "${CI_JOB_STATUS}" = "failed" ]; then
-              REASON="build failure after a successful rebase"
+              if [ -f ".git-push-failed" ]; then
+                  REASON="branch was updated during rebase"
+              else
+                  REASON="build failure after a successful rebase"
+              fi
           else
               REASON="job was canceled"
           fi
