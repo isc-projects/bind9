@@ -218,13 +218,9 @@ isc_ratelimiter_dequeue(isc_ratelimiter_t *restrict rl, isc_rlevent_t **rlep) {
 static void
 isc__ratelimiter_tick(void *arg) {
 	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)arg;
-	isc_rlevent_t *rle = NULL;
 	uint32_t pertic;
-	ISC_LIST(isc_rlevent_t) pending;
 
 	REQUIRE(VALID_RATELIMITER(rl));
-
-	ISC_LIST_INIT(pending);
 
 	LOCK(&rl->lock);
 
@@ -237,12 +233,8 @@ isc__ratelimiter_tick(void *arg) {
 
 	pertic = rl->pertic;
 	while (pertic != 0) {
-		rle = ISC_LIST_HEAD(rl->pending);
-		if (rle != NULL) {
-			/* There is work to do.  Let's do it after unlocking. */
-			ISC_LIST_UNLINK(rl->pending, rle, link);
-			ISC_LIST_APPEND(pending, rle, link);
-		} else {
+		isc_rlevent_t *rle = ISC_LIST_HEAD(rl->pending);
+		if (rle == NULL) {
 			/*
 			 * We processed all the scheduled work, but there's a
 			 * room for at least one more event (we haven't consumed
@@ -253,6 +245,15 @@ isc__ratelimiter_tick(void *arg) {
 			rl->state = isc_ratelimiter_idle;
 			break;
 		}
+		/*
+		 * Unlink and dispatch under the lock: isc_async_run() is a
+		 * non-blocking enqueue, so this stays cheap, and once the
+		 * link is TOMBSTONEd a concurrent isc_ratelimiter_dequeue()
+		 * sees ISC_LINK_LINKED == false and returns ISC_R_NOTFOUND
+		 * cleanly instead of racing with our dispatch.
+		 */
+		ISC_LIST_UNLINK(rl->pending, rle, link);
+		isc_async_run(rle->loop, rle->cb, rle->arg);
 		pertic--;
 	}
 
@@ -262,11 +263,6 @@ isc__ratelimiter_tick(void *arg) {
 	}
 unlock:
 	UNLOCK(&rl->lock);
-
-	while ((rle = ISC_LIST_HEAD(pending)) != NULL) {
-		ISC_LIST_UNLINK(pending, rle, link);
-		isc_async_run(rle->loop, rle->cb, rle->arg);
-	}
 }
 
 void
@@ -288,27 +284,21 @@ isc__ratelimiter_doshutdown(void *arg) {
 
 void
 isc_ratelimiter_shutdown(isc_ratelimiter_t *restrict rl) {
-	isc_rlevent_t *rle = NULL;
-	ISC_LIST(isc_rlevent_t) pending;
-
 	REQUIRE(VALID_RATELIMITER(rl));
-
-	ISC_LIST_INIT(pending);
 
 	LOCK(&rl->lock);
 	if (rl->state != isc_ratelimiter_shuttingdown) {
+		isc_rlevent_t *rle = NULL;
 		rl->state = isc_ratelimiter_shuttingdown;
-		ISC_LIST_MOVE(pending, rl->pending);
+		while ((rle = ISC_LIST_HEAD(rl->pending)) != NULL) {
+			ISC_LIST_UNLINK(rl->pending, rle, link);
+			rle->canceled = true;
+			isc_async_run(rl->loop, rle->cb, rle->arg);
+		}
 		isc_ratelimiter_ref(rl);
 		isc_async_run(rl->loop, isc__ratelimiter_doshutdown, rl);
 	}
 	UNLOCK(&rl->lock);
-
-	while ((rle = ISC_LIST_HEAD(pending)) != NULL) {
-		ISC_LIST_UNLINK(pending, rle, link);
-		rle->canceled = true;
-		isc_async_run(rl->loop, rle->cb, rle->arg);
-	}
 }
 
 static void
