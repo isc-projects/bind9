@@ -354,11 +354,8 @@ control_respond(controlconnection_t *conn) {
 	/* Skip the length field (4 bytes) */
 	isc_buffer_add(conn->buffer, 4);
 
-	result = isccc_cc_towire(conn->response, &conn->buffer, conn->alg,
-				 &conn->secret);
-	if (result != ISC_R_SUCCESS) {
-		return;
-	}
+	CHECK(isccc_cc_towire(conn->response, &conn->buffer, conn->alg,
+			      &conn->secret));
 
 	isc_buffer_init(&b, conn->buffer->base, 4);
 	isc_buffer_putuint32(&b, conn->buffer->used - 4);
