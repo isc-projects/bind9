@@ -86,6 +86,12 @@
 
 #define DNS_ADB_MINADBSIZE (1024U * 1024U) /*%< 1 Megabyte */
 
+/*
+ * Default for the per-find address limit, the sum of the number of A and AAAA
+ * RR from an ADB NS name resolution
+ */
+#define DEFAULT_ADDRSLIMIT 6
+
 typedef ISC_LIST(dns_adbname_t) dns_adbnamelist_t;
 typedef struct dns_adbnamehook dns_adbnamehook_t;
 typedef ISC_LIST(dns_adbnamehook_t) dns_adbnamehooklist_t;
@@ -2227,6 +2233,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 	dns_adbaddrinfo_t *addrinfo;
 	dns_adbentry_t *entry;
 	int bucket;
+	size_t count = 0;
 
 	bucket = DNS_ADB_INVALIDBUCKET;
 
@@ -2261,6 +2268,13 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 			inc_entry_refcnt(adb, entry, false);
 			ISC_LIST_APPEND(find->list, addrinfo, publink);
 			addrinfo = NULL;
+
+			if (++count >= DEFAULT_ADDRSLIMIT) {
+				DP(ISC_LOG_DEBUG(3), "skipping addresses");
+				UNLOCK(&adb->entrylocks[bucket]);
+				return;
+			}
+
 		nextv4:
 			UNLOCK(&adb->entrylocks[bucket]);
 			bucket = DNS_ADB_INVALIDBUCKET;
@@ -2299,6 +2313,13 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 			inc_entry_refcnt(adb, entry, false);
 			ISC_LIST_APPEND(find->list, addrinfo, publink);
 			addrinfo = NULL;
+
+			if (++count >= DEFAULT_ADDRSLIMIT) {
+				DP(ISC_LOG_DEBUG(3), "skipping addresses");
+				UNLOCK(&adb->entrylocks[bucket]);
+				return;
+			}
+
 		nextv6:
 			UNLOCK(&adb->entrylocks[bucket]);
 			bucket = DNS_ADB_INVALIDBUCKET;
