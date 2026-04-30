@@ -19,6 +19,7 @@
 #include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
 #include <isc/util.h>
 
@@ -54,7 +55,6 @@ main(int argc, char **argv) {
 	bool downgrade = false;
 	bool upgrade = false;
 	unsigned int serial = 0;
-	char *endp = NULL;
 
 	isc_commandline_init(argc, argv);
 
@@ -62,8 +62,9 @@ main(int argc, char **argv) {
 		switch (ch) {
 		case 'c':
 			compact = true;
-			serial = strtoul(isc_commandline_argument, &endp, 0);
-			if (endp == isc_commandline_argument || *endp != 0) {
+			result = isc_parse_unsigned_number(
+				&serial, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "invalid serial: %s\n",
 					isc_commandline_argument);
 				exit(EXIT_FAILURE);

@@ -242,10 +242,9 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 	isc_buffer_t sb;
 	isc_region_t keyregion;
 	size_t len;
-	uint16_t key;
+	uint16_t key, port;
 	unsigned int i;
 	unsigned int used;
-	unsigned long ul;
 
 	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
 		len = strlen(sbpr[i].name);
@@ -284,14 +283,8 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			{
 				return DNS_R_SYNTAX;
 			}
-			ul = strtoul(region->base, &e, 10);
-			if (*e != '\0') {
-				return DNS_R_SYNTAX;
-			}
-			if (ul > 0xffff) {
-				return ISC_R_RANGE;
-			}
-			RETERR(uint16_tobuffer(ul, target));
+			RETERR(isc_parse_uint16(&port, region->base, 10));
+			RETERR(uint16_tobuffer(port, target));
 			break;
 		case sbpr_ipv4s:
 			/* Reject embedded NUL bytes. */

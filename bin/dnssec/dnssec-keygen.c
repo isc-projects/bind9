@@ -42,6 +42,7 @@
 #include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -786,8 +787,9 @@ main(int argc, char **argv) {
 			algname = isc_commandline_argument;
 			break;
 		case 'b':
-			ctx.size = strtol(isc_commandline_argument, &endp, 10);
-			if (*endp != '\0' || ctx.size < 0) {
+			result = isc_parse_signed_number(
+				&ctx.size, isc_commandline_argument, 10);
+			if (result != ISC_R_SUCCESS || ctx.size < 0) {
 				fatal("-b requires a non-negative number");
 			}
 			break;
@@ -844,8 +846,8 @@ main(int argc, char **argv) {
 			if (*endp != ':' || ul > 0xffff) {
 				fatal("-M range invalid");
 			}
-			ctx.tag_max = ul = strtoul(endp + 1, &endp, 10);
-			if (*endp != '\0' || ul > 0xffff ||
+			result = isc_parse_uint16(&ctx.tag_max, endp + 1, 10);
+			if (result != ISC_R_SUCCESS ||
 			    ctx.tag_max <= ctx.tag_min)
 			{
 				fatal("-M range invalid");
@@ -883,9 +885,9 @@ main(int argc, char **argv) {
 			fatal("The -t option has been deprecated.");
 			break;
 		case 'v':
-			endp = NULL;
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_signed_number(
+				&verbose, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fatal("-v must be followed by a number");
 			}
 			break;

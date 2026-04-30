@@ -1573,7 +1573,7 @@ evaluate_lease(char *cmdline) {
 static uint16_t
 evaluate_server(char *cmdline) {
 	char *word, *server;
-	long port;
+	uint16_t port;
 
 	if (local_only) {
 		fprintf(stderr, "cannot reset server in localhost-only mode\n");
@@ -1591,17 +1591,20 @@ evaluate_server(char *cmdline) {
 	if (word == NULL || *word == 0) {
 		port = dnsport;
 	} else {
-		char *endp;
-		port = strtol(word, &endp, 10);
-		if (*endp != 0) {
+		switch (isc_parse_uint16(&port, word, 10)) {
+		case ISC_R_BADNUMBER:
 			fprintf(stderr, "port '%s' is not numeric\n", word);
 			return STATUS_SYNTAX;
-		} else if (port < 1 || port > 65535) {
+		case ISC_R_RANGE:
 			fprintf(stderr,
 				"port '%s' is out of range "
 				"(1 to 65535)\n",
 				word);
 			return STATUS_SYNTAX;
+		case ISC_R_SUCCESS:
+			break;
+		default:
+			UNREACHABLE();
 		}
 	}
 
@@ -1629,7 +1632,7 @@ evaluate_server(char *cmdline) {
 static uint16_t
 evaluate_local(char *cmdline) {
 	char *word, *local;
-	long port;
+	uint16_t port;
 	struct in_addr in4;
 	struct in6_addr in6;
 
@@ -1644,17 +1647,20 @@ evaluate_local(char *cmdline) {
 	if (word == NULL || *word == 0) {
 		port = 0;
 	} else {
-		char *endp;
-		port = strtol(word, &endp, 10);
-		if (*endp != 0) {
+		switch (isc_parse_uint16(&port, word, 10)) {
+		case ISC_R_BADNUMBER:
 			fprintf(stderr, "port '%s' is not numeric\n", word);
 			return STATUS_SYNTAX;
-		} else if (port < 1 || port > 65535) {
+		case ISC_R_RANGE:
 			fprintf(stderr,
 				"port '%s' is out of range "
 				"(1 to 65535)\n",
 				word);
 			return STATUS_SYNTAX;
+		case ISC_R_SUCCESS:
+			break;
+		default:
+			UNREACHABLE();
 		}
 	}
 

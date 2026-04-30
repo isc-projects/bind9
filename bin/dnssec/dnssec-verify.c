@@ -28,6 +28,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/os.h>
+#include <isc/parseint.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
@@ -166,7 +167,6 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	char *classname = NULL;
 	dns_rdataclass_t rdclass;
-	char *endp;
 	int ch;
 	bool origin_is_file = false;
 
@@ -227,9 +227,9 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'v':
-			endp = NULL;
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_signed_number(
+				&verbose, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fatal("verbose level must be numeric");
 			}
 			break;

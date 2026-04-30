@@ -47,15 +47,8 @@ fromtext_dsync(ARGS_FROMTEXT) {
 				      false));
 	result = dns_rdatatype_fromtext(&rrtype, &token.value.as_textregion);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
-		char *e = NULL;
-		long i = strtol(DNS_AS_STR(token), &e, 10);
-		if (i < 0 || i > 65535) {
-			RETTOK(ISC_R_RANGE);
-		}
-		if (*e != 0) {
-			RETTOK(result);
-		}
-		rrtype = (dns_rdatatype_t)i;
+		RETTOK(isc_parse_unsigned_number(&rrtype, DNS_AS_STR(token),
+						 10));
 	}
 	RETERR(uint16_tobuffer(rrtype, target));
 

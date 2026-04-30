@@ -26,6 +26,7 @@
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/parseint.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -1995,6 +1996,7 @@ bool
 dns_name_isdnssvcb(const dns_name_t *name) {
 	unsigned char len, len1;
 	const unsigned char *ndata;
+	isc_result_t result;
 
 	REQUIRE(DNS_NAME_VALID(name));
 
@@ -2012,8 +2014,7 @@ dns_name_isdnssvcb(const dns_name_t *name) {
 	}
 	if (isdigit(ndata[1]) && name->length > len + 1) {
 		char buf[sizeof("65000")];
-		long port;
-		char *endp;
+		uint16_t port;
 
 		/*
 		 * Do we have a valid _port label?
@@ -2023,8 +2024,8 @@ dns_name_isdnssvcb(const dns_name_t *name) {
 		}
 		memcpy(buf, ndata + 1, len - 1);
 		buf[len - 1] = 0;
-		port = strtol(buf, &endp, 10);
-		if (*endp != 0 || port < 0 || port > 0xffff) {
+		result = isc_parse_uint16(&port, buf, 10);
+		if (result != ISC_R_SUCCESS) {
 			return false;
 		}
 
@@ -2050,8 +2051,10 @@ bool
 dns_name__israd(const dns_name_t *name, const dns_name_t *rad) {
 	dns_name_t suffix;
 	char labelbuf[64];
+	isc_result_t result;
 	unsigned long v, last = ULONG_MAX;
 	char *end, *l;
+	uint64_t u64;
 
 	REQUIRE(DNS_NAME_VALID(name));
 	REQUIRE(DNS_NAME_VALID(rad));
@@ -2109,8 +2112,9 @@ dns_name__israd(const dns_name_t *name, const dns_name_t *rad) {
 	if (strlen(labelbuf) != *suffix.ndata) {
 		return false;
 	}
-	v = strtoul(labelbuf, &end, 10);
-	if (v > 0xfff || *end != 0) {
+
+	result = isc_parse_unsigned_number(&u64, labelbuf, 10);
+	if (result != ISC_R_SUCCESS || u64 > 0xfff) {
 		return false;
 	}
 

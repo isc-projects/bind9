@@ -38,6 +38,7 @@
 #include <isc/managers.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
 #include <isc/signal.h>
 #include <isc/stdio.h>
@@ -359,16 +360,13 @@ add_ellipsis:
 
 static int
 parse_int(const char *arg, const char *desc) {
-	char *endp;
 	int tmp;
-	long int ltmp;
 
-	ltmp = strtol(arg, &endp, 10);
-	tmp = (int)ltmp;
-	if (*endp != '\0') {
+	if (isc_parse_signed_number(&tmp, arg, 10) != ISC_R_SUCCESS) {
 		named_main_earlyfatal("%s '%s' must be numeric", desc, arg);
 	}
-	if (tmp < 0 || tmp != ltmp) {
+
+	if (tmp < 0) {
 		named_main_earlyfatal("%s '%s' out of range", desc, arg);
 	}
 	return tmp;

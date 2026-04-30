@@ -32,6 +32,7 @@
 #include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/string.h>
@@ -1063,8 +1064,8 @@ main(int argc, char *argv[]) {
 	bool prefer_cdnskey = false;
 	bool nsupdate = false;
 	uint32_t ttl = 0;
+	isc_result_t result;
 	int ch;
-	char *endp;
 
 	setfatalcallback(cleanup);
 
@@ -1122,8 +1123,9 @@ main(int argc, char *argv[]) {
 			version(isc_commandline_progname);
 			break;
 		case 'v':
-			verbose = strtoul(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_signed_number(
+				&verbose, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fatal("-v must be followed by a number");
 			}
 			break;

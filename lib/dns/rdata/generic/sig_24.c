@@ -22,9 +22,7 @@ static isc_result_t
 fromtext_sig(ARGS_FROMTEXT) {
 	isc_token_t token;
 	unsigned char alg, c;
-	long i;
 	dns_rdatatype_t covered;
-	char *e;
 	isc_result_t result;
 	isc_buffer_t buffer;
 	uint32_t time_signed, time_expire;
@@ -43,14 +41,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 				      false));
 	result = dns_rdatatype_fromtext(&covered, &token.value.as_textregion);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
-		i = strtol(DNS_AS_STR(token), &e, 10);
-		if (i < 0 || i > 65535) {
-			RETTOK(ISC_R_RANGE);
-		}
-		if (*e != 0) {
-			RETTOK(result);
-		}
-		covered = (dns_rdatatype_t)i;
+		RETTOK(isc_parse_uint16(&covered, DNS_AS_STR(token), 10));
 	}
 	RETERR(uint16_tobuffer(covered, target));
 

@@ -47,6 +47,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/parseint.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -457,22 +458,6 @@ resconf_parsesortlist(irs_resconf_t *conf, FILE *fp) {
 }
 
 static isc_result_t
-resconf_optionnumber(const char *word, uint8_t *number) {
-	char *p;
-	long n;
-
-	n = strtol(word, &p, 10);
-	if (*p != '\0') { /* Bad string. */
-		return ISC_R_UNEXPECTEDTOKEN;
-	}
-	if (n < 0 || n > 0xff) { /* Out of range. */
-		return ISC_R_RANGE;
-	}
-	*number = n;
-	return ISC_R_SUCCESS;
-}
-
-static isc_result_t
 resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 	int delim;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -490,15 +475,15 @@ resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 		} else if ((value = isc_string_stripprefix(word, "ndots:")) !=
 			   NULL)
 		{
-			CHECK(resconf_optionnumber(value, &conf->ndots));
+			CHECK(isc_parse_uint8(&conf->ndots, value, 10));
 		} else if ((value = isc_string_stripprefix(word, "attempts"
 								 ":")) != NULL)
 		{
-			CHECK(resconf_optionnumber(value, &conf->attempts));
+			CHECK(isc_parse_uint8(&conf->attempts, value, 10));
 		} else if ((value = isc_string_stripprefix(word, "timeout:")) !=
 			   NULL)
 		{
-			CHECK(resconf_optionnumber(value, &conf->timeout));
+			CHECK(isc_parse_uint8(&conf->timeout, value, 10));
 		}
 
 		if (delim == EOF || delim == '\n') {

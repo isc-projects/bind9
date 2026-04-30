@@ -39,6 +39,7 @@
 #include <dst/dst.h>
 
 #include "dnssectool.h"
+#include "isc/parseint.h"
 
 #define MAX_RSA 4096 /* should be long enough... */
 
@@ -201,9 +202,9 @@ main(int argc, char **argv) {
 			if (*endp != ':' || ul > 0xffff) {
 				fatal("-M range invalid");
 			}
-			tag_max = ul = strtoul(endp + 1, &endp, 10);
-			if (*endp != '\0' || ul > 0xffff || tag_max <= tag_min)
-			{
+			result = isc_parse_unsigned_number(&tag_max, endp + 1,
+							   10);
+			if (result != ISC_R_SUCCESS || tag_max <= tag_min) {
 				fatal("-M range invalid");
 			}
 			break;
@@ -218,8 +219,9 @@ main(int argc, char **argv) {
 			fatal("The -t option has been deprecated.");
 			break;
 		case 'v':
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_signed_number(
+				&verbose, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fatal("-v must be followed by a number");
 			}
 			break;

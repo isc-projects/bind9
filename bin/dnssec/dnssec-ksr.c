@@ -23,6 +23,7 @@
 #include <isc/lex.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 
 #include <dns/callbacks.h>
 #include <dns/dnssec.h>
@@ -1304,7 +1305,6 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_buffer_t buf;
 	int ch;
-	char *endp;
 	ksr_ctx_t ksr = {
 		.now = isc_stdtime_now(),
 	};
@@ -1359,8 +1359,9 @@ main(int argc, char *argv[]) {
 			version(isc_commandline_progname);
 			break;
 		case 'v':
-			verbose = strtoul(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_signed_number(
+				&verbose, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fatal("-v must be followed by a number");
 			}
 			break;

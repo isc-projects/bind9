@@ -23,8 +23,6 @@ fromtext_tkey(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_rcode_t rcode;
 	isc_buffer_t buffer;
-	long i;
-	char *e;
 
 	REQUIRE(type == dns_rdatatype_tkey);
 
@@ -75,14 +73,7 @@ fromtext_tkey(ARGS_FROMTEXT) {
 	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion) !=
 	    ISC_R_SUCCESS)
 	{
-		i = strtol(DNS_AS_STR(token), &e, 10);
-		if (*e != 0) {
-			RETTOK(DNS_R_UNKNOWN);
-		}
-		if (i < 0 || i > 0xffff) {
-			RETTOK(ISC_R_RANGE);
-		}
-		rcode = (dns_rcode_t)i;
+		RETTOK(isc_parse_uint16(&rcode, DNS_AS_STR(token), 10));
 	}
 	RETERR(uint16_tobuffer(rcode, target));
 

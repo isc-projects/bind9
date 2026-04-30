@@ -31,6 +31,7 @@
 #include <isc/netaddr.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
+#include <isc/parseint.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -66,10 +67,11 @@ static isc_tlsctx_t *tls_ctx = NULL;
 
 static isc_result_t
 parse_port(const char *input) {
-	char *endptr = NULL;
-	long val = strtol(input, &endptr, 10);
+	isc_result_t result;
+	uint16_t value;
 
-	if ((*endptr != '\0') || (val <= 0) || (val >= 65536)) {
+	result = isc_parse_uint16(&value, input, 10);
+	if (result != ISC_R_SUCCESS || (value == 0)) {
 		return ISC_R_BADNUMBER;
 	}
 
@@ -110,30 +112,31 @@ parse_address(const char *input) {
 	return ISC_R_BADADDRESSFORM;
 }
 
-static int
+static isc_result_t
 parse_workers(const char *input) {
-	char *endptr = NULL;
-	long val = strtol(input, &endptr, 10);
+	typeof(workers) value;
 
-	if ((*endptr != '\0') || (val <= 0) || (val >= 128)) {
+	RETERR(isc_parse_signed_number(&value, input, 10));
+	if (value == 0 || value >= 128) {
 		return ISC_R_BADNUMBER;
 	}
 
-	workers = val;
+	workers = value;
 
 	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
 parse_timeout(const char *input) {
-	char *endptr = NULL;
-	long val = strtol(input, &endptr, 10);
+	isc_result_t result;
+	uint64_t value;
 
-	if ((*endptr != '\0') || (val <= 0) || (val >= 120)) {
+	result = isc_parse_uint64(&value, input, 10);
+	if (result != ISC_R_SUCCESS || (value == 0) || (value >= 120)) {
 		return ISC_R_BADNUMBER;
 	}
 
-	timeout = (in_port_t)val * 1000;
+	timeout = (in_port_t)value * 1000;
 
 	return ISC_R_SUCCESS;
 }
