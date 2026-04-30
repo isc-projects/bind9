@@ -114,6 +114,8 @@ extern unsigned int dns_zone_mkey_hour;
 extern unsigned int dns_zone_mkey_day;
 extern unsigned int dns_zone_mkey_month;
 
+extern size_t dns_adb_addrslimit;
+
 static bool want_stats = false;
 static char program_name[NAME_MAX] = "named";
 static char absolute_conffile[PATH_MAX];
@@ -805,6 +807,13 @@ parse_T_opt(char *option) {
 		transferstuck = true;
 	} else if (!strncmp(option, "tat=", 4)) {
 		named_g_tat_interval = atoi(option + 4);
+	} else if (!strncmp(option, "adbaddrslimit=", 14)) {
+		size_t adb_addrslimit = atoi(option + 14);
+		if (adb_addrslimit < 1) {
+			named_main_earlyfatal("adbaddrslimit must be at "
+					      "least 1");
+		}
+		dns_adb_addrslimit = adb_addrslimit;
 	} else {
 		fprintf(stderr, "unknown -T flag '%s'\n", option);
 	}
