@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <inttypes.h>
+#include <stdint.h>
 
 #include <isc/types.h>
 
@@ -25,21 +25,27 @@
  ***	Functions
  ***/
 
-isc_result_t
-isc_parse_uint32(uint32_t *uip, const char *string, int base);
+#define isc_parse_unsigned_number(uip, string, base) \
+	_Generic((uip),                              \
+		uint64_t *: isc_parse_uint64,        \
+		uint32_t *: isc_parse_uint32,        \
+		uint16_t *: isc_parse_uint16,        \
+		uint8_t *: isc_parse_uint8)((uip), (string), (base))
 
-isc_result_t
-isc_parse_uint16(uint16_t *uip, const char *string, int base);
-
-isc_result_t
-isc_parse_uint8(uint8_t *uip, const char *string, int base);
-/*%<
+#define isc_parse_signed_number(ip, string, base) \
+	_Generic((ip),                            \
+		int64_t *: isc_parse_int64,       \
+		int32_t *: isc_parse_int32,       \
+		int16_t *: isc_parse_int16,       \
+		int8_t *: isc_parse_int8)((ip), (string), (base))
+/**
+ *
  * Parse the null-terminated string 'string' containing a base 'base'
  * integer, storing the result in '*uip'.
- * The base is interpreted
- * as in strtoul().  Unlike strtoul(), leading whitespace, minus or
- * plus signs are not accepted, and all errors (including overflow)
- * are reported uniformly through the return value.
+ *
+ * The base is interpreted as in strtoul().
+ * Unlike strtoul(), leading whitespace is not accepted and all errors
+ * (including overflow) are reported uniformly through the return value.
  *
  * Requires:
  *\li	'string' points to a null-terminated string
@@ -50,3 +56,27 @@ isc_parse_uint8(uint8_t *uip, const char *string, int base);
  *\li	#ISC_R_BADNUMBER   The string is not numeric (in the given base)
  *\li	#ISC_R_RANGE	  The number is not representable as the requested type.
  */
+
+isc_result_t
+isc_parse_uint64(uint64_t *uip, const char *string, int base);
+
+isc_result_t
+isc_parse_uint32(uint32_t *uip, const char *string, int base);
+
+isc_result_t
+isc_parse_uint16(uint16_t *uip, const char *string, int base);
+
+isc_result_t
+isc_parse_uint8(uint8_t *uip, const char *string, int base);
+
+isc_result_t
+isc_parse_int64(int64_t *ip, const char *string, int base);
+
+isc_result_t
+isc_parse_int32(int32_t *ip, const char *string, int base);
+
+isc_result_t
+isc_parse_int16(int16_t *ip, const char *string, int base);
+
+isc_result_t
+isc_parse_int8(int8_t *ip, const char *string, int base);
