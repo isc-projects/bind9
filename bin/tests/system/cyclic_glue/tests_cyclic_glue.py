@@ -14,7 +14,7 @@ from re import compile as Re
 import isctest
 
 
-def run_queries(ns):
+def query_and_dump(ns):
     msg = isctest.query.create("a.foo.test.", "A")
     res = isctest.query.udp(msg, ns.ip)
     isctest.check.noerror(res)
@@ -23,11 +23,14 @@ def run_queries(ns):
     res = isctest.query.udp(msg, ns.ip)
     isctest.check.noerror(res)
 
+    with ns.watch_log_from_here() as watcher:
+        ns.rndc("dumpdb -deleg")
+        watcher.wait_for_line("dumpdb complete")
+    return isctest.text.TextFile(f"{ns.identifier}/named_dump.db")
+
 
 def test_cyclic_glues(ns1, ns4, templates):
-    run_queries(ns4)
-    ns4.rndc("dumpdb -deleg")
-    dump = isctest.text.TextFile("ns4/named_dump.db")
+    dump = query_and_dump(ns4)
 
     # The test is using the correctly-behaving ns2 server.
     assert len(dump.grep(Re("test. .* DELEG server-ipv4=10.53.0.2"))) == 1
@@ -53,9 +56,7 @@ def test_cyclic_glues(ns1, ns4, templates):
         ns4.rndc("flush")
         watcher.wait_for_line("flushing caches in all views succeeded")
 
-    run_queries(ns4)
-    ns4.rndc("dumpdb -deleg")
-    dump = isctest.text.TextFile("ns4/named_dump.db")
+    dump = query_and_dump(ns4)
 
     # The test is now using the broken ans5 server.
     assert len(dump.grep(Re("test. [0-9]* DELEG server-ipv4=10.53.0.2"))) == 0
