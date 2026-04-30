@@ -12,18 +12,18 @@
  */
 
 options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
+	query-source address 10.53.0.3;
+	notify-source 10.53.0.3;
+	transfer-source 10.53.0.3;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
+	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
 	recursion no;
 	dnssec-validation no;
-	notify yes;
 
-	transfers-out 3;
+	transfers-out 1;
+	allow-transfer { 10.53.0.2; };
 };
 
 key rndc_key {
@@ -32,7 +32,7 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 zone "." {
@@ -40,9 +40,7 @@ zone "." {
 	file "root.db";
 };
 
-zone "changing." {
+zone "quota." {
 	type primary;
-	file "changing.db";
+	file "quota.db";
 };
-
-include "zones.conf";
