@@ -250,9 +250,48 @@ ISC_RUN_TEST_IMPL(isc_rsa_fromdns_oversized_exponent) {
 	assert_null(key);
 }
 
+/* dst_key_fromdns rejects RSA DNSKEYs with a degenerate modulus */
+ISC_RUN_TEST_IMPL(isc_rsa_fromdns_short_modulus) {
+	isc_result_t result;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	dst_key_t *key = NULL;
+	isc_buffer_t buf;
+	unsigned char rdata[8];
+	size_t i = 0;
+
+	UNUSED(state);
+
+	name = dns_fixedname_initname(&fname);
+	isc_buffer_constinit(&buf, "rsa.", 4);
+	isc_buffer_add(&buf, 4);
+	result = dns_name_fromtext(name, &buf, NULL, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * DNSKEY rdata: flags(2) + proto(1) + alg(1) + RSA wire pubkey
+	 * 'AQM=' (0x01 0x03): e_bytes=1, exponent=0x03, modulus tail empty.
+	 */
+	rdata[i++] = 0x01;
+	rdata[i++] = 0x00;
+	rdata[i++] = 0x03;
+	rdata[i++] = DST_ALG_RSASHA256;
+	rdata[i++] = 0x01;
+	rdata[i++] = 0x03;
+
+	isc_buffer_init(&buf, rdata, i);
+	isc_buffer_add(&buf, i);
+
+	result = dst_key_fromdns(name, dns_rdataclass_in, &buf, isc_g_mctx,
+				 &key);
+	assert_int_equal(result, ISC_R_RANGE);
+	assert_null(key);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(isc_rsa_verify)
 ISC_TEST_ENTRY(isc_rsa_fromdns_oversized_exponent)
+ISC_TEST_ENTRY(isc_rsa_fromdns_short_modulus)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

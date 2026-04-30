@@ -34,6 +34,7 @@
 #include "openssl_shim.h"
 
 #define OPENSSLRSA_MAX_MODULUS_BITS 4096
+#define OPENSSLRSA_MIN_MODULUS_BITS 512
 
 /* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
 static unsigned char oid_rsasha256[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
@@ -465,6 +466,9 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (BN_num_bits(c.e) > RSA_MAX_PUBEXP_BITS) {
 		CLEANUP(ISC_R_RANGE);
 	}
+	if (BN_num_bits(c.n) < OPENSSLRSA_MIN_MODULUS_BITS) {
+		CLEANUP(ISC_R_RANGE);
+	}
 	isc_buffer_forward(data, length);
 
 	key->key_size = BN_num_bits(c.n);
@@ -699,6 +703,9 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (c.n == NULL || c.e == NULL) {
 		CLEANUP(DST_R_INVALIDPRIVATEKEY);
 	}
+	if (BN_num_bits(c.n) < OPENSSLRSA_MIN_MODULUS_BITS) {
+		CLEANUP(ISC_R_RANGE);
+	}
 	if (BN_num_bits(c.e) > RSA_MAX_PUBEXP_BITS) {
 		CLEANUP(ISC_R_RANGE);
 	}
@@ -738,6 +745,9 @@ opensslrsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 				     &privpkey));
 
 	if (!isc_ossl_wrap_rsa_key_bits_leq(pubpkey, RSA_MAX_PUBEXP_BITS)) {
+		CLEANUP(ISC_R_RANGE);
+	}
+	if (EVP_PKEY_bits(pubpkey) < OPENSSLRSA_MIN_MODULUS_BITS) {
 		CLEANUP(ISC_R_RANGE);
 	}
 
