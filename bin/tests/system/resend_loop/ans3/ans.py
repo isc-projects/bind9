@@ -111,11 +111,9 @@ class NoErrorHandler(ResponseHandler):
 def resend_server() -> AsyncDnsServer:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(
-        [
-            PrimeHandler(),
-            CookieHandler(),
-            NoErrorHandler(),
-        ]
+        PrimeHandler(),
+        CookieHandler(),
+        NoErrorHandler(),
     )
     return server
 
