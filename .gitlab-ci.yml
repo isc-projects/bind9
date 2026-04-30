@@ -99,6 +99,16 @@ default:
     when:
       - runner_system_failure
 
+workflow:
+  # Prevent jobs marked with "interruptible: false" that have not yet been
+  # started from getting canceled when a newer pipeline is created for the same
+  # branch.  This setting was added to enable "iterative autorebases" to work
+  # correctly with `resource_group`.  Without this setting, pending rebase jobs
+  # waiting for a resource group would get canceled by the "git push" operation
+  # at the end of a prior rebase job belonging to the same resource group.
+  auto_cancel:
+    on_new_commit: interruptible
+
 stages:
   - autoconf
   - quick-checks
@@ -291,6 +301,9 @@ stages:
 .rule_source_all: &rule_source_all
   - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/ && $REBASE_ONLY != "1"'
 
+.rule_private_security_branch: &rule_private_security_branch
+  - if: '$CI_COMMIT_BRANCH =~ /^security-(main|bind-9\.[1-9][0-9])$/ && $CI_PROJECT_PATH == "isc-private/bind9" && $REBASE_ONLY != "1"'
+
 .api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
   rules:
     - *rule_tag
@@ -299,6 +312,7 @@ stages:
 .default-triggering-rules_list: &default_triggering_rules_list
   - *rule_tag
   - *rule_source_all
+  - *rule_private_security_branch
 
 .default-triggering-rules: &default_triggering_rules
   rules:
@@ -310,6 +324,7 @@ stages:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
+    - *rule_private_security_branch
 
 .shell-triggering-rules: &shell_triggering_rules
   rules:
@@ -317,6 +332,7 @@ stages:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
+    - *rule_private_security_branch
 
 .python-triggering-rules: &python_triggering_rules
   rules:
@@ -324,6 +340,7 @@ stages:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
+    - *rule_private_security_branch
 
 .extra-system-tests-triggering-rules: &extra_system_tests_triggering_rules
   rules:
@@ -712,6 +729,7 @@ clang-format:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
+    - *rule_private_security_branch
   script:
     - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
     - git diff > clang-format.patch
@@ -851,6 +869,7 @@ coccinelle:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
+    - *rule_private_security_branch
   script:
     - util/check-cocci.sh
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
@@ -2310,6 +2329,7 @@ stress-test-child-pipeline:
       allow_failure: true
     - *rule_tag
     - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/ && $REBASE_ONLY != "1"'
+    - *rule_private_security_branch
   trigger:
     include:
       - artifact: stress-test-configs.yml
@@ -2415,16 +2435,93 @@ merged-metadata:
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/after_merge.py "$CI_PROJECT_ID" "$MERGE_REQUEST_ID"
 
-auto-rebase-trigger:
+.autorebase-common: &autorebase_common
   stage: postmerge
-  rules:
-    - if: '$CI_PROJECT_NAMESPACE == "isc-projects" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+$/'
   needs: []
-  interruptible: true
+  interruptible: false
+
+.autorebase: &autorebase
+  <<: *autorebase_common
+  <<: *base_image
+  # ensure autorebases for each distinct private branch are serialized when the
+  # upstream branch is pushed to multiple times in quick succession
+  resource_group: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+  tags:
+    - smalljob
+  variables:
+    # avoid leftover branches from previous jobs
+    GIT_STRATEGY: clone
+    GIT_DEPTH: 1000
+  script:
+    # CI job token is not sufficient for push operations
+    - git remote get-url origin | sed -e "s/gitlab-ci-token:${CI_JOB_TOKEN}/oauth2:${BIND_TEAM_WRITE_TOKEN}/" | xargs git remote set-url --push origin
+    - git remote add base-project "https://oauth2:${BIND_TEAM_API_TOKEN}@gitlab.isc.org/${BASE_PROJECT}.git"
+    - git fetch --depth=1000 base-project "${BASE_COMMIT}"
+    - git rebase --rebase-merges "${BASE_COMMIT}"
+    - autoreconf -fi
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - git range-diff --color=always "${BASE_COMMIT}" "${CI_COMMIT_SHA}" HEAD
+    - git push -f origin "HEAD:${CI_COMMIT_REF_NAME}"
+  after_script:
+    - if [ "${CI_JOB_STATUS}" = "success" ]; then exit 0; fi
+    - OLDEST_MERGE_COMMIT="$(git log --reverse --merges --pretty=%H "${CI_COMMIT_SHA}..${BASE_COMMIT}" | head -1)"
+    - read -r OLDEST_MERGE_REQUEST_PROJECT OLDEST_MERGE_REQUEST_ID < <(git log --max-count=1 "${OLDEST_MERGE_COMMIT}" | sed -nE 's|^\s*See merge request ([a-z-]+/bind9)!([0-9]+).*|\1 \2|p' | head -1)
+    - |
+      if git rebase --abort; then
+          # Rebase failed; try applying recent commits from the base branch on top of the branch being rebased to determine which one introduces conflicts
+          git rebase --rebase-merges "${CI_COMMIT_SHA}" "${BASE_COMMIT}" || true
+          CONFLICT_COMMIT="$(git status | sed -nE 's/^\s*(pick|merge -C) ([0-9a-f]+).*/\2/p' | head -1 | git rev-list -n 1 --stdin)"
+          REASON="merge conflict introduced by a change in the base branch"
+      else
+          # Rebase did not fail; most likely, this is a build failure, or the job was canceled
+          CONFLICT_COMMIT="${OLDEST_MERGE_COMMIT}"
+          if [ "${CI_JOB_STATUS}" = "failed" ]; then
+              REASON="build failure after a successful rebase"
+          else
+              REASON="job was canceled"
+          fi
+      fi
+      CONFLICT_COMMIT_AUTHOR="$(git log --max-count=1 --pretty="@%al" "${CONFLICT_COMMIT}")"
+      MSG="#### :rotating_light: Autorebase error for branch \`${CI_COMMIT_REF_NAME}\` :rotating_light:"
+      MSG="${MSG}\n**Job**: ${CI_JOB_URL}"
+      MSG="${MSG}\n**Reason**: ${REASON}"
+      MSG="${MSG}\n**First bad commit**: [${CONFLICT_COMMIT}](https://gitlab.isc.org/${OLDEST_MERGE_REQUEST_PROJECT}/-/commit/${CONFLICT_COMMIT}) (authored by ${CONFLICT_COMMIT_AUTHOR})"
+      MSG="${MSG}\n**First bad merge request**: https://gitlab.isc.org/${OLDEST_MERGE_REQUEST_PROJECT}/-/merge_requests/${OLDEST_MERGE_REQUEST_ID}"
+    - |
+      curl -s -o /dev/null -X POST -H content-type:application/json -d '{"channel":"bind-9-team", "text": "'"${MSG}"'" }' "${MATTERMOST_WEBHOOK_URL}"
+
+autorebase-trigger-security:
+  <<: *autorebase_common
+  rules:
+    - if: '$CI_PROJECT_NAMESPACE == "isc-projects" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME =~ /^(main|bind-9\.[0-9]+)$/'
   inherit:
       variables: false
   variables:
     REBASE_ONLY: 1
+    BASE_PROJECT: isc-projects/bind9
+    BASE_COMMIT: "${CI_COMMIT_SHA}"
   trigger:
       project: isc-private/bind9
-      branch: "${CI_COMMIT_BRANCH}-sub"
+      branch: "security-${CI_COMMIT_BRANCH}"
+
+autorebase-security:
+  <<: *autorebase
+  rules:
+    - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "pipeline" && $CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ && $REBASE_ONLY == "1" && $CI_COMMIT_REF_NAME =~ $AUTOREBASED_BRANCHES'
+
+autorebase-trigger-sub:
+  <<: *autorebase_common
+  <<: *base_image
+  rules:
+    - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME =~ /^security-bind-9\.[0-9]+$/'
+  tags:
+    - smalljob
+  script:
+    - >
+      curl -X POST --fail --header "Content-Type: application/json" --data '{ "token": "'"${CI_JOB_TOKEN}"'", "ref": "'"${CI_COMMIT_BRANCH#security-}"'-sub", "variables": { "REBASE_ONLY": "1", "BASE_PROJECT": "isc-private/bind9", "BASE_COMMIT": "'"${CI_COMMIT_SHA}"'" } }' https://gitlab.isc.org/api/v4/projects/9/trigger/pipeline
+
+autorebase-sub:
+  <<: *autorebase
+  rules:
+    - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "pipeline" && $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+-sub$/ && $REBASE_ONLY == "1" && $CI_COMMIT_REF_NAME =~ $AUTOREBASED_BRANCHES'
