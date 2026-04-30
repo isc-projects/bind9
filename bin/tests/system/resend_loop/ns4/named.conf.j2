@@ -6,6 +6,7 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
+	query-source-v6 none;
 	recursion yes;
 	dnssec-validation no;
 };

@@ -9804,7 +9804,9 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		rctx->broken_server = DNS_R_BADVERS;
 		rctx->next_server = true;
 #endif /* if DNS_EDNS_VERSION > 0 */
-	} else if (rcode == dns_rcode_badcookie && rctx->query->rmessage->cc_ok)
+	} else if (rcode == dns_rcode_badcookie &&
+		   rctx->query->rmessage->cc_ok &&
+		   (rctx->retryopts & DNS_FETCHOPT_TCP) == 0)
 	{
 		/*
 		 * We have recorded the new cookie.
