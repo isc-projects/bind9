@@ -385,9 +385,7 @@ dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 		RETERR(write_key_state(key, type, directory));
 	}
 
-	if (((type & DST_TYPE_PRIVATE) != 0) &&
-	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
-	{
+	if ((type & DST_TYPE_PRIVATE) != 0) {
 		return key->func->tofile(key, directory);
 	}
 	return ISC_R_SUCCESS;
@@ -551,9 +549,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 		CHECK(result);
 	}
 
-	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC ||
-	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
-	{
+	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC) {
 		CHECK(computeid(pubkey));
 		pubkey->modified = false;
 		*keyp = pubkey;
@@ -652,7 +648,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	isc_buffer_putuint8(target,
 			    (uint8_t)dst_algorithm_tosecalg(key->key_alg));
 
-	if (key->keydata.generic == NULL) { /*%< NULL KEY */
+	if (key->keydata.generic == NULL) {
 		return ISC_R_SUCCESS;
 	}
 
@@ -909,12 +905,6 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 
 	if (label != NULL) {
 		key->label = isc_mem_strdup(mctx, label);
-	}
-
-	if (bits == 0) { /*%< NULL KEY */
-		key->key_flags |= DNS_KEYTYPE_NOKEY;
-		*keyp = key;
-		return ISC_R_SUCCESS;
 	}
 
 	if (key->func->generate == NULL) {

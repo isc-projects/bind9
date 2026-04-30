@@ -232,7 +232,6 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 	char filename[255];
 	char algstr[DNS_SECALG_FORMATSIZE];
 	uint16_t flags = 0;
-	bool null_key = false;
 	bool conflict = false;
 	bool show_progress = false;
 	isc_buffer_t buf;
@@ -497,8 +496,6 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 
 	if ((ctx->options & DST_TYPE_KEY) == 0) {
 		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY: name type ZONE */
-	} else {
-		flags |= DNS_KEYOWNER_ENTITY; /* KEY: name type HOST */
 	}
 
 	if (ctx->directory == NULL) {
@@ -530,12 +527,6 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 		break;
 	default:
 		break;
-	}
-
-	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY &&
-	    (ctx->options & DST_TYPE_KEY) != 0)
-	{
-		null_key = true;
 	}
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
@@ -668,11 +659,6 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 				  ctx->tag_min, ctx->tag_max, NULL))
 		{
 			conflict = true;
-			if (null_key) {
-				dst_key_free(&key);
-				break;
-			}
-
 			if (verbose > 0) {
 				isc_buffer_clear(&buf);
 				result = dst_key_buildfilename(
@@ -691,11 +677,6 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 			dst_key_free(&key);
 		}
 	} while (conflict);
-
-	if (conflict) {
-		fatal("cannot generate a null key due to possible key ID "
-		      "collision");
-	}
 
 	if (ctx->predecessor != NULL && prevkey != NULL) {
 		dst_key_setnum(prevkey, DST_NUM_SUCCESSOR, dst_key_id(key));

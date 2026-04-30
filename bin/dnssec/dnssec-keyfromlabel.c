@@ -543,8 +543,6 @@ main(int argc, char **argv) {
 		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY: name type ZONE */
 		flags |= kskflag;
 		flags |= revflag;
-	} else {
-		flags |= DNS_KEYOWNER_ENTITY; /* KEY: name type HOST */
 	}
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);

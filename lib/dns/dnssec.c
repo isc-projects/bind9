@@ -707,8 +707,7 @@ syncdelete(dst_key_t *key, isc_stdtime_t now) {
 	return false;
 }
 
-#define is_zone_key(key) \
-	((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE)
+#define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYOWNER_ZONE) != 0)
 
 isc_result_t
 dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
@@ -1049,7 +1048,7 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 
 bool
 dns_dnssec_iszonekey(dns_rdata_dnskey_t *key) {
-	return (key->flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
+	return (key->flags & DNS_KEYOWNER_ZONE) != 0 &&
 	       (key->protocol == DNS_KEYPROTO_DNSSEC ||
 		key->protocol == DNS_KEYPROTO_ANY);
 }

@@ -128,7 +128,7 @@ bool
 dst_key_iszonekey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 
-	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
+	if ((key->key_flags & DNS_KEYOWNER_ZONE) == 0) {
 		return false;
 	}
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&

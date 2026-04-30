@@ -114,10 +114,11 @@
 /*%
  * Key flags
  */
-#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
-#define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
-#define ID(x)	  dst_key_id(x)
-#define ALG(x)	  dst_key_alg(x)
+#define REVOKE(x)  ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
+#define KSK(x)	   ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ZONEKEY(x) ((dst_key_flags(x) & DNS_KEYOWNER_ZONE) != 0)
+#define ID(x)	   dst_key_id(x)
+#define ALG(x)	   dst_key_alg(x)
 
 /*%
  * KASP flags
@@ -5122,9 +5123,6 @@ keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 	return result;
 }
 
-#define is_zone_key(key) \
-	((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE)
-
 static isc_result_t
 findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	     dns_dbnode_t *node, const dns_name_t *name, isc_stdtime_t now,
@@ -5148,7 +5146,7 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		CHECK(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
 		dst_key_setttl(pubkey, rdataset.ttl);
 
-		if (!is_zone_key(pubkey)) {
+		if (!ZONEKEY(pubkey)) {
 			goto next;
 		}
 		/* Corrupted .key file? */
@@ -16498,8 +16496,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 		result = dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if ((dnskey.flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
-		{
+		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0) {
 			ISC_LIST_UNLINK(diff->tuples, tuple, link);
 			ISC_LIST_APPEND(tuples, tuple, link);
 			continue;
