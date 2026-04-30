@@ -288,16 +288,33 @@ append(const char *text, size_t len, char **p, char *end) {
 
 static isc_result_t
 reverse_octets(const char *in, char **p, char *end) {
-	const char *dot = strchr(in, '.');
-	size_t len;
-	if (dot != NULL) {
-		RETERR(reverse_octets(dot + 1, p, end));
-		RETERR(append(".", 1, p, end));
-		len = (int)(dot - in);
-	} else {
-		len = (int)strlen(in);
+	const char *parts[DNS_NAME_MAXLABELS];
+	size_t lens[DNS_NAME_MAXLABELS];
+	size_t n = 0;
+	const char *cursor = in;
+
+	while (true) {
+		const char *dot = strchr(cursor, '.');
+		if (n >= DNS_NAME_MAXLABELS) {
+			return DNS_R_NAMETOOLONG;
+		}
+		parts[n] = cursor;
+		lens[n] = (dot != NULL) ? (size_t)(dot - cursor)
+					: strlen(cursor);
+		n++;
+		if (dot == NULL) {
+			break;
+		}
+		cursor = dot + 1;
 	}
-	return append(in, len, p, end);
+
+	for (size_t i = n; i-- > 0;) {
+		if (i + 1 < n) {
+			RETERR(append(".", 1, p, end));
+		}
+		RETERR(append(parts[i], lens[i], p, end));
+	}
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
