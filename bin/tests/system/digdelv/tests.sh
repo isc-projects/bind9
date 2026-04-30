@@ -149,6 +149,20 @@ if [ -x "$DIG" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
+  echo_i "checking dig -x rejects deeply nested input cleanly ($n)"
+  ret=0
+  longinput="$(printf '1.%.0s' $(seq 1 6400))1"
+  # Pre-fix: SIGSEGV (139) or ASan abort (134) from unbounded recursion in
+  # reverse_octets() on the dots. Post-fix: structured rejection via
+  # DNS_R_NAMETOOLONG -> "Invalid IP address" -> exit 1.
+  rc=0
+  dig_with_opts -x "$longinput" >dig.out.test$n 2>&1 || rc=$?
+  [ $rc -ge 128 ] && ret=1
+  grep "Invalid IP address" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  n=$((n + 1))
   echo_i "checking dig over TCP works ($n)"
   ret=0
   dig_with_opts +tcp @10.53.0.3 a a.example >dig.out.test$n || ret=1
