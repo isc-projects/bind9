@@ -1,0 +1,63 @@
+; Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+;
+; SPDX-License-Identifier: MPL-2.0
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0.  If a copy of the MPL was not distributed with this
+; file, you can obtain one at https://mozilla.org/MPL/2.0/.
+;
+; See the COPYRIGHT file distributed with this work for additional
+; information regarding copyright ownership.
+
+$TTL 300
+example3.tld.		IN SOA	owner.dnshoster.tld. ns.dnshoster.tld. (
+				2010   	; serial
+				600         	; refresh
+				600         	; retry
+				1200    	; expire
+				600       	; minimum
+				)
+
+example3.tld.			NS	ns.example3.tld.
+ns.example3.tld.		A	10.53.0.3
+
+sub.example3.tld.		NS 	ns01.sub.example3.tld.
+sub.example3.tld.		NS 	ns02.sub.example3.tld.
+sub.example3.tld.		NS 	ns03.sub.example3.tld.
+sub.example3.tld.		NS 	ns04.sub.example3.tld.
+sub.example3.tld.		NS 	ns05.sub.example3.tld.
+sub.example3.tld.		NS 	ns06.sub.example3.tld.
+sub.example3.tld.		NS 	ns07.sub.example3.tld.
+sub.example3.tld.		NS 	ns08.sub.example3.tld.
+sub.example3.tld.		NS 	ns09.sub.example3.tld.
+sub.example3.tld.		NS 	ns10.sub.example3.tld.
+
+ns01.sub.example3.tld.		A	10.53.0.5
+ns01.sub.example3.tld.		A	10.53.0.6
+
+ns02.sub.example3.tld.		A	10.53.0.5
+ns02.sub.example3.tld.		A	10.53.0.6
+
+ns03.sub.example3.tld.		A	10.53.0.5
+ns03.sub.example3.tld.		A	10.53.0.6
+
+ns04.sub.example3.tld.		A	10.53.0.5
+ns04.sub.example3.tld.		A	10.53.0.6
+
+ns05.sub.example3.tld.		A	10.53.0.5
+ns05.sub.example3.tld.		A	10.53.0.6
+
+ns06.sub.example3.tld.		A	10.53.0.5
+ns06.sub.example3.tld.		A	10.53.0.6
+
+ns07.sub.example3.tld.		A	10.53.0.5
+ns07.sub.example3.tld.		A	10.53.0.6
+
+ns08.sub.example3.tld.		A	10.53.0.5
+ns08.sub.example3.tld.		A	10.53.0.6
+
+ns09.sub.example3.tld.		A	10.53.0.5
+ns09.sub.example3.tld.		A	10.53.0.6
+
+ns10.sub.example3.tld.		A	10.53.0.5
+ns10.sub.example3.tld.		A	10.53.0.6
