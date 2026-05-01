@@ -17653,15 +17653,18 @@ checkds_send(dns_zone_t *zone) {
 static isc_result_t
 nsfetch_start(dns_zonefetch_t *fetch) {
 	dns_nsfetch_t *nsfetch;
-	unsigned int nlabels = 1;
 
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_NS);
 
 	nsfetch = &fetch->fetchdata.nsfetch;
 
-	/* Derive parent domain. XXXWMM: Check for root domain */
+	/* Derive parent domain. Check for root domain. */
+	if (dns_name_countlabels(&nsfetch->pname) <= 1U) {
+		return ISC_R_NOTFOUND;
+	}
+
 	dns_name_split(&nsfetch->pname,
-		       dns_name_countlabels(&nsfetch->pname) - nlabels, NULL,
+		       dns_name_countlabels(&nsfetch->pname) - 1U, NULL,
 		       &nsfetch->pname);
 
 	fetch->qtype = dns_rdatatype_ns;
