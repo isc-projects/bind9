@@ -296,7 +296,7 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 		   isc_mem_t *mctx, char **err_message) {
 	isc_region_t r;
 	isc_buffer_t namebuf;
-	gss_name_t gname;
+	gss_name_t gname = NULL;
 	OM_uint32 gret, minor, ret_flags, flags;
 	gss_buffer_desc gintoken, *gintokenp, gouttoken = GSS_C_EMPTY_BUFFER;
 	isc_result_t result;
@@ -356,9 +356,22 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 	}
 
 	/*
-	 * XXXSRA Not handled yet: RFC 3645 3.1.1: check ret_flags
-	 * MUTUAL and INTEG flags, fail if either not set.
+	 * RFC 3645 Section 3.1.1: verify that replay detection, mutual
+	 * authentication and integrity are supported.  The RFC mandates
+	 * checking replay_det_state and mutual_state; integ_avail is
+	 * also verified because GSS-TSIG cannot function without it.
 	 */
+	if (gret == GSS_S_COMPLETE &&
+	    (ret_flags &
+	     (GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG)) !=
+		    (GSS_C_REPLAY_FLAG | GSS_C_MUTUAL_FLAG | GSS_C_INTEG_FLAG))
+	{
+		gss_log(3,
+			"GSS-API context lacks required REPLAY, MUTUAL, "
+			"or INTEG flags (ret_flags=0x%x)",
+			(unsigned int)ret_flags);
+		CLEANUP(ISC_R_FAILURE);
+	}
 
 	/*
 	 * RFC 2744 states the a valid output token has a non-zero length.
@@ -372,7 +385,9 @@ cleanup:
 	if (gouttoken.length != 0U) {
 		(void)gss_release_buffer(&minor, &gouttoken);
 	}
-	(void)gss_release_name(&minor, &gname);
+	if (gname != NULL) {
+		(void)gss_release_name(&minor, &gname);
+	}
 	return result;
 }
 
@@ -429,15 +444,30 @@ dst_gssapi_acceptctx(const char *gssapi_keytab, isc_region_t *intoken,
 #endif
 	}
 
+	OM_uint32 ret_flags = 0;
+
 	gret = gss_accept_sec_context(&minor, &context, GSS_C_NO_CREDENTIAL,
 				      &gintoken, GSS_C_NO_CHANNEL_BINDINGS,
-				      &gname, NULL, &gouttoken, NULL, NULL,
-				      NULL);
+				      &gname, NULL, &gouttoken, &ret_flags,
+				      NULL, NULL);
 
 	result = ISC_R_FAILURE;
 
 	switch (gret) {
 	case GSS_S_COMPLETE:
+		/*
+		 * RFC 2743 Section 1.2.2: verify that the negotiated
+		 * context provides integrity protection.
+		 */
+		if ((ret_flags & GSS_C_INTEG_FLAG) == 0) {
+			gss_log(3,
+				"GSS-API context lacks required INTEG "
+				"flag (ret_flags=0x%x)",
+				(unsigned int)ret_flags);
+			(void)gss_delete_sec_context(&minor, &context, NULL);
+			result = DNS_R_INVALIDTKEY;
+			goto cleanup;
+		}
 		break;
 	/*
 	 * RFC 3645 4.1.3: we don't handle GSS_S_CONTINUE_NEEDED
