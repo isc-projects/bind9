@@ -2539,7 +2539,8 @@ isc_result_t
 dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	       const dns_name_t *nodename, dns_rbtdb_version_t *rbtversion,
 	       dns_slabheader_t *newheader, unsigned int options, bool loading,
-	       dns_rdataset_t *addedrdataset, isc_stdtime_t now DNS__DB_FLARG) {
+	       dns_rdataset_t *addedrdataset, isc_stdtime_t now,
+	       isc_rwlocktype_t nlocktype DNS__DB_FLARG) {
 	rbtdb_changed_t *changed = NULL;
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *header = NULL, *sigheader = NULL;
@@ -2586,6 +2587,39 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 		rdtype = DNS_TYPEPAIR_TYPE(newheader->type);
 		covers = DNS_TYPEPAIR_COVERS(newheader->type);
 		sigtype = DNS_SIGTYPE(covers);
+
+		/*
+		 * An unvalidated negative entry covering all types (NXDOMAIN or
+		 * NODATA(QTYPE=ANY)) must not purge secure data. Check for it
+		 * in a separate pass first: evicting as we go and bailing out
+		 * later would destroy lower-trust siblings before we found the
+		 * secure header.
+		 */
+		if (EXISTS(newheader) && NEGATIVE(newheader) &&
+		    covers == dns_rdatatype_any && trust < dns_trust_secure)
+		{
+			for (topheader = rbtnode->data; topheader != NULL;
+			     topheader = topheader->next)
+			{
+				header = topheader;
+				while (header != NULL && IGNORE(header)) {
+					header = header->down;
+				}
+
+				if (header != NULL &&
+				    header->trust >= dns_trust_secure)
+				{
+					dns_slabheader_destroy(&newheader);
+					dns__rbtdb_bindrdataset(
+						rbtdb, rbtnode, header, now,
+						nlocktype,
+						addedrdataset
+							DNS__DB_FLARG_PASS);
+					return DNS_R_UNCHANGED;
+				}
+			}
+		}
+
 		if (NEGATIVE(newheader)) {
 			/*
 			 * We're adding a negative cache entry.
@@ -3492,7 +3526,8 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 	if (result == ISC_R_SUCCESS) {
 		result = dns__rbtdb_add(rbtdb, rbtnode, name, rbtversion,
 					newheader, options, false,
-					addedrdataset, now DNS__DB_FLARG_PASS);
+					addedrdataset, now,
+					nlocktype DNS__DB_FLARG_PASS);
 	}
 	if (result == ISC_R_SUCCESS && delegating) {
 		rbtnode->find_callback = 1;
@@ -3763,8 +3798,8 @@ dns__rbtdb_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 
 	NODE_WRLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 	result = dns__rbtdb_add(rbtdb, rbtnode, nodename, rbtversion, newheader,
-				DNS_DBADD_FORCE, false, NULL,
-				0 DNS__DB_FLARG_PASS);
+				DNS_DBADD_FORCE, false, NULL, 0,
+				nlocktype DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 
 	/*
