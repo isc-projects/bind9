@@ -105,7 +105,6 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	dns_rdatalist_t ncrdatalist;
 	unsigned char data[65536];
 	unsigned int next = 0;
-	isc_result_t result;
 
 	/*
 	 * Convert the authority data from 'message' into a negative cache
@@ -236,13 +235,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		ncrdataset.attributes.optout = true;
 	}
 
-	result = dns_db_addrdataset(cache, node, NULL, now, &ncrdataset, 0,
-				    addedrdataset);
-	if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED) {
-		return result;
-	}
-
-	return ISC_R_SUCCESS;
+	return dns_db_addrdataset(cache, node, NULL, now, &ncrdataset, 0,
+				  addedrdataset);
 }
 
 isc_result_t
