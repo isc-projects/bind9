@@ -228,7 +228,7 @@ progress(int p) {
 }
 
 static void
-keygen(keygen_ctx_t *ctx, int argc, char **argv) {
+keygen(keygen_ctx_t *ctx, const char *keyname) {
 	char filename[255];
 	char algstr[DNS_SECALG_FORMATSIZE];
 	uint16_t flags = 0;
@@ -242,8 +242,6 @@ keygen(keygen_ctx_t *ctx, int argc, char **argv) {
 	dst_key_t *key = NULL;
 	dst_key_t *prevkey = NULL;
 
-	UNUSED(argc);
-
 	dst_algorithm_format(ctx->alg, algstr, sizeof(algstr));
 
 	if (ctx->predecessor == NULL) {
@@ -252,13 +250,11 @@ keygen(keygen_ctx_t *ctx, int argc, char **argv) {
 		}
 
 		name = dns_fixedname_initname(&fname);
-		isc_buffer_init(&buf, argv[isc_commandline_index],
-				strlen(argv[isc_commandline_index]));
-		isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
+		isc_buffer_constinit(&buf, keyname, strlen(keyname));
+		isc_buffer_add(&buf, strlen(keyname));
 		result = dns_name_fromtext(name, &buf, dns_rootname, 0);
 		if (result != ISC_R_SUCCESS) {
-			fatal("invalid key name %s: %s",
-			      argv[isc_commandline_index],
+			fatal("invalid key name %s: %s", keyname,
 			      isc_result_totext(result));
 		}
 
@@ -1106,7 +1102,7 @@ main(int argc, char **argv) {
 			ctx.tag_min = 0;
 			ctx.tag_max = 0xffff;
 
-			keygen(&ctx, argc, argv);
+			keygen(&ctx, argv[isc_commandline_index]);
 		} else {
 			cfg_obj_t *config = NULL;
 			dns_kasp_t *kasp = NULL;
@@ -1152,14 +1148,14 @@ main(int argc, char **argv) {
 				{
 					continue;
 				}
-				keygen(&ctx, argc, argv);
+				keygen(&ctx, argv[isc_commandline_index]);
 			}
 
 			dns_kasp_detach(&kasp);
 			cfg_obj_detach(&config);
 		}
 	} else {
-		keygen(&ctx, argc, argv);
+		keygen(&ctx, argv[isc_commandline_index]);
 	}
 
 	if (verbose > 10) {
