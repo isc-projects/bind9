@@ -3805,6 +3805,9 @@ process_opt(dig_lookup_t *l, dns_message_t *msg) {
 		while (isc_buffer_remaininglength(&optbuf) >= 4) {
 			optcode = isc_buffer_getuint16(&optbuf);
 			optlen = isc_buffer_getuint16(&optbuf);
+			if (optlen > isc_buffer_remaininglength(&optbuf)) {
+				break;
+			}
 			switch (optcode) {
 			case DNS_OPT_COOKIE:
 				/*
