@@ -181,30 +181,22 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	intoken = (isc_region_t){ tkeyin->key, tkeyin->keylen };
 	result = dst_gssapi_acceptctx(tctx->gssapi_keytab, &intoken, &outtoken,
 				      &gss_ctx, principal, tctx->mctx);
-	if (result == DNS_R_INVALIDTKEY) {
-		if (tsigkey != NULL) {
-			dns_tsigkey_detach(&tsigkey);
-		}
+	if (result != ISC_R_SUCCESS) {
 		tkeyout->error = dns_tsigerror_badkey;
 		tkey_log("process_gsstkey(): dns_tsigerror_badkey");
-		return ISC_R_SUCCESS;
-	}
-	if (result != DNS_R_CONTINUE && result != ISC_R_SUCCESS) {
-		CHECK(result);
+		CLEANUP(ISC_R_SUCCESS);
 	}
 
 	/*
-	 * XXXDCL Section 4.1.3: Limit GSS_S_CONTINUE_NEEDED to 10 times.
+	 * Multi-round GSS-API negotiation (GSS_S_CONTINUE_NEEDED) is
+	 * rejected in dst_gssapi_acceptctx(), so if we reach here the
+	 * negotiation is complete and the principal must be set.
 	 */
 	if (dns_name_countlabels(principal) == 0U) {
-		if (tsigkey != NULL) {
-			dns_tsigkey_detach(&tsigkey);
-		}
-		dst_gssapi_deletectx(tctx->mctx, &gss_ctx);
 		tkeyout->error = dns_tsigerror_badkey;
 		tkey_log("process_gsstkey(): "
 			 "completed context with empty principal");
-		return ISC_R_SUCCESS;
+		CLEANUP(ISC_R_SUCCESS);
 	} else if (tsigkey == NULL) {
 #if HAVE_GSSAPI
 		OM_uint32 gret, minor, lifetime;
@@ -283,7 +275,9 @@ cleanup:
 		isc_buffer_free(&outtoken);
 	}
 
-	tkey_log("process_gsstkey(): %s", isc_result_totext(result));
+	if (result != ISC_R_SUCCESS) {
+		tkey_log("process_gsstkey(): %s", isc_result_totext(result));
+	}
 	return result;
 }
 
@@ -678,9 +672,8 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 				 NULL));
 
 	/*
-	 * XXXSRA This seems confused.  If we got CONTINUE from initctx,
-	 * the GSS negotiation hasn't completed yet, so we can't sign
-	 * anything yet.
+	 * GSS negotiation is complete (CONTINUE returned earlier).
+	 * Create the TSIG key from the established context.
 	 */
 	CHECK(dns_tsigkey_createfromkey(tkeyname, DST_ALG_GSSAPI, dstkey, true,
 					false, NULL, rtkey.inception,
