@@ -566,6 +566,9 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 	rdtype = rdataset->type;
 
+	REQUIRE(rdataset->rdclass == dns_rdataclass_in);
+	REQUIRE(dns_rdatatype_isaddr(rdtype));
+
 	switch (rdataset->trust) {
 	case dns_trust_glue:
 	case dns_trust_additional:
@@ -583,8 +586,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	default:
 		rdataset->ttl = ttlclamp(rdataset->ttl);
 	}
-
-	REQUIRE(dns_rdatatype_isaddr(rdtype));
 
 	DNS_RDATASET_FOREACH(rdataset) {
 		/* FIXME: Move to a separate function */

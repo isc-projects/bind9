@@ -2869,12 +2869,16 @@ check_mirror_zone_notify(const cfg_obj_t *zoptions, const char *znamestr) {
  */
 static bool
 check_recursion(const cfg_obj_t *config, const cfg_obj_t *voptions,
-		const cfg_obj_t *goptions, cfg_aclconfctx_t *aclctx,
-		isc_mem_t *mctx) {
+		dns_rdataclass_t vclass, const cfg_obj_t *goptions,
+		cfg_aclconfctx_t *aclctx, isc_mem_t *mctx) {
 	dns_acl_t *acl = NULL;
 	const cfg_obj_t *obj;
 	isc_result_t result = ISC_R_SUCCESS;
 	bool retval = true;
+
+	if (vclass != dns_rdataclass_in) {
+		return false;
+	}
 
 	/*
 	 * Check the "recursion" option first.
@@ -3827,7 +3831,7 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * contradicts the purpose of the former.
 	 */
 	if (ztype == CFG_ZONE_MIRROR &&
-	    !check_recursion(config, voptions, goptions, aclctx, mctx))
+	    !check_recursion(config, voptions, zclass, goptions, aclctx, mctx))
 	{
 		cfg_obj_log(zoptions, ISC_LOG_ERROR,
 			    "zone '%s': mirror zones cannot be used if "
@@ -5645,6 +5649,17 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	isc_symtab_create(mctx, freekey, mctx, false, &symtab);
 
 	cfg_aclconfctx_create(mctx, &aclctx);
+
+	if (vclass != dns_rdataclass_in) {
+		if (check_recursion(config, voptions, dns_rdataclass_in,
+				    options, aclctx, mctx))
+		{
+			cfg_obj_log(opts, ISC_LOG_WARNING,
+				    "recursion will be disabled for "
+				    "non-IN view '%s'",
+				    viewname);
+		}
+	}
 
 	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "zone", &zones);
