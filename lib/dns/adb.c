@@ -1084,7 +1084,7 @@ free_adbfind(dns_adbfind_t **findp) {
 	REQUIRE(!ISC_LINK_LINKED(find, plink));
 	REQUIRE(find->adbname == NULL);
 
-	find->magic = 0;
+	find->magic = ~DNS_ADBFIND_MAGIC;
 
 	isc_mutex_destroy(&find->lock);
 
@@ -2153,6 +2153,8 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 
 	DP(DEF_LEVEL, "dns_adb_destroyfind on find %p", find);
 
+	REQUIRE(find->loop == NULL || isc_loop() == find->loop);
+
 	adb = find->adb;
 
 	LOCK(&find->lock);
@@ -2178,6 +2180,8 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
  */
 static void
 find_sendevent(dns_adbfind_t *find) {
+	REQUIRE(find->loop != NULL && isc_loop() == find->loop);
+
 	if (!FIND_EVENTSENT(find)) {
 		atomic_store(&find->status, DNS_ADB_CANCELED);
 
@@ -2195,6 +2199,7 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 
 	REQUIRE(DNS_ADBFIND_VALID(find));
 	REQUIRE(DNS_ADB_VALID(find->adb));
+	REQUIRE(find->loop != NULL && isc_loop() == find->loop);
 
 	LOCK(&find->lock);
 	REQUIRE(FIND_WANTEVENT(find));
