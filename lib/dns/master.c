@@ -2290,10 +2290,8 @@ load_raw(dns_loadctx_t *lctx) {
 	int target_size = TSIZ;
 	isc_buffer_t target, buf;
 	unsigned char *target_mem = NULL;
-	dns_decompress_t dctx;
 
 	callbacks = lctx->callbacks;
-	dctx = DNS_DECOMPRESS_NEVER;
 
 	if (lctx->first) {
 		RETERR(load_header(lctx));
@@ -2412,7 +2410,8 @@ load_raw(dns_loadctx_t *lctx) {
 				     &totallen));
 
 		isc_buffer_setactive(&target, (unsigned int)namelen);
-		CHECK(dns_name_fromwire(name, &target, dctx, NULL));
+		CHECK(dns_name_fromwire(name, &target, DNS_DECOMPRESS_NEVER,
+					NULL));
 
 		if ((lctx->options & DNS_MASTER_CHECKTTL) != 0 &&
 		    rdatalist.ttl > lctx->maxttl)
@@ -2492,8 +2491,8 @@ load_raw(dns_loadctx_t *lctx) {
 			isc_buffer_init(&buf, isc_buffer_current(&target),
 					(unsigned int)rdlen);
 			CHECK(dns_rdata_fromwire(&rdata[i], rdatalist.rdclass,
-						 rdatalist.type, &target, dctx,
-						 &buf));
+						 rdatalist.type, &target,
+						 DNS_DECOMPRESS_NEVER, &buf));
 			ISC_LIST_APPEND(rdatalist.rdata, &rdata[i], link);
 		}
 
