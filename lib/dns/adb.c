@@ -567,6 +567,9 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 	rdtype = rdataset->type;
 
+	REQUIRE(rdataset->rdclass == dns_rdataclass_in);
+	REQUIRE(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
+
 	switch (rdataset->trust) {
 	case dns_trust_glue:
 	case dns_trust_additional:
@@ -578,8 +581,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	default:
 		rdataset->ttl = ttlclamp(rdataset->ttl);
 	}
-
-	REQUIRE(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
 
 	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
