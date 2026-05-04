@@ -8668,7 +8668,7 @@ query_filter64(query_ctx_t *qctx) {
 	}
 
 	dns_rdatalist_tordataset(myrdatalist, myrdataset);
-	dns_rdataset_setownercase(myrdataset, name);
+	dns_rdataset_setownercase(myrdataset, mname);
 	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
 	if (mname == name) {
 		if (qctx->dbuf != NULL) {
