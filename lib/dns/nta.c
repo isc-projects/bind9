@@ -89,6 +89,7 @@ dns__nta_destroy(dns__nta_t *nta) {
 	REQUIRE(nta->timer == NULL);
 
 	nta->magic = 0;
+	dns_ntatable_detach(&nta->ntatable);
 	dns_rdataset_cleanup(&nta->rdataset);
 	dns_rdataset_cleanup(&nta->sigrdataset);
 	if (nta->fetch != NULL) {
@@ -265,7 +266,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 
 	nta = isc_mem_get(ntatable->mctx, sizeof(dns__nta_t));
 	*nta = (dns__nta_t){
-		.ntatable = ntatable,
+		.ntatable = dns_ntatable_ref(ntatable),
 		.name = DNS_NAME_INITEMPTY,
 		.magic = NTA_MAGIC,
 	};
