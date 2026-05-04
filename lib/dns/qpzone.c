@@ -3061,7 +3061,6 @@ previous_closest_nsec(dns_rdatatype_t type, qpz_search_t *search,
 		      dns_name_t *name, qpznode_t **nodep, dns_qpiter_t *nit,
 		      bool *firstp) {
 	isc_result_t result;
-	dns_qpread_t qpr;
 
 	REQUIRE(nodep != NULL && *nodep == NULL);
 	REQUIRE(type == dns_rdatatype_nsec3 || firstp != NULL);
@@ -3074,8 +3073,6 @@ previous_closest_nsec(dns_rdatatype_t type, qpz_search_t *search,
 		return result;
 	}
 
-	dns_qpmulti_query(search->qpdb->tree, &qpr);
-
 	for (;;) {
 		qpznode_t *nsec_node = NULL;
 
@@ -3085,8 +3082,9 @@ previous_closest_nsec(dns_rdatatype_t type, qpz_search_t *search,
 			 * NSEC namespace.
 			 */
 			*firstp = false;
-			result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NSEC,
-					       nit, NULL, NULL, NULL);
+			result = dns_qp_lookup(&search->qpr, name,
+					       DNS_DBNAMESPACE_NSEC, nit, NULL,
+					       NULL, NULL);
 
 			INSIST(result != ISC_R_NOTFOUND);
 			if (result == ISC_R_SUCCESS) {
@@ -3153,7 +3151,6 @@ previous_closest_nsec(dns_rdatatype_t type, qpz_search_t *search,
 		}
 	}
 
-	dns_qpread_destroy(search->qpdb->tree, &qpr);
 	return result;
 }
 
