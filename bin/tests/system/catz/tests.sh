@@ -2974,6 +2974,52 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 ##########################################################################
+
+nextpart ns2/named.run >/dev/null
+
+echo_i "Testing primaries and masters suboptions together"
+
+n=$((n + 1))
+echo_i "adding domain dom22.example. to primary via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" >ns1/dom22.example.db
+echo "@ IN NS invalid." >>ns1/dom22.example.db
+echo "@ IN A 192.0.2.1" >>ns1/dom22.example.db
+rndccmd 10.53.0.1 addzone dom22.example. in default '{type primary; file "dom22.example.db"; allow-transfer { key tsig_key; };};' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "adding dom22.example. with both primaries and masters suboptions ($n)"
+ret=0
+$NSUPDATE -d <<END >>nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add double.zones.catalog1.example. 3600 IN PTR dom22.example.
+    update add samelabel.primaries.ext.double.zones.catalog1.example. 3600 IN A 10.53.0.1
+    update add samelabel.primaries.ext.double.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    update add samelabel.masters.ext.double.zones.catalog1.example. 3600 IN A 10.53.0.1
+    update add samelabel.masters.ext.double.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom22.example' from catalog 'catalog1.example'" \
+  && wait_for_message ns2/named.run "transfer of 'dom22.example/IN/default' from 10.53.0.1#${PORT}: Transfer status: success" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom22.example. is served by secondary ($n)"
+ret=0
+wait_for_soa @10.53.0.2 dom22.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+##########################################################################
 # GL #5849
 
 n=$((n + 1))
