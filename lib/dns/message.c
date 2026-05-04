@@ -1081,6 +1081,17 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		rdclass = isc_buffer_getuint16(source);
 
 		/*
+		 * Notify and update messages need to specify the data class.
+		 */
+		if ((msg->opcode == dns_opcode_update ||
+		     msg->opcode == dns_opcode_notify) &&
+		    (rdclass == dns_rdataclass_none ||
+		     rdclass == dns_rdataclass_any))
+		{
+			DO_ERROR(DNS_R_FORMERR);
+		}
+
+		/*
 		 * If this class is different than the one we already read,
 		 * this is an error.
 		 */
