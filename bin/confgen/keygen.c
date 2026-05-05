@@ -91,20 +91,27 @@ alg_bits(dns_secalg_t alg) {
 }
 
 /*%
- * Reject key names that would not embed safely into a named.conf
- * 'key "<name>" { ... };' clause. Allowed: alphanumerics, '.', '-', '_'.
+ * Reject invalid key names and make them safe for embedding into
+ * rndc.conf and named.conf.
  */
 void
-validate_keyname(const char *keyname) {
+makesafe_keyname(const char *keyname, char *namebuf, size_t length) {
 	dns_fixedname_t fixed;
 	dns_name_t *name = dns_fixedname_initname(&fixed);
 	isc_result_t result;
+	isc_buffer_t b;
 
 	if (keyname == NULL || keyname[0] == '\0') {
 		fatal("key name must not be empty");
 	}
-
 	result = dns_name_fromstring(name, keyname, dns_rootname, 0, NULL);
+	if (result != ISC_R_SUCCESS) {
+		fatal("invalid key name: %s", isc_result_totext(result));
+	}
+
+	isc_buffer_init(&b, namebuf, length);
+	result = dns_name_totext(name, DNS_NAME_QUOTED | DNS_NAME_OMITFINALDOT,
+				 &b);
 	if (result != ISC_R_SUCCESS) {
 		fatal("invalid key name: %s", isc_result_totext(result));
 	}
