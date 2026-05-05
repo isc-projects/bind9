@@ -21,29 +21,6 @@
 #define RRTYPE_KEY_ATTRIBUTES \
 	(DNS_RDATATYPEATTR_ATCNAME | DNS_RDATATYPEATTR_ZONECUTAUTH)
 
-/*
- * RFC 2535 section 3.1.2 says that if bits 0-1 of the Flags field are
- * both set, it means there is no key information and the RR stops after
- * the algorithm octet.  However, this only applies to KEY records, as
- * indicated by the specifications of the RR types based on KEY:
- *
- *     CDNSKEY - RFC 7344
- *     DNSKEY - RFC 4034
- *     RKEY - draft-reid-dnsext-rkey-00
- */
-static bool
-generic_key_nokey(dns_rdatatype_t type, unsigned int flags) {
-	switch (type) {
-	case dns_rdatatype_cdnskey:
-	case dns_rdatatype_dnskey:
-	case dns_rdatatype_rkey:
-		return false;
-	case dns_rdatatype_key:
-	default:
-		return (flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY;
-	}
-}
-
 static isc_result_t
 generic_fromtext_key(ARGS_FROMTEXT) {
 	isc_token_t token;
@@ -77,11 +54,6 @@ generic_fromtext_key(ARGS_FROMTEXT) {
 				      false));
 	RETTOK(dns_secalg_fromtext(&alg, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &alg, 1));
-
-	/* No Key? */
-	if (generic_key_nokey(type, flags)) {
-		return ISC_R_SUCCESS;
-	}
 
 	/*
 	 * Save the current used value. It will become the current
@@ -148,11 +120,6 @@ generic_totext_key(ARGS_TOTEXT) {
 	snprintf(buf, sizeof(buf), "%u", algorithm);
 	isc_region_consume(&sr, 1);
 	RETERR(str_totext(buf, target));
-
-	/* No Key? */
-	if (generic_key_nokey(rdata->type, flags)) {
-		return ISC_R_SUCCESS;
-	}
 
 	if ((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0 &&
 	    algorithm == DNS_KEYALG_PRIVATEDNS)
@@ -249,9 +216,6 @@ generic_fromwire_key(ARGS_FROMWIRE) {
 	isc_region_consume(&sr, 4);
 	isc_buffer_forward(source, 4);
 
-	if (generic_key_nokey(type, flags)) {
-		return ISC_R_SUCCESS;
-	}
 	if (sr.length == 0) {
 		return ISC_R_UNEXPECTEDEND;
 	}

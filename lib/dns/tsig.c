@@ -367,9 +367,8 @@ restore_key(dns_tsigkeyring_t *ring, isc_stdtime_t now, FILE *fp) {
 		return DNS_R_BADALG;
 	}
 
-	RETERR(dst_key_restore(name, dstalg, DNS_KEYOWNER_ENTITY,
-			       DNS_KEYPROTO_DNSSEC, dns_rdataclass_in,
-			       ring->mctx, keystr, &dstkey));
+	RETERR(dst_key_restore(name, dstalg, 0, DNS_KEYPROTO_DNSSEC,
+			       dns_rdataclass_in, ring->mctx, keystr, &dstkey));
 
 	result = dns_tsigkey_createfromkey(name, dstalg, dstkey, true, true,
 					   creator, inception, expire,
@@ -472,9 +471,8 @@ dns_tsigkey_create(const dns_name_t *name, dst_algorithm_t algorithm,
 			isc_buffer_init(&b, secret, length);
 			isc_buffer_add(&b, length);
 			RETERR(dst_key_frombuffer(
-				name, algorithm, DNS_KEYOWNER_ENTITY,
-				DNS_KEYPROTO_DNSSEC, dns_rdataclass_in, &b,
-				mctx, &dstkey));
+				name, algorithm, 0, DNS_KEYPROTO_DNSSEC,
+				dns_rdataclass_in, &b, mctx, &dstkey));
 		}
 	} else if (length > 0) {
 		return DNS_R_BADALG;

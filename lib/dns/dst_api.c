@@ -385,9 +385,7 @@ dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 		RETERR(write_key_state(key, type, directory));
 	}
 
-	if (((type & DST_TYPE_PRIVATE) != 0) &&
-	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
-	{
+	if ((type & DST_TYPE_PRIVATE) != 0) {
 		return key->func->tofile(key, directory);
 	}
 	return ISC_R_SUCCESS;
@@ -551,9 +549,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 		CHECK(result);
 	}
 
-	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC ||
-	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
-	{
+	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC) {
 		CHECK(computeid(pubkey));
 		pubkey->modified = false;
 		*keyp = pubkey;
@@ -652,15 +648,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	isc_buffer_putuint8(target,
 			    (uint8_t)dst_algorithm_tosecalg(key->key_alg));
 
-	if ((key->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
-		if (isc_buffer_availablelength(target) < 2) {
-			return ISC_R_NOSPACE;
-		}
-		isc_buffer_putuint16(
-			target, (uint16_t)((key->key_flags >> 16) & 0xffff));
-	}
-
-	if (key->keydata.generic == NULL) { /*%< NULL KEY */
+	if (key->keydata.generic == NULL) {
 		return ISC_R_SUCCESS;
 	}
 
@@ -671,7 +659,7 @@ isc_result_t
 dst_key_fromdns(const dns_name_t *name, dns_rdataclass_t rdclass,
 		isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp) {
 	uint8_t alg, proto;
-	uint32_t flags, extflags;
+	uint32_t flags;
 	dst_key_t *key = NULL;
 	dns_keytag_t id, rid;
 	isc_region_t r;
@@ -687,14 +675,6 @@ dst_key_fromdns(const dns_name_t *name, dns_rdataclass_t rdclass,
 
 	id = dst_region_computeid(&r);
 	rid = dst_region_computerid(&r);
-
-	if ((flags & DNS_KEYFLAG_EXTENDED) != 0) {
-		if (isc_buffer_remaininglength(source) < 2) {
-			return DST_R_INVALIDPUBLICKEY;
-		}
-		extflags = isc_buffer_getuint16(source);
-		flags |= (extflags << 16);
-	}
 
 	RETERR(frombuffer(name, alg, flags, proto, rdclass, source, mctx,
 			  &key));
@@ -925,12 +905,6 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 
 	if (label != NULL) {
 		key->label = isc_mem_strdup(mctx, label);
-	}
-
-	if (bits == 0) { /*%< NULL KEY */
-		key->key_flags |= DNS_KEYTYPE_NOKEY;
-		*keyp = key;
-		return ISC_R_SUCCESS;
 	}
 
 	if (key->func->generate == NULL) {
@@ -1190,9 +1164,6 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	}
 	/* Zero out flags. */
 	buf1[0] = buf1[1] = 0;
-	if ((key1->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
-		isc_buffer_subtract(&b1, 2);
-	}
 
 	isc_buffer_init(&b2, buf2, sizeof(buf2));
 	result = dst_key_todns(key2, &b2);
@@ -1201,23 +1172,9 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	}
 	/* Zero out flags. */
 	buf2[0] = buf2[1] = 0;
-	if ((key2->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
-		isc_buffer_subtract(&b2, 2);
-	}
 
 	isc_buffer_usedregion(&b1, &r1);
-	/* Remove extended flags. */
-	if ((key1->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
-		memmove(&buf1[4], &buf1[6], r1.length - 6);
-		r1.length -= 2;
-	}
-
 	isc_buffer_usedregion(&b2, &r2);
-	/* Remove extended flags. */
-	if ((key2->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
-		memmove(&buf2[4], &buf2[6], r2.length - 6);
-		r2.length -= 2;
-	}
 	return isc_region_compare(&r1, &r2) == 0;
 }
 
