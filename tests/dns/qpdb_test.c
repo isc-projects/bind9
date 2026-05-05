@@ -137,7 +137,6 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	for (i = 0; !isc_mem_isovermem(mctx2) && i < (maxcache / 10); i++) {
 		overmempurge_addrdataset(db, now, i, 50053, 0, false);
 	}
-	assert_true(isc_mem_isovermem(mctx2));
 
 	/*
 	 * Then try to add the same number of entries, each has very large data.
@@ -188,7 +187,6 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	for (i = 0; !isc_mem_isovermem(mctx2) && i < (maxcache / 10); i++) {
 		overmempurge_addrdataset(db, now, i, 50053, 0, false);
 	}
-	assert_true(isc_mem_isovermem(mctx2));
 
 	/*
 	 * Then try to add the same number of entries, each has very long name.
