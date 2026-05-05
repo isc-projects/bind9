@@ -2743,6 +2743,8 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	} else {
 		cb(handle, result, cbarg);
 	}
+
+	isc_buffer_initnull(&sock->h2->wbuf);
 	isc__nm_uvreq_put(&req);
 }
 
