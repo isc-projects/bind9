@@ -128,7 +128,7 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	dns_db_t *db = NULL;
 	isc_mem_t *mctx = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
-	size_t i;
+	size_t i = 0;
 
 	isc_mem_create("test", &mctx);
 
@@ -140,21 +140,21 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	isc_mem_setwater(mctx, hiwater, lowater);
 
 	/*
-	 * Add cache entries with minimum size of data until 'overmem'
-	 * condition is triggered.
-	 * This should eventually happen, but we also limit the number of
-	 * iteration to avoid an infinite loop in case something gets wrong.
+	 * Add a lot of data entries sufficient to push the context
+	 * above the hi_water mark.
 	 */
-	for (i = 0; !isc_mem_isovermem(mctx) && i < (maxcache / 10); i++) {
-		overmempurge_addrdataset(db, now, i, 50053, 0, false);
+	while (isc_mem_inuse(mctx) < hiwater) {
+		overmempurge_addrdataset(db, now, i, 50053, 0, true);
+		i++;
 	}
-	assert_true(isc_mem_isovermem(mctx));
+	assert_true(isc_mem_inuse(mctx) >= hiwater);
+	assert_true(isc_mem_inuse(mctx) < maxcache);
 
 	/*
 	 * Then try to add the same number of entries, each has very large data.
-	 * 'overmem purge' should keep the total cache size from exceeding
-	 * the 'hiwater' mark too much. So we should be able to assume the
-	 * cache size doesn't reach the "max".
+	 * Probabilistic LRU cleaning should keep the total cache size from
+	 * exceeding the 'hiwater' mark too much. So we should be able to
+	 * assume the cache size doesn't reach the "max".
 	 */
 	while (i-- > 0) {
 		overmempurge_addrdataset(db, now, i, 50054,
@@ -180,7 +180,7 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	dns_db_t *db = NULL;
 	isc_mem_t *mctx = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
-	size_t i;
+	size_t i = 0;
 
 	isc_mem_create("test", &mctx);
 
@@ -192,21 +192,21 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 	isc_mem_setwater(mctx, hiwater, lowater);
 
 	/*
-	 * Add cache entries with minimum size of data until 'overmem'
-	 * condition is triggered.
-	 * This should eventually happen, but we also limit the number of
-	 * iteration to avoid an infinite loop in case something gets wrong.
+	 * Add a lot of data entries sufficient to push the context
+	 * above the hi_water mark.
 	 */
-	for (i = 0; !isc_mem_isovermem(mctx) && i < (maxcache / 10); i++) {
-		overmempurge_addrdataset(db, now, i, 50053, 0, false);
+	while (isc_mem_inuse(mctx) < hiwater) {
+		overmempurge_addrdataset(db, now, i, 50053, 0, true);
+		i++;
 	}
-	assert_true(isc_mem_isovermem(mctx));
+	assert_true(isc_mem_inuse(mctx) >= hiwater);
+	assert_true(isc_mem_inuse(mctx) < maxcache);
 
 	/*
 	 * Then try to add the same number of entries, each has very long name.
-	 * 'overmem purge' should keep the total cache size from not exceeding
-	 * the 'hiwater' mark too much. So we should be able to assume the cache
-	 * size doesn't reach the "max".
+	 * Probabilistic LRU cleaning should keep the total cache size from
+	 * exceeding the 'hiwater' mark too much. So we should be able to
+	 * assume the cache size doesn't reach the "max".
 	 */
 	while (i-- > 0) {
 		overmempurge_addrdataset(db, now, i, 50054, 0, true);
