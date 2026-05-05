@@ -130,7 +130,7 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	dns_rdata_t *rdata = NULL;
 	unsigned char *rawbuf = NULL;
 	unsigned int headerlen = sizeof(dns_slabheader_t);
-	unsigned int buflen = headerlen;
+	uint32_t buflen = headerlen;
 	isc_result_t result;
 	unsigned int nitems;
 	unsigned int nalloc;
@@ -231,12 +231,16 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 			rdata[i - 1].data = &removed;
 			nitems--;
 		} else {
-			buflen += (2 + rdata[i - 1].length);
+			buflen += 2 + rdata[i - 1].length;
 			/*
 			 * Provide space to store the per RR meta data.
 			 */
 			if (rdataset->type == dns_rdatatype_rrsig) {
 				buflen++;
+			}
+			if (buflen - headerlen > DNS_RDATA_MAXLENGTH) {
+				result = ISC_R_NOSPACE;
+				goto free_rdatas;
 			}
 		}
 	}
@@ -244,13 +248,17 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	/*
 	 * Don't forget the last item!
 	 */
-	buflen += (2 + rdata[i - 1].length);
+	buflen += 2 + rdata[i - 1].length;
 
 	/*
 	 * Provide space to store the per RR meta data.
 	 */
 	if (rdataset->type == dns_rdatatype_rrsig) {
 		buflen++;
+	}
+	if (buflen - headerlen > DNS_RDATA_MAXLENGTH) {
+		result = ISC_R_NOSPACE;
+		goto free_rdatas;
 	}
 
 	/*
