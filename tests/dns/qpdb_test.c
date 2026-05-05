@@ -146,7 +146,8 @@ ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	 * cache size doesn't reach the "max".
 	 */
 	while (i-- > 0) {
-		overmempurge_addrdataset(db, now, i, 50054, 65535, false);
+		overmempurge_addrdataset(db, now, i, 50054,
+					 DNS_RDATA_MAXLENGTH - 8, false);
 		if (verbose) {
 			print_message("# inuse: %zd max: %zd\n",
 				      isc_mem_inuse(mctx2), maxcache);
