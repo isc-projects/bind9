@@ -182,6 +182,33 @@ LLM_SIGNED_OFF_BY_RE = re.compile(
     re.IGNORECASE | re.MULTILINE,
 )
 COAUTHORED_BY_RE = re.compile(r"^Co-Authored-By:.*$", re.IGNORECASE | re.MULTILINE)
+# CONTRIBUTING.md documents the trailer format as
+# `Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]`.  Match every
+# `Assisted-by:` line, then check it against the expected shape.
+ASSISTED_BY_RE = re.compile(r"^Assisted-by:.*$", re.IGNORECASE | re.MULTILINE)
+ASSISTED_BY_VALID_RE = re.compile(
+    r"^Assisted-by:\s+\S+:\S+(?:\s+\S+)*\s*$", re.IGNORECASE
+)
+# Basic development tools that CONTRIBUTING.md excludes from the optional
+# `[TOOL ...]` portion of the Assisted-by trailer.  Combines the examples
+# given in CONTRIBUTING.md (git, compilers, meson, ninja, editors,
+# clang-format, black, ruff) with other formatters, generic linters, and
+# build/test runners commonly invoked by .gitlab-ci.yml.  Specialized
+# analysis tools (coccinelle, clang-tidy, AFL, Coverity, cppcheck,
+# valgrind, sanitizers) are intentionally absent.
+ASSISTED_BY_BASIC_TOOL_RE = re.compile(
+    r"\b("
+    r"git|"
+    r"gcc|g\+\+|clang|clang\+\+|cc|"
+    r"meson|ninja|make|cmake|autoconf|automake|libtool|"
+    r"vim|emacs|"
+    r"clang-format|black|ruff|pylint|mypy|flake8|pyflakes|"
+    r"pytest|danger|"
+    r"shellcheck|"
+    r"sphinx"
+    r")\b",
+    re.IGNORECASE,
+)
 fixup_error_logged = False
 for commit in danger.git.commits:
     message_lines = commit.message.splitlines()
@@ -230,6 +257,31 @@ for commit in danger.git.commits:
             "Origin; AI agents must not add `Signed-off-by` tags. Use the "
             "`Assisted-by:` trailer instead."
         )
+    for assisted_line in ASSISTED_BY_RE.findall(commit.message):
+        if not ASSISTED_BY_VALID_RE.match(assisted_line):
+            warn(
+                f"Commit {commit.sha} has a malformed `Assisted-by` trailer: "
+                f"```{assisted_line}```. `CONTRIBUTING.md` documents the "
+                "format as `Assisted-by: AGENT_NAME:MODEL_VERSION "
+                "[TOOL1] [TOOL2]` (e.g. "
+                "`Assisted-by: Claude:claude-opus-4-7 coccinelle`)."
+            )
+            continue
+        # Split off the optional tool list (everything after AGENT:VERSION).
+        parts = assisted_line.split(None, 2)
+        if len(parts) < 3:
+            continue
+        basic_tools = ASSISTED_BY_BASIC_TOOL_RE.findall(parts[2])
+        if basic_tools:
+            warn(
+                f"Commit {commit.sha} lists basic development tool(s) "
+                f"({', '.join(basic_tools)}) in its `Assisted-by` trailer. "
+                "Per `CONTRIBUTING.md`, basic dev tools (git, compilers, "
+                "build systems, editors, formatters, generic linters, "
+                "etc.) should not be listed.  Only specialized analysis "
+                "tools (e.g. coccinelle, clang-tidy, AFL, Coverity) "
+                "belong in the trailer."
+            )
     match = MR_TITLE_RE.match(subject)
     if match and match.group(5) is not None and not is_merge:
         fail(
