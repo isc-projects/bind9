@@ -651,6 +651,22 @@ def test_ksr_errors():
     )
     assert "dnssec-ksr: fatal: 'sign' requires a KSR file" in cmd.err
 
+    # check that 'dnssec-ksr sign' rejects a KSR whose first record
+    # is a DNSKEY without a preceding ';; KeySigningRequest' header,
+    # rather than aborting on an INSIST assertion
+    bad_ksr = "common.test.bad.ksr"
+    with open(bad_ksr, "w", encoding="utf-8") as f:
+        f.write(". 3600 IN DNSKEY 257 3 8 AwEAAa==\n")
+    cmd = ksr(
+        "common.test",
+        "common",
+        "sign",
+        options=f"-K ns1/offline -f {bad_ksr} -i now -e +1y",
+        raise_on_exception=False,
+    )
+    assert cmd.rc == 1
+    assert "DNSKEY record before ';; KeySigningRequest' header" in cmd.err
+
 
 def test_ksr_common(ns1):
     # common test cases (1)
