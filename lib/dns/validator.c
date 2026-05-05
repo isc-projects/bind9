@@ -1730,6 +1730,12 @@ check_signer(dns_validator_t *val, dns_rdata_t *keyrdata, uint16_t keyid,
 	isc_result_t result;
 	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 
+	result = dns_dnssec_keyfromrdata(val->event->name, keyrdata,
+					 val->view->mctx, &dstkey);
+	if (result != ISC_R_SUCCESS) {
+		return result;
+	}
+
 	dns_rdataset_clone(val->event->sigrdataset, &rdataset);
 
 	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
@@ -1743,23 +1749,14 @@ check_signer(dns_validator_t *val, dns_rdata_t *keyrdata, uint16_t keyid,
 		if (keyid != sig.keyid || algorithm != sig.algorithm) {
 			continue;
 		}
-		if (dstkey == NULL) {
-			result = dns_dnssec_keyfromrdata(
-				val->event->name, keyrdata, val->view->mctx,
-				&dstkey);
-			if (result != ISC_R_SUCCESS) {
-				return result;
-			}
-		}
+
 		result = verify(val, dstkey, &rdata, sig.keyid);
 		if (result == ISC_R_SUCCESS) {
 			break;
 		}
 	}
 
-	if (dstkey != NULL) {
-		dst_key_free(&dstkey);
-	}
+	dst_key_free(&dstkey);
 	dns_rdataset_disassociate(&rdataset);
 
 	return result;
