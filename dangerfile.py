@@ -156,6 +156,24 @@ if match:
 PROHIBITED_WORDS_RE = re.compile(
     "^(WIP|wip|DROP|drop|DROPME|checkpoint|experiment|TODO|todo)[^a-zA-Z]"
 )
+# `Co-Authored-By` trailers naming an AI agent are forbidden by
+# CONTRIBUTING.md; contributors must use the `Assisted-by` trailer instead.
+LLM_COAUTHORED_BY_RE = re.compile(
+    r"^Co-Authored-By:.*\b("
+    r"claude|anthropic|"
+    r"codex|openai|chatgpt|gpt-[0-9]|"
+    r"mistral|"
+    r"copilot|"
+    r"gemini|bard|"
+    r"cursor|"
+    r"devin|cognition|"
+    r"aider|"
+    r"sourcegraph|"
+    r"codewhisperer"
+    r")\b",
+    re.IGNORECASE | re.MULTILINE,
+)
+COAUTHORED_BY_RE = re.compile(r"^Co-Authored-By:.*$", re.IGNORECASE | re.MULTILINE)
 fixup_error_logged = False
 for commit in danger.git.commits:
     message_lines = commit.message.splitlines()
@@ -178,6 +196,23 @@ for commit in danger.git.commits:
             f"Prohibited keyword `{match.groups()[0]}` detected "
             f"at the start of a subject line in commit {commit.sha}."
         )
+    match = LLM_COAUTHORED_BY_RE.search(commit.message)
+    if match:
+        fail(
+            f"Commit {commit.sha} contains a `Co-Authored-By` trailer "
+            f"naming an AI tool (`{match.group(1)}`). Per `CONTRIBUTING.md`, "
+            "AI agents are not co-authors and must not be listed with "
+            "`Co-Authored-By`. Use the `Assisted-by:` trailer instead "
+            "(e.g. `Assisted-by: Claude:claude-opus-4-7`)."
+        )
+    else:
+        for coauthor_line in COAUTHORED_BY_RE.findall(commit.message):
+            message(
+                f"Commit {commit.sha} contains a `Co-Authored-By` trailer: "
+                f"```{coauthor_line}```. Ensure the named co-author is a "
+                "human contributor.  AI tools must use the `Assisted-by:` "
+                "trailer instead."
+            )
     match = MR_TITLE_RE.match(subject)
     if match and match.group(5) is not None and not is_merge:
         fail(
