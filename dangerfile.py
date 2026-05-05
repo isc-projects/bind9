@@ -156,10 +156,11 @@ if match:
 PROHIBITED_WORDS_RE = re.compile(
     "^(WIP|wip|DROP|drop|DROPME|checkpoint|experiment|TODO|todo)[^a-zA-Z]"
 )
-# `Co-Authored-By` trailers naming an AI agent are forbidden by
-# CONTRIBUTING.md; contributors must use the `Assisted-by` trailer instead.
-LLM_COAUTHORED_BY_RE = re.compile(
-    r"^Co-Authored-By:.*\b("
+# Names of well-known AI coding assistants.  CONTRIBUTING.md forbids
+# them from being listed in `Co-Authored-By` or `Signed-off-by`
+# trailers; contributors must use the `Assisted-by` trailer instead.
+LLM_AGENT_NAMES_RE = (
+    r"\b("
     r"claude|anthropic|"
     r"codex|openai|chatgpt|gpt-[0-9]|"
     r"mistral|"
@@ -170,7 +171,14 @@ LLM_COAUTHORED_BY_RE = re.compile(
     r"aider|"
     r"sourcegraph|"
     r"codewhisperer"
-    r")\b",
+    r")\b"
+)
+LLM_COAUTHORED_BY_RE = re.compile(
+    r"^Co-Authored-By:.*" + LLM_AGENT_NAMES_RE,
+    re.IGNORECASE | re.MULTILINE,
+)
+LLM_SIGNED_OFF_BY_RE = re.compile(
+    r"^Signed-off-by:.*" + LLM_AGENT_NAMES_RE,
     re.IGNORECASE | re.MULTILINE,
 )
 COAUTHORED_BY_RE = re.compile(r"^Co-Authored-By:.*$", re.IGNORECASE | re.MULTILINE)
@@ -213,6 +221,15 @@ for commit in danger.git.commits:
                 "human contributor.  AI tools must use the `Assisted-by:` "
                 "trailer instead."
             )
+    match = LLM_SIGNED_OFF_BY_RE.search(commit.message)
+    if match:
+        fail(
+            f"Commit {commit.sha} contains a `Signed-off-by` trailer "
+            f"naming an AI tool (`{match.group(1)}`). Per `CONTRIBUTING.md`, "
+            "only humans can legally certify the Developer Certificate of "
+            "Origin; AI agents must not add `Signed-off-by` tags. Use the "
+            "`Assisted-by:` trailer instead."
+        )
     match = MR_TITLE_RE.match(subject)
     if match and match.group(5) is not None and not is_merge:
         fail(
