@@ -2887,7 +2887,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	default:
 		dns_rdataclass_format(client->message->rdclass, classbuf,
 				      sizeof(classbuf));
-		ns_client_dumpmessage(client, NULL);
+		ns_client_dumpmessage(client, "");
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "message class could not be determined");
@@ -3013,7 +3013,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "no matching view in class '%s'", classname);
-		ns_client_dumpmessage(client, NULL);
+		ns_client_dumpmessage(client, "");
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
 		goto cleanup;
 	}
