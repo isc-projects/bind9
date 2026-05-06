@@ -127,6 +127,16 @@ view "default" {
 		also-notify { 10.53.0.4; };
 		notify explicit;
 	};
+
+        # A catalog zone to test specific issues
+        zone "catalog-misc.example" {
+                type primary;
+                file "catalog-misc.example.db";
+                allow-transfer { any; };
+                allow-update { any; };
+                also-notify { 10.53.0.4; };
+                notify explicit;
+        };
 };
 
 view "ch" ch {
