@@ -1523,6 +1523,17 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 static isc_result_t
 catz_process_apl(dns_catz_zone_t *catz, isc_buffer_t **aclbp,
 		 dns_rdataset_t *value) {
+	REQUIRE(DNS_RDATASET_VALID(value));
+	REQUIRE(dns_rdataset_isassociated(value));
+
+	if (value->type != dns_rdatatype_apl) {
+		return ISC_R_FAILURE;
+	}
+
+	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
+	REQUIRE(aclbp != NULL);
+	REQUIRE(*aclbp == NULL);
+
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_t rdata;
 	dns_rdata_in_apl_t rdata_apl;
@@ -1530,16 +1541,6 @@ catz_process_apl(dns_catz_zone_t *catz, isc_buffer_t **aclbp,
 	isc_netaddr_t addr;
 	isc_buffer_t *aclb = NULL;
 	unsigned char buf[256]; /* larger than INET6_ADDRSTRLEN */
-
-	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
-	REQUIRE(aclbp != NULL);
-	REQUIRE(*aclbp == NULL);
-	REQUIRE(DNS_RDATASET_VALID(value));
-	REQUIRE(dns_rdataset_isassociated(value));
-
-	if (value->type != dns_rdatatype_apl) {
-		return ISC_R_FAILURE;
-	}
 
 	if (dns_rdataset_count(value) > 1) {
 		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_CATZ,
