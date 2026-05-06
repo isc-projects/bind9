@@ -6640,10 +6640,19 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, respctx_t *rctx) {
 	return false;
 }
 
-static void
+static size_t
 cache_delegglue(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
-		dns_rdataset_t *rdataset) {
+		respctx_t *rctx, const dns_name_t *nsname) {
+	dns_rdataset_t *rdataset = NULL;
 	size_t naddrs = 0;
+	isc_result_t result;
+
+	result = dns_message_findname(rctx->query->rmessage,
+				      DNS_SECTION_ADDITIONAL, nsname,
+				      dns_rdatatype_a, 0, NULL, &rdataset);
+	if (result != ISC_R_SUCCESS) {
+		return 0;
+	}
 
 	if (rdataset->ttl < *ttl) {
 		*ttl = rdataset->ttl;
@@ -6664,12 +6673,22 @@ cache_delegglue(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 			break;
 		}
 	}
+	return naddrs;
 }
 
-static void
+static size_t
 cache_delegglue6(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
-		 dns_rdataset_t *rdataset) {
+		 respctx_t *rctx, const dns_name_t *nsname) {
+	dns_rdataset_t *rdataset = NULL;
 	size_t naddrs = 0;
+	isc_result_t result;
+
+	result = dns_message_findname(rctx->query->rmessage,
+				      DNS_SECTION_ADDITIONAL, nsname,
+				      dns_rdatatype_aaaa, 0, NULL, &rdataset);
+	if (result != ISC_R_SUCCESS) {
+		return 0;
+	}
 
 	if (rdataset->ttl < *ttl) {
 		*ttl = rdataset->ttl;
@@ -6690,6 +6709,7 @@ cache_delegglue6(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 			break;
 		}
 	}
+	return naddrs;
 }
 
 /*
@@ -6713,6 +6733,8 @@ cache_delegns(respctx_t *rctx) {
 	dns_fixedname_t fparent;
 	dns_name_t *parent = dns_fixedname_initname(&fparent);
 	size_t labels;
+	size_t ns_count = 0;
+	size_t max_servers = fctx->res->view->max_delegation_servers;
 	isc_result_t result;
 
 	FCTXTRACE("cache_delegns");
@@ -6730,14 +6752,11 @@ cache_delegns(respctx_t *rctx) {
 		dns_name_getlabelsequence(rctx->ns_name, 1, labels - 1, parent);
 	}
 
-	size_t ns_count = 0;
-	size_t max_servers = fctx->res->view->max_delegation_servers;
-
 	DNS_RDATASET_FOREACH(rctx->ns_rdataset) {
-		dns_rdataset_t *gluerdataset = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_ns_t ns;
 		dns_deleg_t *deleg = NULL;
+		size_t naddrs = 0;
 
 		if (ns_count >= max_servers) {
 			break;
@@ -6758,32 +6777,41 @@ cache_delegns(respctx_t *rctx) {
 		INSIST(rdata.type == dns_rdatatype_ns);
 		dns_rdata_tostruct(&rdata, &ns, NULL);
 
-		if (labels > 1 && dns_name_issubdomain(&ns.name, parent)) {
-			result = dns_message_findname(rctx->query->rmessage,
-						      DNS_SECTION_ADDITIONAL,
-						      &ns.name, dns_rdatatype_a,
-						      0, NULL, &gluerdataset);
-			if (result == ISC_R_SUCCESS) {
-				cache_delegglue(delegset, deleg, &ttl,
-						gluerdataset);
-				gluerdataset = NULL;
-			}
+		/* in-domain GLUE */
+		if (dns_name_issubdomain(&ns.name, rctx->ns_name)) {
+			naddrs += cache_delegglue(delegset, deleg, &ttl, rctx,
+						  &ns.name);
+			naddrs += cache_delegglue6(delegset, deleg, &ttl, rctx,
+						   &ns.name);
+			if (naddrs == 0) {
+				INSIST(ISC_LIST_EMPTY(deleg->addresses));
+				char namebuf[DNS_NAME_FORMATSIZE];
+				dns_name_format(&ns.name, namebuf,
+						sizeof(namebuf));
 
-			result = dns_message_findname(
-				rctx->query->rmessage, DNS_SECTION_ADDITIONAL,
-				&ns.name, dns_rdatatype_aaaa, 0, NULL,
-				&gluerdataset);
-			if (result == ISC_R_SUCCESS) {
-				cache_delegglue6(delegset, deleg, &ttl,
-						 gluerdataset);
-				gluerdataset = NULL;
+				isc_log_write(DNS_LOGCATEGORY_RESOLVER,
+					      DNS_LOGMODULE_RESOLVER,
+					      ISC_LOG_NOTICE,
+					      "missing mandatory glue for %s",
+					      namebuf);
+				dns_delegset_freedeleg(delegset, &deleg);
 			}
+			continue;
 		}
 
-		if (ISC_LIST_EMPTY(deleg->addresses)) {
+		/* in-bailiwick/sibling GLUE */
+		if (labels > 1 && dns_name_issubdomain(&ns.name, parent)) {
+			naddrs += cache_delegglue(delegset, deleg, &ttl, rctx,
+						  &ns.name);
+			naddrs += cache_delegglue6(delegset, deleg, &ttl, rctx,
+						   &ns.name);
+		}
+
+		if (naddrs == 0) {
+			INSIST(ISC_LIST_EMPTY(deleg->addresses));
 			/*
-			 * There is actually no glues for this NSRRset, so this
-			 * is actually a DNS_DELEGTYPE_NS_NAMES.
+			 * There are actually no glues for this NSRRset,
+			 * so this is actually a DNS_DELEGTYPE_NS_NAMES.
 			 */
 			deleg->type = DNS_DELEGTYPE_NS_NAMES;
 			dns_delegset_addns(delegset, deleg, &ns.name);
