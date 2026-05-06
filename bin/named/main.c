@@ -122,6 +122,7 @@ extern unsigned int dns_zone_mkey_month;
 
 extern unsigned int dns_adb_entrywindow;
 extern unsigned int dns_adb_cachemin;
+extern size_t dns_dispatch_tcppipelining;
 
 static bool want_stats = false;
 static char program_name[NAME_MAX] = "named";
@@ -809,6 +810,13 @@ parse_T_opt(char *option) {
 		dns_adb_entrywindow = atoi(option + 15);
 	} else if (!strncmp(option, "adbcachemin=", 12)) {
 		dns_adb_cachemin = atoi(option + 12);
+	} else if (!strncmp(option, "tcppipelining=", 14)) {
+		size_t pipelining = atoi(option + 14);
+		if (pipelining < 1) {
+			named_main_earlyfatal("tcppipelining must be at "
+					      "least 1");
+		}
+		dns_dispatch_tcppipelining = pipelining;
 	} else {
 		fprintf(stderr, "unknown -T flag '%s'\n", option);
 	}

@@ -2098,7 +2098,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 		result = dns_dispatch_createtcp(fctx->dispatchmgr, &addr,
 						&sockaddr, addrinfo->transport,
-						DNS_DISPATCHOPT_UNSHARED,
+						DNS_DISPATCHTYPE_RESOLVER, 0,
 						&query->dispatch);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_query;
