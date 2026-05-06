@@ -716,7 +716,6 @@ query_reset(ns_client_t *client, bool everything) {
 	if (client->query.dns64_aaaaok != NULL) {
 		isc_mem_put(client->mctx, client->query.dns64_aaaaok,
 			    client->query.dns64_aaaaoklen * sizeof(bool));
-		client->query.dns64_aaaaok = NULL;
 		client->query.dns64_aaaaoklen = 0;
 	}
 
@@ -8331,6 +8330,10 @@ query_addanswer(query_ctx_t *qctx) {
 	} else if (qctx->client->query.dns64_aaaaok != NULL) {
 		query_filter64(qctx);
 		ns_client_putrdataset(qctx->client, &qctx->rdataset);
+		isc_mem_put(qctx->client->mctx,
+			    qctx->client->query.dns64_aaaaok,
+			    qctx->client->query.dns64_aaaaoklen * sizeof(bool));
+		qctx->client->query.dns64_aaaaoklen = 0;
 	} else {
 		if (!qctx->is_zone && RECURSIONOK(qctx->client) &&
 		    !QUERY_STALETIMEOUT(&qctx->client->query))
