@@ -2097,7 +2097,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	default:
 		dns_rdataclass_format(client->message->rdclass, classbuf,
 				      sizeof(classbuf));
-		ns_client_dumpmessage(client, NULL);
+		ns_client_dumpmessage(client, "");
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "invalid message class: %s", classbuf);
@@ -2195,7 +2195,7 @@ ns_client_request_continue(void *arg) {
 			dns_rdataclass_format(client->message->rdclass,
 					      classname, sizeof(classname));
 
-			ns_client_dumpmessage(client, NULL);
+			ns_client_dumpmessage(client, "");
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 				      "no matching view in class '%s'",
