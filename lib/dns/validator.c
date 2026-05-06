@@ -3984,12 +3984,16 @@ validator_addede(dns_validator_t *val, uint16_t code, const char *extra) {
 
 	if (extra != NULL) {
 		isc_buffer_putstr(&b, extra);
-		isc_buffer_putuint8(&b, ' ');
 	}
 
-	dns_name_totext(val->name, DNS_NAME_OMITFINALDOT, &b);
-	isc_buffer_putuint8(&b, '/');
-	dns_rdatatype_totext(val->type, &b);
+	if (val->name != NULL) {
+		if (extra != NULL) {
+			isc_buffer_putuint8(&b, ' ');
+		}
+		dns_name_totext(val->name, DNS_NAME_OMITFINALDOT, &b);
+		isc_buffer_putuint8(&b, '/');
+		dns_rdatatype_totext(val->type, &b);
+	}
 	isc_buffer_putuint8(&b, '\0');
 
 	dns_ede_add(&val->edectx, code, bdata);
