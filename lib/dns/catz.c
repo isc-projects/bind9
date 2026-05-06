@@ -1490,6 +1490,14 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 
 		if (i < ipkl->count) { /* we have this record already */
 			if (value->type == dns_rdatatype_txt) {
+				if (ipkl->keys[i] != NULL) {
+					if (dns_name_dynamic(ipkl->keys[i])) {
+						dns_name_free(ipkl->keys[i],
+							      mctx);
+					}
+					isc_mem_put(mctx, ipkl->keys[i],
+						    sizeof(*ipkl->keys[i]));
+				}
 				ipkl->keys[i] = keyname;
 			} else { /* A/AAAA */
 				memmove(&ipkl->addrs[i], &sockaddr,
