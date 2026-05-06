@@ -6901,12 +6901,6 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 
 	REQUIRE(VALID_FCTX(fctx));
 
-#if CHECK_FOR_GLUE_IN_ANSWER
-	if (section == DNS_SECTION_ANSWER && type != dns_rdatatype_a) {
-		return ISC_R_SUCCESS;
-	}
-#endif /* if CHECK_FOR_GLUE_IN_ANSWER */
-
 	gluing = (GLUING(fctx) || (fctx->type == dns_rdatatype_ns &&
 				   dns_name_equal(fctx->name, dns_rootname)));
 
@@ -6961,18 +6955,6 @@ check_related(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	      dns_rdataset_t *found DNS__DB_FLARG) {
 	return check_section(arg, addname, type, found, DNS_SECTION_ADDITIONAL);
 }
-
-#ifndef CHECK_FOR_GLUE_IN_ANSWER
-#define CHECK_FOR_GLUE_IN_ANSWER 0
-#endif /* ifndef CHECK_FOR_GLUE_IN_ANSWER */
-
-#if CHECK_FOR_GLUE_IN_ANSWER
-static isc_result_t
-check_answer(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
-	     dns_rdataset_t *found) {
-	return check_section(arg, addname, type, found, DNS_SECTION_ANSWER);
-}
-#endif /* if CHECK_FOR_GLUE_IN_ANSWER */
 
 static bool
 is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
@@ -9518,22 +9500,6 @@ rctx_referral(respctx_t *rctx) {
 	 */
 	(void)dns_rdataset_additionaldata(rctx->ns_rdataset, rctx->ns_name,
 					  check_related, rctx, 0);
-#if CHECK_FOR_GLUE_IN_ANSWER
-	/*
-	 * Look in the answer section for "glue" that is incorrectly
-	 * returned as a answer.  This is needed if the server also
-	 * minimizes the response size by not adding records to the
-	 * additional section that are in the answer section or if
-	 * the record gets dropped due to message size constraints.
-	 */
-	if (rctx->glue_in_answer &&
-	    (fctx->type == dns_rdatatype_aaaa || fctx->type == dns_rdatatype_a))
-	{
-		(void)dns_rdataset_additionaldata(rctx->ns_rdataset,
-						  rctx->ns_name, check_answer,
-						  fctx, 0);
-	}
-#endif /* if CHECK_FOR_GLUE_IN_ANSWER */
 	FCTX_ATTR_CLR(fctx, FCTX_ATTR_GLUING);
 
 	/*
