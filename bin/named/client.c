@@ -40,6 +40,7 @@
 #include <dns/dnstap.h>
 #include <dns/cache.h>
 #include <dns/edns.h>
+#include <dns/enumclass.h>
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/peer.h>
@@ -2832,7 +2833,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			goto cleanup;
 	}
 
-	if (client->message->rdclass == 0) {
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+	switch (client->message->rdclass) {
+	case dns_rdataclass_reserved0:
 		if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0 &&
 		    client->message->opcode == dns_opcode_query &&
 		    client->message->counts[DNS_SECTION_QUESTION] == 0U)
@@ -2853,6 +2856,44 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_dumpmessage(client,
 				      "message class could not be determined");
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_FORMERR);
+		goto cleanup;
+	case dns_rdataclass_in:
+		break;
+	case dns_rdataclass_chaos:
+		break;
+	case dns_rdataclass_hs:
+		break;
+	case dns_rdataclass_none:
+		if (client->message->opcode != dns_opcode_update) {
+			ns_client_dumpmessage(client,
+					      "message class NONE can be only "
+					      "used in DNS updates");
+			ns_client_error(client, DNS_R_FORMERR);
+			return;
+		}
+		break;
+	case dns_rdataclass_any:
+		/*
+		 * Required for TKEY negotiation.
+		 */
+		if (client->message->tkey == 0) {
+			ns_client_dumpmessage(client,
+					      "message class ANY can be only "
+					      "used for TKEY negotiation");
+			ns_client_error(client, DNS_R_FORMERR);
+			return;
+		}
+		break;
+	default:
+		dns_rdataclass_format(client->message->rdclass, classbuf,
+				      sizeof(classbuf));
+		ns_client_dumpmessage(client, NULL);
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
+			      "message class could not be determined");
+		ns_client_dumpmessage(client, "message class could not be "
+					      "determined");
+		ns_client_error(client, DNS_R_NOTIMP);
 		goto cleanup;
 	}
 
@@ -2972,7 +3013,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "no matching view in class '%s'", classname);
-		ns_client_dumpmessage(client, "no matching view in class");
+		ns_client_dumpmessage(client, NULL);
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
 		goto cleanup;
 	}
@@ -3151,11 +3192,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
+		if (client->view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 		ns_client_settimeout(client, 60);
 		ns_update_start(client, sigresult);
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
+		if (client->view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 		ns_client_settimeout(client, 60);
 		ns_notify_start(client);
 		break;
@@ -4243,8 +4292,9 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 	int len = 1024;
 	isc_result_t result;
 
-	if (!isc_log_wouldlog(ns_g_lctx, ISC_LOG_DEBUG(1)))
+	if (!isc_log_wouldlog(ns_g_lctx, ISC_LOG_DEBUG(1)) || reason == NULL) {
 		return;
+	}
 
 	/*
 	 * Note that these are multiline debug messages.  We want a newline
