@@ -787,7 +787,7 @@ coverity:
 
 respdiff:
   <<: *base_image
-  <<: *schedules_tags_web_triggering_rules
+  <<: *default_triggering_rules
   stage: system
   variables:
     CC: gcc
@@ -813,7 +813,7 @@ respdiff:
 
 respdiff-third-party:
   <<: *base_image
-  <<: *schedules_tags_web_triggering_rules
+  <<: *default_triggering_rules
   stage: system
   variables:
     CC: gcc
