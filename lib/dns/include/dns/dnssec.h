@@ -154,6 +154,9 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  *	this record, as this requires a resolver or database.
  *	If 'ignoretime' is true, temporal validity will not be checked.
  *
+ *	If 'set' is of type NSEC, this function also verifies that the
+ *	Next Name is a subdomain of the Signer's Name from 'sigrdata'.
+ *
  *	'maxbits' specifies the maximum number of rsa exponent bits accepted.
  *
  *	Requires:
@@ -179,6 +182,9 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  *\li		#DNS_R_KEYUNAUTHORIZED - the key cannot sign this data (either
  *			it is not a zone key or its flags prevent
  *			authentication)
+ *
+ *\li		#DNS_R_NOVALIDNSEC - the NSEC rdata is not valid
+ *\li		#DNS_R_KEYUNAUTHORIZED - the key cannot sign this data
  *\li		DST_R_*
  */
 
