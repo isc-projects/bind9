@@ -14391,6 +14391,27 @@ receive_secure_serial(void *arg) {
 
 	LOCK_ZONE(zone);
 
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) ||
+	    !dns__zone_inline_secure(zone))
+	{
+		/*
+		 * If this is a callback for a new secure serial that was
+		 * never processed and the zone is shutting down, then just
+		 * free 'rss_next' and return.
+		 */
+		if (rss == zone->rss_next) {
+			isc_mem_put(zone->mctx, rss, sizeof(*rss));
+			zone->rss_next = NULL;
+			UNLOCK_ZONE(zone);
+			dns_zone_idetach(&zone);
+			return;
+		}
+
+		/* Otherwise, this is an ongoing processing, do the cleanup. */
+		UNLOCK_ZONE(zone);
+		CLEANUP(ISC_R_SHUTTINGDOWN);
+	}
+
 	/*
 	 * The receive_secure_serial() is loop-serialized for the zone, but it
 	 * is possible for new serial to arrive before the old processing is
@@ -14592,7 +14613,7 @@ cleanup:
 	if (zone->rss_raw != NULL) {
 		dns_zone_detach(&zone->rss_raw);
 	}
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS && result != ISC_R_SHUTTINGDOWN) {
 		LOCK_ZONE(zone);
 		dns__zone_set_resigntime(zone);
 		timenow = isc_time_now();
