@@ -12,7 +12,7 @@
 project(
     'bind',
     ['c'],
-    version: '9.21.22-dev',
+    version: '9.21.23-dev',
     meson_version: '>=1.3.0',
     license: 'MPL-2.0',
     default_options: {
