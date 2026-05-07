@@ -9010,7 +9010,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				      "exceeded max queries resolving '%s'",
 				      fctx->info);
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
-			return;
+			goto detach_rmessage;
 		}
 
 		inc_stats(res, dns_resstatscounter_retry);
