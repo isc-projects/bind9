@@ -70,6 +70,15 @@ zone "bits" {
 	sig-signing-signatures 1;	// force incremental processing
 };
 
+zone "incremental-updates" {
+    type primary;
+    file "incremental-updates.db";
+    inline-signing yes;
+    dnssec-policy inline;
+    sig-signing-signatures 1;	// force incremental processing
+    allow-update { any; };
+};
+
 server 10.53.0.4 { request-ixfr no; };
 
 zone "noixfr" {
