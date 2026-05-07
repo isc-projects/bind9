@@ -1310,6 +1310,7 @@ dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 
 struct dns_update_state {
 	unsigned int magic;
+	isc_mem_t *mctx;
 	dns_diff_t diffnames;
 	dns_diff_t affected;
 	dns_diff_t sig_diff;
@@ -1366,10 +1367,9 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 dns_diff_t *diff, uint32_t sigvalidityinterval,
 			 dns_update_state_t **statep) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_update_state_t mystate, *state = NULL;
+	dns_update_state_t mystate = { 0 }, *state = NULL;
 	dns_difftuple_t *tuple = NULL;
 	bool flag, build_nsec;
-	unsigned int i;
 	dns_rdata_soa_t soa;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
@@ -1385,7 +1385,10 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			state = &mystate;
 		} else {
 			state = isc_mem_get(diff->mctx, sizeof(*state));
+			state->mctx = NULL;
+			isc_mem_attach(diff->mctx, &state->mctx);
 		}
+		state->magic = STATE_MAGIC;
 
 		dns_diff_init(diff->mctx, &state->diffnames);
 		dns_diff_init(diff->mctx, &state->affected);
@@ -1444,7 +1447,6 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		 */
 		CHECK(dns_diff_sort(diff, temp_order));
 		state->state = sign_updates;
-		state->magic = STATE_MAGIC;
 		SET_IF_NOT_NULL(statep, state);
 	} else {
 		REQUIRE(DNS_STATE_VALID(*statep));
@@ -2005,6 +2007,18 @@ cleanup:
 		dns_db_detachnode(&node);
 	}
 
+	dns_update_state_clear(&state, state != &mystate);
+	SET_IF_NOT_NULL(statep, NULL);
+
+	return result;
+}
+
+void
+dns_update_state_clear(dns_update_state_t **statep, bool destroy) {
+	REQUIRE(DNS_STATE_VALID(*statep));
+
+	dns_update_state_t *state = *statep;
+
 	dns_diff_clear(&state->sig_diff);
 	dns_diff_clear(&state->nsec_diff);
 	dns_diff_clear(&state->nsec_mindiff);
@@ -2013,17 +2027,15 @@ cleanup:
 	dns_diff_clear(&state->diffnames);
 	dns_diff_clear(&state->work);
 
-	for (i = 0; i < state->nkeys; i++) {
+	for (size_t i = 0; i < state->nkeys; i++) {
 		dst_key_free(&state->zone_keys[i]);
 	}
 
-	if (state != &mystate) {
+	if (destroy) {
 		*statep = NULL;
 		state->magic = 0;
-		isc_mem_put(diff->mctx, state, sizeof(*state));
+		isc_mem_putanddetach(&state->mctx, state, sizeof(*state));
 	}
-
-	return result;
 }
 
 static isc_stdtime_t

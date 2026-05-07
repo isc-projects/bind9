@@ -593,6 +593,10 @@ dns__zone_free(dns_zone_t *zone) {
 		isc_mem_put(zone->mctx, include, sizeof *include);
 	}
 
+	if (zone->rss_state != NULL) {
+		dns_update_state_clear(&zone->rss_state, true);
+	}
+
 	if (zone->masterfile != NULL) {
 		isc_mem_free(zone->mctx, zone->masterfile);
 	}
