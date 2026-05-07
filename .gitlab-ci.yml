@@ -2520,8 +2520,7 @@ pairwise:
 backports:
   <<: *post_merge
   rules:
-    # -sub branches are handled manually
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ || $CI_COMMIT_REF_NAME =~ /^bind-9.[0-9]+$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
     # CI job token is not sufficient for push operations
     - git remote get-url origin | sed -e "s/gitlab-ci-token:$CI_JOB_TOKEN/oauth2:$BIND_TEAM_WRITE_TOKEN/" | xargs git remote set-url --push origin
