@@ -1280,6 +1280,10 @@ zone_free(dns_zone_t *zone) {
 		isc_mem_free(zone->mctx, include->name);
 		isc_mem_put(zone->mctx, include, sizeof *include);
 	}
+
+	if (zone->rss_state != NULL) {
+		dns_update_state_clear(&zone->rss_state, true);
+	}
 	if (zone->masterfile != NULL) {
 		isc_mem_free(zone->mctx, zone->masterfile);
 	}
@@ -17044,9 +17048,7 @@ receive_secure_serial(void *arg) {
 
 	LOCK_ZONE(zone);
 
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) ||
-	    !dns__zone_inline_secure(zone))
-	{
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || !inline_secure(zone)) {
 		/*
 		 * If this is a callback for a new secure serial that was
 		 * never processed and the zone is shutting down, then just
@@ -17062,7 +17064,7 @@ receive_secure_serial(void *arg) {
 
 		/* Otherwise, this is an ongoing processing, do the cleanup. */
 		UNLOCK_ZONE(zone);
-		CLEANUP(ISC_R_SHUTTINGDOWN);
+		CHECK(ISC_R_SHUTTINGDOWN);
 	}
 
 	/*
