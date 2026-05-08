@@ -100,6 +100,31 @@ def test_update_delete_private_type_rrset(ns3):
     isctest.check.noerror(response)
 
 
+def test_update_delete_all_apex_rrsets_with_private_type(ns3):
+    zone = "nsec3-private-type-delete.kasp"
+    fqdn = f"{zone}."
+
+    update_msg = dns.update.UpdateMessage(zone)
+    update_msg.add(fqdn, 0, dns.rdatatype.NSEC3PARAM, "1 0 5 ab")
+    response = isctest.query.tcp(
+        update_msg,
+        ns3.ip,
+        attempts=1,
+        expected_rcode=dns.rcode.NOERROR,
+    )
+    isctest.check.noerror(response)
+
+    update_msg = dns.update.UpdateMessage(zone)
+    update_msg.delete(fqdn)
+    response = isctest.query.tcp(
+        update_msg,
+        ns3.ip,
+        attempts=1,
+        expected_rcode=dns.rcode.NOERROR,
+    )
+    isctest.check.noerror(response)
+
+
 @pytest.mark.parametrize(
     "params",
     [
