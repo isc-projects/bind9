@@ -123,19 +123,21 @@ static isc_result_t
 do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 	     dns_diff_t *diff) {
 	dns_diff_t temp_diff;
+	dns_difftuple_t *temp_tuple = *tuple;
 	isc_result_t result;
 
 	/*
 	 * Create a singleton diff.
 	 */
 	dns_diff_init(diff->mctx, &temp_diff);
-	ISC_LIST_APPEND(temp_diff.tuples, *tuple, link);
+	dns_diff_append(&temp_diff, tuple);
 
 	/*
 	 * Apply it to the database.
 	 */
 	result = dns_diff_apply(&temp_diff, db, ver);
-	ISC_LIST_UNLINK(temp_diff.tuples, *tuple, link);
+	dns_diff_unlink(&temp_diff, temp_tuple);
+	*tuple = MOVE_OWNERSHIP(temp_tuple);
 	if (result != ISC_R_SUCCESS) {
 		dns_difftuple_free(tuple);
 		return result;
@@ -686,7 +688,7 @@ uniqify_name_list(dns_diff_t *list) {
 		if (curr_name == NULL || !dns_name_equal(curr_name, &p->name)) {
 			curr_name = &(p->name);
 		} else {
-			ISC_LIST_UNLINK(list->tuples, p, link);
+			dns_diff_unlink(list, p);
 			dns_difftuple_free(&p);
 		}
 	}
@@ -1551,10 +1553,8 @@ next_state:
 				       tuple->rdata.type == type)
 				{
 					next = ISC_LIST_NEXT(tuple, link);
-					ISC_LIST_UNLINK(diff->tuples, tuple,
-							link);
-					ISC_LIST_APPEND(state->work.tuples,
-							tuple, link);
+					dns_diff_unlink(diff, tuple);
+					dns_diff_append(&state->work, &tuple);
 					tuple = next;
 				}
 			}
@@ -1562,7 +1562,10 @@ next_state:
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_APPENDLIST(diff->tuples, state->work.tuples, link);
+		ISC_LIST_FOREACH(state->work.tuples, t, link) {
+			dns_diff_unlink(&state->work, t);
+			dns_diff_append(diff, &t);
+		}
 
 		update_log(log, zone, ISC_LOG_DEBUG(3),
 			   "updated data signatures");
@@ -1677,9 +1680,10 @@ next_state:
 			CHECK(namelist_append_subdomain(db, &t->name,
 							&state->affected));
 		}
-		ISC_LIST_APPENDLIST(state->affected.tuples,
-				    state->diffnames.tuples, link);
-		INSIST(ISC_LIST_EMPTY(state->diffnames.tuples));
+		ISC_LIST_FOREACH(state->diffnames.tuples, t, link) {
+			dns_diff_unlink(&state->diffnames, t);
+			dns_diff_append(&state->affected, &t);
+		}
 
 		CHECK(uniqify_name_list(&state->affected));
 
@@ -1742,14 +1746,16 @@ next_state:
 					&sigs));
 			}
 		unlink:
-			ISC_LIST_UNLINK(state->affected.tuples, t, link);
-			ISC_LIST_APPEND(state->work.tuples, t, link);
+			dns_diff_unlink(&state->affected, t);
+			dns_diff_append(&state->work, &t);
 			if (state != &mystate && sigs > maxsigs) {
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_APPENDLIST(state->affected.tuples, state->work.tuples,
-				    link);
+		ISC_LIST_FOREACH(state->work.tuples, t, link) {
+			dns_diff_unlink(&state->work, t);
+			dns_diff_append(&state->affected, &t);
+		}
 
 		/*
 		 * Now we know which names are part of the NSEC chain.
@@ -1790,7 +1796,7 @@ next_state:
 		 * replaced with identical ones.
 		 */
 		ISC_LIST_FOREACH(state->nsec_diff.tuples, t, link) {
-			ISC_LIST_UNLINK(state->nsec_diff.tuples, t, link);
+			dns_diff_unlink(&state->nsec_diff, t);
 			dns_diff_appendminimal(&state->nsec_mindiff, &t);
 		}
 
@@ -1818,25 +1824,27 @@ next_state:
 			} else {
 				UNREACHABLE();
 			}
-			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
-			ISC_LIST_APPEND(state->work.tuples, t, link);
+			dns_diff_unlink(&state->nsec_mindiff, t);
+			dns_diff_append(&state->work, &t);
 			if (state != &mystate && sigs > maxsigs) {
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_APPENDLIST(state->nsec_mindiff.tuples,
-				    state->work.tuples, link);
+		ISC_LIST_FOREACH(state->work.tuples, t, link) {
+			dns_diff_unlink(&state->work, t);
+			dns_diff_append(&state->nsec_mindiff, &t);
+		}
 		FALLTHROUGH;
 	case update_nsec3:
 		state->state = update_nsec3;
 
 		/* Record our changes for the journal. */
 		ISC_LIST_FOREACH(state->sig_diff.tuples, t, link) {
-			ISC_LIST_UNLINK(state->sig_diff.tuples, t, link);
+			dns_diff_unlink(&state->sig_diff, t);
 			dns_diff_appendminimal(diff, &t);
 		}
 		ISC_LIST_FOREACH(state->nsec_mindiff.tuples, t, link) {
-			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
+			dns_diff_unlink(&state->nsec_mindiff, t);
 			dns_diff_appendminimal(diff, &t);
 		}
 
@@ -1949,14 +1957,16 @@ next_state:
 					unsecure, privatetype,
 					&state->nsec_diff));
 			}
-			ISC_LIST_UNLINK(state->affected.tuples, t, link);
-			ISC_LIST_APPEND(state->work.tuples, t, link);
+			dns_diff_unlink(&state->affected, t);
+			dns_diff_append(&state->work, &t);
 			if (state != &mystate && sigs > maxsigs) {
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_APPENDLIST(state->affected.tuples, state->work.tuples,
-				    link);
+		ISC_LIST_FOREACH(state->work.tuples, t, link) {
+			dns_diff_unlink(&state->work, t);
+			dns_diff_append(&state->affected, &t);
+		}
 
 		/*
 		 * Minimize the set of NSEC3 updates so that we don't
@@ -1964,7 +1974,7 @@ next_state:
 		 * replaced with identical ones.
 		 */
 		ISC_LIST_FOREACH(state->nsec_diff.tuples, t, link) {
-			ISC_LIST_UNLINK(state->nsec_diff.tuples, t, link);
+			dns_diff_unlink(&state->nsec_diff, t);
 			dns_diff_appendminimal(&state->nsec_mindiff, &t);
 		}
 
@@ -1992,22 +2002,24 @@ next_state:
 			} else {
 				UNREACHABLE();
 			}
-			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
-			ISC_LIST_APPEND(state->work.tuples, t, link);
+			dns_diff_unlink(&state->nsec_mindiff, t);
+			dns_diff_append(&state->work, &t);
 			if (state != &mystate && sigs > maxsigs) {
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_APPENDLIST(state->nsec_mindiff.tuples,
-				    state->work.tuples, link);
+		ISC_LIST_FOREACH(state->work.tuples, t, link) {
+			dns_diff_unlink(&state->work, t);
+			dns_diff_append(&state->nsec_mindiff, &t);
+		}
 
 		/* Record our changes for the journal. */
 		ISC_LIST_FOREACH(state->sig_diff.tuples, t, link) {
-			ISC_LIST_UNLINK(state->sig_diff.tuples, t, link);
+			dns_diff_unlink(&state->sig_diff, t);
 			dns_diff_appendminimal(diff, &t);
 		}
 		ISC_LIST_FOREACH(state->nsec_mindiff.tuples, t, link) {
-			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
+			dns_diff_unlink(&state->nsec_mindiff, t);
 			dns_diff_appendminimal(diff, &t);
 		}
 

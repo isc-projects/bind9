@@ -187,6 +187,33 @@ dns_diff_append(dns_diff_t *diff, dns_difftuple_t **tuple);
  * \li	The tuple has been freed, or will be freed when the diff is cleared.
  */
 
+void
+dns_diff_prepend(dns_diff_t *diff, dns_difftuple_t **tuple);
+/*%<
+ * Prepend a single tuple to a diff.
+ *
+ * Requires:
+ * \li	'diff' is a valid diff.
+ * \li	'*tuple' is a valid tuple.
+ *
+ * Ensures:
+ * \li	*tuple is NULL.
+ * \li	The tuple has been freed, or will be freed when the diff is cleared.
+ */
+
+void
+dns_diff_unlink(dns_diff_t *diff, dns_difftuple_t *tuple);
+/*%<
+ * Unlink a single tuple from a diff without freeing it.
+ *
+ * Requires:
+ * \li	'diff' is a valid diff.
+ * \li	'tuple' is a valid tuple in 'diff'.
+ *
+ * Ensures:
+ * \li	The caller owns 'tuple'.
+ */
+
 size_t
 dns_diff_size(const dns_diff_t *diff);
 /*%<
@@ -204,6 +231,7 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuple);
  *
  * Requires:
  *\li	'diff' is a minimal diff.
+ *\li	'*tuple' is a valid tuple.
  *
  * Ensures:
  *\li	'diff' is still a minimal diff.

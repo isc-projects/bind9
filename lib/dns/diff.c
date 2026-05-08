@@ -93,11 +93,11 @@ dns_difftuple_create(isc_mem_t *mctx, dns_diffop_t op, const dns_name_t *name,
 
 void
 dns_difftuple_free(dns_difftuple_t **tp) {
-	dns_difftuple_t *t = *tp;
-	*tp = NULL;
 	isc_mem_t *mctx;
 
-	REQUIRE(DNS_DIFFTUPLE_VALID(t));
+	REQUIRE(tp != NULL && DNS_DIFFTUPLE_VALID(*tp));
+
+	dns_difftuple_t *t = MOVE_OWNERSHIP(*tp);
 
 	dns_name_invalidate(&t->name);
 	t->magic = 0;
@@ -108,6 +108,9 @@ dns_difftuple_free(dns_difftuple_t **tp) {
 
 void
 dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp) {
+	REQUIRE(DNS_DIFFTUPLE_VALID(orig));
+	REQUIRE(copyp != NULL && *copyp == NULL);
+
 	dns_difftuple_create(orig->mctx, orig->op, &orig->name, orig->ttl,
 			     &orig->rdata, copyp);
 }
@@ -134,9 +137,31 @@ dns_diff_clear(dns_diff_t *diff) {
 void
 dns_diff_append(dns_diff_t *diff, dns_difftuple_t **tuplep) {
 	REQUIRE(DNS_DIFF_VALID(diff));
-	ISC_LIST_APPEND(diff->tuples, *tuplep, link);
+	REQUIRE(tuplep != NULL && DNS_DIFFTUPLE_VALID(*tuplep));
+
+	dns_difftuple_t *tuple = MOVE_OWNERSHIP(*tuplep);
+	ISC_LIST_APPEND(diff->tuples, tuple, link);
 	diff->size += 1;
-	*tuplep = NULL;
+}
+
+void
+dns_diff_prepend(dns_diff_t *diff, dns_difftuple_t **tuplep) {
+	REQUIRE(DNS_DIFF_VALID(diff));
+	REQUIRE(tuplep != NULL && DNS_DIFFTUPLE_VALID(*tuplep));
+
+	dns_difftuple_t *tuple = MOVE_OWNERSHIP(*tuplep);
+	ISC_LIST_PREPEND(diff->tuples, tuple, link);
+	diff->size += 1;
+}
+
+void
+dns_diff_unlink(dns_diff_t *diff, dns_difftuple_t *tuple) {
+	REQUIRE(DNS_DIFF_VALID(diff));
+	REQUIRE(DNS_DIFFTUPLE_VALID(tuple));
+	REQUIRE(diff->size > 0);
+
+	ISC_LIST_UNLINK(diff->tuples, tuple, link);
+	diff->size -= 1;
 }
 
 size_t
@@ -150,7 +175,7 @@ dns_diff_size(const dns_diff_t *diff) {
 void
 dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep) {
 	REQUIRE(DNS_DIFF_VALID(diff));
-	REQUIRE(DNS_DIFFTUPLE_VALID(*tuplep));
+	REQUIRE(tuplep != NULL && DNS_DIFFTUPLE_VALID(*tuplep));
 
 	/*
 	 * Look for an existing tuple with the same owner name,
@@ -184,9 +209,7 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep) {
 	}
 
 	if (*tuplep != NULL) {
-		ISC_LIST_APPEND(diff->tuples, *tuplep, link);
-		diff->size += 1;
-		*tuplep = NULL;
+		dns_diff_append(diff, tuplep);
 	}
 }
 

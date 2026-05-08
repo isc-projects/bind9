@@ -297,35 +297,45 @@ dns_nsec3_supportedhash(dns_hash_t hash) {
  *      ownership has been transferred to the diff.
  */
 static isc_result_t
-do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
+do_one_tuple(dns_difftuple_t **tuplep, dns_db_t *db, dns_dbversion_t *ver,
 	     dns_diff_t *diff) {
 	dns_diff_t temp_diff;
+	dns_difftuple_t *tuple = MOVE_OWNERSHIP(*tuplep);
 	isc_result_t result;
 
 	/*
 	 * Create a singleton diff.
 	 */
 	dns_diff_init(diff->mctx, &temp_diff);
-	ISC_LIST_APPEND(temp_diff.tuples, *tuple, link);
+	dns_diff_append(&temp_diff, &tuple);
 
 	/*
 	 * Apply it to the database.
 	 */
 	result = dns_diff_apply(&temp_diff, db, ver);
-	ISC_LIST_UNLINK(temp_diff.tuples, *tuple, link);
+
+	/*
+	 * Retrieve the tuple from the 'temp_diff' so we can
+	 * add it to 'diff' on success or free it.
+	 */
+	tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	dns_diff_unlink(&temp_diff, tuple);
+
+	/*
+	 * This should be a no op.
+	 */
+	dns_diff_clear(&temp_diff);
+
 	if (result != ISC_R_SUCCESS) {
-		dns_difftuple_free(tuple);
+		dns_difftuple_free(&tuple);
 		return result;
 	}
 
 	/*
 	 * Merge it into the current pending journal entry.
 	 */
-	dns_diff_appendminimal(diff, tuple);
+	dns_diff_appendminimal(diff, &tuple);
 
-	/*
-	 * Do not clear temp_diff.
-	 */
 	return ISC_R_SUCCESS;
 }
 

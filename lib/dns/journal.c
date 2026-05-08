@@ -2163,19 +2163,19 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 		for (i = 0; i < 2; i++) {
 			if (p[!i] == NULL) {
 				dns_difftuplelist_t *l = (i == 0) ? &add : &del;
-				ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
+				dns_diff_unlink(&diff[i], p[i]);
 				ISC_LIST_APPEND(*l, p[i], link);
 				goto next;
 			}
 		}
 		t = rdata_order(&p[0], &p[1]);
 		if (t < 0) {
-			ISC_LIST_UNLINK(diff[0].tuples, p[0], link);
+			dns_diff_unlink(&diff[0], p[0]);
 			ISC_LIST_APPEND(add, p[0], link);
 			goto next;
 		}
 		if (t > 0) {
-			ISC_LIST_UNLINK(diff[1].tuples, p[1], link);
+			dns_diff_unlink(&diff[1], p[1]);
 			ISC_LIST_APPEND(del, p[1], link);
 			goto next;
 		}
@@ -2186,7 +2186,7 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 		 */
 		append = (p[0]->ttl != p[1]->ttl);
 		for (i = 0; i < 2; i++) {
-			ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
+			dns_diff_unlink(&diff[i], p[i]);
 			if (append) {
 				dns_difftuplelist_t *l = (i == 0) ? &add : &del;
 				ISC_LIST_APPEND(*l, p[i], link);
@@ -2196,8 +2196,14 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 		}
 	next:;
 	}
-	ISC_LIST_APPENDLIST(r->tuples, del, link);
-	ISC_LIST_APPENDLIST(r->tuples, add, link);
+	ISC_LIST_FOREACH(del, deltuple, link) {
+		ISC_LIST_UNLINK(del, deltuple, link);
+		dns_diff_append(r, &deltuple);
+	}
+	ISC_LIST_FOREACH(add, addtuple, link) {
+		ISC_LIST_UNLINK(add, addtuple, link);
+		dns_diff_append(r, &addtuple);
+	}
 	result = ISC_R_SUCCESS;
 cleanup:
 	return result;
@@ -2256,9 +2262,10 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 
 		for (i = 0; i < 2; i++) {
 			if (!have[!i]) {
-				ISC_LIST_APPENDLIST(resultdiff->tuples,
-						    diff[i].tuples, link);
-				INSIST(ISC_LIST_EMPTY(diff[i].tuples));
+				ISC_LIST_FOREACH(diff[i].tuples, tuple, link) {
+					dns_diff_unlink(&diff[i], tuple);
+					dns_diff_append(resultdiff, &tuple);
+				}
 				have[i] = false;
 				goto next;
 			}
@@ -2267,16 +2274,18 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 		t = dns_name_compare(dns_fixedname_name(&fixname[0]),
 				     dns_fixedname_name(&fixname[1]));
 		if (t < 0) {
-			ISC_LIST_APPENDLIST(resultdiff->tuples, diff[0].tuples,
-					    link);
-			INSIST(ISC_LIST_EMPTY(diff[0].tuples));
+			ISC_LIST_FOREACH(diff[0].tuples, tuple, link) {
+				dns_diff_unlink(&diff[0], tuple);
+				dns_diff_append(resultdiff, &tuple);
+			}
 			have[0] = false;
 			continue;
 		}
 		if (t > 0) {
-			ISC_LIST_APPENDLIST(resultdiff->tuples, diff[1].tuples,
-					    link);
-			INSIST(ISC_LIST_EMPTY(diff[1].tuples));
+			ISC_LIST_FOREACH(diff[1].tuples, tuple, link) {
+				dns_diff_unlink(&diff[1], tuple);
+				dns_diff_append(resultdiff, &tuple);
+			}
 			have[1] = false;
 			continue;
 		}

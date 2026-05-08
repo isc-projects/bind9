@@ -3591,19 +3591,21 @@ static isc_result_t
 do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
 	     dns_diff_t *diff) {
 	dns_diff_t temp_diff;
+	dns_difftuple_t *temp_tuple = *tuple;
 	isc_result_t result;
 
 	/*
 	 * Create a singleton diff.
 	 */
 	dns_diff_init(diff->mctx, &temp_diff);
-	ISC_LIST_APPEND(temp_diff.tuples, *tuple, link);
+	dns_diff_append(&temp_diff, tuple);
 
 	/*
 	 * Apply it to the database.
 	 */
 	result = dns_diff_apply(&temp_diff, db, ver);
-	ISC_LIST_UNLINK(temp_diff.tuples, *tuple, link);
+	dns_diff_unlink(&temp_diff, temp_tuple);
+	*tuple = MOVE_OWNERSHIP(temp_tuple);
 	if (result != ISC_R_SUCCESS) {
 		dns_difftuple_free(tuple);
 		return result;
@@ -7086,7 +7088,7 @@ static void
 move_matching_tuples(dns_difftuple_t *cur, dns_diff_t *src, dns_diff_t *dst) {
 	do {
 		dns_difftuple_t *next = find_next_matching_tuple(cur);
-		ISC_LIST_UNLINK(src->tuples, cur, link);
+		dns_diff_unlink(src, cur);
 		dns_diff_appendminimal(dst, &cur);
 		cur = next;
 	} while (cur != NULL);
@@ -14223,7 +14225,7 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		if (seczone->privatetype != 0 &&
 		    tuple->rdata.type == seczone->privatetype)
 		{
-			ISC_LIST_UNLINK(diff->tuples, tuple, link);
+			dns_diff_unlink(diff, tuple);
 			dns_difftuple_free(&tuple);
 			continue;
 		}
@@ -14236,7 +14238,7 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		    tuple->rdata.type == dns_rdatatype_nsec3 ||
 		    tuple->rdata.type == dns_rdatatype_nsec3param)
 		{
-			ISC_LIST_UNLINK(diff->tuples, tuple, link);
+			dns_diff_unlink(diff, tuple);
 			dns_difftuple_free(&tuple);
 			continue;
 		}
@@ -14280,7 +14282,7 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		/*
 		 * Split into deletions and additions.
 		 */
-		ISC_LIST_UNLINK(diff->tuples, tuple, link);
+		dns_diff_unlink(diff, tuple);
 		switch (tuple->op) {
 		case DNS_DIFFOP_DEL:
 		case DNS_DIFFOP_DELRESIGN:
@@ -14331,14 +14333,38 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	/*
 	 * Rebuild the diff now that we have filtered it
 	 */
-	ISC_LIST_APPENDLIST(diff->tuples, del, link);
-	ISC_LIST_APPENDLIST(diff->tuples, keydel, link);
-	ISC_LIST_APPENDLIST(diff->tuples, ckeydel, link);
-	ISC_LIST_APPENDLIST(diff->tuples, cdsdel, link);
-	ISC_LIST_APPENDLIST(diff->tuples, add, link);
-	ISC_LIST_APPENDLIST(diff->tuples, keyadd, link);
-	ISC_LIST_APPENDLIST(diff->tuples, ckeyadd, link);
-	ISC_LIST_APPENDLIST(diff->tuples, cdsadd, link);
+	ISC_LIST_FOREACH(del, tuple, link) {
+		ISC_LIST_UNLINK(del, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
+	ISC_LIST_FOREACH(keydel, tuple, link) {
+		ISC_LIST_UNLINK(keydel, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
+	ISC_LIST_FOREACH(ckeydel, tuple, link) {
+		ISC_LIST_UNLINK(ckeydel, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
+	ISC_LIST_FOREACH(cdsdel, tuple, link) {
+		ISC_LIST_UNLINK(cdsdel, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
+	ISC_LIST_FOREACH(add, tuple, link) {
+		ISC_LIST_UNLINK(add, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
+	ISC_LIST_FOREACH(keyadd, tuple, link) {
+		ISC_LIST_UNLINK(keyadd, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
+	ISC_LIST_FOREACH(ckeyadd, tuple, link) {
+		ISC_LIST_UNLINK(ckeyadd, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
+	ISC_LIST_FOREACH(cdsadd, tuple, link) {
+		ISC_LIST_UNLINK(cdsadd, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
 
 	if (ISC_LIST_EMPTY(diff->tuples)) {
 		return DNS_R_UNCHANGED;
@@ -14349,12 +14375,12 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	 * saving the new SOA record.
 	 */
 	if (oldtuple != NULL) {
-		ISC_LIST_UNLINK(diff->tuples, oldtuple, link);
+		dns_diff_unlink(diff, oldtuple);
 		dns_difftuple_free(&oldtuple);
 	}
 
 	if (newtuple != NULL) {
-		ISC_LIST_UNLINK(diff->tuples, newtuple, link);
+		dns_diff_unlink(diff, newtuple);
 		*soatuple = newtuple;
 	}
 
@@ -16629,7 +16655,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	 */
 	ISC_LIST_FOREACH(diff->tuples, tuple, link) {
 		if (tuple->rdata.type != dns_rdatatype_dnskey) {
-			ISC_LIST_UNLINK(diff->tuples, tuple, link);
+			dns_diff_unlink(diff, tuple);
 			ISC_LIST_APPEND(tuples, tuple, link);
 			continue;
 		}
@@ -16637,12 +16663,12 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		result = dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0) {
-			ISC_LIST_UNLINK(diff->tuples, tuple, link);
+			dns_diff_unlink(diff, tuple);
 			ISC_LIST_APPEND(tuples, tuple, link);
 			continue;
 		}
 
-		ISC_LIST_UNLINK(diff->tuples, tuple, link);
+		dns_diff_unlink(diff, tuple);
 		switch (tuple->op) {
 		case DNS_DIFFOP_DEL:
 		case DNS_DIFFOP_DELRESIGN:
@@ -16661,7 +16687,10 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	 * Put the tuples that don't need more processing back onto
 	 * diff->tuples.
 	 */
-	ISC_LIST_APPENDLIST(diff->tuples, tuples, link);
+	ISC_LIST_FOREACH(tuples, tuple, link) {
+		ISC_LIST_UNLINK(tuples, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
 
 	/*
 	 * Filter out DNSKEY TTL changes and put them back onto diff->tuples.
@@ -16672,9 +16701,9 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 						  &addtuple->rdata);
 			if (n == 0) {
 				ISC_LIST_UNLINK(del, deltuple, link);
-				ISC_LIST_APPEND(diff->tuples, deltuple, link);
+				dns_diff_append(diff, &deltuple);
 				ISC_LIST_UNLINK(add, addtuple, link);
-				ISC_LIST_APPEND(diff->tuples, addtuple, link);
+				dns_diff_append(diff, &addtuple);
 				break;
 			}
 		}
@@ -16741,7 +16770,10 @@ cleanup:
 	/*
 	 * Put the DNSKEY changes we cared about back on diff->tuples.
 	 */
-	ISC_LIST_APPENDLIST(diff->tuples, tuples, link);
+	ISC_LIST_FOREACH(tuples, tuple, link) {
+		ISC_LIST_UNLINK(tuples, tuple, link);
+		dns_diff_append(diff, &tuple);
+	}
 	INSIST(ISC_LIST_EMPTY(add));
 	INSIST(ISC_LIST_EMPTY(del));
 	INSIST(ISC_LIST_EMPTY(tuples));
