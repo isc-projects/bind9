@@ -45,6 +45,16 @@ zone "nsec3-dynamic.kasp" {
 };
 {% endif %}{# nsec3-dynamic.kasp #}
 
+{% if "nsec3-private-type-delete.kasp" in zones %}
+zone "nsec3-private-type-delete.kasp" {
+	type primary;
+	file "nsec3-private-type-delete.kasp.db";
+	dnssec-policy "nsec3";
+	inline-signing no;
+	allow-update { any; };
+};
+{% endif %}{# nsec3-private-type-delete.kasp #}
+
 {% if "nsec3-other.kasp" in zones %}
 /* This zone uses non-default NSEC3 settings. */
 zone "nsec3-other.kasp" {
