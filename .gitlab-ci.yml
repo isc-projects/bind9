@@ -2056,8 +2056,6 @@ rpms-copr:
 # autodetected ones.
 .printing_press_job: &printing_press_job
   <<: *manual_release_job_qa
-  variables:
-    GIT_DEPTH: 1
   script:
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/printing_press_mr.py --document "${DOCUMENT}" --metadata "$CI_PROJECT_DIR"/bind9-qa/releng/metadata.json ${FORCE_CVE_IDS:+--force-cve-ids ${FORCE_CVE_IDS}} ${FORCE_SECURITY_RELEASES:+--force-security-releases ${FORCE_SECURITY_RELEASES}}
