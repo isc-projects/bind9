@@ -1017,6 +1017,16 @@ dns_vecheader_getheader(const dns_rdataset_t *rdataset) {
 	return rdataset->vec.header;
 }
 
+dns_vecheader_t *
+dns_vecheader_moveheader(dns_rdataset_t *rdataset) {
+	dns_vecheader_t *header = MOVE_OWNERSHIP(rdataset->vec.header);
+	/*
+	 * We stole the header, it is safe to reset the rdataset.
+	 */
+	dns_rdataset_init(rdataset);
+	return header;
+}
+
 dns_vectop_t *
 dns_vectop_new(isc_mem_t *mctx, dns_typepair_t typepair) {
 	dns_vectop_t *top = isc_mem_get(mctx, sizeof(*top));

@@ -496,16 +496,18 @@ free_glue(isc_mem_t *mctx, dns_glue_t *glue) {
 	while (glue != NULL) {
 		dns_glue_t *next = glue->next;
 
-		dns_rdataset_cleanup(&glue->rdataset_a);
-		dns_rdataset_cleanup(&glue->sigrdataset_a);
-
-		dns_rdataset_cleanup(&glue->rdataset_aaaa);
-		dns_rdataset_cleanup(&glue->sigrdataset_aaaa);
-
-		dns_rdataset_invalidate(&glue->rdataset_a);
-		dns_rdataset_invalidate(&glue->sigrdataset_a);
-		dns_rdataset_invalidate(&glue->rdataset_aaaa);
-		dns_rdataset_invalidate(&glue->sigrdataset_aaaa);
+		if (glue->header_a != NULL) {
+			dns_vecheader_unref(glue->header_a);
+		}
+		if (glue->sigheader_a != NULL) {
+			dns_vecheader_unref(glue->sigheader_a);
+		}
+		if (glue->header_aaaa != NULL) {
+			dns_vecheader_unref(glue->header_aaaa);
+		}
+		if (glue->sigheader_aaaa != NULL) {
+			dns_vecheader_unref(glue->sigheader_aaaa);
+		}
 
 		dns_name_free(&glue->name, mctx);
 
@@ -5231,24 +5233,20 @@ new_gluelist(dns_db_t *db, dns_vecheader_t *header,
 static isc_result_t
 glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 		dns_rdataset_t *rdataset ISC_ATTR_UNUSED DNS__DB_FLARG) {
-	dns_glue_additionaldata_ctx_t *ctx = NULL;
+	dns_glue_additionaldata_ctx_t *ctx = arg;
 	isc_result_t result;
 	dns_fixedname_t fixedname_a;
 	dns_name_t *name_a = NULL;
 	dns_rdataset_t rdataset_a, sigrdataset_a;
-	qpznode_t *node_a = NULL;
 	dns_fixedname_t fixedname_aaaa;
 	dns_name_t *name_aaaa = NULL;
 	dns_rdataset_t rdataset_aaaa, sigrdataset_aaaa;
-	qpznode_t *node_aaaa = NULL;
 	dns_glue_t *glue = NULL;
 
 	/*
 	 * NS records want addresses in additional records.
 	 */
 	INSIST(qtype == dns_rdatatype_a);
-
-	ctx = (dns_glue_additionaldata_ctx_t *)arg;
 
 	name_a = dns_fixedname_initname(&fixedname_a);
 	dns_rdataset_init(&rdataset_a);
@@ -5259,63 +5257,55 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	dns_rdataset_init(&sigrdataset_aaaa);
 
 	result = qpzone_find(ctx->db, name, ctx->version, dns_rdatatype_a,
-			     DNS_DBFIND_GLUEOK, 0, (dns_dbnode_t **)&node_a,
-			     name_a, NULL, NULL, &rdataset_a,
-			     &sigrdataset_a DNS__DB_FLARG_PASS);
+			     DNS_DBFIND_GLUEOK, 0, NULL, name_a, NULL, NULL,
+			     &rdataset_a, &sigrdataset_a DNS__DB_FLARG_PASS);
 	if (result == DNS_R_GLUE) {
 		glue = new_glue(ctx->db->mctx, name_a);
 
-		dns_rdataset_init(&glue->rdataset_a);
-		dns_rdataset_init(&glue->sigrdataset_a);
-		dns_rdataset_init(&glue->rdataset_aaaa);
-		dns_rdataset_init(&glue->sigrdataset_aaaa);
-
-		dns_rdataset_clone(&rdataset_a, &glue->rdataset_a);
+		/*
+		 * Move the header out of the rdataset, transferring
+		 * ownership of the reference to the glue structure.
+		 */
+		glue->header_a = dns_vecheader_moveheader(&rdataset_a);
 		if (dns_rdataset_isassociated(&sigrdataset_a)) {
-			dns_rdataset_clone(&sigrdataset_a,
-					   &glue->sigrdataset_a);
+			glue->sigheader_a =
+				dns_vecheader_moveheader(&sigrdataset_a);
 		}
 	}
 
 	result = qpzone_find(ctx->db, name, ctx->version, dns_rdatatype_aaaa,
-			     DNS_DBFIND_GLUEOK, 0, (dns_dbnode_t **)&node_aaaa,
-			     name_aaaa, NULL, NULL, &rdataset_aaaa,
+			     DNS_DBFIND_GLUEOK, 0, NULL, name_aaaa, NULL, NULL,
+			     &rdataset_aaaa,
 			     &sigrdataset_aaaa DNS__DB_FLARG_PASS);
 	if (result == DNS_R_GLUE) {
 		if (glue == NULL) {
 			glue = new_glue(ctx->db->mctx, name_aaaa);
-
-			dns_rdataset_init(&glue->rdataset_a);
-			dns_rdataset_init(&glue->sigrdataset_a);
-			dns_rdataset_init(&glue->rdataset_aaaa);
-			dns_rdataset_init(&glue->sigrdataset_aaaa);
 		} else {
-			INSIST(node_a == node_aaaa);
 			INSIST(dns_name_equal(name_a, name_aaaa));
 		}
 
-		dns_rdataset_clone(&rdataset_aaaa, &glue->rdataset_aaaa);
+		/*
+		 * Move the header out of the rdataset, transferring
+		 * ownership of the reference to the glue structure.
+		 */
+		glue->header_aaaa = dns_vecheader_moveheader(&rdataset_aaaa);
 		if (dns_rdataset_isassociated(&sigrdataset_aaaa)) {
-			dns_rdataset_clone(&sigrdataset_aaaa,
-					   &glue->sigrdataset_aaaa);
+			glue->sigheader_aaaa =
+				dns_vecheader_moveheader(&sigrdataset_aaaa);
 		}
 	}
 
 	/*
-	 * If the currently processed NS record is in-bailiwick, mark any glue
-	 * RRsets found for it with 'required' attribute.  Note that for
-	 * simplicity, glue RRsets for all in-bailiwick NS records are marked
-	 * this way, even though dns_message_rendersection() only checks the
-	 * attributes for the first rdataset associated with the first name
-	 * added to the ADDITIONAL section.
+	 * If the currently processed NS record is in-bailiwick, mark the
+	 * glue as 'required'.  The flag is later propagated to the rdataset
+	 * attributes when the glue is bound.  Note that for simplicity, glue
+	 * for all in-bailiwick NS records is marked this way, even though
+	 * dns_message_rendersection() only checks the attributes for the
+	 * first rdataset associated with the first name added to the
+	 * ADDITIONAL section.
 	 */
 	if (glue != NULL && dns_name_issubdomain(name, ctx->owner_name)) {
-		if (dns_rdataset_isassociated(&glue->rdataset_a)) {
-			glue->rdataset_a.attributes.required = true;
-		}
-		if (dns_rdataset_isassociated(&glue->rdataset_aaaa)) {
-			glue->rdataset_aaaa.attributes.required = true;
-		}
+		glue->required = true;
 	}
 
 	if (glue != NULL) {
@@ -5323,29 +5313,25 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 		ctx->glue = glue;
 	}
 
-	result = ISC_R_SUCCESS;
-
+	/*
+	 * Clean up any rdatasets that were not consumed by moveheader().
+	 * This handles the ISC_R_SUCCESS (in-zone, not glue) case where
+	 * the rdataset is associated but its header was not moved into
+	 * the glue structure.
+	 */
 	dns_rdataset_cleanup(&rdataset_a);
 	dns_rdataset_cleanup(&sigrdataset_a);
-
 	dns_rdataset_cleanup(&rdataset_aaaa);
 	dns_rdataset_cleanup(&sigrdataset_aaaa);
 
-	if (node_a != NULL) {
-		dns__db_detachnode((dns_dbnode_t **)&node_a DNS__DB_FLARG_PASS);
-	}
-	if (node_aaaa != NULL) {
-		dns__db_detachnode(
-			(dns_dbnode_t **)&node_aaaa DNS__DB_FLARG_PASS);
-	}
-
-	return result;
+	return ISC_R_SUCCESS;
 }
 
-#define IS_REQUIRED_GLUE(r) (((r)->attributes.required))
-
+/*
+ * This calls bindrdataset, so it must be protected by an rcu read lock.
+ */
 static void
-addglue_to_message(dns_glue_t *ge, dns_message_t *msg) {
+addglue_to_message(qpzonedb_t *qpdb, dns_glue_t *ge, dns_message_t *msg) {
 	for (; ge != NULL; ge = ge->next) {
 		dns_name_t *name = NULL;
 		dns_rdataset_t *rdataset_a = NULL;
@@ -5358,45 +5344,47 @@ addglue_to_message(dns_glue_t *ge, dns_message_t *msg) {
 
 		dns_name_copy(&ge->name, name);
 
-		if (dns_rdataset_isassociated(&ge->rdataset_a)) {
+		if (ge->header_a != NULL) {
 			dns_message_gettemprdataset(msg, &rdataset_a);
 		}
 
-		if (dns_rdataset_isassociated(&ge->sigrdataset_a)) {
+		if (ge->sigheader_a != NULL) {
 			dns_message_gettemprdataset(msg, &sigrdataset_a);
 		}
 
-		if (dns_rdataset_isassociated(&ge->rdataset_aaaa)) {
+		if (ge->header_aaaa != NULL) {
 			dns_message_gettemprdataset(msg, &rdataset_aaaa);
 		}
 
-		if (dns_rdataset_isassociated(&ge->sigrdataset_aaaa)) {
+		if (ge->sigheader_aaaa != NULL) {
 			dns_message_gettemprdataset(msg, &sigrdataset_aaaa);
 		}
 
 		if (rdataset_a != NULL) {
-			dns_rdataset_clone(&ge->rdataset_a, rdataset_a);
+			bindrdataset(qpdb, ge->header_a, rdataset_a);
 			ISC_LIST_APPEND(name->list, rdataset_a, link);
-			if (IS_REQUIRED_GLUE(rdataset_a)) {
+			if (ge->required) {
+				rdataset_a->attributes.required = true;
 				prepend_name = true;
 			}
 		}
 
 		if (sigrdataset_a != NULL) {
-			dns_rdataset_clone(&ge->sigrdataset_a, sigrdataset_a);
+			bindrdataset(qpdb, ge->sigheader_a, sigrdataset_a);
 			ISC_LIST_APPEND(name->list, sigrdataset_a, link);
 		}
 
 		if (rdataset_aaaa != NULL) {
-			dns_rdataset_clone(&ge->rdataset_aaaa, rdataset_aaaa);
+			bindrdataset(qpdb, ge->header_aaaa, rdataset_aaaa);
 			ISC_LIST_APPEND(name->list, rdataset_aaaa, link);
-			if (IS_REQUIRED_GLUE(rdataset_aaaa)) {
+			if (ge->required) {
+				rdataset_aaaa->attributes.required = true;
 				prepend_name = true;
 			}
 		}
 		if (sigrdataset_aaaa != NULL) {
-			dns_rdataset_clone(&ge->sigrdataset_aaaa,
-					   sigrdataset_aaaa);
+			bindrdataset(qpdb, ge->sigheader_aaaa,
+				     sigrdataset_aaaa);
 			ISC_LIST_APPEND(name->list, sigrdataset_aaaa, link);
 		}
 
@@ -5494,7 +5482,7 @@ addglue(dns_db_t *db, dns_dbversion_t *dbversion, const dns_name_t *owner_name,
 	glue = CMM_LOAD_SHARED(gluelist->glue);
 
 	if (glue != NULL) {
-		addglue_to_message(glue, msg);
+		addglue_to_message(qpdb, glue, msg);
 		counter = dns_gluecachestatscounter_hits_present;
 	}
 

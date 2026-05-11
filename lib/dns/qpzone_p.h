@@ -19,7 +19,38 @@
 
 #include <dns/nsec3.h>
 #include <dns/qp.h>
+#include <dns/rdatavec.h>
 #include <dns/types.h>
+
+struct dns_glue {
+	struct dns_glue *next;
+	dns_name_t name;
+	dns_vecheader_t *header_a;
+	dns_vecheader_t *sigheader_a;
+	dns_vecheader_t *header_aaaa;
+	dns_vecheader_t *sigheader_aaaa;
+	bool required;
+};
+
+struct dns_gluelist {
+	isc_mem_t *mctx;
+
+	const dns_dbversion_t *version;
+	dns_vecheader_t *header;
+
+	struct dns_glue *glue;
+
+	struct rcu_head rcu_head;
+	struct cds_wfs_node wfs_node;
+};
+
+typedef struct dns_glue_additionaldata_ctx {
+	dns_db_t *db;
+	dns_dbversion_t *version;
+	const dns_name_t *owner_name;
+
+	dns_glue_t *glue;
+} dns_glue_additionaldata_ctx_t;
 
 /*****
 ***** Module Info
