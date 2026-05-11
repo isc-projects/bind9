@@ -633,7 +633,6 @@ cleanup:
  */
 static isc_result_t
 ixfr_commit(dns_xfrin_t *xfr) {
-	dns_difftuple_t *tuple, *next;
 	isc_result_t result = ISC_R_SUCCESS;
 	ixfr_apply_data_t *data = isc_mem_get(xfr->mctx, sizeof(*data));
 
@@ -645,10 +644,7 @@ ixfr_commit(dns_xfrin_t *xfr) {
 	}
 
 	dns_diff_init(xfr->mctx, &data->diff);
-	ISC_LIST_FOREACH_SAFE(xfr->diff.tuples, tuple, link, next) {
-		dns_diff_unlink(&xfr->diff, tuple);
-		dns_diff_append(&data->diff, &tuple);
-	}
+	dns_diff_appendlist(&data->diff, &xfr->diff);
 
 	isc_queue_enqueue(&xfr->diff_queue, &data->queue_node);
 

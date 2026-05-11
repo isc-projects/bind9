@@ -2255,7 +2255,6 @@ static isc_result_t
 diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 	       dns_dbversion_t *dbverb, unsigned int options,
 	       dns_diff_t *resultdiff) {
-	dns_difftuple_t *tuple, *next;
 	dns_db_t *db[2];
 	dns_dbversion_t *ver[2];
 	dns_dbiterator_t *dbit[2] = { NULL, NULL };
@@ -2308,12 +2307,7 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 
 		for (i = 0; i < 2; i++) {
 			if (!have[!i]) {
-				ISC_LIST_FOREACH_SAFE(diff[i].tuples, tuple,
-						      link, next)
-				{
-					dns_diff_unlink(&diff[i], tuple);
-					dns_diff_append(resultdiff, &tuple);
-				}
+				dns_diff_appendlist(resultdiff, &diff[i]);
 				have[i] = false;
 				goto next;
 			}
@@ -2322,20 +2316,12 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 		t = dns_name_compare(dns_fixedname_name(&fixname[0]),
 				     dns_fixedname_name(&fixname[1]));
 		if (t < 0) {
-			ISC_LIST_FOREACH_SAFE(diff[0].tuples, tuple, link, next)
-			{
-				dns_diff_unlink(&diff[0], tuple);
-				dns_diff_append(resultdiff, &tuple);
-			}
+			dns_diff_appendlist(resultdiff, &diff[0]);
 			have[0] = false;
 			continue;
 		}
 		if (t > 0) {
-			ISC_LIST_FOREACH_SAFE(diff[1].tuples, tuple, link, next)
-			{
-				dns_diff_unlink(&diff[1], tuple);
-				dns_diff_append(resultdiff, &tuple);
-			}
+			dns_diff_appendlist(resultdiff, &diff[1]);
 			have[1] = false;
 			continue;
 		}
