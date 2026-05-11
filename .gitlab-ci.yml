@@ -2051,6 +2051,8 @@ assign-milestones:
   needs:
     - job: sign
       artifacts: false
+  variables:
+    GIT_DEPTH: 1000
   script:
     - |
       "${CI_PROJECT_DIR}"/bind9-qa/releng/assign_mrs_to_versioned_milestones.py --version "${CI_COMMIT_TAG}" --metadata "${CI_PROJECT_DIR}"/bind9-qa/releng/metadata.json
