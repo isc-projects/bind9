@@ -286,7 +286,11 @@ stages:
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
-    - cd bind9-qa/respdiff
+    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+  after_script:
+    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+    - if [ ! -e rspworkdir/report.json ]; then respdiff/msgdiff.py --config rspworkdir/respdiff.cfg rspworkdir; fi
+    - if [ ! -e rspworkdir/report.txt ]; then respdiff/diffsum.py --config rspworkdir/respdiff.cfg --limit 0 rspworkdir | tee rspworkdir/report.txt; fi
   needs: []
   artifacts:
     paths:
