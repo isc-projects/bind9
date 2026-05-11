@@ -2061,8 +2061,14 @@ assign-milestones:
 
 # Jobs to update RPMs
 
-.rpm-build-job: &rpm_build_job
+.rpm-build-job-common: &rpm_build_job_common
   <<: *manual_release_job_qa
+  after_script:
+    - git -C bind/ remote get-url origin | sed "s|\.git$|/-/commit/$(cat commit.txt)|"
+    - git -C bind/ show --color "$(cat commit.txt)" | sed "s|^$| |"
+
+.rpm-build-job: &rpm_build_job
+  <<: *rpm_build_job_common
   needs:
     - job: publish
       artifacts: false
@@ -2071,7 +2077,7 @@ assign-milestones:
       "${CI_PROJECT_DIR}"/bind9-qa/releng/update_rpms.py build --service "${SERVICE}" --version "${CI_COMMIT_TAG}"
 
 .rpm-build-job-private: &rpm_build_job_private
-  <<: *manual_release_job_qa
+  <<: *rpm_build_job_common
   needs:
     - job: publish-private
       artifacts: true
