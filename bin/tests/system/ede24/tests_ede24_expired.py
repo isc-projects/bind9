@@ -13,9 +13,11 @@ import os
 
 from ede24.common import check_ns2_ready, check_soa_noerror, check_soa_servfail_ede24
 
+import isctest
 
-def test_ede24_expired(ns1, ns2):
-    check_ns2_ready(ns2)
+
+def test_ede24_expired(named_port, ns1, ns2):
+    check_ns2_ready(ns2, named_port)
 
     # Stop the primary and wait for expiration of the zone in the secondary.
     with ns2.watch_log_from_here() as watcher:
@@ -32,5 +34,9 @@ def test_ede24_expired(ns1, ns2):
     # Restart the primary and wait for the zone to be back up again.
     with ns2.watch_log_from_here() as watcher:
         ns1.start(["--noclean", "--restart", "--port", os.environ["PORT"]])
-        watcher.wait_for_line("Transfer status: success")
+        watcher.wait_for_line(
+            isctest.transfer.transfer_message(
+                "foo.fr", "10.53.0.1", "Transfer status: success", named_port
+            )
+        )
     check_soa_noerror()
