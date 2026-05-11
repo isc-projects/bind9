@@ -645,6 +645,11 @@ stages:
     - *setup_interfaces
     - *git_clone_bind9-qa
     - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+  after_script:
+    - *parse_tsan
+    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+    - if [ ! -e rspworkdir/report.json ]; then respdiff/msgdiff.py --config rspworkdir/respdiff.cfg rspworkdir; fi
+    - if [ ! -e rspworkdir/report.txt ]; then respdiff/diffsum.py --config rspworkdir/respdiff.cfg --limit 0 rspworkdir | tee rspworkdir/report.txt; fi
   needs: []
   artifacts:
     paths:
@@ -2404,8 +2409,6 @@ respdiff:tsan:
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
     - cd ../.. && ninja -C build clean >/dev/null 2>&1
-  after_script:
-    - *parse_tsan
 
 respdiff-third-party:
   <<: *respdiff_job
