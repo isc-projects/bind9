@@ -5296,12 +5296,13 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	}
 
 	/*
-	 * If the currently processed NS record is in-bailiwick, mark any glue
-	 * RRsets found for it with 'required' attribute.  Note that for
-	 * simplicity, glue RRsets for all in-bailiwick NS records are marked
-	 * this way, even though dns_message_rendersection() only checks the
-	 * attributes for the first rdataset associated with the first name
-	 * added to the ADDITIONAL section.
+	 * If the currently processed NS record is in-bailiwick, mark the
+	 * glue as 'required'.  The flag is later propagated to the rdataset
+	 * attributes when the glue is bound.  Note that for simplicity, glue
+	 * for all in-bailiwick NS records is marked this way, even though
+	 * dns_message_rendersection() only checks the attributes for the
+	 * first rdataset associated with the first name added to the
+	 * ADDITIONAL section.
 	 */
 	if (glue != NULL && dns_name_issubdomain(name, ctx->owner_name)) {
 		glue->required = true;
