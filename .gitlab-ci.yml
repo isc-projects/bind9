@@ -289,6 +289,9 @@ stages:
 .rule_tag_open_source_maintenance: &rule_tag_open_source_maintenance
   - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && $CI_COMMIT_TAG !~ /-S/ && $RELEASE_TYPE != "security"'
 
+.rule_tag_open_source_security: &rule_tag_open_source_security
+  - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && $CI_COMMIT_TAG !~ /-S/ && $RELEASE_TYPE == "security"'
+
 .rule_tag_security: &rule_tag_security
   - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && $RELEASE_TYPE == "security"'
 
@@ -1936,7 +1939,7 @@ publish-cleanup:
   tags:
     - smalljob
   rules:
-    - *rule_tag_security
+    - *rule_tag_open_source_security
 
 .manual_release_job_qa: &manual_release_job_qa
   <<: *manual_release_job
