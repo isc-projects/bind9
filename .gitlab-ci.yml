@@ -2051,6 +2051,8 @@ assign-milestones:
   needs:
     - job: sign
       artifacts: false
+  variables:
+    GIT_DEPTH: 1000
   script:
     - |
       "${CI_PROJECT_DIR}"/bind9-qa/releng/assign_mrs_to_versioned_milestones.py --version "${CI_COMMIT_TAG}" --metadata "${CI_PROJECT_DIR}"/bind9-qa/releng/metadata.json
@@ -2146,8 +2148,6 @@ rpms-copr:
 # autodetected ones.
 .printing_press_job: &printing_press_job
   <<: *manual_release_job_qa
-  variables:
-    GIT_DEPTH: 1
   script:
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/printing_press_mr.py --document "${DOCUMENT}" --metadata "$CI_PROJECT_DIR"/bind9-qa/releng/metadata.json ${FORCE_CVE_IDS:+--force-cve-ids ${FORCE_CVE_IDS}} ${FORCE_SECURITY_RELEASES:+--force-security-releases ${FORCE_SECURITY_RELEASES}}
@@ -2263,8 +2263,6 @@ merge-tag:
 
 update-stable-tag:
   <<: *manual_release_job_qa
-  variables:
-    GIT_DEPTH: 1
   needs:
     # TODO: if necessary, update job name after pushing tags from within CI is implemented
     - job: publish
