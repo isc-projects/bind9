@@ -14,8 +14,8 @@ import os
 from ede24.common import check_ns2_ready, check_soa_servfail_ede24
 
 
-def test_ede24_noloaded(ns1, ns2):
-    check_ns2_ready(ns2)
+def test_ede24_noloaded(named_port, ns1, ns2):
+    check_ns2_ready(ns2, named_port)
 
     # Stop all servers, and we'll restart only ns2.
     ns1.stop()
