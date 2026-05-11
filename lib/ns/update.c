@@ -1161,14 +1161,8 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			 * them yet because "name" still points into one
 			 * of them.  Move them on a temporary list.
 			 */
-			ISC_LIST_FOREACH(u_rrs.tuples, trash_tuple, link) {
-				dns_diff_unlink(&u_rrs, trash_tuple);
-				dns_diff_append(&trash, &trash_tuple);
-			}
-			ISC_LIST_FOREACH(d_rrs.tuples, trash_tuple, link) {
-				dns_diff_unlink(&d_rrs, trash_tuple);
-				dns_diff_append(&trash, &trash_tuple);
-			}
+			dns_diff_appendlist(&trash, &u_rrs);
+			dns_diff_appendlist(&trash, &d_rrs);
 			dns_rdataset_disassociate(&rdataset);
 
 			continue;

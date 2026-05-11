@@ -1562,10 +1562,7 @@ next_state:
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_FOREACH(state->work.tuples, t, link) {
-			dns_diff_unlink(&state->work, t);
-			dns_diff_append(diff, &t);
-		}
+		dns_diff_appendlist(diff, &state->work);
 
 		update_log(log, zone, ISC_LOG_DEBUG(3),
 			   "updated data signatures");
@@ -1680,10 +1677,7 @@ next_state:
 			CHECK(namelist_append_subdomain(db, &t->name,
 							&state->affected));
 		}
-		ISC_LIST_FOREACH(state->diffnames.tuples, t, link) {
-			dns_diff_unlink(&state->diffnames, t);
-			dns_diff_append(&state->affected, &t);
-		}
+		dns_diff_appendlist(&state->affected, &state->diffnames);
 
 		CHECK(uniqify_name_list(&state->affected));
 
@@ -1752,10 +1746,7 @@ next_state:
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_FOREACH(state->work.tuples, t, link) {
-			dns_diff_unlink(&state->work, t);
-			dns_diff_append(&state->affected, &t);
-		}
+		dns_diff_appendlist(&state->affected, &state->work);
 
 		/*
 		 * Now we know which names are part of the NSEC chain.
@@ -1830,10 +1821,7 @@ next_state:
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_FOREACH(state->work.tuples, t, link) {
-			dns_diff_unlink(&state->work, t);
-			dns_diff_append(&state->nsec_mindiff, &t);
-		}
+		dns_diff_appendlist(&state->nsec_mindiff, &state->work);
 		FALLTHROUGH;
 	case update_nsec3:
 		state->state = update_nsec3;
@@ -1963,10 +1951,7 @@ next_state:
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_FOREACH(state->work.tuples, t, link) {
-			dns_diff_unlink(&state->work, t);
-			dns_diff_append(&state->affected, &t);
-		}
+		dns_diff_appendlist(&state->affected, &state->work);
 
 		/*
 		 * Minimize the set of NSEC3 updates so that we don't
@@ -2008,10 +1993,7 @@ next_state:
 				return DNS_R_CONTINUE;
 			}
 		}
-		ISC_LIST_FOREACH(state->work.tuples, t, link) {
-			dns_diff_unlink(&state->work, t);
-			dns_diff_append(&state->nsec_mindiff, &t);
-		}
+		dns_diff_appendlist(&state->nsec_mindiff, &state->work);
 
 		/* Record our changes for the journal. */
 		ISC_LIST_FOREACH(state->sig_diff.tuples, t, link) {

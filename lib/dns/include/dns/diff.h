@@ -202,6 +202,20 @@ dns_diff_prepend(dns_diff_t *diff, dns_difftuple_t **tuple);
  */
 
 void
+dns_diff_appendlist(dns_diff_t *dst, dns_diff_t *src);
+/*%<
+ * Move all tuples from 'src' to the end of 'dst'.
+ *
+ * Requires:
+ * \li	'dst' is a valid diff.
+ * \li	'src' is a valid diff.
+ * \li	'dst' != 'src'.
+ *
+ * Ensures:
+ * \li	'src' is empty.
+ */
+
+void
 dns_diff_unlink(dns_diff_t *diff, dns_difftuple_t *tuple);
 /*%<
  * Unlink a single tuple from a diff without freeing it.

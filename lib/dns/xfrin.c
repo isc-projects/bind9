@@ -658,10 +658,7 @@ ixfr_commit(dns_xfrin_t *xfr) {
 	}
 
 	dns_diff_init(xfr->mctx, &data->diff);
-	ISC_LIST_FOREACH(xfr->diff.tuples, tuple, link) {
-		dns_diff_unlink(&xfr->diff, tuple);
-		dns_diff_append(&data->diff, &tuple);
-	}
+	dns_diff_appendlist(&data->diff, &xfr->diff);
 
 	isc_queue_enqueue(&xfr->diff_queue, &data->queue_node);
 

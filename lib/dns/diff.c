@@ -155,6 +155,18 @@ dns_diff_prepend(dns_diff_t *diff, dns_difftuple_t **tuplep) {
 }
 
 void
+dns_diff_appendlist(dns_diff_t *dst, dns_diff_t *src) {
+	REQUIRE(DNS_DIFF_VALID(dst));
+	REQUIRE(DNS_DIFF_VALID(src));
+	REQUIRE(dst != src);
+
+	ISC_LIST_APPENDLIST(dst->tuples, src->tuples, link);
+	dst->size += src->size;
+	src->size = 0;
+	ENSURE(ISC_LIST_EMPTY(src->tuples));
+}
+
+void
 dns_diff_unlink(dns_diff_t *diff, dns_difftuple_t *tuple) {
 	REQUIRE(DNS_DIFF_VALID(diff));
 	REQUIRE(DNS_DIFFTUPLE_VALID(tuple));
