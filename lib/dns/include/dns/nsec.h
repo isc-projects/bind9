@@ -115,11 +115,19 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
  */
 
 bool
-dns_nsec_requiredtypespresent(dns_rdataset_t *rdataset);
-/*
- * Return true if all the NSEC records in rdataset have both
- * NSEC and RRSIG present.
+dns_nsec_is_legal(dns_rdataset_t *rdataset, const dns_name_t *name);
+/**<
+ * \brief
+ * Validates a rdataset of type NSEC.
  *
- * Requires:
+ * This functions checks for the following in the given rdataset:
+ * \li All NSEC records have both NSEC and RRSIG present
+ * \li All NSEC entries are under the `name`
+ *
+ * \par Requires:
  * \li	rdataset to be a NSEC rdataset.
+ * \li  `name` is a valid dns_name_t
+ *
+ * \retval true if all the checks pass
+ * \retval false otherwise
  */

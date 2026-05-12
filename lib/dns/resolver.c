@@ -76,11 +76,12 @@
 #include <dns/rootns.h>
 #include <dns/stats.h>
 #include <dns/tsig.h>
+#include <dns/types.h>
 #include <dns/validator.h>
+#include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zoneproperties.h>
 
-#include "dns/view.h"
 #include "probes-dns.h"
 
 #ifdef WANT_QUERYTRACE
@@ -5739,10 +5740,42 @@ cache_rrset(fetchctx_t *fctx, isc_stdtime_t now, dns_name_t *name,
 	return result;
 }
 
+static bool
+get_and_check_signer_name(dns_name_t *signer, dns_rdataset_t *sigrdataset) {
+	dns_rdata_rrsig_t rrsig;
+	isc_result_t result;
+	dns_rdata_t rdata;
+
+	if (dns_rdataset_first(sigrdataset) != ISC_R_SUCCESS) {
+		return false;
+	}
+
+	rdata = (dns_rdata_t)DNS_RDATA_INIT;
+	dns_rdataset_current(sigrdataset, &rdata);
+	result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_name_copy(&rrsig.signer, signer);
+
+	while (dns_rdataset_next(sigrdataset) == ISC_R_SUCCESS) {
+		rdata = (dns_rdata_t)DNS_RDATA_INIT;
+		dns_rdataset_current(sigrdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		INSIST(result == ISC_R_SUCCESS);
+
+		if (!dns_name_equal(signer, &rrsig.signer)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 static void
 fctx_cacheauthority(fetchctx_t *fctx, dns_message_t *message,
 		    isc_stdtime_t now) {
+	dns_fixedname_t fsigner;
 	isc_result_t result;
+	dns_name_t *signer;
 
 	/*
 	 * Cache any SOA/NS/NSEC records that happened to be validated.
@@ -5765,10 +5798,20 @@ fctx_cacheauthority(fetchctx_t *fctx, dns_message_t *message,
 			}
 
 			/*
-			 * Don't cache NSEC if missing NSEC or RRSIG types.
+			 * Don't cache if all the RRSIGs don't have the same
+			 * signer.
+			 */
+			signer = dns_fixedname_initname(&fsigner);
+			if (!get_and_check_signer_name(signer, sigrdataset)) {
+				continue;
+			}
+
+			/*
+			 * Don't cache NSEC if missing NSEC or RRSIG
+			 * types.
 			 */
 			if (rdataset->type == dns_rdatatype_nsec &&
-			    !dns_nsec_requiredtypespresent(rdataset))
+			    !dns_nsec_is_legal(rdataset, signer))
 			{
 				continue;
 			}
