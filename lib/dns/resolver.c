@@ -231,6 +231,13 @@
 #define DEFAULT_MAX_QUERIES 50
 #endif /* ifndef DEFAULT_MAX_QUERIES */
 
+/*
+ * Cap on the number of glue addresses cached per NS owner in a referral
+ * delegation set.  The resolver itself will only ever try a handful of
+ * addresses per NS, so accepting more from a referral is wasted memory.
+ */
+#define DELEG_MAX_GLUES_PER_NS 20
+
 /* Hash table for zone counters */
 #ifndef RES_DOMAIN_HASH_BITS
 #define RES_DOMAIN_HASH_BITS 12
@@ -6636,6 +6643,8 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, respctx_t *rctx) {
 static void
 cache_delegglue(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 		dns_rdataset_t *rdataset) {
+	size_t naddrs = 0;
+
 	if (rdataset->ttl < *ttl) {
 		*ttl = rdataset->ttl;
 	}
@@ -6649,12 +6658,19 @@ cache_delegglue(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 		dns_rdata_tostruct(&rdata, &a, NULL);
 		addr.type.in = a.in_addr;
 		dns_delegset_addaddr(delegset, deleg, &addr);
+		naddrs++;
+
+		if (naddrs >= DELEG_MAX_GLUES_PER_NS) {
+			break;
+		}
 	}
 }
 
 static void
 cache_delegglue6(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 		 dns_rdataset_t *rdataset) {
+	size_t naddrs = 0;
+
 	if (rdataset->ttl < *ttl) {
 		*ttl = rdataset->ttl;
 	}
@@ -6668,6 +6684,11 @@ cache_delegglue6(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 		dns_rdata_tostruct(&rdata, &aaaa, NULL);
 		addr.type.in6 = aaaa.in6_addr;
 		dns_delegset_addaddr(delegset, deleg, &addr);
+		naddrs++;
+
+		if (naddrs >= DELEG_MAX_GLUES_PER_NS) {
+			break;
+		}
 	}
 }
 
@@ -6709,11 +6730,19 @@ cache_delegns(respctx_t *rctx) {
 		dns_name_getlabelsequence(rctx->ns_name, 1, labels - 1, parent);
 	}
 
+	size_t ns_count = 0;
+	size_t max_servers = fctx->res->view->max_delegation_servers;
+
 	DNS_RDATASET_FOREACH(rctx->ns_rdataset) {
 		dns_rdataset_t *gluerdataset = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_ns_t ns;
 		dns_deleg_t *deleg = NULL;
+
+		if (ns_count >= max_servers) {
+			break;
+		}
+		ns_count++;
 
 		/*
 		 * We can't "group" all NS-based delegations into a single
