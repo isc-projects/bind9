@@ -236,6 +236,15 @@
  */
 #define NS_PROCESSING_LIMIT 20
 
+/*
+ * Cap on the number of glue addresses cached per NS owner from a referral.
+ * The resolver only ever tries a handful of addresses per NS, so accepting
+ * more than this from a single referral is wasted memory.  Each NS owner
+ * may contribute at most DELEG_MAX_GLUES_PER_NS A and DELEG_MAX_GLUES_PER_NS
+ * AAAA glue records.
+ */
+#define DELEG_MAX_GLUES_PER_NS 20
+
 /* Hash table for zone counters */
 #ifndef RES_DOMAIN_HASH_BITS
 #define RES_DOMAIN_HASH_BITS 12
@@ -6762,12 +6771,52 @@ unlock:
 	return result;
 }
 
+/*
+ * Truncate 'rdataset' to at most 'max' rdata, by unlinking the trailing
+ * rdata from the underlying rdatalist.  The rdataset must be backed by a
+ * dns_rdatalist, which is the case for rdatasets parsed from a message.
+ */
+static void
+truncate_rdataset(dns_rdataset_t *rdataset, unsigned int max) {
+	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdata_t *keep = NULL;
+	dns_rdata_t *next = NULL;
+	unsigned int i;
+
+	REQUIRE(max > 0);
+
+	if (dns_rdataset_count(rdataset) <= max) {
+		return;
+	}
+
+	dns_rdatalist_fromrdataset(rdataset, &rdatalist);
+
+	keep = ISC_LIST_HEAD(rdatalist->rdata);
+	for (i = 1; i < max && keep != NULL; i++) {
+		keep = ISC_LIST_NEXT(keep, link);
+	}
+	INSIST(keep != NULL);
+
+	next = ISC_LIST_NEXT(keep, link);
+	while (next != NULL) {
+		dns_rdata_t *unlinked = next;
+		next = ISC_LIST_NEXT(next, link);
+		ISC_LIST_UNLINK(rdatalist->rdata, unlinked, link);
+	}
+}
+
 static void
 mark_related(dns_name_t *name, dns_rdataset_t *rdataset, bool external,
 	     bool gluing) {
 	name->attributes.cache = true;
 	if (gluing) {
 		rdataset->trust = dns_trust_glue;
+		if (rdataset->type == dns_rdatatype_a ||
+		    rdataset->type == dns_rdatatype_aaaa)
+		{
+			truncate_rdataset(rdataset, DELEG_MAX_GLUES_PER_NS);
+		}
+
 		/*
 		 * Glue with 0 TTL causes problems.  We force the TTL to
 		 * 1 second to prevent this.
@@ -6901,12 +6950,6 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 
 	REQUIRE(VALID_FCTX(fctx));
 
-#if CHECK_FOR_GLUE_IN_ANSWER
-	if (section == DNS_SECTION_ANSWER && type != dns_rdatatype_a) {
-		return ISC_R_SUCCESS;
-	}
-#endif /* if CHECK_FOR_GLUE_IN_ANSWER */
-
 	gluing = (GLUING(fctx) || (fctx->type == dns_rdatatype_ns &&
 				   dns_name_equal(fctx->name, dns_rootname)));
 
@@ -6961,18 +7004,6 @@ check_related(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 	      dns_rdataset_t *found DNS__DB_FLARG) {
 	return check_section(arg, addname, type, found, DNS_SECTION_ADDITIONAL);
 }
-
-#ifndef CHECK_FOR_GLUE_IN_ANSWER
-#define CHECK_FOR_GLUE_IN_ANSWER 0
-#endif /* ifndef CHECK_FOR_GLUE_IN_ANSWER */
-
-#if CHECK_FOR_GLUE_IN_ANSWER
-static isc_result_t
-check_answer(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
-	     dns_rdataset_t *found) {
-	return check_section(arg, addname, type, found, DNS_SECTION_ANSWER);
-}
-#endif /* if CHECK_FOR_GLUE_IN_ANSWER */
 
 static bool
 is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
@@ -9518,22 +9549,6 @@ rctx_referral(respctx_t *rctx) {
 	 */
 	(void)dns_rdataset_additionaldata(rctx->ns_rdataset, rctx->ns_name,
 					  check_related, rctx, 0);
-#if CHECK_FOR_GLUE_IN_ANSWER
-	/*
-	 * Look in the answer section for "glue" that is incorrectly
-	 * returned as a answer.  This is needed if the server also
-	 * minimizes the response size by not adding records to the
-	 * additional section that are in the answer section or if
-	 * the record gets dropped due to message size constraints.
-	 */
-	if (rctx->glue_in_answer &&
-	    (fctx->type == dns_rdatatype_aaaa || fctx->type == dns_rdatatype_a))
-	{
-		(void)dns_rdataset_additionaldata(rctx->ns_rdataset,
-						  rctx->ns_name, check_answer,
-						  fctx, 0);
-	}
-#endif /* if CHECK_FOR_GLUE_IN_ANSWER */
 	FCTX_ATTR_CLR(fctx, FCTX_ATTR_GLUING);
 
 	/*
