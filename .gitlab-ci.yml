@@ -1,4 +1,7 @@
 variables:
+  # The default timeout is 60 minutes. Set RUNNER_SCRIPT_TIMEOUT to 55m to
+  # leave room for the after_script timeout that defaults to 5m.
+  RUNNER_SCRIPT_TIMEOUT: 55m
   # Not normally needed, but may be if some script uses `apt-get install`.
   DEBIAN_FRONTEND: noninteractive
   # Locale settings do not affect the build, but might affect tests.
@@ -535,6 +538,9 @@ stages:
         SHOTGUN_ROUNDS: 5
       when: manual
       allow_failure: true
+  timeout: 2h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 1h55m
   script:
     - if [ -n "$WEEKDAY" ] && [ "$(date +%w)" != "$WEEKDAY" ]; then exit 0; fi  # if WEEKDAY is set, only run on those days
     - if [ -z "$BASELINE" ]; then export BASELINE=$BIND_BASELINE_VERSION; fi  # this dotenv variable can't be set in the rules section, because rules are evaluated before any jobs run
@@ -563,7 +569,6 @@ stages:
   needs:
     - job: ci-variables
       artifacts: true
-  timeout: 2h
 
 .system_test_common: &system_test_job
   <<: *default_triggering_rules
@@ -689,6 +694,11 @@ stages:
     - *setup_interfaces
     - *git_clone_bind9-qa
     - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+  after_script:
+    - *parse_tsan
+    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+    - if [ ! -e rspworkdir/report.json ]; then respdiff/msgdiff.py --config rspworkdir/respdiff.cfg rspworkdir; fi
+    - if [ ! -e rspworkdir/report.txt ]; then respdiff/diffsum.py --config rspworkdir/respdiff.cfg --limit 0 rspworkdir | tee rspworkdir/report.txt; fi
   needs: []
   artifacts:
     paths:
@@ -2463,7 +2473,7 @@ respdiff:
     CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.3"
   script:
-    - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
     - cd ../.. && make clean >/dev/null 2>&1
 
 respdiff:asan:
@@ -2476,7 +2486,7 @@ respdiff:asan:
     EXTRA_CONFIGURE: "--disable-dnsrps --without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.3"
   script:
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
     - cd ../.. && make clean >/dev/null 2>&1
 
 respdiff:tsan:
@@ -2490,10 +2500,8 @@ respdiff:tsan:
     MAX_DISAGREEMENTS_PERCENTAGE: "0.3"
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
     - cd ../.. && make clean >/dev/null 2>&1
-  after_script:
-    - *parse_tsan
 
 respdiff-third-party:
   <<: *respdiff_job
@@ -2503,7 +2511,7 @@ respdiff-third-party:
     CFLAGS: "${CFLAGS_COMMON} -Og"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.4"
   script:
-    - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
+    - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}"
     - cd ../.. && make clean >/dev/null 2>&1
 
 .respdiff-recent-named: &respdiff_recent_named
@@ -2522,7 +2530,7 @@ respdiff-third-party:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "${CI_PROJECT_DIR}/baseline-build/bin/named/named"
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}" "${CI_PROJECT_DIR}/baseline-build/bin/named/named"
 
 respdiff:recent-named:
   <<: *respdiff_recent_named
