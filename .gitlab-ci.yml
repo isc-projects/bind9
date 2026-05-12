@@ -1,4 +1,7 @@
 variables:
+  # The default timeout is 60 minutes. Set RUNNER_SCRIPT_TIMEOUT to 55m to
+  # leave room for the after_script timeout that defaults to 5m.
+  RUNNER_SCRIPT_TIMEOUT: 55m
   # Not normally needed, but may be if some script uses `apt-get install`.
   DEBIAN_FRONTEND: noninteractive
   # Locale settings do not affect the build, but might affect tests.
@@ -283,7 +286,11 @@ stages:
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
-    - cd bind9-qa/respdiff
+    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+  after_script:
+    - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
+    - if [ ! -e rspworkdir/report.json ]; then respdiff/msgdiff.py --config rspworkdir/respdiff.cfg rspworkdir; fi
+    - if [ ! -e rspworkdir/report.txt ]; then respdiff/diffsum.py --config rspworkdir/respdiff.cfg --limit 0 rspworkdir | tee rspworkdir/report.txt; fi
   needs: []
   artifacts:
     paths:
@@ -987,7 +994,7 @@ respdiff:
     CFLAGS: "${CFLAGS_COMMON} -Og"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.3"
   script:
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
 
 respdiff:asan:
   <<: *respdiff_job
@@ -999,7 +1006,7 @@ respdiff:asan:
     LDFLAGS: "-fsanitize=address,undefined"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.3"
   script:
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
 
 respdiff-third-party:
   <<: *respdiff_job
@@ -1010,7 +1017,7 @@ respdiff-third-party:
     CFLAGS: "${CFLAGS_COMMON} -Og"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.4"
   script:
-    - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
+    - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}"
 
 gcov:
   <<: *base_image
