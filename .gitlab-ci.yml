@@ -1638,6 +1638,10 @@ tsan:stress:
   inherit:
     variables:
       - CI_REGISTRY_IMAGE
+      - TSAN_OPTIONS_COMMON
+      - TSAN_OPTIONS_DEBIAN
+      - TSAN_OPTIONS_FEDORA
+      - TSAN_SUPPRESSIONS
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
   trigger:
