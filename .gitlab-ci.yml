@@ -2583,6 +2583,7 @@ stress-test-child-pipeline:
   inherit:
     variables:
       - CI_REGISTRY_IMAGE
+      - CONFIGURE
   rules:
     - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       changes:
