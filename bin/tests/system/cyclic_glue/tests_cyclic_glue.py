@@ -50,7 +50,7 @@ def test_cyclic_glues(ns1, ns4, templates):
     templates.render("ns1/root.db", {"broken_ns": True})
     with ns1.watch_log_from_here() as watcher:
         ns1.rndc("reload")
-        watcher.wait_for_line(["running", "zone ./IN: loaded serial"])
+        watcher.wait_for_all(["running", "zone ./IN: loaded serial"])
 
     with ns4.watch_log_from_here() as watcher:
         ns4.rndc("flush")
