@@ -1724,6 +1724,13 @@ unit:clang:tsan:
 tsan:stress:
   <<: *default_triggering_rules
   stage: system
+  # In a downstream pipeline, yaml variables inherited from the parent outrank
+  # the child's job-level `variables:` block. Inherit only what the child
+  # actually needs (image lookup), so the parent's RUNNER_SCRIPT_TIMEOUT does
+  # not override the per-job values set in the generated child config.
+  inherit:
+    variables:
+      - CI_REGISTRY_IMAGE
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
   trigger:
@@ -2477,6 +2484,13 @@ shotgun:doh-get:
 stress-test-child-pipeline:
   <<: *default_triggering_rules
   stage: performance
+  # In a downstream pipeline, yaml variables inherited from the parent outrank
+  # the child's job-level `variables:` block. Inherit only what the child
+  # actually needs (image lookup), so the parent's RUNNER_SCRIPT_TIMEOUT does
+  # not override the per-job values set in the generated child config.
+  inherit:
+    variables:
+      - CI_REGISTRY_IMAGE
   rules:
     - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       changes:
