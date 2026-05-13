@@ -4269,15 +4269,15 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
 	dst_key_t *dstkey = NULL;
 
 	isc_buffer_init(&buffer, data, sizeof(data));
-	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
-			     dns_rdatatype_dnskey, dnskey, &buffer);
 
-	result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &dstkey);
-	if (result == ISC_R_SUCCESS) {
-		*tag = dst_key_id(dstkey);
-		dst_key_free(&dstkey);
-	}
+	CHECK(dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
+				   dns_rdatatype_dnskey, dnskey, &buffer));
+	CHECK(dns_dnssec_keyfromrdata(name, &rdata, mctx, &dstkey));
 
+	*tag = dst_key_id(dstkey);
+	dst_key_free(&dstkey);
+
+cleanup:
 	return result;
 }
 
@@ -4311,15 +4311,12 @@ trust_key(dns_zone_t *zone, dns_name_t *keyname, dns_rdata_dnskey_t *dnskey,
 	dns_keytable_t *sr = NULL;
 	dns_rdata_ds_t ds;
 
-	result = dns_view_getsecroots(zone->view, &sr);
-	if (result != ISC_R_SUCCESS) {
-		return;
-	}
+	CHECK(dns_view_getsecroots(zone->view, &sr));
 
 	/* Build DS record for key. */
 	isc_buffer_init(&buffer, data, sizeof(data));
-	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
-			     dns_rdatatype_dnskey, dnskey, &buffer);
+	CHECK(dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
+				   dns_rdatatype_dnskey, dnskey, &buffer));
 	CHECK(dns_ds_fromkeyrdata(keyname, &rdata, DNS_DSDIGEST_SHA256, digest,
 				  &ds));
 	CHECK(dns_keytable_add(sr, true, initial, keyname, &ds, sfd_add,
@@ -10034,7 +10031,7 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target, unsigned char *data,
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_keydata_t keydata;
 	isc_buffer_t buf;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	dns_rdata_reset(target);
 	isc_buffer_init(&buf, data, size);
@@ -10044,8 +10041,9 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target, unsigned char *data,
 		result = dns_rdata_tostruct(rr, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dnskey.flags &= ~DNS_KEYFLAG_REVOKE;
-		dns_rdata_fromstruct(target, rr->rdclass, dns_rdatatype_dnskey,
-				     &dnskey, &buf);
+		result = dns_rdata_fromstruct(target, rr->rdclass,
+					      dns_rdatatype_dnskey, &dnskey,
+					      &buf);
 		break;
 	case dns_rdatatype_keydata:
 		result = dns_rdata_tostruct(rr, &keydata, NULL);
@@ -10054,13 +10052,15 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target, unsigned char *data,
 		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_keydata_todnskey(&keydata, &dnskey, NULL);
-		dns_rdata_fromstruct(target, rr->rdclass, dns_rdatatype_dnskey,
-				     &dnskey, &buf);
+		result = dns_rdata_fromstruct(target, rr->rdclass,
+					      dns_rdatatype_dnskey, &dnskey,
+					      &buf);
 		break;
 	default:
 		UNREACHABLE();
 	}
-	return ISC_R_SUCCESS;
+
+	return result;
 }
 
 /*
@@ -10260,8 +10260,13 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 	/* Generate a key from keydata */
 	isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
 	dns_keydata_todnskey(keydata, &dnskey, NULL);
-	dns_rdata_fromstruct(&rr, keydata->common.rdclass, dns_rdatatype_dnskey,
-			     &dnskey, &keyb);
+
+	result = dns_rdata_fromstruct(&rr, keydata->common.rdclass,
+				      dns_rdatatype_dnskey, &dnskey, &keyb);
+	if (result != ISC_R_SUCCESS) {
+		return false;
+	}
+
 	result = dns_dnssec_keyfromrdata(keyname, &rr, mctx, &dstkey);
 	if (result != ISC_R_SUCCESS) {
 		return false;
@@ -10615,9 +10620,16 @@ anchors_done:
 
 			dns_rdata_reset(&keydatarr);
 			isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
-			dns_rdata_fromstruct(&keydatarr, zone->rdclass,
-					     dns_rdatatype_keydata, &keydata,
-					     &keyb);
+			result = dns_rdata_fromstruct(&keydatarr, zone->rdclass,
+						      dns_rdatatype_keydata,
+						      &keydata, &keyb);
+			if (result != ISC_R_SUCCESS) {
+				dnssec_log(zone, ISC_LOG_WARNING,
+					   "dns_rdata_fromstruct failed: "
+					   "KEYDATA %d: %s",
+					   keytag, isc_result_totext(result));
+				continue;
+			}
 
 			/* Insert updated version */
 			CHECK(update_one_rr(kfetch->db, ver, &diff,
@@ -10846,9 +10858,16 @@ anchors_done:
 			keydata.refresh = refresh_time(kfetch, false);
 			dns_rdata_reset(&keydatarr);
 			isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
-			dns_rdata_fromstruct(&keydatarr, zone->rdclass,
-					     dns_rdatatype_keydata, &keydata,
-					     &keyb);
+			result = dns_rdata_fromstruct(&keydatarr, zone->rdclass,
+						      dns_rdatatype_keydata,
+						      &keydata, &keyb);
+			if (result != ISC_R_SUCCESS) {
+				dnssec_log(zone, ISC_LOG_WARNING,
+					   "dns_rdata_fromstruct failed: "
+					   "KEYDATA %d: %s",
+					   keytag, isc_result_totext(result));
+				continue;
+			}
 
 			/* Insert updated version */
 			CHECK(update_one_rr(kfetch->db, ver, &diff,
@@ -10866,9 +10885,9 @@ anchors_done:
 			keydata.refresh = refresh_time(kfetch, false);
 			dns_rdata_reset(&keydatarr);
 			isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
-			dns_rdata_fromstruct(&keydatarr, zone->rdclass,
-					     dns_rdatatype_keydata, &keydata,
-					     &keyb);
+			CHECK(dns_rdata_fromstruct(&keydatarr, zone->rdclass,
+						   dns_rdatatype_keydata,
+						   &keydata, &keyb));
 
 			/* Insert into key zone */
 			CHECK(update_one_rr(kfetch->db, ver, &diff,
