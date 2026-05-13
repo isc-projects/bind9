@@ -1,0 +1,29 @@
+#!/usr/bin/env stap
+#
+# resolver-trace.stp - trace resolver queries
+#
+# Prints every resolver query to an upstream DNS server, each trace is
+# identified by the fetch context. The trace contains the server IP, port and
+# SRTT value.
+#
+# Usage:
+#   sudo stap resolver-trace.stp /path/to/named
+#   sudo stap resolver-trace.stp /path/to/named -x <pid>
+#
+# Output columns: elapsed milliseconds, fetch context pointer, server socket
+# address and SRTT.
+
+global start_time
+
+probe begin {
+	start_time = gettimeofday_ms()
+	printf("%-10s %-16s %-46s %s\n", "ms", "fctx", "server", "SRTT")
+}
+
+probe process(@1).mark("resolver_query") {
+	printf("%-10d %-16p %-46s %d\n",
+	       gettimeofday_ms() - start_time,
+	       $arg1,
+	       user_string($arg2),
+	       $arg3)
+}

@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 probe_hdr = dtrace_header.process('probes-dns.d')
-probe_src = [probe_hdr, files('deleg.c', 'xfrin.c')]
+probe_src = [probe_hdr, files('deleg.c', 'resolver.c', 'xfrin.c')]
 
 # dns_inc += include_directories('include')
 dns_inc_p += include_directories('.')
@@ -145,7 +145,6 @@ dns_srcset.add(
         'remote.c',
         'request.c',
         'resconf.c',
-        'resolver.c',
         'result.c',
         'rootns.c',
         'rpz.c',
