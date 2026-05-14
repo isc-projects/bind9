@@ -214,6 +214,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	[DNS_R_NOSKRBUNDLE] = "no available SKR bundle",
 	[DNS_R_LOOPDETECTED] = "fetch loop detected",
 	[DNS_R_INVALIDDSYNC] = "invalid DSYNC response",
+	[DNS_R_MISMATCH] = "response with mismatched query id",
 
 	[DST_R_UNSUPPORTEDALG] = "algorithm is unsupported",
 	[DST_R_CRYPTOFAILURE] = "crypto failure",
@@ -448,6 +449,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	[DNS_R_NOSKRBUNDLE] = "DNS_R_NOSKRBUNDLE",
 	[DNS_R_LOOPDETECTED] = "DNS_R_LOOPDETECTED",
 	[DNS_R_INVALIDDSYNC] = "DNS_R_INVALIDDSYNC",
+	[DNS_R_MISMATCH] = "DNS_R_MISMATCH",
 
 	[DST_R_UNSUPPORTEDALG] = "DST_R_UNSUPPORTEDALG",
 	[DST_R_CRYPTOFAILURE] = "DST_R_CRYPTOFAILURE",
