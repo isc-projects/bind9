@@ -4354,6 +4354,8 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 			FCTX_ATTR_SET(fctx, FCTX_ATTR_ADDRWAIT);
 			return;
 		default:
+			dns_ede_add(&fctx->edectx, DNS_EDE_NOREACHABLEAUTH,
+				    NULL);
 			goto done;
 		}
 
@@ -4371,6 +4373,8 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 		 */
 		if (addrinfo == NULL) {
 			result = DNS_R_SERVFAIL;
+			dns_ede_add(&fctx->edectx, DNS_EDE_NOREACHABLEAUTH,
+				    NULL);
 			goto done;
 		}
 	}
