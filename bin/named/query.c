@@ -6125,7 +6125,9 @@ query_addnoqnameproof(ns_client_t *client, dns_rdataset_t *rdataset) {
 		goto cleanup;
 
 	result = dns_rdataset_getnoqname(rdataset, fname, neg, negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	query_addrrset(client, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
