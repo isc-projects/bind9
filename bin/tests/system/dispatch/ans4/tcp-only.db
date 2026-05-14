@@ -9,10 +9,7 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-.		300	SOA	. . 0 0 0 0 0
-.		300	NS	ns.nil.
-ns.nil.		300	A	10.53.0.1
-example.	300	NS	ns.example.
-ns.example.	300	A	10.53.0.2
-tcp-only.	300	NS	ns.tcp-only.
-ns.tcp-only.	300	A	10.53.0.4
+@			3600	SOA	. . 1 1 1 1 1
+@			3600	NS	ns
+ns			3600	A	10.53.0.4
+foo			3600	A	127.0.0.1
