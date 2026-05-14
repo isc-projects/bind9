@@ -387,7 +387,7 @@ else
     cc.has_function('__builtin_popcountll', required: true)
 endif
 
-foreach attr : ['malloc', 'returns_nonnull']
+foreach attr : ['malloc', 'returns_nonnull', 'warn_unused_result']
     if cc.has_function_attribute(attr)
         config.set('HAVE_FUNC_ATTRIBUTE_@0@'.format(attr.to_upper()), 1)
     endif

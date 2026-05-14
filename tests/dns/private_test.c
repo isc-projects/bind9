@@ -75,6 +75,7 @@ make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
 static void
 make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 	   unsigned char *pbuf) {
+	isc_result_t result;
 	dns_rdata_nsec3param_t params;
 	dns_rdata_t nsec3param = DNS_RDATA_INIT;
 	unsigned char bufdata[BUFSIZ];
@@ -111,8 +112,9 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 	}
 
 	isc_buffer_init(&buf, bufdata, sizeof(bufdata));
-	dns_rdata_fromstruct(&nsec3param, dns_rdataclass_in,
-			     dns_rdatatype_nsec3param, &params, &buf);
+	result = dns_rdata_fromstruct(&nsec3param, dns_rdataclass_in,
+				      dns_rdatatype_nsec3param, &params, &buf);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_rdata_init(private);
 
