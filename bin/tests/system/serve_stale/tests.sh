@@ -1399,7 +1399,7 @@ sleep 2
 n=$((n + 1))
 echo_i "check notincache.example TXT times out (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${PORT} +tries=1 +timeout=3 @10.53.0.3 notfound.example TXT >dig.out.test$n 2>&1 && ret=1
+$DIG -p ${PORT} +tries=1 +timeout=2 @10.53.0.3 notfound.example TXT >dig.out.test$n 2>&1 && ret=1
 grep "timed out" dig.out.test$n >/dev/null || ret=1
 grep ";; no servers could be reached" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1947,7 +1947,7 @@ status=$((status + ret))
 # authoritative server.
 echo_i "sending query for test $((n + 2))"
 $DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$((n + 2)) &
-sleep 3
+sleep 1
 
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
