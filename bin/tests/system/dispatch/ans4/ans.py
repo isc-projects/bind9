@@ -22,19 +22,19 @@ from isctest.asyncserver import (
 )
 
 
-class TcpOnlyHandler(ResponseHandler):
+class DropUdpHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[ResponseAction, None]:
-        if qctx.protocol == DnsProtocol.TCP:
-            yield DnsResponseSend(qctx.response)
-        else:
+        if qctx.protocol == DnsProtocol.UDP:
             yield ResponseDrop()
+        else:
+            yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(TcpOnlyHandler())
+    server.install_response_handler(DropUdpHandler())
     server.run()
 
 

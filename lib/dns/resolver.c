@@ -2033,6 +2033,9 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	isc_interval_set(&fctx->interval, seconds, us * NS_PER_US);
 }
 
+static struct tried *
+triededns(fetchctx_t *fctx, isc_sockaddr_t *address);
+
 static isc_result_t
 fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	   unsigned int options) {
@@ -2123,6 +2126,23 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			if (result == ISC_R_SUCCESS && usetcp) {
 				options |= DNS_FETCHOPT_TCP;
 			}
+		}
+	}
+
+	/*
+	 * If this server has already been tried at least twice in this
+	 * fetch context after the previous attempt timed out, force TCP
+	 * for this attempt.  The decision must be made here, before the
+	 * dispatch type is chosen below, so that the dispatch and the
+	 * DNS_FETCHOPT_TCP flag agree.
+	 */
+	if (fctx->timeout && fctx->timeouts >= 2U &&
+	    (options & DNS_FETCHOPT_NOEDNS0) == 0 &&
+	    (options & DNS_FETCHOPT_TCP) == 0)
+	{
+		struct tried *tried = triededns(fctx, &sockaddr);
+		if (tried != NULL && tried->count >= 2U) {
+			options |= DNS_FETCHOPT_TCP;
 		}
 	}
 
