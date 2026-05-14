@@ -6914,7 +6914,7 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 static isc_result_t
 addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	   uint32_t maxrrperset, dns_rdataset_t *rdataset) {
-	struct noqname *noqname;
+	struct noqname *noqname = NULL;
 	isc_mem_t *mctx = rbtdb->common.mctx;
 	dns_name_t name;
 	dns_rdataset_t neg, negsig;
@@ -6926,7 +6926,9 @@ addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	dns_rdataset_init(&negsig);
 
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	noqname = isc_mem_get(mctx, sizeof(*noqname));
 	dns_name_init(&noqname->name, NULL);
@@ -6952,7 +6954,9 @@ addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 cleanup:
 	dns_rdataset_disassociate(&neg);
 	dns_rdataset_disassociate(&negsig);
-	free_noqname(mctx, &noqname);
+	if (noqname != NULL) {
+		free_noqname(mctx, &noqname);
+	}
 	return (result);
 }
 

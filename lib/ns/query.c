@@ -7499,7 +7499,9 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	}
 
 	result = dns_rdataset_getnoqname(qctx->noqname, fname, neg, negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	query_addrrset(qctx, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
