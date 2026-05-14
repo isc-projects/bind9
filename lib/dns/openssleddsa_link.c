@@ -22,6 +22,7 @@
 
 #include <isc/crypto.h>
 #include <isc/mem.h>
+#include <isc/ossl_wrap.h>
 #include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/string.h>
@@ -269,6 +270,27 @@ openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	REQUIRE(alginfo != NULL);
 	UNUSED(unused);
 	UNUSED(callback);
+
+	if (key->label != NULL) {
+		switch (key->key_alg) {
+		case DST_ALG_ED25519:
+			RETERR(isc_ossl_wrap_generate_pkcs11_ed25519_key(
+				key->label, &pkey));
+			break;
+#if HAVE_OPENSSL_ED448
+		case DST_ALG_ED448:
+			RETERR(isc_ossl_wrap_generate_pkcs11_ed448_key(
+				key->label, &pkey));
+			break;
+#endif /* HAVE_OPENSSL_ED448 */
+		default:
+			UNREACHABLE();
+		}
+		key->key_size = alginfo->key_size * 8;
+		key->keydata.pkeypair.priv = pkey;
+		key->keydata.pkeypair.pub = pkey;
+		return ISC_R_SUCCESS;
+	}
 
 	ctx = EVP_PKEY_CTX_new_id(alginfo->nid, NULL);
 	if (ctx == NULL) {

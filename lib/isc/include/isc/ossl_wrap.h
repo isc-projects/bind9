@@ -132,6 +132,28 @@ isc_ossl_wrap_generate_pkcs11_p384_key(char *uri, EVP_PKEY **pkeyp);
  */
 
 isc_result_t
+isc_ossl_wrap_generate_pkcs11_ed25519_key(char *uri, EVP_PKEY **pkeyp);
+/*%
+ * Generates an Ed25519 key using the PKCS#11 label specified at `uri`.
+ *
+ * Requires:
+ * \li pkeyp != NULL
+ * \li *pkeyp == NULL
+ * \li `uri != NULL` and is a NUL-terminated string
+ */
+
+isc_result_t
+isc_ossl_wrap_generate_pkcs11_ed448_key(char *uri, EVP_PKEY **pkeyp);
+/*%
+ * Generates an Ed448 key using the PKCS#11 label specified at `uri`.
+ *
+ * Requires:
+ * \li pkeyp != NULL
+ * \li *pkeyp == NULL
+ * \li `uri != NULL` and is a NUL-terminated string
+ */
+
+isc_result_t
 isc_ossl_wrap_load_p384_public_from_region(isc_region_t region,
 					   EVP_PKEY   **pkeyp);
 /*%
