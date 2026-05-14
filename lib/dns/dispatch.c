@@ -592,12 +592,17 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	}
 
 	/*
-	 * The QID and the address must match the expected ones.
+	 * The QID and the address must match the expected ones.  A
+	 * mismatch can happen during normal operation only when a stale
+	 * response from a previous query arrives late, which is rare in
+	 * practice; treat any mismatch as a possible spoofing attempt and
+	 * let the caller retry over TCP to prevent off-path spoofing.
 	 */
 	if (resp->id != id || !isc_sockaddr_equal(&peer, &resp->peer)) {
 		dispentry_log(resp, LVL(90), "response doesn't match");
 		inc_stats(disp->mgr, dns_resstatscounter_mismatch);
-		goto next;
+		eresult = DNS_R_MISMATCH;
+		goto done;
 	}
 
 	/*
