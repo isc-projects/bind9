@@ -151,6 +151,12 @@ dns_delegset_allocset(dns_delegdb_t *db, dns_delegset_t **delegsetp);
 void
 dns_delegset_allocdeleg(dns_delegset_t *delegset, dns_deleg_type_t type,
 			dns_deleg_t **delegp);
+/*
+ * Free the deleg struct and remove it from the delegation set. Can't
+ * be used on delegation set already attached in the DB.
+ */
+void
+dns_delegset_freedeleg(dns_delegset_t *delegset, dns_deleg_t **delegp);
 
 /*
  * Add a new IP into a delegation. Can't be used on a delegation from a

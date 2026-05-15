@@ -423,6 +423,21 @@ dns_delegset_allocdeleg(dns_delegset_t *delegset, dns_deleg_type_t type,
 }
 
 void
+dns_delegset_freedeleg(dns_delegset_t *delegset, dns_deleg_t **delegp) {
+	REQUIRE(DNS_DELEGSET_VALID(delegset));
+	REQUIRE(delegp != NULL && *delegp != NULL);
+	REQUIRE(ISC_LIST_EMPTY((*delegp)->addresses));
+	REQUIRE(ISC_LIST_EMPTY((*delegp)->names));
+
+	dns_deleg_t *deleg = *delegp;
+	*delegp = NULL;
+
+	ISC_LIST_UNLINK(delegset->delegs, deleg, link);
+
+	isc_mem_put(delegset->mctx, deleg, sizeof(*deleg));
+}
+
+void
 dns_delegset_addaddr(dns_delegset_t *delegset, dns_deleg_t *deleg,
 		     const isc_netaddr_t *addr) {
 	isc_netaddrlink_t *addrlink = NULL;

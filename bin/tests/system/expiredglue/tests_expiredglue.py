@@ -45,11 +45,12 @@ def test_expiredglue(ns4):
     isctest.check.same_data(res3_2, res3)
 
 
-def test_loopdetected(ns4):
+def test_missing_mandatory_glue(ns4):
     msg = isctest.query.create("a.missing.tld.", "A")
     with ns4.watch_log_from_here() as watcher:
         res = isctest.query.udp(msg, ns4.ip)
 
-        # However, this is a valid fetch loop, and named detects it.
-        watcher.wait_for_line("loop detected resolving 'ns.missing.tld/A'")
+        # The NS for missing.tld. is in-domain and has no glue, so
+        # named drops the delegation rather than chasing it.
+        watcher.wait_for_line("missing mandatory glue for ns.missing.tld")
         isctest.check.servfail(res)
