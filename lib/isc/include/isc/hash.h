@@ -26,8 +26,8 @@
 #define ISC_HASH_MIN_BITS   2U
 #define ISC_HASH_MAX_BITS   32U
 
-typedef struct isc_halfsiphash24 isc_hash32_t;
-typedef struct isc_siphash24	 isc_hash64_t;
+typedef isc_halfsiphash13_t isc_hash32_t;
+typedef isc_siphash13_t	    isc_hash64_t;
 
 /***
  *** Functions
