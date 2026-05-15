@@ -31,6 +31,7 @@
 #include <dns/fixedname.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
+#include <dns/private.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -1108,7 +1109,7 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 	dns_rdataset_t rdataset;
 	bool flag;
 	isc_result_t result = ISC_R_SUCCESS;
-	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE + 1];
+	unsigned char buf[DNS_PRIVATE_BUFFERSIZE];
 	dns_name_t *origin = dns_zone_getorigin(zone);
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 
