@@ -223,6 +223,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	[DNS_R_NSEC3RESALT] = "NSEC3 resalt",
 	[DNS_R_INCONSISTENTRR] = "inconsistent resource record",
 	[DNS_R_NOALPN] = "no ALPN",
+	[DNS_R_MISMATCH] = "response with mismatched query id",
 
 	[DST_R_UNSUPPORTEDALG] = "algorithm is unsupported",
 	[DST_R_CRYPTOFAILURE] = "crypto failure",
@@ -473,6 +474,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	[DNS_R_NSEC3RESALT] = "DNS_R_NSEC3RESALT",
 	[DNS_R_INCONSISTENTRR] = "DNS_R_INCONSISTENTRR",
 	[DNS_R_NOALPN] = "DNS_R_NOALPN",
+	[DNS_R_MISMATCH] = "DNS_R_MISMATCH",
 
 	[DST_R_UNSUPPORTEDALG] = "DST_R_UNSUPPORTEDALG",
 	[DST_R_CRYPTOFAILURE] = "DST_R_CRYPTOFAILURE",

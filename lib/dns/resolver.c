@@ -8485,6 +8485,22 @@ rctx_dispfail(respctx_t *rctx) {
 		rctx->finish = NULL;
 		rctx->no_response = true;
 		break;
+	case DNS_R_MISMATCH:
+		/*
+		 * The dispatcher saw a UDP response from the expected peer with
+		 * the wrong DNS message id.  Retry the same query over TCP.
+		 */
+		if ((rctx->retryopts & DNS_FETCHOPT_TCP) == 0) {
+			rctx->retryopts |= DNS_FETCHOPT_TCP;
+			rctx->resend = true;
+			rctx->next_server = false;
+			inc_stats(fctx->res, dns_resstatscounter_mismatchtcp);
+			FCTXTRACE3("mismatched response; retrying over TCP",
+				   rctx->result);
+			rctx_done(rctx, ISC_R_SUCCESS);
+			return ISC_R_COMPLETE;
+		}
+		break;
 	default:
 		break;
 	}
