@@ -464,6 +464,10 @@ init_desc(void) {
 			"ClientQuota");
 	SET_RESSTATDESC(nextitem, "waited for next item", "NextItem");
 	SET_RESSTATDESC(priming, "priming queries", "Priming");
+	SET_RESSTATDESC(mismatchtcp,
+			"queries retried over TCP after a response with "
+			"mismatched query id",
+			"MismatchTCP");
 
 	INSIST(i == dns_resstatscounter_max);
 
