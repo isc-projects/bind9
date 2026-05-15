@@ -539,6 +539,10 @@ init_desc(void) {
 	SET_RESSTATDESC(priming, "priming queries", "Priming");
 	SET_RESSTATDESC(forwardonlyfail, "all forwarders failed",
 			"ForwardOnlyFail");
+	SET_RESSTATDESC(mismatchtcp,
+			"queries retried over TCP after a response with "
+			"mismatched query id",
+			"MismatchTCP");
 
 	INSIST(i == dns_resstatscounter_max);
 

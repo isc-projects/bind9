@@ -71,7 +71,8 @@ enum {
 	dns_resstatscounter_nextitem = 38,
 	dns_resstatscounter_priming = 39,
 	dns_resstatscounter_forwardonlyfail = 40,
-	dns_resstatscounter_max = 41,
+	dns_resstatscounter_mismatchtcp = 41,
+	dns_resstatscounter_max = 42,
 
 	/*
 	 * DNSSEC stats.
