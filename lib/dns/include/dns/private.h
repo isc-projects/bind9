@@ -16,7 +16,14 @@
 #include <isc/types.h>
 
 #include <dns/db.h>
+#include <dns/nsec.h>
 #include <dns/types.h>
+
+/*
+ * The private record has one extra byte, containing a 0, in front of
+ * an NSEC3PARAM record.
+ */
+#define DNS_PRIVATE_BUFFERSIZE (DNS_NSEC3PARAM_BUFFERSIZE + 1)
 
 #pragma once
 
