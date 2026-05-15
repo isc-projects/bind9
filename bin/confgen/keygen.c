@@ -26,6 +26,7 @@
 #include <isc/result.h>
 #include <isc/string.h>
 
+#include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 
@@ -95,17 +96,17 @@ alg_bits(dns_secalg_t alg) {
  */
 void
 validate_keyname(const char *keyname) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	isc_result_t result;
+
 	if (keyname == NULL || keyname[0] == '\0') {
 		fatal("key name must not be empty");
 	}
-	for (const char *p = keyname; *p != '\0'; p++) {
-		unsigned char c = (unsigned char)*p;
-		if (!isalnum(c) && c != '.' && c != '-' && c != '_') {
-			fatal("key name '%s' contains invalid character; "
-			      "only alphanumerics, '.', '-', and '_' are "
-			      "allowed",
-			      keyname);
-		}
+
+	result = dns_name_fromstring(name, keyname, dns_rootname, 0, NULL);
+	if (result != ISC_R_SUCCESS) {
+		fatal("invalid key name: %s", isc_result_totext(result));
 	}
 }
 
