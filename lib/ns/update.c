@@ -2364,7 +2364,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_difftuple_t *tuple, *newtuple = NULL, *next;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE + 1];
+	unsigned char buf[DNS_PRIVATE_BUFFERSIZE];
 	dns_diff_t temp_diff;
 	dns_diffop_t op;
 	bool flag;
