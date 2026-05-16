@@ -2688,4 +2688,5 @@ pr-agent:
     - python -m pr_agent.cli --pr_url="$MR_URL" improve
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_PROJECT_PATH == $CI_PROJECT_PATH && $GITLAB_PERSONAL_ACCESS_TOKEN && $OPENAI_KEY'
+      when: manual
     - when: never
