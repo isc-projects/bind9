@@ -2682,8 +2682,15 @@ pr-agent:
     - echo "MR_URL=$MR_URL"
     - export gitlab__url="$CI_SERVER_URL"
     - export gitlab__PERSONAL_ACCESS_TOKEN="$GITLAB_PERSONAL_ACCESS_TOKEN"
+    - export config__model="anthropic/claude-opus-4-6"
+    - export config__fallback_models="[\"anthropic/claude-sonnet-4-6\"]"
+    - export config__enable_claude_extended_thinking=true
+    - export config__add_repo_metadata=true
+    - export config__add_repo_metadata_file_list="[\"CONTRIBUTING.md\"]"
     - export config__git_provider="gitlab"
     - export openai__key="$OPENAI_KEY"
+    - export anthropic__KEY="$ANTHROPIC_API_KEY"
+    - export config__reasoning_effort="high"
     - python -m pr_agent.cli --pr_url="$MR_URL" review
     - python -m pr_agent.cli --pr_url="$MR_URL" improve
   rules:
