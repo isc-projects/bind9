@@ -2672,7 +2672,7 @@ autorebase-security:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "pipeline" && $CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ && $REBASE_ONLY == "1" && $CI_COMMIT_REF_NAME =~ $AUTOREBASED_BRANCHES'
 
 pr-agent:
-  stage: other-checks
+  <<: *other_checks_job
   image:
     name: registry.gitlab.isc.org/isc-projects/images/pr-agent:latest
     entrypoint: [""]
