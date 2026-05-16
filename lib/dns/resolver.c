@@ -2571,7 +2571,9 @@ resquery_send(resquery_t *query) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 	}
 
-	if (fctx->timeout && (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+	if (fctx->timeout && (query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
+	    (query->options & DNS_FETCHOPT_TCP) == 0)
+	{
 		isc_sockaddr_t *sockaddr = &query->addrinfo->sockaddr;
 		struct tried *tried = triededns(fctx, sockaddr);
 
