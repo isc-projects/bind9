@@ -83,17 +83,16 @@ struct dns_tsigkey {
 	isc_mem_t      *mctx;
 	dst_key_t      *key; /*%< Key */
 	dns_fixedname_t fn;
-	dns_name_t     *name;		  /*%< Key name */
-	dst_algorithm_t alg;		  /*< Algorithm */
-	dns_name_t	algname;	  /*< Algorithm name, only used if
-					    algorithm is DST_ALG_UNKNOWN */
-	dns_name_t	  *creator;	  /*%< name that created secret */
-	bool		   generated : 1; /*%< key was auto-generated */
-	bool		   restored  : 1; /*%< key was restored at startup */
-	isc_stdtime_t	   inception;	  /*%< start of validity period */
-	isc_stdtime_t	   expire;	  /*%< end of validity period */
-	dns_tsigkeyring_t *ring;	  /*%< the enclosing keyring */
-	isc_refcount_t	   references;	  /*%< reference counter */
+	dns_name_t     *name;	      /*%< Key name */
+	dst_algorithm_t alg;	      /*< Algorithm */
+	dns_name_t	algname;      /*< Algorithm name, only used if
+					algorithm is DST_ALG_UNKNOWN */
+	dns_name_t    *creator;	      /*%< name that created secret */
+	bool	       generated : 1; /*%< key was auto-generated */
+	bool	       restored	 : 1; /*%< key was restored at startup */
+	isc_stdtime_t  inception;     /*%< start of validity period */
+	isc_stdtime_t  expire;	      /*%< end of validity period */
+	isc_refcount_t references;    /*%< reference counter */
 	ISC_LINK(dns_tsigkey_t) link;
 };
 
@@ -167,13 +166,14 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
  */
 
 void
-dns_tsigkey_delete(dns_tsigkey_t *key);
+dns_tsigkey_delete(dns_tsigkeyring_t *ring, dns_tsigkey_t *key);
 /*%<
  *	Prevents this key from being used again.  It will be deleted when
  *	no references exist.
  *
  *	Requires:
- *\li		'key' is a valid TSIG key on a keyring
+ *\li		'ring' is a valid TSIG keyring
+ *\li		'key' is a valid TSIG key on a keyring 'ring'
  */
 
 isc_result_t
