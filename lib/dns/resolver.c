@@ -69,6 +69,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
@@ -5521,6 +5522,99 @@ getrrsig(dns_name_t *name, dns_rdatatype_t type) {
 	return NULL;
 }
 
+static void
+delete_rrset(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type) {
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+
+	result = dns_db_findnode(fctx->cache, name, false, &node);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+
+	dns_db_deleterdataset(fctx->cache, node, NULL, type, 0);
+	dns_db_deleterdataset(fctx->cache, node, NULL, dns_rdatatype_rrsig,
+			      type);
+	dns_db_detachnode(&node);
+}
+
+/*
+ * When caching a CNAME, evict other RRsets at the same owner name,
+ * according to the RFC specifications.
+ *
+ * RFC 1034, 3.6.2: Aliases and canonical names
+ *   If a CNAME RR is present at a node, no other data should be
+ *   present.
+ * RFC 2181, 10.1: CNAME resource records
+ *   An alias name (label of a CNAME record) may,
+ *   if DNSSEC is in use, have SIG, NXT, and KEY RRs, but may have no
+ *   other data.
+ * RFC 2535, 2.3.5: Special Considerations with CNAME
+ * RFC 4034, 3: The RRSIG Resource Record
+ *   Because every authoritative RRset in a zone must be protected by a
+ *   digital signature, RRSIG RRs must be present for names containing a
+ *   CNAME RR.  This is a change to the traditional DNS specification
+ *   [RFC1034], which stated that if a CNAME is present for a name, it is
+ *   the only type allowed at that name.
+ * RFC 4034, 4: The NSEC Resource Record
+ *   Because every authoritative name in a zone must be part of the NSEC
+ *   chain, NSEC RRs must be present for names containing a CNAME RR.
+ *   This is a change to the traditional DNS specification [RFC1034],
+ *   which stated that if a CNAME is present for a name, it is the only
+ *   type allowed at that name.
+ *
+ * So types allowed next to CNAME are: KEY, SIG, NXT, RRSIG, and NSEC.
+ */
+static void
+evict_cname_other(fetchctx_t *fctx, dns_name_t *name) {
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdatasetiter_t *rdsiter = NULL;
+
+	result = dns_db_findnode(fctx->cache, name, false, &node);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+
+	result = dns_db_allrdatasets(fctx->cache, node, NULL, 0, 0, &rdsiter);
+	if (result != ISC_R_SUCCESS) {
+		dns_db_detachnode(&node);
+		return;
+	}
+
+	DNS_RDATASETITER_FOREACH(rdsiter) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
+		dns_rdatasetiter_current(rdsiter, &rdataset);
+		if (rdataset.type == dns_rdatatype_nsec ||
+		    rdataset.type == dns_rdatatype_nxt ||
+		    rdataset.type == dns_rdatatype_key)
+		{
+			/* KEY, NSEC and NXT records are allowed */
+			dns_rdataset_disassociate(&rdataset);
+			continue;
+		}
+		if (dns_rdatatype_issig(rdataset.type)) {
+			/* Signatures will be deleted together below */
+			dns_rdataset_disassociate(&rdataset);
+			continue;
+		}
+		if (rdataset.type == dns_rdatatype_none) {
+			/* Negative type. */
+			dns_rdataset_disassociate(&rdataset);
+			continue;
+		}
+
+		dns_db_deleterdataset(fctx->cache, node, NULL, rdataset.type,
+				      0);
+		dns_db_deleterdataset(fctx->cache, node, NULL,
+				      dns_rdatatype_rrsig, rdataset.type);
+		dns_rdataset_disassociate(&rdataset);
+	}
+
+	dns_rdatasetiter_destroy(&rdsiter);
+	dns_db_detachnode(&node);
+}
+
 static isc_result_t
 cache_rrset(fetchctx_t *fctx, isc_stdtime_t now, dns_name_t *name,
 	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
@@ -5575,6 +5669,21 @@ cache_rrset(fetchctx_t *fctx, isc_stdtime_t now, dns_name_t *name,
 		result = dns_db_findnode(fctx->cache, name, true, &node);
 	}
 
+	/*
+	 * Evict CNAME records, according to the RFC rules (see
+	 * evict_cname_other).
+	 *
+	 * Note that a signature is tied to the type it covers and is deleted
+	 * along with the covered RRset in 'delete_rrset()'.
+	 */
+	if (!dns_rdataset_matchestype(rdataset, dns_rdatatype_cname) &&
+	    !dns_rdataset_matchestype(rdataset, dns_rdatatype_key) &&
+	    !dns_rdataset_matchestype(rdataset, dns_rdatatype_nsec) &&
+	    !dns_rdataset_matchestype(rdataset, dns_rdatatype_nxt))
+	{
+		delete_rrset(fctx, name, dns_rdatatype_cname);
+	}
+
 	if (result == ISC_R_SUCCESS) {
 		result = dns_db_addrdataset(fctx->cache, node, NULL, now,
 					    rdataset, options | equalok, added);
@@ -5609,22 +5718,6 @@ cache_rrset(fetchctx_t *fctx, isc_stdtime_t now, dns_name_t *name,
 	}
 
 	return result;
-}
-
-static void
-delete_rrset(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type) {
-	isc_result_t result;
-	dns_dbnode_t *node = NULL;
-
-	result = dns_db_findnode(fctx->cache, name, false, &node);
-	if (result != ISC_R_SUCCESS) {
-		return;
-	}
-
-	dns_db_deleterdataset(fctx->cache, node, NULL, type, 0);
-	dns_db_deleterdataset(fctx->cache, node, NULL, dns_rdatatype_rrsig,
-			      type);
-	dns_db_detachnode(&node);
 }
 
 static void
@@ -6269,6 +6362,14 @@ rctx_cachename(respctx_t *rctx, dns_message_t *message, dns_name_t *name) {
 			continue;
 		} else if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
+
+		/*
+		 * If CNAME, delete other RRsets at the same name
+		 * from the cache.
+		 */
+		if (rdataset->type == dns_rdatatype_cname) {
+			evict_cname_other(fctx, name);
 		}
 
 		/* Find the signature for this rdataset */
