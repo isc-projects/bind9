@@ -316,7 +316,7 @@ process_deletetkey(dns_name_t *signer, dns_name_t *name,
 	 * was not generated with TKEY and is in the config file, it may be
 	 * reloaded later.
 	 */
-	dns_tsigkey_delete(tsigkey);
+	dns_tsigkey_delete(ring, tsigkey);
 
 	/* Release the reference */
 	dns_tsigkey_detach(&tsigkey);
@@ -444,7 +444,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 			if (tsigkey->inception != tsigkey->expire &&
 			    tsigkey->expire <= isc_stdtime_now())
 			{
-				dns_tsigkey_delete(tsigkey);
+				dns_tsigkey_delete(ring, tsigkey);
 				dns_tsigkey_detach(&tsigkey);
 				result = ISC_R_NOTFOUND;
 			} else {
