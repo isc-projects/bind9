@@ -1,6 +1,7 @@
 {% set reconfiged = reconfiged | default(False) %}
 {% set nsec_to_nsec3 = "nsec" if not reconfiged else "nsec3" %}
 {% set nsec3_to_nsec = "nsec3" if not reconfiged else "nsec" %}
+{% set nsec3_to_nsec_altalg = "nsec3" if not reconfiged else "nsec-altalg" %}
 {% set nsec3_change = "nsec3" if not reconfiged else "nsec3-other" %}
 {% set nsec3_from_optout = "optout" if not reconfiged else "nsec3" %}
 {% set nsec3_to_optout = "nsec3" if not reconfiged else "optout" %}
@@ -86,6 +87,18 @@ zone "nsec3-to-nsec.kasp" {
 	dnssec-policy "@nsec3_to_nsec@";
 };
 {% endif %}{# nsec3-to-nsec.kasp #}
+
+{% if "nsec3-to-nsec-altalg.kasp" in zones %}
+/*
+ * The zone starts with NSEC3, but will be reconfigured to use NSEC while
+ * rolling to the alternative DNSSEC algorithm.
+ */
+zone "nsec3-to-nsec-altalg.kasp" {
+	type primary;
+	file "nsec3-to-nsec-altalg.kasp.db";
+	dnssec-policy "@nsec3_to_nsec_altalg@";
+};
+{% endif %}{# nsec3-to-nsec-altalg.kasp #}
 
 {% if "nsec3-fails-to-load.kasp" in zones %}
 /*

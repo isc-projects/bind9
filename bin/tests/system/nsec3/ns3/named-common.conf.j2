@@ -25,6 +25,12 @@ dnssec-policy "nsec" {
 	// NSEC will be used;
 };
 
+dnssec-policy "nsec-altalg" {
+	keys {
+		csk lifetime unlimited algorithm @ALTERNATIVE_ALGORITHM@;
+	};
+};
+
 dnssec-policy "nsec3" {
 	nsec3param;
 };
@@ -36,4 +42,3 @@ dnssec-policy "optout" {
 dnssec-policy "nsec3-other" {
 	nsec3param iterations 0 optout yes salt-length 8;
 };
-

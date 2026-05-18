@@ -37,6 +37,7 @@ ZONES = {
     "nsec3-dynamic-to-inline.kasp",
     "nsec3-inline-to-dynamic.kasp",
     "nsec3-to-nsec.kasp",
+    "nsec3-to-nsec-altalg.kasp",
     "nsec3-to-optout.kasp",
     "nsec3-from-optout.kasp",
     "nsec3-other.kasp",
@@ -244,6 +245,16 @@ def test_nsec_case(ns3, params):
                 ],
             },
             id="nsec3-to-nsec.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "nsec3-to-nsec-altalg.kasp",
+                "policy": "nsec3",
+                "key-properties": [
+                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent",
+                ],
+            },
+            id="nsec3-to-nsec-altalg.kasp",
         ),
         pytest.param(
             {
