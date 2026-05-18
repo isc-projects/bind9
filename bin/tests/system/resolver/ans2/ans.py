@@ -141,6 +141,7 @@ class Ns2Delegation(DelegationHandler):
 class Ns3Delegation(DelegationHandler):
     domains = [
         "example.net.",
+        "isc.org.",
         "lame.example.org.",
         "sub.example.org.",
     ]
