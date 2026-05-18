@@ -483,6 +483,45 @@ ISC_RUN_TEST_IMPL(tsig_badsig) {
 	tsig_tcp(isc_stdtime_now(), DNS_R_TSIGVERIFYFAILURE, true);
 }
 
+/*
+ * dns_tsigkey_delete() must be idempotent: a second call on a key
+ * that has already been removed from the keyring is a no-op and must
+ * not touch the key's refcount.
+ */
+static void
+tsig_delete(bool generated) {
+	dns_fixedname_t fkeyname;
+	dns_name_t *keyname = dns_fixedname_initname(&fkeyname);
+
+	isc_result_t result = dns_name_fromstring(keyname, "tsig-key",
+						  dns_rootname, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_tsigkeyring_t *ring = NULL;
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	assert_non_null(ring);
+
+	dns_tsigkey_t *key = NULL;
+	result = dns_tsigkey_createfromkey(keyname, DST_ALG_HMACSHA256, NULL,
+					   generated, false, NULL, 0, 0,
+					   isc_g_mctx, &key);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_tsigkeyring_add(ring, key);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_tsigkey_delete(ring, key);
+	dns_tsigkey_delete(ring, key);
+
+	dns_tsigkey_detach(&key);
+	dns_tsigkeyring_detach(&ring);
+}
+
+ISC_RUN_TEST_IMPL(tsig_delete) {
+	tsig_delete(false);
+	tsig_delete(true);
+}
+
 /* Tests the dns__tsig_algvalid function */
 ISC_RUN_TEST_IMPL(algvalid) {
 	UNUSED(state);
@@ -502,6 +541,7 @@ ISC_TEST_LIST_START
 ISC_TEST_ENTRY(algvalid)
 ISC_TEST_ENTRY(tsig_badsig)
 ISC_TEST_ENTRY(tsig_badtime)
+ISC_TEST_ENTRY(tsig_delete)
 ISC_TEST_ENTRY(tsig_tcp)
 ISC_TEST_LIST_END
 
