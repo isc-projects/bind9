@@ -2633,7 +2633,7 @@ dst_algorithm_fromprivatedns(isc_buffer_t *buffer) {
 	dns_name_t *name = dns_fixedname_initname(&fixed);
 	isc_result_t result;
 
-	result = dns_name_fromwire(name, buffer, DNS_DECOMPRESS_DEFAULT, NULL);
+	result = dns_name_fromwire(name, buffer, DNS_DECOMPRESS_NEVER, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return 0;
 	}
