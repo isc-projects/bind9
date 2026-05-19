@@ -2948,8 +2948,12 @@ cfg_map_findclause(const cfg_type_t *map, const char *name) {
 	REQUIRE(name != NULL);
 
 	found = cfg_map_firstclause(map, &clauses, &idx);
-	while (name != NULL && strcasecmp(name, found->name)) {
+	while (found != NULL && name != NULL && strcasecmp(name, found->name)) {
 		found = cfg_map_nextclause(map, &clauses, &idx);
+	}
+
+	if (found == NULL) {
+		return found;
 	}
 
 	return ((cfg_clausedef_t *)clauses) + idx;
