@@ -381,7 +381,6 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			return ISC_R_IGNORE;
 		}
 		if (type == dns_rdatatype_cname || type == dns_rdatatype_nsec ||
-		    type == dns_rdatatype_key ||
 		    !dns_nsec_typepresent(&rdata, dns_rdatatype_cname))
 		{
 			*exists = true;

@@ -1578,11 +1578,9 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	/*
 	 * Certain DNSSEC types are not subject to CNAME matching
-	 * (RFC4035, section 2.5 and RFC3007).
+	 * (RFC4035, section 2.5).
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec ||
-	    type == dns_rdatatype_rrsig)
-	{
+	if (type == dns_rdatatype_nsec || type == dns_rdatatype_rrsig) {
 		cname_ok = false;
 	}
 

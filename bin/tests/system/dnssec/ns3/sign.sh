@@ -115,11 +115,10 @@ zone=secure.example.
 infile=secure.example.db.in
 zonefile=secure.example.db
 
-cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "cnameandkey.$zone")
 dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "dnameandkey.$zone")
 keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
-cat "$infile" dsset-badalg.secure.example. "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" >"$zonefile"
+cat "$infile" dsset-badalg.secure.example. "$dnameandkey.key" "$keyname.key" >"$zonefile"
 
 "$SIGNER" -z -D -o "$zone" "$zonefile" >/dev/null
 cat "$zonefile" "$zonefile".signed >"$zonefile".tmp

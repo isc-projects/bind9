@@ -4571,7 +4571,6 @@ resume_qmin(void *arg) {
 		 */
 		if ((result == DNS_R_CNAME || result == DNS_R_DNAME) &&
 		    fctx->qmin_labels == dns_name_countlabels(fctx->name) &&
-		    fctx->type != dns_rdatatype_key &&
 		    fctx->type != dns_rdatatype_nsec &&
 		    fctx->type != dns_rdatatype_any &&
 		    fctx->type != dns_rdatatype_rrsig)
@@ -5576,11 +5575,9 @@ evict_cname_other(fetchctx_t *fctx, dns_name_t *name) {
 		dns_typepair_t typepair = DNS_TYPEPAIR_VALUE(rdataset.type,
 							     rdataset.covers);
 		switch (typepair) {
-		/* KEY and NSEC records are allowed */
+		/* NSEC records are allowed */
 		case DNS_TYPEPAIR(dns_rdatatype_nsec):
-		case DNS_TYPEPAIR(dns_rdatatype_key):
 		case DNS_SIGTYPEPAIR(dns_rdatatype_nsec):
-		case DNS_SIGTYPEPAIR(dns_rdatatype_key):
 		/* Keep the CNAME and its signature */
 		case DNS_TYPEPAIR(dns_rdatatype_cname):
 		case DNS_SIGTYPEPAIR(dns_rdatatype_cname):
@@ -5660,7 +5657,6 @@ cache_rrset(fetchctx_t *fctx, isc_stdtime_t now, dns_name_t *name,
 	 * along with the covered RRset in 'delete_rrset()'.
 	 */
 	if (!dns_rdataset_matchestype(rdataset, dns_rdatatype_cname) &&
-	    !dns_rdataset_matchestype(rdataset, dns_rdatatype_key) &&
 	    !dns_rdataset_matchestype(rdataset, dns_rdatatype_nsec))
 	{
 		delete_rrset(fctx, name, dns_rdatatype_cname);
@@ -8867,7 +8863,7 @@ rctx_answer_cname(respctx_t *rctx) {
 	}
 
 	if (rctx->type == dns_rdatatype_rrsig ||
-	    rctx->type == dns_rdatatype_key || rctx->type == dns_rdatatype_nsec)
+	    rctx->type == dns_rdatatype_nsec)
 	{
 		char buf[DNS_RDATATYPE_FORMATSIZE];
 		dns_rdatatype_format(rctx->type, buf, sizeof(buf));
