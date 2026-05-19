@@ -419,7 +419,6 @@ bool
 isc_ossl_wrap_rsa_key_bits_leq(EVP_PKEY *pkey, size_t limit) {
 	const RSA *rsa;
 	const BIGNUM *ce;
-	size_t bits = SIZE_MAX;
 
 	REQUIRE(pkey != NULL);
 
@@ -428,11 +427,13 @@ isc_ossl_wrap_rsa_key_bits_leq(EVP_PKEY *pkey, size_t limit) {
 		ce = NULL;
 		RSA_get0_key(rsa, NULL, &ce, NULL);
 		if (ce != NULL) {
-			bits = BN_num_bits(ce);
+			int bits = BN_num_bits(ce);
+
+			return bits > 0 && (size_t)bits <= limit;
 		}
 	}
 
-	return bits <= limit;
+	return false;
 }
 
 isc_result_t
