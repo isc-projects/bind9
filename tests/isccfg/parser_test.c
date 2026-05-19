@@ -303,6 +303,18 @@ view \"_bind\" chaos {\n\
 	cfg_obj_detach(&clone);
 }
 
+static const cfg_clausedef_t *const empty_clausesets[] = { NULL };
+
+static cfg_type_t cfg_type_empty_map = {
+	"empty_map", NULL, NULL, NULL, &cfg_rep_map, &empty_clausesets,
+};
+
+ISC_RUN_TEST_IMPL(cfg_map_findclause_empty) {
+	const cfg_clausedef_t *result = cfg_map_findclause(&cfg_type_empty_map,
+							   "anything");
+	assert_null(result);
+}
+
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(addzoneconf)
@@ -310,6 +322,7 @@ ISC_TEST_ENTRY(parse_buffer)
 ISC_TEST_ENTRY(cfg_map_firstclause)
 ISC_TEST_ENTRY(cfg_map_nextclause)
 ISC_TEST_ENTRY(cfg_clone_copy)
+ISC_TEST_ENTRY(cfg_map_findclause_empty)
 
 ISC_TEST_LIST_END
 
