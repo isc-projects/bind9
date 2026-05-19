@@ -3217,32 +3217,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "testing KEY lookup at CNAME (present) ($n)"
-ret=0
-dig_with_opts +noauth cnameandkey.secure.example. \
-  @10.53.0.3 key >dig.out.ns3.test$n || ret=1
-dig_with_opts +noauth cnameandkey.secure.example. \
-  @10.53.0.4 key >dig.out.ns4.test$n || ret=1
-digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
-grep "CNAME" dig.out.ns4.test$n >/dev/null && ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "testing KEY lookup at CNAME (not present) ($n)"
-ret=0
-dig_with_opts +noauth cnamenokey.secure.example. \
-  @10.53.0.3 key >dig.out.ns3.test$n || ret=1
-dig_with_opts +noauth cnamenokey.secure.example. \
-  @10.53.0.4 key >dig.out.ns4.test$n || ret=1
-digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
-grep "CNAME" dig.out.ns4.test$n >/dev/null && ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 echo_i "testing DNSKEY lookup via DNAME ($n)"
 ret=0
 dig_with_opts a.dnameandkey.secure.example. \
@@ -4054,8 +4028,9 @@ status=$((status + ret))
 echo_i "check that DNSKEY and other occluded data are excluded from the delegating bitmap ($n)"
 ret=0
 dig_with_opts axfr occluded.example @10.53.0.3 >dig.out.ns3.test$n || ret=1
-grep "^delegation.occluded.example..*NSEC.*NS KEY DS RRSIG NSEC$" dig.out.ns3.test$n >/dev/null || ret=1
+grep "^delegation.occluded.example..*NSEC.*NS DS RRSIG NSEC$" dig.out.ns3.test$n >/dev/null || ret=1
 grep "^delegation.occluded.example..*DNSKEY.*" dig.out.ns3.test$n >/dev/null || ret=1
+grep "^delegation.occluded.example..*IN.KEY.*" dig.out.ns3.test$n >/dev/null || ret=1
 grep "^delegation.occluded.example..*AAAA.*" dig.out.ns3.test$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"

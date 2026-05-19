@@ -1813,15 +1813,13 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	/*
 	 * Certain DNSSEC types are not subject to CNAME matching
-	 * (RFC4035, section 2.5 and RFC3007).
+	 * (RFC4035, section 2.5).
 	 *
 	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly. At-parent data shares the cache node with a child's
 	 * apex CNAME but must be looked up independently.
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec ||
-	    type == dns_rdatatype_any)
-	{
+	if (type == dns_rdatatype_nsec || type == dns_rdatatype_any) {
 		cname_ok = false;
 	}
 
