@@ -5594,30 +5594,34 @@ evict_cname_other(fetchctx_t *fctx, dns_name_t *name) {
 	DNS_RDATASETITER_FOREACH(rdsiter) {
 		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type == dns_rdatatype_nsec ||
-		    rdataset.type == dns_rdatatype_nxt ||
-		    rdataset.type == dns_rdatatype_key)
-		{
-			/* KEY, NSEC and NXT records are allowed */
-			dns_rdataset_disassociate(&rdataset);
-			continue;
-		}
-		if (dns_rdatatype_issig(rdataset.type)) {
-			/* Signatures will be deleted together below */
-			dns_rdataset_disassociate(&rdataset);
-			continue;
-		}
-		if (rdataset.type == dns_rdatatype_none) {
-			/* Negative type. */
+
+		if (NEGATIVE(&rdataset)) {
+			/* Keep all negative entries */
 			dns_rdataset_disassociate(&rdataset);
 			continue;
 		}
 
-		dns_db_deleterdataset(fctx->cache, node, NULL, rdataset.type,
-				      0);
-		dns_db_deleterdataset(fctx->cache, node, NULL,
-				      dns_rdatatype_rrsig, rdataset.type);
-		dns_rdataset_disassociate(&rdataset);
+		dns_typepair_t typepair = DNS_TYPEPAIR_VALUE(rdataset.type,
+							     rdataset.covers);
+		switch (typepair) {
+		/* KEY, NSEC and NXT records are allowed */
+		case DNS_TYPEPAIR(dns_rdatatype_nsec):
+		case DNS_TYPEPAIR(dns_rdatatype_nxt):
+		case DNS_TYPEPAIR(dns_rdatatype_key):
+		case DNS_SIGTYPEPAIR(dns_rdatatype_nsec):
+		case DNS_SIGTYPEPAIR(dns_rdatatype_nxt):
+		case DNS_SIGTYPEPAIR(dns_rdatatype_key):
+		/* Keep the CNAME and its signature */
+		case DNS_TYPEPAIR(dns_rdatatype_cname):
+		case DNS_SIGTYPEPAIR(dns_rdatatype_cname):
+			dns_rdataset_disassociate(&rdataset);
+			continue;
+		default:
+			/* Evict everything else */
+			dns_db_deleterdataset(fctx->cache, node, NULL,
+					      rdataset.type, rdataset.covers);
+			dns_rdataset_disassociate(&rdataset);
+		}
 	}
 
 	dns_rdatasetiter_destroy(&rdsiter);
