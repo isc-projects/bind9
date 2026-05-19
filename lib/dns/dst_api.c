@@ -2700,6 +2700,7 @@ dst_algorithm_fromdata(dns_secalg_t algorithm, unsigned char *data,
 	case DNS_KEYALG_PRIVATEDNS:
 		isc_buffer_init(&b, data, length);
 		isc_buffer_add(&b, length);
+		isc_buffer_setactive(&b, length);
 		return dst_algorithm_fromprivatedns(&b);
 	case DNS_KEYALG_PRIVATEOID:
 		isc_buffer_init(&b, data, length);
