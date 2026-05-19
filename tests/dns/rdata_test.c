@@ -3578,7 +3578,6 @@ ISC_RUN_TEST_IMPL(atcname) {
 		bool tf = dns_rdatatype_atcname((dns_rdatatype_t)i);
 		switch (i) {
 		case dns_rdatatype_nsec:
-		case dns_rdatatype_key:
 		case dns_rdatatype_rrsig:
 			if (!tf) {
 				print_message(UNR, i);
@@ -3629,7 +3628,6 @@ ISC_RUN_TEST_IMPL(iszonecutauth) {
 		case dns_rdatatype_ns:
 		case dns_rdatatype_ds:
 		case dns_rdatatype_nsec:
-		case dns_rdatatype_key:
 		case dns_rdatatype_rrsig:
 			if (!tf) {
 				print_message(UNR, i);

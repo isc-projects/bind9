@@ -4281,12 +4281,12 @@ found:
 
 	/*
 	 * Certain DNSSEC types are not subject to CNAME matching
-	 * (RFC4035, section 2.5 and RFC3007).
+	 * (RFC4035, section 2.5).
 	 *
 	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly.
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec) {
+	if (type == dns_rdatatype_nsec) {
 		cname_ok = false;
 	}
 
@@ -4348,15 +4348,9 @@ found:
 				search.need_cleanup = true;
 				maybe_zonecut = false;
 				at_zonecut = true;
-				/*
-				 * It is not clear if KEY should still be
-				 * allowed at the parent side of the zone
-				 * cut or not.  It is needed for RFC3007
-				 * validated updates.
-				 */
+
 				if ((search.options & DNS_DBFIND_GLUEOK) == 0 &&
-				    type != dns_rdatatype_nsec &&
-				    type != dns_rdatatype_key)
+				    type != dns_rdatatype_nsec)
 				{
 					/*
 					 * Glue is not OK, but any answer we
@@ -4562,18 +4556,11 @@ found:
 		/*
 		 * If we're beneath a zone cut, we must indicate that the
 		 * result is glue, unless we're actually at the zone cut
-		 * and the type is NSEC or KEY.
+		 * and the type is NSEC.
 		 */
 		if (search.zonecut == node) {
-			/*
-			 * It is not clear if KEY should still be
-			 * allowed at the parent side of the zone
-			 * cut or not.  It is needed for RFC3007
-			 * validated updates.
-			 */
 			if (type == dns_rdatatype_nsec ||
-			    type == dns_rdatatype_nsec3 ||
-			    type == dns_rdatatype_key)
+			    type == dns_rdatatype_nsec3)
 			{
 				result = ISC_R_SUCCESS;
 			} else if (type == dns_rdatatype_any) {
@@ -5217,12 +5204,12 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	/*
 	 * Certain DNSSEC types are not subject to CNAME matching
-	 * (RFC4035, section 2.5 and RFC3007).
+	 * (RFC4035, section 2.5).
 	 *
 	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly.
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec) {
+	if (type == dns_rdatatype_nsec) {
 		cname_ok = false;
 	}
 
@@ -6261,11 +6248,10 @@ cname_and_other_data(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 			 * Look for active extant "other data".
 			 *
 			 * "Other data" is any rdataset whose type is not
-			 * KEY, NSEC or RRSIG.
+			 * NSEC or RRSIG.
 			 */
 			rdtype = RBTDB_RDATATYPE_BASE(header->type);
-			if (rdtype != dns_rdatatype_key &&
-			    rdtype != dns_rdatatype_nsec &&
+			if (rdtype != dns_rdatatype_nsec &&
 			    rdtype != dns_rdatatype_rrsig)
 			{
 				/*
