@@ -2474,33 +2474,16 @@ resquery_send(resquery_t *query) {
 
 	if (fctx->timeout && (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		isc_sockaddr_t *sockaddr = &query->addrinfo->sockaddr;
-		struct tried *tried;
+		struct tried *tried = triededns(fctx, sockaddr);
 
 		/*
 		 * If this is the first timeout for this server in this
 		 * fetch context, try setting EDNS UDP buffer size to
 		 * the largest UDP response size we have seen from this
 		 * server so far.
-		 *
-		 * If this server has already timed out twice or more in
-		 * this fetch context, force TCP.
 		 */
-		if ((tried = triededns(fctx, sockaddr)) != NULL) {
-			if (tried->count == 1U) {
-				hint = dns_adb_getudpsize(fctx->adb,
-							  query->addrinfo);
-			} else if (tried->count >= 2U) {
-				if ((query->options & DNS_FETCHOPT_TCP) == 0) {
-					/*
-					 * Inform the ADB that we're ending a
-					 * UDP fetch, and turn the query into
-					 * a TCP query.
-					 */
-					dns_adb_endudpfetch(fctx->adb,
-							    query->addrinfo);
-					query->options |= DNS_FETCHOPT_TCP;
-				}
-			}
+		if (tried != NULL && tried->count == 1U) {
+			hint = dns_adb_getudpsize(fctx->adb, query->addrinfo);
 		}
 	}
 	fctx->timeout = false;
