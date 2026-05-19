@@ -2276,6 +2276,25 @@ ISC_RUN_TEST_IMPL(key) {
 
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_key, sizeof(dns_rdata_key_t));
+
+	/*
+	 * A valid PRIVATEDNS record with an active region shorter than the
+	 * actual record length.  A bug in dns_name_fromwire meant that this
+	 * was previously accepted.
+	 */
+	unsigned char key[] = { 0x00, 0x00, 0x00, 253, 0x07, 'e', 'x',
+				'a',  'm',  'p',  'l', 'e',  0x00 };
+	unsigned char buf[sizeof(key)];
+	isc_buffer_t source, target;
+	isc_result_t result;
+
+	isc_buffer_init(&source, key, sizeof(key));
+	isc_buffer_add(&source, sizeof(key));
+	isc_buffer_setactive(&source, sizeof(key) - 1);
+	isc_buffer_init(&target, buf, sizeof(buf));
+	result = dns_rdata_fromwire(NULL, dns_rdataclass_in, dns_rdatatype_key,
+				    &source, DNS_DECOMPRESS_ALWAYS, &target);
+	assert_int_not_equal(result, ISC_R_SUCCESS);
 }
 
 /*
