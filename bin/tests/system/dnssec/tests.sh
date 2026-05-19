@@ -3073,28 +3073,18 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "testing KEY lookup at CNAME (present) ($n)"
+# Per RFC 3755 SIG and NXT are obsolete and treated as opaque zone data;
+# KEY remains valid for SIG(0)/TKEY use.  All three are ordinary zone
+# data and must be signed like any other RRset.
+echo_i "testing that legacy SIG, NXT and KEY records are signed ($n)"
 ret=0
-$DIG $DIGOPTS +noauth cnameandkey.secure.example. \
-	@10.53.0.3 key > dig.out.ns3.test$n || ret=1
-$DIG $DIGOPTS +noauth cnameandkey.secure.example. \
-	@10.53.0.4 key > dig.out.ns4.test$n || ret=1
-digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
-grep "CNAME" dig.out.ns4.test$n > /dev/null && ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
-echo_i "testing KEY lookup at CNAME (not present) ($n)"
-ret=0
-$DIG $DIGOPTS +noauth cnamenokey.secure.example. \
-	@10.53.0.3 key > dig.out.ns3.test$n || ret=1
-$DIG $DIGOPTS +noauth cnamenokey.secure.example. \
-	@10.53.0.4 key > dig.out.ns4.test$n || ret=1
-digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
-grep "CNAME" dig.out.ns4.test$n > /dev/null && ret=1
+for rrtype in SIG NXT KEY; do
+	owner=$(echo "$rrtype" | tr 'A-Z' 'a-z')rr.secure.example.
+	$DIG $DIGOPTS +cd +noauth "$owner" @10.53.0.3 "$rrtype" > dig.out.ns3.$rrtype.test$n || ret=1
+	grep "status: NOERROR" dig.out.ns3.$rrtype.test$n > /dev/null || ret=1
+	grep "^$owner.*IN.$rrtype" dig.out.ns3.$rrtype.test$n > /dev/null || ret=1
+	grep "^$owner.*IN.RRSIG.$rrtype " dig.out.ns3.$rrtype.test$n > /dev/null || ret=1
+done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -3773,8 +3763,9 @@ status=`expr $status + $ret`
 echo_i "check that DNSKEY and other occluded data are excluded from the delegating bitmap ($n)"
 ret=0
 $DIG $DIGOPTS axfr occluded.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-grep "^delegation.occluded.example..*NSEC.*NS KEY DS RRSIG NSEC$" dig.out.ns3.test$n > /dev/null || ret=1
+grep "^delegation.occluded.example..*NSEC.*NS DS RRSIG NSEC$" dig.out.ns3.test$n > /dev/null || ret=1
 grep "^delegation.occluded.example..*DNSKEY.*" dig.out.ns3.test$n > /dev/null || ret=1
+grep "^delegation.occluded.example..*IN.KEY.*" dig.out.ns3.test$n > /dev/null || ret=1
 grep "^delegation.occluded.example..*AAAA.*" dig.out.ns3.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 test "$ret" -eq 0 || echo_i "failed"

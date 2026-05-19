@@ -1975,7 +1975,6 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, dns_name_t* name,
 			}
 			if (type == dns_rdatatype_cname ||
 			    type == dns_rdatatype_nsec ||
-			    type == dns_rdatatype_key ||
 			    !dns_nsec3_typepresent(&rdata, dns_rdatatype_cname)) {
 				*exists = true;
 				*data = dns_nsec3_typepresent(&rdata, type);
