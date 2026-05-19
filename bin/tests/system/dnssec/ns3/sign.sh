@@ -81,11 +81,10 @@ zone=secure.example.
 infile=secure.example.db.in
 zonefile=secure.example.db
 
-cnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "cnameandkey.$zone")
 dnameandkey=$("$KEYGEN" -T KEY -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n host "dnameandkey.$zone")
 keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 
-cat "$infile" "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" >"$zonefile"
+cat "$infile" "$dnameandkey.key" "$keyname.key" >"$zonefile"
 
 "$SIGNER" -P -D -o "$zone" "$zonefile" >/dev/null
 cat "$zonefile" "$zonefile".signed >"$zonefile".tmp
