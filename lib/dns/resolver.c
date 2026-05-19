@@ -813,7 +813,7 @@ typedef struct respctx {
 				 * fctx_query() when resending */
 
 	dns_rdatatype_t type; /* type being sought (set to
-			       * ANY if qtype was SIG or RRSIG) */
+			       * ANY if qtype was RRSIG) */
 	bool aa;	      /* authoritative answer? */
 	dns_trust_t trust;    /* answer trust level */
 	bool chaining;	      /* CNAME/DNAME processing? */
@@ -1606,8 +1606,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		INSIST(resp->result != ISC_R_SUCCESS ||
 		       dns_rdataset_isassociated(resp->rdataset) ||
 		       fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig ||
-		       fctx->type == dns_rdatatype_sig);
+		       fctx->type == dns_rdatatype_rrsig);
 
 		/*
 		 * Negative results must be indicated in resp->result.
@@ -5445,8 +5444,7 @@ validated(void *arg) {
 	if (hresp != NULL) {
 		if (!negative && !chaining &&
 		    (fctx->type == dns_rdatatype_any ||
-		     fctx->type == dns_rdatatype_rrsig ||
-		     fctx->type == dns_rdatatype_sig))
+		     fctx->type == dns_rdatatype_rrsig))
 		{
 			/*
 			 * Don't bind rdatasets; the caller
@@ -5694,8 +5692,7 @@ validated(void *arg) {
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		INSIST(!negative);
 		INSIST(fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig ||
-		       fctx->type == dns_rdatatype_sig);
+		       fctx->type == dns_rdatatype_rrsig);
 		/*
 		 * Don't send a response yet - we have
 		 * more rdatasets that still need to
@@ -6104,7 +6101,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			anodep = &resp->node;
 
 			/*
-			 * If this is an ANY, SIG or RRSIG query, we're
+			 * If this is an ANY or RRSIG query, we're
 			 * not going to return any rdatasets, unless we
 			 * encountered a CNAME or DNAME as "the answer".
 			 * In this case, we're going to return
@@ -6112,8 +6109,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			 * the rdatasets.
 			 */
 			if ((fctx->type != dns_rdatatype_any &&
-			     fctx->type != dns_rdatatype_rrsig &&
-			     fctx->type != dns_rdatatype_sig) ||
+			     fctx->type != dns_rdatatype_rrsig) ||
 			    name->attributes.chaining)
 			{
 				ardataset = resp->rdataset;
@@ -6372,8 +6368,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 
 			if (ANSWER(rdataset) && need_validation) {
 				if (fctx->type != dns_rdatatype_any &&
-				    fctx->type != dns_rdatatype_rrsig &&
-				    fctx->type != dns_rdatatype_sig)
+				    fctx->type != dns_rdatatype_rrsig)
 				{
 					/*
 					 * This is The Answer.  We will
@@ -8148,13 +8143,11 @@ rctx_answer_init(respctx_t *rctx) {
 	}
 
 	/*
-	 * There can be multiple RRSIG and SIG records at a name so
+	 * There can be multiple RRSIG records at a name so
 	 * we treat these types as a subset of ANY.
 	 */
 	rctx->type = fctx->type;
-	if (rctx->type == dns_rdatatype_rrsig ||
-	    rctx->type == dns_rdatatype_sig)
-	{
+	if (rctx->type == dns_rdatatype_rrsig) {
 		rctx->type = dns_rdatatype_any;
 	}
 
@@ -8813,8 +8806,7 @@ rctx_answer_any(respctx_t *rctx) {
 			return ISC_R_COMPLETE;
 		}
 
-		if ((fctx->type == dns_rdatatype_sig ||
-		     fctx->type == dns_rdatatype_rrsig) &&
+		if (fctx->type == dns_rdatatype_rrsig &&
 		    rdataset->type != fctx->type)
 		{
 			continue;

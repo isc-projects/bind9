@@ -703,8 +703,7 @@ dns__db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(node != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
-	REQUIRE(covers == dns_rdatatype_none || type == dns_rdatatype_rrsig ||
-		type == dns_rdatatype_sig);
+	REQUIRE(covers == dns_rdatatype_none || type == dns_rdatatype_rrsig);
 	REQUIRE(type != dns_rdatatype_any);
 	REQUIRE(sigrdataset == NULL ||
 		(DNS_RDATASET_VALID(sigrdataset) &&
