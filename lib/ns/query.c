@@ -7375,10 +7375,10 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 		}
 
 		/*
-		 * Start the stale-refresh-time window in case there was a
-		 * resolver query timeout.
+		 * Start the stale-refresh-time window as there appears
+		 * to have been a resolver query failure.
 		 */
-		if (qctx->resuming && result == ISC_R_TIMEDOUT) {
+		if (qctx->resuming) {
 			qctx->client->query.dboptions |= DNS_DBFIND_STALESTART;
 		}
 		return true;

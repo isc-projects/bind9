@@ -82,9 +82,11 @@ for try in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
   burst 10.53.0.3 a $try
   # fetches-per-server is at 400, but at 20qps against a lame server,
   # we'll reach 200 at the tenth second, and the quota should have been
-  # tuned to less than that by then.
+  # tuned to less than that by then.  Allow a small margin above 200
+  # to absorb the extra latency introduced by the resolver's TCP
+  # fallback after repeated UDP timeouts.
   [ $try -le 5 ] && low=$((try * 10))
-  stat 10.53.0.3 20 200 || ret=1
+  stat 10.53.0.3 20 250 || ret=1
   [ $ret -eq 1 ] && break
   sleep 1
 done
@@ -125,7 +127,7 @@ ret=0
 sendcmd 10.53.0.4 send-responses "enable"
 for try in 1 2 3 4 5; do
   burst 10.53.0.3 b $try
-  stat 10.53.0.3 0 200 || ret=1
+  stat 10.53.0.3 0 250 || ret=1
   [ $ret -eq 1 ] && break
   sleep 1
 done

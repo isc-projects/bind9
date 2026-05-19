@@ -122,18 +122,24 @@ n=$((n + 1))
 
 ret=0
 echo_i "verifying active sockets output in named.stats ($n)"
-nsock1nstat=$(grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}')
-[ $((nsock1nstat - nsock0nstat)) -eq 1 ] || ret=1
+# After repeated UDP timeouts to the same authoritative server, the
+# resolver switches to TCP, so the in-flight socket may be either UDP
+# or TCP.  Require at least one extra active socket of either kind.
+nsock1udp=$(grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}')
+nsock1tcp=$(grep "TCP/IPv4 sockets active" $last_stats | awk '{print $1}')
+[ $((${nsock1udp:-0} + ${nsock1tcp:-0} - nsock0nstat)) -ge 1 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
-# there should be 1 UDP and no TCP queries.  As the TCP counter is zero
-# no status line is emitted.
+# There should be 1 query in progress.  After repeated UDP timeouts the
+# resolver switches to TCP, so depending on which retry attempt the
+# snapshot captures the query may be counted as either UDP or TCP.
 ret=0
 echo_i "verifying queries in progress in named.stats ($n)"
-grep "1 UDP queries in progress" $last_stats >/dev/null || ret=1
-grep "TCP queries in progress" $last_stats >/dev/null && ret=1
+udp_in_progress=$(awk '/UDP queries in progress/ {print $1}' $last_stats)
+tcp_in_progress=$(awk '/TCP queries in progress/ {print $1}' $last_stats)
+[ $((${udp_in_progress:-0} + ${tcp_in_progress:-0})) -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))

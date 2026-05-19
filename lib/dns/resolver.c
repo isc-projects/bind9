@@ -2033,6 +2033,9 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	isc_interval_set(&fctx->interval, seconds, us * NS_PER_US);
 }
 
+static struct tried *
+triededns(fetchctx_t *fctx, isc_sockaddr_t *address);
+
 static isc_result_t
 fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	   unsigned int options) {
@@ -2123,6 +2126,23 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			if (result == ISC_R_SUCCESS && usetcp) {
 				options |= DNS_FETCHOPT_TCP;
 			}
+		}
+	}
+
+	/*
+	 * If this server has already been tried at least twice in this
+	 * fetch context after the previous attempt timed out, force TCP
+	 * for this attempt.  The decision must be made here, before the
+	 * dispatch type is chosen below, so that the dispatch and the
+	 * DNS_FETCHOPT_TCP flag agree.
+	 */
+	if (fctx->timeout && fctx->timeouts >= 2U &&
+	    (options & DNS_FETCHOPT_NOEDNS0) == 0 &&
+	    (options & DNS_FETCHOPT_TCP) == 0)
+	{
+		struct tried *tried = triededns(fctx, &sockaddr);
+		if (tried != NULL && tried->count >= 2U) {
+			options |= DNS_FETCHOPT_TCP;
 		}
 	}
 
@@ -2551,35 +2571,20 @@ resquery_send(resquery_t *query) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 	}
 
-	if (fctx->timeout && (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+	if (fctx->timeout && (query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
+	    (query->options & DNS_FETCHOPT_TCP) == 0)
+	{
 		isc_sockaddr_t *sockaddr = &query->addrinfo->sockaddr;
-		struct tried *tried;
+		struct tried *tried = triededns(fctx, sockaddr);
 
 		/*
 		 * If this is the first timeout for this server in this
 		 * fetch context, try setting EDNS UDP buffer size to
 		 * the largest UDP response size we have seen from this
 		 * server so far.
-		 *
-		 * If this server has already timed out twice or more in
-		 * this fetch context, force TCP.
 		 */
-		if ((tried = triededns(fctx, sockaddr)) != NULL) {
-			if (tried->count == 1U) {
-				hint = dns_adb_getudpsize(fctx->adb,
-							  query->addrinfo);
-			} else if (tried->count >= 2U) {
-				if ((query->options & DNS_FETCHOPT_TCP) == 0) {
-					/*
-					 * Inform the ADB that we're ending a
-					 * UDP fetch, and turn the query into
-					 * a TCP query.
-					 */
-					dns_adb_endudpfetch(fctx->adb,
-							    query->addrinfo);
-					query->options |= DNS_FETCHOPT_TCP;
-				}
-			}
+		if (tried != NULL && tried->count == 1U) {
+			hint = dns_adb_getudpsize(fctx->adb, query->addrinfo);
 		}
 	}
 	fctx->timeout = false;
@@ -4351,6 +4356,8 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 			FCTX_ATTR_SET(fctx, FCTX_ATTR_ADDRWAIT);
 			return;
 		default:
+			dns_ede_add(&fctx->edectx, DNS_EDE_NOREACHABLEAUTH,
+				    NULL);
 			goto done;
 		}
 
@@ -4368,6 +4375,8 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 		 */
 		if (addrinfo == NULL) {
 			result = DNS_R_SERVFAIL;
+			dns_ede_add(&fctx->edectx, DNS_EDE_NOREACHABLEAUTH,
+				    NULL);
 			goto done;
 		}
 	}
