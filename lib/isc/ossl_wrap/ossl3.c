@@ -572,13 +572,14 @@ cleanup:
 
 bool
 isc_ossl_wrap_rsa_key_bits_leq(EVP_PKEY *pkey, size_t limit) {
-	size_t bits = SIZE_MAX;
 	BIGNUM *e = NULL;
 	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) == 1) {
-		bits = BN_num_bits(e);
+		int bits = BN_num_bits(e);
 		BN_free(e);
+
+		return bits > 0 && (size_t)bits <= limit;
 	}
-	return bits <= limit;
+	return false;
 }
 
 isc_result_t
