@@ -192,6 +192,8 @@ dst__hmacsha512_init(struct dst_func **funcp);
 void
 dst__opensslrsa_init(struct dst_func **funcp, unsigned short algorithm);
 void
+dst__opensslrsa_shutdown(void);
+void
 dst__opensslecdsa_init(struct dst_func **funcp);
 void
 dst__openssleddsa_init(struct dst_func **funcp, unsigned char algorithm);

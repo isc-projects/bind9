@@ -36,6 +36,30 @@
 #define OPENSSLRSA_MAX_MODULUS_BITS 4096
 #define OPENSSLRSA_MIN_MODULUS_BITS 512
 
+static BIGNUM *rsa_exponent_min = NULL;
+static BIGNUM *rsa_exponent_max = NULL;
+
+/*
+ * Accept odd public exponents in [3, 2^32 + 1].  That covers every Fermat
+ * prime up to F5 and the odd intermediate values seen on the wire.
+ */
+static bool
+rsa_exponent_in_range(const BIGNUM *e) {
+	if (!BN_is_odd(e)) {
+		return false;
+	}
+
+	if (BN_cmp(e, rsa_exponent_min) < 0) {
+		return false;
+	}
+
+	if (BN_cmp(e, rsa_exponent_max) > 0) {
+		return false;
+	}
+
+	return true;
+}
+
 /* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
 static unsigned char oid_rsasha256[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
 					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b };
@@ -233,7 +257,10 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	pkey = key->keydata.pkeypair.pub;
 
-	if (!isc_ossl_wrap_rsa_key_bits_leq(pkey, OPENSSLRSA_MAX_MODULUS_BITS))
+	if (!isc_ossl_wrap_rsa_modulus_bits_in_range(
+		    pkey, OPENSSLRSA_MIN_MODULUS_BITS,
+		    OPENSSLRSA_MAX_MODULUS_BITS) ||
+	    !isc_ossl_wrap_rsa_exponent_is_allowed(pkey))
 	{
 		return DST_R_VERIFYFAILURE;
 	}
@@ -463,10 +490,12 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (c.e == NULL || c.n == NULL) {
 		CLEANUP(ISC_R_NOMEMORY);
 	}
-	if (BN_num_bits(c.e) > RSA_MAX_PUBEXP_BITS) {
+	if (BN_num_bits(c.n) < OPENSSLRSA_MIN_MODULUS_BITS ||
+	    BN_num_bits(c.n) > OPENSSLRSA_MAX_MODULUS_BITS)
+	{
 		CLEANUP(ISC_R_RANGE);
 	}
-	if (BN_num_bits(c.n) < OPENSSLRSA_MIN_MODULUS_BITS) {
+	if (!rsa_exponent_in_range(c.e)) {
 		CLEANUP(ISC_R_RANGE);
 	}
 	isc_buffer_forward(data, length);
@@ -703,10 +732,12 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (c.n == NULL || c.e == NULL) {
 		CLEANUP(DST_R_INVALIDPRIVATEKEY);
 	}
-	if (BN_num_bits(c.n) < OPENSSLRSA_MIN_MODULUS_BITS) {
+	if (BN_num_bits(c.n) < OPENSSLRSA_MIN_MODULUS_BITS ||
+	    BN_num_bits(c.n) > OPENSSLRSA_MAX_MODULUS_BITS)
+	{
 		CLEANUP(ISC_R_RANGE);
 	}
-	if (BN_num_bits(c.e) > RSA_MAX_PUBEXP_BITS) {
+	if (!rsa_exponent_in_range(c.e)) {
 		CLEANUP(ISC_R_RANGE);
 	}
 
@@ -744,10 +775,13 @@ opensslrsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 	CHECK(dst__openssl_fromlabel(EVP_PKEY_RSA, label, pin, &pubpkey,
 				     &privpkey));
 
-	if (!isc_ossl_wrap_rsa_key_bits_leq(pubpkey, RSA_MAX_PUBEXP_BITS)) {
+	if (!isc_ossl_wrap_rsa_exponent_is_allowed(pubpkey)) {
 		CLEANUP(ISC_R_RANGE);
 	}
-	if (EVP_PKEY_bits(pubpkey) < OPENSSLRSA_MIN_MODULUS_BITS) {
+	if (!isc_ossl_wrap_rsa_modulus_bits_in_range(
+		    pubpkey, OPENSSLRSA_MIN_MODULUS_BITS,
+		    OPENSSLRSA_MAX_MODULUS_BITS))
+	{
 		CLEANUP(ISC_R_RANGE);
 	}
 
@@ -926,4 +960,28 @@ dst__opensslrsa_init(dst_func_t **funcp, unsigned short algorithm) {
 			*funcp = &opensslrsa_functions;
 		}
 	}
+
+	if (rsa_exponent_min == NULL) {
+		rsa_exponent_min = BN_new();
+		INSIST(rsa_exponent_min != NULL);
+
+		RUNTIME_CHECK(BN_set_word(rsa_exponent_min, 3) == 1);
+	}
+
+	if (rsa_exponent_max == NULL) {
+		rsa_exponent_max = BN_new();
+		INSIST(rsa_exponent_max != NULL);
+
+		RUNTIME_CHECK(BN_set_bit(rsa_exponent_max, 0) == 1);
+		RUNTIME_CHECK(BN_set_bit(rsa_exponent_max, 32) == 1);
+	}
+}
+
+void
+dst__opensslrsa_shutdown(void) {
+	REQUIRE(rsa_exponent_min != NULL);
+	REQUIRE(rsa_exponent_max != NULL);
+
+	BN_free(rsa_exponent_min);
+	BN_free(rsa_exponent_max);
 }

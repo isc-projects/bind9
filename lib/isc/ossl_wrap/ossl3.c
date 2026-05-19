@@ -628,15 +628,40 @@ cleanup:
 }
 
 bool
-isc_ossl_wrap_rsa_key_bits_leq(EVP_PKEY *pkey, size_t limit) {
+isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey) {
 	BIGNUM *e = NULL;
-	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) == 1) {
-		int bits = BN_num_bits(e);
-		BN_free(e);
+	BIGNUM *emin = NULL;
+	BIGNUM *emax = NULL;
+	bool ok = false;
 
-		return bits > 0 && (size_t)bits <= limit;
+	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) != 1) {
+		goto cleanup;
 	}
-	return false;
+
+	emin = BN_new();
+	if (emin == NULL || !BN_set_word(emin, 3)) {
+		goto cleanup;
+	}
+	if (BN_hex2bn(&emax, "100000001") == 0) {
+		goto cleanup;
+	}
+
+	ok = BN_is_odd(e) && BN_cmp(e, emin) >= 0 && BN_cmp(e, emax) <= 0;
+
+cleanup:
+	BN_free(e);
+	BN_free(emin);
+	BN_free(emax);
+	return ok;
+}
+
+bool
+isc_ossl_wrap_rsa_modulus_bits_in_range(EVP_PKEY *pkey, size_t min,
+					size_t max) {
+	REQUIRE(pkey != NULL);
+
+	int bits = EVP_PKEY_bits(pkey);
+	return bits > 0 && (size_t)bits >= min && (size_t)bits <= max;
 }
 
 isc_result_t
