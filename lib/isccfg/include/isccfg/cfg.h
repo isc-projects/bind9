@@ -219,17 +219,6 @@ cfg_map_get(const cfg_obj_t *mapobj, const char *name, const cfg_obj_t **obj);
  * \li     #ISC_R_NOTFOUND                 - name not found in map
  */
 
-isc_result_t
-cfg_map_add(cfg_obj_t *mapobj, cfg_obj_t *obj, const char *clause);
-/*%<
- * Add the object 'obj' to the specified clause in mapbody 'mapobj'.
- * Used for adding new zones.
- *
- * Require:
- * \li     'obj' is a valid cfg_obj_t.
- * \li     'mapobj' is a valid cfg_obj_t of type map.
- */
-
 const cfg_obj_t *
 cfg_map_getname(const cfg_obj_t *mapobj);
 /*%<

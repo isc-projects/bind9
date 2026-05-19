@@ -4043,23 +4043,6 @@ map_define(cfg_obj_t *mapobj, cfg_obj_t *obj, const cfg_clausedef_t *clause) {
 }
 
 isc_result_t
-cfg_map_add(cfg_obj_t *mapobj, cfg_obj_t *obj, const char *clausename) {
-	const cfg_clausedef_t *clause;
-
-	REQUIRE(VALID_CFGOBJ(obj));
-	REQUIRE(VALID_CFGOBJ(mapobj));
-	REQUIRE(mapobj->type->rep == &cfg_rep_map);
-	REQUIRE(clausename != NULL);
-
-	clause = cfg_map_findclause(mapobj->type, clausename);
-	if (clause == NULL || clause->name == NULL) {
-		return ISC_R_FAILURE;
-	}
-
-	return map_define(mapobj, obj, clause);
-}
-
-isc_result_t
 cfg_map_addclone(cfg_obj_t *map, const cfg_obj_t *obj,
 		 const cfg_clausedef_t *clause) {
 	isc_result_t result = ISC_R_SUCCESS;
