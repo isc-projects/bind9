@@ -21,13 +21,6 @@
 #include <openssl/opensslv.h>
 #include <openssl/rsa.h>
 
-/*
- * Limit the size of public exponents.
- */
-#ifndef RSA_MAX_PUBEXP_BITS
-#define RSA_MAX_PUBEXP_BITS 35
-#endif /* ifndef RSA_MAX_PUBEXP_BITS */
-
 #if !HAVE_BN_GENCB_NEW
 /* These are new in OpenSSL 1.1.0. */
 static inline BN_GENCB *
