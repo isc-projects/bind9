@@ -4909,8 +4909,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 				dns_rdataset_disassociate(*rdatasetp);
 			dns_db_detachnode(*dbp, nodep);
 
-			if (qtype == dns_rdatatype_rrsig ||
-			    qtype == dns_rdatatype_sig)
+			if (qtype == dns_rdatatype_rrsig)
 				result = DNS_R_NXRRSET;
 			else
 				result = dns_db_findext(*dbp, p_name, *versionp,
@@ -6966,7 +6965,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		}
 		INSIST(rdataset != NULL);
 
-		if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
+		if (qtype == dns_rdatatype_rrsig)
 			type = dns_rdatatype_any;
 		else
 			type = qtype;
@@ -7098,9 +7097,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	}
 
 	/*
-	 * If it's a SIG query, we'll iterate the node.
+	 * If it's an RRSIG query, we'll iterate the node.
 	 */
-	if (qtype == dns_rdatatype_rrsig || qtype == dns_rdatatype_sig)
+	if (qtype == dns_rdatatype_rrsig)
 		type = dns_rdatatype_any;
 	else
 		type = qtype;
@@ -8770,8 +8769,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			} else if (client->view->minimal_any &&
 				   !WANTDNSSEC(client) &&
 				   qtype == dns_rdatatype_any &&
-				   (rdataset->type == dns_rdatatype_sig ||
-				    rdataset->type == dns_rdatatype_rrsig)) {
+				   rdataset->type == dns_rdatatype_rrsig) {
 				CTRACE(ISC_LOG_DEBUG(5), "query_find: "
 				       "minimal-any skip signature");
 				dns_rdataset_disassociate(rdataset);
@@ -8805,8 +8803,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * Remember the first RRtype we find so we
 				 * can skip others with minimal-any.
 				 */
-				if (rdataset->type == dns_rdatatype_sig ||
-				    rdataset->type == dns_rdatatype_rrsig)
+				if (rdataset->type == dns_rdatatype_rrsig)
 					onetype = rdataset->covers;
 				else
 					onetype = rdataset->type;
@@ -8854,11 +8851,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (n == 0) {
 			/*
 			 * No matching rdatasets found in cache. If we were
-			 * searching for RRSIG/SIG, that's probably okay;
+			 * searching for RRSIG, that's probably okay;
 			 * otherwise this is an error condition.
 			 */
-			if ((qtype == dns_rdatatype_rrsig ||
-			     qtype == dns_rdatatype_sig) &&
+			if (qtype == dns_rdatatype_rrsig &&
 			    result == ISC_R_NOMORE) {
 				if (!is_zone) {
 					authoritative = false;

@@ -120,7 +120,6 @@ struct dns_loadctx {
 	bool		ttl_known;
 	bool		default_ttl_known;
 	bool		warn_1035;
-	bool		warn_tcr;
 	bool		warn_sigexpired;
 	bool		seen_include;
 	uint32_t		ttl;
@@ -592,7 +591,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	lctx->default_ttl_known = lctx->ttl_known;
 	lctx->default_ttl = 0;
 	lctx->warn_1035 = true;	/* XXX Argument? */
-	lctx->warn_tcr = true;	/* XXX Argument? */
 	lctx->warn_sigexpired = true;	/* XXX Argument? */
 	lctx->options = options;
 	lctx->seen_include = false;
@@ -1878,8 +1876,7 @@ load_text(dns_loadctx_t *lctx) {
 			}
 		}
 
-		if (type == dns_rdatatype_rrsig ||
-		    type == dns_rdatatype_sig)
+		if (type == dns_rdatatype_rrsig)
 			covers = dns_rdata_covers(&rdata[rdcount]);
 		else
 			covers = 0;
@@ -1936,14 +1933,6 @@ load_text(dns_loadctx_t *lctx) {
 						   source, line);
 				lctx->warn_sigexpired = false;
 			}
-		}
-
-		if ((type == dns_rdatatype_sig || type == dns_rdatatype_nxt) &&
-		    lctx->warn_tcr && (lctx->options & DNS_MASTER_ZONE) != 0 &&
-		    (lctx->options & DNS_MASTER_SLAVE) == 0) {
-			(*callbacks->warn)(callbacks, "%s:%lu: old style DNSSEC "
-					   " zone detected", source, line);
-			lctx->warn_tcr = false;
 		}
 
 		if ((lctx->options & DNS_MASTER_AGETTL) != 0) {

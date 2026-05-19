@@ -1425,8 +1425,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 		INSIST(event->result != ISC_R_SUCCESS ||
 		       dns_rdataset_isassociated(event->rdataset) ||
 		       fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig ||
-		       fctx->type == dns_rdatatype_sig);
+		       fctx->type == dns_rdatatype_rrsig);
 
 		/*
 		 * Negative results must be indicated in event->result.
@@ -4990,8 +4989,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (hevent != NULL) {
 		if (!negative && !chaining &&
 		    (fctx->type == dns_rdatatype_any ||
-		     fctx->type == dns_rdatatype_rrsig ||
-		     fctx->type == dns_rdatatype_sig)) {
+		     fctx->type == dns_rdatatype_rrsig)) {
 			/*
 			 * Don't bind rdatasets; the caller
 			 * will iterate the node.
@@ -5201,8 +5199,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		INSIST(!negative);
 		INSIST(fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig ||
-		       fctx->type == dns_rdatatype_sig);
+		       fctx->type == dns_rdatatype_rrsig);
 		/*
 		 * Don't send a response yet - we have
 		 * more rdatasets that still need to
@@ -5521,15 +5518,14 @@ cache_name(fetchctx_t *fctx, dns_message_t *rmessage,
 			}
 			anodep = &event->node;
 			/*
-			 * If this is an ANY, SIG or RRSIG query, we're not
+			 * If this is an ANY or RRSIG query, we're not
 			 * going to return any rdatasets, unless we encountered
 			 * a CNAME or DNAME as "the answer".  In this case,
 			 * we're going to return DNS_R_CNAME or DNS_R_DNAME
 			 * and we must set up the rdatasets.
 			 */
 			if ((fctx->type != dns_rdatatype_any &&
-			     fctx->type != dns_rdatatype_rrsig &&
-			     fctx->type != dns_rdatatype_sig) ||
+			     fctx->type != dns_rdatatype_rrsig) ||
 			    (name->attributes & DNS_NAMEATTR_CHAINING) != 0)
 			{
 				ardataset = event->rdataset;
@@ -5766,8 +5762,7 @@ cache_name(fetchctx_t *fctx, dns_message_t *rmessage,
 
 			if (ANSWER(rdataset) && need_validation) {
 				if (fctx->type != dns_rdatatype_any &&
-				    fctx->type != dns_rdatatype_rrsig &&
-				    fctx->type != dns_rdatatype_sig)
+				    fctx->type != dns_rdatatype_rrsig)
 				{
 					/*
 					 * This is The Answer.  We will
@@ -7221,10 +7216,10 @@ answer_response(resquery_t *query,  dns_message_t *message) {
 	type = fctx->type;
 
 	/*
-	 * There can be multiple RRSIG and SIG records at a name so
+	 * There can be multiple RRSIG records at a name so
 	 * we treat these types as a subset of ANY.
 	 */
-	if (type == dns_rdatatype_rrsig || type == dns_rdatatype_sig) {
+	if (type == dns_rdatatype_rrsig) {
 		type = dns_rdatatype_any;
 	}
 
@@ -7337,9 +7332,8 @@ answer_response(resquery_t *query,  dns_message_t *message) {
 			if (!validinanswer(rdataset, fctx)) {
 				return (DNS_R_FORMERR);
 			}
-			if ((fctx->type == dns_rdatatype_sig ||
-			     fctx->type == dns_rdatatype_rrsig) &&
-			     rdataset->type != fctx->type)
+			if (fctx->type == dns_rdatatype_rrsig &&
+			    rdataset->type != fctx->type)
 			{
 				continue;
 			}
