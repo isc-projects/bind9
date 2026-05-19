@@ -1829,7 +1829,6 @@ cname_and_other(qpznode_t *node, uint32_t serial) {
 				cname = true;
 			}
 		} else if (rdtype != dns_rdatatype_key &&
-			   rdtype != dns_rdatatype_sig &&
 			   rdtype != dns_rdatatype_nsec &&
 			   rdtype != dns_rdatatype_rrsig)
 		{

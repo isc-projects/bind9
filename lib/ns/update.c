@@ -1687,12 +1687,6 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 		} else if (rdata.type == dns_rdatatype_nsec) {
 			FAILC(DNS_R_REFUSED, "explicit NSEC updates are not "
 					     "allowed in secure zones");
-		} else if (rdata.type == dns_rdatatype_sig) {
-			FAILC(DNS_R_REFUSED, "SIG updates are not "
-					     "allowed");
-		} else if (rdata.type == dns_rdatatype_nxt) {
-			FAILC(DNS_R_REFUSED, "NXT updates are not "
-					     "allowed");
 		} else if (rdata.type == dns_rdatatype_rrsig &&
 			   !dns_name_equal(name, zonename))
 		{

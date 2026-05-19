@@ -1285,12 +1285,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 					issigzero = true;
 				}
 			} else {
-				if (msg->rdclass != dns_rdataclass_any &&
-				    msg->rdclass != rdclass)
-				{
-					/* XXX test coverage */
-					DO_ERROR(DNS_R_FORMERR);
-				}
+				covers = dns_rdatatype_none;
 			}
 		} else {
 			covers = dns_rdatatype_none;
