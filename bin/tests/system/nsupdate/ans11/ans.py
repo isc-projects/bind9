@@ -74,8 +74,11 @@ class SigAxfrServer(ResponseHandler):
             yield DnsResponseSend(qctx.response)
             return
 
-        # AXFR: opening SOA, NS, NS's A, two SIG RRs at the same owner
-        # with distinct covered types and TTLs, closing SOA.
+        # AXFR: opening SOA, NS, NS's A, two SIG rdatas at the same owner
+        # whose body "covered type" fields differ (A, MX), closing SOA.
+        # Per RFC 3755 SIG has no covered-type semantics, so the
+        # transferring secondary must store both in a single opaque
+        # rdataset.
         resp = qctx.response
         resp.answer.append(soa_rrset)
 
@@ -90,16 +93,13 @@ class SigAxfrServer(ResponseHandler):
         resp.answer.append(a_rrset)
 
         sig_a = _make_sig_rdata("A 6 2 600 20260331170000 20260318160000 21831 . 0000")
-        sig_a_rrset = dns.rrset.RRset(HOST, dns.rdataclass.IN, dns.rdatatype.SIG)
-        sig_a_rrset.add(sig_a, ttl=600)
-        resp.answer.append(sig_a_rrset)
-
         sig_mx = _make_sig_rdata(
-            "MX 6 2 1200 20260331170000 20260318160000 21831 . 0000"
+            "MX 6 2 600 20260331170000 20260318160000 21831 . 0000"
         )
-        sig_mx_rrset = dns.rrset.RRset(HOST, dns.rdataclass.IN, dns.rdatatype.SIG)
-        sig_mx_rrset.add(sig_mx, ttl=1200)
-        resp.answer.append(sig_mx_rrset)
+        sig_rrset = dns.rrset.RRset(HOST, dns.rdataclass.IN, dns.rdatatype.SIG)
+        sig_rrset.add(sig_a, ttl=600)
+        sig_rrset.add(sig_mx, ttl=600)
+        resp.answer.append(sig_rrset)
 
         # Closing SOA terminates the AXFR.
         resp.answer.append(soa_rrset)
