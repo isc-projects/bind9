@@ -43,6 +43,7 @@
 #include <dns/dispatch.h>
 #include <dns/dnstap.h>
 #include <dns/edns.h>
+#include <dns/enumclass.h>
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/peer.h>
@@ -1945,7 +1946,9 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		}
 	}
 
-	if (client->message->rdclass == 0) {
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+	switch (client->message->rdclass) {
+	case dns_rdataclass_reserved0:
 		if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0 &&
 		    client->message->opcode == dns_opcode_query &&
 		    client->message->counts[DNS_SECTION_QUESTION] == 0U)
@@ -1966,12 +1969,49 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			return;
 		}
 
+		ns_client_dumpmessage(client,
+				      "message class could not be determined");
+		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_FORMERR);
+		isc_task_unpause(client->task);
+		return;
+	case dns_rdataclass_in:
+		break;
+	case dns_rdataclass_chaos:
+		break;
+	case dns_rdataclass_hs:
+		break;
+	case dns_rdataclass_none:
+		if (client->message->opcode != dns_opcode_update) {
+			ns_client_dumpmessage(client,
+					      "message class NONE can be only "
+					      "used in DNS updates");
+			ns_client_error(client, DNS_R_FORMERR);
+			isc_task_unpause(client->task);
+			return;
+		}
+		break;
+	case dns_rdataclass_any:
+		/*
+		 * Required for TKEY negotiation.
+		 */
+		if (client->message->tkey == 0) {
+			ns_client_dumpmessage(client,
+					      "message class ANY can be only "
+					      "used for TKEY negotiation");
+			ns_client_error(client, DNS_R_FORMERR);
+			isc_task_unpause(client->task);
+			return;
+		}
+		break;
+	default:
+		dns_rdataclass_format(client->message->rdclass, classbuf,
+				      sizeof(classbuf));
+		ns_client_dumpmessage(client, "");
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
-			      "message class could not be determined");
-		ns_client_dumpmessage(client, "message class could not be "
-					      "determined");
-		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_FORMERR);
+			      "invalid message class: %s", classbuf);
+
+		ns_client_error(client, DNS_R_NOTIMP);
 		isc_task_unpause(client->task);
 		return;
 	}
@@ -2010,7 +2050,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "no matching view in class '%s'", classname);
-		ns_client_dumpmessage(client, "no matching view in class");
+		ns_client_dumpmessage(client, "");
 		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
 		isc_task_unpause(client->task);
 		return;
@@ -2194,6 +2234,10 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
+		if (client->view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 #ifdef HAVE_DNSTAP
 		dns_dt_send(client->view, DNS_DTTYPE_UQ, &client->peeraddr,
 			    &client->destsockaddr, TCP_CLIENT(client), NULL,
@@ -2204,6 +2248,10 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
+		if (client->view->rdclass != dns_rdataclass_in) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			break;
+		}
 		ns_client_settimeout(client, 60);
 		ns_notify_start(client, handle);
 		break;
@@ -2295,7 +2343,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	 * The caller is responsible for that.
 	 */
 
-	REQUIRE(NS_CLIENT_VALID(client) || (new &&client != NULL));
+	REQUIRE(NS_CLIENT_VALID(client) || (new && client != NULL));
 	REQUIRE(VALID_MANAGER(mgr) || !new);
 
 	if (new) {
@@ -2754,7 +2802,7 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 	int len = 1024;
 	isc_result_t result;
 
-	if (!isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(1))) {
+	if (!isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(1)) || reason == NULL) {
 		return;
 	}
 
