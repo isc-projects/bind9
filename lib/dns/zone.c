@@ -17278,9 +17278,11 @@ checkds_find_address(dns_checkds_t *checkds) {
 	isc_result_t result;
 	unsigned int options;
 	dns_adb_t *adb = NULL;
+	dns_view_t *view = NULL;
 
 	REQUIRE(DNS_CHECKDS_VALID(checkds));
 
+	view = checkds->zone->view;
 	options = DNS_ADBFIND_WANTEVENT;
 	if (isc_net_probeipv4() != ISC_R_DISABLED) {
 		options |= DNS_ADBFIND_INET;
@@ -17289,7 +17291,7 @@ checkds_find_address(dns_checkds_t *checkds) {
 		options |= DNS_ADBFIND_INET6;
 	}
 
-	dns_view_getadb(checkds->zone->view, &adb);
+	dns_view_getadb(view, &adb);
 	if (adb == NULL) {
 		goto destroy;
 	}
@@ -17297,7 +17299,7 @@ checkds_find_address(dns_checkds_t *checkds) {
 	result = dns_adb_createfind(
 		adb, checkds->zone->loop, process_checkds_adb_event, checkds,
 		&checkds->ns, options, 0, checkds->zone->view->dstport, 0, NULL,
-		NULL, NULL, &checkds->find);
+		NULL, NULL, view->max_delegation_servers, &checkds->find, NULL);
 	dns_adb_detach(&adb);
 
 	/* Something failed? */

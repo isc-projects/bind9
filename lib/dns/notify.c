@@ -761,9 +761,10 @@ dns_notify_find_address(dns_notify_t *notify) {
 		goto destroy;
 	}
 
-	result = dns_adb_createfind(adb, loop, process_notify_adb_event, notify,
-				    &notify->ns, options, 0, notify->port, 0,
-				    NULL, NULL, NULL, &notify->find);
+	result = dns_adb_createfind(
+		adb, loop, process_notify_adb_event, notify, &notify->ns,
+		options, 0, notify->port, 0, NULL, NULL, NULL,
+		view->max_delegation_servers, &notify->find, NULL);
 	dns_adb_detach(&adb);
 
 	/* Something failed? */

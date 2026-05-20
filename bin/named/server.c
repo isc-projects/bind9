@@ -1715,6 +1715,7 @@ dlzconfigure_callback(dns_view_t *view, dns_dlzdb_t *dlzdb, dns_zone_t *zone) {
 	dns_name_t *origin = dns_zone_getorigin(zone);
 	dns_rdataclass_t zclass = view->rdclass;
 
+	dns_zone_setclass(zone, zclass);
 	RETERR(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 
 	dns_zone_setstats(zone, named_g_server->zonestats);
@@ -3926,7 +3927,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	obj = NULL;
 	result = named_config_get(maps, "recursion", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->recursion = cfg_obj_asboolean(obj);
+	view->recursion = (view->rdclass == dns_rdataclass_in &&
+			   cfg_obj_asboolean(obj));
 
 	max_cache_size = configure_max_cache_size(view, maps);
 
@@ -4543,33 +4545,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * We have default root hints for class IN if we need them.
 	 * Each view gets its own rootdb so a priming response only
-	 * writes into that view's copy.
+	 * writes into that view's copy.  Other classes don't support
+	 * recursion and don't need hints.
 	 */
 	if (view->rdclass == dns_rdataclass_in && view->rootdb == NULL) {
 		CHECK(configure_rootdb(view, NULL));
-	}
-
-	/*
-	 * If we still have no root hints, this is a non-IN view with no
-	 * "hints zone" configured.  Issue a warning, except if this
-	 * is a root server.  Root servers never need to consult
-	 * their hints, so it's no point requiring users to configure
-	 * them.
-	 */
-	if (view->rootdb == NULL) {
-		dns_zone_t *rootzone = NULL;
-		(void)dns_view_findzone(view, dns_rootname, DNS_ZTFIND_EXACT,
-					&rootzone);
-		if (rootzone != NULL) {
-			dns_zone_detach(&rootzone);
-		} else if (strcmp(view->name, "_bind") != 0 ||
-			   view->rdclass != dns_rdataclass_chaos)
-		{
-			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "no root hints for view '%s'",
-				      view->name);
-		}
 	}
 
 	/*
@@ -4794,9 +4774,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	CHECK(configure_view_acl(vconfig, config, "allow-proxy-on", NULL,
 				 aclctx, isc_g_mctx, &view->proxyonacl));
 
-	if (strcmp(view->name, "_bind") != 0 &&
-	    view->rdclass != dns_rdataclass_chaos)
-	{
+	if (view->rdclass != dns_rdataclass_in) {
+		dns_acl_none(isc_g_mctx, &view->recursionacl);
+		dns_acl_none(isc_g_mctx, &view->recursiononacl);
+	} else {
 		CHECK(configure_view_acl(vconfig, config, "allow-recursion",
 					 NULL, aclctx, isc_g_mctx,
 					 &view->recursionacl));
