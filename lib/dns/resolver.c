@@ -300,7 +300,7 @@ struct fetchctx {
 	dns_message_t *			qmessage;
 	ISC_LIST(resquery_t)		queries;
 	dns_adbfindlist_t		finds;
-	dns_adbfind_t *			find;
+	dns_adbaddrinfo_t		*foundaddrinfo;
 	dns_adbfindlist_t		altfinds;
 	dns_adbfind_t *			altfind;
 	dns_adbaddrinfolist_t		forwaddrs;
@@ -1192,7 +1192,7 @@ fctx_cleanupfinds(fetchctx_t *fctx) {
 		ISC_LIST_UNLINK(fctx->finds, find, publink);
 		dns_adb_destroyfind(&find);
 	}
-	fctx->find = NULL;
+	fctx->foundaddrinfo = NULL;
 }
 
 static void
@@ -3100,83 +3100,6 @@ add_bad(fetchctx_t *fctx, dns_message_t *rmessage, dns_adbaddrinfo_t *addrinfo,
 		      namebuf, typebuf, classbuf, addrbuf);
 }
 
-/*
- * Sort addrinfo list by RTT.
- */
-static void
-sort_adbfind(dns_adbfind_t *find, unsigned int bias) {
-	dns_adbaddrinfo_t *best, *curr;
-	dns_adbaddrinfolist_t sorted;
-	unsigned int best_srtt, curr_srtt;
-
-	/* Lame N^2 bubble sort. */
-	ISC_LIST_INIT(sorted);
-	while (!ISC_LIST_EMPTY(find->list)) {
-		best = ISC_LIST_HEAD(find->list);
-		best_srtt = best->srtt;
-		if (isc_sockaddr_pf(&best->sockaddr) != AF_INET6)
-			best_srtt += bias;
-		curr = ISC_LIST_NEXT(best, publink);
-		while (curr != NULL) {
-			curr_srtt = curr->srtt;
-			if (isc_sockaddr_pf(&curr->sockaddr) != AF_INET6)
-				curr_srtt += bias;
-			if (curr_srtt < best_srtt) {
-				best = curr;
-				best_srtt = curr_srtt;
-			}
-			curr = ISC_LIST_NEXT(curr, publink);
-		}
-		ISC_LIST_UNLINK(find->list, best, publink);
-		ISC_LIST_APPEND(sorted, best, publink);
-	}
-	find->list = sorted;
-}
-
-/*
- * Sort a list of finds by server RTT.
- */
-static void
-sort_finds(dns_adbfindlist_t *findlist, unsigned int bias) {
-	dns_adbfind_t *best, *curr;
-	dns_adbfindlist_t sorted;
-	dns_adbaddrinfo_t *addrinfo, *bestaddrinfo;
-	unsigned int best_srtt, curr_srtt;
-
-	/* Sort each find's addrinfo list by SRTT. */
-	for (curr = ISC_LIST_HEAD(*findlist);
-	     curr != NULL;
-	     curr = ISC_LIST_NEXT(curr, publink))
-		sort_adbfind(curr, bias);
-
-	/* Lame N^2 bubble sort. */
-	ISC_LIST_INIT(sorted);
-	while (!ISC_LIST_EMPTY(*findlist)) {
-		best = ISC_LIST_HEAD(*findlist);
-		bestaddrinfo = ISC_LIST_HEAD(best->list);
-		INSIST(bestaddrinfo != NULL);
-		best_srtt = bestaddrinfo->srtt;
-		if (isc_sockaddr_pf(&bestaddrinfo->sockaddr) != AF_INET6)
-			best_srtt += bias;
-		curr = ISC_LIST_NEXT(best, publink);
-		while (curr != NULL) {
-			addrinfo = ISC_LIST_HEAD(curr->list);
-			INSIST(addrinfo != NULL);
-			curr_srtt = addrinfo->srtt;
-			if (isc_sockaddr_pf(&addrinfo->sockaddr) != AF_INET6)
-				curr_srtt += bias;
-			if (curr_srtt < best_srtt) {
-				best = curr;
-				best_srtt = curr_srtt;
-			}
-			curr = ISC_LIST_NEXT(curr, publink);
-		}
-		ISC_LIST_UNLINK(*findlist, best, publink);
-		ISC_LIST_APPEND(sorted, best, publink);
-	}
-	*findlist = sorted;
-}
-
 static void
 findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 	 unsigned int options, unsigned int flags, isc_stdtime_t now,
@@ -3615,8 +3538,6 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 		 * We've found some addresses.  We might still be looking
 		 * for more addresses.
 		 */
-		sort_finds(&fctx->finds, res->view->v6bias);
-		sort_finds(&fctx->altfinds, 0);
 		result = ISC_R_SUCCESS;
 	}
 
@@ -3688,6 +3609,80 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 	}
 }
 
+static dns_adbaddrinfo_t *
+nextaddress(fetchctx_t *fctx) {
+	dns_adbaddrinfo_t *prevai = fctx->foundaddrinfo, *lowestsrttai = NULL;
+	unsigned int v6bias = fctx->res->view->v6bias, lowestsrtt = 0;
+
+	/*
+	 * Let's walk through the list of dns_adbaddrinfo_t to find the best
+	 * next server address to query. This is linear on the number of
+	 * dns_adbaddrinfo_t which are grouped in find list (for each ADB find).
+	 */
+	for (dns_adbfind_t *find = ISC_LIST_HEAD(fctx->finds); find != NULL;
+	     find = ISC_LIST_NEXT(find, publink))
+	{
+		for (dns_adbaddrinfo_t *ai = ISC_LIST_HEAD(find->list);
+		     ai != NULL; ai = ISC_LIST_NEXT(ai, publink))
+		{
+			/*
+			 * This address has been marked already, skip it.
+			 */
+			if (!UNMARKED(ai)) {
+				continue;
+			}
+
+			/*
+			 * This address is the same as the previously used
+			 * address, it's a duplicate, mark it and skip it!
+			 */
+			if (prevai != NULL) {
+				if (prevai->entry == ai->entry) {
+					ai->flags |= FCTX_ADDRINFO_MARK;
+					continue;
+				}
+			}
+
+			/*
+			 * Mark and skip this address if incompatible (i.e. IPv6
+			 * address on a v4 only server, or for ACL reason, etc.)
+			 */
+			possibly_mark(fctx, ai);
+			if (!UNMARKED(ai)) {
+				continue;
+			}
+
+			/*
+			 * This address hasn't been tried yet and is a
+			 * good candidate. Let's keep track of it if it
+			 * has the lowest SRTT so far (or if there is no
+			 * address with lowest SRTT found yet).
+			 */
+			unsigned int aisrtt = ai->srtt;
+
+			if (isc_sockaddr_pf(&ai->sockaddr) != AF_INET6) {
+				aisrtt += v6bias;
+			}
+
+			if (lowestsrttai == NULL || aisrtt < lowestsrtt) {
+				lowestsrttai = ai;
+				lowestsrtt = aisrtt;
+				continue;
+			}
+		}
+	}
+
+	/*
+	 * This is the next address to query. If this is NULL, we're done.
+	 */
+	if (lowestsrttai != NULL) {
+		lowestsrttai->flags |= FCTX_ADDRINFO_MARK;
+	}
+	fctx->foundaddrinfo = lowestsrttai;
+
+	return lowestsrttai;
+}
+
 static inline dns_adbaddrinfo_t *
 fctx_nextaddress(fetchctx_t *fctx) {
 	dns_adbfind_t *find, *start;
@@ -3709,7 +3704,6 @@ fctx_nextaddress(fetchctx_t *fctx) {
 		possibly_mark(fctx, addrinfo);
 		if (UNMARKED(addrinfo)) {
 			addrinfo->flags |= FCTX_ADDRINFO_MARK;
-			fctx->find = NULL;
 			return (addrinfo);
 		}
 	}
@@ -3720,44 +3714,10 @@ fctx_nextaddress(fetchctx_t *fctx) {
 
 	FCTX_ATTR_SET(fctx, FCTX_ATTR_TRIEDFIND);
 
-	find = fctx->find;
-	if (find == NULL)
-		find = ISC_LIST_HEAD(fctx->finds);
-	else {
-		find = ISC_LIST_NEXT(find, publink);
-		if (find == NULL)
-			find = ISC_LIST_HEAD(fctx->finds);
+	faddrinfo = nextaddress(fctx);
+	if (faddrinfo != NULL) {
+		return faddrinfo;
 	}
-
-	/*
-	 * Find the first unmarked addrinfo.
-	 */
-	addrinfo = NULL;
-	if (find != NULL) {
-		start = find;
-		do {
-			for (addrinfo = ISC_LIST_HEAD(find->list);
-			     addrinfo != NULL;
-			     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
-				if (!UNMARKED(addrinfo))
-					continue;
-				possibly_mark(fctx, addrinfo);
-				if (UNMARKED(addrinfo)) {
-					addrinfo->flags |= FCTX_ADDRINFO_MARK;
-					break;
-				}
-			}
-			if (addrinfo != NULL)
-				break;
-			find = ISC_LIST_NEXT(find, publink);
-			if (find == NULL)
-				find = ISC_LIST_HEAD(fctx->finds);
-		} while (find != start);
-	}
-
-	fctx->find = find;
-	if (addrinfo != NULL)
-		return (addrinfo);
 
 	/*
 	 * No nameservers left.  Try alternates.
@@ -4440,7 +4400,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->bad_edns);
 	ISC_LIST_INIT(fctx->validators);
 	fctx->validator = NULL;
-	fctx->find = NULL;
+	fctx->foundaddrinfo = NULL;
 	fctx->altfind = NULL;
 	fctx->pending = 0;
 	fctx->restarts = 0;
@@ -6520,9 +6480,16 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 	}
 
 	/*
-	 * Otherwise, search the filter list for a match for each address
-	 * record.  If a match is found, the address should be filtered,
-	 * so should the entire answer.
+	 * deny-answer-address doesn't apply to non-IN classes.
+	 */
+	if (rdataset->rdclass != dns_rdataclass_in) {
+		return true;
+	}
+
+	/*
+	 * Otherwise, search the filter list for a match for each
+	 * address record.  If a match is found, the address should be
+	 * filtered, so should the entire answer.
 	 */
 	for (result = dns_rdataset_first(rdataset);
 	     result == ISC_R_SUCCESS;
@@ -9035,6 +9002,17 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 * Resend (probably with changed options).
 		 */
 		FCTXTRACE("resend");
+
+		result = isc_counter_increment(fctx->qc);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+				      "exceeded max queries resolving '%s'",
+				      fctx->info);
+			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+			goto detach_rmessage;
+		}
+
 		inc_stats(res, dns_resstatscounter_retry);
 		bucketnum = fctx->bucketnum;
 		fctx_increference(fctx);
