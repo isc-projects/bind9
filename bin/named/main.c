@@ -123,6 +123,7 @@ extern unsigned int dns_zone_mkey_month;
 extern unsigned int dns_adb_entrywindow;
 extern unsigned int dns_adb_cachemin;
 extern size_t dns_dispatch_tcppipelining;
+extern size_t dns_adb_addrslimit;
 
 static bool want_stats = false;
 static char program_name[NAME_MAX] = "named";
@@ -817,6 +818,13 @@ parse_T_opt(char *option) {
 					      "least 1");
 		}
 		dns_dispatch_tcppipelining = pipelining;
+	} else if (!strncmp(option, "adbaddrslimit=", 14)) {
+		size_t adb_addrslimit = atoi(option + 14);
+		if (adb_addrslimit < 1) {
+			named_main_earlyfatal("adbaddrslimit must be at "
+					      "least 1");
+		}
+		dns_adb_addrslimit = adb_addrslimit;
 	} else {
 		fprintf(stderr, "unknown -T flag '%s'\n", option);
 	}
