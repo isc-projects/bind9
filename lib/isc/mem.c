@@ -29,6 +29,7 @@
 #include <isc/once.h>
 #include <isc/os.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/string.h>
 #include <isc/types.h>
@@ -151,7 +152,6 @@ struct isc_mem {
 	atomic_size_t malloced;
 	atomic_size_t maxmalloced;
 	atomic_bool hi_called;
-	atomic_bool is_overmem;
 	isc_mem_water_t water;
 	void *water_arg;
 	atomic_size_t hi_water;
@@ -534,7 +534,6 @@ mem_create(isc_mem_t **ctxp, unsigned int flags, unsigned int jemalloc_flags) {
 	atomic_init(&ctx->hi_water, 0);
 	atomic_init(&ctx->lo_water, 0);
 	atomic_init(&ctx->hi_called, false);
-	atomic_init(&ctx->is_overmem, false);
 
 	for (size_t i = 0; i < STATS_BUCKETS + 1; i++) {
 		atomic_init(&ctx->stats[i].gets, 0);
@@ -786,9 +785,6 @@ hi_water(isc_mem_t *ctx) {
 		return false;
 	}
 
-	/* We are over water (for the first time) */
-	atomic_store_release(&ctx->is_overmem, true);
-
 	return true;
 }
 
@@ -809,9 +805,6 @@ lo_water(isc_mem_t *ctx) {
 	if (!atomic_load_acquire(&ctx->hi_called)) {
 		return false;
 	}
-
-	/* We are no longer overmem */
-	atomic_store_release(&ctx->is_overmem, false);
 
 	return true;
 }
@@ -1195,7 +1188,30 @@ bool
 isc_mem_isovermem(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return atomic_load_relaxed(&ctx->is_overmem);
+	size_t hiwater = atomic_load_relaxed(&ctx->hi_water);
+	if (hiwater == 0) {
+		return false;
+	}
+
+	size_t inuse = atomic_load_relaxed(&ctx->inuse);
+	if (inuse >= hiwater) {
+		return true;
+	}
+
+	size_t lowater = atomic_load_relaxed(&ctx->lo_water);
+	if (inuse <= lowater) {
+		return false;
+	}
+
+	/*
+	 * Between lo_water and hi_water, return true with a probability
+	 * that ramps linearly from 0 at lo_water to 1 at hi_water.  This
+	 * spreads cache cleaning across many inserts instead of triggering
+	 * a thundering herd once the hi_water mark is crossed.
+	 */
+	uint32_t prob = (uint32_t)(((uint64_t)(inuse - lowater) * 256) /
+				   (hiwater - lowater));
+	return isc_random8() < prob;
 }
 
 void
