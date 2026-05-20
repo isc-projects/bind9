@@ -56,10 +56,16 @@ class TemplateEngine:
                 pytest.skip("jinja2 not found")
 
             self._j2env = jinja2.Environment(
-                loader=jinja2.FileSystemLoader(
+                loader=jinja2.ChoiceLoader(
                     [
-                        str(self.directory),
-                        str(ALL["srcdir"]),  # to allow _common/ includes
+                        jinja2.FileSystemLoader(self.directory),
+                        jinja2.PrefixLoader(
+                            {
+                                "_common": jinja2.FileSystemLoader(
+                                    Path(self.env_vars["srcdir"]) / "_common"
+                                ),
+                            }
+                        ),
                     ]
                 ),
                 undefined=jinja2.StrictUndefined,
