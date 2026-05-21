@@ -2615,6 +2615,9 @@ merged-metadata:
     - git remote get-url origin | sed -e "s/gitlab-ci-token:${CI_JOB_TOKEN}/oauth2:${BIND_TEAM_WRITE_TOKEN}/" | xargs git remote set-url --push origin
     - git remote add base-project "${CI_SERVER_URL}/${BASE_PROJECT}.git"
     - git fetch --depth="${GIT_DEPTH}" base-project "${BASE_COMMIT}"
+    # If this branch has no changes compared to its base branch yet, there is nothing to rebase;
+    # push the new revision anyway to trigger any potential downstream autorebases.
+    - if [ -z "$(git log --max-count=1 "${BASE_COMMIT}..")" ]; then git push origin "${BASE_COMMIT}:${CI_COMMIT_REF_NAME}"; exit 0; fi
     - *git_clone_bind9-qa
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/rebase.py ${REWRITE_CHERRY_PICKS_FROM:+--rewrite-cherry-picks-from ${REWRITE_CHERRY_PICKS_FROM}} --base-project "${BASE_PROJECT}" "${BASE_COMMIT}"
