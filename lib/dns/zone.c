@@ -616,7 +616,7 @@ dns__zone_free(dns_zone_t *zone) {
 	}
 
 	if (zone->rss_state != NULL) {
-		dns_update_state_clear(&zone->rss_state, true);
+		dns_update_state_clear(&zone->rss_state);
 	}
 
 	if (zone->masterfile != NULL) {
@@ -14388,11 +14388,12 @@ receive_secure_serial_cancel(dns_zone_t *zone) {
 	dns_db_t *rss_db = NULL;
 	dns_dbversion_t *rss_oldver = NULL;
 	dns_dbversion_t *rss_newver = NULL;
+	dns_update_state_t *rss_state = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	if (zone->rss_zone == NULL) {
+	if (zone->rss_zone == NULL && zone->rss_state == NULL) {
 		UNLOCK_ZONE(zone);
 		return;
 	}
@@ -14406,10 +14407,12 @@ receive_secure_serial_cancel(dns_zone_t *zone) {
 	rss_db = MOVE_OWNERSHIP(zone->rss_db);
 	rss_oldver = MOVE_OWNERSHIP(zone->rss_oldver);
 	rss_newver = MOVE_OWNERSHIP(zone->rss_newver);
+	rss_state = MOVE_OWNERSHIP(zone->rss_state);
 	zone->rss_end = 0;
 	dns_diff_clear(&zone->rss_diff);
 	UNLOCK_ZONE(zone);
 
+	dns_update_state_clear(&rss_state);
 	if (rss_db != NULL) {
 		if (rss_oldver != NULL) {
 			dns_db_closeversion(rss_db, &rss_oldver, false);
@@ -14422,7 +14425,9 @@ receive_secure_serial_cancel(dns_zone_t *zone) {
 	if (rss_raw != NULL) {
 		dns_zone_detach(&rss_raw);
 	}
-	dns_zone_idetach(&rss_zone);
+	if (rss_zone != NULL) {
+		dns_zone_idetach(&rss_zone);
+	}
 }
 
 static void

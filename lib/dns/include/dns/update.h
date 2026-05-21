@@ -66,4 +66,4 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 dns_update_state_t **statep);
 
 void
-dns_update_state_clear(dns_update_state_t **statep, bool destroy);
+dns_update_state_clear(dns_update_state_t **statep);
