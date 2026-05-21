@@ -66,20 +66,16 @@ class CookieHandler(DomainHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-
-        # Check for client cookie
-        cookie = _get_cookie(qctx)
-
-        # If missing cookie entirely, just return SERVFAIL
-        if cookie is None:
+        if cookie := _get_cookie(qctx):
+            # If there is a client cookie, mock BADCOOKIE to trigger
+            # the resend loop logic.
+            qctx.response.use_edns(options=[cookie])
+            qctx.response.set_rcode(dns.rcode.BADCOOKIE)
+            yield DnsResponseSend(qctx.response)
+        else:
+            # If missing cookie entirely, just return SERVFAIL
             qctx.response.set_rcode(dns.rcode.SERVFAIL)
             yield DnsResponseSend(qctx.response)
-
-        # If there is a client cookie, mock BADCOOKIE to trigger
-        # the resend loop logic.
-        qctx.response.use_edns(options=[cookie])
-        qctx.response.set_rcode(dns.rcode.BADCOOKIE)
-        yield DnsResponseSend(qctx.response)
 
 
 def resend_server() -> AsyncDnsServer:
