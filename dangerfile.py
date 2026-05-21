@@ -281,25 +281,30 @@ if is_backport:
         else:  # check for commit IDs once original MR is merged
             original_mr_commits = list(original_mr.commits(all=True))
             backport_mr_commits = list(mr.commits(all=True))
-            for orig_commit in original_mr_commits:
-                for backport_commit in backport_mr_commits:
-                    if orig_commit.id in backport_commit.message:
-                        break
+            missing_commits = []
+            for orig_id in (o.id for o in original_mr_commits):
+                if not any(b for b in backport_mr_commits if orig_id in b.message):
+                    missing_commits.append(orig_id)
+            if missing_commits:
+                msg = (
+                    f"The following commits from original MR !{original_mr_id} "
+                    "are not referenced in any of the backport commits:"
+                )
+                msg += "<ul>"
+                msg += "".join(f"<li>{orig_id}</li>" for orig_id in missing_commits)
+                msg += "</ul>"
+                if not is_full_backport:
+                    message(msg)
                 else:
-                    msg = (
-                        f"Commit {orig_commit.id} from original MR !{original_mr_id} "
-                        "is not referenced in any of the backport commits."
+                    if target_branch.startswith("security-"):
+                        msg += ":bulb: Try running the `autorebase-merge-request` job. "
+                    msg += (
+                        "Please use `-x` when cherry-picking to include "
+                        "the full original commit ID. Alternatively, use the "
+                        "`Backport::Partial` label if not all original "
+                        "commits are meant to be backported."
                     )
-                    if not is_full_backport:
-                        message(msg)
-                    else:
-                        msg += (
-                            " Please use `-x` when cherry-picking to include "
-                            "the full original commit ID. Alternately, use the "
-                            "`Backport::Partial` label if not all original "
-                            "commits are meant to be backported."
-                        )
-                        fail(msg)
+                    fail(msg)
 else:
     if not version_labels:
         fail(
