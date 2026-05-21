@@ -2824,28 +2824,19 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
  */
 static isc_result_t
 findnsec3proofs(dns_validator_t *val) {
-	dns_name_t *name, tname;
 	isc_result_t result;
-	bool exists, data, optout, unknown;
-	bool setclosest, setnearest, *setclosestp;
+	dns_rdataset_t trdataset = DNS_RDATASET_INIT;
+	dns_rdataset_t *rdataset = (val->message == NULL) ? &trdataset : NULL;
+	dns_name_t tname = DNS_NAME_INITEMPTY;
+	dns_name_t *name = (val->message == NULL) ? &tname : NULL;
 	dns_fixedname_t fclosest, fnearest, fzonename;
-	dns_name_t *closest, *nearest, *zonename, *closestp;
+	dns_name_t *closest = dns_fixedname_initname(&fclosest);
+	dns_name_t *nearest = dns_fixedname_initname(&fnearest);
+	dns_name_t *zonename = dns_fixedname_initname(&fzonename);
+	dns_name_t *closestp = NULL;
 	dns_name_t **proofs = val->proofs;
-	dns_rdataset_t *rdataset, trdataset;
-
-	dns_name_init(&tname);
-	dns_rdataset_init(&trdataset);
-	closest = dns_fixedname_initname(&fclosest);
-	nearest = dns_fixedname_initname(&fnearest);
-	zonename = dns_fixedname_initname(&fzonename);
-
-	if (val->message == NULL) {
-		name = &tname;
-		rdataset = &trdataset;
-	} else {
-		name = NULL;
-		rdataset = NULL;
-	}
+	bool exists, data, optout, unknown;
+	bool setclosest, setnearest, *setclosestp = NULL;
 
 	for (result = val_rdataset_first(val, &name, &rdataset);
 	     result == ISC_R_SUCCESS;
@@ -2862,18 +2853,11 @@ findnsec3proofs(dns_validator_t *val) {
 						 NULL, NULL, NULL, NULL, NULL,
 						 NULL, validator_log, val);
 		if (result != ISC_R_IGNORE && result != ISC_R_SUCCESS) {
-			dns_rdataset_cleanup(&trdataset);
-			return result;
+			CLEANUP(result);
 		}
 	}
-	if (result != ISC_R_NOMORE) {
-		result = ISC_R_SUCCESS;
-	}
-	POST(result);
-
 	if (dns_name_countlabels(zonename) == 0) {
-		dns_rdataset_cleanup(&trdataset);
-		return ISC_R_SUCCESS;
+		CLEANUP(ISC_R_SUCCESS);
 	}
 
 	/*
@@ -2941,12 +2925,12 @@ findnsec3proofs(dns_validator_t *val) {
 			{
 				proofs[DNS_VALIDATOR_NOWILDCARDPROOF] = name;
 			}
-			dns_rdataset_cleanup(&trdataset);
-			return result;
+			CLEANUP(result);
 		}
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}
+
 		if (setclosest) {
 			proofs[DNS_VALIDATOR_CLOSESTENCLOSER] = name;
 		}
@@ -2996,11 +2980,9 @@ findnsec3proofs(dns_validator_t *val) {
 	    ((NEEDNODATA(val) && !FOUNDNODATA(val)) || NEEDNOWILDCARD(val)))
 	{
 		result = checkwildcard(val, dns_rdatatype_nsec3, zonename);
-		if (result != ISC_R_SUCCESS) {
-			dns_rdataset_cleanup(&trdataset);
-			return result;
-		}
 	}
+
+cleanup:
 	dns_rdataset_cleanup(&trdataset);
 	return result;
 }
