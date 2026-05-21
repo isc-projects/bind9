@@ -2735,17 +2735,20 @@ merged-metadata:
     - if ! git push --force-with-lease origin "HEAD:${CI_COMMIT_REF_NAME}"; then touch .git-push-failed; exit 1; fi
   after_script:
     - if [ "${CI_JOB_STATUS}" = "success" ]; then exit 0; fi
-    - OLDEST_MERGE_COMMIT="$(git log --reverse --merges --pretty=%H "${CI_COMMIT_SHA}..${BASE_COMMIT}" | head -1)"
-    - read -r OLDEST_MERGE_REQUEST_PROJECT OLDEST_MERGE_REQUEST_ID < <(git log --max-count=1 "${OLDEST_MERGE_COMMIT}" | sed -nE 's|^\s*See merge request ([a-z-]+/bind9)!([0-9]+).*|\1 \2|p' | head -1)
     - |
+      REASON_DETAILS=""
       if git rebase --abort; then
           # Rebase failed; try applying recent commits from the base branch on top of the branch being rebased to determine which one introduces conflicts
           git rebase --rebase-merges "${CI_COMMIT_SHA}" "${BASE_COMMIT}" || true
-          CONFLICT_COMMIT="$(git status | sed -nE 's/^\s*(pick|merge -C) ([0-9a-f]+).*/\2/p' | head -1 | git rev-list -n 1 --stdin)"
+          CONFLICT_COMMIT="$(git rev-parse REBASE_HEAD)"
+          CONFLICT_COMMIT_AUTHOR="$(git log --max-count=1 --pretty="@%al" "${CONFLICT_COMMIT}")"
+          CONFLICT_COMMIT_MERGE="$(git log --reverse --merges --pretty="%H" "${CONFLICT_COMMIT}..${BASE_COMMIT}" | head -1)"
+          read -r CONFLICT_COMMIT_MERGE_REQUEST_PROJECT CONFLICT_COMMIT_MERGE_REQUEST_ID < <(git log --max-count=1 "${CONFLICT_COMMIT_MERGE}" | sed -n -E 's|^\s*See merge request ([a-z-]+/bind9)!([0-9]+).*|\1 \2|p' | head -1)
           REASON="merge conflict introduced by a change in the base branch"
+          REASON_DETAILS="${REASON_DETAILS}\n**First bad commit**: [${CONFLICT_COMMIT}](https://gitlab.isc.org/${CONFLICT_COMMIT_MERGE_REQUEST_PROJECT}/-/commit/${CONFLICT_COMMIT}) (authored by ${CONFLICT_COMMIT_AUTHOR})"
+          REASON_DETAILS="${REASON_DETAILS}\n**First bad merge request**: https://gitlab.isc.org/${CONFLICT_COMMIT_MERGE_REQUEST_PROJECT}/-/merge_requests/${CONFLICT_COMMIT_MERGE_REQUEST_ID}"
       else
           # Rebase did not fail; most likely, this is a build failure, or the job was canceled
-          CONFLICT_COMMIT="${OLDEST_MERGE_COMMIT}"
           if [ "${CI_JOB_STATUS}" = "failed" ]; then
               if [ -f ".git-push-failed" ]; then
                   REASON="branch was updated during rebase"
@@ -2756,12 +2759,10 @@ merged-metadata:
               REASON="job was canceled"
           fi
       fi
-      CONFLICT_COMMIT_AUTHOR="$(git log --max-count=1 --pretty="@%al" "${CONFLICT_COMMIT}")"
       MSG="#### :rotating_light: Autorebase error for branch \`${CI_COMMIT_REF_NAME}\` :rotating_light:"
       MSG="${MSG}\n**Job**: ${CI_JOB_URL}"
       MSG="${MSG}\n**Reason**: ${REASON}"
-      MSG="${MSG}\n**First bad commit**: [${CONFLICT_COMMIT}](https://gitlab.isc.org/${OLDEST_MERGE_REQUEST_PROJECT}/-/commit/${CONFLICT_COMMIT}) (authored by ${CONFLICT_COMMIT_AUTHOR})"
-      MSG="${MSG}\n**First bad merge request**: https://gitlab.isc.org/${OLDEST_MERGE_REQUEST_PROJECT}/-/merge_requests/${OLDEST_MERGE_REQUEST_ID}"
+      MSG="${MSG}${REASON_DETAILS}"
     - |
       curl -s -o /dev/null -X POST -H content-type:application/json -d '{"channel":"bind-9-team", "text": "'"${MSG}"'" }' "${MATTERMOST_WEBHOOK_URL}"
 
