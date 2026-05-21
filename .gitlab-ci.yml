@@ -2723,9 +2723,11 @@ merged-metadata:
   script:
     # CI job token is not sufficient for push operations
     - git remote get-url origin | sed -e "s/gitlab-ci-token:${CI_JOB_TOKEN}/oauth2:${BIND_TEAM_WRITE_TOKEN}/" | xargs git remote set-url --push origin
-    - git remote add base-project "https://oauth2:${BIND_TEAM_API_TOKEN}@gitlab.isc.org/${BASE_PROJECT}.git"
-    - git fetch --depth=1000 base-project "${BASE_COMMIT}"
-    - git rebase --rebase-merges "${BASE_COMMIT}"
+    - git remote add base-project "${CI_SERVER_URL}/${BASE_PROJECT}.git"
+    - git fetch --depth="${GIT_DEPTH}" base-project "${BASE_COMMIT}"
+    - *git_clone_bind9-qa
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/rebase.py ${REWRITE_CHERRY_PICKS_FROM:+--rewrite-cherry-picks-from ${REWRITE_CHERRY_PICKS_FROM}} --base-project "${BASE_PROJECT}" "${BASE_COMMIT}"
     - autoreconf -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
@@ -2773,6 +2775,7 @@ autorebase-trigger-security:
     REBASE_ONLY: 1
     BASE_PROJECT: isc-projects/bind9
     BASE_COMMIT: "${CI_COMMIT_SHA}"
+    REWRITE_CHERRY_PICKS_FROM: security-main
   trigger:
       project: isc-private/bind9
       branch: "security-${CI_COMMIT_BRANCH}"
