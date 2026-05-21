@@ -37,21 +37,21 @@ def rrset(
     return dns.rrset.from_text(qname, ttl, dns.rdataclass.IN, rtype, rdata)
 
 
-class RootNSHandler(QnameQtypeHandler, StaticResponseHandler):
+class RootNsHandler(QnameQtypeHandler, StaticResponseHandler):
     qnames = ["."]
     qtypes = [dns.rdatatype.NS]
     answer = [rrset(".", dns.rdatatype.NS, "a.root-servers.nil.")]
     additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3")]
 
 
-class ExampleNSHandler(QnameQtypeHandler, StaticResponseHandler):
+class ExampleNsHandler(QnameQtypeHandler, StaticResponseHandler):
     qnames = ["example."]
     qtypes = [dns.rdatatype.NS]
     answer = [rrset("example.", dns.rdatatype.NS, "ns.example.")]
     additional = [rrset("ns.example.", dns.rdatatype.A, "10.53.0.3")]
 
 
-class CookieHandler(DomainHandler):
+class ExampleCookieHandler(DomainHandler):
     domains = ["example."]
 
     def _get_cookie(self, qctx: QueryContext) -> dns.edns.CookieOption | None:
@@ -78,18 +78,14 @@ class CookieHandler(DomainHandler):
             yield DnsResponseSend(qctx.response)
 
 
-def resend_server() -> AsyncDnsServer:
+def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(
-        RootNSHandler(),
-        ExampleNSHandler(),
-        CookieHandler(),
+        RootNsHandler(),
+        ExampleNsHandler(),
+        ExampleCookieHandler(),
     )
-    return server
-
-
-def main() -> None:
-    resend_server().run()
+    server.run()
 
 
 if __name__ == "__main__":
