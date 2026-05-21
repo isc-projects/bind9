@@ -136,10 +136,10 @@ cfg_parser_currentfile(cfg_parser_t *pctx);
  */
 
 isc_result_t
-cfg_map_addclone(cfg_obj_t *map, const cfg_obj_t *obj,
-		 const cfg_clausedef_t *clause);
+cfg_map_add(cfg_obj_t *map, const cfg_obj_t *obj,
+	    const cfg_clausedef_t *clause);
 /*%<
- * Add a clone of 'obj' to the specified clause in mapbody 'mapobj'.
+ * Clone 'obj' and add its clone to the specified clause in mapbody 'mapobj'.
  * If the clause is tagged with CFG_CLAUSEFLAG_MULTI, the function expects
  * that 'obj' is a list and will clone each element and sequentially add them
  * (preserving the order), instead of adding a list as single element of
@@ -217,17 +217,6 @@ cfg_map_get(const cfg_obj_t *mapobj, const char *name, const cfg_obj_t **obj);
  * Returns:
  * \li     #ISC_R_SUCCESS                  - success
  * \li     #ISC_R_NOTFOUND                 - name not found in map
- */
-
-isc_result_t
-cfg_map_add(cfg_obj_t *mapobj, cfg_obj_t *obj, const char *clause);
-/*%<
- * Add the object 'obj' to the specified clause in mapbody 'mapobj'.
- * Used for adding new zones.
- *
- * Require:
- * \li     'obj' is a valid cfg_obj_t.
- * \li     'mapobj' is a valid cfg_obj_t of type map.
  */
 
 const cfg_obj_t *
