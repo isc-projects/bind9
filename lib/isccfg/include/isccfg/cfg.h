@@ -136,10 +136,10 @@ cfg_parser_currentfile(cfg_parser_t *pctx);
  */
 
 isc_result_t
-cfg_map_addclone(cfg_obj_t *map, const cfg_obj_t *obj,
-		 const cfg_clausedef_t *clause);
+cfg_map_add(cfg_obj_t *map, const cfg_obj_t *obj,
+	    const cfg_clausedef_t *clause);
 /*%<
- * Add a clone of 'obj' to the specified clause in mapbody 'mapobj'.
+ * Clone 'obj' and add its clone to the specified clause in mapbody 'mapobj'.
  * If the clause is tagged with CFG_CLAUSEFLAG_MULTI, the function expects
  * that 'obj' is a list and will clone each element and sequentially add them
  * (preserving the order), instead of adding a list as single element of

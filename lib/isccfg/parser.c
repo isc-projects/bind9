@@ -4047,8 +4047,8 @@ map_define(cfg_obj_t *mapobj, cfg_obj_t *obj, const cfg_clausedef_t *clause) {
 }
 
 isc_result_t
-cfg_map_addclone(cfg_obj_t *map, const cfg_obj_t *obj,
-		 const cfg_clausedef_t *clause) {
+cfg_map_add(cfg_obj_t *map, const cfg_obj_t *obj,
+	    const cfg_clausedef_t *clause) {
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_obj_t *clone = NULL;
 

@@ -1176,8 +1176,8 @@ map_merge(const cfg_obj_t *config ISC_ATTR_UNUSED, cfg_obj_t *effectivemap,
 		if (effectiveres == ISC_R_NOTFOUND &&
 		    defaultres == ISC_R_SUCCESS)
 		{
-			INSIST(cfg_map_addclone(effectivemap, defaultobj,
-						clause) == ISC_R_SUCCESS);
+			INSIST(cfg_map_add(effectivemap, defaultobj, clause) ==
+			       ISC_R_SUCCESS);
 			continue;
 		}
 
@@ -1205,7 +1205,7 @@ cloneto(cfg_obj_t *options, const cfg_obj_t *obj, const char *clausename) {
 	const cfg_clausedef_t *clause = cfg_map_findclause(options->type,
 							   clausename);
 
-	result = cfg_map_addclone(options, obj, clause);
+	result = cfg_map_add(options, obj, clause);
 	INSIST(result == ISC_R_SUCCESS);
 }
 
