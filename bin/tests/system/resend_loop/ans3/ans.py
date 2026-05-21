@@ -74,8 +74,6 @@ class CookieHandler(DomainHandler):
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
 
-        qctx.prepare_new_response()
-
         # Check for client cookie
         cookie = _get_cookie(qctx)
 
