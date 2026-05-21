@@ -21,6 +21,7 @@ import dns.rrset
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsResponseSend,
+    DomainHandler,
     QnameQtypeHandler,
     QueryContext,
     ResponseHandler,
@@ -60,10 +61,8 @@ class RootNSHandler(QnameQtypeHandler, StaticResponseHandler):
     additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3")]
 
 
-class CookieHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        example = dns.name.from_text("example")
-        return qctx.qname.is_subdomain(example)
+class CookieHandler(DomainHandler):
+    domains = ["example."]
 
     async def get_responses(
         self, qctx: QueryContext
