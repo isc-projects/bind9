@@ -21,7 +21,7 @@ import dns.rrset
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsResponseSend,
-    QnameHandler,
+    QnameQtypeHandler,
     QueryContext,
     ResponseHandler,
     StaticResponseHandler,
@@ -53,24 +53,18 @@ def rrset(
     return dns.rrset.from_text(qname, ttl, dns.rdataclass.IN, rtype, rdata)
 
 
-class RootNSHandler(QnameHandler, StaticResponseHandler):
+class RootNSHandler(QnameQtypeHandler, StaticResponseHandler):
     qnames = ["."]
-    answer = [
-        rrset(".", dns.rdatatype.NS, "a.root-servers.nil."),
-    ]
-    additional = [
-        rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3"),
-    ]
+    qtypes = [dns.rdatatype.NS]
+    answer = [rrset(".", dns.rdatatype.NS, "a.root-servers.nil.")]
+    additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3")]
 
 
-class ExampleNSHandler(QnameHandler, StaticResponseHandler):
+class ExampleNSHandler(QnameQtypeHandler, StaticResponseHandler):
     qnames = ["example."]
-    answer = [
-        rrset("example.", dns.rdatatype.NS, "ns.example."),
-    ]
-    additional = [
-        rrset("ns.example.", dns.rdatatype.A, "10.53.0.3"),
-    ]
+    qtypes = [dns.rdatatype.NS]
+    answer = [rrset("example.", dns.rdatatype.NS, "ns.example.")]
+    additional = [rrset("ns.example.", dns.rdatatype.A, "10.53.0.3")]
 
 
 class CookieHandler(ResponseHandler):
