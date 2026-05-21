@@ -330,8 +330,8 @@ stages:
 .rule_source_all: &rule_source_all
   - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/ && $REBASE_ONLY != "1"'
 
-.rule_private_security_branch: &rule_private_security_branch
-  - if: '$CI_COMMIT_BRANCH =~ /^security-(main|bind-9\.[1-9][0-9])$/ && $CI_PROJECT_PATH == "isc-private/bind9" && $REBASE_ONLY != "1"'
+.rule_branch_after_autorebase: &rule_branch_after_autorebase
+  - if: '$CI_PIPELINE_SOURCE == "push" && $AUTOREBASED == "1"'
 
 .api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
   rules:
@@ -341,7 +341,7 @@ stages:
 .default-triggering-rules_list: &default_triggering_rules_list
   - *rule_tag
   - *rule_source_all
-  - *rule_private_security_branch
+  - *rule_branch_after_autorebase
 
 .default-triggering-rules: &default_triggering_rules
   rules:
@@ -353,7 +353,7 @@ stages:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
-    - *rule_private_security_branch
+    - *rule_branch_after_autorebase
 
 .shell-triggering-rules: &shell_triggering_rules
   rules:
@@ -361,7 +361,7 @@ stages:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
-    - *rule_private_security_branch
+    - *rule_branch_after_autorebase
 
 .python-triggering-rules: &python_triggering_rules
   rules:
@@ -369,7 +369,7 @@ stages:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
-    - *rule_private_security_branch
+    - *rule_branch_after_autorebase
 
 .extra-system-tests-triggering-rules: &extra_system_tests_triggering_rules
   rules:
@@ -733,7 +733,7 @@ clang-format:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
-    - *rule_private_security_branch
+    - *rule_branch_after_autorebase
   script:
     - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
     - git diff > clang-format.patch
@@ -895,7 +895,7 @@ coccinelle:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
-    - *rule_private_security_branch
+    - *rule_branch_after_autorebase
   script:
     - util/check-cocci.sh
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
@@ -2501,7 +2501,7 @@ stress-test-child-pipeline:
       allow_failure: true
     - *rule_tag
     - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/ && $REBASE_ONLY != "1"'
-    - *rule_private_security_branch
+    - *rule_branch_after_autorebase
   trigger:
     include:
       - artifact: stress-test-configs.yml
@@ -2621,7 +2621,7 @@ merged-metadata:
     - *configure
     - meson compile -C build
     - git range-diff --color=always "${BASE_COMMIT}" "${CI_COMMIT_SHA}" HEAD
-    - if ! git push --force-with-lease origin "HEAD:${CI_COMMIT_REF_NAME}"; then touch .git-push-failed; exit 1; fi
+    - if ! git push --force-with-lease -o ci.variable="AUTOREBASED=1" origin "HEAD:${CI_COMMIT_REF_NAME}"; then touch .git-push-failed; exit 1; fi
   after_script:
     - if [ "${CI_JOB_STATUS}" = "success" ]; then exit 0; fi
     - |
