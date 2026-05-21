@@ -32,12 +32,8 @@ def _get_cookie(qctx: QueryContext):
     for o in qctx.query.options:
         if o.otype == dns.edns.OptionType.COOKIE:
             cookie = o
-            try:
-                if len(cookie.server) == 0:
-                    cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
-            except AttributeError:  # dnspython<2.7.0 compat
-                if len(o.data) == 8:
-                    cookie.data *= 2
+            if len(cookie.server) == 0:
+                cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
 
             return cookie
 
