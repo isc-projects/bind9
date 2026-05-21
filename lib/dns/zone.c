@@ -1109,12 +1109,12 @@ static isc_result_t
 copy_initfile(dns_zone_t *zone) {
 	isc_result_t result;
 	FILE *input = NULL, *output = NULL;
-	size_t len;
+	off_t len;
 
 	CHECK(isc_stdio_open(zone->initfile, "r", &input));
 	CHECK(isc_stdio_open(zone->masterfile, "w", &output));
 
-	CHECK(isc_file_getsizefd(fileno(input), (off_t *)&len));
+	CHECK(isc_file_getsizefd(fileno(input), &len));
 
 	do {
 		char buf[BUFSIZ];
