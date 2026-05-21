@@ -28,13 +28,11 @@ from isctest.asyncserver import (
 )
 
 
-def _get_cookie(qctx: QueryContext):
+def _get_cookie(qctx: QueryContext) -> dns.edns.CookieOption | None:
     for o in qctx.query.options:
         if o.otype == dns.edns.OptionType.COOKIE:
             cookie = o
-            if len(cookie.server) == 0:
-                cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
-
+            cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
             return cookie
 
     return None
