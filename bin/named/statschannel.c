@@ -2151,9 +2151,7 @@ cleanup:
 }
 
 static void
-wrap_xmlfree(isc_buffer_t *buffer, void *arg) {
-	UNUSED(arg);
-
+wrap_xmlfree(isc_buffer_t *buffer, void *arg ISC_ATTR_UNUSED) {
 	xmlFree(isc_buffer_base(buffer));
 }
 
@@ -2297,8 +2295,7 @@ render_xml_traffic(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 	} while (0)
 
 static void
-wrap_jsonfree(isc_buffer_t *buffer, void *arg) {
-	json_object_put(isc_buffer_base(buffer));
+wrap_jsonfree(isc_buffer_t *buffer ISC_ATTR_UNUSED, void *arg) {
 	if (arg != NULL) {
 		json_object_put((json_object *)arg);
 	}
