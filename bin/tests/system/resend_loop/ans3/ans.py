@@ -24,7 +24,6 @@ from isctest.asyncserver import (
     DomainHandler,
     QnameQtypeHandler,
     QueryContext,
-    ResponseHandler,
     StaticResponseHandler,
 )
 
@@ -92,27 +91,12 @@ class CookieHandler(DomainHandler):
         yield DnsResponseSend(qctx.response, authoritative=True)
 
 
-class NoErrorHandler(ResponseHandler):
-    """
-    If the query is NOT a subdomain of example, respond with standard NOERROR empty answer
-    """
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-
-        qctx.prepare_new_response()
-        qctx.response.set_rcode(dns.rcode.NOERROR)
-        yield DnsResponseSend(qctx.response, authoritative=True)
-
-
 def resend_server() -> AsyncDnsServer:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(
         RootNSHandler(),
         ExampleNSHandler(),
         CookieHandler(),
-        NoErrorHandler(),
     )
     return server
 
