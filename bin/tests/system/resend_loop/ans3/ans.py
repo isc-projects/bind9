@@ -28,16 +28,6 @@ from isctest.asyncserver import (
 )
 
 
-def _get_cookie(qctx: QueryContext) -> dns.edns.CookieOption | None:
-    for o in qctx.query.options:
-        if o.otype == dns.edns.OptionType.COOKIE:
-            cookie = o
-            cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
-            return cookie
-
-    return None
-
-
 def rrset(
     qname: dns.name.Name | str,
     rtype: dns.rdatatype.RdataType,
@@ -57,10 +47,19 @@ class RootNSHandler(QnameQtypeHandler, StaticResponseHandler):
 class CookieHandler(DomainHandler):
     domains = ["example."]
 
+    def _get_cookie(self, qctx: QueryContext) -> dns.edns.CookieOption | None:
+        for o in qctx.query.options:
+            if o.otype == dns.edns.OptionType.COOKIE:
+                cookie = o
+                cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
+                return cookie
+
+        return None
+
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if cookie := _get_cookie(qctx):
+        if cookie := self._get_cookie(qctx):
             # If there is a client cookie, mock BADCOOKIE to trigger
             # the resend loop logic.
             qctx.response.use_edns(options=[cookie])
