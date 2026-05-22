@@ -211,6 +211,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-trixie-amd64cross32"
   <<: *linux_amd64
 
+.debian-trixie-386: &debian_trixie_386_image
+  image: "$CI_REGISTRY_IMAGE:debian-trixie-386"
+  <<: *linux_amd64
+
 .debian-sid-amd64: &debian_sid_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
   <<: *linux_amd64
@@ -1307,6 +1311,33 @@ gcc:trixie:amd64cross32:
     EXTRA_CONFIGURE: "--build=x86_64-linux-gnu --host=i686-linux-gnu --with-libidn2 ${WITH_READLINE_LIBEDIT}"
   <<: *debian_trixie_amd64cross32_image
   <<: *build_job
+
+# Jobs for regular GCC builds on Debian 13 "trixie" (386)
+
+gcc:trixie:386:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *debian_trixie_386_image
+  <<: *build_job
+
+system:gcc:trixie:386:
+  <<: *debian_trixie_386_image
+  <<: *system_test_job
+  <<: *extra_system_tests_triggering_rules
+  needs:
+    - job: gcc:trixie:386
+      artifacts: true
+
+unit:gcc:trixie:386:
+  <<: *debian_trixie_386_image
+  <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
+  needs:
+    - job: gcc:trixie:386
+      artifacts: true
+
 
 # Jobs for regular GCC builds on Debian "sid" (amd64)
 # Also tests configration option: --without-lmdb.
