@@ -9899,13 +9899,14 @@ query_coveringnsec(query_ctx_t *qctx) {
 	dns_fixedname_t fsigner;
 	dns_fixedname_t fwild;
 	dns_name_t *fname = NULL;
-	dns_name_t *namespace = NULL;
+	dns_name_t *namespace = dns_fixedname_initname(&fnamespace);
 	dns_name_t *nowild = NULL;
 	dns_name_t *signer = NULL;
 	dns_name_t *wild = NULL;
-	dns_name_t qname;
+	dns_name_t qname = DNS_NAME_INITEMPTY;
 	dns_rdataset_t *soardataset = NULL, *sigsoardataset = NULL;
-	dns_rdataset_t rdataset, sigrdataset;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
+	dns_rdataset_t sigrdataset = DNS_RDATASET_INIT;
 	bool done = false;
 	bool exists = true, data = true;
 	bool redirected = false;
@@ -9914,11 +9915,6 @@ query_coveringnsec(query_ctx_t *qctx) {
 	unsigned int labels;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_coveringnsec");
-
-	dns_name_init(&qname, NULL);
-	dns_rdataset_init(&rdataset);
-	dns_rdataset_init(&sigrdataset);
-	namespace = dns_fixedname_initname(&fnamespace);
 
 	/*
 	 * Check that the NSEC record is from the correct namespace.
@@ -9977,15 +9973,20 @@ query_coveringnsec(query_ctx_t *qctx) {
 	/*
 	 * Check that we have the correct NOQNAME NSEC record.
 	 */
-	result = dns_nsec_noexistnodata(qctx->qtype, qctx->client->query.qname,
-					qctx->fname, qctx->rdataset, &exists,
-					&data, wild, log_noexistnodata, qctx);
-
-	if (result != ISC_R_SUCCESS || (exists && data)) {
-		goto cleanup;
-	}
-
+	CHECK(dns_nsec_noexistnodata(qctx->qtype, qctx->client->query.qname,
+				     qctx->fname, qctx->rdataset, &exists,
+				     &data, wild, log_noexistnodata, qctx));
 	if (exists) {
+		/*
+		 * If there's data at the name, or the NSEC isn't
+		 * validated, we don't synthesize an answer.
+		 */
+		if (data || qctx->rdataset->trust != dns_trust_secure ||
+		    qctx->sigrdataset->trust != dns_trust_secure)
+		{
+			goto cleanup;
+		}
+
 		if (qctx->type == dns_rdatatype_any) { /* XXX not yet */
 			goto cleanup;
 		}
@@ -10016,6 +10017,12 @@ query_coveringnsec(query_ctx_t *qctx) {
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
+		if (soardataset->trust != dns_trust_secure ||
+		    sigsoardataset->trust != dns_trust_secure)
+		{
+			goto cleanup;
+		}
+
 		(void)query_synthnodata(qctx, signer, &soardataset,
 					&sigsoardataset);
 		done = true;
@@ -10075,10 +10082,15 @@ query_coveringnsec(query_ctx_t *qctx) {
 		if (!dns_name_issubdomain(nowild, namespace)) {
 			goto cleanup;
 		}
-		result = dns_nsec_noexistnodata(qctx->qtype, wild, nowild,
-						&rdataset, &exists, &data, NULL,
-						log_noexistnodata, qctx);
-		if (result != ISC_R_SUCCESS || (exists && data)) {
+		CHECK(dns_nsec_noexistnodata(qctx->qtype, wild, nowild,
+					     &rdataset, &exists, &data, NULL,
+					     log_noexistnodata, qctx));
+		/*
+		 * If the name exists and contains data, we don't synthesize an
+		 * answer. Note that the rdataset trust has been verified to be
+		 * secure already.
+		 */
+		if (exists && data) {
 			goto cleanup;
 		}
 		break;
@@ -10139,6 +10151,12 @@ query_coveringnsec(query_ctx_t *qctx) {
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
+	if (soardataset->trust != dns_trust_secure ||
+	    sigsoardataset->trust != dns_trust_secure)
+	{
+		goto cleanup;
+	}
+
 	(void)query_synthnxdomainnodata(qctx, exists, nowild, &rdataset,
 					&sigrdataset, signer, &soardataset,
 					&sigsoardataset);
