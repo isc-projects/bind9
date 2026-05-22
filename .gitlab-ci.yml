@@ -104,6 +104,10 @@ workflow:
   auto_cancel:
     on_new_commit: interruptible
 
+include:
+  - project: 'isc-projects/bind9-qa'
+    file: '/.gitlab-ci-common.yml'
+
 stages:
   - quick-checks
   - other-checks
