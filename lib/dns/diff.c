@@ -20,6 +20,8 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/hash.h>
+#include <isc/hashmap.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -182,6 +184,15 @@ dns_diff_size(const dns_diff_t *diff) {
 	return diff->size;
 }
 
+static bool
+minimal_match(void *node, const void *key) {
+	const dns_difftuple_t *a = node;
+	const dns_difftuple_t *b = key;
+
+	return dns_name_caseequal(&a->name, &b->name) &&
+	       dns_rdata_compare(&a->rdata, &b->rdata) == 0 && a->ttl == b->ttl;
+}
+
 /* XXX this is O(N) */
 
 void
@@ -202,10 +213,7 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep) {
 	 * error.  We report it but try to continue anyway.
 	 */
 	ISC_LIST_FOREACH(diff->tuples, ot, link) {
-		if (dns_name_caseequal(&ot->name, &(*tuplep)->name) &&
-		    dns_rdata_compare(&ot->rdata, &(*tuplep)->rdata) == 0 &&
-		    ot->ttl == (*tuplep)->ttl)
-		{
+		if (minimal_match(ot, *tuplep)) {
 			ISC_LIST_UNLINK(diff->tuples, ot, link);
 			INSIST(diff->size > 0);
 			diff->size -= 1;
@@ -223,6 +231,86 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep) {
 	if (*tuplep != NULL) {
 		dns_diff_append(diff, tuplep);
 	}
+}
+
+static uint8_t
+minimal_hashbits(size_t count) {
+	uint8_t bits = 4;
+
+	/* Leave room for the hash map's 90% load threshold. */
+	while (bits < 24 && count > (((size_t)9 << bits) / 10)) {
+		bits++;
+	}
+
+	return bits;
+}
+
+static uint32_t
+minimal_hash(const dns_difftuple_t *tuple) {
+	isc_hash32_t hash;
+
+	isc_hash32_init(&hash);
+	dns_name_hash_ex(&hash, &tuple->name);
+	isc_hash32_hash(&hash, &tuple->rdata.rdclass,
+			sizeof(tuple->rdata.rdclass), true);
+	isc_hash32_hash(&hash, &tuple->rdata.type, sizeof(tuple->rdata.type),
+			true);
+	isc_hash32_hash(&hash, tuple->rdata.data, tuple->rdata.length, false);
+	isc_hash32_hash(&hash, &tuple->ttl, sizeof(tuple->ttl), true);
+
+	return isc_hash32_finalize(&hash);
+}
+
+void
+dns_diff_appendlistminimal(dns_diff_t *diff, dns_diff_t *source) {
+	isc_hashmap_t *index = NULL;
+	isc_result_t result;
+
+	REQUIRE(DNS_DIFF_VALID(diff));
+	REQUIRE(DNS_DIFF_VALID(source));
+	REQUIRE(diff != source);
+
+	dns_diff_appendlist(diff, source);
+
+	isc_hashmap_create(diff->mctx, minimal_hashbits(diff->size), &index);
+
+	ISC_LIST_FOREACH(diff->tuples, tuple, link) {
+		dns_difftuple_t *found = NULL;
+		uint32_t hashval = minimal_hash(tuple);
+
+		result = isc_hashmap_add(index, hashval, minimal_match, tuple,
+					 tuple, (void **)&found);
+
+		switch (result) {
+		case ISC_R_SUCCESS:
+			break;
+
+		case ISC_R_EXISTS:
+			INSIST(found != NULL);
+
+			if (found->op == tuple->op) {
+				UNEXPECTED_ERROR("unexpected non-minimal diff");
+				dns_diff_unlink(diff, tuple);
+				dns_difftuple_free(&tuple);
+			} else {
+				result = isc_hashmap_delete(
+					index, hashval, minimal_match, found);
+				INSIST(result == ISC_R_SUCCESS);
+
+				dns_diff_unlink(diff, found);
+				dns_diff_unlink(diff, tuple);
+
+				dns_difftuple_free(&found);
+				dns_difftuple_free(&tuple);
+			}
+			break;
+
+		default:
+			UNREACHABLE();
+		}
+	}
+
+	isc_hashmap_destroy(&index);
 }
 
 static void
