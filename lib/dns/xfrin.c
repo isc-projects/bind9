@@ -249,7 +249,7 @@ static isc_result_t
 xfrin_start(dns_xfrin_t *xfr);
 
 static void
-xfrin_connect_done(isc_result_t result, isc_region_t *region, void *arg);
+xfrin_connect_done(isc_result_t eresult, isc_region_t *region, void *arg);
 static isc_result_t
 xfrin_send_request(dns_xfrin_t *xfr);
 static void
@@ -1460,19 +1460,18 @@ cleanup:
  * A connection has been established.
  */
 static void
-xfrin_connect_done(isc_result_t result, isc_region_t *region ISC_ATTR_UNUSED,
+xfrin_connect_done(isc_result_t eresult, isc_region_t *region ISC_ATTR_UNUSED,
 		   void *arg) {
 	dns_xfrin_t *xfr = (dns_xfrin_t *)arg;
 	char addrtext[ISC_SOCKADDR_FORMATSIZE];
 	char signerbuf[DNS_NAME_FORMATSIZE];
 	const char *signer = "", *sep = "";
 	dns_zonemgr_t *zmgr = NULL;
+	isc_result_t result;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	if (atomic_load(&xfr->shuttingdown)) {
-		result = ISC_R_SHUTTINGDOWN;
-	}
+	result = atomic_load(&xfr->shuttingdown) ? ISC_R_SHUTTINGDOWN : eresult;
 
 	LIBDNS_XFRIN_CONNECTED(xfr, xfr->info, result);
 
@@ -1540,7 +1539,13 @@ cleanup:
 	}
 
 detach:
-	dns_xfrin_detach(&xfr);
+	/*
+	 * If the connection was successful, then the reference now belongs to
+	 * the receive callback. Otherwise, detach it.
+	 */
+	if (eresult != ISC_R_SUCCESS) {
+		dns_xfrin_detach(&xfr);
+	}
 }
 
 /*
