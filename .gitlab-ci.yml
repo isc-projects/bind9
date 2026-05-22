@@ -231,6 +231,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-trixie-amd64cross32"
   <<: *linux_amd64
 
+.debian-trixie-386: &debian_trixie_386_image
+  image: "$CI_REGISTRY_IMAGE:debian-trixie-386"
+  <<: *linux_amd64
+
 .debian-sid-amd64: &debian_sid_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
   <<: *linux_amd64
@@ -1422,6 +1426,30 @@ gcc:trixie:amd64cross32:
     EXTRA_CONFIGURE: "--cross-file ci/amd64cross32.ini -Didn=enabled -Dgssapi=disabled -Dtracing=disabled ${WITH_LIBEDIT}"
   <<: *debian_trixie_amd64cross32_image
   <<: *build_job
+
+# Jobs for regular GCC builds on Debian 13 "trixie" (386)
+
+gcc:trixie:386:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "-Didn=enabled"
+  <<: *debian_trixie_386_image
+  <<: *build_job
+
+system:gcc:trixie:386:
+  <<: *debian_trixie_386_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:trixie:386
+      artifacts: true
+
+unit:gcc:trixie:386:
+  <<: *debian_trixie_386_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:trixie:386
+      artifacts: true
 
 # Run with pkcs11-provider tests
 gcc:ossl3:trixie:amd64:
