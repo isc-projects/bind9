@@ -99,6 +99,15 @@ zone "example3" {
 	allow-transfer { any; };
 };
 
+# Trying a XoT transfer of a non-existing zone on an HTTPS port. The error should
+# be handled gracefully when the expected ALPN "dot" is not present, see GL#5957.
+tls tls-opportunistic { };
+zone "example-non-existing" {
+	type secondary;
+	primaries { 10.53.0.1 port @EXTRAPORT3@ tls tls-opportunistic; };
+	file "example-non-existing.db";
+};
+
 # As you can see, the "remote-hostname" is missing, but "ca-file" is
 # specified. As the result, the primaries server certificate will be
 # verified using the IP address instead of hostname. That is fine,
