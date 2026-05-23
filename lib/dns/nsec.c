@@ -416,6 +416,18 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 		return DNS_R_DNAME;
 	}
 
+	if (relation != dns_namereln_subdomain &&
+	    dns_nsec_typepresent(&rdata, dns_rdatatype_soa))
+	{
+		/*
+		 * An NSEC with an SOA in the bitmap can only cover
+		 * names that are subdomains of the owner.
+		 */
+		(*logit)(arg, ISC_LOG_DEBUG(3),
+			 "ignoring nsec with SOA covering non-subdomain");
+		return ISC_R_IGNORE;
+	}
+
 	RETERR(dns_rdata_tostruct(&rdata, &nsec, NULL));
 	relation = dns_name_fullcompare(&nsec.next, name, &order, &nlabels);
 	if (order == 0) {

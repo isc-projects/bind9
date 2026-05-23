@@ -9523,6 +9523,13 @@ query_coveringnsec(query_ctx_t *qctx) {
 	}
 
 	/*
+	 * The query name can't be above the signer of the NSEC.
+	 */
+	if (!dns_name_issubdomain(qctx->client->query.qname, signer)) {
+		goto cleanup;
+	}
+
+	/*
 	 * If NSEC or RRSIG are missing from the type map
 	 * reject the NSEC RRset.
 	 */
