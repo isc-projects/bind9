@@ -155,7 +155,6 @@ typedef enum {
 	DNS_ZONEFLG_THAW = 1U << 24,
 	DNS_ZONEFLG_LOADPENDING = 1U << 25, /*%< Loading scheduled */
 	DNS_ZONEFLG_NODELAY = 1U << 26,
-	DNS_ZONEFLG_SENDSECURE = 1U << 27,
 	DNS_ZONEFLG_NEEDSTARTUPNOTIFY = 1U << 28, /*%< need to send out
 						   * notify due to the zone
 						   * just being loaded for
@@ -187,6 +186,16 @@ typedef ISC_LIST(dns_signing_t) dns_signinglist_t;
 typedef struct dns_nsec3chain dns_nsec3chain_t;
 typedef ISC_LIST(dns_nsec3chain_t) dns_nsec3chainlist_t;
 typedef struct dns_include dns_include_t;
+
+/*
+ * Pending inline-signing sync request for the secure zone.  Active
+ * incremental signing continuation state is owned separately by rss_* fields.
+ */
+typedef enum inline_sync_state {
+	inline_sync_idle = 0,	  /*%< No inline sync request is queued. */
+	inline_sync_pull_pending, /*%< Incremental pull wake is queued. */
+	inline_sync_full_pending, /*%< Full rebuild wake is queued. */
+} inline_sync_state_t;
 
 /*%
  * Hold checkds state.
@@ -576,13 +585,14 @@ struct dns_zone {
 	/*
 	 * Inline zone signing state.
 	 */
+	inline_sync_state_t inline_sync_state;
 	dns_diff_t rss_diff;
 	dns_dbversion_t *rss_newver;
 	dns_dbversion_t *rss_oldver;
 	dns_db_t *rss_db;
 	dns_zone_t *rss_raw;
-	struct rss *rss;
-	struct rss *rss_next;
+	uint32_t rss_end;
+	dns_zone_t *rss_zone;
 	dns_update_state_t *rss_state;
 
 	isc_stats_t *gluecachestats;
