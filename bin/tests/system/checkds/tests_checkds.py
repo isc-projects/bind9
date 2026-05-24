@@ -15,7 +15,6 @@
 from typing import NamedTuple
 
 import os
-import sys
 import time
 
 import dns.name
@@ -27,9 +26,6 @@ import pytest
 import isctest
 
 pytestmark = [
-    pytest.mark.skipif(
-        sys.version_info < (3, 7), reason="Python >= 3.7 required [GL #3001]"
-    ),
     pytest.mark.extra_artifacts(
         [
             "*.out",
