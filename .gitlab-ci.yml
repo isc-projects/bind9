@@ -1726,7 +1726,6 @@ clang:tsan:
     CFLAGS: "${CFLAGS_COMMON}"
     LDFLAGS: "-Wl,--disable-new-dtags"
     EXTRA_CONFIGURE: "${TSAN_CONFIGURE_FLAGS_COMMON} -Db_lundef=false --native-file ci/clang-trixie.ini"
-  <<: *build_job
 
 system:clang:tsan:
   variables:
