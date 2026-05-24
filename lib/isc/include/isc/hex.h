@@ -73,7 +73,7 @@ isc_hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
  * `isc_hex_decodestring()`, which can be directly used for simpler cases.
  * However, for more complex cases (or cases which, for instance, must not have
  * white spaces, or if the input is not a null-terminated string) using those
- * lower-level API might be usefull.
+ * lower-level API might be useful.
  */
 
 void

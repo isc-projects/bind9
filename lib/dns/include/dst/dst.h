@@ -1283,7 +1283,7 @@ dst_algorithm_fromdata(dns_secalg_t algorithm, unsigned char *data,
 		       unsigned int length);
 /*%<
  * If 'algorithm' is PRIVATEOID or PRIVATEDNS, extract the DNSSEC private
- * algorithm encoded at the begining of data and return the DST algorithm
+ * algorithm encoded at the beginning of data and return the DST algorithm
  * number that corresponds to it; if the algorithm is unknown to DST,
  * return 0.
  *

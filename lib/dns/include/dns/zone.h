@@ -363,7 +363,7 @@ dns_zone_dumptostream(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
  *    and 'rawversion' is ignored.
  *
  *    If 'format' is dns_masterformat_raw, 'style' is ignored, and
- *    'rawversion" specifies the format verson of the raw zone file:
+ *    'rawversion" specifies the format version of the raw zone file:
  *    version 0 raw files can be read by all BIND 9 releases;
  *    version 1 was introduced in BIND 9.9.
  *
@@ -551,7 +551,7 @@ dns_zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
  * Requires:
  *\li	'zone' to be a valid initialised zone.
  *\li	'mctx' is not NULL.
- *\li	'keys' is not NULL and has enough space form 'nkeys' keys.
+ *\li	'keys' is not NULL and has enough space for 'nkeys' keys.
  *\li	'nkeys' is not NULL.
  *
  * Returns:

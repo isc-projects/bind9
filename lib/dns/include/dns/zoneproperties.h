@@ -1174,7 +1174,7 @@ dns_zone_setcheckisservedby(dns_zone_t		     *zone,
 /*%<
  *	Set the post load integrity callback function 'checkisserverby'.
  *	'checkisserverby' will be called if the NS TARGET is not within
- *	the zone and there are A or AAAA records in the the zone.
+ *	the zone and there are A or AAAA records in the zone.
  *
  * Require:
  *	'zone' to be a valid zone.

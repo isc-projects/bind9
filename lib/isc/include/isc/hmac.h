@@ -13,7 +13,7 @@
 
 /*!
  * \file isc/hmac.h
- * \brief This is the header for for message authentication code.
+ * \brief This is the header for message authentication code.
  */
 
 #pragma once

@@ -73,7 +73,7 @@ synthrecord_reverseanswer(synthrecord_t *inst, isc_netaddr_t *na,
 	RETERR(isc_netaddr_totext(na, &addrb));
 
 	/*
-	 * IDN compatibility, as an IPv6 begining or ending with `::` will be
+	 * IDN compatibility, as an IPv6 beginning or ending with `::` will be
 	 * converted into `--` and RFC5890 section 2.3.1 states that an IDN
 	 * label can't start or end with an hyphen.
 	 */

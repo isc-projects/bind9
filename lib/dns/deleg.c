@@ -648,8 +648,8 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	if (result == ISC_R_SUCCESS) {
 		/*
 		 * A node at the same zonecut exists, and it is expired. Ignore
-		 * the return value, in case the overriden node would be removed
-		 * in meantime by someone else.
+		 * the return value, in case the overridden node would be
+		 * removed in meantime by someone else.
 		 */
 		(void)dns_qp_deletename(qp, zonecut, DNS_DBNAMESPACE_NORMAL,
 					NULL, NULL);

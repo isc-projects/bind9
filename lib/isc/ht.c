@@ -116,7 +116,7 @@ rehashing_in_progress(const isc_ht_t *ht) {
 }
 
 static bool
-hashtable_is_overcommited(isc_ht_t *ht) {
+hashtable_is_overcommitted(isc_ht_t *ht) {
 	return ht->count >= (ht->size[ht->hindex] * HT_OVERCOMMIT);
 }
 
@@ -313,7 +313,7 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize,
 	if (rehashing_in_progress(ht)) {
 		/* Rehash in progress */
 		hashtable_rehash_one(ht);
-	} else if (hashtable_is_overcommited(ht)) {
+	} else if (hashtable_is_overcommitted(ht)) {
 		/* Rehash requested */
 		maybe_rehash(ht, ht->count);
 	}

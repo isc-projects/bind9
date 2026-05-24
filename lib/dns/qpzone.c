@@ -192,7 +192,7 @@ struct qpznode {
 	 * and the database have both released the object) the object
 	 * is freed.
 	 *
-	 * Whenever 'erefs' is incremented from zero, we also aquire a
+	 * Whenever 'erefs' is incremented from zero, we also acquire a
 	 * node use reference (see 'qpzonedb->references' below), and
 	 * release it when 'erefs' goes back to zero. This prevents the
 	 * database from being shut down until every caller has released
@@ -2664,7 +2664,7 @@ findnodeintree(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
 		INSIST(node->nspace == DNS_DBNAMESPACE_NSEC3 || !nsec3);
 	}
 	/*
-	 * ... if the lookup is unsucessful, and the caller didn't ask us
+	 * ... if the lookup is unsuccessful, and the caller didn't ask us
 	 * to create a new node, there is nothing to do. Return the result
 	 * of the lookup to the caller, and set *nodep to NULL
 	 */
@@ -4373,7 +4373,7 @@ dbiterator_last(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 		/* FALLTHROUGH */
 	case nonsec3:
 		/*
-		 * The final non-nsec node is before the the NSEC origin node.
+		 * The final non-nsec node is before the NSEC origin node.
 		 */
 		result = dns_qp_lookup(qpdbiter->snap, &qpdb->common.origin,
 				       DNS_DBNAMESPACE_NSEC, &qpdbiter->iter,
