@@ -6839,6 +6839,7 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 	{
 		bool wouldlog;
 		const dns_name_t *constname;
+		dns_fixedname_t constname_fixed;
 		char log_buf[DNS_RRL_LOG_BUF_LEN];
 		isc_result_t resp_result;
 		dns_rrl_result_t rrl_result;
@@ -6864,8 +6865,8 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 			 * Try to use owner name in the negative cache SOA.
 			 */
 			dns_rdataset_t nc_rdataset = DNS_RDATASET_INIT;
-			dns_fixedname_t fixed;
-			dns_name_t *n = dns_fixedname_initname(&fixed);
+			dns_name_t *n =
+				dns_fixedname_initname(&constname_fixed);
 			DNS_RDATASET_FOREACH(qctx->rdataset) {
 				dns_ncache_current(qctx->rdataset, n,
 						   &nc_rdataset);
