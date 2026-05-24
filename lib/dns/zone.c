@@ -306,7 +306,7 @@ checkds_send_toaddr(void *arg);
 static isc_result_t
 zone_dump(dns_zone_t *, bool);
 static void
-rss_post(void *arg);
+rss_post(dns_zone_t *zone, nsec3param_t *np);
 
 static isc_result_t
 zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
@@ -352,8 +352,6 @@ zone_journal_compact(dns_zone_t *zone, dns_db_t *db, uint32_t serial);
 static isc_result_t
 zone_journal_rollforward(dns_zone_t *zone, dns_db_t *db, bool *needdump,
 			 bool *fixjournal);
-static void
-setnsec3param(void *arg);
 #define ENTER zone_debuglog(zone, __func__, 1, "enter")
 
 static const unsigned int dbargc_default = 1;
@@ -415,7 +413,6 @@ struct nsec3param {
 typedef ISC_LIST(nsec3param_t) nsec3paramlist_t;
 
 struct np3 {
-	dns_zone_t *zone;
 	nsec3param_t params;
 	ISC_LINK(struct np3) link;
 };
@@ -4008,13 +4005,32 @@ time_min(isc_time_t a, isc_time_t b) {
 	return isc_time_isepoch(&a) || isc_time_compare(&b, &a) < 0 ? b : a;
 }
 
+static bool
+zone_setnsec3param_pending(dns_zone_t *zone) {
+	REQUIRE(LOCKED_ZONE(zone));
+
+	return zone->rss_zone == NULL &&
+	       DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
+	       !ISC_LIST_EMPTY(zone->setnsec3param_queue);
+}
+
 static void
-process_zone_setnsec3param(dns_zone_t *zone) {
-	ISC_LIST_FOREACH(zone->setnsec3param_queue, npe, link) {
+zone_process_setnsec3param(dns_zone_t *zone) {
+	struct np3 *npe = NULL;
+
+	LOCK_ZONE(zone);
+	if (zone_setnsec3param_pending(zone)) {
+		npe = ISC_LIST_HEAD(zone->setnsec3param_queue);
 		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
-		zone_iattach(zone, &npe->zone);
-		isc_async_run(zone->loop, setnsec3param, npe);
 	}
+	UNLOCK_ZONE(zone);
+
+	if (npe == NULL) {
+		return;
+	}
+
+	rss_post(zone, &npe->params);
+	isc_mem_put(zone->mctx, npe, sizeof(*npe));
 }
 
 static unsigned char er_ndata[] = "\001*\003_er";
@@ -4176,15 +4192,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			      "could not find NS and/or SOA records");
 	}
 
-	/*
-	 * Process any queued NSEC3PARAM change requests. Only for dynamic
-	 * zones, an inline-signing zone will perform this action when
-	 * receiving the secure db (receive_secure_db).
-	 */
 	is_dynamic = dns_zone_isdynamic(zone, true);
-	if (is_dynamic) {
-		process_zone_setnsec3param(zone);
-	}
 
 	/*
 	 * Check to make sure the journal is up to date, and remove the
@@ -9931,10 +9939,11 @@ zone_inline_sync_pending(dns_zone_t *zone) {
 
 static void
 zone_maintenance(dns_zone_t *zone) {
-	isc_time_t now;
+	isc_time_t now, dnssec_cutoff;
 	isc_result_t result;
 	bool load_pending, exiting, dumping, viewok = false, notify;
-	bool refreshkeys, sign, resign, rekey, chain, warn_expire;
+	bool refreshkeys, rekey;
+	bool sign = false, resign = false, chain = false, warn_expire = false;
 	inline_sync_action_t inline_sync = inline_sync_none;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -10110,6 +10119,42 @@ zone_maintenance(dns_zone_t *zone) {
 		break;
 	}
 
+	zone_process_setnsec3param(zone);
+
+	/*
+	 * Snapshot DNSSEC maintenance work before key maintenance runs.
+	 * zone_rekey() may queue signing or chain work, but that new work
+	 * belongs to the next maintenance pass.  This lets chain work queued by
+	 * setnsec3param run before signing work queued by the same pass.
+	 */
+	dnssec_cutoff = isc_time_now();
+	now = dnssec_cutoff;
+
+	LOCK_ZONE(zone);
+	if (zone_inline_sync_pending(zone)) {
+		dns__zone_settimer(zone, now);
+		UNLOCK_ZONE(zone);
+		return;
+	}
+	UNLOCK_ZONE(zone);
+
+	switch (zone->type) {
+	case dns_zone_primary:
+	case dns_zone_redirect:
+	case dns_zone_secondary:
+		LOCK_ZONE(zone);
+		sign = time_greater_equal(dnssec_cutoff, zone->signingtime);
+		resign = time_greater_equal(dnssec_cutoff, zone->resigntime);
+		chain = time_greater_equal(dnssec_cutoff, zone->nsec3chaintime);
+		warn_expire = time_greater_equal(dnssec_cutoff,
+						 zone->keywarntime);
+		UNLOCK_ZONE(zone);
+		break;
+
+	default:
+		break;
+	}
+
 	/*
 	 * Do we need to refresh keys?
 	 */
@@ -10127,11 +10172,6 @@ zone_maintenance(dns_zone_t *zone) {
 		break;
 	case dns_zone_primary:
 		LOCK_ZONE(zone);
-		if (zone->rss_zone != NULL) {
-			isc_time_settoepoch(&zone->refreshkeytime);
-			UNLOCK_ZONE(zone);
-			break;
-		}
 		rekey = time_greater_equal(now, zone->refreshkeytime);
 		UNLOCK_ZONE(zone);
 		if (rekey) {
@@ -10146,35 +10186,14 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_redirect:
 	case dns_zone_secondary:
 		/*
-		 * Do we need to sign/resign some RRsets?
+		 * Do the DNSSEC work that was due before key maintenance.
 		 */
-		LOCK_ZONE(zone);
-		if (zone->rss_zone != NULL) {
-			isc_time_settoepoch(&zone->signingtime);
-			isc_time_settoepoch(&zone->resigntime);
-			isc_time_settoepoch(&zone->keywarntime);
-			/*
-			 * Do not clear nsec3chaintime here.  NSEC3PARAM
-			 * processing can schedule chain finalization just
-			 * before an inline-signing pull starts; losing that
-			 * timer leaves the chain data partially rebuilt without
-			 * the final apex NSEC3PARAM update.
-			 */
-			UNLOCK_ZONE(zone);
-			break;
-		}
-		sign = time_greater_equal(now, zone->signingtime);
-		resign = time_greater_equal(now, zone->resigntime);
-		chain = time_greater_equal(now, zone->nsec3chaintime);
-		warn_expire = time_greater_equal(now, zone->keywarntime);
-		UNLOCK_ZONE(zone);
-
-		if (sign) {
+		if (chain) {
+			zone_nsec3chain(zone);
+		} else if (sign) {
 			zone_sign(zone);
 		} else if (resign) {
 			zone_resigninc(zone);
-		} else if (chain) {
-			zone_nsec3chain(zone);
 		}
 
 		/*
@@ -13312,6 +13331,9 @@ zone__settimer(void *arg) {
 		if (zone_inline_sync_pending(zone)) {
 			next = time_min(next, now);
 		}
+		if (zone_setnsec3param_pending(zone)) {
+			next = time_min(next, now);
+		}
 		next = time_min(next, zone->nsec3chaintime);
 		break;
 
@@ -14467,7 +14489,6 @@ inline_secure_bootstrap(dns_zone_t *zone) {
 	zone->sourceserialset = true;
 	zone->inline_sync_state = inline_sync_idle;
 	zone_needdump(zone, 0);
-	process_zone_setnsec3param(zone);
 
 cleanup:
 	UNLOCK_ZONE(zone);
@@ -19946,58 +19967,6 @@ cleanup:
 	return result;
 }
 
-/*
- * Called from the zone loop's queue after the relevant event is posted by
- * dns_zone_setnsec3param().
- */
-static void
-setnsec3param(void *arg) {
-	struct np3 *npe = (struct np3 *)arg;
-	dns_zone_t *zone = npe->zone;
-	bool loadpending, rescheduled = false;
-
-	INSIST(DNS_ZONE_VALID(zone));
-
-	ENTER;
-
-	LOCK_ZONE(zone);
-	loadpending = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING);
-	/*
-	 * Inline signing can span multiple maintenance callbacks, leaving rss
-	 * state open between continuations.  NSEC3PARAM processing modifies the
-	 * secure DB too, so wait until the current signing pass has finished.
-	 */
-	if (zone->rss_zone != NULL) {
-		rescheduled = true;
-		isc_async_run(zone->loop, setnsec3param, npe);
-	} else {
-		INSIST(zone->rss_newver == NULL);
-	}
-	UNLOCK_ZONE(zone);
-	if (rescheduled) {
-		return;
-	}
-
-	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	/*
-	 * The zone is not yet fully loaded. Reschedule the event to be picked
-	 * up later. This turns this function into a busy wait, but it only
-	 * happens at startup.
-	 */
-	if (zone->db == NULL && loadpending) {
-		rescheduled = true;
-		isc_async_run(zone->loop, setnsec3param, npe);
-	}
-	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
-	if (rescheduled) {
-		return;
-	}
-
-	rss_post(npe);
-
-	dns_zone_idetach(&zone);
-}
-
 static void
 salt2text(unsigned char *salt, uint8_t saltlen, unsigned char *text,
 	  unsigned int textlen) {
@@ -20024,10 +19993,7 @@ salt2text(unsigned char *salt, uint8_t saltlen, unsigned char *text,
  * resume_addnsec3chain().
  */
 static void
-rss_post(void *arg) {
-	struct np3 *npe = (struct np3 *)arg;
-	dns_zone_t *zone = npe->zone;
-	nsec3param_t *np = &npe->params;
+rss_post(dns_zone_t *zone, nsec3param_t *np) {
 	bool commit = false;
 	isc_result_t result;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
@@ -20236,8 +20202,6 @@ cleanup:
 		UNLOCK_ZONE(zone);
 	}
 	dns_diff_clear(&diff);
-
-	isc_mem_put(zone->mctx, npe, sizeof(*npe));
 
 	INSIST(oldver == NULL);
 	INSIST(newver == NULL);
@@ -20508,14 +20472,15 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 		}
 	}
 
-	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	if (zone->db != NULL) {
-		zone_iattach(zone, &npe->zone);
-		isc_async_run(zone->loop, setnsec3param, npe);
-	} else {
-		ISC_LIST_APPEND(zone->setnsec3param_queue, npe, link);
+	/*
+	 * Queue the request and let zone maintenance process it once the zone
+	 * DB is loaded and no inline-signing transaction is active.
+	 */
+	ISC_LIST_APPEND(zone->setnsec3param_queue, npe, link);
+	if (zone->loop != NULL && zone_setnsec3param_pending(zone)) {
+		isc_time_t now = isc_time_now();
+		dns__zone_settimer(zone, now);
 	}
-	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
 	result = ISC_R_SUCCESS;
 
