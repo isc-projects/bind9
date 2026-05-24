@@ -757,6 +757,7 @@ meson-format:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
+    - *rule_branch_after_autorebase
   script:
     - git ls-files "*meson.build" | xargs muon-meson fmt -i
     - git diff > meson-format.patch
