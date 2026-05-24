@@ -1700,6 +1700,7 @@ gcc:tsan:
 
 system:gcc:tsan:
   variables:
+    TSAN_SYMBOLIZER_PATH: "${TSAN_SYMBOLIZER_PATH_FEDORA}"
   <<: *tsan_fedora_44_amd64_image
   <<: *system_test_tsan_job
   <<: *extra_system_tests_triggering_rules
