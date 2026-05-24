@@ -192,9 +192,9 @@ typedef struct dns_include dns_include_t;
  * incremental signing continuation state is owned separately by rss_* fields.
  */
 typedef enum inline_sync_state {
-	inline_sync_idle = 0,	  /*%< No inline sync request is queued. */
-	inline_sync_pull_pending, /*%< Incremental pull wake is queued. */
-	inline_sync_full_pending, /*%< Full rebuild wake is queued. */
+	inline_sync_idle = 0,	      /*%< No inline sync request is queued. */
+	inline_sync_pull_pending = 1, /*%< Incremental pull wake is queued. */
+	inline_sync_full_pending = 2, /*%< Full rebuild wake is queued. */
 } inline_sync_state_t;
 
 /*%
@@ -507,9 +507,9 @@ struct dns_zone {
 	dns_signinglist_t signing;
 	dns_nsec3chainlist_t nsec3chain;
 	/*%
-	 * List of outstanding NSEC3PARAM change requests.
+	 * Ordered DB-mutating requests processed by zone maintenance.
 	 */
-	ISC_LIST(struct np3) setnsec3param_queue;
+	ISC_LIST(struct zone_maintenance_request) maintenance_queue;
 	/*%
 	 * Signing / re-signing quantum stopping parameters.
 	 */

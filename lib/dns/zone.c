@@ -274,8 +274,6 @@ zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void
 zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void
-zone_wake_secure(dns_zone_t *zone);
-static void
 zone_schedule_inline_sync(dns_zone_t *zone, inline_sync_state_t state);
 static void
 refresh_callback(void *arg);
@@ -307,6 +305,8 @@ static isc_result_t
 zone_dump(dns_zone_t *, bool);
 static void
 rss_post(dns_zone_t *zone, nsec3param_t *np);
+static void
+zone_process_maintenance_request(dns_zone_t *zone);
 
 static isc_result_t
 zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
@@ -412,15 +412,29 @@ struct nsec3param {
 };
 typedef ISC_LIST(nsec3param_t) nsec3paramlist_t;
 
-struct np3 {
-	nsec3param_t params;
-	ISC_LINK(struct np3) link;
-};
+#define OLD_SIGNING_RECORD_SIZE 5
+#define SIGNING_RECORD_SIZE	7
 
-struct setserial {
-	dns_zone_t *zone;
-	uint32_t serial;
-};
+typedef enum zone_maintenance_request_type {
+	zone_maintenance_request_setnsec3param,
+	zone_maintenance_request_keydone,
+	zone_maintenance_request_setserial,
+} zone_maintenance_request_type_t;
+
+typedef struct zone_maintenance_request {
+	ISC_LINK(struct zone_maintenance_request) link;
+	zone_maintenance_request_type_t type;
+	union {
+		nsec3param_t nsec3param;
+		struct {
+			bool all;
+			unsigned char data[SIGNING_RECORD_SIZE];
+		} keydone;
+		struct {
+			uint32_t serial;
+		} setserial;
+	} u;
+} zone_maintenance_request_t;
 
 struct stub_cb_args {
 	dns_stub_t *stub;
@@ -497,7 +511,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, isc_tid_t tid) {
 		.checkds_requests = ISC_LIST_INITIALIZER,
 		.signing = ISC_LIST_INITIALIZER,
 		.nsec3chain = ISC_LIST_INITIALIZER,
-		.setnsec3param_queue = ISC_LIST_INITIALIZER,
+		.maintenance_queue = ISC_LIST_INITIALIZER,
 		.forwards = ISC_LIST_INITIALIZER,
 		.link = ISC_LINK_INITIALIZER,
 		.statelink = ISC_LINK_INITIALIZER,
@@ -570,9 +584,9 @@ dns__zone_free(dns_zone_t *zone) {
 	INSIST(zone->prev_view == NULL);
 
 	/* Unmanaged objects */
-	ISC_LIST_FOREACH(zone->setnsec3param_queue, npe, link) {
-		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
-		isc_mem_put(zone->mctx, npe, sizeof(*npe));
+	ISC_LIST_FOREACH(zone->maintenance_queue, request, link) {
+		ISC_LIST_UNLINK(zone->maintenance_queue, request, link);
+		isc_mem_put(zone->mctx, request, sizeof(*request));
 	}
 
 	ISC_LIST_FOREACH(zone->signing, signing, link) {
@@ -1451,8 +1465,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 
 	result = zone_postload(zone, db, loadtime, result);
 	if (hasraw && result == ISC_R_SUCCESS) {
-		zone->inline_sync_state = inline_sync_pull_pending;
-		zone_wake_secure(zone);
+		zone_schedule_inline_sync(zone, inline_sync_pull_pending);
 	}
 
 cleanup:
@@ -2796,9 +2809,6 @@ cleanup:
 	}
 }
 
-#define OLD_SIGNING_RECORD_SIZE 5
-#define SIGNING_RECORD_SIZE	7
-
 static void
 resume_signingwithkey(dns_zone_t *zone) {
 	dns_dbnode_t *node = NULL;
@@ -4006,31 +4016,12 @@ time_min(isc_time_t a, isc_time_t b) {
 }
 
 static bool
-zone_setnsec3param_pending(dns_zone_t *zone) {
+zone_maintenance_request_pending(dns_zone_t *zone) {
 	REQUIRE(LOCKED_ZONE(zone));
 
 	return zone->rss_zone == NULL &&
 	       DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-	       !ISC_LIST_EMPTY(zone->setnsec3param_queue);
-}
-
-static void
-zone_process_setnsec3param(dns_zone_t *zone) {
-	struct np3 *npe = NULL;
-
-	LOCK_ZONE(zone);
-	if (zone_setnsec3param_pending(zone)) {
-		npe = ISC_LIST_HEAD(zone->setnsec3param_queue);
-		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
-	}
-	UNLOCK_ZONE(zone);
-
-	if (npe == NULL) {
-		return;
-	}
-
-	rss_post(zone, &npe->params);
-	isc_mem_put(zone->mctx, npe, sizeof(*npe));
+	       !ISC_LIST_EMPTY(zone->maintenance_queue);
 }
 
 static unsigned char er_ndata[] = "\001*\003_er";
@@ -4464,9 +4455,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED |
 					       DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
 		if (dns__zone_inline_raw(zone)) {
-			zone->secure->inline_sync_state =
-				inline_sync_pull_pending;
-			zone_wake_secure(zone->secure);
+			zone_schedule_inline_sync(zone->secure,
+						  inline_sync_pull_pending);
 		}
 	}
 
@@ -9915,19 +9905,6 @@ zone_inline_sync_action(dns_zone_t *zone) {
 	return inline_sync_none;
 }
 
-static inline_sync_state_t
-inline_sync_request_pull(inline_sync_state_t state) {
-	switch (state) {
-	case inline_sync_idle:
-		return inline_sync_pull_pending;
-	case inline_sync_pull_pending:
-	case inline_sync_full_pending:
-		return state;
-	}
-
-	UNREACHABLE();
-}
-
 static bool
 zone_inline_sync_pending(dns_zone_t *zone) {
 	REQUIRE(LOCKED_ZONE(zone));
@@ -9939,7 +9916,7 @@ zone_inline_sync_pending(dns_zone_t *zone) {
 
 static void
 zone_maintenance(dns_zone_t *zone) {
-	isc_time_t now, dnssec_cutoff;
+	isc_time_t now;
 	isc_result_t result;
 	bool load_pending, exiting, dumping, viewok = false, notify;
 	bool refreshkeys, rekey;
@@ -10119,16 +10096,11 @@ zone_maintenance(dns_zone_t *zone) {
 		break;
 	}
 
-	zone_process_setnsec3param(zone);
-
 	/*
-	 * Snapshot DNSSEC maintenance work before key maintenance runs.
-	 * zone_rekey() may queue signing or chain work, but that new work
-	 * belongs to the next maintenance pass.  This lets chain work queued by
-	 * setnsec3param run before signing work queued by the same pass.
+	 * Apply one queued DB mutation before snapshotting DNSSEC maintenance
+	 * timers, so chain/sign work observes the resulting zone state.
 	 */
-	dnssec_cutoff = isc_time_now();
-	now = dnssec_cutoff;
+	zone_process_maintenance_request(zone);
 
 	LOCK_ZONE(zone);
 	if (zone_inline_sync_pending(zone)) {
@@ -10143,11 +10115,10 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_redirect:
 	case dns_zone_secondary:
 		LOCK_ZONE(zone);
-		sign = time_greater_equal(dnssec_cutoff, zone->signingtime);
-		resign = time_greater_equal(dnssec_cutoff, zone->resigntime);
-		chain = time_greater_equal(dnssec_cutoff, zone->nsec3chaintime);
-		warn_expire = time_greater_equal(dnssec_cutoff,
-						 zone->keywarntime);
+		sign = time_greater_equal(now, zone->signingtime);
+		resign = time_greater_equal(now, zone->resigntime);
+		chain = time_greater_equal(now, zone->nsec3chaintime);
+		warn_expire = time_greater_equal(now, zone->keywarntime);
 		UNLOCK_ZONE(zone);
 		break;
 
@@ -10237,9 +10208,8 @@ again:
 				goto again;
 			}
 
-			secure->inline_sync_state = inline_sync_request_pull(
-				secure->inline_sync_state);
-			zone_wake_secure(secure);
+			zone_schedule_inline_sync(secure,
+						  inline_sync_pull_pending);
 		}
 
 		/* XXXMPA make separate call back */
@@ -13331,7 +13301,7 @@ zone__settimer(void *arg) {
 		if (zone_inline_sync_pending(zone)) {
 			next = time_min(next, now);
 		}
-		if (zone_setnsec3param_pending(zone)) {
+		if (zone_maintenance_request_pending(zone)) {
 			next = time_min(next, now);
 		}
 		next = time_min(next, zone->nsec3chaintime);
@@ -14784,14 +14754,6 @@ STATIC_ASSERT(inline_sync_idle < inline_sync_pull_pending &&
 	      "inline sync states must be ordered by priority");
 
 static void
-zone_wake_secure(dns_zone_t *zone) {
-	INSIST(LOCKED_ZONE(zone));
-	INSIST(dns__zone_inline_secure(zone));
-
-	dns__zone_settimer(zone, isc_time_now());
-}
-
-static void
 zone_schedule_inline_sync(dns_zone_t *zone, inline_sync_state_t state) {
 	INSIST(LOCKED_ZONE(zone));
 	INSIST(dns__zone_inline_secure(zone));
@@ -15322,10 +15284,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 		if (zone->type == dns_zone_primary &&
 		    dns__zone_inline_raw(zone))
 		{
-			zone->secure->inline_sync_state =
-				inline_sync_request_pull(
-					zone->secure->inline_sync_state);
-			zone_wake_secure(zone->secure);
+			zone_schedule_inline_sync(zone->secure,
+						  inline_sync_pull_pending);
 		}
 	} else {
 	fallback:
@@ -15380,9 +15340,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 		}
 
 		if (dns__zone_inline_raw(zone)) {
-			zone->secure->inline_sync_state =
-				inline_sync_full_pending;
-			zone_wake_secure(zone->secure);
+			zone_schedule_inline_sync(zone->secure,
+						  inline_sync_full_pending);
 		}
 	}
 
@@ -15583,10 +15542,8 @@ again:
 				      ISC_LOG_INFO, "transferred serial %u%s",
 				      serial, buf);
 			if (dns__zone_inline_raw(zone)) {
-				secure->inline_sync_state =
-					inline_sync_request_pull(
-						secure->inline_sync_state);
-				zone_wake_secure(secure);
+				zone_schedule_inline_sync(
+					secure, inline_sync_pull_pending);
 			}
 		}
 
@@ -15787,9 +15744,7 @@ again:
 	}
 	postload_result = zone_postload(zone, load->db, load->loadtime, result);
 	if (postload_result == ISC_R_SUCCESS && dns__zone_inline_secure(zone)) {
-		zone->inline_sync_state =
-			inline_sync_request_pull(zone->inline_sync_state);
-		zone_wake_secure(zone);
+		zone_schedule_inline_sync(zone, inline_sync_pull_pending);
 	}
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADING);
 	zone_idetach(&load->callbacks.zone);
@@ -18565,6 +18520,7 @@ zone_rekey(dns_zone_t *zone) {
 	bool fullsign;
 	bool notifycds = false;
 	bool offlineksk = false;
+	bool keymgr_done = false;
 	bool kasp_change = false;
 	uint8_t options = 0;
 	uint32_t sigval = 0;
@@ -18799,8 +18755,10 @@ zone_rekey(dns_zone_t *zone) {
 
 			if (result == ISC_R_SUCCESS) {
 				kasp_change = true;
+				keymgr_done = true;
 			} else if (result == DNS_R_UNCHANGED) {
 				result = ISC_R_SUCCESS;
+				keymgr_done = true;
 			} else {
 				dnssec_log(zone, ISC_LOG_ERROR,
 					   "zone_rekey:dns_keymgr_run "
@@ -18820,7 +18778,9 @@ zone_rekey(dns_zone_t *zone) {
 					    &nexttime);
 		dns_zone_unlock_keyfiles(zone);
 
-		if (result != ISC_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS) {
+			keymgr_done = true;
+		} else {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:dns_keymgr_offline "
 				   "failed: %s",
@@ -19283,6 +19243,13 @@ zone_rekey(dns_zone_t *zone) {
 		ISC_LIST_APPEND(zone->keyring, key, link);
 	}
 
+	if (keymgr_done && isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(&zone->origin, namebuf, sizeof(namebuf));
+		dnssec_log(zone, ISC_LOG_DEBUG(3), "keymgr: %s done", namebuf);
+	}
+
 	/*
 	 * If the CDS/CDNSKEY RRset has changed, send NOTIFY(CDS) to endpoints.
 	 */
@@ -19676,9 +19643,7 @@ again:
 	}
 	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
 	if (result == ISC_R_SUCCESS && dns__zone_inline_secure(zone)) {
-		zone->inline_sync_state =
-			inline_sync_request_pull(zone->inline_sync_state);
-		zone_wake_secure(zone);
+		zone_schedule_inline_sync(zone, inline_sync_pull_pending);
 	}
 	if (secure != NULL) {
 		UNLOCK_ZONE(secure);
@@ -19766,16 +19731,11 @@ dns_zone_issecure(dns_zone_t *zone) {
 	return issecure;
 }
 
-struct keydone {
-	bool all;
-	unsigned char data[SIGNING_RECORD_SIZE];
-	dns_zone_t *zone;
-};
-
 #define PENDINGFLAGS (DNS_NSEC3FLAG_CREATE | DNS_NSEC3FLAG_INITIAL)
 
 static void
-keydone(void *arg) {
+zone_process_keydone(dns_zone_t *zone,
+		     const zone_maintenance_request_t *request) {
 	bool commit = false;
 	isc_result_t result;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
@@ -19783,8 +19743,6 @@ keydone(void *arg) {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_diff_t diff;
-	struct keydone *kd = (struct keydone *)arg;
-	dns_zone_t *zone = kd->zone;
 	dns_update_log_t log = { update_log_cb, NULL };
 	bool clear_pending = false;
 
@@ -19828,7 +19786,7 @@ keydone(void *arg) {
 
 		dns_rdataset_current(&rdataset, &rdata);
 
-		if (kd->all) {
+		if (request->u.keydone.all) {
 			/* Old (5) and new (7) forms */
 			if ((rdata.length == OLD_SIGNING_RECORD_SIZE ||
 			     rdata.length == SIGNING_RECORD_SIZE) &&
@@ -19843,13 +19801,13 @@ keydone(void *arg) {
 				clear_pending = true;
 			}
 		} else if (rdata.length == OLD_SIGNING_RECORD_SIZE &&
-			   memcmp(rdata.data, kd->data,
+			   memcmp(rdata.data, request->u.keydone.data,
 				  OLD_SIGNING_RECORD_SIZE) == 0)
 		{
 			found = true;
 		} else if (rdata.length == SIGNING_RECORD_SIZE &&
-			   memcmp(rdata.data, kd->data, SIGNING_RECORD_SIZE) ==
-				   0)
+			   memcmp(rdata.data, request->u.keydone.data,
+				  SIGNING_RECORD_SIZE) == 0)
 		{
 			found = true;
 		}
@@ -19898,8 +19856,6 @@ cleanup:
 		dns_db_detach(&db);
 	}
 	dns_diff_clear(&diff);
-	isc_mem_put(zone->mctx, kd, sizeof(*kd));
-	dns_zone_idetach(&zone);
 
 	INSIST(oldver == NULL);
 	INSIST(newver == NULL);
@@ -19908,19 +19864,25 @@ cleanup:
 isc_result_t
 dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 	isc_result_t result = ISC_R_SUCCESS;
-	struct keydone *kd = NULL;
+	zone_maintenance_request_t *request = NULL;
 	isc_buffer_t b;
+	bool all = false;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
 
-	kd = isc_mem_get(zone->mctx, sizeof(*kd));
-	*kd = (struct keydone){ .all = false };
+	all = strcasecmp(keystr, "all") == 0;
+	request = isc_mem_get(zone->mctx, sizeof(*request));
+	*request = (zone_maintenance_request_t){
+		.link = ISC_LINK_INITIALIZER,
+		.type = zone_maintenance_request_keydone,
+		.u.keydone = {
+			.all = all,
+		},
+	};
 
-	if (strcasecmp(keystr, "all") == 0) {
-		kd->all = true;
-	} else {
+	if (!all) {
 		isc_textregion_t r;
 		const char *algstr = NULL;
 		dns_keytag_t keyid;
@@ -19947,7 +19909,8 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		}
 
 		/* construct a private-type rdata */
-		isc_buffer_init(&b, kd->data, sizeof(kd->data));
+		isc_buffer_init(&b, request->u.keydone.data,
+				sizeof(request->u.keydone.data));
 		isc_buffer_putuint8(&b, dst_algorithm_tosecalg(alg));
 		isc_buffer_putuint16(&b, keyid);
 		isc_buffer_putuint8(&b, 0);
@@ -19955,13 +19918,16 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		isc_buffer_putuint16(&b, alg);
 	}
 
-	zone_iattach(zone, &kd->zone);
-	isc_async_run(zone->loop, keydone, kd);
-	kd = NULL;
+	ISC_LIST_APPEND(zone->maintenance_queue, request, link);
+	if (zone->loop != NULL && zone_maintenance_request_pending(zone)) {
+		isc_time_t now = isc_time_now();
+		dns__zone_settimer(zone, now);
+	}
+	request = NULL;
 
 cleanup:
-	if (kd != NULL) {
-		isc_mem_put(zone->mctx, kd, sizeof(*kd));
+	if (request != NULL) {
+		isc_mem_put(zone->mctx, request, sizeof(*request));
 	}
 	UNLOCK_ZONE(zone);
 	return result;
@@ -20388,7 +20354,7 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	dns_rdata_t prdata = DNS_RDATA_INIT;
 	unsigned char nbuf[DNS_NSEC3PARAM_BUFFERSIZE];
 	unsigned char saltbuf[255];
-	struct np3 *npe = NULL;
+	zone_maintenance_request_t *request = NULL;
 	nsec3param_t *np = NULL;
 	isc_buffer_t b;
 	bool do_lookup = false;
@@ -20420,18 +20386,18 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 		do_lookup = (param.salt.base == NULL) ? true : false;
 	}
 
-	npe = isc_mem_get(zone->mctx, sizeof(*npe));
-	*npe = (struct np3){
+	request = isc_mem_get(zone->mctx, sizeof(*request));
+	*request = (zone_maintenance_request_t){
 		.link = ISC_LINK_INITIALIZER,
+		.type = zone_maintenance_request_setnsec3param,
+		.u.nsec3param = {
+			.replace = replace,
+			.resalt = resalt,
+			.lookup = do_lookup,
+		},
 	};
 
-	np = &npe->params;
-	*np = (struct nsec3param){
-		.replace = replace,
-		.resalt = resalt,
-		.lookup = do_lookup,
-	};
-
+	np = &request->u.nsec3param;
 	if (hash == 0) {
 		np->nsec = true;
 		dnssec_log(zone, ISC_LOG_DEBUG(3), "setnsec3param:nsec");
@@ -20476,15 +20442,19 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	 * Queue the request and let zone maintenance process it once the zone
 	 * DB is loaded and no inline-signing transaction is active.
 	 */
-	ISC_LIST_APPEND(zone->setnsec3param_queue, npe, link);
-	if (zone->loop != NULL && zone_setnsec3param_pending(zone)) {
+	ISC_LIST_APPEND(zone->maintenance_queue, request, link);
+	if (zone->loop != NULL && zone_maintenance_request_pending(zone)) {
 		isc_time_t now = isc_time_now();
 		dns__zone_settimer(zone, now);
 	}
+	request = NULL;
 
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	if (request != NULL) {
+		isc_mem_put(zone->mctx, request, sizeof(*request));
+	}
 	UNLOCK_ZONE(zone);
 	return result;
 }
@@ -20516,15 +20486,14 @@ done:
 }
 
 static void
-setserial(void *arg) {
+zone_process_setserial(dns_zone_t *zone,
+		       const zone_maintenance_request_t *request) {
 	uint32_t oldserial, desired;
 	bool commit = false;
 	isc_result_t result;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
 	dns_db_t *db = NULL;
 	dns_diff_t diff;
-	struct setserial *sse = (struct setserial *)arg;
-	dns_zone_t *zone = sse->zone;
 	dns_update_log_t log = { update_log_cb, NULL };
 	dns_difftuple_t *oldtuple = NULL, *newtuple = NULL;
 
@@ -20536,7 +20505,7 @@ setserial(void *arg) {
 		goto disabled;
 	}
 
-	desired = sse->serial;
+	desired = request->u.setserial.serial;
 
 	dns_diff_init(zone->mctx, &diff);
 
@@ -20614,9 +20583,6 @@ cleanup:
 	dns_diff_clear(&diff);
 
 disabled:
-	isc_mem_put(zone->mctx, sse, sizeof(*sse));
-	dns_zone_idetach(&zone);
-
 	INSIST(oldver == NULL);
 	INSIST(newver == NULL);
 }
@@ -20624,7 +20590,7 @@ disabled:
 isc_result_t
 dns_zone_setserial(dns_zone_t *zone, uint32_t serial) {
 	isc_result_t result = ISC_R_SUCCESS;
-	struct setserial *sse = NULL;
+	zone_maintenance_request_t *request = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -20640,14 +20606,59 @@ dns_zone_setserial(dns_zone_t *zone, uint32_t serial) {
 		CLEANUP(DNS_R_FROZEN);
 	}
 
-	sse = isc_mem_get(zone->mctx, sizeof(*sse));
-	*sse = (struct setserial){ .serial = serial };
-	zone_iattach(zone, &sse->zone);
-	isc_async_run(zone->loop, setserial, sse);
+	request = isc_mem_get(zone->mctx, sizeof(*request));
+	*request = (zone_maintenance_request_t){
+		.link = ISC_LINK_INITIALIZER,
+		.type = zone_maintenance_request_setserial,
+		.u.setserial = {
+			.serial = serial,
+		},
+	};
+	ISC_LIST_APPEND(zone->maintenance_queue, request, link);
+	if (zone->loop != NULL && zone_maintenance_request_pending(zone)) {
+		isc_time_t now = isc_time_now();
+		dns__zone_settimer(zone, now);
+	}
+	request = NULL;
 
 cleanup:
+	if (request != NULL) {
+		isc_mem_put(zone->mctx, request, sizeof(*request));
+	}
 	UNLOCK_ZONE(zone);
 	return result;
+}
+
+static void
+zone_process_maintenance_request(dns_zone_t *zone) {
+	zone_maintenance_request_t *request = NULL;
+
+	LOCK_ZONE(zone);
+	if (zone_maintenance_request_pending(zone)) {
+		request = ISC_LIST_HEAD(zone->maintenance_queue);
+		ISC_LIST_UNLINK(zone->maintenance_queue, request, link);
+	}
+	UNLOCK_ZONE(zone);
+
+	if (request == NULL) {
+		return;
+	}
+
+	switch (request->type) {
+	case zone_maintenance_request_setnsec3param:
+		rss_post(zone, &request->u.nsec3param);
+		break;
+	case zone_maintenance_request_keydone:
+		zone_process_keydone(zone, request);
+		break;
+	case zone_maintenance_request_setserial:
+		zone_process_setserial(zone, request);
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	isc_mem_put(zone->mctx, request, sizeof(*request));
 }
 
 bool
