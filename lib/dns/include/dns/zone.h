@@ -1750,7 +1750,7 @@ dns_zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
  * Requires:
  *\li	'zone' to be a valid initialised zone.
  *\li	'mctx' is not NULL.
- *\li	'keys' is not NULL and has enough space form 'nkeys' keys.
+ *\li	'keys' is not NULL and has enough space for 'nkeys' keys.
  *\li	'nkeys' is not NULL.
  *
  * Returns:

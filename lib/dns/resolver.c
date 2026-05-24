@@ -1926,7 +1926,7 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	}
 
 	/*
-	 * But don't wait past the the final expiration of the fetch,
+	 * But don't wait past the final expiration of the fetch,
 	 * or for more than 10 seconds total.
 	 */
 	if (us > limit) {
@@ -3181,7 +3181,7 @@ add_bad(fetchctx_t *fctx, dns_message_t *rmessage, dns_adbaddrinfo_t *addrinfo,
  *
  * Since there's a good chance the server is broken and won't answer either
  * query, and since an ADB find with two pending fetches is a very rare
- * occurrance anyway, we regard this theoretical SERVFAIL as the lesser
+ * occurrence anyway, we regard this theoretical SERVFAIL as the lesser
  * evil.
  */
 static bool

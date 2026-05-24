@@ -153,7 +153,7 @@ typedef isc_result_t (*dns_sdlzfindzone_t)(void *driverarg, void *dbdata,
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface MUST
  * supply a find zone method.  This method is called when the DNS
- * server is performing a query to to determine if 'name' is a
+ * server is performing a query to determine if 'name' is a
  * supported dns zone.  The find zone method will be called with the
  * longest possible name first, and continue to be called with
  * successively shorter domain names, until any of the following
@@ -338,7 +338,7 @@ dns_sdlz_putsoa_t dns_sdlz_putsoa;
 /*%<
  * This function may optionally be called from the 'authority'
  * callback to simplify construction of the SOA record for 'zone'.  It
- * will provide a SOA listing 'mname' as as the primary server and
+ * will provide a SOA listing 'mname' as the primary server and
  * 'rname' as the responsible person mailbox.  It is the
  * responsibility of the driver to increment the serial number between
  * responses if necessary.  All other SOA fields will have reasonable

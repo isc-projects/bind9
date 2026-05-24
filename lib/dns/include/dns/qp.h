@@ -328,7 +328,7 @@ typedef enum dns_qpgc {
 
 /***********************************************************************
  *
- *  functions - create, destory, enquire
+ *  functions - create, destroy, enquire
  */
 
 void
