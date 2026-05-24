@@ -766,10 +766,6 @@ meson-format:
       - meson-format.patch
     expire_in: "1 week"
     when: on_failure
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes:
-        - "**/meson.build"
 
 doctest:
   <<: *quick_checks_job
