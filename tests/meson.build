@@ -52,6 +52,8 @@ if not cmocka_dep.found()
     subdir_done()
 endif
 
+check_test_registration = [python, files('../util/check_test_registration.py')]
+
 subdir('bench')
 subdir('dns')
 subdir('isc')
