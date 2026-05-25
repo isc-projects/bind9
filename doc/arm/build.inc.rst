@@ -124,8 +124,8 @@ a nonstandard location, adjust ``PKG_CONFIG_PATH`` or use the option
 ``--pkg-config-path``. Compression can be switched off with
 ``-Dzlib=disabled``.
 
-To support storing configuration data for runtime-added zones in an LMDB
-database, the server must be linked with ``liblmdb``
+Configuration data for runtime-added zones is stored in an LMDB database,
+so the server must be linked with ``liblmdb``
 (https://github.com/LMDB/lmdb). If this is installed in a nonstandard
 location, adjust ``PKG_CONFIG_PATH`` or use the option ``--pkg-config-path``.
 

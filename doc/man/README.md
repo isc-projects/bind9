@@ -31,7 +31,7 @@ Sphinx works by handling entire directories and so meson needs to use `depend_fi
 To find which optional manpages need to be built or not, we pass the build directory to sphinx using the environment variable `BIND_BUILD_ROOT`.
 Sphinx will then inspect the meson-generated `intro-targets.json` file to see which optional build components are enabled.
 
-If an optional component like LMDB is disabled in the build directory, its corresponding manpage needs to be removed.
+If an optional component like GeoIP2 is disabled in the build directory, its corresponding manpage needs to be removed.
 From meson's perspective, the entire folder is the output and doesn't concern itself with the insides specifically.
 This is done by checking which optional targets are not built but have the page entry in the output folder.
 

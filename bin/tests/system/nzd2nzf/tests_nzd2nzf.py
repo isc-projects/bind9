@@ -15,11 +15,9 @@ import os
 import pytest
 
 import isctest
-import isctest.mark
 import isctest.run
 
 pytestmark = [
-    isctest.mark.with_lmdb,
     pytest.mark.extra_artifacts(
         ["ns1/_default.nzd", "ns1/_default.nzf~"],
     ),

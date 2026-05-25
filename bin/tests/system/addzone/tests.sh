@@ -66,8 +66,7 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-# When LMDB support is compiled in, this tests that migration from
-# NZF to NZD occurs during named startup
+# Test that migration from NZF to NZD occurs during named startup
 echo_i "checking previously added zone ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 a.previous.example a >dig.out.ns2.$n || ret=1

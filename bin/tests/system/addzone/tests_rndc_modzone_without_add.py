@@ -29,7 +29,7 @@ def test_rndc_modzone_without_add(ns3):
     """
     # We begin with a zone that has a normal configuration, and then modify it
     # by rndc modzone. This should succeed and shouldn't cause any disruption.
-    # Previously, it triggered an assertion failure unless LMDB was enabled.
+    # Previously, it triggered an assertion failure.
     cmd = ns3.rndc(
         'modzone . {type primary; file "redirect.db"; allow-query {none;};};',
         raise_on_exception=False,
