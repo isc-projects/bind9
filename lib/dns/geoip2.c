@@ -194,7 +194,7 @@ match_string(MMDB_entry_data_s *value, const char *str) {
 
 	if (value == NULL || !value->has_data ||
 	    value->type != MMDB_DATA_TYPE_UTF8_STRING ||
-	    value->utf8_string == NULL)
+	    value->utf8_string == NULL || value->data_size != strlen(str))
 	{
 		return false;
 	}
