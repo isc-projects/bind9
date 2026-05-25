@@ -757,6 +757,7 @@ meson-format:
     - *rule_mr_manual
     - *rule_tag
     - *rule_source_other_than_mr
+    - *rule_branch_after_autorebase
   script:
     - git ls-files "*meson.build" | xargs muon-meson fmt -i
     - git diff > meson-format.patch
@@ -766,10 +767,6 @@ meson-format:
       - meson-format.patch
     expire_in: "1 week"
     when: on_failure
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes:
-        - "**/meson.build"
 
 doctest:
   <<: *quick_checks_job
@@ -1704,6 +1701,7 @@ gcc:tsan:
 
 system:gcc:tsan:
   variables:
+    TSAN_SYMBOLIZER_PATH: "${TSAN_SYMBOLIZER_PATH_FEDORA}"
   <<: *tsan_fedora_44_amd64_image
   <<: *system_test_tsan_job
   <<: *extra_system_tests_triggering_rules
@@ -1729,7 +1727,6 @@ clang:tsan:
     CFLAGS: "${CFLAGS_COMMON}"
     LDFLAGS: "-Wl,--disable-new-dtags"
     EXTRA_CONFIGURE: "${TSAN_CONFIGURE_FLAGS_COMMON} -Db_lundef=false --native-file ci/clang-trixie.ini"
-  <<: *build_job
 
 system:clang:tsan:
   variables:
