@@ -35,7 +35,7 @@ FEATURES = {
     "ZLIB": "--with-zlib",
 }
 
-FEATURE_VARS = {}
+FEATURE_VARS: dict[str, str] = {}
 
 
 def feature_test(feature):
