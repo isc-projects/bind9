@@ -38,13 +38,26 @@ import isctest
 
 FILE_DIR = os.path.abspath(Path(__file__).parent)
 PRIORITY_TESTS = [
-    # Tests that are scheduled first. Speeds up parallel execution.
-    "rpz/",
-    "rpzrecurse/",
-    "serve-stale/",
+    # Ten tests that are scheduled first. Speeds up parallel execution.
+    # Sorted by observed duration (longest first), measured from CI.
     "timeouts/",
-    "upforwd/",
+    "rpzrecurse/",
+    "nsupdate/",
+    "serve_stale/",
+    "doth/",
+    "resolver/",
+    "proxy/",
+    "catz/",
+    "digdelv/",
+    "rpz/",
 ]
+for _p in PRIORITY_TESTS:
+    _dir = os.path.join(FILE_DIR, _p.rstrip("/"))
+    if not os.path.isdir(_dir):
+        raise RuntimeError(
+            f"PRIORITY_TESTS entry {_p!r} does not match a directory: {_dir}"
+        )
+
 PRIORITY_TESTS_RE = Re("|".join(PRIORITY_TESTS))
 SYSTEM_TEST_NAME_RE = Re(f"{SYSTEM_TEST_DIR_GIT_PATH}" + r"/([^/]+)")
 SYMLINK_REPLACEMENT_RE = Re(r"/tests_(.*)\.py")
