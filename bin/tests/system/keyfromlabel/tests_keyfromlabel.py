@@ -17,6 +17,8 @@ import shutil
 
 import pytest
 
+from isctest.util import param
+
 import isctest.mark
 
 pytestmark = [
@@ -93,9 +95,24 @@ def token_init_and_cleanup():
         ("rsasha512", "rsa", "2048"),
         ("ecdsap256sha256", "EC", "prime256v1"),
         ("ecdsap384sha384", "EC", "prime384v1"),
-        # Edwards curves are not yet supported by OpenSC
-        # ("ed25519","EC","edwards25519"),
-        # ("ed448","EC","edwards448")
+        param(
+            "ed25519",
+            "EC",
+            "Ed25519",
+            marks=pytest.mark.skipif(
+                os.environ.get("ED25519_SUPPORTED") != "1",
+                reason="Ed25519 not supported by this build",
+            ),
+        ),
+        param(
+            "ed448",
+            "EC",
+            "Ed448",
+            marks=pytest.mark.skipif(
+                os.environ.get("ED448_SUPPORTED") != "1",
+                reason="Ed448 not supported by this build",
+            ),
+        ),
     ],
 )
 def test_keyfromlabel(alg_name, alg_type, alg_bits):

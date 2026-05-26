@@ -22,6 +22,7 @@
 
 #include <isc/crypto.h>
 #include <isc/mem.h>
+#include <isc/ossl_wrap.h>
 #include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/string.h>
@@ -270,6 +271,27 @@ openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	UNUSED(unused);
 	UNUSED(callback);
 
+	if (key->label != NULL) {
+		switch (key->key_alg) {
+		case DST_ALG_ED25519:
+			RETERR(isc_ossl_wrap_generate_pkcs11_ed25519_key(
+				key->label, &pkey));
+			break;
+#if HAVE_OPENSSL_ED448
+		case DST_ALG_ED448:
+			RETERR(isc_ossl_wrap_generate_pkcs11_ed448_key(
+				key->label, &pkey));
+			break;
+#endif /* HAVE_OPENSSL_ED448 */
+		default:
+			UNREACHABLE();
+		}
+		key->key_size = alginfo->key_size * 8;
+		key->keydata.pkeypair.priv = pkey;
+		key->keydata.pkeypair.pub = pkey;
+		return ISC_R_SUCCESS;
+	}
+
 	ctx = EVP_PKEY_CTX_new_id(alginfo->nid, NULL);
 	if (ctx == NULL) {
 		return dst__openssl_toresult2("EVP_PKEY_CTX_new_id",
@@ -371,14 +393,22 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 		len = alginfo->key_size;
 		buf = isc_mem_get(key->mctx, len);
 		if (EVP_PKEY_get_raw_private_key(key->keydata.pkeypair.priv,
-						 buf, &len) != 1)
+						 buf, &len) == 1)
 		{
-			CLEANUP(dst__openssl_toresult(ISC_R_FAILURE));
+			priv.elements[i].tag = TAG_EDDSA_PRIVATEKEY;
+			priv.elements[i].length = len;
+			priv.elements[i].data = buf;
+			i++;
+		} else if (key->label != NULL) {
+			/*
+			 * The raw private key is not extractable
+			 * (e.g. HSM-backed via PKCS#11); fall through to
+			 * writing only the label.
+			 */
+			ERR_clear_error();
+		} else {
+			CLEANUP(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 		}
-		priv.elements[i].tag = TAG_EDDSA_PRIVATEKEY;
-		priv.elements[i].length = len;
-		priv.elements[i].data = buf;
-		i++;
 	}
 	if (key->label != NULL) {
 		priv.elements[i].tag = TAG_EDDSA_LABEL;
@@ -393,7 +423,7 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 
 cleanup:
 	if (buf != NULL) {
-		isc_mem_put(key->mctx, buf, len);
+		isc_mem_put(key->mctx, buf, alginfo->key_size);
 	}
 	return result;
 }

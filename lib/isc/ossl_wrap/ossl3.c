@@ -240,6 +240,60 @@ cleanup:
 }
 
 static isc_result_t
+generate_pkcs11_eddsa_key(char *uri, EVP_PKEY **pkeyp, const char *keytype) {
+	isc_result_t result;
+	EVP_PKEY_CTX *pctx = NULL;
+	size_t len;
+
+	INSIST(uri != NULL);
+	len = strlen(uri);
+
+	const OSSL_PARAM params[] = {
+		OSSL_PARAM_utf8_string("pkcs11_uri", uri, len),
+		OSSL_PARAM_utf8_string("pkcs11_key_usage", pkcs11_key_usage,
+				       sizeof(pkcs11_key_usage) - 1),
+		OSSL_PARAM_END,
+	};
+
+	pctx = EVP_PKEY_CTX_new_from_name(NULL, keytype, "provider=pkcs11");
+	if (pctx == NULL) {
+		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_CTX_new_from_name"));
+	}
+
+	if (EVP_PKEY_keygen_init(pctx) != 1) {
+		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_keygen_init"));
+	}
+
+	if (EVP_PKEY_CTX_set_params(pctx, params) != 1) {
+		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_CTX_set_params"));
+	}
+
+	if (EVP_PKEY_generate(pctx, pkeyp) != 1) {
+		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_generate"));
+	}
+
+	result = ISC_R_SUCCESS;
+
+cleanup:
+	EVP_PKEY_CTX_free(pctx);
+	return result;
+}
+
+isc_result_t
+isc_ossl_wrap_generate_pkcs11_ed25519_key(char *uri, EVP_PKEY **pkeyp) {
+	REQUIRE(pkeyp != NULL && *pkeyp == NULL);
+	REQUIRE(uri != NULL);
+	return generate_pkcs11_eddsa_key(uri, pkeyp, "ED25519");
+}
+
+isc_result_t
+isc_ossl_wrap_generate_pkcs11_ed448_key(char *uri, EVP_PKEY **pkeyp) {
+	REQUIRE(pkeyp != NULL && *pkeyp == NULL);
+	REQUIRE(uri != NULL);
+	return generate_pkcs11_eddsa_key(uri, pkeyp, "ED448");
+}
+
+static isc_result_t
 validate_ec_pkey(EVP_PKEY *pkey, const OSSL_PARAM *const curve_params) {
 	isc_result_t result;
 	const char *expected = curve_params[0].data;
@@ -522,6 +576,9 @@ isc_ossl_wrap_generate_pkcs11_rsa_key(char *uri, size_t bit_size,
 	isc_result_t result;
 	int status;
 	size_t len;
+
+	REQUIRE(uri != NULL);
+	REQUIRE(pkeyp != NULL && *pkeyp == NULL);
 
 	len = strlen(uri);
 	INSIST(len != 0);
