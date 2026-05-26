@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -145,6 +146,7 @@ ISC_RUN_TEST_IMPL(isc_time_parsehttptimestamp_test) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
+	tzset();
 	t = isc_time_now();
 
 	isc_time_formathttptimestamp(&t, buf, sizeof(buf));
@@ -162,6 +164,7 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601_test) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
+	tzset();
 	t = isc_time_now();
 
 	/* check formatting: yyyy-mm-ddThh:mm:ssZ */
@@ -196,6 +199,7 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601ms_test) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
+	tzset();
 	t = isc_time_now();
 
 	/* check formatting: yyyy-mm-ddThh:mm:ss.sssZ */
@@ -231,6 +235,7 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601us_test) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
+	tzset();
 	t = isc_time_now_hires();
 
 	/* check formatting: yyyy-mm-ddThh:mm:ss.ssssssZ */
@@ -266,6 +271,7 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601TZms_test) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
+	tzset();
 	t = isc_time_now();
 
 	/* check formatting: yyyy-mm-ddThh:mm:ss.sss */
@@ -304,6 +310,7 @@ ISC_RUN_TEST_IMPL(isc_time_formatISO8601Lms_test) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
+	tzset();
 	t = isc_time_now();
 
 	/* check formatting: yyyy-mm-ddThh:mm:ss.sss */
@@ -338,6 +345,7 @@ ISC_RUN_TEST_IMPL(isc_time_formatshorttimestamp_test) {
 	UNUSED(state);
 
 	setenv("TZ", "America/Los_Angeles", 1);
+	tzset();
 	t = isc_time_now();
 
 	/* check formatting: yyyymmddhhmmsssss */
