@@ -48,6 +48,7 @@ setup_test(void **state) {
 	UNUSED(state);
 
 	setenv("TZ", "", 1);
+	tzset();
 
 	return 0;
 }

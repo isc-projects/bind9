@@ -1521,6 +1521,10 @@ system:gcc:ossl3:trixie:amd64:
       artifacts: true
 
 unit:gcc:ossl3:amd64:
+  # Set up environment variables to run unit tests with PKCS#11-aware OpenSSL
+  variables:
+    OPENSSL_CONF: "/var/tmp/etc/openssl-provider.cnf"
+    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
   <<: *debian_trixie_amd64_image
   <<: *unit_test_job
   needs:
