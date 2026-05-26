@@ -370,7 +370,7 @@ basictests(ISC_ATTR_UNUSED void *arg) {
 }
 
 static void
-ttl0tests(ISC_ATTR_UNUSED void *arg) {
+ttltests(ISC_ATTR_UNUSED void *arg) {
 	isc_result_t result;
 	dns_delegdb_t *db = NULL;
 	dns_deleg_t *deleg = NULL;
@@ -397,12 +397,61 @@ ttl0tests(ISC_ATTR_UNUSED void *arg) {
 	writedb(db, "bar.stuff.", 0, &delegset, true);
 	deleg = NULL;
 
+	/*
+	 * This is possible because delegdb internally forces TTL of 1 if the
+	 * caller TTL is 0, in the case of the minttl config is disabled.
+	 */
 	result = lookupdb(db, "baz.bar.stuff.", now, 0, "bar.stuff.",
 			  &delegset);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_delegset_detach(&delegset);
 
 	result = lookupdb(db, "baz.bar.stuff.", now + 1, 0, "", &delegset);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	dns_delegdb_setconfig(db, &(dns_delegdb_config_t){ .minttl = 60 });
+	dns_delegset_allocset(db, &delegset);
+
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_DELEG_NAMES, &deleg);
+	addnamedeleg("ns.gee.bar.stuff.", delegset, deleg, dns_delegset_addns);
+	deleg = NULL;
+
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_DELEG_ADDRESSES,
+				&deleg);
+	addipdeleg(AF_INET6, "3333::2222", delegset, deleg);
+	deleg = NULL;
+
+	writedb(db, "gee.bar.stuff.", 2, &delegset, true);
+	deleg = NULL;
+
+	result = lookupdb(db, "gee.bar.stuff.", now + 59, 0, "gee.bar.stuff.",
+			  &delegset);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_delegset_detach(&delegset);
+
+	result = lookupdb(db, "gee.bar.stuff.", now + 61, 0, "", &delegset);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	dns_delegdb_setconfig(db, &(dns_delegdb_config_t){ .maxttl = 160 });
+	dns_delegset_allocset(db, &delegset);
+
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_DELEG_NAMES, &deleg);
+	addnamedeleg("ns.gee.", delegset, deleg, dns_delegset_addns);
+	deleg = NULL;
+
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_DELEG_ADDRESSES,
+				&deleg);
+	addipdeleg(AF_INET6, "4444::2222", delegset, deleg);
+	deleg = NULL;
+
+	writedb(db, "gee.", 200, &delegset, true);
+	deleg = NULL;
+
+	result = lookupdb(db, "gee.", now + 159, 0, "gee.", &delegset);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_delegset_detach(&delegset);
+
+	result = lookupdb(db, "gee.", now + 200, 0, "", &delegset);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	shutdowntest(&db);
@@ -764,7 +813,7 @@ longnametests(ISC_ATTR_UNUSED void *arg) {
 }
 
 ISC_RUN_TEST_IMPL(dns_deleg_basictests) { rundelegtest(basictests); }
-ISC_RUN_TEST_IMPL(dns_deleg_ttl0tests) { rundelegtest(ttl0tests); }
+ISC_RUN_TEST_IMPL(dns_deleg_ttltests) { rundelegtest(ttltests); }
 ISC_RUN_TEST_IMPL(dns_deleg_noexacttests) { rundelegtest(noexacttests); }
 ISC_RUN_TEST_IMPL(dns_deleg_deletetests) { rundelegtest(deletetests); }
 ISC_RUN_TEST_IMPL(dns_deleg_cleanuptests) { rundelegtest(cleanuptests); }
@@ -772,7 +821,7 @@ ISC_RUN_TEST_IMPL(dns_deleg_longnametests) { rundelegtest(longnametests); }
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(dns_deleg_basictests)
-ISC_TEST_ENTRY(dns_deleg_ttl0tests)
+ISC_TEST_ENTRY(dns_deleg_ttltests)
 ISC_TEST_ENTRY(dns_deleg_noexacttests)
 ISC_TEST_ENTRY(dns_deleg_deletetests)
 ISC_TEST_ENTRY(dns_deleg_cleanuptests)

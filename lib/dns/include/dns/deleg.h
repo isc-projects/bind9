@@ -29,6 +29,13 @@ typedef struct {
 	 * entries are discarded. Value `0` means there is no limitation.
 	 */
 	size_t dbsize;
+
+	/*
+	 * Confgure minimum and maximum TTL of a delegation. A value of 0 means
+	 * there is no limits.
+	 */
+	dns_ttl_t minttl;
+	dns_ttl_t maxttl;
 } dns_delegdb_config_t;
 
 /*
