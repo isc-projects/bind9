@@ -11263,9 +11263,12 @@ cleanup:
 
 static void
 flush_delegdb(dns_view_t *view) {
+	dns_delegdb_config_t config = dns_delegdb_getconfig(view->deleg);
+
 	dns_delegdb_shutdown(view->deleg);
 	dns_delegdb_detach(&view->deleg);
 	dns_delegdb_create(&view->deleg);
+	dns_delegdb_setconfig(view->deleg, &config);
 }
 
 isc_result_t
