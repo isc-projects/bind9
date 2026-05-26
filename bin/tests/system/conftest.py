@@ -34,13 +34,6 @@ import isctest
 # Silence warnings caused by passing a pytest fixture to another fixture.
 # pylint: disable=redefined-outer-name
 
-if sys.version_info[1] < 10:
-    raise RuntimeError("Python 3.10 or newer is required to run system tests.")
-
-isctest.log.init_conftest_logger()
-isctest.log.avoid_duplicated_logs()
-isctest.vars.init_vars()
-
 # ----------------------- Globals definition -----------------------------
 
 FILE_DIR = os.path.abspath(Path(__file__).parent)
@@ -56,16 +49,24 @@ PRIORITY_TESTS_RE = Re("|".join(PRIORITY_TESTS))
 SYSTEM_TEST_NAME_RE = Re(f"{SYSTEM_TEST_DIR_GIT_PATH}" + r"/([^/]+)")
 SYMLINK_REPLACEMENT_RE = Re(r"/tests_(.*)\.py")
 
-# ----------------------- Global requirements ----------------------------
-
-isctest.check.is_executable(isctest.vars.ALL["PYTHON"], "Python interpreter required")
-isctest.check.is_executable(isctest.vars.ALL["PERL"], "Perl interpreter required")
-isctest.check.is_executable(
-    isctest.vars.ALL["FEATURETEST"],
-    "Run this first: ninja -C build system-test-dependencies",
-)
-
 # --------------------------- pytest hooks -------------------------------
+
+
+def pytest_configure(config):  # pylint: disable=unused-argument
+    if sys.version_info < (3, 10):
+        raise RuntimeError("Python 3.10 or newer is required to run system tests.")
+
+    isctest.log.init_conftest_logger()
+    isctest.log.avoid_duplicated_logs()
+    isctest.check.is_executable(
+        isctest.vars.ALL["FEATURETEST"],
+        "Run this first: ninja -C build system-test-dependencies",
+    )
+    isctest.vars.init_vars()
+    isctest.check.is_executable(
+        isctest.vars.ALL["PYTHON"], "Python interpreter required"
+    )
+    isctest.check.is_executable(isctest.vars.ALL["PERL"], "Perl interpreter required")
 
 
 def pytest_addoption(parser):
