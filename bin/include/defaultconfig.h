@@ -143,6 +143,7 @@ options {\n\
 	lmdb-mapsize 32M;\n\
 	max-cache-size default;\n\
 	max-cache-ttl 604800; /* 1 week */\n\
+	max-delegation-ttl 0; /* disabled */\n\
 	max-clients-per-query 100;\n\
 	max-delegation-servers 13;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
@@ -154,6 +155,7 @@ options {\n\
 	message-compression yes;\n\
 	min-ncache-ttl 0; /* 0 hours */\n\
 	min-cache-ttl 0; /* 0 seconds */\n\
+	min-delegation-ttl 60; /* 1 minute */\n\
 	minimal-any yes;\n\
 	minimal-responses no-auth-recursive;\n\
 	notify-source *;\n\

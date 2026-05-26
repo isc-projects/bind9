@@ -174,6 +174,7 @@ options {
 	max-cache-ttl <duration>;
 	max-clients-per-query <integer>;
 	max-delegation-servers <integer>; // experimental
+	max-delegation-ttl <duration>;
 	max-ixfr-ratio ( unlimited | <percentage> );
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-ncache-ttl <duration>;
@@ -200,6 +201,7 @@ options {
 	memstatistics-file <quoted_string>;
 	message-compression <boolean>;
 	min-cache-ttl <duration>;
+	min-delegation-ttl <duration>;
 	min-ncache-ttl <duration>;
 	min-refresh-time <integer>;
 	min-retry-time <integer>;
@@ -569,6 +571,7 @@ view <string> [ <class> ] {
 	max-cache-ttl <duration>;
 	max-clients-per-query <integer>;
 	max-delegation-servers <integer>; // experimental
+	max-delegation-ttl <duration>;
 	max-ixfr-ratio ( unlimited | <percentage> );
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-ncache-ttl <duration>;
@@ -592,6 +595,7 @@ view <string> [ <class> ] {
 	max-zone-ttl ( unlimited | <duration> ); // deprecated
 	message-compression <boolean>;
 	min-cache-ttl <duration>;
+	min-delegation-ttl <duration>;
 	min-ncache-ttl <duration>;
 	min-refresh-time <integer>;
 	min-retry-time <integer>;

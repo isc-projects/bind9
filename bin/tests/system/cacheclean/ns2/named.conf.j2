@@ -10,6 +10,10 @@ options {
 	disable-empty-zone 127.IN-ADDR.ARPA;
 	recursion yes;
 	dnssec-validation no;
+
+	// lame-and-expire-soon domain NS has a TTL of 2 seconds,
+	// so let's use a lower value here.
+	min-delegation-ttl 1;
 };
 
 
