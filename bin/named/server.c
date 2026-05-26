@@ -4334,7 +4334,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	} else {
 		dns_delegdb_create(&view->deleg);
 	}
-	dns_delegdb_setsize(view->deleg, cache_size_slice);
+	dns_delegdb_setconfig(
+		view->deleg,
+		&(dns_delegdb_config_t){ .dbsize = cache_size_slice });
 
 	/*
 	 * The previous view isn't needed anymore.

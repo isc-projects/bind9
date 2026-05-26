@@ -70,6 +70,8 @@ struct dns_delegdb {
 	 * (After decrementing `owners`.)
 	 */
 	isc_refcount_t owners;
+
+	dns_delegdb_config_t config;
 };
 
 static void
@@ -217,7 +219,8 @@ dns_delegdb_create(dns_delegdb_t **delegdbp) {
 				    .mctx = mctx,
 				    .references = ISC_REFCOUNT_INITIALIZER(1),
 				    .nloops = isc_loopmgr_nloops(),
-				    .owners = ISC_REFCOUNT_INITIALIZER(1) };
+				    .owners = ISC_REFCOUNT_INITIALIZER(1),
+				    .config = {} };
 
 	dns_qpmulti_create(mctx, &qpmethods, &delegdb->nodes, &delegdb->nodes);
 
@@ -1033,8 +1036,8 @@ dns_delegdb_shutdown(dns_delegdb_t *delegdb) {
 	}
 }
 
-void
-dns_delegdb_setsize(dns_delegdb_t *delegdb, size_t size) {
+static void
+delegdb_setsize(dns_delegdb_t *delegdb, size_t size) {
 	size_t lowater;
 	size_t hiwater;
 
@@ -1057,4 +1060,21 @@ dns_delegdb_setsize(dns_delegdb_t *delegdb, size_t size) {
 	} else {
 		isc_mem_setwater(delegdb->mctx, hiwater, lowater);
 	}
+}
+
+dns_delegdb_config_t
+dns_delegdb_getconfig(dns_delegdb_t *delegdb) {
+	REQUIRE(VALID_DELEGDB(delegdb));
+	return delegdb->config;
+}
+
+void
+dns_delegdb_setconfig(dns_delegdb_t *delegdb,
+		      const dns_delegdb_config_t *config) {
+	REQUIRE(isc_loop_get(isc_tid()) == isc_loop_main());
+	REQUIRE(VALID_DELEGDB(delegdb));
+
+	delegdb->config = *config;
+
+	delegdb_setsize(delegdb, delegdb->config.dbsize);
 }
