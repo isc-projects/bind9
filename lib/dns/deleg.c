@@ -267,10 +267,9 @@ getparentnode(dns_qpchain_t *chain, delegdb_node_t **node, dns_ttl_t now) {
  * NOTE: Caller needs to hold a RCU read critical section.
  */
 static isc_result_t
-dns__deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr,
-		  const dns_name_t *name, isc_stdtime_t optnow,
-		  unsigned int options, dns_name_t *zonecut,
-		  dns_name_t *deepestzonecut, dns_delegset_t **delegsetp) {
+deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
+	     isc_stdtime_t optnow, unsigned int options, dns_name_t *zonecut,
+	     dns_name_t *deepestzonecut, dns_delegset_t **delegsetp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	delegdb_node_t *node = NULL;
 	isc_stdtime_t now = optnow > 0 ? optnow : isc_stdtime_now();
@@ -345,8 +344,8 @@ dns_delegdb_lookup(dns_delegdb_t *delegdb, const dns_name_t *name,
 	LIBDNS_DELEGDB_LOOKUP_START(delegdb, namebuf);
 
 	dns_qpmulti_query(delegdb->qplru->nodes, &qpr);
-	result = dns__deleg_lookup(delegdb, &qpr, name, now, options, zonecut,
-				   deepestzonecut, delegsetp);
+	result = deleg_lookup(delegdb, &qpr, name, now, options, zonecut,
+			      deepestzonecut, delegsetp);
 	dns_qpread_destroy(delegdb->qplru->nodes, &qpr);
 
 	LIBDNS_DELEGDB_LOOKUP_DONE(delegdb, namebuf, result);
