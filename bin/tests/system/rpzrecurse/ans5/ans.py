@@ -54,7 +54,7 @@ class DelayNs(ResponseHandler):
             "ns5.foo.",
         )
         qctx.response.answer.append(ns_rrset)
-        yield DnsResponseSend(qctx.response, delay=1)
+        yield DnsResponseSend(qctx.response, delay=3)
 
 
 def main() -> None:
