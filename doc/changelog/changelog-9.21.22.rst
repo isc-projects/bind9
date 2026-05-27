@@ -232,14 +232,12 @@ Feature Changes
 
   LibreSSL: EC_GROUPs are named by default [5]
 
-  [1]: https://github.com/openssl/openssl/commit/86f300d38540ead85543aee
-  0cb30c32145931744 [2]: https://github.com/openssl/openssl/commit/9db6a
-  f922c48c5cab5398ef9f37e425e382f9440 [3]: https://github.com/aws/aws-lc
-  /blob/a605df416bc6ddd0a3b79d728770664ce2302e71/include/openssl/ec_key.
-  h#L442-L445 [4]: https://github.com/google/boringssl/blob/514abb73bb80
-  130000b46cf589190c967c6647cd/include/openssl/ec_key.h#L279-L280 [5]: h
-  ttps://github.com/libressl/openbsd/blob/c9338745181f31ae01336081edfdb7
-  38c0b76d5f/src/lib/libcrypto/ec/ec_lib.c#L94 :gl:`!11530`
+  [1]: https://github.com/openssl/openssl/commit/86f300d38540ead85543aee0cb30c32145931744
+  [2]: https://github.com/openssl/openssl/commit/9db6af922c48c5cab5398ef9f37e425e382f9440
+  [3]: https://github.com/aws/aws-lc/blob/a605df416bc6ddd0a3b79d728770664ce2302e71/include/openssl/ec_key.h (lines 442-445)
+  [4]: https://github.com/google/boringssl/blob/514abb73bb80130000b46cf589190c967c6647cd/include/openssl/ec_key.h (lines 279-280)
+  [5]: https://github.com/libressl/openbsd/blob/c9338745181f31ae01336081edfdb738c0b76d5f/src/lib/libcrypto/ec/ec_lib.c (line 94)
+  :gl:`!11530`
 
 - Fix off by one error in dnssec-ksr sign. ``ae739daec2``
 
