@@ -700,6 +700,12 @@ mem_destroy(isc_mem_t *ctx) {
 
 	isc_mutex_destroy(&ctx->lock);
 
+#if ISC_MEM_TRACKLINES
+	if ((mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+		fprintf(stderr, "destroyed mctx %p\n", ctx);
+	}
+#endif /* ISC_MEM_TRACKLINES */
+
 	sdallocx(ctx, sizeof(*ctx), ctx->jemalloc_flags);
 }
 
