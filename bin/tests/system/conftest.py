@@ -655,3 +655,8 @@ def ns9(servers):
 @pytest.fixture(scope="module")
 def ns10(servers):
     return servers["ns10"]
+
+
+@pytest.fixture(scope="module")
+def ns11(servers):
+    return servers["ns11"]

@@ -19,7 +19,7 @@ from isctest.kasp import (
     private_type_record,
 )
 from isctest.run import EnvCmd
-from isctest.template import Nameserver, Zone
+from isctest.template import NS3, Zone
 from isctest.vars.algorithms import Algorithm
 from rollover.setup import configure_root, configure_tld, setkeytimes
 
@@ -67,7 +67,7 @@ def setup_zone(zone, ksk_time, ksk_timings, zsk_time, zsk_timings) -> Zone:
     templates.render(f"ns3/{outfile}", tdata, template=f"ns3/{template}")
     signer(f"-P -x -O raw -o {zone} -f {outfile}.signed {outfile}", cwd="ns3")
 
-    return Zone(zone, outfile, Nameserver("ns3", "10.53.0.3"))
+    return Zone(zone, NS3)
 
 
 def bootstrap():
