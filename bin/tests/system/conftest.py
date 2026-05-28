@@ -45,14 +45,26 @@ PORT_MIN = 5001
 PORT_MAX = 32767
 PORTS_PER_TEST = 20
 PRIORITY_TESTS = [
-    # Tests that are scheduled first. Speeds up parallel execution.
+    # Ten tests that are scheduled first. Speeds up parallel execution.
+    # Sorted by observed duration (longest first), measured from CI.
     "dupsigs/",
-    "rpz/",
-    "rpzrecurse/",
-    "serve-stale/",
     "timeouts/",
-    "upforwd/",
+    "rpzrecurse/",
+    "nsupdate/",
+    "serve_stale/",
+    "doth/",
+    "resolver/",
+    "catz/",
+    "digdelv/",
+    "rpz/",
 ]
+for _p in PRIORITY_TESTS:
+    _dir = os.path.join(FILE_DIR, _p.rstrip("/"))
+    if not os.path.isdir(_dir):
+        raise RuntimeError(
+            f"PRIORITY_TESTS entry {_p!r} does not match a directory: {_dir}"
+        )
+
 PRIORITY_TESTS_RE = Re("|".join(PRIORITY_TESTS))
 SYSTEM_TEST_DIR_GIT_PATH = "bin/tests/system"
 SYSTEM_TEST_NAME_RE = Re(f"{SYSTEM_TEST_DIR_GIT_PATH}" + r"/([^/]+)")
