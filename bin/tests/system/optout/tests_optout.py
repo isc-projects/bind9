@@ -39,7 +39,6 @@ pytestmark = [
             "ns2/*.signed",
             "ns2/*.jnl",
             "ns2/*.jbk",
-            "ns2/controls.conf",
             "ns2/dsset-*",
             "ns2/K*",
         ]
