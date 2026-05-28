@@ -323,7 +323,7 @@ process_deletetkey(dns_name_t *signer, dns_name_t *name,
 	 * was not generated with TKEY and is in the config file, it may be
 	 * reloaded later.
 	 */
-	dns_tsigkey_delete(tsigkey);
+	dns_tsigkey_delete(ring, tsigkey);
 
 	/* Release the reference */
 	dns_tsigkey_detach(&tsigkey);
