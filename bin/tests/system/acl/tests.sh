@@ -226,7 +226,8 @@ status=$((status + ret))
 echo_i "testing allow-transfer ACLs against ns3 (no existing zones)"
 
 echo_i "calling addzone example.com on ns3"
-$RNDCCMD 10.53.0.3 addzone 'example.com {type primary; file "example.db"; }; '
+cp ns3/template.db ns3/example.com.db
+$RNDCCMD 10.53.0.3 addzone 'example.com {type primary; file "example.com.db"; }; '
 sleep 1
 
 t=$((t + 1))
@@ -234,6 +235,32 @@ ret=0
 echo_i "checking AXFR of example.com from ns3 with ACL allow-transfer { none; }; (${t})"
 $DIG -p ${PORT} @10.53.0.3 example.com axfr >dig.out.${t} 2>&1
 grep "Transfer failed." dig.out.${t} >/dev/null 2>&1 || ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "calling addzone allow.example on ns3"
+cp ns3/template.db ns3/allow.example.db
+$RNDCCMD 10.53.0.3 addzone 'allow.example {type primary; file "allow.example.db"; allow-transfer { any; }; }; '
+sleep 1
+
+t=$((t + 1))
+ret=0
+echo_i "checking AXFR of allow.example from ns3 with ACL allow-transfer { any; }; (${t})"
+$DIG -p ${PORT} @10.53.0.3 allow.example axfr >dig.out.${t} 2>&1
+grep "Transfer failed." dig.out.${t} >/dev/null 2>&1 && ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+echo_i "calling addzone template.example on ns3"
+cp ns3/template.db ns3/template.example.db
+$RNDCCMD 10.53.0.3 addzone 'template.example {file "template.example.db"; template "allow-xfr"; }; '
+sleep 1
+
+t=$((t + 1))
+ret=0
+echo_i "checking AXFR of template.example from ns3 with ACL allow-transfer from template (${t})"
+$DIG -p ${PORT} @10.53.0.3 template.example axfr >dig.out.${t} 2>&1
+grep "Transfer failed." dig.out.${t} >/dev/null 2>&1 && ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 

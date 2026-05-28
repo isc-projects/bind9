@@ -21,3 +21,8 @@ key rndc_key {
 	secret "1234abcd8765";
 	algorithm @DEFAULT_HMAC@;
 };
+
+template "allow-xfr" {
+	type primary;
+	allow-transfer { any; };
+};
