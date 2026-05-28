@@ -74,6 +74,30 @@ SYMLINK_REPLACEMENT_RE = Re(r"/tests_(.*)\.py")
 isctest.check.is_executable(isctest.vars.ALL["PYTHON"], "Python interpreter required")
 isctest.check.is_executable(isctest.vars.ALL["PERL"], "Perl interpreter required")
 
+# ---- Fix pytest-xdist loadscope for node IDs containing "::" ----------
+
+# LoadScopeScheduling._split_scope uses rsplit("::", 1) which breaks when
+# test parameters contain "::" (e.g. IPv6 addresses like "cafe:cafe::cafe").
+# This causes tests from the same file to be assigned to different workers,
+# each paying the full fixture setup cost.  Override to split on ".py::"
+# which is unambiguous.
+# https://github.com/pytest-dev/pytest-xdist/issues/1335
+try:
+    from xdist.scheduler.loadscope import LoadScopeScheduling
+
+    # pylint: disable=protected-access
+    _orig_split_scope = LoadScopeScheduling._split_scope
+
+    def _fixed_split_scope(self, nodeid):
+        if ".py::" in nodeid:
+            return nodeid.split(".py::")[0] + ".py"
+        return _orig_split_scope(self, nodeid)
+
+    LoadScopeScheduling._split_scope = _fixed_split_scope
+    # pylint: enable=protected-access
+except ImportError:
+    pass
+
 # --------------------------- pytest hooks -------------------------------
 
 
