@@ -14,7 +14,6 @@ variables:
   GIT_COMMITTER_EMAIL: "$GIT_AUTHOR_EMAIL"
 
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
-  CCACHE_DIR: "/ccache"
 
   GIT_DEPTH: 1
   GIT_CLEAN_FLAGS: -ffdxq
@@ -448,7 +447,6 @@ stages:
   <<: *default_triggering_rules
   stage: build
   before_script:
-    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OUT_OF_TREE_WORKSPACE}" && mkdir "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *list_installed_package_versions
   script:
