@@ -139,8 +139,14 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 	if (config != NULL && maps[i] != NULL) {
 		const cfg_obj_t *toptions = named_zone_templateopts(config,
 								    maps[i]);
+		/* Check to see if ACL is defined within template */
 		if (toptions != NULL) {
 			maps[i++] = toptions;
+			(void)cfg_map_get(toptions, aclname, &aclobj);
+			if (aclobj != NULL) {
+				aclp = NULL;
+				goto parse_acl;
+			}
 		}
 	}
 
