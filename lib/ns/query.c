@@ -8902,6 +8902,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t res) {
 #endif /* ifdef dns64_bis_return_excluded_addresses */
 	} else if ((result == DNS_R_NXRRSET || result == DNS_R_NCACHENXRRSET) &&
 		   !ISC_LIST_EMPTY(qctx->view->dns64) && !qctx->nxrewrite &&
+		   !qctx->redirected &&
 		   qctx->client->message->rdclass == dns_rdataclass_in &&
 		   qctx->qtype == dns_rdatatype_aaaa)
 	{
