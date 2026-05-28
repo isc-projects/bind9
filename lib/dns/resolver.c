@@ -67,6 +67,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
@@ -5246,6 +5247,97 @@ has_000_label(dns_rdataset_t *nsecset) {
 	return false;
 }
 
+static void
+delete_rrset(fetchctx_t *fctx, dns_dbnode_t *node, dns_rdatatype_t type) {
+	dns_db_deleterdataset(fctx->cache, node, NULL, type, 0);
+	dns_db_deleterdataset(fctx->cache, node, NULL, dns_rdatatype_rrsig,
+			      type);
+}
+
+/*%
+ * Returns true if the rdataset is of type 'type', or type RRSIG
+ * and covers 'type'.
+ */
+static inline bool
+dns_rdataset_matchestype(const dns_rdataset_t *rdataset,
+			 const dns_rdatatype_t type) {
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+
+	return rdataset->type == type ||
+	       (rdataset->type == dns_rdatatype_rrsig &&
+		rdataset->covers == type);
+}
+
+/*
+ * When caching a CNAME, evict other RRsets at the same owner name,
+ * according to the RFC specifications.
+ *
+ * RFC 1034, 3.6.2: Aliases and canonical names
+ *   If a CNAME RR is present at a node, no other data should be
+ *   present.
+ * RFC 2181, 10.1: CNAME resource records
+ *   An alias name (label of a CNAME record) may,
+ *   if DNSSEC is in use, have SIG, NXT, and KEY RRs, but may have no
+ *   other data.
+ * RFC 2535, 2.3.5: Special Considerations with CNAME
+ * RFC 4034, 3: The RRSIG Resource Record
+ *   Because every authoritative RRset in a zone must be protected by a
+ *   digital signature, RRSIG RRs must be present for names containing a
+ *   CNAME RR.  This is a change to the traditional DNS specification
+ *   [RFC1034], which stated that if a CNAME is present for a name, it is
+ *   the only type allowed at that name.
+ * RFC 4034, 4: The NSEC Resource Record
+ *   Because every authoritative name in a zone must be part of the NSEC
+ *   chain, NSEC RRs must be present for names containing a CNAME RR.
+ *   This is a change to the traditional DNS specification [RFC1034],
+ *   which stated that if a CNAME is present for a name, it is the only
+ *   type allowed at that name.
+ *
+ * So types allowed next to CNAME are: KEY, SIG, NXT, RRSIG, and NSEC.
+ */
+static void
+evict_cname_other(fetchctx_t *fctx, dns_dbnode_t *node) {
+	isc_result_t result;
+	dns_rdatasetiter_t *rdsiter = NULL;
+
+	result = dns_db_allrdatasets(fctx->cache, node, NULL, DNS_DB_STALEOK, 0,
+				     &rdsiter);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+
+	result = dns_rdatasetiter_first(rdsiter);
+	while (result == ISC_R_SUCCESS) {
+		dns_rdataset_t rdataset = DNS_RDATASET_INIT;
+		dns_rdatasetiter_current(rdsiter, &rdataset);
+
+		if (NEGATIVE(&rdataset)) {
+			/* Keep all negative entries */
+			dns_rdataset_disassociate(&rdataset);
+			result = dns_rdatasetiter_next(rdsiter);
+			continue;
+		}
+
+		/* KEY, NSEC and NXT records are allowed */
+		if (dns_rdataset_matchestype(&rdataset, dns_rdatatype_key) ||
+		    dns_rdataset_matchestype(&rdataset, dns_rdatatype_nsec) ||
+		    dns_rdataset_matchestype(&rdataset, dns_rdatatype_nxt))
+		{
+			dns_rdataset_disassociate(&rdataset);
+			result = dns_rdatasetiter_next(rdsiter);
+			continue;
+		}
+
+		dns_db_deleterdataset(fctx->cache, node, NULL, rdataset.type,
+				      rdataset.covers);
+
+		dns_rdataset_disassociate(&rdataset);
+		result = dns_rdatasetiter_next(rdsiter);
+	}
+
+	dns_rdatasetiter_destroy(&rdsiter);
+}
+
 /*
  * The validator has finished.
  */
@@ -6061,6 +6153,14 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		}
 
 		/*
+		 * If CNAME, delete other RRsets at the same name
+		 * from the cache.
+		 */
+		if (rdataset->type == dns_rdatatype_cname) {
+			evict_cname_other(fctx, node);
+		}
+
+		/*
 		 * Enforce the configure maximum cache TTL.
 		 */
 		if (rdataset->ttl > res->view->maxcachettl) {
@@ -6351,6 +6451,24 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 					(void)dns_rdataset_addnoqname(rdataset,
 								      noqname);
 				}
+			}
+
+			/*
+			 * Evict CNAME records, according to the RFC rules (see
+			 * evict_cname_other).
+			 *
+			 * Note that a signature is tied to the type it covers
+			 * and is deleted along with the covered RRset in
+			 * 'delete_rrset()'.
+			 */
+			if (!dns_rdataset_matchestype(rdataset,
+						      dns_rdatatype_key) &&
+			    !dns_rdataset_matchestype(rdataset,
+						      dns_rdatatype_nsec) &&
+			    !dns_rdataset_matchestype(rdataset,
+						      dns_rdatatype_nxt))
+			{
+				delete_rrset(fctx, node, dns_rdatatype_cname);
 			}
 
 			/*
