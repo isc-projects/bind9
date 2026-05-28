@@ -659,16 +659,18 @@ cleanuptests(ISC_ATTR_UNUSED void *arg) {
 	dns_deleg_t *deleg = NULL;
 	dns_delegset_t *delegset = NULL;
 
+	/*
+	 * hiwater is 4375000 = 5000000 - (5000000 >> 3)
+	 * lowater is 3750000 = 5000000 - (5000000 >> 2)
+	 */
+	dns_delegdb_config_t config = { .dbsize = 5000000 };
+
 	dns_delegdb_create(&db);
 	assert_non_null(db);
 
 	ctx = (cleanup_ctx_t){ .db = db, .now = isc_stdtime_now() };
 
-	/*
-	 * hiwater is 4375000 = 5000000 - (5000000 >> 3)
-	 * lowater is 3750000 = 5000000 - (5000000 >> 2)
-	 */
-	dns_delegdb_setsize(db, 5000000);
+	dns_delegdb_setconfig(db, &config);
 
 	/*
 	 * A valid record

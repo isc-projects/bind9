@@ -19,6 +19,19 @@
 #include <dns/types.h>
 
 /*
+ * `dns_delegdb_config_t` centralizes all configurable parameters
+ * for the delegation database.
+ */
+typedef struct {
+	/*
+	 * Defines the size of the delegation cache. Whenever the effective
+	 * cache size comes close to this size, least recently used cache
+	 * entries are discarded. Value `0` means there is no limitation.
+	 */
+	size_t dbsize;
+} dns_delegdb_config_t;
+
+/*
  * A `dns_deleg_t` object represents either:
  *
  * - a DELEG-based delegation with `server-ipv4=` and/or `server-ipv6=`
@@ -93,6 +106,21 @@ typedef struct dns_delegdb dns_delegdb_t;
  */
 void
 dns_delegdb_create(dns_delegdb_t **delegdbp);
+
+/*
+ * Configure the delegation database. Must be called from the exclusive mode
+ * only.
+ */
+void
+dns_delegdb_setconfig(dns_delegdb_t		 *delegdb,
+		      const dns_delegdb_config_t *config);
+
+/*
+ * Returns a copy of the current configuration of the delegation database. Can
+ * be called anytime.
+ */
+dns_delegdb_config_t
+dns_delegdb_getconfig(dns_delegdb_t *delegdb);
 
 /*
  * Attach a delegation DB from an existing view to another view. Used when
@@ -221,13 +249,5 @@ dns_delegset_fromnsrdataset(isc_mem_t *mctx, dns_rdataset_t *rdataset,
  */
 isc_result_t
 dns_delegdb_delete(dns_delegdb_t *db, const dns_name_t *name, bool tree);
-
-/*
- * Defines the size of the delegation cache. Whenever the effective cache
- * size comes close to this size, least recently used cache entries are
- * discarded. Value `0` means there is no limitation.
- */
-void
-dns_delegdb_setsize(dns_delegdb_t *db, size_t size);
 
 ISC_REFCOUNT_DECL(dns_delegdb);

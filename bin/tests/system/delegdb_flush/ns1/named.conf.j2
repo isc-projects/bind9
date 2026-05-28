@@ -1,0 +1,19 @@
+options {
+	port @PORT@;
+	pid-file "named.pid";
+	listen-on { 10.53.0.1; };
+	max-cache-size 8000;
+};
+
+statistics-channels {
+	inet 10.53.0.1 port @EXTRAPORT1@;
+};
+
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm @DEFAULT_HMAC@;
+};
+
+controls {
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
