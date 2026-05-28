@@ -290,22 +290,6 @@ def test_chain_validation():
     isctest.check.adflag(res2)
     assert answer_has(res2, rdatatype.CNAME)
 
-    # check KEY lookup via CNAME
-    msg = isctest.query.create("cnameandkey.secure.example", "KEY")
-    res1 = isctest.query.tcp(msg, "10.53.0.3")
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.same_answer(res1, res2)
-    isctest.check.adflag(res2)
-    assert not answer_has(res2, rdatatype.CNAME)
-
-    # check KEY lookup via CNAME (not present)
-    msg = isctest.query.create("cnamenokey.secure.example", "KEY")
-    res1 = isctest.query.tcp(msg, "10.53.0.3")
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.same_answer(res1, res2)
-    isctest.check.adflag(res2)
-    assert not answer_has(res2, rdatatype.CNAME)
-
     # check DNSKEY lookup via DNAME
     msg = isctest.query.create("a.dnameandkey.secure.example", "DNSKEY")
     res1 = isctest.query.tcp(msg, "10.53.0.3")
@@ -1349,6 +1333,30 @@ def test_unknown_algorithms():
     isctest.check.noerror(res1)
     isctest.check.noerror(res2)
     isctest.check.noadflag(res2)
+
+
+def test_legacy_dnssec_types_are_signed():
+    """SIG (24), NXT (30) and KEY (25) records carry a covering RRSIG.
+
+    Per RFC 3755 SIG and NXT are obsolete and treated as opaque zone
+    data; KEY remains valid for SIG(0)/TKEY use.  All three are
+    ordinary zone data and must be signed like any other RRset.
+    """
+    for owner, rrtype in [
+        ("sigrr.secure.example", "SIG"),
+        ("nxtrr.secure.example", "NXT"),
+        ("keyrr.secure.example", "KEY"),
+    ]:
+        expected = rdatatype.from_text(rrtype)
+        msg = isctest.query.create(owner, rrtype, cd=True)
+        res = isctest.query.tcp(msg, "10.53.0.3")
+        isctest.check.noerror(res)
+        assert any(
+            rr.rdtype == expected for rr in res.answer
+        ), f"{rrtype} record missing in answer for {owner}: {res.answer}"
+        assert any(
+            rr.rdtype == rdatatype.RRSIG and rr.covers == expected for rr in res.answer
+        ), f"RRSIG({rrtype}) missing in answer for {owner}: {res.answer}"
 
 
 def test_rrsigs_for_glue():

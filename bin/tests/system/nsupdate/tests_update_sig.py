@@ -9,8 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""
-Regression tests for GL#5818: legacy DNSSEC types on the dynamic-update path.
+"""Regression tests for GL#5818: legacy DNSSEC types on the dynamic-update path.
 
 SIG (24) and NXT (30) are obsolete DNSSEC record types, superseded by RRSIG
 and NSEC in RFC 3755.  Allowing a client to inject them via dynamic update
@@ -24,11 +23,9 @@ exposed two bugs in sequence:
     different TTL then tripped DNS_DBADD_EXACTTTL in qpzone and came back
     as SERVFAIL.
 
-The adopted defence is to outright refuse SIG and NXT updates at the front
-door (ns/update.c), keeping KEY updates permitted for SIG(0) transaction
-signatures.  These tests verify the refusal.  The reachability of the
-diff.c:rdata_covers() bug via inbound zone transfer is covered separately
-by the AXFR-based regression test in this file.
+The adopted defence is to treat the legacy SIG and NXT records as normal RR
+records without any special processing.
+
 """
 
 from re import compile as Re
@@ -92,18 +89,17 @@ def _make_nxt_rdata():
 
 
 def test_tcp_self_sig_record(ns6):
-    """SIG (type 24) updates must be refused at the front door.
+    """SIG (type 24) updates are accepted and stored as opaque rdata.
 
-    Prior to the fix in dns__db_findrdataset(), a SIG update here
-    crashed named.  Prior to the fix in diff.c rdata_covers(), the
-    record was silently misfiled under typepair (SIG, 0).  The
-    adopted policy outright refuses SIG (obsolete; use RRSIG) so the
-    buggy dynamic-update paths are no longer reachable.  A PTR add
-    first ensures the node exists, which is the original
-    crash-reproducing precondition.
+    Per RFC 3755 SIG is obsolete (superseded by RRSIG).  BIND treats
+    incoming SIG records as a generic unknown type with no covered-type
+    semantics: dynamic updates carrying SIG are accepted and the record
+    becomes queryable.  A PTR add first ensures the node exists.
     """
+    owner = "1.0.53.10.in-addr.arpa."
+
     ptr_update = dns.update.UpdateMessage("in-addr.arpa.")
-    ptr_update.add("1.0.53.10.in-addr.arpa.", 600, "PTR", "localhost.")
+    ptr_update.add(owner, 600, "PTR", "localhost.")
     response = isctest.query.tcp(
         ptr_update, ns6.ip, port=ns6.ports.dns, source="10.53.0.1"
     )
@@ -114,34 +110,27 @@ def test_tcp_self_sig_record(ns6):
     rds.update_ttl(600)
     rds.add(sig)
     sig_update = dns.update.UpdateMessage("in-addr.arpa.")
-    sig_update.add("1.0.0.127.in-addr.arpa.", rds)
+    sig_update.add(owner, rds)
 
-    with ns6.watch_log_from_here() as watcher:
-        response = isctest.query.tcp(
-            sig_update, ns6.ip, port=ns6.ports.dns, source="10.53.0.1"
-        )
-        assert response.rcode() == dns.rcode.REFUSED
+    response = isctest.query.tcp(
+        sig_update, ns6.ip, port=ns6.ports.dns, source="10.53.0.1"
+    )
+    assert response.rcode() == dns.rcode.NOERROR
 
-        watcher.wait_for_line(
-            "updating zone 'in-addr.arpa/IN': update failed: SIG updates are not allowed (REFUSED)"
-        )
-
-    # Confirm nothing of type SIG was stored.
-    msg = isctest.query.create("1.0.53.10.in-addr.arpa.", "SIG")
+    # Confirm the SIG record was stored.
+    msg = isctest.query.create(owner, "SIG")
     res = isctest.query.tcp(msg, ns6.ip, port=ns6.ports.dns)
     stored = any(rrset.rdtype == dns.rdatatype.SIG for rrset in res.answer)
-    assert not stored, "SIG record was stored despite REFUSED response"
+    assert stored, "SIG record was not stored despite NOERROR response"
 
 
 def test_tcp_self_nxt_record(ns6):
-    """NXT (type 30) updates must be refused at the front door.
+    """NXT (type 30) updates are accepted and stored as opaque rdata.
 
     NXT is the legacy DNSSEC denial-of-existence type, obsolete since
-    RFC 3755 replaced it with NSEC.  Accepting it via dynamic update
-    would let an authorised updater inject records that the signing
-    and cut-point logic has no provision for.
+    RFC 3755 replaced it with NSEC.  BIND treats it as a generic
+    unknown rdata type.
     """
-    # A second owner under a source that also matches tcp-self.
     source = "10.53.0.2"
     owner = "2.0.53.10.in-addr.arpa."
 
@@ -157,28 +146,23 @@ def test_tcp_self_nxt_record(ns6):
     nxt_update = dns.update.UpdateMessage("in-addr.arpa.")
     nxt_update.add(owner, rds)
 
-    with ns6.watch_log_from_here() as watcher:
-        response = isctest.query.tcp(
-            nxt_update, ns6.ip, port=ns6.ports.dns, source="10.53.0.1"
-        )
-        assert response.rcode() == dns.rcode.REFUSED
+    response = isctest.query.tcp(nxt_update, ns6.ip, port=ns6.ports.dns, source=source)
+    assert response.rcode() == dns.rcode.NOERROR
 
-        watcher.wait_for_line(
-            "updating zone 'in-addr.arpa/IN': update failed: NXT updates are not allowed (REFUSED)"
-        )
+    # Confirm the NXT record was stored.
+    msg = isctest.query.create(owner, "NXT")
+    res = isctest.query.tcp(msg, ns6.ip, port=ns6.ports.dns)
+    stored = any(rrset.rdtype == dns.rdatatype.NXT for rrset in res.answer)
+    assert stored, "NXT record was not stored despite NOERROR response"
 
 
-def test_sig_covers_preserved_via_axfr(ns6):
-    """Regression test for GL#5818 Finding 1, reached via AXFR.
+def test_sig_axfr_stored_opaque(ns6):
+    """SIG records received via AXFR are stored as opaque rdata.
 
     ans11 serves an AXFR for sigaxfr.nil. containing two SIG rdatas at
-    the same owner with different covered types (A, MX) and different
-    TTLs (600, 1200).  ns6 pulls the zone via dns_diff_load(), which
-    calls diff.c rdata_covers(); before the fix that helper returned 0
-    for SIG, so both tuples were grouped and filed under typepair
-    (SIG, 0) with the first TTL (600) — the MX-covering record's TTL
-    (1200) was silently dropped.  With the fix the records land in
-    distinct typepairs and both TTLs survive.
+    the same owner with different "covered type" body fields (A, MX).
+    Per RFC 3755 SIG has no covered-type semantics; both rdatas land in
+    a single opaque rdataset and both survive in the zone DB.
 
     rndc dumpdb is used to inspect the secondary's stored state
     directly; the wire-level response can merge same-(owner,type,class)
@@ -211,12 +195,11 @@ def test_sig_covers_preserved_via_axfr(ns6):
     else:
         raise AssertionError(f"{dump_path} never contained {deadline_marker!r}")
 
-    # Collect every SIG line for the owner from the dump.  Format is:
-    #   <owner>. <ttl> IN SIG <covered> <alg> <labels> ...
+    # Collect every SIG line for the owner from the dump.
     sig_lines = []
     for line in text.splitlines():
         fields = line.split()
-        if len(fields) < 6:
+        if len(fields) < 4:
             continue
         if not fields[0].lower().startswith("host.sigaxfr.nil"):
             continue
@@ -226,14 +209,10 @@ def test_sig_covers_preserved_via_axfr(ns6):
 
     assert (
         len(sig_lines) == 2
-    ), f"expected 2 SIG records at {owner}, got {len(sig_lines)}: {sig_lines}"
+    ), f"expected 2 SIG rdatas at {owner}, got {len(sig_lines)}: {sig_lines}"
 
-    ttl_by_covers = {fields[4]: int(fields[1]) for fields in sig_lines}
-    assert ttl_by_covers == {"A": 600, "MX": 1200}, (
-        f"SIG records lost their covers/TTL binding: {ttl_by_covers}.  With "
-        "the Finding 1 bug both records are filed under typepair (SIG, 0) "
-        "and share the first-seen TTL (600)."
-    )
+    ttls = {int(fields[1]) for fields in sig_lines}
+    assert ttls == {600}, f"SIG rdataset should share a single TTL, got {ttls}"
 
 
 def parse_named_conf_keys(conf_text):

@@ -39,8 +39,12 @@ normalthenrrsig		A	10.0.0.28
 rrsigonly		A	10.0.0.29
 
 cnameandkey		CNAME	@
-cnamenokey		CNAME	@
 dnameandkey		DNAME	@
+
+; Legacy DNSSEC types (RFC 3755) carried as opaque zone data and signed.
+sigrr			SIG	A 6 2 86400 20260331170000 20260318160000 21831 . AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+nxtrr			NXT	next.secure.example. A
+keyrr			KEY	0 3 13 zJxo/L9JqctLZuL8CqocSmgHUhmQCrQQmRHjwhzXfjDgPoPjRo1nofU7yXHeli8myiulQLZk3h1CTayP8dOvkQ==
 
 mixedcase		A	10.0.0.30
 mixedCASE		TXT	"mixed case"

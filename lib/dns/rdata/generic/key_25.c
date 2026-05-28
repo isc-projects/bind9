@@ -18,8 +18,7 @@
 
 #include <dst/dst.h>
 
-#define RRTYPE_KEY_ATTRIBUTES \
-	(DNS_RDATATYPEATTR_ATCNAME | DNS_RDATATYPEATTR_ZONECUTAUTH)
+#define RRTYPE_KEY_ATTRIBUTES (0)
 
 static isc_result_t
 generic_fromtext_key(ARGS_FROMTEXT) {

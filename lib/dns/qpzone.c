@@ -1828,9 +1828,7 @@ cname_and_other(qpznode_t *node, uint32_t serial) {
 			if (first_existing_header(top, serial) != NULL) {
 				cname = true;
 			}
-		} else if (rdtype != dns_rdatatype_key &&
-			   rdtype != dns_rdatatype_sig &&
-			   rdtype != dns_rdatatype_nsec &&
+		} else if (rdtype != dns_rdatatype_nsec &&
 			   rdtype != dns_rdatatype_rrsig)
 		{
 			if (first_existing_header(top, serial) != NULL) {
@@ -3639,12 +3637,12 @@ found:
 
 	/*
 	 * Certain DNSSEC types are not subject to CNAME matching
-	 * (RFC4035, section 2.5 and RFC3007).
+	 * (RFC4035, section 2.5).
 	 *
 	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly.
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec) {
+	if (type == dns_rdatatype_nsec) {
 		cname_ok = false;
 	}
 
@@ -3685,15 +3683,9 @@ found:
 				search.need_cleanup = true;
 				maybe_zonecut = false;
 				at_zonecut = true;
-				/*
-				 * It is not clear if KEY should still be
-				 * allowed at the parent side of the zone
-				 * cut or not.  It is needed for RFC3007
-				 * validated updates.
-				 */
+
 				if ((search.options & DNS_DBFIND_GLUEOK) == 0 &&
-				    type != dns_rdatatype_nsec &&
-				    type != dns_rdatatype_key)
+				    type != dns_rdatatype_nsec)
 				{
 					/*
 					 * Glue is not OK, but any answer we
@@ -3901,18 +3893,10 @@ found:
 		/*
 		 * If we're beneath a zone cut, we must indicate that the
 		 * result is glue, unless we're actually at the zone cut
-		 * and the type is NSEC or KEY.
+		 * and the type is NSEC.
 		 */
 		if (search.zonecut == node) {
-			/*
-			 * It is not clear if KEY should still be
-			 * allowed at the parent side of the zone
-			 * cut or not.  It is needed for RFC3007
-			 * validated updates.
-			 */
-			if (dns_rdatatype_isnsec(type) ||
-			    type == dns_rdatatype_key)
-			{
+			if (dns_rdatatype_isnsec(type)) {
 				result = ISC_R_SUCCESS;
 			} else if (type == dns_rdatatype_any) {
 				result = DNS_R_ZONECUT;

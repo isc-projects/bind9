@@ -720,20 +720,19 @@ dns_rdatatype_isknown(dns_rdatatype_t type) {
 
 /*%
  * Return true iff a query for the rdata type can have multiple
- * unrelated answers in a response: ANY, RRSIG, or SIG.
+ * unrelated answers in a response: ANY, or RRSIG.
  */
 static inline bool
 dns_rdatatype_ismulti(dns_rdatatype_t type) {
-	return type == dns_rdatatype_any || type == dns_rdatatype_rrsig ||
-	       type == dns_rdatatype_sig;
+	return type == dns_rdatatype_any || type == dns_rdatatype_rrsig;
 }
 
 /*%
- * Return true iff the rdata type is a signature: either RRSIG or SIG.
+ * Return true iff the rdata type is RRSIG.
  */
 static inline bool
 dns_rdatatype_issig(dns_rdatatype_t type) {
-	return type == dns_rdatatype_rrsig || type == dns_rdatatype_sig;
+	return type == dns_rdatatype_rrsig;
 }
 
 /*%
