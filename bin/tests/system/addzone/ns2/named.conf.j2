@@ -21,6 +21,15 @@ template primary {
 	initial-file "added.db";
 };
 
+template bad {
+	type secondary;
+	primaries { 10.53.0.1; };
+	max-refresh-time 0;
+	max-retry-time 0;
+	min-refresh-time 0;
+	min-retry-time 0;
+};
+
 zone "." {
 	type hint;
 	file "../../_common/root.hint";

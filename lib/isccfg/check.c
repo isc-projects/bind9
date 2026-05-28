@@ -3525,6 +3525,9 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	if (check_nonzero(zoptions) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
+	if (toptions != NULL && check_nonzero(toptions) != ISC_R_SUCCESS) {
+		result = ISC_R_FAILURE;
+	}
 
 	/*
 	 * Check if a dnssec-policy is set.
