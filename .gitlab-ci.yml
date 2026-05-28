@@ -8,7 +8,6 @@ variables:
   LC_ALL: C
 
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
-  CCACHE_DIR: "/ccache"
   SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
 
   # VirtualBox driver needs to set build_dir to "/builds" in gitlab-runner.toml
@@ -192,7 +191,6 @@ stages:
   <<: *default_triggering_rules
   stage: build
   before_script:
-    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
   script:
     - *configure
