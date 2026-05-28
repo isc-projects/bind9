@@ -330,6 +330,7 @@ if not cc.compiles(constexpr_test, name: 'usage of constexpr')
 endif
 
 if developer_mode
+    config.set('DEVELOPER_MODE', 1)
     config.set('ISC_LIST_CHECKINIT', 1)
     config.set('ISC_MEM_TRACKLINES', 1)
     config.set('ISC_MUTEX_ERROR_CHECK', 1)
