@@ -8868,6 +8868,19 @@ rctx_answer_any(respctx_t *rctx) {
 						  check_related, rctx, 0);
 	}
 
+	/*
+	 * An RRSIG query is handled as a subset of ANY; if every record in
+	 * the answer was filtered out above, nothing was marked cacheable,
+	 * so there is nothing to cache, validate, or chase.  Treat that as a
+	 * broken answer instead of returning success with no answer, which
+	 * would leave the fetch waiting for a validator that is never
+	 * started.
+	 */
+	if (!rctx->aname->attributes.cache) {
+		rctx->result = DNS_R_FORMERR;
+		return ISC_R_COMPLETE;
+	}
+
 	return ISC_R_SUCCESS;
 }
 
