@@ -8781,6 +8781,19 @@ rctx_answer_any(respctx_t *rctx) {
 		rdataset->trust = rctx->trust;
 	}
 
+	/*
+	 * An RRSIG query is handled as a subset of ANY; if every record in
+	 * the answer was filtered out above, nothing was marked cacheable,
+	 * so there is nothing to cache, validate, or chase.  Treat that as a
+	 * broken answer instead of returning success with no answer, which
+	 * would leave the fetch waiting for a validator that is never
+	 * started.
+	 */
+	if (!rctx->aname->attributes.cache) {
+		rctx->result = DNS_R_FORMERR;
+		return ISC_R_COMPLETE;
+	}
+
 	return ISC_R_SUCCESS;
 }
 
@@ -8855,16 +8868,6 @@ rctx_answer_cname(respctx_t *rctx) {
 	fetchctx_t *fctx = rctx->fctx;
 
 	if (!validinanswer(rctx->crdataset, fctx)) {
-		rctx->result = DNS_R_FORMERR;
-		return ISC_R_COMPLETE;
-	}
-
-	if (rctx->type == dns_rdatatype_rrsig ||
-	    rctx->type == dns_rdatatype_nsec)
-	{
-		char buf[DNS_RDATATYPE_FORMATSIZE];
-		dns_rdatatype_format(rctx->type, buf, sizeof(buf));
-		log_formerr(fctx, "CNAME response for %s RR", buf);
 		rctx->result = DNS_R_FORMERR;
 		return ISC_R_COMPLETE;
 	}
