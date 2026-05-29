@@ -1109,9 +1109,6 @@ set_stats(dns_resolver_t *res, isc_statscounter_t counter, uint64_t val) {
 	}
 }
 
-static bool
-waiting_for_fetch(fetchctx_t *fctx, const dns_name_t *name,
-		  dns_rdatatype_t type, const dns_name_t *domain);
 static void
 valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	  dns_name_t *name, dns_rdatatype_t type, dns_rdataset_t *rdataset,
@@ -10685,15 +10682,15 @@ is_samedomain(const dns_name_t *domain1, const dns_name_t *domain2) {
 }
 
 static bool
-waiting_for_fetch(fetchctx_t *fctx, const dns_name_t *name,
-		  dns_rdatatype_t type, const dns_name_t *domain) {
-	while (fctx != NULL) {
-		if (type == fctx->type && !dns_name_compare(name, fctx->name)) {
-			if (is_samedomain(domain, fctx->domain)) {
-				return true;
-			}
+waiting_for_fetch(const fetchctx_t *parent, const fetchctx_t *cur) {
+	for (const fetchctx_t *fctx = parent; fctx != NULL; fctx = fctx->parent)
+	{
+		if (cur->type == fctx->type &&
+		    !dns_name_compare(cur->name, fctx->name) &&
+		    is_samedomain(cur->domain, fctx->domain))
+		{
+			return true;
 		}
-		fctx = fctx->parent;
 	}
 	return false;
 }
@@ -10738,34 +10735,6 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	}
 
 	log_fetch(name, type);
-
-	/*
-	 * This fetch loop detection enable to guard against loop scenarios
-	 * where the DNSSEC is involved. See
-	 * `4d307ac67a0e3f9831c9a4e66ac481e2f9ceebb5`. This is a complementary
-	 * detection with the ADB lookup loop detection (in `findname()`).
-	 */
-	if (waiting_for_fetch(parent, name, type, domain)) {
-		if (isc_log_wouldlog(ISC_LOG_INFO)) {
-			char namebuf[DNS_NAME_FORMATSIZE + 1];
-			char typebuf[DNS_RDATATYPE_FORMATSIZE];
-			char domainbuf[DNS_NAME_FORMATSIZE + 1] = { 0 };
-
-			dns_name_format(name, namebuf, sizeof(namebuf));
-			dns_rdatatype_format(type, typebuf, sizeof(typebuf));
-			if (domain != NULL) {
-				dns_name_format(domain, domainbuf,
-						sizeof(domainbuf));
-			}
-
-			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(2),
-				      "fetch loop detected resolving '%s/%s "
-				      "(in '%s'?)",
-				      namebuf, typebuf, domainbuf);
-		}
-		return DNS_R_LOOPDETECTED;
-	}
 
 	fetch = isc_mem_get(mctx, sizeof(*fetch));
 	*fetch = (dns_fetch_t){ 0 };
@@ -10829,6 +10798,36 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	}
 
 	RUNTIME_CHECK(fctx != NULL);
+
+	/*
+	 * This fetch loop detection enable to guard against loop scenarios
+	 * where the DNSSEC is involved. See
+	 * `4d307ac67a0e3f9831c9a4e66ac481e2f9ceebb5`. This is a complementary
+	 * detection with the ADB lookup loop detection (in `findname()`).
+	 */
+	if (!new_fctx && waiting_for_fetch(parent, fctx)) {
+		if (isc_log_wouldlog(ISC_LOG_INFO)) {
+			char namebuf[DNS_NAME_FORMATSIZE + 1];
+			char typebuf[DNS_RDATATYPE_FORMATSIZE];
+			char domainbuf[DNS_NAME_FORMATSIZE + 1] = { 0 };
+
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_rdatatype_format(type, typebuf, sizeof(typebuf));
+			if (domain != NULL) {
+				dns_name_format(domain, domainbuf,
+						sizeof(domainbuf));
+			}
+
+			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(2),
+				      "fetch loop detected resolving '%s/%s "
+				      "(in '%s'?)",
+				      namebuf, typebuf, domainbuf);
+		}
+
+		result = DNS_R_LOOPDETECTED;
+		goto unlock;
+	}
 
 	if (fctx->depth > depth) {
 		fctx->depth = depth;
