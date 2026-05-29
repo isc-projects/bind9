@@ -9470,17 +9470,6 @@ rctx_referral(respctx_t *rctx) {
 	}
 
 	/*
-	 * NS rdatasets with 0 TTL cause problems.
-	 * dns_view_findzonecut() will not find them when we
-	 * try to follow the referral, and we'll SERVFAIL
-	 * because the best nameservers are now above QDOMAIN.
-	 * We force the TTL to 1 second to prevent this.
-	 */
-	if (rctx->ns_rdataset->ttl == 0) {
-		rctx->ns_rdataset->ttl = 1;
-	}
-
-	/*
 	 * An NS-based delegation can be cached immediately (i.e. there is no
 	 * DNSSEC validation).
 	 *
