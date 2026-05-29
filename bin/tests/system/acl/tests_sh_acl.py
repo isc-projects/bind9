@@ -18,6 +18,9 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns*/_default.nzf*",
         "ns2/example.db",
         "ns2/tsigzone.db",
+        "ns3/example.com.db",
+        "ns3/allow.example.db",
+        "ns3/template.example.db",
     ]
 )
 
