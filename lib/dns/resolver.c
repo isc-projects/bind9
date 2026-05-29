@@ -8954,16 +8954,6 @@ rctx_answer_cname(respctx_t *rctx) {
 		return ISC_R_COMPLETE;
 	}
 
-	if (rctx->type == dns_rdatatype_rrsig ||
-	    rctx->type == dns_rdatatype_key || rctx->type == dns_rdatatype_nsec)
-	{
-		char buf[DNS_RDATATYPE_FORMATSIZE];
-		dns_rdatatype_format(rctx->type, buf, sizeof(buf));
-		log_formerr(fctx, "CNAME response for %s RR", buf);
-		rctx->result = DNS_R_FORMERR;
-		return ISC_R_COMPLETE;
-	}
-
 	if (!is_answertarget_allowed(fctx, fctx->name, rctx->cname,
 				     rctx->crdataset, NULL))
 	{
