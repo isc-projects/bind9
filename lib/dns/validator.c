@@ -168,6 +168,10 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	     const dns_name_t *domain, dns_delegset_t *delegset,
 	     isc_job_cb callback, const char *caller);
 
+static isc_result_t
+create_ds_fetch(dns_validator_t *val, dns_name_t *name, isc_job_cb callback,
+		const char *caller);
+
 /*%
  * Ensure the validator's rdatasets are marked as expired.
  */
@@ -759,9 +763,9 @@ validator_callback_ds(void *arg) {
 			      isc_result_totext(result));
 		if (result != DNS_R_BROKENCHAIN) {
 			expire_rdatasets(val);
-			result = create_fetch(val, val->name, dns_rdatatype_ds,
-					      NULL, NULL, fetch_callback_ds,
-					      "validator_callback_ds");
+			result = create_ds_fetch(val, val->name,
+						 fetch_callback_ds,
+						 "validator_callback_ds");
 			if (result == ISC_R_SUCCESS) {
 				result = DNS_R_WAIT;
 			}
@@ -1055,6 +1059,52 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		&val->fsigrdataset, &val->fetch);
 	if (result != ISC_R_SUCCESS) {
 		dns_validator_detach(&val);
+	}
+
+	return result;
+}
+
+/*%
+ * Start a fetch for the DS RRset at 'name', which lives in the parent zone.
+ *
+ * If the delegation database already has a usable delegation for that parent,
+ * pass it to the resolver as a hint so the fetch is anchored at the parent
+ * zone cut.  DS is an at-parent type, so the resolver derives the same cut on
+ * its own for a hintless query; supplying it explicitly additionally gives the
+ * resolver's fetch loop detection a zone cut to match on, which it does not
+ * have for a fetch started without a hint.  The lookup fails harmlessly if the
+ * parent delegation is expired or does not line up with the labels in 'name',
+ * leaving a hintless DS fetch.
+ */
+static isc_result_t
+create_ds_fetch(dns_validator_t *val, dns_name_t *name, isc_job_cb callback,
+		const char *caller) {
+	isc_result_t result;
+	dns_fixedname_t pfixed, fixed;
+	dns_name_t *pname = NULL, *fname = NULL;
+	dns_delegset_t *delegset = NULL;
+	const dns_name_t *parent = NULL;
+	unsigned int n;
+
+	n = dns_name_countlabels(name);
+	if (n > 1) {
+		pname = dns_fixedname_initname(&pfixed);
+		dns_name_getlabelsequence(name, 1, n - 1, pname);
+
+		fname = dns_fixedname_initname(&fixed);
+		result = dns_view_bestzonecut(val->view, pname, fname, NULL, 0,
+					      0, true, true, &delegset);
+		if (result == ISC_R_SUCCESS && delegset != NULL) {
+			parent = fname;
+		} else if (delegset != NULL) {
+			dns_delegset_detach(&delegset);
+		}
+	}
+
+	result = create_fetch(val, name, dns_rdatatype_ds, parent, delegset,
+			      callback, caller);
+	if (delegset != NULL) {
+		dns_delegset_detach(&delegset);
 	}
 
 	return result;
@@ -2023,60 +2073,17 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 		}
 		break;
 
-	case ISC_R_NOTFOUND: {
-		dns_fixedname_t pfixed, fixed;
-		dns_name_t *pname = NULL, *fname = NULL;
-		dns_delegset_t *delegset = NULL;
-		const dns_name_t *parent = NULL;
-		unsigned int n;
-
-		/*
-		 * Before kicking off a fetch, see whether the delegation
-		 * database already knows a usable delegation for tname's
-		 * parent zone.  When it does, pass that delegation to the
-		 * resolver as a hint so the DS query is sent directly to
-		 * the parent's nameservers without going through the
-		 * "chase DS servers" recovery path.
-		 *
-		 * This lookup will succeed in the common case, but will fails
-		 * in the parent delegation is expired or if the zonecut doesn't
-		 * match the labels in the name. Without this hint, the resolver
-		 * may fall back to a delegation at tname itself (the child
-		 * side), send the DS query there, get NODATA from the apex of
-		 * the zone and spend two extra round trips recovering from a
-		 * delegation we already had cached.
-		 */
-		n = dns_name_countlabels(tname);
-		if (n > 1) {
-			pname = dns_fixedname_initname(&pfixed);
-			dns_name_getlabelsequence(tname, 1, n - 1, pname);
-
-			fname = dns_fixedname_initname(&fixed);
-			result = dns_view_bestzonecut(val->view, pname, fname,
-						      NULL, 0, 0, true, true,
-						      &delegset);
-			if (result == ISC_R_SUCCESS && delegset != NULL) {
-				parent = fname;
-			} else if (delegset != NULL) {
-				dns_delegset_detach(&delegset);
-			}
-		}
-
+	case ISC_R_NOTFOUND:
 		/*
 		 * We don't have the DS.  Find it.
 		 */
-		result = create_fetch(val, tname, dns_rdatatype_ds, parent,
-				      delegset, fetch_callback_ds,
-				      "validate_dnskey");
-		if (delegset != NULL) {
-			dns_delegset_detach(&delegset);
-		}
+		result = create_ds_fetch(val, tname, fetch_callback_ds,
+					 "validate_dnskey");
 		*resp = DNS_R_WAIT;
 		if (result != ISC_R_SUCCESS) {
 			*resp = result;
 		}
 		return ISC_R_COMPLETE;
-	}
 
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
@@ -3329,8 +3336,8 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		 * We don't know anything about the DS.  Find it.
 		 */
 		*resp = DNS_R_WAIT;
-		result = create_fetch(val, tname, dns_rdatatype_ds, NULL, NULL,
-				      fetch_callback_ds, "seek_ds");
+		result = create_ds_fetch(val, tname, fetch_callback_ds,
+					 "seek_ds");
 		if (result != ISC_R_SUCCESS) {
 			*resp = result;
 		}
