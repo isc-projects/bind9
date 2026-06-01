@@ -428,7 +428,7 @@ def test_edns_expire_from_secondary(ns7):
 def test_edns_expire_refresh(ns7):
     time.sleep(1)
     with ns7.watch_log_from_here() as watcher:
-        ns7.rndc("refresh edns-expire.")
+        ns7.rndc("refresh edns-expire.", timeout=30)
         isctest.log.info("make sure the EDNS EXPIRE of 1814400 decreases a slightly")
         pattern = Re("zone edns-expire/IN: got EDNS EXPIRE of 1814[0-3][0-9][0-9]")
         watcher.wait_for_line(pattern)
