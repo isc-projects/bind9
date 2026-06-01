@@ -1,0 +1,16 @@
+options {
+    query-source address @ns.ip@;
+    notify-source @ns.ip@;
+    transfer-source @ns.ip@;
+    port @PORT@;
+    pid-file "named.pid";
+    listen-on { @ns.ip@; };
+    listen-on-v6 { none; };
+    recursion no;
+    dnssec-validation no;
+};
+
+zone "." {
+    type primary;
+    file "root.db";
+};

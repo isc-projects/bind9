@@ -11,16 +11,12 @@ options {
 	max-query-count 2;
 };
 
-{% include "_common/controls.conf.j2" %}
-
 zone "tld1." {
-	type forward;
-	forward only;
-	forwarders { 10.53.0.1; };
+	type static-stub;
+	server-addresses { 10.53.0.1; };
 };
 
 zone "tld2." {
-	type forward;
-	forward only;
-	forwarders { 10.53.0.1; };
+	type static-stub;
+	server-addresses { 10.53.0.1; };
 };
