@@ -72,9 +72,6 @@ with_libxml2 = pytest.mark.skipif(
     os.getenv("FEATURE_LIBXML2") != "1", reason="libxml2 support disabled in the build"
 )
 
-with_lmdb = pytest.mark.skipif(
-    os.getenv("FEATURE_LMDB") != "1", reason="LMDB support disabled in the build"
-)
 
 with_json_c = pytest.mark.skipif(
     os.getenv("FEATURE_JSON_C") != "1", reason="json-c support disabled in the build"
