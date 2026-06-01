@@ -988,7 +988,12 @@ reproducible-build:
   before_script:
     - *list_installed_package_versions
   script:
-    - meson reprotest
+    # dnstap produces an intermediate .a file, and meson considers all .a
+    # files to be final results independently of whether they are installed
+    # or not. But the content of the .a file is unstable under LTO because
+    # -ffat-lto-objects embeds non-deterministic GIMPLE bytecode. Hence we
+    # disable dnstap for reproducibility tests.
+    - meson reprotest -- -Ddnstap=disabled
   artifacts:
     untracked: true
     when: on_failure
