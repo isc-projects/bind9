@@ -125,7 +125,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
  *	and will not expire if inception == expire.
  *
  *	If generated is true (meaning the key was generated
- *	via TKEY negotation), the creating identity (if any), should
+ *	via TKEY negotiation), the creating identity (if any), should
  *	be specified in the creator parameter.
  *
  *	If restored is true, this indicates the key was restored from

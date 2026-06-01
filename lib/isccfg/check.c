@@ -2223,8 +2223,8 @@ done:
 #endif /* HAVE_LIBNGHTTP2 */
 
 static isc_result_t
-check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
-		    isc_symtab_t *symtab) {
+check_tls_definition(const cfg_obj_t *tlsobj, const char *name,
+		     isc_symtab_t *symtab) {
 	isc_result_t result = ISC_R_SUCCESS, tresult;
 	const cfg_obj_t *tls_proto_list = NULL, *tls_key = NULL,
 			*tls_cert = NULL, *tls_ciphers = NULL,
@@ -2372,7 +2372,7 @@ check_tls_definitions(const cfg_obj_t *config, isc_mem_t *mctx) {
 		const char *name;
 		obj = cfg_listelt_value(elt);
 		name = cfg_obj_asstring(cfg_map_getname(obj));
-		tresult = check_tls_defintion(obj, name, symtab);
+		tresult = check_tls_definition(obj, name, symtab);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}

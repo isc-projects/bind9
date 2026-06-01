@@ -8788,7 +8788,7 @@ cleanup_portsets:
 cleanup_tls:
 	/*
 	 * Detach the TLS client context (whether the one created at the
-	 * begining of this function, or the previous running one)
+	 * beginning of this function, or the previous running one)
 	 */
 	isc_tlsctx_cache_detach(&tlsctx_client_cache);
 

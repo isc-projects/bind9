@@ -677,7 +677,7 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp);
  *
  * \li	'db' is a valid database with zone semantics.
  *
- * \li	versionp != NULL && *verisonp == NULL
+ * \li	versionp != NULL && *versionp == NULL
  *
  * Ensures:
  *
@@ -694,7 +694,7 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
  *
  * \li	'db' is a valid database with zone semantics.
  *
- * \li	versionp != NULL && *verisonp == NULL
+ * \li	versionp != NULL && *versionp == NULL
  *
  * Ensures:
  *

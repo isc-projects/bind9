@@ -230,7 +230,7 @@ checkowner_in_a(ARGS_CHECKOWNER) {
 		}
 
 		/*
-		 * Handle SPF exists targets when the seperating label is:
+		 * Handle SPF exists targets when the separating label is:
 		 * - "_spf" RFC7208, section 5.7
 		 * - "_spf_verify" RFC7208, Appendix D1
 		 * - "_spf_rate" RFC7208, Appendix D1

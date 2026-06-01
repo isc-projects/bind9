@@ -304,7 +304,7 @@ done:
 }
 
 /*
- * Posible mapping of IPV4ONLY.ARPA A records into AAAA records
+ * Possible mapping of IPV4ONLY.ARPA A records into AAAA records
  * for valid RFC6052 prefixes.
  */
 static struct {

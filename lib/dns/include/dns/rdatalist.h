@@ -111,7 +111,7 @@ dns_rdatalist_fromrdataset(dns_rdataset_t   *rdataset,
  * The following are implementation functions for list-based rdatasets.
  * They are called by rdataset implementations in rdatalist.c, sdlz.c,
  * and builtin.c. They are not meant to be used directly by callers of
- * those implmentations.
+ * those implementations.
  */
 void
 dns_rdatalist_disassociate(dns_rdataset_t *rdatasetp DNS__DB_FLARG);

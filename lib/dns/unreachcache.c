@@ -262,7 +262,7 @@ static void
 ucentry_backoff(const dns_unreachcache_t *uc, const isc_stdtime_t now,
 		dns_ucentry_t *new, const dns_ucentry_t *old) {
 	/*
-	 * Perform exponential backoff if this is an expired entry wating to be
+	 * Perform exponential backoff if this is an expired entry waiting to be
 	 * evicted. Otherwise it's a duplicate entry and no backoff is required
 	 * as we will just update the cache with a new entry that has the same
 	 * expiration time as the old one, but calculated freshly, based on the
