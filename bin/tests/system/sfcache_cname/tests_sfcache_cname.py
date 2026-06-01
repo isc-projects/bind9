@@ -18,7 +18,7 @@ import isctest
 # A SERVFAIL produced while following a CNAME must be cached against the
 # original query name, not the CNAME target.
 #
-# ans1 serves "foo.tld1 CNAME tld2" and "tld2 A 1.2.3.4"; ns2 forwards
+# ns1 serves "foo.tld1 CNAME tld2" and "tld2 A 1.2.3.4"; ns2 forwards
 # both zones to it with "max-query-count 2". Resolving "foo.tld1/A"
 # follows the CNAME to "tld2" and then exhausts the query budget, so the
 # client gets SERVFAIL. That failure must be cached under the original
