@@ -12913,7 +12913,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "dumping all zones%s: %s",
 			      cleanup ? ", removing journal files" : "",
-			      isc_result_totext(result));
+			      isc_result_totext(tresult));
 		return tresult;
 	}
 
