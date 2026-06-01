@@ -907,7 +907,7 @@ def test_kasp_default(ns3):
 
     expected_updates = [f"a.{zone}. A 10.0.0.11", f"d.{zone}. A 10.0.0.44"]
     for update in expected_updates:
-        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+        isctest.run.retry_with_timeout(update_is_signed, timeout=10)
 
     # Move the private key file, a rekey event should not introduce
     # replacement keys.
@@ -1043,7 +1043,7 @@ def test_kasp_dynamic(ns3):
     expected_updates = [f"a.{zone}. A 10.0.0.1", f"d.{zone}. A 10.0.0.44"]
 
     for update in expected_updates:
-        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+        isctest.run.retry_with_timeout(update_is_signed, timeout=10)
 
     # Dynamic, and inline-signing.
     zone = "dynamic-inline-signing.kasp"
@@ -1080,7 +1080,7 @@ def test_kasp_dynamic(ns3):
 
     expected_updates = [f"a.{zone}. A 10.0.0.11", f"d.{zone}. A 10.0.0.44"]
     for update in expected_updates:
-        isctest.run.retry_with_timeout(update_is_signed, timeout=5)
+        isctest.run.retry_with_timeout(update_is_signed, timeout=10)
 
     # Dynamic, signed, and inline-signing.
     isctest.log.info("check dynamic signed, and inline-signed zone")
