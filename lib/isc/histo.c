@@ -167,7 +167,7 @@ isc_histo_digits_to_bits(uint digits) {
  * one value per bucket. There are CHUNKSIZE values before chunk 1
  * which map to chunk 0, so it also has one value per bucket. (Hence
  * the first two chunks have one value per bucket.) The values in
- * chunk 0 correspond to denormal nubers in floating point terms.
+ * chunk 0 correspond to denormal numbers in floating point terms.
  * They are also the values where `63 - sigbits - clz` would be less
  * than one if denormals were not handled specially.
  *

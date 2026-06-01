@@ -66,7 +66,7 @@
 const char *program = "dnssec-keygen";
 
 /*
- * These are are set here for backwards compatibility.  They are
+ * These are set here for backwards compatibility.  They are
  * raised to 2048 in FIPS mode.
  */
 static int min_rsa = 1024;

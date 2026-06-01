@@ -622,7 +622,7 @@ dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
 }
 
 /*%<
- * Indicate whether a key is scheduled to to have CDS/CDNSKEY records
+ * Indicate whether a key is scheduled to have CDS/CDNSKEY records
  * published now.
  *
  * Returns true if.
@@ -674,7 +674,7 @@ syncpublish(dst_key_t *key, isc_stdtime_t now) {
 }
 
 /*%<
- * Indicate whether a key is scheduled to to have CDS/CDNSKEY records
+ * Indicate whether a key is scheduled to have CDS/CDNSKEY records
  * deleted now.
  *
  * Returns true if:

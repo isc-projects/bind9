@@ -217,7 +217,7 @@ struct dns_adbaddrinfo {
 };
 
 /*!<
- * When the caller recieves a callback from dns_adb_createfind(), the
+ * When the caller receives a callback from dns_adb_createfind(), the
  * argument will a pointer to the dns_adbfind_t structure, which includes
  * this includes a copy of the callback function and argument passed to
  * dns_adb_createfind(), and a dns_adbstatus_t in the 'status' field,
