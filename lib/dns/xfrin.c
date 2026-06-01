@@ -318,10 +318,7 @@ axfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	}
 
 	CHECK(dns_zone_checknames(xfr->zone, name, rdata));
-
-	if (dns_diff_size(&xfr->diff) > 128 &&
-	    dns_diff_is_boundary(&xfr->diff, name))
-	{
+	if (dns_diff_size(&xfr->diff) > 128) {
 		xfrin_work_t work = (xfrin_work_t){
 			.magic = XFRIN_WORK_MAGIC,
 			.result = ISC_R_UNSET,
