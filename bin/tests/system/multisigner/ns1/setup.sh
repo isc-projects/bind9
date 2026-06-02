@@ -22,7 +22,7 @@ zonefile=root.db
 
 echo_i "ns1/setup.sh"
 
-for tld in multisigner bad-dsync secondary; do
+for tld in multisigner update-any bad-dsync secondary; do
   cp "../ns2/dsset-${tld}." .
 done
 

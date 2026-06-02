@@ -12,6 +12,9 @@ a.root-servers.nil.	A	10.53.0.1
 multisigner.		NS	ns2.multisigner.
 ns2.multisigner.	A	10.53.0.2
 
+update-any.		NS	ns2.update-any.
+ns2.update-any.		A	10.53.0.2
+
 bad-dsync.		NS	ns2.bad-dsync.
 ns2.bad-dsync.		A	10.53.0.2
 

@@ -30,10 +30,10 @@ setup() {
   $DSFROMKEY $KSK.key >dsset-ns2-${zone}.
 
   cat $infile $KSK.key $ZSK.key >$zonefile
-  $SIGNER -g -o $zone $zonefile
-  # >/dev/null 2>&1
+  $SIGNER -g -o $zone $zonefile >/dev/null 2>&1
 }
 
 setup "multisigner"
+setup "update-any"
 setup "bad-dsync"
 setup "secondary"
