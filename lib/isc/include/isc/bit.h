@@ -26,9 +26,9 @@
 #else /* __has_header(<stdbit.h>) */
 
 #ifdef HAVE_BUILTIN_POPCOUNTG
-#define stdc_count_zeros(x) __builtin_popcountg(x)
+#define stdc_count_ones(x) __builtin_popcountg(x)
 #else /* HAVE_BUILTIN_POPCOUNTG */
-#define stdc_count_zeros(x)                         \
+#define stdc_count_ones(x)                          \
 	_Generic((x),                               \
 		unsigned int: __builtin_popcount,   \
 		unsigned long: __builtin_popcountl, \
