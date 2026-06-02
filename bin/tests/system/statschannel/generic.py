@@ -188,6 +188,16 @@ def check_traffic(data, expected):
     assert ordered_data == ordered_expected
 
 
+def wait_for_traffic(fetch_traffic, statsip, statsport, expected):
+    # named updates the counters asynchronously, so a snapshot taken right
+    # after the query may lag; re-fetch until it matches (or time out).
+    def fetch_and_check():
+        check_traffic(fetch_traffic(statsip, statsport), expected)
+        return True
+
+    isctest.run.retry_with_timeout(fetch_and_check, timeout=10)
+
+
 def test_traffic(fetch_traffic, **kwargs):
     statsip = kwargs["statsip"]
     statsport = kwargs["statsport"]
@@ -200,36 +210,28 @@ def test_traffic(fetch_traffic, **kwargs):
     ans = isctest.query.udp(msg, statsip, attempts=1)
     isctest.check.noerror(ans)
     update_expected(exp, "dns-udp-responses-sizes-sent-ipv4", ans)
-    data = fetch_traffic(statsip, statsport)
-
-    check_traffic(data, exp)
+    wait_for_traffic(fetch_traffic, statsip, statsport, exp)
 
     msg = create_msg("long.example.", "TXT")
     update_expected(exp, "dns-udp-requests-sizes-received-ipv4", msg)
     ans = isctest.query.udp(msg, statsip, attempts=1)
     isctest.check.noerror(ans)
     update_expected(exp, "dns-udp-responses-sizes-sent-ipv4", ans)
-    data = fetch_traffic(statsip, statsport)
-
-    check_traffic(data, exp)
+    wait_for_traffic(fetch_traffic, statsip, statsport, exp)
 
     msg = create_msg("short.example.", "TXT")
     update_expected(exp, "dns-tcp-requests-sizes-received-ipv4", msg)
     ans = isctest.query.tcp(msg, statsip, attempts=1)
     isctest.check.noerror(ans)
     update_expected(exp, "dns-tcp-responses-sizes-sent-ipv4", ans)
-    data = fetch_traffic(statsip, statsport)
-
-    check_traffic(data, exp)
+    wait_for_traffic(fetch_traffic, statsip, statsport, exp)
 
     msg = create_msg("long.example.", "TXT")
     update_expected(exp, "dns-tcp-requests-sizes-received-ipv4", msg)
     ans = isctest.query.tcp(msg, statsip, attempts=1)
     isctest.check.noerror(ans)
     update_expected(exp, "dns-tcp-responses-sizes-sent-ipv4", ans)
-    data = fetch_traffic(statsip, statsport)
-
-    check_traffic(data, exp)
+    wait_for_traffic(fetch_traffic, statsip, statsport, exp)
 
 
 def test_rtt(fetch_views, **kwargs):
