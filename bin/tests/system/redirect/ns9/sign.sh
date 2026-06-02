@@ -11,13 +11,17 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. ../conf.sh
+. ../../conf.sh
 
-cp ns2/redirect.db.in ns2/redirect.db
-cp ns2/example.db.in ns2/example.db
-(cd ns1 && $SHELL sign.sh)
+zone=.
+infile=root.db.in
+zonefile=root.db
 
-cp ns4/example.db.in ns4/example.db
-(cd ns3 && $SHELL sign.sh)
-(cd ns5 && $SHELL sign.sh)
-(cd ns9 && $SHELL sign.sh)
+key1=$($KEYGEN -q -a $DEFAULT_ALGORITHM $zone)
+key2=$($KEYGEN -q -a $DEFAULT_ALGORITHM -fk $zone)
+
+cat $infile $key1.key $key2.key >$zonefile
+
+$SIGNER -P -g -O full -o $zone $zonefile >sign.ns9.root.out
+
+keyfile_to_static_keys $key2 >../ns10/trusted.conf
