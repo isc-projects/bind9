@@ -1992,8 +1992,8 @@ if doc_opt.allowed()
 
         rst_epilog = f'''.. |rndc_conf| replace:: ``@sysconfdir@/rndc.conf``
 .. |rndc_key| replace:: ``@sysconfdir@/rndc.key``
-.. |named_conf| replace:: ``@sysconfdir@/named.key``
-.. |named_pid| replace:: ``@runstatedir@/named.key``
+.. |named_conf| replace:: ``@sysconfdir@/named.conf``
+.. |named_pid| replace:: ``@runstatedir@/named.pid``
 .. |session_key| replace:: ``@runstatedir@/session.key``
 '''
 
