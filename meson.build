@@ -273,13 +273,12 @@ env = environment(
 )
 
 # Meson defines these variables in unit tests when not set
-test_env = environment(
-    {
-        'ASAN_OPTIONS': asan_options,
-        'TSAN_OPTIONS': tsan_options,
-        'UBSAN_OPTIONS': ubsan_options,
-    },
-)
+test_env_vars = {
+    'ASAN_OPTIONS': asan_options,
+    'TSAN_OPTIONS': tsan_options,
+    'UBSAN_OPTIONS': ubsan_options,
+}
+test_env = environment(test_env_vars)
 
 ### Configuration
 config = configuration_data()
