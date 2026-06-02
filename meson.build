@@ -726,7 +726,7 @@ endif
 # not add it automatically - we need to add it explicitly in such case.
 
 if urcu_dep[1].version().version_compare('<0.13.0')
-    urcu_dep += cc.find_library('liburcu-common')
+    urcu_dep += cc.find_library('urcu-common')
 endif
 
 foreach h : [
