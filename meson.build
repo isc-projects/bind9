@@ -461,7 +461,7 @@ if cpu_family in ['arm', 'aarch64']
         instruction_test.format('yield'),
         name: 'usage of yield instruction',
     )
-        config.set('HAVE_SPARC_PAUSE', 1)
+        config.set('HAVE_ARM_YIELD', 1)
     endif
 elif cpu_family in ['sparc', 'sparc64']
     if cc.compiles(
