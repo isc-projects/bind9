@@ -429,11 +429,14 @@ stages:
     - find -name 'tsan.*' -exec "$PYTHON" "$CI_PROJECT_DIR"/bind9-qa/ci/parse_tsan.py {} \;
 
 .check_readline_setup: &check_readline_setup
-    - if [[ -n "${WITHOUT_LIBEDIT}" ]]; then
-        ! grep "^#define HAVE_LIBEDIT" build/config.h;
-      elif [[ -n "${WITH_LIBEDIT}" ]]; then
-        grep -e "^#define HAVE_LIBEDIT" build/config.h;
-      fi
+    # WITH_LIBEDIT/WITHOUT_LIBEDIT are always-set global variables, so inspect
+    # the actual per-job configure flags to decide what to assert.
+    - case " ${EXTRA_CONFIGURE} " in
+        *" -Dline=disabled "*)
+          ! grep -e "^#define HAVE_LIBEDIT" build/config.h;;
+        *" -Dline=enabled "*)
+          grep -e "^#define HAVE_LIBEDIT" build/config.h;;
+      esac
 
 .list_installed_package_versions: &list_installed_package_versions
   - echo -e "\e[0Ksection_start:`date +%s`:installed_packages_section[collapsed=true]\r\e[0KHeader of the installed packages collapsible section"
