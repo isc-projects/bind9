@@ -13,7 +13,7 @@
 
 set -e
 
-if [ -z "$MESON_DIST_ROOT" ] || [ -z "$MESON_SOURCE_ROOT" ]; then
+if [ -z "$MESON_DIST_ROOT" ] || [ -z "$MESON_SOURCE_ROOT" ] || [ -z "$MESON_BUILD_ROOT" ]; then
   echo "meson-dist-package.sh must be run inside meson dist!"
   exit 1
 fi
@@ -41,19 +41,19 @@ generate_man_pages() {
     "${MESON_SOURCE_ROOT}/doc/man" \
     "${MESON_BUILD_ROOT}/dist-man"
 
-  for man in ${MESON_BUILD_ROOT}/dist-man/man1/*; do
+  for man in "${MESON_BUILD_ROOT}"/dist-man/man1/*; do
     [ -f "${man}" ] || continue
-    cp $man "${MESON_DIST_ROOT}/doc/man/${man##*/}.in"
+    cp "$man" "${MESON_DIST_ROOT}/doc/man/${man##*/}.in"
   done
 
-  for man in ${MESON_BUILD_ROOT}/dist-man/man5/*; do
+  for man in "${MESON_BUILD_ROOT}"/dist-man/man5/*; do
     [ -f "${man}" ] || continue
-    cp $man "${MESON_DIST_ROOT}/doc/man/${man##*/}.in"
+    cp "$man" "${MESON_DIST_ROOT}/doc/man/${man##*/}.in"
   done
 
-  for man in ${MESON_BUILD_ROOT}/dist-man/man8/*; do
+  for man in "${MESON_BUILD_ROOT}"/dist-man/man8/*; do
     [ -f "${man}" ] || continue
-    cp $man "${MESON_DIST_ROOT}/doc/man/${man##*/}.in"
+    cp "$man" "${MESON_DIST_ROOT}/doc/man/${man##*/}.in"
   done
 }
 

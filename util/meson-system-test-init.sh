@@ -16,5 +16,5 @@ if [ -z "$BIND_SOURCE_ROOT" ] || [ -z "$BIND_BUILD_ROOT" ]; then
   exit 1
 fi
 
-cp $BIND_BUILD_ROOT/bin/tests/system/isctest/vars/.build_vars/TOP_BUILDDIR $BIND_SOURCE_ROOT/bin/tests/system/isctest/vars/.build_vars/TOP_BUILDDIR
-cp $BIND_BUILD_ROOT/bin/tests/system/ifconfig.sh $BIND_SOURCE_ROOT/bin/tests/system/ifconfig.sh
+cp "$BIND_BUILD_ROOT/bin/tests/system/isctest/vars/.build_vars/TOP_BUILDDIR" "$BIND_SOURCE_ROOT/bin/tests/system/isctest/vars/.build_vars/TOP_BUILDDIR"
+cp "$BIND_BUILD_ROOT/bin/tests/system/ifconfig.sh" "$BIND_SOURCE_ROOT/bin/tests/system/ifconfig.sh"
