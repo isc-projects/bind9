@@ -22,7 +22,6 @@ manrst_srcset.add(when: 'HAVE_DNSTAP', if_true: files('dnstap-read.rst'))
 manrst_srcset.add(
     files(
         'arpaname.rst',
-        'dnstap-read.rst',
         'mdig.rst',
         'named-journalprint.rst',
         'named-makejournal.rst',
