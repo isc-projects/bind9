@@ -956,7 +956,7 @@ dtrace_header = generator(
     arguments: ['-s', '@INPUT@', '-h', '-o', '@OUTPUT@'],
 )
 
-# Acutally, dtrace probes are still built with macOS.
+# Actually, dtrace probes are still built with macOS.
 # macOS flavored dtrace doesn't recognize the -G option and
 # only uses headers.
 #
@@ -964,8 +964,7 @@ dtrace_header = generator(
 # to be able to disable it. You can just not use the probes.
 config.set(
     'HAVE_DTRACE',
-    dtrace.full_path() != dtrace_shim
-    and build_machine.system() != 'darwin',
+    dtrace.full_path() != dtrace_shim and host_machine.system() != 'darwin',
 )
 cc.has_header('sys/sdt.h', required: tracing_opt)
 assert(
