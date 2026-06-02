@@ -218,6 +218,7 @@ struct update {
  */
 
 typedef struct {
+	dns_zone_t *zone;
 	dns_db_t *db;
 	dns_dbversion_t *ver;
 	dns_diff_t *diff;
@@ -713,7 +714,7 @@ cleanup_node:
  * against an update RR 'update_rr'.
  */
 typedef bool
-rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
+rr_predicate(dns_zone_t *zone, dns_rdata_t *update_rr, dns_rdata_t *db_rr);
 
 static isc_result_t
 count_action(void *data, rr_t *rr) {
@@ -1203,6 +1204,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 
 typedef struct {
 	rr_predicate *predicate;
+	dns_zone_t *zone;
 	dns_db_t *db;
 	dns_dbversion_t *ver;
 	dns_diff_t *diff;
@@ -1219,7 +1221,9 @@ typedef struct {
  * an RRSIG nor an NSEC3PARAM nor a NSEC.
  */
 static bool
-type_not_soa_nor_ns_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+type_not_soa_nor_ns_p(dns_zone_t *zone, dns_rdata_t *update_rr,
+		      dns_rdata_t *db_rr) {
+	UNUSED(zone);
 	UNUSED(update_rr);
 	return (db_rr->type != dns_rdatatype_soa &&
 		db_rr->type != dns_rdatatype_ns &&
@@ -1234,7 +1238,8 @@ type_not_soa_nor_ns_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
  * Return true iff 'db_rr' is neither a RRSIG nor a NSEC.
  */
 static bool
-type_not_dnssec(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+type_not_dnssec(dns_zone_t *zone, dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+	UNUSED(zone);
 	UNUSED(update_rr);
 	return (db_rr->type != dns_rdatatype_rrsig &&
 		db_rr->type != dns_rdatatype_nsec)
@@ -1246,17 +1251,56 @@ type_not_dnssec(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
  * Return true always.
  */
 static bool
-true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+true_p(dns_zone_t *zone, dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+	UNUSED(zone);
 	UNUSED(update_rr);
 	UNUSED(db_rr);
 	return true;
 }
 
 /*%
+ * Return true iff 'db_rr' is not a DNSKEY or derivative (CDNSKEY, CDS)
+ * of a key that is being used for signing.
+ */
+static bool
+rr_not_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *update_rr,
+		    dns_rdata_t *db_rr) {
+	isc_result_t result;
+	bool dnskey_inuse = false;
+
+	UNUSED(update_rr);
+
+	if (dns_rdatatype_iskeymaterial(db_rr->type)) {
+		/*
+		 * If the check fails, we couldn't convert the rdata into a
+		 * key. This shouldn't happen and it is unclear what the
+		 * result action of the update should be.  In the case of
+		 * deleting a single RR we treat such failure by rolling
+		 * back the complete update.
+		 *
+		 * With RR predicates this is difficult because a predicate
+		 * returns true or false. We could change the API to make
+		 * it return a different type (e.g. isc_result_t) and
+		 * treat ISC_R_SUCCESS as true, and a specific other
+		 * value oas false, any other values would mean an error
+		 * and requires rolling back the update.
+		 *
+		 * Currently we treat a check failure as the key was not
+		 * in use.
+		 */
+		CHECK(dns_zone_dnskey_inuse(zone, db_rr, &dnskey_inuse));
+	}
+
+cleanup:
+	return !dnskey_inuse;
+}
+
+/*%
  * Return true iff the two RRs have identical rdata.
  */
 static bool
-rr_equal_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+rr_equal_p(dns_zone_t *zone, dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+	UNUSED(zone);
 	/*
 	 * XXXRTH  This is not a problem, but we should consider creating
 	 *         dns_rdata_equal() (that used dns_name_equal()), since it
@@ -1278,9 +1322,11 @@ rr_equal_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
  * rollover by only requiring that the new RRSIG be added.
  */
 static bool
-replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+replaces_p(dns_zone_t *zone, dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	dns_rdata_rrsig_t updatesig, dbsig;
 	isc_result_t result;
+
+	UNUSED(zone);
 
 	if (db_rr->type != update_rr->type) {
 		return false;
@@ -1347,21 +1393,37 @@ replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	return false;
 }
 
+static bool
+apex_special_processing_any(dns_zone_t *zone, dns_rdata_t *update_rr,
+			    dns_rdata_t *db_rr) {
+	return rr_not_dnskey_inuse(zone, update_rr, db_rr) &&
+	       type_not_soa_nor_ns_p(zone, update_rr, db_rr);
+}
+
+static bool
+apex_special_processing(dns_zone_t *zone, dns_rdata_t *update_rr,
+			dns_rdata_t *db_rr) {
+	if (db_rr->type != update_rr->type) {
+		return false;
+	}
+	return apex_special_processing_any(zone, update_rr, db_rr);
+}
+
 /*%
  * Internal helper function for delete_if().
  */
 static isc_result_t
 delete_if_action(void *data, rr_t *rr) {
 	conditional_delete_ctx_t *ctx = data;
-	if ((*ctx->predicate)(ctx->update_rr, &rr->rdata)) {
+	if ((*ctx->predicate)(ctx->zone, ctx->update_rr, &rr->rdata)) {
 		isc_result_t result;
 		result = update_one_rr(ctx->db, ctx->ver, ctx->diff,
 				       DNS_DIFFOP_DEL, ctx->name, rr->ttl,
 				       &rr->rdata);
 		return result;
-	} else {
-		return ISC_R_SUCCESS;
 	}
+
+	return ISC_R_SUCCESS;
 }
 
 /*%
@@ -1372,11 +1434,12 @@ delete_if_action(void *data, rr_t *rr) {
  * deletions in 'diff'.
  */
 static isc_result_t
-delete_if(rr_predicate *predicate, dns_db_t *db, dns_dbversion_t *ver,
-	  dns_name_t *name, dns_rdatatype_t type, dns_rdatatype_t covers,
-	  dns_rdata_t *update_rr, dns_diff_t *diff) {
+delete_if(rr_predicate *predicate, dns_zone_t *zone, dns_db_t *db,
+	  dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
+	  dns_rdatatype_t covers, dns_rdata_t *update_rr, dns_diff_t *diff) {
 	conditional_delete_ctx_t ctx;
 	ctx.predicate = predicate;
+	ctx.zone = zone;
 	ctx.db = db;
 	ctx.ver = ver;
 	ctx.diff = diff;
@@ -1417,7 +1480,7 @@ add_rr_prepare_action(void *data, rr_t *rr) {
 	 * If this RR is "equal" to the update RR, it should
 	 * be deleted before the update RR is added.
 	 */
-	if (replaces_p(ctx->update_rr, &rr->rdata)) {
+	if (replaces_p(ctx->zone, ctx->update_rr, &rr->rdata)) {
 		dns_difftuple_create(ctx->del_diff.mctx, DNS_DIFFOP_DEL,
 				     ctx->oldname, rr->ttl, &rr->rdata, &tuple);
 		dns_diff_append(&ctx->del_diff, &tuple);
@@ -1965,7 +2028,8 @@ cleanup:
  */
 
 static isc_result_t
-remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
+remove_orphaned_ds(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *newver,
+		   dns_diff_t *diff) {
 	isc_result_t result;
 	bool ns_exists;
 	dns_diff_t temp_diff;
@@ -1987,7 +2051,7 @@ remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 		{
 			continue;
 		}
-		CHECK(delete_if(true_p, db, newver, &tuple->name,
+		CHECK(delete_if(true_p, zone, db, newver, &tuple->name,
 				dns_rdatatype_ds, dns_rdatatype_none, NULL,
 				&temp_diff));
 	}
@@ -2971,6 +3035,7 @@ update_action(void *arg) {
 			/* Prepare the affected RRset for the addition. */
 			{
 				add_rr_prepare_ctx_t ctx;
+				ctx.zone = zone;
 				ctx.db = db;
 				ctx.ver = ver;
 				ctx.diff = &diff;
@@ -3028,26 +3093,24 @@ update_action(void *arg) {
 						   namestr);
 				}
 				if (dns_name_equal(name, zonename)) {
-					CHECK(delete_if(type_not_soa_nor_ns_p,
+					CHECK(delete_if(
+						apex_special_processing_any,
+						zone, db, ver, name,
+						dns_rdatatype_any,
+						dns_rdatatype_none, &rdata,
+						&diff));
+				} else {
+					CHECK(delete_if(type_not_dnssec, zone,
 							db, ver, name,
 							dns_rdatatype_any,
 							dns_rdatatype_none,
 							&rdata, &diff));
-				} else {
-					CHECK(delete_if(type_not_dnssec, db,
-							ver, name,
-							dns_rdatatype_any,
-							dns_rdatatype_none,
-							&rdata, &diff));
 				}
-			} else if (dns_name_equal(name, zonename) &&
-				   (rdata.type == dns_rdatatype_soa ||
-				    rdata.type == dns_rdatatype_ns))
-			{
-				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "attempt to delete all SOA or NS "
-					   "records ignored");
-				continue;
+			} else if (dns_name_equal(name, zonename)) {
+				CHECK(delete_if(
+					apex_special_processing, zone, db, ver,
+					name, dns_rdatatype_any,
+					dns_rdatatype_none, &rdata, &diff));
 			} else {
 				if (isc_log_wouldlog(LOGLEVEL_PROTOCOL)) {
 					char namestr[DNS_NAME_FORMATSIZE];
@@ -3062,7 +3125,7 @@ update_action(void *arg) {
 						   "deleting rrset at '%s' %s",
 						   namestr, typestr);
 				}
-				CHECK(delete_if(true_p, db, ver, name,
+				CHECK(delete_if(true_p, zone, db, ver, name,
 						rdata.type, covers, &rdata,
 						&diff));
 			}
@@ -3124,8 +3187,8 @@ update_action(void *arg) {
 					     sizeof(typestr));
 			update_log(client, zone, LOGLEVEL_PROTOCOL,
 				   "deleting an RR at %s %s", namestr, typestr);
-			CHECK(delete_if(rr_equal_p, db, ver, name, rdata.type,
-					covers, &rdata, &diff));
+			CHECK(delete_if(rr_equal_p, zone, db, ver, name,
+					rdata.type, covers, &rdata, &diff));
 		}
 	}
 
@@ -3181,7 +3244,7 @@ update_action(void *arg) {
 
 		CHECK(check_mx(client, zone, db, ver, &diff));
 
-		CHECK(remove_orphaned_ds(db, ver, &diff));
+		CHECK(remove_orphaned_ds(zone, db, ver, &diff));
 
 		CHECK(rrset_exists(db, ver, zonename, dns_rdatatype_dnskey,
 				   dns_rdatatype_none, &has_dnskey));
