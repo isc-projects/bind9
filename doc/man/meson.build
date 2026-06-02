@@ -91,6 +91,7 @@ if fs.is_file('arpaname.1.in')
             'rndc-confgen.8.in',
             'rndc.8.in',
             'rndc.conf.5.in',
+            'synthrecord.8.in',
             'tsig-keygen.8.in',
         ),
     )
