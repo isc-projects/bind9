@@ -1344,7 +1344,9 @@ def check_rollover_step(server, config, policy, step):
         return next_key_event_equals(server, zone, nextev)
 
     if nextev is not None:
-        isctest.run.retry_with_timeout(check_next_key_event, timeout=5)
+        # Larger than the inner watch_log timeout (10s) so slow logging of
+        # the next key event under load still gets more than one attempt.
+        isctest.run.retry_with_timeout(check_next_key_event, timeout=30)
 
     return expected
 
