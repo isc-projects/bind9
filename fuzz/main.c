@@ -139,7 +139,7 @@ main(int argc, char **argv) {
 	return 0;
 }
 
-#elif __AFL_COMPILER
+#elif defined(ENABLE_AFL) && __AFL_COMPILER
 
 int
 main(int argc, char **argv) {

@@ -35,6 +35,7 @@ fs = import('fs')
 ss = import('sourceset')
 
 cc = meson.get_compiler('c')
+afl_compiler = cc.get_define('__AFL_COMPILER') != ''
 
 ### Check if autoconf is mixed
 if fs.exists(meson.project_source_root() / 'config.h')
@@ -208,7 +209,6 @@ if optimization != 'plain'
 
     add_project_arguments(
         cc.get_supported_arguments(
-            '-fcf-protection=full',
             '-fstack-clash-protection',
             '-fstack-protector-strong',
 
@@ -216,6 +216,16 @@ if optimization != 'plain'
         ),
         language: 'c',
     )
+
+    # Older AFL++ wrappers mistake -fcf-protection for a CFISAN request and
+    # inject LTO flags; upstream fixed this in a9e8587ee86c (5.04a development).
+    # Apply the compatibility workaround to AFL compilers regardless of backend.
+    if not afl_compiler
+        add_project_arguments(
+            cc.get_supported_arguments('-fcf-protection=full'),
+            language: 'c',
+        )
+    endif
 
     add_project_link_arguments(
         cc.get_supported_link_arguments(
