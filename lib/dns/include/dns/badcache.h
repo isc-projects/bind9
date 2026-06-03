@@ -58,7 +58,7 @@ ISC_LANG_BEGINDECLS
  ***/
 
 dns_badcache_t *
-dns_badcache_new(isc_mem_t *mctx, isc_loopmgr_t *loopmgr);
+dns_badcache_new(isc_mem_t *mctx);
 /*%
  * Allocate and initialize a badcache and store it in '*bcp'.
  *
