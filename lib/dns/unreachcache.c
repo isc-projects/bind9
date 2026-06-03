@@ -16,16 +16,13 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/async.h>
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/rwlock.h>
 #include <isc/sockaddr.h>
-#include <isc/spinlock.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/thread.h>
@@ -53,8 +50,8 @@ struct dns_unreachcache {
 	uint16_t expire_max_s;
 	uint16_t backoff_eligible_s;
 	struct cds_lfht *ht;
-	struct cds_list_head *lru;
-	uint32_t nloops;
+	isc_mutex_t lru_lock;
+	struct cds_list_head lru;
 };
 
 #define UNREACHCACHE_MAGIC    ISC_MAGIC('U', 'R', 'C', 'a')
@@ -64,7 +61,8 @@ struct dns_unreachcache {
 #define UNREACHCACHE_MIN_SIZE  (1 << 5) /* Must be power of 2 */
 
 struct dns_ucentry {
-	isc_loop_t *loop;
+	isc_mem_t *mctx;
+
 	isc_stdtime_t expire;
 	unsigned int exp_backoff_n;
 	uint16_t wait_time;
@@ -82,7 +80,7 @@ static void
 ucentry_destroy(struct rcu_head *rcu_head);
 
 static bool
-ucentry_alive(struct cds_lfht *ht, dns_ucentry_t *unreach, isc_stdtime_t now,
+ucentry_alive(dns_unreachcache_t *uc, dns_ucentry_t *unreach, isc_stdtime_t now,
 	      bool alive_or_waiting);
 
 dns_unreachcache_t *
@@ -92,24 +90,20 @@ dns_unreachcache_new(isc_mem_t *mctx, const uint16_t expire_min_s,
 	REQUIRE(expire_min_s > 0);
 	REQUIRE(expire_min_s <= expire_max_s);
 
-	uint32_t nloops = isc_loopmgr_nloops();
 	dns_unreachcache_t *uc = isc_mem_get(mctx, sizeof(*uc));
 	*uc = (dns_unreachcache_t){
 		.magic = UNREACHCACHE_MAGIC,
 		.expire_min_s = expire_min_s,
 		.expire_max_s = expire_max_s,
 		.backoff_eligible_s = backoff_eligible_s,
-		.nloops = nloops,
 	};
 
 	uc->ht = cds_lfht_new(UNREACHCACHE_INIT_SIZE, UNREACHCACHE_MIN_SIZE, 0,
 			      CDS_LFHT_AUTO_RESIZE | CDS_LFHT_ACCOUNTING, NULL);
 	INSIST(uc->ht != NULL);
 
-	uc->lru = isc_mem_cget(mctx, uc->nloops, sizeof(uc->lru[0]));
-	for (size_t i = 0; i < uc->nloops; i++) {
-		CDS_INIT_LIST_HEAD(&uc->lru[i]);
-	}
+	isc_mutex_init(&uc->lru_lock);
+	CDS_INIT_LIST_HEAD(&uc->lru);
 
 	isc_mem_attach(mctx, &uc->mctx);
 
@@ -132,7 +126,7 @@ dns_unreachcache_destroy(dns_unreachcache_t **ucp) {
 	}
 	RUNTIME_CHECK(!cds_lfht_destroy(uc->ht, NULL));
 
-	isc_mem_cput(uc->mctx, uc->lru, uc->nloops, sizeof(uc->lru[0]));
+	isc_mutex_destroy(&uc->lru_lock);
 
 	isc_mem_putanddetach(&uc->mctx, uc, sizeof(dns_unreachcache_t));
 }
@@ -174,7 +168,7 @@ ucentry_new(isc_loop_t *loop, const isc_sockaddr_t *remote,
 		.local = *local,
 		.expire = expire,
 		.wait_time = wait_time,
-		.loop = isc_loop_ref(loop),
+		.mctx = isc_mem_ref(mctx),
 		.lru_head = CDS_LIST_HEAD_INIT(unreach->lru_head),
 	};
 
@@ -185,36 +179,26 @@ static void
 ucentry_destroy(struct rcu_head *rcu_head) {
 	dns_ucentry_t *unreach = caa_container_of(rcu_head, dns_ucentry_t,
 						  rcu_head);
-	isc_loop_t *loop = unreach->loop;
-	isc_mem_t *mctx = isc_loop_getmctx(loop);
-
-	isc_mem_put(mctx, unreach, sizeof(*unreach));
-	isc_loop_unref(loop);
+	isc_mem_putanddetach(&unreach->mctx, unreach, sizeof(*unreach));
 }
 
 static void
-ucentry_evict_async(void *arg) {
-	dns_ucentry_t *unreach = arg;
-
-	RUNTIME_CHECK(unreach->loop == isc_loop());
-
-	cds_list_del(&unreach->lru_head);
-	call_rcu(&unreach->rcu_head, ucentry_destroy);
-}
-
-static void
-ucentry_evict(struct cds_lfht *ht, dns_ucentry_t *unreach) {
-	if (!cds_lfht_del(ht, &unreach->ht_node)) {
-		if (unreach->loop == isc_loop()) {
-			ucentry_evict_async(unreach);
-			return;
-		}
-		isc_async_run(unreach->loop, ucentry_evict_async, unreach);
+ucentry_evict_locked(dns_unreachcache_t *uc, dns_ucentry_t *unreach) {
+	if (!cds_lfht_del(uc->ht, &unreach->ht_node)) {
+		cds_list_del_rcu(&unreach->lru_head);
+		call_rcu(&unreach->rcu_head, ucentry_destroy);
 	}
 }
 
+static void
+ucentry_evict(dns_unreachcache_t *uc, dns_ucentry_t *unreach) {
+	LOCK(&uc->lru_lock);
+	ucentry_evict_locked(uc, unreach);
+	UNLOCK(&uc->lru_lock);
+}
+
 static bool
-ucentry_alive(struct cds_lfht *ht, dns_ucentry_t *unreach, isc_stdtime_t now,
+ucentry_alive(dns_unreachcache_t *uc, dns_ucentry_t *unreach, isc_stdtime_t now,
 	      bool alive_or_waiting) {
 	if (cds_lfht_is_node_deleted(&unreach->ht_node)) {
 		return false;
@@ -236,7 +220,7 @@ ucentry_alive(struct cds_lfht *ht, dns_ucentry_t *unreach, isc_stdtime_t now,
 		}
 
 		/* The entry is already expired, evict it before returning. */
-		ucentry_evict(ht, unreach);
+		ucentry_evict(uc, unreach);
 		return false;
 	}
 
@@ -244,12 +228,11 @@ ucentry_alive(struct cds_lfht *ht, dns_ucentry_t *unreach, isc_stdtime_t now,
 }
 
 static void
-ucentry_purge(struct cds_lfht *ht, struct cds_list_head *lru,
-	      isc_stdtime_t now) {
+ucentry_purge(dns_unreachcache_t *uc, isc_stdtime_t now) {
 	size_t count = 10;
 	dns_ucentry_t *unreach;
-	cds_list_for_each_entry_rcu(unreach, lru, lru_head) {
-		if (ucentry_alive(ht, unreach, now, true)) {
+	cds_list_for_each_entry_rcu(unreach, &uc->lru, lru_head) {
+		if (ucentry_alive(uc, unreach, now, true)) {
 			break;
 		}
 		if (--count == 0) {
@@ -290,15 +273,11 @@ dns_unreachcache_add(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 	REQUIRE(local != NULL);
 
 	isc_loop_t *loop = isc_loop();
-	isc_tid_t tid = isc_tid();
-	struct cds_list_head *lru = &uc->lru[tid];
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_stdtime_t expire = now + uc->expire_min_s;
 	bool exp_backoff_activated = false;
 
 	rcu_read_lock();
-	struct cds_lfht *ht = rcu_dereference(uc->ht);
-	INSIST(ht != NULL);
 
 	dns__uckey_t key = {
 		.remote = remote,
@@ -308,10 +287,12 @@ dns_unreachcache_add(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 
 	dns_ucentry_t *unreach = ucentry_new(loop, remote, local, expire,
 					     uc->backoff_eligible_s);
+
+	LOCK(&uc->lru_lock);
 	struct cds_lfht_node *ht_node;
 	do {
-		ht_node = cds_lfht_add_unique(ht, hashval, ucentry_match, &key,
-					      &unreach->ht_node);
+		ht_node = cds_lfht_add_unique(uc->ht, hashval, ucentry_match,
+					      &key, &unreach->ht_node);
 		if (ht_node != &unreach->ht_node) {
 			/* The entry already exists, get it. */
 			dns_ucentry_t *found = caa_container_of(
@@ -337,14 +318,14 @@ dns_unreachcache_add(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 			 * Evict the old entry, so we can try to insert the new
 			 * one again.
 			 */
-			ucentry_evict(ht, found);
+			ucentry_evict_locked(uc, found);
 		}
 	} while (ht_node != &unreach->ht_node);
 
-	/* No locking, instead we are using per-thread lists */
-	cds_list_add_tail_rcu(&unreach->lru_head, lru);
+	cds_list_add_tail_rcu(&unreach->lru_head, &uc->lru);
+	UNLOCK(&uc->lru_lock);
 
-	ucentry_purge(ht, lru, now);
+	ucentry_purge(uc, now);
 
 	rcu_read_unlock();
 }
@@ -360,8 +341,6 @@ dns_unreachcache_find(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 	isc_stdtime_t now = isc_stdtime_now();
 
 	rcu_read_lock();
-	struct cds_lfht *ht = rcu_dereference(uc->ht);
-	INSIST(ht != NULL);
 
 	dns__uckey_t key = {
 		.remote = remote,
@@ -369,16 +348,14 @@ dns_unreachcache_find(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 	};
 	uint32_t hashval = ucentry_hash(&key);
 
-	dns_ucentry_t *found = ucentry_lookup(ht, hashval, &key);
+	dns_ucentry_t *found = ucentry_lookup(uc->ht, hashval, &key);
 	if (found != NULL && found->confirmed &&
-	    ucentry_alive(ht, found, now, false))
+	    ucentry_alive(uc, found, now, false))
 	{
 		result = ISC_R_SUCCESS;
 	}
 
-	isc_tid_t tid = isc_tid();
-	struct cds_list_head *lru = &uc->lru[tid];
-	ucentry_purge(ht, lru, now);
+	ucentry_purge(uc, now);
 
 	rcu_read_unlock();
 
@@ -395,8 +372,6 @@ dns_unreachcache_remove(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 	isc_stdtime_t now = isc_stdtime_now();
 
 	rcu_read_lock();
-	struct cds_lfht *ht = rcu_dereference(uc->ht);
-	INSIST(ht != NULL);
 
 	dns__uckey_t key = {
 		.remote = remote,
@@ -404,14 +379,12 @@ dns_unreachcache_remove(dns_unreachcache_t *uc, const isc_sockaddr_t *remote,
 	};
 	uint32_t hashval = ucentry_hash(&key);
 
-	dns_ucentry_t *found = ucentry_lookup(ht, hashval, &key);
+	dns_ucentry_t *found = ucentry_lookup(uc->ht, hashval, &key);
 	if (found != NULL) {
-		ucentry_evict(ht, found);
+		ucentry_evict(uc, found);
 	}
 
-	isc_tid_t tid = isc_tid();
-	struct cds_list_head *lru = &uc->lru[tid];
-	ucentry_purge(ht, lru, now);
+	ucentry_purge(uc, now);
 
 	rcu_read_unlock();
 }
@@ -421,14 +394,12 @@ dns_unreachcache_flush(dns_unreachcache_t *uc) {
 	REQUIRE(VALID_UNREACHCACHE(uc));
 
 	rcu_read_lock();
-	struct cds_lfht *ht = rcu_dereference(uc->ht);
-	INSIST(ht != NULL);
 
 	/* Flush the hash table */
 	dns_ucentry_t *unreach;
 	struct cds_lfht_iter iter;
-	cds_lfht_for_each_entry(ht, &iter, unreach, ht_node) {
-		ucentry_evict(ht, unreach);
+	cds_lfht_for_each_entry(uc->ht, &iter, unreach, ht_node) {
+		ucentry_evict(uc, unreach);
 	}
 
 	rcu_read_unlock();
