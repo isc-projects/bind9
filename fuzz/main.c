@@ -143,7 +143,7 @@ main(int argc, char **argv) {
 	int ret;
 	unsigned char buf[64 * 1024];
 
-	LLVMFuzzerInitialize(&argc, &argv);
+	ret = LLVMFuzzerInitialize(&argc, &argv);
 	if (ret != 0) {
 		fprintf(stderr, "LLVMFuzzerInitialize failure: %d\n", ret);
 		return 1;
