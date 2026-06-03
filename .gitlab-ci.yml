@@ -469,7 +469,6 @@ stages:
     - *check_readline_setup
     - meson compile -C build
     - meson compile -C build system-test-dependencies
-    - ninja -C build meson-test-prereq
     - test -z "${RUN_MESON_INSTALL}" || meson install -C build --destdir=$INSTALL_PATH
     - test -z "${RUN_MESON_INSTALL}" || DESTDIR="${INSTALL_PATH}" sh build/util/check-make-install.sh
     #- test -z "${CROSS_COMPILATION}" || grep -F -A 1 "checking whether we are cross compiling" config.log | grep -q "result.*yes"
@@ -614,10 +613,17 @@ stages:
     - export CMOCKA_XML_FILE="$(pwd)/build/meson-logs/include-cmocka-%g.junit.xml"
     - RET=0
     - MESON_WRAPPER="$CI_PROJECT_DIR/bind9-qa/ci/meson_retry_if_flaky.sh 2"
+    # When Git checks out the sources, their modification times are newer than
+    # the build tree from the artifact, so meson would rebuild all of BIND 9.
+    # Age the tracked sources (not "build", to keep ninja's recorded mtimes) so
+    # only the unit tests get built.  "-r" skips the tarball job, which runs
+    # from an untracked dir.  Use BIND 9's git-birthday as the timestamp.
+    - git ls-files -z | xargs -0 -r touch -t 199808172205
+    # Build the test binaries here (rather than in the build job) and run them.
     # CMocka tests: Mark Meson-generated XMLs to exclude them later with --logbase, CMocka generates better ones.
-    - meson test -C build --suite cmocka --wrapper "$MESON_WRAPPER" --no-rebuild --logbase "exclude-" || RET=1
+    - meson test -C build --suite cmocka --wrapper "$MESON_WRAPPER" --logbase "exclude-" || RET=1
     # Non-CMocka test: Use Meson-generated XMLs.
-    - meson test -C build --no-suite cmocka --wrapper "$MESON_WRAPPER" --no-rebuild --logbase "include-" || RET=1
+    - meson test -C build --no-suite cmocka --wrapper "$MESON_WRAPPER" --logbase "include-" || RET=1
     - >
       "$PYTHON" "$CI_PROJECT_DIR"/bind9-qa/ci/postprocess_junit_files.py build/meson-logs/include-*.junit.xml --output "$CI_PROJECT_DIR/junit.xml"
     - (exit $RET)
