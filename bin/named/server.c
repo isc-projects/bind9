@@ -4330,7 +4330,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * server.
 	 */
 	if (pview != NULL) {
-		dns_delegdb_reuse(pview, view);
+		dns_delegdb_attach(pview->deleg, &view->deleg);
 	} else {
 		dns_delegdb_create(&view->deleg);
 	}
@@ -11263,9 +11263,10 @@ cleanup:
 
 static void
 flush_delegdb(dns_view_t *view) {
+	REQUIRE(view->deleg != NULL);
+
 	dns_delegdb_config_t config = dns_delegdb_getconfig(view->deleg);
 
-	dns_delegdb_shutdown(view->deleg);
 	dns_delegdb_detach(&view->deleg);
 	dns_delegdb_create(&view->deleg);
 	dns_delegdb_setconfig(view->deleg, &config);

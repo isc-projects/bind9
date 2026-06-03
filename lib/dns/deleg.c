@@ -10,7 +10,6 @@
  * See the COPYRIGHT file distributed with this work for additional
  * information regarding copyright ownership.
  */
-#include <isc/async.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
@@ -36,6 +35,30 @@
 
 typedef struct delegdb_node delegdb_node_t;
 
+typedef struct qplru {
+	isc_mem_t *mctx;
+	isc_refcount_t references;
+	dns_qpmulti_t *nodes;
+	ISC_SIEVE(delegdb_node_t) lru;
+	struct rcu_head rcu_head;
+} qplru_t;
+
+static void
+qplru_destroy(qplru_t *qplru);
+
+#ifdef DNS_DELEGDB_NODETRACE
+#define qplru_ref(ptr)	 qplru__ref(ptr, __func__, __FILE__, __LINE__)
+#define qplru_unref(ptr) qplru__unref(ptr, __func__, __FILE__, __LINE__)
+#define qplru_attach(ptr, ptrp) \
+	qplru__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define qplru_detach(ptrp) qplru__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_STATIC_TRACE_DECL(qplru);
+ISC_REFCOUNT_STATIC_TRACE_IMPL(qplru, qplru_destroy);
+#else
+ISC_REFCOUNT_STATIC_DECL(qplru);
+ISC_REFCOUNT_STATIC_IMPL(qplru, qplru_destroy);
+#endif
+
 struct dns_delegdb {
 	unsigned int magic;
 
@@ -46,42 +69,30 @@ struct dns_delegdb {
 	isc_mem_t *mctx;
 	isc_refcount_t references;
 
-	size_t nloops;
-	ISC_SIEVE(delegdb_node_t) * lru;
-
-	dns_qpmulti_t *nodes;
-
-	/*
-	 * Keep track of now many owners are actually using the delegdb. For
-	 * instance:
-	 *
-	 * - During a server reload, the new view will (by default)
-	 *   start owning the existing delegdb from the previous instance of the
-	 *   same view using `dns_delegdb_reuse()`. This will increase `owners`
-	 *   by one.
-	 *
-	 * - Later on, either the old instance of the view (or the new one,
-	 *   in case of reload failure) will call `dns_delegdb_shutdown()` on
-	 *   the delegdb. This will decrement `owners` by one.
-	 *
-	 * If `owners` is bigger than 1 when `dns_delegdb_shutdown()` is called,
-	 * it means the delegdb must not be shutdown because there are other
-	 * owners using it, so `dns_delegdb_shutdown()` bails off in this case.
-	 * (After decrementing `owners`.)
-	 */
-	isc_refcount_t owners;
+	qplru_t *qplru;
 
 	dns_delegdb_config_t config;
 };
 
 static void
+qplru_shutdown_rcu(struct rcu_head *rcu_head);
+
+static void
 delegdb_destroy(dns_delegdb_t *delegdb) {
 	REQUIRE(VALID_DELEGDB(delegdb));
-	REQUIRE(delegdb->nodes == NULL);
 
 	delegdb->magic = 0;
-	isc_mem_cput(delegdb->mctx, delegdb->lru, delegdb->nloops,
-		     sizeof(delegdb->lru[0]));
+
+	qplru_t *qplru = rcu_xchg_pointer(&delegdb->qplru, NULL);
+	INSIST(qplru != NULL);
+
+	/*
+	 * Offload the LRU list node deletion to RCU thread (as well as qptrie
+	 * deletion).
+	 */
+	call_rcu(&qplru->rcu_head, qplru_shutdown_rcu);
+
+	LIBDNS_DELEGDB_SHUTDOWN(delegdb);
 
 	isc_mem_putanddetach(&delegdb->mctx, delegdb, sizeof(*delegdb));
 }
@@ -90,11 +101,12 @@ ISC_REFCOUNT_IMPL(dns_delegdb, delegdb_destroy);
 
 struct delegdb_node {
 	unsigned int magic;
-	dns_delegdb_t *delegdb;
+
+	qplru_t *qplru;
+
 	isc_refcount_t references;
 
 	/* LRU */
-	isc_loop_t *loop;
 	ISC_LINK(delegdb_node_t) link;
 	bool visited;
 
@@ -112,48 +124,21 @@ struct delegdb_node {
 	dns_delegset_t *delegset;
 };
 
-/*
- * All node cleanup is done on the node's owning loop so that the node
- * remains fully valid (name, delegset, SIEVE link) until it is actually
- * destroyed.  This is important because after a node is removed from the
- * QP trie, it may still be linked in the owning loop's SIEVE list; if
- * another thread's eviction could encounter a half-destroyed node, we
- * would get a use-after-free.  By deferring everything to the owning
- * loop, the node is intact until the SIEVE unlink happens.
- */
-static void
-delegdb_node_destroy_async(void *arg) {
-	delegdb_node_t *node = arg;
-	isc_mem_t *mctx = NULL;
-
-	REQUIRE(VALID_DELEGDB_NODE(node));
-	REQUIRE(DNS_DELEGSET_VALID(node->delegset));
-
-	node->magic = 0;
-
-	isc_mem_attach(node->delegdb->mctx, &mctx);
-
-	if (ISC_SIEVE_LINKED(node, link)) {
-		ISC_SIEVE_UNLINK(node->delegdb->lru[isc_tid()], node, link);
-	}
-
-	dns_name_free(&node->zonecut, mctx);
-	dns_delegset_detach(&node->delegset);
-
-	dns_delegdb_detach(&node->delegdb);
-	isc_loop_unref(node->loop);
-	isc_mem_putanddetach(&mctx, node, sizeof(*node));
-}
-
 static void
 delegdb_node_destroy(delegdb_node_t *node) {
 	REQUIRE(VALID_DELEGDB_NODE(node));
+	REQUIRE(DNS_DELEGSET_VALID(node->delegset));
 
-	if (node->loop == isc_loop()) {
-		delegdb_node_destroy_async(node);
-	} else {
-		isc_async_run(node->loop, delegdb_node_destroy_async, node);
-	}
+	qplru_t *qplru = node->qplru;
+
+	node->magic = 0;
+
+	dns_name_free(&node->zonecut, qplru->mctx);
+	dns_delegset_detach(&node->delegset);
+
+	isc_mem_put(qplru->mctx, node, sizeof(*node));
+
+	qplru_detach(&qplru);
 }
 
 #ifdef DNS_DELEGDB_NODETRACE
@@ -161,6 +146,10 @@ delegdb_node_destroy(delegdb_node_t *node) {
 	delegdb_node__ref(ptr, __func__, __FILE__, __LINE__)
 #define delegdb_node_unref(ptr) \
 	delegdb_node__unref(ptr, __func__, __FILE__, __LINE__)
+#define delegdb_node_attach(ptr, ptrp) \
+	delegdb_node__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define delegdb_node_detach(ptrp) \
+	delegdb_node__detach(ptrp, __func__, __FILE__, __LINE__)
 ISC_REFCOUNT_STATIC_TRACE_DECL(delegdb_node);
 ISC_REFCOUNT_STATIC_TRACE_IMPL(delegdb_node, delegdb_node_destroy);
 #else
@@ -218,49 +207,27 @@ dns_delegdb_create(dns_delegdb_t **delegdbp) {
 	*delegdb = (dns_delegdb_t){ .magic = DELEGDB_MAGIC,
 				    .mctx = mctx,
 				    .references = ISC_REFCOUNT_INITIALIZER(1),
-				    .nloops = isc_loopmgr_nloops(),
-				    .owners = ISC_REFCOUNT_INITIALIZER(1),
 				    .config = {} };
 
-	dns_qpmulti_create(mctx, &qpmethods, &delegdb->nodes, &delegdb->nodes);
+	qplru_t *qplru = isc_mem_get(mctx, sizeof(*qplru));
+	*qplru = (qplru_t){
+		.mctx = isc_mem_ref(mctx),
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+	};
 
-	delegdb->lru = isc_mem_cget(mctx, delegdb->nloops,
-				    sizeof(delegdb->lru[0]));
-	for (size_t i = 0; i < delegdb->nloops; i++) {
-		ISC_SIEVE_INIT(delegdb->lru[i]);
-	}
+	dns_qpmulti_create(mctx, &qpmethods, &qplru->nodes, &qplru->nodes);
+	ISC_SIEVE_INIT(qplru->lru);
+
+	delegdb->qplru = MOVE_OWNERSHIP(qplru);
 
 	LIBDNS_DELEGDB_CREATE(delegdb);
 
 	*delegdbp = delegdb;
 }
 
-void
-dns_delegdb_reuse(dns_view_t *oldview, dns_view_t *newview) {
-	REQUIRE(isc_loop_get(isc_tid()) == isc_loop_main());
-	REQUIRE(DNS_VIEW_VALID(oldview));
-	REQUIRE(DNS_VIEW_VALID(newview));
-
-	dns_delegdb_attach(oldview->deleg, &newview->deleg);
-	isc_refcount_increment(&oldview->deleg->owners);
-
-	LIBDNS_DELEGDB_REUSE(newview->deleg);
-}
-
-typedef struct nodes_rcu_head {
-	isc_mem_t *mctx;
-	dns_qpmulti_t *nodes;
-	struct rcu_head rcu_head;
-} nodes_rcu_head_t;
-
 static void
-deleg_destroy_qpmulti(struct rcu_head *rcu_head) {
-	nodes_rcu_head_t *nrh = caa_container_of(rcu_head, nodes_rcu_head_t,
-						 rcu_head);
-
-	dns_qpmulti_destroy(&nrh->nodes);
-
-	isc_mem_putanddetach(&nrh->mctx, nrh, sizeof(*nrh));
+qplru_destroy(qplru_t *qplru) {
+	isc_mem_putanddetach(&qplru->mctx, qplru, sizeof(*qplru));
 }
 
 inline static bool
@@ -362,7 +329,6 @@ dns_delegdb_lookup(dns_delegdb_t *delegdb, const dns_name_t *name,
 		   isc_stdtime_t now, unsigned int options, dns_name_t *zonecut,
 		   dns_name_t *deepestzonecut, dns_delegset_t **delegsetp) {
 	isc_result_t result = ISC_R_SHUTTINGDOWN;
-	dns_qpmulti_t *nodes = NULL;
 	dns_qpread_t qpr = {};
 	char namebuf[DNS_NAME_FORMATSIZE];
 
@@ -373,16 +339,10 @@ dns_delegdb_lookup(dns_delegdb_t *delegdb, const dns_name_t *name,
 	}
 	LIBDNS_DELEGDB_LOOKUP_START(delegdb, namebuf);
 
-	rcu_read_lock();
-	nodes = rcu_dereference(delegdb->nodes);
-	if (nodes != NULL) {
-		dns_qpmulti_query(nodes, &qpr);
-
-		result = dns__deleg_lookup(delegdb, &qpr, name, now, options,
-					   zonecut, deepestzonecut, delegsetp);
-		dns_qpread_destroy(nodes, &qpr);
-	}
-	rcu_read_unlock();
+	dns_qpmulti_query(delegdb->qplru->nodes, &qpr);
+	result = dns__deleg_lookup(delegdb, &qpr, name, now, options, zonecut,
+				   deepestzonecut, delegsetp);
+	dns_qpread_destroy(delegdb->qplru->nodes, &qpr);
 
 	LIBDNS_DELEGDB_LOOKUP_DONE(delegdb, namebuf, result);
 
@@ -491,7 +451,7 @@ dns_delegset_addns(dns_delegset_t *delegset, dns_deleg_t *deleg,
 }
 
 static void
-delegdb_cleanup(dns_qp_t *qp, dns_delegdb_t *delegdb, size_t requested) {
+delegdb_cleanup(dns_delegdb_t *delegdb, dns_qp_t *qp, size_t requested) {
 	delegdb_node_t *node = NULL;
 	size_t reclaimed = 0;
 
@@ -502,7 +462,7 @@ delegdb_cleanup(dns_qp_t *qp, dns_delegdb_t *delegdb, size_t requested) {
 	LIBDNS_DELEGDB_CLEANUP_START(delegdb, (int)requested);
 
 	while (reclaimed < requested) {
-		node = ISC_SIEVE_NEXT(delegdb->lru[isc_tid()], visited, link);
+		node = ISC_SIEVE_NEXT(delegdb->qplru->lru, visited, link);
 
 		if (node == NULL) {
 			break;
@@ -516,9 +476,14 @@ delegdb_cleanup(dns_qp_t *qp, dns_delegdb_t *delegdb, size_t requested) {
 			LIBDNS_DELEGDB_EVICT(delegdb, node, namebuf);
 		}
 
-		ISC_SIEVE_UNLINK(delegdb->lru[isc_tid()], node, link);
-		(void)dns_qp_deletename(qp, &node->zonecut,
-					DNS_DBNAMESPACE_NORMAL, NULL, NULL);
+		delegdb_node_t *old_node = NULL;
+		isc_result_t result = dns_qp_deletename(
+			qp, &node->zonecut, DNS_DBNAMESPACE_NORMAL,
+			(void *)&old_node, NULL);
+		if (result == ISC_R_SUCCESS) {
+			ISC_SIEVE_UNLINK(delegdb->qplru->lru, old_node, link);
+			delegdb_node_detach(&old_node);
+		}
 	}
 
 	LIBDNS_DELEGDB_CLEANUP_DONE(delegdb, (int)reclaimed);
@@ -554,7 +519,7 @@ delegdb_node_size(const dns_name_t *zonecut, dns_delegset_t *delegset) {
 }
 
 static size_t
-delegdb_node_prepare(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
+delegdb_node_prepare(qplru_t *qplru, isc_stdtime_t now, dns_ttl_t ttl,
 		     const dns_name_t *zonecut, dns_delegset_t *delegset,
 		     delegdb_node_t **nodep) {
 	if (ttl == 0) {
@@ -562,19 +527,19 @@ delegdb_node_prepare(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
 	}
 	delegset->expires = ttl + now;
 
-	*nodep = isc_mem_get(delegdb->mctx, sizeof(**nodep));
-	**nodep =
-		(delegdb_node_t){ .magic = DELEGDB_NODE_MAGIC,
-				  .references = ISC_REFCOUNT_INITIALIZER(1),
-				  .zonecut = DNS_NAME_INITEMPTY,
-				  .link = ISC_LINK_INITIALIZER,
-				  .deadlink = ISC_LINK_INITIALIZER,
-				  .size = delegdb_node_size(zonecut, delegset),
-				  .loop = isc_loop_ref(isc_loop()) };
+	*nodep = isc_mem_get(qplru->mctx, sizeof(**nodep));
+	**nodep = (delegdb_node_t){
+		.magic = DELEGDB_NODE_MAGIC,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.zonecut = DNS_NAME_INITEMPTY,
+		.link = ISC_LINK_INITIALIZER,
+		.deadlink = ISC_LINK_INITIALIZER,
+		.size = delegdb_node_size(zonecut, delegset),
+		.qplru = qplru_ref(qplru),
+	};
 
-	dns_delegdb_attach(delegdb, &(*nodep)->delegdb);
 	dns_delegset_attach(delegset, &(*nodep)->delegset);
-	dns_name_dup(zonecut, delegdb->mctx, &(*nodep)->zonecut);
+	dns_name_dup(zonecut, qplru->mctx, &(*nodep)->zonecut);
 
 	return sizeof(**nodep) + (*nodep)->size;
 }
@@ -587,7 +552,6 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	dns_qp_t *qp = NULL;
 	dns_qpread_t qpr = {};
 	isc_stdtime_t now = isc_stdtime_now();
-	dns_qpmulti_t *nodes = NULL;
 	char zonecutbuf[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(VALID_DELEGDB(delegdb));
@@ -608,51 +572,45 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	}
 	LIBDNS_DELEGDB_INSERT_START(delegdb, zonecutbuf);
 
-	rcu_read_lock();
-	nodes = rcu_dereference(delegdb->nodes);
-	if (nodes == NULL) {
-		CLEANUP(ISC_R_SHUTTINGDOWN);
-	}
-
 	/*
 	 * First, check (without write txn) if the node already exists and is
 	 * still valid.
 	 */
-	dns_qpmulti_query(nodes, &qpr);
+	dns_qpmulti_query(delegdb->qplru->nodes, &qpr);
 	result = dns_qp_lookup(&qpr, zonecut, DNS_DBNAMESPACE_NORMAL, NULL,
 			       NULL, (void **)&node, NULL);
 	if (result == ISC_R_SUCCESS) {
 		INSIST(VALID_DELEGDB_NODE(node));
 		if (node->delegset->expires > now) {
-			dns_qpread_destroy(nodes, &qpr);
+			dns_qpread_destroy(delegdb->qplru->nodes, &qpr);
 			CLEANUP(ISC_R_EXISTS);
 		}
 	}
-	dns_qpread_destroy(nodes, &qpr);
+	dns_qpread_destroy(delegdb->qplru->nodes, &qpr);
 
 	/*
 	 * We're about to add a new delegation, check for state of overmem, and
 	 * clean up expired/least recently used delegation, then allocate and
 	 * initialize a new node.
 	 */
-	size_t requested = delegdb_node_prepare(delegdb, now, ttl, zonecut,
-						delegset, &node);
+	size_t requested = delegdb_node_prepare(delegdb->qplru, now, ttl,
+						zonecut, delegset, &node);
 
 	/*
 	 * Add the node in the DB
 	 */
-	dns_qpmulti_write(nodes, &qp);
+	dns_qpmulti_write(delegdb->qplru->nodes, &qp);
 
-	delegdb_cleanup(qp, delegdb, requested);
+	delegdb_cleanup(delegdb, qp, requested);
 
 	if (result == ISC_R_SUCCESS) {
-		/*
-		 * A node at the same zonecut exists, and it is expired. Ignore
-		 * the return value, in case the overridden node would be
-		 * removed in meantime by someone else.
-		 */
-		(void)dns_qp_deletename(qp, zonecut, DNS_DBNAMESPACE_NORMAL,
-					NULL, NULL);
+		delegdb_node_t *old_node = NULL;
+		result = dns_qp_deletename(qp, zonecut, DNS_DBNAMESPACE_NORMAL,
+					   (void *)&old_node, NULL);
+		if (result == ISC_R_SUCCESS) {
+			ISC_SIEVE_UNLINK(delegdb->qplru->lru, old_node, link);
+			delegdb_node_detach(&old_node);
+		}
 	}
 
 	result = dns_qp_insert(qp, node, 0);
@@ -668,22 +626,21 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 		 * Since not using an update (but write) transaction,
 		 * _rollback() won't work here.
 		 */
-		dns_qpmulti_commit(nodes, &qp);
+		dns_qpmulti_commit(delegdb->qplru->nodes, &qp);
 		CLEANUP(ISC_R_EXISTS);
 	}
 
 	/*
 	 * The new delegation is added, and can be referenced by SIEVE
 	 */
-	ISC_SIEVE_INSERT(delegdb->lru[isc_tid()], node, link);
+	delegdb_node_ref(node);
+	ISC_SIEVE_INSERT(delegdb->qplru->lru, node, link);
 
 	delegdb_node_unref(node);
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
-	dns_qpmulti_commit(nodes, &qp);
+	dns_qpmulti_commit(delegdb->qplru->nodes, &qp);
 
 cleanup:
-	rcu_read_unlock();
-
 	LIBDNS_DELEGDB_INSERT_DONE(delegdb, zonecutbuf, result);
 
 	return result;
@@ -841,16 +798,8 @@ dns_delegdb_dump(dns_delegdb_t *delegdb, bool expired, FILE *fp) {
 	dns_qpread_t qpr = {};
 	delegdb_node_t *node = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
-	dns_qpmulti_t *nodes = NULL;
 
-	rcu_read_lock();
-	nodes = rcu_dereference(delegdb->nodes);
-	if (nodes == NULL) {
-		rcu_read_unlock();
-		return;
-	}
-
-	dns_qpmulti_query(nodes, &qpr);
+	dns_qpmulti_query(delegdb->qplru->nodes, &qpr);
 
 	dns_qpiter_init(&qpr, &it);
 	while (dns_qpiter_next(&it, (void **)&node, NULL) == ISC_R_SUCCESS) {
@@ -862,9 +811,7 @@ dns_delegdb_dump(dns_delegdb_t *delegdb, bool expired, FILE *fp) {
 				  fp);
 	}
 
-	dns_qpread_destroy(nodes, &qpr);
-
-	rcu_read_unlock();
+	dns_qpread_destroy(delegdb->qplru->nodes, &qpr);
 }
 
 void
@@ -911,7 +858,7 @@ dns_delegset_fromnsrdataset(isc_mem_t *mctx, dns_rdataset_t *rdataset,
 }
 
 static isc_result_t
-deleg_deletetree(dns_qp_t *qp, const dns_name_t *name) {
+deleg_deletetree(qplru_t *qplru, dns_qp_t *qp, const dns_name_t *name) {
 	isc_result_t result;
 	delegdb_node_t *node = NULL;
 	dns_qpiter_t it;
@@ -954,10 +901,14 @@ out:
 		 * Let's actually delete the deadnodes!
 		 */
 		ISC_LIST_FOREACH(deadnodes, deadnode, deadlink) {
+			delegdb_node_t *old_node = NULL;
 			result = dns_qp_deletename(qp, &deadnode->zonecut,
-						   DNS_DBNAMESPACE_NORMAL, NULL,
-						   NULL);
+						   DNS_DBNAMESPACE_NORMAL,
+						   (void *)&old_node, NULL);
 			INSIST(result == ISC_R_SUCCESS);
+			INSIST(old_node == deadnode);
+			ISC_SIEVE_UNLINK(qplru->lru, old_node, link);
+			delegdb_node_detach(&old_node);
 		}
 	}
 
@@ -965,8 +916,16 @@ out:
 }
 
 static isc_result_t
-deleg_deletenode(dns_qp_t *qp, const dns_name_t *name) {
-	return dns_qp_deletename(qp, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL);
+deleg_deletenode(qplru_t *qplru, dns_qp_t *qp, const dns_name_t *name) {
+	delegdb_node_t *old_node = NULL;
+	isc_result_t result = dns_qp_deletename(
+		qp, name, DNS_DBNAMESPACE_NORMAL, (void *)&old_node, NULL);
+	if (result == ISC_R_SUCCESS) {
+		ISC_SIEVE_UNLINK(qplru->lru, old_node, link);
+		delegdb_node_detach(&old_node);
+	}
+
+	return result;
 }
 
 isc_result_t
@@ -974,7 +933,6 @@ dns_delegdb_delete(dns_delegdb_t *delegdb, const dns_name_t *name, bool tree) {
 	REQUIRE(VALID_DELEGDB(delegdb));
 	REQUIRE(DNS_NAME_VALID(name));
 
-	dns_qpmulti_t *nodes = NULL;
 	dns_qp_t *qp = NULL;
 	isc_result_t result = ISC_R_SHUTTINGDOWN;
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -983,21 +941,16 @@ dns_delegdb_delete(dns_delegdb_t *delegdb, const dns_name_t *name, bool tree) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 	}
 
-	rcu_read_lock();
-	nodes = rcu_dereference(delegdb->nodes);
-	if (nodes != NULL) {
-		dns_qpmulti_write(nodes, &qp);
-		if (tree) {
-			result = deleg_deletetree(qp, name);
-		} else {
-			result = deleg_deletenode(qp, name);
-		}
-		if (result == ISC_R_SUCCESS) {
-			dns_qp_compact(qp, DNS_QPGC_MAYBE);
-		}
-		dns_qpmulti_commit(nodes, &qp);
+	dns_qpmulti_write(delegdb->qplru->nodes, &qp);
+	if (tree) {
+		result = deleg_deletetree(delegdb->qplru, qp, name);
+	} else {
+		result = deleg_deletenode(delegdb->qplru, qp, name);
 	}
-	rcu_read_unlock();
+	if (result == ISC_R_SUCCESS) {
+		dns_qp_compact(qp, DNS_QPGC_MAYBE);
+	}
+	dns_qpmulti_commit(delegdb->qplru->nodes, &qp);
 
 	LIBDNS_DELEGDB_DELETE(delegdb, namebuf, (int)tree, result);
 
@@ -1005,35 +958,17 @@ dns_delegdb_delete(dns_delegdb_t *delegdb, const dns_name_t *name, bool tree) {
 }
 
 static void
-delegdb_shutdown_async(void *arg) {
-	dns_delegdb_t *delegdb = arg;
+qplru_shutdown_rcu(struct rcu_head *rcu_head) {
+	qplru_t *qplru = caa_container_of(rcu_head, qplru_t, rcu_head);
 
-	REQUIRE(isc_loop_get(isc_tid()) == isc_loop_main());
-	REQUIRE(delegdb != NULL && VALID_DELEGDB(delegdb));
-
-	if (isc_refcount_decrement(&delegdb->owners) == 1) {
-		dns_qpmulti_t *nodes = rcu_xchg_pointer(&delegdb->nodes, NULL);
-
-		if (nodes != NULL) {
-			nodes_rcu_head_t *nrh = isc_mem_get(delegdb->mctx,
-							    sizeof(*nrh));
-			*nrh = (nodes_rcu_head_t){
-				.mctx = isc_mem_ref(delegdb->mctx),
-				.nodes = nodes,
-			};
-			call_rcu(&nrh->rcu_head, deleg_destroy_qpmulti);
-		}
-		LIBDNS_DELEGDB_SHUTDOWN(delegdb);
+	ISC_SIEVE_FOREACH(qplru->lru, node, link) {
+		ISC_SIEVE_UNLINK(qplru->lru, node, link);
+		delegdb_node_detach(&node);
 	}
-}
 
-void
-dns_delegdb_shutdown(dns_delegdb_t *delegdb) {
-	if (isc_loop_get(isc_tid()) == isc_loop_main()) {
-		delegdb_shutdown_async(delegdb);
-	} else {
-		isc_async_run(isc_loop_main(), delegdb_shutdown_async, delegdb);
-	}
+	dns_qpmulti_destroy(&qplru->nodes);
+
+	qplru_detach(&qplru);
 }
 
 static void

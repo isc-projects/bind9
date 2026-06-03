@@ -123,20 +123,6 @@ dns_delegdb_config_t
 dns_delegdb_getconfig(dns_delegdb_t *delegdb);
 
 /*
- * Attach a delegation DB from an existing view to another view. Used when
- * reloading the server and the delegation DB is reused.
- */
-void
-dns_delegdb_reuse(dns_view_t *oldview, dns_view_t *newview);
-
-/*
- * Shutdown the delegation database. Must be called from any view shutting down
- * which either created a delegdb or reused a delegdb.
- */
-void
-dns_delegdb_shutdown(dns_delegdb_t *delegdb);
-
-/*
  * Lookup for delegations of a given name in the DB. If found, the zonecut is
  * written and the delegation set is attached to the caller, so it must be
  * detached once the caller is done with it. Even though `delegset` is not
