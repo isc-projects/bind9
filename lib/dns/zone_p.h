@@ -188,14 +188,29 @@ typedef ISC_LIST(dns_nsec3chain_t) dns_nsec3chainlist_t;
 typedef struct dns_include dns_include_t;
 
 /*
- * Pending inline-signing sync request for the secure zone.  Active
- * incremental signing continuation state is owned separately by rss_* fields.
+ * Pending inline-signing sync request for the secure zone.  Active incremental
+ * signing continuation state is owned separately by zone_inline_sync_t.
  */
 typedef enum inline_sync_phase {
 	inline_sync_idle = 0,	     /*%< No inline sync request is queued. */
 	inline_sync_incremental = 1, /*%< Incremental sync is queued. */
 	inline_sync_full = 2,	     /*%< Full rebuild is queued. */
 } inline_sync_phase_t;
+
+/*
+ * In-flight inline-signing sync transaction.  Pointed to by zone->iss; NULL
+ * means no sync is running.
+ */
+typedef struct zone_inline_sync {
+	isc_mem_t *mctx;
+	dns_zone_t *raw;
+	dns_db_t *db;
+	dns_dbversion_t *oldver;
+	dns_dbversion_t *newver;
+	dns_diff_t diff;
+	dns_update_state_t *state;
+	uint32_t end;
+} zone_inline_sync_t;
 
 /*%
  * Hold checkds state.
@@ -586,14 +601,7 @@ struct dns_zone {
 	 * Inline zone signing state.
 	 */
 	inline_sync_phase_t inline_sync_phase;
-	dns_diff_t rss_diff;
-	dns_dbversion_t *rss_newver;
-	dns_dbversion_t *rss_oldver;
-	dns_db_t *rss_db;
-	dns_zone_t *rss_raw;
-	uint32_t rss_end;
-	dns_zone_t *rss_zone;
-	dns_update_state_t *rss_state;
+	zone_inline_sync_t *iss;
 
 	isc_stats_t *gluecachestats;
 

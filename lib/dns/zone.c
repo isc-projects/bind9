@@ -615,9 +615,8 @@ dns__zone_free(dns_zone_t *zone) {
 		isc_mem_put(zone->mctx, include, sizeof *include);
 	}
 
-	if (zone->rss_state != NULL) {
-		dns_update_state_clear(&zone->rss_state);
-	}
+	zone_clear_inline_sync(zone);
+	INSIST(zone->iss == NULL);
 
 	if (zone->masterfile != NULL) {
 		isc_mem_free(zone->mctx, zone->masterfile);
@@ -4019,8 +4018,7 @@ static bool
 zone_maintenance_request_pending(dns_zone_t *zone) {
 	REQUIRE(LOCKED_ZONE(zone));
 
-	return zone->rss_zone == NULL &&
-	       DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
+	return zone->iss == NULL && DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 	       !ISC_LIST_EMPTY(zone->maintenance_queue);
 }
 
@@ -9878,12 +9876,12 @@ zone_inline_sync_action(dns_zone_t *zone) {
 		zone->inline_sync_phase = inline_sync_idle;
 		/*
 		 * A full rebuild replaces any parked incremental sync state;
-		 * zone_maintenance() cancels rss_* before bootstrapping.
+		 * zone_maintenance() cancels zone->iss before bootstrapping.
 		 */
 		return inline_sync_bootstrap;
 	}
 
-	if (zone->rss_zone != NULL) {
+	if (zone->iss != NULL) {
 		return inline_sync_incremental_continue;
 	}
 
@@ -9909,9 +9907,10 @@ static bool
 zone_inline_sync_pending(dns_zone_t *zone) {
 	REQUIRE(LOCKED_ZONE(zone));
 
-	return zone->rss_zone != NULL ||
-	       zone->inline_sync_phase == inline_sync_incremental ||
-	       zone->inline_sync_phase == inline_sync_full;
+	return dns__zone_inline_secure(zone) &&
+	       (zone->iss != NULL ||
+		zone->inline_sync_phase == inline_sync_incremental ||
+		zone->inline_sync_phase == inline_sync_full);
 }
 
 static void
@@ -14381,53 +14380,130 @@ zone_get_raw_serial(dns_zone_t *raw, uint32_t *serialp) {
 	return result;
 }
 
-static void
-zone_clear_inline_sync(dns_zone_t *zone) {
-	dns_zone_t *rss_zone = NULL;
-	dns_zone_t *rss_raw = NULL;
-	dns_db_t *rss_db = NULL;
-	dns_dbversion_t *rss_oldver = NULL;
-	dns_dbversion_t *rss_newver = NULL;
-	dns_update_state_t *rss_state = NULL;
+static zone_inline_sync_t *
+inline_sync_pop(dns_zone_t *zone) {
+	zone_inline_sync_t *iss = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	if (zone->rss_zone == NULL && zone->rss_state == NULL) {
-		UNLOCK_ZONE(zone);
-		return;
+	if (zone->iss != NULL) {
+		/*
+		 * inline_sync_run() is only called from zone maintenance, so
+		 * zone->iss can only be parked between maintenance passes here.
+		 */
+		iss = MOVE_OWNERSHIP(zone->iss);
 	}
-
-	/*
-	 * inline_sync_run() is only called from zone maintenance, so rss_*
-	 * state can only be parked between maintenance passes here.
-	 */
-	rss_zone = MOVE_OWNERSHIP(zone->rss_zone);
-	rss_raw = MOVE_OWNERSHIP(zone->rss_raw);
-	rss_db = MOVE_OWNERSHIP(zone->rss_db);
-	rss_oldver = MOVE_OWNERSHIP(zone->rss_oldver);
-	rss_newver = MOVE_OWNERSHIP(zone->rss_newver);
-	rss_state = MOVE_OWNERSHIP(zone->rss_state);
-	zone->rss_end = 0;
-	dns_diff_clear(&zone->rss_diff);
 	UNLOCK_ZONE(zone);
 
-	dns_update_state_clear(&rss_state);
-	if (rss_db != NULL) {
-		if (rss_oldver != NULL) {
-			dns_db_closeversion(rss_db, &rss_oldver, false);
+	return iss;
+}
+
+static void
+inline_sync_destroy(zone_inline_sync_t **issp) {
+	zone_inline_sync_t *iss = NULL;
+
+	REQUIRE(issp != NULL);
+
+	iss = *issp;
+	if (iss == NULL) {
+		return;
+	}
+	*issp = NULL;
+
+	INSIST(iss->mctx != NULL);
+
+	dns_diff_clear(&iss->diff);
+	dns_update_state_clear(&iss->state);
+	if (iss->db != NULL) {
+		if (iss->oldver != NULL) {
+			dns_db_closeversion(iss->db, &iss->oldver, false);
 		}
-		if (rss_newver != NULL) {
-			dns_db_closeversion(rss_db, &rss_newver, false);
+		if (iss->newver != NULL) {
+			dns_db_closeversion(iss->db, &iss->newver, false);
 		}
-		dns_db_detach(&rss_db);
+		dns_db_detach(&iss->db);
 	}
-	if (rss_raw != NULL) {
-		dns_zone_detach(&rss_raw);
+	if (iss->raw != NULL) {
+		dns_zone_detach(&iss->raw);
 	}
-	if (rss_zone != NULL) {
-		dns_zone_idetach(&rss_zone);
+	isc_mem_putanddetach(&iss->mctx, iss, sizeof(*iss));
+}
+
+static isc_result_t
+inline_sync_create(dns_zone_t *zone, uint32_t *endp,
+		   zone_inline_sync_t **issp) {
+	isc_result_t result = ISC_R_SUCCESS;
+	zone_inline_sync_t *iss = NULL;
+	uint32_t end = 0;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(endp != NULL);
+	REQUIRE(issp != NULL && *issp == NULL);
+
+	iss = isc_mem_cget(zone->mctx, 1, sizeof(*iss));
+	isc_mem_attach(zone->mctx, &iss->mctx);
+
+	LOCK_ZONE(zone);
+
+	/*
+	 * The inline_sync_run() is loop-serialized for the zone.  Install the
+	 * transaction while attaching its resources so zone->iss stays the
+	 * single marker for sync-in-flight.
+	 */
+	INSIST(zone->iss == NULL);
+	zone->iss = iss;
+	dns_diff_init(iss->mctx, &iss->diff);
+
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL) {
+		dns_db_attach(zone->db, &iss->db);
+	} else {
+		result = ISC_R_FAILURE;
 	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+
+	if (zone->raw != NULL) {
+		dns_zone_attach(zone->raw, &iss->raw);
+	} else {
+		result = ISC_R_FAILURE;
+	}
+
+	UNLOCK_ZONE(zone);
+
+	CHECK(result);
+	CHECK(zone_get_raw_serial(iss->raw, &end));
+
+	LOCK_ZONE(zone);
+	if (zone->sourceserialset && end == zone->sourceserial) {
+		UNLOCK_ZONE(zone);
+		result = DNS_R_UNCHANGED;
+		goto cleanup;
+	}
+	iss->end = end;
+	UNLOCK_ZONE(zone);
+
+	dns_db_currentversion(iss->db, &iss->oldver);
+	CHECK(dns_db_newversion(iss->db, &iss->newver));
+
+	*endp = end;
+	*issp = iss;
+	return ISC_R_SUCCESS;
+
+cleanup:
+	iss = inline_sync_pop(zone);
+	inline_sync_destroy(&iss);
+	return result;
+}
+
+static void
+zone_clear_inline_sync(dns_zone_t *zone) {
+	zone_inline_sync_t *iss = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	iss = inline_sync_pop(zone);
+	inline_sync_destroy(&iss);
 }
 
 static void
@@ -14485,17 +14561,20 @@ inline_sync_finalize(dns_zone_t *zone, uint32_t newserial, uint32_t desired) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_journal_t *rjournal = NULL;
 	dns_update_log_t log = { update_log_cb, NULL };
+	zone_inline_sync_t *iss = NULL;
 	uint32_t end = 0;
 
 	ENTER;
 
 	LOCK_ZONE(zone);
-	end = zone->rss_end;
+	iss = zone->iss;
+	INSIST(iss != NULL);
+	end = iss->end;
 	UNLOCK_ZONE(zone);
 
 	result = dns_update_signaturesinc(
-		&log, zone, zone->rss_db, zone->rss_oldver, zone->rss_newver,
-		&zone->rss_diff, zone->sigvalidityinterval, &zone->rss_state);
+		&log, zone, iss->db, iss->oldver, iss->newver, &iss->diff,
+		zone->sigvalidityinterval, &iss->state);
 	if (result == DNS_R_CONTINUE) {
 		LOCK_ZONE(zone);
 		zone_schedule_inline_sync(zone, inline_sync_idle);
@@ -14511,13 +14590,13 @@ inline_sync_finalize(dns_zone_t *zone, uint32_t newserial, uint32_t desired) {
 	 * created for it), commence applying raw zone deltas to it so that
 	 * contents of the raw zone and the secure zone are kept in sync.
 	 */
-	if (result != ISC_R_SUCCESS && dns_db_issecure(zone->rss_db)) {
+	if (result != ISC_R_SUCCESS && dns_db_issecure(iss->db)) {
 		goto cleanup;
 	}
 
-	CHECK(dns_journal_open(zone->rss_raw->mctx, zone->rss_raw->journal,
+	CHECK(dns_journal_open(iss->raw->mctx, iss->raw->journal,
 			       DNS_JOURNAL_WRITE, &rjournal));
-	CHECK(zone_journal(zone, &zone->rss_diff, &end, "inline_sync"));
+	CHECK(zone_journal(zone, &iss->diff, &end, "inline_sync"));
 
 	dns_journal_set_sourceserial(rjournal, end);
 	dns_journal_commit(rjournal);
@@ -14537,8 +14616,8 @@ inline_sync_finalize(dns_zone_t *zone, uint32_t newserial, uint32_t desired) {
 	dns__zone_settimer(zone, isc_time_now());
 	UNLOCK_ZONE(zone);
 
-	dns_db_closeversion(zone->rss_db, &zone->rss_oldver, false);
-	dns_db_closeversion(zone->rss_db, &zone->rss_newver, true);
+	dns_db_closeversion(iss->db, &iss->oldver, false);
+	dns_db_closeversion(iss->db, &iss->newver, true);
 
 	if (newserial != 0) {
 		dns_zone_log(zone, ISC_LOG_INFO, "serial %u (unsigned %u)",
@@ -14561,45 +14640,11 @@ inline_sync_run(dns_zone_t *zone) {
 	uint32_t start = 0, end = 0;
 	dns_difftuple_t *tuple = NULL, *soatuple = NULL;
 	uint32_t newserial = 0, desired = 0;
+	zone_inline_sync_t *iss = NULL;
 
 	ENTER;
 
-	LOCK_ZONE(zone);
-
-	/*
-	 * The inline_sync_run() is loop-serialized for the zone.
-	 * Make sure there's no processing currently running.
-	 */
-	INSIST(zone->rss_zone == NULL);
-	zone_iattach(zone, &zone->rss_zone);
-	dns_diff_init(zone->mctx, &zone->rss_diff);
-
-	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	if (zone->db != NULL) {
-		dns_db_attach(zone->db, &zone->rss_db);
-	} else {
-		result = ISC_R_FAILURE;
-	}
-	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
-
-	if (zone->raw != NULL) {
-		dns_zone_attach(zone->raw, &zone->rss_raw);
-	} else {
-		result = ISC_R_FAILURE;
-	}
-
-	UNLOCK_ZONE(zone);
-
-	CHECK(result);
-	CHECK(zone_get_raw_serial(zone->rss_raw, &end));
-	LOCK_ZONE(zone);
-	if (zone->sourceserialset && end == zone->sourceserial) {
-		UNLOCK_ZONE(zone);
-		result = DNS_R_UNCHANGED;
-		goto cleanup;
-	}
-	zone->rss_end = end;
-	UNLOCK_ZONE(zone);
+	CHECK(inline_sync_create(zone, &end, &iss));
 
 	/*
 	 * We first attempt to sync the raw zone to the secure zone by using the
@@ -14610,7 +14655,7 @@ inline_sync_run(dns_zone_t *zone) {
 	 * If that fails, then we'll fall back to a direct comparison between
 	 * raw and secure zones.
 	 */
-	CHECK(dns_journal_open(zone->rss_raw->mctx, zone->rss_raw->journal,
+	CHECK(dns_journal_open(iss->raw->mctx, iss->raw->journal,
 			       DNS_JOURNAL_WRITE, &rjournal));
 
 	result = dns_journal_open(zone->mctx, zone->journal, DNS_JOURNAL_READ,
@@ -14637,15 +14682,12 @@ inline_sync_run(dns_zone_t *zone) {
 		dns_journal_destroy(&sjournal);
 	}
 
-	dns_db_currentversion(zone->rss_db, &zone->rss_oldver);
-	CHECK(dns_db_newversion(zone->rss_db, &zone->rss_newver));
-
 	/*
 	 * Try to apply diffs from the raw zone's journal to the secure zone. If
 	 * that fails, we recover by syncing up the databases directly.
 	 */
-	result = sync_secure_journal(zone, zone->rss_raw, rjournal, start, end,
-				     &soatuple, &zone->rss_diff);
+	result = sync_secure_journal(zone, iss->raw, rjournal, start, end,
+				     &soatuple, &iss->diff);
 	if (result == DNS_R_UNCHANGED) {
 		LOCK_ZONE(zone);
 		zone->sourceserial = end;
@@ -14654,9 +14696,8 @@ inline_sync_run(dns_zone_t *zone) {
 
 		goto cleanup;
 	} else if (result != ISC_R_SUCCESS) {
-		result = sync_secure_db(zone, zone->rss_raw, zone->rss_db,
-					zone->rss_oldver, &soatuple,
-					&zone->rss_diff);
+		result = sync_secure_db(zone, iss->raw, iss->db, iss->oldver,
+					&soatuple, &iss->diff);
 		if (result == DNS_R_UNCHANGED) {
 			LOCK_ZONE(zone);
 			zone->sourceserial = end;
@@ -14668,13 +14709,13 @@ inline_sync_run(dns_zone_t *zone) {
 		CHECK(result);
 	}
 
-	CHECK(dns_diff_apply(&zone->rss_diff, zone->rss_db, zone->rss_newver));
+	CHECK(dns_diff_apply(&iss->diff, iss->db, iss->newver));
 
 	if (soatuple != NULL) {
 		uint32_t oldserial;
 
-		CHECK(dns_db_createsoatuple(zone->rss_db, zone->rss_oldver,
-					    zone->rss_diff.mctx, DNS_DIFFOP_DEL,
+		CHECK(dns_db_createsoatuple(iss->db, iss->oldver,
+					    iss->diff.mctx, DNS_DIFFOP_DEL,
 					    &tuple));
 		oldserial = dns_soa_getserial(&tuple->rdata);
 		newserial = desired = dns_soa_getserial(&soatuple->rdata);
@@ -14685,14 +14726,12 @@ inline_sync_run(dns_zone_t *zone) {
 			}
 			dns_soa_setserial(newserial, &soatuple->rdata);
 		}
-		CHECK(do_one_tuple(&tuple, zone->rss_db, zone->rss_newver,
-				   &zone->rss_diff));
-		CHECK(do_one_tuple(&soatuple, zone->rss_db, zone->rss_newver,
-				   &zone->rss_diff));
+		CHECK(do_one_tuple(&tuple, iss->db, iss->newver, &iss->diff));
+		CHECK(do_one_tuple(&soatuple, iss->db, iss->newver,
+				   &iss->diff));
 	} else {
-		CHECK(update_soa_serial(zone, zone->rss_db, zone->rss_newver,
-					&zone->rss_diff, zone->mctx,
-					zone->updatemethod));
+		CHECK(update_soa_serial(zone, iss->db, iss->newver, &iss->diff,
+					zone->mctx, zone->updatemethod));
 	}
 
 cleanup:
@@ -14735,7 +14774,7 @@ inline_sync_resume(dns_zone_t *zone) {
 	ENTER;
 
 	LOCK_ZONE(zone);
-	INSIST(zone->rss_zone != NULL);
+	INSIST(zone->iss != NULL);
 	UNLOCK_ZONE(zone);
 
 	result = inline_sync_finalize(zone, 0, 0);
