@@ -37,6 +37,12 @@
 #define ISC_ATTR_RETURNS_NONNULL
 #endif
 
+#if HAVE_FUNC_ATTRIBUTE_WARN_UNUSED_RESULT
+#define ISC_ATTR_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#else
+#define ISC_ATTR_WARN_UNUSED_RESULT
+#endif
+
 #ifdef HAVE_FUNC_ATTRIBUTE_MALLOC
 /*
  * Indicates that a function is malloc-like, i.e., that the
