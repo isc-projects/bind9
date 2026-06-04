@@ -184,15 +184,17 @@ struct ns_client {
 		int16_t	       ednsversion; /* -1 noedns */
 		uint16_t       additionaldepth;
 		void (*cleanup)(ns_client_t *);
-		isc_time_t    requesttime;
-		isc_stdtime_t now;
-		isc_time_t    tnow;
-		dns_name_t    signername; /*%< [T]SIG key name */
-		dns_name_t   *signer;	  /*%< NULL if not valid sig */
-		isc_result_t  sigresult;
-		isc_result_t  viewmatchresult;
-		isc_buffer_t *buffer;
-		isc_buffer_t  tbuffer;
+		isc_time_t     requesttime;
+		isc_stdtime_t  now;
+		isc_time_t     tnow;
+		dns_name_t     signername; /*%< [T]SIG key name */
+		dns_name_t    *signer;	   /*%< NULL if not valid sig */
+		isc_result_t   sigresult;
+		isc_result_t   viewmatchresult;
+		isc_buffer_t  *buffer;
+		isc_buffer_t   tbuffer;
+		unsigned char *reqbuf; /*%< request copy for async path */
+		size_t	       reqbuf_size;
 
 		dns_name_t rad; /* Zone rad domain */
 

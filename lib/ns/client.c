@@ -1722,6 +1722,16 @@ ns__client_reset_cb(void *client0) {
 		client_put_tcp_buffer(client);
 	}
 
+	if (client->inner.reqbuf != NULL) {
+		isc_mem_put(client->manager->mctx, client->inner.reqbuf,
+			    client->inner.reqbuf_size);
+		client->inner.reqbuf_size = 0;
+	}
+
+	if (client->inner.buffer != NULL) {
+		isc_buffer_initnull(client->inner.buffer);
+	}
+
 	if (client->inner.keytag != NULL) {
 		isc_mem_put(client->manager->mctx, client->inner.keytag,
 			    client->inner.keytag_len);
@@ -2162,6 +2172,29 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	result = ns_client_setup_view(client, &netaddr);
 	if (result == DNS_R_WAIT) {
+#ifdef HAVE_DNSTAP
+		/*
+		 * The request is finished asynchronously, but the receive
+		 * buffer is only valid during this callback; copy it so it
+		 * survives the asynchronous hop for dnstap logging.
+		 */
+		isc_region_t r;
+		INSIST(client->inner.reqbuf == NULL);
+		isc_buffer_usedregion(client->inner.buffer, &r);
+		if (r.length != 0) {
+			client->inner.reqbuf =
+				isc_mem_get(client->manager->mctx, r.length);
+			client->inner.reqbuf_size = r.length;
+			memmove(client->inner.reqbuf, r.base, r.length);
+			isc_buffer_init(&client->inner.tbuffer,
+					client->inner.reqbuf, r.length);
+			isc_buffer_add(&client->inner.tbuffer, r.length);
+			client->inner.buffer = &client->inner.tbuffer;
+		}
+#else
+		isc_buffer_initnull(client->inner.buffer);
+#endif /* #ifdef HAVE_DNSTAP */
+
 		return;
 	}
 
