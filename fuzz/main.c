@@ -127,7 +127,8 @@ main(int argc, char **argv) {
 	}
 
 	target = (target != NULL) ? target + 1 : argv[0];
-	tail = isc_string_stripprefix(target, "lt-");
+	/* The binaries are named fuzz_<name>, the corpora are <name>.in. */
+	tail = isc_string_stripprefix(target, "fuzz_");
 	if (tail != NULL) {
 		target = tail;
 	}
