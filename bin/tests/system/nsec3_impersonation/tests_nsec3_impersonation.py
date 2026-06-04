@@ -26,6 +26,7 @@ import dns.rdatatype
 import pytest
 
 import isctest
+import isctest.mark
 
 APEX_HASH = "1B40241KFORIOG780N4IKSCRLVETPCTQ"
 ATTACKER = f"{APEX_HASH.lower()}.tld.test."
@@ -33,12 +34,15 @@ VICTIM = "victim.tld.test."
 AUTH = "10.53.0.1"
 RESOLVER = "10.53.0.2"
 
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "ans*/ans.run",
-        "keys.json",
-    ]
-)
+pytestmark = [
+    isctest.mark.with_ecdsa_deterministic,
+    pytest.mark.extra_artifacts(
+        [
+            "ans*/ans.run",
+            "ans*/keys.json",
+        ]
+    ),
+]
 
 
 def _make_key(zone):
@@ -65,13 +69,13 @@ def bootstrap():
     zones = ["tld.test.", ATTACKER]
     keys = {zone: _make_key(zone) for zone in zones}
 
-    Path("keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
+    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
 
     tld_dnskey = "".join(keys["tld.test."]["dnskey"].split()[3:])
     return {"TLD_DNSKEY": tld_dnskey}
 
 
-def _check_direct_dnskey_response(zone):
+def check_dnskey_response(zone):
     query = isctest.query.create(zone, "DNSKEY")
     response = isctest.query.tcp(query, AUTH)
 
@@ -88,7 +92,7 @@ def _check_direct_dnskey_response(zone):
     ), response
 
 
-def _check_direct_ds_response(zone):
+def check_ds_response(zone):
     query = isctest.query.create(zone, "DS")
     response = isctest.query.tcp(query, AUTH)
 
@@ -105,10 +109,10 @@ def _check_direct_ds_response(zone):
     ), response
 
 
-def test_repro_5874_direct_forged_nsec3_response_has_child_signer():
-    _check_direct_dnskey_response("tld.test.")
-    _check_direct_dnskey_response(ATTACKER)
-    _check_direct_ds_response(ATTACKER)
+def test_attack_responses():
+    check_dnskey_response("tld.test.")
+    check_dnskey_response(ATTACKER)
+    check_ds_response(ATTACKER)
 
     query = isctest.query.create(VICTIM, "A")
     response = isctest.query.tcp(query, AUTH)
@@ -136,9 +140,13 @@ def test_repro_5874_direct_forged_nsec3_response_has_child_signer():
     assert rrsig[0].signer == dns.name.from_text(ATTACKER)
 
 
-def test_repro_5874_resolver_rejects_child_signed_nsec3_parent_proof():
+def test_nsec3_impersonation():
+    """
+    Reproducer for #5874:
+    F-006 DNSSEC Validation Bypass NSEC3 Apex Hash Label Parent Impersonation
+    """
     query = isctest.query.create(VICTIM, "A")
     response = isctest.query.tcp(query, RESOLVER)
 
-    isctest.check.servfail(response)
     isctest.check.noadflag(response)
+    isctest.check.servfail(response)
