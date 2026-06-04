@@ -492,6 +492,11 @@ AC_COMPILE_IFELSE(
 AX_GCC_FUNC_ATTRIBUTE([returns_nonnull])
 
 #
+# check for GCC returns_nonnull attribute
+#
+AX_GCC_FUNC_ATTRIBUTE([warn_unused_result])
+
+#
 # how to link math functions?
 #
 AC_SEARCH_LIBS([sqrt],[m])
