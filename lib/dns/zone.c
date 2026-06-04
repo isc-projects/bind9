@@ -274,7 +274,7 @@ zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void
 zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void
-zone_schedule_inline_sync(dns_zone_t *zone, inline_sync_state_t state);
+zone_schedule_inline_sync(dns_zone_t *zone, inline_sync_phase_t state);
 static void
 refresh_callback(void *arg);
 static void
@@ -322,11 +322,11 @@ static void
 zone_maintenance(dns_zone_t *zone);
 
 static void
-receive_secure_serial_start(dns_zone_t *zone);
+inline_sync_run(dns_zone_t *zone);
 static void
-receive_secure_serial_continue(dns_zone_t *zone);
+inline_sync_resume(dns_zone_t *zone);
 static void
-receive_secure_serial_cancel(dns_zone_t *zone);
+zone_clear_inline_sync(dns_zone_t *zone);
 static void
 inline_secure_bootstrap(dns_zone_t *zone);
 static isc_result_t
@@ -1465,7 +1465,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 
 	result = zone_postload(zone, db, loadtime, result);
 	if (hasraw && result == ISC_R_SUCCESS) {
-		zone_schedule_inline_sync(zone, inline_sync_pull_pending);
+		zone_schedule_inline_sync(zone, inline_sync_incremental);
 	}
 
 cleanup:
@@ -4456,7 +4456,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					       DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
 		if (dns__zone_inline_raw(zone)) {
 			zone_schedule_inline_sync(zone->secure,
-						  inline_sync_pull_pending);
+						  inline_sync_incremental);
 		}
 	}
 
@@ -9874,8 +9874,8 @@ zone_inline_sync_action(dns_zone_t *zone) {
 		return inline_sync_none;
 	}
 
-	if (zone->inline_sync_state == inline_sync_full_pending) {
-		zone->inline_sync_state = inline_sync_idle;
+	if (zone->inline_sync_phase == inline_sync_full) {
+		zone->inline_sync_phase = inline_sync_idle;
 		/*
 		 * A full rebuild replaces any parked incremental sync state;
 		 * zone_maintenance() cancels rss_* before bootstrapping.
@@ -9887,21 +9887,21 @@ zone_inline_sync_action(dns_zone_t *zone) {
 		return inline_sync_incremental_continue;
 	}
 
-	if (zone->inline_sync_state == inline_sync_pull_pending) {
+	if (zone->inline_sync_phase == inline_sync_incremental) {
 		/*
-		 * A pull request is a one-shot raw-to-secure request.  Parked
-		 * incremental syncs are continued before this request is
+		 * An incremental sync is a one-shot raw-to-secure request.
+		 * Parked incremental syncs are continued before this request is
 		 * consumed, so raw updates that arrive during signing are not
 		 * collapsed into continuation wakes.
 		 */
-		zone->inline_sync_state = inline_sync_idle;
+		zone->inline_sync_phase = inline_sync_idle;
 		if (zone->db == NULL) {
 			return inline_sync_bootstrap;
 		}
 		return inline_sync_incremental_start;
 	}
 
-	INSIST(zone->inline_sync_state == inline_sync_idle);
+	INSIST(zone->inline_sync_phase == inline_sync_idle);
 	return inline_sync_none;
 }
 
@@ -9910,8 +9910,8 @@ zone_inline_sync_pending(dns_zone_t *zone) {
 	REQUIRE(LOCKED_ZONE(zone));
 
 	return zone->rss_zone != NULL ||
-	       zone->inline_sync_state == inline_sync_pull_pending ||
-	       zone->inline_sync_state == inline_sync_full_pending;
+	       zone->inline_sync_phase == inline_sync_incremental ||
+	       zone->inline_sync_phase == inline_sync_full;
 }
 
 static void
@@ -10083,14 +10083,14 @@ zone_maintenance(dns_zone_t *zone) {
 
 	switch (inline_sync) {
 	case inline_sync_bootstrap:
-		receive_secure_serial_cancel(zone);
+		zone_clear_inline_sync(zone);
 		inline_secure_bootstrap(zone);
 		break;
 	case inline_sync_incremental_start:
-		receive_secure_serial_start(zone);
+		inline_sync_run(zone);
 		break;
 	case inline_sync_incremental_continue:
-		receive_secure_serial_continue(zone);
+		inline_sync_resume(zone);
 		break;
 	case inline_sync_none:
 		break;
@@ -10209,7 +10209,7 @@ again:
 			}
 
 			zone_schedule_inline_sync(secure,
-						  inline_sync_pull_pending);
+						  inline_sync_incremental);
 		}
 
 		/* XXXMPA make separate call back */
@@ -13127,7 +13127,7 @@ zone_shutdown(void *arg) {
 	/* Detach the zone configuration pointer */
 	dns_zone_setcfg(zone, NULL);
 
-	receive_secure_serial_cancel(zone);
+	zone_clear_inline_sync(zone);
 
 	LOCK_ZONE(zone);
 	INSIST(zone != zone->raw);
@@ -14382,7 +14382,7 @@ zone_get_raw_serial(dns_zone_t *raw, uint32_t *serialp) {
 }
 
 static void
-receive_secure_serial_cancel(dns_zone_t *zone) {
+zone_clear_inline_sync(dns_zone_t *zone) {
 	dns_zone_t *rss_zone = NULL;
 	dns_zone_t *rss_raw = NULL;
 	dns_db_t *rss_db = NULL;
@@ -14399,8 +14399,8 @@ receive_secure_serial_cancel(dns_zone_t *zone) {
 	}
 
 	/*
-	 * receive_secure_serial() is only called from zone maintenance, so
-	 * rss_* state can only be parked between maintenance passes here.
+	 * inline_sync_run() is only called from zone maintenance, so rss_*
+	 * state can only be parked between maintenance passes here.
 	 */
 	rss_zone = MOVE_OWNERSHIP(zone->rss_zone);
 	rss_raw = MOVE_OWNERSHIP(zone->rss_raw);
@@ -14462,7 +14462,7 @@ inline_secure_bootstrap(dns_zone_t *zone) {
 
 	zone->sourceserial = end;
 	zone->sourceserialset = true;
-	zone->inline_sync_state = inline_sync_idle;
+	zone->inline_sync_phase = inline_sync_idle;
 	zone_needdump(zone, 0);
 
 cleanup:
@@ -14481,8 +14481,7 @@ cleanup:
 }
 
 static isc_result_t
-receive_secure_serial_finish(dns_zone_t *zone, uint32_t newserial,
-			     uint32_t desired) {
+inline_sync_finalize(dns_zone_t *zone, uint32_t newserial, uint32_t desired) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_journal_t *rjournal = NULL;
 	dns_update_log_t log = { update_log_cb, NULL };
@@ -14518,8 +14517,7 @@ receive_secure_serial_finish(dns_zone_t *zone, uint32_t newserial,
 
 	CHECK(dns_journal_open(zone->rss_raw->mctx, zone->rss_raw->journal,
 			       DNS_JOURNAL_WRITE, &rjournal));
-	CHECK(zone_journal(zone, &zone->rss_diff, &end,
-			   "receive_secure_serial"));
+	CHECK(zone_journal(zone, &zone->rss_diff, &end, "inline_sync"));
 
 	dns_journal_set_sourceserial(rjournal, end);
 	dns_journal_commit(rjournal);
@@ -14556,7 +14554,7 @@ cleanup:
 }
 
 static void
-receive_secure_serial_start(dns_zone_t *zone) {
+inline_sync_run(dns_zone_t *zone) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_journal_t *rjournal = NULL;
 	dns_journal_t *sjournal = NULL;
@@ -14569,7 +14567,7 @@ receive_secure_serial_start(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 
 	/*
-	 * The receive_secure_serial_start() is loop-serialized for the zone.
+	 * The inline_sync_run() is loop-serialized for the zone.
 	 * Make sure there's no processing currently running.
 	 */
 	INSIST(zone->rss_zone == NULL);
@@ -14711,10 +14709,10 @@ cleanup:
 		dns_difftuple_free(&soatuple);
 	}
 	if (result == ISC_R_SUCCESS) {
-		result = receive_secure_serial_finish(zone, newserial, desired);
+		result = inline_sync_finalize(zone, newserial, desired);
 	}
 	if (result != DNS_R_CONTINUE) {
-		receive_secure_serial_cancel(zone);
+		zone_clear_inline_sync(zone);
 		/*
 		 * In the pull model, DNS_R_UNCHANGED and DNS_R_NOTLOADED are
 		 * idle results.  Treating them like errors here would reset the
@@ -14724,15 +14722,14 @@ cleanup:
 		if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED &&
 		    result != DNS_R_NOTLOADED)
 		{
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "receive_secure_serial: %s",
+			dns_zone_log(zone, ISC_LOG_ERROR, "inline_sync: %s",
 				     isc_result_totext(result));
 		}
 	}
 }
 
 static void
-receive_secure_serial_continue(dns_zone_t *zone) {
+inline_sync_resume(dns_zone_t *zone) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	ENTER;
@@ -14741,31 +14738,30 @@ receive_secure_serial_continue(dns_zone_t *zone) {
 	INSIST(zone->rss_zone != NULL);
 	UNLOCK_ZONE(zone);
 
-	result = receive_secure_serial_finish(zone, 0, 0);
+	result = inline_sync_finalize(zone, 0, 0);
 	if (result != DNS_R_CONTINUE) {
-		receive_secure_serial_cancel(zone);
+		zone_clear_inline_sync(zone);
 		if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED &&
 		    result != DNS_R_NOTLOADED)
 		{
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "receive_secure_serial: %s",
+			dns_zone_log(zone, ISC_LOG_ERROR, "inline_sync: %s",
 				     isc_result_totext(result));
 		}
 	}
 }
 
-STATIC_ASSERT(inline_sync_idle < inline_sync_pull_pending &&
-		      inline_sync_pull_pending < inline_sync_full_pending,
+STATIC_ASSERT(inline_sync_idle < inline_sync_incremental &&
+		      inline_sync_incremental < inline_sync_full,
 	      "inline sync states must be ordered by priority");
 
 static void
-zone_schedule_inline_sync(dns_zone_t *zone, inline_sync_state_t state) {
+zone_schedule_inline_sync(dns_zone_t *zone, inline_sync_phase_t state) {
 	INSIST(LOCKED_ZONE(zone));
 	INSIST(dns__zone_inline_secure(zone));
-	INSIST(state == inline_sync_idle || state == inline_sync_pull_pending ||
-	       state == inline_sync_full_pending);
+	INSIST(state == inline_sync_idle || state == inline_sync_incremental ||
+	       state == inline_sync_full);
 
-	zone->inline_sync_state = ISC_MAX(zone->inline_sync_state, state);
+	zone->inline_sync_phase = ISC_MAX(zone->inline_sync_phase, state);
 	dns__zone_settimer(zone, isc_time_now());
 }
 
@@ -15290,7 +15286,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 		    dns__zone_inline_raw(zone))
 		{
 			zone_schedule_inline_sync(zone->secure,
-						  inline_sync_pull_pending);
+						  inline_sync_incremental);
 		}
 	} else {
 	fallback:
@@ -15346,7 +15342,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 
 		if (dns__zone_inline_raw(zone)) {
 			zone_schedule_inline_sync(zone->secure,
-						  inline_sync_full_pending);
+						  inline_sync_full);
 		}
 	}
 
@@ -15548,7 +15544,7 @@ again:
 				      serial, buf);
 			if (dns__zone_inline_raw(zone)) {
 				zone_schedule_inline_sync(
-					secure, inline_sync_pull_pending);
+					secure, inline_sync_incremental);
 			}
 		}
 
@@ -15749,7 +15745,7 @@ again:
 	}
 	postload_result = zone_postload(zone, load->db, load->loadtime, result);
 	if (postload_result == ISC_R_SUCCESS && dns__zone_inline_secure(zone)) {
-		zone_schedule_inline_sync(zone, inline_sync_pull_pending);
+		zone_schedule_inline_sync(zone, inline_sync_incremental);
 	}
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADING);
 	zone_idetach(&load->callbacks.zone);
@@ -19648,7 +19644,7 @@ again:
 	}
 	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
 	if (result == ISC_R_SUCCESS && dns__zone_inline_secure(zone)) {
-		zone_schedule_inline_sync(zone, inline_sync_pull_pending);
+		zone_schedule_inline_sync(zone, inline_sync_incremental);
 	}
 	if (secure != NULL) {
 		UNLOCK_ZONE(secure);

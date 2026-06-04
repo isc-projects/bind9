@@ -191,11 +191,11 @@ typedef struct dns_include dns_include_t;
  * Pending inline-signing sync request for the secure zone.  Active
  * incremental signing continuation state is owned separately by rss_* fields.
  */
-typedef enum inline_sync_state {
-	inline_sync_idle = 0,	      /*%< No inline sync request is queued. */
-	inline_sync_pull_pending = 1, /*%< Incremental pull wake is queued. */
-	inline_sync_full_pending = 2, /*%< Full rebuild wake is queued. */
-} inline_sync_state_t;
+typedef enum inline_sync_phase {
+	inline_sync_idle = 0,	     /*%< No inline sync request is queued. */
+	inline_sync_incremental = 1, /*%< Incremental sync is queued. */
+	inline_sync_full = 2,	     /*%< Full rebuild is queued. */
+} inline_sync_phase_t;
 
 /*%
  * Hold checkds state.
@@ -585,7 +585,7 @@ struct dns_zone {
 	/*
 	 * Inline zone signing state.
 	 */
-	inline_sync_state_t inline_sync_state;
+	inline_sync_phase_t inline_sync_phase;
 	dns_diff_t rss_diff;
 	dns_dbversion_t *rss_newver;
 	dns_dbversion_t *rss_oldver;
