@@ -384,6 +384,10 @@ AC_COMPILE_IFELSE(
 AX_GCC_FUNC_ATTRIBUTE([returns_nonnull])
 
 #
+# check for GCC returns_nonnull attribute
+#
+AX_GCC_FUNC_ATTRIBUTE([warn_unused_result])
+
 # GeoIP support?
 #
 # Should be on by default if libmaxminddb exists.
