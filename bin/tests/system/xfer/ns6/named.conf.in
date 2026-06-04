@@ -83,3 +83,12 @@ zone "ixfr-too-big" {
 	primaries { 10.53.0.1; };
 	file "ixfr-too-big.bk";
 };
+
+# GL#6004
+zone "private-dns-overrun" {
+	type secondary;
+	primaries { 10.53.0.9; };
+	file "private-dns-overrun.bk";
+	masterfile-format text; # force bug to be exercised
+	request-ixfr no; # ans9 supports only axfr
+};

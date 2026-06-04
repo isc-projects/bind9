@@ -622,5 +622,21 @@ if [ $tmp -eq 0 ]; then
 fi
 status=$((status + tmp))
 
+# def test_malformed_private_dns_identifier_overrun(ns6):
+#    isctest.log.info(
+#        "Check that a malformed PRIVATEDNS DNSKEY which overruns the record is rejected"
+#    )
+#    with ns6.watch_log_from_start(timeout=60) as watcher_transfer_completed:
+#        watcher_transfer_completed.wait_for_line(
+#            "zone private-dns-overrun/IN: zone transfer finished: unexpected end of input"
+#        )
+n=$((n + 1))
+echo_i "Check that a malformed PRIVATEDNS DNSKEY which overruns the record is rejected ($n)"
+tmp=0
+nextpartreset ns6/named.run
+retry 60 wait_for_message "zone private-dns-overrun/IN: zone transfer finished: unexpected end of input" || tmp=1
+if test $tmp != 0; then echo_i "failed"; fi
+status=$((status + tmp))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
