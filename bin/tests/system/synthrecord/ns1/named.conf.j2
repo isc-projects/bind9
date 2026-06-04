@@ -1,4 +1,5 @@
 {% set inview = inview | default(False) %}
+{% set toolongprefix = toolongprefix | default(False) %}
 
 options {
 	query-source address 10.53.0.1;
@@ -56,7 +57,11 @@ zone "0.53.10.in-addr.arpa." {
 	type primary;
 	file "0.53.10.in-addr.arpa.db";
 	plugin query "@TOP_BUILDDIR@/synthrecord" {
+{% if toolongprefix %}
+		prefix "waytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefixwaytoolongprefix";
+{% else %}
 		prefix "dynamic-";
+{% endif %}
 		allow-synth {
 			10.53.0.0/24;
 		};

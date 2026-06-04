@@ -508,3 +508,18 @@ def test_synthrecord_inview(ns1, templates):
         cmd = ns1.rndc("reconfig", raise_on_exception=False)
         assert cmd.rc != 0
         watcher.wait_for_line("'synthrecord' must be configured as a zone plugin")
+
+
+def test_synthrecord_toolongprefix(ns1, templates):
+    templates.render("ns1/named.conf", {"toolongprefix": True})
+    with ns1.watch_log_from_here() as watcher:
+        ns1.rndc("reconfig")
+        watcher.wait_for_line("running")
+    ip = IPv4Address("10.53.0.8")
+    with ns1.watch_log_from_here() as watcher:
+        query = dns.message.make_query(ip.reverse_pointer, "PTR")
+        res = isctest.query.udp(query, SERVER)
+        assert res.rcode() == dns.rcode.NXDOMAIN
+        watcher.wait_for_line(
+            "synthrecord cannot create reverse answer name: ran out of space"
+        )
