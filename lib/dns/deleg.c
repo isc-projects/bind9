@@ -119,10 +119,16 @@ struct delegdb_node {
 	/*
 	 * Immutable node data
 	 */
-	size_t size;
-	dns_name_t zonecut;
 	dns_delegset_t *delegset;
+
+	dns_name_t zonecut;
+	uint8_t zonecut_buffer[];
 };
+
+static size_t
+delegdb_node_size(const delegdb_node_t *node) {
+	return sizeof(*node) + node->zonecut.length;
+}
 
 static void
 delegdb_node_destroy(delegdb_node_t *node) {
@@ -133,10 +139,9 @@ delegdb_node_destroy(delegdb_node_t *node) {
 
 	node->magic = 0;
 
-	dns_name_free(&node->zonecut, qplru->mctx);
 	dns_delegset_detach(&node->delegset);
 
-	isc_mem_put(qplru->mctx, node, sizeof(*node));
+	isc_mem_put(qplru->mctx, node, delegdb_node_size(node));
 
 	qplru_detach(&qplru);
 }
@@ -450,6 +455,9 @@ dns_delegset_addns(dns_delegset_t *delegset, dns_deleg_t *deleg,
 	addname(delegset, &deleg->names, name);
 }
 
+static size_t
+delegset_size(dns_delegset_t *delegset);
+
 static void
 delegdb_cleanup(dns_delegdb_t *delegdb, dns_qp_t *qp, size_t requested) {
 	delegdb_node_t *node = NULL;
@@ -467,7 +475,8 @@ delegdb_cleanup(dns_delegdb_t *delegdb, dns_qp_t *qp, size_t requested) {
 		if (node == NULL) {
 			break;
 		}
-		reclaimed += node->size;
+		reclaimed += delegdb_node_size(node) +
+			     delegset_size(node->delegset);
 
 		if (LIBDNS_DELEGDB_EVICT_ENABLED()) {
 			char namebuf[DNS_NAME_FORMATSIZE];
@@ -508,17 +517,6 @@ delegset_size(dns_delegset_t *delegset) {
 }
 
 static size_t
-delegdb_node_size(const dns_name_t *zonecut, dns_delegset_t *delegset) {
-	size_t sz = 0;
-
-	sz += sizeof(delegdb_node_t);
-	sz += dns_name_size(zonecut);
-	sz += delegset_size(delegset);
-
-	return sz;
-}
-
-static size_t
 delegdb_node_prepare(qplru_t *qplru, isc_stdtime_t now, dns_ttl_t ttl,
 		     const dns_name_t *zonecut, dns_delegset_t *delegset,
 		     delegdb_node_t **nodep) {
@@ -527,21 +525,28 @@ delegdb_node_prepare(qplru_t *qplru, isc_stdtime_t now, dns_ttl_t ttl,
 	}
 	delegset->expires = ttl + now;
 
-	*nodep = isc_mem_get(qplru->mctx, sizeof(**nodep));
-	**nodep = (delegdb_node_t){
+	isc_region_t zonecut_r = { 0 };
+	dns_name_toregion(zonecut, &zonecut_r);
+
+	delegdb_node_t *node = isc_mem_get(qplru->mctx,
+					   sizeof(*node) + zonecut_r.length);
+	*node = (delegdb_node_t){
 		.magic = DELEGDB_NODE_MAGIC,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
-		.zonecut = DNS_NAME_INITEMPTY,
 		.link = ISC_LINK_INITIALIZER,
 		.deadlink = ISC_LINK_INITIALIZER,
-		.size = delegdb_node_size(zonecut, delegset),
+		.zonecut = DNS_NAME_INITEMPTY,
 		.qplru = qplru_ref(qplru),
 	};
+	dns_delegset_attach(delegset, &node->delegset);
 
-	dns_delegset_attach(delegset, &(*nodep)->delegset);
-	dns_name_dup(zonecut, qplru->mctx, &(*nodep)->zonecut);
+	memmove(node->zonecut_buffer, zonecut_r.base, zonecut_r.length);
+	zonecut_r.base = node->zonecut_buffer;
+	dns_name_fromregion(&node->zonecut, &zonecut_r);
 
-	return sizeof(**nodep) + (*nodep)->size;
+	*nodep = node;
+
+	return delegdb_node_size(node);
 }
 
 isc_result_t
@@ -594,7 +599,8 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	 * initialize a new node.
 	 */
 	size_t requested = delegdb_node_prepare(delegdb->qplru, now, ttl,
-						zonecut, delegset, &node);
+						zonecut, delegset, &node) +
+			   delegset_size(delegset);
 
 	/*
 	 * Add the node in the DB
