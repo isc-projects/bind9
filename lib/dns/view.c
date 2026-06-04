@@ -424,10 +424,6 @@ shutdown_view(dns_view_t *view) {
 		dns_resolver_shutdown(view->resolver);
 	}
 
-	if (view->deleg != NULL) {
-		dns_delegdb_shutdown(view->deleg);
-	}
-
 	rcu_read_lock();
 	adb = rcu_dereference(view->adb);
 	if (adb != NULL) {

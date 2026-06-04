@@ -37,8 +37,10 @@ isc_stdtime_now(void) {
 
 #include <isc/lib.h>
 #include <isc/list.h>
+#include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/stdtime.h>
+#include <isc/urcu.h>
 
 #include <dns/deleg.h>
 #include <dns/fixedname.h>
@@ -68,7 +70,6 @@ shutdownloop(ISC_ATTR_UNUSED void *arg) {
 
 static void
 shutdowntest(dns_delegdb_t **dbp) {
-	dns_delegdb_shutdown(*dbp);
 	dns_delegdb_detach(dbp);
 	shutdownloop(NULL);
 }
@@ -574,90 +575,13 @@ deletetests(ISC_ATTR_UNUSED void *arg) {
 	shutdowntest(&db);
 }
 
-/*
- * The cleanup test is split into phases because node destruction is now
- * fully deferred to the node's owning loop via isc_async_run().  After
- * rcu_barrier() completes, the QP reclamation has fired (calling
- * delegdb_node_destroy which schedules the async callback), but the
- * actual memory free hasn't happened yet — it's pending on the loop's
- * event queue.  We must return to the loop between phases so it can
- * process the pending node destroys before we check memory usage.
- */
-typedef struct {
-	dns_delegdb_t *db;
-	isc_stdtime_t now;
-} cleanup_ctx_t;
-
-static void
-cleanuptests_phase3(void *arg) {
-	cleanup_ctx_t *ctx = arg;
-	dns_delegdb_t *db = ctx->db;
-	isc_stdtime_t now = ctx->now;
-	dns_delegset_t *delegset = NULL;
-	isc_result_t result;
-
-	assert_int_in_range(isc_mem_inuse(db->mctx), ENTRIES_MEM(2 * NENTRIES),
-			    ENTRIES_MEM(2 * NENTRIES) + 100000);
-
-	/*
-	 * baz. is there, but bar. is gone, as it has been
-	 * removed (even if it wasn't expired.)
-	 */
-	result = lookupdb(db, "baz.", now, 0, "baz.", &delegset);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_delegset_detach(&delegset);
-
-	result = lookupdb(db, "bar.", now, 0, "bar.", &delegset);
-	assert_int_equal(result, ISC_R_NOTFOUND);
-
-	shutdowntest(&db);
-}
-
-static void
-cleanuptests_phase2(void *arg) {
-	cleanup_ctx_t *ctx = arg;
-	dns_delegdb_t *db = ctx->db;
-	isc_stdtime_t now = ctx->now;
-	dns_deleg_t *deleg = NULL;
-	dns_delegset_t *delegset = NULL;
-	isc_result_t result;
-
-	assert_int_in_range(isc_mem_inuse(db->mctx), ENTRIES_MEM(NENTRIES),
-			    ENTRIES_MEM(NENTRIES) + 100000);
-
-	/*
-	 * bar. is there
-	 */
-	result = lookupdb(db, "bar.", now, 0, "bar.", &delegset);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_delegset_detach(&delegset);
-
-	/*
-	 * Add yet another non expired record. But LRU will have to get
-	 * rid of it because we're hitting the hiwater mark again.
-	 */
-	dns_delegset_allocset(db, &delegset);
-	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_DELEG_ADDRESSES,
-				&deleg);
-
-	for (size_t i = 0; i < NENTRIES; i++) {
-		addipdeleg(AF_INET6, "1111::2222", delegset, deleg);
-	}
-	assert_int_in_range(isc_mem_inuse(db->mctx), ENTRIES_MEM(2 * NENTRIES),
-			    ENTRIES_MEM(2 * NENTRIES) + 100000);
-	writedb(db, "baz.", 30, &delegset, true);
-	deleg = NULL;
-
-	rcu_barrier();
-	isc_async_run(isc_loop(), cleanuptests_phase3, ctx);
-}
-
 static void
 cleanuptests(ISC_ATTR_UNUSED void *arg) {
-	static cleanup_ctx_t ctx;
 	dns_delegdb_t *db = NULL;
 	dns_deleg_t *deleg = NULL;
 	dns_delegset_t *delegset = NULL;
+	isc_stdtime_t now;
+	isc_result_t result;
 
 	/*
 	 * hiwater is 4375000 = 5000000 - (5000000 >> 3)
@@ -668,7 +592,7 @@ cleanuptests(ISC_ATTR_UNUSED void *arg) {
 	dns_delegdb_create(&db);
 	assert_non_null(db);
 
-	ctx = (cleanup_ctx_t){ .db = db, .now = isc_stdtime_now() };
+	now = isc_stdtime_now();
 
 	dns_delegdb_setconfig(db, &config);
 
@@ -724,14 +648,60 @@ cleanuptests(ISC_ATTR_UNUSED void *arg) {
 	deleg = NULL;
 
 	/*
-	 * stuff. internal node (and delegset) is now removed. rcu_barrier()
-	 * is needed to kick off QP reclamation flow (and run the detaching
-	 * functions from the DB nodes).  The actual memory free is deferred
-	 * to the loop via isc_async_run(), so we continue in phase2 to let
-	 * the loop process the pending node destroys.
+	 * stuff. internal node (and delegset) is now removed.  Node
+	 * destruction runs synchronously inside the QP-trie chunk reclamation,
+	 * so rcu_barrier() is enough: once it returns, the evicted nodes have
+	 * been detached and freed.
 	 */
 	rcu_barrier();
-	isc_async_run(isc_loop(), cleanuptests_phase2, &ctx);
+
+	assert_int_in_range(isc_mem_inuse(db->mctx), ENTRIES_MEM(NENTRIES),
+			    ENTRIES_MEM(NENTRIES) + 100000);
+
+	/*
+	 * bar. is there
+	 */
+	result = lookupdb(db, "bar.", now, 0, "bar.", &delegset);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_delegset_detach(&delegset);
+
+	/*
+	 * Add yet another non expired record. But LRU will have to get
+	 * rid of it because we're hitting the hiwater mark again.
+	 */
+	dns_delegset_allocset(db, &delegset);
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_DELEG_ADDRESSES,
+				&deleg);
+
+	for (size_t i = 0; i < NENTRIES; i++) {
+		addipdeleg(AF_INET6, "1111::2222", delegset, deleg);
+	}
+	assert_int_in_range(isc_mem_inuse(db->mctx), ENTRIES_MEM(2 * NENTRIES),
+			    ENTRIES_MEM(2 * NENTRIES) + 100000);
+	writedb(db, "baz.", 30, &delegset, true);
+	deleg = NULL;
+
+	/*
+	 * Re-adding baz. hit the hiwater mark and evicted bar.; wait for the
+	 * reclamation to free it before checking memory and final state.
+	 */
+	rcu_barrier();
+
+	assert_int_in_range(isc_mem_inuse(db->mctx), ENTRIES_MEM(2 * NENTRIES),
+			    ENTRIES_MEM(2 * NENTRIES) + 100000);
+
+	/*
+	 * baz. is there, but bar. is gone, as it has been
+	 * removed (even if it wasn't expired.)
+	 */
+	result = lookupdb(db, "baz.", now, 0, "baz.", &delegset);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_delegset_detach(&delegset);
+
+	result = lookupdb(db, "bar.", now, 0, "bar.", &delegset);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	shutdowntest(&db);
 }
 
 ISC_RUN_TEST_IMPL(dns_deleg_basictests) { rundelegtest(basictests); }
