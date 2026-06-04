@@ -81,6 +81,7 @@
 #include <dns/zoneproperties.h>
 
 #include "dns/view.h"
+#include "probes-dns.h"
 
 #ifdef WANT_QUERYTRACE
 #define RTRACE(m)                                                       \
@@ -2055,6 +2056,13 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	isc_tlsctx_cache_t *tlsctx_cache = NULL;
 
 	FCTXTRACE("query");
+
+	if (LIBDNS_RESOLVER_QUERY_ENABLED()) {
+		char addrstr[ISC_SOCKADDR_FORMATSIZE];
+		isc_sockaddr_format(&addrinfo->sockaddr, addrstr,
+				    sizeof(addrstr));
+		LIBDNS_RESOLVER_QUERY(fctx, addrstr, addrinfo->srtt);
+	}
 
 	res = fctx->res;
 

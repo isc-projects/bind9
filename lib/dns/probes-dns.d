@@ -38,4 +38,5 @@ provider libdns {
 	probe xfrin_recv_try_axfr(void *, char *, int);
 	probe xfrin_sent(void *, char *, int);
 	probe xfrin_start(void *, char *);
+	probe resolver_query(void *, char *, int);
 };
