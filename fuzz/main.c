@@ -28,9 +28,10 @@
 
 #include <dirent.h>
 
-static void
+static int
 test_one_file(const char *filename) {
 	int fd;
+	int result = 1;
 	struct stat st;
 	char *data;
 	ssize_t n;
@@ -38,7 +39,7 @@ test_one_file(const char *filename) {
 	if ((fd = open(filename, O_RDONLY)) == -1) {
 		fprintf(stderr, "Failed to open %s: %s\n", filename,
 			strerror(errno));
-		return;
+		return 1;
 	}
 
 	if (fstat(fd, &st) != 0) {
@@ -47,13 +48,23 @@ test_one_file(const char *filename) {
 		goto closefd;
 	}
 
-	data = malloc(st.st_size);
+	if (!S_ISREG(st.st_mode)) {
+		fprintf(stderr, "Not a corpus file: %s\n", filename);
+		goto closefd;
+	}
+
+	data = malloc(st.st_size != 0 ? st.st_size : 1);
+	if (data == NULL) {
+		fprintf(stderr, "Failed to allocate input for %s\n", filename);
+		goto closefd;
+	}
 	n = read(fd, data, st.st_size);
 	if (n == st.st_size) {
 		printf("testing %zd bytes from %s\n", n, filename);
 		fflush(stdout);
 		LLVMFuzzerTestOneInput((const uint8_t *)data, n);
 		fflush(stderr);
+		result = 0;
 	} else {
 		if (n < 0) {
 			fprintf(stderr,
@@ -68,16 +79,21 @@ test_one_file(const char *filename) {
 	free(data);
 closefd:
 	close(fd);
+	return result;
 }
 
-static void
+static int
 test_all_from(const char *dirname) {
 	DIR *dirp;
 	struct dirent *dp;
+	size_t tested = 0;
+	int result = 0;
 
 	dirp = opendir(dirname);
 	if (dirp == NULL) {
-		return;
+		fprintf(stderr, "Failed to open corpus %s: %s\n", dirname,
+			strerror(errno));
+		return 1;
 	}
 
 	while ((dp = readdir(dirp)) != NULL) {
@@ -88,10 +104,19 @@ test_all_from(const char *dirname) {
 		}
 		snprintf(filename, sizeof(filename), "%s/%s", dirname,
 			 dp->d_name);
-		test_one_file(filename);
+		if (test_one_file(filename) != 0) {
+			result = 1;
+		} else {
+			tested++;
+		}
 	}
 
 	closedir(dirp);
+	if (tested == 0) {
+		fprintf(stderr, "No corpus inputs tested in %s\n", dirname);
+		return 1;
+	}
+	return result;
 }
 
 int
@@ -115,12 +140,14 @@ main(int argc, char **argv) {
 
 	if (argv[1] != NULL) {
 		while (argv[1] != NULL) {
-			test_one_file(argv[1]);
+			if (test_one_file(argv[1]) != 0) {
+				ret = 1;
+			}
 			argv++;
 			argc--;
 		}
 		POST(argc);
-		return 0;
+		return ret;
 	}
 
 	target = (target != NULL) ? target + 1 : argv[0];
@@ -131,9 +158,7 @@ main(int argc, char **argv) {
 
 	snprintf(corpusdir, sizeof(corpusdir), FUZZDIR "/%s.in", target);
 
-	test_all_from(corpusdir);
-
-	return 0;
+	return test_all_from(corpusdir);
 }
 
 #elif __AFL_COMPILER
