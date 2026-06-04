@@ -20,6 +20,7 @@ from . import (  # pylint: disable=redefined-builtin
     template,
     transfer,
     vars,
+    zone,
 )
 
 # isctest.mark module is intentionally NOT imported, because it relies on
@@ -38,4 +39,5 @@ __all__ = [
     "template",
     "transfer",
     "vars",
+    "zone",
 ]
