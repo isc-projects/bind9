@@ -44,13 +44,13 @@ confidential!
   - [ ] [:link:][step_review_fix]        **(SwEng)** Ensure the merge request with the fix is reviewed and has no outstanding discussions
   - [ ] [:link:][step_review_docs]       **(Support)** Review the documentation changes introduced by the merge request with the fix
   - [ ] [:link:][step_backports]         **(SwEng)** Prepare backports of the merge request addressing the problem for all affected (and still maintained) branches of a given product
+  - [ ] [:link:][step_merge_fixes]       **(SwEng)** Merge the CVE fixes and reproducer when they get approved
   - [ ] [:link:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory
   - [ ] [:link:][step_meta_issue]        **(QA)** Create (or update) the private issue containing links to fixes & reproducers for all CVEs fixed in a given release cycle
   - [ ] [:link:][step_coordinate_check]  **(SwEng)** Make sure other vendors are able to release on the date that was previously agreed upon
 
 ### Earlier Than T-5
 
-  - [ ] [:link:][step_merge_fixes]       **(QA)** Merge the CVE fixes in CVE identifier order
   - [ ] [:link:][step_evn_releases]      **(QA)** Prepare EVN releases (as outlined in the Release Checklist)
 
 ### At T-5
