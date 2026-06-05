@@ -165,7 +165,9 @@ dumpdb(dns_delegdb_t *db, bool expired, const char *expected) {
 	REQUIRE(fp != NULL);
 	REQUIRE(fread(buffer, sizeof(buffer) - 1, 1, fp) == 0);
 
-	assert_string_equal(expected, buffer);
+	if (expected != NULL) {
+		assert_string_equal(expected, buffer);
+	}
 
 	REQUIRE(fclose(fp) == 0);
 	REQUIRE(unlink(filename) == 0);
@@ -704,11 +706,69 @@ cleanuptests(ISC_ATTR_UNUSED void *arg) {
 	shutdowntest(&db);
 }
 
+static void
+longnametests(ISC_ATTR_UNUSED void *arg) {
+	dns_delegdb_t *db = NULL;
+	dns_deleg_t *deleg = NULL;
+	dns_delegset_t *delegset = NULL;
+
+	dns_delegdb_create(&db);
+	assert_non_null(db);
+
+	dns_delegset_allocset(db, &delegset);
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_DELEG_NAMES, &deleg);
+	addnamedeleg("ns."
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037."
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037."
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		     "\037\037\037\037\037.",
+		     delegset, deleg, dns_delegset_addns);
+	writedb(db,
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037."
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037."
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037\037\037\037\037\037\037\037\037\037"
+		"\037\037\037\037\037.",
+		10, &delegset, true);
+
+	/*
+	 * `dns_name_totext()` doesn't seems to apply the master zone escape
+	 * format, so the actual output wouldn't be the same. But the point of
+	 * the test is that we can run the dump code without overflow (with
+	 * address sanatizer enabled).
+	 */
+	dumpdb(db, false, NULL);
+
+	shutdowntest(&db);
+}
+
 ISC_RUN_TEST_IMPL(dns_deleg_basictests) { rundelegtest(basictests); }
 ISC_RUN_TEST_IMPL(dns_deleg_ttl0tests) { rundelegtest(ttl0tests); }
 ISC_RUN_TEST_IMPL(dns_deleg_noexacttests) { rundelegtest(noexacttests); }
 ISC_RUN_TEST_IMPL(dns_deleg_deletetests) { rundelegtest(deletetests); }
 ISC_RUN_TEST_IMPL(dns_deleg_cleanuptests) { rundelegtest(cleanuptests); }
+ISC_RUN_TEST_IMPL(dns_deleg_longnametests) { rundelegtest(longnametests); }
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(dns_deleg_basictests)
@@ -716,6 +776,7 @@ ISC_TEST_ENTRY(dns_deleg_ttl0tests)
 ISC_TEST_ENTRY(dns_deleg_noexacttests)
 ISC_TEST_ENTRY(dns_deleg_deletetests)
 ISC_TEST_ENTRY(dns_deleg_cleanuptests)
+ISC_TEST_ENTRY(dns_deleg_longnametests)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
