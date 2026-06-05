@@ -25,6 +25,8 @@ confidential!
 
 :bulb: **Click [here][checklist_explanations] (internal resource) for general information about the security incident handling process.**
 
+:question: Not sure about something? Ask!
+
 [checklist_explanations]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations
 
 ### Before Code Freeze
